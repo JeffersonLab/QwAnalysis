@@ -3,21 +3,21 @@
 // Date   : Wednesday, August 18 02:45:52 EDT 2010
 //
 //      
-//          This program is used to do BCM calibrations 
+//          This program is used to do HallC BCMs calibration
 //
 //          To compile, 
-//          "make bcm_calib"
+//          "make hallc_bcm_calib"
 //
 //          To run, with default options
 //
-//          ./bcm_calib -r 5070  
+//          ./hallc_bcm_calib -r 5070  
 //
 //          with the fitting range of unser_current([0.15*unser_current, 0.90*unser_current])
 //    
-//          ./bcm_calib -r 5070 -e 15:90
+//          ./hallc_bcm_calib -r 5070 -e 15:90
 //
 //          with the unser beam off offset cutoff ( 300*1e3 )
-//          ./bcm_calib -r 5070 -i 300 
+//          ./hallc_bcm_calib -r 5070 -i 300 
 // 
 //
 //          0.0.1 : Wednesday, August 11 16:07:20 EDT 2010
@@ -150,10 +150,13 @@ BeamMonitor::BeamMonitor(TString in)
 
 };
 
+
 std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
 {
+  TString device_name = device.name;
+
   if(device.filestream_flag) {
-    stream <<  std::setw(14) << device.name;
+    stream <<  std::setw(14) <<  device_name;
     stream << " ";
     stream <<  std::setw(10) << device.offset[0];
     stream << " " ;
@@ -165,7 +168,13 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
     stream << "\n";
   }
   else {
-    stream << " Name : " << device.name;
+
+    if(device.reference_flag) {
+      stream <<  std::setw(14) << "Reference : " <<  std::setw(14) <<  device_name;
+    }
+    else {
+      stream <<  std::setw(14) << " Name : " <<  std::setw(14) <<  device_name;
+    }
     stream << " Offset : "  << std::setw(4) << device.offset[0];
     stream << " +- "     << device.offset[1];
     
@@ -180,7 +189,7 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
     }
   }
   return stream;
-};
+}
 
 
 void print_usage(FILE* stream, int exit_code);
@@ -303,8 +312,8 @@ main(int argc, char **argv)
   }
 
 
-  hallc_bcms_list.push_back(BeamMonitor("cc_sca_bcm1"));
-  hallc_bcms_list.push_back(BeamMonitor("cc_sca_bcm2"));
+  hallc_bcms_list.push_back(BeamMonitor("qwk_sca_bcm1"));
+  hallc_bcms_list.push_back(BeamMonitor("qwk_sca_bcm2"));
   hallc_bcms_list.push_back(BeamMonitor("qwk_bcm1"));
   hallc_bcms_list.push_back(BeamMonitor("qwk_bcm2"));
   hallc_bcms_list.push_back(BeamMonitor("qwk_bcm5"));
@@ -347,7 +356,8 @@ main(int argc, char **argv)
 
   mps_tree -> SetAlias("cc_sca_bcm1",  "clock_correct*qwk_sca_bcm1");
   mps_tree -> SetAlias("cc_sca_bcm2",  "clock_correct*qwk_sca_bcm2");
-
+  hallc_bcms_list.at(0).SetAliasName("cc_sca_bcm1");
+  hallc_bcms_list.at(1).SetAliasName("cc_sca_bcm2");
 
 
   //  mps_tree -> SetAlias("TM_cc_unser",  "cc_sca_unser:event_number"); //  Bad numerical expression  ??
@@ -433,7 +443,10 @@ main(int argc, char **argv)
   Int_t cnt = 0;
   std::cout << "how many bcms at Hall C ? " << hallc_bcms_list.size() << std::endl;
   for (i=0;i < hallc_bcms_list.size(); i++ ) {
-    std::cout << cnt++ << ": onto calibrating " << hallc_bcms_list.at(i).GetName() << std::endl;
+    std::cout << "\n" 
+	      << cnt++ 
+	      << ": onto calibrating " << hallc_bcms_list.at(i).GetName() 
+	      << std::endl;
     Bool_t check = false;
     check = calibrate(hallc_bcms_list.at(i), sca_unser) ; 
     //  if(not check) theApp.Run();
@@ -450,8 +463,13 @@ main(int argc, char **argv)
  
   // // std::cout << "size " << hallc_bcms_list.size() << std::endl;
   for (i=0; i < hallc_bcms_list.size(); i++) {
-    hallc_bcms_list.at(i).SetFileStream();
-    hallc_bcms_pedestal_stream << hallc_bcms_list.at(i);
+
+    // exclude sca_bcm results into an output file.
+
+    if(not hallc_bcms_list.at(i).GetName().Contains("sca")) {
+      hallc_bcms_list.at(i).SetFileStream();
+      hallc_bcms_pedestal_stream << hallc_bcms_list.at(i);
+    }
   } 
   hallc_bcms_pedestal_output << hallc_bcms_pedestal_stream.str();
   std::cout << "\n" << hallc_bcms_pedestal_stream.str() <<std::endl;
@@ -467,7 +485,8 @@ Bool_t
 calibrate(BeamMonitor &device, BeamMonitor &reference)
 {
 
-  //  std::cout << device << std::endl;
+  std::cout << "\n";
+ 
   std::cout << reference << std::endl;
 
   TString plotcommand;
@@ -477,11 +496,11 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
   Bool_t  sca_flag = false;
   Double_t fit_range[2] = {0.0};
   TCut device_cut = "";
-  TH1D* device_hist;
-  TF1* device_fit;
+  TH1D* device_hist = NULL;
+  TF1* device_fit = NULL;
   Int_t w = 600;
   Int_t h = 400;
-  TCanvas *Canvas;
+  TCanvas *Canvas = NULL;
 
   device_name = device.GetName();
   reference_name = reference.GetAliasName();
@@ -498,6 +517,9 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
     device_cut     = Form("%s>0", device_samples.Data());
     device_name    = device_name + ".hw_sum_raw/" + device_samples;
   }
+  else {
+    device_name = device.GetAliasName();
+  }
 
   plotcommand = device_name + ":" +  reference_name;
   
@@ -505,7 +527,7 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
   //  Canvas->Divide(2,1);
   
   //  Canvas -> cd(1);
-  device_hist = GetHisto(mps_tree, plotcommand, device_cut, "profs");
+  device_hist = GetHisto(mps_tree, plotcommand, device_cut, "prof"); // profs : large errors why?
   
   if(not device_hist) {
     std::cout << "Please check  "
@@ -519,20 +541,26 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
   device_hist -> GetXaxis() -> SetTitle(reference_name.Data());
   //  device_hist -> GetYaxis() -> SetTitle(device_name.Data());
   device_hist -> SetTitle(Form("%s vs %s", device_name.Data(), reference_name.Data()));
-  device_hist -> Fit("pol1", "E F R Q", "", fit_range[0], fit_range[1]);
+  device_hist -> GetXaxis() ->SetTitle(Form("%s (#muA)", reference_name.Data()));
+  device_hist -> Fit("pol1", "E M Q", "", fit_range[0], fit_range[1]);
   device_fit = device_hist  -> GetFunction("pol1");
-  device_fit -> SetLineColor(kRed);
+ 
   if(device_fit) {
+    device_fit -> SetLineColor(kRed);
     device.SetPed(device_fit->GetParameter(0));
     device.SetPedErr(device_fit->GetParError(0));
     device.SetSlop(device_fit->GetParameter(1));
     device.SetSlopErr(device_fit->GetParError(1));
   }
   else {
+  
     device.SetPed(-1);
     device.SetPedErr(-1);
     device.SetSlop(-1);
     device.SetSlopErr(-1);
+    Canvas ->Close();
+    delete Canvas; Canvas = NULL;
+    return false;
   }
   gPad->Update();
   // Canvas -> cd(2);
