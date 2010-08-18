@@ -1,4 +1,4 @@
-Monday, August 16 13:01:55 EDT 2010
+/Monday, August 16 13:01:55 EDT 2010
 
 * ou-qweak
 
@@ -139,3 +139,53 @@ Monday, August 16 13:01:55 EDT 2010
   mean               : 563.86
   Sample Deviation   : 1.76617
   Standard Deviation : 1.72145
+
+
+
+
+*** From here, Only changed in GNUMakefile 
+
+
+* -02 with debug -g
+
+  ----------------------------------------------
+  CPU time used: 474.7 s (0.002913 s per event)
+  CPU time used: 474.2 s (0.00291  s per event)
+  CPU time used: 475.8 s (0.00292  s per event)
+  CPU time used: 475.6 s (0.002919 s per event)
+  CPU time used: 477.5 s (0.00293  s per event)
+  CPU time used: 476.4 s (0.002924 s per event)
+  CPU time used: 477.1 s (0.002928 s per event)
+  CPU time used: 478.5 s (0.002937 s per event)
+  CPU time used: 479.5 s (0.002943 s per event)
+  CPU time used: 478.5 s (0.002937 s per event)
+  CPU time used: 476.6 s (0.002925 s per event)
+  CPU time used: 481.4 s (0.002954 s per event)
+  CPU time used: 476.9 s (0.002927 s per event)
+  CPU time used: 481.1 s (0.002953 s per event)
+  CPU time used: 476.7 s (0.002926 s per event)
+  CPU time used: 475.3 s (0.002917 s per event)
+  CPU time used: 473.6 s (0.002906 s per event)
+  CPU time used: 474.1 s (0.00291  s per event)
+  CPU time used: 475.6 s (0.002919 s per event)
+  CPU time used: 473.8 s (0.002908 s per event)
+ ----------------------------------------------
+  Total count        : 20
+  mean : +- [ sample deviation, standard deviation] 
+  mean :   476.65 +- [     2.26,     2.20 ] s
+
+
+  Hmm, interesting....   
+
+  the mean of ou-qweak varies from 470 to 560 approximately,
+  and the deviations are extremely smaller than other 
+  machines' ones.    
+  
+  I don't care this machine is my local one. :-)
+
+* -02 without debug (trunk)
+
+  in progress
+
+* -02 -mtune=prescott with debug -g (trunk2)
+in progress

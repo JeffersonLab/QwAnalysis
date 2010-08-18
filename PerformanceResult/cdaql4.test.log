@@ -123,3 +123,108 @@ cdaql4
   Sample Deviation   : 16.1212
   Standard Deviation : 15.713
 
+
+
+#################################################
+
+  *** -O2  with debug -g
+
+  CPU time used: 488.4 s (0.002997 s per event)
+  CPU time used: 480.7 s (0.00295 s per event)
+  CPU time used: 495.1 s (0.003038 s per event)
+  CPU time used: 488.1 s (0.002996 s per event)
+  CPU time used: 487.9 s (0.002994 s per event)
+  CPU time used: 488.2 s (0.002996 s per event)
+  CPU time used: 488.2 s (0.002996 s per event)
+  CPU time used: 490.1 s (0.003008 s per event)
+  CPU time used: 487.4 s (0.002991 s per event)
+  CPU time used: 487.3 s (0.002991 s per event)
+  Total count        : 10
+  mean : +- [ sample deviation, standard deviation] 
+  mean :   488.14 +- [     3.48,     3.30 ] s
+
+
+ 
+
+  *** -O2  without debug -g
+
+  CPU time used: 478.9 s (0.002939 s per event)
+  CPU time used: 499.4 s (0.003064 s per event)
+  CPU time used: 488.7 s (0.002999 s per event)
+  CPU time used: 486.6 s (0.002986 s per event)
+  CPU time used: 488 s (0.002995 s per event)
+  CPU time used: 486.6 s (0.002986 s per event)
+  CPU time used: 488.3 s (0.002996 s per event)
+  CPU time used: 486.3 s (0.002984 s per event)
+  CPU time used: 484.7 s (0.002974 s per event)
+  CPU time used: 484.8 s (0.002975 s per event)
+  Total count        : 10
+  mean : +- [ sample deviation, standard deviation] 
+  mean :   487.23 +- [     5.11,     4.85 ] s
+
+
+  *** -O2 -mtune=prescott  with debug -g
+  CPU time used: 475.4 s (0.002918 s per event)
+  CPU time used: 487.4 s (0.002991 s per event)
+  CPU time used: 486.4 s (0.002985 s per event)
+  CPU time used: 486.2 s (0.002984 s per event)
+  CPU time used: 489.2 s (0.003002 s per event)
+  CPU time used: 487.6 s (0.002992 s per event)
+  CPU time used: 484.3 s (0.002972 s per event)
+  CPU time used: 489.4 s (0.003003 s per event)
+  CPU time used: 489 s (0.003001 s per event)
+  CPU time used: 485.9 s (0.002982 s per event)
+  Total count        : 10
+  mean : +- [ sample deviation, standard deviation] 
+  mean :   486.08 +- [     4.09,     3.88 ] s
+
+
+ *** -O2 -mtune=prescott  without debug -g
+  CPU time used: 475.8 s (0.00292 s per event)
+  CPU time used: 486.5 s (0.002986 s per event)
+  CPU time used: 487.2 s (0.00299 s per event)
+  CPU time used: 502.1 s (0.003081 s per event)
+  CPU time used: 489.6 s (0.003004 s per event)
+  CPU time used: 484.4 s (0.002973 s per event)
+  CPU time used: 488.8 s (0.002999 s per event)
+  CPU time used: 485.1 s (0.002977 s per event)
+  CPU time used: 486.8 s (0.002988 s per event)
+  CPU time used: 482.6 s (0.002962 s per event)
+  Total count        : 10
+  mean : +- [ sample deviation, standard deviation] 
+  mean :   486.89 +- [     6.61,     6.27 ] s
+
+
+ *** -O2 -g  /GNUMakefile
+     -02     /evio/Makefile no whatever GLibs
+
+  CPU time used: 469.8 s (0.002883 s per event)
+  CPU time used: 467.8 s (0.002871 s per event)
+  CPU time used: 457 s (0.002804 s per event)
+  CPU time used: 466.7 s (0.002864 s per event)
+  CPU time used: 469.2 s (0.002879 s per event)
+  CPU time used: 467.5 s (0.002869 s per event)
+  CPU time used: 468.6 s (0.002875 s per event)
+  CPU time used: 467.2 s (0.002867 s per event)
+  CPU time used: 468.7 s (0.002876 s per event)
+  CPU time used: 466.6 s (0.002863 s per event)
+  Total count        : 10
+  mean : +- [ sample deviation, standard deviation] 
+  mean :   466.91 +- [     3.64,     3.45 ] s
+  
+ *** -O2 /GNUMakefile
+     -02 /evio/Makefile no whatever GLibs
+
+  CPU time used: 455.1 s (0.002793 s per event)
+  CPU time used: 466.6 s (0.002864 s per event)
+  CPU time used: 467.1 s (0.002867 s per event)
+  CPU time used: 469.6 s (0.002882 s per event)
+  CPU time used: 466.5 s (0.002863 s per event)
+  CPU time used: 466.2 s (0.002861 s per event)
+  CPU time used: 465.6 s (0.002858 s per event)
+  CPU time used: 465.7 s (0.002858 s per event)
+  CPU time used: 468 s (0.002872 s per event)
+  CPU time used: 454.8 s (0.002791 s per event)
+  Total count        : 10
+  mean : +- [ sample deviation, standard deviation] 
+  mean :   464.52 +- [     5.18,     4.91 ] s

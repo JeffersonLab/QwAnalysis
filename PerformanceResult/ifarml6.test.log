@@ -86,6 +86,21 @@
   Standard Deviation : 13.112
 
 
+
+
+
+
+
+
+
+
+
+###############################################
+
+ONLY GNUMakefile
+
+
+
 * test with only -02 flags without debug
  ----------------------------------------------
   CPU time used: 285.9 s (0.001754 s per event)
@@ -115,7 +130,177 @@
   Standard Deviation : 20.7901
 
 * test with only -02 flags with debug -g
+  ----------------------------------------------
+  CPU time used: 398.1 s (0.002443 s per event)
+  CPU time used: 396.3 s (0.002432 s per event)
+  CPU time used: 398.8 s (0.002447 s per event)
+  CPU time used: 393 s   (0.002412 s per event)
+  CPU time used: 397.9 s (0.002442 s per event)
+  CPU time used: 463.4 s (0.002844 s per event)
+  CPU time used: 402.7 s (0.002471 s per event)
+  CPU time used: 402.2 s (0.002468 s per event)
+  CPU time used: 428.9 s (0.002632 s per event)
+  CPU time used: 418.4 s (0.002567 s per event)
+  CPU time used: 416.6 s (0.002556 s per event)
+  CPU time used: 429.7 s (0.002637 s per event)
+  CPU time used: 414.3 s (0.002543 s per event)
+  CPU time used: 438.8 s (0.002693 s per event)
+  CPU time used: 398.5 s (0.002446 s per event)
+  CPU time used: 414.6 s (0.002545 s per event)
+  CPU time used: 405.1 s (0.002486 s per event)
+  CPU time used: 416.6 s (0.002557 s per event)
+  CPU time used: 411.9 s (0.002528 s per event)
+  CPU time used: 393 s   (0.002412 s per event)
+ ---------------------------------------------- 
+  Total count        : 20
+  mean               : 411.94
+  Sample Deviation   : 17.7727
+  Standard Deviation : 17.3227
+
+
+* test with -02 -mtune=nocona without debug -g 
+ ----------------------------------------------
+  CPU time used: 260.1 s (0.001596 s per event)
+  CPU time used: 278.2 s (0.001707 s per event)
+  CPU time used: 269.1 s (0.001651 s per event)
+  CPU time used: 265 s   (0.001626 s per event)
+  CPU time used: 277.2 s (0.001701 s per event)
+  CPU time used: 262.2 s (0.001609 s per event)
+  CPU time used: 252.6 s (0.00155  s per event)
+  CPU time used: 261.6 s (0.001606 s per event)
+  CPU time used: 266.7 s (0.001636 s per event)
+  CPU time used: 253.9 s (0.001558 s per event)
+  CPU time used: 237.9 s (0.00146  s per event)
+  CPU time used: 269.7 s (0.001655 s per event)
+  CPU time used: 237 s   (0.001454 s per event)
+  CPU time used: 250.6 s (0.001538 s per event)
+  CPU time used: 237.5 s (0.001457 s per event)
+  CPU time used: 273.1 s (0.001676 s per event)
+  CPU time used: 257.3 s (0.001579 s per event)
+  CPU time used: 255.9 s (0.00157  s per event)
+  CPU time used: 262.1 s (0.001608 s per event)
+  CPU time used: 264.5 s (0.001623 s per event)
+  Total count        : 20
+  mean               : 259.61
+  Sample Deviation   : 12.1452
+  Standard Deviation : 11.8376
+
+* test with -02 -mtune=nocona with debug -g 
+----------------------------------------------
+  CPU time used: 335.5 s (0.002059 s per event)
+  CPU time used: 382 s (0.002344 s per event)
+  CPU time used: 284.2 s (0.001744 s per event)
+  CPU time used: 340.7 s (0.002091 s per event)
+  CPU time used: 371.3 s (0.002279 s per event)
+  CPU time used: 366.7 s (0.002251 s per event)
+  CPU time used: 367 s (0.002252 s per event)
+  CPU time used: 352.2 s (0.002162 s per event)
+  CPU time used: 382.8 s (0.002349 s per event)
+  CPU time used: 342.4 s (0.002101 s per event)
+  Total count        : 10
+  mean               : 352.48
+  Sample Deviation   : 29.3426
+  Standard Deviation : 27.8368
+
+
+ 
+* test with -03 without debug flag
+ ----------------------------------------------
+  CPU time used: 270.4 s (0.001659 s per event)
+  CPU time used: 255.5 s (0.001568 s per event)
+  CPU time used: 266.3 s (0.001634 s per event)
+  CPU time used: 258.3 s (0.001585 s per event)
+  CPU time used: 271.1 s (0.001664 s per event)
+  CPU time used: 263.3 s (0.001616 s per event)
+  CPU time used: 247.1 s (0.001516 s per event)
+  CPU time used: 234.8 s (0.001441 s per event)
+  CPU time used: 240.1 s (0.001474 s per event)
+  CPU time used: 251.6 s (0.001544 s per event)
+  CPU time used: 251.1 s (0.001541 s per event)
+  CPU time used: 237.3 s (0.001456 s per event)
+  CPU time used: 262.8 s (0.001613 s per event)
+  CPU time used: 263.6 s (0.001618 s per event)
+  CPU time used: 272.4 s (0.001671 s per event)
+  CPU time used: 272.2 s (0.00167 s per event)
+  CPU time used: 266.9 s (0.001638 s per event)
+  CPU time used: 274.5 s (0.001684 s per event)
+  CPU time used: 272.6 s (0.001673 s per event)
+  CPU time used: 271.6 s (0.001667 s per event)
+  Total count        : 20
+  mean               : 260.175
+  Sample Deviation   : 12.6524
+  Standard Deviation : 12.332
+
+
+* test with -03 with debug -g
+ ----------------------------------------------
+  CPU time used: 364.4 s (0.002237 s per event)
+  CPU time used: 374.1 s (0.002296 s per event)
+  CPU time used: 344.1 s (0.002112 s per event)
+  CPU time used: 346.7 s (0.002128 s per event)
+  CPU time used: 361.9 s (0.002221 s per event)
+  CPU time used: 367.1 s (0.002253 s per event)
+  CPU time used: 372.6 s (0.002287 s per event)
+  CPU time used: 366.9 s (0.002252 s per event)
+  CPU time used: 359.5 s (0.002206 s per event)
+  CPU time used: 371.1 s (0.002278 s per event)
+  Total count        : 10
+  mean               : 362.84
+  Sample Deviation   : 10.2798
+  Standard Deviation : 9.75225
+
+
+* test with -03 -mtune=nocona without debug -g
  ----------------------------------------------
 
-* test with -02 -mtune=nocona flags
-  
+  CPU time used: 306.8 s (0.001883 s per event)
+  CPU time used: 351.4 s (0.002156 s per event)
+  CPU time used: 325.2 s (0.001996 s per event)
+  CPU time used: 339.5 s (0.002084 s per event)
+  CPU time used: 322.8 s (0.001981 s per event)
+  CPU time used: 384.7 s (0.002361 s per event)
+  CPU time used: 356.3 s (0.002186 s per event)
+  CPU time used: 357.5 s (0.002194 s per event)
+  CPU time used: 269.8 s (0.001656 s per event)
+  CPU time used: 305.8 s (0.001877 s per event)
+  Total count        : 10
+  mean               : 331.98
+  Sample Deviation   : 32.9509
+  Standard Deviation : 31.2599
+
+* test with -02 -g /GNUMakefile
+            -02    /evio/Makefile no whatever GLibs
+  CPU time used: 264.4 s (0.001623 s per event)
+  CPU time used: 263.8 s (0.001619 s per event)
+  CPU time used: 281.3 s (0.001726 s per event)
+  CPU time used: 259.4 s (0.001592 s per event)
+  CPU time used: 257.5 s (0.00158 s per event)
+  CPU time used: 257.6 s (0.001581 s per event)
+  CPU time used: 279.3 s (0.001714 s per event)
+  CPU time used: 240.6 s (0.001477 s per event)
+  CPU time used: 250.7 s (0.001539 s per event)
+  CPU time used: 244 s (0.001497 s per event)
+  Total count        : 10
+  mean               : 259.86
+  Sample Deviation   : 13.2958
+  Standard Deviation : 12.6135
+
+
+* test with -02    /GNUMakefile
+            -02    /evio/Makefile no whatever GLibs
+
+  CPU time used: 258.7 s (0.001588 s per event)
+  CPU time used: 288.8 s (0.001772 s per event)
+  CPU time used: 278.2 s (0.001707 s per event)
+  CPU time used: 243.7 s (0.001496 s per event)
+  CPU time used: 251.3 s (0.001542 s per event)
+  CPU time used: 281.4 s (0.001727 s per event)
+  CPU time used: 269.1 s (0.001652 s per event)
+  CPU time used: 257.7 s (0.001581 s per event)
+  CPU time used: 270.3 s (0.001659 s per event)
+  CPU time used: 266.4 s (0.001635 s per event)
+
+  Total count        : 10
+  mean               : 266.56
+  Sample Deviation   : 14.01
+  Standard Deviation : 13.2911
