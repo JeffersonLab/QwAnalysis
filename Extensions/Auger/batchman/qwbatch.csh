@@ -67,8 +67,7 @@ endif
 
 
 ####  Create the log file.
-mkdir -p $WORKDIR/log
-set log_file = $WORKDIR/log/run_$runnumber.log
+set log_file = $WORKDIR/run_$runnumber.log
 echo "QWANALYSIS directory = $QWANALYSIS" >! $log_file
 echo "QWSCRATCH directory  = $QWSCRATCH"  >> $log_file
 echo "Run number(s)        = $runnumber"  >> $log_file

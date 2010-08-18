@@ -1549,7 +1549,7 @@ proc echo_help {} {
 	puts     "     verbose operation, but only a single iteration cycle is executed"
 	puts   "\n batch_daemon.tcl quietone        single, silent cycle"
 	puts   "\n batch_daemon.tcl info <state>"
-	puts     "     passive mode, status file is quried but not changed; list of runs with"
+	puts     "     passive mode, status file is queried but not changed; list of runs with"
 	puts     "     current status <state> is output to stdout (leave <state> blank for list)"
 	puts   "\n batch_daemon.tcl sinfo <state>"
 	puts     "     terse passive mode, suitable for piping query result to another command"
@@ -1697,7 +1697,7 @@ while {$keep_looping == 1} {
 	set jobListSplit [split $jobList \n]
    	set numJobsTot [llength $jobListSplit]
 
-	puts " \n Total number of jobs (all users) is $numJobsTot , max allowed is $maxNumJobs\n"
+	if {$interactive} {puts " \n Total number of jobs (all users) is $numJobsTot, max allowed is $maxNumJobs\n"}
 
 	# End added section
 
