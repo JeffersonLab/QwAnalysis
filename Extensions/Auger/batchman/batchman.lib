@@ -610,6 +610,7 @@ proc writestatusheader {f verbose} {
 	puts $f "<!doctype html public \"-//w3c//dtd html 4.0 transitional//en\">"
 	puts $f "<html>\n<head>"
 	puts $f "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">"
+	puts $f "<meta http-equiv=\"refresh\" content=\"300\" />"
 	puts $f "<title>BatchMan Job Status</title>\n</head>\n\n<body>"
 	puts $f "<h1 align=\"center\">QwBatchMan<sup><font size=-2>frw</font></sup> v$saveversion &nbsp;  Job Status -- updated $thistime </h1>"
 	puts $f "<hr>\n\n<table border=1 cellpadding=3>"
@@ -749,13 +750,12 @@ proc writestatusentries {jstat f} {
 			set outstr7 " "
 
 			if {[lsearch "submitted queued running" $istatus($i)] > -1} {
-				set outstr5 "Job $jobid($i)"
-				
+				set outstr5 "<a href=\"http://scicomp/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
 			} elseif {$istatus($i) == "completed"} {
 			        # if {$preabortstate($i) == "syncfilter"} {
 				#    set outstr5 "<b>syncfilter</b>"
 				# }
-				set outstr5 "Job $jobid($i)"
+				set outstr5 "<a href=\"http://scicomp/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
 				
 			} elseif {[lsearch "staged staging" $istatus($i)] > -1} {
 				set outstr5 "<b>files present:</b> <br> $flprs"
@@ -776,7 +776,7 @@ proc writestatusentries {jstat f} {
 				set outstr5 " "
 			} elseif {[lsearch "kill restart" $istatus($i)] > -1} {
 				if {[lsearch "queued running" $preabortstate($i)] > -1} {
-					set outstr5 "Job $jobid($i)"
+					set outstr5 "<a href=\"http://scicomp/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
 				} else {
 					set outstr5 " "
 				}
@@ -921,9 +921,12 @@ proc checkrunning {verbose} {
 	global starttime endtime filespresent preabortstate jobid selected
 	global current_state  experiment_label  check_job_names
 
+	# wdconinc 2010-08-18: disabled older long jobstat states
 	#set known_states "PEND PSUSP RUN DONE EXIT UNKWN"
-	# wdconinc 2010-08-17: new states in jobstat
-	set known_states "R H Q A"
+
+	# wdconinc 2010-08-18: new short states in jobstat
+	set known_states "HOLD_AUGER HOLD_PBS PEND RUN DONE EXIT UNKWN"
+	set known_states_short "A H Q R E ? ?"
 
 	# If the jobs returned from jobstat -a are different from those in the status 
 	# file, we excluded these two states from incrementing entrycount so they 
@@ -1003,7 +1006,9 @@ proc checkrunning {verbose} {
 		    if {[lsearch {0 1 2 3 4 5 6 7 8 9} $test] > -1} {
 			set new_id($i)    [lindex $oneline  0]
 			set new_state($i) [lindex $oneline  2]
-			if {[lsearch $known_states $new_state($i)] > -1} {
+			set new_state_ind [lsearch $known_states_short $new_state($i)]
+			if {$new_state_ind > -1} {
+				set new_state($i) [lindex $known_states $new_state_ind]
 				incr scount($new_state($i)) 1
 			} else {
 				incr scount(other) 1
