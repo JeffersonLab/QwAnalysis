@@ -81,7 +81,7 @@ class QwCorrelationMonitor {
   void SetParams(TString core, int n2,float x1) { fCore=core;  par_nSkipEveHist=n2; par_highCorr=x1;}
 
   /// processing single events
-  void Accumulate();
+  void FillHistograms();
   // after last event
   void PrintSummary();
 

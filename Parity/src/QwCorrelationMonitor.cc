@@ -119,7 +119,7 @@ void QwCorrelationMonitor::AccessChannels( VQwSubsystemParity *detector){
 
 //==========================================================
 //==========================================================
-void QwCorrelationMonitor::Accumulate(){
+void QwCorrelationMonitor::FillHistograms(){
     
   fGoodEventNumber++;
   size_t dim=fVariables.size();

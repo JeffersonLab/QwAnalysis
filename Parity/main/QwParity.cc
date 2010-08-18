@@ -189,7 +189,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (detectors.ApplySingleEventCuts()) {
 
 	//Jan3: accumulate data   ......................Jan
-	for(int i=0;i<mxCM;i++) corrMon[i].Accumulate();
+	for(int i=0;i<mxCM;i++) corrMon[i].FillHistograms();
 
         // Add event to the ring
         eventring.push(detectors);

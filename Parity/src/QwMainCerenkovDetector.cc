@@ -799,6 +799,8 @@ void  QwMainCerenkovDetector::ConstructHistograms(TDirectory *folder, TString &p
 
 void  QwMainCerenkovDetector::FillHistograms()
 {
+  if (fCorrelationMonitor) fCorrelationMonitor->FillHistograms();
+
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].FillHistograms();
 
@@ -811,6 +813,11 @@ void  QwMainCerenkovDetector::FillHistograms()
 
 void  QwMainCerenkovDetector::DeleteHistograms()
 {
+  if (fCorrelationMonitor) {
+    fCorrelationMonitor->NiceOutput();
+    fCorrelationMonitor->PrintSummary();
+  }
+
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].DeleteHistograms();
 
@@ -1059,13 +1066,6 @@ void QwMainCerenkovDetector::Scale(Double_t factor)
 
 void QwMainCerenkovDetector::CalculateRunningAverage()
 {
-  if (fCorrelationMonitor) {
-    fCorrelationMonitor->NiceOutput();
-    fCorrelationMonitor->PrintSummary();
-    assert(false);
-  }
-  //
-
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].CalculateRunningAverage();
 
@@ -1079,8 +1079,6 @@ void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
 {
   if (Compare(value1)) {
     QwMainCerenkovDetector* value = dynamic_cast<QwMainCerenkovDetector*>(value1);
-
-    if (fCorrelationMonitor) fCorrelationMonitor->Accumulate();
 
     for (size_t i = 0; i < fIntegrationPMT.size(); i++)
       fIntegrationPMT[i].AccumulateRunningSum(value->fIntegrationPMT[i]);
