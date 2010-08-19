@@ -750,12 +750,12 @@ proc writestatusentries {jstat f} {
 			set outstr7 " "
 
 			if {[lsearch "submitted queued running" $istatus($i)] > -1} {
-				set outstr5 "<a href=\"http://scicomp/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
+				set outstr5 "<a href=\"http://scicomp.jlab.org/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
 			} elseif {$istatus($i) == "completed"} {
 			        # if {$preabortstate($i) == "syncfilter"} {
 				#    set outstr5 "<b>syncfilter</b>"
 				# }
-				set outstr5 "<a href=\"http://scicomp/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
+				set outstr5 "<a href=\"http://scicomp.jlab.org/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
 				
 			} elseif {[lsearch "staged staging" $istatus($i)] > -1} {
 				set outstr5 "<b>files present:</b> <br> $flprs"
@@ -776,7 +776,7 @@ proc writestatusentries {jstat f} {
 				set outstr5 " "
 			} elseif {[lsearch "kill restart" $istatus($i)] > -1} {
 				if {[lsearch "queued running" $preabortstate($i)] > -1} {
-					set outstr5 "<a href=\"http://scicomp/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
+					set outstr5 "<a href=\"http://scicomp.jlab.org/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
 				} else {
 					set outstr5 " "
 				}

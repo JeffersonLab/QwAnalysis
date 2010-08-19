@@ -501,7 +501,7 @@ proc test_logfile {runnum} {
     }
     if {[file exists $logfile] == 1} {
 	set ierr [catch {exec tail -1 $logfile} outstr]
-	set test "Real time used:"
+	set test "I have done everything I can do..."
 	set pos1 [string first $test $outstr]
 	if { ($ierr == 0) && ($pos1 > -1) } {
 	    set logfileokay 1
@@ -522,7 +522,7 @@ proc gettimefromlogfile {runnum} {
     set logfile "$logfiledir/run_$runnum.log"
 
     if {[file exists $logfile] == 1} {
-	set logfiletime [clock format [file mtime $logfile]]
+	set logfiletime [clock format [file mtime $logfile] -format "%a %b %d %H:%M:%S %Z %Y"]
     }
     return $logfiletime
 }
