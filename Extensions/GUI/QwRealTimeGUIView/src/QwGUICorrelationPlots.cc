@@ -578,6 +578,10 @@ void QwGUICorrelationPlots::LoadLeafLists(Short_t tree_id){
   TObject * leaf;
   TString leafname;
   tree= (TTree *)dROOTCont->GetObjFromMapFile(CorrelationPlotsTrees[tree_id]);
+  if (tree==NULL){
+    printf("Tree objects not loaded yet. Waiting for first map file update! \n");
+    return;
+  }
   leaf_list=tree->GetListOfLeaves();
   fTreePrmAry=tree->GetListOfLeaves();
   
