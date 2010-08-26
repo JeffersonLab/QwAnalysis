@@ -52,7 +52,7 @@
 static const bool kDebug = kFALSE;
 // ROOT file output
 static const bool kTree = kTRUE;
-static const bool kHisto = kFALSE;
+static const bool kHisto = kTRUE;
 static const bool kEPICS = kFALSE;
 
 // Main function
@@ -180,7 +180,7 @@ Int_t main(Int_t argc, Char_t* argv[])
        tree = new TTree("tree", "Hit list");
        hitlist_root = new QwHitRootContainer();
        tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
-       tree->Branch("events", "QwEvent", &event);
+       //       tree->Branch("events", "QwEvent", &event);
 
        // Create the branches and tree vector
        TString prefix = "";

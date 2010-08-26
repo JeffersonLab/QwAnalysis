@@ -41,16 +41,6 @@ sample_size=480
 
 !VQWK,0,0,integrationpmt,qwk_linephase
 
-!added the bcms
-
-ROC=1
-Bank=0x102
-
-   VQWK, 11, 4,  bcm,  QWK_3H04
-   VQWK, 11, 5,  bcm,  QWK_3H07
-   VQWK, 11, 6,  bcm,  QWK_3H3G0Z
-   VQWK, 11, 7,  bcm,  QWK_3HCAV
-
 
 !**************************************************************************
 !  QWEAK LUMI SCALERS

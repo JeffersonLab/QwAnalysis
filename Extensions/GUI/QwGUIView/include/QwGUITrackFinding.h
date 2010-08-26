@@ -131,6 +131,9 @@
   void PlotTLOffsetX();
   void PlotTLOffsetU();
   void PlotTLOffsetV();
+  void PlotTLResidualX();
+  void PlotTLResidualU();
+  void PlotTLResidualV();
   //!This function plots histograms of the data in the current file, in the main canvas.
   //!
   //!Parameters:
