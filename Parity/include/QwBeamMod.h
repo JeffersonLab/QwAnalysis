@@ -27,9 +27,6 @@ class QwModChannelID;
 *  Class:
 ******************************************************************/
 class QwBeamMod: public VQwSubsystemParity{
-  friend class QwCombinedBPM; 
-  friend class QwCombinedBCM;  
- 
 
  public:
 

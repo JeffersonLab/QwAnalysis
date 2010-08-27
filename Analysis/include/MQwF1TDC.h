@@ -33,7 +33,7 @@ class MQwF1TDC{
   MQwF1TDC();
   ~MQwF1TDC();
 
-  friend std::ostream& operator<<(std::ostream& stream, const MQwF1TDC f1tdc);
+  friend std::ostream& operator<<(std::ostream& os, const MQwF1TDC &f1tdc);
 
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id);
 

@@ -34,6 +34,7 @@ class QwF1TDC : public TObject
   const Int_t  GetROCNumber()          const {return fROC;};
   const Int_t  GetSlotNumber()         const {return fSlot;};
   const Bool_t IsReferenceSlot()       const {return fReferenceSlotFlag;};
+  const Bool_t IsNormalResolution()    const {return fF1TDCNormalResolutionFlag;};
 
   const UInt_t GetF1TDC_refcnt()       const {return fF1TDC_refcnt;};
   const UInt_t GetF1TDC_hsdiv()        const {return fF1TDC_hsdiv;};
@@ -65,6 +66,20 @@ class QwF1TDC : public TObject
   void SetF1TDC_resolution(const Double_t resol_ns)  {fF1TDC_resolution_ns = resol_ns;};
   void SetF1TDC_bin_size  (const Double_t binsize_ns){fF1TDC_resolution_ns = binsize_ns;};
 
+  void AddSEU() {fF1TDC_SEU_counter++;};
+  void AddSYN() {fF1TDC_SYN_counter++;};
+  void AddEMM() {fF1TDC_EMM_counter++;};
+
+  void SetSEU() {fF1TDC_SEU_counter++;};
+  void SetSYN() {fF1TDC_SYN_counter++;};
+  void SetEMM() {fF1TDC_EMM_counter++;};
+  
+  const UInt_t GetSEU() const {return fF1TDC_SEU_counter;};
+  const UInt_t GetSYN() const {return fF1TDC_SYN_counter;};
+  const UInt_t GetEMM() const {return fF1TDC_EMM_counter;};
+
+  void ResetCounters();
+
   //void SetReferenceSignals(Int_t chan_row, Double_t val);
 
  public:
@@ -86,8 +101,10 @@ class QwF1TDC : public TObject
                        // we do.
                        // Friday, July 30 11:26:36 EDT 2010, jhlee
 
-  Bool_t   fReferenceSlotFlag; //! 
+ 
 
+  UInt_t fChannelNumber;
+  
   UInt_t   fF1TDC_refcnt;
   UInt_t   fF1TDC_hsdiv;
   UInt_t   fF1TDC_refclkdiv;
@@ -101,10 +118,18 @@ class QwF1TDC : public TObject
   Double_t fF1TDC_latency_ns;
   Double_t fF1TDC_resolution_ns;
 
-  // TArrayD  *fF1TDCReferenceSignals;
+  UInt_t   fF1TDC_SEU_counter;  // Single Event Upset counter
+  UInt_t   fF1TDC_EMM_counter;  // Event number MisMatch counter
+  UInt_t   fF1TDC_SYN_counter;  // SYNc  issue counter
+
+  Bool_t   fReferenceSlotFlag; //! 
+  TArrayD  *fReferenceSignals;
+
+  Bool_t   fF1TDCNormalResolutionFlag;
+
 
  private:
-  void Initialize();
+  // void Initialize();
 
   ClassDef(QwF1TDC,1);
 

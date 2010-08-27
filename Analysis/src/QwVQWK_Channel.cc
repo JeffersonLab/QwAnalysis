@@ -773,7 +773,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
   if (!IsNameEmpty()) {
     for (Short_t i = 0; i < fBlocksPerEvent; i++) {
       this->fBlock[i] += value.fBlock[i];
-      this->fBlock_raw[i] += value.fBlock[i];
+      this->fBlock_raw[i] += value.fBlock_raw[i];
       this->fBlockM2[i] = 0.0;
     }
     this->fHardwareBlockSum_raw = value.fHardwareBlockSum_raw;

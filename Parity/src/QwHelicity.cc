@@ -1090,38 +1090,38 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix)
   else if(fHistoType==kHelSaveMPS)
     {
       basename = "actual_helicity";    //predicted actual helicity before being delayed.
-      tree->Branch(basename, &fHelicityActual, basename+"/D");
+      tree->Branch(basename, &fHelicityActual, basename+"/I");
       //
       basename = "delayed_helicity";   //predicted delayed helicity
-      tree->Branch(basename, &fHelicityDelayed, basename+"/D");
+      tree->Branch(basename, &fHelicityDelayed, basename+"/I");
       //
       basename = "reported_helicity";  //delayed helicity reported by the input register.
-      tree->Branch(basename, &fHelicityReported, basename+"/D");
+      tree->Branch(basename, &fHelicityReported, basename+"/I");
       //
       basename = "pattern_phase";
-      tree->Branch(basename, &fPatternPhaseNumber, basename+"/D");
+      tree->Branch(basename, &fPatternPhaseNumber, basename+"/I");
      //
       basename = "pattern_number";
-      tree->Branch(basename, &fPatternNumber, basename+"/D");
+      tree->Branch(basename, &fPatternNumber, basename+"/I");
       //
       basename = "event_number";
-      tree->Branch(basename, &fEventNumber, basename+"/D");
+      tree->Branch(basename, &fEventNumber, basename+"/I");
     }
   else if(fHistoType==kHelSavePattern)
     {
       basename = "actual_pattern_polarity";
-      tree->Branch(basename, &fActualPatternPolarity, basename+"/D");
+      tree->Branch(basename, &fActualPatternPolarity, basename+"/I");
       //
       basename = "delayed_pattern_polarity";
-      tree->Branch(basename, &fDelayedPatternPolarity, basename+"/D");
+      tree->Branch(basename, &fDelayedPatternPolarity, basename+"/I");
       // 
       basename = "pattern_number";
-      tree->Branch(basename, &fPatternNumber, basename+"/D");
+      tree->Branch(basename, &fPatternNumber, basename+"/I");
 
       for (size_t i=0; i<fWord.size(); i++)
 	{
 	  basename = fWord[i].fWordName;
-	  tree->Branch(basename, &fWord[i].fValue, basename+"/D");
+	  tree->Branch(basename, &fWord[i].fValue, basename+"/I");
 	}
     }
 
@@ -1140,38 +1140,38 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile&
   else if(fHistoType==kHelSaveMPS)
     {
       basename = "actual_helicity";    //predicted actual helicity before being delayed.
-      tree->Branch(basename, &fHelicityActual, basename+"/D");
+      tree->Branch(basename, &fHelicityActual, basename+"/I");
       //
       basename = "delayed_helicity";   //predicted delayed helicity
-      tree->Branch(basename, &fHelicityDelayed, basename+"/D");
+      tree->Branch(basename, &fHelicityDelayed, basename+"/I");
       //
       basename = "reported_helicity";  //delayed helicity reported by the input register.
-      tree->Branch(basename, &fHelicityReported, basename+"/D");
+      tree->Branch(basename, &fHelicityReported, basename+"/I");
       //
       basename = "pattern_phase";
-      tree->Branch(basename, &fPatternPhaseNumber, basename+"/D");
+      tree->Branch(basename, &fPatternPhaseNumber, basename+"/I");
      //
       basename = "pattern_number";
-      tree->Branch(basename, &fPatternNumber, basename+"/D");
+      tree->Branch(basename, &fPatternNumber, basename+"/I");
       //
       basename = "event_number";
-      tree->Branch(basename, &fEventNumber, basename+"/D");
+      tree->Branch(basename, &fEventNumber, basename+"/I");
     }
   else if(fHistoType==kHelSavePattern)
     {
       basename = "actual_pattern_polarity";
-      tree->Branch(basename, &fActualPatternPolarity, basename+"/D");
+      tree->Branch(basename, &fActualPatternPolarity, basename+"/I");
       //
       basename = "delayed_pattern_polarity";
-      tree->Branch(basename, &fDelayedPatternPolarity, basename+"/D");
+      tree->Branch(basename, &fDelayedPatternPolarity, basename+"/I");
       // 
       basename = "pattern_number";
-      tree->Branch(basename, &fPatternNumber, basename+"/D");
+      tree->Branch(basename, &fPatternNumber, basename+"/I");
 
       for (size_t i=0; i<fWord.size(); i++)
 	{
 	  basename = fWord[i].fWordName;
-	  tree->Branch(basename,&fWord[i].fValue, basename+"/D");
+	  tree->Branch(basename,&fWord[i].fValue, basename+"/I");
 	}
 
     }

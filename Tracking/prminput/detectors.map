@@ -36,7 +36,7 @@
  name = LUMI
  map = qweak_lumi.map
  geom = qweak_new.geo
- mask = 0xffff
+ mask = 0x1
 
 [QwScanner]
  name = FPS

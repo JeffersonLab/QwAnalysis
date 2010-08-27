@@ -4,7 +4,7 @@
  name = HallCBeamLine
  map = qweak_hallc_beamline.map
  geom = qweak_beamline_geometry.map
- param = qweak_hallc_pedestal.957.map
+ param = qweak_hallc_pedestal.beamline.5262.map
  eventcut = qweak_beamline_eventcuts.in
 
 [QwMainCerenkovDetector]
