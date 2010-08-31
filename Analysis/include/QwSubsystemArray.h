@@ -64,6 +64,15 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void   SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };
   /// \brief Get event type mask
   UInt_t GetEventTypeMask() const { return fEventTypeMask; };
+ /// \brief Update the event type mask from the subsystems
+  UInt_t UpdateEventTypeMask() {
+    for (iterator subsys_iter = begin(); subsys_iter != end(); ++subsys_iter) {
+      VQwSubsystem* subsys = dynamic_cast<VQwSubsystem*>(subsys_iter->get());
+      fEventTypeMask |= subsys->GetEventTypeMask();
+    }
+    return fEventTypeMask; 
+  };
+
 
   /// \brief Set data loaded flag
   void   SetDataLoaded(const Bool_t flag) { fHasDataLoaded = flag; };

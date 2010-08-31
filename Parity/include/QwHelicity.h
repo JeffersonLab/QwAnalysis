@@ -71,6 +71,11 @@ class QwHelicity: public VQwSubsystemParity{
   {
     //  Default helicity delay to two patterns.
     fHelicityDelay = 2;
+    // Default the EventType flags to HelPlus=1 and HelMinus=4
+    // These are only used in Moller decoding mode.
+    kEventTypeHelPlus  = 4;
+    kEventTypeHelMinus = 1;
+    //
     fEventNumberOld=-1; fEventNumber=-1;
     fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
     fPatternNumberOld=-1;  fPatternNumber=-1;
@@ -107,9 +112,11 @@ class QwHelicity: public VQwSubsystemParity{
 
   Int_t  ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);
-  Int_t  ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  Int_t  ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return ProcessEvBuffer(0,roc_id,bank_id,buffer,num_words);};
+  Int_t  ProcessEvBuffer(UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void   ProcessEventUserbitMode();//ProcessEvent has two modes Userbit and Inputregister modes
   void   ProcessEventInputRegisterMode();
+  void   ProcessEventInputMollerMode();
 
   void   EncodeEventData(std::vector<UInt_t> &buffer);
 
@@ -172,13 +179,14 @@ class QwHelicity: public VQwSubsystemParity{
 
 /////
  protected:
-   enum HelicityRootSavingType{kHelSaveMPS = 0,
+  enum HelicityRootSavingType{kHelSaveMPS = 0,
 			      kHelSavePattern,
 			      kHelNoSave};
 
   enum HelicityEncodingType{kHelUserbitMode=0,
 			    kHelInputRegisterMode,
-			    kHelLocalyMadeUp};
+			    kHelLocalyMadeUp,
+			    kHelInputMollerMode};
   // this values allow to switch the code between different helicity encoding mode.
 
   std::vector <QwWord> fWord;
@@ -200,6 +208,9 @@ class QwHelicity: public VQwSubsystemParity{
   // the scalercounter counts how many events happened since the last reading
   // should be one all the time if not the event is suspicious and not used for analysis
   Int_t kInputRegister, kPatternCounter, kMpsCounter, kPatternPhase;
+
+  UInt_t kEventTypeHelPlus, kEventTypeHelMinus;
+
   Int_t fEventNumberOld, fEventNumber;
   Int_t fPatternPhaseNumberOld, fPatternPhaseNumber;
   Int_t fPatternNumberOld,  fPatternNumber;
@@ -265,6 +276,8 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t BIT30;
 
   Int_t fPATTERNPHASEOFFSET;
+
+  UInt_t fEventType;
 
 };
 

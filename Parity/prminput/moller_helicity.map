@@ -1,0 +1,16 @@
+ROC=8
+PatternPhase=4
+RandSeedBits=30
+HelicityDecodingMode=InputMollerMode
+HelPlusEventType  = 4
+HelMinusEventType = 1
+
+
+! module.type,  module.num  chan.num,  det.type,  det.name
+SKIP 33
+SKIP 33
+
+SKIP 16
+WORD, 0,  0, helicitydata,  MPS_counter
+SKIP 15
+WORD, 0,  0, helicitydata,  PAT_counter

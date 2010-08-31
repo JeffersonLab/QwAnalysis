@@ -38,7 +38,10 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
 
 
   public:
-  QwScaler_Channel() { };
+  QwScaler_Channel(){ 
+    InitializeChannel("");
+  };
+
   QwScaler_Channel(TString name){
     InitializeChannel(name);
   };
@@ -46,9 +49,12 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
   
   void  InitializeChannel(TString name){
     fValue = 0;
+    fValueM2 = 0;
     SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
     fNumEvtsWithHWErrors=0;//init error counters
     fNumEvtsWithEventCutsRejected=0;//init error counters
+    fDeviceErrorCode = 0;
+    fGoodEventCount = 0;
     SetElementName(name);
     return;
   };
@@ -94,12 +100,13 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  FillTreeVector(std::vector<Double_t> &values);
 
-
+  void AccumulateRunningSum(const QwScaler_Channel &value);
 
   void Copy(VQwDataElement *source);
 
   void PrintValue() const;
   void PrintInfo() const;
+  void CalculateRunningAverage();
 
 protected:
 
@@ -108,14 +115,19 @@ private:
 
   UInt_t   fValue_Raw;
   Double_t fValue;
+  Double_t fValueM2;
+  Double_t fValueError;
 
   /*  Ntuple array indices */
   size_t fTreeArrayIndex;
   size_t fTreeArrayNumEntries;
 
-
   Int_t fNumEvtsWithHWErrors;//counts the HW falied events
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
+
+  UInt_t fGoodEventCount;
+  Int_t fDeviceErrorCode;
+
 };
 
 //  These typedef's should be the last things in the file.
