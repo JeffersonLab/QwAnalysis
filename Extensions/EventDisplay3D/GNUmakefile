@@ -470,7 +470,7 @@ INCFLAGS += $(BOOST_INC) -I./
 # Necessary for dictionary files where include files are quoted with relative
 # path appended (default behaviour for root-cint)
 
-CPPFLAGS = $(INCFLAGS) $(ROOTCFLAGS) $(CODACFLAGS) $(sort $(DEFAULTADD) $(ADD)) $(QWEAKCPPFLAGS)
+CPPFLAGS = $(INCFLAGS) $(ROOTCFLAGS) $(CODACFLAGS) $(sort $(DEFAULTADD) $(ADD)) $(QWEAKCPPFLAGS) $(DEBUG)
 # ADD should be contained in DEFAULTADD, but DEFAULTADD may be tempered with...
 
 CXXFLAGS += $(OPTIM) $(DEBUG)

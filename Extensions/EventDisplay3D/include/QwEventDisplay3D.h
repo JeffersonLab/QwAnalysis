@@ -56,6 +56,7 @@
 #include <QwHitRootContainer.h>
 #include <QwEvent.h>
 #include <QwLog.h>
+#include <QwPartialTrack.h>
 
 class QwEventDisplay3D : public TGMainFrame {
 RQ_OBJECT("QwEventDisplay3D")

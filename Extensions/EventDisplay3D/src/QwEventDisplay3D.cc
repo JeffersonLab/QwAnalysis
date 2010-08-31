@@ -260,7 +260,7 @@ void QwEventDisplay3D::InitEvents()
      fTree->GetEntry(fCurrentEvent);
 
      // If it is empty, find another. Display if valid.
-     if( fHitContainer->GetSize() < 1 ) {
+     if( fEvent->GetNumberOfHits() < 1 ) {
         fEventsListIt = fListOfGoodEvents.end();
         NextEvent();
      } else {
@@ -531,7 +531,7 @@ void QwEventDisplay3D::NextEvent(Bool_t redraw)
 
       // Seek the next valid event with at least one hit in any detector
       while ( fCurrentEvent < fNumberOfEvents && 
-            fHitContainer->GetSize() < 1 ) {
+           fEvent->GetNumberOfHits() < 1 ) {
          // Get the next event then!
          fCurrentEvent++;
          fTree->GetEntry(fCurrentEvent);
@@ -624,35 +624,17 @@ void QwEventDisplay3D::DisplayEvent()
 
 
    // Find out if there are any valid "hits" in this event
-   numberOfHits = fHitContainer->GetSize();
+   numberOfHits = fEvent->GetNumberOfHits();
    //fHitContainer->GetDetectorInfo();
    if ( numberOfHits > 0 ) {
 
       //#########################################################
       // Not sure what I am doing, but the examples say otherwise
       fCurrentTrackList = new TEveTrackList();
-      TEveTrackPropagator *prop = fCurrentTrackList->GetPropagator();
-      prop->SetFitDaughters(kFALSE);
-      prop->SetMaxZ(1000);
-/*
-      TEveRecTrack  rt;
-      rt.fV.Set(0.,276.-75.05,442.-200.);
-      rt.fP.Set(0.+(rand()%100)/10.-5.,3.802+(rand()%100)/90.-.5,10.);
-      rt.fSign=1;
-      fCurrentTrack = new TEveTrack(&rt,prop);
-      fCurrentTrack->SetMainColor(6);
-      fCurrentTrack->SetMarkerColor(kYellow);
-      fCurrentTrack->SetMarkerStyle(4);
-      fCurrentTrack->SetMarkerSize(0.5);
+      //TEveTrackPropagator *prop = fCurrentTrackList->GetPropagator();
+      //prop->SetFitDaughters(kFALSE);
+      //prop->SetMaxZ(1000);
 
-      fEveManager->AddElement(fCurrentTrack);
-      fCurrentTrackArray->Add(fCurrentTrack);
-      fCurrentTrack->MakeTrack();
-
-      fSideProjectionManager->ImportElements( (TEveElement*)fEveManager->GetCurrentEvent(), fSideScene );
-      fTopProjectionManager->ImportElements( (TEveElement*)fEveManager->GetCurrentEvent(), fTopScene );
-      gSystem->ProcessEvents();
-*/
       // End the uncertainty in what I do!
       //##################################
 
@@ -728,7 +710,88 @@ void QwEventDisplay3D::DisplayEvent()
 
          // Display the wire hit
          DisplayWire(wire,plane,package,region,message);
-      }
+
+     }
+     // For now we will display multiple partial, possibly not connected,
+     // tracks until a good one is produced in the rootfiles.
+     const TClonesArray *partialTracksList = fEvent->GetListOfPartialTracks();
+     Int_t numberOfPartialTracks = fEvent->GetNumberOfPartialTracks();
+     std::cout << "Number of Partial Tracks: " << numberOfPartialTracks <<"\n";
+     for (Int_t k = 0; k < numberOfPartialTracks; k++ ) {
+        // Extract the PartialTrack
+        QwPartialTrack *partialTrack = 
+           (QwPartialTrack*)partialTracksList->At(k);
+
+        // Region 1 & 2 should point back toward the target, while Region 3
+        // should point towards the beam dump
+        Int_t sign = 1;
+        if( partialTrack->GetRegion() == kRegionID2)
+           sign = -1;
+
+        if( partialTrack->IsValid() ) {
+           std::cout << "Region: " << partialTrack->GetRegion() << "\n";
+
+           TEveRecTrack *track = new TEveRecTrack();
+           TEveTrackPropagator *prop = new TEveTrackPropagator();
+           prop->SetMagField(0.,0.,0.);
+           prop->SetFitDaughters(kFALSE);
+           prop->SetMaxR(1000.);
+
+           // This assumes the Origin is centered at z=0, and the two offsets
+           // found no the partial tracks
+           std::cout << "Origin: (" << partialTrack->fOffsetX/10. << "," <<
+              partialTrack->fOffsetY/10. << ",0.)\n";
+           track->fV.Set(partialTrack->fOffsetX/10.,
+                 partialTrack->fOffsetY/10.,0.);
+
+           // The components of this vector are represented only by ratios
+           // of X and Y to Z. That assumes that fSlopeX and fSlopeY are
+           // proper ratios compared to z. Let z = 1 for simplicity
+           std::cout << "Slopes: (" << partialTrack->fSlopeX << "," <<
+              partialTrack->fSlopeY << "," << sign*1. << ")\n";
+           track->fP.Set(partialTrack->fSlopeX*sign,
+                 partialTrack->fSlopeY*sign,1.);
+
+           // The technical details of drawing the track
+           fCurrentTrack = new TEveTrack(track,prop);
+           fCurrentTrackArray->Add(fCurrentTrack);
+           fCurrentTrack->SetMainColor(6);
+           fCurrentTrack->SetMarkerColor(kGreen);
+           fCurrentTrack->SetMarkerStyle(5);
+           fCurrentTrack->SetMarkerSize(0.5);
+           fCurrentTrack->SetTitle(Form("Track for region: %d\n\nOrigin: "
+                    "(%.3f,%.3f,%.3f)\nSlope: (%.3f,%.3f,%.3f)",
+                    partialTrack->GetRegion(),
+                    partialTrack->fOffsetX/10.,
+                    partialTrack->fOffsetY/10., 0.,
+                    partialTrack->fSlopeX,partialTrack->fSlopeY,1.));
+           fEveManager->AddElement(fCurrentTrackList);
+           fEveManager->AddElement(fCurrentTrack);
+           fCurrentTrack->MakeTrack();
+        }
+     }
+
+/*
+      TEveRecTrack  rt;
+      rt.fV.Set(0.,276.-75.05,442.-200.);
+      rt.fP.Set(0.+(rand()%100)/10.-5.,3.802+(rand()%100)/90.-.5,10.);
+      rt.fSign=1;
+      fCurrentTrack = new TEveTrack(&rt,prop);
+      fCurrentTrack->SetMainColor(6);
+      fCurrentTrack->SetMarkerColor(kYellow);
+      fCurrentTrack->SetMarkerStyle(4);
+      fCurrentTrack->SetMarkerSize(0.5);
+
+      fEveManager->AddElement(fCurrentTrack);
+      fCurrentTrackArray->Add(fCurrentTrack);
+      fCurrentTrack->MakeTrack();
+
+      fSideProjectionManager->ImportElements( (TEveElement*)fEveManager->GetCurrentEvent(), fSideScene );
+      fTopProjectionManager->ImportElements( (TEveElement*)fEveManager->GetCurrentEvent(), fTopScene );
+      gSystem->ProcessEvents();
+*/
+
+
       if( kDebug )
          std::cout << "==================END EVENT=============\n";
 
@@ -1695,6 +1758,7 @@ void QwEventDisplay3D::OpenRootFile()
    fileInfo.fFileTypes = fFiletypes;
    std::cout << getenv("QW_ROOTFILES") << "\n";
    // TODO: Find out why setting the initial directory produces a severe crash
+   TString iniDir(gSystem->Getenv("QW_ROOTFILES"));
    //fileInfo.fIniDir = getenv("QW_ROOTFILES");
    new TGFileDialog(gClient->GetRoot(),
          this, kFDOpen, &fileInfo);
