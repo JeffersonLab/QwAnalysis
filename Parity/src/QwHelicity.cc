@@ -407,61 +407,44 @@ void QwHelicity::ProcessEventInputMollerMode()
 
   static Bool_t firstpattern = kTRUE;
 
-  UInt_t thisinputregister=fWord[kInputRegister].fValue;
-
-  fEventNumber=fWord[kMpsCounter].fValue;
-
-
-  
-  if(fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET == 0)
-    if (firstpattern && (thisinputregister & 0x4) == 0x4){
-      firstpattern = kFALSE;
-    }
-  
-  
-  if (firstpattern){
-    fPatternNumber      = 0;
-    fPatternPhaseNumber = fMinPatternPhase; //was 0 I chaned to fMinPatternPhase.- Buddhini.
-  } else {
-    fPatternNumber = fWord[kPatternCounter].fValue;
-    fPatternPhaseNumber = fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET + fMinPatternPhase;
-    
+  if(firstpattern && fWord[kPatternCounter].fValue > fPatternNumberOld){
+    firstpattern = kFALSE;
   }
-      
+  
+  fEventNumber=fWord[kMpsCounter].fValue;
   if(fEventNumber!=fEventNumberOld+1)
     std::cerr<<"QwHelicity::ProcessEvent read event# is not  old_event#+1 \n";
-  
-  if ((thisinputregister & 0x4) == 0x4 && fPatternPhaseNumber != fMinPatternPhase){
-    //  Quartet bit is set.
-    std::cerr<<"QwHelicity::ProcessEvent:  The Multiplet Sync bit is  set, but  the Pattern Phase (" 
-       << fPatternPhaseNumber << ") is not "<<fMinPatternPhase<<"!" << std::endl;
+
+  if (firstpattern){
+    fPatternNumber      = 0;
+    fPatternPhaseNumber = fMinPatternPhase;
+  } else {
+    fPatternNumber = fWord[kPatternCounter].fValue;
+    if (fPatternNumber > fPatternNumberOld){
+      //  We are at a new pattern!
+      fPatternPhaseNumber  = fMinPatternPhase;
+    } else {
+      fPatternPhaseNumber  = fPatternPhaseNumberOld + 1;
+    }
   }
   
-  fHelicityReported = (fEventType == 1 ? 0 : 1);
-  fHelicityBitPlus = !fHelicityBitMinus;
+  if (fEventType == kEventTypeHelPlus)       fHelicityReported=1;
+  else if (fEventType == kEventTypeHelMinus) fHelicityReported=0;
+  //  fHelicityReported = (fEventType == 1 ? 0 : 1);
 
+  if (fHelicityReported == 1){
+    fHelicityBitPlus=kTRUE;
+    fHelicityBitMinus=kFALSE;
+  } else {
+    fHelicityBitPlus=kFALSE;
+    fHelicityBitMinus=kTRUE;
+  }
   return;
 };
 
 
 void  QwHelicity::ProcessEvent()
 {
-
-  //  Check the fWord[kPatternCounter].fValue and see if it is greater than fPatternNumberOld.
-  //  If it is, then set the fWord[kPatternCounter].fValue to zero, otherwise set it to fPatternPhaseNumberOld + 1.
-  //  Also, set the fWord[kInputRegister].fValue to be 4+reported helicity when the fWord[kPatternCounter].fValue has incremented, otherwise set it to just reported helicity.
-
-  if (fWord[kPatternCounter].fValue > fPatternNumberOld){
-    //  We are at a new pattern!
-    fWord[kPatternPhase].fValue  = fPATTERNPHASEOFFSET;
-    fWord[kInputRegister].fValue = 4;
-  } else {
-    fWord[kPatternPhase].fValue  = fPatternPhaseNumberOld + 1;
-    fWord[kInputRegister].fValue = 0;
-  }
-  fWord[kInputRegister].fValue += fHelicityReported;
-
-
   switch (fHelicityDecodingMode)
     {
     case kHelUserbitMode :
@@ -646,6 +629,14 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	  fPATTERNPHASEOFFSET=value;
 
 	}
+      else if(varname=="helpluseventtype")
+	{
+	  kEventTypeHelPlus = value;
+	}
+      else if(varname=="helminuseventtype")
+	{
+	  kEventTypeHelMinus = value;
+	}
       else if (varname=="helicitydecodingmode")
 	{
 	  if (varvalue=="InputRegisterMode") {
@@ -732,12 +723,14 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	      if(namech.Contains("pat_counter")) kPatternCounter= fWord.size()-1;
 	      if(namech.Contains("pat_phase")) kPatternPhase= fWord.size()-1;
 	      break;
-      case kHelInputMollerMode :
-        if(namech.Contains("input_register")){ kInputRegister= fWord.size()-1; std::cout << "kInputRegister: " << kInputRegister << '\n';}
-        if(namech.Contains("mps_counter")) { kMpsCounter= fWord.size()-1;  std::cout << "kMpsCounter: " << kMpsCounter << '\n';}
-        if(namech.Contains("pat_counter")) { kPatternCounter = fWord.size()-1; std::cout << "kPatternPhase: " << kPatternPhase << '\n';}
-        if(namech.Contains("pat_phase")) { kPatternPhase= fWord.size()-1; std::cout << "kPatternCounter: " << kPatternCounter << '\n';}
-        break;
+	    case kHelInputMollerMode :
+	      if(namech.Contains("mps_counter")) {
+		kMpsCounter= fWord.size()-1;
+	      }
+	      if(namech.Contains("pat_counter")) {
+		kPatternCounter = fWord.size()-1;
+	      }
+	      break;
 	    }
 	}
     }
@@ -772,6 +765,29 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
   if (gQwOptions.HasValue("helicity.delay")){
     std::cout<<" Helicity Delay ="<<gQwOptions.GetValue<int>("helicity.delay")<<"\n";
     SetHelicityDelay(gQwOptions.GetValue<int>("helicity.delay"));
+  }
+
+  if (fHelicityDecodingMode==kHelInputMollerMode){
+    // Check to be sure kEventTypeHelPlus and kEventTypeHelMinus are both defined and not equal
+    if (kEventTypeHelPlus != kEventTypeHelMinus
+	&& kEventTypeHelPlus>0 && kEventTypeHelPlus<15
+	&& kEventTypeHelMinus>0 && kEventTypeHelMinus<15) {
+      // Everything is okay
+      QwDebug << "QwHelicity::LoadChannelMap:"
+	      << "  We are in Moller Helicity Mode, with HelPlusEventType = "
+	      << kEventTypeHelPlus
+	      << "and HelMinusEventType = " << kEventTypeHelMinus
+	      << QwLog::endl;
+    } else {
+      QwError << "QwHelicity::LoadChannelMap:"
+	      << "  We are in Moller Helicity Mode, and the HelPlus and HelMinus event types are not set properly."
+	      << "  HelPlusEventType = "  << kEventTypeHelPlus
+	      << ", HelMinusEventType = " << kEventTypeHelMinus
+	      << ".  Please correct the helicity map file!"
+	      << QwLog::endl;
+      exit(65);
+    }
+	
   }
 
   return 0;

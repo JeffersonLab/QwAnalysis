@@ -268,38 +268,34 @@ void QwMollerDetector::FillHistograms(){
       fSTR7200_Channel[i][j].FillHistograms();
     }
   }
-
 };
 
 void QwMollerDetector::DeleteHistograms(){
-    for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
-      for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
-        fSTR7200_Channel[i][j].DeleteHistograms();
-      }
+  for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
+    for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
+      fSTR7200_Channel[i][j].DeleteHistograms();
     }
+  }
 };
 
 void QwMollerDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values){
-  std::cout << &values << " " << values.size() << std::endl; 
-    for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
-      for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
-        fSTR7200_Channel[i][j].ConstructBranchAndVector(tree, prefix, values);
-      }
+  for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
+    for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
+      fSTR7200_Channel[i][j].ConstructBranchAndVector(tree, prefix, values);
     }
-  std::cout << "  " << values.size() << " " << fSTR7200_Channel.size() << std::endl;
+  }
 };
 
 void QwMollerDetector::FillTreeVector(std::vector<Double_t> &values){
-    for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
-      for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
-        fSTR7200_Channel[i][j].FillTreeVector(values);
-      }
+  for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
+    for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
+      fSTR7200_Channel[i][j].FillTreeVector(values);
     }
+  }
 };
 
 VQwSubsystem&  QwMollerDetector::operator=(VQwSubsystem *value){
- // std::cout << "QwMollerDetector assignment (operator=)" << std::endl;
-  
+  // std::cout << "QwMollerDetector assignment (operator=)" << std::endl;
   if(Compare(value)){
     //VQwSubsystem::operator=(value);
     QwMollerDetector* input = dynamic_cast<QwMollerDetector *> (value);
@@ -340,7 +336,6 @@ VQwSubsystem&  QwMollerDetector::operator-=(VQwSubsystem *value){
 };
 
 void QwMollerDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2){
-
   if (Compare(value1) && Compare(value2)) {
     *this  = value1;
     *this += value2;
@@ -355,7 +350,6 @@ void QwMollerDetector::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2){
 };
 
 void QwMollerDetector::Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2){
- 
   if (Compare(value1) && Compare(value2)) {
     QwMollerDetector* v1 = dynamic_cast<QwMollerDetector *> (value1);
     QwMollerDetector* v2 = dynamic_cast<QwMollerDetector *> (value2);

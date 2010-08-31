@@ -55,9 +55,6 @@ static bool bDebug = false;
 static bool bTree = true;
 static bool bHisto = true;
 static bool bHelicity = true;
-static bool bTrueHelicity = true;
-static bool bFakeHelicity = false;
-static bool bMoller = true;
 
 void setOptions();
 
@@ -134,9 +131,6 @@ int main(int argc, char* argv[])
   detectors.UpdateEventTypeMask();
   // Helicity pattern
   QwHelicityPattern helicitypattern(detectors);
-
-  // Get the SIS7200 channel for debugging
-  QwSTR7200_Channel *sampling = 0;
 
   // Event buffer
   QwEventBuffer eventbuffer;
@@ -233,12 +227,10 @@ int main(int argc, char* argv[])
       /// Add event into the subsystem 
       eventbuffer.FillSubsystemData(detectors);
 
-//      helicity->RunPredictor();
       detectors.ProcessEvent();
 
       /// Helicity pattern
-      if (bTrueHelicity)
-        helicitypattern.LoadEventData(detectors);
+      helicitypattern.LoadEventData(detectors);
       
       /// Accumulate the running sum to calculate the event based running average
         runningsum.AccumulateRunningSum(detectors);

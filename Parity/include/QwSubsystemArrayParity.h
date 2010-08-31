@@ -40,9 +40,9 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// Constructor with map file
     QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename, CanContain) { };
     /// Copy constructor by pointer
-    QwSubsystemArrayParity(const QwSubsystemArrayParity* source) { fnCanContain = source->fnCanContain; this->Copy(source); };
+    QwSubsystemArrayParity(const QwSubsystemArrayParity* source) { this->Copy(source); };
     /// Copy constructor by reference
-    QwSubsystemArrayParity(const QwSubsystemArrayParity& source) { fnCanContain = source.fnCanContain; this->Copy(&source); };
+    QwSubsystemArrayParity(const QwSubsystemArrayParity& source) { this->Copy(&source); };
     /// Default destructor
     virtual ~QwSubsystemArrayParity() { };
 

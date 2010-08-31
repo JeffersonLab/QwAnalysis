@@ -71,6 +71,11 @@ class QwHelicity: public VQwSubsystemParity{
   {
     //  Default helicity delay to two patterns.
     fHelicityDelay = 2;
+    // Default the EventType flags to HelPlus=1 and HelMinus=4
+    // These are only used in Moller decoding mode.
+    kEventTypeHelPlus  = 4;
+    kEventTypeHelMinus = 1;
+    //
     fEventNumberOld=-1; fEventNumber=-1;
     fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
     fPatternNumberOld=-1;  fPatternNumber=-1;
@@ -174,14 +179,14 @@ class QwHelicity: public VQwSubsystemParity{
 
 /////
  protected:
-   enum HelicityRootSavingType{kHelSaveMPS = 0,
+  enum HelicityRootSavingType{kHelSaveMPS = 0,
 			      kHelSavePattern,
 			      kHelNoSave};
 
   enum HelicityEncodingType{kHelUserbitMode=0,
 			    kHelInputRegisterMode,
 			    kHelLocalyMadeUp,
-          kHelInputMollerMode};
+			    kHelInputMollerMode};
   // this values allow to switch the code between different helicity encoding mode.
 
   std::vector <QwWord> fWord;
@@ -203,6 +208,9 @@ class QwHelicity: public VQwSubsystemParity{
   // the scalercounter counts how many events happened since the last reading
   // should be one all the time if not the event is suspicious and not used for analysis
   Int_t kInputRegister, kPatternCounter, kMpsCounter, kPatternPhase;
+
+  UInt_t kEventTypeHelPlus, kEventTypeHelMinus;
+
   Int_t fEventNumberOld, fEventNumber;
   Int_t fPatternPhaseNumberOld, fPatternPhaseNumber;
   Int_t fPatternNumberOld,  fPatternNumber;
