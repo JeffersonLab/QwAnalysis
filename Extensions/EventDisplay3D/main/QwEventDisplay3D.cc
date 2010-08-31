@@ -40,14 +40,21 @@ int main (int argc, char* argv[])
   // Start this application
   TApplication theApp("QwEventDisplayTest3D", &argc, argv);
 
-  // Create a QwEventDisplay application
-  QwEventDisplay3D* display = new QwEventDisplay3D(gClient->GetRoot(),1200,800);
-
   // Process the options
+  std::cout << "About to process arguments:\n\n\n\n\n";
   gQwOptions.SetCommandLine(argc, argv);
   gQwLog.ProcessOptions(&gQwOptions);
   ProcessEventDisplay3DOptions(&gQwOptions);
-  display->OpenRoot(gQwOptions.GetValue<int>("run"));
+
+  // Create a QwEventDisplay application
+  QwEventDisplay3D* display = new QwEventDisplay3D(gClient->GetRoot(),1200,800);
+
+  // If the user passes the right parameter, open up that file
+  if(gQwOptions.GetValue<int>("run")>0)
+     display->OpenRoot(gQwOptions.GetValue<int>("run"));
+
+  // Because this gets old real fast, this is only temporary
+  //display->OpenRoot(5153);
 
   // Now run this application
   display->RedrawViews();
