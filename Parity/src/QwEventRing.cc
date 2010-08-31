@@ -146,7 +146,7 @@ QwSubsystemArrayParity& QwEventRing::pop(){
   if (bDEBUG_Write) fprintf(out_file," Read at %d \n",fNextToBeRead);
   
   if (fNextToBeRead==(fRING_SIZE-1)){
-    bRING_READY=kFALSE;
+    bRING_READY=kFALSE;//setting to false is an extra measure of security to prevent reading a NULL value. 
   }
   fNextToBeRead=(fNextToBeRead+1)%fRING_SIZE;  
   return fEvent_Ring[tempIndex];  

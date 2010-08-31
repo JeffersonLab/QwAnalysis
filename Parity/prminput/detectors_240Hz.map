@@ -1,0 +1,33 @@
+# This is an example of a detector definition file.
+
+[QwBeamLine]
+ name = HallCBeamLine
+ map = qweak_hallc_beamline_240Hz.map
+ geom = qweak_beamline_geometry.map
+ param = qweak_hallc_pedestal.957.map
+ eventcut = qweak_beamline_eventcuts.in
+
+[QwMainCerenkovDetector]
+ name = Main Detector
+ map = qweak_maindet_240Hz.map
+ param = qweak_maindet_pedestal.957.map
+ eventcut = qweak_maindet_eventcuts.in
+
+[QwLumi]
+ name = Lumi Detector
+ map = qweak_lumi_240Hz.map
+ param = qweak_lumi_pedestal.957.map
+ eventcut = qweak_lumi_eventcuts.in
+
+[QwHelicity]
+ name = Helicity info
+ map = qweak_helicity.map
+
+[QwScanner]
+ name = Focal Plane Scanner
+ map = qweak_scanner_channel.map
+ param = qweak_scanner_parameter.map
+
+[QwBeamMod]
+ name = BeamMod
+ map  = qweak_modulation.map

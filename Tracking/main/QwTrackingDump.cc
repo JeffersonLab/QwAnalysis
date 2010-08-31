@@ -19,7 +19,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   // Fill list of trees we are interested in
   std::vector< TString > treelist;
-  treelist.push_back("tree");
   treelist.push_back("hit_tree");
   treelist.push_back("event_tree");
 

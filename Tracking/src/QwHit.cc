@@ -303,6 +303,7 @@ const QwDetectorID QwHit::GetDetectorID() const
   return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
 };
 
+
 const QwElectronicsID QwHit::GetElectronicsID() const
 {
   return QwElectronicsID(fModule,fChannel);
@@ -333,8 +334,10 @@ const Bool_t QwHit::DirMatches(EQwRegionID region,
 
 // main use of this method is to count no.of hits for a given wire
 // and update the fHitNumber - rakitha (08/2008)
-const Bool_t QwHit::WireMatches(Int_t region, Int_t package,
-				Int_t plane,  Int_t wire)
+const Bool_t QwHit::WireMatches(EQwRegionID region, 
+				EQwDetectorPackage package,
+				Int_t plane,  
+				Int_t wire)
 {
   return (fRegion == region && fPackage == package && fPlane == plane && fElement == wire);
 };

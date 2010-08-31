@@ -16,6 +16,8 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
+#include "QwVQWK_Module.h"
+
 #include "QwIntegrationPMT.h"
 #include "QwTypes.h"
 #include "QwScaler_Channel.h"
@@ -54,7 +56,10 @@ class QwLumiDetectorID{
 class QwLumi : public VQwSubsystemParity{
   /////
  public:
-  QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp){};
+  QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),bNormalization(kFALSE)
+   {
+    fTargetCharge.InitializeChannel("q_targ","derived");
+   };
     
   ~QwLumi() {
     DeleteHistograms();
@@ -62,6 +67,11 @@ class QwLumi : public VQwSubsystemParity{
 
 
   /* derived from VQwSubsystem */
+
+  /// \brief Define options function
+  static void DefineOptions(QwOptions &options);
+
+
   void ProcessOptions(QwOptions &options);//Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
@@ -78,8 +88,12 @@ class QwLumi : public VQwSubsystemParity{
   void  PrintDetectorID() const;
 
   void  ClearEventData();
+  Bool_t IsGoodEvent(); 
+
   void  ProcessEvent();
-  Bool_t IsGoodEvent();
+  void  ExchangeProcessedData();
+  void  ProcessEvent_2();
+  void DoNormalization(Double_t factor=1.0);
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
@@ -128,8 +142,10 @@ class QwLumi : public VQwSubsystemParity{
  std::vector <QwLumiDetectorID>      fLumiDetectorID;
  std::vector <QwSIS3801D24_Channel>  fScalerPMT;
 
-
-
+ protected:
+   QwBeamCharge   fTargetCharge;
+   Bool_t bIsExchangedDataValid;
+   Bool_t bNormalization;
 
 /////
  private:

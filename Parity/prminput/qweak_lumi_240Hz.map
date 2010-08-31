@@ -1,0 +1,72 @@
+!**************************************************************************
+!  QWEAK LUMI MAP
+!**************************************************************************
+!
+!
+ROC=2
+Bank=0x0202
+!same sample size for ADCs in a given bank
+sample_size=2000
+!
+!
+! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+
+!ADC6
+  VQWK, 5, 0,  integrationpmt,  QWK_USLUMI1NEG
+  VQWK, 5, 1,  integrationpmt,  QWK_USLUMI1POS
+  VQWK, 5, 2,  integrationpmt,  QWK_USLUMI3NEG
+  VQWK, 5, 3,  integrationpmt,  QWK_USLUMI3POS
+  VQWK, 5, 4,  integrationpmt,  QWK_USLUMI5NEG
+  VQWK, 5, 5,  integrationpmt,  QWK_USLUMI5POS
+  VQWK, 5, 6,  integrationpmt,  QWK_USLUMI7NEG
+  VQWK, 5, 7,  integrationpmt,  QWK_USLUMI7POS
+
+!ADC7
+  VQWK, 6, 0,  integrationpmt,  QWK_DSLUMI1
+  VQWK, 6, 1,  integrationpmt,  QWK_DSLUMI2
+  VQWK, 6, 2,  integrationpmt,  QWK_DSLUMI3
+  VQWK, 6, 3,  integrationpmt,  QWK_DSLUMI4
+  VQWK, 6, 4,  integrationpmt,  QWK_DSLUMI5
+  VQWK, 6, 5,  integrationpmt,  QWK_DSLUMI6
+  VQWK, 6, 6,  integrationpmt,  QWK_DSLUMI7
+  VQWK, 6, 7,  integrationpmt,  QWK_DSLUMI8
+
+
+!**************************************************************************
+!  QWEAK LUMI SCALERS
+!**************************************************************************
+ROC=0
+Bank=0x6103
+! module.type, scaler.num  word.num, scaler.type, det.name
+SCALER,2,0,scalerpmt,qwk_dslumi1_sc
+SCALER,2,1,scalerpmt,qwk_dslumi2_sc
+SCALER,2,2,scalerpmt,qwk_dslumi3_sc
+SCALER,2,3,scalerpmt,qwk_dslumi4_sc
+SCALER,2,4,scalerpmt,qwk_dslumi5_sc
+SCALER,2,5,scalerpmt,qwk_dslumi6_sc
+SCALER,2,6,scalerpmt,qwk_dslumi7_sc
+SCALER,2,7,scalerpmt,qwk_dslumi8_sc
+SCALER,2,8,scalerpmt,qwk_uslumi1neg_sc
+SCALER,2,9,scalerpmt,qwk_uslumi1pos_sc
+SCALER,2,10,scalerpmt,qwk_uslumi3neg_sc
+SCALER,2,11,scalerpmt,qwk_uslumi3pos_sc
+SCALER,2,12,scalerpmt,qwk_uslumi5neg_sc
+SCALER,2,13,scalerpmt,qwk_uslumi5pos_sc
+SCALER,2,14,scalerpmt,qwk_uslumi7neg_sc
+SCALER,2,15,scalerpmt,qwk_uslumi7pos_sc
+!SCALER,2,16,halomonitor,qwk_empty_s2ch16
+!SCALER,2,17,halomonitor,qwk_empty_s2ch17
+!SCALER,2,18,halomonitor,qwk_halo3
+!SCALER,2,19,halomonitor,qwk_halo4
+!SCALER,2,20,halomonitor,qwk_halo5
+!SCALER,2,21,halomonitor,qwk_halo6
+!SCALER,2,22,halomonitor,qwk_halo7
+!SCALER,2,23,halomonitor,qwk_bad_s2ch23
+!SCALER,2,24,halomonitor,qwk_halo8
+!SCALER,2,25,halomonitor,qwk_halo9
+!SCALER,2,26,halomonitor,qwk_halo10
+!SCALER,2,27,halomonitor,qwk_empty_s2ch27
+!SCALER,2,28,halomonitor,qwk_empty_s2ch28
+!SCALER,2,29,halomonitor,qwk_empty_s2ch29
+!SCALER,2,30,halomonitor,qwk_empty_s2ch30
+!SCALER,2,31,halomonitor,qwk_empty_s2ch31

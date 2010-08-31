@@ -172,6 +172,7 @@ ifeq ($(strip $(QWANALYSIS)),)
   $(error Aborting : QWANALYSIS variable is not set.  Source the SetupFiles/.Qwcshrc script first)
 endif
 ifneq ($(shell test $(QWANALYSIS)$(MYRELATIVEPATH) -ef $(shell pwd) || echo false),)
+  $(warning Target directory is $(QWANALYSIS)$(MYRELATIVEPATH).)
   $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.Qwcshrc script first)
 endif
 
@@ -469,7 +470,7 @@ INCFLAGS += $(BOOST_INC) -I./
 # Necessary for dictionary files where include files are quoted with relative
 # path appended (default behaviour for root-cint)
 
-CPPFLAGS = $(INCFLAGS) $(ROOTCFLAGS) $(CODACFLAGS) $(sort $(DEFAULTADD) $(ADD)) $(QWEAKCPPFLAGS)
+CPPFLAGS = $(INCFLAGS) $(ROOTCFLAGS) $(CODACFLAGS) $(sort $(DEFAULTADD) $(ADD)) $(QWEAKCPPFLAGS) $(DEBUG)
 # ADD should be contained in DEFAULTADD, but DEFAULTADD may be tempered with...
 
 CXXFLAGS += $(OPTIM) $(DEBUG)
@@ -561,7 +562,7 @@ VPATH    = ./main:./src
 
 MYSRCFILES= $(shell find $(MYSRCDIR) -name \*.cc -or -name \*.c)
 MYINCFILES= $(shell find $(MYINCDIR) -name \*.h)
-MYDICTFILES:= $(shell find $(MYDICTDIR) -name \*.cc)
+MYDICTFILES= $(shell find $(MYDICTDIR) -name \*.cc)
 
 MYOBJFILES= $(shell echo $(MYSRCFILES)|sed -e 's/\.cc/\.o/g' -e 's/\.c/\.o/g'| $(GREP) -v dictionary/)
 MYDICTOBJFILES= $(shell echo $(MYDICTFILES)|sed -e 's/\.cc/\.o/g' -e 's/\.c/\.o/g')
@@ -571,8 +572,10 @@ MYINCFLAGS =  $(patsubst %,-I%,$(sort $(dir $(shell $(FIND) $(MYINCDIR) | $(GREP
 CPPFLAGS += $(MYINCFLAGS)
 ##############
 
+all:  dictionary qweventdisplay3d
+
 qweventdisplay3d: $(MYDICTOBJFILES) main/QwEventDisplay3D.o $(MYOBJFILES)
-	@$(ECHO) "Making Executable QwEventDisplay3D"
+	@$(ECHO) "Making Executable QwEventDisplay3D" $@
 	${LINKER} ${CFLAGS}  ${filter-out %.a %.so dictionaries, $^}  ${LDFLAGS} ${LIBS} -o  $@   
 
 config: clean.auxfiles 
@@ -591,7 +594,7 @@ config: clean.auxfiles
 	done
 	@touch .auxDictFiles
 
-dictionary: .auxDictFiles config
+dictionary: config .auxDictFiles 
 	@$(ECHO) "################################### Building Dictionary Files"
 	@for file in `cat .auxDictFiles`; \
 	do \

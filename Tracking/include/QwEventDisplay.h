@@ -202,7 +202,7 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
 #define R1_LENGTH 30.00
 #define R1_DEPTH 3.00
 #define R1_DIST 0.10       // Distance between traces        ###CHECK THIS!!!
-#define R1_CM .8/R1_WIDTH  // Drawing scale factor, 1 cm
+#define R1_CM .8/R1_WIDTH  // Drawing scale factor, 1 cm in ROOT coordinates for this region
 
 #define R2_WIDTH 45.09     // Region 2
 #define R2_LENGTH 30.00
@@ -213,7 +213,7 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
 #define R2_FULLWIRE1 9     // 9.29  // (30*.675/2.18)         ###CHECK THIS!!!
 #define R2_FULLWIRE2 20    // 20.68 // (45.09/2.18)
 #define R2_ANGLE 56.00     // Wire angle from bottom of frame
-#define R2_CM .8/R2_WIDTH  // Drawing scale factor, 1 cm
+#define R2_CM .8/R2_WIDTH  // Drawing scale factor, 1 cm in ROOT coordinates for this region
 
 #define R3_WIDTH 204.47    // Region 3
 #define R3_LENGTH 53.34
@@ -223,7 +223,7 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
 #define R3_FULLWIRE1 96    // Given in geometry data
 #define R3_FULLWIRE2 184   // Given in geometry data
 #define R3_ANGLE 26.57     // Wire angle from normal to bottom of frame (90 - 63.43)
-#define R3_CM .8/R3_WIDTH  // Drawing scale factor, 1 cm
+#define R3_CM .8/R3_WIDTH  // Drawing scale factor, 1 cm in ROOT coordinates for this region
 
  public:
   RQ_OBJECT("QwEventDisplay") // Create an object for ROOT to process
@@ -238,26 +238,25 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
   TGTab *fRegions; // Tab frame for region boxes
   TGTextButton *ExitButton;
 
-  // Menu bar                            ######NEED TO EDIT
-  TGMenuBar *fMenuBar;
-  TGPopupMenu *fMenuFile, *fMenuHelp;
-  TGLayoutHints *fMenuBarLayout, *fMenuBarItemLayout, *fMenuBarHelpLayout;
+  // Menu Bar
+  TGMenuBar *fMenuBar;                                                      // Menu bar
+  TGPopupMenu *fMenuFile, *fMenuHelp;                                       // Popup menus
+  TGLayoutHints *fMenuBarLayout, *fMenuBarItemLayout, *fMenuBarHelpLayout;  // Menu bar layouts
   enum MenuCommandIdentifiers {
-    M_FILE_OPENRUN,
-    M_FILE_OPENSIM,
-    M_FILE_CLOSE,
+    M_FILE_OPEN,     // Opens a ROOT file
+    M_FILE_CLOSE,    // Closes a ROOT file
     
-    M_HELP_TUTORIAL,
-    M_HELP_ABOUT
+    M_HELP_TUTORIAL, // Provides link to the event display tutorial documentation
+    M_HELP_ABOUT     // Print information about the event display
   };
-
-  // Event Box 1 (Current Event Number) declarations
+  
+  // Event Box 1 (Current Event Number) Declarations
   TGVerticalFrame *fEventBox1, *fEventCounter; // Event box 1 frame and internal frame
   TGLabel *fCurrentEventLabel;                 // Label that displays the current event number
   TGNumberEntry *fCurrentEventEntry;           // Number entry for GotoEvent() function
   TGGroupFrame *fCurrentEvent;                 // Group frame to make label more prominent
-
-  // Event Box 2 (Wire Hit Information) declarations
+  
+  // Event Box 2 (Wire Hit Information) Declarations
   TGVerticalFrame *fEventBox2; // Event box 2 frame
   TGListBox *fWireInfoListBox; // List box to display wire hit information
 
@@ -267,7 +266,7 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
   TCanvas *cOctantID;             // Canvas for octant ID
   TPaveLabel *Octant_1, *Octant_2, *Octant_3, *Octant_4, *Octant_5, *Octant_6, *Octant_7, *Octant_8; // Labels for each of the octants
 
-  // Region 1 (GEM) declarations
+  // Region 1 (GEM) Declarations
   TGCompositeFrame *fRegion1;                                // Tab frame
   TRootEmbeddedCanvas *fRegion1XY, *fRegion1XZ, *fRegion1YZ; // Embedded canvases for each projection
   TCanvas *cR1XY, *cR1XZ, *cR1YZ;                            // Canvases for each projection
@@ -276,7 +275,7 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
   std::vector<TLine> Line_R1r;                               // Vectors to store hit list from hit containers
   std::vector<TLine> Line_R1y;                               // for each direction and draw wire hit lines
 
-  // Region 2 (HDC) declarations
+  // Region 2 (HDC) Declarations
   TGCompositeFrame *fRegion2;                                // Tab frame
   TRootEmbeddedCanvas *fRegion2XY, *fRegion2XZ, *fRegion2YZ; // Embedded canvases for each projection
   TCanvas *cR2XY, *cR2XZ, *cR2YZ;                            // Canvases for each projection
@@ -287,7 +286,7 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
   std::vector<TLine> Line_R2u;                               // for each direction and draw wire hit lines
   std::vector<TLine> Line_R2v;
 
-  // Region 2b (HDC second arm) declarations
+  // Region 2b (HDC second arm) Declarations
   TGCompositeFrame *fRegion2b;                                  // Tab frame
   TRootEmbeddedCanvas *fRegion2bXY, *fRegion2bXZ, *fRegion2bYZ; // Embedded canvases for each projection
   TCanvas *cR2bXY, *cR2bXZ, *cR2bYZ;                            // Canvases for each projection
@@ -295,7 +294,7 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
   TBox *Box_R2bXY, *Box_R2bXZ1, *Box_R2bXZ2,*Box_R2bXZ3,*Box_R2bXZ4, *Box_R2bYZ1, *Box_R2bYZ2, *Box_R2bYZ3, *Box_R2bYZ4;       // Boxes for each chamber
   TText *tR2bXY1, *tR2bXY2, *tR2bXY3, *tR2bXY4, *tR2bXZ1, *tR2bXZ2, *tR2bXZ3, *tR2bXZ4,*tR2bYZ1, *tR2bYZ2, *tR2bYZ3, *tR2bYZ4; // Text for HDC chamber labels
 
-  // Region 3 (VDC) declarations
+  // Region 3 (VDC) Declarations
   TGCompositeFrame *fRegion3;                                // Tab frame
   TRootEmbeddedCanvas *fRegion3XY, *fRegion3XZ, *fRegion3YZ; // Embedded canvases for each projection
   TCanvas *cR3XY, *cR3XZ, *cR3YZ;                            // Canvases for each projection
@@ -306,20 +305,20 @@ class QwEventDisplay: public TGMainFrame{  // Event display is a ROOT main frame
   std::vector<TLine> Line_R3u;           // Vectors to store hit list from hit containers
   std::vector<TLine> Line_R3v;           // for each direction and draw wire hit lines
 
-  // Region 3 (TS) declarations // NOT USED CURRENTLY
+  // Region 3 (TS) Declarations // NOT USED CURRENTLY
   TGCompositeFrame *fRegion3TS; // Tab frame
 
-  // Create event buffer
+  // Create Event Buffer
   QwTreeEventBuffer* fEventBuffer; //!       // Excluded from dictionary
   QwSubsystemArrayTracking* fSubsystemArray; //!
 
-  // Create hit list
+  // Create Hit List
   QwHitContainer* fHitList; //!
 
   // Trees
   TTree* fTree; // Used to store hits_tree from ROOT file
 
-  // Function list
+  // Function List
  public:
   QwEventDisplay(const TGWindow *p, UInt_t w, UInt_t h);
   virtual ~QwEventDisplay();

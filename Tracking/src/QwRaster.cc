@@ -569,7 +569,6 @@ void  QwRaster::FillTreeVector(std::vector<Double_t> &values)
 
 void  QwRaster::DeleteHistograms()
 {
-
     if (bStoreRawData)
     {
         for (size_t i=0; i<fPMTs.size(); i++)
@@ -583,23 +582,25 @@ void  QwRaster::DeleteHistograms()
 
     }
 
-    for (size_t i=0; i<fHistograms1D.size(); i++)
-    {
-        if (fHistograms1D.at(i) != NULL)
-        {
+    // Delete all histograms in the list
+    for (size_t i = 0; i < fHistograms1D.size(); i++) {
+        if (fHistograms1D.at(i) != NULL) {
             delete fHistograms1D.at(i);
-            fHistograms1D.at(i) =  NULL;
+            fHistograms1D.at(i) = NULL;
         }
     }
+    // Then clear the list
+    fHistograms1D.clear();
 
-    for (size_t i=0; i<fHistograms2D.size(); i++)
-    {
-        if (fHistograms2D.at(i) != NULL)
-        {
+    // Delete all histograms in the list
+    for (size_t i = 0; i < fHistograms2D.size(); i++) {
+        if (fHistograms2D.at(i) != NULL) {
             delete fHistograms2D.at(i);
-            fHistograms2D.at(i) =  NULL;
+            fHistograms2D.at(i) = NULL;
         }
     }
+    // Then clear the list
+    fHistograms2D.clear();
 
 };
 

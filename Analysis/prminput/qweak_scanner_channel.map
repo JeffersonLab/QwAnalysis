@@ -68,8 +68,13 @@ VQWK_Bank=0x6110
 ! module.type  module.num  chan.num, det.type, det.name
 !
 !  VQWK, 0, 0, scanner_motion, phase_monitor
-  VQWK, 0, 5, scanner_motion, pos_x_vqwk
+!  VQWK, 0, 5, scanner_motion, pos_x_vqwk
+!  VQWK, 0, 6, scanner_motion, pos_y_vqwk
+!  VQWK, 0, 7, scanner_motion, power_vqwk
+!
+  VQWK, 0, 0, scanner_motion, phase_monitor
+  VQWK, 0, 4, scanner_motion, power_vqwk
   VQWK, 0, 6, scanner_motion, pos_y_vqwk
-  VQWK, 0, 7, scanner_motion, power_vqwk
+  VQWK, 0, 7, scanner_motion, pos_x_vqwk
 !
 !END

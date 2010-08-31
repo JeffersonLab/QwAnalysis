@@ -57,8 +57,9 @@ class QwEPICSEvent
 
   void FillDB(QwDatabase *db);
   void FillSlowControlsData(QwDatabase *db);
+  void FillSlowControlsStrigs(QwDatabase *db);
   void FillSlowControlsSettings(QwDatabase *db);
-
+  
  private:
   static const int kDebug;
   static const int kEPICS_Error;

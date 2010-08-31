@@ -201,7 +201,7 @@ void QwGUIEventDisplay::OnNewDataContainer()
   /*
 //All tree access are cancelled
   if (dROOTCont) {
-    fTree = (TTree*) dROOTCont->ReadTree("tree");
+    fTree = (TTree*) dROOTCont->ReadTree("event_tree");
   }
   */
 }

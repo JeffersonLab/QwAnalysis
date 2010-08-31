@@ -12,6 +12,8 @@
 
 #include "QwLog.h"
 
+#include "QwFakeHelicity.h"
+#include "QwBeamMod.h"
 
 #include "QwFakeHelicity.h"
 
@@ -86,12 +88,16 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadChannelMap("qweak_beamline.map");
   QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadInputParameters("qweak_pedestal.map");
   QwDetectors.GetSubsystemByName("Injector BeamLine")->LoadEventCuts("qweak_beamline_eventcuts.in");//Pass the correct cuts file.
-  QwDetectors.push_back(new QwHelicity("Helicity info"));
+  QwDetectors.push_back(new QwFakeHelicity("Helicity info"));
   QwDetectors.GetSubsystemByName("Helicity info")->LoadChannelMap("qweak_helicity.map");
   QwDetectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
   QwDetectors.push_back(new QwLumi("Luminosity Monitors"));
   QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadChannelMap("qweak_lumi.map");//current map file is for the beamline.
   QwDetectors.GetSubsystemByName("Luminosity Monitors")->LoadEventCuts("qweak_lumi_eventcuts.in");//Pass the correct cuts file.
+
+  QwDetectors.push_back(new QwBeamMod("BeamMod"));
+  QwDetectors.GetSubsystemByName("BeamMod")->LoadChannelMap("qweak_modulation.map");
+
 
   // Running sum
   QwSubsystemArrayParity runningsum;

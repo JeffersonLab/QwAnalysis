@@ -17,19 +17,26 @@
 
 [QwDriftChamberVDC]
  name = R3
- map = TDCtoDL.map
+ map = TDCtoDL_after705.map
  geom = qweak_new.geo
 
 [QwTriggerScintillator]
  name = TS
  map = qweak_trigscint_channel.map
  geom = qweak_new.geo
+ mask = 0xffff
 
 [QwMainDetector]
  name = MD
  map = qweak_maindet_channel.map
  geom = qweak_new.geo
  mask = 0xffff
+
+[QwLumi]
+ name = LUMI
+ map = qweak_lumi.map
+ geom = qweak_new.geo
+ mask = 0x1
 
 [QwScanner]
  name = FPS

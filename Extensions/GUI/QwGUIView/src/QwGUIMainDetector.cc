@@ -1151,7 +1151,7 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
     }
 
     //Tracking Mode
-    obj = dROOTCont->ReadData("tree");
+    obj = dROOTCont->ReadData("event_tree");
     if(obj){
       if(obj->InheritsFrom("TTree")){
 	HELTree = (TTree*)obj->Clone();

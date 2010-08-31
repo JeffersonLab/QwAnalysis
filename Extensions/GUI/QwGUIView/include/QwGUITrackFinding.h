@@ -31,7 +31,7 @@
    This is Gericke's original code for the main detector.
    Modified by Buddhini Waidyawansa to display the hall c Beamline data.
    Modified by Wouter Deconinck to display track finding quality
-   Modified by David Zou to display additional track finding quality
+   Modified by David Zou to display additional track finding qualities
  */
 //=============================================================================
 
@@ -80,6 +80,7 @@
   TGTextButton        *dBtnpResidual;
   TGTextButton        *dBtnpOffset;
   TGTextButton        *dBtnpSlope;
+  TGTextButton        *dBtnPackage;
 // objects needed for drop down menu
   TGVerticalFrame        *dBigFrame;
   TGVerticalFrame        *dTabFrameVert;
@@ -131,6 +132,11 @@
   void PlotTLOffsetX();
   void PlotTLOffsetU();
   void PlotTLOffsetV();
+  void PlotTLResidualX();
+  void PlotTLResidualU();
+  void PlotTLResidualV();
+  void PlotPTPackage();
+
   //!This function plots histograms of the data in the current file, in the main canvas.
   //!
   //!Parameters:

@@ -1,0 +1,11 @@
+# This is an example of a detector definition file.
+
+[QwMollerDetector]
+ name = MollerDetector
+ mask = 0x09
+ map  = moller_channels.map
+
+[QwHelicity]
+ name = Helicity
+ mask = 0x09
+ map  = moller_helicity.map
