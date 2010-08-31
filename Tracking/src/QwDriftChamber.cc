@@ -12,7 +12,11 @@
 #include "QwColor.h"
 #include "QwParameterFile.h"
 
-const UInt_t QwDriftChamber::kMaxNumberOfTDCsPerROC = 21;
+//const UInt_t QwDriftChamber::kMaxNumberOfTDCsPerROC = 21; 
+// VME 21 slots - 2 VMEs (CPU, TI)
+// in priniciple, the maximum number is 19,
+// but, Qweak only uses 9 F1TDCs at ROC 9 and ROC 10.
+const UInt_t QwDriftChamber::kMaxNumberOfSlotsPerROC = 21;
 const Int_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
 
 
@@ -30,7 +34,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
 
   kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels();  
 
-  fF1TDContainer     = NULL;
+  fF1TDContainer =  new QwF1TDContainer();
   fF1TDCBadDataCount = 0;
 
 };
@@ -46,7 +50,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
 
   kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels(); 
 
-  fF1TDContainer     = NULL;
+  fF1TDContainer =  new QwF1TDContainer();
   fF1TDCBadDataCount = 0;
 
 };
@@ -205,7 +209,7 @@ Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_i
 {
   Int_t status = 0;
   status = VQwSubsystemTracking::RegisterROCNumber(roc_id, bank_id);
-  std::vector<Int_t> tmpvec(kMaxNumberOfTDCsPerROC,-1);
+  std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
   fTDC_Index.push_back(tmpvec);
   std::cout<<"Registering ROC "<<roc_id<<std::endl;
 
@@ -222,7 +226,7 @@ Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
   }
-  std::vector<Int_t> tmpvec(kMaxNumberOfTDCsPerROC,-1);
+  std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
   fTDC_Index.push_back(tmpvec);
   std::cout<< "RegisterSubbank()" 
 	   <<" ROC " << (VQwSubsystem::fCurrentROC_ID)
@@ -234,7 +238,7 @@ Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
 
 Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
 {
-  if (slot_id<kMaxNumberOfTDCsPerROC) {
+  if (slot_id<kMaxNumberOfSlotsPerROC) {
     if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fTDC_Index.size()) {
       fTDCPtrs.resize(fNumberOfTDCs+1);
       fTDCPtrs.at(fNumberOfTDCs).resize(kMaxNumberOfChannelsPerTDC);
@@ -247,7 +251,7 @@ Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
   else {
     std::cerr << "QwDriftChamber::RegisterSlotNumber:  Slot number "
 	      << slot_id << " is larger than the number of slots per ROC, "
-	      << kMaxNumberOfTDCsPerROC << std::endl;
+	      << kMaxNumberOfSlotsPerROC << std::endl;
   }
   return fCurrentTDCIndex;
     
@@ -275,3 +279,201 @@ Int_t QwDriftChamber::LinkReferenceChannel (const UInt_t chan,const Int_t plane,
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
   return OK;
 };
+
+
+
+
+void  QwDriftChamber::ReportConfiguration()
+{
+    std::size_t i    = 0;
+    std::size_t j    = 0;
+
+    Int_t roc_num    = 0;
+    Int_t bank_flag  = 0;
+    Int_t bank_index = 0;
+    Int_t tdc_index  = 0;
+
+    UInt_t slot_id   = 0;
+    UInt_t vme_slot_num = 0;
+    
+    std::cout << "QwDriftChamber Region : " 
+	      << this->GetSubsystemName()
+	      << "::ReportConfiguration fTDCPtrs.size() " 
+	      << fTDCPtrs.size() << std::endl;
+
+
+    for ( i=0; i<fROC_IDs.size(); i++ ) {
+
+      roc_num = fROC_IDs.at(i);
+
+      for ( j=0; j<fBank_IDs.at(i).size(); j++ ) {
+	
+	bank_flag    = fBank_IDs.at(i).at(j);
+	if(bank_flag == 0) continue; 
+	// must be uncommented if one doesn't define "bank_flag" in a CRL file
+	// but, now we use "bank_flag" in our crl files, thus skip to print
+	// unnecessary things on a screen
+	// Monday, August 30 14:45:34 EDT 2010, jhlee
+
+	bank_index = GetSubbankIndex(roc_num, bank_flag);
+	
+	std::cout << "ROC [index, Num][" 
+		  << i
+		  << ","
+		  << std::setw(2) << roc_num
+		  << "]"
+		  << " Bank [index,id]["
+		  <<  bank_index
+		  << ","
+		  << bank_flag
+		  << "]"
+		  << std::endl;
+	
+	for ( slot_id=2; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) { 
+	  // slot id starts from 2, because 0 and 1 are used for CPU and TI.
+	  // Tuesday, August 31 10:57:07 EDT 2010, jhlee
+
+	  tdc_index = GetTDCIndex(bank_index, slot_id);
+	  
+	  vme_slot_num = slot_id +1;
+	  
+	  std::cout << "    "
+		    << "Slot [id, VME num] [" 
+		    << std::setw(2) << slot_id
+		    << ","
+		    << std::setw(2) << vme_slot_num
+		    << "]";
+	  if ( tdc_index == -1 ) {
+	    std::cout << "    "
+		      << "Unused in VDC" 
+		      << std::endl;
+	  }
+	  else {
+	    std::cout << "    "
+		      << "F1TDC index " 
+		      << tdc_index << std::endl;
+	  }
+	}
+      }
+    }
+    
+    return;
+};
+
+
+
+
+
+
+void  QwDriftChamber::AddF1Configuration()
+{
+
+
+  Bool_t local_debug = false;
+
+  std::size_t i    = 0;
+  std::size_t j    = 0;
+
+  Int_t roc_num    = 0;
+  Int_t bank_flag  = 0;
+  Int_t bank_index = 0;
+  Int_t tdc_index  = 0;
+
+  UInt_t slot_id   = 0;
+  UInt_t vme_slot_num = 0;
+
+  TString subsystem_name;
+  subsystem_name = this->GetSubsystemName();
+
+  if(local_debug) {
+    std::cout << "QwDriftChamber Region : " 
+	      << subsystem_name
+	      << "::ReportConfiguration fTDCPtrs.size() " 
+	      << fTDCPtrs.size() << std::endl;
+  }
+
+  fF1TDContainer -> SetSystemName(subsystem_name);
+
+
+  QwF1TDC local_f1tdc;
+
+
+  for ( i=0; i<fROC_IDs.size(); i++ ) {
+
+    roc_num = fROC_IDs.at(i);
+      
+    for ( j=0; j<fBank_IDs.at(i).size(); j++ ) {
+	
+      bank_flag    = fBank_IDs.at(i).at(j);
+      if(bank_flag == 0) continue; 
+      // must be uncommented if one doesn't define "bank_flag" in a CRL file
+      // but, now we use "bank_flag" in our crl files, thus skip to print
+      // unnecessary things on a screen and to save some time.
+      // Monday, August 30 14:45:34 EDT 2010, jhlee
+
+	
+      bank_index = GetSubbankIndex(roc_num, bank_flag);
+      
+      if(local_debug) {
+	std::cout << "ROC [index, Num][" 
+		  << i
+		  << ","
+		  << std::setw(2) << roc_num
+		  << "]"
+		  << " Bank [index,id]["
+		  <<  bank_index
+		  << ","
+		  << bank_flag
+		  << "]"
+		  << std::endl;
+      }
+      
+      for ( slot_id=0; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) { 
+	// slot id starts from 2, because 0 and 1 are used for CPU and TI.
+	// Tuesday, August 31 10:57:07 EDT 2010, jhlee
+	
+	tdc_index    = GetTDCIndex(bank_index, slot_id);
+	vme_slot_num = slot_id;
+
+	local_f1tdc.SetROCNumber(roc_num);
+	local_f1tdc.SetF1TDCIndex(tdc_index);
+
+	if(local_debug) {
+	  std::cout << "    "
+		    << "Slot [id, VME num] [" 
+		    << std::setw(2) << slot_id
+		    << ","
+		    << std::setw(2) << vme_slot_num
+		    << "]";
+	  
+	  std::cout << "    ";
+	}
+	
+	if(slot_id > 2) { // save time
+	  if ( tdc_index == -1 ) {
+	    if(local_debug) std::cout << "Unused in " << subsystem_name;
+	  }
+	  else {
+	    if(local_debug) std::cout << "F1TDC index " << tdc_index;
+	    local_f1tdc.SetSlotNumber(vme_slot_num);
+	    fF1TDContainer->AddQwF1TDC(local_f1tdc);
+	  }
+	}
+	else { // slot_id == only 0 & 1
+	  if(local_debug) {
+	    if (slot_id == 0) std::cout << "MVME CPU ";
+	    else              std::cout << "Trigger Interface"; // slot_id == 1;
+	  }
+	}
+
+	if(local_debug) std::cout << std::endl;
+	 
+      }
+    }
+  }
+ 
+  std::cout << *fF1TDContainer << std::endl;
+
+  return;
+};
+

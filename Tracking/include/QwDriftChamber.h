@@ -65,8 +65,11 @@ class QwDriftChamber: public VQwSubsystemTracking{
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
 
 
+  void  ReportConfiguration();
+  void  AddF1Configuration();
+
   //has separate meanings in VDC and HDC
-  virtual void  ReportConfiguration()    = 0;
+ 
   virtual void  SubtractReferenceTimes() = 0;
   virtual void  ProcessEvent() = 0;
   virtual Int_t LoadGeometryDefinition(TString mapfile ) = 0;
@@ -74,6 +77,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   virtual Int_t LoadChannelMap(TString mapfile ) = 0;
   virtual void  ClearEventData() = 0;
 
+  
 
 
   /* Unique member functions */
@@ -130,10 +134,13 @@ class QwDriftChamber: public VQwSubsystemTracking{
   Int_t fCurrentSlot;
   Int_t fCurrentTDCIndex;
 
-  static const UInt_t kMaxNumberOfTDCsPerROC;
+  // static const UInt_t kMaxNumberOfTDCsPerROC;
+  static const UInt_t kMaxNumberOfSlotsPerROC;
   static const Int_t kReferenceChannelPlaneNumber; // plane is Int_t
 
   UInt_t kMaxNumberOfChannelsPerTDC;
+  
+
   Int_t  fNumberOfTDCs;
 
   std::vector< std::vector<Int_t> > fTDC_Index;  //  TDC index, indexed by bank_index and slot_number

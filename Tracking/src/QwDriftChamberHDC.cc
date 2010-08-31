@@ -165,44 +165,6 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 
 
 
-void  QwDriftChamberHDC::ReportConfiguration()
-{
-
-  std::size_t i = 0;
-  std::size_t j = 0;
-  UInt_t k = 0;
-  Int_t tdcindex = 0;
-  Int_t ind = 0;
-  QwMessage << "QwDriftChamberHDC::ReportConfiguration fTDCPtrs.size()" << fTDCPtrs.size() << QwLog::endl;
-
-  for ( i = 0; i<fROC_IDs.size(); i++){
- 
-    for ( j=0; j<fBank_IDs.at(i).size(); j++){
-      ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
-      QwMessage << "ROC " << fROC_IDs.at(i)
-		<< ", subbank " << fBank_IDs.at(i).at(j)
-		<< ":  subbank index==" << ind
-		<< QwLog::endl;
-      for ( k=0; k<kMaxNumberOfTDCsPerROC; k++){
-	tdcindex = GetTDCIndex(ind,k);
-	QwMessage << "    Slot " << k;
-	if (tdcindex == -1)
-	  QwMessage << "  Empty" << QwLog::endl;
-	else
-	  QwMessage << "  TDC#" << tdcindex << QwLog::endl;
-      }
-    }
-  }
-  // for (size_t i=0; i<fWiresPerPlane.size(); i++){
-  //   if (fWiresPerPlane.at(i) == 0) continue;
-  //   QwMessage << "Plane " << i << " has " << fWireData.at(i).size()
-  // 	      << " wires"
-  // 	      << QwLog::endl;
-  // }
-};
-
-
-
 void  QwDriftChamberHDC::SubtractReferenceTimes()
 {
   std::vector<Double_t> reftimes;
@@ -644,7 +606,12 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
     }
     */
     //
-    ReportConfiguration();
+
+
+    // /   ReportConfiguration();
+
+    AddF1Configuration();
+
     return OK;
 };
 

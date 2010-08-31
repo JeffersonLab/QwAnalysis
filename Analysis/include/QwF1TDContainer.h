@@ -28,8 +28,11 @@ class QwF1TDC : public TObject
 
  public:
   QwF1TDC();
+  QwF1TDC(const QwF1TDC& f1tdc);
   QwF1TDC(const Int_t roc, const Int_t slot);
   ~QwF1TDC();
+
+  friend std::ostream& operator<<(std::ostream& os, const QwF1TDC &f1tdc);
 
   const Int_t  GetROCNumber()          const {return fROC;};
   const Int_t  GetSlotNumber()         const {return fSlot;};
@@ -49,6 +52,8 @@ class QwF1TDC : public TObject
   const Double_t GetF1TDC_resolution() const {return fF1TDC_resolution_ns;};
   const Double_t GetF1TDC_bin_size()   const {return fF1TDC_resolution_ns;};
 
+  const Int_t GetF1TDCIndex() const {return fF1TDCIndex;};
+
   void SetROCNumber       (const Int_t roc)          {fROC = roc;};
   void SetSlotNumber      (const Int_t slot)         {fSlot = slot;};
   void SetReferenceSlot   (const Bool_t reflag)      {fReferenceSlotFlag = reflag;};
@@ -65,6 +70,8 @@ class QwF1TDC : public TObject
   void SetF1TDC_latency   (const Double_t lat_ns)    {fF1TDC_latency_ns = lat_ns;};
   void SetF1TDC_resolution(const Double_t resol_ns)  {fF1TDC_resolution_ns = resol_ns;};
   void SetF1TDC_bin_size  (const Double_t binsize_ns){fF1TDC_resolution_ns = binsize_ns;};
+
+  void SetF1TDCIndex(const Int_t tdc_index) {fF1TDCIndex = tdc_index;};
 
   void AddSEU() {fF1TDC_SEU_counter++;};
   void AddSYN() {fF1TDC_SYN_counter++;};
@@ -102,8 +109,8 @@ class QwF1TDC : public TObject
                        // Friday, July 30 11:26:36 EDT 2010, jhlee
 
  
-
-  UInt_t fChannelNumber;
+  
+  UInt_t   fChannelNumber;
   
   UInt_t   fF1TDC_refcnt;
   UInt_t   fF1TDC_hsdiv;
@@ -127,6 +134,8 @@ class QwF1TDC : public TObject
 
   Bool_t   fF1TDCNormalResolutionFlag;
 
+
+  Int_t    fF1TDCIndex; // keep the tdcindex info from GetTDCIndex() function
 
  private:
   // void Initialize();
@@ -161,10 +170,15 @@ class QwF1TDContainer : public TObject
   QwF1TDContainer(EQwDetectorType detector_type);
   QwF1TDContainer(EQwDetectorType detector_type, EQwRegionID region);
   ~QwF1TDContainer();
-  
+
+  friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container);
+
   void Clear (Option_t *option = "");
   void Reset (Option_t *option = "");
   void Delete(Option_t *option = "");
+
+  void SetSystemName(const TString name);// {fSubsystemName = name;};
+  const TString GetSystemName() const {return fSubsystemName;};
 
   void AddQwF1TDC(QwF1TDC &in);
 
@@ -180,6 +194,7 @@ class QwF1TDContainer : public TObject
 
   EQwDetectorType    fDetectorType;
   EQwRegionID        fRegion;
+  TString            fSubsystemName;
   
   //  typedef std::vararry <Double_t> 
 

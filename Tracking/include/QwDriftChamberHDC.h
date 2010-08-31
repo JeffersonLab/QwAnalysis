@@ -28,7 +28,7 @@ class QwDriftChamberHDC: public QwDriftChamber {
   /* Unique virtual member functions from QwDrifChamber base class */
 
 
-  void  ReportConfiguration();
+  //  void  ReportConfiguration();
   void  SubtractReferenceTimes();
   void  ProcessEvent();
   Int_t LoadGeometryDefinition(TString mapfile );

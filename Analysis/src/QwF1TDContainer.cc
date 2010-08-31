@@ -1,5 +1,10 @@
 #include "QwF1TDContainer.h"
-
+/**
+ *  \file   QwF1TDContainer.cc
+ *  \brief  
+ *  \author jhlee@jlab.org
+ *  \date   Tuesday, August 31 11:41:58 EDT 2010
+ */
 ClassImp(QwF1TDC);
 ClassImp(QwF1TDContainer);
 
@@ -32,6 +37,7 @@ QwF1TDC::QwF1TDC()
 
 QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
 {
+
   fROC  = roc;
   fSlot = slot;
   fReferenceSlotFlag   = kFALSE;
@@ -59,6 +65,35 @@ QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
   // for (Int_t i=0;i<SLOTNUM;i++) fValues[i].Set(CHANNUM);
 }
 
+QwF1TDC::QwF1TDC(const QwF1TDC &f1tdc)
+{
+  fROC                 = -1;
+  fSlot                = -1;
+  fReferenceSlotFlag   = kFALSE;
+  fF1TDCNormalResolutionFlag = kTRUE;
+  fChannelNumber       = 64;
+  fF1TDC_refcnt        = 0;
+  fF1TDC_hsdiv         = 0;
+  fF1TDC_refclkdiv     = 0;
+  fF1TDC_trigwin       = 0;
+  fF1TDC_triglat       = 0;
+  
+  fF1TDC_tframe_ns     = 0.0;
+  fF1TDC_full_range_ns = 0.0;
+  //  fF1TDC_bin_size_ns   = 0.0;
+  fF1TDC_window_ns     = 0.0;
+  fF1TDC_latency_ns    = 0.0;
+  fF1TDC_resolution_ns = 0.0;
+
+  fReferenceSignals = NULL;
+
+  // if(fF1TDCNormalResolutionFlag) fChannelNumber = 64;
+  // else                           fChannelNumber = 32;
+
+  *this = f1tdc;
+};
+
+
 
 QwF1TDC::~QwF1TDC()
 {
@@ -75,6 +110,9 @@ QwF1TDC::ResetCounters()
   fF1TDC_EMM_counter = 0;
   return;
 }
+
+
+
 // void 
 // SetRefernceSignals(Int_t chan, Double_t val)
 // {
@@ -85,10 +123,26 @@ QwF1TDC::ResetCounters()
 //   return;
 // }
 
+
+std::ostream& operator<< (std::ostream& os, const QwF1TDC &f1tdc)
+{
+  
+  os << " ROC ";
+  os << std::setw(2) << f1tdc.fROC;
+  os << " Slot ";
+  os << std::setw(2) << f1tdc.fSlot;
+  os << " TDC idx ";
+  os << std::setw(2) << f1tdc.fF1TDCIndex;
+
+  return os;
+}
+
+
+
 TClonesArray *QwF1TDContainer::gQwF1TDCs    = NULL;
 const Int_t QwF1TDContainer::gMaxCloneArray = 14; 
 
-// the maximum number of F1TDC modulesthat each subsystem can have.
+// the maximum number of F1TDC modules that each subsystem can have.
 // For Region 2 has 14
 // For Region 3 has  6
 // For other    has  2
@@ -171,3 +225,49 @@ QwF1TDContainer::GetF1TDC (Int_t f1tdcID) const
   return (QwF1TDC*) fQwF1TDCs->At(f1tdcID);
 }
 
+void 
+QwF1TDContainer::SetSystemName(const TString name)
+{
+  // Types are defined in QwType.h
+
+  fSubsystemName = name;
+  if(fSubsystemName == "R2") {
+    fDetectorType = kTypeDriftHDC;
+    fRegion       = kRegionID2;
+  }
+  else if(fSubsystemName == "R3") {
+    fDetectorType = kTypeDriftVDC;
+    fRegion       = kRegionID3;
+  }
+
+  return;
+};
+
+
+std::ostream& operator<< (std::ostream& os, const QwF1TDContainer &container)
+{
+  
+  Int_t size = 0;
+  Int_t i = 0;
+  size = container.fNQwF1TDCs;
+
+  os << "\nQwF1TDContainer in Subsystem : " 
+     <<  container.fSubsystemName
+     << ", DetectorType " << container.fDetectorType
+     << ", RegionType "   << container.fRegion
+     << ", How many F1TDCs are : "  
+     << size 
+     << "\n";
+
+  for(i=0; i<size; i++) {
+      os << std::setw(2) << i
+	 << ":"
+	 << *container.GetF1TDC(i) << "\n";
+    }
+  
+  return os;
+}
+
+
+
+ 

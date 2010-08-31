@@ -153,51 +153,12 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition( TString mapfile )
 
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
  
-  ReportConfiguration();
+  //  ReportConfiguration();
+
+  AddF1Configuration();
 
   return OK;
 }
-
-
-
-
-
-
-void  QwDriftChamberVDC::ReportConfiguration()
-{
-    UInt_t i,j,k;
-    i=j=k=0;
-    Int_t ind = 0;
-    Int_t tdcindex = 0;
-    for ( i=0; i<fROC_IDs.size(); i++ )
-    {
-        for ( j=0; j<fBank_IDs.at ( i ).size(); j++ )
-        {
-            ind = GetSubbankIndex ( fROC_IDs.at ( i ),fBank_IDs.at ( i ).at ( j ) );
-            std::cout << "ROC " << fROC_IDs.at ( i )
-            << ", subbank " << fBank_IDs.at ( i ).at ( j )
-            << ":  subbank index==" << ind
-            << std::endl;
-            for ( k=0; k<kMaxNumberOfTDCsPerROC; k++ )
-            {
-                tdcindex = GetTDCIndex ( ind, k );
-                std::cout << "    Slot " << k;
-                if ( tdcindex == -1 )
-                    std::cout << "  Empty" << std::endl;
-                else
-                    std::cout << "  TDC#" << tdcindex << std::endl;
-            }
-        }
-    }
-    // for ( i=0; i<fWiresPerPlane.size(); i++ ) {
-    //   if ( fWiresPerPlane.at ( i ) == 0 ) continue;
-    //   std::cout << "Plane " << i << " has " << fWireData.at ( i ).size()
-    // 	      << " wires"
-    // 	      <<std::endl;
-    // }
-
-    return;
-};
 
 
 
@@ -753,6 +714,7 @@ void QwDriftChamberVDC::ProcessEvent()
     {
         tmpElectronicsID = iter->GetElectronicsID();
         tmpCrate         = iter->GetSubbankID();
+	// if(tmpCrate == 0) break;
         tmpTime          = iter->GetTime();
         tmpModule        = tmpElectronicsID.fModule;
         tmpChan          = tmpElectronicsID.fChannel;
@@ -886,7 +848,7 @@ void QwDriftChamberVDC::ClearEventData()
 Int_t QwDriftChamberVDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Int_t subbank_index = 0;
-  Bool_t local_debug = false;
+  Bool_t local_debug = true;
   
   
   subbank_index = GetSubbankIndex(roc_id, bank_id);
