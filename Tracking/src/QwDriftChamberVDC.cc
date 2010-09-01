@@ -155,8 +155,6 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition( TString mapfile )
  
   //  ReportConfiguration();
 
-  AddF1Configuration();
-
   return OK;
 }
 
@@ -845,61 +843,35 @@ void QwDriftChamberVDC::ClearEventData()
 
 
 
-Int_t QwDriftChamberVDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
-{
-  Int_t subbank_index = 0;
-  Bool_t local_debug = true;
+// Int_t QwDriftChamberVDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+// {
+//   Int_t subbank_index = 0;
+//   Bool_t local_debug = true;
   
   
-  subbank_index = GetSubbankIndex(roc_id, bank_id);
-  if ( local_debug ) {
-    std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
-    std::cout << " roc id " << roc_id
-	      << " bank_id " << bank_id
-	      << " subbank_index " << subbank_index
-	      << " num_words " << num_words
-	      << std::endl;
-  }
+//   subbank_index = GetSubbankIndex(roc_id, bank_id);
+//   if ( local_debug ) {
+//     std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
+//     std::cout << " roc id " << roc_id
+// 	      << " bank_id " << bank_id
+// 	      << " subbank_index " << subbank_index
+// 	      << " num_words " << num_words
+// 	      << std::endl;
+//   }
   
-  if (subbank_index>=0 and num_words>0) {
-    //    SetDataLoaded(kTRUE);
-    if (local_debug) {
-      std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer:  "
-		<< "Begin processing ROC" << roc_id << std::endl;
-      PrintConfigrationBuffer(buffer,num_words);
-    }
-  }
+//   if (subbank_index>=0 and num_words>0) {
+//     //    SetDataLoaded(kTRUE);
+//     if (local_debug) {
+//       std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer:  "
+// 		<< "Begin processing ROC" << roc_id << std::endl;
+//       PrintConfigrationBuffer(buffer,num_words);
+//     }
+//   }
   
-  return OK;
-};
+//   return OK;
+// };
 
 
-
-void QwDriftChamberVDC::PrintConfigrationBuffer(UInt_t *buffer,UInt_t num_words)
-{
-  UInt_t ipt = 0;
-  UInt_t j = 0;
-  UInt_t k = 0;
-  
-  for ( j=0; j<(num_words/5); j++ ) {
-    printf ( "buffer[%5d] = 0x:", ipt );
-    for ( k=j; k<j+5; k++ ) {
-      printf ( "%12x", buffer[ipt++] );
-    }
-    printf ( "\n" );
-  }
-  
-  if ( ipt<num_words ) {
-    printf ( "buffer[%5d] = 0x:", ipt );
-    for ( k=ipt; k<num_words; k++ ) {
-      printf ( "%12x", buffer[ipt++] );
-    }
-    printf ( "\n" );
-  }
-  printf ( "\n" );
-  
-  return;
-}
 
 void QwDriftChamberVDC::DefineOptions ( QwOptions& options )
 {
@@ -1216,8 +1188,23 @@ void QwDriftChamberVDC::ApplyTimeCalibration()
 {
 
   //  Double_t region3_f1tdc_resolution = 0.113186191284663271;
-  Double_t f1tdc_resolution_ns = 0.116312881651642913;
+  // Double_t f1tdc_resolution_ns = 0.116312881651642913;
+  Double_t f1tdc_resolution_ns = 0.0;
 
+
+  
+  f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
+  
+  if(f1tdc_resolution_ns == 0.0) {
+    f1tdc_resolution_ns = 0.116312881651642913;
+    std::cout << "NEVER to see this message."
+	      << "If one see this, F1TDC configurations are corrupted!\n";
+    std::cout << "Tempoarary, the predefined resolution " 
+	      << f1tdc_resolution_ns
+	      << " (ns) is used to do further, but it must be checked.\n";
+  }
+  
+  //  printf("test %18.8lf\n", f1tdc_resolution_ns);
   // 0.1132 ns is for the first CODA setup,  it was replaced as 0.1163ns after March 13 2010
   // need to check them with Siyuan (jhlee)
   //
@@ -1232,3 +1219,4 @@ void QwDriftChamberVDC::ApplyTimeCalibration()
 
   return;
 };
+

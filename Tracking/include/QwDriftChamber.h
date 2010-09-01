@@ -63,17 +63,16 @@ class QwDriftChamber: public VQwSubsystemTracking{
  
 
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-
-
-  void  ReportConfiguration();
-  void  AddF1Configuration();
-
-  //has separate meanings in VDC and HDC
  
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  void  PrintConfigurationBuffer(UInt_t *buffer,UInt_t num_words);
+  void  ReportConfiguration();
+
+  //separate meanings in VDC and HDC
   virtual void  SubtractReferenceTimes() = 0;
   virtual void  ProcessEvent() = 0;
   virtual Int_t LoadGeometryDefinition(TString mapfile ) = 0;
-  virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
+ 
   virtual Int_t LoadChannelMap(TString mapfile ) = 0;
   virtual void  ClearEventData() = 0;
 

@@ -28,50 +28,64 @@ class QwF1TDC : public TObject
 
  public:
   QwF1TDC();
-  QwF1TDC(const QwF1TDC& f1tdc);
+  //  QwF1TDC(const QwF1TDC& f1tdc);
+  //  QwF1TDC(const QwF1TDC* f1tdc);
   QwF1TDC(const Int_t roc, const Int_t slot);
   ~QwF1TDC();
+
+  // QwF1TDC& operator= (const QwF1TDC& f1tdc);
 
   friend std::ostream& operator<<(std::ostream& os, const QwF1TDC &f1tdc);
 
   const Int_t  GetROCNumber()          const {return fROC;};
   const Int_t  GetSlotNumber()         const {return fSlot;};
+
   const Bool_t IsReferenceSlot()       const {return fReferenceSlotFlag;};
-  const Bool_t IsNormalResolution()    const {return fF1TDCNormalResolutionFlag;};
+  const Bool_t IsNormResolution()      const {return fF1TDCNormResFlag;};
+  const Bool_t IsSyncMode()            const {return fF1TDCSyncFlag;};
 
-  const UInt_t GetF1TDC_refcnt()       const {return fF1TDC_refcnt;};
-  const UInt_t GetF1TDC_hsdiv()        const {return fF1TDC_hsdiv;};
-  const UInt_t GetF1TDC_refclkdiv()    const {return fF1TDC_refclkdiv;};
-  const UInt_t GetF1TDC_trigwin()      const {return fF1TDC_trigwin;};
-  const UInt_t GetF1TDC_triglat()      const {return fF1TDC_triglat;};
+  /* const UInt_t GetF1TDC_refcnt()       const {return fF1TDC_refcnt;}; */
+  /* const UInt_t GetF1TDC_hsdiv()        const {return fF1TDC_hsdiv;}; */
+  /* const UInt_t GetF1TDC_refclkdiv()    const {return fF1TDC_refclkdiv;}; */
+  /* const UInt_t GetF1TDC_trigwin()      const {return fF1TDC_trigwin;}; */
+  /* const UInt_t GetF1TDC_triglat()      const {return fF1TDC_triglat;}; */
 
-  const Double_t GetF1TDC_tframe()     const {return fF1TDC_tframe_ns;};
-  const Double_t GetF1TDC_full_range() const {return fF1TDC_full_range_ns;};
+  /* const Double_t GetF1TDC_tframe()     const {return fF1TDC_tframe_ns;}; */
+  /* const Double_t GetF1TDC_full_range() const {return fF1TDC_full_range_ns;}; */
   const Double_t GetF1TDC_window()     const {return fF1TDC_window_ns;};
-  const Double_t GetF1TDC_latency()    const {return fF1TDC_latency_ns;};
+  /* const Double_t GetF1TDC_latency()    const {return fF1TDC_latency_ns;}; */
   const Double_t GetF1TDC_resolution() const {return fF1TDC_resolution_ns;};
   const Double_t GetF1TDC_bin_size()   const {return fF1TDC_resolution_ns;};
 
+  /* const Double_t GetF1TDC_t_offset()   const {return fF1TDC_t_offset;}; */
+
   const Int_t GetF1TDCIndex() const {return fF1TDCIndex;};
 
-  void SetROCNumber       (const Int_t roc)          {fROC = roc;};
-  void SetSlotNumber      (const Int_t slot)         {fSlot = slot;};
-  void SetReferenceSlot   (const Bool_t reflag)      {fReferenceSlotFlag = reflag;};
+  /* void SetROCNumber       (const Int_t roc)          {fROC = roc;}; */
+  /* void SetSlotNumber      (const Int_t slot)         {fSlot = slot;}; */
+  /* void SetReferenceSlot   (const Bool_t reflag)      {fReferenceSlotFlag = reflag;}; */
 
-  void SetF1TDC_refcnt    (const UInt_t refcnt)      {fF1TDC_refcnt = refcnt;};
-  void SetF1TDC_hsdiv     (const UInt_t hsdiv)       {fF1TDC_hsdiv = hsdiv;};
-  void SetF1TDC_refclkdiv (const UInt_t refclkdiv)   {fF1TDC_refclkdiv = refclkdiv;};
-  void SetF1TDC_trigwin   (const UInt_t trigwin)     {fF1TDC_trigwin = trigwin;};
-  void SetF1TDC_triglat   (const UInt_t triglat)     {fF1TDC_triglat = triglat;};
+  /* void SetF1TDC_refcnt    (const UInt_t refcnt)      {fF1TDC_refcnt = refcnt;}; */
+  /* void SetF1TDC_hsdiv     (const UInt_t hsdiv)       {fF1TDC_hsdiv = hsdiv;}; */
+  /* void SetF1TDC_refclkdiv (const UInt_t refclkdiv)   {fF1TDC_refclkdiv = refclkdiv;}; */
+  /* void SetF1TDC_trigwin   (const UInt_t trigwin)     {fF1TDC_trigwin = trigwin;}; */
+  /* void SetF1TDC_triglat   (const UInt_t triglat)     {fF1TDC_triglat = triglat;}; */
 
-  void SetF1TDC_tframe    (const Double_t tframe_ns) {fF1TDC_tframe_ns = tframe_ns;};
-  void SetF1TDC_full_range(const Double_t range_ns)  {fF1TDC_full_range_ns = range_ns;};
-  void SetF1TDC_window    (const Double_t win_ns)    {fF1TDC_window_ns = win_ns;};
-  void SetF1TDC_latency   (const Double_t lat_ns)    {fF1TDC_latency_ns = lat_ns;};
-  void SetF1TDC_resolution(const Double_t resol_ns)  {fF1TDC_resolution_ns = resol_ns;};
-  void SetF1TDC_bin_size  (const Double_t binsize_ns){fF1TDC_resolution_ns = binsize_ns;};
+  /* void SetF1TDC_tframe    (const Double_t tframe_ns) {fF1TDC_tframe_ns = tframe_ns;}; */
+  /* void SetF1TDC_full_range(const Double_t range_ns)  {fF1TDC_full_range_ns = range_ns;}; */
+  /* void SetF1TDC_window    (const Double_t win_ns)    {fF1TDC_window_ns = win_ns;}; */
+  /* void SetF1TDC_latency   (const Double_t lat_ns)    {fF1TDC_latency_ns = lat_ns;}; */
+  /* void SetF1TDC_resolution(const Double_t resol_ns)  {fF1TDC_resolution_ns = resol_ns;}; */
+  /* void SetF1TDC_bin_size  (const Double_t binsize_ns){fF1TDC_resolution_ns = binsize_ns;}; */
+
 
   void SetF1TDCIndex(const Int_t tdc_index) {fF1TDCIndex = tdc_index;};
+  void SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words);
+
+  const UInt_t * GetF1TDCBuffer() const {return fBuffer;};
+
+  void PrintF1TDCBuffer();
+  void PrintF1TDCConfigure();
 
   void AddSEU() {fF1TDC_SEU_counter++;};
   void AddSYN() {fF1TDC_SYN_counter++;};
@@ -110,8 +124,10 @@ class QwF1TDC : public TObject
 
  
   
-  UInt_t   fChannelNumber;
-  
+  Int_t   fChannelNumber;
+  UInt_t   *fBuffer;
+
+
   UInt_t   fF1TDC_refcnt;
   UInt_t   fF1TDC_hsdiv;
   UInt_t   fF1TDC_refclkdiv;
@@ -125,21 +141,30 @@ class QwF1TDC : public TObject
   Double_t fF1TDC_latency_ns;
   Double_t fF1TDC_resolution_ns;
 
+  Double_t fF1TDC_t_offset;
+
+  Double_t fF1TDCFactor;
+
   UInt_t   fF1TDC_SEU_counter;  // Single Event Upset counter
   UInt_t   fF1TDC_EMM_counter;  // Event number MisMatch counter
   UInt_t   fF1TDC_SYN_counter;  // SYNc  issue counter
 
+
+
   Bool_t   fReferenceSlotFlag; //! 
   TArrayD  *fReferenceSignals;
 
-  Bool_t   fF1TDCNormalResolutionFlag;
+  Bool_t   fF1TDCNormResFlag;
+  Bool_t   fF1TDCSyncFlag;
 
 
   Int_t    fF1TDCIndex; // keep the tdcindex info from GetTDCIndex() function
 
  private:
-  // void Initialize();
 
+  static const Int_t fWordsPerBuffer;
+  static const Int_t fMaxF1TDCChannelNumber;
+  
   ClassDef(QwF1TDC,1);
 
 };
@@ -162,33 +187,35 @@ class QwF1TDContainer : public TObject
   
  public:
   Int_t                    fNQwF1TDCs;
-  TClonesArray             *fQwF1TDCs; // array range 0 -  gMaxCloneArray -1
-  static TClonesArray      *gQwF1TDCs;
-
+  TObjArray               *fQwF1TDCs; 
+ 
  public:
   QwF1TDContainer();
-  QwF1TDContainer(EQwDetectorType detector_type);
-  QwF1TDContainer(EQwDetectorType detector_type, EQwRegionID region);
-  ~QwF1TDContainer();
+  //  QwF1TDContainer(EQwDetectorType detector_type);
+  //  QwF1TDContainer(EQwDetectorType detector_type, EQwRegionID region);
+  virtual ~QwF1TDContainer();
 
   friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container);
 
-  void Clear (Option_t *option = "");
-  void Reset (Option_t *option = "");
-  void Delete(Option_t *option = "");
+  /* void Clear (Option_t *option = ""); */
+  /* void Reset (Option_t *option = ""); */
+  /* void Delete(Option_t *option = ""); */
 
   void SetSystemName(const TString name);// {fSubsystemName = name;};
   const TString GetSystemName() const {return fSubsystemName;};
 
-  void AddQwF1TDC(QwF1TDC &in);
+  void AddQwF1TDC(QwF1TDC *in);
+  void Print();
 
   Int_t              GetSize()         const {return fNQwF1TDCs;};
+  Int_t              Size()            const {return fNQwF1TDCs;};
   Int_t              HowManyF1TDCs()   const {return fNQwF1TDCs;};
   EQwDetectorType    GetDetectorType() const {return fDetectorType;}
   EQwRegionID        GetRegion()       const {return fRegion;};
-  TClonesArray      *GetF1TDCs()       const {return fQwF1TDCs;};
 
-  QwF1TDC     *GetF1TDC(Int_t f1tdcID) const;
+  QwF1TDC* GetF1TDC(Int_t f1tdcID) const;
+  
+  Double_t GetF1TDCResolution();
 
  public:
 
@@ -200,10 +227,63 @@ class QwF1TDContainer : public TObject
 
 private:
 
-  static const Int_t gMaxCloneArray; //!  ///< Maximum number which a subsystem has F1TDCs
+  //  static const Int_t gMaxCloneArray; //!  ///< Maximum number which a subsystem has F1TDCs
 
   ClassDef(QwF1TDContainer,1);
 
 };
+
+
+
+/* class QwF1TDContainer : public TObject */
+/* { */
+  
+/*  public: */
+/*   Int_t                    fNQwF1TDCs; */
+/*   TClonesArray             *fQwF1TDCs; // array range 0 -  gMaxCloneArray -1 */
+/*   static TClonesArray      *gQwF1TDCs; */
+
+/*  public: */
+/*   QwF1TDContainer(); */
+/*   QwF1TDContainer(EQwDetectorType detector_type); */
+/*   QwF1TDContainer(EQwDetectorType detector_type, EQwRegionID region); */
+/*   virtual ~QwF1TDContainer(); */
+
+/*   friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container); */
+
+/*   void Clear (Option_t *option = ""); */
+/*   void Reset (Option_t *option = ""); */
+/*   void Delete(Option_t *option = ""); */
+
+/*   void SetSystemName(const TString name);// {fSubsystemName = name;}; */
+/*   const TString GetSystemName() const {return fSubsystemName;}; */
+
+/*   void AddQwF1TDC(QwF1TDC &in); */
+/*   QwF1TDC  *AddF1TDC(); */
+
+/*   Int_t              GetSize()         const {return fNQwF1TDCs;}; */
+/*   Int_t              Size()            const {return fNQwF1TDCs;}; */
+/*   Int_t              HowManyF1TDCs()   const {return fNQwF1TDCs;}; */
+/*   EQwDetectorType    GetDetectorType() const {return fDetectorType;} */
+/*   EQwRegionID        GetRegion()       const {return fRegion;}; */
+/*   TClonesArray      *GetF1TDCs()       const {return fQwF1TDCs;}; */
+ 
+/*   QwF1TDC           *GetF1TDC(Int_t f1tdcID) const; */
+  
+/*  public: */
+
+/*   EQwDetectorType    fDetectorType; */
+/*   EQwRegionID        fRegion; */
+/*   TString            fSubsystemName; */
+  
+/*   //  typedef std::vararry <Double_t>  */
+
+/* private: */
+
+/*   static const Int_t gMaxCloneArray; //!  ///< Maximum number which a subsystem has F1TDCs */
+
+/*   ClassDef(QwF1TDContainer,1); */
+
+/* }; */
 
 #endif

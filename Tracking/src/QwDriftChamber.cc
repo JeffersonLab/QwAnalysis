@@ -35,6 +35,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
   kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels();  
 
   fF1TDContainer =  new QwF1TDContainer();
+
   fF1TDCBadDataCount = 0;
 
 };
@@ -365,115 +366,205 @@ void  QwDriftChamber::ReportConfiguration()
 
 
 
-void  QwDriftChamber::AddF1Configuration()
+
+void QwDriftChamber::PrintConfigurationBuffer(UInt_t *buffer,UInt_t num_words)
+{
+  UInt_t ipt = 0;
+  UInt_t j = 0;
+  UInt_t k = 0;
+  
+  for ( j=0; j<(num_words/5); j++ ) {
+    printf ( "buffer[%5d] = 0x:", ipt );
+    for ( k=j; k<j+5; k++ ) {
+      printf ( "%12x", buffer[ipt++] );
+    }
+    printf ( "\n" );
+  }
+  
+  if ( ipt<num_words ) {
+    printf ( "buffer[%5d] = 0x:", ipt );
+    for ( k=ipt; k<num_words; k++ ) {
+      printf ( "%12x", buffer[ipt++] );
+    }
+    printf ( "\n" );
+  }
+  printf ( "\n" );
+  
+  return;
+}
+
+
+
+Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id, 
+						  const UInt_t bank_id, 
+						  UInt_t* buffer, 
+						  UInt_t num_words)
 {
 
 
-  Bool_t local_debug = false;
+  TString subsystem_name;
+ 
+ 
 
-  std::size_t i    = 0;
-  std::size_t j    = 0;
-
-  Int_t roc_num    = 0;
-  Int_t bank_flag  = 0;
-  Int_t bank_index = 0;
+  Int_t bank_index    = 0;
+  Bool_t local_debug  = false;
+  UInt_t slot_id      = 0;
+  UInt_t vme_slot_num = 0;
   Int_t tdc_index  = 0;
 
-  UInt_t slot_id   = 0;
-  UInt_t vme_slot_num = 0;
-
-  TString subsystem_name;
-  subsystem_name = this->GetSubsystemName();
-
-  if(local_debug) {
-    std::cout << "QwDriftChamber Region : " 
-	      << subsystem_name
-	      << "::ReportConfiguration fTDCPtrs.size() " 
-	      << fTDCPtrs.size() << std::endl;
-  }
-
-  fF1TDContainer -> SetSystemName(subsystem_name);
-
-
-  QwF1TDC local_f1tdc;
-
-
-  for ( i=0; i<fROC_IDs.size(); i++ ) {
-
-    roc_num = fROC_IDs.at(i);
-      
-    for ( j=0; j<fBank_IDs.at(i).size(); j++ ) {
-	
-      bank_flag    = fBank_IDs.at(i).at(j);
-      if(bank_flag == 0) continue; 
-      // must be uncommented if one doesn't define "bank_flag" in a CRL file
-      // but, now we use "bank_flag" in our crl files, thus skip to print
-      // unnecessary things on a screen and to save some time.
-      // Monday, August 30 14:45:34 EDT 2010, jhlee
-
-	
-      bank_index = GetSubbankIndex(roc_num, bank_flag);
-      
-      if(local_debug) {
-	std::cout << "ROC [index, Num][" 
-		  << i
-		  << ","
-		  << std::setw(2) << roc_num
-		  << "]"
-		  << " Bank [index,id]["
-		  <<  bank_index
-		  << ","
-		  << bank_flag
-		  << "]"
-		  << std::endl;
-      }
-      
-      for ( slot_id=0; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) { 
-	// slot id starts from 2, because 0 and 1 are used for CPU and TI.
-	// Tuesday, August 31 10:57:07 EDT 2010, jhlee
-	
-	tdc_index    = GetTDCIndex(bank_index, slot_id);
-	vme_slot_num = slot_id;
-
-	local_f1tdc.SetROCNumber(roc_num);
-	local_f1tdc.SetF1TDCIndex(tdc_index);
-
-	if(local_debug) {
-	  std::cout << "    "
-		    << "Slot [id, VME num] [" 
-		    << std::setw(2) << slot_id
-		    << ","
-		    << std::setw(2) << vme_slot_num
-		    << "]";
-	  
-	  std::cout << "    ";
-	}
-	
-	if(slot_id > 2) { // save time
-	  if ( tdc_index == -1 ) {
-	    if(local_debug) std::cout << "Unused in " << subsystem_name;
-	  }
-	  else {
-	    if(local_debug) std::cout << "F1TDC index " << tdc_index;
-	    local_f1tdc.SetSlotNumber(vme_slot_num);
-	    fF1TDContainer->AddQwF1TDC(local_f1tdc);
-	  }
-	}
-	else { // slot_id == only 0 & 1
-	  if(local_debug) {
-	    if (slot_id == 0) std::cout << "MVME CPU ";
-	    else              std::cout << "Trigger Interface"; // slot_id == 1;
-	  }
-	}
-
-	if(local_debug) std::cout << std::endl;
-	 
-      }
-    }
-  }
+  QwF1TDC *local_f1tdc = 0;
+  
+  bank_index = GetSubbankIndex(roc_id, bank_id);
  
-  std::cout << *fF1TDContainer << std::endl;
+ 
 
-  return;
+  if(bank_index >=0) {
+    if(local_debug) {
+      std::cout << "fF1TDContainer " << fF1TDContainer << "\n";
+      std::cout << "local_f1tdc    " << local_f1tdc << "\n";
+    }
+    subsystem_name = this->GetSubsystemName();
+    fF1TDContainer -> SetSystemName(subsystem_name);
+
+    if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
+    std::cout << "QwDriftChamber : " 
+	      << subsystem_name
+	      << ", "
+	      << "ProcessConfigurationBuffer"
+	      << std::endl;
+    std::cout << "ROC " 
+	      << std::setw(2) << roc_id
+	      << " Bank [index,id]["
+	      <<  bank_index
+	      << ","
+	      << bank_id
+	      << "]"
+	      << std::endl;
+  
+    //   PrintConfigurationBuffer(buffer,num_words);
+ 
+
+    //    std::cout << "buffer num_words " << num_words
+    //	      << " nwrds_per_buffer " << nwrds_per_buffer
+    //	      << " how many slots " << num_words/nwrds_per_buffer
+    // << std::endl;
+    
+
+    for ( slot_id=0; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) { 
+      // slot id starts from 2, because 0 and 1 are used for CPU and TI.
+      // Tuesday, August 31 10:57:07 EDT 2010, jhlee
+	
+      tdc_index    = GetTDCIndex(bank_index, slot_id);
+      vme_slot_num = slot_id;
+
+ 
+      if(local_debug) {
+	std::cout << "    "
+		  << "Slot [id, VME num] [" 
+		  << std::setw(2) << slot_id
+		  << ","
+		  << std::setw(2) << vme_slot_num
+		  << "]";
+      
+	std::cout << "    ";
+      }
+
+      
+      local_f1tdc = 0;
+
+      if(slot_id > 2) { // save time
+
+
+	if (tdc_index not_eq -1) {
+
+	  if(local_f1tdc) delete local_f1tdc; local_f1tdc = 0;
+
+	  local_f1tdc = new QwF1TDC(roc_id, vme_slot_num);
+	  local_f1tdc->SetF1TDCIndex(tdc_index);
+	  local_f1tdc->SetF1TDCBuffer(buffer, num_words);
+
+	  fF1TDContainer->AddQwF1TDC(local_f1tdc);
+
+	  if(local_debug) {
+	    std::cout << "F1TDC index " << std::setw(2) << tdc_index;
+	    std::cout << std::setw(16) << " local_f1tdc " << *local_f1tdc
+		      << " at " << local_f1tdc;
+	  }
+	}
+	else {
+
+	  if(local_debug) {
+	    std::cout << "Unused in "  << std::setw(4) << subsystem_name;	
+	    std::cout << std::setw(16) << " local_f1tdc  at " << local_f1tdc;
+	  }
+	}
+		
+      }
+      else { // slot_id == only 0 & 1
+	
+	if(local_debug) {
+	  if      (slot_id == 0) std::cout << "         ";
+	  else if (slot_id == 1) std::cout << "MVME CPU ";
+	  else                   std::cout << "Trigger Interface"; // slot_id == 2;
+
+	}
+      }
+   
+      if(local_debug) std::cout << std::endl;
+    }
+    // 	if(local_debug) std::cout << std::endl;
+    // Int_t registered_f1tdc_num = 0;
+    // Int_t f1tdc_num = 0;
+
+    // const Int_t nwrds_per_buffer = 17;
+
+    //  std::cout << "local_f1tdc    " << &local_f1tdc << "\n";
+
+    // if (bank_index>=0 and num_words>0) {
+
+    //   registered_f1tdc_num        = fF1TDContainer->Size();
+    //   //    f1tdcs = fF1TDContainer->GetF1TDC(roc_id);
+    //   f1tdc_num = num_words/nwrds_per_buffer;
+
+  
+    //   QwF1TDC *temp_f1tdc = 0;
+    //   Int_t test = 0;
+
+    //   for(Int_t i=0; i<f1tdc_num; i++) {
+    //     temp_f1tdc = (QwF1TDC*) fF1TDContainer->GetF1TDC(i);
+    //     //    std::cout << *temp_f1tdc << std::endl;
+    //     test = temp_f1tdc -> GetROCNumber();
+    //     std::cout << test << std::endl;
+    //     // if(temp_f1tdc -> GetROCNumber() == roc_id ) {
+
+    // 	//      }
+      
+    //   }
+
+    //   if (local_debug) {
+    //     std::cout << "Begin processing ROC" << roc_id << std::endl;
+    //     std::cout << " f1tdc_num " << f1tdc_num
+    // 		<< " in ROC " << roc_id
+    // 		<< " registered f1tdc " << registered_f1tdc_num
+    // 		<< " in Subsystem " << GetSubsystemName()
+    // 		<< " nwrds per buffer " << nwrds_per_buffer
+    // 		<< std::endl;
+    //     PrintConfigurationBuffer(buffer,num_words);
+    //   }
+    // }
+    //  if(local_f1tdc) delete local_f1tdc; local_f1tdc = 0;
+
+    if(local_debug) {
+     fF1TDContainer->Print();
+     std::cout << "-----------------------------------------------------" << std::endl;
+    }
+
+    return OK;
+  }
+  else {
+    ///    local_f1tdc = 0;
+    return -1;
+  }
 };
+
 
