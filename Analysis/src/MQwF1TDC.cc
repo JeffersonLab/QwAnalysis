@@ -283,7 +283,7 @@ void MQwF1TDC::PrintOutputFIFOStatus(const UInt_t roc_id)
 };
 
 
-Bool_t MQwF1TDC::IsValidDataword()
+const Bool_t MQwF1TDC::IsValidDataword() const
 {
   // fF1ValidDataSlotFlag = TRUE,
   // fF1ResolutionFlag    = TRUE,  

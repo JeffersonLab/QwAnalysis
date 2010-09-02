@@ -37,25 +37,25 @@ class MQwF1TDC{
 
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id);
 
-  Bool_t IsValidDataword();
-  Bool_t IsHeaderword()            {return fF1HeaderFlag;};
+  const Bool_t IsValidDataword() const ;
+  const Bool_t IsHeaderword()        const {return fF1HeaderFlag;};
  
-  UInt_t GetTDCSlotNumber()        {return fF1SlotNumber;};
-  UInt_t GetTDCChannelNumber()     {return fF1ChannelNumber;};
-  UInt_t GetTDCData()              {return fF1Dataword;};
-  UInt_t GetTDCMaxChannels()       {return fF1MaxChannelsPerModule;};
+  const UInt_t GetTDCSlotNumber()    const {return fF1SlotNumber;};
+  const UInt_t GetTDCChannelNumber() const {return fF1ChannelNumber;};
+  const UInt_t GetTDCData()          const {return fF1Dataword;};
+  const UInt_t GetTDCMaxChannels()   const {return fF1MaxChannelsPerModule;};
   
  
   UInt_t GetTDCEventNumber()       {return GetTDCHeaderEventNumber();};
   UInt_t GetTDCTriggerTime()       {return GetTDCHeaderTriggerTime();};
-  
-  /* void SetReferenceParameters(Double_t mindiff, Double_t maxdiff, */
-  /* 			      Double_t offset, Double_t shift){ */
-  /*   fMinDiff   = mindiff; */
-  /*   fMaxDiff   = maxdiff; */
-  /*   fOffset    = offset; */
-  /*   fTimeShift = shift; */
-  /* }; */
+
+
+  void SetTDCMaxChannels(const UInt_t in) {fF1MaxChannelsPerModule = in;};
+
+
+
+
+
   
   /* Double_t SubtractReference(Double_t rawtime, Double_t reftime); */
   Double_t ActualTimeDifference(Double_t raw_time, Double_t ref_time);
@@ -64,6 +64,17 @@ class MQwF1TDC{
   void   PrintTDCData(Bool_t flag);
   void   Print(Bool_t flag);
   
+
+
+  UInt_t GetTDCHeaderEventNumber() {return fF1HeaderEventNumber;};
+  UInt_t GetTDCHeaderTriggerTime() {return fF1HeaderTriggerTime;};
+
+
+  //Bool_t IsValidDataSlot()         {return fF1ValidDataSlotFlag;};
+ 
+  Bool_t IsHeaderXorSetup()        {return fF1HeaderXorSetupFlag;};
+  Bool_t IsNotHeaderTrigFIFO()     {return !fF1HeaderTrigFIFOFlag;};
+  Bool_t IsOverFlowEntry()         {return fF1OverFlowEntryFlag;};
 
  private:
 
@@ -122,15 +133,6 @@ class MQwF1TDC{
   void   PrintResolutionLockStatus(const UInt_t roc_id);
 
  
-
-  UInt_t GetTDCHeaderEventNumber() {return fF1HeaderEventNumber;};
-  UInt_t GetTDCHeaderTriggerTime() {return fF1HeaderTriggerTime;};
-
-
-  //Bool_t IsValidDataSlot()         {return fF1ValidDataSlotFlag;};
- 
-  Bool_t IsHeaderXorSetup()        {return fF1HeaderXorSetupFlag;};
-  Bool_t IsNotHeaderTrigFIFO()     {return !fF1HeaderTrigFIFOFlag;};
 
 };
 

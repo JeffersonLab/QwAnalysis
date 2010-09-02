@@ -23,7 +23,7 @@
  *  \brief one F1TDC configuration and reference signal(s) holder
  *
  */
-class QwF1TDC : public TObject
+class QwF1TDC :  public TObject
 {
 
  public:
@@ -82,6 +82,8 @@ class QwF1TDC : public TObject
   void SetF1TDCIndex(const Int_t tdc_index) {fF1TDCIndex = tdc_index;};
   void SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words);
 
+
+
   const UInt_t * GetF1TDCBuffer() const {return fBuffer;};
 
   void PrintF1TDCBuffer();
@@ -102,6 +104,11 @@ class QwF1TDC : public TObject
   void ResetCounters();
 
   //void SetReferenceSignals(Int_t chan_row, Double_t val);
+
+  //MQwF1TDC fF1TDCDecoder;
+  //  Bool_t  CheckDataIntegrity(UInt_t *buffer, UInt_t num_words);
+  
+
 
  public:
   Int_t fROC;          // F1TDC physical roc number, not index 
@@ -182,7 +189,7 @@ class QwF1TDC : public TObject
  */
 
 
-class QwF1TDContainer : public TObject
+class QwF1TDContainer :  public TObject
 {
   
  public:
@@ -195,7 +202,7 @@ class QwF1TDContainer : public TObject
   //  QwF1TDContainer(EQwDetectorType detector_type, EQwRegionID region);
   virtual ~QwF1TDContainer();
 
-  friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container);
+  // friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container);
 
   /* void Clear (Option_t *option = ""); */
   /* void Reset (Option_t *option = ""); */
@@ -213,9 +220,13 @@ class QwF1TDContainer : public TObject
   EQwDetectorType    GetDetectorType() const {return fDetectorType;}
   EQwRegionID        GetRegion()       const {return fRegion;};
 
-  QwF1TDC* GetF1TDC(Int_t f1tdcID) const;
-  
+  QwF1TDC* GetF1TDC(Int_t f1tdcID);
+  QwF1TDC* GetF1TDCwithTDCIndex(Int_t f1tdc_index_in);
   Double_t GetF1TDCResolution();
+
+  MQwF1TDC fF1TDCDecoder;
+  Bool_t  CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
+  
 
  public:
 

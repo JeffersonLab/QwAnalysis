@@ -71,24 +71,27 @@ void  QwDriftChamber::FillDriftDistanceToHits()
 };
 
 
-Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, 
+				      const UInt_t bank_id, 
+				      UInt_t* buffer, 
+				      UInt_t num_words)
 {
 
-  Int_t  index           = 0;
+  Int_t  bank_index      = 0;
   Int_t  tdc_slot_number = 0;
   Int_t  tdc_chan_number = 0;
   UInt_t tdc_data        = 0;
 
   Bool_t data_integrity_flag = false;
   Bool_t temp_print_flag     = false;
-
-  index = GetSubbankIndex(roc_id, bank_id);
+  Int_t tdcindex = 0;
+  bank_index = GetSubbankIndex(roc_id, bank_id);
   //  fF1TDCBadDataCount = 0;
 
  
 
   
-  if (index>=0 && num_words>0) {
+  if (bank_index>=0 && num_words>0) {
     //  We want to process this ROC.  Begin looping through the data.
     SetDataLoaded(kTRUE);
 
@@ -101,7 +104,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 		<< " bank id " 
 		<< bank_id 
 		<< " Subbbank Index "
-		<< index
+		<< bank_index
 		<< " Region "
 		<< GetSubsystemName()
 		<< std::endl;
@@ -123,7 +126,8 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 
 	tdc_slot_number = fF1TDC.GetTDCSlotNumber();
 	tdc_chan_number = fF1TDC.GetTDCChannelNumber();
-
+	tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
+	
 	if ( tdc_slot_number == 31) {
 	  //  This is a custom word which is not defined in
 	  //  the F1TDC, so we can use it as a marker for
@@ -134,7 +138,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 	// here, if this slot isn't in its slot(s) (subsystem map file)
 	// we skip this buffer to do the further process
 
-	if (not IsSlotRegistered(index, tdc_slot_number) ) continue;
+	if (not IsSlotRegistered(bank_index, tdc_slot_number) ) continue;
 
 	if(temp_print_flag) std::cout << fF1TDC << std::endl;
 
@@ -144,7 +148,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 	    tdc_data = fF1TDC.GetTDCData();
 	    if (tdc_data) {
 	      // Only care when data is and not zero.
-	      FillRawTDCWord(index, tdc_slot_number, tdc_chan_number, tdc_data);
+	      FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
 	    }
 	    else {
 	      // I saw TDC raw time = 0, when SEU exists.
@@ -154,12 +158,12 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 	  catch (std::exception& e) {
 	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
 		      << e.what() << std::endl;
-	    std::cerr << "   Parameters:  index=="<<index
+	    std::cerr << "   Parameters:  index=="<<bank_index
 		      << "; GetF1SlotNumber()=="<< tdc_slot_number
 		      << "; GetF1ChannelNumber()=="<<tdc_chan_number
 		      << "; GetF1Data()=="<<tdc_data
 		      << std::endl;
-	    Int_t tdcindex = GetTDCIndex(index, tdc_slot_number);
+	    // Int_t tdcindex = GetTDCIndex(bank_index, tdc_slot_number);
 	    std::cerr << "   GetTDCIndex()=="<<tdcindex
 		      << "; fTDCPtrs.at(tdcindex).size()=="
 		      << fTDCPtrs.at(tdcindex).size()
@@ -401,23 +405,20 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 						  UInt_t num_words)
 {
 
-
   TString subsystem_name;
- 
- 
 
   Int_t bank_index    = 0;
-  Bool_t local_debug  = false;
+  Int_t tdc_index     = 0;
   UInt_t slot_id      = 0;
   UInt_t vme_slot_num = 0;
-  Int_t tdc_index  = 0;
 
-  QwF1TDC *local_f1tdc = 0;
+  Bool_t local_debug  = true;
+
+  QwF1TDC *local_f1tdc = NULL;
   
+ 
   bank_index = GetSubbankIndex(roc_id, bank_id);
- 
- 
-
+  
   if(bank_index >=0) {
     if(local_debug) {
       std::cout << "fF1TDContainer " << fF1TDContainer << "\n";
@@ -427,6 +428,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     fF1TDContainer -> SetSystemName(subsystem_name);
 
     if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
+  
     std::cout << "QwDriftChamber : " 
 	      << subsystem_name
 	      << ", "
@@ -443,21 +445,13 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
   
     //   PrintConfigurationBuffer(buffer,num_words);
  
-
-    //    std::cout << "buffer num_words " << num_words
-    //	      << " nwrds_per_buffer " << nwrds_per_buffer
-    //	      << " how many slots " << num_words/nwrds_per_buffer
-    // << std::endl;
-    
-
     for ( slot_id=0; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) { 
-      // slot id starts from 2, because 0 and 1 are used for CPU and TI.
-      // Tuesday, August 31 10:57:07 EDT 2010, jhlee
+      // slot id starts from 2, because 0 is an offset difference between QwAnalyzer and VME definition, 
+      // and 1 and 2 are used for CPU and TI. Tuesday, August 31 10:57:07 EDT 2010, jhlee
 	
       tdc_index    = GetTDCIndex(bank_index, slot_id);
       vme_slot_num = slot_id;
-
- 
+      
       if(local_debug) {
 	std::cout << "    "
 		  << "Slot [id, VME num] [" 
@@ -465,16 +459,14 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 		  << ","
 		  << std::setw(2) << vme_slot_num
 		  << "]";
-      
-	std::cout << "    ";
+      	std::cout << "    ";
       }
 
       
-      local_f1tdc = 0;
+      local_f1tdc = NULL;
 
       if(slot_id > 2) { // save time
-
-
+	
 	if (tdc_index not_eq -1) {
 
 	  if(local_f1tdc) delete local_f1tdc; local_f1tdc = 0;
@@ -484,7 +476,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	  local_f1tdc->SetF1TDCBuffer(buffer, num_words);
 
 	  fF1TDContainer->AddQwF1TDC(local_f1tdc);
-
+	  
 	  if(local_debug) {
 	    std::cout << "F1TDC index " << std::setw(2) << tdc_index;
 	    std::cout << std::setw(16) << " local_f1tdc " << *local_f1tdc
@@ -500,7 +492,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	}
 		
       }
-      else { // slot_id == only 0 & 1
+      else { // slot_id == only 0, 1, & 2
 	
 	if(local_debug) {
 	  if      (slot_id == 0) std::cout << "         ";
@@ -512,50 +504,10 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
    
       if(local_debug) std::cout << std::endl;
     }
-    // 	if(local_debug) std::cout << std::endl;
-    // Int_t registered_f1tdc_num = 0;
-    // Int_t f1tdc_num = 0;
-
-    // const Int_t nwrds_per_buffer = 17;
-
-    //  std::cout << "local_f1tdc    " << &local_f1tdc << "\n";
-
-    // if (bank_index>=0 and num_words>0) {
-
-    //   registered_f1tdc_num        = fF1TDContainer->Size();
-    //   //    f1tdcs = fF1TDContainer->GetF1TDC(roc_id);
-    //   f1tdc_num = num_words/nwrds_per_buffer;
-
   
-    //   QwF1TDC *temp_f1tdc = 0;
-    //   Int_t test = 0;
-
-    //   for(Int_t i=0; i<f1tdc_num; i++) {
-    //     temp_f1tdc = (QwF1TDC*) fF1TDContainer->GetF1TDC(i);
-    //     //    std::cout << *temp_f1tdc << std::endl;
-    //     test = temp_f1tdc -> GetROCNumber();
-    //     std::cout << test << std::endl;
-    //     // if(temp_f1tdc -> GetROCNumber() == roc_id ) {
-
-    // 	//      }
-      
-    //   }
-
-    //   if (local_debug) {
-    //     std::cout << "Begin processing ROC" << roc_id << std::endl;
-    //     std::cout << " f1tdc_num " << f1tdc_num
-    // 		<< " in ROC " << roc_id
-    // 		<< " registered f1tdc " << registered_f1tdc_num
-    // 		<< " in Subsystem " << GetSubsystemName()
-    // 		<< " nwrds per buffer " << nwrds_per_buffer
-    // 		<< std::endl;
-    //     PrintConfigurationBuffer(buffer,num_words);
-    //   }
-    // }
-    //  if(local_f1tdc) delete local_f1tdc; local_f1tdc = 0;
-
     if(local_debug) {
      fF1TDContainer->Print();
+     
      std::cout << "-----------------------------------------------------" << std::endl;
     }
 
