@@ -52,13 +52,13 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   virtual ~QwSubsystemArray() { };
 
   /// \brief Set the internal record of the CODA event number
-  void SetCodaEventNumber(UInt_t evtnum){fCodaEventNumber=evtnum;};
+  void SetCodaEventNumber(UInt_t evtnum) { fCodaEventNumber = evtnum; };
   /// \brief Set the internal record of the CODA event type
-  void SetCodaEventType(UInt_t evttype){fCodaEventType=evttype;};
+  void SetCodaEventType(UInt_t evttype) { fCodaEventType = evttype; };
   /// \brief Get the internal record of the CODA event number
-  UInt_t GetCodaEventNumber(){return fCodaEventNumber;};
+  UInt_t GetCodaEventNumber() const { return fCodaEventNumber; };
   /// \brief Get the internal record of the CODA event type
-  UInt_t GetCodaEventType(){return fCodaEventType;};
+  UInt_t GetCodaEventType() const { return fCodaEventType; };
 
   /// \brief Set event type mask
   void   SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };

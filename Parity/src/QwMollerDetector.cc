@@ -448,7 +448,8 @@ float* QwMollerDetector::GetRawChannelArray(){
   return result;
 };
 
-Int_t QwMollerDetector::GetChannelIndex(TString channelName, Int_t module_number){
+Int_t QwMollerDetector::GetChannelIndex(TString channelName, UInt_t module_number)
+{
   Bool_t ldebug=kFALSE;
 
   channelName.ToLower();

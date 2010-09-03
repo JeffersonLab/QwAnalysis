@@ -17,6 +17,7 @@
 #include <Rtypes.h>
 #include <TString.h>
 #include <TDirectory.h>
+#include <TTree.h>
 
 // Qweak headers
 // Note: the subsystem factory header is included here because every subsystem
@@ -154,6 +155,7 @@ class VQwSubsystem {
   virtual void  RandomizeEventData(int helicity = 0, double time = 0.0) { };
   virtual void  EncodeEventData(std::vector<UInt_t> &buffer) { };
 
+
   /// \name Histogram construction and maintenance
   // @{
   /// Construct the histograms for this subsystem
@@ -178,7 +180,28 @@ class VQwSubsystem {
   virtual void  DeleteHistograms() = 0;
   // @}
 
-  /// \name Tree construction and maintenance
+
+  /// \name Tree and branch construction and maintenance
+  /// The methods should exist for all subsystems and are therefore defined
+  /// as pure virtual.
+  // @{
+  /// \brief Construct the branch and tree vector
+  virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values) = 0;
+  /// \brief Construct the branch and tree vector
+  virtual void ConstructBranchAndVector(TTree *tree, std::vector<Double_t>& values) {
+    TString tmpstr("");
+    ConstructBranchAndVector(tree,tmpstr,values);
+  };
+  /// \brief Construct the branch and tree vector
+  virtual void ConstructBranch(TTree *tree, TString& prefix) = 0;
+  /// \brief Construct the branch and tree vector based on the trim file
+  virtual void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) = 0;
+  /// \brief Fill the tree vector
+  virtual void FillTreeVector(std::vector<Double_t>& values) = 0;
+  // @}
+
+
+  /// \name Expert tree construction and maintenance
   /// These functions are not purely virtual, since not every subsystem is
   /// expected to implement them.  They are intended for expert output to
   /// trees.

@@ -105,6 +105,8 @@ class QwMollerDetector: public VQwSubsystemParity {
     Int_t GetEventcutErrorCounters();
     Int_t GetEventcutErrorFlag();
     void ConstructBranchAndVector(TTree*, TString&, std::vector<double, std::allocator<double> >&);
+    void ConstructBranch(TTree *tree, TString& prefix) { };
+    void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     void FillTreeVector(std::vector<Double_t> &values);
 
     Bool_t Compare(VQwSubsystem *source);
@@ -112,7 +114,7 @@ class QwMollerDetector: public VQwSubsystemParity {
     void PrintValue() const;
     float* GetRawChannelArray();
 
-    Int_t GetChannelIndex(TString channelName, Int_t module_number); 
+    Int_t GetChannelIndex(TString channelName, UInt_t module_number); 
     float GetDataForChannelInModule(Int_t module_number, Int_t channel_index){
       return fSTR7200_Channel[module_number][channel_index].GetValue();
     }
