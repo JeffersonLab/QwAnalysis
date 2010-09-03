@@ -52,7 +52,7 @@ void QwScaler_Channel<data_mask,data_shift>::RandomizeEventData(int helicity)
  *   given the module number index and the channel number index.
  *   @param moduleindex   Scaler index within this buffer; counts from 1
  *   @param channelindex  word index within this scaler; counts from 1
- *   @return   The number of words offset to the beginning of this 
+ *   @return   The number of words offset to the beginning of this
  *             scaler word from the beginning of the buffer.
  */
 template<unsigned int data_mask, unsigned int data_shift>
@@ -80,7 +80,7 @@ Int_t QwScaler_Channel<data_mask,data_shift>::GetBufferOffset(Int_t scalerindex,
 
 
 template<unsigned int data_mask, unsigned int data_shift>
-Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, 
+Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 							      UInt_t index)
 {
   UInt_t words_read = 0;
@@ -210,7 +210,7 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructBranch(TTree *tree, TStri
 };
 
 template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::FillTreeVector(std::vector<Double_t> &values)
+void  QwScaler_Channel<data_mask,data_shift>::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.

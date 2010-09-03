@@ -656,7 +656,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix)
       if(prefix=="asym_")
 	thisprefix="diff_";
 
-      
+
       fEffectiveCharge.ConstructBranch(tree,prefix);
 
       for(Short_t i=0;i<2;i++){
@@ -684,7 +684,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 	if(prefix=="asym_")
 	  thisprefix="diff_";
 
-      
+
 	fEffectiveCharge.ConstructBranch(tree,prefix);
 
 	for(Short_t i=0;i<2;i++){
@@ -700,7 +700,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 };
 
 
-void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values)
+void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the tree.

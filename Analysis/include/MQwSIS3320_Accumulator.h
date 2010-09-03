@@ -75,7 +75,7 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     void  FillHistograms() { };
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-    void  FillTreeVector(std::vector<Double_t> &values);
+    void  FillTreeVector(std::vector<Double_t> &values) const;
 
     // Output stream operator<< for an accumulator
     friend std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Accumulator& a);

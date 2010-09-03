@@ -117,9 +117,9 @@ void QwRootFile::DefineOptions(QwOptions &options)
   options.AddOptions()
     ("autosave", po::value<int>()->default_value(300000000),
      "TTree autosave value");
-  
 
-  
+
+
 }
 
 
@@ -165,7 +165,7 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   }
   fAutoSave  = options.GetValue<int>("autosave");
 
-  fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();  
+  fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();
 
 }
 
@@ -220,7 +220,7 @@ void QwRootFile::ConstructHistograms(QwHelicityPattern& helicity_pattern)
  * Construct the tree branches of the subsystem array
  * @param detectors Subsystem array
  */
-void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
+void QwRootFile::ConstructTreeBranches(QwSubsystemArray& detectors)
 {
   // Return if we do not want tree or mps information
   if (! fEnableTree) return;
@@ -299,7 +299,7 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
  * Fill the tree branches of the subsystem array
  * @param detectors Subsystem array
  */
-void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
+void QwRootFile::FillTreeBranches(const QwSubsystemArray& detectors)
 {
   // Calculate the event number before bailing out
   if (fNumEventsCycle > 0) {
@@ -320,7 +320,7 @@ void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
   if (!fEnableMapFile)
     detectors.FillTreeVector(fMpsVector);
   // Fill the tree
-  fMpsTree->Fill();  
+  fMpsTree->Fill();
 }
 
 
@@ -328,7 +328,7 @@ void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
  * Fill the tree branches of the helicity pattern
  * @param helicity_pattern Helicity pattern
  */
-void QwRootFile::FillTreeBranches(QwHelicityPattern& helicity_pattern)
+void QwRootFile::FillTreeBranches(const QwHelicityPattern& helicity_pattern)
 {
   // TODO (wdc) Assuming that the event number has been calculated by
   // the call to FillTreeBranches on the detector array.  No event number

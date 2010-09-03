@@ -1002,7 +1002,7 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
 };
 
 
-void  QwScanner::FillTreeVector(std::vector<Double_t> &values)
+void  QwScanner::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (! HasDataLoaded()) return;
 

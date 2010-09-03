@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 /* Position calibration factor, transform ADC counts in mm*/
-const Double_t QwBPMCavity::kQwCavityCalibration = 1e-8; 
+const Double_t QwBPMCavity::kQwCavityCalibration = 1e-8;
 //The value of kQwCavityCalibration is made up so we have to replace it with an actual value when it is determined
 //Josh Kaisen
 const Double_t QwBPMCavity::kRotationCorrection = 1./1.414;
@@ -20,38 +20,38 @@ void  QwBPMCavity::InitializeChannel(TString name)
 {
   Short_t i=0;
   Bool_t localdebug = kFALSE;
-  
+
   VQwBPM::InitializeChannel(name);
-  
+
   for(i=0;i<2;i++)
     fAbsPos[i].InitializeChannel(name+"Abs"+axis[i],"derived");
-  
+
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","raw");
-  
+
   for(i=0;i<2;i++) {
     fWire[i].InitializeChannel(name+subelement[i],"raw");
     if(localdebug)
       std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
   }
-  
+
   for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+subelement[i],"derived");
-  
+
   bFullSave=kTRUE;
-  
+
   return;
 };
 
 void QwBPMCavity::ClearEventData()
 {
   Short_t i=0;
-  
+
   for(i=0;i<2;i++){
     fAbsPos[i].ClearEventData();
     fWire[i].ClearEventData();
     fRelPos[i].ClearEventData();
   }
   fEffectiveCharge.ClearEventData();
-  
+
   return;
 };
 
@@ -59,18 +59,18 @@ void QwBPMCavity::ClearEventData()
 Bool_t QwBPMCavity::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
-  
+
   fDeviceErrorCode=0;
   for(Short_t i=0;i<2;i++)
     {
       fDeviceErrorCode|= fWire[i].ApplyHWChecks();  //OR the error code from each wire
       fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.
-      
+
       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;
       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
     }
   fDeviceErrorCode|= fEffectiveCharge.ApplyHWChecks();
-  
+
   return fEventIsGood;
 };
 
@@ -78,14 +78,14 @@ Bool_t QwBPMCavity::ApplyHWChecks()
 Int_t QwBPMCavity::GetEventcutErrorCounters()
 {
   Short_t i=0;
-  
+
   for(i=0;i<2;i++) {
     fWire[i].GetEventcutErrorCounters();
     fRelPos[i].GetEventcutErrorCounters();
     fAbsPos[i].GetEventcutErrorCounters();
   }
   fEffectiveCharge.GetEventcutErrorCounters();
-  
+
   return 1;
 };
 
@@ -97,7 +97,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
 
   //Event cuts for X & Y
   for(i=0;i<2;i++){
-    
+
     if (fWire[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -106,7 +106,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
-    
+
     //update the event cut counters
     fWire[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for RelX/Y
@@ -121,13 +121,13 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
-    
+
     //update the event cut counters
     fRelPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for RelX/Y
     fDeviceErrorCode|=fRelPos[i].GetEventcutErrorFlag();
   }
-  
+
   for(i=0;i<2;i++){
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
@@ -141,9 +141,9 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
     fAbsPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for AbsX/Y
     fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();
-    
+
   }
-  
+
   //Event cuts for four wire sum (EffectiveCharge)
   if (fEffectiveCharge.ApplySingleEventCuts()){
     status&=kTRUE;
@@ -157,50 +157,50 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   fEffectiveCharge.UpdateHWErrorCounters();
   //Get the Event cut error flag for EffectiveCharge
   fDeviceErrorCode|=fEffectiveCharge.GetEventcutErrorFlag();
-  
-  
+
+
   return status;
-  
+
 };
 
 
 void QwBPMCavity::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
-  
+
   if (ch_name=="x"){
     QwMessage<<"X LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fWire[0].SetSingleEventCuts(minX,maxX);
-    
+
   }else if (ch_name=="y"){
     QwMessage<<"Y LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fWire[1].SetSingleEventCuts(minX,maxX);
-    
+
   }else if (ch_name=="q"){
     QwMessage<<"Q LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fEffectiveCharge.SetSingleEventCuts(minX,maxX);
-    
+
   }else if (ch_name=="relx"){
     QwMessage<<"RelX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
      fRelPos[0].SetSingleEventCuts(minX,maxX);
-     
+
   }else if (ch_name=="rely"){
     QwMessage<<"RelY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fRelPos[1].SetSingleEventCuts(minX,maxX);
-    
+
   } else  if (ch_name=="absx"){
     QwMessage<<"AbsX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fAbsPos[0].SetSingleEventCuts(minX,maxX);
-      
+
   }else if (ch_name=="absy"){
     QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
       fAbsPos[1].SetSingleEventCuts(minX,maxX);
-      
+
   }else if (ch_name=="effectivecharge"){
     QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
      fEffectiveCharge.SetSingleEventCuts(minX,maxX);
-    
+
   }
-  
+
 };
 
 
@@ -208,20 +208,20 @@ void  QwBPMCavity::ProcessEvent()
 {
   Bool_t localdebug = kFALSE;
   Short_t i = 0;
-  
+
   ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine here and not in ApplySingleEventCuts  makes a difference for a BPMs because they have derrived devices.
-  
+
   for(i=0;i<2;i++)
     {
       fWire[i].ProcessEvent();
     }
   fEffectiveCharge.ProcessEvent();
-  
+
   if (localdebug) {
     fEffectiveCharge.PrintInfo();
     fWire[i].PrintInfo();
   }
-  
+
   for(i=0;i<2;i++){
     fRelPos[i]= fWire[i];
     fRelPos[i].Scale(kQwCavityCalibration);
@@ -283,7 +283,7 @@ TString QwBPMCavity::GetSubElementName(Int_t subindex)
   else
     std::cerr<<"QwBPMCavity::GetSubElementName for "<<
       GetElementName()<<" this subindex doesn't exists \n";
-  
+
   return thisname;
 }
 
@@ -291,12 +291,12 @@ UInt_t QwBPMCavity::GetSubElementIndex(TString subname)
 {
   subname.ToUpper();
   UInt_t localindex=999999;
-  for(Short_t i=0;i<3;i++) if(subname==subelement[i])localindex=i;    
-  
+  for(Short_t i=0;i<3;i++) if(subname==subelement[i])localindex=i;
+
   if(localindex>3)
     std::cerr << "QwBPMCavity::GetSubElementIndex is unable to associate the string -"
 	      <<subname<<"- to any index"<<std::endl;
-  
+
   return localindex;
 };
 
@@ -315,7 +315,7 @@ void  QwBPMCavity::GetAbsolutePosition()
 QwBPMCavity& QwBPMCavity::operator= (const QwBPMCavity &value)
 {
   VQwBPM::operator= (value);
-  
+
   this->bRotated=value.bRotated;
   if (GetElementName()!=""){
     Short_t i = 0;
@@ -328,11 +328,11 @@ QwBPMCavity& QwBPMCavity::operator= (const QwBPMCavity &value)
   }
   return *this;
 };
- 
+
 
 QwBPMCavity& QwBPMCavity::operator+= (const QwBPMCavity &value)
 {
-  
+
   if (GetElementName()!=""){
     Short_t i = 0;
     this->fEffectiveCharge+=value.fEffectiveCharge;
@@ -347,7 +347,7 @@ QwBPMCavity& QwBPMCavity::operator+= (const QwBPMCavity &value)
 
 QwBPMCavity& QwBPMCavity::operator-= (const QwBPMCavity &value)
 {
-  
+
   if (GetElementName()!=""){
     Short_t i = 0;
     this->fEffectiveCharge-=value.fEffectiveCharge;
@@ -365,7 +365,7 @@ void QwBPMCavity::Ratio(QwBPMCavity &numer, QwBPMCavity &denom)
 {
   // this function is called when forming asymmetries. In this case what we actually want for the
   // stripline is the difference only not the asymmetries
-  
+
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   return;
@@ -376,7 +376,7 @@ void QwBPMCavity::Ratio(QwBPMCavity &numer, QwBPMCavity &denom)
 void QwBPMCavity::Scale(Double_t factor)
 {
   fEffectiveCharge.Scale(factor);
-  
+
   for(Short_t i=0;i<2;i++){
     fWire[i].Scale(factor);
     fRelPos[i].Scale(factor);
@@ -498,9 +498,9 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
      TString thisprefix=prefix;
      if(prefix=="asym_")
        thisprefix="diff_";
- 
+
      SetRootSaveStatus(prefix);
- 
+
      fEffectiveCharge.ConstructBranch(tree,prefix);
      Short_t i = 0;
      for(i=0;i<2;i++) {
@@ -508,11 +508,11 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
        fRelPos[i].ConstructBranch(tree,thisprefix);
        fAbsPos[i].ConstructBranch(tree,thisprefix);
      }
- 
+
    }
    return;
  };
- 
+
  void  QwBPMCavity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
  {
    TString devicename;
@@ -536,9 +536,9 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
        TString thisprefix=prefix;
        if(prefix=="asym_")
          thisprefix="diff_";
- 
+
        SetRootSaveStatus(prefix);
- 
+
        fEffectiveCharge.ConstructBranch(tree,prefix);
        Short_t i = 0;
        for(i=0;i<2;i++) {
@@ -546,21 +546,21 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 	 fRelPos[i].ConstructBranch(tree,thisprefix);
          fAbsPos[i].ConstructBranch(tree,thisprefix);
        }
- 
+
        QwMessage <<" Tree leaves added to "<<devicename<<" Corresponding channels"<<QwLog::endl;
        }
        // this functions doesn't do anything yet
      }
- 
-    
-     
- 
-   
+
+
+
+
+
    return;
  };
 
 
-void  QwBPMCavity::FillTreeVector(std::vector<Double_t> &values)
+void  QwBPMCavity::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()=="") {
     //  This channel is not used, so skip filling the tree.
@@ -786,4 +786,4 @@ void QwBPMCavity::SetSubElementCalibrationFactor(Int_t j, Double_t value)
 {
   fWire[j].SetCalibrationFactor(value);
   return;
-}	
+}

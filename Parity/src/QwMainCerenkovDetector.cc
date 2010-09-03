@@ -865,7 +865,7 @@ void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix, QwPa
   return;
 };
 
-void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values)
+void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].FillTreeVector(values);

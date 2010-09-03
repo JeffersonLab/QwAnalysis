@@ -139,8 +139,8 @@ void  QwHaloMonitor::FillHistograms()
   else{
     fHalo_Counter.FillHistograms();
   }
-  
-  
+
+
   return;
 };
 
@@ -157,7 +157,7 @@ void  QwHaloMonitor::DeleteHistograms()
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
-  } 
+  }
   else{
     fHalo_Counter.DeleteHistograms();
   }
@@ -169,7 +169,7 @@ void  QwHaloMonitor::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
-  } 
+  }
   else{
     fHalo_Counter.ConstructBranchAndVector(tree, prefix,values);
     // this functions doesn't do anything yet
@@ -181,7 +181,7 @@ void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
-  } 
+  }
   else{
     fHalo_Counter.ConstructBranch(tree, prefix);
     // this functions doesn't do anything yet
@@ -201,7 +201,7 @@ void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
     //  This channel is not used, so skip filling the histograms.
   } else
     {
-      
+
       //QwMessage <<" QwHaloMonitor "<<devicename<<QwLog::endl;
       if (modulelist.HasValue(devicename)){
 	fHalo_Counter.ConstructBranch(tree, prefix);
@@ -215,11 +215,11 @@ void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 
 
 
-void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values)
+void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
-  } 
+  }
   else{
     fHalo_Counter.FillTreeVector(values);
     // this functions doesn't do anything yet
@@ -247,7 +247,7 @@ void  QwHaloMonitor::Copy(VQwDataElement *source)
   catch (std::exception& e){
     std::cerr << e.what() << std::endl;
   }
-  
+
   return;
 };
 

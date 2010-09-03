@@ -397,7 +397,7 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 		  }
 
 // This was added to check if the buffer contains more than one event.  If it does then throw those events away.  A better way to do this would be to find how many events were in the buffer then change the offset to be able to read them all.
-                if (firsttime) 
+                if (firsttime)
                   {
                     firsttime=kFALSE;
                     if (buffer[0]/32!=1)
@@ -405,7 +405,7 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
                         issingleevent=kFALSE;
                         std::cout<<"More than one event was found in the buffer.  Setting these events to zero."<<std::endl;
                       }
-                  }    
+                  }
                 if (issingleevent==kFALSE) continue;
 
 
@@ -843,7 +843,7 @@ void QwLumi::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& tri
 };
 
 //*****************************************************************
-void QwLumi::FillTreeVector(std::vector<Double_t> &values)
+void QwLumi::FillTreeVector(std::vector<Double_t> &values) const
 {
 
   for(size_t i = 0; i < fIntegrationPMT.size(); i++)

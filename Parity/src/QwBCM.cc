@@ -326,7 +326,7 @@ void  QwBCM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modu
     //  This channel is not used, so skip filling the histograms.
   } else
     {
-      
+
       //QwMessage <<" QwBCM "<<devicename<<QwLog::endl;
       if (modulelist.HasValue(devicename)){
 	fTriumf_ADC.ConstructBranch(tree, prefix);
@@ -337,7 +337,7 @@ void  QwBCM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modu
   return;
 };
 
-void  QwBCM::FillTreeVector(std::vector<Double_t> &values)
+void  QwBCM::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.

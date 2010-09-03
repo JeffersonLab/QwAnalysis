@@ -10,7 +10,6 @@
 #include "QwMapFile.h"
 #include "QwSubsystemArray.h"
 #include "QwHelicityPattern.h"
-#include "QwSubsystemArrayParity.h"
 /// \todo TODO (wdc) QwRootFile should not depend on QwHelicityPattern or
 /// QwSubsystemArrayParity.  Maybe need to extend using QwRootFileParity,
 /// which would allow for different structure in tracking.
@@ -35,14 +34,14 @@ class QwRootFile {
     Bool_t IsMapFile()  { return (fMapFile); };
 
     /// Construct the tree branches of the subsystem array
-    void ConstructTreeBranches(QwSubsystemArrayParity& detectors);
+    void ConstructTreeBranches(QwSubsystemArray& detectors);
     /// Construct the tree branches of the helicity pattern
     void ConstructTreeBranches(QwHelicityPattern& helicity_pattern);
 
     /// Fill the tree branches of the subsystem array
-    void FillTreeBranches(QwSubsystemArrayParity& detectors);
+    void FillTreeBranches(const QwSubsystemArray& detectors);
     /// Fill the tree branches of the helicity pattern
-    void FillTreeBranches(QwHelicityPattern& helicity_pattern);
+    void FillTreeBranches(const QwHelicityPattern& helicity_pattern);
 
     /// Construct histograms of the subsystem array
     void ConstructHistograms(QwSubsystemArray& detectors);

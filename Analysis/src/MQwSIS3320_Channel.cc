@@ -645,7 +645,7 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   // TODO See below for issues with including samples in the mps tree
 };
 
-void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values)
+void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   // Accumulators
   for (size_t i = 0; i < fAccumulators.size(); i++) {

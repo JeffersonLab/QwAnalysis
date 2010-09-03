@@ -462,7 +462,7 @@ void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString& prefi
   return;
 };
 
-void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values)
+void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (! HasDataLoaded()) return;
 

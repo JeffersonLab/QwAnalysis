@@ -32,7 +32,7 @@
 /// \ingroup QwAnalysis_BL
 template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
   class QwScaler_Channel: public VQwDataElement {
-  
+
   public:
   static Int_t GetBufferOffset(Int_t scalerindex, Int_t wordindex);
 
@@ -46,7 +46,7 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
     InitializeChannel(name);
   };
   ~QwScaler_Channel() {DeleteHistograms();};
-  
+
   void  InitializeChannel(TString name){
     fValue = 0;
     fValueM2 = 0;
@@ -58,22 +58,22 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
     SetElementName(name);
     return;
   };
-  
+
   void  ClearEventData();
-  
+
   void ReportErrorCounters();//This will display the error summary for each device
   void UpdateHWErrorCount(){//Update error counter for HW faliure
     fNumEvtsWithHWErrors++;
   };
-  
+
   void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
     fNumEvtsWithEventCutsRejected++;
   };
-  
+
   void  RandomizeEventData(int helicity);
   void  SetEventData(Double_t value);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
-  
+
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();
 
@@ -98,7 +98,7 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
 
   void  ConstructBranch(TTree *tree, TString &prefix);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
   void AccumulateRunningSum(const QwScaler_Channel &value);
 

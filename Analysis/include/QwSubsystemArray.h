@@ -241,7 +241,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Construct a branch for this subsystem with a prefix after tree leave trimming
   void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file);
   /// \brief Fill the vector for this subsystem
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   // @}
 
 

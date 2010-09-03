@@ -586,20 +586,20 @@ void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix, QwParameterF
 	  fRelPos[i].ConstructBranch(tree,thisprefix);
 	  fAbsPos[i].ConstructBranch(tree,thisprefix);
 	}
-		
+
 	QwMessage <<" Tree leaves added to "<<devicename<<" Corresponding channels"<<QwLog::endl;
       }
       // this functions doesn't do anything yet
     }
 
-   
-    
 
-  
+
+
+
   return;
 };
 
-void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
+void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()=="") {
     //  This channel is not used, so skip filling the tree.

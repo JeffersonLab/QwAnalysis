@@ -86,7 +86,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
     void  FillHistograms();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-    void  FillTreeVector(std::vector<Double_t> &values);
+    void  FillTreeVector(std::vector<Double_t> &values) const;
 
     MQwSIS3320_Samples& GetSamples(size_t i) { return fSamples.at(i); };
     MQwSIS3320_Samples& GetSamplesRaw(size_t i) { return fSamplesRaw.at(i); };

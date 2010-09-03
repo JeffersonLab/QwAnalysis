@@ -173,7 +173,7 @@ void  QwVQWK_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
   }
 };
 
-void  QwVQWK_Module::FillTreeVector(std::vector<Double_t> &values)
+void  QwVQWK_Module::FillTreeVector(std::vector<Double_t> &values) const
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).FillTreeVector(values);

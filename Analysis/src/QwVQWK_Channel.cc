@@ -6,8 +6,8 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwUnits.h"
-#include "QwHistogramHelper.h"
 #include "QwBlinder.h"
+#include "QwHistogramHelper.h"
 
 
 const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
@@ -690,7 +690,7 @@ void  QwVQWK_Channel::ConstructBranch(TTree *tree, TString &prefix)
 };
 
 
-void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
+void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip filling the tree vector.

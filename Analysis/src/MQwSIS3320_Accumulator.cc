@@ -229,7 +229,7 @@ void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &pre
   }
 };
 
-void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values)
+void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (IsNameEmpty()) {
     //  This accumulator is not used, so skip filling the tree vector.

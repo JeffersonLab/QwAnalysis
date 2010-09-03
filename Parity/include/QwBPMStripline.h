@@ -25,8 +25,8 @@
 /// \ingroup QwAnalysis_BL
 
 class QwBPMStripline : public VQwBPM {
-  friend class QwCombinedBPM;  
-  friend class QwEnergyCalculator;  
+  friend class QwCombinedBPM;
+  friend class QwEnergyCalculator;
 
  public:
   QwBPMStripline() { };
@@ -65,7 +65,7 @@ class QwBPMStripline : public VQwBPM {
   void    EncodeEventData(std::vector<UInt_t> &buffer);
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
-  
+
   void    Copy(VQwDataElement *source);
   void    Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
   void    Scale(Double_t factor);
@@ -84,7 +84,7 @@ class QwBPMStripline : public VQwBPM {
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void    ConstructBranch(TTree *tree, TString &prefix);
   void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void    FillTreeVector(std::vector<Double_t> &values);
+  void    FillTreeVector(std::vector<Double_t> &values) const;
 
 
 
@@ -105,12 +105,12 @@ class QwBPMStripline : public VQwBPM {
  protected:
   Bool_t   bRotated;
   QwVQWK_Channel fWire[4];
-  QwVQWK_Channel fRelPos[2]; 
+  QwVQWK_Channel fRelPos[2];
   QwVQWK_Channel fAbsPos[2]; // Z will not be considered as a vqwk_channel
   QwVQWK_Channel fEffectiveCharge;
 
-  std::vector<QwVQWK_Channel> fBPMElementList; 
-  
+  std::vector<QwVQWK_Channel> fBPMElementList;
+
 };
 
 

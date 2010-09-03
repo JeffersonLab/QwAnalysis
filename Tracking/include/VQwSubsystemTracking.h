@@ -44,7 +44,8 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     /// \brief Construct the branch and tree vector based on the trim file
     virtual void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     /// \brief Fill the tree vector
-    virtual void FillTreeVector(std::vector<Double_t>& values) { };
+    virtual void FillTreeVector(std::vector<Double_t>& values) const { };
+    // @}
     // @}
 
 

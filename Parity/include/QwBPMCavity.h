@@ -25,8 +25,8 @@
 /// \ingroup QwAnalysis_BL
 
 class QwBPMCavity : public VQwBPM {
-  friend class QwCombinedBPM;  
-  friend class QwEnergyCalculator;  
+  friend class QwCombinedBPM;
+  friend class QwEnergyCalculator;
 
  public:
   QwBPMCavity() { };
@@ -63,7 +63,7 @@ class QwBPMCavity : public VQwBPM {
   void    EncodeEventData(std::vector<UInt_t> &buffer);
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
-  
+
   void    Copy(VQwDataElement *source);
   void    Ratio(QwBPMCavity &numer, QwBPMCavity &denom);
   void    Scale(Double_t factor);
@@ -80,7 +80,7 @@ class QwBPMCavity : public VQwBPM {
   void    DeleteHistograms();
 
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void    FillTreeVector(std::vector<Double_t> &values);
+  void    FillTreeVector(std::vector<Double_t> &values) const;
   void    ConstructBranch(TTree *tree, TString &prefix);
   void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
 
@@ -102,12 +102,12 @@ class QwBPMCavity : public VQwBPM {
  protected:
   Bool_t   bRotated;
   QwVQWK_Channel fWire[2];
-  QwVQWK_Channel fRelPos[2]; 
+  QwVQWK_Channel fRelPos[2];
   QwVQWK_Channel fAbsPos[2]; // Z will not be considered as a vqwk_channel
   QwVQWK_Channel fEffectiveCharge;
 
-  std::vector<QwVQWK_Channel> fBPMElementList; 
-  
+  std::vector<QwVQWK_Channel> fBPMElementList;
+
 };
 
 

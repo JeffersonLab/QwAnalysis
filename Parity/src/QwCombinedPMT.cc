@@ -366,7 +366,7 @@ void  QwCombinedPMT::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 };
 
 
-void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values)
+void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()=="")
     {

@@ -579,7 +579,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString& prefix, std
 };
 
 
-void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values)
+void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (! HasDataLoaded()) return;
 

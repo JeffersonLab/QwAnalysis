@@ -61,7 +61,7 @@ class QwMainDetector: public VQwSubsystemTracking {
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
   QwMainDetector& operator=  (const QwMainDetector &value);
 

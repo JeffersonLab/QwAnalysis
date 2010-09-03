@@ -197,7 +197,7 @@ class VQwSubsystem {
   /// \brief Construct the branch and tree vector based on the trim file
   virtual void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) = 0;
   /// \brief Fill the tree vector
-  virtual void FillTreeVector(std::vector<Double_t>& values) = 0;
+  virtual void FillTreeVector(std::vector<Double_t>& values) const = 0;
   // @}
 
 

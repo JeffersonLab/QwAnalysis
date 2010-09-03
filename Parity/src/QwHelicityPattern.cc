@@ -685,7 +685,7 @@ void QwHelicityPattern::ConstructBranch(TTree *tree, TString & prefix, QwParamet
   return;
 }
 
-void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values)
+void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (IsGood) {
     fYield.FillTreeVector(values);

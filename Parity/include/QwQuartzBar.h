@@ -36,7 +36,7 @@ class QwQuartzBar: public VQwSubsystemParity {
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString  filename);
-  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings 
+  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Bool_t CheckRunningAverages(Bool_t ); //check the running averages of sub systems and passing argument decide print AVG or not.
 
@@ -62,7 +62,7 @@ class QwQuartzBar: public VQwSubsystemParity {
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwDatabase *db, TString type) {return;};
 
   QwVQWK_Channel* GetChannel(const TString name);

@@ -513,7 +513,7 @@ void QwSubsystemArray::ConstructBranch(
  * Fill the tree vector
  * @param values Vector of values
  */
-void QwSubsystemArray::FillTreeVector(std::vector<Double_t>& values)
+void QwSubsystemArray::FillTreeVector(std::vector<Double_t>& values) const
 {
   // Fill the event number and event type
   size_t index = fTreeArrayIndex;

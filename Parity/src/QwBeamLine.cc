@@ -1676,7 +1676,7 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile&
 };
 
 //*****************************************************************
-void QwBeamLine::FillTreeVector(std::vector<Double_t> &values)
+void QwBeamLine::FillTreeVector(std::vector<Double_t> &values) const
 {
   for(size_t i = 0; i < fStripline.size(); i++)
     fStripline[i].FillTreeVector(values);

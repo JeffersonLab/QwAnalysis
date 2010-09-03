@@ -26,7 +26,7 @@
 class QwLumiDetectorID{
 
  public:
-  
+
   QwLumiDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),
     fTypeID(kQwUnknownPMT),fIndex(-1),
     fSubelement(999999),fmoduletype(""),fdetectorname("")
@@ -60,7 +60,7 @@ class QwLumi : public VQwSubsystemParity{
    {
     fTargetCharge.InitializeChannel("q_targ","derived");
    };
-    
+
   ~QwLumi() {
     DeleteHistograms();
   };
@@ -88,7 +88,7 @@ class QwLumi : public VQwSubsystemParity{
   void  PrintDetectorID() const;
 
   void  ClearEventData();
-  Bool_t IsGoodEvent(); 
+  Bool_t IsGoodEvent();
 
   void  ProcessEvent();
   void  ExchangeProcessedData();
@@ -116,7 +116,7 @@ class QwLumi : public VQwSubsystemParity{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwDatabase *db, TString datatype);
 
   QwIntegrationPMT* GetChannel(const TString name);
@@ -137,7 +137,7 @@ class QwLumi : public VQwSubsystemParity{
  Int_t GetDetectorIndex(EQwPMTInstrumentType TypeID, TString name);
  //when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is IntegrationPMT  then the index of the detector from fIntegrationPMT vector for given name will be returnd.
- 
+
  std::vector <QwIntegrationPMT>      fIntegrationPMT;
  std::vector <QwLumiDetectorID>      fLumiDetectorID;
  std::vector <QwSIS3801D24_Channel>  fScalerPMT;

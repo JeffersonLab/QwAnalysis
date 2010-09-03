@@ -159,7 +159,7 @@ void  QwSIS3801_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, s
   }
 };
 
-void  QwSIS3801_Module::FillTreeVector(std::vector<Double_t> &values)
+void  QwSIS3801_Module::FillTreeVector(std::vector<Double_t> &values) const
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).FillTreeVector(values);

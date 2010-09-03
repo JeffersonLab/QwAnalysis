@@ -554,7 +554,7 @@ void QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString & 
   return;
 };
 
-void QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values)
+void QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
   return;
 };

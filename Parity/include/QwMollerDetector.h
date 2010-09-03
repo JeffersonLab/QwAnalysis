@@ -107,7 +107,7 @@ class QwMollerDetector: public VQwSubsystemParity {
     void ConstructBranchAndVector(TTree*, TString&, std::vector<double, std::allocator<double> >&);
     void ConstructBranch(TTree *tree, TString& prefix) { };
     void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
-    void FillTreeVector(std::vector<Double_t> &values);
+    void FillTreeVector(std::vector<Double_t> &values) const;
 
     Bool_t Compare(VQwSubsystem *source);
     void print();

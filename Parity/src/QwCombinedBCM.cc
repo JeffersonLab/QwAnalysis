@@ -357,7 +357,7 @@ void  QwCombinedBCM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 };
 
 
-void  QwCombinedBCM::FillTreeVector(std::vector<Double_t> &values)
+void  QwCombinedBCM::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
