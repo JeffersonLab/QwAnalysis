@@ -19,8 +19,6 @@
 #
 ################################################
 
-use Mysql;
-
 use Cwd;
 use Cwd 'abs_path';
 use File::Find ();
@@ -322,33 +320,6 @@ exit;
 ################################################
 ################################################
 ################################################
-
-
-############################################################################
-sub get_filelist_from_DB($,$,\@) {
-    my ($hostname,$database,@run_list) = @_;
-
-    my ($db, $runnumber, $sth, %data);
-
-###  Connect to the datatracker database on cdaql6.
-    $db = Mysql->connect($hostname,$database) || die "$Mysql::db_errstr\n";
-
-###  Get the file names from the database.
-    my @file_list = ();
-    if ($#run_list > -1){
-	foreach $runnumber (@run_list){
-	    $sth = $db->query("SELECT filename FROM silo WHERE run_number = $runnumber") || die "$Mysql::db_errstr\n";
-	    if(%data = $sth->FetchHash) {		# There are some files
-		print keys %data,"\n";
-		push @file_list, $data{'filename'};
-	    } else {
-		print STDERR "There are no files on the silo for run $runnumber\n";
-	    }
-	}
-    }
-    return @file_list;
-}
-
 
 
 ############################################################################
