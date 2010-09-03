@@ -136,12 +136,6 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   // ... due to reverse order
   d_to_1st_wire_b -= backdetector->GetNumberOfElements() * backdetector->GetElementSpacing();
 
-  // Wire spacing and slope matching parameters for front and back planes
-  double wirespacing_f = frontdetector->GetElementSpacing();
-  double wirespacing_b = backdetector->GetElementSpacing();
-  double sloperes_f = frontdetector->GetSlopeMatching();
-  double sloperes_b = backdetector->GetSlopeMatching();
-
   // Differences in position between the front and back detector planes
   double delta_x = backdetector->GetXPosition() - frontdetector->GetXPosition();
   double delta_y = backdetector->GetYPosition() - frontdetector->GetYPosition();
@@ -175,7 +169,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     if (frontline->IsVoid()) continue;
     // Loop over all hits of the valid tree lines
     for (int hit = 0; hit < frontline->fNumHits; hit++) {
-      double zpos = (frontline->hits[hit]->GetElement() - 141) * wirespacing_f;
+      int element = frontline->hits[hit]->GetElement();
+      double zpos = frontdetector->GetElementCoordinate(element);
       frontline->hits[hit]->SetZPosition(zpos);
     }
   }
@@ -187,7 +182,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     if (backline->IsVoid()) continue;
     // Loop over all hits of the valid tree lines
     for (int hit = 0; hit < backline->fNumHits; hit++) {
-      double zpos = (backline->hits[hit]->GetElement() - 141) * wirespacing_b;
+      int element = backline->hits[hit]->GetElement();
+      double zpos = backdetector->GetElementCoordinate(element);
       backline->hits[hit]->SetZPosition(zpos);
     }
   }
@@ -239,6 +235,12 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
       // Slope between the front and back plane central hits
       double slope = (u_para + y[1] - y[0]) / (d_perp + x[1] - x[0]);
+
+      // Wire spacing and slope matching parameters for front and back planes
+      double wirespacing_f = frontdetector->GetElementSpacing();
+      double wirespacing_b = backdetector->GetElementSpacing();
+      double sloperes_f = frontdetector->GetSlopeMatching();
+      double sloperes_b = backdetector->GetSlopeMatching();
 
       // Slope of the front and back tree line
       double fslope = wirespacing_f / frontline->fSlope;
