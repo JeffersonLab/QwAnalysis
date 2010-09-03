@@ -41,6 +41,31 @@ void  QwBPMCavity::InitializeChannel(TString name)
   return;
 };
 
+void  QwBPMCavity::InitializeChannel(TString subsystem, TString name)
+{
+  Short_t i=0;
+  Bool_t localdebug = kFALSE;
+  
+  VQwBPM::InitializeChannel(name);
+  
+  for(i=0;i<2;i++)
+    fAbsPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Abs"+axis[i],"derived");
+  
+  fEffectiveCharge.InitializeChannel(subsystem, "QwBPMCavity", name+"_EffectiveCharge","raw");
+  
+  for(i=0;i<2;i++) {
+    fWire[i].InitializeChannel(subsystem, "QwBPMCavity", name+subelement[i],"raw");
+    if(localdebug)
+      std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
+  }
+  
+  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Rel"+subelement[i],"derived");
+  
+  bFullSave=kTRUE;
+  
+  return;
+};
+
 void QwBPMCavity::ClearEventData()
 {
   Short_t i=0;

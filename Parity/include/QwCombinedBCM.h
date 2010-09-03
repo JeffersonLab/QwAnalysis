@@ -25,6 +25,9 @@ class QwCombinedBCM : public VQwDataElement{
   QwCombinedBCM(TString name){
     InitializeChannel(name, "derived");
   };
+  QwCombinedBCM(TString subsystem, TString name){
+    InitializeChannel(subsystem, name, "derived");
+  };
   ~QwCombinedBCM() {
     DeleteHistograms();
   };
@@ -38,6 +41,8 @@ class QwCombinedBCM : public VQwDataElement{
   void  ClearEventData();
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave);
 
   void ReportErrorCounters();
 

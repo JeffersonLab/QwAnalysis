@@ -15,6 +15,7 @@
 #include "TString.h"
 #include "TDirectory.h"
 #include "TH1.h"
+#include "QwTypes.h"
 
 /**
  *  \class   VQwDataElement
@@ -91,8 +92,26 @@ class VQwDataElement {
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  
+  /*! \brief Return the name of the inheriting subsystem name*/
+  TString GetSubsystemName() const {
+    return fSubsystemName;
+  };
 
+   /*! \brief Set the name of the inheriting subsystem name*/
+  void SetSubsystemName(TString sysname){
+    fSubsystemName=sysname;
+  };
+  
+   /*! \brief Return the type of the beam instrument*/
+  TString GetModuleType() const {
+    return fModuleType;
+  };
 
+   /*! \brief set the type of the beam instrument*/
+  void SetModuleType(TString ModuleType){
+    fModuleType=ModuleType;
+  };
 
  protected:
   /*! \brief Set the number of data words in this data element */
@@ -104,6 +123,11 @@ class VQwDataElement {
 
   /// Histograms associated with this data element
   std::vector<TH1*> fHistograms;
+
+  //name of the inheriting subsystem
+  TString  fSubsystemName;
+  //Data module Type 
+  TString  fModuleType;
 
 }; // class VQwDataElement
 

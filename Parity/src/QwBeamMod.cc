@@ -116,7 +116,8 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	 }
 
        if (lineok){
-	 QwVQWK_Channel localchan(localModChannelID.fmodulename);
+	 QwVQWK_Channel localchan;
+	 localchan.InitializeChannel(GetSubsystemName(),"QwBeamMod",localModChannelID.fmodulename,"raw");
 	 fModChannel.push_back(localchan);
 	 fModChannel[fModChannel.size()-1].SetDefaultSampleSize(fSample_size);
 	 localModChannelID.fIndex=fModChannel.size()-1;

@@ -59,6 +59,9 @@ class QwVQWK_Channel: public VQwDataElement {
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString name, TString datatosave);
 
+  /// \brief Initialize the fields in this object
+  void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
+
   // Will update the default sample size for the module.
   void SetDefaultSampleSize(size_t NumberOfSamples_map) {
     // This will be checked against the no.of samples read by the module
@@ -201,6 +204,8 @@ class QwVQWK_Channel: public VQwDataElement {
   /// \brief Blind this channel as a difference
   void Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield);
 
+  
+
  protected:
 
 
@@ -331,6 +336,16 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
+
+  //For VQWK data element trimming uses
+  Bool_t bHw_sum;
+  Bool_t bHw_sum_raw;
+  Bool_t  bBlock;
+  Bool_t  bBlock_raw;
+  Bool_t bNum_samples;
+  Bool_t bDevice_Error_Code;
+  Bool_t bSequence_number;
+  
 
 
 

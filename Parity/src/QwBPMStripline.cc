@@ -39,6 +39,31 @@ void  QwBPMStripline::InitializeChannel(TString name)
   return;
 };
 
+void  QwBPMStripline::InitializeChannel(TString subsystem, TString name)
+{
+  Short_t i=0;
+  Bool_t localdebug = kFALSE;
+
+  VQwBPM::InitializeChannel(name);
+
+  for(i=0;i<2;i++)
+    fAbsPos[i].InitializeChannel(subsystem, "QwBPMStripline", name+axis[i],"derived");
+
+  fEffectiveCharge.InitializeChannel(subsystem, "QwBPMStripline", name+"_EffectiveCharge","derived");
+
+  for(i=0;i<4;i++) {
+    fWire[i].InitializeChannel(subsystem, "QwBPMStripline", name+subelement[i],"raw");
+    if(localdebug)
+      std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
+  }
+
+  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(subsystem, "QwBPMStripline", name+"Rel"+axis[i],"derived");
+
+  bFullSave=kTRUE;
+
+  return;
+};
+
 void QwBPMStripline::ClearEventData()
 {
   Short_t i=0;

@@ -29,12 +29,17 @@ class QwCombinedBPM : public VQwBPM{
   QwCombinedBPM(TString name):VQwBPM(name){
     InitializeChannel(name);
   };
+  QwCombinedBPM(TString subsystem, TString name):VQwBPM(name){
+    InitializeChannel(subsystem, name);
+  };
 
   ~QwCombinedBPM() {
     DeleteHistograms();
   };
 
   void    InitializeChannel(TString name);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name);
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);

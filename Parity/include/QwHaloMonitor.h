@@ -37,9 +37,15 @@ class  QwHaloMonitor : public VQwDataElement{
   QwHaloMonitor(TString name){
     InitializeChannel(name);
   };
+
+  QwHaloMonitor(TString subsystemname, TString name){
+    InitializeChannel(subsystemname, name);
+  };
   ~QwHaloMonitor() {DeleteHistograms();};
 
   void  InitializeChannel(TString name);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name);
   void  ClearEventData();
   void  ReportErrorCounters();//This will display the error summary for each device
   void  UpdateHWErrorCount();//Update error counter for HW faliure

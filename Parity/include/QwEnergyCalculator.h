@@ -36,9 +36,15 @@ class QwEnergyCalculator : public VQwDataElement{
   QwEnergyCalculator(TString name){
     InitializeChannel(name,"derived");
   };
+  QwEnergyCalculator(TString subsystem, TString name){
+    InitializeChannel(subsystem, name,"derived");
+  };
+
     ~QwEnergyCalculator() {DeleteHistograms();};
 
     void    InitializeChannel(TString name,TString datatosave);
+    // new routine added to update necessary information for tree trimming
+    void  InitializeChannel(TString subsystem, TString name, TString datatosave);
     void    ClearEventData();
     Int_t   ProcessEvBuffer(UInt_t* buffer,
 			    UInt_t word_position_in_buffer,UInt_t indexnumber);

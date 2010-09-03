@@ -25,6 +25,20 @@ void  QwCombinedPMT::InitializeChannel(TString name, TString datatosave)
   return;
 };
 
+void  QwCombinedPMT::InitializeChannel(TString subsystemname, TString name, TString datatosave)
+{
+  SetElementName(name);
+  //SetPedestal(0.);
+  //SetCalibrationFactor(1.);
+  if (datatosave=="raw") fDataToSave=kRaw;
+  else
+    if (datatosave=="derived") fDataToSave=kDerived;
+
+  fSumADC.InitializeChannel(subsystemname, "QwCombinedPMT", name, datatosave);
+
+  return;
+};
+
 void  QwCombinedPMT::LinkChannel(TString name)
 {
   SetElementName(name);

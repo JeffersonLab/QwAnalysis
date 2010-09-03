@@ -1,4 +1,105 @@
 # Tree trim file of run  596
+
+[HallCBeamLine]
+  <QwBCM>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+  <QwBPMStripline>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+  <QwBPMCavity>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+  <QwCombinedBPM>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+  <QwCombinedBCM>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+   <QwEnergyCalculator>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+[Main Detector]
+   <QwIntegrationPMT>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+   <QwCombinedPMT>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+[Lumi Detector]
+  <QwIntegrationPMT>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+[BeamMod]
+   <QwBeamMod>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+
+
+# below the [DEVICELIST] include all the devices that needs to be in the tree
+
+[DEVICELIST]
+
+
 # Mps Tree  
 # No. of branches  289
 CodaEventNumber
@@ -209,10 +310,10 @@ qwk_bcm0l02
 qwk_batery6
 qwk_batery7
 phasemonitor
-#md1neg
-#md2neg
-#md3neg
-#md4neg
+md1neg
+md2neg
+md3neg
+md4neg
 #md5neg
 #md6neg
 #md7neg
@@ -233,15 +334,15 @@ phasemonitor
 #isourc
 #preamp
 #cagesr
-#md1neg_md5neg
-#md2neg_md6neg
-#md3neg_md7neg
+md1neg_md5neg
+md2neg_md6neg
+md3neg_md7neg
 #md4neg_md8neg
 #md1pos_md5pos
 #md2pos_md6pos
 #md3pos_md7pos
 #md4pos_md8pos
-#combinationallmd
+combinationallmd
 #qwk_uslumi1neg
 #qwk_uslumi1pos
 #qwk_uslumi3neg
@@ -249,8 +350,8 @@ phasemonitor
 #qwk_uslumi5neg
 #qwk_uslumi5pos
 #qwk_uslumi7neg
-#qwk_uslumi7pos
-#qwk_dslumi1
+qwk_uslumi7pos
+qwk_dslumi1
 #qwk_dslumi2
 #qwk_dslumi3
 #qwk_dslumi4
@@ -262,19 +363,8 @@ phasemonitor
 #qwk_dslumi2_sc
 #qwk_dslumi3_sc
 #qwk_bad_s2ch3
-#qwk_dslumi5_sc
-#qwk_dslumi6_sc
-#qwk_dslumi7_sc
-#qwk_dslumi8_sc
-#qwk_uslumi1neg_sc
-#qwk_uslumi1pos_sc
-#qwk_uslumi3neg_sc
-#qwk_uslumi3pos_sc
-#qwk_uslumi5neg_sc
-#qwk_uslumi5pos_sc
-#qwk_uslumi7neg_sc
-#qwk_uslumi7pos_sc
-#qwk_dslumi4_sc
+sca_dslumi1
+sca_dslumi2
 #actual_helicity
 #delayed_helicity
 reported_helicity
@@ -412,11 +502,11 @@ CodaEventType
 #yield_qwk_batery6
 #yield_qwk_batery7
 #yield_phasemonitor
-#yield_md1neg
-#yield_md2neg
-#yield_md3neg
-#yield_md4neg
-#yield_md5neg
+yield_md1neg
+yield_md2neg
+yield_md3neg
+yield_md4neg
+yield_md5neg
 #yield_md6neg
 #yield_md7neg
 #yield_md8neg
@@ -436,9 +526,9 @@ CodaEventType
 #yield_isourc
 #yield_preamp
 #yield_cagesr
-#yield_md1neg_md5neg
-#yield_md2neg_md6neg
-#yield_md3neg_md7neg
+yield_md1neg_md5neg
+yield_md2neg_md6neg
+yield_md3neg_md7neg
 #yield_md4neg_md8neg
 #yield_md1pos_md5pos
 #yield_md2pos_md6pos
@@ -461,23 +551,7 @@ CodaEventType
 #yield_qwk_dslumi6
 #yield_qwk_dslumi7
 #yield_qwk_dslumi8
-#yield_qwk_dslumi1_sc
-#yield_qwk_dslumi2_sc
-#yield_qwk_dslumi3_sc
-#yield_qwk_bad_s2ch3
-#yield_qwk_dslumi5_sc
-#yield_qwk_dslumi6_sc
-#yield_qwk_dslumi7_sc
-#yield_qwk_dslumi8_sc
-#yield_qwk_uslumi1neg_sc
-#yield_qwk_uslumi1pos_sc
-#yield_qwk_uslumi3neg_sc
-#yield_qwk_uslumi3pos_sc
-#yield_qwk_uslumi5neg_sc
-#yield_qwk_uslumi5pos_sc
-#yield_qwk_uslumi7neg_sc
-#yield_qwk_uslumi7pos_sc
-#yield_qwk_dslumi4_sc
+
 #actual_pattern_polarity
 #delayed_pattern_polarity
 #pattern_number
@@ -492,12 +566,12 @@ scandata2
 CodaEventNumber
 CodaEventType
 asym_qwk_qpd_EffectiveCharge
-#diff_qwk_qpdRelX
+diff_qwk_qpdRelX
 diff_qwk_qpdX
-#diff_qwk_qpdRelY
+diff_qwk_qpdRelY
 diff_qwk_qpdY
 asym_qwk_1i02_EffectiveCharge
-#diff_qwk_1i02RelX
+diff_qwk_1i02RelX
 diff_qwk_1i02X
 #diff_qwk_1i02RelY
 diff_qwk_1i02Y
@@ -658,20 +732,3 @@ asym_phasemonitor
 #asym_qwk_dslumi6
 #asym_qwk_dslumi7
 #asym_qwk_dslumi8
-#asym_qwk_dslumi1_sc
-#asym_qwk_dslumi2_sc
-#asym_qwk_dslumi3_sc
-#asym_qwk_bad_s2ch3
-#asym_qwk_dslumi5_sc
-#asym_qwk_dslumi6_sc
-#asym_qwk_dslumi7_sc
-#asym_qwk_dslumi8_sc
-#asym_qwk_uslumi1neg_sc
-#asym_qwk_uslumi1pos_sc
-#asym_qwk_uslumi3neg_sc
-#asym_qwk_uslumi3pos_sc
-#asym_qwk_uslumi5neg_sc
-#asym_qwk_uslumi5pos_sc
-#asym_qwk_uslumi7neg_sc
-#asym_qwk_uslumi7pos_sc
-#asym_qwk_dslumi4_sc

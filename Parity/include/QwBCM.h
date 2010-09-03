@@ -35,6 +35,10 @@ class QwBCM : public VQwDataElement{
   QwBCM(TString name){
     InitializeChannel(name,"raw");
   };
+  QwBCM(TString subsystemname, TString name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name,"raw");
+  };
   ~QwBCM() {
     DeleteHistograms();
   };
@@ -42,6 +46,8 @@ class QwBCM : public VQwDataElement{
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave);
   void  ClearEventData();
 
 

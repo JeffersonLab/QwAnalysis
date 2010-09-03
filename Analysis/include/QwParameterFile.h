@@ -126,6 +126,7 @@ class QwParameterFile {
 
  protected:
   void TrimWhitespace(std::string  &token, TString::EStripType head_tail);
+  void TrimWhitespace(TString  &token, TString::EStripType head_tail);
 
   // List of search paths
   static std::vector<bfs::path> fSearchPaths;
@@ -141,6 +142,8 @@ class QwParameterFile {
 
  private:
   QwParameterFile(){};
+  //  TString fCurrentSecName;     // Stores the name of the current section  read
+  //  TString fCurrentModuleName;  // Stores the name of the current module  read
 
 };
 

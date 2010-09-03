@@ -67,6 +67,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
 
   /* derived from VQwSubsystem */
+  
   void  ProcessOptions(QwOptions &options);//Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);

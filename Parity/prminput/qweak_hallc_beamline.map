@@ -185,22 +185,22 @@ SCALER,2,26,halomonitor,sca_halo10
 !**************************************************************************
 
 
-!begin=combinedbcm
-!name=qwk_average_charge
-!!name	type	wieght
-! empty2,  bcm, 1.0
-! empty1,  bcm, 0.8
-!end=combinedbcm
+begin=combinedbcm
+name=qwk_average_charge
+!name	type	wieght
+ qwk_bcm5,  bcm, 1.0
+ qwk_bcm6,  bcm, 0.8
+end=combinedbcm
 
 
-!begin=combinedbpm
-!name=qwk_target
-!!name	    type 	  q      x     y    
-! QWK_3C07,  bpmstripline, 1.0,  1.0,  1.0
-! QWK_3C08,  bpmstripline, 1.0,  1.0,  1.0
-! QWK_3C11,  bpmstripline, 1.0,  1.0,  1.0
-! QWK_3C12,  bpmstripline, 1.0,  1.0,  1.0
-!end=combinedbpm
+begin=combinedbpm
+name=qwk_target
+!name	    type 	  q      x     y    
+ QWK_3C07,  bpmstripline, 1.0,  1.0,  1.0
+ QWK_3C08,  bpmstripline, 1.0,  1.0,  1.0
+ QWK_3C11,  bpmstripline, 1.0,  1.0,  1.0
+ QWK_3C12,  bpmstripline, 1.0,  1.0,  1.0
+end=combinedbpm
 
 
 !**************************************************************************
@@ -215,13 +215,14 @@ SCALER,2,26,halomonitor,sca_halo10
 !	(dP/P) = (1/M15)*X_3c12 + (-M11/M15)*X_T + (-M12/M15)*X_T`
 ! To get (dP/P).
 
-!begin=energycalculator
-!name=qwk_energy
-!! name      type 	ratios property  
-!  QWK_3C11, bpmstripline, 1.5,	beamposition   
-!  QWK_TARGET, combinedbpm, -2.4, targetbeamangle
-!  QWK_TARGET, combinedbpm, -0.6, targetbeamposition
-!end=energycalculator
+begin=energycalculator
+name=qwk_energy
+! name      type 	ratios property  
+  !QWK_3C11, bpmstripline, 1.5,	beamposition 
+  qwk_target, combinedbpm, 1.5,	beamposition 	  
+  qwk_target, combinedbpm, -2.4, targetbeamangle
+  qwk_target, combinedbpm, -0.6, targetbeamposition
+end=energycalculator
 
 ! CHECK THE SIGNS OF THE MATRIX ELEMENT RATIOS!.
 

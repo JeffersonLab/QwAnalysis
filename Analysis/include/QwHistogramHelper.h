@@ -59,6 +59,7 @@ class QwHistogramHelper{
   TH2F* Construct2DHist(const std::string inputfile, const std::string name_title);
 
   const Bool_t MatchDeviceParamsFromList(const std::string devicename);
+  const Bool_t MatchVQWKElementFromList(const std::string subsystemname, const std::string moduletype, const std::string devicename);
   
  protected:
 
@@ -141,6 +142,10 @@ class QwHistogramHelper{
   std::string fInputFile;
   std::vector<HistParams> fHistParams;
   std::vector<TString> fTreeParams;
+
+  std::vector<TString> fSubsystemList;//stores the list of subsystems
+  std::vector<std::vector<TString> > fModuleList;//will store list modules in  each subsystem (ex. for BCM, BPM etc in Beam line sub system)
+  std::vector<std::vector<std::vector<TString> > > fVQWKTrimmedList; //will store list of VQWK elements for each subsystem for each module  
 };
 
 //  Declare a global copy of the histogram helper.

@@ -33,6 +33,24 @@ void  QwIntegrationPMT::InitializeChannel(TString name, TString datatosave)
   return;
 };
 /********************************************************/
+void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString name, TString datatosave)
+{
+  SetPedestal(0.);
+  SetCalibrationFactor(1.);
+  fTriumf_ADC.InitializeChannel(subsystem,"QwIntegrationPMT", name, datatosave);
+  SetElementName(name);
+  return;
+};
+/********************************************************/
+void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString module, TString name, TString datatosave)
+{
+  SetPedestal(0.);
+  SetCalibrationFactor(1.);
+  fTriumf_ADC.InitializeChannel(subsystem,module, name, datatosave);
+  SetElementName(name);
+  return;
+};
+/********************************************************/
 void QwIntegrationPMT::ClearEventData()
 {
   fTriumf_ADC.ClearEventData();

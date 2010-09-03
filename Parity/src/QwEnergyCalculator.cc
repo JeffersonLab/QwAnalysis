@@ -20,6 +20,13 @@ void QwEnergyCalculator::InitializeChannel(TString name,TString datatosave ){
   return;
 };
 
+void QwEnergyCalculator::InitializeChannel(TString subsystem, TString name,TString datatosave ){
+  SetElementName(name);
+  fEnergyChange.InitializeChannel(subsystem, "QwEnergyCalculator", name,datatosave);
+  beamx.InitializeChannel("beamx","derived");
+  return;
+};
+
 void QwEnergyCalculator::Set(VQwBPM* device, TString type, TString property,Double_t tmatrix_ratio){
 
   fDevice.push_back(device);

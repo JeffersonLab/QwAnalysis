@@ -46,6 +46,15 @@ void  QwCombinedBCM::InitializeChannel(TString name, TString datatosave)
   return;
 };
 
+void  QwCombinedBCM::InitializeChannel(TString subsystem, TString name, TString datatosave)
+{
+  SetElementName(name);
+  fCombined_bcm.InitializeChannel(subsystem, "QwCombinedBCM", name,"derived");
+
+  return;
+};
+
+
 void QwCombinedBCM::ClearEventData()
 {
   fCombined_bcm.ClearEventData();

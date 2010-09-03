@@ -39,6 +39,17 @@ void  QwBCM::InitializeChannel(TString name, TString datatosave)
   return;
 };
 /********************************************************/
+void  QwBCM::InitializeChannel(TString subsystem, TString name, TString datatosave){
+  SetPedestal(0.);
+  SetCalibrationFactor(1.);
+  fTriumf_ADC.InitializeChannel(subsystem, "QwBCM", name, datatosave);
+  SetElementName(name);
+  //set default limits to event cuts
+  fLLimit=0;//init two timits
+  fULimit=0;//init two timits
+  return;  
+};
+/********************************************************/
 void QwBCM::ClearEventData()
 {
   fTriumf_ADC.ClearEventData();
@@ -295,11 +306,10 @@ void  QwBCM::FillHistograms()
 void  QwBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
+    //  This channel is not used, so skip
   } else
     {
       fTriumf_ADC.ConstructBranchAndVector(tree, prefix,values);
-      // this functions doesn't do anything yet
     }
   return;
 };

@@ -31,11 +31,18 @@ class QwCombinedPMT : public VQwDataElement {
     InitializeChannel(name, "derived");
   };
 
+  QwCombinedPMT(TString subsystemname, TString name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name, "derived");
+  };
+
   ~QwCombinedPMT() {
     DeleteHistograms();
   };
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave); 
   void  LinkChannel(TString name);
 
   const QwVQWK_Channel* GetChannel(const TString name) const {

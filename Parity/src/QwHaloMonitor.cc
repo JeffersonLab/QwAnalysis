@@ -9,6 +9,13 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
+void  QwHaloMonitor::InitializeChannel(TString subsystem, TString name){
+  fHalo_Counter.InitializeChannel(name);
+  SetElementName(name);
+
+  return;
+};
+
 void  QwHaloMonitor::InitializeChannel(TString name){
   fHalo_Counter.InitializeChannel(name);
   SetElementName(name);

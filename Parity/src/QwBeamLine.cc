@@ -161,7 +161,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  // Decoding combined BCM array
 	  if (localComboID.fTypeID == kQwCombinedBCM){
 
-	    QwCombinedBCM localbcmcombo(localComboID.fdetectorname);
+	    QwCombinedBCM localbcmcombo(GetSubsystemName(), localComboID.fdetectorname);
 	    fBCMCombo.push_back(localbcmcombo);
 
 	    for(size_t i=0;i<fDeviceName.size();i++){
@@ -176,7 +176,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  // Decoding combined BPM array.
 	  if(localComboID.fTypeID== kQwCombinedBPM){
 
-	    QwCombinedBPM localbpmcombo(localComboID.fdetectorname );
+	    QwCombinedBPM localbpmcombo(GetSubsystemName(), localComboID.fdetectorname );
 	    fBPMCombo.push_back(localbpmcombo);
 
 	    for(size_t i=0;i<fDeviceName.size();i++){
@@ -196,7 +196,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  // Decoding energy calculator.
 	  if(localComboID.fTypeID== kQwEnergyCalculator){
 
-	    QwEnergyCalculator localecalculator(localComboID.fdetectorname);
+	    QwEnergyCalculator localecalculator(GetSubsystemName(), localComboID.fdetectorname);
 	    fECalculator.push_back(localecalculator);
 
 	    for(size_t i=0;i<fDeviceName.size();i++){
@@ -283,28 +283,27 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       if(localBeamDetectorID.fIndex==-1){
 
 	if(localBeamDetectorID.fTypeID == kQwHaloMonitor){
-	  QwHaloMonitor localhalo(localBeamDetectorID.fdetectorname);
+	  QwHaloMonitor localhalo(GetSubsystemName(), localBeamDetectorID.fdetectorname);
 	  fHaloMonitor.push_back(localhalo);
 	  localBeamDetectorID.fIndex=fHaloMonitor.size()-1;
 	}
 
 	if(localBeamDetectorID.fTypeID==kQwBPMCavity){
-	    QwBPMCavity localcavity(localBeamDetectorID.fdetectorname,!unrotated);
+	    QwBPMCavity localcavity(GetSubsystemName(), localBeamDetectorID.fdetectorname,!unrotated);
 	    fCavity.push_back(localcavity);
 	    fCavity[fCavity.size()-1].SetDefaultSampleSize(fSample_size);
 	    localBeamDetectorID.fIndex=fCavity.size()-1;
 	}
 
 	if(localBeamDetectorID.fTypeID== kQwBPMStripline){
-	  QwBPMStripline localstripline(localBeamDetectorID.fdetectorname,!unrotated);
+	  QwBPMStripline localstripline(GetSubsystemName(), localBeamDetectorID.fdetectorname,!unrotated);
 	  fStripline.push_back(localstripline);
 	  fStripline[fStripline.size()-1].SetDefaultSampleSize(fSample_size);
 	  localBeamDetectorID.fIndex=fStripline.size()-1;
 	}
 
 	if(localBeamDetectorID.fTypeID== kQwBCM){
-	  //>>>>>>> .r1360
-	  QwBCM localbcm(localBeamDetectorID.fdetectorname);
+	  QwBCM localbcm(GetSubsystemName(), localBeamDetectorID.fdetectorname);
 	  fBCM.push_back(localbcm);
 	  fBCM[fBCM.size()-1].SetDefaultSampleSize(fSample_size);
 	  localBeamDetectorID.fIndex=fBCM.size()-1;

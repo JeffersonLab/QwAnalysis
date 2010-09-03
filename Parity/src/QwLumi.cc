@@ -138,7 +138,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	    {
 	      if(localLumiDetectorID.fTypeID==kQwIntegrationPMT)
 		{
-		  QwIntegrationPMT localIntegrationPMT(localLumiDetectorID.fdetectorname);
+		  QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
 		  fIntegrationPMT.push_back(localIntegrationPMT);
 		  fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localLumiDetectorID.fIndex=fIntegrationPMT.size()-1;

@@ -47,6 +47,42 @@ void  QwCombinedBPM::InitializeChannel(TString name)
   return;
 };
 
+void  QwCombinedBPM::InitializeChannel(TString subsystem, TString name)
+{
+
+  VQwBPM::InitializeChannel(name);
+
+  fEffectiveCharge.InitializeChannel(subsystem, "QwCombinedBPM", name+"_EffectiveCharge","derived");
+
+  for( Short_t i=0;i<2;i++){
+    fAbsPos[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i],"derived");
+    fSlope[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i]+"Slope","derived");
+    fIntercept[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i]+"Intercept","derived");
+  }
+
+  fixedParamCalculated = false;
+
+  fElement.clear();
+  fQWeights.clear();
+  fXWeights.clear();
+  fYWeights.clear();
+
+  fSumQweights = 0.0;
+
+  for(Short_t i=0;i<2;i++){
+    erra[i]       = 0.0;
+    errb[i]       = 0.0;
+    covab[i]      = 0.0;
+    A[i]          = 0.0;
+    B[i]          = 0.0;
+    D[i]          = 0.0;
+    m[i]          = 0.0;
+    chi_square[i] = 0.0;
+  }
+
+  return;
+};
+
 
 void QwCombinedBPM::ClearEventData()
 {
@@ -628,6 +664,7 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
     //  This channel is not used, so skip constructing trees.
   } else
     {
+
       TString thisprefix=prefix;
       if(prefix=="asym_")
 	thisprefix="diff_";
@@ -635,7 +672,6 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
       SetRootSaveStatus(prefix);
 
       fEffectiveCharge.ConstructBranchAndVector(tree,prefix,values);
-
       for(Short_t i=0;i<2;i++){
 	fSlope[i].ConstructBranchAndVector(tree,thisprefix,values);
 	fIntercept[i].ConstructBranchAndVector(tree,thisprefix,values);
@@ -643,6 +679,7 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
       }
 
     }
+
   return;
 };
 

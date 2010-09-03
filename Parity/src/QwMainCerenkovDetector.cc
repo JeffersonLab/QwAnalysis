@@ -272,17 +272,15 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
             {
               if (localMainDetID.fTypeID==kQwIntegrationPMT)
                 {
-                  QwIntegrationPMT localIntegrationPMT(localMainDetID.fdetectorname);
-                  localIntegrationPMT.InitializeChannel(localMainDetID.fdetectorname, "raw");
-                  fIntegrationPMT.push_back(localIntegrationPMT);
+                  QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localMainDetID.fdetectorname);
+                   fIntegrationPMT.push_back(localIntegrationPMT);
                   fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localMainDetID.fIndex=fIntegrationPMT.size()-1;
                 }
 
               else if (localMainDetID.fTypeID==kQwCombinedPMT)
                 {
-                  //QwCombinedPMT localcombinedPMT(localMainDetID.fdetectorname);
-                  QwCombinedPMT localcombinedPMT(TString(""));
+		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localMainDetID.fdetectorname);
                   fCombinedPMT.push_back(localcombinedPMT);
                   fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
                   localMainDetID.fIndex=fCombinedPMT.size()-1;
