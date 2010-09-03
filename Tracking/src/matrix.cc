@@ -2,7 +2,7 @@
 
 #define DBL_EPSILON 2.22045e-16
 
-double *V_Zero (double *v, int n)
+double *V_Zero (double *v, const int n)
 {
   for (int i = 0; i < n; i++) {
     v[i] = 0.0;
@@ -10,7 +10,7 @@ double *V_Zero (double *v, int n)
   return v;
 }
 
-double *V_Unit (double *v, int n, int k)
+double *V_Unit (double *v, const int n, const int k)
 {
   for (int i = 0; i < n; i++) {
     v[i] = 0.0;
@@ -19,7 +19,7 @@ double *V_Unit (double *v, int n, int k)
   return v;
 }
 
-void V_Print (double *v, int n)
+void V_Print (const double *v, const int n)
 {
   // Print vector v
   for (int i = 0; i < n; i++) {
@@ -29,7 +29,7 @@ void V_Print (double *v, int n)
   return;
 }
 
-void V_Print (double *v, double *w, int n)
+void V_Print (const double *v, const double *w, const int n)
 {
   // Print vector v and w
   for (int i = 0; i < n; i++) {
@@ -43,16 +43,16 @@ void V_Print (double *v, double *w, int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn double UNorm (double *A, int n, int m)
+ \fn double UNorm (double *A, const int n, int m)
 
  \brief Calculates the least upper bound norm
 
 *//*-------------------------------------------------------------------------*/
-double UNorm (double *A, int n, int m)
+double UNorm (const double *A, int n, const int m)
 {
   int counter;
   double help, Max = 0.0;
-  double *B = A;
+  const double *B = A;
   while (n--) {
     counter = m;
     while (counter--) {
@@ -68,12 +68,12 @@ double UNorm (double *A, int n, int m)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn double *M_Cholesky (double *B, double *q, int n)
+ \fn double *M_Cholesky (double *B, double *q, const int n)
 
  \brief Calculates the Cholesky decomposition of the positive-definite matrix B
 
 *//*-------------------------------------------------------------------------*/
-double *M_Cholesky (double *B, double *q, int n)
+double *M_Cholesky (double *B, double *q, const int n)
 {
   int i, j, k;
   double sum, min;
@@ -122,12 +122,12 @@ double *M_Cholesky (double *B, double *q, int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn void RowMult(double a, double *A, double b, double *B, int n)
+ \fn void RowMult(const double a, double *A, const double b, const double *B, const int n)
 
- \brief Calculates a*A + b*B, where both A and B are rows of length n
+ \brief Calculates a*A + b*B, where both A and B are rows of length n, returns as A
 
 *//*-------------------------------------------------------------------------*/
-void RowMult (double a, double *A, double b, double *B, int n)
+void RowMult (const double a, double *A, const double b, const double *B, const int n)
 {
   for (int i = 0; i < n; i++)
     A[i] = a*A[i] + b*B[i];
@@ -139,12 +139,12 @@ void RowMult (double a, double *A, double b, double *B, int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn void M_Print (double *A, int n)
+ \fn void M_Print (const double *A, const int n)
 
  \brief Print matrix A of dimension [n,n] to cout
 
 *//*-------------------------------------------------------------------------*/
-void M_Print (double *A, int n)
+void M_Print (const double *A, const int n)
 {
   // Print matrix A
   for (int i = 0; i < n; i++) {
@@ -163,12 +163,12 @@ void M_Print (double *A, int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn void M_Print (double *A, double *B, int n)
+ \fn void M_Print (const double *A, const double *B, const int n)
 
  \brief Print matrices A and B of dimension [n,n] to cout
 
 *//*-------------------------------------------------------------------------*/
-void M_Print (double *A, double *B, int n)
+void M_Print (const double *A, const double *B, const int n)
 {
   // Print matrices A and B
   for (int i = 0; i < n; i++) {
@@ -191,12 +191,12 @@ void M_Print (double *A, double *B, int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn double *M_Unit (double *A, int n)
+ \fn double *M_Unit (double *A, const int n)
 
  \brief Creates unit matrix A
 
 *//*-------------------------------------------------------------------------*/
-double *M_Unit (double *A, int n)
+double *M_Unit (double *A, const int n)
 {
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
@@ -212,12 +212,12 @@ double *M_Unit (double *A, int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn double *M_Zero (double *A, int n)
+ \fn double *M_Zero (double *A, const int n)
 
  \brief Creates zero matrix A
 
 *//*-------------------------------------------------------------------------*/
-double *M_Zero (double *A, int n)
+double *M_Zero (double *A, const int n)
 {
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < n; j++) {
@@ -232,12 +232,12 @@ double *M_Zero (double *A, int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn double *M_Invert (double *Ap, double *Bp, int n)
+ \fn double *M_Invert (double *Ap, double *Bp, const int n)
 
  \brief Matrix inversion of Ap will be stored in Bp
 
 *//*-------------------------------------------------------------------------*/
-double *M_Invert (double *Ap, double *Bp, int n)
+double* M_Invert (double *Ap, double *Bp, const int n)
 {
   double *row1, *row2;
   double a, b;
@@ -361,9 +361,6 @@ double *M_Invert (double *Ap, double *Bp, int n)
     RowMult(a, row1, 0, row2, n);
   }
 
-  // Print matrices Ap and Bp
-  //M_Print (Ap, Bp, n);
-
   return Bp;
 }
 
@@ -371,12 +368,12 @@ double *M_Invert (double *Ap, double *Bp, int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn double *M_InvertPos (double *B, int n)
+ \fn double *M_InvertPos (double *B, const int n)
 
  \brief Calculates a*A + b*B, where both A and B are rows of length n
 
 *//*-------------------------------------------------------------------------*/
-double *M_InvertPos (double *B, int n)
+double *M_InvertPos (double *B, const int n)
 {
   double sum;
   double p[n];
@@ -438,12 +435,12 @@ double *M_InvertPos (double *B, int n)
 
 /*------------------------------------------------------------------------*//*!
 
- \fn double *M_A_times_b (double *y, double *A, int n, int m, double *b)
+ \fn double *M_A_times_b (double *y, double *A, const int n, int m, double *b)
 
  \brief Calculates y[n] = A[n,m] * b[m], with dimensions indicated
 
 *//*-------------------------------------------------------------------------*/
-double *M_A_times_b (double *y, double *A, int n, int m, double *b)
+double *M_A_times_b (double *y, const double *A, const int n, const int m, const double *b)
 {
   for (int i = 0; i < n; i++) {
     y[i] = 0;
