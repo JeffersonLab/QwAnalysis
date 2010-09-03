@@ -13,7 +13,7 @@
 
 ///
 /// \ingroup QwTracking
-class QwDetectorInfo {
+class QwDetectorInfo: public TObject {
   ///
   ///  Tracking detector information class.  This will be used in an array
   ///  indexed by the package, plane, and wire,
@@ -77,6 +77,9 @@ class QwDetectorInfo {
     // Get/set element offset
     const double GetElementOffset() const { return fElementOffset; };
     void SetElementOffset(const double offset) { fElementOffset = offset; };
+
+    // Get element coordinate
+    const double GetElementCoordinate(const int element) const;
 
     // Get/set element orientation
     const double GetElementAngle() const { return fElementAngle; };
@@ -192,8 +195,7 @@ class QwDetectorInfo {
       fHitID.push_back(time);
     }
 
-
-  private:
+  ClassDef(QwDetectorInfo,0);
 
 };
 

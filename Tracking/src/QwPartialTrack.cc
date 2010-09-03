@@ -20,14 +20,8 @@ TClonesArray* QwPartialTrack::gQwTreeLines = 0;
  */
 QwPartialTrack::QwPartialTrack()
 {
-  InitializeTreeLines();
-
-  fOffsetX = 0.0; fOffsetY = 0.0;
-  fSlopeX = 0.0;  fSlopeY = 0.0;
-  fIsVoid = false; fIsUsed = false; fIsGood = false;
-  next = 0;
-  for (int i = 0; i < kNumDirections; i++)
-    tline[i] = 0;
+  // Initialize
+  Initialize();
 }
 
 /**
@@ -37,7 +31,8 @@ QwPartialTrack::QwPartialTrack()
  */
 QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction)
 {
-  InitializeTreeLines();
+  // Initialize
+  Initialize();
 
   // Calculate slopes
   fSlopeX = direction.X() / direction.Z();
@@ -46,6 +41,37 @@ QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction
   // Calculate offset
   fOffsetX = position.X() - fSlopeX * position.Z();
   fOffsetY = position.Y() - fSlopeY * position.Z();
+}
+
+/**
+ * Copy constructor
+ * \todo TODO (wdc) this copy constructor is horribly incomplete!
+ */
+QwPartialTrack::QwPartialTrack(const QwPartialTrack* partialtrack)
+{
+  // Initialize
+  Initialize();
+
+  // Naive copy
+  *this = *partialtrack;
+}
+
+
+/**
+ * Perform object initialization
+ */
+void QwPartialTrack::Initialize()
+{
+  // Initialize the tree line storage structure
+  InitializeTreeLines();
+
+  // Initialize the member fields
+  fOffsetX = 0.0; fOffsetY = 0.0;
+  fSlopeX = 0.0;  fSlopeY = 0.0;
+  fIsVoid = false; fIsUsed = false; fIsGood = false;
+  next = 0;
+  for (int i = 0; i < kNumDirections; i++)
+    tline[i] = 0;
 }
 
 
@@ -187,9 +213,9 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
 {
   stream << "pt: ";
   if (pt.GetRegion() != kRegionIDNull)
-    stream << "(" << pt.GetRegion() << "/" << "?UD"[pt.GetPackage()] << ") ";
-  stream << "(x,y) = (" << pt.fOffsetX << ", " << pt.fOffsetY << "), ";
-  stream << "d/dz(x,y) = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
+    stream << "(" << pt.GetRegion() << "/" << "?UD"[pt.GetPackage()] << "); ";
+  stream << "x,y(z=0) = (" << pt.fOffsetX/Qw::cm << " cm, " << pt.fOffsetY/Qw::cm << " cm), ";
+  stream << "d(x,y)/dz = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
   if (pt.fChi > 0.0) { // parttrack has been fitted
     stream << ", chi = " << pt.fChi;
   }

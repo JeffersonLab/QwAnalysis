@@ -17,6 +17,7 @@
 
 // Qweak headers
 #include "QwTypes.h"
+#include "VQwTrackingElement.h"
 
 // Forward declarations
 class QwDetectorInfo;
@@ -41,7 +42,7 @@ class QwDetectorInfo;
  *  QwDriftChamber class (although the decoding uses a previous algorithm
  *  and is in the process of being rewritten to support this form).
  */
-class QwHit : public TObject {
+class QwHit : public VQwTrackingElement {
 
  public:
 

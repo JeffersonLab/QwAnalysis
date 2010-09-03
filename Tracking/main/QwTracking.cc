@@ -172,7 +172,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     TTree* hit_tree = 0;
     TTree* event_tree = 0;
-    QwEvent* event = new QwEvent();
+    QwEvent* event = 0;
     QwHitRootContainer* hitlist_root = new QwHitRootContainer();
     std::vector<double> tracking_vector, parity_vector;
 
