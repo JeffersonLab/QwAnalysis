@@ -26,6 +26,8 @@
 #include "QwEvent.h"
 #include "QwHitContainer.h"
 #include "QwHitRootContainer.h"
+#include "QwRunCondition.h"
+
 
 // Qweak tracking subsystems
 #include "QwSubsystemArrayTracking.h"
@@ -128,6 +130,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   qset.LinkDetectors();
   qset.DeterminePlanes();
 
+ 
 
   QwTrackingWorker *trackingworker = 0;
   // Create the tracking worker
@@ -170,12 +173,17 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Open file
 
+
+    QwRunCondition run_condition;
+    rootfile -> WriteObject(run_condition.GetCondition(), Form("Run %d Condition",eventbuffer.GetRunNumber() ));
+    
+
     TTree* hit_tree = 0;
     TTree* event_tree = 0;
     QwEvent* event = 0;
     QwHitRootContainer* hitlist_root = new QwHitRootContainer();
     std::vector<double> tracking_vector, parity_vector;
-
+    //  hit_tree->GetUserInfo()->Add(han);
 
     if (kTree) {
        rootfile->cd(); // back to the top directory
@@ -184,7 +192,7 @@ Int_t main(Int_t argc, Char_t* argv[])
        event_tree = new TTree("event_tree", "QwTracking Event-based Tree");
        event_tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
        event_tree->Branch("events", "QwEvent", &event);
-
+       // hit_tree->GetUserInfo()->Add(han);
        // Create the branches and tree vector
        TString prefix = "";
        tracking_vector.reserve(6000);
