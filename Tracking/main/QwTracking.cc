@@ -174,7 +174,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Open file
 
 
-    QwRunCondition run_condition;
+    QwRunCondition run_condition(argc, argv);
+
     rootfile -> WriteObject(run_condition.GetCondition(), Form("Run %d Condition",eventbuffer.GetRunNumber() ));
     
 
