@@ -706,6 +706,10 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
  
     if (gQwHists.MatchDeviceParamsFromList(basename.Data()) && (bHw_sum || bBlock || bNum_samples || bDevice_Error_Code || bHw_sum_raw || bBlock_raw || bSequence_number)){
+
+      if (list=="hw_sum/D")//this is for the RT mode
+	list=basename+"/D";	
+      
       if (kDEBUG)
 	QwMessage <<"base name "<<basename<<" List "<<list<<  QwLog::endl;
       tree->Branch(basename, &(values[fTreeArrayIndex]), list);

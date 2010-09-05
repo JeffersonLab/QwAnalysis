@@ -31,11 +31,14 @@ void QwHistogramHelper::DefineOptions(QwOptions &options)
 };
 
 void QwHistogramHelper::ProcessOptions(QwOptions &options){
-  fTrimDisable =! options.GetValue<bool>("enable-tree-trim");
+  //enable the tree trim when  --enable-tree-trim in offline mode or --enable-mapfile for real time mode
+  fTrimDisable =!( options.GetValue<bool>("enable-tree-trim") || options.GetValue<bool>("enable-mapfile"));
+  
   if (fTrimDisable)
     QwMessage <<"tree-trim is disabled"<<QwLog::endl;
   else
     QwMessage <<"tree-trim is enabled"<<QwLog::endl;
+
 
 };
 

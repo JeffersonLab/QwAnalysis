@@ -132,8 +132,6 @@ class QwRootFile {
     /// Maximum tree size
     static const Long64_t kMaxTreeSize;
 
-    //Tree Trimm Definition File
-    const char* fTreeTrim_Filename;
 
 };
 

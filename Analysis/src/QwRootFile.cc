@@ -1,5 +1,5 @@
 #include "QwRootFile.h"
-
+#include "QwHistogramHelper.h"
 
 const Long64_t QwRootFile::kMaxTreeSize = 10000000000LL;
 
@@ -23,6 +23,8 @@ QwRootFile::QwRootFile(const TString& run_label)
     TString mapfilename = getenv_safe_TString("QW_ROOTFILES");
     mapfilename += "/QwMemMapFile.map";
     fMapFile = new QwMapFile(mapfilename, "Memory Mapped File", "RECREATE");
+    //Reload the tree trim new file for real time mode.
+    gQwHists.LoadTreeParamsFromFile("Qweak_RT_Tree_Trim_List.in");
     if (! fMapFile)
       QwError << "Memory-mapped file " << mapfilename
               << " could not be opened!" << QwLog::endl;
@@ -106,10 +108,6 @@ void QwRootFile::DefineOptions(QwOptions &options)
   options.AddOptions()
     ("mapfile-update-interval", po::value<int>()->default_value(400),
      "Events between a map file update");
-   options.AddOptions()("trim-tree",
-                       po::value<std::string>()->default_value("tree_trim.in"),
-                       "Contains subsystems/elements to be included in the real time flat tree");
-
   // Define the autoflush and autosave option (default values by ROOT)
   options.AddOptions()
     ("autoflush", po::value<int>()->default_value(-30000000),
@@ -165,7 +163,6 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   }
   fAutoSave  = options.GetValue<int>("autosave");
 
-  fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();
 
 }
 
@@ -244,14 +241,8 @@ void QwRootFile::ConstructTreeBranches(QwSubsystemArray& detectors)
 
   // Associate branches with vector
   TString dummystr = "";
-  if (fEnableMapFile){
-    //Access the tree trimming definition file
-    QwMessage << "Tree trim definition file for RT engine" << fTreeTrim_Filename << QwLog::endl;
-    QwParameterFile trim_tree(fTreeTrim_Filename);
-    detectors.ConstructBranch(fMpsTree, dummystr, trim_tree);
-  }
-  else
-    detectors.ConstructBranchAndVector(fMpsTree, dummystr, fMpsVector);
+
+  detectors.ConstructBranchAndVector(fMpsTree, dummystr, fMpsVector);
 
 }
 
@@ -285,13 +276,7 @@ void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
   // Associate branches with vector
   TString dummystr = "";
 
-  if (fEnableMapFile){
-    //Access the tree trimming definition file
-    QwParameterFile trim_tree(fTreeTrim_Filename);
-    helicity_pattern.ConstructBranch(fHelTree, dummystr, trim_tree);
-  }
-  else
-    helicity_pattern.ConstructBranchAndVector(fHelTree, dummystr, fHelVector);
+  helicity_pattern.ConstructBranchAndVector(fHelTree, dummystr, fHelVector);
 }
 
 
@@ -317,8 +302,7 @@ void QwRootFile::FillTreeBranches(const QwSubsystemArray& detectors)
   }
 
   // Fill the vector
-  if (!fEnableMapFile)
-    detectors.FillTreeVector(fMpsVector);
+  detectors.FillTreeVector(fMpsVector);
   // Fill the tree
   fMpsTree->Fill();
 }
@@ -348,8 +332,7 @@ void QwRootFile::FillTreeBranches(const QwHelicityPattern& helicity_pattern)
   //helicity_pattern.FillTreeVector(fHelVector);
 
   // Fill the tree
-  if (!fEnableMapFile)
-    helicity_pattern.FillTreeVector(fHelVector);
+  helicity_pattern.FillTreeVector(fHelVector);
   // Fill the tree
   fHelTree->Fill();
 }
