@@ -10,6 +10,7 @@
 
 #include <unistd.h>
 #include <iostream>
+#include <fstream>
 
 
 #include "TList.h"
@@ -23,19 +24,24 @@ class QwRunCondition
   QwRunCondition(Int_t argc, Char_t* argv[]);
   virtual ~QwRunCondition();
 
-  TList* GetCondition();
+  TList* Get();
+  
+  void SetROCFlagsFileName(TString in) {fROCFlagFileName = in;};
 
  private:
   
   void SetRunCondition(Int_t argc, Char_t* argv[]);
+
   void Set(TString in);
   
   TString GetSvnRevision();
+  TString GetROCFlags();
   
+
   TList *fRunConditionList;
-  
   static const Int_t fCharLength;
-  
+  TString fROCFlagFileName;
+
   ClassDef(QwRunCondition,1);
 };
 

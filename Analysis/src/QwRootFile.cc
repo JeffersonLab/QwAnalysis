@@ -1,5 +1,6 @@
 #include "QwRootFile.h"
 #include "QwHistogramHelper.h"
+#include "QwRunCondition.h"
 
 const Long64_t QwRootFile::kMaxTreeSize = 10000000000LL;
 
@@ -40,10 +41,21 @@ QwRootFile::QwRootFile(const TString& run_label)
     TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
     rootfilename += Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
     fRootFile = new TFile(rootfilename, "RECREATE", "QWeak ROOT file");
-    if (! fRootFile)
+    if (! fRootFile) {
       QwError << "ROOT file " << rootfilename
               << " could not be opened!" << QwLog::endl;
+    }
+    else {
 
+      Int_t argc = gQwOptions.GetArgc();
+      Char_t** argv = gQwOptions.GetArgv();
+	
+      QwRunCondition run_condition(argc, argv);
+      fRootFile -> WriteObject(
+			       run_condition.Get(), 
+			       Form("Run %s Condition", run_label.Data())
+			       );
+    }
   }
 }
 

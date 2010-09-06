@@ -14,10 +14,13 @@ const Int_t QwRunCondition::fCharLength = 127;
 
 QwRunCondition::QwRunCondition(Int_t argc, Char_t* argv[])
 {
+  fROCFlagFileName = "g0vmets.flags";
+
   fRunConditionList = new TList;
   fRunConditionList -> SetOwner(true);
   this->SetRunCondition(argc, argv);
 };
+
 
 QwRunCondition::~QwRunCondition()
 {
@@ -53,6 +56,17 @@ QwRunCondition::SetRunCondition(Int_t argc, Char_t* argv[])
   svn_revision = this->GetSvnRevision();
 
 
+  // get current ROC flags 
+  TString roc_flags;
+  // if one of the cdaq cluster AND the user must be a "cdaq", 
+  if( (host_name.Contains("cdaql")) and (not user_name.CompareTo("cdaq", TString::kExact)) )  {
+    roc_flags = this->GetROCFlags();
+  }
+  else {
+    roc_flags = "Invalid, because the system used to create ROOT file is not one of the cdaq cluster with the cdaq account.";
+  }
+    
+    
 
   // insert some comments at the beginning of strings...
 
@@ -62,6 +76,7 @@ QwRunCondition::SetRunCondition(Int_t argc, Char_t* argv[])
   argv_list.Insert   (0, " * Executed Program Options : ");
   current_time.Insert(0, " * ROOT file creating time : ");
   svn_revision.Insert(0, " * Analyzer SVN Revision : ");
+  roc_flags.Insert   (0, " * Current ROC flags : ");
 
   // add them into list to be returned to main program.
 
@@ -71,6 +86,7 @@ QwRunCondition::SetRunCondition(Int_t argc, Char_t* argv[])
   this -> Set(argv_list);
   this -> Set(current_time);
   this -> Set(svn_revision);
+  this -> Set(roc_flags);
 
   return;
 }
@@ -85,7 +101,7 @@ QwRunCondition::Set(TString in)
 
 
 TList *
-QwRunCondition::GetCondition()
+QwRunCondition::Get()
 {
   return fRunConditionList;
 }
@@ -103,4 +119,47 @@ QwRunCondition::GetSvnRevision()
   svn_revision = "not yet implemented";
   
   return svn_revision;
+};
+
+
+TString
+QwRunCondition::GetROCFlags()
+{
+  Bool_t local_debug = true;
+  TString flags;
+
+  ifstream flag_file;
+  flag_file.clear();
+  
+  fROCFlagFileName.Insert(0, "$HOME/qweak/coda26/crl/");
+  flag_file.open(fROCFlagFileName);
+
+  if(not flag_file.is_open()) {
+    std::cout << "There is no flag file, which you try to access "
+	      << fROCFlagFileName  
+	      << std::endl;
+    flags = fROCFlagFileName;
+    flags += "not found";
+
+  }
+  else {
+    TString line;
+    while (not flag_file.eof() ) {
+      line.ReadLine(flag_file);   
+      if(not line.IsNull()) {
+	if(local_debug) { 
+	  std::cout << line << std::endl;
+	}
+	if(not line.Contains(";")) {
+	  flags = line;
+	}
+	line.Clear();
+      } // if(not line.IsNull()) {
+    } //   while (not flag_file.eof() ) {
+    line.Clear();
+  }
+
+  flag_file.close();
+
+  return flags;
 };

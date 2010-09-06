@@ -175,8 +175,10 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     QwRunCondition run_condition(argc, argv);
-
-    rootfile -> WriteObject(run_condition.GetCondition(), Form("Run %d Condition",eventbuffer.GetRunNumber() ));
+    rootfile -> WriteObject(
+     			    run_condition.Get(), 
+			    Form("Run %d Condition",eventbuffer.GetRunNumber())
+			    );
     
 
     TTree* hit_tree = 0;

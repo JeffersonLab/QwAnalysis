@@ -246,6 +246,9 @@ class QwOptions {
       return GetIntValuePair(key).second;
     };
 
+    int GetArgc()    {return (int) fArgc;};
+    char** GetArgv() {return (char**) fArgv;};
+
   private:
 
     /// \brief Combine the various option description in one
