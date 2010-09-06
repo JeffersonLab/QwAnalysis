@@ -928,7 +928,8 @@ void  QwHelicity::DeleteHistograms()
 
 void  QwHelicity::FillHistograms()
 {
-  Bool_t localdebug=kFALSE;
+  //  Bool_t localdebug=kFALSE;
+
   size_t index=0;
   if(fHistoType==kHelNoSave)
     {
@@ -1529,7 +1530,7 @@ Bool_t QwHelicity::CollectRandBits30()
       These bits (1/0) are the reported helicity states of the first event
       of each new pattern ot the so called pattern polarity.*/
 
-  Bool_t  ldebug = kFALSE;
+  //  Bool_t  ldebug = kFALSE;
   const UInt_t ranbit_goal = 30;
 
   /** If we have finished collecting the bits then ignore the rest of this funciton and return true.
@@ -1735,7 +1736,7 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
 
 VQwSubsystem&  QwHelicity::operator+=  (VQwSubsystem *value)
 {
-  Bool_t localdebug=kFALSE;
+  //  Bool_t localdebug=kFALSE;
   QwDebug << "Entering QwHelicity::operator+= adding " << value->GetSubsystemName() << " to " << this->GetSubsystemName() << " " << QwLog::endl;
 
   //this routine is most likely to be called during the computatin of assymetry

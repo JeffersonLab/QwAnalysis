@@ -197,8 +197,9 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
        }
        words_read++;
       }
-     Int_t ExtraWord = buffer[NPlanes];//diagnostic word for later use, ignore warning
-       words_read++;
+     Int_t ExtraWord = 0;
+     ExtraWord = buffer[NPlanes];//diagnostic word for later use, ignore warning
+     words_read++;
     }
     if (num_words != words_read) {
       QwError << "QwComptonElectronDetector: There were "

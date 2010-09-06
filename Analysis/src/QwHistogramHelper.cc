@@ -160,7 +160,7 @@ void  QwHistogramHelper::LoadTreeParamsFromFile(const std::string filename){
   fModuleList.clear();
   fVQWKTrimmedList.clear();
   
-  while (section=mapstr.ReadNextSection(subsystemname)){
+  while ( (section=mapstr.ReadNextSection(subsystemname)) ){
     if (subsystemname=="DEVICELIST")//done with VQWK element trimming
       break;
     fSubsystemList.push_back(subsystemname);
@@ -168,7 +168,7 @@ void  QwHistogramHelper::LoadTreeParamsFromFile(const std::string filename){
 
     ModuleList.clear();
     ModulebyTrimmedList.clear();
-    while (module=section->ReadNextModule(moduletype)){
+    while ( (module=section->ReadNextModule(moduletype)) ){
  
       ModuleList.push_back(moduletype);
       QwMessage <<"Module found "<<moduletype<<QwLog::endl;
