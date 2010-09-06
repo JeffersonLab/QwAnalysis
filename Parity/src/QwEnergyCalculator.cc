@@ -46,7 +46,7 @@ void QwEnergyCalculator::ClearEventData(){
 
 void  QwEnergyCalculator::ProcessEvent(){
 
-  Bool_t ldebug = kFALSE;
+  //  Bool_t ldebug = kFALSE;
   Double_t targetbeamangle = 0;
 
   static QwVQWK_Channel tmp;

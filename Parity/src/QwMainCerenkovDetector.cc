@@ -155,6 +155,9 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
   Int_t currentsubbankindex=-1;
   Int_t fSample_size=0;
 
+  modnum = 0;
+  channum = 0;
+  combinedchans = 0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   while (mapstr.ReadNextLine())

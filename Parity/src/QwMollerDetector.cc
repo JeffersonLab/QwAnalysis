@@ -98,7 +98,9 @@ Int_t QwMollerDetector::LoadChannelMap(TString mapfile)
       }
 
 //    add new modules until current number (modnum) is reached 
-      while (fSTR7200_Channel.size() <= modnum) {
+      std::size_t chan_size;
+      chan_size = fSTR7200_Channel.size();
+      while ((Int_t) chan_size <= modnum) {
         std::vector<QwSTR7200_Channel> new_module;
         fSTR7200_Channel.push_back(new_module);
       }

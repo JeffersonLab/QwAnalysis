@@ -2,39 +2,40 @@
  *  \file   QwRunCondition.cc
  *  \brief  
  *  \author jhlee@jlab.org
- *  \date   Sunday, September  5 01:12:23 EDT 2010
+ *  \date   Monday, September  6 00:47:39 EDT 2010
  */
 
 #include "QwRunCondition.h"
-#include "TTimeStamp.h"
 
-ClassImp(QwRunCondition);
+// ClassImp(QwRunCondition);
 
 const Int_t QwRunCondition::fCharLength = 127;
 
 QwRunCondition::QwRunCondition(Int_t argc, Char_t* argv[])
 {
+
   fROCFlagFileName = "g0vmets.flags";
 
   fRunConditionList = new TList;
   fRunConditionList -> SetOwner(true);
-  this->SetRunCondition(argc, argv);
+  this->Set(argc, argv);
+
 };
 
 
 QwRunCondition::~QwRunCondition()
 {
   if(fRunConditionList) delete fRunConditionList;
-}
+};
 
 
 void
-QwRunCondition::SetRunCondition(Int_t argc, Char_t* argv[])
+QwRunCondition::Set(Int_t argc, Char_t* argv[])
 {
 
   // get hostname and user name
   char host_string[fCharLength];
-  char user_string [fCharLength];
+  char user_string[fCharLength];
 
   gethostname(host_string, fCharLength);
   getlogin_r (user_string, fCharLength);
@@ -49,9 +50,9 @@ QwRunCondition::SetRunCondition(Int_t argc, Char_t* argv[])
 
   // get current time to create ROOT file 
   TTimeStamp time_stamp;
-  TString current_time = time_stamp.AsString("l");
+  TString current_time = time_stamp.AsString("l"); // local time
 
-  // get svn revision (flag, version, and so on...)
+  // get svn revision (version, and so on...)
   TString svn_revision;
   svn_revision = this->GetSvnRevision();
 
@@ -80,20 +81,20 @@ QwRunCondition::SetRunCondition(Int_t argc, Char_t* argv[])
 
   // add them into list to be returned to main program.
 
-  this -> Set(program_name);
-  this -> Set(host_name);
-  this -> Set(user_name);
-  this -> Set(argv_list);
-  this -> Set(current_time);
-  this -> Set(svn_revision);
-  this -> Set(roc_flags);
+  this -> Add(program_name);
+  this -> Add(host_name);
+  this -> Add(user_name);
+  this -> Add(argv_list);
+  this -> Add(current_time);
+  this -> Add(svn_revision);
+  this -> Add(roc_flags);
 
   return;
 }
 
 
 void
-QwRunCondition::Set(TString in)
+QwRunCondition::Add(TString in)
 {
   fRunConditionList -> Add(new TObjString(in));
   return;
@@ -116,6 +117,16 @@ QwRunCondition::GetSvnRevision()
   // I will try to read .svn/entries file directly
   // Sunday, September  5 01:11:10 EDT 2010, jhlee
 
+  // * execute just "svnpath" and "svnversion ."
+  //   OR
+  // * try to use API
+  //   OR
+  // * read .svn/entries directly
+  //   OR
+  // * keywords http://svnbook.red-bean.com/en/1.4/svn.advanced.props.special.keywords.html
+  //   by Wouter
+
+
   svn_revision = "not yet implemented";
   
   return svn_revision;
@@ -125,6 +136,7 @@ QwRunCondition::GetSvnRevision()
 TString
 QwRunCondition::GetROCFlags()
 {
+  
   Bool_t local_debug = true;
   TString flags;
 
@@ -132,6 +144,7 @@ QwRunCondition::GetROCFlags()
   flag_file.clear();
   
   fROCFlagFileName.Insert(0, "$HOME/qweak/coda26/crl/");
+
   flag_file.open(fROCFlagFileName);
 
   if(not flag_file.is_open()) {
@@ -158,8 +171,8 @@ QwRunCondition::GetROCFlags()
     } //   while (not flag_file.eof() ) {
     line.Clear();
   }
-
   flag_file.close();
 
   return flags;
+
 };

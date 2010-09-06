@@ -4,7 +4,7 @@
  *  \file   QwRunCondition.h
  *  \brief  
  *  \author jhlee@jlab.org
- *  \date   Sunday, September  5 01:12:26 EDT 2010
+ *  \date   Monday, September  6 00:47:43 EDT 2010
  */
 
 
@@ -12,9 +12,9 @@
 #include <iostream>
 #include <fstream>
 
-
 #include "TList.h"
 #include "TObjString.h"
+#include "TTimeStamp.h"
 
 class QwRunCondition
 {
@@ -25,24 +25,22 @@ class QwRunCondition
   virtual ~QwRunCondition();
 
   TList* Get();
-  
   void SetROCFlagsFileName(TString in) {fROCFlagFileName = in;};
 
  private:
   
-  void SetRunCondition(Int_t argc, Char_t* argv[]);
-
-  void Set(TString in);
+  void Set(Int_t argc, Char_t* argv[]);
+  void Add(TString in);
   
   TString GetSvnRevision();
   TString GetROCFlags();
   
-
   TList *fRunConditionList;
-  static const Int_t fCharLength;
+ 
   TString fROCFlagFileName;
+  static const Int_t fCharLength;
 
-  ClassDef(QwRunCondition,1);
+  //  ClassDef(QwRunCondition,1);
 };
 
 

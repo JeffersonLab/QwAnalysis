@@ -126,7 +126,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
     static const Bool_t kDEBUG;
 
     // Identification information
-    Int_t fChannel;
+    UInt_t fChannel;
     Bool_t fHasSamplingData;
     Bool_t fHasAccumulatorData;
 

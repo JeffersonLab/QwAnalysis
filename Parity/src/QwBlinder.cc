@@ -612,7 +612,7 @@ void QwBlinder::WriteTestValues(QwDatabase* db)
       string s_sql = s_sql_pre;
 
       // test_number
-      sprintf(s_number, "%d", i);
+      sprintf(s_number, "%d", (int) i);
       s_sql += string(s_number);
       s_sql += ", ";
 

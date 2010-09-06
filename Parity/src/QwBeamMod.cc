@@ -38,8 +38,8 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
   Int_t fSample_size=0;
-  Int_t index=0;
-  Bool_t combolistdecoded;
+  //  Int_t index=0;
+  //  Bool_t combolistdecoded;
 
 
   std::vector<TString> fDeviceName;
@@ -432,63 +432,63 @@ Int_t QwBeamMod::LoadInputParameters(TString pedestalfile)
 }
 
 
-/*
-//*****************************************************************
-void QwBeamMod::RandomizeEventData(int helicity)
-{
-  // Randomize all QwBPMStripline buffers
-  for (size_t i = 0; i < fStripline.size(); i++)
-    fStripline[i].RandomizeEventData(helicity);
 
-  // Randomize all QwBCM buffers
-  for (size_t i = 0; i < fModChannel.size(); i++)
-    fModChannel[i].RandomizeEventData(helicity);
+// //*****************************************************************
+// void QwBeamMod::RandomizeEventData(int helicity)
+// {
+//   // Randomize all QwBPMStripline buffers
+//   for (size_t i = 0; i < fStripline.size(); i++)
+//     fStripline[i].RandomizeEventData(helicity);
 
-}
-//*****************************************************************
-void QwBeamMod::EncodeEventData(std::vector<UInt_t> &buffer)
-{
-  std::vector<UInt_t> elements;
-  elements.clear();
+//   // Randomize all QwBCM buffers
+//   for (size_t i = 0; i < fModChannel.size(); i++)
+//     fModChannel[i].RandomizeEventData(helicity);
 
-  // Get all buffers in the order they are defined in the map file
-  for (size_t i = 0; i < fModChannelID.size(); i++) {
-    // This is a QwBCM
-    if (fModChannelID.at(i).fTypeID == kBCM)
-      fModChannel[fModChannelID.at(i).fIndex].EncodeEventData(elements);
-    // This is a QwBPMStripline (which has 4 entries, only process the first one)
-    if (fModChannelID.at(i).fTypeID == kBPMStripline
-     && fModChannelID.at(i).fSubelement == 0)
-      fStripline[fModChannelID.at(i).fIndex].EncodeEventData(elements);
-  }
+// }
+// //*****************************************************************
+// void QwBeamMod::EncodeEventData(std::vector<UInt_t> &buffer)
+// {
+//   std::vector<UInt_t> elements;
+//   elements.clear();
 
-  // If there is element data, generate the subbank header
-  std::vector<UInt_t> subbankheader;
-  std::vector<UInt_t> rocheader;
-  if (elements.size() > 0) {
+//   // Get all buffers in the order they are defined in the map file
+//   for (size_t i = 0; i < fModChannelID.size(); i++) {
+//     // This is a QwBCM
+//     if (fModChannelID.at(i).fTypeID == kBCM)
+//       fModChannel[fModChannelID.at(i).fIndex].EncodeEventData(elements);
+//     // This is a QwBPMStripline (which has 4 entries, only process the first one)
+//     if (fModChannelID.at(i).fTypeID == kBPMStripline
+//      && fModChannelID.at(i).fSubelement == 0)
+//       fStripline[fModChannelID.at(i).fIndex].EncodeEventData(elements);
+//   }
 
-    // Form CODA subbank header
-    subbankheader.clear();
-    subbankheader.push_back(elements.size() + 1);	// subbank size
-    subbankheader.push_back((fCurrentBank_ID << 16) | (0x01 << 8) | (1 & 0xff));
-		// subbank tag | subbank type | event number
+//   // If there is element data, generate the subbank header
+//   std::vector<UInt_t> subbankheader;
+//   std::vector<UInt_t> rocheader;
+//   if (elements.size() > 0) {
 
-    // Form CODA bank/roc header
-    rocheader.clear();
-    rocheader.push_back(subbankheader.size() + elements.size() + 1);	// bank/roc size
-    rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | (1 & 0xff));
-		// bank tag == ROC | bank type | event number
+//     // Form CODA subbank header
+//     subbankheader.clear();
+//     subbankheader.push_back(elements.size() + 1);	// subbank size
+//     subbankheader.push_back((fCurrentBank_ID << 16) | (0x01 << 8) | (1 & 0xff));
+// 		// subbank tag | subbank type | event number
 
-    // Add bank header, subbank header and element data to output buffer
-    buffer.insert(buffer.end(), rocheader.begin(), rocheader.end());
-    buffer.insert(buffer.end(), subbankheader.begin(), subbankheader.end());
-    buffer.insert(buffer.end(), elements.begin(), elements.end());
-  }
-}
+//     // Form CODA bank/roc header
+//     rocheader.clear();
+//     rocheader.push_back(subbankheader.size() + elements.size() + 1);	// bank/roc size
+//     rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | (1 & 0xff));
+// 		// bank tag == ROC | bank type | event number
 
-//*****************************************************************
+//     // Add bank header, subbank header and element data to output buffer
+//     buffer.insert(buffer.end(), rocheader.begin(), rocheader.end());
+//     buffer.insert(buffer.end(), subbankheader.begin(), subbankheader.end());
+//     buffer.insert(buffer.end(), elements.begin(), elements.end());
+//   }
+// }
 
-*/
+// //*****************************************************************
+
+
 Int_t QwBeamMod::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   Bool_t lkDEBUG=kFALSE;
