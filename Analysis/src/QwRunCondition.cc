@@ -156,8 +156,8 @@ QwRunCondition::GetROCFlags()
 
   }
   else {
-    TString line;
     while (not flag_file.eof() ) {
+      TString line;
       line.ReadLine(flag_file);   
       if(not line.IsNull()) {
 	if(local_debug) { 
@@ -166,10 +166,8 @@ QwRunCondition::GetROCFlags()
 	if(not line.Contains(";")) {
 	  flags = line;
 	}
-	line.Clear();
       } // if(not line.IsNull()) {
     } //   while (not flag_file.eof() ) {
-    line.Clear();
   }
   flag_file.close();
 

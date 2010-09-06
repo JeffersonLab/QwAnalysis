@@ -13,6 +13,7 @@
 #include <fstream>
 
 #include "TList.h"
+#include "TString.h"
 #include "TObjString.h"
 #include "TTimeStamp.h"
 
