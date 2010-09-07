@@ -33,6 +33,16 @@ void
 QwRunCondition::Set(Int_t argc, Char_t* argv[])
 {
 
+  // get ROOT release version, date, svn revision and branch
+  TString root_version = "V";
+  root_version += ROOT_RELEASE;
+  root_version += ", Date : ";
+  root_version += ROOT_RELEASE_DATE;
+  root_version += ", SVN : ";
+  root_version += ROOT_SVN_REVISION;
+  root_version += " ";
+  root_version += ROOT_SVN_BRANCH;
+
   // get hostname and user name
   char host_string[fCharLength];
   char user_string[fCharLength];
@@ -67,20 +77,20 @@ QwRunCondition::Set(Int_t argc, Char_t* argv[])
     roc_flags = "Invalid, because the system used to create ROOT file is not one of the cdaq cluster with the cdaq account.";
   }
     
-    
 
   // insert some comments at the beginning of strings...
-
-  program_name.Insert(0, " * Executed Program Name : ");
-  host_name.Insert   (0, " * Created on Hostname : ");
-  user_name.Insert   (0, " * Created by the user : ");
-  argv_list.Insert   (0, " * Executed Program Options : ");
-  current_time.Insert(0, " * ROOT file creating time : ");
-  svn_revision.Insert(0, " * Analyzer SVN Revision : ");
-  roc_flags.Insert   (0, " * Current ROC flags : ");
+  root_version.Insert(0, "ROOT Version : ");
+  program_name.Insert(0, "Executed Program Name : ");
+  host_name.Insert   (0, "Created on Hostname : ");
+  user_name.Insert   (0, "Created by the user : ");
+  argv_list.Insert   (0, "Executed Program Options : ");
+  current_time.Insert(0, "ROOT file creating time : ");
+  svn_revision.Insert(0, "Analyzer SVN Revision : ");
+  roc_flags.Insert   (0, "Current ROC flags : ");
 
   // add them into list to be returned to main program.
 
+  this -> Add(root_version);
   this -> Add(program_name);
   this -> Add(host_name);
   this -> Add(user_name);
