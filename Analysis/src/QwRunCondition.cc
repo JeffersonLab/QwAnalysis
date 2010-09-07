@@ -14,7 +14,7 @@ const Int_t QwRunCondition::fCharLength = 127;
 QwRunCondition::QwRunCondition(Int_t argc, Char_t* argv[])
 {
 
-  fROCFlagFileName = "g0vmets.flags";
+  fROCFlagFileName = "qwvmets.flags";
 
   fRunConditionList = new TList;
   fRunConditionList -> SetOwner(true);
@@ -153,7 +153,7 @@ QwRunCondition::GetROCFlags()
   ifstream flag_file;
   flag_file.clear();
   
-  fROCFlagFileName.Insert(0, "$HOME/qweak/coda26/crl/");
+  fROCFlagFileName.Insert(0, "/home/cdaq/qweak/Settings/");
 
   flag_file.open(fROCFlagFileName);
 
@@ -162,7 +162,7 @@ QwRunCondition::GetROCFlags()
 	      << fROCFlagFileName  
 	      << std::endl;
     flags = fROCFlagFileName;
-    flags += "not found";
+    flags += " is not found";
 
   }
   else {
