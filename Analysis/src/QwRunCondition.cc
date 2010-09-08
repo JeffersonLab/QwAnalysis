@@ -6,6 +6,7 @@
  */
 
 #include "QwRunCondition.h"
+#include ".QwSVNVersion.h"
 
 // ClassImp(QwRunCondition);
 
@@ -137,7 +138,7 @@ QwRunCondition::GetSvnRevision()
   //   by Wouter
 
 
-  svn_revision = "not yet implemented";
+  svn_revision = ANANLSYS_SVN_VERSION;
   
   return svn_revision;
 };

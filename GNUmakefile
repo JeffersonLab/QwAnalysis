@@ -107,7 +107,8 @@ ARCH  := $(shell uname)
 OS_HW_NAME  := $(uname -s -m | sed 's/ /_/g')
 INSTALL_DIR := $(strip $(shell $(ECHO) $(QWANALYSIS)$$( (if [ -d $(OS_HW_NAME)]; then $(ECHO) "/"$(OS_HW_NAME); fi))))
 
-
+SVN_VERSION := $(shell svnversion -n)
+SVN_VERSION_H := Analysis/include/.QwSVNVersion.h
 
 
 ############################
@@ -579,6 +580,7 @@ FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(EXCLUDEDIRS))'
 # Gets everything on one line
 
 
+GET_SVNVERSION = $(AWK) '{print $$6}'
 
 ############################
 ############################
@@ -588,7 +590,7 @@ FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(EXCLUDEDIRS))'
 
 export
 
-all: .ADD .EXES .auxDepends qweak-config
+all: .ADD .EXES .auxDepends qweak-config 
 ifneq ($(strip $(ADD)),)
 	@if [ "$(strip $(sort $(shell $(CAT) .ADD)))" != "$(strip $(sort $(ADD)))" ]; \
 	then \
@@ -625,7 +627,7 @@ endif
 	@$(MAKE) -f .auxDepends `$(CAT) .auxExeFiles | $(SED) 's/$$/ /g' | $(APPEND_BIN_PATH) | $(INTO_RELATIVE_PATH)`
 
 
-config: .ADD .EXES clean.auxfiles .auxDepends qweak-config
+config: .ADD .EXES clean.auxfiles .auxDepends qweak-config 
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .ADD),$(ADD)) $(filter-out $(ADD),$(shell $(CAT) .ADD)) | $(REMOVE_-D))); \
 	do \
 	$(RM) `$(GREP) $$wd */*/*$(IncSuf) */*/*$(SrcSuf) | $(SED) 's/^\([A-Za-z0-9\/\._]*\):.*/\1/g;s/\$(IncSuf)/\$(ObjSuf)/g;s/\$(SrcSuf)/\$(ObjSuf)/g'`; \
@@ -641,7 +643,7 @@ myevio_lib:
 	$(MAKE) -C $(EVIO) libmyevio$(DllSuf)
 	$(CP) -p $(EVIO)/libmyevio$(DllSuf) $(QW_LIB)/libmyevio$(DllSuf) 
 
-.auxDepends: .auxLibFiles
+.auxDepends: .QwSVNVersion.h .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
 	@$(RM) .auxLibFiles
 	@$(ECHO) $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
@@ -854,6 +856,25 @@ qweak-config: qweak-config.in
 	           > bin/$@
 	@$(CHMOD) a+x bin/$@
 
+
+.QwSVNVersion.h:
+	@if [ ! -e $(SVN_VERSION_H) ] ; \
+	then \
+	$(ECHO) 'Generating $(SVN_VERSION_H)' ; \
+	$(ECHO) 'const char *ANANLSYS_SVN_VERSION = "' $(SVN_VERSION) '";' > $(SVN_VERSION_H); \
+	else \
+		$(ECHO) '$(SVN_VERSION_H) exists'; \
+		current_svn_version=`echo "$(SVN_VERSION)"`; printf "current svn : $$current_svn_version \n"; \
+		saved_svn_version=`echo "$(shell cat Analysis/include/.QwSVNVersion.h | $(GET_SVNVERSION))"`; printf "saved   svn : $$saved_svn_version \n"; \
+		if [ $$current_svn_version != $$saved_svn_version ] ; \
+		then \
+		$(ECHO) "The difference SVN version number is found."; \
+		$(ECHO) 'Regenerating $(SVN_VERSION_H) with $$current_svn_version ' ; \
+		$(ECHO) 'const char *ANANLSYS_SVN_VERSION = "' $(SVN_VERSION) '";' > $(SVN_VERSION_H); \
+		else \
+		$(ECHO) "The SVN versions are the same, thus do nothing."; \
+		fi; \
+	fi;
 ############################
 ############################
 # Specific clean targets :
