@@ -643,7 +643,7 @@ myevio_lib:
 	$(MAKE) -C $(EVIO) libmyevio$(DllSuf)
 	$(CP) -p $(EVIO)/libmyevio$(DllSuf) $(QW_LIB)/libmyevio$(DllSuf) 
 
-.auxDepends: .QwSVNVersion.h .auxLibFiles
+.auxDepends: QwSVNVersion.h .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
 	@$(RM) .auxLibFiles
 	@$(ECHO) $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
@@ -857,7 +857,7 @@ qweak-config: qweak-config.in
 	@$(CHMOD) a+x bin/$@
 
 
-.QwSVNVersion.h:
+QwSVNVersion.h:
 	@if [ ! -e $(SVN_VERSION_H) ] ; \
 	then \
 	$(ECHO) 'Generating $(SVN_VERSION_H)' ; \
