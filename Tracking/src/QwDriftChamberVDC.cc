@@ -233,7 +233,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
         {
 	  raw_time = ( Double_t ) hit -> GetRawTime();
 	  ref_time = ( Double_t ) reftimes.at ( bankid );
-	  time     = QwDriftChamber::fF1TDC.ActualTimeDifference ( raw_time, ref_time );
+	  time     = QwDriftChamber::fF1TDCDecoder.ActualTimeDifference ( raw_time, ref_time );
 	  hit -> SetTime ( time );
 	  
 	  if ( local_debug )

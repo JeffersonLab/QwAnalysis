@@ -865,7 +865,7 @@ QwSVNVersion.h:
 	else \
 		$(ECHO) '$(SVN_VERSION_H) exists'; \
 		current_svn_version=`echo "$(SVN_VERSION)"`; printf "current svn : $$current_svn_version \n"; \
-		saved_svn_version=`echo "$(shell cat Analysis/include/.QwSVNVersion.h | $(GET_SVNVERSION))"`; printf "saved   svn : $$saved_svn_version \n"; \
+		saved_svn_version=`echo "$(shell cat Analysis/include/QwSVNVersion.h | $(GET_SVNVERSION))"`; printf "saved   svn : $$saved_svn_version \n"; \
 		if [ $$current_svn_version != $$saved_svn_version ] ; \
 		then \
 		$(ECHO) "The difference SVN version number is found."; \

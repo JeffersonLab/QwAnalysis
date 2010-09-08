@@ -17,7 +17,19 @@
 // in priniciple, the maximum number is 19,
 // but, Qweak only uses 9 F1TDCs at ROC 9 and ROC 10.
 const UInt_t QwDriftChamber::kMaxNumberOfSlotsPerROC = 21;
-const Int_t QwDriftChamber::kReferenceChannelPlaneNumber = 99;
+const Int_t  QwDriftChamber::kReferenceChannelPlaneNumber = 99;
+
+
+
+
+// kMaxNumberOfChannelsPerTDC is used in RegisterSlotNumber() function
+// before one can access the real F1TDC configuration from CODA buffer.
+// Thus, it is a constant value and is independent upon the real
+// F1TDC configuration generally. However, Qweak uses only the Normal 
+// Resolution configuration. Thus, it is always 64 channels we uses. 
+// If someone wants to use the High Resolution Mode of F1TDC, 
+// it would be better to change this number to 32 by hand.
+// Friday, September  3 13:31:06 EDT 2010, jhlee
 
 
 // OK, fDEBUG, fNumberOfTDCs
@@ -31,12 +43,10 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
   fNumberOfTDCs = 0;
   ClearAllBankRegistrations();
   InitHistogramPointers();
-
-  kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels();  
-
-  fF1TDContainer =  new QwF1TDContainer();
-
-  fF1TDCBadDataCount = 0;
+  
+  fF1TDContainer = new QwF1TDContainer();
+  fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
+  kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
 
 };
 
@@ -49,10 +59,9 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
   ClearAllBankRegistrations();
   InitHistogramPointers();
 
-  kMaxNumberOfChannelsPerTDC = fF1TDC.GetTDCMaxChannels(); 
-
-  fF1TDContainer =  new QwF1TDContainer();
-  fF1TDCBadDataCount = 0;
+  fF1TDContainer = new QwF1TDContainer();
+  fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
+  kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
 
 };
 
@@ -83,10 +92,9 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
   UInt_t tdc_data        = 0;
 
   Bool_t data_integrity_flag = false;
-  Bool_t temp_print_flag     = false;
+  Bool_t temp_print_flag     = true;
   Int_t tdcindex = 0;
   bank_index = GetSubbankIndex(roc_id, bank_id);
-  //  fF1TDCBadDataCount = 0;
 
  
 
@@ -110,22 +118,21 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 		<< std::endl;
     }
   
-
-    data_integrity_flag = fF1TDC.CheckDataIntegrity(roc_id, buffer, num_words);
+    data_integrity_flag = fF1TDCDecoder.CheckDataIntegrity(roc_id, buffer, num_words);
     
     if (data_integrity_flag) {
       
       for (UInt_t i=0; i<num_words ; i++) {
 	
 	//  Decode this word as a F1TDC word.
-	fF1TDC.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
+	fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
 
 	// For MQwF1TDC,   roc_id is needed to print out some warning messages.
 	// For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
 	//                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
 
-	tdc_slot_number = fF1TDC.GetTDCSlotNumber();
-	tdc_chan_number = fF1TDC.GetTDCChannelNumber();
+	tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+	tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
 	tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
 	
 	if ( tdc_slot_number == 31) {
@@ -140,12 +147,12 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 
 	if (not IsSlotRegistered(bank_index, tdc_slot_number) ) continue;
 
-	if(temp_print_flag) std::cout << fF1TDC << std::endl;
+	if(temp_print_flag) std::cout << fF1TDCDecoder << std::endl;
 
-	if ( fF1TDC.IsValidDataword() ) {//;;
+	if ( fF1TDCDecoder.IsValidDataword() ) {//;;
 	  // if F1TDC has a valid slot, resolution locked, and data word
 	  try {
-	    tdc_data = fF1TDC.GetTDCData();
+	    tdc_data = fF1TDCDecoder.GetTDCData();
 	    if (tdc_data) {
 	      // Only care when data is and not zero.
 	      FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
@@ -180,18 +187,126 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
       // TODO...
       // must have some functions to access this error counter 
       //
-      fF1TDCBadDataCount++;
     }
   }
 
-  // if(temp_print_flag) {
-  //   std::cout << "Total Bad TDC data count " 
-  // 	      << fF1TDCBadDataCount 
-  // 	      << std::endl;
-  // }
-
   return OK;
 };
+
+
+// Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, 
+// 				      const UInt_t bank_id, 
+// 				      UInt_t* buffer, 
+// 				      UInt_t num_words)
+// {
+
+//   Int_t  bank_index      = 0;
+//   Int_t  tdc_slot_number = 0;
+//   Int_t  tdc_chan_number = 0;
+//   UInt_t tdc_data        = 0;
+
+//   Bool_t data_integrity_flag = false;
+//   Bool_t temp_print_flag     = false;
+//   Int_t tdcindex = 0;
+//   bank_index = GetSubbankIndex(roc_id, bank_id);
+
+ 
+
+  
+//   if (bank_index>=0 && num_words>0) {
+//     //  We want to process this ROC.  Begin looping through the data.
+//     SetDataLoaded(kTRUE);
+
+
+//     if (temp_print_flag ) {
+//       std::cout << "QwDriftChamber::ProcessEvBuffer:  "
+// 		<< "Begin processing ROC" 
+// 		<< std::setw(2)
+// 		<< roc_id 
+// 		<< " bank id " 
+// 		<< bank_id 
+// 		<< " Subbbank Index "
+// 		<< bank_index
+// 		<< " Region "
+// 		<< GetSubsystemName()
+// 		<< std::endl;
+//     }
+  
+
+//     data_integrity_flag = fF1TDC.CheckDataIntegrity(roc_id, buffer, num_words);
+    
+//     if (data_integrity_flag) {
+      
+//       for (UInt_t i=0; i<num_words ; i++) {
+	
+// 	//  Decode this word as a F1TDC word.
+// 	fF1TDC.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
+
+// 	// For MQwF1TDC,   roc_id is needed to print out some warning messages.
+// 	// For MQwV775TDC, roc_id isn't necessary, thus I set roc_id=0 in
+// 	//                 MQwV775TDC.h  (Mon May  3 12:32:06 EDT 2010 jhlee)
+
+// 	tdc_slot_number = fF1TDC.GetTDCSlotNumber();
+// 	tdc_chan_number = fF1TDC.GetTDCChannelNumber();
+// 	tdcindex        = GetTDCIndex(bank_index, tdc_slot_number);
+	
+// 	if ( tdc_slot_number == 31) {
+// 	  //  This is a custom word which is not defined in
+// 	  //  the F1TDC, so we can use it as a marker for
+// 	  //  other data; it may be useful for something.
+// 	}
+	
+// 	// Each subsystem has its own interesting slot(s), thus
+// 	// here, if this slot isn't in its slot(s) (subsystem map file)
+// 	// we skip this buffer to do the further process
+
+// 	if (not IsSlotRegistered(bank_index, tdc_slot_number) ) continue;
+
+// 	if(temp_print_flag) std::cout << fF1TDC << std::endl;
+
+// 	if ( fF1TDC.IsValidDataword() ) {//;;
+// 	  // if F1TDC has a valid slot, resolution locked, and data word
+// 	  try {
+// 	    tdc_data = fF1TDC.GetTDCData();
+// 	    if (tdc_data) {
+// 	      // Only care when data is and not zero.
+// 	      FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
+// 	    }
+// 	    else {
+// 	      // I saw TDC raw time = 0, when SEU exists.
+// 	      // Thus, I skip such a case. And this is a temp solution.
+// 	    }
+// 	  }
+// 	  catch (std::exception& e) {
+// 	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
+// 		      << e.what() << std::endl;
+// 	    std::cerr << "   Parameters:  index=="<<bank_index
+// 		      << "; GetF1SlotNumber()=="<< tdc_slot_number
+// 		      << "; GetF1ChannelNumber()=="<<tdc_chan_number
+// 		      << "; GetF1Data()=="<<tdc_data
+// 		      << std::endl;
+// 	    // Int_t tdcindex = GetTDCIndex(bank_index, tdc_slot_number);
+// 	    std::cerr << "   GetTDCIndex()=="<<tdcindex
+// 		      << "; fTDCPtrs.at(tdcindex).size()=="
+// 		      << fTDCPtrs.at(tdcindex).size()
+// 		      << "; fTDCPtrs.at(tdcindex).at(chan).fPlane=="
+// 		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fPlane
+// 		      << "; fTDCPtrs.at(tdcindex).at(chan).fElement=="
+// 		      << fTDCPtrs.at(tdcindex).at(tdc_chan_number).fElement
+// 		      << std::endl;
+// 	  }
+// 	}//;;
+//       } // for (UInt_t i=0; i<num_words ; i++) {
+//     }
+//     else {
+//       // TODO...
+//       // must have some functions to access this error counter 
+//       //
+//     }
+//   }
+
+//   return OK;
+// };
 
 
 
@@ -340,7 +455,7 @@ void  QwDriftChamber::ReportConfiguration()
 
 	  tdc_index = GetTDCIndex(bank_index, slot_id);
 	  
-	  vme_slot_num = slot_id +1;
+	  vme_slot_num = slot_id;
 	  
 	  std::cout << "    "
 		    << "Slot [id, VME num] [" 
@@ -415,8 +530,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
   Bool_t local_debug  = true;
 
   QwF1TDC *local_f1tdc = NULL;
-  
- 
+   
   bank_index = GetSubbankIndex(roc_id, bank_id);
   
   if(bank_index >=0) {
@@ -443,10 +557,8 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	      << "]"
 	      << std::endl;
   
-    //   PrintConfigurationBuffer(buffer,num_words);
- 
     for ( slot_id=0; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) { 
-      // slot id starts from 2, because 0 is an offset difference between QwAnalyzer and VME definition, 
+      // slot id starts from 2, because 0 is one offset (1) difference between QwAnalyzer and VME definition, 
       // and 1 and 2 are used for CPU and TI. Tuesday, August 31 10:57:07 EDT 2010, jhlee
 	
       tdc_index    = GetTDCIndex(bank_index, slot_id);
@@ -478,17 +590,28 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	  fF1TDContainer->AddQwF1TDC(local_f1tdc);
 	  
 	  if(local_debug) {
-	    std::cout << "F1TDC index " << std::setw(2) << tdc_index;
-	    std::cout << std::setw(16) << " local_f1tdc " << *local_f1tdc
-		      << " at " << local_f1tdc;
+	    std::cout << "F1TDC index " 
+		      << std::setw(2) 
+		      << tdc_index
+		      << std::setw(16) 
+		      << " local_f1tdc " 
+		      << *local_f1tdc
+		      << " at " 
+		      << local_f1tdc;
 	  }
+
 	}
 	else {
 
 	  if(local_debug) {
-	    std::cout << "Unused in "  << std::setw(4) << subsystem_name;	
-	    std::cout << std::setw(16) << " local_f1tdc  at " << local_f1tdc;
+	    std::cout << "Unused in "  
+		      << std::setw(4) 
+		      << subsystem_name	
+		      << std::setw(16) 
+		      << " local_f1tdc  at " 
+		      << local_f1tdc;
 	  }
+	  
 	}
 		
       }
@@ -507,9 +630,11 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
   
     if(local_debug) {
      fF1TDContainer->Print();
-     
      std::cout << "-----------------------------------------------------" << std::endl;
     }
+
+    
+    // kMaxNumberOfChannelsPerTDC = fF1TDContainer->GetF1TDCChannelNumber();
 
     return OK;
   }

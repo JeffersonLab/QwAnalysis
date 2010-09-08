@@ -29,7 +29,7 @@
 
 #include "VQwSubsystemTracking.h"
 #include "MQwF1TDC.h"
-#include "MQwV775TDC.h"
+//#include "MQwV775TDC.h"
 
 #include "QwF1TDContainer.h"
 
@@ -133,7 +133,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   Int_t fCurrentSlot;
   Int_t fCurrentTDCIndex;
 
-  // static const UInt_t kMaxNumberOfTDCsPerROC;
+  //static const UInt_t kMaxNumberOfTDCsPerROC;
   static const UInt_t kMaxNumberOfSlotsPerROC;
   static const Int_t kReferenceChannelPlaneNumber; // plane is Int_t
 
@@ -158,12 +158,9 @@ class QwDriftChamber: public VQwSubsystemTracking{
   std::vector< QwHit > &fWireHits;
   std::vector< Int_t > fWiresPerPlane;
 
-  MQwF1TDC fF1TDC;
+  MQwF1TDC fF1TDCDecoder;
 
   QwF1TDContainer *fF1TDContainer;
-
-  UInt_t fF1TDCBadDataCount;
-
 
   //  NOTE:  The plane and wire indices count from "1" instead
   //         of from "0".

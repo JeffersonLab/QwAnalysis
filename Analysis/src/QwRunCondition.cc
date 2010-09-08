@@ -6,7 +6,7 @@
  */
 
 #include "QwRunCondition.h"
-#include ".QwSVNVersion.h"
+#include "QwSVNVersion.h"
 
 // ClassImp(QwRunCondition);
 

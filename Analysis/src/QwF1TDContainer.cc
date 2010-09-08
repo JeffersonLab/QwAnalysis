@@ -97,79 +97,6 @@ QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
 }
 
 
-// QwF1TDC::QwF1TDC(const QwF1TDC &f1tdc)
-// {
-//   fROC                 = -1;
-//   fSlot                = -1;
-
-//   fChannelNumber       = 64;
-
-//   fF1TDC_refcnt        = 0;
-//   fF1TDC_hsdiv         = 0;
-//   fF1TDC_refclkdiv     = 0;
-//   fF1TDC_trigwin       = 0;
-//   fF1TDC_triglat       = 0;
-  
-//   fF1TDC_tframe_ns     = 0.0;
-//   fF1TDC_full_range_ns = 0.0;
-//   fF1TDC_window_ns     = 0.0;
-//   fF1TDC_latency_ns    = 0.0;
-//   fF1TDC_resolution_ns = 0.0;
-
-//   fF1TDC_SEU_counter   = 0;
-//   fF1TDC_EMM_counter   = 0;
-//   fF1TDC_SYN_counter   = 0;
-
-//   fReferenceSignals    = NULL;
-//   fReferenceSlotFlag   = kFALSE;
-//   fF1TDCNormalResolutionFlag = kTRUE;
-
-//   fF1TDCIndex          = -1;
-//   // if(fF1TDCNormalResolutionFlag) fChannelNumber = 64;
-//   // else                           fChannelNumber = 32;
-
-//   *this = f1tdc;
-// };
-
-
-
-// QwF1TDC& QwF1TDC::operator=(const QwF1TDC& f1tdc)
-// {
-//   if(this == & f1tdc)
-//     return *this;
- 
-//   fROC                       = f1tdc.fROC;
-//   fSlot                      = f1tdc.fSlot;
-
-//   fChannelNumber             = f1tdc.fChannelNumber;
-//   fF1TDC_refcnt              = f1tdc.fF1TDC_refcnt;
-//   fF1TDC_hsdiv               = f1tdc.fF1TDC_hsdiv;
-//   fF1TDC_refclkdiv           = f1tdc.fF1TDC_refclkdiv;
-//   fF1TDC_trigwin             = f1tdc.fF1TDC_trigwin;
-//   fF1TDC_triglat             = f1tdc.fF1TDC_triglat;
-  
-//   fF1TDC_tframe_ns           = f1tdc.fF1TDC_tframe_ns;
-//   fF1TDC_full_range_ns       = f1tdc.fF1TDC_full_range_ns;
-
-//   fF1TDC_window_ns           = f1tdc.fF1TDC_window_ns;
-//   fF1TDC_latency_ns          = f1tdc.fF1TDC_latency_ns;
-//   fF1TDC_resolution_ns       = f1tdc.fF1TDC_resolution_ns;
-
-//   fF1TDC_SEU_counter         = f1tdc.fF1TDC_SEU_counter;
-//   fF1TDC_EMM_counter         = f1tdc.fF1TDC_EMM_counter;
-//   fF1TDC_SYN_counter         = f1tdc.fF1TDC_SYN_counter;
-
-//   fF1TDCIndex                = f1tdc.fF1TDCIndex;
-//   fReferenceSignals = f1tdc.fReferenceSignals;
-
-//   fReferenceSlotFlag         = f1tdc.fReferenceSlotFlag;
-//   fF1TDCNormalResolutionFlag = f1tdc.fF1TDCNormalResolutionFlag;
-
-//   return *this;
-// };
-
-
-
 QwF1TDC::~QwF1TDC()
 {
   delete [] fBuffer;
@@ -220,9 +147,6 @@ QwF1TDC::SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words)
 
   fChannelNumber   = (Int_t) (fF1TDCFactor*fMaxF1TDCChannelNumber);
 
-  // MQwF1TDC
-  //  fF1TDCDecoder.SetTDCMaxChannels(fChannelNumber);
-
   // get refcnt and calculate tframe_ns
   fF1TDC_refcnt    = (fBuffer[7]>>6) & 0x1FF;
   fF1TDC_tframe_ns = (Double_t)(25 * (fF1TDC_refcnt +2 ));
@@ -271,7 +195,7 @@ QwF1TDC::PrintF1TDCBuffer()
   for(i=0; i<fWordsPerBuffer; i++) {
     std::cout << "0x" << std::hex << fBuffer[i] << " ";
   }
-  std::cout << std::endl;
+  std::cout << std::dec << std::endl;
 
   this->PrintF1TDCConfigure();
 
@@ -348,10 +272,10 @@ std::ostream& operator<< (std::ostream& os, const QwF1TDC &f1tdc)
 
 QwF1TDContainer::QwF1TDContainer()
 {
-  fQwF1TDCs = new TObjArray();
+  fQwF1TDCArray = new TObjArray();
 
-  fQwF1TDCs -> Clear();
-  fQwF1TDCs -> SetOwner(kTRUE);
+  fQwF1TDCArray -> Clear();
+  fQwF1TDCArray -> SetOwner(kTRUE);
   fNQwF1TDCs = 0;
   fDetectorType = kTypeNull;
   fRegion       = kRegionIDNull;
@@ -361,7 +285,7 @@ QwF1TDContainer::QwF1TDContainer()
 
 QwF1TDContainer::~QwF1TDContainer()
 {
-  if(fQwF1TDCs) delete fQwF1TDCs; fQwF1TDCs = NULL;
+  if(fQwF1TDCArray) delete fQwF1TDCArray; fQwF1TDCArray = NULL;
 };
 
 
@@ -370,10 +294,15 @@ void
 QwF1TDContainer::AddQwF1TDC(QwF1TDC *in)
 {
   Int_t pos = 0;
-  pos = fQwF1TDCs -> AddAtFree(in);
-  // std::cout << "AddQwF1TDC at pos " 
-  // 	    << pos 
-  // 	    << std::endl;
+  Bool_t local_debug = false;
+
+  pos = fQwF1TDCArray -> AddAtFree(in);
+  if(local_debug) {
+    std::cout << "AddQwF1TDC at pos " 
+	      << pos 
+	      << std::endl;
+  }
+
   fNQwF1TDCs++;
   return;
 };
@@ -382,7 +311,7 @@ QwF1TDContainer::AddQwF1TDC(QwF1TDC *in)
 QwF1TDC *
 QwF1TDContainer::GetF1TDC(Int_t f1tdcID)
 {
-  return (QwF1TDC*) fQwF1TDCs->At(f1tdcID);
+  return (QwF1TDC*) fQwF1TDCArray->At(f1tdcID);
 }
 
 
@@ -406,7 +335,7 @@ QwF1TDContainer::GetF1TDCwithTDCIndex(Int_t f1tdc_index_in)
   }
 
   if(return_i not_eq -1)  {
-    return (QwF1TDC*) fQwF1TDCs->At(return_i);
+    return (QwF1TDC*) fQwF1TDCArray->At(return_i);
   }
   else {
     std::cout << "There is no F1TDC with TDC index "
@@ -472,7 +401,7 @@ QwF1TDContainer::Print()
 }
 
 
-Double_t
+const Double_t
 QwF1TDContainer::GetF1TDCResolution()
 {
 
@@ -494,8 +423,8 @@ QwF1TDContainer::GetF1TDCResolution()
     new_r = ((QwF1TDC*) GetF1TDC(i))->GetF1TDC_resolution();
     if(i not_eq  0) 
       if(old_r not_eq new_r) {
-	std::cout << "NEVER to see this message."
-		  << "If one see this, F1TDC configurations are corrupted!\n";
+	std::cout << "NEVER see this message."
+		  << "If one can see this, F1TDC configurations are corrupted!\n";
 	return 0.0;
       }
     //  printf("resolution %lf %lf\n", old_r, new_r);
@@ -503,6 +432,41 @@ QwF1TDContainer::GetF1TDCResolution()
   }
   
   return old_r;
+}
+
+
+
+const Int_t
+QwF1TDContainer::GetF1TDCChannelNumber()
+{
+
+  // F1TDC max channel number must be the same
+  // among VME crates and among F1TDC boards
+  // We cannot change it on each F1TDC board.
+  // Thus, this function return one value of them. (32 or 64)
+  // Friday, September  3 13:09:01 EDT 2010, jhlee
+
+  Int_t size = 0; 
+  Int_t i    = 0;
+
+  Int_t old_c = 0;
+  Int_t new_c = 0;
+
+  size = this->GetSize();
+
+  for (i=0; i<size; i++) {
+    new_c = ((QwF1TDC*) GetF1TDC(i))->GetChannelNumber();
+    if(i not_eq  0) 
+      if(old_c not_eq new_c) {
+	std::cout << "NEVER see this message."
+		  << "If one can see this, F1TDC configurations are corrupted!\n";
+	return 0;
+      }
+    //  printf("channel number %4d %4d\n", old_c, new_c);
+    old_c = new_c;
+  }
+  
+  return old_c;
 }
 
 

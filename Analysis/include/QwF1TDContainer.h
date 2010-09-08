@@ -28,17 +28,14 @@ class QwF1TDC :  public TObject
 
  public:
   QwF1TDC();
-  //  QwF1TDC(const QwF1TDC& f1tdc);
-  //  QwF1TDC(const QwF1TDC* f1tdc);
   QwF1TDC(const Int_t roc, const Int_t slot);
   ~QwF1TDC();
-
-  // QwF1TDC& operator= (const QwF1TDC& f1tdc);
 
   friend std::ostream& operator<<(std::ostream& os, const QwF1TDC &f1tdc);
 
   const Int_t  GetROCNumber()          const {return fROC;};
   const Int_t  GetSlotNumber()         const {return fSlot;};
+  const Int_t  GetChannelNumber()      const {return fChannelNumber;};
 
   const Bool_t IsReferenceSlot()       const {return fReferenceSlotFlag;};
   const Bool_t IsNormResolution()      const {return fF1TDCNormResFlag;};
@@ -194,19 +191,13 @@ class QwF1TDContainer :  public TObject
   
  public:
   Int_t                    fNQwF1TDCs;
-  TObjArray               *fQwF1TDCs; 
+  TObjArray               *fQwF1TDCArray; 
  
  public:
   QwF1TDContainer();
-  //  QwF1TDContainer(EQwDetectorType detector_type);
-  //  QwF1TDContainer(EQwDetectorType detector_type, EQwRegionID region);
   virtual ~QwF1TDContainer();
 
   // friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container);
-
-  /* void Clear (Option_t *option = ""); */
-  /* void Reset (Option_t *option = ""); */
-  /* void Delete(Option_t *option = ""); */
 
   void SetSystemName(const TString name);// {fSubsystemName = name;};
   const TString GetSystemName() const {return fSubsystemName;};
@@ -222,11 +213,12 @@ class QwF1TDContainer :  public TObject
 
   QwF1TDC* GetF1TDC(Int_t f1tdcID);
   QwF1TDC* GetF1TDCwithTDCIndex(Int_t f1tdc_index_in);
-  Double_t GetF1TDCResolution();
+  const Double_t GetF1TDCResolution();
+  const Int_t GetF1TDCChannelNumber();
 
-  MQwF1TDC fF1TDCDecoder;
+ 
   Bool_t  CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
-  
+  const MQwF1TDC GetF1TDCDecoder() const {return fF1TDCDecoder;};
 
  public:
 
@@ -237,64 +229,12 @@ class QwF1TDContainer :  public TObject
   //  typedef std::vararry <Double_t> 
 
 private:
-
+  MQwF1TDC fF1TDCDecoder;
   //  static const Int_t gMaxCloneArray; //!  ///< Maximum number which a subsystem has F1TDCs
 
   ClassDef(QwF1TDContainer,1);
 
 };
 
-
-
-/* class QwF1TDContainer : public TObject */
-/* { */
-  
-/*  public: */
-/*   Int_t                    fNQwF1TDCs; */
-/*   TClonesArray             *fQwF1TDCs; // array range 0 -  gMaxCloneArray -1 */
-/*   static TClonesArray      *gQwF1TDCs; */
-
-/*  public: */
-/*   QwF1TDContainer(); */
-/*   QwF1TDContainer(EQwDetectorType detector_type); */
-/*   QwF1TDContainer(EQwDetectorType detector_type, EQwRegionID region); */
-/*   virtual ~QwF1TDContainer(); */
-
-/*   friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container); */
-
-/*   void Clear (Option_t *option = ""); */
-/*   void Reset (Option_t *option = ""); */
-/*   void Delete(Option_t *option = ""); */
-
-/*   void SetSystemName(const TString name);// {fSubsystemName = name;}; */
-/*   const TString GetSystemName() const {return fSubsystemName;}; */
-
-/*   void AddQwF1TDC(QwF1TDC &in); */
-/*   QwF1TDC  *AddF1TDC(); */
-
-/*   Int_t              GetSize()         const {return fNQwF1TDCs;}; */
-/*   Int_t              Size()            const {return fNQwF1TDCs;}; */
-/*   Int_t              HowManyF1TDCs()   const {return fNQwF1TDCs;}; */
-/*   EQwDetectorType    GetDetectorType() const {return fDetectorType;} */
-/*   EQwRegionID        GetRegion()       const {return fRegion;}; */
-/*   TClonesArray      *GetF1TDCs()       const {return fQwF1TDCs;}; */
- 
-/*   QwF1TDC           *GetF1TDC(Int_t f1tdcID) const; */
-  
-/*  public: */
-
-/*   EQwDetectorType    fDetectorType; */
-/*   EQwRegionID        fRegion; */
-/*   TString            fSubsystemName; */
-  
-/*   //  typedef std::vararry <Double_t>  */
-
-/* private: */
-
-/*   static const Int_t gMaxCloneArray; //!  ///< Maximum number which a subsystem has F1TDCs */
-
-/*   ClassDef(QwF1TDContainer,1); */
-
-/* }; */
 
 #endif

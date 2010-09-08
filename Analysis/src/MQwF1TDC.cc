@@ -43,10 +43,20 @@ MQwF1TDC::MQwF1TDC()
   fF1Dataword           = 0;
   fF1MaxChannelsPerModule = 64; 
 
-  // temp solution, because it is not the general F1TDC
-  // if one want to use F1TDC as high resolution
-  // it will be changed to 32;
-  // Friday, July 16 11:11:02 EDT 2010, jhlee
+  // This initial fF1MaxChannelsPerModule 64
+  // is used to "resize" a vector in RegisterSlotNumber() function
+  // in each Subsystem, before one can access the real F1TDC 
+  // configuration from CODA buffer. And it is a constant value (64)
+  // and is totally independent upon the real F1TDC configuration. 
+  // The real maximum channel number can be access via F1TDContainer
+  // class of each subsystem.
+
+  // However, Qweak uses only the Normal Resolution configuration. 
+  // Thus, it is always 64 channels we uses. 
+  // If someone wants to use the High Resolution Mode of F1TDC, 
+  // it would be better to change this number to 32 by hand.
+  // Friday, September  3 13:50:49 EDT 2010, jhlee
+
 
   fF1HeaderTrigFIFOFlag = kFALSE;
   fF1HeaderEventNumber  = 0;
