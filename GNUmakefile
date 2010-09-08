@@ -108,7 +108,7 @@ OS_HW_NAME  := $(uname -s -m | sed 's/ /_/g')
 INSTALL_DIR := $(strip $(shell $(ECHO) $(QWANALYSIS)$$( (if [ -d $(OS_HW_NAME)]; then $(ECHO) "/"$(OS_HW_NAME); fi))))
 
 SVN_VERSION := $(shell svnversion -n)
-SVN_VERSION_H := Analysis/include/.QwSVNVersion.h
+SVN_VERSION_H := Analysis/include/QwSVNVersion.h
 
 
 ############################
