@@ -92,7 +92,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
   UInt_t tdc_data        = 0;
 
   Bool_t data_integrity_flag = false;
-  Bool_t temp_print_flag     = true;
+  Bool_t temp_print_flag     = false;
   Int_t tdcindex = 0;
   bank_index = GetSubbankIndex(roc_id, bank_id);
 
