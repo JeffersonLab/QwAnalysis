@@ -420,7 +420,7 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
           ULY=0;
           LLY=0;
 
-          if (device_type == "IntegrationPMT")
+          if (device_type == "integrationpmt")
             {
 
               //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
@@ -665,6 +665,8 @@ Bool_t QwMainCerenkovDetector::ApplySingleEventCuts()
         std::cout<<"******* QwMainCerenkovDetector::SingleEventCuts()->IntegrationPMT[ "
         <<i<<" , "<<fIntegrationPMT[i].GetElementName()<<" ] ******\n";
     }
+
+
   //if (!test_IntegrationPMT)
   //fNumError_Evt_IntegrationPMT++;//IntegrationPMT falied  event counter for QwMainCerenkovDetector
 
