@@ -591,7 +591,7 @@ GET_SVNVERSION = $(AWK) '{print $$6}'
 
 export
 
-all: .ADD .EXES .auxDepends bin/qweak-config 
+all: .ADD .EXES .auxDepends bin/qweak-config QwSVNVersion
 ifneq ($(strip $(ADD)),)
 	@if [ "$(strip $(sort $(shell $(CAT) .ADD)))" != "$(strip $(sort $(ADD)))" ]; \
 	then \
@@ -644,7 +644,7 @@ myevio_lib:
 	$(MAKE) -C $(EVIO) libmyevio$(DllSuf)
 	$(CP) -p $(EVIO)/libmyevio$(DllSuf) $(QW_LIB)/libmyevio$(DllSuf) 
 
-.auxDepends: .auxLibFiles $(SVN_VERSION_H)
+.auxDepends: .auxLibFiles
 	@$(ECHO) Generating .auxLibFiles
 	@$(RM) .auxLibFiles
 	@$(ECHO) $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) > .auxLibFiles
@@ -858,7 +858,7 @@ bin/qweak-config: qweak-config.in
 	@$(CHMOD) a+x bin/$@
 
 
-$(SVN_VERSION_H):
+QwSVNVersion:
 	@if [ ! -e $(SVN_VERSION_H) ] ; \
 	then \
 		$(ECHO) 'Generating $(SVN_VERSION_H)' ; \
@@ -870,7 +870,7 @@ $(SVN_VERSION_H):
 		if [ $$current_svn_version != $$saved_svn_version ] ; \
 		then \
 			$(ECHO) "The difference SVN version number is found."; \
-			$(ECHO) 'Regenerating $(SVN_VERSION_H) with $$current_svn_version ' ; \
+			$(ECHO) "Regenerating $(SVN_VERSION_H) with $$current_svn_version " ; \
 			$(ECHO) 'const char *ANANLSYS_SVN_VERSION = "' $(SVN_VERSION) '";' > $(SVN_VERSION_H); \
 		else \
 			$(ECHO) "The SVN versions are the same, thus do nothing."; \
@@ -939,7 +939,7 @@ distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.au
 ############################
 ############################
 
-.PHONY : clean clean.dictfiles clean.exes clean.libs distclean clean.auxfiles config all clean.olddotfiles cleanSunWS_cache
+.PHONY : clean clean.dictfiles clean.exes clean.libs distclean clean.auxfiles config all clean.olddotfiles cleanSunWS_cache QwSVNVersion
 
 .SUFFIXES :
 .SUFFIXES : $(SrcSuf) $(IncSuf) $(ObjSuf)
