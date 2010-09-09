@@ -138,7 +138,7 @@ QwRunCondition::GetSvnRevision()
   //   by Wouter
 
 
-  svn_revision = ANANLSYS_SVN_VERSION;
+  svn_revision = QWANA_SVN_REVISION;
   
   return svn_revision;
 };

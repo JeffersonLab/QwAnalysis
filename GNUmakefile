@@ -102,10 +102,6 @@ ARCH  := $(shell uname)
       # Operating system
 
 
-SVN_VERSION := $(shell svnversion -n)
-SVN_VERSION_H := Analysis/include/QwSVNVersion.h
-
-
 ############################
 ############################
 # Modularity :
@@ -148,6 +144,18 @@ ifneq ($(filter qwrealtime,$(EXES)),)
  endif
 endif
 
+#
+#  Get information about the SVN environment of this directory, including the 
+#  revision number, and the repository URL.
+#
+QWANA_VERSION_H        := Analysis/include/QwSVNVersion.h
+QWANA_SVN_REVISION     := $(strip $(shell svnversion 2>/dev/null || echo "unknown_revision"))
+QWANA_SVN_REVISION_OLD := $(strip $(shell test -e $(QWANA_VERSION_H) && \
+				($(GREP) "QWANA_SVN_REVISION" $(QWANA_VERSION_H)|$(AWK) -F'"' '{print $$2}')))
+QWANA_SVN_URL          := $(strip $(shell (svn info 2>/dev/null || echo "URL: unknown_URL") \
+				| $(AWK) '$$1=="URL:"{print $$2}'))
+QWANA_SVN_LASTREVISION := $(strip $(shell (svn info 2>/dev/null || echo "Last Changed Rev: unknown_revision") \
+				| $(AWK) -F":" '$$1=="Last Changed Rev"{print $$2}'))
 
 
 ############################
@@ -580,9 +588,6 @@ FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(EXCLUDEDIRS))'
 # To be piped in
 # Gets everything on one line
 
-
-GET_SVNVERSION = $(AWK) '{print $$6}'
-
 ############################
 ############################
 # Main targets :
@@ -591,7 +596,7 @@ GET_SVNVERSION = $(AWK) '{print $$6}'
 
 export
 
-all: .ADD .EXES .auxDepends bin/qweak-config QwSVNVersion
+all: .ADD .EXES QwSVNVersion .auxDepends bin/qweak-config
 ifneq ($(strip $(ADD)),)
 	@if [ "$(strip $(sort $(shell $(CAT) .ADD)))" != "$(strip $(sort $(ADD)))" ]; \
 	then \
@@ -628,7 +633,7 @@ endif
 	@$(MAKE) -f .auxDepends `$(CAT) .auxExeFiles | $(SED) 's/$$/ /g' | $(APPEND_BIN_PATH) | $(INTO_RELATIVE_PATH)`
 
 
-config: .ADD .EXES clean.auxfiles .auxDepends bin/qweak-config 
+config: .ADD .EXES clean.auxfiles QwSVNVersion .auxDepends bin/qweak-config 
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .ADD),$(ADD)) $(filter-out $(ADD),$(shell $(CAT) .ADD)) | $(REMOVE_-D))); \
 	do \
 	$(RM) `$(GREP) $$wd */*/*$(IncSuf) */*/*$(SrcSuf) | $(SED) 's/^\([A-Za-z0-9\/\._]*\):.*/\1/g;s/\$(IncSuf)/\$(ObjSuf)/g;s/\$(SrcSuf)/\$(ObjSuf)/g'`; \
@@ -854,27 +859,19 @@ bin/qweak-config: qweak-config.in
 	@$(CAT) $< | $(SED) 's!%QWANALYSIS%!$(QWANALYSIS)!' | $(SED) 's!%LIBS%!$(LIBS)!'   \
 	           | $(SED) 's!%QW_LIB%!$(QW_LIB)!' | $(SED) 's!%QW_BIN%!$(QW_BIN)!'           \
 	           | $(SED) 's!%LDFLAGS%!$(LDFLAGS)!' | $(SED) 's!%CPPFLAGS%!$(CPPFLAGS)!' \
-	           > bin/$@
-	@$(CHMOD) a+x bin/$@
+	           > $@
+	@$(CHMOD) a+x $@
 
 
 QwSVNVersion:
-	@if [ ! -e $(SVN_VERSION_H) ] ; \
+	@if [ "$(QWANA_SVN_REVISION)" != "$(QWANA_SVN_REVISION_OLD)" ] ; \
 	then \
-		$(ECHO) 'Generating $(SVN_VERSION_H)' ; \
-		$(ECHO) 'const char *ANANLSYS_SVN_VERSION = "' $(SVN_VERSION) '";' > $(SVN_VERSION_H); \
+		$(ECHO) "Generating $(QWANA_VERSION_H) with revision string, $(QWANA_SVN_REVISION)" ; \
+		$(ECHO) 'const char *QWANA_SVN_REVISION = "'$(QWANA_SVN_REVISION)'";' > $(QWANA_VERSION_H); \
+		$(ECHO) 'const char *QWANA_SVN_URL = "'$(QWANA_SVN_URL)'";' >> $(QWANA_VERSION_H); \
+		$(ECHO) 'const char *QWANA_SVN_LASTCHANGEDREVISION = "'$(QWANA_SVN_LASTREVISION)'";' >> $(QWANA_VERSION_H); \
 	else \
-		$(ECHO) '$(SVN_VERSION_H) exists'; \
-		current_svn_version=`echo "$(SVN_VERSION)"`; printf "current svn : $$current_svn_version \n"; \
-		saved_svn_version=`echo "$(shell cat Analysis/include/QwSVNVersion.h | $(GET_SVNVERSION))"`; printf "saved   svn : $$saved_svn_version \n"; \
-		if [ $$current_svn_version != $$saved_svn_version ] ; \
-		then \
-			$(ECHO) "The difference SVN version number is found."; \
-			$(ECHO) "Regenerating $(SVN_VERSION_H) with $$current_svn_version " ; \
-			$(ECHO) 'const char *ANANLSYS_SVN_VERSION = "' $(SVN_VERSION) '";' > $(SVN_VERSION_H); \
-		else \
-			$(ECHO) "The SVN versions are the same, thus do nothing."; \
-		fi; \
+		$(ECHO) "\`$(QWANA_VERSION_H)' is up to date"; \
 	fi;
 
 ############################
@@ -894,6 +891,11 @@ clean.dictfiles:
 	@$(ECHO) Removing *Dict$(SrcSuf), *Dict$(IncSuf) files
 	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) 'Dict\$(SrcSuf)' | $(SED) '/\$(SrcSuf)./d'`
 	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) 'Dict\$(IncSuf)' | $(SED) '/\$(IncSuf)./d'`
+	@if [ -e $(QWANA_VERSION_H) ] ;\
+	then \
+		$(ECHO) Removing $(QWANA_VERSION_H); \
+		$(RM) $(QWANA_VERSION_H); \
+	fi;
 
 
 clean.libs:
