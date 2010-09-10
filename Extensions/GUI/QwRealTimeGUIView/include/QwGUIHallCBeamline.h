@@ -5,9 +5,9 @@
 //  ---------------------------
 /**
  
-   \file QwGUIInjector.h
+   \file QwGUIHallCBeamline.h
    \author Michael Gericke
-   \author Rakitha Waidyawansa
+   \author Rakitha Beminiwattha
      
 */
 //=============================================================================
@@ -18,27 +18,27 @@
 //  | Doxygen Class Information |
 //  ---------------------------
 /**
-   \class QwGUIInjector
+   \class QwGUIHallCBeamline
     
    \brief Handles the display of the lumi detector data.  
 
-   The QwGUIInjector class handles the display of the lumi detector data.
+   The QwGUIHallCBeamline class handles the display of the hall c beam line data.
    It implements several functions to manipulate the data and calculate certain
    basic diagnostic quantities.
 
    This is Gericke's original code for the main detector. 
-Added by Buddhini to display the injector beamline data.
+
 
  */
 //=============================================================================
 
-#define INJECTOR_DET_TYPES        6
-#define NUM_POS 2
+#define NUM_POS          2
+#define HALLC_DET_TYPES  6
 ///
-/// \ingroup QwGUIInjector
+/// \ingroup QwGUIHallCBeamline
 
-#ifndef QWGUIINJECTOR_H
-#define QWGUIINJECTOR_H
+#ifndef QWGUIHALLCBEAMLINE_H
+#define QWGUIHALLCBEAMLINE _H
 
 
 #include <cstdlib>
@@ -59,35 +59,39 @@ Added by Buddhini to display the injector beamline data.
 
 
 #ifndef __CINT__
-#include "QwLog.h"
+
 #include "QwOptions.h"
 #include "QwParameterFile.h"
 
-#endif
+#endif /* __CINT__ */
 
 
 
-class QwGUIInjector : public QwGUISubSystem {
+
+class QwGUIHallCBeamline : public QwGUISubSystem {
 
   
   TGHorizontalFrame   *dTabFrame;
+  
   TGVerticalFrame     *dControlsFrame;
-  TGVerticalFrame     *dInjectorBCMFrame; //Injector bcm access frame
-  TGVerticalFrame     *dInjectorSCALERFrame; //Injector scaler access frame
+  TGVerticalFrame     *dHCBCMFrame; //hall c bcm access frame
+  TGVerticalFrame     *dHCSCALERFrame; //hall c scaler access frame
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
   TGLayoutHints       *dSubLayout;
   TGLayoutHints       *dBtnLayout;
-  TGTextButton        *dButtonPos;
+  TGTextButton        *dButtonPos;  
   TGTextButton        *dButtonCharge;
   TGTextButton        *dButtonPosVariation;
-  TGTextButton        *dButtonInjectorSCALER;
+  TGTextButton        *dButtonHCSCALER;
 
-  TGComboBox          *dComboBoxInjectorBCM;
-  TGComboBox          *dComboBoxInjectorSCALER;
 
-   //!An object array to store histogram pointers -- good for use in cleanup.
+  TGComboBox          *dComboBoxHCBCM;
+  TGComboBox          *dComboBoxHCSCALER;
+
+ 
+  //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
   
   //!An object array to store data window pointers -- good for use in cleanup.
@@ -96,10 +100,10 @@ class QwGUIInjector : public QwGUISubSystem {
 
   TH1F *PosVariation[2] ;
 
-
+ 
   
 
-  //!This function Draws a sample  histograms/plots from the Memory map file. 
+  //!This function Draws a BPM position diff  histograms/plots from the Memory map file. 
   //!
   //!Parameters:
   //! - none
@@ -107,7 +111,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none 
   void PositionDifferences();
 
-  //!This function Draws a sample  histograms/plots from the Memory map file. 
+  //!This function Draws a BPM asym  histograms/plots from the Memory map file. 
   //!
   //!Parameters:
   //! - none
@@ -115,7 +119,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none 
   void PlotBPMAsym();
 
-  //!This function Draws a sample  histograms/plots from the Memory map file. 
+  //!This function Draws BCM histograms/plots from the Memory map file. 
   //!
   //!Parameters:
   //! - none
@@ -139,22 +143,21 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none 
   void SetComboIndex(Short_t cmb_id, Short_t id);
 
-  //!This function loads list of bcms available in the injector. 
+  //!This function loads list of bcms available in the hall c . 
   //!based on the map file read by LoadChannelMap routine
   //!Parameters:
   //! - none
   //!
   //!Return value: none 
-  void LoadInjectorBCMCombo();
+  void LoadHCBCMCombo();
   
-  //!This function loads list of scalers available in the injector. 
+  //!This function loads list of scalers available in the hall c . 
   //!based on the map file read by LoadChannelMap routine
   //!Parameters:
   //! - none
   //!
   //!Return value: none 
-  void LoadInjectorSCALERCombo();
-
+  void LoadHCSCALERCombo();
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -174,9 +177,10 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none  
   void                 LoadHistoMapFile(TString mapfile);
 
-
   
-  std::vector<std::vector<TString> > fInjectorDevices; //2D vector since we have seral types of device - VQWK, SCALAR and COMBINED
+
+    
+  std::vector<std::vector<TString> > fHallCDevices; //2D vector since we have seral types of device - VQWK, SCALAR and COMBINED
   Short_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
   Short_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
@@ -196,9 +200,9 @@ class QwGUIInjector : public QwGUISubSystem {
 
  public:
   
-  QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
+  QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
-  ~QwGUIInjector();
+  ~QwGUIHallCBeamline();
 
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
@@ -217,7 +221,7 @@ class QwGUIInjector : public QwGUISubSystem {
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
-  ClassDef(QwGUIInjector,0);
+  ClassDef(QwGUIHallCBeamline,0);
 };
 
 #endif

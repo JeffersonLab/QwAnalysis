@@ -37,14 +37,6 @@ const char *QwGUICorrelationPlots::CorrelationPlotsTrees[CORRELATION_DET_TRE_NUM
     "Mps_Tree"
   };
 
-const char *QwGUICorrelationPlots::CorrelationPlotsDevices[CORRELATION_DEV_NUM]=
-  {"qwk_1i02","qwk_1i04","qwk_1i06","qwk_0i02","qwk_0i02a",
-   "qwk_0i05","qwk_0i07","qwk_0l01","qwk_0l02","qwk_bcm0l02",
-   "qwk_0l03","qwk_0l04","qwk_0l05","qwk_0l06","qwk_0l07",
-   "qwk_0l08","qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02",
-   "qwk_0r05","qwk_0r06"
-    };
-
 
 QwGUICorrelationPlots::QwGUICorrelationPlots(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
@@ -288,23 +280,7 @@ void QwGUICorrelationPlots::OnObjClose(char *obj)
 void QwGUICorrelationPlots::OnNewDataContainer()
 {
 
-  TObject *obj = NULL;
-  TObject *copy = NULL;
-  
-  /*  
-  ClearData();
 
-  if(dROOTCont){
-    for(Short_t p = 0; p < CORRELATION_DET_TRE_NUM; p++) {
-      obj = dROOTCont->ReadTree(CorrelationPlotsTrees[p]);
-      if(obj)
-	{
-	  copy = obj->Clone();
-	  HistArray.Add(copy);
-	}
-    }
-  }
-  */
 };
 
 void QwGUICorrelationPlots::OnRemoveThisTab()
@@ -366,7 +342,7 @@ void QwGUICorrelationPlots::PlotCorrelation(){
      //gPad->Update();
 
     if (tree==NULL){
-      printf("No Such tree object exist!");
+      printf("No Such tree object exist!\n");
       break;
     }
     if (tree->FindLeaf(PrmX) && tree->FindLeaf(PrmY)){ 
@@ -416,6 +392,7 @@ void QwGUICorrelationPlots::PlotCorrelation(){
 
 void QwGUICorrelationPlots::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
+  /*
   if(event == kButton1Double){
     Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     
@@ -435,6 +412,7 @@ void QwGUICorrelationPlots::TabEvent(Int_t event, Int_t x, Int_t y, TObject* sel
 	return;
       }
   }
+  */
 }
 
 
@@ -638,23 +616,8 @@ void QwGUICorrelationPlots::SetCutExpr(){
 };
 
 TString  QwGUICorrelationPlots::SetupCut(TString cutx, TString cuty, TString cutexpr){
-  Char_t *cut[100];
   TString scut;
-  /*
-  if (bCUTEXPR)
-    sprintf(cut,"%s",cutexpr.Data());
-  else{
-    if (fCutX.Data()=="")
-      sprintf(cut,"%s%s",cutx.Data(),cuty.Data());
-    else if (fCutY.Data()=="")
-      sprintf(cut,"%s%s",cutx.Data(),cuty.Data());
-    else if (fCutY.Data()!="" && fCutX.Data()!="")
-      sprintf(cut,"%s%s && %s%s",PrmX.Data(),fCutX.Data(),PrmY.Data(),fCutY.Data());
-    else
-      sprintf(cut,"");
-  }
-  scut=cut;
-  */
+
   return scut;
   
 };

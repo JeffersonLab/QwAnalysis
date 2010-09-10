@@ -45,6 +45,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   InjectorSubSystem     = NULL;
   EventDisplaySubSystem = NULL;
   CorrelationSubSystem  = NULL;
+  HallCBeamlineSubSystem = NULL;
 
   dMWWidth              = w;
   dMWHeight             = h;
@@ -120,12 +121,19 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
     InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
+  if(!GetSubSystemPtr("HallC Beamline"))
+    HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
+					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+
   if(!GetSubSystemPtr("Correlation Plots"))
     CorrelationSubSystem = new QwGUICorrelationPlots(fClient->GetRoot(), this, dTab,"Correlation Plots",
 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  /*
   if(!GetSubSystemPtr("Event Display"))
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+  */
 
   
 
@@ -140,6 +148,7 @@ QwGUIMain::~QwGUIMain()
   delete InjectorSubSystem     ;
   delete EventDisplaySubSystem ;
   delete CorrelationSubSystem  ;
+  delete HallCBeamlineSubSystem;
 
   delete dROOTFile             ;
 

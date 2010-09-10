@@ -89,6 +89,7 @@
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
 #include "QwGUICorrelationPlots.h"
+#include "QwGUIHallCBeamline.h"
 
 
 #ifndef __CINT__
@@ -114,6 +115,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUIInjector          *InjectorSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
   QwGUICorrelationPlots  *CorrelationSubSystem;
+  QwGUIHallCBeamline     *HallCBeamlineSubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;
 
