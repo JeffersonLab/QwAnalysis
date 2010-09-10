@@ -145,13 +145,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
 
-    QwRunCondition run_condition(argc, argv);
-    rootfile -> WriteObject(
-			    run_condition.Get(),
-			    Form("Run %d Condition",eventbuffer.GetRunNumber())
-			    );
-
-
     // Create the tracking object branches
     QwEvent* event = 0;
     QwHitRootContainer* hitlist_root = new QwHitRootContainer();

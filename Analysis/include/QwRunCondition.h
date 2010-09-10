@@ -4,7 +4,7 @@
  *  \file   QwRunCondition.h
  *  \brief  
  *  \author jhlee@jlab.org
- *  \date   Monday, September  6 00:47:43 EDT 2010
+ *  \date   Thursday, September  9 21:42:30 EDT 2010
  */
 
 
@@ -34,7 +34,6 @@ class QwRunCondition
   void Set(Int_t argc, Char_t* argv[]);
   void Add(TString in);
   
-  TString GetSvnRevision();
   TString GetROCFlags();
   
   TList *fRunConditionList;

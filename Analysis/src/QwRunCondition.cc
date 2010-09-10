@@ -2,7 +2,7 @@
  *  \file   QwRunCondition.cc
  *  \brief  
  *  \author jhlee@jlab.org
- *  \date   Monday, September  6 00:47:39 EDT 2010
+ *  \date   Thursday, September  9 21:42:26 EDT 2010
  */
 
 #include "QwRunCondition.h"
@@ -35,6 +35,7 @@ QwRunCondition::Set(Int_t argc, Char_t* argv[])
 {
 
   // get ROOT release version, date, svn revision and branch
+  // RVersion.h (ROOT)
   TString root_version = "V";
   root_version += ROOT_RELEASE;
   root_version += ", Date : ";
@@ -59,14 +60,18 @@ QwRunCondition::Set(Int_t argc, Char_t* argv[])
   TString argv_list;
   for (Int_t i=1; i<argc; i++) argv_list += argv[i];
 
-  // get current time to create ROOT file 
+  // get current time when a ROOT file is created
   TTimeStamp time_stamp;
   TString current_time = time_stamp.AsString("l"); // local time
 
-  // get svn revision (version, and so on...)
+  // get svn revision, url, and last changed revision
+  // QwSVNVersion.h (GNUmakefile)
   TString svn_revision;
-  svn_revision = this->GetSvnRevision();
-
+  TString svn_url;
+  TString svn_lc_revision;
+  svn_revision    = QWANA_SVN_REVISION;
+  svn_url         = QWANA_SVN_URL;
+  svn_lc_revision = QWANA_SVN_LASTCHANGEDREVISION;
 
   // get current ROC flags 
   TString roc_flags;
@@ -80,14 +85,18 @@ QwRunCondition::Set(Int_t argc, Char_t* argv[])
     
 
   // insert some comments at the beginning of strings...
-  root_version.Insert(0, "ROOT Version : ");
-  program_name.Insert(0, "Executed Program Name : ");
-  host_name.Insert   (0, "Created on Hostname : ");
-  user_name.Insert   (0, "Created by the user : ");
-  argv_list.Insert   (0, "Executed Program Options : ");
-  current_time.Insert(0, "ROOT file creating time : ");
-  svn_revision.Insert(0, "Analyzer SVN Revision : ");
-  roc_flags.Insert   (0, "Current ROC flags : ");
+  root_version.Insert   (0, "ROOT Version : ");
+  current_time.Insert   (0, "ROOT file creating time : ");
+  host_name.Insert      (0, "ROOT file created on Hostname : ");
+  user_name.Insert      (0, "ROOT file created by the user : ");
+
+  program_name.Insert   (0, "QwAnalyzer Name : ");
+  argv_list.Insert      (0, "QwAnalyzer Options : ");
+  svn_revision.Insert   (0, "QwAnalyzer SVN Revision : ");
+  svn_url.Insert        (0, "QwAnalyzer SVN URL : ");
+  svn_lc_revision.Insert(0, "QwAnalyzer SVN Last Changed Revision : ");
+
+  roc_flags.Insert      (0, "DAQ ROC flags when QwAnalyzer runs : ");
 
   // add them into list to be returned to main program.
 
@@ -98,10 +107,12 @@ QwRunCondition::Set(Int_t argc, Char_t* argv[])
   this -> Add(argv_list);
   this -> Add(current_time);
   this -> Add(svn_revision);
+  this -> Add(svn_url);
+  this -> Add(svn_lc_revision);
   this -> Add(roc_flags);
 
   return;
-}
+};
 
 
 void
@@ -116,31 +127,6 @@ TList *
 QwRunCondition::Get()
 {
   return fRunConditionList;
-}
-
-TString
-QwRunCondition::GetSvnRevision()
-{
-  TString svn_revision;
-  
-  // there are some code to get svn revision
-  // Do we need API or just read .svn/entries file?
-  // I will try to read .svn/entries file directly
-  // Sunday, September  5 01:11:10 EDT 2010, jhlee
-
-  // * execute just "svnpath" and "svnversion ."
-  //   OR
-  // * try to use API
-  //   OR
-  // * read .svn/entries directly
-  //   OR
-  // * keywords http://svnbook.red-bean.com/en/1.4/svn.advanced.props.special.keywords.html
-  //   by Wouter
-
-
-  svn_revision = QWANA_SVN_REVISION;
-  
-  return svn_revision;
 };
 
 
@@ -148,7 +134,7 @@ TString
 QwRunCondition::GetROCFlags()
 {
   
-  Bool_t local_debug = true;
+  Bool_t local_debug = false;
   TString flags;
 
   ifstream flag_file;
@@ -167,18 +153,19 @@ QwRunCondition::GetROCFlags()
 
   }
   else {
-    while (not flag_file.eof() ) {
-      TString line;
-      line.ReadLine(flag_file);   
-      if(not line.IsNull()) {
-	if(local_debug) { 
-	  std::cout << line << std::endl;
-	}
-	if(not line.Contains(";")) {
-	  flags = line;
-	}
-      } // if(not line.IsNull()) {
-    } //   while (not flag_file.eof() ) {
+    while (not flag_file.eof() ) 
+      {
+	TString line;
+	line.ReadLine(flag_file);   
+	if(not line.IsNull()) {
+	  if(local_debug) { 
+	    std::cout << line << std::endl;
+	  }
+	  if(not line.Contains(";")) {
+	    flags = line;
+	  }
+	} // if(not line.IsNull()) {
+      } //   while (not flag_file.eof() ) {
   }
   flag_file.close();
 
