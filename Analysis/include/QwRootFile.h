@@ -277,6 +277,8 @@ class QwRootFile {
     /// Fill histograms of the subsystem array
     template < class T >
     void FillHistograms(T& detectors) {
+      if (! HasDirForType(detectors)) return;
+      // Fill histograms
       detectors.FillHistograms();
       // Update regularly
       static Int_t update_count = 0;
@@ -286,6 +288,8 @@ class QwRootFile {
     /// Delete histograms of the subsystem array
     template < class T >
     void DeleteHistograms(T& detectors) {
+      if (! HasDirForType(detectors)) return;
+      // Delete histograms
       detectors.DeleteHistograms();
     }
 
@@ -293,23 +297,23 @@ class QwRootFile {
     /// Create a new tree with name and description
     void NewTree(const std::string& name, const std::string& desc) {
       this->cd();
-      if (fTreeByName.count(name) == 0) {
+      if (! HasTreeForName(name)) {
         fTreeByName[name].push_back(new QwRootTree(name,desc));
       } else {
         fTreeByName[name].push_back(new QwRootTree(fTreeByName[name].front()));
       }
-      fTreeByType["type undefined"].push_back(fTreeByName[name].back());
+      fTreeByType["type undefined"].push_back(name);
     }
 
     /// Get the tree with name
     TTree* GetTree(const std::string& name) {
-      if (fTreeByName.count(name) == 0) return 0;
+      if (! HasTreeForName(name)) return 0;
       else return fTreeByName[name].front()->GetTree();
     }
 
     /// Fill the tree with name
     Int_t FillTree(const std::string& name) {
-      if (fTreeByName.count(name) == 0) return 0;
+      if (! HasTreeForName(name)) return 0;
       else return fTreeByName[name].front()->Fill();
     }
 
@@ -442,10 +446,40 @@ class QwRootFile {
 
     /// Tree names and types
     std::map< const std::string, std::vector<QwRootTree*> > fTreeByName;
-    std::map< const std::string, std::vector<QwRootTree*> > fTreeByType;
+    std::map< const std::string, std::vector<std::string> > fTreeByType;
+
+    /// Is a tree registered for this name
+    bool HasTreeForName(const std::string& name) {
+      if (fTreeByName.count(name) == 0) return false;
+      else return true;
+    }
+     /// Is a tree registered for this type
+    template < class T >
+    bool HasTreeForType(const T& object) {
+      std::string type = typeid(object).name();
+      if (fTreeByType.count(type) == 0) return false;
+      else return true;
+    }
 
     /// Directories
     std::map< const std::string, TDirectory* > fDirsByName;
+    std::map< const std::string, std::vector<std::string> > fDirsByType;
+
+    /// Is a tree registered for this name
+    bool HasDirForName(const std::string& name) {
+      if (fDirsByName.count(name) == 0) return false;
+      else return true;
+    }
+    /// Is a directory registered for this type
+    template < class T >
+    bool HasDirForType(const T& object) {
+      std::string type = typeid(object).name();
+      if (fDirsByType.count(type) == 0) return false;
+      else return true;
+    }
+
+
+  private:
 
     /// Prescaling of events written to tree
     UInt_t fNumEventsCycle;
@@ -480,6 +514,8 @@ void QwRootFile::ConstructTreeBranches(
 
     // Add the branches to the list of trees by name
     fTreeByName[name].push_back(new QwRootTree(name, desc, detectors));
+
+    // Settings only relevant for new trees
     fTreeByName[name].back()->SetPrescaling(fNumEventsToSave, fNumEventsToSkip);
     fTreeByName[name].back()->SetMaxTreeSize(kMaxTreeSize);
     #if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
@@ -495,7 +531,7 @@ void QwRootFile::ConstructTreeBranches(
 
   // Add to the list of trees by type
   std::string type = typeid(detectors).name();
-  fTreeByType[type].push_back(fTreeByName[name].back());
+  fTreeByType[type].push_back(name);
 }
 
 
@@ -508,8 +544,10 @@ void QwRootFile::FillTreeBranches(
         const std::string& name,
         const T& detectors)
 {
-  // Return if we do not want this tree information
-  if (IsTreeDisabled(name)) return;
+  // If this name has no registered trees
+  if (! HasTreeForName(name)) return;
+  // If this type has no registered trees
+  if (! HasTreeForType(detectors)) return;
 
   // Get the type of the object
   std::string type = typeid(detectors).name();
@@ -531,12 +569,15 @@ template < class T >
 void QwRootFile::FillTreeBranches(
         const T& detectors)
 {
+  // If this type has no registered trees
+  if (! HasTreeForType(detectors)) return;
+
   // Get the type of the object
   std::string type = typeid(detectors).name();
-  if (fTreeByType.count(type) == 1) {
-    for (size_t tree = 0; tree < fTreeByType[type].size(); tree++) {
-      FillTreeBranches(fTreeByType[type].at(tree)->GetName(), detectors);
-    }
+
+  // Fill the tree with the correct type
+  for (size_t name = 0; name < fTreeByType[type].size(); name++) {
+    FillTreeBranches(fTreeByType[type].at(name), detectors);
   }
 }
 
@@ -548,12 +589,14 @@ void QwRootFile::FillTreeBranches(
 template < class T >
 void QwRootFile::ConstructHistograms(const std::string& name, T& detectors)
 {
-  // Return if we do not want histogram information
+  // Return if we do not want this histogram information
   if (IsHistoDisabled(name)) return;
 
   // Create the histograms in a directory
   if (fRootFile) {
+    std::string type = typeid(detectors).name();
     fDirsByName[name] = fRootFile->mkdir(name.c_str());
+    fDirsByType[type].push_back(name);
     detectors.ConstructHistograms(fDirsByName[name]);
   }
 
