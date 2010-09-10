@@ -10,14 +10,9 @@
 // C and C++ headers
 #include <sys/time.h>
 
-// ROOT headers
-#include <Rtypes.h>
-#include <TROOT.h>
-#include <TFile.h>
-#include <TTree.h>
-
 // Qweak headers
 #include "QwLog.h"
+#include "QwRootFile.h"
 #include "QwOptionsTracking.h"
 #include "QwEventBuffer.h"
 #include "QwHistogramHelper.h"
@@ -53,8 +48,6 @@
 // Debug level
 static const bool kDebug = kFALSE;
 // ROOT file output
-static const bool kTree = kTRUE;
-static const bool kHisto = kFALSE;
 static const bool kEPICS = kFALSE;
 
 // Main function
@@ -130,7 +123,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   qset.LinkDetectors();
   qset.DeterminePlanes();
 
- 
+
 
   QwTrackingWorker *trackingworker = 0;
   // Create the tracking worker
@@ -142,82 +135,48 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwDatabase database(gQwOptions);
 
   ///  Start loop over all runs
+  QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     //  Begin processing for the first run.
 
     //  Open the ROOT file
-    TFile *rootfile = 0;
-    if (rootfile) {
-       if (rootfile-> IsOpen()) rootfile->Close();
-       delete rootfile;
-       rootfile=0;
-    }
-
-    rootfile = new TFile(Form(getenv_safe_TString("QW_ROOTFILES") + "/Qweak_%s.root",
-                        eventbuffer.GetRunLabel().Data()), "RECREATE",
-                        "QWeak ROOT file with real events");
-    //   std::auto_ptr<TFile> rootfile (new TFile(Form(getenv_safe_TString("QWSCRATCH") + "/rootfiles/Qweak_%d.root", run),
-    //   					"RECREATE",
-    //   					"QWeak ROOT file with real events"));
-
-    //  Create the histograms for the QwDriftChamber subsystem object.
-    //  We can create a subfolder in the rootfile first, if we want,
-    //  and then pass it into the constructor.
-    //
-    //  To pass a subdirectory named "subdir", we would do:
-    //   tracking_detectors.GetSubsystemByName("MD")->ConstructHistograms(rootfile->mkdir("subdir"));
-
-    // Construct histograms
-    //tracking_detectors.ConstructHistograms(rootfile->mkdir("histos"));
-
-    // Open file
+    rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+    if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
 
     QwRunCondition run_condition(argc, argv);
     rootfile -> WriteObject(
-     			    run_condition.Get(), 
+			    run_condition.Get(),
 			    Form("Run %d Condition",eventbuffer.GetRunNumber())
 			    );
-    
 
-    TTree* hit_tree = 0;
-    TTree* event_tree = 0;
+
+    // Create the tracking object branches
     QwEvent* event = 0;
     QwHitRootContainer* hitlist_root = new QwHitRootContainer();
-    std::vector<double> tracking_vector, parity_vector;
-    //  hit_tree->GetUserInfo()->Add(han);
+    rootfile->NewTree("hit_tree", "QwTracking Hit-based Tree");
+    rootfile->GetTree("hit_tree")->Branch("hits", "QwHitRootContainer", &hitlist_root);
+    rootfile->NewTree("event_tree", "QwTracking Event-based Tree");
+    rootfile->GetTree("event_tree")->Branch("hits", "QwHitRootContainer", &hitlist_root);
+    rootfile->GetTree("event_tree")->Branch("events", "QwEvent", &event);
+    // hit_tree->GetUserInfo()->Add(han);
 
-    if (kTree) {
-       rootfile->cd(); // back to the top directory
-       hit_tree = new TTree("hit_tree", "QwTracking Hit-based Tree");
-       hit_tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
-       event_tree = new TTree("event_tree", "QwTracking Event-based Tree");
-       event_tree->Branch("hits", "QwHitRootContainer", &hitlist_root);
-       event_tree->Branch("events", "QwEvent", &event);
-       // hit_tree->GetUserInfo()->Add(han);
-       // Create the branches and tree vector
-       TString prefix = "";
-       tracking_vector.reserve(6000);
-       tracking_detectors.ConstructBranchAndVector(event_tree, prefix, tracking_vector);
-       parity_vector.reserve(6000);
-       parity_detectors.ConstructBranchAndVector(event_tree, prefix, parity_vector);
-    }
+    // Create the subsystem branches
+    rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
+    rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", parity_detectors);
 
-    if (kHisto) {
-       rootfile->cd();
-       tracking_detectors.ConstructHistograms(rootfile->mkdir("tracking_histo"));
-       rootfile->cd();
-       parity_detectors.ConstructHistograms(rootfile->mkdir("parity_histo"));
-       rootfile->cd();
-    }
+    // Create the subsystem histograms
+    rootfile->ConstructHistograms("tracking_histo", tracking_detectors);
+    rootfile->ConstructHistograms("parity_histo",   parity_detectors);
+
+    // Summarize the ROOT file structure
+    rootfile->PrintTrees();
+    rootfile->PrintDirs();
+
 
     QwHitContainer* hitlist = 0;
-
     Int_t nevents           = 0;
-    Int_t hit_fill_retval   = 0;
-    Int_t event_fill_retval = 0;
-
     while (eventbuffer.GetNextEvent() == CODA_OK) {
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
@@ -238,7 +197,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       //  Now, if this is not a physics event, go back and get
       //  a new event.
-      if (! eventbuffer.IsPhysicsEvent() ) {
+      if (! eventbuffer.IsPhysicsEvent()) {
          continue;
       }
 
@@ -251,12 +210,12 @@ Int_t main(Int_t argc, Char_t* argv[])
       parity_detectors.ProcessEvent();
 
       // Fill the tree
-      tracking_detectors.FillTreeVector(tracking_vector);
-      parity_detectors.FillTreeVector(parity_vector);
+      rootfile->FillTreeBranches(tracking_detectors);
+      rootfile->FillTreeBranches(parity_detectors);
 
       // Fill the histograms for the subsystem objects.
-      if (kHisto) tracking_detectors.FillHistograms();
-      if (kHisto) parity_detectors.FillHistograms();
+      rootfile->FillHistograms(tracking_detectors);
+      rootfile->FillHistograms(parity_detectors);
 
 
 
@@ -280,7 +239,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
 
       // Conver the hit list to ROOT output format
-      if (kTree) hitlist_root->Build(*hitlist);
+      hitlist_root->Build(*hitlist);
 
       // Track reconstruction
       if (hitlist->size() > 0) {
@@ -295,16 +254,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
 
       // Save the hitlist to the tree
-      if (kTree) {
-	hit_fill_retval   = hit_tree->Fill();
-	event_fill_retval = event_tree->Fill();
-	
-	if ((hit_fill_retval==-1) or (event_fill_retval==-1)) {
-	  QwError << "Please check your disk space in order to save ROOT file properly."
-		  << QwLog::endl;
-	  exit(-1);
-	}
-      }
+      rootfile->FillTrees();
 
       // Delete objects
       if (hitlist) delete hitlist; hitlist = 0;
@@ -342,8 +292,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     eventbuffer.CloseStream();
 
     // Delete histograms in the subsystems
-    if (kHisto) tracking_detectors.DeleteHistograms();
-    if (kHisto) parity_detectors.DeleteHistograms();
+    tracking_detectors.DeleteHistograms();
+    parity_detectors.DeleteHistograms();
 
     // Close ROOT file
     rootfile->Close();

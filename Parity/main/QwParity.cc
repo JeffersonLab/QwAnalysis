@@ -15,11 +15,6 @@
 // Boost headers
 #include <boost/shared_ptr.hpp>
 
-// ROOT headers
-#include <Rtypes.h>
-#include <TROOT.h>
-#include <TFile.h>
-
 // Qweak headers
 #include "QwLog.h"
 #include "QwRootFile.h"
@@ -109,14 +104,19 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
-
     //  Construct histograms
-    rootfile->ConstructHistograms(detectors);
-    rootfile->ConstructHistograms(helicitypattern);
+    rootfile->ConstructHistograms("mps_histo", detectors);
+    rootfile->ConstructHistograms("hel_histo", helicitypattern);
 
     //  Construct tree branches
-    rootfile->ConstructTreeBranches(detectors);
-    rootfile->ConstructTreeBranches(helicitypattern);
+    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
+    rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+
+    // Summarize the ROOT file structure
+    rootfile->PrintTrees();
+    rootfile->PrintDirs();
+
+
     Int_t failed_events_counts = 0; // count failed total events
     // TODO (wdc) failed event counter in QwEventRing?
 
@@ -169,7 +169,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
         // Fill the tree branches
         rootfile->FillTreeBranches(detectors);
-
+        rootfile->FillTree("Mps_Tree");
 
         // Add event to the ring
         eventring.push(detectors);
@@ -193,6 +193,7 @@ Int_t main(Int_t argc, Char_t* argv[])
               rootfile->FillHistograms(helicitypattern);
               // Fill tree branches
               rootfile->FillTreeBranches(helicitypattern);
+              rootfile->FillTree("Hel_Tree");
               // Clear the data
               helicitypattern.ClearEventData();
             }
