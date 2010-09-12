@@ -25,6 +25,11 @@ class QwMapFile {
     if (fMapFile) return fMapFile->Write(name, option, bufsize); else return 0;
   }
 
+  TDirectory *GetDirectory() const {
+    if (fMapFile) return fMapFile->GetDirectory();
+    else return 0;
+  };
+
   static const size_t kMapFileSize;//making it larger crashed the qwanalysis_online
 
  protected:

@@ -277,7 +277,7 @@ class QwRootFile {
     /// Fill histograms of the subsystem array
     template < class T >
     void FillHistograms(T& detectors) {
-      if (! HasDirForType(detectors)) return;
+      if (! HasDirByType(detectors)) return;
       // Fill histograms
       detectors.FillHistograms();
       // Update regularly
@@ -288,7 +288,7 @@ class QwRootFile {
     /// Delete histograms of the subsystem array
     template < class T >
     void DeleteHistograms(T& detectors) {
-      if (! HasDirForType(detectors)) return;
+      if (! HasDirByType(detectors)) return;
       // Delete histograms
       detectors.DeleteHistograms();
     }
@@ -297,7 +297,7 @@ class QwRootFile {
     /// Create a new tree with name and description
     void NewTree(const std::string& name, const std::string& desc) {
       this->cd();
-      if (! HasTreeForName(name)) {
+      if (! HasTreeByName(name)) {
         fTreeByName[name].push_back(new QwRootTree(name,desc));
       } else {
         fTreeByName[name].push_back(new QwRootTree(fTreeByName[name].front()));
@@ -307,13 +307,13 @@ class QwRootFile {
 
     /// Get the tree with name
     TTree* GetTree(const std::string& name) {
-      if (! HasTreeForName(name)) return 0;
+      if (! HasTreeByName(name)) return 0;
       else return fTreeByName[name].front()->GetTree();
     }
 
     /// Fill the tree with name
     Int_t FillTree(const std::string& name) {
-      if (! HasTreeForName(name)) return 0;
+      if (! HasTreeByName(name)) return 0;
       else return fTreeByName[name].front()->Fill();
     }
 
@@ -449,13 +449,13 @@ class QwRootFile {
     std::map< const std::string, std::vector<std::string> > fTreeByType;
 
     /// Is a tree registered for this name
-    bool HasTreeForName(const std::string& name) {
+    bool HasTreeByName(const std::string& name) {
       if (fTreeByName.count(name) == 0) return false;
       else return true;
     }
      /// Is a tree registered for this type
     template < class T >
-    bool HasTreeForType(const T& object) {
+    bool HasTreeByType(const T& object) {
       std::string type = typeid(object).name();
       if (fTreeByType.count(type) == 0) return false;
       else return true;
@@ -466,13 +466,13 @@ class QwRootFile {
     std::map< const std::string, std::vector<std::string> > fDirsByType;
 
     /// Is a tree registered for this name
-    bool HasDirForName(const std::string& name) {
+    bool HasDirByName(const std::string& name) {
       if (fDirsByName.count(name) == 0) return false;
       else return true;
     }
     /// Is a directory registered for this type
     template < class T >
-    bool HasDirForType(const T& object) {
+    bool HasDirByType(const T& object) {
       std::string type = typeid(object).name();
       if (fDirsByType.count(type) == 0) return false;
       else return true;
@@ -545,9 +545,9 @@ void QwRootFile::FillTreeBranches(
         const T& detectors)
 {
   // If this name has no registered trees
-  if (! HasTreeForName(name)) return;
+  if (! HasTreeByName(name)) return;
   // If this type has no registered trees
-  if (! HasTreeForType(detectors)) return;
+  if (! HasTreeByType(detectors)) return;
 
   // Get the type of the object
   std::string type = typeid(detectors).name();
@@ -570,7 +570,7 @@ void QwRootFile::FillTreeBranches(
         const T& detectors)
 {
   // If this type has no registered trees
-  if (! HasTreeForType(detectors)) return;
+  if (! HasTreeByType(detectors)) return;
 
   // Get the type of the object
   std::string type = typeid(detectors).name();
@@ -595,14 +595,17 @@ void QwRootFile::ConstructHistograms(const std::string& name, T& detectors)
   // Create the histograms in a directory
   if (fRootFile) {
     std::string type = typeid(detectors).name();
-    fDirsByName[name] = fRootFile->mkdir(name.c_str());
+    fDirsByName[name] = fRootFile->GetDirectory("/")->mkdir(name.c_str());
     fDirsByType[type].push_back(name);
     detectors.ConstructHistograms(fDirsByName[name]);
   }
 
   // No support for directories in a map file
   if (fMapFile) {
-    detectors.ConstructHistograms();
+    std::string type = typeid(detectors).name();
+    fDirsByName[name] = fMapFile->GetDirectory()->mkdir(name.c_str());
+    fDirsByType[type].push_back(name);
+    detectors.ConstructHistograms(fDirsByName[name]);
   }
 }
 
