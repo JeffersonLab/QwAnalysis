@@ -113,7 +113,7 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
   //Important to empty the fHistParams to reload the real time histo difinition file
   if (fTrimHistoEnable)
     fHistParams.clear();
-  std::cout<< " fHistParams "<<fHistParams.size() <<std::endl;
+  
   QwParameterFile mapstr(filename.c_str());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('#');   // Remove everything after a '!' character.
@@ -270,7 +270,7 @@ const Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string devi
   Int_t matched;
   matched=0;
   if (!fTreeTrimFileLoaded || fTrimDisable){//if file is not loaded or trim tree is disable by cmd flag
-    QwMessage << "Tree Trim Disabled! "<<  QwLog::endl;
+    
     return kTRUE;//return true for all devices
   }
   for (size_t i = 0; i < fTreeParams.size(); i++) {
@@ -295,7 +295,7 @@ const Bool_t QwHistogramHelper::MatchVQWKElementFromList(const std::string subsy
   Int_t matched;
   matched=0;
   if (!fTreeTrimFileLoaded || fTrimDisable){//if file is not loaded or trim tree is disable by cmd flag
-    //QwMessage << "Tree Trim Disabled! "<<  QwLog::endl;
+
     return kTRUE;//return true for all devices
   }
   
