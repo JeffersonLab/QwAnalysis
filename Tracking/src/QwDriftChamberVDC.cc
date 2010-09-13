@@ -162,7 +162,6 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition( TString mapfile )
 
 void  QwDriftChamberVDC::SubtractReferenceTimes()
 {
-
   std::vector<Double_t> reftimes;
   std::vector<Bool_t>   refchecked;
   std::vector<Bool_t>   refokay;
@@ -198,7 +197,8 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
       //  Only try to check the reference time for a bank if there is at least one
       //  non-reference hit in the bank.
       bankid = hit->GetSubbankID();
-
+      //if(hit->GetRegion()==3)
+      //std::cout << "bankid: " << bankid << std::endl;
       //   if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
       //
       // if bankid == 0, print out bank id, and then what?
@@ -215,6 +215,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
             }
 	  else
             {
+	      if(fReferenceData.at ( bankid ).size()==0) std::cout << "catch the problem!" << std::endl;
 	      reftimes.at ( bankid ) = fReferenceData.at ( bankid ).at ( 0 );
 	      refokay.at  ( bankid ) = kTRUE;
             }
@@ -265,7 +266,6 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
       fTDCHits = tmp_hits;
       // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
     }
-
   return;
 }
 
@@ -275,8 +275,48 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
     Double_t angle_degree = 45.0;
     Double_t distance_mm = 0.0;
     Double_t distance_cm = 0.0;
+    Double_t dt=drifttime;
 
-    Double_t p[11]={0.0};
+    Double_t p[12]={0.0};
+    Double_t cut_time[3]={60,236,300};
+
+    p[0]=-0.0217483;
+    p[1]=0.0671134;
+    p[2]=0.000371857;
+    p[3]=-6.10097;
+
+    p[4]=0.797553;
+    p[5]=0.0538063;
+
+    p[6]=-39.0646;
+    p[7]=0.449894;
+    p[8]=-0.00119686;
+    p[9]=1.00028;
+
+    p[10]=14.7995;
+    p[11]=0.00100113;
+
+
+    if ( dt < cut_time[0] )
+      {
+        distance_mm = p[0]+p[1]*dt+p[2]*dt*dt+p[3]*dt*dt*dt/1000000;
+      }
+    else if ( dt>=cut_time[0] && dt<cut_time[1] )
+      {
+        distance_mm = p[4]+p[5]*dt;
+      }
+    else if ( dt>=cut_time[1] && dt < cut_time[2] )
+      {
+        distance_mm = p[6]+p[7]*dt+p[8]*dt*dt+p[9]*dt*dt*dt/1000000;
+      }
+    else if ( dt>=cut_time[2] )
+      {
+        distance_mm = p[10]+p[11]*dt;
+      }
+    else {};
+
+
+    //Double_t p[11]={0.0};
     ////   for arg-65-ethane-35
     //     p[0]=-1.683+0.02112*angle_degree;
     //     p[1]=23.32-0.298*angle_degree;
@@ -291,30 +331,30 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
     //     p[10]=22.61-0.005106*angle_degree;
 
     //for arg-50-ethane-50
-    p[ 0] = -1.749 + 0.021670*angle_degree; // [T], then what unit of 0.021670 is?
+    //p[ 0] = -1.749 + 0.021670*angle_degree; // [T], then what unit of 0.021670 is?
     // [T]/[DEGREE]
     // jhlee, confirmed by siyuan
     // Thursday, July  8 10:50:23 EDT 2010
-    p[ 1] = 24.100 - 0.305100*angle_degree; // [T]/[L]   0.305100 [T]/([L].[DEGREE])
-    p[ 2] = -3.133 + 0.009078*angle_degree; // [T]
-    p[ 3] = 28.510 - 0.295100*angle_degree; // [T]/[L]
-    p[ 4] =  7.869 - 0.163500*angle_degree; // [T]
-    p[ 5] = 17.690 - 0.120800*angle_degree; // [T]/[L]
-    p[ 6] =  2.495 - 0.041040*angle_degree; // [T]/[L2]
-    p[ 7] =  3.359 - 0.478000*angle_degree; // [T]
-    p[ 8] = 29.350 - 0.219500*angle_degree; // [T]/[L]
-    p[ 9] = 55.680 - 1.730000*angle_degree; // [T]
-    p[10] = 20.380 - 0.004761*angle_degree; // [T]/[L]
+    //p[ 1] = 24.100 - 0.305100*angle_degree; // [T]/[L]   0.305100 [T]/([L].[DEGREE])
+    //p[ 2] = -3.133 + 0.009078*angle_degree; // [T]
+    //p[ 3] = 28.510 - 0.295100*angle_degree; // [T]/[L]
+    //p[ 4] =  7.869 - 0.163500*angle_degree; // [T]
+    //p[ 5] = 17.690 - 0.120800*angle_degree; // [T]/[L]
+    //p[ 6] =  2.495 - 0.041040*angle_degree; // [T]/[L2]
+    //p[ 7] =  3.359 - 0.478000*angle_degree; // [T]
+    //p[ 8] = 29.350 - 0.219500*angle_degree; // [T]/[L]
+    //p[ 9] = 55.680 - 1.730000*angle_degree; // [T]
+    //p[10] = 20.380 - 0.004761*angle_degree; // [T]/[L]
 
-    Double_t cut[4]  = {0.5, 1.5, 4.0, 6.0};// [L] // mm
-    Double_t time[4] = {0.0};// [T]
+    //Double_t cut[4]  = {0.5, 1.5, 4.0, 6.0};// [L] // mm
+    //Double_t time[4] = {0.0};// [T]
 
-    time[0] = 0.5* ( p[0] + p[1]*cut[0] + p[2] + p[3]*cut[0] );
-    time[1] = 0.5* ( p[2] + p[3]*cut[1] + p[4] + p[5]*cut[1] + p[6]*cut[1]*cut[1] );
-    time[2] = 0.5* ( p[4] + p[5]*cut[2] + p[6]*cut[2]*cut[2] + p[7] + p[8]*cut[2] );
-    time[3] = 0.5* ( p[7] + p[8]*cut[3] + p[9] +p[10]*cut[3] );
+    //time[0] = 0.5* ( p[0] + p[1]*cut[0] + p[2] + p[3]*cut[0] );
+    //time[1] = 0.5* ( p[2] + p[3]*cut[1] + p[4] + p[5]*cut[1] + p[6]*cut[1]*cut[1] );
+    //time[2] = 0.5* ( p[4] + p[5]*cut[2] + p[6]*cut[2]*cut[2] + p[7] + p[8]*cut[2] );
+    //time[3] = 0.5* ( p[7] + p[8]*cut[3] + p[9] +p[10]*cut[3] );
 
-    if ( drifttime < time[0] )
+    /*if ( drifttime < time[0] )
     {
         distance_mm = ( drifttime - p[0] ) /p[1];
     }
@@ -333,7 +373,7 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
     else if ( drifttime>=time[3] )
     {
         distance_mm = ( drifttime - p[9] ) /p[10];
-    }
+	}*/
     //if(drifttime>=4 && drifttime < 4.1)
     //std::cout << "drifttime: " << drifttime << " " << "x: " << x << std::endl;
 
@@ -1156,9 +1196,9 @@ Int_t QwDriftChamberVDC::LoadTimeWireOffset(TString t0_map)
       wire = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
       t0   = ( atoi ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
 
-      if (wire > (Int_t)fTimeWireOffsets.at(package-1).at(plane-1).size()) fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
+      if (wire > (Int_t)fTimeWireOffsets.at(package-1).at(plane-1).size()) {fTimeWireOffsets.at(package-1).at(plane-1).resize(wire);
 
-      fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1) = t0;
+	fTimeWireOffsets.at(package-1).at(plane-1).at(wire-1) = t0;}
 
     }
   //
