@@ -49,6 +49,11 @@ int main (int argc, char* argv[])
   // Create a QwEventDisplay application
   QwEventDisplay3D* display = new QwEventDisplay3D(gClient->GetRoot(),1200,800);
 
+  // Check to see if the user asked for a specific roation of the tracking
+  // system
+  if(gQwOptions.GetValue<int>("rotate")>0)
+     display->SetRotation(gQwOptions.GetValue<int>("rotate"));
+
   // If the user passes the right parameter, open up that file
   if(gQwOptions.GetValue<int>("run")>0)
      display->OpenRoot(gQwOptions.GetValue<int>("run"));

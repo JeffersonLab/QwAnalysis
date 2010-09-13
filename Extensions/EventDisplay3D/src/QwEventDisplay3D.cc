@@ -3,6 +3,13 @@ ClassImp(QwEventDisplay3D);
 
 // ROOT Includes
 
+// Global defines
+// These represent the conversion from degrees to radians
+#define _45DEG_  0.78539816;
+#define _90DEG_  1.57079633;
+#define _135DEG_ 2.35619449;
+#define _180DEG_ 3.14159265;
+
 // Global constants (mostly flags)
 const Bool_t kDebug = kTRUE;
 
@@ -14,7 +21,7 @@ QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
    // First initialize the wire constants
    // TODO:(jc2) Read these from a configuration. Also check these numbers,
    // these were the figures I had on hand when I did this on 07/14/2010
-  
+
 
    //The Following are VDC specs from old survey 07/14/2010 
    fVDC_AngleOfWires = 0.463647609;  // atan(1/2) in radians
@@ -71,6 +78,14 @@ QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
 
    fCurrentTrackArray = new TObjArray();
    fCurrentOutlineArray= new TObjArray();   
+
+   // Setup the rotation for now, assuming a default of horizontal position
+   // for the tracking hardware
+   SetRotation(0.);
+
+   // Enable various flags (for now, should be done through the GUI later)
+   fDrawTracks = kFALSE;
+   fDrawTreeLines = kFALSE;
 
 
    // For now, just initialize
@@ -620,7 +635,7 @@ void QwEventDisplay3D::DisplayEvent()
 
    // Check to see if a previous event was already drawn and remove it
      if( fCurrentTrack )
-      ClearTracks();       
+      ClearTracks();
 
 
    // Find out if there are any valid "hits" in this event
@@ -710,6 +725,10 @@ void QwEventDisplay3D::DisplayEvent()
 
          // Display the wire hit
          DisplayWire(wire,plane,package,region,message);
+         //for(Int_t a = 1; a<=2; a++ )
+         //   for( Int_t b = 1; b<=4; b++ )
+         //      for ( Int_t c = 1; c <= 279; c++ )
+         //         DisplayWire(c,b,a,3,"");
 
      }
      // For now we will display multiple partial, possibly not connected,
@@ -724,68 +743,87 @@ void QwEventDisplay3D::DisplayEvent()
 
         // Region 1 & 2 should point back toward the target, while Region 3
         // should point towards the beam dump
-        Int_t sign = 1;
-        if( partialTrack->GetRegion() == kRegionID2)
-           sign = -1;
+        if( fDrawTracks ) {
+           Int_t sign = 1;
+           if( partialTrack->GetRegion() == kRegionID2)
+              sign = -1;
 
-        if( partialTrack->IsValid() ) {
-           std::cout << "Region: " << partialTrack->GetRegion() << "\n";
+           if( partialTrack->IsValid() ) {
+              std::cout << "Region: " << partialTrack->GetRegion() << "\n";
 
-           TEveRecTrack *track = new TEveRecTrack();
-           TEveTrackPropagator *prop = new TEveTrackPropagator();
-           prop->SetMagField(0.,0.,0.);
-           prop->SetFitDaughters(kFALSE);
-           prop->SetMaxR(1000.);
+              TEveRecTrack *track = new TEveRecTrack();
+              TEveTrackPropagator *prop = new TEveTrackPropagator();
+              prop->SetMagField(0.,0.,0.);
+              prop->SetFitDaughters(kFALSE);
+              prop->SetMaxR(1000.);
 
-           // This assumes the Origin is centered at z=0, and the two offsets
-           // found no the partial tracks
-           std::cout << "Origin: (" << partialTrack->fOffsetX/10. << "," <<
-              partialTrack->fOffsetY/10. << ",0.)\n";
-           track->fV.Set(partialTrack->fOffsetX/10.,
-                 partialTrack->fOffsetY/10.,0.);
+              // This assumes the Origin is centered at z=0, and the two offsets
+              // found no the partial tracks
+              std::cout << "Origin: (" << partialTrack->fOffsetX/10. << "," <<
+                 partialTrack->fOffsetY/10. << ",0.)\n";
+              track->fV.Set(partialTrack->fOffsetX/10.,
+                    partialTrack->fOffsetY/10.,0.);
 
-           // The components of this vector are represented only by ratios
-           // of X and Y to Z. That assumes that fSlopeX and fSlopeY are
-           // proper ratios compared to z. Let z = 1 for simplicity
-           std::cout << "Slopes: (" << partialTrack->fSlopeX << "," <<
-              partialTrack->fSlopeY << "," << sign*1. << ")\n";
-           track->fP.Set(partialTrack->fSlopeX*sign,
-                 partialTrack->fSlopeY*sign,1.);
+              // The components of this vector are represented only by ratios
+              // of X and Y to Z. That assumes that fSlopeX and fSlopeY are
+              // proper ratios compared to z. Let z = 1 for simplicity
+              std::cout << "Slopes: (" << partialTrack->fSlopeX << "," <<
+                 partialTrack->fSlopeY << "," << sign*1. << ")\n";
+              track->fP.Set(partialTrack->fSlopeX*sign,
+                    partialTrack->fSlopeY*sign,1.);
 
-           // The technical details of drawing the track
-           fCurrentTrack = new TEveTrack(track,prop);
-           fCurrentTrackArray->Add(fCurrentTrack);
-           fCurrentTrack->SetMainColor(6);
-           fCurrentTrack->SetMarkerColor(kGreen);
-           fCurrentTrack->SetMarkerStyle(5);
-           fCurrentTrack->SetMarkerSize(0.5);
-           fCurrentTrack->SetTitle(Form("Track for region: %d\n\nOrigin: "
-                    "(%.3f,%.3f,%.3f)\nSlope: (%.3f,%.3f,%.3f)",
-                    partialTrack->GetRegion(),
-                    partialTrack->fOffsetX/10.,
-                    partialTrack->fOffsetY/10., 0.,
-                    partialTrack->fSlopeX,partialTrack->fSlopeY,1.));
-           fEveManager->AddElement(fCurrentTrackList);
-           fEveManager->AddElement(fCurrentTrack);
-           fCurrentTrack->MakeTrack();
+              // The technical details of drawing the track
+              fCurrentTrack = new TEveTrack(track,prop);
+              fCurrentTrackArray->Add(fCurrentTrack);
+              fCurrentTrack->SetMainColor(6);
+              fCurrentTrack->SetMarkerColor(kGreen);
+              fCurrentTrack->SetMarkerStyle(5);
+              fCurrentTrack->SetMarkerSize(0.5);
+              fCurrentTrack->SetTitle(Form("Track for region: %d\n\nOrigin: "
+                       "(%.3f,%.3f,%.3f)\nSlope: (%.3f,%.3f,%.3f)",
+                       partialTrack->GetRegion(),
+                       partialTrack->fOffsetX/10.,
+                       partialTrack->fOffsetY/10., 0.,
+                       partialTrack->fSlopeX,partialTrack->fSlopeY,1.));
+              fEveManager->AddElement(fCurrentTrackList);
+              fEveManager->AddElement(fCurrentTrack);
+              fCurrentTrack->MakeTrack();
+           }
         }
      }
 
+     if( fDrawTreeLines ) {
+         // For now, we also draw planes representing the tree lines
+         const TClonesArray *treeLinesList = fEvent->GetListOfTreeLines();
+         Int_t numberOfTreeLines = fEvent->GetNumberOfTreeLines();
+         std::cout << "Number of Tree Lines: " << numberOfTreeLines << "\n";
+         for (Int_t k = 0; k < numberOfTreeLines; k++ ) {
+            // Extract the TreeLine
+            QwTrackingTreeLine *treeline =
+               (QwTrackingTreeLine*)treeLinesList->At(k);
+
+            if (treeline->IsValid() ) {
+               std::cout << "Region: " << treeline->GetRegion() << "\t"
+                  << "Plane: " << treeline->GetPlane() << "\t"
+                  << "Slope: " << treeline->GetSlope() << "\n";
+
+               // Draw the plane
+               TEveQuadSet *evePlane = new TEveQuadSet(
+                     TEveQuadSet::kQT_RectangleYZ, kTRUE, 1);
+               evePlane->AddQuad(0.,0.,0.,100.);
+               evePlane->ComputeBBox();
+               evePlane->AddQuad(0.,0.,1000.);
+               evePlane->AddQuad(0.,1000.,1000.);
+               evePlane->AddQuad(0.,1000.,0.);
+               //TEveQuadSetGL *planeGL = new TEveQuadSetGL();
+               //planeGL->SetModel(evePlane);
+               fEveManager->AddElement(evePlane);
+            }
+        }
+     }
+
+
 /*
-      TEveRecTrack  rt;
-      rt.fV.Set(0.,276.-75.05,442.-200.);
-      rt.fP.Set(0.+(rand()%100)/10.-5.,3.802+(rand()%100)/90.-.5,10.);
-      rt.fSign=1;
-      fCurrentTrack = new TEveTrack(&rt,prop);
-      fCurrentTrack->SetMainColor(6);
-      fCurrentTrack->SetMarkerColor(kYellow);
-      fCurrentTrack->SetMarkerStyle(4);
-      fCurrentTrack->SetMarkerSize(0.5);
-
-      fEveManager->AddElement(fCurrentTrack);
-      fCurrentTrackArray->Add(fCurrentTrack);
-      fCurrentTrack->MakeTrack();
-
       fSideProjectionManager->ImportElements( (TEveElement*)fEveManager->GetCurrentEvent(), fSideScene );
       fTopProjectionManager->ImportElements( (TEveElement*)fEveManager->GetCurrentEvent(), fTopScene );
       gSystem->ProcessEvents();
@@ -1070,7 +1108,7 @@ else { // Detector View
 
       // Of course hide those undesirable objects.
       HideUnecessary();
-      
+
       fVDC_IsWireView = !fVDC_IsWireView;
 
       // Clear HDC Wire Plane Outlines
@@ -1148,75 +1186,83 @@ void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
    prop->SetMagField(0.,0.,0.);
    prop->SetFitDaughters(kFALSE);
 
-
    //For Region 2 We draw with Lines rather then tracks.
    TEveStraightLineSet* ls = new TEveStraightLineSet();
-  
-
-
-
 
    // The Following is for region 3:
    if ( region == kRegionID3 ) {
+      // TODO: There was a time when we were fed planes 1-8. This should
+      // prevent someone from accidentally feeding us these numbers in the
+      // future again.If this issue has been fixed, this can safely be removed.
+      plane = (plane-1)%4 + 1;
 
-   // TODO: There was a time when we were fed planes 1-8. This should prevent
-   // someone from accidentally feeding us these numbers in the future again.
-   // If this issue has been fixed, this can safely be removed.
-   plane = (plane-1)%4 + 1;
+      // The sign corresponds to the direction of the wires. Planes U and V
+      // inverted over the local y axis, with respect to each other.
+      Int_t sign = 1;
+      if( ((plane-1)%2) == 1 )
+         sign = -1;
 
-   // The sign corresponds to the direction of the wires. Planes U and V
-   // inverted over the local y axis, with respect to each other.
-   Int_t sign = 1;
-   if( ((plane-1)%2) == 1 )
-      sign = -1;
+      // In region 3 there are 3 wire length types. The ones in the center 
+      // which are all the same length, and consequently happen to be the
+      // longest ones. Additionally, there are the ones on either side that
+      // are apparently not necessarily symmetric. But that's ok.
 
+      // Place holders for the vector components and origin
+      Double_t originX = 0., originY = 0., originZ = 0.;
+      Double_t momentumX = 0, momentumY = 0, momentumZ = 0;
 
-   // In region 3 there are 3 wire length types. The ones in the center
-   // which are all the same length, and consequently happen to be the longest
-   // ones. Additionally, there are the ones on either side that are apparently
-   // not necessarily symmetric. But that's ok.
-
-    if ( wire <= 95 ) {
+      if ( wire <= 95 ) {
          prop->SetMaxZ(fVDC_PlaneZPos[plane-1]+
                TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.
                -(96-wire)*fVDC_WireZProjectedSpacing);
-         wireT->fV.Set(sign*(fVDC_WireXSpacing*(92-wire)),
-                  fVDC_PlaneYPos[plane-1]-TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.,
-                  fVDC_PlaneZPos[plane-1]-TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
+
+         // Calculate the wire origins
+         originX = sign*(fVDC_WireXSpacing*(92-wire));
+         originY = fVDC_PlaneYPos[plane-1]-
+            TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+         originZ = fVDC_PlaneZPos[plane-1]-
+            TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
       } else if ( wire <= 184 ) {
          prop->SetMaxZ(fVDC_PlaneZPos[plane-1]+
                TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
-         wireT->fV.Set(sign*(fVDC_WireXSpacing*(92-wire)),
-                 fVDC_PlaneYPos[plane-1]-TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.,
-                  fVDC_PlaneZPos[plane-1]-TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
+         originX = sign*(fVDC_WireXSpacing*(92-wire));
+         originY = fVDC_PlaneYPos[plane-1]-
+            TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+         originZ = fVDC_PlaneZPos[plane-1]-
+            TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
       } else {
          prop->SetMaxZ(fVDC_PlaneZPos[plane-1]+
                TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
-         wireT->fV.Set(sign*(fVDC_WireXSpacing*-92.),
-                 fVDC_PlaneYPos[plane-1]-TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.+
-                  TMath::Sin(fAngleOfVDC)*fVDC_WireYSpacing*(wire-184),
-                  fVDC_PlaneZPos[plane-1]-TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.+
-                  (wire-184)*fVDC_WireZProjectedSpacing);
+         originX = sign*(fVDC_WireXSpacing*-92.);
+         originY = fVDC_PlaneYPos[plane-1]-
+            TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.+
+            TMath::Sin(fAngleOfVDC)*fVDC_WireYSpacing*(wire-184);
+         originZ = fVDC_PlaneZPos[plane-1]-
+            TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.+
+            (wire-184)*fVDC_WireZProjectedSpacing;
       }
-      wireT->fP.Set(sign*TMath::Cos(fVDC_AngleOfWires),
-            TMath::Sin(fVDC_AngleOfWires)*TMath::Sin(fAngleOfVDC),
-            TMath::Sin(fVDC_AngleOfWires)*TMath::Cos(fAngleOfVDC));
+      wireT->fV.Set(RotateXonZ(originX,originY,fPackageAngle[package-1]),
+            RotateYonZ(originX,originY,fPackageAngle[package-1]),
+            originZ);
+      momentumX = sign*TMath::Cos(fVDC_AngleOfWires);
+      momentumY = TMath::Sin(fVDC_AngleOfWires)*TMath::Sin(fAngleOfVDC);
+      momentumZ = TMath::Sin(fVDC_AngleOfWires)*TMath::Cos(fAngleOfVDC);
+      wireT->fP.Set(RotateXonZ(momentumX,momentumY,fPackageAngle[package-1]),
+            RotateYonZ(momentumX,momentumY,fPackageAngle[package-1]),
+            momentumZ);
 
-
-   fCurrentTrack = new TEveTrack(wireT,prop);
-   fCurrentTrackArray->Add(fCurrentTrack);
-   fCurrentTrack->SetMainColor(plane+1);
-   fCurrentTrack->SetMarkerColor(kGreen);
-   fCurrentTrack->SetMarkerStyle(5);
-   fCurrentTrack->SetMarkerSize(0.5);
-   fCurrentTrack->SetTitle(Form("Plane: %d\nWire: %d\nPackage: %d",plane,wire,
-            package));
-   fEveManager->AddElement(fCurrentTrackList);
-   fEveManager->AddElement(fCurrentTrack);
-   fCurrentTrack->MakeTrack();
-
-
-}
+      fCurrentTrack = new TEveTrack(wireT,prop);
+      fCurrentTrackArray->Add(fCurrentTrack);
+      fCurrentTrack->SetMainColor(plane+1);
+      fCurrentTrack->SetMarkerColor(kGreen);
+      fCurrentTrack->SetMarkerStyle(5);
+      fCurrentTrack->SetMarkerSize(0.5);
+      fCurrentTrack->SetTitle(Form("Plane: %d\nWire: %d\nPackage: %d",
+            plane,wire, package));
+      fEveManager->AddElement(fCurrentTrackList);
+      fEveManager->AddElement(fCurrentTrack);
+      fCurrentTrack->MakeTrack();
+   }
 
 
 
@@ -1834,6 +1880,61 @@ void QwEventDisplay3D::OpenRoot(Int_t runnumber)
    }
 
 }
+
+Double_t QwEventDisplay3D::RotateXonZ(Double_t x, Double_t y, Double_t angle)
+{
+   // Rotate X about the Z axis by the given angle
+   return x*TMath::Cos(angle)-y*TMath::Sin(angle);
+}
+
+
+Double_t QwEventDisplay3D::RotateYonZ(Double_t x, Double_t y, Double_t angle)
+{
+   // Rotate Y about the Z axis by the given angle
+   return x*TMath::Sin(angle)+y*TMath::Cos(angle);
+}
+
+void QwEventDisplay3D::SetRotation( Double_t phi )
+{
+   //! This defines the rotation of the tracking system. Where the octant for
+   //! package (up,down) are:
+   //!   0deg : (1,5)
+   //! +45deg : (2,6)
+   //! +90deg : (3,7)
+   //! -45deg : (8,4)
+   //! -90deg : (7,3)
+   //! The way I draw the wires, they are all calculated for a position
+   //! assuming phi = +90deg, and then rotated from there by a given
+   //! fPackageAngle, depending on the package.
+   fDetectorPhi = phi;
+   switch( (int)phi ) {
+      case -90:
+         fPackageAngle[0]= -_180DEG_;
+         fPackageAngle[1]= 0;
+         break;
+      case -45:
+         fPackageAngle[0]= -1*_135DEG_;
+         fPackageAngle[1]= _45DEG_;
+         break;
+      case 90:
+         fPackageAngle[0]= 0;
+         fPackageAngle[1]= _180DEG_;
+         break;
+      case 45:
+         fPackageAngle[0]= -1*_45DEG_;
+         fPackageAngle[0]= _135DEG_;
+         break;
+      case 0:
+      default:
+         fPackageAngle[0]= -1*_90DEG_;
+         fPackageAngle[1]= _90DEG_;
+         break;
+   }
+
+   std::cout << "Initialized the run with rotation of coordinate system to to "
+      << phi << ".\n The respective packages are: Package1: " << fPackageAngle[0] << "\tPackage2: " << fPackageAngle[1] << "\n.";
+}
+
 // END OF THE FILE
 ////////////////////////////////////////////////////////////////////////////////
 // Notes: sample rotation of detectors. Hold on to it for now, will delete it later.
