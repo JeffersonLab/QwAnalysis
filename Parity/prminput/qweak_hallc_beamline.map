@@ -123,12 +123,11 @@ sample_size==480
    VQWK, 10, 6,  bpmstripline,  QWK_3H09YP
    VQWK, 10, 7,  bpmstripline,  QWK_3H09YM
 
-
 !ADC11
-   VQWK, 11, 0,  bpmstripline,  QWK_3H09AXP	
-   VQWK, 11, 1,  bpmstripline,  QWK_3H09AXM
-   VQWK, 11, 2,  bpmstripline,  QWK_3H09AYP
-   VQWK, 11, 3,  bpmstripline,  QWK_3H09AYM
+   VQWK, 11, 0,  bpmstripline,  QWK_3H09BXP	
+   VQWK, 11, 1,  bpmstripline,  QWK_3H09BXM
+   VQWK, 11, 2,  bpmstripline,  QWK_3H09BYP
+   VQWK, 11, 3,  bpmstripline,  QWK_3H09BYM
    VQWK, 11, 4,  bcm,  QWK_BCM6              ! 3H04
    VQWK, 11, 5,  bcm,  QWK_BCM5              ! 3H07
    VQWK, 11, 6,  bcm,  QWK_BCM2              ! 3H3G0Z
@@ -141,11 +140,10 @@ ROC=0
 Bank=0x6110
 sample_size==480 
 
+
 !ADC0
    VQWK, 0, 0,  bcm,  QWK_LINEPHASE
    VQWK, 0, 1,  bcm,  QWK_INVERT_TStable
-
-
 
 
 !**************************************************************************
@@ -153,8 +151,8 @@ sample_size==480
 !**************************************************************************
 Bank=0x6103
 !
-!
-! scaler.type, scaler.num  word.num, det.type, det.name
+!! scaler.type, scaler.num  word.num, det.type, det.name
+
 
 SCALER,0,16,halomonitor,sca_bcm1
 SCALER,0,17,halomonitor,sca_bcm2
@@ -179,28 +177,31 @@ SCALER,2,26,halomonitor,sca_halo10
 
 
 
-
 !**************************************************************************
 ! COMBINATIONS OF BEAM LINE DEVICES USED FOR BEAM ON TARGET 
 !**************************************************************************
-
-
-begin=combinedbcm
-name=qwk_average_charge
+!
+! Enter the device names in order they appear in the beamline.
+!
+!begin=combinedbcm
+!name=qwk_average_charge
 !name	type	wieght
- qwk_bcm5,  bcm, 1.0
- qwk_bcm6,  bcm, 0.8
-end=combinedbcm
+! qwk_bcm5,  bcm, 1.0
+! qwk_bcm6,  bcm, 0.8
+!end=combinedbcm
 
 
 begin=combinedbpm
 name=qwk_target
-!name	    type 	  q      x     y    
- QWK_3C07,  bpmstripline, 1.0,  1.0,  1.0
- QWK_3C08,  bpmstripline, 1.0,  1.0,  1.0
- QWK_3C11,  bpmstripline, 1.0,  1.0,  1.0
- QWK_3C12,  bpmstripline, 1.0,  1.0,  1.0
+!name	     type 	   q      x     y    
+ QWK_3H07A,  bpmstripline, 1.0,  1.0,  1.0
+ QWK_3H07B,  bpmstripline, 1.0,  1.0,  1.0
+ QWK_3H07C,  bpmstripline, 1.0,  1.0,  1.0
+ QWK_3H08,   bpmstripline, 1.0,  1.0,  1.0
+ QWK_3H09,   bpmstripline, 1.0,  1.0,  1.0
+ QWK_3H09B,  bpmstripline, 1.0,  1.0,  1.0
 end=combinedbpm
+
 
 
 !**************************************************************************
@@ -218,7 +219,6 @@ end=combinedbpm
 begin=energycalculator
 name=qwk_energy
 ! name      type 	ratios property  
-  !QWK_3C11, bpmstripline, 1.5,	beamposition 
   qwk_target, combinedbpm, 1.5,	beamposition 	  
   qwk_target, combinedbpm, -2.4, targetbeamangle
   qwk_target, combinedbpm, -0.6, targetbeamposition
