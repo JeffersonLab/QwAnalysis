@@ -23,6 +23,8 @@ QwRootFile::QwRootFile(const TString& run_label)
     fMapFile = new QwMapFile(mapfilename, "Memory Mapped File", "RECREATE");
     //Reload the tree trim new file for real time mode.
     gQwHists.LoadTreeParamsFromFile("Qweak_RT_Tree_Trim_List.in");
+    //Reload the histo trim new file for real time mode.    
+    gQwHists.LoadHistParamsFromFile("Qweak_RT_Hist_Trim_List.in");
     if (! fMapFile)
       QwError << "Memory-mapped file " << mapfilename
               << " could not be opened!" << QwLog::endl;

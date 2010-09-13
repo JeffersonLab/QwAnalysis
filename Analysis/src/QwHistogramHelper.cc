@@ -1,6 +1,6 @@
 ///  @file  QwHistogramHelper.cc
-///  @brief Handler class for histogram parameter files and
-///         histogram creation
+///  @brief Handler class for histogram/tree trim parameter files and
+///         histogram and Tree branch creation
 ///
 ///  This class was originally written to be instantiated as a
 ///  global object, which all classes containing histograms would
@@ -33,13 +33,17 @@ void QwHistogramHelper::DefineOptions(QwOptions &options)
 void QwHistogramHelper::ProcessOptions(QwOptions &options){
   //enable the tree trim when  --enable-tree-trim in offline mode or --enable-mapfile for real time mode
   fTrimDisable =!( options.GetValue<bool>("enable-tree-trim") || options.GetValue<bool>("enable-mapfile"));
+  fTrimHistoEnable = options.GetValue<bool>("enable-mapfile");
   
   if (fTrimDisable)
     QwMessage <<"tree-trim is disabled"<<QwLog::endl;
   else
     QwMessage <<"tree-trim is enabled"<<QwLog::endl;
 
-
+  if (fTrimHistoEnable)
+    QwMessage <<"RT Mode: histo-trim is enabled "<<QwLog::endl;
+  else
+    QwMessage <<"histo-trim is disabled "<<QwLog::endl;
 };
 
 
@@ -106,10 +110,10 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
   //fDEBUG = 1;
 
   if (fDEBUG) std::cout<< "file name "<<fInputFile<<std::endl;
-
-  // TODO (wdc) disabled clearing of the histogram parametrization before loading
-  //fHistParams.clear();
-
+  //Important to empty the fHistParams to reload the real time histo difinition file
+  if (fTrimHistoEnable)
+    fHistParams.clear();
+  std::cout<< " fHistParams "<<fHistParams.size() <<std::endl;
   QwParameterFile mapstr(filename.c_str());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('#');   // Remove everything after a '!' character.
@@ -251,7 +255,7 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromList(con
     QwMessage << "Finding histogram defination from: " << histname << QwLog::endl;
     QwMessage << tmpstruct << QwLog::endl;
   }
-  if (tmpstruct.name_title == fInvalidName){
+  if (tmpstruct.name_title == fInvalidName && !fTrimHistoEnable){
     std::cerr << "GetHistParamsFromList:  We haven't found a match of the histogram name: "
 	      << histname << std::endl;
     std::cerr << "                        Please check the input file "
@@ -361,7 +365,7 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromFile(con
   if (fDEBUG) {
     QwMessage << tmpstruct << QwLog::endl;
   }
-  if (tmpstruct.name_title == fInvalidName){
+  if (tmpstruct.name_title == fInvalidName && !fTrimHistoEnable){
     std::cerr << "GetHistParamsFromFile:  We haven't found a match of the histogram name: "
 	      << histname << std::endl;
     std::cerr << "                        Please check the input file "
@@ -433,6 +437,11 @@ TH1F* QwHistogramHelper::Construct1DHist(const QwHistogramHelper::HistParams &pa
   tmptitle = params.name_title; //now title=name
   //std::cout<<params.name_title.c_str()<<" : "<<params.unit.c_str()<<std::endl;
   //std::cout<<tmptitle<<std::endl;
+  if (fTrimHistoEnable && tmptitle==fInvalidName){
+    h1=NULL;
+    return h1;
+  }
+    
 
   h1 = new TH1F(params.name_title.c_str(),
                 tmptitle.c_str(),
@@ -452,6 +461,12 @@ TH2F* QwHistogramHelper::Construct2DHist(const QwHistogramHelper::HistParams &pa
   tmptitle = params.name_title; //now title=name.
   //std::cout<<params.name_title.c_str()<<" : "<<params.unit.c_str()<<std::endl;
   //std::cout<<tmptitle<<std::endl;
+
+  if (fTrimHistoEnable && tmptitle==fInvalidName){
+    h2=NULL;
+    return h2;
+  }
+
   h2 = new TH2F(params.name_title.c_str(),
                 tmptitle.c_str(),
                 params.x_nbins,

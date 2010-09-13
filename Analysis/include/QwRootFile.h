@@ -277,13 +277,14 @@ class QwRootFile {
     /// Fill histograms of the subsystem array
     template < class T >
     void FillHistograms(T& detectors) {
-      if (! HasDirByType(detectors)) return;
-      // Fill histograms
-      detectors.FillHistograms();
       // Update regularly
       static Int_t update_count = 0;
       update_count++;
       if (update_count % fUpdateInterval == 0) Update();
+      if (! HasDirByType(detectors)) return;
+      // Fill histograms
+      detectors.FillHistograms();
+
     };
     /// Delete histograms of the subsystem array
     template < class T >
@@ -605,7 +606,8 @@ void QwRootFile::ConstructHistograms(const std::string& name, T& detectors)
     std::string type = typeid(detectors).name();
     fDirsByName[name] = fMapFile->GetDirectory()->mkdir(name.c_str());
     fDirsByType[type].push_back(name);
-    detectors.ConstructHistograms(fDirsByName[name]);
+    //detectors.ConstructHistograms(fDirsByName[name]);
+    detectors.ConstructHistograms();
   }
 }
 

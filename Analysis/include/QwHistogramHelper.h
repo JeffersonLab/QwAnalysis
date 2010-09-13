@@ -137,6 +137,7 @@ class QwHistogramHelper{
   static const std::string fInvalidName;
   Bool_t fDEBUG;
   Bool_t fTrimDisable;
+  Bool_t fTrimHistoEnable;
   Bool_t fTreeTrimFileLoaded;
 
   std::string fInputFile;
