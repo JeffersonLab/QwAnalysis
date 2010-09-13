@@ -240,7 +240,10 @@ void  QwBPMStripline::ProcessEvent()
   Short_t i = 0;
 
 
-  ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine here and not in ApplySingleEventCuts  makes a difference for a BPMs because they have derrived devices.
+  ApplyHWChecks();
+  //first apply HW checks and update HW  error flags. 
+  // Calling this routine here and not in ApplySingleEventCuts  
+  //makes a difference for a BPMs because they have derrived devices.
 
   fEffectiveCharge.ClearEventData();
 
@@ -273,21 +276,19 @@ void  QwBPMStripline::ProcessEvent()
     }
   if(bRotated)
     {
-      /* for this one I suppose that the direction [0] is vertical and up,
+      /* for this one the direction [1] is vertical and up,
 	 direction[3] is the beam line direction toward the beamdump
-	 if rotated than the frame is rotated by 45 deg counter clockwise*/
-      numer=fRelPos[0];
-      denom=fRelPos[1];
-      fRelPos[0].Sum(numer,denom);
-      fRelPos[1].Difference(numer,denom);
-      fRelPos[0].Scale(kRotationCorrection);
-      fRelPos[1].Scale(kRotationCorrection);
+	 if rotated then the frame is rotated by 45 deg clockwise around direction[3] axis*/
+      numer=fRelPos[0]; 
+      denom=fRelPos[1]; 
+      fRelPos[0].Difference(numer,denom); 
+      fRelPos[1].Sum(numer,denom); 
+      fRelPos[0].Scale(kRotationCorrection); // RealX = 1/sqrt(2)( RelX - RelY)
+      fRelPos[1].Scale(kRotationCorrection);// Real Y =(RelX +RelY )
     }
 
-  for(i=0;i<2;i++){
+  for(i=0;i<2;i++)
     fAbsPos[i]= fRelPos[i];
-    //  fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
-  }
 
   return;
 };
