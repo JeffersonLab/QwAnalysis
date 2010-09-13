@@ -76,6 +76,10 @@ class MQwF1TDC{
   Bool_t IsNotHeaderTrigFIFO()     {return !fF1HeaderTrigFIFOFlag;};
   Bool_t IsOverFlowEntry()         {return fF1OverFlowEntryFlag;};
 
+  Bool_t IsHitFIFOOverFlow()       {return fF1HitFIFOFlag; };
+  Bool_t IsOutputFIFOOverFlow()    {return fF1OutputFIFOFlag;};
+  Bool_t IsResolutionLock()        {return fF1ResolutionLockFlag;};
+
  private:
 
   static const UInt_t kF1Mask_SlotNumber;

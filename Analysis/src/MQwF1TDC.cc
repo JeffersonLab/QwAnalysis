@@ -127,7 +127,6 @@ std::ostream& operator<< (std::ostream& os, const MQwF1TDC &f1tdc)
   if(f1tdc.fF1HeaderFlag) {
     os << " Xor " << f1tdc.fF1HeaderXorSetupFlag
        << " tOF " << f1tdc.fF1HeaderTrigFIFOFlag;
-    // os << std::setfill ('x') << std::setw(5);
   }
   else {
     os << " ---DATA--- ";
@@ -298,9 +297,9 @@ const Bool_t MQwF1TDC::IsValidDataword() const
   // fF1ValidDataSlotFlag = TRUE,
   // fF1ResolutionFlag    = TRUE,  
   // fF1HeaderFlag        = FALSE, and 
-  // fF1OverFlowEntry     = FALSE, then it is a data word.
+  // fF1OverFlowEntry     = FALSE, then it is a valid data word.
  
-  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag &&!fF1OverFlowEntryFlag)
+  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag && !fF1OverFlowEntryFlag)
     //  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag)
     return kTRUE;
   else                                             
@@ -365,30 +364,34 @@ Bool_t MQwF1TDC::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	  // For the Trigger Time, this assumes that an external SYNC_RESET signal has
 	  // been successfully applied at the start of the run
 	  if (not trig_time_ok_flag) {
-	    QwWarning  << QwColor(Qw::kBlue)
-		       << "There is the no SYNC_RESET on the F1TDC board at"
-		       << " Ch "   << fF1ChannelNumber
-		       << " ROC "  << fF1ROCNumber 
-		       << " Slot " << fF1SlotNumber <<"\n";
-	    QwWarning  << QwColor(Qw::kBlue)
-		       << "This event is excluded from the ROOT data stream.\n";
-	    QwWarning << QwColor(Qw::kRed) 
-		      << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
-	    QwWarning  << QwLog::endl;
+	    if(temp_print_flag){
+	      QwWarning  << QwColor(Qw::kBlue)
+			 << "There is the no SYNC_RESET on the F1TDC board at"
+			 << " Ch "   << fF1ChannelNumber
+			 << " ROC "  << fF1ROCNumber 
+			 << " Slot " << fF1SlotNumber <<"\n";
+	      QwWarning  << QwColor(Qw::kBlue)
+			 << "This event is excluded from the ROOT data stream.\n";
+	      QwWarning << QwColor(Qw::kRed) 
+			<< "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
+	      QwWarning  << QwLog::endl;
+	    }
 	  }
 	  // Any difference in the Event Number among the chips indicates a serious error
 	  // that requires a reset of the board.
 	  
 	  if (not event_ok_flag) {
-	    QwWarning << QwColor(Qw::kRed)
-		      << "There is the Event Number Mismatch issue on the F1TDC board at"
-		      << " ROC "  << fF1ROCNumber
-		      << " Slot " << fF1SlotNumber << "\n";
-	    QwWarning << QwColor(Qw::kRed) 
-		      << "This event is excluded from the ROOT data stream.\n";
-	    QwWarning << QwColor(Qw::kRed) 
-		      << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
-	    QwWarning << QwLog::endl;
+	    if(temp_print_flag){
+	      QwWarning << QwColor(Qw::kRed)
+			<< "There is the Event Number Mismatch issue on the F1TDC board at"
+			<< " ROC "  << fF1ROCNumber
+			<< " Slot " << fF1SlotNumber << "\n";
+	      QwWarning << QwColor(Qw::kRed) 
+			<< "This event is excluded from the ROOT data stream.\n";
+	      QwWarning << QwColor(Qw::kRed) 
+			<< "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
+	      QwWarning << QwLog::endl;
+	    }
 	  }
 	  
 	  data_integrity_flag = (event_ok_flag) && (trig_time_ok_flag) && IsNotHeaderTrigFIFO() ;

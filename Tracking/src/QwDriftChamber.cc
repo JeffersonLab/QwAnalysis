@@ -94,6 +94,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
   Bool_t data_integrity_flag = false;
   Bool_t temp_print_flag     = false;
   Int_t tdcindex = 0;
+
   bank_index = GetSubbankIndex(roc_id, bank_id);
 
  
@@ -117,8 +118,12 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 		<< GetSubsystemName()
 		<< std::endl;
     }
-  
-    data_integrity_flag = fF1TDCDecoder.CheckDataIntegrity(roc_id, buffer, num_words);
+    
+    //
+    // CheckDataIntegrity() do "counter" whatever errors in each F1TDC 
+    // and check whether data is OK or not.
+
+    data_integrity_flag = fF1TDContainer->CheckDataIntegrity(roc_id, buffer, num_words);
     
     if (data_integrity_flag) {
       
@@ -153,22 +158,22 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 	  // if F1TDC has a valid slot, resolution locked, and data word
 	  try {
 	    tdc_data = fF1TDCDecoder.GetTDCData();
-	    if (tdc_data) {
-	      // Only care when data is and not zero.
+	    if (tdc_data not_eq 0.0) {
+	      // Only care when data is not zero
 	      FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
 	    }
 	    else {
 	      // I saw TDC raw time = 0, when SEU exists.
-	      // Thus, I skip such a case. And this is a temp solution.
+	      // Thus, I skip such a case. And this might be a temp solution.
 	    }
 	  }
 	  catch (std::exception& e) {
 	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
 		      << e.what() << std::endl;
-	    std::cerr << "   Parameters:  index=="<<bank_index
-		      << "; GetF1SlotNumber()=="<< tdc_slot_number
+	    std::cerr << "   Parameters:  index==" <<bank_index
+		      << "; GetF1SlotNumber()=="   <<tdc_slot_number
 		      << "; GetF1ChannelNumber()=="<<tdc_chan_number
-		      << "; GetF1Data()=="<<tdc_data
+		      << "; GetF1Data()=="         <<tdc_data
 		      << std::endl;
 	    // Int_t tdcindex = GetTDCIndex(bank_index, tdc_slot_number);
 	    std::cerr << "   GetTDCIndex()=="<<tdcindex
@@ -183,13 +188,10 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 	}//;;
       } // for (UInt_t i=0; i<num_words ; i++) {
     }
-    else {
-      // TODO...
-      // must have some functions to access this error counter 
-      //
-    }
+ 
   }
 
+  // fF1TDContainer-> PrintErrorSummary();
   return OK;
 };
 
@@ -527,7 +529,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
   UInt_t slot_id      = 0;
   UInt_t vme_slot_num = 0;
 
-  Bool_t local_debug  = true;
+  Bool_t local_debug  = false;
 
   QwF1TDC *local_f1tdc = NULL;
    
@@ -535,8 +537,8 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
   
   if(bank_index >=0) {
     if(local_debug) {
-      std::cout << "fF1TDContainer " << fF1TDContainer << "\n";
-      std::cout << "local_f1tdc    " << local_f1tdc << "\n";
+      std::cout << "fF1TDContainer " << fF1TDContainer
+		<<" local_f1tdc    " << local_f1tdc << "\n";
     }
     subsystem_name = this->GetSubsystemName();
     fF1TDContainer -> SetSystemName(subsystem_name);

@@ -231,11 +231,16 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
     if ( refokay.at(bankid) ){
       raw_time = (Double_t) hit -> GetRawTime();
       ref_time = (Double_t) reftimes.at(bankid);
+      Int_t roc_num     = hit -> GetSubbankID();
+      Int_t slot_num = hit -> GetModule();
       time     = QwDriftChamber::fF1TDCDecoder.ActualTimeDifference(raw_time, ref_time);
+      //      time =  QwDriftChamber::fF1TDContainer->ReferenceSignalCorrection(raw_time, ref_time, roc_num, slot_num);
       hit -> SetTime(time);
       if(local_debug) {
 	QwMessage << " RawTime : " << raw_time
 		  << " RefTime : " << ref_time
+		  << " ROC : "     << roc_num
+		  << " Slot : "    << slot_num
 		  << " time    : " << time
 		  << std::endl;
 	

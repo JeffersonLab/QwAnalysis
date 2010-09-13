@@ -45,7 +45,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   QwDriftChamber(TString region_tmp);
   QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP);
 
-  virtual ~QwDriftChamber(){};
+  virtual ~QwDriftChamber(){fF1TDContainer-> PrintErrorSummary();};
 
   /*  Member functions derived from VQwSubsystem. */
 
