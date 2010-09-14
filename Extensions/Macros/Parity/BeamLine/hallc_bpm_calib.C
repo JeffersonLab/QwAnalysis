@@ -23,10 +23,23 @@
 //          
 //          ./hallc_bpm_calib -r 5084 -c 5070
 //
+//          using a specific bcm (default is bcm1)
+//          
+//          ./hallc_bpm_calib -r 5084 -c 5070 -b bcm1
+//
 //          0.0.1 : Wednesday, August 18 17:13:48 EDT 2010
 //                  redesign...
-//
-                   
+//          0.0.2 : Friday, August 20 Buddhini
+//                  Added the rest of the bpms. Now there are total of 23 bpms.
+//          0.0.3 : Monday, August 23 Buddhini
+//                  Added some comments to clear things out.
+//                  Changed tmp used as a bcm to tmpbcm on line 653    
+//                  Added methods to use a user prefferd bcm by adding              
+//                  ref_bcm_flag.
+//          0.0.4 : Monday Septembed 13th  Buddhini
+//                  Changed current from adc counts to uA using the bcm calibration slope.
+//                  Modified the wire fit plots. Added new plots to plot the fit residuals.
+//                  All the plots are now saved in to a .ps file
 
 #include <iostream>
 #include <fstream>
@@ -53,6 +66,7 @@
 #include "TLine.h"
 #include "TBox.h"
 #include "TCut.h"
+#include "TStyle.h"
 
 
 
@@ -83,8 +97,8 @@ public:
  const char* GetAliasCName() {return alias_name.Data();};
   Double_t GetPed() {return offset[0];};
   Double_t GetPedErr() {return offset[1];};
-  Double_t GetSlop() {return slope[0];};
-  Double_t GetSlopErr() {return slope[1];};
+  Double_t GetSlope() {return slope[0];};
+  Double_t GetSlopeErr() {return slope[1];};
   Double_t GetFitRangeMin() {return fit_range[0];};
   Double_t GetFitRangeMax() {return fit_range[1];};
 
@@ -216,8 +230,19 @@ const char* program_name;
 TTree *mps_tree = NULL;
 TFile *file = NULL;
 
+Int_t w = 1200;
+Int_t h = 800;
+TCanvas *Canvas =NULL;
+TString bpm_plots_filename;
+
 std::vector< std::vector<BeamMonitor> > hallc_bpms_list;
-std::vector<BeamMonitor> hallc_bcms_list;
+//std::vector<BeamMonitor> hallc_bcms_list;
+BeamMonitor hallc_bcm;
+
+
+
+
+
 
 Int_t
 main(int argc, char **argv)
@@ -228,35 +253,60 @@ main(int argc, char **argv)
 
 
   char* run_number = NULL;
- 
+  char* ref_bcm_name = NULL;
 
   Bool_t file_flag = false;
   Bool_t bcm_ped_file_flag = false;
+  Bool_t ref_bcm_flag = false;
   Bool_t fit_range_flag = false;
   Double_t fit_range[2] = {0.0};
   TString bcm_ped_filename;
+ 
   Int_t  bcm_ped_runnumber = 0;
+
+  // pads parameters
+  gStyle->SetPadColor(0); 
+  gStyle->SetPadBorderMode(0);
+  gStyle->SetPadBorderSize(0);
+  gStyle->SetPadTopMargin(0.1);
+  gStyle->SetPadBottomMargin(0.15);
+  gStyle->SetPadLeftMargin(0.2);  
+  gStyle->SetPadRightMargin(0.08);  
+ 
+
+  // Fit and stat parameters
+  gStyle->SetOptFit(1111);
+  gStyle->SetOptStat(0000000);
+  gStyle->SetStatH(0.2);
+  gStyle->SetStatW(0.3);
 
   program_name = argv[0];
 
   int cc = 0; 
 
-  while ( (cc= getopt(argc, argv, "r:c:e:")) != -1)
+  /*command line arguments*/
+  while ( (cc= getopt(argc, argv, "r:c:b:e")) != -1)
     switch (cc)
       {
-      case 'r':
+      case 'r': /*run number of the pedestal run*/
 	{
 	  file_flag = true;
 	  run_number = optarg;
 	}
 	break;
-      case 'c':
+      case 'c': /*run number of the bcm calibration run*/
        	{
        	  bcm_ped_file_flag = true;
 	  bcm_ped_runnumber = atoi(optarg);
 	}
 	break;
-      case 'e':
+      case 'b': /*bcm to be used for calibration*/
+       	{
+       	  ref_bcm_flag = true;
+	  ref_bcm_name = optarg;
+	}
+	break;
+      case 'e': /*fitting  range as a percentage*/
 	{
 	  fit_range_flag = true;
 	  char *c;
@@ -280,13 +330,15 @@ main(int argc, char **argv)
 	    }
 	}
 	break;
-      case '?':
+      case '?':  /*if no argument is given*/
 	{
 	  if (optopt == 'e') 
 	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 	  else if (optopt == 'r')
 	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 	  else if (optopt == 'c')
+	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+	  else if (optopt == 'b')
 	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 	  else if (isprint (optopt))
 	    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -300,188 +352,42 @@ main(int argc, char **argv)
 	abort () ;
       }
   
+  /*default fit range*/	  
   if(not fit_range_flag) {
     fit_range[0] = 0.15;
     fit_range[1] = 0.85;
   }
   else {
+    /*user chosen fit range*/
     fit_range[0] = fit_range[0]/100.0;
     fit_range[1] = fit_range[1]/100.0;
     
   }
  
+  /*if no pedestal run is specified, print the usage requirements and exit the program*/
   if (not file_flag) {
     print_usage(stdout,0);
     exit (-1);
   }
 
+  /*if a bcm calibration run is not specified, use the default calibration run 5070*/
   if (not bcm_ped_file_flag) {
     bcm_ped_runnumber = 5070;
   }
 
+ /*if a bcm is not specified use the defaults bcm , bcm1*/
+  if (not ref_bcm_flag) {
+    ref_bcm_name = "bcm1";
+  }
+
+  /*file containing the bcm calibration results*/
   bcm_ped_filename = Form("hallc_bcm_pedestal_%d.txt", bcm_ped_runnumber);
 
+  /*file containing the bpm calibration plots*/
+  bpm_plots_filename = Form("%s_hallc_bpm_calib_plots", run_number);
+
  
-  //--// bpm_bcm_calibration returns 
-
-  //--// qwk_3c07xp
-  //--// qwk_3c07xm
-  //--// qwk_3c07yp
-  //--// qwk_3c07ym
-  //--//  ...........
-
-  //// but calibrate() needs qwk_3c07 only.
-
-
-
-  // std::vector<TString> hallc_bpm_list;
-  // std::vector<TString> hallc_bcm_list;
-
-  // hallc_bpm_list.clear();
-  // hallc_bcm_list.clear();
-
-  // TString mapfilename       = "qweak_hallc_beamline.map";
-  // TString get;
-  // get = getenv("QWANALYSIS");
-  // mapstring = get +"/Parity/prminput/" + mapfilename;
-  // mapfile.open(mapstring);
-  // while (!mapfile.eof()) {
-  //   line.ReadToken(mapfile);
-  //   if (line.Contains("!"))  line.ReadToDelim(mapfile);
-  //   else if (line.Contains("VQWK")) {
-  //     for(size_t i=0;i<2;i++)  	line.ReadToken(mapfile);
-  //     line.ReadToken(mapfile);
-  //     det_type=line;
-  //     det_type.ToLower();
-  //     line.ReadToken(mapfile);
-  //     devicename=line;
-  //     throw_away=devicename(devicename.Sizeof()-2,1);
-  //     if(throw_away==",") devicename = devicename(0,devicename.Sizeof()-2);
-  //     if (det_type=="bpmstripline,"){
-  // 	TString subname=devicename(devicename.Sizeof()-3,2);
-  // 	devicename.ToLower();
-  // 	devicename= devicename(0,devicename.Sizeof()-3);
-  // 	devicename= devicename + subname;
-  // 	hallc_bpm_list.push_back(devicename);
-  // 	counterdn++;
-  //     }
-  //     // else if(det_type=="bpmcavity,"){
-  //     //   TString subname=devicename(devicename.Sizeof()-2,1);
-  //     //   devicename.ToLower();
-  //     // 	 devicename=(devicename.Sizeof()-2) + subname;
-  //     // 	 devicelist1.push_back(devicename);
-  //     // 	 counter++;
-     
-  //     // }
-  //     else if (det_type=="bcm,"){
-  // 	devicename.ToLower();
-  // 	hallc_bcm_list.push_back(devicename);
-  // 	counterbcm++;
-  //     }
-  //     else
-  // 	std::cout<< " I don't know this device type" << std::endl;
-  //   }
-  // }
-  // mapfile.close();
-
-
-  // std::vector<TString>::iterator pd;
-  // if(local_debug) {
-  //   for( pd = hallc_bcm_list.begin(); pd != hallc_bcm_list.end(); pd++ ) {
-  //     std::cout << *pd << std::endl;
-  //   }
-  //   for( pd = hallc_bpm_list.begin(); pd != hallc_bpm_list.end(); pd++ ) {
-  //     std::cout << *pd << std::endl;
-  //   }
-  // }
-
-
-  //--// I tried to trim xm,xp,ym,yp
-  //--// 
-  //--// But some devices have more than 4 antennas (xp,xm,yp,ym, axp, axm, ayp, aym)
-  //--// And some devices have only other anthennas (axp,axm,ayp,aym)
-  //--// Then I decided to add  bpms by hand.
-
-  // Bool_t local_debug = true;
-  // TString mapfilename       = "qweak_hallc_beamline.map";
-  // TString selected_filename = "";
-  
-
-  // QwBeamMonitorDevice beam_monitors;
-  // beam_monitors.WantCustomizedMonitors(false, selected_filename);
-  // beam_monitors.WantBcms(false);
-  // beam_monitors.WantBpms(true);
-  // beam_monitors.WantHalos(false);
-  // beam_monitors.WantOthers(false);
-
-  // std::vector<TString> bcm_name_list;
-  // std::vector<TString> halo_name_list;
-  // std::vector<TString> bpm_name_list;
-  // std::vector<TString> tbpm_name_list;
-  // std::vector<TString> other_name_list;
-
-  // std::vector<TString> wanted_bcm_list;
-  // std::vector<TString>::iterator pd;
-
-  // std::size_t bcm_size = 0;
-  // bcm_size = wanted_bcm_list.size();
-
-  // if(beam_monitors.OpenMapFile(mapfilename))
-  //   {
-  //     bcm_name_list   = beam_monitors.GetBcmsList();
-  //     halo_name_list  = beam_monitors.GetHalosList();
-  //     wanted_bcm_list = beam_monitors.GetMonitorsList();
-  //     bpm_name_list   = beam_monitors.GetBpmsList();
-  //     tbpm_name_list  = beam_monitors.GetTrimBpmsList();
-
-  //     if(local_debug) {
-  //         std::cout << "Beam Monitors : bpm size "
-  //                   << beam_monitors.bpms.size()
-  // 		    << " trim bpm size "
-  //                   << tbpm_name_list.size()
-  //                   << " bcm size "
-  //                   << bcm_name_list.size()
-  //                   << " halo size "
-  //                   << beam_monitors.halos.size()
-  //                   << " other size "
-  //                   << beam_monitors.others.size()
-  //                   << " wanted size "
-  //                   << wanted_bcm_list.size()
-  //                   << std::endl;
-
-  //         for( pd = wanted_bcm_list.begin(); pd != wanted_bcm_list.end(); pd++) {
-  //           std::cout << "selected? " << *pd << std::endl;
-  //         }
-
-
-  //     }  
-      
-  //     std::vector<TString>::iterator pd;
-  //     if(local_debug) {
-  //         if(beam_monitors.IsBcms()) {
-  //           for( pd = bcm_name_list.begin(); pd != bcm_name_list.end(); pd++ ) {
-  //             std::cout << *pd << std::endl;
-  //           }
-  //         }
-  //         if(beam_monitors.IsHalos()) {
-  //           for( pd = halo_name_list.begin(); pd != halo_name_list.end(); pd++) {
-  //             std::cout << *pd << std::endl;
-  //           }
-  //         }
-  //         if(beam_monitors.IsBpms()) {
-  //           for( pd = bpm_name_list.begin(); pd != bpm_name_list.end(); pd++ ) {
-  //             std::cout << *pd << std::endl;
-  //           }
-  // 	    std::cout << "---------------- " << std::endl;
-  // 	    for( pd = tbpm_name_list.begin(); pd != tbpm_name_list.end(); pd++ ) {
-  //             std::cout << *pd << std::endl;
-  //           }
-  //         }
-  //     }
-    
-  //   }
-
-  
+  /*list of hallc bpms*/
 
   BeamMonitor qwk_3c07("qwk_3c07");  // begining of arc
   BeamMonitor qwk_3c08("qwk_3c08");
@@ -492,11 +398,21 @@ main(int argc, char **argv)
   BeamMonitor qwk_3c17("qwk_3c17");  // end of arc (green wall)
   BeamMonitor qwk_3c18("qwk_3c18");  // Region 1 after the shielding wall (in not songsheet)
   BeamMonitor qwk_3c19("qwk_3c19");  // Region 1 after the shielding wall (in not songsheet)
+  BeamMonitor qwk_3c07a("qwk_3c07a"); 
+  BeamMonitor qwk_3p02a("qwk_3p02a"); // compton chicane
+  BeamMonitor qwk_3p02b("qwk_3p02b"); // compton chicane
+  BeamMonitor qwk_3p03a("qwk_3p03a"); // compton chicane
   BeamMonitor qwk_3c20("qwk_3c20");  // Region 3
   BeamMonitor qwk_3c21("qwk_3c21");  // Region 3
   BeamMonitor qwk_3h02("qwk_3h02");  // Region 4
+  BeamMonitor qwk_3h04a("qwk_3h04a"); 
+  BeamMonitor qwk_3h07a("qwk_3h07a");
+  BeamMonitor qwk_3h07b("qwk_3h07b"); 
+  BeamMonitor qwk_3h07c("qwk_3h07c");  
   BeamMonitor qwk_3h08("qwk_3h08");  // Region 5
   BeamMonitor qwk_3h09("qwk_3h09");  // Region 5
+  BeamMonitor qwk_3h09b("qwk_3h09b");  // Region 5
+
 
   std::vector <BeamMonitor> tmp_bpm;
   tmp_bpm.clear();
@@ -536,6 +452,22 @@ main(int argc, char **argv)
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
+  tmp_bpm.assign(4, qwk_3c07a);
+  hallc_bpms_list.push_back(tmp_bpm);
+
+  tmp_bpm.clear();
+  tmp_bpm.assign(4, qwk_3p02a);
+  hallc_bpms_list.push_back(tmp_bpm);
+
+  tmp_bpm.clear();
+  tmp_bpm.assign(4, qwk_3p02b);
+  hallc_bpms_list.push_back(tmp_bpm);
+
+  tmp_bpm.clear();
+  tmp_bpm.assign(4, qwk_3p03a);
+  hallc_bpms_list.push_back(tmp_bpm);
+
+  tmp_bpm.clear();
   tmp_bpm.assign(4, qwk_3c20);
   hallc_bpms_list.push_back(tmp_bpm);
 
@@ -548,6 +480,22 @@ main(int argc, char **argv)
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
+  tmp_bpm.assign(4, qwk_3h04a);
+  hallc_bpms_list.push_back(tmp_bpm);
+
+  tmp_bpm.clear();
+  tmp_bpm.assign(4, qwk_3h07a);
+  hallc_bpms_list.push_back(tmp_bpm);
+
+  tmp_bpm.clear();
+  tmp_bpm.assign(4, qwk_3h07b);
+  hallc_bpms_list.push_back(tmp_bpm);
+
+  tmp_bpm.clear();
+  tmp_bpm.assign(4, qwk_3h07c);
+  hallc_bpms_list.push_back(tmp_bpm);
+
+  tmp_bpm.clear();
   tmp_bpm.assign(4, qwk_3h08);
   hallc_bpms_list.push_back(tmp_bpm);
 
@@ -555,7 +503,13 @@ main(int argc, char **argv)
   tmp_bpm.assign(4, qwk_3h09);
   hallc_bpms_list.push_back(tmp_bpm);
   
+  tmp_bpm.clear();
+  tmp_bpm.assign(4, qwk_3h09b);
+  hallc_bpms_list.push_back(tmp_bpm);
+
  
+
+  /*Open the root file*/
   TString filename = Form("Qweak_%s.000.root", run_number);
   file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
 
@@ -570,12 +524,13 @@ main(int argc, char **argv)
   }
 
   
+  /*Open the bcm calibration results file*/  
   ifstream in;
   in.open(bcm_ped_filename.Data());
   if(not in.is_open() ) {
     std::cout << "There is no BCMs calibration file with the name "
 	      << bcm_ped_filename 
-	      << ". Please check or run BCMs calibration it first."
+	      << ". Please check or run BCM calibration first."
 	      << std::endl;
     return EXIT_FAILURE;
   };
@@ -585,18 +540,20 @@ main(int argc, char **argv)
   Double_t slope[2] = {0.0};
   Int_t cnt = 0;
 
+
+  /*Load the calibration information for the bcm from the bcm calibration file*/
   while(in.good()) {
 
     in >> name >> offset[0] >> offset[1] >> slope[0] >> slope[1];
     if(not in.good()) break;
     else {
-      BeamMonitor temp; 
-      temp.SetName(name);
-      temp.SetPed(offset[0]);
-      temp.SetPedErr(offset[1]);
-      temp.SetSlop(slope[0]);
-      temp.SetSlopErr(slope[1]);
-      hallc_bcms_list.push_back(temp);
+      if(name.Contains(ref_bcm_name)){
+	hallc_bcm.SetName(name);
+	hallc_bcm.SetPed(offset[0]);
+	hallc_bcm.SetPedErr(offset[1]);
+	hallc_bcm.SetSlop(slope[0]);
+	hallc_bcm.SetSlopErr(slope[1]);
+      }
     }
       
     // std::cout << name << " " 
@@ -604,44 +561,48 @@ main(int argc, char **argv)
     // 	      << slope[0] << " " << slope[1] << " "
     // 	      << std::endl;
   }
+
   in.close();
   mps_tree = (TTree*) file->Get("Mps_Tree");
-  std::size_t bcm_id =0;
-  TH1D *tmp;
+  TH2D *tmp;
   Double_t tmp_max = 0.0;
   Int_t alias_id = 0;
-  for(bcm_id = 0; bcm_id < hallc_bcms_list.size(); bcm_id ++ ) {
 
-    alias_id = (Int_t) bcm_id + 1;
+  // Draw the current from the bcm
+  Canvas = new TCanvas("Current" , Form("Range of currents form %s",ref_bcm_name), w, h);  
+  Canvas->Clear();
+  Canvas->cd();
+ 
+  mps_tree->SetAlias("current",
+		     Form("(((%s.hw_sum_raw/%s.num_samples)-%1f)/ %lf )", 
+			  hallc_bcm.GetName().Data(), hallc_bcm.GetName().Data(),
+			  hallc_bcm.GetPed(),hallc_bcm.GetSlope())
+		     ); 
+		    
+  mps_tree->Draw("current>>tmp", 
+		 Form("%s.num_samples>0", hallc_bcm.GetName().Data()));
 
-    mps_tree->SetAlias(
-     		       Form("qwbcm%d", alias_id), 
-		       Form("%s.hw_sum_raw/%s.num_samples - %lf", 
-			    hallc_bcms_list.at(bcm_id).GetName().Data(), hallc_bcms_list.at(bcm_id).GetName().Data(),
-			    hallc_bcms_list.at(bcm_id).GetPed())
-		       );
-    mps_tree->Draw(Form("qwbcm%d>>tmp", alias_id), 
-		   Form("%s.num_samples>0", hallc_bcms_list.at(bcm_id).GetName().Data()),
-		   "goff");
-    tmp = (TH1D*)gDirectory->Get("tmp");
-    if(not tmp) {
-      std::cout << "Please check " << Form("qwbcm%d>>tmp", alias_id)
-		<< std::endl;
-       theApp.Run();
-
-    }
-    tmp_max = tmp -> GetXaxis() -> GetXmax();
-    //   std::cout << tmp_max << std::endl;
-    fit_range[0] *= tmp_max;
-    fit_range[1] *= tmp_max;
-
-    hallc_bcms_list.at(bcm_id).SetAliasName(Form("qwbcm%d", alias_id)); 
-    hallc_bcms_list.at(bcm_id).SetFitRange(fit_range);
-    hallc_bcms_list.at(bcm_id).SetReference();
+  tmp = (TH2D*)gDirectory->Get("tmp");
+  if(not tmp) {
+    std::cout << "Please check current values" << std::endl;
+    theApp.Run();
+    
   }
+  tmp_max = tmp -> GetXaxis() -> GetXmax();
+  tmp -> GetXaxis() -> SetTitle("current (uA)");
 
+  fit_range[0] *= tmp_max;
+  fit_range[1] *= tmp_max;
   
+  hallc_bcm.SetAliasName("current"); 
+  hallc_bcm.SetFitRange(fit_range);
+  hallc_bcm.SetReference();
 
+
+  // Print the plot on to a file
+  Canvas->Print(bpm_plots_filename+".ps(");
+  
+  /*Start to calibrate the bpms*/
   std::size_t i = 0; 
   cnt = 0;
   std::cout << "how many bpms ? " << hallc_bpms_list.size() << std::endl;
@@ -650,16 +611,18 @@ main(int argc, char **argv)
 	      << cnt++ 
 	      << ": onto calibrating " << hallc_bpms_list.at(i).at(0).GetName() 
 	      << std::endl;
-
+    
     Bool_t check = false;
-    check = calibrate(hallc_bpms_list.at(i), hallc_bcms_list.at(0)) ; // qwk_bcm1
+    check = calibrate(hallc_bpms_list.at(i), hallc_bcm ); 
     //    if(not check) theApp.Run();
   }
-
   
+  /*open a file to store the pedestals*/
   std::ofstream       hallc_bpms_pedestal_output;
   std::ostringstream  hallc_bpms_pedestal_stream;
   hallc_bpms_pedestal_output.clear();
+
+
   hallc_bpms_pedestal_output.open(Form("hallc_bpm_pedestal_%s.txt", run_number));
   hallc_bpms_pedestal_stream.clear();
   
@@ -678,7 +641,7 @@ main(int argc, char **argv)
   std::cout << "\n" << hallc_bpms_pedestal_stream.str() <<std::endl;
   hallc_bpms_pedestal_output.close();
       
-
+  gDirectory->Delete("*");
 
   theApp.Run();
   return 0;
@@ -703,17 +666,17 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
 
   TF1 *fit[4] = {NULL};
   TH1D *hprof[4] = {NULL};
+  TH1D *hres[4] = {NULL};
 
   Int_t i = 0;
-  Int_t w = 1100;
-  Int_t h = 600;
-  TCanvas *Canvas =NULL;
+//   Int_t w = 1100;
+//   Int_t h = 600;
+//   TCanvas *Canvas =NULL;
   devname = bpm.at(0).GetName(); // the same name over the beamMonitor vector
 
-  Canvas = new TCanvas(devname.Data() , devname.Data(), w, h);  
   
   Canvas->Clear();
-  Canvas->Divide(2,2);
+  Canvas->Divide(4,2);
   
 
   reference_name = reference.GetAliasName();
@@ -721,16 +684,15 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
   reference_fit_range[0] = reference.GetFitRangeMin();
   reference_fit_range[1] = reference.GetFitRangeMax();
 
- 
-
- 
+  
   for(i=0;i<4;i++) {
+    
     Canvas->cd(i+1);
     bpm_name[i]    = devname + antenna[i];
     bpm.at(i).SetName(bpm_name[i]);
     bpm_samples[i] = bpm_name[i] + ".num_samples";
     plotcommand[i] = bpm_name[i]+".hw_sum_raw/" + bpm_samples[i] + ":" + reference_name;
-
+    
     hprof[i] = GetHisto(mps_tree, plotcommand[i], scut, "prof"); // profs : large errors why?
     if(not hprof[i]) {
       std::cout << "Please check " << plotcommand[i].Data()
@@ -740,14 +702,44 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
       delete Canvas; Canvas = NULL;
       return false;
     }
+    hprof[i] -> GetXaxis()->SetTitle("current (uA)");
+    hprof[i] -> GetYaxis()->SetTitle("ADC coounts/num_samples");
+    hprof[i] -> GetYaxis()-> SetTitleOffset(2.2);
+    hprof[i] -> SetTitle(bpm_name[i]+" fit");
+    hprof[i] -> Draw("");
     hprof[i] -> Fit("pol1", "E M Q" , "", reference_fit_range[0],  reference_fit_range[1]);
+
     fit[i] = hprof[i]  -> GetFunction("pol1");
+    
     if(fit[i]) {
       fit[i] -> SetLineColor(kRed);
       bpm.at(i).SetPed(fit[i]->GetParameter(0));
       bpm.at(i).SetPedErr(fit[i]->GetParError(0));
       bpm.at(i).SetSlop(fit[i]->GetParameter(1));
       bpm.at(i).SetSlopErr(fit[i]->GetParError(1));
+
+      // Draw the residuals
+      Canvas->cd(4+i+1);
+
+      plotcommand[i] = Form("(( %s.hw_sum_raw/%s )-( %s*%1f + %1f )):%s",
+			    bpm_name[i].Data(),bpm_samples[i].Data(),reference_name.Data(),
+			    bpm.at(i).GetSlope(),bpm.at(i).GetPed(),reference_name.Data() );
+
+
+      mps_tree->Draw(plotcommand[i],"","box");
+      hres[i] = (TH1D*) gPad->GetPrimitive("htemp");
+
+      if (not hres[i]) {
+	std::cout<<" Please check residual plot"<<plotcommand[i]<<std::endl;
+	Canvas ->Close();
+	delete Canvas; Canvas = NULL;
+	return false;	
+      }
+      hres[i] -> GetXaxis()->SetTitle("current (uA)");
+      hres[i] -> GetYaxis()->SetTitle("fit residual");
+      hres[i] -> GetYaxis()-> SetTitleOffset(2.2);
+      hres[i] -> SetTitle(bpm_name[i]+" fit residual");
+      
     }
     else {
       bpm.at(i).SetPed(-1);
@@ -758,10 +750,11 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
     }
     gPad->Update();
     std::cout << bpm.at(i) << std::endl;
-
   }
   Canvas -> Modified();
   Canvas -> Update();
+  Canvas->Print(bpm_plots_filename+".ps");
+
   return true;
 }
 
@@ -777,6 +770,7 @@ print_usage (FILE* stream, int exit_code)
   fprintf (stream, 
   	   " -r bpm_run_number : run number of BPMs calibration \n"
 	   " -c bcm_run_number : run number of BCMs calibration \n"
+	   " -c ref_bcm_name : bcm used for calibration \n"
 	   " -e fit percent range (default [0.01*a*bcm_current_range, 0.01*b*bcm_current_range]\n"
 	   );
   fprintf (stream, "\n");
