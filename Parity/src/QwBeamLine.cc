@@ -1278,23 +1278,12 @@ Int_t QwBeamLine::GetDetectorIndex( EQwBeamInstrumentType type_id, TString name)
 };
 
 //*****************************************************************
-VQwBPM* QwBeamLine::GetBPM(const TString name)
+QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name)
 {
   if (! fStripline.empty()) {
     for (std::vector<QwBPMStripline>::iterator stripline = fStripline.begin(); stripline != fStripline.end(); ++stripline) {
       if (stripline->GetElementName() == name) {
 	return &(*stripline);
-      }
-      else if (! fBPMCombo.empty()) {
-	for (std::vector<QwCombinedBPM>::iterator combinedstripline = fBPMCombo.begin(); 
-	     combinedstripline != fBPMCombo.end(); ++combinedstripline) {
-	  if (combinedstripline->GetElementName() == name) {
-	    return &(*combinedstripline);
-	  }
-	  else{
-	    QwError<<"Unable to locate device "<<name<<QwLog::endl;
-	  }
-	}
       }
     }
   }

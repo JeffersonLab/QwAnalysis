@@ -100,7 +100,7 @@ class QwBeamLine : public VQwSubsystemParity{
   void PrintInfo() const;
 
 
-  VQwBPM* GetBPM(const TString name);
+  QwBPMStripline* GetBPMStripline(const TString name);
   QwBCM* GetBCM(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
