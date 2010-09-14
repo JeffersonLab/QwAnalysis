@@ -183,12 +183,12 @@ SCALER,2,26,halomonitor,sca_halo10
 !
 ! Enter the device names in order they appear in the beamline.
 !
-!begin=combinedbcm
-!name=qwk_average_charge
+begin=combinedbcm
+name=qwk_charge
 !name	type	wieght
 ! qwk_bcm5,  bcm, 1.0
 ! qwk_bcm6,  bcm, 0.8
-!end=combinedbcm
+end=combinedbcm
 
 
 begin=combinedbpm
