@@ -64,9 +64,13 @@ class QwF1TDC :  public TObject
 
   const Double_t GetF1TDC_t_offset()   const {return fF1TDC_t_offset;};
 
-  const Int_t GetF1TDCIndex() const {return fF1TDCIndex;};
+  const Int_t GetF1TDCIndex()          const {return fF1TDCIndex;};
+  const Int_t  GetF1ROCIndex()         const {return fROCIndex;};
+  const TString GetF1SystemName()      const {return fSystemName;};
 
   void SetROCNumber       (const Int_t roc)          {fROC = roc;};
+  
+
   void SetSlotNumber      (const Int_t slot)         {fSlot = slot;};
   void SetReferenceSlot   (const Bool_t reflag)      {fReferenceSlotFlag = reflag;};
 
@@ -84,9 +88,11 @@ class QwF1TDC :  public TObject
   void SetF1TDC_bin_size  (const Double_t binsize_ns){fF1TDC_resolution_ns = binsize_ns;};
 
 
-  void SetF1TDCIndex(const Int_t tdc_index) {fF1TDCIndex = tdc_index;};
+  void SetF1TDCIndex(const Int_t tdc_index)   {fF1TDCIndex = tdc_index;};
+  void SetF1ROCIndex  (const Int_t roc_i)     {fROCIndex = roc_i;};
   void SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words);
-
+  void SetF1SystemName(const TString name)    {fSystemName = name;};
+  
   const UInt_t * GetF1TDCBuffer() const {return fBuffer;};
 
   void PrintF1TDCBuffer();
@@ -126,6 +132,7 @@ class QwF1TDC :  public TObject
                        // 4  : ROC 4   
                        // 9  : ROC 9
                        // 10 : ROC 10
+  Int_t fROCIndex;
 
   Int_t fSlot;         // F1TDC slot number 
                        // QwAnalysis' slot range 0-20. But, the physical VME
@@ -194,9 +201,12 @@ class QwF1TDC :  public TObject
 
   //TString  fF1ErrorSummaryString;
 
+  TString  fSystemName;
   static const Int_t fWordsPerBuffer;
   static const Int_t fMaxF1TDCChannelNumber;
   
+
+
   ClassDef(QwF1TDC,1);
 
 };
@@ -227,8 +237,8 @@ class QwF1TDContainer :  public TObject
 
   // friend std::ostream& operator<<(std::ostream& os, const QwF1TDContainer &container);
 
-  void SetSystemName(const TString name);// {fSubsystemName = name;};
-  const TString GetSystemName() const {return fSubsystemName;};
+  void SetSystemName(const TString name);// {fSystemName = name;};
+  const TString GetSystemName() const {return fSystemName;};
 
   void AddQwF1TDC(QwF1TDC *in);
   void Print();
@@ -240,6 +250,8 @@ class QwF1TDContainer :  public TObject
   EQwRegionID        GetRegion()       const {return fRegion;};
 
   QwF1TDC* GetF1TDC(Int_t roc, Int_t slot);
+  QwF1TDC* GetF1TDCIndex(Int_t tdc_index);
+  QwF1TDC* GetF1TDCwithROCIndexSLOT(Int_t roc_index, Int_t slot);
 
   const Double_t GetF1TDCResolution();
   const Int_t GetF1TDCChannelNumber();
@@ -260,26 +272,31 @@ class QwF1TDContainer :  public TObject
 
   const MQwF1TDC GetF1TDCDecoder() const {return fF1TDCDecoder;};
   
-  Double_t ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time, Int_t roc, Int_t slot);
+  Double_t ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time, Int_t roc_index, Int_t slot);
 
   void PrintErrorSummary();
 
-  void WriteErrorSummary(TString subsystem_name);
+  void WriteErrorSummary();
 
 
  public:
 
   EQwDetectorType    fDetectorType;
   EQwRegionID        fRegion;
-  TString            fSubsystemName;
+  TString            fSystemName;
   
   //  typedef std::vararry <Double_t> 
 
 private:
+
   MQwF1TDC fF1TDCDecoder;
   Bool_t fLocalDebug;
   //  static const Int_t gMaxCloneArray; //!  ///< Maximum number which a subsystem has F1TDCs
+
   TList* GetErrorSummary();
+  TString PrintNoF1TDC(Int_t roc, Int_t slot);
+  TString PrintNoF1TDC(Int_t tdc_index);
+  Bool_t  CheckRegisteredF1(Int_t roc, Int_t slot);
 
   ClassDef(QwF1TDContainer,1);
 

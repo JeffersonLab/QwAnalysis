@@ -589,8 +589,10 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	  if(local_f1tdc) delete local_f1tdc; local_f1tdc = 0;
 
 	  local_f1tdc = new QwF1TDC(roc_id, vme_slot_num);
+	  local_f1tdc->SetF1ROCIndex(bank_index);
 	  local_f1tdc->SetF1TDCIndex(tdc_index);
 	  local_f1tdc->SetF1TDCBuffer(buffer, num_words);
+	  local_f1tdc->SetF1SystemName(subsystem_name);
 	  //	  local_f1tdc->SetUniqueID(roc_id+vme_slot_num); not good unique ids.
 
 
@@ -655,7 +657,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 
 void QwDriftChamber::DeleteHistograms()
 {
-  fF1TDContainer->WriteErrorSummary(GetSubsystemName());
+  fF1TDContainer->WriteErrorSummary();
   return;
 };
 

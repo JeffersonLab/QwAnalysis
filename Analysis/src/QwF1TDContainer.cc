@@ -18,12 +18,23 @@ ClassImp(QwF1TDC);
 ClassImp(QwF1TDContainer);
 
 
+//
+//
+//
+//  QwF1TDC
+//
+//
+//
+//
+
+
 const Int_t QwF1TDC::fWordsPerBuffer = 16;
 const Int_t QwF1TDC::fMaxF1TDCChannelNumber = 64;
 
 QwF1TDC::QwF1TDC()
 {
   fROC                 = -1;
+  fROCIndex            = -1;
   fSlot                = -1;
 
   fChannelNumber       = 0;
@@ -70,6 +81,7 @@ QwF1TDC::QwF1TDC()
 QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
 {
   fROC                 = roc;
+  fROCIndex            = -1;
   fSlot                = slot;
 
   fChannelNumber       = 0;
@@ -204,11 +216,10 @@ QwF1TDC::SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words)
 Double_t 
 QwF1TDC::ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time)
 {
-  // trigger_window and time_offset will be
-  // replaced with the F1TDC configuration values later or sooner
-  // jhlee , Tuesday, July 13 17:43:43 EDT 2010
+
   Double_t trigger_window = (Double_t) fF1TDC_trigwin;
   Double_t time_offset    = (Double_t) fF1TDC_t_offset;
+
 
   Double_t time_condition = 0.0;
   Double_t local_time_difference = 0.0;
@@ -252,7 +263,8 @@ QwF1TDC::PrintF1TDCBuffer()
 {
   Int_t i = 0;
   
-  printf("F1TDC ROC %2d, Slot %2d TDC index %d\n", fROC, fSlot, fF1TDCIndex);
+  printf("System %s F1TDC ROC %2d, Slot %2d TDC index %d\n", 
+	 fSystemName.Data(), fROC, fSlot, fF1TDCIndex);
   for(i=0; i<fWordsPerBuffer; i++) {
     printf("0x%x ", fBuffer[i]);
   }
@@ -311,7 +323,8 @@ QwF1TDC::ResetCounters()
 void
 QwF1TDC::PrintErrorCounter()
 {
-  std::cout << "QwF1TDC object at " << this
+  std::cout << "System " << this->GetF1SystemName()
+	    << " QwF1TDC object at " << this
 	    << *this
 	    << " "
 	    << " OFO " << this->GetOFO()
@@ -332,13 +345,9 @@ QwF1TDC::GetErrorCounter()
 {
   TString error_counter;
 
-  error_counter =  "Error Counter F1TDC ROC: ";
-  error_counter += fROC;
-  error_counter += " Slot: ";
-  error_counter += fSlot;
-  error_counter += " Index: ";
-  error_counter += fF1TDCIndex;
-  error_counter += " ";
+  error_counter =  Form("Error Counter F1TDC ROC%2d", fROC);
+  error_counter += Form(" Slot%2d", fSlot);
+  error_counter += Form(" Index%2d", fF1TDCIndex);
   error_counter += " OFO : ";
   error_counter += this->GetOFO();
   error_counter += " RLF : ";
@@ -381,6 +390,21 @@ std::ostream& operator<< (std::ostream& os, const QwF1TDC &f1tdc)
 
   return os;
 }
+
+
+
+
+//----------------------------------
+//
+//
+//
+//  QwF1TDContainer
+//
+//
+//
+//
+//----------------------------------
+
 
 
 
@@ -449,7 +473,8 @@ QwF1TDContainer::GetF1TDC(Int_t roc, Int_t slot)
       slot_num = F1->GetSlotNumber();
       if((roc_num == roc) && (slot_num == slot) ) {
 	if(fLocalDebug) {
-	  std::cout << "GetF1TDC F1 address at " << F1 << std::endl;
+	  std::cout << "System " << F1->GetF1SystemName()
+		    << " QwF1TDContainer::GetF1TDC F1TDC address at" << F1 << std::endl;
 	}
 	return F1;
       }
@@ -458,6 +483,66 @@ QwF1TDContainer::GetF1TDC(Int_t roc, Int_t slot)
   return NULL;
 }
 
+
+QwF1TDC *
+QwF1TDContainer::GetF1TDCIndex(Int_t tdc_index)
+{
+
+  Int_t f1_index = 0;
+
+  QwF1TDC* F1 = NULL;
+
+  TObjArrayIter next(fQwF1TDCList);
+  TObject* obj = NULL;
+
+
+  while ( (obj = next()) )
+    {
+      
+      F1 = (QwF1TDC*) obj;
+
+      f1_index = F1->GetF1TDCIndex();
+      if( f1_index == tdc_index ) { 
+	if(fLocalDebug) {
+	  std::cout << "System " << F1->GetF1SystemName()
+		    << " QwF1TDContainer::GetF1TDCIndex F1TDC address at" << F1 << std::endl;
+	}
+	return F1;
+      }
+    }
+
+  return NULL;
+}
+
+QwF1TDC *
+QwF1TDContainer::GetF1TDCwithROCIndexSLOT(Int_t roc_index, Int_t slot)
+{
+  Int_t roc_id = 0;
+  Int_t slot_num  = 0;
+  
+  QwF1TDC* F1 = NULL;
+
+  TObjArrayIter next(fQwF1TDCList);
+  TObject* obj = NULL;
+
+
+  while ( (obj = next()) )
+    {
+      
+      F1 = (QwF1TDC*) obj;
+      roc_id  = F1->GetF1ROCIndex();
+      slot_num = F1->GetSlotNumber();
+      if((roc_id == roc_index) && (slot_num == slot) ) {
+	if(fLocalDebug) {
+	  std::cout << "System " << F1->GetF1SystemName()
+		    << " QwF1TDContainer::GetF1TDC F1TDC address at" << F1 << std::endl;
+	}
+	return F1;
+      }
+    }
+
+  return NULL;
+};
 
 
 void
@@ -469,6 +554,9 @@ QwF1TDContainer::AddSYN(Int_t roc, Int_t slot)
     F1->AddSYN();
     if(fLocalDebug) F1->PrintErrorCounter();
   }
+  else {
+    if(fLocalDebug) std::cout << "QwF1TDContainer::AddSYN : " << PrintNoF1TDC(roc,slot) << std::endl;
+  }
   return;
 }
 
@@ -479,6 +567,9 @@ QwF1TDContainer::AddEMM(Int_t roc, Int_t slot)
   if(F1) {
     F1->AddEMM();
     if(fLocalDebug) F1->PrintErrorCounter();
+  }
+  else {
+    if(fLocalDebug) std::cout << "QwF1TDContainer::AddEMM : " << PrintNoF1TDC(roc,slot)  << std::endl;
   }
   return;
 }
@@ -492,6 +583,9 @@ QwF1TDContainer::AddSEU(Int_t roc, Int_t slot)
     F1->AddSEU();
     if(fLocalDebug) F1->PrintErrorCounter();
   }
+  else {
+    if(fLocalDebug) std::cout << "QwF1TDContainer::AddSEU : " << PrintNoF1TDC(roc,slot) << std::endl;
+  }
   return;
 }
 
@@ -503,6 +597,9 @@ QwF1TDContainer::AddTFO(Int_t roc, Int_t slot)
   if(F1) {
     F1->AddTFO();
     if(fLocalDebug) F1->PrintErrorCounter();
+  }
+  else {
+    if(fLocalDebug) std::cout << "QwF1TDContainer::AddTFO : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
 }
@@ -517,6 +614,9 @@ QwF1TDContainer::AddRLF(Int_t roc, Int_t slot)
     F1->AddRLF();
     if(fLocalDebug) F1->PrintErrorCounter();
   }
+  else {
+    if(fLocalDebug) std::cout << "QwF1TDContainer::AddRLF : " << PrintNoF1TDC(roc,slot) << std::endl;
+  }
   return;
 }
 
@@ -529,6 +629,9 @@ QwF1TDContainer::AddHFO(Int_t roc, Int_t slot)
     F1->AddHFO();
     if(fLocalDebug) F1->PrintErrorCounter();
   }
+  else {
+    if(fLocalDebug) std::cout << "QwF1TDContainer::AddHFO : " << PrintNoF1TDC(roc,slot) << std::endl;
+  }
   return;
 }
 
@@ -540,7 +643,9 @@ QwF1TDContainer::AddOFO(Int_t roc, Int_t slot)
     F1->AddOFO();
     if(fLocalDebug) F1->PrintErrorCounter();
   }
-
+  else {
+    if(fLocalDebug) std::cout << "QwF1TDContainer::AddOFO : " << PrintNoF1TDC(roc,slot) << std::endl;
+  }
   return;
 }
 
@@ -548,13 +653,15 @@ Double_t
 QwF1TDContainer::ReferenceSignalCorrection(
 					   Double_t raw_time, 
 					   Double_t ref_time, 
-					   Int_t roc, Int_t slot)
+					   Int_t roc_index, Int_t slot_num)
 {
-  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  
+  QwF1TDC* F1 = this->GetF1TDCwithROCIndexSLOT(roc_index, slot_num);
   if(F1) {
     return F1->ReferenceSignalCorrection(raw_time, ref_time);
   }
   else {
+    //   printf("There is no F1TDC with TDC index %2d\n", tdc_index);
     return -1.0;
   }
 };
@@ -564,13 +671,13 @@ void
 QwF1TDContainer::SetSystemName(const TString name)
 {
   // Types are defined in QwType.h
-  if(fSubsystemName.IsNull()) {
-    fSubsystemName = name;
-    if(fSubsystemName == "R2") {
+  if(fSystemName.IsNull()) {
+    fSystemName = name;
+    if(fSystemName == "R2") {
       fDetectorType = kTypeDriftHDC;
       fRegion       = kRegionID2;
     }
-    else if(fSubsystemName == "R3") {
+    else if(fSystemName == "R3") {
       fDetectorType = kTypeDriftVDC;
       fRegion       = kRegionID3;
     }
@@ -580,7 +687,7 @@ QwF1TDContainer::SetSystemName(const TString name)
   }
   else {
     std::cout << "QwF1TDContainer::SetSystemName " 
-	      << fSubsystemName 
+	      << fSystemName 
 	      << " is already registered."
 	      << std::endl;
   }
@@ -596,7 +703,7 @@ QwF1TDContainer::Print()
   size = this->GetSize();
 
   std::cout << "\nQwF1TDContainer::Print() "
-	    << " QwF1TDContainer in Subsystem : "  
+	    << " QwF1TDContainer in System : "  
 	    <<  this->GetSystemName()
 	    << ", DetectorType " 
 	    << this->GetDetectorType()
@@ -617,6 +724,25 @@ QwF1TDContainer::Print()
 
   return;
 }
+
+
+TString
+QwF1TDContainer::PrintNoF1TDC(Int_t roc, Int_t slot)
+{
+  TString tmp = Form("There is no F1TDC with ROC%2d and SLOT%2d in System %s\n", 
+		     roc, slot, GetSystemName().Data());
+  return tmp;
+
+};
+
+TString
+QwF1TDContainer::PrintNoF1TDC(Int_t tdc_index)
+{
+  TString tmp = Form("There is no F1TDC with TDCINDEX%2d in System %s\n", 
+		     tdc_index, GetSystemName().Data());
+
+  return tmp;
+};
 
 
 const Double_t
@@ -774,169 +900,195 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   const Int_t valid_trigger_time_offset = 1;
   
 
-  for (UInt_t i=0; i<num_words ; i++) {
+  for (UInt_t i=0; i<num_words ; i++) 
+    {
 
-    fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); 
-    slot_number = fF1TDCDecoder.GetTDCSlotNumber();
-    
+      fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); 
+      slot_number = fF1TDCDecoder.GetTDCSlotNumber();
 
-    // Both header and data words have HFO, OFO, and RLF
-    hit_fifo_overflow_flag    = fF1TDCDecoder.IsHitFIFOOverFlow();
-    output_fifo_overflow_flag = fF1TDCDecoder.IsOutputFIFOOverFlow();
-    chip_resolution_lock_flag = fF1TDCDecoder.IsResolutionLock();
-    
+      // We use the multiblock data transfer for F1TDC, thus
+      // we must get the event number and the trigger time from the first buffer
+      // (buffer[0]), and these valuse can be used to check "data" integrity
+      // over all F1TDCs
 
-    if(hit_fifo_overflow_flag) {
-      this->AddHFO(roc_id, slot_number);
-      if(fLocalDebug) {
-	std::cout << "There is the Hit FIFO Overflow on the F1TDC board at"
-		  << " Ch "   << fF1TDCDecoder.GetTDCChannelNumber()
-		  << " ROC "  << roc_id
-		  << " Slot " << slot_number <<"\n";
-	std::cout << std::endl;
-      }
-    }
-    if(output_fifo_overflow_flag)  {
-      this->AddOFO(roc_id, slot_number);
-      if(fLocalDebug) {
-	std::cout << "There is the Output FIFO Overflow on the F1TDC board at"
-		  << " Ch "   << fF1TDCDecoder.GetTDCChannelNumber()
-		  << " ROC "  << roc_id
-		  << " Slot " << slot_number <<"\n";
-	std::cout << std::endl;
-      }
-    }
-    if(not chip_resolution_lock_flag) {
-      this->AddRLF(roc_id, slot_number);
-      if(fLocalDebug) {
-	std::cout << "There is the Resolution Lock Failed on the F1TDC board at"
-		  << " Ch "   << fF1TDCDecoder.GetTDCChannelNumber()
-		  << " ROC "  << roc_id
-		  << " Slot " << slot_number <<"\n";
-	std::cout << std::endl;
-      }
-    }
-
-    
-
-    // We use the multiblock data transfer for F1TDC, thus
-    // we must get the event number and the trigger time from the first buffer
-    // (buffer[0]), and these valuse can be used to check "data" integrity
-    // over all F1TDCs
-    if ( i==0 ) {
-      if ( fF1TDCDecoder.IsHeaderword() ) {
-	reference_event_num = fF1TDCDecoder.GetTDCEventNumber();
-	reference_trig_time = fF1TDCDecoder.GetTDCTriggerTime();
-
-	trig_fifo_ok_flag = fF1TDCDecoder.IsNotHeaderTrigFIFO();
-	if(not trig_fifo_ok_flag) this -> AddTFO(roc_id, slot_number);
-
-	fF1TDCDecoder.PrintTDCHeader(fLocalDebug);
-      }
-      else {
-	QwWarning << QwColor(Qw::kRed)
-		  << "The first word of F1TDC must be header word. "
-		  << "Something wrong into this CODA stream.\n";
-	QwWarning << std::endl;
-	return false;
-      }
-    }
-    else {
-
-      if ( fF1TDCDecoder.IsHeaderword() ) {
-
-	fF1TDCDecoder.PrintTDCHeader(fLocalDebug);
-	// check EMM
-	event_ok_flag     =    ( reference_event_num==fF1TDCDecoder.GetTDCHeaderEventNumber() );
-	// check SYN
-	trig_time_ok_flag = abs( reference_trig_time-fF1TDCDecoder.GetTDCHeaderTriggerTime() ) <= valid_trigger_time_offset;
-	xor_setup_flag    = fF1TDCDecoder.IsHeaderXorSetup();
-
-
-
+      if ( i==0 ) {
+	if ( fF1TDCDecoder.IsHeaderword() ) {
+	  reference_event_num = fF1TDCDecoder.GetTDCEventNumber();
+	  reference_trig_time = fF1TDCDecoder.GetTDCTriggerTime();
 	  
-	// If SEU exists, Xor Setup Register bit is changing from 1 to 0, I think.
-	// Thus, it sets the trigger time 0 and the event number 0.
-	// For example, 
-	// Ch  8 Xor 0 tOF 0(hitOF,outOF,resLK)(001) ROC  9 Slot 10 EvtN 0 TriT   0
-	// And it is the source of the trigger time and the event number differences
-	// within the same ROC. In the CheckDataIntegrity routine, I decided
-	// to skip such a event. 
-	// Sunday, August  8 03:42:48 EDT 2010, jhlee
-	  
-	if (xor_setup_flag) {
-
 	  trig_fifo_ok_flag = fF1TDCDecoder.IsNotHeaderTrigFIFO();
 	  if(not trig_fifo_ok_flag) this -> AddTFO(roc_id, slot_number);
+	  
+	}
+	else {
+	  std::cout << "The first word of F1TDC must be header word. "
+		    << "Check CODA stream and QwF1TDContainer::CheckDataIntegrity fucntion."
+		    << std::endl;
+	  return false;
+	}
+      }
+
+      // Check F1TDC status is inside a subsystem
+      if(fF1TDCDecoder.IsValidDataSlot()) {
+	if( CheckRegisteredF1(roc_id, slot_number) ) {
+      
+	// Check F1TDC slot, provided by buffer[i], is valid (1<=slot<=21)
 
 
-	  // Trigger Time difference of up to 1 count among the chips is acceptable
-	  // For the Trigger Time, this assumes that an external SYNC_RESET signal has
-	  // been successfully applied at the start of the run
-	  if (not trig_time_ok_flag) {
-	    this->AddSYN(roc_id, slot_number);
+	  if(fLocalDebug) {
+	    std::cout << GetSystemName()
+		      << " i" << std::setw(3) << i << fF1TDCDecoder << std::endl;
+	  }
+
+	  // Both header and data words have HFO, OFO, and RLF
+	  hit_fifo_overflow_flag    = fF1TDCDecoder.IsHitFIFOOverFlow();
+	  output_fifo_overflow_flag = fF1TDCDecoder.IsOutputFIFOOverFlow();
+	  chip_resolution_lock_flag = fF1TDCDecoder.IsResolutionLock();
+	  
+	
+	  if(hit_fifo_overflow_flag) {
+	    this->AddHFO(roc_id, slot_number);
+	    // one event creates the maximum 9 HFOs
+	    // but the number is within the range of 1 - 9
+
 	    if(fLocalDebug) {
-	      std::cout << "There is the no SYNC_RESET on the F1TDC board at"
+	      std::cout << "There is the Hit FIFO Overflow on the F1TDC board at"
 			<< " Ch "   << fF1TDCDecoder.GetTDCChannelNumber()
 			<< " ROC "  << roc_id
 			<< " Slot " << slot_number <<"\n";
-	      std::cout << "This event is excluded from the ROOT data stream.\n";
-	      std::cout << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
-	      std::cout << std::endl;
-	    }
-	      
-	      
-	  }
-	  // Any difference in the Event Number among the chips indicates a serious error
-	  // that requires a reset of the board.
-	    
-	  if (not event_ok_flag) {
-	    this->AddEMM(roc_id, slot_number);
-	    if(fLocalDebug) {
-	      std::cout << "There is the Event Number Mismatch issue on the F1TDC board at"
-			<< " ROC "  << roc_id
-			<< " Slot " << slot_number << "\n";
-	      std::cout << "This event is excluded from the ROOT data stream.\n";
-	      std::cout << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
 	      std::cout << std::endl;
 	    }
 	  }
-	    
-	  if(data_integrity_unlock_flag) { 
-	    // check data_integrity_flag = false once (not initial value),
-	    // if so, we skip the further process to check
-	    // data integrity, because it is alreay invalid
-	    // data we have.
-
-	    data_integrity_flag = (event_ok_flag) && (trig_time_ok_flag) && (trig_fifo_ok_flag) ;
-	    if(data_integrity_flag) data_integrity_unlock_flag = true;    // true  -> not lock -> check it again
-	    else                    data_integrity_unlock_flag = false;   // false -> lock  -> no check it again
-	  }
-
-	}
-	
-	else {//;;;
-	 
-	  // ignore SEU first, then we count them how frequently they are,
-	  // because there is no way to seperate SEU and the data integrity.
-	  // data integrity is valid within all buffer, but SEU is valid 
-	  // for only when it is (header and dataword)
-
-	  this->AddSEU(roc_id, slot_number);
 	  
-	  if (fLocalDebug) {
-	    std::cout << "There is the Single Event Upset (SEU) on the F1TDC board at"
-		      << " ROC "  << roc_id
-		      << " Slot " << slot_number << "\n";
-	    std::cout << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
-	    std::cout << std::endl;
+	  if(output_fifo_overflow_flag)  {
+	    this->AddOFO(roc_id, slot_number);
+	    if(fLocalDebug) {
+	      std::cout << "There is the Output FIFO Overflow on the F1TDC board at"
+			<< " Ch "   << fF1TDCDecoder.GetTDCChannelNumber()
+			<< " ROC "  << roc_id
+			<< " Slot " << slot_number <<"\n";
+	      std::cout << std::endl;
+	    }
 	  }
-	}//;;;
-      }//;;
-      else { //;; // dataword
-	if(!fF1TDCDecoder.IsOverFlowEntry()) fF1TDCDecoder.PrintTDCData(fLocalDebug);
-      }//;;
-    }//;
+	  
+	  if(not chip_resolution_lock_flag) {
+	    this->AddRLF(roc_id, slot_number);
+	    if(fLocalDebug) {
+	      std::cout << "There is the Resolution Lock Failed on the F1TDC board at"
+			<< " Ch "   << fF1TDCDecoder.GetTDCChannelNumber()
+			<< " ROC "  << roc_id
+			<< " Slot " << slot_number <<"\n";
+	      std::cout << std::endl;
+	    }
+	  }
+
+	  // check only header word
+
+	  if ( fF1TDCDecoder.IsHeaderword() ) {
+	    
+	    
+	    xor_setup_flag    = fF1TDCDecoder.IsHeaderXorSetup();
+	    trig_fifo_ok_flag = fF1TDCDecoder.IsNotHeaderTrigFIFO();
+	    event_ok_flag     = ( reference_event_num==fF1TDCDecoder.GetTDCHeaderEventNumber() );
+	    trig_time_ok_flag = abs( reference_trig_time-fF1TDCDecoder.GetTDCHeaderTriggerTime() ) <= valid_trigger_time_offset;
+	 
+	    
+	    // If SEU exists, Xor Setup Register bit is changing from 1 to 0, I think.
+	    // Thus, it sets the trigger time 0 and the event number 0.
+	    // For example, 
+	    // Ch  8 Xor 0 tOF 0(hitOF,outOF,resLK)(001) ROC  9 Slot 10 EvtN 0 TriT   0
+	    // And it is the source of the trigger time and the event number differences
+	    // within the same ROC. In the CheckDataIntegrity routine, I decided
+	    // to skip such a event. 
+	    // Sunday, August  8 03:42:48 EDT 2010, jhlee
+	  
+
+	    // if no SEU, check Trigger FIFO Overflow, Trigger Time, and Event Number
+
+	    if (xor_setup_flag) {
+
+	      if(not trig_fifo_ok_flag) {
+		this -> AddTFO(roc_id, slot_number);
+		if(fLocalDebug) {
+		  std::cout << "There is the Trigger FIFO overflow at"
+			    << " Ch "   << fF1TDCDecoder.GetTDCChannelNumber()
+			    << " ROC "  << roc_id
+			    << " Slot " << slot_number <<"\n";
+		  std::cout << std::endl;
+		}
+	      }
+
+	      // Trigger Time difference of up to 1 count among the chips is acceptable
+	      // For the Trigger Time, this assumes that an external SYNC_RESET signal has
+	      // been successfully applied at the start of the run
+
+	      if (not trig_time_ok_flag) {
+		this->AddSYN(roc_id, slot_number);
+		if(fLocalDebug) {
+		  std::cout << "There is the no SYNC_RESET on the F1TDC board at"
+			    << " Ch "   << fF1TDCDecoder.GetTDCChannelNumber()
+			    << " ROC "  << roc_id
+			    << " Slot " << slot_number <<"\n";
+		  std::cout << std::endl;
+		}
+	      
+	      
+	      }
+	      // Any difference in the Event Number among the chips indicates a serious error
+	      // that requires a reset of the board.
+	    
+	      if (not event_ok_flag) {
+		this->AddEMM(roc_id, slot_number);
+		if(fLocalDebug) {
+		  std::cout << "There is the Event Number Mismatch issue on the F1TDC board at"
+			    << " ROC "  << roc_id
+			    << " Slot " << slot_number << "\n";
+		  std::cout << std::endl;
+		}
+	      }
+	    
+
+	      if(data_integrity_unlock_flag) { 
+		// check data_integrity_flag = false once (not initial value),
+		// if so, we skip the further process to check
+		// data integrity, because it is alreay invalid
+		// data we have.
+
+		data_integrity_flag = (event_ok_flag) && (trig_time_ok_flag) && (trig_fifo_ok_flag) ;
+		if(data_integrity_flag) data_integrity_unlock_flag = true;    // true  -> not lock -> check it again
+		else                    data_integrity_unlock_flag = false;   // false -> lock  -> no check it again -> return false;
+	      }
+	    } // if(xor_setup_flag) {
+	 
+	 
+	    // ignore SEU first, then we count them how frequently they are,
+	    // because there is no way to seperate SEU and the data integrity.
+	    // data integrity is valid within all buffer, but SEU is valid 
+	    // for only when it is (header and dataword)
+
+	    else {
+	      this->AddSEU(roc_id, slot_number);
+	  
+	      if (fLocalDebug) {
+		std::cout << "There is the Single Event Upset (SEU) on the F1TDC board at"
+			  << " ROC "  << roc_id
+			  << " Slot " << slot_number << "\n";
+		std::cout << std::endl;
+	      }
+	    }
+	  
+	  } //   if ( fF1TDCDecoder.IsHeaderword() ) {
+	  else {
+	    // dataword
+
+	    //	    if(!fF1TDCDecoder.IsOverFlowEntry()) fF1TDCDecoder.PrintTDCData(fLocalDebug);
+	  }//;;
+	  
+
+
+	} // if( CheckRegisteredF1(roc_id, slot_number) ) {
+
+      }//if(fF1TDCDecoder.IsValidDataSlot()) {
   }//for (UInt_t i=0; i<num_words ; i++) {
   
   
@@ -946,15 +1098,25 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 
 
 void 
-QwF1TDContainer::WriteErrorSummary(TString subsystem_name)
+QwF1TDContainer::WriteErrorSummary()
 {
   TSeqCollection *file_list = gROOT->GetListOfFiles();
   for(Int_t i=0; i<file_list->GetSize(); i++) {
     TFile * file = (TFile*) file_list->At(i);
     file -> WriteObject(this->GetErrorSummary(),
-			Form("%s : F1TDC Error Summary", subsystem_name.Data())
+			Form("%s : F1TDC Error Summary", GetSystemName().Data())
 			);
   }
   return;
 };
   
+
+
+Bool_t 
+QwF1TDContainer::CheckRegisteredF1(Int_t roc, Int_t slot)
+{
+  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  
+  if(F1) return true;
+  else   return false;
+}

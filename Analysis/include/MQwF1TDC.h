@@ -70,7 +70,7 @@ class MQwF1TDC{
   UInt_t GetTDCHeaderTriggerTime() {return fF1HeaderTriggerTime;};
 
 
-  //Bool_t IsValidDataSlot()         {return fF1ValidDataSlotFlag;};
+  Bool_t IsValidDataSlot()         {return fF1ValidDataSlotFlag;};
  
   Bool_t IsHeaderXorSetup()        {return fF1HeaderXorSetupFlag;};
   Bool_t IsNotHeaderTrigFIFO()     {return !fF1HeaderTrigFIFOFlag;};
