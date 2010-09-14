@@ -24,18 +24,8 @@
 #include "QwCombinedBPM.h"
 #include "QwEnergyCalculator.h"
 #include "QwHaloMonitor.h"
+#include "QwQPD.h"
 
-
-/// \todo TODO (wdc) EBeamInstrumentType is global in QwBeamLine.cc but could be class local
-/* enum EBeamInstrumentType{kBPMStripline = 0, */
-/* 			 kBCM, */
-/* 			 kCombinedBCM, */
-/* 			 kCombinedBPM, */
-/* 			 kEnergyCalculator, */
-/* 			 kHaloMonitor */
-/* }; */
-
-// this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
 
 class QwBeamDetectorID;
 
@@ -47,19 +37,7 @@ class QwBeamLine : public VQwSubsystemParity{
  public:
 
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
-    {
-
-/*       // these declaration need to be coherent with the enum vector EBeamInstrumentType */
-/*       fgDetectorTypeNames.push_back("bpmstripline"); */
-/*       fgDetectorTypeNames.push_back("bcm"); */
-/*       fgDetectorTypeNames.push_back("combinedbcm"); */
-/*       fgDetectorTypeNames.push_back("combinedbpm"); */
-/*       fgDetectorTypeNames.push_back("energycalculator"); */
-/*       fgDetectorTypeNames.push_back("halomonitor"); */
-
-/*       for(size_t i=0;i<fgDetectorTypeNames.size();i++) */
-/*         fgDetectorTypeNames[i].ToLower(); */
-    };
+    { };
 
   ~QwBeamLine() {
     DeleteHistograms();
@@ -122,7 +100,7 @@ class QwBeamLine : public VQwSubsystemParity{
   void PrintInfo() const;
 
 
-  QwBPMStripline* GetBPMStripline(const TString name);
+  VQwBPM* GetBPM(const TString name);
   QwBCM* GetBCM(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
@@ -138,6 +116,7 @@ class QwBeamLine : public VQwSubsystemParity{
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
  std::vector <QwBPMStripline> fStripline;
  std::vector <QwBCM> fBCM;
+ std::vector <QwQPD> fQPD;
  std::vector <QwBPMCavity> fCavity;
  std::vector <QwHaloMonitor> fHaloMonitor;
  std::vector <QwCombinedBCM> fBCMCombo;

@@ -1,12 +1,12 @@
 /**********************************************************\
-* File: QwBPMStripline.h                                  *
+* File: QwQPD.h                                           *
 *                                                         *
-* Author:                                                 *
-* Time-stamp:                                             *
+* Author: B.Waidyawansa                                   *
+* Time-stamp: 09-14-2010                                  *
 \**********************************************************/
 
-#ifndef __QwVQWK_STRIPLINE__
-#define __QwVQWK_STRIPLINE__
+#ifndef __QwQPD__
+#define __QwQPD__
 
 #include <vector>
 #include <TTree.h>
@@ -24,31 +24,27 @@
 ///
 /// \ingroup QwAnalysis_BL
 
-class QwBPMStripline : public VQwBPM {
-  friend class QwCombinedBPM;
-  friend class QwEnergyCalculator;
+class QwQPD : public VQwBPM {
 
  public:
-  QwBPMStripline() { };
-  QwBPMStripline(TString name, Bool_t ROTATED):VQwBPM(name){
+  QwQPD() { };
+  QwQPD(TString name):VQwBPM(name){
     InitializeChannel(name);
-    bRotated=ROTATED;
   };
     
     
-    QwBPMStripline(TString subsystemname, TString name, Bool_t ROTATED):VQwBPM(name){
-      SetSubsystemName(subsystemname);
-      InitializeChannel(subsystemname, name);
-      bRotated=ROTATED;
-    };    
-
-    ~QwBPMStripline() {
-      DeleteHistograms();
-    };
-
+ QwQPD(TString subsystemname, TString name):VQwBPM(name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name);
+  };    
+  
+  ~QwQPD() {
+    DeleteHistograms();
+  };
+  
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
-  void  InitializeChannel(TString subsystem, TString name);
+  void    InitializeChannel(TString subsystem, TString name);
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
@@ -75,14 +71,14 @@ class QwBPMStripline : public VQwBPM {
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
   void    Copy(VQwDataElement *source);
-  void    Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
+  void    Ratio(QwQPD &numer, QwQPD &denom);
   void    Scale(Double_t factor);
 
-  virtual QwBPMStripline& operator=  (const QwBPMStripline &value);
-  virtual QwBPMStripline& operator+= (const QwBPMStripline &value);
-  virtual QwBPMStripline& operator-= (const QwBPMStripline &value);
+  virtual QwQPD& operator=  (const QwQPD &value);
+  virtual QwQPD& operator+= (const QwQPD &value);
+  virtual QwQPD& operator-= (const QwQPD &value);
 
-  void    AccumulateRunningSum(const QwBPMStripline& value);
+  void    AccumulateRunningSum(const QwQPD& value);
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -97,27 +93,23 @@ class QwBPMStripline : public VQwBPM {
 
 
   std::vector<QwDBInterface> GetDBEntry();
-  void    MakeBPMList();
+  void    MakeQPDList();
 
 
   /////
  private:
   /*  Position calibration factor, transform ADC counts in mm */
-  static const Double_t kQwStriplineCalibration;
-  /* Rotation factor for the BPM which antenna are at 45 deg */
-  static const Double_t kRotationCorrection;
-  static const TString subelement[4];
+  static const Double_t kQwQPDCalibration;
+  static const TString subelement[4]; 
 
 
 
  protected:
-  Bool_t   bRotated;
-  QwVQWK_Channel fWire[4];
+  QwVQWK_Channel fPhotodiode[4];
   QwVQWK_Channel fRelPos[2];
-  QwVQWK_Channel fAbsPos[2]; // Z will not be considered as a vqwk_channel
   QwVQWK_Channel fEffectiveCharge;
 
-  std::vector<QwVQWK_Channel> fBPMElementList;
+  std::vector<QwVQWK_Channel> fQPDElementList;
 
 };
 

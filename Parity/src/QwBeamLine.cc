@@ -269,10 +269,14 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       }
 
       // Remove the subelement name from the bpm name
-
       if(localBeamDetectorID.fTypeID== kQwBPMStripline)
 	localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-3);
 
+      // Remove the subelement name from the QPD name
+     if(localBeamDetectorID.fTypeID== kQwQPD)
+	localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-3);
+
+     // Remove the subelement name from the cavity name
       if(localBeamDetectorID.fTypeID==kQwBPMCavity)
 	  localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-2);
 
@@ -308,7 +312,15 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  fBCM[fBCM.size()-1].SetDefaultSampleSize(fSample_size);
 	  localBeamDetectorID.fIndex=fBCM.size()-1;
 	 }
+
+	if(localBeamDetectorID.fTypeID== kQwQPD){
+	  QwQPD localqpd(GetSubsystemName(), localBeamDetectorID.fdetectorname);
+	  fQPD.push_back(localqpd);
+	  fQPD[fQPD.size()-1].SetDefaultSampleSize(fSample_size);
+	  localBeamDetectorID.fIndex=fQPD.size()-1;
+	 }
       }
+
 	if(localBeamDetectorID.fTypeID == kQwBPMStripline){
 	  TString subname=namech(namech.Sizeof()-3,2);
 	  UInt_t localsubindex=
@@ -349,6 +361,29 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  if(localsubindex>3){
 	    QwError << "QwBeamLine::LoadChannelMap: "<<subname
 		    <<" was not recognized as a valid antenna for a cavity"
+		    <<QwLog::endl;;
+	    lineok=kFALSE;
+	    continue;
+	  }
+	}
+
+	if(localBeamDetectorID.fTypeID == kQwQPD){
+	  TString subname=namech(namech.Sizeof()-3,2);
+	  UInt_t localsubindex=
+	    fQPD[localBeamDetectorID.fIndex].GetSubElementIndex(subname);
+	  if(ldebug){
+	    std::cout<<"=================================\n"
+		     <<"Looking for subelement index \n"
+		     <<" full name ="<<namech
+		     <<" part passed to the function "<<subname
+		     <<" sub element index="<<localsubindex
+		     <<std::endl;
+	  }
+
+	  localBeamDetectorID.fSubelement=localsubindex;
+	  if(localsubindex>4){
+	    QwError << "QwBeamLine::LoadChannelMap: "<<subname
+		    <<" was not recognized as a valid photodiode for the QPD"
 		    <<QwLog::endl;;
 	    lineok=kFALSE;
 	    continue;
@@ -457,11 +492,18 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
 	fStripline[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
       }
+	else if (device_type == GetQwBeamInstrumentTypeName(kQwQPD)){
+	channel_name= mapstr.GetNextToken(", ").c_str();
+	channel_name.ToLower();
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for QPD X
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for QPD X
+	fQPD[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
+	}
 	else if (device_type ==  GetQwBeamInstrumentTypeName(kQwBPMCavity)){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
-	  LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
-	  ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
+	  LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for cavity bpm X
+	  ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for cavity bpm X
 	  fCavity[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
       }
       else if (device_type == GetQwBeamInstrumentTypeName(kQwCombinedBCM)){
@@ -475,8 +517,8 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
 
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for combined bpm X
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for combined bpm X
 
 	fBPMCombo[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
 	fBPMCombo[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
@@ -491,6 +533,9 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   //std::cout<<"EVENT CUT FLAG"<<eventcut_flag<<std::endl;
   for (size_t i=0;i<fStripline.size();i++)
     fStripline[i].SetEventCutMode(eventcut_flag);
+
+  for (size_t i=0;i<fQPD.size();i++)
+    fQPD[i].SetEventCutMode(eventcut_flag);
 
   for (size_t i=0;i<fCavity.size();i++)
     fCavity[i].SetEventCutMode(eventcut_flag);
@@ -672,49 +717,69 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 	  //if(ldebug) std::cout<<"inputs for channel "<<varname
 	  //	      <<": ped="<<varped<<": cal="<<varcal<<": weight="<<varweight<<"\n";
 	  Bool_t notfound=kTRUE;
-	  for(size_t i=0;i<fStripline.size();i++)
-	    {
-	      if(notfound)
+
+	  if(notfound) {
+
+	    for(size_t i=0;i<fStripline.size();i++)
+	      {
 		for(int j=0;j<4;j++)
 		  {
 		    localname=fStripline[i].GetSubElementName(j);
 		    localname.ToLower();
 		    if(ldebug)  std::cout<<"Stripline element name =="<<localname
 					 <<"== to be compared to =="<<varname<<"== \n";
-		    if(notfound)
-		      if(localname==varname)
-			{
-			  if(ldebug) std::cout<<" I found it !\n";
-			  fStripline[i].SetSubElementPedestal(j,varped);
-			  fStripline[i].SetSubElementCalibrationFactor(j,varcal);
-			  notfound=kFALSE;
-			  j=5;
-			  i=fStripline.size()+1;
-			}
+		    if(localname==varname)
+		      {
+			if(ldebug) std::cout<<" I found it !\n";
+			fStripline[i].SetSubElementPedestal(j,varped);
+			fStripline[i].SetSubElementCalibrationFactor(j,varcal);
+			notfound=kFALSE;
+			j=5;
+			i=fStripline.size()+1;
+		      }
 		  }
-	    }
-	  for(size_t i=0;i<fCavity.size();i++)
-	    {
-	      if(notfound)
+	      }
+
+	    for(size_t i=0;i<fQPD.size();i++)
+	      {
+		for(int j=0;j<4;j++)
+		  {
+		    localname=fQPD[i].GetSubElementName(j);
+		    localname.ToLower();
+		    if(ldebug)  std::cout<<"QPD element name =="<<localname
+					 <<"== to be compared to =="<<varname<<"== \n";
+		    if(localname==varname)
+		      {
+			if(ldebug) std::cout<<" I found it !\n";
+			fQPD[i].SetSubElementPedestal(j,varped);
+			fQPD[i].SetSubElementCalibrationFactor(j,varcal);
+			notfound=kFALSE;
+			j=5;
+			i=fQPD.size()+1;
+		      }
+		  }
+	      }
+	    
+	    for(size_t i=0;i<fCavity.size();i++)
+	      {
 		for(int j=0;j<2;j++)
 		  {
 		    localname=fCavity[i].GetSubElementName(j);
 		    localname.ToLower();
 		    if(ldebug)  std::cout<<"Cavity element name =="<<localname
 					 <<"== to be compared to =="<<varname<<"== \n";
-		    if(notfound)
-		      if(localname==varname)
-			{
-			  if(ldebug) std::cout<<" I found it !\n";
-			  fCavity[i].SetSubElementPedestal(j,varped);
-			  fCavity[i].SetSubElementCalibrationFactor(j,varcal);
-			  notfound=kFALSE;
-			  j=3;
-			  i=fCavity.size()+1;
-			}
+		    if(localname==varname)
+		      {
+			if(ldebug) std::cout<<" I found it !\n";
+			fCavity[i].SetSubElementPedestal(j,varped);
+			fCavity[i].SetSubElementCalibrationFactor(j,varcal);
+			notfound=kFALSE;
+			j=3;
+			i=fCavity.size()+1;
+		      }
 		  }
-	    }
-	  if(notfound) {
+	      }
+	    
 	    for(size_t i=0;i<fBCM.size();i++) {
 	      if(fBCM[i].GetElementName()==varname)
 		{
@@ -725,6 +790,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 		  i=fBCM.size()+1;
 		}
             }
+
 	    for(size_t i=0;i<fHaloMonitor.size();i++) {
 	      if(fHaloMonitor[i].GetElementName()==varname)
 		{
@@ -851,6 +917,20 @@ Int_t QwBeamLine::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UIn
 				  num_words-fBeamDetectorID[i].fWordInSubbank,
 				  fBeamDetectorID[i].fSubelement);
 	      }
+
+	    if(fBeamDetectorID[i].fTypeID==kQwQPD)
+	      {
+		if (lkDEBUG)
+		  {
+		    std::cout<<"found qpd data for "<<fBeamDetectorID[i].fdetectorname<<std::endl;
+		    std::cout<<"word left to read in this buffer:"<<num_words-fBeamDetectorID[i].fWordInSubbank<<std::endl;
+		  }
+		fQPD[fBeamDetectorID[i].fIndex].
+		  ProcessEvBuffer(&(buffer[fBeamDetectorID[i].fWordInSubbank]),
+				  num_words-fBeamDetectorID[i].fWordInSubbank,
+				  fBeamDetectorID[i].fSubelement);
+	      }
+
 	    if(fBeamDetectorID[i].fTypeID==kQwBPMCavity)
 	      {
 		if (lkDEBUG)
@@ -863,6 +943,7 @@ Int_t QwBeamLine::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UIn
 				  num_words-fBeamDetectorID[i].fWordInSubbank,
 				  fBeamDetectorID[i].fSubelement);
 	      }
+
 	    if(fBeamDetectorID[i].fTypeID==kQwBCM)
 	      {
 		if (lkDEBUG)
@@ -874,6 +955,7 @@ Int_t QwBeamLine::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UIn
 		  ProcessEvBuffer(&(buffer[fBeamDetectorID[i].fWordInSubbank]),
 				  num_words-fBeamDetectorID[i].fWordInSubbank);
 	      }
+
 	    if(fBeamDetectorID[i].fTypeID==kQwHaloMonitor)
 	      {
 		if (lkDEBUG)
@@ -919,11 +1001,18 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
 
     }
 
- for(size_t i=0;i<fCavity.size();i++){
+  for(size_t i=0;i<fQPD.size();i++){
+    status &= fQPD[i].ApplySingleEventCuts();
+    if(!status && bDEBUG) std::cout<<"******** QwBeamLine::SingleEventCuts()->QPD[ "<<i
+				   <<" , "<<fQPD[i].GetElementName()<<" ] *****\n";
+
+  }
+
+  for(size_t i=0;i<fCavity.size();i++){
     status &= fCavity[i].ApplySingleEventCuts();
     if(!status && bDEBUG) std::cout<<"******** QwBeamLine::SingleEventCuts()->BPMCavity[ "<<i
 				   <<" , "<<fCavity[i].GetElementName()<<" ] *****\n";
- }
+  }
 
   for(size_t i=0;i<fBCMCombo.size();i++){
     status &= fBCMCombo[i].ApplySingleEventCuts();
@@ -972,6 +1061,10 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
     fStripline[i].GetEventcutErrorCounters();
   }
 
+ for(size_t i=0;i<fQPD.size();i++){
+    fQPD[i].GetEventcutErrorCounters();
+  }
+
  for(size_t i=0;i<fCavity.size();i++){
     fCavity[i].GetEventcutErrorCounters();
   }
@@ -1005,6 +1098,9 @@ Int_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   for(size_t i=0;i<fStripline.size();i++){
     ErrorFlag |= fStripline[i].GetEventcutErrorFlag();
   }
+  for(size_t i=0;i<fQPD.size();i++){
+    ErrorFlag |= fQPD[i].GetEventcutErrorFlag();
+  }
   for(size_t i=0;i<fCavity.size();i++){
     ErrorFlag |= fCavity[i].GetEventcutErrorFlag();
   }
@@ -1033,6 +1129,9 @@ void  QwBeamLine::ProcessEvent()
 
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].ProcessEvent();
+
+  for(size_t i=0;i<fQPD.size();i++)
+    fQPD[i].ProcessEvent();
 
   for(size_t i=0;i<fHaloMonitor.size();i++)
     fHaloMonitor[i].ProcessEvent();
@@ -1091,10 +1190,10 @@ const Bool_t QwBeamLine::ReturnInternalValue(const TString& name,
 	      << "'value' be a pointer to QwVQWK_Channel"
 	      << QwLog::endl;
   } else {
-    if (name=="q_targ"  && (GetBCM("qwk_bcm0l02"))!=NULL){
+    if (name=="q_targ"  && (GetBCM("qwk_charge"))!=NULL){
       foundit = kTRUE;
-      (*tmp) = GetBCM("qwk_bcm0l02")->GetCharge();
-        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element qwk_bcm0l02"<<std::endl;
+      (*tmp) = GetBCM("qwk_charge")->GetCharge();
+        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element qwk_charge"<<std::endl;
     }
 
     //test for x_targ, y_targ, ...
@@ -1137,7 +1236,8 @@ void QwBeamLine::ClearEventData()
     fCavity[i].ClearEventData();
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].ClearEventData();
-
+  for(size_t i=0;i<fQPD.size();i++)
+    fQPD[i].ClearEventData();
   for(size_t i=0;i<fHaloMonitor.size();i++)
     fHaloMonitor[i].ClearEventData();
 
@@ -1178,12 +1278,23 @@ Int_t QwBeamLine::GetDetectorIndex( EQwBeamInstrumentType type_id, TString name)
 };
 
 //*****************************************************************
-QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name)
+VQwBPM* QwBeamLine::GetBPM(const TString name)
 {
   if (! fStripline.empty()) {
     for (std::vector<QwBPMStripline>::iterator stripline = fStripline.begin(); stripline != fStripline.end(); ++stripline) {
       if (stripline->GetElementName() == name) {
 	return &(*stripline);
+      }
+      else if (! fBPMCombo.empty()) {
+	for (std::vector<QwCombinedBPM>::iterator combinedstripline = fBPMCombo.begin(); 
+	     combinedstripline != fBPMCombo.end(); ++combinedstripline) {
+	  if (combinedstripline->GetElementName() == name) {
+	    return &(*combinedstripline);
+	  }
+	  else{
+	    QwError<<"Unable to locate device "<<name<<QwLog::endl;
+	  }
+	}
       }
     }
   }
@@ -1245,6 +1356,8 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
 
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]=input->fStripline[i];
+      for(size_t i=0;i<input->fQPD.size();i++)
+	this->fQPD[i]=input->fQPD[i];
       for(size_t i=0;i<input->fCavity.size();i++)
 	this->fCavity[i]=input->fCavity[i];
       for(size_t i=0;i<input->fBCM.size();i++)
@@ -1275,6 +1388,8 @@ VQwSubsystem&  QwBeamLine::operator+=  (VQwSubsystem *value)
 	this->fStripline[i]+=input->fStripline[i];
       for(size_t i=0;i<input->fCavity.size();i++)
 	this->fCavity[i]+=input->fCavity[i];
+      for(size_t i=0;i<input->fQPD.size();i++)
+	this->fQPD[i]+=input->fQPD[i];
       for(size_t i=0;i<input->fBCM.size();i++)
 	this->fBCM[i]+=input->fBCM[i];
       for(size_t i=0;i<input->fHaloMonitor.size();i++)
@@ -1301,6 +1416,8 @@ VQwSubsystem&  QwBeamLine::operator-=  (VQwSubsystem *value)
 	this->fStripline[i]-=input->fStripline[i];
       for(size_t i=0;i<input->fCavity.size();i++)
 	this->fCavity[i]-=input->fCavity[i];
+      for(size_t i=0;i<input->fQPD.size();i++)
+	this->fQPD[i]-=input->fQPD[i];
       for(size_t i=0;i<input->fBCM.size();i++)
 	this->fBCM[i]-=input->fBCM[i];
       for(size_t i=0;i<input->fHaloMonitor.size();i++)
@@ -1351,6 +1468,8 @@ void QwBeamLine::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 	this->fStripline[i].Ratio(innumer->fStripline[i],indenom->fStripline[i]);
       for(size_t i=0;i<innumer->fCavity.size();i++)
 	this->fCavity[i].Ratio(innumer->fCavity[i],indenom->fCavity[i]);
+      for(size_t i=0;i<innumer->fQPD.size();i++)
+	this->fQPD[i].Ratio(innumer->fQPD[i],indenom->fQPD[i]);
       for(size_t i=0;i<innumer->fBCM.size();i++)
 	this->fBCM[i].Ratio(innumer->fBCM[i],indenom->fBCM[i]);
      for(size_t i=0;i<innumer->fHaloMonitor.size();i++)
@@ -1364,7 +1483,7 @@ void QwBeamLine::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 
       // For the combined bcm, maybe we might want to think about getting
       // the asymmetry using the asymmetries of the individual bcms with a
-      // weight. But right now it is unclear if wer really need to have that
+      // weight. But right now it is unclear if really need to have that
       // option.
     }
   return;
@@ -1377,6 +1496,8 @@ void QwBeamLine::Scale(Double_t factor)
     fStripline[i].Scale(factor);
   for(size_t i=0;i<fCavity.size();i++)
     fCavity[i].Scale(factor);
+  for(size_t i=0;i<fQPD.size();i++)
+    fQPD[i].Scale(factor);
   for(size_t i=0;i<fBCM.size();i++)
     fBCM[i].Scale(factor);
   for(size_t i=0;i<fHaloMonitor.size();i++)
@@ -1396,7 +1517,6 @@ void QwBeamLine::CalculateRunningAverage()
   for (size_t i = 0; i < fStripline.size();    i++) fStripline[i].CalculateRunningAverage();
   for (size_t i = 0; i < fCavity.size();    i++) fCavity[i].CalculateRunningAverage();
   for (size_t i = 0; i < fBCM.size();          i++) fBCM[i].CalculateRunningAverage();
-  //for (size_t i = 0; i < fHaloMonitor.size();  i++) fHaloMonitor[i].CalculateRunningAverage();
   for (size_t i = 0; i < fBCMCombo.size();     i++) fBCMCombo[i].CalculateRunningAverage();
   for (size_t i = 0; i < fBPMCombo.size();     i++) fBPMCombo[i].CalculateRunningAverage();
   for (size_t i = 0; i < fECalculator.size();  i++) fECalculator[i].CalculateRunningAverage();
@@ -1408,6 +1528,8 @@ void QwBeamLine::PrintValue() const
   QwMessage << "=== QwBeamLine: " << GetSubsystemName() << " ===" << QwLog::endl;
   QwMessage << "BPM stripline" << QwLog::endl;
   for (size_t i = 0; i < fStripline.size(); i++) fStripline[i].PrintValue();
+  QwMessage << "QPD" << QwLog::endl;
+  for (size_t i = 0; i < fQPD.size(); i++) fQPD[i].PrintValue();
   QwMessage << "BPM cavity" << QwLog::endl;
   for (size_t i = 0; i < fCavity.size(); i++) fCavity[i].PrintValue();
   QwMessage << "BCM" << QwLog::endl;
@@ -1435,8 +1557,6 @@ void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
       fCavity[i].AccumulateRunningSum(value->fCavity[i]);
     for (size_t i = 0; i < fBCM.size();       i++)
       fBCM[i].AccumulateRunningSum(value->fBCM[i]);
-    //for (size_t i = 0; i < fHaloMonitor.size();       i++)
-      //fHaloMonitor[i].AccumulateRunningSum(value->fHaloMonitor[i]);
     for (size_t i = 0; i < fBCMCombo.size();  i++)
       fBCMCombo[i].AccumulateRunningSum(value->fBCMCombo[i]);
     for (size_t i = 0; i < fBPMCombo.size();  i++)
@@ -1490,6 +1610,9 @@ void  QwBeamLine::ConstructHistograms(TDirectory *folder, TString &prefix)
   for(size_t i=0;i<fStripline.size();i++)
       fStripline[i].ConstructHistograms(folder,prefix);
 
+  for(size_t i=0;i<fQPD.size();i++)
+      fQPD[i].ConstructHistograms(folder,prefix);
+
   for(size_t i=0;i<fCavity.size();i++)
       fCavity[i].ConstructHistograms(folder,prefix);
 
@@ -1516,6 +1639,9 @@ void  QwBeamLine::DeleteHistograms()
   for(size_t i=0;i<fStripline.size();i++)
     fStripline[i].DeleteHistograms();
 
+  for(size_t i=0;i<fQPD.size();i++)
+    fQPD[i].DeleteHistograms();
+
   for(size_t i=0;i<fCavity.size();i++)
     fCavity[i].DeleteHistograms();
 
@@ -1541,6 +1667,8 @@ void  QwBeamLine::FillHistograms()
 {
   for(size_t i=0;i<fStripline.size();i++)
     fStripline[i].FillHistograms();
+  for(size_t i=0;i<fQPD.size();i++)
+    fQPD[i].FillHistograms();
   for(size_t i=0;i<fCavity.size();i++)
     fCavity[i].FillHistograms();
   for(size_t i=0;i<fBCM.size();i++)
@@ -1564,6 +1692,8 @@ void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::ve
 
   for(size_t i = 0; i < fStripline.size(); i++)
     fStripline[i].ConstructBranchAndVector(tree, prefix, values);
+  for(size_t i = 0; i < fQPD.size(); i++)
+    fQPD[i].ConstructBranchAndVector(tree, prefix, values);
   for(size_t i = 0; i < fCavity.size(); i++)
     fCavity[i].ConstructBranchAndVector(tree, prefix, values);
   for(size_t i = 0; i < fBCM.size(); i++)
@@ -1585,6 +1715,8 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix)
 {
   for(size_t i = 0; i < fStripline.size(); i++)
     fStripline[i].ConstructBranch(tree, prefix);
+  for(size_t i = 0; i < fQPD.size(); i++)
+    fQPD[i].ConstructBranch(tree, prefix);
   for(size_t i = 0; i < fBCM.size(); i++)
     fBCM[i].ConstructBranch(tree, prefix);
   for(size_t i = 0; i <fCavity.size(); i++)
@@ -1617,6 +1749,15 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile&
     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
     for(size_t i = 0; i < fStripline.size(); i++)
       fStripline[i].ConstructBranch(tree, prefix,*nextmodule);
+
+  }
+
+  tmp="QwQPD";
+  trim_file.RewindToFileStart();
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for(size_t i = 0; i < fQPD.size(); i++)
+      fQPD[i].ConstructBranch(tree, prefix,*nextmodule);
 
   }
 
@@ -1679,6 +1820,8 @@ void QwBeamLine::FillTreeVector(std::vector<Double_t> &values) const
 {
   for(size_t i = 0; i < fStripline.size(); i++)
     fStripline[i].FillTreeVector(values);
+  for(size_t i = 0; i < fQPD.size(); i++)
+    fQPD[i].FillTreeVector(values);
   for(size_t i = 0; i < fCavity.size(); i++)
     fCavity[i].FillTreeVector(values);
   for(size_t i = 0; i < fBCM.size(); i++)
@@ -1700,6 +1843,7 @@ void  QwBeamLine::PrintInfo() const
 {
   std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";
   std::cout<<"there are "<<fStripline.size()<<" striplines \n";
+  std::cout<<"there are "<<fQPD.size()<<" QPDs \n";
   std::cout<<"there are "<<fCavity.size()<<" cavities \n";
   std::cout<<"there are "<<fBCM.size()<<" bcm \n";
   std::cout<<"there are "<<fHaloMonitor.size()<<" halomonitors \n";
@@ -1763,6 +1907,10 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 	  this->fStripline.resize(input->fStripline.size());
 	  for(size_t i=0;i<this->fStripline.size();i++)
 	    this->fStripline[i].Copy(&(input->fStripline[i]));
+
+	  this->fQPD.resize(input->fQPD.size());
+	  for(size_t i=0;i<this->fQPD.size();i++)
+	    this->fQPD[i].Copy(&(input->fQPD[i]));
 
 	  this->fCavity.resize(input->fCavity.size());
 	  for(size_t i=0;i<this->fCavity.size();i++)
@@ -1895,6 +2043,21 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     fStripline[i].MakeBPMList();
     interface.clear();
     interface = fStripline[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bpm );
+      interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+  ///   try to access QPD mean and its error
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Quadrant PhotoDiodes" <<QwLog::endl;
+  for(i=0; i< fQPD.size(); i++) {
+    fQPD[i].MakeQPDList();
+    interface.clear();
+    interface = fQPD[i].GetDBEntry();
     for (j=0; j<interface.size(); j++){
       interface.at(j).SetAnalysisID( analysis_id ) ;
       interface.at(j).SetMonitorID( db );

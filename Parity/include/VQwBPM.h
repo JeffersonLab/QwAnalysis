@@ -51,7 +51,7 @@ class VQwBPM : public VQwDataElement {
   Int_t  GetEventcutErrorFlag(){//return the error flag
     return fDeviceErrorCode;
   };
-  Int_t  GetEventcutErrorCounters();
+  Int_t   GetEventcutErrorCounters();
 
   Bool_t  ApplySingleEventCuts();
   void    SetSingleEventCuts(TString, Double_t, Double_t);
