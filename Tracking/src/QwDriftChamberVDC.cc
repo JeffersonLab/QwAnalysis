@@ -1151,10 +1151,10 @@ void  QwDriftChamberVDC::FillHistograms()
 
 
 
-void  QwDriftChamberVDC::DeleteHistograms()
-{
-  return;
-};
+// void  QwDriftChamberVDC::DeleteHistograms()
+// {
+//   return;
+// };
 
 
 

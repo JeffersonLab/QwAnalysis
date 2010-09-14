@@ -8,11 +8,7 @@
 
 #include "QwParameterFile.h"
 #include "QwLog.h"
-
 #include<boost/bind.hpp>
-
-
-
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwDriftChamberHDC> theDriftChamberHDCFactory("QwDriftChamberHDC");
@@ -832,10 +828,18 @@ void  QwDriftChamberHDC::FillHistograms()
 
 
 
-void  QwDriftChamberHDC::DeleteHistograms()
-{
-  return;
-};
+// void  QwDriftChamberHDC::DeleteHistograms()
+// {
+//   TSeqCollection *file_list = gROOT->GetListOfFiles();
+//   for(Int_t i=0; i<file_list->GetSize(); i++) {
+//     TFile * file = (TFile*) file_list->At(i);
+//     file -> WriteObject(QwDriftChamber::fF1TDContainer->GetErrorSummary(),
+// 			Form("%s : F1TDC Error Summary", GetSubsystemName().Data())
+// 			);
+//   }
+
+//   return;
+// };
 
 
 void  QwDriftChamberHDC::ClearEventData()

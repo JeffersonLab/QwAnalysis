@@ -4,6 +4,9 @@
 #include "QwColor.h"
 #include "QwLog.h"
 
+#include "TROOT.h"
+
+
 /**
  *  \file   QwF1TDContainer.cc
  *  \brief  
@@ -324,6 +327,38 @@ QwF1TDC::PrintErrorCounter()
 
 
 
+TString
+QwF1TDC::GetErrorCounter()
+{
+  TString error_counter;
+
+  error_counter =  "Error Counter F1TDC ROC: ";
+  error_counter += fROC;
+  error_counter += " Slot: ";
+  error_counter += fSlot;
+  error_counter += " Index: ";
+  error_counter += fF1TDCIndex;
+  error_counter += " ";
+  error_counter += " OFO : ";
+  error_counter += this->GetOFO();
+  error_counter += " RLF : ";
+  error_counter += this->GetRLF();
+  error_counter += " TFO : ";
+  error_counter += this->GetTFO();
+  error_counter += " EMM : ";
+  error_counter += this->GetEMM();
+  error_counter += " SEU : ";
+  error_counter +=  this->GetSEU();
+  error_counter += " SYN : ";
+  error_counter += this->GetSYN();
+  error_counter += " HFO : ";
+  error_counter += this->GetHFO();
+
+  return error_counter;
+}
+
+
+
 // void 
 // SetRefernceSignals(Int_t chan, Double_t val)
 // {
@@ -366,6 +401,8 @@ QwF1TDContainer::QwF1TDContainer()
 
 QwF1TDContainer::~QwF1TDContainer()
 {
+
+  PrintErrorSummary();
   if(fQwF1TDCList) delete fQwF1TDCList; fQwF1TDCList = NULL;
 };
 
@@ -393,15 +430,21 @@ QwF1TDContainer::GetF1TDC(Int_t roc, Int_t slot)
 {
   Int_t roc_num = 0;
   Int_t slot_num = 0;
+  
+  //  Int_t unique_id = 0;
+
 
   QwF1TDC* F1 = NULL;
 
   TObjArrayIter next(fQwF1TDCList);
   TObject* obj = NULL;
+
+
   while ( (obj = next()) )
     {
       
       F1 = (QwF1TDC*) obj;
+      //      unique_id = F1->GetUniqueID();
       roc_num  = F1->GetROCNumber();
       slot_num = F1->GetSlotNumber();
       if((roc_num == roc) && (slot_num == slot) ) {
@@ -421,6 +464,7 @@ void
 QwF1TDContainer::AddSYN(Int_t roc, Int_t slot)
 {
   QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  
   if(F1) {
     F1->AddSYN();
     if(fLocalDebug) F1->PrintErrorCounter();
@@ -666,6 +710,26 @@ QwF1TDContainer::PrintErrorSummary()
 }
 
 
+TList *
+QwF1TDContainer::GetErrorSummary()
+{
+  TList *error_list = new TList;
+  error_list->SetOwner(true);
+
+  TObjArrayIter next(fQwF1TDCList);
+  TObject* obj = NULL;
+  while ( (obj = next()) )
+    {
+      QwF1TDC* F1 = (QwF1TDC*) obj;
+      TString error = F1->GetErrorCounter();
+      error_list -> Add(new TObjString(error));
+    }
+
+  return error_list;
+}
+
+
+
 
 
 Bool_t 
@@ -881,4 +945,16 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 }
 
 
-
+void 
+QwF1TDContainer::WriteErrorSummary(TString subsystem_name)
+{
+  TSeqCollection *file_list = gROOT->GetListOfFiles();
+  for(Int_t i=0; i<file_list->GetSize(); i++) {
+    TFile * file = (TFile*) file_list->At(i);
+    file -> WriteObject(this->GetErrorSummary(),
+			Form("%s : F1TDC Error Summary", subsystem_name.Data())
+			);
+  }
+  return;
+};
+  

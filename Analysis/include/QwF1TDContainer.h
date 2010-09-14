@@ -10,12 +10,19 @@
 #include <iostream>
 #include <math.h>
 
+
 #include "QwTypes.h"
 #include "MQwF1TDC.h"
 
 #include "TObject.h"
 #include "TClonesArray.h"
 #include "TArrayD.h"
+#include "TList.h"
+#include "TString.h"
+#include "TObjString.h"
+
+#include "TROOT.h"
+#include "TFile.h"
 
 /**
  *  \class QwF1TDC
@@ -85,6 +92,8 @@ class QwF1TDC :  public TObject
   void PrintF1TDCBuffer();
   void PrintF1TDCConfigure();
   void PrintErrorCounter();
+  
+  TString GetErrorCounter ();
 
 
   void AddSEU() {fF1TDC_SEU_counter++;};
@@ -183,6 +192,8 @@ class QwF1TDC :  public TObject
 
  private:
 
+  //TString  fF1ErrorSummaryString;
+
   static const Int_t fWordsPerBuffer;
   static const Int_t fMaxF1TDCChannelNumber;
   
@@ -250,7 +261,11 @@ class QwF1TDContainer :  public TObject
   const MQwF1TDC GetF1TDCDecoder() const {return fF1TDCDecoder;};
   
   Double_t ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time, Int_t roc, Int_t slot);
+
   void PrintErrorSummary();
+
+  void WriteErrorSummary(TString subsystem_name);
+
 
  public:
 
@@ -264,6 +279,7 @@ private:
   MQwF1TDC fF1TDCDecoder;
   Bool_t fLocalDebug;
   //  static const Int_t gMaxCloneArray; //!  ///< Maximum number which a subsystem has F1TDCs
+  TList* GetErrorSummary();
 
   ClassDef(QwF1TDContainer,1);
 

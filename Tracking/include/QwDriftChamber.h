@@ -10,6 +10,8 @@
 #ifndef __QWDRIFTCHAMBER__
 #define __QWDRIFTCHAMBER__
 
+#include "TROOT.h"
+#include "TFile.h"
 #include "TH1F.h"
 #include "TH2F.h"
 #include "TTree.h"
@@ -31,6 +33,8 @@
 #include "MQwF1TDC.h"
 //#include "MQwV775TDC.h"
 
+
+
 #include "QwF1TDContainer.h"
 
 ///
@@ -45,7 +49,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   QwDriftChamber(TString region_tmp);
   QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP);
 
-  virtual ~QwDriftChamber(){fF1TDContainer-> PrintErrorSummary();};
+  virtual ~QwDriftChamber();
 
   /*  Member functions derived from VQwSubsystem. */
 
@@ -108,7 +112,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
   virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void  FillHistograms() = 0;
-  virtual void  DeleteHistograms() = 0;
+  virtual void  DeleteHistograms();
   virtual Int_t LoadTimeWireOffset(TString t0_map) = 0;
   virtual void SubtractWireTimeOffset() = 0;
   virtual void ApplyTimeCalibration() = 0;

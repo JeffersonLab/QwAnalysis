@@ -29,7 +29,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   QwDriftChamberVDC(TString region_tmp);
   ~QwDriftChamberVDC()
     {
-      DeleteHistograms();
+      // DeleteHistograms();
     };
   /* Unique virtual member functions from QwDrifChamber base class */
 
@@ -66,7 +66,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
+  // void  DeleteHistograms();
   Int_t LoadTimeWireOffset(TString t0_map); 
   void SubtractWireTimeOffset();
   void ApplyTimeCalibration();

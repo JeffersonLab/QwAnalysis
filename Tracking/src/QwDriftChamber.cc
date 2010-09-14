@@ -66,7 +66,10 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
 };
 
 
-
+QwDriftChamber::~QwDriftChamber()
+{
+  delete fF1TDContainer;
+};
 
 void  QwDriftChamber::FillDriftDistanceToHits()
 { //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
@@ -588,6 +591,8 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	  local_f1tdc = new QwF1TDC(roc_id, vme_slot_num);
 	  local_f1tdc->SetF1TDCIndex(tdc_index);
 	  local_f1tdc->SetF1TDCBuffer(buffer, num_words);
+	  //	  local_f1tdc->SetUniqueID(roc_id+vme_slot_num); not good unique ids.
+
 
 	  fF1TDContainer->AddQwF1TDC(local_f1tdc);
 	  
@@ -644,6 +649,14 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     ///    local_f1tdc = 0;
     return -1;
   }
+};
+
+
+
+void QwDriftChamber::DeleteHistograms()
+{
+  fF1TDContainer->WriteErrorSummary(GetSubsystemName());
+  return;
 };
 
 
