@@ -4,7 +4,7 @@
  *  \file   QwF1TDContainer.h
  *  \brief  
  *  \author jhlee@jlab.org
- *  \date   Friday, July 30 23:43:34 EDT 2010
+ *  \date   Tuesday, September 14 23:04:45 EDT 2010
  */
 
 #include <iostream>
@@ -64,8 +64,8 @@ class QwF1TDC :  public TObject
 
   const Double_t GetF1TDC_t_offset()   const {return fF1TDC_t_offset;};
 
-  const Int_t GetF1TDCIndex()          const {return fF1TDCIndex;};
-  const Int_t  GetF1ROCIndex()         const {return fROCIndex;};
+  const Int_t   GetF1TDCIndex()        const {return fF1TDCIndex;};
+  const Int_t   GetF1BankIndex()       const {return fF1BankIndex;};
   const TString GetF1SystemName()      const {return fSystemName;};
 
   void SetROCNumber       (const Int_t roc)          {fROC = roc;};
@@ -88,11 +88,11 @@ class QwF1TDC :  public TObject
   void SetF1TDC_bin_size  (const Double_t binsize_ns){fF1TDC_resolution_ns = binsize_ns;};
 
 
-  void SetF1TDCIndex(const Int_t tdc_index)   {fF1TDCIndex = tdc_index;};
-  void SetF1ROCIndex  (const Int_t roc_i)     {fROCIndex = roc_i;};
-  void SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words);
-  void SetF1SystemName(const TString name)    {fSystemName = name;};
+  void SetF1TDCIndex  (const Int_t tdc_index)   {fF1TDCIndex = tdc_index;};
+  void SetF1BankIndex (const Int_t bank_index)  {fF1BankIndex = bank_index;};
+  void SetF1SystemName(const TString name)      {fSystemName = name;};
   
+  void SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words);
   const UInt_t * GetF1TDCBuffer() const {return fBuffer;};
 
   void PrintF1TDCBuffer();
@@ -132,7 +132,6 @@ class QwF1TDC :  public TObject
                        // 4  : ROC 4   
                        // 9  : ROC 9
                        // 10 : ROC 10
-  Int_t fROCIndex;
 
   Int_t fSlot;         // F1TDC slot number 
                        // QwAnalysis' slot range 0-20. But, the physical VME
@@ -195,8 +194,11 @@ class QwF1TDC :  public TObject
   Bool_t   fF1TDCSyncFlag;
 
 
-  Int_t    fF1TDCIndex; // keep the tdcindex info from GetTDCIndex() function
-
+  Int_t    fF1TDCIndex;  // keep the tdcindex info from GetTDCIndex() function
+  Int_t    fF1BankIndex; // This is the Bank index, which
+                         // is the redefined index to access "bank=0x0901"
+                         // defined in map file (e.g. qweak_R2.map)
+ 
  private:
 
   //TString  fF1ErrorSummaryString;
@@ -250,8 +252,8 @@ class QwF1TDContainer :  public TObject
   EQwRegionID        GetRegion()       const {return fRegion;};
 
   QwF1TDC* GetF1TDC(Int_t roc, Int_t slot);
-  QwF1TDC* GetF1TDCIndex(Int_t tdc_index);
-  QwF1TDC* GetF1TDCwithROCIndexSLOT(Int_t roc_index, Int_t slot);
+  QwF1TDC* GetF1TDCwithIndex(Int_t tdc_index);
+  QwF1TDC* GetF1TDCwithBankIndexSLOT(Int_t bank_index, Int_t slot);
 
   const Double_t GetF1TDCResolution();
   const Int_t GetF1TDCChannelNumber();
@@ -272,7 +274,7 @@ class QwF1TDContainer :  public TObject
 
   const MQwF1TDC GetF1TDCDecoder() const {return fF1TDCDecoder;};
   
-  Double_t ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time, Int_t roc_index, Int_t slot);
+  Double_t ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time, Int_t bank_index, Int_t slot);
 
   void PrintErrorSummary();
 
@@ -289,11 +291,12 @@ class QwF1TDContainer :  public TObject
 
 private:
 
+
   MQwF1TDC fF1TDCDecoder;
   Bool_t fLocalDebug;
-  //  static const Int_t gMaxCloneArray; //!  ///< Maximum number which a subsystem has F1TDCs
-
+  
   TList* GetErrorSummary();
+
   TString PrintNoF1TDC(Int_t roc, Int_t slot);
   TString PrintNoF1TDC(Int_t tdc_index);
   Bool_t  CheckRegisteredF1(Int_t roc, Int_t slot);

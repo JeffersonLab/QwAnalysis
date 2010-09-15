@@ -11,7 +11,7 @@
  *  \file   QwF1TDContainer.cc
  *  \brief  
  *  \author jhlee@jlab.org
- *  \date   Tuesday, August 31 11:41:58 EDT 2010
+ *  \date   Tuesday, September 14 23:04:36 EDT 2010
  */
 
 ClassImp(QwF1TDC);
@@ -34,7 +34,6 @@ const Int_t QwF1TDC::fMaxF1TDCChannelNumber = 64;
 QwF1TDC::QwF1TDC()
 {
   fROC                 = -1;
-  fROCIndex            = -1;
   fSlot                = -1;
 
   fChannelNumber       = 0;
@@ -71,7 +70,8 @@ QwF1TDC::QwF1TDC()
   fF1TDCFactor         = 0.0;
 
   fF1TDCIndex          = -1;
-  
+  fF1BankIndex         = -1;
+
   fBuffer = new UInt_t[fWordsPerBuffer];
 
 }
@@ -81,7 +81,7 @@ QwF1TDC::QwF1TDC()
 QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
 {
   fROC                 = roc;
-  fROCIndex            = -1;
+  // fROCIndex            = -1;
   fSlot                = slot;
 
   fChannelNumber       = 0;
@@ -118,6 +118,8 @@ QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
   fF1TDCFactor         = 0.0;
 
   fF1TDCIndex          = -1;
+  fF1BankIndex         = -1;
+
   fBuffer = new UInt_t[fWordsPerBuffer];
  
 }
@@ -263,8 +265,8 @@ QwF1TDC::PrintF1TDCBuffer()
 {
   Int_t i = 0;
   
-  printf("System %s F1TDC ROC %2d, Slot %2d TDC index %d\n", 
-	 fSystemName.Data(), fROC, fSlot, fF1TDCIndex);
+  printf("System %s F1TDC ROC %2d, Slot %2d TDC id %2d Bank id %2d\n", 
+	 fSystemName.Data(), fROC, fSlot, fF1TDCIndex, fF1BankIndex);
   for(i=0; i<fWordsPerBuffer; i++) {
     printf("0x%x ", fBuffer[i]);
   }
@@ -387,6 +389,8 @@ std::ostream& operator<< (std::ostream& os, const QwF1TDC &f1tdc)
   os << std::setw(2) << f1tdc.fSlot;
   os << " TDC idx ";
   os << std::setw(2) << f1tdc.fF1TDCIndex;
+  os << " Bank idx ";
+  os << std::setw(2) << f1tdc.fF1BankIndex;
 
   return os;
 }
@@ -452,7 +456,7 @@ QwF1TDContainer::AddQwF1TDC(QwF1TDC *in)
 QwF1TDC *
 QwF1TDContainer::GetF1TDC(Int_t roc, Int_t slot)
 {
-  Int_t roc_num = 0;
+  Int_t roc_num  = 0;
   Int_t slot_num = 0;
   
   //  Int_t unique_id = 0;
@@ -485,24 +489,19 @@ QwF1TDContainer::GetF1TDC(Int_t roc, Int_t slot)
 
 
 QwF1TDC *
-QwF1TDContainer::GetF1TDCIndex(Int_t tdc_index)
+QwF1TDContainer::GetF1TDCwithIndex(Int_t tdc_index)
 {
-
-  Int_t f1_index = 0;
-
-  QwF1TDC* F1 = NULL;
+  Int_t f1_idx = 0;
 
   TObjArrayIter next(fQwF1TDCList);
-  TObject* obj = NULL;
-
+  TObject* obj = NULL; 
+  QwF1TDC* F1  = NULL;
 
   while ( (obj = next()) )
     {
-      
-      F1 = (QwF1TDC*) obj;
-
-      f1_index = F1->GetF1TDCIndex();
-      if( f1_index == tdc_index ) { 
+      F1     = (QwF1TDC*) obj;
+      f1_idx = F1->GetF1TDCIndex();
+      if( f1_idx == tdc_index ) { 
 	if(fLocalDebug) {
 	  std::cout << "System " << F1->GetF1SystemName()
 		    << " QwF1TDContainer::GetF1TDCIndex F1TDC address at" << F1 << std::endl;
@@ -515,24 +514,21 @@ QwF1TDContainer::GetF1TDCIndex(Int_t tdc_index)
 }
 
 QwF1TDC *
-QwF1TDContainer::GetF1TDCwithROCIndexSLOT(Int_t roc_index, Int_t slot)
+QwF1TDContainer::GetF1TDCwithBankIndexSLOT(Int_t bank_index, Int_t slot)
 {
-  Int_t roc_id = 0;
-  Int_t slot_num  = 0;
+  Int_t bank_idx = 0;
+  Int_t slot_num = 0;
   
-  QwF1TDC* F1 = NULL;
-
   TObjArrayIter next(fQwF1TDCList);
   TObject* obj = NULL;
-
+  QwF1TDC* F1  = NULL;
 
   while ( (obj = next()) )
     {
-      
-      F1 = (QwF1TDC*) obj;
-      roc_id  = F1->GetF1ROCIndex();
+      F1       = (QwF1TDC*) obj;
+      bank_idx = F1->GetF1BankIndex();
       slot_num = F1->GetSlotNumber();
-      if((roc_id == roc_index) && (slot_num == slot) ) {
+      if((bank_idx == bank_index) && (slot_num == slot) ) {
 	if(fLocalDebug) {
 	  std::cout << "System " << F1->GetF1SystemName()
 		    << " QwF1TDContainer::GetF1TDC F1TDC address at" << F1 << std::endl;
@@ -548,7 +544,8 @@ QwF1TDContainer::GetF1TDCwithROCIndexSLOT(Int_t roc_index, Int_t slot)
 void
 QwF1TDContainer::AddSYN(Int_t roc, Int_t slot)
 {
-  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDC(roc, slot);
   
   if(F1) {
     F1->AddSYN();
@@ -563,7 +560,9 @@ QwF1TDContainer::AddSYN(Int_t roc, Int_t slot)
 void
 QwF1TDContainer::AddEMM(Int_t roc, Int_t slot)
 {
-  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDC(roc, slot);
+
   if(F1) {
     F1->AddEMM();
     if(fLocalDebug) F1->PrintErrorCounter();
@@ -578,7 +577,9 @@ QwF1TDContainer::AddEMM(Int_t roc, Int_t slot)
 void
 QwF1TDContainer::AddSEU(Int_t roc, Int_t slot)
 {
-  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDC(roc, slot);
+
   if(F1) {
     F1->AddSEU();
     if(fLocalDebug) F1->PrintErrorCounter();
@@ -593,7 +594,9 @@ QwF1TDContainer::AddSEU(Int_t roc, Int_t slot)
 void
 QwF1TDContainer::AddTFO(Int_t roc, Int_t slot)
 {
-  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDC(roc, slot);
+
   if(F1) {
     F1->AddTFO();
     if(fLocalDebug) F1->PrintErrorCounter();
@@ -609,7 +612,9 @@ QwF1TDContainer::AddTFO(Int_t roc, Int_t slot)
 void
 QwF1TDContainer::AddRLF(Int_t roc, Int_t slot)
 {
-  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDC(roc, slot);
+
   if(F1) {
     F1->AddRLF();
     if(fLocalDebug) F1->PrintErrorCounter();
@@ -624,7 +629,9 @@ QwF1TDContainer::AddRLF(Int_t roc, Int_t slot)
 void
 QwF1TDContainer::AddHFO(Int_t roc, Int_t slot)
 {
-  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDC(roc, slot);
+
   if(F1) {
     F1->AddHFO();
     if(fLocalDebug) F1->PrintErrorCounter();
@@ -638,7 +645,9 @@ QwF1TDContainer::AddHFO(Int_t roc, Int_t slot)
 void
 QwF1TDContainer::AddOFO(Int_t roc, Int_t slot)
 {
-  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDC(roc, slot);
+
   if(F1) {
     F1->AddOFO();
     if(fLocalDebug) F1->PrintErrorCounter();
@@ -653,15 +662,18 @@ Double_t
 QwF1TDContainer::ReferenceSignalCorrection(
 					   Double_t raw_time, 
 					   Double_t ref_time, 
-					   Int_t roc_index, Int_t slot_num)
+					   Int_t bank_index, 
+					   Int_t slot_num
+					   )
 {
-  
-  QwF1TDC* F1 = this->GetF1TDCwithROCIndexSLOT(roc_index, slot_num);
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDCwithBankIndexSLOT(bank_index, slot_num);
+
   if(F1) {
     return F1->ReferenceSignalCorrection(raw_time, ref_time);
   }
   else {
-    //   printf("There is no F1TDC with TDC index %2d\n", tdc_index);
+    //   printf("There is no F1TDC with Bank index %2d slot %2d\n", bank_index, slot_num);
     return -1.0;
   }
 };
@@ -757,10 +769,11 @@ QwF1TDContainer::GetF1TDCResolution()
 
   Double_t old_r = 0.0;
   Double_t new_r = 0.0;
-  Int_t cnt = 0;
+  Int_t cnt      = 0;
 
   TObjArrayIter next(fQwF1TDCList);
   TObject* obj;
+
   while ( (obj = next()) )
     {
       QwF1TDC* F1 = (QwF1TDC*) obj;
@@ -779,7 +792,7 @@ QwF1TDContainer::GetF1TDCResolution()
     }
 
   return old_r;
-}
+};
 
 
 
@@ -795,10 +808,11 @@ QwF1TDContainer::GetF1TDCChannelNumber()
 
   Int_t old_c = 0;
   Int_t new_c = 0;
-  
-  Int_t cnt = 0;
+  Int_t cnt   = 0;
+
   TObjArrayIter next(fQwF1TDCList);
   TObject* obj;
+
   while ( (obj = next()) )
     {
       QwF1TDC* F1 = (QwF1TDC*) obj;
@@ -817,7 +831,7 @@ QwF1TDContainer::GetF1TDCChannelNumber()
     }
   
   return old_c;
-}
+};
 
 
 
@@ -833,17 +847,19 @@ QwF1TDContainer::PrintErrorSummary()
     }
 
   return;
-}
+};
 
 
 TList *
 QwF1TDContainer::GetErrorSummary()
 {
+
   TList *error_list = new TList;
   error_list->SetOwner(true);
-
+  
   TObjArrayIter next(fQwF1TDCList);
   TObject* obj = NULL;
+
   while ( (obj = next()) )
     {
       QwF1TDC* F1 = (QwF1TDC*) obj;
@@ -852,7 +868,7 @@ QwF1TDContainer::GetErrorSummary()
     }
 
   return error_list;
-}
+};
 
 
 
@@ -885,21 +901,13 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 
   // SEU
   Bool_t xor_setup_flag     = kFALSE;
-
-
-
- 
-
-
-
-  Int_t slot_number = 0;
-    
+  
+  Int_t slot_number          = 0;
   UInt_t reference_trig_time = 0;
   UInt_t reference_event_num = 0;
 
   const Int_t valid_trigger_time_offset = 1;
   
-
   for (UInt_t i=0; i<num_words ; i++) 
     {
 
@@ -1080,33 +1088,35 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	  } //   if ( fF1TDCDecoder.IsHeaderword() ) {
 	  else {
 	    // dataword
-
+	    // nothing to check .....
 	    //	    if(!fF1TDCDecoder.IsOverFlowEntry()) fF1TDCDecoder.PrintTDCData(fLocalDebug);
 	  }//;;
 	  
-
-
 	} // if( CheckRegisteredF1(roc_id, slot_number) ) {
 
       }//if(fF1TDCDecoder.IsValidDataSlot()) {
+
   }//for (UInt_t i=0; i<num_words ; i++) {
   
   
   return (data_integrity_flag); 
-  
-}
+};
 
 
 void 
 QwF1TDContainer::WriteErrorSummary()
 {
   TSeqCollection *file_list = gROOT->GetListOfFiles();
-  for(Int_t i=0; i<file_list->GetSize(); i++) {
-    TFile * file = (TFile*) file_list->At(i);
-    file -> WriteObject(this->GetErrorSummary(),
-			Form("%s : F1TDC Error Summary", GetSystemName().Data())
-			);
-  }
+
+  for(Int_t i=0; i<file_list->GetSize(); i++) 
+    {
+      TFile * file = (TFile*) file_list->At(i);
+      file -> WriteObject(
+			  this->GetErrorSummary(),
+			  Form("%s : F1TDC Error Summary", GetSystemName().Data())
+			  );
+    }
+  
   return;
 };
   
@@ -1115,8 +1125,9 @@ QwF1TDContainer::WriteErrorSummary()
 Bool_t 
 QwF1TDContainer::CheckRegisteredF1(Int_t roc, Int_t slot)
 {
-  QwF1TDC* F1 = this->GetF1TDC(roc, slot);
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDC(roc, slot);
   
   if(F1) return true;
   else   return false;
-}
+};
