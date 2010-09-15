@@ -25,6 +25,7 @@
 #include "QwEnergyCalculator.h"
 #include "QwHaloMonitor.h"
 #include "QwQPD.h"
+#include "QwLinearDiodeArray.h"
 
 
 class QwBeamDetectorID;
@@ -117,6 +118,7 @@ class QwBeamLine : public VQwSubsystemParity{
  std::vector <QwBPMStripline> fStripline;
  std::vector <QwBCM> fBCM;
  std::vector <QwQPD> fQPD;
+ std::vector <QwLinearDiodeArray> fLinearArray;
  std::vector <QwBPMCavity> fCavity;
  std::vector <QwHaloMonitor> fHaloMonitor;
  std::vector <QwCombinedBCM> fBCMCombo;

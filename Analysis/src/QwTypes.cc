@@ -56,6 +56,9 @@ EQwBeamInstrumentType GetQwBeamInstrumentType(TString name){
   else if (name=="qpd"){
     result = kQwQPD;
   }
+  else if (name=="lineararray"){
+    result = kQwLinearArray;
+  }
   return result;
 };
 
@@ -94,6 +97,9 @@ TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type){
   }
   else if (type==kQwQPD){
     result = "qpd";
+  }
+  else if (type==kQwLinearArray){
+    result = "lineararray";
   }
   else if (type==kQwCombinedBCM){
     result = "combinedbcm";
