@@ -85,6 +85,7 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   TGTextButton        *dButtonCharge;
   TGTextButton        *dButtonPosVariation;
   TGTextButton        *dButtonHCSCALER;
+  TGTextButton        *dButtonMeanPos;
 
 
   TGComboBox          *dComboBoxHCBCM;
@@ -158,6 +159,13 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //!
   //!Return value: none 
   void LoadHCSCALERCombo();
+
+   //!This function plots the mean BPM X/Y positions 
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotBPMPositions();
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes

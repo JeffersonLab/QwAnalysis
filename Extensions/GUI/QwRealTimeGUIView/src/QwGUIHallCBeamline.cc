@@ -14,6 +14,7 @@ enum QwGUIHallCBeamlineIndentificator {
   BA_CHARGE,
   BA_POS_VAR,
   BA_HCSCALER,
+  BA_MEAN_POS,
 };
 
 //HALLC_DET_TYPES is the size of the enum
@@ -51,6 +52,7 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
   dSubLayout          = NULL;
   dBtnLayout          = NULL;
   dButtonPos          = NULL;
+  dButtonMeanPos      = NULL;
   dButtonCharge       = NULL;
   dButtonPosVariation = NULL;
   dButtonHCSCALER     = NULL;
@@ -88,6 +90,7 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dButtonPosVariation) delete dButtonPosVariation;
   if(dComboBoxHCBCM)      delete dComboBoxHCBCM;
   if(dButtonHCSCALER)     delete dButtonHCSCALER;
+  if(dButtonMeanPos)      delete dButtonMeanPos; 
   
 
   delete [] PosVariation;
@@ -185,6 +188,7 @@ void QwGUIHallCBeamline::MakeLayout()
 
 
   dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Asymmetries", BA_POS_DIFF);
+  dButtonMeanPos = new TGTextButton(dControlsFrame, "&Mean Beam Positions", BA_MEAN_POS);
   dButtonCharge = new TGTextButton(dHCBCMFrame, "B&CM Yield/Asymmetry", BA_CHARGE);
   dButtonCharge->SetEnabled(kFALSE);
   dButtonHCSCALER = new TGTextButton(dHCSCALERFrame, "&SCALER Yield/Asymmetry", BA_HCSCALER);
@@ -198,6 +202,7 @@ void QwGUIHallCBeamline::MakeLayout()
 
   //dControlsFrame->AddFrame(dButtonCharge,dBtnLayout);
   dControlsFrame->AddFrame(dButtonPosVariation, dBtnLayout);
+  dControlsFrame->AddFrame(dButtonMeanPos, dBtnLayout);
   dControlsFrame->AddFrame(dHCBCMFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
   dControlsFrame->AddFrame(dHCSCALERFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
   // dControlsFrame->AddFrame(group,new TGLayoutHints(kLHintsExpandX));
@@ -222,6 +227,7 @@ void QwGUIHallCBeamline::MakeLayout()
 
 
   dButtonPos -> Associate(this);
+  dButtonMeanPos -> Associate(this);
   dButtonCharge -> Associate(this);
   dButtonPosVariation -> Associate(this);
   dButtonHCSCALER -> Associate(this);
@@ -545,6 +551,116 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 
 
 }
+
+void QwGUIHallCBeamline::PlotBPMPositions(){
+  TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
+
+  char histo[128];
+  
+  Int_t xcount = 0;
+  Int_t ycount = 0;
+  
+  Double_t offset = 0.5;
+  Double_t min_range = - offset;
+
+  Int_t BPMSTriplinesCount = fHallCDevices.at(VQWK_BPMSTRIPLINE).size();
+  Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
+
+  
+
+
+  TString dummyname;
+
+  Bool_t ldebug = kFALSE;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+ 
+
+   while (1){ 
+     PosVariation[0] = new TH1F("PosX", "Mean X Variation", BPMSTriplinesCount, min_range, max_range);
+     PosVariation[1] = new TH1F("PosY", "Mean Y variation", BPMSTriplinesCount, min_range, max_range); 
+    for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
+    {
+      sprintf (histo, "%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      if (histo1!=NULL) {
+	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
+	histo1->SetName(histo);
+	    
+	dummyname = histo1->GetName();
+	    
+	dummyname.Replace(0,4," ");
+	dummyname.ReplaceAll("_hw", "");
+	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	SummaryHist(histo1);
+	delete histo1; histo1= NULL;
+      }
+	  
+      sprintf (histo, "%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      if(histo2!=NULL){		
+	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
+	histo2->SetName(histo);
+	dummyname = histo2->GetName();
+	dummyname.Replace(0,4," ");
+	dummyname.ReplaceAll("_hw", "");
+	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+	SummaryHist(histo2);
+	delete histo2; histo2= NULL; 
+      }
+	  
+	  
+    }
+    xcount = 0;
+    ycount = 0;
+    mc->Clear();
+    mc->Divide(1,2);
+
+
+
+    
+    mc->cd(1);
+    //SummaryHist(PosVariation[0]);
+    PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetTitle("Mean BPM X Variation");
+    PosVariation[0] -> GetYaxis() -> SetTitle("Pos (mm)");
+    PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
+    PosVariation[0] -> Draw("E1");
+    //gPad->Update();
+    //mc->Modified();
+    //mc->Update();
+    
+    mc->cd(2);
+    //SummaryHist(PosVariation[1]);
+    PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetTitle("Mean BPM Y Variation");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("Pos (mm)");
+    PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
+    PosVariation[1] -> Draw("E1");
+    
+    gPad->Update();
+    mc->Modified();
+    mc->Update();
+    for (Short_t p = 0; p <NUM_POS ; p++){
+      delete PosVariation[p];
+    }
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+   }
+
+  return;
+
+};
   
   
   
@@ -650,6 +766,11 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 		case BA_HCSCALER:
 		  //printf("PlotPosData() button id %ld pressed\n", parm1);
 		  PlotSCALER();
+		  break;
+
+		case BA_MEAN_POS:
+		  //printf("PlotPosData() button id %ld pressed\n", parm1);
+		  PlotBPMPositions();
 		  break;
 
 		}

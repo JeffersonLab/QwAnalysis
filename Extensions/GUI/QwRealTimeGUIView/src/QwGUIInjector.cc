@@ -14,6 +14,7 @@ enum QwGUIInjectorIndentificator {
   BA_CHARGE,
   BA_POS_VAR,
   BA_HCSCALER,
+  BA_MEAN_POS,
 };
 
 //INJECTOR_DET_TYPES is the size of the enum
@@ -51,6 +52,7 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
   dSubLayout              = NULL;
   dBtnLayout              = NULL;
   dButtonPos              = NULL;
+  dButtonMeanPos          = NULL;
   dButtonCharge           = NULL;
   dButtonPosVariation     = NULL;
   dButtonInjectorSCALER   = NULL;
@@ -86,6 +88,7 @@ QwGUIInjector::~QwGUIInjector()
   if(dButtonCharge)         delete dButtonCharge;
   if(dButtonPosVariation)   delete dButtonPosVariation;
   if(dButtonInjectorSCALER) delete dButtonInjectorSCALER;
+  if(dButtonMeanPos)        delete dButtonMeanPos; 
 
   if(dComboBoxInjectorBCM)    delete dComboBoxInjectorBCM;
   if(dComboBoxInjectorSCALER) delete dComboBoxInjectorSCALER;
@@ -183,6 +186,7 @@ void QwGUIInjector::MakeLayout()
 
  
   dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Asymmetries", BA_POS_DIFF);
+  dButtonMeanPos = new TGTextButton(dControlsFrame, "&Mean Beam Positions", BA_MEAN_POS);
   dButtonPosVariation = new TGTextButton(dControlsFrame, "BPM Eff_Charge Variation", BA_POS_VAR);
   dButtonCharge = new TGTextButton(dInjectorBCMFrame, "&BCM Yield/Asymmetry", BA_CHARGE);
   dButtonCharge->SetEnabled(kFALSE);
@@ -195,6 +199,7 @@ void QwGUIInjector::MakeLayout()
 
   dControlsFrame->AddFrame(dButtonPos,dBtnLayout );
   dControlsFrame->AddFrame(dButtonPosVariation, dBtnLayout);
+  dControlsFrame->AddFrame(dButtonMeanPos, dBtnLayout);
   dControlsFrame->AddFrame(dInjectorBCMFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
   dControlsFrame->AddFrame(dInjectorSCALERFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
 
@@ -217,6 +222,7 @@ void QwGUIInjector::MakeLayout()
   
 
   dButtonPos -> Associate(this);
+  dButtonMeanPos -> Associate(this);
   dButtonCharge -> Associate(this);
   dButtonPosVariation -> Associate(this);
   dButtonInjectorSCALER -> Associate(this);
@@ -536,7 +542,116 @@ void QwGUIInjector::PlotBPMAsym(){
 }
   
   
+
+void QwGUIInjector::PlotBPMPositions(){
+  TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
+
+  char histo[128];
   
+  Int_t xcount = 0;
+  Int_t ycount = 0;
+  
+  Double_t offset = 0.5;
+  Double_t min_range = - offset;
+
+  Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPMSTRIPLINE).size();
+  Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
+
+  
+
+
+  TString dummyname;
+
+  Bool_t ldebug = kFALSE;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+ 
+
+   while (1){ 
+     PosVariation[0] = new TH1F("PosX", "Mean X Variation", BPMSTriplinesCount, min_range, max_range);
+     PosVariation[1] = new TH1F("PosY", "Mean Y variation", BPMSTriplinesCount, min_range, max_range); 
+    for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
+    {
+      sprintf (histo, "%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      if (histo1!=NULL) {
+	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
+	histo1->SetName(histo);
+	    
+	dummyname = histo1->GetName();
+	    
+	dummyname.Replace(0,4," ");
+	dummyname.ReplaceAll("_hw", "");
+	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	SummaryHist(histo1);
+	delete histo1; histo1= NULL;
+      }
+	  
+      sprintf (histo, "%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      if(histo2!=NULL){		
+	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
+	histo2->SetName(histo);
+	dummyname = histo2->GetName();
+	dummyname.Replace(0,4," ");
+	dummyname.ReplaceAll("_hw", "");
+	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+	SummaryHist(histo2);
+	delete histo2; histo2= NULL; 
+      }
+	  
+	  
+    }
+    xcount = 0;
+    ycount = 0;
+    mc->Clear();
+    mc->Divide(1,2);
+
+
+
+    
+    mc->cd(1);
+    //SummaryHist(PosVariation[0]);
+    PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetTitle("Mean BPM X Variation");
+    PosVariation[0] -> GetYaxis() -> SetTitle("Pos (mm)");
+    PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
+    PosVariation[0] -> Draw("E1");
+    //gPad->Update();
+    //mc->Modified();
+    //mc->Update();
+    
+    mc->cd(2);
+    //SummaryHist(PosVariation[1]);
+    PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetTitle("Mean BPM Y Variation");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("Pos (mm)");
+    PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
+    PosVariation[1] -> Draw("E1");
+    
+    gPad->Update();
+    mc->Modified();
+    mc->Update();
+    for (Short_t p = 0; p <NUM_POS ; p++){
+      delete PosVariation[p];
+    }
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+   }
+
+  return;
+
+};  
   
 
 void QwGUIInjector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
@@ -628,6 +743,11 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		case BA_HCSCALER:
 		  //printf("PlotPosData() button id %ld pressed\n", parm1);
 		  PlotSCALER();
+		  break;
+
+		case BA_MEAN_POS:
+		  //printf("PlotPosData() button id %ld pressed\n", parm1);
+		  PlotBPMPositions();
 		  break;
 		}
 	      

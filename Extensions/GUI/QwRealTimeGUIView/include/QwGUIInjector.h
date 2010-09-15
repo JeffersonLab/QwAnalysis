@@ -83,6 +83,7 @@ class QwGUIInjector : public QwGUISubSystem {
   TGTextButton        *dButtonCharge;
   TGTextButton        *dButtonPosVariation;
   TGTextButton        *dButtonInjectorSCALER;
+  TGTextButton        *dButtonMeanPos;
 
   TGComboBox          *dComboBoxInjectorBCM;
   TGComboBox          *dComboBoxInjectorSCALER;
@@ -155,6 +156,12 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none 
   void LoadInjectorSCALERCombo();
 
+   //!This function plots the mean BPM X/Y positions 
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotBPMPositions();
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
