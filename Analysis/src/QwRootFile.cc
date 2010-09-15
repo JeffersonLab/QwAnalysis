@@ -129,6 +129,10 @@ void QwRootFile::DefineOptions(QwOptions &options)
   options.AddOptions()
     ("autosave", po::value<int>()->default_value(300000000),
      "TTree autosave value");
+
+  options.AddOptions()
+    ("circular-buffer", po::value<int>()->default_value(0),
+     "Max. no.of entries to kept in the memory mapped tree");
 }
 
 
@@ -161,6 +165,8 @@ void QwRootFile::ProcessOptions(QwOptions &options)
 
   // Update interval for the map file
   fUpdateInterval = options.GetValue<int>("mapfile-update-interval");
+
+  fCircularBufferSize = options.GetValue<int>("circular-buffer");
 
   // Autoflush and autosave
   fAutoFlush = options.GetValue<int>("autoflush");

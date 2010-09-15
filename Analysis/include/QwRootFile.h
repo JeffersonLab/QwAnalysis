@@ -206,6 +206,11 @@ class QwRootTree {
       fAutoSave = autos;
       if (fTree) fTree->SetAutoSave(autos);
     }
+
+    //Set circular buffer size for the memory resident tree
+    void SetCircular(Long64_t buff = 100000) {
+      if (fTree) fTree->SetCircular(buff);
+    }
 };
 
 
@@ -486,6 +491,7 @@ class QwRootFile {
     UInt_t fNumEventsCycle;
     UInt_t fNumEventsToSkip;
     UInt_t fNumEventsToSave;
+    UInt_t fCircularBufferSize;
     UInt_t fCurrentEvent;
 
     /// Maximum tree size
@@ -523,6 +529,9 @@ void QwRootFile::ConstructTreeBranches(
       fTreeByName[name].back()->SetAutoFlush(fAutoFlush);
     #endif
     fTreeByName[name].back()->SetAutoSave(fAutoSave);
+
+    if (fEnableMapFile && fCircularBufferSize>0)
+      fTreeByName[name].back()->SetCircular(fCircularBufferSize);
 
   } else {
 
