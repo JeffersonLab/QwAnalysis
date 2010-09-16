@@ -110,8 +110,8 @@ private:
   Double_t fVDC_WireZProjectedSpacing;     // in cm
   Double_t fVDC_XLength;          // Length in X of VDC in cm
   Double_t fVDC_YLength;          // Length in Y of VDC in cm
-  Double_t fVDC_PlaneZPos[4];     // Z-position of plane in cm wrt to origin
-  Double_t fVDC_PlaneYPos[4];     // Y-position of plane in cm wrt to origin
+  Double_t fVDC_PlaneZPos[2][4];     // Z-position of plane in cm wrt to origin
+  Double_t fVDC_PlaneYPos[2][4];     // Y-position of plane in cm wrt to origin
   Double_t fVDC_SinAngleWires;    // sin(fVDC_AngleOfWires)
   Double_t fVDC_CosAngleWires;    // cos(fVDC_AngleOfWires)
   Double_t fVDC_TanAngleWires;    // tan(fVDC_AngleOfWires)
@@ -135,7 +135,7 @@ private:
 
   // Rotation of the whole tracking system about the z axis
   Double_t fDetectorPhi;
-  Double_t fPackageAngle[2];
+  Double_t fPackageAngle;
 
   // GUI elements
   TGLabel *fRegion1Label;

@@ -23,23 +23,32 @@ QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
    // these were the figures I had on hand when I did this on 07/14/2010
 
 
-   //The Following are VDC specs from old survey 07/14/2010 
-   fVDC_AngleOfWires = 0.463647609;  // atan(1/2) in radians
-   fAngleOfVDC  =  1.144412391;   // 65.57deg in radians
-   fVDC_WireSeparation = 0.5;        // in cm
-   fVDC_WireXSpacing = 1.11125;  // in cm
-   fVDC_WireYSpacing = 0.559016994;  // in cm
-   fVDC_WireZProjectedSpacing = 0.231198922;  // in cm
-   fVDC_XLength      = 204.47;       // in cm
-   fVDC_YLength      = 53.34;        // in cm
-   fVDC_PlaneZPos[0] = 442.74;       // in cm
-   fVDC_PlaneZPos[1] = 445.10;       // in cm
-   fVDC_PlaneZPos[2] = 494.74;       // in cm
-   fVDC_PlaneZPos[3] = 497.06;       // in cm
-   fVDC_PlaneYPos[0] = 276.63;       // in cm
-   fVDC_PlaneYPos[1] = 275.70;       // in cm
-   fVDC_PlaneYPos[2] = 296.24;       // in cm
-   fVDC_PlaneYPos[3] = 295.2;        // in cm
+   // The Following are VDC specs from a survey and are updated
+   // as of 09/15/2010 (jcc)
+   fVDC_AngleOfWires = 0.463647609;       // atan(1/2) in radians
+   fAngleOfVDC  =  1.144935989;           // 65.6deg in radians
+   fVDC_WireSeparation = 0.5;             // in cm
+   fVDC_WireXSpacing = 1.11125;           // in cm
+   fVDC_WireYSpacing = 0.559016994;       // in cm
+   fVDC_WireZProjectedSpacing = 0.231198922; // in cm
+   fVDC_XLength      = 204.47;            // in cm
+   fVDC_YLength      = 53.34;             // in cm
+   fVDC_PlaneZPos[0][0] = 448.54;         // in cm
+   fVDC_PlaneZPos[0][1] = 450.86;         // in cm
+   fVDC_PlaneZPos[0][2] = 501.68;         // in cm
+   fVDC_PlaneZPos[0][3] = 501.68;         // in cm
+   fVDC_PlaneZPos[1][0] = 449.56;         // in cm
+   fVDC_PlaneZPos[1][1] = 451.88;         // in cm
+   fVDC_PlaneZPos[1][2] = 502.62;         // in cm
+   fVDC_PlaneZPos[1][3] = 504.94;         // in cm
+   fVDC_PlaneYPos[0][0] = 271.39;         // in cm
+   fVDC_PlaneYPos[0][1] = 270.35;         // in cm
+   fVDC_PlaneYPos[0][2] = 293.28;         // in cm
+   fVDC_PlaneYPos[0][3] = 292.24;         // in cm
+   fVDC_PlaneYPos[1][0] = 269.81;         // in cm
+   fVDC_PlaneYPos[1][1] = 268.77;         // in cm
+   fVDC_PlaneYPos[1][2] = 291.88;         // in cm
+   fVDC_PlaneYPos[1][3] = 290.84;         // in cm
    fVDC_SinAngleWires =  0.447213595;  // unitless
    fVDC_CosAngleWires =  0.894427191;  // unitless
    fVDC_TanAngleWires =  0.500000000;  // unitless
@@ -725,11 +734,6 @@ void QwEventDisplay3D::DisplayEvent()
 
          // Display the wire hit
          DisplayWire(wire,plane,package,region,message);
-         //for(Int_t a = 1; a<=2; a++ )
-         //   for( Int_t b = 1; b<=4; b++ )
-         //      for ( Int_t c = 1; c <= 279; c++ )
-         //         DisplayWire(c,b,a,3,"");
-
      }
      // For now we will display multiple partial, possibly not connected,
      // tracks until a good one is produced in the rootfiles.
@@ -755,22 +759,27 @@ void QwEventDisplay3D::DisplayEvent()
               TEveTrackPropagator *prop = new TEveTrackPropagator();
               prop->SetMagField(0.,0.,0.);
               prop->SetFitDaughters(kFALSE);
-              prop->SetMaxR(1000.);
+              prop->SetMaxR(650.);
+              prop->SetMaxZ(650.);
 
               // This assumes the Origin is centered at z=0, and the two offsets
-              // found no the partial tracks
+              // found to the partial tracks
               std::cout << "Origin: (" << partialTrack->fOffsetX/10. << "," <<
                  partialTrack->fOffsetY/10. << ",0.)\n";
-              track->fV.Set(partialTrack->fOffsetX/10.,
-                    partialTrack->fOffsetY/10.,0.);
+              track->fV.Set(RotateXonZ(partialTrack->fOffsetX/10.,
+                       partialTrack->fOffsetY/10.,fPackageAngle),
+                    RotateYonZ(partialTrack->fOffsetY/10.,
+                       partialTrack->fOffsetY/10.,fPackageAngle),0.);
 
               // The components of this vector are represented only by ratios
               // of X and Y to Z. That assumes that fSlopeX and fSlopeY are
               // proper ratios compared to z. Let z = 1 for simplicity
               std::cout << "Slopes: (" << partialTrack->fSlopeX << "," <<
                  partialTrack->fSlopeY << "," << sign*1. << ")\n";
-              track->fP.Set(partialTrack->fSlopeX*sign,
-                    partialTrack->fSlopeY*sign,1.);
+              track->fP.Set(RotateXonZ(partialTrack->fSlopeX*sign,
+                    partialTrack->fSlopeY*sign,fPackageAngle),
+                    RotateYonZ(partialTrack->fSlopeX*sign,
+                    partialTrack->fSlopeY*sign,fPackageAngle),1.);
 
               // The technical details of drawing the track
               fCurrentTrack = new TEveTrack(track,prop);
@@ -833,15 +842,12 @@ void QwEventDisplay3D::DisplayEvent()
       if( kDebug )
          std::cout << "==================END EVENT=============\n";
 
-      // Uncomment the following if you want to see the
-      // full drawing of the planes.
-      /*
-      for( Int_t plane = 1; plane <=4; plane++ ) {
-         for( Int_t wire = 1; wire<=279; wire++ ) {
-            DisplayWire(wire,plane,1);
-        }
-      }
-      */
+      // Uncomment the following if you want to see the full drawing of
+      // the planes for region 3
+      /*for(Int_t package = 1; package<=2; package++ )
+         for( Int_t plane = 1; plane<=4; plane++ )
+            for ( Int_t wire = 1; wire <= 279; wire++ )
+               DisplayWire(wire,plane,package,3,"");*/
    }
 
    fEveManager->Redraw3D(kFALSE,kTRUE);
@@ -1210,45 +1216,93 @@ void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
       // Place holders for the vector components and origin
       Double_t originX = 0., originY = 0., originZ = 0.;
       Double_t momentumX = 0, momentumY = 0, momentumZ = 0;
+      Double_t originYSign = 1;
+      if (package == 1 )
+         originYSign = -1.;
 
       if ( wire <= 95 ) {
-         prop->SetMaxZ(fVDC_PlaneZPos[plane-1]+
-               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.
-               -(96-wire)*fVDC_WireZProjectedSpacing);
+        if ( package == 1 ) {
+           prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]+
+                 TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
 
-         // Calculate the wire origins
-         originX = sign*(fVDC_WireXSpacing*(92-wire));
-         originY = fVDC_PlaneYPos[plane-1]-
-            TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
-         originZ = fVDC_PlaneZPos[plane-1]-
-            TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+            originX = sign*(fVDC_WireXSpacing*+92.);
+            originY = -1*fVDC_PlaneYPos[package-1][plane-1]+
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.-
+               TMath::Sin(fAngleOfVDC)*fVDC_WireYSpacing*(95-wire);
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.+
+               (95-wire)*fVDC_WireZProjectedSpacing;
+        } else if ( package == 2 ) {
+            prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]+
+                  TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.
+                  -(96-wire)*fVDC_WireZProjectedSpacing);
+
+            originX = sign*(fVDC_WireXSpacing*(92-wire));
+            originY = fVDC_PlaneYPos[package-1][plane-1]-
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+         }
       } else if ( wire <= 184 ) {
-         prop->SetMaxZ(fVDC_PlaneZPos[plane-1]+
+         prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]+
                TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
-         originX = sign*(fVDC_WireXSpacing*(92-wire));
-         originY = fVDC_PlaneYPos[plane-1]-
-            TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
-         originZ = fVDC_PlaneZPos[plane-1]-
-            TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+
+         if ( package == 1 ) {
+            originX = sign*(fVDC_WireXSpacing*(92-wire)+2*fVDC_YLength);
+            originY = -1*fVDC_PlaneYPos[package-1][plane-1]+
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+         } else if ( package == 2 ) {
+            originX = sign*(fVDC_WireXSpacing*(92-wire));
+            originY = originYSign*fVDC_PlaneYPos[package-1][plane-1]-
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+         }
       } else {
-         prop->SetMaxZ(fVDC_PlaneZPos[plane-1]+
+         prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]+
                TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
-         originX = sign*(fVDC_WireXSpacing*-92.);
-         originY = fVDC_PlaneYPos[plane-1]-
-            TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.+
-            TMath::Sin(fAngleOfVDC)*fVDC_WireYSpacing*(wire-184);
-         originZ = fVDC_PlaneZPos[plane-1]-
-            TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.+
-            (wire-184)*fVDC_WireZProjectedSpacing;
+
+         if ( package == 1 ) {
+            prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]-
+                  TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.
+                  +(280-wire)*fVDC_WireZProjectedSpacing);
+
+            originX = sign*(fVDC_WireXSpacing*(187-wire));
+            originY = -1*fVDC_PlaneYPos[package-1][plane-1]+
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+        } else if ( package == 2 ) {
+            originX = sign*(fVDC_WireXSpacing*-92.);
+            originY = originYSign*fVDC_PlaneYPos[package-1][plane-1]-
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.+
+               TMath::Sin(fAngleOfVDC)*fVDC_WireYSpacing*(wire-184);
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.+
+               (wire-184)*fVDC_WireZProjectedSpacing;
+         }
+
+/*         if ( package == 1 ) {
+         originY -= (originYSign*fVDC_PlaneYPos[package-1][plane-1]-
+            TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.);
+         }*/
       }
-      wireT->fV.Set(RotateXonZ(originX,originY,fPackageAngle[package-1]),
-            RotateYonZ(originX,originY,fPackageAngle[package-1]),
+
+      // If we are dealing with package 1, then we need to transpose it to
+      // the bottom octant, so that once it rotates it can still be consistent
+      // with the true configuration.
+
+      // Now we set the origin of this wire, after a proper rotation.
+      wireT->fV.Set(RotateXonZ(originX,originY,fPackageAngle),
+            RotateYonZ(originX,originY,fPackageAngle),
             originZ);
       momentumX = sign*TMath::Cos(fVDC_AngleOfWires);
       momentumY = TMath::Sin(fVDC_AngleOfWires)*TMath::Sin(fAngleOfVDC);
       momentumZ = TMath::Sin(fVDC_AngleOfWires)*TMath::Cos(fAngleOfVDC);
-      wireT->fP.Set(RotateXonZ(momentumX,momentumY,fPackageAngle[package-1]),
-            RotateYonZ(momentumX,momentumY,fPackageAngle[package-1]),
+      wireT->fP.Set(originYSign*RotateXonZ(momentumX,momentumY,fPackageAngle),
+            originYSign*RotateYonZ(momentumX,momentumY,fPackageAngle),
             momentumZ);
 
       fCurrentTrack = new TEveTrack(wireT,prop);
@@ -1897,42 +1951,38 @@ Double_t QwEventDisplay3D::RotateYonZ(Double_t x, Double_t y, Double_t angle)
 void QwEventDisplay3D::SetRotation( Double_t phi )
 {
    //! This defines the rotation of the tracking system. Where the octant for
-   //! package (up,down) are:
-   //!   0deg : (1,5)
-   //! +45deg : (2,6)
-   //! +90deg : (3,7)
-   //! -45deg : (8,4)
-   //! -90deg : (7,3)
+   //! package (1,2) or (up,down) are:
+   //!   0deg : (5,1)
+   //! +45deg : (6,2)
+   //! +90deg : (7,3)
+   //! -45deg : (4,8)
+   //! -90deg : (3,7)
    //! The way I draw the wires, they are all calculated for a position
    //! assuming phi = +90deg, and then rotated from there by a given
-   //! fPackageAngle, depending on the package.
+   //! fPackageAngle. From there, if the package is 1, it is translated
+   //! towards its correct side.
    fDetectorPhi = phi;
    switch( (int)phi ) {
       case -90:
-         fPackageAngle[0]= -_180DEG_;
-         fPackageAngle[1]= 0;
+         fPackageAngle = -_180DEG_;
          break;
       case -45:
-         fPackageAngle[0]= -1*_135DEG_;
-         fPackageAngle[1]= _45DEG_;
+         fPackageAngle = -1*_135DEG_;
          break;
       case 90:
-         fPackageAngle[0]= 0;
-         fPackageAngle[1]= _180DEG_;
+         fPackageAngle = 0;
          break;
       case 45:
-         fPackageAngle[0]= -1*_45DEG_;
-         fPackageAngle[0]= _135DEG_;
+         fPackageAngle = -1*_45DEG_;
          break;
       case 0:
       default:
-         fPackageAngle[0]= -1*_90DEG_;
-         fPackageAngle[1]= _90DEG_;
+         fPackageAngle = -1*_90DEG_;
          break;
    }
 
-   std::cout << "Initialized the run with rotation of coordinate system to to "
-      << phi << ".\n The respective packages are: Package1: " << fPackageAngle[0] << "\tPackage2: " << fPackageAngle[1] << "\n.";
+   //std::cout << "Initialized the run with rotation of coordinate system to to "
+      //<< phi << ".\n The respective packages are: Package1: " << fPackageAngle[0] << "\tPackage2: " << fPackageAngle[1] << "\n.";
 }
 
 // END OF THE FILE
