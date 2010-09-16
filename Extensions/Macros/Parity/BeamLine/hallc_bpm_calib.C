@@ -40,6 +40,11 @@
 //                  Changed current from adc counts to uA using the bcm calibration slope.
 //                  Modified the wire fit plots. Added new plots to plot the fit residuals.
 //                  All the plots are now saved in to a .ps file
+//          0.0.5 : Thursday, September 16 01:47:15 EDT 2010 jhlee
+//                  - Removed the compiling warning: 
+//                    deprecated conversion from string constant to ‘char*’
+//                  - Changed LaTeX expression for the current unit #muA
+
 
 #include <iostream>
 #include <fstream>
@@ -240,10 +245,6 @@ std::vector< std::vector<BeamMonitor> > hallc_bpms_list;
 BeamMonitor hallc_bcm;
 
 
-
-
-
-
 Int_t
 main(int argc, char **argv)
 {
@@ -260,6 +261,7 @@ main(int argc, char **argv)
   Bool_t ref_bcm_flag = false;
   Bool_t fit_range_flag = false;
   Double_t fit_range[2] = {0.0};
+
   TString bcm_ped_filename;
  
   Int_t  bcm_ped_runnumber = 0;
@@ -375,9 +377,9 @@ main(int argc, char **argv)
     bcm_ped_runnumber = 5070;
   }
 
- /*if a bcm is not specified use the defaults bcm , bcm1*/
+  /*if a bcm is not specified use the defaults bcm , bcm1*/
   if (not ref_bcm_flag) {
-    ref_bcm_name = "bcm1";
+    ref_bcm_name = Form("bcm1");
   }
 
   /*file containing the bcm calibration results*/
@@ -389,29 +391,29 @@ main(int argc, char **argv)
  
   /*list of hallc bpms*/
 
-  BeamMonitor qwk_3c07("qwk_3c07");  // begining of arc
-  BeamMonitor qwk_3c08("qwk_3c08");
-  BeamMonitor qwk_3c11("qwk_3c11");
-  BeamMonitor qwk_3c12("qwk_3c12");  // highest dispersion
-  BeamMonitor qwk_3c14("qwk_3c14");
-  BeamMonitor qwk_3c16("qwk_3c16");
-  BeamMonitor qwk_3c17("qwk_3c17");  // end of arc (green wall)
-  BeamMonitor qwk_3c18("qwk_3c18");  // Region 1 after the shielding wall (in not songsheet)
-  BeamMonitor qwk_3c19("qwk_3c19");  // Region 1 after the shielding wall (in not songsheet)
+  BeamMonitor qwk_3c07 ("qwk_3c07");    // begining of arc
+  BeamMonitor qwk_3c08 ("qwk_3c08");
+  BeamMonitor qwk_3c11 ("qwk_3c11");
+  BeamMonitor qwk_3c12 ("qwk_3c12");    // highest dispersion
+  BeamMonitor qwk_3c14 ("qwk_3c14");
+  BeamMonitor qwk_3c16 ("qwk_3c16");
+  BeamMonitor qwk_3c17 ("qwk_3c17");    // end of arc (green wall)
+  BeamMonitor qwk_3c18 ("qwk_3c18");    // Region 1 after the shielding wall (in not songsheet)
+  BeamMonitor qwk_3c19 ("qwk_3c19");    // Region 1 after the shielding wall (in not songsheet)
   BeamMonitor qwk_3c07a("qwk_3c07a"); 
-  BeamMonitor qwk_3p02a("qwk_3p02a"); // compton chicane
-  BeamMonitor qwk_3p02b("qwk_3p02b"); // compton chicane
-  BeamMonitor qwk_3p03a("qwk_3p03a"); // compton chicane
-  BeamMonitor qwk_3c20("qwk_3c20");  // Region 3
-  BeamMonitor qwk_3c21("qwk_3c21");  // Region 3
-  BeamMonitor qwk_3h02("qwk_3h02");  // Region 4
+  BeamMonitor qwk_3p02a("qwk_3p02a");   // compton chicane
+  BeamMonitor qwk_3p02b("qwk_3p02b");   // compton chicane
+  BeamMonitor qwk_3p03a("qwk_3p03a");   // compton chicane
+  BeamMonitor qwk_3c20 ("qwk_3c20");    // Region 3
+  BeamMonitor qwk_3c21 ("qwk_3c21");    // Region 3
+  BeamMonitor qwk_3h02 ("qwk_3h02");    // Region 4
   BeamMonitor qwk_3h04a("qwk_3h04a"); 
   BeamMonitor qwk_3h07a("qwk_3h07a");
   BeamMonitor qwk_3h07b("qwk_3h07b"); 
   BeamMonitor qwk_3h07c("qwk_3h07c");  
-  BeamMonitor qwk_3h08("qwk_3h08");  // Region 5
-  BeamMonitor qwk_3h09("qwk_3h09");  // Region 5
-  BeamMonitor qwk_3h09b("qwk_3h09b");  // Region 5
+  BeamMonitor qwk_3h08 ("qwk_3h08");    // Region 5
+  BeamMonitor qwk_3h09 ("qwk_3h09");    // Region 5
+  BeamMonitor qwk_3h09b("qwk_3h09b");   // Region 5
 
 
   std::vector <BeamMonitor> tmp_bpm;
@@ -566,7 +568,7 @@ main(int argc, char **argv)
   mps_tree = (TTree*) file->Get("Mps_Tree");
   TH2D *tmp;
   Double_t tmp_max = 0.0;
-  Int_t alias_id = 0;
+  //  Int_t alias_id = 0;
 
   // Draw the current from the bcm
   Canvas = new TCanvas("Current" , Form("Range of currents form %s",ref_bcm_name), w, h);  
@@ -589,7 +591,7 @@ main(int argc, char **argv)
     
   }
   tmp_max = tmp -> GetXaxis() -> GetXmax();
-  tmp -> GetXaxis() -> SetTitle("current (uA)");
+  tmp -> GetXaxis() -> SetTitle("current (#muA)");
 
   fit_range[0] *= tmp_max;
   fit_range[1] *= tmp_max;
@@ -702,7 +704,7 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
       delete Canvas; Canvas = NULL;
       return false;
     }
-    hprof[i] -> GetXaxis()->SetTitle("current (uA)");
+    hprof[i] -> GetXaxis()->SetTitle("current (#muA)");
     hprof[i] -> GetYaxis()->SetTitle("ADC coounts/num_samples");
     hprof[i] -> GetYaxis()-> SetTitleOffset(2.2);
     hprof[i] -> SetTitle(bpm_name[i]+" fit");
@@ -735,7 +737,7 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
 	delete Canvas; Canvas = NULL;
 	return false;	
       }
-      hres[i] -> GetXaxis()->SetTitle("current (uA)");
+      hres[i] -> GetXaxis()->SetTitle("current (#muA)");
       hres[i] -> GetYaxis()->SetTitle("fit residual");
       hres[i] -> GetYaxis()-> SetTitleOffset(2.2);
       hres[i] -> SetTitle(bpm_name[i]+" fit residual");
@@ -778,89 +780,6 @@ print_usage (FILE* stream, int exit_code)
 }
 
 
-
-
-
-
-// Bool_t
-// calibrate(BeamMonitor &bpm, BeamMonitor &bcm)
-// {
-
-//   std::cout << bcm << std::endl;
-  
-//   TString devname;
-//   devname = bpm.GetName();
-
-//   TString antenna[4]={"XP","XM","YP","YM"};
- 
-//   TF1 *fit[4] = {NULL};
-//   TH1D *hprof[4] = {NULL};
-
- 
-//   TString plotcommand[4];
-//   TString bpm_name[4];
-//   TString bpm_samples[4];
-
-//   Int_t w = 1100;
-//   Int_t h = 600;
-//   TCanvas *Canvas = new TCanvas(devname.Data() , devname.Data(), w, h);  
-  
-//   Canvas->Clear();
-//   Canvas->Divide(2,2);
-  
-//   TString bcm_name;
-//   bcm_name = bcm.GetAliasName();
-//   Double_t bcm_fit_range[2] = {0.0};
-//   bcm_fit_range[0] = bcm.GetFitRangeMin();
-//   bcm_fit_range[1] = bcm.GetFitRangeMax();
-
-//   TCut scut = "";
-
-//   Int_t i = 0;
-//   for(i=0;i<4;i++) {
-//     Canvas->cd(i+1);
-//     bpm_name[i]    = devname + antenna[i];
-//     bpm_samples[i] = bpm_name[i] + ".num_samples";
-//     plotcommand[i] = bpm_name[i]+".hw_sum_raw/" + bpm_samples[i] + ":" + bcm_name;
-
-//     hprof[i] = GetHisto(mps_tree, plotcommand[i], scut, "prof"); // profs : large errors why?
- 
-//     if(not hprof[i]) {
-//       std::cout << "Please check " << plotcommand[i].Data()
-// 		<< std::endl;
-
-//       Canvas ->Close();
-//       delete Canvas; Canvas = NULL;
-//       return false;
-//     }
-    
-//     hprof[i] -> Fit("pol1", "E M Q", "", bcm_fit_range[0],  bcm_fit_range[1]);
-//     fit[i] = hprof[i]  -> GetFunction("pol1");
-  
-//     if(fit[i]) {
-//       fit[i] -> SetLineColor(kRed);
-//       bpm.SetPed(fit[i]->GetParameter(0));
-//       bpm.SetPedErr(fit[i]->GetParError(0));
-//       bpm.SetSlop(fit[i]->GetParameter(1));
-//       bpm.SetSlopErr(fit[i]->GetParError(1));
-//     }
-//     else {
-//       bpm.SetPed(-1);
-//       bpm.SetPedErr(-1);
-//       bpm.SetSlop(-1);
-//       bpm.SetSlopErr(-1);
-//       Canvas ->Close();
-//       delete Canvas; Canvas = NULL;
-//       return false;
-//     }
-//     gPad->Update();
-//     std::cout << bpm << std::endl;
-
-//   }
-//   Canvas -> Modified();
-//   Canvas -> Update();
-//   return true;
-// }
 
 
 

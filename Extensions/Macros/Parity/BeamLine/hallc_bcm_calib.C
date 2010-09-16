@@ -36,7 +36,9 @@
 //                  redesign, thus do BCM calibrations is quite similar
 //                            to do BPM calibrations (hallc_bpm_calib.C)
 //                  
-
+//                  Thursday, September 16 02:53:18 EDT 2010, jhlee
+//                  Test in progress
+//
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -59,7 +61,7 @@
 #include "TSystem.h"
 #include "TUnixSystem.h"
 #include "TCut.h"
-
+#include "TStopwatch.h"
 
 
 class BeamMonitor 
@@ -339,6 +341,54 @@ main(int argc, char **argv)
   }
   
   mps_tree = (TTree*) file->Get("Mps_Tree");
+
+  // TEST begin without using Draw()
+
+  //  Bool_t test_debug = true;
+  Double_t qwk_sca_unser = 0.0;
+  mps_tree->SetBranchAddress("qwk_sca_unser", &qwk_sca_unser);
+  Int_t nentries = (Int_t) mps_tree -> GetEntries();
+
+
+  // 1) vector 
+  std::vector<Double_t> unser;
+  TStopwatch timer;
+  timer.Start();
+
+  for (Int_t i=0; i<nentries; i++) 
+    {
+      mps_tree -> GetEntry(i);
+      unser.push_back(qwk_sca_unser);
+      
+      // if(test_debug) {
+      // 	if(i < 100)
+      // 	  printf("%d unser qwk_sca_unser %12.4lf\n", i, qwk_sca_unser);
+      // }
+    }
+
+  std::cout << unser.size() << std::endl;
+
+  timer.Stop();
+  printf("RealTime=%f seconds, CpuTime=%f seconds\n", timer.RealTime(), timer.CpuTime());
+
+
+  // 2) array
+  Double_t *a_unser = new Double_t[nentries];
+  timer.Start();
+   for (Int_t i=0; i<nentries; i++) 
+    {
+      mps_tree -> GetEntry(i);
+      a_unser[i] = qwk_sca_unser;
+      
+    }
+   // delete [] a_unser;
+
+   timer.Stop(); 
+   printf("RealTime=%f seconds, CpuTime=%f seconds\n", timer.RealTime(), timer.CpuTime());
+
+
+  // TEST end
+
 
   Int_t w = 800;
   Int_t h = 400;
