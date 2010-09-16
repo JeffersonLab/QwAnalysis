@@ -338,6 +338,9 @@ void QwVQWK_Channel::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 
+// SetEventData() is used by the mock data generator to turn "model"
+// data values into their equivalent raw data.  It should be used
+// nowhere else.  -- pking, 2010-09-16
 void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fHardwareBlockSum = 0.0;
