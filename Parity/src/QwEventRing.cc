@@ -118,25 +118,30 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
 };
 
 void QwEventRing::FailedEvent(Int_t error_flag){
-    fFailedEventCount++;
-    
-    if (bGoodEvent){//a first faliure after set of good event bGoodEvent is TRUE. This is TRUE untill there is a beam trip
-      if (fFailedEventCount >= fMIN_BT_COUNT){//if events failed equal to minimum beam trip count
-	if (bGoodEvent) std::cout<<" Beam Trip "<<std::endl;
-	bGoodEvent=kFALSE;// a beam trip occured, set this to false
-
-	if (bDEBUG)
-	  std::cout<<" Beam Trip "<<fFailedEventCount;
+  if ((error_flag & kErrorFlag_BeamTrip)==kErrorFlag_BeamTrip){//check to see the single event cut is related to a beam current error
+    if (bDEBUG) 
+      QwMessage<<"Beam Trip kind single event cut failed!"<<QwLog::endl;
+  } else
+    return; //do nothing
+  fFailedEventCount++;
+  
+  if (bGoodEvent){//a first faliure after set of good event bGoodEvent is TRUE. This is TRUE untill there is a beam trip
+    if (fFailedEventCount >= fMIN_BT_COUNT){//if events failed equal to minimum beam trip count
+      if (bGoodEvent) std::cout<<" Beam Trip "<<std::endl;
+      bGoodEvent=kFALSE;// a beam trip occured, set this to false
+      
+      if (bDEBUG)
+	std::cout<<" Beam Trip "<<fFailedEventCount;
 	
-	if (bDEBUG_Write) fprintf(out_file," Beam Trip %d \n ",fFailedEventCount);
-	fNextToBeFilled=0;//fill at the top ring is useless after the beam trip
-	fNextToBeRead=0;//first element in the ring	
-	bRING_READY=kFALSE;      
-      }
+      if (bDEBUG_Write) fprintf(out_file," Beam Trip %d \n ",fFailedEventCount);
+      fNextToBeFilled=0;//fill at the top ring is useless after the beam trip
+      fNextToBeRead=0;//first element in the ring	
+      bRING_READY=kFALSE;      
     }
+  }
     
-      if (bDEBUG) std::cout<<" Failed count \n"<<fFailedEventCount;
-      if (bDEBUG_Write) fprintf(out_file," Failed count %d error_flag %x\n",fFailedEventCount,error_flag);
+  if (bDEBUG) std::cout<<" Failed count \n"<<fFailedEventCount;
+  if (bDEBUG_Write) fprintf(out_file," Failed count %d error_flag %x\n",fFailedEventCount,error_flag);
 };
 
 QwSubsystemArrayParity& QwEventRing::pop(){   

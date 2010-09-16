@@ -68,6 +68,8 @@ class QwBCM : public VQwDataElement{
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag
+    if (fDeviceErrorCode)
+      fDeviceErrorCode |= kErrorFlag_BeamTrip;//add the beam trip flag to it
     return fDeviceErrorCode;
   }
 
@@ -137,6 +139,7 @@ class QwBCM : public VQwDataElement{
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
 
+  static const Int_t kErrorFlag_BeamTrip = 0x100; // in Decimal 256 to event ring to identify the single event cut is failed for a BCM
 };
 
 #endif
