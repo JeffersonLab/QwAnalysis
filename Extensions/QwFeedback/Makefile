@@ -95,7 +95,7 @@ endif
 CFLAGS   += $(EPICSFLAGS) -I${MYINCDIR} 
 CPPFLAGS  = $(QWEAKCPPFLAGS)
 LDFLAGS   = $(QWEAKLDFLAGS)
-LIBS      = $(EPICSLIBS) $(QWEAKLIBS)
+LIBS      = $(EPICSLIBS) $(QWEAKLIBS)  -L$(QW_LIB) -lQw
 
 ##############
 ##############
