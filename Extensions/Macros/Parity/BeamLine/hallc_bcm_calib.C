@@ -89,7 +89,7 @@ public:
   const char* GetAliasCName() {return alias_name.Data();};
   Double_t GetPed() {return offset[0];};
   Double_t GetPedErr() {return offset[1];};
-  Double_t GetSlop() {return slope[0];};
+  Double_t GetSlope() {return slope[0];};
   Double_t GetSlopErr() {return slope[1];};
   // Double_t GetMean() {return mean[0];};
   // Double_t GetMeanErr() {return mean[1];};
@@ -214,6 +214,9 @@ const char* program_name;
 TTree *mps_tree = NULL;
 TFile *file = NULL;
 std::vector<BeamMonitor> hallc_bcms_list;
+TCanvas *unser_canvas =NULL;
+TString bcm_plots_filename;
+
 
 Int_t
 main(int argc, char **argv)
@@ -392,7 +395,7 @@ main(int argc, char **argv)
 
   Int_t w = 800;
   Int_t h = 400;
-  TCanvas *canvas_unser = new TCanvas("qwk_bcm_unser","SCA Unser", w, h);  
+  unser_canvas = new TCanvas("qwk_bcm_unser","SCA Unser", w, h);  
   //
   // extract unser maximum range in order to determine fit range
   //
@@ -413,9 +416,9 @@ main(int argc, char **argv)
   //  mps_tree -> SetAlias("TM_cc_unser",  "cc_sca_unser:event_number"); //  Bad numerical expression  ??
   
 
-  canvas_unser -> Clear();
-  canvas_unser -> Divide(2,1);
-  canvas_unser -> cd(1);
+  unser_canvas -> Clear();
+  unser_canvas -> Divide(2,1);
+  unser_canvas -> cd(1);
   
   TH1D* sca_user_event;
   sca_user_event = GetHisto(mps_tree, "cc_sca_unser:event_number", "");
@@ -431,7 +434,7 @@ main(int argc, char **argv)
   //
   // extract unser offset, offset error, slope, and slope error.
   //
-  canvas_unser -> cd(2);
+  unser_canvas -> cd(2);
 
   TCut unser_cut(Form("%s<%lf", "cc_sca_unser",  human_input_beam_off_range));
 
@@ -484,9 +487,13 @@ main(int argc, char **argv)
   }
 
 
-  canvas_unser -> Modified();
-  canvas_unser -> Update();
+  unser_canvas -> Modified();
+  unser_canvas -> Update();
  
+  // Print the plot on to a file
+  /*file containing the bpm calibration plots*/
+  bcm_plots_filename = Form("%s_hallc_bcm_calib_plots", run_number);
+  unser_canvas->Print(bcm_plots_filename+".ps(");
 
 
   std::size_t i = 0; 
@@ -497,6 +504,9 @@ main(int argc, char **argv)
 	      << cnt++ 
 	      << ": onto calibrating " << hallc_bcms_list.at(i).GetName() 
 	      << std::endl;
+  
+  
+
     Bool_t check = false;
     check = calibrate(hallc_bcms_list.at(i), sca_unser) ; 
     //  if(not check) theApp.Run();
@@ -548,16 +558,19 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
   TCut device_cut = "";
   TH1D* device_hist = NULL;
   TF1* device_fit = NULL;
+  TH1D * device_res = NULL;
   Int_t w = 600;
   Int_t h = 400;
-  TCanvas *Canvas = NULL;
+
+
+  unser_canvas->Clear();
 
   device_name = device.GetName();
   reference_name = reference.GetAliasName();
   if(device_name.Contains("sca")) {
     sca_flag = true;
   }
-  Canvas = new TCanvas(device_name.Data() , device_name.Data(), w, h);  
+  // Canvas = new TCanvas(device_name.Data() , device_name.Data(), w, h);  
 
   fit_range[0] = reference.GetFitRangeMin();
   fit_range[1] = reference.GetFitRangeMax();
@@ -573,9 +586,9 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
 
   plotcommand = device_name + ":" +  reference_name;
   
-  Canvas->Clear();
-  //  Canvas->Divide(2,1);
-  
+  unser_canvas->Clear();
+  unser_canvas->Divide(1,2);
+  unser_canvas->cd(1);
   //  Canvas -> cd(1);
   device_hist = GetHisto(mps_tree, plotcommand, device_cut, "prof"); // profs : large errors why?
   
@@ -583,8 +596,8 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
     std::cout << "Please check  "
 	      << device_name
 	      << std::endl;
-    Canvas ->Close();
-    delete Canvas; Canvas = NULL;
+    unser_canvas ->Close();
+    // delete unse; Canvas = NULL;
     return false;
   }
   device_hist -> SetName(device.GetName().Data());
@@ -593,14 +606,40 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
   device_hist -> SetTitle(Form("%s vs %s", device_name.Data(), reference_name.Data()));
   device_hist -> GetXaxis() ->SetTitle(Form("%s (#muA)", reference_name.Data()));
   device_hist -> Fit("pol1", "E M Q", "", fit_range[0], fit_range[1]);
+  device_hist->Draw("");
   device_fit = device_hist  -> GetFunction("pol1");
  
+
   if(device_fit) {
     device_fit -> SetLineColor(kRed);
     device.SetPed(device_fit->GetParameter(0));
     device.SetPedErr(device_fit->GetParError(0));
     device.SetSlop(device_fit->GetParameter(1));
     device.SetSlopErr(device_fit->GetParError(1));
+
+   // Draw the residuals
+    unser_canvas->cd(2);
+
+    plotcommand = Form("(( %s.hw_sum_raw/%s )-( %s*%1f + %1f )):%s",
+			  device_name.Data(),device_samples.Data(),reference_name.Data(),
+			  device.GetSlope(),device.GetPed(),reference_name.Data() );
+
+
+    mps_tree->Draw(plotcommand,"","box");
+    device_res = (TH1D*) gPad->GetPrimitive("htemp");
+
+    if (not device_res) {
+      std::cout<<" Please check residual plot"<<plotcommand<<std::endl;
+      unser_canvas ->Close();
+	delete unser_canvas; unser_canvas = NULL;
+	return false;	
+    }
+      device_res -> GetXaxis()->SetTitle("current (uA)");
+      device_res -> GetYaxis()->SetTitle("fit residual");
+      device_res -> GetYaxis()-> SetTitleOffset(2.2);
+      device_res -> SetTitle(device_name+" fit residual");
+      
+
   }
   else {
   
@@ -608,8 +647,8 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
     device.SetPedErr(-1);
     device.SetSlop(-1);
     device.SetSlopErr(-1);
-    Canvas ->Close();
-    delete Canvas; Canvas = NULL;
+    unser_canvas ->Close();
+    delete unser_canvas; unser_canvas = NULL;
     return false;
   }
   gPad->Update();
@@ -625,8 +664,10 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
   // gPad->Update();
   std::cout << device << std::endl;
 
-  Canvas -> Modified();
-  Canvas -> Update();
+  unser_canvas -> Modified();
+  unser_canvas -> Update();
+  unser_canvas->Print(bcm_plots_filename+".ps");
+
   return true;
 }
 
