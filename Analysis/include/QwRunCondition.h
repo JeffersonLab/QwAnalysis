@@ -12,7 +12,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "RVersion.h"
+#include "TROOT.h"
 #include "TList.h"
 #include "TString.h"
 #include "TObjString.h"
@@ -23,15 +23,20 @@ class QwRunCondition
 
  public:
   QwRunCondition(){fRunConditionList=NULL;};
-  QwRunCondition(Int_t argc, Char_t* argv[]);
+  QwRunCondition(Int_t argc, Char_t* argv[], TString name);
   virtual ~QwRunCondition();
 
   TList* Get();
-  void SetROCFlagsFileName(TString in) {fROCFlagFileName = in;};
+  TString GetName();
+ 
+  void SetROCFlagsFileName(const TString in) {fROCFlagFileName = in;};
+
+
 
  private:
   
-  void Set(Int_t argc, Char_t* argv[]);
+  void SetArgs(Int_t argc, Char_t* argv[]);
+  void SetName(const TString name);
   void Add(TString in);
   
   TString GetROCFlags();
@@ -44,5 +49,18 @@ class QwRunCondition
   //  ClassDef(QwRunCondition,1);
 };
 
+
+// How to access fRunConditionList
+// TList *list = (TList*) file->FindObjectAny(fRunConditoinList name);
+// for example,
+// 
+// TFile *file = TFile::Open("Qweak_5150.root")
+// TList *list = (TList*) file->FindObjectAny("5150_condition");
+// if(list)  {
+//    cout << list->Print() << endl;
+//    cout << list->GetEntries() << endl;
+//    cout << list->GetSize() << endl;
+//    cout << list->GetName() << endl;
+//  }
 
 #endif

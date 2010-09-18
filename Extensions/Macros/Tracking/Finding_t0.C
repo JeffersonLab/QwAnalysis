@@ -4,15 +4,21 @@
 //    Date:   Apr 12 2010
 //    This script is used to find out the t0 value for every wire in R3(R2) and output them into the t0.txt file.
 //    Before using this script, the SubtractWireTimeOffset function in QwDriftChamberVDC::ProcessEvent must be disabled.
-//    Then run the QwAnlysis and get the corresponding root file. This script will use that root file(without finding t0   //    module implemented) to find out t0 of each wire. After getting a complete t0.txt, you can enable the SubtractWireTime//    Offset function and let every wire subtract the correct t0 value to get the real drift time.
+//    Then run the QwAnlysis and get the corresponding root file. This script will use that root file(without finding t0   
+//    module implemented) to find out t0 of each wire. After getting a complete t0.txt, you can enable the SubtractWireTime
+//    Offset function and let every wire subtract the correct t0 value to get the real drift time.
 
 //    the main function is called find_t0, which has the following form:
 //    void find_t0(Int_t event_start=-1,Int_t event_end=-1,Double_t threshold=0.05,Int_t pl=1)
 //    you can decide how many events you want to use to determine the t0 by assigning the start and end event number.
 //    However, I recommend using all events in that rootfile becasue bigger statistical sample could yield more accurate
 //    results.
-//    the threshold is the value to determine the noise quantitiy. So if you set a very high threshold, almost all         //    the noise could be filtered out but you also kill some of the valid hits; if you set a very low threshold, you will  //    include some noise which makes the t0 not so accruate. For R3, we tested different threshold value and found out     //    5%-8% was the optimal range.
-//    last parameter is the plane number. Right now, this function is used to find out t0 of wires in a single plane. For  //    R3, you can choose either plane 1 or plane 2.
+//    the threshold is the value to determine the noise quantitiy. So if you set a very high threshold, almost all         
+//    the noise could be filtered out but you also kill some of the valid hits; if you set a very low threshold, you will  
+//    include some noise which makes the t0 not so accruate. For R3, we tested different threshold value and found out     
+//    5%-8% was the optimal range.
+//    last parameter is the plane number. Right now, this function is used to find out t0 of wires in a single plane. For  
+//    R3, you can choose either plane 1 or plane 2.
 
 //    if you have any questions about this script, just send an email to me.
 

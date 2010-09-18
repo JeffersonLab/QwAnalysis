@@ -46,14 +46,21 @@ QwRootFile::QwRootFile(const TString& run_label)
     }
     else {
 
-      Int_t argc = gQwOptions.GetArgc();
-      Char_t** argv = gQwOptions.GetArgv();
-
-      QwRunCondition run_condition(argc, argv);
-      fRootFile -> WriteObject(
-			       run_condition.Get(),
-			       Form("Run %s Condition", run_label.Data())
-			       );
+      TString run_condition_name = Form("%s_condition", run_label.Data());
+      TList *run_cond_list = (TList*) fRootFile -> FindObjectAny(run_condition_name);
+      if(not run_cond_list) { 
+	QwRunCondition run_condition(
+				     gQwOptions.GetArgc(), 
+				     gQwOptions.GetArgv(),
+				     Form("%s_condition", run_label.Data())
+				     );
+	
+	fRootFile -> WriteObject(
+				 run_condition.Get(),
+				 run_condition.GetName()
+				 );
+      }
+      //   delete run_cond_list;
     }
   }
 }

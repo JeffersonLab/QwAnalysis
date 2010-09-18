@@ -12,14 +12,15 @@
 
 const Int_t QwRunCondition::fCharLength = 127;
 
-QwRunCondition::QwRunCondition(Int_t argc, Char_t* argv[])
+QwRunCondition::QwRunCondition(Int_t argc, Char_t* argv[], TString name)
 {
 
   fROCFlagFileName = "qwvmets.flags";
 
   fRunConditionList = new TList;
   fRunConditionList -> SetOwner(true);
-  this->Set(argc, argv);
+  this->SetArgs(argc, argv);
+  this->SetName(name);
 
 };
 
@@ -31,19 +32,18 @@ QwRunCondition::~QwRunCondition()
 
 
 void
-QwRunCondition::Set(Int_t argc, Char_t* argv[])
+QwRunCondition::SetArgs(Int_t argc, Char_t* argv[])
 {
 
   // get ROOT release version, date, svn revision and branch
-  // RVersion.h (ROOT)
-  TString root_version = "V";
-  root_version += ROOT_RELEASE;
+  // TROOT.h (ROOT)
+  TString root_version = gROOT->GetVersion();
   root_version += ", Date : ";
-  root_version += ROOT_RELEASE_DATE;
+  root_version += gROOT->GetVersionDate();
   root_version += ", SVN : ";
-  root_version += ROOT_SVN_REVISION;
+  root_version += gROOT->GetSvnRevision();
   root_version += " ";
-  root_version += ROOT_SVN_BRANCH;
+  root_version += gROOT->GetSvnBranch();
 
   // get hostname and user name
   char host_string[fCharLength];
@@ -80,7 +80,7 @@ QwRunCondition::Set(Int_t argc, Char_t* argv[])
     roc_flags = this->GetROCFlags();
   }
   else {
-    roc_flags = "Invalid, because the system used to create ROOT file is not one of the cdaq cluster with the cdaq account.";
+    roc_flags = "Invalid, because the system is not cdaqlx and the user is not cdaq.";
   }
     
 
@@ -118,7 +118,7 @@ QwRunCondition::Set(Int_t argc, Char_t* argv[])
 void
 QwRunCondition::Add(TString in)
 {
-  fRunConditionList -> Add(new TObjString(in));
+  fRunConditionList -> AddLast(new TObjString(in));
   return;
 };
 
@@ -128,6 +128,24 @@ QwRunCondition::Get()
 {
   return fRunConditionList;
 };
+
+
+
+TString
+QwRunCondition::GetName()
+{
+  TString name = fRunConditionList->GetName();
+  return name;
+};
+
+
+void
+QwRunCondition::SetName(TString name)
+{
+  fRunConditionList->SetName(name);
+  return;
+};
+
 
 
 TString
