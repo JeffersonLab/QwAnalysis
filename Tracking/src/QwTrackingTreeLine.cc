@@ -226,7 +226,7 @@ QwHit* QwTrackingTreeLine::GetBestWireHit (double offset)
   int best_hit = 0;
   // Get the best measured hit in the back
   for (int hit = 0; hit < fNumHits; hit++) {
-    double position = fabs(hits[hit]->GetPosition() - offset);
+    double position = fabs(hits[hit]->GetDriftPosition() - offset);
     if (position < best_position) {
       best_position = position;
       best_hit = hit;
@@ -246,8 +246,9 @@ const double QwTrackingTreeLine::CalculateAverageResidual()
   for (int layer = 0; layer < 2 * MAX_LAYERS; layer++) {
     for (QwHit* hit = hits[layer]; hit; hit = hit->next) {
       if (hit->IsUsed()) {
+        double residual = hit->GetResidual();
+        sumResiduals += residual;
         numHits++;
-        sumResiduals += hit->GetDriftDistance();
       }
     } // end of loop over hits (only one of them is used)
   } // end of loop over layers
@@ -283,12 +284,14 @@ void QwTrackingTreeLine::PrintValid() {
  * @param tl Tree line as rhs of the operator
  * @return Stream as result of the operator
  */
-ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
+std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl) {
   stream << "tl: ";
-  stream << tl.a_beg << ", " << tl.a_end << " -- ";
-  stream << tl.b_beg << ", " << tl.b_end;
+  if (tl.a_beg + tl.a_end + tl.b_beg + tl.b_end != 0) {
+    stream << tl.a_beg << "," << tl.a_end << " -- ";
+    stream << tl.b_beg << "," << tl.b_end << " ";
+  }
   if (tl.GetRegion() != kRegionIDNull) { // treeline has geometry identification
-    stream << " (" << tl.GetRegion() << "/" << "?UD"[tl.GetPackage()];
+    stream << "(" << tl.GetRegion() << "/" << "?UD"[tl.GetPackage()];
     stream << "/" << "?xyuvrq"[tl.GetDirection()];
     if (tl.GetPlane() > 0)
       stream << "/" << tl.GetPlane() << ")";
@@ -298,9 +301,9 @@ ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
   if (tl.fChi > 0.0) { // treeline has been fitted
     stream << "; fOffset = " << tl.fOffset/Qw::cm << " cm";
     stream << ", fSlope = " << tl.fSlope;
+    stream << ", fResidual = " << tl.fAverageResidual/Qw::cm << " cm";
     stream << ", fChi = " << tl.fChi;
-    stream << ", hits:";
-    stream << " (" << tl.fQwHits.size() << ")";
+    stream << "; hits (" << tl.fQwHits.size() << "):";
     for (size_t hit = 0; hit < tl.fQwHits.size(); hit++)
       stream << " " << tl.fQwHits.at(hit)->GetPlane() << ":" << tl.fQwHits.at(hit)->GetElement();
   }

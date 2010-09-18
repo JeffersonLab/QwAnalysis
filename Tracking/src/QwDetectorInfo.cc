@@ -15,25 +15,25 @@ ClassImp(QwDetectorInfo);
 
 void QwDetectorInfo::SetDetectorInfo (
 	TString sdType,
-	Double_t det_originZ,
-	Double_t rot,
-	Double_t  sp_res,
-	Double_t  track_res,
-	Double_t slope_match,
+	double det_originZ,
+	double rot,
+	double  sp_res,
+	double  track_res,
+	double slope_match,
 	TString spackage,
-	Int_t region,
+	int region,
 	TString planeDir,
-	Double_t det_originX,
-	Double_t det_originY,
-	Double_t activewidthX,
-	Double_t activewidthY,
-	Double_t activewidthZ,
-	Double_t wireSpace,
-	Double_t firstWire,
-	Double_t w_rcos,
-	Double_t w_rsin,
-	Int_t totalwires,
-	Int_t detId)
+	double det_originX,
+	double det_originY,
+	double activewidthX,
+	double activewidthY,
+	double activewidthZ,
+	double wireSpace,
+	double firstWire,
+	double w_rcos,
+	double w_rsin,
+	int totalwires,
+	int detId)
 {
   // Detector geometry parameters
 
@@ -121,7 +121,7 @@ const double QwDetectorInfo::GetElementCoordinate(const int element) const
  * @param det Detector info object
  * @return Output stream
  */
-ostream& operator<< (ostream& stream, const QwDetectorInfo& det)
+std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det)
 {
   stream << "det " << det.fDetectorID << ": ";
   stream << "package " << det.fPackage << ", ";

@@ -184,6 +184,24 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   R3Bad = 0;
 
 
+  // Initialize the tracking modules
+  // Tracking functionality is provided by these four sub-blocks.
+  fTreeSearch  = new QwTrackingTreeSearch();
+  fTreeCombine = new QwTrackingTreeCombine();
+  fTreeSort    = new QwTrackingTreeSort();
+  fTreeMatch   = new QwTrackingTreeMatch();
+
+  // Debug level of the various tracking modules
+  fTreeSearch->SetDebugLevel(fDebug);
+  fTreeCombine->SetDebugLevel(fDebug);
+  fTreeSort->SetDebugLevel(fDebug);
+  fTreeMatch->SetDebugLevel(fDebug);
+
+  // Process the options and set the respective flags in the modules
+  fTreeSearch->SetShowMatchingPatterns(fShowMatchingPattern);
+  fTreeCombine->SetMaxRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxroad"));
+  fTreeCombine->SetMaxXRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxxroad"));
+
   QwDebug << "###### Leaving QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 }
 
@@ -197,6 +215,12 @@ QwTrackingWorker::~QwTrackingWorker ()
 
   if (fMatrixLookup) delete fMatrixLookup;
   if (fRayTracer)    delete fRayTracer;
+
+  // Delete tracking modules
+  if (fTreeSearch)  delete fTreeSearch;
+  if (fTreeCombine) delete fTreeCombine;
+  if (fTreeSort)    delete fTreeSort;
+  if (fTreeMatch)   delete fTreeMatch;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -402,85 +426,6 @@ void QwTrackingWorker::InitTree()
 
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*------------------------------------------------------------------------*//*!
-
-   Bcheck() - this function compares the momentum look-up energy with the
-              shooting method result.  This function is for fDebugging
-              purposes only.
-
-    inputs: (1) double E       - the momentum lookup energy
-            (2) QwPartialTrack *f   - pointer to the front partial track for the
-                                 track
-            (3) QwPartialTrack *b   - pointer to the back partial track of the
-                                 track
-            (4) double TVertex - transverse position of the vertex for the
-                                 track
-            (5) double ZVertex - Z position of the vertex for the track
-
-   outputs: an ASCII ntuple file.
-
-*//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double rcShootP (double Pest,QwPartialTrack *front, QwPartialTrack *back, double accuracy) {
-    std::cerr << "Warning: The function rcShootP is only a stub" << std::endl;
-    return -1000;
-}
-
-void QwTrackingWorker::BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, double TVertex, double ZVertex) {
-    double Es = rcShootP(0.0,f,b,0.005);
-    //extern physic phys_carlo;
-    static FILE *test = 0;
-
-    if ( !test )
-        test = fopen("magcheck","w");
-    if ( test && E > 0.0) {
-        fprintf(test,"%f %f %f %f %f %f\n",
-                /*phys_carlo.E,*/E,Es, f->fSlopeX, f->fSlopeY, TVertex, ZVertex);
-    }
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*------------------------------------------------------------------------*//*!
-
-  rcLinkUsedTracks() - this function links the track cross-linked list to
-                       a single-linked list to ease the access for later
-		       functions. The new link is done via the usenext
-		       pointer.
-
-    inputs: (1) Track *track -
-            (2) int package   -
-
-   returns: the head to the linked list.
-
-*//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-QwTrack* QwTrackingWorker::rcLinkUsedTracks (QwTrack *track, int package ) {
-    QwTrack *ret =0, *usedwalk = 0;
-    QwTrack *trackwalk = NULL, *ytrack = NULL;
-
-    /* loop over all found tracks */
-    for (trackwalk = track; trackwalk; trackwalk = trackwalk->next ) {
-        /* and the possible y-tracks */
-        for (ytrack = trackwalk; ytrack; ytrack = ytrack->ynext ) {
-            if (!ytrack->isused) continue;
-            if ( !ret ) /* return the first used track */
-                ret = usedwalk = ytrack;
-            else {
-                usedwalk->usednext = ytrack; /* and link them together */
-                usedwalk = ytrack;
-            }
-        }
-    }
-    delete usedwalk;
-    delete trackwalk;
-    delete ytrack;
-    return ret;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
   ProcessHits() - this function is the main tracking function. It
@@ -507,37 +452,14 @@ QwEvent* QwTrackingWorker::ProcessHits (
     QwSubsystemArrayTracking *detectors,
     QwHitContainer *hitlist)
 {
-    int dlayer = 0;		/* number of detector planes in the search    */
-
-    // Create a new event structure
+    /// Create a new event structure
     QwEvent *event = new QwEvent();
-    // and fill it with the hitlist
+    // and fill it with the original hitlist
     event->AddHitContainer(hitlist);
 
-    // If tracking is disabled, stop here
+    /// If tracking is disabled, stop here
     if (fDisableTracking) return event;
 
-    // Tracking functionality is provided by these four sub-blocks.
-    QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();
-    TreeSearch->SetDebugLevel(fDebug);
-    QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
-    TreeCombine->SetDebugLevel(fDebug);
-    QwTrackingTreeSort    *TreeSort    = new QwTrackingTreeSort();
-    TreeSort->SetDebugLevel(fDebug);
-    QwTrackingTreeMatch   *TreeMatch   = new QwTrackingTreeMatch();
-    TreeMatch->SetDebugLevel(fDebug);
-
-    // Process the options and set the respective flags in the modules
-    if (fShowMatchingPattern) TreeSearch->SetShowMatchingPatterns();
-    TreeCombine->SetMaxRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxroad"));
-    TreeCombine->SetMaxXRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxxroad"));
-
-    /*
-    int charge;
-    int found_front = 0;
-    double ZVertex, bending, theta, phi, ESpec;
-    int outbounds = 0;
-    */
 
     /// Loop through all detector packages
     // Normally only two of these will generate actual tracks,
@@ -585,6 +507,9 @@ QwEvent* QwTrackingWorker::ProcessHits (
                     type <= kTypeDriftVDC; type++) {
                 QwDebug << "[QwTrackingWorker::ProcessHits]   Detector: " << type << QwLog::endl;
 
+
+                int dlayer = 0; // number of detector planes in the search
+                int tlayers = 0; // number of tracking layers
 
                 /// Loop through the detector directions
                 for (EQwDirectionID dir  = kDirectionX;
@@ -668,9 +593,10 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                             /// Get the subhitlist of hits in this detector
                             QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, plane);
-                            if (fDebug) subhitlist->Print();
                             // If no hits in this detector, skip to the next detector.
-                            if (! subhitlist) continue;
+                            if (subhitlist->size() == 0) continue;
+                            // Print the hit list for this detector
+                            if (fDebug) subhitlist->Print();
 
                             // Loop over the hits in the subhitlist
                             for (QwHitContainer::iterator hit = subhitlist->begin();
@@ -706,7 +632,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             // We can start the tree search now.
                             // NOTE Somewhere around here a memory leak lurks
                             QwDebug << "Searching for matching patterns (direction " << dir << ")" << QwLog::endl;
-                            treelinelist = TreeSearch->SearchTreeLines(searchtree,
+                            treelinelist = fTreeSearch->SearchTreeLines(searchtree,
                                                  channel, hashchannel, fLevelsR3,
                                                  NUMWIRESR3, MAX_LAYERS);
 
@@ -736,12 +662,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                             QwDebug << "Calculate chi^2" << QwLog::endl;
                             double width = searchtree->GetWidth();
-                            TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
+                            fTreeCombine->TlTreeLineSort(treelinelist, subhitlist,
                                                          package, region, dir,
                                                          1UL << (fLevelsR3 - 1), 0, dlayer, width);
 
                             QwDebug << "Sort patterns" << QwLog::endl;
-                            TreeSort->rcTreeConnSort (treelinelist, region);
+                            fTreeSort->rcTreeConnSort (treelinelist, region);
 
                             if (plane < 3)
                                 treelinelist1 = treelinelist;
@@ -759,7 +685,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
                         if (treelinelist1 && treelinelist2) {
-                            treelinelist = TreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
+                            treelinelist = fTreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
                             event->treeline[package][region][type][dir] = treelinelist;
                             event->AddTreeLineList(treelinelist);
 
@@ -777,14 +703,13 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         }
 
                         tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
-                        tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */
 
 
 
                     /* Region 2 HDC */
                     } else if (region == kRegionID2 && type == kTypeDriftHDC) {
 
-                        // Set ht pattern for this region
+                        // Set hit pattern for this region
                         QwDebug << "Setting hit pattern (region 2)" << QwLog::endl;
 
                         // Create a vector of hit patterns
@@ -846,7 +771,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         }
 
                         QwDebug << "Search for matching patterns (direction " << dir << ")" << QwLog::endl;
-                        treelinelist = TreeSearch->SearchTreeLines(searchtree,
+                        treelinelist = fTreeSearch->SearchTreeLines(searchtree,
                                              channel, hashchannel, levels,
                                              0, tlayers);
 
@@ -881,14 +806,14 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         if (searchtree) {
 
                             double width = searchtree->GetWidth();
-                            TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
+                            fTreeCombine->TlTreeLineSort (treelinelist, subhitlist,
                                                          package, region, dir,
                                                          1UL << (fLevelsR2 - 1),
                                                          tlayers, 0, width);
                         }
 
                         QwDebug << "Sort patterns" << QwLog::endl;
-                        TreeSort->rcTreeConnSort (treelinelist, region);
+                        fTreeSort->rcTreeConnSort (treelinelist, region);
 
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
@@ -920,7 +845,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         && fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
                                        +region*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
                         && tlayers) {
-                    parttrack = TreeCombine->TlTreeCombine(
+                    parttrack = fTreeCombine->TlTreeCombine(
                                     event->treeline[package][region][type],
                                     package, region,
                                     tlayers,
@@ -932,7 +857,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                 /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
 
-                if (parttrack) TreeSort->rcPartConnSort(parttrack);
+                if (parttrack) fTreeSort->rcPartConnSort(parttrack);
 
                 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
@@ -1025,12 +950,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
     } /* end of loop over the detector packages */
 
-
-    // Delete tracking objects
-    if (TreeSearch)  delete TreeSearch;
-    if (TreeCombine) delete TreeCombine;
-    if (TreeSort)    delete TreeSort;
-    if (TreeMatch)   delete TreeMatch;
 
 //   if (fDebug)
 //     cout<<"R2Good, R2Bad, R3Good, R3Bad: "<<R2Good<<" "<<R2Bad<<" "<<R3Good<<" "<<R3Bad<<endl;

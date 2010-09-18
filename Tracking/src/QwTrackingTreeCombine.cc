@@ -69,7 +69,7 @@ int QwTrackingTreeCombine::chi_hashval (int n, QwHit **hit)
 {
   double hash = 389.0; // WTF IS THIS?!?
   for (int i = 0; i < n; i++) {
-    hash *= hit[i]->rResultPos;
+    hash *= hit[i]->GetDriftPosition();
   }
   return ((  (*(unsigned*) & hash)        & HASHMASK) ^
           ( ((*(unsigned*) & hash) >> 22) & HASHMASK) ) ;
@@ -107,7 +107,7 @@ void QwTrackingTreeCombine::chi_hashinsert (
     new_chi_hash->chi    = chi;
     new_chi_hash->hits   = n;
     for( i = 0; i < n; i++ ) {
-      new_chi_hash->hit[i] = hits[i]->rResultPos;
+      new_chi_hash->hit[i] = hits[i]->GetDriftPosition();
     }
   }
 }
@@ -132,7 +132,7 @@ int QwTrackingTreeCombine::chi_hashfind (
     if (new_chi_hash->hits == n) {
       int i;
       for (i = 0; i < n; i++) {
-	if (new_chi_hash->hit[i] != hits[i]->rResultPos) {
+	if (new_chi_hash->hit[i] != hits[i]->GetDriftPosition()) {
 	  break;
 	}
       }
@@ -183,9 +183,7 @@ QwHit* QwTrackingTreeCombine::SelectLeftRightHit (
   // Write the best hit (actually just uses the old structure)
   QwHit* besthit = new QwHit(*hit);
   besthit->next = 0; // only this entry in linked list
-  besthit->fPosition =
-    besthit->rResultPos =
-    besthit->rPos = best_position;
+  besthit->fDriftPosition = besthit->rPos = best_position;
 
   return besthit;
 }
@@ -250,7 +248,7 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
           *ha[ngood] = *hit;
           ha[ngood]->next    = 0;
           // Store this position
-          ha[ngood]->fPosition = ha[ngood]->rResultPos = ha[ngood]->rPos = hit_position;
+          ha[ngood]->fDriftPosition = ha[ngood]->rPos = hit_position;
 
           // ha[ngood]->SetZPos(hit->GetZPos());
           if (distance < minimum) {
@@ -265,15 +263,13 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
         } else {
           // Loop over the hits that we already saved
           for (int i = 0; i < ngood; i++) {
-            distance = track_position - ha[i]->GetPosition();
+            distance = track_position - ha[i]->GetDriftPosition();
             if (odist < 0)
               odist = -odist;
             if (distance < odist) {
               *ha[i]   = *hit;
               ha[i]->next    = 0;
-              ha[i]->fPosition =
-                ha[i]->rResultPos =
-                ha[i]->rPos = hit_position;
+              ha[i]->fDriftPosition = ha[i]->rPos = hit_position;
               break;
             }
           }
@@ -368,7 +364,7 @@ void QwTrackingTreeCombine::weight_lsq (
   // Set the hit values
   for (int i = 0; i < n; i++) {
     A[i][1] = - hits[i]->GetDetectorInfo()->GetZPosition();
-    y[i]    = - hits[i]->rResultPos;
+    y[i]    = - hits[i]->GetDriftPosition();
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
     G[i][i] = 1.0 / (resolution * resolution);
   }
@@ -413,7 +409,7 @@ void QwTrackingTreeCombine::weight_lsq (
   double sum = 0.0;
   for (int i = 0; i < n; i++) {
     double residual = (slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset
-                    - hits[i]->rResultPos);
+                    - hits[i]->GetDriftPosition());
     sum += G[i][i] * residual * residual;
   }
   // Normalize chi^2
@@ -467,11 +463,11 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   //###########
   for (int i = 0; i < n; i++) {
     if (wire_offset == -1) {
-      A[i][1] = -hits[i]->GetZPosition(); //used by matchR3
-      y[i]    = -hits[i]->GetPosition();
+      A[i][1] = -hits[i]->GetWirePosition(); //used by matchR3
+      y[i]    = -hits[i]->GetDriftPosition();
     } else {
       A[i][1] = -(i + wire_offset); //used by Tl MatchHits
-      y[i]    = -hits[i]->rResultPos;
+      y[i]    = -hits[i]->GetDriftPosition();
     }
     double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
     G[i][i] = 1.0 / (resolution * resolution);
@@ -517,14 +513,17 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
   double sum = 0.0;
   if (wire_offset == -1) {
     for (int i = 0; i < n; i++) {
-      double residual = (slope * (hits[i]->GetZPosition() - z1) + offset)
-                      - hits[i]->GetPosition();
+      hits[i]->SetTrackPosition(slope * (hits[i]->GetWirePosition() - z1) + offset);
+      hits[i]->CalculateResidual();
+      double residual = hits[i]->GetResidual();
       sum += G[i][i] * residual * residual;
     }
   } else {
     for (int i = 0; i < n; i++) {
-      double residual = (slope * (i + wire_offset) + offset)
-                      - hits[i]->rResultPos;
+      hits[i]->SetWirePosition(i + wire_offset); // TODO element spacing
+      hits[i]->SetTrackPosition(slope * (i + wire_offset) + offset);
+      hits[i]->CalculateResidual();
+      double residual = hits[i]->GetResidual();
       sum += G[i][i] * residual * residual;
     }
   }
@@ -540,7 +539,7 @@ int QwTrackingTreeCombine::contains (double var, QwHit **arr, int len)
   // In light of calibration effects, this could fail.
   cerr << "[QwTrackingTreeCombine::contains] Warning: double == double is unsafe." << endl;
   for (int i = 0; i < len ; i++) {
-    if (var == arr[i]->rResultPos)
+    if (var == arr[i]->GetDriftPosition())
       return 1;
   }
   return 0;
@@ -587,7 +586,7 @@ int QwTrackingTreeCombine::selectx (
 //       continue;
 //     }
 
-    position = h->rResultPos;
+    position = h->GetDriftPosition();
 
     if (! contains (position, ha, good)) {
       distance   = x - position;
@@ -1005,11 +1004,15 @@ int QwTrackingTreeCombine::TlMatchHits (
     double thisX = track_slope * thisZ + intercept;
 
     // Determine the best hit assignment for this position
-    goodHits[nHits] = SelectLeftRightHit (thisX, &(*hit));
+    goodHits[nHits] = SelectLeftRightHit(thisX, &(*hit));
     nHits++;
   }
 
-  if (nHits != nWires) QwWarning << "WARNING NHITS != NGOODHITS " << nWires << "," << nHits << QwLog::endl;
+  // Warn when the number of wires between first and last is different from the
+  // number of hits found (missing wires or wires wit multiple hits)
+  if (nHits != nWires)
+    QwWarning << "Expected " << nWires << " consecutive wires to be hit, "
+              << "but found " << nHits << " hits" << QwLog::endl;
 
   //############################
   //RETURN HITS FOUND IN BESTX #

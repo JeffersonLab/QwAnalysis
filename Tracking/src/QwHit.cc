@@ -123,7 +123,9 @@ void QwHit::Initialize()
   fTime              = 0.0;
   fTimeRes           = 0.0;
   fDistance          = 0.0;
-  fPosition          = 0.0;
+  fDriftPosition     = 0.0;
+  fWirePosition      = 0.0;
+  fTrackPosition     = 0.0;
   fResidual          = 0.0;
   fZPosition         = 0.0;
   fSpatialResolution = 0.0;
@@ -133,7 +135,6 @@ void QwHit::Initialize()
 
   next               = 0;
   nextdet            = 0;
-  rResultPos         = 0.0;
   rPos               = 0.0;
   rPos2              = 0.0;
 }
@@ -167,7 +168,9 @@ QwHit& QwHit::operator=(const QwHit& hit)
   fTime              = hit.fTime;
   fTimeRes           = hit.fTimeRes;
   fDistance          = hit.fDistance;
-  fPosition          = hit.fPosition;
+  fDriftPosition     = hit.fDriftPosition;
+  fWirePosition      = hit.fWirePosition;
+  fTrackPosition     = hit.fTrackPosition;
   fResidual          = hit.fResidual;
   fZPosition         = hit.fZPosition;
   fSpatialResolution = hit.fSpatialResolution;
@@ -177,7 +180,6 @@ QwHit& QwHit::operator=(const QwHit& hit)
 
   next               = hit.next;
   nextdet            = hit.nextdet;
-  rResultPos         = hit.rResultPos;
   rPos               = hit.rPos;
   rPos2              = hit.rPos2;
 
