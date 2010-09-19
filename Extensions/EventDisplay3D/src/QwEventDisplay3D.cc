@@ -737,19 +737,17 @@ void QwEventDisplay3D::DisplayEvent()
      }
      // For now we will display multiple partial, possibly not connected,
      // tracks until a good one is produced in the rootfiles.
-     const TClonesArray *partialTracksList = fEvent->GetListOfPartialTracks();
      Int_t numberOfPartialTracks = fEvent->GetNumberOfPartialTracks();
      std::cout << "Number of Partial Tracks: " << numberOfPartialTracks <<"\n";
      for (Int_t k = 0; k < numberOfPartialTracks; k++ ) {
         // Extract the PartialTrack
-        QwPartialTrack *partialTrack = 
-           (QwPartialTrack*)partialTracksList->At(k);
+        const QwPartialTrack *partialTrack = fEvent->GetPartialTrack(k);
 
         // Region 1 & 2 should point back toward the target, while Region 3
         // should point towards the beam dump
         if( fDrawTracks ) {
            Int_t sign = 1;
-           if( partialTrack->GetRegion() == kRegionID2)
+           if( partialTrack && partialTrack->GetRegion() == kRegionID2)
               sign = -1;
 
            if( partialTrack->IsValid() ) {
@@ -768,7 +766,7 @@ void QwEventDisplay3D::DisplayEvent()
                  partialTrack->fOffsetY/10. << ",0.)\n";
               track->fV.Set(RotateXonZ(partialTrack->fOffsetX/10.,
                        partialTrack->fOffsetY/10.,fPackageAngle),
-                    RotateYonZ(partialTrack->fOffsetY/10.,
+                    RotateYonZ(partialTrack->fOffsetX/10.,
                        partialTrack->fOffsetY/10.,fPackageAngle),0.);
 
               // The components of this vector are represented only by ratios
@@ -803,15 +801,13 @@ void QwEventDisplay3D::DisplayEvent()
 
      if( fDrawTreeLines ) {
          // For now, we also draw planes representing the tree lines
-         const TClonesArray *treeLinesList = fEvent->GetListOfTreeLines();
          Int_t numberOfTreeLines = fEvent->GetNumberOfTreeLines();
          std::cout << "Number of Tree Lines: " << numberOfTreeLines << "\n";
          for (Int_t k = 0; k < numberOfTreeLines; k++ ) {
             // Extract the TreeLine
-            QwTrackingTreeLine *treeline =
-               (QwTrackingTreeLine*)treeLinesList->At(k);
+            const QwTrackingTreeLine *treeline = fEvent->GetTreeLine(k);
 
-            if (treeline->IsValid() ) {
+            if (treeline && treeline->IsValid()) {
                std::cout << "Region: " << treeline->GetRegion() << "\t"
                   << "Plane: " << treeline->GetPlane() << "\t"
                   << "Slope: " << treeline->GetSlope() << "\n";

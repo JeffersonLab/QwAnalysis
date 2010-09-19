@@ -228,54 +228,57 @@ QwTrackingWorker::~QwTrackingWorker ()
 void QwTrackingWorker::DefineOptions(QwOptions& options)
 {
   // General options
-  options.AddOptions()("QwTracking.disable-tracking",
+  options.AddOptions("Tracking options")("QwTracking.debug",
+                          po::value<int>()->default_value(0),
+                          "track reconstruction debug level");
+  options.AddOptions("Tracking options")("QwTracking.disable-tracking",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable all tracking analysis");
-  options.AddOptions()("QwTracking.showeventpattern",
+  options.AddOptions("Tracking options")("QwTracking.showeventpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for all events");
-  options.AddOptions()("QwTracking.showmatchingpattern",
+  options.AddOptions("Tracking options")("QwTracking.showmatchingpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for matching tracks");
   // Region 2
-  options.AddOptions()("QwTracking.R2.levels",
+  options.AddOptions("Tracking options")("QwTracking.R2.levels",
                           po::value<int>()->default_value(8),
                           "number of search tree levels in region 2");
-  options.AddOptions()("QwTracking.R2.maxslope",
+  options.AddOptions("Tracking options")("QwTracking.R2.maxslope",
                           po::value<float>()->default_value(0.862),
                           "maximum allowed slope for region 2 tracks");
-  options.AddOptions()("QwTracking.R2.maxroad",
+  options.AddOptions("Tracking options")("QwTracking.R2.maxroad",
                           po::value<float>()->default_value(1.4),
                           "maximum allowed road width for region 2 tracks");
-  options.AddOptions()("QwTracking.R2.maxxroad",
+  options.AddOptions("Tracking options")("QwTracking.R2.maxxroad",
                           po::value<float>()->default_value(25.0),
                           "maximum allowed X road width for region 2 tracks");
-  options.AddOptions()("QwTracking.R2.MaxMissedPlanes",
+  options.AddOptions("Tracking options")("QwTracking.R2.MaxMissedPlanes",
                           po::value<int>()->default_value(1),
                           "maximum number of missed planes");
 
   // Region 3
-  options.AddOptions()("QwTracking.R3.levels",
+  options.AddOptions("Tracking options")("QwTracking.R3.levels",
                           po::value<int>()->default_value(4),
                           "number of search tree levels in region 3");
-  options.AddOptions()("QwTracking.R3.MaxMissedWires",
+  options.AddOptions("Tracking options")("QwTracking.R3.MaxMissedWires",
                           po::value<int>()->default_value(4),
                           "maximum number of missed wires");
 
   // Momentum reconstruction
-  options.AddOptions()("QwTracking.disable-momentum",
+  options.AddOptions("Tracking options")("QwTracking.disable-momentum",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable the momentum reconstruction");
-  options.AddOptions()("QwTracking.disable-matrixlookup",
+  options.AddOptions("Tracking options")("QwTracking.disable-matrixlookup",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable the use of the momentum lookup table");
-  options.AddOptions()("QwTracking.disable-raytracer",
+  options.AddOptions("Tracking options")("QwTracking.disable-raytracer",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable the magnetic field map tracking");
-  options.AddOptions()("QwTracking.fieldmap",
+  options.AddOptions("Tracking options")("QwTracking.fieldmap",
                           po::value<std::string>()->default_value("peiqing_2007.dat"),
                           "filename of the fieldmap file in QW_FIELDMAP");
-  options.AddOptions()("QwTracking.lookuptable",
+  options.AddOptions("Tracking options")("QwTracking.lookuptable",
                           po::value<std::string>()->default_value("QwTrajMatrix.root"),
                           "filename of the lookup table in QW_LOOKUP");
 }
@@ -284,6 +287,9 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
 
 void QwTrackingWorker::ProcessOptions(QwOptions& options)
 {
+  // Enable tracking debug flag
+  fDebug = options.GetValue<int>("QwTracking.debug");
+
   // Disable tracking and/or momentu reconstruction
   fDisableTracking = options.GetValue<bool>("QwTracking.disable-tracking");
   fDisableMomentum = options.GetValue<bool>("QwTracking.disable-momentum");

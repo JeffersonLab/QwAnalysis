@@ -183,7 +183,7 @@ QwHit* QwTrackingTreeCombine::SelectLeftRightHit (
   // Write the best hit (actually just uses the old structure)
   QwHit* besthit = new QwHit(*hit);
   besthit->next = 0; // only this entry in linked list
-  besthit->fDriftPosition = besthit->rPos = best_position;
+  besthit->fDriftPosition = best_position;
 
   return besthit;
 }
@@ -246,9 +246,9 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
           ha[ngood] = new QwHit;
           // Copy the hit, but reset the pointers
           *ha[ngood] = *hit;
-          ha[ngood]->next    = 0;
+          ha[ngood]->next = 0;
           // Store this position
-          ha[ngood]->fDriftPosition = ha[ngood]->rPos = hit_position;
+          ha[ngood]->fDriftPosition = hit_position;
 
           // ha[ngood]->SetZPos(hit->GetZPos());
           if (distance < minimum) {
@@ -267,9 +267,9 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
             if (odist < 0)
               odist = -odist;
             if (distance < odist) {
-              *ha[i]   = *hit;
-              ha[i]->next    = 0;
-              ha[i]->fDriftPosition = ha[i]->rPos = hit_position;
+              *ha[i] = *hit;
+              ha[i]->next = 0;
+              ha[i]->fDriftPosition = hit_position;
               break;
             }
           }
@@ -1270,7 +1270,6 @@ int QwTrackingTreeCombine::r2_TrackFit (
   //###############
   // Declarations #
   //###############
-  double cff;		//resolution coefficient
   double r[4];		//factors of elements of the metric matrix A
   double uvx;		//u,v,or x coordinate of the track at a location in z
   double rCos[kNumDirections],rSin[kNumDirections];	//the rotation angles for the u,v,x coordinates.
@@ -1328,17 +1327,17 @@ int QwTrackingTreeCombine::r2_TrackFit (
 
   // Calculate the metric matrix
   for (int i = 0; i < num; i++) {
-    cff  = 1.0 / hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    cff *= cff;
+    double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
+    double norm = 1.0 / (resolution * resolution);
     EQwDirectionID dir = hits[i]->GetDetectorInfo()->fDirection;
     r[0] = rCos[dir];
     r[1] = rCos[dir] * (hits[i]->GetDetectorInfo()->GetZPosition());
     r[2] = rSin[dir];
     r[3] = rSin[dir] * (hits[i]->GetDetectorInfo()->GetZPosition());
     for (int k = 0; k < 4; k++) {
-      B[k] += cff * r[k] * (hits[i]->GetDriftDistance() - x0[dir]);
+      B[k] += norm * r[k] * (hits[i]->GetDriftDistance() - x0[dir]);
       for (int j = 0; j < 4; j++)
-        A[k][j] += cff * r[k] * r[j];
+        A[k][j] += norm * r[k] * r[j];
     }
   }
 
@@ -1388,10 +1387,10 @@ int QwTrackingTreeCombine::r2_TrackFit (
   chi = 0.0;
   for (int i = 0; i < num; i++) {
     EQwDirectionID dir = hits[i]->GetDetectorInfo()->fDirection;
-    cff  = 1.0 / hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    cff *= cff;
+    double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
+    double norm = 1.0 / (resolution * resolution);
     uvx  = offset[dir] + slope[dir] * (hits[i]->GetDetectorInfo()->GetZPosition());
-    chi += (uvx - hits[i]->GetDriftDistance()) * (uvx - hits[i]->GetDriftDistance()) * cff;
+    chi += norm * (uvx - hits[i]->GetDriftDistance()) * (uvx - hits[i]->GetDriftDistance());
   }
   chi /= (num - 4);
 
@@ -1413,25 +1412,9 @@ int QwTrackingTreeCombine::r3_TrackFit2(
   //###############
   // Declarations #
   //###############
-  double B[4];
-  double cff;
   double r[4];
   double uvx;
-  double rCos[kNumDirections],rSin[kNumDirections];
   double offset[kNumDirections],slope[kNumDirections];
-
-  double AA[4][4];
-  double *AAp = &AA[0][0];
-
-  for (int i = 0; i < num; i++) {
-//    hits[i]->rPos1 = hits[i]->rPos;
-//    hits[i]->rPos = hits[i]->Zpos;
-//    hits[i]->Zpos = hits[i]->rPos1;
-    hits[i]->SetDriftDistance(hits[i]->rPos);
-    hits[i]->rPos = hits[i]->GetZPosition();
-    hits[i]->SetZPosition(hits[i]->GetDriftDistance());
-    //cerr << hits[i]->Zpos << ',' << hits[i]->rPos << ',' << hits[i]->detec->dir << endl;
-  }
 
   // Create the transformation helper object
   double angle = hits[0]->GetDetectorInfo()->GetElementAngle();
@@ -1440,6 +1423,7 @@ int QwTrackingTreeCombine::r3_TrackFit2(
   Uv2xy uv2xy (angle, Qw::pi - angle);
 
   // Set the angles for our frame
+  double rCos[kNumDirections],rSin[kNumDirections];
   rCos[kDirectionU] = hits[0]->GetDetectorInfo()->GetElementAngleCos();
   rCos[kDirectionV] = hits[0]->GetDetectorInfo()->GetElementAngleCos();
   rSin[kDirectionU] = hits[0]->GetDetectorInfo()->GetElementAngleSin();
@@ -1449,7 +1433,10 @@ int QwTrackingTreeCombine::r3_TrackFit2(
   rSin[kDirectionU] = -uv2xy.fXY[0][1];
   rSin[kDirectionV] = -uv2xy.fXY[1][1];
 
-  /* Initialize */
+  // Initialize
+  double B[4];
+  double AA[4][4];
+  double *AAp = &AA[0][0];
   for (int i = 0; i < 4; i++) {
     B[i] = 0.0;
     for(int j = 0; j < 4; j++)
@@ -1460,23 +1447,25 @@ int QwTrackingTreeCombine::r3_TrackFit2(
   // Calculate the metric matrix #
   //##############################
   for (int i = 0; i < num; i++) {
-    cff  = 1.0 / hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    cff *= cff;
     EQwDirectionID direction = hits[i]->GetDetectorInfo()->fDirection;
     r[0] = rCos[direction];
-    r[1] = rCos[direction] * (hits[i]->GetZPosition());
+    r[1] = rCos[direction] * (hits[i]->GetWirePosition());
     r[2] = rSin[direction];
-    r[3] = rSin[direction] * (hits[i]->GetZPosition());
+    r[3] = rSin[direction] * (hits[i]->GetWirePosition());
 
+    double resolution = hits[i]->GetDetectorInfo()->GetSpatialResolution();
+    double norm = 1.0 / (resolution * resolution);
     for (int k = 0; k < 4; k++) {
-      B[k] += cff * r[k] * (hits[i]->rPos) * (-1);
+      B[k] += norm * r[k] * (hits[i]->GetDriftPosition()) * (-1);
       for (int j = 0; j < 4; j++)
-        AA[k][j] += cff * r[k] * r[j];
+        AA[k][j] += norm * r[k] * r[j];
     }
   }
 
-  QwDebug << "[QwTrackingTreeCombine::r3_TrackFit2] Before inversion: AA =" << QwLog::endl;
-  if (fDebug) M_Print(AAp, cov, 4);
+  if (fDebug) {
+    QwMessage << "[QwTrackingTreeCombine::r3_TrackFit2] Before inversion: AA =" << QwLog::endl;
+    M_Print(AAp, cov, 4);
+  }
 
   M_Invert(AAp, cov, 4);
 
@@ -1485,38 +1474,44 @@ int QwTrackingTreeCombine::r3_TrackFit2(
     return -1;
   }
 
-  QwDebug << "[QwTrackingTreeCombine::r3_TrackFit2] After inversion: AA =" << QwLog::endl;
-  if (fDebug) M_Print(AAp, cov, 4);
+  if (fDebug) {
+    QwMessage << "[QwTrackingTreeCombine::r3_TrackFit2] After inversion: AA =" << QwLog::endl;
+    M_Print(AAp, cov, 4);
+  }
 
   /* calculate the fit */
 
   M_A_times_b (fit, cov, 4, 4, B); // fit = matrix cov * vector B
-  // cerr << "3" << endl;
 
-  //calculate the line parameters in u,v directions
+  // calculate the line parameters in u,v directions
   offset[kDirectionU] = uv2xy.xy2u (fit[0], fit[2]);
   offset[kDirectionV] = uv2xy.xy2v (fit[0], fit[2]);
-  slope[kDirectionU]  = uv2xy.xy2u (fit[1], fit[3]);
-  slope[kDirectionV]  = uv2xy.xy2v (fit[1], fit[3]);
+  slope[kDirectionU]  = uv2xy.xy2mu (fit[1], fit[3]);
+  slope[kDirectionV]  = uv2xy.xy2mv (fit[1], fit[3]);
+  if (fDebug) {
+    QwMessage << "Reconstructed partial track in u,v" << QwLog::endl;
+    QwMessage << "u = " << offset[kDirectionU] << " + z * " << slope[kDirectionU] << QwLog::endl;
+    QwMessage << "v = " << offset[kDirectionV] << " + z * " << slope[kDirectionV] << QwLog::endl;
+  }
 
   //ERROR : Somehow I've missed a negative sign somewhere and need to correct for it :
   fit[0] = -fit[0];
   fit[1] = -fit[1];
 
-  //cerr << " u = " << bx[1] << " + z*" << mx[1] << endl;
-  //cerr << " v = " << bx[2] << " + z*" << mx[2] << endl;
-
-  //cerr << " y = " << fit[2] << " + z*" << fit[3] << endl;
-  //cerr << " x = " << fit[0] << " + z*" << fit[1] << endl;
+  if (fDebug) {
+    QwMessage << "Reconstructed partial track in x,y (rotated)" << QwLog::endl;
+    QwMessage << "x = " << fit[0] << " + z * " << fit[1] << QwLog::endl;
+    QwMessage << "y = " << fit[2] << " + z * " << fit[3] << QwLog::endl;
+  }
 
   /* calculate chi^2 */
   chi = 0.0;
   for (int i = 0; i < num; i++) {
     EQwDirectionID direction = hits[i]->GetDetectorInfo()->fDirection;
-    cff  = 1.0 / hits[i]->GetDetectorInfo()->GetSpatialResolution();
-    cff *= cff;
-    uvx  = offset[direction] + slope[direction] * (hits[i]->GetZPosition());
-    chi += (uvx - hits[i]->rPos) * (uvx - hits[i]->rPos) * cff;
+    double resolution  = hits[i]->GetDetectorInfo()->GetSpatialResolution();
+    double norm = 1.0 / (resolution * resolution);
+    uvx = offset[direction] + slope[direction] * (hits[i]->GetWirePosition());
+    chi += norm * (uvx - hits[i]->GetDriftPosition()) * (uvx - hits[i]->GetDriftPosition());
   }
   chi /= (num - 4);
 
@@ -1543,8 +1538,6 @@ int QwTrackingTreeCombine::r3_TrackFit2(
     return -1;
   }
 
-  //cerr << costheta << ',' << sintheta << endl;
-  //cerr << xtrans << ',' << ytrans << ',' << ztrans << endl;
   // get two points on the line
   P1[2] = 69.9342699;
   P1[0] = fit[1] * P1[2] + fit[0];
@@ -1552,26 +1545,15 @@ int QwTrackingTreeCombine::r3_TrackFit2(
   P2[2] = 92.33705405;
   P2[0] = fit[1] * P2[2] + fit[0];
   P2[1] = fit[3] * P2[2] + fit[2];
-  //cerr << "(" << P1[0] << ',' << P1[1] << ',' << P1[2] << ')' << endl;
-  //cerr << "(" << P2[0] << ',' << P2[1] << ',' << P2[2] << ')' << endl;
 
   // rotate the points into the lab orientation
-  Pp1[0] = P1[0];
-  Pp1[1] = P1[1] * costheta - P1[2] * sintheta;
-  Pp1[2] = P1[1] * sintheta + P1[2] * costheta;
-  Pp2[0] = P2[0];
-  Pp2[1] = P2[1] * costheta - P2[2] * sintheta;
-  Pp2[2] = P2[1] * sintheta + P2[2] * costheta;
-  //cerr << "(" << Pp1[0] << ',' << Pp1[1] << ',' << Pp1[2] << ')' << endl;
-  //cerr << "(" << Pp2[0] << ',' << Pp2[1] << ',' << Pp2[2] << ')' << endl;
-
   // translate the points into the lab frame
-  Pp1[0] += xtrans;
-  Pp1[1] += ytrans;
-  Pp1[2] += ztrans;
-  Pp2[0] += xtrans;
-  Pp2[1] += ytrans;
-  Pp2[2] += ztrans;
+  Pp1[0] = xtrans + P1[0];
+  Pp1[1] = ytrans + P1[1] * costheta + P1[2] * sintheta;
+  Pp1[2] = ztrans - P1[1] * sintheta + P1[2] * costheta;
+  Pp2[0] = xtrans + P2[0];
+  Pp2[1] = ytrans + P2[1] * costheta + P2[2] * sintheta;
+  Pp2[2] = ztrans - P2[1] * sintheta + P2[2] * costheta;
 
   // calculate the new line
   fit[1] = (Pp2[0] - Pp1[0]) / (Pp2[2] - Pp1[2]);
@@ -1579,18 +1561,11 @@ int QwTrackingTreeCombine::r3_TrackFit2(
   fit[0] = Pp2[0] - fit[1] * Pp2[2];
   fit[2] = Pp2[1] - fit[3] * Pp2[2];
 
-  //cerr << "(" << Pp1[0] << ',' << Pp1[1] << ',' << Pp1[2] << ')' << endl;
-  //cerr << "(" << Pp2[0] << ',' << Pp2[1] << ',' << Pp2[2] << ')' << endl;
-
-  // and we're done :)
-  //cerr << " y = " << fit[2] << " + z*" << fit[3] << endl;
-  //cerr << " x = " << fit[0] << " + z*" << fit[1] << endl;
-  //cout << fit[0] << ' ' << fit[1] << ' ' << fit[2] << ' ' << fit[3] << endl;
-
-  //double zz1 = 540.0;
-  //double zz2 = 569.38;
-  //cerr << "(" << (fit[1] * zz1 + fit[0]) << "," << fit[3] * zz1 + fit[2] << "," << zz1 << ")" << endl;
-  //cerr << "(" << (fit[1] * zz2 + fit[0]) << "," << fit[3] * zz2 + fit[2] << "," << zz2 << ")" << endl;
+  if (fDebug) {
+    QwMessage << "Reconstructed partial track in x,y (local)" << QwLog::endl;
+    QwMessage << "x = " << fit[0] << " + z * " << fit[1] << QwLog::endl;
+    QwMessage << "y = " << fit[2] << " + z * " << fit[3] << QwLog::endl;
+  }
 
   return 1;
 }
@@ -1678,10 +1653,10 @@ int QwTrackingTreeCombine::r3_TrackFit(
 
 
   // get two points on the line
-  P1[2] = xyz[0].GetZPosition(); //P1[2] = xyz[0].Zpos;
+  P1[2] = xyz[0].GetWirePosition(); //P1[2] = xyz[0].Zpos;
   P1[0] = mx * P1[2] + bx;
   P1[1] = my * P1[2] + by;
-  P2[2] = xyz[num-1].GetZPosition(); // P2[2] = xyz[num-1].Zpos;
+  P2[2] = xyz[num-1].GetWirePosition(); // P2[2] = xyz[num-1].Zpos;
   P2[0] = mx * P2[2] + bx;
   P2[1] = my * P2[2] + by;
 
@@ -1802,10 +1777,11 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2(
 
   QwPartialTrack* pt = new QwPartialTrack();
 
-  pt->fOffsetX = fit[0];
-  pt->fOffsetY = fit[2];
-  pt->fSlopeX  = fit[1];
-  pt->fSlopeY  = fit[3];
+  // NOTE Here x and y are swapped because of different coordinate systems
+  pt->fOffsetX = fit[2];
+  pt->fOffsetY = fit[0];
+  pt->fSlopeX  = fit[3];
+  pt->fSlopeY  = fit[1];
   pt->fIsVoid  = false;
 
   pt->fChi = sqrt(chi);
@@ -1877,7 +1853,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine(
 	}
         h->rPos2 = m * h->rPos + b;//v
         // h->rPos1 = h->Zpos;//u
-        h->SetDriftDistance(h->GetZPosition());//u
+        h->SetDriftDistance(h->GetWirePosition());//u
 
         //z is rPos
       } else {
@@ -1887,13 +1863,13 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine(
 	}
         // h->rPos1 = m * h->rPos + b;//u
         h->SetDriftDistance(m * h->GetDriftDistance() + b);//u
-        h->rPos2 = h->GetZPosition();//v  // h->rPos2 = h->Zpos;//v
+        h->rPos2 = h->GetWirePosition();//v  // h->rPos2 = h->Zpos;//v
         //cerr << h->rPos << " " << h->Zpos << endl;
         //z is rPos
       }
       //now each hit has a u,v,z coordinate.
       // gnu3 << h->rPos << " " << h->rPos1 << " " << h->rPos2 << endl;
-      gnu3 << h->rPos << " " << h->GetDriftDistance() << " " << h->rPos2 << endl;
+      gnu3 << h->GetDriftPosition() << " " << h->GetDriftDistance() << " " << h->rPos2 << endl;
       //string all the hits together
       if(h->IsUsed() != 0) {
         hits[hitc++] = h;
@@ -2084,7 +2060,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
   double zx1, zx2;
   zx1 = zx2 = 0.0;
-  double d;
 
   chi_hashclear();
 
@@ -2095,7 +2070,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
   //################
   if (region == kRegionID3) {
 
-    Det *rdu = rcDETRegion[package][region][kDirectionU];
+    //  Det *rdu = rcDETRegion[package][region][kDirectionU];
     //  Det *rdv = rcDETRegion[package][region][kDirectionV];
     //  double z1 = rdu->Zpos;
     //  double z2 = rdv->Zpos;
@@ -2103,21 +2078,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
     //  double uv_dz = (z2 - z1) / sin(rot); // distance between u and v planes
     //  double wirecos = rdv->rCos;
     //  double wiresin = rdv->rSin;
-
-    //###################################
-    // Get distance between planes, etc #
-    //###################################
-    double x_[2], y_[2];
-
-    x_[0] = rdu->center[0];
-    y_[0] = rdu->center[1];
-
-    x_[1] = rdu->nextsame->center[0];
-    y_[1] = rdu->nextsame->center[1];
-
-    // Distance between first u and last u planes
-    // (wdc) Shouldn't this be between first u and last v plane (?)
-    d = sqrt(pow(x_[1] - x_[0], 2) + pow(y_[1] - y_[0], 2));
 
 
     //#########################
@@ -2150,10 +2110,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
           wv = wv->next;
           continue;
         }
-        // Get wv's line parameters
-        //        double mv = wv->mx; // slope
-        //        double xv = wv->cx; // constant
-
 
         QwPartialTrack *pt = TcTreeLineCombine2 (wu, wv);
 

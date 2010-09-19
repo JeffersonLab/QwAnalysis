@@ -20,8 +20,8 @@ QwTrack::QwTrack(const QwTrack& track)
   Initialize();
 
   // Copy tracks
-  front = track.front;
-  back = track.back;
+  front = new QwPartialTrack(track.front);
+  back  = new QwPartialTrack(track.back);
 }
 
 /**
@@ -29,7 +29,9 @@ QwTrack::QwTrack(const QwTrack& track)
  */
 QwTrack::~QwTrack()
 {
-  // Nothing
+  // Delete objects
+  if (front) delete front;
+  if (back)  delete back;
 }
 
 /**

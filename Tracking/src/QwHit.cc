@@ -135,7 +135,6 @@ void QwHit::Initialize()
 
   next               = 0;
   nextdet            = 0;
-  rPos               = 0.0;
   rPos2              = 0.0;
 }
 
@@ -180,7 +179,6 @@ QwHit& QwHit::operator=(const QwHit& hit)
 
   next               = hit.next;
   nextdet            = hit.nextdet;
-  rPos               = hit.rPos;
   rPos2              = hit.rPos2;
 
   return *this;

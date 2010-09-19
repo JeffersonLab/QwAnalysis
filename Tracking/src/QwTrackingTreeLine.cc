@@ -112,6 +112,9 @@ void QwTrackingTreeLine::Initialize()
   fNumHits = 0;
   fNumMiss = 0;
 
+  for (int i = 0; i < MAX_LAYERS; i++) {
+    usedhits[i] = 0;
+  }
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     hits[i] = 0;        /*!< hitarray */
     hasharray[i] = 0;

@@ -69,7 +69,10 @@ void QwPartialTrack::Initialize()
   fOffsetX = 0.0; fOffsetY = 0.0;
   fSlopeX = 0.0;  fSlopeY = 0.0;
   fIsVoid = false; fIsUsed = false; fIsGood = false;
+
+  // Initialize pointers
   next = 0;
+  bridge = 0;
   for (int i = 0; i < kNumDirections; i++)
     tline[i] = 0;
 }
@@ -342,7 +345,7 @@ int QwPartialTrack::DeterminePositionInTriggerScintillators (EQwDetectorPackage 
     triggerhit = 1;
     trig[0]    = trig[0];
     trig[1]    = trig[1];
-    QwVerbose << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << QwLog::endl;
+    QwMessage << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << QwLog::endl;
   } else triggerhit = 0;
 
   return triggerhit;
@@ -401,7 +404,7 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
     uvR3hit[1] = fSlopeY / kz;
     uvR3hit[2] = 1 / kz;
 
-    QwVerbose << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
+    QwMessage << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
               << "direction ("<<uvR3hit[0]<<","<<uvR3hit[1]<<","<<uvR3hit[2] << QwLog::endl;
   } else {
     cerenkovhit = 0;
