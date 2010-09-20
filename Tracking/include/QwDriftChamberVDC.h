@@ -68,6 +68,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   void  FillHistograms();
   // void  DeleteHistograms();
   Int_t LoadTimeWireOffset(TString t0_map); 
+  void LoadTtoDParameters(TString ttod_map); 
   void SubtractWireTimeOffset();
   void ApplyTimeCalibration();
   
@@ -88,7 +89,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   std::vector< std::vector<QwDelayLineID> > fDelayLinePtrs;  //indexed by slot and channel number
   std::vector< QwHit > fWireHitsVDC;
   std::vector< std::vector< std::vector<Double_t> > > fTimeWireOffsets;
-
+  std::vector< Double_t> fTtoDNumbers;
   
 };
 

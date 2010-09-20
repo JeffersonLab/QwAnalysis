@@ -216,7 +216,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 	  else
             {
 	      if(fReferenceData.at ( bankid ).size()==0) std::cout << "catch the problem!" << std::endl;
-	      reftimes.at ( bankid ) = fReferenceData.at ( bankid ).at ( 0 );
+	      reftimes.at ( bankid ) = fReferenceData.at ( bankid ).at ( fReferenceData.at(bankid).size()-1 );
 	      refokay.at  ( bankid ) = kTRUE;
             }
 
@@ -285,59 +285,75 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
     Double_t distance_mm = 0.0;
     Double_t distance_cm = 0.0;
     Double_t dt=drifttime;
+    Double_t cut0=0,cut1=0,cut2=0;
 
-    Double_t p[12]={0.0};
-    Double_t cut_time[3]={60,236,300};
+      if(fTtoDNumbers.size()!=15){
+	std::cerr << "the size of parameters is not correct, please check! " << std::endl;
+	return -1;
+	}
+	
+    cut0=fTtoDNumbers.at(0);
+    cut1=fTtoDNumbers.at(1);
+    cut2=fTtoDNumbers.at(2);
 
-    p[0]=-0.0217483;
-    p[1]=0.0671134;
-    p[2]=0.000371857;
-    p[3]=-6.10097;
-
-    p[4]=0.797553;
-    p[5]=0.0538063;
-
-    p[6]=-39.0646;
-    p[7]=0.449894;
-    p[8]=-0.00119686;
-    p[9]=1.00028;
-
-    p[10]=14.7995;
-    p[11]=0.00100113;
-
-
-    if ( dt < cut_time[0] )
+    if ( dt < cut0 )
       {
-        distance_mm = p[0]+p[1]*dt+p[2]*dt*dt+p[3]*dt*dt*dt/1000000;
+        distance_mm = fTtoDNumbers.at(3)+fTtoDNumbers.at(4)*dt+fTtoDNumbers.at(5)*dt*dt+fTtoDNumbers.at(6)*dt*dt*dt/1000000;
       }
-    else if ( dt>=cut_time[0] && dt<cut_time[1] )
+    else if ( dt>=cut0 && dt<cut1 )
       {
-        distance_mm = p[4]+p[5]*dt;
+        distance_mm = fTtoDNumbers.at(7)+fTtoDNumbers.at(8)*dt;
       }
-    else if ( dt>=cut_time[1] && dt < cut_time[2] )
+    else if ( dt>=cut1 && dt < cut2 )
       {
-        distance_mm = p[6]+p[7]*dt+p[8]*dt*dt+p[9]*dt*dt*dt/1000000;
+        distance_mm = fTtoDNumbers.at(9)+fTtoDNumbers.at(10)*dt+fTtoDNumbers.at(11)*dt*dt+fTtoDNumbers.at(12)*dt*dt*dt/1000000;
       }
-    else if ( dt>=cut_time[2] )
+    else if ( dt>=cut2 && dt <=400 )
       {
-        distance_mm = p[10]+p[11]*dt;
+        distance_mm = fTtoDNumbers.at(13)+fTtoDNumbers.at(14)*dt;
       }
-    else {};
+    else { distance_mm = -50;};
+
+//     Double_t p[12]={0.0};
+//     Double_t cut_time[3]={60,236,300};
+// 
+//     p[0]=-0.0217483;
+//     p[1]=0.0671134;
+//     p[2]=0.000371857;
+//     p[3]=-6.10097;
+// 
+//     p[4]=0.797553;
+//     p[5]=0.0538063;
+// 
+//     p[6]=-39.0646;
+//     p[7]=0.449894;
+//     p[8]=-0.00119686;
+//     p[9]=1.00028;
+// 
+//     p[10]=14.7995;
+//     p[11]=0.00100113;
+// 
+// 
+//     if ( dt < cut_time[0] )
+//       {
+//         distance_mm = p[0]+p[1]*dt+p[2]*dt*dt+p[3]*dt*dt*dt/1000000;
+//       }
+//     else if ( dt>=cut_time[0] && dt<cut_time[1] )
+//       {
+//         distance_mm = p[4]+p[5]*dt;
+//       }
+//     else if ( dt>=cut_time[1] && dt < cut_time[2] )
+//       {
+//         distance_mm = p[6]+p[7]*dt+p[8]*dt*dt+p[9]*dt*dt*dt/1000000;
+//       }
+//     else if ( dt>=cut_time[2] )
+//       {
+//         distance_mm = p[10]+p[11]*dt;
+//       }
+//     else {};
 
 
     //Double_t p[11]={0.0};
-    ////   for arg-65-ethane-35
-    //     p[0]=-1.683+0.02112*angle_degree;
-    //     p[1]=23.32-0.298*angle_degree;
-    //     p[2]=-4.313+0.01863*angle_degree;
-    //     p[3]=31.32-0.3284*angle_degree;
-    //     p[4]=7.728-0.1812*angle_degree;
-    //     p[5]=19.29-0.1266*angle_degree;
-    //     p[6]=2.876-0.04789*angle_degree;
-    //     p[7]=0.8265-0.4889*angle_degree;
-    //     p[8]=33.25-0.2585*angle_degree;
-    //     p[9]=62.38-1.955*angle_degree;
-    //     p[10]=22.61-0.005106*angle_degree;
 
     //for arg-50-ethane-50
     //p[ 0] = -1.749 + 0.021670*angle_degree; // [T], then what unit of 0.021670 is?
@@ -559,6 +575,7 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 {
   //some type(like string,Int_t)need to be changed to root type
   LoadTimeWireOffset ( "R3_timeoffset.txt" );
+  LoadTtoDParameters ( "R3_TimeToDistance.txt");
   TString varname,varvalue;
   UInt_t value   = 0;
   UInt_t channum = 0;            //store temporary channel number
@@ -1269,3 +1286,21 @@ void QwDriftChamberVDC::ApplyTimeCalibration()
   return;
 };
 
+
+void QwDriftChamberVDC::LoadTtoDParameters(TString ttod_map){
+
+  QwParameterFile mapstr ( ttod_map.Data() );
+
+  Double_t p = 0.0;
+  
+  while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );
+      mapstr.TrimWhitespace();
+      if ( mapstr.LineIsEmpty() ) continue;
+
+      p = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      fTtoDNumbers.push_back(p);
+     }
+	return;
+ } 
