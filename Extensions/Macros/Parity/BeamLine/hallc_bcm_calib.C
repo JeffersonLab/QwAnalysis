@@ -39,6 +39,22 @@
 //                  Thursday, September 16 02:53:18 EDT 2010, jhlee
 //                  Test in progress
 //
+//          0.0.3 :   Buddhini
+//                  - Added residual plots
+//
+//          0.0.4 :  Monday, September 20 00:46:30 EDT 2010, jhlee
+//                  - changed scaler names
+//                    now simply sca_bcm1 and sca_bcm2
+//                  - fixed plot command for residual plots
+//                    thus, sca plots can be printed out
+//                  - seperated canvases in calibrate()
+//                    from main() in order to see old plots
+//                    after programs run (don't need to open
+//                    ps file). 
+//                  - added "SaveAs" to ROOT  C++ Macro file
+//                    [] root -l qwk_bcm1.cxx to see an interactive plot
+//                         
+
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -214,9 +230,9 @@ const char* program_name;
 TTree *mps_tree = NULL;
 TFile *file = NULL;
 std::vector<BeamMonitor> hallc_bcms_list;
-TCanvas *unser_canvas =NULL;
+TCanvas *unser_canvas = NULL;
+TCanvas *bcm_canvas = NULL;
 TString bcm_plots_filename;
-
 
 Int_t
 main(int argc, char **argv)
@@ -224,75 +240,77 @@ main(int argc, char **argv)
  
   TApplication theApp("App", &argc, argv);
   char* run_number = NULL;
-  Double_t human_input_beam_off_range = 0.0;
 
+  Double_t naive_beam_off_cut = 0.0;
   Double_t fit_range[2] = {0.0};
 
-
-  Bool_t file_flag = false;
-  Bool_t fit_range_flag = false;
+  Bool_t file_flag         = false;
+  Bool_t fit_range_flag    = false;
   Bool_t unser_offset_flag = false;
+
   
   program_name = argv[0];
 
   int cc = 0; 
 
   while ( (cc= getopt(argc, argv, "r:i:e:")) != -1)
-    switch (cc)
-      {
-      case 'r':
+    {
+      switch (cc)
 	{
-	  file_flag = true;
-	  run_number = optarg;
-	}
-	break;
-      case 'i':
-	{
-	  unser_offset_flag    = true;
-	  human_input_beam_off_range = atof(optarg);
-	}
-	break;
-      case 'e':
-	{
-	  fit_range_flag = true;
-	  char *c;
-	  /*
-	   * Allow the specification of alterations
-	   * to the pty search range.  It is legal to
-	   * specify only one, and not change the
-	   * other from its default.
-	   */
-	  c = strchr(optarg, ':');
-	  if (c) {
-	    *c++ = '\0';
-	    fit_range[1] = atof(c);
+	case 'r':
+	  {
+	    file_flag = true;
+	    run_number = optarg;
 	  }
-	  if (*optarg != '\0') {
-	    fit_range[0] = atof(optarg);
+	  break;
+	case 'i':
+	  {
+	    unser_offset_flag    = true;
+	    naive_beam_off_cut = atof(optarg);
 	  }
-	  if ((fit_range[0] > fit_range[1]) || (fit_range[0] < 0) || (fit_range[1] > 100.0) ) 
-	    {
-	      print_usage(stdout,0);
+	  break;
+	case 'e':
+	  {
+	    fit_range_flag = true;
+	    char *c;
+	    /*
+	     * Allow the specification of alterations
+	     * to the pty search range.  It is legal to
+	     * specify only one, and not change the
+	     * other from its default.
+	     */
+	    c = strchr(optarg, ':');
+	    if (c) {
+	      *c++ = '\0';
+	      fit_range[1] = atof(c);
 	    }
+	    if (*optarg != '\0') {
+	      fit_range[0] = atof(optarg);
+	    }
+	    if ((fit_range[0] > fit_range[1]) || (fit_range[0] < 0) || (fit_range[1] > 100.0) ) 
+	      {
+		print_usage(stdout,0);
+	      }
+	  }
+	  break;
+	case '?':
+	  {
+	    if (optopt == 'e') 
+	      fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+	    else if (optopt == 'r')
+	      fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+	    else if (isprint (optopt))
+	      fprintf (stderr, "Unknown option `-%c'.\n", optopt);
+	    else
+	      fprintf (stderr, "Unknown option character `\\x%x'.\n",  optopt);
+	    print_usage(stdout,0);
+	    return 1;
+	  }
+	  break;
+	default:
+	  abort () ;
 	}
-	break;
-      case '?':
-	{
-	  if (optopt == 'e') 
-	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-	  else if (optopt == 'r')
-	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
-	  else if (isprint (optopt))
-	    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
-	  else
-	    fprintf (stderr, "Unknown option character `\\x%x'.\n",  optopt);
-	  print_usage(stdout,0);
-	  return 1;
-	}
-	break;
-      default:
-	abort () ;
-      }
+    }
   
   if(not fit_range_flag) {
     fit_range[0] = 0.10;
@@ -304,10 +322,10 @@ main(int argc, char **argv)
     
   }
   if(unser_offset_flag) {
-    human_input_beam_off_range = human_input_beam_off_range*1e3;
+    naive_beam_off_cut = naive_beam_off_cut*1e3;
   }
   else {
-    human_input_beam_off_range = 320*1e3;
+    naive_beam_off_cut = 320*1e3;
   }
 
 
@@ -317,8 +335,9 @@ main(int argc, char **argv)
   }
 
 
-  hallc_bcms_list.push_back(BeamMonitor("qwk_sca_bcm1"));
-  hallc_bcms_list.push_back(BeamMonitor("qwk_sca_bcm2"));
+  hallc_bcms_list.push_back(BeamMonitor("sca_bcm1"));
+  hallc_bcms_list.push_back(BeamMonitor("sca_bcm2"));
+
   hallc_bcms_list.push_back(BeamMonitor("qwk_bcm1"));
   hallc_bcms_list.push_back(BeamMonitor("qwk_bcm2"));
   hallc_bcms_list.push_back(BeamMonitor("qwk_bcm5"));
@@ -326,7 +345,7 @@ main(int argc, char **argv)
 
 
 
-  BeamMonitor sca_unser("qwk_sca_unser");
+  BeamMonitor sca_unser("sca_unser");
   sca_unser.SetReference();
   
 
@@ -345,49 +364,49 @@ main(int argc, char **argv)
   
   mps_tree = (TTree*) file->Get("Mps_Tree");
 
-  // TEST begin without using Draw()
+  // // TEST begin without using Draw()
 
-  //  Bool_t test_debug = true;
-  Double_t qwk_sca_unser = 0.0;
-  mps_tree->SetBranchAddress("qwk_sca_unser", &qwk_sca_unser);
-  Int_t nentries = (Int_t) mps_tree -> GetEntries();
+  // //  Bool_t test_debug = true;
+  // Double_t qwk_sca_unser = 0.0;
+  // mps_tree->SetBranchAddress("qwk_sca_unser", &qwk_sca_unser);
+  // Int_t nentries = (Int_t) mps_tree -> GetEntries();
 
 
-  // 1) vector 
-  std::vector<Double_t> unser;
-  TStopwatch timer;
-  timer.Start();
+  // // 1) vector 
+  // std::vector<Double_t> unser;
+  // TStopwatch timer;
+  // timer.Start();
 
-  for (Int_t i=0; i<nentries; i++) 
-    {
-      mps_tree -> GetEntry(i);
-      unser.push_back(qwk_sca_unser);
+  // for (Int_t i=0; i<nentries; i++) 
+  //   {
+  //     mps_tree -> GetEntry(i);
+  //     unser.push_back(qwk_sca_unser);
       
-      // if(test_debug) {
-      // 	if(i < 100)
-      // 	  printf("%d unser qwk_sca_unser %12.4lf\n", i, qwk_sca_unser);
-      // }
-    }
+  //     // if(test_debug) {
+  //     // 	if(i < 100)
+  //     // 	  printf("%d unser qwk_sca_unser %12.4lf\n", i, qwk_sca_unser);
+  //     // }
+  //   }
 
-  std::cout << unser.size() << std::endl;
+  // std::cout << unser.size() << std::endl;
 
-  timer.Stop();
-  printf("RealTime=%f seconds, CpuTime=%f seconds\n", timer.RealTime(), timer.CpuTime());
+  // timer.Stop();
+  // printf("RealTime=%f seconds, CpuTime=%f seconds\n", timer.RealTime(), timer.CpuTime());
 
 
-  // 2) array
-  Double_t *a_unser = new Double_t[nentries];
-  timer.Start();
-   for (Int_t i=0; i<nentries; i++) 
-    {
-      mps_tree -> GetEntry(i);
-      a_unser[i] = qwk_sca_unser;
+  // // 2) array
+  // Double_t *a_unser = new Double_t[nentries];
+  // timer.Start();
+  //  for (Int_t i=0; i<nentries; i++) 
+  //   {
+  //     mps_tree -> GetEntry(i);
+  //     a_unser[i] = qwk_sca_unser;
       
-    }
-   // delete [] a_unser;
+  //   }
+  //  // delete [] a_unser;
 
-   timer.Stop(); 
-   printf("RealTime=%f seconds, CpuTime=%f seconds\n", timer.RealTime(), timer.CpuTime());
+  //  timer.Stop(); 
+  //  printf("RealTime=%f seconds, CpuTime=%f seconds\n", timer.RealTime(), timer.CpuTime());
 
 
   // TEST end
@@ -395,20 +414,20 @@ main(int argc, char **argv)
 
   Int_t w = 800;
   Int_t h = 400;
-  unser_canvas = new TCanvas("qwk_bcm_unser","SCA Unser", w, h);  
+  unser_canvas = new TCanvas("sca_unser","SCA Unser", w, h);  
   //
   // extract unser maximum range in order to determine fit range
   //
 
   // Clock Corrected qwk_sca_unser;
 
-  TString clock_name = "qwk_sca_4mhz";
+  TString clock_name = "sca_4mhz";
   
   mps_tree -> SetAlias("clock_correct", Form("4e6/%s", clock_name.Data())); 
   mps_tree -> SetAlias("cc_sca_unser",  Form("clock_correct*%s", sca_unser.GetCName()));
 
-  mps_tree -> SetAlias("cc_sca_bcm1",  "clock_correct*qwk_sca_bcm1");
-  mps_tree -> SetAlias("cc_sca_bcm2",  "clock_correct*qwk_sca_bcm2");
+  mps_tree -> SetAlias("cc_sca_bcm1",  "clock_correct*sca_bcm1");
+  mps_tree -> SetAlias("cc_sca_bcm2",  "clock_correct*sca_bcm2");
   hallc_bcms_list.at(0).SetAliasName("cc_sca_bcm1");
   hallc_bcms_list.at(1).SetAliasName("cc_sca_bcm2");
 
@@ -416,7 +435,7 @@ main(int argc, char **argv)
   //  mps_tree -> SetAlias("TM_cc_unser",  "cc_sca_unser:event_number"); //  Bad numerical expression  ??
   
 
-  unser_canvas -> Clear();
+  //  unser_canvas -> Clear();
   unser_canvas -> Divide(2,1);
   unser_canvas -> cd(1);
   
@@ -436,7 +455,7 @@ main(int argc, char **argv)
   //
   unser_canvas -> cd(2);
 
-  TCut unser_cut(Form("%s<%lf", "cc_sca_unser",  human_input_beam_off_range));
+  TCut unser_cut(Form("%s<%lf", "cc_sca_unser",  naive_beam_off_cut));
 
   TH1D* cc_sca_unser_gaus = GetHisto(mps_tree, "cc_sca_unser", unser_cut);
 
@@ -454,8 +473,10 @@ main(int argc, char **argv)
   }
   cc_sca_unser_gaus -> SetTitle("cc_sca_unser");
   cc_sca_unser_gaus -> Fit("gaus", "M Q");
+
   TF1 *unser_fit = cc_sca_unser_gaus -> GetFunction("gaus");
   unser_fit->SetLineColor(kRed);
+
   TString unser_name = "unser_current";
 
   if(unser_fit) {
@@ -491,29 +512,37 @@ main(int argc, char **argv)
   unser_canvas -> Update();
  
   // Print the plot on to a file
-  /*file containing the bpm calibration plots*/
-  bcm_plots_filename = Form("%s_hallc_bcm_calib_plots", run_number);
-  unser_canvas->Print(bcm_plots_filename+".ps(");
+  // file containing the bcm calibration plots
 
+  bcm_plots_filename = "_hallc_bcm_calib_plots.ps";
+  bcm_plots_filename.Insert(0, run_number);
+
+  // Open ps file
+  unser_canvas -> Print(bcm_plots_filename+"[");
+  // Save "unser" plot into the ps file.
+  unser_canvas -> Print(bcm_plots_filename);
 
   std::size_t i = 0; 
   Int_t cnt = 0;
   std::cout << "how many bcms at Hall C ? " << hallc_bcms_list.size() << std::endl;
-  for (i=0;i < hallc_bcms_list.size(); i++ ) {
-    std::cout << "\n" 
-	      << cnt++ 
-	      << ": onto calibrating " << hallc_bcms_list.at(i).GetName() 
-	      << std::endl;
-  
-  
 
-    Bool_t check = false;
-    check = calibrate(hallc_bcms_list.at(i), sca_unser) ; 
-    //  if(not check) theApp.Run();
-  }
+  for (i=0; i<hallc_bcms_list.size(); i++) 
+    {
+      std::cout << "\n" 
+		<< cnt++ 
+		<< ": onto calibrating " << hallc_bcms_list.at(i).GetName() 
+		<< std::endl;
+      Bool_t check = false;
+      check = calibrate(hallc_bcms_list.at(i), sca_unser) ; 
+      //  if(not check) theApp.Run();
+    }
 
-	
-           
+  // Close ps file
+  unser_canvas -> Print(bcm_plots_filename+"]");
+    
+  //
+  // output for the results of qwk_bcm1, qwk_bcm2, qwk_bcm5, and qwk_bcm6
+  //
   std::ofstream       hallc_bcms_pedestal_output;
   std::ostringstream  hallc_bcms_pedestal_stream;
   hallc_bcms_pedestal_output.clear();
@@ -523,9 +552,7 @@ main(int argc, char **argv)
  
   // // std::cout << "size " << hallc_bcms_list.size() << std::endl;
   for (i=0; i < hallc_bcms_list.size(); i++) {
-
     // exclude sca_bcm results into an output file.
-
     if(not hallc_bcms_list.at(i).GetName().Contains("sca")) {
       hallc_bcms_list.at(i).SetFileStream();
       hallc_bcms_pedestal_stream << hallc_bcms_list.at(i);
@@ -534,7 +561,8 @@ main(int argc, char **argv)
   hallc_bcms_pedestal_output << hallc_bcms_pedestal_stream.str();
   std::cout << "\n" << hallc_bcms_pedestal_stream.str() <<std::endl;
   hallc_bcms_pedestal_output.close();
-      
+
+ 
   theApp.Run();
   return 0;
 }
@@ -550,9 +578,14 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
   std::cout << reference << std::endl;
 
   TString plotcommand;
+  TString plot_residual_command;
+
   TString device_name;
   TString device_samples;
+  
   TString reference_name;
+  TString residual_name;
+
   Bool_t  sca_flag = false;
   Double_t fit_range[2] = {0.0};
   TCut device_cut = "";
@@ -563,14 +596,15 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
   Int_t h = 400;
 
 
-  unser_canvas->Clear();
+  //  unser_canvas->Clear();
 
   device_name = device.GetName();
   reference_name = reference.GetAliasName();
   if(device_name.Contains("sca")) {
     sca_flag = true;
   }
-  // Canvas = new TCanvas(device_name.Data() , device_name.Data(), w, h);  
+  
+  bcm_canvas = new TCanvas(device_name.Data() , device_name.Data(), w, h);  
 
   fit_range[0] = reference.GetFitRangeMin();
   fit_range[1] = reference.GetFitRangeMax();
@@ -586,60 +620,74 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
 
   plotcommand = device_name + ":" +  reference_name;
   
-  unser_canvas->Clear();
-  unser_canvas->Divide(1,2);
-  unser_canvas->cd(1);
-  //  Canvas -> cd(1);
-  device_hist = GetHisto(mps_tree, plotcommand, device_cut, "prof"); // profs : large errors why?
+ 
+  bcm_canvas->Divide(1,2);
+  bcm_canvas->cd(1);
+ 
+  device_hist = GetHisto(
+			 mps_tree, 
+			 plotcommand, 
+			 device_cut, 
+			 "prof"); // profs : large errors why?
   
   if(not device_hist) {
     std::cout << "Please check  "
 	      << device_name
 	      << std::endl;
-    unser_canvas ->Close();
-    // delete unse; Canvas = NULL;
+    
+    bcm_canvas ->Close();
+    delete bcm_canvas; bcm_canvas = NULL;
+    
     return false;
   }
+  
   device_hist -> SetName(device.GetName().Data());
   device_hist -> GetXaxis() -> SetTitle(reference_name.Data());
   //  device_hist -> GetYaxis() -> SetTitle(device_name.Data());
   device_hist -> SetTitle(Form("%s vs %s", device_name.Data(), reference_name.Data()));
   device_hist -> GetXaxis() ->SetTitle(Form("%s (#muA)", reference_name.Data()));
   device_hist -> Fit("pol1", "E M Q", "", fit_range[0], fit_range[1]);
-  device_hist->Draw("");
+  device_hist -> Draw("");
   device_fit = device_hist  -> GetFunction("pol1");
- 
+  
 
   if(device_fit) {
     device_fit -> SetLineColor(kRed);
-    device.SetPed(device_fit->GetParameter(0));
-    device.SetPedErr(device_fit->GetParError(0));
-    device.SetSlop(device_fit->GetParameter(1));
+    device.SetPed    (device_fit->GetParameter(0));
+    device.SetPedErr (device_fit->GetParError(0));
+    device.SetSlop   (device_fit->GetParameter(1));
     device.SetSlopErr(device_fit->GetParError(1));
 
    // Draw the residuals
-    unser_canvas->cd(2);
+    bcm_canvas->cd(2);
 
-    plotcommand = Form("(( %s.hw_sum_raw/%s )-( %s*%1f + %1f )):%s",
-			  device_name.Data(),device_samples.Data(),reference_name.Data(),
-			  device.GetSlope(),device.GetPed(),reference_name.Data() );
+    // device_name is already well determined before
+    // now we don't need to distinguish between sca and vqwk
 
+    device_name = Form("(%s) - (%s*%e + %e)"
+		       , device_name.Data()
+		       , reference_name.Data()
+		       , device.GetSlope()
+		       , device.GetPed()
+		       );
 
-    mps_tree->Draw(plotcommand,"","box");
-    device_res = (TH1D*) gPad->GetPrimitive("htemp");
+    plot_residual_command = device_name + ":" +  reference_name;
+
+    device_res = GetHisto(mps_tree, plot_residual_command, device_cut, "BOX");
 
     if (not device_res) {
-      std::cout<<" Please check residual plot"<<plotcommand<<std::endl;
-      unser_canvas ->Close();
-	delete unser_canvas; unser_canvas = NULL;
-	return false;	
-    }
-      device_res -> GetXaxis()->SetTitle("current (uA)");
-      device_res -> GetYaxis()->SetTitle("fit residual");
-      device_res -> GetYaxis()-> SetTitleOffset(2.2);
-      device_res -> SetTitle(device_name+" fit residual");
-      
+      std::cout << " Please check residual plot : "
+		<< plot_residual_command
+		<<std::endl;
 
+      return false;	
+    }
+    
+    device_res -> GetXaxis()->SetTitle("current (#muA)");
+    device_res -> GetYaxis()->SetTitle("fit residual");
+    device_res -> GetYaxis()->SetTitleOffset(2.2);
+    device_res -> SetTitle(device_name+" fit residual");
+      
   }
   else {
   
@@ -647,26 +695,26 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
     device.SetPedErr(-1);
     device.SetSlop(-1);
     device.SetSlopErr(-1);
-    unser_canvas ->Close();
-    delete unser_canvas; unser_canvas = NULL;
+    bcm_canvas->Close();
+    delete bcm_canvas; bcm_canvas = NULL;
     return false;
   }
-  gPad->Update();
-  // Canvas -> cd(2);
 
-  
-  // mps_tree->Draw(Form("bcm1-%lf:event_number", bcm_vqwk_offset[0][0]), "qwk_bcm1.num_samples>0");
-  // bcm_vqwk_tmp[0] = (TH1D*) gPad -> GetPrimitive("htemp");
-  // bcm_vqwk_tmp[0] -> SetTitle("corrected qwk_bcm1 vs event_number");
-   
-
-
-  // gPad->Update();
   std::cout << device << std::endl;
 
-  unser_canvas -> Modified();
-  unser_canvas -> Update();
-  unser_canvas->Print(bcm_plots_filename+".ps");
+  bcm_canvas -> Modified();
+  bcm_canvas -> Update();
+  //
+  // Print bcm_canvas into a ps file that is defined in main() function
+  // 
+  bcm_canvas -> Print(bcm_plots_filename);
+
+  // 
+  // Save as ROOT C++ Macro of bcm_canvas. 
+  //
+  TString root_c_name = bcm_canvas->GetName();
+  root_c_name += ".cxx";
+  bcm_canvas -> SaveAs(root_c_name);
 
   return true;
 }
