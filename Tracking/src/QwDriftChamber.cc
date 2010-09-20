@@ -158,17 +158,12 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 	if(temp_print_flag) std::cout << fF1TDCDecoder << std::endl;
 
 	if ( fF1TDCDecoder.IsValidDataword() ) {//;;
-	  // if F1TDC has a valid slot, resolution locked, and data word
+	  // if decoded F1TDC data has a valid slot, resolution locked, data word, no overflow (0xFFFF), and no fake data
+	  // try get time and fill it into raw QwHit.. FillRawTDCWord function is in each subsystem.
+
 	  try {
 	    tdc_data = fF1TDCDecoder.GetTDCData();
-	    if (tdc_data not_eq 0.0) {
-	      // Only care when data is not zero
-	      FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
-	    }
-	    else {
-	      // I saw TDC raw time = 0, when SEU exists.
-	      // Thus, I skip such a case. And this might be a temp solution.
-	    }
+	    FillRawTDCWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
 	  }
 	  catch (std::exception& e) {
 	    std::cerr << "Standard exception from QwDriftChamber::FillRawTDCWord: "
@@ -656,6 +651,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 
 void QwDriftChamber::DeleteHistograms()
 {
+  fF1TDContainer->PrintErrorSummary();
   fF1TDContainer->WriteErrorSummary();
   return;
 };

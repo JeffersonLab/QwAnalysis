@@ -64,6 +64,9 @@ class QwF1TDC :  public TObject
 
   const Double_t GetF1TDC_t_offset()   const {return fF1TDC_t_offset;};
 
+  const Double_t GetF1TDC_trig_t_offset()   const {return fF1TDC_trig_t_offset;};
+  const Double_t GetF1TDC_trig_resolution() const {return fF1TDC_trig_resolution_ns;};
+
   const Int_t   GetF1TDCIndex()        const {return fF1TDCIndex;};
   const Int_t   GetF1BankIndex()       const {return fF1BankIndex;};
   const TString GetF1SystemName()      const {return fSystemName;};
@@ -73,19 +76,6 @@ class QwF1TDC :  public TObject
 
   void SetSlotNumber      (const Int_t slot)         {fSlot = slot;};
   void SetReferenceSlot   (const Bool_t reflag)      {fReferenceSlotFlag = reflag;};
-
-  void SetF1TDC_refcnt    (const UInt_t refcnt)      {fF1TDC_refcnt = refcnt;};
-  void SetF1TDC_hsdiv     (const UInt_t hsdiv)       {fF1TDC_hsdiv = hsdiv;};
-  void SetF1TDC_refclkdiv (const UInt_t refclkdiv)   {fF1TDC_refclkdiv = refclkdiv;};
-  void SetF1TDC_trigwin   (const UInt_t trigwin)     {fF1TDC_trigwin = trigwin;};
-  void SetF1TDC_triglat   (const UInt_t triglat)     {fF1TDC_triglat = triglat;};
-
-  void SetF1TDC_tframe    (const Double_t tframe_ns) {fF1TDC_tframe_ns = tframe_ns;};
-  void SetF1TDC_full_range(const Double_t range_ns)  {fF1TDC_full_range_ns = range_ns;};
-  void SetF1TDC_window    (const Double_t win_ns)    {fF1TDC_window_ns = win_ns;};
-  void SetF1TDC_latency   (const Double_t lat_ns)    {fF1TDC_latency_ns = lat_ns;};
-  void SetF1TDC_resolution(const Double_t resol_ns)  {fF1TDC_resolution_ns = resol_ns;};
-  void SetF1TDC_bin_size  (const Double_t binsize_ns){fF1TDC_resolution_ns = binsize_ns;};
 
 
   void SetF1TDCIndex  (const Int_t tdc_index)   {fF1TDCIndex = tdc_index;};
@@ -109,6 +99,7 @@ class QwF1TDC :  public TObject
   void AddRLF() {fF1TDC_RLF_counter++;};
   void AddHFO() {fF1TDC_HFO_counter++;};
   void AddOFO() {fF1TDC_OFO_counter++;};
+  void AddFDF() {fF1TDC_FDF_counter++;};
 
   
   const UInt_t GetSEU() const {return fF1TDC_SEU_counter;};
@@ -119,6 +110,9 @@ class QwF1TDC :  public TObject
   const UInt_t GetRLF() const {return fF1TDC_RLF_counter;};   // Resolution Lock Fail couter
   const UInt_t GetHFO() const {return fF1TDC_HFO_counter;};   // Hit    Fifo Overflow counter
   const UInt_t GetOFO() const {return fF1TDC_OFO_counter;};   // Output Fifo Overflow coutner;
+
+  const UInt_t GetFDF() const {return fF1TDC_FDF_counter;};
+
 
   void ResetCounters();
 
@@ -167,6 +161,10 @@ class QwF1TDC :  public TObject
 
   Double_t fF1TDC_t_offset;
 
+  Double_t fF1TDC_trig_resolution_ns;
+  Double_t fF1TDC_trig_t_offset;
+
+
   Double_t fF1TDCFactor;
 
 
@@ -186,9 +184,10 @@ class QwF1TDC :  public TObject
   UInt_t   fF1TDC_HFO_counter;   // Hit    Fifo Overflow counter
   UInt_t   fF1TDC_OFO_counter;   // Output Fifo Overflow coutner;
 
+  UInt_t   fF1TDC_FDF_counter;   // Fake Data Flag counter 
 
   Bool_t   fReferenceSlotFlag; //! 
-  TArrayD  *fReferenceSignals;
+  TArrayD  *fReferenceSignals; //!
 
   Bool_t   fF1TDCNormResFlag;
   Bool_t   fF1TDCSyncFlag;
@@ -225,6 +224,11 @@ class QwF1TDC :  public TObject
  *
  */
 
+// TODO
+// * Reference signal(s) holder?
+// * How to let a shift crew to recognize F1TDC problems
+// * Is it valuable to save these errors into ROOT file?
+// 
 
 class QwF1TDContainer :  public TObject
 {
@@ -256,6 +260,7 @@ class QwF1TDContainer :  public TObject
   QwF1TDC* GetF1TDCwithBankIndexSLOT(Int_t bank_index, Int_t slot);
 
   const Double_t GetF1TDCResolution();
+
   const Int_t GetF1TDCChannelNumber();
 
 
@@ -269,6 +274,8 @@ class QwF1TDContainer :  public TObject
   void AddHFO(Int_t roc, Int_t slot);
   void AddOFO(Int_t roc, Int_t slot);
 
+  void AddFDF(Int_t roc, Int_t slot);
+
  
   Bool_t  CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
 
@@ -277,7 +284,6 @@ class QwF1TDContainer :  public TObject
   Double_t ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time, Int_t bank_index, Int_t slot);
 
   void PrintErrorSummary();
-
   void WriteErrorSummary();
 
 
@@ -293,13 +299,21 @@ private:
 
 
   MQwF1TDC fF1TDCDecoder;
+
+  Bool_t fLocalF1RawDecodeDebug;
+  Bool_t fLocalF1DecodeDebug;
+
   Bool_t fLocalDebug;
+  Bool_t fLocalDebug2;
   
   TList* GetErrorSummary();
 
   TString PrintNoF1TDC(Int_t roc, Int_t slot);
   TString PrintNoF1TDC(Int_t tdc_index);
   Bool_t  CheckRegisteredF1(Int_t roc, Int_t slot);
+  const Double_t GetF1TDCTriggerRollover(); 
+
+  Double_t fF1TDCTriggerRollover; 
 
   ClassDef(QwF1TDContainer,1);
 

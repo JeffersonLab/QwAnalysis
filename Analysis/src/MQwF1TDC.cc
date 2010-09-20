@@ -13,34 +13,51 @@
 #include <math.h>
 
 
-const UInt_t MQwF1TDC::kF1Mask_SlotNumber          = 0xf8000000;
-const UInt_t MQwF1TDC::kF1Mask_HeaderFlag          = 0x00800000;
-const UInt_t MQwF1TDC::kF1Mask_ResolutionLockFlag  = 0x04000000;
-const UInt_t MQwF1TDC::kF1Mask_OutputFIFOFlag      = 0x02000000;
-const UInt_t MQwF1TDC::kF1Mask_HitFIFOFlag         = 0x01000000;
-const UInt_t MQwF1TDC::kF1Mask_ChannelNumber       = 0x003f0000;
-const UInt_t MQwF1TDC::kF1Mask_Dataword            = 0x0000ffff;
+const UInt_t MQwF1TDC::kF1Mask_SlotNumber           = 0xf8000000;
+const UInt_t MQwF1TDC::kF1Mask_ResolutionLockFlag   = 0x04000000;
+const UInt_t MQwF1TDC::kF1Mask_OutputFIFOFlag       = 0x02000000;
+const UInt_t MQwF1TDC::kF1Mask_HitFIFOFlag          = 0x01000000;
 
+const UInt_t MQwF1TDC::kF1Mask_HeaderFlag           = 0x00800000;
 
-const UInt_t MQwF1TDC::kF1Mask_HeaderTrigFIFOFlag  = 0x00400000;
-const UInt_t MQwF1TDC::kF1Mask_HeaderEventNumber   = 0x003f0000;
-const UInt_t MQwF1TDC::kF1Mask_HeaderTriggerTime   = 0x0000ff80;
-const UInt_t MQwF1TDC::kF1Mask_HeaderXorSetupFlag  = 0x00000040;
-const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber = 0x0000003f;
+const UInt_t MQwF1TDC::kF1Mask_FakeDataFlag         = 0x00400000;
+const UInt_t MQwF1TDC::kF1Mask_ChannelNumber        = 0x003f0000;
+const UInt_t MQwF1TDC::kF1Mask_ChipAddress          = 0x00380000;
+const UInt_t MQwF1TDC::kF1Mask_ChannelAddress       = 0x00070000;
+
+const UInt_t MQwF1TDC::kF1Mask_Dataword             = 0x0000ffff;
+
+const UInt_t MQwF1TDC::kF1Mask_HeaderTrigFIFOFlag   = 0x00400000;
+const UInt_t MQwF1TDC::kF1Mask_HeaderEventNumber    = 0x003f0000;
+const UInt_t MQwF1TDC::kF1Mask_HeaderTriggerTime    = 0x0000ff80;
+const UInt_t MQwF1TDC::kF1Mask_HeaderXorSetupFlag   = 0x00000040;
+const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber  = 0x0000003f;
+const UInt_t MQwF1TDC::kF1Mask_HeaderChipAddress    = 0x00000038;
+const UInt_t MQwF1TDC::kF1Mask_HeaderChannelAddress = 0x00000007;
 
 
 
 MQwF1TDC::MQwF1TDC()
 { 
   fF1ROCNumber          = 0;
+  fF1SlotNumber         = 0;
+
   fF1HeaderFlag         = kFALSE;
+
   fF1HitFIFOFlag        = kFALSE;
   fF1OutputFIFOFlag     = kFALSE;
   fF1ResolutionLockFlag = kFALSE;
 
-  fF1SlotNumber         = 0;
+  fF1FakeDataFlag       = kFALSE;
   fF1ChannelNumber      = 0;
   fF1Dataword           = 0;
+
+
+  fF1HeaderTrigFIFOFlag = kFALSE;
+  fF1HeaderEventNumber  = 0;
+  fF1HeaderTriggerTime  = 0;
+  fF1HeaderXorSetupFlag = kFALSE;
+
   fF1MaxChannelsPerModule = 64; 
 
   // This initial fF1MaxChannelsPerModule 64
@@ -57,15 +74,11 @@ MQwF1TDC::MQwF1TDC()
   // it would be better to change this number to 32 by hand.
   // Friday, September  3 13:50:49 EDT 2010, jhlee
 
-
-  fF1HeaderTrigFIFOFlag = kFALSE;
-  fF1HeaderEventNumber  = 0;
-  fF1HeaderTriggerTime  = 0;
-  fF1HeaderXorSetupFlag = kFALSE;
-
   fF1OverFlowEntryFlag  = kFALSE;
   fF1ValidDataSlotFlag  = kFALSE;
   
+  
+
 };
 
 MQwF1TDC::~MQwF1TDC() { };
@@ -97,18 +110,26 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
     fF1HeaderTriggerTime  = ( word & kF1Mask_HeaderTriggerTime )>>7;
     fF1HeaderXorSetupFlag = ((word & kF1Mask_HeaderXorSetupFlag)!=0);
     fF1ChannelNumber      = ( word & kF1Mask_HeaderChannelNumber );
+    fF1ChipAddress        = ( word & kF1Mask_HeaderChipAddress)>>3;
+    fF1ChannelAddress     = ( word & kF1Mask_HeaderChannelAddress);
   } 
   else {
     // This is a data word.
-    fF1ChannelNumber = (word & kF1Mask_ChannelNumber)>>16;
-    fF1Dataword      = (word & kF1Mask_Dataword);
+    fF1FakeDataFlag   = ((word & kF1Mask_FakeDataFlag)!=0); // This flag should be TRUE if their mask bit IS set
+    fF1ChannelNumber  = ( word & kF1Mask_ChannelNumber )>>16;
+    fF1ChipAddress    = ( word & kF1Mask_ChipAddress )>>19;
+    fF1ChannelAddress = ( word & kF1Mask_ChannelAddress )>>16;
+    fF1Dataword       = ( word & kF1Mask_Dataword );
+
     if(fF1Dataword == 65535) fF1OverFlowEntryFlag = kTRUE;
     else                     fF1OverFlowEntryFlag = kFALSE;
     // skip to record overflow dataword entry (65535, 0xFFFF)
     fF1HeaderEventNumber   = 0;
     fF1HeaderTriggerTime   = 0;
-    // std::cout << "channel: " << fF1ChannelNumber 
-    // << " raw time: " << fF1Dataword << std::endl;
+    // std::cout << "fake flag " << fF1FakeDataFlag
+    // 	      << " channel: " << fF1ChannelNumber 
+    // 	      << " raw time: " << fF1Dataword 
+    // 	      << std::endl;
   }
   return;
 };
@@ -123,23 +144,32 @@ std::ostream& operator<< (std::ostream& os, const MQwF1TDC &f1tdc)
   }
 
   os << " Ch" << std::setw(3) << f1tdc.fF1ChannelNumber;
+  os << "[" << f1tdc.fF1ChipAddress;
+  os << "," << f1tdc.fF1ChannelAddress;
+  os << "]";
 
   if(f1tdc.fF1HeaderFlag) {
     os << " Xor " << f1tdc.fF1HeaderXorSetupFlag
        << " tOF " << f1tdc.fF1HeaderTrigFIFOFlag;
   }
   else {
-    os << " ---DATA--- ";
-  }
+     os << " - DATA " 
+       << f1tdc.fF1FakeDataFlag
+       << " - ";
+   }
   
   os << "(hitOF,outOF,resLK)("
      << f1tdc.fF1HitFIFOFlag
      << f1tdc.fF1OutputFIFOFlag
      << f1tdc.fF1ResolutionLockFlag
      << ")";
-  os << " ROC " << std::setw(2) << f1tdc.fF1ROCNumber;
-  os << " Slot " << std::setw(2) << f1tdc.fF1SlotNumber;
-  
+  os << " ROC" << std::setw(2) << f1tdc.fF1ROCNumber;
+
+  Int_t slot = 0;
+  slot = f1tdc.fF1SlotNumber;
+
+  os << " Slot" << std::setw(2) << slot;
+    
   if(f1tdc.fF1HeaderFlag) {
     os << " EvtN" << std::setw(2) << f1tdc.fF1HeaderEventNumber;
     os << " TriT" << std::setw(4) << f1tdc.fF1HeaderTriggerTime;
@@ -147,7 +177,15 @@ std::ostream& operator<< (std::ostream& os, const MQwF1TDC &f1tdc)
   else {
     os << " RawT " << std::setw(10) << f1tdc.fF1Dataword;
   }
-  //  os << std::endl;
+  
+  if(slot == 0) {
+    os << ": a filler word";
+  }
+  if( (not f1tdc.fF1HeaderFlag) and (f1tdc.fF1FakeDataFlag) ){
+    os << ": --> fake data";
+  }
+  
+    //  os << std::endl;
   return os;
 };
 
@@ -214,10 +252,8 @@ void MQwF1TDC::PrintTDCData(Bool_t flag)
 
 Double_t MQwF1TDC::ActualTimeDifference(Double_t raw_time, Double_t ref_time)
 {
-  // trigger_window and time_offset will be
-  // replaced with the F1TDC configuration values later or sooner
-  // jhlee , Tuesday, July 13 17:43:43 EDT 2010
-  Double_t trigger_window = 17195.0;
+ 
+  Double_t trigger_window = 12896.0;
   Double_t time_offset    = 65341.0;
 
   Double_t time_condition = 0.0;
@@ -233,7 +269,7 @@ Double_t MQwF1TDC::ActualTimeDifference(Double_t raw_time, Double_t ref_time)
   else {
     time_condition = fabs(local_time_difference); 
     // maximum value is trigger_window -1, 
-    // thus 17195-1 =  17194 - 0 = 17194
+    // thus 12896-1 =  12895 - 0 = 12985
     if(time_condition < trigger_window) {
       // there is no ROLLEVENT within trigger window
       actual_time_difference = local_time_difference;
@@ -296,10 +332,10 @@ const Bool_t MQwF1TDC::IsValidDataword() const
 {
   // fF1ValidDataSlotFlag = TRUE,
   // fF1ResolutionFlag    = TRUE,  
-  // fF1HeaderFlag        = FALSE, and 
-  // fF1OverFlowEntry     = FALSE, then it is a valid data word.
- 
-  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag && !fF1OverFlowEntryFlag)
+  // fF1HeaderFlag        = FALSE, 
+  // fF1OverFlowEntry     = FALSE, 
+  // fF1FakeDataWord      = FALSE, then it is a valid data word.
+  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag && !fF1OverFlowEntryFlag && !fF1FakeDataFlag)
     //  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag)
     return kTRUE;
   else                                             
