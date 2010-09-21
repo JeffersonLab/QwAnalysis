@@ -127,7 +127,9 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
     // and check whether data is OK or not.
 
     data_integrity_flag = fF1TDContainer->CheckDataIntegrity(roc_id, buffer, num_words);
-    
+    // if it is false (TFO, EMM, and SYN), the whole buffer is excluded for
+    // the further process, because of multiblock data transfer.
+
     if (data_integrity_flag) {
       
       for (UInt_t i=0; i<num_words ; i++) {

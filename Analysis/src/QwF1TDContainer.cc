@@ -949,16 +949,24 @@ QwF1TDContainer::GetErrorSummary()
 
 
 
-
-
+// Check Trigger Time Mismatch
+//       Event Number Mismatch
+//       Trigger FIFO overflow
+// if    one of them is "false", return false
+//
+// Count the following 
+//   OFO : Output FIFO Overflow
+//   RLF : Resolution Lock Failed
+//   TFO : Trigger FIFO Overflow
+//   EMM : Event(Trigger) Number Mismatch
+//   SEU : Single Event Upset
+//   FDF : Fake Data Flag
+//   SYN : Trigger Time mismatch
+//   HFO : Hit FIFO Overflow
+    
 Bool_t 
 QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words)
 {
-
-  // only check the three possibilities.
-  // 1) Trigger Time mismatch -> Sync Issue
-  // 2) Event number mismatch 
-  // 3) Xor bit changed -> Single Event Upset
 
 
   // three counter flags
