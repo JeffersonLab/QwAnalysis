@@ -62,6 +62,8 @@ QwF1TDC::QwF1TDC()
   fF1TDC_OFO_counter   = 0;
 
   fF1TDC_FDF_counter   = 0;
+  fF1TDC_S30_counter   = 0;
+
 
   fReferenceSignals    = NULL;
 
@@ -112,6 +114,7 @@ QwF1TDC::QwF1TDC(const Int_t roc, const Int_t slot)
   fF1TDC_OFO_counter   = 0;
 
   fF1TDC_FDF_counter   = 0;
+  fF1TDC_S30_counter   = 0;
 
   fReferenceSignals    = NULL;
 
@@ -153,7 +156,7 @@ QwF1TDC::SetF1TDCBuffer(UInt_t *buffer, UInt_t num_words)
   Int_t F1_9Bits  = 0x01FF;
   
   Double_t buffer_range = (Double_t) F1_16Bits + 1.0;
-  Double_t trig_range   = (Double_t) F1_9Bits   + 1.0;
+  Double_t trig_range   = (Double_t) F1_9Bits  + 1.0;
 
   for(j=0; j<fWordsPerBuffer; j++) {
     // exclude the first buffer, because it contains "slot" number.
@@ -333,6 +336,7 @@ QwF1TDC::ResetCounters()
   fF1TDC_HFO_counter = 0;
   fF1TDC_OFO_counter = 0;
   fF1TDC_FDF_counter = 0;
+  fF1TDC_S30_counter = 0;
 
   return;
 }
@@ -353,6 +357,7 @@ QwF1TDC::PrintErrorCounter()
 	    << " FDF " << this->GetFDF()
 	    << " SYN " << this->GetSYN()
 	    << " HFO " << this->GetHFO()
+    //	    << " S30 " << this->GetS30()
 	    << std::endl;
   return;
 }
@@ -383,6 +388,8 @@ QwF1TDC::GetErrorCounter()
   error_counter += this->GetSYN();
   error_counter += " HFO : ";
   error_counter += this->GetHFO();
+  //  error_counter += " S30 : ";
+  //  error_counter += this->GetS30();
 
   return error_counter;
 }
@@ -434,9 +441,16 @@ std::ostream& operator<< (std::ostream& os, const QwF1TDC &f1tdc)
 QwF1TDContainer::QwF1TDContainer()
 {
   fQwF1TDCList = new TObjArray();
-
+ 
   fQwF1TDCList -> Clear();
   fQwF1TDCList -> SetOwner(kTRUE);
+
+  fError2DHist = new TH2F;
+  fError2DHist -> SetBins(3,0,3,2,0,2);
+
+  fError2DHist -> SetBit(TH1::kCanRebin);
+  fError2DHist -> SetStats(0);
+
   fNQwF1TDCs = 0;
   fDetectorType = kTypeNull;
   fRegion       = kRegionIDNull;
@@ -446,8 +460,8 @@ QwF1TDContainer::QwF1TDContainer()
   fLocalF1DecodeDebug    = false; //  After cheking "subsystem"
   //level 0
 
-  fLocalDebug = false; // level 1
-  fLocalDebug2 = false;// level 2
+  fLocalDebug = false; // level 1 // not well defined...
+  fLocalDebug2 = false;// level 2// not well defined...
   
 };
 
@@ -455,6 +469,7 @@ QwF1TDContainer::QwF1TDContainer()
 QwF1TDContainer::~QwF1TDContainer()
 {
   if(fQwF1TDCList) delete fQwF1TDCList; fQwF1TDCList = NULL;
+  if(fError2DHist) delete fError2DHist; fError2DHist = NULL;
 };
 
 
@@ -700,6 +715,23 @@ QwF1TDContainer::AddFDF(Int_t roc, Int_t slot)
 
 
 
+void
+QwF1TDContainer::AddS30(Int_t roc, Int_t slot)
+{
+  QwF1TDC* F1 = NULL;
+  F1 = this->GetF1TDC(roc, slot);
+  if(F1) {
+    F1->AddS30();
+    if(fLocalDebug2) F1->PrintErrorCounter();
+  }
+  else {
+    if(fLocalDebug2) std::cout << "QwF1TDContainer::AddS30 : " << PrintNoF1TDC(roc,slot) << std::endl;
+  }
+  return;
+}
+
+
+
 Double_t
 QwF1TDContainer::ReferenceSignalCorrection(
 					   Double_t raw_time, 
@@ -745,7 +777,11 @@ QwF1TDContainer::SetSystemName(const TString name)
 	      << " is already registered."
 	      << std::endl;
   }
-
+  
+  fError2DHist -> SetNameTitle(
+			       Form("%s_F1ErrorHist",fSystemName.Data()),
+			       Form("%s F1TDC Board Error Status Histogram", fSystemName.Data())
+			       );
   return;
 };
 
@@ -948,7 +984,6 @@ QwF1TDContainer::GetErrorSummary()
 };
 
 
-
 // Check Trigger Time Mismatch
 //       Event Number Mismatch
 //       Trigger FIFO overflow
@@ -963,12 +998,14 @@ QwF1TDContainer::GetErrorSummary()
 //   FDF : Fake Data Flag
 //   SYN : Trigger Time mismatch
 //   HFO : Hit FIFO Overflow
+//   S30 : Slot 30 dataword when the F1 chip has no response within "a reasonable time"
     
 Bool_t 
 QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words)
 {
 
-
+ 
+  
   // three counter flags
   Bool_t hit_fifo_overflow_flag    = kFALSE;
   Bool_t output_fifo_overflow_flag = kFALSE;
@@ -1021,6 +1058,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   }
 
   Int_t subsystem_cnt = 0;
+  TString roc_idx;
 
   for (UInt_t i=0; i<num_words ; i++) 
     {
@@ -1034,7 +1072,9 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 		  << "] "
 		  << fF1TDCDecoder << std::endl;
       }    
-      
+
+    
+
       if(fF1TDCDecoder.IsValidDataSlot()) {
 	// Check F1TDC slot, provided by buffer[i], is valid (1<=slot<=21)
 	//, because sometimes, slot 30 data (junk) is placed in the first one
@@ -1043,6 +1083,10 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	slot_number     = fF1TDCDecoder.GetTDCSlotNumber();
 	chip_address    = fF1TDCDecoder.GetTDCChipAddress();
 	channel_address = fF1TDCDecoder.GetTDCChannelAddress();
+	channel_number  = fF1TDCDecoder.GetTDCChannelNumber();
+
+	
+	roc_idx = Form("R%2d-S%2d", roc_id, slot_number);
 
 	// We use the multiblock data transfer for F1TDC, thus
 	// we must get the event number and the trigger time from the first buffer
@@ -1057,7 +1101,10 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	    reference_trig_time = fF1TDCDecoder.GetTDCTriggerTime();
 	    
 	    trig_fifo_ok_flag = fF1TDCDecoder.IsNotHeaderTrigFIFO();
-	    if(not trig_fifo_ok_flag) this -> AddTFO(roc_id, slot_number);
+	    if(not trig_fifo_ok_flag) {
+	      this -> AddTFO(roc_id, slot_number);
+	      fError2DHist -> Fill(roc_idx.Data(), "TFO",1);
+	    }
 	    
 	  }
 	  else {
@@ -1094,6 +1141,8 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	    // one event creates the maximum 9 HFOs
 	    // but the number is within the range of 1 - 9
 
+	    fError2DHist -> Fill(roc_idx.Data(), "HFO",1);
+
 	    if(fLocalDebug) {
 	      std::cout << "There is the Hit FIFO Overflow on the F1TDC board at"
 			<< " ROC "  << roc_id
@@ -1107,6 +1156,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	  
 	  if(output_fifo_overflow_flag)  {
 	    this->AddOFO(roc_id, slot_number);
+	    fError2DHist -> Fill(roc_idx.Data(), "OFO",1);
 	    if(fLocalDebug) {
 	      std::cout << "There is the Output FIFO Overflow on the F1TDC board at"
 			<< " ROC "  << roc_id
@@ -1121,6 +1171,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	  
 	  if(not chip_resolution_lock_flag) {
 	    this->AddRLF(roc_id, slot_number);
+	    fError2DHist -> Fill(roc_idx.Data(), "RLF",1);
 	    if(fLocalDebug) {
 	      std::cout << "There is the Resolution Lock Failed on the F1TDC board at"
 			<< " ROC "  << roc_id
@@ -1157,6 +1208,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 
 	      if(not trig_fifo_ok_flag) {
 		this -> AddTFO(roc_id, slot_number);
+		fError2DHist -> Fill(roc_idx.Data(), "TFO",1);
 		if(fLocalDebug) {
 		  std::cout << "There is the Trigger FIFO overflow at"
 			    << " ROC "  << roc_id
@@ -1175,8 +1227,9 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 
 	      if (not trig_time_ok_flag) {
 		this->AddSYN(roc_id, slot_number);
+		fError2DHist -> Fill(roc_idx.Data(), "SYN",1);
 		if(fLocalDebug) {
-		  std::cout << "There is the no SYNC_RESET on the F1TDC board at"
+		  std::cout << "There is the Trigger Time Mismatch on the F1TDC board at"
 			    << " ROC "  << roc_id
 			    << " Slot " << slot_number
 			    << " Ch " << std::setw(3) << channel_number
@@ -1192,6 +1245,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	    
 	      if (not event_ok_flag) {
 		this->AddEMM(roc_id, slot_number);
+		fError2DHist -> Fill(roc_idx.Data(), "EMM",1);
 		if(fLocalDebug) {
 		  std::cout << "There is the Event Number Mismatch issue on the F1TDC board at"
 			    << " ROC "  << roc_id
@@ -1224,7 +1278,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 
 	    else {
 	      this->AddSEU(roc_id, slot_number);
-	  
+	      fError2DHist -> Fill(roc_idx.Data(), "SEU",1);
 	      if (fLocalDebug) {
 		std::cout << "There is the Single Event Upset (SEU) on the F1TDC board at"
 			  << " ROC "  << roc_id
@@ -1242,6 +1296,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	    fake_data_flag = fF1TDCDecoder.IsFakeData();
 	    if(fake_data_flag) {
 	      this->AddFDF(roc_id, slot_number);
+	      fError2DHist -> Fill(roc_idx.Data(), "FDF",1);
 	      if(fLocalDebug) {
 		std::cout << "There is the Fake Data on the F1TDC board at"
 			  << " ROC "  << roc_id
@@ -1263,8 +1318,27 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
       }//if(fF1TDCDecoder.IsValidDataSlot()) {
       else {
 
-	if(fLocalDebug) {
-	  std::cout << "It is an invalid slot, thus skip them." << std::endl;
+	slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+	if( slot_number == 0 ) {
+	  if(fLocalDebug)  {
+	    std::cout << "Slot " << slot_number << " is a filler word," 
+		      << " then we ignore it." << std::endl;
+	  }
+	}
+	else if( slot_number == 30 ) {
+	  // Slot 30 is not in the list of F1TDCs in a subsystem.
+	  // we cannot add this counter into QwF1TDC.
+	  // Now just leave what I wrote for a possible future release.
+	  // Tuesday, September 21 15:19:34 EDT 2010, jhlee
+	  // this->AddS30(roc_id, slot_number); 
+	  if(fLocalDebug)  {
+	    std::cout << "Slot " << slot_number << " is a junk  word," 
+		      << " then we ignore it." << std::endl;
+	  }
+	}
+	else {
+	  std::cout << "Slot " << slot_number << " is not in the reasonable slot," 
+		    << " then we ignore it, but it is better to check what it is going on CODA stream." << std::endl;
 	}
       }
    
@@ -1275,9 +1349,35 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 };
 
 
+void
+QwF1TDContainer::SetErrorHistOptions()
+{
+  fError2DHist->SetOption("TEXT");
+  fError2DHist->LabelsDeflate("X");
+  fError2DHist->LabelsDeflate("Y");
+  fError2DHist->LabelsOption("a", "X");
+  fError2DHist->LabelsOption("a", "Y");
+  return;
+};
+
+
+// send the historgram to a subsystem, then
+// the subsystem can send it to ROOT file(s)
+const TH2F*
+QwF1TDContainer::GetF1TDCErrorHist()
+{
+  this->SetErrorHistOptions();
+  return fError2DHist;
+};
+
+
+
+// direct write histogram into ROOT file(s)
 void 
 QwF1TDContainer::WriteErrorSummary()
 {
+
+  Bool_t hist_flag = true;
 
   TSeqCollection *file_list = gROOT->GetListOfFiles();
   
@@ -1291,8 +1391,20 @@ QwF1TDContainer::WriteErrorSummary()
     for (Int_t i=0; i<size; i++) 
       {
 	TFile *file = (TFile*) file_list->At(i);
-	TList *error_summary = (TList*) file->FindObjectAny(error_summary_name);
-	if (not error_summary) file->WriteObject(this->GetErrorSummary(), error_summary_name);
+	if(hist_flag) {
+	  TString hist_name = fError2DHist->GetName();
+	  TH2F *error_hist = (TH2F*) file->FindObjectAny(hist_name);
+	  if(not error_hist) {
+	    this->SetErrorHistOptions();
+	    file->WriteObject(fError2DHist, hist_name);
+	  }
+	}
+	else {
+	  TList *error_summary = (TList*) file->FindObjectAny(error_summary_name);
+	  if (not error_summary) {
+	    file->WriteObject(this->GetErrorSummary(), error_summary_name);
+	  }
+	}
 	if(fLocalDebug) {
 	  std::cout << "i " << i
 		    << " size " << size

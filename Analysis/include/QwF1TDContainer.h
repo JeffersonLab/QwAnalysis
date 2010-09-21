@@ -23,6 +23,7 @@
 
 #include "TROOT.h"
 #include "TFile.h"
+#include "TH2F.h"
 
 /**
  *  \class QwF1TDC
@@ -100,6 +101,7 @@ class QwF1TDC :  public TObject
   void AddHFO() {fF1TDC_HFO_counter++;};
   void AddOFO() {fF1TDC_OFO_counter++;};
   void AddFDF() {fF1TDC_FDF_counter++;};
+  void AddS30() {fF1TDC_S30_counter++;};
 
   
   const UInt_t GetSEU() const {return fF1TDC_SEU_counter;};
@@ -112,6 +114,7 @@ class QwF1TDC :  public TObject
   const UInt_t GetOFO() const {return fF1TDC_OFO_counter;};   // Output Fifo Overflow coutner;
 
   const UInt_t GetFDF() const {return fF1TDC_FDF_counter;};
+  const UInt_t GetS30() const {return fF1TDC_S30_counter;};
 
 
   void ResetCounters();
@@ -185,6 +188,7 @@ class QwF1TDC :  public TObject
   UInt_t   fF1TDC_OFO_counter;   // Output Fifo Overflow coutner;
 
   UInt_t   fF1TDC_FDF_counter;   // Fake Data Flag counter 
+  UInt_t   fF1TDC_S30_counter;   // Slot 30 counter
 
   Bool_t   fReferenceSlotFlag; //! 
   TArrayD  *fReferenceSignals; //!
@@ -262,7 +266,7 @@ class QwF1TDContainer :  public TObject
   const Double_t GetF1TDCResolution();
 
   const Int_t GetF1TDCChannelNumber();
-
+  const TH2F* GetF1TDCErrorHist();
 
   
   void AddSYN(Int_t roc, Int_t slot);
@@ -275,6 +279,7 @@ class QwF1TDContainer :  public TObject
   void AddOFO(Int_t roc, Int_t slot);
 
   void AddFDF(Int_t roc, Int_t slot);
+  void AddS30(Int_t roc, Int_t slot);
 
  
   Bool_t  CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
@@ -293,6 +298,8 @@ class QwF1TDContainer :  public TObject
   EQwRegionID        fRegion;
   TString            fSystemName;
   
+  TH2F              *fError2DHist;
+
   //  typedef std::vararry <Double_t> 
 
 private:
@@ -314,6 +321,8 @@ private:
   const Double_t GetF1TDCTriggerRollover(); 
 
   Double_t fF1TDCTriggerRollover; 
+
+  void SetErrorHistOptions();
 
   ClassDef(QwF1TDContainer,1);
 
