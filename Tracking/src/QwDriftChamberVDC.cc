@@ -803,7 +803,7 @@ void QwDriftChamberVDC::ProcessEvent()
        
         if ( fDelayLineArray.at ( tmpbp ).at ( tmpln ).Processed == kFALSE )   //if this delay line has been Processed
         {
-
+            wire_array.clear();
             if ( tmpbp==0 || tmpbp ==3 || tmpbp==4 || tmpbp==7 || tmpbp==8 || tmpbp==11 || tmpbp==12 || tmpbp==15 )
                 kDir=kTRUE;         //true means left-right
             else kDir=kFALSE;
