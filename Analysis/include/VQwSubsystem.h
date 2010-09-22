@@ -87,7 +87,7 @@ class VQwSubsystem {
   /// \brief Publish a variable name to the parent subsystem array
   const Bool_t PublishInternalValue(const TString name, const TString desc) const;
   /// \brief Publish all variables of the subsystem
-  virtual const Bool_t PublishInternalValues() const {
+  virtual const Bool_t PublishInternalValues()const{
     return kTRUE; // when not implemented, this returns success
   };
 
@@ -97,9 +97,16 @@ class VQwSubsystem {
 
   /// \brief Return a pointer to a varialbe to the parent subsystem array to be
   ///        delivered to a different subsystem.
-  virtual const VQwDataElement* ReturnInternalValue(const TString& name) const {
+  
+  virtual const VQwDataElement* ReturnInternalValue(const TString& name) const{
+    std::cout << " VQwDataElement::ReturnInternalValue for value name, " << name.Data()<< " define the routine in the respective subsystem to process this!  " <<std::endl;
     return 0;
   };
+  
+  
+  
+
+
 
   /// \brief Return a named value to the parent subsystem array to be
   ///        delivered to a different subsystem.

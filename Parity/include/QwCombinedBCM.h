@@ -99,6 +99,14 @@ class QwCombinedBCM : public VQwDataElement{
 
   void Copy(VQwDataElement *source);
 
+  VQwDataElement* GetCharge(){
+    return &fCombined_bcm;
+  };
+
+  const VQwDataElement* GetCharge() const {
+    return const_cast<QwCombinedBCM*>(this)->GetCharge();
+  };
+
 
 /////
  protected:

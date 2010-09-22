@@ -69,6 +69,23 @@ class VQwBPM : public VQwDataElement {
   void          SetRootSaveStatus(TString &prefix);
 
 
+  VQwDataElement* GetPositionX(){
+    return &fAbsPos[0];
+  };
+
+  const VQwDataElement* GetPositionX() const{
+    return const_cast<VQwBPM*>(this)->GetPositionX();
+  };
+
+  VQwDataElement* GetPositionY(){
+    return &fAbsPos[1];
+  };
+
+  const VQwDataElement* GetPositionY() const{
+    return const_cast<VQwBPM*>(this)->GetPositionY();
+  };
+
+  
 
   private:
 

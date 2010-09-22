@@ -84,6 +84,14 @@ class QwEnergyCalculator : public VQwDataElement{
     void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
     void    FillTreeVector(std::vector<Double_t> &values) const;
 
+    VQwDataElement* GetEnergy(){
+      return &fEnergyChange;
+    };
+
+    const VQwDataElement* GetEnergy() const{
+      return const_cast<QwEnergyCalculator*>(this)->GetEnergy();
+    };
+
  protected:
     QwVQWK_Channel fEnergyChange;
 

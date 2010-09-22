@@ -83,9 +83,7 @@ class QwBCM : public VQwDataElement{
   void PrintValue() const;
   void PrintInfo() const;
 
-  const QwVQWK_Channel& GetCharge() const {return fTriumf_ADC;};
-
-
+  
   QwBCM& operator=  (const QwBCM &value);
   QwBCM& operator+= (const QwBCM &value);
   QwBCM& operator-= (const QwBCM &value);
@@ -116,6 +114,15 @@ class QwBCM : public VQwDataElement{
   void Copy(VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
+
+  VQwDataElement* GetCharge(){
+    return &fTriumf_ADC;
+  };
+
+
+  const VQwDataElement* GetCharge() const {
+    return const_cast<QwBCM*>(this)->GetCharge();
+  };
 
 
 /////

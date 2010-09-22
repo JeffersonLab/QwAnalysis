@@ -724,10 +724,12 @@ void  QwMainCerenkovDetector::ProcessEvent()
  */
 void  QwMainCerenkovDetector::ExchangeProcessedData()
 {
+  //QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData "<< QwLog::endl;
   bIsExchangedDataValid = kTRUE;
   if (bNormalization){
     // Create a list of all variables that we need
     // TODO This could be a static list to avoid repeated vector initializiations
+    /*
     std::vector<VQwDataElement*> variable_list;
     variable_list.push_back(&fTargetCharge);
     variable_list.push_back(&fTargetX);
@@ -735,18 +737,24 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
     variable_list.push_back(&fTargetXprime);
     variable_list.push_back(&fTargetYprime);
     variable_list.push_back(&fTargetEnergy);
-
+    */
 
     // Loop over all variables in the list
+    /*
+      //IMPORTANT NOTE ABOUT THE COMMENTED LOOP
+      //NAMES OF THE variable_list DEVICES WILL BE OVER WRITTEN BY ACTUAL NAMES OF DATA ELEMENTS THAT WE ARE READING FROM THE
+      //ROUTINE RequestExternalValue(variable->GetElementName(), variable). DO TRY THIS AT HOME!
+      
+
     std::vector<VQwDataElement*>::iterator variable_iter;
-    for (variable_iter  = variable_list.begin();
-	 variable_iter != variable_list.end(); variable_iter++)
-      {
+    for (variable_iter  = variable_list.begin(); variable_iter != variable_list.end(); variable_iter++){
 	VQwDataElement* variable = *variable_iter;
+	//QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData for loop "<<variable->GetElementName()<< QwLog::endl;
 	if (RequestExternalValue(variable->GetElementName(), variable))
 	  {
 	    if (bDEBUG)
 	      dynamic_cast<QwVQWK_Channel*>(variable)->PrintInfo();
+	    //QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData Found "<<variable->GetElementName()<< QwLog::endl;
 	  }
 	else
 	  {
@@ -755,6 +763,77 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
 		    << variable->GetElementName() << QwLog::endl;
 	  }
       } // end of loop over variables
+
+    */
+
+    if(RequestExternalValue("q_targ", &fTargetCharge)){
+      if (bDEBUG){
+	QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData Found "<<fTargetCharge.GetElementName()<< QwLog::endl;
+	//QwWarning <<"****QwMainCerenkovDetector****"<< QwLog::endl;
+	(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))->PrintInfo();
+      }
+    }else{
+      bIsExchangedDataValid = kFALSE;
+      QwError << GetSubsystemName() << " could not get external value for "
+	      << fTargetCharge.GetElementName() << QwLog::endl;
+    }
+
+    if(RequestExternalValue("x_targ", &fTargetX)){
+      if (bDEBUG){
+	dynamic_cast<QwVQWK_Channel*>(&fTargetX)->PrintInfo();
+	QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData Found "<<fTargetX.GetElementName()<< QwLog::endl;  
+      }    
+    }else{
+      bIsExchangedDataValid = kFALSE;
+      QwError << GetSubsystemName() << " could not get external value for "
+	      << fTargetX.GetElementName() << QwLog::endl;
+    }
+
+    if(RequestExternalValue("y_targ", &fTargetY)){
+      if (bDEBUG){
+	dynamic_cast<QwVQWK_Channel*>(&fTargetY)->PrintInfo();
+	QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData Found "<<fTargetY.GetElementName()<< QwLog::endl;
+      }
+    }else{
+      bIsExchangedDataValid = kFALSE;
+      QwError << GetSubsystemName() << " could not get external value for "
+	      << fTargetY.GetElementName() << QwLog::endl;
+    }
+
+    if(RequestExternalValue("xp_targ", &fTargetXprime)){
+      if (bDEBUG){
+	dynamic_cast<QwVQWK_Channel*>(&fTargetXprime)->PrintInfo();
+	QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData Found "<<fTargetXprime.GetElementName()<< QwLog::endl;
+      }
+    }else{
+      bIsExchangedDataValid = kFALSE;
+      QwError << GetSubsystemName() << " could not get external value for "
+	      << fTargetXprime.GetElementName() << QwLog::endl;
+    }
+
+    if(RequestExternalValue("yp_targ", &fTargetYprime)){
+      if (bDEBUG){
+	dynamic_cast<QwVQWK_Channel*>(&fTargetYprime)->PrintInfo();
+	QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData Found "<<fTargetYprime.GetElementName()<< QwLog::endl;
+      }
+    }else{
+      bIsExchangedDataValid = kFALSE;
+      QwError << GetSubsystemName() << " could not get external value for "
+	      << fTargetYprime.GetElementName() << QwLog::endl;
+    }
+
+    if(RequestExternalValue("e_targ", &fTargetEnergy)){
+      if (bDEBUG){
+	dynamic_cast<QwVQWK_Channel*>(&fTargetEnergy)->PrintInfo();
+	QwWarning << "QwMainCerenkovDetector::ExchangeProcessedData Found "<<fTargetEnergy.GetElementName()<< QwLog::endl;
+      }
+    }else{
+      bIsExchangedDataValid = kFALSE;
+      QwError << GetSubsystemName() << " could not get external value for "
+	      << fTargetEnergy.GetElementName() << QwLog::endl;
+    }
+
+    
   }
 };
 

@@ -1246,13 +1246,83 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 };
 
 //*****************************************************************
-const Bool_t QwBeamLine::PublishInternalValues() const
+const Bool_t QwBeamLine::PublishInternalValues() const 
 {
-  ///  TODO:  The published variable list should be generated from
+  VQwDataElement* tmp_channel;
+   ///  TODO:  The published variable list should be generated from
   ///         the channel map file.
   // Publish variables
   Bool_t status = kTRUE;
+  //publish q_targ
   status = status && PublishInternalValue("q_targ", "Calculated charge on target");
+  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBCM*>(GetCombinedBCM("qwk_charge")))->GetCharge());
+  if (tmp_channel==NULL){
+    QwError << "QwBeamLine::PublishInternalValues(): q_targ - qwk_charge not found "<< QwLog::endl;
+    status |= kFALSE;
+  }else
+    QwMessage << "QwBeamLine::PublishInternalValues(): q_targ - qwk_charge found "<< QwLog::endl;
+  const_cast<QwBeamLine*>(this)->UpdatePublishValue("q_targ",tmp_channel);
+
+  //publish x_targ
+
+  status = status && PublishInternalValue("x_targ", "Calculated beam X on the target");
+  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM("qwk_target")))->GetPositionX());
+  if (tmp_channel==NULL){
+    QwError << "QwBeamLine::PublishInternalValues(): x_targ - qwk_target X not found "<< QwLog::endl;
+    status |= kFALSE;
+  }else
+    QwMessage << "QwBeamLine::PublishInternalValues(): x_targ - qwk_target X found "<< QwLog::endl;
+  const_cast<QwBeamLine*>(this)->UpdatePublishValue("x_targ",tmp_channel);
+
+  //publish y_targ
+
+  status = status && PublishInternalValue("y_targ", "Calculated beam Y on the target");
+  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM("qwk_target")))->GetPositionY());
+  if (tmp_channel==NULL){
+    QwError << "QwBeamLine::PublishInternalValues(): y_targ - qwk_target Y not found "<< QwLog::endl;
+    status |= kFALSE;
+  }else
+    QwMessage << "QwBeamLine::PublishInternalValues(): y_targ - qwk_target Y found "<< QwLog::endl;
+  const_cast<QwBeamLine*>(this)->UpdatePublishValue("y_targ",tmp_channel);
+
+  //publish xp_targ
+
+  status = status && PublishInternalValue("xp_targ", "Calculated beam X_angle on the target");
+  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM("qwk_target")))->GetAngleX());
+  if (tmp_channel==NULL){
+    QwError << "QwBeamLine::PublishInternalValues(): xp_targ - qwk_target X_angle not found "<< QwLog::endl;
+    status |= kFALSE;
+  }else
+    QwMessage << "QwBeamLine::PublishInternalValues(): xp_targ - qwk_target X_angle found "<< QwLog::endl;
+  const_cast<QwBeamLine*>(this)->UpdatePublishValue("xp_targ",tmp_channel);
+
+
+  //publish yp_targ
+
+  status = status && PublishInternalValue("yp_targ", "Calculated beam Y_angle on the target");
+  
+  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM("qwk_target")))->GetAngleY());
+  if (tmp_channel==NULL){
+    QwError << "QwBeamLine::PublishInternalValues(): yp_targ - qwk_target Y_angle not found "<< QwLog::endl;
+    status |= kFALSE;
+  }else
+    QwMessage << "QwBeamLine::PublishInternalValues(): yp_targ - qwk_target Y_angle found "<< QwLog::endl;
+  
+  const_cast<QwBeamLine*>(this)->UpdatePublishValue("yp_targ",tmp_channel);
+
+  
+  //publish e_targ
+
+  status = status && PublishInternalValue("e_targ", "Calculated beam energy on the target");
+  
+  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwEnergyCalculator*>(GetEnergyCalculator("qwk_energy")))->GetEnergy());
+  if (tmp_channel==NULL){
+    QwError << "QwBeamLine::PublishInternalValues(): e_targ - qwk_energy energy  not found "<< QwLog::endl;
+    status |= kFALSE;
+  }else
+    QwMessage << "QwBeamLine::PublishInternalValues(): e_targ - qwk_energy energy found "<< QwLog::endl;
+  const_cast<QwBeamLine*>(this)->UpdatePublishValue("e_targ",tmp_channel);
+  
   return status;
 };
 
@@ -1267,12 +1337,10 @@ const Bool_t QwBeamLine::PublishInternalValues() const
 const Bool_t QwBeamLine::ReturnInternalValue(const TString& name,
 				       VQwDataElement* value) const
 {
-  ///  TODO:  The published variable list should be generated from
-  ///         the channel map file.
   Bool_t ldebug=kFALSE;
-  if (ldebug) std::cout << "QwBeamLine::ReturnInternalValue called for value name, "
-	    << name.Data() <<std::endl;
+  if (ldebug) std::cout << "QwBeamLine::ReturnInternalValue called for value name, "<< name.Data() <<std::endl;
   Bool_t foundit = kFALSE;
+  /*
   QwVQWK_Channel* tmp = dynamic_cast<QwVQWK_Channel*>(value);
   if (tmp==NULL){
     QwWarning << "QwBeamLine::ReturnInternalValue requires that "
@@ -1312,7 +1380,15 @@ const Bool_t QwBeamLine::ReturnInternalValue(const TString& name,
         if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for e_targ"<<std::endl;
     }
   }
+  */
   return foundit;
+};
+
+const VQwDataElement* QwBeamLine::ReturnInternalValue(const TString& name) const {
+  Bool_t ldebug=kFALSE;
+  if (ldebug) std::cout << "QwBeamLine::ReturnInternalValue called for value name, "<< name.Data() <<std::endl;
+  Bool_t foundit = kFALSE;
+  return const_cast<QwBeamLine*>(this)->GetPublishValue(name);//const_cast<QwBeamLine*>(this)->tmp;
 };
 
 
@@ -1381,6 +1457,8 @@ QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name)
   return 0;
 };
 
+//*****************************************************************
+
 QwBPMCavity* QwBeamLine::GetBPMCavity(const TString name)
 {
   if (! fCavity.empty()) {
@@ -1397,12 +1475,67 @@ QwBPMCavity* QwBeamLine::GetBPMCavity(const TString name)
 //*****************************************************************
 QwBCM* QwBeamLine::GetBCM(const TString name)
 {
+  //QwWarning << "QwBeamLine::GetBCM" << QwLog::endl;
   if (! fBCM.empty()) {
+    
     for (std::vector<QwBCM>::iterator bcm = fBCM.begin(); bcm != fBCM.end(); ++bcm) {
       if (bcm->GetElementName() == name) {
 	return &(*bcm);
       }
     }
+    
+    //QwWarning << "BCM Found" << QwLog::endl;
+    return 0;
+  }
+  return 0;
+};
+
+
+//*****************************************************************
+QwCombinedBCM* QwBeamLine::GetCombinedBCM(const TString name)
+{
+  //QwWarning << "QwBeamLine::GetCombinedBCM" << QwLog::endl;
+  if (! fBCMCombo.empty()) {
+    
+    for (std::vector<QwCombinedBCM>::iterator cbcm = fBCMCombo.begin(); cbcm != fBCMCombo.end(); ++cbcm) {
+      if (cbcm->GetElementName() == name) {
+	return &(*cbcm);
+      }
+    }
+    
+
+  }
+  return 0;
+};
+
+//*****************************************************************
+QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name)
+{
+  //QwWarning << "QwBeamLine::GetCombinedBCM" << QwLog::endl;
+  if (! fBPMCombo.empty()) {
+    
+    for (std::vector<QwCombinedBPM>::iterator cbpm = fBPMCombo.begin(); cbpm != fBPMCombo.end(); ++cbpm) {
+      if (cbpm->GetElementName() == name) {
+	return &(*cbpm);
+      }
+    }
+    
+
+  }
+  return 0;
+};
+
+//*****************************************************************
+QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name){
+   if (! fECalculator.empty()) {
+    
+    for (std::vector<QwEnergyCalculator>::iterator ecal = fECalculator.begin(); ecal != fECalculator.end(); ++ecal) {
+      if (ecal->GetElementName() == name) {
+	return &(*ecal);
+      }
+    }
+    
+
   }
   return 0;
 };
@@ -1413,6 +1546,7 @@ const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
   return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
 };
 
+//*****************************************************************
 const QwBPMCavity* QwBeamLine::GetBPMCavity(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBPMCavity(name);
@@ -1424,6 +1558,20 @@ const QwBCM* QwBeamLine::GetBCM(const TString name) const
   return const_cast<QwBeamLine*>(this)->GetBCM(name);
 };
 
+//*****************************************************************
+const QwCombinedBCM* QwBeamLine::GetCombinedBCM(const TString name) const{
+  return const_cast<QwBeamLine*>(this)->GetCombinedBCM(name);
+};
+
+//*****************************************************************
+const QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name) const{
+  return const_cast<QwBeamLine*>(this)->GetCombinedBPM(name);
+};
+
+//*****************************************************************
+const QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name) const{
+  return const_cast<QwBeamLine*>(this)->GetEnergyCalculator(name);
+};
 
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)

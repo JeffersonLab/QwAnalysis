@@ -66,6 +66,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
 
   const Bool_t PublishInternalValues() const;
+  const VQwDataElement* ReturnInternalValue(const TString& name) const;
   const Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
 
   void RandomizeEventData(int helicity = 0, double time = 0.0);
@@ -104,9 +105,15 @@ class QwBeamLine : public VQwSubsystemParity{
   QwBPMStripline* GetBPMStripline(const TString name);
   QwBCM* GetBCM(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
+  QwCombinedBCM* GetCombinedBCM(const TString name);
+  QwCombinedBPM* GetCombinedBPM(const TString name);
+  QwEnergyCalculator* GetEnergyCalculator(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
   const QwBPMStripline* GetBPMStripline(const TString name) const;
   const QwBCM* GetBCM(const TString name) const;
+  const QwCombinedBCM* GetCombinedBCM(const TString name) const;
+  const QwCombinedBPM* GetCombinedBPM(const TString name) const;
+  const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
 
 
 
@@ -136,6 +143,26 @@ class QwBeamLine : public VQwSubsystemParity{
  Double_t fSumYweights;
  Double_t fSumQweights;
 
+ //a map to store published variables.
+ 
+ void UpdatePublishValue(TString name, VQwDataElement* data_channel){
+   //debug lines
+   //QwMessage <<"UpdatePublishValue "<<data_channel->GetElementName()<< QwLog::endl;
+   //data_channel->SetElementName(name);
+   //QwVQWK_Channel *tmp=dynamic_cast<QwVQWK_Channel*>(data_channel);
+   //tmp->PrintInfo();
+   fPublishedInternalValues[name]=const_cast<VQwDataElement*>(data_channel);
+ };
+
+ VQwDataElement* GetPublishValue(TString name){
+   //QwVQWK_Channel *tmp=dynamic_cast<QwVQWK_Channel*>(fPublishedInternalValues[name]);
+   //tmp->PrintInfo();
+   return dynamic_cast<VQwDataElement*>(fPublishedInternalValues[name]);
+ };
+
+ 
+
+ std::map<TString, VQwDataElement*> fPublishedInternalValues;
 
  static const Bool_t bDEBUG=kFALSE;
 

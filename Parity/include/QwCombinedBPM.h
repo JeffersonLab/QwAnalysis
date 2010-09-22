@@ -83,6 +83,25 @@ class QwCombinedBPM : public VQwBPM{
 
 
 
+  VQwDataElement* GetAngleX(){ //At present this returns the slope not the angle
+    return &fSlope[0];
+  };
+
+  const VQwDataElement* GetAngleX() const { //At present this returns the slope not the angle
+    return const_cast<QwCombinedBPM*>(this)->GetAngleX();
+  };
+
+  VQwDataElement* GetAngleY(){//At present this returns the slope not the angle
+    return &fSlope[1];
+  };
+
+  const VQwDataElement* GetAngleY() const { //At present this returns the slope not the angle
+    return const_cast<QwCombinedBPM*>(this)->GetAngleY();
+  };
+
+
+  
+
   /////
  private:
   Bool_t fixedParamCalculated;
