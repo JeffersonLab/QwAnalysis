@@ -92,6 +92,8 @@ class QwIntegrationPMT : public VQwDataElement{
     fTriumf_ADC.SetEventCutMode(bcuts);
   }
 
+  void SetBlindability(Bool_t isblindable){fIsBlindable=isblindable;};
+
   /// \brief Blind the asymmetry
   void Blind(const QwBlinder *blinder);
   /// \brief Blind the difference using the yield
@@ -148,6 +150,8 @@ class QwIntegrationPMT : public VQwDataElement{
   QwVQWK_Channel fTriumf_ADC;
 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
+
+  Bool_t fIsBlindable; //
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE; //global switch to turn event cuts ON/OFF

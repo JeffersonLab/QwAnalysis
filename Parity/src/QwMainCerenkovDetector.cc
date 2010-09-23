@@ -146,6 +146,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;
+  TString keyword;
   Int_t modnum, channum, combinedchans;
   std::vector<TString> combinedchannelnames;
   std::vector<Double_t> weight;
@@ -190,38 +191,44 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
       else
         {
           Bool_t lineok=kTRUE;
+	  keyword = "";
           //  Break this line into tokens to process it.
-          modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+          modtype   = mapstr.GetNextToken(", \t").c_str();	// module type
           if (modtype == "VQWK")
             {
-              modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-              channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-              dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+              modnum    = (atol(mapstr.GetNextToken(", \t").c_str()));	//slot number
+              channum   = (atol(mapstr.GetNextToken(", \t").c_str()));	//channel number
+              dettype   = mapstr.GetNextToken(", \t").c_str();	//type-purpose of the detector
               dettype.ToLower();
-              namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+              namech    = mapstr.GetNextToken(", \t").c_str();  //name of the detector
               namech.ToLower();
+
+	      keyword   = mapstr.GetNextToken(", \t").c_str();
+	      keyword.ToLower();
             }
           else if (modtype == "VPMT")
             {
-              channum       = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-              combinedchans = (atol(mapstr.GetNextToken(", ").c_str()));	//number of combined channels
-              dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+              channum       = (atol(mapstr.GetNextToken(", \t").c_str()));	//channel number
+              combinedchans = (atol(mapstr.GetNextToken(", \t").c_str()));	//number of combined channels
+              dettype   = mapstr.GetNextToken(", \t").c_str();	//type-purpose of the detector
               dettype.ToLower();
-              namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+              namech    = mapstr.GetNextToken(", \t").c_str();  //name of the detector
               namech.ToLower();
               //TString nameofchannel;
               combinedchannelnames.clear();
               for (int i=0; i<combinedchans; i++)
                 {
-                  nameofcombinedchan = mapstr.GetNextToken(", ").c_str();
+                  nameofcombinedchan = mapstr.GetNextToken(", \t").c_str();
                   nameofcombinedchan.ToLower();
                   combinedchannelnames.push_back(nameofcombinedchan);
                 }
               weight.clear();
               for (int i=0; i<combinedchans; i++)
                 {
-                  weight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
+                  weight.push_back( atof(mapstr.GetNextToken(", \t").c_str()));
                 }
+	      keyword   = mapstr.GetNextToken(", \t").c_str();
+	      keyword.ToLower();
             }
 
 
@@ -276,7 +283,9 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               if (localMainDetID.fTypeID==kQwIntegrationPMT)
                 {
                   QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localMainDetID.fdetectorname);
-                   fIntegrationPMT.push_back(localIntegrationPMT);
+		  if (keyword=="not_blindable") 
+		    localIntegrationPMT.SetBlindability(kFALSE);
+		  fIntegrationPMT.push_back(localIntegrationPMT);
                   fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localMainDetID.fIndex=fIntegrationPMT.size()-1;
                 }
@@ -284,6 +293,8 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               else if (localMainDetID.fTypeID==kQwCombinedPMT)
                 {
 		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localMainDetID.fdetectorname);
+		  if (keyword=="not_blindable") 
+		    localcombinedPMT.SetBlindability(kFALSE);
                   fCombinedPMT.push_back(localcombinedPMT);
                   fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
                   localMainDetID.fIndex=fCombinedPMT.size()-1;
@@ -409,9 +420,9 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
         }
       else
         {
-          device_type= mapstr.GetNextToken(", ").c_str();
+          device_type= mapstr.GetNextToken(", \t").c_str();
           device_type.ToLower();
-          device_name= mapstr.GetNextToken(", ").c_str();
+          device_name= mapstr.GetNextToken(", \t").c_str();
           device_name.ToLower();
 
           //set limits to zero
@@ -425,8 +436,8 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
 
               //std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
 
-              LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
-              ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
+              LLX = (atof(mapstr.GetNextToken(", \t").c_str()));	//lower limit for IntegrationPMT value
+              ULX = (atof(mapstr.GetNextToken(", \t").c_str()));	//upper limit for IntegrationPMT value
 
               Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
               //std::cout<<"*****************************"<<std::endl;

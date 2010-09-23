@@ -66,12 +66,16 @@ class QwHelicityPattern{
   Bool_t IsRunningSumEnabled() { return fEnableRunningSum; };
 
   /// Update the blinder status with new external information
-  void UpdateBlinder(QwDatabase* db, const QwSubsystemArrayParity& detectors) {
-    fBlinder.Update(db, detectors);
+  void UpdateBlinder(QwDatabase* db){
+    fBlinder.Update(db);
   };
   /// Update the blinder status with new external information
-  void UpdateBlinder(QwDatabase* db, const QwEPICSEvent& epics) {
-    fBlinder.Update(db, epics);
+  void UpdateBlinder(const QwSubsystemArrayParity& detectors) {
+    fBlinder.Update(detectors);
+  };
+  /// Update the blinder status with new external information
+  void UpdateBlinder(const QwEPICSEvent& epics) {
+    fBlinder.Update(epics);
   };
 
   void  AccumulateBurstSum();
@@ -94,7 +98,7 @@ class QwHelicityPattern{
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile &trim_tree);
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwDatabase *db);
-  Bool_t IsGoodAsymmetry(){ return IsGood;};
+  Bool_t IsGoodAsymmetry(){ return fPatternIsGood;};
 
   void  ClearEventData();
   void  ClearBurstSum();
@@ -150,7 +154,7 @@ class QwHelicityPattern{
   QwSubsystemArrayParity fNegativeHelicitySum;
 
 
-  Bool_t IsGood;
+  Bool_t fPatternIsGood;
 
 
 

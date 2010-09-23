@@ -30,6 +30,7 @@ void  QwIntegrationPMT::InitializeChannel(TString name, TString datatosave)
   SetCalibrationFactor(1.);
   fTriumf_ADC.InitializeChannel(name,datatosave);
   SetElementName(name);
+  SetBlindability(kTRUE);
   return;
 };
 /********************************************************/
@@ -391,6 +392,7 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 	  this->fElementName=input->fElementName;
 	  this->fPedestal=input->fPedestal;
 	  this->fCalibration=input->fCalibration;
+	  this->fIsBlindable=input->fIsBlindable;
 	  this->fTriumf_ADC.Copy(&(input->fTriumf_ADC));
 	}
       else
@@ -422,12 +424,12 @@ void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value)
 
 void QwIntegrationPMT::Blind(const QwBlinder *blinder)
 {
-  fTriumf_ADC.Blind(blinder);
+  if (fIsBlindable)  fTriumf_ADC.Blind(blinder);
 };
 
 void QwIntegrationPMT::Blind(const QwBlinder *blinder, const QwIntegrationPMT& yield)
 {
-  fTriumf_ADC.Blind(blinder, yield.fTriumf_ADC);
+  if (fIsBlindable)  fTriumf_ADC.Blind(blinder, yield.fTriumf_ADC);
 };
 
 

@@ -91,6 +91,8 @@ class QwCombinedPMT : public VQwDataElement {
   void AccumulateRunningSum(const QwCombinedPMT& value);
   void CalculateRunningAverage();
 
+  void SetBlindability(Bool_t isblindable){fSumADC.SetBlindability(isblindable);};
+
   /// \brief Blind the asymmetry
   void Blind(const QwBlinder *blinder);
   /// \brief Blind the difference using the yield

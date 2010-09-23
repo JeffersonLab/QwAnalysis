@@ -23,13 +23,28 @@ const Double_t QwBlinder::kMaximumBlindingFactor = 0.1; // [fraction]
 // Default seed, associated with seed_id 0
 const TString QwBlinder::kDefaultSeed = "Default seed, should not be used!";
 
+//**************************************************//
+void QwBlinder::DefineOptions(QwOptions &options){
+  options.AddOptions("Blinder")("blinder.force-target-lh2", po::value<bool>()->default_value(false)->zero_tokens(),
+		       "Forces the blinder to interpret the target position as LH2");
+  options.AddOptions("Blinder")("blinder.force-target-out", po::value<bool>()->default_value(false)->zero_tokens(),
+		       "Forces the blinder to interpret the target position as target-out");
+  options.AddOptions("Blinder")("blinder.beam-current-threshold", po::value<double>()->default_value(1.0),
+		       "Beam current in microamps below which data will not be blinded");
+};
+
 
 /**
  * Default constructor using optional database connection and blinding strategy
  * @param blinding_strategy Blinding strategy
  */
-QwBlinder::QwBlinder(const EQwBlindingStrategy blinding_strategy)
-: fBlindingStrategy(blinding_strategy),
+QwBlinder::QwBlinder(const EQwBlindingStrategy blinding_strategy):
+  fTargetBlindability_firstread(kIndeterminate),
+  fTargetBlindability(kIndeterminate),
+  fTargetPositionForced(kFALSE),
+  fBeamCurrentThreshold(1.0),
+  fBeamIsPresent(kFALSE),
+  fBlindingStrategy(blinding_strategy),
   fBlindingOffset(0.0),
   fBlindingFactor(1.0)
 {
@@ -54,62 +69,100 @@ QwBlinder::~QwBlinder()
 /**
  * Update the blinder status with new external information
  *
- * @param db Database connection
- * @param detectors Current subsystem array
+ * @param options Qweak option handler
  */
-void QwBlinder::Update(
-	QwDatabase* db,
-	const QwSubsystemArrayParity& detectors)
+void QwBlinder::ProcessOptions(QwOptions& options)
 {
-  // New blinder seed id
-  UInt_t new_seed_id = 0x0;
-
-  // Blinder flags:
-  // - 0x1: current on target
-  //    - Virtual BPM q_targ above minimum
-
-  // Current on target above acceptable limit
-  QwVQWK_Channel* q_targ = new QwVQWK_Channel("q_targ");
-  if (detectors.ReturnInternalValue(q_targ->GetElementName(), q_targ)) {
-    if (q_targ->GetHardwareSum() > 0.001) new_seed_id |= 0x1;
+  if (options.GetValue<bool>("blinder.force-target-out")
+      && options.GetValue<bool>("blinder.force-target-lh2")){
+    QwError << "QwBlinder::Update:  Both blinder.force-target-lh2 and blinder.force-target-out are set.  "
+	    << "Only one can be in force at one time.  Exit and choose one option."
+	    << QwLog::endl;
+    exit(10);
+  } else if (options.GetValue<bool>("blinder.force-target-lh2")){
+    fTargetPositionForced = kTRUE;
+    SetTargetBlindability(QwBlinder::kBlindable);
+  } else if (options.GetValue<bool>("blinder.force-target-out")){
+    fTargetPositionForced = kTRUE;
+    SetTargetBlindability(QwBlinder::kNotBlindable);
+  }
+  if (options.HasValue("blinder.beam-current-threshold")){
+    fBeamCurrentThreshold = options.GetValue<double>("blinder.beam-current-threshold");
   }
 
-  // If the blinding seed has changed, re-initialize the blinder
-  if (fSeedID != new_seed_id) {
-    QwWarning << "Changing blinder seed from " << fSeedID
-              << " to " << new_seed_id << "." << QwLog::endl;
-    ReadSeed(db, new_seed_id);
-  }
 }
-
 
 /**
  * Update the blinder status with new external information
  *
  * @param db Database connection
+ */
+void QwBlinder::Update(QwDatabase* db)
+{
+  //  Update the seed ID then tell us if it has changed.
+  UInt_t old_seed_id = fSeedID;
+  ReadSeed(db);
+  // If the blinding seed has changed, re-initialize the blinder
+  if (fSeedID != old_seed_id) {
+    QwWarning << "Changing blinder seed to " << fSeedID
+              << " from " << old_seed_id << "." << QwLog::endl;
+    InitBlinders(fSeedID);
+    InitTestValues(10);
+  }
+}
+
+/**
+ * Update the blinder status with new external information
+ *
+ * @param detectors Current subsystem array
+ */
+void QwBlinder::Update(const QwSubsystemArrayParity& detectors)
+{
+  static QwVQWK_Channel q_targ("q_targ");
+  if (fBlindingStrategy != kDisabled) {
+    // Check for the target blindability flag
+    
+
+    // Check that the current on target is above acceptable limit
+    Bool_t tmp_beam = kFALSE;
+    if (detectors.ReturnInternalValue(q_targ.GetElementName(), &q_targ)) {
+      if (q_targ.GetHardwareSum() > fBeamCurrentThreshold){
+	tmp_beam = kTRUE;
+      }
+    }
+    fBeamIsPresent &= tmp_beam;
+  }
+}
+
+/**
+ * Update the blinder status with new external information
+ *
  * @param epics Current EPICS event
  */
-void QwBlinder::Update(
-	QwDatabase* db,
-	const QwEPICSEvent& epics)
+void QwBlinder::Update(const QwEPICSEvent& epics)
 {
-  // New blinder seed id
-  UInt_t new_seed_id = 0x0;
-
-  // Blinder flags:
-  // - 0x1: current on target
-  //    - EPICS QWBCM1 above minimum
-  //    - EPICS QWBCM2 above minimum
-
-  // Current in EPICS above acceptable limit
-  if (epics.GetDataValue("QWBCM1") > 0.001) new_seed_id |= 0x1;
-  if (epics.GetDataValue("QWBCM2") > 0.001) new_seed_id |= 0x1;
-
-  // If the blinding seed has changed, re-initialize the blinder
-  if (fSeedID != new_seed_id) {
-    QwWarning << "Changing blinder seed from " << fSeedID
-              << " to " << new_seed_id << "." << QwLog::endl;
-    ReadSeed(db, new_seed_id);
+  // Check for the target information
+  // Position:
+  //     QWtgt_name == "HYDROGEN-CELL" || QWTGTPOS > 350
+  // Temperature:
+  //     QWT_miA < 22.0 && QWT_moA < 22.0
+  // Pressure:
+  //     QW_PT3 in [20,35] && QW_PT4 in [20,35]
+  if (fBlindingStrategy != kDisabled && !(fTargetPositionForced) ) {
+    Double_t tgt_pos   = epics.GetDataValue("QWTGTPOS");
+    Double_t tgt_temperture = epics.GetDataValue("QWT_miA");
+    Double_t tgt_pressure   = epics.GetDataValue("QW_PT3"); 
+    if (tgt_pos > 350. 
+	&& (tgt_temperture>18.0 && tgt_temperture<22.0)
+	&& (tgt_pressure>20.0 && tgt_pressure < 35.0)){
+      SetTargetBlindability(QwBlinder::kBlindable);
+    } else if (tgt_pos == 0 
+	       || (tgt_temperture==0.0)
+	       || (tgt_pressure==0.0)){
+      SetTargetBlindability(QwBlinder::kIndeterminate);
+    } else {
+      SetTargetBlindability(QwBlinder::kNotBlindable);
+    }
   }
 }
 
@@ -288,7 +341,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
 void QwBlinder::InitBlinders(const UInt_t seed_id)
 {
   // If the blinding strategy is disabled
-  if (fBlindingStrategy == kDisabled || seed_id == 0x0) {
+  if (fBlindingStrategy == kDisabled) {
 
       fSeed = kDefaultSeed;
       fSeedID = 0;
@@ -368,6 +421,10 @@ void QwBlinder::InitTestValues(const int n)
 {
   // Use the stored seed to get a pseudorandom number
   Int_t finalseed = UsePseudorandom(fSeed);
+
+  fTestValues.clear();
+  fBlindTestValues.clear();
+  fUnBlindTestValues.clear();
 
   // For each test case
   for (int i = 0; i < n; i++) {
@@ -805,3 +862,41 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
 
 }
 
+void QwBlinder::SetTargetBlindability(QwBlinder::EQwBlinderStatus status){
+  fTargetBlindability = status;
+  if (fTargetBlindability_firstread == QwBlinder::kIndeterminate
+      && fTargetBlindability != QwBlinder::kIndeterminate)
+    fTargetBlindability_firstread = fTargetBlindability;
+};
+
+QwBlinder::EQwBlinderStatus QwBlinder::CheckBlindability(){
+  EQwBlinderStatus status = QwBlinder::kBlindableFail;
+  if (fBlindingStrategy == kDisabled) {
+    status = QwBlinder::kNotBlindable;
+  } else if (fTargetBlindability == QwBlinder::kIndeterminate) {
+    QwError  << "QwBlinder::CheckBlindability:  The target blindability is not determined.  "
+	     << "Fail this event." << QwLog::endl;
+    status = QwBlinder::kBlindableFail;
+  } else if (fTargetBlindability!=fTargetBlindability_firstread) {
+    QwError << "QwBlinder::CheckBlindability:  The target blindability has changed.  "
+	    << "Fail this event." << QwLog::endl;
+    status = QwBlinder::kBlindableFail;
+  } else if (fTargetBlindability==kNotBlindable) {
+    //  This isn't a blindable target, so don't do anything.
+    status = QwBlinder::kNotBlindable;
+  } else if (fTargetBlindability==kBlindable && fBeamIsPresent) {
+    //  This is a blindable target and the beam is sufficent.
+    status = QwBlinder::kBlindable;
+  } else if (fTargetBlindability==kBlindable && ! fBeamIsPresent) {
+    //  This is a blindable target but there is insufficent beam present
+    status = QwBlinder::kBlindableFail;
+  } else {
+    QwError << "QwBlinder::CheckBlindability:  The event blindability is unclear.  "
+	     << "Fail this event." << QwLog::endl;
+    status = QwBlinder::kBlindableFail;
+  }
+  //
+  fBlinderIsOkay = (status != QwBlinder::kBlindableFail);
+
+  return status;
+}

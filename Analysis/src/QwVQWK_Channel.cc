@@ -1197,9 +1197,15 @@ std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel)
 void QwVQWK_Channel::Blind(const QwBlinder *blinder)
 {
   if (!IsNameEmpty()) {
-    for (Short_t i = 0; i < fBlocksPerEvent; i++)
-      blinder->BlindValue(fBlock[i]);
-    blinder->BlindValue(fHardwareBlockSum);
+    if (blinder->IsBlinderOkay() && fDeviceErrorCode==0){
+      for (Short_t i = 0; i < fBlocksPerEvent; i++)
+	blinder->BlindValue(fBlock[i]);
+      blinder->BlindValue(fHardwareBlockSum);
+    } else {
+      blinder->ModifyThisErrorCode(fDeviceErrorCode);
+      for (Short_t i = 0; i < fBlocksPerEvent; i++)  fBlock[i] = 0.0;
+      fHardwareBlockSum = 0.0;
+    }
   }
   return;
 };
@@ -1212,9 +1218,15 @@ void QwVQWK_Channel::Blind(const QwBlinder *blinder)
 void QwVQWK_Channel::Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield)
 {
   if (!IsNameEmpty()) {
-    for (Short_t i = 0; i < fBlocksPerEvent; i++)
-      blinder->BlindValue(fBlock[i], yield.fBlock[i]);
-    blinder->BlindValue(fHardwareBlockSum, yield.fHardwareBlockSum);
+    if (blinder->IsBlinderOkay() && fDeviceErrorCode==0){
+      for (Short_t i = 0; i < fBlocksPerEvent; i++)
+	blinder->BlindValue(fBlock[i], yield.fBlock[i]);
+      blinder->BlindValue(fHardwareBlockSum, yield.fHardwareBlockSum);
+    } else {
+      blinder->ModifyThisErrorCode(fDeviceErrorCode);
+      for (Short_t i = 0; i < fBlocksPerEvent; i++)  fBlock[i] = 0.0;
+      fHardwareBlockSum = 0.0;
+    }
   }
   return;
 };

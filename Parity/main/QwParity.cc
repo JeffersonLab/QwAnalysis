@@ -97,8 +97,11 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Start loop over all runs
   QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
-
     //  Begin processing for the first run.
+
+    //  Initialize the database connection.
+    database.SetupOneRun(eventbuffer);
+
 
     //  Open the ROOT file
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
@@ -128,6 +131,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     helicitypattern.ClearBurstSum();
 
 
+    //  Load the blinder seed from the database for this runlet.
+    helicitypattern.UpdateBlinder(&database);
+
     ///  Start loop over events
     while (eventbuffer.GetNextEvent() == CODA_OK) {
 
@@ -141,7 +147,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
-        helicitypattern.UpdateBlinder(&database,epicsevent);
+        helicitypattern.UpdateBlinder(epicsevent);
       }
 
 
@@ -184,7 +190,7 @@ Int_t main(Int_t argc, Char_t* argv[])
           if (helicitypattern.IsCompletePattern()) {
 
             // Update the blinder if conditions have changed
-            helicitypattern.UpdateBlinder(&database,detectors);
+            helicitypattern.UpdateBlinder(detectors);
 
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
@@ -265,21 +271,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Read from the datebase
-    if (database.AllowsReadAccess()) {
-
-      // GetRunID(), GetRunletID(), and GetAnalysisID have their own Connect() and Disconnect() functions.
-      UInt_t run_id      = database.GetRunID(eventbuffer);
-      UInt_t runlet_id   = database.GetRunletID(eventbuffer);
-      UInt_t analysis_id = database.GetAnalysisID(eventbuffer);
-
-     //  Write to from the datebase
-     QwMessage << "QwAnalysis.cc::"
-                << " Run Number "  << QwColor(Qw::kBoldMagenta) << eventbuffer.GetRunNumber() << QwColor(Qw::kNormal)
-                << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id << QwColor(Qw::kNormal)
-                << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id << QwColor(Qw::kNormal)
-                << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
-                << QwLog::endl;
-    }
+    database.SetupOneRun(eventbuffer);
 
     // Each sussystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {
