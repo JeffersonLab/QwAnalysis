@@ -274,8 +274,9 @@ class QwHelicity: public VQwSubsystemParity{
 
   Bool_t BIT24;//sets the random seed size 24bit/30bits
   Bool_t BIT30;
-
-  Int_t fPATTERNPHASEOFFSET;
+  Bool_t fUsePredictor;
+  Bool_t fHelicityInfoOK;
+  Int_t  fPATTERNPHASEOFFSET;
 
   UInt_t fEventType;
 

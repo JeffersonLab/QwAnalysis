@@ -305,7 +305,6 @@ void QwHelicity::ProcessEventInputRegisterMode()
 {
   static Bool_t firstpattern = kTRUE;
   Bool_t fake_the_counters=kFALSE;
-
   UInt_t thisinputregister=fWord[kInputRegister].fValue;
 
   /**
@@ -314,25 +313,27 @@ void QwHelicity::ProcessEventInputRegisterMode()
   */
   fEventNumber=fWord[kMpsCounter].fValue;
 
-
+  // When we have the minimum phase from the pattern phase word
+  // and the input register minimum phase bit is set
+  // we can select the second pattern as below.
   if(fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET == 0)
     if (firstpattern && (thisinputregister & 0x4) == 0x4){
       firstpattern   = kFALSE;
     }
 
-
-  if (firstpattern){
+  // If firstpattern is still TRUE, we are still searching for the first
+  // pattern of the data stream. So set the pattern number = 0
+  if (firstpattern)
     fPatternNumber      = 0;
-    fPatternPhaseNumber = fMinPatternPhase; //was 0 I chaned to fMinPatternPhase.- Buddhini.
-  } else {
+  else {
     fPatternNumber      = fWord[kPatternCounter].fValue;
     fPatternPhaseNumber = fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET + fMinPatternPhase;
   }
 
-  // Just in case if we get junk for the mps and pattern information from the run
-
+  /** Tf we get junk for the mps and pattern information from the run
+      we can enable fake counters for mps, pattern number and pattern phase to get the job done.
+  */
   if (fake_the_counters){
-    //  Now fake the event counter, pattern counter, and phase counter.
     fEventNumber = fEventNumberOld+1;
     if ((thisinputregister & 0x4) == 0x4) {
       fPatternPhaseNumber = fMinPatternPhase;
@@ -349,9 +350,9 @@ void QwHelicity::ProcessEventInputRegisterMode()
 
   if ((thisinputregister & 0x4) == 0x4 && fPatternPhaseNumber != fMinPatternPhase){
     //  Quartet bit is set.
-    QwError << "QwHelicity::ProcessEvent:  The Multiplet Sync bit is set, but the Pattern Phase (" 
-	    << fPatternPhaseNumber << ") is not "
-	    << fMinPatternPhase << "!" << QwLog::endl;
+    QwError << "QwHelicity::ProcessEvent:  The Multiplet Sync bit is set, but the Pattern Phase is (" 
+	    << fPatternPhaseNumber << ") not "
+	    << fMinPatternPhase << "!.\n Please check the fPATTERNPHASEOFFSET in the helicity map file." << QwLog::endl;
   }
 
   fHelicityReported=0;
@@ -415,6 +416,9 @@ void QwHelicity::ProcessEventInputMollerMode()
 
 void  QwHelicity::ProcessEvent()
 {
+
+  Bool_t ldebug = kFALSE;
+
   switch (fHelicityDecodingMode)
     {
     case kHelUserbitMode :
@@ -433,8 +437,31 @@ void  QwHelicity::ProcessEvent()
 
   if(fHelicityBitPlus==fHelicityBitMinus)
     fHelicityReported=-1;
+    
+  // Predict helicity if delay is non zero.
+  if(fUsePredictor)
+    PredictHelicity();
+  else {
+    // Else use the reported helicity values.
+    fHelicityActual  = fHelicityReported;
+    fHelicityDelayed = fHelicityReported;
 
-  PredictHelicity();
+    if(fPatternPhaseNumber== fMinPatternPhase){
+      fActualPatternPolarity = fHelicityReported;
+      fDelayedPatternPolarity = fHelicityReported;
+    } 
+    
+  }
+
+  if(ldebug){
+    std::cout<<"\nevent number= "<<fEventNumber<<std::endl;
+    std::cout<<"pattern number = "<<fPatternNumber<<std::endl;
+    std::cout<<"pattern phase = "<<fPatternPhaseNumber<<std::endl;
+    std::cout<<"max pattern phase = "<<fMaxPatternPhase<<std::endl;
+    std::cout<<"min pattern phase = "<<fMinPatternPhase<<std::endl;
+
+
+  }
 
   return;
 };
@@ -544,9 +571,9 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
   fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
 
 
-  //Default value for random seed is 24 bits
-  BIT24=kTRUE;
-  BIT30=kFALSE;
+  //Default value for random seed is 30 bits
+  BIT24=kFALSE;
+  BIT30=kTRUE;
 
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
@@ -583,9 +610,9 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	}
       else if (varname=="randseedbits")
 	{
-	  if (value==30){
-	    BIT24=kFALSE;
-	    BIT30=kTRUE;
+	  if (value==24){
+	    BIT24=kTRUE;
+	    BIT30=kFALSE;
 	  }
 	}
       else if (varname=="patternphaseoffset")
@@ -715,7 +742,7 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
       fPATTERNPHASEOFFSET=gQwOptions.GetValue<int>("helicity.patternoffset");
 
   if (gQwOptions.HasValue("helicity.patternphase"))
-    if (gQwOptions.GetValue<int>("helicity.patternphase")==4 || gQwOptions.GetValue<int>("helicity.patternphase")==8)
+    if (gQwOptions.GetValue<int>("helicity.patternphase")==2 || gQwOptions.GetValue<int>("helicity.patternphase")==4 || gQwOptions.GetValue<int>("helicity.patternphase")==8)
       fMaxPatternPhase=gQwOptions.GetValue<int>("helicity.patternphase");
 
   if (gQwOptions.HasValue("helicity.30bitseed")){
@@ -1455,7 +1482,6 @@ Bool_t QwHelicity::CollectRandBits24()
   static UShort_t first24bits[25]; //array to store the first 24 bits
 
   fGoodHelicity = kFALSE; //reset before prediction begins
-
   if(IsContinuous())
     {
       if((fPatternPhaseNumber==fMinPatternPhase)&& (fPatternNumber>=0))
@@ -1633,9 +1659,19 @@ void QwHelicity::PredictHelicity()
 
 void QwHelicity::SetHelicityDelay(Int_t delay)
 {
-  /**Sets the number of bits the helicity reported gets delayed with.*/
+  /**Sets the number of bits the helicity reported gets delayed with.
+     We predict helicity only if there is a non-zero pattern delay given. */
+
   if(delay>=0){
     fHelicityDelay = delay;
+    if(delay == 0){
+      QwWarning << "QwHelicity : SetHelicityDelay ::  helicity delay is set to 0."
+		<< " Disabling helicity predictor and using reported helicity information." 
+		<< QwLog::endl;
+      fUsePredictor = kFALSE;
+    }
+    else
+      fUsePredictor = kTRUE; 
   }
   else
     QwError << "QwHelicity::SetHelicityDelay We cannot handle negative delay in the prediction of delayed helicity. Exiting.." << QwLog::endl;
