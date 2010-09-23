@@ -1,0 +1,104 @@
+Standalon linera regression for Qweak, ver 3 
+September 20, 2010, Jan Balewski, MIT
+
+Code location:
+ifarml4>
+/u/home/balewski/PAN/toy6D_linReg_ver3b
+
+to compile:
+make clean
+make
+
+Event generation: doGen*
+Output:  Qweak_1234.000.root  Qweak-style root-tree
+
+Compute correlations & alphas w/ stand alone code: doCor*
+Input  : control.conf file similar to PAN-setup
+Output : table on the screen
+
+Compute  alphas using PAN/regressionHallA/postpan code:
+- define the iv & dv variables in the config file and run the code on Qweak_1234.000.root tree file.
+My working example is at
+ balewski@ifarml4> pwd
+/u/home/balewski/PAN/regressionHallA/postpan
+
+===========================================================
+------------ test job ---------
+Input:
+assumed ALPHAS for 4 yields
+                      yield_MD1L    yield_MD1R    yield_MD2L    yield_MD2R  
+           Ymean:      1.100000     1.200000     1.300000     1.400000 
+           Ysigma:     0.050000     0.060000     0.070000     0.080000 
+
+    beam_x :P0 alpha=> -0.230000     0.110000     0.050000    -0.410000    
+   beam_nx :P1 alpha=>  0.180000     0.280000     0.050000     0.240000    
+    beam_y :P2 alpha=> -0.350000     0.150000     0.050000    -0.360000    
+   beam_ny :P3 alpha=> -0.410000    -0.320000     0.050000     0.280000    
+    beam_E :P4 alpha=>  0.270000    -0.170000     0.050000     0.270000    
+    beam_Q :P5 alpha=> -0.220000     0.270000     0.050000     0.410000   
+
+generated  false ASY for 4 yields based on 120000 events
+yield_MD1L :  avrY=1.100034,  ASY=      -0.012 +/-      0.0028  (nSig=-4.3)
+yield_MD1R :  avrY=1.200364,  ASY=      0.0076 +/-      0.0026  (nSig=2.9)
+yield_MD2L :  avrY=1.300069,  ASY=     -0.0039 +/-      0.0025  (nSig=-1.5)
+yield_MD2R :  avrY=1.400244,  ASY=      -0.028 +/-      0.0024  (nSig=-11.7)
+
+---------------
+Output from  LinRegBevPeb::solve() using this config.file:
+# Dependent and Independent variables for Regression
+block corSetA
+dv yield_MD1L.hw_sum
+dv yield_MD1R.hw_sum
+dv yield_MD2L.hw_sum
+dv yield_MD2R.hw_sum
+iv beam_x.hw_sum
+iv beam_nx.hw_sum
+iv beam_y.hw_sum
+iv beam_ny.hw_sum
+iv beam_E.hw_sum
+iv beam_Q.hw_sum
+treetype Hel_Tree
+
+
+*******LinRegBevPeb::solve... alphas  
+6x4 matrix is as follows
+
+     |      0    |      1    |      2    |      3    |
+---------------------------------------------------------
+   0 |    -0.2251      0.1056     0.04784      -0.411 
+   1 |     0.1787       0.287     0.05349      0.2371 
+   2 |      -0.35      0.1478     0.04795     -0.3644 
+   3 |    -0.4039     -0.3141     0.04677      0.2745 
+   4 |     0.2702     -0.1713     0.04846      0.2706 
+   5 |    -0.2174      0.2756      0.0522       0.413 
+
+----------------         output from PAN/regressionHallA/postpan   ---
+                                      Slopes:
+                yield_MD1L.hw_sum vs. beam_x.hw_sum = -0.217393 +/- 0.00897408
+                yield_MD1L.hw_sum vs. beam_nx.hw_sum = 0.172382 +/- 0.0120117
+                yield_MD1L.hw_sum vs. beam_y.hw_sum = -0.355546 +/- 0.00833411
+                yield_MD1L.hw_sum vs. beam_ny.hw_sum = -0.4121 +/- 0.0160295
+                yield_MD1L.hw_sum vs. beam_E.hw_sum = 0.272101 +/- 0.00970957
+                yield_MD1L.hw_sum vs. beam_Q.hw_sum = -0.216153 +/- 0.0085735
+
+                yield_MD1R.hw_sum vs. beam_x.hw_sum = 0.100027 +/- 0.00982949
+                yield_MD1R.hw_sum vs. beam_nx.hw_sum = 0.292495 +/- 0.0131567
+                yield_MD1R.hw_sum vs. beam_y.hw_sum = 0.140581 +/- 0.00912852
+                yield_MD1R.hw_sum vs. beam_ny.hw_sum = -0.316988 +/- 0.0175575
+                yield_MD1R.hw_sum vs. beam_E.hw_sum = -0.175026 +/- 0.0106351
+                yield_MD1R.hw_sum vs. beam_Q.hw_sum = 0.268656 +/- 0.00939074
+
+                yield_MD2L.hw_sum vs. beam_x.hw_sum = 0.0528803 +/- 0.00638492
+                yield_MD2L.hw_sum vs. beam_nx.hw_sum = 0.0583395 +/- 0.00854615
+                yield_MD2L.hw_sum vs. beam_y.hw_sum = 0.0474228 +/- 0.0059296
+                yield_MD2L.hw_sum vs. beam_ny.hw_sum = 0.0400495 +/- 0.0114048
+                yield_MD2L.hw_sum vs. beam_E.hw_sum = 0.0451673 +/- 0.00690822
+                yield_MD2L.hw_sum vs. beam_Q.hw_sum = 0.0536914 +/- 0.00609992
+
+                yield_MD2R.hw_sum vs. beam_x.hw_sum = -0.406383 +/- 0.0148153
+                yield_MD2R.hw_sum vs. beam_nx.hw_sum = 0.231044 +/- 0.0198302
+                yield_MD2R.hw_sum vs. beam_y.hw_sum = -0.360393 +/- 0.0137588
+                yield_MD2R.hw_sum vs. beam_ny.hw_sum = 0.261625 +/- 0.0264632
+                yield_MD2R.hw_sum vs. beam_E.hw_sum = 0.264181 +/- 0.0160296
+                yield_MD2R.hw_sum vs. beam_Q.hw_sum = 0.416067 +/- 0.014154
+Filling reg tree with regressed variables
