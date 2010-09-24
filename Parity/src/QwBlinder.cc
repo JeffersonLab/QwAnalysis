@@ -40,8 +40,11 @@ void QwBlinder::DefineOptions(QwOptions &options){
  */
 QwBlinder::QwBlinder(const EQwBlindingStrategy blinding_strategy):
   fTargetBlindability_firstread(kIndeterminate),
-  fTargetBlindability(kIndeterminate),
-  fTargetPositionForced(kFALSE),
+  //  fTargetBlindability(kIndeterminate),
+  //  fTargetPositionForced(kFALSE),
+  fTargetBlindability(kNotBlindable),
+  fTargetPositionForced(kTRUE),
+  //
   fBeamCurrentThreshold(1.0),
   fBeamIsPresent(kFALSE),
   fBlindingStrategy(blinding_strategy),
@@ -877,7 +880,8 @@ QwBlinder::EQwBlinderStatus QwBlinder::CheckBlindability(){
     QwError  << "QwBlinder::CheckBlindability:  The target blindability is not determined.  "
 	     << "Fail this event." << QwLog::endl;
     status = QwBlinder::kBlindableFail;
-  } else if (fTargetBlindability!=fTargetBlindability_firstread) {
+  } else if (fTargetBlindability!=fTargetBlindability_firstread
+	     && !fTargetPositionForced) {
     QwError << "QwBlinder::CheckBlindability:  The target blindability has changed.  "
 	    << "Fail this event." << QwLog::endl;
     status = QwBlinder::kBlindableFail;
