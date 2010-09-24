@@ -603,7 +603,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 
 
 //*****************************************************************
-Int_t QwBeamLine::LoadGeometryParameters(TString mapfile){
+Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   Bool_t ldebug=kFALSE;
   TString varname, varvalue;
   Int_t lineread=1;

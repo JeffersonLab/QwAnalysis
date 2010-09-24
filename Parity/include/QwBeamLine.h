@@ -51,7 +51,7 @@ class QwBeamLine : public VQwSubsystemParity{
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
-  Int_t LoadGeometryParameters(TString mapfile);
+  Int_t LoadGeometryDefinition(TString mapfile);
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
