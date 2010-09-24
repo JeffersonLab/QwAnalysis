@@ -32,7 +32,7 @@
 //=============================================================================
 
 #define LUMI_DET_HST_NUM      4           
-
+#define NUM_POS          2
 ///
 /// \ingroup QwGUILumi
 
@@ -40,7 +40,7 @@
 #define QWGUILUMIDETECTOR_H
 
 
-#define LUMI_DET_TYPES  3
+#define LUMI_DET_TYPES  7
 
 #include <cstdlib>
 #include <cstdio>
@@ -174,6 +174,13 @@ class QwGUILumiDetector : public QwGUISubSystem {
   //!
   //!Return value: none  
   void                 LoadHistoMapFile(TString mapfile);
+
+  //!This function  prints stat info of the histogram into the command line
+  //!Parameters:
+  //! - Histogram 
+  //!
+  //!Return value: none  
+  void                 SummaryHist(TH1*in);
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.

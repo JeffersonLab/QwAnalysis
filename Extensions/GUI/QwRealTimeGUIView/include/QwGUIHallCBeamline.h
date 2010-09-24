@@ -204,6 +204,11 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //!Return value: none  
   virtual void         MakeLayout();
 
+  //!This function  prints stat info of the histogram into the command line
+  //!Parameters:
+  //! - Histogram 
+  //!
+  //!Return value: none  
   void                 SummaryHist(TH1*in);
 
  public:

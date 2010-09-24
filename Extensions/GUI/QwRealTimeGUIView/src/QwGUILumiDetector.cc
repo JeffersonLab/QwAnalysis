@@ -25,6 +25,10 @@ enum QwGUIHallCBeamlineDeviceTypes {
   UNKNOWN_TYPE,
   VQWK_LUMI,
   SCALER_LUMI,
+  DS_LUMI,
+  US_LUMI,
+  SCALER_DS_LUMI,
+  SCALER_US_LUMI,
 };
 const char *QwGUILumiDetector::LumiDetectorHists[LUMI_DET_HST_NUM] = 
   { "C20AXM_hw_raw","C20AXM_block2_raw",
@@ -194,10 +198,26 @@ void QwGUILumiDetector::LoadHistoMapFile(TString mapfile){
 	if (dettype=="integrationpmt"){
 	  //printf("%s - %s \n",modtype.Data(),namech.Data() );
 	  fLUMIDevices.at(VQWK_LUMI).push_back(namech);
+	  if (namech.Contains("uslumi")){
+	    //printf("uslumi %s - %s \n",modtype.Data(),namech.Data() );
+	    fLUMIDevices.at(US_LUMI).push_back(namech);
+	  }
+	  if (namech.Contains("dslumi")){
+	    //printf("dslumi %s - %s \n",modtype.Data(),namech.Data() );
+	    fLUMIDevices.at(DS_LUMI).push_back(namech);
+	  }
 	}
 	else if (dettype=="scalerpmt"){
 	  //printf("%s - %s \n",dettype.Data(),namech.Data() );	  
 	  fLUMIDevices.at(SCALER_LUMI).push_back(namech);
+	  if (namech.Contains("uslumi")){
+	    //printf("uslumi scaler %s - %s \n",modtype.Data(),namech.Data() );
+	    fLUMIDevices.at(SCALER_US_LUMI).push_back(namech);
+	  }
+	  if (namech.Contains("dslumi")){
+	    //printf("dslumi scaler %s - %s \n",modtype.Data(),namech.Data() );
+	    fLUMIDevices.at(SCALER_DS_LUMI).push_back(namech);
+	  }
 	}
       }
 
@@ -207,7 +227,7 @@ void QwGUILumiDetector::LoadHistoMapFile(TString mapfile){
 
   //printf("no. of hallC devices %d \n",fLUMIDevices.size());
    printf(" Hall C LUMI  Device List\n" );
-  for (Size_t i=0;i<fLUMIDevices.size();i++)
+  for (Size_t i=0;i<fLUMIDevices.size()-4;i++)
     for (Size_t j=0;j<fLUMIDevices.at(i).size();j++)
       printf("%s \n",fLUMIDevices.at(i).at(j).Data() );	  
 
@@ -252,10 +272,230 @@ void QwGUILumiDetector::ClearData()
 
 
 void QwGUILumiDetector::PlotUSLumi(){
+  TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
+
+  char histo[128];
+  
+  Int_t xcount = 0;
+  Int_t ycount = 0;
+  
+  Double_t offset = 0.5;
+  Double_t min_range = - offset;
+
+  TString dummyname;
+
+  Int_t LumiCount = fLUMIDevices.at(US_LUMI).size();
+  Double_t max_range = (Double_t)LumiCount - offset ; 
+
+  
+
+
+  
+
+  Bool_t ldebug = kFALSE;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+ 
+
+   while (1){ 
+     PosVariation[0] = new TH1F("Asym", "Asymmetry Variation",LumiCount, min_range, max_range);
+     PosVariation[1] = new TH1F("Yield", "Yield variation",LumiCount , min_range, max_range); 
+    for(Short_t p = 0; p <LumiCount ; p++) 
+    {
+
+      sprintf (histo, "asym_%s_hw",fLUMIDevices.at(US_LUMI).at(p).Data() );
+      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      if (histo1!=NULL) {
+	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
+	histo1->SetName(histo);
+	    
+	dummyname = histo1->GetName();
+	    
+	dummyname.Replace(0,9," ");
+	dummyname.ReplaceAll("_hw", "");
+	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	SummaryHist(histo1);
+	delete histo1; histo1= NULL;
+      }
+	  
+      sprintf (histo, "yield_%s_hw", fLUMIDevices.at(US_LUMI).at(p).Data());
+      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      if(histo2!=NULL){		
+	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
+	histo2->SetName(histo);
+	dummyname = histo2->GetName();
+	dummyname.Replace(0,10," ");
+	dummyname.ReplaceAll("_hw", "");
+	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+	SummaryHist(histo2);
+	delete histo2; histo2= NULL; 
+      }
+
+	  
+    }
+    xcount = 0;
+    ycount = 0;
+    mc->Clear();
+    mc->Divide(1,2);
+
+
+
+    
+    mc->cd(1);
+    PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetTitle("US LUMI Asymmetry Variation");
+    PosVariation[0] -> GetYaxis() -> SetTitle("Asymmetry");
+    PosVariation[0] -> GetXaxis() -> SetTitle("US LUMI");
+    PosVariation[0] -> Draw("E1");
+    //gPad->Update();
+    //mc->Modified();
+    //mc->Update();
+    
+    mc->cd(2);
+    PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetTitle("US LUMI Yield Variation");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("Yield");
+    PosVariation[1] -> GetXaxis() -> SetTitle("US LUMI");
+    PosVariation[1] -> Draw("E1");
+    
+    gPad->Update();
+    mc->Modified();
+    mc->Update();
+    for (Short_t p = 0; p <NUM_POS ; p++){
+      delete PosVariation[p];
+    }
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+   }
+
+  return;
+
+
+
   printf("QwGUILumiDetector::PlotUSLumi() \n");
 };
 
 void QwGUILumiDetector::PlotDSLumi(){
+  TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
+
+  char histo[128];
+  
+  Int_t xcount = 0;
+  Int_t ycount = 0;
+  
+  Double_t offset = 0.5;
+  Double_t min_range = - offset;
+
+  TString dummyname;
+
+  Int_t LumiCount = fLUMIDevices.at(DS_LUMI).size();
+  Double_t max_range = (Double_t)LumiCount - offset ; 
+
+  
+
+
+  
+
+  Bool_t ldebug = kFALSE;
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+ 
+
+   while (1){ 
+     PosVariation[0] = new TH1F("Asym", "Asymmetry Variation",LumiCount, min_range, max_range);
+     PosVariation[1] = new TH1F("Yield", "Yield variation",LumiCount , min_range, max_range); 
+    for(Short_t p = 0; p <LumiCount ; p++) 
+    {
+
+      sprintf (histo, "asym_%s_hw",fLUMIDevices.at(DS_LUMI).at(p).Data() );
+      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      if (histo1!=NULL) {
+	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
+	histo1->SetName(histo);
+	    
+	dummyname = histo1->GetName();
+	    
+	dummyname.Replace(0,9," ");
+	dummyname.ReplaceAll("_hw", "");
+	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	SummaryHist(histo1);
+	delete histo1; histo1= NULL;
+      }
+	  
+      sprintf (histo, "yield_%s_hw", fLUMIDevices.at(DS_LUMI).at(p).Data());
+      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      if(histo2!=NULL){		
+	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
+	histo2->SetName(histo);
+	dummyname = histo2->GetName();
+	dummyname.Replace(0,10," ");
+	dummyname.ReplaceAll("_hw", "");
+	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+	SummaryHist(histo2);
+	delete histo2; histo2= NULL; 
+      }
+
+	  
+    }
+    xcount = 0;
+    ycount = 0;
+    mc->Clear();
+    mc->Divide(1,2);
+
+
+
+    
+    mc->cd(1);
+    PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetTitle("DS LUMI Asymmetry Variation");
+    PosVariation[0] -> GetYaxis() -> SetTitle("Asymmetry");
+    PosVariation[0] -> GetXaxis() -> SetTitle("DS LUMI");
+    PosVariation[0] -> Draw("E1");
+    //gPad->Update();
+    //mc->Modified();
+    //mc->Update();
+    
+    mc->cd(2);
+    PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetTitle("DS LUMI Yield Variation");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("Yield");
+    PosVariation[1] -> GetXaxis() -> SetTitle("DS LUMI");
+    PosVariation[1] -> Draw("E1");
+    
+    gPad->Update();
+    mc->Modified();
+    mc->Update();
+    for (Short_t p = 0; p <NUM_POS ; p++){
+      delete PosVariation[p];
+    }
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+   }
+
+  return;
+
+
+
    printf("QwGUILumiDetector::PlotDSLumi() \n");
 };
 
@@ -272,7 +512,7 @@ void QwGUILumiDetector::LoadLUMICombo(){
   printf("QwGUILumiDetector::LoadHCBCMCombo \n");
   for(Size_t i=0;i<fLUMIDevices.at(VQWK_LUMI).size();i++){
     dComboBoxLUMI->AddEntry(fLUMIDevices.at(VQWK_LUMI).at(i),i);
-    printf("%s \n",fLUMIDevices.at(VQWK_LUMI).at(i).Data());
+    //printf("%s \n",fLUMIDevices.at(VQWK_LUMI).at(i).Data());
   }
   if (fLUMIDevices.at(VQWK_LUMI).size()>0)
     dButtonLumiAccess->SetEnabled(kTRUE);
@@ -284,7 +524,7 @@ void QwGUILumiDetector::LoadSCALERCombo(){
   printf("QwGUILumiDetector::LoadHCBCMCombo \n");
   for(Size_t i=0;i<fLUMIDevices.at(SCALER_LUMI).size();i++){
     dComboBoxSCALER->AddEntry(fLUMIDevices.at(SCALER_LUMI).at(i),i);
-    printf("%s \n",fLUMIDevices.at(VQWK_LUMI).at(i).Data());
+    //printf("%s \n",fLUMIDevices.at(VQWK_LUMI).at(i).Data());
   }
   if (fLUMIDevices.at(SCALER_LUMI).size()>0)
     dButtonScalerAccess->SetEnabled(kTRUE);
@@ -317,10 +557,10 @@ void QwGUILumiDetector::PlotLumi(){
 
       mc->cd(1);
       histo1->Draw();
-      //SummaryHist(histo1);
+      SummaryHist(histo1);
       mc->cd(2);
       histo2->Draw();
-      //SummaryHist(histo2);
+      SummaryHist(histo2);
       gPad->Update();
       gPad->Update();
 
@@ -365,10 +605,10 @@ void QwGUILumiDetector::PlotLumiScaler(){
 
       mc->cd(1);
       histo1->Draw();
-      //SummaryHist(histo1);
+      SummaryHist(histo1);
       mc->cd(2);
       histo2->Draw();
-      //SummaryHist(histo2);
+      SummaryHist(histo2);
       gPad->Update();
       gPad->Update();
 
@@ -498,3 +738,27 @@ Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   
   return kTRUE;
 }
+
+
+void QwGUILumiDetector::SummaryHist(TH1 *in)
+{
+
+  Double_t out[4] = {0.0};
+  Double_t test   = 0.0;
+
+  out[0] = in -> GetMean();
+  out[1] = in -> GetMeanError();
+  out[2] = in -> GetRMS();
+  out[3] = in -> GetRMSError();
+  test   = in -> GetRMS()/sqrt(in->GetEntries());
+
+  printf("%sName%s", BOLD, NORMAL);
+  printf("%22s", in->GetName());
+  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
+  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+  return;
+};
+
