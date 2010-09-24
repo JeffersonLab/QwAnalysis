@@ -57,9 +57,6 @@ void VQwBPM::GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t
 {
   // Read in the electronic factors from the file
   Bool_t ldebug = kFALSE;
-  BSENfactor = 1.0;
-  AlphaX = 1.0;
-  AlphaY = 1.0;
 
   fQwStriplineCalibration = BSENfactor*18.81;
    fRelativeGains[0]=AlphaX;
