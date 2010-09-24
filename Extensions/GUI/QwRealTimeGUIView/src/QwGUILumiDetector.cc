@@ -2,8 +2,30 @@
 #include <iostream>
 #include "TLine.h"
 
+#include <TG3DLine.h>
+#include "TGaxis.h"
+
 ClassImp(QwGUILumiDetector);
 
+
+enum QwGUILumiDetectorIndentificator {
+  BA_DS_LUMI,
+  BA_US_LUMI,
+  BA_LUMI,
+  BA_SCALER,
+ 
+};
+enum QwGUILumiDetectorComboBox {
+  CMB_LUMI,
+  CMB_SCALER,
+};
+
+//LUMI_DET_TYPES is the size of the enum
+enum QwGUIHallCBeamlineDeviceTypes {
+  UNKNOWN_TYPE,
+  VQWK_LUMI,
+  SCALER_LUMI,
+};
 const char *QwGUILumiDetector::LumiDetectorHists[LUMI_DET_HST_NUM] = 
   { "C20AXM_hw_raw","C20AXM_block2_raw",
     "AmpCh1_block1_raw","H00_YP_block1_raw"};
@@ -21,7 +43,25 @@ QwGUILumiDetector::QwGUILumiDetector(const TGWindow *p, const TGWindow *main, co
   dButtonUser = NULL;
   dButtonDetail = NULL;
 
+  dButtonUSLumi = NULL;
+  dButtonDSLumi = NULL;
+  dButtonLumiAccess = NULL;
+  dButtonScalerAccess = NULL;
+  dLumiFrame  = NULL;
+  dSCALERFrame  = NULL;
+  dComboBoxLUMI  = NULL;
+  dComboBoxSCALER  = NULL;
+
+  PosVariation[0] = NULL;
+  PosVariation[1] = NULL;
+
+  LoadHistoMapFile(Form("%s/Parity/prminput/qweak_lumi.map",gSystem->Getenv("QWANALYSIS")));
+
+
   AddThisTab(this);
+  LoadLUMICombo();//Load LUMI list into the combo box
+  LoadSCALERCombo();//Load LUMI_SCALER list into the combo box
+
 }
 
 QwGUILumiDetector::~QwGUILumiDetector()
@@ -31,6 +71,14 @@ QwGUILumiDetector::~QwGUILumiDetector()
   if(dTabLayout) delete dTabLayout;
   if(dCnvLayout) delete dCnvLayout;
   if(dBtnLayout) delete dBtnLayout;
+  if(dButtonUSLumi) delete dButtonUSLumi;
+  if(dButtonDSLumi) delete dButtonDSLumi;
+  if(dButtonLumiAccess) delete dButtonLumiAccess;
+  if(dButtonScalerAccess) delete dButtonScalerAccess;
+  if(dLumiFrame) delete dLumiFrame;
+  if(dSCALERFrame) delete dSCALERFrame;
+  if(dComboBoxLUMI) delete dComboBoxLUMI;
+  if(dComboBoxSCALER) delete dComboBoxSCALER;
 
   RemoveThisTab(this);
   IsClosing(GetName());
@@ -47,39 +95,137 @@ void QwGUILumiDetector::MakeLayout()
 
 
 
-  dTabFrame = new TGHorizontalFrame(this,10,10);
-  dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,10, 10);    
+  dTabFrame = new TGHorizontalFrame(this);
+  AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 5, 5));
+
+  dControlsFrame = new TGVerticalFrame(this);
+  dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
+
+  TGVertical3DLine *separator = new TGVertical3DLine(this);
+  dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
+
+
+  dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+
+  //hall c lumi access frame
+  dLumiFrame= new TGVerticalFrame(dControlsFrame,50,100);
+  //hall c lumi scaler access frame
+  dSCALERFrame= new TGVerticalFrame(dControlsFrame,50,100);
+
+  dButtonLumiAccess=new TGTextButton(dLumiFrame, "&Lumis Asym/Yield", BA_LUMI);
+  dButtonLumiAccess->SetEnabled(kFALSE);
+  dButtonScalerAccess=new TGTextButton(dSCALERFrame, "&Scaler Asym/Yield", BA_SCALER);
+  dButtonScalerAccess->SetEnabled(kFALSE);
   
-  dButtonUser = new TGTextButton(this, "&User",  1);
+
+  dButtonUSLumi=new TGTextButton(dControlsFrame, "&US Lumis Means", BA_US_LUMI);
+  dButtonDSLumi=new TGTextButton(dControlsFrame, "&DS Lumis Means", BA_DS_LUMI);
+
+  dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
+  
+
+  dControlsFrame->AddFrame(dButtonUSLumi,dBtnLayout );
+  dControlsFrame->AddFrame(dButtonDSLumi,dBtnLayout );
+  dControlsFrame->AddFrame(dLumiFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
+  dControlsFrame->AddFrame(dSCALERFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
+
+  
+
+  //Add LUMI  combo box
+  dComboBoxLUMI=new TGComboBox(dLumiFrame,CMB_LUMI);
+  dComboBoxLUMI->Resize(125,20);//To make it better looking
+
+  //Add SCALER  combo box
+  dComboBoxSCALER=new TGComboBox(dSCALERFrame,CMB_SCALER);
+  dComboBoxSCALER->Resize(125,20);//To make it better looking
+  
+
+  dLumiFrame->AddFrame(dComboBoxLUMI, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
+  dLumiFrame->AddFrame(dButtonLumiAccess, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
+  dSCALERFrame->AddFrame(dComboBoxSCALER, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 10, 10, 5, 5));
+  dSCALERFrame->AddFrame(dButtonScalerAccess, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
+  //dButtonUser = new TGTextButton(this, "&User",  1);
   //dButtonPos->SetCommand("printf(\"Reading position information %s\\n\","
   //                       "gROOT->GetVersion());");
 
-  dButtonDetail = new TGTextButton(this, "&Detail", 2);
+  //dButtonDetail = new TGTextButton(this, "&Detail", 2);
   //dButtonCharge->SetCommand("printf(\"Reading charge asymmetires \n\")" );
  
 
  
-  dTabFrame->AddFrame(dCanvas,dCnvLayout);
-  dTabFrame->Resize(GetWidth(),GetHeight());
-  AddFrame(dTabFrame,dTabLayout);
-  AddFrame(dButtonUser, dBtnLayout);
-  AddFrame(dButtonDetail, dBtnLayout);
-
-  dButtonUser -> Associate(this);
-  dButtonDetail -> Associate(this);
+  dButtonUSLumi -> Associate(this);
+  dButtonDSLumi -> Associate(this);
+  dButtonLumiAccess -> Associate(this);
+  dButtonScalerAccess -> Associate(this);
+  dComboBoxLUMI -> Associate(this);
+  dComboBoxSCALER -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				"QwGUILumiDetector",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
-  Int_t wid = dCanvas->GetCanvasWindowId();
-  QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
-  dCanvas->AdoptCanvas(mc);
+ 
 
-  mc->Divide( LUMI_DET_HST_NUM/2, LUMI_DET_HST_NUM/2);
+  dCanvas->GetCanvas()->SetBorderMode(0);
+  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+				"QwGUIHallCBeamline",
+				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
 }
+
+void QwGUILumiDetector::LoadHistoMapFile(TString mapfile){
+  TString varname, varvalue;
+  TString modtype, namech,dettype;
+  Int_t count_names;
+  fLUMIDevices.resize(LUMI_DET_TYPES);
+  QwParameterFile mapstr(mapfile.Data());  //Open the file
+  //fLUMIDevices.clear();
+  while (mapstr.ReadNextLine()){
+    mapstr.TrimComment('!');   // Remove everything after a '!' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
+    /*
+    if (mapstr.HasVariablePair("=",varname,varvalue)){
+      if (varname=="name"){
+	//printf("%s - %s \n",varname.Data(),varvalue.Data());
+	fLUMIDevices.at(COMBINED).push_back(varvalue);
+      }
+    }
+    else
+    */{
+
+      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+      if (modtype=="VQWK" || modtype=="SCALER"){
+	mapstr.GetNextToken(", ");	//slot number
+	mapstr.GetNextToken(", ");	//channel number
+	dettype=mapstr.GetNextToken(", ");	//type-purpose of the detector
+	dettype.ToLower();
+	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	namech.ToLower();
+
+	if (dettype=="integrationpmt"){
+	  //printf("%s - %s \n",modtype.Data(),namech.Data() );	  
+	  fLUMIDevices.at(VQWK_LUMI).push_back(namech);
+	}
+	else if (dettype=="scalerpmt"){
+	  //printf("%s - %s \n",dettype.Data(),namech.Data() );	  
+	  fLUMIDevices.at(SCALER_LUMI).push_back(namech);
+	}
+      }
+
+    }
+
+  }
+
+  //printf("no. of hallC devices %d \n",fLUMIDevices.size());
+   printf(" Hall C LUMI  Device List\n" );
+  for (Size_t i=0;i<fLUMIDevices.size();i++)
+    for (Size_t j=0;j<fLUMIDevices.at(i).size();j++)
+      printf("%s \n",fLUMIDevices.at(i).at(j).Data() );	  
+
+};
 
 void QwGUILumiDetector::OnReceiveMessage(char *obj)
 {
@@ -167,6 +313,59 @@ void QwGUILumiDetector::PlotData()
 
 }
 
+void QwGUILumiDetector::PlotUSLumi(){
+  printf("QwGUILumiDetector::PlotUSLumi() \n");
+};
+
+void QwGUILumiDetector::PlotDSLumi(){
+   printf("QwGUILumiDetector::PlotDSLumi() \n");
+};
+
+void QwGUILumiDetector::SetComboIndex(Short_t cmb_id, Short_t id){
+    if (cmb_id==CMB_LUMI)
+      fCurrentLUMIIndex=id;
+    //else
+    //fCurrentBCMIndex=-1;
+
+    if (cmb_id==CMB_SCALER)
+      fCurrentSCALERIndex=id;
+    //else
+    //fCurrentSCALERIndex=-1;  
+};
+
+void QwGUILumiDetector::LoadLUMICombo(){
+  dComboBoxLUMI->RemoveAll();
+  printf("QwGUILumiDetector::LoadHCBCMCombo \n");
+  for(Size_t i=0;i<fLUMIDevices.at(VQWK_LUMI).size();i++){
+    dComboBoxLUMI->AddEntry(fLUMIDevices.at(VQWK_LUMI).at(i),i);
+    printf("%s \n",fLUMIDevices.at(VQWK_LUMI).at(i).Data());
+  }
+  if (fLUMIDevices.at(VQWK_LUMI).size()>0)
+    dButtonLumiAccess->SetEnabled(kTRUE);
+  fCurrentLUMIIndex=-1;  
+};
+
+void QwGUILumiDetector::LoadSCALERCombo(){
+  dComboBoxSCALER->RemoveAll();
+  printf("QwGUILumiDetector::LoadHCBCMCombo \n");
+  for(Size_t i=0;i<fLUMIDevices.at(SCALER_LUMI).size();i++){
+    dComboBoxSCALER->AddEntry(fLUMIDevices.at(SCALER_LUMI).at(i),i);
+    printf("%s \n",fLUMIDevices.at(VQWK_LUMI).at(i).Data());
+  }
+  if (fLUMIDevices.at(SCALER_LUMI).size()>0)
+    dButtonScalerAccess->SetEnabled(kTRUE);
+  fCurrentSCALERIndex=-1;    
+};
+
+
+void QwGUILumiDetector::PlotLumi(){
+  
+};
+
+void QwGUILumiDetector::PlotLumiScaler(){
+  
+};
+
 void QwGUILumiDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
   if(event == kButton1Double){
@@ -209,136 +408,69 @@ Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
     }
 
   case kC_COMMAND:
-    switch (GET_SUBMSG(msg)) 
-      {
+    if(dROOTCont){
+      switch (GET_SUBMSG(msg)) 
+	{
       
 	case kCM_BUTTON:
 	  {
-	    TCanvas *mc = dCanvas->GetCanvas();
-
-	    TIter next(HistArray.MakeIterator());
-	    
 	    switch(parm1)
 	      {
-	      case 1:
-		{
-		printf("text button id %ld pressed\n", parm1);
-		mc->Clear();
-		TH2F *hist2_1 = new TH2F("","Asymmetry vs Lumi",100,0,0,100,0,0);
-		TH2F *hist2_2 = new TH2F("","Asymmetry Width vs Lumi",100,0,0,100,0,0);
-		Double_t x=0,y=0,yw=0;;
-		for (int i=1; i<9; i++) {
-			x=i;
-			y=0;
-			yw=0;
-			hist2_1->Fill(x,y);
-			hist2_2->Fill(x,yw);
-			//cout << x<<"\n";
-			}
-		TAxis *Xaxis = hist2_1->GetXaxis();
-		TAxis *Yaxis = hist2_1->GetYaxis();
-		Yaxis->SetTitle("Asymmetry");
-		Xaxis->SetTitle("Luminosity Monitor #");
-		hist2_1->SetMarkerStyle(21);
-
-		TAxis *X2axis = hist2_2->GetXaxis();
-		TAxis *Y2axis = hist2_2->GetYaxis();
-		Y2axis->SetTitle("Asymmetry Width");
-		X2axis->SetTitle("Luminosity Monitor #");
-		hist2_1->SetMarkerStyle(21);
-		hist2_2->SetMarkerStyle(21);
-
-		mc->Divide(1,2);
-		mc->cd(1);
-		hist2_1->Draw();
-		mc->cd(2);
-		hist2_2->Draw();
-		TLine *l = new TLine(1,0,8,0);
-		l->Draw("same");
-		mc->Update();
-
-
+	      case BA_DS_LUMI:
+		PlotDSLumi();
 		break;
-		}
-
-	      case 2:
-		{
-		printf("text button id %ld pressed\n", parm1);
-		mc->Clear();
-		TH1F *hist1 = new TH1F("Lumi 1","Asymmetry",100,0,0);
-		TH1F *hist2 = new TH1F("Lumi 2","Asymmetry",100,0,0);
-		TH1F *hist3 = new TH1F("Lumi 3","Asymmetry",100,0,0);
-		TH1F *hist4 = new TH1F("Lumi 4","Asymmetry",100,0,0);
-		TH1F *hist5 = new TH1F("Lumi 5","Asymmetry",100,0,0);
-		TH1F *hist6 = new TH1F("Lumi 6","Asymmetry",100,0,0);
-		TH1F *hist7 = new TH1F("Lumi 7","Asymmetry",100,0,0);
-		TH1F *hist8 = new TH1F("Lumi 8","Asymmetry",100,0,0);
-
-		hist1->Fill(1,10000);
-		hist2->Fill(1,10000);
-		hist3->Fill(1,10000);
-		hist4->Fill(1,10000);
-		hist5->Fill(1,10000);
-		hist6->Fill(1,10000);
-		hist7->Fill(1,10000);
-		hist8->Fill(1,10000);
-
-		mc->Divide( 3,3);
-
-		mc->cd(1);
-		hist1->Draw();
-		mc->cd(2);
-		hist2->Draw();
-		mc->cd(3);
-		hist3->Draw();
-		mc->cd(4);
-		hist4->Draw();
-		mc->cd(6);
-		hist5->Draw();
-		mc->cd(7);
-		hist6->Draw();
-		mc->cd(8);
-		hist7->Draw();
-		mc->cd(9);
-		hist8->Draw();
-
-		mc->Update();
+	      case BA_US_LUMI:
+		PlotUSLumi();
 		break;
-		}
+	      case BA_LUMI:
+		PlotLumi();
+	      case BA_SCALER:
+		PlotLumiScaler();
+		break;
 	      }
 
 	    break;
 	  }
 
-    case kCM_COMBOBOX:
-      {
-	switch (parm1) {
-	case M_TBIN_SELECT:
+	case kCM_COMBOBOX:
+	  {
+	    switch (parm1) {
+	    case M_TBIN_SELECT:
+	      break;
+	    case CMB_LUMI:
+	      SetComboIndex(CMB_LUMI,parm2);
+	      break;
+	    case CMB_SCALER:
+	      SetComboIndex(CMB_SCALER,parm2);
+	      break;
+	      
+	    }
+	  }
+	  break;
+
+	case kCM_MENUSELECT:
+	  break;
+	  
+	case kCM_MENU:
+
+	  switch (parm1) {
+	
+	  case M_FILE_OPEN:
+	    break;
+	
+	
+
+	  default:
+	    break;
+	  }
+      
+	default:
 	  break;
 	}
-      }
-      break;
-
-    case kCM_MENUSELECT:
-      break;
-      
-    case kCM_MENU:
-
-      switch (parm1) {
-	
-      case M_FILE_OPEN:
-	break;
-
-	
-
-      default:
-	break;
-      }
-      
-    default:
-      break;
+    }else{
+      std::cout<<"Please load the map file to view data. \n";
     }
-    
+  
   default:
     break;
   }

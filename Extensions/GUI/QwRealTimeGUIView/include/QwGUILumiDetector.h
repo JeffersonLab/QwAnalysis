@@ -6,7 +6,7 @@
 /**
  
    \file QwGUILumiDetector.h
-   \author Michael Gericke
+   \author Rakitha Beminiwattha
      
 */
 //=============================================================================
@@ -40,30 +40,64 @@
 #define QWGUILUMIDETECTOR_H
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <TRootEmbeddedCanvas.h>
-#include <TRootCanvas.h>
+#define LUMI_DET_TYPES  3
+
+#include <cstdlib>
+#include <cstdio>
+
+#include <iostream>
+#include <iomanip>
+#include <string>
+
+#include <TMapFile.h>
+
+#include "TRootEmbeddedCanvas.h"
+#include "TRootCanvas.h"
+#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
+
 #include "RSDataWindow.h"
+
+
+#ifndef __CINT__
+
+#include "QwOptions.h"
+#include "QwParameterFile.h"
+
+#endif /* __CINT__ */
 
 class QwGUILumiDetector : public QwGUISubSystem {
 
   
   TGHorizontalFrame   *dTabFrame;
-  TRootEmbeddedCanvas *dCanvas;  
+  TRootEmbeddedCanvas *dCanvas; 
+  TGVerticalFrame     *dControlsFrame;
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
   TGLayoutHints       *dBtnLayout;
 
   TGTextButton        *dButtonUser;
   TGTextButton        *dButtonDetail;
+
+  TGTextButton        *dButtonUSLumi;
+  TGTextButton        *dButtonDSLumi;
+  TGTextButton        *dButtonLumiAccess;
+  TGTextButton        *dButtonScalerAccess;
+
+  TGVerticalFrame     *dLumiFrame; //Individual Lumi access frame
+  TGVerticalFrame     *dSCALERFrame; //Individual Lumi scaler access frame
+
+
+  TGComboBox          *dComboBoxLUMI;
+  TGComboBox          *dComboBoxSCALER;
+  
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
+
+  TH1F *PosVariation[2] ;//to store mean values for LUMI/SCALER devices
 
   //!This function just plots some histograms in the main canvas, just for illustrative purposes
   //!for now.
@@ -84,9 +118,79 @@ class QwGUILumiDetector : public QwGUISubSystem {
   //!Return value: none  
   void                 ClearData();
 
+  //!This function Sets the combo index/combo element index
+  //!
+  //!Parameters:
+  //! - combo box id 
+  //! - combo box element id
+  //!Return value: none 
+  void SetComboIndex(Short_t cmb_id, Short_t id);
+
+  //!This function loads list of Lumi available in the hall c . 
+  //!based on the map file read by LoadChannelMap routine
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void LoadLUMICombo();
+  
+  //!This function loads list of Lumi scalers available in the hall c . 
+  //!based on the map file read by LoadChannelMap routine
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void LoadSCALERCombo();
+
+
+   //!This function Draws US Lumi devices MEAN  histograms/plots from the Memory map file. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotUSLumi();
+
+   //!This function Draws DS Lumi devices MEAN histograms/plots from the Memory map file. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotDSLumi();
+
+   //!This function Draws Lumi histograms/plots from the Memory map file. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotLumi();
+
+   //!This function Draws Lumi scaler histograms/plots from the Memory map file. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotLumiScaler();
+
+
+  //!This function  loads the histogram names from a definition file
+  //!Parameters:
+  //! - Histogram names map file name
+  //!
+  //!Return value: none  
+  void                 LoadHistoMapFile(TString mapfile);
+
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
   static const char   *LumiDetectorHists[LUMI_DET_HST_NUM];
+
+
+  std::vector<std::vector<TString> > fLUMIDevices; //2D vector since we have several types of device - VQWK, SCALAR and COMBINED
+  Short_t fCurrentLUMIIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
+  Short_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
  protected:
 
