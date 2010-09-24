@@ -134,24 +134,17 @@ void QwGUILumiDetector::MakeLayout()
 
   //Add LUMI  combo box
   dComboBoxLUMI=new TGComboBox(dLumiFrame,CMB_LUMI);
-  dComboBoxLUMI->Resize(125,20);//To make it better looking
+  dComboBoxLUMI->Resize(100,20);//To make it better looking
 
   //Add SCALER  combo box
   dComboBoxSCALER=new TGComboBox(dSCALERFrame,CMB_SCALER);
-  dComboBoxSCALER->Resize(125,20);//To make it better looking
+  dComboBoxSCALER->Resize(100,20);//To make it better looking
   
 
   dLumiFrame->AddFrame(dComboBoxLUMI, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
   dLumiFrame->AddFrame(dButtonLumiAccess, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
   dSCALERFrame->AddFrame(dComboBoxSCALER, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 10, 10, 5, 5));
   dSCALERFrame->AddFrame(dButtonScalerAccess, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
-  //dButtonUser = new TGTextButton(this, "&User",  1);
-  //dButtonPos->SetCommand("printf(\"Reading position information %s\\n\","
-  //                       "gROOT->GetVersion());");
-
-  //dButtonDetail = new TGTextButton(this, "&Detail", 2);
-  //dButtonCharge->SetCommand("printf(\"Reading charge asymmetires \n\")" );
- 
 
  
   dButtonUSLumi -> Associate(this);
@@ -160,13 +153,6 @@ void QwGUILumiDetector::MakeLayout()
   dButtonScalerAccess -> Associate(this);
   dComboBoxLUMI -> Associate(this);
   dComboBoxSCALER -> Associate(this);
-
-  dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				"QwGUILumiDetector",
-				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
-
- 
 
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
@@ -206,7 +192,7 @@ void QwGUILumiDetector::LoadHistoMapFile(TString mapfile){
 	namech.ToLower();
 
 	if (dettype=="integrationpmt"){
-	  //printf("%s - %s \n",modtype.Data(),namech.Data() );	  
+	  //printf("%s - %s \n",modtype.Data(),namech.Data() );
 	  fLUMIDevices.at(VQWK_LUMI).push_back(namech);
 	}
 	else if (dettype=="scalerpmt"){
@@ -237,39 +223,13 @@ void QwGUILumiDetector::OnReceiveMessage(char *obj)
 void QwGUILumiDetector::OnObjClose(char *obj)
 {
   if(!strcmp(obj,"dROOTFile")){
-//     printf("Called QwGUILumiDetector::OnObjClose\n");
-
     dROOTCont = NULL;
   }
 }
 
 void QwGUILumiDetector::OnNewDataContainer()
 {
-  /*
-    //All the tree accesses are disabled
-  TObject *obj;
-  TObject *copy;
-  ClearData();
 
-  std::cout<<"On new Data container!\n";
-  if(dROOTCont){
-    for(int p = 0; p < LUMI_DET_HST_NUM; p++){
-	
-      obj = dROOTCont->ReadData(LumiDetectorHists[p]);      
-      if(obj==NULL)  std::cout<<"no data for lumis\n";
-      if(obj){
-
-	if(obj->InheritsFrom("TH1")){
-	  copy = obj->Clone();
-	  ((TH1*)copy)->SetName(Form("%s_cp",((TH1*)obj)->GetName()));
-	  ((TH1*)copy)->SetDirectory(0);
-	  HistArray.Add(copy);
-	}
-      }
-    }
-  }  
-  */
-  PlotData();
 }
 
 void QwGUILumiDetector::OnRemoveThisTab()
@@ -290,28 +250,6 @@ void QwGUILumiDetector::ClearData()
   HistArray.Clear();
 }
 
-void QwGUILumiDetector::PlotData()
-{
-  
-  //All the tree accesses are disabled  
-  Int_t ind = 1;
-
-  TCanvas *mc = dCanvas->GetCanvas();
-/*
-  TObject *obj;
-  TIter next(HistArray.MakeIterator());
-  obj = next();
-  while(obj){
-    mc->cd(ind);
-    ((TH1*)obj)->Draw("");
-    ind++;
-    obj = next();
-  }
-  */
-  mc->Modified();
-  mc->Update();
-
-}
 
 void QwGUILumiDetector::PlotUSLumi(){
   printf("QwGUILumiDetector::PlotUSLumi() \n");
@@ -324,13 +262,9 @@ void QwGUILumiDetector::PlotDSLumi(){
 void QwGUILumiDetector::SetComboIndex(Short_t cmb_id, Short_t id){
     if (cmb_id==CMB_LUMI)
       fCurrentLUMIIndex=id;
-    //else
-    //fCurrentBCMIndex=-1;
 
     if (cmb_id==CMB_SCALER)
       fCurrentSCALERIndex=id;
-    //else
-    //fCurrentSCALERIndex=-1;  
 };
 
 void QwGUILumiDetector::LoadLUMICombo(){
@@ -359,11 +293,97 @@ void QwGUILumiDetector::LoadSCALERCombo(){
 
 
 void QwGUILumiDetector::PlotLumi(){
+  TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
+  char histo[128]; //name of the histogram
   
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+
+  
+
+   while (1){
+     if (fCurrentLUMIIndex<0)
+       break;
+     sprintf (histo, "asym_%s_hw",fLUMIDevices.at(VQWK_LUMI).at(fCurrentLUMIIndex).Data() );
+     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     sprintf (histo, "yield_%s_hw",fLUMIDevices.at(VQWK_LUMI).at(fCurrentLUMIIndex).Data() );
+     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+    
+    if (histo1!=NULL || histo2!=NULL ) {
+    
+      mc->Clear();
+      mc->Divide(1,2);
+
+      mc->cd(1);
+      histo1->Draw();
+      //SummaryHist(histo1);
+      mc->cd(2);
+      histo2->Draw();
+      //SummaryHist(histo2);
+      gPad->Update();
+      gPad->Update();
+
+      mc->Modified();
+      mc->Update();
+    }
+
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+  }
+  
+
+   printf("---------------PlotLUMI()--------------------\n");
+  //mc->Modified();
+  //mc->Update(); 
 };
 
 void QwGUILumiDetector::PlotLumiScaler(){
+  TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
+  char histo[128]; //name of the histogram
   
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+
+  
+
+   while (1){
+     if (fCurrentSCALERIndex<0)
+       break;
+     sprintf (histo, "asym_%s",fLUMIDevices.at(SCALER_LUMI).at(fCurrentSCALERIndex).Data() );
+     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     sprintf (histo, "yield_%s",fLUMIDevices.at(SCALER_LUMI).at(fCurrentSCALERIndex).Data() );
+     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+    
+    if (histo1!=NULL || histo2!=NULL ) {
+    
+      mc->Clear();
+      mc->Divide(1,2);
+
+      mc->cd(1);
+      histo1->Draw();
+      //SummaryHist(histo1);
+      mc->cd(2);
+      histo2->Draw();
+      //SummaryHist(histo2);
+      gPad->Update();
+      gPad->Update();
+
+      mc->Modified();
+      mc->Update();
+    }
+
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+  }
+  
+
+   printf("---------------PlotLumiScaler()--------------------\n");  
 };
 
 void QwGUILumiDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
@@ -424,6 +444,7 @@ Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		break;
 	      case BA_LUMI:
 		PlotLumi();
+		break;
 	      case BA_SCALER:
 		PlotLumiScaler();
 		break;
@@ -468,7 +489,7 @@ Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  break;
 	}
     }else{
-      std::cout<<"Please load the map file to view data. \n";
+      std::cout<<"Please load the map file to view data. (Use Menubar->MemoryMap->Load Memory)\n";
     }
   
   default:

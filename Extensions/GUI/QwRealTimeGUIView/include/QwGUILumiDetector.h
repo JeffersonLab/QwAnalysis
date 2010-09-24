@@ -99,14 +99,6 @@ class QwGUILumiDetector : public QwGUISubSystem {
 
   TH1F *PosVariation[2] ;//to store mean values for LUMI/SCALER devices
 
-  //!This function just plots some histograms in the main canvas, just for illustrative purposes
-  //!for now.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  void                 PlotData();
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
