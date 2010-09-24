@@ -10,26 +10,33 @@
 ! The target offset values were obtained from data transmital C1307 from the survey done on
 ! 21st July 2010.
 !
-! device type, device_name, Xoffset, Yoffset, Zoffset
+! BSEN scaling factor: Bpm SENsitivity scaling factor is the ratio of general BSEN = 18.81 
+! seen in most of the BPMs in the hall and the actual BSEN of a BPM. 
+! Almost all the BPMs in the hallC beamline except 3H08 has BSEN=25.8. So we use this factor to 
+! apply such changes.
+!
+! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY
 !
  
- bpmstripline,   QWK_3C17,   0.4, -0.3,  -354367.5 
- bpmstripline,   QWK_3C18,   0.0, -0.6,  -355792.2
- bpmstripline,   QWK_3C19,   0.2,  0.1,  -356832.0
- bpmstripline,   QWK_3P01,   0.8,  1.0,  -359500.7
- bpmstripline,   QWK_3P02A, -1.0, -0.7,  -361702.5
- bpmstripline,   QWK_3P02B,  0.2, -0.1,  -362971.6
- bpmstripline,   QWK_3P03A,  0.6, -0.7,  -365241.3
- bpmstripline,   QWK_3C20,   0.2,  0.1,  -367815.7
- bpmstripline,   QWK_3C21,   0.2, -0.2,  -368892.8
- bpmstripline,   QWK_3H02,   0.2,  0.7,  -375965.7
- bpmstripline,   QWK_3H04A, -0.6, -0.4,  -377948.1
- bpmstripline,   QWK_3H07A,  0.4,  0.8,  -384906.8
- bpmstripline,   QWK_3H07B,  0.2, -0.2,  -385896.0
- bpmstripline,   QWK_3H07C,  0.6,  0.0,  -386424.7
- bpmstripline,   QWK_3H08,   0.1, -0.1,  -388962.4
- bpmstripline,   QWK_3H09,   0.3, -0.4,  -389979.5
- bpmstripline,   QWK_3H09B, -0.9, -0.3,  -392002.5
- combinedbpm,    QWK_TARGET  0.1,  0.1,  -393103.24    ! This is the position of the qweak hydrogen target. 	
+ bpmstripline,   QWK_3C17,   0.4, -0.3,  -354367.5,  	1.0,  	0.947455,  0.877913
+ bpmstripline,   QWK_3C18,   0.0, -0.6,  -355792.2,  	1.0,  	0.741194,  1.04164
+ bpmstripline,   QWK_3C19,   0.2,  0.1,  -356832.0,  	1.0,  	1.026,	   1.01101
+ bpmstripline,   QWK_3P01,   0.8,  1.0,  -359500.7,  	1.0,  	0.913658,  1.06642
+ bpmstripline,   QWK_3P02A, -1.0, -0.7,  -361702.5,  	1.0,  	0.98225,   0.986716
+ bpmstripline,   QWK_3P02B,  0.2, -0.1,  -362971.6,  	1.0,    1.0,       1.0
+ bpmstripline,   QWK_3P03A,  0.6, -0.7,  -365241.3,  	1.0,  	0.909295,  1.0067
+ bpmstripline,   QWK_3C20,   0.2,  0.1,  -367815.7,  	1.0,    0.904796,  0.99587
+ bpmstripline,   QWK_3C21,   0.2, -0.2,  -368892.8,  	1.0,    1.0,       1.0,   ! check
+ bpmstripline,   QWK_3H02,   0.2,  0.7,  -375965.7,  	1.0,    0.973625,  1.05213
+ bpmstripline,   QWK_3H04,  -0.6, -0.4,  -377948.1,  	1.0,    1.08225,   1.03204
+ bpmstripline,   QWK_3H07A,  0.4,  0.8,  -384906.8,  	1.0,    0.960181,  1.07193
+ bpmstripline,   QWK_3H07B,  0.2, -0.2,  -385896.0,  	1.0,    1.02224,   1.01571
+ bpmstripline,   QWK_3H07C,  0.6,  0.0,  -386424.71, 	1.0,    1.01311,   0.985986
+ bpmstripline,   QWK_3H08,   0.1, -0.1,  -388962.4,  	1.372,  1.03936,   1.05547
+ bpmstripline,   QWK_3H09,   0.3, -0.4,  -389979.5,  	1.0,    1.02593,   0.99364
+ bpmstripline,   QWK_3H09B, -0.9, -0.3,  -392002.5,  	1.0,  	0.948778,  1.26491
+
+! The representative bpm for qweak hydrogen target.	
+ combinedbpm,    QWK_TARGET  0.1,  0.1,  -393103.24, 	1.0,  	1.0,  	   1.0     	
 
 !END

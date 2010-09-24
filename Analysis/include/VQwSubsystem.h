@@ -122,7 +122,7 @@ class VQwSubsystem {
   /// Mandatory parameter file definition
   virtual Int_t LoadInputParameters(TString mapfile) = 0;
   /// Optional geometry definition
-  virtual Int_t LoadGeometryDefinition(TString mapfile) { return 0; };
+  virtual Int_t LoadGeometryParameters(TString mapfile) { return 0; };
   /// Optional event cut file
   virtual Int_t LoadEventCuts(TString mapfile) { return 0; };
 

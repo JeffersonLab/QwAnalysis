@@ -58,10 +58,10 @@ sample_size==480
    VQWK, 4, 1,  bpmstripline,  QWK_3C19XM
    VQWK, 4, 2,  bpmstripline,  QWK_3C19YP
    VQWK, 4, 3,  bpmstripline,  QWK_3C19YM
-   VQWK, 4, 4,  bpmstripline,  QWK_3C07AXP
-   VQWK, 4, 5,  bpmstripline,  QWK_3C07AXM
-   VQWK, 4, 6,  bpmstripline,  QWK_3C07AYP
-   VQWK, 4, 7,  bpmstripline,  QWK_3C07AYM
+   VQWK, 4, 4,  bpmstripline,  QWK_3PO1XP
+   VQWK, 4, 5,  bpmstripline,  QWK_3P01XM
+   VQWK, 4, 6,  bpmstripline,  QWK_3P01YP
+   VQWK, 4, 7,  bpmstripline,  QWK_3P01YM
 
 !ADC5	
    VQWK, 5, 0,  bpmstripline,  QWK_3P02AXP
@@ -94,10 +94,10 @@ sample_size==480
    VQWK, 7, 7,  bpmstripline,  QWK_3H02YM
 
 !ADC8
-   VQWK, 8, 0,  bpmstripline,  QWK_3H04AXP
-   VQWK, 8, 1,  bpmstripline,  QWK_3H04AXM
-   VQWK, 8, 2,  bpmstripline,  QWK_3H04AYP
-   VQWK, 8, 3,  bpmstripline,  QWK_3H04AYM
+   VQWK, 8, 0,  bpmstripline,  QWK_3H04XP
+   VQWK, 8, 1,  bpmstripline,  QWK_3H04XM
+   VQWK, 8, 2,  bpmstripline,  QWK_3H04YP
+   VQWK, 8, 3,  bpmstripline,  QWK_3H04YM
    VQWK, 8, 4,  bpmstripline,  QWK_3H07AXP
    VQWK, 8, 5,  bpmstripline,  QWK_3H07AXM
    VQWK, 8, 6,  bpmstripline,  QWK_3H07AYP
@@ -147,7 +147,7 @@ sample_size==480
 
 
 !**************************************************************************
-! HALL C BEAMLINE SCALERS : HALO MONITORS
+! HALL C BEAMLINE SCALERS
 !**************************************************************************
 Bank=0x6103
 !

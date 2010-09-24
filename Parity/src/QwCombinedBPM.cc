@@ -249,17 +249,6 @@ void  QwCombinedBPM::ProcessEvent()
   static QwVQWK_Channel  tmpQADC("tmpQADC"), tmpADC("tmpADC");
 
 
-  // check to see if there are correct number of elements to perform least squares fit on.
-  // For a linear fit the number of points should be greater than 2.
-  // If not stop the process.
-
-//   if(fElement.size()<2)
-//     {
-//       QwWarning<<" QwCombinedBPM:: Process event can't carry out the linear least square fit with o 2 points!"
-// 	       <<QwLog::endl;
-//       abort();
-//     }
-
   //check to see if the fixed parameters are calculated
   if(!fixedParamCalculated){
     if(ldebug) std::cout<<"QwCombinedBPM:Calculating fixed parameters..\n";

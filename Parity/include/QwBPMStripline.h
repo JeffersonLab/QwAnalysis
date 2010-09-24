@@ -102,8 +102,9 @@ class QwBPMStripline : public VQwBPM {
 
   /////
  private:
-  /*  Position calibration factor, transform ADC counts in mm */
-  static const Double_t kQwStriplineCalibration;
+  /* /\*  Position calibration factor, transform ADC counts in mm *\/ */
+  /* static Double_t kQwStriplineCalibration; */
+  /* static Double_t fRelativeGains[2]; */
   /* Rotation factor for the BPM which antenna are at 45 deg */
   static const Double_t kRotationCorrection;
   static const TString subelement[4];

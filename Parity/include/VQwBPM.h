@@ -46,8 +46,8 @@ class VQwBPM : public VQwDataElement {
 
   void   InitializeChannel(TString name);
   void   ClearEventData();
-  void   GetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
-
+  void   GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
+  void   GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY);
   Int_t  GetEventcutErrorFlag(){//return the error flag
     return fDeviceErrorCode;
   };
@@ -55,7 +55,6 @@ class VQwBPM : public VQwDataElement {
 
   Bool_t  ApplySingleEventCuts();
   void    SetSingleEventCuts(TString, Double_t, Double_t);
-
 
   VQwBPM& operator+=(const VQwBPM&);
   VQwBPM& operator-=(const VQwBPM&);
@@ -92,6 +91,8 @@ class VQwBPM : public VQwDataElement {
 
   protected:
   Double_t fPositionCenter[3];
+  Double_t fQwStriplineCalibration;
+  Double_t fRelativeGains[2];
   static const TString axis[3];
 
 

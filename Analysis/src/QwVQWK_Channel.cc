@@ -1012,12 +1012,15 @@ void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
   return;
 };
 
+/**
+This function will add a offset to the hw_sum and add offset/fBlocksPerEvent for blocks.
+ */
 void QwVQWK_Channel::AddChannelOffset(Double_t offset)
 {
   Double_t blockoffset = offset / fBlocksPerEvent;
 
   if (!IsNameEmpty()){
-      fHardwareBlockSum += fBlocksPerEvent*offset;
+      fHardwareBlockSum += offset;
       for (Short_t i=0; i<fBlocksPerEvent; i++) fBlock[i] += blockoffset;
   }
   return;

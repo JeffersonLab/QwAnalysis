@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 /* Position calibration factor, transform ADC counts in mm*/
-const Double_t QwBPMStripline::kQwStriplineCalibration = 18.77;
+//const Double_t QwBPMStripline::kQwStriplineCalibration = 18.77;
 const Double_t QwBPMStripline::kRotationCorrection = 1./1.414;
 const TString QwBPMStripline::subelement[4]={"XP","XM","YP","YM"};
 
@@ -241,9 +241,10 @@ void  QwBPMStripline::ProcessEvent()
 
 
   ApplyHWChecks();
-  //first apply HW checks and update HW  error flags. 
-  // Calling this routine here and not in ApplySingleEventCuts  
-  //makes a difference for a BPMs because they have derrived devices.
+  /**First apply HW checks and update HW  error flags. 
+     Calling this routine here and not in ApplySingleEventCuts  
+     makes a difference for a BPMs because they have derrived devices.
+  */
 
   fEffectiveCharge.ClearEventData();
 
@@ -253,25 +254,44 @@ void  QwBPMStripline::ProcessEvent()
       fEffectiveCharge+=fWire[i];
     }
 
-  if (localdebug) fEffectiveCharge.PrintInfo();
 
+  /**
+     To obtain the beam position in X and Y in the CEBAF coordinates, we use the following equations
+     
+                                                       (XP - AlphaX.XM)
+     RelX (bpm coordinates) = fQwStriplineCalibration x ----------------
+                                                       (XP + AlphaX.XM) 
 
+                                                        (YP - AlphaY.YM)
+     RelY (bpm coordinates) = fQwStriplineCalibration x ----------------
+                                                        (YP + AlphaY.YM)
+
+     To get back to accelerator coordinates, rotate clockwise around Z by 45 degrees.							
+     
+     RelX (accelarator coordinates) =  1/sqrt(2)( RelX - RelY)
+    
+     RelY (accelarator coordinates) =  1/sqrt(2)( RelX + RelY) 
+ 
+  */
 
   for(i=0;i<2;i++)
     {
+      fWire[i*2+1].Scale(fRelativeGains[i]);
       numer.Difference(fWire[i*2],fWire[i*2+1]);
       denom.Sum(fWire[i*2],fWire[i*2+1]);
       fRelPos[i].Ratio(numer,denom);
-      fRelPos[i].Scale(kQwStriplineCalibration);
-      if(localdebug)
-	{
+      fRelPos[i].Scale(fQwStriplineCalibration);
+
+
+    if(localdebug)
+      {
 	  std::cout<<" stripline name="<<fElementName<<axis[i];
 	  std::cout<<" event number= "<<fWire[i*2].GetSequenceNumber()<<" \n";
 	  std::cout<<" hw  Wire["<<i*2<<"]="<<fWire[i*2].GetHardwareSum()<<"  ";
-	  std::cout<<" hw  Wire["<<i*2+1<<"]="<<fWire[i*2+1].GetHardwareSum()<<"\n";
+	  std::cout<<" hw relative gain *  Wire["<<i*2+1<<"]="<<fWire[i*2+1].GetHardwareSum()<<"\n";
+	  std::cout<<" Relative gain["<<i<<"]="<<fRelativeGains[i]<<"\n";
 	  std::cout<<" hw numerator= "<<numer.GetHardwareSum()<<"  ";
 	  std::cout<<" hw denominator= "<<denom.GetHardwareSum()<<"\n";
-	  std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
 	}
     }
   if(bRotated)
@@ -287,9 +307,19 @@ void  QwBPMStripline::ProcessEvent()
       fRelPos[1].Scale(kRotationCorrection);// Real Y =(RelX +RelY )
     }
 
-  for(i=0;i<2;i++)
+  for(i=0;i<2;i++){
     fAbsPos[i]= fRelPos[i];
+    fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
 
+    if(localdebug)
+      {
+	std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n";
+	std::cout<<" hw  fOffset["<<axis[i]<<"]="<<fPositionCenter[i]<<"\n";
+	std::cout<<" hw  fAbsPos["<<axis[i]<<"]="<<fAbsPos[i].GetHardwareSum()<<"\n \n";
+      }
+    
+  }
+  
   return;
 };
 
@@ -792,10 +822,10 @@ void  QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, 
   }
 
   // Determine the asymmetry from the position
-  Double_t meanXP = (1.0 + meanX / kQwStriplineCalibration) * sumX / 2.0;
-  Double_t meanXM = (1.0 - meanX / kQwStriplineCalibration) * sumX / 2.0; // = sumX - meanXP;
-  Double_t meanYP = (1.0 + meanY / kQwStriplineCalibration) * sumY / 2.0;
-  Double_t meanYM = (1.0 - meanY / kQwStriplineCalibration) * sumY / 2.0; // = sumY - meanYP;
+  Double_t meanXP = (1.0 + meanX / fQwStriplineCalibration) * sumX / 2.0;
+  Double_t meanXM = (1.0 - meanX / fQwStriplineCalibration) * sumX / 2.0; // = sumX - meanXP;
+  Double_t meanYP = (1.0 + meanY / fQwStriplineCalibration) * sumY / 2.0;
+  Double_t meanYM = (1.0 - meanY / fQwStriplineCalibration) * sumY / 2.0; // = sumY - meanYP;
 
   // Determine the spread of the asymmetry (this is not tested yet)
   // (negative sigma should work in the QwVQWK_Channel, but still using fabs)

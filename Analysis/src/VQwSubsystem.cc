@@ -52,7 +52,7 @@ Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
 
       // Geometry file definition
       if (key == "geom" && value.size() > 0)
-        LoadGeometryDefinition(value);
+        LoadGeometryParameters(value);
 
       // Parameter file definition
       if (key == "param" && value.size() > 0)

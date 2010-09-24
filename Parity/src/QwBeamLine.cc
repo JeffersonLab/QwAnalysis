@@ -467,7 +467,6 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   TString device_type,device_name,channel_name;
   Int_t det_index = -1;
 
-  std::cout<<" QwBeamLine::LoadEventCuts  "<<filename<<std::endl;
   QwParameterFile mapstr(filename.Data());  //Open the file
 
   samplesize = 0;
@@ -604,7 +603,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 
 
 //*****************************************************************
-Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
+Int_t QwBeamLine::LoadGeometryParameters(TString mapfile){
   Bool_t ldebug=kFALSE;
   TString varname, varvalue;
   Int_t lineread=1;
@@ -612,10 +611,11 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   TString  devname,devtype;
   TString  melement;
   Double_t devOffsetX = 0,devOffsetY = 0, devOffsetZ = 0;
+  Double_t devSENfactor = 0, devAlphaX = 0, devAlphaY = 0;
   TString localname;
 
 
-  if(ldebug)std::cout<<"QwBeamLine::LoadGeometryDefinition("<< mapfile<<")\n";
+  if(ldebug)std::cout<<"QwBeamLine::LoadGeometryParameters("<< mapfile<<")\n";
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
@@ -636,11 +636,27 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
     devname.ToLower();
     devname.Remove(TString::kBoth,' ');
 
-    devOffsetX = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
-    devOffsetY = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
-    devOffsetZ = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
+    devOffsetX   = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
+    devOffsetY   = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
+    devOffsetZ   = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
+    devSENfactor = (atof(mapstr.GetNextToken(", \t").c_str())); // sensivity scaling factor
+    devAlphaX    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha X
+    devAlphaY    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha Y
 
     index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
+
+    if(ldebug){
+      std::cout<<"####################\n";
+      std::cout<<"! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY\n"<<std::endl;
+      std::cout<<GetQwBeamInstrumentType(devtype)<<" / "
+	       <<devOffsetX <<" / "
+	       <<devOffsetY <<" / "
+	       <<devOffsetZ <<" / "
+	       <<devSENfactor <<" / "
+	       <<devAlphaX <<" / "
+	       <<devAlphaY <<" / "
+	       <<std::endl;
+    }
 
     while(notfound){
       if(GetQwBeamInstrumentType(devtype)==kQwBPMStripline){
@@ -660,7 +676,9 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 
 	if(localname==devname){
 	  if(ldebug) std::cout<<" I found the bpm !\n";
-	  fStripline[index].GetOffset(devOffsetX,devOffsetY,devOffsetZ);
+	  VQwBPM * bpm = &fStripline[index];
+	  bpm->GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
+	  bpm->GetElectronicFactors(devSENfactor,devAlphaX, devAlphaY);
 	  notfound=kFALSE;
 	}
       }
@@ -681,7 +699,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 
 	if(localname==devname){
 	  if(ldebug) std::cout<<" I found the combinedbpm !\n";
-	  fBPMCombo[index].GetOffset(devOffsetX,devOffsetY,devOffsetZ);
+	  fBPMCombo[index].GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
 	  notfound=kFALSE;
 	}
       }
@@ -701,22 +719,17 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 			     <<"== to be compared to =="<<devname<<"== \n";
 
 	if(localname==devname){
-	  if(ldebug) std::cout<<" I found the bpm !\n";
-	  fCavity[index].GetOffset(devOffsetX,devOffsetY,devOffsetZ);
+	  if(ldebug) std::cout<<" I found the cavity bpm !\n";
+	  fCavity[index].GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
 	  notfound=kFALSE;
 	}
       }
 
       else QwError<<" QwBeamLine::LoadGeometryDefinition: Unknown device type :"<<devtype<<". Are you sure we have this in the beamline? I am skipping this."<<QwLog::endl;
-
-      if(ldebug)  std::cout<<"QwBeamLine::LoadGeometryDefinition:Offsets for device "<<devname<<" of type "<<devtype<<" are "
-			   <<": X offset ="<< devOffsetX
-			   <<": Y offset ="<< devOffsetY
-			   <<": Z offset ="<<devOffsetZ<<"\n";
     }
 
   }
-
+  
   if(ldebug) std::cout<<" line read in the geometry file ="<<lineread<<" \n";
 
   ldebug=kFALSE;
