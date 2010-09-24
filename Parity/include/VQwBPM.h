@@ -39,6 +39,8 @@ class VQwBPM : public VQwDataElement {
   VQwBPM() { };
   VQwBPM(TString name):VQwDataElement(){
     InitializeChannel(name);
+    fQwStriplineCalibration = 1.0;
+    for(Short_t i=0;i<2;i++)  fRelativeGains[i]=1.0;
   };
 
   virtual ~VQwBPM(){DeleteHistograms(); };
