@@ -1273,7 +1273,7 @@ const Bool_t QwBeamLine::PublishInternalValues() const
     QwError << "QwBeamLine::PublishInternalValues(): q_targ - qwk_charge not found "<< QwLog::endl;
     status |= kFALSE;
   }else
-    QwMessage << "QwBeamLine::PublishInternalValues(): q_targ - qwk_charge found "<< QwLog::endl;
+    QwDebug << "QwBeamLine::PublishInternalValues(): q_targ - qwk_charge found "<< QwLog::endl;
   const_cast<QwBeamLine*>(this)->UpdatePublishValue("q_targ",tmp_channel);
 
   //publish x_targ
@@ -1284,7 +1284,7 @@ const Bool_t QwBeamLine::PublishInternalValues() const
     QwError << "QwBeamLine::PublishInternalValues(): x_targ - qwk_target X not found "<< QwLog::endl;
     status |= kFALSE;
   }else
-    QwMessage << "QwBeamLine::PublishInternalValues(): x_targ - qwk_target X found "<< QwLog::endl;
+    QwDebug << "QwBeamLine::PublishInternalValues(): x_targ - qwk_target X found "<< QwLog::endl;
   const_cast<QwBeamLine*>(this)->UpdatePublishValue("x_targ",tmp_channel);
 
   //publish y_targ
@@ -1295,7 +1295,7 @@ const Bool_t QwBeamLine::PublishInternalValues() const
     QwError << "QwBeamLine::PublishInternalValues(): y_targ - qwk_target Y not found "<< QwLog::endl;
     status |= kFALSE;
   }else
-    QwMessage << "QwBeamLine::PublishInternalValues(): y_targ - qwk_target Y found "<< QwLog::endl;
+    QwDebug << "QwBeamLine::PublishInternalValues(): y_targ - qwk_target Y found "<< QwLog::endl;
   const_cast<QwBeamLine*>(this)->UpdatePublishValue("y_targ",tmp_channel);
 
   //publish xp_targ
@@ -1306,7 +1306,7 @@ const Bool_t QwBeamLine::PublishInternalValues() const
     QwError << "QwBeamLine::PublishInternalValues(): xp_targ - qwk_target X_angle not found "<< QwLog::endl;
     status |= kFALSE;
   }else
-    QwMessage << "QwBeamLine::PublishInternalValues(): xp_targ - qwk_target X_angle found "<< QwLog::endl;
+    QwDebug << "QwBeamLine::PublishInternalValues(): xp_targ - qwk_target X_angle found "<< QwLog::endl;
   const_cast<QwBeamLine*>(this)->UpdatePublishValue("xp_targ",tmp_channel);
 
 
@@ -1319,7 +1319,7 @@ const Bool_t QwBeamLine::PublishInternalValues() const
     QwError << "QwBeamLine::PublishInternalValues(): yp_targ - qwk_target Y_angle not found "<< QwLog::endl;
     status |= kFALSE;
   }else
-    QwMessage << "QwBeamLine::PublishInternalValues(): yp_targ - qwk_target Y_angle found "<< QwLog::endl;
+    QwDebug << "QwBeamLine::PublishInternalValues(): yp_targ - qwk_target Y_angle found "<< QwLog::endl;
   
   const_cast<QwBeamLine*>(this)->UpdatePublishValue("yp_targ",tmp_channel);
 
@@ -1333,7 +1333,7 @@ const Bool_t QwBeamLine::PublishInternalValues() const
     QwError << "QwBeamLine::PublishInternalValues(): e_targ - qwk_energy energy  not found "<< QwLog::endl;
     status |= kFALSE;
   }else
-    QwMessage << "QwBeamLine::PublishInternalValues(): e_targ - qwk_energy energy found "<< QwLog::endl;
+    QwDebug << "QwBeamLine::PublishInternalValues(): e_targ - qwk_energy energy found "<< QwLog::endl;
   const_cast<QwBeamLine*>(this)->UpdatePublishValue("e_targ",tmp_channel);
   
   return status;
