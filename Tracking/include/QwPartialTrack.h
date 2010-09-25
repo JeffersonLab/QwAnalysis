@@ -88,7 +88,7 @@ class QwPartialTrack: public VQwTrackingElement {
     void PrintTreeLines(Option_t *option = "") const;
 
     // Get the weighted chi squared
-    double GetChiWeight ();
+    double GetChiWeight () const;
 
     void Print();
     void PrintValid();

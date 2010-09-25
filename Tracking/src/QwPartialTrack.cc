@@ -83,7 +83,7 @@ void QwPartialTrack::Initialize()
  *
  * @return Weighted chi^2
  */
-double QwPartialTrack::GetChiWeight ()
+double QwPartialTrack::GetChiWeight () const
 {
   // Determine the weight if there enough hits
   if (numhits >= nummiss) {
