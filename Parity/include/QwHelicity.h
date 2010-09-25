@@ -66,9 +66,9 @@ class QwHelicity: public VQwSubsystemParity{
  public:
 
 
- QwHelicity(TString region_tmp): VQwSubsystem(region_tmp), 
+ QwHelicity(TString region_tmp): VQwSubsystem(region_tmp),
     VQwSubsystemParity(region_tmp),
-    fMinPatternPhase(1), fUsePredictor(kTRUE)
+    fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE)
   {
     //  Default helicity delay to two patterns.
     fHelicityDelay = 2;
@@ -175,10 +175,16 @@ class QwHelicity: public VQwSubsystemParity{
   void  FillDB(QwDatabase *db, TString type);
   void  Print() const;
 
+  Bool_t IsHelicityIgnored(){return fIgnoreHelicity;};
 
   virtual Bool_t IsGoodHelicity();
 
 /////
+ protected:
+  Bool_t CheckIORegisterMask(const UInt_t& ioregister, const UInt_t& mask) const {
+    return ((ioregister & mask) == mask);
+  };
+
  protected:
   enum HelicityRootSavingType{kHelSaveMPS = 0,
 			      kHelSavePattern,
@@ -189,6 +195,11 @@ class QwHelicity: public VQwSubsystemParity{
 			    kHelLocalyMadeUp,
 			    kHelInputMollerMode};
   // this values allow to switch the code between different helicity encoding mode.
+
+  enum InputRegisterBits{kInputReg_HelPlus     = 0x1,
+			 kInputReg_HelMinus    = 0x2,
+			 kInputReg_PatternSync = 0x4,
+			 kInputReg_FakeMPS     = 0x8000};
 
   std::vector <QwWord> fWord;
   std::vector < std::pair<Int_t, Int_t> > fWordsPerSubbank;  // The indices of the first & last word in each subbank
@@ -278,6 +289,8 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t fUsePredictor;
   Bool_t fHelicityInfoOK;
   Int_t  fPATTERNPHASEOFFSET;
+
+  Bool_t fIgnoreHelicity;
 
   UInt_t fEventType;
 

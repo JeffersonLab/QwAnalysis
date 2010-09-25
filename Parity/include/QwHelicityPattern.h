@@ -122,6 +122,13 @@ class QwHelicityPattern{
   // Blinding strategy
   QwBlinder fBlinder;
 
+  /// This indicates if the subsystem arrays are missing the helicity object.
+  /// It is updated once during initialization and once when processing the first event
+  Bool_t fHelicityIsMissing;
+  /// This is true if any of the helicity objects of this pattern have indicated that
+  /// we should ignore the helicity.  It is updated every event and reset by ClearEventData.
+  Bool_t fIgnoreHelicity;
+
   // Yield and asymmetry of a single helicity pattern
   QwSubsystemArrayParity fYield;
   QwSubsystemArrayParity fAsymmetry;
@@ -150,9 +157,13 @@ class QwHelicityPattern{
  private:
 
   QwSubsystemArrayParity fDifference;
+  QwSubsystemArrayParity fAlternateDiff;
   QwSubsystemArrayParity fPositiveHelicitySum;
   QwSubsystemArrayParity fNegativeHelicitySum;
 
+  Long_t fLastWindowNumber;
+  Long_t fLastPatternNumber;
+  Int_t  fLastPhaseNumber;
 
   Bool_t fPatternIsGood;
 

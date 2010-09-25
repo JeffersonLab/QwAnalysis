@@ -141,25 +141,28 @@ Bool_t QwHelicity::IsGoodPhaseNumber()
 Bool_t QwHelicity::IsGoodHelicity()
 {
   fGoodHelicity = kTRUE;
-  
-  if (fHelicityReported!=fHelicityDelayed){
-    /**helicities do not match. Check phase number to see if its a new pattern.*/
+  if (!fIgnoreHelicity  && fHelicityReported!=fHelicityDelayed){
+    /**We are not ignoring the helicity, and the helicities do not match.
+       Check phase number to see if its a new pattern.*/
     fGoodHelicity=kFALSE;
     if(fPatternPhaseNumber == fMinPatternPhase) {
       //first event in a new pattern
-      QwError << "QwHelicity::IsGoodHelicity : The helicity reported in event " << fEventNumber
+      QwError << "QwHelicity::IsGoodHelicity : The helicity reported in event "
+	      << fEventNumber
 	      << " is not what we expect from the randomseed. Not a good event nor pattern"
 	      << QwLog::endl;
     } else {
-      QwError << "QwHelicity::IsGoodHelicity - The helicity reported in event " << fEventNumber
+      QwError << "QwHelicity::IsGoodHelicity - The helicity reported in event "
+	      << fEventNumber
 	      << " is not what we expect according to pattern structure. Not a good event nor pattern"
 	      << QwLog::endl;
     }
   }
-  if(!fGoodHelicity){
+  if(!fGoodHelicity) {
     fHelicityReported=kUndefinedHelicity;
     fHelicityActual=kUndefinedHelicity;
     fHelicityDelayed=kUndefinedHelicity;
+    //Have to start over again
     ResetPredictor();
   }
   
@@ -169,6 +172,7 @@ Bool_t QwHelicity::IsGoodHelicity()
 
 void QwHelicity::ClearEventData()
 {
+  SetDataLoaded(kFALSE);
   for (size_t i=0;i<fWord.size();i++)
     fWord[i].ClearEventData();
 
@@ -177,6 +181,8 @@ void QwHelicity::ClearEventData()
   fEventNumberOld = fEventNumber;
   fPatternNumberOld = fPatternNumber;
   fPatternPhaseNumberOld = fPatternPhaseNumber;
+
+  fIgnoreHelicity = kFALSE;
 
   /**Clear out helicity variables */
   fHelicityReported = kUndefinedHelicity;
@@ -313,11 +319,16 @@ void QwHelicity::ProcessEventInputRegisterMode()
   */
   fEventNumber=fWord[kMpsCounter].fValue;
 
+  if (CheckIORegisterMask(thisinputregister,kInputReg_FakeMPS))
+    fIgnoreHelicity = kTRUE;
+  else 
+    fIgnoreHelicity = kFALSE;
+
   // When we have the minimum phase from the pattern phase word
   // and the input register minimum phase bit is set
   // we can select the second pattern as below.
   if(fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET == 0)
-    if (firstpattern && (thisinputregister & 0x4) == 0x4){
+    if (firstpattern && CheckIORegisterMask(thisinputregister,kInputReg_PatternSync)){
       firstpattern   = kFALSE;
     }
 
@@ -335,7 +346,7 @@ void QwHelicity::ProcessEventInputRegisterMode()
   */
   if (fake_the_counters){
     fEventNumber = fEventNumberOld+1;
-    if ((thisinputregister & 0x4) == 0x4) {
+    if (CheckIORegisterMask(thisinputregister,kInputReg_PatternSync)) {
       fPatternPhaseNumber = fMinPatternPhase;
       fPatternNumber      = fPatternNumberOld + 1;
     } else  {
@@ -348,7 +359,7 @@ void QwHelicity::ProcessEventInputRegisterMode()
   if(fEventNumber!=fEventNumberOld+1)
     QwError << "QwHelicity::ProcessEvent read event# is not  old_event#+1 " << QwLog::endl;
 
-  if ((thisinputregister & 0x4) == 0x4 && fPatternPhaseNumber != fMinPatternPhase){
+  if (CheckIORegisterMask(thisinputregister,kInputReg_PatternSync) && fPatternPhaseNumber != fMinPatternPhase){
     //  Quartet bit is set.
     QwError << "QwHelicity::ProcessEvent:  The Multiplet Sync bit is set, but the Pattern Phase is (" 
 	    << fPatternPhaseNumber << ") not "
@@ -361,14 +372,22 @@ void QwHelicity::ProcessEventInputRegisterMode()
      Extract the reported helicity from the input register for each event.
   */
 
-  if ((thisinputregister & 0x1) == 0x1){ //  Helicity bit is set.
+  if (CheckIORegisterMask(thisinputregister,kInputReg_HelPlus)
+      && CheckIORegisterMask(thisinputregister,kInputReg_HelMinus) ){
+    //  Both helicity bits are set.
+    QwError << "QwHelicity::ProcessEvent:  Both the H+ and H- bits are set: thisinputregister==" 
+	    << thisinputregister << QwLog::endl;
+    fHelicityReported = kUndefinedHelicity;
+    fHelicityBitPlus  = kFALSE;
+    fHelicityBitMinus = kFALSE;
+  } else if (CheckIORegisterMask(thisinputregister,kInputReg_HelPlus)){ //  HelPlus bit is set.
     fHelicityReported    |= 1; // Set the InputReg HEL+ bit.
-    fHelicityBitPlus=kTRUE;
-    fHelicityBitMinus=kFALSE;
+    fHelicityBitPlus  = kTRUE;
+    fHelicityBitMinus = kFALSE;
   } else {
     fHelicityReported    |= 0; // Set the InputReg HEL- bit.
-    fHelicityBitPlus=kFALSE;
-    fHelicityBitMinus=kTRUE;
+    fHelicityBitPlus  = kFALSE;
+    fHelicityBitMinus = kTRUE;
   }
 
   return;
@@ -439,9 +458,9 @@ void  QwHelicity::ProcessEvent()
     fHelicityReported=-1;
     
   // Predict helicity if delay is non zero.
-  if(fUsePredictor)
+  if(fUsePredictor && !fIgnoreHelicity){
     PredictHelicity();
-  else {
+  } else {
     // Else use the reported helicity values.
     fHelicityActual  = fHelicityReported;
     fHelicityDelayed = fHelicityReported;
@@ -492,9 +511,9 @@ void QwHelicity::EncodeEventData(std::vector<UInt_t> &buffer)
   }
   case kHelInputRegisterMode: {
     UInt_t input_register = 0x0;
-    if (fHelicityDelayed == 1) input_register |= 0x1;
-    if (fHelicityDelayed == 0) input_register |= 0x2; // even the mock data has balanced inputs!
-    if (fPatternPhaseNumber == fMinPatternPhase) input_register |= 0x4;
+    if (fHelicityDelayed == 1) input_register |= kInputReg_HelPlus;
+    if (fHelicityDelayed == 0) input_register |= kInputReg_HelMinus; // even the mock data has balanced inputs!
+    if (fPatternPhaseNumber == fMinPatternPhase) input_register |= kInputReg_PatternSync;
 
     // Write the words to the buffer
     localbuffer.push_back(input_register); // input_register
@@ -795,6 +814,7 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t ev_type, const UInt_t roc_id, const UIn
   Int_t index = GetSubbankIndex(roc_id,bank_id);
 
   if (index>=0 && num_words>0) {
+    SetDataLoaded(kTRUE);
     //  We want to process this ROC.  Begin loopilooping through the data.
     QwDebug << "QwHelicity::ProcessEvBuffer:  "
 	    << "Begin processing ROC" << roc_id
