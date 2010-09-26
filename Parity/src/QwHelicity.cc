@@ -466,8 +466,9 @@ void  QwHelicity::ProcessEvent()
     fHelicityDelayed = fHelicityReported;
 
     if(fPatternPhaseNumber== fMinPatternPhase){
-      fActualPatternPolarity = fHelicityReported;
-      fDelayedPatternPolarity = fHelicityReported;
+      fPreviousPatternPolarity = fActualPatternPolarity;
+      fActualPatternPolarity   = fHelicityReported;
+      fDelayedPatternPolarity  = fHelicityReported;
     } 
     
   }
@@ -1022,7 +1023,6 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
 
 
   fTreeArrayIndex  = values.size();
-  size_t localindex=fTreeArrayIndex;
   TString basename;
   if(fHistoType==kHelNoSave)
     {
@@ -1032,61 +1032,58 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
     {
       basename = "actual_helicity";    //predicted actual helicity before being delayed.
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
+      tree->Branch(basename, &(values.back()), basename+"/D");
       //
       basename = "delayed_helicity";   //predicted delayed helicity
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
+      tree->Branch(basename, &(values.back()), basename+"/D");
       //
       basename = "reported_helicity";  //delayed helicity reported by the input register.
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
-      localindex  = values.size();
+      tree->Branch(basename, &(values.back()), basename+"/D");
       //
       basename = "pattern_phase";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
-     //
-      localindex  = values.size();
+      tree->Branch(basename, &(values.back()), basename+"/D");
+      //
       basename = "pattern_number";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
+      tree->Branch(basename, &(values.back()), basename+"/D");
       //
-      localindex  = values.size();
       basename = "event_number";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
+      tree->Branch(basename, &(values.back()), basename+"/D");
       //
       for (size_t i=0; i<fWord.size(); i++)
 	{
-	  localindex  = values.size();
 	  basename = fWord[i].fWordName;
 	  values.push_back(0.0);
-	  tree->Branch(basename, &(values[localindex]),basename+"/D");
+	  tree->Branch(basename, &(values.back()), basename+"/D");
 	}
     }
   else if(fHistoType==kHelSavePattern)
     {
       basename = "actual_pattern_polarity";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
+      tree->Branch(basename, &(values.back()), basename+"/D");
+      //
+      basename = "actual_previous_pattern_polarity";
+      values.push_back(0.0);
+      tree->Branch(basename, &(values.back()), basename+"/D");
       //
       basename = "delayed_pattern_polarity";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
+      tree->Branch(basename, &(values.back()), basename+"/D");
       //
-
-      localindex  = values.size();
       basename = "pattern_number";
       values.push_back(0.0);
-      tree->Branch(basename, &(values[localindex]),basename+"/D");
+      tree->Branch(basename, &(values.back()), basename+"/D");
       //
       for (size_t i=0; i<fWord.size(); i++)
 	{
-	  localindex  = values.size();
 	  basename = fWord[i].fWordName;
 	  values.push_back(0.0);
-	  tree->Branch(basename, &(values[localindex]),basename+"/D");
+	  tree->Branch(basename, &(values.back()), basename+"/D");
 	}
     }
 
@@ -1126,6 +1123,9 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix)
     {
       basename = "actual_pattern_polarity";
       tree->Branch(basename, &fActualPatternPolarity, basename+"/I");
+      //
+      basename = "actual_previous_pattern_polarity";
+      tree->Branch(basename, &fPreviousPatternPolarity, basename+"/I");
       //
       basename = "delayed_pattern_polarity";
       tree->Branch(basename, &fDelayedPatternPolarity, basename+"/I");
@@ -1177,6 +1177,9 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile&
       basename = "actual_pattern_polarity";
       tree->Branch(basename, &fActualPatternPolarity, basename+"/I");
       //
+      basename = "actual_previous_pattern_polarity";
+      tree->Branch(basename, &fPreviousPatternPolarity, basename+"/I");
+      //
       basename = "delayed_pattern_polarity";
       tree->Branch(basename, &fDelayedPatternPolarity, basename+"/I");
       //
@@ -1213,6 +1216,7 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values) const
   else if(fHistoType==kHelSavePattern)
     {
       values[index++] = fActualPatternPolarity;
+      values[index++] = fPreviousPatternPolarity;
       values[index++] = fDelayedPatternPolarity;
       values[index++] = fPatternNumber;
       for (size_t i=0; i<fWord.size(); i++){
@@ -1391,10 +1395,12 @@ void QwHelicity::RunPredictor()
        to get the correct pattern polarities.
     */
 
+
     for( size_t i=0;i<size_t(fPatternNumber- fPatternNumberOld);i++) //got a new pattern
       {
-	fActualPatternPolarity = GetRandbit(iseed_Actual);
-	fDelayedPatternPolarity= GetRandbit(iseed_Delayed);
+	fPreviousPatternPolarity = fActualPatternPolarity;
+	fActualPatternPolarity   = GetRandbit(iseed_Actual);
+	fDelayedPatternPolarity  = GetRandbit(iseed_Delayed);
 	QwDebug << "Predicting : seed actual, delayed: " <<  iseed_Actual
 			    << ":" << iseed_Delayed <<QwLog::endl;
       }
@@ -1539,6 +1545,7 @@ Bool_t QwHelicity::CollectRandBits24()
 		for(Int_t i=0; i<fHelicityDelay; i++)
 		  {
 		    QwDebug << "Delaying helicity " << QwLog::endl;
+		    fPreviousPatternPolarity = fActualPatternPolarity;
 		    fActualPatternPolarity = GetRandbit(iseed_Actual);
 		  }
 	      }
@@ -1623,6 +1630,7 @@ Bool_t QwHelicity::CollectRandBits30()
 	  iseed_Actual = iseed_Delayed;
 	  for(Int_t i=0; i<fHelicityDelay; i++) {
 	    /**, get the pattern polarity for the actual pattern using that actual ranseed.*/
+	    fPreviousPatternPolarity = fActualPatternPolarity;
 	    fActualPatternPolarity = GetRandbit(iseed_Actual);
 	  }
 	} else {
@@ -1773,6 +1781,7 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
       this->fEventNumber=input->fEventNumber;
       this->fActualPatternPolarity=input->fActualPatternPolarity;
       this->fDelayedPatternPolarity=input->fDelayedPatternPolarity;
+      this->fPreviousPatternPolarity=input->fPreviousPatternPolarity;
       this->fHelicityReported=input->fHelicityReported;
       this->fHelicityActual=input->fHelicityActual;
       this->fHelicityDelayed=input->fHelicityDelayed;

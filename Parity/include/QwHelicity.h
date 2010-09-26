@@ -226,7 +226,9 @@ class QwHelicity: public VQwSubsystemParity{
   Int_t fEventNumberOld, fEventNumber;
   Int_t fPatternPhaseNumberOld, fPatternPhaseNumber;
   Int_t fPatternNumberOld,  fPatternNumber;
-  Int_t fActualPatternPolarity, fDelayedPatternPolarity;
+  Int_t fActualPatternPolarity;   ///<  True polarity of the current pattern
+  Int_t fDelayedPatternPolarity;  ///<  Reported polarity of the current pattern
+  Int_t fPreviousPatternPolarity; ///<  True polarity of the previous pattern.
   Int_t fHelicityReported, fHelicityActual, fHelicityDelayed;
   // reported is what is registered in the coda file (it is the actual beam helicity fHelicityDelay pattern before this event)
   // actual is the helicity of the beam for this event
