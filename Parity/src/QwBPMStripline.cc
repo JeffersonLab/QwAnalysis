@@ -510,7 +510,7 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
     for(i=0;i<2;i++) {
       fRelPos[i].ConstructHistograms(folder, thisprefix);
-      fAbsPos[i].ConstructHistograms(folder, prefix);
+      fAbsPos[i].ConstructHistograms(folder, thisprefix);
     }
   }
   return;

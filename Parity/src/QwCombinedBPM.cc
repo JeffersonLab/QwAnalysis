@@ -606,7 +606,7 @@ void  QwCombinedBPM::ConstructHistograms(TDirectory *folder, TString &prefix)
     for(Short_t i=0;i<2;i++) {
 	fSlope[i].ConstructHistograms(folder, thisprefix);
 	fIntercept[i].ConstructHistograms(folder, thisprefix);
-	fAbsPos[i].ConstructHistograms(folder, prefix);
+	fAbsPos[i].ConstructHistograms(folder, thisprefix);
     }
 
   }
