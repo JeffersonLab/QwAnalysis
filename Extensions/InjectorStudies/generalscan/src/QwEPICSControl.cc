@@ -37,6 +37,11 @@ QwEPICSControl::QwEPICSControl()
   status = ca_pend_io(10);
   status = ca_search("HELFREQ", &fIDHelicity_frequency);
   status = ca_pend_io(10);
+  status = ca_search("FCupsCORRECTED.VAL", &fIDFC2_Current);
+  status = ca_pend_io(10);
+  status = ca_search("psub_ac_pos", &fIDCLaser_Att);
+  status = ca_pend_io(10);
+
 };
 
 QwEPICSControl::~QwEPICSControl()
