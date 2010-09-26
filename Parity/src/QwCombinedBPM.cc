@@ -543,10 +543,11 @@ void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   if (GetElementName()!=""){
+    //    The slope, intercept and absolute positions should all be differences, not asymmetries.
     for(Short_t i=0;i<2;i++) {
-      this->fSlope[i].Ratio(numer.fSlope[i], denom.fSlope[i]);
-      this->fIntercept[i].Ratio(numer.fIntercept[i],denom.fIntercept[i]);
-      this->fAbsPos[i].Ratio(numer.fAbsPos[i], denom.fAbsPos[i]);
+      this->fSlope[i]     = numer.fSlope[i];
+      this->fIntercept[i] = numer.fIntercept[i];
+      this->fAbsPos[i]    = numer.fAbsPos[i];
     }
   }
 

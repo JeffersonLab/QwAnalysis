@@ -584,9 +584,10 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   for (size_t i=0;i<fBCM.size();i++)
     fBCM[i].SetEventCutMode(eventcut_flag);
 
-  for (size_t i=0;i<fHaloMonitor.size();i++)
+  for (size_t i=0;i<fHaloMonitor.size();i++){
     //fHaloMonitor[i].SetEventCutMode(eventcut_flag);
-
+  }
+    
   for (size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].SetEventCutMode(eventcut_flag);
 
@@ -1741,24 +1742,15 @@ void QwBeamLine::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 //*****************************************************************
 void QwBeamLine::Scale(Double_t factor)
 {
-  for(size_t i=0;i<fStripline.size();i++)
-    fStripline[i].Scale(factor);
-  for(size_t i=0;i<fCavity.size();i++)
-    fCavity[i].Scale(factor);
-  for(size_t i=0;i<fQPD.size();i++)
-    fQPD[i].Scale(factor);
-  for(size_t i=0;i<fLinearArray.size();i++)
-    fLinearArray[i].Scale(factor);
-  for(size_t i=0;i<fBCM.size();i++)
-    fBCM[i].Scale(factor);
-  for(size_t i=0;i<fHaloMonitor.size();i++)
-    fHaloMonitor[i].Scale(factor);
-  for(size_t i=0;i<fBCMCombo.size();i++)
-    fBCMCombo[i].Scale(factor);
-  for(size_t i=0;i<fBPMCombo.size();i++)
-    fBPMCombo[i].Scale(factor);
-  for(size_t i=0;i<fECalculator.size();i++)
-    fECalculator[i].Scale(factor);
+  for(size_t i=0;i<fStripline.size();i++)   fStripline[i].Scale(factor);
+  for(size_t i=0;i<fCavity.size();i++)      fCavity[i].Scale(factor);
+  for(size_t i=0;i<fQPD.size();i++)         fQPD[i].Scale(factor);
+  for(size_t i=0;i<fLinearArray.size();i++) fLinearArray[i].Scale(factor);
+  for(size_t i=0;i<fBCM.size();i++)         fBCM[i].Scale(factor);
+  for(size_t i=0;i<fHaloMonitor.size();i++) fHaloMonitor[i].Scale(factor);
+  for(size_t i=0;i<fBCMCombo.size();i++)    fBCMCombo[i].Scale(factor);
+  for(size_t i=0;i<fBPMCombo.size();i++)    fBPMCombo[i].Scale(factor);
+  for(size_t i=0;i<fECalculator.size();i++) fECalculator[i].Scale(factor);
   return;
 };
 
@@ -1767,7 +1759,11 @@ void QwBeamLine::CalculateRunningAverage()
 {
   for (size_t i = 0; i < fStripline.size();    i++) fStripline[i].CalculateRunningAverage();
   for (size_t i = 0; i < fCavity.size();    i++) fCavity[i].CalculateRunningAverage();
+  for(size_t i=0;i<fQPD.size();i++)         fQPD[i].CalculateRunningAverage();
+  for(size_t i=0;i<fLinearArray.size();i++) fLinearArray[i].CalculateRunningAverage();
+
   for (size_t i = 0; i < fBCM.size();          i++) fBCM[i].CalculateRunningAverage();
+  for(size_t i=0;i<fHaloMonitor.size();i++) fHaloMonitor[i].CalculateRunningAverage();
   for (size_t i = 0; i < fBCMCombo.size();     i++) fBCMCombo[i].CalculateRunningAverage();
   for (size_t i = 0; i < fBPMCombo.size();     i++) fBPMCombo[i].CalculateRunningAverage();
   for (size_t i = 0; i < fECalculator.size();  i++) fECalculator[i].CalculateRunningAverage();

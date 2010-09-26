@@ -16,7 +16,6 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
-#include "QwVQWK_Module.h"
 
 #include "QwIntegrationPMT.h"
 #include "QwTypes.h"

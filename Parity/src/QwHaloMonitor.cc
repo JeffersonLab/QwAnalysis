@@ -111,9 +111,12 @@ void QwHaloMonitor::Scale(Double_t factor)
 
 
 
-// void QwHaloMonitor::AccumulateRunningSum(const QwHaloMonitor& value) {
-//   fHalo_Counter.AccumulateRunningSum(value.fHalo_Counter);
-// };
+void QwHaloMonitor::AccumulateRunningSum(const QwHaloMonitor& value) {
+  fHalo_Counter.AccumulateRunningSum(value.fHalo_Counter);
+};
+void QwHaloMonitor::CalculateRunningAverage(){
+  fHalo_Counter.CalculateRunningAverage();
+};
 
 
 void QwHaloMonitor::PrintValue() const
