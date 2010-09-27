@@ -104,6 +104,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
               fEventNumber.push_back(-1);
             }
 
+
           // Initialize the pattern number
           fQuartetNumber = 0;
           fCurrentPatternNumber = -1;
@@ -141,6 +142,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
           fRunningBurstAsymmetry.Copy(&event);
           // Clear the running sum
           ClearRunningSum();
+
 
         }
       else
@@ -446,6 +448,32 @@ void  QwHelicityPattern::CalculateAsymmetry()
     if (localdebug) QwDebug << " pattern number =" << fQuartetNumber << QwLog::endl;
   }
 
+  return;
+};
+
+//*****************************************************************
+/**
+ *Access published variables to obtain the charge asymmetry mean, error and width
+ *
+ */
+void QwHelicityPattern::GetTargetChargeStat(Double_t & asym, Double_t & error, Double_t & width){
+  VQwDataElement *data_channel;
+  TString name="q_targ";
+  fRunningAsymmetry.CalculateRunningAverage();
+  data_channel=const_cast<VQwDataElement*>(fRunningAsymmetry.ReturnInternalValue(name));	
+  if (!data_channel){
+    QwError << " Could not get external value setting parameters to -1" <<name <<QwLog::endl;
+    asym=-1;
+    error=-1;
+    width=-1;
+    return ;
+  }
+  
+  (dynamic_cast<QwVQWK_Channel*>(data_channel))->PrintInfo();
+  asym=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSum();// targtstat[0]=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSum();
+  error=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumError();// targtstat[1]=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumError();
+  width=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumM2();// targtstat[2]=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumM2(); 
+  
   return;
 };
 
