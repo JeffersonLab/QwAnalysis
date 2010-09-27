@@ -467,11 +467,12 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
  
 
    while (1){ 
-     PosVariation[0] = new TH1F("Asym", "Asymmetry X Variation", BPMSTriplinesCount, min_range, max_range);
-     PosVariation[1] = new TH1F("Asym", "Asymmetry Y variation", BPMSTriplinesCount, min_range, max_range); 
+     PosVariation[0] = new TH1F("HCDiffX", "X Difference Variation", BPMSTriplinesCount, min_range, max_range);
+     PosVariation[1] = new TH1F("HCDiffY", "Y Difference variation", BPMSTriplinesCount, min_range, max_range); 
     for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
-      sprintf (histo, "asym_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+      //sprintf (histo, "asym_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+      sprintf (histo, "diff_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -489,7 +490,8 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	delete histo1; histo1= NULL;
       }
 	  
-      sprintf (histo, "asym_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+      //sprintf (histo, "asym_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+      sprintf (histo, "diff_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data()); 
       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -498,8 +500,8 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	dummyname = histo2->GetName();
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
-	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean(2));
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError(2));
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -518,8 +520,8 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
     mc->cd(1);
     //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
-    PosVariation[0] -> SetTitle("Asymmetry X Variation");
-    PosVariation[0] -> GetYaxis() -> SetTitle("Asymmetry");
+    PosVariation[0] -> SetTitle("X Difference Variation");
+    PosVariation[0] -> GetYaxis() -> SetTitle("mm");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
     PosVariation[0] -> Draw("E1");
     //gPad->Update();
@@ -529,8 +531,8 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
     mc->cd(2);
     //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
-    PosVariation[1] -> SetTitle("Asymmetry Y Variation");
-    PosVariation[1] -> GetYaxis()-> SetTitle ("Asymmetry");
+    PosVariation[1] -> SetTitle("Y Difference Variation");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("mm");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
     PosVariation[1] -> Draw("E1");
     

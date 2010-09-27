@@ -455,11 +455,12 @@ void QwGUIInjector::PlotBPMAsym(){
  
 
    while (1){ 
-     PosVariation[0] = new TH1F("AsymX", "Asymmetry X Variation", BPMSTriplinesCount, min_range, max_range);
-     PosVariation[1] = new TH1F("AsymY", "Asymmetry Y variation", BPMSTriplinesCount, min_range, max_range); 
+     PosVariation[0] = new TH1F("INDiffX", "X Difference Variation", BPMSTriplinesCount, min_range, max_range);
+     PosVariation[1] = new TH1F("INDiffY", "Y Difference variation", BPMSTriplinesCount, min_range, max_range); 
     for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
-      sprintf (histo, "asym_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+      //sprintf (histo, "asym_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+      sprintf (histo, "diff_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() ); 
       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -477,7 +478,8 @@ void QwGUIInjector::PlotBPMAsym(){
 	delete histo1; histo1= NULL;
       }
 	  
-      sprintf (histo, "asym_%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+      //sprintf (histo, "asym_%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+      sprintf (histo, "diff_%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -506,8 +508,8 @@ void QwGUIInjector::PlotBPMAsym(){
     mc->cd(1);
     //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
-    PosVariation[0] -> SetTitle("Asymmetry X Variation");
-    PosVariation[0] -> GetYaxis() -> SetTitle("Asymmetry");
+    PosVariation[0] -> SetTitle("X Difference Variation");
+    PosVariation[0] -> GetYaxis() -> SetTitle("mm");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
     PosVariation[0] -> Draw("E1");
     //gPad->Update();
@@ -517,8 +519,8 @@ void QwGUIInjector::PlotBPMAsym(){
     mc->cd(2);
     //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
-    PosVariation[1] -> SetTitle("Asymmetry Y Variation");
-    PosVariation[1] -> GetYaxis()-> SetTitle ("Asymmetry");
+    PosVariation[1] -> SetTitle("Y Difference Variation");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("mm");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
     PosVariation[1] -> Draw("E1");
     
