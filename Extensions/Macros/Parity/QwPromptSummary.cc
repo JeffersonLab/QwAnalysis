@@ -85,7 +85,7 @@ int main(Int_t argc,Char_t* argv[])
   TDatime tday;
   TString runnum;
   TString s_argc;
-  TString rootfile_stem="QwRun_";
+  TString rootfile_stem="Qweak_";
   TFile *f;
   TChain *chain_Mps_Tree=NULL;
   TChain *chain_Hel_Tree=NULL;
@@ -107,7 +107,7 @@ int main(Int_t argc,Char_t* argv[])
     runnum=argv[1];
     if (!runnum.IsDigit()){
       std::cerr<<" ********You NEED to give a valid run number************ \n";
-      std::cerr<<" ./promptsummary  runnumber i rootfile-stem=QwRun_\n";
+      std::cerr<<" ./promptsummary  runnumber i rootfile-stem=Qweak_\n";
       std::cerr<<" Give a run number \n";
       std::cerr<<" Give i=0 print result on the screen (Default setting) and  \n";
       std::cerr<<" Give i=1 print result into a text file.\n";
