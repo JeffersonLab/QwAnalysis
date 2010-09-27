@@ -500,8 +500,8 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	dummyname = histo2->GetName();
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
-	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean(2));
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError(2));
+	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
