@@ -20,7 +20,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 MYOS := $(subst -,,$(shell uname))
 
 
-EXE := prompsummary
+EXE := promptsummary
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -40,7 +40,7 @@ EXE := prompsummary
 all:  $(EXE)
 	@echo "---------------------> $(EXE) done <---------------------- "
 
-prompsummary : QwPromptSummary.o 
+promptsummary : QwPromptSummary.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 
