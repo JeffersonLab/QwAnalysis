@@ -182,7 +182,7 @@ void QwHelicity::ClearEventData()
   fPatternNumberOld = fPatternNumber;
   fPatternPhaseNumberOld = fPatternPhaseNumber;
 
-  fIgnoreHelicity = kFALSE;
+  //fIgnoreHelicity = kFALSE;
 
   /**Clear out helicity variables */
   fHelicityReported = kUndefinedHelicity;
@@ -319,8 +319,10 @@ void QwHelicity::ProcessEventInputRegisterMode()
   */
   fEventNumber=fWord[kMpsCounter].fValue;
 
-  if (CheckIORegisterMask(thisinputregister,kInputReg_FakeMPS))
+  if (CheckIORegisterMask(thisinputregister,kInputReg_FakeMPS)){
+    
     fIgnoreHelicity = kTRUE;
+  }
   else 
     fIgnoreHelicity = kFALSE;
 
@@ -389,7 +391,7 @@ void QwHelicity::ProcessEventInputRegisterMode()
     fHelicityBitPlus  = kFALSE;
     fHelicityBitMinus = kTRUE;
   }
-
+  
   return;
 };
 
@@ -1739,6 +1741,7 @@ void QwHelicity::Copy(VQwSubsystem *source)
 	      this->fWord[i].fWordType=input->fWord[i].fWordType;
 	    }
 	  this->kUserbit = input->kUserbit;
+	  this->fIgnoreHelicity = input->fIgnoreHelicity;
 	}
       else
 	{
@@ -1789,6 +1792,7 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
       this->fHelicityBitMinus=input->fHelicityBitMinus;
       this->fGoodHelicity=input->fGoodHelicity;
       this->fGoodPattern=input->fGoodPattern;
+      this->fIgnoreHelicity = input->fIgnoreHelicity;
 
       if(ldebug){
 	std::cout << "QwHelicity::operator = this->fPatternNumber=" << this->fPatternNumber << std::endl;
