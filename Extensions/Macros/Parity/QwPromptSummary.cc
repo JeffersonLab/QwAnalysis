@@ -96,11 +96,11 @@ int main(Int_t argc,Char_t* argv[])
 
   if(argc<2){
     std::cerr<<"!!  Not enough arguments to run this code, the correct syntax is \n";
-    std::cerr<<" ./promptsummary  runnumber i rootfile-stem=QwRun_\n";
+    std::cerr<<" ./promptsummary  runnumber i rootfile-stem=Qweak_\n";
     std::cerr<<" Give a run number \n";
     std::cerr<<" Give i=0 print result on the screen (Default setting) and  \n";
     std::cerr<<" Give i=1 print result into a text file.\n";
-    std::cerr<<" Give root file stem name if it is different from default value 'QwRun_' \n";
+    std::cerr<<" Give root file stem name if it is different from default value 'Qweak_' \n";
     exit(1);
   }
   else {
@@ -111,18 +111,18 @@ int main(Int_t argc,Char_t* argv[])
       std::cerr<<" Give a run number \n";
       std::cerr<<" Give i=0 print result on the screen (Default setting) and  \n";
       std::cerr<<" Give i=1 print result into a text file.\n";
-      std::cerr<<" Give root file stem name if it is different from default value 'QwRun_' \n";
+      std::cerr<<" Give root file stem name if it is different from default value 'Qweak_' \n";
       exit(1);
     }
     if (argc > 2){//read the print option
       s_argc=argv[2];
       if (!s_argc.IsDigit()){
 	std::cerr<<" ***** You NEED to give a valid print option 1 or 0 ************\n";
-	std::cerr<<" ./promptsummary  runnumber i=0 rootfile-stem=QwRun_\n";
+	std::cerr<<" ./promptsummary  runnumber i=0 rootfile-stem=Qweak_\n";
 	std::cerr<<" Give a run number \n";
 	std::cerr<<" Give i=0 print result on the screen (Default setting) and  \n";
 	std::cerr<<" Give i=1 print result into a text file.\n";
-	std::cerr<<" Give root file stem name if it is different from default value 'QwRun_' \n";
+	std::cerr<<" Give root file stem name if it is different from default value 'Qweak_' \n";
 	exit(1);
       }
       outputformat=atoi(argv[2]);
@@ -178,14 +178,14 @@ int main(Int_t argc,Char_t* argv[])
   }
     
   if (foundfile == 1){//regular root file found
-    mps_tree=(TTree*)f->Get("Mps_Tree");
-    hel_tree=(TTree*)f->Get("Hel_Tree");
+    //mps_tree=(TTree*)f->Get("Mps_Tree");
+    //hel_tree=(TTree*)f->Get("Hel_Tree");
     file_list.push_back(f);//add the regular file to the file-list vector
   }else if (foundfile == 2){//In runlet mode. We need to create the TChain
     std::cout<<" found  "<<noofrunlets<<" runlets "<<std::endl;
   }
 
-  std::cout<<" Mps_Tree "<<chain_Mps_Tree->GetNbranches()<<" Hel_Tree "<<chain_Hel_Tree->GetNbranches()<<std::endl;
+  //std::cout<<" Mps_Tree "<<chain_Mps_Tree->GetNbranches()<<" Hel_Tree "<<chain_Hel_Tree->GetNbranches()<<std::endl;
   //std::cout<<" Mps_Tree "<<mps_tree->GetNbranches()<<std::endl;
   std::cout<<" No. of runlets : "<<file_list.size()<<std::endl;
 
