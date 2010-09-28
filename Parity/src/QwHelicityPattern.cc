@@ -462,7 +462,7 @@ void QwHelicityPattern::GetTargetChargeStat(Double_t & asym, Double_t & error, D
   fRunningAsymmetry.CalculateRunningAverage();
   data_channel=const_cast<VQwDataElement*>(fRunningAsymmetry.ReturnInternalValue(name));	
   if (!data_channel){
-    QwError << " Could not get external value setting parameters to -1" <<name <<QwLog::endl;
+    QwError << " Could not get external value setting parameters to  " <<name <<QwLog::endl;
     asym=-1;
     error=-1;
     width=-1;
@@ -470,9 +470,9 @@ void QwHelicityPattern::GetTargetChargeStat(Double_t & asym, Double_t & error, D
   }
   
   (dynamic_cast<QwVQWK_Channel*>(data_channel))->PrintInfo();
-  asym=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSum();// targtstat[0]=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSum();
-  error=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumError();// targtstat[1]=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumError();
-  width=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumM2();// targtstat[2]=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumM2(); 
+  asym=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSum();
+  error=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumError();
+  width=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumM2();
   
   return;
 };

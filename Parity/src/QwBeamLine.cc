@@ -1401,8 +1401,7 @@ const Bool_t QwBeamLine::ReturnInternalValue(const TString& name,
 const VQwDataElement* QwBeamLine::ReturnInternalValue(const TString& name) const {
   Bool_t ldebug=kFALSE;
   if (ldebug) std::cout << "QwBeamLine::ReturnInternalValue called for value name, "<< name.Data() <<std::endl;
-  Bool_t foundit = kFALSE;
-  return const_cast<QwBeamLine*>(this)->GetPublishValue(name);//const_cast<QwBeamLine*>(this)->tmp;
+  return const_cast<QwBeamLine*>(this)->GetPublishValue(name);
 };
 
 
