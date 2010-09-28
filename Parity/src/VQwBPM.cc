@@ -26,7 +26,7 @@ void  VQwBPM::InitializeChannel(TString name)
 
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
   
-  for(i=0;i<3;i++) fPositionCenter[0] = 0.0;
+  for(i=0;i<3;i++) fPositionCenter[i] = 0.0;
 
   SetElementName(name);
 
