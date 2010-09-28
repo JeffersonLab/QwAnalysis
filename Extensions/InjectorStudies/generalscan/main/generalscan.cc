@@ -5,7 +5,8 @@
 Bool_t globalEXIT;
 
 Int_t rhwpscan(QwEPICSControl, int, int, int, int);
-Int_t pitascan(QwEPICSControl, int, int, int);
+Int_t pitascan_DAC(QwEPICSControl, int, int, int);
+Int_t generalDACscan(QwEPICSControl);
 Int_t IACscan(QwEPICSControl, int, int, int);
 Int_t pedestalscan(QwEPICSControl);
 void sigint_handler(int sig)
@@ -31,11 +32,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 	int kPITANumberOfPoints=3;
 	int kPITASecondsPerPoint=60;
 	int kPITATotalVoltageRange=240;
-	int kIAscanNumberOfPoints=3;
-	int kIAscanSecondsPerPoint=60;
-	int kIAscanVoltageRange=2;
 	//while loop to display menu until user exits
-	while(1)//menuChoice != 8)
+	while(1)
     {
 		printf("================================================================================\n");
 		printf("||  please choose an item on the menu below                                   ||\n");
@@ -47,13 +45,11 @@ Int_t main(Int_t argc, Char_t* argv[])
 		printf("||  (3) Do a RHWP scan                                                        ||\n");
 		printf("||                 (%2i points at %3i seconds per point from %4i to %4i.)    ||\n",
 			   kRHWPNumberOfPoints, kRHWPSecondsPerPoint, kRHWPStartAngleSet, kRHWPEndAngleSet);
-		printf("||  (4) Do an IA scan                                                         ||\n");
-		printf("||                 (%2i points at %3i seconds per point over %2i Volts range.)  ||\n", 
-			   kIAscanNumberOfPoints, kIAscanSecondsPerPoint, kIAscanVoltageRange);
+		printf("||  (4) Do a general DAC scan (IA scan)                                       ||\n");
 		printf("||  (5) Change PITA scan parameters                                           ||\n");
 		printf("||  (6) Change RHWP scan parameters                                           ||\n");
 		printf("||  (7) Change IA scan parameters                                             ||\n");
-		printf("||  (8) Print current injector properties                                     ||\n");
+		printf("||  (9) Print current injector properties                                     ||\n");
 		printf("||  (0) Quit                                                                  ||\n");
 		printf("================================================================================\n");
 		if (fEPICSCtrlVar.Get_Pockels_Cell_status()!=1) {
@@ -71,7 +67,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 			system("clear");
 			break;
 		case '2':
-			pitascan(fEPICSCtrlVar, kPITANumberOfPoints, kPITASecondsPerPoint, kPITATotalVoltageRange);
+			pitascan_DAC(fEPICSCtrlVar, kPITANumberOfPoints, kPITASecondsPerPoint, kPITATotalVoltageRange);
 			system("clear");
 			break;
 		case '3':
@@ -79,7 +75,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 			system("clear");
 			break;
 		case '4':
-			IACscan(fEPICSCtrlVar, kIAscanNumberOfPoints, kIAscanSecondsPerPoint, kIAscanVoltageRange);
+			generalDACscan(fEPICSCtrlVar);
 			system("clear");
 			break;
 		case '5':
@@ -109,19 +105,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 			kRHWPEndAngleSet=newValue;
 			system("clear");
 			break;
-		case '7':
-			printf("New IA scan parameters\nEnter the number of points: ");
-			cin >> newValue;
-			kIAscanNumberOfPoints=newValue;
-			printf("Enter the number of seconds per point: ");
-			cin >> newValue;
-			kIAscanSecondsPerPoint=newValue;
-			printf("Enter the total voltage range: ");
-			cin >> newValue;
-			kIAscanVoltageRange=newValue;
-			system("clear");
-			break;
-		case '8':
+		case '9':
 			printf("\n");
 			fEPICSCtrlVar.Print_Qasym_Ctrls();
 			break;
@@ -134,8 +118,66 @@ Int_t main(Int_t argc, Char_t* argv[])
 		}//ends switch
      
     }//ends while
+         
 	return 0;
 }//ends main
+
+
+Int_t pedestalscan(QwEPICSControl fEPICSCtrl)
+{ 
+	Int_t kSecondsPerPoint=1;
+	printf("--------------------\n");
+	printf("Pedestal scan helper\n");
+	printf("--------------------\n");
+	printf("\nMake sure that the BPMs are in \"gains off\" mode!\n\n");
+	printf("This routine will write the value of the epics channel \"FCupsCORRECTED.VAL\" \n");
+	printf("(the current on the first Faraday cup i the beam) to the DAQ quantity \"scandata1\".\n");
+	printf("This is used to have a more accurate value of the current for plotting the BPM wire \n");
+	printf("signals against for the purposes of fitting.\n\n");
+	printf("You can ctrl-C out at any point.\n");
+	printf("Press any key to continue.\n");
+	cout << "Starting scan control.\n";
+	GreenMonster  fScanCtrl;
+	//  Let's clear the values for the scan data & set "not clean".
+	fScanCtrl.Open();
+	fScanCtrl.SCNSetStatus(SCN_INT_NOT);
+	fScanCtrl.SCNSetValue(1,0);
+	fScanCtrl.SCNSetValue(2,0);
+	fScanCtrl.CheckScan();
+	fScanCtrl.PrintScanInfo();
+
+	while (1) {
+		double fc2current = fEPICSCtrl.Get_FC2_Current();
+		double claseratt  = fEPICSCtrl.Get_CLaser_Att();
+		fScanCtrl.SCNSetValue(1, fc2current*1000);
+		fScanCtrl.SCNSetValue(2, claseratt);
+		//    fScanCtrl.SCNSetStatus(SCN_INT_CLN);
+		fScanCtrl.CheckScan();
+		fScanCtrl.PrintScanInfo();
+		signal(SIGINT, sigint_handler);
+		if (globalEXIT) {
+			globalEXIT=0;
+			return 0;
+		}
+		sleep(kSecondsPerPoint);
+	}
+
+	// Return voltages to initial numbers and clearing the scandata.
+	printf("\nScan complete\n");
+	fScanCtrl.SCNSetStatus(SCN_INT_NOT);
+	fScanCtrl.SCNSetValue(1,0);
+	fScanCtrl.SCNSetValue(2,0);
+	fScanCtrl.CheckScan();
+	fScanCtrl.PrintScanInfo();
+	fScanCtrl.Close();
+	// *** Make some noise to signal the end of the scan.
+	for (int i=0; i<=5; i++) {
+		printf("\a\n");
+		usleep(200000);
+	}
+	return 0;
+}
+
 
 Int_t rhwpscan(QwEPICSControl fEPICSCtrl,
 			   int kNumberOfPoints=19,
@@ -197,7 +239,7 @@ Int_t rhwpscan(QwEPICSControl fEPICSCtrl,
 		fScanCtrl.SCNSetStatus(SCN_INT_CLN);
 		fScanCtrl.CheckScan();
 		fScanCtrl.PrintScanInfo();
-		// Allow ctrl-C escape while sleeping
+		//sleep(kSecondsPerPoint);
 		for (Int_t i=0; i<=kSecondsPerPoint; i++) {
 			sleep(1);
 			signal(SIGINT, sigint_handler);
@@ -227,14 +269,18 @@ Int_t rhwpscan(QwEPICSControl fEPICSCtrl,
 	return 0;
 }
 
-
-Int_t pitascan(QwEPICSControl fEPICSCtrl,
-			   int kNumberOfPoints=3,
-			   int kSecondsPerPoint=30,
-			   int kTotalVoltageRange=12)
+Int_t pitascan_DAC(QwEPICSControl fEPICSCtrl,
+				   int kNumberOfPoints=3,
+				   int kSecondsPerPoint=30,
+				   int kActualVoltageRange=12)
 {  
-	double kVernierVoltagePerStep=kTotalVoltageRange/(kNumberOfPoints-1.000)/60;
-	int kTotalVoltagePerStep=kTotalVoltageRange/(kNumberOfPoints-1);
+	Bool_t localdebug=1;
+	int kDACTicksPerVolt=65536/4000;
+	int kActualVoltagePerStep=kActualVoltageRange/(kNumberOfPoints-1);
+	int kDACTicksPerStep=kDACTicksPerVolt*kActualVoltagePerStep;
+
+	if (localdebug) {printf("localdebug: kDACTicksPerVolt %i  kActualVoltagePerStep %i  kDACTicksPerStep %i\n",
+							kDACTicksPerVolt,kActualVoltagePerStep,kDACTicksPerStep);}
 
 	printf("-----------------------------\n");
 	printf("Doing an automated PITA scan.\n");
@@ -242,11 +288,11 @@ Int_t pitascan(QwEPICSControl fEPICSCtrl,
 	printf("Taking %i points of %i seconds each.\n",kNumberOfPoints,kSecondsPerPoint);
 	printf("Scan will take about %i minute %i seconds.\n",
 		   (kNumberOfPoints*kSecondsPerPoint)/60,(kNumberOfPoints*kSecondsPerPoint)%60);
-	if (kTotalVoltageRange%(kNumberOfPoints-1)!=0) {
+	if (kActualVoltageRange%(kNumberOfPoints-1)!=0) {
 		printf("Error: Voltage range not integer divisible by number of steps.\n\n");
 		return -1;
 	}
-	printf("PITA change %i Volts per step, %.3f Volts on vernier\n",kTotalVoltagePerStep,kVernierVoltagePerStep);
+	printf("PITA change %i Volts per step, %i ticks on the DAC.\n",kActualVoltagePerStep,kDACTicksPerStep);
   
 
 	cout << "Starting scan control.\n";
@@ -259,17 +305,23 @@ Int_t pitascan(QwEPICSControl fEPICSCtrl,
 	fScanCtrl.CheckScan();
 	fScanCtrl.PrintScanInfo();
 
-	double PCplusInit  = fEPICSCtrl.Get_Pockels_Cell_plus();
-	double PCminusInit = fEPICSCtrl.Get_Pockels_Cell_minus();
-	printf("Initial voltages (%.3f,%.3f)\n",PCplusInit,PCminusInit);
-	double PCplusMin  = PCplusInit  - kTotalVoltageRange/2./60.;
-	double PCminusMax = PCminusInit + kTotalVoltageRange/2./60.;
-	printf("First Point (%.3f,%.3f)\n",PCplusMin,PCminusMax);
-	int PCTotalPITAMin = -kTotalVoltageRange/2;
+	double PCplusDACInit  = fEPICSCtrl.Get_Pockels_Cell_plus_DAC();
+	double PCminusDAQInit = fEPICSCtrl.Get_Pockels_Cell_minus_DAC();
+	printf("Initial PC DAC values (%.0f,%.0f)\n",PCplusDACInit,PCminusDAQInit);
+	double PCplusDAQMin  = PCplusDACInit  - kActualVoltageRange/2.*kDACTicksPerVolt;
+	double PCminusDAQMax = PCminusDAQInit + kActualVoltageRange/2.*kDACTicksPerVolt;
+	printf("First Point (%.0f,%.0f)\n",PCplusDAQMin,PCminusDAQMax);
+	int PCTotalPITAMin = -kActualVoltageRange/2;
 
-	printf("Scan will take points at: ");
+	if (localdebug) {printf("localdebug: kActualVoltageRange %i   PCTotalPITAMin %i\n",
+							kActualVoltageRange, PCTotalPITAMin);}
+
+	printf("Scan will take points at: \n");
 	for (int count=0; count<kNumberOfPoints; count++) {
-		printf("(%5.3f,%5.3f) ",PCplusMin+(count*kVernierVoltagePerStep),PCminusMax-(count*kVernierVoltagePerStep));
+		printf("%2i %5i   (%f,%f)\n", count,
+			   PCTotalPITAMin + (count*kActualVoltagePerStep),
+			   PCplusDAQMin   + (count*kDACTicksPerStep),
+			   PCminusDAQMax  - (count*kDACTicksPerStep));
 	}
 	printf("\n");
 
@@ -277,26 +329,38 @@ Int_t pitascan(QwEPICSControl fEPICSCtrl,
 		// Not clean while setting the voltages
 		fScanCtrl.SCNSetStatus(SCN_INT_NOT);
 		usleep(100);
-		double PCplusSet  = PCplusMin  + (count*kVernierVoltagePerStep);
-		double PCminusSet = PCminusMax - (count*kVernierVoltagePerStep);
+		double PCplusDACSet  = PCplusDAQMin  + (count*kDACTicksPerStep);
+		double PCminusDACSet = PCminusDAQMax - (count*kDACTicksPerStep);
 		printf("\n");
-		fEPICSCtrl.Set_Pockels_Cell_plus(PCplusSet);
-		fEPICSCtrl.Set_Pockels_Cell_minus(PCminusSet);
-
+		fEPICSCtrl.Set_Pockels_Cell_plus_DAC(PCplusDACSet);
+		fEPICSCtrl.Set_Pockels_Cell_minus_DAC(PCminusDACSet);
+		
 		usleep(200);
 		// Now lets check that the voltages took
-		double PCplusGet  = fEPICSCtrl.Get_Pockels_Cell_plus();
-		double PCminusGet  = fEPICSCtrl.Get_Pockels_Cell_minus();
-		while (PCplusGet!=PCplusSet || PCminusGet!=PCminusSet) {
+		double PCplusDACGet  = fEPICSCtrl.Get_Pockels_Cell_plus_DAC();
+		double PCminusDACGet  = fEPICSCtrl.Get_Pockels_Cell_minus_DAC();
+		int counter1=0, counter2=0;
+		while (PCplusDACGet!=PCplusDACSet || PCminusDACGet!=PCminusDACSet) {
 			//printf("%.3f != %.3f or %.3f != %.3f\n",PCplusGet,PCplusSet,PCminusGet,PCminusSet);
 			usleep(200);
-			PCplusGet  = fEPICSCtrl.Get_Pockels_Cell_plus();
-			PCminusGet  = fEPICSCtrl.Get_Pockels_Cell_minus();
+			counter1++;
+			PCplusDACGet  = fEPICSCtrl.Get_Pockels_Cell_plus_DAC();
+			PCminusDACGet  = fEPICSCtrl.Get_Pockels_Cell_minus_DAC();
+			if (counter1==10) {
+				counter1=0;
+				counter2++;
+				if (counter2==10) {
+					printf("Voltages won't take, bailing out.\n\n");
+					return -1;
+				}
+				fEPICSCtrl.Set_Pockels_Cell_plus_DAC(PCplusDACSet);
+				fEPICSCtrl.Set_Pockels_Cell_minus_DAC(PCminusDACSet);
+			}
 		}
 		printf("Waiting for voltages to stabilize.\n");
 		usleep(1000000);
 		// Set the scan data points
-		fScanCtrl.SCNSetValue(1, PCTotalPITAMin + (count*kTotalVoltagePerStep));
+		fScanCtrl.SCNSetValue(1, PCTotalPITAMin + (count*kActualVoltagePerStep));
 		fScanCtrl.SCNSetValue(2, count+1);
 		fScanCtrl.SCNSetStatus(SCN_INT_CLN);
 		fScanCtrl.CheckScan();
@@ -314,8 +378,8 @@ Int_t pitascan(QwEPICSControl fEPICSCtrl,
 
 	// Return voltages to initial numbers and clearing the scandata.
 	printf("\nScan complete\n");
-	fEPICSCtrl.Set_Pockels_Cell_plus(PCplusInit);
-	fEPICSCtrl.Set_Pockels_Cell_minus(PCminusInit);
+	fEPICSCtrl.Set_Pockels_Cell_plus_DAC(PCplusDACInit);
+	fEPICSCtrl.Set_Pockels_Cell_minus_DAC(PCminusDAQInit);
 	fScanCtrl.SCNSetStatus(SCN_INT_NOT);
 	fScanCtrl.SCNSetValue(1,0);
 	fScanCtrl.SCNSetValue(2,0);
@@ -330,27 +394,64 @@ Int_t pitascan(QwEPICSControl fEPICSCtrl,
 	return 0;
 }
 
+Int_t generalDACscan(QwEPICSControl fEPICSCtrl)
+{	
+	//variable declarations
+	char menuChoice;
+	int newValue;
+	int kDACnumber, kNumberOfPoints, kSecondsPerPoint, kDACRange;
+	int kDACTicksPerStep;
+	printf("----------------------\n");
+	printf("Automated IA DAC scan.\n");
+	printf("----------------------\n");
+	Bool_t doscan=0, goodIA=0;;
+	while (!doscan) {
+		printf("New IA DAC scan parameters\n");
+		printf("Enter the DAC number:                : ");
+		cin >> newValue;
+		kDACnumber = newValue;
+		if (kDACnumber>=3 && kDACnumber<=14) {
+			goodIA=1;
+			if (kDACnumber>=3 && kDACnumber<=6) {
+				printf("This is a HALL A IA!\n");
+			}
+			if (kDACnumber>=7 && kDACnumber<=10) {
+				printf("This is a HALL B IA!\n");
+			}
+		}
+		kNumberOfPoints=newValue;
+		printf("Enter the number of points:          : ");
+		cin >> newValue;
+		kNumberOfPoints=newValue;
+		printf("Enter the number of seconds per point: ");
+		cin >> newValue;
+		kSecondsPerPoint=newValue;
+		printf("Enter the total DAC range:           : ");
+		cin >> newValue;
+		kDACRange=newValue;
+		kDACTicksPerStep=kDACRange/(kNumberOfPoints-1.0);
 
-Int_t IACscan(QwEPICSControl fEPICSCtrl,
-			  int kNumberOfPoints=3,
-			  int kSecondsPerPoint=30,
-			  int kVoltageRange=4)
-{  
-	//  double kVernierVoltagePerStep=kTotalVoltageRange/(kNumberOfPoints-1.000)/60;
-	Float_t kVoltagePerStep=kVoltageRange/(kNumberOfPoints-1.0);
-
-	printf("-----------------------------\n");
-	printf("Doing an automated IA scan.\n");
-	printf("-----------------------------\n");
-	printf("Taking %i points of %i seconds each.\n",kNumberOfPoints,kSecondsPerPoint);
-	printf("Scan will take about %i minute %i seconds.\n",
-		   (kNumberOfPoints*kSecondsPerPoint)/60,(kNumberOfPoints*kSecondsPerPoint)%60);
-//   if (kVoltageRange%(kNumberOfPoints-1)!=0) {
-//     printf("Error: Voltage range not integer divisible by number of steps.\n\n");
-//     return -1;
-//   }
-	printf("IA change %.2f Volts per step\n",kVoltagePerStep);
-  
+		printf("\nDAC %i\n",kDACnumber);
+		printf("%i minutes %i seconds\n",
+			   (kNumberOfPoints*kSecondsPerPoint)/60,(kNumberOfPoints*kSecondsPerPoint)%60);
+		printf("%i points of %i seconds each.\n",kNumberOfPoints,kSecondsPerPoint);
+		printf("%i DAC ticks per step\n\n",kDACTicksPerStep);
+		printf("Continue with scan (Y or 1), abort (A or 0), all else redo parameters: ");
+		cin >> menuChoice;
+      
+		switch(menuChoice)
+		{
+		case '1':
+			doscan=1;
+			break;
+		case '0':
+			return -1;
+			break;
+		default:
+			system("clear");
+			break;
+		}//ends switch
+    }//ends while
 
 	cout << "Starting scan control.\n";
 	GreenMonster  fScanCtrl;
@@ -362,15 +463,16 @@ Int_t IACscan(QwEPICSControl fEPICSCtrl,
 	fScanCtrl.CheckScan();
 	fScanCtrl.PrintScanInfo();
 
-	double IACInit  = fEPICSCtrl.Get_HallCIA();
-	printf("Initial voltage %.2f\n",IACInit);
-	double IACMin  = IACInit - kVoltageRange/2.;
+	double IACInit  = fEPICSCtrl.Get_IADAC(kDACnumber);
+	printf("Initial DAC %.0f\n",IACInit);
+	double IACMin  = IACInit - kDACRange/2.;
 	printf("First Point %.2f Volts\n",IACMin);
-//   int IAMinVolt = -kVoltageRange/2;
+//   int IAMinVolt = -kDACRange/2;
 
-	printf("Scan will take points at: ");
+	printf("Scan will take points at: \n");
 	for (int count=0; count<kNumberOfPoints; count++) {
-		printf("%5.3f, ",IACMin+(count*kVoltagePerStep));
+		printf("%2i   %f\n", count,
+			   IACMin + (count*kDACTicksPerStep));
 	}
 	printf("\n");
 
@@ -378,22 +480,22 @@ Int_t IACscan(QwEPICSControl fEPICSCtrl,
 		// Not clean while setting the voltages
 		fScanCtrl.SCNSetStatus(SCN_INT_NOT);
 		usleep(100);
-		double IACSet  = IACMin  + (count*kVoltagePerStep);
+		double IACSet  = IACMin  + (count*kDACTicksPerStep);
 		printf("\n");
-		fEPICSCtrl.Set_HallCIA(IACSet);
+		fEPICSCtrl.Set_IADAC(IACSet,kDACnumber);
 
 		usleep(200);
 		// Now lets check that the voltages took
-		double IACGet  = fEPICSCtrl.Get_HallCIA();
+		double IACGet  = fEPICSCtrl.Get_IADAC(kDACnumber);
 		while (IACGet!=IACSet) {
 			//printf("%.3f != %.3f or %.3f != %.3f\n",IACGet,IACSet);
 			usleep(200);
-			IACGet  = fEPICSCtrl.Get_HallCIA();
+			IACGet  = fEPICSCtrl.Get_IADAC(kDACnumber);
 		}
-		printf("Waiting for voltages to stabilize.\n");
+		printf("Waiting 3 seconds for voltage to stabilize...\n");
 		usleep(3000000);
 		// Set the scan data points
-		fScanCtrl.SCNSetValue(1, IACMin + (count*kVoltagePerStep));
+		fScanCtrl.SCNSetValue(1, IACMin + (count*kDACTicksPerStep));
 		fScanCtrl.SCNSetValue(2, count+1);
 		fScanCtrl.SCNSetStatus(SCN_INT_CLN);
 		fScanCtrl.CheckScan();
@@ -411,7 +513,7 @@ Int_t IACscan(QwEPICSControl fEPICSCtrl,
 
 	// Return voltages to initial numbers and clearing the scandata.
 	printf("\nScan complete\n");
-	fEPICSCtrl.Set_HallCIA(IACInit);
+	fEPICSCtrl.Set_IADAC(IACInit,kDACnumber);
 	fScanCtrl.SCNSetStatus(SCN_INT_NOT);
 	fScanCtrl.SCNSetValue(1,0);
 	fScanCtrl.SCNSetValue(2,0);
@@ -426,57 +528,9 @@ Int_t IACscan(QwEPICSControl fEPICSCtrl,
 	return 0;
 }
 
-Int_t pedestalscan(QwEPICSControl fEPICSCtrl)
-{
-	Int_t kSecondsPerPoint=1;
-	printf("--------------------\n");
-	printf("Pedestal scan helper\n");
-	printf("--------------------\n");
-	printf("\n");
-                                                              
-	cout << "Starting scan control.\n";
-	GreenMonster  fScanCtrl;
-	//  Let's clear the values for the scan data & set "not clean".
-	fScanCtrl.Open();
-	fScanCtrl.SCNSetStatus(SCN_INT_NOT);
-	fScanCtrl.SCNSetValue(1,0);
-	fScanCtrl.SCNSetValue(2,0);
-	fScanCtrl.CheckScan();
-	fScanCtrl.PrintScanInfo();
-                                                              
-	while (1) {
-		double fc2current = fEPICSCtrl.Get_FC2_Current();
-		double claseratt  = fEPICSCtrl.Get_CLaser_Att();
-		fScanCtrl.SCNSetValue(1, fc2current*1000);
-		fScanCtrl.SCNSetValue(2, claseratt);
-		//    fScanCtrl.SCNSetStatus(SCN_INT_CLN);
-		fScanCtrl.CheckScan();
-		fScanCtrl.PrintScanInfo();
-		signal(SIGINT, sigint_handler);
-		if (globalEXIT) {
-			globalEXIT=0;
-			return 0;
-		}
-		sleep(kSecondsPerPoint);
-	}
-                                                              
-	// Return voltages to initial numbers and clearing the scandata.
-	printf("\nScan complete\n");
-	fScanCtrl.SCNSetStatus(SCN_INT_NOT);
-	fScanCtrl.SCNSetValue(1,0);
-	fScanCtrl.SCNSetValue(2,0);
-	fScanCtrl.CheckScan();
-	fScanCtrl.PrintScanInfo();
-	fScanCtrl.Close();
-	// *** Make some noise to signal the end of the scan.
-	for (int i=0; i<=5; i++) {
-		printf("\a\n");
-		usleep(200000);
-	}
-	return 0;
-}
-                                                              
-                                                              
+
+
+
 /* emacs
  * Local Variables:
  * mode:C++

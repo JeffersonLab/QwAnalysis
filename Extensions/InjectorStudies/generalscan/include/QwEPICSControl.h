@@ -22,35 +22,36 @@ public:
   QwEPICSControl();
   ~QwEPICSControl();
 
-  void Print_HallAIA(){
-    int status;
-    //    Char_t tmp[30];
-    //    status = ca_get(DBR_STRING, fIDHall_A_IA, tmp);
-    //    status = ca_pend_io(10);
-    //    std::cout << "Hall A IA value: " << tmp << std::endl;
-    Double_t value;
-    status = ca_get(DBR_DOUBLE, fIDHall_A_IA, &value);
-    status = ca_pend_io(10);
-    std::cout << "Hall A IA value: " << value << std::endl;
-  };
+/*   void Print_HallAIA(){ */
+/*     int status; */
+/*     //    Char_t tmp[30]; */
+/*     //    status = ca_get(DBR_STRING, fIDHall_A_IA, tmp); */
+/*     //    status = ca_pend_io(10); */
+/*     //    std::cout << "Hall A IA value: " << tmp << std::endl; */
+/*     Double_t value; */
+/*     status = ca_get(DBR_DOUBLE, fIDHall_A_IA, &value); */
+/*     status = ca_pend_io(10); */
+/*     std::cout << "Hall A IA value: " << value << std::endl; */
+/*   }; */
 
 
   void Print_Qasym_Ctrls(){
     int status;
-    //    Char_t tmp[30];
+    //Char_t tmp[30]; 
     //    status = ca_get(DBR_STRING, fIDHall_A_IA, tmp);
     //    status = ca_pend_io(10);
     //    std::cout << "Hall A IA value: " << tmp << std::endl;
+
     Double_t value;
     status = ca_get(DBR_DOUBLE, fIDPC_status, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels cell status:         " << value << std::endl;
 
-    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus_DAC, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell plus HV value:  " << value << std::endl;
 
-    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus_DAC, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell minus HV value: " << value << std::endl;
 
@@ -62,9 +63,9 @@ public:
     status = ca_pend_io(10);
     std::cout << "RHWP angle:                  " << value << std::endl;
 
-    status = ca_get(DBR_DOUBLE, fIDHall_C_IA, &value);
-    status = ca_pend_io(10);
-    std::cout << "Hall C IA value:             " << value << std::endl;
+/*     status = ca_get(DBR_DOUBLE, fIDHall_C_IA, &value); */
+/*     status = ca_pend_io(10); */
+/*     std::cout << "Hall C IA value:              " << value << std::endl;*/ 
 
     status = ca_get(DBR_DOUBLE, fIDHelicity_frequency, &value);
     status = ca_pend_io(10);
@@ -75,40 +76,74 @@ public:
     Double_t value;
     status = ca_get(DBR_DOUBLE, fIDCLaser_Att, &value);
     status = ca_pend_io(10);
-    return value;
+    return value;  
   }
   Double_t Get_FC2_Current() {
     int status;
     Double_t value;
     status = ca_get(DBR_DOUBLE, fIDFC2_Current, &value);
     status = ca_pend_io(10);
-    return value;
+    return value;  
   }
-  Double_t Get_HallAIA(){
+/*   Double_t Get_HallAIA(){ */
+/*     int status; */
+/*     Double_t value; */
+/*     status = ca_get(DBR_DOUBLE, fIDHall_A_IA, &value); */
+/*     status = ca_pend_io(10); */
+/*     return value; */
+/*   }; */
+/*   Double_t Get_HallCIA(){ */
+/*     int status; */
+/*     Double_t value; */
+/*     status = ca_get(DBR_DOUBLE, fIDHall_C_IA, &value); */
+/*     status = ca_pend_io(10); */
+/*     return value; */
+/*   }; */
+   Double_t Get_IADAC(Int_t DACnumber){ 
+     int status; 
+     Double_t value; 
+    if (DACnumber==11) status = ca_get(DBR_DOUBLE, fIDIADAC11, &value);
+    else if (DACnumber==3) status = ca_get(DBR_DOUBLE, fIDIADAC3, &value);
+    else if (DACnumber==4) status = ca_get(DBR_DOUBLE, fIDIADAC4, &value);
+    else if (DACnumber==5) status = ca_get(DBR_DOUBLE, fIDIADAC5, &value);
+    else if (DACnumber==6) status = ca_get(DBR_DOUBLE, fIDIADAC6, &value);
+    else if (DACnumber==7) status = ca_get(DBR_DOUBLE, fIDIADAC7, &value);
+    else if (DACnumber==8) status = ca_get(DBR_DOUBLE, fIDIADAC8, &value);
+    else if (DACnumber==9) status = ca_get(DBR_DOUBLE, fIDIADAC9, &value);
+    else if (DACnumber==10) status = ca_get(DBR_DOUBLE, fIDIADAC10, &value);
+    else if (DACnumber==11) status = ca_get(DBR_DOUBLE, fIDIADAC11, &value);
+    else if (DACnumber==12) status = ca_get(DBR_DOUBLE, fIDIADAC12, &value);
+    else if (DACnumber==11) status = ca_get(DBR_DOUBLE, fIDIADAC13, &value);
+    else if (DACnumber==12) status = ca_get(DBR_DOUBLE, fIDIADAC14, &value);
+    else std::cerr << "Get_IADAC(): error: " << DACnumber << " not a valid DAC number\n";
+     status = ca_pend_io(10); 
+     return value; 
+   }; 
+/*   Double_t Get_Pockels_Cell_minus(){ */
+/*     int status; */
+/*     Double_t value; */
+/*     status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value); */
+/*     status = ca_pend_io(10); */
+/*     return value; */
+/*   }; */
+/*   Double_t Get_Pockels_Cell_plus(){ */
+/*     int status; */
+/*     Double_t value; */
+/*     status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value); */
+/*     status = ca_pend_io(10); */
+/*     return value; */
+/*   }; */
+  Double_t Get_Pockels_Cell_minus_DAC(){
     int status;
     Double_t value;
-    status = ca_get(DBR_DOUBLE, fIDHall_A_IA, &value);
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus_DAC, &value);
     status = ca_pend_io(10);
     return value;
   };
-  Double_t Get_HallCIA(){
+  Double_t Get_Pockels_Cell_plus_DAC(){
     int status;
     Double_t value;
-    status = ca_get(DBR_DOUBLE, fIDHall_C_IA, &value);
-    status = ca_pend_io(10);
-    return value;
-  };
-  Double_t Get_Pockels_Cell_minus(){
-    int status;
-    Double_t value;
-    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
-    status = ca_pend_io(10);
-    return value;
-  };
-  Double_t Get_Pockels_Cell_plus(){
-    int status;
-    Double_t value;
-    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus_DAC, &value);
     status = ca_pend_io(10);
     return value;
   };
@@ -129,7 +164,7 @@ public:
   Double_t Print_Pockels_Cell_plus(){
     int status;
     Double_t value;
-    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus_DAC, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell plus HV value: " << value << std::endl;
     return value;
@@ -137,44 +172,82 @@ public:
   Double_t Print_Pockels_Cell_minus(){
     int status;
     Double_t value;
-    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus_DAC, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell minus HV value: " << value << std::endl;
     return value;
   };
-
-  void Set_HallAIA(Double_t value){
+  void Set_IADAC(Double_t value, Int_t DACnumber){
     int status;
-    status = ca_put(DBR_DOUBLE, fIDHall_A_IA, &value);
+    if (DACnumber==11) status = ca_put(DBR_DOUBLE, fIDIADAC11, &value);
+    else if (DACnumber==3) status = ca_put(DBR_DOUBLE, fIDIADAC3, &value);
+    else if (DACnumber==4) status = ca_put(DBR_DOUBLE, fIDIADAC4, &value);
+    else if (DACnumber==5) status = ca_put(DBR_DOUBLE, fIDIADAC5, &value);
+    else if (DACnumber==6) status = ca_put(DBR_DOUBLE, fIDIADAC6, &value);
+    else if (DACnumber==7) status = ca_put(DBR_DOUBLE, fIDIADAC7, &value);
+    else if (DACnumber==8) status = ca_put(DBR_DOUBLE, fIDIADAC8, &value);
+    else if (DACnumber==9) status = ca_put(DBR_DOUBLE, fIDIADAC9, &value);
+    else if (DACnumber==10) status = ca_put(DBR_DOUBLE, fIDIADAC10, &value);
+    else if (DACnumber==11) status = ca_put(DBR_DOUBLE, fIDIADAC11, &value);
+    else if (DACnumber==12) status = ca_put(DBR_DOUBLE, fIDIADAC12, &value);
+    else if (DACnumber==11) status = ca_put(DBR_DOUBLE, fIDIADAC13, &value);
+    else if (DACnumber==12) status = ca_put(DBR_DOUBLE, fIDIADAC14, &value);
+    else std::cerr << "Set_IADAC(): error: " << DACnumber << " not a valid DAC number\n";
     status = ca_pend_io(10);
-    std::cout << "Setting Hall A IA value: " << value << std::endl;
+    std::cout << "Setting IA DAC" << DACnumber << " value: " << value << std::endl;
   };
-  void Set_HallCIA(Double_t value){
+/*   void Set_HallAIA(Double_t value){ */
+/*     int status; */
+/*     status = ca_put(DBR_DOUBLE, fIDHall_A_IA, &value); */
+/*     status = ca_pend_io(10); */
+/*     std::cout << "Setting Hall A IA value: " << value << std::endl; */
+/*   }; */
+/*   void Set_HallCIA(Double_t value){ */
+/*     int status; */
+/*     status = ca_put(DBR_DOUBLE, fIDHall_C_IA, &value); */
+/*     status = ca_pend_io(10); */
+/*     std::cout << "Setting Hall C IA value: " << value << std::endl; */
+/*   }; */
+  void Set_Pockels_Cell_plus_DAC(Double_t value){
     int status;
-    status = ca_put(DBR_DOUBLE, fIDHall_C_IA, &value);
-    status = ca_pend_io(10);
-    std::cout << "Setting Hall A IA value: " << value << std::endl;
-  };
-  void Set_Pockels_Cell_plus(Double_t value){
-    int status;
-    if (value<0 || value>10) {
-      std::cout << "Set_Pockels_Cell_plus::Error " << value << " not between 0 and 10" << std::endl;
+    if (value<0 || value>65535) {
+      std::cout << "Set_Pockels_Cell_plus_DAC::Error " << value << " not between 0 and 65536" << std::endl;
       return;
     }
-    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
+    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus_DAC, &value);
     status = ca_pend_io(10);
     std::cout << "Setting Pockels Cell plus HV value: " << value << std::endl;
   };
-  void Set_Pockels_Cell_minus(Double_t value){
+  void Set_Pockels_Cell_minus_DAC(Double_t value){
     int status;
-    if (value<0 || value>10) {
-      std::cout << "Set_Pockels_Cell_minus::Error " << value << " not between 0 and 10" << std::endl;
+    if (value<0 || value>65535) {
+      std::cout << "Set_Pockels_Cell_minus_DAC::Error " << value << " not between 0 and 65536" << std::endl;
       return;
     }
-    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
+    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus_DAC, &value);
     status = ca_pend_io(10);
     std::cout << "Setting Pockels Cell minus HV value: " << value << std::endl;
   };
+/*   void Set_Pockels_Cell_plus(Double_t value){ */
+/*     int status; */
+/*     if (value<0 || value>10) { */
+/*       std::cout << "Set_Pockels_Cell_plus::Error " << value << " not between 0 and 10" << std::endl; */
+/*       return; */
+/*     } */
+/*     status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus_vernier, &value); */
+/*     status = ca_pend_io(10); */
+/*     std::cout << "Setting Pockels Cell plus HV value: " << value << std::endl; */
+/*   }; */
+/*   void Set_Pockels_Cell_minus(Double_t value){ */
+/*     int status; */
+/*     if (value<0 || value>10) { */
+/*       std::cout << "Set_Pockels_Cell_minus::Error " << value << " not between 0 and 10" << std::endl; */
+/*       return; */
+/*     } */
+/*     status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus_vernier, &value); */
+/*     status = ca_pend_io(10); */
+/*     std::cout << "Setting Pockels Cell minus HV value: " << value << std::endl; */
+/*   }; */
   void Set_RHWP_angle(Double_t value){
     int status;
     if (value<50) value=50;
@@ -183,7 +256,6 @@ public:
     status = ca_pend_io(10);
     std::cout << "Setting RHWP value: " << value << std::endl;
   };
-
 
  protected:
 
@@ -197,10 +269,26 @@ public:
    */
 
 
-  chid fIDHall_A_IA;
-  chid fIDHall_C_IA;
-  chid fIDPockels_Cell_plus;
-  chid fIDPockels_Cell_minus;
+/*   chid fIDHall_A_IA; */
+/*   chid fIDHall_C_IA; */
+/*   chid fIDPockels_Cell_plus_vernier; //old */
+/*   chid fIDPockels_Cell_minus_vernier; //old */
+  chid fIDPockels_Cell_plus_DAC;
+  chid fIDPockels_Cell_minus_DAC;
+  chid fIDIADAC3;
+  chid fIDIADAC4;
+  chid fIDIADAC5;
+  chid fIDIADAC6;
+  chid fIDIADAC7;
+  chid fIDIADAC8;
+  chid fIDIADAC9;
+  chid fIDIADAC10;
+  chid fIDIADAC11;
+  chid fIDIADAC12;
+  chid fIDIADAC13;
+  chid fIDIADAC14;
+/*   chid fIDPockels_Cell_plus_DAC_readval; */
+/*   chid fIDPockels_Cell_minus_DAC_readval; */
   chid fIDMagnet_1_Even;
   chid fIDMagnet_1_Odd;
   chid fIDMagnet_2_Even;
@@ -216,7 +304,6 @@ public:
   chid fIDHelicity_frequency;
   chid fIDFC2_Current;
   chid fIDCLaser_Att;
-
 ;
 
 
