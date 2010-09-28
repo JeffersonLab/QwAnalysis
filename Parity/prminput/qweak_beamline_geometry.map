@@ -1,42 +1,58 @@
 !**************************************************************************
-! Geometry information of the BPMS in the Hall C beamline.
+! Geometry information for the BPMs in Hall C beamline.
 !**************************************************************************
-! These offsets represents the positions of the bpms and the target from the begining of the
-! Hall C arc to the center of the deivce. 
-! The units are in millemeters to be comparable with the units of the anaysis results.
 !
-! The bpm offset values were obtained from data transmital C1300 from the survey done on 
-! MAy26th-June 7th 2010. 
-! The target offset values were obtained from data transmital C1307 from the survey done on
-! 21st July 2010.
+! X/Yoffset - The difference in the ideal position and the surveyed position of a BPM in X/Y axis.
 !
-! BSEN scaling factor: Bpm SENsitivity scaling factor is the ratio of general BSEN = 18.81 
-! seen in most of the BPMs in the hall and the actual BSEN of a BPM. 
-! Almost all the BPMs in the hallC beamline except 3H08 has BSEN=25.8. So we use this factor to 
-! apply such changes.
+! Z offset  - The location of the BPM in the hallC beamline (alog Z axis) from the begining of the arc
+!             to the center of the device/ origin of device coordinate system.
+!
+! BSEN scaling factor - Bpm SENsitivity scaling factor is the ratio of general BSEN = 18.81 adc counts/mm 
+!                       seen in most of the BPMs in the hall and the actual BSEN of a BPM. 
+!                       Almost all the BPMs in the hallC beamline except 3H08 has BSEN=25.8 adc counts/mm
+!                       So we use this factor to apply such changes.
+!
+! AlphaX/Y  - Relative gains of the individual XM,YM pairs compared to XP,YP pairs.
+! 
+! The units of the offsets are in millemeters to be comparable with the units of the anaysis results.
+!
+! The optime based BPM and target offset values were obtained from Qweak-doc-1203-v3 bu Nuruzzaman.
+! The BSEN, ALPHAX and AKPHAY values were obtained from EPICS.
+!
+! For BPMs that don't have factors or offsets given in the list below, default values will
+! be assigned. 
+!   default  offset (X/Y/Z) = 0.0
+!   default BSEN scaling factor = 18.81
+!   default AlphaX/AlphaY = 1.0
 !
 ! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY
 !
- 
- bpmstripline,   QWK_3C17,   0.4, -0.3,  -354367.5,  	1.0,  	0.947455,  0.877913
- bpmstripline,   QWK_3C18,   0.0, -0.6,  -355792.2,  	1.0,  	0.741194,  1.04164
- bpmstripline,   QWK_3C19,   0.2,  0.1,  -356832.0,  	1.0,  	1.026,	   1.01101
- bpmstripline,   QWK_3P01,   0.8,  1.0,  -359500.7,  	1.0,  	0.913658,  1.06642
- bpmstripline,   QWK_3P02A, -1.0, -0.7,  -361702.5,  	1.0,  	0.98225,   0.986716
- bpmstripline,   QWK_3P02B,  0.2, -0.1,  -362971.6,  	1.0,    1.0,       1.0
- bpmstripline,   QWK_3P03A,  0.6, -0.7,  -365241.3,  	1.0,  	0.909295,  1.0067
- bpmstripline,   QWK_3C20,   0.2,  0.1,  -367815.7,  	1.0,    0.904796,  0.99587
- bpmstripline,   QWK_3C21,   0.2, -0.2,  -368892.8,  	1.0,    1.0,       1.0,   ! check
- bpmstripline,   QWK_3H02,   0.2,  0.7,  -375965.7,  	1.0,    0.973625,  1.05213
- bpmstripline,   QWK_3H04,  -0.6, -0.4,  -377948.1,  	1.0,    1.08225,   1.03204
- bpmstripline,   QWK_3H07A,  0.4,  0.8,  -384906.8,  	1.0,    0.960181,  1.07193
- bpmstripline,   QWK_3H07B,  0.2, -0.2,  -385896.0,  	1.0,    1.02224,   1.01571
- bpmstripline,   QWK_3H07C,  0.6,  0.0,  -386424.71, 	1.0,    1.01311,   0.985986
- bpmstripline,   QWK_3H08,   0.1, -0.1,  -388962.4,  	1.372,  1.03936,   1.05547
- bpmstripline,   QWK_3H09,   0.3, -0.4,  -389979.5,  	1.0,    1.02593,   0.99364
- bpmstripline,   QWK_3H09B, -0.9, -0.3,  -392002.5,  	1.0,  	0.948778,  1.26491
+	
+ bpmstripline,   QWK_3C07,   0.0,  0.0,    49025.3,  	1.0,  	1.033450,  0.901159
+ bpmstripline,   QWK_3C08,   0.0,  0.0,    55125.3,  	1.0,  	1.127040,  1.008810
+ bpmstripline,   QWK_3C11,   0.0,  0.0,    70725.3,  	1.0,  	0.984608,  1.102810
+ bpmstripline,   QWK_3C12,   0.0,  0.0,    75926.1,  	1.0,  	0.982274,  0.950626
+ bpmstripline,   QWK_3C14,   0.0,  0.0,    86325.3,  	1.0,  	0.955249,  0.972192
+ bpmstripline,   QWK_3C16,   0.0,  0.0,    96726.1,  	1.0,  	0.980290,  0.988578
+ bpmstripline,   QWK_3C17,   0.4, -0.3,    99815.6,  	1.0,  	0.947455,  0.877913
+ bpmstripline,   QWK_3C18,   0.0, -0.6,   101611.0,  	1.0,  	0.741194,  1.041640
+ bpmstripline,   QWK_3C19,   0.2,  0.1,   102922.0,  	1.0,  	1.026000,  1.011010
+ bpmstripline,   QWK_3P01,   0.8,  1.0,   107031.0,  	1.0,  	0.913658,  1.066420
+ bpmstripline,   QWK_3P02A, -1.0, -0.7,   109212.0,  	1.0,  	0.982250,  0.986716
+ bpmstripline,   QWK_3P02B,  0.2, -0.1,   110602.0,  	1.0,    1.000000,  1.000000
+ bpmstripline,   QWK_3P03A,  0.6, -0.7,   113292.0,  	1.0,  	0.909295,  1.006700
+ bpmstripline,   QWK_3C20,   0.2,  0.1,   116858.0,  	1.0,    0.904796,  0.995870
+ bpmstripline,   QWK_3C21,   0.2, -0.2,   118216.0,  	1.0,    1.113200,  0.945974 
+ bpmstripline,   QWK_3H02,   0.2,  0.7,   127153.0,  	1.0,    0.973625,  1.052130
+ bpmstripline,   QWK_3H04,  -0.6, -0.4,   129632.0,  	1.0,    1.082250,  1.032040
+ bpmstripline,   QWK_3H07A,  0.4,  0.8,   138406.0,  	1.0,    0.960181,  1.071930
+ bpmstripline,   QWK_3H07B,  0.2, -0.2,   139363.0,  	1.0,    1.022240,  1.015710
+ bpmstripline,   QWK_3H07C,  0.6,  0.0,   140329.0, 	1.0,    1.013110,  0.985986
+ bpmstripline,   QWK_3H08,   0.1, -0.1,   143576.0,  	1.372,  1.039360,  1.055470
+ bpmstripline,   QWK_3H09,   0.3, -0.4,   144803.0,  	1.0,    1.025930,  0.993640
+ bpmstripline,   QWK_3H09B, -0.9, -0.3,   147351.0,  	1.0,  	0.948778,  1.264910
 
 ! The representative bpm for qweak hydrogen target.	
- combinedbpm,    QWK_TARGET  0.1,  0.1,  -393103.24, 	1.0,  	1.0,  	   1.0     	
+ combinedbpm,    QWK_TARGET  0.1,  0.1,   148739.0, 	1.0,  	1.0,  	   1.0     	
 
 !END
