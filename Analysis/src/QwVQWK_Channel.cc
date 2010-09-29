@@ -523,6 +523,7 @@ void QwVQWK_Channel::PrintInfo() const
 
   std::cout << "fHardwareBlockSum = "<<fHardwareBlockSum << std::endl;
   std::cout << "fHardwareBlockSumM2 = "<<fHardwareBlockSumM2 << std::endl;
+  std::cout << "fHardwareBlockSumError = "<<fHardwareBlockSumError << std::endl;
 
   return;
 };
@@ -831,6 +832,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
       this->fSoftwareBlockSum_raw = value.fSoftwareBlockSum_raw;
       this->fHardwareBlockSum = value.fHardwareBlockSum;
       this->fHardwareBlockSumM2 = value.fHardwareBlockSumM2;
+      this->fHardwareBlockSumError = value.fHardwareBlockSumError;
       this->fNumberOfSamples = value.fNumberOfSamples;
       this->fSequenceNumber  = value.fSequenceNumber;
       this->fDeviceErrorCode = (value.fDeviceErrorCode);//error code is updated.
