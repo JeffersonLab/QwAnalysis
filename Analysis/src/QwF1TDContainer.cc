@@ -1120,8 +1120,11 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	    
 	    trig_fifo_ok_flag = fF1TDCDecoder.IsNotHeaderTrigFIFO();
 	    if(not trig_fifo_ok_flag) {
-	      this -> AddTFO(roc_id, slot_number);
-	      fError2DHist -> Fill(roc_idx.Data(), "TFO",1);
+	      // temp solution ....
+	      if(not CheckSlot20Chan30(slot_number, channel_number)) {
+		  this -> AddTFO(roc_id, slot_number);
+		  fError2DHist -> Fill(roc_idx.Data(), "TFO",1);
+		}
 	    }
 	    
 	  }
@@ -1155,52 +1158,58 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	  
 	
 	  if(hit_fifo_overflow_flag) {
-	    this->AddHFO(roc_id, slot_number);
-	    // one event creates the maximum 9 HFOs
-	    // but the number is within the range of 1 - 9
-
-	    fError2DHist -> Fill(roc_idx.Data(), "HFO",1);
-
-	    if(fLocalDebug) {
-	      std::cout << "There is the Hit FIFO Overflow on the F1TDC board at"
-			<< " ROC "  << roc_id
-			<< " Slot " << slot_number
-			<< " Ch " << std::setw(3) << channel_number
-			<< "[" << chip_address
-			<< "," << channel_address
-			<< "]\n";
-	    }
+	    if(not CheckSlot20Chan30(slot_number, channel_number)) {
+		this->AddHFO(roc_id, slot_number);
+		// one event creates the maximum 9 HFOs
+		// but the number is within the range of 1 - 9
+		
+		fError2DHist -> Fill(roc_idx.Data(), "HFO",1);
+		
+		if(fLocalDebug) {
+		  std::cout << "There is the Hit FIFO Overflow on the F1TDC board at"
+			    << " ROC "  << roc_id
+			    << " Slot " << slot_number
+			    << " Ch " << std::setw(3) << channel_number
+			    << "[" << chip_address
+			    << "," << channel_address
+			    << "]\n";
+		}
+	      }
 	  }
 	  
 	  if(output_fifo_overflow_flag)  {
-	    this->AddOFO(roc_id, slot_number);
-	    fError2DHist -> Fill(roc_idx.Data(), "OFO",1);
-	    if(fLocalDebug) {
-	      std::cout << "There is the Output FIFO Overflow on the F1TDC board at"
-			<< " ROC "  << roc_id
-			<< " Slot " << slot_number
-			<< " Ch " << std::setw(3) << channel_number
-			<< "[" << chip_address
-			<< "," << channel_address
-			<< "]\n";
-
+	    if(not CheckSlot20Chan30(slot_number, channel_number)) {
+	      this->AddOFO(roc_id, slot_number);
+	      fError2DHist -> Fill(roc_idx.Data(), "OFO",1);
+	      if(fLocalDebug) {
+		std::cout << "There is the Output FIFO Overflow on the F1TDC board at"
+			  << " ROC "  << roc_id
+			  << " Slot " << slot_number
+			  << " Ch " << std::setw(3) << channel_number
+			  << "[" << chip_address
+			  << "," << channel_address
+			  << "]\n";
+		
+	      }
 	    }
 	  }
 	  
 	  if(not chip_resolution_lock_flag) {
-	    this->AddRLF(roc_id, slot_number);
-	    fError2DHist -> Fill(roc_idx.Data(), "RLF",1);
-	    if(fLocalDebug) {
-	      std::cout << "There is the Resolution Lock Failed on the F1TDC board at"
-			<< " ROC "  << roc_id
-			<< " Slot " << slot_number
-			<< " Ch " << std::setw(3) << channel_number
-			<< "[" << chip_address
-			<< "," << channel_address
-			<< "]\n";
+	    if(not CheckSlot20Chan30(slot_number, channel_number)) {
+	      this->AddRLF(roc_id, slot_number);
+	      fError2DHist -> Fill(roc_idx.Data(), "RLF",1);
+	      if(fLocalDebug) {
+		std::cout << "There is the Resolution Lock Failed on the F1TDC board at"
+			  << " ROC "  << roc_id
+			  << " Slot " << slot_number
+			  << " Ch " << std::setw(3) << channel_number
+			  << "[" << chip_address
+			  << "," << channel_address
+			  << "]\n";
+	      }
 	    }
 	  }
-
+	  
 	  // check only header word
 
 	  if ( fF1TDCDecoder.IsHeaderword() ) {
@@ -1225,57 +1234,62 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	    if (xor_setup_flag) {
 
 	      if(not trig_fifo_ok_flag) {
-		this -> AddTFO(roc_id, slot_number);
-		fError2DHist -> Fill(roc_idx.Data(), "TFO",1);
-		if(fLocalDebug) {
-		  std::cout << "There is the Trigger FIFO overflow at"
-			    << " ROC "  << roc_id
-			    << " Slot " << slot_number
-			    << " Ch " << std::setw(3) << channel_number
-			    << "[" << chip_address
-			    << "," << channel_address
-			    << "]\n";
-
+		if(not CheckSlot20Chan30(slot_number, channel_number)) {
+		  this -> AddTFO(roc_id, slot_number);
+		  fError2DHist -> Fill(roc_idx.Data(), "TFO",1);
+		  if(fLocalDebug) {
+		    std::cout << "There is the Trigger FIFO overflow at"
+			      << " ROC "  << roc_id
+			      << " Slot " << slot_number
+			      << " Ch " << std::setw(3) << channel_number
+			      << "[" << chip_address
+			      << "," << channel_address
+			      << "]\n";
+		    
+		  }
 		}
 	      }
-
+	      
 	      // Trigger Time difference of up to 1 count among the chips is acceptable
 	      // For the Trigger Time, this assumes that an external SYNC_RESET signal has
 	      // been successfully applied at the start of the run
 
 	      if (not trig_time_ok_flag) {
-		this->AddSYN(roc_id, slot_number);
-		fError2DHist -> Fill(roc_idx.Data(), "SYN",1);
-		if(fLocalDebug) {
-		  std::cout << "There is the Trigger Time Mismatch on the F1TDC board at"
-			    << " ROC "  << roc_id
-			    << " Slot " << slot_number
-			    << " Ch " << std::setw(3) << channel_number
-			    << "[" << chip_address
-			    << "," << channel_address
-			    << "]\n";
+		if(not CheckSlot20Chan30(slot_number, channel_number)) {
+		  this->AddSYN(roc_id, slot_number);
+		  fError2DHist -> Fill(roc_idx.Data(), "SYN",1);
+		  if(fLocalDebug) {
+		    std::cout << "There is the Trigger Time Mismatch on the F1TDC board at"
+			      << " ROC "  << roc_id
+			      << " Slot " << slot_number
+			      << " Ch " << std::setw(3) << channel_number
+			      << "[" << chip_address
+			      << "," << channel_address
+			      << "]\n";
+		  }
 		}
-	      
-	      
+		
 	      }
 	      // Any difference in the Event Number among the chips indicates a serious error
 	      // that requires a reset of the board.
 	    
 	      if (not event_ok_flag) {
-		this->AddEMM(roc_id, slot_number);
-		fError2DHist -> Fill(roc_idx.Data(), "EMM",1);
-		if(fLocalDebug) {
-		  std::cout << "There is the Event Number Mismatch issue on the F1TDC board at"
-			    << " ROC "  << roc_id
-			    << " Slot " << slot_number
-			    << " Ch " << std::setw(3) << channel_number
-			    << "[" << chip_address
-			    << "," << channel_address
-			    << "]\n";
+		if(not CheckSlot20Chan30(slot_number, channel_number)) {
+		  this->AddEMM(roc_id, slot_number);
+		  fError2DHist -> Fill(roc_idx.Data(), "EMM",1);
+		  if(fLocalDebug) {
+		    std::cout << "There is the Event Number Mismatch issue on the F1TDC board at"
+			      << " ROC "  << roc_id
+			      << " Slot " << slot_number
+			      << " Ch " << std::setw(3) << channel_number
+			      << "[" << chip_address
+			      << "," << channel_address
+			      << "]\n";
+		  }
 		}
 	      }
-	    
-
+	      
+	      
 	      if(data_integrity_unlock_flag) { 
 		// check data_integrity_flag = false once (not initial value),
 		// if so, we skip the further process to check
@@ -1295,34 +1309,37 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	    // for only when it is (header and dataword)
 
 	    else {
-	      this->AddSEU(roc_id, slot_number);
-	      fError2DHist -> Fill(roc_idx.Data(), "SEU",1);
-	      if (fLocalDebug) {
-		std::cout << "There is the Single Event Upset (SEU) on the F1TDC board at"
-			  << " ROC "  << roc_id
-			  << " Slot " << slot_number
-			  << " Ch " << std::setw(3) << channel_number
-			  << "[" << chip_address
-			  << "," << channel_address
-			  << "]\n";
+	      if(not CheckSlot20Chan30(slot_number, channel_number)) {
+		this->AddSEU(roc_id, slot_number);
+		fError2DHist -> Fill(roc_idx.Data(), "SEU",1);
+		if (fLocalDebug) {
+		  std::cout << "There is the Single Event Upset (SEU) on the F1TDC board at"
+			    << " ROC "  << roc_id
+			    << " Slot " << slot_number
+			    << " Ch " << std::setw(3) << channel_number
+			    << "[" << chip_address
+			    << "," << channel_address
+			    << "]\n";
+		}
 	      }
 	    }
-	  
 	  } //   if ( fF1TDCDecoder.IsHeaderword() ) {
 	  else {
 	    //	    fF1TDCDecoder.Print(true);
 	    fake_data_flag = fF1TDCDecoder.IsFakeData();
 	    if(fake_data_flag) {
-	      this->AddFDF(roc_id, slot_number);
-	      fError2DHist -> Fill(roc_idx.Data(), "FDF",1);
-	      if(fLocalDebug) {
-		std::cout << "There is the Fake Data on the F1TDC board at"
-			  << " ROC "  << roc_id
-			  << " Slot " << slot_number
-			  << " Ch " << std::setw(3) << channel_number
-			  << "[" << chip_address
-			  << "," << channel_address
-			  << "]\n";
+	      if(not CheckSlot20Chan30(slot_number, channel_number)) {
+		this->AddFDF(roc_id, slot_number);
+		fError2DHist -> Fill(roc_idx.Data(), "FDF",1);
+		if(fLocalDebug) {
+		  std::cout << "There is the Fake Data on the F1TDC board at"
+			    << " ROC "  << roc_id
+			    << " Slot " << slot_number
+			    << " Ch " << std::setw(3) << channel_number
+			    << "[" << chip_address
+			    << "," << channel_address
+			    << "]\n";
+		}
 	      }
 	    }
 
@@ -1445,4 +1462,11 @@ QwF1TDContainer::CheckRegisteredF1(Int_t roc, Int_t slot)
   
   if(F1) return true;
   else   return false;
+};
+
+
+Bool_t 
+QwF1TDContainer::CheckSlot20Chan30(Int_t slot, Int_t chan)
+{
+  return ( (slot==20) and (chan==30) );
 };

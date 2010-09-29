@@ -324,6 +324,14 @@ private:
 
   void SetErrorHistOptions();
 
+  // this is a temp solution to exclude
+  // 31 MHz clock input in QwDriftChamber
+  // in order to reduce unreasonable error number
+  //, but it doesn't work with other subsystem
+  // Wednesday, September 29 10:49:51 EDT 2010, jhlee
+
+  Bool_t CheckSlot20Chan30(Int_t slot, Int_t chan);
+
   ClassDef(QwF1TDContainer,1);
 
 };
