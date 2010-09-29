@@ -21,7 +21,7 @@
 #include "VQwSubsystemParity.h"
 
 #include "MQwV775TDC.h"
-#include "MQwF1TDC.h"
+//#include "MQwF1TDC.h"
 #include "QwVQWK_Module.h"
 #include "QwSIS3801_Module.h"
 
@@ -29,6 +29,7 @@
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
+#include "QwF1TDContainer.h"
 
 class QwScanner: public VQwSubsystemParity,
       public VQwSubsystemTracking
@@ -176,8 +177,8 @@ class QwScanner: public VQwSubsystemParity,
     Bool_t fDEBUG;
 
     MQwV775TDC fQDCTDC;
-    MQwF1TDC fF1TDC;
-
+    MQwF1TDC fF1TDCDecoder;
+    QwF1TDContainer *fF1TDContainer;
     //    We need a mapping of module,channel into PMT index, ADC/TDC
     std::vector< std::vector<QwPMT_Channel> > fPMTs;  // for QDC/TDC and F1TDC
     std::vector<QwSIS3801_Module*> fSCAs;
@@ -205,6 +206,8 @@ class QwScanner: public VQwSubsystemParity,
     Int_t fCurrentIndex;
     static const UInt_t kMaxNumberOfModulesPerROC;
     static const UInt_t kMaxNumberOfChannelsPerModule;
+    UInt_t kMaxNumberOfChannelsPerF1TDC;
+
     Int_t fNumberOfModules;
     std::vector< std::vector<Int_t> > fModuleIndex;  /// Module index, indexed by bank_index and slot_number
     std::vector< enum EModuleType > fModuleTypes;

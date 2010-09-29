@@ -248,6 +248,11 @@ QwF1TDC::ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time)
   
   if(local_time_difference == 0.0) {
     // raw_time is the same as ref_time
+    // std::cout << "QwF1TDC::ReferenceSignalCorrection " 
+    // 	      << local_time_difference
+    // 	      << " ref " << ref_time
+    // 	      << " raw " << raw_time
+    // 	      << std::endl;
     actual_time_difference = local_time_difference;
   }
   else {
@@ -767,8 +772,21 @@ QwF1TDContainer::SetSystemName(const TString name)
       fDetectorType = kTypeDriftVDC;
       fRegion       = kRegionID3;
     }
+    else if(fSystemName == "MD" ) {
+      fDetectorType = kTypeCerenkov;
+      fRegion       = kRegionIDCer;
+    }
+    else if(fSystemName == "TS" ) {
+      fDetectorType = kTypeTrigscint;
+      fRegion       = kRegionIDTrig;
+    }
+    else if(fSystemName == "FPS") {
+      fDetectorType = kTypeScanner;
+      fRegion       = kRegionIDScanner;
+    }
     else {
-      //others?
+      fDetectorType = kTypeNull;
+      fRegion       = kRegionIDNull;
     }
   }
   else {
@@ -1352,7 +1370,9 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 void
 QwF1TDContainer::SetErrorHistOptions()
 {
-  fError2DHist->SetOption("TEXT");
+  const char* opt = "TEXT";
+  fError2DHist->SetMarkerSize(1.4);
+  fError2DHist->SetOption(opt);
   fError2DHist->LabelsDeflate("X");
   fError2DHist->LabelsDeflate("Y");
   fError2DHist->LabelsOption("a", "X");

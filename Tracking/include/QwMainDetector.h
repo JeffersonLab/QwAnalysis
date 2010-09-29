@@ -22,10 +22,11 @@
 #include "QwColor.h"
 
 #include "MQwV775TDC.h"
-#include "MQwF1TDC.h"
+//#include "MQwF1TDC.h"
 #include "QwPMT_Channel.h"
 #include "QwSIS3801_Module.h"
 #include "QwScaler_Channel.h"
+#include "QwF1TDContainer.h"
 
 ///
 /// \ingroup QwTracking
@@ -73,7 +74,8 @@ class QwMainDetector: public VQwSubsystemTracking {
   Bool_t fDEBUG;
 
   MQwV775TDC fQDCTDC;
-  MQwF1TDC fF1TDC;
+  MQwF1TDC fF1TDCDecoder;
+  QwF1TDContainer *fF1TDContainer;
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
 
@@ -117,7 +119,7 @@ class QwMainDetector: public VQwSubsystemTracking {
 
  protected:
   static const UInt_t kMaxNumberOfModulesPerROC;
-
+  UInt_t kMaxNumberOfChannelsPerF1TDC;
   Int_t fNumberOfModules;
 
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number

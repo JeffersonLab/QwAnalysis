@@ -48,6 +48,10 @@ class QwPMT_Channel: public VQwDataElement {
 
   void     SetValue(Double_t data) { fValue = data; };
   Double_t GetValue() const        { return fValue; };
+  void SetSubbankID(const Int_t bank_index)         { fCrate = bank_index; };
+  void SetModule(const Int_t slot_num)              { fModule = slot_num; };
+  const Int_t           GetSubbankID()     const { return fCrate; };
+  const Int_t           GetModule()        const { return fModule; };
 
   void  ProcessEvent();
 
@@ -81,6 +85,8 @@ class QwPMT_Channel: public VQwDataElement {
   /*  Event data members */
   Double_t fValue;
 
+  Int_t fCrate;                      ///< ROC number
+  Int_t fModule;                     ///< slot number
 };
 
 
