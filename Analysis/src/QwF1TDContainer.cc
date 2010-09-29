@@ -1394,46 +1394,45 @@ QwF1TDContainer::GetF1TDCErrorHist()
 
 // direct write histogram into ROOT file(s)
 void 
-QwF1TDContainer::WriteErrorSummary()
+QwF1TDContainer::WriteErrorSummary(Bool_t hist_flag)
 {
+  if (fError2DHist->GetEntries() not_eq 0) {
 
-  Bool_t hist_flag = true;
-
-  TSeqCollection *file_list = gROOT->GetListOfFiles();
+    TSeqCollection *file_list = gROOT->GetListOfFiles();
   
-  if (file_list) {
+    if (file_list) {
 
-    Int_t size = file_list->GetSize();
+      Int_t size = file_list->GetSize();
     
-    TString error_summary_name = this-> GetSystemName();
-    error_summary_name += "_F1TDCs_Status";
+      TString error_summary_name = this-> GetSystemName();
+      error_summary_name += "_F1TDCs_Status";
 
-    for (Int_t i=0; i<size; i++) 
-      {
-	TFile *file = (TFile*) file_list->At(i);
-	if(hist_flag) {
-	  TString hist_name = fError2DHist->GetName();
-	  TH2F *error_hist = (TH2F*) file->FindObjectAny(hist_name);
-	  if(not error_hist) {
-	    this->SetErrorHistOptions();
-	    file->WriteObject(fError2DHist, hist_name);
+      for (Int_t i=0; i<size; i++) 
+	{
+	  TFile *file = (TFile*) file_list->At(i);
+	  if(hist_flag) {
+	    TString hist_name = fError2DHist->GetName();
+	    TH2F *error_hist = (TH2F*) file->FindObjectAny(hist_name);
+	    if (not error_hist)  {
+	      this->SetErrorHistOptions();
+	      file->WriteObject(fError2DHist, hist_name);
+	    }
+	  }
+	  else {
+	    TList *error_summary = (TList*) file->FindObjectAny(error_summary_name);
+	    if (not error_summary) {
+	      file->WriteObject(this->GetErrorSummary(), error_summary_name);
+	    }
+	  }
+	  if(fLocalDebug) {
+	    std::cout << "i " << i
+		      << " size " << size
+		      << " error_summary_name " << error_summary_name
+		      << std::endl;
 	  }
 	}
-	else {
-	  TList *error_summary = (TList*) file->FindObjectAny(error_summary_name);
-	  if (not error_summary) {
-	    file->WriteObject(this->GetErrorSummary(), error_summary_name);
-	  }
-	}
-	if(fLocalDebug) {
-	  std::cout << "i " << i
-		    << " size " << size
-		    << " error_summary_name " << error_summary_name
-		    << std::endl;
-	}
-      }
+    }
   }
-  
   return;
 };
 

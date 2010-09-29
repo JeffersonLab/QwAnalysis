@@ -289,7 +289,7 @@ class QwF1TDContainer :  public TObject
   Double_t ReferenceSignalCorrection(Double_t raw_time, Double_t ref_time, Int_t bank_index, Int_t slot);
 
   void PrintErrorSummary();
-  void WriteErrorSummary();
+  void WriteErrorSummary(Bool_t hist_flag=true);
 
 
  public:
