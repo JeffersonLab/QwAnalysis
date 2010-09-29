@@ -1,0 +1,18 @@
+#feedback parameters are stored here
+
+#No.of good patterns to accumulate before triggering the feedback algorithm.
+
+patterns = 1000
+
+#The precision of the charge asymmetry in ppm
+
+deltaAq = 15
+
+#optimal IA values in volts
+optimalIA = 5.5
+
+#optimal PC POS in volts
+optimalPCP = 5.1
+
+#optimal PC NEG in volts
+optimalPCN = 5.2

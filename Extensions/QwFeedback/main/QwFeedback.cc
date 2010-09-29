@@ -23,11 +23,11 @@
 #include "QwEventBuffer.h"
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
-#include "QwHelicityPattern.h"
+#include "QwHelicityCorrelatedFeedback.h"
 #include "QwEventRing.h"
 #include "QwEPICSEvent.h"
-#include "QwEPICSControl.h"
-#include "GreenMonster.h"
+//#include "QwEPICSControl.h"
+//#include "GreenMonster.h"
 
 // Qweak subsystems
 // (for correct dependency generation)
@@ -38,6 +38,7 @@
 #include "QwScanner.h"
 #include "QwLumi.h"
 #include "QwBeamMod.h"
+#include "QwVQWK_Channel.h"
 
 
 
@@ -51,9 +52,10 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Extensions/QwFeedback/prminput");
 
 
-  // Then set the command line arguments and the configuration filename,
+  // Then set the command line arguments and the configuration filename, 
   // and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.AddConfigFile("qwparity.conf");
@@ -78,6 +80,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwEPICSEvent epicsevent;
   epicsevent.LoadEpicsVariableMap("EpicsTable.map");
 
+  
+  /*
   ///  Create an EPICS control event
   QwEPICSControl fEPICSCtrl;
   GreenMonster   fScanCtrl;
@@ -91,14 +95,19 @@ Int_t main(Int_t argc, Char_t* argv[])
   fScanCtrl.Close();
   
   fEPICSCtrl.Print_Qasym_Ctrls();
+  */
 
   ///  Load the detectors from file
   QwSubsystemArrayParity detectors(gQwOptions);
   detectors.ProcessOptions(gQwOptions);
 
   ///  Create the helicity pattern
-  QwHelicityPattern helicitypattern(detectors);
+  QwHelicityCorrelatedFeedback helicitypattern(detectors);
   helicitypattern.ProcessOptions(gQwOptions);
+  helicitypattern.LoadParameterFile("qweak_fb_prm.in");
+  //helicitypattern.FeedIASetPoint();
+  helicitypattern.UpdateGMClean(0);
+  helicitypattern.UpdateGMClean(1);
 
   ///  Create the event ring
   QwEventRing eventring;
@@ -152,7 +161,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
 
-   
+    /*   
 
     int numevents = 1000*3;
     int stepnum = 0;
@@ -188,11 +197,15 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     //      fEPICSCtrl.Set_HallAIA(values[stepnum]);
 
-    tmpval = pc_plus + values[stepnum];
-    fEPICSCtrl.Set_Pockels_Cell_plus(tmpval);
-    tmpval = pc_minus - values[stepnum];
-    fEPICSCtrl.Set_Pockels_Cell_minus(tmpval);
+    //tmpval = pc_plus + values[stepnum];
+    //fEPICSCtrl.Set_Pockels_Cell_plus(tmpval);
+    //tmpval = pc_minus - values[stepnum];
+    //fEPICSCtrl.Set_Pockels_Cell_minus(tmpval);
+    fScanCtrl.CheckScan();
+    fScanCtrl.PrintScanInfo();
     fEPICSCtrl.Print_Qasym_Ctrls();
+
+    */
 
 
     // Loop over events in this CODA file
@@ -207,7 +220,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
-        helicitypattern.UpdateBlinder(&database,epicsevent);
+        helicitypattern.UpdateBlinder(epicsevent);
       }
 
       //  Dump out of the loop when we see the end event.
@@ -246,14 +259,24 @@ Int_t main(Int_t argc, Char_t* argv[])
           helicitypattern.LoadEventData(eventring.pop());
 
           // Calculate helicity pattern asymmetry
-          if (helicitypattern.IsCompletePattern()) {
+          if (helicitypattern.IsCompletePattern()) { 
 
             // Update the blinder if conditions have changed
-            helicitypattern.UpdateBlinder(&database,detectors);
+            helicitypattern.UpdateBlinder(detectors);
 
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
             if (helicitypattern.IsGoodAsymmetry()) {
+
+	      if (helicitypattern.IsPatternsAccumulated()){
+		if(helicitypattern.IsAqPrecisionGood()){
+		  helicitypattern.UpdateGMClean(0);//set to not clean
+		  helicitypattern.FeedIASetPoint();
+		  helicitypattern.UpdateGMClean(1);//set back to clean
+		  helicitypattern.ClearRunningSum();//reset the running sum
+		}
+	      }
+
               // Fill histograms
               rootfile->FillHistograms(helicitypattern);
               // Fill tree branches
@@ -261,10 +284,10 @@ Int_t main(Int_t argc, Char_t* argv[])
               rootfile->FillTree("Hel_Tree");
               // Clear the data
               helicitypattern.ClearEventData();
-
+	      /*
 	      //  Some really simple tests of the scan control and EPICS
 	      //  control systems as used for June 2009 tests.
-	      if(eventbuffer.GetEventNumber()%(numevents*5)==0) {
+ 	      if(eventbuffer.GetEventNumber()%(numevents*5)==0) {
 		fScanCtrl.Open();
 		fScanCtrl.SCNSetStatus(SCN_INT_NOT);
 		fScanCtrl.SCNSetValue(1,eventbuffer.GetEventNumber());
@@ -292,7 +315,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 		fScanCtrl.SCNSetValue(2,setval);
 		fScanCtrl.SCNSetStatus(SCN_INT_CLN);
 		fScanCtrl.Close();
-	      }
+	      } 
+	      */
 	      
             }
 
@@ -327,6 +351,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Calculate running averages over helicity patterns
     if (helicitypattern.IsRunningSumEnabled()) {
       helicitypattern.CalculateRunningAverage();
+      Double_t asym,error,width;
+      helicitypattern.GetTargetChargeStat(asym,error,width);
+      QwMessage<<"Charge Stat Asym: "<<asym<<" +/- "<<error<<" width "<<width<<QwLog::endl;
       helicitypattern.PrintRunningAverage();
       if (helicitypattern.IsBurstSumEnabled()) {
         helicitypattern.CalculateRunningBurstAverage();
@@ -401,6 +428,3 @@ Int_t main(Int_t argc, Char_t* argv[])
  
   return 0;
 }
-
-
-

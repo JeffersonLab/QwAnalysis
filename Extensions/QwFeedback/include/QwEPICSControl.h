@@ -1,5 +1,8 @@
 #ifndef __QwEPICSCONTROL__
 #define __QwEPICSCONTROL__
+
+
+
 #include <vector>
 #include <string>
 #include <iostream>
@@ -45,6 +48,9 @@ public:
     status = ca_get(DBR_DOUBLE, fIDHall_A_IA, &value);
     status = ca_pend_io(10);
     std::cout << "Hall A IA value: " << value << std::endl;
+    status = ca_get(DBR_DOUBLE, fIDHall_C_IA, &value);
+    status = ca_pend_io(10);
+    std::cout << "Hall C IA value: " << value << std::endl;
     status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell plus HV value: " << value << std::endl;
@@ -145,7 +151,7 @@ public:
    */
 
   chid fIDHall_A_IA;
-  //  chid fIDHall_C_IA;
+  chid fIDHall_C_IA;
   chid fIDPockels_Cell_plus;
   chid fIDPockels_Cell_minus;
   chid fIDMagnet_1_Even;

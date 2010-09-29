@@ -155,8 +155,6 @@ class QwHelicityPattern{
   QwSubsystemArrayParity fRunningAsymmetry1;
   QwSubsystemArrayParity fRunningAsymmetry2;
 
- private:
-
   QwSubsystemArrayParity fDifference;
   QwSubsystemArrayParity fAlternateDiff;
   QwSubsystemArrayParity fPositiveHelicitySum;

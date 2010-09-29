@@ -3,7 +3,7 @@
 
 //ClassImp(GreenMonster)
 
-GreenMonster::GreenMonster():fVerbose(kFALSE)
+GreenMonster::GreenMonster():fVerbose(kTRUE)
 {
   fUseCrate[0]= kTRUE;
   fCrateNames[0] = new TString("Counting House");

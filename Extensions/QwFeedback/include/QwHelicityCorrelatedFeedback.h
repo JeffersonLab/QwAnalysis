@@ -9,6 +9,9 @@
 
 #include "QwHelicityPattern.h"
 
+#include "QwEPICSControl.h"
+#include "GreenMonster.h"
+
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -23,11 +26,15 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
  public:
   QwHelicityCorrelatedFeedback(QwSubsystemArrayParity &event):QwHelicityPattern(event){
-    
+    fEnableBurstSum=kFALSE;
+    fGoodPatternCounter=0;
   };
     
     
     ~QwHelicityCorrelatedFeedback() { };  
+    ///inherited from QwHelicityPattern
+    void CalculateAsymmetry();
+    void ClearRunningSum();
 
     /// \brief Define the configuration options
     static void DefineOptions(QwOptions &options);
@@ -39,7 +46,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
 
 
- protected:
+ 
 
     /// \brief Feed the Hall C IA set point based on the charge asymmetry 
     void FeedIASetPoint();
@@ -89,6 +96,24 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fChargeAsymmetryError;//current charge asym precision
     Double_t fChargeAsymmetryWidth;//current charge asym width
 
+    Int_t fAccumulatePatternMax; //upper limit to the patterns before the feedback triiger;
+    Int_t fChargeAsymPrecision; //Charge asymmetry precision in ppm
+
+    //Keep a record of optimal values for IA, PC POS and NEG
+    Double_t fOptimalIA;
+    Double_t fOptimalPCP;
+    Double_t fOptimalPCN;
+
+    ///  Create an EPICS control event
+    QwEPICSControl fEPICSCtrl;
+    GreenMonster   fScanCtrl;
+
+    //Pattern counter
+    Int_t fGoodPatternCounter;
+
+    // Keep four VQWK channels, one each for pattern history 1, 2, 3, and 4
+    // Use AddToRunningSum to add the asymmetry for the current pattern
+    // into the proper pattern history runnign sum.
 
   
 };
