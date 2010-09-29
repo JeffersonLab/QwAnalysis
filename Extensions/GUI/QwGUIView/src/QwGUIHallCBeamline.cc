@@ -8,8 +8,8 @@ ClassImp(QwGUIHallCBeamline);
 enum QwGUIHallCBeamlineIndentificator {
   BA_POS_DIFF,
   BA_TGT_PARAM,
-  BA_PLOT_ADV_OPT,
-  CMB_ADVANCED
+  BA_PLOT_HISTOS,
+  CMB_HISTOS
 };
 
 const char *QwGUIHallCBeamline::RootTrees[TRE_NUM] = 
@@ -19,28 +19,43 @@ const char *QwGUIHallCBeamline::RootTrees[TRE_NUM] =
   };
 
 enum EQwGUIDatabaseHistogramIDs {
-  ID_RELX,
-  ID_RELY,
-  ID_EFFC,
   ID_XP,
   ID_XM,
   ID_YP,
-  ID_YM
+  ID_YM,
+  ID_EF_Q,
+  ID_ABSX,
+  ID_ABSY,
+  ID_BCM_Q,
+  ID_SC,
+  ID_DX,
+  ID_DY,
+  ID_YIELDX,
+  ID_YIELDY,
+  ID_ASYM_EF_Q,
+  ID_BCM_YIELD,
+  ID_BCM_ASYM,
+  ID_SC_YIELD,
+  ID_SC_ASYM,
+
 };
-//Some devices couldn't be found so I commented them out until someone decides to use them.
-//HCLINE_DEV_NUM must be changed according to what you add back in.
-//Kaisen
-const char *QwGUIHallCBeamline::HallCBeamlineDevices[HCLINE_DEV_NUM]=
+
+// The list of BPMs in the  Hall C beamline. Please don't change this. 
+const char *QwGUIHallCBeamline::HallC_BPMS[HCLINE_BPMS]=
   {
-    "qwk_3c07","qwk_3c08","qwk_3c11","qwk_3c12","qwk_3c14","qwk_3c16","qwk_3c17","qwk_3c18","qwk_3c19","qwk_3c07a","qwk_3p02a","qwk_3p02b","qwk_3p03a","qwk_3c20","qwk_3c21","qwk_3h02","qwk_3h04a","qwk_3h07a","qwk_3h07b","qwk_3h07c"//,"qwk_3h08","qwk_3h09","qwk_3h09a","qwk_3h04","qwk_3h07","qwk_3h3g0z","qwk_3hcav"
+    "qwk_3c07","qwk_3c08","qwk_3c11","qwk_3c12","qwk_3c14","qwk_3c16","qwk_3c17","qwk_3c18",
+    "qwk_3c19","qwk_3c07a","qwk_3p02a","qwk_3p02b","qwk_3p03a","qwk_3c20","qwk_3c21","qwk_3h02",
+    "qwk_3h04a","qwk_3h07a","qwk_3h07b","qwk_3h07c","qwk_3h08","qwk_3h09","qwk_3h09b"
   };
 
 //BCMs were added to this list specifically for the effective charge it may or may not be used later
 //Kaisen
-const char *QwGUIHallCBeamline::HallCBeamlineDevicesWCharge[HCLINE_DEV_NUM_CHARGE]=
+const char *QwGUIHallCBeamline::HallC_BCMS[HCLINE_BCMS]=
   {
-    "qwk_3c07","qwk_3c08","qwk_3c11","qwk_3c12","qwk_3c14","qwk_3c16","qwk_3c17","qwk_3c18","qwk_3c19","qwk_3c07a","qwk_3p02a","qwk_3p02b","qwk_3p03a","qwk_3c20","qwk_3c21","qwk_3h02","qwk_3h04a","qwk_3h07a","qwk_3h07b","qwk_3h07c","qwk_3h08","qwk_3h09","qwk_3h09a","qwk_3h04","qwk_3h07","qwk_3h3g0z","qwk_3hcav"
+    "qwk_bcm1","qwk_bcm2","qwk_bcm3","qwk_bcm5","qwk_bcm6"
   };
+
+
 QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
   : QwGUISubSystem(p,main,tab,objName,mainname,w,h)
@@ -54,8 +69,8 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
   dBtnLayout          = NULL;
   dBtnPosDiff         = NULL;
   dBtnTgtParam        = NULL;
-  dCmbAdvanced        = NULL;
-  dBtnPlotAdvOpt      = NULL;
+  dCmbHistos          = NULL;
+  dBtnPlotHistos      = NULL;
   dCmbLayout          = NULL;
 
   PosDiffVar[0] = NULL;
@@ -79,8 +94,8 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dBtnLayout)          delete dBtnLayout;
   if(dBtnPosDiff)         delete dBtnPosDiff;
   if(dBtnTgtParam)        delete dBtnTgtParam;
-  if(dCmbAdvanced)        delete dCmbAdvanced;
-  if(dBtnPlotAdvOpt)      delete dBtnPlotAdvOpt; 
+  if(dCmbHistos)          delete dCmbHistos;
+  if(dBtnPlotHistos)      delete dBtnPlotHistos; 
   if(dCmbLayout)          delete dCmbLayout;
 
   delete [] PosDiffVar;
@@ -142,30 +157,45 @@ void QwGUIHallCBeamline::MakeLayout()
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
 
   dBtnPosDiff  = new TGTextButton(dControlsFrame, "&Position Difference Variation", BA_POS_DIFF);
-  dBtnTgtParam = new TGTextButton(dControlsFrame, "&Beam Parameters at Target", BA_TGT_PARAM);
-  dBtnPlotAdvOpt = new TGTextButton(dControlsFrame, "&Plot", BA_PLOT_ADV_OPT);
-  dCmbAdvanced = new TGComboBox(dControlsFrame, CMB_ADVANCED);
+  dBtnTgtParam = new TGTextButton(dControlsFrame, "&Beam Parameters on Target", BA_TGT_PARAM);
+  dBtnPlotHistos = new TGTextButton(dControlsFrame, "&Plot Histograms", BA_PLOT_HISTOS);
+  dCmbHistos = new TGComboBox(dControlsFrame, CMB_HISTOS);
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
   dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
-  dCmbAdvanced->AddEntry("Relative X Histograms", ID_RELX);
-  dCmbAdvanced->AddEntry("Relative Y Histograms", ID_RELY);
-  dCmbAdvanced->AddEntry("Effective Charge Histograms", ID_EFFC);
-  dCmbAdvanced->AddEntry("XP Wire Histograms", ID_XP );
-  dCmbAdvanced->AddEntry("XM Wire Histograms", ID_XM );
-  dCmbAdvanced->AddEntry("YP Wire Histograms", ID_YP );
-  dCmbAdvanced->AddEntry("YM Wire Histograms", ID_YM );
 
-  dCmbAdvanced->Resize(150,20);
+  //Mps based
+  dCmbHistos->AddEntry("XP Wire", ID_XP );
+  dCmbHistos->AddEntry("XM Wire", ID_XM );
+  dCmbHistos->AddEntry("YP Wire", ID_YP );
+  dCmbHistos->AddEntry("YM Wire", ID_YM );
+  dCmbHistos->AddEntry("Effective Charge", ID_EF_Q);
+  dCmbHistos->AddEntry("AbsX", ID_ABSX);
+  dCmbHistos->AddEntry("AbsY", ID_ABSY);
+  dCmbHistos->AddEntry("bcm_charge", ID_BCM_Q );
+  dCmbHistos->AddEntry("scalers", ID_SC );
 
-  dControlsFrame->AddFrame(dBtnPosDiff ,dBtnLayout );
-  dControlsFrame->AddFrame(dBtnTgtParam,dBtnLayout );
-  dControlsFrame->AddFrame(dCmbAdvanced,dCmbLayout );
-  dControlsFrame->AddFrame(dBtnPlotAdvOpt,dBtnLayout );
+  // Helicity based
+  dCmbHistos->AddEntry("diff_X", ID_DX);
+  dCmbHistos->AddEntry("diff_Y", ID_DY);
+  dCmbHistos->AddEntry("yield_X", ID_YIELDX);
+  dCmbHistos->AddEntry("yield_Y", ID_YIELDY);
+  dCmbHistos->AddEntry("asym_Effective Charge", ID_ASYM_EF_Q);
+  dCmbHistos->AddEntry("bcm_yield", ID_BCM_YIELD );
+  dCmbHistos->AddEntry("sc_yield", ID_SC_YIELD );
+  dCmbHistos->AddEntry("bcm_asyms", ID_BCM_ASYM );
+  dCmbHistos->AddEntry("sc_asym", ID_SC_ASYM );
 
-  dBtnPosDiff -> Associate(this);
-  dBtnTgtParam-> Associate(this);
-  dBtnPlotAdvOpt -> Associate(this);
-  dCmbAdvanced-> Associate(this);
+  dCmbHistos->Resize(150,20);
+
+  dControlsFrame -> AddFrame(dBtnPosDiff ,dBtnLayout );
+  dControlsFrame -> AddFrame(dBtnTgtParam,dBtnLayout );
+  dControlsFrame -> AddFrame(dCmbHistos,dCmbLayout );
+  dControlsFrame -> AddFrame(dBtnPlotHistos,dBtnLayout );
+
+  dBtnPosDiff    -> Associate(this);
+  dBtnTgtParam   -> Associate(this);
+  dBtnPlotHistos -> Associate(this);
+  dCmbHistos     -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
@@ -241,7 +271,7 @@ void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobj
   if(event == kButton1Double){
     Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     
-    if(pad > 0 && pad <= HCLINE_DEV_NUM)
+    if(pad > 0 && pad <= HCLINE_BPMS)
       {
 	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
 						     GetNewWindowName(),"QwGUIHallCBeamline",
@@ -259,28 +289,34 @@ void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobj
   }
 }
 
+/**
+ Plot the pattern (e.g. quartet) based aboslute position differences for bpms X an Y.
+*/
 
 void QwGUIHallCBeamline::PositionDifferences()
 {
 
   Bool_t ldebug = kFALSE;
-  TObject *obj = NULL;
-  TCanvas *mc = NULL;
-  TH1D *dummyhist = NULL;
-  TPaveText * errlabel;
-  Bool_t status = kTRUE;
 
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
+  TObject *obj       = NULL;
+  TCanvas *mc        = NULL;
+  TH1D    *dummyhist = NULL;
+
+  std::vector<Int_t> x_devices;
+  std::vector<Int_t> y_devices; 
+
+  std::vector<Double_t> x_mean;  
+  std::vector<Double_t> x_err;
+  std::vector<Double_t> y_mean;  
+  std::vector<Double_t> y_err;
+
 
   // check to see if the TH1s used for the calculation are empty.
-  for(Short_t i=0;i<2;i++) 
-    {
-      if(PosDiffVar[i]) delete PosDiffVar[i];  PosDiffVar[i] = NULL;
-    }
+  for(Short_t i=0;i<2;i++) {
+    if(PosDiffVar[i]) delete PosDiffVar[i];  PosDiffVar[i] = NULL;
+  }
 
-
+ 
   mc = dCanvas->GetCanvas();
   mc->Clear();
   mc->Divide(1,2);
@@ -291,97 +327,97 @@ void QwGUIHallCBeamline::PositionDifferences()
 
   if(ldebug) {
     printf("PositionDiffercences -------------------------------\n");
-    printf("Found th tree named %s \n", obj->GetName());
+    printf("Found in tree named %s \n", obj->GetName());
   }
 
-  PosDiffVar[0] = new TH1D("dxvar", "#Delta X Variation", HCLINE_DEV_NUM, 0.0, HCLINE_DEV_NUM);
-  PosDiffVar[1] = new TH1D("dyvar", "#Delta Y variation", HCLINE_DEV_NUM, 0.0, HCLINE_DEV_NUM);
- 
-  for(Int_t p = 0; p <HCLINE_DEV_NUM ; p++) 
-    {
-      sprintf (histo, "diff_%sRelX.hw_sum", HallCBeamlineDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-	  obj -> Draw(histo);
-	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(histo);
-	  PosDiffVar[0] -> SetBinContent(p+1, dummyhist->GetMean()*1000);
-	  PosDiffVar[0] -> SetBinError  (p+1, dummyhist->GetMeanError()*1000);
-	  PosDiffVar[0] -> GetXaxis()->SetBinLabel(p+1,HallCBeamlineDevices[p]);
-	  PosDiffVar[0]->SetStats(0);
-	  SummaryHist(dummyhist);
-	  delete dummyhist; dummyhist= NULL;
-	}
-      else 
-	{
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  status = kFALSE;
-	}
+  
+  for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
+    sprintf (histo, "diff_%sX.hw_sum", HallC_BPMS[p]);
 
-      
-      sprintf (histo, "diff_%sRelY.hw_sum", HallCBeamlineDevices[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-	  obj -> Draw(histo);
-	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(histo);
-	  PosDiffVar[1] -> SetBinContent(p+1, dummyhist->GetMean()*1000); //convert mum to nm
-	  PosDiffVar[1] -> SetBinError  (p+1, dummyhist->GetMeanError()*1000);
-	  PosDiffVar[1] -> GetXaxis()->SetBinLabel(p+1, HallCBeamlineDevices[p]);
-	  PosDiffVar[1]->SetStats(0);
-	  SummaryHist(dummyhist);
-	  delete dummyhist; dummyhist= NULL;
-	}
-      else 
-	{
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  status = kFALSE;
-	}
-    }
+    if( ((TTree*) obj)->FindLeaf(histo) ){
+      x_devices.push_back(p);
+      if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
+      obj -> Draw(histo);
+      dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+      dummyhist -> SetName(histo);
+      x_mean.push_back(dummyhist->GetMean()*1000);
+      x_err.push_back(dummyhist->GetMeanError()*1000);
 
-  
-  if (!status) 
-    {
-      mc->Clear();
-      errlabel ->Draw();
-      mc->Update();
+      SummaryHist(dummyhist);
+      delete dummyhist; dummyhist= NULL;
     }
-  else
-    {
-      mc->Clear();
-      mc->Divide(1,2);
-      
-      mc->cd(1);
-      SummaryHist(PosDiffVar[0]);
-      PosDiffVar[0] -> SetMarkerStyle(20);
-      PosDiffVar[0] -> SetMarkerColor(2);
-      PosDiffVar[0] -> SetTitle("#Delta X Variation");
-      PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (nm)");
-      PosDiffVar[0] -> GetXaxis() -> SetTitle("BPM X");
-      PosDiffVar[0] -> Draw("E1");
-      gPad->Update();
-      
-      
-      mc->cd(2);
-      SummaryHist(PosDiffVar[1]);
-      PosDiffVar[1] -> SetMarkerStyle(20);
-      PosDiffVar[1] -> SetMarkerColor(4);
-      PosDiffVar[1] -> SetTitle("#Delta Y Variation");
-      PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (nm)");
-      PosDiffVar[1] -> GetXaxis() -> SetTitle("BPM Y");
-      PosDiffVar[1] -> Draw("E1");
-      gPad->Update();
- 
-  
-      if(ldebug) printf("----------------------------------------------------\n");
-      mc->Modified();
-      mc->Update();
+    
+
+    sprintf (histo, "diff_%sY.hw_sum", HallC_BPMS[p]);
+    if( ((TTree*) obj)->FindLeaf(histo) ){   
+      y_devices.push_back(p);
+      if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
+      obj -> Draw(histo);
+      dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+      dummyhist -> SetName(histo);
+      y_mean.push_back(dummyhist->GetMean()*1000);
+      y_err.push_back(dummyhist->GetMeanError()*1000);
+
+      SummaryHist(dummyhist);
+      delete dummyhist; dummyhist= NULL;
     }
+  }
+
+  PosDiffVar[0] = new TH1D("dxvar", "#Delta X Variation", x_devices.size(), 0.5, x_devices.size()+0.5);
+  PosDiffVar[1] = new TH1D("dyvar", "#Delta Y variation", y_devices.size(), 0.5, y_devices.size()+0.5);
   
-  if(dummyhist) delete dummyhist;
-  return;
+  for(size_t p = 0; p <x_devices.size() ; p++) {
+    PosDiffVar[0] -> SetBinContent(p+1, x_mean[p]); // mm = 1000um
+    PosDiffVar[0] -> SetBinError  (p+1, x_err[p]);
+    PosDiffVar[0] -> GetXaxis()->SetBinLabel(p+1,HallC_BPMS[x_devices[p]]);
+    PosDiffVar[0] -> SetStats(0);
+  }
+  
+  for(size_t p = 0; p <y_devices.size() ; p++) {
+    PosDiffVar[1] -> SetBinContent(p+1, x_mean[p]); //mm -> um
+    PosDiffVar[1] -> SetBinError  (p+1, x_err[p]);
+    PosDiffVar[1] -> GetXaxis()->SetBinLabel(p+1, HallC_BPMS[p]);
+    PosDiffVar[1]->SetStats(0);
+  }
+
+    mc->Clear();
+    mc->Divide(1,2);
+
+    mc->cd(1);
+    SummaryHist(PosDiffVar[0]);
+    PosDiffVar[0] -> SetMarkerStyle(20);
+    PosDiffVar[0] -> SetMarkerColor(2);
+    PosDiffVar[0] -> SetTitle("#Delta X Variation");
+    PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (#mum)");
+    PosDiffVar[0] -> GetXaxis() -> SetTitle("BPM names");
+    PosDiffVar[0] -> Draw("E1");
+    gPad->Update();
+  
+  
+    mc->cd(2);
+    SummaryHist(PosDiffVar[1]);
+    PosDiffVar[1] -> SetMarkerStyle(20);
+    PosDiffVar[1] -> SetMarkerColor(4);
+    PosDiffVar[1] -> SetTitle("#Delta Y Variation");
+    PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (#mum)");
+    PosDiffVar[1] -> GetXaxis() -> SetTitle("BPM names");
+    PosDiffVar[1] -> Draw("E1");
+    gPad->Update();
+    
+    
+    if(ldebug) printf("----------------------------------------------------\n");
+    mc->Modified();
+    mc->Update();
+    
+    if(dummyhist) delete dummyhist;
+    x_devices.clear();
+    y_devices.clear();
+    x_mean.clear();
+    x_err.clear();
+    y_mean.clear();
+    y_err.clear();
+
+    return;
 }
 
 
@@ -412,8 +448,9 @@ QwGUIHallCBeamline::SummaryHist(TH1 *in)
 
 
 
-
-// Display the beam postion and angle in X & Y, beam energy and beam charge on the target.
+/***
+   Display the beam postion and angle in X & Y, beam energy and beam charge on the target.
+*/
 void QwGUIHallCBeamline::DisplayTargetParameters()
 {
   
@@ -523,75 +560,220 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
 
 }
 
-//Plots the selcted option.
-void QwGUIHallCBeamline::PlotAdvOpt()
+/**
+ Plot the selcted option.
+*/
+void QwGUIHallCBeamline::PlotHistograms()
 { 
-  TCanvas *mc = NULL;
+  gStyle->SetOptStat(kTRUE);
+
+  Bool_t ldebug = kFALSE;
+
+  TCanvas *mc        = NULL;
+  TObject *obj       = NULL;	
+  TH1D    *dummyhist = NULL;
+  TString element;
+  TText* not_found  = new TText(); 
+  not_found->SetTextColor(2);
+
   mc = dCanvas->GetCanvas();
   mc->Clear();
   mc->Divide(4,6);
-  Bool_t ldebug = kFALSE;
-  TObject *obj = NULL;	
-  obj = HistArray.At(1);
-  char histogram[128];  
-  TH1D *dummyhist = NULL;
 
+  //Plot MPS based variables
+  /********************************************************************/
+  if(select.Contains("MPS")){
+   
+    obj = HistArray.At(1);
+    char histogram[128];  
+    element = "";
 
-  if (name=='X'||name=='Y')
-    for(Int_t p = 0; p <HCLINE_DEV_NUM ; p++) {
-      mc->cd(p+1);
-      sprintf (histogram, "%sRel%c.hw_sum", HallCBeamlineDevices[p],name);
-      if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
-      if( ((TTree*) obj)->FindLeaf(histogram) ) {
-  	obj -> Draw(histogram);	 
-  	dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-  	dummyhist -> SetTitle("Relative X");
-  	dummyhist -> GetYaxis() -> SetTitle("Number of Events");
-  	dummyhist -> GetXaxis() -> SetTitle("Relative Value (mm)");
+    // For single wires
+    if (select.Contains("XP")||select.Contains("XM")||select.Contains("YP")||select.Contains("YM")){
+
+      element = select.Remove(0,4); 
+      for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
+	mc->cd(p+1);
+	sprintf (histogram, "%s%s.hw_sum", HallC_BPMS[p],element.Data());
+	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
+	
+	if( ((TTree*) obj)->FindLeaf(histogram) ) {
+	  obj -> Draw(histogram);	 
+	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+	  dummyhist -> SetTitle(histogram);
+	  dummyhist -> GetYaxis() -> SetTitle("Events");
+	  dummyhist -> GetXaxis() -> SetTitle("ADC counts");
+	}
+	else {
+	  not_found ->DrawText(0.2,0.5,Form("%s not found!", histogram));
+	  not_found->DrawClone();
+	  not_found->Clear();
+	} 
       }
-      else std::cout << "unable to find " << histogram << " in Mps_Tree" << std::endl;
+    } // absolute positions
+    else if (select.Contains("ABSX")||select.Contains("ABSY")){
+
+      element = select.Remove(0,7); 
+      for(Int_t p = 0; p <HCLINE_BPMS ; p++) {      
+	mc->cd(p+1);
+	sprintf (histogram, "%s%s.hw_sum", HallC_BPMS[p],element.Data()); 
+	if (ldebug) std::cout << "histogram = " << histogram << std::endl;
+	if( ((TTree*) obj)->FindLeaf(histogram) ) {
+	  obj -> Draw(histogram);
+	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp");
+	  dummyhist -> SetTitle(histogram);
+	  dummyhist -> GetYaxis() -> SetTitle("Events");
+	  dummyhist -> GetXaxis() -> SetTitle("Position (mm)");
+	}  
+	else {
+	  not_found ->DrawText(0.2,0.5,Form("%s not found!", histogram));
+	  not_found->DrawClone();
+	  not_found->Clear();
+	}
+      }
+    } // effective charge
+    else if (select.Contains("EF_Q")){
+
+      for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
+	mc->cd(p+1);
+	sprintf (histogram, "%s_EffectiveCharge.hw_sum", HallC_BPMS[p]);
+	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
+	if( ((TTree*) obj)->FindLeaf(histogram) ) {
+	  obj -> Draw(histogram);	 
+	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+	  dummyhist -> SetTitle(histogram);
+	  dummyhist -> GetYaxis() -> SetTitle("Events");
+	  dummyhist -> GetXaxis() -> SetTitle("ADC counts");
+	}
+	else {
+	  not_found ->DrawText(0.2,0.5,Form("%s not found!", histogram));
+	  not_found->DrawClone();
+	  not_found->Clear();
+	}
+      }
+    } // bcms
+    else if (select.Contains("BCM")){
+
+      for(Int_t p = 0; p <HCLINE_BCMS ; p++) {
+	mc->cd(p+1);
+	sprintf (histogram, "%s.hw_sum", HallC_BCMS[p]);
+	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
+	if( ((TTree*) obj)->FindLeaf(histogram) ) {
+	  obj -> Draw(histogram);	 
+	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+	  dummyhist -> SetTitle(histogram);
+	  dummyhist -> GetYaxis() -> SetTitle("Events");
+	  dummyhist -> GetXaxis() -> SetTitle("Charge");
+	}
+	else {
+	  not_found ->DrawText(0.2,0.5,Form("%s not found!", histogram));
+	  not_found->DrawClone();
+	  not_found->Clear();
+	}
+      }
     }
+  } // Plot Hel tree based variables
+  else if(select.Contains("HEL")){
+  /********************************************************************/
+
+    obj = HistArray.At(0);
+    char histogram[128];  
+    element = "";
+
+    // For position differences
+    if (select.Contains("DIFFX")||select.Contains("DIFFY")){
+
+      element = select.Remove(0,8); 
+
+      for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
+	mc->cd(p+1);
+	sprintf (histogram, "diff_%s%s.hw_sum", HallC_BPMS[p],element.Data());
+	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
+	
+	if( ((TTree*) obj)->FindLeaf(histogram) ) {
+	  obj -> Draw(histogram);	 
+	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+	  dummyhist -> SetTitle(histogram);
+	  dummyhist -> GetYaxis() -> SetTitle("Quartets");
+	  dummyhist -> GetXaxis() -> SetTitle("Position (mm)");
+	}
+	else {
+	  not_found ->DrawText(0.2,0.5,Form("%s not found!", histogram));
+	  not_found->DrawClone();
+	  not_found->Clear();
+	}
+      }
+    } // position yields
+    else if (select.Contains("YIELDX")||select.Contains("YIELDY")){
+
+      element = select.Remove(0,9); 
+      for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
+	mc->cd(p+1);
+	sprintf (histogram, "yield_%s%s.hw_sum", HallC_BPMS[p],element.Data());
+	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
+	
+	if( ((TTree*) obj)->FindLeaf(histogram) ) {
+	  obj -> Draw(histogram);	 
+	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+	  dummyhist -> SetTitle(histogram);
+	  dummyhist -> GetYaxis() -> SetTitle("Quartets");
+	  dummyhist -> GetXaxis() -> SetTitle("Position (mm)");
+	}
+	else  {
+	  not_found ->DrawText(0.2,0.5,Form("%s not found!", histogram));
+	  not_found->DrawClone();
+	  not_found->Clear();
+	}
+      }
+    } // effective charge asymmetry
+    else if (select.Contains("AEF_Q")){
+
+      for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
+	mc->cd(p+1);
+	sprintf (histogram, "asym_%s_EffectiveCharge.hw_sum", HallC_BPMS[p]);
+	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
+	
+	if( ((TTree*) obj)->FindLeaf(histogram) ) {
+	  obj -> Draw(histogram);	 
+	  dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+	  dummyhist -> SetTitle(histogram);
+	  dummyhist -> GetYaxis() -> SetTitle("Quartets");
+	  dummyhist -> GetXaxis() -> SetTitle("Charge");
+	}
+	else  {
+	  not_found ->DrawText(0.2,0.5,Form("%s not found!", histogram));
+	  not_found->DrawClone();
+	  not_found->Clear();
+	}
+      }
+    }
+    if (select.Contains("BCM")){
+	for(Int_t p = 0; p <HCLINE_BCMS ; p++) {
+	  mc->cd(p+1);
+	  if(select.Contains("YBCM"))
+	    sprintf (histogram, "yield_%s.hw_sum", HallC_BCMS[p]);
+	  else if (select.Contains("DBCM"))
+	    sprintf (histogram, "diff_%s.hw_sum", HallC_BCMS[p]);
+	  else if(select.Contains("ABCM"))
+	    sprintf (histogram, "asym_%s.hw_sum", HallC_BCMS[p]); 
+	  if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
+	  if( ((TTree*) obj)->FindLeaf(histogram) ) {
+	    obj -> Draw(histogram);	 
+	    dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
+	    dummyhist -> SetTitle(histogram);
+	    dummyhist -> GetYaxis() -> SetTitle("Quartets");
+	    dummyhist -> GetXaxis() -> SetTitle("Position (mm)");
+	  }
+	  else {
+	    not_found ->DrawText(0.2,0.5,Form("%s not found!", histogram));
+	    not_found->DrawClone();
+	    not_found->Clear();
+	  }
+	}
+    }
+  }
   
-  else if (name=='E')
-    for(Int_t p = 0; p <HCLINE_DEV_NUM ; p++) {      
-      mc->cd(p+1);
-      sprintf (histogram, "%s_EffectiveCharge.hw_sum", HallCBeamlineDevices[p]); 
-      if (ldebug) std::cout << "histogram = " << histogram << std::endl;
-      if( ((TTree*) obj)->FindLeaf(histogram) ) {
-  	obj -> Draw(histogram);
-  		dummyhist = (TH1D*)gPad->GetPrimitive("htemp");
-  		dummyhist -> SetTitle("Effective Charge");
-  	dummyhist -> GetYaxis() -> SetTitle("Number of Events");
-  	dummyhist -> GetXaxis() -> SetTitle("Effective Charge (C)");
-      }  
-      else std::cout << "unable to find " << histogram << " in Mps_Tree" << std::endl;
-    }
-  else if (name=='A'||name=='B' || name=='C' || name=='D')
-    for(Int_t p = 0; p <HCLINE_DEV_NUM ; p++) {
-      mc->cd(p+1);
-      if (name=='A')
-      sprintf (histogram, "%sXP.hw_sum", HallCBeamlineDevices[p]);
-      else if (name=='B')
-      sprintf (histogram, "%sXM.hw_sum", HallCBeamlineDevices[p]);
-      else if (name=='C')
-  	sprintf (histogram,"%sYP.hw_sum", HallCBeamlineDevices[p]);
-      else if (name=='D')
-      sprintf (histogram, "%sYM.hw_sum", HallCBeamlineDevices[p]);
-      if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
-      if( ((TTree*) obj)->FindLeaf(histogram) ) {
-  	obj -> Draw(histogram);	 
-  	dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-  	dummyhist -> SetTitle("Wire");
-  	dummyhist -> GetYaxis() -> SetTitle("Number of Events");
-  	dummyhist -> GetXaxis() -> SetTitle("Wire Value (mm)");
-      }
-      else std::cout << "unable to find " << histogram << " in Mps_Tree" << std::endl;
-    }
-
-  else
-    std::cout << "Nothing selected to plot." << std::endl;
-
-  name='O';
+  select="";
 
   mc->Modified();
   mc->Update();
@@ -636,8 +818,8 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 		  DisplayTargetParameters();
 		  break;
 
-		case BA_PLOT_ADV_OPT:
-		  PlotAdvOpt();
+		case BA_PLOT_HISTOS:
+		  PlotHistograms();
 		  break;
 		}
 	      
@@ -649,27 +831,60 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	      // case M_TBIN_SELECT:
 	      // break;
 	      // }
-	      switch (dCmbAdvanced ->GetSelected()) {
-	      case ID_RELX:
-		name='X';
-		break;
-	      case ID_RELY:
-		name='Y';
-		break;
-	      case ID_EFFC:
-		name='E';
-		break;
+	      switch (dCmbHistos ->GetSelected()) {
 	      case ID_XP:
-		name='A';
+		select="MPS_XP";
 		break;
 	      case ID_XM:
-		name='B';
+		select="MPS_XM";
 		break;
 	      case ID_YP:
-		name='C';
+		select="MPS_YP";
 		break;
 	      case ID_YM:
-		name='D';
+		select="MPS_YM";
+		break;
+	      case ID_EF_Q:
+		select="MPS_EF_Q";
+		break;
+	      case ID_SC:
+		select="MPS_SC";
+		break;
+	      case ID_ABSX:
+		select="MPS_ABSX";
+		break;	      
+	      case ID_ABSY:
+		select="MPS_ABSY";
+		break;
+	      case ID_BCM_Q:
+		select="MPS_BCM_Q";
+		break;
+	      case ID_DX:
+		select="HEL_DIFFX";
+		break;
+	      case ID_DY:
+		select="HEL_DIFFY";
+		break;
+	      case ID_YIELDX:
+		select="HEL_YIELDX";
+		break;
+	      case ID_YIELDY:
+		select="HEL_YIELDY";
+		break;
+	      case ID_ASYM_EF_Q:
+		select="HEL_AEF_Q";
+		break;
+	      case ID_BCM_YIELD:
+		select="HEL_YBCM";
+		break;
+	      case ID_BCM_ASYM:
+		select="HEL_ABCM";
+		break;
+	      case ID_SC_YIELD:
+		select="HEL_SC_YIELD";
+		break;
+	      case ID_SC_ASYM:
+		select="HEL_SC_ASYM";
 		break;
 	      default:
 		break;
