@@ -374,9 +374,9 @@ void QwGUIHallCBeamline::PositionDifferences()
   }
   
   for(size_t p = 0; p <y_devices.size() ; p++) {
-    PosDiffVar[1] -> SetBinContent(p+1, x_mean[p]); //mm -> um
-    PosDiffVar[1] -> SetBinError  (p+1, x_err[p]);
-    PosDiffVar[1] -> GetXaxis()->SetBinLabel(p+1, HallC_BPMS[p]);
+    PosDiffVar[1] -> SetBinContent(p+1, y_mean[p]); //mm -> um
+    PosDiffVar[1] -> SetBinError  (p+1, y_err[p]);
+    PosDiffVar[1] -> GetXaxis()->SetBinLabel(p+1, HallC_BPMS[y_devices[p]]);
     PosDiffVar[1]->SetStats(0);
   }
 
