@@ -122,7 +122,7 @@ void QwBlinder::Update(QwDatabase* db)
 void QwBlinder::Update(const QwSubsystemArrayParity& detectors)
 {
   static QwVQWK_Channel q_targ("q_targ");
-  if (fBlindingStrategy != kDisabled) {
+  if (fBlindingStrategy != kDisabled && fTargetBlindability==kBlindable) {
     // Check for the target blindability flag
     
 
@@ -192,12 +192,17 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db)
   // Try to connect to the database
   if (db->Connect()) {
 
+    QwError << "QwBlinder::ReadSeed  db->GetRunNumber() returns "
+	    <<  db->GetRunNumber() << QwLog::endl;
     // Build up query
     string s_sql = "SELECT seed_id, seed FROM seeds, run as rf, run as rl WHERE seeds.first_run_id = rf.run_id AND seeds.last_run_id = rl.run_id ";
     s_sql += "AND rf.run_number <= ";
-    s_sql += db->GetRunNumber();
+    s_sql += Form("%d",db->GetRunNumber());
     s_sql += " AND rl.run_number >= ";
-    s_sql += db->GetRunNumber();
+    s_sql += Form("%d",db->GetRunNumber());
+
+    QwError << "QwBlinder::ReadSeed s_sql contains \'"
+	    << s_sql  << "\'" << QwLog::endl;
 
     // Send query
     mysqlpp::Query query = db->Query();
