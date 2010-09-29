@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 /* Position calibration factor, transform ADC counts in mm*/
-const Double_t QwQPD::kQwQPDCalibration = 18.77;
+const Double_t QwQPD::kQwQPDCalibration = 1340;
 const TString  QwQPD::subelement[4]={"TL","TR","BR","BL"};
 
 void  QwQPD::InitializeChannel(TString name)
