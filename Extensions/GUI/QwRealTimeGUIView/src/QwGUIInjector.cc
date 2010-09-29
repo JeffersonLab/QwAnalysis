@@ -349,6 +349,7 @@ void QwGUIInjector::PositionDifferences()
     mc->cd(1);
     //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetStats(kFALSE); 
     PosVariation[0] -> SetTitle("Eff_Charge Asymmetry");
     PosVariation[0] -> GetYaxis() -> SetTitle("#No Units");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM ");
@@ -360,6 +361,7 @@ void QwGUIInjector::PositionDifferences()
     mc->cd(2);
     //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Eff_Charge Yield");
     PosVariation[1] -> GetYaxis()-> SetTitle ("Coulomb");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM ");
@@ -399,7 +401,7 @@ void QwGUIInjector::PlotChargeAsym()
      sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
     
-    if (histo1!=NULL || histo2!=NULL ) {
+    if (histo1!=NULL && histo2!=NULL ) {
     
       mc->Clear();
       mc->Divide(1,2);
@@ -508,6 +510,7 @@ void QwGUIInjector::PlotBPMAsym(){
     mc->cd(1);
     //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("X Difference Variation");
     PosVariation[0] -> GetYaxis() -> SetTitle("mm");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
@@ -519,6 +522,7 @@ void QwGUIInjector::PlotBPMAsym(){
     mc->cd(2);
     //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Y Difference Variation");
     PosVariation[1] -> GetYaxis()-> SetTitle ("mm");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
@@ -623,6 +627,7 @@ void QwGUIInjector::PlotBPMPositions(){
     mc->cd(1);
     //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("Mean BPM X Variation");
     PosVariation[0] -> GetYaxis() -> SetTitle("Pos (mm)");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
@@ -634,6 +639,7 @@ void QwGUIInjector::PlotBPMPositions(){
     mc->cd(2);
     //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Mean BPM Y Variation");
     PosVariation[1] -> GetYaxis()-> SetTitle ("Pos (mm)");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");

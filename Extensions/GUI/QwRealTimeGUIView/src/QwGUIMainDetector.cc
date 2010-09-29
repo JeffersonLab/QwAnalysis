@@ -214,7 +214,7 @@ void QwGUIMainDetector::DrawMDPMTPlots(){
      sprintf (histo, "yield_%s_hw",fMDDevices.at(VQWK).at(fCurrentPMTIndex).Data() );
      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
     
-    if (histo1!=NULL || histo2!=NULL ) {
+    if (histo1!=NULL && histo2!=NULL ) {
     
       mc->Clear();
       mc->Divide(1,2);
@@ -263,7 +263,7 @@ void QwGUIMainDetector::DrawMDVPMTPlots(){
      sprintf (histo, "yield_%s_hw",fMDDevices.at(VPMT).at(fCurrentVPMTIndex).Data() );
      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
     
-    if (histo1!=NULL || histo2!=NULL ) {
+    if (histo1!=NULL && histo2!=NULL ) {
     
       mc->Clear();
       mc->Divide(1,2);
@@ -370,6 +370,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
     mc->cd(1);
     //SummaryHist(MDPlots[0]);
     MDPlots[0] -> SetMarkerStyle(20);
+    MDPlots[0] -> SetStats(kFALSE);
     MDPlots[0] -> SetTitle("Asymmetry Variation");
     MDPlots[0] -> GetYaxis() -> SetTitle("Asymmetry");
     MDPlots[0] -> GetXaxis() -> SetTitle("MD");
@@ -381,6 +382,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
     mc->cd(2);
     //SummaryHist(MDPlots[1]);
     MDPlots[1] -> SetMarkerStyle(20);
+    MDPlots[1] -> SetStats(kFALSE);
     MDPlots[1] -> SetTitle("Yield Variation");
     MDPlots[1] -> GetYaxis()-> SetTitle ("Yield");
     MDPlots[1] -> GetXaxis() -> SetTitle("MD");
@@ -493,6 +495,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
     mc->cd(1);
     //SummaryHist(MDPlots[0]);
     MDPlots[0] -> SetMarkerStyle(20);
+    MDPlots[0] -> SetStats(kFALSE);
     MDPlots[0] -> SetTitle("Asymmetry Variation");
     MDPlots[0] -> GetYaxis() -> SetTitle("Asymmetry");
     MDPlots[0] -> GetXaxis() -> SetTitle("MD");
@@ -504,6 +507,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
     mc->cd(2);
     //SummaryHist(MDPlots[1]);
     MDPlots[1] -> SetMarkerStyle(20);
+    MDPlots[1] -> SetStats(kFALSE);
     MDPlots[1] -> SetTitle("Yield Variation");
     MDPlots[1] -> GetYaxis()-> SetTitle ("Yield");
     MDPlots[1] -> GetXaxis() -> SetTitle("MD Bkg");
@@ -602,6 +606,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
     mc->cd(1);
     //SummaryHist(MDPlots[0]);
     MDPlots[0] -> SetMarkerStyle(20);
+    MDPlots[0] -> SetStats(kFALSE);
     MDPlots[0] -> SetTitle("Asymmetry Variation");
     MDPlots[0] -> GetYaxis() -> SetTitle("Asymmetry");
     MDPlots[0] -> GetXaxis() -> SetTitle("MD");
@@ -613,6 +618,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
     mc->cd(2);
     //SummaryHist(MDPlots[1]);
     MDPlots[1] -> SetMarkerStyle(20);
+    MDPlots[1] -> SetStats(kFALSE);
     MDPlots[1] -> SetTitle("Yield Variation");
     MDPlots[1] -> GetYaxis()-> SetTitle ("Yield");
     MDPlots[1] -> GetXaxis() -> SetTitle("MD");

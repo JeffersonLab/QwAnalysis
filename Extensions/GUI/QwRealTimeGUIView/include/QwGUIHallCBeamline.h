@@ -86,6 +86,11 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   TGTextButton        *dButtonPosVariation;
   TGTextButton        *dButtonHCSCALER;
   TGTextButton        *dButtonMeanPos;
+  TGTextButton        *dButtonTgtX;
+  TGTextButton        *dButtonTgtY;
+  TGTextButton        *dButtonTgtAngleX;
+  TGTextButton        *dButtonTgtAngleY;
+  TGTextButton        *dButtonTgtCharge;
 
 
   TGComboBox          *dComboBoxHCBCM;
@@ -135,6 +140,22 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //!
   //!Return value: none 
   void PlotSCALER();
+
+  //!This function Draws target X,X',Y,Y' yield/asym  histograms/plots from the Memory map file. 
+  //!
+  //!Parameters:
+  //! - plot to draw pass the enum code
+  //!
+  //!Return value: none 
+  void PlotTargetPos(Short_t );
+
+  //!This function Draws target charge yield/asym  histograms/plots from the Memory map file. 
+  //!
+  //!Parameters:
+  //! - plot to draw pass the enum code
+  //!
+  //!Return value: none 
+  void PlotTargetCharge();
 
   //!This function Sets the combo index/combo element index
   //!

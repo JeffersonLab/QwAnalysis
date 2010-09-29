@@ -15,6 +15,11 @@ enum QwGUIHallCBeamlineIndentificator {
   BA_POS_VAR,
   BA_HCSCALER,
   BA_MEAN_POS,
+  BA_TGT_X,
+  BA_TGT_Y,
+  BA_TGT_ANGLE_X,
+  BA_TGT_ANGLE_Y,
+  BA_TGT_CHG,
 };
 
 //HALLC_DET_TYPES is the size of the enum
@@ -38,9 +43,6 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
   : QwGUISubSystem(p,main,tab,objName,mainname,w,h)
 { 
-  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
-  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
-  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
   dTabFrame           = NULL;
   dControlsFrame      = NULL;
@@ -56,7 +58,11 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
   dButtonCharge       = NULL;
   dButtonPosVariation = NULL;
   dButtonHCSCALER     = NULL;
-
+  dButtonTgtX         = NULL;
+  dButtonTgtY         = NULL;
+  dButtonTgtAngleX    = NULL;
+  dButtonTgtAngleY    = NULL;
+  dButtonTgtCharge    = NULL;
   dComboBoxHCBCM      = NULL;
   
   
@@ -91,8 +97,11 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dComboBoxHCBCM)      delete dComboBoxHCBCM;
   if(dButtonHCSCALER)     delete dButtonHCSCALER;
   if(dButtonMeanPos)      delete dButtonMeanPos; 
-  
-
+  if(dButtonTgtX)         delete dButtonTgtX;
+  if(dButtonTgtY)         delete dButtonTgtY;
+  if(dButtonTgtAngleX)    delete dButtonTgtAngleX;
+  if(dButtonTgtAngleY)    delete dButtonTgtAngleY;
+  if(dButtonTgtCharge)    delete dButtonTgtCharge;
   delete [] PosVariation;
 
   RemoveThisTab(this);
@@ -194,7 +203,11 @@ void QwGUIHallCBeamline::MakeLayout()
   dButtonHCSCALER = new TGTextButton(dHCSCALERFrame, "&SCALER Yield/Asymmetry", BA_HCSCALER);
   dButtonHCSCALER->SetEnabled(kFALSE);
   dButtonPosVariation = new TGTextButton(dControlsFrame, "BPM Eff_Charge Variation", BA_POS_VAR);
-
+  dButtonTgtX = new TGTextButton(dControlsFrame, "Target X", BA_TGT_X);
+  dButtonTgtY = new TGTextButton(dControlsFrame, "Target Y", BA_TGT_Y);
+  dButtonTgtAngleX = new TGTextButton(dControlsFrame, "Target ANGLE X", BA_TGT_ANGLE_X);
+  dButtonTgtAngleY = new TGTextButton(dControlsFrame, "Target ANGLE Y", BA_TGT_ANGLE_Y);
+  dButtonTgtCharge = new TGTextButton(dControlsFrame, "Target Charge", BA_TGT_CHG);
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
 
   dControlsFrame->AddFrame(dButtonPos,dBtnLayout );
@@ -205,7 +218,11 @@ void QwGUIHallCBeamline::MakeLayout()
   dControlsFrame->AddFrame(dButtonMeanPos, dBtnLayout);
   dControlsFrame->AddFrame(dHCBCMFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
   dControlsFrame->AddFrame(dHCSCALERFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
-  // dControlsFrame->AddFrame(group,new TGLayoutHints(kLHintsExpandX));
+  dControlsFrame->AddFrame(dButtonTgtX, dBtnLayout);
+  dControlsFrame->AddFrame(dButtonTgtY, dBtnLayout);
+  dControlsFrame->AddFrame(dButtonTgtAngleX, dBtnLayout);
+  dControlsFrame->AddFrame(dButtonTgtAngleY, dBtnLayout);
+  dControlsFrame->AddFrame(dButtonTgtCharge, dBtnLayout);
 
 
 
@@ -231,8 +248,14 @@ void QwGUIHallCBeamline::MakeLayout()
   dButtonCharge -> Associate(this);
   dButtonPosVariation -> Associate(this);
   dButtonHCSCALER -> Associate(this);
+  dButtonTgtX -> Associate(this);
+  dButtonTgtY -> Associate(this);
+  dButtonTgtAngleX -> Associate(this);
+  dButtonTgtAngleY -> Associate(this);
   dComboBoxHCBCM->Associate(this);
   dComboBoxHCSCALER->Associate(this);
+  dButtonTgtCharge->Associate(this);
+
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				"QwGUIHallCBeamline",
@@ -355,6 +378,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     mc->cd(1);
     //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("Eff_Charge Asymmetry");
     PosVariation[0] -> GetYaxis() -> SetTitle("#No Units");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM ");
@@ -366,6 +390,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     mc->cd(2);
     //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Eff_Charge Yield");
     PosVariation[1] -> GetYaxis()-> SetTitle ("Coulomb");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM ");
@@ -520,6 +545,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
     mc->cd(1);
     //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("X Difference Variation");
     PosVariation[0] -> GetYaxis() -> SetTitle("mm");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
@@ -531,6 +557,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
     mc->cd(2);
     //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Y Difference Variation");
     PosVariation[1] -> GetYaxis()-> SetTitle ("mm");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
@@ -632,6 +659,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
     mc->cd(1);
     //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("Mean BPM X Variation");
     PosVariation[0] -> GetYaxis() -> SetTitle("Pos (mm)");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
@@ -643,6 +671,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
     mc->cd(2);
     //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Mean BPM Y Variation");
     PosVariation[1] -> GetYaxis()-> SetTitle ("Pos (mm)");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
@@ -716,6 +745,115 @@ void QwGUIHallCBeamline::PlotSCALER(){
   return;
 };  
 
+void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
+  TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
+  char histon1[128]; //name of the histogram
+  char histon2[128]; //name of the histogram
+
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+
+  
+
+   while (1){
+     switch (tgtcoord)
+       {
+       case BA_TGT_X:
+	 sprintf (histon1, "diff_qwk_targetX_hw" );
+	 sprintf (histon2, "yield_qwk_targetX_hw" );
+	 break;
+       case BA_TGT_Y:
+	 sprintf (histon1, "diff_qwk_targetY_hw" );
+	 sprintf (histon2, "yield_qwk_targetY_hw" );
+	 break;
+       case BA_TGT_ANGLE_X:
+	 sprintf (histon1, "diff_qwk_targetXSlope_hw" );
+	 sprintf (histon2, "yield_qwk_targetXSlope_hw" );
+	 break;
+       case BA_TGT_ANGLE_Y:
+	 sprintf (histon1, "diff_qwk_targetYSlope_hw" );
+	 sprintf (histon2, "yield_qwk_targetYSlope_hw" );
+	 break;
+       }
+     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histon1);
+     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histon2);
+    
+    if (histo1!=NULL && histo2!=NULL ) {
+    
+      mc->Clear();
+      mc->Divide(1,2);
+
+      mc->cd(1);
+      histo1->Draw();
+      mc->cd(2);
+      histo2->Draw();
+      gPad->Update();
+      gPad->Update();
+
+      mc->Modified();
+      mc->Update();
+    }
+
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+  }
+  
+
+   printf("---------------PlotTargetPos(%i)--------------------\n",tgtcoord);
+   //mc->Modified();
+   //mc->Update();
+  
+
+  return;
+};
+
+void QwGUIHallCBeamline::PlotTargetCharge(){
+  TH1F *histo1=NULL;
+  TH1F *histo2=NULL;
+  char histo[128]; //name of the histogram
+
+  
+  TCanvas *mc = NULL;
+  mc = dCanvas->GetCanvas();
+
+  
+
+   while (1){
+     sprintf (histo, "asym_qwk_charge_hw" );
+     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     sprintf (histo, "yield_qwk_charge_hw" );
+     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+    
+    if (histo1!=NULL && histo2!=NULL ) {
+    
+      mc->Clear();
+      mc->Divide(1,2);
+
+      mc->cd(1);
+      histo1->Draw();
+      mc->cd(2);
+      histo2->Draw();
+      gPad->Update();
+      gPad->Update();
+
+      mc->Modified();
+      mc->Update();
+    }
+
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+  }
+   
+  printf("---------------PlotTargetCharge()--------------------\n");
+  return;
+};
+
 void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
 
@@ -774,7 +912,21 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 		  //printf("PlotPosData() button id %ld pressed\n", parm1);
 		  PlotBPMPositions();
 		  break;
-
+		case BA_TGT_X:
+		  PlotTargetPos(BA_TGT_X);
+		  break;
+		case BA_TGT_Y:
+		  PlotTargetPos(BA_TGT_Y);
+		  break;
+		case BA_TGT_ANGLE_X:
+		  PlotTargetPos(BA_TGT_ANGLE_X);
+		  break;
+		case BA_TGT_ANGLE_Y:
+		  PlotTargetPos(BA_TGT_ANGLE_Y);
+		  break;
+		case BA_TGT_CHG:
+		  PlotTargetCharge();
+		  break;
 		}
 	      
 	      break;

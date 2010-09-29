@@ -351,6 +351,7 @@ void QwGUILumiDetector::PlotUSLumi(){
     
     mc->cd(1);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("US LUMI Asymmetry Variation");
     PosVariation[0] -> GetYaxis() -> SetTitle("Asymmetry");
     PosVariation[0] -> GetXaxis() -> SetTitle("US LUMI");
@@ -361,6 +362,7 @@ void QwGUILumiDetector::PlotUSLumi(){
     
     mc->cd(2);
     PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("US LUMI Yield Variation");
     PosVariation[1] -> GetYaxis()-> SetTitle ("Yield");
     PosVariation[1] -> GetXaxis() -> SetTitle("US LUMI");
@@ -465,6 +467,7 @@ void QwGUILumiDetector::PlotDSLumi(){
     
     mc->cd(1);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("DS LUMI Asymmetry Variation");
     PosVariation[0] -> GetYaxis() -> SetTitle("Asymmetry");
     PosVariation[0] -> GetXaxis() -> SetTitle("DS LUMI");
@@ -475,6 +478,7 @@ void QwGUILumiDetector::PlotDSLumi(){
     
     mc->cd(2);
     PosVariation[1] -> SetMarkerStyle(20);
+    PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("DS LUMI Yield Variation");
     PosVariation[1] -> GetYaxis()-> SetTitle ("Yield");
     PosVariation[1] -> GetXaxis() -> SetTitle("DS LUMI");
@@ -550,7 +554,7 @@ void QwGUILumiDetector::PlotLumi(){
      sprintf (histo, "yield_%s_hw",fLUMIDevices.at(VQWK_LUMI).at(fCurrentLUMIIndex).Data() );
      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
     
-    if (histo1!=NULL || histo2!=NULL ) {
+    if (histo1!=NULL && histo2!=NULL ) {
     
       mc->Clear();
       mc->Divide(1,2);
@@ -598,7 +602,7 @@ void QwGUILumiDetector::PlotLumiScaler(){
      sprintf (histo, "yield_%s",fLUMIDevices.at(SCALER_LUMI).at(fCurrentSCALERIndex).Data() );
      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
     
-    if (histo1!=NULL || histo2!=NULL ) {
+    if (histo1!=NULL && histo2!=NULL ) {
     
       mc->Clear();
       mc->Divide(1,2);
