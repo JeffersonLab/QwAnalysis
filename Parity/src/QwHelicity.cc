@@ -989,27 +989,35 @@ void  QwHelicity::FillHistograms()
     {
       QwDebug << "QwHelicity::FillHistograms helicity info " << QwLog::endl;
       QwDebug << "QwHelicity::FillHistograms  pattern polarity=" << fActualPatternPolarity << QwLog::endl;
-      fHistograms[index]->Fill(fActualPatternPolarity);
+      if (fHistograms[index]!=NULL)
+	fHistograms[index]->Fill(fActualPatternPolarity);
       index+=1;
+      
       for (size_t i=0; i<fWord.size(); i++){
-	fHistograms[index]->Fill(fWord[i].fValue);
-	index+=1;
+	if (fHistograms[index]!=NULL)
+	  fHistograms[index]->Fill(fWord[i].fValue);
+	index+=1;	
 	QwDebug << "QwHelicity::FillHistograms " << fWord[i].fWordName << "=" << fWord[i].fValue << QwLog::endl;
       }
     }
   else if(fHistoType==kHelSaveMPS)
     {
       QwDebug << "QwHelicity::FillHistograms mps info " << QwLog::endl;
-      fHistograms[index]->Fill(fEventNumber-fEventNumberOld);
+      if (fHistograms[index]!=NULL)
+	fHistograms[index]->Fill(fEventNumber-fEventNumberOld);
       index+=1;
-      fHistograms[index]->Fill(fPatternNumber-fPatternNumberOld);
+      if (fHistograms[index]!=NULL)
+	fHistograms[index]->Fill(fPatternNumber-fPatternNumberOld);
       index+=1;
-      fHistograms[index]->Fill(fPatternPhaseNumber);
+      if (fHistograms[index]!=NULL)
+	fHistograms[index]->Fill(fPatternPhaseNumber);
       index+=1;
-      fHistograms[index]->Fill(fHelicityActual);
+      if (fHistograms[index]!=NULL)
+	fHistograms[index]->Fill(fHelicityActual);
       index+=1;
       for (size_t i=0; i<fWord.size(); i++){
-	fHistograms[index]->Fill(fWord[i].fValue);
+	if (fHistograms[index]!=NULL)
+	  fHistograms[index]->Fill(fWord[i].fValue);
 	index+=1;
 	QwDebug << "QwHelicity::FillHistograms " << fWord[i].fWordName << "=" << fWord[i].fValue << QwLog::endl;
       }
