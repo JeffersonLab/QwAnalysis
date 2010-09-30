@@ -45,18 +45,27 @@ public:
     //    status = ca_pend_io(10);
     //    std::cout << "Hall A IA value: " << tmp << std::endl;
     Double_t value;
-    status = ca_get(DBR_DOUBLE, fIDHall_A_IA, &value);
-    status = ca_pend_io(10);
-    std::cout << "Hall A IA value: " << value << std::endl;
-    status = ca_get(DBR_DOUBLE, fIDHall_C_IA, &value);
-    status = ca_pend_io(10);
-    std::cout << "Hall C IA value: " << value << std::endl;
+
     status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell plus HV value: " << value << std::endl;
     status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell minus HV value: " << value << std::endl;
+
+    status = ca_get(DBR_DOUBLE, fIDHall_C_IA_A0, &value);
+    status = ca_pend_io(10);
+    std::cout << "Hall C IA value A0: " << value << std::endl;
+    status = ca_get(DBR_DOUBLE, fIDHall_C_IA_A1, &value);
+    status = ca_pend_io(10);
+    std::cout << "Hall C IA value A1: " << value << std::endl;
+    status = ca_get(DBR_DOUBLE, fIDHall_C_IA_A2, &value);
+    status = ca_pend_io(10);
+    std::cout << "Hall C IA value A2: " << value << std::endl;
+    status = ca_get(DBR_DOUBLE, fIDHall_C_IA_A3, &value);
+    status = ca_pend_io(10);
+    std::cout << "Hall C IA value A3: " << value << std::endl;
+    
   };
 
   void Set_HallAIA(Double_t &value){
@@ -152,6 +161,13 @@ public:
 
   chid fIDHall_A_IA;
   chid fIDHall_C_IA;
+  chid fIDHall_C_IA_A0;//hallc IA A0
+  chid fIDHall_C_IA_A1;//hallc IA A1
+  chid fIDHall_C_IA_A2;//hallc IA A2
+  chid fIDHall_C_IA_A3;//hallc IA A3
+
+  
+
   chid fIDPockels_Cell_plus;
   chid fIDPockels_Cell_minus;
   chid fIDMagnet_1_Even;

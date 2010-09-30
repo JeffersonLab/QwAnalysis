@@ -267,11 +267,11 @@ Int_t main(Int_t argc, Char_t* argv[])
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
             if (helicitypattern.IsGoodAsymmetry()) {
-
 	      if (helicitypattern.IsPatternsAccumulated()){
 		if(helicitypattern.IsAqPrecisionGood()){
 		  helicitypattern.UpdateGMClean(0);//set to not clean
 		  helicitypattern.FeedIASetPoint();
+		  helicitypattern.LogParameters();
 		  helicitypattern.UpdateGMClean(1);//set back to clean
 		  helicitypattern.ClearRunningSum();//reset the running sum
 		}
@@ -351,9 +351,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Calculate running averages over helicity patterns
     if (helicitypattern.IsRunningSumEnabled()) {
       helicitypattern.CalculateRunningAverage();
-      Double_t asym,error,width;
-      helicitypattern.GetTargetChargeStat(asym,error,width);
-      QwMessage<<"Charge Stat Asym: "<<asym<<" +/- "<<error<<" width "<<width<<QwLog::endl;
       helicitypattern.PrintRunningAverage();
       if (helicitypattern.IsBurstSumEnabled()) {
         helicitypattern.CalculateRunningBurstAverage();
