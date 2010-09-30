@@ -388,7 +388,9 @@ void  QwHelicityPattern::CalculateAsymmetry()
     //std::cout<<" quartet count ="<<fQuartetNumber<<"\n";
 
     fYield.Sum(fPositiveHelicitySum,fNegativeHelicitySum);
+    fYield.Scale(1.0/fPatternSize);
     fDifference.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
+    fDifference.Scale(1.0/fPatternSize);
     if (! fIgnoreHelicity){
       //  Only blind the difference if we're using the real helicity.
       fBlinder.Blind(fDifference,fYield);
@@ -419,6 +421,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
       }
       fAlternateDiff.ClearEventData();
       fAlternateDiff.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
+      fAlternateDiff.Scale(1.0/fPatternSize);
       //  Do not blind this helicity-uncorrelated difference.
       fAsymmetry1.Ratio(fAlternateDiff,fYield);
       //  fAsymmetry2:  (even events - odd events)/fYield
@@ -436,6 +439,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
 	}
 	fAlternateDiff.ClearEventData();
 	fAlternateDiff.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
+	fAlternateDiff.Scale(1.0/fPatternSize);
 	//  Do not blind this helicity-uncorrelated difference.
 	fAsymmetry2.Ratio(fAlternateDiff,fYield);
       }

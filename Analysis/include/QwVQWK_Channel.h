@@ -67,6 +67,7 @@ class QwVQWK_Channel: public VQwDataElement {
     // This will be checked against the no.of samples read by the module
     fNumberOfSamples_map = NumberOfSamples_map;
   };
+  
 
 
   void  ClearEventData();
@@ -186,8 +187,8 @@ class QwVQWK_Channel: public VQwDataElement {
   void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };
   Double_t GetPedestal() const       { return fPedestal; };
   void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; kFoundGain = 1; };
+  void     SetCalibrationToVolts()               { fCalibrationFactor = kVQWK_VoltsPerBit; kFoundGain = 1; };
   Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
-
 
   void Copy(VQwDataElement *source);
 
@@ -242,11 +243,13 @@ class QwVQWK_Channel: public VQwDataElement {
   size_t fTreeArrayIndex;
   size_t fTreeArrayNumEntries;
 
-  /*! \name Event data members */
+  /*! \name Event data members---Raw values */
   // @{
-  Double_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
-  Double_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
-  Double_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
+  Int_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
+  Int_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
+  Int_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
+  /*! \name Event data members---Potentially calibrated values*/
+  // @{
   // The following values potentially have pedestal removed  and calibration applied
   Double_t fBlock[4];          ///< Array of the sub-block data
   Double_t fHardwareBlockSum;  ///< Module-based sum of the four sub-blocks
