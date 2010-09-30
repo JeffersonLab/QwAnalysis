@@ -1,6 +1,7 @@
 !**************************************************************************
 ! Geometry information for the BPMs in Hall C beamline.
 !**************************************************************************
+! [Last updated by buddhini on 9-30-2010]
 !
 ! X/Yoffset - The difference in the ideal position and the surveyed position of a BPM in X/Y axis.
 !
@@ -26,31 +27,30 @@
 !   default AlphaX/AlphaY = 1.0
 !
 ! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY
-!
-	
- bpmstripline,   QWK_3C07,   0.0,  0.0,    49025.3,  	1.0,  	1.033450,  0.901159
- bpmstripline,   QWK_3C08,   0.0,  0.0,    55125.3,  	1.0,  	1.127040,  1.008810
- bpmstripline,   QWK_3C11,   0.0,  0.0,    70725.3,  	1.0,  	0.984608,  1.102810
- bpmstripline,   QWK_3C12,   0.0,  0.0,    75926.1,  	1.0,  	0.982274,  0.950626
- bpmstripline,   QWK_3C14,   0.0,  0.0,    86325.3,  	1.0,  	0.955249,  0.972192
- bpmstripline,   QWK_3C16,   0.0,  0.0,    96726.1,  	1.0,  	0.980290,  0.988578
- bpmstripline,   QWK_3C17,   0.4, -0.3,    99815.6,  	1.0,  	0.947455,  0.877913
- bpmstripline,   QWK_3C18,   0.0, -0.6,   101611.0,  	1.0,  	0.741194,  1.041640
- bpmstripline,   QWK_3C19,   0.2,  0.1,   102922.0,  	1.0,  	1.026000,  1.011010
- bpmstripline,   QWK_3P01,   0.8,  1.0,   107031.0,  	1.0,  	0.913658,  1.066420
- bpmstripline,   QWK_3P02A, -1.0, -0.7,   109212.0,  	1.0,  	0.982250,  0.986716
- bpmstripline,   QWK_3P02B,  0.2, -0.1,   110602.0,  	1.0,    1.000000,  1.000000
- bpmstripline,   QWK_3P03A,  0.6, -0.7,   113292.0,  	1.0,  	0.909295,  1.006700
- bpmstripline,   QWK_3C20,   0.2,  0.1,   116858.0,  	1.0,    0.904796,  0.995870
- bpmstripline,   QWK_3C21,   0.2, -0.2,   118216.0,  	1.0,    1.113200,  0.945974 
- bpmstripline,   QWK_3H02,   0.2,  0.7,   127153.0,  	1.0,    0.973625,  1.052130
- bpmstripline,   QWK_3H04,  -0.6, -0.4,   129632.0,  	1.0,    1.082250,  1.032040
- bpmstripline,   QWK_3H07A,  0.4,  0.8,   138406.0,  	1.0,    0.960181,  1.071930
- bpmstripline,   QWK_3H07B,  0.2, -0.2,   139363.0,  	1.0,    1.022240,  1.015710
- bpmstripline,   QWK_3H07C,  0.6,  0.0,   140329.0, 	1.0,    1.013110,  0.985986
- bpmstripline,   QWK_3H08,   0.1, -0.1,   143576.0,  	1.372,  1.039360,  1.055470
- bpmstripline,   QWK_3H09,   0.3, -0.4,   144803.0,  	1.0,    1.025930,  0.993640
- bpmstripline,   QWK_3H09B, -0.9, -0.3,   147351.0,  	1.0,  	0.948778,  1.264910
+!	
+ bpmstripline,   QWK_BPM3C07,   0.0,  0.0,    49025.3,  	1.0,  	1.033450,  0.901159
+ bpmstripline,   QWK_BPM3C08,   0.0,  0.0,    55125.3,  	1.0,  	1.127040,  1.008810
+ bpmstripline,   QWK_BPM3C11,   0.0,  0.0,    70725.3,  	1.0,  	0.984608,  1.102810
+ bpmstripline,   QWK_BPM3C12,   0.0,  0.0,    75926.1,  	1.0,  	0.982274,  0.950626
+ bpmstripline,   QWK_BPM3C14,   0.0,  0.0,    86325.3,  	1.0,  	0.955249,  0.972192
+ bpmstripline,   QWK_BPM3C16,   0.0,  0.0,    96726.1,  	1.0,  	0.980290,  0.988578
+ bpmstripline,   QWK_BPM3C17,   0.4, -0.3,    99815.6,  	1.0,  	0.947455,  0.877913
+ bpmstripline,   QWK_BPM3C18,   0.0, -0.6,   101611.0,  	1.0,  	0.741194,  1.041640
+ bpmstripline,   QWK_BPM3C19,   0.2,  0.1,   102922.0,  	1.0,  	1.026000,  1.011010
+ bpmstripline,   QWK_BPM3P01,   0.8,  1.0,   107031.0,  	1.0,  	0.913658,  1.066420
+ bpmstripline,   QWK_BPM3P02A, -1.0, -0.7,   109212.0,  	1.0,  	0.982250,  0.986716
+ bpmstripline,   QWK_BPM3P02B,  0.2, -0.1,   110602.0,  	1.0,    1.000000,  1.000000
+ bpmstripline,   QWK_BPM3P03A,  0.6, -0.7,   113292.0,  	1.0,  	0.909295,  1.006700
+ bpmstripline,   QWK_BPM3C20,   0.2,  0.1,   116858.0,  	1.0,    0.904796,  0.995870
+ bpmstripline,   QWK_BPM3C21,   0.2, -0.2,   118216.0,  	1.0,    1.113200,  0.945974 
+ bpmstripline,   QWK_BPM3H02,   0.2,  0.7,   127153.0,  	1.0,    0.973625,  1.052130
+ bpmstripline,   QWK_BPM3H04,  -0.6, -0.4,   129632.0,  	1.0,    1.082250,  1.032040
+ bpmstripline,   QWK_BPM3H07A,  0.4,  0.8,   138406.0,  	1.0,    0.960181,  1.071930
+ bpmstripline,   QWK_BPM3H07B,  0.2, -0.2,   139363.0,  	1.0,    1.022240,  1.015710
+ bpmstripline,   QWK_BPM3H07C,  0.6,  0.0,   140329.0, 		1.0,    1.013110,  0.985986
+ bpmstripline,   QWK_BPM3H08,   0.1, -0.1,   143576.0,  	1.372,  1.039360,  1.055470
+ bpmstripline,   QWK_BPM3H09,   0.3, -0.4,   144803.0,  	1.0,    1.025930,  0.993640
+ bpmstripline,   QWK_BPM3H09B, -0.9, -0.3,   147351.0,  	1.0,  	0.948778,  1.264910
 
 ! The representative bpm for qweak hydrogen target.	
  combinedbpm,    QWK_TARGET  0.1,  0.1,   148739.0, 	1.0,  	1.0,  	   1.0     	

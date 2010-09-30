@@ -43,16 +43,16 @@ enum EQwGUIDatabaseHistogramIDs {
 // The list of BPMs in the  Hall C beamline. Please don't change this. 
 const char *QwGUIHallCBeamline::HallC_BPMS[HCLINE_BPMS]=
   {
-    "qwk_3c07","qwk_3c08","qwk_3c11","qwk_3c12","qwk_3c14","qwk_3c16","qwk_3c17","qwk_3c18",
-    "qwk_3c19","qwk_3c07a","qwk_3p02a","qwk_3p02b","qwk_3p03a","qwk_3c20","qwk_3c21","qwk_3h02",
-    "qwk_3h04a","qwk_3h07a","qwk_3h07b","qwk_3h07c","qwk_3h08","qwk_3h09","qwk_3h09b"
+    "3c07","3c08","3c11","3c12","3c14","3c16","3c17","3c18",
+    "3c19","3c07a","3p02a","3p02b","3p03a","3c20","3c21","3h02",
+    "3h04a","3h07a","3h07b","3h07c","3h08","3h09","3h09b"
   };
 
 //BCMs were added to this list specifically for the effective charge it may or may not be used later
 //Kaisen
 const char *QwGUIHallCBeamline::HallC_BCMS[HCLINE_BCMS]=
   {
-    "qwk_bcm1","qwk_bcm2","qwk_bcm3","qwk_bcm5","qwk_bcm6"
+    "bcm1","bcm2","bcm3","bcm5","bcm6"
   };
 
 
@@ -330,7 +330,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 
   
   for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
-    sprintf (histo, "diff_%sX.hw_sum", HallC_BPMS[p]);
+    sprintf (histo, "diff_qwk_bpm%sX.hw_sum", HallC_BPMS[p]);
 
     if( ((TTree*) obj)->FindLeaf(histo) ){
       x_devices.push_back(p);
@@ -346,7 +346,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     }
     
 
-    sprintf (histo, "diff_%sY.hw_sum", HallC_BPMS[p]);
+    sprintf (histo, "diff_qwk_bpm%sY.hw_sum", HallC_BPMS[p]);
     if( ((TTree*) obj)->FindLeaf(histo) ){   
       y_devices.push_back(p);
       if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
@@ -591,7 +591,7 @@ void QwGUIHallCBeamline::PlotHistograms()
       element = select.Remove(0,4); 
       for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
 	mc->cd(p+1);
-	sprintf (histogram, "%s%s.hw_sum", HallC_BPMS[p],element.Data());
+	sprintf (histogram, "qwk_bpm%s%s.hw_sum", HallC_BPMS[p],element.Data());
 	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
 	
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
@@ -613,7 +613,7 @@ void QwGUIHallCBeamline::PlotHistograms()
       element = select.Remove(0,7); 
       for(Int_t p = 0; p <HCLINE_BPMS ; p++) {      
 	mc->cd(p+1);
-	sprintf (histogram, "%s%s.hw_sum", HallC_BPMS[p],element.Data()); 
+	sprintf (histogram, "qwk_bpm%s%s.hw_sum", HallC_BPMS[p],element.Data()); 
 	if (ldebug) std::cout << "histogram = " << histogram << std::endl;
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);
@@ -633,7 +633,7 @@ void QwGUIHallCBeamline::PlotHistograms()
 
       for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
 	mc->cd(p+1);
-	sprintf (histogram, "%s_EffectiveCharge.hw_sum", HallC_BPMS[p]);
+	sprintf (histogram, "qwk_bpm%s_EffectiveCharge.hw_sum", HallC_BPMS[p]);
 	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);	 
@@ -653,7 +653,7 @@ void QwGUIHallCBeamline::PlotHistograms()
 
       for(Int_t p = 0; p <HCLINE_BCMS ; p++) {
 	mc->cd(p+1);
-	sprintf (histogram, "%s.hw_sum", HallC_BCMS[p]);
+	sprintf (histogram, "qwk_%s.hw_sum", HallC_BCMS[p]);
 	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);	 
@@ -684,7 +684,7 @@ void QwGUIHallCBeamline::PlotHistograms()
 
       for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
 	mc->cd(p+1);
-	sprintf (histogram, "diff_%s%s.hw_sum", HallC_BPMS[p],element.Data());
+	sprintf (histogram, "diff_qwk_bpm%s%s.hw_sum", HallC_BPMS[p],element.Data());
 	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
 	
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
@@ -706,7 +706,7 @@ void QwGUIHallCBeamline::PlotHistograms()
       element = select.Remove(0,9); 
       for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
 	mc->cd(p+1);
-	sprintf (histogram, "yield_%s%s.hw_sum", HallC_BPMS[p],element.Data());
+	sprintf (histogram, "yield_qwk_bpm%s%s.hw_sum", HallC_BPMS[p],element.Data());
 	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
 	
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
@@ -727,7 +727,7 @@ void QwGUIHallCBeamline::PlotHistograms()
 
       for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
 	mc->cd(p+1);
-	sprintf (histogram, "asym_%s_EffectiveCharge.hw_sum", HallC_BPMS[p]);
+	sprintf (histogram, "asym_qwk_bpm%s_EffectiveCharge.hw_sum", HallC_BPMS[p]);
 	if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
 	
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
@@ -748,11 +748,11 @@ void QwGUIHallCBeamline::PlotHistograms()
 	for(Int_t p = 0; p <HCLINE_BCMS ; p++) {
 	  mc->cd(p+1);
 	  if(select.Contains("YBCM"))
-	    sprintf (histogram, "yield_%s.hw_sum", HallC_BCMS[p]);
+	    sprintf (histogram, "yield_qwk_%s.hw_sum", HallC_BCMS[p]);
 	  else if (select.Contains("DBCM"))
-	    sprintf (histogram, "diff_%s.hw_sum", HallC_BCMS[p]);
+	    sprintf (histogram, "diff_qwk_%s.hw_sum", HallC_BCMS[p]);
 	  else if(select.Contains("ABCM"))
-	    sprintf (histogram, "asym_%s.hw_sum", HallC_BCMS[p]); 
+	    sprintf (histogram, "asym_qwk_%s.hw_sum", HallC_BCMS[p]); 
 	  if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
 	  if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	    obj -> Draw(histogram);	 
