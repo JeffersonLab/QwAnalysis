@@ -32,13 +32,15 @@ Added by Buddhini to display the injector beamline data.
  */
 //=============================================================================
 
-#define INJECTOR_DEV_NUM          22        
-#define INJECTOR_DET_TRE_NUM      2
+// There are 22 BPMs in the hallC beamline  
+#define INJECTOR_BPMS   21 
+#define INJECTOR_BCMS    1     
+#define TRE_NUM          2
 ///
 /// \ingroup QwGUIInjector
 
-#ifndef QWGUIINJECTOR_H
-#define QWGUIINJECTOR_H
+#ifndef QWGUINJECTOR_H
+#define QWGUINJECTOR_H
 
 
 #include <cstdlib>
@@ -47,17 +49,17 @@ Added by Buddhini to display the injector beamline data.
 #include <iostream>
 #include <iomanip>
 #include <string>
-
+#include <TPaveText.h>
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
 #include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-
+#include "TStyle.h"
 #include "RSDataWindow.h"
 
 
-class QwGUIInjector : public QwGUISubSystem {
+ class QwGUIInjector : public QwGUISubSystem {
 
   
   TGHorizontalFrame   *dTabFrame;
@@ -67,9 +69,11 @@ class QwGUIInjector : public QwGUISubSystem {
   TGLayoutHints       *dCnvLayout; 
   TGLayoutHints       *dSubLayout;
   TGLayoutHints       *dBtnLayout;
-  TGTextButton        *dButtonPos;
-  TGTextButton        *dButtonCharge;
-  TGTextButton        *dButtonPosVariation;
+  TGTextButton        *dBtnPosDiff;
+  TGTextButton        *dBtnChargeAsym;
+  TGTextButton        *dBtnPlotHistos;
+  TGComboBox          *dCmbHistos;
+  TGLayoutHints       *dCmbLayout;
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
@@ -78,27 +82,16 @@ class QwGUIInjector : public QwGUISubSystem {
   TObjArray            DataWindowArray;
 
 
-  TH1D *PosVariation[2] ;
-/*   TGraphErrors *gx; */
-/*   TGraphErrors *gy; */
+  //A histogram array to plot the X and Y position difference variation.
+  TH1D *PosDiffVar[2] ;
+  // The histogram to store the charge asymmetries.
+  TH1D *ChargeAsym ;
+  TPaveText * errlabel;
 
-  //!This function just plots some histograms in the main canvas, just for illustrative purposes
-  //!for now.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  // void                 PlotData();
+  void PositionDifferences(); 
+  void DisplayChargeAsymmetry();
+  void PlotHistograms();
 
-  void PlotPosData();
-
-
-  void PlotChargeData();
-
-
-  void PositionDifferences();
-  
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -108,13 +101,21 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  void                 ClearData();
+  void  ClearData();
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
 
-  static const char   *InjectorDevices[INJECTOR_DEV_NUM];
-  static const char   *InjectorTrees[INJECTOR_DET_TRE_NUM];
+  static const char   *Injector_BPMS[INJECTOR_BPMS];
+  static const char   *Injector_BCMS[INJECTOR_BCMS]; 
+  //The Devices with only charge may later have to be distinguished from those with other data
+  static const char   *RootTrees[TRE_NUM];
+  
+ private:
+
+  char histo[128];
+  TString select;
+
 
  protected:
 
@@ -130,10 +131,13 @@ class QwGUIInjector : public QwGUISubSystem {
 
   void                 SummaryHist(TH1*in);
 
+
+
  public:
   
   QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
-		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
+		     const char *objName, const char *mainname, UInt_t w, UInt_t h);
+
   ~QwGUIInjector();
 
 
@@ -144,7 +148,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Parameters:
   //! - none
   //!
-  //!Return value: none  
+  //!Return value: none 
   virtual void        OnNewDataContainer(RDataContainer *cont);
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
@@ -152,8 +156,9 @@ class QwGUIInjector : public QwGUISubSystem {
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  
+  ClassDef(QwGUIInjector,0); 
 
-  ClassDef(QwGUIInjector,0);
 };
 
 #endif

@@ -203,10 +203,8 @@ void QwGUIHallCBeamline::MakeLayout()
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
   Int_t wid = dCanvas->GetCanvasWindowId();
-  //  TCanvas *super_canvas = new TCanvas("", 10, 10, wid);
   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
   dCanvas->AdoptCanvas(mc);
-  //  super_canvas -> Divide(2,4);
 
 }
 
@@ -426,23 +424,29 @@ void
 QwGUIHallCBeamline::SummaryHist(TH1 *in)
 {
 
-  Double_t out[4] = {0.0};
-  Double_t test   = 0.0;
+  if((in->GetEntries())!=0){
+    Double_t out[4] = {0.0};
+    Double_t test   = 0.0;
 
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/sqrt(in->GetEntries());
+    out[0] = in -> GetMean();
+    out[1] = in -> GetMeanError();
+    out[2] = in -> GetRMS();
+    out[3] = in -> GetRMSError();
+    test   = in -> GetRMS()/sqrt(in->GetEntries());
 
-  printf("%sName%s", BOLD, NORMAL);
-  printf("%22s", in->GetName());
-  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+    printf("%sName%s", BOLD, NORMAL);
+    printf("%22s", in->GetName());
+    printf("  %sMean%s%s", BOLD, NORMAL, " : ");
+    printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
+    printf("  %sSD%s%s", BOLD, NORMAL, " : ");
+    printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+    printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+    return;
+  } 
+  else
+    {
   return;
+    }
 };
 
 
@@ -453,17 +457,16 @@ QwGUIHallCBeamline::SummaryHist(TH1 *in)
 */
 void QwGUIHallCBeamline::DisplayTargetParameters()
 {
-  
+  Bool_t ldebug = kTRUE;
+
   TH1D * t[5];
   TString xlabel;
   TObject *obj = NULL;
-  Bool_t ldebug = kFALSE;
   TCanvas *mc = NULL;
 
-  // create a label to display error messages
-  errlabel = new TPaveText(0, 0, 1, 1, "NDC");
-  errlabel->SetFillColor(0);
-
+  // display error messages
+  TText* not_found  = new TText(); 
+  not_found->SetTextColor(2);
 
   // Beam energy is not calculated by the analyser yet. 
   const char * TgtBeamParameters[5]=
@@ -485,79 +488,73 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
     printf("Found the tree named %s \n", obj->GetName());
   }
 
-  // Delete the histograms if they exist.//??????? Move this command down?
   for(Short_t i=0;i<5;i++) 
     {
-      // if(t[i]) delete t[i]; 
       t[i] = NULL;
     }
   
-  for(Int_t p = 0; p <5 ; p++) 
-    {
-      sprintf (histo, "yield_qwk_%s.hw_sum", TgtBeamParameters[p]);
-      if( ((TTree*) obj)->FindLeaf(histo) )
-	{
-	  if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
+  for(Int_t p = 0; p <5 ; p++) {
+    mc->cd(p+1);
+    sprintf (histo, "yield_qwk_%s.hw_sum", TgtBeamParameters[p]);
 
-	  if(strcmp( TgtBeamParameters[p],"average_charge") == 0) //convert to current. VQWK input impedance is 10kOhm.
-	      sprintf (histo, "yield_qwk_%s.hw_sum*0.000076*100/(4*yield_qwk_%s.num_samples)", 
-		       TgtBeamParameters[p],TgtBeamParameters[p]);
-	 
-	  mc->cd(p+1);
-	  obj -> Draw(histo);
-	  t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
-	  t[p] -> SetTitle(TgtBeamParameters[p]);
-	  t[p] -> GetYaxis()->SetTitle("Quartets");
-	  t[p] -> GetYaxis()->SetTitleSize(0.08);
-	  t[p] -> GetYaxis()->CenterTitle();
-	  t[p] -> GetXaxis()->CenterTitle();
-	  t[p]->GetXaxis()->SetTitleOffset(0.9);
-	  t[p]->GetYaxis()->SetTitleOffset(0.5);
+    if( ((TTree*) obj)->FindLeaf(histo) ){
+      if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
+	
+      if(strcmp( TgtBeamParameters[p],"average_charge") == 0) 
+	sprintf (histo, "yield_qwk_%s.hw_sum", 
+		 TgtBeamParameters[p]);
+	
+      obj -> Draw(histo);
+      t[p] = (TH1D*)gPad->GetPrimitive("htemp"); 
+      t[p] -> SetTitle(TgtBeamParameters[p]);
+      t[p] -> GetYaxis()->SetTitle("Quartets");
+      t[p] -> GetYaxis()->SetTitleSize(0.08);
+      t[p] -> GetYaxis()->CenterTitle();
+      t[p] -> GetXaxis()->CenterTitle();
+      t[p]->GetXaxis()->SetTitleOffset(0.9);
+      t[p]->GetYaxis()->SetTitleOffset(0.5);
 
-	  if(strcmp( TgtBeamParameters[p],"average_charge") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("Current (#muA)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(42);
-	    }
-	  else 	if(strcmp( TgtBeamParameters[p],"targetX") == 0)
-	    { 
-	      t[p] -> GetXaxis()->SetTitle("X Position (#mum)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(34);
-	    }
-	  else 	if(strcmp( TgtBeamParameters[p],"targetY") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("Y Position (#mum)");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(46);
-	    }
-	  else 	if(strcmp( TgtBeamParameters[p],"targetXSlope") == 0)
-	    {
-	      t[p] -> GetXaxis()->SetTitle("X Slope");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(34);
-	    }
-	  else 	if(strcmp( TgtBeamParameters[p],"targetYSlope") == 0) 
-	    {
-	      t[p] -> GetXaxis()->SetTitle("Y Slope");
-	      t[p] -> GetXaxis()->SetDecimals();
-	      t[p] -> SetFillColor(46);
-	    }
-	  SummaryHist(t[p]);	      
-	}
-      else 
-	{
-	  mc->Clear();
-	  errlabel->AddText(Form("Unable to find object %s !",histo));
-	  errlabel->Draw();
-	}
+      if(strcmp( TgtBeamParameters[p],"average_charge") == 0) { 
+	t[p] -> GetXaxis()->SetTitle("Current (#muA)");
+	t[p] -> GetXaxis()->SetDecimals();
+	t[p] -> SetFillColor(42);
+      }
+      else if(strcmp( TgtBeamParameters[p],"targetX") == 0){ 
+	t[p] -> GetXaxis()->SetTitle("X Position (#mum)");
+	t[p] -> GetXaxis()->SetDecimals();
+	t[p] -> SetFillColor(34);
+      }
+      else if(strcmp( TgtBeamParameters[p],"targetY") == 0) {
+	t[p] -> GetXaxis()->SetTitle("Y Position (#mum)");
+	t[p] -> GetXaxis()->SetDecimals();
+	t[p] -> SetFillColor(46);
+      }
+      else if(strcmp( TgtBeamParameters[p],"targetXSlope") == 0){
+	t[p] -> GetXaxis()->SetTitle("X Slope");
+	t[p] -> GetXaxis()->SetDecimals();
+	t[p] -> SetFillColor(34);
+      }
+      else if(strcmp( TgtBeamParameters[p],"targetYSlope") == 0) {
+	t[p] -> GetXaxis()->SetTitle("Y Slope");
+	t[p] -> GetXaxis()->SetDecimals();
+	t[p] -> SetFillColor(46);
+      }
+
+      SummaryHist(t[p]);	      
+      
     }
-
+    else {
+      not_found ->DrawText(0.2,0.5,Form("%s not found!", histo));
+      not_found->DrawClone();
+      not_found->Clear();
+    }
+    
+  }
+   
   if(ldebug) printf("----------------------------------------------------\n");
   mc->Modified();
   mc->Update();
-
+  
 }
 
 /**
