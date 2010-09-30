@@ -13,26 +13,34 @@ static QwVQWK_Channel  targetbeamangle;
 static QwVQWK_Channel  targetbeamx;
 static QwVQWK_Channel  beamx;
 
-void QwEnergyCalculator::InitializeChannel(TString name,TString datatosave ){
+void QwEnergyCalculator::InitializeChannel(TString name,TString datatosave )
+{
   SetElementName(name);
   fEnergyChange.InitializeChannel(name,datatosave);
   beamx.InitializeChannel("beamx","derived");
   return;
 };
 
-void QwEnergyCalculator::InitializeChannel(TString subsystem, TString name,TString datatosave ){
+void QwEnergyCalculator::InitializeChannel(TString subsystem, TString name,TString datatosave )
+{
   SetElementName(name);
   fEnergyChange.InitializeChannel(subsystem, "QwEnergyCalculator", name,datatosave);
   beamx.InitializeChannel("beamx","derived");
   return;
 };
 
-void QwEnergyCalculator::Set(VQwBPM* device, TString type, TString property,Double_t tmatrix_ratio){
+void QwEnergyCalculator::Set(VQwBPM* device, TString type, TString property,Double_t tmatrix_ratio)
+{
+  Bool_t ldebug = kFALSE;
 
   fDevice.push_back(device);
   fProperty.push_back(property);
   fType.push_back(type);
   fTMatrixRatio.push_back(tmatrix_ratio);
+
+  if(ldebug)
+    std::cout<<"QwEnergyCalculator:: Using "<<device->GetElementName()<<" with ratio "<< tmatrix_ratio <<" for "<<property<<std::endl;
+ 
   return;
 };
 

@@ -33,16 +33,16 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   TString varname, varvalue;
   TString modtype, dettype, namech, keyword;
   TString combotype, comboname, dev_name;
-  Int_t modnum, channum;
-  Int_t currentrocread=0;
-  Int_t currentbankread=0;
-  Int_t offset = -1;
-  Int_t currentsubbankindex=-1;
-  Int_t fSample_size=0;
-  Int_t index=0;
-  Bool_t combolistdecoded;
-  Bool_t deviceok;
-  Bool_t unrotated(keyword=="unrotated");
+  Int_t   modnum, channum;
+  Int_t   currentrocread  = 0;
+  Int_t   currentbankread = 0;
+  Int_t   offset = -1;
+  Int_t   currentsubbankindex = -1;
+  Int_t   fSample_size = 0;
+  Int_t   index = 0;
+  Bool_t  combolistdecoded;
+  Bool_t  deviceok;
+  Bool_t  unrotated(keyword=="unrotated");
 
   std::vector<TString>  fDeviceName;
   std::vector<TString>  fProperty;
@@ -201,10 +201,11 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 	    for(size_t i=0;i<fDeviceName.size();i++){
 	      index=GetDetectorIndex(GetQwBeamInstrumentType(fType[i]),fDeviceName[i]);
-	      if (fType[i] == kQwBPMStripline)
+
+	      if ( GetQwBeamInstrumentType(fType[i]) == kQwBPMStripline)
 		fECalculator[fECalculator.size()-1].Set(&fStripline[index],fType[i],fProperty[i],fQWeight[i]);
 
-	      if (fType[i] == kQwCombinedBPM)
+	      if ( GetQwBeamInstrumentType(fType[i]) == kQwCombinedBPM)
 		fECalculator[fECalculator.size()-1].Set(&fBPMCombo[index],fType[i],fProperty[i],fQWeight[i]);
 
 	    }
@@ -663,8 +664,8 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
       if(GetQwBeamInstrumentType(devtype)==kQwBPMStripline){
 	//Load bpm offsets
 	if(index == -1){
-	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm in qweak_beamline_geometry.map: "
-		  <<devname<<". Check the bpm names!\n"
+	  QwWarning << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm in qweak_beamline_geometry.map: "
+		  <<devname
 		  <<QwLog::endl;
 	  notfound=kFALSE;
 	  continue;
