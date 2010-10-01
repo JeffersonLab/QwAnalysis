@@ -44,7 +44,6 @@
 #include "Qset.h"
 
 
-
 // Debug level
 static const bool kDebug = kFALSE;
 // ROOT file output
@@ -124,12 +123,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   qset.DeterminePlanes();
 
 
-
-  QwTrackingWorker *trackingworker = 0;
   // Create the tracking worker
-  trackingworker = new QwTrackingWorker("qwtrackingworker");
-  if (kDebug) trackingworker->SetDebugLevel(1);
-
+  QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
 
   ///  Set up the database connection
   QwDatabase database(gQwOptions);
@@ -147,13 +142,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Create the tracking object branches
     QwEvent* event = 0;
-    QwHitRootContainer* hitlist_root = new QwHitRootContainer();
-    rootfile->NewTree("hit_tree", "QwTracking Hit-based Tree");
-    rootfile->GetTree("hit_tree")->Branch("hits", "QwHitRootContainer", &hitlist_root);
     rootfile->NewTree("event_tree", "QwTracking Event-based Tree");
-    rootfile->GetTree("event_tree")->Branch("hits", "QwHitRootContainer", &hitlist_root);
     rootfile->GetTree("event_tree")->Branch("events", "QwEvent", &event);
-    // hit_tree->GetUserInfo()->Add(han);
 
     // Create the subsystem branches
     rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
@@ -231,9 +221,6 @@ Int_t main(Int_t argc, Char_t* argv[])
         hitlist->Print();
       }
 
-      // Conver the hit list to ROOT output format
-      hitlist_root->Build(*hitlist);
-
       // Track reconstruction
       if (hitlist->size() > 0) {
         // Process the hits
@@ -296,7 +283,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (rootfile)       delete rootfile;       rootfile = 0;
     if (hitlist)        delete hitlist;        hitlist = 0;
     if (event)          delete event;          event = 0;
-    if (hitlist_root)   delete hitlist_root;   hitlist_root = 0;
 
     // Print run summary information
     eventbuffer.ReportRunSummary();
