@@ -18,7 +18,7 @@
 // but, Qweak only uses 9 F1TDCs at ROC 9 and ROC 10.
 const UInt_t QwDriftChamber::kMaxNumberOfSlotsPerROC = 21;
 const Int_t  QwDriftChamber::kReferenceChannelPlaneNumber = 99;
-
+const Int_t  QwDriftChamber::kCodaMasterPlaneNumber = 98;
 
 
 
@@ -347,6 +347,7 @@ Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
   if (fReferenceChannels.size()<=fCurrentBankIndex) {
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
+    fReferenceMaster.resize(fCurrentBankIndex+1);
   }
   std::vector<Int_t> tmpvec(kMaxNumberOfSlotsPerROC,-1);
   fTDC_Index.push_back(tmpvec);

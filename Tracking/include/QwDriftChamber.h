@@ -138,6 +138,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   //static const UInt_t kMaxNumberOfTDCsPerROC;
   static const UInt_t kMaxNumberOfSlotsPerROC;
   static const Int_t kReferenceChannelPlaneNumber; // plane is Int_t
+  static const Int_t kCodaMasterPlaneNumber;
 
   UInt_t kMaxNumberOfChannelsPerTDC;
   
@@ -150,6 +151,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   // reference chans number <first:tdc_index, second:channel_number>
   // fReferenceChannels[tdc_index,channel_number][ num of [tdc,chan] set]
   std::vector< std::vector<Double_t> > fReferenceData; 
+  std::vector< std::vector<Double_t> > fReferenceMaster;
   // wire number  < reference time > 
   // we use a wire number of QwHit to save a bank id of a reference time.
   // thus, for fReferenceData, the wire (fElement) is the same as
