@@ -23,40 +23,40 @@
 #  VQWK wildcard names for HallC and Injector beamline
 ###########################################
 #BPM
-qwk_....X_hw			TH1F	1001	-5.0e0		5.0e0		mps pos
-qwk_....Y_hw			TH1F	1001	-5.0e0		5.0e0		mps pos
-qwk_.....X_hw			TH1F	1001	-5.0e0		5.0e0		mps pos
-qwk_.....Y_hw			TH1F	1001	-5.0e0		5.0e0		mps pos
+qwk_bpm....X_hw			TH1F	1001	-5.0e0		5.0e0		mps pos
+qwk_bpm....Y_hw			TH1F	1001	-5.0e0		5.0e0		mps pos
+qwk_bpm.....X_hw		TH1F	1001	-5.0e0		5.0e0		mps pos
+qwk_bpm.....Y_hw		TH1F	1001	-5.0e0		5.0e0		mps pos
 
 
 
-diff_qwk_....X_hw			TH1F	1001	-1.0e-2	1.0e-2		pos diff
-diff_qwk_....Y_hw			TH1F	1001	-1.0e-2	1.0e-2		pos diff
-diff_qwk_.....X_hw			TH1F	1001	-1.0e-2	1.0e-2		pos diff
-diff_qwk_.....Y_hw			TH1F	1001	-1.0e-2	1.0e-2		pos diff
+diff_qwk_bpm....X_hw			TH1F	1001	-1.0e-2	1.0e-2		pos diff
+diff_qwk_bpm....Y_hw			TH1F	1001	-1.0e-2	1.0e-2		pos diff
+diff_qwk_bpm.....X_hw			TH1F	1001	-1.0e-2	1.0e-2		pos diff
+diff_qwk_bpm.....Y_hw			TH1F	1001	-1.0e-2	1.0e-2		pos diff
 
-asym_qwk_...._EffectiveCharge_hw	TH1F	1001	-1.0e-3	1.0e-3		BPM Asym
-asym_qwk_....._EffectiveCharge_hw	TH1F	1001	-1.0e-3	1.0e-3		BPM Asym
+asym_qwk_bpm...._EffectiveCharge_hw	TH1F	1001	-1.0e-3	1.0e-3		BPM Asym
+asym_qwk_bpm....._EffectiveCharge_hw	TH1F	1001	-1.0e-3	1.0e-3		BPM Asym
 
-yield_qwk_...._EffectiveCharge_hw	TH1F	1001	100.0e+6	300.0e+6	BPM Yield
-yield_qwk_....._EffectiveCharge_hw	TH1F	1001	100.0e+6	300.0e+6	BPM Yield
+yield_qwk_bpm...._EffectiveCharge_hw	TH1F	1001	100.0e+2	300.0e+2	BPM Yield
+yield_qwk_bpm....._EffectiveCharge_hw	TH1F	1001	100.0e+2	300.0e+2	BPM Yield
 
 
 #BCM
 asym_qwk_bcm._hw		TH1F	1001	-1.0e-3		1.0e-3		BCM Asym
-yield_qwk_bcm._hw		TH1F	1001	1.0e+6		9.0e+6		bcm yield
+yield_qwk_bcm._hw		TH1F	1001	1.0e+3		9.0e+3		bcm yield
                  
 asym_qwk_linephase_hw		TH1F	1001	-1.0e-3		1.0e-3		Asym  
-yield_qwk_linephase_hw		TH1F	1001	-1.0e+8		1.0e+8		yield  
+yield_qwk_linephase_hw		TH1F	1001	-1.0e+3		1.0e+3		yield  
 
 asym_qwk_invert_tstable_hw     	TH1F	1001	-1.0e-3		1.0e-3		Asym
-yield_qwk_invert_tstable_hw     TH1F	1001	-1.0e+8		1.0e+8		yield 
+yield_qwk_invert_tstable_hw     TH1F	1001	-1.0e+3		1.0e+3		yield 
 
 #injector BCM devices
 asym_qwk_qpd		TH1F	1001	-1.0e-3		1.0e-3		BCM Asym
-yield_qwk_qpd		TH1F	1001	1.0e+6		9.0e+6		bcm yield  
+yield_qwk_qpd		TH1F	1001	1.0e+3		9.0e+3		bcm yield  
 asym_empty.		TH1F	1001	-1.0e-3		1.0e-3		BCM Asym 
-yield_empty. 		TH1F	1001	1.0e+6		9.0e+6		bcm yield
+yield_empty. 		TH1F	1001	1.0e+3		9.0e+3		bcm yield
 ############################################################################################
 #injector BCM for below devices
 #qwk_batext1 
@@ -66,7 +66,7 @@ yield_empty. 		TH1F	1001	1.0e+6		9.0e+6		bcm yield
 #qwk_batery7 
 
 asym_qwk_b......_hw		TH1F	1001	-1.0e-3		1.0e-3		BCM Asym
-yield_qwk_b......_hw		TH1F	1001	1.0e+6		9.0e+6		bcm yield
+yield_qwk_b......_hw		TH1F	1001	1.0e+3		9.0e+3		bcm yield
 
 
 asym_phasemonitor		TH1F	1001	-1.0e-3		1.0e-3		BCM Asym 
@@ -74,10 +74,10 @@ yield_phasemonitor		TH1F	1001	-1.0e-3		1.0e-3		BCM Asym
 #############################################################################################
 #Combined stuffs in hall C beamline
 asym_qwk_charge_hw		TH1F	1001	-1.0e-3		1.0e-3		Asym  
-yield_qwk_charge_hw		TH1F	1001	1.0e+6		9.0e+6		bcm yield	
+yield_qwk_charge_hw		TH1F	1001	1.0e+3		9.0e+3		bcm yield	
                  
 asym_qwk_target_EffectiveCharge_hw	TH1F	1001	-1.0e-3		1.0e-3		Asym	          
-yield_qwk_target_EffectiveCharge_hw	TH1F	1001	100.0e+6	300.0e+6	Yield
+yield_qwk_target_EffectiveCharge_hw	TH1F	1001	100.0e+3	300.0e+3	Yield
 #############################################################################################
 # target stuffs qwk_targetX/Y
 qwk_.......Slope_hw		TH1F	1001	-1.0	1.0		Yield		
@@ -93,23 +93,23 @@ yield_qwk_.......Intercept_hw  	TH1F	1001	0		1.0e+3		Yield
 yield_qwk_......._hw   		TH1F	1001	-3.0		3.0		Yield  
      
 asym_qwk_energy_hw		TH1F	1001	-1.0e-3		1.0e-3		Asym                   
-yield_qwk_energy_hw		TH1F	1001	100.0e+6	300.0e+6	Yield
+yield_qwk_energy_hw		TH1F	1001	100.0e+3	300.0e+3	Yield
 ############################################################################################
 #  VQWK wildcard names for lumi
 ###########################################################################################
 
 asym_qwk_uslumi...._hw			TH1F	1001	-1.0e-3		1.0e-3		us Lumi Asym
-yield_qwk_uslumi...._hw			TH1F	1001	1.0e+6		9.0e+6		us Lumi Yield
+yield_qwk_uslumi...._hw			TH1F	1001	1.0e+3		9.0e+3		us Lumi Yield
 
 asym_qwk_dslumi._hw			TH1F	1001	-1.0e-3		1.0e-3		ds Lumi Asym     
-yield_qwk_dslumi._hw			TH1F	1001	1.0e+6		9.0e+6		ds Lumi Yield
+yield_qwk_dslumi._hw			TH1F	1001	1.0e+3		9.0e+3		ds Lumi Yield
 
 ##########################################################################################
 #  VQWK wildcard names for MD
 ##########################################################################################
 
 asym_md...._hw			TH1F	1001	-1.0e-3		1.0e-3		MD Asym
-yield_md...._hw			TH1F	1001	1.0e+7		9.0e+7		MD Yield
+yield_md...._hw			TH1F	1001	1.0e+4		9.0e+4		MD Yield
 
 asym_pmt..._hw			TH1F	1001	-1.0e-3		1.0e-3		Aux MD Asym
 asym_isourc_hw			TH1F	1001	-1.0e-3		1.0e-3		Aux MD Asym                    
@@ -121,25 +121,25 @@ asym_md2_md6_diff_hw		TH1F	1001	-1.0e-3		1.0e-3		comb MD Asym
 asym_md3_md7_diff_hw		TH1F	1001	-1.0e-3		1.0e-3		comb MD Asym              
 asym_md4_md8_diff_hw		TH1F	1001	-1.0e-3		1.0e-3		comb MD Asym 
 
-yield_pmt..._hw			TH1F	1001	1.0e+7		9.0e+7		Aux MD Yield  
-yield_isourc_hw			TH1F	1001	1.0e+7		9.0e+7		Aux MD Yield                    
-yield_preamp_hw			TH1F	1001	1.0e+7		9.0e+7		Aux MD Yield                    
-yield_cagesr_hw			TH1F	1001	1.0e+7		9.0e+7		Aux MD Yield 
-yield_combinationallmd_hw	TH1F	1001	1.0e+7		9.0e+7		Aux MD Yield  
+yield_pmt..._hw			TH1F	1001	1.0e+4		9.0e+4		Aux MD Yield  
+yield_isourc_hw			TH1F	1001	1.0e+4		9.0e+4		Aux MD Yield                    
+yield_preamp_hw			TH1F	1001	1.0e+4		9.0e+4		Aux MD Yield                    
+yield_cagesr_hw			TH1F	1001	1.0e+4		9.0e+4		Aux MD Yield 
+yield_combinationallmd_hw	TH1F	1001	1.0e+4		9.0e+4		Aux MD Yield  
 
-yield_md1_md5_diff_hw		TH1F	1001	1.0e+7		9.0e+7		Comb MD Yield              
-yield_md2_md6_diff_hw		TH1F	1001	1.0e+7		9.0e+7		Comb MD Yield              
-yield_md3_md7_diff_hw		TH1F	1001	1.0e+7		9.0e+7		Comb MD Yield              
-yield_md4_md8_diff_hw		TH1F	1001	1.0e+7		9.0e+7		Comb MD Yield         
+yield_md1_md5_diff_hw		TH1F	1001	1.0e+4		9.0e+4		Comb MD Yield              
+yield_md2_md6_diff_hw		TH1F	1001	1.0e+4		9.0e+4		Comb MD Yield              
+yield_md3_md7_diff_hw		TH1F	1001	1.0e+4		9.0e+4		Comb MD Yield              
+yield_md4_md8_diff_hw		TH1F	1001	1.0e+4		9.0e+4		Comb MD Yield         
 
 #for example device md1neg_md5neg_hw 
 asym_md...._md...._hw		TH1F	1001	-1.0e-3		1.0e-3		Comb MD Asym
-yield_md...._md...._hw          TH1F	1001	1.0e+7		9.0e+7		Comb MD Yield          
+yield_md...._md...._hw          TH1F	1001	1.0e+4		9.0e+4		Comb MD Yield          
 
 
 #for example device md1barsum_hw                 
 asym_md......._hw		TH1F	1001	-1.0e-3		1.0e-3		Comb MD Asym      
-yield_md......._hw 		TH1F	1001	1.0e+7		9.0e+7		Comb MD Asym  
+yield_md......._hw 		TH1F	1001	1.0e+4		9.0e+4		Comb MD Asym  
 
             
         
