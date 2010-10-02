@@ -40,7 +40,6 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       //Decode it.
       varname.ToLower();
- 
       if (varname=="patterns"){
 	value = QwParameterFile::GetUInt(varvalue);
 	fAccumulatePatternMax=value;
@@ -61,7 +60,6 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
 	dvalue = atof(varvalue.Data());
 	fOptimalPCN = dvalue;
       }
-
       else if (varname=="a0"){
 	dvalue = atof(varvalue.Data());
 	fIASlopeA[0] = dvalue;
@@ -101,40 +99,39 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
   }
   QwMessage<<"patternMax = "<<fAccumulatePatternMax<<" deltaAq "<<fChargeAsymPrecision<<QwLog::endl;
   QwMessage<<"Optimal values - IA ["<<fOptimalIA<<"] PC+["<<fOptimalPCP<<"] PC-["<<fOptimalPCN<<"]"<<QwLog::endl;
-  for (Int_t i=0;i<4;i++)
+  for (Int_t i=0;i<kHelModes;i++)
     QwMessage<<"Slope A"<<i<<" "<<fIASlopeA[i]<<"+-"<<fDelta_IASlopeA[i]<<QwLog::endl;
 };
 
 
 /*****************************************************************/
-void QwHelicityCorrelatedFeedback::FeedIASetPoint(){
-  //  Let's clear the values for the scan data & set "not clean".
-  QwMessage<<"QwHelicityCorrelatedFeedback::FeedIASetPoint() "<<fChargeAsymmetry<<"+/-"<<fChargeAsymmetryError<<QwLog::endl;
-  QwMessage<<"Current tgt charge asym "<<fCurrentChargeAsymmetry.GetHardwareSum()<<QwLog::endl;
-  QwMessage<<"Previous tgt charge asym"<<fPreviousChargeAsymmetry.GetHardwareSum()<<QwLog::endl;
-  QwMessage<<"Current IA charge asym"<<fCurrentIAAsymmetry.GetHardwareSum()<<QwLog::endl;
-  QwMessage<<"Previous IA charge asym"<<fPreviousIAAsymmetry.GetHardwareSum()<<QwLog::endl;
-
-
-  
-
+void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
+  //calculate the new setpoint
+  fEPICSCtrl.Get_HallAIA(mode,fPrevIASetpoint[mode]);
+  if (fIASlopeA[mode]!=0)
+    fIASetpoint[mode]=fPrevIASetpoint[mode] - fChargeAsym[mode]/fIASlopeA[mode];
+  else
+    fIASetpoint[mode]=fPrevIASetpoint[mode];
+  QwMessage<<"FeedIASetPoint("<<mode<<") "<<fChargeAsym[mode]<<"+/-"<<fChargeAsymError[mode]<<" new set point  "<<fIASetpoint[mode]<<QwLog::endl;
+  //send the new IA setpoint
+  //fEPICSCtrl.Set_HallAIA(mode,fIASetpoint[mode]);
+  //Greenmonster stuffs
   //fScanCtrl.SCNSetValue(1,0);
   //fScanCtrl.SCNSetValue(2,0);
   //fScanCtrl.CheckScan();
   //fScanCtrl.PrintScanInfo();
   //fScanCtrl.Close();  
-  fEPICSCtrl.Print_Qasym_Ctrls();
 };
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedPCPos(){
-};
+}; 
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedPCNeg(){
 };
 /*****************************************************************/
-void QwHelicityCorrelatedFeedback::LogParameters(){
+void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
   out_file = fopen("Feedback_log.txt", "a");
-  fprintf(out_file," Feedback at %d current A_q:%5.8f+/-%5.8f IA:%5.3f PCP:%5.3f PCN:%5.3f \n",fQuartetNumber,fCurrentChargeAsymmetry.GetHardwareSum(),fCurrentChargeAsymmetry.GetHardwareSumError(),fCurrentIA,fCurrentPCP,fCurrentPCN);
+  fprintf(out_file," Feedback at %d current A_q:%5.8f+/-%5.8f IA Setpoint:%5.3f  IA Previous Setpoint:%5.3f\n",fQuartetNumber,fChargeAsym[mode],fChargeAsymError[mode],fPrevIASetpoint[mode]);
   fclose(out_file);
 };
 /*****************************************************************/
@@ -153,8 +150,6 @@ void QwHelicityCorrelatedFeedback::UpdateGMScanParameters(){
 };
 /*****************************************************************/
 Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
-  QwBeamCharge tmp;
-  tmp.InitializeChannel("q_targ","derived");
   Bool_t status=kFALSE;
   GetTargetChargeStat();
   if (fChargeAsymmetry==-1 && fChargeAsymmetryError == -1 && fChargeAsymmetryWidth==-1){//target asymmetry not published or accesible
@@ -171,51 +166,64 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
     QwError<<"Charge Asymmetry precision current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
     status=kTRUE;
   }
-  if(fGoodPatternCounter==0){
-    fChargeAsymmetry0=fTargetCharge;
-    fPreviousChargeAsymmetry=fTargetCharge;
-    fCurrentChargeAsymmetry=fTargetCharge;
+
+
+  return status;
+};
+
+/*****************************************************************/
+Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(Int_t mode){
+  if (mode<0 ||  mode>3){
+    QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;
+    return kFALSE;
+  }
+  QwMessage<<"IsAqPrecisionGood["<<mode<<"]\n";
+  Bool_t status=kFALSE;
+  GetTargetChargeStat(mode);
+  if (fChargeAsym[mode]==-1 && fChargeAsymError[mode] == -1 && fChargeAsymWidth[mode]==-1){//target asymmetry not published or accesible
+    QwError<<"target asymmetry not published or accesible"<<QwLog::endl;
+    status=kFALSE;
+  }
+  fChargeAsymError[mode]=fChargeAsymError[mode]*1e+6;//converts to ppm
+  fChargeAsym[mode]=fChargeAsym[mode]*1e+6;//converts to ppm
+  if (fChargeAsymError[mode]>fChargeAsymPrecision){
+    QwError<<"Charge Asymmetry["<<mode<<"] precision not reached current value "<<fChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
+    QwError<<"--------------------------------------------------------------------------------------------------------------------------------"<<QwLog::endl;
+    status=kFALSE;
   }
   else{
-    tmp=fCurrentIAAsymmetry;
-    fCurrentIAAsymmetry-=fPreviousIAAsymmetry;
-    fCurrentIAAsymmetry-=fPreviousChargeAsymmetry;
-    fPreviousIAAsymmetry=tmp;
-
-    fPreviousChargeAsymmetry=fCurrentChargeAsymmetry;
-    fCurrentChargeAsymmetry=fTargetCharge;
+    QwError<<"Charge Asymmetry["<<mode<<"] precision current value "<<fChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
+    UpdateGMClean(0);//set to not clean
+    FeedIASetPoint(mode);
+    LogParameters(mode);
+    UpdateGMClean(1);//set back to clean
+    ClearRunningSum(mode);//reset the running sum
+    status=kTRUE;
   }
-  
 
   return status;
 };
 /*****************************************************************/
-Bool_t QwHelicityCorrelatedFeedback::IsPatternsAccumulated(){
-  if (fGoodPatternCounter>=fAccumulatePatternMax)
-    return kTRUE;
+void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
 
-  return kFALSE;
+  for (Int_t i=0;i<kHelModes;i++){
+    if (IsPatternsAccumulated(i)){
+      IsAqPrecisionGood(i);
+    }else{
+      //QwMessage<<"IsPatternsAccumulated "<<i<<QwLog::endl;
+    }
+  }
+
+  return;
+
 };
 
 /*****************************************************************/
 Bool_t QwHelicityCorrelatedFeedback::IsPatternsAccumulated(Int_t mode){
-  Int_t patterns=-1;
-  switch(mode){
-  case 0:
-    patterns=fHelModeGoodPatternCounter[0];
-    break;
-  case 1:
-    patterns=fHelModeGoodPatternCounter[1];
-    break;
-  case 2:
-    patterns=fHelModeGoodPatternCounter[2];
-    break;
-  case 3:
-    patterns=fHelModeGoodPatternCounter[3];
-    break;	    
-  }
-  if (patterns>=fAccumulatePatternMax)
+  if (fHelModeGoodPatternCounter[mode]>=fAccumulatePatternMax){
+    QwMessage<<"fHelModeGoodPatternCounter["<<mode<<"]\n";
     return kTRUE;
+  }
 
   return kFALSE;
 };
@@ -343,13 +351,13 @@ void  QwHelicityCorrelatedFeedback::CalculateAsymmetry()
     //Now set the HelPatMode 
     if (fPreviousHelPat){
       if (fPreviousHelPat==kHelPat1 && fCurrentHelPat==kHelPat1)
-	fCurrentHelPatMode=1;
+	fCurrentHelPatMode=0;
       else if (fPreviousHelPat==kHelPat1 && fCurrentHelPat==kHelPat2)
-	fCurrentHelPatMode=2;
+	fCurrentHelPatMode=1;
       else if (fPreviousHelPat==kHelPat2 && fCurrentHelPat==kHelPat1)
-	fCurrentHelPatMode=3;
+	fCurrentHelPatMode=2;
       else if (fPreviousHelPat==kHelPat2 && fCurrentHelPat==kHelPat2)
-	fCurrentHelPatMode=4;
+	fCurrentHelPatMode=3;
       else
 	fCurrentHelPatMode=-1;//error
     }
@@ -433,19 +441,19 @@ void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
   QwHelicityPattern::AccumulateRunningSum();
 
   switch(fCurrentHelPatMode){
-  case 1:
+  case 0:
     fFBRunningAsymmetry[0].AccumulateRunningSum(fAsymmetry);
     fHelModeGoodPatternCounter[0]++;
     break;
-  case 2:
+  case 1:
     fFBRunningAsymmetry[1].AccumulateRunningSum(fAsymmetry);
     fHelModeGoodPatternCounter[1]++;
     break;
-  case 3:
+  case 2:
     fFBRunningAsymmetry[2].AccumulateRunningSum(fAsymmetry);
     fHelModeGoodPatternCounter[2]++;
     break;
-  case 4:
+  case 3:
     fFBRunningAsymmetry[3].AccumulateRunningSum(fAsymmetry);
     fHelModeGoodPatternCounter[3]++;
     break;
@@ -459,21 +467,7 @@ void QwHelicityCorrelatedFeedback::CalculateRunningAverage(){
 };
 
 void QwHelicityCorrelatedFeedback::CalculateRunningAverage(Int_t mode){
-
-  switch(mode){
-  case 1:
-    fFBRunningAsymmetry[0].CalculateRunningAverage();
-    break;
-  case 2:
-    fFBRunningAsymmetry[1].CalculateRunningAverage();
-    break;
-  case 3:
-    fFBRunningAsymmetry[2].CalculateRunningAverage();
-    break;
-  case 4:
-    fFBRunningAsymmetry[3].CalculateRunningAverage();
-    break;
-  }
+  fFBRunningAsymmetry[mode].CalculateRunningAverage();
 };
 
 
@@ -500,6 +494,31 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(){
 
 //*****************************************************************
 /**
+/// \brief retrieves the target charge asymmetry,asymmetry error ,asymmetry width
+*/
+void QwHelicityCorrelatedFeedback::GetTargetChargeStat(Int_t mode){
+  if (mode<0 ||  mode>3){
+    QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;
+    return;
+  }
+  fFBRunningAsymmetry[mode].CalculateRunningAverage();
+  if (fFBRunningAsymmetry[mode].RequestExternalValue("q_targ",&fTargetCharge)){
+    fTargetCharge.PrintInfo();
+    fChargeAsym[mode]=fTargetCharge.GetHardwareSum();
+    fChargeAsymError[mode]=fTargetCharge.GetHardwareSumError();
+    fChargeAsymWidth[mode]=fTargetCharge.GetHardwareSumM2();
+    return ;
+  }
+  QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;
+  fChargeAsym[mode]=-1;
+  fChargeAsymError[mode]=-1;
+  fChargeAsymWidth[mode]=-1;
+
+  return;  
+};
+
+//*****************************************************************
+/**
  * Clear the running sums of yield, difference and asymmetry.
  * Also clear the running burst sums if enabled.
  */
@@ -511,24 +530,8 @@ void  QwHelicityCorrelatedFeedback::ClearRunningSum()
 
 void  QwHelicityCorrelatedFeedback::ClearRunningSum(Int_t mode)
 {
-  switch(mode){
-  case 1:
-    fFBRunningAsymmetry[0].ClearEventData();
-    fHelModeGoodPatternCounter[0]=0;
-    break;
-  case 2:
-    fFBRunningAsymmetry[1].ClearEventData();
-    fHelModeGoodPatternCounter[1]=0;
-    break;
-  case 3:
-    fFBRunningAsymmetry[2].ClearEventData();
-    fHelModeGoodPatternCounter[2]=0;
-    break;
-  case 4:
-    fHelModeGoodPatternCounter[3]=0;
-    fFBRunningAsymmetry[3].ClearEventData();
-    break;
-  }
+  fFBRunningAsymmetry[mode].ClearEventData();
+  fHelModeGoodPatternCounter[mode]=0;
 
 }
 

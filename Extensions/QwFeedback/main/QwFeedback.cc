@@ -49,7 +49,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  static variable within the QwParameterFile class which will be used by
   ///  all instances.
   ///  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Extensions/QwFeedback/prminput");
@@ -105,10 +105,11 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwHelicityCorrelatedFeedback helicitypattern(detectors);
   helicitypattern.ProcessOptions(gQwOptions);
   helicitypattern.LoadParameterFile("qweak_fb_prm.in");
-  //helicitypattern.FeedIASetPoint();
+  /*
   helicitypattern.UpdateGMClean(0);
+  helicitypattern.FeedIASetPoint(0);
   helicitypattern.UpdateGMClean(1);
-
+  */
   ///  Create the event ring
   QwEventRing eventring;
   eventring.ProcessOptions(gQwOptions);
@@ -161,52 +162,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
 
-    /*   
-
-    int numevents = 1000*3;
-    int stepnum = 0;
-    int setval;
-    std::vector<Double_t> values;
-    //       values.push_back(5.0);
-    //       values.push_back(3.0);
-    //       values.push_back(1.0);
-    //       values.push_back(3.0);
-    //       values.push_back(5.0);
-    //       values.push_back(7.0);
-    //       values.push_back(9.0);
-    //       values.push_back(7.0);
-
-    //      Double_t pc_plus  = 7.420;
-    //      Double_t pc_minus = 7.310;
-    Double_t pc_plus  = 5.0;
-    Double_t pc_minus = 5.0;
-    Double_t tmpval;
-
-    values.push_back(0.0);
-    //      values.push_back(1.0);
-    values.push_back(4.0);
-    //      values.push_back(1.0);
-    //      values.push_back(-1.0);
-    values.push_back(-4.0);
-    //      values.push_back(-1.0);
-
-
-    setval = TMath::Nint(values[stepnum]*1000);
-    fScanCtrl.SCNSetValue(1,0);
-    fScanCtrl.SCNSetValue(2,setval);
-
-    //      fEPICSCtrl.Set_HallAIA(values[stepnum]);
-
-    //tmpval = pc_plus + values[stepnum];
-    //fEPICSCtrl.Set_Pockels_Cell_plus(tmpval);
-    //tmpval = pc_minus - values[stepnum];
-    //fEPICSCtrl.Set_Pockels_Cell_minus(tmpval);
-    fScanCtrl.CheckScan();
-    fScanCtrl.PrintScanInfo();
-    fEPICSCtrl.Print_Qasym_Ctrls();
-
-    */
-
+   
 
     // Loop over events in this CODA file
     while (eventbuffer.GetNextEvent() == CODA_OK) {
@@ -267,57 +223,14 @@ Int_t main(Int_t argc, Char_t* argv[])
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
             if (helicitypattern.IsGoodAsymmetry()) {
-	      if (helicitypattern.IsPatternsAccumulated()){
-		if(helicitypattern.IsAqPrecisionGood()){
-		  helicitypattern.UpdateGMClean(0);//set to not clean
-		  helicitypattern.FeedIASetPoint();
-		  helicitypattern.LogParameters();
-		  helicitypattern.UpdateGMClean(1);//set back to clean
-		  helicitypattern.ClearRunningSum();//reset the running sum
-		}
-	      }
-
+	      helicitypattern.ApplyFeedbackCorrections();//apply IA feedback
               // Fill histograms
               rootfile->FillHistograms(helicitypattern);
               // Fill tree branches
               rootfile->FillTreeBranches(helicitypattern);
               rootfile->FillTree("Hel_Tree");
               // Clear the data
-              helicitypattern.ClearEventData();
-	      /*
-	      //  Some really simple tests of the scan control and EPICS
-	      //  control systems as used for June 2009 tests.
- 	      if(eventbuffer.GetEventNumber()%(numevents*5)==0) {
-		fScanCtrl.Open();
-		fScanCtrl.SCNSetStatus(SCN_INT_NOT);
-		fScanCtrl.SCNSetValue(1,eventbuffer.GetEventNumber());
-
-		stepnum++;
-		if (stepnum>=values.size())
-		  stepnum=0;
-		//	    fEPICSCtrl.Set_HallAIA(values[stepnum]);
-		tmpval = pc_plus + values[stepnum];
-		fEPICSCtrl.Set_Pockels_Cell_plus(tmpval);
-		tmpval = pc_minus - values[stepnum];
-		fEPICSCtrl.Set_Pockels_Cell_minus(tmpval);
-		fEPICSCtrl.Print_Qasym_Ctrls();
-
-		setval = TMath::Nint(values[stepnum]*1000);
-		fScanCtrl.SCNSetValue(2,setval);
-
-		fScanCtrl.SCNSetStatus(SCN_INT_CLN);
-		fScanCtrl.Close();
-
-	      } else if(eventbuffer.GetEventNumber()%(numevents)==0) {
-		fScanCtrl.Open();
-		fScanCtrl.SCNSetStatus(SCN_INT_NOT);
-		fScanCtrl.SCNSetValue(1,eventbuffer.GetEventNumber());
-		fScanCtrl.SCNSetValue(2,setval);
-		fScanCtrl.SCNSetStatus(SCN_INT_CLN);
-		fScanCtrl.Close();
-	      } 
-	      */
-	      
+              helicitypattern.ClearEventData();	      
             }
 
           } // helicitypattern.IsCompletePattern()
@@ -349,6 +262,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     // Calculate running averages over helicity patterns
+    /*
     if (helicitypattern.IsRunningSumEnabled()) {
       helicitypattern.CalculateRunningAverage();
       helicitypattern.PrintRunningAverage();
@@ -363,7 +277,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwMessage << " Running average of events" << QwLog::endl;
     QwMessage << " =========================" << QwLog::endl;
     runningsum.PrintValue();
-
+    */
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
      *  Doing this will remove the multiple copies of the ntuples    *

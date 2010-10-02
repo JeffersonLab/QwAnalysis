@@ -6,7 +6,7 @@ patterns = 1000
 
 #The precision of the charge asymmetry in ppm
 
-deltaAq = 54.4
+deltaAq = 62
 
 #optimal IA values in volts
 optimalIA = 5.5
@@ -17,16 +17,22 @@ optimalPCP = 5.1
 #optimal PC NEG in volts
 optimalPCN = 5.2
 
+
+
 #IA Slopes for 4 modes
-#source POLOG entry 1543984 (M_Dalton)
-A0=-4.482e-2
-DeltaA0=3.614e-4
 
-A1=-1.827e-4
-DeltaA1=3.543e-4
+#source POLOG entry 1543984 (M_Dalton) 
 
-A2=-4.455e-4
-DeltaA2=3.546e-4
+A0 = -4.482e-2
+DeltaA0 = 3.614e-4
 
-A3=2.654e-4
-DeltaA3=3.425e-4
+A1 = -4.525e-2
+DeltaA1=3.555e-4
+
+A2 = -4.586e-2
+DeltaA2 = 3.482e-4
+
+A3 = -4.553e-2
+DeltaA3 = 3.431e-4
+
+

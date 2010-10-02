@@ -7,7 +7,7 @@
 #ifndef __QwHelicityCorrelatedFeedback__
 #define __QwHelicityCorrelatedFeedback__
 
-#include "QwHelicityPattern.h"
+#include "QwHelicityPattern.h" 
 
 #include "QwEPICSControl.h"
 #include "GreenMonster.h"
@@ -25,10 +25,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
    ******************************************************************/
 
  public:
-  QwHelicityCorrelatedFeedback(QwSubsystemArrayParity &event):QwHelicityPattern(event){
+  QwHelicityCorrelatedFeedback(QwSubsystemArrayParity &event):QwHelicityPattern(event){ 
 
     //Currently pattern type based runningasymmetry accumulation works only with pattern size of 4
-    for (Int_t i=0;i<4;i++){
+    for (Int_t i=0;i<kHelModes;i++){
       fFBRunningAsymmetry[i].Copy(&event);
       fHelModeGoodPatternCounter[i]=0;
     }
@@ -38,7 +38,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     
 
     fPreviousHelPat=0;//at the beginning of the run this is non existing
-    fCurrentHelPatMode=0;//at the beginning of the run this is non existing
+    fCurrentHelPatMode=-1;//at the beginning of the run this is non existing
 
 
     fTargetCharge.InitializeChannel("q_targ","derived");
@@ -73,12 +73,14 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     /// \brief retrieves the target charge asymmetry,asymmetry error ,asymmetry width
     void GetTargetChargeStat();
+    /// \brief retrieves the target charge asymmetry,asymmetry error ,asymmetry width for given mode
+    void GetTargetChargeStat(Int_t mode);
 
 
  
 
     /// \brief Feed the Hall C IA set point based on the charge asymmetry 
-    void FeedIASetPoint();
+    void FeedIASetPoint(Int_t mode);
 
     /// \brief Feed the IA set point based on the charge asymmetry 
     void FeedPCPos();
@@ -86,7 +88,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     void FeedPCNeg();
 
     /// \brief Log the last feedback information
-    void LogParameters();
+    void LogParameters(Int_t mode);
 
     /// \brief Set Clean=0 or 1 in the GreenMonster
     void UpdateGMClean(Int_t state);
@@ -96,9 +98,12 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     /// \brief Compare current A_q precision with a set precision.
     Bool_t IsAqPrecisionGood();
+    /// \brief Compare current A_q precision with a set precision for given mode.
+    Bool_t IsAqPrecisionGood(Int_t mode);
 
-    /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value
-    Bool_t IsPatternsAccumulated();
+    /// \brief Check neccessary conditions and apply IA setponts based on the charge asym for all four modes
+    void ApplyFeedbackCorrections();
+    /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value for given mode
     Bool_t IsPatternsAccumulated(Int_t mode);
 
     /// \brief Returns the type of the last helicity pattern based on following pattern history
@@ -132,19 +137,25 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     ///3. -++- +--+
     ///4. -++- -++-
  
-    QwSubsystemArrayParity fFBRunningAsymmetry[4];
+    
+
+    static const Int_t kHelPat1=1001;//to compare with current or previous helpat
+    static const Int_t kHelPat2=110;
+    static const Int_t kHelModes=4;//kHelModes
+
+    QwSubsystemArrayParity fFBRunningAsymmetry[kHelModes];
     Int_t fCurrentHelPat;
     Int_t fPreviousHelPat;
 
     Int_t fCurrentHelPatMode;
-
-    static const Int_t kHelPat1=1001;//to compare with current or previous helpat
-    static const Int_t kHelPat2=110;
-
-    // Must call HelPat::GetTargetChargeStat(Double_t & asym, Double_t & error, Double_t & width) to update these values.
+    
     Double_t fChargeAsymmetry;//current charge asym
     Double_t fChargeAsymmetryError;//current charge asym precision
     Double_t fChargeAsymmetryWidth;//current charge asym width
+
+    Double_t fChargeAsym[kHelModes];//current charge asym
+    Double_t fChargeAsymError[kHelModes];//current charge asym precision
+    Double_t fChargeAsymWidth[kHelModes];//current charge asym width
 
     Int_t fAccumulatePatternMax; //upper limit to the patterns before the feedback triiger;
     Double_t  fChargeAsymPrecision; //Charge asymmetry precision in ppm
@@ -159,8 +170,12 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fCurrentPCN;
 
     //IA Slopes for 4 modes and their errors
-    Double_t fIASlopeA[4];
-    Double_t fDelta_IASlopeA[4];
+    Double_t fIASlopeA[kHelModes];
+    Double_t fDelta_IASlopeA[kHelModes];
+
+    //IA setpoints for 4 modes 
+    Double_t fIASetpoint[kHelModes];//New setpont calculated based on the charge asymmetry
+    Double_t fPrevIASetpoint[kHelModes];//previous setpoint
     
     
     
@@ -171,7 +186,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     //Pattern counter
     Int_t fGoodPatternCounter;//increment the quartet number - reset after each feedback operation
-    Int_t fHelModeGoodPatternCounter[4];//count patterns for each mode seperately - reset after each feedback operation
+    Int_t fHelModeGoodPatternCounter[kHelModes];//count patterns for each mode seperately - reset after each feedback operation
 
     // Keep four VQWK channels, one each for pattern history 1, 2, 3, and 4
     // Use AddToRunningSum to add the asymmetry for the current pattern
@@ -185,6 +200,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     QwBeamCharge   fIAAsymmetry0;//this is the charge asymmetry of the IA at the beginning of the feedback loop
     QwBeamCharge   fPreviousIAAsymmetry;//this is the charge asymmetry of the IA at the previous feedback loop
     QwBeamCharge   fCurrentIAAsymmetry;//current charge asymmetry of the IA
+
+    
 
     //log file
     FILE *out_file;
