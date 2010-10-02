@@ -34,7 +34,7 @@ Added by Buddhini to display the hall c Beamline data.
 
 #define HCLINE_BPMS   23 // There are 23 BPMs in the hallC beamline  
 #define HCLINE_BCMS   5     
-#define TRE_NUM       2
+#define NUM_TREE      3
 ///
 /// \ingroup QwGUIHallCBeamline
 
@@ -53,6 +53,7 @@ Added by Buddhini to display the hall c Beamline data.
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
 #include "TVirtualPad.h"
+#include "TPaletteAxis.h"
 #include "QwGUISubSystem.h"
 #include "TStyle.h"
 #include "RSDataWindow.h"
@@ -71,6 +72,7 @@ Added by Buddhini to display the hall c Beamline data.
   TGTextButton        *dBtnPosDiff;
   TGTextButton        *dBtnTgtParam;
   TGTextButton        *dBtnPlotHistos;
+  TGTextButton        *dBtnRaster;
   TGComboBox          *dCmbHistos;
   TGLayoutHints       *dCmbLayout;
 
@@ -103,6 +105,7 @@ Added by Buddhini to display the hall c Beamline data.
   void PositionDifferences(); 
   void DisplayTargetParameters();
   void PlotHistograms();
+  void FastRaster();
 
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
@@ -120,13 +123,13 @@ Added by Buddhini to display the hall c Beamline data.
 
   static const char   *HallC_BPMS[HCLINE_BPMS];
   static const char   *HallC_BCMS[HCLINE_BCMS]; //The Devices with only charge may later have to be distinguished from those with other data
-  static const char   *RootTrees[TRE_NUM];
+  static const char   *RootTrees[NUM_TREE];
   
  private:
 
   char histo[128];
   TString select;
-
+  Bool_t parity_off;
 
  protected:
 

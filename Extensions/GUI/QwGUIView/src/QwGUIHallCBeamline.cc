@@ -9,13 +9,15 @@ enum QwGUIHallCBeamlineIndentificator {
   BA_POS_DIFF,
   BA_TGT_PARAM,
   BA_PLOT_HISTOS,
+  BA_FAST_RASTER,
   CMB_HISTOS
 };
 
-const char *QwGUIHallCBeamline::RootTrees[TRE_NUM] = 
+const char *QwGUIHallCBeamline::RootTrees[NUM_TREE] = 
   {
     "Hel_Tree",
-    "Mps_Tree"
+    "Mps_Tree",
+    "event_tree"
   };
 
 enum EQwGUIDatabaseHistogramIDs {
@@ -72,9 +74,9 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
   dCmbHistos          = NULL;
   dBtnPlotHistos      = NULL;
   dCmbLayout          = NULL;
-
-  PosDiffVar[0] = NULL;
-  PosDiffVar[1] = NULL;
+  dBtnRaster          = NULL;
+  PosDiffVar[0]       = NULL;
+  PosDiffVar[1]       = NULL;
  
   HistArray.Clear();
   DataWindowArray.Clear();
@@ -97,6 +99,7 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dCmbHistos)          delete dCmbHistos;
   if(dBtnPlotHistos)      delete dBtnPlotHistos; 
   if(dCmbLayout)          delete dCmbLayout;
+  if(dBtnRaster)          delete dBtnRaster;
 
   delete [] PosDiffVar;
 
@@ -128,9 +131,10 @@ void QwGUIHallCBeamline::MakeLayout()
   gStyle->SetPadTopMargin(0.1);
   gStyle->SetPadBottomMargin(0.25);
   gStyle->SetPadLeftMargin(0.1);  
-  gStyle->SetPadRightMargin(0.03);  
+  //gStyle->SetPadRightMargin(0.03);  
 
   // histo parameters
+  gStyle->SetPalette(1,0);
   gStyle->SetTitleYOffset(1.0);
   gStyle->SetTitleXOffset(0.8);
   gStyle->SetTitleX(0.3);
@@ -156,10 +160,12 @@ void QwGUIHallCBeamline::MakeLayout()
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
 
-  dBtnPosDiff  = new TGTextButton(dControlsFrame, "&Position Difference Variation", BA_POS_DIFF);
-  dBtnTgtParam = new TGTextButton(dControlsFrame, "&Beam Parameters on Target", BA_TGT_PARAM);
-  dBtnPlotHistos = new TGTextButton(dControlsFrame, "&Plot Histograms", BA_PLOT_HISTOS);
-  dCmbHistos = new TGComboBox(dControlsFrame, CMB_HISTOS);
+  dBtnPosDiff     = new TGTextButton(dControlsFrame, "&Position Difference Variation", BA_POS_DIFF);
+  dBtnTgtParam    = new TGTextButton(dControlsFrame, "&Beam Parameters on Target", BA_TGT_PARAM);
+  dBtnPlotHistos  = new TGTextButton(dControlsFrame, "&Plot Histograms", BA_PLOT_HISTOS);
+  dBtnRaster      = new TGTextButton(dControlsFrame, "&Fast Raster", BA_FAST_RASTER);
+  dCmbHistos      = new TGComboBox(dControlsFrame, CMB_HISTOS);
+
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
   dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
 
@@ -189,12 +195,14 @@ void QwGUIHallCBeamline::MakeLayout()
 
   dControlsFrame -> AddFrame(dBtnPosDiff ,dBtnLayout );
   dControlsFrame -> AddFrame(dBtnTgtParam,dBtnLayout );
+  dControlsFrame -> AddFrame(dBtnRaster,dBtnLayout );
   dControlsFrame -> AddFrame(dCmbHistos,dCmbLayout );
   dControlsFrame -> AddFrame(dBtnPlotHistos,dBtnLayout );
 
   dBtnPosDiff    -> Associate(this);
   dBtnTgtParam   -> Associate(this);
   dBtnPlotHistos -> Associate(this);
+  dBtnRaster     -> Associate(this);
   dCmbHistos     -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
@@ -230,11 +238,12 @@ void QwGUIHallCBeamline::OnNewDataContainer(RDataContainer *cont)
 
   TObject *obj = NULL;
   TObject *copy = NULL;
- 
-  ClearData();
+  parity_off = kFALSE;
 
+  ClearData();
+  
   if(dROOTCont){
-    for(Short_t p = 0; p < TRE_NUM; p++) {
+    for(Short_t p = 0; p < NUM_TREE; p++) {
       obj = dROOTCont->ReadTree(RootTrees[p]);
       if(obj)
 	{
@@ -286,6 +295,36 @@ void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobj
       }
   }
 }
+
+
+/**
+ Plot the Faster raster
+*/
+void QwGUIHallCBeamline::FastRaster()
+{
+
+  TObject *obj          = NULL;
+  TCanvas *mc           = NULL;
+  TH2D* fRateMap        = NULL;
+
+  if(fRateMap) delete fRateMap;
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+
+  obj = dROOTCont->ReadData("tracking_histo/raster_rate_map");
+  if(!obj) {
+    std::cout<<"raster rate map not found!\n";
+    return;
+  }
+  else{
+    fRateMap = (TH2D*)obj;    
+     fRateMap->Draw();
+    mc->Update();
+    return;
+  }
+}
+
+
 
 /**
  Plot the pattern (e.g. quartet) based aboslute position differences for bpms X an Y.
@@ -807,17 +846,22 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	    {
 	      switch(parm1)
 		{
-		case   BA_POS_DIFF:
+		case BA_POS_DIFF:
 		  PositionDifferences();
 		  break;
 		  
 		case BA_TGT_PARAM:
 		  DisplayTargetParameters();
 		  break;
-
+		  
 		case BA_PLOT_HISTOS:
 		  PlotHistograms();
+		  break
+		    ;
+		case BA_FAST_RASTER:
+		  FastRaster();
 		  break;
+	     
 		}
 	      
 	      break;
