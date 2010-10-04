@@ -1211,9 +1211,9 @@ Bool_t QwGUIMain::HandleKey(Event_t *event)
   UInt_t keysym;
 
   printf("Line 1116\n");
-  printf("Window id = %d dLogEdit id = %d\n",event->fWindow, dLogEdit->GetId());
+  printf("Window id = %d dLogEdit id = %d\n", (Int_t) event->fWindow, (Int_t) dLogEdit->GetId());
 
-  printf("event type = %d\n",event->fType);
+  printf("event type = %d\n",(Int_t) event->fType);
 
   if (event->fType == kGKeyPress) {
     gVirtualX->LookupString(event, input, sizeof(input), keysym);

@@ -130,6 +130,8 @@ Added by Buddhini to display the hall c Beamline data.
   char histo[128];
   TString select;
   Bool_t parity_off;
+  Bool_t  ReadyHistArray;
+  void EnableButtons(Bool_t flag);
 
  protected:
 

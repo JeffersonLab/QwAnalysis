@@ -116,6 +116,8 @@ Added by Buddhini to display the injector beamline data.
   char histo[128];
   TString select;
 
+  Bool_t  ReadyHistArray;
+  void EnableButtons(Bool_t flag);
 
  protected:
 
