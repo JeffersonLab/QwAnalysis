@@ -1337,8 +1337,20 @@ const Bool_t QwBeamLine::PublishInternalValues() const
   }else
     QwDebug << "QwBeamLine::PublishInternalValues(): e_targ - qwk_energy energy found "<< QwLog::endl;
   const_cast<QwBeamLine*>(this)->UpdatePublishValue("e_targ",tmp_channel);
+
+
   
+   
+  status = status && PublishInternalValue("qwk_3c16_effectivecharge", "Four wire sum of qwk_target");  
+  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMStripline*>(GetBPMStripline("qwk_bpm3c16")))->GetEffectiveCharge());
+  if (tmp_channel==NULL){
+    QwError << "QwBeamLine::PublishInternalValues(): qwk_qwk_3c16_effectivecharge - qwk_qwk_3c16_EffectiveCharge not found "<< QwLog::endl;
+    status |= kFALSE;
+  }else
+    QwDebug << "QwBeamLine::PublishInternalValues(): qwk_qwk_3c16_EffectiveCharge - qwk_qwk_3c16_EffectiveCharge found "<< QwLog::endl;
+  const_cast<QwBeamLine*>(this)->UpdatePublishValue("qwk_3c16_effectivecharge",tmp_channel);
   return status;
+
 };
 
 
@@ -1401,7 +1413,8 @@ const Bool_t QwBeamLine::ReturnInternalValue(const TString& name,
 
 const VQwDataElement* QwBeamLine::ReturnInternalValue(const TString& name) const {
   Bool_t ldebug=kFALSE;
-  if (ldebug) std::cout << "QwBeamLine::ReturnInternalValue called for value name, "<< name.Data() <<std::endl;
+  if (ldebug) 
+    std::cout << "QwBeamLine::ReturnInternalValue called for value name, "<< name.Data() <<std::endl;
   return const_cast<QwBeamLine*>(this)->GetPublishValue(name);
 };
 

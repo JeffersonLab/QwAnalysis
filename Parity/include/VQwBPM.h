@@ -87,6 +87,14 @@ class VQwBPM : public VQwDataElement {
   };
 
   
+  VQwDataElement* GetEffectiveCharge(){
+    return &fEffectiveCharge;
+  }
+  const VQwDataElement* GetEffectiveCharge() const{
+    return const_cast<VQwBPM*>(this)->GetEffectiveCharge();
+  };
+
+  
 
   private:
 

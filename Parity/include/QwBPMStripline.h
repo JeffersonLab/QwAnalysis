@@ -115,8 +115,6 @@ class QwBPMStripline : public VQwBPM {
   Bool_t   bRotated;
   QwVQWK_Channel fWire[4];
   QwVQWK_Channel fRelPos[2];
-  QwVQWK_Channel fAbsPos[2]; // Z will not be considered as a vqwk_channel
-  QwVQWK_Channel fEffectiveCharge;
 
   std::vector<QwVQWK_Channel> fBPMElementList;
 
