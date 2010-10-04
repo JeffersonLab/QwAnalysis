@@ -48,15 +48,13 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
   dComboBoxMDPMT   = NULL;
   dComboBoxMDVPMT  = NULL;
 
-  LoadHistoMapFile(Form("%s/Parity/prminput/qweak_maindet.map",gSystem->Getenv("QWANALYSIS")));
 
   AddThisTab(this);
 
   
   ClearData();
 
-  LoadMDPMTCombo();
-  LoadMDVPMTCombo();
+
 
 }
 
@@ -151,7 +149,7 @@ void QwGUIMainDetector::MakeLayout()
 
 }
 
-void QwGUIMainDetector::LoadHistoMapFile(TString mapfile){
+void QwGUIMainDetector::LoadHistoMapFile(TString mapfile){  //Now this is called at the QwGUIMain
   
   TString varname, varvalue;
   TString modtype, namech,dettype;
@@ -189,11 +187,14 @@ void QwGUIMainDetector::LoadHistoMapFile(TString mapfile){
     }
 
   }
-
+  /*
   printf(" MainDetector Device List\n" );	 
   for (Size_t i=0;i<fMDDevices.size();i++)
     for (Size_t j=0;j<fMDDevices.at(i).size();j++)
-      printf("%s \n",fMDDevices.at(i).at(j).Data() );	  
+      printf("%s \n",fMDDevices.at(i).at(j).Data() );
+  */	
+  LoadMDPMTCombo();
+  LoadMDVPMTCombo();
 };
 
 void QwGUIMainDetector::DrawMDPMTPlots(){  
@@ -335,7 +336,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
 	dummyname.Replace(0,5," ");
 	dummyname.ReplaceAll("_hw", "");
 	MDPlots[0] -> SetBinContent(xcount, histo1->GetMean());
-	MDPlots[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	MDPlots[0] -> SetBinError  (xcount, histo1->GetRMS());
 	MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -351,7 +352,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
 	dummyname.Replace(0,6," ");
 	dummyname.ReplaceAll("_hw", "");
 	MDPlots[1] -> SetBinContent(ycount, histo2->GetMean());
-	MDPlots[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	MDPlots[1] -> SetBinError  (ycount, histo2->GetRMS());
 	MDPlots[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -368,7 +369,6 @@ void QwGUIMainDetector::DrawMD16Plots(){
 
     
     mc->cd(1);
-    //SummaryHist(MDPlots[0]);
     MDPlots[0] -> SetMarkerStyle(20);
     MDPlots[0] -> SetStats(kFALSE);
     MDPlots[0] -> SetTitle("Asymmetry Variation");
@@ -380,7 +380,6 @@ void QwGUIMainDetector::DrawMD16Plots(){
     //mc->Update();
     
     mc->cd(2);
-    //SummaryHist(MDPlots[1]);
     MDPlots[1] -> SetMarkerStyle(20);
     MDPlots[1] -> SetStats(kFALSE);
     MDPlots[1] -> SetTitle("Yield Variation");
@@ -459,7 +458,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
 	dummyname.Replace(0,5," ");
 	dummyname.ReplaceAll("_hw", "");
 	MDPlots[0] -> SetBinContent(xcount, histo1->GetMean());
-	MDPlots[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	MDPlots[0] -> SetBinError  (xcount, histo1->GetRMS());
 	MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -476,7 +475,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
 	dummyname.Replace(0,6," ");
 	dummyname.ReplaceAll("_hw", "");
 	MDPlots[1] -> SetBinContent(ycount, histo2->GetMean());
-	MDPlots[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	MDPlots[1] -> SetBinError  (ycount, histo2->GetRMS());
 	MDPlots[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -493,7 +492,6 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
 
     
     mc->cd(1);
-    //SummaryHist(MDPlots[0]);
     MDPlots[0] -> SetMarkerStyle(20);
     MDPlots[0] -> SetStats(kFALSE);
     MDPlots[0] -> SetTitle("Asymmetry Variation");
@@ -505,7 +503,6 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
     //mc->Update();
     
     mc->cd(2);
-    //SummaryHist(MDPlots[1]);
     MDPlots[1] -> SetMarkerStyle(20);
     MDPlots[1] -> SetStats(kFALSE);
     MDPlots[1] -> SetTitle("Yield Variation");
@@ -571,7 +568,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
 	dummyname.Replace(0,5," ");
 	dummyname.ReplaceAll("_hw", "");
 	MDPlots[0] -> SetBinContent(xcount, histo1->GetMean());
-	MDPlots[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	MDPlots[0] -> SetBinError  (xcount, histo1->GetRMS());
 	MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -587,7 +584,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
 	dummyname.Replace(0,6," ");
 	dummyname.ReplaceAll("_hw", "");
 	MDPlots[1] -> SetBinContent(ycount, histo2->GetMean());
-	MDPlots[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	MDPlots[1] -> SetBinError  (ycount, histo2->GetRMS());
 	MDPlots[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -604,7 +601,6 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
 
     
     mc->cd(1);
-    //SummaryHist(MDPlots[0]);
     MDPlots[0] -> SetMarkerStyle(20);
     MDPlots[0] -> SetStats(kFALSE);
     MDPlots[0] -> SetTitle("Asymmetry Variation");
@@ -616,7 +612,6 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
     //mc->Update();
     
     mc->cd(2);
-    //SummaryHist(MDPlots[1]);
     MDPlots[1] -> SetMarkerStyle(20);
     MDPlots[1] -> SetStats(kFALSE);
     MDPlots[1] -> SetTitle("Yield Variation");

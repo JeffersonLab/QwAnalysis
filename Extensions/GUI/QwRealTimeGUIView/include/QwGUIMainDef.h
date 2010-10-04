@@ -228,6 +228,7 @@ struct ClineArgs {
   int            mute;
   int            realtime;
   int            checkmode;
+  int            detectormap;
   char           file[1000];
 
 };

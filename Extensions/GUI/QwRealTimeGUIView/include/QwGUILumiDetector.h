@@ -168,12 +168,7 @@ class QwGUILumiDetector : public QwGUISubSystem {
   void PlotLumiScaler();
 
 
-  //!This function  loads the histogram names from a definition file
-  //!Parameters:
-  //! - Histogram names map file name
-  //!
-  //!Return value: none  
-  void                 LoadHistoMapFile(TString mapfile);
+ 
 
   //!This function  prints stat info of the histogram into the command line
   //!Parameters:
@@ -209,6 +204,12 @@ class QwGUILumiDetector : public QwGUISubSystem {
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
   ~QwGUILumiDetector();
 
+   //!This function  loads the histogram names from a definition file
+  //!Parameters:
+  //! - Histogram names map file name
+  //!
+  //!Return value: none  
+  void                 LoadHistoMapFile(TString mapfile);
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
   //!four histograms from the ROOT file that is contained within the data container makes copies of

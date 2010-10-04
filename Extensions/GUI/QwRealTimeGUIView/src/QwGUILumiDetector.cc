@@ -59,12 +59,7 @@ QwGUILumiDetector::QwGUILumiDetector(const TGWindow *p, const TGWindow *main, co
   PosVariation[0] = NULL;
   PosVariation[1] = NULL;
 
-  LoadHistoMapFile(Form("%s/Parity/prminput/qweak_lumi.map",gSystem->Getenv("QWANALYSIS")));
-
-
   AddThisTab(this);
-  LoadLUMICombo();//Load LUMI list into the combo box
-  LoadSCALERCombo();//Load LUMI_SCALER list into the combo box
 
 }
 
@@ -165,7 +160,7 @@ void QwGUILumiDetector::MakeLayout()
 
 }
 
-void QwGUILumiDetector::LoadHistoMapFile(TString mapfile){
+void QwGUILumiDetector::LoadHistoMapFile(TString mapfile){ //Now this is called at the QwGUIMain
   TString varname, varvalue;
   TString modtype, namech,dettype;
   Int_t count_names;
@@ -224,12 +219,16 @@ void QwGUILumiDetector::LoadHistoMapFile(TString mapfile){
     }
 
   }
-
+  /*
   //printf("no. of hallC devices %d \n",fLUMIDevices.size());
    printf(" Hall C LUMI  Device List\n" );
   for (Size_t i=0;i<fLUMIDevices.size()-4;i++)
     for (Size_t j=0;j<fLUMIDevices.at(i).size();j++)
-      printf("%s \n",fLUMIDevices.at(i).at(j).Data() );	  
+      printf("%s \n",fLUMIDevices.at(i).at(j).Data() );	 
+  */
+  LoadLUMICombo();//Load LUMI list into the combo box
+  LoadSCALERCombo();//Load LUMI_SCALER list into the combo box
+
 
 };
 
@@ -317,7 +316,7 @@ void QwGUILumiDetector::PlotUSLumi(){
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -333,7 +332,7 @@ void QwGUILumiDetector::PlotUSLumi(){
 	dummyname.Replace(0,10," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -433,7 +432,7 @@ void QwGUILumiDetector::PlotDSLumi(){
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -449,7 +448,7 @@ void QwGUILumiDetector::PlotDSLumi(){
 	dummyname.Replace(0,10," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 

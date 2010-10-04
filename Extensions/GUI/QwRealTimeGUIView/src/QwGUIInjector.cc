@@ -62,14 +62,12 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
   PosVariation[0] = NULL;
   PosVariation[1] = NULL;
 
-  LoadHistoMapFile(Form("%s/Parity/prminput/qweak_beamline.map",gSystem->Getenv("QWANALYSIS")));
 
   HistArray.Clear();
   DataWindowArray.Clear();
 
   AddThisTab(this);
-  LoadInjectorBCMCombo();//Load BCM list into the combo box
-  LoadInjectorSCALERCombo();//Load SCALER list into the combo box
+
 
 }
 
@@ -100,7 +98,7 @@ QwGUIInjector::~QwGUIInjector()
   IsClosing(GetName());
 }
 
-void QwGUIInjector::LoadHistoMapFile(TString mapfile){
+void QwGUIInjector::LoadHistoMapFile(TString mapfile){  //Now this is called at the QwGUIMain
   TString varname, varvalue;
   TString modtype, namech,dettype;
   Int_t count_names;
@@ -155,10 +153,15 @@ void QwGUIInjector::LoadHistoMapFile(TString mapfile){
   }
 
   //printf("no. of hallC devices %d \n",fInjectorDevices.size());
+  /*
    printf(" Injector  Device List\n" );
   for (Size_t i=0;i<fInjectorDevices.size();i++)
     for (Size_t j=0;j<fInjectorDevices.at(i).size();j++)
-      printf("%s \n",fInjectorDevices.at(i).at(j).Data() );	  
+      printf("%s \n",fInjectorDevices.at(i).at(j).Data() );
+  */
+
+  LoadInjectorBCMCombo();//Load BCM list into the combo box
+  LoadInjectorSCALERCombo();//Load SCALER list into the combo box
 };
 
 void QwGUIInjector::MakeLayout()
@@ -314,7 +317,7 @@ void QwGUIInjector::PositionDifferences()
 	 dummyname.Replace(0,9," ");
 	 dummyname.ReplaceAll("_EffectiveCharge_hw", "");
 	 PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	 PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	 PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	 PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	 SummaryHist(histo1);
 	 delete histo1; histo1= NULL;
@@ -330,7 +333,7 @@ void QwGUIInjector::PositionDifferences()
 	 dummyname.Replace(0,9," ");
 	 dummyname.ReplaceAll("_EffectiveCharge_hw", "");
 	 PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	 PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	 PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	 PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	 SummaryHist(histo2);
 	 delete histo2; histo2= NULL; 
@@ -347,7 +350,6 @@ void QwGUIInjector::PositionDifferences()
 
     
     mc->cd(1);
-    //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE); 
     PosVariation[0] -> SetTitle("Eff_Charge Asymmetry");
@@ -359,7 +361,6 @@ void QwGUIInjector::PositionDifferences()
     //mc->Update();
     
     mc->cd(2);
-    //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Eff_Charge Yield");
@@ -474,7 +475,7 @@ void QwGUIInjector::PlotBPMAsym(){
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -491,7 +492,7 @@ void QwGUIInjector::PlotBPMAsym(){
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -508,7 +509,6 @@ void QwGUIInjector::PlotBPMAsym(){
 
     
     mc->cd(1);
-    //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("X Difference Variation");
@@ -520,7 +520,6 @@ void QwGUIInjector::PlotBPMAsym(){
     //mc->Update();
     
     mc->cd(2);
-    //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Y Difference Variation");
@@ -592,7 +591,7 @@ void QwGUIInjector::PlotBPMPositions(){
 	dummyname.Replace(0,4," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -608,7 +607,7 @@ void QwGUIInjector::PlotBPMPositions(){
 	dummyname.Replace(0,4," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -625,7 +624,6 @@ void QwGUIInjector::PlotBPMPositions(){
 
     
     mc->cd(1);
-    //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("Mean BPM X Variation");
@@ -637,7 +635,6 @@ void QwGUIInjector::PlotBPMPositions(){
     //mc->Update();
     
     mc->cd(2);
-    //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Mean BPM Y Variation");

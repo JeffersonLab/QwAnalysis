@@ -183,13 +183,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none  
   void                 SummaryHist(TH1 *in);
 
-  //!This function  loads the histogram names from a definition file (main detector channel map file)
-  //!Parameters:
-  //! - Main detector channel map file name
-  //!
-  //!Return value: none  
-  void                 LoadHistoMapFile(TString mapfile);
-
+  
   
   //!This function loads list of PMT  . 
   //!based on the map file read by LoadChannelMap routine
@@ -229,6 +223,12 @@ class QwGUIMainDetector : public QwGUISubSystem {
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
   ~QwGUIMainDetector();
 
+  //!This function  loads the histogram names from a definition file (main detector channel map file)
+  //!Parameters:
+  //! - Main detector channel map file name
+  //!
+  //!Return value: none  
+  void                 LoadHistoMapFile(TString mapfile);
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
   //!four histograms from the ROOT file that is contained within the data container makes copies of

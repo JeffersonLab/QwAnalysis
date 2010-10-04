@@ -60,7 +60,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   /// Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
-  ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
+  ///  Load the histogram and tree branch parameter definitions  into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
   gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");

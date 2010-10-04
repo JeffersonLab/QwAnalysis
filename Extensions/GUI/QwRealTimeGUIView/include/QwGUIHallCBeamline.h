@@ -70,7 +70,6 @@
 
 class QwGUIHallCBeamline : public QwGUISubSystem {
 
-  
   TGHorizontalFrame   *dTabFrame;
   
   TGVerticalFrame     *dControlsFrame;
@@ -199,6 +198,7 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   void                 ClearData();
 
   
+ public:
   //!This function  loads the histogram names from a definition file
   //!Parameters:
   //! - Histogram names map file name

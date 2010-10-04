@@ -36,6 +36,14 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   : TGMainFrame(p, w, h)
 {
 
+   ///  First, fill the search paths for the parameter files; this sets a
+  ///  static variable within the QwParameterFile class which will be used by
+  ///  all instances.
+  ///  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+
   MCnt = 0;
   dClArgs = clargs;
   std::set_new_handler(0);
@@ -103,27 +111,44 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   MakeMainTab();
   MakeLogTab();
 
-  SetWindowName("Qweak Online Data Analysis GUI");
+  SetWindowName("Qweak RealTime Data Analysis GUI");
 
 
   MapSubwindows();
   Resize(GetDefaultSize());
   MapWindow();
 
+  if (dClArgs.detectormap==kTRUE){
+    printf("custom detector map included - %s \n",dClArgs.file);
+    strcpy(dDetMapFile,dClArgs.file);
+  }
+  else{
+     strcpy(dDetMapFile,"detectors.map");
+  }
 
-  if(!GetSubSystemPtr("Main Detectors"))
+  LoadChannelMapFiles(dDetMapFile);//loads the channel map files for all the subsystems
+
+  if(!GetSubSystemPtr("Main Detectors") && dMDChannelMap.Length()){
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
-  if(!GetSubSystemPtr("Lumi Detectors"))
+    MainDetSubSystem->LoadHistoMapFile(dMDChannelMap);
+  }
+  if(!GetSubSystemPtr("Lumi Detectors") && dLumiChannelMap.Length()){
     LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
-  if(!GetSubSystemPtr("Injector"))
+    LumiDetSubSystem->LoadHistoMapFile(dLumiChannelMap);
+  }
+  if(!GetSubSystemPtr("Injector")&& dInjectorChannelMap.Length()){
     InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+    InjectorSubSystem->LoadHistoMapFile(dInjectorChannelMap);
+  }
 
-  if(!GetSubSystemPtr("HallC Beamline"))
+  if(!GetSubSystemPtr("HallC Beamline") && dHallCChannelMap.Length()){
     HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+    HallCBeamlineSubSystem->LoadHistoMapFile(dHallCChannelMap);
+  }
 
 
   if(!GetSubSystemPtr("Correlation Plots"))
@@ -186,6 +211,48 @@ QwGUIMain::~QwGUIMain()
   delete dMenuLoadMap          ;
 
 }
+
+void QwGUIMain::LoadChannelMapFiles(TString detfile){
+  TString varname, varvalue;
+  TString subsysname,subsysmapname;
+  QwParameterFile mapstr(detfile.Data());  //Open the file
+  TString subsystemname;
+  QwParameterFile *section;
+  dMDChannelMap="";
+  dHallCChannelMap="";
+  dInjectorChannelMap="";
+  dLumiChannelMap="";
+  while ( (section=mapstr.ReadNextSection(subsystemname)) ){
+    while (section->ReadNextLine()){
+      section->TrimComment('#');   // Remove everything after a '#' character.
+      section->TrimWhitespace();   // Get rid of leading and trailing spaces.
+      if (section->LineIsEmpty())  continue;
+      if (section->HasVariablePair("=",varname,varvalue)){
+	varname.ToLower();
+	if (varname=="name")
+	  subsysname=varvalue;
+	else if (varname=="map")
+	  subsysmapname=varvalue;
+      }
+    }
+    if (subsystemname=="QwBeamLine"){//we have hallc and injector beamlines
+      subsysname.ToLower();
+      if (subsysname.Contains("hallc") || subsysname.Contains("hall c"))
+	dHallCChannelMap=subsysmapname;
+      else if (subsysname.Contains("injector"))
+	dInjectorChannelMap=subsysmapname;
+	     
+    }
+    else if (subsystemname=="QwMainCerenkovDetector"){
+      dMDChannelMap=subsysmapname;
+    }else if (subsystemname=="QwLumi"){
+      dLumiChannelMap=subsysmapname;
+    }//add any other subsystem included in RT
+    printf("%s, %s, %s \n",subsystemname.Data(),subsysname.Data(),subsysmapname.Data());
+  }
+  printf("%s, %s, %s, %s\n",dHallCChannelMap.Data(),dInjectorChannelMap.Data(),dMDChannelMap.Data(),dLumiChannelMap.Data());
+  //  exit(1);
+};
 
 void QwGUIMain::MakeMenuLayout()
 {
@@ -1328,8 +1395,21 @@ Int_t main(Int_t argc, Char_t **argv)
 // 	dClArgs.bin = kFalse;
 // 	dClArgs.txt = kTrue;
       }
+      if(strcmp(argv[i],"-d")==0){
+	dClArgs.detectormap =kTRUE;
+	if(argv[i+1]!=NULL){
+	  strcpy(dClArgs.file,argv[i+1]);
+	  i++;
+	}
+	else{
+	  printf("\n -d provided with no detector map file, exit the program \n Enter the detector map file!  \n\n");
+	  exit(1);//if the option -d provided with no detector map file, exit the program
+	}
+
+      } 
 
       if(strcmp(argv[i],"-help")==0){
+	
 	help = 1;
       }
 
@@ -1369,13 +1449,15 @@ Int_t main(Int_t argc, Char_t **argv)
     strcat(expl,"             be specified with the -c switch (see below).\n");
     strcat(expl,"             Always use the full path for the input files.\n\n");
     strcat(expl,"4) -c        Columns. Ex: (-c 23) selects columns 2 and 3.\n\n");
+    strcat(expl,"5) -d        Enter the custom map file to decode channel map files\n\n");
     strcat(expl,"9) -help     Prints this help \n\n");
-
+    
     printf("%s",expl);
   }
   else{
 
-    TApplication theApp("QwGUIData", &argc, argv);
+    //TApplication theApp("QwGUIData", &argc, argv);
+    TApplication theApp("QwRealTimeGUI", &argc, argv);
 
     gROOT->SetStyle("Plain");
 

@@ -7,7 +7,7 @@
  
    \file QwGUIInjector.h
    \author Michael Gericke
-   \author Rakitha Waidyawansa
+   \author Rakitha Beminiwattha
      
 */
 //=============================================================================
@@ -174,12 +174,7 @@ class QwGUIInjector : public QwGUISubSystem {
   void                 ClearData();
 
   
-  //!This function  loads the histogram names from a definition file
-  //!Parameters:
-  //! - Histogram names map file name
-  //!
-  //!Return value: none  
-  void                 LoadHistoMapFile(TString mapfile);
+  
 
 
   
@@ -207,6 +202,12 @@ class QwGUIInjector : public QwGUISubSystem {
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
   ~QwGUIInjector();
 
+  //!This function  loads the histogram names from a definition file
+  //!Parameters:
+  //! - Histogram names map file name
+  //!
+  //!Return value: none  
+  void                 LoadHistoMapFile(TString mapfile);
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
   //!four histograms from the ROOT file that is contained within the data container makes copies of

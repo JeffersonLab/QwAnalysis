@@ -1,9 +1,9 @@
 #include "QwGUIHallCBeamline.h"
+///#include "QwGUIMain.h"
 
 
 #include <TG3DLine.h>
 #include "TGaxis.h"
-
 
 
 
@@ -69,14 +69,10 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
   PosVariation[0] = NULL;
   PosVariation[1] = NULL;
 
-  LoadHistoMapFile(Form("%s/Parity/prminput/qweak_hallc_beamline.map",gSystem->Getenv("QWANALYSIS")));
-
-  
   DataWindowArray.Clear();
 
   AddThisTab(this);
-  LoadHCBCMCombo();//Load BCM list into the combo box
-  LoadHCSCALERCombo();//Load SCALER list into the combo box
+  
 
 }
 
@@ -108,7 +104,7 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   IsClosing(GetName());
 }
 
-void QwGUIHallCBeamline::LoadHistoMapFile(TString mapfile){
+void QwGUIHallCBeamline::LoadHistoMapFile(TString mapfile){//this is called in the QwGUIMain c'tor
 
   TString varname, varvalue;
   TString modtype, namech,dettype;
@@ -162,12 +158,15 @@ void QwGUIHallCBeamline::LoadHistoMapFile(TString mapfile){
     }
 
   }
-
+  /*
   //printf("no. of hallC devices %d \n",fHallCDevices.size());
    printf(" Hall C  Device List\n" );
   for (Size_t i=0;i<fHallCDevices.size();i++)
     for (Size_t j=0;j<fHallCDevices.at(i).size();j++)
-      printf("%s \n",fHallCDevices.at(i).at(j).Data() );	  
+      printf("%s \n",fHallCDevices.at(i).at(j).Data() );
+  */
+  LoadHCBCMCombo();//Load BCM list into the combo box
+  LoadHCSCALERCombo();//Load SCALER list into the combo box
 
 };
 
@@ -196,7 +195,7 @@ void QwGUIHallCBeamline::MakeLayout()
   dHCSCALERFrame= new TGVerticalFrame(dControlsFrame,50,100);
 
 
-  dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Asymmetries", BA_POS_DIFF);
+  dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Diffs", BA_POS_DIFF);
   dButtonMeanPos = new TGTextButton(dControlsFrame, "&Mean Beam Positions", BA_MEAN_POS);
   dButtonCharge = new TGTextButton(dHCBCMFrame, "B&CM Yield/Asymmetry", BA_CHARGE);
   dButtonCharge->SetEnabled(kFALSE);
@@ -343,9 +342,9 @@ void QwGUIHallCBeamline::PositionDifferences()
 	  dummyname.Replace(0,9," ");
 	  dummyname.ReplaceAll("_EffectiveCharge_hw", "");
 	  PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	  PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	  PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());//this gives std deviation not RMS
 	  PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	      //SummaryHist(histo1);
+	  SummaryHist(histo1);
 	  delete histo1; histo1= NULL;
 	}
       
@@ -359,9 +358,9 @@ void QwGUIHallCBeamline::PositionDifferences()
 	dummyname.Replace(0,10," ");
 	dummyname.ReplaceAll("_EffectiveCharge_hw", "");
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	//SummaryHist(histo2);
+	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
       
@@ -376,7 +375,6 @@ void QwGUIHallCBeamline::PositionDifferences()
 
     
     mc->cd(1);
-    //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("Eff_Charge Asymmetry");
@@ -388,7 +386,6 @@ void QwGUIHallCBeamline::PositionDifferences()
     //mc->Update();
     
     mc->cd(2);
-    //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Eff_Charge Yield");
@@ -469,7 +466,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
   TH1F *histo1=NULL;
   TH1F *histo2=NULL;
 
-  char histo[128];
+  char histo[150];
   
   Int_t xcount = 0;
   Int_t ycount = 0;
@@ -509,7 +506,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> SetBinError(xcount, histo1->GetRMS());//this gives std deviation not RMS	
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -526,7 +523,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> SetBinError(ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -543,7 +540,6 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 
     
     mc->cd(1);
-    //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("X Difference Variation");
@@ -555,7 +551,6 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
     //mc->Update();
     
     mc->cd(2);
-    //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Y Difference Variation");
@@ -624,7 +619,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
 	dummyname.Replace(0,4," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
+	PosVariation[0] -> SetBinError(xcount, histo1->GetRMS());//this gives std deviation not RMS
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -640,7 +635,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
 	dummyname.Replace(0,4," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
+	PosVariation[1] -> SetBinError(ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -657,7 +652,6 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
 
     
     mc->cd(1);
-    //SummaryHist(PosVariation[0]);
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("Mean BPM X Variation");
@@ -669,7 +663,6 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
     //mc->Update();
     
     mc->cd(2);
-    //SummaryHist(PosVariation[1]);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
     PosVariation[1] -> SetTitle("Mean BPM Y Variation");
@@ -748,6 +741,7 @@ void QwGUIHallCBeamline::PlotSCALER(){
 void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
   TH1F *histo1=NULL;
   TH1F *histo2=NULL;
+  
   char histon1[128]; //name of the histogram
   char histon2[128]; //name of the histogram
 
@@ -779,9 +773,9 @@ void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
        }
      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histon1);
      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histon2);
+     
     
     if (histo1!=NULL && histo2!=NULL ) {
-    
       mc->Clear();
       mc->Divide(1,2);
 
