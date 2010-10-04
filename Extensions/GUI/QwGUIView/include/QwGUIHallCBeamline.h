@@ -49,6 +49,7 @@ Added by Buddhini to display the hall c Beamline data.
 #include <iomanip>
 #include <string>
 #include <TPaveText.h>
+#include <TGButtonGroup.h>
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
@@ -64,6 +65,7 @@ Added by Buddhini to display the hall c Beamline data.
   
   TGHorizontalFrame   *dTabFrame;
   TGVerticalFrame     *dControlsFrame;
+  TGButtonGroup       *correlations;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
@@ -71,6 +73,7 @@ Added by Buddhini to display the hall c Beamline data.
   TGLayoutHints       *dBtnLayout;
   TGTextButton        *dBtnPosDiff;
   TGTextButton        *dBtnTgtParam;
+  TGTextButton        *dBtnCorrelations;
   TGTextButton        *dBtnPlotHistos;
   TGTextButton        *dBtnRaster;
   TGComboBox          *dCmbHistos;
@@ -86,6 +89,7 @@ Added by Buddhini to display the hall c Beamline data.
   //!A histogram array to plot the X and Y position difference variation.
   TH1D *PosDiffVar[2] ;
   TPaveText * errlabel;
+  TH2D* fRateMap;
 
   //!This function just plots some histograms in the main canvas, just for illustrative purposes
   //!for now.
@@ -106,7 +110,7 @@ Added by Buddhini to display the hall c Beamline data.
   void DisplayTargetParameters();
   void PlotHistograms();
   void FastRaster();
-
+  void Correlations(TString axis1, TString axis2);
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes

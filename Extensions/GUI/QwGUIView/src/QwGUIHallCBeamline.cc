@@ -10,7 +10,11 @@ enum QwGUIHallCBeamlineIndentificator {
   BA_TGT_PARAM,
   BA_PLOT_HISTOS,
   BA_FAST_RASTER,
-  CMB_HISTOS
+  BA_CORRELATIONS,
+  CMB_HISTOS,
+  PLOT_XX,
+  PLOT_YY,
+  PLOT_XY,
 };
 
 const char *QwGUIHallCBeamline::RootTrees[NUM_TREE] = 
@@ -50,8 +54,7 @@ const char *QwGUIHallCBeamline::HallC_BPMS[HCLINE_BPMS]=
     "3h04a","3h07a","3h07b","3h07c","3h08","3h09","3h09b"
   };
 
-//BCMs were added to this list specifically for the effective charge it may or may not be used later
-//Kaisen
+// The list of BCMs in the Hall C line. 
 const char *QwGUIHallCBeamline::HallC_BCMS[HCLINE_BCMS]=
   {
     "bcm1","bcm2","bcm3","bcm5","bcm6"
@@ -64,6 +67,7 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
 { 
   dTabFrame           = NULL;
   dControlsFrame      = NULL;
+  correlations        = NULL;
   dCanvas             = NULL;  
   dTabLayout          = NULL;
   dCnvLayout          = NULL;
@@ -90,12 +94,14 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dTabFrame)           delete dTabFrame;
   if(dControlsFrame)      delete dControlsFrame;
   if(dCanvas)             delete dCanvas;  
+  if(correlations)        delete correlations;  
   if(dTabLayout)          delete dTabLayout;
   if(dCnvLayout)          delete dCnvLayout;
   if(dSubLayout)          delete dSubLayout;
   if(dBtnLayout)          delete dBtnLayout;
   if(dBtnPosDiff)         delete dBtnPosDiff;
   if(dBtnTgtParam)        delete dBtnTgtParam;
+  if(dBtnCorrelations)    delete dBtnCorrelations;
   if(dCmbHistos)          delete dCmbHistos;
   if(dBtnPlotHistos)      delete dBtnPlotHistos; 
   if(dCmbLayout)          delete dCmbLayout;
@@ -140,7 +146,7 @@ void QwGUIHallCBeamline::MakeLayout()
   gStyle->SetTitleX(0.3);
   gStyle->SetTitleW(0.4);
   gStyle->SetTitleSize(0.08);
-  gStyle->SetTitleColor(1);
+  //gStyle->SetTitleColor(1);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(10);
   gStyle->SetTitleFontSize(0.08);
@@ -160,15 +166,21 @@ void QwGUIHallCBeamline::MakeLayout()
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
 
-  dBtnPosDiff     = new TGTextButton(dControlsFrame, "&Position Difference Variation", BA_POS_DIFF);
-  dBtnTgtParam    = new TGTextButton(dControlsFrame, "&Beam Parameters on Target", BA_TGT_PARAM);
-  dBtnPlotHistos  = new TGTextButton(dControlsFrame, "&Plot Histograms", BA_PLOT_HISTOS);
-  dBtnRaster      = new TGTextButton(dControlsFrame, "&Fast Raster", BA_FAST_RASTER);
-  dCmbHistos      = new TGComboBox(dControlsFrame, CMB_HISTOS);
+  // correlation options
+  correlations = new TGButtonGroup(dControlsFrame, "Position Correlations");
+  correlations ->SetTitlePos(TGGroupFrame::kCenter);
+   
+  dBtnPosDiff       = new TGTextButton(dControlsFrame, "&Position Difference Variation", BA_POS_DIFF);
+  dBtnTgtParam      = new TGTextButton(dControlsFrame, "&Beam Parameters on Target", BA_TGT_PARAM);
+  dBtnPlotHistos    = new TGTextButton(dControlsFrame, "&Plot Histograms", BA_PLOT_HISTOS);
+  dBtnRaster        = new TGTextButton(dControlsFrame, "&Fast Raster", BA_FAST_RASTER);
+  //dBtnCorrelations  = new TGTextButton(dControlsFrame, "&Correlations", BA_CORRELATIONS);
+  dCmbHistos        = new TGComboBox(dControlsFrame, CMB_HISTOS);
 
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
   dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
 
+  // Add entries to the drop donw menu.
   //Mps based
   dCmbHistos->AddEntry("XP Wire", ID_XP );
   dCmbHistos->AddEntry("XM Wire", ID_XM );
@@ -179,7 +191,6 @@ void QwGUIHallCBeamline::MakeLayout()
   dCmbHistos->AddEntry("AbsY", ID_ABSY);
   dCmbHistos->AddEntry("bcm_charge", ID_BCM_Q );
   dCmbHistos->AddEntry("scalers", ID_SC );
-
   // Helicity based
   dCmbHistos->AddEntry("diff_X", ID_DX);
   dCmbHistos->AddEntry("diff_Y", ID_DY);
@@ -190,21 +201,34 @@ void QwGUIHallCBeamline::MakeLayout()
   dCmbHistos->AddEntry("sc_yield", ID_SC_YIELD );
   dCmbHistos->AddEntry("bcm_asyms", ID_BCM_ASYM );
   dCmbHistos->AddEntry("sc_asym", ID_SC_ASYM );
-
   dCmbHistos->Resize(150,20);
 
+
+  // Add radio buttons to the correlation group
+  new TGRadioButton(correlations, "XX", PLOT_XX);
+  new TGRadioButton(correlations, "YY", PLOT_YY);
+  new TGRadioButton(correlations, "XY", PLOT_XY);
+  dBtnCorrelations  = new TGTextButton(correlations, "&Correlations", BA_CORRELATIONS);
+  correlations->SetButton(PLOT_XX);
+  correlations->Connect("Pressed(Int_t)", "ButtonWindow", this, "DoHPosition(Int_t)");
+  dControlsFrame->AddFrame(correlations, new TGLayoutHints(kLHintsExpandX));
+
+  // Add buttons to the controls frame
   dControlsFrame -> AddFrame(dBtnPosDiff ,dBtnLayout );
   dControlsFrame -> AddFrame(dBtnTgtParam,dBtnLayout );
   dControlsFrame -> AddFrame(dBtnRaster,dBtnLayout );
   dControlsFrame -> AddFrame(dCmbHistos,dCmbLayout );
   dControlsFrame -> AddFrame(dBtnPlotHistos,dBtnLayout );
 
-  dBtnPosDiff    -> Associate(this);
-  dBtnTgtParam   -> Associate(this);
-  dBtnPlotHistos -> Associate(this);
-  dBtnRaster     -> Associate(this);
-  dCmbHistos     -> Associate(this);
+  //Buttons
+  dBtnPosDiff      -> Associate(this);
+  dBtnTgtParam     -> Associate(this);
+  dBtnPlotHistos   -> Associate(this);  
+  dBtnCorrelations -> Associate(this);
+  dBtnRaster       -> Associate(this);
+  dCmbHistos       -> Associate(this);
 
+  //Canvas settings
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				"QwGUIHallCBeamline",
@@ -249,6 +273,8 @@ void QwGUIHallCBeamline::OnNewDataContainer(RDataContainer *cont)
 	{
 	  copy = obj->Clone();
 	  HistArray.Add(copy);
+	  if(RootTrees[p] == "event_tree")
+	    parity_off = kTRUE;
 	}
     }
   }
@@ -296,8 +322,60 @@ void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobj
   }
 }
 
+/**************************************************************************
+Plot correlations
+*/
+void QwGUIHallCBeamline::Correlations(TString axis1, TString axis2)
+{
+  Bool_t ldebug = kFALSE;
+  TObject *obj       = NULL;
+  TCanvas *mc        = NULL;
+  TH2D    *dummyhist = NULL;
+  TString histo;
 
-/**
+  std::vector<TString> devices;
+  
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(6,4);
+
+  // Get Mps tree
+  obj = HistArray.At(1);  
+  if( !obj ) return; 
+
+  if(ldebug) std::cout<<" In correlations function\n";
+
+  // Check to see which devices are available
+  for(Int_t p = 0; p <HCLINE_BPMS-1 ; p++) {
+    histo = Form("qwk_bpm%s%s.hw_sum", HallC_BPMS[p],axis1.Data());
+    if( ((TTree*) obj)->FindLeaf(histo) ){
+      if(ldebug) std::cout<<"Found "<<HallC_BPMS[p]<<std::endl;
+      devices.push_back(HallC_BPMS[p]);
+    }
+  }
+
+  // Plot the correlations
+  for(size_t p = 0; p <devices.size()-1 ; p++) {
+    mc->cd(p+1);
+    obj->Draw(Form("qwk_bpm%s%s.hw_sum:qwk_bpm%s%s.hw_sum>>htemp",
+		   devices[p].Data(),axis1.Data(),
+		   devices[p+1].Data(), axis2.Data()));
+    dummyhist = (TH2D*)gDirectory->Get("htemp");   
+    dummyhist->GetXaxis()->SetTitle(Form("%s%s (mm)",devices[p+1].Data(),axis1.Data()));
+    dummyhist->GetYaxis()->SetTitle(Form("%s%s (mm)",devices[p].Data(),axis2.Data()));
+    dummyhist->SetStats(kTRUE);
+    dummyhist->DrawCopy();
+    dummyhist->Clear();  
+    mc->Update();
+  
+  }
+
+  return;
+
+}
+
+
+/**************************************************************************
  Plot the Faster raster
 */
 void QwGUIHallCBeamline::FastRaster()
@@ -861,7 +939,9 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 		case BA_FAST_RASTER:
 		  FastRaster();
 		  break;
-	     
+		case BA_CORRELATIONS:
+		  Correlations("X","X");
+		  break;	     
 		}
 	      
 	      break;
