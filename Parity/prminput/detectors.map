@@ -16,7 +16,7 @@
 [QwLumi]
  name = Lumi Detector
  map = qweak_lumi.map
- param = qweak_lumi_pedestal.957.map
+ param = qweak_lumi_pedestal.5615.map
  eventcut = qweak_lumi_eventcuts.in
 
 [QwHelicity]
