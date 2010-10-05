@@ -32,7 +32,7 @@ class QwBeamMod: public VQwSubsystemParity{
 
   QwBeamMod(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
     {
-      
+
       // these declaration need to be coherent with the enum vector EBeamInstrumentType
       fgModTypeNames.push_back(""); // Need to define these wrt to our detector types.
       fgModTypeNames.push_back("");
@@ -50,12 +50,12 @@ class QwBeamMod: public VQwSubsystemParity{
   /* derived from VQwSubsystem */
   void ProcessOptions(QwOptions &options);//Handle command line options
   void AccumulateRunningSum(VQwSubsystem*);
-  
+
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Int_t LoadGeometry(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
-  
+
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
@@ -99,7 +99,9 @@ class QwBeamMod: public VQwSubsystemParity{
 
 
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void FillTreeVector(std::vector<Double_t> &values);
+  void  ConstructBranch(TTree *tree, TString& prefix) { };
+  void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
+  void FillTreeVector(std::vector<Double_t> &values) const;
   void FillDB(QwDatabase *db, TString datatype);
 
   void Copy(VQwSubsystem *source);
@@ -152,21 +154,21 @@ class QwModChannelID
 /*     fSubelement(999999),fmoduletype(""),fmodulename("") */
 /*     {}; */
 
-  Int_t fSubbankIndex;        //Generated from ROCID(readout CPU) & BankID(corespondes to internal headers to ID differnt types of data..ex. F1TDC) 
-  Int_t fWordInSubbank; 
+  Int_t fSubbankIndex;        //Generated from ROCID(readout CPU) & BankID(corespondes to internal headers to ID differnt types of data..ex. F1TDC)
+  Int_t fWordInSubbank;
   //first word reported for this channel in the subbank
   //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
 
   // The first word of the subbank gets fWordInSubbank=0
-  
+
   TString fmoduletype; // eg: VQWK, SCALER
   TString fmodulename;
- // TString fdetectortype; 
+ // TString fdetectortype;
 
   Int_t  kUnknownDeviceType;
   Int_t  fTypeID;           // type of detector eg: lumi or stripline, etc..
   Int_t  fIndex;            // index of this detector in the vector containing all the detector of same type
-  
+
   void Print();
 
 };

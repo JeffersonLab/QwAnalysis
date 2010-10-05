@@ -12,7 +12,6 @@
 // Boost math library for random number generation
 #include <boost/random.hpp>
 
-
 // Qweak headers
 #include "QwLog.h"
 #include "QwBeamLine.h"

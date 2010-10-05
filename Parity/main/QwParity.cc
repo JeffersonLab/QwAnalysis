@@ -66,7 +66,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwLog.ProcessOptions(&gQwOptions);
 
 
-  ///  Load the histogram parameter definitions into the global
+  ///  Load the histogram and tree branch parameter definitions  into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
   gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
@@ -87,7 +87,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     ///  Begin processing for the first run
 
 
-    ///  Set the current event number for parameter file lookup 
+    ///  Set the current event number for parameter file lookup
     QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
 
 
@@ -114,18 +114,27 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwSubsystemArrayParity runningsum(detectors);
 
 
+    //  Initialize the database connection.
+    database.SetupOneRun(eventbuffer);
+
+
     //  Open the ROOT file
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
-
     //  Construct histograms
-    rootfile->ConstructHistograms(detectors);
-    rootfile->ConstructHistograms(helicitypattern);
+    rootfile->ConstructHistograms("mps_histo", detectors);
+    rootfile->ConstructHistograms("hel_histo", helicitypattern);
 
     //  Construct tree branches
-    rootfile->ConstructTreeBranches(detectors);
-    rootfile->ConstructTreeBranches(helicitypattern);
+    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
+    rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+
+    // Summarize the ROOT file structure
+    rootfile->PrintTrees();
+    rootfile->PrintDirs();
+
+
     Int_t failed_events_counts = 0; // count failed total events
     // TODO (wdc) failed event counter in QwEventRing?
 
@@ -136,6 +145,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Clear the running sum of the burst values at the beginning of the runlet
     helicitypattern.ClearBurstSum();
 
+
+    //  Load the blinder seed from the database for this runlet.
+    helicitypattern.UpdateBlinder(&database);
 
     ///  Start loop over events
     while (eventbuffer.GetNextEvent() == CODA_OK) {
@@ -150,7 +162,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
-        helicitypattern.UpdateBlinder(&database,epicsevent);
+        helicitypattern.UpdateBlinder(epicsevent);
       }
 
 
@@ -178,7 +190,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
         // Fill the tree branches
         rootfile->FillTreeBranches(detectors);
-
+        rootfile->FillTree("Mps_Tree");
 
         // Add event to the ring
         eventring.push(detectors);
@@ -193,7 +205,7 @@ Int_t main(Int_t argc, Char_t* argv[])
           if (helicitypattern.IsCompletePattern()) {
 
             // Update the blinder if conditions have changed
-            helicitypattern.UpdateBlinder(&database,detectors);
+            helicitypattern.UpdateBlinder(detectors);
 
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
@@ -202,6 +214,7 @@ Int_t main(Int_t argc, Char_t* argv[])
               rootfile->FillHistograms(helicitypattern);
               // Fill tree branches
               rootfile->FillTreeBranches(helicitypattern);
+              rootfile->FillTree("Hel_Tree");
               // Clear the data
               helicitypattern.ClearEventData();
             }
@@ -273,21 +286,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Read from the datebase
-    if (database.AllowsReadAccess()) {
-
-      // GetRunID(), GetRunletID(), and GetAnalysisID have their own Connect() and Disconnect() functions.
-      UInt_t run_id      = database.GetRunID(eventbuffer);
-      UInt_t runlet_id   = database.GetRunletID(eventbuffer);
-      UInt_t analysis_id = database.GetAnalysisID(eventbuffer);
-
-     //  Write to from the datebase
-     QwMessage << "QwAnalysis.cc::"
-                << " Run Number "  << QwColor(Qw::kBoldMagenta) << eventbuffer.GetRunNumber() << QwColor(Qw::kNormal)
-                << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id << QwColor(Qw::kNormal)
-                << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id << QwColor(Qw::kNormal)
-                << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
-                << QwLog::endl;
-    }
+    database.SetupOneRun(eventbuffer);
 
     // Each sussystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {

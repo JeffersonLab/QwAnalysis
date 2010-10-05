@@ -20,14 +20,8 @@ TClonesArray* QwPartialTrack::gQwTreeLines = 0;
  */
 QwPartialTrack::QwPartialTrack()
 {
-  InitializeTreeLines();
-
-  fOffsetX = 0.0; fOffsetY = 0.0;
-  fSlopeX = 0.0;  fSlopeY = 0.0;
-  fIsVoid = false; fIsUsed = false; fIsGood = false;
-  next = 0;
-  for (int i = 0; i < kNumDirections; i++)
-    tline[i] = 0;
+  // Initialize
+  Initialize();
 }
 
 /**
@@ -37,7 +31,8 @@ QwPartialTrack::QwPartialTrack()
  */
 QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction)
 {
-  InitializeTreeLines();
+  // Initialize
+  Initialize();
 
   // Calculate slopes
   fSlopeX = direction.X() / direction.Z();
@@ -48,13 +43,47 @@ QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction
   fOffsetY = position.Y() - fSlopeY * position.Z();
 }
 
+/**
+ * Copy constructor
+ * \todo TODO (wdc) this copy constructor is horribly incomplete!
+ */
+QwPartialTrack::QwPartialTrack(const QwPartialTrack* partialtrack)
+{
+  // Initialize
+  Initialize();
+
+  // Naive copy
+  *this = *partialtrack;
+}
+
+
+/**
+ * Perform object initialization
+ */
+void QwPartialTrack::Initialize()
+{
+  // Initialize the tree line storage structure
+  InitializeTreeLines();
+
+  // Initialize the member fields
+  fOffsetX = 0.0; fOffsetY = 0.0;
+  fSlopeX = 0.0;  fSlopeY = 0.0;
+  fIsVoid = false; fIsUsed = false; fIsGood = false;
+
+  // Initialize pointers
+  next = 0;
+  bridge = 0;
+  for (int i = 0; i < kNumDirections; i++)
+    tline[i] = 0;
+}
+
 
 /**
  * Determine the chi^2 for a partial track, weighted by the number of hits
  *
  * @return Weighted chi^2
  */
-double QwPartialTrack::GetChiWeight ()
+double QwPartialTrack::GetChiWeight () const
 {
   // Determine the weight if there enough hits
   if (numhits >= nummiss) {
@@ -187,9 +216,9 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
 {
   stream << "pt: ";
   if (pt.GetRegion() != kRegionIDNull)
-    stream << "(" << pt.GetRegion() << "/" << "?UD"[pt.GetPackage()] << ") ";
-  stream << "(x,y) = (" << pt.fOffsetX << ", " << pt.fOffsetY << "), ";
-  stream << "d/dz(x,y) = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
+    stream << "(" << pt.GetRegion() << "/" << "?UD"[pt.GetPackage()] << "); ";
+  stream << "x,y(z=0) = (" << pt.fOffsetX/Qw::cm << " cm, " << pt.fOffsetY/Qw::cm << " cm), ";
+  stream << "d(x,y)/dz = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
   if (pt.fChi > 0.0) { // parttrack has been fitted
     stream << ", chi = " << pt.fChi;
   }
@@ -316,7 +345,7 @@ int QwPartialTrack::DeterminePositionInTriggerScintillators (EQwDetectorPackage 
     triggerhit = 1;
     trig[0]    = trig[0];
     trig[1]    = trig[1];
-    QwVerbose << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << QwLog::endl;
+    QwMessage << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << QwLog::endl;
   } else triggerhit = 0;
 
   return triggerhit;
@@ -375,7 +404,7 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
     uvR3hit[1] = fSlopeY / kz;
     uvR3hit[2] = 1 / kz;
 
-    QwVerbose << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
+    QwMessage << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
               << "direction ("<<uvR3hit[0]<<","<<uvR3hit[1]<<","<<uvR3hit[2] << QwLog::endl;
   } else {
     cerenkovhit = 0;

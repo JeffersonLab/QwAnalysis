@@ -574,7 +574,7 @@ void QwComptonPhotonDetector::ConstructBranchAndVector(TTree *tree, TString & pr
  * Fill the tree with data
  * @param values
  */
-void QwComptonPhotonDetector::FillTreeVector(std::vector<Double_t> &values)
+void QwComptonPhotonDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
   for(size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].FillTreeVector(values);

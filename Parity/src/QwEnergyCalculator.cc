@@ -9,37 +9,52 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
-static QwVQWK_Channel  targetbeamangle; 
-static QwVQWK_Channel  targetbeamx; 
+static QwVQWK_Channel  targetbeamangle;
+static QwVQWK_Channel  targetbeamx;
 static QwVQWK_Channel  beamx;
 
-void QwEnergyCalculator::InitializeChannel(TString name,TString datatosave ){
+void QwEnergyCalculator::InitializeChannel(TString name,TString datatosave )
+{
   SetElementName(name);
   fEnergyChange.InitializeChannel(name,datatosave);
   beamx.InitializeChannel("beamx","derived");
   return;
 };
 
-void QwEnergyCalculator::Set(VQwBPM* device, TString type, TString property,Double_t tmatrix_ratio){
+void QwEnergyCalculator::InitializeChannel(TString subsystem, TString name,TString datatosave )
+{
+  SetElementName(name);
+  fEnergyChange.InitializeChannel(subsystem, "QwEnergyCalculator", name,datatosave);
+  beamx.InitializeChannel("beamx","derived");
+  return;
+};
+
+void QwEnergyCalculator::Set(VQwBPM* device, TString type, TString property,Double_t tmatrix_ratio)
+{
+  Bool_t ldebug = kFALSE;
 
   fDevice.push_back(device);
   fProperty.push_back(property);
   fType.push_back(type);
   fTMatrixRatio.push_back(tmatrix_ratio);
+
+  if(ldebug)
+    std::cout<<"QwEnergyCalculator:: Using "<<device->GetElementName()<<" with ratio "<< tmatrix_ratio <<" for "<<property<<std::endl;
+ 
   return;
 };
 
 
 void QwEnergyCalculator::ClearEventData(){
   fEnergyChange.ClearEventData();
-  return; 
+  return;
 }
 
 
 
 void  QwEnergyCalculator::ProcessEvent(){
 
-  Bool_t ldebug = kFALSE;
+  //  Bool_t ldebug = kFALSE;
   Double_t targetbeamangle = 0;
 
   static QwVQWK_Channel tmp;
@@ -87,7 +102,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
 Int_t QwEnergyCalculator::GetEventcutErrorCounters(){
   // report number of events falied due to HW and event cut faliure
   fEnergyChange.GetEventcutErrorCounters();
- 
+
   return 1;
 }
 
@@ -193,14 +208,14 @@ void  QwEnergyCalculator::FillHistograms(){
 void  QwEnergyCalculator::DeleteHistograms(){
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
-  } 
+  }
   else
     fEnergyChange.DeleteHistograms();
   return;
 };
 
 
-void  QwEnergyCalculator::ConstructBranchAndVector(TTree *tree, TString &prefix, 
+void  QwEnergyCalculator::ConstructBranchAndVector(TTree *tree, TString &prefix,
 						   std::vector<Double_t> &values){
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
@@ -222,7 +237,7 @@ void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix){
 };
 
 void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist){
-  
+
   TString devicename;
   devicename=GetElementName();
   devicename.ToLower();
@@ -237,11 +252,12 @@ void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix, QwParame
   return;
 };
 
-void  QwEnergyCalculator::FillTreeVector(std::vector<Double_t> &values){
+void  QwEnergyCalculator::FillTreeVector(std::vector<Double_t> &values) const
+{
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
-  } 
-  else 
+  }
+  else
     fEnergyChange.FillTreeVector(values);
   return;
 };

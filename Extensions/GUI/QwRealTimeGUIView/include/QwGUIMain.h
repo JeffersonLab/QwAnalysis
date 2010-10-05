@@ -7,6 +7,7 @@
 
    \file QwGUIMain.h
    \author Michael Gericke
+   \author Rakitha Beminiwattha
 
 */
 //=============================================================================
@@ -89,6 +90,7 @@
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
 #include "QwGUICorrelationPlots.h"
+#include "QwGUIHallCBeamline.h"
 
 
 #ifndef __CINT__
@@ -114,6 +116,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUIInjector          *InjectorSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
   QwGUICorrelationPlots  *CorrelationSubSystem;
+  QwGUIHallCBeamline     *HallCBeamlineSubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;
 
@@ -152,6 +155,11 @@ class QwGUIMain : public TGMainFrame {
 
   //!Command line argument structure (not currently implemented)
   ClineArgs               dClArgs;
+  Char_t                  dDetMapFile[NAME_STR_MAX];
+  TString                 dInjectorChannelMap;
+  TString                 dHallCChannelMap;
+  TString                 dMDChannelMap;
+  TString                 dLumiChannelMap;
 
   //!ROOT file data container a wrapper class for many common file types
   RDataContainer         *dROOTFile;
@@ -424,6 +432,11 @@ class QwGUIMain : public TGMainFrame {
 
   //!Not yet implemented.
   Int_t                   WriteRootData();
+
+  //!Parameters:mapfile name
+  //!
+  //!Return value: none
+  void                   LoadChannelMapFiles(TString detfile);
 
  public:
   QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h);

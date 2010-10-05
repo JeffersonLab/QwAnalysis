@@ -270,6 +270,30 @@ void QwParameterFile::TrimWhitespace(std::string &token,
   }
 }
 
+void QwParameterFile::TrimWhitespace(TString &tok,
+				     TString::EStripType head_tail){
+  //  If the first bit is set, this routine removes leading spaces from the
+  //  line.  If the second bit is set, this routine removes trailing spaces
+  //  from the line.  The default behavior is to remove both.
+  std::string token;
+  token=tok.Data();
+  std::string   ws = " \t";
+  size_t mypos;
+  //  Remove leading spaces.  If this first test returns "npos", it means
+  //  this line is all whitespace, so get rid of it all.
+  //  If we're not removing leading spaces, lines which are all spaces
+  //  will not be removed.
+  mypos = token.find_first_not_of(ws);
+  if (head_tail & TString::kLeading) token.erase(0,mypos);
+  //  Remove trailing spaces
+  mypos = token.find_last_not_of(ws);
+  mypos = token.find_first_of(ws,mypos);
+  if (mypos != std::string::npos && (head_tail & TString::kTrailing)){
+    token.erase(mypos);
+  }
+  tok=token;
+}
+
 void QwParameterFile::TrimComment(char commentchar){
   //  Remove everything after the comment character
   size_t mypos = fLine.find_first_of(commentchar);
@@ -361,7 +385,7 @@ Bool_t QwParameterFile::LineHasSectionHeader(TString& secname)
     size_t equiv_pos2 = fLine.find_first_of(']',equiv_pos1);
     if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
       secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
-      //TrimWhitespace(secname, TString::kBoth);
+      TrimWhitespace(secname, TString::kBoth);
       status = kTRUE;
     }
   }
@@ -394,7 +418,7 @@ Bool_t QwParameterFile::LineHasModuleHeader(TString& secname)
     size_t equiv_pos2 = fLine.find_first_of('>',equiv_pos1);
     if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
       secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
-      //TrimWhitespace(secname, TString::kBoth);
+      TrimWhitespace(secname, TString::kBoth);
       status = kTRUE;
     }
   }

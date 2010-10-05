@@ -1,0 +1,261 @@
+
+[HallCBeamLine]
+  <QwBCM>
+	hw_sum
+
+  <QwBPMStripline>
+	hw_sum
+
+  <QwBPMCavity>
+	hw_sum
+
+
+  <QwCombinedBPM>
+	hw_sum
+
+
+  <QwCombinedBCM>
+	hw_sum
+
+
+   <QwEnergyCalculator>
+	hw_sum
+
+[Main Detector]
+   <QwIntegrationPMT>
+	hw_sum
+
+   <QwCombinedPMT>
+	hw_sum
+
+[Lumi Detector]
+  <QwIntegrationPMT>
+	hw_sum
+
+
+[BeamMod]
+   <QwBeamMod>
+	hw_sum
+
+
+# below the [DEVICELIST] include all the devices that needs to be in the tree
+
+[DEVICELIST]
+
+
+# Mps Tree  
+
+
+CodaEventNumber
+
+qwk_bpm3c14X
+
+qwk_bpm3c14Y
+qwk_bpm3c16X
+
+qwk_bpm3c16Y
+qwk_bpm3p02bX
+qwk_bpm3p02bY
+qwk_bpm3h02X
+
+qwk_bpm3h02Y
+qwk_bpm3h07bX
+qwk_bpm3h07bY
+qwk_bcm6
+qwk_bcm5
+qwk_bcm2
+qwk_bcm1
+qwk_linephase
+qwk_invert_tstable
+
+sca_bcm1
+sca_bcm2
+sca_bcm17
+sca_unser
+sca_bcm5
+sca_bcm6
+sca_31mhz
+sca_4mhz
+sca_31mhzreturn
+sca_halo3
+sca_halo4
+sca_halo5
+sca_halo6
+sca_halo7
+sca_halo8
+sca_halo9
+sca_halo10
+qwk_average_charge
+qwk_target_EffectiveCharge
+qwk_targetXSlope
+qwk_targetXIntercept
+qwk_targetX
+qwk_targetYSlope
+qwk_targetYIntercept
+qwk_targetY
+qwk_energy
+
+md1neg
+md2neg
+md3neg
+md4neg
+
+pattern_phase
+pattern_number
+mps_counter
+pat_counter
+pat_phase
+cleandata
+scandata1
+scandata2
+
+## Hel Tree  
+mps_counter
+pat_counter
+pat_phase
+cleandata
+scandata1
+scandata2
+
+#diff_qwk_bpm3c07X
+#diff_qwk_bpm3c07Y
+#diff_qwk_bpm3c08X
+#diff_qwk_bpm3c08Y
+#diff_qwk_bpm3c11X
+#diff_qwk_bpm3c11Y
+#diff_qwk_bpm3c12X
+#diff_qwk_bpm3c12Y
+#diff_qwk_bpm3c14X
+#diff_qwk_bpm3c14Y
+#diff_qwk_bpm3c16X
+#diff_qwk_bpm3c16Y
+#diff_qwk_bpm3c17X
+#diff_qwk_bpm3c17Y
+#diff_qwk_bpm3c18X
+#diff_qwk_bpm3c18Y
+#diff_qwk_bpm3c19X
+#diff_qwk_bpm3c19Y
+#diff_qwk_bpm3c07aX
+#diff_qwk_bpm3c07aY
+#diff_qwk_bpm3p02aX
+#diff_qwk_bpm3p02aY
+#diff_qwk_bpm3p02bX
+#diff_qwk_bpm3p02bY
+#diff_qwk_bpm3p03aX
+#diff_qwk_bpm3p03aY
+diff_qwk_bpm3c20X
+diff_qwk_bpm3c20Y
+diff_qwk_bpm3c21X
+diff_qwk_bpm3c21Y
+diff_qwk_bpm3h02X
+diff_qwk_bpm3h02Y
+diff_qwk_bpm3h04aX
+diff_qwk_bpm3h04aY
+diff_qwk_bpm3h07aX
+diff_qwk_bpm3h07aY
+diff_qwk_bpm3h07bX
+diff_qwk_bpm3h07bY
+diff_qwk_bpm3h07cX
+diff_qwk_bpm3h07cY
+diff_qwk_bpm3h08X
+diff_qwk_bpm3h08Y
+diff_qwk_bpm3h09X
+diff_qwk_bpm3h09Y
+diff_qwk_bpm3h09aX
+diff_qwk_bpm3h09aY
+asym_qwk_bcm6
+asym_qwk_bcm5
+asym_qwk_bcm2
+asym_qwk_bcm1
+asym_qwk_linephase
+asym_qwk_invert_tstable
+asym_sca_bcm1
+asym_sca_bcm2
+asym_sca_bcm17
+asym_sca_unser
+asym_sca_bcm5
+asym_sca_bcm6
+asym_sca_31mhz
+asym_sca_4mhz
+asym_sca_31mhzreturn
+asym_sca_halo3
+asym_sca_halo4
+asym_sca_halo5
+asym_sca_halo6
+asym_sca_halo7
+asym_sca_halo8
+asym_sca_halo9
+asym_sca_halo10
+asym_qwk_average_charge
+asym_qwk_target_EffectiveCharge
+diff_qwk_targetXSlope
+diff_qwk_targetXIntercept
+diff_qwk_targetX
+diff_qwk_targetYSlope
+diff_qwk_targetYIntercept
+diff_qwk_targetY
+asym_qwk_energy
+asym_md1neg
+asym_md2neg
+asym_md3neg
+asym_md4neg
+asym_md5neg
+asym_md6neg
+asym_md7neg
+asym_md8neg
+asym_md1pos
+asym_md2pos
+asym_md3pos
+asym_md4pos
+asym_md5pos
+asym_md6pos
+asym_md7pos
+asym_md8pos
+asym_pmtled
+asym_pmtonl
+asym_pmtltg
+asym_md9neg
+asym_md9pos
+asym_isourc
+asym_preamp
+asym_cagesr
+asym_md1neg_md5neg
+asym_md2neg_md6neg
+asym_md3neg_md7neg
+asym_md4neg_md8neg
+asym_md1pos_md5pos
+asym_md2pos_md6pos
+asym_md3pos_md7pos
+asym_md4pos_md8pos
+asym_combinationallmd
+asym_qwk_uslumi1neg
+asym_qwk_uslumi1pos
+asym_qwk_uslumi3neg
+asym_qwk_uslumi3pos
+asym_qwk_uslumi5neg
+asym_qwk_uslumi5pos
+asym_qwk_uslumi7neg
+asym_qwk_uslumi7pos
+asym_qwk_dslumi1
+asym_qwk_dslumi2
+asym_qwk_dslumi3
+asym_qwk_dslumi4
+asym_qwk_dslumi5
+asym_qwk_dslumi6
+asym_qwk_dslumi7
+asym_qwk_dslumi8
+asym_sca_uslumi7pos
+asym_sca_uslumi7neg
+asym_sca_uslumi5pos
+asym_sca_uslumi5neg
+asym_sca_uslumi3pos
+asym_sca_uslumi3neg
+asym_sca_uslumi1pos
+asym_sca_uslumi1neg
+asym_sca_dslumi8
+asym_sca_dslumi7
+asym_sca_dslumi6
+asym_sca_dslumi5
+asym_sca_dslumi4
+asym_sca_dslumi3
+asym_sca_dslumi2

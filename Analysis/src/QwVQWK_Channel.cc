@@ -6,8 +6,8 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwUnits.h"
-#include "QwHistogramHelper.h"
 #include "QwBlinder.h"
+#include "QwHistogramHelper.h"
 
 
 const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
@@ -226,6 +226,15 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
 }
 
 /********************************************************/
+
+void QwVQWK_Channel::InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave){
+  InitializeChannel(name,datatosave);
+  SetSubsystemName(subsystem);
+  SetModuleType(instrumenttype);
+  //PrintInfo();
+};
+
+/********************************************************/
 Int_t QwVQWK_Channel::GetEventcutErrorCounters()
 {// report number of events failed due to HW and event cut failure
   ReportErrorCounters();//print the summary
@@ -329,6 +338,9 @@ void QwVQWK_Channel::SetRandomEventAsymmetry(Double_t asymmetry)
   return;
 };
 
+// SetEventData() is used by the mock data generator to turn "model"
+// data values into their equivalent raw data.  It should be used
+// nowhere else.  -- pking, 2010-09-16
 void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fHardwareBlockSum = 0.0;
@@ -354,81 +366,6 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
   fSoftwareBlockSum_raw = fHardwareBlockSum_raw;
 
   return;
-};
-
-
-Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
-{
-  UInt_t words_read = 0;
-  UInt_t localbuf[kWordsPerChannel] = {0};
-  // The conversion from UInt_t to Double_t discards the sign, so we need an intermediate
-  // static_cast from UInt_t to Int_t.
-  Int_t localbuf_signed[kWordsPerChannel] = {0};
-
-  if (IsNameEmpty()){
-    //  This channel is not used, but is present in the data stream.
-    //  Skip over this data.
-    words_read = fNumberOfDataWords;
-  } else if (num_words_left >= fNumberOfDataWords)
-    {
-      for (Short_t i=0; i<kWordsPerChannel; i++){
-	localbuf[i] = buffer[i];
-        localbuf_signed[i] = static_cast<Int_t>(localbuf[i]);
-      }
-
-      fSoftwareBlockSum_raw = 0.0;
-      for (Short_t i=0; i<fBlocksPerEvent; i++){
-	fBlock_raw[i] = Double_t(localbuf_signed[i]);
-	fSoftwareBlockSum_raw += fBlock_raw[i];
-      }
-      fHardwareBlockSum_raw = Double_t(localbuf_signed[4]);
-
-      /*  Permanent change in the structure of the 6th word of the ADC readout.
-       *  The upper 16 bits are the number of samples, and the upper 8 of the
-       *  lower 16 are the sequence number.  This matches the structure of
-       *  the ADC readout in block read mode, and now also in register read mode.
-       *  P.King, 2007sep04.
-       */
-      fSequenceNumber   = (localbuf[5]>>8)  & 0xFF;
-      fNumberOfSamples  = (localbuf[5]>>16) & 0xFFFF;
-
-      words_read = fNumberOfDataWords;
-
-      if (kDEBUG && GetElementName()=="SCAN_POW") {
-
-        for (Short_t i=0; i<(kWordsPerChannel-1); i++){
-	  std::cout<<"  hex("<<std::hex<<localbuf[i]<<") dec("<<std::dec<<Double_t(localbuf_signed[i])<<") ";
-        }
-
-        Double_t average = 0.0;
-	average = Double_t(localbuf[4])/fNumberOfSamples;
-//         std::cout<<std::endl<<" SoftwareBlockSum_raw="<<fSoftwareBlockSum_raw
-//                  <<"  NumberOfSamples="<<fNumberOfSamples
-//                  <<"  average="<<average
-//                  <<"  avg_voltage="<< kVQWK_VoltsPerBit*average<<std::endl;
-      }
-
-
-      if (kDEBUG && GetElementName()=="MD1Pos")
-	{
-	  //    if (num_words_left == 6){
-	  std::cout << std::hex
-		    << buffer[0] << " " << buffer[1] << " "
-		    << buffer[2] << " " << buffer[3] << " "
-		    << buffer[4] << " " << buffer[5] << " --- "
-		    << std::dec
-		    << fBlock_raw[0] << " " << fBlock_raw[1] << " "
-		    << fBlock_raw[2] << " " << fBlock_raw[3] << " "
-		    << fSoftwareBlockSum_raw << " " << fHardwareBlockSum_raw
-		    << " " << fSequenceNumber << " " << fNumberOfSamples
-		    << std::endl;
-	}
-    } else
-      {
-	std::cerr << "QwVQWK_Channel::ProcessEvBuffer: Not enough words!"
-		  << std::endl;
-      }
-  return words_read;
 };
 
 void QwVQWK_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -457,23 +394,78 @@ void QwVQWK_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 };
 
 
+
+Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
+{
+  UInt_t words_read = 0;
+  UInt_t localbuf[kWordsPerChannel] = {0};
+  // The conversion from UInt_t to Double_t discards the sign, so we need an intermediate
+  // static_cast from UInt_t to Int_t.
+  Int_t localbuf_signed[kWordsPerChannel] = {0};
+
+  if (IsNameEmpty()){
+    //  This channel is not used, but is present in the data stream.
+    //  Skip over this data.
+    words_read = fNumberOfDataWords;
+  } else if (num_words_left >= fNumberOfDataWords)
+    {
+      for (Short_t i=0; i<kWordsPerChannel; i++){
+	localbuf[i] = buffer[i];
+        localbuf_signed[i] = static_cast<Int_t>(localbuf[i]);
+      }
+
+      fSoftwareBlockSum_raw = 0;
+      for (Short_t i=0; i<fBlocksPerEvent; i++){
+	fBlock_raw[i] = localbuf_signed[i];
+	fSoftwareBlockSum_raw += fBlock_raw[i];
+      }
+      fHardwareBlockSum_raw = localbuf_signed[4];
+
+      /*  Permanent change in the structure of the 6th word of the ADC readout.
+       *  The upper 16 bits are the number of samples, and the upper 8 of the
+       *  lower 16 are the sequence number.  This matches the structure of
+       *  the ADC readout in block read mode, and now also in register read mode.
+       *  P.King, 2007sep04.
+       */
+      fSequenceNumber   = (localbuf[5]>>8)  & 0xFF;
+      fNumberOfSamples  = (localbuf[5]>>16) & 0xFFFF;
+
+      words_read = fNumberOfDataWords;
+
+      if (kDEBUG && GetElementName()=="MD1Pos")
+	{
+	  //    if (num_words_left == 6){
+	  std::cout << std::hex
+		    << buffer[0] << " " << buffer[1] << " "
+		    << buffer[2] << " " << buffer[3] << " "
+		    << buffer[4] << " " << buffer[5] << " --- "
+		    << std::dec
+		    << fBlock_raw[0] << " " << fBlock_raw[1] << " "
+		    << fBlock_raw[2] << " " << fBlock_raw[3] << " "
+		    << fSoftwareBlockSum_raw << " " << fHardwareBlockSum_raw
+		    << " " << fSequenceNumber << " " << fNumberOfSamples
+		    << std::endl;
+	}
+    } else
+      {
+	std::cerr << "QwVQWK_Channel::ProcessEvBuffer: Not enough words!"
+		  << std::endl;
+      }
+  return words_read;
+};
+
+
+
 void QwVQWK_Channel::ProcessEvent()
 {
-  Double_t thispedestal = 0.0;
-  thispedestal = fPedestal * fNumberOfSamples;
-
-  for (Short_t i = 0; i < fBlocksPerEvent; i++)
-    {
-      fBlock[i] = fCalibrationFactor * (fBlock_raw[i] - thispedestal / (fBlocksPerEvent*1.0));
-      fBlockM2[i] = 0.0; // second moment is zero for single events
-    }
-
-  fHardwareBlockSum = fCalibrationFactor *  ( fHardwareBlockSum_raw - thispedestal );
+  for (Short_t i = 0; i < fBlocksPerEvent; i++) {
+    fBlock[i] = fCalibrationFactor * ( (1.0 * fBlock_raw[i] * fBlocksPerEvent / fNumberOfSamples) - fPedestal );
+    fBlockM2[i] = 0.0; // second moment is zero for single events
+  }
+  fHardwareBlockSum = fCalibrationFactor * ( (1.0 * fHardwareBlockSum_raw / fNumberOfSamples) - fPedestal );
   fHardwareBlockSumM2 = 0.0; // second moment is zero for single events
-
-//   if(GetElementName().Contains("md"))
-//     printf("Detector %s signal =  %1.4e\n",this->GetElementName().Data(),fHardwareBlockSum);
-
+  //   if(GetElementName().Contains("md"))
+  //     printf("Detector %s signal =  %1.4e\n",this->GetElementName().Data(),fHardwareBlockSum);
   return;
 };
 
@@ -489,6 +481,8 @@ Double_t QwVQWK_Channel::GetAverageVolts() const
 void QwVQWK_Channel::PrintInfo() const
 {
   std::cout<<"***************************************"<<"\n";
+  std::cout<<"Subsystem "<<GetSubsystemName()<<"\n"<<"\n";
+  std::cout<<"Beam Instrument Type: "<<GetModuleType()<<"\n"<<"\n";
   std::cout<<"QwVQWK channel: "<<GetElementName()<<"\n"<<"\n";
   std::cout<<"fPedestal= "<< fPedestal<<"\n";
   std::cout<<"fCalibrationFactor= "<<fCalibrationFactor<<"\n";
@@ -509,6 +503,7 @@ void QwVQWK_Channel::PrintInfo() const
 
   std::cout << "fHardwareBlockSum = "<<fHardwareBlockSum << std::endl;
   std::cout << "fHardwareBlockSumM2 = "<<fHardwareBlockSumM2 << std::endl;
+  std::cout << "fHardwareBlockSumError = "<<fHardwareBlockSumError << std::endl;
 
   return;
 };
@@ -622,45 +617,87 @@ void  QwVQWK_Channel::DeleteHistograms()
 
 void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
+
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
   } else {
     TString basename = prefix + GetElementName();
     fTreeArrayIndex  = values.size();
 
-    values.push_back(0.0);
-    TString list = "hw_sum/D";
-    values.push_back(0.0);
-    list += ":block0/D";
-    values.push_back(0.0);
-    list += ":block1/D";
-    values.push_back(0.0);
-    list += ":block2/D";
-    values.push_back(0.0);
-    list += ":block3/D";
-    values.push_back(0.0);
-    list += ":num_samples/D";
-    values.push_back(0.0);
-    list += ":Device_Error_Code/D";
+    TString list="";
+
+    bHw_sum=gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "hw_sum");
+    bHw_sum_raw=gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "hw_sum_raw");
+    bBlock=gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "block");
+    bBlock_raw=gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "block_raw");
+    bNum_samples=gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "num_samples");
+    bDevice_Error_Code=gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "Device_Error_Code");
+    bSequence_number=gQwHists.MatchVQWKElementFromList(GetSubsystemName().Data(), GetModuleType().Data(), "sequence_number");
+
+    if (bHw_sum){
+      values.push_back(0.0);
+      list += "hw_sum/D";
+    }
+    if (bBlock){
+      values.push_back(0.0);
+      list += ":block0/D";
+
+      values.push_back(0.0);
+      list += ":block1/D";
+
+      values.push_back(0.0);
+      list += ":block2/D";
+
+      values.push_back(0.0);
+      list += ":block3/D";
+    }
+
+    if (bNum_samples){
+      values.push_back(0.0);
+      list += ":num_samples/D";
+    }
+
+    if (bDevice_Error_Code){
+      values.push_back(0.0);
+      list += ":Device_Error_Code/D";
+    }
+
     if(fDataToSave==kRaw)
       {
-	values.push_back(0.0);
-	list += ":hw_sum_raw/D";
-	values.push_back(0.0);
-	list += ":block0_raw/D";
-	values.push_back(0.0);
-	list += ":block1_raw/D";
-	values.push_back(0.0);
-	list += ":block2_raw/D";
-	values.push_back(0.0);
-	list += ":block3_raw/D";
-	values.push_back(0.0);
-	list += ":sequence_number/D";
+	if (bHw_sum_raw){
+	  values.push_back(0.0);
+	  list += ":hw_sum_raw/D";
+	}
+	if (bBlock_raw){
+	  values.push_back(0.0);
+	  list += ":block0_raw/D";
+
+	  values.push_back(0.0);
+	  list += ":block1_raw/D";
+
+	  values.push_back(0.0);
+	  list += ":block2_raw/D";
+
+	  values.push_back(0.0);
+	  list += ":block3_raw/D";
+	}
+	if (bSequence_number){
+	  values.push_back(0.0);
+	  list += ":sequence_number/D";
+	}
       }
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-    if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
+ 
+    if (gQwHists.MatchDeviceParamsFromList(basename.Data()) && (bHw_sum || bBlock || bNum_samples || bDevice_Error_Code || bHw_sum_raw || bBlock_raw || bSequence_number)){
+
+      if (list=="hw_sum/D")//this is for the RT mode
+	list=basename+"/D";	
+      
+      if (kDEBUG)
+	QwMessage <<"base name "<<basename<<" List "<<list<<  QwLog::endl;
       tree->Branch(basename, &(values[fTreeArrayIndex]), list);
+    }
 
     if (kDEBUG){
       std::cerr << "QwVQWK_Channel::ConstructBranchAndVector: fTreeArrayIndex==" << fTreeArrayIndex
@@ -670,6 +707,7 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 		<< std::endl;
     }
   }
+  //exit(1);
   return;
 };
 
@@ -690,7 +728,7 @@ void  QwVQWK_Channel::ConstructBranch(TTree *tree, TString &prefix)
 };
 
 
-void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
+void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip filling the tree vector.
@@ -705,20 +743,41 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values)
 	      << std::endl;
   } else {
     UInt_t index=fTreeArrayIndex;
-    values[index++] = this->GetHardwareSum();
-    for (Short_t i=0; i<fBlocksPerEvent; i++){
-      values[index++] = this->GetBlockValue(i);
-    }
-    values[index++] = this->fNumberOfSamples;
+    //hw_sum
+    if (bHw_sum)
+      values[index++] = this->GetHardwareSum();
 
-    values[index++] = this->fDeviceErrorCode;
+    if (bBlock){
+      for (Short_t i=0; i<fBlocksPerEvent; i++){
+	//blocki
+	values[index++] = this->GetBlockValue(i);
+      }
+    }
+
+    //num_samples
+    if (bNum_samples)
+      values[index++] = this->fNumberOfSamples;
+
+    //Device_Error_Code
+    if (bDevice_Error_Code)
+      values[index++] = this->fDeviceErrorCode;
+
     if(fDataToSave==kRaw)
       {
-	values[index++] = this->GetRawHardwareSum();
-	for (Short_t i=0; i<fBlocksPerEvent; i++){
-	  values[index++] = this->GetRawBlockValue(i);
+	//hw_sum_raw
+	if (bHw_sum_raw)
+	  values[index++] = this->GetRawHardwareSum();
+
+	if (bBlock_raw){
+	  for (Short_t i=0; i<fBlocksPerEvent; i++){
+	    //blocki_raw
+	    values[index++] = this->GetRawBlockValue(i);
+	  }
 	}
-	values[index++]=this->fSequenceNumber;
+
+	//sequence_number
+	if (bSequence_number)
+	  values[index++]=this->fSequenceNumber;
       }
   }
   //if (kDEBUG && GetElementName()=="bar1right"){
@@ -753,6 +812,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
       this->fSoftwareBlockSum_raw = value.fSoftwareBlockSum_raw;
       this->fHardwareBlockSum = value.fHardwareBlockSum;
       this->fHardwareBlockSumM2 = value.fHardwareBlockSumM2;
+      this->fHardwareBlockSumError = value.fHardwareBlockSumError;
       this->fNumberOfSamples = value.fNumberOfSamples;
       this->fSequenceNumber  = value.fSequenceNumber;
       this->fDeviceErrorCode = (value.fDeviceErrorCode);//error code is updated.
@@ -934,12 +994,15 @@ void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
   return;
 };
 
+/**
+This function will add a offset to the hw_sum and add offset/fBlocksPerEvent for blocks.
+ */
 void QwVQWK_Channel::AddChannelOffset(Double_t offset)
 {
   Double_t blockoffset = offset / fBlocksPerEvent;
 
   if (!IsNameEmpty()){
-      fHardwareBlockSum += fBlocksPerEvent*offset;
+      fHardwareBlockSum += offset;
       for (Short_t i=0; i<fBlocksPerEvent; i++) fBlock[i] += blockoffset;
   }
   return;
@@ -1089,6 +1152,8 @@ void QwVQWK_Channel::CalculateRunningAverage()
 void QwVQWK_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
+            << std::setw(18) << std::left << GetSubsystemName()      << " "
+            << std::setw(18) << std::left << GetModuleType()      << " "
             << std::setw(18) << std::left << GetElementName()      << " "
             << std::setw(12) << std::left << GetHardwareSum()      << "+/- "
             << std::setw(12) << std::left << GetHardwareSumError() << " "
@@ -1117,9 +1182,15 @@ std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel)
 void QwVQWK_Channel::Blind(const QwBlinder *blinder)
 {
   if (!IsNameEmpty()) {
-    for (Short_t i = 0; i < fBlocksPerEvent; i++)
-      blinder->BlindValue(fBlock[i]);
-    blinder->BlindValue(fHardwareBlockSum);
+    if (blinder->IsBlinderOkay() && fDeviceErrorCode==0){
+      for (Short_t i = 0; i < fBlocksPerEvent; i++)
+	blinder->BlindValue(fBlock[i]);
+      blinder->BlindValue(fHardwareBlockSum);
+    } else {
+      blinder->ModifyThisErrorCode(fDeviceErrorCode);
+      for (Short_t i = 0; i < fBlocksPerEvent; i++)  fBlock[i] = 0.0;
+      fHardwareBlockSum = 0.0;
+    }
   }
   return;
 };
@@ -1132,9 +1203,15 @@ void QwVQWK_Channel::Blind(const QwBlinder *blinder)
 void QwVQWK_Channel::Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield)
 {
   if (!IsNameEmpty()) {
-    for (Short_t i = 0; i < fBlocksPerEvent; i++)
-      blinder->BlindValue(fBlock[i], yield.fBlock[i]);
-    blinder->BlindValue(fHardwareBlockSum, yield.fHardwareBlockSum);
+    if (blinder->IsBlinderOkay() && fDeviceErrorCode==0){
+      for (Short_t i = 0; i < fBlocksPerEvent; i++)
+	blinder->BlindValue(fBlock[i], yield.fBlock[i]);
+      blinder->BlindValue(fHardwareBlockSum, yield.fHardwareBlockSum);
+    } else {
+      blinder->ModifyThisErrorCode(fDeviceErrorCode);
+      for (Short_t i = 0; i < fBlocksPerEvent; i++)  fBlock[i] = 0.0;
+      fHardwareBlockSum = 0.0;
+    }
   }
   return;
 };
@@ -1233,6 +1310,8 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
      if(typeid(*source)==typeid(*this))
        {
 	 QwVQWK_Channel* input=((QwVQWK_Channel*)source);
+	 this->fSubsystemName         = input->fSubsystemName;
+	 this->fModuleType            = input->fModuleType;
 	 this->fElementName           = input->fElementName;
 	 this->fPedestal              = input->GetPedestal();
 	 this->fCalibrationFactor     = input->GetCalibrationFactor();

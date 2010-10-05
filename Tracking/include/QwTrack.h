@@ -35,8 +35,17 @@ class QwTrack: public VQwTrackingElement {
 
   public:
 
+    /// Default constructor
     QwTrack();
+    /// Copy constructor by reference
+    QwTrack(const QwTrack& orig);
+    /// Copy constructor from pointer
+    QwTrack(const QwTrack* orig) { *this = *orig; };
+    /// Virtual destructor
     virtual ~QwTrack();
+
+    /// Initialization
+    void Initialize();
 
     bool IsUsed() { return isused; };
 

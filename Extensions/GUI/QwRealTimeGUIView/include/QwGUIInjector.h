@@ -7,7 +7,7 @@
  
    \file QwGUIInjector.h
    \author Michael Gericke
-   \author Buddhini Waidyawansa
+   \author Rakitha Beminiwattha
      
 */
 //=============================================================================
@@ -32,8 +32,7 @@ Added by Buddhini to display the injector beamline data.
  */
 //=============================================================================
 
-#define INJECTOR_DEV_NUM          22        
-#define INJECTOR_DET_TRE_NUM      2
+#define INJECTOR_DET_TYPES        6
 #define NUM_POS 2
 ///
 /// \ingroup QwGUIInjector
@@ -73,6 +72,8 @@ class QwGUIInjector : public QwGUISubSystem {
   
   TGHorizontalFrame   *dTabFrame;
   TGVerticalFrame     *dControlsFrame;
+  TGVerticalFrame     *dInjectorBCMFrame; //Injector bcm access frame
+  TGVerticalFrame     *dInjectorSCALERFrame; //Injector scaler access frame
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
@@ -81,11 +82,13 @@ class QwGUIInjector : public QwGUISubSystem {
   TGTextButton        *dButtonPos;
   TGTextButton        *dButtonCharge;
   TGTextButton        *dButtonPosVariation;
+  TGTextButton        *dButtonInjectorSCALER;
+  TGTextButton        *dButtonMeanPos;
 
-  //memory mapped ROOT file
-  TMapFile            *fMapFile; 
+  TGComboBox          *dComboBoxInjectorBCM;
+  TGComboBox          *dComboBoxInjectorSCALER;
 
-  //!An object array to store histogram pointers -- good for use in cleanup.
+   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
   
   //!An object array to store data window pointers -- good for use in cleanup.
@@ -93,10 +96,7 @@ class QwGUIInjector : public QwGUISubSystem {
 
 
   TH1F *PosVariation[2] ;
-/*   TGraphErrors *gx; */
-/*   TGraphErrors *gy; */
 
-  TString mapfile;
 
   
 
@@ -123,7 +123,45 @@ class QwGUIInjector : public QwGUISubSystem {
   //!
   //!Return value: none 
   void PlotChargeAsym();
+
+  //!This function Draws scaler yield/asym  histograms/plots from the Memory map file. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotSCALER();
+
+  //!This function Sets the combo index/combo element index
+  //!
+  //!Parameters:
+  //! - combo box id 
+  //! - combo box element id
+  //!Return value: none 
+  void SetComboIndex(Short_t cmb_id, Short_t id);
+
+  //!This function loads list of bcms available in the injector. 
+  //!based on the map file read by LoadChannelMap routine
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void LoadInjectorBCMCombo();
   
+  //!This function loads list of scalers available in the injector. 
+  //!based on the map file read by LoadChannelMap routine
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void LoadInjectorSCALERCombo();
+
+   //!This function plots the mean BPM X/Y positions 
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void PlotBPMPositions();
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -136,18 +174,13 @@ class QwGUIInjector : public QwGUISubSystem {
   void                 ClearData();
 
   
-  //!This function  loads the histogram names from a definition file
-  //!Parameters:
-  //! - Histogram names map file name
-  //!
-  //!Return value: none  
-  void                 LoadHistoMapFile(TString mapfile);
+  
 
-  //!An array that stores the ROOT names of the histograms that I chose to display for now.
-  //!These are the names by which the histograms are identified within the root file.
 
-  static const char   *InjectorDevices[INJECTOR_DEV_NUM];
-  static const char   *InjectorTrees[INJECTOR_DET_TRE_NUM];
+  
+  std::vector<std::vector<TString> > fInjectorDevices; //2D vector since we have seral types of device - VQWK, SCALAR and COMBINED
+  Short_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
+  Short_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
  protected:
 
@@ -169,6 +202,12 @@ class QwGUIInjector : public QwGUISubSystem {
 		    const char *objName, const char *mainname, UInt_t w, UInt_t h);
   ~QwGUIInjector();
 
+  //!This function  loads the histogram names from a definition file
+  //!Parameters:
+  //! - Histogram names map file name
+  //!
+  //!Return value: none  
+  void                 LoadHistoMapFile(TString mapfile);
 
   //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
   //!four histograms from the ROOT file that is contained within the data container makes copies of

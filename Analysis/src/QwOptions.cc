@@ -7,6 +7,7 @@
  */
 
 #include "QwOptions.h"
+#include "QwRootFile.h"
 #include "QwParameterFile.h"
 
 // System headers
@@ -62,6 +63,8 @@ void QwOptions::DefineOptions(QwOptions& options)
   QwEventBuffer::DefineOptions(options);
   // Define database options
   QwDatabase::DefineOptions(options);
+  // Define ROOT file options
+  QwRootFile::DefineOptions(options);
   // Define subsystem array options
   QwSubsystemArray::DefineOptions(options);
 }

@@ -83,7 +83,9 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
     void  DeleteTree();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-    void  FillTreeVector(std::vector<Double_t> &values);
+    void  ConstructBranch(TTree *tree, TString& prefix) { };
+    void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
+    void  FillTreeVector(std::vector<Double_t> &values) const;
 
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();

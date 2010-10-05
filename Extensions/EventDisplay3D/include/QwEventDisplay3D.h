@@ -2,7 +2,8 @@
 #define QWEVENTDISPLAY3D_H
 
 // The QWeak Event Display in 3D based on the ROOT Event Display Framework.
-// author: Juan Carlos Cornejo, The College of William & Mary, email: cornejo@jlab.org
+// authors: Juan Carlos Cornejo, The College of William & Mary, cornejo@jlab.org
+//          Zach Addison, MIT, zaddison@mit.edu (Region II display)
 
 // Standard Libraries
 #include <stdlib.h>
@@ -35,6 +36,8 @@
 #include <TEveVSDStructs.h>
 #include <TEveTrackPropagator.h>
 #include <TEveStraightLineSet.h>
+#include <TEveQuadSet.h>
+#include <TEveQuadSetGL.h>
 
 
 // ROOT GUI includes
@@ -56,6 +59,8 @@
 #include <QwHitRootContainer.h>
 #include <QwEvent.h>
 #include <QwLog.h>
+#include <QwPartialTrack.h>
+#include <QwTrackingTreeLine.h>
 
 class QwEventDisplay3D : public TGMainFrame {
 RQ_OBJECT("QwEventDisplay3D")
@@ -105,8 +110,8 @@ private:
   Double_t fVDC_WireZProjectedSpacing;     // in cm
   Double_t fVDC_XLength;          // Length in X of VDC in cm
   Double_t fVDC_YLength;          // Length in Y of VDC in cm
-  Double_t fVDC_PlaneZPos[4];     // Z-position of plane in cm wrt to origin
-  Double_t fVDC_PlaneYPos[4];     // Y-position of plane in cm wrt to origin
+  Double_t fVDC_PlaneZPos[2][4];     // Z-position of plane in cm wrt to origin
+  Double_t fVDC_PlaneYPos[2][4];     // Y-position of plane in cm wrt to origin
   Double_t fVDC_SinAngleWires;    // sin(fVDC_AngleOfWires)
   Double_t fVDC_CosAngleWires;    // cos(fVDC_AngleOfWires)
   Double_t fVDC_TanAngleWires;    // tan(fVDC_AngleOfWires)
@@ -127,6 +132,10 @@ private:
   Double_t fHDC_CosAngleWires[2];    // cos(fHDC_AngleOfWires[plane#])
   Double_t fHDC_XAsymetry;          // fHDC_XLength-16*fHDC_WireXSpacing[1]-----Just a guess
   Double_t fHDC_YAsymetry;          // 4/3*fHDC_XAsymetry-----Just a guess 
+
+  // Rotation of the whole tracking system about the z axis
+  Double_t fDetectorPhi;
+  Double_t fPackageAngle;
 
   // GUI elements
   TGLabel *fRegion1Label;
@@ -182,6 +191,10 @@ private:
   Bool_t fShowTrigger;
   Bool_t fShowCerenkov;
 
+  // Various other flags
+  Bool_t fDrawTreeLines;
+  Bool_t fDrawTracks;
+
   // Color elements
   Pixel_t   fGreen;
   Pixel_t   fRed;
@@ -211,11 +224,15 @@ private:
   void DisplayWire(Int_t wire, Int_t plane,Int_t package, Int_t region, TString message="");
   void UpdateButtonState(TGTextButton *button, const char* text, Bool_t *state);
   void SetVisibility(const char* volname, Bool_t status);
+  Double_t RotateXonZ(Double_t x, Double_t y, Double_t angle);
+  Double_t RotateYonZ(Double_t x, Double_t y, Double_t angle);
+
 public:
    QwEventDisplay3D( const TGWindow *window, UInt_t width, UInt_t height  );
    ~QwEventDisplay3D();
    void Init();
    void RedrawViews(Bool_t det = kTRUE, Bool_t tracks = kFALSE);
+   void SetRotation(Double_t phi);
 
    // SLOTS
    /**

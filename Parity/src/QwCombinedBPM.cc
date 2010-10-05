@@ -47,6 +47,42 @@ void  QwCombinedBPM::InitializeChannel(TString name)
   return;
 };
 
+void  QwCombinedBPM::InitializeChannel(TString subsystem, TString name)
+{
+
+  VQwBPM::InitializeChannel(name);
+
+  fEffectiveCharge.InitializeChannel(subsystem, "QwCombinedBPM", name+"_EffectiveCharge","derived");
+
+  for( Short_t i=0;i<2;i++){
+    fAbsPos[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i],"derived");
+    fSlope[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i]+"Slope","derived");
+    fIntercept[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i]+"Intercept","derived");
+  }
+
+  fixedParamCalculated = false;
+
+  fElement.clear();
+  fQWeights.clear();
+  fXWeights.clear();
+  fYWeights.clear();
+
+  fSumQweights = 0.0;
+
+  for(Short_t i=0;i<2;i++){
+    erra[i]       = 0.0;
+    errb[i]       = 0.0;
+    covab[i]      = 0.0;
+    A[i]          = 0.0;
+    B[i]          = 0.0;
+    D[i]          = 0.0;
+    m[i]          = 0.0;
+    chi_square[i] = 0.0;
+  }
+
+  return;
+};
+
 
 void QwCombinedBPM::ClearEventData()
 {
@@ -212,17 +248,6 @@ void  QwCombinedBPM::ProcessEvent()
 
   static QwVQWK_Channel  tmpQADC("tmpQADC"), tmpADC("tmpADC");
 
-
-  // check to see if there are correct number of elements to perform least squares fit on.
-  // For a linear fit the number of points should be greater than 2.
-  // If not stop the process.
-
-//   if(fElement.size()<2)
-//     {
-//       QwWarning<<" QwCombinedBPM:: Process event can't carry out the linear least square fit with o 2 points!"
-// 	       <<QwLog::endl;
-//       abort();
-//     }
 
   //check to see if the fixed parameters are calculated
   if(!fixedParamCalculated){
@@ -518,10 +543,11 @@ void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   if (GetElementName()!=""){
+    //    The slope, intercept and absolute positions should all be differences, not asymmetries.
     for(Short_t i=0;i<2;i++) {
-      this->fSlope[i].Ratio(numer.fSlope[i], denom.fSlope[i]);
-      this->fIntercept[i].Ratio(numer.fIntercept[i],denom.fIntercept[i]);
-      this->fAbsPos[i].Ratio(numer.fAbsPos[i], denom.fAbsPos[i]);
+      this->fSlope[i]     = numer.fSlope[i];
+      this->fIntercept[i] = numer.fIntercept[i];
+      this->fAbsPos[i]    = numer.fAbsPos[i];
     }
   }
 
@@ -581,7 +607,7 @@ void  QwCombinedBPM::ConstructHistograms(TDirectory *folder, TString &prefix)
     for(Short_t i=0;i<2;i++) {
 	fSlope[i].ConstructHistograms(folder, thisprefix);
 	fIntercept[i].ConstructHistograms(folder, thisprefix);
-	fAbsPos[i].ConstructHistograms(folder, prefix);
+	fAbsPos[i].ConstructHistograms(folder, thisprefix);
     }
 
   }
@@ -628,6 +654,7 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
     //  This channel is not used, so skip constructing trees.
   } else
     {
+
       TString thisprefix=prefix;
       if(prefix=="asym_")
 	thisprefix="diff_";
@@ -635,7 +662,6 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
       SetRootSaveStatus(prefix);
 
       fEffectiveCharge.ConstructBranchAndVector(tree,prefix,values);
-
       for(Short_t i=0;i<2;i++){
 	fSlope[i].ConstructBranchAndVector(tree,thisprefix,values);
 	fIntercept[i].ConstructBranchAndVector(tree,thisprefix,values);
@@ -643,6 +669,7 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
       }
 
     }
+
   return;
 };
 
@@ -656,7 +683,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix)
       if(prefix=="asym_")
 	thisprefix="diff_";
 
-      
+
       fEffectiveCharge.ConstructBranch(tree,prefix);
 
       for(Short_t i=0;i<2;i++){
@@ -684,7 +711,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 	if(prefix=="asym_")
 	  thisprefix="diff_";
 
-      
+
 	fEffectiveCharge.ConstructBranch(tree,prefix);
 
 	for(Short_t i=0;i<2;i++){
@@ -700,7 +727,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 };
 
 
-void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values)
+void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the tree.

@@ -130,6 +130,7 @@ class QwParameterFile {
 
 
   protected:
+  void TrimWhitespace(TString  &token, TString::EStripType head_tail);
 
     void TrimWhitespace(std::string  &token, TString::EStripType head_tail);
 
@@ -144,6 +145,8 @@ class QwParameterFile {
 
     /// Open a file
     bool OpenFile(const bfs::path& path_found);
+  //  TString fCurrentSecName;     // Stores the name of the current section  read
+  //  TString fCurrentModuleName;  // Stores the name of the current module  read
 
   public:
 

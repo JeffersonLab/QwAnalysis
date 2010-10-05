@@ -39,6 +39,10 @@ class QwIntegrationPMT : public VQwDataElement{
   QwIntegrationPMT(TString name){
     InitializeChannel(name,"raw");
   };
+  QwIntegrationPMT(TString subsystemname, TString name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name,"raw");
+  };
   ~QwIntegrationPMT() {
     DeleteHistograms();
   };
@@ -46,6 +50,10 @@ class QwIntegrationPMT : public VQwDataElement{
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave); 
+  // same purpose as above but this was needed to accormodate combinedPMT. Unlike Beamline combined devices where they have VQWK channels, Combined PMT has integration PMT 
+  void  InitializeChannel(TString subsystem, TString module, TString name, TString datatosave); 
   void SetElementName(const TString &name) { fElementName = name; fTriumf_ADC.SetElementName(name);};
 
   const QwVQWK_Channel* GetChannel(const TString name) const {
@@ -84,6 +92,8 @@ class QwIntegrationPMT : public VQwDataElement{
     fTriumf_ADC.SetEventCutMode(bcuts);
   }
 
+  void SetBlindability(Bool_t isblindable){fIsBlindable=isblindable;};
+
   /// \brief Blind the asymmetry
   void Blind(const QwBlinder *blinder);
   /// \brief Blind the difference using the yield
@@ -117,7 +127,7 @@ class QwIntegrationPMT : public VQwDataElement{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  DeleteHistograms();
 
   Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
@@ -140,6 +150,8 @@ class QwIntegrationPMT : public VQwDataElement{
   QwVQWK_Channel fTriumf_ADC;
 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
+
+  Bool_t fIsBlindable; //
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE; //global switch to turn event cuts ON/OFF

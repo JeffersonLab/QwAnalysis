@@ -406,7 +406,8 @@ const int QwMatrixLookup::Bridge(
 
     // The hit is within the momentum limits, do interpolation for momentum
 
-    UInt_t size = iP.size();
+    UInt_t size = 0;
+    size = iP.size();
     momentum = 0.0;
 
     // We can choose among the following interpolation methods:

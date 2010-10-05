@@ -25,6 +25,9 @@ class QwCombinedBCM : public VQwDataElement{
   QwCombinedBCM(TString name){
     InitializeChannel(name, "derived");
   };
+  QwCombinedBCM(TString subsystem, TString name){
+    InitializeChannel(subsystem, name, "derived");
+  };
   ~QwCombinedBCM() {
     DeleteHistograms();
   };
@@ -38,6 +41,8 @@ class QwCombinedBCM : public VQwDataElement{
   void  ClearEventData();
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave);
 
   void ReportErrorCounters();
 
@@ -89,10 +94,18 @@ class QwCombinedBCM : public VQwDataElement{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  DeleteHistograms();
 
   void Copy(VQwDataElement *source);
+
+  VQwDataElement* GetCharge(){
+    return &fCombined_bcm;
+  };
+
+  const VQwDataElement* GetCharge() const {
+    return const_cast<QwCombinedBCM*>(this)->GetCharge();
+  };
 
 
 /////

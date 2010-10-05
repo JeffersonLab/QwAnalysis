@@ -25,6 +25,9 @@
 #include "QwLog.h"
 #include "QwOptions.h"
 
+#include "QwVQWK_Channel.h"
+
+
 ///
 /// \ingroup QwAnalysis
 class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
@@ -52,18 +55,27 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   virtual ~QwSubsystemArray() { };
 
   /// \brief Set the internal record of the CODA event number
-  void SetCodaEventNumber(UInt_t evtnum){fCodaEventNumber=evtnum;};
+  void SetCodaEventNumber(UInt_t evtnum) { fCodaEventNumber = evtnum; };
   /// \brief Set the internal record of the CODA event type
-  void SetCodaEventType(UInt_t evttype){fCodaEventType=evttype;};
+  void SetCodaEventType(UInt_t evttype) { fCodaEventType = evttype; };
   /// \brief Get the internal record of the CODA event number
-  UInt_t GetCodaEventNumber(){return fCodaEventNumber;};
+  UInt_t GetCodaEventNumber() const { return fCodaEventNumber; };
   /// \brief Get the internal record of the CODA event type
-  UInt_t GetCodaEventType(){return fCodaEventType;};
+  UInt_t GetCodaEventType() const { return fCodaEventType; };
 
   /// \brief Set event type mask
   void   SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };
   /// \brief Get event type mask
   UInt_t GetEventTypeMask() const { return fEventTypeMask; };
+ /// \brief Update the event type mask from the subsystems
+  UInt_t UpdateEventTypeMask() {
+    for (iterator subsys_iter = begin(); subsys_iter != end(); ++subsys_iter) {
+      VQwSubsystem* subsys = dynamic_cast<VQwSubsystem*>(subsys_iter->get());
+      fEventTypeMask |= subsys->GetEventTypeMask();
+    }
+    return fEventTypeMask; 
+  };
+
 
   /// \brief Set data loaded flag
   void   SetDataLoaded(const Bool_t flag) { fHasDataLoaded = flag; };
@@ -132,12 +144,17 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   const VQwDataElement* ReturnInternalValue(const TString& name) const {
     //  First try to find the value in the list of published values.
     //  So far this list is not filled though.
+    //Debug lines 
+    //QwWarning <<" QwSubsystemArray::ReturnInternalValue2: "<<name<<" ";
     std::map<TString, VQwSubsystem*>::const_iterator iter = fPublishedValuesSubsystem.find(name);
     if (iter != fPublishedValuesSubsystem.end()) {
-      return (iter->second)->ReturnInternalValue(name);
+ 
+      return const_cast<VQwDataElement*>((iter->second)->ReturnInternalValue(name));
     }
     //  If the value is not yet published, try asking the subsystems for it.
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+      //Debug lines 
+      //QwWarning <<" Else Found "<<QwLog::endl;
       return (*subsys)->ReturnInternalValue(name);
     }
     //  Not found
@@ -152,18 +169,34 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
    */
   const Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const {
     Bool_t foundit = kFALSE;
+
+   //Debug lines 
+    //QwWarning <<" QwSubsystemArray::ReturnInternalValue1: "<<name<<" ";
     // Check for null pointer
     if (! value)
       QwWarning << "QwSubsystemArray::ReturnInternalValue requires that "
               << "'value' be a non-null pointer to a VQwDataElement."
               << QwLog::endl;
     //  Get a const pointer to the internal value
-    const VQwDataElement* internal_value = ReturnInternalValue(name);
-    //  Check whether types are identical and copy into data element
-    if (value && internal_value && typeid(value) == typeid(internal_value)) {
-      *value = *internal_value;
+    VQwDataElement* internal_value = const_cast<VQwDataElement*>(ReturnInternalValue(name));
+    
+ 
+    if (value && internal_value && typeid(value) == typeid(internal_value)) { 
+      //Debug lines
+      //QwWarning <<" Found "<< QwLog::endl; 
+       *(dynamic_cast<QwVQWK_Channel*>(value))=*(dynamic_cast<QwVQWK_Channel*>(internal_value));
+ 
+      /* //debug lines
+      if (name=="q_targ"){
+      QwWarning <<"****QwSubsystemArray::ReturnInternalValue1 (returning value)****"<< QwLog::endl;
+      QwVQWK_Channel *vqwk_tmp=dynamic_cast<QwVQWK_Channel*>(value);
+      vqwk_tmp->PrintInfo();
+      }
+      */
       foundit = kTRUE;
-    }
+    }else
+      QwWarning <<" !Not Found! "<< QwLog::endl;
+    
     return foundit;
   };
 
@@ -232,7 +265,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Construct a branch for this subsystem with a prefix after tree leave trimming
   void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file);
   /// \brief Fill the vector for this subsystem
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   // @}
 
 

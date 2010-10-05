@@ -21,6 +21,20 @@ void  QwCombinedPMT::InitializeChannel(TString name, TString datatosave)
     if (datatosave=="derived") fDataToSave=kDerived;
 
   fSumADC.InitializeChannel(name, datatosave);
+  SetBlindability(kTRUE);
+  return;
+};
+
+void  QwCombinedPMT::InitializeChannel(TString subsystemname, TString name, TString datatosave)
+{
+  SetElementName(name);
+  //SetPedestal(0.);
+  //SetCalibrationFactor(1.);
+  if (datatosave=="raw") fDataToSave=kRaw;
+  else
+    if (datatosave=="derived") fDataToSave=kDerived;
+
+  fSumADC.InitializeChannel(subsystemname, "QwCombinedPMT", name, datatosave);
 
   return;
 };
@@ -68,18 +82,17 @@ void QwCombinedPMT::CalculateSumAndAverage()
   Double_t  total_weights=0.0;
 
   fSumADC.ClearEventData();
-//  fAvgADC.ClearEventData();
-  QwIntegrationPMT* tmpADC;
+  static QwIntegrationPMT tmpADC("tmpADC");
 
   for (size_t i=0;i<fElement.size();i++)
     {
       //std::cout<<"=========fElement["<<i<<"]=========="<<std::endl;
       //fElement[i]->Print();
-      tmpADC = fElement[i];
+      tmpADC = *(fElement[i]);
       //std::cout<<"=========tmpADC========="<<std::endl;
       //tmpADC->Print();
-      tmpADC->Scale(fWeights[i]);
-      (fSumADC) += (*tmpADC);
+      tmpADC.Scale(fWeights[i]);
+      fSumADC += tmpADC;
       total_weights += fWeights[i];
     }
 
@@ -366,7 +379,7 @@ void  QwCombinedPMT::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 };
 
 
-void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values)
+void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()=="")
     {

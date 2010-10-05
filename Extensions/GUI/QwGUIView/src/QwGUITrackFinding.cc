@@ -402,10 +402,9 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 // 	    	std::cout<<"Got Entry "<< j<< std::endl;
 //               event->PrintPartialTracks();
 
-		  TIterator* iterator = event->GetListOfTreeLines()->MakeIterator();
-		  QwTrackingTreeLine* treeline = 0;
-		  while ((treeline = (QwTrackingTreeLine*) iterator->Next())){
-//		    std::cout << j << std::endl;
+		  Int_t nTreeLines = event->GetNumberOfTreeLines();
+		  for (int iTreeLine = 0; iTreeLine < nTreeLines; iTreeLine++) {
+			const QwTrackingTreeLine* treeline = event->GetTreeLine(iTreeLine);
                 	if (treeline->GetRegion() == kRegionID2) {
 //				std::cout << "Region 2 availiable" << std::endl;
                   		chi_TLr2->	Fill(treeline->GetChi());
@@ -481,20 +480,17 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
 				}
                 	}
 		  }
-		  delete iterator;
 
 // //Fill partial tracks 
-		  TIterator* iteratorPart = event->GetListOfPartialTracks()->MakeIterator();
-		  QwPartialTrack* partialtrack = 0;
-//		    std::cout << j << std::endl;
+		  Int_t nPartialTracks = event->GetNumberOfPartialTracks();
 		  int hasPackage=0;		// initize counter for packages 
 						// package number (1 or 2) for Region 2 will be denoted in the tens position
 						// package number (1 or 2) for Region 3 will be denoted in the ones position
 						// 0 denotes that the corresponding region is not avaible for entry j
 						// eg: hasPackage=21 signifies the package value 2 for Region 2
 						//					     and 1 for Region 3
-		  while ((partialtrack = (QwPartialTrack*) iteratorPart->Next())){
-//		    std::cout << *partialtrack << std::endl;
+		  for (int iPartialTrack = 0; iPartialTrack < nPartialTracks; iPartialTrack++) {
+			const QwPartialTrack* partialtrack = event->GetPartialTrack(iPartialTrack);
 			switch (partialtrack->GetRegion()){
 		    	    case kRegionIDNull:
 				break;
@@ -584,7 +580,6 @@ void QwGUITrackFinding::OnNewDataContainer(RDataContainer *cont)
                   		  break;
 			}
 		  }
-		  delete iteratorPart;
 
 
 

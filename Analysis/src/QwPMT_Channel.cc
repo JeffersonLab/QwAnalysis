@@ -108,7 +108,7 @@ void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
   }
 };
 
-void  QwPMT_Channel::FillTreeVector(std::vector<Double_t> &values)
+void  QwPMT_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the tree vector.

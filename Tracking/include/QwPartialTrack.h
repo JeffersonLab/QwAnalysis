@@ -38,19 +38,31 @@ class QwPartialTrack: public VQwTrackingElement {
 
     // Tree lines
     #define QWPARTIALTRACK_MAX_NUM_TREELINES 1000
-    Int_t fNQwTreeLines; ///< Number of QwTreeLines in the array
     TClonesArray        *fQwTreeLines; //! ///< Array of QwTreeLines
     static TClonesArray *gQwTreeLines; //! ///< Static array of QwTreeLines
 
+    //! Number of tree lines in this partial track
+    Int_t fNQwTreeLines;
+    //! List of tree lines in this partial track
+    //std::vector<QwTrackingTreeLine*> fQwTreeLines;
 
   public: // methods
 
     /// \brief Default constructor
     QwPartialTrack();
+    /// \brief Copy constructor
+    QwPartialTrack(const QwPartialTrack* partialtrack);
     /// \brief Constructor with track position and direction
     QwPartialTrack(const TVector3 position, const TVector3 momentum);
     /// Destructor
     virtual ~QwPartialTrack() { };
+
+  private:
+
+    /// Initialization
+    void Initialize();
+
+  public:
 
     // Valid and used flags
     const bool IsVoid() const { return fIsVoid; };
@@ -76,7 +88,7 @@ class QwPartialTrack: public VQwTrackingElement {
     void PrintTreeLines(Option_t *option = "") const;
 
     // Get the weighted chi squared
-    double GetChiWeight ();
+    double GetChiWeight () const;
 
     void Print();
     void PrintValid();
@@ -166,5 +178,7 @@ class QwPartialTrack: public VQwTrackingElement {
   ClassDef(QwPartialTrack,1);
 
 }; // class QwPartialTrack
+
+typedef VQwTrackingElementContainer<QwPartialTrack> QwPartialTrackContainer;
 
 #endif // QWPARTIALTRACK_H

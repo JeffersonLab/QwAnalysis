@@ -32,20 +32,6 @@ class QwSubsystemArrayTracking:  public QwSubsystemArray {
     /// \brief Get the subsystem with the specified name
     VQwSubsystemTracking* GetSubsystemByName(const TString& name);
 
-    /// \brief Construct the branch and tree vector
-    void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values);
-    /// \brief Construct the branch and tree vector with trim tree feature
-    void ConstructBranchAndVector(TTree *tree, std::vector<Double_t>& values) {
-      TString tmpstr("");
-      ConstructBranchAndVector(tree,tmpstr,values);
-    };
-    /// \brief Construct the branch for the flat tree
-    void ConstructBranch(TTree *tree, TString& prefix);
-    /// \brief Construct the branch for the flat tree with tree trim files accepted
-    void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& detectors);
-    /// \brief Fill the tree vector
-    void FillTreeVector(std::vector<Double_t>& values);
-
     // Update the wire-based hit list from each subsystem
     void GetHitList(QwHitContainer& hitlist);
     void GetHitList(QwHitContainer* hitlist) { GetHitList(*hitlist); };

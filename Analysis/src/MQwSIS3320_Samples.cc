@@ -240,7 +240,7 @@ void  MQwSIS3320_Samples::ConstructBranchAndVector(TTree *tree, TString &prefix,
   }
 };
 
-void MQwSIS3320_Samples::FillTreeVector(std::vector<Double_t> &values)
+void MQwSIS3320_Samples::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (fTreeArrayNumEntries <= 0) {
     QwWarning << "MQwSIS3320_Samples::FillTreeVector: fTreeArrayNumEntries == "

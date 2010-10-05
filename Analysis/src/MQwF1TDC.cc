@@ -13,49 +13,72 @@
 #include <math.h>
 
 
-const UInt_t MQwF1TDC::kF1Mask_SlotNumber          = 0xf8000000;
-const UInt_t MQwF1TDC::kF1Mask_HeaderFlag          = 0x00800000;
-const UInt_t MQwF1TDC::kF1Mask_ResolutionLockFlag  = 0x04000000;
-const UInt_t MQwF1TDC::kF1Mask_OutputFIFOFlag      = 0x02000000;
-const UInt_t MQwF1TDC::kF1Mask_HitFIFOFlag         = 0x01000000;
-const UInt_t MQwF1TDC::kF1Mask_ChannelNumber       = 0x003f0000;
-const UInt_t MQwF1TDC::kF1Mask_Dataword            = 0x0000ffff;
+const UInt_t MQwF1TDC::kF1Mask_SlotNumber           = 0xf8000000;
+const UInt_t MQwF1TDC::kF1Mask_ResolutionLockFlag   = 0x04000000;
+const UInt_t MQwF1TDC::kF1Mask_OutputFIFOFlag       = 0x02000000;
+const UInt_t MQwF1TDC::kF1Mask_HitFIFOFlag          = 0x01000000;
 
+const UInt_t MQwF1TDC::kF1Mask_HeaderFlag           = 0x00800000;
 
-const UInt_t MQwF1TDC::kF1Mask_HeaderTrigFIFOFlag  = 0x00400000;
-const UInt_t MQwF1TDC::kF1Mask_HeaderEventNumber   = 0x003f0000;
-const UInt_t MQwF1TDC::kF1Mask_HeaderTriggerTime   = 0x0000ff80;
-const UInt_t MQwF1TDC::kF1Mask_HeaderXorSetupFlag  = 0x00000040;
-const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber = 0x0000003f;
+const UInt_t MQwF1TDC::kF1Mask_FakeDataFlag         = 0x00400000;
+const UInt_t MQwF1TDC::kF1Mask_ChannelNumber        = 0x003f0000;
+const UInt_t MQwF1TDC::kF1Mask_ChipAddress          = 0x00380000;
+const UInt_t MQwF1TDC::kF1Mask_ChannelAddress       = 0x00070000;
+
+const UInt_t MQwF1TDC::kF1Mask_Dataword             = 0x0000ffff;
+
+const UInt_t MQwF1TDC::kF1Mask_HeaderTrigFIFOFlag   = 0x00400000;
+const UInt_t MQwF1TDC::kF1Mask_HeaderEventNumber    = 0x003f0000;
+const UInt_t MQwF1TDC::kF1Mask_HeaderTriggerTime    = 0x0000ff80;
+const UInt_t MQwF1TDC::kF1Mask_HeaderXorSetupFlag   = 0x00000040;
+const UInt_t MQwF1TDC::kF1Mask_HeaderChannelNumber  = 0x0000003f;
+const UInt_t MQwF1TDC::kF1Mask_HeaderChipAddress    = 0x00000038;
+const UInt_t MQwF1TDC::kF1Mask_HeaderChannelAddress = 0x00000007;
 
 
 
 MQwF1TDC::MQwF1TDC()
 { 
   fF1ROCNumber          = 0;
+  fF1SlotNumber         = 0;
+
   fF1HeaderFlag         = kFALSE;
+
   fF1HitFIFOFlag        = kFALSE;
   fF1OutputFIFOFlag     = kFALSE;
   fF1ResolutionLockFlag = kFALSE;
 
-  fF1SlotNumber         = 0;
+  fF1FakeDataFlag       = kFALSE;
   fF1ChannelNumber      = 0;
   fF1Dataword           = 0;
-  fF1MaxChannelsPerModule = 64; 
 
-  // temp solution, because it is not the general F1TDC
-  // if one want to use F1TDC as high resolution
-  // it will be changed to 32;
-  // Friday, July 16 11:11:02 EDT 2010, jhlee
 
   fF1HeaderTrigFIFOFlag = kFALSE;
   fF1HeaderEventNumber  = 0;
   fF1HeaderTriggerTime  = 0;
   fF1HeaderXorSetupFlag = kFALSE;
 
+  fF1MaxChannelsPerModule = 64; 
+
+  // This initial fF1MaxChannelsPerModule 64
+  // is used to "resize" a vector in RegisterSlotNumber() function
+  // in each Subsystem, before one can access the real F1TDC 
+  // configuration from CODA buffer. And it is a constant value (64)
+  // and is totally independent upon the real F1TDC configuration. 
+  // The real maximum channel number can be access via F1TDContainer
+  // class of each subsystem.
+
+  // However, Qweak uses only the Normal Resolution configuration. 
+  // Thus, it is always 64 channels we uses. 
+  // If someone wants to use the High Resolution Mode of F1TDC, 
+  // it would be better to change this number to 32 by hand.
+  // Friday, September  3 13:50:49 EDT 2010, jhlee
+
   fF1OverFlowEntryFlag  = kFALSE;
   fF1ValidDataSlotFlag  = kFALSE;
   
+  
+
 };
 
 MQwF1TDC::~MQwF1TDC() { };
@@ -87,18 +110,26 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
     fF1HeaderTriggerTime  = ( word & kF1Mask_HeaderTriggerTime )>>7;
     fF1HeaderXorSetupFlag = ((word & kF1Mask_HeaderXorSetupFlag)!=0);
     fF1ChannelNumber      = ( word & kF1Mask_HeaderChannelNumber );
+    fF1ChipAddress        = ( word & kF1Mask_HeaderChipAddress)>>3;
+    fF1ChannelAddress     = ( word & kF1Mask_HeaderChannelAddress);
   } 
   else {
     // This is a data word.
-    fF1ChannelNumber = (word & kF1Mask_ChannelNumber)>>16;
-    fF1Dataword      = (word & kF1Mask_Dataword);
+    fF1FakeDataFlag   = ((word & kF1Mask_FakeDataFlag)!=0); // This flag should be TRUE if their mask bit IS set
+    fF1ChannelNumber  = ( word & kF1Mask_ChannelNumber )>>16;
+    fF1ChipAddress    = ( word & kF1Mask_ChipAddress )>>19;
+    fF1ChannelAddress = ( word & kF1Mask_ChannelAddress )>>16;
+    fF1Dataword       = ( word & kF1Mask_Dataword );
+
     if(fF1Dataword == 65535) fF1OverFlowEntryFlag = kTRUE;
     else                     fF1OverFlowEntryFlag = kFALSE;
     // skip to record overflow dataword entry (65535, 0xFFFF)
     fF1HeaderEventNumber   = 0;
     fF1HeaderTriggerTime   = 0;
-    // std::cout << "channel: " << fF1ChannelNumber 
-    // << " raw time: " << fF1Dataword << std::endl;
+    // std::cout << "fake flag " << fF1FakeDataFlag
+    // 	      << " channel: " << fF1ChannelNumber 
+    // 	      << " raw time: " << fF1Dataword 
+    // 	      << std::endl;
   }
   return;
 };
@@ -113,24 +144,32 @@ std::ostream& operator<< (std::ostream& os, const MQwF1TDC &f1tdc)
   }
 
   os << " Ch" << std::setw(3) << f1tdc.fF1ChannelNumber;
+  os << "[" << f1tdc.fF1ChipAddress;
+  os << "," << f1tdc.fF1ChannelAddress;
+  os << "]";
 
   if(f1tdc.fF1HeaderFlag) {
     os << " Xor " << f1tdc.fF1HeaderXorSetupFlag
        << " tOF " << f1tdc.fF1HeaderTrigFIFOFlag;
-    // os << std::setfill ('x') << std::setw(5);
   }
   else {
-    os << " ---DATA--- ";
-  }
+     os << " - DATA " 
+       << f1tdc.fF1FakeDataFlag
+       << " - ";
+   }
   
   os << "(hitOF,outOF,resLK)("
      << f1tdc.fF1HitFIFOFlag
      << f1tdc.fF1OutputFIFOFlag
      << f1tdc.fF1ResolutionLockFlag
      << ")";
-  os << " ROC " << std::setw(2) << f1tdc.fF1ROCNumber;
-  os << " Slot " << std::setw(2) << f1tdc.fF1SlotNumber;
-  
+  os << " ROC" << std::setw(2) << f1tdc.fF1ROCNumber;
+
+  Int_t slot = 0;
+  slot = f1tdc.fF1SlotNumber;
+
+  os << " Slot" << std::setw(2) << slot;
+    
   if(f1tdc.fF1HeaderFlag) {
     os << " EvtN" << std::setw(2) << f1tdc.fF1HeaderEventNumber;
     os << " TriT" << std::setw(4) << f1tdc.fF1HeaderTriggerTime;
@@ -138,7 +177,15 @@ std::ostream& operator<< (std::ostream& os, const MQwF1TDC &f1tdc)
   else {
     os << " RawT " << std::setw(10) << f1tdc.fF1Dataword;
   }
-  //  os << std::endl;
+  
+  if(slot == 0) {
+    os << ": a filler word";
+  }
+  if( (not f1tdc.fF1HeaderFlag) and (f1tdc.fF1FakeDataFlag) ){
+    os << ": --> fake data";
+  }
+  
+    //  os << std::endl;
   return os;
 };
 
@@ -203,48 +250,46 @@ void MQwF1TDC::PrintTDCData(Bool_t flag)
 
 
 
-Double_t MQwF1TDC::ActualTimeDifference(Double_t raw_time, Double_t ref_time)
-{
-  // trigger_window and time_offset will be
-  // replaced with the F1TDC configuration values later or sooner
-  // jhlee , Tuesday, July 13 17:43:43 EDT 2010
-  Double_t trigger_window = 17195.0;
-  Double_t time_offset    = 65341.0;
+// Double_t MQwF1TDC::ActualTimeDifference(Double_t raw_time, Double_t ref_time)
+// {
+ 
+//   Double_t trigger_window = 12896.0;
+//   Double_t time_offset    = 65341.0;
 
-  Double_t time_condition = 0.0;
-  Double_t local_time_difference = 0.0;
-  Double_t actual_time_difference = 0.0;
+//   Double_t time_condition = 0.0;
+//   Double_t local_time_difference = 0.0;
+//   Double_t actual_time_difference = 0.0;
 
-  local_time_difference = raw_time - ref_time; 
+//   local_time_difference = raw_time - ref_time; 
   
-  if(local_time_difference == 0.0) {
-    // raw_time is the same as ref_time
-    actual_time_difference = local_time_difference;
-  }
-  else {
-    time_condition = fabs(local_time_difference); 
-    // maximum value is trigger_window -1, 
-    // thus 17195-1 =  17194 - 0 = 17194
-    if(time_condition < trigger_window) {
-      // there is no ROLLEVENT within trigger window
-      actual_time_difference = local_time_difference;
-    }
-    else {
-      // there is an ROLLOVER event within trigger window
-      if (local_time_difference > 0.0) {
-	// ref_time is in after ROLLOVER event
-	actual_time_difference =  local_time_difference - time_offset;
-      }
-      else {
-	// we already excluded local_time_diffrence == 0 case.
-	// ref_time is in before ROLLOVER event
-	actual_time_difference = local_time_difference + time_offset;
-      }
+//   if(local_time_difference == 0.0) {
+//     // raw_time is the same as ref_time
+//     actual_time_difference = local_time_difference;
+//   }
+//   else {
+//     time_condition = fabs(local_time_difference); 
+//     // maximum value is trigger_window -1, 
+//     // thus 12896-1 =  12895 - 0 = 12985
+//     if(time_condition < trigger_window) {
+//       // there is no ROLLEVENT within trigger window
+//       actual_time_difference = local_time_difference;
+//     }
+//     else {
+//       // there is an ROLLOVER event within trigger window
+//       if (local_time_difference > 0.0) {
+// 	// ref_time is in after ROLLOVER event
+// 	actual_time_difference =  local_time_difference - time_offset;
+//       }
+//       else {
+// 	// we already excluded local_time_diffrence == 0 case.
+// 	// ref_time is in before ROLLOVER event
+// 	actual_time_difference = local_time_difference + time_offset;
+//       }
       
-    }
-  }
-  return actual_time_difference;
-}
+//     }
+//   }
+//   return actual_time_difference;
+// }
 
 
 
@@ -283,14 +328,14 @@ void MQwF1TDC::PrintOutputFIFOStatus(const UInt_t roc_id)
 };
 
 
-Bool_t MQwF1TDC::IsValidDataword()
+const Bool_t MQwF1TDC::IsValidDataword() const
 {
   // fF1ValidDataSlotFlag = TRUE,
   // fF1ResolutionFlag    = TRUE,  
-  // fF1HeaderFlag        = FALSE, and 
-  // fF1OverFlowEntry     = FALSE, then it is a data word.
- 
-  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag &&!fF1OverFlowEntryFlag)
+  // fF1HeaderFlag        = FALSE, 
+  // fF1OverFlowEntry     = FALSE, 
+  // fF1FakeDataWord      = FALSE, then it is a valid data word.
+  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag && !fF1OverFlowEntryFlag && !fF1FakeDataFlag)
     //  if( fF1ValidDataSlotFlag && fF1ResolutionLockFlag && !fF1HeaderFlag)
     return kTRUE;
   else                                             
@@ -298,121 +343,125 @@ Bool_t MQwF1TDC::IsValidDataword()
 };
 
 
-Bool_t MQwF1TDC::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words)
-{
-  UInt_t reference_trig_time = 0;
-  UInt_t reference_event_num = 0;
+// Bool_t MQwF1TDC::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words)
+// {
+//   UInt_t reference_trig_time = 0;
+//   UInt_t reference_event_num = 0;
 
-  const Int_t valid_trigger_time_offset = 1;
+//   const Int_t valid_trigger_time_offset = 1;
   
-  Bool_t event_ok_flag       = kFALSE;
-  Bool_t trig_time_ok_flag   = kFALSE;
-  Bool_t data_integrity_flag = kFALSE;
+//   Bool_t event_ok_flag       = kFALSE;
+//   Bool_t trig_time_ok_flag   = kFALSE;
+//   Bool_t data_integrity_flag = kFALSE;
 
-  Bool_t temp_print_flag = false;
+//   Bool_t temp_print_flag = false;
 
-  for (UInt_t i=0; i<num_words ; i++) {
+//   for (UInt_t i=0; i<num_words ; i++) {
 
-    DecodeTDCWord(buffer[i], roc_id); 
+//     DecodeTDCWord(buffer[i], roc_id); 
 
  
-    // We use the multiblock data transfer for F1TDC, thus
-    // we must get the event number and the trigger time from the first buffer
-    // (buffer[0]), and these valuse can be used to check "data" integrity
-    // over all F1TDCs
-    if ( i==0 ) {//;
-      if ( IsHeaderword() ) {//;;
-	reference_event_num = GetTDCEventNumber();
-	reference_trig_time = GetTDCTriggerTime();
-	PrintTDCHeader(temp_print_flag);
-      }//;;
-      else {//;;
-	QwWarning << QwColor(Qw::kRed)
-		  << "The first word of F1TDC must be header word. "
-		  << "Something wrong into this CODA stream.\n";
-	QwWarning << QwLog::endl;
-	return false;
-      }//;;
-    }//;
-    else {//;
-      if ( IsHeaderword() ) {//;;
-	// Check date integrity, if it is fail, we skip this whole buffer to do further process 
-	event_ok_flag     = ( reference_event_num == GetTDCHeaderEventNumber() );
-	trig_time_ok_flag = abs( reference_trig_time - GetTDCHeaderTriggerTime() ) <= valid_trigger_time_offset;
-	PrintTDCHeader(temp_print_flag);
+//     // We use the multiblock data transfer for F1TDC, thus
+//     // we must get the event number and the trigger time from the first buffer
+//     // (buffer[0]), and these valuse can be used to check "data" integrity
+//     // over all F1TDCs
+//     if ( i==0 ) {//;
+//       if ( IsHeaderword() ) {//;;
+// 	reference_event_num = GetTDCEventNumber();
+// 	reference_trig_time = GetTDCTriggerTime();
+// 	PrintTDCHeader(temp_print_flag);
+//       }//;;
+//       else {//;;
+// 	QwWarning << QwColor(Qw::kRed)
+// 		  << "The first word of F1TDC must be header word. "
+// 		  << "Something wrong into this CODA stream.\n";
+// 	QwWarning << QwLog::endl;
+// 	return false;
+//       }//;;
+//     }//;
+//     else {//;
+//       if ( IsHeaderword() ) {//;;
+// 	// Check date integrity, if it is fail, we skip this whole buffer to do further process 
+// 	event_ok_flag     = ( reference_event_num == GetTDCHeaderEventNumber() );
+// 	trig_time_ok_flag = abs( reference_trig_time - GetTDCHeaderTriggerTime() ) <= valid_trigger_time_offset;
+// 	PrintTDCHeader(temp_print_flag);
 
-	// If SEU exists, Xor Setup Register bit is changing from 1 to 0, I think.
-	// Thus, it sets the trigger time 0 and the event number 0.
-	// For example, 
-	// Ch  8 Xor 0 tOF 0(hitOF,outOF,resLK)(001) ROC  9 Slot 10 EvtN 0 TriT   0
-	// And it is the source of the trigger time and the event number differences
-	// within the same ROC. In the CheckDataIntegrity routine, I decided
-	// to skip such a event. 
-	// Sunday, August  8 03:42:48 EDT 2010, jhlee
+// 	// If SEU exists, Xor Setup Register bit is changing from 1 to 0, I think.
+// 	// Thus, it sets the trigger time 0 and the event number 0.
+// 	// For example, 
+// 	// Ch  8 Xor 0 tOF 0(hitOF,outOF,resLK)(001) ROC  9 Slot 10 EvtN 0 TriT   0
+// 	// And it is the source of the trigger time and the event number differences
+// 	// within the same ROC. In the CheckDataIntegrity routine, I decided
+// 	// to skip such a event. 
+// 	// Sunday, August  8 03:42:48 EDT 2010, jhlee
 	
-	if (IsHeaderXorSetup()) {//;;;
-	  // Trigger Time difference of up to 1 count among the chips is acceptable
-	  // For the Trigger Time, this assumes that an external SYNC_RESET signal has
-	  // been successfully applied at the start of the run
-	  if (not trig_time_ok_flag) {
-	    QwWarning  << QwColor(Qw::kBlue)
-		       << "There is the no SYNC_RESET on the F1TDC board at"
-		       << " Ch "   << fF1ChannelNumber
-		       << " ROC "  << fF1ROCNumber 
-		       << " Slot " << fF1SlotNumber <<"\n";
-	    QwWarning  << QwColor(Qw::kBlue)
-		       << "This event is excluded from the ROOT data stream.\n";
-	    QwWarning << QwColor(Qw::kRed) 
-		      << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
-	    QwWarning  << QwLog::endl;
-	  }
-	  // Any difference in the Event Number among the chips indicates a serious error
-	  // that requires a reset of the board.
+// 	if (IsHeaderXorSetup()) {//;;;
+// 	  // Trigger Time difference of up to 1 count among the chips is acceptable
+// 	  // For the Trigger Time, this assumes that an external SYNC_RESET signal has
+// 	  // been successfully applied at the start of the run
+// 	  if (not trig_time_ok_flag) {
+// 	    if(temp_print_flag){
+// 	      QwWarning  << QwColor(Qw::kBlue)
+// 			 << "There is the no SYNC_RESET on the F1TDC board at"
+// 			 << " Ch "   << fF1ChannelNumber
+// 			 << " ROC "  << fF1ROCNumber 
+// 			 << " Slot " << fF1SlotNumber <<"\n";
+// 	      QwWarning  << QwColor(Qw::kBlue)
+// 			 << "This event is excluded from the ROOT data stream.\n";
+// 	      QwWarning << QwColor(Qw::kRed) 
+// 			<< "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
+// 	      QwWarning  << QwLog::endl;
+// 	    }
+// 	  }
+// 	  // Any difference in the Event Number among the chips indicates a serious error
+// 	  // that requires a reset of the board.
 	  
-	  if (not event_ok_flag) {
-	    QwWarning << QwColor(Qw::kRed)
-		      << "There is the Event Number Mismatch issue on the F1TDC board at"
-		      << " ROC "  << fF1ROCNumber
-		      << " Slot " << fF1SlotNumber << "\n";
-	    QwWarning << QwColor(Qw::kRed) 
-		      << "This event is excluded from the ROOT data stream.\n";
-	    QwWarning << QwColor(Qw::kRed) 
-		      << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
-	    QwWarning << QwLog::endl;
-	  }
+// 	  if (not event_ok_flag) {
+// 	    if(temp_print_flag){
+// 	      QwWarning << QwColor(Qw::kRed)
+// 			<< "There is the Event Number Mismatch issue on the F1TDC board at"
+// 			<< " ROC "  << fF1ROCNumber
+// 			<< " Slot " << fF1SlotNumber << "\n";
+// 	      QwWarning << QwColor(Qw::kRed) 
+// 			<< "This event is excluded from the ROOT data stream.\n";
+// 	      QwWarning << QwColor(Qw::kRed) 
+// 			<< "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
+// 	      QwWarning << QwLog::endl;
+// 	    }
+// 	  }
 	  
-	  data_integrity_flag = (event_ok_flag) && (trig_time_ok_flag) && IsNotHeaderTrigFIFO() ;
+// 	  data_integrity_flag = (event_ok_flag) && (trig_time_ok_flag) && IsNotHeaderTrigFIFO() ;
 
-	  if (not data_integrity_flag)  return data_integrity_flag; //false
-	  // we stop check data, because all other next buffers 
-	  // is useless and we don't need to check them in order to save some time.
-	} //;;;
-	else {//;;;
+// 	  if (not data_integrity_flag)  return data_integrity_flag; //false
+// 	  // we stop check data, because all other next buffers 
+// 	  // is useless and we don't need to check them in order to save some time.
+// 	} //;;;
+// 	else {//;;;
 
-	  if (temp_print_flag) {
+// 	  if (temp_print_flag) {
 
-	    // I don't include the SEU in the CheckDataIntegrity.
-	    // At this moment, I have no idea how I handle during data processes.
-	    // Sunday, August  8 04:02:17 EDT 2010, jhlee
+// 	    // I don't include the SEU in the CheckDataIntegrity.
+// 	    // At this moment, I have no idea how I handle during data processes.
+// 	    // Sunday, August  8 04:02:17 EDT 2010, jhlee
 	    
-	    QwWarning << QwColor(Qw::kRed)
-		      << "There is the Single Event Upset (SEU) on the F1TDC board at"
-		      << " ROC "  << fF1ROCNumber
-		      << " Slot " << fF1SlotNumber << "\n";
-	    QwWarning << QwColor(Qw::kRed) 
-		      << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
-	    QwWarning << QwLog::endl;
-	  }
-	}//;;;
-      }//;;
-      else { //;; // dataword
-	if(!fF1OverFlowEntryFlag) PrintTDCData(temp_print_flag);
-      }//;;
-    }//;
-  }//for (UInt_t i=0; i<num_words ; i++) {
+// 	    QwWarning << QwColor(Qw::kRed)
+// 		      << "There is the Single Event Upset (SEU) on the F1TDC board at"
+// 		      << " ROC "  << fF1ROCNumber
+// 		      << " Slot " << fF1SlotNumber << "\n";
+// 	    QwWarning << QwColor(Qw::kRed) 
+// 		      << "Please, send an email to (a) Qweak DAQ expert(s) if you have time.\n";
+// 	    QwWarning << QwLog::endl;
+// 	  }
+// 	}//;;;
+//       }//;;
+//       else { //;; // dataword
+// 	if(!fF1OverFlowEntryFlag) PrintTDCData(temp_print_flag);
+//       }//;;
+//     }//;
+//   }//for (UInt_t i=0; i<num_words ; i++) {
   
   
-  return (data_integrity_flag); 
+//   return (data_integrity_flag); 
   
-}
+// }
 

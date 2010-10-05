@@ -30,6 +30,25 @@ void  QwIntegrationPMT::InitializeChannel(TString name, TString datatosave)
   SetCalibrationFactor(1.);
   fTriumf_ADC.InitializeChannel(name,datatosave);
   SetElementName(name);
+  SetBlindability(kTRUE);
+  return;
+};
+/********************************************************/
+void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString name, TString datatosave)
+{
+  SetPedestal(0.);
+  SetCalibrationFactor(1.);
+  fTriumf_ADC.InitializeChannel(subsystem,"QwIntegrationPMT", name, datatosave);
+  SetElementName(name);
+  return;
+};
+/********************************************************/
+void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString module, TString name, TString datatosave)
+{
+  SetPedestal(0.);
+  SetCalibrationFactor(1.);
+  fTriumf_ADC.InitializeChannel(subsystem,module, name, datatosave);
+  SetElementName(name);
   return;
 };
 /********************************************************/
@@ -341,7 +360,7 @@ void  QwIntegrationPMT::ConstructBranch(TTree *tree, TString &prefix, QwParamete
 };
 
 
-void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values)
+void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
@@ -373,6 +392,7 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 	  this->fElementName=input->fElementName;
 	  this->fPedestal=input->fPedestal;
 	  this->fCalibration=input->fCalibration;
+	  this->fIsBlindable=input->fIsBlindable;
 	  this->fTriumf_ADC.Copy(&(input->fTriumf_ADC));
 	}
       else
@@ -404,12 +424,12 @@ void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value)
 
 void QwIntegrationPMT::Blind(const QwBlinder *blinder)
 {
-  fTriumf_ADC.Blind(blinder);
+  if (fIsBlindable)  fTriumf_ADC.Blind(blinder);
 };
 
 void QwIntegrationPMT::Blind(const QwBlinder *blinder, const QwIntegrationPMT& yield)
 {
-  fTriumf_ADC.Blind(blinder, yield.fTriumf_ADC);
+  if (fIsBlindable)  fTriumf_ADC.Blind(blinder, yield.fTriumf_ADC);
 };
 
 

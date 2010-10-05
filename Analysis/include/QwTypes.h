@@ -63,6 +63,8 @@ static const Int_t kBeamDevTypes = 8;
 enum EQwBeamInstrumentType{
   kQwUnknownDeviceType,
   kQwBPMStripline,
+  kQwQPD,
+  kQwLinearArray,
   kQwBCM,
   kQwCombinedBCM,
   kQwCombinedBPM,

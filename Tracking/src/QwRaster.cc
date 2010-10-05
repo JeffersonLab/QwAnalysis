@@ -539,7 +539,7 @@ void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vect
 };
 
 
-void  QwRaster::FillTreeVector(std::vector<Double_t> &values)
+void  QwRaster::FillTreeVector(std::vector<Double_t> &values) const
 {
     if (! HasDataLoaded()) return;
 

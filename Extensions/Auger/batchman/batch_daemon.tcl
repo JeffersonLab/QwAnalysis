@@ -246,6 +246,18 @@ proc get_staging {verbose} {
 	# 300598  2   jcache    Staging frw      10  009937 ifarml2    mss5       /mss/hallc/e93026/raw/e93026_41066.log.2          
 	# 300598  3   jcache    Pending frw      10  009937 ifarml2    mss5       /mss/hallc/e93026/raw/e93026_41066.log.0          
 
+	# wdconinc 2010-08-18: output format
+	#           1         2         3         4         5         6         7         8         9         0
+	# 01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
+	# ==================================================================================================================================
+	# Request Job Type      State   User     Pri Volume Client     Mover      Source
+	# ==================================================================================================================================
+	# 17124386 33856512 jcache    Pending mukesh   11  403841 ifarml4    meta       /mss/clas/g12/production/pass1/bos/7-4ctrk/56470.A77
+	# 17124386 33856768 jcache    Pending mukesh   11  403841 ifarml4    meta       /mss/clas/g12/production/pass1/bos/7-4ctrk/56476.A33
+	# 17124386 33857536 jcache    Pending mukesh   11  403848 ifarml4    meta       /mss/clas/g12/production/pass1/bos/7-4ctrk/56486.A64
+	# 17124386 33860608 jcache    Pending mukesh   11  403947 ifarml4    meta       /mss/clas/g12/production/pass1/bos/7-4ctrk/56540.A07
+	# 17124386 33861120 jcache    Pending mukesh   11  403949 ifarml4    meta       /mss/clas/g12/production/pass1/bos/7-4ctrk/56546.A90
+
 	set ierr [catch {exec jtstat | grep $env(USER)} outstr]
 	
 	#Jianglai 05-23-2003. OK, I see the point. If someone else is also 
@@ -406,7 +418,7 @@ proc get_filelist4run {i} {
     #	set filenm "$raw_file_prefix$runno($i)$raw_file_suffix*"
     # Jianglai 03-23-2003. Use wild card "*runno*" for filenames on the silo
     # Just forget about the prefix and suffix
-    #puts "####### inside get_filelist4run"
+    puts "####### inside get_filelist4run"
     set filenm "*$runno($i)*"
         set thisdir [pwd]
 	cd $raw_file_source
@@ -441,8 +453,8 @@ proc get_filelist4run {i} {
 	} else {
 	    set filelist($i) ""
 	}
-	#puts "filelist for run $runno($i) $filelist($i)"
-	#puts "us_file_list for run $runno($i) $us_file_list($i)"
+	puts "filelist for run $runno($i) $filelist($i)"
+	puts "us_file_list for run $runno($i) $us_file_list($i)"
     }
 
 
@@ -489,7 +501,7 @@ proc test_logfile {runnum} {
     }
     if {[file exists $logfile] == 1} {
 	set ierr [catch {exec tail -1 $logfile} outstr]
-	set test "Real time used:"
+	set test "I have done everything I can do..."
 	set pos1 [string first $test $outstr]
 	if { ($ierr == 0) && ($pos1 > -1) } {
 	    set logfileokay 1
@@ -510,7 +522,7 @@ proc gettimefromlogfile {runnum} {
     set logfile "$logfiledir/run_$runnum.log"
 
     if {[file exists $logfile] == 1} {
-	set logfiletime [clock format [file mtime $logfile]]
+	set logfiletime [clock format [file mtime $logfile] -format "%a %b %d %H:%M:%S %Z %Y"]
     }
     return $logfiletime
 }
@@ -589,6 +601,12 @@ proc check_if_done {i} {
     global interactive
 
         if {$current_state($i) == "Queue State: PEND"} {
+		return
+	} elseif {$current_state($i) == "Queue State: HOLD_AUGER"} {
+		return
+	} elseif {$current_state($i) == "Queue State: HOLD_PBS"} {
+		return
+	} elseif {$current_state($i) == "Queue State: QUEUE"} {
 		return
 	} elseif {$current_state($i) == "Queue State: PSUSP"} {
 		return
@@ -1107,11 +1125,11 @@ proc obtain_jobid {i} {
 	# jobstat format changed again. It puts one more extra empty line
 	# at the end. Why the hell are those guys paid for ... So use a 
 	# grep to remove the the shitty empty line and title line. jianglai
-	
+
 	set ierr [catch {exec jobstat -u $env(USER) | grep "${experiment_label}_$runno($i)" } outstr]
-		
+
 	#output is something like this:
-#821378  jianglai DONE  production farml2      farml153.jlab.org G0_15451-9671 May 29 21:38
+	#821378  jianglai DONE  production farml2      farml153.jlab.org G0_15451-9671 May 29 21:38
 
 	#can't determine the job_id now. do it in the next iteration then.
 	if { $ierr != 0 } {
@@ -1145,9 +1163,18 @@ proc do_submitted {i} {
 	if {$current_state($i) == "Queue State: PEND"} {
 		set istatus($i) "queued"
 		set starttime($i) $thistime
-	    #jianglai commented below. don't need them in Gzero
-	    #set jobfile $tempfile_dir/jobfile.$runno($i)
-	    #delete_file $jobfile
+		#jianglai commented below. don't need them in Gzero
+		#set jobfile $tempfile_dir/jobfile.$runno($i)
+		#delete_file $jobfile
+	} elseif {$current_state($i) == "Queue State: HOLD_AUGER"} {
+		set istatus($i) "queued"
+		set starttime($i) $thistime
+	} elseif {$current_state($i) == "Queue State: HOLD_PBS"} {
+		set istatus($i) "queued"
+		set starttime($i) $thistime
+	} elseif {$current_state($i) == "Queue State: QUEUE"} {
+		set istatus($i) "queued"
+		set starttime($i) $thistime
 	} elseif {$current_state($i) == "Queue State: PSUSP"} {
 		set istatus($i) "queued"
 		set starttime($i) $thistime
@@ -1187,6 +1214,12 @@ proc do_queued {i} {
 	global current_state  gracetime_queue
 
 	if {$current_state($i) == "Queue State: PEND"} {
+		return
+	} elseif {$current_state($i) == "Queue State: HOLD_AUGER"} {
+		return
+	} elseif {$current_state($i) == "Queue State: HOLD_PBS"} {
+		return
+	} elseif {$current_state($i) == "Queue State: QUEUE"} {
 		return
 	} elseif {$current_state($i) == "Queue State: PSUSP"} {
 		return
@@ -1322,8 +1355,6 @@ proc process_entries {verbose} {
 
 	#commented by jianglai 03-13-2004
 	#if {$verbose} {puts "   got current file count ($Nfiles_staged of $stage_limit)"}
-
-        puts " In process_entries... \n"	
 
 	set any_found 0
 	set lastentryvocalized -1
@@ -1593,7 +1624,8 @@ if {$argc > 0} {
 		puts "\n\n  executing a single pass only...\n"
 	} elseif {$userrequest == "quietone"} {
 		set interactive -1
-		puts "\n\n  executing a SILENT single pass only...\n"
+		# wdconinc 2010-08-18: no output when silent
+		#puts "\n\n  executing a SILENT single pass only...\n"
 	} elseif {$userrequest == "recover"} {
 		set interactive 1
 		set nonewstarts 1

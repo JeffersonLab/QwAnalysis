@@ -1990,7 +1990,8 @@ proc actionflags {which} {
 	global runno istatus filecount filelist runtime entrycount
 	global statestrings statebcol statebtxt stagedcount maxentries
 	global starttime endtime filespresent preabortstate jobid
-	
+
+        puts "$which"	
 	if {$which == "run"} {
 		set callto "resubentry"
 	} elseif {$which == "kill"} {

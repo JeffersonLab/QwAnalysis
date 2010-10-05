@@ -23,9 +23,62 @@ ClassImp(QwTrackingTreeLine);
 //TClonesArray* QwTrackingTreeLine::gQwHits = 0;
 
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+/// Default constructor
+QwTrackingTreeLine::QwTrackingTreeLine()
+{
+  // Initialize
+  Initialize();
+}
 
+
+/// Constructor with tree search results
 QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _b_end)
+{
+  // Initialize
+  Initialize();
+
+  // Tree search
+  a_beg = _a_beg;
+  a_end = _a_end;
+  b_beg = _b_beg;
+  b_end = _b_end;
+}
+
+
+/// Copy constructor
+/// \todo TODO (wdc) this copy constructor is horribly incomplete!
+QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* treeline)
+{
+  // Initialize
+  Initialize();
+
+  // Naive copy
+  *this = *treeline;
+
+  // Copy the hits
+  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
+    if (treeline->hits[i])
+      this->hits[i] = new QwHit(treeline->hits[i]);
+  }
+}
+
+
+/**
+ * Delete the tree line and the lists of hits depending on it
+ */
+QwTrackingTreeLine::~QwTrackingTreeLine()
+{
+  // Delete the hits in this treeline
+  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
+    if (hits[i]) delete hits[i];
+  }
+}
+
+
+/**
+ * Perform object initialization
+ */
+void QwTrackingTreeLine::Initialize()
 {
   // Create the static TClonesArray for the hits if not existing yet
   //if (! gQwHits)
@@ -38,12 +91,17 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
   // Clear the list of hits
   ClearHits();
 
-
   // Reset the void and used flags
-  fIsVoid = false;	// treeline is not void yet
-  fIsUsed = false;	// treeline is not part of a partial track yet
+  fIsVoid = false;      // treeline is not void yet
+  fIsUsed = false;      // treeline is not part of a partial track yet
 
-  next = 0;		// no next element yet in linked-list
+  // Tree search
+  a_beg = 0;
+  a_end = 0;
+  b_beg = 0;
+  b_end = 0;
+
+  next = 0;             // no next element yet in linked-list
 
   fOffset = fSlope = 0.0;
   fChi = 0.0;
@@ -51,36 +109,19 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
   for (int i = 0; i < 3; i++)
     fCov[i] = 0.0;
 
-  a_beg = _a_beg;
-  a_end = _a_end;
-  b_beg = _b_beg;
-  b_end = _b_end;
-
   fNumHits = 0;
   fNumMiss = 0;
 
+  for (int i = 0; i < MAX_LAYERS; i++) {
+    usedhits[i] = 0;
+  }
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
-    hits[i] = 0;	/*!< hitarray */
+    hits[i] = 0;        /*!< hitarray */
     hasharray[i] = 0;
   }
 
   ID = 0;
   fR3Offset = fR3FirstWire = fR3LastWire = 0;
-
-
-}
-
-
-
-/**
- * Delete the tree line and the lists of hits depending on it
- */
-QwTrackingTreeLine::~QwTrackingTreeLine()
-{
-  // Delete the hits in this treeline
-  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
-    if (hits[i]) delete hits[i];
-  }
 }
 
 
@@ -188,7 +229,7 @@ QwHit* QwTrackingTreeLine::GetBestWireHit (double offset)
   int best_hit = 0;
   // Get the best measured hit in the back
   for (int hit = 0; hit < fNumHits; hit++) {
-    double position = fabs(hits[hit]->GetPosition() - offset);
+    double position = fabs(hits[hit]->GetDriftPosition() - offset);
     if (position < best_position) {
       best_position = position;
       best_hit = hit;
@@ -208,8 +249,9 @@ const double QwTrackingTreeLine::CalculateAverageResidual()
   for (int layer = 0; layer < 2 * MAX_LAYERS; layer++) {
     for (QwHit* hit = hits[layer]; hit; hit = hit->next) {
       if (hit->IsUsed()) {
+        double residual = hit->GetResidual();
+        sumResiduals += residual;
         numHits++;
-        sumResiduals += hit->GetDriftDistance();
       }
     } // end of loop over hits (only one of them is used)
   } // end of loop over layers
@@ -245,12 +287,14 @@ void QwTrackingTreeLine::PrintValid() {
  * @param tl Tree line as rhs of the operator
  * @return Stream as result of the operator
  */
-ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
+std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl) {
   stream << "tl: ";
-  stream << tl.a_beg << ", " << tl.a_end << " -- ";
-  stream << tl.b_beg << ", " << tl.b_end;
+  if (tl.a_beg + tl.a_end + tl.b_beg + tl.b_end != 0) {
+    stream << tl.a_beg << "," << tl.a_end << " -- ";
+    stream << tl.b_beg << "," << tl.b_end << " ";
+  }
   if (tl.GetRegion() != kRegionIDNull) { // treeline has geometry identification
-    stream << " (" << tl.GetRegion() << "/" << "?UD"[tl.GetPackage()];
+    stream << "(" << tl.GetRegion() << "/" << "?UD"[tl.GetPackage()];
     stream << "/" << "?xyuvrq"[tl.GetDirection()];
     if (tl.GetPlane() > 0)
       stream << "/" << tl.GetPlane() << ")";
@@ -258,11 +302,11 @@ ostream& operator<< (ostream& stream, const QwTrackingTreeLine& tl) {
       stream << ")";
   }
   if (tl.fChi > 0.0) { // treeline has been fitted
-    stream << "; fOffset = " << tl.fOffset;
+    stream << "; fOffset = " << tl.fOffset/Qw::cm << " cm";
     stream << ", fSlope = " << tl.fSlope;
+    stream << ", fResidual = " << tl.fAverageResidual/Qw::cm << " cm";
     stream << ", fChi = " << tl.fChi;
-    stream << ", hits:";
-    stream << " (" << tl.fQwHits.size() << ")";
+    stream << "; hits (" << tl.fQwHits.size() << "):";
     for (size_t hit = 0; hit < tl.fQwHits.size(); hit++)
       stream << " " << tl.fQwHits.at(hit)->GetPlane() << ":" << tl.fQwHits.at(hit)->GetElement();
   }

@@ -1,6 +1,6 @@
 ///  @file  QwHistogramHelper.cc
-///  @brief Handler class for histogram parameter files and
-///         histogram creation
+///  @brief Handler class for histogram/tree trim parameter files and
+///         histogram and Tree branch creation
 ///
 ///  This class was originally written to be instantiated as a
 ///  global object, which all classes containing histograms would
@@ -31,12 +31,19 @@ void QwHistogramHelper::DefineOptions(QwOptions &options)
 };
 
 void QwHistogramHelper::ProcessOptions(QwOptions &options){
-  fTrimDisable =! options.GetValue<bool>("enable-tree-trim");
+  //enable the tree trim when  --enable-tree-trim in offline mode or --enable-mapfile for real time mode
+  fTrimDisable =!( options.GetValue<bool>("enable-tree-trim") || options.GetValue<bool>("enable-mapfile"));
+  fTrimHistoEnable = options.GetValue<bool>("enable-mapfile");
+  
   if (fTrimDisable)
     QwMessage <<"tree-trim is disabled"<<QwLog::endl;
   else
     QwMessage <<"tree-trim is enabled"<<QwLog::endl;
 
+  if (fTrimHistoEnable)
+    QwMessage <<"RT Mode: histo-trim is enabled "<<QwLog::endl;
+  else
+    QwMessage <<"histo-trim is disabled "<<QwLog::endl;
 };
 
 
@@ -103,10 +110,10 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string filename)
   //fDEBUG = 1;
 
   if (fDEBUG) std::cout<< "file name "<<fInputFile<<std::endl;
-
-  // TODO (wdc) disabled clearing of the histogram parametrization before loading
-  //fHistParams.clear();
-
+  //Important to empty the fHistParams to reload the real time histo difinition file
+  if (fTrimHistoEnable)
+    fHistParams.clear();
+  
   QwParameterFile mapstr(filename.c_str());  //Open the file
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('#');   // Remove everything after a '!' character.
@@ -138,24 +145,72 @@ void  QwHistogramHelper::PrintHistParams() const
 
 void  QwHistogramHelper::LoadTreeParamsFromFile(const std::string filename){
   TString devicename;
+  TString moduletype;
+  TString subsystemname;
+  QwParameterFile *section;
+  QwParameterFile *module;
+  std::vector<TString> TrimmedList;//stores the list of elements for each module
+  std::vector<std::vector<TString> > ModulebyTrimmedList;//stores the list of elements for each module
+  std::vector<TString> ModuleList;//stores the list of modules for each subsystem
   fDEBUG = 0;
   //fDEBUG = 1;  
   if (fTrimDisable)
     return;
   QwMessage << "Tree trim definition file for Offline Engine"<< QwLog::endl;
   QwParameterFile mapstr(filename.c_str());  //Open the file
+ 
+  fTreeTrimFileLoaded=!mapstr.IsEOF();  
+  fSubsystemList.clear();
+  fModuleList.clear();
+  fVQWKTrimmedList.clear();
   
-  fTreeTrimFileLoaded=!mapstr.IsEOF();
-  while (mapstr.ReadNextLine()){
-    mapstr.TrimComment('#');   // Remove everything after a '#' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
-    if (mapstr.LineIsEmpty())  continue;
-    devicename=(mapstr.GetLine()).c_str();
-    fTreeParams.push_back(devicename);
-    if (fDEBUG) {
-      QwMessage <<"device name "<<devicename<<QwLog::endl;	
+  while ( (section=mapstr.ReadNextSection(subsystemname)) ){
+    if (subsystemname=="DEVICELIST")//done with VQWK element trimming
+      break;
+    fSubsystemList.push_back(subsystemname);
+    QwMessage <<"Subsystem found "<<subsystemname<<QwLog::endl;  
+
+    ModuleList.clear();
+    ModulebyTrimmedList.clear();
+    while ( (module=section->ReadNextModule(moduletype)) ){
+ 
+      ModuleList.push_back(moduletype);
+      QwMessage <<"Module found "<<moduletype<<QwLog::endl;
+      TrimmedList.clear();
+      while (module->ReadNextLine()){
+	module->TrimComment('#');   // Remove everything after a '#' character.
+	module->TrimWhitespace();   // Get rid of leading and trailing spaces.
+	if (module->LineIsEmpty())  continue;
+	devicename=(module->GetLine()).c_str();
+	TrimmedList.push_back(devicename);
+	if (fDEBUG) {
+	QwMessage <<"data element "<<devicename<<QwLog::endl;	
+	}
+      }
+      ModulebyTrimmedList.push_back(TrimmedList);
+	  
+
     }
+    fModuleList.push_back(ModuleList);
+    fVQWKTrimmedList.push_back(ModulebyTrimmedList);
+
+    
   }
+  //Start decoding the device list in the section [DEVICELIST]
+  fTreeParams.clear();
+  while (section->ReadNextLine()){
+    section->TrimComment('#');   // Remove everything after a '#' character.
+    section->TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (section->LineIsEmpty())  continue;
+    devicename=(section->GetLine()).c_str();
+    fTreeParams.push_back(devicename);
+    if (fDEBUG)
+      QwMessage <<"device name "<<devicename<<QwLog::endl;	
+    
+  }
+
+  //exit(1);
+
 };
 
 
@@ -200,7 +255,7 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromList(con
     QwMessage << "Finding histogram defination from: " << histname << QwLog::endl;
     QwMessage << tmpstruct << QwLog::endl;
   }
-  if (tmpstruct.name_title == fInvalidName){
+  if (tmpstruct.name_title == fInvalidName && !fTrimHistoEnable){
     std::cerr << "GetHistParamsFromList:  We haven't found a match of the histogram name: "
 	      << histname << std::endl;
     std::cerr << "                        Please check the input file "
@@ -215,7 +270,7 @@ const Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string devi
   Int_t matched;
   matched=0;
   if (!fTreeTrimFileLoaded || fTrimDisable){//if file is not loaded or trim tree is disable by cmd flag
-    //QwMessage << "Tree Trim Disabled! "<<  QwLog::endl;
+    
     return kTRUE;//return true for all devices
   }
   for (size_t i = 0; i < fTreeParams.size(); i++) {
@@ -229,6 +284,43 @@ const Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string devi
   // Warn when multiple identical matches were found
   if (matched > 1) {
     QwWarning << "Multiple identical matches for branch name " <<devicename  << ":" << QwLog::endl;
+  }
+  if (matched)
+    return kTRUE;
+  else
+    return kFALSE;
+};
+
+const Bool_t QwHistogramHelper::MatchVQWKElementFromList(const std::string subsystemname, const std::string moduletype, const std::string elementname){
+  Int_t matched;
+  matched=0;
+  if (!fTreeTrimFileLoaded || fTrimDisable){//if file is not loaded or trim tree is disable by cmd flag
+
+    return kTRUE;//return true for all devices
+  }
+  
+  for (size_t j = 0; j < fSubsystemList.size(); j++) {
+    //    QwMessage << " Subsystem name "<< subsystemname<< " From List "<<fSubsystemList.at(j) <<  QwLog::endl;
+    if (DoesMatch(fSubsystemList.at(j).Data(),subsystemname)){
+      for (size_t i = 0; i < fModuleList.at(j).size(); i++) {
+	if (DoesMatch(moduletype,fModuleList.at(j).at(i).Data())) {
+	  for (size_t k = 0; k < fVQWKTrimmedList.at(j).at(i).size(); k++) {
+	    if (DoesMatch(elementname,fVQWKTrimmedList.at(j).at(i).at(k).Data() )){
+	      if (fDEBUG)
+		QwMessage <<"Subsystem "<<fSubsystemList.at(j).Data()<<" Module Type "<<fModuleList.at(j).at(i).Data()<< " Element "<<fVQWKTrimmedList.at(j).at(i).at(k).Data()<<  QwLog::endl;
+	      matched++;
+	    }
+	  }
+	  break;
+	}
+      }
+    }
+  }
+
+  
+  // Warn when multiple identical matches were found
+  if (matched > 1) {
+    QwWarning << "Multiple identical matches for element name " <<elementname << ":" << QwLog::endl;
   }
   if (matched)
     return kTRUE;
@@ -273,7 +365,7 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromFile(con
   if (fDEBUG) {
     QwMessage << tmpstruct << QwLog::endl;
   }
-  if (tmpstruct.name_title == fInvalidName){
+  if (tmpstruct.name_title == fInvalidName && !fTrimHistoEnable){
     std::cerr << "GetHistParamsFromFile:  We haven't found a match of the histogram name: "
 	      << histname << std::endl;
     std::cerr << "                        Please check the input file "
@@ -288,6 +380,9 @@ Bool_t QwHistogramHelper::DoesMatch(const std::string s, const std::string s_wil
   //TString and TRegExp functions. Require the string and wildcard string
   //to have the SAME length to match (much risky if we don't require this),
   //so the only wildcard you want to use here is ".".
+
+  if (s_wildcard.length()==0)
+    return kFALSE;
 
   TString s1 = TString(s.c_str());
   TRegexp s2 = TRegexp(s_wildcard.c_str());
@@ -342,6 +437,11 @@ TH1F* QwHistogramHelper::Construct1DHist(const QwHistogramHelper::HistParams &pa
   tmptitle = params.name_title; //now title=name
   //std::cout<<params.name_title.c_str()<<" : "<<params.unit.c_str()<<std::endl;
   //std::cout<<tmptitle<<std::endl;
+  if (fTrimHistoEnable && tmptitle==fInvalidName){
+    h1=NULL;
+    return h1;
+  }
+    
 
   h1 = new TH1F(params.name_title.c_str(),
                 tmptitle.c_str(),
@@ -361,6 +461,12 @@ TH2F* QwHistogramHelper::Construct2DHist(const QwHistogramHelper::HistParams &pa
   tmptitle = params.name_title; //now title=name.
   //std::cout<<params.name_title.c_str()<<" : "<<params.unit.c_str()<<std::endl;
   //std::cout<<tmptitle<<std::endl;
+
+  if (fTrimHistoEnable && tmptitle==fInvalidName){
+    h2=NULL;
+    return h2;
+  }
+
   h2 = new TH2F(params.name_title.c_str(),
                 tmptitle.c_str(),
                 params.x_nbins,

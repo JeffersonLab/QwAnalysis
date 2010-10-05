@@ -101,14 +101,6 @@ endif
 ARCH  := $(shell uname)
       # Operating system
 
-#  If an OS and hardware specific subdirectory is present,
-#  we will use the "bin" and "lib" directories in it,
-#  instead of the base "bin" and "lib" directories.
-OS_HW_NAME  := $(uname -s -m | sed 's/ /_/g')
-INSTALL_DIR := $(strip $(shell $(ECHO) $(QWANALYSIS)$$( (if [ -d $(OS_HW_NAME)]; then $(ECHO) "/"$(OS_HW_NAME); fi))))
-
-
-
 
 ############################
 ############################
@@ -128,9 +120,9 @@ EXCLUDEDIRS = evio Extensions
 ifeq ($(strip $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))),)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwroot qweventdisplaytest
+    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwmoller qwroot qweventdisplaytest
   else
-    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwroot qweventdisplaytest
+    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwmoller qwroot qweventdisplaytest
   endif
 else
   EXES := $(shell $(ECHO) $$(if [ -e .EXES ]; then $(CAT) .EXES; fi))
@@ -138,9 +130,9 @@ endif
 ifeq ($(filter config,$(MAKECMDGOALS)),config)
   ifneq ($(CODA),)
     #  The realtime executables should be added in this section.
-    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwroot qweventdisplaytest
+    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwmoller qwroot qweventdisplaytest
   else
-    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwroot qweventdisplaytest
+    EXES := qwtracking qwparity qwsimtracking qwsimraytracer qwmockdatagenerator qwmockdataanalysis qwcompton qwmoller qwroot qweventdisplaytest
   endif
 endif
 # overridden by "make 'EXES=exe1 exe2 ...'"
@@ -152,6 +144,18 @@ ifneq ($(filter qwrealtime,$(EXES)),)
  endif
 endif
 
+#
+#  Get information about the SVN environment of this directory, including the 
+#  revision number, and the repository URL.
+#
+QWANA_VERSION_H        := Analysis/include/QwSVNVersion.h
+QWANA_SVN_REVISION     := $(strip $(shell svnversion 2>/dev/null || echo "unknown_revision"))
+QWANA_SVN_REVISION_OLD := $(strip $(shell test -e $(QWANA_VERSION_H) && \
+				($(GREP) "QWANA_SVN_REVISION" $(QWANA_VERSION_H)|$(AWK) -F'"' '{print $$2}')))
+QWANA_SVN_URL          := $(strip $(shell (svn info 2>/dev/null || echo "URL: unknown_URL") \
+				| $(AWK) '$$1=="URL:"{print $$2}'))
+QWANA_SVN_LASTREVISION := $(strip $(shell (svn info 2>/dev/null || echo "Last Changed Rev: unknown_revision") \
+				| $(AWK) -F":" '$$1=="Last Changed Rev"{print $$2}'))
 
 
 ############################
@@ -216,6 +220,12 @@ endif
 ifneq ($(shell test $(QWANALYSIS) -ef $(shell pwd) || echo false),)
   $(error Aborting : QWANALYSIS variable disagrees with the working directory.  Source the SetupFiles/.Qwcshrc script first)
 endif
+
+#  If an OS and hardware specific subdirectory is present,
+#  we will use the "bin" and "lib" directories in it,
+#  instead of the base "bin" and "lib" directories.
+OS_HW_NAME  := $(uname -s -m | sed 's/ /_/g')
+INSTALL_DIR := $(strip $(shell $(ECHO) $(QWANALYSIS)$$( (if [ -d $(OS_HW_NAME)]; then $(ECHO) "/"$(OS_HW_NAME); fi))))
 
 ifndef QW_BIN
   $(warning Warning : QW_BIN variable is not defined.  Setting to QWANALSYIS/bin.)
@@ -578,8 +588,6 @@ FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(EXCLUDEDIRS))'
 # To be piped in
 # Gets everything on one line
 
-
-
 ############################
 ############################
 # Main targets :
@@ -588,7 +596,7 @@ FILTER_OUT_LIBRARYDIR_DEPS = $(SED) '$(patsubst %,/^.\/%/d;,$(EXCLUDEDIRS))'
 
 export
 
-all: .ADD .EXES .auxDepends qweak-config
+all: .ADD .EXES QwSVNVersion .auxDepends bin/qweak-config
 ifneq ($(strip $(ADD)),)
 	@if [ "$(strip $(sort $(shell $(CAT) .ADD)))" != "$(strip $(sort $(ADD)))" ]; \
 	then \
@@ -625,7 +633,7 @@ endif
 	@$(MAKE) -f .auxDepends `$(CAT) .auxExeFiles | $(SED) 's/$$/ /g' | $(APPEND_BIN_PATH) | $(INTO_RELATIVE_PATH)`
 
 
-config: .ADD .EXES clean.auxfiles .auxDepends qweak-config
+config: .ADD .EXES clean.auxfiles QwSVNVersion .auxDepends bin/qweak-config 
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .ADD),$(ADD)) $(filter-out $(ADD),$(shell $(CAT) .ADD)) | $(REMOVE_-D))); \
 	do \
 	$(RM) `$(GREP) $$wd */*/*$(IncSuf) */*/*$(SrcSuf) | $(SED) 's/^\([A-Za-z0-9\/\._]*\):.*/\1/g;s/\$(IncSuf)/\$(ObjSuf)/g;s/\$(SrcSuf)/\$(ObjSuf)/g'`; \
@@ -846,13 +854,25 @@ myevio_lib:
 	@$(ECHO) Generating $@
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
 
-qweak-config: qweak-config.in
+bin/qweak-config: qweak-config.in
 	@$(ECHO) Generating $@
 	@$(CAT) $< | $(SED) 's!%QWANALYSIS%!$(QWANALYSIS)!' | $(SED) 's!%LIBS%!$(LIBS)!'   \
 	           | $(SED) 's!%QW_LIB%!$(QW_LIB)!' | $(SED) 's!%QW_BIN%!$(QW_BIN)!'           \
 	           | $(SED) 's!%LDFLAGS%!$(LDFLAGS)!' | $(SED) 's!%CPPFLAGS%!$(CPPFLAGS)!' \
-	           > bin/$@
-	@$(CHMOD) a+x bin/$@
+	           > $@
+	@$(CHMOD) a+x $@
+
+
+QwSVNVersion:
+	@if [ "$(QWANA_SVN_REVISION)" != "$(QWANA_SVN_REVISION_OLD)" ] ; \
+	then \
+		$(ECHO) "Generating $(QWANA_VERSION_H) with revision string, $(QWANA_SVN_REVISION)" ; \
+		$(ECHO) 'const char *QWANA_SVN_REVISION = "'$(QWANA_SVN_REVISION)'";' > $(QWANA_VERSION_H); \
+		$(ECHO) 'const char *QWANA_SVN_URL = "'$(QWANA_SVN_URL)'";' >> $(QWANA_VERSION_H); \
+		$(ECHO) 'const char *QWANA_SVN_LASTCHANGEDREVISION = "'$(QWANA_SVN_LASTREVISION)'";' >> $(QWANA_VERSION_H); \
+	else \
+		$(ECHO) "\`$(QWANA_VERSION_H)' is up to date"; \
+	fi;
 
 ############################
 ############################
@@ -871,6 +891,11 @@ clean.dictfiles:
 	@$(ECHO) Removing *Dict$(SrcSuf), *Dict$(IncSuf) files
 	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) 'Dict\$(SrcSuf)' | $(SED) '/\$(SrcSuf)./d'`
 	@$(RM) `$(FIND) $(QWANALYSIS) | $(GREP) 'Dict\$(IncSuf)' | $(SED) '/\$(IncSuf)./d'`
+	@if [ -e $(QWANA_VERSION_H) ] ;\
+	then \
+		$(ECHO) Removing $(QWANA_VERSION_H); \
+		$(RM) $(QWANA_VERSION_H); \
+	fi;
 
 
 clean.libs:
@@ -916,7 +941,7 @@ distclean: cleanSunWS_cache clean.dictfiles clean clean.libs clean.exes clean.au
 ############################
 ############################
 
-.PHONY : clean clean.dictfiles clean.exes clean.libs distclean clean.auxfiles config all clean.olddotfiles cleanSunWS_cache
+.PHONY : clean clean.dictfiles clean.exes clean.libs distclean clean.auxfiles config all clean.olddotfiles cleanSunWS_cache QwSVNVersion
 
 .SUFFIXES :
 .SUFFIXES : $(SrcSuf) $(IncSuf) $(ObjSuf)

@@ -59,11 +59,15 @@ class QwVQWK_Channel: public VQwDataElement {
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString name, TString datatosave);
 
+  /// \brief Initialize the fields in this object
+  void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
+
   // Will update the default sample size for the module.
   void SetDefaultSampleSize(size_t NumberOfSamples_map) {
     // This will be checked against the no.of samples read by the module
     fNumberOfSamples_map = NumberOfSamples_map;
   };
+  
 
 
   void  ClearEventData();
@@ -163,7 +167,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
   Double_t GetBlockValue(size_t blocknum) const { return fBlock[blocknum]; };
   Double_t GetBlockErrorValue(size_t blocknum) const { return fBlockError[blocknum]; };
@@ -183,8 +187,8 @@ class QwVQWK_Channel: public VQwDataElement {
   void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };
   Double_t GetPedestal() const       { return fPedestal; };
   void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; kFoundGain = 1; };
+  void     SetCalibrationToVolts()               { fCalibrationFactor = kVQWK_VoltsPerBit; kFoundGain = 1; };
   Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
-
 
   void Copy(VQwDataElement *source);
 
@@ -200,6 +204,8 @@ class QwVQWK_Channel: public VQwDataElement {
   void Blind(const QwBlinder *blinder);
   /// \brief Blind this channel as a difference
   void Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield);
+
+  
 
  protected:
 
@@ -237,11 +243,13 @@ class QwVQWK_Channel: public VQwDataElement {
   size_t fTreeArrayIndex;
   size_t fTreeArrayNumEntries;
 
-  /*! \name Event data members */
+  /*! \name Event data members---Raw values */
   // @{
-  Double_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
-  Double_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
-  Double_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
+  Int_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
+  Int_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
+  Int_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
+  /*! \name Event data members---Potentially calibrated values*/
+  // @{
   // The following values potentially have pedestal removed  and calibration applied
   Double_t fBlock[4];          ///< Array of the sub-block data
   Double_t fHardwareBlockSum;  ///< Module-based sum of the four sub-blocks
@@ -331,6 +339,16 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
+
+  //For VQWK data element trimming uses
+  Bool_t bHw_sum;
+  Bool_t bHw_sum_raw;
+  Bool_t  bBlock;
+  Bool_t  bBlock_raw;
+  Bool_t bNum_samples;
+  Bool_t bDevice_Error_Code;
+  Bool_t bSequence_number;
+  
 
 
 

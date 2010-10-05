@@ -11,28 +11,29 @@
 //
 
 #include "QwDetectorInfo.h"
+ClassImp(QwDetectorInfo);
 
 void QwDetectorInfo::SetDetectorInfo (
 	TString sdType,
-	Double_t Det_originZ,
-	Double_t rot,
-	Double_t  sp_res,
-	Double_t  track_res,
-	Double_t slope_match,
+	double det_originZ,
+	double rot,
+	double  sp_res,
+	double  track_res,
+	double slope_match,
 	TString spackage,
-	Int_t region,
+	int region,
 	TString planeDir,
-	Double_t Det_originX,
-	Double_t Det_originY,
-	Double_t ActivewidthX,
-	Double_t ActivewidthY,
-	Double_t ActivewidthZ,
-	Double_t WireSpace,
-	Double_t FirstWire,
-	Double_t W_rcos,
-	Double_t W_rsin,
-	Int_t totalwires,
-	Int_t detId)
+	double det_originX,
+	double det_originY,
+	double activewidthX,
+	double activewidthY,
+	double activewidthZ,
+	double wireSpace,
+	double firstWire,
+	double w_rcos,
+	double w_rsin,
+	int totalwires,
+	int detId)
 {
   // Detector geometry parameters
 
@@ -40,16 +41,16 @@ void QwDetectorInfo::SetDetectorInfo (
   SetTrackResolution(track_res);
   SetSlopeMatching(slope_match);
 
-  SetXYZPosition(Det_originX, Det_originY, Det_originZ);
+  SetXYZPosition(det_originX, det_originY, det_originZ);
   SetDetectorRotation(rot);
 
-  fActiveWidthX = ActivewidthX;
-  fActiveWidthY = ActivewidthY;
-  fActiveWidthZ = ActivewidthZ;
+  fActiveWidthX = activewidthX;
+  fActiveWidthY = activewidthY;
+  fActiveWidthZ = activewidthZ;
 
-  SetElementSpacing(WireSpace);
-  SetElementOffset(FirstWire);
-  SetElementAngle(W_rcos, W_rsin);
+  SetElementSpacing(wireSpace);
+  SetElementOffset(firstWire);
+  SetElementAngle(w_rcos, w_rsin);
   SetNumberOfElements(totalwires);
 
   fDetectorID = detId;
@@ -101,12 +102,31 @@ void QwDetectorInfo::SetDetectorInfo (
     fDirection = kDirectionPhi;
 };
 
-ostream& operator<< (ostream& stream, const QwDetectorInfo& det)
+
+/**
+ * Get the coordinate of the specified element.  E.g. this returns the x/u/v
+ * position of the specified wire, taking into account the offset of wire 1.
+ * @param element Element number
+ * @return Coordinate of the element
+ */
+const double QwDetectorInfo::GetElementCoordinate(const int element) const
+{
+  return GetElementOffset() + (element - 1) * GetElementSpacing();
+}
+
+
+/**
+ * Output stream operator
+ * @param stream Output stream
+ * @param det Detector info object
+ * @return Output stream
+ */
+std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det)
 {
   stream << "det " << det.fDetectorID << ": ";
   stream << "package " << det.fPackage << ", ";
   stream << "region " << det.fRegion << ", ";
   stream << "dir " << det.GetElementDirection() << " ";
-  stream << "(z = " << det.GetZPosition() << " cm)";
+  stream << "(z = " << det.GetZPosition()/Qw::cm << " cm)";
   return stream;
 }

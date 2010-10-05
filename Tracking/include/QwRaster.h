@@ -54,7 +54,7 @@ class QwRaster: public VQwSubsystemTracking
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
   void  FillDB(QwDatabase *db, TString type) {return;};
 

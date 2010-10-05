@@ -45,6 +45,7 @@ QwEPICSEvent::~QwEPICSEvent(){};
 
 
 Int_t QwEPICSEvent::LoadEpicsVariableMap(TString mapfile) {
+  Bool_t ldebug = kFALSE;
   TString varname, dbtable, datatype;
   EQwEPICSDataType datatypeid = kEPICSString;
   Int_t lineread=0;
@@ -63,7 +64,8 @@ Int_t QwEPICSEvent::LoadEpicsVariableMap(TString mapfile) {
       dbtable     = mapstr.GetNextToken(" \t").c_str();
       datatype    = mapstr.GetNextToken(" \t").c_str();
       datatype.ToLower();
-      std::cout<<"\t "<<varname<<"\t\t\t\t "<<dbtable<<"\t\t "<<datatype<<"\n";
+      if(ldebug)
+	std::cout<<"\t "<<varname<<"\t\t\t\t "<<dbtable<<"\t\t "<<datatype<<"\n";
       if (datatype == "") {
 	AddEPICSTag(varname,dbtable);
       } else {

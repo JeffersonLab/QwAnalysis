@@ -27,6 +27,9 @@ QwScanner::QwScanner(TString name)
   ClearAllBankRegistrations();
 
   fScaEventCounter = 0;
+  fF1TDContainer = new QwF1TDContainer();
+  fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
+  kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
 };
 
 
@@ -46,6 +49,7 @@ QwScanner::~QwScanner()
     }
   fADC_Data.clear();
   //DeleteHistograms();
+  delete fF1TDContainer;
 };
 
 
@@ -314,6 +318,126 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
         }
 
     }
+
+  if( bank_id==fBankID[2] ) {
+
+    TString subsystem_name;
+
+    Int_t bank_index    = 0;
+    Int_t tdc_index     = 0;
+    UInt_t slot_id      = 0;
+    UInt_t vme_slot_num = 0;
+
+    Bool_t local_debug  = false;
+
+    QwF1TDC *local_f1tdc = NULL;
+   
+    bank_index = GetSubbankIndex(roc_id, bank_id);
+
+    if(bank_index >=0) {
+      if(local_debug) {
+	std::cout << "fF1TDContainer " << fF1TDContainer
+		  <<" local_f1tdc    " << local_f1tdc << "\n";
+      }
+      subsystem_name = this->GetSubsystemName();
+      fF1TDContainer -> SetSystemName(subsystem_name);
+      
+      if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
+      
+      std::cout << "QwScanner : " 
+		<< subsystem_name
+		<< ", "
+		<< "ProcessConfigurationBuffer"
+		<< std::endl;
+      std::cout << "ROC " 
+		<< std::setw(2) << roc_id
+		<< " Bank [index,id]["
+		<<  bank_index
+		<< ","
+		<< bank_id
+		<< "]"
+		<< std::endl;
+      for ( slot_id=0; slot_id<kMaxNumberOfModulesPerROC; slot_id++ ) { 
+	// slot id starts from 2, because 0 is one offset (1) difference between QwAnalyzer and VME definition, 
+	// and 1 and 2 are used for CPU and TI. Tuesday, August 31 10:57:07 EDT 2010, jhlee
+	
+	tdc_index    = GetModuleIndex(bank_index, slot_id);
+	vme_slot_num = slot_id;
+      
+	if(local_debug) {
+	  std::cout << "    "
+		    << "Slot [id, VME num] [" 
+		    << std::setw(2) << slot_id
+		    << ","
+		    << std::setw(2) << vme_slot_num
+		    << "]";
+	  std::cout << "    ";
+	}
+
+      
+	local_f1tdc = NULL;
+
+	if(slot_id > 2) { // save time
+	
+	  if (tdc_index not_eq -1) {
+
+	    if(local_f1tdc) delete local_f1tdc; local_f1tdc = 0;
+
+	    local_f1tdc = new QwF1TDC(roc_id, vme_slot_num);
+
+	    local_f1tdc->SetF1BankIndex(bank_index);
+	    local_f1tdc->SetF1TDCIndex(tdc_index);
+	    local_f1tdc->SetF1TDCBuffer(buffer, num_words);
+	    local_f1tdc->SetF1SystemName(subsystem_name);
+
+	    fF1TDContainer->AddQwF1TDC(local_f1tdc);
+	  
+	    if(local_debug) {
+	      std::cout << "F1TDC index " 
+			<< std::setw(2) 
+			<< tdc_index
+			<< std::setw(16) 
+			<< " local_f1tdc " 
+			<< *local_f1tdc
+			<< " at " 
+			<< local_f1tdc;
+	    }
+
+	  }
+	  else {
+
+	    if(local_debug) {
+	      std::cout << "Unused in "  
+			<< std::setw(4) 
+			<< subsystem_name	
+			<< std::setw(16) 
+			<< " local_f1tdc  at " 
+			<< local_f1tdc;
+	    }
+	  
+	  }
+		
+	}
+	else { // slot_id == only 0, 1, & 2
+	
+	  if(local_debug) {
+	    if      (slot_id == 0) std::cout << "         ";
+	    else if (slot_id == 1) std::cout << "MVME CPU ";
+	    else                   std::cout << "Trigger Interface"; // slot_id == 2;
+	  }
+
+	}
+      
+	if(local_debug) std::cout << std::endl;
+      }
+  
+      if(local_debug) {
+	fF1TDContainer->Print();
+	std::cout << "-----------------------------------------------------" << std::endl;
+      }
+    }
+  }
+
   return 0;
 };
 
@@ -373,65 +497,161 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
   // This is a F1TDC bank
   else if (bank_id==fBankID[2])
     {
-      if (index>=0 && num_words>0)
-        {
-          SetDataLoaded(kTRUE);
-          if (fDEBUG)
-            std::cout << "QwScanner::ProcessEvBuffer:  "
-            << "Begin processing F1TDC Bank 0x"<<std::hex<<bank_id<<std::dec<<std::endl;
 
-          Int_t tdc_slot_number = 0;
-          Int_t tdc_chan_number = 0;
+      Int_t  bank_index      = 0;
+      Int_t  tdc_slot_number = 0;
+      Int_t  tdc_chan_number = 0;
+      UInt_t tdc_data        = 0;
+      
+      Bool_t data_integrity_flag = false;
+      Bool_t temp_print_flag     = false;
+      Int_t tdcindex = 0;
+      //   Int_t tmp_last_chan = 65535; // for removing the multiple hits....
+      
+      bank_index = GetSubbankIndex(roc_id, bank_id);
+      
+      if (bank_index>=0 && num_words>0) {
+	//  We want to process this ROC.  Begin looping through the data.
+	SetDataLoaded(kTRUE);
+	
+	
+	if (temp_print_flag ) {
+	  std::cout << "QwScanner::ProcessEvBuffer:  "
+		    << "Begin processing ROC" 
+		    << std::setw(2)
+		    << roc_id 
+		    << " bank id " 
+		    << bank_id 
+		    << " Subbbank Index "
+		    << bank_index
+		    << " Region "
+		    << GetSubsystemName()
+		    << std::endl;
+	}
+	
+	//
+	// CheckDataIntegrity() do "counter" whatever errors in each F1TDC 
+	// and check whether data is OK or not.
+	
+	data_integrity_flag = fF1TDContainer->CheckDataIntegrity(roc_id, buffer, num_words);
+	// if it is false (TFO, EMM, and SYN), the whole buffer is excluded for
+	// the further process, because of multiblock data transfer.
+	
+	if (data_integrity_flag) {
+	  
+	  for (UInt_t i=0; i<num_words ; i++) {
+	    
+	    //  Decode this word as a F1TDC word.
+	    fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); // MQwF1TDC or MQwV775TDC
+	    
+	    // For MQwF1TDC,   roc_id is needed to print out some warning messages.
+	    
+	    tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+	    tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
+	    tdcindex        = GetModuleIndex(bank_index, tdc_slot_number);
+	    
+	    if ( tdc_slot_number == 31) {
+	      //  This is a custom word which is not defined in
+	      //  the F1TDC, so we can use it as a marker for
+	      //  other data; it may be useful for something.
+	    }
+	    
+	    // Each subsystem has its own interesting slot(s), thus
+	    // here, if this slot isn't in its slot(s) (subsystem map file)
+	    // we skip this buffer to do the further process
+	    
+	    if (not IsSlotRegistered(bank_index, tdc_slot_number) ) continue;
+	    
+	    if(temp_print_flag) std::cout << fF1TDCDecoder << std::endl;
+	    
+	    if ( fF1TDCDecoder.IsValidDataword() ) {//;;
+	      // if decoded F1TDC data has a valid slot, resolution locked, data word, no overflow (0xFFFF), and no fake data
+	      
+	      try {
+		// if(tdc_chan_number != tmp_last_chan)
+		//   {
+		tdc_data = fF1TDCDecoder.GetTDCData();
+		FillRawWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
+		// //		  Check if this is reference time data
+		// if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
+		//   reftime = fF1TDCDecoder.GetTDCData();
+		// tmp_last_chan = tdc_chan_number;
+		// }
+	      }
+	      catch (std::exception& e) {
+		std::cerr << "Standard exception from QwScanner::FillRawWord: "
+			  << e.what() << std::endl;
+		std::cerr << "   Parameters:  index==" <<bank_index
+			  << "; GetF1SlotNumber()=="   <<tdc_slot_number
+			  << "; GetF1ChannelNumber()=="<<tdc_chan_number
+			  << "; GetF1Data()=="         <<tdc_data
+			  << std::endl;
+	      }
+	    }//;;
+	  } // for (UInt_t i=0; i<num_words ; i++) {
+	}
+	
+      }
 
-          Bool_t data_integrity_flag = false;
-          Bool_t temp_print_flag     = false;
+      // if (index>=0 && num_words>0)
+      //   {
+      //     SetDataLoaded(kTRUE);
+      //     if (fDEBUG)
+      //       std::cout << "QwScanner::ProcessEvBuffer:  "
+      //       << "Begin processing F1TDC Bank 0x"<<std::hex<<bank_id<<std::dec<<std::endl;
 
-          data_integrity_flag = fF1TDC.CheckDataIntegrity(roc_id, buffer, num_words);
+      //     Int_t tdc_slot_number = 0;
+      //     Int_t tdc_chan_number = 0;
 
-          if (data_integrity_flag)
-            {
-              //;
-              for (UInt_t i=0; i<num_words ; i++)
-                {
+      //     Bool_t data_integrity_flag = false;
+      //     Bool_t temp_print_flag     = false;
 
-                  fF1TDC.DecodeTDCWord(buffer[i], roc_id);
+      //     data_integrity_flag = fF1TDCDecoder.CheckDataIntegrity(roc_id, buffer, num_words);
 
-                  tdc_slot_number = fF1TDC.GetTDCSlotNumber();
-                  tdc_chan_number = fF1TDC.GetTDCChannelNumber();
+      //     if (data_integrity_flag)
+      //       {
+      //         //;
+      //         for (UInt_t i=0; i<num_words ; i++)
+      //           {
 
-                  if ( tdc_slot_number == 31)
-                    {
-                      //  This is a custom word which is not defined in
-                      //  the F1TDC, so we can use it as a marker for
-                      //  other data; it may be useful for something.
-                    }
+      //             fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id);
 
-                  // Each subsystem has its own interesting slot(s), thus
-                  // here, if this slot isn't in its slot(s) (subsystem map file)
-                  // we skip this buffer to do the further process
-                  if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
+      //             tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+      //             tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
 
-                  if ( fF1TDC.IsValidDataword() )
-                    {
-                      try
-                        {
-                          FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDC.GetTDCData());
-                          fF1TDC.PrintTDCData(temp_print_flag);
-                        }
-                      catch (std::exception& e)
-                        {
-                          std::cerr << "Standard exception from QwScanner::FillRawTDCWord: "
-                          << e.what() << std::endl;
-                          std::cerr << "   Parameters:  index=="  << index
-                          << "; GetF1SlotNumber()=="    << tdc_slot_number
-                          << "; GetF1ChannelNumber()==" << tdc_chan_number
-                          << "; GetF1Data()=="          << fF1TDC.GetTDCData()
-                          << std::endl;
-                        }
-                    }
-                }
-            }//; if(data_integrity_flag)
-        }
+      //             if ( tdc_slot_number == 31)
+      //               {
+      //                 //  This is a custom word which is not defined in
+      //                 //  the F1TDC, so we can use it as a marker for
+      //                 //  other data; it may be useful for something.
+      //               }
+
+      //             // Each subsystem has its own interesting slot(s), thus
+      //             // here, if this slot isn't in its slot(s) (subsystem map file)
+      //             // we skip this buffer to do the further process
+      //             if (! IsSlotRegistered(index, tdc_slot_number) ) continue;
+
+      //             if ( fF1TDCDecoder.IsValidDataword() )
+      //               {
+      //                 try
+      //                   {
+      //                     FillRawWord(index, tdc_slot_number, tdc_chan_number, fF1TDCDecoder.GetTDCData());
+      //                     fF1TDCDecoder.PrintTDCData(temp_print_flag);
+      //                   }
+      //                 catch (std::exception& e)
+      //                   {
+      //                     std::cerr << "Standard exception from QwScanner::FillRawTDCWord: "
+      //                     << e.what() << std::endl;
+      //                     std::cerr << "   Parameters:  index=="  << index
+      //                     << "; GetF1SlotNumber()=="    << tdc_slot_number
+      //                     << "; GetF1ChannelNumber()==" << tdc_chan_number
+      //                     << "; GetF1Data()=="          << fF1TDCDecoder.GetTDCData()
+      //                     << std::endl;
+      //                   }
+      //               }
+      //           }
+      //       }//; if(data_integrity_flag)
+      //   }
     }
 
 
@@ -594,6 +814,10 @@ void  QwScanner::ProcessEvent()
             reftime = fPMTs.at(i).at(j).GetValue();
         }
     }
+  
+  Int_t bank_index = 0;
+  Int_t slot_num   = 0;	  
+  Double_t newdata = 0.0;
 
   // F1TDC reference time subtraction
   for (size_t i=0; i<fPMTs.size(); i++)
@@ -608,7 +832,10 @@ void  QwScanner::ProcessEvent()
               // only subtract reftime if channel value is nonzero
               if (rawtime!=0)
                 {
-                  Double_t newdata = fF1TDC.ActualTimeDifference(rawtime, reftime);
+		  bank_index = fPMTs.at(i).at(j).GetSubbankID();
+		  slot_num   = fPMTs.at(i).at(j).GetModule();
+		  newdata    = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
+		  //		  Newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
                   fPMTs.at(i).at(j).SetValue(newdata);
                 }
             }
@@ -1002,7 +1229,7 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
 };
 
 
-void  QwScanner::FillTreeVector(std::vector<Double_t> &values)
+void  QwScanner::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (! HasDataLoaded()) return;
 
@@ -1096,7 +1323,11 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values)
 
 void  QwScanner::DeleteHistograms()
 {
-
+  // std::cout << this << std::endl;
+  // std::cout << GetParent(0).fEventTypeMask << std::endl;
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
+  /// printf("f1tdcontainer\n");
   if (bStoreRawData)
     {
       for (size_t i=0; i<fPMTs.size(); i++)
@@ -1417,6 +1648,8 @@ void QwScanner::FillRawWord(Int_t bank_index,
       else
         {
           fPMTs.at(modtype).at(chanindex).SetValue(data);
+	  fPMTs.at(modtype).at(chanindex).SetSubbankID(bank_index);
+	  fPMTs.at(modtype).at(chanindex).SetModule(slot_num);
         }
     };
 };

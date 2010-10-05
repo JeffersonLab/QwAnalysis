@@ -161,8 +161,10 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
     if (local_tag != 0xFADC) return words_read;
 
     // Check whether the first word contains the correct channel number
-    UInt_t local_module = (buffer[0] >> 8) & 0xFF;
+    UInt_t local_module = 0;
+    local_module = (buffer[0] >> 8) & 0xFF;
     UInt_t local_channel = buffer[0] & 0xFF;
+ 
     if (local_channel != fChannel) return words_read;
 
     // Determine whether we are receiving a sampling or accumulator buffer:
@@ -174,7 +176,9 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
     // - stop mode is 1 for hardware trigger
     // - setup mode is 1,2,3,4...
     UInt_t local_format = (buffer[1] >> 16) & 0xFFFF;
-    UInt_t local_stopmode = (buffer[1] >> 8) & 0xFF;
+    UInt_t local_stopmode = 0;
+    local_stopmode = (buffer[1] >> 8) & 0xFF;
+
     UInt_t local_setupmode = (buffer[1]) & 0xFF;
     words_read = 2;
     UInt_t packedtiming; // locals declared outside of switch/case
@@ -645,7 +649,7 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   // TODO See below for issues with including samples in the mps tree
 };
 
-void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values)
+void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   // Accumulators
   for (size_t i = 0; i < fAccumulators.size(); i++) {

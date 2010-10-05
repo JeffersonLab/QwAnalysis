@@ -13,8 +13,6 @@
 # define NDetMax 1010
 #endif
 
-//#define PI 3.141592653589793
-
 /*! \var rcDET
 
     The detector geometry is internally stored in the two objects rcDET and

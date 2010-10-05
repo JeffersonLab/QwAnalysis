@@ -3,14 +3,47 @@
 QwEPICSControl::QwEPICSControl()
 {
   int status;
-  status = ca_search("IGLdac3:ao_7", &fIDHall_A_IA);
+//   status = ca_search("IGLdac3:ao_7", &fIDHall_A_IA);
+//   status = ca_pend_io(10);
+//   status = ca_search("IGLdac3:ao_4", &fIDHall_C_IA);
+//   status = ca_pend_io(10);
+  // These are the old pockels cell channels
+//   status = ca_search("IGLdac2:G2Ch3Pos", &fIDPockels_Cell_plus);
+//   status = ca_pend_io(10);
+//   status = ca_search("IGLdac2:G2Ch4Neg", &fIDPockels_Cell_minus);
+//   status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC01", &fIDPockels_Cell_plus_DAC);
   status = ca_pend_io(10);
-  status = ca_search("IGLdac3:ao_4", &fIDHall_C_IA);
+  status = ca_search("C1068_QDAC02", &fIDPockels_Cell_minus_DAC);
   status = ca_pend_io(10);
-  status = ca_search("IGLdac2:G2Ch3Pos", &fIDPockels_Cell_plus);
+  status = ca_search("C1068_QDAC03", &fIDIADAC3);
   status = ca_pend_io(10);
-  status = ca_search("IGLdac2:G2Ch4Neg", &fIDPockels_Cell_minus);
+  status = ca_search("C1068_QDAC04", &fIDIADAC4);
   status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC05", &fIDIADAC5);
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC06", &fIDIADAC6);
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC07", &fIDIADAC7);
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC08", &fIDIADAC8);
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC09", &fIDIADAC9);
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC10", &fIDIADAC10);
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC11", &fIDIADAC11);
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC12", &fIDIADAC12);
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC13", &fIDIADAC13);
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC14", &fIDIADAC14);
+  status = ca_pend_io(10);
+//   status = ca_search("C1068_QDAC01r.RVAL", &fIDPockels_Cell_plus_DAC_readval);
+//   status = ca_pend_io(10);
+//   status = ca_search("C1068_QDAC02r.RVAL", &fIDPockels_Cell_minus_DAC_readval);
+//   status = ca_pend_io(10);
   status = ca_search("hel_even_1", &fIDMagnet_1_Even);
   status = ca_pend_io(10);
   status = ca_search("hel_odd_1", &fIDMagnet_1_Odd);
@@ -37,7 +70,12 @@ QwEPICSControl::QwEPICSControl()
   status = ca_pend_io(10);
   status = ca_search("HELFREQ", &fIDHelicity_frequency);
   status = ca_pend_io(10);
+  status = ca_search("FCupsCORRECTED.VAL", &fIDFC2_Current);
+  status = ca_pend_io(10);
+  status = ca_search("psub_ac_pos", &fIDCLaser_Att);
+  status = ca_pend_io(10);
 };
+
 
 QwEPICSControl::~QwEPICSControl()
 {  

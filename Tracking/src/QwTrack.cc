@@ -1,7 +1,43 @@
 #include "QwTrack.h"
 ClassImp(QwTrack);
 
+/**
+ * Default constructor
+ */
 QwTrack::QwTrack()
+{
+  // Initialize
+  Initialize();
+}
+
+/**
+ * Copy constructor by reference
+ * @param track Original track
+ */
+QwTrack::QwTrack(const QwTrack& track)
+{
+  // Initialize
+  Initialize();
+
+  // Copy tracks
+  front = new QwPartialTrack(track.front);
+  back  = new QwPartialTrack(track.back);
+}
+
+/**
+ * Virtual destructor
+ */
+QwTrack::~QwTrack()
+{
+  // Delete objects
+  if (front) delete front;
+  if (back)  delete back;
+}
+
+/**
+ * Initialization
+ */
+void QwTrack::Initialize()
 {
   // Initialize all pointers
   fBridge = 0;
@@ -11,11 +47,6 @@ QwTrack::QwTrack()
   front = 0;
   back = 0;
   beamvertex = 0;
-}
-
-QwTrack::~QwTrack()
-{
-  // Nothing
 }
 
 /**

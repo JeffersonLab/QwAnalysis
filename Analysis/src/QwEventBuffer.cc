@@ -472,13 +472,13 @@ void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
       SetWordsSoFar(2);
     }
   }
-//   QwDebug << Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
-// 		  fEvtLength, fEvtTag, fIDBankNum)
-// 	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
-// 		  fEvtType, fEvtNumber, fEvtClass)
-// 	  << Form("Status Summary: 0x%.8x; Words so far %d",
-// 		  fStatSum, fWordsSoFar)
-// 	  << QwLog::endl;
+  // std::cout<< Form("Length: %d; Tag: 0x%x; Bank ID num: 0x%x; ",
+  // 		  fEvtLength, fEvtTag, fIDBankNum)
+  // 	  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
+  // 		  fEvtType, fEvtNumber, fEvtClass)
+  // 	  << Form("Status Summary: 0x%.8x; Words so far %d",
+  // 		  fStatSum, fWordsSoFar)
+  // 	   << std::endl;
 };
 
 
@@ -492,19 +492,26 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
   ///      subbank structure as the physics events for that ROC.
   Bool_t okay = kTRUE;
   UInt_t rocnum = fEvtType - 0x90;
-  QwError << "QwEventBuffer::FillSubsystemConfigurationData:  "
-	  << "Found configuration event for ROC"
-	  << rocnum
-	  << QwLog::endl;
+  QwMessage << "QwEventBuffer::FillSubsystemConfigurationData:  "
+	    << "Found configuration event for ROC"
+	    << rocnum
+	    << std::endl;
+  std::cout  << Form("Evt type: 0x%x; Evt number %d; Evt Class 0x%.8x; ",
+		     fEvtType, fEvtNumber, fEvtClass)
+	     << std::endl;
   //  Loop through the data buffer in this event.
   UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
     //  If this bank has further subbanks, restart the loop.
-    if (fSubbankType == 0x10) continue;
+    if (fSubbankType == 0x10) {
+      QwMessage << "This bank has further subbanks, restart the loop" << std::endl;
+      continue;
+    }
     //  If this bank only contains the word 'NULL' then skip
     //  this bank.
     if (fFragLength==1 && localbuff[fWordsSoFar]==kNullDataWord){
       fWordsSoFar += fFragLength;
+      QwMessage << "Skip this bank" << std::endl;
       continue;
     }
 
@@ -515,6 +522,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
     //
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
+
     subsystems.ProcessConfigurationBuffer(rocnum, fSubbankTag,
 					  &localbuff[fWordsSoFar],
 					  fFragLength);

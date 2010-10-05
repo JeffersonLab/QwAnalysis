@@ -29,6 +29,7 @@
 #include "QwLog.h"
 #include "QwSubsystemArray.h"
 
+
 Int_t ERROR = -1;
 
 
@@ -144,7 +145,6 @@ const Bool_t VQwSubsystem::RequestExternalValue(
   // Get the parent and check for existence (NOTE: only one parent supported)
   QwSubsystemArray* parent = GetParent();
   if (parent != 0) {
-    // Request the named variable from the parent, return true if found
     return parent->RequestExternalValue(name, value);
   }
   return kFALSE; // Error: could not find variable in parent

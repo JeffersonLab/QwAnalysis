@@ -15,7 +15,6 @@
 #include <TTree.h>
 
 #include "VQwSubsystemParity.h"
-#include "QwVQWK_Module.h"
 
 #include "QwIntegrationPMT.h"
 #include "QwCombinedPMT.h"
@@ -99,7 +98,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void ConstructBranch(TTree *tree, TString &prefix);
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
 
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwDatabase *db, TString datatype);
 
   const QwIntegrationPMT* GetChannel(const TString name) const;
@@ -155,8 +154,6 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
  // will be returned. For example if TypeID is IntegrationPMT  then the index of
  // the detector from fIntegrationPMT vector for given name will be returnd.
  Int_t GetDetectorIndex(EQwPMTInstrumentType TypeID, TString name);
-
-  //std::vector<QwVQWK_Module> fADC_Data;
 
   std::vector <QwIntegrationPMT> fIntegrationPMT;
   std::vector <QwCombinedPMT> fCombinedPMT;

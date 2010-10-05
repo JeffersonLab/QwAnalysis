@@ -8,11 +8,7 @@
 
 #include "QwParameterFile.h"
 #include "QwLog.h"
-
 #include<boost/bind.hpp>
-
-
-
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwDriftChamberHDC> theDriftChamberHDCFactory("QwDriftChamberHDC");
@@ -165,44 +161,6 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 
 
 
-void  QwDriftChamberHDC::ReportConfiguration()
-{
-
-  std::size_t i = 0;
-  std::size_t j = 0;
-  UInt_t k = 0;
-  Int_t tdcindex = 0;
-  Int_t ind = 0;
-  QwMessage << "QwDriftChamberHDC::ReportConfiguration fTDCPtrs.size()" << fTDCPtrs.size() << QwLog::endl;
-
-  for ( i = 0; i<fROC_IDs.size(); i++){
- 
-    for ( j=0; j<fBank_IDs.at(i).size(); j++){
-      ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
-      QwMessage << "ROC " << fROC_IDs.at(i)
-		<< ", subbank " << fBank_IDs.at(i).at(j)
-		<< ":  subbank index==" << ind
-		<< QwLog::endl;
-      for ( k=0; k<kMaxNumberOfTDCsPerROC; k++){
-	tdcindex = GetTDCIndex(ind,k);
-	QwMessage << "    Slot " << k;
-	if (tdcindex == -1)
-	  QwMessage << "  Empty" << QwLog::endl;
-	else
-	  QwMessage << "  TDC#" << tdcindex << QwLog::endl;
-      }
-    }
-  }
-  // for (size_t i=0; i<fWiresPerPlane.size(); i++){
-  //   if (fWiresPerPlane.at(i) == 0) continue;
-  //   QwMessage << "Plane " << i << " has " << fWireData.at(i).size()
-  // 	      << " wires"
-  // 	      << QwLog::endl;
-  // }
-};
-
-
-
 void  QwDriftChamberHDC::SubtractReferenceTimes()
 {
   std::vector<Double_t> reftimes;
@@ -269,12 +227,21 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
     if ( refokay.at(bankid) ){
       raw_time = (Double_t) hit -> GetRawTime();
       ref_time = (Double_t) reftimes.at(bankid);
-      time     = QwDriftChamber::fF1TDC.ActualTimeDifference(raw_time, ref_time);
+      Int_t bank_index = hit->GetSubbankID();
+      Int_t slot_num  = hit->GetModule();
+
+      // time = QwDriftChamber::fF1TDCDecoder.ActualTimeDifference(raw_time, ref_time);
+
+      time = fF1TDContainer->ReferenceSignalCorrection(raw_time, ref_time, bank_index, slot_num);
+
       hit -> SetTime(time);
       if(local_debug) {
-	QwMessage << " RawTime : " << raw_time
-		  << " RefTime : " << ref_time
-		  << " time    : " << time
+	QwMessage << this->GetSubsystemName()
+		  << " BankIndex " << std::setw(2) << bank_index
+		  << " Slot "      << std::setw(2) << slot_num
+		  << " RawTime : " << std::setw(6) << raw_time
+		  << " RefTime : " << std::setw(6) << ref_time
+		  << " time : "    << std::setw(6) << time
 		  << std::endl;
 	
       }
@@ -644,68 +611,43 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
     }
     */
     //
-    ReportConfiguration();
+
+
+    // /   ReportConfiguration();
+
     return OK;
 };
 
 
 
 
-Int_t QwDriftChamberHDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
-{
-  Int_t subbank_index = 0;
-  Bool_t local_debug = false;
+// Int_t QwDriftChamberHDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+// {
+//   Int_t subbank_index = 0;
+//   Bool_t local_debug = false;
   
-  subbank_index = GetSubbankIndex(roc_id, bank_id);
-  if ( local_debug ) {
-    std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
-    std::cout << " roc id " << roc_id
-	      << " bank_id " << bank_id
-	      << " subbank_index " << subbank_index
-	      << " num_words " << num_words
-	      << std::endl;
-  }
+//   subbank_index = GetSubbankIndex(roc_id, bank_id);
+//   if ( local_debug ) {
+//     std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
+//     std::cout << " roc id " << roc_id
+// 	      << " bank_id " << bank_id
+// 	      << " subbank_index " << subbank_index
+// 	      << " num_words " << num_words
+// 	      << std::endl;
+//   }
   
-  if (subbank_index>=0 and num_words>0) {
-    //    SetDataLoaded(kTRUE);
-    if (local_debug) {
-      std::cout << "QwDriftChamberHDC::ProcessConfigurationBuffer:  "
-		<< "Begin processing ROC" << roc_id << std::endl;
-      PrintConfigrationBuffer(buffer,num_words);
-    }
-  }
+//   if (subbank_index>=0 and num_words>0) {
+//     //    SetDataLoaded(kTRUE);
+//     if (local_debug) {
+//       std::cout << "QwDriftChamberHDC::ProcessConfigurationBuffer:  "
+// 		<< "Begin processing ROC" << roc_id << std::endl;
+//       PrintConfigrationBuffer(buffer,num_words);
+//     }
+//   }
   
-  return OK;
-};
+//   return OK;
+// };
 
-
-
-// Test function
-void QwDriftChamberHDC::PrintConfigrationBuffer(UInt_t *buffer,UInt_t num_words)
-{
-  UInt_t ipt = 0;
-  UInt_t j = 0;
-  UInt_t k = 0;
-  
-  for ( j=0; j<(num_words/5); j++ ) {
-    printf ( "buffer[%5d] = 0x:", ipt );
-    for ( k=j; k<j+5; k++ ) {
-      printf ( "%12x", buffer[ipt++] );
-    }
-    printf ( "\n" );
-  }
-  
-  if ( ipt<num_words ) {
-    printf ( "buffer[%5d] = 0x:", ipt );
-    for ( k=ipt; k<num_words; k++ ) {
-      printf ( "%12x", buffer[ipt++] );
-    }
-    printf ( "\n" );
-  }
-  printf ( "\n" );
-  
-  return;
-}
 
 
 void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix)
@@ -890,10 +832,18 @@ void  QwDriftChamberHDC::FillHistograms()
 
 
 
-void  QwDriftChamberHDC::DeleteHistograms()
-{
-  return;
-};
+// void  QwDriftChamberHDC::DeleteHistograms()
+// {
+//   TSeqCollection *file_list = gROOT->GetListOfFiles();
+//   for(Int_t i=0; i<file_list->GetSize(); i++) {
+//     TFile * file = (TFile*) file_list->At(i);
+//     file -> WriteObject(QwDriftChamber::fF1TDContainer->GetErrorSummary(),
+// 			Form("%s : F1TDC Error Summary", GetSubsystemName().Data())
+// 			);
+//   }
+
+//   return;
+// };
 
 
 void  QwDriftChamberHDC::ClearEventData()
@@ -912,4 +862,5 @@ void  QwDriftChamberHDC::ClearEventData()
   }
   return;
 };
+
 

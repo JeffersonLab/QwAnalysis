@@ -32,42 +32,48 @@
 /// \ingroup QwAnalysis_BL
 template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
   class QwScaler_Channel: public VQwDataElement {
-  
+
   public:
   static Int_t GetBufferOffset(Int_t scalerindex, Int_t wordindex);
 
 
   public:
-  QwScaler_Channel() { };
+  QwScaler_Channel(){ 
+    InitializeChannel("");
+  };
+
   QwScaler_Channel(TString name){
     InitializeChannel(name);
   };
   ~QwScaler_Channel() {DeleteHistograms();};
-  
+
   void  InitializeChannel(TString name){
     fValue = 0;
+    fValueM2 = 0;
     SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
     fNumEvtsWithHWErrors=0;//init error counters
     fNumEvtsWithEventCutsRejected=0;//init error counters
+    fDeviceErrorCode = 0;
+    fGoodEventCount = 0;
     SetElementName(name);
     return;
   };
-  
+
   void  ClearEventData();
-  
+
   void ReportErrorCounters();//This will display the error summary for each device
   void UpdateHWErrorCount(){//Update error counter for HW faliure
     fNumEvtsWithHWErrors++;
   };
-  
+
   void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
     fNumEvtsWithEventCutsRejected++;
   };
-  
+
   void  RandomizeEventData(int helicity);
   void  SetEventData(Double_t value);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
-  
+
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
   void  ProcessEvent();
 
@@ -92,14 +98,15 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
 
   void  ConstructBranch(TTree *tree, TString &prefix);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
-
+  void AccumulateRunningSum(const QwScaler_Channel &value);
 
   void Copy(VQwDataElement *source);
 
   void PrintValue() const;
   void PrintInfo() const;
+  void CalculateRunningAverage();
 
 protected:
 
@@ -108,14 +115,19 @@ private:
 
   UInt_t   fValue_Raw;
   Double_t fValue;
+  Double_t fValueM2;
+  Double_t fValueError;
 
   /*  Ntuple array indices */
   size_t fTreeArrayIndex;
   size_t fTreeArrayNumEntries;
 
-
   Int_t fNumEvtsWithHWErrors;//counts the HW falied events
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
+
+  UInt_t fGoodEventCount;
+  Int_t fDeviceErrorCode;
+
 };
 
 //  These typedef's should be the last things in the file.

@@ -1,6 +1,8 @@
 
 ROC=2
 Bank=0x0202
+num_samples=480
+
 !
 ! module.type, module.num  chan.num, det.type, det.name<not added yet>
 
@@ -24,3 +26,13 @@ Bank=0x0202
   VQWK, 1, 5,  TRIMX2
   VQWK, 1, 6,  TRIMY1
   VQWK, 1, 7,  TRIMY2
+
+
+!
+! module.type, module.num  chan.num, det.type, det.name
+
+ROC=0
+Bank=0x6106
+
+WORD, 0, 0, modulationflag, modulationalive
+WORD, 0, 0, patternid     , patternnum  

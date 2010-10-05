@@ -60,15 +60,28 @@ typedef unsigned long long ULong64_t; // Portable unsigned long integer 8 bytes
  */
 class QwBlinder {
 
-  public:
+ public:
 
-    /// Available blinding strategies
-    enum EQwBlindingStrategy {
-      kDisabled,
-      kAdditive,
-      kMultiplicative,
-      kAdditiveMultiplicative
-    };
+  /// Available blinding strategies
+  enum EQwBlindingStrategy {
+    kDisabled,
+    kAdditive,
+    kMultiplicative,
+    kAdditiveMultiplicative
+  };
+  /// Status of the blinding process or intermediate steps of the process  
+  enum EQwBlinderStatus {
+    kIndeterminate,
+    kNotBlindable,
+    kBlindable,
+    kBlindableFail
+  };
+  ///  Error flag value 
+  static const Int_t kErrorFlag_BlinderFail = 0x200;
+
+  static void DefineOptions(QwOptions &options);
+
+
 
     /// \brief Default constructor with optional database
     QwBlinder(const EQwBlindingStrategy blinding_strategy = kAdditive);
@@ -76,15 +89,30 @@ class QwBlinder {
     virtual ~QwBlinder();
 
     /// \brief Update the status with new external information
-    void Update(QwDatabase* db, const QwSubsystemArrayParity& detectors);
+    void ProcessOptions(QwOptions& options);
     /// \brief Update the status with new external information
-    void Update(QwDatabase* db, const QwEPICSEvent& epics);
+    void Update(QwDatabase* db);
+    /// \brief Update the status with new external information
+    void Update(const QwSubsystemArrayParity& detectors);
+    /// \brief Update the status with new external information
+    void Update(const QwEPICSEvent& epics);
+
+    void ClearEventData(){
+      fBeamIsPresent = kTRUE;
+    };
+
 
     void  WriteFinalValuesToDB(QwDatabase* db);
     void  PrintFinalValues();
 
     /// Write to the database
     void FillDB(QwDatabase *db, TString datatype);
+
+    /// Modifies the device error code variable passed to it, if the blinder is
+    /// not okay.
+    void ModifyThisErrorCode(Int_t &errorcode) const {
+      if (!fBlinderIsOkay) errorcode |= kErrorFlag_BlinderFail;
+    };
 
     /// Asymmetry blinding
     void  BlindValue(Double_t& value) const {
@@ -114,13 +142,13 @@ class QwBlinder {
     /// Difference blinding
     void  BlindValue(Double_t& value, const Double_t& yield) const {
       switch (fBlindingStrategy) {
-        case kAdditive:
-          value += yield * fBlindingOffset; break;
-        case kMultiplicative:
-          value *= fBlindingFactor; break;
-        case kAdditiveMultiplicative:
-          value = (value + fBlindingOffset * yield) * fBlindingFactor; break;
-        default: break;
+      case kAdditive:
+	value += yield * fBlindingOffset; break;
+      case kMultiplicative:
+	value *= fBlindingFactor; break;
+      case kAdditiveMultiplicative:
+	value = (value + fBlindingOffset * yield) * fBlindingFactor; break;
+      default: break;
       }
     };
     /// Difference unblinding
@@ -138,7 +166,8 @@ class QwBlinder {
 
     /// Blind the asymmetry of an array of subsystems
     void  Blind(QwSubsystemArrayParity& diff) {
-      diff.Blind(this);
+      if (CheckBlindability()!=kNotBlindable)
+	diff.Blind(this);
     };
     /// Unblind the asymmetry of an array of subsystems
     void  UnBlind(QwSubsystemArrayParity& diff) {
@@ -147,15 +176,34 @@ class QwBlinder {
 
     /// Blind the difference of an array of subsystems
     void  Blind(QwSubsystemArrayParity& diff, const QwSubsystemArrayParity& yield) {
-      diff.Blind(this, yield);
+      if (CheckBlindability()!=kNotBlindable)
+	diff.Blind(this, yield);
     };
     /// Unblind the difference of an array of subsystems
     void  UnBlind(QwSubsystemArrayParity& diff, const QwSubsystemArrayParity& yield) {
       diff.UnBlind(this, yield);
     };
 
-  private:
+    Bool_t IsBlinderOkay() const {return fBlinderIsOkay;};
 
+ private:
+    ///  Indicates the first value recieved of the blindability of the target 
+    EQwBlinderStatus fTargetBlindability_firstread;
+    EQwBlinderStatus fTargetBlindability;
+    Bool_t fTargetPositionForced;
+    void SetTargetBlindability(EQwBlinderStatus status);
+
+    Double_t fBeamCurrentThreshold;
+    Bool_t fBeamIsPresent;
+
+    EQwBlinderStatus CheckBlindability();
+    Bool_t fBlinderIsOkay;
+
+    
+
+
+ private:
+    
     /// Private copy constructor
     QwBlinder (const QwBlinder& blinder): fBlindingStrategy(kDisabled) { };
     /// Private assignment operator

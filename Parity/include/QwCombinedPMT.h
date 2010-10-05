@@ -31,11 +31,18 @@ class QwCombinedPMT : public VQwDataElement {
     InitializeChannel(name, "derived");
   };
 
+  QwCombinedPMT(TString subsystemname, TString name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name, "derived");
+  };
+
   ~QwCombinedPMT() {
     DeleteHistograms();
   };
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave); 
   void  LinkChannel(TString name);
 
   const QwVQWK_Channel* GetChannel(const TString name) const {
@@ -84,6 +91,8 @@ class QwCombinedPMT : public VQwDataElement {
   void AccumulateRunningSum(const QwCombinedPMT& value);
   void CalculateRunningAverage();
 
+  void SetBlindability(Bool_t isblindable){fSumADC.SetBlindability(isblindable);};
+
   /// \brief Blind the asymmetry
   void Blind(const QwBlinder *blinder);
   /// \brief Blind the difference using the yield
@@ -98,7 +107,7 @@ class QwCombinedPMT : public VQwDataElement {
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  DeleteHistograms();
 
   Double_t GetAverage()        {return fSumADC.GetAverage();};
