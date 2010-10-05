@@ -51,6 +51,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fCurrentIAAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry of the IA
 
     out_file = fopen("Feedback_log.txt", "wt");
+    fprintf(out_file,"Pat num. \t\t  A_q[mode]\t\t\t\t\t\t\t\t\t  IA Setpoint \t\t  IA Previous Setpoint \t\t\n");
     fclose(out_file);
   
   };
@@ -62,6 +63,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     void ClearRunningSum();
     void AccumulateRunningSum();
     void CalculateRunningAverage();
+    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+    void  FillTreeVector(std::vector<Double_t> &values) const;
 
     /// \brief Define the configuration options
     static void DefineOptions(QwOptions &options);
@@ -176,7 +179,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     //IA setpoints for 4 modes 
     Double_t fIASetpoint[kHelModes];//New setpont calculated based on the charge asymmetry
     Double_t fPrevIASetpoint[kHelModes];//previous setpoint
-    
+    Double_t fIASetpointlow;//lower and upper limits for IA dac hardware counts
+    Double_t fIASetpointup;
     
     
 

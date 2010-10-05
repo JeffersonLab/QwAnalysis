@@ -180,7 +180,10 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
 
       //  Dump out of the loop when we see the end event.
-      if (eventbuffer.GetEndEventCount()>0) break;
+      if (eventbuffer.GetEndEventCount()>0){
+	QwMessage << "Number of events processed at end of run: " << eventbuffer.GetEventNumber() << std::endl;
+	break;
+      }
 
       //  Now, if this is not a physics event, go back and get a new event.
       if (!eventbuffer.IsPhysicsEvent()) continue;

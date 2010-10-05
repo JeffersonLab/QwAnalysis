@@ -6,8 +6,8 @@ patterns = 1000
 
 #The precision of the charge asymmetry in ppm
 
-deltaAq = 62
-
+#deltaAq = 62
+deltaAq = 7500
 #optimal IA values in volts
 optimalIA = 5.5
 
@@ -34,5 +34,10 @@ DeltaA2 = 3.482e-4
 
 A3 = -4.553e-2
 DeltaA3 = 3.431e-4
+
+#IA hardware counts set-point limits
+
+IA_low = 10000
+IA_up  = 50000
 
 

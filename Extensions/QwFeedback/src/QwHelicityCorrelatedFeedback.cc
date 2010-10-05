@@ -32,6 +32,8 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
   TString varname, varvalue;
   UInt_t value;
   Double_t dvalue;
+  fIASetpointlow=11000;
+  fIASetpointup=40000;
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('#');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -92,15 +94,26 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
 	dvalue = atof(varvalue.Data());
 	fDelta_IASlopeA[3] = dvalue;
       }
+      else if (varname=="ia_low"){
+	dvalue = atof(varvalue.Data());
+	if (dvalue>0)
+	  fIASetpointlow = dvalue;
 
+      }
+      else if (varname=="ia_up"){
+	dvalue = atof(varvalue.Data());
+	if (dvalue>0)
+	  fIASetpointup = dvalue;
+      }
 
       
     }
   }
-  QwMessage<<"patternMax = "<<fAccumulatePatternMax<<" deltaAq "<<fChargeAsymPrecision<<QwLog::endl;
-  QwMessage<<"Optimal values - IA ["<<fOptimalIA<<"] PC+["<<fOptimalPCP<<"] PC-["<<fOptimalPCN<<"]"<<QwLog::endl;
+  QwMessage<<"patternMax = "<<fAccumulatePatternMax<<" deltaAq "<<fChargeAsymPrecision<<"ppm"<<QwLog::endl;
+  //QwMessage<<"Optimal values - IA ["<<fOptimalIA<<"] PC+["<<fOptimalPCP<<"] PC-["<<fOptimalPCN<<"]"<<QwLog::endl;
+  QwMessage<<"IA DAC counts limits "<<fIASetpointlow<<" to "<< fIASetpointup <<QwLog::endl;
   for (Int_t i=0;i<kHelModes;i++)
-    QwMessage<<"Slope A"<<i<<" "<<fIASlopeA[i]<<"+-"<<fDelta_IASlopeA[i]<<QwLog::endl;
+    QwMessage<<"Slope A["<<i<<"] "<<fIASlopeA[i]<<"+-"<<fDelta_IASlopeA[i]<<QwLog::endl;
 };
 
 
@@ -112,9 +125,18 @@ void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
     fIASetpoint[mode]=fPrevIASetpoint[mode] - fChargeAsym[mode]/fIASlopeA[mode];
   else
     fIASetpoint[mode]=fPrevIASetpoint[mode];
+  
+  if (fIASetpoint[mode]>fIASetpointup)
+    fIASetpoint[mode]=fIASetpointup;
+  else if (fIASetpoint[mode]<fIASetpointlow)
+    fIASetpoint[mode]=fIASetpointlow;
+
   QwMessage<<"FeedIASetPoint("<<mode<<") "<<fChargeAsym[mode]<<"+/-"<<fChargeAsymError[mode]<<" new set point  "<<fIASetpoint[mode]<<QwLog::endl;
   //send the new IA setpoint
   //fEPICSCtrl.Set_HallAIA(mode,fIASetpoint[mode]);
+
+
+
   //Greenmonster stuffs
   //fScanCtrl.SCNSetValue(1,0);
   //fScanCtrl.SCNSetValue(2,0);
@@ -131,7 +153,8 @@ void QwHelicityCorrelatedFeedback::FeedPCNeg(){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
   out_file = fopen("Feedback_log.txt", "a");
-  fprintf(out_file," Feedback at %d current A_q:%5.8f+/-%5.8f IA Setpoint:%5.3f  IA Previous Setpoint:%5.3f\n",fQuartetNumber,fChargeAsym[mode],fChargeAsymError[mode],fPrevIASetpoint[mode]);
+  //  fprintf(out_file," Feedback at %d current A_q[%d]:%5.8f+/-%5.8f IA Setpoint:%5.3f  IA Previous Setpoint:%5.3f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
+  fprintf(out_file," %d\t\t A_q[%d]\t %5.8f \t\t+/-  %5.8f \t %5.3f \t\t\t %5.3f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
   fclose(out_file);
 };
 /*****************************************************************/
@@ -208,9 +231,11 @@ void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
 
   for (Int_t i=0;i<kHelModes;i++){
     if (IsPatternsAccumulated(i)){
+      //LogParameters(i);
+      //QwMessage<<"IsPatternsAccumulated "<<i<<QwLog::endl;
       IsAqPrecisionGood(i);
     }else{
-      //QwMessage<<"IsPatternsAccumulated "<<i<<QwLog::endl;
+      //      QwMessage<<"IsPatternsAccumulated "<<i<<QwLog::endl;
     }
   }
 
@@ -221,7 +246,7 @@ void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
 /*****************************************************************/
 Bool_t QwHelicityCorrelatedFeedback::IsPatternsAccumulated(Int_t mode){
   if (fHelModeGoodPatternCounter[mode]>=fAccumulatePatternMax){
-    QwMessage<<"fHelModeGoodPatternCounter["<<mode<<"]\n";
+    //QwMessage<<"fHelModeGoodPatternCounter["<<mode<<"]\n";
     return kTRUE;
   }
 
@@ -285,21 +310,26 @@ void  QwHelicityCorrelatedFeedback::CalculateAsymmetry()
 	if (fPatternSize==4){//currently works only for pattern size of 4
 	  switch(i){
 	  case 0:
-	    fCurrentHelPat+=1;
+	    //fCurrentHelPat+=1;
+	    fCurrentHelPat+=1000;
 	    break;
 	  case 1:
-	    fCurrentHelPat+=10;
-	    break;
-	  case 2:
+	    //fCurrentHelPat+=10;
 	    fCurrentHelPat+=100;
 	    break;
+	  case 2:
+	    //fCurrentHelPat+=100;
+	    fCurrentHelPat+=10;
+	    break;
 	  case 3:
-	    fCurrentHelPat+=1000;
+	    //fCurrentHelPat+=1000;
+	    fCurrentHelPat+=1;
 	    break;	    
 	  }
 	}
 
-	if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: here filling fPositiveHelicitySum \n";
+	if (localdebug) 
+	  std::cout<<"QwHelicityPattern::CalculateAsymmetry:: here filling fPositiveHelicitySum \n";
 	if (firstplushel) {
 	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with = \n";
 	  fPositiveHelicitySum = fEvents.at(i);
@@ -362,7 +392,8 @@ void  QwHelicityCorrelatedFeedback::CalculateAsymmetry()
 	fCurrentHelPatMode=-1;//error
     }
     //save the current pattern size to previouspat
-    if (localdebug) QwMessage<<"QwHelicityPattern::CalculateAsymmetry current helpat is "<<fCurrentHelPat<<" Prev pat "<<fPreviousHelPat<<" Mode "<<fCurrentHelPatMode<<" \n"; 
+    if (localdebug) 
+      QwMessage<<"QwHelicityPattern::CalculateAsymmetry current helpat is "<<fCurrentHelPat<<" Prev pat "<<fPreviousHelPat<<" Mode "<<fCurrentHelPatMode<<" \n"; 
     fPreviousHelPat=fCurrentHelPat;
     
     fPatternIsGood = kTRUE;
@@ -533,6 +564,13 @@ void  QwHelicityCorrelatedFeedback::ClearRunningSum(Int_t mode)
   fFBRunningAsymmetry[mode].ClearEventData();
   fHelModeGoodPatternCounter[mode]=0;
 
-}
+};
 
+void  QwHelicityCorrelatedFeedback::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values){
+  QwHelicityPattern::ConstructBranchAndVector(tree,prefix,values);
+};
+
+void  QwHelicityCorrelatedFeedback::FillTreeVector(std::vector<Double_t> &values) const{
+  QwHelicityPattern::FillTreeVector(values);
+};
 
