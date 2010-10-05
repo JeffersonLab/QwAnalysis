@@ -136,15 +136,6 @@ class QwParameterFile {
 
   private:
 
-    /// Check whether the run number is matched by a file label
-    int MatchRunNumberToLabel(const std::string& label, const int run) {
-      std::pair<int,int> range = ParseIntRange("-",label);
-      if ((range.first <= run) && (run <= range.second))
-        return (range.second == range.first)? 1000: 100;
-      else
-        return -1;
-    };
-
     /// Find the first file in a directory that conforms to the run label
     int FindFile(const bfs::path& dir_path,    // in this directory,
                  const std::string& file_stem, // search for this stem,

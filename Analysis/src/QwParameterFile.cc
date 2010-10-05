@@ -177,6 +177,9 @@ int QwParameterFile::FindFile(
   // Default score indicates no match found
   int best_score = -1;
   int score = -1;
+  // Multiple overlapping open-ended ranges
+  int open_ended_latest_start = 0;
+  int open_ended_range_score = 0;
 
   // Loop over all files in the directory
   // note: default iterator constructor yields past-the-end
@@ -191,7 +194,7 @@ int QwParameterFile::FindFile(
     // stem
     size_t pos_stem = file_name.find(file_stem);
     if (pos_stem != 0) continue;
-    // extension
+    // extension (reverse find)
     size_t pos_ext = file_name.rfind(file_ext);
     if (pos_ext != file_name.length() - file_ext.length()) continue;
 
@@ -201,11 +204,31 @@ int QwParameterFile::FindFile(
     if (label_length == 0) {
       score = 10;
     } else {
-      // run label starts after dot ('.')
+      // run label starts after dot ('.') and that dot is included in the label length
       if (file_name.at(pos_stem + file_stem.length()) == '.') {
-        std::string label = file_name.substr(pos_stem + file_stem.length() + 1, label_length);
-        score = MatchRunNumberToLabel(label, fCurrentRunNumber);
+        std::string label = file_name.substr(pos_stem + file_stem.length() + 1, label_length - 1);
+        std::pair<int,int> range = ParseIntRange("-",label);
+        int run = fCurrentRunNumber;
+        if ((range.first <= run) && (run <= range.second)) {
+          // run is in single-value range
+          if (range.first == range.second) score = 1000;
+          // run is in double-value range
+          else if (range.second < INT_MAX) score = 100;
+          // run is in open-ended range
+          else if (range.second == INT_MAX) {
+            // each matching open-ended range
+            if (range.first > open_ended_latest_start) {
+              open_ended_latest_start = range.first;
+              open_ended_range_score++;
+              score = 10 + open_ended_range_score;
+              // 90 open-ended range files should be enough for anyone ;-)
+            } else score = 10;
+          }
+        } else
+          // run not in range
+          score = -1;
       } else
+        // run label does not start with a dot (i.e. partial match of stem)
         score = -1;
     }
 
