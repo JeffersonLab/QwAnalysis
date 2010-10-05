@@ -165,19 +165,21 @@ QwHit* QwTrackingTreeCombine::SelectLeftRightHit (
 	QwHit* hit)
 {
   // Declarations
-  double position, distance, best_position;
+  double position, distance, best_position,best_distance;
 
+//   std::cout << "track_position: " << track_position << std::endl;
   // First option of left/right ambiguity
   position = + hit->GetDriftDistance();
   distance = fabs(track_position - position);
   // This is best position for now.
   best_position = position;
+  best_distance=distance;
 
   // Second option of left/right ambiguity
   position = - hit->GetDriftDistance();
   distance = fabs(track_position - position);
   // Is this a better position?
-  if (distance < best_position)
+  if (distance < best_distance)
     best_position = position;
 
   // Write the best hit (actually just uses the old structure)
@@ -528,7 +530,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
     }
   }
   // Normalize chi^2
-  chi = sqrt(sum / n);
+  chi = sqrt(sum / (n-2));
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -991,12 +993,21 @@ int QwTrackingTreeCombine::TlMatchHits (
 
   // Loop over the hits with wires in this tree line
   int nHits = 0;
+  int fMaxMissed=4;
+	
+//   std::cout << "first wire: " << treeline->fR3Offset + treeline->fR3FirstWire << std::endl;
+//   std::cout << "last wire: " << treeline->fR3Offset + treeline->fR3LastWire << std::endl;
   for (QwHitContainer::iterator hit = hitlist->begin();
        hit != hitlist->end() && nHits < tlayers; hit++) {
 
     // Skip if this wire is not part of the tree line
-    if (hit->GetElement() < treeline->fR3Offset + treeline->fR3FirstWire
-     && hit->GetElement() > treeline->fR3Offset + treeline->fR3LastWire) continue;
+//     if (hit->GetElement() < treeline->fR3Offset + treeline->fR3FirstWire
+//      && hit->GetElement() > treeline->fR3Offset + treeline->fR3LastWire)
+      if (hit->GetElement() < treeline->fR3Offset + treeline->fR3FirstWire-fMaxMissed
+     || hit->GetElement() > treeline->fR3Offset + treeline->fR3LastWire+fMaxMissed || hit->GetHitNumber()!=0)
+	 continue;
+	
+     
 
     // Calculate the wire number and associated z coordinate
     double thisZ = (double) hit->GetElement();
@@ -1097,6 +1108,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
                              treeline = treeline->next) {
 
       // First wire position
+
       double z1 = (double) (treeline->fR3Offset + treeline->fR3FirstWire);
       // Last wire position
       double z2 = (double) (treeline->fR3Offset + treeline->fR3LastWire);
@@ -1104,6 +1116,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
       // Bin width (bins in the direction of chamber thickness)
       double dx = width / (double) bins;
       // Chamber thickness coordinates at first and last wire
+
       double x1 = (treeline->a_beg - (double) bins/2) * dx + dx/2;
       double x2 = (treeline->b_end - (double) bins/2) * dx + dx/2;
 
