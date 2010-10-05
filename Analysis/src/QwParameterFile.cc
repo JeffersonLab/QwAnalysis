@@ -93,9 +93,15 @@ QwParameterFile::QwParameterFile(const std::string& name)
   // Else, loop through search path and files
   } else {
 
+#if BOOST_VERSION >= 103600
     // Separate file in stem and extension
     std::string file_stem = file.stem();
     std::string file_ext = file.extension();
+#else
+    // Separate file in stem and extension
+    std::string file_stem = bfs::basename(file);
+    std::string file_ext = bfs::extension(file);
+#endif
 
     // Find the best match
     int best_score = 0;
@@ -110,15 +116,14 @@ QwParameterFile::QwParameterFile(const std::string& name)
         best_path  = path;
       } else if (score == best_score) {
         // Found file with identical score
-        QwWarning << "Equally likely parameter files encountered: " << best_path
-                  << " and " << path << QwLog::endl;
+        QwWarning << "Equally likely parameter files encountered: " << best_path.string()
+                  << " and " << path.string() << QwLog::endl;
       }
 
     } // end of loop over search paths
-
     if (OpenFile(best_path) == false)
-      QwError << "Contents of parameter file "
-              << best_path.filename() << QwLog::endl;
+      QwError << "Could not open parameter file "
+              << best_path.string() << QwLog::endl;
   }
 };
 
@@ -133,7 +138,11 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
   bool status = false;
 
   // Check whether path exists and is a regular file
+#if BOOST_VERSION >= 103400
   if (bfs::exists(file) && bfs::is_regular_file(file)) {
+#else
+  if (bfs::exists(file) /* pray */ ) {
+#endif
     QwMessage << "Opening parameter file: "
               << file.string() << QwLog::endl;
     // Open file
@@ -149,7 +158,7 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
 
     // File does not exist or is not a regular file
     QwError << "Unable to open parameter file "
-            << file.filename() << QwLog::endl;
+            << file.string() << QwLog::endl;
     status = false;
   }
 
@@ -190,7 +199,11 @@ int QwParameterFile::FindFile(
 
     // Match the stem and extension
     // note: filename() returns only the file name, not the path
+#if BOOST_VERSION >= 103600
     std::string file_name = file_iterator->filename();
+#else
+    std::string file_name = file_iterator->leaf();
+#endif
     // stem
     size_t pos_stem = file_name.find(file_stem);
     if (pos_stem != 0) continue;
@@ -234,7 +247,7 @@ int QwParameterFile::FindFile(
 
     // Look for the match with highest score
     if (score > best_score) {
-      best_path = file_iterator->path();
+      best_path = *file_iterator;
       best_score = score;
     }
   }
