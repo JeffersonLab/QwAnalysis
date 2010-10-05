@@ -55,6 +55,7 @@ QwTrackingTreeCombine::QwTrackingTreeCombine()
 
   // Get maximum number of HDC planes
   fMaxMissedPlanes = gQwOptions.GetValue<int>("QwTracking.R2.MaxMissedPlanes");
+  fMaxMissedWires  = gQwOptions.GetValue<int>("QwTracking.R3.MaxMissedWires");
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -993,8 +994,7 @@ int QwTrackingTreeCombine::TlMatchHits (
 
   // Loop over the hits with wires in this tree line
   int nHits = 0;
-  int fMaxMissed=4;
-	
+
 //   std::cout << "first wire: " << treeline->fR3Offset + treeline->fR3FirstWire << std::endl;
 //   std::cout << "last wire: " << treeline->fR3Offset + treeline->fR3LastWire << std::endl;
   for (QwHitContainer::iterator hit = hitlist->begin();
@@ -1003,11 +1003,12 @@ int QwTrackingTreeCombine::TlMatchHits (
     // Skip if this wire is not part of the tree line
 //     if (hit->GetElement() < treeline->fR3Offset + treeline->fR3FirstWire
 //      && hit->GetElement() > treeline->fR3Offset + treeline->fR3LastWire)
-      if (hit->GetElement() < treeline->fR3Offset + treeline->fR3FirstWire-fMaxMissed
-     || hit->GetElement() > treeline->fR3Offset + treeline->fR3LastWire+fMaxMissed || hit->GetHitNumber()!=0)
+      if (hit->GetElement() < treeline->fR3Offset + treeline->fR3FirstWire - fMaxMissedWires
+       || hit->GetElement() > treeline->fR3Offset + treeline->fR3LastWire + fMaxMissedWires
+       || hit->GetHitNumber() != 0)
 	 continue;
-	
-     
+
+
 
     // Calculate the wire number and associated z coordinate
     double thisZ = (double) hit->GetElement();

@@ -147,6 +147,8 @@ class QwTrackingTreeCombine {
 
     /// Maximum number of missed planes in region 2
     int fMaxMissedPlanes;
+    /// Maximum number of missed wires in region 3
+    int fMaxMissedWires;
 
     // The following is largely useless (or at least the use is not understood).
     // Only chi_hashinsert is ever called, but never anything is searched in the
