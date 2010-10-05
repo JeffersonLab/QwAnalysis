@@ -74,32 +74,51 @@ UInt_t QwParameterFile::GetUInt(const TString& varvalue)
 
 /**
  * Constructor
- * @param filename
+ * @param name Name of the file to be opened
+ *
+ * If file starts with an explicit slash ('/'), it is assumed to be a full path.
  */
-QwParameterFile::QwParameterFile(const std::string& filename)
+QwParameterFile::QwParameterFile(const std::string& name)
 {
-  // Immediately try to open full paths and return
-  if (filename.find("/") == 0) {
-    OpenFile(bfs::path(filename));
+  // Create a file from the name
+  bfs::path file(name);
+
+  // Immediately try to open absolute paths and return
+  if (name.find("/") == 0) {
+    if (! OpenFile(file))
+      QwWarning << "Constructor could not open absolute path " << name << ". "
+                << "Parameter file will remain empty." << QwLog::endl;
     return;
 
-  // Else loop through search and files
+  // Else, loop through search path and files
   } else {
-    int score_found = 0;
-    bfs::path path_found;
+
+    // Separate file in stem and extension
+    std::string file_stem = file.stem();
+    std::string file_ext = file.extension();
+
+    // Find the best match
+    int best_score = 0;
+    bfs::path best_path;
     for (size_t i = 0; i < fSearchPaths.size(); i++) {
+
       bfs::path path;
-      int score = FindFile(fSearchPaths[i], filename, path);
-      if (score > score_found) {
-        // Found a file
-        score_found = score;
-        path_found = path;
-        break;
+      int score = FindFile(fSearchPaths[i], file_stem, file_ext, path);
+      if (score > best_score) {
+        // Found file with better score
+        best_score = score;
+        best_path  = path;
+      } else if (score == best_score) {
+        // Found file with identical score
+        QwWarning << "Equally likely parameter files encountered: " << best_path
+                  << " and " << path << QwLog::endl;
       }
-    }
-    if (OpenFile(path_found) == false)
+
+    } // end of loop over search paths
+
+    if (OpenFile(best_path) == false)
       QwError << "Contents of parameter file "
-              << path_found.string() << QwLog::endl;
+              << best_path.filename() << QwLog::endl;
   }
 };
 
@@ -109,16 +128,19 @@ QwParameterFile::QwParameterFile(const std::string& filename)
  * @param path Path to file to be opened
  * @return False if the file could not be opened
  */
-bool QwParameterFile::OpenFile(const bfs::path& path)
+bool QwParameterFile::OpenFile(const bfs::path& file)
 {
   bool status = false;
 
   // Check whether path exists and is a regular file
-  if (bfs::exists(path) && bfs::is_regular_file(path)) {
+  if (bfs::exists(file) && bfs::is_regular_file(file)) {
     QwMessage << "Opening parameter file: "
-              << path.string() << QwLog::endl;
+              << file.string() << QwLog::endl;
     // Open file
-    fFile.open(path.string().c_str());
+    fFile.open(file.string().c_str());
+    if (! fFile.good())
+      QwError << "Unable to read parameter file "
+              << file.string() << QwLog::endl;
     // Load into stream
     fStream << fFile.rdbuf();
     status = true;
@@ -126,8 +148,8 @@ bool QwParameterFile::OpenFile(const bfs::path& path)
   } else {
 
     // File does not exist or is not a regular file
-    QwError << "Unable to open parameter file: "
-            << path.string() << QwLog::endl;
+    QwError << "Unable to open parameter file "
+            << file.filename() << QwLog::endl;
     status = false;
   }
 
@@ -137,71 +159,63 @@ bool QwParameterFile::OpenFile(const bfs::path& path)
 
 /**
  * Find the file in a directory with highest-scoring run label
- * @param dir_path Directory to search in
- * @param file_name File name to search for
- * @param path_found (returns) Path to the highest-scoring file
+ * @param directory Directory to search in
+ * @param file_stem File name stem to search for
+ * @param file_ext File name extensions to search for
+ * @param best_path (returns) Path to the highest-scoring file
  * @return Score of file
  */
 int QwParameterFile::FindFile(
-        const bfs::path& dir_path,
-        const std::string& file_name,
-        bfs::path& path_found)
+        const bfs::path&   directory,
+        const std::string& file_stem,
+        const std::string& file_ext,
+        bfs::path&         best_path)
 {
   // Return false if the directory does not exist
-  if (! bfs::exists(dir_path)) return false;
+  if (! bfs::exists(directory)) return false;
+
+  // Default score indicates no match found
+  int best_score = -1;
+  int score = -1;
 
   // Loop over all files in the directory
-  bfs::directory_iterator end_iterator; // default construction yields past-the-end
-  int score_found = 0;
-  for (bfs::directory_iterator file_iterator(dir_path);
+  // note: default iterator constructor yields past-the-end
+  bfs::directory_iterator end_iterator;
+  for (bfs::directory_iterator file_iterator(directory);
        file_iterator != end_iterator;
        file_iterator++) {
 
+    // Match the stem and extension
+    // note: filename() returns only the file name, not the path
+    std::string file_name = file_iterator->filename();
+    // stem
+    size_t pos_stem = file_name.find(file_stem);
+    if (pos_stem != 0) continue;
+    // extension
+    size_t pos_ext = file_name.rfind(file_ext);
+    if (pos_ext != file_name.length() - file_ext.length()) continue;
+
+    // Determine run label length
+    size_t label_length = pos_ext - file_stem.length();
+    // no run label
+    if (label_length == 0) {
+      score = 10;
+    } else {
+      // run label starts after dot ('.')
+      if (file_name.at(pos_stem + file_stem.length()) == '.') {
+        std::string label = file_name.substr(pos_stem + file_stem.length() + 1, label_length);
+        score = MatchRunNumberToLabel(label, fCurrentRunNumber);
+      } else
+        score = -1;
+    }
+
     // Look for the match with highest score
-    int score = MatchRunNumberToFile(file_iterator->leaf(), file_name);
-    if (score > score_found) {
-      path_found = file_iterator->path();
-      score_found = score;;
+    if (score > best_score) {
+      best_path = file_iterator->path();
+      best_score = score;
     }
   }
-  return 0;
-};
-
-
-/**
- * Match the specified file path to the file name and extension for the current run
- * @param this_file_name Specified file path
- * @param file File (with name and extension) to search for
- * @return Score of the match
- */
-int QwParameterFile::MatchRunNumberToFile(
-        const std::string& this_file_name,
-        const std::string& file)
-{
-  // Separate file to test for in name and extension (TODO (wdc) use BFS)
-  std::string file_name = file.substr(0,file.find_first_of("."));
-  std::string file_ext = file.substr(file.find_last_of("."));
-  QwMessage << "Matching file name " << file_name << " and ext " << file_ext << QwLog::endl;
-  // Find a match for the file name
-  size_t found = this_file_name.find(file_name);
-  if (found != std::string::npos) {
-    size_t first_period = found + file_name.length();
-    // Find a match for the file extension
-    size_t found = this_file_name.find(file_ext, first_period);
-    if (found != std::string::npos) {
-      size_t second_period = found;
-      if (second_period > first_period) {
-        // Split off the label between file name and extension
-        std::string label = file.substr(first_period, second_period - first_period);
-        QwMessage << "Label " << label << QwLog::endl;
-        // Determine score
-        int score = 10 - label.length(); // TODO (wdc) better scoring
-        if (MatchRunNumberToLabel(label,fCurrentRunNumber))
-          return score;
-      }
-    }
-  }
-  return false;
+  return best_score;
 };
 
 
@@ -580,11 +594,11 @@ std::pair<int,int> QwParameterFile::ParseIntRange(const std::string& separatorch
   //  Check the values for common errors.
   if (mypair.first < 0){
     QwError << "The first value must not be negative!" << QwLog::endl;
-    exit(1);
+    return std::pair<int,int>(INT_MAX,INT_MAX);
   } else if (mypair.first > mypair.second){
     QwError << "The first value must not be larger than the second value"
             << QwLog::endl;
-    exit(1);
+    return std::pair<int,int>(INT_MAX,INT_MAX);
   }
 
   //  Print the contents of the pair for debugging.
