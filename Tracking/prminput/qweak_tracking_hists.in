@@ -38,6 +38,12 @@ scanner_rate_map 		TH2F 	220 	-55.0 	55.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
 raster_position_x		TH1F	4000	-2.0		2.0			X[mm]		Events
 raster_position_y		TH1F	4000	-2.0		2.0			Y[mm]		Events
 
+###  bpm tracking-mode histograms
+bpm_3h07a_pos_x			TH1F	200	-0.4		0.4			X[mm]		Events
+bpm_3h07a_pos_y			TH1F	200	-0.4		0.4			X[mm]		Events
+bpm_3h09b_pos_x			TH1F	200	-0.4		0.4			X[mm]		Events
+bpm_3h09b_pos_y			TH1F	200	-0.4		0.4			X[mm]		Events
+
 ###  Single event histograms
 
 ......_adc		TH1F	4097	-0.5	4096.5				ADC Events
