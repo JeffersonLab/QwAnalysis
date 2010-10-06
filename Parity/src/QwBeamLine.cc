@@ -436,6 +436,33 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
     }
   }
+  //now load the publish variables
+  mapstr.RewindToFileStart();
+  QwParameterFile *section;
+  std::vector<TString> publishinfo;
+  while ( (section=mapstr.ReadNextSection(varvalue)) ){
+    if(varvalue=="PUBLISH"){
+      fPublishList.clear();
+      while(section->ReadNextLine()){
+	section->TrimComment('!');   // Remove everything after a '!' character.
+	section->TrimWhitespace();   // Get rid of leading and trailing spaces.
+	for (Int_t ii=0;ii<4;ii++){
+	  varvalue=section->GetNextToken(",").c_str();
+	  if(varvalue.Length()){
+	    publishinfo.push_back(varvalue);	  
+	  }
+	}
+	if (publishinfo.size()==4)
+	  fPublishList.push_back(publishinfo);
+	publishinfo.clear();
+      }
+    }
+  }
+  QwMessage<<"To Publish"<<QwLog::endl;
+  for (size_t jj=0;jj<fPublishList.size();jj++)
+    QwMessage<<fPublishList.at(jj).at(0)<<" "<<fPublishList.at(jj).at(1)<<" "<<fPublishList.at(jj).at(2)<<" "<<" "<<fPublishList.at(jj).at(3)<<" "<<QwLog::endl;
+
+  //exit(1);
 
   if(ldebug){
     std::cout<<"QwLumi::Done with Load map channel \n";
@@ -1264,10 +1291,72 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 const Bool_t QwBeamLine::PublishInternalValues() const 
 {
   VQwDataElement* tmp_channel;
+  TString publish_name,device_type,device_name, device_prop;
    ///  TODO:  The published variable list should be generated from
   ///         the channel map file.
   // Publish variables
   Bool_t status = kTRUE;
+  
+  //publish variables through map file
+  //this should work with bcm,bpmstripline,bpmcavity, combo bpm and combo bcm
+  for(size_t pp=0;pp<fPublishList.size();pp++){
+    publish_name=fPublishList.at(pp).at(0);
+    device_type=fPublishList.at(pp).at(1);
+    device_name=fPublishList.at(pp).at(2);
+    device_prop=fPublishList.at(pp).at(3);
+    device_type.ToLower();
+    device_prop.ToLower();
+    //QwError<<publish_name << " "<<device_type<<" "<<device_name<<" "<<device_prop<< QwLog::endl;
+    if (device_type=="bcm"){
+      tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBCM*>(GetBCM(device_name)))->GetCharge());
+    } else if (device_type=="bpmstripline"){
+      if (device_prop=="x")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMStripline*>(GetBPMStripline(device_name)))->GetPositionX());
+      else if (device_prop=="y")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMStripline*>(GetBPMStripline(device_name)))->GetPositionY());
+      else if (device_prop=="ef")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMStripline*>(GetBPMStripline(device_name)))->GetEffectiveCharge());
+    }else if (device_type=="bpmcavity"){
+      if (device_prop=="x")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMCavity*>(GetBPMCavity(device_name)))->GetPositionX());
+      else if (device_prop=="y")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMCavity*>(GetBPMCavity(device_name)))->GetPositionY());
+      else if (device_prop=="ef")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMCavity*>(GetBPMCavity(device_name)))->GetEffectiveCharge());
+    } else if (device_type=="combobpm"){
+      if (device_prop=="x")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM(device_name)))->GetPositionX());
+      else if (device_prop=="y")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM(device_name)))->GetPositionY());
+      else if (device_prop=="xp")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM(device_name)))->GetAngleX());
+      else if (device_prop=="yp")
+	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM(device_name)))->GetAngleY());
+    } else if (device_type=="combobcm"){
+      tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBCM*>(GetCombinedBCM(device_name)))->GetCharge());
+    } else if (device_type=="comboenergy"){
+      tmp_channel=const_cast<VQwDataElement*>((const_cast<QwEnergyCalculator*>(GetEnergyCalculator(device_name)))->GetEnergy());
+    } else
+      QwError << "QwBeamLine::PublishInternalValues() error "<< QwLog::endl;
+    
+     if (tmp_channel==NULL){
+       QwError << "QwBeamLine::PublishInternalValues():"<<publish_name <<"  not found "<< QwLog::endl;
+       status |= kFALSE;
+     }else{
+       QwDebug << "QwBeamLine::PublishInternalValues():"<<publish_name <<" found "<< QwLog::endl;
+       //QwError << "QwBeamLine::PublishInternalValues():"<<publish_name <<" found "<< QwLog::endl;
+       //status = status && PublishInternalValue(publish_name, "published-value");
+       //const_cast<QwBeamLine*>(this)->UpdatePublishValue(publish_name,tmp_channel);
+     }
+     status = status && PublishInternalValue(publish_name, "published-value");
+     const_cast<QwBeamLine*>(this)->UpdatePublishValue(publish_name,tmp_channel);
+
+  }
+  
+  /*
+// *********************
+//This was old way of publishing variables, only problem here is that after add/modify/delete published variables, need to recompile!
+
   //publish q_targ
   status = status && PublishInternalValue("q_targ", "Calculated charge on target");
   tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBCM*>(GetCombinedBCM("qwk_charge")))->GetCharge());
@@ -1349,6 +1438,8 @@ const Bool_t QwBeamLine::PublishInternalValues() const
   }else
     QwDebug << "QwBeamLine::PublishInternalValues(): qwk_qwk_3c16_EffectiveCharge - qwk_qwk_3c16_EffectiveCharge found "<< QwLog::endl;
   const_cast<QwBeamLine*>(this)->UpdatePublishValue("qwk_3c16_effectivecharge",tmp_channel);
+  // *********************
+  */
   return status;
 
 };
@@ -1628,6 +1719,16 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
       for(size_t i=0;i<input->fECalculator.size();i++)
 	this->fECalculator[i]=input->fECalculator[i];
 
+      if (input->fPublishList.size()>0){
+	this->fPublishList.resize(input->fPublishList.size());
+	for(size_t i=0;i<input->fPublishList.size();i++){
+	  this->fPublishList.at(i).resize(input->fPublishList.at(i).size());
+	  for(size_t j=0;j<input->fPublishList.at(i).size();j++){
+	    this->fPublishList.at(i).at(j)=input->fPublishList.at(i).at(j);
+	  }
+	}
+      }
+
     }
   return *this;
 };
@@ -1659,6 +1760,17 @@ VQwSubsystem&  QwBeamLine::operator+=  (VQwSubsystem *value)
 	this->fBPMCombo[i]+=input->fBPMCombo[i];
       for(size_t i=0;i<input->fECalculator.size();i++)
 	this->fECalculator[i]+=input->fECalculator[i];
+
+      if (input->fPublishList.size()>0){
+	this->fPublishList.resize(input->fPublishList.size());
+	for(size_t i=0;i<input->fPublishList.size();i++){
+	  this->fPublishList.at(i).resize(input->fPublishList.at(i).size());
+	  for(size_t j=0;j<input->fPublishList.at(i).size();j++){
+	    this->fPublishList.at(i).at(j)=input->fPublishList.at(i).at(j);
+	  }
+	}
+      }
+
     }
   return *this;
 };
@@ -1689,6 +1801,16 @@ VQwSubsystem&  QwBeamLine::operator-=  (VQwSubsystem *value)
 	this->fBPMCombo[i]-=input->fBPMCombo[i];
       for(size_t i=0;i<input->fECalculator.size();i++)
 	this->fECalculator[i]-=input->fECalculator[i];
+
+      if (input->fPublishList.size()>0){
+	this->fPublishList.resize(input->fPublishList.size());
+	for(size_t i=0;i<input->fPublishList.size();i++){
+	  this->fPublishList.at(i).resize(input->fPublishList.at(i).size());
+	  for(size_t j=0;j<input->fPublishList.at(i).size();j++){
+	    this->fPublishList.at(i).at(j)=input->fPublishList.at(i).at(j);
+	  }
+	}
+      } 
 
     }
   return *this;
@@ -2227,6 +2349,17 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 	  for(size_t i=0;i<this->fECalculator.size();i++){
 	    this->fECalculator[i].Copy(&(input->fECalculator[i]));
 	  }
+
+	  if (input->fPublishList.size()>0){
+	    this->fPublishList.resize(input->fPublishList.size());
+	    for(size_t i=0;i<input->fPublishList.size();i++){
+	      this->fPublishList.at(i).resize(input->fPublishList.at(i).size());
+	      for(size_t j=0;j<input->fPublishList.at(i).size();j++){
+		this->fPublishList.at(i).at(j)=input->fPublishList.at(i).at(j);
+	      }
+	    }
+	  }
+	    
 
 	}
      else

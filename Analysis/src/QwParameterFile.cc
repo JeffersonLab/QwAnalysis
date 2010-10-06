@@ -441,6 +441,7 @@ std::string QwParameterFile::GetNextToken(std::string separatorchars)
       tmpstring   = fLine.substr(pos1,pos2-pos1);
     }
   }
+  TrimWhitespace(tmpstring,TString::kBoth);
   return tmpstring;
 };
 
