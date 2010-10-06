@@ -199,9 +199,11 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 	//test if the reference time is ok
 	for ( Int_t bank=0;bank< ref_size; bank++ )
 	{
+		if(fReferenceMaster.size()==0) continue;
 		Int_t size=fReferenceData.at ( bank ).size();
 		for ( Int_t i=0;i<size;i++ )
 		{
+			if(fReferenceMaster.at(bank).size()==0) continue;
 			Double_t diff=fReferenceData.at ( bank ).at ( i )-fReferenceMaster.at ( bank ).at(0);
 			if ( diff > 10000 && diff <-10000 )
 			{       
@@ -884,6 +886,7 @@ void QwDriftChamberVDC::ProcessEvent()
 					fWireData.at ( 4* ( package-1 ) +plane ).at ( wire_hit-1 ).PushHit ( ( Int_t ) real_time );
 
 					NewQwHit.SetAmbiguityID ( tmpAM,j );
+// 					std::cout << "plane: " << plane << " wire: " << wire_hit << " time: " << real_time << std::endl;
 					fWireHits.push_back ( NewQwHit );
 				}
 			}
