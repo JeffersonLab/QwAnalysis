@@ -15,6 +15,11 @@
 // Boost headers
 #include <boost/shared_ptr.hpp>
 
+// ROOT headers
+#include <Rtypes.h>
+#include <TROOT.h>
+#include <TFile.h>
+
 // Qweak headers
 #include "QwLog.h"
 #include "QwRootFile.h"
@@ -60,44 +65,54 @@ Int_t main(Int_t argc, Char_t* argv[])
   /// Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
+
   ///  Load the histogram and tree branch parameter definitions  into the global
   ///  histogram helper: QwHistogramHelper
   gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
   gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
 
+
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);
 
-  ///  Create an EPICS event
-  QwEPICSEvent epicsevent;
-  epicsevent.LoadEpicsVariableMap("EpicsTable.map");
-
-
-  ///  Load the detectors from file
-  QwSubsystemArrayParity detectors(gQwOptions);
-  detectors.ProcessOptions(gQwOptions);
-
-  ///  Create the helicity pattern
-  QwHelicityPattern helicitypattern(detectors);
-  helicitypattern.ProcessOptions(gQwOptions);
-
-  ///  Create the event ring
-  QwEventRing eventring;
-  eventring.ProcessOptions(gQwOptions);
-  //  Set up the ring with subsysten array with CMD ring parameters
-  eventring.SetupRing(detectors); // TODO (wdc) in QwEventRing constructor?
-
-  ///  Create the running sum
-  QwSubsystemArrayParity runningsum(detectors);
-
-  ///  Set up the database connection
+  ///  Create the database connection
   QwDatabase database(gQwOptions);
+
 
   ///  Start loop over all runs
   QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
-    //  Begin processing for the first run.
+
+    ///  Begin processing for the first run
+
+
+    ///  Set the current event number for parameter file lookup
+    QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
+
+
+    ///  Create an EPICS event
+    QwEPICSEvent epicsevent;
+    epicsevent.LoadEpicsVariableMap("EpicsTable.map");
+
+    ///  Load the detectors from file
+    QwSubsystemArrayParity detectors(gQwOptions);
+    detectors.ProcessOptions(gQwOptions);
+
+    ///  Create the helicity pattern
+    QwHelicityPattern helicitypattern(detectors);
+    helicitypattern.ProcessOptions(gQwOptions);
+
+    ///  Create the event ring
+    QwEventRing eventring;
+    eventring.ProcessOptions(gQwOptions);
+
+    ///  Set up the ring with the subsysten array
+    eventring.SetupRing(detectors);
+
+    ///  Create the running sum
+    QwSubsystemArrayParity runningsum(detectors);
+
 
     //  Initialize the database connection.
     database.SetupOneRun(eventbuffer);

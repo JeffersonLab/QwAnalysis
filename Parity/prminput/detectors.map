@@ -4,19 +4,19 @@
  name = HallCBeamLine
  map = qweak_hallc_beamline.map
  geom = qweak_beamline_geometry.map
- param = qweak_hallc_pedestal.5083.map
+ param = qweak_hallc_pedestal.map
  eventcut = qweak_beamline_eventcuts.in
 
 [QwMainCerenkovDetector]
  name = Main Detector
  map = qweak_maindet.map
- param = qweak_maindet_pedestal.957.map
+ param = qweak_maindet_pedestal.map
  eventcut = qweak_maindet_eventcuts.in
 
 [QwLumi]
  name = Lumi Detector
  map = qweak_lumi.map
- param = qweak_lumi_pedestal.5615.map
+ param = qweak_lumi_pedestal.map
  eventcut = qweak_lumi_eventcuts.in
 
 [QwHelicity]

@@ -11,8 +11,6 @@
 #include <iostream>
 #include <fstream>
 
-#include "StringManip.h"
-
 #include "QwLog.h"
 #include "QwParameterFile.h"
 
@@ -223,26 +221,43 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
   string line;
   string stmplabel, stmpvalue;
   Double_t tmpvalue;
-  Int_t tagindex;
   size_t pos = 0; //iterator
   tmpvalue = -999999.;
   if(kDebug == 1) std::cout <<"Here we are, entering 'ExtractEPICSValues'!!"<<std::endl;
 
-  for (tagindex=0;tagindex<fNumberEPICSVariables; tagindex++) {
+  for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
     fEPICSDataEvent[tagindex].Filled = kFALSE;
   }
 
   //convert the input stream into a stringstream so we can
   //do manipulation on it just like reading a file
   std::stringstream ss(data, std::stringstream::in | std::stringstream::out);
+  QwParameterFile file(ss);
+  while (file.ReadNextLine()) {
+    file.TrimWhitespace();
+    std::string varname, varvalue;
+    if (file.HasVariablePair(" \t\n", varname, varvalue)) {
+      for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
+        if (fEPICSVariableList[tagindex] == varname) {
+          if (kDebug == 1)
+            QwMessage << line<< " ==> "
+                                  << fEPICSVariableList[tagindex]
+                                  << "\t" << stmpvalue<<std::endl;
+
+          SetDataValue(fEPICSVariableList[tagindex], TString(stmpvalue.c_str()), event);
+          break;
+        }
+      }
+    }
+  }
+
   while(!ss.eof()){
     getline(ss,line);
-    for (tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
+    for (size_t tagindex = 0; tagindex < fEPICSVariableList.size(); tagindex++) {
       pos = line.find(fEPICSVariableList[tagindex]);//pattern matching
       if(pos!=string::npos){
 	/*  This line has EPICS variable "tagindex". */
 	pos = line.find_first_of(" \t\n",pos);  //get to the end of the label
-	//now use get_next_seg() from StringManip.C
 	stmpvalue = get_next_seg(line, pos);
 	if(kDebug == 1) std::cout << line<<" ==> "
 			          <<fEPICSVariableList[tagindex]
@@ -695,10 +710,10 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
 
       entrylist.push_back(tmp_row);
     }
-    
+
   }
-  
-  
+
+
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() ) {
@@ -736,7 +751,7 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
   TString table1 = "polarized_source";
 
   // QwError << "Step 1 Entering the loop " << QwLog::endl;
-  // Loop over EPICS variables 
+  // Loop over EPICS variables
   for (Int_t tagindex=0; tagindex<(Int_t)fEPICSVariableList.size(); tagindex++) {
     // Look for variables to write into this table
 
@@ -746,11 +761,11 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
       //  Now get the current sc_detector_id for the above runlet_id.
       sc_detector_id = db->GetSlowControlDetectorID(fEPICSVariableList[tagindex].Data());
 
-      tmp_row.runlet_id      = runlet_id;  
+      tmp_row.runlet_id      = runlet_id;
       tmp_row.sc_detector_id = sc_detector_id;
 
       if (!sc_detector_id) continue;
-     
+
       if (fEPICSVariableType[tagindex] == kEPICSString) {
 
     	if (fEPICSDataEvent[tagindex].Filled) {
@@ -763,12 +778,12 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
 	    tmp_row.value = fEPICSDataEvent[tagindex].StringValue.Data();
 	  }
     	}
-	
-      }      
+
+      }
       entrylist.push_back(tmp_row);
     }
-  }   
-  
+  }
+
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query.
   if( entrylist.size() ) {
@@ -779,7 +794,7 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
     QwMessage << "\n\nQuery: " << query.str() << "\n\n";
 
     query.execute();
-   
+
 
     ///////////////////////////////
 //         try {
@@ -823,52 +838,52 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
 	     != fNumberEPICSEvents) {
     // Rotatable Half Wave Plate Setting position changed
     tmp_row.slow_helicity_plate = "";
-  } 
+  }
 
   if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
     QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
     tmp_row.slow_helicity_plate ="";
   }
-  
-  
+
+
   else {
     // Rotatable Half Wave Plate Setting position did not change
     // Rotatable Half Wave Plate Setting setting is stored as a string with possible values
     // "OUT" and "IN".
-    
+
     QwError<<"\n\nfEPICSDataEvent[tagindex].StringValue.Data() = "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
     tmp_row.slow_helicity_plate = fEPICSDataEvent[tagindex].StringValue.Data();
   }
-  
-  
-  
+
+
+
   // For charge feedback
-  
+
   tagindex = FindIndex(TString("HC:Q_ONOFF"));
   //std::cout << "\n\ntagindex for HC:Q_ONOFF = " << tagindex << std::endl;
 
   if (! fEPICSCumulativeData[tagindex].Filled) {
     //  No data for this run.
     tmp_row.charge_feedback = "";
-    
+
   } else if (fEPICSCumulativeData[tagindex].NumberRecords
 	     != fNumberEPICSEvents) {
     // charge feedback status changed
     tmp_row.charge_feedback = "";
-  } 
+  }
 
   if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
     QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
     tmp_row.charge_feedback ="";
   }
-  
+
   else {
     // charge feedback setting did not change
     //   charge feedback setting is stored as a string with possible values
     //   "on" and "off".
     tmp_row.charge_feedback = fEPICSDataEvent[tagindex].StringValue.Data();
   }
-  
+
   ////////////////////////////////////////////////////////////
 
 

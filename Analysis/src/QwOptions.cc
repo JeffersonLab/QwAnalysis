@@ -14,7 +14,6 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <climits>
 
 // Statically defined option descriptions grouped by parser
 po::options_description QwOptions::fCommandLineOptions("Command line options");
@@ -238,10 +237,11 @@ void QwOptions::Usage()
 
 /**
  * Get a pair of integers specified as a colon-separated range
+ * This function uses the utility function QwParameterFile::ParseIntRange.
  * @param key Option key
  * @return Pair of integers
  */
-std::pair<int,int> QwOptions::GetIntValuePair(std::string key)
+std::pair<int,int> QwOptions::GetIntValuePair(const std::string& key)
 {
   std::pair<int, int> mypair;
   mypair.first = 0;
@@ -250,63 +250,8 @@ std::pair<int,int> QwOptions::GetIntValuePair(std::string key)
   if (fParsed == false) Parse();
   if (fVariablesMap.count(key)) {
     std::string range = fVariablesMap[key].as<std::string>();
-    mypair = ParseIntRange(range);
+    mypair = QwParameterFile::ParseIntRange(":",range);
   }
 
   return mypair;
 }
-
-std::pair<int, int> QwOptions::ParseIntRange(std::string range)
-{
-  /** @brief Separates a colon separated range of integers into a pair of values
-   *
-   *  @param range String containing two integers separated by a colon,
-   *               or a single value.
-   *               If the string begins with a colon, the first value is taken
-   *               as zero.  If the string ends with a colon, the second value
-   *               is taken as kMaxInt.
-   *
-   *  @return  Pair of integers of the first and last values of the range.
-   *           If the range contains a single value, the two integers will
-   *           be identical.
-   */
-  std::pair<int, int> mypair;
-  size_t pos = range.find(":");
-  if (pos == std::string::npos) {
-    //  Separator not found.
-    mypair.first  = atoi(range.substr(0,range.length()).c_str());
-    mypair.second = mypair.first;
-  } else {
-    size_t end = range.length() - pos - 1;
-    if (pos == 0) {
-      // Separator is the first character
-      mypair.first  = 0;
-      mypair.second = atoi(range.substr(pos+1, end).c_str());
-    } else if (pos == range.length()-1) {
-      // Separator is the last character
-      mypair.first  = atoi(range.substr(0,pos).c_str());
-      mypair.second = INT_MAX;
-    } else {
-      mypair.first  = atoi(range.substr(0,pos).c_str());
-      mypair.second = atoi(range.substr(pos+1, end).c_str());
-    }
-  }
-
-  //  Check the values for common errors.
-  if (mypair.first < 0){
-    QwError << "The first value must not be negative!"
-            << QwLog::endl;
-    exit(1);
-  } else if (mypair.first > mypair.second){
-    QwError << "The first value must not be larger than the second value"
-            << QwLog::endl;
-    exit(1);
-  }
-
-  //  Print the contents of the pair for debugging.
-  QwVerbose << "The range goes from " << mypair.first
-            << " to " << mypair.second
-            << QwLog::endl;
-
-  return mypair;
-};
