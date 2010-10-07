@@ -226,8 +226,36 @@ end=energycalculator
 ! negative you have to USE the NEGATIVE sign for the ratios.
 
 
-
 !END
 
+!set of published variables
+!publish name,device_type, device name, property (x-pos,xp-angle,y-pos,yp-angle,c-charge,e-energy change, ef - effective charge)
 
+!Each line must contain,
+!1. publish name
+!2. device type
+!	bcm
+!	bpmstrpline
+!	bpmcavity
+!	combobpm
+!	combobcm
+!	comboenergy
+!3. device name 
+!4. property to publish
+!	x-pos
+!	xp-angle
+!	y-pos
+!	yp-angle
+!	c-charge
+!	e-energy change
+!	ef-effective charge
+
+[PUBLISH]
+ q_targ, combobcm, qwk_charge, c
+ x_targ, combobpm, qwk_target, x
+ y_targ, combobpm,  qwk_target, y
+ xp_targ, combobpm,  qwk_target, xp
+ yp_targ, combobpm,  qwk_target, yp
+ e_targ, comboenergy,  qwk_energy, e
+ qwk_3c16_effectivecharge, bpmstripline, qwk_bpm3c16, ef
 
