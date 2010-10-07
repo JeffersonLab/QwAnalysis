@@ -199,13 +199,17 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 	//test if the reference time is ok
 	for ( Int_t bank=0;bank< ref_size; bank++ )
 	{
+		
 		if(fReferenceMaster.size()==0) continue;
 		Int_t size=fReferenceData.at ( bank ).size();
+// 		std::cout << "size: " << fReferenceMaster.at(bank).size() << std::endl;
 		for ( Int_t i=0;i<size;i++ )
 		{
 			if(fReferenceMaster.at(bank).size()==0) continue;
 			Double_t diff=fReferenceData.at ( bank ).at ( i )-fReferenceMaster.at ( bank ).at(0);
-			if ( diff > 10000 && diff <-10000 )
+// 			std::cout << fReferenceData.at ( bank ).at ( i ) << " " << fReferenceMaster.at ( bank ).at(0) << std::endl;
+// 			std::cout << "diff: " << diff << std::endl;
+			if ( diff > -880 || diff < -960 )
 			{       
 				fReferenceData.at ( bank ).erase ( fReferenceData.at(bank).begin() +i );
 				i--;
@@ -221,6 +225,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 		//  Only try to check the reference time for a bank if there is at least one
 		//  non-reference hit in the bank.
 		bankid = hit->GetSubbankID();
+// 		std::cout << "size: " << fReferenceData.at ( bankid ).size() << std::endl;
 		//if(hit->GetRegion()==3)
 		//std::cout << "bankid: " << bankid << std::endl;
 		//   if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
@@ -444,7 +449,6 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 {
 	Int_t tdcindex = 0;
 	tdcindex = GetTDCIndex ( bank_index,slot_num );
-
 	if ( tdcindex not_eq -1 )
 	{
 		Int_t hitCount = 1;
@@ -942,6 +946,8 @@ void QwDriftChamberVDC::ClearEventData()
 	{
 		fReferenceData.at ( i ).clear();
 	}
+	for( i=0;i<fReferenceMaster.size();i++)
+		fReferenceMaster.at(i).clear();
 	return;
 }
 
