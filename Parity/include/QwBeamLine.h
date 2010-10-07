@@ -163,6 +163,7 @@ class QwBeamLine : public VQwSubsystemParity{
  
 
  std::map<TString, VQwDataElement*> fPublishedInternalValues;
+ std::vector<std::vector<TString> > fPublishList;//this will save parameters to be published. This is loaded at the channel map
 
  static const Bool_t bDEBUG=kFALSE;
 
