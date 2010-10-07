@@ -4,28 +4,28 @@ ClassImp(QwGUIMainDetector);
 
 using namespace QwParityDB;
 
-const char *QwGUIMainDetector::MainDetectorBlockTypesRaw[MAIN_DET_BLOCKIND] = 
+const char *QwGUIMainDetector::MainDetectorBlockTypesRaw[MAIN_DET_BLOCKIND] =
   {"hw_sum_raw","block0_raw","block1_raw","block2_raw","block3_raw"};
 
-const char *QwGUIMainDetector::MainDetectorBlockTypes[MAIN_DET_BLOCKIND] = 
+const char *QwGUIMainDetector::MainDetectorBlockTypes[MAIN_DET_BLOCKIND] =
   {"hw_sum","block0","block1","block2","block3"};
 
 
 void QwGUIMainDetectorDataStructure::PushData(Double_t item)
 {
-  
+
   Data.push_back(item);
-	      
+
   if(item < DataMin) DataMin = item;
   if(item > DataMax) DataMax = item;
-  
+
   DataSum += item;
   EnsambleSum += item;
-  
+
   DataSumSq += item*item;
   EnsambleSumSq += item*item;
   EnsambleCounter++;
-  
+
   if(EnsambleCounter == EnsambleSize){
     EnsambleMean.push_back(EnsambleSum/EnsambleSize);
     EnsambleError.push_back(sqrt(EnsambleSumSq/EnsambleSize -pow(EnsambleSum/EnsambleSize,2))/sqrt(EnsambleSize));
@@ -35,8 +35,8 @@ void QwGUIMainDetectorDataStructure::PushData(Double_t item)
 
 void QwGUIMainDetectorDataStructure::CalculateStats()
 {
-  DataMean = DataSum/Data.size();	  
-  DataRMS  = sqrt(DataSumSq/Data.size() - DataMean*DataMean);	  
+  DataMean = DataSum/Data.size();
+  DataRMS  = sqrt(DataSumSq/Data.size() - DataMean*DataMean);
   DataError = DataRMS/sqrt(Data.size());
 
   Double_t num = 0;
@@ -51,15 +51,15 @@ void QwGUIMainDetectorDataStructure::CalculateStats()
 
 }
 
-void QwGUIMainDetectorDataStructure::Clean() 
+void QwGUIMainDetectorDataStructure::Clean()
 {
-  if(Data.size()){ 
-    Data.clear();  
-    Data.resize(0); 
-  } 
-  FFT.clear(); FFT.resize(0); 
+  if(Data.size()){
+    Data.clear();
+    Data.resize(0);
+  }
+  FFT.clear(); FFT.resize(0);
   EnsambleMean.clear(); EnsambleMean.resize(0);
-  EnsambleError.clear(); EnsambleError.resize(0); 
+  EnsambleError.clear(); EnsambleError.resize(0);
   EnsambleSum = 0;
   EnsambleSumSq = 0;
   EnsambleCounter = 0;
@@ -67,15 +67,15 @@ void QwGUIMainDetectorDataStructure::Clean()
   DataMin   = 0;
   DataMax   = 0;
   DataRMS   = 0;
-  DataSum   = 0;  
+  DataSum   = 0;
   DataSumSq = 0;
-} 
+}
 
 
-QwGUIMainDetectorData::QwGUIMainDetectorData(Int_t size) 
-{   
+QwGUIMainDetectorData::QwGUIMainDetectorData(Int_t size)
+{
   if(size < 0) {
-    dSize = 0; 
+    dSize = 0;
     dData = NULL;
   }
   else {
@@ -85,19 +85,19 @@ QwGUIMainDetectorData::QwGUIMainDetectorData(Int_t size)
 }
 
 void QwGUIMainDetectorData::Clean() {
-  
-  for(int i = 0; i < dSize; i++){ 
-    dData[i].Clean(); 
-  } 
+
+  for(int i = 0; i < dSize; i++){
+    dData[i].Clean();
+  }
 };
 
 
 QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
   : QwGUISubSystem(p,main,tab,objName,mainname,w,h)
-{ 
+{
   dTabFrame = NULL;
-  dYieldCanvas = NULL;  
+  dYieldCanvas = NULL;
   dTabLayout = NULL;
   dCnvLayout = NULL;
   dNumberEntryDlg = NULL;
@@ -119,7 +119,7 @@ void QwGUIMainDetector::NewDataInit()
   opts.cancelFlag  = kFalse;
   opts.changeFlag  = kFalse;
   opts.Start       = 0;
-  opts.Length      = 0; 
+  opts.Length      = 0;
   opts.TotalLength = 0;
 
   for(int n = 0; n < MAIN_DET_BLOCKIND; n++){
@@ -149,7 +149,7 @@ void QwGUIMainDetector::NewDataInit()
 QwGUIMainDetector::~QwGUIMainDetector()
 {
   if(dTabFrame)  delete dTabFrame;
-  if(dYieldCanvas)    delete dYieldCanvas;  
+  if(dYieldCanvas)    delete dYieldCanvas;
   if(dTabLayout) delete dTabLayout;
   if(dCnvLayout) delete dCnvLayout;
 
@@ -168,16 +168,16 @@ QwGUIMainDetector::~QwGUIMainDetector()
 
   TObject *obj;
   TIter *next = new TIter(DataWindowArray.MakeIterator());
-  
+
   obj = next->Next();
-  while(obj){    
+  while(obj){
     delete obj;
     obj = next->Next();
   }
   delete next;
 
   DataWindowArray.Clear();
-  
+
   RemoveThisTab(this);
   IsClosing(GetName());
 
@@ -190,7 +190,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
 
   TGCompositeFrame *dYieldTab = dMDTab->AddTab("Yields");
   dYieldFrame = new TGVerticalFrame(dYieldTab,10,10);
-  
+
   dMenuPlot1 = new TGPopupMenu(fClient->GetRoot());
   dMenuPlot1->AddEntry("&Histogram", M_PLOT_HISTO_YIELD);
   dMenuPlot1->AddEntry("&Graph", M_PLOT_GRAPH_YIELD);
@@ -212,7 +212,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
   dMenuBlock1->Associate(this);
   dMenuPlot1->Associate(this);
 
-  dYieldCanvas   = new TRootEmbeddedCanvas("pYieldC", dYieldFrame,10, 10);     
+  dYieldCanvas   = new TRootEmbeddedCanvas("pYieldC", dYieldFrame,10, 10);
   dYieldFrame->AddFrame(dYieldCanvas,dCnvLayout);
   dYieldFrame->Resize(GetWidth(),GetHeight());
 
@@ -225,7 +225,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
 
   TGCompositeFrame *dPMTAsymTab = dMDTab->AddTab("PMT Asym");
   dPMTAsymFrame = new TGVerticalFrame(dPMTAsymTab,10,10);
-  
+
   dMenuPlot2 = new TGPopupMenu(fClient->GetRoot());
   dMenuPlot2->AddEntry("&Histogram", M_PLOT_HISTO_PMT_ASYM);
   dMenuPlot2->AddEntry("&Graph", M_PLOT_GRAPH_PMT_ASYM);
@@ -247,7 +247,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
   dMenuBlock2->Associate(this);
   dMenuPlot2->Associate(this);
 
-  dPMTAsymCanvas   = new TRootEmbeddedCanvas("pPMTAC", dPMTAsymFrame,10, 10);     
+  dPMTAsymCanvas   = new TRootEmbeddedCanvas("pPMTAC", dPMTAsymFrame,10, 10);
   dPMTAsymFrame->AddFrame(dPMTAsymCanvas,dCnvLayout);
   dPMTAsymFrame->Resize(GetWidth(),GetHeight());
 
@@ -259,7 +259,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
 
   TGCompositeFrame *dDETAsymTab = dMDTab->AddTab("DET Asym");
   dDETAsymFrame = new TGVerticalFrame(dDETAsymTab,10,10);
-  
+
   dMenuPlot3 = new TGPopupMenu(fClient->GetRoot());
   dMenuPlot3->AddEntry("&Histogram", M_PLOT_HISTO_DET_ASYM);
   dMenuPlot3->AddEntry("&Graph", M_PLOT_GRAPH_DET_ASYM);
@@ -281,7 +281,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
   dMenuBlock3->Associate(this);
   dMenuPlot3->Associate(this);
 
-  dDETAsymCanvas   = new TRootEmbeddedCanvas("pDETAC", dDETAsymFrame,10, 10);     
+  dDETAsymCanvas   = new TRootEmbeddedCanvas("pDETAC", dDETAsymFrame,10, 10);
   dDETAsymFrame->AddFrame(dDETAsymCanvas,dCnvLayout);
   dDETAsymFrame->Resize(GetWidth(),GetHeight());
 
@@ -292,7 +292,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
 
   TGCompositeFrame *dCMBAsymTab = dMDTab->AddTab("CMB Asym");
   dCMBAsymFrame = new TGVerticalFrame(dCMBAsymTab,10,10);
-  
+
   dMenuPlot4 = new TGPopupMenu(fClient->GetRoot());
   dMenuPlot4->AddEntry("&Histogram", M_PLOT_HISTO_CMB_ASYM);
   dMenuPlot4->AddEntry("&Graph", M_PLOT_GRAPH_CMB_ASYM);
@@ -314,7 +314,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
   dMenuBlock4->Associate(this);
   dMenuPlot4->Associate(this);
 
-  dCMBAsymCanvas   = new TRootEmbeddedCanvas("pCMBAC", dCMBAsymFrame,10, 10);     
+  dCMBAsymCanvas   = new TRootEmbeddedCanvas("pCMBAC", dCMBAsymFrame,10, 10);
   dCMBAsymFrame->AddFrame(dCMBAsymCanvas,dCnvLayout);
   dCMBAsymFrame->Resize(GetWidth(),GetHeight());
 
@@ -325,7 +325,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
 
   TGCompositeFrame *dMSCAsymTab = dMDTab->AddTab("MSC Asym");
   dMSCAsymFrame = new TGVerticalFrame(dMSCAsymTab,10,10);
-  
+
   dMenuPlot5 = new TGPopupMenu(fClient->GetRoot());
   dMenuPlot5->AddEntry("&Histogram", M_PLOT_HISTO_MSC_ASYM);
   dMenuPlot5->AddEntry("&Graph", M_PLOT_GRAPH_MSC_ASYM);
@@ -347,7 +347,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
   dMenuBlock5->Associate(this);
   dMenuPlot5->Associate(this);
 
-  dMSCAsymCanvas   = new TRootEmbeddedCanvas("pMSCAC", dMSCAsymFrame,10, 10);     
+  dMSCAsymCanvas   = new TRootEmbeddedCanvas("pMSCAC", dMSCAsymFrame,10, 10);
   dMSCAsymFrame->AddFrame(dMSCAsymCanvas,dCnvLayout);
   dMSCAsymFrame->Resize(GetWidth(),GetHeight());
 
@@ -359,7 +359,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
 
   TGCompositeFrame *dMSCYieldTab = dMDTab->AddTab("MSC Yield");
   dMSCYieldFrame = new TGVerticalFrame(dMSCYieldTab,10,10);
-  
+
   dMenuPlot6 = new TGPopupMenu(fClient->GetRoot());
   dMenuPlot6->AddEntry("&Histogram", M_PLOT_HISTO_MSC_YIELD);
   dMenuPlot6->AddEntry("&Graph", M_PLOT_GRAPH_MSC_YIELD);
@@ -381,7 +381,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
   dMenuBlock6->Associate(this);
   dMenuPlot6->Associate(this);
 
-  dMSCYieldCanvas   = new TRootEmbeddedCanvas("pMSCYL", dMSCYieldFrame,10, 10);     
+  dMSCYieldCanvas   = new TRootEmbeddedCanvas("pMSCYL", dMSCYieldFrame,10, 10);
   dMSCYieldFrame->AddFrame(dMSCYieldCanvas,dCnvLayout);
   dMSCYieldFrame->Resize(GetWidth(),GetHeight());
 
@@ -392,7 +392,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
 
   TGCompositeFrame *dSUMTab = dMDTab->AddTab("Summary");
   dSUMFrame = new TGVerticalFrame(dSUMTab,10,10);
-  
+
 //   dMenuPlot7 = new TGPopupMenu(fClient->GetRoot());
 //   dMenuPlot7->AddEntry("&Histogram", M_PLOT_HISTO_SUM);
 //   dMenuPlot7->AddEntry("&Graph", M_PLOT_GRAPH_SUM);
@@ -414,7 +414,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
   dMenuBlock7->Associate(this);
 //   dMenuPlot7->Associate(this);
 
-  dSUMCanvas   = new TRootEmbeddedCanvas("pSUMYL", dSUMFrame,10, 10);     
+  dSUMCanvas   = new TRootEmbeddedCanvas("pSUMYL", dSUMFrame,10, 10);
   dSUMFrame->AddFrame(dSUMCanvas,dCnvLayout);
   dSUMFrame->Resize(GetWidth(),GetHeight());
 
@@ -491,7 +491,7 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
       div--;
       rem = MAIN_DET_COMBIND%div;
     }
-  }    
+  }
   row = (Int_t)(MAIN_DET_COMBIND/div);
   col = div;
 
@@ -542,49 +542,49 @@ void QwGUIMainDetector::MakeCurrentModeTabs()
 //   dMenuPlot7->DisableEntry(M_PLOT_DFT_SUM);
 //   dMenuPlot7->DisableEntry(M_PLOT_DFTPROF_SUM);
 
-  dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B1);   
-  dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B2);   
-  dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B3);   
-  dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B4);   
+  dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B1);
+  dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B2);
+  dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B3);
+  dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_B4);
   dMenuBlock1->DisableEntry(M_DATA_PMT_YIELD_SUM);
 
-  dMenuBlock2->DisableEntry(M_DATA_PMT_ASYM_B1); 
-  dMenuBlock2->DisableEntry(M_DATA_PMT_ASYM_B2); 
-  dMenuBlock2->DisableEntry(M_DATA_PMT_ASYM_B3); 
-  dMenuBlock2->DisableEntry(M_DATA_PMT_ASYM_B4); 
+  dMenuBlock2->DisableEntry(M_DATA_PMT_ASYM_B1);
+  dMenuBlock2->DisableEntry(M_DATA_PMT_ASYM_B2);
+  dMenuBlock2->DisableEntry(M_DATA_PMT_ASYM_B3);
+  dMenuBlock2->DisableEntry(M_DATA_PMT_ASYM_B4);
   dMenuBlock2->DisableEntry(M_DATA_PMT_ASYM_SUM);
 
-  dMenuBlock3->DisableEntry(M_DATA_DET_ASYM_B1); 
-  dMenuBlock3->DisableEntry(M_DATA_DET_ASYM_B2); 
-  dMenuBlock3->DisableEntry(M_DATA_DET_ASYM_B3); 
-  dMenuBlock3->DisableEntry(M_DATA_DET_ASYM_B4); 
+  dMenuBlock3->DisableEntry(M_DATA_DET_ASYM_B1);
+  dMenuBlock3->DisableEntry(M_DATA_DET_ASYM_B2);
+  dMenuBlock3->DisableEntry(M_DATA_DET_ASYM_B3);
+  dMenuBlock3->DisableEntry(M_DATA_DET_ASYM_B4);
   dMenuBlock3->DisableEntry(M_DATA_DET_ASYM_SUM);
 
-  dMenuBlock4->DisableEntry(M_DATA_CMB_ASYM_B1); 
-  dMenuBlock4->DisableEntry(M_DATA_CMB_ASYM_B2); 
-  dMenuBlock4->DisableEntry(M_DATA_CMB_ASYM_B3); 
-  dMenuBlock4->DisableEntry(M_DATA_CMB_ASYM_B4); 
+  dMenuBlock4->DisableEntry(M_DATA_CMB_ASYM_B1);
+  dMenuBlock4->DisableEntry(M_DATA_CMB_ASYM_B2);
+  dMenuBlock4->DisableEntry(M_DATA_CMB_ASYM_B3);
+  dMenuBlock4->DisableEntry(M_DATA_CMB_ASYM_B4);
   dMenuBlock4->DisableEntry(M_DATA_CMB_ASYM_SUM);
 
-  dMenuBlock5->DisableEntry(M_DATA_MSC_ASYM_B1); 
-  dMenuBlock5->DisableEntry(M_DATA_MSC_ASYM_B2); 
-  dMenuBlock5->DisableEntry(M_DATA_MSC_ASYM_B3); 
-  dMenuBlock5->DisableEntry(M_DATA_MSC_ASYM_B4); 
+  dMenuBlock5->DisableEntry(M_DATA_MSC_ASYM_B1);
+  dMenuBlock5->DisableEntry(M_DATA_MSC_ASYM_B2);
+  dMenuBlock5->DisableEntry(M_DATA_MSC_ASYM_B3);
+  dMenuBlock5->DisableEntry(M_DATA_MSC_ASYM_B4);
   dMenuBlock5->DisableEntry(M_DATA_MSC_ASYM_SUM);
 
-  dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B1); 
-  dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B2); 
-  dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B3); 
-  dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B4); 
+  dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B1);
+  dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B2);
+  dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B3);
+  dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_B4);
   dMenuBlock6->DisableEntry(M_DATA_MSC_YIELD_SUM);
 
-  dMenuBlock7->DisableEntry(M_DATA_SUM_B1); 
-  dMenuBlock7->DisableEntry(M_DATA_SUM_B2); 
-  dMenuBlock7->DisableEntry(M_DATA_SUM_B3); 
-  dMenuBlock7->DisableEntry(M_DATA_SUM_B4); 
+  dMenuBlock7->DisableEntry(M_DATA_SUM_B1);
+  dMenuBlock7->DisableEntry(M_DATA_SUM_B2);
+  dMenuBlock7->DisableEntry(M_DATA_SUM_B3);
+  dMenuBlock7->DisableEntry(M_DATA_SUM_B4);
   dMenuBlock7->DisableEntry(M_DATA_SUM_SUM);
 
-  dMDTab->MapSubwindows(); 
+  dMDTab->MapSubwindows();
   dMDTab->Layout();
 }
 
@@ -595,7 +595,7 @@ void QwGUIMainDetector::MakeTrackingModeTabs()
 
 void QwGUIMainDetector::MakeLayout()
 {
-  dTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | 
+  dTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
 				 kLHintsExpandX | kLHintsExpandY);
   dCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
 				 0, 0, 1, 2);
@@ -632,7 +632,7 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap()
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
-    
+
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       //  This is a declaration line.  Do nothing ...
     }
@@ -660,7 +660,7 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap()
 	  MainDetectorNames.push_back(namech);
 	  MAIN_DET_INDEX++;
 	}
-        
+
       }
       else if (modtype == "VPMT"){
 	channum       = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
@@ -671,9 +671,9 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap()
 	namech.ToLower();
 	combinedchannelnames.clear();
 
-	MainDetectorCombinationNames.push_back(namech);    
-	MAIN_DET_COMBIND++;	
-	
+	MainDetectorCombinationNames.push_back(namech);
+	MAIN_DET_COMBIND++;
+
       }
       else
 	return 0;
@@ -729,11 +729,11 @@ void QwGUIMainDetector::OnReceiveMessage(char *msg)
 // 	printf("Object = %s, %d\n",obj->GetName(),ind);
 	SetSelectedDataWindow(ind);
       }
-      
+
 //       message.ReplaceAll("Add to dDataWindow_",19,"",0);
 //       printf("Selected graph = %s or %d = %s\n",message.Data(),message.Atoi(),
 // 	     ((RSDataWindow*)DataWindowArray[message.Atoi()-1])->GetObjectName());
-      
+
     }
     else if(message.Contains("Don't add to")){
 
@@ -750,7 +750,7 @@ void QwGUIMainDetector::OnReceiveMessage(char *msg)
 //       message.ReplaceAll("Don't add to dDataWindow_",25,"",0);
 //       printf("De-selected graph = %s or %d = %s\n",message.Data(),message.Atoi(),
 // 	     ((RSDataWindow*)DataWindowArray[message.Atoi()-1])->GetObjectName());
-      
+
     }
   }
 }
@@ -758,9 +758,9 @@ void QwGUIMainDetector::OnReceiveMessage(char *msg)
 QwGUIDataWindow *QwGUIMainDetector::GetSelectedDataWindow()
 {
   if(dSelectedDataWindow < 0 || dSelectedDataWindow > DataWindowArray.GetLast()) return NULL;
-  
+
   return (QwGUIDataWindow*)DataWindowArray[dSelectedDataWindow];
-}  
+}
 
 
 void QwGUIMainDetector::OnObjClose(char *obj)
@@ -769,7 +769,7 @@ void QwGUIMainDetector::OnObjClose(char *obj)
   TString name = obj;
 
   if(name.Contains("dDataWindow")){
-    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(obj));    
+    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(obj));
     if(window == GetSelectedDataWindow()) { RemoveSelectedDataWindow();}
     printf("Removing %s\n",name.Data());
   }
@@ -782,12 +782,12 @@ void QwGUIMainDetector::OnObjClose(char *obj)
   if(!strcmp(obj,"dProgrDlg")){
     dProcessHalt = kTrue;
     dProgrDlg = NULL;
-  }   
+  }
 
   if(!strcmp(obj,"dROOTFile")){
-    
-    
-  }   
+
+
+  }
 
   QwGUISubSystem::OnObjClose(obj);
 }
@@ -802,48 +802,48 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 
   LoadCurrentModeChannelMap();
   MakeCurrentModeTabs();
-  
+
   //Get rid of old data
   NewDataInit();
-  ClearRootData();    
+  ClearRootData();
   ClearDFTData();
-  
+
   QwGUIMainDetectorDataStructure *CurrentPMTYield  = NULL;
   QwGUIMainDetectorDataStructure *CurrentPMTAsym   = NULL;
   QwGUIMainDetectorDataStructure *CurrentDETAsym   = NULL;
   QwGUIMainDetectorDataStructure *CurrentCMBAsym   = NULL;
   QwGUIMainDetectorDataStructure *CurrentMSCAsym   = NULL;
   QwGUIMainDetectorDataStructure *CurrentMSCYield  = NULL;
-  
+
   //cycle through the main detectors and possible combinations thereof
-  
+
   InitProgressDlg("Detector Event Fill","Block","Detector",0,kTrue,4,dCurrentYields[0]->GetNumElements(),0,2);
-  
+
   bl = 0;
   IncreaseProgress(&bl,0,0,1,0,0);
   for(int n = 0; n < MAIN_DET_BLOCKIND; n++){
-    
+
     CurrentPMTYield  = dCurrentYields[n]->GetElements();
     CurrentPMTAsym   = dCurrentPMTAsyms[n]->GetElements();
     CurrentDETAsym   = dCurrentDETAsyms[n]->GetElements();
     CurrentCMBAsym   = dCurrentCMBAsyms[n]->GetElements();
     CurrentMSCAsym   = dCurrentMSCAsyms[n]->GetElements();
     CurrentMSCYield  = dCurrentMSCYields[n]->GetElements();
-    
+
     dProgrDlg->ResetRange(0,dCurrentYields[n]->GetNumElements(),0);
     det = 1;
     for(int i = 0; i < dCurrentYields[n]->GetNumElements(); i++){
-      
+
       if (MPSTree && MPSTree -> FindBranch(Form("%s",MainDetectorPMTNames[i].Data()))) {
 	MPSTree->Draw(Form("%s.%s",MainDetectorPMTNames[i].Data(),dCurrentYields[n]->GetName()),"",
 		      "goff",MPSTree->GetEntries(),0);
-	
+
 	CurrentPMTYield[i].EnsambleReset();
 	events = 0;
-	
+
 	for(int j = 0; j < MPSTree->GetEntries(); j++){
-	  
-	  CurrentPMTYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6/480);	      
+
+	  CurrentPMTYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6);
 	  events++;
 	}
 	CurrentPMTYield[i].CalculateStats();
@@ -851,16 +851,16 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 					dCurrentYields[n]->GetName()));
 	FillYieldPlots(i,n);
       }
-      
+
       if ( HELTree && HELTree -> FindBranch(Form("asym_%s",MainDetectorPMTNames[i].Data()))) {
 	HELTree->Draw(Form("asym_%s.%s",MainDetectorPMTNames[i].Data(),dCurrentPMTAsyms[n]->GetName()),"",
 		      "goff",HELTree->GetEntries(),0);
-	
+
 	CurrentPMTAsym[i].EnsambleReset();
 	events = 0;
-	
+
 	for(int j = 0; j < HELTree->GetEntries(); j++){
-	  
+
 	  CurrentPMTAsym[i].PushData(HELTree->GetV1()[j]);
 	  events++;
 	}
@@ -869,19 +869,19 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 				       dCurrentPMTAsyms[n]->GetName()));
 	FillPMTAsymPlots(i,n);
       }
-      
+
       det++;
       if(dProcessHalt) break;
       IncreaseProgress(0,&det,0,0,1,0);
     }
-    
+
     for(int i = 0; i < dCurrentDETAsyms[n]->GetNumElements(); i++){
-      
+
       CurrentDETAsym[i].EnsambleReset();
       events = 0;
-      
+
       for(int j = 0; j < CurrentPMTAsym[i].Length(); j++){
-	
+
 	CurrentDETAsym[i].PushData(0.5*(CurrentPMTAsym[i].GetData(j)+CurrentPMTAsym[i+8].GetData(j)));
 	events++;
       }
@@ -890,20 +890,20 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 				     dCurrentDETAsyms[n]->GetName()));
       FillDETAsymPlots(i,n);
     }
-    
+
     for(int i = 0; i < dCurrentCMBAsyms[n]->GetNumElements(); i++){
-      
+
       if ( HELTree && HELTree -> FindBranch(Form("asym_%s",MainDetectorCombinationNames[i].Data()))) {
-	
+
 	HELTree->Draw(Form("asym_%s.%s",MainDetectorCombinationNames[i].Data(),dCurrentCMBAsyms[n]->GetName()),"",
 		      "goff",HELTree->GetEntries(),0);
-	
-	
+
+
 	CurrentCMBAsym[i].EnsambleReset();
 	events = 0;
-	
+
 	for(int j = 0; j < HELTree->GetEntries(); j++){
-	  
+
 	  CurrentCMBAsym[i].PushData(HELTree->GetV1()[j]);
 	  events++;
 	}
@@ -911,23 +911,23 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 	CurrentCMBAsym[i].SetName(Form("%s.%s Combination Asy.",MainDetectorCombinationNames[i].Data(),
 				       dCurrentCMBAsyms[n]->GetName()));
 	FillCMBAsymPlots(i,n);
-	
+
       }
     }
-    
+
     for(int i = 0; i < dCurrentMSCAsyms[n]->GetNumElements(); i++){
-      
+
       if ( HELTree && HELTree -> FindBranch(Form("asym_%s",MainDetectorMscNames[i].Data()))) {
-	
+
 	HELTree->Draw(Form("asym_%s.%s",MainDetectorMscNames[i].Data(),dCurrentMSCAsyms[n]->GetName()),"",
 		      "goff",HELTree->GetEntries(),0);
-	
-	
+
+
 	CurrentMSCAsym[i].EnsambleReset();
 	events = 0;
-	
+
 	for(int j = 0; j < HELTree->GetEntries(); j++){
-	  
+
 	  CurrentMSCAsym[i].PushData(HELTree->GetV1()[j]);
 	  events++;
 	}
@@ -935,166 +935,166 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 	CurrentMSCAsym[i].SetName(Form("%s.%s Asymmetry",MainDetectorMscNames[i].Data(),
 				       dCurrentMSCAsyms[n]->GetName()));
 	FillMSCAsymPlots(i,n);
-	
+
       }
     }
-    
+
     for(int i = 0; i < dCurrentMSCYields[n]->GetNumElements(); i++){
-      
+
       if ( MPSTree && MPSTree -> FindBranch(Form("%s",MainDetectorMscNames[i].Data()))) {
-	
+
 	MPSTree->Draw(Form("%s.%s",MainDetectorMscNames[i].Data(),dCurrentMSCYields[n]->GetName()),"",
 		      "goff",MPSTree->GetEntries(),0);
-	
-	
+
+
 	CurrentMSCYield[i].EnsambleReset();
 	events = 0;
-	
+
 	for(int j = 0; j < MPSTree->GetEntries(); j++){
-	  CurrentMSCYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6/480);
+	  CurrentMSCYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6);
 	  events++;
 	}
 	CurrentMSCYield[i].CalculateStats();
 	CurrentMSCYield[i].SetName(Form("%s.%s Yield",MainDetectorMscNames[i].Data(),
 					dCurrentMSCYields[n]->GetName()));
 	FillMSCYieldPlots(i,n);
-	
+
       }
     }
     FillSummaryPlots(n);
-    
+
     bl++;
     if(dProcessHalt) break;
     IncreaseProgress(&bl,0,0,1,0,0);
   }
-  
+
   if(dProgrDlg)
     dProgrDlg->CloseWindow();
-  
+
   if(MPSTree && MAIN_PMT_INDEX > 0){
-    
+
     dMenuPlot1->EnableEntry(M_PLOT_HISTO_YIELD);
     dMenuPlot1->EnableEntry(M_PLOT_GRAPH_YIELD);
     dMenuPlot1->EnableEntry(M_PLOT_DFT_YIELD);
-    
-    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B1);   
-    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B2);   
-    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B3);   
-    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B4);   
+
+    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B1);
+    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B2);
+    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B3);
+    dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_B4);
     dMenuBlock1->EnableEntry(M_DATA_PMT_YIELD_SUM);
-    
+
     dMenuPlot1->CheckEntry(M_PLOT_HISTO_YIELD);
     dMenuBlock1->CheckEntry(M_DATA_PMT_YIELD_SUM);
     SetYieldDataIndex(0);
     SetDataType(PMT_YIELD);
     PlotHistograms();
   }
-  
+
   if(HELTree && MAIN_PMT_INDEX > 0){
-    
+
     dMenuPlot2->EnableEntry(M_PLOT_HISTO_PMT_ASYM);
     dMenuPlot2->EnableEntry(M_PLOT_GRAPH_PMT_ASYM);
     dMenuPlot2->EnableEntry(M_PLOT_DFT_PMT_ASYM);
-    
-    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B1); 
-    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B2); 
-    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B3); 
-    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B4); 
+
+    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B1);
+    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B2);
+    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B3);
+    dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_B4);
     dMenuBlock2->EnableEntry(M_DATA_PMT_ASYM_SUM);
-    
+
     dMenuPlot2->CheckEntry(M_PLOT_HISTO_PMT_ASYM);
     dMenuBlock2->CheckEntry(M_DATA_PMT_ASYM_SUM);
     SetPMTAsymDataIndex(0);
     SetDataType(PMT_ASYM);
-    PlotHistograms(); 
+    PlotHistograms();
   }
-  
+
   if(HELTree && MAIN_DET_INDEX > 0){
-    
+
     dMenuPlot3->EnableEntry(M_PLOT_HISTO_DET_ASYM);
     dMenuPlot3->EnableEntry(M_PLOT_GRAPH_DET_ASYM);
     dMenuPlot3->EnableEntry(M_PLOT_DFT_DET_ASYM);
-    
-    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B1); 
-    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B2); 
-    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B3); 
-    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B4); 
+
+    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B1);
+    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B2);
+    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B3);
+    dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_B4);
     dMenuBlock3->EnableEntry(M_DATA_DET_ASYM_SUM);
-    
+
     dMenuPlot3->CheckEntry(M_PLOT_HISTO_DET_ASYM);
     dMenuBlock3->CheckEntry(M_DATA_DET_ASYM_SUM);
     SetDETAsymDataIndex(0);
     SetDataType(DET_ASYM);
-    PlotHistograms(); 
+    PlotHistograms();
   }
-  
+
   if(HELTree && MAIN_DET_COMBIND > 0){
-    
+
     dMenuPlot4->EnableEntry(M_PLOT_HISTO_CMB_ASYM);
     dMenuPlot4->EnableEntry(M_PLOT_GRAPH_CMB_ASYM);
     dMenuPlot4->EnableEntry(M_PLOT_DFT_CMB_ASYM);
-    
-    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B1); 
-    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B2); 
-    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B3); 
-    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B4); 
+
+    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B1);
+    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B2);
+    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B3);
+    dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_B4);
     dMenuBlock4->EnableEntry(M_DATA_CMB_ASYM_SUM);
-    
+
     dMenuPlot4->CheckEntry(M_PLOT_HISTO_CMB_ASYM);
     dMenuBlock4->CheckEntry(M_DATA_CMB_ASYM_SUM);
     SetCMBAsymDataIndex(0);
     SetDataType(CMB_ASYM);
-    PlotHistograms(); 
+    PlotHistograms();
   }
-  
+
   if(HELTree && MAIN_MSC_INDEX > 0){
-    
+
     dMenuPlot5->EnableEntry(M_PLOT_HISTO_MSC_ASYM);
     dMenuPlot5->EnableEntry(M_PLOT_GRAPH_MSC_ASYM);
     dMenuPlot5->EnableEntry(M_PLOT_DFT_MSC_ASYM);
-    
-    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B1); 
-    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B2); 
-    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B3); 
-    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B4); 
+
+    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B1);
+    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B2);
+    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B3);
+    dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_B4);
     dMenuBlock5->EnableEntry(M_DATA_MSC_ASYM_SUM);
-    
+
     dMenuPlot5->CheckEntry(M_PLOT_HISTO_MSC_ASYM);
     dMenuBlock5->CheckEntry(M_DATA_MSC_ASYM_SUM);
     SetMSCAsymDataIndex(0);
     SetDataType(MSC_ASYM);
-    PlotHistograms(); 
-    
+    PlotHistograms();
+
     dMenuPlot6->EnableEntry(M_PLOT_HISTO_MSC_YIELD);
     dMenuPlot6->EnableEntry(M_PLOT_GRAPH_MSC_YIELD);
     dMenuPlot6->EnableEntry(M_PLOT_DFT_MSC_YIELD);
-    
-    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B1); 
-    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B2); 
-    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B3); 
-    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B4); 
+
+    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B1);
+    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B2);
+    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B3);
+    dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_B4);
     dMenuBlock6->EnableEntry(M_DATA_MSC_YIELD_SUM);
-    
+
     dMenuPlot6->CheckEntry(M_PLOT_HISTO_MSC_YIELD);
     dMenuBlock6->CheckEntry(M_DATA_MSC_YIELD_SUM);
     SetMSCAsymDataIndex(0);
     SetDataType(MSC_YIELD);
-    PlotHistograms(); 
+    PlotHistograms();
   }
-  
+
   if(HELTree || MPSTree){
-    
-    dMenuBlock7->EnableEntry(M_DATA_SUM_B1);   
-    dMenuBlock7->EnableEntry(M_DATA_SUM_B2);   
-    dMenuBlock7->EnableEntry(M_DATA_SUM_B3);   
-    dMenuBlock7->EnableEntry(M_DATA_SUM_B4);   
+
+    dMenuBlock7->EnableEntry(M_DATA_SUM_B1);
+    dMenuBlock7->EnableEntry(M_DATA_SUM_B2);
+    dMenuBlock7->EnableEntry(M_DATA_SUM_B3);
+    dMenuBlock7->EnableEntry(M_DATA_SUM_B4);
     dMenuBlock7->EnableEntry(M_DATA_SUM_SUM);
-    
+
     dMenuBlock7->CheckEntry(M_DATA_SUM_SUM);
     SetSummaryDataIndex(0);
     SetDataType(SUMMARY);
-    PlotGraphs(); 
-    
+    PlotGraphs();
+
     SetPlotType(PLOT_TYPE_HISTO,0);
     SetPlotType(PLOT_TYPE_HISTO,1);
     SetPlotType(PLOT_TYPE_HISTO,2);
@@ -1102,12 +1102,12 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
     SetPlotType(PLOT_TYPE_HISTO,4);
     SetPlotType(PLOT_TYPE_HISTO,5);
     SetPlotType(PLOT_TYPE_GRAPH,6);
-    
+
   }
-  
+
   SetDataType(PMT_YIELD);
-  
-  //End filling root data    
+
+  //End filling root data
 
 }
 
@@ -1134,7 +1134,7 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
   TTree *tree = NULL;
 
   if(!strcmp(cont->GetDataName(),"ROOT") && dROOTCont){
-  //Start filling root data  
+  //Start filling root data
 
     //Current Mode
     obj = dROOTCont->ReadData("Mps_Tree");
@@ -1151,7 +1151,7 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
     }
 
     //Tracking Mode
-    obj = dROOTCont->ReadData("event_tree");
+    obj = dROOTCont->ReadData("tree");
     if(obj){
       if(obj->InheritsFrom("TTree")){
 	HELTree = (TTree*)obj->Clone();
@@ -1169,7 +1169,7 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
   }
   else if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
     //Start filling DB data
-    ClearDBData();      
+    ClearDBData();
   }
 }
 
@@ -1191,20 +1191,20 @@ void QwGUIMainDetector::FillYieldPlots(Int_t det, Int_t dTInd)
   grp->SetTitle(dCurrentData.GetName());//Form("%s.%s Yield",MainDetectorPMTNames[det].Data(),dCurrentYields[dTInd]->GetName()));
   grp->SetName(Form("yield%02d_%d",det,dTInd));
   hst->SetDirectory(0);
-  
+
   hst->GetXaxis()->SetTitle("RMS (mean subtracted) [V]");
   hst->GetXaxis()->CenterTitle();
   hst->GetXaxis()->SetTitleSize(0.04);
   hst->GetXaxis()->SetLabelSize(0.04);
   hst->GetXaxis()->SetTitleOffset(1.25);
   hst->GetYaxis()->SetLabelSize(0.04);
-  
+
   Int_t smplcnt = 0;
   for(int j = 0; j < dCurrentData.Length(); j++){
     if(dCurrentData.GetData(j) != 0){
-      if(smplev == dCurrentData.GetEnsambleSize() && 
+      if(smplev == dCurrentData.GetEnsambleSize() &&
 	 dCurrentData.GetNumEnsambles() > smplcnt+1){
-	smplcnt++; 
+	smplcnt++;
 	smplev = 0;
 	// 		  printf("Det %d: Size = %d, smplcnt = %d\n",i,dCurrentDataSampleMean[det].size(), smplcnt);
       }
@@ -1224,13 +1224,13 @@ void QwGUIMainDetector::FillYieldPlots(Int_t det, Int_t dTInd)
   grp->GetYaxis()->SetTitleSize(0.04);
   grp->GetYaxis()->SetLabelSize(0.04);
   grp->GetYaxis()->SetTitleOffset(1.5);
-    
-  
+
+
   YieldHistArray[dTInd].Add(hst);
   YieldGraphArray[dTInd].Add(grp);
   dCurrentYields[dTInd]->SetFFTTotalLength(dCurrentData.Length());
 
-  
+
 }
 
 void QwGUIMainDetector::FillPMTAsymPlots(Int_t det, Int_t dTInd)
@@ -1251,20 +1251,20 @@ void QwGUIMainDetector::FillPMTAsymPlots(Int_t det, Int_t dTInd)
   grp->SetTitle(dCurrentData.GetName());//Form("%s.%s PMT Asymmetry",MainDetectorPMTNames[det].Data(),dCurrentPMTAsyms[dTInd]->GetName()));
   grp->SetName(Form("pmtasym%02d_%d",det,dTInd));
   hst->SetDirectory(0);
-  
+
   hst->GetXaxis()->SetTitle("RMS (mean subtracted) [V]");
   hst->GetXaxis()->CenterTitle();
   hst->GetXaxis()->SetTitleSize(0.04);
   hst->GetXaxis()->SetLabelSize(0.04);
   hst->GetXaxis()->SetTitleOffset(1.25);
   hst->GetYaxis()->SetLabelSize(0.04);
-  
+
   Int_t smplcnt = 0;
   for(int j = 0; j < dCurrentData.Length(); j++){
     if(dCurrentData.GetData(j) != 0){
-      if(smplev == dCurrentData.GetEnsambleSize() && 
+      if(smplev == dCurrentData.GetEnsambleSize() &&
 	 dCurrentData.GetNumEnsambles() > smplcnt+1){
-	smplcnt++; 
+	smplcnt++;
 	smplev = 0;
 	// 		  printf("Det %d: Size = %d, smplcnt = %d\n",i,dCurrentDataSampleMean[det].size(), smplcnt);
       }
@@ -1285,11 +1285,11 @@ void QwGUIMainDetector::FillPMTAsymPlots(Int_t det, Int_t dTInd)
   grp->GetYaxis()->SetTitleSize(0.04);
   grp->GetYaxis()->SetLabelSize(0.04);
   grp->GetYaxis()->SetTitleOffset(1.5);
-    
-  
+
+
   PMTAsymHistArray[dTInd].Add(hst);
   PMTAsymGraphArray[dTInd].Add(grp);
-  dCurrentPMTAsyms[dTInd]->SetFFTTotalLength(dCurrentData.Length());  
+  dCurrentPMTAsyms[dTInd]->SetFFTTotalLength(dCurrentData.Length());
 }
 
 void QwGUIMainDetector::FillDETAsymPlots(Int_t det, Int_t dTInd)
@@ -1310,20 +1310,20 @@ void QwGUIMainDetector::FillDETAsymPlots(Int_t det, Int_t dTInd)
   grp->SetTitle(dCurrentData.GetName());//Form("%s.%s Detector Asymmetry",MainDetectorNames[det].Data(),dCurrentDETAsyms[dTInd]->GetName()));
   grp->SetName(Form("detasym%02d_%d",det,dTInd));
   hst->SetDirectory(0);
-  
+
   hst->GetXaxis()->SetTitle("RMS (mean subtracted) [V]");
   hst->GetXaxis()->CenterTitle();
   hst->GetXaxis()->SetTitleSize(0.04);
   hst->GetXaxis()->SetLabelSize(0.04);
   hst->GetXaxis()->SetTitleOffset(1.25);
   hst->GetYaxis()->SetLabelSize(0.04);
-  
+
   Int_t smplcnt = 0;
   for(int j = 0; j < dCurrentData.Length(); j++){
     if(dCurrentData.GetData(j) != 0){
-      if(smplev == dCurrentData.GetEnsambleSize() && 
+      if(smplev == dCurrentData.GetEnsambleSize() &&
 	 dCurrentData.GetNumEnsambles() > smplcnt+1){
-	smplcnt++; 
+	smplcnt++;
 	smplev = 0;
 	// 		  printf("Det %d: Size = %d, smplcnt = %d\n",i,dCurrentDataSampleMean[det].size(), smplcnt);
       }
@@ -1344,11 +1344,11 @@ void QwGUIMainDetector::FillDETAsymPlots(Int_t det, Int_t dTInd)
   grp->GetYaxis()->SetTitleSize(0.04);
   grp->GetYaxis()->SetLabelSize(0.04);
   grp->GetYaxis()->SetTitleOffset(1.5);
-    
-  
+
+
   DetAsymHistArray[dTInd].Add(hst);
   DetAsymGraphArray[dTInd].Add(grp);
-  dCurrentDETAsyms[dTInd]->SetFFTTotalLength(dCurrentData.Length());  
+  dCurrentDETAsyms[dTInd]->SetFFTTotalLength(dCurrentData.Length());
 }
 
 void QwGUIMainDetector::FillCMBAsymPlots(Int_t det, Int_t dTInd)
@@ -1371,20 +1371,20 @@ void QwGUIMainDetector::FillCMBAsymPlots(Int_t det, Int_t dTInd)
 // 		     dCurrentCMBAsyms[dTInd]->GetName()));
   grp->SetName(Form("cmbasym%02d_%d",det,dTInd));
   hst->SetDirectory(0);
-  
+
   hst->GetXaxis()->SetTitle("RMS (mean subtracted) [V]");
   hst->GetXaxis()->CenterTitle();
   hst->GetXaxis()->SetTitleSize(0.04);
   hst->GetXaxis()->SetLabelSize(0.04);
   hst->GetXaxis()->SetTitleOffset(1.25);
   hst->GetYaxis()->SetLabelSize(0.04);
-  
+
   Int_t smplcnt = 0;
   for(int j = 0; j < dCurrentData.Length(); j++){
     if(dCurrentData.GetData(j) != 0){
-      if(smplev == dCurrentData.GetEnsambleSize() && 
+      if(smplev == dCurrentData.GetEnsambleSize() &&
 	 dCurrentData.GetNumEnsambles() > smplcnt+1){
-	smplcnt++; 
+	smplcnt++;
 	smplev = 0;
 	// 		  printf("Det %d: Size = %d, smplcnt = %d\n",i,dCurrentDataSampleMean[det].size(), smplcnt);
       }
@@ -1405,10 +1405,10 @@ void QwGUIMainDetector::FillCMBAsymPlots(Int_t det, Int_t dTInd)
   grp->GetYaxis()->SetTitleSize(0.04);
   grp->GetYaxis()->SetLabelSize(0.04);
   grp->GetYaxis()->SetTitleOffset(1.5);
-    
+
   CMBAsymHistArray[dTInd].Add(hst);
   CMBAsymGraphArray[dTInd].Add(grp);
-  dCurrentCMBAsyms[dTInd]->SetFFTTotalLength(dCurrentData.Length());  
+  dCurrentCMBAsyms[dTInd]->SetFFTTotalLength(dCurrentData.Length());
 }
 
 
@@ -1427,20 +1427,20 @@ void QwGUIMainDetector::FillMSCAsymPlots(Int_t det, Int_t dTInd)
   grp->SetTitle(dCurrentData.GetName());
   grp->SetName(Form("mscasym%02d_%d",det,dTInd));
   hst->SetDirectory(0);
-  
+
   hst->GetXaxis()->SetTitle("RMS (mean subtracted) [V]");
   hst->GetXaxis()->CenterTitle();
   hst->GetXaxis()->SetTitleSize(0.04);
   hst->GetXaxis()->SetLabelSize(0.04);
   hst->GetXaxis()->SetTitleOffset(1.25);
   hst->GetYaxis()->SetLabelSize(0.04);
-  
+
   Int_t smplcnt = 0;
   for(int j = 0; j < dCurrentData.Length(); j++){
     if(dCurrentData.GetData(j) != 0){
-      if(smplev == dCurrentData.GetEnsambleSize() && 
+      if(smplev == dCurrentData.GetEnsambleSize() &&
 	 dCurrentData.GetNumEnsambles() > smplcnt+1){
-	smplcnt++; 
+	smplcnt++;
 	smplev = 0;
 	// 		  printf("Det %d: Size = %d, smplcnt = %d\n",i,dCurrentDataSampleMean[det].size(), smplcnt);
       }
@@ -1461,10 +1461,10 @@ void QwGUIMainDetector::FillMSCAsymPlots(Int_t det, Int_t dTInd)
   grp->GetYaxis()->SetTitleSize(0.04);
   grp->GetYaxis()->SetLabelSize(0.04);
   grp->GetYaxis()->SetTitleOffset(1.5);
-    
+
   MSCAsymHistArray[dTInd].Add(hst);
   MSCAsymGraphArray[dTInd].Add(grp);
-  dCurrentMSCAsyms[dTInd]->SetFFTTotalLength(dCurrentData.Length());  
+  dCurrentMSCAsyms[dTInd]->SetFFTTotalLength(dCurrentData.Length());
 }
 
 void QwGUIMainDetector::FillMSCYieldPlots(Int_t det, Int_t dTInd)
@@ -1483,20 +1483,20 @@ void QwGUIMainDetector::FillMSCYieldPlots(Int_t det, Int_t dTInd)
   grp->SetTitle(dCurrentData.GetName());
   grp->SetName(Form("mscyield%02d_%d",det,dTInd));
   hst->SetDirectory(0);
-  
+
   hst->GetXaxis()->SetTitle("RMS (mean subtracted) [V]");
   hst->GetXaxis()->CenterTitle();
   hst->GetXaxis()->SetTitleSize(0.04);
   hst->GetXaxis()->SetLabelSize(0.04);
   hst->GetXaxis()->SetTitleOffset(1.25);
   hst->GetYaxis()->SetLabelSize(0.04);
-  
+
   Int_t smplcnt = 0;
   for(int j = 0; j < dCurrentData.Length(); j++){
     if(dCurrentData.GetData(j) != 0){
-      if(smplev == dCurrentData.GetEnsambleSize() && 
+      if(smplev == dCurrentData.GetEnsambleSize() &&
 	 dCurrentData.GetNumEnsambles() > smplcnt+1){
-	smplcnt++; 
+	smplcnt++;
 	smplev = 0;
 	// 		  printf("Det %d: Size = %d, smplcnt = %d\n",i,dCurrentDataSampleMean[det].size(), smplcnt);
       }
@@ -1517,10 +1517,10 @@ void QwGUIMainDetector::FillMSCYieldPlots(Int_t det, Int_t dTInd)
   grp->GetYaxis()->SetTitleSize(0.04);
   grp->GetYaxis()->SetLabelSize(0.04);
   grp->GetYaxis()->SetTitleOffset(1.5);
-    
+
   MSCYieldHistArray[dTInd].Add(hst);
   MSCYieldGraphArray[dTInd].Add(grp);
-  dCurrentMSCYields[dTInd]->SetFFTTotalLength(dCurrentData.Length());  
+  dCurrentMSCYields[dTInd]->SetFFTTotalLength(dCurrentData.Length());
 }
 
 void QwGUIMainDetector::FillSummaryPlots(Int_t dTInd)
@@ -1529,7 +1529,7 @@ void QwGUIMainDetector::FillSummaryPlots(Int_t dTInd)
   vector <TString> Names;
 
   //PMT Yields
-  
+
   TGraphErrors *grph = new TGraphErrors(MAIN_PMT_INDEX);
   grph->SetName("PMT_Yield_Means");
   grph->SetTitle("PMT Yield Mean (md1- -> md8+)");
@@ -1714,7 +1714,7 @@ void QwGUIMainDetector::OnUpdatePlot(char *obj)
   if(!obj) return;
   TString str = obj;
   if(!str.Contains("dDataWind")) return;
-  
+
   printf("Received Message From: %s\n",obj);
 }
 
@@ -1733,7 +1733,7 @@ void QwGUIMainDetector::ClearRootData()
     next = new TIter(YieldHistArray[n].MakeIterator());
 
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1741,7 +1741,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(YieldGraphArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1749,7 +1749,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(PMTAsymHistArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1757,7 +1757,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(PMTAsymGraphArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1765,7 +1765,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(DetAsymHistArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1773,7 +1773,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(DetAsymGraphArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1781,7 +1781,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(CMBAsymGraphArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1789,7 +1789,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(CMBAsymHistArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1797,7 +1797,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(MSCAsymHistArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1805,7 +1805,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(MSCAsymGraphArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1813,7 +1813,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(MSCYieldHistArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1821,7 +1821,7 @@ void QwGUIMainDetector::ClearRootData()
 
     next = new TIter(MSCYieldGraphArray[n].MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -1844,13 +1844,13 @@ void QwGUIMainDetector::ClearRootData()
 
     MSCYieldHistArray[n].Clear();
     MSCYieldGraphArray[n].Clear();
-  }  
+  }
 
 //   TObject *obj;
   next = new TIter(DataWindowArray.MakeIterator());
-  
+
   obj = next->Next();
-  while(obj){    
+  while(obj){
     delete obj;
     obj = next->Next();
   }
@@ -1864,16 +1864,16 @@ void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
 {
   TObject *obj;
   TObjArray *objarray1;
-  TObjArray *objarray2;  
+  TObjArray *objarray2;
   TIter *next;
-  
+
   if(ALL){
-    
+
     for(int n = 0; n < MAIN_DET_BLOCKIND; n++){
 
       next = new TIter(YieldProfileArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
@@ -1882,7 +1882,7 @@ void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
 
       next = new TIter(YieldDFTArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
@@ -1890,18 +1890,18 @@ void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
 
       YieldProfileArray[n].Clear();
       YieldDFTArray[n].Clear();
-      
+
       next = new TIter(PMTAsymProfileArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
       delete next;
-      
+
       next = new TIter(PMTAsymDFTArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
@@ -1909,18 +1909,18 @@ void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
 
       PMTAsymProfileArray[n].Clear();
       PMTAsymDFTArray[n].Clear();
-      
+
       next = new TIter(DetAsymProfileArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
       delete next;
-      
+
       next = new TIter(DetAsymDFTArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
@@ -1931,15 +1931,15 @@ void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
 
       next = new TIter(CMBAsymProfileArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
       delete next;
-      
+
       next = new TIter(CMBAsymDFTArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
@@ -1950,15 +1950,15 @@ void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
 
       next = new TIter(MSCAsymProfileArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
       delete next;
-      
+
       next = new TIter(MSCAsymDFTArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
@@ -1969,15 +1969,15 @@ void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
 
       next = new TIter(MSCYieldProfileArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
       delete next;
-      
+
       next = new TIter(MSCYieldDFTArray[n].MakeIterator());
       obj = next->Next();
-      while(obj){    
+      while(obj){
 	delete obj;
 	obj = next->Next();
       }
@@ -1985,7 +1985,7 @@ void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
 
       MSCYieldProfileArray[n].Clear();
       MSCYieldDFTArray[n].Clear();
-      
+
     }
   }
   else{
@@ -1993,39 +1993,39 @@ void QwGUIMainDetector::ClearDFTData(Bool_t ALL)
     if(GetDataType() == PMT_YIELD){
       objarray1 = &YieldProfileArray[GetYieldDataIndex()];
       objarray2 = &YieldDFTArray[GetYieldDataIndex()];
-    }    
+    }
     if(GetDataType() == PMT_ASYM){
       objarray1 = &PMTAsymProfileArray[GetPMTAsymDataIndex()];
       objarray2 = &PMTAsymDFTArray[GetPMTAsymDataIndex()];
-    }    
+    }
     if(GetDataType() == DET_ASYM){
       objarray1 = &DetAsymProfileArray[GetDETAsymDataIndex()];
       objarray2 = &DetAsymDFTArray[GetDETAsymDataIndex()];
-    }    
+    }
     if(GetDataType() == CMB_ASYM){
       objarray1 = &CMBAsymProfileArray[GetCMBAsymDataIndex()];
       objarray2 = &CMBAsymDFTArray[GetCMBAsymDataIndex()];
-    }    
+    }
     if(GetDataType() == MSC_ASYM){
       objarray1 = &MSCAsymProfileArray[GetMSCAsymDataIndex()];
       objarray2 = &MSCAsymDFTArray[GetMSCAsymDataIndex()];
-    }    
+    }
     if(GetDataType() == MSC_YIELD){
       objarray1 = &MSCYieldProfileArray[GetMSCYieldDataIndex()];
       objarray2 = &MSCYieldDFTArray[GetMSCYieldDataIndex()];
-    }    
-      
+    }
+
     next = new TIter(objarray1->MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
     delete next;
-    
+
     next = new TIter(objarray2->MakeIterator());
     obj = next->Next();
-    while(obj){    
+    while(obj){
       delete obj;
       obj = next->Next();
     }
@@ -2045,27 +2045,27 @@ Bool_t QwGUIMainDetector::PlotHistograms()
   if(GetDataType() == PMT_YIELD){
     objarray = &YieldHistArray[GetYieldDataIndex()];
     mc = dYieldCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == PMT_ASYM){
     objarray = &PMTAsymHistArray[GetPMTAsymDataIndex()];
     mc = dPMTAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == DET_ASYM){
     objarray = &DetAsymHistArray[GetDETAsymDataIndex()];
     mc = dDETAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == CMB_ASYM){
     objarray = &CMBAsymHistArray[GetCMBAsymDataIndex()];
     mc = dCMBAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == MSC_ASYM){
     objarray = &MSCAsymHistArray[GetMSCAsymDataIndex()];
     mc = dMSCAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == MSC_YIELD){
     objarray = &MSCYieldHistArray[GetMSCYieldDataIndex()];
     mc = dMSCYieldCanvas->GetCanvas();
-  }    
+  }
 
   if(!mc) return kFalse;
   Int_t ind = 1;
@@ -2108,31 +2108,31 @@ Bool_t QwGUIMainDetector::PlotGraphs()
   if(GetDataType() == PMT_YIELD){
     objarray = &YieldGraphArray[GetYieldDataIndex()];
     mc = dYieldCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == PMT_ASYM){
     objarray = &PMTAsymGraphArray[GetPMTAsymDataIndex()];
     mc = dPMTAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == DET_ASYM){
     objarray = &DetAsymGraphArray[GetDETAsymDataIndex()];
     mc = dDETAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == CMB_ASYM){
     objarray = &CMBAsymGraphArray[GetCMBAsymDataIndex()];
     mc = dCMBAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == MSC_ASYM){
     objarray = &MSCAsymGraphArray[GetMSCAsymDataIndex()];
     mc = dMSCAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == MSC_YIELD){
     objarray = &MSCYieldGraphArray[GetMSCYieldDataIndex()];
     mc = dMSCYieldCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == SUMMARY){
     objarray = &SummaryGraphArray[GetSummaryDataIndex()];
     mc = dSUMCanvas->GetCanvas();
-  }    
+  }
 
   if(!mc) return kFalse;
 
@@ -2175,32 +2175,32 @@ Bool_t QwGUIMainDetector::PlotDFTProfile()
     objarray = &YieldProfileArray[GetYieldDataIndex()];
     if(!dCurrentYields[GetYieldDataIndex()]->IsFFTCalculated()) return kFalse;
     mc = dYieldCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == PMT_ASYM){
     objarray = &PMTAsymProfileArray[GetPMTAsymDataIndex()];
     if(!dCurrentPMTAsyms[GetPMTAsymDataIndex()]->IsFFTCalculated()) return kFalse;
     mc = dPMTAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == DET_ASYM){
     objarray = &DetAsymProfileArray[GetDETAsymDataIndex()];
     if(!dCurrentDETAsyms[GetDETAsymDataIndex()]->IsFFTCalculated()) return kFalse;
     mc = dDETAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == CMB_ASYM){
     objarray = &CMBAsymProfileArray[GetCMBAsymDataIndex()];
     if(!dCurrentCMBAsyms[GetCMBAsymDataIndex()]->IsFFTCalculated()) return kFalse;
     mc = dCMBAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == MSC_ASYM){
     objarray = &MSCAsymProfileArray[GetMSCAsymDataIndex()];
     if(!dCurrentMSCAsyms[GetMSCAsymDataIndex()]->IsFFTCalculated()) return kFalse;
     mc = dMSCAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == MSC_YIELD){
     objarray = &MSCYieldProfileArray[GetMSCYieldDataIndex()];
     if(!dCurrentMSCYields[GetMSCYieldDataIndex()]->IsFFTCalculated()) return kFalse;
     mc = dMSCYieldCanvas->GetCanvas();
-  }    
+  }
 
   if(!mc) return kFalse;
 
@@ -2245,7 +2245,7 @@ Bool_t QwGUIMainDetector::PlotDFT()
       return kFalse;
     }
     mc = dYieldCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == PMT_ASYM){
     objarray = &PMTAsymDFTArray[GetPMTAsymDataIndex()];
     if(!CalculateDFT() &&
@@ -2253,7 +2253,7 @@ Bool_t QwGUIMainDetector::PlotDFT()
       return kFalse;
     }
     mc = dPMTAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == DET_ASYM){
     objarray = &DetAsymDFTArray[GetDETAsymDataIndex()];
     if(!CalculateDFT() &&
@@ -2261,7 +2261,7 @@ Bool_t QwGUIMainDetector::PlotDFT()
       return kFalse;
     }
     mc = dDETAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == CMB_ASYM){
     objarray = &CMBAsymDFTArray[GetDETAsymDataIndex()];
     if(!CalculateDFT() &&
@@ -2269,7 +2269,7 @@ Bool_t QwGUIMainDetector::PlotDFT()
       return kFalse;
     }
     mc = dCMBAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == MSC_ASYM){
     objarray = &MSCAsymProfileArray[GetMSCAsymDataIndex()];
     if(!CalculateDFT() &&
@@ -2277,7 +2277,7 @@ Bool_t QwGUIMainDetector::PlotDFT()
       return kFalse;
     }
     mc = dMSCAsymCanvas->GetCanvas();
-  }    
+  }
   if(GetDataType() == MSC_YIELD){
     objarray = &MSCYieldProfileArray[GetMSCYieldDataIndex()];
     if(!CalculateDFT() &&
@@ -2285,7 +2285,7 @@ Bool_t QwGUIMainDetector::PlotDFT()
       return kFalse;
     }
     mc = dMSCYieldCanvas->GetCanvas();
-  }    
+  }
 
 
 
@@ -2305,7 +2305,7 @@ Bool_t QwGUIMainDetector::PlotDFT()
 		   0.5+rad*TMath::Sin(2*(ind-1)*TMath::Pi()/8 - TMath::Pi()/2)+0.1,
 		   0.5+rad*TMath::Cos(2*(ind-1)*TMath::Pi()/8 - TMath::Pi()/2)+0.1);
     }
-    ((TH1*)obj)->Draw();    
+    ((TH1*)obj)->Draw();
 
     ind++;
     obj = next();
@@ -2329,7 +2329,7 @@ Bool_t QwGUIMainDetector::CalculateDFT()
   TObjArray *ProfArray = NULL;
 
 
-  if(GetDataType() == PMT_YIELD){    
+  if(GetDataType() == PMT_YIELD){
     dCurrentData    = dCurrentYields[GetYieldDataIndex()];
     dCurrentDataStr = dCurrentYields[GetYieldDataIndex()]->GetElements();
     INDEX = MAIN_PMT_INDEX;
@@ -2386,11 +2386,11 @@ Bool_t QwGUIMainDetector::CalculateDFT()
   if(!INDEX) return kFalse;
 
   FFTOptions *fftopts = dCurrentData->GetFFTOptions();
-  
+
   TProfile *prf = NULL;
   TH1D *hst = NULL;
   TH1D *fft = NULL;
-  
+
   new QwGUIFFTWindowSelectionDialog(fClient->GetRoot(), GetMain(), "sdlg","QwGUIMainDetector",fftopts);
 
   if(fftopts->cancelFlag) return kFalse;
@@ -2400,9 +2400,9 @@ Bool_t QwGUIMainDetector::CalculateDFT()
     if(fftopts->Start < 0 || fftopts->Start >= dCurrentDataStr[0].Length()) return kFalse;
     if(fftopts->Start + fftopts->Length > dCurrentDataStr[0].Length()) return kFalse;
 
-    
+
     InitProgressDlg("FFT Calculation","Detector","Event",0,kTrue,INDEX,fftopts->Length,0,2);
- 
+
     Int_t det = 1;
     Int_t evn = 1;
     IncreaseProgress(&det,0,0,1,0,0);
@@ -2414,14 +2414,14 @@ Bool_t QwGUIMainDetector::CalculateDFT()
 //     //strcpy(buffer,"FFT Calculation In Progress!");
 //     msgbx = new RMsgBox(fClient->GetRoot(), GetMain(),"msgbx", "QwGUIMainDetector", "Data Processing",
 // 				 "FFT Calculation In Progress!",kMBIconExclamation, kMBCancel, &retval);
-//     if(retval == kMBCancel){ 
+//     if(retval == kMBCancel){
 //       return kFalse;
-//     }    
-        
-    
+//     }
+
+
     ClearDFTData(kFalse);
-    for(int l = 0; l < INDEX; l++){      
-      
+    for(int l = 0; l < INDEX; l++){
+
       if(dCurrentDataStr[l].Length() > 0){
 
 	gSystem->ProcessEvents();
@@ -2430,31 +2430,31 @@ Bool_t QwGUIMainDetector::CalculateDFT()
 			   Form("%s FFT Data",dCurrentDataStr[l].GetName()),
 			   fftopts->Length,1.0*fftopts->Start/SAMPLING_RATE,
 			   1.0*(fftopts->Start+fftopts->Length)/SAMPLING_RATE);
-	
-	for(int n = fftopts->Start; n < fftopts->Length+fftopts->Start; n++){ 
+
+	for(int n = fftopts->Start; n < fftopts->Length+fftopts->Start; n++){
 	  if(dCurrentDataStr[l].GetData(n) != 0){
 	    prf->Fill(1.0*n/SAMPLING_RATE,dCurrentDataStr[l].GetData(n)-dCurrentDataStr[l].GetDataMean());
 // 	    if(l == 8)
 // 	      printf("det %s data = %1.5e\n",Names[l].Data(),dCurrentDataStr[l].GetData(n));
 	  }
-	}      
-	
+	}
+
 	hst = prf->ProjectionX(Form("%s_%s-prj",Names[l].Data(),dCurrentData->GetName()));
-	
+
 	TH1 *fftmag = NULL;
 	TVirtualFFT::SetTransform(0);
 	fftmag = ((TH1*)hst)->FFT(fftmag,"MAG");
 	fftmag->SetName(Form("%s_%s_fft-mag",Names[l].Data(),dCurrentData->GetName()));
 	fftmag->SetTitle("Magnitude of the transform");
-	
+
 	fft = new TH1D(Form("%s_%s_fft",Names[l].Data(),dCurrentData->GetName()),
 		       Form("%s FFT",dCurrentDataStr[l].GetName()),
 		       (Int_t)(fftopts->Length/2.0)-1,0.0,(Int_t)(SAMPLING_RATE/2.0));
-	
+
 	evn = 1;
 	for(int i = 0; i < (Int_t)(fftopts->Length/2); i++) {
 	  fft->SetBinContent(i,1.25*fftmag->GetBinContent(i)/fftopts->Length);
-  
+
 	  evn++;
 	  if(dProcessHalt) break;
 	  IncreaseProgress(0,&evn,0,0,5000,0);
@@ -2469,7 +2469,7 @@ Bool_t QwGUIMainDetector::CalculateDFT()
 	fft->GetYaxis()->SetTitleSize(0.04);
 	fft->GetYaxis()->SetLabelSize(0.04);
 	fft->GetYaxis()->SetTitleOffset(1.25);
-	
+
 	DFTArray->Add(fft);
 	ProfArray->Add(prf);
 	delete hst;
@@ -2488,7 +2488,7 @@ Bool_t QwGUIMainDetector::CalculateDFT()
 
   dCurrentData->SetFFTCalculated(kTrue);
 
-  if(GetDataType() == PMT_YIELD) dMenuPlot1->EnableEntry(M_PLOT_DFTPROF_YIELD);   
+  if(GetDataType() == PMT_YIELD) dMenuPlot1->EnableEntry(M_PLOT_DFTPROF_YIELD);
   if(GetDataType() == PMT_ASYM ) dMenuPlot2->EnableEntry(M_PLOT_DFTPROF_PMT_ASYM);
   if(GetDataType() == DET_ASYM ) dMenuPlot3->EnableEntry(M_PLOT_DFTPROF_DET_ASYM);
   if(GetDataType() == CMB_ASYM ) dMenuPlot4->EnableEntry(M_PLOT_DFTPROF_CMB_ASYM);
@@ -2497,7 +2497,7 @@ Bool_t QwGUIMainDetector::CalculateDFT()
 
 //   if(msgbx)
 //     delete msgbx;
-  
+
   return kTrue;
 }
 
@@ -2514,8 +2514,8 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
   Bool_t add = kFalse;
 
   if(event == kButton1Double){
-    
-    if(GetDataType() == PMT_YIELD){    
+
+    if(GetDataType() == PMT_YIELD){
       dCurrentDataStr = dCurrentYields[GetYieldDataIndex()]->GetElements();
       DFTArray = &YieldDFTArray[GetYieldDataIndex()];
       ProfileArray = &YieldProfileArray[GetYieldDataIndex()];
@@ -2529,7 +2529,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       ProfileArray = &PMTAsymProfileArray[GetPMTAsymDataIndex()];
       HistArray = &PMTAsymHistArray[GetPMTAsymDataIndex()];
       GraphArray = &PMTAsymGraphArray[GetPMTAsymDataIndex()];
-      pad = dPMTAsymCanvas->GetCanvas()->GetSelectedPad()->GetNumber();      
+      pad = dPMTAsymCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     }
     else if(GetDataType() == DET_ASYM){
       dCurrentDataStr = dCurrentDETAsyms[GetDETAsymDataIndex()]->GetElements();
@@ -2537,7 +2537,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       ProfileArray = &DetAsymProfileArray[GetDETAsymDataIndex()];
       HistArray = &DetAsymHistArray[GetDETAsymDataIndex()];
       GraphArray = &DetAsymGraphArray[GetDETAsymDataIndex()];
-      pad = dDETAsymCanvas->GetCanvas()->GetSelectedPad()->GetNumber();      
+      pad = dDETAsymCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     }
     else if(GetDataType() == CMB_ASYM){
       dCurrentDataStr = dCurrentCMBAsyms[GetCMBAsymDataIndex()]->GetElements();
@@ -2545,7 +2545,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       ProfileArray = &CMBAsymProfileArray[GetCMBAsymDataIndex()];
       HistArray = &CMBAsymHistArray[GetCMBAsymDataIndex()];
       GraphArray = &CMBAsymGraphArray[GetCMBAsymDataIndex()];
-      pad = dCMBAsymCanvas->GetCanvas()->GetSelectedPad()->GetNumber();      
+      pad = dCMBAsymCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     }
     else if(GetDataType() == MSC_ASYM){
       dCurrentDataStr = dCurrentMSCAsyms[GetMSCAsymDataIndex()]->GetElements();
@@ -2553,7 +2553,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       ProfileArray = &MSCAsymProfileArray[GetMSCAsymDataIndex()];
       HistArray = &MSCAsymHistArray[GetMSCAsymDataIndex()];
       GraphArray = &MSCAsymGraphArray[GetMSCAsymDataIndex()];
-      pad = dMSCAsymCanvas->GetCanvas()->GetSelectedPad()->GetNumber();      
+      pad = dMSCAsymCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     }
     else if(GetDataType() == MSC_YIELD){
       dCurrentDataStr = dCurrentMSCYields[GetMSCYieldDataIndex()]->GetElements();
@@ -2561,7 +2561,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       ProfileArray = &MSCYieldProfileArray[GetMSCYieldDataIndex()];
       HistArray = &MSCYieldHistArray[GetMSCYieldDataIndex()];
       GraphArray = &MSCYieldGraphArray[GetMSCYieldDataIndex()];
-      pad = dMSCYieldCanvas->GetCanvas()->GetSelectedPad()->GetNumber();      
+      pad = dMSCYieldCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     }
     else if(GetDataType() == SUMMARY){
 //       dCurrentDataStr = dCurrentMSCYields[GetMSCYieldDataIndex()]->GetElements();
@@ -2569,14 +2569,14 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
 //       ProfileArray = &MSCYieldProfileArray[GetMSCYieldDataIndex()];
 //       HistArray = &MSCYieldHistArray[GetMSCYieldDataIndex()];
       GraphArray = &SummaryGraphArray[GetSummaryDataIndex()];
-      pad = dSUMCanvas->GetCanvas()->GetSelectedPad()->GetNumber();      
+      pad = dSUMCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     }
     else
       return;
 
     if(pad > 0 && pad <= MAIN_PMT_INDEX){
       if(GetPlotType(GetActiveTab()) == PLOT_TYPE_HISTO){
-	
+
 	dDataWindow = GetSelectedDataWindow();
 	if(!dDataWindow)
 	  dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
@@ -2588,18 +2588,18 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
 	if(!dDataWindow){
 	  return;
 	}
-       
+
 	DataWindowArray.Add(dDataWindow);
 	dDataWindow->SetStaticData((*HistArray)[pad-1],DataWindowArray.GetLast());
 
 	Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
 	Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
-	Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");      
+	Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
 
 	dDataWindow->SetPlotTitle((char*)(*HistArray)[pad-1]->GetTitle());
 	dDataWindow->DrawData(*((TH1D*)(*HistArray)[pad-1]),add);
 	SetLogMessage(Form("Looking at histogram %s\n",(char*)(*HistArray)[pad-1]->GetTitle()),kTrue);
-	
+
 	return;
       }
       else if(GetPlotType(GetActiveTab()) == PLOT_TYPE_GRAPH){
@@ -2635,7 +2635,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
 	}
 	else{
 	  dDataWindow->DrawData(*((TGraphErrors*)(*GraphArray)[pad-1]),add);
-	  
+
 	}
 	SetLogMessage(Form("Looking at graph %s\n",(char*)(*GraphArray)[pad-1]->GetTitle()),kTrue);
       }
@@ -2690,7 +2690,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
   case kC_COMMAND:
     switch (GET_SUBMSG(msg)) {
-      
+
     case kCM_COMBOBOX:
       {
 	switch (parm1) {
@@ -2740,11 +2740,11 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       }
 
       break;
-      
+
     case kCM_MENU:
 
       switch (parm1) {
-	
+
       case M_PLOT_HISTO_YIELD:
 	dtype = GetDataType();
 	SetDataType(PMT_YIELD);
@@ -2796,7 +2796,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot5->UnCheckEntries();
 	  dMenuPlot5->CheckEntry(M_PLOT_HISTO_MSC_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2807,7 +2807,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot6->UnCheckEntries();
 	  dMenuPlot6->CheckEntry(M_PLOT_HISTO_MSC_YIELD);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2819,7 +2819,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot1->UnCheckEntries();
 	  dMenuPlot1->CheckEntry(M_PLOT_GRAPH_YIELD);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2841,7 +2841,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot3->UnCheckEntries();
 	  dMenuPlot3->CheckEntry(M_PLOT_GRAPH_DET_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2852,7 +2852,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot4->UnCheckEntries();
 	  dMenuPlot4->CheckEntry(M_PLOT_GRAPH_CMB_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2863,7 +2863,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot5->UnCheckEntries();
 	  dMenuPlot5->CheckEntry(M_PLOT_GRAPH_MSC_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2874,7 +2874,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot6->UnCheckEntries();
 	  dMenuPlot6->CheckEntry(M_PLOT_GRAPH_MSC_YIELD);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2886,9 +2886,9 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot1->UnCheckEntries();
 	  dMenuPlot1->CheckEntry(M_PLOT_DFT_YIELD);
 	}
-        else                 
+        else
           SetDataType(dtype);
-	break;	
+	break;
 
       case M_PLOT_DFT_PMT_ASYM:
 	dtype = GetDataType();
@@ -2897,7 +2897,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot2->UnCheckEntries();
 	  dMenuPlot2->CheckEntry(M_PLOT_DFT_PMT_ASYM);
 	}
-	break;	
+	break;
 
       case M_PLOT_DFT_DET_ASYM:
 	dtype = GetDataType();
@@ -2906,9 +2906,9 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot3->UnCheckEntries();
 	  dMenuPlot3->CheckEntry(M_PLOT_DFT_DET_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
-	break;	
+	break;
 
       case M_PLOT_DFT_CMB_ASYM:
 	dtype = GetDataType();
@@ -2917,9 +2917,9 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot4->UnCheckEntries();
 	  dMenuPlot4->CheckEntry(M_PLOT_DFT_CMB_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
-	break;	
+	break;
 
       case M_PLOT_DFT_MSC_ASYM:
 	dtype = GetDataType();
@@ -2928,7 +2928,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot5->UnCheckEntries();
 	  dMenuPlot5->CheckEntry(M_PLOT_DFT_MSC_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2939,7 +2939,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot6->UnCheckEntries();
 	  dMenuPlot6->CheckEntry(M_PLOT_DFT_MSC_YIELD);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2951,7 +2951,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot1->UnCheckEntries();
 	  dMenuPlot1->CheckEntry(M_PLOT_DFTPROF_YIELD);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2962,7 +2962,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot2->UnCheckEntries();
 	  dMenuPlot2->CheckEntry(M_PLOT_DFTPROF_PMT_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2973,7 +2973,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot3->UnCheckEntries();
 	  dMenuPlot3->CheckEntry(M_PLOT_DFTPROF_DET_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2984,7 +2984,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot4->UnCheckEntries();
 	  dMenuPlot4->CheckEntry(M_PLOT_DFTPROF_CMB_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -2995,7 +2995,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot5->UnCheckEntries();
 	  dMenuPlot5->CheckEntry(M_PLOT_DFTPROF_MSC_ASYM);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -3006,7 +3006,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuPlot6->UnCheckEntries();
 	  dMenuPlot6->CheckEntry(M_PLOT_DFTPROF_MSC_YIELD);
 	}
-        else                 
+        else
           SetDataType(dtype);
 	break;
 
@@ -3111,7 +3111,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    dMenuBlock1->CheckEntry(M_DATA_PMT_YIELD_B3);
 	  }
 	break;
-	
+
       case M_DATA_PMT_YIELD_B4:
 	SetYieldDataIndex(4);
 	SetDataType(PMT_YIELD);
@@ -3136,7 +3136,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    dMenuBlock1->CheckEntry(M_DATA_PMT_YIELD_B4);
 	  }
 	break;
-	
+
 
 
 	/*PMT_ASYM*************************************/
@@ -3240,7 +3240,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    dMenuBlock2->CheckEntry(M_DATA_PMT_ASYM_B3);
 	  }
 	break;
-	
+
       case M_DATA_PMT_ASYM_B4:
 	SetPMTAsymDataIndex(4);
 	SetDataType(PMT_ASYM);
@@ -3369,7 +3369,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    dMenuBlock3->CheckEntry(M_DATA_PMT_ASYM_B3);
 	  }
 	break;
-	
+
       case M_DATA_DET_ASYM_B4:
 	SetDETAsymDataIndex(4);
 	SetDataType(DET_ASYM);
@@ -3496,7 +3496,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    dMenuBlock4->CheckEntry(M_DATA_PMT_ASYM_B3);
 	  }
 	break;
-	
+
       case M_DATA_CMB_ASYM_B4:
 	SetCMBAsymDataIndex(4);
 	SetDataType(CMB_ASYM);
@@ -3625,7 +3625,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    dMenuBlock5->CheckEntry(M_DATA_PMT_ASYM_B3);
 	  }
 	break;
-	
+
       case M_DATA_MSC_ASYM_B4:
 	SetMSCAsymDataIndex(4);
 	SetDataType(MSC_ASYM);
@@ -3754,7 +3754,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    dMenuBlock6->CheckEntry(M_DATA_PMT_YIELD_B3);
 	  }
 	break;
-	
+
       case M_DATA_MSC_YIELD_B4:
 	SetMSCYieldDataIndex(4);
 	SetDataType(MSC_YIELD);
@@ -3818,7 +3818,7 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  dMenuBlock7->CheckEntry(M_DATA_SUM_B3);
 	}
 	break;
-	
+
       case M_DATA_SUM_B4:
 	SetSummaryDataIndex(4);
 	SetDataType(SUMMARY);
@@ -3832,15 +3832,15 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       default:
 	break;
       }
-      
+
     default:
       break;
     }
-    
+
   default:
     break;
   }
-  
+
   return kTRUE;
 }
 
