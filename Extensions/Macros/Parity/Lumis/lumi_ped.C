@@ -60,7 +60,7 @@ gStyle->SetStatW(0.32);
 
 ofstream lumi_ped_file;
 //const string file_name = Form("qweak_lumi_pedestal.%s.map",run_num);
-lumi_ped_file.open(Form("qweak_lumi_pedestal.%s.map",run_num));
+lumi_ped_file.open(Form("qweak_lumi_pedestal.%s-.map",run_num));
 
 if (view_ds == kTRUE)
 {
