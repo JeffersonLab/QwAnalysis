@@ -61,7 +61,7 @@ int main() {
   gen.init();
   gen.print();
 
-  int totEve=20000;
+  int totEve=60000;
   printf("main  START for nEve=%d  ...\n",totEve);
   for(int ieve=0;ieve<totEve;ieve++) 
     gen.throwEvent(ieve);

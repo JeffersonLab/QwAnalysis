@@ -114,6 +114,7 @@ JbCorrelator::finish(){
   linReg.printSummaryP();
   linReg.printSummaryY();
   linReg.solve();
+  linReg.printSummaryAlphas();
 
 #if 0
   double DelP[mxP];

@@ -24,7 +24,7 @@ class LinRegBevPeb {
   TMatrixD mMP, mMY;   ///< mean values
   TMatrixD mVPP, mVPY,mVY2; ///< variances
   
-  TMatrixD mA;  ///< found alphas from the data
+  TMatrixD mA, mAsig;  ///< found alphas + their stand errors
 
  public:
   /// Default constructor
@@ -42,6 +42,7 @@ class LinRegBevPeb {
   void printSummaryP();
   void printSummaryY();
   void printSummaryYP();
+  void printSummaryAlphas();
 
   void print();
   void init();

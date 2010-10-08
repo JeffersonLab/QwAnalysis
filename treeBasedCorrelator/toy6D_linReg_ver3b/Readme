@@ -102,3 +102,56 @@ treetype Hel_Tree
                 yield_MD2R.hw_sum vs. beam_E.hw_sum = 0.264181 +/- 0.0160296
                 yield_MD2R.hw_sum vs. beam_Q.hw_sum = 0.416067 +/- 0.014154
 Filling reg tree with regressed variables
+
+=============
+After error calculationw as added to my code I do not have agreament w/ postpan.
+
+My code:
+LinRegBevPeb::printSummaryAlphas seen good eve=6636
+
+  j                   mean          sig    
+  Y0: 
+  alpha(0) = 0.249108 +/- 0.097935 
+  alpha(1) = 0.491556 +/- 0.093566 
+  alpha(2) = -0.372995 +/- 0.065024 
+  alpha(3) = 0.146358 +/- 0.086499 
+  alpha(4) = 0.127716 +/- 0.066388 
+  alpha(5) = 0.150883 +/- 0.050773 
+
+------------- 
+-----postpan ------
+
+TaOResultsFile::Create: Opened file ./Qweak_1023regress.res for results output
+Obtaining Data from Tree: 6636 events 
+Total number of initial entries:    6636
+Entries passing all specified cuts: 6636
+Number of pairs per minirun = 5000
+Total number of miniruns = 1
+Minirun = 0  Events: 1-6635
+  Number of good events in this minirun = 6635
+  Before Regression
+   diff_qwk_1i02X.hw_sum mean = 0.00272776 RMS = 0.00738161
+  After Regression
+   diff_qwk_1i02X.hw_sum mean = 0.00095845 RMS = 0.00509177
+        Slopes:
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_1i04X.hw_sum = 0.248859 +/- 0.0290849
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_1i04Y.hw_sum = 0.493246 +/- 0.0277844
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_1i06X.hw_sum = -0.373429 +/- 0.0193115
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_1i06Y.hw_sum = 0.145393 +/- 0.025684
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_0i02X.hw_sum = 0.128074 +/- 0.0197149
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_0i02aX.hw_sum = 0.151514 +/- 0.0150788
+
+=============
+but if I simplify the formula for error calculation I get the same output as postpan:
+-------- hacked my code, probably wrong formula -----
+LinRegBevPeb::printSummaryAlphas seen good eve=6636
+
+ j                   mean          sig    
+ Y0: 
+ alpha(0) = 0.249108 +/- 0.029095 
+ alpha(1) = 0.491556 +/- 0.027797 
+ alpha(2) = -0.372995 +/- 0.019318 
+ alpha(3) = 0.146358 +/- 0.025698 
+ alpha(4) = 0.127716 +/- 0.019723 
+ alpha(5) = 0.150883 +/- 0.015084 
+

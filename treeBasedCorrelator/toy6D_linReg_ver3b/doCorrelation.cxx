@@ -20,7 +20,7 @@
 int main() {
 
   // read TTree  with precompiled class
-  int mxEve=9000000;
+  int mxEve=50000;
   const char * outPath="./";
 
   //........  correlator class ...............
@@ -38,13 +38,13 @@ int main() {
   assert(nY>0);  
   Double_t **eveValueP=new Double_t*[nPY];// iv + dv
   
-
   // .........   input  event file   .........
   TChain *chain = new TChain("Hel_Tree");  
   const char *inpPath=outPath;
   int i=0;
   char text[100];
-  sprintf(text,"%sQweak_1234.000.root",inpPath);
+  sprintf(text,"%sQweak_1234.000.root",inpPath); //toyMC
+  //sprintf(text,"%sQweak_1023.000.root",inpPath); // real events
   chain->Add(text);
   printf("%d =%s=\n",i,text);
   
@@ -85,7 +85,7 @@ int main() {
   if(nEve>mxEve) nEve=mxEve;
   for( ie=0;ie<nEve;ie++) { 
     chain->GetEntry(ie);
-    if(ie%50000==0)
+    if(ie%5000==0)
       printf("--- done eve=%d of %d  .. Bpm[0]=%f %f\n",ie,nEve,*eveValueP[0],*eveValueP[1]);
     corA.addEvent(eveValueP); 
   }
@@ -94,7 +94,6 @@ int main() {
   float rate=1.*ie/(t2-t1);
   float nMnts=(t2-t1)/60.;
   printf("sorting done, elapsed rate=%.1f Hz, tot %.1f minutes\n",rate,nMnts);
-
   corA.finish(); 
   mHfile->Write();
 

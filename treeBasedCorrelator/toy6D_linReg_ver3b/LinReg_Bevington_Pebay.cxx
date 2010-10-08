@@ -31,6 +31,7 @@ void LinRegBevPeb::init(){
   mVPY.ResizeTo(par_nP,par_nY);//*
   mVY2.ResizeTo(par_nY,1); //*
   mA.ResizeTo(par_nP,par_nY); //*
+  mAsig.ResizeTo(mA);
 
   fGoodEventNumber=0;
  
@@ -214,6 +215,21 @@ void LinRegBevPeb::printSummaryY(){
   }
 }
 
+
+
+//==========================================================
+//==========================================================
+void LinRegBevPeb::printSummaryAlphas(){
+  cout << Form("\nLinRegBevPeb::printSummaryAlphas seen good eve=%lld",fGoodEventNumber)<<endl;
+  cout << Form("\n  j                   mean          sig    \n");
+  for (int iy = 0; iy <par_nY; iy++) {
+    cout << Form("  Y%d: ",iy)<<endl;
+    for (int j = 0; j < par_nP; j++) 
+      cout << Form("  alpha(%d) = %f +/- %f ",j,mA(j,iy),mAsig(j,iy))<<endl;   
+  }
+}
+
+
 //==========================================================
 //==========================================================
 void LinRegBevPeb::printSummaryYP(){
@@ -247,13 +263,16 @@ void LinRegBevPeb::printSummaryYP(){
 //==========================================================
 void LinRegBevPeb::solve() {
   cout << Form("\n********LinRegBevPeb::solve...invert Rjk")<<endl;
+  TMatrixD S2jk;S2jk.ResizeTo(mVPP);
   TMatrixD Rjk;Rjk.ResizeTo(mVPP);
+
   for (int j = 0; j < par_nP; j++) {
     double Sj; assert( getSigmaP(j,Sj)==0);
-    for (int i = 0; i <par_nP; i++) {
-       double Sk,Sjk2; assert( getSigmaP(i,Sk)==0);
-       assert( getCovarianceP(j,i,Sjk2)==0);
-       Rjk(j,i)=Sjk2/Sj/Sk;
+    for (int k = 0; k <par_nP; k++) {
+       double Sk,s2jk; assert( getSigmaP(k,Sk)==0);
+       assert( getCovarianceP(j,k,s2jk)==0);
+       S2jk(j,k)=s2jk;
+       Rjk(j,k)=s2jk/Sj/Sk;
      }
    }
   cout<<"new Rjk:"; Rjk.Print();
@@ -296,6 +315,32 @@ void LinRegBevPeb::solve() {
   }
   
   cout<<"mA:"; mA.Print();
+
+  cout << "Compute errors of alphas";
+  // compute s^2  
+  double s2jkSum=0;
+  for (int j = 0; j < par_nP; j++) 
+    for (int k = 0; k <par_nP; k++) 
+      s2jkSum+=S2jk(j,k);
+  cout<<" s2jkSum="<<s2jkSum<<endl;
+  
+  
+  double h;
+  double norm=1./(fGoodEventNumber - par_nP -1);
+  for (int iy = 0; iy <par_nY; iy++) {
+    double Sy; assert( getSigmaY(iy,Sy)==0);
+    h=s2jkSum + Sy*Sy; // consistent w/ Bevington
+    //h= Sy*Sy;// tmp, bad, result agrees w/ pospan
+    
+    cout <<" iy="<<iy<<" h="<<h<<endl;
+    for (int j = 0; j < par_nP; j++) {
+      double Sj; assert( getSigmaP(j,Sj)==0);
+      mAsig(j,iy)= sqrt(norm * invRjk(j,j) * h / Sj/Sj);
+    }
+  }
+
+  cout<<"mAsig:"; mAsig.Print();
+
 
 }
 
