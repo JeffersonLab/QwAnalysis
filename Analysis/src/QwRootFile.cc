@@ -21,10 +21,10 @@ QwRootFile::QwRootFile(const TString& run_label)
     TString mapfilename = getenv_safe_TString("QW_ROOTFILES");
     mapfilename += "/QwMemMapFile.map";
     fMapFile = new QwMapFile(mapfilename, "Memory Mapped File", "RECREATE");
-    //Reload the tree trim new file for real time mode.
-    gQwHists.LoadTreeParamsFromFile("Qweak_RT_Tree_Trim_List.in");
-    //Reload the histo trim new file for real time mode.    
-    gQwHists.LoadHistParamsFromFile("Qweak_RT_Hist_Trim_List.in");
+    // //Reload the tree trim new file for real time mode.
+    //   gQwHists.LoadTreeParamsFromFile("Qweak_RT_Tree_Trim_List.in");
+    // //Reload the histo trim new file for real time mode.    
+    //     gQwHists.LoadHistParamsFromFile("Qweak_RT_Hist_Trim_List.in");
     if (! fMapFile)
       QwError << "Memory-mapped file " << mapfilename
               << " could not be opened!" << QwLog::endl;
@@ -32,10 +32,12 @@ QwRootFile::QwRootFile(const TString& run_label)
       fMapFile->Print();
 
     //    // Disable tree in map file mode
-    //    fDisableAllTrees = true; //Since we are using a tree within the map file we no longer scifically set this to false in RT mode
+    //    fDisableAllTrees = true; 
+    //Since we are using a tree within the map file we no longer scifically set this to false in RT mode
 
   // Otherwise we are in offline mode
-  } else {
+  } 
+  else {
 
     TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
     rootfilename += Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
@@ -52,7 +54,7 @@ QwRootFile::QwRootFile(const TString& run_label)
 	QwRunCondition run_condition(
 				     gQwOptions.GetArgc(), 
 				     gQwOptions.GetArgv(),
-				     Form("%s_condition", run_label.Data())
+				     run_condition_name
 				     );
 	
 	fRootFile -> WriteObject(
@@ -63,7 +65,7 @@ QwRootFile::QwRootFile(const TString& run_label)
       //   delete run_cond_list;
     }
   }
-}
+};
 
 
 /**
@@ -185,4 +187,7 @@ void QwRootFile::ProcessOptions(QwOptions &options)
               << QwLog::endl;
   }
   fAutoSave  = options.GetValue<int>("autosave");
-}
+  return;
+};
+
+

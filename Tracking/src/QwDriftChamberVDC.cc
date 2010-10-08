@@ -165,146 +165,151 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 
 void  QwDriftChamberVDC::SubtractReferenceTimes()
 {
-	std::vector<Double_t> reftimes;
-	std::vector<Bool_t>   refchecked;
-	std::vector<Bool_t>   refokay;
-	Bool_t allrefsokay;
+  std::vector<Double_t> reftimes;
+  std::vector<Bool_t>   refchecked;
+  std::vector<Bool_t>   refokay;
+  Bool_t allrefsokay;
 
-	std::size_t ref_size = 0;
-	std::size_t i = 0;
-	std::size_t j = 0;
+  std::size_t ref_size = 0;
+  std::size_t i = 0;
+  std::size_t j = 0;
 
-//   ref_size = fReferenceData.size();
-	ref_size = fReferenceData.size();
+  ref_size = fReferenceData.size();
 
-	reftimes.resize ( ref_size );
-	refchecked.resize ( ref_size );
-	refokay.resize ( ref_size );
+  reftimes.resize  ( ref_size );
+  refchecked.resize( ref_size );
+  refokay.resize   ( ref_size );
 
-	for ( i=0; i<ref_size; i++ )
+  for ( i=0; i<ref_size; i++ )
+    {
+      reftimes.at  (i) = 0.0;
+      refchecked.at(i) = kFALSE;
+      refokay.at   (i) = kFALSE;
+    }
+
+  allrefsokay = kTRUE;
+
+  UInt_t bankid      = 0;
+  Double_t raw_time  = 0.0;
+  Double_t ref_time  = 0.0;
+  Double_t time      = 0.0;
+  Bool_t local_debug = false;
+
+  std::size_t ref_data_size = 0;
+  std::size_t bank = 0;
+  Double_t diff_between_refs = 0.0;
+
+  //test if the reference time is ok
+  
+  for ( bank=0; bank< ref_size; bank++ )
+    {
+      if(fReferenceMaster.size()==0) continue;
+
+      ref_data_size = fReferenceData.at(bank).size();
+      // 		std::cout << "size: " << fReferenceMaster.at(bank).size() << std::endl;
+      for ( i=0; i<ref_data_size; i++ )
 	{
-		reftimes.at ( i )   = 0.0;
-		refchecked.at ( i ) = kFALSE;
-		refokay.at ( i )    = kFALSE;
+	  if(fReferenceMaster.at(bank).size()==0) continue;
+	  
+	  diff_between_refs = fReferenceData.at ( bank ).at ( i )  -  fReferenceMaster.at ( bank ).at(0);
+	  // 			std::cout << fReferenceData.at ( bank ).at ( i ) << " " << fReferenceMaster.at ( bank ).at(0) << std::endl;
+	  // 			std::cout << "diff: " << diff << std::endl;
+	  if ( diff_between_refs> -880.0 || diff_between_refs < -960.0 ) {       
+	    fReferenceData.at ( bank ).erase ( fReferenceData.at(bank).begin() +i );
+	    i--;
+	  }
+	  else{
+	  };
+	  ref_data_size = fReferenceData.at ( bank ).size();
+	}
+    }
+  
+
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
+    {
+      //  Only try to check the reference time for a bank if there is at least one
+      //  non-reference hit in the bank.
+      bankid = hit->GetSubbankID();
+      // 		std::cout << "size: " << fReferenceData.at ( bankid ).size() << std::endl;
+      //if(hit->GetRegion()==3)
+      //std::cout << "bankid: " << bankid << std::endl;
+      //   if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
+      //
+      // if bankid == 0, print out bank id, and then what?
+      //
+      if ( not refchecked.at ( bankid ) )
+	{
+
+	  if ( fReferenceData.at ( bankid ).empty() )
+	    {
+	      if(local_debug) {
+		QwWarning << "QwDriftChamberVDC::SubtractReferenceTimes:  Subbank ID "
+			  << bankid << " is missing a reference time." << QwLog::endl;
+	      }
+	      refokay.at ( bankid ) = kFALSE;
+	      allrefsokay           = kFALSE;
+	    }
+	  else
+	    {
+	      reftimes.at ( bankid ) = fReferenceData.at ( bankid ).at ( fReferenceData.at ( bankid ).size()-1 );
+	      refokay.at ( bankid ) = kTRUE;
+	    }
+
+	  if ( refokay.at ( bankid ) )
+	    {
+	      for ( j=0; j<fReferenceData.at ( bankid ).size(); j++ )
+		{
+		  fReferenceData.at ( bankid ).at ( j ) -= reftimes.at ( bankid );
+		}
+	    }
+	  refchecked.at ( bankid ) = kTRUE;
 	}
 
-	allrefsokay = kTRUE;
-
-	UInt_t bankid      = 0;
-	Double_t raw_time  = 0.0;
-	Double_t ref_time  = 0.0;
-	Double_t time      = 0.0;
-	Bool_t local_debug = false;
-
-	//test if the reference time is ok
-	for ( Int_t bank=0;bank< ref_size; bank++ )
+      if ( refokay.at ( bankid ) )
 	{
-		
-		if(fReferenceMaster.size()==0) continue;
-		Int_t size=fReferenceData.at ( bank ).size();
-// 		std::cout << "size: " << fReferenceMaster.at(bank).size() << std::endl;
-		for ( Int_t i=0;i<size;i++ )
-		{
-			if(fReferenceMaster.at(bank).size()==0) continue;
-			Double_t diff=fReferenceData.at ( bank ).at ( i )-fReferenceMaster.at ( bank ).at(0);
-// 			std::cout << fReferenceData.at ( bank ).at ( i ) << " " << fReferenceMaster.at ( bank ).at(0) << std::endl;
-// 			std::cout << "diff: " << diff << std::endl;
-			if ( diff > -880 || diff < -960 )
-			{       
-				fReferenceData.at ( bank ).erase ( fReferenceData.at(bank).begin() +i );
-				i--;
-			}
-			else{};
-			size=fReferenceData.at ( bank ).size();
-		}
+	  raw_time = ( Double_t ) hit -> GetRawTime();
+	  ref_time = ( Double_t ) reftimes.at ( bankid );
+	  Int_t bank_index = hit->GetSubbankID();
+	  Int_t slot_num   = hit->GetModule();
+	  
+	  time = fF1TDContainer->ReferenceSignalCorrection ( raw_time, ref_time, bank_index, slot_num );
+	  hit -> SetTime ( time );
+	  
+	  if ( local_debug )
+	    {
+	      QwMessage << this->GetSubsystemName()
+			<< " BankIndex " << std::setw ( 2 ) << bank_index
+			<< " Slot "      << std::setw ( 2 ) << slot_num
+			<< " RawTime : " << std::setw ( 6 ) << raw_time
+			<< " RefTime : " << std::setw ( 6 ) << ref_time
+			<< " time : "    << std::setw ( 6 ) << time
+			<< std::endl;
+	    }
+
+
 	}
+    }
 
+  bankid = 0;
 
-	for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
+  if ( not allrefsokay )
+    {
+      std::vector<QwHit> tmp_hits;
+      tmp_hits.clear();
+      for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
 	{
-		//  Only try to check the reference time for a bank if there is at least one
-		//  non-reference hit in the bank.
-		bankid = hit->GetSubbankID();
-// 		std::cout << "size: " << fReferenceData.at ( bankid ).size() << std::endl;
-		//if(hit->GetRegion()==3)
-		//std::cout << "bankid: " << bankid << std::endl;
-		//   if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
-		//
-		// if bankid == 0, print out bank id, and then what?
-		//
-		if ( not refchecked.at ( bankid ) )
-		{
-
-			if ( fReferenceData.at ( bankid ).empty() )
-			{
-				QwWarning << "QwDriftChamberVDC::SubtractReferenceTimes:  Subbank ID "
-				<< bankid << " is missing a reference time." << QwLog::endl;
-				refokay.at ( bankid ) = kFALSE;
-				allrefsokay           = kFALSE;
-			}
-			else
-			{
-				reftimes.at ( bankid ) = fReferenceData.at ( bankid ).at ( fReferenceData.at ( bankid ).size()-1 );
-				refokay.at ( bankid ) = kTRUE;
-			}
-
-			if ( refokay.at ( bankid ) )
-			{
-				for ( j=0; j<fReferenceData.at ( bankid ).size(); j++ )
-				{
-					fReferenceData.at ( bankid ).at ( j ) -= reftimes.at ( bankid );
-				}
-			}
-			refchecked.at ( bankid ) = kTRUE;
-		}
-
-		if ( refokay.at ( bankid ) )
-		{
-			raw_time = ( Double_t ) hit -> GetRawTime();
-			ref_time = ( Double_t ) reftimes.at ( bankid );
-			Int_t bank_index = hit->GetSubbankID();
-			Int_t slot_num   = hit->GetModule();
-
-			// time = QwDriftChamber::fF1TDCDecoder.ActualTimeDifference(raw_time, ref_time);
-
-			time = fF1TDContainer->ReferenceSignalCorrection ( raw_time, ref_time, bank_index, slot_num );
-
-			hit -> SetTime ( time );
-			if ( local_debug )
-			{
-				QwMessage << this->GetSubsystemName()
-				<< " BankIndex " << std::setw ( 2 ) << bank_index
-				<< " Slot "      << std::setw ( 2 ) << slot_num
-				<< " RawTime : " << std::setw ( 6 ) << raw_time
-				<< " RefTime : " << std::setw ( 6 ) << ref_time
-				<< " time : "    << std::setw ( 6 ) << time
-				<< std::endl;
-			}
-
-
-		}
+	  bankid = hit->GetSubbankID();
+	  if ( refokay.at ( bankid ) )
+	    {
+	      tmp_hits.push_back ( *hit );
+	    }
 	}
-
-	bankid = 0;
-
-	if ( not allrefsokay )
-	{
-		std::vector<QwHit> tmp_hits;
-		tmp_hits.clear();
-		for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ )
-		{
-			bankid = hit->GetSubbankID();
-			if ( refokay.at ( bankid ) )
-			{
-				tmp_hits.push_back ( *hit );
-			}
-		}
-		// std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
-		fTDCHits.clear();
-		fTDCHits = tmp_hits;
-		// std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
-	}
-	return;
+      // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+      fTDCHits.clear();
+      fTDCHits = tmp_hits;
+      // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
+    }
+  return;
 }
 
 
@@ -327,12 +332,14 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 //     cut1=fTtoDNumbers.at(1);
 //     cut2=fTtoDNumbers.at(2);
 
-	Int_t index=dt/resolution;
-	if ( index>=800 || index < 0 ) {distance_mm=-50;}
-	else
-	{
-		distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );
 
+	Int_t index = (Int_t) (dt/resolution);
+
+	if ( index>=800 || index < 0 ) {
+	  distance_mm = -50.0;
+	}
+	else {
+	  distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );
 	}
 //     if ( dt < cut0 )
 //       {

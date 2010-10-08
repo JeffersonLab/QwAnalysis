@@ -164,6 +164,8 @@ class QwGUIMain : public TGMainFrame {
   //!ROOT file data container a wrapper class for many common file types
   RDataContainer         *dROOTFile;
 
+
+
  
   //!Standard GUI widgets and layouts for the main window
   TGComboBox             *dTBinEntry;
@@ -196,7 +198,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!Menubar widgets
   TGMenuBar              *dMenuBar;
-  TGPopupMenu            *dMenuFile;
+  //  TGPopupMenu            *dMenuFile;
   TGPopupMenu            *dMenuTabs;
   TGPopupMenu            *dMenuHelp;
   TGPopupMenu            *dMenuLoadMap;
@@ -219,7 +221,7 @@ class QwGUIMain : public TGMainFrame {
   //!This function is used via the program menu and should not be called directly.
   void                    CloseLogFile();
   //!This function is used via the program menu and should not be called directly.
-  void                    CloseRootFile();
+  //  void                    CloseRootFile();
   
 //!This function is used to close the map file
   void                    CloseMapFile();
@@ -305,7 +307,7 @@ class QwGUIMain : public TGMainFrame {
   //!                          entry by calling the function GetFilenameFromDialog(...).
   //!
   //!Return value: Error value;
-  Int_t                   OpenRootFile(ERFileStatus status = FS_OLD, const char* file = NULL);
+  //  Int_t                   OpenRootFile(ERFileStatus status = FS_OLD, const char* file = NULL);
 
   //!This function is called via menu selection.
   //!It opens the map file. Currently it will open a map file at a default location.
@@ -371,7 +373,7 @@ class QwGUIMain : public TGMainFrame {
   //! - 1) Filename container
   //!
   //!Return value: none
-  void                    SetRootFileName(char *name){strcpy(dRootfilename,name);};
+  //  void                    SetRootFileName(char *name){strcpy(dRootfilename,name);};
 
   //!This function is used to set the current root file name, when it is saved or opened from an existing
   //!file.
@@ -388,7 +390,7 @@ class QwGUIMain : public TGMainFrame {
   //! - 1) Boolean Open/Close Flag
   //!
   //!Return value: none
-  void                    SetRootFileOpen(Bool_t open = kFalse){dRootFileOpen = open;};
+  //  void                    SetRootFileOpen(Bool_t open = kFalse){dRootFileOpen = open;};
 
    //!This function sets the map file open or closed flag.
   //!

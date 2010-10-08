@@ -2,7 +2,7 @@
 ///#include "QwGUIMain.h"
 
 
-#include <TG3DLine.h>
+#include "TG3DLine.h"
 #include "TGaxis.h"
 
 
@@ -20,6 +20,7 @@ enum QwGUIHallCBeamlineIndentificator {
   BA_TGT_ANGLE_X,
   BA_TGT_ANGLE_Y,
   BA_TGT_CHG,
+  BA_TGT_RASTER
 };
 
 //HALLC_DET_TYPES is the size of the enum
@@ -29,13 +30,13 @@ enum QwGUIHallCBeamlineDeviceTypes {
   VQWK_BPMCAVITY,
   VQWK_BCM,  
   SCALER_HALO,
-  COMBINED,
+  COMBINED
 };
 
 //Combo box
 enum QwGUIHallCBeamlinePlotsComboBox {
   CMB_HCBCM,
-  CMB_HCSCALER,
+  CMB_HCSCALER
 };
 
 
@@ -63,6 +64,7 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
   dButtonTgtAngleX    = NULL;
   dButtonTgtAngleY    = NULL;
   dButtonTgtCharge    = NULL;
+  dButtonTgtRaster    = NULL;
   dComboBoxHCBCM      = NULL;
   
   
@@ -98,6 +100,7 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dButtonTgtAngleX)    delete dButtonTgtAngleX;
   if(dButtonTgtAngleY)    delete dButtonTgtAngleY;
   if(dButtonTgtCharge)    delete dButtonTgtCharge;
+  if(dButtonTgtRaster)    delete dButtonTgtRaster;
   delete [] PosVariation;
 
   RemoveThisTab(this);
@@ -195,18 +198,20 @@ void QwGUIHallCBeamline::MakeLayout()
   dHCSCALERFrame= new TGVerticalFrame(dControlsFrame,50,100);
 
 
-  dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Diffs", BA_POS_DIFF);
-  dButtonMeanPos = new TGTextButton(dControlsFrame, "&Mean Beam Positions", BA_MEAN_POS);
-  dButtonCharge = new TGTextButton(dHCBCMFrame, "B&CM Yield/Asymmetry", BA_CHARGE);
-  dButtonCharge->SetEnabled(kFALSE);
-  dButtonHCSCALER = new TGTextButton(dHCSCALERFrame, "&SCALER Yield/Asymmetry", BA_HCSCALER);
-  dButtonHCSCALER->SetEnabled(kFALSE);
+  dButtonPos          = new TGTextButton(dControlsFrame, "&Beam Position Diffs", BA_POS_DIFF);
+  dButtonMeanPos      = new TGTextButton(dControlsFrame, "&Mean Beam Positions", BA_MEAN_POS);
+  dButtonCharge       = new TGTextButton(dHCBCMFrame, "B&CM Yield/Asymmetry", BA_CHARGE);
+  dButtonHCSCALER     = new TGTextButton(dHCSCALERFrame, "&SCALER Yield/Asymmetry", BA_HCSCALER);
   dButtonPosVariation = new TGTextButton(dControlsFrame, "BPM Eff_Charge Variation", BA_POS_VAR);
-  dButtonTgtX = new TGTextButton(dControlsFrame, "Target X", BA_TGT_X);
-  dButtonTgtY = new TGTextButton(dControlsFrame, "Target Y", BA_TGT_Y);
-  dButtonTgtAngleX = new TGTextButton(dControlsFrame, "Target ANGLE X", BA_TGT_ANGLE_X);
-  dButtonTgtAngleY = new TGTextButton(dControlsFrame, "Target ANGLE Y", BA_TGT_ANGLE_Y);
-  dButtonTgtCharge = new TGTextButton(dControlsFrame, "Target Charge", BA_TGT_CHG);
+  dButtonTgtX         = new TGTextButton(dControlsFrame, "Target X", BA_TGT_X);
+  dButtonTgtY         = new TGTextButton(dControlsFrame, "Target Y", BA_TGT_Y);
+  dButtonTgtAngleX    = new TGTextButton(dControlsFrame, "Target ANGLE X", BA_TGT_ANGLE_X);
+  dButtonTgtAngleY    = new TGTextButton(dControlsFrame, "Target ANGLE Y", BA_TGT_ANGLE_Y);
+  dButtonTgtCharge    = new TGTextButton(dControlsFrame, "Target Charge", BA_TGT_CHG);
+  dButtonTgtRaster    = new TGTextButton(dControlsFrame, "Fast Raster", BA_TGT_RASTER);
+  
+  dButtonCharge   -> SetEnabled(kFALSE);
+  dButtonHCSCALER -> SetEnabled(kFALSE);
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
 
   dControlsFrame->AddFrame(dButtonPos,dBtnLayout );
@@ -222,6 +227,7 @@ void QwGUIHallCBeamline::MakeLayout()
   dControlsFrame->AddFrame(dButtonTgtAngleX, dBtnLayout);
   dControlsFrame->AddFrame(dButtonTgtAngleY, dBtnLayout);
   dControlsFrame->AddFrame(dButtonTgtCharge, dBtnLayout);
+  dControlsFrame->AddFrame(dButtonTgtRaster, dBtnLayout);
 
 
 
@@ -242,18 +248,19 @@ void QwGUIHallCBeamline::MakeLayout()
   dHCSCALERFrame->AddFrame(dButtonHCSCALER, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
 
 
-  dButtonPos -> Associate(this);
-  dButtonMeanPos -> Associate(this);
-  dButtonCharge -> Associate(this);
+  dButtonPos          -> Associate(this);
+  dButtonMeanPos      -> Associate(this);
+  dButtonCharge       -> Associate(this);
   dButtonPosVariation -> Associate(this);
-  dButtonHCSCALER -> Associate(this);
-  dButtonTgtX -> Associate(this);
-  dButtonTgtY -> Associate(this);
-  dButtonTgtAngleX -> Associate(this);
-  dButtonTgtAngleY -> Associate(this);
-  dComboBoxHCBCM->Associate(this);
-  dComboBoxHCSCALER->Associate(this);
-  dButtonTgtCharge->Associate(this);
+  dButtonHCSCALER     -> Associate(this);
+  dButtonTgtX         -> Associate(this);
+  dButtonTgtY         -> Associate(this);
+  dButtonTgtAngleX    -> Associate(this);
+  dButtonTgtAngleY    -> Associate(this);
+  dComboBoxHCBCM      -> Associate(this);
+  dComboBoxHCSCALER   -> Associate(this);
+  dButtonTgtCharge    -> Associate(this);
+  dButtonTgtRaster    -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
   dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
@@ -344,7 +351,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 	  PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	  PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());//this gives std deviation not RMS
 	  PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	  SummaryHist(histo1);
+	  //	  SummaryHist(histo1);
 	  delete histo1; histo1= NULL;
 	}
       
@@ -360,7 +367,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	//	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
       
@@ -434,10 +441,10 @@ void QwGUIHallCBeamline::PlotChargeAsym()
 
       mc->cd(1);
       histo1->Draw();
-      SummaryHist(histo1);
+      //      SummaryHist(histo1);
       mc->cd(2);
       histo2->Draw();
-      SummaryHist(histo2);
+      //      SummaryHist(histo2);
       gPad->Update();
       gPad->Update();
 
@@ -508,7 +515,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	PosVariation[0] -> SetBinError(xcount, histo1->GetRMS());//this gives std deviation not RMS	
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	SummaryHist(histo1);
+	//	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -525,7 +532,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError(ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	//	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 	  
@@ -621,7 +628,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	PosVariation[0] -> SetBinError(xcount, histo1->GetRMS());//this gives std deviation not RMS
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	SummaryHist(histo1);
+	//	SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -637,7 +644,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError(ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	//	SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 	  
@@ -848,6 +855,64 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
   return;
 };
 
+
+
+void QwGUIHallCBeamline::PlotFastRaster()
+{
+
+  printf("you press Fast Raster button\n");
+  // TH1F *histo1=NULL;
+  // TH1F *histo2=NULL;
+  // char histo[128]; //name of the histogram
+  
+  // TCanvas *mc = NULL;
+  // mc = dCanvas->GetCanvas();
+
+  
+
+  //  while (1){
+  //    if (fCurrentBCMIndex<0)
+  //      break;
+  //    sprintf (histo, "asym_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+  //    histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+  //    sprintf (histo, "yield_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+  //    histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+    
+  //   if (histo1!=NULL || histo2!=NULL ) {
+    
+  //     mc->Clear();
+  //     mc->Divide(1,2);
+
+  //     mc->cd(1);
+  //     histo1->Draw();
+  //     SummaryHist(histo1);
+  //     mc->cd(2);
+  //     histo2->Draw();
+  //     SummaryHist(histo2);
+  //     gPad->Update();
+  //     gPad->Update();
+
+  //     mc->Modified();
+  //     mc->Update();
+  //   }
+
+  //   gSystem->Sleep(100);
+  //   if (gSystem->ProcessEvents()){
+  //     break;
+  //   }
+  // }
+  
+
+  //  printf("---------------PlotChargeAsym()--------------------\n");
+  // //mc->Modified();
+  // //mc->Update();
+  
+
+  return;
+}
+
+
+
 void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
 
@@ -921,6 +986,9 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 		case BA_TGT_CHG:
 		  PlotTargetCharge();
 		  break;
+		case BA_TGT_RASTER:
+		  PlotFastRaster();
+		  break;
 		}
 	      
 	      break;
@@ -975,7 +1043,7 @@ void QwGUIHallCBeamline::LoadHCBCMCombo(){
   dComboBoxHCBCM->RemoveAll();
   //printf("QwGUIHallCBeamline::LoadHCBCMCombo \n");
   for(Size_t i=0;i<fHallCDevices.at(VQWK_BCM).size();i++){
-    dComboBoxHCBCM->AddEntry(fHallCDevices.at(VQWK_BCM).at(i),i);
+    dComboBoxHCBCM->AddEntry(fHallCDevices.at(VQWK_BCM).at((Int_t)i), (Int_t) i);
     //printf("%s \n",fHallCDevices.at(VQWK_BCM).at(i).Data());
   }
   if (fHallCDevices.at(VQWK_BCM).size()>0)
@@ -987,7 +1055,8 @@ void QwGUIHallCBeamline::LoadHCSCALERCombo(){
   dComboBoxHCSCALER->RemoveAll();
   //printf("QwGUIHallCBeamline::LoadHCSCALERCombo \n");
   for(Size_t i=0;i<fHallCDevices.at(SCALER_HALO).size();i++){
-    dComboBoxHCSCALER->AddEntry(fHallCDevices.at(SCALER_HALO).at(i),i);
+    
+    dComboBoxHCSCALER->AddEntry(fHallCDevices.at(SCALER_HALO).at((Int_t)i), (Int_t) i);
     //printf("%s \n",fHallCDevices.at(SCALER_HALO).at(i).Data());
   }
   if (fHallCDevices.at(SCALER_HALO).size()>0)

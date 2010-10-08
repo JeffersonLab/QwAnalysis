@@ -66,10 +66,19 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwLog.ProcessOptions(&gQwOptions);
 
 
-  ///  Load the histogram and tree branch parameter definitions  into the global
-  ///  histogram helper: QwHistogramHelper
-  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
-  gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
+ 
+  Bool_t enablemapfile = gQwOptions.GetValue<bool>("enable-mapfile");
+
+  if(enablemapfile) {
+    std::cout << ">>>>>>>>>>> map file " << std::endl;
+    gQwHists.LoadTreeParamsFromFile("Qweak_RT_Tree_Trim_List.in");
+    gQwHists.LoadHistParamsFromFile("Qweak_RT_Hist_Trim_List.in");
+  }
+  else {
+    std::cout << ">>>>>>>>>>> root file " << std::endl;
+    gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
+    gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
+  }
 
 
   ///  Create the event buffer
@@ -186,7 +195,7 @@ Int_t main(Int_t argc, Char_t* argv[])
         runningsum.AccumulateRunningSum(detectors);
 
         // Fill the histograms
-        rootfile->FillHistograms(detectors);
+	rootfile->FillHistograms(detectors);
 
         // Fill the tree branches
         rootfile->FillTreeBranches(detectors);

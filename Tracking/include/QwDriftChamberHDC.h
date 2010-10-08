@@ -49,7 +49,7 @@ class QwDriftChamberHDC: public QwDriftChamber {
   //  void  DeleteHistograms();
   Int_t LoadTimeWireOffset(TString t0_map) {return 0;}; 
   void SubtractWireTimeOffset() {};
-  void ApplyTimeCalibration(){};
+  void ApplyTimeCalibration();
 
   // HDC
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)

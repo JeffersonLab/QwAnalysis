@@ -48,7 +48,7 @@
 #include <iomanip>
 #include <string>
 
-#include <TMapFile.h>
+#include "TMapFile.h"
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
@@ -90,6 +90,7 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   TGTextButton        *dButtonTgtAngleX;
   TGTextButton        *dButtonTgtAngleY;
   TGTextButton        *dButtonTgtCharge;
+  TGTextButton        *dButtonTgtRaster;
 
 
   TGComboBox          *dComboBoxHCBCM;
@@ -186,6 +187,9 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //!
   //!Return value: none 
   void PlotBPMPositions();
+
+
+  void PlotFastRaster();
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes

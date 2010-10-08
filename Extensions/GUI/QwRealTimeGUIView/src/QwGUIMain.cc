@@ -30,7 +30,7 @@
 
 *//*-------------------------------------------------------------------------*/
 
-#include <QwGUIMain.h>
+#include "QwGUIMain.h"
 
 QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   : TGMainFrame(p, w, h)
@@ -86,7 +86,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
 
   dMenuBar              = NULL;
-  dMenuFile             = NULL;
+  //  dMenuFile             = NULL;
   dMenuTabs             = NULL;
   dMenuLoadMap          = NULL;
   dMenuHelp             = NULL;
@@ -102,7 +102,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   memset(dDate, '\0', sizeof(dDate));
 
 
-  SetRootFileOpen(kFalse);
+
+  //  SetRootFileOpen(kFalse);
   SetLogFileOpen(kFalse);
   SetLogFileName("None");
 
@@ -175,13 +176,13 @@ QwGUIMain::~QwGUIMain()
   delete CorrelationSubSystem  ;
   delete HallCBeamlineSubSystem;
 
-  delete dROOTFile             ;
+  //  delete dROOTFile             ;
 
   delete dTBinEntry            ;
   delete dTBinEntryLayout      ;
   delete dRunEntry             ;
   delete dRunEntryLayout       ;
-  delete dHorizontal3DLine     ;
+  //  delete dHorizontal3DLine     ;
   delete dUtilityFrame         ;
   delete dUtilityLayout        ;
 
@@ -202,7 +203,7 @@ QwGUIMain::~QwGUIMain()
 
 
   delete dMenuBar              ;
-  delete dMenuFile             ;
+  //  delete dMenuFile             ;
   delete dMenuTabs             ;
   delete dMenuHelp             ;
   delete dMenuBarLayout        ;
@@ -274,7 +275,10 @@ void QwGUIMain::MakeMenuLayout()
   //dMenuFile->AddEntry("E&xit", M_FILE_EXIT);
 
   dMenuLoadMap = new TGPopupMenu(fClient->GetRoot());
-  dMenuLoadMap->AddEntry("Load Memory", M_VIEW_MAPLOAD);
+  dMenuLoadMap->AddEntry("Load Memory", M_VIEW_MAPLOAD); 
+  dMenuLoadMap->AddSeparator();
+  dMenuLoadMap->AddEntry("Exit",  M_FILE_EXIT);
+
   dMenuTabs = new TGPopupMenu(fClient->GetRoot());
   dMenuTabs->AddEntry("View Log", M_VIEW_LOG);
 
@@ -296,6 +300,7 @@ void QwGUIMain::MakeMenuLayout()
   dMenuBar->AddPopup("&MemoryMap", dMenuLoadMap, dMenuBarItemLayout);
   dMenuBar->AddPopup("&Tabs", dMenuTabs, dMenuBarItemLayout);
   dMenuBar->AddPopup("&Help", dMenuHelp, dMenuBarHelpLayout);
+ 
 
   AddFrame(dMenuBar, dMenuBarLayout);
   dMenuTabs->CheckEntry(M_VIEW_LOG);
@@ -701,14 +706,14 @@ void QwGUIMain::OnObjClose(const char *objname)
 {
   if(!objname) return;
 
-  TString name = objname;
+//   TString name = objname;
 
-  if(name.Contains("dROOTFile")){
-    dROOTFile = NULL;
-#ifdef QWGUI_DEBUG
-    printf("Received dROOTFile IsClosing signal\n");
-#endif
-  }
+//   if(name.Contains("dROOTFile")){
+//     dROOTFile = NULL;
+// #ifdef QWGUI_DEBUG
+//     printf("Received dROOTFile IsClosing signal\n");
+// #endif
+//  }
 
 //   TObject *obj;
 //   TIter next(SubSystemArray.MakeIterator());
@@ -734,13 +739,13 @@ void QwGUIMain::OnReceiveMessage(const char *obj)
     if(ptr)
       Append(ptr,sbSystem->IfTimeStamp());
   }
-  if(name.Contains("dROOTFile")){
+  // if(name.Contains("dROOTFile")){
 
-    ptr = dROOTFile->GetMessage();
-    if(ptr)
-      Append(ptr,kTrue);
+  //   ptr = dROOTFile->GetMessage();
+  //   if(ptr)
+  //     Append(ptr,kTrue);
 
-  }
+  // }
 }
 
 // void QwGUIMain::PlotCurrentTab()
@@ -790,10 +795,10 @@ Int_t QwGUIMain::GetFilenameFromDialog(char *file, const char *ext,
      filetypes[index] = "Data files"; index++;
      filetypes[index] = "*.csv"; index++;
   }
-  if(fext.Contains("root")){
-     filetypes[index] = "Root files"; index++;
-     filetypes[index] = "*.root"; index++;
-  }
+  // if(fext.Contains("root")){
+  //    filetypes[index] = "Root files"; index++;
+  //    filetypes[index] = "*.root"; index++;
+  // }
   if(fext.Contains("log")){
      filetypes[index] = "Log files"; index++;
      filetypes[index] = "*.log"; index++;
@@ -872,47 +877,47 @@ Int_t QwGUIMain::OpenLogFile(ERFileStatus status, const char* file)
   return PROCESS_OK;
 }
 
-Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
-{
+// Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
+// {
 
-  if(IsRootFileOpen()) CloseRootFile();
-  char filename[NAME_STR_MAX];
-  if(!file){
-    if(GetFilenameFromDialog(filename,"root",status) == PROCESS_FAILED)
-      return PROCESS_FAILED;
-  }
-  else
-    strcpy(filename,file);
+//   if(IsRootFileOpen()) CloseRootFile();
+//   char filename[NAME_STR_MAX];
+//   if(!file){
+//     if(GetFilenameFromDialog(filename,"root",status) == PROCESS_FAILED)
+//       return PROCESS_FAILED;
+//   }
+//   else
+//     strcpy(filename,file);
 
-  if(!strstr(filename,".root")) strcat(filename,".root");
+//   if(!strstr(filename,".root")) strcat(filename,".root");
 
-  dROOTFile = new RDataContainer(fClient->GetRoot(), this,
-				 "dROOTFile","QwGUIMain",
-				 "ROOT",FM_UPDATE,FT_ROOT);
+//   dROOTFile = new RDataContainer(fClient->GetRoot(), this,
+// 				 "dROOTFile","QwGUIMain",
+// 				 "ROOT",FM_UPDATE,FT_ROOT);
 
-  if(!dROOTFile){SetRootFileOpen(kFalse); return PROCESS_FAILED;}
+//   if(!dROOTFile){SetRootFileOpen(kFalse); return PROCESS_FAILED;}
 
-  if(dROOTFile->OpenFile(filename) != FILE_PROCESS_OK) {
-    SetRootFileOpen(kFalse);
-    dROOTFile->Close();
-    dROOTFile = NULL;
-    return PROCESS_FAILED;
-  }
+//   if(dROOTFile->OpenFile(filename) != FILE_PROCESS_OK) {
+//     SetRootFileOpen(kFalse);
+//     dROOTFile->Close();
+//     dROOTFile = NULL;
+//     return PROCESS_FAILED;
+//   }
 
-  dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
-  TObject *obj;
-  TIter next(SubSystemArray.MakeIterator());
-  obj = next();
-  while(obj){
-    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-    entry->SetDataContainer(dROOTFile);
-    obj = next();
-  }
+//   //  dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
+//   TObject *obj;
+//   TIter next(SubSystemArray.MakeIterator());
+//   obj = next();
+//   while(obj){
+//     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+//     entry->SetDataContainer(dROOTFile);
+//     obj = next();
+//   }
 
-  SetRootFileOpen(kTrue);
-  SetRootFileName(filename);
-  return PROCESS_OK;
-}
+//   SetRootFileOpen(kTrue);
+//   SetRootFileName(filename);
+//   return PROCESS_OK;
+// }
 
 Int_t QwGUIMain::OpenMapFile()
 {
@@ -925,7 +930,7 @@ Int_t QwGUIMain::OpenMapFile()
   }
   char filename[NAME_STR_MAX];
   
-   dROOTFile = new RDataContainer(fClient->GetRoot(), this,"dROOTFile","QwGUIMain","ROOT",FM_UPDATE,FT_ROOT);
+  dROOTFile = new RDataContainer(fClient->GetRoot(), this,"dROOTFile","QwGUIMain","ROOT",FM_UPDATE,FT_ROOT);
   try { 
     dROOTFile->OpenMapFile(dMiscbuffer2);//open the map file
      
@@ -956,17 +961,17 @@ Int_t QwGUIMain::OpenMapFile()
 
 
 
-void QwGUIMain::CloseRootFile()
-{
+// void QwGUIMain::CloseRootFile()
+// {
 
-  if(dROOTFile != NULL){
-    dROOTFile->Close(kFalse);
-    dROOTFile = NULL;
-  }
-  SetRootFileOpen(kFalse);
-  dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);
+//   // if(dROOTFile != NULL){
+//   //   dROOTFile->Close(kFalse);
+//   //   dROOTFile = NULL;
+//   // }
+//   // SetRootFileOpen(kFalse);
+//   // //  dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);
 
-}
+// }
 void QwGUIMain::CloseMapFile()
 {
 
@@ -1338,6 +1343,9 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	// were I able to make a cute box, I would put it here
 	break;
 	*/
+      case M_FILE_EXIT:
+	gApplication->Terminate();
+	break;
       default:
 	break;
       }
