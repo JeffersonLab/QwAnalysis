@@ -1,0 +1,102 @@
+#include <iostream>
+#include <iomanip>  
+#include <stdio.h>
+#include <stdlib.h>
+
+
+void mdPed(int runNum){
+gROOT->Reset();
+gROOT->SetStyle("Plain");
+
+Bool_t makeMDPed = kTRUE;
+Bool_t makeBKGDPed = kTRUE;
+Bool_t save_file = kTRUE;
+
+const string run_num = "5670";
+
+const string cut1 = "mps_counter>500";
+const string cut2 = "mps_counter<2400e6";
+
+const string md[16] ={
+"md1neg","md2neg","md3neg","md4neg",
+"md5neg","md6neg","md7neg","md8neg",
+"md1pos","md2pos","md3pos","md4pos",
+"md5pos","md6pos","md7pos","md8pos"};
+
+const string mdbkgd[8] ={
+"pmtled","pmtonl","pmtltg","md9neg",
+"md9pos","isourc","preamp","cagesr"};
+
+Char_t filename[100];
+sprintf(filename,"$QW_ROOTFILES/Qweak_%i.root",runNum);
+f = new TFile(filename);
+if(!f->IsOpen()){
+	std::cerr<<"Error opening ROOTFile "<<filename<<".\n"<<endl;
+	return 0;
+}
+std::cout<<"Successfully opened ROOTFile "<<filename<<".\n"<<endl;
+
+TTree *mps_tree = f->Get("Mps_Tree");
+
+gStyle->SetOptStat("neMmRr");
+gStyle->SetStatW(0.32);
+
+ofstream md_ped_file;
+md_ped_file.open(Form("$QWANALYSIS/Parity/prminput/qweak_maindet_pedestal.%i.map",runNum));
+std::cout<<"Pedestal file "<<Form("$QWANALYSIS/Parity/prminput/qweak_maindet_pedestal.%i.map",runNum)<<" opened.\n"<<endl;
+
+if (makeMDPed == kTRUE)
+{
+TH1F *mdHist[8];
+TCanvas *mc_md = new TCanvas("mc_md", "canvas_md",1400,1100);
+mc_md->Divide(3,3);
+
+  for (Int_t p=0; p < 8; p++)
+    {           
+      mdHist[p] = new TH1F(Form("%i_h_%s",runNum,md[p]),"",100,0,0);
+      mc_md->cd(p+1);
+      mdHist[p]->SetDirectory(0);     
+      mps_tree->Draw(Form("%s.hw_sum_raw/%s.num_samples>>run%i_h_%s",md[p],md[p],runNum,md[p]),Form("%s && %s",cut1,cut2));
+      TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("run%i_h_%s",runNum,md[p]));
+    
+      if (save_file == kTRUE)
+        {      
+          if (p==0)
+            {
+              md_ped_file<<endl;
+              md_ped_file<<Form("!The following pedestals were recorded from RUN %i",runNum)<<endl;
+              md_ped_file<<"!channel name , Mps channelname.hw_sum_raw/num_samples , gain"<<endl;
+            }
+          md_ped_file<<Form("%s  ,  ",md[p])<<htemp->GetMean()<<"  ,  1.0"<<endl;
+        }
+     }
+}
+
+
+if (makeBKGDPed == kTRUE)
+{
+TH1F *mkgdHist[8];
+TCanvas *mc_bkgd = new TCanvas("mc_bkgd", "canvas_bkgd",1400,1100);
+mc_bkgd->Divide(3,3);
+md_ped_file<<endl;
+  for (Int_t p=0; p < 8; p++)
+    {           
+      mkgdHist[p] = new TH1F(Form("%i_h_%s",runNum,mdbkgd[p]),"",100,0,0);
+      mc_bkgd->cd(p+1);
+      mkgdHist[p]->SetDirectory(0);     
+      mps_tree->Draw(Form("%s.hw_sum_raw/%s.num_samples>>run%i_h_%s",mdbkgd[p],mdbkgd[p],runNum,mdbkgd[p]),Form("%s && %s",cut1,cut2));
+      TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("run%i_h_%s",runNum,mdbkgd[p]));
+           
+      if (save_file == kTRUE)
+        {
+          md_ped_file<<Form("%s  ,  ",mdbkgd[p])<<htemp->GetMean()<<"  ,  1.0"<<endl;
+        }
+    } // end of for statement
+md_ped_file<<endl;
+} // end of view_us
+md_ped_file.close();
+
+
+} // end of macro
+
+
