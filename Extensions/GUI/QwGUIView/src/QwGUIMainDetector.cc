@@ -843,8 +843,10 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 
 	for(int j = 0; j < MPSTree->GetEntries(); j++){
 
-	  CurrentPMTYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6);
-	  events++;
+	  if(!TMath::IsNaN(MPSTree->GetV1()[j])){
+	    CurrentPMTYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6);
+	    events++;
+	  }
 	}
 	CurrentPMTYield[i].CalculateStats();
 	CurrentPMTYield[i].SetName(Form("%s.%s Yield",MainDetectorPMTNames[i].Data(),
@@ -861,8 +863,10 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 
 	for(int j = 0; j < HELTree->GetEntries(); j++){
 
-	  CurrentPMTAsym[i].PushData(HELTree->GetV1()[j]);
-	  events++;
+	  if(!TMath::IsNaN(HELTree->GetV1()[j])){
+	    CurrentPMTAsym[i].PushData(HELTree->GetV1()[j]);
+	    events++;
+	  }
 	}
 	CurrentPMTAsym[i].CalculateStats();
 	CurrentPMTAsym[i].SetName(Form("%s.%s PMT Asy.",MainDetectorPMTNames[i].Data(),
@@ -904,8 +908,10 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 
 	for(int j = 0; j < HELTree->GetEntries(); j++){
 
-	  CurrentCMBAsym[i].PushData(HELTree->GetV1()[j]);
-	  events++;
+	  if(!TMath::IsNaN(HELTree->GetV1()[j])){
+	    CurrentCMBAsym[i].PushData(HELTree->GetV1()[j]);
+	    events++;
+	  }
 	}
 	CurrentCMBAsym[i].CalculateStats();
 	CurrentCMBAsym[i].SetName(Form("%s.%s Combination Asy.",MainDetectorCombinationNames[i].Data(),
@@ -928,8 +934,10 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 
 	for(int j = 0; j < HELTree->GetEntries(); j++){
 
-	  CurrentMSCAsym[i].PushData(HELTree->GetV1()[j]);
-	  events++;
+	  if(!TMath::IsNaN(HELTree->GetV1()[j])){
+	    CurrentMSCAsym[i].PushData(HELTree->GetV1()[j]);
+	    events++;
+	  }
 	}
 	CurrentMSCAsym[i].CalculateStats();
 	CurrentMSCAsym[i].SetName(Form("%s.%s Asymmetry",MainDetectorMscNames[i].Data(),
@@ -951,8 +959,11 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 	events = 0;
 
 	for(int j = 0; j < MPSTree->GetEntries(); j++){
-	  CurrentMSCYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6);
-	  events++;
+
+	  if(!TMath::IsNaN(MPSTree->GetV1()[j])){
+	    CurrentMSCYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6);
+	    events++;
+	  }
 	}
 	CurrentMSCYield[i].CalculateStats();
 	CurrentMSCYield[i].SetName(Form("%s.%s Yield",MainDetectorMscNames[i].Data(),
@@ -1187,6 +1198,10 @@ void QwGUIMainDetector::FillYieldPlots(Int_t det, Int_t dTInd)
 		 dCurrentData.GetName(),
 		 // 		 Form("%s.%s Yield",MainDetectorPMTNames[det].Data(),dCurrentYields[dTInd]->GetName()),
 		 1000,dCurrentData.GetDataMean()-5*dCurrentData.GetDataRMS(),dCurrentData.GetDataMean()+5*dCurrentData.GetDataRMS());
+
+  printf("%d %f, %f\n",det,dCurrentData.GetDataMean(),dCurrentData.GetDataRMS());
+
+
   grp = new TGraph();
   grp->SetTitle(dCurrentData.GetName());//Form("%s.%s Yield",MainDetectorPMTNames[det].Data(),dCurrentYields[dTInd]->GetName()));
   grp->SetName(Form("yield%02d_%d",det,dTInd));
