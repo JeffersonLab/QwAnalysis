@@ -680,7 +680,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -860,54 +860,29 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
 void QwGUIHallCBeamline::PlotFastRaster()
 {
 
-  printf("you press Fast Raster button\n");
-  // TH1F *histo1=NULL;
-  // TH1F *histo2=NULL;
-  // char histo[128]; //name of the histogram
-  
-  // TCanvas *mc = NULL;
-  // mc = dCanvas->GetCanvas();
+  TObject *obj          = NULL;
+  TCanvas *mc           = NULL;
 
-  
+  mc = dCanvas->GetCanvas();
 
-  //  while (1){
-  //    if (fCurrentBCMIndex<0)
-  //      break;
-  //    sprintf (histo, "asym_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-  //    histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
-  //    sprintf (histo, "yield_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-  //    histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
-    
-  //   if (histo1!=NULL || histo2!=NULL ) {
-    
-  //     mc->Clear();
-  //     mc->Divide(1,2);
-
-  //     mc->cd(1);
-  //     histo1->Draw();
-  //     SummaryHist(histo1);
-  //     mc->cd(2);
-  //     histo2->Draw();
-  //     SummaryHist(histo2);
-  //     gPad->Update();
-  //     gPad->Update();
-
-  //     mc->Modified();
-  //     mc->Update();
-  //   }
-
-  //   gSystem->Sleep(100);
-  //   if (gSystem->ProcessEvents()){
-  //     break;
-  //   }
-  // }
-  
-
-  //  printf("---------------PlotChargeAsym()--------------------\n");
-  // //mc->Modified();
-  // //mc->Update();
-  
-
+  while (1)
+    {
+      obj = dROOTCont->GetObjFromMapFile("raster_rate_map");
+      if(obj) {
+	mc->Clear();
+	obj -> Draw();
+      }
+      else {
+	mc->Clear();
+	std::cout << "there is no raster" << std::endl;
+      }
+      mc->Modified();
+      mc->Update();
+      gSystem->Sleep(100);
+      if (gSystem->ProcessEvents()){
+	break;
+      }
+    }
   return;
 }
 

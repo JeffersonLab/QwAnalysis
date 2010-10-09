@@ -28,12 +28,14 @@
  \brief main(...) function and MainFrame class for the QwGUI executable
 
 
+
+
 *//*-------------------------------------------------------------------------*/
 
 #include "QwGUIMain.h"
 
 QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
-  : TGMainFrame(p, w, h)
+  : TGMainFrame(p, w, h), dMWWidth(w), dMWHeight(h), dClArgs(clargs)
 {
 
    ///  First, fill the search paths for the parameter files; this sets a
@@ -44,8 +46,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
-  MCnt = 0;
-  dClArgs = clargs;
   std::set_new_handler(0);
 
   MainDetSubSystem      = NULL;
@@ -55,9 +55,20 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   CorrelationSubSystem  = NULL;
   HallCBeamlineSubSystem = NULL;
 
-  dMWWidth              = w;
-  dMWHeight             = h;
+  // dMWWidth              = w;
+  // dMWHeight             = h;
   dCurRun               = 0;
+  MCnt                  = 0;
+
+  dProcessing           = false;
+  dProcessHalt          = false;
+
+ 
+  
+  dRootFileOpen         = false;
+  dMapFileOpen          = false;
+  dLogFileOpen          = false; 
+  dRunOpen              = false;
 
   dROOTFile             = NULL;
 
@@ -213,7 +224,8 @@ QwGUIMain::~QwGUIMain()
 
 }
 
-void QwGUIMain::LoadChannelMapFiles(TString detfile){
+void QwGUIMain::LoadChannelMapFiles(TString detfile)
+{
   TString varname, varvalue;
   TString subsysname,subsysmapname;
   QwParameterFile mapstr(detfile.Data());  //Open the file
@@ -921,7 +933,9 @@ Int_t QwGUIMain::OpenLogFile(ERFileStatus status, const char* file)
 
 Int_t QwGUIMain::OpenMapFile()
 {
+
   sprintf(dMiscbuffer2,"%s/QwMemMapFile.map",gSystem->Getenv("QW_ROOTFILES"));
+  
   try {
     if(IsMapFileOpen()) CloseMapFile();
   }
@@ -1377,7 +1391,7 @@ QwGUIMain *gViewMain;
 Int_t main(Int_t argc, Char_t **argv)
 {
   Char_t expl[5000];
-  ClineArgs dClArgs;
+  ClineArgs dClArgs = {0};
   Int_t help = 0;
   dClArgs.realtime = kFalse;
   dClArgs.checkmode = kFalse;

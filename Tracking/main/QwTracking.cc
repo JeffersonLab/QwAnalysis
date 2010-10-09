@@ -86,7 +86,8 @@ Int_t main(Int_t argc, Char_t* argv[])
   if(enablemapfile) {
     //std::cout << ">>>>>>>>>>> map file " << std::endl;
     gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
-    gQwHists.LoadHistParamsFromFile("Qweak_RT_Tracking_Hist_Trim_List.in");
+    gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
+
   }
   else {
     //     std::cout << ">>>>>>>>>>> root file " << std::endl;
@@ -148,17 +149,18 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Open the ROOT file
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
-
-
-    // Create the tracking object branches
     QwEvent* event = 0;
+    
+    if(not enablemapfile) {
+    // Create the tracking object branches
+   
     rootfile->NewTree("event_tree", "QwTracking Event-based Tree");
     rootfile->GetTree("event_tree")->Branch("events", "QwEvent", &event);
 
     // Create the subsystem branches
     rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
     rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", parity_detectors);
-
+  }
     // Create the subsystem histograms
     rootfile->ConstructHistograms("tracking_histo", tracking_detectors);
     rootfile->ConstructHistograms("parity_histo",   parity_detectors);

@@ -730,8 +730,8 @@ TObject *RPlotContainer::GetObject(Int_t index, Char_t *name)
   return NULL;
 }
 
-TObject *RPlotContainer::GetHistogram(Int_t index, Char_t *type, 
-				      Char_t *name)
+TObject *RPlotContainer::GetHistogram(Int_t index, const Char_t *type, 
+				      const Char_t *name)
 {
   if(!type) return NULL;
 
