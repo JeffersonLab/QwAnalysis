@@ -58,9 +58,12 @@ gStyle->SetOptStat("neMmRr");
 gStyle->SetStatW(0.32);
 //gStyle->SetOptStat("0");
 
+char * pPath;
+pPath = getenv("QWANALYSIS");
+//if (pPath!=NULL) printf ("The current save path is: %s",pPath);
+
 ofstream lumi_ped_file;
-//const string file_name = Form("qweak_lumi_pedestal.%s.map",run_num);
-lumi_ped_file.open(Form("qweak_lumi_pedestal.%s-.map",run_num));
+lumi_ped_file.open(Form("%s/Parity/prminput/qweak_lumi_pedestal.%s-.map",pPath,run_num));
 
 if (view_ds == kTRUE)
 {

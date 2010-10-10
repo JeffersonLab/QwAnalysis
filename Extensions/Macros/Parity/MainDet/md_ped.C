@@ -41,9 +41,12 @@ TTree *mps_tree = f->Get("Mps_Tree");
 gStyle->SetOptStat("neMmRr");
 gStyle->SetStatW(0.32);
 
+char * pPath;
+pPath = getenv("QWANALYSIS");
+
 ofstream md_ped_file;
-md_ped_file.open(Form("$QWANALYSIS/Parity/prminput/qweak_maindet_pedestal.%i.map",runNum));
-std::cout<<"Pedestal file "<<Form("$QWANALYSIS/Parity/prminput/qweak_maindet_pedestal.%i.map",runNum)<<" opened.\n"<<endl;
+md_ped_file.open(Form("%s/Parity/prminput/qweak_maindet_pedestal.%i-.map",runNum));
+std::cout<<"Pedestal file "<<Form("%s/Parity/prminput/qweak_maindet_pedestal.%i-.map",runNum)<<" opened.\n"<<endl;
 
 if (makeMDPed == kTRUE)
 {
