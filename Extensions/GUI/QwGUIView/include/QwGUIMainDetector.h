@@ -145,7 +145,7 @@ using std::vector;
 #include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"
 #include "RMsgBox.h"
-#include "QwGUIFFTWindowSelectionDialog.h"
+#include "QwGUIEventWindowSelectionDialog.h"
 
 class QwGUIMainDetectorDataStructure{
 

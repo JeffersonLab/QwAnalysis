@@ -30,7 +30,7 @@ OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
 OBJECTS       += QwGUIDatabaseContainer.o
 OBJECTS       += QwGUIDatabaseSelectionDialog.o
-OBJECTS       += QwGUIFFTWindowSelectionDialog.o
+OBJECTS       += QwGUIEventWindowSelectionDialog.o
 OBJECTS       += QwGUIDatabase.o
 
 

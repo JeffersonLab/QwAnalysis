@@ -2406,7 +2406,7 @@ Bool_t QwGUIMainDetector::CalculateDFT()
   TH1D *hst = NULL;
   TH1D *fft = NULL;
 
-  new QwGUIFFTWindowSelectionDialog(fClient->GetRoot(), GetMain(), "sdlg","QwGUIMainDetector",fftopts);
+  new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), GetMain(), "sdlg","QwGUIMainDetector",fftopts);
 
   if(fftopts->cancelFlag) return kFalse;
   if(fftopts->changeFlag || !dCurrentData->IsFFTCalculated()){
