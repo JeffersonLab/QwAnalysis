@@ -73,7 +73,6 @@ using std::vector;
 #include "QwGUISubSystem.h"
 #include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"
-#include "QwGUIFFTWindowSelectionDialog.h"
 
 class QwGUIScanner : public QwGUISubSystem
   {
