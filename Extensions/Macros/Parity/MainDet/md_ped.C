@@ -12,8 +12,6 @@ Bool_t makeMDPed = kTRUE;
 Bool_t makeBKGDPed = kTRUE;
 Bool_t save_file = kTRUE;
 
-const string run_num = "5670";
-
 const string cut1 = "mps_counter>500";
 const string cut2 = "mps_counter<2400e6";
 
@@ -45,8 +43,8 @@ char * pPath;
 pPath = getenv("QWANALYSIS");
 
 ofstream md_ped_file;
-md_ped_file.open(Form("%s/Parity/prminput/qweak_maindet_pedestal.%i-.map",runNum));
-std::cout<<"Pedestal file "<<Form("%s/Parity/prminput/qweak_maindet_pedestal.%i-.map",runNum)<<" opened.\n"<<endl;
+md_ped_file.open(Form("%s/Parity/prminput/qweak_maindet_pedestal.%i-.map",pPath,runNum));
+std::cout<<"Pedestal file "<<Form("%s/Parity/prminput/qweak_maindet_pedestal.%i-.map",pPath,runNum)<<" opened.\n"<<endl;
 
 if (makeMDPed == kTRUE)
 {
