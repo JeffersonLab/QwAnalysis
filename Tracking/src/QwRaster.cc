@@ -430,8 +430,8 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
 
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_y")));
-
-    fRateMap  = new TH2D("raster_rate_map","Raster Rate Map",500,-2.5,2.5,500,-2.5,2.5);
+  
+    fRateMap  = new TH2D("raster_rate_map","Raster Rate Map",500,0,0,500,0,0);
     fRateMap->GetXaxis()->SetTitle("PositionX");
     fRateMap->GetYaxis()->SetTitle("PositionY");
     fRateMap->SetOption("colz");
