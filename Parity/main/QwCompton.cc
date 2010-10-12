@@ -106,11 +106,6 @@ static const int kMultiplet = 4;
 // Debug level
 static bool bDebug = true;
 
-// Activate components
-static bool bHelicity = true;
-static bool bComptonPhoton = true;
-static bool bComptonElectron = false;
-
 int main(int argc, char* argv[])
 {
   /// Set the command line arguments and the configuration filename
@@ -154,40 +149,13 @@ int main(int argc, char* argv[])
     epicsevent.LoadEpicsVariableMap("EpicsTable.map");
 
 
-    // Detector array
-    QwSubsystemArrayParity detectors;
-    // Photon detector
-    QwComptonPhotonDetector* photon = 0;
-    if (bComptonPhoton) {
-      detectors.push_back(new QwComptonPhotonDetector("Compton Photon Detector"));
-      photon = dynamic_cast<QwComptonPhotonDetector*> (detectors.GetSubsystemByName("Compton Photon Detector"));
-      if (photon) {
-        photon->LoadChannelMap("compton_photon_channels.map");
-        photon->LoadInputParameters("compton_photon_pedestal.map");
-      } else QwError << "Could not initialize photon detector!" << QwLog::endl;
-    }
-    // Electron detector
-    QwComptonElectronDetector* electron = 0;
-    if (bComptonElectron) {
-      detectors.push_back(new QwComptonElectronDetector("Compton Electron Detector"));
-      electron = dynamic_cast<QwComptonElectronDetector*> (detectors.GetSubsystemByName("Compton Electron Detector"));
-      if (electron) {
-        electron->LoadChannelMap("compton_electron_channels.map");
-        electron->LoadInputParameters("compton_electron_pedestal.map");
-      } else QwError << "Could not initialize electron detector!" << QwLog::endl;
-    }
+    ///  Load the detectors from file
+    QwSubsystemArrayParity detectors(gQwOptions);
+    detectors.ProcessOptions(gQwOptions);
 
-    // Helicity
-    QwHelicity* helicity = 0;
-    if (bHelicity) {
-      // Helicity subsystem
-      detectors.push_back(new QwHelicity("Helicity info"));
-      detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("compton_helicity.map");
-      detectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
-      helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");
-    }
-    // Helicity pattern
+    ///  Create the helicity pattern
     QwHelicityPattern helicitypattern(detectors);
+    helicitypattern.ProcessOptions(gQwOptions);
 
 
     //  Open the ROOT file
@@ -239,24 +207,23 @@ int main(int argc, char* argv[])
 
 
       // Helicity pattern
-      if (bHelicity)
-        helicitypattern.LoadEventData(detectors);
+      helicitypattern.LoadEventData(detectors);
 
-      // Print the helicity information
-      if (bHelicity) {
-        // - actual helicity
-        if      (helicity->GetHelicityActual() == 0) QwOut << "-";
-        else if (helicity->GetHelicityActual() == 1) QwOut << "+";
-        else QwOut << "?";
-        // - delayed helicity
-        if      (helicity->GetHelicityDelayed() == 0) QwOut << "(-) ";
-        else if (helicity->GetHelicityDelayed() == 1) QwOut << "(+) ";
-        else QwOut << "(?) ";
-        if (helicity->GetPhaseNumber() == kMultiplet) {
-          QwOut << std::hex << helicity->GetRandomSeedActual() << std::dec << ",  \t";
-          QwOut << std::hex << helicity->GetRandomSeedDelayed() << std::dec << QwLog::endl;
-        }
-      }
+//       // Print the helicity information
+//       if (bHelicity) {
+//         // - actual helicity
+//         if      (helicity->GetHelicityActual() == 0) QwOut << "-";
+//         else if (helicity->GetHelicityActual() == 1) QwOut << "+";
+//         else QwOut << "?";
+//         // - delayed helicity
+//         if      (helicity->GetHelicityDelayed() == 0) QwOut << "(-) ";
+//         else if (helicity->GetHelicityDelayed() == 1) QwOut << "(+) ";
+//         else QwOut << "(?) ";
+//         if (helicity->GetPhaseNumber() == kMultiplet) {
+//           QwOut << std::hex << helicity->GetRandomSeedActual() << std::dec << ",  \t";
+//           QwOut << std::hex << helicity->GetRandomSeedDelayed() << std::dec << QwLog::endl;
+//         }
+//       }
 
 
       // Fill the histograms
@@ -269,7 +236,7 @@ int main(int argc, char* argv[])
 
       // TODO We need another check here to test for pattern validity.  Right
       // now the first 24 cycles are also added to the histograms.
-      if (bHelicity && helicitypattern.IsCompletePattern()) {
+      if (helicitypattern.IsCompletePattern()) {
 
         // Calculate the asymmetry
         helicitypattern.CalculateAsymmetry();
