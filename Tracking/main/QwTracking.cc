@@ -47,7 +47,7 @@
 
 
 // Debug level
-static const bool kDebug = kTRUE;
+static const bool kDebug = false;
 // ROOT file output
 static const bool kEPICS = kFALSE;
 

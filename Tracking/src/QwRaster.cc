@@ -432,8 +432,10 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_y")));
   
     fRateMap  = new TH2D("raster_rate_map","Raster Rate Map",500,0,0,500,0,0);
-    fRateMap->GetXaxis()->SetTitle("PositionX");
-    fRateMap->GetYaxis()->SetTitle("PositionY");
+    
+    fRateMap->GetXaxis()->SetTitle(" X [mm]");
+    fRateMap->GetYaxis()->SetTitle(" Y [mm]");
+
     fRateMap->SetOption("colz");
 
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_x")));
@@ -460,40 +462,50 @@ void  QwRaster::FillHistograms()
         }
     }
 
+   
+    // FR fudge factor is 3.2, by Dave Mack
+    // See hclog ttps://hallcweb.jlab.org/hclog/1010_archive/101012134143.html
+    // I inverse x axis and multiply the FR fudge factor to x and y values
+    // in order to see the unit is mm in the FR plot
+    // Tuesday, October 12 17:11:52 EDT 2010, jhlee
+
+    Double_t fudge_factor = 3.2;
+    
+    Double_t raster_x_mm = 0.0;
+    Double_t raster_y_mm = 0.0;
+
+    raster_x_mm = - fudge_factor*fPositionX_ADC;
+    raster_y_mm =   fudge_factor*fPositionY_ADC;
+
     for (size_t j=0; j<fHistograms1D.size();j++)
     {
-        if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_x"))
+      if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_x"))
         {
-            fHistograms1D.at(j)->Fill(fPositionX_ADC);
+	  fHistograms1D.at(j)->Fill(raster_x_mm);
         }
-
-        if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_y"))
+      if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_y"))
         {
-            fHistograms1D.at(j)->Fill(fPositionY_ADC);
+	  fHistograms1D.at(j)->Fill(raster_y_mm);
         }
-        if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_y"))
+      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_x"))
         {
-            fHistograms1D.at(j)->Fill(fPositionY_ADC);
+	  fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_x);
         }
-        if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_x"))
+      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_y"))
         {
-            fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_x);
+	  fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_y);
         }
-        if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_y"))
+      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_x"))
         {
-            fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_y);
+	  fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_x);
         }
-        if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_x"))
+      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_y"))
         {
-            fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_x);
-        }
-        if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_y"))
-        {
-            fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_y);
+	  fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_y);
         }
     }
-
-    fRateMap->Fill(fPositionX_ADC,fPositionY_ADC);
+    
+    fRateMap->Fill(raster_x_mm, raster_y_mm);
 };
 
 

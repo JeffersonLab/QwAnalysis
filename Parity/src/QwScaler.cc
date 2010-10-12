@@ -21,6 +21,8 @@ Int_t QwScaler::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
 
 Int_t QwScaler::LoadChannelMap(TString mapfile)
 {
+  bool local_debug = false;
+
   TString varname, varvalue;
   TString modtype, dettype, name, keyword;
   Int_t modnum, channum;
@@ -88,16 +90,16 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
 //    add new modules until current number (modnum) is reached 
       std::size_t mod_size;
       mod_size = fSCAs.size();
-      std::cout << "modnum: " << modnum << std::endl;
+      if(local_debug) std::cout << "modnum: " << modnum << std::endl;
       while ((Int_t) mod_size <= modnum) {
          std::vector<QwSIS3801D24_Channel> new_module;
          fSCAs.push_back(new_module);
 	mod_size = fSCAs.size();
-	std::cout << "mod_size: " << mod_size << std::endl;
+	if(local_debug) std::cout << "mod_size: " << mod_size << std::endl;
       }
       std::size_t channel_size;
       channel_size= fSCAs.at(modnum).size();
-      std::cout << "arrive here!" << std::endl;
+      if(local_debug) std::cout << "arrive here!" << std::endl;
       while ((Int_t) channel_size <= channum) {
          QwSIS3801D24_Channel new_module(name);
          fSCAs.at(modnum).push_back(new_module);
