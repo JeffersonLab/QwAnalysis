@@ -14,6 +14,9 @@
 #include "THaEtClient.h"
 #endif
 
+std::string QwEventBuffer::fDefaultDataFileStem = "QwRun_";
+std::string QwEventBuffer::fDefaultDataFileExtension = "log";
+
 const Int_t QwEventBuffer::kRunNotSegmented = -20;
 const Int_t QwEventBuffer::kNoNextDataFile  = -30;
 const Int_t QwEventBuffer::kFileHandleNotConfigured  = -40;
@@ -25,8 +28,8 @@ const UInt_t QwEventBuffer::kNullDataWord = 0x4e554c4c;
 
 /// Default constructor
 QwEventBuffer::QwEventBuffer()
-  :    fDataFileStem("QwRun_"),
-       fDataFileExtension("log"),
+  :    fDataFileStem(fDefaultDataFileStem),
+       fDataFileExtension(fDefaultDataFileExtension),
        fEvStreamMode(fEvStreamNull),
        fEvStream(NULL),
        fCurrentRun(-1),
@@ -70,10 +73,10 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("chainfiles", po::value<bool>()->default_value(false)->zero_tokens(),
      "chain file segments together, do not analyze them separately");
   options.AddDefaultOptions()
-    ("codafile-stem", po::value<string>()->default_value("QwRun_"),
+    ("codafile-stem", po::value<string>()->default_value(fDefaultDataFileStem),
      "stem of the input CODA filename");
   options.AddDefaultOptions()
-    ("codafile-ext", po::value<string>()->default_value("log"),
+    ("codafile-ext", po::value<string>()->default_value(fDefaultDataFileExtension),
      "extension of the input CODA filename");
 }
 

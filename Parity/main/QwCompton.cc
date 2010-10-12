@@ -83,8 +83,10 @@
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwRootFile.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
+#include "QwEPICSEvent.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
@@ -105,8 +107,6 @@ static const int kMultiplet = 4;
 static bool bDebug = true;
 
 // Activate components
-static bool bTree = true;
-static bool bHisto = true;
 static bool bHelicity = true;
 static bool bComptonPhoton = true;
 static bool bComptonElectron = false;
@@ -117,6 +117,8 @@ int main(int argc, char* argv[])
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwcompton.conf");
   /// Define the command line options
+  QwEventBuffer::SetDefaultDataFileStem("Compton_");
+  QwRootFile::SetDefaultRootFileStem("Compton_");
   DefineOptionsParity(gQwOptions);
 
   /// Message logging facilities
@@ -131,117 +133,85 @@ int main(int argc, char* argv[])
   // Load histogram definitions
   gQwHists.LoadHistParamsFromFile("compton_hists.in");
 
-  // Detector array
-  QwSubsystemArrayParity detectors;
-  // Photon detector
-  QwComptonPhotonDetector* photon = 0;
-  if (bComptonPhoton) {
-    detectors.push_back(new QwComptonPhotonDetector("Compton Photon Detector"));
-    photon = dynamic_cast<QwComptonPhotonDetector*> (detectors.GetSubsystemByName("Compton Photon Detector"));
-    if (photon) {
-      photon->LoadChannelMap("compton_photon_channels.map");
-      photon->LoadInputParameters("compton_photon_pedestal.map");
-    } else QwError << "Could not initialize photon detector!" << QwLog::endl;
-  }
-  // Electron detector
-  QwComptonElectronDetector* electron = 0;
-  if (bComptonElectron) {
-    detectors.push_back(new QwComptonElectronDetector("Compton Electron Detector"));
-    electron = dynamic_cast<QwComptonElectronDetector*> (detectors.GetSubsystemByName("Compton Electron Detector"));
-    if (electron) {
-      electron->LoadChannelMap("compton_electron_channels.map");
-      electron->LoadInputParameters("compton_electron_pedestal.map");
-    } else QwError << "Could not initialize electron detector!" << QwLog::endl;
-  }
 
-  // Helicity
-  QwHelicity* helicity = 0;
-  if (bHelicity) {
-    // Helicity subsystem
-    detectors.push_back(new QwHelicity("Helicity info"));
-    detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("compton_helicity.map");
-    detectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
-    helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");
-  }
-  // Helicity pattern
-  QwHelicityPattern helicitypattern(detectors);
-
-  // Get the SIS3320 channel for debugging
-  MQwSIS3320_Channel* sampling = 0;
-  if (bComptonPhoton) {
-    sampling = photon->GetSIS3320Channel("compton");
-  }
-
-
-
-  // Event buffer
+  ///  Create the event buffer
   QwEventBuffer eventbuffer;
+  eventbuffer.ProcessOptions(gQwOptions);
+
+  ///  Start loop over all runs
+  QwRootFile* rootfile = 0;
+  while (eventbuffer.OpenNextStream() == CODA_OK) {
+
+    ///  Begin processing for the first run
 
 
-  // Loop over all runs
-  UInt_t runnumber_min = (UInt_t) gQwOptions.GetIntValuePairFirst("run");
-  UInt_t runnumber_max = (UInt_t) gQwOptions.GetIntValuePairLast("run");
-  for (UInt_t run  = runnumber_min;
-              run <= runnumber_max;
-              run++) {
+    ///  Set the current event number for parameter file lookup
+    QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
 
-    // Data file (input)
-    TString datafilename = TString("Compton_") + Form("%ld.log",run);
-    if (eventbuffer.OpenDataFile(datafilename,"R") != CODA_OK) {
-      QwError << "Could not open file!" << QwLog::endl;
-      return 0;
+
+    ///  Create an EPICS event
+    QwEPICSEvent epicsevent;
+    epicsevent.LoadEpicsVariableMap("EpicsTable.map");
+
+
+    // Detector array
+    QwSubsystemArrayParity detectors;
+    // Photon detector
+    QwComptonPhotonDetector* photon = 0;
+    if (bComptonPhoton) {
+      detectors.push_back(new QwComptonPhotonDetector("Compton Photon Detector"));
+      photon = dynamic_cast<QwComptonPhotonDetector*> (detectors.GetSubsystemByName("Compton Photon Detector"));
+      if (photon) {
+        photon->LoadChannelMap("compton_photon_channels.map");
+        photon->LoadInputParameters("compton_photon_pedestal.map");
+      } else QwError << "Could not initialize photon detector!" << QwLog::endl;
+    }
+    // Electron detector
+    QwComptonElectronDetector* electron = 0;
+    if (bComptonElectron) {
+      detectors.push_back(new QwComptonElectronDetector("Compton Electron Detector"));
+      electron = dynamic_cast<QwComptonElectronDetector*> (detectors.GetSubsystemByName("Compton Electron Detector"));
+      if (electron) {
+        electron->LoadChannelMap("compton_electron_channels.map");
+        electron->LoadInputParameters("compton_electron_pedestal.map");
+      } else QwError << "Could not initialize electron detector!" << QwLog::endl;
     }
 
-
-    // ROOT file output (histograms)
-    TString rootfilename = getenv_safe("QW_ROOTFILES")
-                         + TString("/Compton_") + Form("%ld.root",run);
-    TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
-    if (bHisto) {
-      rootfile.cd();
-      detectors.ConstructHistograms(rootfile.mkdir("mps_histo"));
-      if (bHelicity) {
-        rootfile.cd();
-        helicitypattern.ConstructHistograms(rootfile.mkdir("hel_histo"));
-      }
+    // Helicity
+    QwHelicity* helicity = 0;
+    if (bHelicity) {
+      // Helicity subsystem
+      detectors.push_back(new QwHelicity("Helicity info"));
+      detectors.GetSubsystemByName("Helicity info")->LoadChannelMap("compton_helicity.map");
+      detectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
+      helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");
     }
+    // Helicity pattern
+    QwHelicityPattern helicitypattern(detectors);
+
+
+    //  Open the ROOT file
+    rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+    if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
+
+    //  Construct histograms
+    rootfile->ConstructHistograms("mps_histo", detectors);
+    rootfile->ConstructHistograms("hel_histo", helicitypattern);
+
+    //  Construct tree branches
+    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
+    rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+
+    // Summarize the ROOT file structure
+    rootfile->PrintTrees();
+    rootfile->PrintDirs();
 
     // ROOT file output (expert tree)
-    if (bTree) {
-      rootfile.cd();
-      detectors.ConstructTree(rootfile.mkdir("expert"));
-    }
+    //  rootfile.cd();
+    //  detectors.ConstructTree(rootfile.mkdir("expert_tree"));
 
-    // ROOT file output (trees)
-    TTree *mpstree;
-    TTree *heltree;
-    Int_t eventnumber;
-    std::vector <Double_t> mpsvector;
-    std::vector <Double_t> helvector;
-    if (bTree) {
-      // MPS events
-      rootfile.cd();
-      mpstree = new TTree("MPS_Tree","MPS event data tree");
-      mpsvector.reserve(6000);
-      mpstree->Branch("eventnumber",&eventnumber,"eventnumber/F");
-      TString dummystr="";
-      detectors.ConstructBranchAndVector(mpstree, dummystr, mpsvector);
-      rootfile.cd();
-      if (bHelicity) {
-        // Helicity events (per multiplet)
-        rootfile.cd();
-        heltree = new TTree("HEL_Tree","Helicity event data tree");
-        helvector.reserve(6000);
-        TString dummystr="";
-        helicitypattern.ConstructBranchAndVector(heltree, dummystr, helvector);
-      }
-    }
-
-
-    // Loop over events in this CODA file
-    Int_t eventnumber_min = gQwOptions.GetIntValuePairFirst("event");
-    Int_t eventnumber_max = gQwOptions.GetIntValuePairLast("event");
-    while (eventbuffer.GetEvent() == CODA_OK) {
+    ///  Start loop over events
+    while (eventbuffer.GetNextEvent() == CODA_OK) {
 
       // First, do processing of non-physics events...
       if (eventbuffer.IsROCConfigurationEvent()) {
@@ -249,19 +219,24 @@ int main(int argc, char* argv[])
         eventbuffer.FillSubsystemConfigurationData(detectors);
       }
 
+      //  Secondly, process EPICS events
+      if (eventbuffer.IsEPICSEvent()) {
+        eventbuffer.FillEPICSData(epicsevent);
+        epicsevent.CalculateRunningValues();
+      }
+
       // Now, if this is not a physics event, go back and get a new event.
       if (! eventbuffer.IsPhysicsEvent()) continue;
 
-      //  Check to see if we want to process this event.
-      Int_t eventnumber = eventbuffer.GetEventNumber();
-      if      (eventnumber < eventnumber_min) continue;
-      else if (eventnumber > eventnumber_max) break;
+
 
       // Fill the subsystem objects with their respective data for this event.
       eventbuffer.FillSubsystemData(detectors);
 
       // Process this events
       detectors.ProcessEvent();
+
+
 
       // Helicity pattern
       if (bHelicity)
@@ -285,25 +260,28 @@ int main(int argc, char* argv[])
 
 
       // Fill the histograms
-      if (bHisto) detectors.FillHistograms();
-
-      // Fill the expert tree
-      if (bTree) detectors.FillTree();
+      rootfile->FillHistograms(detectors);
 
       // Fill the tree
-      if (bTree) {
-        eventnumber = eventbuffer.GetEventNumber();
-        detectors.FillTreeVector(mpsvector);
-        mpstree->Fill();
-      }
+      rootfile->FillTreeBranches(detectors);
+      rootfile->FillTree("Mps_Tree");
 
 
       // TODO We need another check here to test for pattern validity.  Right
       // now the first 24 cycles are also added to the histograms.
       if (bHelicity && helicitypattern.IsCompletePattern()) {
+
+        // Calculate the asymmetry
         helicitypattern.CalculateAsymmetry();
-        if (bHisto) helicitypattern.FillHistograms();
-        helicitypattern.ClearEventData();
+        if (helicitypattern.IsGoodAsymmetry()) {
+          // Fill histograms
+          rootfile->FillHistograms(helicitypattern);
+          // Fill tree branches
+          rootfile->FillTreeBranches(helicitypattern);
+          rootfile->FillTree("Hel_Tree");
+          // Clear the data
+          helicitypattern.ClearEventData();
+        }
       }
 
       // Periodically print event number
@@ -317,17 +295,29 @@ int main(int argc, char* argv[])
     QwMessage << "Last event processed: "
               << eventbuffer.GetEventNumber() << QwLog::endl;
 
-    // Close ROOT file
-    rootfile.Write(0,TObject::kOverwrite);
-    // Delete histograms
-    if (bHisto) {
-      detectors.DeleteHistograms();
-      if (bHelicity) helicitypattern.DeleteHistograms();
-    }
+    /*  Write to the root file, being sure to delete the old cycles  *
+     *  which were written by Autosave.                              *
+     *  Doing this will remove the multiple copies of the ntuples    *
+     *  from the root file.                                          *
+     *                                                               *
+     *  Then, we need to delete the histograms here.                 *
+     *  If we wait until the subsystem destructors, we get a         *
+     *  segfault; but in additiona to that we should delete them     *
+     *  here, in case we run over multiple runs at a time.           */
+    rootfile->Write(0,TObject::kOverwrite);
+
+    //  Delete histograms
+    rootfile->DeleteHistograms(detectors);
+    rootfile->DeleteHistograms(helicitypattern);
+
     // Close data file and print run summary
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
+    eventbuffer.PrintRunTimes();
 
   } // end of loop over runs
 
+  QwMessage << "I have done everything I can do..." << QwLog::endl;
+
+  return 0;
 }

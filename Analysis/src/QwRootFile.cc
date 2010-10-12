@@ -2,6 +2,8 @@
 #include "QwHistogramHelper.h"
 #include "QwRunCondition.h"
 
+std::string QwRootFile::fDefaultRootFileStem = "Qweak_";
+
 const Long64_t QwRootFile::kMaxTreeSize = 10000000000LL;
 
 
@@ -96,7 +98,7 @@ void QwRootFile::DefineOptions(QwOptions &options)
 {
   // Define the ROOT filename stem
   options.AddOptions("Default options")
-    ("rootfile-stem", po::value<std::string>()->default_value("Qweak_"),
+    ("rootfile-stem", po::value<std::string>()->default_value(fDefaultRootFileStem),
      "stem of the output ROOT filename");
 
   // Define the memory map option

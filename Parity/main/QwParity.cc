@@ -195,7 +195,7 @@ Int_t main(Int_t argc, Char_t* argv[])
         runningsum.AccumulateRunningSum(detectors);
 
         // Fill the histograms
-	rootfile->FillHistograms(detectors);
+        rootfile->FillHistograms(detectors);
 
         // Fill the tree branches
         rootfile->FillTreeBranches(detectors);

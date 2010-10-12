@@ -432,7 +432,7 @@ ifndef MYSQL_INC_DIR
     $(warning )
     $(error   Error: Could not find the MySQL library)
   else
-    $(warning Setting MYSQL_INC_DIR to /usr/include/mysql)
+    $(info Setting MYSQL_INC_DIR to /usr/include/mysql)
     MYSQL_INC_DIR = /usr/include/mysql
     MYSQL_LIB_DIR = /usr/lib/mysql
   endif
@@ -462,7 +462,7 @@ ifndef MYSQLPP_INC_DIR
       MYSQLPP_LIB_DIR = /usr/local/lib
     endif
   else
-    $(warning Setting MYSQLPP_INC_DIR to /usr/include/mysql++)
+    $(info Setting MYSQLPP_INC_DIR to /usr/include/mysql++)
     MYSQLPP_INC_DIR = /usr/include/mysql++
     MYSQLPP_LIB_DIR = /usr/lib
   endif

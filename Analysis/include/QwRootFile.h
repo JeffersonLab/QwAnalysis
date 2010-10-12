@@ -257,6 +257,10 @@ class QwRootFile {
     static void DefineOptions(QwOptions &options);
     /// \brief Process the configuration options
     void ProcessOptions(QwOptions &options);
+    /// \brief Set default ROOT file stem
+    static void SetDefaultRootFileStem(const std::string& stem) {
+      fDefaultRootFileStem = stem;
+    }
 
 
     /// Is the ROOT file active?
@@ -411,6 +415,8 @@ class QwRootFile {
 
     /// ROOT file stem
     TString fRootFileStem;
+    /// Default ROOT file stem
+    static std::string fDefaultRootFileStem;
 
     /// Map file
     QwMapFile* fMapFile;

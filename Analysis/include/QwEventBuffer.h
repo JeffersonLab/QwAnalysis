@@ -9,6 +9,7 @@
 #define __QWEVENTBUFFER__
 
 
+#include <string>
 #include <vector>
 #include "Rtypes.h"
 #include "TString.h"
@@ -31,6 +32,12 @@ class QwSubsystemArray;
 class QwEventBuffer: public MQwCodaControlEvent{
  public:
   static void DefineOptions(QwOptions &options);
+  static void SetDefaultDataFileStem(const std::string& stem) {
+	fDefaultDataFileStem = stem;
+  }
+  static void SetDefaultDataFileExtension(const std::string& extension) {
+	fDefaultDataFileExtension = extension;
+  }
 
  public:
   static const Int_t kRunNotSegmented;
@@ -149,11 +156,14 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t fBurstLength;
 
  protected:
+
+  static std::string fDefaultDataFileStem;
+  static std::string fDefaultDataFileExtension;
+
   TString fDataFileStem;
   TString fDataFileExtension;
 
   TString fDataDirectory;
-
   TString fDataFile;
 
   // UInt_t fRunNumber;
