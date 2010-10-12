@@ -34,10 +34,12 @@
 #include "QwScanner.h"
 #include "QwRaster.h"
 
+
 // Qweak parity subsystems
 #include "QwSubsystemArrayParity.h"
 #include "QwHelicity.h"
 #include "QwBeamLine.h"
+#include "QwScaler.h"
 
 // Qweak headers (deprecated)
 #include "Det.h"
@@ -45,7 +47,7 @@
 
 
 // Debug level
-static const bool kDebug = kFALSE;
+static const bool kDebug = kTRUE;
 // ROOT file output
 static const bool kEPICS = kFALSE;
 
