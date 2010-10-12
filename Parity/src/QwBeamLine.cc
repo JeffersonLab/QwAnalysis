@@ -2520,7 +2520,8 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 
   if(local_print_flag){
     QwMessage << QwColor(Qw::kGreen)   << "Entrylist Size : "
-	      << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
+	      << QwColor(Qw::kBoldRed) << entrylist.size()
+              << QwColor(Qw::kNormal)  << QwLog::endl;
   }
 
   db->Connect();
