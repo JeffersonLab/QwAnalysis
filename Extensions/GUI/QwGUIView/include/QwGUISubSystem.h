@@ -411,6 +411,8 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none 
   void             TabMenuEntryChecked(Bool_t set) {dTabMenuItemChecked = set; 
     dTabMenuItemChecked ? OnAddThisTab() : OnRemoveThisTab();};
+
+  char            *GetRootFileName(){ if(!dROOTCont) return NULL; return dROOTCont->GetFileName();};
   
   ClassDef(QwGUISubSystem,0);
 };

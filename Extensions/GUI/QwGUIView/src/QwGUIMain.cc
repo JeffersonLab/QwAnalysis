@@ -123,6 +123,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Scanner"))
     ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
   if(!GetSubSystemPtr("Beam Modulation"))
     BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
 					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
@@ -431,6 +432,11 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
   dMenuTabs->CheckEntry(GetTabMenuID(s.Data()));
   sbSystem->TabMenuEntryChecked(kTrue);
   MapLayout();
+
+  if(IsRootFileOpen()){
+    if(!sbSystem->GetRootFileName() || strcmp(sbSystem->GetRootFileName(),dROOTFile->GetFileName()))
+      sbSystem->SetDataContainer(dROOTFile);
+  }
 }
 
 Int_t QwGUIMain::GetTabMenuID(const char* TabName)
@@ -949,10 +955,12 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
   obj = next();
   while(obj){
     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-    entry->SetDataContainer(dROOTFile);
+    if(entry->IsTabMenuEntryChecked()){
+      entry->SetDataContainer(dROOTFile);
+    };
     obj = next();
   }
-
+  
   SetRootFileOpen(kTrue);
   SetRootFileName(filename);
   return PROCESS_OK;
