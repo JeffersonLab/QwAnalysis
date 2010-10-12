@@ -56,8 +56,7 @@ class JbToy6DGen {
   void setSpreadY( double *A) { for(int i=0;i<mxY;i++)   par_Ysig[i]=A[i]; } 
   void setAlphas( double *A, int iy) { assert(iy>=0 && iy<mxY);
     for(int i=0;i<mxP;i++)   par_Alpha[iy][i]=A[i]; }
-
-
+  void setSeed(int seed);
   void print();
   void init();
   void finish();

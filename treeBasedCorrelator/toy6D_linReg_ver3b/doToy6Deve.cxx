@@ -33,7 +33,8 @@ int main() {
 
   // mean values for 4 dv
   double inpMeanY[mxY]={1.1, 1.2, 1.3, 1.4};
-  double inpSigY[mxY]={0.05, 0.06, 0.07, 0.08};
+  double inpSigY[mxY]={0.15, 0.05, 0.07, 0.08}; // non-zero smearing
+
 
   // correlation for 4 dv
   double inpAlphas0[mxP]={-0.23, 0.18, -0.35, -0.41, 0.27, -0.22};
@@ -53,15 +54,16 @@ int main() {
   gen.setMeanY(inpMeanY); 
   gen.setSpreadY(inpSigY); 
   //assume correlations: Ymeas=Ytrue+alpha_k*(P_k- avrP_k) 
-  gen.setAlphas(inpAlphas0,0); // Generator
-  gen.setAlphas(inpAlphas1,1); // Generator
-  gen.setAlphas(inpAlphas2,2); // Generator
-  gen.setAlphas(inpAlphas3,3); // Generator
+  gen.setAlphas(inpAlphas0,0); // Generator for Y0
+  gen.setAlphas(inpAlphas1,1); // Generator  for Y1
+  gen.setAlphas(inpAlphas2,2); // Generator  for Y2
+  gen.setAlphas(inpAlphas3,3); // Generator  for Y3
   
+  gen.setSeed(0); // 0=vary for every job, >0 =fixed
   gen.init();
   gen.print();
 
-  int totEve=60000;
+  int totEve=5000;
   printf("main  START for nEve=%d  ...\n",totEve);
   for(int ieve=0;ieve<totEve;ieve++) 
     gen.throwEvent(ieve);

@@ -17,10 +17,18 @@
 #include "JbCorrelator.h"
 // use only double
 
-int main() {
+int main(int argc, char *argv[]) {
+  int mxEve=50000, skipEve=0;
 
+  // decode input params
+  printf("Syntax: %s [neve]    OR   %s  [neve] [skipEve]\n",argv[0], argv[0]);
+  if ( argc>=2) mxEve=atoi(argv[1]);
+  if ( argc>=3) skipEve=atoi(argv[2]);
+
+  printf("Selected  mxEve=%d nSkip=%d\n", mxEve,skipEve);
+ 
   // read TTree  with precompiled class
-  int mxEve=50000;
+
   const char * outPath="./";
 
   //........  correlator class ...............
@@ -83,7 +91,7 @@ int main() {
   int t1=time(0);
   int ie;
   if(nEve>mxEve) nEve=mxEve;
-  for( ie=0;ie<nEve;ie++) { 
+  for( ie=skipEve;ie<nEve;ie++) { 
     chain->GetEntry(ie);
     if(ie%5000==0)
       printf("--- done eve=%d of %d  .. Bpm[0]=%f %f\n",ie,nEve,*eveValueP[0],*eveValueP[1]);

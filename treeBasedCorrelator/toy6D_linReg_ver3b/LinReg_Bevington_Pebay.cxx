@@ -225,7 +225,7 @@ void LinRegBevPeb::printSummaryAlphas(){
   for (int iy = 0; iy <par_nY; iy++) {
     cout << Form("  Y%d: ",iy)<<endl;
     for (int j = 0; j < par_nP; j++) 
-      cout << Form("  alpha(%d) = %f +/- %f ",j,mA(j,iy),mAsig(j,iy))<<endl;   
+      cout << Form("  alpha_%d = %f +/- %f ",j,mA(j,iy),mAsig(j,iy))<<endl;   
   }
 }
 
@@ -275,7 +275,7 @@ void LinRegBevPeb::solve() {
        Rjk(j,k)=s2jk/Sj/Sk;
      }
    }
-  cout<<"new Rjk:"; Rjk.Print();
+  //cout<<"new Rjk:"; Rjk.Print();
 
    TMatrixD invRjk(Rjk); double det;
    //cout<<"0 invRkl:"; invRjk.Print();
@@ -296,10 +296,11 @@ void LinRegBevPeb::solve() {
        double Sk,Syk2; assert( getSigmaP(ip,Sk)==0);
        assert( getCovariancePY(ip,iy,Syk2)==0);
        Rky(ip,iy)=Syk2/Sy/Sk;
+       //if(ip==0 && iy==0) printf("Syk2=%f  Sy=%f Sk=%f\n", Syk2,Sy,Sk); 
      }
    }
    
-   //   cout<<"new Rky:"; Rky.Print();
+   //cout<<"new Rky:"; Rky.Print();
 
 
    TMatrixD Djy; Djy.ResizeTo(Rky);	
@@ -316,26 +317,32 @@ void LinRegBevPeb::solve() {
   
   cout<<"mA:"; mA.Print();
 
-  cout << "Compute errors of alphas";
-  // compute s^2  
-  double s2jkSum=0;
-  for (int j = 0; j < par_nP; j++) 
-    for (int k = 0; k <par_nP; k++) 
-      s2jkSum+=S2jk(j,k);
-  cout<<" s2jkSum="<<s2jkSum<<endl;
-  
-  
-  double h;
+  cout << "Compute errors of alphas ..."<<endl;
   double norm=1./(fGoodEventNumber - par_nP -1);
   for (int iy = 0; iy <par_nY; iy++) {
-    double Sy; assert( getSigmaY(iy,Sy)==0);
-    h=s2jkSum + Sy*Sy; // consistent w/ Bevington
-    //h= Sy*Sy;// tmp, bad, result agrees w/ pospan
     
-    cout <<" iy="<<iy<<" h="<<h<<endl;
+    /* compute s^2= Vy + Vx -2*Vxy 
+       where Vy~var(y), Vx~var(x), Vxy~cov(y,x)     */
+    double Sy; assert( getSigmaY(iy,Sy)==0);  
+    
+    double Vx=0,Vxy=0;
+    for (int j = 0; j < par_nP; j++) {
+      for (int k = 0; k <par_nP; k++) 
+	Vx+=S2jk(j,k)*mA(j,iy)*mA(k,iy);
+      double Syk2; assert( getCovariancePY(j,iy,Syk2)==0);
+      Vxy+=Syk2*mA(j,iy);
+    }
+    //   cout<<"iy="<<iy<<"  Vx="<<Vx<<"  Vxy="<<Vxy<<endl;
+  
+    //    printf(" errAl:  iy=%d Vy=%f\n",iy,Sy*Sy);
+    
+    
+    double s2=Sy*Sy + Vx -2*Vxy; // consistent w/ Bevington
+ 
+    //   cout <<" iy="<<iy<<" s2="<<s2<<endl;
     for (int j = 0; j < par_nP; j++) {
       double Sj; assert( getSigmaP(j,Sj)==0);
-      mAsig(j,iy)= sqrt(norm * invRjk(j,j) * h / Sj/Sj);
+      mAsig(j,iy)= sqrt(norm * invRjk(j,j) * s2) / Sj;
     }
   }
 

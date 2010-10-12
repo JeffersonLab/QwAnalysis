@@ -31,20 +31,23 @@ const char *Pname[mxPY]={"beam_x","beam_nx","beam_y","beam_ny","beam_E","beam_Q"
 JbToy6DGen::JbToy6DGen() {
   printf("constr of JbToy6DGen mxPY=%d\n",mxPY);
   rnd=new TRandom3;
-  rnd->SetSeed(12); // forces identical rnd-sequence
   mTree = new TTree("Hel_Tree","M-C Qweak events for regression analysis.");
   mTree->Branch("pattern_number",&pattern_number,"pattern_number/D");
   for(int ip=0;ip<mxPY;ip++)
     mTree->Branch(Pname[ip],myQwChannel+ip,"block0/D:block1:hw_sum");
   
- 
   memset(par_Alpha, 0, sizeof(par_Alpha));
   memset(par_Ymean,0,sizeof(par_Ymean));
   memset(par_Ysig,0,sizeof(par_Ysig));
   memset(mYield, 0, sizeof(mYield));
   mTotEve=0;
   pattern_number=0; // works as event counter for the tree
+}
 
+//========================
+void JbToy6DGen::setSeed(int seed) {  
+    rnd->SetSeed(seed);  
+    printf("JbToy6DGen seed=%d\n",seed); 
 }
 
 
