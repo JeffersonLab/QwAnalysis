@@ -5,10 +5,10 @@ ClassImp(QwEventDisplay3D);
 
 // Global defines
 // These represent the conversion from degrees to radians
-#define _45DEG_  0.78539816;
-#define _90DEG_  1.57079633;
-#define _135DEG_ 2.35619449;
-#define _180DEG_ 3.14159265;
+#define _45DEG_  0.78539816
+#define _90DEG_  1.57079633
+#define _135DEG_ 2.35619449
+#define _180DEG_ 3.14159265
 
 // Global constants (mostly flags)
 const Bool_t kDebug = kTRUE;
@@ -269,7 +269,7 @@ void QwEventDisplay3D::InitEvents()
   // there is an Event which contains the details of the specific tracks.
   fHitContainer = NULL; // To allocate the memory already!
   fEvent = NULL;        // To allocate the memory already!
-  fTree->SetBranchAddress("hits",&fHitContainer);
+  //fTree->SetBranchAddress("hits",&fHitContainer);
   fTree->SetBranchAddress("events",&fEvent);
 
   // Read the number of events available
@@ -678,14 +678,18 @@ void QwEventDisplay3D::DisplayEvent()
 
       // Now loop through the hit container to extract all information about
       // all hits in his event (accross _all_ regions)
-      for( Int_t j = 0; j < numberOfHits; j++ ) {
-         hit = (QwHit*)fHitContainer->GetHit(j);
-         region = hit->GetRegion();
-         direction = hit->GetDirection();
-         package = hit->GetPackage();
-         plane = hit->GetPlane();
-         wire = hit->GetElement();
-         ambiguousR3Wire = (Bool_t)hit->AmbiguousElement();
+      fHitContainer = fEvent->GetHitContainer();
+      QwHitContainer::iterator it =
+         fHitContainer->begin();
+      Int_t j = 0;
+      while ( it != fHitContainer->end() ) {
+         j++;
+         region = (*it).GetRegion();
+         direction = (*it).GetDirection();
+         package = (*it).GetPackage();
+         plane = (*it).GetPlane();
+         wire = (*it).GetElement();
+         ambiguousR3Wire = (Bool_t)(*it).AmbiguousElement();
          if (kDebug) {
             std::cout << "---Hit: " << j << "\n";
             std::cout << "Region: " << region << "\n";
@@ -734,6 +738,9 @@ void QwEventDisplay3D::DisplayEvent()
 
          // Display the wire hit
          DisplayWire(wire,plane,package,region,message);
+
+         // Go to the next
+         it++;
      }
      // For now we will display multiple partial, possibly not connected,
      // tracks until a good one is produced in the rootfiles.
@@ -762,12 +769,18 @@ void QwEventDisplay3D::DisplayEvent()
 
               // This assumes the Origin is centered at z=0, and the two offsets
               // found to the partial tracks
-              std::cout << "Origin: (" << partialTrack->fOffsetX/10. << "," <<
-                 partialTrack->fOffsetY/10. << ",0.)\n";
-              track->fV.Set(RotateXonZ(partialTrack->fOffsetX/10.,
-                       partialTrack->fOffsetY/10.,fPackageAngle),
-                    RotateYonZ(partialTrack->fOffsetX/10.,
-                       partialTrack->fOffsetY/10.,fPackageAngle),0.);
+              std::cout << "Origin: (" << partialTrack->fOffsetX << "," <<
+                 partialTrack->fOffsetY << ",0.)";
+              if( partialTrack->fOffsetX>1000 || partialTrack->fOffsetY>1000
+                    || partialTrack->fOffsetX<-1000 || 
+                    partialTrack->fOffsetY<-1000 ) {
+                    std::cout << "\tOut of range!";
+              }
+              std::cout << "\n";
+              track->fV.Set(RotateXonZ(partialTrack->fOffsetX,
+                       partialTrack->fOffsetY,fPackageAngle+_90DEG_),
+                    RotateYonZ(partialTrack->fOffsetX,
+                       partialTrack->fOffsetY,fPackageAngle+_90DEG_),0.);
 
               // The components of this vector are represented only by ratios
               // of X and Y to Z. That assumes that fSlopeX and fSlopeY are
@@ -775,9 +788,9 @@ void QwEventDisplay3D::DisplayEvent()
               std::cout << "Slopes: (" << partialTrack->fSlopeX << "," <<
                  partialTrack->fSlopeY << "," << sign*1. << ")\n";
               track->fP.Set(RotateXonZ(partialTrack->fSlopeX*sign,
-                    partialTrack->fSlopeY*sign,fPackageAngle),
+                    partialTrack->fSlopeY*sign,fPackageAngle+_90DEG_),
                     RotateYonZ(partialTrack->fSlopeX*sign,
-                    partialTrack->fSlopeY*sign,fPackageAngle),1.);
+                    partialTrack->fSlopeY*sign,fPackageAngle+_90DEG_),sign*1.);
 
               // The technical details of drawing the track
               fCurrentTrack = new TEveTrack(track,prop);
@@ -891,7 +904,7 @@ void QwEventDisplay3D::SwitchViewVDC()
    // For the VDC's
    if (!fVDC_IsWireView) {
       // Reset button text
-      fVDC_SwitchViewButton->SetText("Switch to Detector View");     
+      fVDC_SwitchViewButton->SetText("Switch to Detector View");
 
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();

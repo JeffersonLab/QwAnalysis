@@ -56,7 +56,7 @@
 #include <TGeoVolume.h>
 
 // Qweak Includes
-#include <QwHitRootContainer.h>
+#include <QwHitContainer.h>
 #include <QwEvent.h>
 #include <QwLog.h>
 #include <QwPartialTrack.h>
@@ -85,7 +85,7 @@ private:
 
   // Event trees and the like
   TTree *fTree;
-  QwHitRootContainer *fHitContainer;
+  QwHitContainer *fHitContainer;
   QwEvent *fEvent;
   Long64_t fNumberOfEvents;
   Long64_t fCurrentEvent;
