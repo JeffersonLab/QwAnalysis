@@ -54,6 +54,10 @@
 //                  - added "SaveAs" to ROOT  C++ Macro file
 //                    [] root -l qwk_bcm1.cxx to see an interactive plot
 //                         
+//          0.0.5 : Wed, Oct 13 2010, jhlee
+//                  - added "bcm" gain and its error
+//                    gain  = 1/slope, gain_error = slope_error/slope^2
+//                
 
 #include <iostream>
 #include <fstream>
@@ -93,8 +97,9 @@ public:
   void SetAliasName(const TString in) {alias_name = in;};
   void SetPed(const Double_t in) {offset[0] = in;};
   void SetPedErr(const Double_t in) {offset[1] = in;};
-  void SetSlop(const Double_t in) {slope[0] = in;};
-  void SetSlopErr(const Double_t in) {slope[1] = in;}
+  void SetSlop(const Double_t in) {slope[0] = in; gain[0] = 1.0/in;};
+  void SetSlopErr(const Double_t in) {slope[1] = in; SetGainErr();} // must calculate gain[1] error later, jhlee
+ 
   void SetFitRange(const Double_t in[2]) {fit_range[0] = in[0]; fit_range[1] = in[1];};
   void SetReference() {reference_flag = true;};
   void SetFileStream() {filestream_flag = true;};
@@ -122,11 +127,14 @@ private:
   TString alias_name;
   Double_t offset[2];
   Double_t slope[2];
+  Double_t gain[2];
   // Double_t mean[2];
   // Double_t rms[2];
   Double_t fit_range[2];
   Bool_t   reference_flag;
   Bool_t   filestream_flag;
+
+  void SetGainErr();
 
 };
 
@@ -138,6 +146,8 @@ BeamMonitor::BeamMonitor()
   offset[1] = 0.0;
   slope[0] = 0.0;
   slope[1] = 0.0;
+  gain[0] = 0.0;
+  gain[1] = 0.0;
   // mean[0] = 0.0;
   // mean[1] = 0.0;
   // rms[0] = 0.0;
@@ -157,6 +167,8 @@ BeamMonitor::BeamMonitor(TString in)
   offset[1] = 0.0;
   slope[0] = 0.0;
   slope[1] = 0.0;
+  gain[0] = 0.0;
+  gain[1] = 0.0;
   // mean[0] = 0.0;
   // mean[1] = 0.0;
   // rms[0] = 0.0;
@@ -168,6 +180,16 @@ BeamMonitor::BeamMonitor(TString in)
 
 };
 
+void BeamMonitor::SetGainErr()
+{
+  Double_t slope2 = 0.0;
+
+  slope2 = slope[0]*slope[0];
+  
+  if(slope2 not_eq 0.0)  gain[1] = slope[1]/slope2;
+  else                   gain[1] = 0.0;
+  
+};
 
 std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
 {
@@ -183,6 +205,10 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
     stream <<  std::setw(10) << device.slope[0];
     stream << " " ;
     stream <<  std::setw(10) << device.slope[1];
+    stream << " " ;
+    stream <<  std::setw(14) << device.gain[0];
+    stream << " " ;
+    stream <<  std::setw(10) << device.gain[1];
     stream << "\n";
   }
   else {
@@ -204,6 +230,8 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
     else {
       stream << " Slope :" << std::setw(4)  << device.slope[0];
       stream << " +- "     << device.slope[1];
+      stream << " Gain  :" << std::setw(8)  << device.gain[0];
+      stream << " +- "     << std::setw(8)  << device.gain[1];
     }
   }
   return stream;
