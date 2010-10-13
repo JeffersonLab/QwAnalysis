@@ -204,7 +204,7 @@ void LinRegBevPeb::printSummaryP(){
 //==========================================================
 void LinRegBevPeb::printSummaryY(){
   cout << Form("\nLinRegBevPeb::printSummaryY seen good eve=%lld",fGoodEventNumber)<<endl;
-  cout << Form("\n  j                   mean          sig    \n");
+  cout << Form("\n  j        mean      sig(mean)    nSig(mean)   sig(distribution)    \n");
   for (int i = 0; i <par_nY; i++) {
     double meanI,sigI;
     assert( getMeanY(i,meanI)==0);
@@ -221,11 +221,17 @@ void LinRegBevPeb::printSummaryY(){
 //==========================================================
 void LinRegBevPeb::printSummaryAlphas(){
   cout << Form("\nLinRegBevPeb::printSummaryAlphas seen good eve=%lld",fGoodEventNumber)<<endl;
-  cout << Form("\n  j                   mean          sig    \n");
+  cout << Form("\n  j                mean          sig       mean/sigma\n");
   for (int iy = 0; iy <par_nY; iy++) {
-    cout << Form("  Y%d: ",iy)<<endl;
-    for (int j = 0; j < par_nP; j++) 
-      cout << Form("  alpha_%d = %f +/- %f ",j,mA(j,iy),mAsig(j,iy))<<endl;   
+    cout << Form("dv=Y%d: ",iy)<<endl;
+    for (int j = 0; j < par_nP; j++) {
+      double val=mA(j,iy);
+      double err=mAsig(j,iy);
+      double nSig=val/err;
+      char x=' ';
+      if(fabs(nSig)>3.) x='*';
+      cout << Form("  alpha_%d = %11.3g  +/-%11.3g  (nSig=%.2f) %c\n",j,val, err,nSig,x);
+    }
   }
 }
 

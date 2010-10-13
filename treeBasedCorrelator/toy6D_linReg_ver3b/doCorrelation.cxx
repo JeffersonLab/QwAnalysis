@@ -51,36 +51,37 @@ int main(int argc, char *argv[]) {
   const char *inpPath=outPath;
   int i=0;
   char text[100];
-  sprintf(text,"%sQweak_1234.000.root",inpPath); //toyMC
-  //sprintf(text,"%sQweak_1023.000.root",inpPath); // real events
+  //  sprintf(text,"%sQweak_1234.000.root",inpPath); //toyMC
+  //sprintf(text,"%sQweak_1023.000.root",inpPath); // 6K real events, Juleitte
+  sprintf(text,"%sQweak_597.000.root",inpPath); // R502=8K real events, Wouter, R597=18keve, old file
+  sprintf(text,"%sQweak_5762.000.root",inpPath); // freash file, Oct-12-2010
+
+
   chain->Add(text);
   printf("%d =%s=\n",i,text);
   
   int nEve=(int)chain->GetEntries();
-  printf("tot nEve=%d expected in the chain  nPY=%d\n",nEve,nPY);
+  printf("tot nEve=%d expected in the chain  nPY=%d,\nscan leafs for iv & dv ...\n",nEve,nPY);
   
-  for(int ip=0;ip<nP;ip++){
-    TString name=corA.ivName[ip];
+  for(int i=0;i<nP+nY;i++){
+    TString name;
+    if(i<nP) name=corA.ivName[i];
+    else name=corA.dvName[i-nP];
     name.ReplaceAll(".","/");
     TLeaf *lf=chain->GetLeaf(name); 
+    printf("%d  leaf=%s=  ptr=%p\n",i,name.Data(),lf);
+    //printf("%d =%s=\n",iy,corA.dvName[iy].Data());
     assert(lf);
-    eveValueP[ip]=(Double_t*)lf->GetValuePointer();
-    assert(eveValueP[ip]);
+    eveValueP[i]=(Double_t*)lf->GetValuePointer();    
+    assert(eveValueP[i]);
   }
 
   // eveValues[0]=(Double_t*)chain->GetLeaf("beam_nx/hw_sum")->GetValuePointer();
 
-  for(int iy=0;iy<nY;iy++){
-    TString name=corA.dvName[iy];
-    name.ReplaceAll(".","/");
-    TLeaf *lf=chain->GetLeaf(name);     assert(lf);
-    eveValueP[nP+iy]=(Double_t*)lf->GetValuePointer();
-    assert(eveValueP[nP+iy]);
-    printf("%d =%s=\n",iy,corA.dvName[iy].Data());
-  }
+ 
   //for(int iy=0;iy<nPY;iy++) printf("i=%d p=%p\n",iy,eveValueP[iy]);
-  chain->Print();
-  chain->Show(0); // event id startting from 0
+  // chain->Print();
+  // chain->Show(0); // event id startting from 0
   // 
 
   TString hfileName=outPath;  hfileName+="/toy6Dregr.hist.root";

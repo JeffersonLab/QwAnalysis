@@ -44,19 +44,24 @@ void JbCorrelator::print() {
 //________________________________________________
 void
 JbCorrelator::addEvent(Double_t **valPA){
-  
+
+ 
   // correlation uses spin averaged data
 
   //...... recover  iv
   for(int ip=0;ip<niv();ip++){
     Pvec[ip]=*valPA[ip];
-    //  printf("P%d %f\n",ip,Pvec[ip]);
+    //printf("P%d %f\n",ip,Pvec[ip]);
+    if( Pvec[ip]!=Pvec[ip]) return; // skip bad entreies
   }
+ 
   
+
   //...... recover  dv
   for(int iy=0;iy<ndv();iy++){
     Yvec[iy]=*valPA[niv()+iy];
     //printf("Y%d %f\n",iy,Yvec[iy]);
+    if( Yvec[iy]!=Yvec[iy]) return; // skip bad entreies
   }
   //assert(2==3);
   

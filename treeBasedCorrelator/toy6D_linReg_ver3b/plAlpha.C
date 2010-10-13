@@ -25,19 +25,21 @@ plAlpha(int alf=0) {
 //---------------------------------
 void readData(int alf,TH1F*h){
   int k=1;
-  TString name=Form("outMC_1L/alpha_%d.dat",alf);
+  //  TString name=Form("outMC_1R/alpha_%d.dat",alf);
+  TString name=Form("outR597/alpha_%d.dat",alf);
   //name="/u/home/balewski/PAN/regressionHallA/postpan/alpha_2.val";
   //diff_qwk_1i04X.hw_sum log-data-300x22 | cut -f5 -d\  >alpha_0.val
   FILE *fd=fopen(name.Data(),"r"); assert(fd);
   printf("fd=%p =%s=\n",fd,name.Data());
   while(1) {
-    float hv;
+    float val, err=-2;
     k++;
-    int ret= fscanf(fd,"%f",&hv);
-    if(ret!=1) break;
+    //   int ret= fscanf(fd,"%f",&val);    if(ret!=1) break;
+    int ret= fscanf(fd,"%f %f",&val,&err);    if(ret!=2) break;
     if(k%50==0)
-     printf("k=%d v=%f \n",k,hv);
-    h->Fill(hv);
+      printf("k=%d v=%g err=%g \n",k,val,err);
+    h->Fill(val);
+    //    h->Fill(err);
   }
   fclose(fd);
 }
