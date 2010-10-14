@@ -321,7 +321,7 @@ void LinRegBevPeb::solve() {
     }
   }
   
-  cout<<"mA:"; mA.Print();
+  // cout<<"mA:"; mA.Print();
 
   cout << "Compute errors of alphas ..."<<endl;
   double norm=1./(fGoodEventNumber - par_nP -1);
@@ -352,7 +352,7 @@ void LinRegBevPeb::solve() {
     }
   }
 
-  cout<<"mAsig:"; mAsig.Print();
+  //  cout<<"mAsig:"; mAsig.Print();
 
 
 }

@@ -31,6 +31,9 @@ doGen: doToy6Deve.o $(OBJS)
 doCor: doCorrelation.o $(OBJS)
 	$(LD) $(LDFLAGS) -o $@  $^  -l m  -l Minuit $(ROOT_LIB)
 
+doCorAvr: doCorAvr.o $(OBJS)
+	$(LD) $(LDFLAGS) -o $@  $^  -l m  -l Minuit $(ROOT_LIB)
+
 
 clean:
 	-rm -f *.o $(LINK) doGen doCor
