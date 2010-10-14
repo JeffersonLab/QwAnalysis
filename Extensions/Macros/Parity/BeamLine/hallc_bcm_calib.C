@@ -54,10 +54,12 @@
 //                  - added "SaveAs" to ROOT  C++ Macro file
 //                    [] root -l qwk_bcm1.cxx to see an interactive plot
 //                         
-//          0.0.5 : Wed, Oct 13 2010, jhlee
+//          0.0.5 : Wednesday, October 13 23:23:04 EDT 2010
 //                  - added "bcm" gain and its error
 //                    gain  = 1/slope, gain_error = slope_error/slope^2
-//                
+//                  - changed the default fit range [10,80] % of unser range
+//                  - changed the default naive beam off cut as 518
+//                  - added the run number in the histogram title
 
 #include <iostream>
 #include <fstream>
@@ -230,6 +232,7 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
     else {
       stream << " Slope :" << std::setw(4)  << device.slope[0];
       stream << " +- "     << device.slope[1];
+      stream << std::setw(12) << "\n";
       stream << " Gain  :" << std::setw(8)  << device.gain[0];
       stream << " +- "     << std::setw(8)  << device.gain[1];
     }
@@ -239,7 +242,7 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
 
 
 void print_usage(FILE* stream, int exit_code);
-Bool_t calibrate(BeamMonitor &device, BeamMonitor &reference);
+Bool_t calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
 
 TH1D*
 GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
@@ -261,6 +264,7 @@ std::vector<BeamMonitor> hallc_bcms_list;
 TCanvas *unser_canvas = NULL;
 TCanvas *bcm_canvas = NULL;
 TString bcm_plots_filename;
+
 
 Int_t
 main(int argc, char **argv)
@@ -342,7 +346,7 @@ main(int argc, char **argv)
   
   if(not fit_range_flag) {
     fit_range[0] = 0.10;
-    fit_range[1] = 0.85;
+    fit_range[1] = 0.80;
   }
   else {
     fit_range[0] = fit_range[0]/100.0;
@@ -353,10 +357,9 @@ main(int argc, char **argv)
     naive_beam_off_cut = naive_beam_off_cut*1e3;
   }
   else {
-    naive_beam_off_cut = 320*1e3;
+    naive_beam_off_cut = 318*1e3;   
   }
-
-
+  
   if (not file_flag) {
     print_usage(stdout,0);
     exit (-1);
@@ -467,15 +470,18 @@ main(int argc, char **argv)
   unser_canvas -> Divide(2,1);
   unser_canvas -> cd(1);
   
-  TH1D* sca_user_event;
-  sca_user_event = GetHisto(mps_tree, "cc_sca_unser:event_number", "");
-  if(not sca_user_event) {
-    std::cout << "Please check cc_sca_unser:event_number>>tmp"
-       	      << std::endl;
+  TH1D* sca_unser_event = NULL;
+  sca_unser_event = GetHisto(mps_tree, "cc_sca_unser:event_number", "");
+  if(not sca_unser_event) {
+    std::cout << "Please check cc_sca_unser:event_number"
+	      << std::endl;
     theApp.Run();
   }
 
-  Double_t unser_max = sca_user_event -> GetYaxis() -> GetXmax();
+  sca_unser_event -> SetTitle(Form("Run %s  cc_sca_unser:event_number", run_number));
+  gPad->Update();
+
+  Double_t unser_max = sca_unser_event -> GetYaxis() -> GetXmax();
 
 
   //
@@ -493,14 +499,14 @@ main(int argc, char **argv)
   	      << " in " << filename.Data()
   	      << std::endl;
     std::cout << "or\n This programs doesn't handle this run correctly. "
-  	      << "Please send an email to jhlee@jlab.org"
+  	      << "Please report this problem via an email to jhlee@jlab.org"
   	      << std::endl;
     std::cout << "or\n You can adjust unser_beam_off_offset_cutoff value."
   	      << std::endl;
     theApp.Run();
   }
-  cc_sca_unser_gaus -> SetTitle("cc_sca_unser");
-  cc_sca_unser_gaus -> Fit("gaus", "M Q");
+  cc_sca_unser_gaus -> SetTitle(Form("Run %s cc_sca_unser", run_number));
+  cc_sca_unser_gaus -> Fit("gaus", "M");
 
   TF1 *unser_fit = cc_sca_unser_gaus -> GetFunction("gaus");
   unser_fit->SetLineColor(kRed);
@@ -530,12 +536,11 @@ main(int argc, char **argv)
   	      << " in " << filename.Data()
   	      << std::endl;
     std::cout << "or\n This programs doesn't handle this run correctly. "
-  	      << "Please send an email to jhlee@jlab.org"
-  	      << std::endl;
+	      << "Please report this problem via an email to jhlee@jlab.org"                                                                           << std::endl;
     theApp.Run();
   }
 
-
+  
   unser_canvas -> Modified();
   unser_canvas -> Update();
  
@@ -561,7 +566,7 @@ main(int argc, char **argv)
 		<< ": onto calibrating " << hallc_bcms_list.at(i).GetName() 
 		<< std::endl;
       Bool_t check = false;
-      check = calibrate(hallc_bcms_list.at(i), sca_unser) ; 
+      check = calibrate(hallc_bcms_list.at(i), sca_unser, run_number) ; 
       //  if(not check) theApp.Run();
     }
 
@@ -598,7 +603,7 @@ main(int argc, char **argv)
 
 
 Bool_t
-calibrate(BeamMonitor &device, BeamMonitor &reference)
+calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number )
 {
 
   std::cout << "\n";
@@ -651,7 +656,8 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
  
   bcm_canvas->Divide(1,2);
   bcm_canvas->cd(1);
- 
+  gPad->SetGridx();
+  gPad->SetGridy();
   device_hist = GetHisto(
 			 mps_tree, 
 			 plotcommand, 
@@ -672,9 +678,14 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
   device_hist -> SetName(device.GetName().Data());
   device_hist -> GetXaxis() -> SetTitle(reference_name.Data());
   //  device_hist -> GetYaxis() -> SetTitle(device_name.Data());
-  device_hist -> SetTitle(Form("%s vs %s", device_name.Data(), reference_name.Data()));
+  device_hist -> SetTitle(Form("Run %s : %s vs %s", 
+			       run_number, 
+			       device_name.Data(), 
+			       reference_name.Data()
+			       )
+			  );
   device_hist -> GetXaxis() ->SetTitle(Form("%s (#muA)", reference_name.Data()));
-  device_hist -> Fit("pol1", "E M Q", "", fit_range[0], fit_range[1]);
+  device_hist -> Fit("pol1", "E M R F", "", fit_range[0], fit_range[1]);
   device_hist -> Draw("");
   device_fit = device_hist  -> GetFunction("pol1");
   
@@ -688,7 +699,8 @@ calibrate(BeamMonitor &device, BeamMonitor &reference)
 
    // Draw the residuals
     bcm_canvas->cd(2);
-
+    gPad->SetGridx();
+    gPad->SetGridy();
     // device_name is already well determined before
     // now we don't need to distinguish between sca and vqwk
 
