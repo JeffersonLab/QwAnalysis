@@ -5,7 +5,7 @@
 ! BCM pedestals were obtained using run 5070.
 ! 
 ! qwk_bcm1,2,5, and 6 pedestal and its gain
-! were obtained using run 5260
+! were obtained using run 5807
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -101,9 +101,9 @@
   qwk_bpm3h09bXM    ,   2266.3  , 1.0
   qwk_bpm3h09bYP    ,  3552.47  , 1.0
   qwk_bpm3h09bYM    ,  1767.51  , 1.0
-  qwk_bcm6             ,  -129851	, 0.00108724
-  qwk_bcm5             ,  -129799	, 0.00074404
-  qwk_bcm2             ,  -1519.63	, 8.36396e-06
-  qwk_bcm1             ,  -995.545	, 1.43277e-05
+  qwk_bcm6             ,  -129942	, 0.00206173
+  qwk_bcm5             ,  -129728	, 7984.75
+  qwk_bcm2             ,  -373.196	, 0.00438068
+  qwk_bcm1             ,  36.7006	, 0.00412682
   qwk_linephase        ,     -382.662 	, 1.0
   qwk_invert_tstable   ,     -541.714 	, 1.0
