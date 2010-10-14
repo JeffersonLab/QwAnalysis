@@ -1,14 +1,12 @@
 //
 // C++ Implementation: QwScaler
 //
-// Description: 
+// Description: used to collect and process the information from the scaler channel
 //
 //
-// Author: jefferson <jefferson@linux-o89x>, (C) 2010
+// Author: siyuan yang <sxyang@email.wm.edu>, (C) Oct 13th 2010
 //
-// Copyright: See COPYING file that comes with this distribution
-//
-//
+
 
 #include "QwScaler.h"
 
@@ -200,18 +198,42 @@ void QwScaler::DeleteHistograms(){
 };
 
 void QwScaler::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values){
+  fTreeArrayIndex = values.size();
+
+  TString basename;
+  if (prefix=="") basename = "scaler";
+  else basename = prefix;
+
+  TString list = "";
   for(size_t i = 0; i < fSCAs.size(); i++){
     for(size_t j = 0; j < fSCAs.at(i).size(); j++){
-      fSCAs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
+//       fSCAs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
+	if(fSCAs.at(i).at(j).GetElementName()==""){
+		}
+	else{
+		values.push_back(0.0);
+		list+=":"+fSCAs.at(i).at(j).GetElementName()+"/D";
+	}
     }
   }
+	if(list[0]=':'){
+	    list = list(1,list.Length()-1);
+  }
+	tree->Branch(basename,&values[fTreeArrayIndex],list);
 };
 
 void QwScaler::FillTreeVector(std::vector<Double_t> &values) const {
+  Int_t index = fTreeArrayIndex;
   for(size_t i = 0; i < fSCAs.size(); i++){
     for(size_t j = 0; j < fSCAs.at(i).size(); j++){
-      fSCAs.at(i).at(j).FillTreeVector(values);
-    }
+//       fSCAs.at(i).at(j).FillTreeVector(values);
+	if(fSCAs.at(i).at(j).GetElementName()==""){
+	}
+	else{
+	values[index]=fSCAs.at(i).at(j).GetValue();
+	index++;
+	}
+     }
   }
 };
 

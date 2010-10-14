@@ -79,6 +79,7 @@ class QwScaler: public VQwSubsystemParity
 
 	protected:
 
+                Int_t fTreeArrayIndex;
 
 		std::vector<std::vector< QwSIS3801D24_Channel> >  fSCAs;
 };
