@@ -15,11 +15,9 @@ using namespace std;
 #include <TList.h>
 #include <TLine.h>
 #include <TFile.h> 
-#include <TTree.h> 
 
 #include <math.h>
 #include <TMath.h>
-
 
 #include "JbCorrelator.h"
 
@@ -43,29 +41,8 @@ void JbCorrelator::print() {
 //________________________________________________
 //________________________________________________
 void
-JbCorrelator::addEvent(Double_t **valPA){
+JbCorrelator::addEvent(double *Pvec, double *Yvec){
 
- 
-  // correlation uses spin averaged data
-
-  //...... recover  iv
-  for(int ip=0;ip<niv();ip++){
-    Pvec[ip]=*valPA[ip];
-    //printf("P%d %f\n",ip,Pvec[ip]);
-    if( Pvec[ip]!=Pvec[ip]) return; // skip bad entreies
-  }
- 
-  
-
-  //...... recover  dv
-  for(int iy=0;iy<ndv();iy++){
-    Yvec[iy]=*valPA[niv()+iy];
-    //printf("Y%d %f\n",iy,Yvec[iy]);
-    if( Yvec[iy]!=Yvec[iy]) return; // skip bad entreies
-  }
-  //assert(2==3);
-  
-  //.... monitor correlations
   linReg.accumulate(Pvec, Yvec);
 
 }
@@ -73,11 +50,10 @@ JbCorrelator::addEvent(Double_t **valPA){
 
 //========================
 //========================
-void JbCorrelator::init() {
+void JbCorrelator::init(int nP, int nY) {
   initHistos(); 
-  linReg.setDims(niv(),ndv()); linReg.init();
-  Pvec=new Double_t[niv()];
-  Yvec=new Double_t[ndv()];
+  linReg.setDims(nP, nY); 
+  linReg.init();
 }
 
 
@@ -98,13 +74,8 @@ JbCorrelator::initHistos(){
 
   for(int ibp=0;ibp<niv();ibp++) {
     float x1=-1,x2=1;
-    if(ibp==4) { x1=1259.1; x2=1261.3;}
-    if(ibp==5) { x1=0.4; x2=1.6;}
     hA[10+ibp]=h=new TH1D(Form(mCore+"P%dpCr",ibp),Form("corr Y P%d heli +;meas %s (a.u.) ",ibp, ivName[ibp].Data()),500,x1,x2);
     h->SetLineColor(heliC[0]);
-
-    hA[20+ibp]=h=new TH1D(Form(mCore+"P%dnCr",ibp),Form("corr Y P%d heli -; meas %s (a.u.) ",ibp, Pname2[ibp]),500,x1,x2);
-    h->SetLineColor(heliC[1]);
   }
 #endif 
 }
@@ -121,43 +92,5 @@ JbCorrelator::finish(){
   linReg.solve();
   linReg.printSummaryAlphas();
 
-#if 0
-  double DelP[mxP];
-  double falseAsy=0;
-  for(int ip=0;ip<mxP;ip++) {
-    double avr[mxHeli];
-    for(int ih=0;ih<mxHeli;ih++)  avr[ih]=mSumP[ip][ih]/mEve[ih];
-    DelP[ip]=avr[kheliP]-avr[kheliN];
-    falseAsy+=DelP[ip]*linReg.Alpha(ip);
-    printf("%10s : P%d  avr +heli=%f -heli=%f del=%f  foundAlpha=%f\n",Pname2[ip],ip,avr[0],avr[1],DelP[ip],linReg.Alpha(ip));
-
-  }
-  falseAsy/=mYmeas[kheliP]/mEve[kheliP] + mYmeas[kheliN]/mEve[kheliN];
-  printAsy(mYmeas,"uncorrected yields");
-  printf("       Asy correction =%f  based on found alphas\n",falseAsy);
-  printAsy(mYcorr,"corrected yields");
- 
-#endif
- 
-  delete [] Pvec ;
-  delete [] Yvec;
-
 }
 
-#if 0
-//________________________________________________
-//________________________________________________
-void
-JbCorrelator::printAsy(double *mY, const char * txt){
- //...... 
- double asy=999, err=888;
- double sum=mY[kheliP] + mY[kheliN];
- if(sum>5) {
-   asy=(mY[kheliP] - mY[kheliN])/sum;
-   err=1./sqrt(sum);
- }
- printf("Compute %s asy =%12.2g +/-%12.2g (nSig=%.2f)\n",txt,asy,err,asy/err);
-
-}
-
-#endif

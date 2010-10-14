@@ -1,6 +1,6 @@
 
-HDRS     = JbToy6DGen.h  LinReg_Bevington_Pebay.h Toy6DEvent.h JbCorrelator.h
-SRCS     = JbToy6DGen.cxx LinReg_Bevington_Pebay.cxx JbCorrelator.cxx
+HDRS     = JbToy6DGen.h  LinReg_Bevington_Pebay.h Toy6DEvent.h JbCorrelator.h JbLeafTransform.h
+SRCS     = JbToy6DGen.cxx LinReg_Bevington_Pebay.cxx JbCorrelator.cxx JbLeafTransform.cxx
 
 # 
 
@@ -22,7 +22,7 @@ ROOT_INC  = -I `root-config --incdir`
 
 
 
-all: doGen doCor
+all: doGen  doCorKent
 
 doGen: doToy6Deve.o $(OBJS) 
 	$(LD) $(LDFLAGS) -o $@  $^  -l m  -l Minuit $(ROOT_LIB)
@@ -31,7 +31,12 @@ doGen: doToy6Deve.o $(OBJS)
 doCor: doCorrelation.o $(OBJS)
 	$(LD) $(LDFLAGS) -o $@  $^  -l m  -l Minuit $(ROOT_LIB)
 
+
 doCorAvr: doCorAvr.o $(OBJS)
+	$(LD) $(LDFLAGS) -o $@  $^  -l m  -l Minuit $(ROOT_LIB)
+
+
+doCorKent: doCorKent.o $(OBJS)
 	$(LD) $(LDFLAGS) -o $@  $^  -l m  -l Minuit $(ROOT_LIB)
 
 

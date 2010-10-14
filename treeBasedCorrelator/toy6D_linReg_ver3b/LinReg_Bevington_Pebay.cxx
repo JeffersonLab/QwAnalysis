@@ -52,7 +52,13 @@ void LinRegBevPeb::print(){
 void LinRegBevPeb::accumulate(double *P, double *Y){
 
   fGoodEventNumber++;
-  //printf("yyy=%f\n",*Y);
+
+#if 0
+  printf("LinRegBevPeb::accumulate eve=%.0f\n",fGoodEventNumber);
+  for (int i = 0; i <par_nP; i++)  printf("iv_%d=%g\n",i,P[i]);
+  for (int i = 0; i <par_nY; i++)  printf("dv_%d=%g\n",i,Y[i]);
+
+#endif
 
   //....... P-only matrices ......
   for (int i = 0; i <par_nP; i++) {
@@ -321,7 +327,7 @@ void LinRegBevPeb::solve() {
     }
   }
   
-  // cout<<"mA:"; mA.Print();
+  //cout<<"mA:"; mA.Print();
 
   cout << "Compute errors of alphas ..."<<endl;
   double norm=1./(fGoodEventNumber - par_nP -1);
@@ -338,7 +344,7 @@ void LinRegBevPeb::solve() {
       double Syk2; assert( getCovariancePY(j,iy,Syk2)==0);
       Vxy+=Syk2*mA(j,iy);
     }
-    //   cout<<"iy="<<iy<<"  Vx="<<Vx<<"  Vxy="<<Vxy<<endl;
+    //cout<<"iy="<<iy<<"  Vx="<<Vx<<"  Vxy="<<Vxy<<endl;
   
     //    printf(" errAl:  iy=%d Vy=%f\n",iy,Sy*Sy);
     
@@ -352,7 +358,7 @@ void LinRegBevPeb::solve() {
     }
   }
 
-  //  cout<<"mAsig:"; mAsig.Print();
+  //cout<<"mAsig:"; mAsig.Print();
 
 
 }

@@ -14,12 +14,11 @@
 class TH1;
 
 #include "LinReg_Bevington_Pebay.h"
-#include "ToyQwChannel.h"
 
-class JbCorrelator: public  CorrelatorEntity  {
+class JbCorrelator  {
 
  private:
-  Double_t *Pvec, *Yvec;
+
   TString mCore;
  
   // histograms
@@ -30,10 +29,10 @@ class JbCorrelator: public  CorrelatorEntity  {
  public:
   JbCorrelator(const char *core); 
   void print();
-  void init();
+  void init(int nP, int nY);
   void finish();
-  void addEvent(Double_t **valPA); // array of pointers
-  
+  void addEvent(double *Pvec, double *Yvec);
+
 };
 
 #endif
