@@ -26,7 +26,7 @@ const string mdbkgd[8] ={
 "md9pos","isourc","preamp","cagesr"};
 
 Char_t filename[100];
-sprintf(filename,"$QW_ROOTFILES/Qweak_%i.root",runNum);
+sprintf(filename,"$QW_ROOTFILES/mdPed_%i.root",runNum);
 f = new TFile(filename);
 if(!f->IsOpen()){
 	std::cerr<<"Error opening ROOTFile "<<filename<<".\n"<<endl;
@@ -48,11 +48,11 @@ std::cout<<"Pedestal file "<<Form("%s/Parity/prminput/qweak_maindet_pedestal.%i-
 
 if (makeMDPed == kTRUE)
 {
-TH1F *mdHist[8];
+TH1F *mdHist[16];
 TCanvas *mc_md = new TCanvas("mc_md", "canvas_md",1400,1100);
-mc_md->Divide(3,3);
+mc_md->Divide(4,4);
 
-  for (Int_t p=0; p < 8; p++)
+  for (Int_t p=0; p < 16; p++)
     {           
       mdHist[p] = new TH1F(Form("%i_h_%s",runNum,md[p]),"",100,0,0);
       mc_md->cd(p+1);
