@@ -91,7 +91,7 @@ mc_ds->Divide(3,3);
               lumi_ped_file<<Form("!The following pedestals were recorded from RUN %s",run_num)<<endl;
               lumi_ped_file<<"!channel name , Mps channelname.hw_sum_raw/num_samples , gain"<<endl;
             }
-          lumi_ped_file<<Form("qwk_%s  ,  ",DS[p])<<htemp->GetMean()<<"  ,  1.0"<<endl;  
+          lumi_ped_file<<Form("qwk_%s  ,  ",DS[p])<<htemp->GetMean()<<"  ,  0.00007692"<<endl;  
         }
      }
 }
