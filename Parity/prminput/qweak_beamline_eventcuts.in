@@ -14,18 +14,18 @@
 
 !***************************************************
 !To turn ON both event cuts and HW checks
-!EVENTCUTS = 2
+EVENTCUTS = 2
 
 !***************************************************
 !To turn do both event cuts and HW checks and only flag event cut failed events
 !EVENTCUTS = 3
-!EVENTCUTS = 1 
+
 
 !***************************************************
 !for bcm devices
 !device_type, device_name,      lower limit, upper limit
  
-!bcm, qwk_bcm1,			0,		0
+bcm, qwk_bcm1,			2,		1000000
 !bcm, qwk_bcm2, 		0, 		0
 !bcm, qwk_bcm3, 		0, 		0
 !bcm, qwk_bcm5, 		0, 		0
