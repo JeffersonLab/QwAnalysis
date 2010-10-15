@@ -458,14 +458,40 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 
 void QwVQWK_Channel::ProcessEvent()
 {
-  for (Short_t i = 0; i < fBlocksPerEvent; i++) {
-    fBlock[i] = fCalibrationFactor * ( (1.0 * fBlock_raw[i] * fBlocksPerEvent / fNumberOfSamples) - fPedestal );
-    fBlockM2[i] = 0.0; // second moment is zero for single events
+  if (fNumberOfSamples==0 && fHardwareBlockSum_raw==0){
+    //  There isn't valid data for this channel.  Just flag it and
+    //  move on.
+    for (Short_t i = 0; i < fBlocksPerEvent; i++) {
+      fBlock[i] = 0.0;
+      fBlockM2[i] = 0.0;
+    }
+    fHardwareBlockSum = 0.0;
+    fHardwareBlockSumM2 = 0.0;
+    fDeviceErrorCode|=kErrorFlag_sample;
+  } else if (fNumberOfSamples==0) {
+    //  This is probably a more serious problem.
+    QwWarning << "QwVQWK_Channel::ProcessEvent:  Channel "
+	      << this->GetElementName().Data()
+	      << " has fNumberOfSamples==0 but has valid data in the hardware sum.  "
+	      << "Flag this as an error."
+	      << QwLog::endl;
+    for (Short_t i = 0; i < fBlocksPerEvent; i++) {
+      fBlock[i] = 0.0;
+      fBlockM2[i] = 0.0;
+    }
+    fHardwareBlockSum = 0.0;
+    fHardwareBlockSumM2 = 0.0;
+    fDeviceErrorCode|=kErrorFlag_sample;
+  } else {
+    for (Short_t i = 0; i < fBlocksPerEvent; i++) {
+      fBlock[i] = fCalibrationFactor * ( (1.0 * fBlock_raw[i] * fBlocksPerEvent / fNumberOfSamples) - fPedestal );
+      fBlockM2[i] = 0.0; // second moment is zero for single events
+    }
+    fHardwareBlockSum = fCalibrationFactor * ( (1.0 * fHardwareBlockSum_raw / fNumberOfSamples) - fPedestal );
+    fHardwareBlockSumM2 = 0.0; // second moment is zero for single events
+    //   if(GetElementName().Contains("md"))
+    //     printf("Detector %s signal =  %1.4e\n",this->GetElementName().Data(),fHardwareBlockSum);
   }
-  fHardwareBlockSum = fCalibrationFactor * ( (1.0 * fHardwareBlockSum_raw / fNumberOfSamples) - fPedestal );
-  fHardwareBlockSumM2 = 0.0; // second moment is zero for single events
-  //   if(GetElementName().Contains("md"))
-  //     printf("Detector %s signal =  %1.4e\n",this->GetElementName().Data(),fHardwareBlockSum);
   return;
 };
 

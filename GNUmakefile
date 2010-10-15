@@ -640,7 +640,7 @@ config: .ADD .EXES clean.auxfiles QwSVNVersion .auxDepends bin/qweak-config
 	done
 	@for wd in xxxdummyxxx $(sort $(shell $(ECHO) $(filter-out $(shell $(CAT) .EXES),$(EXES)) $(filter-out $(EXES),$(shell $(CAT) .EXES)) | $(REMOVE_-D))); \
 	do \
-	cd $(QW_BIN);$(RM) `$(LS) $(QW_BIN) | $(GREP) -v 'qweak-config' | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QW_LIB)/libQw$(DllSuf); \
+	cd $(QW_BIN);$(RM) `$(LS) $(QW_BIN) | $(GREP) -v 'qweak-config' | $(SED) 's/^.*\.pl$$//g' | $(SED) 's/CVS//g' | $(SED) 's/SunWS_cache//g'` $(QW_LIB)/libQw$(DllSuf); \
 	done
 	@$(ECHO) $(ADD)  | $(TO_LINE) > .ADD
 	@$(ECHO) $(EXES)  | $(TO_LINE) > .EXES
@@ -915,7 +915,7 @@ clean: clean.evio
 clean.exes:
 # Removes executables
 	@$(ECHO) Removing executables
-	@$(RM) `$(ECHO) $(QW_BIN)/* | $(SED) 's/[A-Za-z0-9\/_]*CVS//'`
+	@$(RM) `$(LS) $(QW_BIN)/* | $(SED) 's/^.*\.pl$$//g' | $(SED) 's/[A-Za-z0-9\/_]*CVS//'`
 
 clean.olddotfiles:
 	@$(RM) .dirs .libdepend .libdepend2 .exedepend .exedepend2 .mains .dictdepend .exes .objdepend .dicts .incdirs .srcdirs $(SETUP)/.MapFileBaseAddress
