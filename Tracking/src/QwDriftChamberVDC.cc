@@ -214,7 +214,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 	  diff_between_refs = fReferenceData.at ( bank ).at ( i )  -  fReferenceMaster.at ( bank ).at(0);
 	  // 			std::cout << fReferenceData.at ( bank ).at ( i ) << " " << fReferenceMaster.at ( bank ).at(0) << std::endl;
 	  // 			std::cout << "diff: " << diff << std::endl;
-	  if ( diff_between_refs> -880.0 || diff_between_refs < -960.0 ) {       
+	  if ( diff_between_refs> -400.0 || diff_between_refs < -940.0 ) {       
 	    fReferenceData.at ( bank ).erase ( fReferenceData.at(bank).begin() +i );
 	    i--;
 	  }
@@ -1315,7 +1315,10 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
 		plane   = iter->GetPlane();
 		wire    = iter->GetElement();
 		t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
-		iter->SetTime ( iter->GetTime()-t0 );
+		if(package==1)
+		iter->SetTime ( iter->GetTime()-t0-101 );
+		else if(package==2)
+		iter->SetTime ( iter->GetTime()-t0-102 );
 	}
 	return;
 };
