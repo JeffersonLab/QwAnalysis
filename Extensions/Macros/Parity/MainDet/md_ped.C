@@ -68,7 +68,7 @@ mc_md->Divide(4,4);
               md_ped_file<<Form("!The following pedestals were recorded from RUN %i",runNum)<<endl;
               md_ped_file<<"!channel name , Mps channelname.hw_sum_raw/num_samples , gain"<<endl;
             }
-          md_ped_file<<Form("%s  ,  ",md[p])<<htemp->GetMean()<<"  ,  1.0"<<endl;
+          md_ped_file<<Form("%s  ,  ",md[p])<<htemp->GetMean()<<"  ,  0.00007629"<<endl;
         }
      }
 }
@@ -90,7 +90,7 @@ md_ped_file<<endl;
            
       if (save_file == kTRUE)
         {
-          md_ped_file<<Form("%s  ,  ",mdbkgd[p])<<htemp->GetMean()<<"  ,  1.0"<<endl;
+          md_ped_file<<Form("%s  ,  ",mdbkgd[p])<<htemp->GetMean()<<"  ,  0.00007629"<<endl;
         }
     } // end of for statement
 md_ped_file<<endl;

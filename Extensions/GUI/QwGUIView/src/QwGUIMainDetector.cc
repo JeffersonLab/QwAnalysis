@@ -844,7 +844,7 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 	for(int j = 0; j < MPSTree->GetEntries(); j++){
 
 	  if(!TMath::IsNaN(MPSTree->GetV1()[j])){
-	    CurrentPMTYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6);
+	    CurrentPMTYield[i].PushData(MPSTree->GetV1()[j]);
 	    events++;
 	  }
 	}
@@ -961,7 +961,7 @@ void QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 	for(int j = 0; j < MPSTree->GetEntries(); j++){
 
 	  if(!TMath::IsNaN(MPSTree->GetV1()[j])){
-	    CurrentMSCYield[i].PushData(MPSTree->GetV1()[j]*76.3e-6);
+	    CurrentMSCYield[i].PushData(MPSTree->GetV1()[j]);
 	    events++;
 	  }
 	}
@@ -1491,7 +1491,7 @@ void QwGUIMainDetector::FillMSCYieldPlots(Int_t det, Int_t dTInd)
 
   QwGUIMainDetectorDataStructure dCurrentData = dCurrentMSCYields[dTInd]->GetElements()[det];
 
-  printf("Detector %s Yield Mean = %1.6e\n",dCurrentData.GetName(),dCurrentData.GetDataMean()/(76.25e-6));
+  printf("Detector %s Yield Mean = %1.6e\n",dCurrentData.GetName(),dCurrentData.GetDataMean());
   hst = new TH1D(Form("mscyield%02d_%d",det,dTInd),dCurrentData.GetName(),
 		 1000,dCurrentData.GetDataMean()-5*dCurrentData.GetDataRMS(),dCurrentData.GetDataMean()+5*dCurrentData.GetDataRMS());
   grp = new TGraph();
