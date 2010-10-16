@@ -197,6 +197,8 @@ void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
                       back__f1_raw     = scanner[++index];
                       coinc_f1_raw     = scanner[++index];
                       ref_t_f1_raw     = scanner[++index];
+                      bg_wilbr_sca_raw = scanner[++index];
+                      bg_chrlt_sca_raw = scanner[++index];
                       coinc_sca_raw    = scanner[++index];
                       back__sca_raw    = scanner[++index];
                       front_sca_raw    = scanner[++index];

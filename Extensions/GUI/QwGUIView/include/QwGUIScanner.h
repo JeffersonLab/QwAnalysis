@@ -254,6 +254,8 @@ class QwGUIScanner : public QwGUISubSystem
     Double_t back__f1_raw;
     Double_t coinc_f1_raw;
     Double_t ref_t_f1_raw;
+    Double_t bg_wilbr_sca_raw;
+    Double_t bg_chrlt_sca_raw;
     Double_t coinc_sca_raw;
     Double_t back__sca_raw;
     Double_t front_sca_raw;
