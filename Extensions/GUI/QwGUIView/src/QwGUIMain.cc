@@ -949,6 +949,16 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
     return PROCESS_FAILED;
   }
 
+//   new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), GetMain(), "evslcd","QwGUIMain",fftopts);
+
+//   if(fftopts->cancelFlag) return kFalse;
+//   if(fftopts->changeFlag || !dCurrentData->IsFFTCalculated()){
+
+//     if(fftopts->Length <= 0) return kFalse;
+//     if(fftopts->Start < 0 || fftopts->Start >= dCurrentDataStr[0].Length()) return kFalse;
+//     if(fftopts->Start + fftopts->Length > dCurrentDataStr[0].Length()) return kFalse;
+
+
   dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
   TObject *obj;
   TIter next(SubSystemArray.MakeIterator());

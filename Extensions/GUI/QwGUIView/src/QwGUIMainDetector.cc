@@ -621,13 +621,20 @@ void QwGUIMainDetector::MakeLayout()
 
 Int_t QwGUIMainDetector::LoadCurrentModeChannelMap()
 {
-  TString mapfile = Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+
+  //  TString mapfile = Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH"));
+  TString mapfile = Form("qweak_maindet.map");
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;
   Int_t modnum, channum, combinedchans;
   std::vector<TString> combinedchannelnames;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -2468,7 +2475,7 @@ Bool_t QwGUIMainDetector::CalculateDFT()
 
 	evn = 1;
 	for(int i = 0; i < (Int_t)(fftopts->Length/2); i++) {
-	  fft->SetBinContent(i,1.25*fftmag->GetBinContent(i)/fftopts->Length);
+	  fft->SetBinContent(i,fftmag->GetBinContent(i)/fftopts->Length);
 
 	  evn++;
 	  if(dProcessHalt) break;
