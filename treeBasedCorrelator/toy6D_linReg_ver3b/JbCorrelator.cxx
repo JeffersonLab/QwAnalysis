@@ -88,7 +88,7 @@ JbCorrelator::initHistos(){
     h->GetXaxis()->SetNdivisions(4);
   }
   
-  double x1=10000.;
+  double x1=50e3;
   //..... 2D,  iv correlations
   h2iv=new TH1 *[nP*nP]; // not all are used
   for(int i=0;i<nP;i++) {    
@@ -109,7 +109,7 @@ JbCorrelator::initHistos(){
   }
   
   
-  double y1=800.;
+  double y1=3e3;
   //..... 2D,  dv-iv correlations
   h2dv=new TH1 *[nP*nY]; // not all are used
   for(int i=0;i<nP;i++) {    

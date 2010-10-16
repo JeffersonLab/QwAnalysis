@@ -22,16 +22,18 @@
 
 int main(int argc, char *argv[]) {
   int mxEve=500, skipEve=0;
-
+  const char *inpPath="/home/cdaq/qweak/QwScratch/rootfiles/";
+  const char * outPath="./";
   // decode input params
   printf("Syntax: %s [neve]    OR   %s  [neve] [skipEve]\n",argv[0], argv[0]);
   if ( argc>=2) mxEve=atoi(argv[1]);
   if ( argc>=3) skipEve=atoi(argv[2]);
-  int runId=5762;
+  int runId=5848;
   int runSeq=0;
-  const char * outPath="./";
 
-  printf("Selected run=%d_%03i  mxEve=%d nSkip=%d\n", runId,runSeq,mxEve,skipEve);
+
+  // printf("Selected run=%d_%03i  mxEve=%d nSkip=%d\n", runId,runSeq,mxEve,skipEve);
+ printf("Selected mxEve=%d nSkip=%d\n",mxEve,skipEve);
 
   //...... access to inpute leafs
   JbLeafTransform eve("tran"); // changes content of event
@@ -66,19 +68,27 @@ int main(int argc, char *argv[]) {
   
   // .........   input  event file   .........
   TChain *chain = new TChain("Hel_Tree");  
-  const char *inpPath=outPath;
+
  
+#if 0
   int i=0;
   char text[100];
   sprintf(text,"%sQweak_%d.%03i.root",inpPath,runId, runSeq); 
   chain->Add(text);
   printf("%d =%s=\n",i,text);
-  
+#endif
+
+  char *runL[]={"5848.000","5848.001","5820.002"}; int nr=1;
+  for(int i=0;i<nr;i++) {
+     TString treeFile=Form("%sQweak_%s.root",inpPath,runL[i]);
+     chain->Add(treeFile);
+     printf("%d =%s=\n",i,treeFile.Data());
+  }
   int nEve=(int)chain->GetEntries();
   printf("tot nEve=%d expected in the chain \nscan leafs for iv & dv ...\n",nEve);
   eve.findInputLeafs(chain);
   //eve.print();
-
+  // return 0;
 
   TString hfileName=Form("%scorKent_%d.%03i.hist.root",outPath,runId, runSeq);
   TFile*  mHfile=new TFile(hfileName,"RECREATE"," histograms w/ regressed Qweak data");
@@ -92,6 +102,7 @@ int main(int argc, char *argv[]) {
   if(nEve>mxEve) nEve=mxEve;
   for( ie=skipEve;ie<nEve;ie++) { 
     chain->GetEntry(ie);
+    if(ie%5000==0) printf(" ieve=%d of %d ...\n",ie,nEve);
     if(!eve.unpackEvent()) continue;
     corA.addEvent(eve.Pvec, eve.Yvec);
     if(alphas) {// regress dv's

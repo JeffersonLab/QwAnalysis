@@ -6,20 +6,20 @@ TFile* fd=0;
 enum{ nP=4,nY=3}; 
 TString corName="Acor";
 
-plCor(int page=2) {
+plCor(int page=1) {
   if(page==0) {  doAll();    return;   }
 
   gStyle->SetFillStyle(0);
   gStyle->SetPalette(1,0);
-  TString dataFinalRoot=inpPath+"corKent_5762.000.hist.root";
+  TString dataFinalRoot=inpPath+"corKent_5820.000.hist.root";
   char *oPath="./";
-  int pl=0; //1=gif, 2=ps, 3=both
+  int pl=2; //1=gif, 2=ps, 3=both
 
   fd=new TFile( dataFinalRoot); assert(fd->IsOpen());
 
   if(page==1) DV_CMP("DV_comparison","DV's before & after regression");  
-  if(page==2) IVs("IV","Independent variables");
-  if(page==3) IV_DV("IV_DV","Correlation DV vs. IV ");
+  if(page==2) IV_DV("IV_DV","Correlation DV's vs. IV's ");
+  if(page==3) IVs("IV","Independent variables");
 
   if(page==30) DV_1D("DV_1D","dv"); // just one set, old
 
@@ -90,7 +90,7 @@ void   IV_DV(TString cCore, TString text){
   gStyle->SetOptStat(1001110);
   gStyle->SetOptFit(1);
   
-  can=new TCanvas("aa","aa",700,500);    TPad *c=makeTitle(can,text);
+  can=new TCanvas("aa","aa",700,600);    TPad *c=makeTitle(can,text);
  
   c->Divide(nP,nY);
 
@@ -126,18 +126,20 @@ void   DV_CMP(TString cCore, TString text){
     h->Draw();
     double w1=h->GetRMS();
     double ym=h->GetMaximum()*0.25;
-    double xm=-200;
-    TText *tx=new TText(xm,ym,Form("RMS=%.1f",w1)); tx->Draw();
+    double xm=-600;
+    TText *tx=new TText(xm,ym,Form("RMS=%.0f",w1)); tx->Draw();
 
     c->cd(1+nY+i);
     name=Form("BcorY%d",i);  cout<<name.Data()<<endl;
-    h=(TH1 *)fd->Get(name); assert(h);
+    h=(TH1 *)fd->Get(name); 
+    if(h==0) continue;
+    //assert(h);
     h->Draw();
     double w2=h->GetRMS();
-    TText *tx2=new TText(xm,ym,Form("RMS=%.1f",w2)); tx2->Draw();
+    TText *tx2=new TText(xm,ym,Form("RMS=%.0f",w2)); tx2->Draw();
     double del=sqrt(w1*w1-w2*w2);
     printf("%f %f %f\n", w1,w2,del);
-    TText *tx2=new TText(xm,ym/2,Form("DEL=%.1f",del)); tx2->Draw();
+    TText *tx2=new TText(xm,ym/2,Form("DEL=%.0f",del)); tx2->Draw();
     //    break;
   }
 }
