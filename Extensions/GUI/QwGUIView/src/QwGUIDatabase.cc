@@ -72,22 +72,22 @@ const char *QwGUIDatabase::BeamMonitors[N_BEAM_MONITORS] =
 
 const char *QwGUIDatabase::LumiCombos[N_LUMIS] = 
 {
-  "uslumi1neg",
-  "uslumi1pos",
-  "uslumi3neg",
-  "uslumi3pos",
-  "uslumi5neg",
-  "uslumi5pos",
-  "uslumi7neg",
-  "uslumi7pos",
-  "dslumi1",
-  "dslumi2",
-  "dslumi3",
-  "dslumi4",
-  "dslumi5",
-  "dslumi6",
-  "dslumi7",
-  "dslumi8"
+  "qwk_uslumi1neg",
+  "qwk_uslumi1pos",
+  "qwk_uslumi3neg",
+  "qwk_uslumi3pos",
+  "qwk_uslumi5neg",
+  "qwk_uslumi5pos",
+  "qwk_uslumi7neg",
+  "qwk_uslumi7pos",
+  "qwk_dslumi1",
+  "qwk_dslumi2",
+  "qwk_dslumi3",
+  "qwk_dslumi4",
+  "qwk_dslumi5",
+  "qwk_dslumi6",
+  "qwk_dslumi7",
+  "qwk_dslumi8"
 };
 
 const char *QwGUIDatabase::DetectorMeasurementTypes[N_DET_MEAS_TYPES]=
@@ -329,7 +329,7 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     for (Int_t i = 0; i < N_LUMIS; i++) {
       dCmbDetector->AddEntry(LumiCombos[i], i);
     }
-    dCmbDetector->Select(dCmbDetector->FindEntry("uslumi1neg")->EntryId());
+    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_uslumi1neg")->EntryId());
   }
 }
 
