@@ -24,13 +24,12 @@ class LinRegBevPeb {
   TMatrixD mMP, mMY;   ///< mean values
   TMatrixD mVPP, mVPY,mVY2; ///< variances
   
-  TMatrixD mA, mAsig;  ///< found alphas + their stand errors
 
  public:
-  /// Default constructor
+  TMatrixD mA, mAsig;  ///< found alphas + their stand errors
+
   LinRegBevPeb();
   
-  /// Destructor
   virtual ~LinRegBevPeb(){};
 
   /// processing single events

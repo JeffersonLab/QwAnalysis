@@ -38,6 +38,7 @@ class JbLeafTransform {
   // arrays w/ final dv & iv variables
   enum{ nP=mxBPM,nY=3}; 
   Double_t Pvec[nP], Yvec[nY];
+  TString  Pname[nP],  Yname[nY];
 
   //old
   void init();

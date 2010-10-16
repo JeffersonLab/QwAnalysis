@@ -10,6 +10,7 @@
 #include <stdio.h>  
 //#include <cstdio>  // C++ standard since 1999
 #include <TFile.h>
+#include <TH2.h>
 #include <TTree.h> 
 #include <TLeaf.h>//tmp 
 #include <TChain.h>
@@ -20,30 +21,56 @@
 // use only double
 
 int main(int argc, char *argv[]) {
-  int mxEve=5000, skipEve=0;
+  int mxEve=500, skipEve=0;
 
   // decode input params
   printf("Syntax: %s [neve]    OR   %s  [neve] [skipEve]\n",argv[0], argv[0]);
   if ( argc>=2) mxEve=atoi(argv[1]);
   if ( argc>=3) skipEve=atoi(argv[2]);
-
-  printf("Selected  mxEve=%d nSkip=%d\n", mxEve,skipEve);
- 
-  // read TTree  with precompiled class
-
+  int runId=5762;
+  int runSeq=0;
   const char * outPath="./";
 
-  //...... access to inpute leafs
-  JbLeafTransform eve("trA"); // changes content of event
-  JbCorrelator corA("corA"); //   correlator , passive 
+  printf("Selected run=%d_%03i  mxEve=%d nSkip=%d\n", runId,runSeq,mxEve,skipEve);
 
+  //...... access to inpute leafs
+  JbLeafTransform eve("tran"); // changes content of event
+  JbCorrelator corA("Acor"); //   correlator , passive 
+
+  //..... try to open known correlation coef's.......
+  double *alphas=0; // indicator that coef's exist
+  JbCorrelator *corB=0;
+  double *YvecNew=0;
+  TString corFileName="Acor_alphas.root";
+  TFile*  corFile=new TFile(corFileName);
+  if(corFile->IsOpen()) {
+    TH2D *hal=(TH2D*) corFile->Get("Acor");
+    if(hal) {
+      printf("opened %s, Alphas found\n",corFile->GetName());
+      assert(hal->GetXaxis()->GetNbins()==eve.nP);
+      assert(hal->GetYaxis()->GetNbins()==eve.nY);
+      alphas=new double [eve.nP*eve.nY];
+      corB=new JbCorrelator("Bcor"); //   2nd correlator after regression
+      YvecNew=new double [eve.nY];
+      for (int iy = 0; iy <eve.nY; iy++) {
+	for (int ix = 0; ix < eve.nP; ix++) {
+	  double val= hal->GetBinContent(ix+1,iy+1);
+	  double sig= hal->GetBinError(ix+1,iy+1);
+	  printf("  iy=%d ix=%d val=%f sig=%f\n",iy,ix,val,sig);
+	  alphas[ix*eve.nY +iy]=val;
+	}
+      }
+    }
+    corFile->Close();
+  }
+  
   // .........   input  event file   .........
   TChain *chain = new TChain("Hel_Tree");  
   const char *inpPath=outPath;
  
   int i=0;
   char text[100];
-  sprintf(text,"%sQweak_5762.000.root",inpPath); // freash file, Oct-12-2010
+  sprintf(text,"%sQweak_%d.%03i.root",inpPath,runId, runSeq); 
   chain->Add(text);
   printf("%d =%s=\n",i,text);
   
@@ -52,12 +79,13 @@ int main(int argc, char *argv[]) {
   eve.findInputLeafs(chain);
   //eve.print();
 
-  corA.init(eve.nP, eve.nY);   
 
-  TString hfileName=outPath;  hfileName+="/toy6Dregr.hist.root";
-  TFile*  mHfile=new TFile(hfileName,"RECREATE"," histograms w/ regressed Qweak yields");
+  TString hfileName=Form("%scorKent_%d.%03i.hist.root",outPath,runId, runSeq);
+  TFile*  mHfile=new TFile(hfileName,"RECREATE"," histograms w/ regressed Qweak data");
   assert(mHfile->IsOpen());
   printf(" Setup output  histo to '%s' ,\n",hfileName.Data());
+  corA.init(eve.nP, eve.nY, eve.Pname, eve.Yname);   // creates histo 
+  if(alphas) corB->init(eve.nP, eve.nY, eve.Pname, eve.Yname); 
 
   int t1=time(0);
   int ie;
@@ -66,14 +94,29 @@ int main(int argc, char *argv[]) {
     chain->GetEntry(ie);
     if(!eve.unpackEvent()) continue;
     corA.addEvent(eve.Pvec, eve.Yvec);
-  }
+    if(alphas) {// regress dv's
+      for (int iy = 0; iy <eve.nY; iy++) {
+	YvecNew[iy]=eve.Yvec[iy];
+	for (int ix = 0; ix < eve.nP; ix++) {
+	  YvecNew[iy]-=eve.Pvec[ix]*alphas[ix*eve.nY +iy];
+	}
+      }
+      corB->addEvent(eve.Pvec, YvecNew);
+    }
+  }// end of event loop
+
   int t2=time(0);
   if(t1==t2) t2++;
   float rate=1.*ie/(t2-t1);
   float nMnts=(t2-t1)/60.;
   printf("sorting done, elapsed rate=%.1f Hz, tot %.1f minutes\n",rate,nMnts);
-  corA.finish(); 
-  // mHfile->Write();
+  corA.finish();
+  if(alphas) corB->finish();
+  mHfile->Write(); 
+  mHfile->Close();
+  corA.exportAlphas(outPath); 
+
+ 
 
 
 

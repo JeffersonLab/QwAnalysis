@@ -25,12 +25,12 @@ LinRegBevPeb::LinRegBevPeb() {
 //=================================================
 void LinRegBevPeb::init(){
   printf("Init LinReg dims: nP=%d nY=%d\n",par_nP,par_nY);
-  mMY.ResizeTo(par_nY,1); //*
+  mMY.ResizeTo(par_nY,1); 
   mMP.ResizeTo(par_nP,1);
   mVPP.ResizeTo(par_nP,par_nP);
-  mVPY.ResizeTo(par_nP,par_nY);//*
-  mVY2.ResizeTo(par_nY,1); //*
-  mA.ResizeTo(par_nP,par_nY); //*
+  mVPY.ResizeTo(par_nP,par_nY);
+  mVY2.ResizeTo(par_nY,1); 
+  mA.ResizeTo(par_nP,par_nY);
   mAsig.ResizeTo(mA);
 
   fGoodEventNumber=0;

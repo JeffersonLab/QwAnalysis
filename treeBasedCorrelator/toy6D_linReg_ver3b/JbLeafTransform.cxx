@@ -40,6 +40,12 @@ void JbLeafTransform::findInputLeafs(TChain *chain){
   TString cPN[mxPN]={"pos","neg"};
   TString cBPM[mxBPM]={"3h04X","3h04Y","3h09X","3h09Y"};
 
+  // set  iv names
+  for(int i=0;i<nP;i++) Pname[i]=cBPM[i];
+  // set  dv names
+  Yname[0]="mdc-asyBcm1";
+  Yname[1]="mdx-asyBcm1";
+  Yname[2]="mda-asyBcm1";
 
   // Access MD leafs
   for(int imd=0;imd<mxMD;imd++){
@@ -106,15 +112,17 @@ bool JbLeafTransform::unpackEvent(){
   for(int i=0;i<nY;i++) {
     Yvec[i]=mix[i]-bcm;
     if(Yvec[i]!=Yvec[i]) return false; // corrupted event
-    //printf("fin dv_i=%d val=%g,   mix=%g bcm=%g  \n",i,Yvec[i],mix[i],bcm);    
+    //printf("%s dv_i=%d val=%g,   mix=%g bcm=%g  \n",Yname[i].Data(),i,Yvec[i],mix[i],bcm);    
   }
 
   // copy iv's to unify the interface
   for(int i=0;i<nP;i++) {
     Pvec[i]=1e6*(*pLeafBPM[i]);
     if(Pvec[i]!=Pvec[i]) return false; // corrupted event
-    // printf("iv_i=%d val=%g \n",i,Pvec[i]);
+    // printf("%s iv_i=%d val=%g \n",Pname[i].Data(),i,Pvec[i]);
   }
+
+  // Pvec[0]=bcm; // tmp
 
   return true;
 
