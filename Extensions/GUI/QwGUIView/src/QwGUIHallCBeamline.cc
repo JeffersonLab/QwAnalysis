@@ -210,7 +210,7 @@ void QwGUIHallCBeamline::MakeLayout()
   new TGRadioButton(correlations, "XY", PLOT_XY);
   dBtnCorrelations  = new TGTextButton(correlations, "&Correlations", BA_CORRELATIONS);
   correlations->SetButton(PLOT_XX);
-  correlations->Connect("Pressed(Int_t)", "ButtonWindow", this, "DoHPosition(Int_t)");
+  //correlations->Connect("Pressed(Int_t)", "ButtonWindow", this, "DoHPosition(Int_t)");
   dControlsFrame->AddFrame(correlations, new TGLayoutHints(kLHintsExpandX));
 
   // Add buttons to the controls frame
