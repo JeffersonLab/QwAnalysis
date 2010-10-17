@@ -9,6 +9,16 @@
 #include <glob.h>
 #include <TMath.h>
 
+#include <csignal>
+Bool_t globalEXIT;
+void sigint_handler(int sig)
+{
+        std::cout << "handling signal no. " << sig << "\n";
+        globalEXIT=1;
+}
+
+
+
 #include "THaCodaFile.h"
 #ifdef __CODA_ET
 #include "THaEtClient.h"
@@ -38,6 +48,10 @@ QwEventBuffer::QwEventBuffer()
        fEvtNumber(0),
        fNumPhysicsEvents(0)
 {
+  //  Set up the signal handler.
+  globalEXIT=0;
+  signal(SIGINT, sigint_handler);
+
   fDataDirectory = getenv("QW_DATA");
   if (fDataDirectory.Length() == 0){
     std::cerr << "ERROR:  Can't get the data directory in the QwEventBuffer creator."
@@ -144,7 +158,10 @@ Int_t QwEventBuffer::OpenNextStream()
 {
 
   Int_t status = CODA_ERROR;
-  if (fOnline) {
+  if (globalEXIT==1) {
+    //  We want to exit, so don't open the next stream.
+    status = CODA_ERROR;
+  } else if (fOnline) {
     /* Modify the call below for your ET system, if needed.
        OpenETStream( ET host name , $SESSION , mode)
        mode=0: wait forever
@@ -216,7 +233,8 @@ Int_t QwEventBuffer::GetNextEvent()
   Int_t status = CODA_OK;
   do {
     status = GetEvent();
-    if (fEvtNumber > fEventRange.second){
+    if (globalEXIT==1 ||
+	fEvtNumber > fEventRange.second){
       //  QUESTION:  Should we continue to loop once we've
       //  reached the maximum event, to allow access to
       //  non-physics events?
