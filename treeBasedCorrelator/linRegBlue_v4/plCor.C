@@ -6,7 +6,7 @@ TFile* fd=0;
 enum{ nP=4,nY=15}; 
 TString cor1="input";
 int pl=2; //1=gif, 2=ps, 3=both
-TString runName="R5762.000";
+TString runName="R5942.000";
 
 
 plCor(int page=1) {
@@ -123,8 +123,8 @@ void   IV_DV(TString cCore, TString text, int iy1, int iy2){
  
   // .... correlations 
   int k=1;
-  for(int i=0;i<nP;i++) {    
-    for(int j=iy1;j<=iy2;j++) {      
+  for(int j=iy1;j<=iy2;j++) {      
+    for(int i=0;i<nP;i++) {    
       c->cd(k);
       TString name=Form("inputP%d_Y%d",i,j); cout<<k<<name.Data()<<endl;
       TH1 * h=(TH1 *)fd->Get(name); assert(h);
@@ -210,6 +210,6 @@ void doAll(){
     plCor(i);
   }
 
-  cout<<"cat "+runName+"page*ps  |ps2pdf - all"+runName+".pdf"<<endl;
+  cout<<"cat "+runName+"_page*ps  |ps2pdf - all"+runName+".pdf"<<endl;
   cout<<"scp all"+runName+".pdf  balewski@deltag5.lns.mit.edu:0x"<<endl;
 }

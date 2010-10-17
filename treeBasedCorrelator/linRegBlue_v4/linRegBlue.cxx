@@ -22,8 +22,8 @@
 
 int main(int argc, char *argv[]) {
   int mxEve=500, skipEve=0;
-  // const char *inpPath="/home/cdaq/qweak/QwScratch/rootfiles/"; //cdaq
-  const char *inpPath="/u/home/cdaq/balewski_tmp/"; //ifarm4, R 5762.000
+  const char *inpPath="/home/cdaq/qweak/QwScratch/rootfiles/"; //cdaq
+  //const char *inpPath="/u/home/cdaq/balewski_tmp/"; //ifarm4, R 5762.000
   const char * outPath="./";
 
   // decode input params
@@ -92,7 +92,7 @@ int main(int argc, char *argv[]) {
   if(nEve>mxEve) nEve=mxEve;
   for( ie=skipEve;ie<nEve;ie++) { 
     chain->GetEntry(ie);
-    if(ie%500==0) printf(" ieve=%d of %d ...\n",ie,nEve);
+    if(ie%5000==0) printf(" ieve=%d of %d ...\n",ie,nEve);
     if(!eve.unpackEvent()) continue;
     corA.addEvent(eve.Pvec, eve.Yvec);
     if(alphasM) {// regress dv's
