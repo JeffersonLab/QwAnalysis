@@ -44,7 +44,14 @@
 //                  - Removed the compiling warning: 
 //                    deprecated conversion from string constant to ‘char*’
 //                  - Changed LaTeX expression for the current unit #muA
-
+//          0.0.6 : Saturday, October 16th Buddhini
+//                  - Added root file chaining.
+//                  - Added ability to use either the calinrated bcm results from the run being analyzed
+//                    or use a preferd bcm calibration run. The default is using the calibrated bcm from
+//                    the current run.
+//                  - Modified the format of the output .txt file.
+//                  - Changed the default fit range 0.15-0.85 to 0.20 to 0.95. This is what Paul is using 
+//                    his version of hallc_bpm_calib_pking.C
 
 #include <iostream>
 #include <fstream>
@@ -72,7 +79,7 @@
 #include "TBox.h"
 #include "TCut.h"
 #include "TStyle.h"
-
+#include "TChain.h"
 
 
 class BeamMonitor 
@@ -99,7 +106,7 @@ public:
   TString GetName() {return name;};
   const char* GetCName() {return name.Data();};
   TString GetAliasName() {return alias_name;};
- const char* GetAliasCName() {return alias_name.Data();};
+  const char* GetAliasCName() {return alias_name.Data();};
   Double_t GetPed() {return offset[0];};
   Double_t GetPedErr() {return offset[1];};
   Double_t GetSlope() {return slope[0];};
@@ -111,13 +118,13 @@ public:
   Bool_t IsFileStream() {return filestream_flag;};
 
 private:
-  TString name;
-  TString alias_name;
-  Double_t offset[2];
-  Double_t slope[2];
-  Double_t fit_range[2];
-  Bool_t   reference_flag;
-  Bool_t   filestream_flag;
+  TString   name;
+  TString   alias_name;
+  Double_t  offset[2];
+  Double_t  slope[2];
+  Double_t  fit_range[2];
+  Bool_t    reference_flag;
+  Bool_t    filestream_flag;
 
 };
 
@@ -231,8 +238,40 @@ GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
 }
 
 
+void 
+GetTree(char* run_number, TChain* tree)
+{
+  TFile *file = NULL;
+
+  TString filename = Form("Qweak_%s.000.root", run_number);
+  file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
+
+  if (file->IsZombie()) {
+    std::cout << "Error opening root file chain " 
+	      << filename << std::endl;
+
+    filename = Form("Qweak_%s.root", run_number);
+    std::cout << "Try to open chain " 
+	      << filename << std::endl;
+    file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
+    if (file->IsZombie()) {
+      std::cout << "File exit failure."<<std::endl; 
+      tree = NULL;
+    }
+    else
+      {
+	tree->Add(Form("~/scratch/rootfiles/Qweak_%s.root", run_number));
+      }
+  }
+  else
+    {
+      tree->Add(Form("~/scratch/rootfiles/Qweak_%s.*.root", run_number));
+    }
+
+}
+
 const char* program_name;
-TTree *mps_tree = NULL;
+TChain *mps_tree = NULL;
 TFile *file = NULL;
 
 Int_t w = 1200;
@@ -241,7 +280,6 @@ TCanvas *Canvas =NULL;
 TString bpm_plots_filename;
 
 std::vector< std::vector<BeamMonitor> > hallc_bpms_list;
-//std::vector<BeamMonitor> hallc_bcms_list;
 BeamMonitor hallc_bcm;
 
 
@@ -253,13 +291,14 @@ main(int argc, char **argv)
   TApplication theApp("App", &argc, argv);
 
 
-  char* run_number = NULL;
+  char* run_number   = NULL;
   char* ref_bcm_name = NULL;
 
-  Bool_t file_flag = false;
+  Bool_t file_flag         = false;
   Bool_t bcm_ped_file_flag = false;
-  Bool_t ref_bcm_flag = false;
-  Bool_t fit_range_flag = false;
+  Bool_t ref_bcm_flag      = false;
+  Bool_t fit_range_flag    = false;
+
   Double_t fit_range[2] = {0.0};
 
   TString bcm_ped_filename;
@@ -287,7 +326,7 @@ main(int argc, char **argv)
   int cc = 0; 
 
   /*command line arguments*/
-  while ( (cc= getopt(argc, argv, "r:c:b:e")) != -1)
+  while ( (cc= getopt(argc, argv, "r:c:b:e:")) != -1)
     switch (cc)
       {
       case 'r': /*run number of the pedestal run*/
@@ -356,8 +395,8 @@ main(int argc, char **argv)
   
   /*default fit range*/	  
   if(not fit_range_flag) {
-    fit_range[0] = 0.15;
-    fit_range[1] = 0.85;
+    fit_range[0] = 0.20;
+    fit_range[1] = 0.95;
   }
   else {
     /*user chosen fit range*/
@@ -372,228 +411,220 @@ main(int argc, char **argv)
     exit (-1);
   }
 
-  /*if a bcm calibration run is not specified, use the default calibration run 5070*/
-  if (not bcm_ped_file_flag) {
-    bcm_ped_runnumber = 5070;
-  }
-
   /*if a bcm is not specified use the defaults bcm , bcm1*/
   if (not ref_bcm_flag) {
     ref_bcm_name = Form("bcm1");
   }
 
-  /*file containing the bcm calibration results*/
-  bcm_ped_filename = Form("hallc_bcm_pedestal_%d.txt", bcm_ped_runnumber);
 
   /*file containing the bpm calibration plots*/
   bpm_plots_filename = Form("%s_hallc_bpm_calib_plots", run_number);
 
  
   /*list of hallc bpms*/
-
-  BeamMonitor qwk_3c07 ("qwk_3c07");    // begining of arc
-  BeamMonitor qwk_3c08 ("qwk_3c08");
-  BeamMonitor qwk_3c11 ("qwk_3c11");
-  BeamMonitor qwk_3c12 ("qwk_3c12");    // highest dispersion
-  BeamMonitor qwk_3c14 ("qwk_3c14");
-  BeamMonitor qwk_3c16 ("qwk_3c16");
-  BeamMonitor qwk_3c17 ("qwk_3c17");    // end of arc (green wall)
-  BeamMonitor qwk_3c18 ("qwk_3c18");    // Region 1 after the shielding wall (in not songsheet)
-  BeamMonitor qwk_3c19 ("qwk_3c19");    // Region 1 after the shielding wall (in not songsheet)
-  BeamMonitor qwk_3c07a("qwk_3c07a"); 
-  BeamMonitor qwk_3p02a("qwk_3p02a");   // compton chicane
-  BeamMonitor qwk_3p02b("qwk_3p02b");   // compton chicane
-  BeamMonitor qwk_3p03a("qwk_3p03a");   // compton chicane
-  BeamMonitor qwk_3c20 ("qwk_3c20");    // Region 3
-  BeamMonitor qwk_3c21 ("qwk_3c21");    // Region 3
-  BeamMonitor qwk_3h02 ("qwk_3h02");    // Region 4
-  BeamMonitor qwk_3h04a("qwk_3h04a"); 
-  BeamMonitor qwk_3h07a("qwk_3h07a");
-  BeamMonitor qwk_3h07b("qwk_3h07b"); 
-  BeamMonitor qwk_3h07c("qwk_3h07c");  
-  BeamMonitor qwk_3h08 ("qwk_3h08");    // Region 5
-  BeamMonitor qwk_3h09 ("qwk_3h09");    // Region 5
-  BeamMonitor qwk_3h09b("qwk_3h09b");   // Region 5
+  BeamMonitor qwk_bpm3c07 ("qwk_bpm3c07");    // begining of arc
+  BeamMonitor qwk_bpm3c08 ("qwk_bpm3c08");
+  BeamMonitor qwk_bpm3c11 ("qwk_bpm3c11");
+  BeamMonitor qwk_bpm3c12 ("qwk_bpm3c12");    // highest dispersion
+  BeamMonitor qwk_bpm3c14 ("qwk_bpm3c14");
+  BeamMonitor qwk_bpm3c16 ("qwk_bpm3c16");
+  BeamMonitor qwk_bpm3c17 ("qwk_bpm3c17");    // end of arc (green wall)
+  BeamMonitor qwk_bpm3c18 ("qwk_bpm3c18");    // Region 1 after the shielding wall (in not songsheet)
+  BeamMonitor qwk_bpm3c19 ("qwk_bpm3c19");    // Region 1 after the shielding wall (in not songsheet)
+  BeamMonitor qwk_bpm3p02a("qwk_bpm3p02a");   // compton chicane
+  BeamMonitor qwk_bpm3p02b("qwk_bpm3p02b");   // compton chicane
+  BeamMonitor qwk_bpm3p03a("qwk_bpm3p03a");   // compton chicane
+  BeamMonitor qwk_bpm3c20 ("qwk_bpm3c20");    // Region 3
+  BeamMonitor qwk_bpm3c21 ("qwk_bpm3c21");    // Region 3
+  BeamMonitor qwk_bpm3h02 ("qwk_bpm3h02");    // Region 4
+  BeamMonitor qwk_bpm3h04 ("qwk_bpm3h04"); 
+  BeamMonitor qwk_bpm3h07a("qwk_bpm3h07a");
+  BeamMonitor qwk_bpm3h07b("qwk_bpm3h07b"); 
+  BeamMonitor qwk_bpm3h07c("qwk_bpm3h07c");  
+  BeamMonitor qwk_bpm3h08 ("qwk_bpm3h08");    // Region 5
+  BeamMonitor qwk_bpm3h09 ("qwk_bpm3h09");    // Region 5
+  BeamMonitor qwk_bpm3h09b("qwk_bpm3h09b");   // Region 5
 
 
   std::vector <BeamMonitor> tmp_bpm;
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c07);
+  tmp_bpm.assign(4, qwk_bpm3c07);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c08);
+  tmp_bpm.assign(4, qwk_bpm3c08);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c11);
+  tmp_bpm.assign(4, qwk_bpm3c11);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c12);
+  tmp_bpm.assign(4, qwk_bpm3c12);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c14);
+  tmp_bpm.assign(4, qwk_bpm3c14);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c16);
+  tmp_bpm.assign(4, qwk_bpm3c16);
   hallc_bpms_list.push_back(tmp_bpm);
   
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c17);
+  tmp_bpm.assign(4, qwk_bpm3c17);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c18);
+  tmp_bpm.assign(4, qwk_bpm3c18);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c19);
+  tmp_bpm.assign(4, qwk_bpm3c19);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c07a);
+  tmp_bpm.assign(4, qwk_bpm3p02a);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3p02a);
+  tmp_bpm.assign(4, qwk_bpm3p02b);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3p02b);
+  tmp_bpm.assign(4, qwk_bpm3p03a);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3p03a);
+  tmp_bpm.assign(4, qwk_bpm3c20);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c20);
+  tmp_bpm.assign(4, qwk_bpm3c21);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3c21);
+  tmp_bpm.assign(4, qwk_bpm3h02);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3h02);
+  tmp_bpm.assign(4, qwk_bpm3h04);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3h04a);
+  tmp_bpm.assign(4, qwk_bpm3h07a);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3h07a);
+  tmp_bpm.assign(4, qwk_bpm3h07b);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3h07b);
+  tmp_bpm.assign(4, qwk_bpm3h07c);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3h07c);
+  tmp_bpm.assign(4, qwk_bpm3h08);
   hallc_bpms_list.push_back(tmp_bpm);
 
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3h08);
-  hallc_bpms_list.push_back(tmp_bpm);
-
-  tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3h09);
+  tmp_bpm.assign(4, qwk_bpm3h09);
   hallc_bpms_list.push_back(tmp_bpm);
   
   tmp_bpm.clear();
-  tmp_bpm.assign(4, qwk_3h09b);
+  tmp_bpm.assign(4, qwk_bpm3h09b);
   hallc_bpms_list.push_back(tmp_bpm);
 
+  
+  /*If a bcm calibration file is specified, open the bcm calibration results file*/
+  if(bcm_ped_file_flag){
+    bcm_ped_filename = Form("hallc_bcm_pedestal_%d.txt", bcm_ped_runnumber);
+    ifstream in;
+    in.open(bcm_ped_filename.Data());
+    if(not in.is_open() ) {
+      std::cout << "There is no BCMs calibration file with the name "
+		<< bcm_ped_filename 
+		<< ". Please check or run BCM calibration first."
+		<< std::endl;
+      return EXIT_FAILURE;
+    };
+
+    TString name;
+    Double_t offset[2] = {0.0};
+    Double_t slope[2] = {0.0};    
+    Double_t gain[2] = {0.0};    
+   
+    /*Load the calibration information for the bcm from the bcm calibration file*/
+    while(in.good()) {
+      in >> name >> offset[0] >> offset[1] >> slope[0] >> slope[1] >> gain[0] >> gain [1];
+      if(not in.good()) 
+	break;
+	else {
+	if(name.Contains(ref_bcm_name)){
+	  hallc_bcm.SetName(name);
+	  hallc_bcm.SetPed(offset[0]);
+	  hallc_bcm.SetPedErr(offset[1]);
+	  hallc_bcm.SetSlop(slope[0]);
+	  hallc_bcm.SetSlopErr(slope[1]);
+	}
+      }
+     }
+    
+    in.close();
+  }
+  else {
+    /*When there is no bcm calibration run specified we use the bcm value of the current run directly.*/
+    /*This will be the default setting.*/ 
+    hallc_bcm.SetName(Form("qwk_%s",ref_bcm_name));
+  }
  
-
   /*Open the root file*/
   TString filename = Form("Qweak_%s.000.root", run_number);
-  file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
-
-  if (file->IsZombie()) {
-    std::cout << "Error opening file " << filename << std::endl;
-    filename = Form("Qweak_%s.root", run_number);
-    std::cout << "Try to open " << filename << std::endl;
-    file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
-    if (file->IsZombie()) {
-      return EXIT_FAILURE;
+  mps_tree = new TChain("Mps_Tree");
+  GetTree(run_number,mps_tree);
+  if(mps_tree == NULL) 
+    {
+      std::cout<<"Unable to find the file "
+	       <<filename<<std::endl;
+      exit(1);
     }
-  }
 
-  
-  /*Open the bcm calibration results file*/  
-  ifstream in;
-  in.open(bcm_ped_filename.Data());
-  if(not in.is_open() ) {
-    std::cout << "There is no BCMs calibration file with the name "
-	      << bcm_ped_filename 
-	      << ". Please check or run BCM calibration first."
-	      << std::endl;
-    return EXIT_FAILURE;
-  };
-
-  TString name;
-  Double_t offset[2] = {0.0};
-  Double_t slope[2] = {0.0};
-  Int_t cnt = 0;
-
-
-  /*Load the calibration information for the bcm from the bcm calibration file*/
-  while(in.good()) {
-
-    in >> name >> offset[0] >> offset[1] >> slope[0] >> slope[1];
-    if(not in.good()) break;
-    else {
-      if(name.Contains(ref_bcm_name)){
-	hallc_bcm.SetName(name);
-	hallc_bcm.SetPed(offset[0]);
-	hallc_bcm.SetPedErr(offset[1]);
-	hallc_bcm.SetSlop(slope[0]);
-	hallc_bcm.SetSlopErr(slope[1]);
-      }
-    }
-      
-    // std::cout << name << " " 
-    // 	      << offset[0] << " " << offset[1] << " "
-    // 	      << slope[0] << " " << slope[1] << " "
-    // 	      << std::endl;
-  }
-
-  in.close();
-  mps_tree = (TTree*) file->Get("Mps_Tree");
   TH2D *tmp;
   Double_t tmp_max = 0.0;
   //  Int_t alias_id = 0;
 
-  // Draw the current from the bcm
+
+  /* Use the current readings from the bcm */
   Canvas = new TCanvas("Current" , Form("Range of currents form %s",ref_bcm_name), w, h);  
   Canvas->Clear();
   Canvas->cd();
  
-  mps_tree->SetAlias("current",
-		     Form("(((%s.hw_sum_raw/%s.num_samples)-%1f)/ %lf )", 
-			  hallc_bcm.GetName().Data(), hallc_bcm.GetName().Data(),
-			  hallc_bcm.GetPed(),hallc_bcm.GetSlope())
-		     ); 
-		    
+  if(bcm_ped_file_flag)
+    mps_tree->SetAlias("current",
+		       Form("(((%s.hw_sum_raw/%s.num_samples)-%1f)/ %lf )", 
+			    hallc_bcm.GetName().Data(), hallc_bcm.GetName().Data(),
+			    hallc_bcm.GetPed(),hallc_bcm.GetSlope())
+		       ); 
+  else
+    mps_tree->SetAlias("current",
+		       Form("%s.hw_sum",hallc_bcm.GetName().Data())); 
+  
   mps_tree->Draw("current>>tmp", 
-		 Form("%s.num_samples>0", hallc_bcm.GetName().Data()));
+  		 Form("%s.Device_Error_Code==0", hallc_bcm.GetName().Data()));
+  
 
   tmp = (TH2D*)gDirectory->Get("tmp");
   if(not tmp) {
-    std::cout << "Please check current values" << std::endl;
+    std::cout << "Please check to see if " 
+	      << ref_bcm_name <<" exsists."
+	      << std::endl;
     theApp.Run();
     
   }
   tmp_max = tmp -> GetXaxis() -> GetXmax();
   tmp -> GetXaxis() -> SetTitle("current (#muA)");
 
-  fit_range[0] *= tmp_max;
+  fit_range[0] *= 15.0;
   fit_range[1] *= tmp_max;
   
   hallc_bcm.SetAliasName("current"); 
@@ -601,12 +632,12 @@ main(int argc, char **argv)
   hallc_bcm.SetReference();
 
 
-  // Print the plot on to a file
+  /* Print the plot on to a file */
   Canvas->Print(bpm_plots_filename+".ps(");
   
-  /*Start to calibrate the bpms*/
+  /* Start to calibrate the bpms */
   std::size_t i = 0; 
-  cnt = 0;
+  Int_t cnt = 0;
   std::cout << "how many bpms ? " << hallc_bpms_list.size() << std::endl;
   for (i=0;i < hallc_bpms_list.size(); i++ ) {
     std::cout << "\n" 
@@ -616,10 +647,9 @@ main(int argc, char **argv)
     
     Bool_t check = false;
     check = calibrate(hallc_bpms_list.at(i), hallc_bcm ); 
-    //    if(not check) theApp.Run();
   }
   
-  /*open a file to store the pedestals*/
+  /* open a file to store the pedestals */
   std::ofstream       hallc_bpms_pedestal_output;
   std::ostringstream  hallc_bpms_pedestal_stream;
   hallc_bpms_pedestal_output.clear();
@@ -630,7 +660,6 @@ main(int argc, char **argv)
   
   std::size_t antenna_id = 0;
  
-  // // // std::cout << "size " << hallc_bpms_list.size() << std::endl;
   for (i=0; i < hallc_bpms_list.size(); i++) {
 
     for(antenna_id = 0; antenna_id <hallc_bpms_list.at(i).size(); antenna_id++ ) {
@@ -639,6 +668,23 @@ main(int argc, char **argv)
     }
   } 
 
+  time_t theTime;
+  time(&theTime);
+ 
+  hallc_bpms_pedestal_output <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+			     <<"!  HallC BPM pedestals (per sample) obtained using \n"
+			     <<"!  reference bcm = "<<hallc_bcm.GetName() 
+			     <<std::endl;
+  if(bcm_ped_file_flag)
+    hallc_bpms_pedestal_output  <<"!  bcm calibration run used = " << bcm_ped_runnumber <<std::endl;
+  else
+    hallc_bpms_pedestal_output  <<"!  Used calibrated bcm output from current run," << run_number <<std::endl;
+ 
+  hallc_bpms_pedestal_output  <<"!  Date of analysis "<<ctime(&theTime)<<std::endl;
+  hallc_bpms_pedestal_output <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+			     <<"!  device        ,  pedestal ,   error,    gain,     error\n"
+			     <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+			     <<std::endl;
   hallc_bpms_pedestal_output << hallc_bpms_pedestal_stream.str();
   std::cout << "\n" << hallc_bpms_pedestal_stream.str() <<std::endl;
   hallc_bpms_pedestal_output.close();
@@ -671,9 +717,6 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
   TH1D *hres[4] = {NULL};
 
   Int_t i = 0;
-//   Int_t w = 1100;
-//   Int_t h = 600;
-//   TCanvas *Canvas =NULL;
   devname = bpm.at(0).GetName(); // the same name over the beamMonitor vector
 
   
@@ -694,7 +737,8 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
     bpm.at(i).SetName(bpm_name[i]);
     bpm_samples[i] = bpm_name[i] + ".num_samples";
     plotcommand[i] = bpm_name[i]+".hw_sum_raw/" + bpm_samples[i] + ":" + reference_name;
-    
+  
+    scut = Form("%s.Device_Error_Code == 0",bpm_name[i].Data());
     hprof[i] = GetHisto(mps_tree, plotcommand[i], scut, "prof"); // profs : large errors why?
     if(not hprof[i]) {
       std::cout << "Please check " << plotcommand[i].Data()
@@ -720,7 +764,7 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
       bpm.at(i).SetSlop(fit[i]->GetParameter(1));
       bpm.at(i).SetSlopErr(fit[i]->GetParError(1));
 
-      // Draw the residuals
+      /* Draw fit residuals */
       Canvas->cd(4+i+1);
 
       plotcommand[i] = Form("(( %s.hw_sum_raw/%s )-( %s*%1f + %1f )):%s",
@@ -732,7 +776,7 @@ calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference)
       hres[i] = (TH1D*) gPad->GetPrimitive("htemp");
 
       if (not hres[i]) {
-	std::cout<<" Please check residual plot"<<plotcommand[i]<<std::endl;
+	std::cout<<" Unable to draw residual plot"<<plotcommand[i]<<std::endl;
 	Canvas ->Close();
 	delete Canvas; Canvas = NULL;
 	return false;	
@@ -775,6 +819,10 @@ print_usage (FILE* stream, int exit_code)
 	   " -c ref_bcm_name : bcm used for calibration \n"
 	   " -e fit percent range (default [0.01*a*bcm_current_range, 0.01*b*bcm_current_range]\n"
 	   );
+  fprintf(stream, 
+	  "\n Note: If a bcm calibration run is not selected using the -c flag,\n"
+	  " by default, the bcm results from the current run will be used to obtain values of beam current.\n"
+	  " Use the -c flag only if you want to use a different bcm calibration to calibrate the bcm in this run.\n");
   fprintf (stream, "\n");
   exit (exit_code);
 }
