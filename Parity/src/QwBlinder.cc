@@ -52,6 +52,9 @@ QwBlinder::QwBlinder(const EQwBlindingStrategy blinding_strategy):
   fBlindingFactor(1.0)
 {
   // Set up the blinder with seed_id 0
+  fSeed = kDefaultSeed;
+  fSeedID = 0;
+
   InitBlinders(0);
 
   // Calculate set of test values
