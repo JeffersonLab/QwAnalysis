@@ -60,6 +60,11 @@
 //                  - changed the default fit range [10,80] % of unser range
 //                  - changed the default naive beam off cut as 518
 //                  - added the run number in the histogram title
+//
+//          0.0.6 : Sunday, October 17
+//                  - added use of chained rootfiles.
+//                  - Apply Device_Error_Code == 0 check for data being used for plotting.
+
 
 #include <iostream>
 #include <fstream>
@@ -84,6 +89,7 @@
 #include "TUnixSystem.h"
 #include "TCut.h"
 #include "TStopwatch.h"
+#include "TChain.h"
 
 
 class BeamMonitor 
@@ -244,6 +250,7 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
 void print_usage(FILE* stream, int exit_code);
 Bool_t calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
 
+
 TH1D*
 GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
 {
@@ -256,13 +263,44 @@ GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
   return tmp;
 }
 
+void 
+GetTree(char* run_number, TChain* tree)
+{
+  TFile *file = NULL;
+
+  TString filename = Form("Qweak_%s.000.root", run_number);
+  file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
+
+  if (file->IsZombie()) {
+    std::cout << "Error opening root file chain " 
+	      << filename << std::endl;
+
+    filename = Form("Qweak_%s.root", run_number);
+    std::cout << "Try to open chain " 
+	      << filename << std::endl;
+    file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
+    if (file->IsZombie()) {
+      std::cout << "File exit failure."<<std::endl; 
+      tree = NULL;
+    }
+    else
+      {
+	tree->Add(Form("~/scratch/rootfiles/Qweak_%s.root", run_number));
+      }
+  }
+  else
+    {
+      tree->Add(Form("~/scratch/rootfiles/Qweak_%s.*.root", run_number));
+    }
+
+}
 
 const char* program_name;
-TTree *mps_tree = NULL;
-TFile *file = NULL;
+TChain*mps_tree  = NULL;
+TFile *file      = NULL;
 std::vector<BeamMonitor> hallc_bcms_list;
 TCanvas *unser_canvas = NULL;
-TCanvas *bcm_canvas = NULL;
+TCanvas *bcm_canvas   = NULL;
 TString bcm_plots_filename;
 
 
@@ -380,20 +418,17 @@ main(int argc, char **argv)
   sca_unser.SetReference();
   
 
-  TString filename = Form("Qweak_%s.000.root", run_number);
-  file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
+  /*Open the root file to access the tree*/
+  TString filename = Form("Qweak_%s.*.root", run_number);
+  mps_tree = new TChain("Mps_Tree");
+  GetTree(run_number,mps_tree);
 
-  if (file->IsZombie()) {
-    std::cout << "Error opening file " << filename << std::endl;
-    filename = Form("Qweak_%s.root", run_number);
-    std::cout << "Try to open " << filename << std::endl;
-    file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
-    if (file->IsZombie()) {
-      return EXIT_FAILURE;
+  if(mps_tree == NULL) 
+    {
+      std::cout<<"Unable to find the file "
+	       <<filename<<std::endl;
+      exit(1);
     }
-  }
-  
-  mps_tree = (TTree*) file->Get("Mps_Tree");
 
   // // TEST begin without using Draw()
 
@@ -570,32 +605,39 @@ main(int argc, char **argv)
       //  if(not check) theApp.Run();
     }
 
-  // Close ps file
+  /* Close ps file */
   unser_canvas -> Print(bcm_plots_filename+"]");
-    
-  //
-  // output for the results of qwk_bcm1, qwk_bcm2, qwk_bcm5, and qwk_bcm6
-  //
+
+  /* open a file to store the calibration results for qwk_bcm1, qwk_bcm2, qwk_bcm5, and qwk_bcm6*/
   std::ofstream       hallc_bcms_pedestal_output;
   std::ostringstream  hallc_bcms_pedestal_stream;
   hallc_bcms_pedestal_output.clear();
+
   hallc_bcms_pedestal_output.open(Form("hallc_bcm_pedestal_%s.txt", run_number));
   hallc_bcms_pedestal_stream.clear();
 
- 
-  // // std::cout << "size " << hallc_bcms_list.size() << std::endl;
   for (i=0; i < hallc_bcms_list.size(); i++) {
-    // exclude sca_bcm results into an output file.
+    /* exclude sca_bcm results from the output to the file. */
     if(not hallc_bcms_list.at(i).GetName().Contains("sca")) {
       hallc_bcms_list.at(i).SetFileStream();
       hallc_bcms_pedestal_stream << hallc_bcms_list.at(i);
     }
   } 
+
+  //  time_t theTime;
+  // time(&theTime);
+  //hallc_bcms_pedestal_output <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" 
+  // 			     <<"!  HallC BCM pedestals (per sample"<<std::endl;
+  // hallc_bcms_pedestal_output <<"!  Date of analysis "<<ctime(&theTime)<<std::endl;
+  // hallc_bcms_pedestal_output <<"!  device        , pedestal ,error,     slope,error,     gain,error\n"
+  // 			     <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+  // 			     <<std::endl;
+
   hallc_bcms_pedestal_output << hallc_bcms_pedestal_stream.str();
   std::cout << "\n" << hallc_bcms_pedestal_stream.str() <<std::endl;
   hallc_bcms_pedestal_output.close();
-
- 
+  
+  
   theApp.Run();
   return 0;
 }
@@ -644,7 +686,7 @@ calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number )
 
   if(not sca_flag) {
     device_samples = device_name + ".num_samples";
-    device_cut     = Form("%s>0", device_samples.Data());
+    device_cut     = device_name + ".Device_Error_Code == 0";
     device_name    = device_name + ".hw_sum_raw/" + device_samples;
   }
   else {

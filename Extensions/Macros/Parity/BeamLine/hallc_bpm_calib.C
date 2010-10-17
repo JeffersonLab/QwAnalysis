@@ -52,7 +52,8 @@
 //                  - Modified the format of the output .txt file.
 //                  - Changed the default fit range 0.15-0.85 to 0.20 to 0.95. This is what Paul is using 
 //                    his version of hallc_bpm_calib_pking.C
-
+//                  - Applied Device_Error_Code == 0 check for data being plotted.
+ 
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
@@ -304,6 +305,11 @@ main(int argc, char **argv)
   TString bcm_ped_filename;
  
   Int_t  bcm_ped_runnumber = 0;
+
+
+  // Canvas parameters
+  gStyle->SetFrameFillColor(10);
+
 
   // pads parameters
   gStyle->SetPadColor(0); 
@@ -557,9 +563,10 @@ main(int argc, char **argv)
     /*Load the calibration information for the bcm from the bcm calibration file*/
     while(in.good()) {
       in >> name >> offset[0] >> offset[1] >> slope[0] >> slope[1] >> gain[0] >> gain [1];
+      
       if(not in.good()) 
 	break;
-	else {
+      else {
 	if(name.Contains(ref_bcm_name)){
 	  hallc_bcm.SetName(name);
 	  hallc_bcm.SetPed(offset[0]);
@@ -568,7 +575,7 @@ main(int argc, char **argv)
 	  hallc_bcm.SetSlopErr(slope[1]);
 	}
       }
-     }
+    }
     
     in.close();
   }
@@ -579,7 +586,7 @@ main(int argc, char **argv)
   }
  
   /*Open the root file*/
-  TString filename = Form("Qweak_%s.000.root", run_number);
+  TString filename = Form("Qweak_%s.*.root", run_number);
   mps_tree = new TChain("Mps_Tree");
   GetTree(run_number,mps_tree);
   if(mps_tree == NULL) 
