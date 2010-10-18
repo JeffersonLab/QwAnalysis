@@ -33,7 +33,6 @@
 /// \ingroup QwGUIMain
 
 #define SCANNER_INDEX       27
-#define SAMPLING_RATE       909
 
 #ifndef QWGUISCANNER_H
 #define QWGUISCANNER_H

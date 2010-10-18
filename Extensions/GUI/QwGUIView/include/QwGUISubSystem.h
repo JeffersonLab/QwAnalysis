@@ -34,6 +34,8 @@
 #ifndef QWGUISUBSYSTEM_H
 #define QWGUISUBSYSTEM_H
 
+#define SAMPLING_RATE  960
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

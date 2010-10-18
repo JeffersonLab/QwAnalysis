@@ -33,7 +33,6 @@
 /// \ingroup QwGUIMain
 
 #define MAIN_DET_BLOCKIND   5
-#define SAMPLING_RATE       480
 
 enum ENPlotType {
   PLOT_TYPE_HISTO,           
