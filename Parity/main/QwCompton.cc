@@ -104,10 +104,18 @@
 static const int kMultiplet = 4;
 
 // Debug level
-static bool bDebug = true;
+static bool bDebug = false;
 
 int main(int argc, char* argv[])
 {
+  ///  Fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+
+
   /// Set the command line arguments and the configuration filename
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.SetConfigFile("qwcompton.conf");
@@ -119,11 +127,6 @@ int main(int argc, char* argv[])
   /// Message logging facilities
   gQwLog.ProcessOptions(&gQwOptions);
 
-  ///  Fill the search paths for the parameter files; this sets a static
-  ///  variable within the QwParameterFile class which will be used by
-  ///  all instances.  The "scratch" directory should be first.
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
 
   // Load histogram definitions
   gQwHists.LoadHistParamsFromFile("compton_hists.in");
