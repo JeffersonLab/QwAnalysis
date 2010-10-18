@@ -23,10 +23,13 @@ const std::string QwHistogramHelper::fInvalidName = "EmptyEmpty";
 
 void QwHistogramHelper::DefineOptions(QwOptions &options)
 {
-    // Define the histogram and tree options
+  // Define the histogram and tree options
   options.AddOptions()
     ("enable-tree-trim", po::value<bool>()->default_value(false)->zero_tokens(),
      "enable trimmed trees");
+
+  options.AddOptions()("tree-trim-file", po::value<string>(), "trimmed tree file name");
+  options.AddOptions()("histo-trim-file", po::value<string>(), "trimmed histo file name");
 
 };
 
@@ -44,6 +47,12 @@ void QwHistogramHelper::ProcessOptions(QwOptions &options){
     QwMessage <<"RT Mode: histo-trim is enabled "<<QwLog::endl;
   else
     QwMessage <<"histo-trim is disabled "<<QwLog::endl;
+
+  // Process trim file options
+  if (options.HasValue("tree-trim-file"))
+    LoadTreeParamsFromFile(options.GetValue<string>("tree-trim-file"));
+  if (options.HasValue("histo-trim-file"))
+    LoadHistParamsFromFile(options.GetValue<string>("histo-trim-file"));
 };
 
 

@@ -9,6 +9,7 @@
 #include "QwOptions.h"
 #include "QwRootFile.h"
 #include "QwParameterFile.h"
+#include "QwHistogramHelper.h"
 
 // System headers
 #include <iostream>
@@ -67,6 +68,8 @@ void QwOptions::DefineOptions(QwOptions& options)
   QwRootFile::DefineOptions(options);
   // Define subsystem array options
   QwSubsystemArray::DefineOptions(options);
+  // Define histogram helper options
+  QwHistogramHelper::DefineOptions(options);
 }
 
 /**
