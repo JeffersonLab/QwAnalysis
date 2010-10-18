@@ -96,7 +96,7 @@ JbCorrelator::initHistos(){
   h2iv=new TH1 *[nP*nP]; // not all are used
   for(int i=0;i<nP;i++) {    
     for(int j=i+1;j<nP;j++) {    
-      h2iv[i*nP+j]=h=new TH2D(Form(mCore+"P%d_P%d",i,j),Form("iv correlation  P%d_P%d, pass=%s ;P%d=%s;P%d=%s",i,j,mCore.Data(),i,Pname[i].Data(),j,Pname[j].Data()),64,-x1,x1,64,-x1,x1);
+      h2iv[i*nP+j]=h=new TH2D(Form(mCore+"P%d_P%d",i,j),Form("iv correlation  P%d_P%d, pass=%s ;P%d=%s;P%d=%s     ",i,j,mCore.Data(),i,Pname[i].Data(),j,Pname[j].Data()),64,-x1,x1,64,-x1,x1);
       h->GetXaxis()->SetTitleColor(kBlue);
       h->GetYaxis()->SetTitleColor(kBlue);
       h->GetXaxis()->SetNdivisions(4);
@@ -119,7 +119,7 @@ JbCorrelator::initHistos(){
   h2dv=new TH1 *[nP*nY]; // not all are used
   for(int i=0;i<nP;i++) {    
     for(int j=0;j<nY;j++) {    
-      h2dv[i*nY+j]=h=new TH2D(Form(mCore+"P%d_Y%d",i,j),Form("iv-dv correlation  P%d_Y%d, pass=%s ;P%d=%s;Y%d=%s",i,j,mCore.Data(),i,Pname[i].Data(),j,Yname[j].Data()),64,-x1,x1,64,-y1,y1);
+      h2dv[i*nY+j]=h=new TH2D(Form(mCore+"P%d_Y%d",i,j),Form("iv-dv correlation  P%d_Y%d, pass=%s ;P%d=%s;Y%d=%s     ",i,j,mCore.Data(),i,Pname[i].Data(),j,Yname[j].Data()),64,-x1,x1,64,-y1,y1);
       h->GetXaxis()->SetTitleColor(kBlue);
       h->GetYaxis()->SetTitleColor(kBlue);
       h->GetXaxis()->SetNdivisions(4);

@@ -38,28 +38,28 @@ JbLeafTransform::JbLeafTransform(const char *core) {
 void JbLeafTransform::findInputLeafs(TChain *chain){
   printf("JbLeafTransform_%s findInputLeafs\n",mCore.Data());
   TString cPN[mxPN]={"pos","neg"};
-  TString cBPM[mxBPM]={"3h04X","3h04Y","3h09X","3h09Y"};
+  TString cBPM[mxBPM]={"3h04X","3h04Y","3h09X","3h09Y","3c12X"};
 
   // set  iv names
   for(int i=0;i<nP;i++) Pname[i]=cBPM[i];
   // set  15 dv names
-  Yname[0]="md1-bcm1";
-  Yname[1]="md2-bcm1";
-  Yname[2]="md3-bcm1";
-  Yname[3]="md4-bcm1";
-  Yname[4]="md5-bcm1";
-  Yname[5]="md6-bcm1";
-  Yname[6]="md7-bcm1";
-  Yname[7]="md8-bcm1";
+  Yname[0]="md1";
+  Yname[1]="md2";
+  Yname[2]="md3";
+  Yname[3]="md4";
+  Yname[4]="md5";
+  Yname[5]="md6";
+  Yname[6]="md7";
+  Yname[7]="md8";
 
-  Yname[8]="mdh-bcm1";
-  Yname[9]="mdv-bcm1";
-  Yname[10]="mdd1-bcm1";
-  Yname[11]="mdd2-bcm1";
+  Yname[8]="mdh";
+  Yname[9]="mdv";
+  Yname[10]="mdd1";
+  Yname[11]="mdd2";
 
-  Yname[12]="mdc-bcm1";
-  Yname[13]="mdx-bcm1";
-  Yname[14]="mda-bcm1";
+  Yname[12]="mdc";
+  Yname[13]="mdx";
+  Yname[14]="mda";
 
 
   // Access MD leafs
@@ -75,6 +75,7 @@ void JbLeafTransform::findInputLeafs(TChain *chain){
     }
   }
 
+#if 0
   // Access other iv leafs
   { 
     TString other="asym_qwk_bcm1/hw_sum";
@@ -84,6 +85,8 @@ void JbLeafTransform::findInputLeafs(TChain *chain){
     assert(p);
     pLeafBCM=p;
   }
+#endif
+
 
   // Access dv leafs
   for(int ib=0;ib<mxBPM;ib++){
@@ -128,20 +131,20 @@ bool JbLeafTransform::unpackEvent(){
 
   double mix[nY];
   for(int i=0;i<mxMD;i++) mix[i]=amd[i];
-  mix[8]=(mix[2]+mix[6])/2.; //mdh
-  mix[9]=(mix[0]+mix[4])/2.;  //mdv
+  mix[8]=(mix[2]+mix[6])/2.;   //mdh
+  mix[9]=(mix[0]+mix[4])/2.;   //mdv
   mix[10]=(mix[1]+mix[5])/2.;  //mdd1
   mix[11]=(mix[3]+mix[7])/2.;  //mdd2
 
-  mix[12]=(amd[0]+amd[2]+amd[4]+amd[6])/4.;
-  mix[13]=(amd[1]+amd[3]+amd[5]+amd[7])/4.;
-  mix[14]=(mix[12]+mix[13])/2.;
+  mix[12]=(amd[0]+amd[2]+amd[4]+amd[6])/4.; //mdc
+  mix[13]=(amd[1]+amd[3]+amd[5]+amd[7])/4.; //mdx
+  mix[14]=(mix[12]+mix[13])/2.; //mda
 
-  double bcm=1e6*(*pLeafBCM);
+  //  double bcm=1e6*(*pLeafBCM);
 
   // compute final dv's
   for(int i=0;i<nY;i++) {
-    Yvec[i]=mix[i]-bcm;
+    Yvec[i]=mix[i];
     if(Yvec[i]!=Yvec[i]) return false; // corrupted event
     //printf("%s dv_i=%d val=%g,   mix=%g bcm=%g  \n",Yname[i].Data(),i,Yvec[i],mix[i],bcm);    
   }

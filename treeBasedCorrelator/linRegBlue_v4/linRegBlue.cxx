@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
   int mxEve=500, skipEve=0;
   const char *inpPath="/home/cdaq/qweak/QwScratch/rootfiles/"; //cdaq
   //const char *inpPath="/u/home/cdaq/balewski_tmp/"; //ifarm4, R 5762.000
-  const char * outPath="./";
+  const char * outPath="./out/";
 
   // decode input params
   if(argc<2) {
@@ -54,12 +54,13 @@ int main(int argc, char *argv[]) {
       corB=new JbCorrelator("regres"); //   2nd correlator after regression
       YvecNew=new double [eve.nY];
  
-      printf("opened %s, Alphas found, list below\n",corFile->GetName());
+      printf("opened %s, Alphas found, dump:\n",corFile->GetName());
       for (int iy = 0; iy <eve.nY; iy++) {
 	for (int ix = 0; ix < eve.nP; ix++) {
 	  printf("  iy=%d ix=%d val=%f \n",iy,ix,(*alphasM)(ix,iy));
 	}
       }
+
     }
     corFile->Close();
   } else

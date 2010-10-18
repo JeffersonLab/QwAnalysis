@@ -1,20 +1,21 @@
 TCanvas *can=0;
 
 
-TString inpPath="./";
+
 TFile* fd=0;
-enum{ nP=4,nY=15}; 
+enum{ nP=5,nY=15}; 
 TString cor1="input";
 int pl=2; //1=gif, 2=ps, 3=both
-TString runName="R5942.000";
-
+TString runName="R5954.000";
+TString inpPath="./out/";
+char *oPath="./out/";
 
 plCor(int page=1) {
   if(page==0) {  doAll();    return;   }
   gStyle->SetFillStyle(0);
   gStyle->SetPalette(1,0);
   TString dataFinalRoot=inpPath+runName+".hist.root";
-  char *oPath="./";
+
 
   fd=new TFile( dataFinalRoot); assert(fd->IsOpen());
 
@@ -27,7 +28,7 @@ plCor(int page=1) {
   if(page==5) IV_DV("IV_DV","Correlation MDH,V,D1,D2 vs. IV's, "+runName,8,11);
   if(page==6) IV_DV("IV_DV","Correlation MDC,MDX, MDA vs. IV's, "+runName,12,14);
 
-  if(page==7) IVs("IV","Independent variables, "+runName);
+  if(page==7) IV_IV("IV","Independent variables, "+runName);
 
   if(page==100) DV_CMP("DV_comparison","DV's before & after regression"); 
 
@@ -38,13 +39,14 @@ plCor(int page=1) {
     can->SetName(tit);    
     if(pl&1) can->Print(tit+".gif");
     if(pl&2) can->Print(tit+".ps");
+    // if(page==1) can->Print(tit+".png");
   }
 
 }
 
 //============================================
 //============================================
-void   IVs(TString cCore, TString text){
+void   IV_IV(TString cCore, TString text){
   gStyle->SetOptStat(1001110);
   gStyle->SetOptFit(1);
   
@@ -58,10 +60,11 @@ void   IVs(TString cCore, TString text){
     TString name=Form("inputP%d",i); // cout<<name.Data()<<endl;
     TH1 * h=(TH1 *)fd->Get(name); assert(h);
     h->Draw();
-   TAxis *ax=h->GetXaxis();
+    trimDisplayRange(h,1.0);
+    TAxis *ax=h->GetXaxis();
     double w1=h->GetRMS();
     double ym=h->GetMaximum()*0.45;
-    double xm=ax->GetXmin()*0.8 + ax->GetXmax()*0.2;
+    double xm=ax->GetXmin()*0.6 + ax->GetXmax()*0.4;
     TText *tx=new TText(xm,ym/2.,Form("RMS=%.0f",w1)); tx->Draw();
     tx->SetTextSize(0.15);
     tx=new TText(xm,ym,ax->GetTitle()); tx->Draw();
@@ -75,6 +78,8 @@ void   IVs(TString cCore, TString text){
       TString name=Form("inputP%d_P%d",i,j); // cout<<name.Data()<<endl;
       TH1 * h=(TH1 *)fd->Get(name); assert(h);
       h->Draw("colz");
+      trimDisplayRange(h,0.8);
+      //  return;
     }
   }
 }
@@ -86,22 +91,20 @@ void   DV_1D(TString cCore,TString text, TString preFix){
   gStyle->SetOptStat(1001110);
   gStyle->SetOptFit(1);
   
-  //c=new TCanvas(cCore,cCore,700,700); c->SetFillColor(kWhite);
   can=new TCanvas("aa","aa",700,500);    TPad *c=makeTitle(can,text);
-  
   c->Divide(4,4);
-
   //...... diagonal
   for(int i=0;i<nY;i++) {    
     c->cd(1+i);
     TString name=preFix+Form("Y%d",i); cout<<name.Data()<<endl;
     TH1 * h=(TH1 *)fd->Get(name); assert(h);
     h->Draw();
+    trimDisplayRange(h,1.0);
 
     TAxis *ax=h->GetXaxis();
     double w1=h->GetRMS();
     double ym=h->GetMaximum()*0.45;
-    double xm=ax->GetXmin()*0.8 + ax->GetXmax()*0.2;
+    double xm=ax->GetXmin()*0.6 + ax->GetXmax()*0.4;
     TText *tx=new TText(xm,ym/2.,Form("RMS=%.0f",w1)); tx->Draw();
     tx->SetTextSize(0.15);
     tx=new TText(xm,ym,ax->GetTitle()); tx->Draw();
@@ -115,12 +118,8 @@ void   DV_1D(TString cCore,TString text, TString preFix){
 void   IV_DV(TString cCore, TString text, int iy1, int iy2){
   gStyle->SetOptStat(1001110);
   gStyle->SetOptFit(1);
-  
   can=new TCanvas("aa","aa",700,600);    TPad *c=makeTitle(can,text);
- 
   c->Divide(nP,4);
-
- 
   // .... correlations 
   int k=1;
   for(int j=iy1;j<=iy2;j++) {      
@@ -129,9 +128,26 @@ void   IV_DV(TString cCore, TString text, int iy1, int iy2){
       TString name=Form("inputP%d_Y%d",i,j); cout<<k<<name.Data()<<endl;
       TH1 * h=(TH1 *)fd->Get(name); assert(h);
       h->Draw("colz");
+      trimDisplayRange(h,0.8);
       k++;
     }
   }
+}
+
+//============================================
+//============================================
+void  trimDisplayRange(TH1 *h, double fac=0.8) {
+      // symetrize displayed axis
+     
+      TAxis *ax=h->GetXaxis();
+      double ax1=fabs(ax->GetXmax()),ax2=fabs(ax->GetXmin());
+      if(ax1>ax2) ax1=ax2;
+      h->SetAxisRange(-ax1*fac,ax1*fac,"x");
+      ax=h->GetYaxis();
+      if(ax->GetNbins()<10) return; // it was 1D histo
+      double ay1=fabs(ax->GetXmax()),ay2=fabs(ax->GetXmin());
+      if(ay1>ay2) ay1=ay2;
+      h->SetAxisRange(-ay1*fac,ay1*fac,"y");
 }
 
 

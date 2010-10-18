@@ -18,11 +18,11 @@ class JbLeafTransform {
  private:
    TString mCore;
   enum{ mxMD=8, mxPN=2};// list:  MD, pos/neg
-  enum{ mxBPM=4};
+  enum{ mxBPM=5};
   
   // pointers to leaf variables
   Double_t *pLeafMD[mxMD*mxPN]; 
-  Double_t *pLeafBCM;
+  //  Double_t *pLeafBCM;
   Double_t *pLeafBPM[mxBPM]; 
 
   // histograms
