@@ -54,16 +54,32 @@
 //                  - added "SaveAs" to ROOT  C++ Macro file
 //                    [] root -l qwk_bcm1.cxx to see an interactive plot
 //                         
-//          0.0.5 : Wednesday, October 13 23:23:04 EDT 2010
+//          0.0.5 : Wednesday, October 13 23:23:04 EDT 2010, jhlee
 //                  - added "bcm" gain and its error
 //                    gain  = 1/slope, gain_error = slope_error/slope^2
 //                  - changed the default fit range [10,80] % of unser range
 //                  - changed the default naive beam off cut as 518
 //                  - added the run number in the histogram title
 //
-//          0.0.6 : Sunday, October 17
+//          0.0.6 : Sunday, October 17, Buddhini
 //                  - added use of chained rootfiles.
 //                  - Apply Device_Error_Code == 0 check for data being used for plotting.
+//
+//          0.0.7 : Monday, October 18 03:16:31 EDT 2010. jhlee
+//                  - added check_branches function in order to check whether 
+//                    the opened ROOT file is valid or not for the BCM calibration.
+// 
+
+//
+// Additional BCM calibration run info
+//
+//  run    Gain
+//  5070   5        * BCM calibration RUN
+//  5260   2        * BCM calibration RUN
+//  ????
+//  5669   2
+//  5807   2        * BCM calibration RUN   qweak_hallc_pedestal.5669-5818.map
+//
 
 
 #include <iostream>
@@ -203,53 +219,109 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
 {
   TString device_name = device.name;
 
-  if(device.filestream_flag) {
-    stream <<  std::setw(14) <<  device_name;
+  Int_t file_output_width = 20;
+  Int_t name_output_width = 14;
+  Int_t term_output_width = 14;
+  Int_t file_precision    = 10;
+
+  if(device.filestream_flag) { 
+    stream << std::setprecision(file_precision);
+    stream << std::setiosflags(std::ios_base::scientific);
+    stream <<  std::setw(name_output_width) <<  device_name;
     stream << " ";
-    stream <<  std::setw(10) << device.offset[0];
+    stream <<  std::setw(file_output_width) << device.offset[0];
     stream << " " ;
-    stream <<  std::setw(10) << device.offset[1];
+    stream <<  std::setw(file_output_width) << device.offset[1];
     stream << " " ;
-    stream <<  std::setw(10) << device.slope[0];
+    stream <<  std::setw(file_output_width) << device.slope[0];
     stream << " " ;
-    stream <<  std::setw(10) << device.slope[1];
+    stream <<  std::setw(file_output_width) << device.slope[1];
     stream << " " ;
-    stream <<  std::setw(14) << device.gain[0];
+    stream <<  std::setw(file_output_width) << device.gain[0];
     stream << " " ;
-    stream <<  std::setw(10) << device.gain[1];
+    stream <<  std::setw(file_output_width) << device.gain[1];
     stream << "\n";
   }
   else {
 
     if(device.reference_flag) {
-      stream <<  std::setw(14) << "Reference : " <<  std::setw(14) <<  device_name;
+      stream <<  std::setw(name_output_width) 
+	     << "Reference : " 
+	     <<  std::setw(name_output_width) 
+	     <<  device_name;
     }
     else {
-      stream <<  std::setw(14) << " Name : " <<  std::setw(14) <<  device_name;
+      stream <<  std::setw(name_output_width) 
+	     << " Name : " 
+	     <<  std::setw(name_output_width) 
+	     << device_name;
     }
-    stream << " Offset : "  << std::setw(4) << device.offset[0];
-    stream << " +- "     << device.offset[1];
+
+    stream << " Offset : "  << std::setw(term_output_width) << device.offset[0];
+    stream << " +- "        << std::setw(term_output_width) << device.offset[1];
+    stream << "\n";
     
     if(device.reference_flag) {
-      stream << " Fit Range [" << device.fit_range[0];
-      stream << " ," << device.fit_range[1];
-      stream << "]";
+      stream << std::setfill(' ') << std::setw(38);
+      stream << " Fit Range : " << std::setw(term_output_width) << device.fit_range[0];
+      stream << " -- "         << std::setw(term_output_width) << device.fit_range[1];
     }
     else {
-      stream << " Slope :" << std::setw(4)  << device.slope[0];
-      stream << " +- "     << device.slope[1];
-      stream << std::setw(12) << "\n";
-      stream << " Gain  :" << std::setw(8)  << device.gain[0];
-      stream << " +- "     << std::setw(8)  << device.gain[1];
+      stream << std::setfill(' ') << std::setw(38);
+      stream << " Slope  : "  << std::setw(term_output_width) << device.slope[0];
+      stream << " +- "        << std::setw(term_output_width) << device.slope[1];
+      stream << " \n";
+      stream << std::setfill(' ') << std::setw(38);
+      stream << " Gain   : " << std::setw(term_output_width) << device.gain[0];
+      stream << " +- "       << std::setw(term_output_width)  << device.gain[1];
     }
   }
   return stream;
 }
 
 
-void print_usage(FILE* stream, int exit_code);
-Bool_t calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
 
+
+void 
+print_usage(FILE* stream, int exit_code);
+
+Bool_t 
+calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
+
+
+Bool_t
+check_branches(std::vector<TString> &branches, TTree *roottree)
+{
+  Bool_t local_debug = false;
+
+  std::size_t branches_size = 0;     
+  branches_size = branches.size(); 
+
+  Bool_t branch_valid = true; 
+  // must be true, if not
+  // even if all branches are found in the ROOT file
+  // it returns false
+  // Monday, October 18 02:42:41 EDT 2010, jhlee
+
+  std::size_t branches_idx = 0;
+  
+  for (branches_idx=0; branches_idx<branches_size; branches_idx++) 
+    {
+      if(local_debug) std::cout << branches.at(branches_idx);
+      
+      TBranch* branch = roottree -> FindBranch(branches.at(branches_idx).Data());
+      if(branch) { 
+	branch_valid &= true;
+	if(local_debug) std::cout << " : true" << std::endl;
+      }
+      else  {
+	branch_valid &= false;
+	if(local_debug) std::cout << " : false" << std::endl;
+      }
+    }
+  return branch_valid;
+
+};
 
 TH1D*
 GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
@@ -283,21 +355,20 @@ GetTree(char* run_number, TChain* tree)
       std::cout << "File exit failure."<<std::endl; 
       tree = NULL;
     }
-    else
-      {
-	tree->Add(Form("~/scratch/rootfiles/Qweak_%s.root", run_number));
-      }
-  }
-  else
-    {
-      tree->Add(Form("~/scratch/rootfiles/Qweak_%s.*.root", run_number));
+    else {
+      tree->Add(Form("~/scratch/rootfiles/Qweak_%s.root", run_number));
     }
-
-}
+  }
+  else {
+    tree->Add(Form("~/scratch/rootfiles/Qweak_%s.*.root", run_number));
+  }
+  
+  return;
+};
 
 const char* program_name;
 TChain*mps_tree  = NULL;
-TFile *file      = NULL;
+//TFile *file      = NULL;
 std::vector<BeamMonitor> hallc_bcms_list;
 TCanvas *unser_canvas = NULL;
 TCanvas *bcm_canvas   = NULL;
@@ -404,17 +475,41 @@ main(int argc, char **argv)
   }
 
 
-  hallc_bcms_list.push_back(BeamMonitor("sca_bcm1"));
-  hallc_bcms_list.push_back(BeamMonitor("sca_bcm2"));
+  // any other way to handle these?
+  // Monday, October 18 03:25:55 EDT 2010, jhlee
+  std::vector<TString> branches_for_bcm_calibration;
 
-  hallc_bcms_list.push_back(BeamMonitor("qwk_bcm1"));
-  hallc_bcms_list.push_back(BeamMonitor("qwk_bcm2"));
-  hallc_bcms_list.push_back(BeamMonitor("qwk_bcm5"));
-  hallc_bcms_list.push_back(BeamMonitor("qwk_bcm6"));
+  branches_for_bcm_calibration.push_back("sca_4mhz");
+  branches_for_bcm_calibration.push_back("sca_unser");
+  branches_for_bcm_calibration.push_back("sca_bcm1");
+  branches_for_bcm_calibration.push_back("sca_bcm2");
+  branches_for_bcm_calibration.push_back("qwk_bcm1");
+  branches_for_bcm_calibration.push_back("qwk_bcm2");
+  branches_for_bcm_calibration.push_back("qwk_bcm5");
+  branches_for_bcm_calibration.push_back("qwk_bcm6");
+  branches_for_bcm_calibration.push_back("event_number");
 
 
+  TString temp;
+  TString unser_branch_name;
+  TString clock_name;
 
-  BeamMonitor sca_unser("sca_unser");
+  for(std::size_t i=0; i<branches_for_bcm_calibration.size(); i++)
+    {
+      temp = branches_for_bcm_calibration.at(i);
+      if( temp.Contains("bcm") ) {
+	hallc_bcms_list.push_back(BeamMonitor(temp));
+      }
+      else if( temp.Contains("unser")) {
+	unser_branch_name = temp;
+      }
+      else if( temp.Contains("4mhz")) {
+	clock_name = "sca_4mhz";
+      }
+  
+    }
+
+  BeamMonitor sca_unser(unser_branch_name);
   sca_unser.SetReference();
   
 
@@ -423,12 +518,33 @@ main(int argc, char **argv)
   mps_tree = new TChain("Mps_Tree");
   GetTree(run_number,mps_tree);
 
-  if(mps_tree == NULL) 
-    {
-      std::cout<<"Unable to find the file "
-	       <<filename<<std::endl;
-      exit(1);
-    }
+  if(mps_tree == NULL) {
+    std::cout
+      << "Unable to find the MPS Tree in  "
+      << filename
+      << " Please check the ROOT file was created for the Hall C BCM calibration."
+      << std::endl;
+    exit(-1);
+  }
+
+  Bool_t bcm_valid_rootfiles = false;
+  bcm_valid_rootfiles = check_branches(branches_for_bcm_calibration,mps_tree);
+  
+  if(bcm_valid_rootfiles) {
+    std::cout << "all branches are in the root file(s)." << std::endl;
+  }
+  else {
+    // 
+    // need to be improved, because bcm calibration needs the
+    // Qweak_TreeTrim_BCMCalib.in file.
+    //
+    printf("\nThe root file, which you selected by run number, is invalid for the BCM calibration.\n");
+    printf("Plese run the following command in order to create a right ROOT file.\n");
+    printf("$ qwparity -r run_number -c hallc_bcm.conf\n");
+    printf("And do not forget to use Qweak_TreeTrim_BCMCalib.in file.\n\n");
+
+    exit(-1);    
+  }
 
   // // TEST begin without using Draw()
 
@@ -487,7 +603,7 @@ main(int argc, char **argv)
 
   // Clock Corrected qwk_sca_unser;
 
-  TString clock_name = "sca_4mhz";
+  //  TString clock_name = "sca_4mhz";
   
   mps_tree -> SetAlias("clock_correct", Form("4e6/%s", clock_name.Data())); 
   mps_tree -> SetAlias("cc_sca_unser",  Form("clock_correct*%s", sca_unser.GetCName()));
@@ -511,6 +627,7 @@ main(int argc, char **argv)
     std::cout << "Please check cc_sca_unser:event_number"
 	      << std::endl;
     theApp.Run();
+    return 0;
   }
 
   sca_unser_event -> SetTitle(Form("Run %s  cc_sca_unser:event_number", run_number));
@@ -616,13 +733,14 @@ main(int argc, char **argv)
   hallc_bcms_pedestal_output.open(Form("hallc_bcm_pedestal_%s.txt", run_number));
   hallc_bcms_pedestal_stream.clear();
 
-  for (i=0; i < hallc_bcms_list.size(); i++) {
-    /* exclude sca_bcm results from the output to the file. */
-    if(not hallc_bcms_list.at(i).GetName().Contains("sca")) {
-      hallc_bcms_list.at(i).SetFileStream();
-      hallc_bcms_pedestal_stream << hallc_bcms_list.at(i);
-    }
-  } 
+  for (i=0; i < hallc_bcms_list.size(); i++) 
+    {
+      /* exclude sca_bcm results from the output to the file. */
+      if(not hallc_bcms_list.at(i).GetName().Contains("sca")) {
+	hallc_bcms_list.at(i).SetFileStream();
+	hallc_bcms_pedestal_stream << hallc_bcms_list.at(i);
+      }
+    } 
 
   //  time_t theTime;
   // time(&theTime);
@@ -727,7 +845,7 @@ calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number )
 			       )
 			  );
   device_hist -> GetXaxis() ->SetTitle(Form("%s (#muA)", reference_name.Data()));
-  device_hist -> Fit("pol1", "E M R F", "", fit_range[0], fit_range[1]);
+  device_hist -> Fit("pol1", "E M R F Q", "", fit_range[0], fit_range[1]);
   device_hist -> Draw("");
   device_fit = device_hist  -> GetFunction("pol1");
   
