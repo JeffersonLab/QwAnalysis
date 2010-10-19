@@ -60,7 +60,7 @@ QWANSOURCE = $(QWANALYSIS)/Analysis/src
 # will be made automatically.
 DICTS		= $(OBJECTS:.o=Dict.o)
 
-APPLIC        = QwRealTimeGUI-$(VERS)
+APPLIC        = QwRealTimeGUI
 MFILE         = Makefile
 
 # For Linux with egcs, gcc 2.9x, gcc 3.x (>= RedHat 5.2)
@@ -68,9 +68,9 @@ MFILE         = Makefile
 
 DEBUGFLAGS    = #-DQWGUI_DEBUG
 CXX           = g++
-CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g #-O2
+CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g -O2
 LD            = g++
-LDFLAGS       = #-O2
+LDFLAGS       = -O2
 SOFLAGS       = -shared
 SYSLIBS       =
 GEOMLIB       = -lGeom
@@ -93,8 +93,8 @@ QWPRINCLUDE    = -I$(QWANALYSIS)/Parity/include
 QwLIBS =
 
 CXXFLAGS     += $(DEBUGFLAGS) $(QWEAKCPPFLAGS) -Wno-deprecated
-LIBS          = $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS) -lNew
-GLIBS         = $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) -lNew
+LIBS          = -lNew $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS)
+GLIBS         = -lNew $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) 
 
 #CXXFLAGS     += $(DEBUGFLAGS) $(ROOTCFLAGS) -Wno-deprecated
 #LIBS          = $(ROOTLIBS) $(SYSLIBS) $(QWLIBS) -lNew 

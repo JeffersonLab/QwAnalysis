@@ -352,7 +352,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 	  PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	  PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());//this gives std deviation not RMS
 	  PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	  //	  SummaryHist(histo1);
+	  //	  if(ldebug) SummaryHist(histo1);
 	  delete histo1; histo1= NULL;
 	}
       
@@ -368,7 +368,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	//	SummaryHist(histo2);
+	//	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
       
@@ -442,10 +442,10 @@ void QwGUIHallCBeamline::PlotChargeAsym()
 
       mc->cd(1);
       histo1->Draw();
-      //      SummaryHist(histo1);
+      //      if(ldebug) SummaryHist(histo1);
       mc->cd(2);
       histo2->Draw();
-      //      SummaryHist(histo2);
+      //      if(ldebug) SummaryHist(histo2);
       gPad->Update();
       gPad->Update();
 
@@ -516,7 +516,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	PosVariation[0] -> SetBinError(xcount, histo1->GetRMS());//this gives std deviation not RMS	
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	//	SummaryHist(histo1);
+	//	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -533,7 +533,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError(ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	//	SummaryHist(histo2);
+	//	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 	  
@@ -629,7 +629,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	PosVariation[0] -> SetBinError(xcount, histo1->GetRMS());//this gives std deviation not RMS
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	//	SummaryHist(histo1);
+	//	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -645,7 +645,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError(ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	//	SummaryHist(histo2);
+	//	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 	  
@@ -879,6 +879,7 @@ void QwGUIHallCBeamline::PlotFastRaster()
       else {
 	mc->Clear();
 	std::cout << "there is no raster" << std::endl;
+	break;
       }
       mc->Modified();
       mc->Update();

@@ -319,7 +319,7 @@ void QwGUIInjector::PositionDifferences()
 	 PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	 PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	 PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	 SummaryHist(histo1);
+	 if(ldebug) SummaryHist(histo1);
 	 delete histo1; histo1= NULL;
        }
       
@@ -335,7 +335,7 @@ void QwGUIInjector::PositionDifferences()
 	 PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	 PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	 PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	 SummaryHist(histo2);
+	 if(ldebug) SummaryHist(histo2);
 	 delete histo2; histo2= NULL; 
        }
       
@@ -392,7 +392,7 @@ void QwGUIInjector::PlotChargeAsym()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
-  
+  Bool_t ldebug = false;
 
    while (1){
      if (fCurrentBCMIndex<0)
@@ -409,10 +409,10 @@ void QwGUIInjector::PlotChargeAsym()
 
       mc->cd(1);
       histo1->Draw();
-      SummaryHist(histo1);
+      if(ldebug) SummaryHist(histo1);
       mc->cd(2);
       histo2->Draw();
-      SummaryHist(histo2);
+      if(ldebug) SummaryHist(histo2);
       gPad->Update();
       gPad->Update();
 
@@ -477,7 +477,7 @@ void QwGUIInjector::PlotBPMAsym(){
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	SummaryHist(histo1);
+	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -494,7 +494,7 @@ void QwGUIInjector::PlotBPMAsym(){
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 	  
@@ -593,7 +593,7 @@ void QwGUIInjector::PlotBPMPositions(){
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	SummaryHist(histo1);
+	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -609,7 +609,7 @@ void QwGUIInjector::PlotBPMPositions(){
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 	  

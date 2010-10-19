@@ -338,7 +338,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
 	MDPlots[0] -> SetBinContent(xcount, histo1->GetMean());
 	MDPlots[0] -> SetBinError  (xcount, histo1->GetRMS());
 	MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	SummaryHist(histo1);
+	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -354,7 +354,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
 	MDPlots[1] -> SetBinContent(ycount, histo2->GetMean());
 	MDPlots[1] -> SetBinError  (ycount, histo2->GetRMS());
 	MDPlots[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 	  
@@ -460,7 +460,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
 	MDPlots[0] -> SetBinContent(xcount, histo1->GetMean());
 	MDPlots[0] -> SetBinError  (xcount, histo1->GetRMS());
 	MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	SummaryHist(histo1);
+	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -477,7 +477,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
 	MDPlots[1] -> SetBinContent(ycount, histo2->GetMean());
 	MDPlots[1] -> SetBinError  (ycount, histo2->GetRMS());
 	MDPlots[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 	  
@@ -570,7 +570,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
 	MDPlots[0] -> SetBinContent(xcount, histo1->GetMean());
 	MDPlots[0] -> SetBinError  (xcount, histo1->GetRMS());
 	MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	SummaryHist(histo1);
+	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -586,7 +586,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
 	MDPlots[1] -> SetBinContent(ycount, histo2->GetMean());
 	MDPlots[1] -> SetBinError  (ycount, histo2->GetRMS());
 	MDPlots[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 	  

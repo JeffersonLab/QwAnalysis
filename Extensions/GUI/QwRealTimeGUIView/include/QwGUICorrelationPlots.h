@@ -167,7 +167,6 @@ class QwGUICorrelationPlots : public QwGUISubSystem {
   //!Return value: none  
   virtual void         MakeLayout();
 
-  void                 SummaryHist(TH1*in);
   void                 LoadLeafLists(Short_t tree_id);
   void                 SetCorrelationParam(Short_t cmb_id, Short_t id);
   void                 SetXCutExpr();

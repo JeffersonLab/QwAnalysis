@@ -160,10 +160,11 @@ void QwGUILumiDetector::MakeLayout()
 
 }
 
-void QwGUILumiDetector::LoadHistoMapFile(TString mapfile){ //Now this is called at the QwGUIMain
+void QwGUILumiDetector::LoadHistoMapFile(TString mapfile)
+{ 
   TString varname, varvalue;
   TString modtype, namech,dettype;
-  Int_t count_names;
+  //  Int_t count_names;
   fLUMIDevices.resize(LUMI_DET_TYPES);
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   //fLUMIDevices.clear();
@@ -318,7 +319,7 @@ void QwGUILumiDetector::PlotUSLumi(){
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	SummaryHist(histo1);
+	if(ldebug)SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -334,7 +335,7 @@ void QwGUILumiDetector::PlotUSLumi(){
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 
@@ -386,7 +387,8 @@ void QwGUILumiDetector::PlotUSLumi(){
   printf("QwGUILumiDetector::PlotUSLumi() \n");
 };
 
-void QwGUILumiDetector::PlotDSLumi(){
+void QwGUILumiDetector::PlotDSLumi()
+{
   TH1F *histo1=NULL;
   TH1F *histo2=NULL;
 
@@ -434,7 +436,7 @@ void QwGUILumiDetector::PlotDSLumi(){
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	SummaryHist(histo1);
+	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
 	  
@@ -450,7 +452,7 @@ void QwGUILumiDetector::PlotDSLumi(){
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	SummaryHist(histo2);
+	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
 
@@ -535,7 +537,8 @@ void QwGUILumiDetector::LoadSCALERCombo(){
 };
 
 
-void QwGUILumiDetector::PlotLumi(){
+void QwGUILumiDetector::PlotLumi()
+{
   TH1F *histo1=NULL;
   TH1F *histo2=NULL;
   char histo[128]; //name of the histogram
@@ -543,7 +546,7 @@ void QwGUILumiDetector::PlotLumi(){
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
-  
+  Bool_t ldebug = false;
 
    while (1){
      if (fCurrentLUMIIndex<0)
@@ -560,10 +563,10 @@ void QwGUILumiDetector::PlotLumi(){
 
       mc->cd(1);
       histo1->Draw();
-      SummaryHist(histo1);
+      if(ldebug) SummaryHist(histo1);
       mc->cd(2);
       histo2->Draw();
-      SummaryHist(histo2);
+      if(ldebug) SummaryHist(histo2);
       gPad->Update();
       gPad->Update();
 
@@ -583,7 +586,8 @@ void QwGUILumiDetector::PlotLumi(){
   //mc->Update(); 
 };
 
-void QwGUILumiDetector::PlotLumiScaler(){
+void QwGUILumiDetector::PlotLumiScaler()
+{
   TH1F *histo1=NULL;
   TH1F *histo2=NULL;
   char histo[128]; //name of the histogram
@@ -591,7 +595,7 @@ void QwGUILumiDetector::PlotLumiScaler(){
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
-  
+  Bool_t ldebug = false;
 
    while (1){
      if (fCurrentSCALERIndex<0)
@@ -608,10 +612,10 @@ void QwGUILumiDetector::PlotLumiScaler(){
 
       mc->cd(1);
       histo1->Draw();
-      SummaryHist(histo1);
+      if(ldebug) SummaryHist(histo1);
       mc->cd(2);
       histo2->Draw();
-      SummaryHist(histo2);
+      if(ldebug) SummaryHist(histo2);
       gPad->Update();
       gPad->Update();
 

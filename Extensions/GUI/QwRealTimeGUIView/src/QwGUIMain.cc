@@ -1295,19 +1295,9 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	}
 	break;
 
-	/*
-      case M_HELP_USER:
-	// Open the online help manual in a web browser.
-        {
-	  dHelpBrowser = new QwGUIHelpBrowser(this,fClient->GetRoot(),"dHelpBrowser","QwGUIMain",
-					      "file:///home/mgericke/user/QWeakAnalysisGUIManual.html");
-	}
-	break;
-	*/
       case M_VIEW_MAPLOAD:
 	printf("\n Loading Memory \n");
 	try{
-	  
 	  OpenMapFile();
 	}
 	catch( char * str ) {
@@ -1315,50 +1305,12 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	}
 
 	break;
-	/*
-      case M_HELP_CODE:
-        {
-	  sprintf(dMiscbuffer,"file://%s/Doxygen/html/index.html",getenv("QWANALYSIS"));
-	  dHelpBrowser = new QwGUIHelpBrowser(this,fClient->GetRoot(),"dHelpBrowser","QwGUIMain",
-					      dMiscbuffer);
-// 		pid_t child = fork();
-// 		if (-1 == child) perror("couldn't fork to open web browser");
-// 		if (0 == child) {
-// 			execl("/bin/sh", "/bin/sh", "-c",
-// 			      "firefox "
-// 			      "http://www.physics.umanitoba.ca/qweak/analysis/docs/code/index.html",
-// 			      (char*)0);
-// 			perror("couldn't exec shell for web browser");
-// 			exit(1);
-// 		}
-		
-	}
-	break;
 
-      case M_HELP_SEARCH:
-	 {
-#		define URL "http://sns.phys.utk.edu/svn/npdg/trunk/analysis/online"
-		pid_t child = fork();
-		if (-1 == child) perror("couldn't fork to show change history");
-		if (0 == child) {
-			execl("/bin/sh", "/bin/sh", "-c",
-			      "xterm -title 'Online Analysis Change History' "
-			      " -e \" "
-			      "(echo changes to " URL " && svn log " URL " ) | less"
-			      " \" "
-			      , (char*)0);
-			perror("couldn't exec shell for web browser");
-			exit(1);
-		}
-	 }
-	 break;
-
-      case M_HELP_ABOUT:
-	// were I able to make a cute box, I would put it here
-	break;
-	*/
       case M_FILE_EXIT:
-	gApplication->Terminate();
+	{
+	  //	  if(IsMapFileOpen()) CloseMapFile();
+	  gApplication->Terminate(0);
+	}
 	break;
       default:
 	break;

@@ -1,7 +1,8 @@
 #include "QwGUICorrelationPlots.h"
 
-#include <TG3DLine.h>
+#include "TG3DLine.h"
 #include "TGaxis.h"
+#include "TCut.h"
 
 
 
@@ -304,15 +305,17 @@ void QwGUICorrelationPlots::ClearData()
 
 
 
-void QwGUICorrelationPlots::PlotCorrelation(){
-  TH1F *histo1=NULL;
+void QwGUICorrelationPlots::PlotCorrelation()
+{
+
   TTree *tree=NULL;
-  Bool_t ldebug = false;
   TString tree_name=CorrelationPlotsTrees[fTreeIndex];
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
   Char_t drw[100];
-  Char_t cut[100];
+  TCut  cut;
+  TCut  cutX;
+  TCut  cutY;
   TString PrmY;
   TString PrmX;
 
@@ -328,10 +331,11 @@ void QwGUICorrelationPlots::PlotCorrelation(){
 
 
   printf("Correlation plot of %s vs %s \n",PrmY.Data(),PrmX.Data());
-  
-  sprintf(cut,"%s%s",PrmX.Data(),fCutX.Data());
-  sprintf(cut,"%s%s",PrmY.Data(),fCutY.Data());
-  //  printf("Cut %s \n ",cut);
+  // cut = PrmX+fCutX;
+
+  // sprintf(cut,"%s%s",PrmX.Data(),fCutX.Data());
+  // sprintf(cut,"%s%s",PrmY.Data(),fCutY.Data());
+  // //  printf("Cut %s \n ",cut);
   while (1){ 
     tree= (TTree *)dROOTCont->GetObjFromMapFile(tree_name);
     
@@ -345,20 +349,27 @@ void QwGUICorrelationPlots::PlotCorrelation(){
       printf("No Such tree object exist!\n");
       break;
     }
+
+    cutX = PrmX + fCutX;
+    cutY = PrmY + fCutY;
+
     if (tree->FindLeaf(PrmX) && tree->FindLeaf(PrmY)){ 
            
       sprintf(drw,"%s:%s",PrmY.Data(),PrmX.Data());  
       if (bCUTEXPR)
-	sprintf(cut,"%s",fCutExpr.Data());
+	cut = fCutExpr;
       else{
 	if (fCutY!="" && fCutX!="")
-	  sprintf(cut,"%s%s && %s%s",PrmX.Data(),fCutX.Data(),PrmY.Data(),fCutY.Data());
+	  cut = cutX + "&&" + cutY;
+	//	  sprintf(cut,"%s%s && %s%s",PrmX.Data(),fCutX.Data(),PrmY.Data(),fCutY.Data());
 	else if (fCutX=="" && fCutY!="")
-	  sprintf(cut,"%s%s",PrmY.Data(),fCutY.Data());
+	  cut = cutY;
+	//	  sprintf(cut,"%s%s",PrmY.Data(),fCutY.Data());
 	else if (fCutY=="" && fCutX!="")
-	  sprintf(cut,"%s%s",PrmX.Data(),fCutX.Data());
+	  cut = cutX;
+	//	  sprintf(cut,"%s%s",PrmX.Data(),fCutX.Data());
 	else
-	  sprintf(cut,"");
+	  cut = "";
       }
       if (tree->Draw(drw,cut)<0){
 	printf("Bad numerical expression \n");
@@ -524,30 +535,6 @@ Bool_t QwGUICorrelationPlots::ProcessMessage(Long_t msg, Long_t parm1, Long_t pa
   return kTRUE;
 }
 
-
-
-void 
-QwGUICorrelationPlots::SummaryHist(TH1 *in)
-{
-
-  Double_t out[4] = {0.0};
-  Double_t test   = 0.0;
-
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/sqrt(in->GetEntries());
-
-  printf("%sName%s", BOLD, NORMAL);
-  printf("%22s", in->GetName());
-  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-  return;
-};
 
 void QwGUICorrelationPlots::LoadLeafLists(Short_t tree_id){
   TTree * tree;

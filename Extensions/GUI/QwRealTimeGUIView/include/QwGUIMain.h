@@ -398,7 +398,7 @@ class QwGUIMain : public TGMainFrame {
   //! - 1) Boolean Open/Close Flag
   //!
   //!Return value: none
-  void                    SetMapFileOpen(Bool_t open = kFalse){dRootFileOpen = open;};
+  void                    SetMapFileOpen(Bool_t open = kFalse){dMapFileOpen = open;};
 
 
   void                    SleepWithEvents(int seconds);
