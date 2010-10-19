@@ -76,7 +76,8 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
 
   AddThisTab(this);
   
-
+  SetHistoAccumulate(1);
+  SetHistoReset(0);
 }
 
 QwGUIHallCBeamline::~QwGUIHallCBeamline()
@@ -331,6 +332,7 @@ void QwGUIHallCBeamline::PositionDifferences()
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
  
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
 
    while (1){ 
      PosVariation[0] = new TH1F("Eff_Asym", "Eff_Charge Asym Variation",BPMSTriplinesCount , min_range, max_range);
@@ -419,24 +421,38 @@ void QwGUIHallCBeamline::PositionDifferences()
 void QwGUIHallCBeamline::PlotChargeAsym()
 {
   TH1F *histo1=NULL;
+  TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
+  TH1F *histo2_buff=NULL; 
   char histo[128]; //name of the histogram
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
   
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
 
    while (1){
      if (fCurrentBCMIndex<0)
        break;
-     sprintf (histo, "asym_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
-     sprintf (histo, "yield_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     if (GetHistoPause()==0){
+       sprintf (histo, "asym_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       sprintf (histo, "yield_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     }
     
-    if (histo1!=NULL || histo2!=NULL ) {
-    
+    if (histo1!=NULL && histo2!=NULL ) {
+      if (GetHistoReset()){
+	histo1_buff=(TH1F*)histo1->Clone(Form("%s_buff",histo1->GetName()));
+	*histo1=*histo1-*histo1_buff;
+	histo2_buff=(TH1F*)histo2->Clone(Form("%s_buff",histo2->GetName()));
+	*histo2=*histo2-*histo2_buff;
+	SetHistoReset(0);
+      }else if (GetHistoAccumulate()==0){
+	*histo1=*histo1-*histo1_buff;
+	*histo2=*histo2-*histo2_buff;
+      }
       mc->Clear();
       mc->Divide(1,2);
 
@@ -495,6 +511,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
  
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
 
    while (1){ 
      PosVariation[0] = new TH1F("HCDiffX", "X Difference Variation", BPMSTriplinesCount, min_range, max_range);
@@ -609,14 +626,15 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
  
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
 
-   while (1){ 
+  while (1){ 
      PosVariation[0] = new TH1F("PosX", "Mean X Variation", BPMSTriplinesCount, min_range, max_range);
      PosVariation[1] = new TH1F("PosY", "Mean Y variation", BPMSTriplinesCount, min_range, max_range); 
-    for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
-    {
-      sprintf (histo, "%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+     for(Short_t p = 0; p <BPMSTriplinesCount ; p++) {
+       sprintf (histo, "%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -630,11 +648,13 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
 	PosVariation[0] -> SetBinError(xcount, histo1->GetRMS());//this gives std deviation not RMS
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	//	if(ldebug) SummaryHist(histo1);
-	delete histo1; histo1= NULL;
+	delete histo1; 
+	histo1= NULL;
       }
-	  
+
       sprintf (histo, "%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -646,7 +666,9 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
 	PosVariation[1] -> SetBinError(ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	//	if(ldebug) SummaryHist(histo2);
-	delete histo2; histo2= NULL; 
+	delete histo2; 
+	histo2= NULL; 
+	
       }
 	  
 	  
@@ -698,24 +720,38 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
   
 void QwGUIHallCBeamline::PlotSCALER(){
   TH1F *histo1=NULL;
+  TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
+  TH1F *histo2_buff=NULL; 
   char histo[128]; //name of the histogram
 
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
-  
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
 
-   while (1){
+  while (1){
      if (fCurrentSCALERIndex<0)
        break;
-     sprintf (histo, "asym_%s",fHallCDevices.at(SCALER_HALO).at(fCurrentSCALERIndex).Data() );
-     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
-     sprintf (histo, "yield_%s",fHallCDevices.at(SCALER_HALO).at(fCurrentSCALERIndex).Data() );
-     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     if (GetHistoPause()==0){
+       sprintf (histo, "asym_%s",fHallCDevices.at(SCALER_HALO).at(fCurrentSCALERIndex).Data() );
+       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       sprintf (histo, "yield_%s",fHallCDevices.at(SCALER_HALO).at(fCurrentSCALERIndex).Data() );
+       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     }
     
-    if (histo1!=NULL || histo2!=NULL ) {
+    if (histo1!=NULL && histo2!=NULL ) {
+      if (GetHistoReset()){
+	histo1_buff=(TH1F*)histo1->Clone(Form("%s_buff",histo1->GetName()));
+	*histo1=*histo1-*histo1_buff;
+	histo2_buff=(TH1F*)histo2->Clone(Form("%s_buff",histo2->GetName()));
+	*histo2=*histo2-*histo2_buff;
+	SetHistoReset(0);
+      }else if (GetHistoAccumulate()==0){
+	*histo1=*histo1-*histo1_buff;
+	*histo2=*histo2-*histo2_buff;
+      }
     
       mc->Clear();
       mc->Divide(1,2);
@@ -748,7 +784,9 @@ void QwGUIHallCBeamline::PlotSCALER(){
 
 void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
   TH1F *histo1=NULL;
+  TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
+  TH1F *histo2_buff=NULL; 
   
   char histon1[128]; //name of the histogram
   char histon2[128]; //name of the histogram
@@ -757,7 +795,7 @@ void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
-  
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
 
    while (1){
      switch (tgtcoord)
@@ -779,11 +817,25 @@ void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
 	 sprintf (histon2, "yield_qwk_targetYSlope_hw" );
 	 break;
        }
-     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histon1);
-     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histon2);
+
+     if (GetHistoPause()==0){
+       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histon1);
+       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histon2);
+     }
      
     
     if (histo1!=NULL && histo2!=NULL ) {
+      if (GetHistoReset()){
+	histo1_buff=(TH1F*)histo1->Clone(Form("%s_buff",histo1->GetName()));
+	*histo1=*histo1-*histo1_buff;
+	histo2_buff=(TH1F*)histo2->Clone(Form("%s_buff",histo2->GetName()));
+	*histo2=*histo2-*histo2_buff;
+	SetHistoReset(0);
+      }else if (GetHistoAccumulate()==0){
+	*histo1=*histo1-*histo1_buff;
+	*histo2=*histo2-*histo2_buff;
+      }
+
       mc->Clear();
       mc->Divide(1,2);
 
@@ -815,23 +867,39 @@ void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
 
 void QwGUIHallCBeamline::PlotTargetCharge(){
   TH1F *histo1=NULL;
+  TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
+  TH1F *histo2_buff=NULL; 
   char histo[128]; //name of the histogram
 
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
   
 
    while (1){
-     sprintf (histo, "asym_qwk_charge_hw" );
-     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
-     sprintf (histo, "yield_qwk_charge_hw" );
-     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     if (GetHistoPause()==0){
+       sprintf (histo, "asym_qwk_charge_hw" );
+       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       sprintf (histo, "yield_qwk_charge_hw" );
+       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+     }
     
     if (histo1!=NULL && histo2!=NULL ) {
-    
+      
+      if (GetHistoReset()){
+	histo1_buff=(TH1F*)histo1->Clone(Form("%s_buff",histo1->GetName()));
+	*histo1=*histo1-*histo1_buff;
+	histo2_buff=(TH1F*)histo2->Clone(Form("%s_buff",histo2->GetName()));
+	*histo2=*histo2-*histo2_buff;
+	SetHistoReset(0);
+      }else if (GetHistoAccumulate()==0){
+	*histo1=*histo1-*histo1_buff;
+	*histo2=*histo2-*histo2_buff;
+      }
+      
       mc->Clear();
       mc->Divide(1,2);
 
@@ -852,29 +920,46 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
     }
   }
    
-  printf("---------------PlotTargetCharge()--------------------\n");
-  return;
+
+   printf("---------------PlotTargetCharge() %d--------------------\n",GetHistoAccumulate());
+   return;
 };
 
 
 
 void QwGUIHallCBeamline::PlotFastRaster()
 {
-
-  TH2D *obj          = NULL;
+  TH2D *histo1=NULL;
+  TH2D *histo1_buff=NULL; 
+  char histo[128]; //name of the histogram
   TCanvas *mc        = NULL;
 
   mc = dCanvas->GetCanvas();
+
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
+   
+
   gStyle->SetPalette(1,0);
   while (1)
     {
-      obj = (TH2D*) dROOTCont->GetObjFromMapFile("raster_rate_map");
-      if(obj) {
+      if (GetHistoPause()==0){
+       sprintf (histo, "raster_rate_map" );
+       histo1= (TH2D*) dROOTCont->GetObjFromMapFile("raster_rate_map");
+      }
+ 
+      
+      if(histo1) {
+	if (GetHistoReset()){
+	  histo1_buff=(TH2D*)histo1->Clone(Form("%s_buff",histo1->GetName()));
+	  *histo1=*histo1-*histo1_buff;
+	  SetHistoReset(0);
+	}else if (GetHistoAccumulate()==0){
+	  *histo1=*histo1-*histo1_buff;
+	}
 	mc->Clear();
 	gPad->SetGridx();
 	gPad->SetGridy();
-
-	obj -> Draw();
+	histo1->Draw();
       }
       else {
 	mc->Clear();
@@ -989,20 +1074,19 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	    break;
 	    
 	  case kCM_MENUSELECT:
-	    break;
-	    
+	    break;	    
 	  case kCM_MENU:
 	    
 	    switch (parm1) {
-	      
+
 	    case M_FILE_OPEN:
 	      break;
 	      
 	      
 	      
-	  default:
-	    break;
-	  }
+	    default:
+	      break;
+	    }
 	  
 	default:
 	  break;
@@ -1081,3 +1165,5 @@ QwGUIHallCBeamline::SummaryHist(TH1 *in)
   printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
   return;
 };
+
+

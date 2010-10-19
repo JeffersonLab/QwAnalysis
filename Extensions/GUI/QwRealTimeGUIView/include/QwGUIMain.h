@@ -202,6 +202,7 @@ class QwGUIMain : public TGMainFrame {
   TGPopupMenu            *dMenuTabs;
   TGPopupMenu            *dMenuHelp;
   TGPopupMenu            *dMenuLoadMap;
+  TGPopupMenu            *dMenuHistoState;//this has options to reset and accumulate histograms
   TGLayoutHints          *dMenuBarLayout;
   TGLayoutHints          *dMenuBarItemLayout;
   TGLayoutHints          *dMenuBarHelpLayout;

@@ -87,6 +87,11 @@ class QwGUISubSystem : public TGCompositeFrame {
 
  protected:
 
+  //!histo modes
+  Int_t dHistoReset;
+  Int_t dHistoAccum;
+  Int_t dHistoPause;
+
   //!Buffer, mainly used in message passing and for other temporary storage.
   char             dMiscbuffer[MSG_SIZE_MAX];
   //!Buffer, mainly used in message passing and for other temporary storage.
@@ -391,6 +396,71 @@ class QwGUISubSystem : public TGCompositeFrame {
   void             TabMenuEntryChecked(Bool_t set) {dTabMenuItemChecked = set; 
     dTabMenuItemChecked ? OnAddThisTab() : OnRemoveThisTab();};
   
+
+  //!Set histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters:
+  //! - 1) Histo reset
+  //!Return value: none
+  void             SetHistoReset(Int_t historeset){
+    dHistoReset=historeset;
+  };
+
+  //!Set histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters:
+  //! - 1) Histo Accum
+  //!Return value: none
+  void             SetHistoAccumulate(Int_t histoaccum){
+    dHistoAccum=histoaccum;
+  }; 
+
+  //!Set histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters:
+  //! - 1) Histo pause
+  //!Return value: none
+  void             SetHistoPause(Int_t histopause){
+    dHistoPause=histopause;
+  };  
+
+  //!Set histomode to accumulate. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters:
+  //! - 1) Histo none
+  //!Return value: none
+  void             SetHistoDefaultMode(){
+    SetHistoReset(0);
+    SetHistoAccumulate(1);
+    SetHistoPause(0); 
+  };      
+ 
+  //!Get histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters: none
+  //!Return value: Histo Reset status
+  Int_t            GetHistoReset(){
+    return dHistoReset;
+  };
+
+  //!Get histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters: none
+  //!Return value: Histo accumu status
+  Int_t            GetHistoAccumulate(){
+    return dHistoAccum;
+  };
+
+  //!Set histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters: none
+  //!Return value: Histo pause status
+  Int_t             GetHistoPause(){
+    return dHistoPause;
+  };
+  
+ 
+
   ClassDef(QwGUISubSystem,0);
 };
 

@@ -205,6 +205,10 @@ enum CommandIdentifiers {
   M_HISTO_CLOSE,
   M_HISTO_ENTRY_SET,
   M_HISTO_ENTRY_CANCEL,
+
+  M_HISTO_RESET,
+  M_HISTO_ACCUMULATE, 
+  M_HISTO_PAUSE,
   
   M_TABS   //always needs to be last in the list!
 };
