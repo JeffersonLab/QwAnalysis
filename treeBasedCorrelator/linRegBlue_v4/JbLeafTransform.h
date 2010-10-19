@@ -22,11 +22,11 @@ class JbLeafTransform {
   
   // pointers to leaf variables
   Double_t *pLeafMD[mxMD*mxPN]; 
-  //  Double_t *pLeafBCM;
+  Double_t *pLeafBCM;
   Double_t *pLeafBPM[mxBPM]; 
 
   // histograms
-  enum {mxHA=128}; TH1 * hA[mxHA];
+  enum {mxHA=16}; TH1 * hA[mxHA];
   void initHistos();
   
  public:

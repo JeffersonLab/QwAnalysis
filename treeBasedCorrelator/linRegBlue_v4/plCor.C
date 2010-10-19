@@ -1,21 +1,20 @@
 TCanvas *can=0;
 
-
-
 TFile* fd=0;
 enum{ nP=5,nY=15}; 
 TString cor1="input";
 int pl=2; //1=gif, 2=ps, 3=both
-TString runName="R5954.000";
+TString runName="bad.000";
 TString inpPath="./out/";
 char *oPath="./out/";
 
-plCor(int page=1) {
-  if(page==0) {  doAll();    return;   }
+plCor(int page=1, char *runName0="R5954.000") {
+  //  printf("ss=%s=\n",runName0);
+
+  if(page==0) {   runName=runName0; doAll();    return;   }
   gStyle->SetFillStyle(0);
   gStyle->SetPalette(1,0);
   TString dataFinalRoot=inpPath+runName+".hist.root";
-
 
   fd=new TFile( dataFinalRoot); assert(fd->IsOpen());
 

@@ -75,10 +75,9 @@ void JbLeafTransform::findInputLeafs(TChain *chain){
     }
   }
 
-#if 0
-  // Access other iv leafs
-  { 
-    TString other="asym_qwk_bcm1/hw_sum";
+#if 1
+  {  // Access other iv leafs
+    TString other="yield_qwk_bcm1/hw_sum";
     TLeaf *lf=chain->GetLeaf(other);
     assert(lf);
     Double_t* p=(Double_t*)lf->GetValuePointer();    
@@ -105,6 +104,7 @@ void JbLeafTransform::findInputLeafs(TChain *chain){
 //========================
 //========================
 bool JbLeafTransform::unpackEvent(){
+  hA[0]->Fill("inp", 1.);
   // printf("\nJbLeafTransform_%s unpackEvent\n",mCore.Data());
   double amd[mxMD];
 
@@ -140,7 +140,6 @@ bool JbLeafTransform::unpackEvent(){
   mix[13]=(amd[1]+amd[3]+amd[5]+amd[7])/4.; //mdx
   mix[14]=(mix[12]+mix[13])/2.; //mda
 
-  //  double bcm=1e6*(*pLeafBCM);
 
   // compute final dv's
   for(int i=0;i<nY;i++) {
@@ -156,10 +155,14 @@ bool JbLeafTransform::unpackEvent(){
     // printf("%s iv_i=%d val=%g \n",Pname[i].Data(),i,Pvec[i]);
   }
 
-
-
+  double bcm1_uA=(*pLeafBCM);
+  
+  if(bcm1_uA!= bcm1_uA)  return false; // corrupted event
+  hA[1]->Fill(bcm1_uA);
+  
+  hA[0]->Fill("ok", 1.);
   return true;
-
+  
 }
 
 
@@ -176,28 +179,24 @@ void JbLeafTransform::init() {
 //________________________________________________
 void
 JbLeafTransform::initHistos(){
-  printf("JbLeafTransform::initHistos() - empty\n");
-#if 0
+  printf("JbLeafTransform::initHistos()\n");
+
+  TH1F *h;
   //...... data histograms
   memset(hA,0,sizeof(hA));
-  TH1 *h; 
-  
-  //.....1D  P raw Y +heli histos [10-19]   
-  //.....1D  P raw Y -heli histos [20-29] 
-  int heliC[mxHeli]={36,kBlue};
+  int nCase=4;
+  hA[0]=h=new TH1F("myStat","Qweak: event count; case",nCase,0,nCase);
+  h->GetXaxis()->SetTitleOffset(0.4);  h->GetXaxis()->SetLabelSize(0.06);  h->GetXaxis()->SetTitleSize(0.05); h->SetMinimum(0.8);
+  h->SetLineColor(kBlue);h->SetLineWidth(2);
+  h->SetMarkerSize(2);//<-- large text
+
+  // char key[][200]={"inp","BHT3Id","L2wId"};
+  // for(int i=0;i<4;i++) h->Fill(key[i],0.); // preset the order of keys
+
+  hA[1]=h=new TH1F("inpBcm1","BCM1 yield  before cuts; current  #mu A ",128,0,0);
+  h->SetFillColor(kBlue);
 
 
-  for(int ibp=0;ibp<niv();ibp++) {
-    float x1=-1,x2=1;
-    if(ibp==4) { x1=1259.1; x2=1261.3;}
-    if(ibp==5) { x1=0.4; x2=1.6;}
-    hA[10+ibp]=h=new TH1D(Form(mCore+"P%dpCr",ibp),Form("corr Y P%d heli +;meas %s (a.u.) ",ibp, ivName[ibp].Data()),500,x1,x2);
-    h->SetLineColor(heliC[0]);
-
-    hA[20+ibp]=h=new TH1D(Form(mCore+"P%dnCr",ibp),Form("corr Y P%d heli -; meas %s (a.u.) ",ibp, Pname2[ibp]),500,x1,x2);
-    h->SetLineColor(heliC[1]);
-  }
-#endif 
 }
 
 

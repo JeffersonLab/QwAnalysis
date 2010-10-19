@@ -12,9 +12,10 @@
 #include <TFile.h>
 #include <TH2.h>
 #include <TTree.h> 
-#include <TLeaf.h>//tmp 
+//#include <TLeaf.h>//tmp 
 #include <TChain.h>
 #include <TObjArray.h>
+#include <TEventList.h> //tmp
 
 #include "JbLeafTransform.h"
 #include "JbCorrelator.h"
@@ -45,7 +46,7 @@ int main(int argc, char *argv[]) {
   //..... try to open known correlation coef's.......
   JbCorrelator *corB=0;
   double *YvecNew=0;
-  TString corFileName=Form("R%d_alphas.root",runId);
+  TString corFileName=Form("%sR%d_alphas.root",outPath,runId);
   TFile*  corFile=new TFile(corFileName);
   TMatrixD *alphasM=0; // indicator that coef's exist
   if(corFile->IsOpen()) {
@@ -68,24 +69,49 @@ int main(int argc, char *argv[]) {
   
   // .........   input  event file   .........
   TChain *chain = new TChain("Hel_Tree");  
-
+  // chain->SetBranchStatus("*",0); //disable all branches
+  //chain->SetBranchStatus("Hel_Tree",1);
+  
   char *runL[]={runName}; int nr=1;
   for(int i=0;i<nr;i++) {
-    TString treeFile=Form("%sQweak_%s.root",inpPath,runL[i]);
+    //TString treeFile=Form("%sQweak_%s.root",inpPath,runL[i]);
+    TString treeFile=Form("%sQwPass1_%s.root",inpPath,runL[i]);
     chain->Add(treeFile);
     printf("%d =%s=\n",i,treeFile.Data());
   }
   int nEve=(int)chain->GetEntries();
   printf("tot nEve=%d expected in the chain \nscan leafs for iv & dv ...\n",nEve);
-  eve.findInputLeafs(chain);
+ 
+  // filter events with too low bcm1
+  //.... find mean bcm1
+  chain->Draw("yield_qwk_bcm1.hw_sum>>hist0");  
+  TH1* hist0=(TH1*)gDirectory->Get("hist0");
+  double xx=hist0->GetMean();
+  printf("mean BCM1 yield=%.1f  (uA)\n",xx);
+  
+  chain->Draw(">>elist1",Form("yield_qwk_bcm1.hw_sum >%f",xx-5.));
+  TEventList *list = (TEventList*)gDirectory->Get("elist1"); 
+  list->Print();
+  chain->SetEventList(list); nEve=(int)chain->GetEntries();
+
+#if 0
+  for(int k=0;k<100;k++) {
+    int ie=list->GetEntry(k);
+    printf("%d %d \n", k,ie);
+  }
+  return 0; 
+#endif
+
+
+ eve.findInputLeafs(chain);
   //eve.print();
-  //  return 0;
 
   TString hfileName=Form("%sR%s.hist.root",outPath,runName);
   TFile*  mHfile=new TFile(hfileName,"RECREATE"," histograms w/ regressed Qweak data");
   assert(mHfile->IsOpen());
   printf(" Setup output  histo to '%s' ,\n",hfileName.Data());
   corA.init(eve.nP, eve.nY, eve.Pname, eve.Yname);   // creates histo 
+  eve.init();  // creates histo 
   if(alphasM) corB->init(eve.nP, eve.nY, eve.Pname, eve.Yname); 
 
   int t1=time(0);
@@ -94,6 +120,8 @@ int main(int argc, char *argv[]) {
   for( ie=skipEve;ie<nEve;ie++) { 
     chain->GetEntry(ie);
     if(ie%5000==0) printf(" ieve=%d of %d ...\n",ie,nEve);
+    if(!list->Contains(ie)) continue;
+
     if(!eve.unpackEvent()) continue;
     corA.addEvent(eve.Pvec, eve.Yvec);
     if(alphasM) {// regress dv's

@@ -128,13 +128,6 @@ JbCorrelator::initHistos(){
     }
   }
   
-
-
-#if 0
-  //...... data histograms
-  memset(hA,0,sizeof(hA));
- 
-#endif 
 }
 
 
