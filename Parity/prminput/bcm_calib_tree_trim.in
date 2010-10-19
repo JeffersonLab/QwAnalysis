@@ -1,14 +1,20 @@
-# Tree trim file of run  596
+# Tree trim file for Hall C BCM Calibration
+# Tuesday, October 19 15:14:31 EDT 2010,jhlee
+#
+# hw_sum      : activated for hw_sum_raw, if not noname_0.. one can see
+# hw_sum_raw  :
+# num_samples :
+# Device_Error_code
 
 [HallCBeamLine]
   <QwBCM>
 	hw_sum
 	hw_sum_raw
 #	block
-	block_raw
+#	block_raw
 	num_samples
 	Device_Error_Code
-	sequence_number
+#	sequence_number
 
   <QwBPMStripline>
 #	hw_sum
@@ -38,13 +44,13 @@
 #	sequence_number
 
   <QwCombinedBCM>
-	hw_sum
-	hw_sum_raw
+#	hw_sum
+#	hw_sum_raw
 #	block
-	block_raw
-	num_samples
-	Device_Error_Code
-	sequence_number
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
 
    <QwEnergyCalculator>
 #	hw_sum
@@ -110,3 +116,6 @@ qwk_bcm2
 qwk_bcm5
 qwk_bcm6
 event_number
+
+## Hel Tree  
+## No. of branches  383

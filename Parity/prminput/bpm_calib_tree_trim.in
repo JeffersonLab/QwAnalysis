@@ -5,19 +5,19 @@
 	hw_sum
 	hw_sum_raw
 #	block
-	block_raw
+#	block_raw
 	num_samples
 	Device_Error_Code
-	sequence_number
+#	sequence_number
 
   <QwBPMStripline>
 	hw_sum
 	hw_sum_raw
 #	block
-	block_raw
+#	block_raw
 	num_samples
 	Device_Error_Code
-	sequence_number
+#	sequence_number
 
   <QwBPMCavity>
 #	hw_sum
@@ -101,15 +101,15 @@
 
 # Mps Tree  
 # No. of branches  289
-sca_unser
-sca_4mhz
+#sca_unser
+#sca_4mhz
 sca_bcm1
 sca_bcm2
 qwk_bcm1
 qwk_bcm2
 qwk_bcm5
 qwk_bcm6
-event_number
+#event_number
 
 
 #

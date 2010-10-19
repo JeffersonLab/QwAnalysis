@@ -69,16 +69,23 @@
 //                  - added check_branches function in order to check whether 
 //                    the opened ROOT file is valid or not for the BCM calibration.
 // 
-
+//          0.0.8 : Tuesday, October 19 11:28:52 EDT 2010, jhlee
+//                  - added fitted result on the fitted plot
+//                  - renamed several function in order to compare with bpm calibration
+//                    easily
+//                  - sync BeamMonitor class with hallc_bpm_calib.C
+//
 //
 // Additional BCM calibration run info
 //
 //  run    Gain
 //  5070   5        * BCM calibration RUN
-//  5260   2        * BCM calibration RUN
-//  ????
+//                    https://hallcweb.jlab.org/hclog/1008_archive/100806051827.html
+//  5260   2        * BCM calibration RUN 
+//                    https://hallcweb.jlab.org/hclog/1008_archive/100810204416.html
+//  ???? 
 //  5669   2
-//  5807   2        * BCM calibration RUN   qweak_hallc_pedestal.5669-5818.map
+//  5807   2        * BCM calibration RUN 
 //
 
 
@@ -106,6 +113,7 @@
 #include "TCut.h"
 #include "TStopwatch.h"
 #include "TChain.h"
+#include "TStyle.h"
 
 
 class BeamMonitor 
@@ -121,13 +129,14 @@ public:
   void SetAliasName(const TString in) {alias_name = in;};
   void SetPed(const Double_t in) {offset[0] = in;};
   void SetPedErr(const Double_t in) {offset[1] = in;};
-  void SetSlop(const Double_t in) {slope[0] = in; gain[0] = 1.0/in;};
+  void SetSlop(const Double_t in) {slope[0] = in; SetGain(in);};
   void SetSlopErr(const Double_t in) {slope[1] = in; SetGainErr();} // must calculate gain[1] error later, jhlee
  
   void SetFitRange(const Double_t in[2]) {fit_range[0] = in[0]; fit_range[1] = in[1];};
-  void SetReference() {reference_flag = true;};
+  void SetReference()  {reference_flag = true;};
   void SetFileStream() {filestream_flag = true;};
-  
+  void SetBPM()        {bpm_flag = true;}
+
   TString GetName() {return name;};
   const char* GetCName() {return name.Data();};
   TString GetAliasName() {return alias_name;};
@@ -143,8 +152,9 @@ public:
   Double_t GetFitRangeMin() {return fit_range[0];};
   Double_t GetFitRangeMax() {return fit_range[1];};
   
-  Bool_t IsReference() { return reference_flag;};
+  Bool_t IsReference()  {return reference_flag;};
   Bool_t IsFileStream() {return filestream_flag;};
+  Bool_t IsBPM()        {return bpm_flag;};  
 
 private:
   TString name;
@@ -157,7 +167,9 @@ private:
   Double_t fit_range[2];
   Bool_t   reference_flag;
   Bool_t   filestream_flag;
-
+  Bool_t   bpm_flag;
+  
+  void SetGain(Double_t in);
   void SetGainErr();
 
 };
@@ -168,18 +180,21 @@ BeamMonitor::BeamMonitor()
   alias_name.Clear();
   offset[0] = 0.0;
   offset[1] = 0.0;
-  slope[0] = 0.0;
-  slope[1] = 0.0;
-  gain[0] = 0.0;
-  gain[1] = 0.0;
+  slope [0] = 0.0;
+  slope [1] = 0.0;
+  gain  [0] = 0.0;
+  gain  [1] = 0.0;
+
   // mean[0] = 0.0;
   // mean[1] = 0.0;
   // rms[0] = 0.0;
   // rms[1] = 0.0;
-  fit_range[0] = 0.0;
-  fit_range[1] = 0.0;
-  reference_flag = false;
+
+  fit_range[0]    = 0.0;
+  fit_range[1]    = 0.0;
+  reference_flag  = false;
   filestream_flag = false;
+  bpm_flag        = false;
 };
 
 
@@ -189,31 +204,57 @@ BeamMonitor::BeamMonitor(TString in)
   alias_name.Clear();
   offset[0] = 0.0;
   offset[1] = 0.0;
-  slope[0] = 0.0;
-  slope[1] = 0.0;
-  gain[0] = 0.0;
-  gain[1] = 0.0;
+  slope [0] = 0.0;
+  slope [1] = 0.0;
+  gain  [0] = 0.0;
+  gain  [1] = 0.0;
+
   // mean[0] = 0.0;
   // mean[1] = 0.0;
   // rms[0] = 0.0;
   // rms[1] = 0.0;
-  fit_range[0] = 0.0;
-  fit_range[1] = 0.0;
-  reference_flag = false;
+
+  fit_range[0]    = 0.0;
+  fit_range[1]    = 0.0;
+  reference_flag  = false;
   filestream_flag = false;
+  bpm_flag        = false;
 
 };
 
-void BeamMonitor::SetGainErr()
+
+void 
+BeamMonitor::SetGain(Double_t in)
 {
-  Double_t slope2 = 0.0;
-
-  slope2 = slope[0]*slope[0];
-  
-  if(slope2 not_eq 0.0)  gain[1] = slope[1]/slope2;
-  else                   gain[1] = 0.0;
-  
+  if( IsBPM() ) {
+    gain[0] = 1.0;
+  }
+  else {
+    if(in not_eq 0.0) gain[0] = 1.0/in;
+    else              gain[0] = 0.0;
+  }
+  return;
 };
+
+
+void 
+BeamMonitor::SetGainErr()
+{
+  if( IsBPM() ) {
+    gain[1] = 0.0;
+  }
+  else {
+    Double_t slope2 = 0.0;
+    
+    slope2 = slope[0]*slope[0];
+    
+    if(slope2 not_eq 0.0)  gain[1] = slope[1]/slope2;
+    else                   gain[1] = 0.0;
+  }
+  return;
+};
+
+
 
 std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
 {
@@ -227,18 +268,20 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
   if(device.filestream_flag) { 
     stream << std::setprecision(file_precision);
     stream << std::setiosflags(std::ios_base::scientific);
-    stream <<  std::setw(name_output_width) <<  device_name;
-    stream << " ";
+    stream <<  std::setw(name_output_width) << device_name;
+    stream << ", ";
     stream <<  std::setw(file_output_width) << device.offset[0];
-    stream << " " ;
+    stream << ", " ;
     stream <<  std::setw(file_output_width) << device.offset[1];
-    stream << " " ;
-    stream <<  std::setw(file_output_width) << device.slope[0];
-    stream << " " ;
-    stream <<  std::setw(file_output_width) << device.slope[1];
-    stream << " " ;
+    stream << ", " ;
+    if(not device.bpm_flag) {
+      stream <<  std::setw(file_output_width) << device.slope[0];
+      stream << ", " ;
+      stream <<  std::setw(file_output_width) << device.slope[1];
+      stream << ", " ;
+    }
     stream <<  std::setw(file_output_width) << device.gain[0];
-    stream << " " ;
+    stream << ", " ;
     stream <<  std::setw(file_output_width) << device.gain[1];
     stream << "\n";
   }
@@ -263,17 +306,17 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
     
     if(device.reference_flag) {
       stream << std::setfill(' ') << std::setw(38);
-      stream << " Fit Range : " << std::setw(term_output_width) << device.fit_range[0];
-      stream << " -- "         << std::setw(term_output_width) << device.fit_range[1];
+      stream << " Fit Range : "   << std::setw(term_output_width) << device.fit_range[0];
+      stream << " -- "            << std::setw(term_output_width) << device.fit_range[1];
     }
     else {
       stream << std::setfill(' ') << std::setw(38);
-      stream << " Slope  : "  << std::setw(term_output_width) << device.slope[0];
-      stream << " +- "        << std::setw(term_output_width) << device.slope[1];
+      stream << " Slope  : "      << std::setw(term_output_width) << device.slope[0];
+      stream << " +- "            << std::setw(term_output_width) << device.slope[1];
       stream << " \n";
       stream << std::setfill(' ') << std::setw(38);
-      stream << " Gain   : " << std::setw(term_output_width) << device.gain[0];
-      stream << " +- "       << std::setw(term_output_width)  << device.gain[1];
+      stream << " Gain   : "      << std::setw(term_output_width) << device.gain[0];
+      stream << " +- "            << std::setw(term_output_width) << device.gain[1];
     }
   }
   return stream;
@@ -286,11 +329,11 @@ void
 print_usage(FILE* stream, int exit_code);
 
 Bool_t 
-calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
+bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
 
 
 Bool_t
-check_branches(std::vector<TString> &branches, TTree *roottree)
+check_bcm_branches(std::vector<TString> &branches, TTree *roottree)
 {
   Bool_t local_debug = false;
 
@@ -340,27 +383,27 @@ GetTree(char* run_number, TChain* tree)
 {
   TFile *file = NULL;
 
-  TString filename = Form("Qweak_%s.000.root", run_number);
+  TString filename = Form("BCMCalib_%s.000.root", run_number);
   file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
 
   if (file->IsZombie()) {
     std::cout << "Error opening root file chain " 
 	      << filename << std::endl;
-
-    filename = Form("Qweak_%s.root", run_number);
+    filename = Form("BCMCalib_%s.root", run_number);
     std::cout << "Try to open chain " 
 	      << filename << std::endl;
     file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
     if (file->IsZombie()) {
       std::cout << "File exit failure."<<std::endl; 
       tree = NULL;
+      exit(-1);
     }
     else {
-      tree->Add(Form("~/scratch/rootfiles/Qweak_%s.root", run_number));
+      tree->Add(Form("~/scratch/rootfiles/BCMCalib_%s.root", run_number));
     }
   }
   else {
-    tree->Add(Form("~/scratch/rootfiles/Qweak_%s.*.root", run_number));
+    tree->Add(Form("~/scratch/rootfiles/BCMCalib_%s.*.root", run_number));
   }
   
   return;
@@ -389,7 +432,11 @@ main(int argc, char **argv)
   Bool_t fit_range_flag    = false;
   Bool_t unser_offset_flag = false;
 
-  
+    // Fit and stat parameters
+  gStyle->SetOptFit(1111);
+  gStyle->SetOptStat(0000000);
+  gStyle->SetStatH(0.1);
+  gStyle->SetStatW(0.2);
   program_name = argv[0];
 
   int cc = 0; 
@@ -504,7 +551,7 @@ main(int argc, char **argv)
 	unser_branch_name = temp;
       }
       else if( temp.Contains("4mhz")) {
-	clock_name = "sca_4mhz";
+	clock_name = temp;
       }
   
     }
@@ -513,36 +560,29 @@ main(int argc, char **argv)
   sca_unser.SetReference();
   
 
-  /*Open the root file to access the tree*/
-  TString filename = Form("Qweak_%s.*.root", run_number);
   mps_tree = new TChain("Mps_Tree");
-  GetTree(run_number,mps_tree);
+  GetTree(run_number, mps_tree);
 
   if(mps_tree == NULL) {
     std::cout
-      << "Unable to find the MPS Tree in  "
-      << filename
+      << "Unable to find the MPS Tree in BCMCalib_" << run_number << "*.root file."
       << " Please check the ROOT file was created for the Hall C BCM calibration."
       << std::endl;
-    exit(-1);
+    exit(1);
   }
 
   Bool_t bcm_valid_rootfiles = false;
-  bcm_valid_rootfiles = check_branches(branches_for_bcm_calibration,mps_tree);
+  bcm_valid_rootfiles = check_bcm_branches(branches_for_bcm_calibration,mps_tree);
   
   if(bcm_valid_rootfiles) {
     std::cout << "all branches are in the root file(s)." << std::endl;
   }
   else {
-    // 
-    // need to be improved, because bcm calibration needs the
-    // Qweak_TreeTrim_BCMCalib.in file.
-    //
     printf("\nThe root file, which you selected by run number, is invalid for the BCM calibration.\n");
     printf("Plese run the following command in order to create a right ROOT file.\n");
-    printf("$ qwparity -r run_number -c hallc_bcm.conf\n");
-    printf("And do not forget to use Qweak_TreeTrim_BCMCalib.in file.\n\n");
-
+    printf("------------------------------------------ \n");
+    printf(" qwparity -r %s -c hallc_bcm.conf\n", run_number);
+    printf("------------------------------------------ \n");
     exit(-1);    
   }
 
@@ -648,7 +688,7 @@ main(int argc, char **argv)
   if(not cc_sca_unser_gaus) {
     std::cout << "Please check "
   	      << "cc_sca_unser"
-  	      << " in " << filename.Data()
+  	      << " in BCMCalib root file."
   	      << std::endl;
     std::cout << "or\n This programs doesn't handle this run correctly. "
   	      << "Please report this problem via an email to jhlee@jlab.org"
@@ -685,7 +725,7 @@ main(int argc, char **argv)
   else {
     std::cout << "Please check "
   	      << unser_name
-  	      << " in " << filename.Data()
+  	      << " in BCMCalib root file."
   	      << std::endl;
     std::cout << "or\n This programs doesn't handle this run correctly. "
 	      << "Please report this problem via an email to jhlee@jlab.org"                                                                           << std::endl;
@@ -718,7 +758,7 @@ main(int argc, char **argv)
 		<< ": onto calibrating " << hallc_bcms_list.at(i).GetName() 
 		<< std::endl;
       Bool_t check = false;
-      check = calibrate(hallc_bcms_list.at(i), sca_unser, run_number) ; 
+      check = bcm_calibrate(hallc_bcms_list.at(i), sca_unser, run_number) ; 
       //  if(not check) theApp.Run();
     }
 
@@ -763,7 +803,7 @@ main(int argc, char **argv)
 
 
 Bool_t
-calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number )
+bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number )
 {
 
   std::cout << "\n";

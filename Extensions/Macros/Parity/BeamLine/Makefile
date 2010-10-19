@@ -58,6 +58,11 @@ hallc_bcm_calib : hallc_bcm_calib.o
 hallc_bpm_calib : hallc_bpm_calib.o 
 	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
 
+%: %.cc
+	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
+
+%: %.C
+	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
 
 
 %.o: %.C
