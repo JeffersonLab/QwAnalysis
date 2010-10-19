@@ -66,21 +66,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwLog.ProcessOptions(&gQwOptions);
 
 
- 
-  Bool_t enablemapfile = gQwOptions.GetValue<bool>("enable-mapfile");
-
-  if(enablemapfile) {
-    std::cout << ">>>>>>>>>>> map file " << std::endl;
-    gQwHists.LoadTreeParamsFromFile("Qweak_RT_Tree_Trim_List.in");
-    gQwHists.LoadHistParamsFromFile("Qweak_RT_Hist_Trim_List.in");
-  }
-  else {
-    std::cout << ">>>>>>>>>>> root file " << std::endl;
-    gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
-    gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
-  }
-
-
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);

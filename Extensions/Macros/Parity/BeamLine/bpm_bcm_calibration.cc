@@ -20,31 +20,34 @@
 //         BCM*gain/SAMPLE_SIZE will have units of nC (if scandata 
 //         was in uA).
 
+#include <cstdlib>
 
-#include <vector>
-#include "TRandom.h"
-#include "TGraphErrors.h"
-#include "TStyle.h"
-#include <TApplication.h>
-#include <math.h>
-#include <TH2F.h>
-#include <TCanvas.h>
-#include <TTree.h>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <new>
-#include <TF1.h>
-#include <Rtypes.h>
-#include <TROOT.h>
-#include <TFile.h>
-#include <TProfile.h>
-#include <TString.h>
 #include <stdexcept>
-#include <TLine.h>
 #include <time.h>
-#include <stdio.h>
-#include <TBox.h>
+
+#include "TMath.h"
+#include "TRandom.h"
+#include "TGraphErrors.h"
+#include "TStyle.h"
+#include "TApplication.h"
+
+
+#include "TH2F.h"
+#include "TCanvas.h"
+#include "TTree.h"
+
+#include "TF1.h"
+#include "Rtypes.h"
+#include "TROOT.h"
+#include "TFile.h"
+#include "TProfile.h"
+#include "TString.h"
+#include "TLine.h"
+#include "TBox.h"
 
 
 

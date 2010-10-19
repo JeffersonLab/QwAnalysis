@@ -4,7 +4,8 @@
 
 #include "TG3DLine.h"
 #include "TGaxis.h"
-
+#include "TColor.h"
+#include "TStyle.h"
 
 
 ClassImp(QwGUIHallCBeamline);
@@ -860,16 +861,19 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
 void QwGUIHallCBeamline::PlotFastRaster()
 {
 
-  TObject *obj          = NULL;
-  TCanvas *mc           = NULL;
+  TH2D *obj          = NULL;
+  TCanvas *mc        = NULL;
 
   mc = dCanvas->GetCanvas();
-
+  gStyle->SetPalette(1,0);
   while (1)
     {
-      obj = dROOTCont->GetObjFromMapFile("raster_rate_map");
+      obj = (TH2D*) dROOTCont->GetObjFromMapFile("raster_rate_map");
       if(obj) {
 	mc->Clear();
+	gPad->SetGridx();
+	gPad->SetGridy();
+
 	obj -> Draw();
       }
       else {

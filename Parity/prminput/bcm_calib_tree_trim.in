@@ -4,43 +4,43 @@
   <QwBCM>
 	hw_sum
 	hw_sum_raw
-	block
+#	block
 	block_raw
 	num_samples
 	Device_Error_Code
 	sequence_number
 
   <QwBPMStripline>
-	hw_sum
-	hw_sum_raw
-	block
-	block_raw
-	num_samples
-	Device_Error_Code
-	sequence_number
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
 
   <QwBPMCavity>
-	hw_sum
-	hw_sum_raw
-	block
-	block_raw
-	num_samples
-	Device_Error_Code
-	sequence_number
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
 
   <QwCombinedBPM>
-	hw_sum
-	hw_sum_raw
-	block
-	block_raw
-	num_samples
-	Device_Error_Code
-	sequence_number
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
 
   <QwCombinedBCM>
 	hw_sum
 	hw_sum_raw
-	block
+#	block
 	block_raw
 	num_samples
 	Device_Error_Code

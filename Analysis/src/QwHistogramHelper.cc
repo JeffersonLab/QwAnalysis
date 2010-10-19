@@ -28,8 +28,19 @@ void QwHistogramHelper::DefineOptions(QwOptions &options)
     ("enable-tree-trim", po::value<bool>()->default_value(false)->zero_tokens(),
      "enable trimmed trees");
 
-  options.AddOptions()("tree-trim-file", po::value<string>(), "trimmed tree file name");
-  options.AddOptions()("histo-trim-file", po::value<string>(), "trimmed histo file name");
+  options.AddOptions()(
+		       "tree-trim-file",  
+		       po::value<string>()->default_value("tree_trim.in"), 
+		       "trimmed tree file name, default of tree_trim.in"
+		       );
+  
+  // What about QwTracking ? 
+  // Monday, October 18 23:19:09 EDT 2010, jhlee
+  options.AddOptions()(
+		       "histo-trim-file", 
+		       po::value<string>()->default_value("parity_hist.in"),
+		       "trimmed histo file name, default of parity_hist.in"
+		       );
 
 };
 
