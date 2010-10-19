@@ -7,7 +7,16 @@ if [ $# -lt 1 ] ; then
 	echo "Usage: `basename $0` [user@]host"
 	exit 0
 fi
-host=$1
+userhost=$1
+
+# Set up username
+if [ ! "${userhost/*@*/}" ] ; then
+	user=${userhost/@*/}
+	host=${userhost/*@/}
+else
+	user=`whoami`
+	host=${userhost}
+fi
 
 # Connect
-ssh -t ${login} ssh ${host}
+ssh -t ${user}@${login} ssh ${userhost}

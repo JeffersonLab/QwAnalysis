@@ -53,7 +53,7 @@ if [ ! "${orig/*:*/}" ] ; then
 	file=${orig/*:/}
 	tmp=/tmp/ssh-${port}-${host}-${login}
 	if [ -e "${tmp}" ] ; then ssh -S ${tmp} -O exit ${login} ; fi
-	ssh -S ${tmp} -M -N -f -L ${port}:${host}:22 ${login}
+	ssh -S ${tmp} -M -N -f -L ${port}:${host}:22 ${user}@${login}
 
 	# Copy files (disable host key checking)
 	scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P ${port} ${opts} "${user}@localhost:${file}" "${dest}"
@@ -75,7 +75,7 @@ if [ ! "${dest/*:*/}" ] ; then
 	fi
 	file=${dest/*:/}
 	tmp=/tmp/ssh-${port}-${host}-${login}
-	if [ -e "${tmp}" ] ; then ssh -S ${tmp} -O exit ${login} ; fi
+	if [ -e "${tmp}" ] ; then ssh -S ${tmp} -O exit ${user}@${login} ; fi
 	ssh -S ${tmp} -M -N -f -L ${port}:${host}:22 ${login}
 
 	# Copy files (disable host key checking)
