@@ -131,8 +131,7 @@ class QwParameterFile {
 
 
   protected:
-  void TrimWhitespace(TString  &token, TString::EStripType head_tail);
-
+    void TrimWhitespace(TString  &token, TString::EStripType head_tail);
     void TrimWhitespace(std::string  &token, TString::EStripType head_tail);
 
 
@@ -176,6 +175,9 @@ class QwParameterFile {
 
     // Private constructor
     QwParameterFile() { };
+
+    // Set to end of file
+    void SetEOF() { fStream.setstate(std::ios::eofbit); };
 
 }; // class QwParameterFile
 

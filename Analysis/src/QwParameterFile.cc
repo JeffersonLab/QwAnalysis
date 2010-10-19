@@ -85,10 +85,12 @@ QwParameterFile::QwParameterFile(const std::string& name)
 
   // Immediately try to open absolute paths and return
   if (name.find("/") == 0) {
-    if (! OpenFile(file))
-      QwWarning << "Constructor could not open absolute path " << name << ". "
+    if (OpenFile(file) == false) {
+      QwWarning << "Could not open absolute path " << name << ". "
                 << "Parameter file will remain empty." << QwLog::endl;
-    return;
+      SetEOF();
+      return;
+    }
 
   // Else, loop through search path and files
   } else {
@@ -119,11 +121,23 @@ QwParameterFile::QwParameterFile(const std::string& name)
         QwWarning << "Equally likely parameter files encountered: " << best_path.string()
                   << " and " << path.string() << QwLog::endl;
       }
-
     } // end of loop over search paths
-    if (OpenFile(best_path) == false)
-      QwError << "Could not open parameter file "
-              << best_path.string() << QwLog::endl;
+
+    // File not found
+    if (best_score == 0) {
+      QwError << "Could not find any parameter file with name " << name << ". "
+              << "Parameter file will remain empty." << QwLog::endl;
+      SetEOF();
+      return;
+    }
+
+    // Found but unable to open
+    if (best_score > 0 && OpenFile(best_path) == false) {
+      QwError << "Could not open parameter file " << best_path.string() << ". "
+              << "Parameter file will remain empty." << QwLog::endl;
+      SetEOF();
+      return;
+    }
   }
 };
 
