@@ -50,9 +50,9 @@ QwEventBuffer::QwEventBuffer()
 {
   //  Set up the signal handler.
   globalEXIT=0;
-  signal(SIGINT,  sigint_handler);// ctrl+c
-  signal(SIGTERM, sigint_handler);// kill in shell
-  signal(SIGTSTP, sigint_handler);// ctrl+z
+  signal(SIGINT,  sigint_handler);// ctrl+c 
+  signal(SIGTERM, sigint_handler);// kill in shell // 15
+  //  signal(SIGTSTP, sigint_handler);// ctrl+z // 20
 
   fDataDirectory = getenv("QW_DATA");
   if (fDataDirectory.Length() == 0){
