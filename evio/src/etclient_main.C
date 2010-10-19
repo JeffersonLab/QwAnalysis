@@ -4,7 +4,7 @@
 #define PRINTOUT 1  // to test speed set to 0, else prints out
 
 #include "THaEtClient.h"
-#include <iostream.h>
+#include <iostream>
 
 int main(int argc, char *argv[]) 
 {

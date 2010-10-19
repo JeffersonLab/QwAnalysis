@@ -1,6 +1,6 @@
-#include <QwGUIMainDetector.h>
+#include "QwGUIMainDetector.h"
 
-#include <TG3DLine.h>
+#include "TG3DLine.h"
 #include "TGaxis.h"
 
 ClassImp(QwGUIMainDetector);
@@ -408,7 +408,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
   /*
     It is assumed that in the map file 16 MD channels are in the beginning of the MD channel map.
     The Bkg channels are followd then in the map file
-   */
+  */
   TH1F *histo1=NULL;
   TH1F *histo2=NULL;
 
@@ -429,7 +429,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
   }
 
   
-  TH1D *dummyhist = NULL;
+  // TH1D *dummyhist = NULL;
 
   TString dummyname;
 
@@ -438,51 +438,52 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
  
+  std::size_t p = 0;
 
-   while (1){ 
-     MDPlots[0] = new TH1F("Asym", "Asymmetry Variation",MDBkgCount , min_range, max_range);
-     MDPlots[1] = new TH1F("Yield", "Yield variation",MDBkgCount , min_range, max_range); 
-
-    for(Short_t p = MAIN_DET_INDEX; p <fMDDevices.at(VQWK).size(); p++) 
-    {
-      sprintf (histo, "asym_%s_hw",fMDDevices.at(VQWK).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
-      if (histo1!=NULL) {
-	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	if(ldebug) 
-	  printf("Found %2d : a histogram name %22s\n", xcount, histo);
-	histo1->SetName(histo);
+  while (1) { 
+    MDPlots[0] = new TH1F("Asym", "Asymmetry Variation",MDBkgCount , min_range, max_range);
+    MDPlots[1] = new TH1F("Yield", "Yield variation",MDBkgCount , min_range, max_range); 
+    p = 0;
+    for( p = MAIN_DET_INDEX; p <fMDDevices.at(VQWK).size(); p++) 
+      {
+	sprintf (histo, "asym_%s_hw",fMDDevices.at(VQWK).at(p).Data() );
+	histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	if (histo1!=NULL) {
+	  xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	  if(ldebug) 
+	    printf("Found %2d : a histogram name %22s\n", xcount, histo);
+	  histo1->SetName(histo);
 	    
-	dummyname = histo1->GetName();
+	  dummyname = histo1->GetName();
 	    
-	dummyname.Replace(0,5," ");
-	dummyname.ReplaceAll("_hw", "");
-	MDPlots[0] -> SetBinContent(xcount, histo1->GetMean());
-	MDPlots[0] -> SetBinError  (xcount, histo1->GetRMS());
-	MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	if(ldebug) SummaryHist(histo1);
-	delete histo1; histo1= NULL;
+	  dummyname.Replace(0,5," ");
+	  dummyname.ReplaceAll("_hw", "");
+	  MDPlots[0] -> SetBinContent(xcount, histo1->GetMean());
+	  MDPlots[0] -> SetBinError  (xcount, histo1->GetRMS());
+	  MDPlots[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	  if(ldebug) SummaryHist(histo1);
+	  delete histo1; histo1= NULL;
+	}
+	  
+	sprintf (histo, "yield_%s_hw", fMDDevices.at(VQWK).at(p).Data());
+	histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	if(histo2!=NULL){		
+	  ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	  if(ldebug) 
+	    printf("Found %2d : a histogram name %22s\n", ycount, histo);
+	  histo2->SetName(histo);
+	  dummyname = histo2->GetName();
+	  dummyname.Replace(0,6," ");
+	  dummyname.ReplaceAll("_hw", "");
+	  MDPlots[1] -> SetBinContent(ycount, histo2->GetMean());
+	  MDPlots[1] -> SetBinError  (ycount, histo2->GetRMS());
+	  MDPlots[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+	  if(ldebug) SummaryHist(histo2);
+	  delete histo2; histo2= NULL; 
+	}
+	  
+	  
       }
-	  
-      sprintf (histo, "yield_%s_hw", fMDDevices.at(VQWK).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
-      if(histo2!=NULL){		
-	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	if(ldebug) 
-	  printf("Found %2d : a histogram name %22s\n", ycount, histo);
-	histo2->SetName(histo);
-	dummyname = histo2->GetName();
-	dummyname.Replace(0,6," ");
-	dummyname.ReplaceAll("_hw", "");
-	MDPlots[1] -> SetBinContent(ycount, histo2->GetMean());
-	MDPlots[1] -> SetBinError  (ycount, histo2->GetRMS());
-	MDPlots[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	if(ldebug) SummaryHist(histo2);
-	delete histo2; histo2= NULL; 
-      }
-	  
-	  
-    }
     xcount = 0;
     ycount = 0;
     mc->Clear();
@@ -513,14 +514,14 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p <2 ; p++){
+    for (Int_t p = 0; p <2 ; p++){
       delete MDPlots[p];
     }
     gSystem->Sleep(100);
     if (gSystem->ProcessEvents()){
       break;
     }
-   }
+  }
    
 
   return;
@@ -554,7 +555,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
    while (1){ 
      MDPlots[0] = new TH1F("Asym", "Asymmetry Variation",MDCmbCount , min_range, max_range);
      MDPlots[1] = new TH1F("Yield", "Yield variation",MDCmbCount , min_range, max_range); 
-    for(Short_t p = 0; p <MDCmbCount ; p++) 
+    for(Int_t p = 0; p <MDCmbCount ; p++) 
     {
       sprintf (histo, "asym_%s_hw",fMDDevices.at(VPMT).at(p).Data() );
       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
@@ -622,7 +623,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p < 2 ; p++){
+    for (Int_t p = 0; p < 2 ; p++){
       delete MDPlots[p];
     }
     gSystem->Sleep(100);
@@ -639,7 +640,8 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
 void QwGUIMainDetector::LoadMDPMTCombo(){
   dComboBoxMDPMT->RemoveAll();
   //printf("QwGUIHallCBeamline::LoadHCBCMCombo \n");
-  for(Size_t i=0;i<fMDDevices.at(VQWK).size();i++){
+  std::size_t i =0;
+  for(i=0;i<fMDDevices.at(VQWK).size();i++){
     dComboBoxMDPMT->AddEntry(fMDDevices.at(VQWK).at(i),i);
     //printf("%s \n",fHallCDevices.at(VQWK_BCM).at(i).Data());
   }
@@ -651,7 +653,8 @@ void QwGUIMainDetector::LoadMDPMTCombo(){
 void QwGUIMainDetector::LoadMDVPMTCombo(){
   dComboBoxMDVPMT->RemoveAll();
   //printf("QwGUIHallCBeamline::LoadHCSCALERCombo \n");
-  for(Size_t i=0;i<fMDDevices.at(VPMT).size();i++){
+  std::size_t i = 0;
+  for(i=0;i<fMDDevices.at(VPMT).size();i++){
     dComboBoxMDVPMT->AddEntry(fMDDevices.at(VPMT).at(i),i);
     //printf("%s \n",fHallCDevices.at(SCALER_HALO).at(i).Data());
   }
@@ -684,10 +687,10 @@ void QwGUIMainDetector::OnObjClose(char *obj)
     dNumberEntryDlg = NULL;
   }
 
-  if(!strcmp(obj,"dProgrDlg")){
-    dProcessHalt = kTrue;
-    dProgrDlg = NULL;
-  }   
+  // if(!strcmp(obj,"dProgrDlg")){
+  //   dProcessHalt = kTrue;
+  //   dProgrDlg = NULL;
+  // }   
 
   QwGUISubSystem::OnObjClose(obj);
 }
@@ -835,7 +838,7 @@ void QwGUIMainDetector::SummaryHist(TH1 *in)
   return;
 };
 
-void QwGUIMainDetector::SetComboIndex(Short_t cmb_id, Short_t id){
+void QwGUIMainDetector::SetComboIndex(Int_t cmb_id, Int_t id){
     if (cmb_id==CMB_MDPMT)
       fCurrentPMTIndex=id;
     //else

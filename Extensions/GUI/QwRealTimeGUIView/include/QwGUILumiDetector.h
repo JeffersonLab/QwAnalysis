@@ -47,9 +47,9 @@
 
 #include <iostream>
 #include <iomanip>
-#include <string>
+#include <cstring>
 
-#include <TMapFile.h>
+#include "TMapFile.h"
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
@@ -116,7 +116,7 @@ class QwGUILumiDetector : public QwGUISubSystem {
   //! - combo box id 
   //! - combo box element id
   //!Return value: none 
-  void SetComboIndex(Short_t cmb_id, Short_t id);
+  void SetComboIndex(Int_t cmb_id, Int_t id);
 
   //!This function loads list of Lumi available in the hall c . 
   //!based on the map file read by LoadChannelMap routine
@@ -183,8 +183,8 @@ class QwGUILumiDetector : public QwGUISubSystem {
 
 
   std::vector<std::vector<TString> > fLUMIDevices; //2D vector since we have several types of device - VQWK, SCALAR and COMBINED
-  Short_t fCurrentLUMIIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
-  Short_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
+  Int_t fCurrentLUMIIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
+  Int_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
  protected:
 

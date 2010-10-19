@@ -34,21 +34,18 @@
 #ifndef QWGUISUBSYSTEM_H
 #define QWGUISUBSYSTEM_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <TGWindow.h>
-#include <TGFrame.h>
-#include <TNamed.h>
-#include <TString.h>
-#include <TQObject.h>
-#include <TGTab.h>
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+
+#include "TGWindow.h"
+#include "TGFrame.h"
+#include "TNamed.h"
+#include "TString.h"
+#include "TQObject.h"
+#include "TGTab.h"
 #include "RDataContainer.h"
 #include "QwGUIMainDef.h"
-#include "QwGUIProgressDialog.h"
-
-#include "QwGUISuperCanvas.h"
-
 // QwAnalysis / Analysis/ include 
 #include "QwColor.h"
 
@@ -165,15 +162,15 @@ class QwGUISubSystem : public TGCompositeFrame {
 
 
 
-  void             IncreaseProgress(Int_t *nItems1, Int_t *nItems2, Int_t *nItems3, 
-				    Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3);
+  /* void             IncreaseProgress(Int_t *nItems1, Int_t *nItems2, Int_t *nItems3,  */
+  /* 				    Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3); */
 
-  void             InitProgressDlg(const char* title, const char *macrotext, const char *microtext, const char *microtext2, 
-				   Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels);
+  /* void             InitProgressDlg(const char* title, const char *macrotext, const char *microtext, const char *microtext2,  */
+  /* 				   Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels); */
 
   Bool_t               dProcessHalt;
 
-  QwGUIProgressDialog *dProgrDlg;
+  //  QwGUIProgressDialog *dProgrDlg;
 
  public:
   
@@ -461,7 +458,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   
  
 
-  ClassDef(QwGUISubSystem,0);
+  ClassDef(QwGUISubSystem, 1);
 };
 
 #endif

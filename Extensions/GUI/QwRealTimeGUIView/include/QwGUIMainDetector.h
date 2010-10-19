@@ -46,9 +46,9 @@
 
 #include <iostream>
 #include <iomanip>
-#include <string>
+#include <cstring>
 
-#include <TMapFile.h>
+#include "TMapFile.h"
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
@@ -171,7 +171,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - combo box id 
   //! - combo box element id
   //!Return value: none 
-  void SetComboIndex(Short_t cmb_id, Short_t id);
+  void SetComboIndex(Int_t cmb_id, Int_t id);
 
 
   
@@ -203,8 +203,8 @@ class QwGUIMainDetector : public QwGUISubSystem {
 
 
   std::vector<std::vector<TString> > fMDDevices; //2D vector since we have seral types of device - VQWK and VPMT
-  Short_t fCurrentPMTIndex; //Keep the PMT index corresponding to fMDDevices read from dCombo_MDPMT
-  Short_t fCurrentVPMTIndex; //Keep the VPMT index corresponding to fMDDevices read from dCombo_MDPMT
+  Int_t fCurrentPMTIndex; //Keep the PMT index corresponding to fMDDevices read from dCombo_MDPMT
+  Int_t fCurrentVPMTIndex; //Keep the VPMT index corresponding to fMDDevices read from dCombo_MDPMT
  protected:
 
   //!Overwritten virtual function from QwGUISubSystem::MakeLayout(). This function simply adds an

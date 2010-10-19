@@ -1,7 +1,7 @@
 #include "QwGUIInjector.h"
 
 
-#include <TG3DLine.h>
+#include "TG3DLine.h"
 #include "TGaxis.h"
 
 
@@ -304,7 +304,7 @@ void QwGUIInjector::PositionDifferences()
    while (1){ 
      PosVariation[0] = new TH1F("Eff_Asym", "Eff_Charge Asym Variation",BPMSTriplinesCount , min_range, max_range);
      PosVariation[1] = new TH1F("Eff_Yield", "Eff_Charge Yield Variation",BPMSTriplinesCount , min_range, max_range); 
-     for(Short_t p = 0; p <BPMSTriplinesCount ; p++) {
+     for(Int_t p = 0; p <BPMSTriplinesCount ; p++) {
        sprintf (histo, "asym_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
        histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
        if (histo1!=NULL){
@@ -371,7 +371,7 @@ void QwGUIInjector::PositionDifferences()
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -460,7 +460,7 @@ void QwGUIInjector::PlotBPMAsym(){
    while (1){ 
      PosVariation[0] = new TH1F("INDiffX", "X Difference Variation", BPMSTriplinesCount, min_range, max_range);
      PosVariation[1] = new TH1F("INDiffY", "Y Difference variation", BPMSTriplinesCount, min_range, max_range); 
-    for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
+    for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
       //sprintf (histo, "asym_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
       sprintf (histo, "diff_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() ); 
@@ -530,7 +530,7 @@ void QwGUIInjector::PlotBPMAsym(){
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -577,7 +577,7 @@ void QwGUIInjector::PlotBPMPositions(){
    while (1){ 
      PosVariation[0] = new TH1F("PosX", "Mean X Variation", BPMSTriplinesCount, min_range, max_range);
      PosVariation[1] = new TH1F("PosY", "Mean Y variation", BPMSTriplinesCount, min_range, max_range); 
-    for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
+    for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
       sprintf (histo, "%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
@@ -645,7 +645,7 @@ void QwGUIInjector::PlotBPMPositions(){
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -668,7 +668,7 @@ void QwGUIInjector::PlotSCALER(){
   
 };
 
-void QwGUIInjector::SetComboIndex(Short_t cmb_id, Short_t id){
+void QwGUIInjector::SetComboIndex(Int_t cmb_id, Int_t id){
 
   if (cmb_id==CMB_INJECTORBCM)
     fCurrentBCMIndex=id;
@@ -680,7 +680,8 @@ void QwGUIInjector::SetComboIndex(Short_t cmb_id, Short_t id){
 void QwGUIInjector::LoadInjectorBCMCombo(){
   dComboBoxInjectorBCM->RemoveAll();
   //printf("QwGUIInjector::LoadInjectorBCMCombo \n");
-  for(Size_t i=0;i<fInjectorDevices.at(VQWK_BCM).size();i++){
+  std::size_t i=0;
+  for(i=0;i<fInjectorDevices.at(VQWK_BCM).size();i++){
     dComboBoxInjectorBCM->AddEntry(fInjectorDevices.at(VQWK_BCM).at(i),i);
     //printf("%s \n",fInjectorDevices.at(VQWK_BCM).at(i).Data());
   }
@@ -692,7 +693,8 @@ void QwGUIInjector::LoadInjectorBCMCombo(){
 void QwGUIInjector::LoadInjectorSCALERCombo(){
   dComboBoxInjectorSCALER->RemoveAll();
   //printf("QwGUIInjector::LoadInjectorSCALERCombo \n");
-  for(Size_t i=0;i<fInjectorDevices.at(SCALER_HALO).size();i++){
+  std::size_t i=0;
+  for(i=0;i<fInjectorDevices.at(SCALER_HALO).size();i++){
     dComboBoxInjectorSCALER->AddEntry(fInjectorDevices.at(SCALER_HALO).at(i),i);
     //printf("%s \n",fInjectorDevices.at(SCALER_HALO).at(i).Data());
   }

@@ -53,42 +53,42 @@
 #ifndef QWGUIMAIN_H
 #define QWGUIMAIN_H
 
-#include <string.h>
+#include <cstring>
 #include <new>
 #include <time.h>
 #include <signal.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
 #include <errno.h>
 
-#include <TGTab.h>
+#include "TGTab.h"
 
-#include <TROOT.h>
-#include <TStyle.h>
-#include <TApplication.h>
-#include <TGClient.h>
-#include <TRandom.h>
-#include <TGComboBox.h>
-#include <TGNumberEntry.h>
-#include <TString.h>
-#include <TGSplitter.h>
-#include <TGLabel.h>
-#include <TGMenu.h>
-#include <TObjArray.h>
-#include <TRootEmbeddedCanvas.h>
-#include <TGTextEntry.h>
-#include <TGTextEdit.h>
-#include <TGFileDialog.h>
-#include <RQ_OBJECT.h>
-#include <TMath.h>
-#include <TGIcon.h>
+#include "TROOT.h"
+#include "TStyle.h"
+#include "TApplication.h"
+#include "TGClient.h"
+#include "TRandom.h"
+#include "TGComboBox.h"
+#include "TGNumberEntry.h"
+#include "TString.h"
+#include "TGSplitter.h"
+#include "TGLabel.h"
+#include "TGMenu.h"
+#include "TObjArray.h"
+#include "TRootEmbeddedCanvas.h"
+#include "TGTextEntry.h"
+#include "TGTextEdit.h"
+#include "TGFileDialog.h"
+#include "RQ_OBJECT.h"
+#include "TMath.h"
+#include "TGIcon.h"
 
 
 #include "QwGUIMainDetector.h"
 #include "QwGUILumiDetector.h"
 #include "QwGUIInjector.h"
 #include "QwGUIEventDisplay.h"
-#include "QwGUIHelpBrowser.h"
+//#include "QwGUIHelpBrowser.h"
 #include "QwGUICorrelationPlots.h"
 #include "QwGUIHallCBeamline.h"
 
@@ -118,7 +118,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUICorrelationPlots  *CorrelationSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
 
-  QwGUIHelpBrowser          *dHelpBrowser;
+  // QwGUIHelpBrowser          *dHelpBrowser;
 
   //!Initial width of the application window set in main()
   Int_t                   dMWWidth;
@@ -200,12 +200,12 @@ class QwGUIMain : public TGMainFrame {
   TGMenuBar              *dMenuBar;
   //  TGPopupMenu            *dMenuFile;
   TGPopupMenu            *dMenuTabs;
-  TGPopupMenu            *dMenuHelp;
+  //  TGPopupMenu            *dMenuHelp;
   TGPopupMenu            *dMenuLoadMap;
   TGPopupMenu            *dMenuHistoState;//this has options to reset and accumulate histograms
   TGLayoutHints          *dMenuBarLayout;
   TGLayoutHints          *dMenuBarItemLayout;
-  TGLayoutHints          *dMenuBarHelpLayout;
+  //  TGLayoutHints          *dMenuBarHelpLayout;
 
   //!This function is used to append new messages to the log book. It cannot
   //!be used from other classes. Instead, the QwGUISubSystem class implements the

@@ -46,9 +46,9 @@ Added by Buddhini to display the injector beamline data.
 
 #include <iostream>
 #include <iomanip>
-#include <string>
+#include <cstring>
 
-#include <TMapFile.h>
+#include "TMapFile.h"
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
@@ -138,7 +138,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - combo box id 
   //! - combo box element id
   //!Return value: none 
-  void SetComboIndex(Short_t cmb_id, Short_t id);
+  void SetComboIndex(Int_t cmb_id, Int_t id);
 
   //!This function loads list of bcms available in the injector. 
   //!based on the map file read by LoadChannelMap routine
@@ -179,8 +179,8 @@ class QwGUIInjector : public QwGUISubSystem {
 
   
   std::vector<std::vector<TString> > fInjectorDevices; //2D vector since we have seral types of device - VQWK, SCALAR and COMBINED
-  Short_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
-  Short_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
+  Int_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
+  Int_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
  protected:
 

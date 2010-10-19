@@ -16,17 +16,17 @@ PRG_SOURCE    = ./src
 # Here we list the object files that require a CINT dictionary.
 OBJECTS	      =
 OBJECTS       += QwGUIMain.o
-OBJECTS       += QwGUIHelpBrowser.o
-OBJECTS       += QwGUIProgressDialog.o
-OBJECTS       += QwGUIPlotOptionsDialog.o
-OBJECTS       += QwGUIDataWindow.o
+#OBJECTS       += QwGUIHelpBrowser.o
+#OBJECTS       += QwGUIProgressDialog.o
+#OBJECTS       += QwGUIPlotOptionsDialog.o
+#OBJECTS       += QwGUIDataWindow.o
 OBJECTS       += QwGUISubSystem.o
 OBJECTS       += QwGUIMainDetector.o
 OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
 OBJECTS       += QwGUICorrelationPlots.o
 OBJECTS       += QwGUIEventDisplay.o
-OBJECTS       += QwGUISuperCanvas.o
+#OBJECTS       += QwGUISuperCanvas.o
 OBJECTS       += QwGUIHallCBeamline.o
 
 # Now append the object files that Don't require a CINT dictionary.

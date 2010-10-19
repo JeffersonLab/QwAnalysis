@@ -1,8 +1,7 @@
-#include <QwGUILumiDetector.h>
-#include <iostream>
+#include "QwGUILumiDetector.h"
+//#include <iostream>
 #include "TLine.h"
-
-#include <TG3DLine.h>
+#include "TG3DLine.h"
 #include "TGaxis.h"
 
 ClassImp(QwGUILumiDetector);
@@ -302,7 +301,7 @@ void QwGUILumiDetector::PlotUSLumi(){
    while (1){ 
      PosVariation[0] = new TH1F("Asym", "Asymmetry Variation",LumiCount, min_range, max_range);
      PosVariation[1] = new TH1F("Yield", "Yield variation",LumiCount , min_range, max_range); 
-    for(Short_t p = 0; p <LumiCount ; p++) 
+    for(Int_t p = 0; p <LumiCount ; p++) 
     {
 
       sprintf (histo, "asym_%s_hw",fLUMIDevices.at(US_LUMI).at(p).Data() );
@@ -371,7 +370,7 @@ void QwGUILumiDetector::PlotUSLumi(){
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -419,7 +418,7 @@ void QwGUILumiDetector::PlotDSLumi()
    while (1){ 
      PosVariation[0] = new TH1F("Asym", "Asymmetry Variation",LumiCount, min_range, max_range);
      PosVariation[1] = new TH1F("Yield", "Yield variation",LumiCount , min_range, max_range); 
-    for(Short_t p = 0; p <LumiCount ; p++) 
+    for(Int_t p = 0; p <LumiCount ; p++) 
     {
 
       sprintf (histo, "asym_%s_hw",fLUMIDevices.at(DS_LUMI).at(p).Data() );
@@ -488,7 +487,7 @@ void QwGUILumiDetector::PlotDSLumi()
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -504,7 +503,7 @@ void QwGUILumiDetector::PlotDSLumi()
    printf("QwGUILumiDetector::PlotDSLumi() \n");
 };
 
-void QwGUILumiDetector::SetComboIndex(Short_t cmb_id, Short_t id){
+void QwGUILumiDetector::SetComboIndex(Int_t cmb_id, Int_t id){
     if (cmb_id==CMB_LUMI)
       fCurrentLUMIIndex=id;
 
@@ -515,7 +514,8 @@ void QwGUILumiDetector::SetComboIndex(Short_t cmb_id, Short_t id){
 void QwGUILumiDetector::LoadLUMICombo(){
   dComboBoxLUMI->RemoveAll();
   printf("QwGUILumiDetector::LoadHCBCMCombo \n");
-  for(Size_t i=0;i<fLUMIDevices.at(VQWK_LUMI).size();i++){
+  std::size_t i = 0;
+  for(i=0;i<fLUMIDevices.at(VQWK_LUMI).size();i++){
     dComboBoxLUMI->AddEntry(fLUMIDevices.at(VQWK_LUMI).at(i),i);
     //printf("%s \n",fLUMIDevices.at(VQWK_LUMI).at(i).Data());
   }
@@ -527,7 +527,8 @@ void QwGUILumiDetector::LoadLUMICombo(){
 void QwGUILumiDetector::LoadSCALERCombo(){
   dComboBoxSCALER->RemoveAll();
   printf("QwGUILumiDetector::LoadHCBCMCombo \n");
-  for(Size_t i=0;i<fLUMIDevices.at(SCALER_LUMI).size();i++){
+  std::size_t i = 0;
+  for(i=0;i<fLUMIDevices.at(SCALER_LUMI).size();i++){
     dComboBoxSCALER->AddEntry(fLUMIDevices.at(SCALER_LUMI).at(i),i);
     //printf("%s \n",fLUMIDevices.at(VQWK_LUMI).at(i).Data());
   }

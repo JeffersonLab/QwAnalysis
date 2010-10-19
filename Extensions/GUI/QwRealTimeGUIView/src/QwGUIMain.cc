@@ -100,10 +100,10 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMenuTabs             = NULL;
   dMenuLoadMap          = NULL;
   dMenuHistoState       = NULL;
-  dMenuHelp             = NULL;
+  //  dMenuHelp             = NULL;
   dMenuBarLayout        = NULL;
   dMenuBarItemLayout    = NULL;
-  dMenuBarHelpLayout    = NULL;
+  //  dMenuBarHelpLayout    = NULL;
 
   memset(dLogfilename,'\0',sizeof(dLogfilename));
   memset(dRootfilename,'\0',sizeof(dRootfilename));
@@ -121,7 +121,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   MakeMenuLayout();
   MakeUtilityLayout();
   MakeMainTab();
-  MakeLogTab();
+  //  MakeLogTab();
 
   SetWindowName("Qweak RealTime Data Analysis GUI");
 
@@ -216,10 +216,10 @@ QwGUIMain::~QwGUIMain()
   delete dMenuBar              ;
   //  delete dMenuFile             ;
   delete dMenuTabs             ;
-  delete dMenuHelp             ;
+  //  delete dMenuHelp             ;
   delete dMenuBarLayout        ;
   delete dMenuBarItemLayout    ;
-  delete dMenuBarHelpLayout    ;
+  //  delete dMenuBarHelpLayout    ;
   delete dMenuLoadMap          ;
 
 }
@@ -272,7 +272,7 @@ void QwGUIMain::MakeMenuLayout()
   dMenuBarLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft | kLHintsExpandX,
 				     0, 0, 1, 1);
   dMenuBarItemLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
-  dMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
+  // dMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
 
   //dMenuFile = new TGPopupMenu(fClient->GetRoot());
 //   dMenuFile->AddEntry("&Open (Run file)...", M_FILE_OPEN);
@@ -304,25 +304,25 @@ void QwGUIMain::MakeMenuLayout()
   dMenuTabs->AddEntry("View Log", M_VIEW_LOG);
 
 
-  dMenuHelp = new TGPopupMenu(fClient->GetRoot());
-  dMenuHelp->AddEntry("&User manual", M_HELP_USER);
-  dMenuHelp->AddEntry("&Code manual", M_HELP_CODE);
-  dMenuHelp->AddEntry("View &change history", M_HELP_SEARCH);
-  dMenuHelp->AddSeparator();
-  dMenuHelp->AddEntry("This is revision " VERS, M_HELP_ABOUT);
+  // dMenuHelp = new TGPopupMenu(fClient->GetRoot());
+  // dMenuHelp->AddEntry("&User manual", M_HELP_USER);
+  // dMenuHelp->AddEntry("&Code manual", M_HELP_CODE);
+  // dMenuHelp->AddEntry("View &change history", M_HELP_SEARCH);
+  // dMenuHelp->AddSeparator();
+  // dMenuHelp->AddEntry("This is revision " VERS, M_HELP_ABOUT);
 
   //dMenuFile->Associate(this);
   dMenuTabs->Associate(this);
   dMenuLoadMap->Associate(this);
   dMenuHistoState->Associate(this);
-  dMenuHelp->Associate(this);
+  // dMenuHelp->Associate(this);
 
   dMenuBar = new TGMenuBar(this, 1, 1, kHorizontalFrame);
   //dMenuBar->AddPopup("&File", dMenuFile, dMenuBarItemLayout);
   dMenuBar->AddPopup("&MemoryMap", dMenuLoadMap, dMenuBarItemLayout);
   dMenuBar->AddPopup("H&istograms", dMenuHistoState, dMenuBarItemLayout);
   dMenuBar->AddPopup("&Tabs", dMenuTabs, dMenuBarItemLayout);
-  dMenuBar->AddPopup("&Help", dMenuHelp, dMenuBarHelpLayout);
+  // dMenuBar->AddPopup("&Help", dMenuHelp, dMenuBarHelpLayout);
  
 
   AddFrame(dMenuBar, dMenuBarLayout);

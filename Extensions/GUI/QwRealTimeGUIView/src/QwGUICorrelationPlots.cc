@@ -251,13 +251,13 @@ void QwGUICorrelationPlots::MakeLayout()
 				"QwGUICorrelationPlots",
 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
- //  TCanvas *mc = dCanvas->GetCanvas();
-//   mc->Divide( 2, 4);
+//  //  TCanvas *mc = dCanvas->GetCanvas();
+// //   mc->Divide( 2, 4);
 
-  Int_t wid = dCanvas->GetCanvasWindowId();
-  //  TCanvas *super_canvas = new TCanvas("", 10, 10, wid);
-  QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
-  dCanvas->AdoptCanvas(mc);
+//   Int_t wid = dCanvas->GetCanvasWindowId();
+//   //  TCanvas *super_canvas = new TCanvas("", 10, 10, wid);
+//   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
+//   dCanvas->AdoptCanvas(mc);
   //  super_canvas -> Divide(2,4);
 
 

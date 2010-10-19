@@ -1357,7 +1357,7 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
     cmin = chst[0]->GetXaxis()->GetXmin();
     cmax = chst[0]->GetXaxis()->GetXmax();
     TH1D *tmp = dPlotCont->GetNew1DHistogram((char*)chst[0]->GetName(),(char*)chst[0]->GetTitle(),
-					     (dMax[0] - dMin[0])*chst[0]->GetNbinsX()/(cmax - cmin),
+					     (Int_t)( (dMax[0] - dMin[0])*chst[0]->GetNbinsX()/(cmax - cmin)),
 					     dMin[0],dMax[0]);
     
     for(int n = 0; n < chst[0]->GetNbinsX(); n++){
