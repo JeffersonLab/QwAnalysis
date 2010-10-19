@@ -57,13 +57,13 @@
 
 [Main Detector]
    <QwIntegrationPMT>
-#	hw_sum
+	hw_sum
 	hw_sum_raw
-#	block
-#	block_raw
+	block
+	block_raw
 	num_samples
-#	Device_Error_Code
-#	sequence_number
+	Device_Error_Code
+	sequence_number
  #  <QwCombinedPMT>
 #	hw_sum
 #	hw_sum_raw
@@ -75,13 +75,13 @@
 
 [Lumi Detector]
   <QwIntegrationPMT>
-#	hw_sum
+	hw_sum
 	hw_sum_raw
-#	block
-#	block_raw
+	block
+	block_raw
 	num_samples
-#	Device_Error_Code
-#	sequence_number
+	Device_Error_Code
+	sequence_number
 
 #[BeamMod]
 #   <QwBeamMod>
