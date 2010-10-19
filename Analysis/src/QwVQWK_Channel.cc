@@ -75,19 +75,18 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 
     if (bDEBUG)
       std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<GetNumberOfSamples()<<std::endl;
-    //Sample size check
 
-    bStatus= MatchNumberOfSamples(fNumberOfSamples_map);//compare the default sample size with no.of samples read by the module
-
-
-    if (!bStatus){
-      fDeviceErrorCode|=kErrorFlag_sample;
+    // Sample size check
+    bStatus = MatchNumberOfSamples(fNumberOfSamples_map);//compare the default sample size with no.of samples read by the module
+    if (!bStatus) {
+      fDeviceErrorCode |= kErrorFlag_sample;
     }
-    //check SW and HW return the same sum
-    bStatus= (GetRawHardwareSum()==GetRawSoftwareSum());
-    //fEventIsGood =bStatus;
-    if (!bStatus){
-      fDeviceErrorCode|=kErrorFlag_SW_HW;
+
+    // Check SW and HW return the same sum
+    bStatus = (GetRawHardwareSum() == GetRawSoftwareSum());
+    //fEventIsGood = bStatus;
+    if (!bStatus) {
+      fDeviceErrorCode |= kErrorFlag_SW_HW;
     }
 
 
@@ -432,20 +431,6 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 
       words_read = fNumberOfDataWords;
 
-      if (kDEBUG && GetElementName()=="MD1Pos")
-	{
-	  //    if (num_words_left == 6){
-	  std::cout << std::hex
-		    << buffer[0] << " " << buffer[1] << " "
-		    << buffer[2] << " " << buffer[3] << " "
-		    << buffer[4] << " " << buffer[5] << " --- "
-		    << std::dec
-		    << fBlock_raw[0] << " " << fBlock_raw[1] << " "
-		    << fBlock_raw[2] << " " << fBlock_raw[3] << " "
-		    << fSoftwareBlockSum_raw << " " << fHardwareBlockSum_raw
-		    << " " << fSequenceNumber << " " << fNumberOfSamples
-		    << std::endl;
-	}
     } else
       {
 	std::cerr << "QwVQWK_Channel::ProcessEvBuffer: Not enough words!"
@@ -458,7 +443,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 
 void QwVQWK_Channel::ProcessEvent()
 {
-  if (fNumberOfSamples==0 && fHardwareBlockSum_raw==0){
+  if (fNumberOfSamples == 0 && fHardwareBlockSum_raw == 0) {
     //  There isn't valid data for this channel.  Just flag it and
     //  move on.
     for (Short_t i = 0; i < fBlocksPerEvent; i++) {
@@ -467,8 +452,8 @@ void QwVQWK_Channel::ProcessEvent()
     }
     fHardwareBlockSum = 0.0;
     fHardwareBlockSumM2 = 0.0;
-    fDeviceErrorCode|=kErrorFlag_sample;
-  } else if (fNumberOfSamples==0) {
+    fDeviceErrorCode |= kErrorFlag_sample;
+  } else if (fNumberOfSamples == 0) {
     //  This is probably a more serious problem.
     QwWarning << "QwVQWK_Channel::ProcessEvent:  Channel "
 	      << this->GetElementName().Data()
@@ -950,16 +935,20 @@ void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
     for (Short_t i = 0; i < fBlocksPerEvent; i++) {
       if (denom.fBlock[i] != 0.0)
         fBlock[i] = (numer.fBlock[i]) / (denom.fBlock[i]);
-      else
+      else {
+        QwVerbose << "Attempting to divide by zero block in " << GetElementName() << QwLog::endl;
         fBlock[i] = 0.0;
+      }
       // raw is always zero on derived quantities
       fBlock_raw[i] = 0.0;
     }
     // Take the ratio of the hardware sum
     if (denom.fHardwareBlockSum != 0.0)
       fHardwareBlockSum = (numer.fHardwareBlockSum) / (denom.fHardwareBlockSum);
-    else
+    else {
+      QwVerbose << "Attempting to divide by zero sum in " << GetElementName() << QwLog::endl;
       fHardwareBlockSum = 0.0;
+    }
     fHardwareBlockSum_raw = 0.0;
     fSoftwareBlockSum_raw = 0.0;
 
@@ -973,15 +962,19 @@ void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
         fBlockM2[i] = fBlock[i] * fBlock[i] *
            (numer.fBlockM2[i] / numer.fBlock[i] / numer.fBlock[i]
           + denom.fBlockM2[i] / denom.fBlock[i] / denom.fBlock[i]);
-      else
+      else {
+        QwVerbose << "Attempting to divide by zero block in " << GetElementName() << QwLog::endl;
         fBlockM2[i] = 0.0;
+      }
     }
     if (numer.fHardwareBlockSum != 0.0 && denom.fHardwareBlockSum != 0.0)
       fHardwareBlockSumM2 = fHardwareBlockSum * fHardwareBlockSum *
          (numer.fHardwareBlockSumM2 / numer.fHardwareBlockSum / numer.fHardwareBlockSum
         + denom.fHardwareBlockSumM2 / denom.fHardwareBlockSum / denom.fHardwareBlockSum);
-    else
+    else {
+      QwVerbose << "Attempting to divide by zero sum in " << GetElementName() << QwLog::endl;
       fHardwareBlockSumM2 = 0.0;
+    }
 
     // Remaining variables
     fNumberOfSamples = denom.fNumberOfSamples;
@@ -1045,8 +1038,6 @@ void QwVQWK_Channel::Scale(Double_t scale)
       fHardwareBlockSum *= scale;
       fHardwareBlockSumM2 *= scale * scale;
     }
-
-  return;
 };
 
 
@@ -1149,8 +1140,6 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   // Nanny
   if (fHardwareBlockSum != fHardwareBlockSum)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
-
-  return;
 };
 
 
@@ -1344,7 +1333,7 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
 	 this->fDataToSave            = kDerived;
 	 this->fDeviceErrorCode       = input->fDeviceErrorCode;
 	 this->fGoodEventCount        = input->fGoodEventCount;
-
+	 this->fNumberOfSamples       = input->fNumberOfSamples;
 	 this->fHardwareBlockSum      = input->fHardwareBlockSum;
 	 this->fHardwareBlockSumError = input->fHardwareBlockSumError;
 
