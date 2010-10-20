@@ -20,7 +20,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 MYOS := $(subst -,,$(shell uname))
 
 
-EXE := pedestal_extractor position_differnces hallc_beam_motion hallc_bcm_calib hallc_bpm_calib
+EXE := pedestal_extractor position_differnces hallc_beam_motion hallc_bcm_calib hallc_bpm_calib get_bpm_weights
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -58,12 +58,8 @@ hallc_bcm_calib : hallc_bcm_calib.o
 hallc_bpm_calib : hallc_bpm_calib.o 
 	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
 
-%: %.cc
+get_bpm_weights : GetBPMWeights.o
 	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
-
-%: %.C
-	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
-
 
 %.o: %.C
 	$(CXX) -c  $(CXXFLAGS)   -o $@ $<
