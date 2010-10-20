@@ -18,6 +18,7 @@
 #include "VQwSubsystemParity.h"
 
 #include "QwIntegrationPMT.h"
+#include "QwCombinedPMT.h"
 #include "QwTypes.h"
 #include "QwScaler_Channel.h"
 
@@ -43,7 +44,8 @@ class QwLumiDetectorID{
   TString fmoduletype; // eg: VQWK, SCALER
   TString fdetectorname;
   TString fdetectortype; // IntegrationPMT,fLumiCounter .. this string is encoded by fTypeID
-
+  std::vector<TString> fCombinedChannelNames;
+  std::vector<Double_t> fWeight;
   void Print() const;
 
 };
@@ -53,7 +55,8 @@ class QwLumiDetectorID{
 *  Class:
 ******************************************************************/
 class QwLumi : public VQwSubsystemParity{
-  /////
+  /////  
+  friend class QwCombinedPMT;
  public:
   QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),bNormalization(kFALSE)
    {
@@ -120,6 +123,7 @@ class QwLumi : public VQwSubsystemParity{
 
   QwIntegrationPMT* GetChannel(const TString name);
   QwIntegrationPMT* GetIntegrationPMT(const TString name);
+  const QwCombinedPMT* GetCombinedPMT(const TString name) const;
 
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
@@ -132,12 +136,16 @@ class QwLumi : public VQwSubsystemParity{
 
 
 /////
- protected:
+ protected: 
+ 
+ EQwPMTInstrumentType GetDetectorTypeID(TString name);
+ 
  Int_t GetDetectorIndex(EQwPMTInstrumentType TypeID, TString name);
  //when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is IntegrationPMT  then the index of the detector from fIntegrationPMT vector for given name will be returnd.
 
- std::vector <QwIntegrationPMT>      fIntegrationPMT;
+ std::vector <QwIntegrationPMT>      fIntegrationPMT;  
+ std::vector <QwCombinedPMT> fCombinedPMT;
  std::vector <QwLumiDetectorID>      fLumiDetectorID;
  std::vector <QwSIS3801D24_Channel>  fScalerPMT;
 
