@@ -9,6 +9,7 @@ ClassImp(QwEventDisplay3D);
 #define _90DEG_  1.57079633
 #define _135DEG_ 2.35619449
 #define _180DEG_ 3.14159265
+#define _TO_DEG_ 57.2957795
 
 // Global constants (mostly flags)
 const Bool_t kDebug = kTRUE;
@@ -88,10 +89,6 @@ QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
    fCurrentTrackArray = new TObjArray();
    fCurrentOutlineArray= new TObjArray();   
 
-   // Setup the rotation for now, assuming a default of horizontal position
-   // for the tracking hardware
-   SetRotation(0.);
-
    // Enable various flags (for now, should be done through the GUI later)
    fDrawTracks = kFALSE;
    fDrawTreeLines = kFALSE;
@@ -125,6 +122,10 @@ void QwEventDisplay3D::Init()
    // loaded
    //InitEvents();
 
+   // Setup the rotation for now, assuming a default of horizontal position
+   // for the tracking hardware
+   SetRotation(0.);
+
    // TODO: Erase the following
    SwitchViewVDC();
    SwitchViewHDC();
@@ -145,6 +146,11 @@ void QwEventDisplay3D::LoadGeometry()
 
    // Retrieve the top node of the geometry manager
    fTopNode = fGeoManager->GetTopNode();
+
+   // Uncomment the following two lines to print out the names and numbers
+   // of the nodes
+   // fTopNode->GetVolume()->PrintNodes();
+   // exit(0);
 
    // Format for proper usage with EVE
    fGeometry = new TEveGeoTopNode(fGeoManager, fTopNode);
@@ -886,7 +892,7 @@ void QwEventDisplay3D::HideUnecessary()
 
    // Hide the plane between the two VDC's (I'm not sure what this plane is,
    // actually, but it certainly should not be there I think.)
-   SetVisibility("VDC_DriftCellMasterContainer_Log#13acf38_239",kFALSE);
+   SetVisibility("VDC_DriftCellMasterContainer_Log#13acf38_241",kFALSE);
 }
 
 void QwEventDisplay3D::SwitchViewVDC()
@@ -920,6 +926,11 @@ void QwEventDisplay3D::SwitchViewVDC()
          ->SetVisibility(kTRUE);
       fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_237")
          ->SetVisibility(kTRUE);
+      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")
+         ->SetVisibility(kTRUE);
+      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")
+         ->SetVisibility(kTRUE);
+
 
       // Disable the Detector buttons
       DetectorButtonsEnable(kFALSE);
@@ -1728,20 +1739,23 @@ void QwEventDisplay3D::UpdateView()
    // VDC
    SetVisibility("VDC_MasterContainer_Log#13abb58_237",fShowVDC);
    SetVisibility("VDC_MasterContainer_Log#13abb58_238",fShowVDC);
+   SetVisibility("VDC_MasterContainer_Log#13abb58_239",fShowVDC);
+   SetVisibility("VDC_MasterContainer_Log#13abb58_240",fShowVDC);
+
 
    //Trigger
-   SetVisibility("TriggerScintillatorContainer_Logical#13ba010_248",
+   SetVisibility("TriggerScintillatorContainer_Logical#13ba010_250",
          fShowTrigger);
 
    // Cerenkov/Main Detector
-   SetVisibility("CerenkovContainer_Logical#13ae0d8_240",fShowCerenkov);
-   SetVisibility("CerenkovContainer_Logical#13ae0d8_241",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_242",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_243",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_244",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_245",fShowCerenkov);
-   SetVisibility("CerenkovContainer_Logical#13ae0d8_245",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_246",fShowCerenkov);
+   SetVisibility("CerenkovContainer_Logical#13ae0d8_247",fShowCerenkov);
+   SetVisibility("CerenkovContainer_Logical#13ae0d8_248",fShowCerenkov);
+   SetVisibility("CerenkovContainer_Logical#13ae0d8_249",fShowCerenkov);
 
    // Redraw just for good measure :)
    RedrawViews();
@@ -1990,6 +2004,10 @@ void QwEventDisplay3D::SetRotation( Double_t phi )
          break;
    }
 
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_237")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_238")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
    //std::cout << "Initialized the run with rotation of coordinate system to to "
       //<< phi << ".\n The respective packages are: Package1: " << fPackageAngle[0] << "\tPackage2: " << fPackageAngle[1] << "\n.";
 }
