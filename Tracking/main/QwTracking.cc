@@ -87,14 +87,14 @@ Int_t main(Int_t argc, Char_t* argv[])
  
   if(enablemapfile) {
     //std::cout << ">>>>>>>>>>> map file " << std::endl;
-    gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
+    gQwHists.LoadHistParamsFromFile("parity_hist.in");
     gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
 
   }
   else {
     //     std::cout << ">>>>>>>>>>> root file " << std::endl;
     ///  Load the histogram parameter definitions
-    gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
+    gQwHists.LoadHistParamsFromFile("parity_hist.in");
     gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
   }
 
