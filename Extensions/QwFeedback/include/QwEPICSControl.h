@@ -68,7 +68,7 @@ public:
     
   };
 
-  void Set_HallAIA(Int_t mode, Double_t &value){
+  void Set_HallCIA(Int_t mode, Double_t &value){
     int status;
     switch(mode){
     case 0:
@@ -103,7 +103,7 @@ public:
  
   };
 
-  void Get_HallAIA(Int_t mode, Double_t &value){
+  void Get_HallCIA(Int_t mode, Double_t &value){
     int status;
     switch(mode){
     case 0:
@@ -131,18 +131,37 @@ public:
     
   }
 
+
   void Set_Pockels_Cell_plus(Double_t &value){
     int status;
-    //    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_pos, &value);
+    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
     status = ca_pend_io(10);
-    std::cout << "Pockels Cell pos HV value: " << value << std::endl;
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
+    status = ca_pend_io(10);
+    std::cout << "Pockels Cell pos HW-count value: " << value << std::endl;
 
   };
   void Set_Pockels_Cell_minus(Double_t &value){
     int status;
-    //    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
+    status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
     status = ca_pend_io(10);
-    std::cout << "Pockels Cell minus HV value: " << value << std::endl;
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
+    status = ca_pend_io(10);
+    std::cout << "Pockels Cell minus HW-count value: " << value << std::endl;
+  };
+
+  void Get_Pockels_Cell_plus(Double_t &value){ 
+    int status;
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
+    status = ca_pend_io(10);
+    std::cout << "Pockels Cell pos HW-count value: " << value << std::endl;
+
+  };
+  void Get_Pockels_Cell_minus(Double_t &value){
+    int status;
+    status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
+    status = ca_pend_io(10);
+    std::cout << "Pockels Cell minus HW-count value: " << value << std::endl;
   };
 
 

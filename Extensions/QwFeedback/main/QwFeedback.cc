@@ -59,6 +59,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   // and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.AddConfigFile("qwparity.conf");
+  gQwOptions.AddConfigFile("qweak_mysql.conf");
     // Define the command line options
   DefineOptionsParity(gQwOptions);
   //Load command line options for the histogram/tree helper class
@@ -68,17 +69,22 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
   ///  histogram helper: QwHistogramHelper
-  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
-  gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
+  //gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
+  //gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
 
 
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);
 
-  ///  Create an EPICS event
-  QwEPICSEvent epicsevent;
-  epicsevent.LoadEpicsVariableMap("EpicsTable.map");
+
+
+  ///  Create the database connection
+  QwDatabase database(gQwOptions);
+
+
+  ///  Start loop over all runs
+  QwRootFile* rootfile = 0;
 
   
   /*
@@ -97,42 +103,46 @@ Int_t main(Int_t argc, Char_t* argv[])
   fEPICSCtrl.Print_Qasym_Ctrls();
   */
 
-  ///  Load the detectors from file
-  QwSubsystemArrayParity detectors(gQwOptions);
-  detectors.ProcessOptions(gQwOptions);
-
-  ///  Create the helicity pattern
-  QwHelicityCorrelatedFeedback helicitypattern(detectors);
-  helicitypattern.ProcessOptions(gQwOptions);
-  helicitypattern.LoadParameterFile("qweak_fb_prm.in");
-  /*
-  helicitypattern.UpdateGMClean(0);
-  helicitypattern.FeedIASetPoint(0);
-  helicitypattern.UpdateGMClean(1);
-  */
-  ///  Create the event ring
-  QwEventRing eventring;
-  eventring.ProcessOptions(gQwOptions);
-  //  Set up the ring with subsysten array with CMD ring parameters
-  eventring.SetupRing(detectors); // TODO (wdc) in QwEventRing constructor?
-
-  ///  Create the running sum
-  QwSubsystemArrayParity runningsum(detectors);
-
-  ///  Set up the database connection
-  QwDatabase database(gQwOptions);
-
-  ///  Start loop over all runs
-  QwRootFile* rootfile = 0;
-
-
-
   
-
   // Loop over all runs
   while (eventbuffer.OpenNextStream() == CODA_OK){
     //  Begin processing for the first run.
  
+    ///  Set the current event number for parameter file lookup
+    QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
+
+
+    ///  Create an EPICS event
+    QwEPICSEvent epicsevent;
+    epicsevent.LoadEpicsVariableMap("EpicsTable.map");
+
+    ///  Load the detectors from file
+    QwSubsystemArrayParity detectors(gQwOptions);
+    detectors.ProcessOptions(gQwOptions);
+
+    ///  Create the helicity pattern
+    QwHelicityCorrelatedFeedback helicitypattern(detectors);
+    helicitypattern.ProcessOptions(gQwOptions);
+    helicitypattern.LoadParameterFile("qweak_fb_prm.in");
+    /*
+      helicitypattern.UpdateGMClean(0);
+      helicitypattern.FeedIASetPoint(0);
+      helicitypattern.UpdateGMClean(1);
+    */
+
+    ///  Create the event ring
+    QwEventRing eventring;
+    eventring.ProcessOptions(gQwOptions);
+
+    ///  Set up the ring with the subsysten array
+    eventring.SetupRing(detectors);
+
+    ///  Create the running sum
+    QwSubsystemArrayParity runningsum(detectors);
+
+
+    //  Initialize the database connection.
+    database.SetupOneRun(eventbuffer);
     
     //  Open the ROOT file
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
@@ -306,21 +316,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Read from the datebase
-    if (database.AllowsReadAccess()) {
-
-      // GetRunID(), GetRunletID(), and GetAnalysisID have their own Connect() and Disconnect() functions.
-      UInt_t run_id      = database.GetRunID(eventbuffer);
-      UInt_t runlet_id   = database.GetRunletID(eventbuffer);
-      UInt_t analysis_id = database.GetAnalysisID(eventbuffer);
-
-     //  Write to from the datebase
-     QwMessage << "QwAnalysis.cc::"
-                << " Run Number "  << QwColor(Qw::kBoldMagenta) << eventbuffer.GetRunNumber() << QwColor(Qw::kNormal)
-                << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id << QwColor(Qw::kNormal)
-                << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id << QwColor(Qw::kNormal)
-                << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
-                << QwLog::endl;
-    }
+    database.SetupOneRun(eventbuffer);
 
     // Each sussystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {

@@ -105,8 +105,24 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
 	if (dvalue>0)
 	  fIASetpointup = dvalue;
       }
-
-      
+      else if (varname=="pitapos"){
+	dvalue = atof(varvalue.Data());
+	fPITASlopePOS = dvalue;
+      }
+      else if (varname=="pitaneg"){
+	dvalue = atof(varvalue.Data());
+	fPITASlopeNEG = dvalue;
+      } 
+      else if (varname=="pc_up"){
+	dvalue = atof(varvalue.Data());
+	if (dvalue>0)
+	  fPITASetpointup = dvalue;
+      }
+      else if (varname=="pc_low"){
+	dvalue = atof(varvalue.Data());
+	if (dvalue>0)
+	  fPITASetpointlow = dvalue;
+      }      
     }
   }
   QwMessage<<"patternMax = "<<fAccumulatePatternMax<<" deltaAq "<<fChargeAsymPrecision<<"ppm"<<QwLog::endl;
@@ -114,13 +130,15 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
   QwMessage<<"IA DAC counts limits "<<fIASetpointlow<<" to "<< fIASetpointup <<QwLog::endl;
   for (Int_t i=0;i<kHelModes;i++)
     QwMessage<<"Slope A["<<i<<"] "<<fIASlopeA[i]<<"+-"<<fDelta_IASlopeA[i]<<QwLog::endl;
+  QwMessage<<"PITA slopes: + "<<fPITASlopePOS<<" - "<<fPITASlopeNEG<<QwLog::endl;
+  QwMessage<<"PC dac limits "<<fPITASetpointlow<<" to "<<fPITASetpointup<<QwLog::endl;
 };
 
 
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
   //calculate the new setpoint
-  fEPICSCtrl.Get_HallAIA(mode,fPrevIASetpoint[mode]);
+  fEPICSCtrl.Get_HallCIA(mode,fPrevIASetpoint[mode]);
   if (fIASlopeA[mode]!=0)
     fIASetpoint[mode]=fPrevIASetpoint[mode] - fChargeAsym[mode]/fIASlopeA[mode];
   else
@@ -132,8 +150,8 @@ void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
     fIASetpoint[mode]=fIASetpointlow;
 
   QwMessage<<"FeedIASetPoint("<<mode<<") "<<fChargeAsym[mode]<<"+/-"<<fChargeAsymError[mode]<<" new set point  "<<fIASetpoint[mode]<<QwLog::endl;
-  //send the new IA setpoint
-  //fEPICSCtrl.Set_HallAIA(mode,fIASetpoint[mode]);
+  //send the new IA setpoint 
+  //fEPICSCtrl.Set_HallCIA(mode,fIASetpoint[mode]);
 
 
 
@@ -144,6 +162,46 @@ void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
   //fScanCtrl.PrintScanInfo();
   //fScanCtrl.Close();  
 };
+
+/*****************************************************************/
+void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
+  //calculate the new setpoint
+  fEPICSCtrl.Get_Pockels_Cell_plus(fPrevPITASetpointPOS);
+  if (fPITASlopePOS!=0)
+    fPITASetpointPOS=fPrevPITASetpointPOS - fChargeAsymmetry/fPITASlopePOS;
+  else
+    fPITASetpointPOS=fPrevPITASetpointPOS;
+
+  fEPICSCtrl.Get_Pockels_Cell_minus(fPrevPITASetpointNEG);
+  if (fPITASlopeNEG!=0)
+    fPITASetpointNEG=fPrevPITASetpointNEG - fChargeAsymmetry/fPITASlopeNEG;
+  else
+    fPITASetpointNEG=fPrevPITASetpointNEG;
+  
+  if (fPITASetpointPOS>fPITASetpointup)
+    fPITASetpointPOS=fPITASetpointup;
+  else if (fPITASetpointPOS<fPITASetpointlow)
+    fPITASetpointPOS=fPITASetpointlow;
+
+  if (fPITASetpointNEG>fPITASetpointup)
+    fPITASetpointNEG=fPITASetpointup;
+  else if (fPITASetpointNEG<fPITASetpointlow)
+    fPITASetpointNEG=fPITASetpointlow;
+
+  QwMessage<<"FeedPITASetPoint "<<" "<<fChargeAsymmetry<<" +/- "<<fChargeAsymmetryError<<" new set point[+]  "<<fPITASetpointPOS<<" [-] "<<fPITASetpointNEG<<QwLog::endl;
+  //send the new PITA setpoint
+  fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS);
+  fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG);
+
+
+  //Greenmonster stuffs
+  //fScanCtrl.SCNSetValue(1,0);
+  //fScanCtrl.SCNSetValue(2,0);
+  //fScanCtrl.CheckScan();
+  //fScanCtrl.PrintScanInfo();
+  //fScanCtrl.Close();  
+};
+
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedPCPos(){
 }; 
@@ -152,10 +210,17 @@ void QwHelicityCorrelatedFeedback::FeedPCNeg(){
 };
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
-  out_file = fopen("Feedback_log.txt", "a");
+  out_file_IA = fopen("Feedback_IA_log.txt", "a");
   //  fprintf(out_file," Feedback at %d current A_q[%d]:%5.8f+/-%5.8f IA Setpoint:%5.3f  IA Previous Setpoint:%5.3f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
-  fprintf(out_file," %d\t\t A_q[%d]\t %5.8f \t\t+/-  %5.8f \t %5.3f \t\t\t %5.3f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
-  fclose(out_file);
+  fprintf(out_file_IA," %d\t\t A_q[%d]\t %5.8f \t\t+/-  %5.8f \t %5.3f \t\t\t %5.3f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
+  fclose(out_file_IA);
+};
+
+/*****************************************************************/
+void QwHelicityCorrelatedFeedback::LogParameters(){
+  out_file_PITA = fopen("Feedback_PITA_log.txt", "a");
+  fprintf(out_file_PITA,"%d\t\t \t %5.8f \t\t+/-  %5.8f \t  %5.3f \t %5.3f \t  %5.3f \t %5.3f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
+  fclose(out_file_PITA);
 };
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::UpdateGMClean(Int_t state){
@@ -174,7 +239,7 @@ void QwHelicityCorrelatedFeedback::UpdateGMScanParameters(){
 /*****************************************************************/
 Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
   Bool_t status=kFALSE;
-  GetTargetChargeStat();
+  GetTargetChargeStat();//call the calculate running sum routine and access the q_targ published value
   if (fChargeAsymmetry==-1 && fChargeAsymmetryError == -1 && fChargeAsymmetryWidth==-1){//target asymmetry not published or accesible
     QwError<<"target asymmetry not published or accesible"<<QwLog::endl;
     status=kFALSE;
@@ -187,6 +252,11 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
   }
   else{
     QwError<<"Charge Asymmetry precision current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
+    UpdateGMClean(0);//set to not clean
+    FeedPITASetPoints();//set the new PITA values
+    LogParameters();//Log PITA setting after feedback
+    UpdateGMClean(1);//set back to clean
+    ClearRunningSum();//reset the running sum
     status=kTRUE;
   }
 
@@ -206,29 +276,30 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(Int_t mode){
   if (fChargeAsym[mode]==-1 && fChargeAsymError[mode] == -1 && fChargeAsymWidth[mode]==-1){//target asymmetry not published or accesible
     QwError<<"target asymmetry not published or accesible"<<QwLog::endl;
     status=kFALSE;
-  }
-  fChargeAsymError[mode]=fChargeAsymError[mode]*1e+6;//converts to ppm
-  fChargeAsym[mode]=fChargeAsym[mode]*1e+6;//converts to ppm
-  if (fChargeAsymError[mode]>fChargeAsymPrecision){
-    QwError<<"Charge Asymmetry["<<mode<<"] precision not reached current value "<<fChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
-    QwError<<"--------------------------------------------------------------------------------------------------------------------------------"<<QwLog::endl;
-    status=kFALSE;
-  }
-  else{
-    QwError<<"Charge Asymmetry["<<mode<<"] precision current value "<<fChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
-    UpdateGMClean(0);//set to not clean
-    FeedIASetPoint(mode);
-    LogParameters(mode);
-    UpdateGMClean(1);//set back to clean
-    ClearRunningSum(mode);//reset the running sum
-    status=kTRUE;
+  }else{
+    fChargeAsymError[mode]=fChargeAsymError[mode]*1e+6;//converts to ppm
+    fChargeAsym[mode]=fChargeAsym[mode]*1e+6;//converts to ppm
+    if (fChargeAsymError[mode]>fChargeAsymPrecision){
+      QwError<<"Charge Asymmetry["<<mode<<"] precision not reached current value "<<fChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
+      QwError<<"--------------------------------------------------------------------------------------------------------------------------------"<<QwLog::endl;
+      status=kFALSE;
+    }
+    else{
+      QwError<<"Charge Asymmetry["<<mode<<"] precision current value "<<fChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
+      UpdateGMClean(0);//set to not clean
+      FeedIASetPoint(mode);
+      LogParameters(mode);
+      UpdateGMClean(1);//set back to clean
+      ClearRunningSum(mode);//reset the running sum
+      status=kTRUE;
+    }
   }
 
   return status;
 };
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
-
+  //IA feedback
   for (Int_t i=0;i<kHelModes;i++){
     if (IsPatternsAccumulated(i)){
       //LogParameters(i);
@@ -238,6 +309,13 @@ void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
       //      QwMessage<<"IsPatternsAccumulated "<<i<<QwLog::endl;
     }
   }
+  //End IA feedback
+
+  //PITA feedback
+  if (IsPatternsAccumulated()){
+    IsAqPrecisionGood();//PITA corrections initiate here
+  }
+  //End PITA feedback
 
   return;
 

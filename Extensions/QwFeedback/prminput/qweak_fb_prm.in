@@ -40,4 +40,13 @@ DeltaA3 = 3.431e-4
 IA_low = 10000
 IA_up  = 50000
 
+#PITA slopes
+PITAPOS = 100
+PITANEG = 200
+
+
+#PC hardware count set-point limits
+
+PC_low = 0
+PC_up  = 1000
 

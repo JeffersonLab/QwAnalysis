@@ -50,9 +50,12 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPreviousIAAsymmetry.InitializeChannel("q_targ","derived");//this is the charge asymmetry of the IA at the previous feedback loop
     fCurrentIAAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry of the IA
 
-    out_file = fopen("Feedback_log.txt", "wt");
-    fprintf(out_file,"Pat num. \t\t  A_q[mode]\t\t\t\t\t\t\t\t\t  IA Setpoint \t\t  IA Previous Setpoint \t\t\n");
-    fclose(out_file);
+    out_file_IA = fopen("Feedback_IA_log.txt", "wt");
+    fprintf(out_file_IA,"Pat num. \t\t  A_q[mode]\t\t\t\t\t\t\t\t\t  IA Setpoint \t\t  IA Previous Setpoint \t\t\n");
+    fclose(out_file_IA);
+    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
+    fprintf(out_file_PITA,"Pat num. \t\t  A_q\t\t\t\t\t\t\t\t\t  PITA Setpoint[+] \t\t  PITA Previous Setpoint \t\tPITA Setpoint[-] \t\t  PITA Previous Setpoint \n");
+    fclose(out_file_PITA);
   
   };
     
@@ -85,13 +88,19 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     /// \brief Feed the Hall C IA set point based on the charge asymmetry 
     void FeedIASetPoint(Int_t mode);
 
+    /// \brief Feed the Hall C PITA set point based on the charge asymmetry 
+    void FeedPITASetPoints();
+
     /// \brief Feed the IA set point based on the charge asymmetry 
     void FeedPCPos();
     /// \brief Feed the IA set point based on the charge asymmetry 
     void FeedPCNeg();
 
-    /// \brief Log the last feedback information
+    /// \brief Log the last IA  feedback information
     void LogParameters(Int_t mode);
+
+    /// \brief Log the last PITA feedback information
+    void LogParameters();
 
     /// \brief Set Clean=0 or 1 in the GreenMonster
     void UpdateGMClean(Int_t state);
@@ -103,7 +112,13 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Bool_t IsAqPrecisionGood();
     /// \brief Compare current A_q precision with a set precision for given mode.
     Bool_t IsAqPrecisionGood(Int_t mode);
+    /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value 
+    Bool_t IsPatternsAccumulated(){
+      if (fGoodPatternCounter>=fAccumulatePatternMax)
+	return kTRUE;
 
+      return kFALSE;
+    };
     /// \brief Check neccessary conditions and apply IA setponts based on the charge asym for all four modes
     void ApplyFeedbackCorrections();
     /// \brief Check to see no.of good patterns accumulated after the last feedback is greater than a set value for given mode
@@ -181,9 +196,21 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fPrevIASetpoint[kHelModes];//previous setpoint
     Double_t fIASetpointlow;//lower and upper limits for IA dac hardware counts
     Double_t fIASetpointup;
-    
-    
 
+    //PITA Slopes for pos hel and neg hel
+    Double_t fPITASlopePOS;
+    Double_t fPITASlopeNEG;
+
+    //PITA setpoints for pos hel and neg hel
+    Double_t fPITASetpointPOS;
+    Double_t fPITASetpointNEG;
+    Double_t fPrevPITASetpointPOS;//previous setpoint
+    Double_t fPrevPITASetpointNEG;//previous setpoint
+    Double_t fPITASetpointlow;//lower and upper limits for PITA dac hardware counts
+    Double_t fPITASetpointup;
+
+    
+    
     ///  Create an EPICS control event
     QwEPICSControl fEPICSCtrl;
     GreenMonster   fScanCtrl;
@@ -208,7 +235,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     
 
     //log file
-    FILE *out_file;
+    FILE *out_file_PITA;
+    FILE *out_file_IA;
   
 };
 
