@@ -5,9 +5,9 @@
 * Time-stamp: 052510                                      *
 \**********************************************************/
 
+#include "QwHelicity.h"
 #include "QwBeamMod.h"
 #include "QwHistogramHelper.h"
-
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwSSQLS.h"
 
@@ -41,6 +41,16 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
   //  Int_t index=0;
   //  Bool_t combolistdecoded;
 
+  //added for QwWord
+
+  // fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
+
+
+  //Default value for random seed is 30 bits
+  //BIT24=kFALSE;
+  //BIT30=kTRUE;
+
+  //end QwWord part one
 
   std::vector<TString> fDeviceName;
   std::vector<Double_t> fQWeight;
@@ -135,6 +145,59 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
        if(lineok)
 	 fModChannelID.push_back(localModChannelID);
 
+     
+ 
+
+ if(modtype=="SKIP"){
+	if (modnum<=0) wordsofar+=1;
+	else           wordsofar+=modnum;
+      }
+      else if(modtype!="WORD"|| dettype!="helicitydata")
+	{
+	  QwError << "QwHelicity::LoadChannelMap:  Unknown detector type: "
+		  << dettype  << ", the detector " << namech << " will not be decoded "
+		  << QwLog::endl;
+	  lineok=kFALSE;
+	  continue;
+	}
+      else
+	{
+	  QwWord localword;
+	  localword.fSubbankIndex=currentsubbankindex;
+	  localword.fWordInSubbank=wordsofar;
+	  wordsofar+=1;
+	  // I assume that one data = one word here. But it is not always the case, for
+	  // example the triumf adc gives 6 words per channel
+	  localword.fModuleType=modtype;
+	  localword.fWordName=namech;
+	  localword.fWordType=dettype;
+	  fWord.push_back(localword);
+	  fWordsPerSubbank[currentsubbankindex].second = fWord.size();
+	  QwDebug << "--" << namech << "--" << fWord.size()-1 << QwLog::endl;
+
+	  // Notice that "namech" is in lower-case, so these checks
+	  // should all be in lower-case
+	  //	  switch (fHelicityDecodingMode)
+	  //{
+	  // case kHelUserbitMode :
+	  //  if(namech.Contains("userbit")) kUserbit=fWord.size()-1;
+	  //  if(namech.Contains("scalercounter")) kScalerCounter=fWord.size()-1;
+	  //  break;
+	  // case kHelInputRegisterMode :
+	  //    if(namech.Contains("input_register")) kInputRegister= fWord.size()-1;
+	  //    if(namech.Contains("mps_counter")) kMpsCounter= fWord.size()-1;
+	  //   if(namech.Contains("pat_counter")) kPatternCounter= fWord.size()-1;
+	  //   if(namech.Contains("pat_phase")) kPatternPhase= fWord.size()-1;
+	  //   break;
+	  // case kHelInputMollerMode :
+	  //   if(namech.Contains("mps_counter")) {
+	  //		kMpsCounter= fWord.size()-1;
+	  //  }
+	  //   if(namech.Contains("pat_counter")) {
+	  //	kPatternCounter = fWord.size()-1;
+		//	      }
+ //	      break;
+	}
      }
  }
 
@@ -143,11 +206,15 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
       std::cout<<"Done with Load map channel \n";
       for(size_t i=0;i<fModChannelID.size();i++)
 	fModChannelID[i].Print();
+
+      for(size_t i=0;i<fWord.size();i++)
+	fWord[i].PrintID();
+      //      std::cout << " kUserbit=" << kUserbit << "\n";
     }
   ldebug=kFALSE;
 
   return 0;
-};
+ };
 
 
 
@@ -526,8 +593,27 @@ Int_t QwBeamMod::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 
 	  }
       }
-  }
 
+     for(Int_t i=fWordsPerSubbank[index].first; i<fWordsPerSubbank[index].second; i++) {
+      if(fWord[i].fWordInSubbank+1<= (Int_t) num_words) {
+	fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
+      } else {
+	QwWarning << "QwHelicity::ProcessEvBuffer:  There is not enough word in the buffer to read data for "
+		  << fWord[i].fWordName << QwLog::endl;
+	QwWarning << "QwHelicity::ProcessEvBuffer:  Words in this buffer:" << num_words
+		  << " trying to read word number =" << fWord[i].fWordInSubbank << QwLog::endl;
+      }
+    }
+    if(lkDEBUG) {
+      QwDebug << "QwHelicity::ProcessEvBuffer:  Done with Processing this event" << QwLog::endl;
+      for(size_t i=0;i<fWord.size();i++) {
+	std::cout << " word number = " << i << " ";
+	fWord[i].Print();
+      }
+    }
+
+  }
+  lkDEBUG=kFALSE;
   return 0;
 };
 
@@ -669,6 +755,35 @@ void QwBeamMod::ClearEventData()
 {
    for(size_t i=0;i<fModChannel.size();i++)
     fModChannel[i].ClearEventData();
+
+   //The following is added in to handle the QwWord
+
+
+   for (size_t i=0;i<fWord.size();i++)
+    fWord[i].ClearEventData();
+
+  /**Reset data by setting the old event number, pattern number and pattern phase 
+     to the values of the previous event.*/
+  //fEventNumberOld = fEventNumber;
+  //fPatternNumberOld = fPatternNumber;
+  //fPatternPhaseNumberOld = fPatternPhaseNumber;
+
+  //fIgnoreHelicity = kFALSE;
+
+  /**Clear out helicity variables */
+  //  fHelicityReported = kUndefinedHelicity;
+  //fHelicityActual = kUndefinedHelicity;
+  //fHelicityDelayed= kUndefinedHelicity;
+  //fHelicityBitPlus = kFALSE;
+  //fHelicityBitMinus = kFALSE;
+  // be careful: it is not that I forgot to reset fActualPatternPolarity
+  // or fDelayedPatternPolarity. One doesn't want to do that here.
+  /** Set the new event number and pattern number to -1. If we are not reading these correctly
+      from the data stream, -1 will allow us to identify that.*/
+  //fEventNumber = -1;
+  //fPatternPhaseNumber = -1;
+
+
     return;
 };
 
@@ -880,6 +995,11 @@ Bool_t QwBeamMod::Compare(VQwSubsystem *value)
 void  QwBeamMod::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
 
+  //SetHistoTreeSave(prefix);
+  if (folder != NULL) folder->cd();
+  TString basename;
+  //size_t index=0;
+
 //   //  std::cout<<" here is QwBeamMod::ConstructHistogram with prefix ="<<prefix<<"\n";
 //   for(size_t i=0;i<fStripline.size();i++)
 //       fStripline[i].ConstructHistograms(folder,prefix);
@@ -892,6 +1012,52 @@ void  QwBeamMod::ConstructHistograms(TDirectory *folder, TString &prefix)
 
 //   for(size_t i=0;i<fBPMCombo.size();i++)
 //       fBPMCombo[i].ConstructHistograms(folder,prefix);
+
+//Following is added from QwHelicity to handle QwWord
+
+
+  // if(fHistoType==kHelNoSave)
+  //   {
+  //     //do nothing
+  //   }
+  // else if(fHistoType==kHelSavePattern)
+  //   {
+  //     fHistograms.resize(1+fWord.size(), NULL);
+  //     basename="pattern_polarity";
+  //     fHistograms[index]   = gQwHists.Construct1DHist(basename);
+  //     index+=1;
+  //     for (size_t i=0; i<fWord.size(); i++){
+  // 	basename="hel_"+fWord[i].fWordName;
+  // 	fHistograms[index]   = gQwHists.Construct1DHist(basename);
+  // 	index+=1;
+  //     }
+  //   }
+  // else if(fHistoType==kHelSaveMPS)
+  //   {
+  //     fHistograms.resize(4+fWord.size(), NULL);
+  //     //eventnumber, patternnumber, helicity, patternphase + fWord.size
+  //     basename=prefix+"delta_event_number";
+  //     fHistograms[index]   = gQwHists.Construct1DHist(basename);
+  //     index+=1;
+  //     basename=prefix+"delta_pattern_number";
+  //     fHistograms[index]   = gQwHists.Construct1DHist(basename);
+  //     index+=1;
+  //     basename=prefix+"pattern_phase";
+  //     fHistograms[index]   = gQwHists.Construct1DHist(basename);
+  //     index+=1;
+  //     basename=prefix+"helicity";
+  //     fHistograms[index]   = gQwHists.Construct1DHist(basename);
+  //     index+=1;
+  //     for (size_t i=0; i<fWord.size(); i++){
+  // 	basename=prefix+fWord[i].fWordName;
+  // 	fHistograms[index]   = gQwHists.Construct1DHist(basename);
+  // 	index+=1;
+  //     }
+  //   }
+  // else
+  //   QwError << "QwHelicity::ConstructHistograms this prefix--" << prefix << "-- is not unknown:: no histo created" << QwLog::endl;
+
+
   return;
 };
 
@@ -914,6 +1080,9 @@ void  QwBeamMod::DeleteHistograms()
 
 void  QwBeamMod::FillHistograms()
 {
+
+  //size_t index=0;
+
 //   for(size_t i=0;i<fStripline.size();i++)
 //     fStripline[i].FillHistograms();
 //   for(size_t i=0;i<fModChannel.size();i++)
@@ -922,6 +1091,53 @@ void  QwBeamMod::FillHistograms()
 //     fModChannelCombo[i].FillHistograms();
 //   for(size_t i=0;i<fBPMCombo.size();i++)
 //     fBPMCombo[i].FillHistograms();
+
+//Added to handle QwWord's
+
+
+  // if(fHistoType==kHelNoSave)
+  //   {
+  //     //do nothing
+  //   }
+  // else if(fHistoType==kHelSavePattern)
+  //   {
+  //     QwDebug << "QwHelicity::FillHistograms helicity info " << QwLog::endl;
+  //     QwDebug << "QwHelicity::FillHistograms  pattern polarity=" << fActualPatternPolarity << QwLog::endl;
+  //     if (fHistograms[index]!=NULL)
+  // 	fHistograms[index]->Fill(fActualPatternPolarity);
+  //     index+=1;
+      
+  //     for (size_t i=0; i<fWord.size(); i++){
+  // 	if (fHistograms[index]!=NULL)
+  // 	  fHistograms[index]->Fill(fWord[i].fValue);
+  // 	index+=1;	
+  // 	QwDebug << "QwHelicity::FillHistograms " << fWord[i].fWordName << "=" << fWord[i].fValue << QwLog::endl;
+  //     }
+  //   }
+  // else if(fHistoType==kHelSaveMPS)
+  //   {
+  //     QwDebug << "QwHelicity::FillHistograms mps info " << QwLog::endl;
+  //     if (fHistograms[index]!=NULL)
+  // 	fHistograms[index]->Fill(fEventNumber-fEventNumberOld);
+  //     index+=1;
+  //     if (fHistograms[index]!=NULL)
+  // 	fHistograms[index]->Fill(fPatternNumber-fPatternNumberOld);
+  //     index+=1;
+  //     if (fHistograms[index]!=NULL)
+  // 	fHistograms[index]->Fill(fPatternPhaseNumber);
+  //     index+=1;
+  //     if (fHistograms[index]!=NULL)
+  // 	fHistograms[index]->Fill(fHelicityActual);
+  //     index+=1;
+  //     for (size_t i=0; i<fWord.size(); i++){
+  // 	if (fHistograms[index]!=NULL)
+  // 	  fHistograms[index]->Fill(fWord[i].fValue);
+  // 	index+=1;
+  // 	QwDebug << "QwHelicity::FillHistograms " << fWord[i].fWordName << "=" << fWord[i].fValue << QwLog::endl;
+  //     }
+  //   }
+
+
 
   return;
 };

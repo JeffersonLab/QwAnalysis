@@ -3,6 +3,12 @@
 *                                                         *
 * Author: Joshua Hoskins                                  *
 * Time-stamp: 052510                                      *
+***********************************************************
+*                                                         *
+* Time-Stamp: 101910                                      *
+*                                                         *
+* Added support of QwWord                                 *
+*                                                         *
 \**********************************************************/
 
 #ifndef __QwBEAMMOD__
@@ -13,6 +19,7 @@
 
 #include "VQwSubsystemParity.h"
 #include <QwVQWK_Channel.h>
+#include "QwHelicity.h"
 
 //enum EBeamInstrumentType{kBPMStripline = 0,
 //			 kBCM,
@@ -92,7 +99,7 @@ class QwBeamMod: public VQwSubsystemParity{
 */
 
   void CalculateRunningAverage();
-  void  PrintModChannelID();
+  void PrintModChannelID();
   void ConstructHistograms(TDirectory *folder, TString &prefix);
   void FillHistograms();
   void DeleteHistograms();
@@ -123,8 +130,8 @@ class QwBeamMod: public VQwSubsystemParity{
 
  std::vector <QwVQWK_Channel> fModChannel;
  std::vector <QwModChannelID> fModChannelID;
-
-
+ std::vector <QwWord> fWord;
+ std::vector < std::pair<Int_t, Int_t> > fWordsPerSubbank;
 
 
 
