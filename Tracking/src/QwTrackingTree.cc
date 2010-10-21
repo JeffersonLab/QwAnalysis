@@ -1046,6 +1046,9 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   }
 
   /// Allocate a shorttree array
+  // Note: new of an array needs a default constructor,
+  //       so set default size with a static function
+  shorttree::SetDefaultSize(tlayers);
   stb = new shorttree[num];
 
   /// Allocate a QwTrackingTreeRegion object

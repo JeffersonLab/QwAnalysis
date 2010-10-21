@@ -26,7 +26,7 @@ int treenode::fDebug = 0;
 
 /**
  * Default constructor
- * @param size Size of the bit pattern (default value is MAX_LAYERS)
+ * @param size Size of the bit pattern
  */
 treenode::treenode(unsigned int size)
 {
@@ -115,7 +115,7 @@ treenode::~treenode()
  *
  * @param indent Indentation level (for recursive calls)
  */
-void treenode::Print(int indent)
+void treenode::Print(bool recursive, int indent)
 {
   // Print this node
   std::string indentation;
@@ -129,12 +129,12 @@ void treenode::Print(int indent)
   }
 
   // Descend to the sons of this node
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; recursive && i < 4; i++) {
     nodenode* node = this->fSon[i];
     if (node) {
       treenode* tree = node->GetTree();
       if (tree)
-        tree->Print(indent+1);
+        tree->Print(recursive,indent+1);
     } // if (node)
 
   } // loop over sons

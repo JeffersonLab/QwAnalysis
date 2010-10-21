@@ -65,7 +65,7 @@ class treenode {
   public:
 
     /// \brief Default constructor
-    treenode(unsigned int size = MAX_LAYERS);
+    treenode(unsigned int size);
     /// \brief Copy-constructor from object
     treenode(treenode& node);
     /// \brief Copy-constructor from pointer
@@ -130,7 +130,7 @@ class treenode {
   public:
 
     /// \brief Print some debugging information
-    void Print(int indent = 0);
+    void Print(bool recursive = false, int indent = 0);
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const treenode& tn);
 

@@ -216,7 +216,7 @@ void QwScaler::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vect
 	}
     }
   }
-	if(list[0]=':'){
+	if(list[0]==':'){
 	    list = list(1,list.Length()-1);
   }
 	tree->Branch(basename,&values[fTreeArrayIndex],list);

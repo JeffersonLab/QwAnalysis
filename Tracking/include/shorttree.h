@@ -45,8 +45,15 @@ class shorttree {
 
   public:
 
+    /// \brief Set the default size for short trees
+    static void SetDefaultSize(unsigned int size) {
+      fDefaultSize = size;
+    }
+
+  public:
+
     /// \brief Default constructor
-    shorttree(unsigned int size = MAX_LAYERS);
+    shorttree(unsigned int size = fDefaultSize);
     /// \brief Destructor
     ~shorttree();
 
@@ -75,13 +82,15 @@ class shorttree {
 
   private:
 
+    static unsigned int fDefaultSize; ///< Default size
+
     static int fCount; ///< Object counter
     static int fDebug; ///< Debug level
 
   public:
 
     /// \brief Print some debugging information
-    void Print(int indent = 0);
+    void Print(bool recursive = false, int indent = 0);
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const shorttree& st);
 

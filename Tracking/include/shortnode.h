@@ -87,7 +87,7 @@ class shortnode {
   public:
 
     /// \brief Print some debugging information
-    void Print(int indent = 0);
+    void Print(bool recursive = false, int indent = 0);
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const shortnode& sn);
 
