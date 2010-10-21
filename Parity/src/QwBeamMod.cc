@@ -76,12 +76,13 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	{
 	  currentrocread=value;
 	  RegisterROCNumber(value,0);
-
+	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
 	}
       else if (varname=="bank")
 	{
 	  currentbankread=value;
 	  RegisterSubbank(value);
+	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
 	std::cout<<"bank " <<  currentbankread <<std::endl;
 	}
       else if (varname=="sample_size")
@@ -148,13 +149,13 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
      
  
 
- if(modtype=="SKIP"){
+      if(modtype=="SKIP"){
 	if (modnum<=0) wordsofar+=1;
 	else           wordsofar+=modnum;
       }
-      else if(modtype!="WORD"|| dettype!="helicitydata")
+      else if(modtype!="WORD"/*|| dettype!="helicitydata"*/)
 	{
-	  QwError << "QwHelicity::LoadChannelMap:  Unknown detector type: "
+	  QwError << "QwBeamMod::LoadChannelMap:  Unknown detector type: "
 		  << dettype  << ", the detector " << namech << " will not be decoded "
 		  << QwLog::endl;
 	  lineok=kFALSE;
@@ -598,14 +599,14 @@ Int_t QwBeamMod::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
       if(fWord[i].fWordInSubbank+1<= (Int_t) num_words) {
 	fWord[i].fValue=buffer[fWord[i].fWordInSubbank];
       } else {
-	QwWarning << "QwHelicity::ProcessEvBuffer:  There is not enough word in the buffer to read data for "
+	QwWarning << "QwBeamMod::ProcessEvBuffer:  There is not enough word in the buffer to read data for "
 		  << fWord[i].fWordName << QwLog::endl;
-	QwWarning << "QwHelicity::ProcessEvBuffer:  Words in this buffer:" << num_words
+	QwWarning << "QwBeamMod::ProcessEvBuffer:  Words in this buffer:" << num_words
 		  << " trying to read word number =" << fWord[i].fWordInSubbank << QwLog::endl;
       }
     }
     if(lkDEBUG) {
-      QwDebug << "QwHelicity::ProcessEvBuffer:  Done with Processing this event" << QwLog::endl;
+      QwDebug << "QwBeamMod::ProcessEvBuffer:  Done with Processing this event" << QwLog::endl;
       for(size_t i=0;i<fWord.size();i++) {
 	std::cout << " word number = " << i << " ";
 	fWord[i].Print();
@@ -1013,7 +1014,7 @@ void  QwBeamMod::ConstructHistograms(TDirectory *folder, TString &prefix)
 //   for(size_t i=0;i<fBPMCombo.size();i++)
 //       fBPMCombo[i].ConstructHistograms(folder,prefix);
 
-//Following is added from QwHelicity to handle QwWord
+//Following is added from QwBeamMod to handle QwWord
 
 
   // if(fHistoType==kHelNoSave)
@@ -1055,7 +1056,7 @@ void  QwBeamMod::ConstructHistograms(TDirectory *folder, TString &prefix)
   //     }
   //   }
   // else
-  //   QwError << "QwHelicity::ConstructHistograms this prefix--" << prefix << "-- is not unknown:: no histo created" << QwLog::endl;
+  //   QwError << "QwBeamMod::ConstructHistograms this prefix--" << prefix << "-- is not unknown:: no histo created" << QwLog::endl;
 
 
   return;
@@ -1101,8 +1102,8 @@ void  QwBeamMod::FillHistograms()
   //   }
   // else if(fHistoType==kHelSavePattern)
   //   {
-  //     QwDebug << "QwHelicity::FillHistograms helicity info " << QwLog::endl;
-  //     QwDebug << "QwHelicity::FillHistograms  pattern polarity=" << fActualPatternPolarity << QwLog::endl;
+  //     QwDebug << "QwBeamMod::FillHistograms helicity info " << QwLog::endl;
+  //     QwDebug << "QwBeamMod::FillHistograms  pattern polarity=" << fActualPatternPolarity << QwLog::endl;
   //     if (fHistograms[index]!=NULL)
   // 	fHistograms[index]->Fill(fActualPatternPolarity);
   //     index+=1;
@@ -1111,12 +1112,12 @@ void  QwBeamMod::FillHistograms()
   // 	if (fHistograms[index]!=NULL)
   // 	  fHistograms[index]->Fill(fWord[i].fValue);
   // 	index+=1;	
-  // 	QwDebug << "QwHelicity::FillHistograms " << fWord[i].fWordName << "=" << fWord[i].fValue << QwLog::endl;
+  // 	QwDebug << "QwBeamMod::FillHistograms " << fWord[i].fWordName << "=" << fWord[i].fValue << QwLog::endl;
   //     }
   //   }
   // else if(fHistoType==kHelSaveMPS)
   //   {
-  //     QwDebug << "QwHelicity::FillHistograms mps info " << QwLog::endl;
+  //     QwDebug << "QwBeamMod::FillHistograms mps info " << QwLog::endl;
   //     if (fHistograms[index]!=NULL)
   // 	fHistograms[index]->Fill(fEventNumber-fEventNumberOld);
   //     index+=1;
@@ -1133,7 +1134,7 @@ void  QwBeamMod::FillHistograms()
   // 	if (fHistograms[index]!=NULL)
   // 	  fHistograms[index]->Fill(fWord[i].fValue);
   // 	index+=1;
-  // 	QwDebug << "QwHelicity::FillHistograms " << fWord[i].fWordName << "=" << fWord[i].fValue << QwLog::endl;
+  // 	QwDebug << "QwBeamMod::FillHistograms " << fWord[i].fWordName << "=" << fWord[i].fValue << QwLog::endl;
   //     }
   //   }
 
