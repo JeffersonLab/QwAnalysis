@@ -26,14 +26,13 @@
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
 #include "QwHistogramHelper.h"
-#include "QwSubsystemArrayParity.h"
-#include "QwPluginManager.h"
 #include "QwHelicityPattern.h"
 #include "QwEventRing.h"
 #include "QwEPICSEvent.h"
 
 // Qweak subsystems
 // (for correct dependency generation)
+#include "QwSubsystemArrayParity.h"
 #include "QwHelicity.h"
 #include "QwFakeHelicity.h"
 #include "QwBeamLine.h"
@@ -42,7 +41,9 @@
 #include "QwLumi.h"
 #include "QwBeamMod.h"
 
-
+// Qweak plugins
+#include "QwPluginManager.h"
+#include "QwTestPlugin.h"
 
 Int_t main(Int_t argc, Char_t* argv[])
 {
@@ -61,11 +62,18 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwOptions.AddConfigFile("qweak_mysql.conf");
   ///  Define the command line options
   DefineOptionsParity(gQwOptions);
+  QwPluginManager::DefineOptions(gQwOptions);
   /// Load command line options for the histogram/tree helper class
   gQwHists.ProcessOptions(gQwOptions);
   /// Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
+  ///  Create the plugin manager
+  // TODO: how can we define new plugin-dependent options if we need the
+  // parsed options object to start the plugins by file?  Some platforms
+  // will stop execution when an unrecognized options is encountered...
+  QwPluginManager plugins(gQwOptions);
+  plugins.AtInitialization();
 
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
@@ -130,6 +138,10 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->PrintDirs();
 
 
+    // Run plugins
+    plugins.AtStartOfRun();
+
+
     Int_t failed_events_counts = 0; // count failed total events
     // TODO (wdc) failed event counter in QwEventRing?
 
@@ -173,6 +185,9 @@ Int_t main(Int_t argc, Char_t* argv[])
       detectors.ProcessEvent();
 
 
+      // Run plugins
+      plugins.AtStartOfEvent(detectors);
+
 
       // The event pass the event cut constraints
       if (detectors.ApplySingleEventCuts()) {
@@ -199,6 +214,9 @@ Int_t main(Int_t argc, Char_t* argv[])
           // Calculate helicity pattern asymmetry
           if (helicitypattern.IsCompletePattern()) {
 
+            // Run plugins
+            plugins.AtStartOfPattern(helicitypattern);
+
             // Update the blinder if conditions have changed
             helicitypattern.UpdateBlinder(detectors);
 
@@ -214,9 +232,16 @@ Int_t main(Int_t argc, Char_t* argv[])
               helicitypattern.ClearEventData();
             }
 
+            // Run plugins
+            plugins.AtEndOfPattern(helicitypattern);
+
           } // helicitypattern.IsCompletePattern()
 
         } // eventring.IsReady()
+
+
+        // Run plugins
+        plugins.AtEndOfEvent(detectors);
 
 
       // Failed single event cuts
@@ -295,6 +320,11 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Report run summary
     eventbuffer.ReportRunSummary();
     eventbuffer.PrintRunTimes();
+
+    // Run plugins
+    plugins.AtEndOfRun();
+
+
   } // end of loop over runs
 
   QwMessage << "I have done everything I can do..." << QwLog::endl;

@@ -22,6 +22,31 @@ struct QwException_PluginUnknown {
  */
 class VQwPluginFactory {
 
+  public:
+
+    /// Default virtual destructor
+    virtual ~VQwPluginFactory() { };
+
+    /// Create a subsystem of type with name
+    static VQwPlugin* Create(const std::string& type, const std::string& name) {
+      return GetPluginFactory(type)->Create(name);
+    }
+
+  protected:
+
+    /// Plugin creation (pure virtual)
+    virtual VQwPlugin* Create(const std::string& name) = 0;
+
+    /// Map from string to concrete plugin factories
+    static std::map<std::string,VQwPluginFactory*>& GetRegisteredPlugins();
+    /// List available plugin factories
+    static void ListRegisteredPlugins();
+
+    /// Get a concrete plugin factory
+    static VQwPluginFactory* GetPluginFactory(const std::string& type);
+
+}; // class VQwPluginFactory
+
 /// Map from string to concrete plugin factories
 inline std::map<std::string,VQwPluginFactory*>&
 VQwPluginFactory::GetRegisteredPlugins()
@@ -84,11 +109,6 @@ class QwPluginFactory: public VQwPluginFactory {
     VQwPlugin* Create(const std::string& name) {
     	return new plugin_t(name);
     };
-
-    /// Dynamic cast of plugin
-    plugin_t* Cast(VQwPlugin* plugin) {
-    	return dynamic_cast<plugin_t*>(plugin);
-    }
 
 }; // class QwPluginFactory
 

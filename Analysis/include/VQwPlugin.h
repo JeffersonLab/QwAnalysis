@@ -16,8 +16,10 @@
 // Qweak headers
 // Note: the plugin factory header is included here because every plugin
 // has to register itself with a plugin factory.
-#include "QwPluginFactory.h"
 #include "QwLog.h"
+#include "QwPluginFactory.h"
+#include "QwSubsystemArray.h"
+#include "QwHelicityPattern.h"
 
 
 /**
@@ -40,22 +42,32 @@ class VQwPlugin {
     };
 
     /// Default destructor
-    virtual ~VQwSubsystem() {
+    virtual ~VQwPlugin() {
       QwMessage << "Destructing plugin " << fPluginName << QwLog::endl;
     };
 
-  protected:
+  public:
 
-    /// \name Hooks for plugin functionality
+    /// \name Unimplemented hooks for plugin functionality
     // @{
-    virtual void AtConfigure(){};
-    virtual void AtStartOfRun(){};
-    virtual void AtStartOfEvent(){};
-    virtual void AtEndOfEvent(){};
+    virtual void AtInitialization() { };
+    virtual void AtConfigure() { };
+    virtual void AtStartOfRun() { };
+    virtual void AtStartOfEvent(QwSubsystemArray& detectors) { };
+    virtual void AtStartOfPattern(QwHelicityPattern& pattern) { };
+    virtual void AtEndOfPattern(QwHelicityPattern& pattern) { };
+    virtual void AtEndOfEvent(QwSubsystemArray& detectors) { };
+    virtual void AtEndOfRun() { };
     // @}
+
 
   private:
 
+    /// Private default constructor
+    VQwPlugin() { };
+
     std::string fPluginName; ///< Name of this subsystem
+
+}; // class VQwPlugin
 
 #endif // __VQWPLUGIN__
