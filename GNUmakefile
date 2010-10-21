@@ -190,7 +190,7 @@ ifeq ($(shell $(ROOTCONFIG) --has-mathmore),yes)
   ROOTCFLAGS += -D__ROOT_HAS_MATHMORE
   ROOTLIBS += -lMathMore
 else
-  $(warning The ROOT MathMore plugin was not found on your system.  Expect reduced functionality.)
+  $(info The ROOT MathMore plugin was not found on your system.  Expect reduced functionality.)
 endif
 
 ############################

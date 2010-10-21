@@ -27,6 +27,7 @@
 #include "QwEventBuffer.h"
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
+#include "QwPluginManager.h"
 #include "QwHelicityPattern.h"
 #include "QwEventRing.h"
 #include "QwEPICSEvent.h"

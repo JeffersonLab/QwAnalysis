@@ -47,7 +47,7 @@
 
 
 // Debug level
-static const bool kDebug = false;
+static const bool kDebug = true;
 // ROOT file output
 static const bool kEPICS = kFALSE;
 
@@ -84,7 +84,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   }
 
   Bool_t enablemapfile = gQwOptions.GetValue<bool>("enable-mapfile");
- 
+
   if(enablemapfile) {
     //std::cout << ">>>>>>>>>>> map file " << std::endl;
     gQwHists.LoadHistParamsFromFile("parity_hist.in");
@@ -152,10 +152,10 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
     QwEvent* event = 0;
-    
+
     if(not enablemapfile) {
     // Create the tracking object branches
-   
+
     rootfile->NewTree("event_tree", "QwTracking Event-based Tree");
     rootfile->GetTree("event_tree")->Branch("events", "QwEvent", &event);
 
