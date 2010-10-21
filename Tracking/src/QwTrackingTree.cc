@@ -199,9 +199,9 @@ QwTrackingTree::~QwTrackingTree ()
 
   // Report memory statistics
   if (treenode::GetCount() > 0 || nodenode::GetCount() > 0) {
-    QwMessage << "Memory occupied by tree objects (should be close to zero when all trees cleared):" << QwLog::endl;
-    QwMessage << "- allocated treenode objects: " << treenode::GetCount() << QwLog::endl;
-    QwMessage << "- allocated nodenode objects: " << nodenode::GetCount() << QwLog::endl;
+    QwVerbose << "Memory occupied by tree objects (should be close to zero when all trees cleared):" << QwLog::endl;
+    QwVerbose << "- allocated treenode objects: " << treenode::GetCount() << QwLog::endl;
+    QwVerbose << "- allocated nodenode objects: " << nodenode::GetCount() << QwLog::endl;
   }
 }
 
