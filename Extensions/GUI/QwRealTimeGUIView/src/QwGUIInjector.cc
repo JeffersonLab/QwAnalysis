@@ -68,6 +68,8 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
 
   AddThisTab(this);
 
+  SetHistoAccumulate(1);
+  SetHistoReset(0);
 
 }
 
@@ -386,7 +388,9 @@ void QwGUIInjector::PositionDifferences()
 void QwGUIInjector::PlotChargeAsym()
 {
   TH1F *histo1=NULL;
+  TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
+  TH1F *histo2_buff=NULL; 
   char histo[128]; //name of the histogram
   
   TCanvas *mc = NULL;
@@ -394,16 +398,30 @@ void QwGUIInjector::PlotChargeAsym()
 
   Bool_t ldebug = false;
 
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
+
    while (1){
      if (fCurrentBCMIndex<0)
        break;
-     sprintf (histo, "asym_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
-     sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     if (GetHistoPause()==0){
+       sprintf (histo, "asym_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     }
     
     if (histo1!=NULL && histo2!=NULL ) {
-    
+      if (GetHistoReset()){
+	histo1_buff=(TH1F*)histo1->Clone(Form("%s_buff",histo1->GetName()));
+	*histo1=*histo1-*histo1_buff;
+	histo2_buff=(TH1F*)histo2->Clone(Form("%s_buff",histo2->GetName()));
+	*histo2=*histo2-*histo2_buff;
+	SetHistoReset(0);
+      }else if (GetHistoAccumulate()==0){
+	*histo1=*histo1-*histo1_buff;
+	*histo2=*histo2-*histo2_buff;
+      }
+   
       mc->Clear();
       mc->Divide(1,2);
 
