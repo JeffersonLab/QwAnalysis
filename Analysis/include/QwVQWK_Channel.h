@@ -114,10 +114,10 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
-  QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
+  QwVQWK_Channel& operator+= (const VQwDataElement &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator*= (const QwVQWK_Channel &value);
-  const QwVQWK_Channel operator+ (const QwVQWK_Channel &value) const;
+  const QwVQWK_Channel operator+ (const VQwDataElement &value) const;
   const QwVQWK_Channel operator- (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator* (const QwVQWK_Channel &value) const;
   void Sum(QwVQWK_Channel &value1, QwVQWK_Channel &value2);

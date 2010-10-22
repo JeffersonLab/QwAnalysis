@@ -52,33 +52,32 @@ void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
  * Publish internal values
  * @return
  */
-const Bool_t QwMainCerenkovDetector::PublishInternalValues() const
+Bool_t QwMainCerenkovDetector::PublishInternalValues() const
 {
   ///  TODO:  The published variable list should be generated from
   ///         the channel map file.
   // Publish variables
   Bool_t status = kTRUE;
-  status = status && PublishInternalValue("md1neg", "MD1-");
-  status = status && PublishInternalValue("md1pos", "MD1+");
-  status = status && PublishInternalValue("md2neg", "MD2-");
-  status = status && PublishInternalValue("md2pos", "MD2+");
-  status = status && PublishInternalValue("md3neg", "MD3-");
-  status = status && PublishInternalValue("md3pos", "MD3+");
-  status = status && PublishInternalValue("md4neg", "MD4-");
-  status = status && PublishInternalValue("md4pos", "MD4+");
-  status = status && PublishInternalValue("md5neg", "MD5-");
-  status = status && PublishInternalValue("md5pos", "MD5+");
-  status = status && PublishInternalValue("md6neg", "MD6-");
-  status = status && PublishInternalValue("md6pos", "MD6+");
-  status = status && PublishInternalValue("md7neg", "MD7-");
-  status = status && PublishInternalValue("md7pos", "MD7+");
-  status = status && PublishInternalValue("md8neg", "MD8-");
-  status = status && PublishInternalValue("md8pos", "MD8+");
+  status = status && PublishInternalValue("md1neg", "MD1-", ReturnInternalValue("md1neg"));
+  status = status && PublishInternalValue("md1pos", "MD1+", ReturnInternalValue("md1pos"));
+  status = status && PublishInternalValue("md2neg", "MD2-", ReturnInternalValue("md2neg"));
+  status = status && PublishInternalValue("md2pos", "MD2+", ReturnInternalValue("md2pos"));
+  status = status && PublishInternalValue("md3neg", "MD3-", ReturnInternalValue("md3neg"));
+  status = status && PublishInternalValue("md3pos", "MD3+", ReturnInternalValue("md3pos"));
+  status = status && PublishInternalValue("md4neg", "MD4-", ReturnInternalValue("md4neg"));
+  status = status && PublishInternalValue("md4pos", "MD4+", ReturnInternalValue("md4pos"));
+  status = status && PublishInternalValue("md5neg", "MD5-", ReturnInternalValue("md5neg"));
+  status = status && PublishInternalValue("md5pos", "MD5+", ReturnInternalValue("md5pos"));
+  status = status && PublishInternalValue("md6neg", "MD6-", ReturnInternalValue("md6neg"));
+  status = status && PublishInternalValue("md6pos", "MD6+", ReturnInternalValue("md6pos"));
+  status = status && PublishInternalValue("md7neg", "MD7-", ReturnInternalValue("md7neg"));
+  status = status && PublishInternalValue("md7pos", "MD7+", ReturnInternalValue("md7pos"));
+  status = status && PublishInternalValue("md8neg", "MD8-", ReturnInternalValue("md8neg"));
+  status = status && PublishInternalValue("md8pos", "MD8+", ReturnInternalValue("md8pos"));
   return status;
 };
 
 
-//*****************************************************************
 /**
  * Return the pointer to the variable name
  * TODO should incorporate logic below, changes similarly in parent classes
@@ -92,20 +91,20 @@ const VQwDataElement* QwMainCerenkovDetector::ReturnInternalValue(const TString&
     QwDebug << "QwMainCerenkovDetector::ReturnInternalValue called for value name, "
             << name.Data() << QwLog::endl;
 
-  // search in integration PMTs
+  // Search in integration PMTs
   if (GetIntegrationPMT(name) != NULL) {
     if (ldebug)
       QwDebug << "QwMainCerenkovDetector::ReturnInternalValue got element " << name << QwLog::endl;
     return GetIntegrationPMT(name)->GetChannel(name);
 
-  // search in combined PMTs
+  // Search in combined PMTs
   } else if (GetCombinedPMT(name) != NULL) {
     if (ldebug)
       QwDebug << "QwMainCerenkovDetector::ReturnInternalValue got element " << name << QwLog::endl;
     return GetCombinedPMT(name)->GetChannel(name);
   }
 
-  // not found
+  // Not found
   return 0;
 }
 
@@ -116,7 +115,7 @@ const VQwDataElement* QwMainCerenkovDetector::ReturnInternalValue(const TString&
  * @param value Pointer to the value to be filled by the call
  * @return True if the variable was found, false if not found
  */
-const Bool_t QwMainCerenkovDetector::ReturnInternalValue(const TString& name, VQwDataElement* value) const
+Bool_t QwMainCerenkovDetector::ReturnInternalValue(const TString& name, VQwDataElement* value) const
 {
   Bool_t foundit = kFALSE;
   QwVQWK_Channel* value_ptr = dynamic_cast<QwVQWK_Channel*>(value);
@@ -138,7 +137,7 @@ const Bool_t QwMainCerenkovDetector::ReturnInternalValue(const TString& name, VQ
   return foundit;
 }
 
-
+//*****************************************************************
 Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 {
 

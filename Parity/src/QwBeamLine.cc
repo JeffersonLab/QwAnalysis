@@ -1288,7 +1288,7 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 };
 
 //*****************************************************************
-const Bool_t QwBeamLine::PublishInternalValues() const 
+Bool_t QwBeamLine::PublishInternalValues() const
 {
   VQwDataElement* tmp_channel;
   TString publish_name,device_type,device_name, device_prop;
@@ -1346,169 +1346,13 @@ const Bool_t QwBeamLine::PublishInternalValues() const
        QwDebug << "QwBeamLine::PublishInternalValues():"<<publish_name <<" found "<< QwLog::endl;
        //QwError << "QwBeamLine::PublishInternalValues():"<<publish_name <<" found "<< QwLog::endl;
        //status = status && PublishInternalValue(publish_name, "published-value");
-       //const_cast<QwBeamLine*>(this)->UpdatePublishValue(publish_name,tmp_channel);
+       //const_cast<QwBeamLine*>(this)->UpdatePublishedValue(publish_name,tmp_channel);
      }
-     status = status && PublishInternalValue(publish_name, "published-value");
-     const_cast<QwBeamLine*>(this)->UpdatePublishValue(publish_name,tmp_channel);
-
+     status = status && PublishInternalValue(publish_name, "published-value", tmp_channel);
   }
   
-  /*
-// *********************
-//This was old way of publishing variables, only problem here is that after add/modify/delete published variables, need to recompile!
-
-  //publish q_targ
-  status = status && PublishInternalValue("q_targ", "Calculated charge on target");
-  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBCM*>(GetCombinedBCM("qwk_charge")))->GetCharge());
-  if (tmp_channel==NULL){
-    QwError << "QwBeamLine::PublishInternalValues(): q_targ - qwk_charge not found "<< QwLog::endl;
-    status |= kFALSE;
-  }else
-    QwDebug << "QwBeamLine::PublishInternalValues(): q_targ - qwk_charge found "<< QwLog::endl;
-  const_cast<QwBeamLine*>(this)->UpdatePublishValue("q_targ",tmp_channel);
-
-  //publish x_targ
-
-  status = status && PublishInternalValue("x_targ", "Calculated beam X on the target");
-  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM("qwk_target")))->GetPositionX());
-  if (tmp_channel==NULL){
-    QwError << "QwBeamLine::PublishInternalValues(): x_targ - qwk_target X not found "<< QwLog::endl;
-    status |= kFALSE;
-  }else
-    QwDebug << "QwBeamLine::PublishInternalValues(): x_targ - qwk_target X found "<< QwLog::endl;
-  const_cast<QwBeamLine*>(this)->UpdatePublishValue("x_targ",tmp_channel);
-
-  //publish y_targ
-
-  status = status && PublishInternalValue("y_targ", "Calculated beam Y on the target");
-  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM("qwk_target")))->GetPositionY());
-  if (tmp_channel==NULL){
-    QwError << "QwBeamLine::PublishInternalValues(): y_targ - qwk_target Y not found "<< QwLog::endl;
-    status |= kFALSE;
-  }else
-    QwDebug << "QwBeamLine::PublishInternalValues(): y_targ - qwk_target Y found "<< QwLog::endl;
-  const_cast<QwBeamLine*>(this)->UpdatePublishValue("y_targ",tmp_channel);
-
-  //publish xp_targ
-
-  status = status && PublishInternalValue("xp_targ", "Calculated beam X_angle on the target");
-  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM("qwk_target")))->GetAngleX());
-  if (tmp_channel==NULL){
-    QwError << "QwBeamLine::PublishInternalValues(): xp_targ - qwk_target X_angle not found "<< QwLog::endl;
-    status |= kFALSE;
-  }else
-    QwDebug << "QwBeamLine::PublishInternalValues(): xp_targ - qwk_target X_angle found "<< QwLog::endl;
-  const_cast<QwBeamLine*>(this)->UpdatePublishValue("xp_targ",tmp_channel);
-
-
-  //publish yp_targ
-
-  status = status && PublishInternalValue("yp_targ", "Calculated beam Y_angle on the target");
-  
-  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM("qwk_target")))->GetAngleY());
-  if (tmp_channel==NULL){
-    QwError << "QwBeamLine::PublishInternalValues(): yp_targ - qwk_target Y_angle not found "<< QwLog::endl;
-    status |= kFALSE;
-  }else
-    QwDebug << "QwBeamLine::PublishInternalValues(): yp_targ - qwk_target Y_angle found "<< QwLog::endl;
-  
-  const_cast<QwBeamLine*>(this)->UpdatePublishValue("yp_targ",tmp_channel);
-
-  
-  //publish e_targ
-
-  status = status && PublishInternalValue("e_targ", "Calculated beam energy on the target");
-  
-  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwEnergyCalculator*>(GetEnergyCalculator("qwk_energy")))->GetEnergy());
-  if (tmp_channel==NULL){
-    QwError << "QwBeamLine::PublishInternalValues(): e_targ - qwk_energy energy  not found "<< QwLog::endl;
-    status |= kFALSE;
-  }else
-    QwDebug << "QwBeamLine::PublishInternalValues(): e_targ - qwk_energy energy found "<< QwLog::endl;
-  const_cast<QwBeamLine*>(this)->UpdatePublishValue("e_targ",tmp_channel);
-
-
-  
-   
-  status = status && PublishInternalValue("qwk_3c16_effectivecharge", "Four wire sum of qwk_target");  
-  tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMStripline*>(GetBPMStripline("qwk_bpm3c16")))->GetEffectiveCharge());
-  if (tmp_channel==NULL){
-    QwError << "QwBeamLine::PublishInternalValues(): qwk_qwk_3c16_effectivecharge - qwk_qwk_3c16_EffectiveCharge not found "<< QwLog::endl;
-    status |= kFALSE;
-  }else
-    QwDebug << "QwBeamLine::PublishInternalValues(): qwk_qwk_3c16_EffectiveCharge - qwk_qwk_3c16_EffectiveCharge found "<< QwLog::endl;
-  const_cast<QwBeamLine*>(this)->UpdatePublishValue("qwk_3c16_effectivecharge",tmp_channel);
-  // *********************
-  */
   return status;
-
 };
-
-
-//*****************************************************************
-/**
- * Return the value of variable name
- * @param name Name of the desired variable
- * @param value Pointer to the value to be filled by the call
- * @return True if the variable was found, false if not found
- */
-const Bool_t QwBeamLine::ReturnInternalValue(const TString& name,
-				       VQwDataElement* value) const
-{
-  Bool_t ldebug=kFALSE;
-  if (ldebug) std::cout << "QwBeamLine::ReturnInternalValue called for value name, "<< name.Data() <<std::endl;
-  Bool_t foundit = kFALSE;
-  /*
-  QwVQWK_Channel* tmp = dynamic_cast<QwVQWK_Channel*>(value);
-  if (tmp==NULL){
-    QwWarning << "QwBeamLine::ReturnInternalValue requires that "
-	      << "'value' be a pointer to QwVQWK_Channel"
-	      << QwLog::endl;
-  } else {
-    if (name=="q_targ"  && (GetBCM("qwk_charge"))!=NULL){
-      foundit = kTRUE;
-      (*tmp) = GetBCM("qwk_charge")->GetCharge();
-        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element qwk_charge"<<std::endl;
-    }
-
-    //test for x_targ, y_targ, ...
-    else if (name=="x_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
-        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for x_targ"<<std::endl;
-    }
-    else if (name=="y_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
-        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for y_targ"<<std::endl;
-    }
-    else if (name=="xp_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
-        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for xp_targ"<<std::endl;
-    }
-    else if (name=="yp_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetBPMStripline("ch_name")->GetSomething();
-        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for yp_targ"<<std::endl;
-    }
-    else if (name=="e_targ"){
-      foundit = kTRUE;
-      //(*tmp) = GetBCM("ch_name")->GetCharge();
-        if (ldebug) std::cout<<"QwBeamLine::ReturnInternalValue got element for e_targ"<<std::endl;
-    }
-  }
-  */
-  return foundit;
-};
-
-const VQwDataElement* QwBeamLine::ReturnInternalValue(const TString& name) const {
-  Bool_t ldebug=kFALSE;
-  if (ldebug) 
-    std::cout << "QwBeamLine::ReturnInternalValue called for value name, "<< name.Data() <<std::endl;
-  return const_cast<QwBeamLine*>(this)->GetPublishValue(name);
-};
-
 
 //*****************************************************************
 void QwBeamLine::ClearEventData()

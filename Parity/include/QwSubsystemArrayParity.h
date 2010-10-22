@@ -16,6 +16,7 @@
 
 // Forward declarations
 class QwBlinder;
+class QwRegression;
 
 /**
  * \class QwSubsystemArrayParity
@@ -113,6 +114,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     static Bool_t CanContain(VQwSubsystem* subsys) {
       return (dynamic_cast<VQwSubsystemParity*>(subsys) != 0);
     };
+
+  friend class QwRegression;
 
 }; // class QwSubsystemArrayParity
 

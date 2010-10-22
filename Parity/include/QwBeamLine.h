@@ -64,11 +64,9 @@ class QwBeamLine : public VQwSubsystemParity{
   void  ClearEventData();
   void  ProcessEvent();
 
+  Bool_t PublishInternalValues() const;
 
-  const Bool_t PublishInternalValues() const;
-  const VQwDataElement* ReturnInternalValue(const TString& name) const;
-  const Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
-
+ public:
   void RandomizeEventData(int helicity = 0, double time = 0.0);
   void EncodeEventData(std::vector<UInt_t> &buffer);
 
@@ -143,27 +141,6 @@ class QwBeamLine : public VQwSubsystemParity{
  Double_t fSumYweights;
  Double_t fSumQweights;
 
- //a map to store published variables.
- 
- void UpdatePublishValue(TString name, VQwDataElement* data_channel){
-   //debug lines
-   //QwMessage <<"UpdatePublishValue "<<data_channel->GetElementName()<< QwLog::endl;
-   //data_channel->SetElementName(name);
-   //QwVQWK_Channel *tmp=dynamic_cast<QwVQWK_Channel*>(data_channel);
-   //tmp->PrintInfo();
-   fPublishedInternalValues[name]=const_cast<VQwDataElement*>(data_channel);
- };
-
- VQwDataElement* GetPublishValue(TString name){
-   //QwVQWK_Channel *tmp=dynamic_cast<QwVQWK_Channel*>(fPublishedInternalValues[name]);
-   //tmp->PrintInfo();
-   return dynamic_cast<VQwDataElement*>(fPublishedInternalValues[name]);
- };
-
- 
-
- std::map<TString, VQwDataElement*> fPublishedInternalValues;
- std::vector<std::vector<TString> > fPublishList;//this will save parameters to be published. This is loaded at the channel map
 
  static const Bool_t bDEBUG=kFALSE;
 

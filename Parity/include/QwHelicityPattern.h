@@ -20,6 +20,7 @@
 
 // Forward declarations
 class QwHelicity;
+class QwRegression;
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -168,7 +169,7 @@ class QwHelicityPattern{
 
   QwBeamCharge   fTargetCharge;
 
-
+  friend class QwRegression;
 
 };
 

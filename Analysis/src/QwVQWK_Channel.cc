@@ -832,28 +832,29 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
   return *this;
 };
 
-const QwVQWK_Channel QwVQWK_Channel::operator+ (const QwVQWK_Channel &value) const
+const QwVQWK_Channel QwVQWK_Channel::operator+ (const VQwDataElement &value) const
 {
   QwVQWK_Channel result = *this;
   result += value;
   return result;
 }
 
-QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
+QwVQWK_Channel& QwVQWK_Channel::operator+= (const VQwDataElement &value_tmp)
 {
-  if (!IsNameEmpty()) {
+  const QwVQWK_Channel* value = dynamic_cast<const QwVQWK_Channel*>(&value_tmp);
+  if (!IsNameEmpty() && value != 0) {
     for (Short_t i = 0; i < fBlocksPerEvent; i++) {
-      this->fBlock[i] += value.fBlock[i];
-      this->fBlock_raw[i] += value.fBlock_raw[i];
+      this->fBlock[i] += value->fBlock[i];
+      this->fBlock_raw[i] += value->fBlock_raw[i];
       this->fBlockM2[i] = 0.0;
     }
-    this->fHardwareBlockSum_raw = value.fHardwareBlockSum_raw;
-    this->fSoftwareBlockSum_raw = value.fSoftwareBlockSum_raw;
-    this->fHardwareBlockSum += value.fHardwareBlockSum;
+    this->fHardwareBlockSum_raw = value->fHardwareBlockSum_raw;
+    this->fSoftwareBlockSum_raw = value->fSoftwareBlockSum_raw;
+    this->fHardwareBlockSum += value->fHardwareBlockSum;
     this->fHardwareBlockSumM2 = 0.0;
-    this->fNumberOfSamples  += value.fNumberOfSamples;
+    this->fNumberOfSamples  += value->fNumberOfSamples;
     this->fSequenceNumber   = 0;
-    this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+    this->fDeviceErrorCode |= (value->fDeviceErrorCode);//error code is ORed.
   }
 
   return *this;
