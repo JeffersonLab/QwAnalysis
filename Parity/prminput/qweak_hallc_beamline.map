@@ -195,7 +195,6 @@ name=qwk_target
  QWK_BPM3H07A,  bpmstripline, 1.0,  1.0,  1.0
  QWK_BPM3H07B,  bpmstripline, 1.0,  1.0,  1.0
  QWK_BPM3H07C,  bpmstripline, 1.0,  1.0,  1.0
- QWK_BPM3H08,   bpmstripline, 1.0,  1.0,  1.0
  QWK_BPM3H09,   bpmstripline, 1.0,  1.0,  1.0
  QWK_BPM3H09B,  bpmstripline, 1.0,  1.0,  1.0
 end=combinedbpm
