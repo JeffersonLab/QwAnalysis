@@ -4,11 +4,11 @@ TFile* fd=0;
 enum{ nP=5,nY=15}; 
 TString cor1="input";
 int pl=2; //1=gif, 2=ps, 3=both
-TString runName="bad.000";
+TString runName="R5989.000";
 TString inpPath="./out/";
 char *oPath="./out/";
 
-plCor(int page=1, char *runName0="R5954.000") {
+plCor(int page=1, char *runName0="RfixMe.000") {
   //  printf("ss=%s=\n",runName0);
 
   if(page==0) {   runName=runName0; doAll();    return;   }
@@ -110,6 +110,12 @@ void   DV_1D(TString cCore,TString text, TString preFix){
     tx->SetTextSize(0.15);
 
   }
+
+
+    TH1 * h=(TH1 *)fd->Get("inpBcm1"); assert(h);
+    c->cd(16);
+    h->Draw();
+
 }
 
 //============================================

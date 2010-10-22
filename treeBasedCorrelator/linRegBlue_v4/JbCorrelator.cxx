@@ -89,6 +89,7 @@ JbCorrelator::initHistos(){
   for(int i=0;i<nP;i++) {    
     h1iv[i]=h=new TH1D(Form(mCore+"P%d",i),Form("iv P%d=%s, pass=%s ;iv=%s",i,Pname[i].Data(),mCore.Data(),Pname[i].Data()),64,0.,0.);
     h->GetXaxis()->SetNdivisions(4);
+    h->SetBit(TH1::kCanRebin);
   }
   
   double x1=5e2;
@@ -141,6 +142,25 @@ JbCorrelator::finish(){
   linReg.printSummaryY();
   linReg.solve();
   linReg.printSummaryAlphas();
+
+  // assemble string for automatic WEB-based monitoring
+  TString rmsStr, avrStr;
+  double avrL=99999.99,avrH=99999.9;
+  for (int i = nY-1; i >=0; i--) {
+    double meanI,sigI;
+    assert( linReg.getMeanY(i,meanI)==0);
+    assert( linReg.getSigmaY(i,sigI)==0);
+    if(i==nY-1) avrL=avrH=meanI;
+    else {
+      if(avrL>meanI) avrL=meanI;
+      if(avrH<meanI) avrH=meanI;
+    }
+    rmsStr+=Form("<td> %.0f",sigI);
+  }
+  cout<<"#"<<mCore<<"RMS,"<<rmsStr<<endl;
+  cout<<Form("#%sAVR, %.1f  to  %.1f",mCore.Data(),avrL, avrH) <<endl;
+
+
   printf("::::::::::::::::JbCorrelator::finish(%s) :::::::::::END\n",mCore.Data());
 }
 
@@ -149,28 +169,50 @@ JbCorrelator::finish(){
 //________________________________________________
 void
 JbCorrelator::exportAlphas(TString outName){
-
-  printf("::::::::::::::::JbCorrelator::exportAlphas(%s) :::::::::::\n",outName.Data());
-
+  printf("::::::::::::::::JbCorrelator::exportAlphas(%s) :::::::::::\n",outName.Data());  
   TFile*  hFile=new TFile(outName,"RECREATE","correlation coefficents");
-  //  linReg.mA.SetName("alphas");
+
   linReg.mA.Write("alphas");
   linReg.mAsig.Write("sigma");
-  
-#if 0
-  TH2D *hal=new TH2D(mCore,"correlation coef, pass="+mCore+"iv index; dv index",nP,0,nP-1,nY,0,nY-1);
-  for (int iy = 0; iy <nY; iy++) {
-    cout << Form("dv=Y%d: ",iy)<<endl;
-    for (int j = 0; j < nP; j++) {
-      double val= linReg.mA(j,iy);
-      double sig= linReg.mAsig(j,iy);
-      // printf("iy=%d j=%d val=%f sig=%f\n",iy,j,val,sig);
-      hal->SetBinContent(j+1,iy+1,val);
-      hal->SetBinError(j+1,iy+1,sig);
-    }
-  }
-  hFile->Write();
-#endif
   hFile->Close();
   printf("saved %s\n",hFile->GetName());
+}
+
+
+
+//________________________________________________
+//________________________________________________
+void
+JbCorrelator::exportAlias(char * outName, int runId){
+
+  printf("::::::::::::::::JbCorrelator::exportAlias(%s) :::::::::::\n",outName);
+  char *preDV="asym_";
+  char *preIV="diff_qwk_bpm";
+
+  FILE *fd=fopen(outName,"w");
+  fprintf(fd,"regalias_r%d() {\n",runId);
+  for (int iy = 0; iy <nY; iy++) {
+    fprintf(fd,"  Hel_Tree->SetAlias(\"reg_%s%s\",\n         \"%s%s",preDV,Yname[iy].Data(),preDV,Yname[iy].Data());
+    for (int j = 0; j < nP; j++) {
+      double val= -linReg.mA(j,iy);
+      if(val>0)  fprintf(fd,"+");
+      fprintf(fd,"%.4e*%s%s",val,preIV,Pname[j].Data());
+    }
+    fprintf(fd,"\");\n");
+
+  }
+
+
+#if 0 // format
+regalias_r5848() {
+	Hel_Tree->SetAlias("reg_<dv1>","<dv1> +<slp_dv1_iv1>*<iv1>+<slp_dv1_iv2>*<iv2>+...");
+	Hel_Tree->SetAlias("reg_<dv2>","<dv2> +<slp_dv2_iv1>*<iv1>+<slp_dv2_iv2>*<iv2>+...");
+	.
+	.
+}
+
+#endif 
+  fprintf(fd,"}\n");
+  fclose(fd);
+  printf("saved %s\n",outName);
 }

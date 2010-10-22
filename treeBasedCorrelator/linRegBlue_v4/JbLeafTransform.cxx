@@ -37,21 +37,24 @@ JbLeafTransform::JbLeafTransform(const char *core) {
 //========================
 void JbLeafTransform::findInputLeafs(TChain *chain){
   printf("JbLeafTransform_%s findInputLeafs\n",mCore.Data());
-  TString cPN[mxPN]={"pos","neg"};
   TString cBPM[mxBPM]={"3h04X","3h04Y","3h09X","3h09Y","3c12X"};
 
   // set  iv names
   for(int i=0;i<nP;i++) Pname[i]=cBPM[i];
-  // set  15 dv names
-  Yname[0]="md1";
-  Yname[1]="md2";
-  Yname[2]="md3";
-  Yname[3]="md4";
-  Yname[4]="md5";
-  Yname[5]="md6";
-  Yname[6]="md7";
-  Yname[7]="md8";
 
+  // Access MD leafs
+  for(int imd=0;imd<mxMD;imd++){
+    Yname[imd]=Form("md%d",imd+1);
+    TString name="asym_"+Yname[imd]+"barsum/hw_sum";
+    TLeaf *lf=chain->GetLeaf(name); 
+    printf("imd=%d  name=%s= lf=%p\n",imd,name.Data(),lf);
+    assert(lf);
+    Double_t* p=(Double_t*)lf->GetValuePointer();    
+    assert(p);
+    pLeafMD[imd]=p;    
+  }
+
+  // set  remaining dv names
   Yname[8]="mdh";
   Yname[9]="mdv";
   Yname[10]="mdd1";
@@ -61,19 +64,6 @@ void JbLeafTransform::findInputLeafs(TChain *chain){
   Yname[13]="mdx";
   Yname[14]="mda";
 
-
-  // Access MD leafs
-  for(int imd=0;imd<mxMD;imd++){
-    for(int ipn=0; ipn<mxPN;ipn++) {
-      TString name=Form("asym_md%d",imd+1)+cPN[ipn]+"/hw_sum";
-      TLeaf *lf=chain->GetLeaf(name); 
-      printf("imd=%d ipn=%d name=%s= lf=%p\n",imd,ipn,name.Data(),lf);
-      assert(lf);
-      Double_t* p=(Double_t*)lf->GetValuePointer();    
-      assert(p);
-      pLeafMD[imd*mxPN+ipn]=p;
-    }
-  }
 
 #if 1
   {  // Access other iv leafs
@@ -110,16 +100,11 @@ bool JbLeafTransform::unpackEvent(){
 
   // Access MD leafs
   for(int imd=0;imd<mxMD;imd++){
-    amd[imd]=0;
-    for(int ipn=0; ipn<mxPN;ipn++) {
-      //printf("imd=%d ipn=%d val=%g\n",imd,ipn,*pLeafMD[imd*mxPN+ipn]);
-      amd[imd]+=(*pLeafMD[imd*mxPN+ipn]);
-    }
-    amd[imd]*=1e6*0.5;
+    amd[imd]=1e6*(*pLeafMD[imd]);
     // printf("  imd=%d amd=%g\n",imd,amd[imd]);
   }
-
- /* arrays w/ final 15 dv & iv variables
+  
+  /* arrays w/ final 15 dv & iv variables
      1-bar tube combos:    MD 1-8 (all bars)
      2-bar combos:             MD H (3+7), V (1+5), D1 (2+6), D2(4+8)
      4-bar combos:             MD C (1+3+5+7), MD X (2+4+6+8)
@@ -195,6 +180,7 @@ JbLeafTransform::initHistos(){
 
   hA[1]=h=new TH1F("inpBcm1","BCM1 yield  before cuts; current  #mu A ",128,0,0);
   h->SetFillColor(kBlue);
+  h->SetBit(TH1::kCanRebin);
 
 
 }

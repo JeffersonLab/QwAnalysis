@@ -211,6 +211,7 @@ void LinRegBevPeb::printSummaryP(){
 void LinRegBevPeb::printSummaryY(){
   cout << Form("\nLinRegBevPeb::printSummaryY seen good eve=%lld",fGoodEventNumber)<<endl;
   cout << Form("\n  j        mean      sig(mean)    nSig(mean)   sig(distribution)    \n");
+  
   for (int i = 0; i <par_nY; i++) {
     double meanI,sigI;
     assert( getMeanY(i,meanI)==0);
@@ -218,6 +219,7 @@ void LinRegBevPeb::printSummaryY(){
     double err=sigI/sqrt(fGoodEventNumber);
     double nSigErr=meanI/err;
     cout << Form("  Y%d:  %+12.4g  %12.4g  %8.1f  %12.4g "" ",i,meanI,err,nSigErr,sigI)<<endl;
+
   }
 }
 

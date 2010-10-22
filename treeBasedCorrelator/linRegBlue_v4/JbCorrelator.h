@@ -37,6 +37,7 @@ class JbCorrelator  {
   void finish();
   void addEvent(double *Pvec, double *Yvec);
   void exportAlphas(TString outPath);
+  void exportAlias(char* outPath, int runId);
 
 };
 
