@@ -15,35 +15,38 @@
 
 
 
-class QwEventRing{
+class QwEventRing {
 
 /******************************************************************
- *  Class: QwHelicityPattern
+ *  Class: QwEventRing
  *  Description : The event buffer to reduce  beam trips effects on running 
  *  averages.
  *
  ******************************************************************/
  public:
-  QwEventRing(){}
+  QwEventRing() { };
+  QwEventRing(QwOptions &options) { ProcessOptions(options); };
   QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t event_holdoff, Int_t min_BT_count);//this will create a fixed size vent ring
-  ~QwEventRing(){
+  virtual ~QwEventRing() { };
 
-  };
-
-  /// \brief Define options function
+  /// \brief Define options
   static void DefineOptions(QwOptions &options);
-
-  void push(QwSubsystemArrayParity &event);//add the subsystem to the ring
-  QwSubsystemArrayParity& pop();//return the last subsystem in the ring
-
-  Bool_t IsReady();//return the read status of the ring
-  void FailedEvent(Int_t);//update parameters when an event fails
- 
+  /// \brief Process options
   void ProcessOptions(QwOptions &options);
+
+  /// \brief Add the subsystem to the ring
+  void push(QwSubsystemArrayParity &event);
+  /// \brief Return the last subsystem in the ring
+  QwSubsystemArrayParity& pop();
+
+  /// \brief Return the read status of the ring
+  Bool_t IsReady();
+  /// \brief Update parameters when an event fails
+  void FailedEvent(Int_t);
+
+  Int_t GetFailedEventCount() const { return fFailedEventCount; };
+
   void SetupRing(QwSubsystemArrayParity &event);
-
-
-
 
 
  private:
@@ -61,9 +64,9 @@ class QwEventRing{
   Int_t fFailedEventCount;//Counts on.of failed events. if the fFailedEventCount> Min_BT_COUNT then we have a beam trip
 
   
-  Bool_t bGoodEvent; //Bbeam trip status. 
-  //kTRUE -> At present no beam trip occured
-  //kFALSE -> A beam trip occured
+  Bool_t bGoodEvent; //beam trip status.
+  //kTRUE -> At present no beam trip occurred
+  //kFALSE -> A beam trip occurred
   Bool_t bEVENT_READY; //If kTRUE, the good events are added to the event ring. After a beam trip this is set to kFALSE
   //after discarding LEAVE_COUNT no.of good event this is set to kTRUE
 

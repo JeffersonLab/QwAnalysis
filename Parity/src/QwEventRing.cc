@@ -144,7 +144,7 @@ void QwEventRing::FailedEvent(Int_t error_flag){
   if (bDEBUG_Write) fprintf(out_file," Failed count %d error_flag %x\n",fFailedEventCount,error_flag);
 };
 
-QwSubsystemArrayParity& QwEventRing::pop(){   
+QwSubsystemArrayParity& QwEventRing::pop(){
   Int_t tempIndex;
   tempIndex=fNextToBeRead;  
   if (bDEBUG) std::cout<<" Read at "<<fNextToBeRead<<std::endl; 

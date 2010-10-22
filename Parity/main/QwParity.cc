@@ -100,8 +100,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     ///  Create the event ring
     QwEventRing eventring;
     eventring.ProcessOptions(gQwOptions);
-
-    ///  Set up the ring with the subsysten array
+    ///  Set up the ring with the subsystem array
     eventring.SetupRing(detectors);
 
     ///  Create the running sum
@@ -127,10 +126,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Summarize the ROOT file structure
     rootfile->PrintTrees();
     rootfile->PrintDirs();
-
-
-    Int_t failed_events_counts = 0; // count failed total events
-    // TODO (wdc) failed event counter in QwEventRing?
 
 
     //  Clear the single-event running sum at the beginning of the runlet
@@ -221,9 +216,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       // Failed single event cuts
       } else {
         eventring.FailedEvent(detectors.GetEventcutErrorFlag()); //event cut failed update the ring status
-	//	QwMessage << "FailedEven: "<< eventbuffer.GetEventNumber() << std::endl;
-
-        failed_events_counts++;
       }
 
       // Burst mode
@@ -262,7 +254,7 @@ Int_t main(Int_t argc, Char_t* argv[])
      *                                                               *
      *  Then, we need to delete the histograms here.                 *
      *  If we wait until the subsystem destructors, we get a         *
-     *  segfault; but in additiona to that we should delete them     *
+     *  segfault; but in addition to that we should delete them     *
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
 
@@ -275,21 +267,21 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
 
-    //  Print the event cut error summery for each subsystem
+    //  Print the event cut error summary for each subsystem
     detectors.GetEventcutErrorCounters();
 
 
-    //  Read from the datebase
+    //  Read from the database
     database.SetupOneRun(eventbuffer);
 
-    // Each sussystem has its own Connect() and Disconnect() functions.
+    // Each subsystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {
       helicitypattern.FillDB(&database);
       epicsevent.FillDB(&database);
     }
 
 
-    QwMessage << "Total events failed " << failed_events_counts << QwLog::endl;
+    QwMessage << "Total events failed " << eventring.GetFailedEventCount() << QwLog::endl;
 
     //  Report run summary
     eventbuffer.ReportRunSummary();
