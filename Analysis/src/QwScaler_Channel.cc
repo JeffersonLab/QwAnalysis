@@ -378,10 +378,17 @@ QwScaler_Channel<data_mask,data_shift>& value)
 
 template<unsigned int data_mask, unsigned int data_shift>
 void QwScaler_Channel<data_mask,data_shift>::CalculateRunningAverage(){
-  if(fGoodEventCount > 0)
-  {
-      fValueError = sqrt(fValueM2 / fGoodEventCount);
+  //  See notes in QwVQWK_Channel;  we are using:
+  //         error = sqrt(M2)/n,
+  //  or alternately we could use the unbiased estimator for both
+  //  the sigma and error on the mean:
+  //          error = sqrt(M2)/(n-1)
+  if(fGoodEventCount > 0) {
+    fValueError = sqrt(fValueM2) / fGoodEventCount;
+  } else {
+    fValueError = 0.0;
   }
+
 }
 
 template<unsigned int data_mask, unsigned int data_shift>

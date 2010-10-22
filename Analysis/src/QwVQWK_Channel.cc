@@ -1157,9 +1157,13 @@ void QwVQWK_Channel::CalculateRunningAverage()
     {
       // We use a biased estimator by dividing by n.  Use (n - 1) to get the
       // unbiased estimator for the standard deviation.
+      //
+      // Note we want to calculate the error here, not sigma:
+      //    sigma = sqrt(M2 / n);
+      //    error = sigma / sqrt (n) = sqrt(M2) / n;
       for (Short_t i = 0; i < fBlocksPerEvent; i++)
-        fBlockError[i] = sqrt(fBlockM2[i] / fGoodEventCount);
-      fHardwareBlockSumError = sqrt(fHardwareBlockSumM2 / fGoodEventCount);
+        fBlockError[i] = sqrt(fBlockM2[i]) / fGoodEventCount;
+      fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
     }
 };
 
