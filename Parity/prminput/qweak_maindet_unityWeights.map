@@ -1,0 +1,67 @@
+!
+!
+!
+ROC=2
+Bank=0x0202
+!
+! same sample size for ADCs in a given bank
+!
+sample_size=480
+!
+!
+!
+! physical module/channel
+!
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 2, 0,  IntegrationPMT,  MD1Neg
+  VQWK, 2, 1,  IntegrationPMT,  MD2Neg
+  VQWK, 2, 2,  IntegrationPMT,  MD3Neg
+  VQWK, 2, 3,  IntegrationPMT,  MD4Neg
+  VQWK, 2, 4,  IntegrationPMT,  MD5Neg
+  VQWK, 2, 5,  IntegrationPMT,  MD6Neg
+  VQWK, 2, 6,  IntegrationPMT,  MD7Neg
+  VQWK, 2, 7,  IntegrationPMT,  MD8Neg
+!
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 3, 0,  IntegrationPMT,  MD1Pos
+  VQWK, 3, 1,  IntegrationPMT,  MD2Pos
+  VQWK, 3, 2,  IntegrationPMT,  MD3Pos
+  VQWK, 3, 3,  IntegrationPMT,  MD4Pos
+  VQWK, 3, 4,  IntegrationPMT,  MD5Pos
+  VQWK, 3, 5,  IntegrationPMT,  MD6Pos
+  VQWK, 3, 6,  IntegrationPMT,  MD7Pos
+  VQWK, 3, 7,  IntegrationPMT,  MD8Pos
+!
+! ModuleType, Module#, Chan#, DetType, DetName
+  VQWK, 4, 0,  IntegrationPMT,  PMTLED,		NOT_BLINDABLE
+  VQWK, 4, 1,  IntegrationPMT,  PMTONL,		NOT_BLINDABLE
+  VQWK, 4, 2,  IntegrationPMT,  PMTLTG,		NOT_BLINDABLE
+  VQWK, 4, 3,  IntegrationPMT,  MD9Neg,		NOT_BLINDABLE
+  VQWK, 4, 4,  IntegrationPMT,  MD9Pos,		NOT_BLINDABLE
+  VQWK, 4, 5,  IntegrationPMT,  ISourc,		NOT_BLINDABLE
+  VQWK, 4, 6,  IntegrationPMT,  Preamp,		NOT_BLINDABLE
+  VQWK, 4, 7,  IntegrationPMT,  CageSr,		NOT_BLINDABLE
+
+!
+!
+! "virtual" channels for PMT combination, it supports any combination of physical channels
+! when naming the DetName, do not use arithmetic and logic operators, such as +,-, &, and so on
+!
+! ModuleType, Chan#, NumberOfCombinedChan's, DetType, DetName, PhysicalChanNames, WeightNumbers,
+ VPMT,  1,  2, CombinationPMT,  MD1BarSum,  	  MD1Pos,  MD1Neg, 1.0,  1.0
+  VPMT,  2,  2, CombinationPMT,  MD2BarSum,  	  MD2Pos,  MD2Neg, 1.0,  1.0
+  VPMT,  3,  2, CombinationPMT,  MD3BarSum,  	  MD3Pos,  MD3Neg, 1.0,  1.0
+  VPMT,  4,  2, CombinationPMT,  MD4BarSum,  	  MD4Pos,  MD4Neg, 1.0,  1.0
+  VPMT,  5,  2, CombinationPMT,  MD5BarSum,  	  MD5Pos,  MD5Neg, 1.0,  1.0
+  VPMT,  6,  2, CombinationPMT,  MD6BarSum,  	  MD6Pos,  MD6Neg, 1.0,  1.0
+  VPMT,  7,  2, CombinationPMT,  MD7BarSum,  	  MD7Pos,  MD7Neg, 1.0,  1.0
+  VPMT,  8,  2, CombinationPMT,  MD8BarSum,  	  MD8Pos,  MD8Neg, 1.0,  1.0
+  VPMT,  9,  4, CombinationPMT,  MD1_MD5,	 	  MD1Pos,  MD1Neg,  MD5Pos,  MD5Neg, 1.0,  1.0, 1.0,  1.0   
+  VPMT, 10,  4, CombinationPMT,  MD2_MD6,		  MD2Pos,  MD2Neg,  MD6Pos,  MD6Neg, 1.0,  1.0, 1.0,  1.0   
+  VPMT, 11,  4, CombinationPMT,  MD3_MD7, 		  MD3Pos,  MD3Neg,  MD7Pos,  MD7Neg, 1.0,  1.0, 1.0,  1.0   
+  VPMT, 12,  4, CombinationPMT,  MD4_MD8, 		  MD4Pos,  MD4Neg,  MD8Pos,  MD8Neg, 1.0,  1.0, 1.0,  1.0   
+  VPMT, 13,  8, CombinationPMT,  MDOddBars,		  MD1Neg, MD1Pos, MD3Neg, MD3Pos, MD5Neg, MD5Pos, MD7Neg, MD7Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+  VPMT, 14,  8, CombinationPMT,  MDEvenBars, 	  MD2Neg, MD2Pos, MD4Neg, MD4Pos, MD6Neg, MD6Pos, MD8Neg, MD8Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+  VPMT, 15, 16, CombinationPMT,  CombinationAllMD,MD1Neg, MD1Pos, MD2Neg, MD2Pos, MD3Neg, MD3Pos, MD4Neg, MD4Pos, MD5Neg, MD5Pos, MD6Neg, MD6Pos, MD7Neg, MD7Pos, MD8Neg, MD8Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+!
+!END
