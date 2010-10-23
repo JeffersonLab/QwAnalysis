@@ -34,6 +34,5 @@ num_samples=480
 ROC=0
 Bank=0x6106
 
-WORD, 0, 0, beam_mod_flag,  beam_mod_init
-WORD, 0, 0, pattern_number, pattern_num
-WORD, 0, 0, pattern_id,     patternid
+WORD, 0, 0,  bm_init
+WORD, 0, 0,  bm_pattern_number
