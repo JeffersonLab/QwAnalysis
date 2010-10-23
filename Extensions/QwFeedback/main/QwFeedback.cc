@@ -50,15 +50,15 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  all instances.
   ///  The "scratch" directory should be first.
   //QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Extensions/QwFeedback/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Extensions/QwFeedback/prminput");
 
 
   // Then set the command line arguments and the configuration filename, 
   // and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.AddConfigFile("qwparity.conf");
+  gQwOptions.AddConfigFile("qwfeedback.conf");
   gQwOptions.AddConfigFile("qweak_mysql.conf");
     // Define the command line options
   DefineOptionsParity(gQwOptions);
@@ -144,21 +144,21 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Initialize the database connection.
     database.SetupOneRun(eventbuffer);
     
-    //  Open the ROOT file
-    rootfile = new QwRootFile(eventbuffer.GetRunLabel());
-    if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
+//     //  Open the ROOT file
+//     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+//     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
-    //  Construct histograms
-    rootfile->ConstructHistograms("mps_histo", detectors);
-    rootfile->ConstructHistograms("hel_histo", helicitypattern);
+//     //  Construct histograms
+//     rootfile->ConstructHistograms("mps_histo", detectors);
+//     rootfile->ConstructHistograms("hel_histo", helicitypattern);
 
-    //  Construct tree branches
-    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
-    rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+//     //  Construct tree branches
+//     rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
+//     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
 
-    // Summarize the ROOT file structure
-    rootfile->PrintTrees();
-    rootfile->PrintDirs();
+//     // Summarize the ROOT file structure
+//     rootfile->PrintTrees();
+//     rootfile->PrintDirs();
 
     Int_t failed_events_counts = 0; // count failed total events
     // TODO (wdc) failed event counter in QwEventRing?
@@ -183,11 +183,11 @@ Int_t main(Int_t argc, Char_t* argv[])
       }
 
        //  Secondly, process EPICS events
-      if (eventbuffer.IsEPICSEvent()) {
-        eventbuffer.FillEPICSData(epicsevent);
-        epicsevent.CalculateRunningValues();
-        helicitypattern.UpdateBlinder(epicsevent);
-      }
+//       if (eventbuffer.IsEPICSEvent()) {
+//         eventbuffer.FillEPICSData(epicsevent);
+//         epicsevent.CalculateRunningValues();
+//         helicitypattern.UpdateBlinder(epicsevent);
+//       }
 
       //  Dump out of the loop when we see the end event.
       if (eventbuffer.GetEndEventCount()>0){
@@ -211,12 +211,12 @@ Int_t main(Int_t argc, Char_t* argv[])
         // Accumulate the running sum to calculate the event based running average
         runningsum.AccumulateRunningSum(detectors);
 
-        // Fill the histograms
-        rootfile->FillHistograms(detectors);
+//         // Fill the histograms
+//         rootfile->FillHistograms(detectors);
 
-        // Fill the tree branches
-        rootfile->FillTreeBranches(detectors);
-        rootfile->FillTree("Mps_Tree");
+//         // Fill the tree branches
+//         rootfile->FillTreeBranches(detectors);
+//         rootfile->FillTree("Mps_Tree");
 
         // Add event to the ring
         eventring.push(detectors);
@@ -237,11 +237,11 @@ Int_t main(Int_t argc, Char_t* argv[])
             helicitypattern.CalculateAsymmetry();
             if (helicitypattern.IsGoodAsymmetry()) {
 	      helicitypattern.ApplyFeedbackCorrections();//apply IA feedback
-              // Fill histograms
-              rootfile->FillHistograms(helicitypattern);
-              // Fill tree branches
-              rootfile->FillTreeBranches(helicitypattern);
-              rootfile->FillTree("Hel_Tree");
+//               // Fill histograms
+//               rootfile->FillHistograms(helicitypattern);
+//               // Fill tree branches
+//               rootfile->FillTreeBranches(helicitypattern);
+//               rootfile->FillTree("Hel_Tree");
               // Clear the data
               helicitypattern.ClearEventData();	      
             }
@@ -300,11 +300,11 @@ Int_t main(Int_t argc, Char_t* argv[])
      *  If we wait until the subsystem destructors, we get a         *
      *  segfault; but in additiona to that we should delete them     *
      *  here, in case we run over multiple runs at a time.           */
-    rootfile->Write(0,TObject::kOverwrite);
+//     rootfile->Write(0,TObject::kOverwrite);
 
-    //  Delete histograms
-    rootfile->DeleteHistograms(detectors);
-    rootfile->DeleteHistograms(helicitypattern);
+//     //  Delete histograms
+//     rootfile->DeleteHistograms(detectors);
+//     rootfile->DeleteHistograms(helicitypattern);
 
     //  Close event buffer stream
     eventbuffer.CloseStream();
