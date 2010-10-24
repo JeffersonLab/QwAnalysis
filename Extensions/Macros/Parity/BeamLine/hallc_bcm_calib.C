@@ -94,7 +94,7 @@
 //  5807   2        * BCM calibration RUN 
 
 //  5889 - 6114      BCM gain setting 2
-//  6115 - 6158      BCM gain setting 5  >>  BCM calibration RUN 6158
+//  6115 - 6158      BCM gain setting 5  >>  BCM calibration RUN 6158 / ./hallc_bcm_calib -r 6158 -e 5:60 
 //  6159 -           BCM gain setting 2  
 
 #include <iostream>
@@ -659,8 +659,8 @@ main(int argc, char **argv)
   // TEST end
 
 
-  Int_t w = 800;
-  Int_t h = 400;
+  Int_t w = 1200;
+  Int_t h = 600;
   unser_canvas = new TCanvas("sca_unser","SCA Unser", w, h);  
   //
   // extract unser maximum range in order to determine fit range
@@ -753,10 +753,18 @@ main(int argc, char **argv)
     theApp.Run();
   }
 
-  
+
+
   unser_canvas -> Modified();
   unser_canvas -> Update();
  
+  // 
+  // Save as ROOT C++ Macro and png of unser_canvas
+  //
+  TString output_name = unser_canvas->GetName();
+  unser_canvas -> SaveAs(Form("BCMCalib%s_%s.cxx", run_number, output_name.Data()));
+  unser_canvas -> SaveAs(Form("BCMCalib%s_%s.png", run_number, output_name.Data()));
+
   // Print the plot on to a file
   // file containing the bcm calibration plots
 
@@ -773,6 +781,7 @@ main(int argc, char **argv)
   std::cout << "how many bcms at Hall C ? " << hallc_bcms_list.size() << std::endl;
 
   for (i=0; i<hallc_bcms_list.size(); i++) 
+    //  for (i=2; i<3; i++)  for only qwk_bcm1
     {
       std::cout << "\n" 
 		<< cnt++ 
@@ -846,8 +855,8 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
   TH1D* device_hist = NULL;
   TF1* device_fit = NULL;
   TH1D * device_res = NULL;
-  Int_t w = 600;
-  Int_t h = 400;
+  Int_t w = 1200;
+  Int_t h = 600;
 
 
   //  unser_canvas->Clear();
@@ -971,7 +980,7 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
   bcm_canvas -> Print(bcm_plots_filename);
 
   // 
-  // Save as ROOT C++ Macro of bcm_canvas. 
+  // Save as ROOT C++ Macro and png of bcm_canvas. 
   //
   TString root_c_name = bcm_canvas->GetName();
   bcm_canvas -> SaveAs(Form("BCMCalib%s_%s.cxx", run_number, root_c_name.Data()));
