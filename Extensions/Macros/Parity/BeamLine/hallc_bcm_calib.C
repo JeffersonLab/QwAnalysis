@@ -75,7 +75,13 @@
 //                    easily
 //                  - sync BeamMonitor class with hallc_bpm_calib.C
 //
+//          0.0.9 : Sunday, October 24 00:49:20 EDT 2010, jhlee
+//                  - changed the method to find QW_ROOTFILES directory
+//                  - added png output
 //
+
+// TODO List
+
 // Additional BCM calibration run info
 //
 //  run    Gain
@@ -86,8 +92,10 @@
 //  ???? 
 //  5669   2
 //  5807   2        * BCM calibration RUN 
-//
 
+//  5889 - 6114      BCM gain setting 2
+//  6115 - 6158      BCM gain setting 5  >>  BCM calibration RUN 6158
+//  6159 -           BCM gain setting 2  
 
 #include <iostream>
 #include <fstream>
@@ -114,6 +122,7 @@
 #include "TStopwatch.h"
 #include "TChain.h"
 #include "TStyle.h"
+#include "TSystem.h"
 
 
 class BeamMonitor 
@@ -335,7 +344,8 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
 Bool_t
 check_bcm_branches(std::vector<TString> &branches, TTree *roottree)
 {
-  Bool_t local_debug = false;
+
+  Bool_t local_debug = true;
 
   std::size_t branches_size = 0;     
   branches_size = branches.size(); 
@@ -381,31 +391,46 @@ GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
 void 
 GetTree(char* run_number, TChain* tree)
 {
-  TFile *file = NULL;
 
-  TString filename = Form("BCMCalib_%s.000.root", run_number);
-  file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
+
+  TFile  *file = NULL;
+
+  TString file_dir;
+  TString file_name_seg;
+  TString file_name_alone;
+
+  file_dir = gSystem->Getenv("QWSCRATCH");
+  if(! file_dir) {
+    file_dir = "~/scratch/";
+  }
+  file_dir += "/rootfiles/";
+
+  file_name_seg = Form("BCMCalib_%s.000.root", run_number);
+  file = new TFile(Form("%s%s", file_dir.Data(), file_name_seg.Data()));
 
   if (file->IsZombie()) {
     std::cout << "Error opening root file chain " 
-	      << filename << std::endl;
-    filename = Form("BCMCalib_%s.root", run_number);
+	      << file_name_seg << std::endl;
+
+    file_name_alone = Form("BCMCalib_%s.root", run_number);
     std::cout << "Try to open chain " 
-	      << filename << std::endl;
-    file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
+	      << file_name_alone << std::endl;
+    file = new TFile(Form("%s%s", file_dir.Data(), file_name_alone.Data()));
     if (file->IsZombie()) {
       std::cout << "File exit failure."<<std::endl; 
       tree = NULL;
-      exit(-1);
+      exit(1);
     }
     else {
-      tree->Add(Form("~/scratch/rootfiles/BCMCalib_%s.root", run_number));
+      tree->Add(Form("%s%s", file_dir.Data(), file_name_alone.Data()));
     }
   }
   else {
-    tree->Add(Form("~/scratch/rootfiles/BCMCalib_%s.*.root", run_number));
+    file_name_seg = Form("BCMCalib_%s.*.root", run_number);
+    tree->Add(Form("%s%s", file_name_seg.Data()));
   }
-  
+
+
   return;
 };
 
@@ -654,10 +679,6 @@ main(int argc, char **argv)
   hallc_bcms_list.at(1).SetAliasName("cc_sca_bcm2");
 
 
-  //  mps_tree -> SetAlias("TM_cc_unser",  "cc_sca_unser:event_number"); //  Bad numerical expression  ??
-  
-
-  //  unser_canvas -> Clear();
   unser_canvas -> Divide(2,1);
   unser_canvas -> cd(1);
   
@@ -953,8 +974,8 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
   // Save as ROOT C++ Macro of bcm_canvas. 
   //
   TString root_c_name = bcm_canvas->GetName();
-  root_c_name += ".cxx";
-  bcm_canvas -> SaveAs(root_c_name);
+  bcm_canvas -> SaveAs(Form("BCMCalib%s_%s.cxx", run_number, root_c_name.Data()));
+  bcm_canvas -> SaveAs(Form("BCMCalib%s_%s.png", run_number, root_c_name.Data()));
 
   return true;
 }
