@@ -54,7 +54,7 @@
 #include "TRootCanvas.h"
 #include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-
+#include "TCut.h"
 #include "RSDataWindow.h"
 
 
@@ -81,6 +81,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGTextButton           *dButtonMDCmb; 
   TGTextButton           *dButtonMDPMT; 
   TGTextButton           *dButtonMDVPMT; 
+  TGTextButton           *dButtonMDCommonNoise;
 
   TGComboBox             *dComboBoxMDPMT;
   TGComboBox             *dComboBoxMDVPMT;
@@ -165,6 +166,15 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none  
   void                 DrawMDCmbPlots();
 
+  //!Plot pairs of MD bar Asym to obtain widths  
+  //!Calculate the common mode noise based on Mark Pitt's suggestion
+  //!"Suggestion for quick estimate of the common mode noise" HCLOG entry 201563
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 CalculateCommNoise();
+
   //!This function Sets the combo index/combo element index
   //!
   //!Parameters:
@@ -182,6 +192,18 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!
   //!Return value: none  
   void                 SummaryHist(TH1 *in);
+
+
+  //!Access the tree leaves to return a histogram
+  //!
+  //!Parameters:
+  //! - pointer to tree
+  //! - leaf name
+  //! - Cut expression
+  //! - Draw options
+  //!Return value: TH1F pointer  
+  TH1F*                GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "");
+
 
   
   
