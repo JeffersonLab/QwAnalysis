@@ -77,8 +77,8 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           UInt_t index = fSamplingADC.size();
           fSamplingADC_Mapping.at(modnum).at(channum) = index;
           fSamplingADC.push_back(MQwSIS3320_Channel());
-          fSamplingADC.at(index).InitializeChannel(channum, name);
           fSamplingADC.at(index).SetNumberOfAccumulators(6);
+          fSamplingADC.at(index).InitializeChannel(channum, name);
         }
       } else if (modtype == "V775") {
         // not yet implemented
