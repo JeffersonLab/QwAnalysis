@@ -100,6 +100,11 @@ class QwCombinedBPM : public VQwBPM{
   };
 
 
+
+  std::vector<QwDBInterface> GetDBEntry();
+  void    MakeBPMComboList();
+
+ 
   
 
   /////
@@ -124,6 +129,8 @@ class QwCombinedBPM : public VQwBPM{
 
   /* This channel contains the beam intercept w.r.t the X & Y axis at the target */
   QwVQWK_Channel fIntercept[2];
+
+  std::vector<QwVQWK_Channel> fBPMComboElementList;
 
 };
 

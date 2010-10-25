@@ -406,3 +406,68 @@ void  QwCombinedBCM::Copy(VQwDataElement *source)
 }
 
 
+
+/********************************************************/
+
+std::vector<QwDBInterface> QwCombinedBCM::GetDBEntry()
+{
+  UShort_t i = 0;
+
+  std::vector <QwDBInterface> row_list;
+  QwDBInterface row;
+
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
+
+  row.Reset();
+
+  // the element name and the n (number of measurements in average)
+  // is the same in each block and hardwaresum.
+
+  name          =  fCombined_bcm.GetElementName();
+  beam_n        =  fCombined_bcm.GetGoodEventCount();
+
+  // Get HardwareSum average and its error
+  avg           =  fCombined_bcm.GetHardwareSum();
+  err           =  fCombined_bcm.GetHardwareSumError();
+  // ADC subblock sum : 0 in MySQL database
+  beam_subblock = 0;
+
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
+
+  row_list.push_back(row);
+
+
+  // Get four Block averages and thier errors
+
+  for(i=0; i<4; i++) {
+    row.Reset();
+    avg           =  fCombined_bcm.GetBlockValue(i);
+    err           =  fCombined_bcm.GetBlockErrorValue(i);
+    beam_subblock = (UInt_t) (i+1);
+    // QwVQWK_Channel  | MySQL
+    // fBlock[0]       | subblock 1
+    // fBlock[1]       | subblock 2
+    // fBlock[2]       | subblock 3
+    // fBlock[3]       | subblock 4
+    row.SetDetectorName(name);
+    row.SetSubblock(beam_subblock);
+    row.SetN(beam_n);
+    row.SetValue(avg);
+    row.SetError(err);
+
+    row_list.push_back(row);
+  }
+
+  return row_list;
+
+};
+
+

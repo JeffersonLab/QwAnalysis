@@ -2474,6 +2474,53 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     }
   }
 
+
+  ///   try to access CombinedBPM means and errors
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined Beam Position Monitors" <<QwLog::endl;
+  for(i=0; i< fBPMCombo.size(); i++) {
+    fBPMCombo[i].MakeBPMComboList();
+    interface.clear();
+    interface = fBPMCombo[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bpm );
+      interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+  ///   try to access CombinedBCM means and errors
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined Beam Current Monitors" <<QwLog::endl;
+
+  for(i=0; i< fBCMCombo.size(); i++) {
+    interface.clear();
+    interface = fBCMCombo[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+  ///   try to access Energy Calculator mean and its error
+  if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Energy Calculator" <<QwLog::endl;
+
+  for(i=0; i< fECalculator.size(); i++) {
+    interface.clear();
+    interface = fECalculator[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+
   ///   try to access QPD mean and its error
   if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Quadrant PhotoDiodes" <<QwLog::endl;
   for(i=0; i< fQPD.size(); i++) {

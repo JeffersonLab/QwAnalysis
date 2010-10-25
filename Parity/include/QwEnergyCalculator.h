@@ -92,6 +92,8 @@ class QwEnergyCalculator : public VQwDataElement{
       return const_cast<QwEnergyCalculator*>(this)->GetEnergy();
     };
 
+    std::vector<QwDBInterface> GetDBEntry();
+
  protected:
     QwVQWK_Channel fEnergyChange;
 
@@ -103,6 +105,8 @@ class QwEnergyCalculator : public VQwDataElement{
     std::vector <TString>  fType;
     Int_t    fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
     Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
+
+
 
 };
 

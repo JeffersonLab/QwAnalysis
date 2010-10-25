@@ -107,6 +107,8 @@ class QwCombinedBCM : public VQwDataElement{
     return const_cast<QwCombinedBCM*>(this)->GetCharge();
   };
 
+  std::vector<QwDBInterface> GetDBEntry();
+
 
 /////
  protected:
@@ -131,6 +133,8 @@ class QwCombinedBCM : public VQwDataElement{
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes */
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
+
+  std::vector<QwVQWK_Channel> fBCMComboElementList;
 
 };
 
