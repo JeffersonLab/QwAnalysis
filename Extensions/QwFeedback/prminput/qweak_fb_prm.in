@@ -47,6 +47,7 @@ PITAPOS = +0.73
 
 
 #PC hardware count set-point limits
-
-PC_low =  6000
-PC_up  = 60000
+#  These should be just inside the low alarm limits on the PC, as
+#  referenced by Riad in OPS Elog 1549310.
+PC_low = 38018
+PC_up  = 48016
