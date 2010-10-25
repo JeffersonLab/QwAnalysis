@@ -132,7 +132,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Create linear regression object
-    QwRegression regressor(helicitypattern);
+    QwRegression regression(gQwOptions,detectors,helicitypattern);
 
 
     //  Clear the single-event running sum at the beginning of the runlet
@@ -188,6 +188,9 @@ Int_t main(Int_t argc, Char_t* argv[])
         rootfile->FillTreeBranches(detectors);
         rootfile->FillTree("Mps_Tree");
 
+        // Linear regression on single events
+        regression.LinearRegression(QwRegression::kRegTypeMps);
+
         // Add event to the ring
         eventring.push(detectors);
 
@@ -203,6 +206,9 @@ Int_t main(Int_t argc, Char_t* argv[])
             // Update the blinder if conditions have changed
             helicitypattern.UpdateBlinder(detectors);
 
+            // Linear regression on differences
+            regression.LinearRegression(QwRegression::kRegTypeDiff);
+
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
             if (helicitypattern.IsGoodAsymmetry()) {
@@ -213,8 +219,8 @@ Int_t main(Int_t argc, Char_t* argv[])
               rootfile->FillTreeBranches(helicitypattern);
               rootfile->FillTree("Hel_Tree");
 
-              // Regression
-              regressor.LinearRegression(helicitypattern);
+              // Linear regression on asymmetries
+              regression.LinearRegression(QwRegression::kRegTypeAsym);
 
               // Fill tree branches
               rootfile->FillTreeBranches(helicitypattern);

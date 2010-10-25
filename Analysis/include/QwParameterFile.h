@@ -85,11 +85,15 @@ class QwParameterFile {
     };
 
     void TrimWhitespace(TString::EStripType head_tail = TString::kBoth);
-    void TrimComment(char commentchar);
+    void TrimComment(const char commentchar);
+    void TrimComment(const std::string& commentchars = kDefaultCommentChars);
+    void TrimSectionHeader();
+    void TrimModuleHeader();
+
     Bool_t LineIsEmpty(){return fLine.empty();};
     Bool_t IsEOF(){ return fStream.eof();};
 
-    std::string GetNextToken(std::string separatorchars);
+    std::string GetNextToken(const std::string& separatorchars);
     std::string GetLine() { return fLine; };
     void AddLine(const std::string& line) { fStream << line << std::endl; };
 
@@ -98,15 +102,17 @@ class QwParameterFile {
 
     Bool_t HasValue(TString& vname);
 
-    Bool_t HasVariablePair(std::string separatorchars, std::string& varname, std::string& varvalue);
-    Bool_t HasVariablePair(std::string separatorchars, TString& varname, TString& varvalue);
+    Bool_t HasVariablePair(const std::string& separatorchars, std::string& varname, std::string& varvalue);
+    Bool_t HasVariablePair(const std::string& separatorchars, TString& varname, TString& varvalue);
 
-    Bool_t FileHasVariablePair(std::string separatorchars, const std::string& varname, std::string& varvalue);
-    Bool_t FileHasVariablePair(std::string separatorchars, const TString& varname, TString& varvalue);
+    Bool_t FileHasVariablePair(const std::string& separatorchars, const std::string& varname, std::string& varvalue);
+    Bool_t FileHasVariablePair(const std::string& separatorchars, const TString& varname, TString& varvalue);
 
+    Bool_t LineHasSectionHeader();
     Bool_t LineHasSectionHeader(std::string& secname);
     Bool_t LineHasSectionHeader(TString& secname);
 
+    Bool_t LineHasModuleHeader();
     Bool_t LineHasModuleHeader(std::string& secname);
     Bool_t LineHasModuleHeader(TString& secname);
 
@@ -117,22 +123,31 @@ class QwParameterFile {
     Bool_t FileHasModuleHeader(const TString& secname);
 
 
-    /// \brief Rewinds to the start and read until it's finds next header
+    /// \brief Rewinds to the start and read until it finds next section header
     QwParameterFile* ReadPreamble();
-    QwParameterFile* ReadUntilNextSection();
-    QwParameterFile* ReadNextSection(std::string &secname);
-    QwParameterFile* ReadNextSection(TString &secname);
+    QwParameterFile* ReadUntilNextSection(const bool add_current_line = false);
+    QwParameterFile* ReadNextSection(std::string &secname, const bool keep_header = false);
+    QwParameterFile* ReadNextSection(TString &secname, const bool keep_header = false);
+    QwParameterFile* ReadNextSection(const bool keep_header = false) {
+      std::string dummy;
+      return ReadNextSection(dummy, keep_header);
+    };
 
-    QwParameterFile* ReadUntilNextModule();
-    QwParameterFile* ReadNextModule(std::string &secname);
-    QwParameterFile* ReadNextModule(TString &secname);
+    /// \brief Rewinds to the start and read until it finds next module header
+    QwParameterFile* ReadUntilNextModule(const bool add_current_line = false);
+    QwParameterFile* ReadNextModule(std::string &secname, bool keep_header = false);
+    QwParameterFile* ReadNextModule(TString &secname, bool keep_header = false);
+    QwParameterFile* ReadNextModule(const bool keep_header = false) {
+      std::string dummy;
+      return ReadNextModule(dummy, keep_header);
+    };
 
     friend ostream& operator<< (ostream& stream, const QwParameterFile& file);
 
 
   protected:
-    void TrimWhitespace(TString  &token, TString::EStripType head_tail);
-    void TrimWhitespace(std::string  &token, TString::EStripType head_tail);
+    void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);
+    void TrimWhitespace(std::string &token, TString::EStripType head_tail);
 
 
   private:
@@ -161,6 +176,12 @@ class QwParameterFile {
 
     // Current run number
     static UInt_t fCurrentRunNumber;
+
+    // Default comment, whitespace, section, module characters
+    static const std::string kDefaultCommentChars;
+    static const std::string kDefaultWhitespaceChars;
+    static const std::string kDefaultSectionChars;
+    static const std::string kDefaultModuleChars;
 
     // File and stream
     ifstream          fFile;

@@ -1,0 +1,41 @@
+# Rules for this file
+# - no repeating dependent variables in the same section
+#   (probably also not in different sections, come to think of it)
+
+# This is a simple case:
+#  two dependent variables
+#  two independent variables
+[diff:md1neg, diff:md1pos]
+diff:x_targ, 0.11, -0.11
+diff:y_targ, 0.12, -0.12
+
+#  four independent variables
+#  asymmetry for dependent variables
+[asym:md2neg, asym:md2pos]
+diff:x_targ, 0.11, -0.11
+diff:y_targ, 0.12, -0.12
+diff:xp_targ, 0.10, -0.10
+diff:yp_targ, 0.09, -0.09
+
+#  four dependent variables
+[diff:md3neg, diff:md3pos, diff:md4neg, diff:md4pos]
+diff:x_targ, 0.11, -0.11, 0.11, -0.11
+diff:y_targ, 0.12, -0.12, 0.12, -0.12
+diff:xp_targ, 0.10, -0.10, 0.10, -0.10
+diff:yp_targ, 0.09, -0.09, 0.09, -0.09
+
+#  eight dependent variables
+[diff:md5neg, diff:md5pos, diff:md6neg, diff:md6pos, diff:md7neg, diff:md7pos, diff:md8neg, diff:md8pos]
+diff:x_targ, 0.11, -0.11, 0.11, -0.11, 0.11, -0.11, 0.11, -0.11
+diff:y_targ, 0.12, -0.12, 0.12, -0.12, 0.12, -0.12, 0.12, -0.12
+diff:xp_targ, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10
+diff:yp_targ, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09
+
+
+# This is an event case:
+#  two dependent variables
+#  two independent variables
+[mps:md1neg, mps:md1pos]
+mps:x_targ, 0.11, -0.11
+mps:y_targ, 0.12, -0.12
+

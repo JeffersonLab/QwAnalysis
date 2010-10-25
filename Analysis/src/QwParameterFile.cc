@@ -15,6 +15,12 @@ std::vector<bfs::path> QwParameterFile::fSearchPaths;
 // Set current run number to zero
 UInt_t QwParameterFile::fCurrentRunNumber = 0;
 
+// Set default comment, whitespace, section, module characters
+const std::string QwParameterFile::kDefaultCommentChars = "#!;";
+const std::string QwParameterFile::kDefaultWhitespaceChars = " \t";
+const std::string QwParameterFile::kDefaultSectionChars = "[]";
+const std::string QwParameterFile::kDefaultModuleChars = "<>";
+
 /**
  * Append a directory to the list of search paths
  * @param searchdir Directory to be added
@@ -269,67 +275,74 @@ int QwParameterFile::FindFile(
 };
 
 
-void QwParameterFile::TrimWhitespace(TString::EStripType head_tail){
+void QwParameterFile::TrimWhitespace(TString::EStripType head_tail)
+{
   //  If the first bit is set, this routine removes leading spaces from the
   //  line.  If the second bit is set, this routine removes trailing spaces
   //  from the line.  The default behavior is to remove both.
   TrimWhitespace(fLine, head_tail);
 }
 
+void QwParameterFile::Trim(
+    const std::string& chars,
+    std::string& token,
+    TString::EStripType head_tail)
+{
+  //  If the first bit is set, this routine removes leading chars from the
+  //  line.  If the second bit is set, this routine removes trailing chars
+  //  from the line.  The default behavior is to remove both.
+  size_t mypos;
+  //  Remove leading chars.  If this first test returns "npos", it means
+  //  this line is all chars, so get rid of it all.
+  //  If we're not removing leading chars, lines which are all chars
+  //  will not be removed.
+  mypos = token.find_first_not_of(chars);
+  if (head_tail & TString::kLeading) token.erase(0,mypos);
+  //  Remove trailing spaces
+  mypos = token.find_last_not_of(chars);
+  mypos = token.find_first_of(chars,mypos);
+  if (mypos != std::string::npos && (head_tail & TString::kTrailing)){
+    token.erase(mypos);
+  }
+}
+
 void QwParameterFile::TrimWhitespace(std::string &token,
-				     TString::EStripType head_tail){
-  //  If the first bit is set, this routine removes leading spaces from the
-  //  line.  If the second bit is set, this routine removes trailing spaces
-  //  from the line.  The default behavior is to remove both.
-  std::string   ws = " \t";
-  size_t mypos;
-  //  Remove leading spaces.  If this first test returns "npos", it means
-  //  this line is all whitespace, so get rid of it all.
-  //  If we're not removing leading spaces, lines which are all spaces
-  //  will not be removed.
-  mypos = token.find_first_not_of(ws);
-  if (head_tail & TString::kLeading) token.erase(0,mypos);
-  //  Remove trailing spaces
-  mypos = token.find_last_not_of(ws);
-  mypos = token.find_first_of(ws,mypos);
-  if (mypos != std::string::npos && (head_tail & TString::kTrailing)){
-    token.erase(mypos);
-  }
+				     TString::EStripType head_tail)
+{
+  Trim(kDefaultWhitespaceChars,token,head_tail);
 }
 
-void QwParameterFile::TrimWhitespace(TString &tok,
-				     TString::EStripType head_tail){
-  //  If the first bit is set, this routine removes leading spaces from the
-  //  line.  If the second bit is set, this routine removes trailing spaces
-  //  from the line.  The default behavior is to remove both.
-  std::string token;
-  token=tok.Data();
-  std::string   ws = " \t";
-  size_t mypos;
-  //  Remove leading spaces.  If this first test returns "npos", it means
-  //  this line is all whitespace, so get rid of it all.
-  //  If we're not removing leading spaces, lines which are all spaces
-  //  will not be removed.
-  mypos = token.find_first_not_of(ws);
-  if (head_tail & TString::kLeading) token.erase(0,mypos);
-  //  Remove trailing spaces
-  mypos = token.find_last_not_of(ws);
-  mypos = token.find_first_of(ws,mypos);
-  if (mypos != std::string::npos && (head_tail & TString::kTrailing)){
-    token.erase(mypos);
-  }
-  tok=token;
+void QwParameterFile::TrimComment(const char commentchar)
+{
+  std::string commentchars = ""; // no std::string c'tor from single char
+  commentchars += commentchar; // so we have to use the operator+= overload
+  TrimComment(commentchars);
 }
 
-void QwParameterFile::TrimComment(char commentchar){
-  //  Remove everything after the comment character
-  size_t mypos = fLine.find_first_of(commentchar);
+void QwParameterFile::TrimComment(const std::string& commentchars)
+{
+  // Remove everything after the comment character
+  size_t mypos = fLine.find_first_of(commentchars);
   if (mypos != std::string::npos){
     fLine.erase(mypos);
   }
 }
 
-Bool_t QwParameterFile::HasValue(TString& vname){
+void QwParameterFile::TrimSectionHeader()
+{
+  // Trim section delimiter character on both sides
+  Trim(kDefaultSectionChars,fLine,TString::kBoth);
+}
+
+void QwParameterFile::TrimModuleHeader()
+{
+  // Trim module delimiter character on both sides
+  Trim(kDefaultModuleChars,fLine,TString::kBoth);
+}
+
+
+Bool_t QwParameterFile::HasValue(TString& vname)
+{
   Bool_t status=kFALSE;
   TString vline;
 
@@ -352,7 +365,10 @@ Bool_t QwParameterFile::HasValue(TString& vname){
 }
 
 
-Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, TString &varname, TString &varvalue)
+Bool_t QwParameterFile::HasVariablePair(
+    const std::string& separatorchars,
+    TString &varname,
+    TString &varvalue)
 {
   std::string tmpvar, tmpval;
   Bool_t status = HasVariablePair(separatorchars, tmpvar, tmpval);
@@ -363,7 +379,10 @@ Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, TString &var
   return status;
 };
 
-Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, std::string &varname, std::string &varvalue)
+Bool_t QwParameterFile::HasVariablePair(
+    const std::string& separatorchars,
+    std::string &varname,
+    std::string &varvalue)
 {
   Bool_t status = kFALSE;
   size_t equiv_pos1 = fLine.find_first_of(separatorchars);
@@ -381,7 +400,9 @@ Bool_t QwParameterFile::HasVariablePair(std::string separatorchars, std::string 
 };
 
 Bool_t QwParameterFile::FileHasVariablePair(
-  std::string separatorchars, const TString& varname, TString& varvalue)
+  const std::string& separatorchars,
+  const TString& varname,
+  TString& varvalue)
 {
   std::string tmpval;
   Bool_t status = FileHasVariablePair(separatorchars, varname.Data(), tmpval);
@@ -390,7 +411,9 @@ Bool_t QwParameterFile::FileHasVariablePair(
 };
 
 Bool_t QwParameterFile::FileHasVariablePair(
-  std::string separatorchars, const std::string& varname, std::string& varvalue)
+  const std::string& separatorchars,
+  const std::string& varname,
+  std::string& varvalue)
 {
   RewindToFileStart();
   while (ReadNextLine()) {
@@ -403,26 +426,23 @@ Bool_t QwParameterFile::FileHasVariablePair(
 };
 
 
+Bool_t QwParameterFile::LineHasSectionHeader()
+{
+  std::string secname;
+  return LineHasSectionHeader(secname);
+};
+
 Bool_t QwParameterFile::LineHasSectionHeader(TString& secname)
 {
-  TrimComment('#');
-  Bool_t status = kFALSE;
-  size_t equiv_pos1 = fLine.find_first_of('[');
-  if (equiv_pos1 != std::string::npos) {
-    size_t equiv_pos2 = fLine.find_first_of(']',equiv_pos1);
-    if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
-      secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
-      TrimWhitespace(secname, TString::kBoth);
-      status = kTRUE;
-    }
-  }
+  std::string secname_tmp = secname.Data();
+  Bool_t status = LineHasSectionHeader(secname_tmp);
+  secname = secname_tmp;
   return status;
-  //return LineHasSectionHeader(secname);
 };
 
 Bool_t QwParameterFile::LineHasSectionHeader(std::string& secname)
 {
-  TrimComment('#');
+  TrimComment();
   Bool_t status = kFALSE;
   size_t equiv_pos1 = fLine.find_first_of('[');
   if (equiv_pos1 != std::string::npos) {
@@ -436,30 +456,27 @@ Bool_t QwParameterFile::LineHasSectionHeader(std::string& secname)
   return status;
 };
 
+Bool_t QwParameterFile::LineHasModuleHeader()
+{
+  std::string secname;
+  return LineHasModuleHeader(secname);
+};
+
 Bool_t QwParameterFile::LineHasModuleHeader(TString& secname)
 {
-  TrimComment('#');
-  Bool_t status = kFALSE;
-  size_t equiv_pos1 = fLine.find_first_of('<');
-  if (equiv_pos1 != std::string::npos) {
-    size_t equiv_pos2 = fLine.find_first_of('>',equiv_pos1);
-    if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
-      secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
-      TrimWhitespace(secname, TString::kBoth);
-      status = kTRUE;
-    }
-  }
+  std::string secname_tmp = secname.Data();
+  Bool_t status = LineHasModuleHeader(secname_tmp);
+  secname = secname_tmp;
   return status;
-
 };
 
 Bool_t QwParameterFile::LineHasModuleHeader(std::string& secname)
 {
-  TrimComment('#');
+  TrimComment();
   Bool_t status = kFALSE;
-  size_t equiv_pos1 = fLine.find_first_of('<');
+  size_t equiv_pos1 = fLine.find_first_of(kDefaultModuleChars[0]);
   if (equiv_pos1 != std::string::npos) {
-    size_t equiv_pos2 = fLine.find_first_of('>',equiv_pos1);
+    size_t equiv_pos2 = fLine.find_first_of(kDefaultModuleChars[1],equiv_pos1);
     if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
       secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
       TrimWhitespace(secname, TString::kBoth);
@@ -472,7 +489,6 @@ Bool_t QwParameterFile::LineHasModuleHeader(std::string& secname)
 
 Bool_t QwParameterFile::FileHasSectionHeader(const TString& secname)
 {
-
   RewindToFileStart();
   while (ReadNextLine()) {
     std::string this_secname;
@@ -485,7 +501,6 @@ Bool_t QwParameterFile::FileHasSectionHeader(const TString& secname)
 
 Bool_t QwParameterFile::FileHasSectionHeader(const std::string& secname)
 {
-
   RewindToFileStart();
   while (ReadNextLine()) {
     std::string this_secname;
@@ -498,7 +513,6 @@ Bool_t QwParameterFile::FileHasSectionHeader(const std::string& secname)
 
 Bool_t QwParameterFile::FileHasModuleHeader(const TString& secname)
 {
-
   RewindToFileStart();
   while (ReadNextLine()) {
     std::string this_secname;
@@ -511,7 +525,6 @@ Bool_t QwParameterFile::FileHasModuleHeader(const TString& secname)
 
 Bool_t QwParameterFile::FileHasModuleHeader(const std::string& secname)
 {
-
   RewindToFileStart();
   while (ReadNextLine()) {
     std::string this_secname;
@@ -526,10 +539,11 @@ Bool_t QwParameterFile::FileHasModuleHeader(const std::string& secname)
  * Read from current position until next section header
  * @return Pointer to the parameter stream until next section
  */
-QwParameterFile* QwParameterFile::ReadUntilNextSection()
+QwParameterFile* QwParameterFile::ReadUntilNextSection(const bool add_current_line)
 {
   std::string nextheader; // dummy
   QwParameterFile* section = new QwParameterFile();
+  if (add_current_line) section->AddLine(GetLine()); // add current line
   while (ReadNextLine() && ! LineHasSectionHeader(nextheader)) {
     section->AddLine(GetLine());
   }
@@ -540,10 +554,11 @@ QwParameterFile* QwParameterFile::ReadUntilNextSection()
  * Read from current position until next module header
  * @return Pointer to the parameter stream until next module
  */
-QwParameterFile* QwParameterFile::ReadUntilNextModule()
+QwParameterFile* QwParameterFile::ReadUntilNextModule(const bool add_current_line)
 {
   std::string nextheader; // dummy
   QwParameterFile* section = new QwParameterFile();
+  if (add_current_line) section->AddLine(GetLine()); // add current line
   while (ReadNextLine() && ! LineHasModuleHeader(nextheader)) {
     section->AddLine(GetLine());
   }
@@ -563,22 +578,21 @@ QwParameterFile* QwParameterFile::ReadPreamble()
 /**
  * Read the lines of the next section
  * @param secname Name of the next section (returns)
+ * @param keep_header Keep the header inside the section
  * @return Pointer to the parameter stream of the next section
  */
-QwParameterFile* QwParameterFile::ReadNextSection(std::string &secname)
+QwParameterFile* QwParameterFile::ReadNextSection(std::string &secname, const bool keep_header)
 {
   if (IsEOF()) return 0;
   while (! LineHasSectionHeader(secname) && ReadNextLine()); // skip until header
-  return ReadUntilNextSection();
+  return ReadUntilNextSection(keep_header);
 }
 
-QwParameterFile* QwParameterFile::ReadNextSection(TString &secname)
+QwParameterFile* QwParameterFile::ReadNextSection(TString &secname, const bool keep_header)
 {
   if (IsEOF()) return 0;
-
   while (! LineHasSectionHeader(secname) && ReadNextLine()); // skip until header
-
-  return ReadUntilNextSection();
+  return ReadUntilNextSection(keep_header);
 }
 
 /**
@@ -586,23 +600,21 @@ QwParameterFile* QwParameterFile::ReadNextSection(TString &secname)
  * @param secname Name of the next module (returns)
  * @return Pointer to the parameter stream of the next module
  */
-QwParameterFile* QwParameterFile::ReadNextModule(std::string &secname)
+QwParameterFile* QwParameterFile::ReadNextModule(std::string &secname, const bool keep_header)
 {
   if (IsEOF()) return 0;
   while (! LineHasModuleHeader(secname) && ReadNextLine()); // skip until header
-  return ReadUntilNextModule();
+  return ReadUntilNextModule(keep_header);
 }
 
-QwParameterFile* QwParameterFile::ReadNextModule(TString &secname)
+QwParameterFile* QwParameterFile::ReadNextModule(TString &secname, const bool keep_header)
 {
   if (IsEOF()) return 0;
-
   while (! LineHasModuleHeader(secname) && ReadNextLine()); // skip until header
-
-  return ReadUntilNextModule();
+  return ReadUntilNextModule(keep_header);
 }
 
-std::string QwParameterFile::GetNextToken(std::string separatorchars)
+std::string QwParameterFile::GetNextToken(const std::string& separatorchars)
 {
   std::string tmpstring = "";
   if (fCurrentPos != std::string::npos){
