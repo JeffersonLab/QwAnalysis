@@ -59,23 +59,28 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   TFile *file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
   
   if (file->IsZombie()) {
-    std::cout << "Error opening root file chain " 
-              << filename << std::endl;
+    std::cout << "Error opening root file chain " << filename << std::endl;
     filename = Form("QwPass1_%i.root", run_number);
-    std::cout << "Try to open chain " 
-              << filename << std::endl;
+    std::cout << "Try to open chain " << filename << std::endl;
     file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
     if (file->IsZombie()) {
-        tree = NULL;
-      exit(-1);
+      std::cout << "Error opening root file chain " << filename << std::endl;
+      filename = Form("Qweak_%i.000.root", run_number);
+      std::cout << "Try to open chain " << filename << std::endl;
+      file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
+      if(file->IsZombie()){
+	tree = NULL;
+	exit(-1);
+      }
+      else
+	tree->Add(Form("$QW_ROOTFILES/Qweak_%i.*.root", run_number));	
     }
-    else {
+    else 
       tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.root", run_number));
-    }
   }
-  else {
+  else 
     tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.*.root", run_number));
-  }
+
     
             
   tree->SetAlias("time",time);
@@ -89,6 +94,10 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   TH1*h=NULL;
   tree->Draw("qwk_bcm1.num_samples>>htemp","qwk_bcm1.Device_Error_Code == 0");
   h = (TH1*)gDirectory->Get("htemp");
+  if(h==NULL){
+    std::cout<<"Unable to get num_samples using bcm1!"<<std::endl;
+    exit(1);
+  }
   Double_t sampling_rate = 1.0/(h->GetMean()*time_per_sample);
   Double_t length = samples*1.0/sampling_rate; 
   
@@ -99,7 +108,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   
   delete h;
   canvas->Draw();
-  //  canvas -> Divide(2,2);
+  canvas -> Divide(2,2);
 
   //************  Plot the signal.
   canvas -> cd(1);
@@ -120,6 +129,10 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   tree->SetAlias("amplitude",amplitude);
   tree->Draw("amplitude:time>>profile1",scut,"");
   profile1 = (TProfile*) gDirectory -> Get("profile1");
+  if(profile1 == NULL){
+    std::cout<<"Unable to plot "<<amplitude<<std::endl;
+    exit(1);
+  }
   profile1 -> Draw();
   Double_t m = profile1->GetMean(2);
   htemp[0] = profile1->ProjectionX("Signal block0");
@@ -130,6 +143,10 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   tree->SetAlias("amplitude",amplitude);
   tree->Draw("amplitude:time>>profile2",scut,"");
   profile2 = (TProfile*) gDirectory -> Get("profile2");
+  if(profile2 == NULL){
+    std::cout<<"Unable to plot "<<amplitude<<std::endl;
+    exit(1);
+  }
   profile2 -> Draw();
   m+=profile2->GetMean(2);
   htemp[1] = profile2->ProjectionX("Signal block1");
@@ -140,6 +157,10 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   tree->SetAlias("amplitude",amplitude);
   tree->Draw("amplitude:time>>profile3",scut,"");
   profile3 = (TProfile*) gDirectory -> Get("profile3");
+  if(profile3 == NULL){
+    std::cout<<"Unable to plot "<<amplitude<<std::endl;
+    exit(1);
+  }
   profile3 -> Draw();
   m+=profile3->GetMean(2);
   htemp[2] = profile3->ProjectionX("Signal block2");
@@ -150,6 +171,10 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   tree->SetAlias("amplitude",amplitude);
   tree->Draw("amplitude:time>>profile4",scut,"");
   profile4 = (TProfile*) gDirectory -> Get("profile4");
+  if(profile4 == NULL){
+    std::cout<<"Unable to plot "<<amplitude<<std::endl;
+    exit(1);
+  }
   profile4 -> Draw();
   m+=profile4->GetMean(2);
   htemp[3] = profile4->ProjectionX("Signal block3");
