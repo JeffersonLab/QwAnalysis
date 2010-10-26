@@ -379,7 +379,7 @@ check_bcm_branches(std::vector<TString> &branches, TTree *roottree)
       }
       else  {
 	branch_valid &= false;
-	if(local_debug) std::cout << " : false" << std::endl;
+	if(local_debug) std::cout << " : *** false *** " << std::endl;
       }
     }
   return branch_valid;

@@ -62,7 +62,7 @@
 //          0.0.7 : Tuesday, October 19 11:25:44 EDT 2010, jhlee
 //                  - added check_bpm_branch function in order to check the opened ROOT file
 //                    has the right structure for the BPM calibration.
-//                  - added several classes to help to read "qweak_beamline_geometry.map",
+//                  - added several classes to read "qweak_beamline_geometry.map" easily,
 //                    that is used to extract real BPM names at Hall C
 //                  - did fine tune check_bpm_branch and calibration function.
 //                  - did a tweak that make the better output for a pedstral file of QwAnalyzer
@@ -565,7 +565,7 @@ Bool_t
 check_bpm_branches(std::vector<TString> &branches, TTree *roottree)
 {
   
-  Bool_t local_debug = false;
+  Bool_t local_debug = true;
 
   std::size_t branches_size = 0;     
   branches_size = branches.size(); 
@@ -593,7 +593,7 @@ check_bpm_branches(std::vector<TString> &branches, TTree *roottree)
 	  }
 	  else  {
 	    branch_valid &= false;
-	    if(local_debug) std::cout << " : false" << std::endl;
+	    if(local_debug) std::cout << " : *** false *** " << std::endl;
 	  }
 	}
     }
@@ -670,7 +670,7 @@ Int_t
 main(int argc, char **argv)
 {
  
-  Bool_t local_debug  = true;
+  Bool_t local_debug  = false;
   
   TApplication theApp("App", &argc, argv);
 
@@ -1165,9 +1165,6 @@ bpm_calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference, const char*
 				      bpm.at(i).GetPed(),
 				      reference_name.Data() );
       
-      
-      //      mps_tree_in_chain->Draw(plotcommand[i],"","box");
-      //      bpm_res[i] = (TH1D*) gPad->GetPrimitive("htemp");
       bpm_res[i] = GetHisto(mps_tree_in_chain, plotcommand[i], bpm_cut[i], "BOX");
 
       if (not bpm_res[i]) {

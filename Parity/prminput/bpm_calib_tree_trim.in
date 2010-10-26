@@ -1,4 +1,10 @@
-# Tree trim file of the BPM calibration
+# Tree trim file for Hall C BPM Calibration
+# Tuesday, October 26 10:37:47 EDT 2010, jhlee
+#
+# hw_sum      : activated for hw_sum_raw, if not noname_0.. one can see
+# hw_sum_raw  :
+# num_samples :
+# Device_Error_code
 
 [HallCBeamLine]
   <QwBCM>
@@ -115,9 +121,10 @@ qwk_bcm6
 #
 # only qweak_beamline_geometry_map
 # 
-# better way to handle???
-# Monday, October 18 15:09:46 EDT 2010, jhlee
-
+# the following BPM names must be matched to
+# "qweak_beamline_geometry.map" file, because hallc_bpm_calib.C
+# read the map file in order to check a ROOT file's validity.
+# 
 qwk_bpm3c07XP
 qwk_bpm3c07XM
 qwk_bpm3c07YP
@@ -162,6 +169,11 @@ qwk_bpm3c19XP
 qwk_bpm3c19XM
 qwk_bpm3c19YP
 qwk_bpm3c19YM
+
+qwk_bpm3p01XP
+qwk_bpm3p01XM
+qwk_bpm3p01YP
+qwk_bpm3p01YM
 
 qwk_bpm3p02aXP
 qwk_bpm3p02aXM
