@@ -42,13 +42,13 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   
   //******* ADC settings
 //   const Double_t count_to_voltage = 0.00007629; //conversion factor
-  const Double_t time_per_sample = 2e-6;//s
+  const Double_t time_per_sample = 2e-06;//s
+  const Double_t t_settle = 50e-06;//s
   
   //******* Signal Settings
   // get num samples from bcm1. 
-  TString time    = Form("mps_counter*qwk_bcm1.num_samples*2e-6");// units seconds.
-
-  TString amplitude=""; 
+  TString time    = Form("mps_counter*((qwk_bcm1.num_samples*%f)+%f)",time_per_sample,t_settle);// units seconds.
+  TString amplitude; 
 
 
 
@@ -80,9 +80,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   }
   else 
     tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.*.root", run_number));
-
-    
-            
+  
   tree->SetAlias("time",time);
   
   
@@ -98,7 +96,8 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
     std::cout<<"Unable to get num_samples using bcm1!"<<std::endl;
     exit(1);
   }
-  Double_t sampling_rate = 1.0/(h->GetMean()*time_per_sample);
+  std::cout<<h->GetMean()<<std::endl;
+  Double_t sampling_rate = 1.0/(h->GetMean()*time_per_sample+t_settle);
   Double_t length = samples*1.0/sampling_rate; 
   
   std::cout<<" --- Signal = "<<device<<"\n";
@@ -121,13 +120,17 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   TProfile *profile3 = new TProfile("profile3","Signal Profile3",samples,low,up);
   TProfile *profile4 = new TProfile("profile4","Signal Profile4",samples,low,up);
   
-  TH1D *htemp[4];
+  TH1D *htemp0 = new TH1D("htemp0","htemp0",samples,low,up);
+  TH1D *htemp1 = new TH1D("htemp1","htemp1",samples,low,up);
+  TH1D *htemp2 = new TH1D("htemp2","htemp2",samples,low,up);
+  TH1D *htemp3 = new TH1D("htemp3","htemp3",samples,low,up);
+
 
   TString scut = Form("time>%f && time<%f && %s.Device_Error_Code == 0",low,up,device.Data());
   
   amplitude = Form("%s.bclock0",device.Data());
   tree->SetAlias("amplitude",amplitude);
-  tree->Draw("amplitude:time>>profile1",scut,"");
+  tree->Draw("amplitude:time>>profile1",scut,"prof");
   profile1 = (TProfile*) gDirectory -> Get("profile1");
   if(profile1 == NULL){
     std::cout<<"Unable to plot "<<amplitude<<std::endl;
@@ -135,9 +138,8 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   }
   profile1 -> Draw();
   Double_t m = profile1->GetMean(2);
-  htemp[0] = profile1->ProjectionX("Signal block0");
-  htemp[0]->Draw();
-  
+  htemp0 = (TH1D*)profile1->ProjectionX("Signal block0");
+  //htemp0->DrawCopy();
 
   amplitude = Form("%s.bclock1",device.Data());
   tree->SetAlias("amplitude",amplitude);
@@ -149,10 +151,9 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   }
   profile2 -> Draw();
   m+=profile2->GetMean(2);
-  htemp[1] = profile2->ProjectionX("Signal block1");
-  htemp[1]->Draw();
+  htemp1 = (TH1D*)profile2->ProjectionX("Signal block1");
+  //  htemp1->DrawCopy();
    
-
   amplitude = Form("%s.bclock2",device.Data());
   tree->SetAlias("amplitude",amplitude);
   tree->Draw("amplitude:time>>profile3",scut,"");
@@ -163,10 +164,9 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   }
   profile3 -> Draw();
   m+=profile3->GetMean(2);
-  htemp[2] = profile3->ProjectionX("Signal block2");
-  htemp[2]->Draw();
+  htemp2 = (TH1D*)profile3->ProjectionX("Signal block2");
+  //htemp2->DrawCopy();
     
-
   amplitude = Form("%s.bclock3",device.Data());
   tree->SetAlias("amplitude",amplitude);
   tree->Draw("amplitude:time>>profile4",scut,"");
@@ -177,39 +177,41 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   }
   profile4 -> Draw();
   m+=profile4->GetMean(2);
-  htemp[3] = profile4->ProjectionX("Signal block3");
-  htemp[3]->Draw();
+  htemp3 = (TH1D*)profile4->ProjectionX("Signal block3");
+  //htemp3->DrawCopy();
 
-
-
-  htemp[0]->Add(htemp[1],1);
-  htemp[0]->Add(htemp[2],1);
-  htemp[0]->Add(htemp[3],1);
-  htemp[0]->Draw("L");
-  
-     
+  htemp0->Add(htemp1,1);
+  htemp0->Add(htemp2,1);
+  htemp0->Add(htemp3,1);
+  htemp0->Scale(1.0/4);
+  htemp0->Draw();
 
   std::cout<<" --- Average signal ="<<m/4<<"\n";
-
+  
   
   //Remove the DC/zero frequency component 
-
   TH1D *h2 = new TH1D("h2","noise profile",samples,low,up);  
+  TH1D *h2_1 = new TH1D("h2_1","noise profile",samples,low,up);  
+
   Double_t setvalue;
-  TAxis *xa = htemp[0] -> GetXaxis();
+  
+  TAxis *xa = htemp0 -> GetXaxis();
   Double_t nbins =  xa->GetNbins();
   for(Int_t n = 0;n < nbins;n++){
-    setvalue = (htemp[0]->GetBinContent(n+1)-m)/4;
-    h2->SetBinContent(n+1,setvalue); 
+    setvalue = (htemp0->GetBinContent(n+1)-m/4);
+    // to get rid of the dc component 
+    if(htemp0->GetBinContent(n+1) ! = 0)
+      h2_1->SetBinContent(n+1,setvalue);
+    h2->SetBinContent(n+1,setvalue);
   }
-  h2->SetLineColor(2);
-  h2 -> SetTitle("Profile of the noise");
-  h2 -> GetXaxis() -> SetTitle("Time (s)");
-  h2 -> GetYaxis() -> SetTitle("Amplitude");
+  h2_1->SetLineColor(2);
+  h2_1 -> SetTitle("Profile of the noise");
+  h2_1 -> GetXaxis() -> SetTitle("Time (s)");
+  h2_1 -> GetYaxis() -> SetTitle("Amplitude");
   canvas->cd(1);
-  h2->Draw();
+  h2_1->Draw();
   
-  //Get the magnitude of the fourier transform
+  // //Get the magnitude of the fourier transform
   canvas -> cd(2);
   TH1 * fftmag = NULL;
   TVirtualFFT::SetTransform(0);
@@ -221,18 +223,16 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   // rescale the x axis of the transform to get only the positive frequencies. 
   // Due to the periodicity of FFT in number of samples the FFT output will be a mirrored image.
   
-  
+ 
   TAxis *xa = fftmag -> GetXaxis();
   Double_t nbins =  xa->GetNbins();
   
   Double_t frequency = sampling_rate;
   Double_t scale = 1.0/sqrt(samples);
   
-  TH1D *h3 = new TH1D("h3",Form("Frequency Spectrum of %s",device.Data()) ,nbins,0,frequency);  
-  
-  for(Int_t n = 0;n <nbins;n++){
-    Double_t set = fftmag->GetBinContent(n);
-    h3->SetBinContent(n,set*scale); 
+  TH1D *h3 = new TH1D("h3",Form("Frequency Spectrum of %s",device.Data()) ,nbins,1,frequency);  
+  for(Int_t n = 0;n<nbins;n++){
+    h3->SetBinContent(n+1,scale*fftmag->GetBinContent(n+1)); 
   }
   h3 -> GetXaxis() -> SetTitle("Frequency (Hz)");
   h3 -> GetYaxis() -> SetTitle("Amplitude");
@@ -245,7 +245,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   //Get the phase of the transform
   canvas -> cd(3);
   TH1 *fftphase = NULL; 
-  fftphase = htemp[0]->FFT(fftphase,"PH");
+  fftphase = htemp0->FFT(fftphase,"PH");
   
   fftphase->SetTitle("Phase of the transform");
   //  fftphase->Draw();
@@ -260,7 +260,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   }
   hp -> GetXaxis() -> SetTitle("Frequency (Hz)");
   hp -> GetYaxis() -> SetTitle("Phase (radians)");
-   hp->Draw();
+  hp->Draw();
   TAxis *xp = hp -> GetXaxis();
   xp -> SetRangeUser(xp->GetBinLowEdge(1), xp->GetBinUpEdge(xp->GetNbins()/2.0));
   hp -> Draw();
@@ -281,37 +281,35 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   
   // ***********************   Use the following method to get the full output:
   canvas -> cd(4);  
-  
   Double_t *re_full = new Double_t[samples];
   Double_t *im_full = new Double_t[samples];
   fft->GetPointsComplex(re_full,im_full);
   
   
-  // ***********************  Get the backward transform
+  // // ***********************  Get the backward transform
   TVirtualFFT *fft_back = TVirtualFFT::FFT(1, &samples, "C2R M K");
   fft_back->SetPointsComplex(re_full,im_full);
   fft_back->Transform();
+ 
   TH1 *hb = 0;
+  TH1D *hb_1 = new TH1D("hb_1","backward transform",samples,low,up);  
   hb = TH1::TransformHisto(fft_back,hb,"Re");
-  hb->SetTitle("The backward transform");
-  hb->Draw();
   
-  
-  
-  //Convert axis to get proper units
+
+  //Convert axis from Hz to s to get proper units
   TAxis *xb = hb -> GetXaxis();
   Double_t nbinsb =  xb->GetNbins();
   Double_t scale = 1/nbinsb;
   TH1D *h4 = new TH1D("h4","Backward Transform ",nbinsb,low,up);  
-  
   for(Int_t n = 0;n <nbinsb;n++){
-    Double_t set = (hb->GetBinContent(n))+m;
-    h4->SetBinContent(n,set*scale); 
+    Double_t setvalue = scale * (hb->GetBinContent(n+1));
+    //0.016 ~ 0 frequenzy component.	
+    if(fabs(setvalue) > 0.016 && fabs(setvalue) != 0.0)
+      h4->SetBinContent(n+1,setvalue-m/4); 
   }
   h4 -> GetXaxis() -> SetTitle("Time (s)");
   h4 -> GetYaxis() -> SetTitle("Amplitude");
   h4->Draw();
-  
   
   canvas -> Print(Form("%d_FFT_of_%s.gif",run_number,device.Data()));
   canvas -> Modified();
