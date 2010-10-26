@@ -81,7 +81,11 @@
 //
 //          0.0.10 : Monday, October 25 01:17:55 EDT 2010, jhlee
 //                   - improved the way to handle (a) ROOT file(s) (TChain) 
-
+//
+//          0.0.11 : Monday, October 25 10:55:36 EDT 2010, jhlee
+//                   - replaced event_number by CodaEventNumber
+//                     , because event_number is belong to a "helicity" subsystem.
+//
 
 // TODO List
 
@@ -557,7 +561,7 @@ main(int argc, char **argv)
   branches_for_bcm_calibration.push_back("qwk_bcm2");
   branches_for_bcm_calibration.push_back("qwk_bcm5");
   branches_for_bcm_calibration.push_back("qwk_bcm6");
-  branches_for_bcm_calibration.push_back("event_number");
+  branches_for_bcm_calibration.push_back("CodaEventNumber");
 
 
   TString temp;
@@ -679,15 +683,15 @@ main(int argc, char **argv)
   unser_canvas -> cd(1);
   
   TH1D* sca_unser_event = NULL;
-  sca_unser_event = GetHisto(mps_tree_in_chain, "cc_sca_unser:event_number", "");
+  sca_unser_event = GetHisto(mps_tree_in_chain, "cc_sca_unser:CodaEventNumber", "");
   if(not sca_unser_event) {
-    std::cout << "Please check clock corrected sca_unser:event_number"
+    std::cout << "Please check clock corrected sca_unser:CodaEventNumber"
 	      << std::endl;
     theApp.Run();
     return 0;
   }
 
-  sca_unser_event -> SetTitle(Form("Run %s  cc_sca_unser:event_number", run_number));
+  sca_unser_event -> SetTitle(Form("Run %s  cc_sca_unser:CodaEventNumber", run_number));
   gPad->Update();
 
   Double_t unser_max = sca_unser_event -> GetYaxis() -> GetXmax();

@@ -1,0 +1,241 @@
+!
+!This file contains beamline event cut properties last updated 10/27/2009 based on run 752/755
+!
+!*********************************************************************************************
+!Global switch to turn ON and OFF eventcut check
+!Available settings
+!***************************************************
+!To turn OFF all checks
+EVENTCUTS = 0 
+
+!***************************************************
+!To turn OFF event cuts and perform only HW checks
+!EVENTCUTS = 1
+
+!***************************************************
+!To turn ON both event cuts and HW checks
+!EVENTCUTS = 2
+
+!***************************************************
+!To turn do both event cuts and HW checks and only flag event cut failed events
+!EVENTCUTS = 3
+
+
+!***************************************************
+!for bcm devices
+!device_type, device_name,      lower limit, upper limit
+ 
+!bcm, qwk_bcm1,			2,		1000000
+!bcm, qwk_bcm2, 		0, 		0
+!bcm, qwk_bcm3, 		0, 		0
+!bcm, qwk_bcm5, 		0, 		0
+!bcm, qwk_bcm6, 		0, 		0
+
+!bcm, qwk_batext1, 		1, 		2
+!bcm, qwk_batext2,  		0, 		0
+ 
+!bcm, qwk_batery6,		0,		0 
+!bcm, qwk_batery7, 		95.57778e+9,	95.5788e+9 
+!bcm, phasemonitor, 		0,		0
+
+
+!****************************************************		
+!For bpmstrpline devices 
+!channel_name can be relx, rely, absx, absy, effective charge, xp, xm, yp, ym
+!Cuts are applied after the VQwSubsystem::ProcessEvent() routine.
+! So pedestals are applied before appyling the cuts.
+
+!device_type,  device_name, channel_name, lower limit, upper limit
+
+!bpmstripline, qwk_bpm3c07,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c07, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c07,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c07, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c07,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c08,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c08, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c08,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c08, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c08,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c11,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c11, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c11,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c11, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c11,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c12,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c12, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c12,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c12, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c12,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c14,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c14, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c14,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c14, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c14,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c16,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c16, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c16,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c16, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c16,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c17,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c17, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c17,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c17, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c17,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c18,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c18, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c18,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c18, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c18,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c19,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c19, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c19,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c19, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c19,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3p01,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3p01, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3p01,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3p01, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3p01,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3p02a,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3p02a, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3p02a,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3p02a, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3p02a, effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3p02b,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3p02b, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3p02b,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3p02b, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3p02b, effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3p03a,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3p03a, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3p03a,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3p03a, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3p03a, effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c11,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c11, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c11,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c11, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c11,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c20,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c20, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c20,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c20, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c20,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3c21,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3c21, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3c21,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3c21, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3c21,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3h02,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3h02, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3h02,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3h02, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3h02,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3h04,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3h04, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3h04,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3h04, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3h04,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3h07a,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3h07a, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3h07a,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3h07a, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3h07a, effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3h07b,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3h07b, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3h07b,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3h07b, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3h07b, effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3h07c,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3h07c, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3h07c,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3h07c, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3h07c, effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3h08,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3h08, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3h08,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3h08, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3h08,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3h09,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3h09, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3h09,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3h09, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3h09,  effectivecharge,  0,    0
+
+!bpmstripline, qwk_bpm3h09a,      	  xp,  0,    0 
+!bpmstripline, qwk_bpm3h09a, 	 	  xm,  0,    0 
+!bpmstripline, qwk_bpm3h09a,      	  yp,  0,    0 
+!bpmstripline, qwk_bpm3h09a, 	 	  ym,  0,    0 
+!bpmstripline, qwk_bpm3h09a, effectivecharge,  0,    0
+
+
+!***************************************************		
+!For bpmcavity devices
+!channel_name can be x, y, q, relx, rely, absx, absy
+!Cuts are applied after the VQwSubsystem::ProcessEvent() routine. 
+!So pedestals are applied before appyling the cuts.
+
+!device_type, device_name, channel_name, lower limit, upper limit
+!bpmcavity, qwk_bpmcavity1,    x, 	 0,    	      0
+!bpmcavity, qwk_bpmcavity1,    y, 	 0,	      0
+!bpmcaivty, qwk_bpmcavity2,    x, 	 0, 	      0
+!bpmcavity, qwk_bpmcavity2,    y, 	 0, 	      0
+
+
+!***************************************************		
+!For combined bpm devices, 
+!channel_name can be x, y, effective charge, xlope, yslope
+!Cuts are applied after the VQwSubsystem::ProcessEvent() routine. 
+
+!device_type, device_name,   channel_name,   lower limit,      upper limit
+!combinedbpm, qwk_target,  	        x,      -1.37097, 	  -1.37092
+!combinedbpm, qwk_target, 	        y,    	 0.42192, 	   0.42197
+!combinedbpm, qwk_target, 	   xslope,     -0.274556, 	 -0.274542
+!combinedbpm, qwk_target, 	   yslope,     -0.785934, 	 -0.785922
+!combinedbpm, qwk_target, effectivecharge,  1.440334e+12,     1.440335e+12
+
+
+!***************************************************		
+!for combined bcm devices (tested with injector run 924)
+!device_type, device_name,             lower limit,	upper limit
+!combinedbcm, qwk_average_charge,  	3.18588+10, 	3.18591e+10
+
+
+
+!This file contains beamline event cut properties
+!
+!IMPORTANT
+!---------
+!Make sure when puting tabs in the map file entries, always put ", " before inserting a tab. 
+!Otherwise the routine QwParameterFile::GetNextToken(", ") will extract the entry with the tab character.
+
+!Comments
+!--------
+!Devices that are not in the list are not subjected event cut checks
+!All devices  will be tested for HW checks.
+!
+!For device_type =bcm only upper and lower limit of the calibrated charge on the ADC HW sum. (QwVQWK_Channel::fHardwareBlockSum)
+
