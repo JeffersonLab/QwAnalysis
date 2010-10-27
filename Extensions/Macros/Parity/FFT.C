@@ -213,6 +213,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   
   // //Get the magnitude of the fourier transform
   canvas -> cd(2);
+  gPad->SetLogy();
   TH1 * fftmag = NULL;
   TVirtualFFT::SetTransform(0);
   fftmag = ((TH1*)h2)->FFT(fftmag,"MAG");
@@ -265,7 +266,12 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   xp -> SetRangeUser(xp->GetBinLowEdge(1), xp->GetBinUpEdge(xp->GetNbins()/2.0));
   hp -> Draw();
   
-  
+  //Plot FFT with log-log scales
+  gPad->SetLogy();
+  gPad->SetLogx();
+  h3 -> Draw();
+
+
   //Get the current transform object:
   TVirtualFFT *fft = TVirtualFFT::GetCurrentTransform();
   canvas -> cd(4);     
