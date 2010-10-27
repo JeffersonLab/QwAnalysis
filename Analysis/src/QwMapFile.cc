@@ -4,7 +4,7 @@
 
 ClassImp(QwMapFile);
 
-const size_t QwMapFile::kMapFileSize = 1000000000;
+const Int_t QwMapFile::kMapFileSize = 1000000000;
 
 QwMapFile::QwMapFile() {
 

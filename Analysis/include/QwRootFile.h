@@ -618,6 +618,11 @@ void QwRootFile::ConstructHistograms(const std::string& name, T& detectors)
 
   // No support for directories in a map file
   if (fMapFile) {
+    std::cout << "QwRootFile::ConstructHistograms::detectors address "  
+	      << &detectors  
+	      << " and its name " << name 
+	      << std::endl; 
+    
     std::string type = typeid(detectors).name();
     fDirsByName[name] = fMapFile->GetDirectory()->mkdir(name.c_str());
     fDirsByType[type].push_back(name);

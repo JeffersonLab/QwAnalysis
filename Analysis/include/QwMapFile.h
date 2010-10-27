@@ -30,7 +30,7 @@ class QwMapFile {
     else return 0;
   };
 
-  static const size_t kMapFileSize;//making it larger crashed the qwanalysis_online
+  static const Int_t kMapFileSize;//making it larger crashed the qwanalysis_online
 
  protected:
   TMapFile *fMapFile;
@@ -40,3 +40,4 @@ class QwMapFile {
 
 
 #endif
+
