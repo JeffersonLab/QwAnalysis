@@ -105,6 +105,15 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
     fArgv[i] = argv[i];
   }
   fParsed = false;
+
+  // Add default config file based on file name
+  if (fArgc > 0) {
+    std::string path = fArgv[0];
+    // Find file name from full path
+    size_t pos = path.find_last_of('/');
+    if (pos != std::string::npos)
+      AddConfigFile(path.substr(pos+1) + ".conf");
+  }
 }
 
 
@@ -116,10 +125,9 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
  */
 void QwOptions::CombineOptions()
 {
-  // TODO The options could be grouped in a smarter way by subsystem or
-  // class, by defining a vector fOptions of options_description objects.
-  // Each entry could have a name and would show up as a separate section
-  // in the usage information.
+  // The options can be grouped by defining a vector fOptions of
+  // options_description objects. Each entry can have a name and
+  // will show up as a separate section in the usage information.
   for (size_t i = 0; i < fOptionBlockName.size(); i++) {
     // Right now every parser gets access to all options
     fCommandLineOptions.add(*fOptionBlock.at(i));
