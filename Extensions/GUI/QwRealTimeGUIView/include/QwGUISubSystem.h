@@ -37,6 +37,8 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
+#include <iostream>
+#include <iomanip>
 
 #include "TGWindow.h"
 #include "TGFrame.h"
@@ -48,6 +50,8 @@
 #include "QwGUIMainDef.h"
 // QwAnalysis / Analysis/ include 
 #include "QwColor.h"
+
+#include "TMapFile.h"
 
 class QwGUISubSystem : public TGCompositeFrame {
 
@@ -88,6 +92,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   Int_t dHistoReset;
   Int_t dHistoAccum;
   Int_t dHistoPause;
+ 
 
   //!Buffer, mainly used in message passing and for other temporary storage.
   char             dMiscbuffer[MSG_SIZE_MAX];
@@ -99,6 +104,9 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!by calling the member function SetDataContainer(RDataContainer *cont) in this class.  There is no 
   //!direct instance of this container kept within the class. 
   RDataContainer  *dROOTCont;
+
+  TMapFile *dMapFile;
+ 
 
   //!This function must be defined by the derived class, to implement the overal layout of the subsystem class.
   //!For example, this is where the derived class would implement the display of graphs (see QwGUIMainDetector 
@@ -145,7 +153,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - none
   //!
   //!Return value: none
-  virtual void     OnNewDataContainer(){};
+  //  virtual void     OnNewDataContainer(){};
 
   //!This function can be used to pass messages to the log book. The message content is 
   //!reformated slightly and copied to the dMiscbuffer member, to be picked up by the
@@ -161,16 +169,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   void             SetLogMessage(const char *buffer, Bool_t tStamp = kFalse);
 
 
-
-  /* void             IncreaseProgress(Int_t *nItems1, Int_t *nItems2, Int_t *nItems3,  */
-  /* 				    Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3); */
-
-  /* void             InitProgressDlg(const char* title, const char *macrotext, const char *microtext, const char *microtext2,  */
-  /* 				   Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels); */
-
   Bool_t               dProcessHalt;
-
-  //  QwGUIProgressDialog *dProgrDlg;
 
  public:
   
@@ -322,7 +321,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - 4) Pointer to the selected object (i.e. pad, etc ...)
   //!
   //!Return value: none  
-  virtual void     TabEvent(Int_t,Int_t,Int_t,TObject*) {};
+  // virtual void     TabEvent(Int_t,Int_t,Int_t,TObject*) {};
 
   //!This function is overwritten from the TGTransientFrame class, to handle all mouse and keyboard interactions
   //!with any widget within this tab.  
@@ -362,7 +361,8 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!
   //!Return value: none
   void             SetDataContainer(RDataContainer *cont);
-
+ 
+  
   //!Setter function for the subsystem tab menu ID. Called once from QwGUIMain::AddATab, when a new subsystem is
   //!is created.
   //!
@@ -457,6 +457,10 @@ class QwGUISubSystem : public TGCompositeFrame {
   };
   
  
+  void SetMapFile(TMapFile *file);
+  
+  Bool_t dMapFileFlag;
+
 
   ClassDef(QwGUISubSystem, 1);
 };

@@ -81,8 +81,8 @@ QwGUICorrelationPlots::QwGUICorrelationPlots(const TGWindow *p, const TGWindow *
   PosVariation[1] = NULL;
 
 
-  HistArray.Clear();
-  DataWindowArray.Clear();
+  // HistArray.Clear();
+  // DataWindowArray.Clear();
 
   bCUTEXPR=kFALSE;//default setting is to use simple X and Y cuts. If cut expr is used this will be set to true in the SetCutExpr()
 
@@ -247,9 +247,9 @@ void QwGUICorrelationPlots::MakeLayout()
   
  
   dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				"QwGUICorrelationPlots",
-				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+  // dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+  // 				"QwGUICorrelationPlots",
+  // 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
 //  //  TCanvas *mc = dCanvas->GetCanvas();
 // //   mc->Divide( 2, 4);
@@ -270,37 +270,37 @@ void QwGUICorrelationPlots::OnReceiveMessage(char *obj)
 
 void QwGUICorrelationPlots::OnObjClose(char *obj)
 {
-  if(!strcmp(obj,"dROOTFile")){
-//     printf("Called QwGUICorrelationPlots::OnObjClose\n");
+//   if(!strcmp(obj,"dROOTFile")){
+// //     printf("Called QwGUICorrelationPlots::OnObjClose\n");
 
-    dROOTCont = NULL;
-  }
+//     dROOTCont = NULL;
+//   }
 }
 
 
-void QwGUICorrelationPlots::OnNewDataContainer()
-{
+// void QwGUICorrelationPlots::OnNewDataContainer()
+// {
 
 
-};
+// };
 
 void QwGUICorrelationPlots::OnRemoveThisTab()
 {
 
 };
 
-void QwGUICorrelationPlots::ClearData()
-{
+// void QwGUICorrelationPlots::ClearData()
+// {
 
-  //  TObject *obj;
-  //   TIter next(HistArray.MakeIterator());
-  //   obj = next();
-  //   while(obj){    
-  //     delete obj;
-  //     obj = next();
-  //   }
-  HistArray.Clear();//Clear();
-}
+//   //  TObject *obj;
+//   //   TIter next(HistArray.MakeIterator());
+//   //   obj = next();
+//   //   while(obj){    
+//   //     delete obj;
+//   //     obj = next();
+//   //   }
+//   HistArray.Clear();//Clear();
+// }
 
 
 
@@ -337,7 +337,7 @@ void QwGUICorrelationPlots::PlotCorrelation()
   // sprintf(cut,"%s%s",PrmY.Data(),fCutY.Data());
   // //  printf("Cut %s \n ",cut);
   while (1){ 
-    tree= (TTree *)dROOTCont->GetObjFromMapFile(tree_name);
+    tree= (TTree *)dMapFile->Get(tree_name);
     
     mc->Clear();
     mc->Divide(1,1);
@@ -401,30 +401,30 @@ void QwGUICorrelationPlots::PlotCorrelation()
 
   
 
-void QwGUICorrelationPlots::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
-  /*
-  if(event == kButton1Double){
-    Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
+// void QwGUICorrelationPlots::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
+// {
+//   /*
+//   if(event == kButton1Double){
+//     Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     
-    if(pad > 0 && pad <= CORRELATION_DEV_NUM)
-      {
-	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
-						     GetNewWindowName(),"QwGUICorrelationPlots",
-						     HistArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
-	if(!dMiscWindow){
-	  return;
-	}
-	DataWindowArray.Add(dMiscWindow);
-	dMiscWindow->SetPlotTitle((char*)HistArray[pad-1]->GetTitle());
-	dMiscWindow->DrawData(*((TH1D*)HistArray[pad-1]));
-	SetLogMessage(Form("Looking at %s\n",(char*)HistArray[pad-1]->GetTitle()),kTrue);
+//     if(pad > 0 && pad <= CORRELATION_DEV_NUM)
+//       {
+// 	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
+// 						     GetNewWindowName(),"QwGUICorrelationPlots",
+// 						     HistArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
+// 	if(!dMiscWindow){
+// 	  return;
+// 	}
+// 	DataWindowArray.Add(dMiscWindow);
+// 	dMiscWindow->SetPlotTitle((char*)HistArray[pad-1]->GetTitle());
+// 	dMiscWindow->DrawData(*((TH1D*)HistArray[pad-1]));
+// 	SetLogMessage(Form("Looking at %s\n",(char*)HistArray[pad-1]->GetTitle()),kTrue);
 
-	return;
-      }
-  }
-  */
-}
+// 	return;
+//       }
+//   }
+//   */
+// }
 
 
 Bool_t QwGUICorrelationPlots::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
@@ -459,7 +459,7 @@ Bool_t QwGUICorrelationPlots::ProcessMessage(Long_t msg, Long_t parm1, Long_t pa
 	}
       
     case kC_COMMAND:
-      if(dROOTCont){
+      //    if(dROOTCont){
 	switch (GET_SUBMSG(msg))
 	  {
 	  case kCM_BUTTON:
@@ -524,12 +524,12 @@ Bool_t QwGUICorrelationPlots::ProcessMessage(Long_t msg, Long_t parm1, Long_t pa
 	  //printf("text");
 	  break;
 	}
-      }
-      else{
-	std::cout<<"Please load the map file to view data. \n";
-      }
+      // }
+      // else{
+      // 	std::cout<<"Please load the map file to view data. \n";
+      // }
       default:
-	break;  dTreeYlbl =new TGLabel(dTreeInputFrame1,"Y CUT");
+	break;  //dTreeYlbl =new TGLabel(dTreeInputFrame1,"Y CUT");
     }
   
   return kTRUE;
@@ -542,7 +542,7 @@ void QwGUICorrelationPlots::LoadLeafLists(Short_t tree_id){
   TObjArray * leaf_list;
   TObject * leaf;
   TString leafname;
-  tree= (TTree *)dROOTCont->GetObjFromMapFile(CorrelationPlotsTrees[tree_id]);
+  tree= (TTree *)dMapFile->Get(CorrelationPlotsTrees[tree_id]);
   if (tree==NULL){
     printf("Tree objects not loaded yet. Waiting for first map file update! \n");
     return;

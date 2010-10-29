@@ -122,13 +122,13 @@ class QwGUIEventDisplay : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none
-  virtual void        OnNewDataContainer();
+  /* virtual void        OnNewDataContainer(); */
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  /* virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject); */
 
   ClassDef(QwGUIEventDisplay,0);
 

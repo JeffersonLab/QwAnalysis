@@ -2,7 +2,7 @@
 ///#include "QwGUIMain.h"
 
 
-#include "TG3DLine.h"
+//#include "TG3DLine.h"
 #include "TGaxis.h"
 #include "TColor.h"
 #include "TStyle.h"
@@ -72,7 +72,7 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
   PosVariation[0] = NULL;
   PosVariation[1] = NULL;
 
-  DataWindowArray.Clear();
+  //DataWindowArray.Clear();
 
   AddThisTab(this);
   
@@ -187,8 +187,8 @@ void QwGUIHallCBeamline::MakeLayout()
   dControlsFrame = new TGVerticalFrame(this);
   dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
   
-  TGVertical3DLine *separator = new TGVertical3DLine(this);
-  dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
+  // TGVertical3DLine *separator = new TGVertical3DLine(this);
+  // dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
@@ -265,9 +265,9 @@ void QwGUIHallCBeamline::MakeLayout()
   dButtonTgtRaster    -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				"QwGUIHallCBeamline",
-				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+  // dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+  // 				"QwGUIHallCBeamline",
+  // 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
 
 
@@ -280,31 +280,13 @@ void QwGUIHallCBeamline::OnReceiveMessage(char *obj)
 
 void QwGUIHallCBeamline::OnObjClose(char *obj)
 {
-  if(!strcmp(obj,"dROOTFile")){
-//     printf("Called QwGUIHallCBeamline::OnObjClose\n");
-
-    dROOTCont = NULL;
-  }
 }
 
-
-void QwGUIHallCBeamline::OnNewDataContainer()
-{
-
-
-};
 
 void QwGUIHallCBeamline::OnRemoveThisTab()
 {
 
 };
-
-void QwGUIHallCBeamline::ClearData()
-{
-
-}
-
-
 
 
 
@@ -340,7 +322,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
       sprintf (histo, "asym_%s_EffectiveCharge_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL)
 	{
 	  xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -359,7 +341,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 	}
       
       sprintf (histo, "yield_%s_EffectiveCharge_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -437,9 +419,9 @@ void QwGUIHallCBeamline::PlotChargeAsym()
        break;
      if (GetHistoPause()==0){
        sprintf (histo, "asym_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo2= (TH1F *)dMapFile->Get(histo);
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -520,7 +502,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
     {
       //sprintf (histo, "asym_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
       sprintf (histo, "diff_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -539,7 +521,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	  
       //sprintf (histo, "asym_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
       sprintf (histo, "diff_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data()); 
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -633,7 +615,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
      PosVariation[1] = new TH1F("PosY", "Mean Y variation", BPMSTriplinesCount, min_range, max_range); 
      for(Short_t p = 0; p <BPMSTriplinesCount ; p++) {
        sprintf (histo, "%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+       histo1= (TH1F *)dMapFile->Get(histo); 
 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -653,7 +635,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
       }
 
       sprintf (histo, "%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+      histo2= (TH1F *)dMapFile->Get(histo);
 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -736,9 +718,9 @@ void QwGUIHallCBeamline::PlotSCALER(){
        break;
      if (GetHistoPause()==0){
        sprintf (histo, "asym_%s",fHallCDevices.at(SCALER_HALO).at(fCurrentSCALERIndex).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_%s",fHallCDevices.at(SCALER_HALO).at(fCurrentSCALERIndex).Data() );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo2= (TH1F *)dMapFile->Get(histo);
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -819,8 +801,8 @@ void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
        }
 
      if (GetHistoPause()==0){
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histon1);
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histon2);
+       histo1= (TH1F *)dMapFile->Get(histon1);
+       histo2= (TH1F *)dMapFile->Get(histon2);
      }
      
     
@@ -882,9 +864,9 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
    while (1){
      if (GetHistoPause()==0){
        sprintf (histo, "asym_qwk_charge_hw" );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_qwk_charge_hw" );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+       histo2= (TH1F *)dMapFile->Get(histo); 
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -944,7 +926,7 @@ void QwGUIHallCBeamline::PlotFastRaster()
     {
       if (GetHistoPause()==0){
        sprintf (histo, "raster_rate_map" );
-       histo1= (TH2D*) dROOTCont->GetObjFromMapFile("raster_rate_map");
+       histo1= (TH2D*) dMapFile->Get("raster_rate_map");
       }
  
       
@@ -978,10 +960,10 @@ void QwGUIHallCBeamline::PlotFastRaster()
 
 
 
-void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
+// void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
+// {
 
-}
+// }
 
 
 Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
@@ -1004,8 +986,7 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	}
       
     case kC_COMMAND:
-      if(dROOTCont){
-	switch (GET_SUBMSG(msg))
+      switch (GET_SUBMSG(msg))
 	  {
 	  case kCM_BUTTON:
 	    {
@@ -1091,10 +1072,7 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	default:
 	  break;
 	}
-      }
-      else{
-	std::cout<<"Please load the map file to view data. \n";
-      }
+    
       default:
 	break;
     }

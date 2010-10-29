@@ -1,6 +1,6 @@
 #include "QwGUIMainDetector.h"
 
-#include "TG3DLine.h"
+//nclude "TG3DLine.h"
 #include "TGaxis.h"
 #include "TMath.h"
 #include "TPaveText.h"
@@ -40,7 +40,7 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
   dMDVPMTFrame     = NULL;
   dTabLayout       = NULL;
   dCnvLayout       = NULL;
-  dNumberEntryDlg  = NULL;
+  //  dNumberEntryDlg  = NULL;
   dButtonMD16      = NULL;
   dButtonMDBkg     = NULL;
   dButtonMDCmb     = NULL;
@@ -55,7 +55,7 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
   AddThisTab(this);
 
   
-  ClearData();
+  //  ClearData();
 
   SetHistoAccumulate(1);
   SetHistoReset(0);
@@ -82,7 +82,7 @@ QwGUIMainDetector::~QwGUIMainDetector()
 
   RemoveThisTab(this);
   IsClosing(GetName());
-  ClearData();
+  //  ClearData();
 }
 
 void QwGUIMainDetector::MakeLayout()
@@ -99,8 +99,8 @@ void QwGUIMainDetector::MakeLayout()
   dControlsFrame = new TGVerticalFrame(this);
   dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
 
-  TGVertical3DLine *separator = new TGVertical3DLine(this);
-  dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
+  //TGVertical3DLine *separator = new TGVertical3DLine(this);
+  //dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
   
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200);     
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
@@ -151,9 +151,9 @@ void QwGUIMainDetector::MakeLayout()
   dComboBoxMDVPMT->Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-  				"QwGUIMainDetector",
-  				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+  // dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+  // 				"QwGUIMainDetector",
+  // 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
   
 
@@ -224,9 +224,9 @@ void QwGUIMainDetector::DrawMDPMTPlots(){
        break;
      if (GetHistoPause()==0){
        sprintf (histo, "asym_%s_hw",fMDDevices.at(VQWK).at(fCurrentPMTIndex).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_%s_hw",fMDDevices.at(VQWK).at(fCurrentPMTIndex).Data() );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo2= (TH1F *)dMapFile->Get(histo);
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -261,12 +261,6 @@ void QwGUIMainDetector::DrawMDPMTPlots(){
     }
   }
   
-
-   printf("---------------DrawMDPMTPlots()--------------------\n");
-  //mc->Modified();
-  //mc->Update();
-  
-
   return;
 };
 
@@ -288,9 +282,9 @@ void QwGUIMainDetector::DrawMDVPMTPlots(){
        break;
      if (GetHistoPause()==0){
        sprintf (histo, "asym_%s_hw",fMDDevices.at(VPMT).at(fCurrentVPMTIndex).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_%s_hw",fMDDevices.at(VPMT).at(fCurrentVPMTIndex).Data() );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo2= (TH1F *)dMapFile->Get(histo);
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -325,12 +319,6 @@ void QwGUIMainDetector::DrawMDVPMTPlots(){
     }
   }
   
-
-   printf("---------------DrawMDVPMTPlots()--------------------\n");
-  //mc->Modified();
-  //mc->Update();
-  
-
   return;  
 };
 
@@ -364,7 +352,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
     for(Short_t p = 0; p <MAIN_DET_INDEX ; p++) 
     {
       sprintf (histo, "asym_%s_hw",fMDDevices.at(VQWK).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -382,7 +370,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
       }
 	  
       sprintf (histo, "yield_%s_hw", fMDDevices.at(VQWK).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -486,7 +474,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
     for( p = MAIN_DET_INDEX; p <fMDDevices.at(VQWK).size(); p++) 
       {
 	sprintf (histo, "asym_%s_hw",fMDDevices.at(VQWK).at(p).Data() );
-	histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	histo1= (TH1F *)dMapFile->Get(histo); 
 	if (histo1!=NULL) {
 	  xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	  if(ldebug) 
@@ -505,7 +493,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
 	}
 	  
 	sprintf (histo, "yield_%s_hw", fMDDevices.at(VQWK).at(p).Data());
-	histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	histo2= (TH1F *)dMapFile->Get(histo); 
 	if(histo2!=NULL){		
 	  ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	  if(ldebug) 
@@ -597,7 +585,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
     for(Int_t p = 0; p <MDCmbCount ; p++) 
     {
       sprintf (histo, "asym_%s_hw",fMDDevices.at(VPMT).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -615,7 +603,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
       }
 	  
       sprintf (histo, "yield_%s_hw", fMDDevices.at(VPMT).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -722,7 +710,7 @@ void QwGUIMainDetector::CalculateCommNoise(){
   mc->Clear();
   mc->Divide(3,2);
   mc->cd(1);
-  tree= (TTree *)dROOTCont->GetObjFromMapFile("Hel_Tree");
+  tree= (TTree *)dMapFile->Get("Hel_Tree");
 
   if (tree==NULL){
     printf("Hel_Tree tree object does not exist!\n");
@@ -969,14 +957,14 @@ void QwGUIMainDetector::OnObjClose(char *obj)
   TString name = obj;
 
 
-  if(!strcmp(obj,"dROOTFile")){
-    dROOTCont = NULL;
-  }
+  // if(!strcmp(obj,"dROOTFile")){
+  //   dROOTCont = NULL;
+  // }
 
-  if(!strcmp(obj,"dNumberEntryDlg")){
-    delete dNumberEntryDlg;
-    dNumberEntryDlg = NULL;
-  }
+  // if(!strcmp(obj,"dNumberEntryDlg")){
+  //   delete dNumberEntryDlg;
+  //   dNumberEntryDlg = NULL;
+  // }
 
   // if(!strcmp(obj,"dProgrDlg")){
   //   dProcessHalt = kTrue;
@@ -986,12 +974,12 @@ void QwGUIMainDetector::OnObjClose(char *obj)
   QwGUISubSystem::OnObjClose(obj);
 }
 
-void QwGUIMainDetector::OnNewDataContainer()
-{
+// void QwGUIMainDetector::OnNewDataContainer()
+// {
 
  
  
-}
+// }
 
 void QwGUIMainDetector::OnRemoveThisTab()
 {
@@ -1008,21 +996,21 @@ void QwGUIMainDetector::OnUpdatePlot(char *obj)
 }
 
 
-void QwGUIMainDetector::ClearData()
-{
+// void QwGUIMainDetector::ClearData()
+// {
 
 
   
-}
+// }
 
 
 
 
 
-void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
+// void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
+// {
 
-}
+// }
 
 Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {

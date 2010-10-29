@@ -53,14 +53,17 @@
 #ifndef QWGUIMAIN_H
 #define QWGUIMAIN_H
 
-#include <cstring>
+//#include <cstring>
+
+#include <iostream>
 #include <new>
 #include <time.h>
 #include <signal.h>
 #include <cstdlib>
 #include <unistd.h>
 #include <errno.h>
-
+#include <typeinfo>
+#include <exception>
 #include "TGTab.h"
 
 #include "TROOT.h"
@@ -82,13 +85,11 @@
 #include "RQ_OBJECT.h"
 #include "TMath.h"
 #include "TGIcon.h"
-
+#include "TMapFile.h"
 
 #include "QwGUIMainDetector.h"
 #include "QwGUILumiDetector.h"
 #include "QwGUIInjector.h"
-//#include "QwGUIEventDisplay.h"
-//#include "QwGUIHelpBrowser.h"
 #include "QwGUICorrelationPlots.h"
 #include "QwGUIHallCBeamline.h"
 
@@ -107,6 +108,7 @@ class QwGUIMain : public TGMainFrame {
 
  private:
 
+  static const Int_t kMaxMapFileSize;
   //!Every instantiated subsystem gets added to this object array, as a cleanup mechanism.
   TObjArray               SubSystemArray;
 
@@ -114,11 +116,8 @@ class QwGUIMain : public TGMainFrame {
   QwGUIMainDetector      *MainDetSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
-  //  QwGUIEventDisplay      *EventDisplaySubSystem;
   QwGUICorrelationPlots  *CorrelationSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
-
-  // QwGUIHelpBrowser          *dHelpBrowser;
 
   //!Initial width of the application window set in main()
   Int_t                   dMWWidth;
@@ -140,14 +139,6 @@ class QwGUIMain : public TGMainFrame {
   Bool_t                  dMapFileOpen;
   Bool_t                  dRunOpen;
 
-  Char_t                  dLogfilename[NAME_STR_MAX];//Name for Current log file
-  Char_t                  dRootfilename[NAME_STR_MAX];//Name for Current root file
-  Char_t                  dMapfilename[NAME_STR_MAX];//Name for Current root file
-
-  //!Buffers used in message passing between classes and brief temporary storage
-  Char_t                  dMiscbuffer[MSG_SIZE_MAX];
-  Char_t                  dMiscbuffer2[MSG_SIZE_MAX];
-
 
   //!Command line argument structure (not currently implemented)
   ClineArgs               dClArgs;
@@ -158,7 +149,8 @@ class QwGUIMain : public TGMainFrame {
   TString                 dLumiChannelMap;
 
   //!ROOT file data container a wrapper class for many common file types
-  RDataContainer         *dROOTFile;
+  //  RDataContainer         *dROOTFile;
+  TMapFile               *dMemoryMapFile;
 
 
 
@@ -186,7 +178,6 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dMainCnvLayout;
 
   //!Main window log book environment
-  // TGText                 *dLogText;
   TGTextEdit             *dLogEdit;
   TGHorizontalFrame      *dLogTabFrame;
   TGLayoutHints          *dLogTabLayout;
@@ -194,21 +185,14 @@ class QwGUIMain : public TGMainFrame {
 
   //!Menubar widgets
   TGMenuBar              *dMenuBar;
-  //  TGPopupMenu            *dMenuFile;
   TGPopupMenu            *dMenuTabs;
-  //  TGPopupMenu            *dMenuHelp;
   TGPopupMenu            *dMenuLoadMap;
   TGPopupMenu            *dMenuHistoState;//this has options to reset and accumulate histograms
   TGLayoutHints          *dMenuBarLayout;
   TGLayoutHints          *dMenuBarItemLayout;
  
-
-  //!This function is used via the program menu and should not be called directly.
-  //  void                    CloseLogFile();
-  //!This function is used via the program menu and should not be called directly.
-  //  void                    CloseRootFile();
   
-//!This function is used to close the map file
+  //!This function is used to close the map file
   void                    CloseMapFile();
 
   //!This function is related to the SubSystemArray storage array and should be called
@@ -238,60 +222,17 @@ class QwGUIMain : public TGMainFrame {
   //!This function creates the menu layout (additions to the static menu should be made here)
   void                    MakeMenuLayout();
   //!This function creates the tool bar layout (changes to the tool bar should be made here)
-  void                    MakeUtilityLayout();
+  //  void                    MakeUtilityLayout();
   //!This function initiates the final tab layout after a new tab has been added.
   void                   MapLayout(){dTab->MapSubwindows(); dTab->Layout();}
   //!This function initiates the final tab layout after a tab has been removed.
   void                   UnMapLayout(Int_t tab){dTab->RemoveTab(tab); dTab->Layout();};
 
-  //!This function is called via menu selection.
-  //!It opens the map file. Currently it will open a map file at a default location.
-  //!It will be updated so that,If no file name is specified, the function asks the
-  //!user for a filename via the GetFilenameFromDialog(...) function. The function instantiates
-  //!a new generic data container from the class RDataContainer. This container is passed to all
-  //!instantiated susbsystems and allows each of them to read the data specific to the subsystem.
-  //!Currently only one root file can be open at a time, and the function also disables the menu
-  //!entry for this function.
-  //!
-  //!Parameters:
-  //! - 1) File status: Only used if parameter 2 is NULL. In that case the file status is passed on
-  //!                   to the function GetFilenameFromDialog(...).
-  //! - 2) Filename container: If this is NULL, then the filename is obtained from a dialog box
-  //!                          entry by calling the function GetFilenameFromDialog(...).
-  //!
-  //!Return value: Error value;
-  Int_t                   OpenMapFile();
-
   
-  //!This function is used to set the current root file name, when it is saved or opened from an existing
-  //!file.
-  //!
-  //!Parameters:
-  //! - 1) Filename container
-  //!
-  //!Return value: none
-  void                    SetMapFileName(char *name){strcpy(dMapfilename,name);};
-
-  //!This function sets the root file open or closed flag.
-  //!
-  //!Parameters:
-  //! - 1) Boolean Open/Close Flag
-  //!
-  //!Return value: none
-  //  void                    SetRootFileOpen(Bool_t open = kFalse){dRootFileOpen = open;};
-
-   //!This function sets the map file open or closed flag.
-  //!
-  //!Parameters:
-  //! - 1) Boolean Open/Close Flag
-  //!
-  //!Return value: none
-  void                    SetMapFileOpen(Bool_t open = kFalse){dMapFileOpen = open;};
+  Bool_t                   OpenMapFile();
 
 
   void                    SleepWithEvents(int seconds);
-
-  // TCanvas                *SplitCanvas(TRootEmbeddedCanvas *,int,int,const char*);
 
 
   //!This function checks to see if a tab with a certain name is already active.
@@ -348,17 +289,14 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: Error value
   virtual void           CloseWindow();
 
-  /* //!This function returns the current date. */
-  /* Char_t                *GetDate(); */
+ 
   //!This function return the current run number.
   Int_t                  GetCurrentRunNumber(){return dCurRun;};
-  //!This function return the current log book file name.
-  /* char*                  GetLogFileName(){return dLogfilename;}; */
+
   //!This function return a new unique tab menu ID. It is used each time a
   //!new subsystem is added to the list of tabs.
   Int_t                  GetNewTabMenuID() {MCnt++; return M_TABS+MCnt;}
-  //!This function return the current root file name.
-  /* char*                  GetRootFileName(){return dRootfilename;}; */
+ 
 
   //! This function returns the menu ID for a menu entry corresponding to
   //! the tab with name "TabName"; needed when checking (showing) and

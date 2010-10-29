@@ -236,9 +236,9 @@ void QwGUIInjector::MakeLayout()
 
  
   dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				"QwGUIInjector",
-				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+  // dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+  // 				"QwGUIInjector",
+  // 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
 
 }
@@ -250,31 +250,24 @@ void QwGUIInjector::OnReceiveMessage(char *obj)
 
 void QwGUIInjector::OnObjClose(char *obj)
 {
-  if(!strcmp(obj,"dROOTFile")){
-//     printf("Called QwGUIInjector::OnObjClose\n");
+ //  if(!strcmp(obj,"dROOTFile")){
+// //     printf("Called QwGUIInjector::OnObjClose\n");
 
-    dROOTCont = NULL;
-  }
+//     dROOTCont = NULL;
+//   }
 }
 
 
-void QwGUIInjector::OnNewDataContainer()
-{
+// void QwGUIInjector::OnNewDataContainer()
+// {
 
 
-};
+// };
 
 void QwGUIInjector::OnRemoveThisTab()
 {
 
 };
-
-void QwGUIInjector::ClearData()
-{
-
-
-}
-
 
 
 
@@ -308,7 +301,7 @@ void QwGUIInjector::PositionDifferences()
      PosVariation[1] = new TH1F("Eff_Yield", "Eff_Charge Yield Variation",BPMSTriplinesCount , min_range, max_range); 
      for(Int_t p = 0; p <BPMSTriplinesCount ; p++) {
        sprintf (histo, "asym_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+       histo1= (TH1F *)dMapFile->Get(histo); 
        if (histo1!=NULL){
 	 xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	 if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -326,7 +319,7 @@ void QwGUIInjector::PositionDifferences()
        }
       
        sprintf (histo, "yield_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+       histo2= (TH1F *)dMapFile->Get(histo); 
        if(histo2!=NULL){		
 	 ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	 if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -405,9 +398,9 @@ void QwGUIInjector::PlotChargeAsym()
        break;
      if (GetHistoPause()==0){
        sprintf (histo, "asym_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo2= (TH1F *)dMapFile->Get(histo);
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -482,7 +475,7 @@ void QwGUIInjector::PlotBPMAsym(){
     {
       //sprintf (histo, "asym_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
       sprintf (histo, "diff_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() ); 
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -501,7 +494,7 @@ void QwGUIInjector::PlotBPMAsym(){
 	  
       //sprintf (histo, "asym_%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
       sprintf (histo, "diff_%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -598,7 +591,7 @@ void QwGUIInjector::PlotBPMPositions(){
     for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
       sprintf (histo, "%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -616,7 +609,7 @@ void QwGUIInjector::PlotBPMPositions(){
       }
 	  
       sprintf (histo, "%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -677,10 +670,10 @@ void QwGUIInjector::PlotBPMPositions(){
 };  
   
 
-void QwGUIInjector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
+// void QwGUIInjector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
+// {
 
-}
+// }
 
 void QwGUIInjector::PlotSCALER(){
   

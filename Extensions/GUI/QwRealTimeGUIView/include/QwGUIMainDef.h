@@ -17,9 +17,6 @@
 
 #define TARGET "Cl"
 
-//#ifndef Pi
-//#define Pi                       3.14159265359
-//#endif
 
 #ifndef MSG_QUEUE_MAX
 #define MSG_QUEUE_MAX         10           //Maximum entries per message
@@ -29,39 +26,6 @@
 #endif
 #ifndef NAME_STR_MAX
 #define NAME_STR_MAX          200          //Maximum file name length
-#endif
-
-//Define the allowed time difference between corresponding macropulses from
-//the 3 VME crates
-//Also Define the same for consecutive macro pulses in the same VME file
-//***********************************************************************************
-#define VME_TIME_DIFF_MAX                 1000 //In microseconds
-#define PULSE_TIME_DIFF_MAX              60000 //In microseconds
-#define PULSE_TIME_DIFF_MIN              40000 //In microseconds
-//***********************************************************************************
-
-#define ANL_MAX_OBJ_CNT                  10000 //Maximum number of obj used in 
-                                               //Analysis
-#define ADC_CONV_FACTOR                 3276.8 //ADC sample unit conversion factor
-                                               //(counts per Volt)
-#define AMPL_NOISE                     1.9e-14 //amps per sqrt(Hz) from amplifier
-#define MAIN_GAIN                         50e6 //First amp stage gain (Ohms)
-#define SAMPL_FAC                          0.6 //from bessel filtering (see lab book)
-#define SAMPL_BW                          4200 //Bandwidth (Hz) set by the Sum-Diff Amps 
-#define DAQ_SDFAC                            1 //Summing and Differencing
-                                               //noise enhancement factor
-#define COSMIC_DEP_MEV                      85 //Energy deposited in a detector
-                                               //by a single cosmic traversing
-                                               //the entire detector length (MeV)
-#define e_CHARGE                1.60217733e-19 //electron charge
-#define v_LIGHT                 2.99792458e8   //speed of light in m/s
-#define n_MASS                  939.56533e6    //neutron mass in eV/c^2             
-
-#ifndef kTrue
-#define kTrue                             1
-#endif
-#ifndef kFalse
-#define kFalse                            0
 #endif
 
 #ifndef MP_SAMPLE_WINDOW
@@ -74,8 +38,8 @@
 
 #define ERR_RET_VAL                 400000000 
 
-#define DATA_CONFIG            "NPDGData.conf"
-#define DATA_DIR               "../data"
+//#define DATA_CONFIG            "NPDGData.conf"
+//#define DATA_DIR               "../data"
 
 #define QUEUE_GRPUFLOW_ERROR   "ERROR: Trying to read beyond end of file.\n"
 #define FILE_RANGE_ERROR       "ERROR: Invalid macro pulse range selected.\n"
@@ -101,24 +65,6 @@
 #define LOG_PROCESS_OK                        1018
 #endif
 
-#define MPQ_PULS_MATCH_ERROR                  1019
-#define MPQ_VME1_ORDER_ERROR                  1019
-#define MPQ_VME2_ORDER_ERROR                  1020
-#define MPQ_VME3_ORDER_ERROR                  1021
-#define MPQ_VMEX_RANGE_ERROR                  1022
-#define MPQ_VME1_STATE_ERROR                  1023
-#define MPQ_VME2_STATE_ERROR                  1024
-#define MPQ_VME3_STATE_ERROR                  1025
-#define MPQ_SPIN_MATCH_ERROR                  1026
-
-#define kC_PR_DIALOG                   1500
-#define kCM_PR_MSG                      150
-#define kC_PLO_DIALOG                  1060
-#define kCM_PLO_MSG                     106
-#define kC_MATH_DIALOG                 1400
-#define kCM_MATH_MSG                    140
-#define kC_ANL_ENT_DIALOG              1100
-#define kCM_ANL_ENT_MSG                 110
 
 
 enum CommandIdentifiers {

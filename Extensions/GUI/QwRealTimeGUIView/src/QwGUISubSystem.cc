@@ -26,6 +26,9 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   dHistoReset = 0;
   dHistoAccum = 0;
   dHistoPause = 0;
+  dMapFile    = NULL;
+
+  dMapFileFlag = false;
 
   strcpy(dMiscbuffer,  " ");
   strcpy(dMiscbuffer2, " ");
@@ -53,33 +56,50 @@ const char* QwGUISubSystem::GetNewWindowName()
 
 void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
 {
-  if(cont){    
-    if(!strcmp(cont->GetDataName(),"ROOT")){
-      dROOTCont = cont;
-      Connect(dROOTCont,"SendMessageSignal(char*)","QwGUISubSystem",(void*)this,
-	      "OnReceiveMessage(char*)");      	  
-      Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
-	      "OnObjClose(char*)");
-    }
-  }
-  else
-    dROOTCont = NULL;
+  // if(cont){    
+  //   if(!strcmp(cont->GetDataName(),"ROOT")){
+  //     dROOTCont = cont;
+  //     Connect(dROOTCont,"SendMessageSignal(char*)","QwGUISubSystem",(void*)this,
+  // 	      "OnReceiveMessage(char*)");      	  
+  //     Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
+  // 	      "OnObjClose(char*)");
+  //   }
+  // }
+  // else
+  //   dROOTCont = NULL;
 
-  sprintf(dMiscbuffer2,"Sub system %s message: Received new data\n",GetName());
-  SetLogMessage(dMiscbuffer2, kTrue);
+  // sprintf(dMiscbuffer2,"Sub system %s message: Received new data\n",GetName());
+  // SetLogMessage(dMiscbuffer2, kTrue);
 
-  OnNewDataContainer();
+  // OnNewDataContainer();
 }
+
+
+void QwGUISubSystem::SetMapFile(TMapFile *file)
+{
+  if(file) {
+    dMapFile = file;
+    dMapFileFlag = true;
+    std::cout << "Subsystem " << std::setw(22) << this->GetName()
+	      << " now can access the map file at the address "
+	      << dMapFile << std::endl;
+  }
+  else {
+    dMapFileFlag = false;
+  }
+  
+};
+
 
 void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
 {
-  if(!buffer) return;
-  Int_t length = strlen(buffer);
-  if(length >= MSG_SIZE_MAX) length = MSG_SIZE_MAX-1;
-  snprintf(dMiscbuffer,length+2,"%s\n%c",buffer,'\0');
+  // if(!buffer) return;
+  // Int_t length = strlen(buffer);
+  // if(length >= MSG_SIZE_MAX) length = MSG_SIZE_MAX-1;
+  // snprintf(dMiscbuffer,length+2,"%s\n%c",buffer,'\0');
   
-  dLogTStampFlag = tStamp;
-  SendMessageSignal(GetName());
+  // dLogTStampFlag = tStamp;
+  // SendMessageSignal(GetName());
 }
 
 void QwGUISubSystem::OnObjClose(char *obj)

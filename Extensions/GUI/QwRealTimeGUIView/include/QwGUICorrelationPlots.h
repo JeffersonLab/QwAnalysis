@@ -48,7 +48,7 @@ Added by Buddhini to display the injector beamline data.
 #include <iomanip>
 #include <string>
 
-#include "TMapFile.h"
+//#include "TMapFile.h"
 #include "TPaveText.h"
 
 #include "TRootEmbeddedCanvas.h"
@@ -107,14 +107,14 @@ class QwGUICorrelationPlots : public QwGUISubSystem {
   TGTextEntry         *dTreeXtxt;
   TGTextEntry         *dTreeCuttxt;
 
-  //memory mapped ROOT file
-  TMapFile            *fMapFile; 
+  /* //memory mapped ROOT file */
+  /* TMapFile            *fMapFile;  */
 
-  //!An object array to store histogram pointers -- good for use in cleanup.
-  TObjArray            HistArray;
+  /* //!An object array to store histogram pointers -- good for use in cleanup. */
+  /* TObjArray            HistArray; */
   
-  //!An object array to store data window pointers -- good for use in cleanup.
-  TObjArray            DataWindowArray;
+  /* //!An object array to store data window pointers -- good for use in cleanup. */
+  /* TObjArray            DataWindowArray; */
 
   TPaveText *errlabel; //To print out error messages on the pad
 
@@ -145,7 +145,7 @@ class QwGUICorrelationPlots : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  void                 ClearData();
+  //  void                 ClearData();
 
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
@@ -189,13 +189,13 @@ class QwGUICorrelationPlots : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
+  /* virtual void        OnNewDataContainer(); */
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  /* virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject); */
 
   TString fTreePrmX;//Correlation plot parameters
   TString fTreePrmY;

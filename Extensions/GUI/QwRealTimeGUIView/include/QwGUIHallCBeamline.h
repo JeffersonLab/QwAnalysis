@@ -48,7 +48,7 @@
 #include <iomanip>
 #include <cstring>
 
-#include "TMapFile.h"
+//#include "TMapFile.h"
 
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
@@ -98,10 +98,10 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
 
  
   //!An object array to store histogram pointers -- good for use in cleanup.
-  TObjArray            HistArray;
+  //  TObjArray            HistArray;
   
   //!An object array to store data window pointers -- good for use in cleanup.
-  TObjArray            DataWindowArray;
+  //  TObjArray            DataWindowArray;
 
 
   TH1F *PosVariation[2] ;
@@ -190,17 +190,6 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
 
 
   void PlotFastRaster();
-
-  //!This function clear the histograms/plots in the plot container. This is done everytime a new 
-  //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
-  //!on the plots are lost.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
-  void                 ClearData();
-
   
  public:
   //!This function  loads the histogram names from a definition file
@@ -251,13 +240,13 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
+  /* virtual void        OnNewDataContainer(); */
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  /* virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject); */
 
   ClassDef(QwGUIHallCBeamline,0);
 };

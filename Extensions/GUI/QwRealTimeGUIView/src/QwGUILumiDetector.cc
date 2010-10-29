@@ -1,7 +1,6 @@
 #include "QwGUILumiDetector.h"
 //#include <iostream>
 #include "TLine.h"
-#include "TG3DLine.h"
 #include "TGaxis.h"
 
 ClassImp(QwGUILumiDetector);
@@ -103,8 +102,8 @@ void QwGUILumiDetector::MakeLayout()
   dControlsFrame = new TGVerticalFrame(this);
   dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
 
-  TGVertical3DLine *separator = new TGVertical3DLine(this);
-  dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
+  // TGVertical3DLine *separator = new TGVertical3DLine(this);
+  // dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
 
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
@@ -157,9 +156,9 @@ void QwGUILumiDetector::MakeLayout()
   dComboBoxSCALER -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				"QwGUIHallCBeamline",
-				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+  // dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+  // 				"QwGUIHallCBeamline",
+  // 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
 }
 
@@ -245,36 +244,18 @@ void QwGUILumiDetector::OnReceiveMessage(char *obj)
 
 void QwGUILumiDetector::OnObjClose(char *obj)
 {
-  if(!strcmp(obj,"dROOTFile")){
-    dROOTCont = NULL;
-  }
 }
 
-void QwGUILumiDetector::OnNewDataContainer()
-{
-
-}
 
 void QwGUILumiDetector::OnRemoveThisTab()
 {
 
 }
 
-void QwGUILumiDetector::ClearData()
+
+
+void QwGUILumiDetector::PlotUSLumi()
 {
-
-  TObject *obj;
-  TIter next(HistArray.MakeIterator());
-  obj = next();
-  while(obj){    
-    delete obj;
-    obj = next();
-  }
-  HistArray.Clear();
-}
-
-
-void QwGUILumiDetector::PlotUSLumi(){
   TH1F *histo1=NULL;
   TH1F *histo2=NULL;
 
@@ -288,14 +269,14 @@ void QwGUILumiDetector::PlotUSLumi(){
 
   TString dummyname;
 
-  Int_t LumiCount = fLUMIDevices.at(US_LUMI).size();
-  Double_t max_range = (Double_t)LumiCount - offset ; 
+  Int_t LumiCount = 0;
+  LumiCount = (Int_t) fLUMIDevices.at(US_LUMI).size();
+
+  Double_t max_range = 0.0;
+
+  max_range = (Double_t)LumiCount - offset ; 
 
   
-
-
-  
-
   Bool_t ldebug = kFALSE;
   
   TCanvas *mc = NULL;
@@ -309,7 +290,7 @@ void QwGUILumiDetector::PlotUSLumi(){
     {
 
       sprintf (histo, "asym_%s_hw",fLUMIDevices.at(US_LUMI).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -327,7 +308,7 @@ void QwGUILumiDetector::PlotUSLumi(){
       }
 	  
       sprintf (histo, "yield_%s_hw", fLUMIDevices.at(US_LUMI).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -426,7 +407,7 @@ void QwGUILumiDetector::PlotDSLumi()
     {
 
       sprintf (histo, "asym_%s_hw",fLUMIDevices.at(DS_LUMI).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -444,7 +425,7 @@ void QwGUILumiDetector::PlotDSLumi()
       }
 	  
       sprintf (histo, "yield_%s_hw", fLUMIDevices.at(DS_LUMI).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -502,12 +483,10 @@ void QwGUILumiDetector::PlotDSLumi()
 
   return;
 
-
-
-   printf("QwGUILumiDetector::PlotDSLumi() \n");
 };
 
-void QwGUILumiDetector::SetComboIndex(Int_t cmb_id, Int_t id){
+void QwGUILumiDetector::SetComboIndex(Int_t cmb_id, Int_t id)
+{
     if (cmb_id==CMB_LUMI)
       fCurrentLUMIIndex=id;
 
@@ -515,7 +494,9 @@ void QwGUILumiDetector::SetComboIndex(Int_t cmb_id, Int_t id){
       fCurrentSCALERIndex=id;
 };
 
-void QwGUILumiDetector::LoadLUMICombo(){
+void QwGUILumiDetector::LoadLUMICombo()
+{
+
   dComboBoxLUMI->RemoveAll();
   //  printf("QwGUILumiDetector::LoadHCBCMCombo \n");
   std::size_t i = 0;
@@ -528,7 +509,8 @@ void QwGUILumiDetector::LoadLUMICombo(){
   fCurrentLUMIIndex=-1;  
 };
 
-void QwGUILumiDetector::LoadSCALERCombo(){
+void QwGUILumiDetector::LoadSCALERCombo()
+{
   dComboBoxSCALER->RemoveAll();
   //  printf("QwGUILumiDetector::LoadHCBCMCombo \n");
   std::size_t i = 0;
@@ -563,9 +545,9 @@ void QwGUILumiDetector::PlotLumi()
        break;
      if (GetHistoPause()==0){
        sprintf (histo, "asym_%s_hw",fLUMIDevices.at(VQWK_LUMI).at(fCurrentLUMIIndex).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_%s_hw",fLUMIDevices.at(VQWK_LUMI).at(fCurrentLUMIIndex).Data() );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo2= (TH1F *)dMapFile->Get(histo);
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -627,9 +609,9 @@ void QwGUILumiDetector::PlotLumiScaler()
        break;
       if (GetHistoPause()==0){
 	sprintf (histo, "asym_%s",fLUMIDevices.at(SCALER_LUMI).at(fCurrentSCALERIndex).Data() );
-	histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+	histo1= (TH1F *)dMapFile->Get(histo);
 	sprintf (histo, "yield_%s",fLUMIDevices.at(SCALER_LUMI).at(fCurrentSCALERIndex).Data() );
-	histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+	histo2= (TH1F *)dMapFile->Get(histo);
       }
     if (histo1!=NULL && histo2!=NULL ) {
       if (GetHistoReset()){
@@ -669,28 +651,28 @@ void QwGUILumiDetector::PlotLumiScaler()
    //   printf("---------------PlotLumiScaler()--------------------\n");  
 };
 
-void QwGUILumiDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
-  if(event == kButton1Double){
-    Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
+// void QwGUILumiDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
+// {
+//   // if(event == kButton1Double){
+//   //   Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
     
-    if(pad > 0 && pad <= LUMI_DET_HST_NUM)
-      {
-	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
-						     GetNewWindowName(),"QwGUILumiDetector",
-						     HistArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
-	if(!dMiscWindow){
-	  return;
-	}
-	DataWindowArray.Add(dMiscWindow);
-	dMiscWindow->SetPlotTitle((char*)HistArray[pad-1]->GetTitle());
-	dMiscWindow->DrawData(*((TH1D*)HistArray[pad-1]));
-	SetLogMessage(Form("Looking at %s\n",(char*)HistArray[pad-1]->GetTitle()),kTrue);
+//   //   if(pad > 0 && pad <= LUMI_DET_HST_NUM)
+//   //     {
+//   // 	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
+//   // 						     GetNewWindowName(),"QwGUILumiDetector",
+//   // 						     HistArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
+//   // 	if(!dMiscWindow){
+//   // 	  return;
+//   // 	}
+//   // 	DataWindowArray.Add(dMiscWindow);
+//   // 	dMiscWindow->SetPlotTitle((char*)HistArray[pad-1]->GetTitle());
+//   // 	dMiscWindow->DrawData(*((TH1D*)HistArray[pad-1]));
+//   // 	SetLogMessage(Form("Looking at %s\n",(char*)HistArray[pad-1]->GetTitle()),kTrue);
 
-	return;
-      }
-  }
-}
+//   // 	return;
+//   //     }
+//   // }
+// }
 
 
 Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
@@ -711,35 +693,34 @@ Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
     }
 
   case kC_COMMAND:
-    if(dROOTCont){
-      switch (GET_SUBMSG(msg)) 
+    switch (GET_SUBMSG(msg)) 
+      {
+	
+      case kCM_BUTTON:
 	{
-      
-	case kCM_BUTTON:
-	  {
-	    switch(parm1)
-	      {
-	      case BA_DS_LUMI:
-		PlotDSLumi();
-		break;
-	      case BA_US_LUMI:
-		PlotUSLumi();
-		break;
-	      case BA_LUMI:
-		PlotLumi();
-		break;
-	      case BA_SCALER:
-		PlotLumiScaler();
-		break;
-	      }
-
-	    break;
-	  }
-
-	case kCM_COMBOBOX:
-	  {
-	    switch (parm1) {
-	    case M_TBIN_SELECT:
+	  switch(parm1)
+	    {
+	    case BA_DS_LUMI:
+	      PlotDSLumi();
+	      break;
+	    case BA_US_LUMI:
+	      PlotUSLumi();
+	      break;
+	    case BA_LUMI:
+	      PlotLumi();
+	      break;
+	    case BA_SCALER:
+	      PlotLumiScaler();
+	      break;
+	    }
+	  
+	  break;
+	}
+	
+      case kCM_COMBOBOX:
+	{
+	  switch (parm1) {
+	  case M_TBIN_SELECT:
 	      break;
 	    case CMB_LUMI:
 	      SetComboIndex(CMB_LUMI,parm2);
@@ -751,30 +732,8 @@ Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    }
 	  }
 	  break;
-
-	case kCM_MENUSELECT:
-	  break;
-	  
-	case kCM_MENU:
-
-	  switch (parm1) {
-	
-	  case M_FILE_OPEN:
-	    break;
-	
-	
-
-	  default:
-	    break;
-	  }
-      
-	default:
-	  break;
 	}
-    }else{
-      std::cout<<"Please load the map file to view data. (Use Menubar->MemoryMap->Load Memory)\n";
-    }
-  
+      
   default:
     break;
   }

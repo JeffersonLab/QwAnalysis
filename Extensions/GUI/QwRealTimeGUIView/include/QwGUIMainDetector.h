@@ -48,13 +48,12 @@
 #include <iomanip>
 #include <cstring>
 
-#include "TMapFile.h"
-
 #include "TRootEmbeddedCanvas.h"
 #include "TRootCanvas.h"
 #include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
 #include "TCut.h"
+//#include "TGComboBox"
 #include "RSDataWindow.h"
 
 
@@ -91,29 +90,16 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGNumberEntry          *dRunEntry;
   TGLayoutHints          *dRunEntryLayout;
   TGLabel                *dRunEntryLabel;
-  TGHorizontal3DLine     *dHorizontal3DLine;
+  //  TGHorizontal3DLine     *dHorizontal3DLine;
   TGHorizontalFrame      *dUtilityFrame;  
   TGLayoutHints          *dUtilityLayout;
 
     
-  //!An object array to store histogram pointers -- good for use in cleanup.
-  TObjArray            HistArray;
-
-  //!An object array to store graph pointers.
-  TObjArray            GraphArray;
-
-  //!An object array to store histogram pointers for the DFT.
-  TObjArray            DFTArray;
-  
-  //!An object array to store data window pointers -- good for use in cleanup.
-  TObjArray            DataWindowArray;
-
   //!A dioalog for number entry ...  
-  RNumberEntryDialog   *dNumberEntryDlg;
+  //  RNumberEntryDialog   *dNumberEntryDlg;
   
   //!Draw Means and widths for MD/MD bkg yields/asym
   TH1F *MDPlots[2] ;
-
  
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -123,7 +109,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  void                 ClearData();
+  //  void                 ClearData();
 
   //!Draws MD yield/Asym histograms selected by dComboBoxMDPMT
   //!
@@ -260,16 +246,16 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
+  //  virtual void        OnNewDataContainer();
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
           void        OnUpdatePlot(char *);
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  //  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
-  ClassDef(QwGUIMainDetector,0);
+  ClassDef(QwGUIMainDetector,1);
 };
 
 #endif

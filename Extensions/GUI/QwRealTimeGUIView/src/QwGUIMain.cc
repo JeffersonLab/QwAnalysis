@@ -33,6 +33,9 @@
 
 #include "QwGUIMain.h"
 
+const Int_t QwGUIMain::kMaxMapFileSize = 0x20000000; // 512 MiB
+
+
 QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   : TGMainFrame(p, w, h), dMWWidth(w), dMWHeight(h), dClArgs(clargs)
 {
@@ -45,7 +48,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
-  std::set_new_handler(0);
+  //  std::set_new_handler(0);
 
   MainDetSubSystem      = NULL;
   LumiDetSubSystem      = NULL;
@@ -64,7 +67,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMapFileOpen          = false;
   dRunOpen              = false;
 
-  dROOTFile             = NULL;
+  //  dROOTFile             = NULL;
+  dMemoryMapFile        = NULL;
 
   dTBinEntry            = NULL;
   dTBinEntryLayout      = NULL;
@@ -83,7 +87,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMainTabLayout        = NULL;
   dMainCnvLayout        = NULL;
 
-  //  dLogText              = NULL;
   dLogEdit              = NULL;
   dLogTabFrame          = NULL;
   dLogTabLayout         = NULL;
@@ -91,25 +94,14 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
 
   dMenuBar              = NULL;
-  //  dMenuFile             = NULL;
   dMenuTabs             = NULL;
   dMenuLoadMap          = NULL;
   dMenuHistoState       = NULL;
-  //  dMenuHelp             = NULL;
   dMenuBarLayout        = NULL;
   dMenuBarItemLayout    = NULL;
-  //  dMenuBarHelpLayout    = NULL;
-
-  memset(dLogfilename,'\0',sizeof(dLogfilename));
-  memset(dRootfilename,'\0',sizeof(dRootfilename));
-  memset(dMiscbuffer, '\0', sizeof(dMiscbuffer));
-  memset(dMiscbuffer2, '\0', sizeof(dMiscbuffer2));
-
 
   MakeMenuLayout();
-  MakeUtilityLayout();
   MakeMainTab();
-  //  MakeLogTab();
 
   SetWindowName("Qweak RealTime Data Analysis GUI");
 
@@ -149,30 +141,26 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
     HallCBeamlineSubSystem->LoadHistoMapFile(dHallCChannelMap);
   }
-
-
-  if(!GetSubSystemPtr("Correlation Plots"))
-    CorrelationSubSystem = new QwGUICorrelationPlots(fClient->GetRoot(), this, dTab,"Correlation Plots",
-					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
   
-}
+  if(!GetSubSystemPtr("Correlation Plots")) {
+    CorrelationSubSystem = new QwGUICorrelationPlots(fClient->GetRoot(), this, dTab,"Correlation Plots",
+						     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  }
+  
+};
 
 QwGUIMain::~QwGUIMain()
 {
   delete MainDetSubSystem      ;
   delete LumiDetSubSystem      ;
   delete InjectorSubSystem     ;
-  // delete EventDisplaySubSystem ;
   delete CorrelationSubSystem  ;
   delete HallCBeamlineSubSystem;
-
-  //  delete dROOTFile             ;
 
   delete dTBinEntry            ;
   delete dTBinEntryLayout      ;
   delete dRunEntry             ;
   delete dRunEntryLayout       ;
-  //  delete dHorizontal3DLine     ;
   delete dUtilityFrame         ;
   delete dUtilityLayout        ;
 
@@ -185,7 +173,6 @@ QwGUIMain::~QwGUIMain()
   delete dMainTabLayout        ;
   delete dMainCnvLayout        ;
 
-  // delete dLogText              ;
   delete dLogEdit              ;
   delete dLogTabFrame          ;
   delete dLogTabLayout         ;
@@ -193,12 +180,9 @@ QwGUIMain::~QwGUIMain()
 
 
   delete dMenuBar              ;
-  //  delete dMenuFile             ;
   delete dMenuTabs             ;
-  //  delete dMenuHelp             ;
   delete dMenuBarLayout        ;
   delete dMenuBarItemLayout    ;
-  //  delete dMenuBarHelpLayout    ;
   delete dMenuLoadMap          ;
 
 }
@@ -284,28 +268,21 @@ void QwGUIMain::MakeMenuLayout()
 
   dMenuTabs = new TGPopupMenu(fClient->GetRoot());
   dMenuTabs->AddEntry("View Log", M_VIEW_LOG);
-
-  dMenuTabs->Associate(this);
+  
+  // dMenuTabs->Associate(this);
   dMenuLoadMap->Associate(this);
   dMenuHistoState->Associate(this);
  
 
   dMenuBar = new TGMenuBar(this, 1, 1, kHorizontalFrame);
-  //dMenuBar->AddPopup("&File", dMenuFile, dMenuBarItemLayout);
   dMenuBar->AddPopup("&MemoryMap", dMenuLoadMap, dMenuBarItemLayout);
   dMenuBar->AddPopup("H&istograms", dMenuHistoState, dMenuBarItemLayout);
-  dMenuBar->AddPopup("&Tabs", dMenuTabs, dMenuBarItemLayout);
-  // dMenuBar->AddPopup("&Help", dMenuHelp, dMenuBarHelpLayout);
- 
+  // dMenuBar->AddPopup("&Tabs", dMenuTabs, dMenuBarItemLayout);
 
   AddFrame(dMenuBar, dMenuBarLayout);
-  dMenuTabs->CheckEntry(M_VIEW_LOG);
+  //  dMenuTabs->CheckEntry(M_VIEW_LOG);
 }
 
-void QwGUIMain::MakeUtilityLayout()
-{
-
-}
 
 void QwGUIMain::MakeMainTab()
 {
@@ -331,8 +308,6 @@ void QwGUIMain::MakeMainTab()
   AddFrame(dTab, dTabLayout);
 
   dMainCanvas->GetCanvas()->SetBorderMode(0);
-  // dMainCanvas->GetCanvas()->Connect("Picked(TPad*, TObject*, Int_t)","QwGUIMain",
-  // 				    this,"PadIsPicked(TPad*, TObject*, Int_t)");
   dMainCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				    "QwGUIMain",
 				    this,"MainTabEvent(Int_t,Int_t,Int_t,TObject*)");
@@ -365,27 +340,6 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
   TString s = sbSystem->GetName();
   TObject *obj;
   TIter next(dMenuTabs->GetListOfEntries());
-
-  //Sequence naming of menu items not currently implemented/useful
-  //
-  //int seq = 1;
-  //char sequence[100];
-  //   while(!flag){
-  //     flag = 1;
-  //     while(obj = next()){
-  //       TGMenuEntry *entry = (TGMenuEntry*)obj;
-  //       if(s == entry->GetLabel()->GetString()){
-  // 	if(seq >= 2) s.Resize(s.Length()-3);
-  // 	sprintf(sequence," % 2d",seq); seq++;
-  // 	s += sequence;
-  // 	flag = 0;
-  // 	break;
-  //       }
-  //     }
-  //     next.Reset();
-  //   }
-  //   MCnt++;
-  //   dMenuTabs->AddEntry(s, M_TABS+MCnt);
 
   obj = next();
   while(obj){
@@ -555,61 +509,86 @@ void QwGUIMain::OnReceiveMessage(const char *obj)
 
 
 
-Int_t QwGUIMain::OpenMapFile()
+Bool_t QwGUIMain::OpenMapFile()
 {
 
-  sprintf(dMiscbuffer2,"%s/QwMemMapFile.map",gSystem->Getenv("QW_ROOTFILES"));
+  this-> CloseMapFile();
+
+  TString mapfilename = gSystem->Getenv("QW_ROOTFILES");
+  mapfilename += "/QwMemMapFile.map";
+
+
+  // hmmm, strange, I cannot catch any error here, 
+  // Segmentation fault by using whatever....
+  // Friday, October 29 16:19:35 EDT 2010, jhlee
+
+
+  // try 
+  //   {
+  //  printf("Reading %s\n", mapfilename.Data());
+  //   new TMapFile(mapfilename, "", "READ", kMaxMapFileSize , dMemoryMapFile); // protected..
+  //   dMemoryMapFile = TMapFile::Create(mapfilename, "READ",  kMaxMapFileSize, ""); //// default is "read"
+  dMemoryMapFile = TMapFile::Create(mapfilename);
+  //   }
+  // catch  (std::exception& e)
+  //   {
+  //     std::cerr << "exception caught: " << e.what() << std::endl;
+  //   }
   
-  try {
-    if(IsMapFileOpen()) CloseMapFile();
-  }
-  catch( char * str ) {
-    printf("QwGUIMain::OpenMapFile - Memory map error\n");
-  }
-  char filename[NAME_STR_MAX];
+  if ((dMemoryMapFile->IsOnHeap()) && not (dMemoryMapFile->IsZombie()) ) {
+    //    printf("===== QwRealTimeGUI Reads the RealTime Producer Memory Map File ======\n");
+    //    std::cout << dMemoryMapFile << std::endl;
+    dMemoryMapFile->Print();
+    dMapFileOpen = true;
+    //    printf("======================================================================\n");
   
-  dROOTFile = new RDataContainer(fClient->GetRoot(), this,"dROOTFile","QwGUIMain","ROOT",FM_UPDATE,FT_ROOT);
-  try { 
-    dROOTFile->OpenMapFile(dMiscbuffer2);//open the map file
-     
   }
-  catch( char * str ) {
-    printf("QwGUIMain::OpenMapFile - Memory map error\n");
+  else {
+    std::cout << "The shared memory region mapped to a file"
+	      << mapfilename
+	      << " could not be opened." << std::endl;
+    dMapFileOpen = false;
   }
 
-  TObject *obj;
-  TIter next(SubSystemArray.MakeIterator());
-  obj = next();
- 
-  while(obj){
-    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-    entry->SetDataContainer(dROOTFile);
+  if (dMapFileOpen) {
+    TObject *obj;
+    TIter next(SubSystemArray.MakeIterator());
     obj = next();
+    
+    while(obj){
+      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+      entry->SetMapFile(dMemoryMapFile);
+      obj = next();
+    }
+    
   }
-
   
-  SetMapFileOpen(kTrue);
-  strcpy(filename,dMiscbuffer2);
-  SetMapFileName(filename);
-  
-  return kTRUE;
-}
+  return dMapFileOpen;
+};
 
 
 
 void QwGUIMain::CloseMapFile()
 {
-
-  if(dROOTFile != NULL){
-    dROOTFile->Close(kFalse);
-    dROOTFile = NULL;
+  if (IsMapFileOpen()) {
+    TString name = dMemoryMapFile->GetName();
+    std::cout << "The memory file " << name
+	      << " at the address " 
+	      << dMemoryMapFile 
+	      << " is closing now."
+	      << std::endl;
+    dMemoryMapFile->Close();
+    dMemoryMapFile = NULL;
   }
-  SetMapFileOpen(kFalse);
+  else {
+    dMemoryMapFile = NULL;
+  }
+  dMapFileOpen = false;
 }
 
 void QwGUIMain::CloseWindow()
 {
- 
+  this->CloseMapFile();
   gApplication->Terminate(0);
 
 }
@@ -692,19 +671,20 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 
       case M_VIEW_MAPLOAD:
-	printf("\n Loading Memory \n");
-	try{
-	  OpenMapFile();
-	}
-	catch( char * str ) {
-	  printf("QwGUIMain::OpenMapFile - Memory map error\n");
-	}
-
+	//	printf("\n Loading Memory \n");
+	try 
+	  {
+	    OpenMapFile();
+	  }
+	catch (std::exception& e)
+	  {
+	    std::cerr << "exception caught: " << e.what() << std::endl;
+	  }
 	break;
 
       case M_HISTO_RESET:
 	{
-	  printf("M_HISTO_RESET %ld pressed\n", parm1);
+	  //	  printf("M_HISTO_RESET %ld pressed\n", parm1);
 
 	  TObject *obj;
 	  TIter next1(SubSystemArray.MakeIterator());
@@ -721,7 +701,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	}
       case M_HISTO_ACCUMULATE:
 	{
-	  printf("M_HISTO_ACCUMULATE %ld pressed\n", parm1);
+	  //	  printf("M_HISTO_ACCUMULATE %ld pressed\n", parm1);
 
 	  TObject *obj;
 	  TIter next1(SubSystemArray.MakeIterator());
@@ -738,7 +718,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	}
       case M_HISTO_PAUSE:
 	{
-	  printf("M_HISTO_PAUSE %ld pressed\n", parm1);
+	  //	  printf("M_HISTO_PAUSE %ld pressed\n", parm1);
 
 	  TObject *obj;
 	  TIter next1(SubSystemArray.MakeIterator());
@@ -756,7 +736,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	}
       case M_FILE_EXIT:
 	{
-	  gApplication->Terminate(0);
+	  this->CloseWindow();
 	}
 	break;
       default:
@@ -775,19 +755,14 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 }
 
 
-QwGUIMain *gViewMain;
-
 
 Int_t main(Int_t argc, Char_t **argv)
 {
-  Char_t expl[5000];
   ClineArgs dClArgs = {0};
-  Int_t help = 0;
+
   dClArgs.realtime = kFalse;
   dClArgs.checkmode = kFalse;
-//   int ax,ay;
-//   unsigned int aw, ah;
-
+  
   if(argv[1]){
     for(Int_t i=1; i < argc; i++){
       if(strcmp(argv[i],"-r")==0){
@@ -820,11 +795,6 @@ Int_t main(Int_t argc, Char_t **argv)
 
       } 
 
-      if(strcmp(argv[i],"-help")==0){
-	
-	help = 1;
-      }
-
       if(strcmp(argv[i],"-f")==0){
 	if(!argv[i+1] || argv[i+1][0] == '-'){
 	  printf("\nMissing value for option -f\n\n");
@@ -843,47 +813,15 @@ Int_t main(Int_t argc, Char_t **argv)
       }
     }
   }
-  else
-    printf("\nRun ""QwGUIData -help"" for command line help\n\n");
 
-  if(help){
-    strcpy(expl,"\n\nThis program takes the following commandline arguments:\n\n");
-    strcat(expl,"1) -b        Read binary format file.\n\n");
-    strcat(expl,"2) -t        Read ascii text file in row and column format.\n\n");
-    strcat(expl,"3) -f        Starting filename:\n\n");
-    strcat(expl,"             Here one of two file types must be used, based on\n");
-    strcat(expl,"             the -b or -t parameters passed .\n");
-    strcat(expl,"             For case -b, the program expects a\n");
-    strcat(expl,"             a binary file with format to be specified\n");
-    strcat(expl,"             For case -t, it expects an ascii file \n");
-    strcat(expl,"             arranged in rows and columns of data.\n");
-    strcat(expl,"             For the second case, the columns of interest must\n");
-    strcat(expl,"             be specified with the -c switch (see below).\n");
-    strcat(expl,"             Always use the full path for the input files.\n\n");
-    strcat(expl,"4) -c        Columns. Ex: (-c 23) selects columns 2 and 3.\n\n");
-    strcat(expl,"5) -d        Enter the custom map file to decode channel map files\n\n");
-    strcat(expl,"9) -help     Prints this help \n\n");
-    
-    printf("%s",expl);
+  TApplication theApp("QwRealTimeGUI", &argc, argv, 0, 0);
+  gROOT->SetStyle("Plain");
+  if (gROOT->IsBatch()) {
+    fprintf(stderr, "%s: cannot run in batch mode\n", argv[0]);
+    return 1;
   }
-  else{
-
-    //TApplication theApp("QwGUIData", &argc, argv);
-    TApplication theApp("QwRealTimeGUI", &argc, argv);
-
-    gROOT->SetStyle("Plain");
-
-    if (gROOT->IsBatch()) {
-      fprintf(stderr, "%s: cannot run in batch mode\n", argv[0]);
-      return 1;
-    }
-
-    QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,600);
-
-    gViewMain = &mainWindow;
-
-    theApp.Run();
-  }
+  QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,600);
+  theApp.Run();
 
   return 0;
 }
