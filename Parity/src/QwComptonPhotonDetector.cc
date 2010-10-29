@@ -40,51 +40,75 @@ void QwComptonPhotonDetector::ProcessOptions(QwOptions &options){
 
 Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 {
-  TString varname, varvalue;
-  TString modtype, dettype, name;
-  UInt_t modnum, channum;
+  Int_t subbank = -1; // subbank index
+  Int_t current_roc_id; // current ROC id
+  Int_t current_bank_id; // current bank id
 
   QwParameterFile mapstr(mapfile.Data());  // Open the file
   while (mapstr.ReadNextLine()) {
-    mapstr.TrimComment('!');   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace (spaces or tabs).
+    mapstr.TrimComment();      // Remove everything after a comment character
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace
     if (mapstr.LineIsEmpty())  continue;
 
-    if (mapstr.HasVariablePair("=", varname, varvalue)) {
+    Int_t index;
+    TString varname, varvalue;
+    if (mapstr.HasVariablePair("=",varname,varvalue)) {
       // This is a declaration line.  Decode it.
       varname.ToLower();
       UInt_t value = QwParameterFile::GetUInt(varvalue);
       if (varname == "roc") {
-        RegisterROCNumber(value,0);
+        current_roc_id = value;
+        RegisterROCNumber(current_roc_id,0);
       } else if (varname == "bank") {
-        RegisterSubbank(value);
+        current_bank_id = value;
+        RegisterSubbank(current_bank_id);
+        subbank = GetSubbankIndex(current_roc_id,current_bank_id);
       }
+
     } else {
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", \t").c_str();
-      modnum    = (atol(mapstr.GetNextToken(", \t").c_str()));
-      channum   = (atol(mapstr.GetNextToken(", \t").c_str()));
-      dettype   = mapstr.GetNextToken(", \t").c_str();
-      name      = mapstr.GetNextToken(", \t").c_str();
+      TString modtype = mapstr.GetNextToken().c_str();
+      UInt_t modnum   = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
+      UInt_t channum  = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
+      TString dettype = mapstr.GetNextToken().c_str();
+      TString name    = mapstr.GetNextToken().c_str();
 
       //  Push a new record into the element array
       if (modtype == "SIS3320") {
-        if (modnum >= fSamplingADC_Mapping.size())
-          fSamplingADC_Mapping.resize(modnum+1);
-        if (channum >= fSamplingADC_Mapping.at(modnum).size())
-          fSamplingADC_Mapping.at(modnum).resize(channum+1,-1);
-        if (fSamplingADC_Mapping.at(modnum).at(channum) < 0) {
+        if (modnum >= fSamplingADC_Mapping[subbank].size())
+          fSamplingADC_Mapping[subbank].resize(modnum+1);
+        if (channum >= fSamplingADC_Mapping[subbank].at(modnum).size())
+          fSamplingADC_Mapping[subbank].at(modnum).resize(channum+1,-1);
+        if (fSamplingADC_Mapping[subbank].at(modnum).at(channum) < 0) {
           UInt_t index = fSamplingADC.size();
-          fSamplingADC_Mapping.at(modnum).at(channum) = index;
+          fSamplingADC_Mapping[subbank].at(modnum).at(channum) = index;
           fSamplingADC.push_back(MQwSIS3320_Channel());
           fSamplingADC.at(index).SetNumberOfAccumulators(6);
           fSamplingADC.at(index).InitializeChannel(channum, name);
         }
+
       } else if (modtype == "V775") {
         // not yet implemented
       } else if (modtype == "V792") {
         // not yet implemented
-      } // end of switch (modtype)
+
+
+      } else if (modtype == "SIS3801D24") {
+        // Offset in block
+        UInt_t offset = QwSIS3801D24_Channel::GetBufferOffset(modnum, channum);
+        // Add to mapping
+        if (modnum >= fScaler_Mapping[subbank].size())
+          fScaler_Mapping[subbank].resize(modnum+1);
+        if (channum >= fScaler_Mapping[subbank].at(modnum).size())
+          fScaler_Mapping[subbank].at(modnum).resize(channum+1,-1);
+        // Add scaler channel
+        if (fScaler_Mapping[subbank].at(modnum).at(channum) < 0) {
+          UInt_t index = fScaler.size();
+          fScaler_Mapping[subbank].at(modnum).at(channum) = index;
+          fScaler.push_back(QwSIS3801D24_Channel(name));
+        }
+
+      } // end of switch by modtype
 
     } // end of if for token line
   } // end of while over parameter file
@@ -216,20 +240,33 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
   UInt_t words_read = 0;
 
   // Get the subbank index (or -1 when no match)
-  Int_t index = GetSubbankIndex(roc_id, bank_id);
+  Int_t subbank = GetSubbankIndex(roc_id, bank_id);
 
-  if (index >= 0 && num_words > 0) {
+  if (subbank >= 0 && num_words > 0) {
 
     //  We want to process this ROC.  Begin looping through the data.
-    for (size_t i = 0; i < fSamplingADC.size(); i++) {
-      words_read += fSamplingADC[i].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
+
+    // Sampling ADCs
+    for (size_t modnum = 0; modnum < fSamplingADC_Mapping[subbank].size(); modnum++) {
+      for (size_t channum = 0; channum < fSamplingADC_Mapping[subbank].at(modnum).size(); channum++) {
+        if (fSamplingADC_Mapping[subbank].at(modnum).at(channum) >= 0) {
+          UInt_t index = fSamplingADC_Mapping[subbank].at(modnum).at(channum);
+          words_read += fSamplingADC[index].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
+        }
+      }
     }
-    for (size_t i = 0; i < fIntegratingTDC.size(); i++) {
-      //words_read += fIntegratingTDC[i].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
+
+    // Scalers
+    for (size_t modnum = 0; modnum < fScaler_Mapping[subbank].size(); modnum++) {
+      for (size_t channum = 0; channum < fScaler_Mapping[subbank].at(modnum).size(); channum++) {
+        if (fScaler_Mapping[subbank].at(modnum).at(channum) >= 0) {
+          UInt_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
+          words_read += fScaler[index].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
+        }
+      }
     }
-    for (size_t i = 0; i < fIntegratingADC.size(); i++) {
-      //words_read += fIntegratingADC[i].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
-    }
+
+    // Check for leftover words
     if (num_words != words_read) {
       QwError << "QwComptonPhotonDetector: There were "
               << num_words - words_read

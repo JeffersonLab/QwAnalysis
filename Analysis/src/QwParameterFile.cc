@@ -18,6 +18,7 @@ UInt_t QwParameterFile::fCurrentRunNumber = 0;
 // Set default comment, whitespace, section, module characters
 const std::string QwParameterFile::kDefaultCommentChars = "#!;";
 const std::string QwParameterFile::kDefaultWhitespaceChars = " \t";
+const std::string QwParameterFile::kDefaultTokenSepChars = ", \t";
 const std::string QwParameterFile::kDefaultSectionChars = "[]";
 const std::string QwParameterFile::kDefaultModuleChars = "<>";
 

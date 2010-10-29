@@ -95,8 +95,6 @@
 // Compton headers
 #include "QwComptonPhotonDetector.h"
 #include "QwComptonElectronDetector.h"
-//
-#include "MQwSIS3320_Channel.h"
 
 
 
