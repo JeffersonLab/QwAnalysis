@@ -80,7 +80,7 @@ int main(int argc, char *argv[]) {
   
   char *runL[]={runName}; int nr=1;
   for(int i=0;i<nr;i++) {
-    TString treeFile=Form("%sQweak_%s.root",inpPath,runL[i]);
+    TString treeFile=Form("%sQwPass1_%s.root",inpPath,runL[i]);
     // TString treeFile=Form("%sQwPass1_%s.root",inpPath,runL[i]);
     chain->Add(treeFile);
     printf("%d =%s=\n",i,treeFile.Data());
@@ -88,7 +88,12 @@ int main(int argc, char *argv[]) {
   int nEve=(int)chain->GetEntries();
   printf("tot nEve=%d expected in the chain \nscan leafs for iv & dv ...\n",nEve);
   printf("#totEve %d\n",nEve);
- 
+  if(nEve <5000) {
+    printf("aborting lin regerssion due to small # of events\n");
+    printf("#abort JB1 nEve=%d\n",nEve);
+    exit(1);
+  }
+
   // filter events with too low bcm1
   //.... find mean bcm1
   chain->Draw("yield_qwk_bcm1.hw_sum>>hist0");  
@@ -161,6 +166,7 @@ int main(int argc, char *argv[]) {
   TString outAlias=Form("%sregalias_r%d.C",outPath,runId);
   corA.exportAlias((char*)outAlias.Data(), runId); 
 
+  printf("#success JB1 nEve=%d\n",nEve);
 }
 
 

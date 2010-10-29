@@ -4,7 +4,7 @@ TFile* fd=0;
 enum{ nP=5,nY=15}; 
 TString cor1="input";
 int pl=2; //1=gif, 2=ps, 3=both
-TString runName="R5989.000";
+TString runName="R5843.000";
 TString inpPath="./out/";
 char *oPath="./out/";
 
@@ -18,16 +18,17 @@ plCor(int page=1, char *runName0="RfixMe.000") {
 
   fd=new TFile( dataFinalRoot); assert(fd->IsOpen());
 
-  if(page==1) DV_1D("DV_1Da","regressed DV,"+runName,"regres"); // just one set, old
-  if(page==2) DV_1D("DV_1Db","NOT regressed DV, "+runName,"input"); // just one set, old
+  if(page==1) mySum("mySummary","summary +QA ,"+runName); // just one set, old
+  if(page==2) DV_1D("DV_1Da","regressed DV,"+runName,"regres"); // just one set, old
+  if(page==3) DV_1D("DV_1Db","NOT regressed DV, "+runName,"input"); // just one set, old
 
  
-  if(page==3) IV_DV("IV_DV","Correlation MD1..MD4 vs. IV's, "+runName,0,3);
-  if(page==4) IV_DV("IV_DV","Correlation MD5..MD8 vs. IV's, "+runName,4,7);
-  if(page==5) IV_DV("IV_DV","Correlation MDH,V,D1,D2 vs. IV's, "+runName,8,11);
-  if(page==6) IV_DV("IV_DV","Correlation MDC,MDX, MDA vs. IV's, "+runName,12,14);
+  if(page==4) IV_DV("IV_DV","Correlation MD1..MD4 vs. IV's, "+runName,0,3);
+  if(page==5) IV_DV("IV_DV","Correlation MD5..MD8 vs. IV's, "+runName,4,7);
+  if(page==6) IV_DV("IV_DV","Correlation MDH,V,D1,D2 vs. IV's, "+runName,8,11);
+  if(page==7) IV_DV("IV_DV","Correlation MDC,MDX, MDA vs. IV's, "+runName,12,14);
 
-  if(page==7) IV_IV("IV","Independent variables, "+runName);
+  if(page==8) IV_IV("IV","Independent variables, "+runName);
 
   if(page==100) DV_CMP("DV_comparison","DV's before & after regression"); 
 
@@ -42,6 +43,27 @@ plCor(int page=1, char *runName0="RfixMe.000") {
   }
 
 }
+
+//============================================
+//============================================
+void   mySum(TString cCore, TString text){
+  gStyle->SetOptStat(1001110);
+  gStyle->SetOptFit(1);
+  
+  can=new TCanvas("aa","aa",700,700);    TPad *c=makeTitle(can,text);
+
+  c->Divide(1,2);
+  //  fd->ls();
+  c->cd(1);
+  TH1 * h=(TH1 *)fd->Get("myStat"); assert(h);
+  h->Draw();
+
+
+  c->cd(2);
+  h=(TH1 *)fd->Get("inpPattNo"); assert(h);
+  h->Draw();
+}
+
 
 //============================================
 //============================================
@@ -227,7 +249,7 @@ TPad *makeTitle(TCanvas *c,char *core) {
 
 //============================
 void doAll(){
-  for(int i=1;i<=7;i++)  {
+  for(int i=1;i<=8;i++)  {
     plCor(i);
   }
 

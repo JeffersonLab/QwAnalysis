@@ -155,7 +155,11 @@ JbCorrelator::finish(){
       if(avrL>meanI) avrL=meanI;
       if(avrH<meanI) avrH=meanI;
     }
-    rmsStr+=Form("<td> %.0f",sigI);
+    if(sigI<10000)
+      rmsStr+=Form("<td> %.0f",sigI);
+    else
+      rmsStr+=Form("<td> > 10k ");
+
   }
   cout<<"#"<<mCore<<"RMS,"<<rmsStr<<endl;
   cout<<Form("#%sAVR, %.1f  to  %.1f",mCore.Data(),avrL, avrH) <<endl;

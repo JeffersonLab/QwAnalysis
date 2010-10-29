@@ -22,7 +22,7 @@ class JbLeafTransform {
   
   // pointers to leaf variables
   Double_t *pLeafMD[mxMD]; 
-  Double_t *pLeafBCM;
+  Double_t *pLeafBCM, *pLeafPattNo;
   Double_t *pLeafBPM[mxBPM]; 
 
   // histograms

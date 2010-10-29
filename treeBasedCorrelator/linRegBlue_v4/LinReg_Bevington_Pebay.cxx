@@ -229,7 +229,7 @@ void LinRegBevPeb::printSummaryY(){
 //==========================================================
 void LinRegBevPeb::printSummaryAlphas(){
   cout << Form("\nLinRegBevPeb::printSummaryAlphas seen good eve=%lld",fGoodEventNumber)<<endl;
-  cout << Form("\n  j                mean          sig       mean/sigma\n");
+  cout << Form("\n  j                slope         sigma     mean/sigma\n");
   for (int iy = 0; iy <par_nY; iy++) {
     cout << Form("dv=Y%d: ",iy)<<endl;
     for (int j = 0; j < par_nP; j++) {
@@ -238,7 +238,7 @@ void LinRegBevPeb::printSummaryAlphas(){
       double nSig=val/err;
       char x=' ';
       if(fabs(nSig)>3.) x='*';
-      cout << Form("  alpha_%d = %11.3g  +/-%11.3g  (nSig=%.2f) %c\n",j,val, err,nSig,x);
+      cout << Form("  slope_%d = %11.3g  +/-%11.3g  (nSig=%.2f) %c\n",j,val, err,nSig,x);
     }
   }
 }

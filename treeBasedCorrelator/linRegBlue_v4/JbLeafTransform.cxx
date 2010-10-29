@@ -68,11 +68,15 @@ void JbLeafTransform::findInputLeafs(TChain *chain){
 #if 1
   {  // Access other iv leafs
     TString other="yield_qwk_bcm1/hw_sum";
-    TLeaf *lf=chain->GetLeaf(other);
-    assert(lf);
-    Double_t* p=(Double_t*)lf->GetValuePointer();    
-    assert(p);
+    TLeaf *lf=chain->GetLeaf(other);    assert(lf);
+    Double_t* p=(Double_t*)lf->GetValuePointer();    assert(p);
     pLeafBCM=p;
+
+    other="pattern_number";
+    lf=chain->GetLeaf(other);    assert(lf);
+    p=(Double_t*)lf->GetValuePointer();    assert(p);
+    pLeafPattNo=p;
+
   }
 #endif
 
@@ -141,9 +145,11 @@ bool JbLeafTransform::unpackEvent(){
   }
 
   double bcm1_uA=(*pLeafBCM);
-  
+  double pattNo=(*pLeafPattNo);
+
   if(bcm1_uA!= bcm1_uA)  return false; // corrupted event
   hA[1]->Fill(bcm1_uA);
+  hA[2]->Fill(pattNo);
   
   hA[0]->Fill("ok", 1.);
   return true;
@@ -180,6 +186,10 @@ JbLeafTransform::initHistos(){
 
   hA[1]=h=new TH1F("inpBcm1","BCM1 yield  before cuts; current  #mu A ",128,0,0);
   h->SetFillColor(kBlue);
+  h->SetBit(TH1::kCanRebin);
+
+  hA[2]=h=new TH1F("inpPattNo","Pattern_number ;event counter",500,0,0);
+  h->SetFillColor(kYellow);
   h->SetBit(TH1::kCanRebin);
 
 
