@@ -5,7 +5,7 @@
 std::string QwRootFile::fDefaultRootFileStem = "Qweak_";
 
 const Long64_t QwRootFile::kMaxTreeSize = 10000000000LL;
-
+const Int_t QwRootFile::kMaxMapFileSize = 0x20000000; // 512 MiB
 
 /**
  * Constructor with relative filename
@@ -18,27 +18,21 @@ QwRootFile::QwRootFile(const TString& run_label)
 
   // Check for the memory-mapped file flag
   if (fEnableMapFile) {
-
-    // Set up map file
     TString mapfilename = getenv_safe_TString("QW_ROOTFILES");
     mapfilename += "/QwMemMapFile.map";
-    fMapFile = new QwMapFile(mapfilename, "Memory Mapped File", "RECREATE");
-    // //Reload the tree trim new file for real time mode.
-    //   gQwHists.LoadTreeParamsFromFile("Qweak_RT_Tree_Trim_List.in");
-    // //Reload the histo trim new file for real time mode.    
-    //     gQwHists.LoadHistParamsFromFile("Qweak_RT_Hist_Trim_List.in");
-    if (! fMapFile)
+ 
+    fMapFile = TMapFile::Create(mapfilename,"RECREATE", kMaxMapFileSize, "RealTime Producer File");
+
+    if (not fMapFile) {
       QwError << "Memory-mapped file " << mapfilename
               << " could not be opened!" << QwLog::endl;
-    else
+    }
+    else {
+      std::cout << "================== RealTime Producer Memory Map File =================" << std::endl;
       fMapFile->Print();
-
-    //    // Disable tree in map file mode
-    //    fDisableAllTrees = true; 
-    //Since we are using a tree within the map file we no longer scifically set this to false in RT mode
-
-  // Otherwise we are in offline mode
-  } 
+      std::cout << "======================================================================" << std::endl;
+    }
+  }
   else {
 
     TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
@@ -64,7 +58,6 @@ QwRootFile::QwRootFile(const TString& run_label)
 				 run_condition.GetName()
 				 );
       }
-      //   delete run_cond_list;
     }
   }
 };
@@ -78,7 +71,7 @@ QwRootFile::~QwRootFile()
   // Close the map file
   if (fMapFile) {
     fMapFile->Close();
-    delete fMapFile;
+    // TMapFiles may not be deleted
     fMapFile = 0;
   }
 
@@ -142,7 +135,7 @@ void QwRootFile::DefineOptions(QwOptions &options)
      "TTree autosave value");
 
   options.AddOptions()
-    ("circular-buffer", po::value<int>()->default_value(0),
+    ("circular-buffer", po::value<int>()->default_value(25000),
      "Max. no.of entries to kept in the memory mapped tree");
 }
 
