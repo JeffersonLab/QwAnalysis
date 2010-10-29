@@ -87,7 +87,7 @@
 #include "QwGUIMainDetector.h"
 #include "QwGUILumiDetector.h"
 #include "QwGUIInjector.h"
-#include "QwGUIEventDisplay.h"
+//#include "QwGUIEventDisplay.h"
 //#include "QwGUIHelpBrowser.h"
 #include "QwGUICorrelationPlots.h"
 #include "QwGUIHallCBeamline.h"
@@ -114,7 +114,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUIMainDetector      *MainDetSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
-  QwGUIEventDisplay      *EventDisplaySubSystem;
+  //  QwGUIEventDisplay      *EventDisplaySubSystem;
   QwGUICorrelationPlots  *CorrelationSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
 
@@ -136,10 +136,8 @@ class QwGUIMain : public TGMainFrame {
   Bool_t                  dProcessing;
   Bool_t                  dProcessHalt;
 
-  //!File/Run open flags
-  Bool_t                  dRootFileOpen;
+
   Bool_t                  dMapFileOpen;
-  Bool_t                  dLogFileOpen;
   Bool_t                  dRunOpen;
 
   Char_t                  dLogfilename[NAME_STR_MAX];//Name for Current log file
@@ -150,8 +148,6 @@ class QwGUIMain : public TGMainFrame {
   Char_t                  dMiscbuffer[MSG_SIZE_MAX];
   Char_t                  dMiscbuffer2[MSG_SIZE_MAX];
 
-  Char_t                  dTime[NAME_STR_MAX];
-  Char_t                  dDate[NAME_STR_MAX];
 
   //!Command line argument structure (not currently implemented)
   ClineArgs               dClArgs;
@@ -190,7 +186,7 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dMainCnvLayout;
 
   //!Main window log book environment
-  TGText                 *dLogText;
+  // TGText                 *dLogText;
   TGTextEdit             *dLogEdit;
   TGHorizontalFrame      *dLogTabFrame;
   TGLayoutHints          *dLogTabLayout;
@@ -205,22 +201,10 @@ class QwGUIMain : public TGMainFrame {
   TGPopupMenu            *dMenuHistoState;//this has options to reset and accumulate histograms
   TGLayoutHints          *dMenuBarLayout;
   TGLayoutHints          *dMenuBarItemLayout;
-  //  TGLayoutHints          *dMenuBarHelpLayout;
-
-  //!This function is used to append new messages to the log book. It cannot
-  //!be used from other classes. Instead, the QwGUISubSystem class implements the
-  //!SendMessageSignal() and GetMessage() connection mechanism and derived subsystem classes
-  //!use SetLogMessage() to pass messages to the log (see QwGUIMainDetector class for an example).
-  //!
-  //!Parameters:
-  //! - 1) Text to be added to the log (must be allocated and filled prior to passing)
-  //! - 2) Flag to specify whether the time of the log message should be indicated
-  //!
-  //!Return value: Error value;
-  Int_t                   Append(const char *buffer,Bool_t T_Stamp = kFalse);
+ 
 
   //!This function is used via the program menu and should not be called directly.
-  void                    CloseLogFile();
+  //  void                    CloseLogFile();
   //!This function is used via the program menu and should not be called directly.
   //  void                    CloseRootFile();
   
@@ -237,27 +221,6 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: subsystem pointer
   QwGUISubSystem         *GetSubSystemPtr(const char*);
 
-  //!This function returns the name of a file to be openend/saved, as obtained from user input
-  //!via a dialog box. This function does not open the file.
-  //!
-  //!Parameters:
-  //! - 1) Filename container (must be allocated before passing to function)
-  //! - 2) File extension container (must be allocated and specify desired file type extension
-  //!                             valid extensions are: .root, .dat, .txt, .csv, and .log
-  //! - 3) File status:
-  //!                - FS_NEW (new file which has never been saved before -- dialog box is opened
-  //!                         as a "save as" box ...)
-  //!                - FS_OLD (file was previously saved -- dialog box is opened
-  //!                        as a standard "file open" box ...)
-  //! - 4) Specifies whether to notify user of file operation and give a continue/cancel option
-  //!   dialog box. Argument 5 must be allocated when this is set to kTrue.
-  //! - 5) Notification text container to be shown when parameter 4 is set to kTrue.
-  //!
-  //!Return value: Error value.
-  Int_t                   GetFilenameFromDialog(char *, const char *,
-						ERFileStatus status = FS_OLD,
-						Bool_t kNotify = kFalse,
-						const char *notifytext = NULL);
 
   //!This function looks for the index of a tab with the specified name (same as tab label).
   //!The tab index is used to add and/or remove tabs from the tab environment.
@@ -281,35 +244,6 @@ class QwGUIMain : public TGMainFrame {
   //!This function initiates the final tab layout after a tab has been removed.
   void                   UnMapLayout(Int_t tab){dTab->RemoveTab(tab); dTab->Layout();};
 
- 
-  //!This function opens a new log file. If there is no log tab, a new tab is created automatically
-  //!
-  //!Parameters:
-  //! - 1) File status: Only used if parameter 2 is NULL. In that case the file status is passed on
-  //!                   to the function GetFilenameFromDialog(...).
-  //! - 2) Filename container: If this is NULL, then the filename is obtained from a dialog box
-  //!                          entry by calling the function GetFilenameFromDialog(...).
-  //!
-  //!Return value: Error value;
-  Int_t                   OpenLogFile(ERFileStatus status = FS_OLD, const char* file = NULL);
-
-  //!This function is called via menu selection.
-  //!It opens a new root file. If no file name is specified, the function asks the
-  //!user for a filename via the GetFilenameFromDialog(...) function. The function instantiates
-  //!a new generic data container from the class RDataContainer. This container is passed to all
-  //!instantiated susbsystems and allows each of them to read the data specific to the subsystem.
-  //!Currently only one root file can be open at a time, and the function also disables the menu
-  //!entry for this function.
-  //!
-  //!Parameters:
-  //! - 1) File status: Only used if parameter 2 is NULL. In that case the file status is passed on
-  //!                   to the function GetFilenameFromDialog(...).
-  //! - 2) Filename container: If this is NULL, then the filename is obtained from a dialog box
-  //!                          entry by calling the function GetFilenameFromDialog(...).
-  //!
-  //!Return value: Error value;
-  //  Int_t                   OpenRootFile(ERFileStatus status = FS_OLD, const char* file = NULL);
-
   //!This function is called via menu selection.
   //!It opens the map file. Currently it will open a map file at a default location.
   //!It will be updated so that,If no file name is specified, the function asks the
@@ -329,53 +263,6 @@ class QwGUIMain : public TGMainFrame {
   Int_t                   OpenMapFile();
 
   
-  //!This function removes the log book tab, when the correpsonding menu item is selected. The
-  //!data in the current log book is not lost or closed when the tab is removed.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  void                    RemoveLogTab();
-
-  //!This function can be used to save a log file, with or without the use of a file dialog box.
-  //!
-  //!Parameters:
-  //! - 1) File status: Only used if parameter 2 is NULL. In that case the file status is passed on
-  //!                   to the function GetFilenameFromDialog(...).
-  //! - 2) Filename container: If this is NULL, then the filename is obtained from a dialog box
-  //!                          entry by calling the function GetFilenameFromDialog(...).
-  //!
-  //!Return value: Error value;
-  Int_t                   SaveLogFile(ERFileStatus status = FS_OLD, const char* file = NULL);
-
-
-  //!This function is used to set the currently open log book file name, when it is saved or opened
-  //!from an existing file.
-  //!
-  //!Parameters:
-  //! - 1) Filename container
-  //!
-  //!Return value: none
-  void                    SetLogFileName(const char *name){strcpy(dLogfilename,name);};
-
-  //!This function sets the log file open or closed flag.
-  //!
-  //!Parameters:
-  //! - 1) Boolean Open/Close Flag
-  //!
-  //!Return value: none
-  void                    SetLogFileOpen(Bool_t open = kFalse){dLogFileOpen = open;};
-
-  //!This function is used to set the current root file name, when it is saved or opened from an existing
-  //!file.
-  //!
-  //!Parameters:
-  //! - 1) Filename container
-  //!
-  //!Return value: none
-  //  void                    SetRootFileName(char *name){strcpy(dRootfilename,name);};
-
   //!This function is used to set the current root file name, when it is saved or opened from an existing
   //!file.
   //!
@@ -403,7 +290,8 @@ class QwGUIMain : public TGMainFrame {
 
 
   void                    SleepWithEvents(int seconds);
-  TCanvas                *SplitCanvas(TRootEmbeddedCanvas *,int,int,const char*);
+
+  // TCanvas                *SplitCanvas(TRootEmbeddedCanvas *,int,int,const char*);
 
 
   //!This function checks to see if a tab with a certain name is already active.
@@ -413,28 +301,6 @@ class QwGUIMain : public TGMainFrame {
   //!
   //!Return value: Boolean flag = kTrue if a tab of the given name exists, otherwise returns kFalse
   Bool_t                  TabActive(const char *);
-
-  //!If the current text in the log book tab editor is not already saved under a filename, then
-  //!function obtains a new filename and saves the text to the file with that name. Otherwise the
-  //!the text is written to the file that is currently open.
-  //!
-  //!Parameters:
-  //! - 1) Filename container
-  //!
-  //!Return value: Error value
-  Int_t                   WriteLogData(const char*);
-
-  //!If the current text in the log book tab editor is not already saved under a filename, then
-  //!function obtains a new filename and saves the text to the file with that name. Otherwise the
-  //!the text is written to the file that is currently open.
-  //!
-  //!Parameters:
-  //! - 1) Filename container
-  //!
-  //!Return value: Error value
-
-  //!Not yet implemented.
-  Int_t                   WriteRootData();
 
   //!Parameters:mapfile name
   //!
@@ -482,17 +348,17 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: Error value
   virtual void           CloseWindow();
 
-  //!This function returns the current date.
-  Char_t                *GetDate();
+  /* //!This function returns the current date. */
+  /* Char_t                *GetDate(); */
   //!This function return the current run number.
   Int_t                  GetCurrentRunNumber(){return dCurRun;};
   //!This function return the current log book file name.
-  char*                  GetLogFileName(){return dLogfilename;};
+  /* char*                  GetLogFileName(){return dLogfilename;}; */
   //!This function return a new unique tab menu ID. It is used each time a
   //!new subsystem is added to the list of tabs.
   Int_t                  GetNewTabMenuID() {MCnt++; return M_TABS+MCnt;}
   //!This function return the current root file name.
-  char*                  GetRootFileName(){return dRootfilename;};
+  /* char*                  GetRootFileName(){return dRootfilename;}; */
 
   //! This function returns the menu ID for a menu entry corresponding to
   //! the tab with name "TabName"; needed when checking (showing) and
@@ -514,39 +380,10 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: tab name container pointer
   const char            *GetTabMenuLabel(Long_t mID);
 
-  //!This function returns the current time.
-  Char_t                *GetTime();
-
-  //!This function returns a true/false flag to indicate whether a log file is
-  //!currently open.
-  Bool_t                 IsLogFileOpen(){return dLogFileOpen;};
-  //!This function returns a true/false flag to indicate whether a root file is
-  //!currently open.
-  Bool_t                 IsRootFileOpen(){return dRootFileOpen;};
-
   //!This function returns a true/false flag to indicate whether a map file is
   //!currently open.
   Bool_t                 IsMapFileOpen(){return dMapFileOpen;};
 
-
-  //!Signal receiver function, called when the log file is closed via the context menu provided
-  //!by the TGTextEdit object.
-  //!Sets the dLogFileOpen to false and removes the filename string from variable dLogfilename.
-  void                   LogClosed();
-  //!Signal receiver function, called when a log file is opened via the context menu provided
-  //!by the TGTextEdit object.
-  //!Sets the dLogFileOpen to true and adds the filename to variable dLogfilename, unless
-  //!the file is new and unnamed. The filenames are obtained from the TGTextEdit object.
-  void                   LogOpened();
-  //!Signal receiver function, called when a log file is saved via the context menu provided
-  //!by the TGTextEdit object.
-  //!Sets the dLogFileOpen to true and adds the filename to variable dLogfilename.
-  //!The filenames are obtained from the TGTextEdit object.
-  void                   LogSaved();
-  //!Signal receiver function, called when a log file is saved via the context menu.
-  //!Sets the dLogFileOpen to true and adds the NEW filename to variable dLogfilename.
-  //!The filenames are obtained from the TGTextEdit object.
-  void                   LogSavedAs();
 
   //!This function can be used to process events that happen within the main window tab;
   //!such as mouse clicks and movement, etc...
@@ -589,16 +426,6 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: none
   void                   OnReceiveMessage(const char *);
 
-  //!Receiver function, called when a connected canvas pad is mouse selected.
-  //!
-  //!Parameters:
-  //! - 1) Pointer to the selected pad within the canvas
-  //! - 2) Pointer to the selected object within the selected pad
-  //! - 3) Event type integer (such as kButton1Double defined in the ROOT TGMainFrame class)
-  //!
-  //!Return value: none
-  void                   PadIsPicked(TPad* selpad, TObject* selected, Int_t event);
-
   //!This function is overwritten from the TGMainFrame class, to handle all mouse and keyboard interactions
   //!with any main window widget or menu item. Dialog box classes and other sub frames can handle
   //!their own interactions within their own ProcessMessage functions.
@@ -628,9 +455,6 @@ class QwGUIMain : public TGMainFrame {
   //!
   //!Return value: Error value
   void                   RemoveTab(QwGUISubSystem*);
-
-  //!Not currently used!
-  void                   WritePid();
 
   ClassDef(QwGUIMain,0);
 };

@@ -387,7 +387,7 @@ void QwGUILumiDetector::PlotUSLumi(){
 
 
 
-  printf("QwGUILumiDetector::PlotUSLumi() \n");
+  //  printf("QwGUILumiDetector::PlotUSLumi() \n");
 };
 
 void QwGUILumiDetector::PlotDSLumi()
@@ -517,7 +517,7 @@ void QwGUILumiDetector::SetComboIndex(Int_t cmb_id, Int_t id){
 
 void QwGUILumiDetector::LoadLUMICombo(){
   dComboBoxLUMI->RemoveAll();
-  printf("QwGUILumiDetector::LoadHCBCMCombo \n");
+  //  printf("QwGUILumiDetector::LoadHCBCMCombo \n");
   std::size_t i = 0;
   for(i=0;i<fLUMIDevices.at(VQWK_LUMI).size();i++){
     dComboBoxLUMI->AddEntry(fLUMIDevices.at(VQWK_LUMI).at(i),i);
@@ -530,7 +530,7 @@ void QwGUILumiDetector::LoadLUMICombo(){
 
 void QwGUILumiDetector::LoadSCALERCombo(){
   dComboBoxSCALER->RemoveAll();
-  printf("QwGUILumiDetector::LoadHCBCMCombo \n");
+  //  printf("QwGUILumiDetector::LoadHCBCMCombo \n");
   std::size_t i = 0;
   for(i=0;i<fLUMIDevices.at(SCALER_LUMI).size();i++){
     dComboBoxSCALER->AddEntry(fLUMIDevices.at(SCALER_LUMI).at(i),i);
@@ -666,7 +666,7 @@ void QwGUILumiDetector::PlotLumiScaler()
   }
   
 
-   printf("---------------PlotLumiScaler()--------------------\n");  
+   //   printf("---------------PlotLumiScaler()--------------------\n");  
 };
 
 void QwGUILumiDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
