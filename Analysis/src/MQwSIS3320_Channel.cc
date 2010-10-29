@@ -33,7 +33,7 @@ const unsigned int MQwSIS3320_Channel::MODE_SINGLE_EVENT = 0x4;
 const unsigned int MQwSIS3320_Channel::MODE_NOTREADY = 0xda00;
 
 // Compile-time debug level
-const Bool_t MQwSIS3320_Channel::kDEBUG = kTRUE;
+const Bool_t MQwSIS3320_Channel::kDEBUG = kFALSE;
 
 
 /**
@@ -461,7 +461,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator= (const MQwSIS3320_Channel &val
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) = value.fSamples.at(i);
+      fSamples.at(i) = value.fSamples.at(i);
   }
   return *this;
 };
@@ -475,7 +475,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) += value;
+      fSamples.at(i) += value;
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators.at(i) += value;
   }
   return *this;
 };
@@ -489,7 +491,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) -= value;
+      fSamples.at(i) -= value;
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators.at(i) -= value;
   }
   return *this;
 };
@@ -503,7 +507,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const MQwSIS3320_Channel &va
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) += value.fSamples.at(i);
+      fSamples.at(i) += value.fSamples.at(i);
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators.at(i) += value.fAccumulators.at(i);
   }
   return *this;
 };
@@ -517,7 +523,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &va
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) -= value.fSamples.at(i);
+      fSamples.at(i) -= value.fSamples.at(i);
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators.at(i) -= value.fAccumulators.at(i);
   }
   return *this;
 };
@@ -553,6 +561,8 @@ void MQwSIS3320_Channel::Offset(Double_t offset)
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
       fSamples.at(i) += offset;
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators.at(i) += offset;
   }
 };
 
@@ -565,6 +575,8 @@ void MQwSIS3320_Channel::Scale(Double_t scale)
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
       fSamples.at(i) *= scale;
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators.at(i) *= scale;
   }
 };
 
@@ -606,6 +618,12 @@ void MQwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix
     //  This channel is not used, so skip filling the histograms.
   } else {
 
+    // Accumulators
+    for (size_t i = 0; i < fAccumulators.size(); i++) {
+      fAccumulators[i].ConstructHistograms(folder,prefix);
+      fAccumulatorsRaw[i].ConstructHistograms(folder,prefix);
+    }
+
     TString basename, fullname;
     basename = prefix + GetElementName();
 
@@ -625,6 +643,13 @@ void MQwSIS3320_Channel::FillHistograms()
   if (IsNameEmpty()) {
       //  This channel is not used, so skip creating the histograms.
   } else {
+
+    // Accumulators
+    for (size_t i = 0; i < fAccumulators.size(); i++) {
+      fAccumulators[i].FillHistograms();
+      fAccumulatorsRaw[i].FillHistograms();
+    }
+
     if (fHistograms[++index] != NULL)
       fHistograms[index]->Fill(fAverageSamples.GetSum());
     if (fHistograms[++index] != NULL)

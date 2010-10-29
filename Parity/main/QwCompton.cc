@@ -118,7 +118,6 @@ int main(int argc, char* argv[])
 
   /// Set the command line arguments and the configuration filename
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("qwcompton.conf");
   /// Define the command line options
   QwEventBuffer::SetDefaultDataFileStem("Compton_");
   QwRootFile::SetDefaultRootFileStem("Compton_");
@@ -212,22 +211,6 @@ int main(int argc, char* argv[])
       // Helicity pattern
       helicitypattern.LoadEventData(detectors);
 
-//       // Print the helicity information
-//       if (bHelicity) {
-//         // - actual helicity
-//         if      (helicity->GetHelicityActual() == 0) QwOut << "-";
-//         else if (helicity->GetHelicityActual() == 1) QwOut << "+";
-//         else QwOut << "?";
-//         // - delayed helicity
-//         if      (helicity->GetHelicityDelayed() == 0) QwOut << "(-) ";
-//         else if (helicity->GetHelicityDelayed() == 1) QwOut << "(+) ";
-//         else QwOut << "(?) ";
-//         if (helicity->GetPhaseNumber() == kMultiplet) {
-//           QwOut << std::hex << helicity->GetRandomSeedActual() << std::dec << ",  \t";
-//           QwOut << std::hex << helicity->GetRandomSeedDelayed() << std::dec << QwLog::endl;
-//         }
-//       }
-
 
       // Fill the histograms
       rootfile->FillHistograms(detectors);
@@ -244,11 +227,14 @@ int main(int argc, char* argv[])
         // Calculate the asymmetry
         helicitypattern.CalculateAsymmetry();
         if (helicitypattern.IsGoodAsymmetry()) {
+
           // Fill histograms
           rootfile->FillHistograms(helicitypattern);
+
           // Fill tree branches
           rootfile->FillTreeBranches(helicitypattern);
           rootfile->FillTree("Hel_Tree");
+
           // Clear the data
           helicitypattern.ClearEventData();
         }
