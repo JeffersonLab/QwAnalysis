@@ -36,6 +36,7 @@ class LinRegBevPeb {
   void accumulate(double *P, double *Y);
   void solve();
   double Alpha(int ip, int iy){ return mA(ip,iy);} //ok
+  bool failed(){ return  fGoodEventNumber<2;}
 
   // after last event
   void printSummaryP();

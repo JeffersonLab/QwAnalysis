@@ -28,86 +28,117 @@ using namespace std;
 //========================
 //========================
 JbLeafTransform::JbLeafTransform(const char *core) {
-  mCore=core;
-  printf("constr of JbLeafTransform=%s\n",mCore.Data());
+  myName=core;
+  cutName="none"; cutFormula="";
+  printf("constr of JbLeafTransform=%s\n",myName.Data());
 }
 
+//========================
+//========================
+Double_t * 
+JbLeafTransform::getOneLeaf(TChain *chain, TString name,char *sub) {
+  // name.ToLower(); will crash :  diff_qwk_bpm3h09Y
+  name+=sub;
+  TLeaf *lf=chain->GetLeaf(name); 
+  if(lf==0) printf("Failed leaf=%s= \n",name.Data());
+  assert(lf);
+  Double_t* p=(Double_t*)lf->GetValuePointer();    
+  assert(p);
+  return p;
+}
 
 //========================
 //========================
-void JbLeafTransform::findInputLeafs(TChain *chain){
-  printf("JbLeafTransform_%s findInputLeafs\n",mCore.Data());
-  TString cBPM[mxBPM]={"3h04X","3h04Y","3h09X","3h09Y","3c12X"};
-
-  // set  iv names
-  for(int i=0;i<nP;i++) Pname[i]=cBPM[i];
-
-  // Access MD leafs
-  for(int imd=0;imd<mxMD;imd++){
-    Yname[imd]=Form("md%d",imd+1);
-    TString name="asym_"+Yname[imd]+"barsum/hw_sum";
-    TLeaf *lf=chain->GetLeaf(name); 
-    printf("imd=%d  name=%s= lf=%p\n",imd,name.Data(),lf);
-    assert(lf);
-    Double_t* p=(Double_t*)lf->GetValuePointer();    
-    assert(p);
-    pLeafMD[imd]=p;    
-  }
-
-  // set  remaining dv names
-  Yname[8]="mdh";
-  Yname[9]="mdv";
-  Yname[10]="mdd1";
-  Yname[11]="mdd2";
-
-  Yname[12]="mdc";
-  Yname[13]="mdx";
-  Yname[14]="mda";
-
-
-#if 1
-  {  // Access other iv leafs
-    TString other="yield_qwk_bcm1/hw_sum";
-    TLeaf *lf=chain->GetLeaf(other);    assert(lf);
-    Double_t* p=(Double_t*)lf->GetValuePointer();    assert(p);
-    pLeafBCM=p;
-
-    other="pattern_number";
-    lf=chain->GetLeaf(other);    assert(lf);
-    p=(Double_t*)lf->GetValuePointer();    assert(p);
-    pLeafPattNo=p;
-
-  }
-#endif
-
-
-  // Access dv leafs
-  for(int ib=0;ib<mxBPM;ib++){
-    TString name="diff_qwk_bpm"+cBPM[ib]+"/hw_sum";
-    TLeaf *lf=chain->GetLeaf(name); 
-    printf("ib=%d name=%s= lf=%p\n",ib,name.Data(),lf);
-    assert(lf);
-    Double_t* p=(Double_t*)lf->GetValuePointer();    
-    assert(p);
-    pLeafBPM[ib]=p;
-  }
+void 
+JbLeafTransform::findInputLeafs(TChain *chain){
+  printf("JbLeafTransform_%s findInputLeafs\n",myName.Data());
   
+  int k=0;
+  // Access DV leafs
+  for(int i=0;i<ndv();i++) {
+    pLeafDV[i]=getOneLeaf(chain,dvName[i],"/hw_sum");   
+    pLeafError[k++]=getOneLeaf(chain,dvName[i],"/Device_Error_Code");   
+  }
+  // Access IV leafs
+  for(int i=0;i<niv();i++){
+    pLeafIV[i]=getOneLeaf(chain,ivName[i],"/hw_sum");   
+    pLeafError[k++]=getOneLeaf(chain,ivName[i],"/Device_Error_Code");   
+  }
+
+  // Access Aux leafs
+  pLeafAux[0]=getOneLeaf(chain,"pattern_number","");
+  pLeafAux[1]=getOneLeaf(chain,"yield_qwk_bcm1","/hw_sum");
+  pLeafError[k++]=getOneLeaf(chain,"yield_qwk_bcm1","/Device_Error_Code");   
+
+  nLeafError=k;
+  hA[3]=new TH1F("inpDevErr",Form("device error code  !=0;channles: DV[0-%d], IV[%d-%d], BCM",ndv()-1,ndv(),ndv()+niv()-1),nLeafError,-0.5,nLeafError-0.5);
+  hA[3]->SetFillColor(kGreen);
+
+
 }
 
 
 //========================
 //========================
-bool JbLeafTransform::unpackEvent(){
+void 
+JbLeafTransform::presetMyStat(double x1,double x2, double thr, double x3){
+  hA[0]->Fill("inpTree", x1);
+  hA[0]->Fill("customCut", x2);
+  hA[0]->Fill(Form("bcm >%.0f#muA",thr), x3);
+}
+
+//========================
+//========================
+bool 
+JbLeafTransform::unpackEvent(){
   hA[0]->Fill("inp", 1.);
-  // printf("\nJbLeafTransform_%s unpackEvent\n",mCore.Data());
-  double amd[mxMD];
 
-  // Access MD leafs
-  for(int imd=0;imd<mxMD;imd++){
-    amd[imd]=1e6*(*pLeafMD[imd]);
-    // printf("  imd=%d amd=%g\n",imd,amd[imd]);
+  // test for NaN as data are accessed 
+
+  // printf("\n-----------JbLeafTransform_%s unpackEvent\n",myName.Data());
+ 
+  // Access DV leafs
+  for(int i=0;i<ndv();i++){
+    //    printf("  dv=%d p=%p\n",i,pLeafDV[i]);
+    Yvec[i]=1e6*(*pLeafDV[i]);    
+    // printf("  dv=%d val=%g\n",i,Yvec[i]);
+    if(Yvec[i]!=Yvec[i])  return false; // corrupted event w/ NaN
   }
+
+  // Access IV leafs
+  for(int i=0;i<niv();i++){
+    // printf("  dv=%d p=%p\n",i,pLeafDV[i]);
+    Pvec[i]= 1e6*(*pLeafIV[i]);    
+    // printf("  iv=%d val=%g\n",i,Pvec[i]);
+    if(Yvec[i]!=Yvec[i])  return false; // corrupted event w/ NaN
+  }
+
+  // access Auxiliary values
+  for(int i=0;i<mxAux;i++) {
+    double val=*pLeafAux[i];
+    //printf("  aux=%d val=%g\n",i,val);
+    if(val!=val)  return false; // corrupted event w/ NaN
+  }
+
+  hA[0]->Fill("noNaN", 1.);
+
+  double pattNo=(*pLeafAux[0]);
+  double bcm1_uA=(*pLeafAux[1]);
+  hA[1]->Fill(bcm1_uA);
+  hA[2]->Fill(pattNo,bcm1_uA);
+
+  int eveBad=false;
+  for(int i=0; i<nLeafError;i++){
+    if((*pLeafError[i])==0.) continue;
+    // printf("xx i=%d\n",i);
+    eveBad=true;
+    hA[3]->Fill(i);
+  }
+  if(eveBad) return false;
+
+  hA[0]->Fill("noError", 1.);
   
+
   /* arrays w/ final 15 dv & iv variables
      1-bar tube combos:    MD 1-8 (all bars)
      2-bar combos:             MD H (3+7), V (1+5), D1 (2+6), D2(4+8)
@@ -118,50 +149,14 @@ bool JbLeafTransform::unpackEvent(){
   */
 
 
-  double mix[nY];
-  for(int i=0;i<mxMD;i++) mix[i]=amd[i];
-  mix[8]=(mix[2]+mix[6])/2.;   //mdh
-  mix[9]=(mix[0]+mix[4])/2.;   //mdv
-  mix[10]=(mix[1]+mix[5])/2.;  //mdd1
-  mix[11]=(mix[3]+mix[7])/2.;  //mdd2
-
-  mix[12]=(amd[0]+amd[2]+amd[4]+amd[6])/4.; //mdc
-  mix[13]=(amd[1]+amd[3]+amd[5]+amd[7])/4.; //mdx
-  mix[14]=(mix[12]+mix[13])/2.; //mda
-
-
-  // compute final dv's
-  for(int i=0;i<nY;i++) {
-    Yvec[i]=mix[i];
-    if(Yvec[i]!=Yvec[i]) return false; // corrupted event
-    //printf("%s dv_i=%d val=%g,   mix=%g bcm=%g  \n",Yname[i].Data(),i,Yvec[i],mix[i],bcm);    
-  }
-
-  // copy iv's to unify the interface
-  for(int i=0;i<nP;i++) {
-    Pvec[i]=1e6*(*pLeafBPM[i]);
-    if(Pvec[i]!=Pvec[i]) return false; // corrupted event
-    // printf("%s iv_i=%d val=%g \n",Pname[i].Data(),i,Pvec[i]);
-  }
-
-  double bcm1_uA=(*pLeafBCM);
-  double pattNo=(*pLeafPattNo);
-
-  if(bcm1_uA!= bcm1_uA)  return false; // corrupted event
-  hA[1]->Fill(bcm1_uA);
-  hA[2]->Fill(pattNo);
-  
-  hA[0]->Fill("ok", 1.);
-  return true;
-  
+  return true;  
 }
 
 
-
-
 //========================
 //========================
-void JbLeafTransform::init() {
+void 
+JbLeafTransform::init() {
   initHistos(); 
 }
 
@@ -172,11 +167,11 @@ void
 JbLeafTransform::initHistos(){
   printf("JbLeafTransform::initHistos()\n");
 
-  TH1F *h;
+  TH1 *h;
   //...... data histograms
   memset(hA,0,sizeof(hA));
-  int nCase=4;
-  hA[0]=h=new TH1F("myStat","Qweak: event count; case",nCase,0,nCase);
+  int nCase=6;
+  hA[0]=h=new TH1F("myStat","blueRegression: event count",nCase,0,nCase);
   h->GetXaxis()->SetTitleOffset(0.4);  h->GetXaxis()->SetLabelSize(0.06);  h->GetXaxis()->SetTitleSize(0.05); h->SetMinimum(0.8);
   h->SetLineColor(kBlue);h->SetLineWidth(2);
   h->SetMarkerSize(2);//<-- large text
@@ -184,15 +179,16 @@ JbLeafTransform::initHistos(){
   // char key[][200]={"inp","BHT3Id","L2wId"};
   // for(int i=0;i<4;i++) h->Fill(key[i],0.); // preset the order of keys
 
-  hA[1]=h=new TH1F("inpBcm1","BCM1 yield  before cuts; current  #mu A ",128,0,0);
+  hA[1]=h=new TH1F("inpBcm1","BCM1 yield after cuts; current  #mu A ",128,0.,0.);
   h->SetFillColor(kBlue);
   h->SetBit(TH1::kCanRebin);
 
-  hA[2]=h=new TH1F("inpPattNo","Pattern_number ;event counter",500,0,0);
-  h->SetFillColor(kYellow);
-  h->SetBit(TH1::kCanRebin);
+  hA[2]=h=new TProfile("inpPattNo","Current stability; Pattern_number; BCM1 (#mu A)    ",500,0.,0.);
+  h->SetFillColor(kYellow);  h->SetBit(TH1::kCanRebin); // rescalled in finish
 
 
+  // hA[3] is set in findInputLeafs()
+  
 }
 
 
@@ -200,20 +196,87 @@ JbLeafTransform::initHistos(){
 //________________________________________________
 void
 JbLeafTransform::finish(){
-
-  printf("::::::::::::::::JbLeafTransform::finish(%s) :::::::::::\n",mCore.Data());
- 
+  printf("::::::::::::::::JbLeafTransform::finish(%s) :::::::::::\n",myName.Data());
 
 
 }
 
 //========================
 //========================
-void JbLeafTransform::print() {
+void 
+JbLeafTransform::print() {
 
-  printf("JbLeafTransform_%s print:\n  nP=%d  nY=%d\n",mCore.Data(),nP,nY);
-#if 0
-  for(int i=0;i<;i++) printf("%10s : P%d avr=%f   alpha=%.3f\n",Pname2[i],i,par_Pavr[i], par_Alpha[i]);
-#endif
+  printf("JbLeafTransform: myName='%s' , inpTree='%s'  regVarName=%s, len: dv=%d iv=%d  nLeafErr=%d\nDV: ",myName.Data(),inpTree.Data(),regVarName.Data(),(int)dvName.size(),(int)ivName.size(), nLeafError);
+  printf("  custom cut: name=%s  formual='%s'\n",cutName.Data(), cutFormula.Data());
+  for(unsigned int i=0; i<dvName.size(); i++) printf("%s, ",dvName[i].Data());
+  printf("\nIV: ");
+  for(unsigned int i=0; i<ivName.size(); i++) printf("%s, ",ivName[i].Data());
+  printf("\nCorrFac: print-end\n");
 }
 
+//========================
+//========================
+void 
+JbLeafTransform::readConfig(const char * configFName){
+  
+  FILE *fp=fopen(configFName,"r");
+  assert(fp);
+  int ret=harvestNames(fp);
+  assert(ret==2);
+  fclose(fp);
+
+  assert(ndv()>0);
+  assert(niv()>0);
+
+  // allocate memory for leaves w/ data
+  pLeafDV= new Double_t * [ndv()];
+  Yvec   = new Double_t   [ndv()];
+  pLeafIV= new Double_t * [niv()];
+  Pvec   = new Double_t   [niv()];
+
+  // leavs w/ error code
+  pLeafError= new Double_t * [niv()+ndv()+1];
+  nLeafError=0;
+
+
+}
+
+//========================
+//========================
+int 
+JbLeafTransform::harvestNames(FILE *fp) {
+  assert(fp);
+  enum {mx=1000};
+  char buf[mx];
+  int nl=0;
+  int state=0; 
+  while(  fgets( buf, mx, fp)) {
+    nl++;
+    if (strstr(buf,"#")>0) continue;
+    char *x=strstr(buf, "\n"); if(x)*x=0;
+    //printf("line=%d  buf=%s=\n",nl,buf);
+    if(state==0) { // before  block of IV-DV is found
+      if (strstr(buf, "customcut")){
+	char name[1000], formula[10000];
+	int ret=sscanf(buf+9,"%s %s",name,formula);
+	printf("CUSTOM CUT line! ret=%d  name=%s= formula=%s=\n",ret,name,formula);
+	cutName=name;
+	cutFormula=formula;
+      }
+      if (strstr(buf, "regvars")==0) continue;// first search for new block
+      state=1;
+      regVarName=buf+8;
+      continue;
+    } 
+    if(state==1){ // increment iv & dv name lists
+      if (strstr(buf, "iv")) ivName.push_back(buf+3);
+      if (strstr(buf, "dv")) dvName.push_back(buf+3);
+      if (strstr(buf, "treetype")==0) continue;// first search for new block
+      state=2;
+      inpTree=buf+9;
+      continue;	
+    }
+  }
+  print();
+  return state;
+}

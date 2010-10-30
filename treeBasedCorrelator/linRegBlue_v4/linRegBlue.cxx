@@ -4,18 +4,16 @@
  *********************************************************************
  * Descripion:
  * Main program , run correlation and computes alphas for  QW event 
- * special version, automaticaly averaged pos+neg signals
+ * 
  *********************************************************************/
 #include <cstdio>// C++ standard since 1999
 #include <iostream>
 using namespace std;
 
-//#include <stdio.h>  
-//#include <cstdio>  
 #include <TFile.h>
 #include <TH2.h>
 #include <TTree.h> 
-//#include <TLeaf.h>//tmp 
+
 #include <TChain.h>
 #include <TObjArray.h>
 #include <TEventList.h> //tmp
@@ -26,65 +24,63 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
   int mxEve=500, skipEve=0;
-  const char *inpPath="/home/cdaq/qweak/QwScratch/rootfiles/"; //cdaq
-  //const char *inpPath="/u/home/cdaq/balewski_tmp/"; //ifarm4, R 5762.000
+  int runSeg=0;
+  const char * inpPath="/home/cdaq/qweak/QwScratch/rootfiles/QwPass1_"; //cdaq:Pass1
+  //const char * inpPath="/group/qweak/QwAnalysis/common/QwScratch/rootfiles/QwPass1.1_";//*QwPass1.1*
+
   const char * outPath="./out/";
+  const char * configFName="blueReg.conf";
+  const char * slopeFName=0;
 
   // decode input params
   if(argc<2) {
-    printf("Syntax: %s runNo.runSeq  [neve] [skipEve]\n STOP",argv[0]);
-    printf("    e.g.  %s 5762.000 500 \n",argv[0]); return -1;
+    printf("Syntax: %s runNo [runSeg]  [neve] [config] [slopes] \n STOP",argv[0]);
+    printf("    e.g.  %s 5762 [000]  [6000] [blueReg.conf]  [blue.slope.root] \n",argv[0]); return -1;
   }
-  char *runName=argv[1];
-  if ( argc>=3) mxEve=atoi(argv[2]);
-  if ( argc>=4) skipEve=atoi(argv[3]);
-  int runId=atoi(runName);
+  int runNo=atoi(argv[1]);
+  if ( argc>=3)  runSeg=atoi(argv[2]);
+  if ( argc>=4)  mxEve =atoi(argv[3]);
+  if ( argc>=5)  configFName=argv[4];
+  if ( argc>=6)  slopeFName =argv[5];
 
-  printf("Selected run=%s  mxEve=%d nSkip=%d\n", runName,mxEve,skipEve);
-  
+
+  TString runName=Form("%d.%03d",runNo,runSeg);
+
+  printf("Selected run=%s  mxEve=%d  skipEve=%d config=%s  slope=%s\n", runName.Data(),mxEve,skipEve,configFName,slopeFName);
+
+
   //...... access to inpute leafs
-  JbLeafTransform eve("tran"); // changes content of event
+  JbLeafTransform eve("filter"); // filter content of run, unpacks event
+  eve.readConfig(configFName);
   JbCorrelator corA("input"); //   correlator , passive 
 
   //..... try to open known correlation coef's.......
   JbCorrelator *corB=0;
   double *YvecNew=0;
-  TString corFileName=Form("%sR%d_alphas.root",outPath,runId);
-  TFile*  corFile=new TFile(corFileName);
   TMatrixD *alphasM=0; // indicator that coef's exist
-  if(corFile->IsOpen()) {
-    alphasM=(TMatrixD *) corFile->Get("alphas");
-    if(alphasM) {
-      corB=new JbCorrelator("regres"); //   2nd correlator after regression
-      YvecNew=new double [eve.nY];
- 
-      printf("opened %s, Alphas found, dump:\n",corFile->GetName());
-      alphasM->Print();
-#if 0
-      for (int iy = 0; iy <eve.nY; iy++) {
-	for (int ix = 0; ix < eve.nP; ix++) {
-	  printf("  iy=%d ix=%d val=%f \n",iy,ix,(*alphasM)(ix,iy));
-	}
-      }
-#endif
-
+  if( slopeFName) {
+    TString corFileName=Form("%s%s",outPath,slopeFName);
+    TFile*  corFile=new TFile(corFileName);
+    if( !corFile->IsOpen()) {
+      printf("Failed to open %s, Alphas NOT found\n",corFile->GetName());
+      return 0;
     }
+    alphasM=(TMatrixD *) corFile->Get("slopes");
+    assert(alphasM);
+    corB=new JbCorrelator("regres"); //   2nd correlator after regression
+    YvecNew=new double [eve.ndv()];
+    
+    printf("opened %s, Alphas found, dump:\n",corFile->GetName());
+    alphasM->Print();
     corFile->Close();
-  } else
-    printf("Failed to open %s, Alphas NOT found\n",corFile->GetName());
-  
+  }
+
   // .........   input  event file   .........
   TChain *chain = new TChain("Hel_Tree");  
-  // chain->SetBranchStatus("*",0); //disable all branches
-  //chain->SetBranchStatus("Hel_Tree",1);
-  
-  char *runL[]={runName}; int nr=1;
-  for(int i=0;i<nr;i++) {
-    TString treeFile=Form("%sQwPass1_%s.root",inpPath,runL[i]);
-    // TString treeFile=Form("%sQwPass1_%s.root",inpPath,runL[i]);
-    chain->Add(treeFile);
-    printf("%d =%s=\n",i,treeFile.Data());
-  }
+  TString treeFile=Form("%s%s.root",inpPath,runName.Data());
+  printf("add =%s=\n",treeFile.Data());
+  chain->Add(treeFile);
+
   int nEve=(int)chain->GetEntries();
   printf("tot nEve=%d expected in the chain \nscan leafs for iv & dv ...\n",nEve);
   printf("#totEve %d\n",nEve);
@@ -94,36 +90,46 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  // filter events with too low bcm1
-  //.... find mean bcm1
-  chain->Draw("yield_qwk_bcm1.hw_sum>>hist0");  
-  TH1* hist0=(TH1*)gDirectory->Get("hist0");
-  double xx=hist0->GetMean();
-  printf("mean BCM1 yield=%.1f  (uA)\n",xx);
-  
-  chain->Draw(">>elist1",Form("yield_qwk_bcm1.hw_sum >%f",xx-5.)); // cleanup cut
-  TEventList *list = (TEventList*)gDirectory->Get("elist1"); 
-  list->Print();
-
-#if 0
-  for(int k=0;k<100;k++) {
-    int ie=list->GetEntry(k);
-    printf("%d %d \n", k,ie);
-  }
-  return 0; 
-#endif
-
-
- eve.findInputLeafs(chain);
-  //eve.print();
-
-  TString hfileName=Form("%sR%s.hist.root",outPath,runName);
+  TString hfileName=Form("%sblueR%s.hist.root",outPath,runName.Data());
   TFile*  mHfile=new TFile(hfileName,"RECREATE"," histograms w/ regressed Qweak data");
   assert(mHfile->IsOpen());
   printf(" Setup output  histo to '%s' ,\n",hfileName.Data());
-  corA.init(eve.nP, eve.nY, eve.Pname, eve.Yname);   // creates histo 
-  eve.init();  // creates histo 
-  if(alphasM) corB->init(eve.nP, eve.nY, eve.Pname, eve.Yname); 
+
+  eve.init();  // creates histo: WARN: output histo file must be already opened   
+  eve.findInputLeafs(chain);
+  corA.init( eve.ivName, eve.dvName );   // creates histo 
+  if(alphasM) corB->init( eve.ivName, eve.dvName); 
+
+
+  // filter events with custom cut.
+  TString cutFormula="1==1"; // alwasy true
+  if(eve.cutFormula.Sizeof()>1) {
+    printf("Main: filter events with custom cut: name=%s  formula='%s'\n",eve.cutName.Data(), eve.cutFormula.Data());
+    cutFormula=eve.cutFormula;
+  }
+  chain->Draw(">>listA",cutFormula); // custom cleanup cut
+  TEventList *list = (TEventList*)gDirectory->Get("listA"); 
+  list->Print();
+  double listA_len= list->GetN();
+  printf("main list A size=%d\n", list->GetN()); 
+
+  chain->Draw("yield_qwk_bcm1.hw_sum>>histA",cutFormula);  
+  TH1* histA=(TH1*)gDirectory->Get("histA");
+  double xAvr=histA->GetMean();
+  int bin=histA->GetMaximumBin();
+  double xMPV=histA->GetXaxis()->GetBinCenter(bin);
+
+  printf("BCM1 average=%.1f (uA)  MPV=%.1f (uA), nEntries=%.0f\n",xAvr,xMPV,histA->GetEntries());
+  double bcmThres=xMPV-5.0;
+  cutFormula="("+cutFormula+Form(")&&(yield_qwk_bcm1.hw_sum >%.1f)",bcmThres);
+  printf("new cutForm='%s'\n",cutFormula.Data());
+  chain->Draw(">>listB",cutFormula); // cut includes BCM1 
+  list = (TEventList*)gDirectory->Get("listB"); 
+  list->Print();
+  double listB_len= list->GetN();
+  printf("main list B size=%d\n", list->GetN()); 
+
+  eve.presetMyStat(chain->GetEntries(),  listA_len,bcmThres,listB_len);
 
   int t1=time(0);
   int ie;
@@ -138,9 +144,9 @@ int main(int argc, char *argv[]) {
     seenEve++;
     corA.addEvent(eve.Pvec, eve.Yvec);
     if(alphasM) {// regress dv's
-      for (int iy = 0; iy <eve.nY; iy++) {
+      for (int iy = 0; iy <eve.ndv(); iy++) {
 	YvecNew[iy]=eve.Yvec[iy];
-	for (int ix = 0; ix < eve.nP; ix++) {
+	for (int ix = 0; ix < eve.niv(); ix++) {
 	  YvecNew[iy]-=eve.Pvec[ix]*(*alphasM)(ix,iy);
 	}
       }
@@ -156,17 +162,18 @@ int main(int argc, char *argv[]) {
   printf("#seenEve %d\n",seenEve);
 
   corA.finish();
+  eve.finish();
 
   if(alphasM) corB->finish();
   mHfile->Write(); 
   mHfile->Close();
-  TString outAlphas=Form("%sR%d_alphasNew.root",outPath,runId);
+  TString outAlphas=Form("%sblueR%snew.slope.root",outPath,runName.Data());
   corA.exportAlphas(outAlphas); 
 
-  TString outAlias=Form("%sregalias_r%d.C",outPath,runId);
-  corA.exportAlias((char*)outAlias.Data(), runId); 
+  TString outAlias=Form("%sregalias_r%s.C",outPath,runName.Data());
+  corA.exportAlias((char*)outAlias.Data(), runNo, eve.ivName, eve.dvName); 
 
-  printf("#success JB1 nEve=%d\n",nEve);
+  printf("#success JB1 nEve=%d  for %s\n",nEve,runName.Data());
 }
 
 

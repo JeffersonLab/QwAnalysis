@@ -14,23 +14,34 @@
 class TH1;
 class TChain;
 class JbLeafTransform {
+ public:
+  std::vector < TString > ivName; // list of independent variables
+  std::vector < TString > dvName; // list of dependent variables
+  TString inpTree, regVarName;
+  TString cutName, cutFormula;
+
+  int ndv(){return (int)dvName.size();}
+  int niv(){return (int)ivName.size();}
+  void readConfig(const char * configFName);
+  void presetMyStat(double x1,double x2, double thr, double x3);
 
  private:
-   TString mCore;
-  enum{ mxMD=8};// list:  MD, pos/neg
-  enum{ mxBPM=5};
-  
+  TString myName;
+  enum{ mxAux=2};// auxiliary variables: pattern, bcm1,
+   
   // pointers to leaf variables
-  Double_t *pLeafMD[mxMD]; 
-  Double_t *pLeafBCM, *pLeafPattNo;
-  Double_t *pLeafBPM[mxBPM]; 
-
+  Double_t **pLeafDV, **pLeafIV, *pLeafAux[mxAux], **pLeafError; 
+  int nLeafError;
+  Double_t * getOneLeaf(TChain *chain,TString name,char *sub); 
   // histograms
   enum {mxHA=16}; TH1 * hA[mxHA];
   void initHistos();
   
+  int harvestNames(FILE *fp);
+
  public:
   JbLeafTransform(const char *core); 
+  // add destructor for 'readConfig new'
   void print();
   void findInputLeafs(TChain *chain);
   bool unpackEvent();
@@ -44,74 +55,14 @@ class JbLeafTransform {
      named: md1,...,8, h,v,d1,d2,c,x,all
   */
 
-  enum{ nP=mxBPM,nY=8+4+2+1}; 
-  Double_t Pvec[nP], Yvec[nY];
-  TString  Pname[nP],  Yname[nY];
+
+  Double_t *Pvec, *Yvec;
+
 
   //old
   void init();
   void finish();
   
-};
-
-
-
-
-#endif
-
-
-#if 0
-
-//--------------------------
-class CorrelatorEntity {
-public:
-  std::vector < TString > ivName; // list of independent variables
-  std::vector < TString > dvName; // list of dependent variables
-  TString inpTree, myName;
-
-  int ndv(){return (int)dvName.size();}
-  int niv(){return (int)ivName.size();}
-
-  //..................
-  void printCE() {
-    printf("CorrFac: myName='%s' , inpTree='%s'  len: dv=%d iv=%d \nDV: ",myName.Data(),inpTree.Data(),(int)dvName.size(),(int)ivName.size());
-    for(unsigned int i=0; i<dvName.size(); i++) printf("%s, ",dvName[i].Data());
-    printf("\nIV: ");
-    for(unsigned int i=0; i<ivName.size(); i++) printf("%s, ",ivName[i].Data());
-    printf("\nCorrFac: print-end\n");
-  }
-
-  //...................
-  int harvestNames(FILE *fp) {
-    assert(fp);
-    enum {mx=1000};
-    char buf[mx];
-    int nl=0;
-    int state=0; 
-    while(  fgets( buf, mx, fp)) {
-      nl++;
-      if (strstr(buf,"#")>0) continue;
-      char *x=strstr(buf, "\n"); if(x)*x=0;
-      //printf("line=%d  buf=%s=\n",nl,buf);
-      if(state==0) { // found block name
-	if (strstr(buf, "block")==0) continue;// first search for new block
-	state=1;
-	myName=buf+6;
-	continue;
-      } 
-      if(state==1){ // increment iv & dv name lists
-	if (strstr(buf, "iv")) ivName.push_back(buf+3);
-	if (strstr(buf, "dv")) dvName.push_back(buf+3);
-	if (strstr(buf, "treetype")==0) continue;// first search for new block
-	state=2;
-	inpTree=buf+9;
-	continue;	
-      }
-    }
-    printCE();
-    return state;
-  }
-
 };
 
 

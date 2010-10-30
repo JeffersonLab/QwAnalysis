@@ -4,19 +4,20 @@ TFile* fd=0;
 enum{ nP=5,nY=15}; 
 TString cor1="input";
 int pl=2; //1=gif, 2=ps, 3=both
-TString runName="R5843.000";
+TString runName="R5823.000";
 TString inpPath="./out/";
 char *oPath="./out/";
 
 plCor(int page=1, char *runName0="RfixMe.000") {
   //  printf("ss=%s=\n",runName0);
-
-  if(page==0) {   runName=runName0; doAll();    return;   }
+ 
+  if(page==0) {   runName=runName0;  doAll();    return;   }
   gStyle->SetFillStyle(0);
   gStyle->SetPalette(1,0);
-  TString dataFinalRoot=inpPath+runName+".hist.root";
+  TString dataFinalRoot=inpPath+"blue"+runName+".hist.root";
 
   fd=new TFile( dataFinalRoot); assert(fd->IsOpen());
+  printf("Opened  histo=%s=\n",fd->GetName());
 
   if(page==1) mySum("mySummary","summary +QA ,"+runName); // just one set, old
   if(page==2) DV_1D("DV_1Da","regressed DV,"+runName,"regres"); // just one set, old
@@ -47,20 +48,43 @@ plCor(int page=1, char *runName0="RfixMe.000") {
 //============================================
 //============================================
 void   mySum(TString cCore, TString text){
-  gStyle->SetOptStat(1001110);
+  gStyle->SetOptStat(10);
   gStyle->SetOptFit(1);
   
-  can=new TCanvas("aa","aa",700,700);    TPad *c=makeTitle(can,text);
+  can=new TCanvas("aa","aa",800,600);    TPad *c=makeTitle(can,text);
+  c->cd();
+  TPad *cU,*cD;   splitPadY(0.55,&cU,&cD);    
 
-  c->Divide(1,2);
-  //  fd->ls();
-  c->cd(1);
-  TH1 * h=(TH1 *)fd->Get("myStat"); assert(h);
+  cD->Divide(3,1);
+
+  cU->cd(0);
+  h=(TH1 *)fd->Get("inpPattNo"); assert(h);
+  TAxis *ax=h->GetXaxis();
+  int nb=ax->GetNbins();
+  for(int j=nb; j>1; j--) {
+    if(h->GetBinContent(j) <=0) continue;
+    h->SetAxisRange(0., ax->GetBinCenter(j)*1.05);
+    printf("max j=%d of %d, eventID=%.1f\n", j,nb,ax->GetBinCenter(j));
+    break;
+  }
+  double yMax=h->GetMaximum();
+  h->SetMaximum(yMax*1.05);
+  h->SetMinimum(yMax*0.9);
+  // printf("xx min=%f\n", h->GetMinimumBin());
+  h->Draw();
+  
+
+  cD->cd(1);
+  h=(TH1 *)fd->Get("myStat"); assert(h);
+  h->Draw("h text");
+  h->SetMaximum(h->GetMaximum()*1.1);
+
+  cD->cd(2);
+  h=(TH1 *)fd->Get("inpBcm1"); assert(h);
   h->Draw();
 
-
-  c->cd(2);
-  h=(TH1 *)fd->Get("inpPattNo"); assert(h);
+  cD->cd(3);
+  h=(TH1 *)fd->Get("inpDevErr"); assert(h);
   h->Draw();
 }
 
@@ -79,17 +103,18 @@ void   IV_IV(TString cCore, TString text){
   for(int i=0;i<nP;i++) {    
     c->cd(1+i*nP+i);
     TString name=Form("inputP%d",i); // cout<<name.Data()<<endl;
-    TH1 * h=(TH1 *)fd->Get(name); assert(h);
+    TH1 * h=(TH1 *)fd->Get(name); 
+    if(h==0) continue;
+    assert(h);
     h->Draw();
-    trimDisplayRange(h,1.0);
+    double xm=-trimDisplayRange(h,5.0);
     TAxis *ax=h->GetXaxis();
     double w1=h->GetRMS();
     double ym=h->GetMaximum()*0.45;
-    double xm=ax->GetXmin()*0.6 + ax->GetXmax()*0.4;
     TText *tx=new TText(xm,ym/2.,Form("RMS=%.0f",w1)); tx->Draw();
     tx->SetTextSize(0.15);
-    tx=new TText(xm,ym,ax->GetTitle()); tx->Draw();
-    tx->SetTextSize(0.15);
+    tx=new TText(xm,ym,ax->GetTitle()+3); tx->Draw();
+    tx->SetTextSize(0.10);
   }
   
   // .... correlations 
@@ -99,7 +124,7 @@ void   IV_IV(TString cCore, TString text){
       TString name=Form("inputP%d_P%d",i,j); // cout<<name.Data()<<endl;
       TH1 * h=(TH1 *)fd->Get(name); assert(h);
       h->Draw("colz");
-      trimDisplayRange(h,0.8);
+      trimDisplayRange(h,5.);
       //  return;
     }
   }
@@ -118,25 +143,24 @@ void   DV_1D(TString cCore,TString text, TString preFix){
   for(int i=0;i<nY;i++) {    
     c->cd(1+i);
     TString name=preFix+Form("Y%d",i); cout<<name.Data()<<endl;
-    TH1 * h=(TH1 *)fd->Get(name); assert(h);
+    TH1 * h=(TH1 *)fd->Get(name);
+    if(h==0) continue;
+    assert(h);
     h->Draw();
-    trimDisplayRange(h,1.0);
+
+    double xm=-trimDisplayRange(h,6.0)*.8;
 
     TAxis *ax=h->GetXaxis();
     double w1=h->GetRMS();
     double ym=h->GetMaximum()*0.45;
-    double xm=ax->GetXmin()*0.6 + ax->GetXmax()*0.4;
     TText *tx=new TText(xm,ym/2.,Form("RMS=%.0f",w1)); tx->Draw();
     tx->SetTextSize(0.15);
-    tx=new TText(xm,ym,ax->GetTitle()); tx->Draw();
+    tx=new TText(xm,ym,ax->GetTitle()+3); tx->Draw();
     tx->SetTextSize(0.15);
 
   }
 
 
-    TH1 * h=(TH1 *)fd->Get("inpBcm1"); assert(h);
-    c->cd(16);
-    h->Draw();
 
 }
 
@@ -153,9 +177,11 @@ void   IV_DV(TString cCore, TString text, int iy1, int iy2){
     for(int i=0;i<nP;i++) {    
       c->cd(k);
       TString name=Form("inputP%d_Y%d",i,j); cout<<k<<name.Data()<<endl;
-      TH1 * h=(TH1 *)fd->Get(name); assert(h);
+      TH1 * h=(TH1 *)fd->Get(name); 
+      if(h==0) continue;
+      assert(h);
       h->Draw("colz");
-      trimDisplayRange(h,0.8);
+      trimDisplayRange(h,6.);
       k++;
     }
   }
@@ -167,15 +193,24 @@ void  trimDisplayRange(TH1 *h, double fac=0.8) {
       // symetrize displayed axis
      
       TAxis *ax=h->GetXaxis();
-      double ax1=fabs(ax->GetXmax()),ax2=fabs(ax->GetXmin());
-      if(ax1>ax2) ax1=ax2;
-      h->SetAxisRange(-ax1*fac,ax1*fac,"x");
+      //      double ax1=fabs(ax->GetXmax()),ax2=fabs(ax->GetXmin());
+      //  if(ax1>ax2) ax1=ax2;
+      
+      double basx=h->GetRMS()*fac;
+      h->SetAxisRange(-basx,basx,"x");
+
       ax=h->GetYaxis();
-      if(ax->GetNbins()<10) return; // it was 1D histo
-      double ay1=fabs(ax->GetXmax()),ay2=fabs(ax->GetXmin());
-      if(ay1>ay2) ay1=ay2;
-      h->SetAxisRange(-ay1*fac,ay1*fac,"y");
+      if(ax->GetNbins()<10) return basx; // it was 1D histo
+
+      double basy=h->GetRMS(2)*fac;
+      h->SetAxisRange(-basx,basx,"x");
+      //      double ay1=fabs(ax->GetXmax()),ay2=fabs(ax->GetXmin());
+      //if(ay1>ay2) ay1=ay2;
+      h->SetAxisRange(-basy,basy,"y");
+
+      return basx;
 }
+
 
 
 //============================================
@@ -256,3 +291,25 @@ void doAll(){
   cout<<"cat "+runName+"_page*ps  |ps2pdf - all"+runName+".pdf"<<endl;
   cout<<"scp all"+runName+".pdf  balewski@deltag5.lns.mit.edu:0x"<<endl;
 }
+
+
+//------------------------
+void splitPadX(float x, TPad **cL, TPad **cR) {
+  (*cL) = new TPad("padL", "apdL",0.0,0.,x,0.95);
+  (*cL)->Draw();
+  (*cR) = new TPad("padL", "apdL",x+0.005,0.,1.0,0.95);
+  (*cR)->Draw();
+}
+
+//------------------------
+void splitPadY(float y, TPad **cU, TPad **cD) {
+  (*cU) = new TPad("padD", "apdD",0,y+0.005,1.0,1.);
+  (*cU)->Draw();
+  (*cD) = new TPad("padU", "apdU",0.0,0.,1.,y);
+  (*cD)->Draw();
+
+  /* use case:    
+     TPad *cU,*cD;   splitPadY(0.4,&cU,&cD);    cU->cd(); h->Draw()   
+  */
+}
+       

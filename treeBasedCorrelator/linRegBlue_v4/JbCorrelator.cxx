@@ -39,6 +39,7 @@ JbCorrelator::~JbCorrelator(){
     delete  [] h1dv;
     delete  [] h2dv;
   }
+  printf("destructor JbCorrelator done\n");
 }
 
 //========================
@@ -68,10 +69,11 @@ JbCorrelator::addEvent(double *Pvec, double *Yvec){
 
 //========================
 //========================
-void JbCorrelator::init(int nP0, int nY0, TString *Pname0, TString *Yname0) {
-  nP=nP0;  nY=nY0;
-  Pname=Pname0;   Yname=Yname0;
-  initHistos(); 
+void JbCorrelator::init(std::vector < TString > ivName, std::vector < TString > dvName) {
+  nP=ivName.size();  
+  nY=dvName.size();  
+
+  initHistos(ivName,dvName); 
   linReg.setDims(nP, nY); 
   linReg.init();
 }
@@ -80,7 +82,7 @@ void JbCorrelator::init(int nP0, int nY0, TString *Pname0, TString *Yname0) {
 //________________________________________________
 //________________________________________________
 void
-JbCorrelator::initHistos(){
+JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > Yname){
   printf("JbCorrelator::initHistos()\n");
   TH1*h;
 
@@ -138,6 +140,11 @@ void
 JbCorrelator::finish(){
 
   printf("::::::::::::::::JbCorrelator::finish(%s) :::::::::::START\n",mCore.Data());
+  if(linReg.failed()) {
+    printf(" abnormal finish of linReg\n");
+    return;
+  }
+
   linReg.printSummaryP();
   linReg.printSummaryY();
   linReg.solve();
@@ -176,7 +183,7 @@ JbCorrelator::exportAlphas(TString outName){
   printf("::::::::::::::::JbCorrelator::exportAlphas(%s) :::::::::::\n",outName.Data());  
   TFile*  hFile=new TFile(outName,"RECREATE","correlation coefficents");
 
-  linReg.mA.Write("alphas");
+  linReg.mA.Write("slopes");
   linReg.mAsig.Write("sigma");
   hFile->Close();
   printf("saved %s\n",hFile->GetName());
@@ -187,7 +194,7 @@ JbCorrelator::exportAlphas(TString outName){
 //________________________________________________
 //________________________________________________
 void
-JbCorrelator::exportAlias(char * outName, int runId){
+JbCorrelator::exportAlias(char * outName, int runId,std::vector < TString > Pname, std::vector < TString > Yname){
 
   printf("::::::::::::::::JbCorrelator::exportAlias(%s) :::::::::::\n",outName);
   char *preDV="asym_";
