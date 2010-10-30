@@ -1,18 +1,27 @@
-ROC=1
-
 ! Multiple subbanks in one ROC for the same subsystem is still a problem...
 
-Bank=0x0101
-! module.type, module.num  chan.num, det.type, det.name
-SIS3320,	0,	0,	accum,	compton
-
-Bank=0x0102
-! module.type, module.num  chan.num, det.type, det.name
-SIS3320,	0,	0,	sample,	compton
-
+ROC=31
 Bank=0x1f02
 ! module.type, module.num  chan.num, det.type, det.name
 SIS3801D24, 0, 0, scalerbpm, bpm_3p01_xm
 SIS3801D24, 0, 1, scalerbpm, bpm_3p01_xp
 SIS3801D24, 0, 2, scalerbpm, bpm_3p01_ym
 SIS3801D24, 0, 3, scalerbpm, bpm_3p01_yp
+
+
+ROC=1
+Bank=0x0101
+! module.type, module.num  chan.num, det.type, det.name
+SIS3320,	0,	0,	accum,	fadc_compton
+
+Bank=0x0102
+! module.type, module.num  chan.num, det.type, det.name
+SIS3320,	0,	0,	sample,	fadc_compton
+
+Bank=0x0103
+! module.type, module.num  chan.num, det.type, det.name
+V775,		0,	0,	compton, tdc_compton
+
+Bank=0x0104
+! module.type, module.num  chan.num, det.type, det.name
+V792,		0,	0,	compton, qdc_compton

@@ -27,9 +27,10 @@
 #include "VQwSubsystemParity.h"
 #include "MQwSIS3320_Channel.h"
 #include "QwScaler_Channel.h"
+#include "QwPMT_Channel.h"
 #include "MQwV775TDC.h"
 
-class QwComptonPhotonDetector: public VQwSubsystemParity {
+class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
 
   public:
 
@@ -110,12 +111,10 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
     std::vector< MQwSIS3320_Channel > fSamplingADC;
 
     /// List of integrating QDC and TDC channels
-    // Proper MQwV775TDC and MQwV792ADC support not implemented yet (wdc, 2009-09-04)
-    // No data available anyway, so what's the point in having support in software yet?
-    //    std::vector <MQwV775TDC> fIntegratingTDC;
-    //    std::vector <MQwV792ADC> fIntegratingADC;
-    std::vector< MQwV775TDC > fIntegratingTDC;
-    std::vector< MQwV775TDC > fIntegratingADC;
+    std::map< Int_t, std::vector< std::vector< Int_t > > > fIntegratingADC_Mapping;
+    std::vector< QwPMT_Channel > fIntegratingADC;
+    std::map< Int_t, std::vector< std::vector< Int_t > > > fIntegratingTDC_Mapping;
+    std::vector< QwPMT_Channel > fIntegratingTDC;
 
     /// List of scaler channels
     std::map< Int_t, std::vector< std::vector< Int_t > > > fScaler_Mapping;

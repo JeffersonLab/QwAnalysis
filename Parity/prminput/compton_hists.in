@@ -59,9 +59,9 @@ Compton_eDet_Evt_Raw_Plane3	TH1F	96	0	95	Strips	Hits
 Compton_eDet_Evt_Plane3		TH1F	96	0	95	Strips	Hits
 
 ###  Compton Photon accumulator histograms
-compton_accum.*_nevents		TH1F	100	0	5e7	AccumulatedEvents	Events
-compton_accum.*_sum		TH1F	100	-5e7	5e7	AccumulatedChannel	Events
-compton_accum.*_avg		TH1F	1024	-4096	4096	AverageChannel		Events
+fadc_compton_accum.*_nevents		TH1F	100	0	5e7	AccumulatedEvents	Events
+fadc_compton_accum.*_sum		TH1F	100	-5e7	5e7	AccumulatedChannel	Events
+fadc_compton_accum.*_avg		TH1F	1024	-4096	4096	AverageChannel		Events
 
 .*_sum    TH1F  1000  -5.0e9  5.0e9       Counts  Events
 .*_raw    TH1F  1000  -5.0e9  5.0e9       Counts  Events

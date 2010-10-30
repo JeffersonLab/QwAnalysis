@@ -98,9 +98,6 @@
 
 
 
-// Multiplet structure
-static const int kMultiplet = 4;
-
 // Debug level
 static bool bDebug = false;
 

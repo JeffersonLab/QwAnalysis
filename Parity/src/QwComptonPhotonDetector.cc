@@ -50,7 +50,6 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace
     if (mapstr.LineIsEmpty())  continue;
 
-    Int_t index;
     TString varname, varvalue;
     if (mapstr.HasVariablePair("=",varname,varvalue)) {
       // This is a declaration line.  Decode it.
@@ -80,18 +79,46 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
         if (channum >= fSamplingADC_Mapping[subbank].at(modnum).size())
           fSamplingADC_Mapping[subbank].at(modnum).resize(channum+1,-1);
         if (fSamplingADC_Mapping[subbank].at(modnum).at(channum) < 0) {
+          QwMessage << "Registering SIS3320 " << name << " in 0x" << std::hex << current_roc_id << std::dec
+                    << " at " << modnum << "," << channum << QwLog::endl;
           UInt_t index = fSamplingADC.size();
           fSamplingADC_Mapping[subbank].at(modnum).at(channum) = index;
-          fSamplingADC.push_back(MQwSIS3320_Channel());
+          fSamplingADC.push_back(MQwSIS3320_Channel(channum, name));
           fSamplingADC.at(index).SetNumberOfAccumulators(6);
           fSamplingADC.at(index).InitializeChannel(channum, name);
         }
 
-      } else if (modtype == "V775") {
-        // not yet implemented
       } else if (modtype == "V792") {
-        // not yet implemented
+        // Add to mapping
+        if (modnum >= fIntegratingADC_Mapping[subbank].size())
+          fIntegratingADC_Mapping[subbank].resize(modnum+1);
+        if (channum >= fIntegratingADC_Mapping[subbank].at(modnum).size())
+          fIntegratingADC_Mapping[subbank].at(modnum).resize(channum+1,-1);
+        // Add scaler channel
+        if (fIntegratingADC_Mapping[subbank].at(modnum).at(channum) < 0) {
+          QwMessage << "Registering V792 " << name << " in 0x" << std::hex << current_roc_id << std::dec
+                    << " at " << modnum << "," << channum << QwLog::endl;
+          UInt_t index = fIntegratingADC.size();
+          fIntegratingADC.push_back(QwPMT_Channel(name));
+          fIntegratingADC.at(index).SetModule(modnum);
+          fIntegratingADC.at(index).SetSubbankID(current_bank_id);
+        }
 
+      } else if (modtype == "V775") {
+        // Add to mapping
+        if (modnum >= fIntegratingTDC_Mapping[subbank].size())
+          fIntegratingTDC_Mapping[subbank].resize(modnum+1);
+        if (channum >= fIntegratingTDC_Mapping[subbank].at(modnum).size())
+          fIntegratingTDC_Mapping[subbank].at(modnum).resize(channum+1,-1);
+        // Add scaler channel
+        if (fIntegratingTDC_Mapping[subbank].at(modnum).at(channum) < 0) {
+          QwMessage << "Registering V792 " << name << " in 0x" << std::hex << current_roc_id << std::dec
+                    << " at " << modnum << "," << channum << QwLog::endl;
+          UInt_t index = fIntegratingTDC.size();
+          fIntegratingTDC.push_back(QwPMT_Channel(name));
+          fIntegratingTDC.at(index).SetModule(modnum);
+          fIntegratingTDC.at(index).SetSubbankID(current_bank_id);
+        }
 
       } else if (modtype == "SIS3801D24") {
         // Offset in block
@@ -103,6 +130,8 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fScaler_Mapping[subbank].at(modnum).resize(channum+1,-1);
         // Add scaler channel
         if (fScaler_Mapping[subbank].at(modnum).at(channum) < 0) {
+          QwMessage << "Registering SIS3801 " << name << " in 0x" << std::hex << current_roc_id << std::dec
+                    << " at " << modnum << "," << channum << QwLog::endl;
           UInt_t index = fScaler.size();
           fScaler_Mapping[subbank].at(modnum).at(channum) = index;
           fScaler.push_back(QwSIS3801D24_Channel(name));
@@ -249,9 +278,9 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
     // Sampling ADCs
     for (size_t modnum = 0; modnum < fSamplingADC_Mapping[subbank].size(); modnum++) {
       for (size_t channum = 0; channum < fSamplingADC_Mapping[subbank].at(modnum).size(); channum++) {
-        if (fSamplingADC_Mapping[subbank].at(modnum).at(channum) >= 0) {
-          UInt_t index = fSamplingADC_Mapping[subbank].at(modnum).at(channum);
-          words_read += fSamplingADC[index].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
+        UInt_t index = fSamplingADC_Mapping[subbank].at(modnum).at(channum);
+        if (index >= 0) {
+          words_read += fSamplingADC[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
         }
       }
     }
@@ -259,9 +288,30 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
     // Scalers
     for (size_t modnum = 0; modnum < fScaler_Mapping[subbank].size(); modnum++) {
       for (size_t channum = 0; channum < fScaler_Mapping[subbank].at(modnum).size(); channum++) {
-        if (fScaler_Mapping[subbank].at(modnum).at(channum) >= 0) {
-          UInt_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
-          words_read += fScaler[index].ProcessEvBuffer(&(buffer[words_read]), num_words-words_read);
+        UInt_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
+        if (index >= 0) {
+          words_read += fScaler[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
+        }
+      }
+    }
+
+    // Integrating ADCs and TDCs
+    for (size_t i = 0; i < num_words - words_read; i++) {
+
+      //  Decode this word as a V775 TDC / V792 QDC word
+      DecodeTDCWord(buffer[words_read+i]);
+
+      if (roc_id == 0x1 && bank_id == 0x0104)
+        QwMessage << IsValidDataword() << " " << std::hex << buffer[words_read+i] << std::dec << QwLog::endl;
+
+      // Is this a valid V775 TDC / V792 QDC data word
+      if (IsValidDataword()) {
+        Int_t index = fIntegratingADC_Mapping[subbank].at(GetTDCSlotNumber()).at(GetTDCChannelNumber());
+        if (index >= 0) {
+          fIntegratingADC.at(index).SetValue(GetTDCData());
+          QwMessage << "TDC " << std::hex << subbank << " "
+                    << GetTDCSlotNumber() << "," << GetTDCChannelNumber() << ": "
+                    << GetTDCData() << QwLog::endl;
         }
       }
     }
