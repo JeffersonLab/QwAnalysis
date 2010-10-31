@@ -271,13 +271,13 @@ foreach $runnumber (@good_runs){
 	print JOBFILE  
 	    "SINGLE_JOB\n",
 	    "INPUT_FILES: @input_files\n",
-	    "MEMORY: 1024 MB\n",
+	    "MEMORY: 2048 MB\n",
 	    "DISK_SPACE: ",($#input_files+1)*1600+3000," MB\n",
 	    ### "OTHER_FILES: ....\n",
 	    "TOWORK\n",
 	    ####
 	    "OUTPUT_DATA: run_$runnumber.log\n",
-	    "OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber.log\n";
+	    "OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber.log\n",
 	    #
 	    #"OUTPUT_DATA: tmp/* \n",
 	    #"OUTPUT_TEMPLATE: $ENV{QW_TMP}/.\n",
@@ -287,8 +287,8 @@ foreach $runnumber (@good_runs){
 	    #
 	    ####  Now rootfiles are copied by the qwbatch.csh script.
 	    ####  2004aug25; pking.
-	    #"OUTPUT_DATA: rootfiles/* \n",
-	    #"OUTPUT_TEMPLATE: $ENV{QW_ROOTFILES}/.\n",
+	    "OUTPUT_DATA: rootfiles/* \n",
+	    "OUTPUT_TEMPLATE: $ENV{QW_ROOTFILES}/.\n";
 	    #
 	    #"OUTPUT_DATA: sum/* \n",
 	    #"OUTPUT_TEMPLATE: $ENV{SUMMARYDIR}/.\n",
