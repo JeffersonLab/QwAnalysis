@@ -1,8 +1,5 @@
 #include "QwGUIHallCBeamline.h"
-///#include "QwGUIMain.h"
 
-
-//#include "TG3DLine.h"
 #include "TGaxis.h"
 #include "TColor.h"
 #include "TStyle.h"
@@ -304,12 +301,13 @@ void QwGUIHallCBeamline::PositionDifferences()
   Double_t offset = 0.5;
   Double_t min_range = - offset;
 
-  Int_t BPMSTriplinesCount = fHallCDevices.at(VQWK_BPMSTRIPLINE).size();
+  Int_t BPMSTriplinesCount = 0;
+  BPMSTriplinesCount = (Int_t) fHallCDevices.at(VQWK_BPMSTRIPLINE).size();
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
   TString dummyname;
 
-  Bool_t ldebug = kFALSE;
+  Bool_t ldebug = false;
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
@@ -336,7 +334,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 	  PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	  PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());//this gives std deviation not RMS
 	  PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	  //	  if(ldebug) SummaryHist(histo1);
+	  if(ldebug) SummaryHist(histo1);
 	  delete histo1; histo1= NULL;
 	}
       
@@ -352,7 +350,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	//	if(ldebug) SummaryHist(histo2);
+	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
       
@@ -458,7 +456,7 @@ void QwGUIHallCBeamline::PlotChargeAsym()
   }
   
 
-   printf("---------------PlotChargeAsym()--------------------\n");
+   //   printf("---------------PlotChargeAsym()--------------------\n");
   //mc->Modified();
   //mc->Update();
   
@@ -756,7 +754,7 @@ void QwGUIHallCBeamline::PlotSCALER(){
   }
   
 
-   printf("---------------PlotSCALER()--------------------\n");
+  //   printf("---------------PlotSCALER()--------------------\n");
   //mc->Modified();
   //mc->Update();
   
@@ -839,7 +837,7 @@ void QwGUIHallCBeamline::PlotTargetPos(Int_t tgtcoord){
   }
   
 
-   printf("---------------PlotTargetPos(%i)--------------------\n",tgtcoord);
+   //   printf("---------------PlotTargetPos(%i)--------------------\n",tgtcoord);
    //mc->Modified();
    //mc->Update();
   
@@ -903,7 +901,7 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
   }
    
 
-   printf("---------------PlotTargetCharge() %d--------------------\n",GetHistoAccumulate());
+   //   printf("---------------PlotTargetCharge() %d--------------------\n",GetHistoAccumulate());
    return;
 };
 
@@ -1043,8 +1041,6 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	  case kCM_COMBOBOX:
 	    {
 	      switch (parm1) {
-	      case M_TBIN_SELECT:
-		break;
 	      case CMB_HCBCM:
 		SetComboIndex(CMB_HCBCM,parm2);
 		break;
@@ -1055,23 +1051,6 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	    }
 	    break;
 	    
-	  case kCM_MENUSELECT:
-	    break;	    
-	  case kCM_MENU:
-	    
-	    switch (parm1) {
-
-	    case M_FILE_OPEN:
-	      break;
-	      
-	      
-	      
-	    default:
-	      break;
-	    }
-	  
-	default:
-	  break;
 	}
     
       default:
@@ -1122,27 +1101,27 @@ void QwGUIHallCBeamline::SetComboIndex(Int_t cmb_id, Int_t id){
 }
 
 
-void 
-QwGUIHallCBeamline::SummaryHist(TH1 *in)
-{
+// void 
+// QwGUIHallCBeamline::SummaryHist(TH1 *in)
+// {
 
-  Double_t out[4] = {0.0};
-  Double_t test   = 0.0;
+//   Double_t out[4] = {0.0};
+//   Double_t test   = 0.0;
 
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/sqrt(in->GetEntries());
+//   out[0] = in -> GetMean();
+//   out[1] = in -> GetMeanError();
+//   out[2] = in -> GetRMS();
+//   out[3] = in -> GetRMSError();
+//   test   = in -> GetRMS()/sqrt(in->GetEntries());
 
-  printf("%sName%s", BOLD, NORMAL);
-  printf("%22s", in->GetName());
-  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-  return;
-};
+//   printf("%sName%s", BOLD, NORMAL);
+//   printf("%22s", in->GetName());
+//   printf("  %sMean%s%s", BOLD, NORMAL, " : ");
+//   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
+//   printf("  %sSD%s%s", BOLD, NORMAL, " : ");
+//   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+//   printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+//   return;
+// };
 
 

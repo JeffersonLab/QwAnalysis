@@ -41,21 +41,7 @@
 #define QWGUIHALLCBEAMLINE _H
 
 
-#include <cstdlib>
-#include <cstdio>
-
-#include <iostream>
-#include <iomanip>
-#include <cstring>
-
-//#include "TMapFile.h"
-
-#include "TRootEmbeddedCanvas.h"
-#include "TRootCanvas.h"
-#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-
-#include "RSDataWindow.h"
 
 
 #ifndef __CINT__
@@ -217,13 +203,6 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //!
   //!Return value: none  
   virtual void         MakeLayout();
-
-  //!This function  prints stat info of the histogram into the command line
-  //!Parameters:
-  //! - Histogram 
-  //!
-  //!Return value: none  
-  void                 SummaryHist(TH1*in);
 
  public:
   

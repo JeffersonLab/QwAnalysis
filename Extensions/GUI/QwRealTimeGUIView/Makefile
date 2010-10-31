@@ -5,14 +5,17 @@
 
 -include ../VERSION
 
-LIBDIR        = ../QwGUILib
+LIBDIR        = 
+#../QwGUILib
 
 
-LIBINCLUDE    = $(LIBDIR)/include
-RDATALIB      = $(LIBDIR)/QwGUIRootLib-$(VERS).a
+LIBINCLUDE    = 
+#$(LIBDIR)/include
+RDATALIB      = 
+#$(LIBDIR)/QwGUIRootLib-$(VERS).a
 PRG_INCLUDE   = ./include
 PRG_SOURCE    = ./src
- 
+
 # Here we list the object files that require a CINT dictionary.
 OBJECTS	      =
 OBJECTS       += QwGUIMain.o

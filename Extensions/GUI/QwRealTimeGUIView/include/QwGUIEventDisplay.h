@@ -18,17 +18,8 @@
 #ifndef QWGUIEVENTDISPLAY_H
 #define QWGUIEVENTDISPLAY_H
 
-// System headers
-#include <cstdlib>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-
-// ROOT headers
-#include "TRootEmbeddedCanvas.h"
-#include "TRootCanvas.h"
 #include "QwGUISubSystem.h"
-#include "RSDataWindow.h"
+
 
 
 class QwGUIEventDisplay : public QwGUISubSystem {

@@ -1065,8 +1065,6 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
     case kCM_COMBOBOX:
       {
 	switch (parm1) {
-	case M_TBIN_SELECT:
-	  break;
 	case CMB_MDPMT:
 	  SetComboIndex(CMB_MDPMT,parm2);
 	  break;
@@ -1100,27 +1098,27 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   return kTRUE;
 }
 
-void QwGUIMainDetector::SummaryHist(TH1 *in)
-{
+// void QwGUIMainDetector::SummaryHist(TH1 *in)
+// {
 
-  Double_t out[4] = {0.0};
-  Double_t test   = 0.0;
+//   Double_t out[4] = {0.0};
+//   Double_t test   = 0.0;
 
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/sqrt(in->GetEntries());
+//   out[0] = in -> GetMean();
+//   out[1] = in -> GetMeanError();
+//   out[2] = in -> GetRMS();
+//   out[3] = in -> GetRMSError();
+//   test   = in -> GetRMS()/sqrt(in->GetEntries());
 
-  printf("%sName%s", BOLD, NORMAL);
-  printf("%22s", in->GetName());
-  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-  return;
-};
+//   printf("%sName%s", BOLD, NORMAL);
+//   printf("%22s", in->GetName());
+//   printf("  %sMean%s%s", BOLD, NORMAL, " : ");
+//   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
+//   printf("  %sSD%s%s", BOLD, NORMAL, " : ");
+//   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+//   printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+//   return;
+// };
 
 void QwGUIMainDetector::SetComboIndex(Int_t cmb_id, Int_t id){
     if (cmb_id==CMB_MDPMT)

@@ -41,20 +41,7 @@
 
 
 
-#include <cstdlib>
-#include <cstdio>
-
-#include <iostream>
-#include <iomanip>
-#include <cstring>
-
-#include "TRootEmbeddedCanvas.h"
-#include "TRootCanvas.h"
-#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-#include "TCut.h"
-//#include "TGComboBox"
-#include "RSDataWindow.h"
 
 
 #ifndef __CINT__
@@ -170,17 +157,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   void SetComboIndex(Int_t cmb_id, Int_t id);
 
 
-  
-  //!Prints a summary for a given 1D histogram
-  //!
-  //!Parameters:
-  //! - histogram object
-  //!
-  //!Return value: none  
-  void                 SummaryHist(TH1 *in);
-
-
-  //!Access the tree leaves to return a histogram
+   //!Access the tree leaves to return a histogram
   //!
   //!Parameters:
   //! - pointer to tree
@@ -188,7 +165,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - Cut expression
   //! - Draw options
   //!Return value: TH1F pointer  
-  TH1F*                GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "");
+  TH1F*   GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "");
 
 
   

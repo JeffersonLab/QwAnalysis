@@ -1,4 +1,5 @@
 #include "QwGUISubSystem.h"
+#include "TMath.h"
 
 ClassImp(QwGUISubSystem);
 
@@ -12,10 +13,11 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   dParent            = (TGWindow*)p;
   dMain              = (TGWindow*)main;
   dWinCnt            = 0;
-  strcpy(dMainName,mainname);
-  strcpy(dThisName,objName);
 
-  TabMenuEntryChecked(kFalse);
+  dMainName = mainname;
+  dThisName = objName;
+
+  TabMenuEntryChecked(kFALSE);
 
   dTabMenuID          = 0;
   dTabMenuItemChecked = false;
@@ -30,12 +32,6 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
 
   dMapFileFlag = false;
 
-  strcpy(dMiscbuffer,  " ");
-  strcpy(dMiscbuffer2, " ");
-  
-  dROOTCont = NULL;
-
-  // dProgrDlg          = NULL;
 
   Connect("AddThisTab(QwGUISubSystem*)",dMainName,(void*)main,"AddATab(QwGUISubSystem*)");  
   Connect("RemoveThisTab(QwGUISubSystem*)",dMainName,(void*)main,"RemoveTab(QwGUISubSystem*)");  
@@ -54,25 +50,25 @@ const char* QwGUISubSystem::GetNewWindowName()
   return Form("dMiscWindow_%02d",GetNewWindowCount());
 }
 
-void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
-{
-  // if(cont){    
-  //   if(!strcmp(cont->GetDataName(),"ROOT")){
-  //     dROOTCont = cont;
-  //     Connect(dROOTCont,"SendMessageSignal(char*)","QwGUISubSystem",(void*)this,
-  // 	      "OnReceiveMessage(char*)");      	  
-  //     Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
-  // 	      "OnObjClose(char*)");
-  //   }
-  // }
-  // else
-  //   dROOTCont = NULL;
+// void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
+// {
+//   // if(cont){    
+//   //   if(!strcmp(cont->GetDataName(),"ROOT")){
+//   //     dROOTCont = cont;
+//   //     Connect(dROOTCont,"SendMessageSignal(char*)","QwGUISubSystem",(void*)this,
+//   // 	      "OnReceiveMessage(char*)");      	  
+//   //     Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
+//   // 	      "OnObjClose(char*)");
+//   //   }
+//   // }
+//   // else
+//   //   dROOTCont = NULL;
 
-  // sprintf(dMiscbuffer2,"Sub system %s message: Received new data\n",GetName());
-  // SetLogMessage(dMiscbuffer2, kTrue);
+//   // sprintf(dMiscbuffer2,"Sub system %s message: Received new data\n",GetName());
+//   // SetLogMessage(dMiscbuffer2, kTrue);
 
-  // OnNewDataContainer();
-}
+//   // OnNewDataContainer();
+// }
 
 
 void QwGUISubSystem::SetMapFile(TMapFile *file)
@@ -126,6 +122,7 @@ void QwGUISubSystem::IsClosing(const char *objname)
 
 void QwGUISubSystem::SendMessageSignal(const char*objname)
 {
+
   Emit("SendMessageSignal(const char*)",(long)objname);
 }
 
@@ -133,3 +130,27 @@ Bool_t QwGUISubSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   return kTRUE;
 }
+
+
+
+void QwGUISubSystem::SummaryHist(TH1 *in)
+{
+
+  Double_t out[4] = {0.0};
+  Double_t test   = 0.0;
+
+  out[0] = in -> GetMean();
+  out[1] = in -> GetMeanError();
+  out[2] = in -> GetRMS();
+  out[3] = in -> GetRMSError();
+  test   = in -> GetRMS()/TMath::Sqrt(in->GetEntries());
+
+  printf("%sName%s", BOLD, NORMAL);
+  printf("%22s", in->GetName());
+  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
+  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+  return;
+};

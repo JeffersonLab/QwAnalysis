@@ -41,24 +41,7 @@ Added by Buddhini to display the injector beamline data.
 #define QWGUICORRELATION_H
 
 
-#include <cstdlib>
-#include <cstdio>
-
-#include <iostream>
-#include <iomanip>
-#include <string>
-
-//#include "TMapFile.h"
-#include "TPaveText.h"
-
-#include "TRootEmbeddedCanvas.h"
-#include "TRootCanvas.h"
-#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-
-#include "RSDataWindow.h"
-#include "TGTextEntry.h"
-
 
 #ifndef __CINT__
 

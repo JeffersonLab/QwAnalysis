@@ -1,6 +1,6 @@
 #include "QwGUICorrelationPlots.h"
 
-#include "TG3DLine.h"
+//#include "TG3DLine.h"
 #include "TGaxis.h"
 #include "TCut.h"
 
@@ -146,8 +146,8 @@ void QwGUICorrelationPlots::MakeLayout()
   
 
   
-  TGVertical3DLine *separator = new TGVertical3DLine(this);
-  dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
+  // TGVertical3DLine *separator = new TGVertical3DLine(this);
+  // dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
@@ -479,9 +479,6 @@ Bool_t QwGUICorrelationPlots::ProcessMessage(Long_t msg, Long_t parm1, Long_t pa
 	  case kCM_COMBOBOX:
 	    {
 	      switch (parm1) {
-	      case M_TBIN_SELECT:
-		
-		break;
 	      case CMB_TREE_PX:
 		//printf("Combo box index %ld index %ld selected \n", parm1,parm2);
 		fCMB_TREE_PX=kTRUE;
@@ -507,20 +504,6 @@ Bool_t QwGUICorrelationPlots::ProcessMessage(Long_t msg, Long_t parm1, Long_t pa
 	    LoadLeafLists(fTreeIndex);
 	    break;
 	    
-	  case kCM_MENU:
-	    
-	    switch (parm1) {
-	      
-	    case M_FILE_OPEN:
-	      break;
-	      
-	      
-	      
-	  default:
-
-	    break;
-	  }
-	  
 	default:
 	  //printf("text");
 	  break;

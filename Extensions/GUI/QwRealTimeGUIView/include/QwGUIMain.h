@@ -81,11 +81,12 @@
 #include "TRootEmbeddedCanvas.h"
 #include "TGTextEntry.h"
 #include "TGTextEdit.h"
-#include "TGFileDialog.h"
+//#include "TGFileDialog.h"
 #include "RQ_OBJECT.h"
 #include "TMath.h"
 #include "TGIcon.h"
 #include "TMapFile.h"
+#include "TSystem.h"
 
 #include "QwGUIMainDetector.h"
 #include "QwGUILumiDetector.h"
@@ -102,6 +103,118 @@
 #endif /* __CINT__ */
 
  
+
+enum CommandIdentifiers {
+
+  M_HP_LOGTXTTS,
+  M_HP_LOGTXTNS,
+  M_HP_CLOSED,
+  M_DC_LOGTXTTS,
+  M_DC_LOGTXTNS,
+  M_DC_CLOSED,
+  M_HS_LOGTXTTS,
+  M_HS_LOGTXTNS,
+  M_HS_CLOSED,
+  M_PL_LOGTXTTS,
+  M_PL_LOGTXTNS,
+  M_PLO_CLOSED,
+  M_MATH_LOGTXTTS,
+  M_MATH_LOGTXTNS,
+  M_MATH_ERROR_MSG,
+
+  M_HPE_LOGTXTTS,
+  M_HPE_LOGTXTNS,
+  M_HPE_CLOSED,
+  M_HSE_LOGTXTTS,
+  M_HSE_LOGTXTNS,
+  M_HSE_CLOSED,
+  M_PLE_LOGTXTTS,
+  M_PLE_LOGTXTNS,
+  M_PLE_CLOSED,
+  M_CALC_SFL_EFF,
+  M_SET_SFL_EFF_PARMS,
+
+  M_ANL_PR_SEQ,
+  M_ANL_PR_RUN,
+  M_ANL_CLOSE,
+  M_ANL_CLOSED,
+  M_ANLE_CLOSE,
+  M_ANLE_CLOSED,
+  M_ANL_PLOT_SELFUNC,
+  M_TOF_DEFAULTS,
+  M_PR_SEQ,
+  M_PR_SEQ2,
+  M_PR_RUN,
+  M_PR_CLOSED,
+  M_PR_CLOSE,
+  M_PR_STOP,
+  M_PR_PAUSE,
+  M_PR_RESUME,
+
+  M_CSDE_CLOSE,
+  M_CSDE_CLOSED,
+  
+  M_WRITE_RC_DATA,
+
+  M_FILE_OPEN,
+  M_ROOT_FILE_OPEN,
+  M_FILE_SAVE,
+  M_FILE_SAVEAS,
+  M_FILE_PRINT,
+  M_FILE_PRINTSETUP,
+  M_FILE_EXIT,
+  M_FILE_CLOSE,
+  M_ROOT_FILE_CLOSE,
+  M_FILE_ANALYZE,
+  M_FILE_NOISESTAT,
+  M_FILE_ASYMSTAT,
+  M_DRAW_ARRAY,
+  M_OPEN_DATAWINDOW,
+
+  M_VIEW_LOG,
+  M_VIEW_BROWSER,
+  M_VIEW_MAPLOAD,
+  M_TBIN_SELECT,
+  M_TARGET_SELECT,
+  M_RUN_SELECT,
+  
+  M_HELP_USER,
+  M_HELP_CODE,
+  M_HELP_SEARCH,
+  M_HELP_ABOUT,
+
+  M_CANVAS,
+
+  M_HISTO_CLOSE,
+  M_HISTO_ENTRY_SET,
+  M_HISTO_ENTRY_CANCEL,
+
+  M_HISTO_RESET,
+  M_HISTO_ACCUMULATE, 
+  M_HISTO_PAUSE,
+  
+  M_LOAD_UNLOAD,
+  M_RUN_STOP,
+  M_RESET,
+  M_EXIT,
+
+
+  M_TABS   //always needs to be last in the list!
+};
+
+struct ClineArgs {
+
+  int            bckgr;
+  int            mute;
+  int            realtime;
+  int            checkmode;
+  int            detectormap;
+  char           file[1000];
+
+};
+
+
+
 class QwGUIMain : public TGMainFrame {
 
   RQ_OBJECT("QwGUIMain");
@@ -132,8 +245,8 @@ class QwGUIMain : public TGMainFrame {
   Int_t                   MCnt;
 
   //!The following two flags are used in process increment dialog boxes
-  Bool_t                  dProcessing;
-  Bool_t                  dProcessHalt;
+  /* Bool_t                  dProcessing; */
+  /* Bool_t                  dProcessHalt; */
 
 
   Bool_t                  dMapFileOpen;
@@ -142,32 +255,20 @@ class QwGUIMain : public TGMainFrame {
 
   //!Command line argument structure (not currently implemented)
   ClineArgs               dClArgs;
-  Char_t                  dDetMapFile[NAME_STR_MAX];
+  TString                 dDetMapFile;
+  //  Char_t                  dDetMapFile[NAME_STR_MAX];
   TString                 dInjectorChannelMap;
   TString                 dHallCChannelMap;
   TString                 dMDChannelMap;
   TString                 dLumiChannelMap;
 
-  //!ROOT file data container a wrapper class for many common file types
-  //  RDataContainer         *dROOTFile;
   TMapFile               *dMemoryMapFile;
 
 
 
- 
-  //!Standard GUI widgets and layouts for the main window
-  TGComboBox             *dTBinEntry;
-  TGLayoutHints          *dTBinEntryLayout;
-  TGNumberEntry          *dRunEntry;
-  TGLayoutHints          *dRunEntryLayout;
-  TGLabel                *dRunEntryLabel;
-  TGHorizontal3DLine     *dHorizontal3DLine;
-  TGHorizontalFrame      *dUtilityFrame;
-  TGLayoutHints          *dUtilityLayout;
-
   //!Main window tab environment
   TGTab                  *dTab;
-  TGLayoutHints          *dTabLayout;
+  //  TGLayoutHints          *dTabLayout; 
 
   //!Main window canvas -- has its own permanent tab and can display
   //!plots that are always needed

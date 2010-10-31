@@ -59,8 +59,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dCurRun               = 0;
   MCnt                  = 0;
 
-  dProcessing           = false;
-  dProcessHalt          = false;
+  // dProcessing           = false;
+  // dProcessHalt          = false;
 
  
   
@@ -71,16 +71,16 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   //  dROOTFile             = NULL;
   dMemoryMapFile        = NULL;
 
-  dTBinEntry            = NULL;
-  dTBinEntryLayout      = NULL;
-  dRunEntry             = NULL;
-  dRunEntryLayout       = NULL;
-  dHorizontal3DLine     = NULL;
-  dUtilityFrame         = NULL;
-  dUtilityLayout        = NULL;
+  // dTBinEntry            = NULL;
+  // dTBinEntryLayout      = NULL;
+  // dRunEntry             = NULL;
+  // dRunEntryLayout       = NULL;
+  // dHorizontal3DLine     = NULL;
+  // dUtilityFrame         = NULL;
+  // dUtilityLayout        = NULL;
 
   dTab                  = NULL;
-  dTabLayout            = NULL;
+  // dTabLayout            = NULL;
 
   dMainCanvas           = NULL;
   dMainCnvFrame         = NULL;
@@ -118,7 +118,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMainButton[3] = new TGTextButton(dMainButtonsFrame, "Exit", M_EXIT);
 
   //
-  // reduce "for" in order to get ns faster than...
+  // reduce "for" in order to get 'ns' faster than...
   //
   // Sunday, October 31 02:50:16 EDT 2010, jhlee
 
@@ -139,13 +139,15 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   if (dClArgs.detectormap==kTRUE){
     printf("custom detector map included - %s \n",dClArgs.file);
-    strcpy(dDetMapFile,dClArgs.file);
+    dDetMapFile = dClArgs.file;
+    //    strcpy(dDetMapFile,dClArgs.file);
   }
   else{
-     strcpy(dDetMapFile,"detectors.map");
+    dDetMapFile = "detectors.map";
+    //     strcpy(dDetMapFile,"detectors.map");
   }
 
-  LoadChannelMapFiles(dDetMapFile);//loads the channel map files for all the subsystems
+  LoadChannelMapFiles(dDetMapFile.Data());//loads the channel map files for all the subsystems
 
   dTab = new TGTab(this,  dMWWidth, dMWHeight);
 
@@ -195,15 +197,15 @@ QwGUIMain::~QwGUIMain()
   delete CorrelationSubSystem  ;
   delete HallCBeamlineSubSystem;
 
-  delete dTBinEntry            ;
-  delete dTBinEntryLayout      ;
-  delete dRunEntry             ;
-  delete dRunEntryLayout       ;
-  delete dUtilityFrame         ;
-  delete dUtilityLayout        ;
+  // delete dTBinEntry            ;
+  // delete dTBinEntryLayout      ;
+  // delete dRunEntry             ;
+  // delete dRunEntryLayout       ;
+  // delete dUtilityFrame         ;
+  // delete dUtilityLayout        ;
 
   delete dTab                  ;
-  delete dTabLayout            ;
+  // delete dTabLayout            ;
 
   delete dMainCanvas           ;
   delete dMainCnvFrame         ;
@@ -222,6 +224,10 @@ QwGUIMain::~QwGUIMain()
   delete dMenuBarLayout        ;
   delete dMenuBarItemLayout    ;
   delete dMenuLoadMap          ;
+
+  delete [] dMainButton;
+  delete    dMainButtonsFrame;
+
 
 }
 
@@ -321,36 +327,6 @@ void QwGUIMain::MakeMenuLayout()
   //  dMenuTabs->CheckEntry(M_VIEW_LOG);
 }
 
-
-// void QwGUIMain::MakeMainTab()
-// {
-
-//   dTabLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX | kLHintsExpandY,
-// 				 2, 2, 5, 1);
-//   dTab = new TGTab(this,dMWWidth-15,dMWHeight-80);
-
-//   if(TabActive("Main")) return;
-
-//   dMainTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
-// 				     kLHintsExpandX | kLHintsExpandY);
-//   dMainCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
-// 				     0, 0, 1, 2);
-
-//   TGCompositeFrame *tf = dTab->AddTab("Main");
-
-//   dMainTabFrame = new TGHorizontalFrame(tf,10,10);
-//   dMainCanvas   = new TRootEmbeddedCanvas("pC", dMainTabFrame,10, 10);
-//   dMainTabFrame->AddFrame(dMainCanvas,dMainCnvLayout);
-//   dMainTabFrame->Resize(dMWWidth-15,dMWHeight-110);
-//   tf->AddFrame(dMainTabFrame,dMainTabLayout);
-//   AddFrame(dTab, dTabLayout);
-
-//   dMainCanvas->GetCanvas()->SetBorderMode(0);
-//   dMainCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-// 				    "QwGUIMain",
-// 				    this,"MainTabEvent(Int_t,Int_t,Int_t,TObject*)");
-// }
-
 void QwGUIMain::MakeLogTab()
 {
 
@@ -365,7 +341,7 @@ void QwGUIMain::RemoveTab(QwGUISubSystem* sbSystem)
   if(tab < 0) return;
 
   dMenuTabs->UnCheckEntry(GetTabMenuID(TabName));
-  sbSystem->TabMenuEntryChecked(kFalse);
+  sbSystem->TabMenuEntryChecked(kFALSE);
   UnMapLayout(tab);
 }
 
@@ -402,8 +378,9 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
 
   dTab->AddTab(s.Data(),sbSystem);
   dMenuTabs->CheckEntry(GetTabMenuID(s.Data()));
-  sbSystem->TabMenuEntryChecked(kTrue);
+  sbSystem->TabMenuEntryChecked(kTRUE);
   MapLayout();
+  return;
 }
 
 Int_t QwGUIMain::GetTabMenuID(const char* TabName)
@@ -453,9 +430,9 @@ Bool_t QwGUIMain::TabActive(const char *str)
   int nt = dTab->GetNumberOfTabs();
   for (int i = 0 ; i < nt; i++) {
     TString s = dTab->GetTabTab(i)->GetString();
-    if (s == str) {return kTrue;}
+    if (s == str) {return kTRUE;}
   }
-  return kFalse;
+  return kFALSE;
 }
 
 Int_t QwGUIMain::GetTabIndex(const char *str)
@@ -513,7 +490,7 @@ QwGUISubSystem *QwGUIMain::GetSubSystemPtr(const char *name)
 
 void QwGUIMain::OnLogMessage(const char *msg)
 {
-  // Append(msg,kFalse);
+  // Append(msg,kFALSE);
 }
 
 void QwGUIMain::OnObjClose(const char *objname)
@@ -813,27 +790,27 @@ Int_t main(Int_t argc, Char_t **argv)
 {
   ClineArgs dClArgs = {0};
 
-  dClArgs.realtime = kFalse;
-  dClArgs.checkmode = kFalse;
+  dClArgs.realtime = kFALSE;
+  dClArgs.checkmode = kFALSE;
   
   if(argv[1]){
     for(Int_t i=1; i < argc; i++){
       if(strcmp(argv[i],"-r")==0){
-	dClArgs.realtime = kTrue;
+	dClArgs.realtime = kTRUE;
       }
 
       if(strcmp(argv[i],"-cm")==0){
-	dClArgs.checkmode = kTrue;
+	dClArgs.checkmode = kTRUE;
       }
 
       if(strcmp(argv[i],"-b")==0){
-// 	dClArgs.bin = kTrue;
-// 	dClArgs.txt = kFalse;
+// 	dClArgs.bin = kTRUE;
+// 	dClArgs.txt = kFALSE;
       }
 
       if(strcmp(argv[i],"-t")==0){
-// 	dClArgs.bin = kFalse;
-// 	dClArgs.txt = kTrue;
+// 	dClArgs.bin = kFALSE;
+// 	dClArgs.txt = kTRUE;
       }
       if(strcmp(argv[i],"-d")==0){
 	dClArgs.detectormap =kTRUE;

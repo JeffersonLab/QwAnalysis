@@ -40,18 +40,32 @@
 #include <iostream>
 #include <iomanip>
 
+
+#include "QwColor.h"
+
+#include "TMapFile.h"
+#include "TRootEmbeddedCanvas.h"
+#include "TRootCanvas.h"
+#include "TVirtualPad.h"
+#include "TCut.h"
+#include "TTree.h"
+#include "TGComboBox.h"
+#include "TGNumberEntry.h"
+#include "TGTextEntry.h"
+#include "TGLabel.h"
+#include "TCanvas.h"
+#include "TSystem.h"
+#include "TF1.h"
 #include "TGWindow.h"
 #include "TGFrame.h"
 #include "TNamed.h"
 #include "TString.h"
 #include "TQObject.h"
 #include "TGTab.h"
-#include "RDataContainer.h"
-#include "QwGUIMainDef.h"
-// QwAnalysis / Analysis/ include 
-#include "QwColor.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TPaveText.h"
 
-#include "TMapFile.h"
 
 class QwGUISubSystem : public TGCompositeFrame {
 
@@ -66,10 +80,12 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!user.
   UInt_t           dWinCnt;
 
-  //!The name/label of the main window object
-  char             dMainName[NAME_STR_MAX];
-  //!The name/lable of this subsystem object, as passed to the constructor
-  char             dThisName[NAME_STR_MAX];
+  TString          dMainName;
+  TString          dThisName;
+  /* //!The name/label of the main window object */
+  /* char             dMainName[NAME_STR_MAX]; */
+  /* //!The name/lable of this subsystem object, as passed to the constructor */
+  /* char             dThisName[NAME_STR_MAX]; */
 
   //!The tab menu ID associated with this subsystem
   Long_t           dTabMenuID;   
@@ -93,17 +109,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   Int_t dHistoAccum;
   Int_t dHistoPause;
  
-
-  //!Buffer, mainly used in message passing and for other temporary storage.
-  char             dMiscbuffer[MSG_SIZE_MAX];
-  //!Buffer, mainly used in message passing and for other temporary storage.
-  char             dMiscbuffer2[MSG_SIZE_MAX];
-
-  //!This is a data container reference, it contains the root file and provides a series of 
-  //!convenience access functions. The pointer is set by the QwGUIMain class, when a new ROOT file is opened,
-  //!by calling the member function SetDataContainer(RDataContainer *cont) in this class.  There is no 
-  //!direct instance of this container kept within the class. 
-  TMapFile  *dROOTCont;
 
   TMapFile *dMapFile;
  
@@ -144,17 +149,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none
   virtual void     OnAddThisTab(){};
 
-  
-  //!This function can be overwritten by the derived class, to perform additional tasks, when the use has  
-  //!opened a new data file (any file). It is the responsibility of the derived class implmentation to 
-  //!identify what type of file was opened.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  //  virtual void     OnNewDataContainer(){};
-
   //!This function can be used to pass messages to the log book. The message content is 
   //!reformated slightly and copied to the dMiscbuffer member, to be picked up by the
   //!QwGUIMain class via the GetMessage() member function of this class, when QwGUIMain
@@ -166,7 +160,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - 2) Flag: To indicate whether the message is to be displayed with a time and date stamp.
   //!
   //!Return value: none  
-  void             SetLogMessage(const char *buffer, Bool_t tStamp = kFalse);
+  void             SetLogMessage(const char *buffer, Bool_t tStamp = kFALSE);
 
 
   Bool_t               dProcessHalt;
@@ -204,7 +198,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - none
   //!
   //!Return value: message string pointer.  
-  const char*      GetMessage() {return dMiscbuffer;};
+  /* const char*      GetMessage() {return dMiscbuffer;}; */
 
   //!This function returns the name/label of this subsystem object.
   //!
@@ -360,7 +354,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - 1) A pointer to the data container, containing the newly opened file.
   //!
   //!Return value: none
-  void             SetDataContainer(RDataContainer *cont);
+  ///  void             SetDataContainer(RDataContainer *cont);
  
   
   //!Setter function for the subsystem tab menu ID. Called once from QwGUIMain::AddATab, when a new subsystem is
@@ -457,10 +451,9 @@ class QwGUISubSystem : public TGCompositeFrame {
   };
   
  
-  void SetMapFile(TMapFile *file);
-  
+  virtual void   SetMapFile(TMapFile *file);
+  virtual void   SummaryHist(TH1*in);
   Bool_t dMapFileFlag;
-
 
   ClassDef(QwGUISubSystem, 1);
 };
