@@ -89,7 +89,7 @@ JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > 
   //..... 1D,  iv
   h1iv=new TH1 *[nP];
   for(int i=0;i<nP;i++) {    
-    h1iv[i]=h=new TH1D(Form(mCore+"P%d",i),Form("iv P%d=%s, pass=%s ;iv=%s",i,Pname[i].Data(),mCore.Data(),Pname[i].Data()),64,0.,0.);
+    h1iv[i]=h=new TH1D(Form(mCore+"P%d",i),Form("iv P%d=%s, pass=%s ;iv=%s",i,Pname[i].Data(),mCore.Data(),Pname[i].Data()),128,0.,0.);
     h->GetXaxis()->SetNdivisions(4);
     h->SetBit(TH1::kCanRebin);
   }
@@ -111,7 +111,7 @@ JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > 
   //..... 1D,  dv
   h1dv=new TH1 *[nY];
   for(int i=0;i<nY;i++) {    
-    h1dv[i]=h=new TH1D(Form(mCore+"Y%d",i),Form("dv Y%d=%s, pass=%s ;dv=%s",i,Yname[i].Data(),mCore.Data(),Yname[i].Data()),64,0.,0.);
+    h1dv[i]=h=new TH1D(Form(mCore+"Y%d",i),Form("dv Y%d=%s, pass=%s ;dv=%s",i,Yname[i].Data(),mCore.Data(),Yname[i].Data()),128,0.,0.);
     h->GetXaxis()->SetNdivisions(4);
     h->SetBit(TH1::kCanRebin);
   }
@@ -130,7 +130,12 @@ JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > 
       h->SetBit(TH1::kCanRebin);
     }
   }
-  
+ 
+  // store list of names to be archived
+  hA[0]=new TH1D(mCore+"NamesIV",Form("IV name list nIV=%d",nP),nP,0,1);
+  for(int i=0;i<nP;i++)   hA[0]->Fill(Pname[i].Data(),1.*i); 
+  hA[1]=new TH1D(mCore+"NamesDV",Form("DV name list nIV=%d",nY),nY,0,1);
+  for(int i=0;i<nY;i++)   hA[1]->Fill(Yname[i].Data(),i*1.); 
 }
 
 
@@ -165,7 +170,7 @@ JbCorrelator::finish(){
     if(sigI<10000)
       rmsStr+=Form("<td> %.0f",sigI);
     else
-      rmsStr+=Form("<td> > 10k ");
+      rmsStr+=Form("<td> %.2e",sigI);
 
   }
   cout<<"#"<<mCore<<"RMS,"<<rmsStr<<endl;
@@ -184,7 +189,14 @@ JbCorrelator::exportAlphas(TString outName){
   TFile*  hFile=new TFile(outName,"RECREATE","correlation coefficents");
 
   linReg.mA.Write("slopes");
-  linReg.mAsig.Write("sigma");
+  linReg.mAsig.Write("sigSlopes");
+  linReg.mRjk.Write("IV_covariance");
+  linReg.mMP.Write("IV_mean");
+  linReg.mMY.Write("DV_mean");
+  linReg.mVPP.Write("IV_rawVariance");
+  linReg.mVPY.Write("IV_DV_rawVariance");
+  linReg.mVY2.Write("DV_rawVariance");
+ 
   hFile->Close();
   printf("saved %s\n",hFile->GetName());
 }

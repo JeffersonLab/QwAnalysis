@@ -22,7 +22,7 @@ class JbCorrelator  {
   
   
   // histograms
-  enum {mxHA=32}; TH1 * hA[mxHA];
+  enum {mxHA=4}; TH1 * hA[mxHA];
 
   // monitoring histos for iv & dv
   TH1 ** h1iv, **h2iv, ** h1dv, **h2dv;

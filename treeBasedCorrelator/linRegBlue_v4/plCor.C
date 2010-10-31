@@ -5,6 +5,7 @@ enum{ nP=5,nY=15};
 TString cor1="input";
 int pl=2; //1=gif, 2=ps, 3=both
 TString runName="R5823.000";
+//TString inpPath="./web/R6000.000/";
 TString inpPath="./out/";
 char *oPath="./out/";
 
@@ -48,8 +49,8 @@ plCor(int page=1, char *runName0="RfixMe.000") {
 //============================================
 //============================================
 void   mySum(TString cCore, TString text){
-  gStyle->SetOptStat(10);
-  gStyle->SetOptFit(1);
+
+  gStyle->SetOptFit(1); gStyle->SetOptStat(10);
   
   can=new TCanvas("aa","aa",800,600);    TPad *c=makeTitle(can,text);
   c->cd();
@@ -68,24 +69,31 @@ void   mySum(TString cCore, TString text){
     break;
   }
   double yMax=h->GetMaximum();
-  h->SetMaximum(yMax*1.05);
-  h->SetMinimum(yMax*0.9);
-  // printf("xx min=%f\n", h->GetMinimumBin());
+  h->SetMaximum(yMax*1.02);
+  hpr=h;  // min set based on 1D projections range , below
   h->Draw();
-  
+  tx=new TText(0, h->GetMaximum(),"     run="+runName); tx->Draw();
+  tx->SetTextSize(0.12);
+
 
   cD->cd(1);
   h=(TH1 *)fd->Get("myStat"); assert(h);
   h->Draw("h text");
-  h->SetMaximum(h->GetMaximum()*1.1);
+  h->SetMaximum(h->GetMaximum()*1.2);
 
   cD->cd(2);
   h=(TH1 *)fd->Get("inpBcm1"); assert(h);
   h->Draw();
+  
+  double lowBcm=h->GetXaxis()->GetBinCenter(1);
+  hpr->SetMinimum(lowBcm);
 
   cD->cd(3);
   h=(TH1 *)fd->Get("inpDevErr"); assert(h);
   h->Draw();
+
+ 
+
 }
 
 
@@ -285,6 +293,7 @@ TPad *makeTitle(TCanvas *c,char *core) {
 //============================
 void doAll(){
   for(int i=1;i<=8;i++)  {
+    if(i==6||i==7) continue; //tmp, if no 2,4,8-sums
     plCor(i);
   }
 

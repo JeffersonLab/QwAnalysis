@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
   const char * inpPath="/home/cdaq/qweak/QwScratch/rootfiles/QwPass1_"; //cdaq:Pass1
   //const char * inpPath="/group/qweak/QwAnalysis/common/QwScratch/rootfiles/QwPass1.1_";//*QwPass1.1*
 
+
   const char * outPath="./out/";
   const char * configFName="blueReg.conf";
   const char * slopeFName=0;
@@ -65,12 +66,14 @@ int main(int argc, char *argv[]) {
       printf("Failed to open %s, Alphas NOT found\n",corFile->GetName());
       return 0;
     }
+    //    alphasM=(TMatrixD *) corFile->Get("IV_covariance");assert(alphasM);
+    //  printf("opened %s,  IVcorel found, dump:\n",corFile->GetName());  alphasM->Print();
     alphasM=(TMatrixD *) corFile->Get("slopes");
     assert(alphasM);
     corB=new JbCorrelator("regres"); //   2nd correlator after regression
     YvecNew=new double [eve.ndv()];
     
-    printf("opened %s, Alphas found, dump:\n",corFile->GetName());
+    printf("opened %s, slopes found, dump:\n",corFile->GetName());
     alphasM->Print();
     corFile->Close();
   }

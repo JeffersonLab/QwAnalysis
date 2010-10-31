@@ -218,7 +218,7 @@ os.system(cmd_string7)
 #os._exit(1)
 #cmd_string9 = "scp -rp -i ~/balewski/keys/id_dsa-janDeltag5 index.html "+outDirName+" balewski@deltag5.lns.mit.edu:Sites/QweakA/"
 
-cmd_string9 = "scp -rp -i ~/balewski/keys/id_rsa-ifarml4  web/index.html web/"+outDirName+" balewski@ifarml4:/group/qweak/www/html/onlineRegression/B/"
+cmd_string9 = "scp -rp -i ~/balewski/keys/id_rsa-ifarml4  web/index.html web/"+outDirName+" balewski@ifarml4:/group/qweak/www/html/onlineRegression/Oct18A/"
 
 print "exec9:%s" % cmd_string9
 os.system(cmd_string9)

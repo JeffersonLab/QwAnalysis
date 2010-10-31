@@ -32,6 +32,7 @@ void LinRegBevPeb::init(){
   mVY2.ResizeTo(par_nY,1); 
   mA.ResizeTo(par_nP,par_nY);
   mAsig.ResizeTo(mA);
+  mRjk.ResizeTo(mVPP);
 
   fGoodEventNumber=0;
  
@@ -193,7 +194,7 @@ void LinRegBevPeb::printSummaryP(){
 
       cout << Form(" %3d %6sP%d:  %+12.4g  %12.4g ",i," ",i,meanI,sigI);
       for (size_t j = 1; j <dim; j++) {
-        if( j<=i) { cout << Form("  %12s",". . . ."); continue;}
+        if( j<=i) { cout << Form("  %12s","._._._."); continue;}
         double sigJ,cov; assert( getSigmaP(j,sigJ)==0);
         assert( getCovarianceP(i,j,cov)==0);
         double corel=cov/sigI/sigJ;
@@ -278,7 +279,7 @@ void LinRegBevPeb::printSummaryYP(){
 void LinRegBevPeb::solve() {
   cout << Form("\n********LinRegBevPeb::solve...invert Rjk")<<endl;
   TMatrixD S2jk;S2jk.ResizeTo(mVPP);
-  TMatrixD Rjk;Rjk.ResizeTo(mVPP);
+
 
   for (int j = 0; j < par_nP; j++) {
     double Sj; assert( getSigmaP(j,Sj)==0);
@@ -286,12 +287,12 @@ void LinRegBevPeb::solve() {
        double Sk,s2jk; assert( getSigmaP(k,Sk)==0);
        assert( getCovarianceP(j,k,s2jk)==0);
        S2jk(j,k)=s2jk;
-       Rjk(j,k)=s2jk/Sj/Sk;
+       mRjk(j,k)=s2jk/Sj/Sk;
      }
    }
   //cout<<"new Rjk:"; Rjk.Print();
 
-   TMatrixD invRjk(Rjk); double det;
+   TMatrixD invRjk(mRjk); double det;
    //cout<<"0 invRkl:"; invRjk.Print();
    invRjk.Invert(&det);
    cout<<Form("det=%f\n",det); //invRjk.Print();

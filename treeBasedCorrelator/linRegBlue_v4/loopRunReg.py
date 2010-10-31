@@ -7,20 +7,24 @@ Executing shell commande depending on params
 """
 import os
 
-f=open("runListBoil.txt","r")
-#f=open("aa1","r")
+f=open("runListOct18","r")
+#f=open("runListBoil.txt","r")
+#f=open("rr3","r")
 print f
 for line in f:
     print line
-    run,seg=line.split()
-    print run
+    run,cn1,cn2,mc=line.split()
+    n1=int(cn1)
+    n2=int(cn2)
+    print run,n1,n2,mc
     cut=""
-    if seg=="c":
+    if mc=="c":
         cut=" -c "
-    cmdSort = "(./oneRunReg.py -r %s"% run  +" -s 000 "+cut+" -n 100000)"
-    print "exec1:%s" % cmdSort
-    os.system(cmdSort)
+    for seg in range(n1,n2+1):    
+        cmdSort = "(./oneRunReg.py -r %s"% run  +" -s %03d"%seg +cut+" -n 100000)"
+        print "exec1:%s" % cmdSort
+        os.system(cmdSort)
 
-    #break
+    break
 #print f.readline()
 

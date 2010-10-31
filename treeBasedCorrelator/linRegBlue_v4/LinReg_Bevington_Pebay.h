@@ -19,24 +19,23 @@ class LinRegBevPeb {
  
  private:
 
-  Long64_t fGoodEventNumber;    ///< accumulated so far
-  
-  TMatrixD mMP, mMY;   ///< mean values
-  TMatrixD mVPP, mVPY,mVY2; ///< variances
-  
+  Long64_t fGoodEventNumber;    ///< accumulated so far  
 
  public:
-  TMatrixD mA, mAsig;  ///< found alphas + their stand errors
+  TMatrixD mA, mAsig;  ///< found slopes + their stand errors
+  TMatrixD mRjk;  ///< found covariance between IVs
+  TMatrixD mMP, mMY;   ///< mean values accumulators
+  TMatrixD mVPP, mVPY,mVY2; ///< variances accumulators
 
   LinRegBevPeb();
   
   virtual ~LinRegBevPeb(){};
 
   /// processing single events
-  void accumulate(double *P, double *Y);
-  void solve();
+  void  accumulate(double *P, double *Y);
+  void  solve();
   double Alpha(int ip, int iy){ return mA(ip,iy);} //ok
-  bool failed(){ return  fGoodEventNumber<2;}
+  bool   failed(){ return  fGoodEventNumber<2;}
 
   // after last event
   void printSummaryP();

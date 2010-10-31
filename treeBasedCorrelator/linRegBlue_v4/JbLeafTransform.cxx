@@ -85,6 +85,13 @@ JbLeafTransform::presetMyStat(double x1,double x2, double thr, double x3){
   hA[0]->Fill("inpTree", x1);
   hA[0]->Fill("customCut", x2);
   hA[0]->Fill(Form("bcm >%.0f#muA",thr), x3);
+  //  thr=50;
+  TList *Lx=hA[1]->GetListOfFunctions();
+  TLine *ln=new TLine(thr,0,thr,5.e3);
+  ln->SetLineColor(kRed); ln->SetLineWidth(2);
+  Lx->Add(ln);
+  printf("ZZZZZZZZ %f \n",thr);
+  
 }
 
 //========================
@@ -183,7 +190,7 @@ JbLeafTransform::initHistos(){
   h->SetFillColor(kBlue);
   h->SetBit(TH1::kCanRebin);
 
-  hA[2]=h=new TProfile("inpPattNo","Current stability; Pattern_number; BCM1 (#mu A)    ",500,0.,0.);
+  hA[2]=h=new TProfile("inpPattNo","Current stability; Pattern_number; BCM1 (#mu A)    ",200,0.,0.);
   h->SetFillColor(kYellow);  h->SetBit(TH1::kCanRebin); // rescalled in finish
 
 
