@@ -50,7 +50,7 @@
  bpmstripline,   QWK_BPM3H07C,  0.6,  0.0,   140329.0, 		1.0,    1.013110,  0.985986
  bpmstripline,   QWK_BPM3H08,   0.1, -0.1,   143576.0,  	1.372,  1.039360,  1.055470
  bpmstripline,   QWK_BPM3H09,   0.3, -0.4,   144803.0,  	1.0,    1.025930,  0.993640
- bpmstripline,   QWK_BPM3H09B, -0.9, -0.3,   147351.0,  	1.0,  	0.948778,  1.264910
+ bpmstripline,   QWK_BPM3H09B,  4.0, -0.3,   147351.0,  	1.0,  	0.948778,  1.264910
 
 ! The representative bpm for qweak hydrogen target.	
  combinedbpm,    QWK_TARGET  0.1,  0.1,   148739.0, 	1.0,  	1.0,  	   1.0     	
