@@ -48,20 +48,20 @@ sample_size=480
 ! when naming the DetName, do not use arithmetic and logic operators, such as +,-, &, and so on
 !
 ! ModuleType, Chan#, NumberOfCombinedChan's, DetType, DetName, PhysicalChanNames, WeightNumbers,
- VPMT,  1,  2, CombinationPMT,  MD1BarSum,  	  MD1Pos,  MD1Neg, 1.0,  1.0
-  VPMT,  2,  2, CombinationPMT,  MD2BarSum,  	  MD2Pos,  MD2Neg, 1.0,  1.0
-  VPMT,  3,  2, CombinationPMT,  MD3BarSum,  	  MD3Pos,  MD3Neg, 1.0,  1.0
-  VPMT,  4,  2, CombinationPMT,  MD4BarSum,  	  MD4Pos,  MD4Neg, 1.0,  1.0
-  VPMT,  5,  2, CombinationPMT,  MD5BarSum,  	  MD5Pos,  MD5Neg, 1.0,  1.0
-  VPMT,  6,  2, CombinationPMT,  MD6BarSum,  	  MD6Pos,  MD6Neg, 1.0,  1.0
-  VPMT,  7,  2, CombinationPMT,  MD7BarSum,  	  MD7Pos,  MD7Neg, 1.0,  1.0
-  VPMT,  8,  2, CombinationPMT,  MD8BarSum,  	  MD8Pos,  MD8Neg, 1.0,  1.0
-  VPMT,  9,  4, CombinationPMT,  MD1_MD5,	 	  MD1Pos,  MD1Neg,  MD5Pos,  MD5Neg, 1.0,  1.0, 1.0,  1.0   
-  VPMT, 10,  4, CombinationPMT,  MD2_MD6,		  MD2Pos,  MD2Neg,  MD6Pos,  MD6Neg, 1.0,  1.0, 1.0,  1.0   
-  VPMT, 11,  4, CombinationPMT,  MD3_MD7, 		  MD3Pos,  MD3Neg,  MD7Pos,  MD7Neg, 1.0,  1.0, 1.0,  1.0   
-  VPMT, 12,  4, CombinationPMT,  MD4_MD8, 		  MD4Pos,  MD4Neg,  MD8Pos,  MD8Neg, 1.0,  1.0, 1.0,  1.0   
-  VPMT, 13,  8, CombinationPMT,  MDOddBars,		  MD1Neg, MD1Pos, MD3Neg, MD3Pos, MD5Neg, MD5Pos, MD7Neg, MD7Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
-  VPMT, 14,  8, CombinationPMT,  MDEvenBars, 	  MD2Neg, MD2Pos, MD4Neg, MD4Pos, MD6Neg, MD6Pos, MD8Neg, MD8Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
-  VPMT, 15, 16, CombinationPMT,  CombinationAllMD,MD1Neg, MD1Pos, MD2Neg, MD2Pos, MD3Neg, MD3Pos, MD4Neg, MD4Pos, MD5Neg, MD5Pos, MD6Neg, MD6Pos, MD7Neg, MD7Pos, MD8Neg, MD8Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+ VPMT,  1,  2, CombinationPMT,  QWK_MD1BarSum,  	  QWK_MD1Pos,  QWK_MD1Neg, 1.0,  1.0
+  VPMT,  2,  2, CombinationPMT,  QWK_MD2BarSum,  	  QWK_MD2Pos,  QWK_MD2Neg, 1.0,  1.0
+  VPMT,  3,  2, CombinationPMT,  QWK_MD3BarSum,  	  QWK_MD3Pos,  QWK_MD3Neg, 1.0,  1.0
+  VPMT,  4,  2, CombinationPMT,  QWK_MD4BarSum,  	  QWK_MD4Pos,  QWK_MD4Neg, 1.0,  1.0
+  VPMT,  5,  2, CombinationPMT,  QWK_MD5BarSum,  	  QWK_MD5Pos,  QWK_MD5Neg, 1.0,  1.0
+  VPMT,  6,  2, CombinationPMT,  QWK_MD6BarSum,  	  QWK_MD6Pos,  QWK_MD6Neg, 1.0,  1.0
+  VPMT,  7,  2, CombinationPMT,  QWK_MD7BarSum,  	  QWK_MD7Pos,  QWK_MD7Neg, 1.0,  1.0
+  VPMT,  8,  2, CombinationPMT,  QWK_MD8BarSum,  	  QWK_MD8Pos,  QWK_MD8Neg, 1.0,  1.0
+  VPMT,  9,  4, CombinationPMT,  QWK_MD1_QWK_MD5,	 	  QWK_MD1Pos,  QWK_MD1Neg,  QWK_MD5Pos,  QWK_MD5Neg, 1.0,  1.0, 1.0,  1.0   
+  VPMT, 10,  4, CombinationPMT,  QWK_MD2_QWK_MD6,		  QWK_MD2Pos,  QWK_MD2Neg,  QWK_MD6Pos,  QWK_MD6Neg, 1.0,  1.0, 1.0,  1.0   
+  VPMT, 11,  4, CombinationPMT,  QWK_MD3_QWK_MD7, 		  QWK_MD3Pos,  QWK_MD3Neg,  QWK_MD7Pos,  QWK_MD7Neg, 1.0,  1.0, 1.0,  1.0   
+  VPMT, 12,  4, CombinationPMT,  QWK_MD4_QWK_MD8, 		  QWK_MD4Pos,  QWK_MD4Neg,  QWK_MD8Pos,  QWK_MD8Neg, 1.0,  1.0, 1.0,  1.0   
+  VPMT, 13,  8, CombinationPMT,  QWK_MDOddBars,		  QWK_MD1Neg, QWK_MD1Pos, QWK_MD3Neg, QWK_MD3Pos, QWK_MD5Neg, QWK_MD5Pos, QWK_MD7Neg, QWK_MD7Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+  VPMT, 14,  8, CombinationPMT,  QWK_MDEvenBars, 	  QWK_MD2Neg, QWK_MD2Pos, QWK_MD4Neg, QWK_MD4Pos, QWK_MD6Neg, QWK_MD6Pos, QWK_MD8Neg, QWK_MD8Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
+  VPMT, 15, 16, CombinationPMT,  QWK_MDAllBars,QWK_MD1Neg, QWK_MD1Pos, QWK_MD2Neg, QWK_MD2Pos, QWK_MD3Neg, QWK_MD3Pos, QWK_MD4Neg, QWK_MD4Pos, QWK_MD5Neg, QWK_MD5Pos, QWK_MD6Neg, QWK_MD6Pos, QWK_MD7Neg, QWK_MD7Pos, QWK_MD8Neg, QWK_MD8Pos, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0
 !
 !END
