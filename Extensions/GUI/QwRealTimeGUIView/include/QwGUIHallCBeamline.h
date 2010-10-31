@@ -147,7 +147,7 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //! - plot to draw pass the enum code
   //!
   //!Return value: none 
-  void PlotTargetPos(Short_t );
+  void PlotTargetPos(Int_t tgtcoord);
 
   //!This function Draws target charge yield/asym  histograms/plots from the Memory map file. 
   //!
@@ -163,7 +163,7 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //! - combo box id 
   //! - combo box element id
   //!Return value: none 
-  void SetComboIndex(Short_t cmb_id, Short_t id);
+  void SetComboIndex(Int_t cmb_id, Int_t id);
 
   //!This function loads list of bcms available in the hall c . 
   //!based on the map file read by LoadChannelMap routine
@@ -203,8 +203,8 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
 
     
   std::vector<std::vector<TString> > fHallCDevices; //2D vector since we have seral types of device - VQWK, SCALAR and COMBINED
-  Short_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
-  Short_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
+  Int_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
+  Int_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
  protected:
 

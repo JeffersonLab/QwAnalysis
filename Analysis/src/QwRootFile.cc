@@ -135,7 +135,7 @@ void QwRootFile::DefineOptions(QwOptions &options)
      "TTree autosave value");
 
   options.AddOptions()
-    ("circular-buffer", po::value<int>()->default_value(25000),
+    ("circular-buffer", po::value<int>()->default_value(0),
      "Max. no.of entries to kept in the memory mapped tree");
 }
 

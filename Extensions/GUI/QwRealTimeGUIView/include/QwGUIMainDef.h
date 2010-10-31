@@ -156,6 +156,12 @@ enum CommandIdentifiers {
   M_HISTO_ACCUMULATE, 
   M_HISTO_PAUSE,
   
+  M_LOAD_UNLOAD,
+  M_RUN_STOP,
+  M_RESET,
+  M_EXIT,
+
+
   M_TABS   //always needs to be last in the list!
 };
 

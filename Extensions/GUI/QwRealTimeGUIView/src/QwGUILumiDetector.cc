@@ -677,6 +677,7 @@ void QwGUILumiDetector::PlotLumiScaler()
 
 Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
+  if(dMapFileFlag){
   switch (GET_MSG(msg)){
 
   case kC_TEXTENTRY:
@@ -737,7 +738,7 @@ Bool_t QwGUILumiDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   default:
     break;
   }
-  
+  }
   return kTRUE;
 }
 

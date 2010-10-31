@@ -191,7 +191,13 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dMenuBarLayout;
   TGLayoutHints          *dMenuBarItemLayout;
  
-  
+  Pixel_t                        green;
+  Pixel_t                        red;
+  TGTextButton           *dMainButton[4];
+  TGHorizontalFrame      *dMainButtonsFrame;
+
+  Bool_t                  dRunStopFlag;
+
   //!This function is used to close the map file
   void                    CloseMapFile();
 
@@ -217,8 +223,6 @@ class QwGUIMain : public TGMainFrame {
 
   //!This function implements the log book tab.
   void                    MakeLogTab();
-  //!This function implements the main data window tab.
-  void                    MakeMainTab();
   //!This function creates the menu layout (additions to the static menu should be made here)
   void                    MakeMenuLayout();
   //!This function creates the tool bar layout (changes to the tool bar should be made here)

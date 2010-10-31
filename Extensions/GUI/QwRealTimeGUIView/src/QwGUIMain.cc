@@ -66,6 +66,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   
   dMapFileOpen          = false;
   dRunOpen              = false;
+  dRunStopFlag          = false;
 
   //  dROOTFile             = NULL;
   dMemoryMapFile        = NULL;
@@ -101,14 +102,40 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMenuBarItemLayout    = NULL;
 
   MakeMenuLayout();
-  MakeMainTab();
-
-  SetWindowName("Qweak RealTime Data Analysis GUI");
 
 
-  MapSubwindows();
-  Resize(GetDefaultSize());
-  MapWindow();
+  gClient->GetColorByName("green", green);
+  gClient->GetColorByName("red",   red);
+
+  Int_t  ten_percent_height = (Int_t) 0.1*dMWHeight;
+
+  dMainButtonsFrame = new  TGHorizontalFrame(this, dMWWidth, ten_percent_height);
+  this -> AddFrame(dMainButtonsFrame,  new TGLayoutHints(kLHintsBottom | kLHintsExpandX, 1,1,1,1));
+
+  dMainButton[0] = new TGTextButton(dMainButtonsFrame, "Load/Unload",  M_LOAD_UNLOAD);
+  dMainButton[1] = new TGTextButton(dMainButtonsFrame, "Run/Stop", M_RUN_STOP);
+  dMainButton[2] = new TGTextButton(dMainButtonsFrame, "Reset", M_RESET);
+  dMainButton[3] = new TGTextButton(dMainButtonsFrame, "Exit", M_EXIT);
+
+  //
+  // reduce "for" in order to get ns faster than...
+  //
+  // Sunday, October 31 02:50:16 EDT 2010, jhlee
+
+  dMainButton[0] -> Associate(this);
+  dMainButton[1] -> Associate(this);
+  dMainButton[2] -> Associate(this);  
+  dMainButton[3] -> Associate(this);
+
+  dMainButton[0] -> ChangeBackground(red);
+  dMainButton[1] -> SetEnabled(false);
+  dMainButton[2] -> SetEnabled(false);
+
+  dMainButtonsFrame -> AddFrame(dMainButton[0], new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  dMainButtonsFrame -> AddFrame(dMainButton[1], new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  dMainButtonsFrame -> AddFrame(dMainButton[2], new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  dMainButtonsFrame -> AddFrame(dMainButton[3], new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+
 
   if (dClArgs.detectormap==kTRUE){
     printf("custom detector map included - %s \n",dClArgs.file);
@@ -119,6 +146,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   }
 
   LoadChannelMapFiles(dDetMapFile);//loads the channel map files for all the subsystems
+
+  dTab = new TGTab(this,  dMWWidth, dMWHeight);
 
   if(!GetSubSystemPtr("Main Detectors") && dMDChannelMap.Length()){
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
@@ -146,6 +175,15 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
     CorrelationSubSystem = new QwGUICorrelationPlots(fClient->GetRoot(), this, dTab,"Correlation Plots",
 						     "QwGUIMain", dMWWidth-15,dMWHeight-180);
   }
+
+  this -> AddFrame(dTab,  new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 2, 2, 2, 2));
+  this -> MapSubwindows();
+  this-> Resize(this-> GetDefaultSize()); 
+  Layout();
+  this -> SetWindowName("Qweak RealTime Data Analysis GUI");
+  this -> SetIconName("QwRealTimeGUI");
+  this -> MapWindow();
+  //  this -> Resize(640,480);
   
 };
 
@@ -284,34 +322,34 @@ void QwGUIMain::MakeMenuLayout()
 }
 
 
-void QwGUIMain::MakeMainTab()
-{
+// void QwGUIMain::MakeMainTab()
+// {
 
-  dTabLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX | kLHintsExpandY,
-				 2, 2, 5, 1);
-  dTab = new TGTab(this,dMWWidth-15,dMWHeight-80);
+//   dTabLayout = new TGLayoutHints(kLHintsBottom | kLHintsExpandX | kLHintsExpandY,
+// 				 2, 2, 5, 1);
+//   dTab = new TGTab(this,dMWWidth-15,dMWHeight-80);
 
-  if(TabActive("Main")) return;
+//   if(TabActive("Main")) return;
 
-  dMainTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
-				     kLHintsExpandX | kLHintsExpandY);
-  dMainCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
-				     0, 0, 1, 2);
+//   dMainTabLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop |
+// 				     kLHintsExpandX | kLHintsExpandY);
+//   dMainCnvLayout = new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY,
+// 				     0, 0, 1, 2);
 
-  TGCompositeFrame *tf = dTab->AddTab("Main");
+//   TGCompositeFrame *tf = dTab->AddTab("Main");
 
-  dMainTabFrame = new TGHorizontalFrame(tf,10,10);
-  dMainCanvas   = new TRootEmbeddedCanvas("pC", dMainTabFrame,10, 10);
-  dMainTabFrame->AddFrame(dMainCanvas,dMainCnvLayout);
-  dMainTabFrame->Resize(dMWWidth-15,dMWHeight-110);
-  tf->AddFrame(dMainTabFrame,dMainTabLayout);
-  AddFrame(dTab, dTabLayout);
+//   dMainTabFrame = new TGHorizontalFrame(tf,10,10);
+//   dMainCanvas   = new TRootEmbeddedCanvas("pC", dMainTabFrame,10, 10);
+//   dMainTabFrame->AddFrame(dMainCanvas,dMainCnvLayout);
+//   dMainTabFrame->Resize(dMWWidth-15,dMWHeight-110);
+//   tf->AddFrame(dMainTabFrame,dMainTabLayout);
+//   AddFrame(dTab, dTabLayout);
 
-  dMainCanvas->GetCanvas()->SetBorderMode(0);
-  dMainCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				    "QwGUIMain",
-				    this,"MainTabEvent(Int_t,Int_t,Int_t,TObject*)");
-}
+//   dMainCanvas->GetCanvas()->SetBorderMode(0);
+//   dMainCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+// 				    "QwGUIMain",
+// 				    this,"MainTabEvent(Int_t,Int_t,Int_t,TObject*)");
+// }
 
 void QwGUIMain::MakeLogTab()
 {
@@ -584,177 +622,192 @@ void QwGUIMain::CloseMapFile()
     dMemoryMapFile = NULL;
   }
   dMapFileOpen = false;
+  return;
 }
 
 void QwGUIMain::CloseWindow()
 {
   this->CloseMapFile();
+  std::cout << "See you next time without any errors!!!!" << std::endl;
   gApplication->Terminate(0);
-
-}
+  return;
+};
 
 Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
-  // Handle messages send to the MainFrame object. E.g. all menu button
-  // messages.
+  //  bool status = 0;
+  //std::cout << "  QwGUIMain::ProcessMessage:: msg :" << msg << ", parm1: " << ", parm2: " << parm2 << std::endl;
+  
+  switch (GET_MSG(msg))
+    {
+    case kC_COMMAND:
+      {;
+	switch (GET_SUBMSG(msg)) 
+	  {
+	  case kCM_MENU:
+	    {;;
+	      switch (parm1) 
+		{
+		case M_VIEW_MAPLOAD:
+		  {;;;
+		    try 
+		      {
+			OpenMapFile();
+		      }
+		    catch (std::exception& e)
+		      {
+			std::cerr << "exception caught: " << e.what() << std::endl;
+		      }
+		  };;;
+		  break;
+		case M_HISTO_RESET:
+		  {;;;
+		    TObject *obj;
+		    TIter next1(SubSystemArray.MakeIterator());
+		    obj = next1();
+		    while(obj){
+		      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+		      entry->SetHistoReset(1);
+		      entry->SetHistoAccumulate(0);
+		      entry->SetHistoPause(0);
+		      obj = next1();
+		    }
+		  };;;
+		  break;
+		case M_HISTO_ACCUMULATE:
+		  {;;;
+		    TObject *obj;
+		    TIter next1(SubSystemArray.MakeIterator());
+		    obj = next1();
+		    while(obj){
+		      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+		      entry->SetHistoReset(0);
+		      entry->SetHistoAccumulate(1);
+		      entry->SetHistoPause(0);
+		      obj = next1();
+		    }
+		  };;;
+		  break;
+		case M_HISTO_PAUSE:
+		  {
+		    TObject *obj;
+		    TIter next1(SubSystemArray.MakeIterator());
+		    obj = next1();
+		    while(obj){
+		      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+		      entry->SetHistoReset(0);
+		      entry->SetHistoAccumulate(1);
+		      entry->SetHistoPause(1);
+		      obj = next1();
+		    }
+		  };;;
+		  break;
+		case M_FILE_EXIT:
+		  {;;;
+		    this->CloseWindow();
+		  };;;
+		  break;
+		default:
+		  break;
+		}
+	    };;
+	  case kCM_BUTTON: 
+	    {;;
+	      switch(parm1)  
+		{
+		case  M_LOAD_UNLOAD:
+		  {;;;
+		    try 
+		      {
+			if(IsMapFileOpen()) {
+			  CloseMapFile();
+			  dMainButton[0] -> ChangeBackground(red);
+			  dMainButton[1] -> SetEnabled(false);
+			  dMainButton[2] -> SetEnabled(false);
+			}
+			else {
+			  if(OpenMapFile()) {
+			    dMainButton[0] -> ChangeBackground(green);
+			    dMainButton[1] -> SetEnabled(true);
+			    dMainButton[2] -> SetEnabled(true);
+			  }
+			}
+		      }
+		    catch (std::exception& e)
+		      {
+			std::cerr << "exception caught: " << e.what() << std::endl;
+		      }
+		  };;;
+		  break;
+		case M_RUN_STOP:
+		  {;;;
+		    if(dRunStopFlag) { // old true : run -> Stop
+		      dMainButton[1] -> ChangeBackground(red);
+		      TObject *obj;
+		      TIter next1(SubSystemArray.MakeIterator());
+		      obj = next1();
+		      while(obj){
+			QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+			entry->SetHistoReset(0);
+			entry->SetHistoAccumulate(1);
+			entry->SetHistoPause(1);
+			obj = next1();
+		      }
+		      dRunStopFlag = false;
+		    }
+		    else { /// old false : stop -> want to do Run
+		      dMainButton[1] -> ChangeBackground(green);
+		      TObject *obj;
+		      TIter next1(SubSystemArray.MakeIterator());
+		      obj = next1();
+		      while(obj){
+			QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+			entry->SetHistoReset(0);
+			entry->SetHistoAccumulate(1);
+			entry->SetHistoPause(0);
+			obj = next1();
+		      }
+		      dRunStopFlag = true;
+		    }
+		  };;;
+		  break;
+		case M_RESET:
+		  {;;;
+		    TObject *obj;
+		    TIter next1(SubSystemArray.MakeIterator());
+		    obj = next1();
+		    while(obj){
+		      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+		      entry->SetHistoReset(1);
+		      entry->SetHistoAccumulate(0);
+		      entry->SetHistoPause(0);
+		      obj = next1();
+		    }
+		  };;;
+		  break;
+		case M_EXIT:
+		  {;;;
 
-  Long_t mTabID = 0;
-  //printf("\n ProcessMessage 1\n");
-  switch (GET_MSG(msg)){
-
-  case kC_TEXTENTRY:
-    switch (GET_SUBMSG(msg)) {
-    case kTE_ENTER:
-      switch (parm1) {
-
-      case M_RUN_SELECT:
-	break;
-
-      default:
-	break;
-      }
-
+		    this->CloseWindow();
+		  };;;
+		  break;
+		default:
+		  break;
+		}
+	    };;
+	    
+	  default:
+	    break;
+	  }
+      };
     default:
       break;
     }
-
-  case kC_COMMAND:
-    switch (GET_SUBMSG(msg)) {
-
-    case kCM_COMBOBOX:
-      {
-	switch (parm1) {
-	case M_TBIN_SELECT:
-	  break;
-	}
-      }
-      break;
-
-    case kCM_MENUSELECT:
-      break;
-
-    case kCM_MENU:
-
-      for(int n = M_TABS; n <= M_TABS+MCnt; n++ ){
-	mTabID = n;
-	if(parm1 == mTabID){
-
-	  if(dMenuTabs->IsEntryChecked(mTabID)){
-	    RemoveTab((QwGUISubSystem*)dTab->GetTabContainer(GetTabIndex(GetTabMenuLabel(mTabID))));
-	  }
-	  else{
-
-	    TObject *obj;
-	    TIter next(SubSystemArray.MakeIterator());
-	    obj = next();
-	    while(obj){
-	      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-	      if(!strcmp(GetTabMenuLabel(mTabID),entry->GetName()))
-		AddATab(entry);
-	      obj = next();
-	    }
-	  }
-
-	  break;
-	}
-      }
-      //printf("\n ProcessMessage 1\n");
-      switch (parm1) {
-
-      case M_VIEW_LOG:
-	// if(dMenuTabs->IsEntryChecked(M_VIEW_LOG)){
-	//   RemoveLogTab();
-	// }
-	// else{
-	//   MakeLogTab();
-	// }
-	break;
-
-      case M_VIEW_MAPLOAD:
-	//	printf("\n Loading Memory \n");
-	try 
-	  {
-	    OpenMapFile();
-	  }
-	catch (std::exception& e)
-	  {
-	    std::cerr << "exception caught: " << e.what() << std::endl;
-	  }
-	break;
-
-      case M_HISTO_RESET:
-	{
-	  //	  printf("M_HISTO_RESET %ld pressed\n", parm1);
-
-	  TObject *obj;
-	  TIter next1(SubSystemArray.MakeIterator());
-	  obj = next1();
-	  while(obj){
-	    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-	    entry->SetHistoReset(1);
-	    entry->SetHistoAccumulate(0);
-	    entry->SetHistoPause(0);
-	    obj = next1();
-	  }
-
-	  break;
-	}
-      case M_HISTO_ACCUMULATE:
-	{
-	  //	  printf("M_HISTO_ACCUMULATE %ld pressed\n", parm1);
-
-	  TObject *obj;
-	  TIter next1(SubSystemArray.MakeIterator());
-	  obj = next1();
-	  while(obj){
-	    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-	    entry->SetHistoReset(0);
-	    entry->SetHistoAccumulate(1);
-	    entry->SetHistoPause(0);
-	    obj = next1();
-	  }
-
-	  break;
-	}
-      case M_HISTO_PAUSE:
-	{
-	  //	  printf("M_HISTO_PAUSE %ld pressed\n", parm1);
-
-	  TObject *obj;
-	  TIter next1(SubSystemArray.MakeIterator());
-	  obj = next1();
-	  while(obj){
-	    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-	    entry->SetHistoReset(0);
-	    entry->SetHistoAccumulate(1);
-	    entry->SetHistoPause(1);
-	    obj = next1();
-	  }
-
-
-	  break;
-	}
-      case M_FILE_EXIT:
-	{
-	  this->CloseWindow();
-	}
-	break;
-      default:
-	break;
-      }
-
-    default:
-      break;
-    }
-
-  default:
-    break;
-  }
-
+    
   return kTRUE;
-}
-
-
+};
+  
+  
 
 Int_t main(Int_t argc, Char_t **argv)
 {

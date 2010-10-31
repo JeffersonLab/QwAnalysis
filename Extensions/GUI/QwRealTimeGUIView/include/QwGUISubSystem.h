@@ -103,7 +103,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!convenience access functions. The pointer is set by the QwGUIMain class, when a new ROOT file is opened,
   //!by calling the member function SetDataContainer(RDataContainer *cont) in this class.  There is no 
   //!direct instance of this container kept within the class. 
-  RDataContainer  *dROOTCont;
+  TMapFile  *dROOTCont;
 
   TMapFile *dMapFile;
  
