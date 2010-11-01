@@ -102,8 +102,8 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dButtonTgtRaster)    delete dButtonTgtRaster;
   delete [] PosVariation;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
+  // RemoveThisTab(this);
+  //  IsClosing(GetName());
 }
 
 void QwGUIHallCBeamline::LoadHistoMapFile(TString mapfile){//this is called in the QwGUIMain c'tor
@@ -188,7 +188,7 @@ void QwGUIHallCBeamline::MakeLayout()
   // dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
-  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 2, 2, 2, 2));
 
  
   //hall c bcm access frame
@@ -275,15 +275,15 @@ void QwGUIHallCBeamline::OnReceiveMessage(char *obj)
 
 }
 
-void QwGUIHallCBeamline::OnObjClose(char *obj)
-{
-}
+// void QwGUIHallCBeamline::OnObjClose(char *obj)
+// {
+// }
 
 
-void QwGUIHallCBeamline::OnRemoveThisTab()
-{
+// void QwGUIHallCBeamline::OnRemoveThisTab()
+// {
 
-};
+// };
 
 
 

@@ -244,11 +244,6 @@ class QwGUIMain : public TGMainFrame {
   //!Menu ID counter
   Int_t                   MCnt;
 
-  //!The following two flags are used in process increment dialog boxes
-  /* Bool_t                  dProcessing; */
-  /* Bool_t                  dProcessHalt; */
-
-
   Bool_t                  dMapFileOpen;
   Bool_t                  dRunOpen;
 
@@ -256,7 +251,6 @@ class QwGUIMain : public TGMainFrame {
   //!Command line argument structure (not currently implemented)
   ClineArgs               dClArgs;
   TString                 dDetMapFile;
-  //  Char_t                  dDetMapFile[NAME_STR_MAX];
   TString                 dInjectorChannelMap;
   TString                 dHallCChannelMap;
   TString                 dMDChannelMap;
@@ -268,7 +262,6 @@ class QwGUIMain : public TGMainFrame {
 
   //!Main window tab environment
   TGTab                  *dTab;
-  //  TGLayoutHints          *dTabLayout; 
 
   //!Main window canvas -- has its own permanent tab and can display
   //!plots that are always needed
@@ -458,7 +451,7 @@ class QwGUIMain : public TGMainFrame {
   //!      that sends the signal)
   //!
   //!Return value: none
-  void                   OnObjClose(const char *);
+  /* void                   OnObjClose(const char *); */
   //!Receiver function, called when a connected object is sending a message to the
   //!to the log. See QwGUISubSuystem class constructor for an example of how this is done.
   //!

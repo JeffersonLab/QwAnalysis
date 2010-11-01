@@ -96,8 +96,8 @@ QwGUIInjector::~QwGUIInjector()
 
   delete [] PosVariation;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
+  //RemoveThisTab(this);
+  //  IsClosing(GetName());
 }
 
 void QwGUIInjector::LoadHistoMapFile(TString mapfile){  //Now this is called at the QwGUIMain
@@ -182,7 +182,7 @@ void QwGUIInjector::MakeLayout()
   dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
-  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 2, 2, 2, 2));
 
   //Injector bcm access frame
   dInjectorBCMFrame= new TGVerticalFrame(dControlsFrame,50,100);
@@ -248,14 +248,14 @@ void QwGUIInjector::OnReceiveMessage(char *obj)
 
 }
 
-void QwGUIInjector::OnObjClose(char *obj)
-{
- //  if(!strcmp(obj,"dROOTFile")){
-// //     printf("Called QwGUIInjector::OnObjClose\n");
+// void QwGUIInjector::OnObjClose(char *obj)
+// {
+//  //  if(!strcmp(obj,"dROOTFile")){
+// // //     printf("Called QwGUIInjector::OnObjClose\n");
 
-//     dROOTCont = NULL;
-//   }
-}
+// //     dROOTCont = NULL;
+// //   }
+// }
 
 
 // void QwGUIInjector::OnNewDataContainer()
@@ -264,10 +264,10 @@ void QwGUIInjector::OnObjClose(char *obj)
 
 // };
 
-void QwGUIInjector::OnRemoveThisTab()
-{
+// void QwGUIInjector::OnRemoveThisTab()
+// {
 
-};
+// };
 
 
 

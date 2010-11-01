@@ -81,8 +81,8 @@ QwGUILumiDetector::~QwGUILumiDetector()
   if(dComboBoxLUMI) delete dComboBoxLUMI;
   if(dComboBoxSCALER) delete dComboBoxSCALER;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
+  // RemoveThisTab(this);
+  // IsClosing(GetName());
 }
 
 void QwGUILumiDetector::MakeLayout()
@@ -107,7 +107,7 @@ void QwGUILumiDetector::MakeLayout()
 
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
-  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 2, 2, 2, 2));
 
   //hall c lumi access frame
   dLumiFrame= new TGVerticalFrame(dControlsFrame,50,100);
@@ -242,15 +242,15 @@ void QwGUILumiDetector::OnReceiveMessage(char *obj)
 
 }
 
-void QwGUILumiDetector::OnObjClose(char *obj)
-{
-}
+// void QwGUILumiDetector::OnObjClose(char *obj)
+// {
+// }
 
 
-void QwGUILumiDetector::OnRemoveThisTab()
-{
+// void QwGUILumiDetector::OnRemoveThisTab()
+// {
 
-}
+// }
 
 
 

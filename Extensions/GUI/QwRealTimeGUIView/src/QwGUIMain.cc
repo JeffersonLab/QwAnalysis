@@ -58,30 +58,15 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   dCurRun               = 0;
   MCnt                  = 0;
-
-  // dProcessing           = false;
-  // dProcessHalt          = false;
-
- 
   
   dMapFileOpen          = false;
   dRunOpen              = false;
   dRunStopFlag          = false;
 
-  //  dROOTFile             = NULL;
   dMemoryMapFile        = NULL;
 
-  // dTBinEntry            = NULL;
-  // dTBinEntryLayout      = NULL;
-  // dRunEntry             = NULL;
-  // dRunEntryLayout       = NULL;
-  // dHorizontal3DLine     = NULL;
-  // dUtilityFrame         = NULL;
-  // dUtilityLayout        = NULL;
-
   dTab                  = NULL;
-  // dTabLayout            = NULL;
-
+ 
   dMainCanvas           = NULL;
   dMainCnvFrame         = NULL;
   dMainTabFrame         = NULL;
@@ -140,11 +125,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if (dClArgs.detectormap==kTRUE){
     printf("custom detector map included - %s \n",dClArgs.file);
     dDetMapFile = dClArgs.file;
-    //    strcpy(dDetMapFile,dClArgs.file);
-  }
+   }
   else{
     dDetMapFile = "detectors.map";
-    //     strcpy(dDetMapFile,"detectors.map");
   }
 
   LoadChannelMapFiles(dDetMapFile.Data());//loads the channel map files for all the subsystems
@@ -197,16 +180,8 @@ QwGUIMain::~QwGUIMain()
   delete CorrelationSubSystem  ;
   delete HallCBeamlineSubSystem;
 
-  // delete dTBinEntry            ;
-  // delete dTBinEntryLayout      ;
-  // delete dRunEntry             ;
-  // delete dRunEntryLayout       ;
-  // delete dUtilityFrame         ;
-  // delete dUtilityLayout        ;
-
   delete dTab                  ;
-  // delete dTabLayout            ;
-
+ 
   delete dMainCanvas           ;
   delete dMainCnvFrame         ;
   delete dMainTabFrame         ;
@@ -311,7 +286,7 @@ void QwGUIMain::MakeMenuLayout()
   
 
   dMenuTabs = new TGPopupMenu(fClient->GetRoot());
-  dMenuTabs->AddEntry("View Log", M_VIEW_LOG);
+  // dMenuTabs->AddEntry("View Log", M_VIEW_LOG);
   
   // dMenuTabs->Associate(this);
   dMenuLoadMap->Associate(this);
@@ -334,15 +309,15 @@ void QwGUIMain::MakeLogTab()
 
 void QwGUIMain::RemoveTab(QwGUISubSystem* sbSystem)
 {
-  if(!sbSystem) return;
-  const char *TabName = sbSystem->GetName();
-  if(!TabActive(TabName)) return;
-  int tab = GetTabIndex(TabName);
-  if(tab < 0) return;
+  // if(!sbSystem) return;
+  // const char *TabName = sbSystem->GetName();
+  // if(!TabActive(TabName)) return;
+  // int tab = GetTabIndex(TabName);
+  // if(tab < 0) return;
 
-  dMenuTabs->UnCheckEntry(GetTabMenuID(TabName));
-  sbSystem->TabMenuEntryChecked(kFALSE);
-  UnMapLayout(tab);
+  // dMenuTabs->UnCheckEntry(GetTabMenuID(TabName));
+  // //  sbSystem->TabMenuEntryChecked(kFALSE);
+  // UnMapLayout(tab);
 }
 
 void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
@@ -378,7 +353,7 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
 
   dTab->AddTab(s.Data(),sbSystem);
   dMenuTabs->CheckEntry(GetTabMenuID(s.Data()));
-  sbSystem->TabMenuEntryChecked(kTRUE);
+  // sbSystem->TabMenuEntryChecked(kTRUE);
   MapLayout();
   return;
 }
@@ -493,30 +468,30 @@ void QwGUIMain::OnLogMessage(const char *msg)
   // Append(msg,kFALSE);
 }
 
-void QwGUIMain::OnObjClose(const char *objname)
-{
-  if(!objname) return;
+// void QwGUIMain::OnObjClose(const char *objname)
+// {
+//   if(!objname) return;
 
-//   TString name = objname;
+// //   TString name = objname;
 
-//   if(name.Contains("dROOTFile")){
-//     dROOTFile = NULL;
-// #ifdef QWGUI_DEBUG
-//     printf("Received dROOTFile IsClosing signal\n");
-// #endif
-//  }
+// //   if(name.Contains("dROOTFile")){
+// //     dROOTFile = NULL;
+// // #ifdef QWGUI_DEBUG
+// //     printf("Received dROOTFile IsClosing signal\n");
+// // #endif
+// //  }
 
-//   TObject *obj;
-//   TIter next(SubSystemArray.MakeIterator());
-//   obj = next();
-//   while(obj){
-//     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-//     if(!strcmp(objname,entry->GetName())){
-//       SubSystemArray.Remove(entry);
-//     }
-//     obj = next();
-//   }
-}
+// //   TObject *obj;
+// //   TIter next(SubSystemArray.MakeIterator());
+// //   obj = next();
+// //   while(obj){
+// //     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+// //     if(!strcmp(objname,entry->GetName())){
+// //       SubSystemArray.Remove(entry);
+// //     }
+// //     obj = next();
+// //   }
+// }
 
 void QwGUIMain::OnReceiveMessage(const char *obj)
 {

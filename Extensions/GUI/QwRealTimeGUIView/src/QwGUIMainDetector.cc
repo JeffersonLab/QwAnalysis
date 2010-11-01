@@ -51,6 +51,9 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
   dComboBoxMDPMT   = NULL;
   dComboBoxMDVPMT  = NULL;
 
+  MDPlots[0] = NULL;
+  MDPlots[1] = NULL;
+  fMDDevices.clear();
 
   AddThisTab(this);
 
@@ -80,8 +83,9 @@ QwGUIMainDetector::~QwGUIMainDetector()
   if(dButtonMDVPMT)   delete dButtonMDVPMT;
   if(dComboBoxMDPMT)  delete dComboBoxMDPMT;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
+  delete [] MDPlots;
+  //  RemoveThisTab(this);
+  //  IsClosing(GetName());
   //  ClearData();
 }
 
@@ -103,7 +107,7 @@ void QwGUIMainDetector::MakeLayout()
   //dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
   
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200);     
-  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 2, 2, 2, 2));
 
   //Add PMT and Comb PMT frames
   dMDPMTFrame = new TGVerticalFrame(dControlsFrame,50,100);
@@ -151,13 +155,8 @@ void QwGUIMainDetector::MakeLayout()
   dComboBoxMDVPMT->Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
-  // dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-  // 				"QwGUIMainDetector",
-  // 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
-  
-
-}
+};
 
 void QwGUIMainDetector::LoadHistoMapFile(TString mapfile){  //Now this is called at the QwGUIMain
   
@@ -650,9 +649,9 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Int_t p = 0; p < 2 ; p++){
-      delete MDPlots[p];
-    }
+    // for (Int_t p = 0; p < 2 ; p++){
+    //   delete MDPlots[p];
+    // }
     gSystem->Sleep(100);
     if (gSystem->ProcessEvents()){
       break;
@@ -951,28 +950,28 @@ void QwGUIMainDetector::OnReceiveMessage(char *obj)
 
 }
 
-void QwGUIMainDetector::OnObjClose(char *obj)
-{
-  if(!obj) return;
-  TString name = obj;
+// void QwGUIMainDetector::OnObjClose(char *obj)
+// {
+//   if(!obj) return;
+//   // TString name = obj;
 
 
-  // if(!strcmp(obj,"dROOTFile")){
-  //   dROOTCont = NULL;
-  // }
+//   // if(!strcmp(obj,"dROOTFile")){
+//   //   dROOTCont = NULL;
+//   // }
 
-  // if(!strcmp(obj,"dNumberEntryDlg")){
-  //   delete dNumberEntryDlg;
-  //   dNumberEntryDlg = NULL;
-  // }
+//   // if(!strcmp(obj,"dNumberEntryDlg")){
+//   //   delete dNumberEntryDlg;
+//   //   dNumberEntryDlg = NULL;
+//   // }
 
-  // if(!strcmp(obj,"dProgrDlg")){
-  //   dProcessHalt = kTrue;
-  //   dProgrDlg = NULL;
-  // }   
+//   // if(!strcmp(obj,"dProgrDlg")){
+//   //   dProcessHalt = kTrue;
+//   //   dProgrDlg = NULL;
+//   // }   
 
-  QwGUISubSystem::OnObjClose(obj);
-}
+//   QwGUISubSystem::OnObjClose(obj);
+// }
 
 // void QwGUIMainDetector::OnNewDataContainer()
 // {
@@ -981,10 +980,10 @@ void QwGUIMainDetector::OnObjClose(char *obj)
  
 // }
 
-void QwGUIMainDetector::OnRemoveThisTab()
-{
+// void QwGUIMainDetector::OnRemoveThisTab()
+// {
 
-}
+// }
 
 void QwGUIMainDetector::OnUpdatePlot(char *obj)
 {
@@ -1134,7 +1133,7 @@ void QwGUIMainDetector::SetComboIndex(Int_t cmb_id, Int_t id){
 
 TH1F* QwGUIMainDetector::GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option){
   tree ->Draw(name, cut, option);
-  TH1F* tmp;
+  TH1F* tmp = NULL;
   tmp = (TH1F*)  gPad -> GetPrimitive("htemp");
   if(! tmp) {
     return 0;

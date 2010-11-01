@@ -17,13 +17,13 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   dMainName = mainname;
   dThisName = objName;
 
-  TabMenuEntryChecked(kFALSE);
+  // TabMenuEntryChecked(kFALSE);
 
   dTabMenuID          = 0;
   dTabMenuItemChecked = false;
   dLogTStampFlag      = false;
-  dMain               = NULL;
-  dParent             = NULL;
+  // dMain               = NULL;
+  // dParent             = NULL;
 
   dHistoReset = 0;
   dHistoAccum = 0;
@@ -34,8 +34,8 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
 
 
   Connect("AddThisTab(QwGUISubSystem*)",dMainName,(void*)main,"AddATab(QwGUISubSystem*)");  
-  Connect("RemoveThisTab(QwGUISubSystem*)",dMainName,(void*)main,"RemoveTab(QwGUISubSystem*)");  
-  Connect("IsClosing(const char*)",dMainName,(void*)main,"OnObjClose(const char*)");    
+  //  Connect("RemoveThisTab(QwGUISubSystem*)",dMainName,(void*)main,"RemoveTab(QwGUISubSystem*)");  
+  // Connect("IsClosing(const char*)",dMainName,(void*)main,"OnObjClose(const char*)");    
   Connect("SendMessageSignal(const char*)",dMainName,(void*)main,"OnReceiveMessage(const char*)");
 
 }
@@ -49,26 +49,6 @@ const char* QwGUISubSystem::GetNewWindowName()
 {
   return Form("dMiscWindow_%02d",GetNewWindowCount());
 }
-
-// void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
-// {
-//   // if(cont){    
-//   //   if(!strcmp(cont->GetDataName(),"ROOT")){
-//   //     dROOTCont = cont;
-//   //     Connect(dROOTCont,"SendMessageSignal(char*)","QwGUISubSystem",(void*)this,
-//   // 	      "OnReceiveMessage(char*)");      	  
-//   //     Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
-//   // 	      "OnObjClose(char*)");
-//   //   }
-//   // }
-//   // else
-//   //   dROOTCont = NULL;
-
-//   // sprintf(dMiscbuffer2,"Sub system %s message: Received new data\n",GetName());
-//   // SetLogMessage(dMiscbuffer2, kTrue);
-
-//   // OnNewDataContainer();
-// }
 
 
 void QwGUISubSystem::SetMapFile(TMapFile *file)
@@ -98,10 +78,10 @@ void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
   // SendMessageSignal(GetName());
 }
 
-void QwGUISubSystem::OnObjClose(char *obj)
-{
+// void QwGUISubSystem::OnObjClose(char *obj)
+// {
 
-};
+// };
 
 
 void QwGUISubSystem::AddThisTab(QwGUISubSystem* sbSystem)
@@ -109,16 +89,16 @@ void QwGUISubSystem::AddThisTab(QwGUISubSystem* sbSystem)
   Emit("AddThisTab(QwGUISubSystem*)",(long)sbSystem);
 }
 
-void QwGUISubSystem::RemoveThisTab(QwGUISubSystem* sbSystem)
-{
-  OnRemoveThisTab();
-  Emit("RemoveThisTab(QwGUISubSystem*)",(long)sbSystem);
-}
+// void QwGUISubSystem::RemoveThisTab(QwGUISubSystem* sbSystem)
+// {
+//   OnRemoveThisTab();
+//   Emit("RemoveThisTab(QwGUISubSystem*)",(long)sbSystem);
+// }
 
-void QwGUISubSystem::IsClosing(const char *objname)
-{
-  Emit("IsClosing(const char*)",(long)objname);
-}
+// void QwGUISubSystem::IsClosing(const char *objname)
+// {
+//   Emit("IsClosing(const char*)",(long)objname);
+// }
 
 void QwGUISubSystem::SendMessageSignal(const char*objname)
 {

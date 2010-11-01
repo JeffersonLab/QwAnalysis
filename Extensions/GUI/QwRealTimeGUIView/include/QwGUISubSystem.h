@@ -82,11 +82,7 @@ class QwGUISubSystem : public TGCompositeFrame {
 
   TString          dMainName;
   TString          dThisName;
-  /* //!The name/label of the main window object */
-  /* char             dMainName[NAME_STR_MAX]; */
-  /* //!The name/lable of this subsystem object, as passed to the constructor */
-  /* char             dThisName[NAME_STR_MAX]; */
-
+ 
   //!The tab menu ID associated with this subsystem
   Long_t           dTabMenuID;   
   
@@ -136,7 +132,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - none
   //!
   //!Return value: none
-  virtual void     OnRemoveThisTab(){};
+  //  virtual void     OnRemoveThisTab(){};
 
   //!This function can be overwritten by the derived class, to perform additional tasks, when the subsystem 
   //!tab is toggled off to on or created.
@@ -163,7 +159,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   void             SetLogMessage(const char *buffer, Bool_t tStamp = kFALSE);
 
 
-  Bool_t               dProcessHalt;
+  /* Bool_t               dProcessHalt; */
 
  public:
   
@@ -189,16 +185,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: Height in pixels.  
   UInt_t           GetHeight(){return dHeight;};
 
-  //!This function is called by QwGUIMain, to retrieve the message that was set by this subsystem, 
-  //!when it receives a new log message signal (see function SetLogMessage). The message container
-  //!must be allocated with in the subsystem class. This happens automatically if the subsystem 
-  //!class is derived from QwGUISubSystem.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: message string pointer.  
-  /* const char*      GetMessage() {return dMiscbuffer;}; */
 
   //!This function returns the name/label of this subsystem object.
   //!
@@ -278,7 +264,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - 1) Subsystem object name/lable: must be the same as the one passed to the constructor dThisName.
   //!
   //!Return value: none  
-  void             IsClosing(const char *objname);
+  //  void             IsClosing(const char *objname);
 
 
   //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
@@ -291,7 +277,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!      (see QwGUIMainDetector for an example).
   //!
   //!Return value: none  
-  virtual void     OnObjClose(char *);
+  //  virtual void     OnObjClose(char *);
 
   //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
   //!SendMessageSignal member function (a new data container or window for example), if it is anticipated that 
@@ -303,19 +289,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!
   //!Return value: none  
   virtual void     OnReceiveMessage(char*) {};
-
-  //!This revceiver function can be overwritten by the derived subsystem class to connect to a canvas object 
-  //!to process mouse events. This is usefull in opening a particular plot in the standard ROOT canvas window,
-  //!when double clicking on a graph, for example. 
-  //!
-  //!Parameters:
-  //! - 1) Event type, such as kButton1Double
-  //! - 2) Event x coordinate
-  //! - 3) Event y coordinate
-  //! - 4) Pointer to the selected object (i.e. pad, etc ...)
-  //!
-  //!Return value: none  
-  // virtual void     TabEvent(Int_t,Int_t,Int_t,TObject*) {};
 
   //!This function is overwritten from the TGTransientFrame class, to handle all mouse and keyboard interactions
   //!with any widget within this tab.  
@@ -335,7 +308,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - 1) Subsystem pointer.
   //!
   //!Return value: none  
-  void             RemoveThisTab(QwGUISubSystem*);
+  //  void             RemoveThisTab(QwGUISubSystem*);
 
   //!This function is called by the QwGUIMain::AddATab function once each time a new subsystem tab is created
   //!(not when it is simply toggled on/off). It in turn initiates the actual layout of the subsystem tab.
@@ -346,16 +319,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none    
   void             SubSystemLayout(){this->MakeLayout();};
 
-
-  //!This function is called by the QwGUIMain::AddATab function when the user has  
-  //!opened a new data file (any file). The actual ownership of the file container is kept in the QwGUIMain class.
-  //!
-  //!Parameters:
-  //! - 1) A pointer to the data container, containing the newly opened file.
-  //!
-  //!Return value: none
-  ///  void             SetDataContainer(RDataContainer *cont);
- 
   
   //!Setter function for the subsystem tab menu ID. Called once from QwGUIMain::AddATab, when a new subsystem is
   //!is created.
@@ -384,8 +347,8 @@ class QwGUISubSystem : public TGCompositeFrame {
   //! - 1) Boolean flag indicating whether the subsystem tab is visible or not.
   //!
   //!Return value: none 
-  void             TabMenuEntryChecked(Bool_t set) {dTabMenuItemChecked = set; 
-    dTabMenuItemChecked ? OnAddThisTab() : OnRemoveThisTab();};
+  /* void             TabMenuEntryChecked(Bool_t set) {dTabMenuItemChecked = set;  */
+  /*   dTabMenuItemChecked ? OnAddThisTab() : OnRemoveThisTab();}; */
   
 
   //!Set histomode. This is called at QwGUIMain and other subsystems

@@ -127,8 +127,8 @@ QwGUICorrelationPlots::~QwGUICorrelationPlots()
 
   delete [] PosVariation;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
+  // RemoveThisTab(this);
+  // IsClosing(GetName());
 }
 
 void QwGUICorrelationPlots::MakeLayout()
@@ -150,7 +150,7 @@ void QwGUICorrelationPlots::MakeLayout()
   // dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
-  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 2, 2, 2, 2));
 
  
   
@@ -268,14 +268,14 @@ void QwGUICorrelationPlots::OnReceiveMessage(char *obj)
 
 }
 
-void QwGUICorrelationPlots::OnObjClose(char *obj)
-{
-//   if(!strcmp(obj,"dROOTFile")){
-// //     printf("Called QwGUICorrelationPlots::OnObjClose\n");
+// void QwGUICorrelationPlots::OnObjClose(char *obj)
+// {
+// //   if(!strcmp(obj,"dROOTFile")){
+// // //     printf("Called QwGUICorrelationPlots::OnObjClose\n");
 
-//     dROOTCont = NULL;
-//   }
-}
+// //     dROOTCont = NULL;
+// //   }
+// }
 
 
 // void QwGUICorrelationPlots::OnNewDataContainer()
@@ -284,10 +284,10 @@ void QwGUICorrelationPlots::OnObjClose(char *obj)
 
 // };
 
-void QwGUICorrelationPlots::OnRemoveThisTab()
-{
+// void QwGUICorrelationPlots::OnRemoveThisTab()
+// {
 
-};
+// };
 
 // void QwGUICorrelationPlots::ClearData()
 // {

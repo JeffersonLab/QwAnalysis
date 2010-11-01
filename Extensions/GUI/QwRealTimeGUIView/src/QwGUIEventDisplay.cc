@@ -77,8 +77,8 @@ QwGUIEventDisplay::~QwGUIEventDisplay()
   if(dEventDisplayTabRegion3_XZ) delete dEventDisplayTabRegion3_XZ;
   if(dEventDisplayTabRegionLayout)  delete dEventDisplayTabRegionLayout;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
+  //  RemoveThisTab(this);
+  //  IsClosing(GetName());
 }
 
 void QwGUIEventDisplay::MakeLayout()
@@ -188,12 +188,12 @@ void QwGUIEventDisplay::OnReceiveMessage(char *obj)
 
 }
 
-void QwGUIEventDisplay::OnObjClose(char *obj)
-{
-  // if (!strcmp(obj,"dROOTFile")) {
-  //   dROOTCont = NULL;
-  // }
-}
+// void QwGUIEventDisplay::OnObjClose(char *obj)
+// {
+//   // if (!strcmp(obj,"dROOTFile")) {
+//   //   dROOTCont = NULL;
+//   // }
+// }
 
 // void QwGUIEventDisplay::OnNewDataContainer()
 // {
@@ -206,15 +206,15 @@ void QwGUIEventDisplay::OnObjClose(char *obj)
 //   */
 // }
 
-void QwGUIEventDisplay::OnRemoveThisTab()
-{
+// void QwGUIEventDisplay::OnRemoveThisTab()
+// {
 
-}
+// }
 
-void QwGUIEventDisplay::ClearData()
-{
+// void QwGUIEventDisplay::ClearData()
+// {
 
-}
+// }
 
 void QwGUIEventDisplay::PlotPrevious()
 {

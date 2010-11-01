@@ -73,13 +73,13 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGComboBox             *dComboBoxMDVPMT;
 
 
-  TGLayoutHints          *dTBinEntryLayout;
-  TGNumberEntry          *dRunEntry;
-  TGLayoutHints          *dRunEntryLayout;
-  TGLabel                *dRunEntryLabel;
-  //  TGHorizontal3DLine     *dHorizontal3DLine;
-  TGHorizontalFrame      *dUtilityFrame;  
-  TGLayoutHints          *dUtilityLayout;
+  /* TGLayoutHints          *dTBinEntryLayout; */
+  /* TGNumberEntry          *dRunEntry; */
+  /* TGLayoutHints          *dRunEntryLayout; */
+  /* TGLabel                *dRunEntryLabel; */
+  /* //  TGHorizontal3DLine     *dHorizontal3DLine; */
+  /* TGHorizontalFrame      *dUtilityFrame;   */
+  /* TGLayoutHints          *dUtilityLayout; */
 
     
   //!A dioalog for number entry ...  
@@ -224,9 +224,9 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!
   //!Return value: none  
   //  virtual void        OnNewDataContainer();
-  virtual void        OnObjClose(char *);
+  /* virtual void        OnObjClose(char *); */
   virtual void        OnReceiveMessage(char*);
-  virtual void        OnRemoveThisTab();
+  /* virtual void        OnRemoveThisTab(); */
           void        OnUpdatePlot(char *);
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
