@@ -190,6 +190,7 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator- (const MQwSIS3320_Samples
  */
 MQwSIS3320_Samples& MQwSIS3320_Samples::operator= (const MQwSIS3320_Samples &value)
 {
+  this->fSamples.resize(value.fSamples.size());
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) = value.fSamples.at(i);
   return *this;

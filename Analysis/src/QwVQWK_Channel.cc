@@ -616,14 +616,13 @@ void  QwVQWK_Channel::DeleteHistograms()
 {
   //std::cout<<"Device Name "<<GetElementName()<<" fHistograms.size() "<<fHistograms.size()<<std::endl;
   if ((fDataToSave==kRaw) || (fDataToSave==kDerived)){
-  for (UInt_t i=0; i<fHistograms.size(); i++){
-    if (fHistograms[i] != NULL)
-      fHistograms[i]->Delete();
-    fHistograms[i] = NULL;
-  }
+    for (UInt_t i=0; i<fHistograms.size(); i++){
+      if (fHistograms[i] != NULL)
+        fHistograms[i]->Delete();
+      fHistograms[i] = NULL;
+    }
   }
   fHistograms.clear();
-
 }
 
 void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)

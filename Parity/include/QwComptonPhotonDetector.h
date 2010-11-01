@@ -106,18 +106,27 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     /// Expert tree fields
     Int_t fTree_fNEvents;
 
+    /// Mapping from ROC/subbank to channel type
+    enum ChannelType_t { kUnknown, kSamplingADC, kIntegratingADC, kIntegratingTDC, kScaler };
+    std::map< Int_t, ChannelType_t > fMapping;
+
     /// List of sampling ADC channels
-    std::map< Int_t, std::vector <std::vector <Int_t> > > fSamplingADC_Mapping;
+    typedef std::map< Int_t, std::vector <std::vector <Int_t> > > SamplingADC_Mapping_t;
+    SamplingADC_Mapping_t fSamplingADC_Mapping;
     std::vector< MQwSIS3320_Channel > fSamplingADC;
 
-    /// List of integrating QDC and TDC channels
-    std::map< Int_t, std::vector< std::vector< Int_t > > > fIntegratingADC_Mapping;
+    /// List of integrating QDC channels
+    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingADC_Mapping_t;
+    IntegratingADC_Mapping_t fIntegratingADC_Mapping;
     std::vector< QwPMT_Channel > fIntegratingADC;
-    std::map< Int_t, std::vector< std::vector< Int_t > > > fIntegratingTDC_Mapping;
+    /// List of integrating TDC channels
+    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingTDC_Mapping_t;
+    IntegratingTDC_Mapping_t fIntegratingTDC_Mapping;
     std::vector< QwPMT_Channel > fIntegratingTDC;
 
     /// List of scaler channels
-    std::map< Int_t, std::vector< std::vector< Int_t > > > fScaler_Mapping;
+    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > Scaler_Mapping_t;
+    Scaler_Mapping_t fScaler_Mapping;
     std::vector< QwSIS3801D24_Channel > fScaler;
 
   private:

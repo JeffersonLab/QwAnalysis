@@ -74,13 +74,38 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 
       //  Push a new record into the element array
       if (modtype == "SIS3320") {
+        // Register data channel type
+        fMapping[subbank] = kSamplingADC;
+        // Increase module mapping size
         if (modnum >= fSamplingADC_Mapping[subbank].size())
           fSamplingADC_Mapping[subbank].resize(modnum+1);
+        // Increase channel mapping size
         if (channum >= fSamplingADC_Mapping[subbank].at(modnum).size())
           fSamplingADC_Mapping[subbank].at(modnum).resize(channum+1,-1);
+        // Search whether this module/channel is already registered
+        for (SamplingADC_Mapping_t::iterator iter = fSamplingADC_Mapping.begin();
+            iter != fSamplingADC_Mapping.end(); iter++) {
+          if (iter->first != subbank &&
+              iter->second.size() > modnum &&
+              iter->second.at(modnum).size() > channum &&
+              iter->second.at(modnum).at(channum) >= 0) {
+            QwMessage << "Connecting SIS3320 " << name << "/" << dettype
+                      << std::hex
+                      << " in ROC 0x" << current_roc_id << ", bank 0x" << current_bank_id
+                      << std::dec
+                      << " to existing SIS3320." << QwLog::endl;
+            fSamplingADC_Mapping[subbank].at(modnum).at(channum) =
+                iter->second.at(modnum).at(channum);
+          }
+        }
+        // Register new SIS3320
         if (fSamplingADC_Mapping[subbank].at(modnum).at(channum) < 0) {
-          QwMessage << "Registering SIS3320 " << name << " in 0x" << std::hex << current_roc_id << std::dec
-                    << " at " << modnum << "," << channum << QwLog::endl;
+          QwMessage << "Registering SIS3320 " << name << "/" << dettype
+                    << std::hex
+                    << " in ROC 0x" << current_roc_id << ", bank 0x" << current_bank_id
+                    << std::dec
+                    << " at mod " << modnum << ", chan " << channum
+                    << QwLog::endl;
           UInt_t index = fSamplingADC.size();
           fSamplingADC_Mapping[subbank].at(modnum).at(channum) = index;
           fSamplingADC.push_back(MQwSIS3320_Channel(channum, name));
@@ -89,6 +114,8 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
         }
 
       } else if (modtype == "V792") {
+        // Register data channel type
+        fMapping[subbank] = kIntegratingADC;
         // Add to mapping
         if (modnum >= fIntegratingADC_Mapping[subbank].size())
           fIntegratingADC_Mapping[subbank].resize(modnum+1);
@@ -96,15 +123,22 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fIntegratingADC_Mapping[subbank].at(modnum).resize(channum+1,-1);
         // Add scaler channel
         if (fIntegratingADC_Mapping[subbank].at(modnum).at(channum) < 0) {
-          QwMessage << "Registering V792 " << name << " in 0x" << std::hex << current_roc_id << std::dec
-                    << " at " << modnum << "," << channum << QwLog::endl;
+          QwMessage << "Registering V792 " << name
+                    << std::hex
+                    << " in ROC 0x" << current_roc_id << ", bank 0x" << current_bank_id
+                    << std::dec
+                    << " at mod " << modnum << ", chan " << channum
+                    << QwLog::endl;
           UInt_t index = fIntegratingADC.size();
+          fIntegratingADC_Mapping[subbank].at(modnum).at(channum) = index;
           fIntegratingADC.push_back(QwPMT_Channel(name));
           fIntegratingADC.at(index).SetModule(modnum);
           fIntegratingADC.at(index).SetSubbankID(current_bank_id);
         }
 
       } else if (modtype == "V775") {
+        // Register data channel type
+        fMapping[subbank] = kIntegratingTDC;
         // Add to mapping
         if (modnum >= fIntegratingTDC_Mapping[subbank].size())
           fIntegratingTDC_Mapping[subbank].resize(modnum+1);
@@ -112,17 +146,22 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fIntegratingTDC_Mapping[subbank].at(modnum).resize(channum+1,-1);
         // Add scaler channel
         if (fIntegratingTDC_Mapping[subbank].at(modnum).at(channum) < 0) {
-          QwMessage << "Registering V792 " << name << " in 0x" << std::hex << current_roc_id << std::dec
-                    << " at " << modnum << "," << channum << QwLog::endl;
+          QwMessage << "Registering V775 " << name
+                    << std::hex
+                    << " in ROC 0x" << current_roc_id << ", bank 0x" << current_bank_id
+                    << std::dec
+                    << " at mod " << modnum << ", chan " << channum
+                    << QwLog::endl;
           UInt_t index = fIntegratingTDC.size();
+          fIntegratingTDC_Mapping[subbank].at(modnum).at(channum) = index;
           fIntegratingTDC.push_back(QwPMT_Channel(name));
           fIntegratingTDC.at(index).SetModule(modnum);
           fIntegratingTDC.at(index).SetSubbankID(current_bank_id);
         }
 
       } else if (modtype == "SIS3801D24") {
-        // Offset in block
-        UInt_t offset = QwSIS3801D24_Channel::GetBufferOffset(modnum, channum);
+        // Register data channel type
+        fMapping[subbank] = kScaler;
         // Add to mapping
         if (modnum >= fScaler_Mapping[subbank].size())
           fScaler_Mapping[subbank].resize(modnum+1);
@@ -130,8 +169,12 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fScaler_Mapping[subbank].at(modnum).resize(channum+1,-1);
         // Add scaler channel
         if (fScaler_Mapping[subbank].at(modnum).at(channum) < 0) {
-          QwMessage << "Registering SIS3801 " << name << " in 0x" << std::hex << current_roc_id << std::dec
-                    << " at " << modnum << "," << channum << QwLog::endl;
+          QwMessage << "Registering SIS3801D24 " << name
+                    << std::hex
+                    << " in ROC 0x" << current_roc_id << ", bank 0x" << current_bank_id
+                    << std::dec
+                    << " at mod " << modnum << ", chan " << channum
+                    << QwLog::endl;
           UInt_t index = fScaler.size();
           fScaler_Mapping[subbank].at(modnum).at(channum) = index;
           fScaler.push_back(QwSIS3801D24_Channel(name));
@@ -275,44 +318,97 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
 
     //  We want to process this ROC.  Begin looping through the data.
 
-    // Sampling ADCs
-    for (size_t modnum = 0; modnum < fSamplingADC_Mapping[subbank].size(); modnum++) {
-      for (size_t channum = 0; channum < fSamplingADC_Mapping[subbank].at(modnum).size(); channum++) {
-        UInt_t index = fSamplingADC_Mapping[subbank].at(modnum).at(channum);
-        if (index >= 0) {
-          words_read += fSamplingADC[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
+    switch (fMapping[subbank]) {
+
+      // Sampling ADCs
+      case kSamplingADC:
+      {
+        for (size_t modnum = 0; modnum < fSamplingADC_Mapping[subbank].size(); modnum++) {
+          for (size_t channum = 0; channum < fSamplingADC_Mapping[subbank].at(modnum).size(); channum++) {
+            Int_t index = fSamplingADC_Mapping[subbank].at(modnum).at(channum);
+            if (index >= 0) {
+              words_read += fSamplingADC[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
+            }
+          }
         }
+        break;
       }
-    }
 
-    // Scalers
-    for (size_t modnum = 0; modnum < fScaler_Mapping[subbank].size(); modnum++) {
-      for (size_t channum = 0; channum < fScaler_Mapping[subbank].at(modnum).size(); channum++) {
-        UInt_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
-        if (index >= 0) {
-          words_read += fScaler[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
+      // Scalers
+      case kScaler:
+      {
+        for (size_t modnum = 0; modnum < fScaler_Mapping[subbank].size(); modnum++) {
+          for (size_t channum = 0; channum < fScaler_Mapping[subbank].at(modnum).size(); channum++) {
+            Int_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
+            if (index >= 0) {
+              words_read += fScaler[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
+            }
+          }
         }
+        break;
       }
-    }
 
-    // Integrating ADCs and TDCs
-    for (size_t i = 0; i < num_words - words_read; i++) {
+      // Integrating ADCs and TDCs
+      case kIntegratingADC:
+      case kIntegratingTDC:
+      {
+        UInt_t nevents = 0;
 
-      //  Decode this word as a V775 TDC / V792 QDC word
-      DecodeTDCWord(buffer[words_read+i]);
+        // Parse header word (at least one header word is read)
+        words_read = 1;
+        if ((buffer[0] & 0xbad00dc0) == 0xbad00dc0) break; // Bad ADC/TDC
+        if ((buffer[0] & 0xda000dc0) == 0xda000dc0)
+          nevents = (buffer[0] & 0x00FF0000) >> 16;
 
-      if (roc_id == 0x1 && bank_id == 0x0104)
-        QwMessage << IsValidDataword() << " " << std::hex << buffer[words_read+i] << std::dec << QwLog::endl;
+        // Loop over buffered events
+        for (size_t i = words_read; i < num_words; i++) {
 
-      // Is this a valid V775 TDC / V792 QDC data word
-      if (IsValidDataword()) {
-        Int_t index = fIntegratingADC_Mapping[subbank].at(GetTDCSlotNumber()).at(GetTDCChannelNumber());
-        if (index >= 0) {
-          fIntegratingADC.at(index).SetValue(GetTDCData());
-          QwMessage << "TDC " << std::hex << subbank << " "
-                    << GetTDCSlotNumber() << "," << GetTDCChannelNumber() << ": "
-                    << GetTDCData() << QwLog::endl;
-        }
+          // Decode this word as a V775 TDC / V792 QDC word
+          DecodeTDCWord(buffer[i]);
+
+          // Is this a valid V775 TDC / V792 QDC data word?
+          if (! IsValidDataword()) continue;
+
+          // Is there an QDC channel registered for this slot and channel?
+          for (size_t modnum = 0; modnum < fIntegratingADC_Mapping[subbank].size(); modnum++) {
+            UInt_t channum = GetTDCChannelNumber();
+            if (channum < fIntegratingADC_Mapping[subbank].at(modnum).size()) {
+              Int_t index = fIntegratingADC_Mapping[subbank].at(modnum).at(channum);
+              if (index >= 0) {
+                fIntegratingADC.at(index).SetValue(GetTDCData());
+                QwDebug << "QDC " << std::hex << subbank << " "
+                        << modnum << "," << channum << ": " << std::dec
+                        << GetTDCData() << QwLog::endl;
+              }
+            }
+          }
+
+          // Is there an TDC channel registered for this slot and channel?
+          for (size_t modnum = 0; modnum < fIntegratingTDC_Mapping[subbank].size(); modnum++) {
+            UInt_t channum = GetTDCChannelNumber();
+            if (channum < fIntegratingTDC_Mapping[subbank].at(channum).size()) {
+              Int_t index = fIntegratingTDC_Mapping[subbank].at(modnum).at(channum);
+              if (index >= 0) {
+                fIntegratingTDC.at(index).SetValue(GetTDCData());
+                QwDebug << "TDC " << std::hex << subbank << " "
+                        << modnum << "," << channum << ": " << std::dec
+                        << GetTDCData() << QwLog::endl;
+              }
+            }
+          }
+
+        } // end of loop over buffered events
+
+        words_read = num_words;
+        break;
+      }
+
+      // Unknown data channel type
+      case kUnknown:
+      default:
+      {
+        QwError << "QwComptonPhotonDetector: Unknown data channel type" << QwLog::endl;
+        break;
       }
     }
 
@@ -320,7 +416,10 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
     if (num_words != words_read) {
       QwError << "QwComptonPhotonDetector: There were "
               << num_words - words_read
-              << " leftover words after decoding everything we recognize."
+              << " leftover words after decoding everything we recognize"
+              << std::hex
+              << " in ROC " << roc_id << ", bank " << bank_id << "."
+              << std::dec
               << QwLog::endl;
     }
   }
@@ -347,12 +446,10 @@ void  QwComptonPhotonDetector::ProcessEvent()
 {
   for(size_t i = 0; i < fSamplingADC.size(); i++)
     fSamplingADC[i].ProcessEvent();
-  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-  //  fIntegratingTDC[i].ProcessEvent();
-  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
-  //  fIntegratingADC[i].ProcessEvent();
-
-  return;
+  for(size_t i = 0; i < fIntegratingTDC.size(); i++)
+    fIntegratingTDC[i].ProcessEvent();
+  for(size_t i = 0; i < fIntegratingADC.size(); i++)
+    fIntegratingADC[i].ProcessEvent();
 };
 
 
@@ -397,14 +494,11 @@ void QwComptonPhotonDetector::ClearEventData()
 {
   for(size_t i=0;i<fSamplingADC.size();i++)
     fSamplingADC[i].ClearEventData();
-  //for(size_t i=0;i<fIntegratingTDC.size();i++)
-  //  fIntegratingTDC[i].ClearEventData();
-  //for(size_t i=0;i<fIntegratingADC.size();i++)
-  //  fIntegratingADC[i].ClearEventData();
-
-  return;
+  for(size_t i=0;i<fIntegratingTDC.size();i++)
+    fIntegratingTDC[i].ClearEventData();
+  for(size_t i=0;i<fIntegratingADC.size();i++)
+    fIntegratingADC[i].ClearEventData();
 };
-
 
 /**
  * Assignment operator
@@ -506,7 +600,6 @@ void QwComptonPhotonDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
     //for (size_t i = 0; i < innumer->fIntegratingADC.size(); i++)
     //  this->fIntegratingADC[i].Ratio(innumer->fIntegratingADC[i], indenom->fIntegratingADC[i]);
   }
-  return;
 };
 
 /**
@@ -521,8 +614,6 @@ void QwComptonPhotonDetector::Scale(Double_t factor)
   //  fIntegratingTDC[i].Scale(factor);
   //for (size_t i = 0; i < fIntegratingADC.size(); i++)
   //  fIntegratingADC[i].Scale(factor);
-
-  return;
 };
 
 /**
@@ -564,14 +655,12 @@ Bool_t QwComptonPhotonDetector::Compare(VQwSubsystem *value)
  */
 void  QwComptonPhotonDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
-  for(size_t i = 0; i < fSamplingADC.size(); i++)
+  for (size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].ConstructHistograms(folder, prefix);
-  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-  //    fIntegratingTDC[i].ConstructHistograms(folder,prefix);
-  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
-  //    fIntegratingADC[i].ConstructHistograms(folder,prefix);
-
-  return;
+  for (size_t i = 0; i < fIntegratingTDC.size(); i++)
+      fIntegratingTDC[i].ConstructHistograms(folder,prefix);
+  for (size_t i = 0; i < fIntegratingADC.size(); i++)
+      fIntegratingADC[i].ConstructHistograms(folder,prefix);
 };
 
 /**
@@ -579,14 +668,12 @@ void  QwComptonPhotonDetector::ConstructHistograms(TDirectory *folder, TString &
  */
 void  QwComptonPhotonDetector::DeleteHistograms()
 {
-  for(size_t i = 0; i < fSamplingADC.size(); i++)
+  for (size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].DeleteHistograms();
-  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-  //    fIntegratingTDC[i].DeleteHistograms();
-  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
-  //    fIntegratingADC[i].DeleteHistograms();
-
-  return;
+  for (size_t i = 0; i < fIntegratingTDC.size(); i++)
+      fIntegratingTDC[i].DeleteHistograms();
+  for (size_t i = 0; i < fIntegratingADC.size(); i++)
+      fIntegratingADC[i].DeleteHistograms();
 };
 
 /**
@@ -599,7 +686,6 @@ void  QwComptonPhotonDetector::ConstructTree(TDirectory *folder, TString &prefix
   folder->cd();
   fTree = new TTree("ComptonPhoton", "Compton Photon Detector");
   fTree->Branch("nevents",&fTree_fNEvents,"nevents/I");
-  return;
 };
 
 /**
@@ -608,7 +694,6 @@ void  QwComptonPhotonDetector::ConstructTree(TDirectory *folder, TString &prefix
 void  QwComptonPhotonDetector::DeleteTree()
 {
   delete fTree;
-  return;
 };
 
 /**
@@ -616,12 +701,10 @@ void  QwComptonPhotonDetector::DeleteTree()
  */
 void  QwComptonPhotonDetector::FillTree()
 {
-  for(size_t i = 0; i < fSamplingADC.size(); i++) {
+  for (size_t i = 0; i < fSamplingADC.size(); i++) {
     fTree_fNEvents = fSamplingADC[i].GetNumberOfEvents();
     fTree->Fill();
   }
-
-  return;
 };
 
 /**
@@ -629,14 +712,12 @@ void  QwComptonPhotonDetector::FillTree()
  */
 void  QwComptonPhotonDetector::FillHistograms()
 {
-  for(size_t i = 0; i < fSamplingADC.size(); i++)
+  for (size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].FillHistograms();
-  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-  //    fIntegratingTDC[i].FillHistograms();
-  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
-  //    fIntegratingADC[i].FillHistograms();
-
-  return;
+  for (size_t i = 0; i < fIntegratingTDC.size(); i++)
+      fIntegratingTDC[i].FillHistograms();
+  for (size_t i = 0; i < fIntegratingADC.size(); i++)
+      fIntegratingADC[i].FillHistograms();
 };
 
 /**
@@ -647,14 +728,12 @@ void  QwComptonPhotonDetector::FillHistograms()
  */
 void QwComptonPhotonDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-  for(size_t i = 0; i < fSamplingADC.size(); i++)
+  for (size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].ConstructBranchAndVector(tree, prefix, values);
-  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-  //    fIntegratingTDC[i].ConstructBranchAndVector(tree, prefix, values);
-  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
-  //    fIntegratingADC[i].ConstructBranchAndVector(tree, prefix, values);
-
-  return;
+  for (size_t i = 0; i < fIntegratingTDC.size(); i++)
+      fIntegratingTDC[i].ConstructBranchAndVector(tree, prefix, values);
+  for (size_t i = 0; i < fIntegratingADC.size(); i++)
+      fIntegratingADC[i].ConstructBranchAndVector(tree, prefix, values);
 };
 
 /**
@@ -663,14 +742,12 @@ void QwComptonPhotonDetector::ConstructBranchAndVector(TTree *tree, TString & pr
  */
 void QwComptonPhotonDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
-  for(size_t i = 0; i < fSamplingADC.size(); i++)
+  for (size_t i = 0; i < fSamplingADC.size(); i++)
       fSamplingADC[i].FillTreeVector(values);
-  //for(size_t i = 0; i < fIntegratingTDC.size(); i++)
-  //    fIntegratingTDC[i].FillTreeVector(values);
-  //for(size_t i = 0; i < fIntegratingADC.size(); i++)
-  //    fIntegratingADC[i].FillTreeVector(values);
-
-  return;
+  for (size_t i = 0; i < fIntegratingTDC.size(); i++)
+      fIntegratingTDC[i].FillTreeVector(values);
+  for (size_t i = 0; i < fIntegratingADC.size(); i++)
+      fIntegratingADC[i].FillTreeVector(values);
 };
 
 /**
@@ -682,13 +759,11 @@ void  QwComptonPhotonDetector::PrintValue() const
     fSamplingADC[i].PrintValue();
   }
   for (size_t i = 0; i < fIntegratingTDC.size(); i++) {
-    //fIntegratingTDC[i].PrintValue();
+    fIntegratingTDC[i].PrintValue();
   }
   for (size_t i = 0; i < fIntegratingADC.size(); i++) {
-    //fIntegratingADC[i].PrintValue();
+    fIntegratingADC[i].PrintValue();
   }
-
-  return;
 }
 
 /**
@@ -708,14 +783,12 @@ void  QwComptonPhotonDetector::PrintInfo() const
   }
   for (size_t i = 0; i < fIntegratingTDC.size(); i++) {
     QwOut << " integrating TDC " << i << ":";
-    //fIntegratingTDC[i].PrintInfo();
+    fIntegratingTDC[i].PrintInfo();
   }
   for (size_t i = 0; i < fIntegratingADC.size(); i++) {
     QwOut << " integrating ADC " << i << ":";
-    //fIntegratingADC[i].PrintInfo();
+    fIntegratingADC[i].PrintInfo();
   }
-
-  return;
 }
 
 /**
@@ -727,13 +800,16 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*> (source);
+      QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(source);
+
       this->fSamplingADC.resize(input->fSamplingADC.size());
       for (size_t i = 0; i < this->fSamplingADC.size(); i++)
         this->fSamplingADC[i].Copy(&(input->fSamplingADC[i]));
+
       //this->fIntegratingTDC.resize(input->fIntegratingTDC.size());
       //for (size_t i = 0; i < this->fIntegratingTDC.size(); i++)
       //  this->fIntegratingTDC[i].Copy(&(input->fIntegratingTDC[i]));
+
       //this->fIntegratingADC.resize(input->fIntegratingADC.size());
       //for (size_t i = 0; i < this->fIntegratingADC.size(); i++)
       //  this->fIntegratingADC[i].Copy(&(input->fIntegratingADC[i]));
@@ -748,8 +824,6 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
   } catch (std::exception& e) {
     QwError << e.what() << QwLog::endl;
   }
-
-  return;
 }
 
 

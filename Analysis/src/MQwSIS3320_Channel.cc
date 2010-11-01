@@ -28,6 +28,7 @@ const unsigned int MQwSIS3320_Channel::FORMAT_ACCUMULATOR = 0x0;
 const unsigned int MQwSIS3320_Channel::FORMAT_LONG_WORD_SAMPLING = 0x1;
 const unsigned int MQwSIS3320_Channel::FORMAT_SHORT_WORD_SAMPLING = 0x2;
 // Initialize sampling mode format flags
+const unsigned int MQwSIS3320_Channel::MODE_ACCUM_EVENT = 0x1;
 const unsigned int MQwSIS3320_Channel::MODE_MULTI_EVENT = 0x3;
 const unsigned int MQwSIS3320_Channel::MODE_SINGLE_EVENT = 0x4;
 const unsigned int MQwSIS3320_Channel::MODE_NOTREADY = 0xda00;
@@ -197,11 +198,12 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
           // This is a sampling buffer in multi event mode:
           // - many events are saved in one buffer for a complete helicity event
+          case MODE_ACCUM_EVENT:
           case MODE_MULTI_EVENT:
             numberofsamples = buffer[3];
             numberofevents_expected = buffer[4];
             fSamplePointer = 0;
-            words_read = 5;
+            words_read = 6;
 
             // For all events in this buffer
             SetNumberOfEvents(numberofevents_expected);
@@ -365,7 +367,7 @@ void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 void MQwSIS3320_Channel::ProcessEvent()
 {
   // Correct for pedestal and calibration factor
-  fSamples.resize(fSamplesRaw.size());
+  if (fSamplesRaw.size() > 0) fSamples.resize(fSamplesRaw.size(), fSamplesRaw[0]);
   for (size_t i = 0; i < fSamplesRaw.size(); i++) {
     fSamples[i] = (fSamplesRaw[i] - fPedestal) * fCalibrationFactor;
   }
@@ -396,12 +398,6 @@ void MQwSIS3320_Channel::ProcessEvent()
       fTimeWindowAverages[timewindow] += fSamples[i].GetSumInTimeWindow(start, stop);
     }
   }
-
-  for (size_t i = 0; i < fSamples.size(); i++) {
-    QwMessage << fSamples[i] << QwLog::endl;
-  }
-
-  return;
 };
 
 /**
@@ -624,14 +620,13 @@ void MQwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix
       fAccumulatorsRaw[i].ConstructHistograms(folder,prefix);
     }
 
-    TString basename, fullname;
-    basename = prefix + GetElementName();
+    TString basename = prefix + GetElementName();
 
     fHistograms.resize(3, NULL);
-    size_t index = -1;
-    fHistograms[++index] = gQwHists.Construct1DHist(basename+Form("_sum"));
-    fHistograms[++index] = gQwHists.Construct1DHist(basename+Form("_ped"));
-    fHistograms[++index] = gQwHists.Construct1DHist(basename+Form("_ped_raw"));
+    size_t index = 0;
+    fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_sum"));
+    fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_ped"));
+    fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_ped_raw"));
   }
 };
 

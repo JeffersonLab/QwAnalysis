@@ -63,6 +63,12 @@ hel_output_register   TH1F    12      -1.5  10.5        inputregister Events
 .*fadc_compton_accum.*_sum		TH1F	100	-5e7	5e7	AccumulatedChannel	Events
 .*fadc_compton_accum.*_avg		TH1F	1024	-4096	4096	AverageChannel		Events
 
+###  Compton Photon QDC and TDC histograms
+.*qdc_compton.*			TH1F	4098	-1	4097	Channel	Events
+.*tdc_compton.*			TH1F	4098	-1	4097	Channel	Events
+
+
+###  Catch-alls
 .*_sum    TH1F  1000  -5.0e9  5.0e9       Counts  Events
 .*_raw    TH1F  1000  -5.0e9  5.0e9       Counts  Events
 .*_ped    TH1F  1000  -5.0e9  5.0e9       Counts  Events

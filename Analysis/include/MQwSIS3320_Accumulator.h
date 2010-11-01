@@ -35,7 +35,7 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
 
   public:
 
-    MQwSIS3320_Accumulator(TString name = "auto") {
+    MQwSIS3320_Accumulator(TString name = "") {
       SetElementName(name);
       SetNumberOfDataWords(3);
       fMinValue = 0; fMaxValue = 0;

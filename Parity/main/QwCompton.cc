@@ -98,9 +98,6 @@
 
 
 
-// Debug level
-static bool bDebug = false;
-
 int main(int argc, char* argv[])
 {
   /// Change some default settings for use by the Compton analyzer
@@ -134,7 +131,6 @@ int main(int argc, char* argv[])
   eventbuffer.ProcessOptions(gQwOptions);
 
   ///  Start loop over all runs
-  QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     ///  Begin processing for the first run
@@ -159,7 +155,7 @@ int main(int argc, char* argv[])
 
 
     //  Open the ROOT file
-    rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+    QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
     //  Construct histograms
@@ -238,12 +234,6 @@ int main(int argc, char* argv[])
         }
       }
 
-      // Periodically print event number
-      if ((bDebug && eventbuffer.GetEventNumber() % 1000 == 0)
-                  || eventbuffer.GetEventNumber() % 10000 == 0)
-        QwMessage << "Number of events processed so far: "
-                  << eventbuffer.GetEventNumber() << QwLog::endl;
-
     } // end of loop over events
 
     QwMessage << "Last event processed: "
@@ -256,7 +246,7 @@ int main(int argc, char* argv[])
      *                                                               *
      *  Then, we need to delete the histograms here.                 *
      *  If we wait until the subsystem destructors, we get a         *
-     *  segfault; but in additiona to that we should delete them     *
+     *  segfault; but in additional to that we should delete them     *
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
 

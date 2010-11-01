@@ -230,7 +230,10 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
     if (num_words != words_read) {
       QwError << "QwComptonElectronDetector: There were "
               << num_words - words_read
-              << " leftover words after decoding everything we recognize."
+              << " leftover words after decoding everything we recognize"
+              << std::hex
+              << " in ROC " << roc_id << ", bank " << bank_id << "."
+              << std::dec
               << QwLog::endl;
     }
    }

@@ -182,6 +182,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
     Double_t fMockGaussianSigma;
 
     // Operation mode flags
+    static const unsigned int MODE_ACCUM_EVENT;
     static const unsigned int MODE_MULTI_EVENT;
     static const unsigned int MODE_SINGLE_EVENT;
     static const unsigned int MODE_NOTREADY;

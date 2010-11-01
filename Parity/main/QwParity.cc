@@ -74,7 +74,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
   ///  Start loop over all runs
-  QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     ///  Begin processing for the first run
@@ -111,7 +110,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Open the ROOT file
-    rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+    QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
     //  Construct histograms

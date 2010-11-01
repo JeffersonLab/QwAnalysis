@@ -268,8 +268,7 @@ void MQwSIS3320_Accumulator::ConstructHistograms(TDirectory *folder, TString &pr
 
   } else {
 
-    TString basename, fullname;
-    basename = prefix + GetElementName();
+    TString basename = prefix + GetElementName();
 
     fHistograms.resize(3, NULL);
     size_t index = 0;
