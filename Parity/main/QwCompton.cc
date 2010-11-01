@@ -265,7 +265,9 @@ int main(int argc, char* argv[])
     rootfile->DeleteHistograms(helicitypattern);
 
     // Close data file and print run summary
-    eventbuffer.CloseDataFile();
+    eventbuffer.CloseStream();
+
+    //  Report run summary
     eventbuffer.ReportRunSummary();
     eventbuffer.PrintRunTimes();
 
