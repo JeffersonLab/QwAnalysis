@@ -12,7 +12,7 @@
 //                                                                                                                                                //
 //                                                                                                                                                //
 //     run_number        : Number of the run containing the signal                                                                                //
-//     device list       : The device signal which is to be FFT'd. eg, "bpmx".or "bpmy".                                                          //
+//     device list       : The device signal which is to be FFT'd. eg, "hcbpmx","hcbpmy","injbpmx" and injbpmy"                                  //
 //                         Right now there are the only two device arrays implemented.                                                            //
 //     min               : The lower limit of the event cut.                                                                                      //
 //     max               : The upper limit of the event cut                                                                                       //
@@ -65,10 +65,12 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
   
   //******* Signal Settings
   // get num samples from bcm1. 
-  TString time    = Form("mps_counter*((qwk_bcm1.num_samples*%f)+%f)",time_per_sample,t_settle);// units seconds.
+  TString time    = Form("mps_counter*((qwk_1i02XP.num_samples*%f)+%f)",time_per_sample,t_settle);// units seconds.
 
   //*******BPM list
   const Int_t nbpms = 22;
+  const Int_t injbpms = 21;
+
   TString axis[2] ={"X","Y"};
   TString bpms[nbpms]= {
     "qwk_bpm3c07","qwk_bpm3c08","qwk_bpm3c11","qwk_bpm3c12","qwk_bpm3c14","qwk_bpm3c16",
@@ -77,7 +79,15 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
     "qwk_bpm3h07c","qwk_bpm3h08","qwk_bpm3h09","qwk_bpm3h09b"
   };
 
-
+  TString injbpm[injbpms]={
+    "qwk_1i02","qwk_1i04","qwk_1i06","qwk_0i02","qwk_0i02a",
+    "qwk_0i05" ,"qwk_0i07","qwk_0l01","qwk_0l02","qwk_0l03",
+    "qwk_0l04","qwk_0l05","qwk_0l06","qwk_0l07","qwk_0l08",
+    "qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02","qwk_0r05",
+    "qwk_0r06"
+  };
+  
+  
   TCanvas *canvas = NULL;
   canvas = new TCanvas("canvas","Fast Fourier Transform",10,10,1550,1180);
   canvas->Draw();
@@ -121,7 +131,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
   // get sampling rate/event rate
   // for this I am going to use the bcm1 num spales.
   TH1*h=NULL;
-  tree->Draw("qwk_bcm1.num_samples>>htemp","qwk_bcm1.Device_Error_Code == 0");
+  tree->Draw("qwk_1i02XP.num_samples>>htemp","qwk_1i02XP.Device_Error_Code == 0");
   h = (TH1*)gDirectory->Get("htemp");
   if(h==NULL){
     std::cout<<"Unable to get num_samples using bcm1!"<<std::endl;
@@ -142,9 +152,9 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
   Double_t up = (1.0*max)/sampling_rate;
   Double_t low = (1.0*min)/sampling_rate;
   
-  if(devicelist == "bpmsx")
+  if(devicelist == "bpmx"||devicelist =="injbpmx")
     TString useaxis = axis[0];
-  else if(devicelist == "bpmsy")
+  else if(devicelist == "bpmy"||devicelist =="injbpmy")
     TString useaxis = axis[1];
   else{
     std::cout<<"Unknown device type "<<devicelist<<std::endl;
@@ -154,30 +164,59 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
   Int_t k =1;
   canvas -> Divide(4,3);
   //     canvas -> Print(Form("%d_FFT_of_%s%s.ps(",run_number,devicelist.Data(),axis[j].Data()));
-  for(Int_t i=0;i<nbpms;i++){
-    canvas -> cd(k);
-    TString device = Form("%s%s",bpms[i].Data(),useaxis.Data());
-    // gPad->SetLogy();
-    std::cout<<"Get FFT of "<<device<<std::endl;
-    get_fft(run_number, tree, device, samples, up, low, sampling_rate); 
-    canvas -> Modified();
-    canvas -> Update();
-    k++;
-    if(k==13){
-      k=1;
-      canvas -> Print(Form("%d_FFT_of_%s_1.gif",run_number,devicelist.Data()));
-    }
-  };
-  canvas->cd(11);
-  gPad->Clear();
-  canvas->cd(12);
-  gPad->Clear();
-  canvas -> Print(Form("%d_FFT_of_%s_2.gif",run_number,devicelist.Data()));
-  
-return;
+
+  // Do FFT on hallC bpms
+  if(devicelist.Contains("hc")){
+    for(Int_t i=0;i<nbpms;i++){
+      canvas -> cd(k);
+      TString device = Form("%s%s",bpms[i].Data(),useaxis.Data());      
+      std::cout<<"Get FFT of "<<device<<std::endl;
+      get_fft(run_number, tree, device, samples, up, low, sampling_rate); 
+      canvas -> Modified();
+      canvas -> Update();
+      k++;
+      if(k==13){
+	k=1;
+	canvas -> Print(Form("%d_FFT_of_%s_1.gif",run_number,devicelist.Data()));
+      }
+    };
+    
+    canvas->cd(11);
+    gPad->Clear();
+    canvas->cd(12);
+    gPad->Clear();
+  }
+
+
+  // Do FFT on injector bpms
+   if(devicelist.Contains("inj")){
+     for(Int_t i=0;i<injbpms;i++){
+       canvas -> cd(k);
+       TString device = Form("%s%s",injbpm[i].Data(),useaxis.Data());
+       std::cout<<"Get FFT of "<<device<<std::endl;
+       get_fft(run_number, tree, device, samples, up, low, sampling_rate); 
+       canvas -> Modified();
+       canvas -> Update();
+       k++;
+       if(k==13){
+	 k=1;
+	 canvas -> Print(Form("%d_FFT_of_%s_1.gif",run_number,devicelist.Data()));
+       }
+     };
+     canvas->cd(10);
+     gPad->Clear();
+     canvas->cd(11);
+     gPad->Clear();
+     canvas->cd(12);
+     gPad->Clear();
+
+   }
+   canvas -> Print(Form("%d_FFT_of_%s_2.gif",run_number,devicelist.Data()));
+   
+   return;
 }
 
-  
+
 void get_fft(Int_t runnumber, TChain* tree, TString device, Int_t samples, Double_t up, Double_t low, Double_t sampling_rate)
 {
   
