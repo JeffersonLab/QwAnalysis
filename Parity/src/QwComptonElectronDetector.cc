@@ -430,31 +430,35 @@ Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
   }
   return result;
 }
+
+//*****************************************************************
 /**
  * Construct the histograms
  * @param folder Folder in which the histograms will be created
  * @param prefix Prefix with information about the type of histogram
  */
-//*****************************************************************
 void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
-  TDirectory* eDetfolder = folder->mkdir("Compton_Electron");
-    //  Now create the histograms.
-  TString basename = GetSubsystemName();
-  //  basename = prefix + GetSubsystemName();
+
+  //  Go into subdirectory if it exists
+  TDirectory* eDetfolder = folder->GetDirectory("Compton_Electron");
+  if (eDetfolder == 0) eDetfolder = folder->mkdir("Compton_Electron");
+
+  //  Now create the histograms.
+  TString basename = prefix + GetSubsystemName();
 
   eDetfolder->cd();
   for (Int_t i=0; i<NPlanes; i++){
     TString histname = Form("Compton_eDet_Accum_Raw_Plane%d",i);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));
     histname = Form("Compton_eDet_Accum_Plane%d",i);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));
     histname = Form("Compton_eDet_Evt_Raw_Plane%d",i);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));
     histname = Form("Compton_eDet_Evt_Plane%d",i);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));
   }
 
   return;
@@ -579,19 +583,57 @@ void  QwComptonElectronDetector::Print() const
 }
 
 //*****************************************************************
- void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
+/**
+ * Make a copy of this electron detector, including all its subcomponents
+ * @param source Original version
+ */
+void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
 {
-  return;
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwSubsystem::Copy(source);
+      QwComptonElectronDetector* input =
+          dynamic_cast<QwComptonElectronDetector*>(source);
+      fStripsRaw.resize(input->NPlanes);
+      fStripsRawEv.resize(input->NPlanes);
+      fStrips.resize(input->NPlanes);
+      fStripsEv.resize(input->NPlanes);
+      for (Int_t i = 0; i < input->NPlanes; i++) {
+        fStripsRaw[i].resize(StripsPerPlane);
+        fStripsRawEv[i].resize(StripsPerPlane);
+        fStrips[i].resize(StripsPerPlane);
+        fStripsEv[i].resize(StripsPerPlane);
+        for (Int_t j = 0; j < input->StripsPerPlane; j++) {
+          fStripsRaw[i][j] = input->fStripsRaw[i][j];
+          fStripsRawEv[i][j] = input->fStripsRaw[i][j];
+          fStrips[i][j] = input->fStripsRaw[i][j];
+          fStripsEv[i][j] = input->fStripsRaw[i][j];
+        }
+      }
 
+    } else {
+      TString loc = "Standard exception from QwComptonElectronDetector::Copy = "
+             + source->GetSubsystemName() + " "
+             + this->GetSubsystemName() + " are not of the same type";
+      throw std::invalid_argument(loc.Data());
+    }
+
+  } catch (std::exception& e) {
+    QwError << e.what() << QwLog::endl;
+  }
+
+  return;
 }
 
+/**
+ * Make a copy of this electron detector
+ * @return Copy of this electron detector
+ */
 VQwSubsystem*  QwComptonElectronDetector::Copy()
 {
-
-  //  QwComptonElectronDetector* TheCopy = new QwComptonElectronDetector(this->GetSubsystemName() + " Copy");
-  // copy->Copy(this);
-  // return copy;
-  return NULL;
+  QwComptonElectronDetector* copy = new QwComptonElectronDetector(this->GetSubsystemName() + " Copy");
+  copy->Copy(this);
+  return copy;
 }
 
 

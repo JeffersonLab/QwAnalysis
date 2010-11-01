@@ -103,9 +103,14 @@ static bool bDebug = false;
 
 int main(int argc, char* argv[])
 {
-  ///  Fill the search paths for the parameter files; this sets a static
-  ///  variable within the QwParameterFile class which will be used by
-  ///  all instances.  The "scratch" directory should be first.
+  /// Change some default settings for use by the Compton analyzer
+  QwEventBuffer::SetDefaultDataFileStem("Compton_");
+  QwRootFile::SetDefaultRootFileStem("Compton_");
+
+
+  /// Fill the search paths for the parameter files; this sets a static
+  /// variable within the QwParameterFile class which will be used by
+  /// all instances.  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
@@ -114,8 +119,6 @@ int main(int argc, char* argv[])
   /// Set the command line arguments and the configuration filename
   gQwOptions.SetCommandLine(argc, argv);
   /// Define the command line options
-  QwEventBuffer::SetDefaultDataFileStem("Compton_");
-  QwRootFile::SetDefaultRootFileStem("Compton_");
   DefineOptionsParity(gQwOptions);
 
   /// Message logging facilities
