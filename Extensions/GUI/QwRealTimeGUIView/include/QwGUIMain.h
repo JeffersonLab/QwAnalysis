@@ -271,12 +271,6 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dMainTabLayout;
   TGLayoutHints          *dMainCnvLayout;
 
-  //!Main window log book environment
-  TGTextEdit             *dLogEdit;
-  TGHorizontalFrame      *dLogTabFrame;
-  TGLayoutHints          *dLogTabLayout;
-  TGLayoutHints          *dLogEditLayout;
-
   //!Menubar widgets
   TGMenuBar              *dMenuBar;
   TGPopupMenu            *dMenuTabs;
@@ -315,12 +309,9 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: Tab index
   Int_t                   GetTabIndex(const char *);
 
-  //!This function implements the log book tab.
-  void                    MakeLogTab();
   //!This function creates the menu layout (additions to the static menu should be made here)
   void                    MakeMenuLayout();
-  //!This function creates the tool bar layout (changes to the tool bar should be made here)
-  //  void                    MakeUtilityLayout();
+ 
   //!This function initiates the final tab layout after a new tab has been added.
   void                   MapLayout(){dTab->MapSubwindows(); dTab->Layout();}
   //!This function initiates the final tab layout after a tab has been removed.
@@ -420,19 +411,6 @@ class QwGUIMain : public TGMainFrame {
   //!currently open.
   Bool_t                 IsMapFileOpen(){return dMapFileOpen;};
 
-
-  //!This function can be used to process events that happen within the main window tab;
-  //!such as mouse clicks and movement, etc...
-  //!
-  //!Parameters:
-  //! - 1) Event type (such as kButton1Double defined in the ROOT TGMainFrame class)
-  //! - 2) x location of the event, within the tab
-  //! - 3) y location of the event, within the tab
-  //! - 4) Pointer to a selected object, such as a ROOT canvas, or other ...
-  //!
-  //!Return value: none
-  void                   MainTabEvent(Int_t,Int_t,Int_t,TObject*);
-
   //!Receiver function, called when a connected object is sending a message to the
   //!to the log. See QwGUISubSuystem class constructor for an example of how this is done.
   //!
@@ -441,17 +419,7 @@ class QwGUIMain : public TGMainFrame {
   //!
   //!Return value: none
   void                   OnLogMessage(const char *);
-  //!Receiver function, called when a connected object is being terminated.
-  //!Used for cleanup purposes. All classes derived from QwGUISubSuystem are forced to
-  //!send a signal to this receiver. See QwGUISubSuystem class constructor for an example
-  //!of how this is done.
-  //!
-  //!Parameters:
-  //! - 1) Object name string pointer (the string must be allocated and filled within the object/class
-  //!      that sends the signal)
-  //!
-  //!Return value: none
-  /* void                   OnObjClose(const char *); */
+
   //!Receiver function, called when a connected object is sending a message to the
   //!to the log. See QwGUISubSuystem class constructor for an example of how this is done.
   //!
@@ -474,23 +442,6 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: none
   virtual Bool_t         ProcessMessage(Long_t msg, Long_t parm1, Long_t);
 
-
-  ///This function is called to remove a tab.
-  ///Each subsystem class must call this function on desstruction, to remove its tab.
-  ///What actually happens is that the QwGUISubSystem parent class has a function
-  ///called RemoveThisTab(QwGUISubSystem*), which must be called by the derived subsystem
-  ///class. This function uses the ROOT "Connect" mechanism to call the QwGUIMain function
-  ///RemoveTab(QwGUISubSystem*), i.e. this function.
-  ///
-  ///The function disables the correspondig menu item on the tabs menu, which enables the
-  ///user to show/hide the given subsytem tab. This function should never be
-  ///called directly.
-  //!
-  //!Parameters:
-  //! - 1) sub system pointer
-  //!
-  //!Return value: Error value
-  void                   RemoveTab(QwGUISubSystem*);
 
   ClassDef(QwGUIMain,0);
 };

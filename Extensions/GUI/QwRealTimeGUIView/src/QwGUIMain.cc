@@ -73,10 +73,10 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMainTabLayout        = NULL;
   dMainCnvLayout        = NULL;
 
-  dLogEdit              = NULL;
-  dLogTabFrame          = NULL;
-  dLogTabLayout         = NULL;
-  dLogEditLayout        = NULL;
+  // dLogEdit              = NULL;
+  // dLogTabFrame          = NULL;
+  // dLogTabLayout         = NULL;
+  // dLogEditLayout        = NULL;
 
 
   dMenuBar              = NULL;
@@ -188,12 +188,6 @@ QwGUIMain::~QwGUIMain()
   delete dMainTabLayout        ;
   delete dMainCnvLayout        ;
 
-  delete dLogEdit              ;
-  delete dLogTabFrame          ;
-  delete dLogTabLayout         ;
-  delete dLogEditLayout        ;
-
-
   delete dMenuBar              ;
   delete dMenuTabs             ;
   delete dMenuBarLayout        ;
@@ -302,24 +296,6 @@ void QwGUIMain::MakeMenuLayout()
   //  dMenuTabs->CheckEntry(M_VIEW_LOG);
 }
 
-void QwGUIMain::MakeLogTab()
-{
-
-}
-
-void QwGUIMain::RemoveTab(QwGUISubSystem* sbSystem)
-{
-  // if(!sbSystem) return;
-  // const char *TabName = sbSystem->GetName();
-  // if(!TabActive(TabName)) return;
-  // int tab = GetTabIndex(TabName);
-  // if(tab < 0) return;
-
-  // dMenuTabs->UnCheckEntry(GetTabMenuID(TabName));
-  // //  sbSystem->TabMenuEntryChecked(kFALSE);
-  // UnMapLayout(tab);
-}
-
 void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
 {
   if(!dMenuTabs) return;
@@ -420,13 +396,6 @@ Int_t QwGUIMain::GetTabIndex(const char *str)
     if (s == label) {return i;}
   }
   return -1;
-}
-
-void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
-//   if(event == kButton1Double){
-//     Int_t pad = dMainCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
-//   }
 }
 
 

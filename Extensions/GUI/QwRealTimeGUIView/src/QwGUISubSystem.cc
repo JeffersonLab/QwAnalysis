@@ -1,5 +1,5 @@
 #include "QwGUISubSystem.h"
-#include "TMath.h"
+
 
 ClassImp(QwGUISubSystem);
 
@@ -17,14 +17,8 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   dMainName = mainname;
   dThisName = objName;
 
-  // TabMenuEntryChecked(kFALSE);
-
   dTabMenuID          = 0;
-  dTabMenuItemChecked = false;
-  dLogTStampFlag      = false;
-  // dMain               = NULL;
-  // dParent             = NULL;
-
+ 
   dHistoReset = 0;
   dHistoAccum = 0;
   dHistoPause = 0;
@@ -34,8 +28,7 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
 
 
   Connect("AddThisTab(QwGUISubSystem*)",dMainName,(void*)main,"AddATab(QwGUISubSystem*)");  
-  //  Connect("RemoveThisTab(QwGUISubSystem*)",dMainName,(void*)main,"RemoveTab(QwGUISubSystem*)");  
-  // Connect("IsClosing(const char*)",dMainName,(void*)main,"OnObjClose(const char*)");    
+
   Connect("SendMessageSignal(const char*)",dMainName,(void*)main,"OnReceiveMessage(const char*)");
 
 }
@@ -67,38 +60,17 @@ void QwGUISubSystem::SetMapFile(TMapFile *file)
 };
 
 
-void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
-{
-  // if(!buffer) return;
-  // Int_t length = strlen(buffer);
-  // if(length >= MSG_SIZE_MAX) length = MSG_SIZE_MAX-1;
-  // snprintf(dMiscbuffer,length+2,"%s\n%c",buffer,'\0');
-  
-  // dLogTStampFlag = tStamp;
-  // SendMessageSignal(GetName());
-}
-
-// void QwGUISubSystem::OnObjClose(char *obj)
+// void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
 // {
 
-// };
+// }
+
 
 
 void QwGUISubSystem::AddThisTab(QwGUISubSystem* sbSystem)
 {
   Emit("AddThisTab(QwGUISubSystem*)",(long)sbSystem);
 }
-
-// void QwGUISubSystem::RemoveThisTab(QwGUISubSystem* sbSystem)
-// {
-//   OnRemoveThisTab();
-//   Emit("RemoveThisTab(QwGUISubSystem*)",(long)sbSystem);
-// }
-
-// void QwGUISubSystem::IsClosing(const char *objname)
-// {
-//   Emit("IsClosing(const char*)",(long)objname);
-// }
 
 void QwGUISubSystem::SendMessageSignal(const char*objname)
 {
@@ -119,11 +91,16 @@ void QwGUISubSystem::SummaryHist(TH1 *in)
   Double_t out[4] = {0.0};
   Double_t test   = 0.0;
 
+         
   out[0] = in -> GetMean();
   out[1] = in -> GetMeanError();
   out[2] = in -> GetRMS();
   out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/TMath::Sqrt(in->GetEntries());
+
+  Int_t entries = 0;
+  entries = in->GetEntries();
+  if(entries == 0) test = 0.0;
+  else             test = out[2]/TMath::Sqrt(entries);
 
   printf("%sName%s", BOLD, NORMAL);
   printf("%22s", in->GetName());

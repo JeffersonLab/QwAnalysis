@@ -1,9 +1,5 @@
 #include "QwGUIMainDetector.h"
 
-//nclude "TG3DLine.h"
-#include "TGaxis.h"
-#include "TMath.h"
-#include "TPaveText.h"
 ClassImp(QwGUIMainDetector);
 
 //MD_DET_TYPES is the size of the enum
@@ -57,6 +53,8 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
 
   AddThisTab(this);
 
+  fCurrentPMTIndex = 0;
+  fCurrentVPMTIndex = 0;
   
   //  ClearData();
 
@@ -945,45 +943,7 @@ void QwGUIMainDetector::LoadMDVPMTCombo(){
 
 void QwGUIMainDetector::OnReceiveMessage(char *obj)
 {
-//   TString name = obj;
-//   char *ptr = NULL;
-
 }
-
-// void QwGUIMainDetector::OnObjClose(char *obj)
-// {
-//   if(!obj) return;
-//   // TString name = obj;
-
-
-//   // if(!strcmp(obj,"dROOTFile")){
-//   //   dROOTCont = NULL;
-//   // }
-
-//   // if(!strcmp(obj,"dNumberEntryDlg")){
-//   //   delete dNumberEntryDlg;
-//   //   dNumberEntryDlg = NULL;
-//   // }
-
-//   // if(!strcmp(obj,"dProgrDlg")){
-//   //   dProcessHalt = kTrue;
-//   //   dProgrDlg = NULL;
-//   // }   
-
-//   QwGUISubSystem::OnObjClose(obj);
-// }
-
-// void QwGUIMainDetector::OnNewDataContainer()
-// {
-
- 
- 
-// }
-
-// void QwGUIMainDetector::OnRemoveThisTab()
-// {
-
-// }
 
 void QwGUIMainDetector::OnUpdatePlot(char *obj)
 {
@@ -994,22 +954,6 @@ void QwGUIMainDetector::OnUpdatePlot(char *obj)
   printf("Received Messager From: %s\n",obj);
 }
 
-
-// void QwGUIMainDetector::ClearData()
-// {
-
-
-  
-// }
-
-
-
-
-
-// void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-// {
-
-// }
 
 Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
@@ -1097,28 +1041,6 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   return kTRUE;
 }
 
-// void QwGUIMainDetector::SummaryHist(TH1 *in)
-// {
-
-//   Double_t out[4] = {0.0};
-//   Double_t test   = 0.0;
-
-//   out[0] = in -> GetMean();
-//   out[1] = in -> GetMeanError();
-//   out[2] = in -> GetRMS();
-//   out[3] = in -> GetRMSError();
-//   test   = in -> GetRMS()/sqrt(in->GetEntries());
-
-//   printf("%sName%s", BOLD, NORMAL);
-//   printf("%22s", in->GetName());
-//   printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-//   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-//   printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-//   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-//   printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-//   return;
-// };
-
 void QwGUIMainDetector::SetComboIndex(Int_t cmb_id, Int_t id){
     if (cmb_id==CMB_MDPMT)
       fCurrentPMTIndex=id;
@@ -1131,7 +1053,8 @@ void QwGUIMainDetector::SetComboIndex(Int_t cmb_id, Int_t id){
     //fCurrentSCALERIndex=-1;
 }
 
-TH1F* QwGUIMainDetector::GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option){
+TH1F* QwGUIMainDetector::GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option)
+{
   tree ->Draw(name, cut, option);
   TH1F* tmp = NULL;
   tmp = (TH1F*)  gPad -> GetPrimitive("htemp");

@@ -65,6 +65,8 @@
 #include "TH1.h"
 #include "TH2.h"
 #include "TPaveText.h"
+#include "TMath.h"
+#include "TPaveText.h"
 
 
 class QwGUISubSystem : public TGCompositeFrame {
@@ -86,12 +88,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!The tab menu ID associated with this subsystem
   Long_t           dTabMenuID;   
   
-  //!Flag indicates whether the menu item belonging to this subsystem is checked/active.
-  //!In other words, is this tab currently visible or not?
-  Bool_t           dTabMenuItemChecked;
-
-  //!Flag indicates whether a log message should be displayed with the current time and date.  
-  Bool_t           dLogTStampFlag;
 
   //!Main window object reference
   TGWindow        *dMain;
@@ -123,16 +119,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none
   virtual void     MakeLayout() = 0;
 
-  //!This function can be overwritten by the derived class, to perform cleanup tasks, when the subsystem 
-  //!tab is toggled on to off.
-  //!The function is called everytime the given subsystem tab is
-  //!removed (whether it is being destroyed entirely, or just toggled on to off).  
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  //  virtual void     OnRemoveThisTab(){};
 
   //!This function can be overwritten by the derived class, to perform additional tasks, when the subsystem 
   //!tab is toggled off to on or created.
@@ -145,21 +131,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none
   virtual void     OnAddThisTab(){};
 
-  //!This function can be used to pass messages to the log book. The message content is 
-  //!reformated slightly and copied to the dMiscbuffer member, to be picked up by the
-  //!QwGUIMain class via the GetMessage() member function of this class, when QwGUIMain
-  //!receives the message signal from the SendMessageSignal(const char*objname) function 
-  //!in this class.
-  //!
-  //!Parameters:
-  //! - 1) Message buffer: Can be passed as a constant string or a preallocated buffer. 
-  //! - 2) Flag: To indicate whether the message is to be displayed with a time and date stamp.
-  //!
-  //!Return value: none  
-  void             SetLogMessage(const char *buffer, Bool_t tStamp = kFALSE);
-
-
-  /* Bool_t               dProcessHalt; */
 
  public:
   
@@ -238,47 +209,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: A new window name
   const char*      GetNewWindowName();
 
-  //!This function returns a flag indicating whether a message to be placed in the log is to have
-  //!a time and date stamp or not. The function is called by QwGUIMain before adding the message to
-  //!the log.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: boolean time stamp flag
-  Bool_t           IfTimeStamp(){return dLogTStampFlag;}
-
-  //!This function returns a flag indicating whether the tab menu entry for this subsystem is currently
-  //!checked (i.e. whether the subsystem tab is visible or not).
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: boolean menu item flag
-  Bool_t           IsTabMenuEntryChecked() {return dTabMenuItemChecked;};
-
-  //!Sender function which connects to QwGUIMain::OnObjClose(const char*), to perform cleanup tasks
-  //!when this subsystem object is destroyed. 
-  //!
-  //!Parameters:
-  //! - 1) Subsystem object name/lable: must be the same as the one passed to the constructor dThisName.
-  //!
-  //!Return value: none  
-  //  void             IsClosing(const char *objname);
-
-
-  //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
-  //!IsClosing member function (a new data container or window for example), if it is anticipated that there are
-  //!cleanup tasks to perform when this object is destroyed. Derived classes should always call 
-  //!QwGUISubSystem::OnObjClose(char *) in the derived OnObjClose(char *).
-  //!
-  //!Parameters:
-  //! - 1) Subsystem object name/label: will the same as the one passed to the constructor of the object.
-  //!      (see QwGUIMainDetector for an example).
-  //!
-  //!Return value: none  
-  //  virtual void     OnObjClose(char *);
-
   //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
   //!SendMessageSignal member function (a new data container or window for example), if it is anticipated that 
   //!there are messages or commands to be processed. 
@@ -301,15 +231,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none  
   virtual Bool_t   ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   
-  //!Sender function which connects to QwGUIMain::RemoveTab(QwGUISubSystem*) and removes the subsystem tab
-  //!This function should only be called in the destructor of this class. 
-  //!
-  //!Parameters:
-  //! - 1) Subsystem pointer.
-  //!
-  //!Return value: none  
-  //  void             RemoveThisTab(QwGUISubSystem*);
-
   //!This function is called by the QwGUIMain::AddATab function once each time a new subsystem tab is created
   //!(not when it is simply toggled on/off). It in turn initiates the actual layout of the subsystem tab.
   //!
@@ -339,17 +260,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none
   void             SendMessageSignal(const char*objname);
 
-  //!This function is called from QwGUIMain::AddATab or QwGUIMain::RemoveTab, to set the flag indicating
-  //!whether the subsystem tab is displayed (on/off) or not. The function also calls the corresponding
-  //!functions to implement additional tasks on toggle on/off.
-  //!
-  //!Parameters:
-  //! - 1) Boolean flag indicating whether the subsystem tab is visible or not.
-  //!
-  //!Return value: none 
-  /* void             TabMenuEntryChecked(Bool_t set) {dTabMenuItemChecked = set;  */
-  /*   dTabMenuItemChecked ? OnAddThisTab() : OnRemoveThisTab();}; */
-  
 
   //!Set histomode. This is called at QwGUIMain and other subsystems
   //!
