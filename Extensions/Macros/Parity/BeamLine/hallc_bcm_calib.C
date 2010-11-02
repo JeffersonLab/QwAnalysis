@@ -102,7 +102,9 @@
 
 //  5889 - 6114      BCM gain setting 2
 //  6115 - 6158      BCM gain setting 5  >>  BCM calibration RUN 6158 / ./hallc_bcm_calib -r 6158 -e 5:60 
-//  6159 -           BCM gain setting 2  
+//  6159 - 6301      BCM gain setting 2  
+//  6302 -           BCM gain setting 5
+//                   https://hallcweb.jlab.org/hclog/1010_archive/101029193112.html
 
 #include <iostream>
 #include <fstream>
