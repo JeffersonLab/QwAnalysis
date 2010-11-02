@@ -67,6 +67,12 @@ hel_output_register   TH1F    12      -1.5  10.5        inputregister Events
 .*qdc_compton.*			TH1F	4098	-1	4097	Channel	Events
 .*tdc_compton.*			TH1F	4098	-1	4097	Channel	Events
 
+###  Compton BPM and BCM channels
+.*bpm_3p0.+_.*			TH1F	100	0	4e3	Counts	Events
+.*bcm.+_.*			TH1F	100	0	4e3	Counts	Events
+.*laser.*			TH1F	100	0	4e3	Counts	Events
+.*rate.*			TH1F	100	0	4e3	Counts	Events
+.*stupid.*			TH1F	100	0	4e3	Counts	Events
 
 ###  Catch-alls
 .*_sum    TH1F  1000  -5.0e9  5.0e9       Counts  Events

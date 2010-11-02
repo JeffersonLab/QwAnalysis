@@ -3,6 +3,7 @@
 ROC=31
 Bank=0x1f02
 ! module.type, module.num  chan.num, det.type, det.name
+!!! WARNING: these BPM and BCM channel assignments are pure guesses !!!
 SIS3801D24, 0, 0x00, scalerbpm, bpm_3p01_xm
 SIS3801D24, 0, 0x01, scalerbpm, bpm_3p01_xp
 SIS3801D24, 0, 0x02, scalerbpm, bpm_3p01_ym
@@ -20,6 +21,7 @@ SIS3801D24, 0, 0x0d, scalerbpm, bpm_3p03_xp
 SIS3801D24, 0, 0x0e, scalerbpm, bpm_3p03_ym
 SIS3801D24, 0, 0x0f, scalerbpm, bpm_3p03_yp
 ! module.type, module.num  chan.num, det.type, det.name
+!!! WARNING: these BPM and BCM channel assignments are pure guesses !!!
 SIS3801D24, 0, 0x10, laser, laser0x10
 SIS3801D24, 0, 0x11, laser, laser0x11
 SIS3801D24, 0, 0x12, laser, laser0x12
@@ -33,10 +35,9 @@ SIS3801D24, 0, 0x19, scaler, rate0x19
 SIS3801D24, 0, 0x1a, scaler, rate0x1a
 SIS3801D24, 0, 0x1b, scaler, rate0x1b
 SIS3801D24, 0, 0x1c, scaler, rate0x1c
-SIS3801D24, 0, 0x1d, scaler, rate0x1d
-SIS3801D24, 0, 0x1e, scaler, rate0x1e
-SIS3801D24, 0, 0x1f, scaler, rate0x1f
-!!! WARNING: these scaler and BPM channel assignments are pure guesses !!!
+SIS3801D24, 0, 0x1d, scalerbcm, bcm1_3c09a
+SIS3801D24, 0, 0x1e, scalerbcm, bcm2_3c09b
+SIS3801D24, 0, 0x1f, scalerbcm, bcm6_3c20
 SIS3801D24, 0, 0x100, scalerbpm, stupid_header_messing_everything_up
 
 

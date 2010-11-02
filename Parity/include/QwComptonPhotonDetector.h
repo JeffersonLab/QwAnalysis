@@ -117,12 +117,14 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
 
     /// List of integrating QDC channels
     typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingADC_Mapping_t;
-    IntegratingADC_Mapping_t fIntegratingADC_Mapping;
-    std::vector< QwPMT_Channel > fIntegratingADC;
+    IntegratingADC_Mapping_t fMultiQDC_Mapping;
+    std::vector< QwPMT_Channel > fMultiQDC_Channel;
+    std::vector< std::vector< QwPMT_Channel > > fMultiQDC_Events;
     /// List of integrating TDC channels
     typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingTDC_Mapping_t;
-    IntegratingTDC_Mapping_t fIntegratingTDC_Mapping;
-    std::vector< QwPMT_Channel > fIntegratingTDC;
+    IntegratingTDC_Mapping_t fMultiTDC_Mapping;
+    std::vector< QwPMT_Channel > fMultiTDC_Channel;
+    std::vector< std::vector< QwPMT_Channel > > fMultiTDC_Events;
 
     /// List of scaler channels
     typedef std::map< Int_t, std::vector< std::vector< Int_t > > > Scaler_Mapping_t;
