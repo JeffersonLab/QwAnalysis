@@ -8,6 +8,7 @@
 #include <TString.h>
 #include <TObject.h>
 #include "TMath.h"
+#include "TVector3.h"
 
 #include "QwTypes.h"
 
@@ -36,15 +37,16 @@ class QwDetectorInfo: public TObject {
     void SetSlopeMatching(const double slope) { fSlopeMatching = slope; };
 
     // Get/set x and y position
+    const TVector3 GetPosition() const;
     const double GetXPosition() const { return fDetectorOriginX; };
     const double GetYPosition() const { return fDetectorOriginY; };
+    const double GetZPosition() const { return fDetectorOriginZ; };
+    void SetPosition(const TVector3& position);
+    void SetZPosition(const double z) { fDetectorOriginZ = z; };
     void SetXYPosition(const double x, const double y) {
       fDetectorOriginX = x;
       fDetectorOriginY = y;
     };
-    // Get/set z position
-    const double GetZPosition() const { return fDetectorOriginZ; };
-    void SetZPosition(const double z) { fDetectorOriginZ = z; };
     void SetXYZPosition(const double x, const double y, const double z) {
       SetXYPosition(x,y);
       SetZPosition(z);

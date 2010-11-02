@@ -2322,6 +2322,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
 					// Check whether this track went through the trigger and/or
 					// the cerenkov bar.
+					// TODO use generic detector info object
 					pt->DeterminePositionInTriggerScintillators ( package );
 					pt->DeterminePositionInCerenkovBars ( package );
 				}
@@ -2485,6 +2486,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 
 							parttracklist.push_back ( pt );
 
+							// TODO use generic detector info object
 							pt->DeterminePositionInTarget();
 							pt->DeterminePositionInHDC ( package );
 						}

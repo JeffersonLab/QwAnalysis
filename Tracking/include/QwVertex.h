@@ -13,7 +13,9 @@
 #ifndef QWVERTEX_H
 #define QWVERTEX_H
 
+// ROOT headers
 #include "TObject.h"
+#include "TVector3.h"
 
 // Forward declarations
 class QwTrack;
@@ -23,8 +25,10 @@ class QwVertex: public TObject {
   public:
 
     QwVertex();
-    QwVertex(QwTrack track1, QwTrack track2);
-    ~QwVertex();
+    QwVertex(const TVector3& position);
+    QwVertex(const QwTrack& track1, const QwTrack& track2);
+    QwVertex(double x, double y, double z);
+    virtual ~QwVertex() { };
 
     /// Return the distance between the tracks at the vertex
     double GetDistance();
@@ -32,7 +36,7 @@ class QwVertex: public TObject {
   public:
 
     double fCoord[3];		///< coordinates of vertex
-    double av[3][3];		///< error matrix
+    double fCov[3][3];		///< error matrix
     double maxresidue;		///< max residue of tracks
     int fNTracks;		///< number of tracks in vertex
 
