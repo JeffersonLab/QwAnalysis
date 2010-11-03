@@ -112,7 +112,11 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
     // Find file name from full path
     size_t pos = path.find_last_of('/');
     if (pos != std::string::npos)
+      // Called with path
       AddConfigFile(path.substr(pos+1) + ".conf");
+    else
+      // Called without path
+      AddConfigFile(path + ".conf");
   }
 }
 
