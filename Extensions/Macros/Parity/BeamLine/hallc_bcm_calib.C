@@ -97,8 +97,11 @@
 //  5260   2        * BCM calibration RUN 
 //                    https://hallcweb.jlab.org/hclog/1008_archive/100810204416.html
 //  ???? 
-//  5669   2
-//  5807   2        * BCM calibration RUN 
+// 
+//  5669             BCM gain setting 2
+//  5807             BCM gain setting 2   * BCM calibration RUN 
+//                   ./hallc_bcm_calib -r 5807 -e 10:75
+//                   https://hallcweb.jlab.org/hclog/1010_archive/101014011357.html
 
 //  5889 - 6114      BCM gain setting 2
 //  6115 - 6158      BCM gain setting 5  >>  BCM calibration RUN 6158 / ./hallc_bcm_calib -r 6158 -e 5:60 
