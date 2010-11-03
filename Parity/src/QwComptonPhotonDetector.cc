@@ -340,6 +340,12 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
       // Scalers
       case kScaler:
       {
+        // Read header word
+        UInt_t num_events = buffer[words_read];
+        words_read++;
+        // TODO Multiscaler functionality
+
+        // Read scalers
         for (size_t modnum = 0; modnum < fScaler_Mapping[subbank].size(); modnum++) {
           for (size_t channum = 0; channum < fScaler_Mapping[subbank].at(modnum).size(); channum++) {
             Int_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
@@ -355,13 +361,16 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
       case kIntegratingADC:
       case kIntegratingTDC:
       {
-        UInt_t nevents = 0;
+        // Read header word
+        UInt_t header = buffer[words_read++];
+        if ((header & 0xbad00dc0) == 0xbad00dc0)
+          break; // Bad ADC/TDC
 
-        // Parse header word (at least one header word is read)
-        words_read = 1;
-        if ((buffer[0] & 0xbad00dc0) == 0xbad00dc0) break; // Bad ADC/TDC
-        if ((buffer[0] & 0xda000dc0) == 0xda000dc0)
-          nevents = (buffer[0] & 0x00FF0000) >> 16;
+        // Parse number of events
+        UInt_t num_events = 0;
+        if ((header & 0xda000dc0) == 0xda000dc0)
+          num_events = (buffer[0] & 0x00FF0000) >> 16;
+        // TODO Multiscaler functionality
 
         // Loop over buffered events
         for (size_t i = words_read; i < num_words; i++) {
@@ -746,6 +755,8 @@ void QwComptonPhotonDetector::ConstructBranchAndVector(TTree *tree, TString & pr
     fMultiTDC_Channel[i].ConstructBranchAndVector(tree, prefix, values);
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].ConstructBranchAndVector(tree, prefix, values);
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i].ConstructBranchAndVector(tree, prefix, values);
 };
 
 /**
@@ -760,6 +771,8 @@ void QwComptonPhotonDetector::FillTreeVector(std::vector<Double_t> &values) cons
     fMultiTDC_Channel[i].FillTreeVector(values);
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].FillTreeVector(values);
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i].FillTreeVector(values);
 };
 
 /**

@@ -1,5 +1,3 @@
-! Multiple subbanks in one ROC for the same subsystem is still a problem...
-
 ROC=31
 Bank=0x1f02
 ! module.type, module.num  chan.num, det.type, det.name
@@ -22,27 +20,62 @@ SIS3801D24, 0, 0x0e, scalerbpm, bpm_3p03_ym
 SIS3801D24, 0, 0x0f, scalerbpm, bpm_3p03_yp
 ! module.type, module.num  chan.num, det.type, det.name
 !!! WARNING: these BPM and BCM channel assignments are pure guesses !!!
-SIS3801D24, 0, 0x10, laser, laser0x10
-SIS3801D24, 0, 0x11, laser, laser0x11
-SIS3801D24, 0, 0x12, laser, laser0x12
-SIS3801D24, 0, 0x13, laser, laser0x13
-SIS3801D24, 0, 0x14, laser, laser0x14
-SIS3801D24, 0, 0x15, laser, laser0x15
-SIS3801D24, 0, 0x16, laser, laser0x16
-SIS3801D24, 0, 0x17, laser, laser0x17
-SIS3801D24, 0, 0x18, scaler, rate0x18
-SIS3801D24, 0, 0x19, scaler, rate0x19
-SIS3801D24, 0, 0x1a, scaler, rate0x1a
-SIS3801D24, 0, 0x1b, scaler, rate0x1b
-SIS3801D24, 0, 0x1c, scaler, rate0x1c
-SIS3801D24, 0, 0x1d, scalerbcm, bcm1_3c09a
-SIS3801D24, 0, 0x1e, scalerbcm, bcm2_3c09b
-SIS3801D24, 0, 0x1f, scalerbcm, bcm6_3c20
-SIS3801D24, 0, 0x100, scalerbpm, stupid_header_messing_everything_up
-
+SIS3801D24, 0, 0x10, laser, sca_laser_PowM6
+SIS3801D24, 0, 0x11, laser, sca_laser_PowAtt
+SIS3801D24, 0, 0x12, laser, sca_laser_PowT
+SIS3801D24, 0, 0x13, laser, sca_laser_Scint2
+SIS3801D24, 0, 0x14, laser, sca_laser_C13
+SIS3801D24, 0, 0x15, laser, sca_laser_photon
+SIS3801D24, 0, 0x16, scaler, rate0x116
+SIS3801D24, 0, 0x17, scaler, rate0x117
+SIS3801D24, 0, 0x18, scaler, rate0x118
+SIS3801D24, 0, 0x19, scaler, rate0x119
+SIS3801D24, 0, 0x1a, scaler, rate0x11a
+SIS3801D24, 0, 0x1b, scalerbcm, bcm1_3h05
+SIS3801D24, 0, 0x1c, scalerbcm, bcm2_3h05a
+SIS3801D24, 0, 0x1d, scalerbcm, bcm6_3c17
+SIS3801D24, 0, 0x1e, scalerbcm, unser_3h05
+SIS3801D24, 0, 0x1f, scaler, sca_ref_4MHz
 
 
 ROC=1
+Bank=0x0100
+! module.type, module.num  chan.num, det.type, det.name
+SIS3801D24, 0, 0x00, scaler, sca_photon_rate_gen
+SIS3801D24, 0, 0x01, scaler, sca_photon_rate_acc
+SIS3801D24, 0, 0x02, scaler, sca_photon_rate_foo1
+SIS3801D24, 0, 0x03, scaler, sca_photon_rate_foo2
+SIS3801D24, 0, 0x04, scaler, rate0x204
+SIS3801D24, 0, 0x05, scaler, rate0x205
+SIS3801D24, 0, 0x06, scaler, rate0x206
+SIS3801D24, 0, 0x07, scaler, rate0x207
+SIS3801D24, 0, 0x08, scaler, rate0x208
+SIS3801D24, 0, 0x09, scaler, rate0x209
+SIS3801D24, 0, 0x0a, scaler, rate0x20a
+SIS3801D24, 0, 0x0b, scaler, rate0x20b
+SIS3801D24, 0, 0x0c, scaler, rate0x20c
+SIS3801D24, 0, 0x0d, scaler, rate0x20d
+SIS3801D24, 0, 0x0e, scaler, sca_fadc_clock1
+SIS3801D24, 0, 0x0f, scaler, sca_fadc_clock2
+! module.type, module.num  chan.num, det.type, det.name
+SIS3801D24, 0, 0x10, scaler, rate0x210
+SIS3801D24, 0, 0x11, scaler, rate0x211
+SIS3801D24, 0, 0x12, scaler, rate0x212
+SIS3801D24, 0, 0x13, scaler, rate0x213
+SIS3801D24, 0, 0x14, scaler, rate0x214
+SIS3801D24, 0, 0x15, scaler, rate0x215
+SIS3801D24, 0, 0x16, scaler, rate0x216
+SIS3801D24, 0, 0x17, scaler, rate0x217
+SIS3801D24, 0, 0x18, scaler, rate0x218
+SIS3801D24, 0, 0x19, scaler, rate0x219
+SIS3801D24, 0, 0x1a, scaler, rate0x21a
+SIS3801D24, 0, 0x1b, scaler, rate0x21b
+SIS3801D24, 0, 0x1c, scaler, rate0x21c
+SIS3801D24, 0, 0x1d, scaler, rate0x21d
+SIS3801D24, 0, 0x1e, scaler, rate0x21e
+SIS3801D24, 0, 0x1f, scaler, rate0x21f
+
+
 Bank=0x0101
 ! module.type, module.num  chan.num, det.type, det.name
 SIS3320,	0,	0,	accum,	fadc_compton
@@ -57,19 +90,19 @@ V775,		0,	0,	compton, tdc_compton
 
 Bank=0x0104
 ! module.type, module.num  chan.num, det.type, det.name
-V792,		0,	0x00,	compton, qdc_compton0x00
-V792,		0,	0x02,	compton, qdc_compton0x02
-V792,		0,	0x04,	compton, qdc_compton0x04
-V792,		0,	0x06,	compton, qdc_compton0x06
-V792,		0,	0x08,	compton, qdc_compton0x08
-V792,		0,	0x0a,	compton, qdc_compton0x0a
-V792,		0,	0x0c,	compton, qdc_compton0x0c
-V792,		0,	0x0e,	compton, qdc_compton0x0e
-V792,		0,	0x10,	compton, qdc_compton0x10
-V792,		0,	0x12,	compton, qdc_compton0x12
-V792,		0,	0x14,	compton, qdc_compton0x14
-V792,		0,	0x16,	compton, qdc_compton0x16
-V792,		0,	0x18,	compton, qdc_compton0x18
-V792,		0,	0x1a,	compton, qdc_compton0x1a
-V792,		0,	0x1c,	compton, qdc_compton0x1c
-V792,		0,	0x1e,	compton, qdc_compton0x1e
+V792,		0,	0x00,	compton, qdc_photon
+V792,		0,	0x02,	compton, qdc0x02
+V792,		0,	0x04,	compton, qdc0x04
+V792,		0,	0x06,	compton, qdc0x06
+V792,		0,	0x08,	compton, qdc0x08
+V792,		0,	0x0a,	compton, qdc0x0a
+V792,		0,	0x0c,	compton, qdc0x0c
+V792,		0,	0x0e,	compton, qdc0x0e
+V792,		0,	0x10,	compton, qdc0x10
+V792,		0,	0x12,	compton, qdc0x12
+V792,		0,	0x14,	compton, qdc0x14
+V792,		0,	0x16,	compton, qdc0x16
+V792,		0,	0x18,	compton, qdc0x18
+V792,		0,	0x1a,	compton, qdc0x1a
+V792,		0,	0x1c,	compton, qdc0x1c
+V792,		0,	0x1e,	compton, qdc0x1e
