@@ -137,7 +137,6 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fMultiQDC_Channel.push_back(QwPMT_Channel(name));
           fMultiQDC_Channel.at(index).SetModule(modnum);
           fMultiQDC_Channel.at(index).SetSubbankID(current_bank_id);
-          fMultiQDC_Events.resize(fMultiQDC_Channel.size());
         }
 
       } else if (modtype == "V775") {
@@ -161,7 +160,6 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fMultiTDC_Channel.push_back(QwPMT_Channel(name));
           fMultiTDC_Channel.at(index).SetModule(modnum);
           fMultiTDC_Channel.at(index).SetSubbankID(current_bank_id);
-          fMultiTDC_Events.resize(fMultiTDC_Channel.size());
         }
 
       } else if (modtype == "SIS3801D24") {
@@ -381,7 +379,6 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
               Int_t index = fMultiQDC_Mapping[subbank].at(modnum).at(channum);
               if (index >= 0) {
                 fMultiQDC_Channel.at(index).SetValue(GetTDCData());
-                fMultiQDC_Events.at(index).push_back(fMultiQDC_Channel.at(index));
                 QwDebug << "QDC " << std::hex << subbank << " "
                         << modnum << "," << channum << ": " << std::dec
                         << GetTDCData() << QwLog::endl;
@@ -396,7 +393,6 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
               Int_t index = fMultiTDC_Mapping[subbank].at(modnum).at(channum);
               if (index >= 0) {
                 fMultiTDC_Channel.at(index).SetValue(GetTDCData());
-                fMultiTDC_Events.at(index).push_back(fMultiTDC_Channel.at(index));
                 QwDebug << "TDC " << std::hex << subbank << " "
                         << modnum << "," << channum << ": " << std::dec
                         << GetTDCData() << QwLog::endl;
@@ -453,12 +449,10 @@ void  QwComptonPhotonDetector::ProcessEvent()
 {
   for (size_t i = 0; i < fSamplingADC.size(); i++)
     fSamplingADC.at(i).ProcessEvent();
-  for (size_t i = 0; i < fMultiTDC_Events.size(); i++)
-    for (size_t j = 0; j < fMultiTDC_Events.at(i).size(); j++)
-      fMultiTDC_Events.at(i).at(j).ProcessEvent();
-  for (size_t i = 0; i < fMultiQDC_Events.size(); i++)
-    for (size_t j = 0; j < fMultiQDC_Events.at(i).size(); j++)
-      fMultiQDC_Events.at(i).at(j).ProcessEvent();
+  for (size_t i = 0; i < fMultiTDC_Channel.size(); i++)
+    fMultiTDC_Channel.at(i).ProcessEvent();
+  for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
+    fMultiQDC_Channel.at(i).ProcessEvent();
 };
 
 
@@ -506,10 +500,10 @@ void QwComptonPhotonDetector::ClearEventData()
     fSamplingADC[i].ClearEventData();
 
   // Remove all buffered TDC and QDC events for all channels
-  for (size_t i = 0; i < fMultiTDC_Events.size(); i++)
-    fMultiTDC_Events.at(i).resize(0);
-  for (size_t i = 0; i < fMultiQDC_Events.size(); i++)
-    fMultiQDC_Events.at(i).resize(0);
+  for (size_t i = 0; i < fMultiTDC_Channel.size(); i++)
+    fMultiTDC_Channel.at(i).ClearEventData();
+  for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
+    fMultiQDC_Channel.at(i).ClearEventData();
 };
 
 /**

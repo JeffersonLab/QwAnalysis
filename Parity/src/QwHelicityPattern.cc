@@ -51,7 +51,9 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   : fBlinder(),
-    fHelicityIsMissing(kFALSE), fIgnoreHelicity(kFALSE)
+    fHelicityIsMissing(kFALSE), fIgnoreHelicity(kFALSE),
+    fLastWindowNumber(0),fLastPatternNumber(0),fLastPhaseNumber(0)
+ 
 {
   // Retrieve the helicity subsystem to query for
   std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");

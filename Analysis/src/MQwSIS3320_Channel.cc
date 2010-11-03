@@ -203,7 +203,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
             numberofsamples = buffer[3];
             numberofevents_expected = buffer[4];
             fSamplePointer = 0;
-            words_read = 6;
+            words_read = 5;
 
             // For all events in this buffer
             SetNumberOfEvents(numberofevents_expected);

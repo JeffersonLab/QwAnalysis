@@ -63,11 +63,12 @@ void  QwPMT_Channel::ProcessEvent()
 };
 
 
-void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
+void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
+{
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
 
-  if (GetElementName()==""){
+  if (GetElementName() == "") {
     //  This channel is not used, so skip filling the histograms.
   } else {
     //  Now create the histograms.
@@ -88,7 +89,7 @@ void  QwPMT_Channel::FillHistograms()
     //  This channel is not used, so skip creating the histograms.
   } else {
     if (fHistograms[index] != NULL)
-      fHistograms[index]->Fill(this->fValue);
+      fHistograms[index]->Fill(fValue);
     index++;
   }
 };
