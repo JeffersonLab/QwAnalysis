@@ -62,12 +62,13 @@
 //          0.0.7 : Tuesday, October 19 11:25:44 EDT 2010, jhlee
 //                  - added check_bpm_branch function in order to check the opened ROOT file
 //                    has the right structure for the BPM calibration.
-//                  - added several classes to help to read "qweak_beamline_geometry.map",
+//                  - added several classes to read "qweak_beamline_geometry.map" easily,
 //                    that is used to extract real BPM names at Hall C
 //                  - did fine tune check_bpm_branch and calibration function.
 //                  - did a tweak that make the better output for a pedstral file of QwAnalyzer
 //
-
+//          0.0.8 : Monday, October 25 01:23:55 EDT 2010, jhlee
+//                   - improved the way to handle (a) ROOT file(s) (TChain) 
 
 // Additional BPM calibration run info
 //
@@ -86,6 +87,7 @@
 #include <getopt.h>
 #include <sstream>
 #include <vector>
+
 #include <algorithm>
 
 
@@ -100,12 +102,16 @@
 #include "TApplication.h"
 #include "TSystem.h"
 #include "TUnixSystem.h"
+
 #include "TProfile.h"
 #include "TLine.h"
 #include "TBox.h"
+
 #include "TCut.h"
-#include "TStyle.h"
 #include "TChain.h"
+#include "TChainElement.h"
+#include "TStyle.h"
+#include "TSystem.h"
 
 
 class BeamMonitor 
@@ -559,7 +565,7 @@ Bool_t
 check_bpm_branches(std::vector<TString> &branches, TTree *roottree)
 {
   
-  Bool_t local_debug = false;
+  Bool_t local_debug = true;
 
   std::size_t branches_size = 0;     
   branches_size = branches.size(); 
@@ -578,7 +584,7 @@ check_bpm_branches(std::vector<TString> &branches, TTree *roottree)
       for(Int_t i=0; i<4; i++) 
 	{
 	  TString branch_name = branches.at(branches_idx) + antenna[i];
-	  if(local_debug) std::cout << branch_name;
+	  if(local_debug) std::cout  << std::setw(30) << branch_name;
 	  
 	  TBranch* branch = roottree -> FindBranch(branch_name.Data());
 	  if(branch) { 
@@ -587,7 +593,7 @@ check_bpm_branches(std::vector<TString> &branches, TTree *roottree)
 	  }
 	  else  {
 	    branch_valid &= false;
-	    if(local_debug) std::cout << " : false" << std::endl;
+	    if(local_debug) std::cout << " : *** false *** " << std::endl;
 	  }
 	}
     }
@@ -608,56 +614,63 @@ GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
 }
 
 
-void
-GetTree(char* run_number, TChain *tree)
+
+Int_t 
+GetTree(TString filename, TChain* chain)
 {
-  TFile  *file = NULL;
+  TString file_dir;
+  Int_t   chain_status = 0;
 
-  TString filename = Form("BPMCalib_%s.000.root", run_number);
-  file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
+  file_dir = gSystem->Getenv("QWSCRATCH");
+  if (!file_dir) file_dir = "~/scratch/";
+  file_dir += "/rootfiles/";
+ 
+  chain_status = chain->Add(Form("%s%s", file_dir.Data(), filename.Data()));
+  
+  if(chain_status) {
 
-  if (file->IsZombie()) {
-    std::cout << "Error opening root file chain " 
-	      << filename << std::endl;
-
-    filename = Form("BPMCalib_%s.root", run_number);
-    std::cout << "Try to open chain " 
-	      << filename << std::endl;
-    file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
-    if (file->IsZombie()) {
-      std::cout << "File exit failure."<<std::endl; 
-      tree = NULL;
-      exit(1);
-    }
-    else {
-      tree->Add(Form("~/scratch/rootfiles/BPMCalib_%s.root", run_number));
-    }
+    TString chain_name = chain -> GetName();
+    TObjArray *fileElements = chain->GetListOfFiles();
+    TIter next(fileElements);
+    TChainElement *chain_element = NULL;
+    while (( chain_element=(TChainElement*)next() )) 
+      {
+	std::cout << "File:  " 
+		  << chain_element->GetTitle() 
+		  << " is added into the Chain with the name ("
+		  << chain_name
+		  << ")."
+		  << std::endl;
+      }
   }
   else {
-    tree->Add(Form("~/scratch/rootfiles/BPMCalib_%s.*.root", run_number));
+    std::cout << "There is (are) no "
+	      << filename 
+	      << "."
+	      << std::endl;
   }
-  
-  return;
+  return chain_status;
 };
 
 
+
 const char* program_name;
-TChain *mps_tree = NULL;
-
-Int_t w = 1200;
-Int_t h = 800;
-TCanvas *bpm_canvas =NULL;
-TString bpm_plots_filename;
-
 std::vector< std::vector<BeamMonitor> > hallc_bpms_list;
 BeamMonitor hallc_bcm;
 
+TChain  *mps_tree_in_chain = NULL;
+TCanvas *bpm_canvas        = NULL;
+TString  bpm_plots_filename;
+
+
+Int_t w = 1200;
+Int_t h = 800;
 
 Int_t
 main(int argc, char **argv)
 {
  
-  Bool_t local_debug  = true;
+  Bool_t local_debug  = false;
   
   TApplication theApp("App", &argc, argv);
 
@@ -863,7 +876,7 @@ main(int argc, char **argv)
       tmp_bpm.clear();
       BeamMonitor a_bpm (bpm_name_list.at(bpm_idx));
       a_bpm.SetBPM();
-      tmp_bpm.assign(4, a_bpm ); // 4 antenna
+      tmp_bpm.assign(4, a_bpm); // 4 antenna
       hallc_bpms_list.push_back(tmp_bpm);
     }  
   
@@ -916,19 +929,19 @@ main(int argc, char **argv)
     hallc_bcm.SetName(ref_bcm_name);
   }
  
-  mps_tree = new TChain("Mps_Tree");
-  GetTree(run_number, mps_tree);
+  mps_tree_in_chain = new TChain("Mps_Tree");
 
-  if(mps_tree == NULL)  {
-    std::cout
-      << " Unable to find the MPS Tree in BPMCalib_" << run_number << "*.root file."
-      << " Please check the ROOT file was created for the Hall C BPM calibration."
-      << std::endl;
+
+  TString bpm_calibration_filename = Form("BPMCalib_%s*.root", run_number);
+  Int_t chain_status = 0;
+  chain_status = GetTree(bpm_calibration_filename, mps_tree_in_chain);
+
+  if(chain_status == 0) {
     exit(1);
   }
-  
+
   Bool_t bpm_valid_rootfiles = false;
-  bpm_valid_rootfiles = check_bpm_branches(bpm_name_list, mps_tree);
+  bpm_valid_rootfiles = check_bpm_branches(bpm_name_list, mps_tree_in_chain);
   
   if(bpm_valid_rootfiles) {
     std::cout << "all branches are in the root file(s)." << std::endl;
@@ -954,7 +967,7 @@ main(int argc, char **argv)
  
   // hw_sum_raw : ADC and sca raw signals (uncalibrated)
   if(bcm_ped_file_flag) {
-    mps_tree->SetAlias("current",
+    mps_tree_in_chain->SetAlias("current",
 		       Form("(((%s.hw_sum_raw/%s.num_samples)-%1f)/ %lf )", 
 			    hallc_bcm.GetName().Data(), hallc_bcm.GetName().Data(),
 			    hallc_bcm.GetPed(),hallc_bcm.GetSlope())
@@ -967,11 +980,11 @@ main(int argc, char **argv)
     //          if not, it is the wrong. 
     //          Monday, October 18 13:05:37 EDT 2010, jhlee
 
-    mps_tree->SetAlias("current",
+    mps_tree_in_chain->SetAlias("current",
 		       Form("%s.hw_sum",hallc_bcm.GetName().Data())); 
   }
 
-  mps_tree->Draw("current>>tmp", 
+  mps_tree_in_chain->Draw("current>>tmp", 
   		 Form("%s.Device_Error_Code==0", hallc_bcm.GetName().Data()));
   
 
@@ -1110,7 +1123,7 @@ bpm_calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference, const char*
     bpm_canvas->cd(i+1);
     
     bpm_hist[i] = GetHisto(
-			   mps_tree, 
+			   mps_tree_in_chain, 
 			   plotcommand[i], 
 			   bpm_cut[i], 
 			   "prof"); // profs : large errors why?
@@ -1152,10 +1165,7 @@ bpm_calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference, const char*
 				      bpm.at(i).GetPed(),
 				      reference_name.Data() );
       
-      
-      //      mps_tree->Draw(plotcommand[i],"","box");
-      //      bpm_res[i] = (TH1D*) gPad->GetPrimitive("htemp");
-      bpm_res[i] = GetHisto(mps_tree, plotcommand[i], bpm_cut[i], "BOX");
+      bpm_res[i] = GetHisto(mps_tree_in_chain, plotcommand[i], bpm_cut[i], "BOX");
 
       if (not bpm_res[i]) {
 	std::cout<<" Unable to draw residual plot"<<plotcommand[i]<<std::endl;

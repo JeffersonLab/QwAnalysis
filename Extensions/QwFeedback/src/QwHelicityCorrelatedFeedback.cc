@@ -166,17 +166,18 @@ void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
   //calculate the new setpoint
-  fEPICSCtrl.Get_Pockels_Cell_plus(fPrevPITASetpointPOS);
-  if (fPITASlopePOS!=0)
-    fPITASetpointPOS=fPrevPITASetpointPOS - fChargeAsymmetry/fPITASlopePOS;
-  else
-    fPITASetpointPOS=fPrevPITASetpointPOS;
 
+  fEPICSCtrl.Get_Pockels_Cell_plus(fPrevPITASetpointPOS);
   fEPICSCtrl.Get_Pockels_Cell_minus(fPrevPITASetpointNEG);
-  if (fPITASlopeNEG!=0)
-    fPITASetpointNEG=fPrevPITASetpointNEG - fChargeAsymmetry/fPITASlopeNEG;
-  else
+
+  if (fPITASlopePOS!=0) {
+    Double_t correction = fChargeAsymmetry/fPITASlopePOS;
+    fPITASetpointPOS=fPrevPITASetpointPOS + correction;
+    fPITASetpointNEG=fPrevPITASetpointNEG - correction;
+  } else {
+    fPITASetpointPOS=fPrevPITASetpointPOS;
     fPITASetpointNEG=fPrevPITASetpointNEG;
+  }
   
   if (fPITASetpointPOS>fPITASetpointup)
     fPITASetpointPOS=fPITASetpointup;
@@ -304,7 +305,12 @@ void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
     if (IsPatternsAccumulated(i)){
       //LogParameters(i);
       //QwMessage<<"IsPatternsAccumulated "<<i<<QwLog::endl;
-      IsAqPrecisionGood(i);
+      /*
+       *  NOTE:  Comment this out to not do IA feedback yet.
+       *         P.King, 2010oct23
+       *
+       *	 IsAqPrecisionGood(i);
+       */
     }else{
       //      QwMessage<<"IsPatternsAccumulated "<<i<<QwLog::endl;
     }

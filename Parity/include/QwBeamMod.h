@@ -121,7 +121,7 @@ class QwBeamMod: public VQwSubsystemParity{
  protected:
  Int_t GetDetectorTypeID(TString name);
  Int_t GetDetectorIndex(Int_t TypeID, TString name);    // when the type and the name is passed the detector index from appropriate vector will be returned
- 						        // for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
+ Int_t fTreeArrayIndex; 						        // for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
 
 
  //std::vector <QwBCM> fBCM;

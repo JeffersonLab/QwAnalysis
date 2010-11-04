@@ -66,7 +66,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Then, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.AddConfigFile("qwtracking.conf");
   gQwOptions.AddConfigFile("qweak_mysql.conf");
   ///  Define the command line options
   DefineOptionsTracking(gQwOptions);
@@ -231,7 +230,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Print hit list
       if (hitlist->size() > 0 && kDebug) {
-        std::cout << "Event " << eventbuffer.GetEventNumber() << std::endl;
+        QwMessage << "Event " << eventbuffer.GetEventNumber() << QwLog::endl;
         hitlist->Print();
       }
 

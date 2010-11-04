@@ -133,11 +133,13 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   double delta_perp =   delta_z * cos_theta + delta_y * sin_theta;
   // Distance between the chamber centers parallel to the wire planes
   double delta_para = - delta_z * sin_theta + delta_y * cos_theta;
-
+ 
   // Parallel distance between the chamber centers in u or v coordinates
   // NOTE: fabs because cos < 0 for v planes in one octant !@#$%
   double delta_u = delta_para * fabs(frontdetector->GetElementAngleCos());
 
+  // NOTE:pkg1 and pkg2 need different solution
+  int reverse=1;
   // TODO A difference in x coordinate between the two chambers is ignored.
   // This might become relevant if misalignment needs to be included.  The
   // helper class uv2xy could be used here.
@@ -230,7 +232,13 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
       // Slope between the front and back plane central hits
       // NOTE: this is the slope wrt the normal to the plane
-      double slope = (delta_u + u[1] - u[0]) / (delta_perp + perp[1] - perp[0]);
+
+      double slope=0;
+      // NOTE: pkg1 needs to minus delta_u while pkg2 needs to add delta_u due to the location of the first wire
+      if(backline->GetPackage()==1) 
+      slope = (-1*delta_u + u[1] - u[0]) / (delta_perp + perp[1] - perp[0]);
+      else
+      slope = (delta_u + u[1] - u[0]) / (delta_perp + perp[1] - perp[0]);
 
       // Wire spacing and slope matching parameters for front and back planes
       double wirespacing_f = frontdetector->GetElementSpacing();
@@ -238,11 +246,25 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
       double sloperes_f = frontdetector->GetSlopeMatching();
       double sloperes_b = backdetector->GetSlopeMatching();
 
+
       // Slope of the front and back tree line wrt the normal to the plane
       // NOTE: the slopes of the tree line are wrt the plane
       double fslope = wirespacing_f / frontline->fSlope;
       double bslope = wirespacing_b / backline->fSlope;
 
+      // NOTE:Do a preliminary slope check to align two treelines into one
+      if (fabs(fslope - slope) <= sloperes_f
+       && fabs(bslope - slope) <= sloperes_b
+       && fabs(fslope - slope) + fabs(bslope - slope) < bestmatch){
+	// if ok, do nothing at all
+	}
+	else{
+	// NOTE: if not, we need to flip the sign to see if it works
+	fslope*=-1;
+	bslope*=-1;
+	reverse=-1;
+	}
+      
       // Check whether this is a good match
       if (fabs(fslope - slope) <= sloperes_f
        && fabs(bslope - slope) <= sloperes_b
@@ -294,22 +316,35 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         QwHit *DetecHits[2*MAX_LAYERS];
         for (int i = 0; i < 2*MAX_LAYERS; i++) DetecHits[i] = 0;
 
-        // Set the hits for front VDC
+        // NOTE:Set the hits for front VDC, the reverse will determine how we should align the treelines
         int fronthits = frontline->fNumHits;
         for (int hit = 0; hit < fronthits; hit++) {
           treeline->hits[hit] = new QwHit(frontline->hits[hit]);
           DetecHits[hit] = treeline->hits[hit];
+	  DetecHits[hit]->fDriftPosition *= reverse;
         }
         // Set the hits for back VDC
         int backhits = backline->fNumHits;
         for (int hit = 0; hit < backhits; hit++) {
           treeline->hits[hit+fronthits] = new QwHit(backline->hits[hit]);
           DetecHits[hit+fronthits] = treeline->hits[hit+fronthits];
-          DetecHits[hit+fronthits]->fWirePosition += delta_u;
+	  if(backline->GetPackage()==1) 
+          DetecHits[hit+fronthits]->fWirePosition -= delta_u;
+	  else
+	  DetecHits[hit+fronthits]->fWirePosition += delta_u;
+	
+	  DetecHits[hit+fronthits]->fDriftPosition *= reverse;
           DetecHits[hit+fronthits]->fDriftPosition += delta_perp;
         }
         int nhits = fronthits + backhits;
 
+// 	std::cout << "wire position: " << std::endl;
+// 	for(int i=0;i<nhits;i++)
+// 		std::cout << DetecHits[i]->fWirePosition << "," << std::endl;
+// 
+// 	std::cout << "distance: " << std::endl;
+// 	for(int i=0;i<nhits;i++)
+// 		std::cout << DetecHits[i]->fDriftPosition << "," << std::endl;
         // Fit a line to the hits
         double slope, offset, chi, cov[3];
         TreeCombine->weight_lsq_r3 (slope, offset, cov, chi, DetecHits, nhits, 0, -1);

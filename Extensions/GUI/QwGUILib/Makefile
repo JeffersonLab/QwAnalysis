@@ -52,8 +52,8 @@ ROOTLIBS     := $(shell root-config --libs)
 ROOTGLIBS    := $(shell root-config --glibs)
 
 CXXFLAGS     += $(ROOTCFLAGS)
-LIBS          = $(ROOTLIBS) $(SYSLIBS) -lNew
-GLIBS         = $(ROOTGLIBS) $(SYSLIBS) -lNew
+LIBS          = -lNew $(ROOTLIBS) $(SYSLIBS) 
+GLIBS         = -lNew $(ROOTGLIBS) $(SYSLIBS)
 
 ENSCRIPT	= @enscript -2Gjr -o
 #------------------------------------------------------------------------------------

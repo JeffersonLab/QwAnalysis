@@ -93,7 +93,7 @@ class QwParameterFile {
     Bool_t LineIsEmpty(){return fLine.empty();};
     Bool_t IsEOF(){ return fStream.eof();};
 
-    std::string GetNextToken(const std::string& separatorchars);
+    std::string GetNextToken(const std::string& separatorchars = kDefaultTokenSepChars);
     std::string GetLine() { return fLine; };
     void AddLine(const std::string& line) { fStream << line << std::endl; };
 
@@ -180,6 +180,7 @@ class QwParameterFile {
     // Default comment, whitespace, section, module characters
     static const std::string kDefaultCommentChars;
     static const std::string kDefaultWhitespaceChars;
+    static const std::string kDefaultTokenSepChars;
     static const std::string kDefaultSectionChars;
     static const std::string kDefaultModuleChars;
 

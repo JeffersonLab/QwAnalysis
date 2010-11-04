@@ -77,8 +77,6 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
 
 
   Bool_t PublishInternalValues() const;
-  Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
-  const VQwDataElement* ReturnInternalValue(const TString& name) const;
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);

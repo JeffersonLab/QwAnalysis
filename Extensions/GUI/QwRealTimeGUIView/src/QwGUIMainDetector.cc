@@ -1,8 +1,5 @@
 #include "QwGUIMainDetector.h"
 
-#include "TG3DLine.h"
-#include "TGaxis.h"
-
 ClassImp(QwGUIMainDetector);
 
 //MD_DET_TYPES is the size of the enum
@@ -19,6 +16,7 @@ enum QwGUIMainDetectorBTNIndentificator {
   BA_MD_CMB,
   BA_MD_PMT,
   BA_MD_VPMT,
+  BA_MD_CMNS,
 };
 
 //Combo box
@@ -38,23 +36,30 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
   dMDVPMTFrame     = NULL;
   dTabLayout       = NULL;
   dCnvLayout       = NULL;
-  dNumberEntryDlg  = NULL;
+  //  dNumberEntryDlg  = NULL;
   dButtonMD16      = NULL;
   dButtonMDBkg     = NULL;
   dButtonMDCmb     = NULL;
   dButtonMDPMT     = NULL;
   dButtonMDVPMT    = NULL;
+  dButtonMDCommonNoise = NULL;
 
   dComboBoxMDPMT   = NULL;
   dComboBoxMDVPMT  = NULL;
 
+  MDPlots[0] = NULL;
+  MDPlots[1] = NULL;
+  fMDDevices.clear();
 
   AddThisTab(this);
 
+  fCurrentPMTIndex = 0;
+  fCurrentVPMTIndex = 0;
   
-  ClearData();
+  //  ClearData();
 
-
+  SetHistoAccumulate(1);
+  SetHistoReset(0);
 
 }
 
@@ -72,12 +77,14 @@ QwGUIMainDetector::~QwGUIMainDetector()
   if(dButtonMDCmb)    delete dButtonMDCmb;
   if(dButtonMDPMT)    delete dButtonMDPMT;
   if(dComboBoxMDVPMT) delete dComboBoxMDVPMT;
+  if(dButtonMDCommonNoise) delete dButtonMDCommonNoise;
   if(dButtonMDVPMT)   delete dButtonMDVPMT;
   if(dComboBoxMDPMT)  delete dComboBoxMDPMT;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
-  ClearData();
+  delete [] MDPlots;
+  //  RemoveThisTab(this);
+  //  IsClosing(GetName());
+  //  ClearData();
 }
 
 void QwGUIMainDetector::MakeLayout()
@@ -94,11 +101,11 @@ void QwGUIMainDetector::MakeLayout()
   dControlsFrame = new TGVerticalFrame(this);
   dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
 
-  TGVertical3DLine *separator = new TGVertical3DLine(this);
-  dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
+  //TGVertical3DLine *separator = new TGVertical3DLine(this);
+  //dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
   
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200);     
-  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 2, 2, 2, 2));
 
   //Add PMT and Comb PMT frames
   dMDPMTFrame = new TGVerticalFrame(dControlsFrame,50,100);
@@ -120,6 +127,8 @@ void QwGUIMainDetector::MakeLayout()
   dComboBoxMDVPMT = new TGComboBox(dMDVPMTFrame,CMB_MDVPMT);
   dComboBoxMDVPMT->Resize(120,20);//To make it better looking
 
+  dButtonMDCommonNoise = new TGTextButton(dControlsFrame, "Common Mode &Noise", BA_MD_CMNS);
+
   dControlsFrame->AddFrame(dButtonMD16, new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5));
   dControlsFrame->AddFrame(dButtonMDBkg, new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5));
   dControlsFrame->AddFrame(dButtonMDCmb, new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5));
@@ -132,22 +141,20 @@ void QwGUIMainDetector::MakeLayout()
   dMDVPMTFrame->AddFrame(dComboBoxMDVPMT, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
   dMDVPMTFrame->AddFrame(dButtonMDVPMT, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));  
 
+  dControlsFrame->AddFrame(dButtonMDCommonNoise, new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5));
+
   dButtonMD16->Associate(this);
   dButtonMDBkg->Associate(this);
   dButtonMDCmb->Associate(this);
   dButtonMDPMT->Associate(this);
   dButtonMDVPMT->Associate(this);
+  dButtonMDCommonNoise->Associate(this);
   dComboBoxMDPMT->Associate(this);
   dComboBoxMDVPMT->Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-  				"QwGUIMainDetector",
-  				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
-  
-
-}
+};
 
 void QwGUIMainDetector::LoadHistoMapFile(TString mapfile){  //Now this is called at the QwGUIMain
   
@@ -199,23 +206,37 @@ void QwGUIMainDetector::LoadHistoMapFile(TString mapfile){  //Now this is called
 
 void QwGUIMainDetector::DrawMDPMTPlots(){  
   TH1F *histo1=NULL;
+  TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
+  TH1F *histo2_buff=NULL; 
   char histo[128]; //name of the histogram
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
-  
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode 
 
    while (1){
      if (fCurrentPMTIndex<0)
        break;
-     sprintf (histo, "asym_%s_hw",fMDDevices.at(VQWK).at(fCurrentPMTIndex).Data() );
-     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
-     sprintf (histo, "yield_%s_hw",fMDDevices.at(VQWK).at(fCurrentPMTIndex).Data() );
-     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     if (GetHistoPause()==0){
+       sprintf (histo, "asym_%s_hw",fMDDevices.at(VQWK).at(fCurrentPMTIndex).Data() );
+       histo1= (TH1F *)dMapFile->Get(histo);
+       sprintf (histo, "yield_%s_hw",fMDDevices.at(VQWK).at(fCurrentPMTIndex).Data() );
+       histo2= (TH1F *)dMapFile->Get(histo);
+     }
     
     if (histo1!=NULL && histo2!=NULL ) {
+      if (GetHistoReset()){
+	histo1_buff=(TH1F*)histo1->Clone(Form("%s_buff",histo1->GetName()));
+	*histo1=*histo1-*histo1_buff;
+	histo2_buff=(TH1F*)histo2->Clone(Form("%s_buff",histo2->GetName()));
+	*histo2=*histo2-*histo2_buff;
+	SetHistoReset(0);
+      }else if (GetHistoAccumulate()==0){
+	*histo1=*histo1-*histo1_buff;
+	*histo2=*histo2-*histo2_buff;
+      }
     
       mc->Clear();
       mc->Divide(1,2);
@@ -237,34 +258,43 @@ void QwGUIMainDetector::DrawMDPMTPlots(){
     }
   }
   
-
-   printf("---------------DrawMDPMTPlots()--------------------\n");
-  //mc->Modified();
-  //mc->Update();
-  
-
   return;
 };
 
 void QwGUIMainDetector::DrawMDVPMTPlots(){
   TH1F *histo1=NULL;
+  TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
+  TH1F *histo2_buff=NULL; 
   char histo[128]; //name of the histogram
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
-  
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
+ 
 
    while (1){
      if (fCurrentVPMTIndex<0)
        break;
-     sprintf (histo, "asym_%s_hw",fMDDevices.at(VPMT).at(fCurrentVPMTIndex).Data() );
-     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
-     sprintf (histo, "yield_%s_hw",fMDDevices.at(VPMT).at(fCurrentVPMTIndex).Data() );
-     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     if (GetHistoPause()==0){
+       sprintf (histo, "asym_%s_hw",fMDDevices.at(VPMT).at(fCurrentVPMTIndex).Data() );
+       histo1= (TH1F *)dMapFile->Get(histo);
+       sprintf (histo, "yield_%s_hw",fMDDevices.at(VPMT).at(fCurrentVPMTIndex).Data() );
+       histo2= (TH1F *)dMapFile->Get(histo);
+     }
     
     if (histo1!=NULL && histo2!=NULL ) {
+      if (GetHistoReset()){
+	histo1_buff=(TH1F*)histo1->Clone(Form("%s_buff",histo1->GetName()));
+	*histo1=*histo1-*histo1_buff;
+	histo2_buff=(TH1F*)histo2->Clone(Form("%s_buff",histo2->GetName()));
+	*histo2=*histo2-*histo2_buff;
+	SetHistoReset(0);
+      }else if (GetHistoAccumulate()==0){
+	*histo1=*histo1-*histo1_buff;
+	*histo2=*histo2-*histo2_buff;
+      }
     
       mc->Clear();
       mc->Divide(1,2);
@@ -286,12 +316,6 @@ void QwGUIMainDetector::DrawMDVPMTPlots(){
     }
   }
   
-
-   printf("---------------DrawMDVPMTPlots()--------------------\n");
-  //mc->Modified();
-  //mc->Update();
-  
-
   return;  
 };
 
@@ -325,7 +349,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
     for(Short_t p = 0; p <MAIN_DET_INDEX ; p++) 
     {
       sprintf (histo, "asym_%s_hw",fMDDevices.at(VQWK).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -343,7 +367,7 @@ void QwGUIMainDetector::DrawMD16Plots(){
       }
 	  
       sprintf (histo, "yield_%s_hw", fMDDevices.at(VQWK).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -447,7 +471,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
     for( p = MAIN_DET_INDEX; p <fMDDevices.at(VQWK).size(); p++) 
       {
 	sprintf (histo, "asym_%s_hw",fMDDevices.at(VQWK).at(p).Data() );
-	histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	histo1= (TH1F *)dMapFile->Get(histo); 
 	if (histo1!=NULL) {
 	  xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	  if(ldebug) 
@@ -466,7 +490,7 @@ void QwGUIMainDetector::DrawMDBkgPlots(){
 	}
 	  
 	sprintf (histo, "yield_%s_hw", fMDDevices.at(VQWK).at(p).Data());
-	histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+	histo2= (TH1F *)dMapFile->Get(histo); 
 	if(histo2!=NULL){		
 	  ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	  if(ldebug) 
@@ -558,7 +582,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
     for(Int_t p = 0; p <MDCmbCount ; p++) 
     {
       sprintf (histo, "asym_%s_hw",fMDDevices.at(VPMT).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -576,7 +600,7 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
       }
 	  
       sprintf (histo, "yield_%s_hw", fMDDevices.at(VPMT).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -623,9 +647,9 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Int_t p = 0; p < 2 ; p++){
-      delete MDPlots[p];
-    }
+    // for (Int_t p = 0; p < 2 ; p++){
+    //   delete MDPlots[p];
+    // }
     gSystem->Sleep(100);
     if (gSystem->ProcessEvents()){
       break;
@@ -635,6 +659,258 @@ void QwGUIMainDetector::DrawMDCmbPlots(){
 
   return;
 
+};
+
+void QwGUIMainDetector::CalculateCommNoise(){
+  printf("QwGUIHallCBeamline::CalculateCommNoise \n");
+
+  TTree *tree=NULL;
+
+  TH1F* md_pair_hist26      = NULL;
+  TH1F* md_pair_hist48      = NULL;
+  TH1F* md_all_even_hist    = NULL;
+  TF1 * md_pair_hist26_fit  = NULL;
+  TF1 * md_pair_hist48_fit  = NULL;
+  TF1 * MDEvenAll_fit       = NULL;
+  Double_t md_pair_hist26_sigma = 0.0;
+  Double_t md_pair_hist48_sigma = 0.0;
+  Double_t md_evenall_sigma     = 0.0;
+  
+  // Odd 
+  TH1F* md_pair_hist15      = NULL;
+  TH1F* md_pair_hist37      = NULL;
+  TH1F* md_all_odd_hist     = NULL;
+  TF1 * md_pair_hist15_fit  = NULL;
+  TF1 * md_pair_hist37_fit  = NULL;
+  TF1 * MDOddAll_fit        = NULL;
+  Double_t md_pair_hist15_sigma = 0.0;
+  Double_t md_pair_hist37_sigma = 0.0;
+  Double_t md_oddall_sigma      = 0.0;
+
+  //All
+  TH1F* md_all_hist      = NULL;
+  TF1 * MDAll_fit        = NULL;
+  Double_t md_all_sigma = 0.0;
+  
+  //common mode noise parameters
+  Double_t uncorrelated_width[3]      = {0.0};//0-even,1-odd,2-all pairs
+  Double_t common_mode_noise[3]       = {0.0};//0-even,1-odd,2-all pairs
+  Double_t fractional_broadening[3]   = {0.0};//0-even,1-odd,2-all pairs
+  TString MD_name[3] = {"MD even", "MD odd", "MD all"};
+ 
+
+  TCanvas *mc = NULL;
+
+  TPaveText pt(.0,.0,1,1);
+
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->Divide(3,2);
+  mc->cd(1);
+  tree= (TTree *)dMapFile->Get("Hel_Tree");
+
+  if (tree==NULL){
+    printf("Hel_Tree tree object does not exist!\n");
+    return;
+  }
+
+  
+  md_pair_hist26=(TH1F*) GetHisto(tree,"(asym_md2barsum+asym_md6barsum)/2.0*1.0e6","","");
+  if (!md_pair_hist26) {
+    printf("md_pair_hist26 unable to process!\n");
+    return;
+  }
+  printf("MD 2&6 No PreRad\n");
+  md_pair_hist26 -> SetTitle("MD 2&6 No PreRad");
+  md_pair_hist26 -> GetXaxis()->SetTitle("MD 2 & 6 Average (ppm)");
+  md_pair_hist26 -> Fit("gaus", "M");
+  md_pair_hist26_fit = md_pair_hist26 -> GetFunction("gaus");
+  md_pair_hist26_fit->SetLineColor(kRed);
+  
+  if (md_pair_hist26_fit) {
+    md_pair_hist26_sigma = md_pair_hist26_fit -> GetParameter(2);
+  }
+
+  
+  
+  mc->cd(2);  
+  md_pair_hist48=(TH1F*) GetHisto(tree,"(asym_md4barsum+asym_md8barsum)/2.0*1.0e6","","");
+  if (!md_pair_hist48) {
+    printf("md_pair_hist48 unable to process!\n");
+    return;
+  }
+
+  printf("MD 4&8 No PreRad\n");
+  md_pair_hist48 -> SetTitle("MD 4&8 No PreRad");
+  md_pair_hist48 -> GetXaxis()->SetTitle("MD 4 & 8 Average (ppm)");
+  md_pair_hist48 -> Fit("gaus", "M");
+  md_pair_hist48_fit = md_pair_hist48 -> GetFunction("gaus");
+  md_pair_hist48_fit->SetLineColor(kRed);
+
+  if (md_pair_hist48_fit) {
+    md_pair_hist48_sigma = md_pair_hist48_fit -> GetParameter(2);
+  }
+ 
+  mc->cd(3);
+  md_pair_hist15=(TH1F*) GetHisto(tree,"(asym_md1barsum+asym_md5barsum)/2.0*1.0e6","","");
+  if (!md_pair_hist15) {
+    printf("md_pair_hist15 unable to process!\n");
+    return;
+  }
+
+  printf("MD 1&5 with PreRad\n");
+  md_pair_hist15 -> SetTitle("MD 1&5 PreRad");
+  md_pair_hist15 -> GetXaxis()->SetTitle("MD 1 & 5 Average (ppm)");
+  md_pair_hist15 -> Fit("gaus", "M");
+  md_pair_hist15_fit = md_pair_hist15 -> GetFunction("gaus");
+  md_pair_hist15_fit->SetLineColor(kRed);
+
+  if (md_pair_hist15_fit) {
+    md_pair_hist15_sigma = md_pair_hist15_fit -> GetParameter(2);
+  }
+
+
+  mc->cd(4);
+  md_pair_hist37=(TH1F*) GetHisto(tree,"(asym_md3barsum+asym_md7barsum)/2.0*1.0e6","","");
+  if (!md_pair_hist37) {
+    printf("md_pair_hist37 unable to process!\n");
+    return;
+  }
+
+  printf("MD 3&7 with PreRad\n");
+  md_pair_hist37 -> SetTitle("MD 3&7 PreRad");
+  md_pair_hist37 -> GetXaxis()->SetTitle("MD 3 & 7 Average (ppm)");
+  md_pair_hist37 -> Fit("gaus", "M");
+  md_pair_hist37_fit = md_pair_hist37 -> GetFunction("gaus");
+  md_pair_hist37_fit->SetLineColor(kRed);
+  if (md_pair_hist37_fit) {
+    md_pair_hist37_sigma = md_pair_hist37_fit -> GetParameter(2);
+  }
+
+  mc->cd(5);
+  md_all_even_hist=(TH1F*) GetHisto(tree,"(asym_md2barsum+asym_md4barsum+asym_md6barsum+asym_md8barsum)/4.0*1.0e6","","");
+  if (!md_all_even_hist) {
+    printf("md_all_even_hist unable to process!\n");
+    return;
+  }
+  printf("MD all even no PreRad\n");
+  md_all_even_hist -> SetTitle("MD All Even No PreRad");
+  md_all_even_hist -> GetXaxis()->SetTitle("MD All Even Average (ppm)");
+
+  md_all_even_hist->Fit("gaus", "M");
+  
+  MDEvenAll_fit = md_all_even_hist-> GetFunction("gaus");
+  MDEvenAll_fit->SetLineColor(kRed);
+ 
+  if(MDEvenAll_fit) {
+    md_evenall_sigma = MDEvenAll_fit -> GetParameter(2);
+  }
+
+  md_all_odd_hist=(TH1F*) GetHisto(tree,"(asym_md1barsum+asym_md3barsum+asym_md5barsum+asym_md7barsum)/4.0*1.0e6","","");
+  if (!md_all_odd_hist) {
+    printf("md_all_odd_hist unable to process!\n");
+    return;
+  }
+  printf("MD all odd with PreRad\n");
+  md_all_odd_hist -> SetTitle("MD All Odd With PreRad");
+  md_all_odd_hist -> GetXaxis()->SetTitle("MD All odd Average (ppm)");
+
+  md_all_odd_hist->Fit("gaus", "M");
+  
+  MDOddAll_fit = md_all_odd_hist-> GetFunction("gaus");
+  MDOddAll_fit->SetLineColor(kRed);
+ 
+  if(MDOddAll_fit) {
+    md_oddall_sigma = MDOddAll_fit -> GetParameter(2);
+  }
+
+  md_all_hist=(TH1F*) GetHisto(tree,"(asym_md2barsum+asym_md4barsum+asym_md6barsum+asym_md8barsum+asym_md1barsum+asym_md3barsum+asym_md5barsum+asym_md7barsum)/8.0*1.0e6","","");
+  if (!md_all_hist) {
+    printf("md_all_hist unable to process!\n");
+    return;
+  }
+  printf("MD all \n");
+  md_all_hist -> SetTitle("MD All Bars");
+  md_all_hist -> GetXaxis()->SetTitle("MD All Average (ppm)");
+
+  md_all_hist->Fit("gaus", "M");
+  
+  MDAll_fit = md_all_hist-> GetFunction("gaus");
+  MDAll_fit->SetLineColor(kRed);
+ 
+  if(MDAll_fit) {
+    md_all_sigma = MDAll_fit -> GetParameter(2);
+  }
+
+  //Calculate uncorrelated widths
+  uncorrelated_width[0] = TMath::Sqrt(md_pair_hist26_sigma*md_pair_hist26_sigma + md_pair_hist48_sigma*md_pair_hist48_sigma) / 2.0;
+  uncorrelated_width[1] = TMath::Sqrt(md_pair_hist15_sigma*md_pair_hist15_sigma + md_pair_hist37_sigma*md_pair_hist37_sigma) / 2.0;
+  uncorrelated_width[2] = TMath::Sqrt(md_pair_hist26_sigma*md_pair_hist26_sigma + md_pair_hist48_sigma*md_pair_hist48_sigma +
+				      md_pair_hist15_sigma*md_pair_hist15_sigma + md_pair_hist37_sigma*md_pair_hist37_sigma) / 4.0;
+
+  
+  common_mode_noise[0] = TMath::Sqrt(TMath::Abs(md_evenall_sigma*md_evenall_sigma - uncorrelated_width[0]*uncorrelated_width[0]));
+  if(uncorrelated_width[0] != 0.0) {
+    fractional_broadening[0] = md_evenall_sigma / uncorrelated_width[0];
+  }
+  else {
+    fractional_broadening[0] = 0.0;
+    printf("Even Bar uncorrelated_width = %8.2lf. don't calculate fractional broadening.\n", uncorrelated_width[0]);
+  }
+  printf("%7s Bars uncorelated witdth %8.2lf [ppm], common mode noise %8.2lf [ppm], fractional broadening %4.2lf\n",
+	 MD_name[0].Data(),    uncorrelated_width[0], common_mode_noise[0], fractional_broadening[0]);
+
+
+  common_mode_noise[1] = TMath::Sqrt(TMath::Abs(md_oddall_sigma*md_oddall_sigma - uncorrelated_width[1]*uncorrelated_width[1]));
+  if(uncorrelated_width[1] != 0.0) {
+    fractional_broadening[1] = md_oddall_sigma / uncorrelated_width[1];
+  }
+  else {
+    fractional_broadening[1] = 0.0;
+    printf("Odd Bar uncorrelated_width = %8.2lf. don't calculate fractional broadening.\n", uncorrelated_width[1]);
+  }
+  printf("%7s Bars uncorelated witdth %8.2lf [ppm], common mode noise %8.2lf [ppm], fractional broadening %4.2lf\n",
+	 MD_name[1].Data(),    uncorrelated_width[1], common_mode_noise[1], fractional_broadening[1]);
+
+
+  common_mode_noise[2] = TMath::Sqrt(TMath::Abs(md_all_sigma*md_all_sigma - uncorrelated_width[2]*uncorrelated_width[2]));
+  if(uncorrelated_width[2] != 0.0) {
+    fractional_broadening[2] = md_all_sigma / uncorrelated_width[2];
+  }
+  else {
+    fractional_broadening[2] = 0.0;
+    printf("All Bars uncorrelated_width = %8.2lf. don't calculate fractional broadening.\n", uncorrelated_width[2]);
+  }
+  printf("%7s Bars uncorelated witdth %8.2lf [ppm], common mode noise %8.2lf [ppm], fractional broadening %4.2lf\n",
+	 MD_name[2].Data(),    uncorrelated_width[2], common_mode_noise[2], fractional_broadening[2]);
+
+  mc->cd(6);
+  //  pt.AddText(Form("%7s Bars uncorr. #sigma %8.2lf [ppm]",MD_name[0].Data(), uncorrelated_width[0]));
+  pt.AddText(Form("%7s Bars C.M.N %8.2lf [ppm]",MD_name[0].Data(), common_mode_noise[0]));
+  pt.AddText(Form("%7s Bars frac. broad. %4.2lf",MD_name[0].Data(), fractional_broadening[0]));
+  
+  //  pt.AddText(Form("%7s Bars uncorr. #sigma %8.2lf [ppm]",MD_name[1].Data(), uncorrelated_width[1]));
+  pt.AddText(Form("%7s Bars C.M.N %8.2lf [ppm]",MD_name[1].Data(), common_mode_noise[1]));
+  pt.AddText(Form("%7s Bars frac. broad. %4.2lf",MD_name[1].Data(), fractional_broadening[1]));
+
+  //  pt.AddText(Form("%7s Bars uncorr. #sigma %8.2lf [ppm]",MD_name[2].Data(), uncorrelated_width[2]));
+  pt.AddText(Form("%7s Bars C.M.N %8.2lf [ppm]",MD_name[2].Data(), common_mode_noise[2]));
+  pt.AddText(Form("%7s Bars frac. broad. %4.2lf",MD_name[2].Data(), fractional_broadening[2]));
+
+  pt.SetTextAlign(12);
+  pt.SetTextSize(0.05);
+
+  pt.Draw();
+  gPad->Update();
+  mc->Modified();
+  mc->Update();
+
+  while (1){
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }    
+  }
 };
 
 void QwGUIMainDetector::LoadMDPMTCombo(){
@@ -667,44 +943,6 @@ void QwGUIMainDetector::LoadMDVPMTCombo(){
 
 void QwGUIMainDetector::OnReceiveMessage(char *obj)
 {
-//   TString name = obj;
-//   char *ptr = NULL;
-
-}
-
-void QwGUIMainDetector::OnObjClose(char *obj)
-{
-  if(!obj) return;
-  TString name = obj;
-
-
-  if(!strcmp(obj,"dROOTFile")){
-    dROOTCont = NULL;
-  }
-
-  if(!strcmp(obj,"dNumberEntryDlg")){
-    delete dNumberEntryDlg;
-    dNumberEntryDlg = NULL;
-  }
-
-  // if(!strcmp(obj,"dProgrDlg")){
-  //   dProcessHalt = kTrue;
-  //   dProgrDlg = NULL;
-  // }   
-
-  QwGUISubSystem::OnObjClose(obj);
-}
-
-void QwGUIMainDetector::OnNewDataContainer()
-{
-
- 
- 
-}
-
-void QwGUIMainDetector::OnRemoveThisTab()
-{
-
 }
 
 void QwGUIMainDetector::OnUpdatePlot(char *obj)
@@ -717,24 +955,9 @@ void QwGUIMainDetector::OnUpdatePlot(char *obj)
 }
 
 
-void QwGUIMainDetector::ClearData()
-{
-
-
-  
-}
-
-
-
-
-
-void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
-
-}
-
 Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
+  if(dMapFileFlag) {
   switch (GET_MSG(msg)){
 
   case kC_TEXTENTRY:
@@ -775,14 +998,16 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	//printf("text button id %ld pressed \n", parm1);		  
 	DrawMDVPMTPlots();	
 	break;  
+      case BA_MD_CMNS:
+	//printf("text button BA_MD_CMNS %ld pressed \n", parm1);		  
+	CalculateCommNoise();	
+	break;
       }	      
       break;
     }
     case kCM_COMBOBOX:
       {
 	switch (parm1) {
-	case M_TBIN_SELECT:
-	  break;
 	case CMB_MDPMT:
 	  SetComboIndex(CMB_MDPMT,parm2);
 	  break;
@@ -812,31 +1037,9 @@ Bool_t QwGUIMainDetector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   default:
     break;
   }
-  
+  }
   return kTRUE;
 }
-
-void QwGUIMainDetector::SummaryHist(TH1 *in)
-{
-
-  Double_t out[4] = {0.0};
-  Double_t test   = 0.0;
-
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/sqrt(in->GetEntries());
-
-  printf("%sName%s", BOLD, NORMAL);
-  printf("%22s", in->GetName());
-  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-  return;
-};
 
 void QwGUIMainDetector::SetComboIndex(Int_t cmb_id, Int_t id){
     if (cmb_id==CMB_MDPMT)
@@ -848,5 +1051,16 @@ void QwGUIMainDetector::SetComboIndex(Int_t cmb_id, Int_t id){
       fCurrentVPMTIndex=id;
     //else
     //fCurrentSCALERIndex=-1;
+}
+
+TH1F* QwGUIMainDetector::GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option)
+{
+  tree ->Draw(name, cut, option);
+  TH1F* tmp = NULL;
+  tmp = (TH1F*)  gPad -> GetPrimitive("htemp");
+  if(! tmp) {
+    return 0;
+  }
+  return tmp;
 }
 

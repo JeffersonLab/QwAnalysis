@@ -68,6 +68,8 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
 
   AddThisTab(this);
 
+  SetHistoAccumulate(1);
+  SetHistoReset(0);
 
 }
 
@@ -94,8 +96,8 @@ QwGUIInjector::~QwGUIInjector()
 
   delete [] PosVariation;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
+  //RemoveThisTab(this);
+  //  IsClosing(GetName());
 }
 
 void QwGUIInjector::LoadHistoMapFile(TString mapfile){  //Now this is called at the QwGUIMain
@@ -180,7 +182,7 @@ void QwGUIInjector::MakeLayout()
   dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
-  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 2, 2, 2, 2));
 
   //Injector bcm access frame
   dInjectorBCMFrame= new TGVerticalFrame(dControlsFrame,50,100);
@@ -234,9 +236,9 @@ void QwGUIInjector::MakeLayout()
 
  
   dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				"QwGUIInjector",
-				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+  // dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+  // 				"QwGUIInjector",
+  // 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
 
 }
@@ -246,33 +248,26 @@ void QwGUIInjector::OnReceiveMessage(char *obj)
 
 }
 
-void QwGUIInjector::OnObjClose(char *obj)
-{
-  if(!strcmp(obj,"dROOTFile")){
-//     printf("Called QwGUIInjector::OnObjClose\n");
+// void QwGUIInjector::OnObjClose(char *obj)
+// {
+//  //  if(!strcmp(obj,"dROOTFile")){
+// // //     printf("Called QwGUIInjector::OnObjClose\n");
 
-    dROOTCont = NULL;
-  }
-}
-
-
-void QwGUIInjector::OnNewDataContainer()
-{
+// //     dROOTCont = NULL;
+// //   }
+// }
 
 
-};
-
-void QwGUIInjector::OnRemoveThisTab()
-{
-
-};
-
-void QwGUIInjector::ClearData()
-{
+// void QwGUIInjector::OnNewDataContainer()
+// {
 
 
-}
+// };
 
+// void QwGUIInjector::OnRemoveThisTab()
+// {
+
+// };
 
 
 
@@ -306,7 +301,7 @@ void QwGUIInjector::PositionDifferences()
      PosVariation[1] = new TH1F("Eff_Yield", "Eff_Charge Yield Variation",BPMSTriplinesCount , min_range, max_range); 
      for(Int_t p = 0; p <BPMSTriplinesCount ; p++) {
        sprintf (histo, "asym_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+       histo1= (TH1F *)dMapFile->Get(histo); 
        if (histo1!=NULL){
 	 xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	 if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -324,7 +319,7 @@ void QwGUIInjector::PositionDifferences()
        }
       
        sprintf (histo, "yield_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+       histo2= (TH1F *)dMapFile->Get(histo); 
        if(histo2!=NULL){		
 	 ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	 if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -386,7 +381,9 @@ void QwGUIInjector::PositionDifferences()
 void QwGUIInjector::PlotChargeAsym()
 {
   TH1F *histo1=NULL;
+  TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
+  TH1F *histo2_buff=NULL; 
   char histo[128]; //name of the histogram
   
   TCanvas *mc = NULL;
@@ -394,16 +391,30 @@ void QwGUIInjector::PlotChargeAsym()
 
   Bool_t ldebug = false;
 
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
+
    while (1){
      if (fCurrentBCMIndex<0)
        break;
-     sprintf (histo, "asym_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-     histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
-     sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-     histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+     if (GetHistoPause()==0){
+       sprintf (histo, "asym_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+       histo1= (TH1F *)dMapFile->Get(histo);
+       sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+       histo2= (TH1F *)dMapFile->Get(histo);
+     }
     
     if (histo1!=NULL && histo2!=NULL ) {
-    
+      if (GetHistoReset()){
+	histo1_buff=(TH1F*)histo1->Clone(Form("%s_buff",histo1->GetName()));
+	*histo1=*histo1-*histo1_buff;
+	histo2_buff=(TH1F*)histo2->Clone(Form("%s_buff",histo2->GetName()));
+	*histo2=*histo2-*histo2_buff;
+	SetHistoReset(0);
+      }else if (GetHistoAccumulate()==0){
+	*histo1=*histo1-*histo1_buff;
+	*histo2=*histo2-*histo2_buff;
+      }
+   
       mc->Clear();
       mc->Divide(1,2);
 
@@ -464,7 +475,7 @@ void QwGUIInjector::PlotBPMAsym(){
     {
       //sprintf (histo, "asym_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
       sprintf (histo, "diff_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() ); 
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -483,7 +494,7 @@ void QwGUIInjector::PlotBPMAsym(){
 	  
       //sprintf (histo, "asym_%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
       sprintf (histo, "diff_%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -580,7 +591,7 @@ void QwGUIInjector::PlotBPMPositions(){
     for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
       sprintf (histo, "%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -598,7 +609,7 @@ void QwGUIInjector::PlotBPMPositions(){
       }
 	  
       sprintf (histo, "%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -659,10 +670,10 @@ void QwGUIInjector::PlotBPMPositions(){
 };  
   
 
-void QwGUIInjector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
+// void QwGUIInjector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
+// {
 
-}
+// }
 
 void QwGUIInjector::PlotSCALER(){
   
@@ -707,6 +718,7 @@ void QwGUIInjector::LoadInjectorSCALERCombo(){
 
 Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
+  if(dMapFileFlag) {
   // Process events generated by the object in the frame.
   
   switch (GET_MSG(msg))
@@ -725,8 +737,7 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	}
       
     case kC_COMMAND:
-      if(dROOTCont){
-	switch (GET_SUBMSG(msg))
+ 	switch (GET_SUBMSG(msg))
 	  {
 	  case kCM_BUTTON:
 	    {
@@ -763,8 +774,6 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  case kCM_COMBOBOX:
 	    {
 	      switch (parm1) {
-	      case M_TBIN_SELECT:
-		break;
 	      case CMB_INJECTORBCM:
 		SetComboIndex(CMB_INJECTORBCM,parm2);
 		break;
@@ -775,57 +784,13 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    }
 	    break;
 	    
-	  case kCM_MENUSELECT:
-	    break;
-	    
-	  case kCM_MENU:
-	    
-	    switch (parm1) {
-	      
-	    case M_FILE_OPEN:
-	      break;
-	      
-	      
-	      
-	  default:
-	    break;
-	  }
-	  
 	default:
 	  break;
 	}
-      }
-      else{
-	std::cout<<"Please load the map file to view data. \n";
-      }
-      default:
+       default:
 	break;
     }
-  
+  }
   return kTRUE;
 }
 
-
-
-void 
-QwGUIInjector::SummaryHist(TH1 *in)
-{
-
-  Double_t out[4] = {0.0};
-  Double_t test   = 0.0;
-
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/sqrt(in->GetEntries());
-
-  printf("%sName%s", BOLD, NORMAL);
-  printf("%22s", in->GetName());
-  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-  return;
-};

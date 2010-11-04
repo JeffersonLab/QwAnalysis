@@ -245,9 +245,9 @@ class QwVQWK_Channel: public VQwDataElement {
 
   /*! \name Event data members---Raw values */
   // @{
-  Int_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
-  Int_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
-  Int_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
+  Double_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
+  Double_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
+  Double_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
   /*! \name Event data members---Potentially calibrated values*/
   // @{
   // The following values potentially have pedestal removed  and calibration applied

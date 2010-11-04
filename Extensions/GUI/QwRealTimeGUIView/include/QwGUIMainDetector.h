@@ -41,21 +41,7 @@
 
 
 
-#include <cstdlib>
-#include <cstdio>
-
-#include <iostream>
-#include <iomanip>
-#include <cstring>
-
-#include "TMapFile.h"
-
-#include "TRootEmbeddedCanvas.h"
-#include "TRootCanvas.h"
-#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-
-#include "RSDataWindow.h"
 
 
 #ifndef __CINT__
@@ -81,38 +67,26 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGTextButton           *dButtonMDCmb; 
   TGTextButton           *dButtonMDPMT; 
   TGTextButton           *dButtonMDVPMT; 
+  TGTextButton           *dButtonMDCommonNoise;
 
   TGComboBox             *dComboBoxMDPMT;
   TGComboBox             *dComboBoxMDVPMT;
 
 
-  TGLayoutHints          *dTBinEntryLayout;
-  TGNumberEntry          *dRunEntry;
-  TGLayoutHints          *dRunEntryLayout;
-  TGLabel                *dRunEntryLabel;
-  TGHorizontal3DLine     *dHorizontal3DLine;
-  TGHorizontalFrame      *dUtilityFrame;  
-  TGLayoutHints          *dUtilityLayout;
+  /* TGLayoutHints          *dTBinEntryLayout; */
+  /* TGNumberEntry          *dRunEntry; */
+  /* TGLayoutHints          *dRunEntryLayout; */
+  /* TGLabel                *dRunEntryLabel; */
+  /* //  TGHorizontal3DLine     *dHorizontal3DLine; */
+  /* TGHorizontalFrame      *dUtilityFrame;   */
+  /* TGLayoutHints          *dUtilityLayout; */
 
     
-  //!An object array to store histogram pointers -- good for use in cleanup.
-  TObjArray            HistArray;
-
-  //!An object array to store graph pointers.
-  TObjArray            GraphArray;
-
-  //!An object array to store histogram pointers for the DFT.
-  TObjArray            DFTArray;
-  
-  //!An object array to store data window pointers -- good for use in cleanup.
-  TObjArray            DataWindowArray;
-
   //!A dioalog for number entry ...  
-  RNumberEntryDialog   *dNumberEntryDlg;
+  //  RNumberEntryDialog   *dNumberEntryDlg;
   
   //!Draw Means and widths for MD/MD bkg yields/asym
   TH1F *MDPlots[2] ;
-
  
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
@@ -122,7 +96,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  void                 ClearData();
+  //  void                 ClearData();
 
   //!Draws MD yield/Asym histograms selected by dComboBoxMDPMT
   //!
@@ -165,6 +139,15 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //!Return value: none  
   void                 DrawMDCmbPlots();
 
+  //!Plot pairs of MD bar Asym to obtain widths  
+  //!Calculate the common mode noise based on Mark Pitt's suggestion
+  //!"Suggestion for quick estimate of the common mode noise" HCLOG entry 201563
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none  
+  void                 CalculateCommNoise();
+
   //!This function Sets the combo index/combo element index
   //!
   //!Parameters:
@@ -174,14 +157,16 @@ class QwGUIMainDetector : public QwGUISubSystem {
   void SetComboIndex(Int_t cmb_id, Int_t id);
 
 
-  
-  //!Prints a summary for a given 1D histogram
+   //!Access the tree leaves to return a histogram
   //!
   //!Parameters:
-  //! - histogram object
-  //!
-  //!Return value: none  
-  void                 SummaryHist(TH1 *in);
+  //! - pointer to tree
+  //! - leaf name
+  //! - Cut expression
+  //! - Draw options
+  //!Return value: TH1F pointer  
+  TH1F*   GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "");
+
 
   
   
@@ -238,16 +223,16 @@ class QwGUIMainDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
-  virtual void        OnObjClose(char *);
+  //  virtual void        OnNewDataContainer();
+  /* virtual void        OnObjClose(char *); */
   virtual void        OnReceiveMessage(char*);
-  virtual void        OnRemoveThisTab();
+  /* virtual void        OnRemoveThisTab(); */
           void        OnUpdatePlot(char *);
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  //  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
-  ClassDef(QwGUIMainDetector,0);
+  ClassDef(QwGUIMainDetector,1);
 };
 
 #endif

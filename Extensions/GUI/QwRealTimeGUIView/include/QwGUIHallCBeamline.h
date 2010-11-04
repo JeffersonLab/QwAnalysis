@@ -41,21 +41,7 @@
 #define QWGUIHALLCBEAMLINE _H
 
 
-#include <cstdlib>
-#include <cstdio>
-
-#include <iostream>
-#include <iomanip>
-#include <cstring>
-
-#include "TMapFile.h"
-
-#include "TRootEmbeddedCanvas.h"
-#include "TRootCanvas.h"
-#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-
-#include "RSDataWindow.h"
 
 
 #ifndef __CINT__
@@ -98,10 +84,10 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
 
  
   //!An object array to store histogram pointers -- good for use in cleanup.
-  TObjArray            HistArray;
+  //  TObjArray            HistArray;
   
   //!An object array to store data window pointers -- good for use in cleanup.
-  TObjArray            DataWindowArray;
+  //  TObjArray            DataWindowArray;
 
 
   TH1F *PosVariation[2] ;
@@ -147,7 +133,7 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //! - plot to draw pass the enum code
   //!
   //!Return value: none 
-  void PlotTargetPos(Short_t );
+  void PlotTargetPos(Int_t tgtcoord);
 
   //!This function Draws target charge yield/asym  histograms/plots from the Memory map file. 
   //!
@@ -163,7 +149,7 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //! - combo box id 
   //! - combo box element id
   //!Return value: none 
-  void SetComboIndex(Short_t cmb_id, Short_t id);
+  void SetComboIndex(Int_t cmb_id, Int_t id);
 
   //!This function loads list of bcms available in the hall c . 
   //!based on the map file read by LoadChannelMap routine
@@ -190,17 +176,6 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
 
 
   void PlotFastRaster();
-
-  //!This function clear the histograms/plots in the plot container. This is done everytime a new 
-  //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
-  //!on the plots are lost.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
-  void                 ClearData();
-
   
  public:
   //!This function  loads the histogram names from a definition file
@@ -214,8 +189,8 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
 
     
   std::vector<std::vector<TString> > fHallCDevices; //2D vector since we have seral types of device - VQWK, SCALAR and COMBINED
-  Short_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
-  Short_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
+  Int_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
+  Int_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
  protected:
 
@@ -228,13 +203,6 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //!
   //!Return value: none  
   virtual void         MakeLayout();
-
-  //!This function  prints stat info of the histogram into the command line
-  //!Parameters:
-  //! - Histogram 
-  //!
-  //!Return value: none  
-  void                 SummaryHist(TH1*in);
 
  public:
   
@@ -251,13 +219,13 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
-  virtual void        OnObjClose(char *);
+  /* virtual void        OnNewDataContainer(); */
+  /* virtual void        OnObjClose(char *); */
   virtual void        OnReceiveMessage(char*);
-  virtual void        OnRemoveThisTab();
+  /* virtual void        OnRemoveThisTab(); */
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  /* virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject); */
 
   ClassDef(QwGUIHallCBeamline,0);
 };

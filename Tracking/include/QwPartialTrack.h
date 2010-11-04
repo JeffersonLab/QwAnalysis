@@ -20,8 +20,11 @@
 // Qweak headers
 #include "VQwTrackingElement.h"
 #include "QwTrackingTreeLine.h"
+#include "QwDetectorInfo.h"
 #include "QwBridge.h"
 
+// Forward declarations
+class QwVertex;
 
 /**
  * \class QwPartialTrack
@@ -114,6 +117,8 @@ class QwPartialTrack: public VQwTrackingElement {
     /// \brief Smear the phi angle
     QwPartialTrack& SmearAnglePhi(const double sigma);
 
+    /// \brief Determine vertex in detector
+    const QwVertex* DeterminePositionInDetector(const QwDetectorInfo& detector);
     /// \brief Determine vertex in the target
     int DeterminePositionInTarget ();
     /// \brief Determine intersection with trigger scintillators

@@ -11,7 +11,8 @@
 
 // Qweak headers
 #include "QwOptions.h"
-#include "QwMapFile.h"
+//#include "QwMapFile.h"
+#include "TMapFile.h"
 
 
 // If one defines more than this number of words in the full ntuple,
@@ -419,12 +420,13 @@ class QwRootFile {
     static std::string fDefaultRootFileStem;
 
     /// Map file
-    QwMapFile* fMapFile;
+    TMapFile* fMapFile;
     Bool_t fEnableMapFile;
     Int_t fUpdateInterval;
     Int_t fAutoFlush;
     Int_t fAutoSave;
 
+  
 
   private:
 
@@ -502,6 +504,7 @@ class QwRootFile {
 
     /// Maximum tree size
     static const Long64_t kMaxTreeSize;
+    static const Int_t    kMaxMapFileSize;
 };
 
 
@@ -618,6 +621,11 @@ void QwRootFile::ConstructHistograms(const std::string& name, T& detectors)
 
   // No support for directories in a map file
   if (fMapFile) {
+    std::cout << "QwRootFile::ConstructHistograms::detectors address "  
+	      << &detectors  
+	      << " and its name " << name 
+	      << std::endl; 
+    
     std::string type = typeid(detectors).name();
     fDirsByName[name] = fMapFile->GetDirectory()->mkdir(name.c_str());
     fDirsByType[type].push_back(name);

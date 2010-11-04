@@ -63,11 +63,12 @@ void  QwPMT_Channel::ProcessEvent()
 };
 
 
-void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
+void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
+{
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
 
-  if (GetElementName()==""){
+  if (GetElementName() == "") {
     //  This channel is not used, so skip filling the histograms.
   } else {
     //  Now create the histograms.
@@ -77,31 +78,42 @@ void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
     fHistograms.resize(1, NULL);
     size_t index = 0;
     fHistograms[index] = gQwHists.Construct1DHist(basename);
-    index += 1;
+    index++;
   }
 };
 
-void  QwPMT_Channel::FillHistograms(){
-  size_t index=0;
-  if (GetElementName()==""){
+void  QwPMT_Channel::FillHistograms()
+{
+  size_t index = 0;
+  if (GetElementName() == "") {
     //  This channel is not used, so skip creating the histograms.
   } else {
     if (fHistograms[index] != NULL)
-      fHistograms[index]->Fill(this->fValue);
-    index += 1;
+      fHistograms[index]->Fill(fValue);
+    index++;
   }
+};
+
+void  QwPMT_Channel::DeleteHistograms()
+{
+  for (size_t index = 0; index < fHistograms.size(); index++) {
+    if (fHistograms[index] != NULL)
+      fHistograms[index]->Delete();
+    fHistograms[index] = NULL;
+  }
+  fHistograms.clear();
 };
 
 void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
-  if (GetElementName()==""){
+  if (GetElementName() == "") {
     //  This channel is not used, so skip setting up the tree.
   } else {
     TString basename = prefix + GetElementName();
     fTreeArrayIndex  = values.size();
 
     values.push_back(0.0);
-    TString list = "/D";
+    TString list = basename + "/D";
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     tree->Branch(basename, &(values[fTreeArrayIndex]), list);

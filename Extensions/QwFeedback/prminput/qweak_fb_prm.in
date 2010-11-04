@@ -2,7 +2,7 @@
 
 #No.of good patterns to accumulate before triggering the feedback algorithm.
 
-patterns = 1000
+patterns = 4000
 
 #The precision of the charge asymmetry in ppm
 
@@ -41,12 +41,13 @@ IA_low = 10000
 IA_up  = 50000
 
 #PITA slopes
-PITAPOS = 100
-PITANEG = 200
+#  From M.Dalton, as of 00:10,23oct2010, use a slope of:  -0.73 ppm/dac-tick
+PITAPOS = +0.73
+###  PITANEG = 200
 
 
 #PC hardware count set-point limits
-
-PC_low = 0
-PC_up  = 1000
-
+#  These should be just inside the low alarm limits on the PC, as
+#  referenced by Riad in OPS Elog 1549310.
+PC_low = 38018
+PC_up  = 48016

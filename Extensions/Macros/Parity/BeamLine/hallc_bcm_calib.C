@@ -75,7 +75,20 @@
 //                    easily
 //                  - sync BeamMonitor class with hallc_bpm_calib.C
 //
+//          0.0.9 : Sunday, October 24 00:49:20 EDT 2010, jhlee
+//                  - changed the method to find QW_ROOTFILES directory
+//                  - added png output
 //
+//          0.0.10 : Monday, October 25 01:17:55 EDT 2010, jhlee
+//                   - improved the way to handle (a) ROOT file(s) (TChain) 
+//
+//          0.0.11 : Monday, October 25 10:55:36 EDT 2010, jhlee
+//                   - replaced event_number by CodaEventNumber
+//                     , because event_number is belong to a "helicity" subsystem.
+//
+
+// TODO List
+
 // Additional BCM calibration run info
 //
 //  run    Gain
@@ -84,10 +97,17 @@
 //  5260   2        * BCM calibration RUN 
 //                    https://hallcweb.jlab.org/hclog/1008_archive/100810204416.html
 //  ???? 
-//  5669   2
-//  5807   2        * BCM calibration RUN 
-//
+// 
+//  5669             BCM gain setting 2
+//  5807             BCM gain setting 2   * BCM calibration RUN 
+//                   ./hallc_bcm_calib -r 5807 -e 10:75
+//                   https://hallcweb.jlab.org/hclog/1010_archive/101014011357.html
 
+//  5889 - 6114      BCM gain setting 2
+//  6115 - 6158      BCM gain setting 5  >>  BCM calibration RUN 6158 / ./hallc_bcm_calib -r 6158 -e 5:60 
+//  6159 - 6301      BCM gain setting 2  
+//  6302 -           BCM gain setting 5
+//                   https://hallcweb.jlab.org/hclog/1010_archive/101029193112.html
 
 #include <iostream>
 #include <fstream>
@@ -103,17 +123,21 @@
 #include "TCanvas.h"
 #include "TH1.h"
 #include "TF1.h"
-//#include "TH2.h"
+#include "TH2.h"
 #include "TFile.h"
 #include "TTree.h"
 #include "TROOT.h"
 #include "TApplication.h"
 #include "TSystem.h"
 #include "TUnixSystem.h"
-#include "TCut.h"
+
 #include "TStopwatch.h"
+
+#include "TCut.h"
 #include "TChain.h"
+#include "TChainElement.h"
 #include "TStyle.h"
+#include "TSystem.h"
 
 
 class BeamMonitor 
@@ -335,7 +359,8 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
 Bool_t
 check_bcm_branches(std::vector<TString> &branches, TTree *roottree)
 {
-  Bool_t local_debug = false;
+
+  Bool_t local_debug = true;
 
   std::size_t branches_size = 0;     
   branches_size = branches.size(); 
@@ -350,7 +375,7 @@ check_bcm_branches(std::vector<TString> &branches, TTree *roottree)
   
   for (branches_idx=0; branches_idx<branches_size; branches_idx++) 
     {
-      if(local_debug) std::cout << branches.at(branches_idx);
+      if(local_debug) std::cout << std::setw(30) << branches.at(branches_idx);
       
       TBranch* branch = roottree -> FindBranch(branches.at(branches_idx).Data());
       if(branch) { 
@@ -359,7 +384,7 @@ check_bcm_branches(std::vector<TString> &branches, TTree *roottree)
       }
       else  {
 	branch_valid &= false;
-	if(local_debug) std::cout << " : false" << std::endl;
+	if(local_debug) std::cout << " : *** false *** " << std::endl;
       }
     }
   return branch_valid;
@@ -378,44 +403,50 @@ GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
   return tmp;
 }
 
-void 
-GetTree(char* run_number, TChain* tree)
+Int_t 
+GetTree(TString filename, TChain* chain)
 {
-  TFile *file = NULL;
+  TString file_dir;
+  Int_t   chain_status = 0;
 
-  TString filename = Form("BCMCalib_%s.000.root", run_number);
-  file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
-
-  if (file->IsZombie()) {
-    std::cout << "Error opening root file chain " 
-	      << filename << std::endl;
-    filename = Form("BCMCalib_%s.root", run_number);
-    std::cout << "Try to open chain " 
-	      << filename << std::endl;
-    file = new TFile(Form("~/scratch/rootfiles/%s", filename.Data()));
-    if (file->IsZombie()) {
-      std::cout << "File exit failure."<<std::endl; 
-      tree = NULL;
-      exit(-1);
-    }
-    else {
-      tree->Add(Form("~/scratch/rootfiles/BCMCalib_%s.root", run_number));
-    }
+  file_dir = gSystem->Getenv("QWSCRATCH");
+  if (!file_dir) file_dir = "~/scratch/";
+  file_dir += "/rootfiles/";
+ 
+  chain_status = chain->Add(Form("%s%s", file_dir.Data(), filename.Data()));
+  
+  if(chain_status) {
+    
+    TString chain_name = chain -> GetName();
+    TObjArray *fileElements = chain->GetListOfFiles();
+    TIter next(fileElements);
+    TChainElement *chain_element = NULL;
+    while (( chain_element=(TChainElement*)next() )) 
+      {
+	std::cout << "File:  " 
+		  << chain_element->GetTitle() 
+		  << " is added into the Chain with the name ("
+		  << chain_name
+		  << ")."
+		  << std::endl;
+      }
   }
   else {
-    tree->Add(Form("~/scratch/rootfiles/BCMCalib_%s.*.root", run_number));
+    std::cout << "There is (are) no "
+	      << filename 
+	      << "."
+	      << std::endl;
   }
-  
-  return;
+  return chain_status;
 };
 
 const char* program_name;
-TChain*mps_tree  = NULL;
-//TFile *file      = NULL;
 std::vector<BeamMonitor> hallc_bcms_list;
-TCanvas *unser_canvas = NULL;
-TCanvas *bcm_canvas   = NULL;
-TString bcm_plots_filename;
+
+TChain  *mps_tree_in_chain  = NULL;
+TCanvas *unser_canvas       = NULL;
+TCanvas *bcm_canvas         = NULL;
+TString  bcm_plots_filename;
 
 
 Int_t
@@ -423,6 +454,7 @@ main(int argc, char **argv)
 {
  
   TApplication theApp("App", &argc, argv);
+
   char* run_number = NULL;
 
   Double_t naive_beam_off_cut = 0.0;
@@ -534,7 +566,7 @@ main(int argc, char **argv)
   branches_for_bcm_calibration.push_back("qwk_bcm2");
   branches_for_bcm_calibration.push_back("qwk_bcm5");
   branches_for_bcm_calibration.push_back("qwk_bcm6");
-  branches_for_bcm_calibration.push_back("event_number");
+  branches_for_bcm_calibration.push_back("CodaEventNumber");
 
 
   TString temp;
@@ -558,21 +590,19 @@ main(int argc, char **argv)
 
   BeamMonitor sca_unser(unser_branch_name);
   sca_unser.SetReference();
+
+  mps_tree_in_chain = new TChain("Mps_Tree");
   
+  TString bcm_calibration_filename = Form("BCMCalib_%s*.root", run_number);
+  Int_t chain_status = 0;
+  chain_status = GetTree(bcm_calibration_filename, mps_tree_in_chain);
 
-  mps_tree = new TChain("Mps_Tree");
-  GetTree(run_number, mps_tree);
-
-  if(mps_tree == NULL) {
-    std::cout
-      << "Unable to find the MPS Tree in BCMCalib_" << run_number << "*.root file."
-      << " Please check the ROOT file was created for the Hall C BCM calibration."
-      << std::endl;
+  if(chain_status == 0) {
     exit(1);
   }
 
   Bool_t bcm_valid_rootfiles = false;
-  bcm_valid_rootfiles = check_bcm_branches(branches_for_bcm_calibration,mps_tree);
+  bcm_valid_rootfiles = check_bcm_branches(branches_for_bcm_calibration,mps_tree_in_chain);
   
   if(bcm_valid_rootfiles) {
     std::cout << "all branches are in the root file(s)." << std::endl;
@@ -634,8 +664,8 @@ main(int argc, char **argv)
   // TEST end
 
 
-  Int_t w = 800;
-  Int_t h = 400;
+  Int_t w = 1200;
+  Int_t h = 600;
   unser_canvas = new TCanvas("sca_unser","SCA Unser", w, h);  
   //
   // extract unser maximum range in order to determine fit range
@@ -645,32 +675,28 @@ main(int argc, char **argv)
 
   //  TString clock_name = "sca_4mhz";
   
-  mps_tree -> SetAlias("clock_correct", Form("4e6/%s", clock_name.Data())); 
-  mps_tree -> SetAlias("cc_sca_unser",  Form("clock_correct*%s", sca_unser.GetCName()));
+  mps_tree_in_chain -> SetAlias("clock_correct", Form("4e6/%s", clock_name.Data())); 
+  mps_tree_in_chain -> SetAlias("cc_sca_unser",  Form("clock_correct*%s", sca_unser.GetCName()));
 
-  mps_tree -> SetAlias("cc_sca_bcm1",  "clock_correct*sca_bcm1");
-  mps_tree -> SetAlias("cc_sca_bcm2",  "clock_correct*sca_bcm2");
+  mps_tree_in_chain -> SetAlias("cc_sca_bcm1",  "clock_correct*sca_bcm1");
+  mps_tree_in_chain -> SetAlias("cc_sca_bcm2",  "clock_correct*sca_bcm2");
   hallc_bcms_list.at(0).SetAliasName("cc_sca_bcm1");
   hallc_bcms_list.at(1).SetAliasName("cc_sca_bcm2");
 
 
-  //  mps_tree -> SetAlias("TM_cc_unser",  "cc_sca_unser:event_number"); //  Bad numerical expression  ??
-  
-
-  //  unser_canvas -> Clear();
   unser_canvas -> Divide(2,1);
   unser_canvas -> cd(1);
   
   TH1D* sca_unser_event = NULL;
-  sca_unser_event = GetHisto(mps_tree, "cc_sca_unser:event_number", "");
+  sca_unser_event = GetHisto(mps_tree_in_chain, "cc_sca_unser:CodaEventNumber", "");
   if(not sca_unser_event) {
-    std::cout << "Please check cc_sca_unser:event_number"
+    std::cout << "Please check clock corrected sca_unser:CodaEventNumber"
 	      << std::endl;
     theApp.Run();
     return 0;
   }
 
-  sca_unser_event -> SetTitle(Form("Run %s  cc_sca_unser:event_number", run_number));
+  sca_unser_event -> SetTitle(Form("Run %s  cc_sca_unser:CodaEventNumber", run_number));
   gPad->Update();
 
   Double_t unser_max = sca_unser_event -> GetYaxis() -> GetXmax();
@@ -683,17 +709,12 @@ main(int argc, char **argv)
 
   TCut unser_cut(Form("%s<%lf", "cc_sca_unser",  naive_beam_off_cut));
 
-  TH1D* cc_sca_unser_gaus = GetHisto(mps_tree, "cc_sca_unser", unser_cut);
+  TH1D* cc_sca_unser_gaus = GetHisto(mps_tree_in_chain, "cc_sca_unser", unser_cut);
 
   if(not cc_sca_unser_gaus) {
-    std::cout << "Please check "
-  	      << "cc_sca_unser"
-  	      << " in BCMCalib root file."
-  	      << std::endl;
-    std::cout << "or\n This programs doesn't handle this run correctly. "
-  	      << "Please report this problem via an email to jhlee@jlab.org"
-  	      << std::endl;
-    std::cout << "or\n You can adjust unser_beam_off_offset_cutoff value."
+    std::cout << " This programs doesn't handle this run correctly. \n"
+  	      << " Please report this problem via an email to jhlee@jlab.org\n"
+	      << " or\n You can adjust unser beam off offset. See usage."
   	      << std::endl;
     theApp.Run();
   }
@@ -715,7 +736,7 @@ main(int argc, char **argv)
     fit_range[1] *= unser_max_current;
 
     std::cout << "range " << fit_range[0] << " " << fit_range[1] << std::endl;
-    mps_tree->SetAlias(unser_name.Data(), Form("((cc_sca_unser-%lf)*%lf)", mean, unser_scaler_unit));
+    mps_tree_in_chain->SetAlias(unser_name.Data(), Form("((cc_sca_unser-%lf)*%lf)", mean, unser_scaler_unit));
     sca_unser.SetAliasName(unser_name.Data());
     sca_unser.SetPed(mean);
     sca_unser.SetPedErr(unser_fit -> GetParError(1));
@@ -723,19 +744,24 @@ main(int argc, char **argv)
     std::cout << sca_unser << std::endl;
   }
   else {
-    std::cout << "Please check "
-  	      << unser_name
-  	      << " in BCMCalib root file."
-  	      << std::endl;
-    std::cout << "or\n This programs doesn't handle this run correctly. "
-	      << "Please report this problem via an email to jhlee@jlab.org"                                                                           << std::endl;
+    std::cout << "This program does not fit the Unser BCM correctly."
+	      << "Please report this problem via an email to jhlee@jlab.org"
+	      << std::endl;
     theApp.Run();
   }
 
-  
+
+
   unser_canvas -> Modified();
   unser_canvas -> Update();
  
+  // 
+  // Save as ROOT C++ Macro and png of unser_canvas
+  //
+  TString output_name = unser_canvas->GetName();
+  unser_canvas -> SaveAs(Form("BCMCalib%s_%s.cxx", run_number, output_name.Data()));
+  unser_canvas -> SaveAs(Form("BCMCalib%s_%s.png", run_number, output_name.Data()));
+
   // Print the plot on to a file
   // file containing the bcm calibration plots
 
@@ -752,6 +778,7 @@ main(int argc, char **argv)
   std::cout << "how many bcms at Hall C ? " << hallc_bcms_list.size() << std::endl;
 
   for (i=0; i<hallc_bcms_list.size(); i++) 
+    //  for (i=2; i<3; i++)  for only qwk_bcm1
     {
       std::cout << "\n" 
 		<< cnt++ 
@@ -825,8 +852,8 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
   TH1D* device_hist = NULL;
   TF1* device_fit = NULL;
   TH1D * device_res = NULL;
-  Int_t w = 600;
-  Int_t h = 400;
+  Int_t w = 1200;
+  Int_t h = 600;
 
 
   //  unser_canvas->Clear();
@@ -859,7 +886,7 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
   gPad->SetGridx();
   gPad->SetGridy();
   device_hist = GetHisto(
-			 mps_tree, 
+			 mps_tree_in_chain, 
 			 plotcommand, 
 			 device_cut, 
 			 "prof"); // profs : large errors why?
@@ -889,7 +916,7 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
   device_hist -> Draw("");
   device_fit = device_hist  -> GetFunction("pol1");
   
-
+  
   if(device_fit) {
     device_fit -> SetLineColor(kRed);
     device.SetPed    (device_fit->GetParameter(0));
@@ -913,7 +940,7 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
 
     plot_residual_command = device_name + ":" +  reference_name;
 
-    device_res = GetHisto(mps_tree, plot_residual_command, device_cut, "BOX");
+    device_res = GetHisto(mps_tree_in_chain, plot_residual_command, device_cut, "BOX");
 
     if (not device_res) {
       std::cout << " Please check residual plot : "
@@ -950,11 +977,11 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
   bcm_canvas -> Print(bcm_plots_filename);
 
   // 
-  // Save as ROOT C++ Macro of bcm_canvas. 
+  // Save as ROOT C++ Macro and png of bcm_canvas. 
   //
   TString root_c_name = bcm_canvas->GetName();
-  root_c_name += ".cxx";
-  bcm_canvas -> SaveAs(root_c_name);
+  bcm_canvas -> SaveAs(Form("BCMCalib%s_%s.cxx", run_number, root_c_name.Data()));
+  bcm_canvas -> SaveAs(Form("BCMCalib%s_%s.png", run_number, root_c_name.Data()));
 
   return true;
 }

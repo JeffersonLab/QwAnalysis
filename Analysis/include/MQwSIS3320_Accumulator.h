@@ -35,7 +35,7 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
 
   public:
 
-    MQwSIS3320_Accumulator(TString name = "auto") {
+    MQwSIS3320_Accumulator(TString name = "") {
       SetElementName(name);
       SetNumberOfDataWords(3);
       fMinValue = 0; fMaxValue = 0;
@@ -48,8 +48,13 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     const Int_t GetMinTime() const { return fMinTime; };
     const Int_t GetMaxTime() const { return fMaxTime; };
 
-    const Int_t GetAccumulatorSum() const { return fAccumulatorSum; };
-    const Int_t GetNumberOfSamples() const { return fNumberOfSamples; };
+    const Double_t GetNumberOfSamples() const { return fNumberOfSamples; };
+    const Double_t GetAccumulatorSum() const { return fAccumulatorSum; };
+    const Double_t GetAccumulatorAvg() const {
+      if (fAccumulatorSum > 0)
+        return fAccumulatorSum / fNumberOfSamples;
+      else return 0.0;
+    };
 
     void  ClearEventData() { fAccumulatorSum = 0; fNumberOfSamples = 0; };
     Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0);
@@ -71,8 +76,8 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     void Difference(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2);
     void Ratio(const MQwSIS3320_Accumulator &numer, const MQwSIS3320_Accumulator &denom);
 
-    void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
-    void  FillHistograms() { };
+    void  ConstructHistograms(TDirectory *folder, TString &prefix);
+    void  FillHistograms();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values) const;
@@ -84,8 +89,9 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
 
   protected:
 
-    Long_t fAccumulatorSum; //! Accumulator sum
-    Int_t fNumberOfSamples; //! Number of accumulated samples
+    Double_t fNumberOfSamples;	///< Number of accumulated samples
+    Double_t fAccumulatorSum;	///< Accumulator sum
+    Double_t fAccumulatorAvg;	///< Accumulator average
 
   private:
 

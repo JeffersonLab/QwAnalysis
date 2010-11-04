@@ -61,7 +61,7 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
   while (mapstr.ReadNextLine())
- {
+  {
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
@@ -115,54 +115,60 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
        QwModChannelID localModChannelID(currentsubbankindex, wordsofar,namech, modtype, this);
 
 
-       if(modtype=="VQWK")wordsofar+=6;
-       else if(modtype=="SCALER")wordsofar+=1;
-       else
+       if(modtype=="VQWK")
 	 {
-	   std::cerr << "QwBeamMod::LoadChannelMap:  Unknown module type: "
-		     << modtype <<", the detector "<<namech<<" will not be decoded "
-		     << std::endl;
-	   lineok=kFALSE;
-	   continue;
-	 }
+	   wordsofar+=6;
+	   
+	   if (lineok){
+	     QwVQWK_Channel localchan;
+	     localchan.InitializeChannel(GetSubsystemName(),"QwBeamMod",localModChannelID.fmodulename,"raw");
+	     fModChannel.push_back(localchan);
+	     fModChannel[fModChannel.size()-1].SetDefaultSampleSize(fSample_size);
+	     localModChannelID.fIndex=fModChannel.size()-1;
+	     fModChannelID.push_back(localModChannelID);
+	   }
 
-       if (lineok){
-	 QwVQWK_Channel localchan;
-	 localchan.InitializeChannel(GetSubsystemName(),"QwBeamMod",localModChannelID.fmodulename,"raw");
-	 fModChannel.push_back(localchan);
-	 fModChannel[fModChannel.size()-1].SetDefaultSampleSize(fSample_size);
-	 localModChannelID.fIndex=fModChannel.size()-1;
-       }
-
-       if(ldebug)
-	 {
-	   localModChannelID.Print();
-	   std::cout<<"line ok=";
-	   if(lineok) std::cout<<"TRUE"<<std::endl;
+	   if(ldebug)
+	     {
+	       localModChannelID.Print();
+	       std::cout<<"line ok=";
+	       if(lineok) std::cout<<"TRUE"<<std::endl;
+	     }
 	   else
 	     std::cout<<"FALSE"<<std::endl;
+	     
+
+          
 	 }
-
-       if(lineok)
-	 fModChannelID.push_back(localModChannelID);
-
      
- 
+       //       else if(modtype=="SCALER")wordsofar+=1;
+      //  else
+// 	 {
+// 	   std::cerr << "QwBeamMod<VQWK>::LoadChannelMap:  Unknown module type: "
+// 		     << modtype <<", the detector "<<namech<<" will not be decoded "
+// 		     << std::endl;
+// 	   lineok=kFALSE;
+// 	   continue;
+// 	 }
 
-      if(modtype=="SKIP"){
-	if (modnum<=0) wordsofar+=1;
-	else           wordsofar+=modnum;
-      }
-      else if(modtype!="WORD"/*|| dettype!="helicitydata"*/)
+       //      if(modtype=="SKIP"){
+       //	if (modnum<=0) wordsofar+=1;
+       //	else           wordsofar+=modnum;
+	//      }
+//       else if(modtype =="WORD" && dettype!="modulationdata")
+// 	{
+// 	  QwError << "QwBeamMod::LoadChannelMap:  Unknown detector type: "
+// 		  << dettype  << ", the detector " << namech << " will not be decoded "
+// 		  << QwLog::endl;
+// 	  lineok=kFALSE;
+// 	  continue;
+//	}
+
+      if(modtype == "WORD")
 	{
-	  QwError << "QwBeamMod::LoadChannelMap:  Unknown detector type: "
-		  << dettype  << ", the detector " << namech << " will not be decoded "
-		  << QwLog::endl;
-	  lineok=kFALSE;
-	  continue;
-	}
-      else
-	{
+	  std::cout << "Decoding QwWord :: " << namech << std::endl;
+
+
 	  QwWord localword;
 	  localword.fSubbankIndex=currentsubbankindex;
 	  localword.fWordInSubbank=wordsofar;
@@ -200,7 +206,7 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
  //	      break;
 	}
      }
- }
+  }
 
   if(ldebug)
     {
@@ -215,7 +221,7 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
   ldebug=kFALSE;
 
   return 0;
- };
+};
 
 
 
@@ -245,6 +251,7 @@ QwModChannelID::QwModChannelID(Int_t subbankid, Int_t wordssofar,
 Int_t QwBeamMod::LoadEventCuts(TString  filename){/*
   Double_t ULX, LLX, ULY, LLY;
   Int_t samplesize;
+
   Int_t check_flag;
   Int_t eventcut_flag;
   TString varname, varvalue, vartypeID,varname2, varvalue2;
@@ -671,7 +678,7 @@ void  QwBeamMod::ProcessEvent()
 
   for(size_t i=0;i<fModChannel.size();i++)
     fModChannel[i].ProcessEvent();
-
+  
   return;
 };
 
@@ -867,10 +874,11 @@ VQwSubsystem&  QwBeamMod::operator=  (VQwSubsystem *value)
     {
 
       QwBeamMod* input = dynamic_cast<QwBeamMod*>(value);
-
+      
       for(size_t i=0;i<input->fModChannel.size();i++)
 	this->fModChannel[i]=input->fModChannel[i];
-
+      // for(size_t i=0;i<input->fWord.size();i++)
+//  	this->fWord[i].fValue=input->fWord[i].fValue;
     }
   return *this;
 };
@@ -884,6 +892,8 @@ VQwSubsystem&  QwBeamMod::operator+=  (VQwSubsystem *value)
 
       for(size_t i=0;i<input->fModChannel.size();i++)
 	this->fModChannel[i]+=input->fModChannel[i];
+//       for(size_t i=0;i<input->fWord.size();i++)
+// 	this->fWord[i]+=input->fWord[i];
 
     }
   return *this;
@@ -899,6 +909,8 @@ VQwSubsystem&  QwBeamMod::operator-=  (VQwSubsystem *value)
 
       for(size_t i=0;i<input->fModChannel.size();i++)
 	this->fModChannel[i]-=input->fModChannel[i];
+//       for(size_t i=0;i<input->fWord.size();i++)
+// 	this->fWord[i]-=input->fWord[i];
 
     }
   return *this;
@@ -1147,16 +1159,38 @@ void  QwBeamMod::FillHistograms()
 
 void QwBeamMod::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
+
+  TString basename;
+  
+  // std::cout << "ConstructBranchAndVector" << std::endl;
+
   for(size_t i = 0; i < fModChannel.size(); i++)
     fModChannel[i].ConstructBranchAndVector(tree, prefix, values);
+//   for (size_t i=0;i<fWord.size();i++)
+//     fWord[i].ConstructBranchAndVector(tree, prefix, values);
+  fTreeArrayIndex  = values.size();
+  for (size_t i=0; i<fWord.size(); i++)
+	{
+	  basename = fWord[i].fWordName;
+	  values.push_back(0.0);
+	  tree->Branch(basename, &(values.back()), basename+"/D");
+	}
+
 
   return;
 };
 
 void QwBeamMod::FillTreeVector(std::vector<Double_t> &values) const
 {
+
+  size_t index = fTreeArrayIndex;
+//   std::cout << "FillTreeVector" << std::endl;
+
   for(size_t i = 0; i < fModChannel.size(); i++)
     fModChannel[i].FillTreeVector(values);
+  for (size_t i=0; i<fWord.size(); i++){
+	values[index++] = fWord[i].fValue;
+  }
   return;
 };
 
@@ -1171,6 +1205,8 @@ void  QwBeamMod::Print()
   std::cout<<" Printing Running AVG and other channel info for fModChannel"<<std::endl;
   for(size_t i=0;i<fModChannel.size();i++)
     fModChannel[i].PrintValue();
+  for(size_t i=0;i<fWord.size();i++)
+    fWord[i].Print();
 
   return;
 }
@@ -1227,6 +1263,10 @@ void  QwBeamMod::Copy(VQwSubsystem *source)
 	  this->fModChannel.resize(input->fModChannel.size());
 	  for(size_t i=0;i<this->fModChannel.size();i++)
 	    this->fModChannel[i].Copy(&(input->fModChannel[i]));
+
+// 	  this->fWord.resize(input->fWord.size());
+// 	  for(size_t i=0;i<this->fWord.size();i++)
+// 	    this->fWord[i].Copy(&(input->fWord[i]));
 
          }
 

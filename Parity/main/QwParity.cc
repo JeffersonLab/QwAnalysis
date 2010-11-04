@@ -57,7 +57,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Then, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.AddConfigFile("qwparity.conf");
   gQwOptions.AddConfigFile("qweak_mysql.conf");
   ///  Define the command line options
   DefineOptionsParity(gQwOptions);
@@ -76,7 +75,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
   ///  Start loop over all runs
-  QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     ///  Begin processing for the first run
@@ -114,7 +112,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Open the ROOT file
-    rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+    QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
     //  Construct histograms

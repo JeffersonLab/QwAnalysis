@@ -82,12 +82,12 @@ if (-f $QW_TMP/G0EPICSData) then
     mv $QW_TMP/G0EPICSData $QW_TMP/G0EPICSData.$runnumber
 endif
 
-set my_root_file = `find $QW_ROOTFILES -name \*$runnumber\*root`
-echo "Trying to find rootfile... '$my_root_file' "
-if ($my_root_file != "") then
-    echo "Moving '$my_root_file' "
-    mv $my_root_file $QWSCRATCH/rootfiles/.
-endif
+#set my_root_file = `find $QW_ROOTFILES -name \*$runnumber\*root`
+#echo "Trying to find rootfile... '$my_root_file' "
+#if ($my_root_file != "") then
+#   echo "Moving '$my_root_file' "
+#   mv $my_root_file $QWSCRATCH/rootfiles/.
+#endif
 
 
 ####  Send the mail to the user.

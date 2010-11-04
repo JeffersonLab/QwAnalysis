@@ -794,3 +794,96 @@ void QwCombinedBPM::SetEventCutMode(Int_t bcuts)
 };
 
 
+void QwCombinedBPM::MakeBPMComboList()
+{
+  UShort_t i = 0;
+
+  QwVQWK_Channel combo_bpm_sub_element;
+  
+  for(i=0;i<2;i++) {
+    combo_bpm_sub_element.ClearEventData();
+    combo_bpm_sub_element.Copy(&fAbsPos[i]);
+    combo_bpm_sub_element = fAbsPos[i];
+    fBPMComboElementList.push_back( combo_bpm_sub_element );
+    combo_bpm_sub_element.Copy(&fSlope[i]);
+    combo_bpm_sub_element = fSlope[i];
+    fBPMComboElementList.push_back( combo_bpm_sub_element );
+    combo_bpm_sub_element.Copy(&fIntercept[i]);
+    combo_bpm_sub_element = fIntercept[i];
+    fBPMComboElementList.push_back( combo_bpm_sub_element );
+  }
+  combo_bpm_sub_element.Copy(&fEffectiveCharge);
+  combo_bpm_sub_element = fEffectiveCharge;
+  fBPMComboElementList.push_back( combo_bpm_sub_element );
+
+
+  return;
+};
+
+
+
+std::vector<QwDBInterface> QwCombinedBPM::GetDBEntry()
+{
+  UShort_t i = 0;
+  UShort_t n_element = 0;
+
+  std::vector <QwDBInterface> row_list;
+  row_list.clear();
+
+  QwDBInterface row;
+
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
+
+
+  for(n_element=0; n_element<fBPMComboElementList.size(); n_element++) {
+
+    row.Reset();
+    // the element name and the n (number of measurements in average)
+    // is the same in each block and hardwaresum.
+
+    name          = fBPMComboElementList.at(n_element).GetElementName();
+    beam_n        = fBPMComboElementList.at(n_element).GetGoodEventCount();
+
+    // Get HardwareSum average and its error
+    avg           = fBPMComboElementList.at(n_element).GetHardwareSum();
+    err           = fBPMComboElementList.at(n_element).GetHardwareSumError();
+    // ADC subblock sum : 0 in MySQL database
+    beam_subblock = 0;
+
+    row.SetDetectorName(name);
+    row.SetSubblock(beam_subblock);
+    row.SetN(beam_n);
+    row.SetValue(avg);
+    row.SetError(err);
+
+    row_list.push_back(row);
+
+    // Get four Block averages and thier errors
+
+    for(i=0; i<4; i++) {
+      row.Reset();
+      avg           = fBPMComboElementList.at(n_element).GetBlockValue(i);
+      err           = fBPMComboElementList.at(n_element).GetBlockErrorValue(i);
+      beam_subblock = (UInt_t) (i+1);
+      // QwVQWK_Channel  | MySQL
+      // fBlock[0]       | subblock 1
+      // fBlock[1]       | subblock 2
+      // fBlock[2]       | subblock 3
+      // fBlock[3]       | subblock 4
+      row.SetDetectorName(name);
+      row.SetSubblock(beam_subblock);
+      row.SetN(beam_n);
+      row.SetValue(avg);
+      row.SetError(err);
+
+      row_list.push_back(row);
+    }
+  }
+
+  return row_list;
+
+};

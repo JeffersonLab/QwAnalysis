@@ -2,6 +2,7 @@
 
 [QwComptonPhotonDetector]
  name = PhotonDetector
+ mask = 0x0003
  map  = compton_photon_channels.map
  param = compton_photon_pedestal.map
 

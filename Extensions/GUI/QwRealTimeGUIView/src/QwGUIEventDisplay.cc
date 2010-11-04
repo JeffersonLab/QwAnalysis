@@ -77,8 +77,8 @@ QwGUIEventDisplay::~QwGUIEventDisplay()
   if(dEventDisplayTabRegion3_XZ) delete dEventDisplayTabRegion3_XZ;
   if(dEventDisplayTabRegionLayout)  delete dEventDisplayTabRegionLayout;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
+  //  RemoveThisTab(this);
+  //  IsClosing(GetName());
 }
 
 void QwGUIEventDisplay::MakeLayout()
@@ -188,33 +188,33 @@ void QwGUIEventDisplay::OnReceiveMessage(char *obj)
 
 }
 
-void QwGUIEventDisplay::OnObjClose(char *obj)
-{
-  if (!strcmp(obj,"dROOTFile")) {
-    dROOTCont = NULL;
-  }
-}
+// void QwGUIEventDisplay::OnObjClose(char *obj)
+// {
+//   // if (!strcmp(obj,"dROOTFile")) {
+//   //   dROOTCont = NULL;
+//   // }
+// }
 
-void QwGUIEventDisplay::OnNewDataContainer()
-{
-  ClearData();
-  /*
-//All tree access are cancelled
-  if (dROOTCont) {
-    fTree = (TTree*) dROOTCont->ReadTree("event_tree");
-  }
-  */
-}
+// void QwGUIEventDisplay::OnNewDataContainer()
+// {
+//   ClearData();
+//   /*
+// //All tree access are cancelled
+//   if (dROOTCont) {
+//     fTree = (TTree*) dROOTCont->ReadTree("event_tree");
+//   }
+//   */
+// }
 
-void QwGUIEventDisplay::OnRemoveThisTab()
-{
+// void QwGUIEventDisplay::OnRemoveThisTab()
+// {
 
-}
+// }
 
-void QwGUIEventDisplay::ClearData()
-{
+// void QwGUIEventDisplay::ClearData()
+// {
 
-}
+// }
 
 void QwGUIEventDisplay::PlotPrevious()
 {
@@ -235,10 +235,10 @@ void QwGUIEventDisplay::PlotData()
   //fTree->GetEntry(fCurrentEvent);
 }
 
-void QwGUIEventDisplay::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
+// void QwGUIEventDisplay::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
+// {
 
-}
+// }
 
 
 Bool_t QwGUIEventDisplay::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)

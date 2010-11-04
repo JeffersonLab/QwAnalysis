@@ -118,7 +118,8 @@ class VQwSubsystem {
  protected:
   /// Map of published internal values
   std::map<TString, VQwDataElement*> fPublishedInternalValues;
-  std::vector<std::vector<TString> > fPublishList;//this will save parameters to be published. This is loaded at the channel map
+  /// List of parameters to be published (loaded at the channel map)
+  std::vector<std::vector<TString> > fPublishList;
 
   void UpdatePublishedValue(const TString& name, VQwDataElement* data_channel) {
     fPublishedInternalValues[name] = data_channel;

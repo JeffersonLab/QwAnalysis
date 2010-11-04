@@ -1,8 +1,5 @@
 #include "QwGUIHallCBeamline.h"
-///#include "QwGUIMain.h"
 
-
-#include "TG3DLine.h"
 #include "TGaxis.h"
 #include "TColor.h"
 #include "TStyle.h"
@@ -72,7 +69,7 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
   PosVariation[0] = NULL;
   PosVariation[1] = NULL;
 
-  DataWindowArray.Clear();
+  //DataWindowArray.Clear();
 
   AddThisTab(this);
   
@@ -105,8 +102,8 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dButtonTgtRaster)    delete dButtonTgtRaster;
   delete [] PosVariation;
 
-  RemoveThisTab(this);
-  IsClosing(GetName());
+  // RemoveThisTab(this);
+  //  IsClosing(GetName());
 }
 
 void QwGUIHallCBeamline::LoadHistoMapFile(TString mapfile){//this is called in the QwGUIMain c'tor
@@ -187,11 +184,11 @@ void QwGUIHallCBeamline::MakeLayout()
   dControlsFrame = new TGVerticalFrame(this);
   dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
   
-  TGVertical3DLine *separator = new TGVertical3DLine(this);
-  dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
+  // TGVertical3DLine *separator = new TGVertical3DLine(this);
+  // dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
 
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
-  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
+  dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 2, 2, 2, 2));
 
  
   //hall c bcm access frame
@@ -265,9 +262,9 @@ void QwGUIHallCBeamline::MakeLayout()
   dButtonTgtRaster    -> Associate(this);
 
   dCanvas->GetCanvas()->SetBorderMode(0);
-  dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-				"QwGUIHallCBeamline",
-				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+  // dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
+  // 				"QwGUIHallCBeamline",
+  // 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
 
 
@@ -278,33 +275,15 @@ void QwGUIHallCBeamline::OnReceiveMessage(char *obj)
 
 }
 
-void QwGUIHallCBeamline::OnObjClose(char *obj)
-{
-  if(!strcmp(obj,"dROOTFile")){
-//     printf("Called QwGUIHallCBeamline::OnObjClose\n");
-
-    dROOTCont = NULL;
-  }
-}
+// void QwGUIHallCBeamline::OnObjClose(char *obj)
+// {
+// }
 
 
-void QwGUIHallCBeamline::OnNewDataContainer()
-{
+// void QwGUIHallCBeamline::OnRemoveThisTab()
+// {
 
-
-};
-
-void QwGUIHallCBeamline::OnRemoveThisTab()
-{
-
-};
-
-void QwGUIHallCBeamline::ClearData()
-{
-
-}
-
-
+// };
 
 
 
@@ -322,12 +301,13 @@ void QwGUIHallCBeamline::PositionDifferences()
   Double_t offset = 0.5;
   Double_t min_range = - offset;
 
-  Int_t BPMSTriplinesCount = fHallCDevices.at(VQWK_BPMSTRIPLINE).size();
+  Int_t BPMSTriplinesCount = 0;
+  BPMSTriplinesCount = (Int_t) fHallCDevices.at(VQWK_BPMSTRIPLINE).size();
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
   TString dummyname;
 
-  Bool_t ldebug = kFALSE;
+  Bool_t ldebug = false;
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
@@ -337,10 +317,10 @@ void QwGUIHallCBeamline::PositionDifferences()
    while (1){ 
      PosVariation[0] = new TH1F("Eff_Asym", "Eff_Charge Asym Variation",BPMSTriplinesCount , min_range, max_range);
      PosVariation[1] = new TH1F("Eff_Yield", "Eff_Charge Yield Variation",BPMSTriplinesCount , min_range, max_range); 
-    for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
+    for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
       sprintf (histo, "asym_%s_EffectiveCharge_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL)
 	{
 	  xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -354,12 +334,12 @@ void QwGUIHallCBeamline::PositionDifferences()
 	  PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
 	  PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());//this gives std deviation not RMS
 	  PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	  //	  if(ldebug) SummaryHist(histo1);
+	  if(ldebug) SummaryHist(histo1);
 	  delete histo1; histo1= NULL;
 	}
       
       sprintf (histo, "yield_%s_EffectiveCharge_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -370,7 +350,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
 	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());//this gives std deviation not RMS
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	//	if(ldebug) SummaryHist(histo2);
+	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
       
@@ -406,7 +386,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -437,9 +417,9 @@ void QwGUIHallCBeamline::PlotChargeAsym()
        break;
      if (GetHistoPause()==0){
        sprintf (histo, "asym_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_%s_hw",fHallCDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo2= (TH1F *)dMapFile->Get(histo);
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -476,7 +456,7 @@ void QwGUIHallCBeamline::PlotChargeAsym()
   }
   
 
-   printf("---------------PlotChargeAsym()--------------------\n");
+   //   printf("---------------PlotChargeAsym()--------------------\n");
   //mc->Modified();
   //mc->Update();
   
@@ -516,11 +496,11 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
    while (1){ 
      PosVariation[0] = new TH1F("HCDiffX", "X Difference Variation", BPMSTriplinesCount, min_range, max_range);
      PosVariation[1] = new TH1F("HCDiffY", "Y Difference variation", BPMSTriplinesCount, min_range, max_range); 
-    for(Short_t p = 0; p <BPMSTriplinesCount ; p++) 
+    for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
       //sprintf (histo, "asym_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
       sprintf (histo, "diff_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-      histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo1= (TH1F *)dMapFile->Get(histo); 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
@@ -539,7 +519,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 	  
       //sprintf (histo, "asym_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
       sprintf (histo, "diff_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data()); 
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+      histo2= (TH1F *)dMapFile->Get(histo); 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
@@ -586,7 +566,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Short_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -631,9 +611,9 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
   while (1){ 
      PosVariation[0] = new TH1F("PosX", "Mean X Variation", BPMSTriplinesCount, min_range, max_range);
      PosVariation[1] = new TH1F("PosY", "Mean Y variation", BPMSTriplinesCount, min_range, max_range); 
-     for(Short_t p = 0; p <BPMSTriplinesCount ; p++) {
+     for(Int_t p = 0; p <BPMSTriplinesCount ; p++) {
        sprintf (histo, "%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+       histo1= (TH1F *)dMapFile->Get(histo); 
 
       if (histo1!=NULL) {
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -653,7 +633,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
       }
 
       sprintf (histo, "%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+      histo2= (TH1F *)dMapFile->Get(histo);
 
       if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
@@ -736,9 +716,9 @@ void QwGUIHallCBeamline::PlotSCALER(){
        break;
      if (GetHistoPause()==0){
        sprintf (histo, "asym_%s",fHallCDevices.at(SCALER_HALO).at(fCurrentSCALERIndex).Data() );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_%s",fHallCDevices.at(SCALER_HALO).at(fCurrentSCALERIndex).Data() );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo2= (TH1F *)dMapFile->Get(histo);
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -774,7 +754,7 @@ void QwGUIHallCBeamline::PlotSCALER(){
   }
   
 
-   printf("---------------PlotSCALER()--------------------\n");
+  //   printf("---------------PlotSCALER()--------------------\n");
   //mc->Modified();
   //mc->Update();
   
@@ -782,7 +762,7 @@ void QwGUIHallCBeamline::PlotSCALER(){
   return;
 };  
 
-void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
+void QwGUIHallCBeamline::PlotTargetPos(Int_t tgtcoord){
   TH1F *histo1=NULL;
   TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
@@ -819,8 +799,8 @@ void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
        }
 
      if (GetHistoPause()==0){
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histon1);
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histon2);
+       histo1= (TH1F *)dMapFile->Get(histon1);
+       histo2= (TH1F *)dMapFile->Get(histon2);
      }
      
     
@@ -857,7 +837,7 @@ void QwGUIHallCBeamline::PlotTargetPos(Short_t tgtcoord){
   }
   
 
-   printf("---------------PlotTargetPos(%i)--------------------\n",tgtcoord);
+   //   printf("---------------PlotTargetPos(%i)--------------------\n",tgtcoord);
    //mc->Modified();
    //mc->Update();
   
@@ -882,9 +862,9 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
    while (1){
      if (GetHistoPause()==0){
        sprintf (histo, "asym_qwk_charge_hw" );
-       histo1= (TH1F *)dROOTCont->GetObjFromMapFile(histo);
+       histo1= (TH1F *)dMapFile->Get(histo);
        sprintf (histo, "yield_qwk_charge_hw" );
-       histo2= (TH1F *)dROOTCont->GetObjFromMapFile(histo); 
+       histo2= (TH1F *)dMapFile->Get(histo); 
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -921,7 +901,7 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
   }
    
 
-   printf("---------------PlotTargetCharge() %d--------------------\n",GetHistoAccumulate());
+   //   printf("---------------PlotTargetCharge() %d--------------------\n",GetHistoAccumulate());
    return;
 };
 
@@ -944,7 +924,7 @@ void QwGUIHallCBeamline::PlotFastRaster()
     {
       if (GetHistoPause()==0){
        sprintf (histo, "raster_rate_map" );
-       histo1= (TH2D*) dROOTCont->GetObjFromMapFile("raster_rate_map");
+       histo1= (TH2D*) dMapFile->Get("raster_rate_map");
       }
  
       
@@ -978,14 +958,15 @@ void QwGUIHallCBeamline::PlotFastRaster()
 
 
 
-void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-{
+// void QwGUIHallCBeamline::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
+// {
 
-}
+// }
 
 
 Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
+  if(dMapFileFlag){
   // Process events generated by the object in the frame.
   
   switch (GET_MSG(msg))
@@ -1004,8 +985,7 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	}
       
     case kC_COMMAND:
-      if(dROOTCont){
-	switch (GET_SUBMSG(msg))
+      switch (GET_SUBMSG(msg))
 	  {
 	  case kCM_BUTTON:
 	    {
@@ -1061,8 +1041,6 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	  case kCM_COMBOBOX:
 	    {
 	      switch (parm1) {
-	      case M_TBIN_SELECT:
-		break;
 	      case CMB_HCBCM:
 		SetComboIndex(CMB_HCBCM,parm2);
 		break;
@@ -1073,32 +1051,12 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	    }
 	    break;
 	    
-	  case kCM_MENUSELECT:
-	    break;	    
-	  case kCM_MENU:
-	    
-	    switch (parm1) {
-
-	    case M_FILE_OPEN:
-	      break;
-	      
-	      
-	      
-	    default:
-	      break;
-	    }
-	  
-	default:
-	  break;
 	}
-      }
-      else{
-	std::cout<<"Please load the map file to view data. \n";
-      }
+    
       default:
 	break;
     }
-  
+  }
   return kTRUE;
 }
 
@@ -1130,7 +1088,7 @@ void QwGUIHallCBeamline::LoadHCSCALERCombo(){
 };
 
 
-void QwGUIHallCBeamline::SetComboIndex(Short_t cmb_id, Short_t id){
+void QwGUIHallCBeamline::SetComboIndex(Int_t cmb_id, Int_t id){
     if (cmb_id==CMB_HCBCM)
       fCurrentBCMIndex=id;
     //else
@@ -1143,27 +1101,27 @@ void QwGUIHallCBeamline::SetComboIndex(Short_t cmb_id, Short_t id){
 }
 
 
-void 
-QwGUIHallCBeamline::SummaryHist(TH1 *in)
-{
+// void 
+// QwGUIHallCBeamline::SummaryHist(TH1 *in)
+// {
 
-  Double_t out[4] = {0.0};
-  Double_t test   = 0.0;
+//   Double_t out[4] = {0.0};
+//   Double_t test   = 0.0;
 
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
-  test   = in -> GetRMS()/sqrt(in->GetEntries());
+//   out[0] = in -> GetMean();
+//   out[1] = in -> GetMeanError();
+//   out[2] = in -> GetRMS();
+//   out[3] = in -> GetRMSError();
+//   test   = in -> GetRMS()/sqrt(in->GetEntries());
 
-  printf("%sName%s", BOLD, NORMAL);
-  printf("%22s", in->GetName());
-  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-  return;
-};
+//   printf("%sName%s", BOLD, NORMAL);
+//   printf("%22s", in->GetName());
+//   printf("  %sMean%s%s", BOLD, NORMAL, " : ");
+//   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
+//   printf("  %sSD%s%s", BOLD, NORMAL, " : ");
+//   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+//   printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+//   return;
+// };
 
 

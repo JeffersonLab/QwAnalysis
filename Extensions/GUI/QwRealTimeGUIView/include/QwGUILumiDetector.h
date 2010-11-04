@@ -42,22 +42,7 @@
 
 #define LUMI_DET_TYPES  7
 
-#include <cstdlib>
-#include <cstdio>
-
-#include <iostream>
-#include <iomanip>
-#include <cstring>
-
-#include "TMapFile.h"
-
-#include "TRootEmbeddedCanvas.h"
-#include "TRootCanvas.h"
-#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-
-#include "RSDataWindow.h"
-
 
 #ifndef __CINT__
 
@@ -108,7 +93,7 @@ class QwGUILumiDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  void                 ClearData();
+  //  void                 ClearData();
 
   //!This function Sets the combo index/combo element index
   //!
@@ -169,14 +154,6 @@ class QwGUILumiDetector : public QwGUISubSystem {
 
 
  
-
-  //!This function  prints stat info of the histogram into the command line
-  //!Parameters:
-  //! - Histogram 
-  //!
-  //!Return value: none  
-  void                 SummaryHist(TH1*in);
-
   //!An array that stores the ROOT names of the histograms that I chose to display for now.
   //!These are the names by which the histograms are identified within the root file.
   static const char   *LumiDetectorHists[LUMI_DET_HST_NUM];
@@ -219,15 +196,15 @@ class QwGUILumiDetector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
-  virtual void        OnObjClose(char *);
+
+  /* virtual void        OnObjClose(char *); */
   virtual void        OnReceiveMessage(char*);
-  virtual void        OnRemoveThisTab();
+  /* virtual void        OnRemoveThisTab(); */
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  // virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
-  ClassDef(QwGUILumiDetector,0);
+  ClassDef(QwGUILumiDetector,1);
 
 };
 

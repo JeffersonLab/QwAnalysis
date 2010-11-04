@@ -26,9 +26,11 @@
 // Qweak headers
 #include "VQwSubsystemParity.h"
 #include "MQwSIS3320_Channel.h"
+#include "QwScaler_Channel.h"
+#include "QwPMT_Channel.h"
 #include "MQwV775TDC.h"
 
-class QwComptonPhotonDetector: public VQwSubsystemParity {
+class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
 
   public:
 
@@ -104,17 +106,30 @@ class QwComptonPhotonDetector: public VQwSubsystemParity {
     /// Expert tree fields
     Int_t fTree_fNEvents;
 
-    /// List of sampling ADC channels
-    std::vector <std::vector <Int_t> > fSamplingADC_Mapping;
-    std::vector <MQwSIS3320_Channel> fSamplingADC;
+    /// Mapping from ROC/subbank to channel type
+    enum ChannelType_t { kUnknown, kSamplingADC, kIntegratingADC, kIntegratingTDC, kScaler };
+    std::map< Int_t, ChannelType_t > fMapping;
 
-    /// List of integrating QDC and TDC channels
-    // Proper MQwV775TDC and MQwV792ADC support not implemented yet (wdc, 2009-09-04)
-    // No data available anyway, so what's the point in having support in software yet?
-    //    std::vector <MQwV775TDC> fIntegratingTDC;
-    //    std::vector <MQwV792ADC> fIntegratingADC;
-    std::vector <MQwV775TDC> fIntegratingTDC;
-    std::vector <MQwV775TDC> fIntegratingADC;
+    /// List of sampling ADC channels
+    typedef std::map< Int_t, std::vector <std::vector <Int_t> > > SamplingADC_Mapping_t;
+    SamplingADC_Mapping_t fSamplingADC_Mapping;
+    std::vector< MQwSIS3320_Channel > fSamplingADC;
+
+    /// List of integrating QDC channels
+    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingADC_Mapping_t;
+    IntegratingADC_Mapping_t fMultiQDC_Mapping;
+    std::vector< QwPMT_Channel > fMultiQDC_Channel;
+    std::vector< std::vector< QwPMT_Channel > > fMultiQDC_Events;
+    /// List of integrating TDC channels
+    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingTDC_Mapping_t;
+    IntegratingTDC_Mapping_t fMultiTDC_Mapping;
+    std::vector< QwPMT_Channel > fMultiTDC_Channel;
+    std::vector< std::vector< QwPMT_Channel > > fMultiTDC_Events;
+
+    /// List of scaler channels
+    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > Scaler_Mapping_t;
+    Scaler_Mapping_t fScaler_Mapping;
+    std::vector< QwSIS3801D24_Channel > fScaler;
 
   private:
 

@@ -103,6 +103,21 @@ void QwDetectorInfo::SetDetectorInfo (
 };
 
 
+/// Get position of the detector
+const TVector3 QwDetectorInfo::GetPosition() const
+{
+  return TVector3(fDetectorOriginX,fDetectorOriginY,fDetectorOriginZ);
+}
+
+/// Set position of the detector
+void QwDetectorInfo::SetPosition(const TVector3& position)
+{
+  fDetectorOriginX = position.X();
+  fDetectorOriginY = position.Y();
+  fDetectorOriginZ = position.Z();
+}
+
+
 /**
  * Get the coordinate of the specified element.  E.g. this returns the x/u/v
  * position of the specified wire, taking into account the offset of wire 1.

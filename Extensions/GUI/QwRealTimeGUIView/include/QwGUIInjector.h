@@ -41,25 +41,11 @@ Added by Buddhini to display the injector beamline data.
 #define QWGUIINJECTOR_H
 
 
-#include <cstdlib>
-#include <cstdio>
-
-#include <iostream>
-#include <iomanip>
-#include <cstring>
-
-#include "TMapFile.h"
-
-#include "TRootEmbeddedCanvas.h"
-#include "TRootCanvas.h"
-#include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
-
-#include "RSDataWindow.h"
 
 
 #ifndef __CINT__
-#include "QwLog.h"
+
 #include "QwOptions.h"
 #include "QwParameterFile.h"
 
@@ -163,20 +149,6 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none 
   void PlotBPMPositions();
 
-  //!This function clear the histograms/plots in the plot container. This is done everytime a new 
-  //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes
-  //!on the plots are lost.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
-  void                 ClearData();
-
-  
-  
-
-
   
   std::vector<std::vector<TString> > fInjectorDevices; //2D vector since we have seral types of device - VQWK, SCALAR and COMBINED
   Int_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
@@ -194,7 +166,7 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none  
   virtual void         MakeLayout();
 
-  void                 SummaryHist(TH1*in);
+
 
  public:
   
@@ -217,15 +189,15 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none  
-  virtual void        OnNewDataContainer();
-  virtual void        OnObjClose(char *);
+  //virtual void        OnNewDataContainer();
+  /* virtual void        OnObjClose(char *); */
   virtual void        OnReceiveMessage(char*);
-  virtual void        OnRemoveThisTab();
+  /* virtual void        OnRemoveThisTab(); */
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
-  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
+  //  virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
-  ClassDef(QwGUIInjector,0);
+  ClassDef(QwGUIInjector,1);
 };
 
 #endif

@@ -47,7 +47,7 @@ Double_t weightsq[3]  = {0.0, 0.0, 0.0};
 
 /*Device list*/
 TString devicelist[nbpms] = 
-  {"3h07a","3h07b","3h07c","3h08","3h09","3h09b"};
+  {"3h07a","3h07b","3h07c","3h07c","3h09","3h09b"};
 TString property[3] = 
   {"X", "Y", "_EffectiveCharge"};
 
@@ -101,21 +101,30 @@ int main(Int_t argc,Char_t* argv[])
     Rfile = new TFile(Form("~/scratch/rootfiles/%s", Rfilename.Data()));
 
     if (Rfile->IsZombie()) {
-      std::cout << "File exit failure."<<std::endl; 
-      tree = NULL;
+      std::cout << "Error opening root file chain "<< Rfilename << std::endl;
+      Rfilename = Form("QwPass1_%i.000.root", run_number);
+      std::cout << "Try to open chain " << Rfilename << std::endl;
+      Rfile = new TFile(Form("~/scratch/rootfiles/%s", Rfilename.Data()));
+      
+      if (Rfile->IsZombie()){
+	std::cout << "File exit failure."<<std::endl; 
+	tree = NULL;
+      }
+      else
+	tree->Add(Form("~/scratch/rootfiles/QwPass1_%i.000.root", run_number));
     }
-    else{
+    else
       tree->Add(Form("~/scratch/rootfiles/Qweak_%i.root", run_number));
-    }
   }
-  else{
+  else
     tree->Add(Form("~/scratch/rootfiles/Qweak_%i.*.root", run_number));
-  }
- 
-  std::cout<<"Opened rootfile/s "<<Rfilename<<std::endl;
+  
+    std::cout<<"Opened rootfile/s "<<Rfilename<<std::endl;
 
-  if(tree == NULL)
+  if(tree == NULL){
     std::cout<< "Unable to find the Mps_Tree." << std::endl; 
+    exit(1);
+  }
 
   /* loop through the device list 3 by 3*/
   for(Int_t i=0; i<2; i++){
@@ -167,7 +176,7 @@ Double_t GetDifferenceRMS(TChain * tree, TString bpm1, TString bpm2, TString pro
   TString plotcommand = Form("(qwk_bpm%s%s.hw_sum-qwk_bpm%s%s.hw_sum)>>htemp",
 			     bpm1.Data(),property.Data(),bpm2.Data(),property.Data());
 
-  TString scut = Form("qwk_bpm%s%s.Device_Error_Code == 0 && qwk_bpm%s%s.Device_Error_Code == 0",bpm1.Data(),property.Data(),bpm2.Data(),property.Data());
+  TString scut = Form("qwk_bpm%s%s.Device_Error_Code == 0 && qwk_bpm%s%s.Device_Error_Code == 0 && mps_counter< 600e+3",bpm1.Data(),property.Data(),bpm2.Data(),property.Data());
   tree->Draw(plotcommand, scut);
   h = (TH1*)(gDirectory->Get("htemp"));
   if(!h){
@@ -203,6 +212,11 @@ void GetDeviceWeights(TChain * tree, TString property,
   rms_square[0] = (  pow(diff_rms[0],2) - pow(diff_rms[1],2) + pow(diff_rms[2],2))/2.0;
   rms_square[1] = (  pow(diff_rms[0],2) + pow(diff_rms[1],2) - pow(diff_rms[2],2))/2.0;
   rms_square[2] = ( (-1)*pow(diff_rms[0],2) + pow(diff_rms[1],2) + pow(diff_rms[2],2))/2.0;
+
+  std::cout<<"rms_square[0] = "<<rms_square[0]<<std::endl;
+  std::cout<<"rms_square[1] = "<<rms_square[1]<<std::endl;
+  std::cout<<"rms_square[2] = "<<rms_square[2]<<std::endl;
+
   
   for(Int_t i=0;i<3;i++)
     weights[i] = 1.0/rms_square[i];

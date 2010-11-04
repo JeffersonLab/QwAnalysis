@@ -95,22 +95,19 @@
 // Compton headers
 #include "QwComptonPhotonDetector.h"
 #include "QwComptonElectronDetector.h"
-//
-#include "MQwSIS3320_Channel.h"
 
 
-
-// Multiplet structure
-static const int kMultiplet = 4;
-
-// Debug level
-static bool bDebug = false;
 
 int main(int argc, char* argv[])
 {
-  ///  Fill the search paths for the parameter files; this sets a static
-  ///  variable within the QwParameterFile class which will be used by
-  ///  all instances.  The "scratch" directory should be first.
+  /// Change some default settings for use by the Compton analyzer
+  QwEventBuffer::SetDefaultDataFileStem("Compton_");
+  QwRootFile::SetDefaultRootFileStem("Compton_");
+
+
+  /// Fill the search paths for the parameter files; this sets a static
+  /// variable within the QwParameterFile class which will be used by
+  /// all instances.  The "scratch" directory should be first.
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
@@ -118,10 +115,7 @@ int main(int argc, char* argv[])
 
   /// Set the command line arguments and the configuration filename
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.SetConfigFile("qwcompton.conf");
   /// Define the command line options
-  QwEventBuffer::SetDefaultDataFileStem("Compton_");
-  QwRootFile::SetDefaultRootFileStem("Compton_");
   DefineOptionsParity(gQwOptions);
 
   /// Message logging facilities
@@ -137,7 +131,6 @@ int main(int argc, char* argv[])
   eventbuffer.ProcessOptions(gQwOptions);
 
   ///  Start loop over all runs
-  QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
     ///  Begin processing for the first run
@@ -162,7 +155,7 @@ int main(int argc, char* argv[])
 
 
     //  Open the ROOT file
-    rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+    QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
     //  Construct histograms
@@ -212,22 +205,6 @@ int main(int argc, char* argv[])
       // Helicity pattern
       helicitypattern.LoadEventData(detectors);
 
-//       // Print the helicity information
-//       if (bHelicity) {
-//         // - actual helicity
-//         if      (helicity->GetHelicityActual() == 0) QwOut << "-";
-//         else if (helicity->GetHelicityActual() == 1) QwOut << "+";
-//         else QwOut << "?";
-//         // - delayed helicity
-//         if      (helicity->GetHelicityDelayed() == 0) QwOut << "(-) ";
-//         else if (helicity->GetHelicityDelayed() == 1) QwOut << "(+) ";
-//         else QwOut << "(?) ";
-//         if (helicity->GetPhaseNumber() == kMultiplet) {
-//           QwOut << std::hex << helicity->GetRandomSeedActual() << std::dec << ",  \t";
-//           QwOut << std::hex << helicity->GetRandomSeedDelayed() << std::dec << QwLog::endl;
-//         }
-//       }
-
 
       // Fill the histograms
       rootfile->FillHistograms(detectors);
@@ -244,21 +221,18 @@ int main(int argc, char* argv[])
         // Calculate the asymmetry
         helicitypattern.CalculateAsymmetry();
         if (helicitypattern.IsGoodAsymmetry()) {
+
           // Fill histograms
           rootfile->FillHistograms(helicitypattern);
+
           // Fill tree branches
           rootfile->FillTreeBranches(helicitypattern);
           rootfile->FillTree("Hel_Tree");
+
           // Clear the data
           helicitypattern.ClearEventData();
         }
       }
-
-      // Periodically print event number
-      if ((bDebug && eventbuffer.GetEventNumber() % 1000 == 0)
-                  || eventbuffer.GetEventNumber() % 10000 == 0)
-        QwMessage << "Number of events processed so far: "
-                  << eventbuffer.GetEventNumber() << QwLog::endl;
 
     } // end of loop over events
 
@@ -272,7 +246,7 @@ int main(int argc, char* argv[])
      *                                                               *
      *  Then, we need to delete the histograms here.                 *
      *  If we wait until the subsystem destructors, we get a         *
-     *  segfault; but in additiona to that we should delete them     *
+     *  segfault; but in additional to that we should delete them     *
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
 
@@ -281,7 +255,9 @@ int main(int argc, char* argv[])
     rootfile->DeleteHistograms(helicitypattern);
 
     // Close data file and print run summary
-    eventbuffer.CloseDataFile();
+    eventbuffer.CloseStream();
+
+    //  Report run summary
     eventbuffer.ReportRunSummary();
     eventbuffer.PrintRunTimes();
 

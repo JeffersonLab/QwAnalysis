@@ -436,33 +436,36 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
     }
   }
-  //now load the publish variables
+
+
+  // Now load the variables to publish
   mapstr.RewindToFileStart();
   QwParameterFile *section;
   std::vector<TString> publishinfo;
-  while ( (section=mapstr.ReadNextSection(varvalue)) ){
-    if(varvalue=="PUBLISH"){
+  while ((section=mapstr.ReadNextSection(varvalue))) {
+    if (varvalue == "PUBLISH") {
       fPublishList.clear();
-      while(section->ReadNextLine()){
-	section->TrimComment('!');   // Remove everything after a '!' character.
-	section->TrimWhitespace();   // Get rid of leading and trailing spaces.
-	for (Int_t ii=0;ii<4;ii++){
-	  varvalue=section->GetNextToken(",").c_str();
-	  if(varvalue.Length()){
-	    publishinfo.push_back(varvalue);	  
-	  }
-	}
-	if (publishinfo.size()==4)
-	  fPublishList.push_back(publishinfo);
-	publishinfo.clear();
+      while (section->ReadNextLine()) {
+        section->TrimComment(); // Remove everything after a comment character
+        section->TrimWhitespace(); // Get rid of leading and trailing spaces
+        for (int ii = 0; ii < 4; ii++) {
+          varvalue = section->GetNextToken().c_str();
+          if (varvalue.Length()) {
+            publishinfo.push_back(varvalue);
+          }
+        }
+        if (publishinfo.size() == 4)
+          fPublishList.push_back(publishinfo);
+        publishinfo.clear();
       }
-    }
-  }
-  QwMessage<<"To Publish"<<QwLog::endl;
-  for (size_t jj=0;jj<fPublishList.size();jj++)
-    QwMessage<<fPublishList.at(jj).at(0)<<" "<<fPublishList.at(jj).at(1)<<" "<<fPublishList.at(jj).at(2)<<" "<<" "<<fPublishList.at(jj).at(3)<<" "<<QwLog::endl;
+    } 
+  }  
+  // Print list of variables to publish
+  QwMessage << "Variables to publish:" << QwLog::endl;
+  for (size_t jj = 0; jj < fPublishList.size(); jj++)
+    QwMessage << fPublishList.at(jj).at(0) << " " << fPublishList.at(jj).at(1) << " "
+              << fPublishList.at(jj).at(2) << " " << fPublishList.at(jj).at(3) << QwLog::endl;
 
-  //exit(1);
 
   if(ldebug){
     std::cout<<"QwLumi::Done with Load map channel \n";
@@ -1290,8 +1293,6 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 //*****************************************************************
 Bool_t QwBeamLine::PublishInternalValues() const
 {
-  ///  TODO:  The published variable list should be generated from
-  ///         the channel map file.
   // Publish variables
   Bool_t status = kTRUE;
   
@@ -2313,6 +2314,53 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       interface.at(j).AddThisEntryToList( entrylist );
     }
   }
+
+
+  ///   try to access CombinedBPM means and errors
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined Beam Position Monitors" <<QwLog::endl;
+  for(i=0; i< fBPMCombo.size(); i++) {
+    fBPMCombo[i].MakeBPMComboList();
+    interface.clear();
+    interface = fBPMCombo[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bpm );
+      interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+  ///   try to access CombinedBCM means and errors
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined Beam Current Monitors" <<QwLog::endl;
+
+  for(i=0; i< fBCMCombo.size(); i++) {
+    interface.clear();
+    interface = fBCMCombo[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+  ///   try to access Energy Calculator mean and its error
+  if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Energy Calculator" <<QwLog::endl;
+
+  for(i=0; i< fECalculator.size(); i++) {
+    interface.clear();
+    interface = fECalculator[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
 
   ///   try to access QPD mean and its error
   if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Quadrant PhotoDiodes" <<QwLog::endl;
