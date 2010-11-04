@@ -1290,63 +1290,59 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 //*****************************************************************
 Bool_t QwBeamLine::PublishInternalValues() const
 {
-  VQwDataElement* tmp_channel;
-  TString publish_name,device_type,device_name, device_prop;
-   ///  TODO:  The published variable list should be generated from
+  ///  TODO:  The published variable list should be generated from
   ///         the channel map file.
   // Publish variables
   Bool_t status = kTRUE;
   
-  //publish variables through map file
-  //this should work with bcm,bpmstripline,bpmcavity, combo bpm and combo bcm
-  for(size_t pp=0;pp<fPublishList.size();pp++){
-    publish_name=fPublishList.at(pp).at(0);
-    device_type=fPublishList.at(pp).at(1);
-    device_name=fPublishList.at(pp).at(2);
-    device_prop=fPublishList.at(pp).at(3);
+  // Publish variables through map file
+  // This should work with bcm, bpmstripline, bpmcavity, combo bpm and combo bcm
+  for (size_t pp = 0; pp < fPublishList.size(); pp++) {
+    TString publish_name = fPublishList.at(pp).at(0);
+    TString device_type = fPublishList.at(pp).at(1);
+    TString device_name = fPublishList.at(pp).at(2);
+    TString device_prop = fPublishList.at(pp).at(3);
     device_type.ToLower();
     device_prop.ToLower();
-    //QwError<<publish_name << " "<<device_type<<" "<<device_name<<" "<<device_prop<< QwLog::endl;
-    if (device_type=="bcm"){
-      tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBCM*>(GetBCM(device_name)))->GetCharge());
-    } else if (device_type=="bpmstripline"){
-      if (device_prop=="x")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMStripline*>(GetBPMStripline(device_name)))->GetPositionX());
-      else if (device_prop=="y")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMStripline*>(GetBPMStripline(device_name)))->GetPositionY());
-      else if (device_prop=="ef")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMStripline*>(GetBPMStripline(device_name)))->GetEffectiveCharge());
-    }else if (device_type=="bpmcavity"){
-      if (device_prop=="x")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMCavity*>(GetBPMCavity(device_name)))->GetPositionX());
-      else if (device_prop=="y")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMCavity*>(GetBPMCavity(device_name)))->GetPositionY());
-      else if (device_prop=="ef")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwBPMCavity*>(GetBPMCavity(device_name)))->GetEffectiveCharge());
-    } else if (device_type=="combobpm"){
-      if (device_prop=="x")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM(device_name)))->GetPositionX());
-      else if (device_prop=="y")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM(device_name)))->GetPositionY());
-      else if (device_prop=="xp")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM(device_name)))->GetAngleX());
-      else if (device_prop=="yp")
-	tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBPM*>(GetCombinedBPM(device_name)))->GetAngleY());
-    } else if (device_type=="combobcm"){
-      tmp_channel=const_cast<VQwDataElement*>((const_cast<QwCombinedBCM*>(GetCombinedBCM(device_name)))->GetCharge());
-    } else if (device_type=="comboenergy"){
-      tmp_channel=const_cast<VQwDataElement*>((const_cast<QwEnergyCalculator*>(GetEnergyCalculator(device_name)))->GetEnergy());
+
+    const VQwDataElement* tmp_channel;
+    if (device_type == "bcm") {
+      tmp_channel = GetBCM(device_name)->GetCharge();
+    } else if (device_type == "bpmstripline") {
+      if (device_prop == "x")
+	tmp_channel = GetBPMStripline(device_name)->GetPositionX();
+      else if (device_prop == "y")
+	tmp_channel = GetBPMStripline(device_name)->GetPositionY();
+      else if (device_prop == "ef")
+	tmp_channel = GetBPMStripline(device_name)->GetEffectiveCharge();
+    } else if (device_type == "bpmcavity") {
+      if (device_prop == "x")
+	tmp_channel = GetBPMCavity(device_name)->GetPositionX();
+      else if (device_prop == "y")
+	tmp_channel = GetBPMCavity(device_name)->GetPositionY();
+      else if (device_prop == "ef")
+	tmp_channel = GetBPMCavity(device_name)->GetEffectiveCharge();
+    } else if (device_type == "combobpm") {
+      if (device_prop == "x")
+	tmp_channel = GetCombinedBPM(device_name)->GetPositionX();
+      else if (device_prop == "y")
+	tmp_channel = GetCombinedBPM(device_name)->GetPositionY();
+      else if (device_prop == "xp")
+	tmp_channel = GetCombinedBPM(device_name)->GetAngleX();
+      else if (device_prop == "yp")
+	tmp_channel = GetCombinedBPM(device_name)->GetAngleY();
+    } else if (device_type == "combobcm") {
+      tmp_channel = GetCombinedBCM(device_name)->GetCharge();
+    } else if (device_type == "comboenergy") {
+      tmp_channel = GetEnergyCalculator(device_name)->GetEnergy();
     } else
       QwError << "QwBeamLine::PublishInternalValues() error "<< QwLog::endl;
     
-     if (tmp_channel==NULL){
-       QwError << "QwBeamLine::PublishInternalValues():"<<publish_name <<"  not found "<< QwLog::endl;
+     if (tmp_channel == NULL) {
+       QwError << "QwBeamLine::PublishInternalValues(): " << publish_name << " not found" << QwLog::endl;
        status |= kFALSE;
-     }else{
-       QwDebug << "QwBeamLine::PublishInternalValues():"<<publish_name <<" found "<< QwLog::endl;
-       //QwError << "QwBeamLine::PublishInternalValues():"<<publish_name <<" found "<< QwLog::endl;
-       //status = status && PublishInternalValue(publish_name, "published-value");
-       //const_cast<QwBeamLine*>(this)->UpdatePublishedValue(publish_name,tmp_channel);
+     } else {
+       QwDebug << "QwBeamLine::PublishInternalValues(): " << publish_name << " found" << QwLog::endl;
      }
      status = status && PublishInternalValue(publish_name, "published-value", tmp_channel);
   }
