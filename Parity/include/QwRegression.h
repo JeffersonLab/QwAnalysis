@@ -57,6 +57,9 @@ class QwRegression {
     /// Private default constructor
     QwRegression() { };
 
+    /// Flag to enable regression
+    bool fEnableRegression;
+
     /// Regression dependent and independent variable map
     std::string fRegressionMapFile;
 

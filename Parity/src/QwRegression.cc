@@ -18,6 +18,7 @@ QwRegression::QwRegression(
     QwSubsystemArrayParity& event,
     QwHelicityPattern& helicitypattern)
 {
+  fEnableRegression = false;
   ProcessOptions(options);
   LoadChannelMap(fRegressionMapFile);
   QwSubsystemArrayParity& asym = helicitypattern.fAsymmetry;
@@ -60,6 +61,9 @@ std::pair<QwRegression::EQwRegType,std::string> QwRegression::ParseRegressionVar
 
 Int_t QwRegression::LoadChannelMap(const std::string& mapfile)
 {
+  // Return if regression is not enabled
+  if (! fEnableRegression) return 0;
+
   // Open the file
   QwParameterFile map(mapfile);
 
@@ -124,6 +128,9 @@ Int_t QwRegression::ConnectChannels(
     QwSubsystemArrayParity& asym,
     QwSubsystemArrayParity& diff)
 {
+  // Return if regression is not enabled
+  if (! fEnableRegression) return 0;
+
   /// Fill vector of pointers to the relevant data elements
   for (size_t dv = 0; dv < fDependentName.size(); dv++) {
     // Get the dependent variables
@@ -191,6 +198,9 @@ Int_t QwRegression::ConnectChannels(
 void QwRegression::DefineOptions(QwOptions &options)
 {
   options.AddOptions("Linear regression")
+    ("enable-regression", po::value<bool>()->zero_tokens()->default_value(false),
+     "enable linear regression");
+  options.AddOptions("Linear regression")
     ("regression-variable-map", po::value<std::string>()->default_value("regression.map"),
      "variables and sensitivities for regression");
 }
@@ -201,6 +211,7 @@ void QwRegression::DefineOptions(QwOptions &options)
  */
 void QwRegression::ProcessOptions(QwOptions &options)
 {
+  fEnableRegression = options.GetValue<bool>("enable-regression");
   fRegressionMapFile = options.GetValue<std::string>("regression-variable-map");
 }
 
@@ -208,6 +219,9 @@ void QwRegression::ProcessOptions(QwOptions &options)
 /// Do the linear regression
 void QwRegression::LinearRegression(EQwRegType type)
 {
+  // Return if regression is not enabled
+  if (! fEnableRegression) return;
+
   // Linear regression
   for (size_t dv = 0; dv < fDependentVar.size(); dv++) {
     if (fDependentType.at(dv) != type) continue;

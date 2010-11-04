@@ -408,79 +408,82 @@ Int_t QwDriftChamber::LinkReferenceChannel (const UInt_t chan,const Int_t plane,
 
 void  QwDriftChamber::ReportConfiguration()
 {
-    std::size_t i    = 0;
-    std::size_t j    = 0;
+  std::size_t i    = 0;
+  std::size_t j    = 0;
 
-    Int_t roc_num    = 0;
-    Int_t bank_flag  = 0;
-    Int_t bank_index = 0;
-    Int_t tdc_index  = 0;
+  Int_t roc_num    = 0;
+  Int_t bank_flag  = 0;
+  Int_t bank_index = 0;
+  Int_t tdc_index  = 0;
 
-    UInt_t slot_id   = 0;
-    UInt_t vme_slot_num = 0;
+  UInt_t slot_id   = 0;
+  UInt_t vme_slot_num = 0;
     
-    std::cout << "QwDriftChamber Region : " 
-	      << this->GetSubsystemName()
-	      << "::ReportConfiguration fTDCPtrs.size() " 
-	      << fTDCPtrs.size() << std::endl;
+  std::cout << "QwDriftChamber Region : " 
+	    << this->GetSubsystemName()
+	    << "::ReportConfiguration fTDCPtrs.size() " 
+	    << fTDCPtrs.size() << std::endl;
 
 
-    for ( i=0; i<fROC_IDs.size(); i++ ) {
+  for ( i=0; i<fROC_IDs.size(); i++ ) 
+    {
 
       roc_num = fROC_IDs.at(i);
 
-      for ( j=0; j<fBank_IDs.at(i).size(); j++ ) {
+      for ( j=0; j<fBank_IDs.at(i).size(); j++ ) 
+	{
 	
-	bank_flag    = fBank_IDs.at(i).at(j);
-	if(bank_flag == 0) continue; 
-	// must be uncommented if one doesn't define "bank_flag" in a CRL file
-	// but, now we use "bank_flag" in our crl files, thus skip to print
-	// unnecessary things on a screen
-	// Monday, August 30 14:45:34 EDT 2010, jhlee
+	  bank_flag    = fBank_IDs.at(i).at(j);
+	  if(bank_flag == 0) continue; 
+	  // must be uncommented if one doesn't define "bank_flag" in a CRL file
+	  // but, now we use "bank_flag" in our crl files, thus skip to print
+	  // unnecessary things on a screen
+	  // Monday, August 30 14:45:34 EDT 2010, jhlee
 
-	bank_index = GetSubbankIndex(roc_num, bank_flag);
+	  bank_index = GetSubbankIndex(roc_num, bank_flag);
 	
-	std::cout << "ROC [index, Num][" 
-		  << i
-		  << ","
-		  << std::setw(2) << roc_num
-		  << "]"
-		  << " Bank [index,id]["
-		  <<  bank_index
-		  << ","
-		  << bank_flag
-		  << "]"
-		  << std::endl;
-	
-	for ( slot_id=2; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) { 
-	  // slot id starts from 2, because 0 and 1 are used for CPU and TI.
-	  // Tuesday, August 31 10:57:07 EDT 2010, jhlee
-
-	  tdc_index = GetTDCIndex(bank_index, slot_id);
-	  
-	  vme_slot_num = slot_id;
-	  
-	  std::cout << "    "
-		    << "Slot [id, VME num] [" 
-		    << std::setw(2) << slot_id
+	  std::cout << "ROC [index, Num][" 
+		    << i
 		    << ","
-		    << std::setw(2) << vme_slot_num
-		    << "]";
-	  if ( tdc_index == -1 ) {
-	    std::cout << "    "
-		      << "Unused in VDC" 
-		      << std::endl;
-	  }
-	  else {
-	    std::cout << "    "
-		      << "F1TDC index " 
-		      << tdc_index << std::endl;
-	  }
+		    << std::setw(2) << roc_num
+		    << "]"
+		    << " Bank [index,id]["
+		    <<  bank_index
+		    << ","
+		    << bank_flag
+		    << "]"
+		    << std::endl;
+	
+	  for ( slot_id=2; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) 
+	    { 
+	      // slot id starts from 2, because 0 and 1 are used for CPU and TI.
+	      // Tuesday, August 31 10:57:07 EDT 2010, jhlee
+
+	      tdc_index = GetTDCIndex(bank_index, slot_id);
+	  
+	      vme_slot_num = slot_id;
+	  
+	      std::cout << "    "
+			<< "Slot [id, VME num] [" 
+			<< std::setw(2) << slot_id
+			<< ","
+			<< std::setw(2) << vme_slot_num
+			<< "]";
+	      if ( tdc_index == -1 ) {
+		std::cout << "    "
+			  << "Unused in VDC" 
+			  << std::endl;
+	      }
+	      else {
+		std::cout << "    "
+			  << "F1TDC index " 
+			  << tdc_index << std::endl;
+	      }
+	    }
 	}
-      }
     }
     
-    return;
+  return;
 };
 
 
@@ -495,19 +498,21 @@ void QwDriftChamber::PrintConfigurationBuffer(UInt_t *buffer,UInt_t num_words)
   UInt_t j = 0;
   UInt_t k = 0;
   
-  for ( j=0; j<(num_words/5); j++ ) {
-    printf ( "buffer[%5d] = 0x:", ipt );
-    for ( k=j; k<j+5; k++ ) {
-      printf ( "%12x", buffer[ipt++] );
+  for ( j=0; j<(num_words/5); j++ ) 
+    {
+      printf ( "buffer[%5d] = 0x:", ipt );
+      for ( k=j; k<j+5; k++ ) {
+	printf ( "%12x", buffer[ipt++] );
+      }
+      printf ( "\n" );
     }
-    printf ( "\n" );
-  }
   
   if ( ipt<num_words ) {
     printf ( "buffer[%5d] = 0x:", ipt );
-    for ( k=ipt; k<num_words; k++ ) {
-      printf ( "%12x", buffer[ipt++] );
-    }
+    for ( k=ipt; k<num_words; k++ ) 
+      {
+	printf ( "%12x", buffer[ipt++] );
+      }
     printf ( "\n" );
   }
   printf ( "\n" );
@@ -530,7 +535,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
   UInt_t slot_id      = 0;
   UInt_t vme_slot_num = 0;
 
-  Bool_t local_debug  = false;
+  Bool_t local_debug  = true;
 
   QwF1TDC *local_f1tdc = NULL;
    
@@ -560,83 +565,84 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	      << "]"
 	      << std::endl;
   
-    for ( slot_id=0; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) { 
-      // slot id starts from 2, because 0 is one offset (1) difference between QwAnalyzer and VME definition, 
-      // and 1 and 2 are used for CPU and TI. Tuesday, August 31 10:57:07 EDT 2010, jhlee
+    for ( slot_id=0; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) 
+      { 
+	// slot id starts from 2, because 0 is one offset (1) difference between QwAnalyzer and VME definition, 
+	// and 1 and 2 are used for CPU and TI. Tuesday, August 31 10:57:07 EDT 2010, jhlee
 	
-      tdc_index    = GetTDCIndex(bank_index, slot_id);
-      vme_slot_num = slot_id;
+	tdc_index    = GetTDCIndex(bank_index, slot_id);
+	vme_slot_num = slot_id;
       
-      if(local_debug) {
-	std::cout << "    "
-		  << "Slot [id, VME num] [" 
-		  << std::setw(2) << slot_id
-		  << ","
-		  << std::setw(2) << vme_slot_num
-		  << "]";
-      	std::cout << "    ";
-      }
-
-      
-      local_f1tdc = NULL;
-
-      if(slot_id > 2) { // save time
-	
-	if (tdc_index not_eq -1) {
-
-	  if(local_f1tdc) delete local_f1tdc; local_f1tdc = 0;
-
-	  local_f1tdc = new QwF1TDC(roc_id, vme_slot_num);
-
-	  local_f1tdc->SetF1BankIndex(bank_index);
-	  local_f1tdc->SetF1TDCIndex(tdc_index);
-	  local_f1tdc->SetF1TDCBuffer(buffer, num_words);
-	  local_f1tdc->SetF1SystemName(subsystem_name);
-
-	  fF1TDContainer->AddQwF1TDC(local_f1tdc);
-	  
-	  if(local_debug) {
-	    std::cout << "F1TDC index " 
-		      << std::setw(2) 
-		      << tdc_index
-		      << std::setw(16) 
-		      << " local_f1tdc " 
-		      << *local_f1tdc
-		      << " at " 
-		      << local_f1tdc;
-	  }
-
-	}
-	else {
-
-	  if(local_debug) {
-	    std::cout << "Unused in "  
-		      << std::setw(4) 
-		      << subsystem_name	
-		      << std::setw(16) 
-		      << " local_f1tdc  at " 
-		      << local_f1tdc;
-	  }
-	  
-	}
-		
-      }
-      else { // slot_id == only 0, 1, & 2
-	
 	if(local_debug) {
-	  if      (slot_id == 0) std::cout << "         ";
-	  else if (slot_id == 1) std::cout << "MVME CPU ";
-	  else                   std::cout << "Trigger Interface"; // slot_id == 2;
-
+	  std::cout << "    "
+		    << "Slot [id, VME num] [" 
+		    << std::setw(2) << slot_id
+		    << ","
+		    << std::setw(2) << vme_slot_num
+		    << "]";
+	  std::cout << "    ";
 	}
-      }
+
+      
+	local_f1tdc = NULL;
+
+	if(slot_id > 2) { // save time
+	
+	  if (tdc_index not_eq -1) {
+
+	    if(local_f1tdc) delete local_f1tdc; local_f1tdc = NULL;
+
+	    local_f1tdc = new QwF1TDC(roc_id, vme_slot_num);
+
+	    local_f1tdc->SetF1BankIndex(bank_index);
+	    local_f1tdc->SetF1TDCIndex(tdc_index);
+	    local_f1tdc->SetF1TDCBuffer(buffer, num_words);
+	    local_f1tdc->SetF1SystemName(subsystem_name);
+
+	    fF1TDContainer->AddQwF1TDC(local_f1tdc);
+	  
+	    if(local_debug) {
+	      std::cout << "F1TDC index " 
+			<< std::setw(2) 
+			<< tdc_index
+			<< std::setw(16) 
+			<< " local_f1tdc " 
+			<< *local_f1tdc
+			<< " at " 
+			<< local_f1tdc;
+	    }
+
+	  }
+	  else {
+
+	    if(local_debug) {
+	      std::cout << "Unused in "  
+			<< std::setw(4) 
+			<< subsystem_name	
+			<< std::setw(16) 
+			<< " local_f1tdc  at " 
+			<< local_f1tdc;
+	    }
+	  
+	  }
+		
+	}
+	else { // slot_id == only 0, 1, & 2
+	
+	  if(local_debug) {
+	    if      (slot_id == 0) std::cout << "         ";
+	    else if (slot_id == 1) std::cout << "MVME CPU ";
+	    else                   std::cout << "Trigger Interface"; // slot_id == 2;
+
+	  }
+	}
    
-      if(local_debug) std::cout << std::endl;
-    }
+	if(local_debug) std::cout << std::endl;
+      }
   
     if(local_debug) {
-     fF1TDContainer->Print();
-     std::cout << "-----------------------------------------------------" << std::endl;
+      fF1TDContainer->Print();
+      std::cout << "-----------------------------------------------------" << std::endl;
     }
 
     
