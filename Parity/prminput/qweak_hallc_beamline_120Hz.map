@@ -58,10 +58,10 @@ sample_size==4000
    VQWK, 4, 1,  bpmstripline,  QWK_BPM3C19XM
    VQWK, 4, 2,  bpmstripline,  QWK_BPM3C19YP
    VQWK, 4, 3,  bpmstripline,  QWK_BPM3C19YM
-   VQWK, 4, 4,  bpmstripline,  QWK_BPM3P01XP
-   VQWK, 4, 5,  bpmstripline,  QWK_BPM3P01XM
-   VQWK, 4, 6,  bpmstripline,  QWK_BPM3P01YP
-   VQWK, 4, 7,  bpmstripline,  QWK_BPM3P01YM
+   VQWK, 4, 4,  bpmstripline,  QWK_BPM3C07AXP
+   VQWK, 4, 5,  bpmstripline,  QWK_BPM3C07AXM
+   VQWK, 4, 6,  bpmstripline,  QWK_BPM3C07AYP
+   VQWK, 4, 7,  bpmstripline,  QWK_BPM3C07AYM
 
 !ADC5	
    VQWK, 5, 0,  bpmstripline,  QWK_BPM3P02AXP

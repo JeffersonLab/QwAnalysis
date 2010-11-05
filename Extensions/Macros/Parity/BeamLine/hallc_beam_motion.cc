@@ -11,7 +11,7 @@
 //
 // To use this , compile hallc_beam_motion.cc. This should create hallc_beam_motion.exe
 // Then do 
-//         ./hallc_beam_motion runnumber.
+//         ./hallc_beam_motion run_numberber lcut ucut
 //
 // You will be asked the option to input harp readings.
 //          Input Harp readings? (Y/N) 
@@ -65,60 +65,56 @@
 #include <TMultiGraph.h>
 #include <TLegend.h>
 #include <TPaveStats.h>
-
+#include <TChain.h>
 #include <cstdlib>
 
 #include "LeastSquaresFit.cc"
 
-TString  runnum   = "";
+Int_t    run_number   = 0;
+Int_t    lcut = 0;
+Int_t    ucut = 0;
 TString  bcm      = ""; 
 TString  current  = "";
 TString  tempname = "";
 Char_t   filename[300];
-TString  directory="~/scratch/rootfiles/"; // the location of the rootfile used for calibration
+TString  directory="$QW_ROOTFILES/"; // the location of the rootfile used for calibration
 Char_t   option[4]= {""};
-Bool_t do_harps = kFALSE;
-Bool_t done = kFALSE;
+Bool_t   do_harps = kFALSE;
+Bool_t   done = kFALSE;
 
 
-const size_t nbpms  = 8;
+const size_t nbpms  = 5;
 const size_t nharps = 4;
 
 
 // Hall C bpms after the last quad.
-// TString devicelist[ndevices]=
-//   {"ipm3h02","ipm3h04a","ipm3h07d","ipm3h07b",
-//    "ipm3h07c","ipm3h08" ,"ipm3h09b","ipm3h09"};
+TString devicelist[nbpms]=
+  {"bpm3h07a","bpm3h07b","bpm3h07c","bpm3h09","bpm3h09b"};
 
-
-// For testing of this macro I use injector bpms
-TString devicelist[8]={"1i02","1i04","1i06","0i02a","0i07","0l01","0l02","0l07"};
-Double_t weights[8]={1,1,1,1,1,1,1,1};
+// bpm weights obtained using run 5832.
+Double_t weightsX[nbpms]={420.43, 532.87, 371.82, 313.04, 331.29};
+Double_t weightsY[nbpms]={324.53, 408.29, 308.33, 278.71, 330.10};
 
 // bpm locations from the Qweak target to upstream in meters( from Nuruzzamans doccument on position and 
 // angle determination on target).These are the actual device positions in millimeters.
 // Qweak target is located at position 148.702. This was used as the position of the combined bpm
-Double_t z_pos[8]= {127133000, 129632000, 132625000, 138406000, 
-		    139653000, 140319000, 144801000, 147352000};
+Double_t z_pos[nbpms]= {138406, 139363,140329,144803,147351};
 
-Double_t tgtpos = 148702000;
+Double_t tgtpos = 148739;
 
 // Hall c harps
 TString harps[4] = {"iha3h07", "iha3h07a", "iha3h09", "iha3h09a"};
 
-
 // Harp positions were obtained usng a BPM doccument by Dave Mack that contains a bpm info latice.
 // These positions were matched with those of the bpms to get these values.
-// The units are micrometers
-Double_t harp_pos[4] = {137412000, 139400000, 144548000, 147097000};
+// The units are milimeters
+Double_t harp_pos[4] = {137412, 139400, 144548, 147097};
 
 
-// Readings from the harps. For testing I used injector bpm 0i02, 0i05, 0l03, 0l05 readings in micrometers.
+
+// Readings from the harps in milimeters.
 Double_t harp_readingsX[nharps];
-//Double_t harp_readingsX[nharps] = {-1.458, 0.5405,  5.952, 9.431 };
-
 Double_t harp_readingsY[nharps];
-//Double_t harp_readingsY[nharps] = {-2.942, -1.591, -3.323, -8.63};
 
 
 // Fit parameters
@@ -135,7 +131,7 @@ Double_t fakepos[1];
 Double_t fakeerr[1];
 Double_t fakeerrz[1];
 
-void plot_data(TFile * file, TString axis, TString device[], Double_t zpos[], Double_t means[] );
+void plot_data(TChain * t, TString axis, TString device[], Double_t zpos[], Double_t means[] );
 void read_harps(TString pos, TString names[], Double_t readings[]);
 void plot_residuals();
 
@@ -196,15 +192,25 @@ int main(Int_t argc,Char_t* argv[])
   // The second argument should be the run number
 
 
-  if(argc<2 || argc>3)
+  if(argc<2)
     {
       std::cerr<<"Please enter a run number"<<std::endl;
       exit(1);
     }
-  else if(argc == 2)
+  else if(argc == 3)
     {
-      runnum = argv[1];
-
+      std::cerr<<"Please enter an upper event cut. Can't use only a lower cut!"<<std::endl;
+      exit(1);
+    }
+  else if((argc == 2)||(argc == 4))
+    {
+      if(argc==2)
+	run_number = atoi(argv[1]);
+      if(argc == 4){
+	run_number = atoi(argv[1]);
+	lcut = atoi(argv[2]);
+	ucut = atoi(argv[3]);
+      }
       // Now request to input harp readings.
       std::cout<<"Input Harp readings? (Y/N)"<<std::endl;
       while(!done){
@@ -226,18 +232,48 @@ int main(Int_t argc,Char_t* argv[])
     }
 
 
-  //Get the root file
-  sprintf(filename,"%sQweak_BeamLine_%s.root",directory.Data(),runnum.Data());
-  TFile * f = new TFile(filename);
-  if(!f->IsOpen())
-      return 0;
-  std::cout<<"Obtaining data from: "<<filename<<"\n";
+  /*Open the rootfile/rootfiles*/
+  TChain * tree      = new TChain("Mps_Tree");
+  TString  Rfilename = Form("Qweak_%i.000.root", run_number);
+  TFile  * Rfile     = new TFile(Form("~/scratch/rootfiles/%s", Rfilename.Data()));
+
+  if (Rfile->IsZombie()) {
+    std::cout << "Error opening root file chain "<< Rfilename << std::endl;
+    Rfilename = Form("Qweak_%i.root", run_number);
+    std::cout << "Try to open chain " << Rfilename << std::endl;
+    Rfile = new TFile(Form("~/scratch/rootfiles/%s", Rfilename.Data()));
+
+    if (Rfile->IsZombie()) {
+      std::cout << "Error opening root file chain "<< Rfilename << std::endl;
+      Rfilename = Form("QwPass1_%i.000.root", run_number);
+      std::cout << "Try to open chain " << Rfilename << std::endl;
+      Rfile = new TFile(Form("~/scratch/rootfiles/%s", Rfilename.Data()));
+      
+      if (Rfile->IsZombie()){
+	std::cout << "File exit failure."<<std::endl; 
+	tree = NULL;
+      }
+      else
+	tree->Add(Form("~/scratch/rootfiles/QwPass1_%i.000.root", run_number));
+    }
+    else
+      tree->Add(Form("~/scratch/rootfiles/Qweak_%i.root", run_number));
+  }
+  else
+    tree->Add(Form("~/scratch/rootfiles/Qweak_%i.*.root", run_number));
+  
+    std::cout<<"Opened rootfile/s "<<Rfilename<<std::endl;
+
+  if(tree == NULL){
+    std::cout<< "Unable to find the Mps_Tree." << std::endl; 
+    exit(1);
+  }
+
   
 
   // Create a canvas and divide it in to pads
-  TString title = Form("%s : X & Y Beam Position Across Hall C Beamline",runnum.Data());
+  TString title = Form("%i : X & Y Beam Position Across Hall C Beamline",run_number);
   TCanvas *canvas = new TCanvas("canvas",title,1200,1000);
-
 
   TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
   TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
@@ -281,11 +317,11 @@ int main(Int_t argc,Char_t* argv[])
 
  // Plot histograms
   pad2->cd(1); 
-  plot_data(f, "X", devicelist,z_pos,meanx);
+  plot_data(tree, "X", devicelist,z_pos,meanx);
   XVariation = (TGraphErrors*)gPad->GetPrimitive("Graph");
 
   pad2->cd(2);
-  plot_data(f, "Y", devicelist,z_pos,meany);
+  plot_data(tree, "Y", devicelist,z_pos,meany);
   YVariation = (TGraphErrors*)gPad->GetPrimitive("Graph");
 
   // use multigraphs to overlay the graphs
@@ -300,7 +336,7 @@ int main(Int_t argc,Char_t* argv[])
 
   // Use my fit function to fit the graphs. Why am I using this? See comment in 
   // PlotResiduals() function. ; )
-  DoLinearLeastSquareFit(nbpms,z_pos, meanx, weights, fit_results);
+  DoLinearLeastSquareFit(nbpms,z_pos, meanx, weightsX, fit_results);
   TF1 *fitx = new TF1("fitx","[0]*x+[1]",z_pos[0],tgtpos); 
   fitx->SetParameter(0,fit_results[0]);
   fitx->SetParameter(1,fit_results[1]);
@@ -317,7 +353,7 @@ int main(Int_t argc,Char_t* argv[])
   YVariation->SetMarkerColor(2);
   YVariation->SetMarkerStyle(20);
   YVariation->SetMarkerSize(1.2);
-  DoLinearLeastSquareFit(nbpms,z_pos, meany, weights, fit_results);
+  DoLinearLeastSquareFit(nbpms,z_pos, meany, weightsY, fit_results);
   TF1 *fity = new TF1("fity","[0]*x+[1]",z_pos[0],tgtpos); 
   fity->SetParameter(0,fit_results[0]);
   fity->SetParameter(1,fit_results[1]);
@@ -335,8 +371,12 @@ int main(Int_t argc,Char_t* argv[])
   //  Beam on target X 
   pad2->cd(1);
   TH1F * hx = NULL;
-  f->GetObject("mps_histo/qwk_targetX_hw",hx);
-
+  tree->Draw(Form("qwk_targetX.hw_sum>>htemp","qwk_targetX.Device_Error_Code ==0 && mps_counter>%i && mps_counter < %i",lcut, ucut));
+  hx = (TH1F*)gDirectory->Get("htemp");
+  if(!hx){
+    std::cout<<"Unable to plot qwk_targetX."<<std::endl;
+    exit(1);
+  }
   //  Now create arrays of a single element to put in to the graph to plot the target.
   //  There is noway to plot a graph with a single point that is not an array.
   //  This is what I can think of right now..
@@ -344,7 +384,7 @@ int main(Int_t argc,Char_t* argv[])
   fakepos[0] = hx->GetMean();
   fakez[0]   = tgtpos;
   fakeerr[0] = hx->GetMeanError();
-
+  delete hx;
 
   tgtX = new TGraphErrors(1, fakez ,fakepos, fakeerrz,fakeerr);
   tgtX->SetMarkerColor(8);
@@ -353,11 +393,17 @@ int main(Int_t argc,Char_t* argv[])
 
   //  Beam on target Y 
   TH1F * hy = NULL;
-  f->GetObject("mps_histo/qwk_targetY_hw",hy);
+  tree->Draw(Form("qwk_targetY.hw_sum>>htemp","qwk_targetY.Device_Error_Code ==0  && mps_counter>%i && mps_counter < %i",lcut, ucut));
+  hy = (TH1F*)gDirectory->Get("htemp");
+  if(!hy){
+    std::cout<<"Unable to plot qwk_targetY."<<std::endl;
+    exit(1);
+  }
+ 
   fakepos[0] = hy->GetMean();
   fakez[0]   = tgtpos;
   fakeerr[0] = hy->GetMeanError();
-
+  delete hy;
 
   tgtY = new TGraphErrors(1, fakez ,fakepos, fakeerrz,fakeerr);
   tgtY->SetMarkerColor(8);
@@ -397,7 +443,7 @@ int main(Int_t argc,Char_t* argv[])
   mgx->Add(tgtX);
   mgx->SetTitle("X Position");
   mgx->Draw("AEP");
-  mgx->GetYaxis()->SetTitle("Beam Position (#mum)");
+  mgx->GetYaxis()->SetTitle("Beam Position (mm)");
   
   TAxis *axis = mgx->GetHistogram()->GetXaxis();
   axis->SetLabelOffset(999);
@@ -429,7 +475,7 @@ int main(Int_t argc,Char_t* argv[])
   mgy->Add(tgtY);
   mgy->SetTitle("Y Position");
   mgy->Draw("AEP");
-  mgy->GetYaxis()->SetTitle("Beam Position (#mum)");
+  mgy->GetYaxis()->SetTitle("Beam Position (mm)");
 
   axis = mgy->GetHistogram()->GetXaxis();
   axis->SetLabelOffset(999);
@@ -455,7 +501,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
   // Save the canvas on to a .gif file
-  TString impodva = Form("%s_hallC_beam_motion.gif",runnum.Data());
+  TString impodva = Form("%i_hallC_beam_motion.gif",run_number);
   canvas->Print(impodva.Data());  
 
  
@@ -469,11 +515,11 @@ int main(Int_t argc,Char_t* argv[])
  *  function to plot the data from the rootfile
  **************************************************/
 
-void plot_data(TFile * file, TString axis,  TString device[], Double_t zpos[], Double_t means[] )
+void plot_data(TChain * t, TString axis,  TString device[], Double_t zpos[], Double_t means[] )
 {
-  TH1F * h = NULL;
+  TH1F * h      = NULL;
   TString hname = "";
-
+  TString cut = "";
   double error[nbpms];
   double errorz[nbpms];
 
@@ -482,14 +528,17 @@ void plot_data(TFile * file, TString axis,  TString device[], Double_t zpos[], D
     means[k] = 0.0;
     error[k] = 0.0;
     errorz[k]=0.0;
-    std::cout<<device[k]<<std::endl;
   }
   
   for(size_t k = 0; k<nbpms;k++){
-    hname = Form("mps_histo/qwk_%s%s_hw",device[k].Data(), axis.Data());
-    std::cout<<hname<<std::endl;
-    file->GetObject(hname,h);
+    hname = Form("qwk_%s%s.hw_sum>>htemp",device[k].Data(), axis.Data());
+    if((lcut !=0) || (ucut != 0))
+      cut = Form("qwk_%s%s.Device_Error_Code == 0 && mps_counter>%i && mps_counter < %i",device[k].Data(), axis.Data(),lcut, ucut);
+    else
+      cut = Form("qwk_%s%s.Device_Error_Code == 0",device[k].Data(), axis.Data());
 
+    t->Draw(hname,cut);
+    h = (TH1F*)gDirectory->Get("htemp");
     if(h == NULL) {
       std::cout<<"Cannot get data from "<<hname<<std::endl;
       std::cout<<"Check to see if the histogram exsists."<<std::endl;
@@ -497,11 +546,11 @@ void plot_data(TFile * file, TString axis,  TString device[], Double_t zpos[], D
     }
     // beam position in micrometers
     means[k]  = h->GetMean();
-    std::cout<<means[k]<<std::endl;
     // error on the mean
     error[k] = h->GetMeanError();    
     // error on beam z position is fixed by bpm positions
     errorz[k] = 0.0;
+    delete h;
     }
 
   TGraphErrors* v = new TGraphErrors(nbpms, zpos ,means, errorz, error);
@@ -527,7 +576,6 @@ void read_harps(TString pos, TString names[],Double_t readings[])
 }
 
 
-
 /******************************************************************************
  *  function to plot the residuals of the harp readings and harp projections
  *****************************************************************************/
@@ -547,7 +595,7 @@ void plot_residuals()
 
 
   // Plot the X and Y residuals for the harp readings
-  TString title1 = Form("%s : X & Y fit residuals of the harps",runnum.Data());
+  TString title1 = Form("%i : X & Y fit residuals of the harps",run_number);
   TCanvas *canvas1 = new TCanvas("canvas1",title1,1200,1000);
 
   TPad*pad11 = new TPad("pad11","pad11",0.005,0.935,0.995,0.995);
@@ -557,11 +605,9 @@ void plot_residuals()
   pad22->Draw();
 
   pad11->cd();
-  TString text1 = Form(title1);
-  TText*t11 = new TText(0.22,0.3,text1);
+  TText*t11 = new TText(0.22,0.3,title1);
   t11->SetTextSize(0.7);
   t11->Draw();
-  
 
   pad22->cd();
   pad22->Divide(1,2);
@@ -626,7 +672,7 @@ void plot_residuals()
   gPad->SetRightMargin(0.15);
   gPad->SetFillColor(18);
   XResidual->SetTitle("Harp X Residual");
-  XResidual->GetYaxis()->SetTitle("( Harp X Reading - Fit results )(#mum)");
+  XResidual->GetYaxis()->SetTitle("( Harp X Reading - Fit results )(mm)");
 
   TAxis *axis = XResidual->GetHistogram()->GetXaxis();
   axis->SetLabelOffset(999);
@@ -647,7 +693,7 @@ void plot_residuals()
   gPad->SetRightMargin(0.15);
   gPad->SetFillColor(18);
   YResidual->SetTitle("Harp Y Residual");
-  YResidual->GetYaxis()->SetTitle("( Harp Y Reading - Fit results )(#mum)");
+  YResidual->GetYaxis()->SetTitle("( Harp Y Reading - Fit results )(mm)");
 
   axis = YResidual->GetHistogram()->GetXaxis();
   axis->SetLabelOffset(999);
@@ -662,6 +708,6 @@ void plot_residuals()
   canvas1->Update();
 
   // Save the canvas on to a .gif file  
-  TString print = Form("%s_X_Y_Harp_Residuals.gif",runnum.Data());
+  TString print = Form("%i_X_Y_Harp_Residuals.gif",run_number);
   canvas1->Print(print.Data()); 
 }
