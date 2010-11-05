@@ -117,11 +117,17 @@ void QwRootFile::DefineOptions(QwOptions &options)
 
   // Define the tree output prescaling options
   options.AddOptions()
-    ("num-accepted-events", po::value<int>()->default_value(0),
-     "number of accepted consecutive events");
+    ("num-mps-accepted-events", po::value<int>()->default_value(0),
+     "number of accepted consecutive MPS events");
   options.AddOptions()
-    ("num-discarded-events", po::value<int>()->default_value(0),
-     "number of discarded consective events");
+    ("num-mps-discarded-events", po::value<int>()->default_value(0),
+     "number of discarded consecutive MPS events");
+  options.AddOptions()
+    ("num-hel-accepted-events", po::value<int>()->default_value(0),
+     "number of accepted consecutive pattern events");
+  options.AddOptions()
+    ("num-hel-discarded-events", po::value<int>()->default_value(0),
+     "number of discarded consecutive pattern events");
   options.AddOptions()
     ("mapfile-update-interval", po::value<int>()->default_value(400),
      "Events between a map file update");
@@ -164,8 +170,10 @@ void QwRootFile::ProcessOptions(QwOptions &options)
 
   // Options 'num-accepted-events' and 'num-discarded-events' for
   // prescaling of the tree output
-  fNumEventsToSave = options.GetValue<int>("num-accepted-events");
-  fNumEventsToSkip = options.GetValue<int>("num-discarded-events");
+  fNumMpsEventsToSave = options.GetValue<int>("num-mps-accepted-events");
+  fNumMpsEventsToSkip = options.GetValue<int>("num-mps-discarded-events");
+  fNumHelEventsToSave = options.GetValue<int>("num-mps-accepted-events");
+  fNumHelEventsToSkip = options.GetValue<int>("num-mps-discarded-events");
 
   // Update interval for the map file
   fUpdateInterval = options.GetValue<int>("mapfile-update-interval");
