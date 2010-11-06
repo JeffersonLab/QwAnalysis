@@ -55,31 +55,49 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   //******** get tree
   TChain *tree = new TChain("Mps_Tree");
 
-  TString filename = Form("QwPass1_%i.000.root", run_number);
-  TFile *file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
-  
-  if (file->IsZombie()) {
-    std::cout << "Error opening root file chain " << filename << std::endl;
-    filename = Form("QwPass1_%i.root", run_number);
-    std::cout << "Try to open chain " << filename << std::endl;
-    file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
-    if (file->IsZombie()) {
-      std::cout << "Error opening root file chain " << filename << std::endl;
-      filename = Form("Qweak_%i.000.root", run_number);
-      std::cout << "Try to open chain " << filename << std::endl;
-      file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
-      if(file->IsZombie()){
-	tree = NULL;
-	exit(-1);
-      }
-      else
-	tree->Add(Form("$QW_ROOTFILES/Qweak_%i.*.root", run_number));	
+  TString filename = Form("Qw*_%i.*.root", run_number);
+  Bool_t found = kFALSE;
+
+  found = FindFiles(filename, tree);
+  if(!found){
+    filename = Form("first100k_%i.root", run_number);
+    found = FindFiles(filename, tree);
+    if(!found){
+      std::cerr<<"Unable to find rootfile(s) for run "<<run_number<<std::endl;
+      exit(1);
     }
-    else 
-      tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.root", run_number));
   }
-  else 
-    tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.*.root", run_number));
+  
+  // if (file->IsZombie()) {
+  //   std::cout << "Error opening root file chain " << filename << std::endl;
+  //   filename = Form("QwPass1_%i.root", run_number);
+  //   std::cout << "Try to open chain " << filename << std::endl;
+  //   file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
+  //   if (file->IsZombie()) {
+  //     std::cout << "Error opening root file chain " << filename << std::endl;
+  //     filename = Form("Qweak_%i.000.root", run_number);
+  //     std::cout << "Try to open chain " << filename << std::endl;
+  //     file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
+  //     if(file->IsZombie()){
+  // 	std::cout << "Error opening root file chain " << filename << std::endl;
+  // 	filename = Form("first100k_%i.root", run_number);
+  // 	std::cout << "Try to open chain " << filename << std::endl;
+  // 	file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
+  // 	if (file->IsZombie()) {
+  // 	  tree = NULL;
+  // 	  exit(-1);
+  // 	}
+  // 	else
+  // 	  tree->Add(Form("$QW_ROOTFILES/first100k_%i.root", run_number));	
+  //     }
+  //     else
+  // 	tree->Add(Form("$QW_ROOTFILES/Qweak_%i.*.root", run_number));	
+  //   }
+  //   else 
+  //     tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.root", run_number));
+  // }
+  // else 
+  //     tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.*.root", run_number));
   
   tree->SetAlias("time",time);
   
@@ -323,5 +341,42 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   return;
 }
 
+// Adapted from hallc_bcm_calib.C GetTree function written by J.H.Lee.
+// This function use the chain to add all of the files with name 
+// "filename" and then use that chain to get the corresponding file list.
+// it return s 1 if files are found. 0 if not.
+
+Bool_t FindFiles(TString filename, TChain * chain)
+{
+  TString file_dir;
+  Bool_t  chain_status = kFALSE;
+
+  file_dir = gSystem->Getenv("QWSCRATCH");
+  if (!file_dir) file_dir = "~/scratch/";
+  file_dir += "/rootfiles/";
+ 
+  chain_status = chain->Add(Form("%s%s", file_dir.Data(), filename.Data()));
+  
+  if(chain_status) {
+    
+    TString chain_name = chain -> GetName();
+    TObjArray *fileElements = chain->GetListOfFiles();
+    TIter next(fileElements);
+    TChainElement *chain_element = NULL;
+
+    while (( chain_element=(TChainElement*)next() )){      
+      std::cout << "File:  " 
+		<< chain_element->GetTitle() 
+		<< " is added into the file list with the name"<< std::endl;
+    }
+  }
+  else {
+    std::cout << "There is (are) no "
+	      << filename 
+	      << "."
+	      << std::endl;
+  }
+  return chain_status;
+};
 
 
