@@ -156,9 +156,9 @@ void QwEventBuffer::PrintRunTimes()
 	    << "Analysis of run " << GetRunNumber() << QwLog::endl
 	    << fNumPhysicsEvents << " physics events were processed"<< QwLog::endl
 	    << "CPU time used:  " << fRunTimer.CpuTime() << " s "
-	    << "(" << fRunTimer.CpuTime() / nevents << " s per event)" << QwLog::endl
+	    << "(" << 1000.0 * fRunTimer.CpuTime() / nevents << " ms per event)" << QwLog::endl
 	    << "Real time used: " << fRunTimer.RealTime() << " s "
-	    << "(" << fRunTimer.RealTime() / nevents << " s per event)" << QwLog::endl
+	    << "(" << 1000.0 * fRunTimer.RealTime() / nevents << " ms per event)" << QwLog::endl
 	    << QwLog::endl;
 };
 
@@ -333,10 +333,10 @@ Int_t QwEventBuffer::GetNextEvent()
   //  Progress meter (this should probably produce less output in production)
   if (IsPhysicsEvent() && fEvtNumber > 0 && fEvtNumber % 1000 == 0) {
     QwMessage << "Processing event " << fEvtNumber << " ";
-    //fStopwatch.Stop();
-    //QwMessage << "(" << fStopwatch.CpuTime() / 1000.0 << "s per event)";
-    //fStopwatch.Reset();
-    //fStopwatch.Start();
+    fStopwatch.Stop();
+    QwMessage << "(" << fStopwatch.CpuTime() << " ms per event)";
+    fStopwatch.Reset();
+    fStopwatch.Start();
     QwMessage << QwLog::endl;
   } else if (fEvtNumber > 0 && fEvtNumber % 100 == 0) {
     QwVerbose << "Processing event " << fEvtNumber << QwLog::endl;
