@@ -3,7 +3,7 @@ void mdlumi_ped(int run_num,int mps_start, bool get_md, bool get_lumi)
   TChain chain("Mps_Tree");
   for(int i=0;i<1;i++)
     {
-      chain.Add(Form("$QW_ROOTFILES/pedMDLumi%i.00%i.root",run_num,i));
+      chain.Add(Form("$QW_ROOTFILES/pedMDLumi%i.root",run_num,i));
     };
   const string lumi[16] = {
   "qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4",
@@ -12,12 +12,12 @@ void mdlumi_ped(int run_num,int mps_start, bool get_md, bool get_lumi)
   "qwk_uslumi5neg","qwk_uslumi5pos","qwk_uslumi7neg","qwk_uslumi7pos"};
 
   const string md[24] ={
-  "md1neg","md2neg","md3neg","md4neg",
-  "md5neg","md6neg","md7neg","md8neg",
-  "md1pos","md2pos","md3pos","md4pos",
-  "md5pos","md6pos","md7pos","md8pos",
-  "pmtled","pmtonl","pmtltg","md9neg",
-  "md9pos","isourc","preamp","cagesr"};
+  "qwk_md1neg","qwk_md2neg","qwk_md3neg","qwk_md4neg",
+  "qwk_md5neg","qwk_md6neg","qwk_md7neg","qwk_md8neg",
+  "qwk_md1pos","qwk_md2pos","qwk_md3pos","qwk_md4pos",
+  "qwk_md5pos","qwk_md6pos","qwk_md7pos","qwk_md8pos",
+  "qwk_pmtled","qwk_pmtonl","qwk_pmtltg","qwk_md9neg",
+  "qwk_md9pos","qwk_isourc","qwk_preamp","qwk_cagesr"};
   
   const int n = 24;
 
