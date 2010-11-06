@@ -27,12 +27,14 @@
 // target and another canvas containing the fit residuals of this fit and the harp readings.
 //
 // If N is selected only the bpm readings and the fit are displayed in the canvas.
-//
+// 
+// NOTE : Since we are using the mean values of the bpms to do this projection, the projected values will be
+// different from what we get using the combined bpm "qwk_target". qwk_target values are projected event by event.
+// But as you can see, the values from the qwk_target fall within the error of the fit done here. 
 //
 //********************************************
 // Main function
 //********************************************
-
 
 
 #include <vector>
@@ -79,6 +81,7 @@ TString  tempname = "";
 Char_t   filename[300];
 TString  directory="$QW_ROOTFILES/"; // the location of the rootfile used for calibration
 Char_t   option[4]= {""};
+Int_t    project = 0; // default beam projection is to target
 Bool_t   do_harps = kFALSE;
 Bool_t   done = kFALSE;
 
@@ -92,15 +95,16 @@ TString devicelist[nbpms]=
   {"bpm3h07a","bpm3h07b","bpm3h07c","bpm3h09","bpm3h09b"};
 
 // bpm weights obtained using run 5832.
-Double_t weightsX[nbpms]={420.43, 532.87, 371.82, 313.04, 331.29};
+Double_t weightsX[nbpms]={420.43, 532.87, 371.82, 313.04, 337.29};
 Double_t weightsY[nbpms]={324.53, 408.29, 308.33, 278.71, 330.10};
 
 // bpm locations from the Qweak target to upstream in meters( from Nuruzzamans doccument on position and 
 // angle determination on target).These are the actual device positions in millimeters.
 // Qweak target is located at position 148.702. This was used as the position of the combined bpm
-Double_t z_pos[nbpms]= {138406, 139363,140329,144803,147351};
+Double_t z_pos[nbpms]= {138406,139363,140329,144803,147351};
 
-Double_t tgtpos = 148739;
+Double_t tgtpos   = 148739;
+Double_t wplugpos = 148239; 
 
 // Hall c harps
 TString harps[4] = {"iha3h07", "iha3h07a", "iha3h09", "iha3h09a"};
@@ -109,7 +113,6 @@ TString harps[4] = {"iha3h07", "iha3h07a", "iha3h09", "iha3h09a"};
 // These positions were matched with those of the bpms to get these values.
 // The units are milimeters
 Double_t harp_pos[4] = {137412, 139400, 144548, 147097};
-
 
 
 // Readings from the harps in milimeters.
@@ -130,6 +133,10 @@ Double_t fakez[1];
 Double_t fakepos[1];
 Double_t fakeerr[1];
 Double_t fakeerrz[1];
+Double_t projectedX[1];
+Double_t projectedXErr[1];
+Double_t projectedY[1];
+Double_t projectedYErr[1];
 
 void plot_data(TChain * t, TString axis, TString device[], Double_t zpos[], Double_t means[] );
 void read_harps(TString pos, TString names[], Double_t readings[]);
@@ -211,9 +218,11 @@ int main(Int_t argc,Char_t* argv[])
 	lcut = atoi(argv[2]);
 	ucut = atoi(argv[3]);
       }
-      // Now request to input harp readings.
-      std::cout<<"Input Harp readings? (Y/N)"<<std::endl;
+
       while(!done){
+
+	// First request to input harp readings.
+	std::cout<<"Input Harp readings? (Y/N)"<<std::endl;
 	std::cin >> option;
 	if(strcmp(option, "y") == 0){
 	  read_harps("X",harps,harp_readingsX);
@@ -228,6 +237,16 @@ int main(Int_t argc,Char_t* argv[])
 	else{
 	  std::cerr<<"Please enter Y/N."<<std::endl;
 	}
+
+// 	// Next request for peojection option.
+// 	std::cout<<"Project to target (enter 0) or tungsten plug (enter 1)?"<<std::endl;
+// 	std::cin >> project;
+// 	if(project == 0 || project == 1){
+// 	  done = kTRUE;
+// 	}
+// 	else {
+// 	  std::cerr<<"Please enter 1 or 0 for correction option."<<std::endl;
+// 	}
       }
     }
 
@@ -314,6 +333,8 @@ int main(Int_t argc,Char_t* argv[])
   TGraphErrors * YVariation;; 
   TGraphErrors * tgtX;
   TGraphErrors * tgtY;
+  TGraphErrors * projX;
+  TGraphErrors * projY;
 
  // Plot histograms
   pad2->cd(1); 
@@ -391,6 +412,16 @@ int main(Int_t argc,Char_t* argv[])
   tgtX->SetMarkerStyle(20);
   tgtX->SetMarkerSize(2);
 
+  // Target X from fit.
+  projectedX[0] =  p1[0]*tgtpos +  p0[0];
+  // Used error propergation to get the error equation assuming there was no error on z measurement.
+  projectedXErr[0] = sqrt(pow((tgtpos*ep1[0]),2) + pow(ep0[0],2));
+  projX = new TGraphErrors(1, fakez , projectedX, fakeerrz, projectedXErr);
+  projX->SetMarkerColor(4);
+  projX->SetMarkerStyle(20);
+  projX->SetMarkerSize(2);
+
+
   //  Beam on target Y 
   TH1F * hy = NULL;
   tree->Draw(Form("qwk_targetY.hw_sum>>htemp","qwk_targetY.Device_Error_Code ==0  && mps_counter>%i && mps_counter < %i",lcut, ucut));
@@ -413,6 +444,17 @@ int main(Int_t argc,Char_t* argv[])
   TLegend *legend = new TLegend(0.93,0.25,0.99,0.7,"","brNDC");
   legend->AddEntry(YVariation, "bpms", "p");
   legend->AddEntry(tgtY, "target", "p");
+  legend->AddEntry(projX, "projected", "p");
+
+  // Target Y from fit.
+  projectedY[0] =  p1[1]*tgtpos +  p0[1];
+  // Used error propergation to get the error equation assuming there was no error on z measurement.
+  projectedYErr[0] = sqrt(pow((tgtpos*ep1[1]),2) + pow(ep0[1],2));
+  projY = new TGraphErrors(1, fakez , projectedY, fakeerrz, projectedYErr);
+  projY->SetMarkerColor(4);
+  projY->SetMarkerStyle(20);
+  projY->SetMarkerSize(2);
+  
 
 
   // If harps needs to be added,
@@ -441,6 +483,7 @@ int main(Int_t argc,Char_t* argv[])
   gPad->SetFillColor(18);
   mgx->Add(XVariation);
   mgx->Add(tgtX);
+  mgx->Add(projX);
   mgx->SetTitle("X Position");
   mgx->Draw("AEP");
   mgx->GetYaxis()->SetTitle("Beam Position (mm)");
@@ -473,6 +516,7 @@ int main(Int_t argc,Char_t* argv[])
   gPad->SetFillColor(18);
   mgy->Add(YVariation);
   mgy->Add(tgtY);
+  mgy->Add(projY);
   mgy->SetTitle("Y Position");
   mgy->Draw("AEP");
   mgy->GetYaxis()->SetTitle("Beam Position (mm)");
