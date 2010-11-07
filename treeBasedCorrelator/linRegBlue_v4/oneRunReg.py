@@ -82,7 +82,7 @@ if VERBOSE:
 
 def  exportHtml(inpFile,outFile,pdfURL) :
     print inpFile,"--> export HTML -->", outFile
-    f=open(outFile,'a')
+    f=open(outFile,'w')
     #print f
     f.write("<!--   new run  R%s ------------>\n" %RUNiSEG)
     f.write("<tr> <td  rowspan=2> "+ pdfURL)
@@ -128,7 +128,7 @@ def  exportHtml(inpFile,outFile,pdfURL) :
 
 def  doubleRegress():
     print "do double regression"
-    
+    os.system("date");
     os.mkdir("out")
 
     cutsStr=" blueReg.conf"
@@ -138,7 +138,8 @@ def  doubleRegress():
     print "exec1:%s" % cmdSort
     os.system(cmdSort+">& out/logS1")
 
-    # verify jobs did not aborted
+    print " verify sorting job did not aborted"
+    os.system("date");
     cmd= "grep \#success out/logS1 "
     fin,fout=os.popen4(cmd)
     line=fout.read()
@@ -153,7 +154,7 @@ def  doubleRegress():
     cmdSort2 = "(./linRegBlue %d" % RUN_NO + " %03d " % RUN_SEG + " %d" %  TOT_EVE + cutsStr+ " blueR"+ RUNiSEG + ".slope.root )"
     print "exec3:%s" % cmdSort2
     os.system(cmdSort2+">& out/logS2")
-    # verify jobs did not aborted
+    # verify job did not aborted
     cmd= "grep \#success out/logS2 "
     fin,fout=os.popen4(cmd)
     line=fout.read()
@@ -209,19 +210,24 @@ os.system(cmd_string6+">& out/log6")
 pdfURL="<A HREF=\""+outDirName+pdfName+"\"> R%s"%RUNiSEG+"</A>" + "<br> <A HREF=\""+outDirName+"logS2\"> log </A>"
 print pdfURL
 
-exportHtml("out/logS2", "web/index.html",pdfURL)
+exportHtml("out/logS2", "web/R%s"%RUNiSEG+".html",pdfURL)
 
 cmd_string7 = "mv out web/"+outDirName 
 print "exec7:%s" % cmd_string7
 os.system(cmd_string7)
 
+cmd_string8 = "rm -f web/index.html; cat web/top.html web/R*html > web/index.html "
+print "exec8:%s" % cmd_string8
+os.system(cmd_string8)
+
 #os._exit(1)
 #cmd_string9 = "scp -rp -i ~/balewski/keys/id_dsa-janDeltag5 index.html "+outDirName+" balewski@deltag5.lns.mit.edu:Sites/QweakA/"
 
-cmd_string9 = "scp -rp -i ~/balewski/keys/id_rsa-ifarml4  web/index.html web/"+outDirName+" balewski@ifarml4:/group/qweak/www/html/onlineRegression/Oct18A/"
+cmd_string9 = "scp -rp -i ~/balewski/keys/id_rsa-ifarml4  web/index.html web/"+outDirName+" balewski@ifarml4:/group/qweak/www/html/onlineRegression/autoA/"
 
 print "exec9:%s" % cmd_string9
 os.system(cmd_string9)
+os.system("date")
 
 os._exit(1)
 
@@ -230,4 +236,4 @@ os._exit(1)
 
 # transfer host memory to device 
 
-print  "scp -rp outR%d balewski@deltag5.lns.mit.edu:0x" % RUN_NO
+#print  "scp -rp outR%d balewski@deltag5.lns.mit.edu:0x" % RUN_NO

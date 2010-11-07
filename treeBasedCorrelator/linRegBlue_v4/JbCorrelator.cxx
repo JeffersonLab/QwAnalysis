@@ -94,7 +94,7 @@ JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > 
     h->SetBit(TH1::kCanRebin);
   }
   
-  double x1=5e2;
+  double x1=0;
   //..... 2D,  iv correlations
   h2iv=new TH1 *[nP*nP]; // not all are used
   for(int i=0;i<nP;i++) {    
@@ -117,7 +117,7 @@ JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > 
   }
   
   
-  double y1=3e1;
+  double y1=0;
   //..... 2D,  dv-iv correlations
   h2dv=new TH1 *[nP*nY]; // not all are used
   for(int i=0;i<nP;i++) {    

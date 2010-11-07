@@ -1,11 +1,12 @@
 TCanvas *can=0;
+int pl=2; //1=gif, 2=ps, 3=both
 
 TFile* fd=0;
 enum{ nP=5,nY=15}; 
 TString cor1="input";
-int pl=2; //1=gif, 2=ps, 3=both
-TString runName="R5823.000";
-//TString inpPath="./web/R6000.000/";
+TString runName="R6580.001";
+
+//TString inpPath="./web/R5822.001/";
 TString inpPath="./out/";
 char *oPath="./out/";
 
@@ -70,9 +71,10 @@ void   mySum(TString cCore, TString text){
   }
   double yMax=h->GetMaximum();
   h->SetMaximum(yMax*1.02);
-  hpr=h;  // min set based on 1D projections range , below
+  h->SetMinimum(yMax*0.90);
+
   h->Draw();
-  tx=new TText(0, h->GetMaximum(),"     run="+runName); tx->Draw();
+  tx=new TText(ax->GetBinCenter(2), h->GetMaximum(),"     run="+runName); tx->Draw();
   tx->SetTextSize(0.12);
 
 
@@ -83,15 +85,14 @@ void   mySum(TString cCore, TString text){
 
   cD->cd(2);
   h=(TH1 *)fd->Get("inpBcm1"); assert(h);
+  
   h->Draw();
   
-  double lowBcm=h->GetXaxis()->GetBinCenter(1);
-  hpr->SetMinimum(lowBcm);
-
+ 
   cD->cd(3);
   h=(TH1 *)fd->Get("inpDevErr"); assert(h);
   h->Draw();
-
+  if(h->Integral()>20) gPad->SetLogy();
  
 
 }
@@ -103,7 +104,7 @@ void   IV_IV(TString cCore, TString text){
   gStyle->SetOptStat(1001110);
   gStyle->SetOptFit(1);
   
-  can=new TCanvas("aa","aa",700,700);    TPad *c=makeTitle(can,text);
+  can=new TCanvas("aa","aa",800,700);    TPad *c=makeTitle(can,text);
 
   c->Divide(nP,nP);
 
@@ -122,7 +123,7 @@ void   IV_IV(TString cCore, TString text){
     TText *tx=new TText(xm,ym/2.,Form("RMS=%.0f",w1)); tx->Draw();
     tx->SetTextSize(0.15);
     tx=new TText(xm,ym,ax->GetTitle()+3); tx->Draw();
-    tx->SetTextSize(0.10);
+    tx->SetTextSize(0.14);  tx->SetTextColor(kMagenta);
   }
   
   // .... correlations 
@@ -160,11 +161,11 @@ void   DV_1D(TString cCore,TString text, TString preFix){
 
     TAxis *ax=h->GetXaxis();
     double w1=h->GetRMS();
-    double ym=h->GetMaximum()*0.45;
-    TText *tx=new TText(xm,ym/2.,Form("RMS=%.0f",w1)); tx->Draw();
-    tx->SetTextSize(0.15);
+    double ym=h->GetMaximum()*0.75;
+    TText *tx=new TText(xm,ym/2.g,Form("RMS=%.0f",w1)); tx->Draw();
+    tx->SetTextSize(0.15);  tx->SetTextColor(45);
     tx=new TText(xm,ym,ax->GetTitle()+3); tx->Draw();
-    tx->SetTextSize(0.15);
+    tx->SetTextSize(0.15);  tx->SetTextColor(45);
 
   }
 
@@ -191,6 +192,7 @@ void   IV_DV(TString cCore, TString text, int iy1, int iy2){
       h->Draw("colz");
       trimDisplayRange(h,6.);
       k++;
+      //break;
     }
   }
 }
@@ -198,25 +200,28 @@ void   IV_DV(TString cCore, TString text, int iy1, int iy2){
 //============================================
 //============================================
 void  trimDisplayRange(TH1 *h, double fac=0.8) {
-      // symetrize displayed axis
-     
-      TAxis *ax=h->GetXaxis();
-      //      double ax1=fabs(ax->GetXmax()),ax2=fabs(ax->GetXmin());
-      //  if(ax1>ax2) ax1=ax2;
-      
-      double basx=h->GetRMS()*fac;
-      h->SetAxisRange(-basx,basx,"x");
-
-      ax=h->GetYaxis();
-      if(ax->GetNbins()<10) return basx; // it was 1D histo
-
-      double basy=h->GetRMS(2)*fac;
-      h->SetAxisRange(-basx,basx,"x");
-      //      double ay1=fabs(ax->GetXmax()),ay2=fabs(ax->GetXmin());
-      //if(ay1>ay2) ay1=ay2;
-      h->SetAxisRange(-basy,basy,"y");
-
-      return basx;
+  // symetrize displayed axis
+  
+  TAxis *ax=h->GetXaxis();
+  //      double ax1=fabs(ax->GetXmax()),ax2=fabs(ax->GetXmin());
+  //  if(ax1>ax2) ax1=ax2;
+  
+  double basx=h->GetRMS()*fac;
+  basx=ax->GetXmin();
+  h->SetAxisRange(-basx,basx,"x");
+  printf("%s rms=%f xbas=%f %d\n", h->GetName(), h->GetRMS(),basx,ax->GetNbins());
+  
+	   
+  ax=h->GetYaxis();
+  if(ax->GetNbins()<10) return -basx; // it was 1D histo
+  
+  double basy=h->GetRMS(2)*fac;
+  h->SetAxisRange(-basy,basy,"y");
+  //      double ay1=fabs(ax->GetXmax()),ay2=fabs(ax->GetXmin());
+  //if(ay1>ay2) ay1=ay2;
+  h->SetAxisRange(-basy,basy,"y");
+  
+  return basx;
 }
 
 
@@ -293,7 +298,7 @@ TPad *makeTitle(TCanvas *c,char *core) {
 //============================
 void doAll(){
   for(int i=1;i<=8;i++)  {
-    if(i==6||i==7) continue; //tmp, if no 2,4,8-sums
+    // if(i==6||i==7) continue; //tmp, if no 2,4,8-sums
     plCor(i);
   }
 

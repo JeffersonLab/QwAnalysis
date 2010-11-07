@@ -7,9 +7,9 @@ Executing shell commande depending on params
 """
 import os
 
-f=open("runListOct18","r")
-#f=open("runListBoil.txt","r")
-#f=open("rr3","r")
+#f=open("runListOct16-17","r")
+f=open("runsNovember/runList6")
+#f=open("rr6","r")
 print f
 for line in f:
     print line
@@ -25,6 +25,12 @@ for line in f:
         print "exec1:%s" % cmdSort
         os.system(cmdSort)
 
-    break
+    #break
 #print f.readline()
+
+#mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select   run_number, segment,size,start_time from analysis  where backup_status=11 and start_time>unix_timestamp('2010-10-28 12:00:00') and  size >1000000 order by start_time" | nl
+
+#better
+
+#mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select   run_number, filename,segment from analysis  where run_number=5999" | nl
 

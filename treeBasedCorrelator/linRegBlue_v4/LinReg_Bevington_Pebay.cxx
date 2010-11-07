@@ -182,17 +182,20 @@ void LinRegBevPeb::printSummaryP(){
 
   size_t dim=par_nP;
   if(fGoodEventNumber>2) { // print full matrix
-    cout << Form("\n         name:             ");
-    for (size_t i = 0; i <dim; i++) {
+    cout << Form("\n     name:                                       ");
+    for (size_t i = 1; i <dim; i++) {
       cout << Form(" %10sP%d "," ",i);
     }
-    cout << Form("\n  j                   mean          sig      corelation-matrix ....\n");
+    cout << Form("\n                  mean     sig(distrib)          nSig(mean)   corelation-matrix ....\n");
     for (size_t i = 0; i <dim; i++) {
       double meanI,sigI;
       assert( getMeanP(i,meanI)==0);
       assert( getSigmaP(i,sigI)==0);
+      double nSig=-1;
+      double err=sigI/sqrt(fGoodEventNumber);
+      if(sigI>0.) nSig=meanI/err;
 
-      cout << Form(" %3d %6sP%d:  %+12.4g  %12.4g ",i," ",i,meanI,sigI);
+      cout << Form(" %6sP%d:  %+12.4g  %12.3g      %.1f    "," ",i,meanI,sigI,nSig);
       for (size_t j = 1; j <dim; j++) {
         if( j<=i) { cout << Form("  %12s","._._._."); continue;}
         double sigJ,cov; assert( getSigmaP(j,sigJ)==0);
@@ -219,7 +222,7 @@ void LinRegBevPeb::printSummaryY(){
     assert( getSigmaY(i,sigI)==0);
     double err=sigI/sqrt(fGoodEventNumber);
     double nSigErr=meanI/err;
-    cout << Form("  Y%d:  %+12.4g  %12.4g  %8.1f  %12.4g "" ",i,meanI,err,nSigErr,sigI)<<endl;
+    cout << Form("Y%02d: %+11.4g  %12.4g  %8.1f  %12.4g "" ",i,meanI,err,nSigErr,sigI)<<endl;
 
   }
 }

@@ -26,8 +26,9 @@ int main(int argc, char *argv[]) {
   int mxEve=500, skipEve=0;
   int runSeg=0;
   const char * inpPath="/home/cdaq/qweak/QwScratch/rootfiles/QwPass1_"; //cdaq:Pass1
-  //const char * inpPath="/group/qweak/QwAnalysis/common/QwScratch/rootfiles/QwPass1.1_";//*QwPass1.1*
+  //const char * inpPath="/group/qweak/QwAnalysis/common/QwScratch/rootfiles/QwPass1.1_";//*QwPass1.1* from Paul
 
+  //const char * inpPath="/cache/mss/hallc/qweak/rootfiles/pass0/QwPass1.1.";// QwPass1.1* from Juliette
 
   const char * outPath="./out/";
   const char * configFName="blueReg.conf";
@@ -63,7 +64,7 @@ int main(int argc, char *argv[]) {
     TString corFileName=Form("%s%s",outPath,slopeFName);
     TFile*  corFile=new TFile(corFileName);
     if( !corFile->IsOpen()) {
-      printf("Failed to open %s, Alphas NOT found\n",corFile->GetName());
+      printf("Failed to open %s, slopes NOT found\n",corFile->GetName());
       return 0;
     }
     //    alphasM=(TMatrixD *) corFile->Get("IV_covariance");assert(alphasM);
@@ -99,6 +100,7 @@ int main(int argc, char *argv[]) {
   printf(" Setup output  histo to '%s' ,\n",hfileName.Data());
 
   eve.init();  // creates histo: WARN: output histo file must be already opened   
+  eve.print();
   eve.findInputLeafs(chain);
   corA.init( eve.ivName, eve.dvName );   // creates histo 
   if(alphasM) corB->init( eve.ivName, eve.dvName); 

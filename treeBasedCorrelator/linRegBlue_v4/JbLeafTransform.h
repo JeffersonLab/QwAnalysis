@@ -17,22 +17,23 @@ class JbLeafTransform {
  public:
   std::vector < TString > ivName; // list of independent variables
   std::vector < TString > dvName; // list of dependent variables
-  TString inpTree, regVarName;
+  TString inpTree, regVarName, afixName;
   TString cutName, cutFormula;
 
   int ndv(){return (int)dvName.size();}
   int niv(){return (int)ivName.size();}
   void readConfig(const char * configFName);
   void presetMyStat(double x1,double x2, double thr, double x3);
-
+  TString humanizeLeafName(TString longName);
+  
  private:
   TString myName;
-  enum{ mxAux=2};// auxiliary variables: pattern, bcm1,
+  enum{ mxAux=3};// auxiliary variables: pattern, bcm1, bcm2
    
   // pointers to leaf variables
   Double_t **pLeafDV, **pLeafIV, *pLeafAux[mxAux], **pLeafError; 
   int nLeafError;
-  Double_t * getOneLeaf(TChain *chain,TString name,char *sub); 
+  Double_t * getOneLeaf(TChain *chain,TString name,TString sub=""); 
   // histograms
   enum {mxHA=16}; TH1 * hA[mxHA];
   void initHistos();

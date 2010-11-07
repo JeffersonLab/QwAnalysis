@@ -30,15 +30,16 @@ using namespace std;
 JbLeafTransform::JbLeafTransform(const char *core) {
   myName=core;
   cutName="none"; cutFormula="";
+  afixName="afixMe3"; nLeafError=0;
   printf("constr of JbLeafTransform=%s\n",myName.Data());
 }
 
 //========================
 //========================
 Double_t * 
-JbLeafTransform::getOneLeaf(TChain *chain, TString name,char *sub) {
+JbLeafTransform::getOneLeaf(TChain *chain, TString name,TString sub) {
   // name.ToLower(); will crash :  diff_qwk_bpm3h09Y
-  name+=sub;
+  if(sub.Sizeof()>1) name+="/"+sub;
   TLeaf *lf=chain->GetLeaf(name); 
   if(lf==0) printf("Failed leaf=%s= \n",name.Data());
   assert(lf);
@@ -56,23 +57,32 @@ JbLeafTransform::findInputLeafs(TChain *chain){
   int k=0;
   // Access DV leafs
   for(int i=0;i<ndv();i++) {
-    pLeafDV[i]=getOneLeaf(chain,dvName[i],"/hw_sum");   
-    pLeafError[k++]=getOneLeaf(chain,dvName[i],"/Device_Error_Code");   
+    pLeafDV[i]=getOneLeaf(chain,dvName[i],afixName);   
+    pLeafError[k++]=getOneLeaf(chain,dvName[i],"Device_Error_Code");   
   }
   // Access IV leafs
   for(int i=0;i<niv();i++){
-    pLeafIV[i]=getOneLeaf(chain,ivName[i],"/hw_sum");   
-    pLeafError[k++]=getOneLeaf(chain,ivName[i],"/Device_Error_Code");   
+    pLeafIV[i]=getOneLeaf(chain,ivName[i],afixName);   
+    pLeafError[k++]=getOneLeaf(chain,ivName[i],"Device_Error_Code");   
   }
 
   // Access Aux leafs
-  pLeafAux[0]=getOneLeaf(chain,"pattern_number","");
-  pLeafAux[1]=getOneLeaf(chain,"yield_qwk_bcm1","/hw_sum");
-  pLeafError[k++]=getOneLeaf(chain,"yield_qwk_bcm1","/Device_Error_Code");   
+  pLeafAux[0]=getOneLeaf(chain,"pattern_number");
+  pLeafAux[1]=getOneLeaf(chain,"yield_qwk_bcm1",afixName);
+  pLeafAux[2]=getOneLeaf(chain,"yield_qwk_bcm2",afixName); // not used for cuts
+  pLeafError[k++]=getOneLeaf(chain,"yield_qwk_bcm1","Device_Error_Code");   
+  pLeafError[k++]=getOneLeaf(chain,"yield_qwk_bcm2","Device_Error_Code");   
 
-  nLeafError=k;
-  hA[3]=new TH1F("inpDevErr",Form("device error code  !=0;channles: DV[0-%d], IV[%d-%d], BCM",ndv()-1,ndv(),ndv()+niv()-1),nLeafError,-0.5,nLeafError-0.5);
+  assert(nLeafError==k);
+  hA[3]=new TH1F("inpDevErr",Form("device error code  !=0;channels: DV[0-%d], IV[%d-%d], BCM1,2   ",ndv()-1,ndv(),ndv()+niv()-1),nLeafError,-0.5,nLeafError-0.5);
   hA[3]->SetFillColor(kGreen);
+
+  //...... now you can shorten names so they are easier to read & print
+  for(unsigned int i=0; i<dvName.size(); i++) 
+    dvName[i]=humanizeLeafName(dvName[i]);
+  for(unsigned int i=0; i<ivName.size(); i++) 
+    ivName[i]=humanizeLeafName(ivName[i]);
+
 
 
 }
@@ -90,7 +100,6 @@ JbLeafTransform::presetMyStat(double x1,double x2, double thr, double x3){
   TLine *ln=new TLine(thr,0,thr,5.e3);
   ln->SetLineColor(kRed); ln->SetLineWidth(2);
   Lx->Add(ln);
-  printf("ZZZZZZZZ %f \n",thr);
   
 }
 
@@ -143,7 +152,7 @@ JbLeafTransform::unpackEvent(){
   }
   if(eveBad) return false;
 
-  hA[0]->Fill("noError", 1.);
+  hA[0]->Fill("noDevErr", 1.);
   
 
   /* arrays w/ final 15 dv & iv variables
@@ -190,7 +199,7 @@ JbLeafTransform::initHistos(){
   h->SetFillColor(kBlue);
   h->SetBit(TH1::kCanRebin);
 
-  hA[2]=h=new TProfile("inpPattNo","Current stability; Pattern_number; BCM1 (#mu A)    ",200,0.,0.);
+  hA[2]=h=new TProfile("inpPattNo","Current stability; Pattern_number; average BCM1 (#mu A)    ",200,0.,0.);
   h->SetFillColor(kYellow);  h->SetBit(TH1::kCanRebin); // rescalled in finish
 
 
@@ -213,8 +222,8 @@ JbLeafTransform::finish(){
 void 
 JbLeafTransform::print() {
 
-  printf("JbLeafTransform: myName='%s' , inpTree='%s'  regVarName=%s, len: dv=%d iv=%d  nLeafErr=%d\nDV: ",myName.Data(),inpTree.Data(),regVarName.Data(),(int)dvName.size(),(int)ivName.size(), nLeafError);
-  printf("  custom cut: name=%s  formual='%s'\n",cutName.Data(), cutFormula.Data());
+  printf("JbLeafTransform: myName='%s' , inpTree='%s'  regVarName=%s, len: dv=%d iv=%d  nLeafErr=%d, afix=%s\nDV: ",myName.Data(),inpTree.Data(),regVarName.Data(),(int)dvName.size(),(int)ivName.size(), nLeafError,afixName.Data());
+  printf("  custom cut: name=%s  formula='%s'\n",cutName.Data(), cutFormula.Data());
   for(unsigned int i=0; i<dvName.size(); i++) printf("%s, ",dvName[i].Data());
   printf("\nIV: ");
   for(unsigned int i=0; i<ivName.size(); i++) printf("%s, ",ivName[i].Data());
@@ -242,9 +251,8 @@ JbLeafTransform::readConfig(const char * configFName){
   Pvec   = new Double_t   [niv()];
 
   // leavs w/ error code
-  pLeafError= new Double_t * [niv()+ndv()+1];
-  nLeafError=0;
-
+  nLeafError=niv()+ndv()+2;// '2' is for bcm1, bcm2
+  pLeafError= new Double_t * [nLeafError]; 
 
 }
 
@@ -261,12 +269,12 @@ JbLeafTransform::harvestNames(FILE *fp) {
     nl++;
     if (strstr(buf,"#")>0) continue;
     char *x=strstr(buf, "\n"); if(x)*x=0;
-    //printf("line=%d  buf=%s=\n",nl,buf);
+    //printf("line=%d  state=%d buf=%s=\n",nl,state,buf);
     if(state==0) { // before  block of IV-DV is found
       if (strstr(buf, "customcut")){
 	char name[1000], formula[10000];
 	int ret=sscanf(buf+9,"%s %s",name,formula);
-	printf("CUSTOM CUT line! ret=%d  name=%s= formula=%s=\n",ret,name,formula);
+	printf("CUSTOM CUT line: ret=%d  name=%s= formula=%s=\n",ret,name,formula);
 	cutName=name;
 	cutFormula=formula;
       }
@@ -276,14 +284,29 @@ JbLeafTransform::harvestNames(FILE *fp) {
       continue;
     } 
     if(state==1){ // increment iv & dv name lists
+      if (strstr(buf, "afix")) afixName=buf+5;
       if (strstr(buf, "iv")) ivName.push_back(buf+3);
       if (strstr(buf, "dv")) dvName.push_back(buf+3);
-      if (strstr(buf, "treetype")==0) continue;// first search for new block
+      if (strstr(buf, "treetype")==0) continue;
+      // end this DV-IV block
       state=2;
       inpTree=buf+9;
-      continue;	
+      break;
     }
   }
-  print();
   return state;
+}
+
+
+
+//=====================
+TString 
+JbLeafTransform::humanizeLeafName(TString longName) {
+  TString name=longName;
+  name.ReplaceAll("_qwk","");
+  name.ReplaceAll("_md","_MD");
+  name.ReplaceAll("barsum","");
+  name.ReplaceAll("bars","");
+  printf("Humanize '%s' --> '%s'\n", longName.Data(),name.Data());
+  return name;
 }
