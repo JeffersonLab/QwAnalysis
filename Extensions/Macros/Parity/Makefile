@@ -1,10 +1,10 @@
-# Makefile for QwPromptSummary.cc  Code
+# Makefile for QwPromptSummary.cc  Code and read_run_range.cc code.
 # (modified version of $(ROOTSYS)/test/Makefile)
 #
 
 # April 25, 2000 	 E. Beise, modify to work with Alpha DUX4.0
 # August 23, 2010         R. Beminiwattha, modify to work for QwPromptSummary.0
-
+# November 9. 2010        B. Waidyawansa, modified to work for read_from_runs.o
 ObjSuf        = o
 SrcSuf        = C
 ExeSuf        =
@@ -20,7 +20,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 MYOS := $(subst -,,$(shell uname))
 
 
-EXE := promptsummary
+EXE := promptsummary get_from_runs
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -43,7 +43,8 @@ all:  $(EXE)
 promptsummary : QwPromptSummary.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-
+get_from_runs : read_run_range.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 
 %.o: %.C
