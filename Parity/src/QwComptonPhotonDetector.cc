@@ -43,8 +43,8 @@ void QwComptonPhotonDetector::ProcessOptions(QwOptions &options)
 Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 {
   Int_t subbank = -1; // subbank index
-  Int_t current_roc_id; // current ROC id
-  Int_t current_bank_id; // current bank id
+  Int_t current_roc_id = -1; // current ROC id
+  Int_t current_bank_id = -1; // current bank id
 
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
@@ -370,7 +370,7 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
         UInt_t num_events = 0;
         if ((header & 0xda000dc0) == 0xda000dc0)
           num_events = (buffer[0] & 0x00FF0000) >> 16;
-        // TODO Multiscaler functionality
+        // TODO Multihit functionality
 
         // Loop over buffered events
         for (size_t i = words_read; i < num_words; i++) {
@@ -457,11 +457,11 @@ Bool_t QwComptonPhotonDetector::SingleEventCuts()
 void  QwComptonPhotonDetector::ProcessEvent()
 {
   for (size_t i = 0; i < fSamplingADC.size(); i++)
-    fSamplingADC.at(i).ProcessEvent();
+    fSamplingADC[i].ProcessEvent();
   for (size_t i = 0; i < fMultiTDC_Channel.size(); i++)
-    fMultiTDC_Channel.at(i).ProcessEvent();
+    fMultiTDC_Channel[i].ProcessEvent();
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
-    fMultiQDC_Channel.at(i).ProcessEvent();
+    fMultiQDC_Channel[i].ProcessEvent();
 };
 
 
@@ -510,9 +510,9 @@ void QwComptonPhotonDetector::ClearEventData()
 
   // Remove all buffered TDC and QDC events for all channels
   for (size_t i = 0; i < fMultiTDC_Channel.size(); i++)
-    fMultiTDC_Channel.at(i).ClearEventData();
+    fMultiTDC_Channel[i].ClearEventData();
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
-    fMultiQDC_Channel.at(i).ClearEventData();
+    fMultiQDC_Channel[i].ClearEventData();
 };
 
 /**

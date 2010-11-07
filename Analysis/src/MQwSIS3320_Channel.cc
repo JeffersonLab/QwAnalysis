@@ -372,8 +372,8 @@ void MQwSIS3320_Channel::ProcessEvent()
     fSamples[i] = (fSamplesRaw[i] - fPedestal) * fCalibrationFactor;
   }
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
-    Double_t pedestal = fPedestal * fAccumulatorsRaw[i].GetNumberOfSamples();
-    fAccumulators[i] = (fAccumulatorsRaw[i] - pedestal) * fCalibrationFactor;
+    fAccumulators[i] -= fPedestal * fAccumulatorsRaw[i].GetNumberOfSamples();
+    fAccumulators[i] *= fCalibrationFactor;
   }
 
   // Calculate the average sample snapshot
@@ -457,7 +457,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator= (const MQwSIS3320_Channel &val
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      fSamples.at(i) = value.fSamples.at(i);
+      fSamples[i] = value.fSamples.at(i);
   }
   return *this;
 };
@@ -471,9 +471,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      fSamples.at(i) += value;
+      fSamples[i] += value;
     for (size_t i = 0; i < fAccumulators.size(); i++)
-      fAccumulators.at(i) += value;
+      fAccumulators[i] += value;
   }
   return *this;
 };
@@ -487,9 +487,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      fSamples.at(i) -= value;
+      fSamples[i] -= value;
     for (size_t i = 0; i < fAccumulators.size(); i++)
-      fAccumulators.at(i) -= value;
+      fAccumulators[i] -= value;
   }
   return *this;
 };
@@ -503,9 +503,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const MQwSIS3320_Channel &va
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      fSamples.at(i) += value.fSamples.at(i);
+      fSamples[i] += value.fSamples.at(i);
     for (size_t i = 0; i < fAccumulators.size(); i++)
-      fAccumulators.at(i) += value.fAccumulators.at(i);
+      fAccumulators[i] += value.fAccumulators.at(i);
   }
   return *this;
 };
@@ -519,9 +519,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &va
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      fSamples.at(i) -= value.fSamples.at(i);
+      fSamples[i] -= value.fSamples.at(i);
     for (size_t i = 0; i < fAccumulators.size(); i++)
-      fAccumulators.at(i) -= value.fAccumulators.at(i);
+      fAccumulators[i] -= value.fAccumulators.at(i);
   }
   return *this;
 };
@@ -556,9 +556,9 @@ void MQwSIS3320_Channel::Offset(Double_t offset)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      fSamples.at(i) += offset;
+      fSamples[i] += offset;
     for (size_t i = 0; i < fAccumulators.size(); i++)
-      fAccumulators.at(i) += offset;
+      fAccumulators[i] += offset;
   }
 };
 
@@ -570,9 +570,9 @@ void MQwSIS3320_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      fSamples.at(i) *= scale;
+      fSamples[i] *= scale;
     for (size_t i = 0; i < fAccumulators.size(); i++)
-      fAccumulators.at(i) *= scale;
+      fAccumulators[i] *= scale;
   }
 };
 
