@@ -212,6 +212,7 @@ endif
 
 ifndef QWANALYSIS
   $(warning Warning : QWANALYSIS variable is not defined.  Setting to current directory.)
+  $(error You have probably forgotten to "source SetupFiles/SET_ME_UP.csh")
   QWANALYSIS := $(shell pwd)
 endif
 ifeq ($(strip $(QWANALYSIS)),)
