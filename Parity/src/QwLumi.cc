@@ -275,7 +275,8 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
                                                    fLumiDetectorID[i].fCombinedChannelNames[l]);
 
                   fCombinedPMT[ind].Add(&fIntegrationPMT[ind_pmt],fLumiDetectorID[i].fWeight[l]);
-                  std::cout<<"added combined pmt "<<fLumiDetectorID[i].fWeight[l] <<" to array"<<std::endl;
+
+                 if (ldebug) std::cout<<"added combined pmt "<<fLumiDetectorID[i].fWeight[l] <<" to array"<<std::endl;
                 }
               fCombinedPMT[ind].LinkChannel(fLumiDetectorID[i].fdetectorname);
               if (ldebug)
