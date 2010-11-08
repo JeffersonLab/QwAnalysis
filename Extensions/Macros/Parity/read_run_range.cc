@@ -105,15 +105,15 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetPadGridY(kTRUE);
   gStyle->SetPadTopMargin(0.15);
   gStyle->SetPadBottomMargin(0.1);
-  gStyle->SetPadLeftMargin(0.15);  
+  gStyle->SetPadLeftMargin(0.1);  
   gStyle->SetPadRightMargin(0.05);  
 
   // histo parameters
-  gStyle->SetTitleYOffset(1.7);
-  gStyle->SetTitleXOffset(0.08);
+  gStyle->SetTitleYOffset(1.0);
+  gStyle->SetTitleXOffset(0.7);
   gStyle->SetTitleX(0.1);
   gStyle->SetTitleW(0.8);
-  gStyle->SetTitleSize(0.15);
+  gStyle->SetTitleSize(0.05);
   gStyle->SetTitleOffset(1.5);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(kYellow-8);
@@ -161,24 +161,6 @@ int main(Int_t argc,Char_t* argv[])
   // Q:Which tree to access?
   // Q:What histogram to get?
 
-  if(property.Contains("d")||property.Contains("a")||property.Contains("y")){
-    tree = new TChain("Hel_Tree");
-    if(property.Contains("y"))
-      histoname = Form("hel_histo/yield_%s_hw",device.Data());
-    if(property.Contains("a"))
-      histoname = Form("hel_histo/asym_%s_hw",device.Data());
-   if(property.Contains("d"))
-     histoname = Form("hel_histo/diff_%s_hw",device.Data());
-  }
-  else if (property.Contains("s")){
-    tree = new TChain("Mps_Tree");
-    histoname = Form("mps_histo/%s_hw",device.Data());
-  }
-  else{
-    std::cout<<"Requested unknown "<<property<<" from device "<<device<<".\n I don't know this"<<std::endl;
-    exit(1);
-  }
-
   
  // Find the files from given run range.
   Bool_t found = kFALSE;
@@ -191,9 +173,31 @@ int main(Int_t argc,Char_t* argv[])
   file_list.clear();
 
   for(Int_t run = run1; run< run2+1; run++){
+ 
+    // first create chains
+    if(property.Contains("d")||property.Contains("a")||property.Contains("y")){
+      tree = new TChain("Hel_Tree");
+      if(property.Contains("y"))
+	histoname = Form("hel_histo/yield_%s_hw",device.Data());
+      if(property.Contains("a"))
+	histoname = Form("hel_histo/asym_%s_hw",device.Data());
+      if(property.Contains("d"))
+	histoname = Form("hel_histo/diff_%s_hw",device.Data());
+    }
+    else if (property.Contains("s")){
+      tree = new TChain("Mps_Tree");
+      histoname = Form("mps_histo/%s_hw",device.Data());
+    }
+    else{
+      std::cout<<"Requested unknown "<<property<<" from device "<<device<<".\n I don't know this"<<std::endl;
+      exit(1);
+    }
+    
+
+    // Open the file
     file_list.clear();
     filename = "";
-    filename = Form("first*_%i.*root", run);
+    filename = Form("first*_%i.root", run);
     found = FindFiles(filename, file_list, tree);
     if(!found){
       filename = Form("QwPass*_%i.*root", run);
@@ -227,7 +231,6 @@ int main(Int_t argc,Char_t* argv[])
 	fakeerror.ResizeTo(k+1);
       
 	if((htemp->GetEntries())!= 0){
-	  std::cout<<"mean = "<<htemp->GetMean()<<std::endl;
 	  mean.operator()(k)      = htemp->GetMean();
 	  error.operator()(k)     = htemp->GetMeanError();
 	  runs.operator()(k)      = run;
@@ -237,6 +240,7 @@ int main(Int_t argc,Char_t* argv[])
 	delete htemp;	
       }
     }
+    delete tree;
   }
  
   // If all the available histograms have 0 netries, nothing to plot. exit.
@@ -271,7 +275,7 @@ int main(Int_t argc,Char_t* argv[])
 
   // Create a canvas 
   TString title = Form("Run range summary of %s %s for runs %i to %i",device.Data(), property.Data(),run1,run2);
-  TCanvas *canvas = new TCanvas("canvas",title,1200,1000);
+  TCanvas *canvas = new TCanvas("canvas",title,1200,500);
   canvas->SetFillColor(kYellow-8);
   TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
   TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
@@ -342,16 +346,18 @@ Bool_t FindFiles(TString filename, std::vector<TFile*> &atfile_list, TChain * ch
   Bool_t  chain_status = kFALSE;
   TObjArray *fileElements = NULL;
   TChainElement *chain_element = NULL;
+
+  chain ->Clear();
   file_dir = gSystem->Getenv("QWSCRATCH");
   if (!file_dir) file_dir = "~/scratch/";
   file_dir += "/rootfiles/";
   chain_status = chain->Add(Form("%s%s", file_dir.Data(), filename.Data()));
 
   if(chain_status) {
-    TString chain_name = chain -> GetName();
-    fileElements = chain->GetListOfFiles();
-    TIter next(fileElements);
 
+    fileElements = chain->GetListOfFiles();
+
+    TIter next(fileElements);
     while (( chain_element=(TChainElement*)next() )){
       TFile *f=new TFile(chain_element->GetTitle());
       atfile_list.push_back(f);
@@ -359,7 +365,6 @@ Bool_t FindFiles(TString filename, std::vector<TFile*> &atfile_list, TChain * ch
       f->Print(); 
     }
   }
-  delete fileElements;
 
   // else {
   //   std::cout << "There is (are) no "
