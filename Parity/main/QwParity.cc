@@ -260,10 +260,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->DeleteHistograms(detectors);
     rootfile->DeleteHistograms(helicitypattern);
 
-    //  Close event buffer stream
-    eventbuffer.CloseStream();
-
-
 
     //  Print the event cut error summary for each subsystem
     detectors.GetEventcutErrorCounters();
@@ -277,6 +273,10 @@ Int_t main(Int_t argc, Char_t* argv[])
       helicitypattern.FillDB(&database);
       epicsevent.FillDB(&database);
     }
+
+    //  Close event buffer stream
+    eventbuffer.CloseStream();
+
 
 
     QwMessage << "Total events failed " << eventring.GetFailedEventCount() << QwLog::endl;
