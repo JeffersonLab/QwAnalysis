@@ -65,6 +65,7 @@
 #include <TChain.h>
 #include <cstdlib>
 
+
 Int_t    run1 = 0;
 Int_t    run2 = 0;
 TString  device    = "";
@@ -112,7 +113,7 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetTitleYOffset(1.0);
   gStyle->SetTitleXOffset(0.7);
   gStyle->SetTitleX(0.1);
-  gStyle->SetTitleW(0.8);
+  gStyle->SetTitleW(0.7);
   gStyle->SetTitleSize(0.05);
   gStyle->SetTitleOffset(1.5);
   gStyle->SetTitleBorderSize(0);
@@ -120,6 +121,9 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetTitleFontSize(0.08);
   gStyle->SetLabelSize(0.04,"x");
   gStyle->SetLabelSize(0.04,"y");
+  gStyle->SetHistMinimumZero();
+  gStyle->SetBarOffset(0.25);
+  gStyle->SetBarWidth(0.5);
 
   gROOT->ForceStyle();
 
@@ -166,6 +170,7 @@ int main(Int_t argc,Char_t* argv[])
   Bool_t found = kFALSE;
   Int_t k = 0;
   TVectorD mean(0);
+  TVectorD sigma(0);
   TVectorD error(0);
   TVectorD runs(0);
   TVectorD fakeerror(0);
@@ -226,6 +231,7 @@ int main(Int_t argc,Char_t* argv[])
       else{
 	// Found the histogram, fill the arrays to plot the graph
 	mean.ResizeTo(k+1);
+	sigma.ResizeTo(k+1);
 	error.ResizeTo(k+1);
 	runs.ResizeTo(k+1);
 	fakeerror.ResizeTo(k+1);
@@ -233,6 +239,7 @@ int main(Int_t argc,Char_t* argv[])
 	if((htemp->GetEntries())!= 0){
 	  mean.operator()(k)      = htemp->GetMean();
 	  error.operator()(k)     = htemp->GetMeanError();
+	  sigma.operator()(k)     = htemp->GetRMS(); // the width in root is called the RMS.
 	  runs.operator()(k)      = run;
 	  fakeerror.operator()(k) = 0.0;
 	}
@@ -249,40 +256,61 @@ int main(Int_t argc,Char_t* argv[])
     exit(1);
   }
 
-  // Create a graph using the information.
-  TGraphErrors* g = new TGraphErrors(runs, mean, fakeerror, error);
+  // Create a graph and a histogram using these information.
+  TGraphErrors* g  = new TGraphErrors(runs, mean, fakeerror, error);
+  TGraph* g1       = new TGraph(runs, sigma);
+
   g->GetXaxis()->SetTitle("run number");
+  g1->GetXaxis()->SetTitle("run number");
+
   TString prop;
-  if(property.Contains("a")) prop = "asymmetries";
+  if(property.Contains("a")) prop = "asymmetry";
   if(property.Contains("y")) {
     if(device.Contains("bcm")) prop = "yields (uA)";
     else prop = "yields";
   }
-  if(property.Contains("d")) prop = "differences(mm)";
+  if(property.Contains("d")) prop = "difference(mm)";
   if(property.Contains("s")) {
     if(device.Contains("bcm")) prop = "current (uA)";
     else if(device.Contains("bpm")) prop = "position (mm)";
     else prop = "signal";
   }
-  g->GetYaxis()->SetTitle(Form("%s %s",device.Data(), prop.Data()));
-  g->GetXaxis()->SetTitle("run number");
-  g->SetTitle(Form("%s  %s  during runs %i - %i",device.Data(), prop.Data(),run1, run2));
+  g->GetYaxis()->SetTitle(Form("%s %s means",device.Data(), prop.Data()));
+
+  //  g->SetTitle(Form("%s  %s  during runs %i - %i",device.Data(), prop.Data(),run1, run2));
+  g->SetTitle("");
   g->SetMarkerColor(kBlue);
   g->SetMarkerStyle(21);
-  g->SetMarkerSize(2);
+  g->SetMarkerSize(0.8);
   g->SetLineWidth(2);
   g->SetLineColor(2);
+  g->Fit("pol0");
 
+
+  g1->SetTitle("");
+  g1->SetFillColor(kAzure+3);
+  
   // Create a canvas 
-  TString title = Form("Run range summary of %s %s for runs %i to %i",device.Data(), property.Data(),run1,run2);
-  TCanvas *canvas = new TCanvas("canvas",title,1200,500);
+  TString title = Form("Run range summary of %s %s for runs %i to %i",device.Data(), prop.Data(),run1,run2);
+  TCanvas *canvas = new TCanvas("canvas",title,1200,800);
   canvas->SetFillColor(kYellow-8);
   TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
   TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
-  pad1->SetFillColor(45);
   pad1->Draw();
   pad2->Draw();
+  pad1->SetFillColor(45);
+  pad1->cd();
+  TText*t = new TText(0.03,0.25,title);
+  t->SetTextSize(0.7);
+  t->Draw();
+  pad2->cd();
+  pad2->Divide(1,2);
+  pad2->cd(1);
   g->Draw("APE1");
+  
+  pad2->cd(2);
+  g1->Draw("ABP");
+  g1->GetYaxis()->SetTitle(Form("%s %s widths",device.Data(), prop.Data()));
   canvas->Update();
   canvas->SetBorderMode(0);
   // Save the canvas on to a .gif file
