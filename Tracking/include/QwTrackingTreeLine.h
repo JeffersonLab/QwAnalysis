@@ -12,6 +12,7 @@
 
 // System headers
 #include <vector>
+#include <utility>
 
 // ROOT headers
 #include <TObject.h>
@@ -24,13 +25,14 @@
 #include "QwTypes.h"
 #include "QwHit.h"
 #include "globals.h"
+#include "QwHitPattern.h"
 
 // Maximum number of detectors combined for left-right ambiguity resolution
 #define TREELINE_MAX_NUM_LAYERS 8
 
 // Forward declarations
 class QwHit;
-class QwHitPattern;
+// class QwHitPattern;
 class QwHitContainer;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -174,7 +176,10 @@ class QwTrackingTreeLine: public VQwTrackingElement {
     void SetCov(const double* cov) { fCov[0] = cov[0]; fCov[1] = cov[1]; fCov[2] = cov[2]; };
     //! Get the covariance
     const double* GetCov() const { return fCov; };
-
+    /// newly added
+    void SetMatchingPattern(std::vector<int>& box);
+    /// calculate the upper and lower bound of the drift distance give the row number
+    std::pair<double,double> CalculateDistance(int row,double width,unsigned int bins,double error);
   private:
 
     bool fIsVoid;			///< has been found void
@@ -183,7 +188,7 @@ class QwTrackingTreeLine: public VQwTrackingElement {
   public:
 
     QwHitPattern* fMatchingPattern; //!	///< matching hit pattern
-
+    std::vector<int> MatchingPattern;
     double fOffset;			///< track offset
     double fSlope;			///< track slope
     double fChi;			///< chi squared(?)

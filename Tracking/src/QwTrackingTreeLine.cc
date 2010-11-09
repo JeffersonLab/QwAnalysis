@@ -313,3 +313,28 @@ std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl) {
   if (tl.IsVoid()) stream << " (void)";
   return stream;
 };
+
+void QwTrackingTreeLine::SetMatchingPattern(std::vector<int>& box)
+{
+	std::vector<int>::iterator iter=box.begin();
+	while(iter!=box.end())
+		MatchingPattern.push_back(*iter++);
+};
+
+std::pair<double,double> QwTrackingTreeLine::CalculateDistance(int row,double width,unsigned int bins,double resolution)
+{
+   std::pair<double,double> boundary(0,0);
+   unsigned int fBins=bins;
+   int bin=MatchingPattern.at(row);
+
+	
+   double dx=width/bins,lower=0,upper=0;
+   bin+=1;
+   if(bin<=bins/2) bin=bins-bin+1;
+	lower=(bin-1)*width/bins-width/2-resolution;
+	upper=bin*width/bins-width/2+resolution;
+   boundary.first=lower;
+   boundary.second=upper;
+   	
+   return boundary;
+}

@@ -131,6 +131,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
   // Distance between the chamber centers perpendicular to the wire planes
   double delta_perp =   delta_z * cos_theta + delta_y * sin_theta;
+	
   // Distance between the chamber centers parallel to the wire planes
   double delta_para = - delta_z * sin_theta + delta_y * cos_theta;
  
@@ -139,7 +140,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   double delta_u = delta_para * fabs(frontdetector->GetElementAngleCos());
 
   // NOTE:pkg1 and pkg2 need different solution
-  int reverse=1;
+ 
   // TODO A difference in x coordinate between the two chambers is ignored.
   // This might become relevant if misalignment needs to be included.  The
   // helper class uv2xy could be used here.
@@ -191,6 +192,8 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   //###############################
   int fmatches[numflines]; // matches indexed by front tree lines
   int bmatches[numblines]; // matches indexed by back tree lines
+  int reverse[numflines*numblines];  // to specify if ifront and ifback combination should flip the drift distance sign
+
 
   // Initialize the array of best matches for all back plane tree lines
   double bestmatches[numblines];
@@ -257,14 +260,14 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
        && fabs(bslope - slope) <= sloperes_b
        && fabs(fslope - slope) + fabs(bslope - slope) < bestmatch){
 	// if ok, do nothing at all
+	reverse[ifront*numblines+iback]=1;
 	}
 	else{
 	// NOTE: if not, we need to flip the sign to see if it works
 	fslope*=-1;
 	bslope*=-1;
-	reverse=-1;
+	reverse[ifront*numblines+iback]=-1;
 	}
-      
       // Check whether this is a good match
       if (fabs(fslope - slope) <= sloperes_f
        && fabs(bslope - slope) <= sloperes_b
@@ -286,7 +289,6 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
       } // end of if good match
 
     } // end of loop over back VDC tree lines
-
   } // end of loop over front VDC tree lines
 
   //################################
@@ -294,6 +296,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   //################################
 
   // Loop over the tree lines in the front VDC plane
+
   ifront = 0;
   for (QwTrackingTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, ifront++) {
@@ -321,7 +324,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         for (int hit = 0; hit < fronthits; hit++) {
           treeline->hits[hit] = new QwHit(frontline->hits[hit]);
           DetecHits[hit] = treeline->hits[hit];
-	  DetecHits[hit]->fDriftPosition *= reverse;
+	  DetecHits[hit]->fDriftPosition *= reverse[ifront*numblines+iback];
         }
         // Set the hits for back VDC
         int backhits = backline->fNumHits;
@@ -333,7 +336,7 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 	  else
 	  DetecHits[hit+fronthits]->fWirePosition += delta_u;
 	
-	  DetecHits[hit+fronthits]->fDriftPosition *= reverse;
+	  DetecHits[hit+fronthits]->fDriftPosition *= reverse[ifront*numblines+iback];
           DetecHits[hit+fronthits]->fDriftPosition += delta_perp;
         }
         int nhits = fronthits + backhits;

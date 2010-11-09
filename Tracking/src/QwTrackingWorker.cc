@@ -602,8 +602,10 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             // If no hits in this detector, skip to the next detector.
                             if (subhitlist->size() == 0) continue;
                             // Print the hit list for this detector
-                            if (fDebug) subhitlist->Print();
-
+                            if (fDebug) {
+				std::cout << "region: " << region << " package: " << package << " plane: " << plane << std::endl;
+				subhitlist->Print();
+			    }
                             // Loop over the hits in the subhitlist
                             for (QwHitContainer::iterator hit = subhitlist->begin();
                                     hit != subhitlist->end(); hit++) {
@@ -618,10 +620,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             } // end of loop over hits in this event
 
                             // Print hit pattern, if requested
-                            if (fShowEventPattern)
+                            if (fShowEventPattern){
+			      std::cout << "event pattern: " << std::endl;
                               for (size_t wire = 0; wire < patterns.size(); wire++)
                                 if (patterns.at(wire).HasHits())
                                   QwMessage << wire << ":" << patterns.at(wire) << QwLog::endl;
+				}
 
                             // Copy the new hit patterns into the old array structure
                             // TODO This is temporary
@@ -673,6 +677,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                                          1UL << (fLevelsR3 - 1), 0, dlayer, width);
 
                             QwDebug << "Sort patterns" << QwLog::endl;
+			 //what is this doing?s
                             fTreeSort->rcTreeConnSort (treelinelist, region);
 
                             if (plane < 3)
@@ -689,6 +694,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         event->AddTreeLineList(treelinelist1);
                         event->AddTreeLineList(treelinelist2);
 
+			//treelinelist 1 and treelinelist 2 are in the same dir
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
                         if (treelinelist1 && treelinelist2) {
                             treelinelist = fTreeMatch->MatchRegion3 (treelinelist1, treelinelist2);

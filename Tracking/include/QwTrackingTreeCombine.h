@@ -7,6 +7,7 @@
 
 // Standard C and C++ headers
 #include <iostream>
+#include  <utility>
 using std::cout; using std::cerr; using std::endl;
 
 #include "QwTypes.h"
@@ -137,6 +138,7 @@ class QwTrackingTreeCombine {
     int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi);
     int r3_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi, double uv2xy[2][2]);
     int r3_TrackFit2 (const int num, QwHit **hits, double *fit, double *cov, double &chi);
+    int r3_TrackFit3 (const int num, QwHit **hhits,double *fit,double *cov,double&chi,double *parameter);
 
   private:
 
