@@ -7,6 +7,7 @@
 !
 ! ** HallC BCM pedestals and its gain obtained using Run 5807
 !    - Gain Setting 2
+!    https://hallcweb.jlab.org/hclog/1010_archive/101014011357.html
 !
 ! ** Here we use the old calibration values, because 
 !    there is no other BCM and BPM calibration runs 
@@ -110,9 +111,9 @@
   qwk_bpm3h09bXM   , 2998.2   , 1.0
   qwk_bpm3h09bYP   , 4482.01  , 1.0
   qwk_bpm3h09bYM   , 2208.63  , 1.0
-  qwk_bcm6         , -129942  , 0.00206173
-  qwk_bcm5         , -129728  , 7984.75
-  qwk_bcm2         , -373.196 , 0.00438068
-  qwk_bcm1         , 36.7006  , 0.00412682
+  qwk_bcm6         , -130295  , 0.00203338
+  qwk_bcm5         , -129728  , -382.319
+  qwk_bcm2         , -551.266 , 0.00431568
+  qwk_bcm1         , -158.448 , 0.00406359
   qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
