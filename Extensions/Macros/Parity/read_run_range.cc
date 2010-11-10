@@ -314,8 +314,8 @@ int main(Int_t argc,Char_t* argv[])
   canvas->Update();
   canvas->SetBorderMode(0);
   // Save the canvas on to a .gif file
-  canvas->Print(Form("%i_%i_%s_%s_summary.gif",run1, run2, device.Data(),property.Data())); 
-  theApp.Run(); 
+  canvas->SaveAs(Form("$QWANALYSIS/Extensions/Macros/Parity/Plots/%i_%i_%s_%s_summary.gif",run1, run2, device.Data(),property.Data())); 
+  //  theApp.Run(); 
 
 };
 
