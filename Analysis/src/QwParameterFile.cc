@@ -127,6 +127,8 @@ QwParameterFile::QwParameterFile(const std::string& name)
         // Found file with identical score
         QwWarning << "Equally likely parameter files encountered: " << best_path.string()
                   << " and " << path.string() << QwLog::endl;
+        QwMessage << "Analysis will use parameter file: " << best_path.string()
+                  << QwLog::endl;
       }
     } // end of loop over search paths
 
