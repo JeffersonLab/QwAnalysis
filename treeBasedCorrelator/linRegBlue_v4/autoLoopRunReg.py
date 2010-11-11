@@ -8,9 +8,9 @@ Executing shell commande depending on params
 import os
 import time
 
-lastRunSeg="6600.001"
+lastRunSeg="6800.000"
 sleepSec=300
-fileSize=100000000
+fileSize=900000000
 webPath="web/"
 
 myDBdict={}
@@ -19,14 +19,14 @@ print "auto-loop regression, sleepSec=",sleepSec
 
 #=======================================
 def findDoneRuns():
-    print "in findDOneRuns, last RunSeg=",lastRunSeg
+    print "in findDoneRuns, last RunSeg=",lastRunSeg
     # print lastRunSeg.split(".")
-    cmd="ls "+webPath+"|grep R"
+    cmd="ls "+webPath+"|grep R*html"
     print cmd
     fin,fout=os.popen4(cmd)
     for line in fout:
-        runSeg=line[1:-1]
-        print runSeg, myDBdict.has_key(runSeg)
+        runSeg=line[1:-6]
+        print 'done already:', runSeg, myDBdict.has_key(runSeg)
         if ( myDBdict.has_key(runSeg)):
             myDBdict[runSeg]='done'
         
@@ -34,7 +34,6 @@ def findDoneRuns():
 
 #=======================================
 def queryDB():
-    myDBdict.clear()
     print "in querry DB, last RunSeg=",lastRunSeg
     # print lastRunSeg.split(".")
     RunSegL=lastRunSeg.split(".")
@@ -48,7 +47,7 @@ def queryDB():
         lineL=line.split()
         #print lineL[1],lineL[2]
         key=lineL[1]+".%03d"%int(lineL[2])
-        print key
+        #print key
         myDBdict[key]=0
         
 #======================================
@@ -57,10 +56,12 @@ def queryDB():
 x=0
 while (1):
     print "loopCounter=", x
+    myDBdict.clear()
     queryDB()
     findDoneRuns()
     kkk=sorted(myDBdict.keys())
-    print kkk
+    print "loopX=",x," myDict=",myDBdict
+    #print kkk
     for key in kkk :
         if myDBdict[key]=='done':
             continue
@@ -74,10 +75,12 @@ while (1):
         os.system(cmdSort)
         #os._exit(1)
     
-    print "myDict=",myDBdict
+    os.system("date");
+    print "loopX=",x," sleep for ",sleepSec,"sec ***********************************"
+
     x+=1
     #os._exit(1)
     time.sleep(sleepSec)
-    if (x>10):
+    if (x>1000):
         break
 print "autoloop ended"

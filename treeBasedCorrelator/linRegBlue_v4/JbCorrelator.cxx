@@ -89,7 +89,7 @@ JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > 
   //..... 1D,  iv
   h1iv=new TH1 *[nP];
   for(int i=0;i<nP;i++) {    
-    h1iv[i]=h=new TH1D(Form(mCore+"P%d",i),Form("iv P%d=%s, pass=%s ;iv=%s",i,Pname[i].Data(),mCore.Data(),Pname[i].Data()),128,0.,0.);
+    h1iv[i]=h=new TH1D(Form(mCore+"P%d",i),Form("iv P%d=%s, pass=%s ;iv=%s (ppm)",i,Pname[i].Data(),mCore.Data(),Pname[i].Data()),128,0.,0.);
     h->GetXaxis()->SetNdivisions(4);
     h->SetBit(TH1::kCanRebin);
   }
@@ -99,7 +99,7 @@ JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > 
   h2iv=new TH1 *[nP*nP]; // not all are used
   for(int i=0;i<nP;i++) {    
     for(int j=i+1;j<nP;j++) {    
-      h2iv[i*nP+j]=h=new TH2D(Form(mCore+"P%d_P%d",i,j),Form("iv correlation  P%d_P%d, pass=%s ;P%d=%s;P%d=%s     ",i,j,mCore.Data(),i,Pname[i].Data(),j,Pname[j].Data()),64,-x1,x1,64,-x1,x1);
+      h2iv[i*nP+j]=h=new TH2D(Form(mCore+"P%d_P%d",i,j),Form("iv correlation  P%d_P%d, pass=%s ;P%d=%s (ppm);P%d=%s   (ppm)  ",i,j,mCore.Data(),i,Pname[i].Data(),j,Pname[j].Data()),64,-x1,x1,64,-x1,x1);
       h->GetXaxis()->SetTitleColor(kBlue);
       h->GetYaxis()->SetTitleColor(kBlue);
       h->GetXaxis()->SetNdivisions(4);
@@ -111,7 +111,7 @@ JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > 
   //..... 1D,  dv
   h1dv=new TH1 *[nY];
   for(int i=0;i<nY;i++) {    
-    h1dv[i]=h=new TH1D(Form(mCore+"Y%d",i),Form("dv Y%d=%s, pass=%s ;dv=%s",i,Yname[i].Data(),mCore.Data(),Yname[i].Data()),128,0.,0.);
+    h1dv[i]=h=new TH1D(Form(mCore+"Y%d",i),Form("dv Y%d=%s, pass=%s ;dv=%s (ppm)",i,Yname[i].Data(),mCore.Data(),Yname[i].Data()),128,0.,0.);
     h->GetXaxis()->SetNdivisions(4);
     h->SetBit(TH1::kCanRebin);
   }
@@ -122,7 +122,7 @@ JbCorrelator::initHistos(std::vector < TString > Pname, std::vector < TString > 
   h2dv=new TH1 *[nP*nY]; // not all are used
   for(int i=0;i<nP;i++) {    
     for(int j=0;j<nY;j++) {    
-      h2dv[i*nY+j]=h=new TH2D(Form(mCore+"P%d_Y%d",i,j),Form("iv-dv correlation  P%d_Y%d, pass=%s ;P%d=%s;Y%d=%s     ",i,j,mCore.Data(),i,Pname[i].Data(),j,Yname[j].Data()),64,-x1,x1,64,-y1,y1);
+      h2dv[i*nY+j]=h=new TH2D(Form(mCore+"P%d_Y%d",i,j),Form("iv-dv correlation  P%d_Y%d, pass=%s ;P%d=%s (ppm);Y%d=%s   (ppm)  ",i,j,mCore.Data(),i,Pname[i].Data(),j,Yname[j].Data()),64,-x1,x1,64,-y1,y1);
       h->GetXaxis()->SetTitleColor(kBlue);
       h->GetYaxis()->SetTitleColor(kBlue);
       h->GetXaxis()->SetNdivisions(4);

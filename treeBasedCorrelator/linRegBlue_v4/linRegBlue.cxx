@@ -22,6 +22,8 @@ using namespace std;
 #include "JbCorrelator.h"
 // use only double
 
+int parMinEve=5000;
+
 int main(int argc, char *argv[]) {
   int mxEve=500, skipEve=0;
   int runSeg=0;
@@ -88,8 +90,8 @@ int main(int argc, char *argv[]) {
   int nEve=(int)chain->GetEntries();
   printf("tot nEve=%d expected in the chain \nscan leafs for iv & dv ...\n",nEve);
   printf("#totEve %d\n",nEve);
-  if(nEve <5000) {
-    printf("aborting lin regerssion due to small # of events\n");
+  if(nEve <parMinEve) {
+    printf("aborting linear regerssion due to small # of events\n");
     printf("#abort JB1 nEve=%d\n",nEve);
     exit(1);
   }
@@ -164,6 +166,12 @@ int main(int argc, char *argv[]) {
   float rate=1.*ie/(t2-t1);
   float nMnts=(t2-t1)/60.;
   printf("sorting done, elapsed rate=%.1f Hz, tot %.1f minutes\n",rate,nMnts);
+  if(seenEve <parMinEve) {
+    printf("aborting linear regerssion due to small # of events\n");
+    printf("#abort JB2 seenEve=%d\n",seenEve);
+    exit(1);
+  }
+
   printf("#seenEve %d\n",seenEve);
 
   corA.finish();
@@ -174,6 +182,11 @@ int main(int argc, char *argv[]) {
   mHfile->Close();
   TString outAlphas=Form("%sblueR%snew.slope.root",outPath,runName.Data());
   corA.exportAlphas(outAlphas); 
+  if(alphasM) {
+    outAlphas=Form("%sblueR%snewB.slope.root",outPath,runName.Data());
+    corB->exportAlphas(outAlphas); 
+  }
+
 
   TString outAlias=Form("%sregalias_r%s.C",outPath,runName.Data());
   corA.exportAlias((char*)outAlias.Data(), runNo, eve.ivName, eve.dvName); 

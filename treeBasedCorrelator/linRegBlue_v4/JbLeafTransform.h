@@ -25,6 +25,7 @@ class JbLeafTransform {
   void readConfig(const char * configFName);
   void presetMyStat(double x1,double x2, double thr, double x3);
   TString humanizeLeafName(TString longName);
+  TString setLeafName2Yield(TString longName);
   
  private:
   TString myName;
@@ -32,10 +33,12 @@ class JbLeafTransform {
    
   // pointers to leaf variables
   Double_t **pLeafDV, **pLeafIV, *pLeafAux[mxAux], **pLeafError; 
+  Double_t **pYieldDV, **pYieldIV;
   int nLeafError;
   Double_t * getOneLeaf(TChain *chain,TString name,TString sub=""); 
   // histograms
   enum {mxHA=16}; TH1 * hA[mxHA];
+  TH1 ** hydv, ** hyiv;
   void initHistos();
   
   int harvestNames(FILE *fp);

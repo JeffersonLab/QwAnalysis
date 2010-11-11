@@ -3,7 +3,8 @@
  * \author Jan Balewski, MIT, 2010
  *********************************************************************
  * Descripion:
- * Finds correlation and alphas for  QW event 
+ * Maps leafes form the root tree to variables in this code,
+ *  according to external config file
  *********************************************************************/
 
 #include <cstdio>
@@ -57,12 +58,14 @@ JbLeafTransform::findInputLeafs(TChain *chain){
   int k=0;
   // Access DV leafs
   for(int i=0;i<ndv();i++) {
-    pLeafDV[i]=getOneLeaf(chain,dvName[i],afixName);   
+    pLeafDV[i]=getOneLeaf(chain,dvName[i],afixName);  
+    pYieldDV[i]=getOneLeaf(chain,setLeafName2Yield(dvName[i]),afixName);   
     pLeafError[k++]=getOneLeaf(chain,dvName[i],"Device_Error_Code");   
   }
   // Access IV leafs
   for(int i=0;i<niv();i++){
     pLeafIV[i]=getOneLeaf(chain,ivName[i],afixName);   
+    pYieldIV[i]=getOneLeaf(chain,setLeafName2Yield(ivName[i]),afixName);   
     pLeafError[k++]=getOneLeaf(chain,ivName[i],"Device_Error_Code");   
   }
 
@@ -138,11 +141,6 @@ JbLeafTransform::unpackEvent(){
 
   hA[0]->Fill("noNaN", 1.);
 
-  double pattNo=(*pLeafAux[0]);
-  double bcm1_uA=(*pLeafAux[1]);
-  hA[1]->Fill(bcm1_uA);
-  hA[2]->Fill(pattNo,bcm1_uA);
-
   int eveBad=false;
   for(int i=0; i<nLeafError;i++){
     if((*pLeafError[i])==0.) continue;
@@ -153,6 +151,18 @@ JbLeafTransform::unpackEvent(){
   if(eveBad) return false;
 
   hA[0]->Fill("noDevErr", 1.);
+
+  double pattNo=(*pLeafAux[0]);
+  double bcm1_uA=(*pLeafAux[1]);
+  hA[1]->Fill(bcm1_uA);
+  hA[2]->Fill(pattNo,bcm1_uA);
+  
+  // fill yield histso
+  for(int i=0;i<ndv();i++)
+    hydv[i]->Fill(*pYieldDV[i]);
+  
+  for(int i=0;i<niv();i++)
+    hyiv[i]->Fill(*pYieldIV[i]);
   
 
   /* arrays w/ final 15 dv & iv variables
@@ -204,7 +214,28 @@ JbLeafTransform::initHistos(){
 
 
   // hA[3] is set in findInputLeafs()
+
   
+  //.....  yield  dv
+  hydv=new TH1 *[ndv()];
+  for(int i=0;i<ndv();i++) {   
+    TString name=humanizeLeafName(setLeafName2Yield(dvName[i])) ;
+    hydv[i]=h=new TH1D(Form("yieldDV%d",i),Form("%s, DV%d ;%s",name.Data(),i,name.Data()),128,0.,0.);
+    h->GetXaxis()->SetNdivisions(4);    h->SetBit(TH1::kCanRebin);
+    h->GetXaxis()->SetTitleColor(kBlue);
+  }
+
+  //.....  yield  iv
+  hyiv=new TH1 *[niv()];
+  for(int i=0;i<niv();i++) {   
+    TString name=humanizeLeafName(setLeafName2Yield(ivName[i])) ;
+    hyiv[i]=h=new TH1D(Form("yieldIV%d",i),Form("%s, IV%d ;%s",name.Data(),i,name.Data()),128,0.,0.);
+    h->GetXaxis()->SetNdivisions(4);    h->SetBit(TH1::kCanRebin);
+    h->GetXaxis()->SetTitleColor(kBlue);
+  }
+
+
+
 }
 
 
@@ -249,6 +280,10 @@ JbLeafTransform::readConfig(const char * configFName){
   Yvec   = new Double_t   [ndv()];
   pLeafIV= new Double_t * [niv()];
   Pvec   = new Double_t   [niv()];
+
+  // leavs w/ yields, local only
+  pYieldDV= new Double_t * [ndv()];
+  pYieldIV= new Double_t * [niv()];
 
   // leavs w/ error code
   nLeafError=niv()+ndv()+2;// '2' is for bcm1, bcm2
@@ -308,5 +343,15 @@ JbLeafTransform::humanizeLeafName(TString longName) {
   name.ReplaceAll("barsum","");
   name.ReplaceAll("bars","");
   printf("Humanize '%s' --> '%s'\n", longName.Data(),name.Data());
+  return name;
+}
+
+//=====================
+TString 
+JbLeafTransform::setLeafName2Yield(TString longName){
+  TString name=longName;
+  name.ReplaceAll("asym_","yield_");
+  name.ReplaceAll("diff_","yield_");
+  //printf("leaf2yield: '%s' \n",name.Data());
   return name;
 }

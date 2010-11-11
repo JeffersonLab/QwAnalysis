@@ -4,7 +4,7 @@ int pl=2; //1=gif, 2=ps, 3=both
 TFile* fd=0;
 enum{ nP=5,nY=15}; 
 TString cor1="input";
-TString runName="R6580.001";
+TString runName="R5827.000";
 
 //TString inpPath="./web/R5822.001/";
 TString inpPath="./out/";
@@ -32,8 +32,10 @@ plCor(int page=1, char *runName0="RfixMe.000") {
   if(page==7) IV_DV("IV_DV","Correlation MDC,MDX, MDA vs. IV's, "+runName,12,14);
 
   if(page==8) IV_IV("IV","Independent variables, "+runName);
+  if(page==9) yield_1D("DVyield","Yield of DVs, "+runName,"yieldDV",nY);
+  if(page==10) yield_1D("IVyield","Yield of IVs, "+runName,"yieldIV",nP);
 
-  if(page==100) DV_CMP("DV_comparison","DV's before & after regression"); 
+ 
 
 
   if(can) {
@@ -160,6 +162,8 @@ void   DV_1D(TString cCore,TString text, TString preFix){
     double xm=-trimDisplayRange(h,6.0)*.8;
 
     TAxis *ax=h->GetXaxis();
+    ax->SetLabelSize(0.10); 
+
     double w1=h->GetRMS();
     double ym=h->GetMaximum()*0.75;
     TText *tx=new TText(xm,ym/2.g,Form("RMS=%.0f",w1)); tx->Draw();
@@ -172,6 +176,36 @@ void   DV_1D(TString cCore,TString text, TString preFix){
 
 
 }
+
+//============================================
+//============================================
+void   yield_1D(TString cCore,TString text, TString preFix, int np){
+
+  gStyle->SetOptStat(1110);
+  gStyle->SetOptFit(1);
+
+  can=new TCanvas("aa","aa",700,500);    TPad *c=makeTitle(can,text);
+  c->Divide(4,4);
+  //...... diagonal
+  for(int i=0;i<np;i++) {    
+    c->cd(1+i);
+    TString name=preFix+Form("%d",i); cout<<name.Data()<<endl;
+    TH1 * h=(TH1 *)fd->Get(name);
+    if(h==0) continue;
+    assert(h);
+    h->Draw();
+    TAxis *ax=h->GetXaxis();
+    ax->SetLabelSize(0.06); 
+    double xm=ax->GetBinCenter(1);
+    double ym=h->GetMaximum()*0.75;
+    tx=new TText(xm,ym,ax->GetTitle()); tx->Draw();
+    tx->SetTextSize(0.15);  tx->SetTextColor(45);
+
+  }
+
+}
+
+
 
 //============================================
 //============================================
@@ -192,6 +226,8 @@ void   IV_DV(TString cCore, TString text, int iy1, int iy2){
       h->Draw("colz");
       trimDisplayRange(h,6.);
       k++;
+      h->GetXaxis()->SetLabelSize(0.06); 
+
       //break;
     }
   }
@@ -222,45 +258,6 @@ void  trimDisplayRange(TH1 *h, double fac=0.8) {
   h->SetAxisRange(-basy,basy,"y");
   
   return basx;
-}
-
-
-
-//============================================
-//============================================
-void   DV_CMP(TString cCore, TString text){
-
-  gStyle->SetOptStat(1001110);
-  gStyle->SetOptFit(1);
-  
-  can=new TCanvas("aa","aa",800,500);    TPad *c=makeTitle(can,text);
-  
-  c->Divide(4,4);
-
-  //...... diagonal
-  for(int i=0;i<nY;i++) {    
-    c->cd(1+i);
-    TString name=cor1+Form("Y%d",i);  cout<<name.Data()<<endl;
-    TH1 * h=(TH1 *)fd->Get(name); assert(h);
-    h->Draw();
-    double w1=h->GetRMS();
-    double ym=h->GetMaximum()*0.25;
-    double xm=-600;
-    TText *tx=new TText(xm,ym,Form("RMS=%.0f",w1)); tx->Draw();
-
-    c->cd(1+nY+i);
-    name=Form("regresY%d",i);  cout<<name.Data()<<endl;
-    h=(TH1 *)fd->Get(name); 
-    if(h==0) continue;
-    //assert(h);
-    h->Draw();
-    double w2=h->GetRMS();
-    TText *tx2=new TText(xm,ym,Form("RMS=%.0f",w2)); tx2->Draw();
-    double del=sqrt(w1*w1-w2*w2);
-    printf("%f %f %f\n", w1,w2,del);
-    TText *tx2=new TText(xm,ym/2,Form("DEL=%.0f",del)); tx2->Draw();
-    //    break;
-  }
 }
 
 
@@ -297,7 +294,7 @@ TPad *makeTitle(TCanvas *c,char *core) {
 
 //============================
 void doAll(){
-  for(int i=1;i<=8;i++)  {
+  for(int i=1;i<=10;i++)  {
     // if(i==6||i==7) continue; //tmp, if no 2,4,8-sums
     plCor(i);
   }

@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
 """ 
-
-Executing shell commande depending on params
-
  ./linRegBlue 5844 0 10000 blueReg.conf blueR5844.000.slope.root
  
 """
@@ -11,6 +8,12 @@ import os
 from optparse import OptionParser
 import datetime
 print "START JAN"
+
+wrkDir="./out/"
+safeDir="./web/"
+
+hclogWeb="https://hallcweb.jlab.org/hclog/1011_archive/"
+
 
 
 # -- command line options
@@ -105,21 +108,25 @@ def  exportHtml(inpFile,outFile,pdfURL) :
     #str(now)
     #print now
     f.write("<td  rowspan=2 >"+now.strftime("%Y-%m-%d %H:%M:%S\n"))
-    # .... get regAvr
-    cmd= "grep \#regresAVR "+inpFile+" | cut -f2 -d,"
-    fin,fout=os.popen4(cmd)
-    regAvrStr=fout.read()
-    f.write("<td> "+ regAvrStr+"\n")
+
+    # .... get HClog URL  
+    cmd= "wget --no-check-certificate "+hclogWeb+"logdir_auto.html -O - | grep \"Run %d"%RUN_NO+"\" | tail -n  1 >" +wrkDir+"logHC"
+    os.system(cmd)
+    f1=open(wrkDir+"logHC","r")
+      
+    myURL1=f1.readlines()[-1]
+    f1.close()
+    print "aa",myURL1
+    myURL=myURL1.replace('HREF="','HREF="'+hclogWeb)
+    print "bb",myURL
+    f.write("<td  rowspan=2 > "+ myURL+"\n")     
+
     # .... get nonregr RMS
     cmd= "grep \#inputRMS "+inpFile+" | cut -f2 -d,"
     fin,fout=os.popen4(cmd)
     nonrRmsStr=fout.read()
     f.write("<tr align=right> <th> nonreg "+ nonrRmsStr+"\n")
-    # .... get nonregrAvr
-    cmd= "grep \#inputAVR "+inpFile+" | cut -f2 -d,"
-    fin,fout=os.popen4(cmd)
-    nonrAvrStr=fout.read()
-    f.write("<td> "+ nonrAvrStr+"\n")     
+
     f.close()
 
 ################################
@@ -170,6 +177,13 @@ def  doubleRegress():
 
 def  abortMe(code):
     print "JB ABORT PYTHON , code=%d "%code + " run=%s"%RUNiSEG
+    #.....  get Sorting date'
+    now=datetime.datetime.now()
+    
+    cmd_stringAb = 'echo "<tr> <td>R%s'%RUNiSEG+'<td colspan=3 > aborted linear  regression <td  colspan=4 > sorted: '+now.strftime("%Y-%m-%d %H:%M:%S")+'">'+safeDir+"R%s.html"%RUNiSEG
+    print "execAb:%s" % cmd_stringAb
+    os.system(cmd_stringAb)
+
     os._exit(1)
 
 #############  M A I N  ###############
@@ -216,7 +230,7 @@ cmd_string7 = "mv out web/"+outDirName
 print "exec7:%s" % cmd_string7
 os.system(cmd_string7)
 
-cmd_string8 = "rm -f web/index.html; cat web/top.html web/R*html > web/index.html "
+cmd_string8 = "rm -f web/index.html; cat web/top.html web/R*html web/bottom.html > web/index.html "
 print "exec8:%s" % cmd_string8
 os.system(cmd_string8)
 
