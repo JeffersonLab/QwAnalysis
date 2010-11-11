@@ -48,11 +48,19 @@
  bpmstripline,   QWK_BPM3H07A,  0.4,    0.8,   138406.0,  	1.0,    0.960181,  1.071930
  bpmstripline,   QWK_BPM3H07B,  0.2,   -0.2,   139363.0,  	1.0,    1.022240,  1.015710
  bpmstripline,   QWK_BPM3H07C,  0.6,    0.0,   140329.0, 	1.0,    1.013110,  0.985986
- bpmstripline,   QWK_BPM3H08,   0.1,   -0.1,   143576.0,  	1.372,  1.039360,  1.055470
+ bpmstripline,   QWK_BPM3H08,   0.1,   -0.1,   143576.0,  	1.0,    1.039360,  1.055470
  bpmstripline,   QWK_BPM3H09,   0.3,   -0.4,   144803.0,  	1.0,    1.025930,  0.993640
  bpmstripline,   QWK_BPM3H09B,  4.0,   -0.3,   147351.0,  	1.0,  	0.948778,  1.264910
 
-! The representative bpm for qweak hydrogen target.	
- combinedbpm,    QWK_TARGET    0.1,     0.1,   148739.0, 	1.0,  	1.0,  	   1.0     	
+! The representative bpm for qweak hydrogen target.
+! The dx offset for the target from the survey was 0.1 mm but since then the taget group have moved the target
+! downstream by 1.4 cm. Therefore we added an extra 14 mm to the surveyed offset to get the correct center of the
+! target w.r.t  bpm coordinates. 	
+ combinedbpm,    QWK_TARGET    14.1,    0.1,   148739.0, 	1.0,  	1.0,  	   1.0  
+
+! The representative bpm for the w plug
+! The location of the w-plug is based from an setimated distance from target center to US face of W-plug
+! given by Greg Smith to be 65.8cm.	
+ combinedbpm,    QWK_WPLUG     14.1,    0.1,   148081.0, 	1.0,  	1.0,  	   1.0     	
 
 !END
