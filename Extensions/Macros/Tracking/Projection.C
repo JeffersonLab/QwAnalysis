@@ -1,4 +1,22 @@
 
+
+
+
+
+// author: Siyuan Yang
+// this script is devoted to project the region3's partial track to the //plane of maindetector, trigger scintillator, scanner and z=0. Use the //project_root function only. To use that function, firstly you must put the //rootfile which contains the data under $QWSCRATCH directory and then type:
+//project_root(command,package,runnumber,drawoption)
+//here are some examples:
+///project_root("MD",1,6327): draws the plot for main detector projection map without weights for package 1 from run 6327
+///project_root("TS_p+m",2,6327) draws the plot for trigger scintllator projection with weights adc_p+adc_m for package 2 from run 6327
+// actually, there are five weight mode you can choose: p,m,p+m,p-m and if you do not specify anything,just like the first example, that is not weights
+// another thing to keep in mind is that you must use underscore "_" to separate the type("MD","TS","QTOR") with other options
+///project_root("MD_p-m_profile",1,6327) draws the plot for main detector projection with the weights p-m as the profile value   
+
+
+
+
+
 #include<iostream>
 #include<fstream>
 #include <string>
@@ -95,41 +113,81 @@ void project(){
 	return;
 }
 
-void project_root(string s="", int package=1,int run_number=6327){
+void project_root(string command="", int package=1,int run_number=6327){
 	string file_name= Form ( "%s/Qweak_%d.root",gSystem->Getenv ( "QWSCRATCH" ),run_number );	
         TFile *file = new TFile ( file_name.c_str() );
-	TH1F* hp=new TH1F("profile","profile",200,-100,100);
-	TH1F* hp_w=new TH1F("profile_weighted","profile_weighted",200,-100,100);
-	h_r=new TProfile("weight profile","weight profile vs y",200,-100,100);
-	TH2F* h=new TH2F("h","h",120,280,400,200,-100,100);
-	TH2F* h_w=new TH2F("h_w","h_w",120,280,400,200,-100,100);
-
 
         TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
  	QwEvent* fEvent=NULL;
 	QwPartialTrack* pt=NULL; 
 	QwTrackingTreeLine* tl=NULL;
 
+	// section to process the command
+	
+	size_t type_found;
+	string type;
+	type_found=command.find_first_of("_");
+	if(type_found==string::npos){
+	 cerr << "bad things happens!" << endl;
+         return;
+	}
+	else{
+	 type.assign(command,0,type_found);
+	}
+
+	bool IsProfile=false;  
+	if(command.find("profile")==string::npos)
+		IsProfile=false;
+	else IsProfile=true;
+
+	int mode=0;   //p,m,m+p,p-m;starting from 1
+	if(command.find("+")!=string::npos)
+		mode=3;
+	else if(command.find("-")!=string::npos)
+		mode=4;
+	else if(command.find("p")!=string::npos)
+		mode=1;
+	else if(command.find("m")!=string::npos)
+		mode=2;
+	string w_title;
+	if(mode==0)
+		w_title="not weighted";
+	else
+		w_title="weighted";
+	TH2F* h_2d;
+	TProfile2D* hp_2d;
+	if(IsProfile==false)
+		h_2d=new TH2F(Form("h_2d %s not profile",w_title.c_str()),"h_2d ",120,280,400,200,-100,100);
+	else 
+		hp_2d=new TProfile2D(Form("hp_2d %s profile",w_title.c_str()),"h_2d ",120,280,400,200,-100,100);
+		
+	
 	TBranch* branch_event=event_tree->GetBranch("events");
 	TBranch* branch=event_tree->GetBranch("maindet");
 	branch_event->SetAddress(&fEvent);
-	TLeaf* md5p=branch->GetLeaf("md5p_adc");
-	TLeaf* md5m=branch->GetLeaf("md5m_adc");
+
+        TLeaf* mdp=branch->GetLeaf(Form("md%dp_adc",-4*package+9));
+	TLeaf* mdm=branch->GetLeaf(Form("md%dm_adc",-4*package+9));
 
 	Int_t nevents=event_tree->GetEntries();
 	
 
 	double dz=0;
-	if(s=="QTOR")
-		dz=0;
-	else if(s=="TS")
-		dz=539.74;
-	else if(s=="MD")
-		dz=577.515;
-	else if(s=="SC")
-		dz=591.515;
+	if(type=="QTOR")
+	   dz=0;
+	else if(type=="TS")
+	   dz=539.74;
+	else if(type=="MD")
+	   dz=577.515;
+	else if(type=="SC")
+	   dz=591.515;
+	else {
+	  cerr << "no such plane!" << endl;
+	  return;
+	  }
 
-	cout << "number of events: " << nevents << endl;
+
+
 	for(int i=0;i<nevents;i++){
 		
 		branch_event->GetEntry(i);
@@ -144,47 +202,52 @@ void project_root(string s="", int package=1,int run_number=6327){
 			   yslope=pt->fSlopeY;
 			   x=xoffset+xslope*dz;
 			   y=yoffset+yslope*dz;
-			   hp_w->Fill(x,(md5p->GetValue()+md5m->GetValue()));
-			   hp->Fill(x,1);
-			   h_r->Fill(x,(md5p->GetValue()+md5m->GetValue()),1);
-			   h_w->Fill(y,x,(md5p->GetValue()+md5m->GetValue()));
-			   h->Fill(y,x);
+			   int m=0,p=0,weight=1; 		
+			   p=mdp->GetValue();
+			   m=mdm->GetValue();
+			   switch(mode){
+				case 1:
+				weight=p;
+				break;
+				case 2:
+				weight=m;
+				break;	
+				case 3:
+				weight=m+p;
+				break;
+				case 4:
+				weight=p-m;
+				break;
+				default:
+				weight=1;
+			}
+						
+			   
+			   if(p!=0 && m!=0){
+				if(IsProfile==false)
+				h_2d->Fill(y,x,weight);
+				else
+				hp_2d->Fill(y,x,weight);	
+			   }
 			}
 		}
 	}
 
 	
 	gStyle->SetPalette(1);
-	hp->GetXaxis()->SetTitle("position y:cm");
-	hp->SetTitle("track projection on main detector(nonweighted)");
-	hp->SetLineColor(kRed);
-	hp_w->GetXaxis()->SetTitle("position y:cm");
-	hp_w->SetTitle("track projection on main detector(stacked)");
-	hp_w->SetLineColor(kBlue);
-// 	hp->SetMarkerStyle(2);
-//  	hp->Draw();
-	h->GetXaxis()->SetTitle("position x:cm");
-	h->GetYaxis()->SetTitle("position y:cm");
-	h->SetTitle("track projection on main detector(not weighted)");
-	h_w->GetXaxis()->SetTitle("position x:cm");
-	h_w->GetYaxis()->SetTitle("position y:cm");
-	h_w->SetTitle("track projection on main detector(weighted)");
-	h_r->GetXaxis()->SetTitle("position y:cm");
-	h_r->GetYaxis()->SetTitle("weight (md5m+md5p)");
-	h_r->SetTitle(" weight factor depending on y");
-	h_w->Draw("colz");
-// 	h_r->Draw();
-// 	hp2->Draw();
-	
-// 	TCanvas* c=new TCanvas("c","c",400,400);
-// 	hp_w->Draw();
-// 	hp->Scale(3700);
-// 	hp->Draw("same");
-// 	leg=new TLegend(0.1,0.7,0.48,0.9);
-// 	leg->SetHeader("title");
-// 	leg->AddEntry(hp_w,"weighted");	
-// 	leg->AddEntry(hp,"not weighted");
-// 	leg->Draw();
-	
+	if(IsProfile==false){
+	string title="track projection on main detector: " + w_title + ": not profile";
+	h_2d->GetXaxis()->SetTitle("position x:cm");
+	h_2d->GetYaxis()->SetTitle("position y:cm");
+	h_2d->SetTitle(title.c_str());
+	h_2d->Draw("colz");
+	}
+	else{
+	string title="track projection on main detector: " + w_title + ": profile";
+	hp_2d->GetXaxis()->SetTitle("position x:cm");
+	hp_2d->GetYaxis()->SetTitle("position y:cm");
+	hp_2d->SetTitle(title.c_str());
+	hp_2d->Draw("colz");
+		}
 	return;
 };
