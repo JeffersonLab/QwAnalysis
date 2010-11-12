@@ -151,17 +151,17 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
     QwEvent* event = 0;
-    
-    if(not enablemapfile) {
-    // Create the tracking object branches
-   
-    rootfile->NewTree("event_tree", "QwTracking Event-based Tree");
-    rootfile->GetTree("event_tree")->Branch("events", "QwEvent", &event);
 
-    // Create the subsystem branches
-    rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
-    rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", parity_detectors);
-  }
+    if (not enablemapfile) {
+      // Create the tracking object branches
+      rootfile->NewTree("event_tree", "QwTracking Event-based Tree");
+      rootfile->GetTree("event_tree")->Branch("events", "QwEvent", &event);
+
+      // Create the subsystem branches
+      rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
+      rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", parity_detectors);
+    }
+
     // Create the subsystem histograms
     rootfile->ConstructHistograms("tracking_histo", tracking_detectors);
     rootfile->ConstructHistograms("parity_histo",   parity_detectors);
@@ -296,6 +296,13 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (rootfile)       delete rootfile;       rootfile = 0;
     if (hitlist)        delete hitlist;        hitlist = 0;
     if (event)          delete event;          event = 0;
+
+    QwMessage << "Number of objects of type still alive" << QwLog::endl;
+    QwMessage << "  QwHit: "          << QwHit::GetObjectsAlive() << QwLog::endl;
+    QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive() << QwLog::endl;
+    QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive() << QwLog::endl;
+    QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive() << QwLog::endl;
+    QwMessage << "  QwEvent: "        << QwEvent::GetObjectsAlive() << QwLog::endl;
 
     // Print run summary information
     eventbuffer.ReportRunSummary();

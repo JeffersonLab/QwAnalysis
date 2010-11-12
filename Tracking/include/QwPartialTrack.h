@@ -19,6 +19,7 @@
 
 // Qweak headers
 #include "VQwTrackingElement.h"
+#include "QwObjectCounter.h"
 #include "QwTrackingTreeLine.h"
 #include "QwDetectorInfo.h"
 #include "QwBridge.h"
@@ -35,7 +36,7 @@ class QwVertex;
  * It is constructed by combining multiple tree lines together, and in turn
  * used to construct the complete track.
  */
-class QwPartialTrack: public VQwTrackingElement {
+class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartialTrack> {
 
   private:
 

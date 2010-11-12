@@ -23,6 +23,7 @@
 // Qweak headers
 #include "VQwTrackingElement.h"
 #include "QwTypes.h"
+#include "QwObjectCounter.h"
 #include "QwHit.h"
 #include "globals.h"
 #include "QwHitPattern.h"
@@ -48,7 +49,7 @@ class QwHitContainer;
  * \todo This class needs a non-trivial copy constructor which ensures
  * that the hits are copied correctly.
  */
-class QwTrackingTreeLine: public VQwTrackingElement {
+class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTrackingTreeLine> {
 
   private:
 

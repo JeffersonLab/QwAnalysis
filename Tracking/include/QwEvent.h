@@ -14,6 +14,7 @@
 
 // Qweak headers
 #include "QwTypes.h"
+#include "QwObjectCounter.h"
 #include "QwTrackingTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
@@ -34,7 +35,7 @@ class QwVertex;
  * Objects of this class contain the header information of a tracked event,
  * such as the run number, event number, the trigger type, etc.
  */
-class QwEventHeader: public TObject {
+class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
 
   private:
 
@@ -113,7 +114,7 @@ inline ostream& operator<< (ostream& stream, const QwEventHeader& h) {
  * A QwEvent contains all event information, from hits over partial track to
  * complete tracks.  It serves as the final product of the tracking code.
  */
-class QwEvent: public TObject {
+class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
   public:
 
