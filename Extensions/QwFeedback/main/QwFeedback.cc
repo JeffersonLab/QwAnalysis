@@ -62,6 +62,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwOptions.AddConfigFile("qweak_mysql.conf");
     // Define the command line options
   DefineOptionsParity(gQwOptions);
+  QwHelicityCorrelatedFeedback::DefineOptions(gQwOptions);
   //Load command line options for the histogram/tree helper class
   gQwHists.ProcessOptions(gQwOptions);
    /// Setup screen and file logging

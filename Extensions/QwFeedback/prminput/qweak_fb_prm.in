@@ -42,8 +42,16 @@ IA_up  = 50000
 
 #PITA slopes
 #  From M.Dalton, as of 00:10,23oct2010, use a slope of:  -0.73 ppm/dac-tick
-PITAPOS = +0.73
+# 
+PITASLOPE_OUT = +0.73
+PITASLOPE_IN = -0.73
+
 ###  PITANEG = 200
+
+#PITA starting setpoints
+PC_pos_t0 = 0
+PC_neg_t0 = 0
+
 
 
 #PC hardware count set-point limits

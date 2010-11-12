@@ -150,6 +150,14 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
       return fChargeAsymmetryWidth;
     };
 
+    Bool_t SetInitialCondition(){
+      if (fPITASetpointPOS_t0>0 && fPITASetpointNEG_t0>0)//apply the t_0 correction if it is available
+	fInitialCorrection=kTRUE;
+      else
+	fInitialCorrection=kFALSE;
+      return fInitialCorrection;
+    }
+
     //Define separate running sums for differents helicity pattern modes
     /// \brief The types of helicity patterns based on following pattern history
     ///1. +--+ +--+
@@ -199,13 +207,19 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fIASetpointlow;//lower and upper limits for IA dac hardware counts
     Double_t fIASetpointup;
 
-    //PITA Slopes for pos hel and neg hel
-    Double_t fPITASlopePOS;
-    Double_t fPITASlopeNEG;
+    //PITA Slopes for halfwave plate IN & OUT
+    Double_t fPITASlopeIN;
+    Double_t fPITASlopeOUT;
+    Double_t fPITASlope;
 
     //PITA setpoints for pos hel and neg hel
     Double_t fPITASetpointPOS;
     Double_t fPITASetpointNEG;
+    Double_t fPITASetpointPOS_t0;//Initial PC positive HW setpoint
+    Double_t fPITASetpointNEG_t0;//Initial PC negative HW setpoint
+    Bool_t fInitialCorrection;//Is true at the beginning so that t_0 correction is appiled before doing any correction
+    
+    
     Double_t fPrevPITASetpointPOS;//previous setpoint
     Double_t fPrevPITASetpointNEG;//previous setpoint
     Double_t fPITASetpointlow;//lower and upper limits for PITA dac hardware counts
@@ -239,6 +253,9 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     //log file
     FILE *out_file_PITA;
     FILE *out_file_IA;
+
+    Bool_t fHalfWaveIN;
+    Bool_t fHalfWaveOUT;
   
 };
 
