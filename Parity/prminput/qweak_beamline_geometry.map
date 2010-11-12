@@ -63,6 +63,6 @@
 ! The representative bpm for the w plug
 ! The location of the w-plug is based from an setimated distance from target center to US face of W-plug
 ! given by Greg Smith to be 65.8cm.	
- combinedbpm,    QWK_WPLUG     14.1,    0.1,   148081.0, 	1.0,  	1.0,  	   1.0     	
+ combinedbpm,    QWK_WPLUG     14.1,    0.1,   149397.0, 	1.0,  	1.0,  	   1.0     	
 
 !END
