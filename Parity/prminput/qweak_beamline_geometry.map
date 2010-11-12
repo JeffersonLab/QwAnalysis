@@ -1,8 +1,10 @@
 !**************************************************************************
 ! Geometry information for the BPMs in Hall C beamline.
 !**************************************************************************
-! [Last updated by buddhini on 9-30-2010]
+! [Last updated by buddhini on 11-12-2010]
 !
+! 11-12-2010  B.Waidyawansa  Added the new surveyed offsets for the 3 bpms in front of the target from 
+!                            Jays hclog https://hallcweb.jlab.org/hclog/1011_archive/101112150143.html
 ! X/Yoffset - The difference in the ideal position and the surveyed position of a BPM in X/Y axis.
 !
 ! Z offset  - The location of the BPM in the hallC beamline (alog Z axis) from the begining of the arc
@@ -48,9 +50,9 @@
  bpmstripline,   QWK_BPM3H07A,  0.4,    0.8,   138406.0,  	1.0,    0.960181,  1.071930
  bpmstripline,   QWK_BPM3H07B,  0.2,   -0.2,   139363.0,  	1.0,    1.022240,  1.015710
  bpmstripline,   QWK_BPM3H07C,  0.6,    0.0,   140329.0, 	1.0,    1.013110,  0.985986
- bpmstripline,   QWK_BPM3H08,   0.1,   -0.1,   143576.0,  	1.0,    1.039360,  1.055470
- bpmstripline,   QWK_BPM3H09,   0.3,   -0.4,   144803.0,  	1.0,    1.025930,  0.993640
- bpmstripline,   QWK_BPM3H09B,  4.0,   -0.3,   147351.0,  	1.0,  	0.948778,  1.264910
+ bpmstripline,   QWK_BPM3H08,   0.6,    0.2,   143576.0,  	1.0,    1.039360,  1.055470
+ bpmstripline,   QWK_BPM3H09,  -0.1,    0.6,   144803.0,  	1.0,    1.025930,  0.993640
+ bpmstripline,   QWK_BPM3H09B, -0.6,    0.3,   147351.0,  	1.0,  	0.948778,  1.264910
 
 ! The representative bpm for qweak hydrogen target.
 ! The dx offset for the target from the survey was 0.1 mm but since then the taget group have moved the target
