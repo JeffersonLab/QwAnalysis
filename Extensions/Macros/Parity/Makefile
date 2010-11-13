@@ -46,6 +46,8 @@ promptsummary : QwPromptSummary.o
 get_from_runs : read_run_range.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
+SarahsCoolBPMScript : SarahsCoolBPMScript.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 %.o: %.C
 	$(CXX) -c  $(CXXFLAGS)   -o $@ $<
