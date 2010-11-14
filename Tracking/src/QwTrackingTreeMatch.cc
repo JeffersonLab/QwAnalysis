@@ -367,11 +367,11 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
         // Store the final set of hits into this tree line
         for (int hit = 0; hit < fronthits; hit++) {
-          treeline->usedhits[hit] = DetecHits[hit];
+          treeline->usedhits[hit] = new QwHit(DetecHits[hit]);
           treeline->AddHit(DetecHits[hit]);
         }
         for (int hit = fronthits; hit < fronthits + backhits; hit++) {
-          treeline->usedhits[hit] = DetecHits[hit];
+          treeline->usedhits[hit] = new QwHit(DetecHits[hit]);
           treeline->AddHit(DetecHits[hit]);
         }
 
