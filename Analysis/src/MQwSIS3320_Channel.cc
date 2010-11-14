@@ -78,6 +78,7 @@ void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
   fAverageSamples.ClearEventData();
   fAverageSamplesRaw.ClearEventData();
 
+  // Enabled by MMD
   //for (size_t i = 0; i < fSamples.size(); i++) {
   //  TString name = GetElementName() + TString("_samples") + Form("%ld",i);
   //  fSamples[i].SetElementName(name);
@@ -667,6 +668,22 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   //fSamples[0].ConstructBranchAndVector(tree, prefix, values);
   //fSamplesRaw[0].ConstructBranchAndVector(tree, prefix, values);
   // TODO See below for issues with including samples in the mps tree
+
+  // This is a quick and dirty way to read out the samples MMD
+  TString basename = prefix + GetElementName();
+  fTreeArrayIndex  = values.size();
+  
+  values.push_back(0.0);
+  TString list = "sample0/D";
+  values.push_back(0.0);
+  list += ":sw_min/D";
+  values.push_back(0.0);
+  list += ":sw_max/D";
+  values.push_back(0.0);
+  list += ":sw_sum/D";
+  
+  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+  tree->Branch(basename, &(values[fTreeArrayIndex]), list);  
 };
 
 void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
@@ -690,6 +707,31 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
 //    fSamples[i].FillTreeVector(values);
 //    fSamplesRaw[i].FillTreeVector(values);
 //  }
+
+// More of the quick and dirty MMD
+  if (fTreeArrayNumEntries <= 0) {
+    QwWarning << "MQwSIS3320_Samples::FillTreeVector: fTreeArrayNumEntries == "
+              << fTreeArrayNumEntries << QwLog::endl;
+  } else if (values.size() < fTreeArrayIndex + fTreeArrayNumEntries) {
+    QwWarning << "MQwSIS3320_Samples::FillTreeVector:  values.size() == "
+              << values.size()
+              << "; fTreeArrayIndex + fTreeArrayNumEntries == "
+              << fTreeArrayIndex + fTreeArrayNumEntries
+              << QwLog::endl;
+  } else {
+    size_t index = fTreeArrayIndex;
+    if (fSamples.size() > 0) {
+      values[index++] = fSamples[0].GetSample(0);
+      values[index++] = fSamples[0].GetMin();
+      values[index++] = fSamples[0].GetMax();
+      values[index++] = fSamples[0].GetSum();
+    } else {
+      values[index++] = -1;
+      values[index++] = -1;
+      values[index++] = -1;
+      values[index++] = -1;
+    }
+  }
 };
 
 /**

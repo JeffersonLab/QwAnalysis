@@ -354,6 +354,7 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
             }
           }
         }
+        words_read = num_words;
         break;
       }
 
