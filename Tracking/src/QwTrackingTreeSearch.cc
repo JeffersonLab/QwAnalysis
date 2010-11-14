@@ -1050,10 +1050,10 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 			int bin = (*tree_pattern_copy++);
 			assert( row_offset + row < fPattern_fMaxRows);
                         assert(pattern_offset + bin < fPattern_fMaxBins);
-			if(row > firstwire && (int)row<lastwire){
-			if (static_pattern[row_offset + row][pattern_offset + bin])
+			if ((int)row > firstwire && (int)row < lastwire){
+                            if (static_pattern[row_offset + row][pattern_offset + bin])
 				continue;
-			else if(has_hits[row]==0) matched_wires++;
+                            else if (has_hits[row] == 0) matched_wires++;
 			}
 		}
 	    }
@@ -1115,11 +1115,12 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 
           /* Check whether this treeline already exists */
           if (! exists(hashpat, frontbin, backbin, fTreeLineList)) {
+
             /* Print tree */
             if (fShowMatchingPatterns) tree->Print();
+
             /* Create new treeline */ 
             QwTrackingTreeLine* treeline = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
-	    
 
             /* Number of treelines found */
             fNTreeLines++;
@@ -1138,16 +1139,15 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 	    treeline->SetMatchingPattern(patterns);
 // 	    for(int i=0;i< patterns.size();i++)
 // 		std::cout << "bin value: "<< patterns.at(i) << std::endl;
-	    if(search_debug_level){
-	    std::cout << "first wire: " << firstwire << std::endl;
-	    std::cout << "last wire: " << lastwire << std::endl;
-		}
+	    if (search_debug_level) {
+	      std::cout << "first wire: " << firstwire << std::endl;
+	      std::cout << "last wire: " << lastwire << std::endl;
+	    }
             /* Add this treeline to the linked-list */
-	    // what happend if the first wire equal to last wire?
-	    if(firstwire!=lastwire){
-            treeline->next = fTreeLineList;
-            fTreeLineList = treeline;
-		}
+	    if (firstwire != lastwire) {
+              treeline->next = fTreeLineList;
+              fTreeLineList = treeline;
+	    } else delete treeline;
           }
 
 

@@ -21,7 +21,7 @@
 
 // Qweak headers
 #include "QwLog.h"
-#include "globals.h"
+#include "QwObjectCounter.h"
 
 /**
  * \namespace QwTracking
@@ -60,7 +60,7 @@ class nodenode;
  * son nodenodes.  Each following generation of a treenode will have
  * a higher bit resolution.
  */
-class treenode {
+class treenode: public QwObjectCounter<treenode> {
 
   public:
 
@@ -124,8 +124,7 @@ class treenode {
 
   private:
 
-    static int fCount; ///< Object counter
-    static int fDebug; ///M Debug level
+    static int fDebug; ///< Debug level
 
   public:
 
@@ -133,9 +132,6 @@ class treenode {
     void Print(bool recursive = false, int indent = 0);
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const treenode& tn);
-
-    /// Get number of objects
-    static const int GetCount() { return fCount; };
 
 }; // class treenode
 

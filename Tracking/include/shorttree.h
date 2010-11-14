@@ -17,8 +17,8 @@
 #define QWTRACKINGSHORTTREE_H
 
 // Qweak headers
-#include "globals.h"
 #include "shortnode.h"
+#include "QwObjectCounter.h"
 
 namespace QwTracking {
 
@@ -41,7 +41,7 @@ class shortnode;
  * read from file and reconstructing that linkage information is expensive,
  * and not necessary.
  */
-class shorttree {
+class shorttree: public QwObjectCounter<shorttree> {
 
   public:
 
@@ -84,7 +84,6 @@ class shorttree {
 
     static unsigned int fDefaultSize; ///< Default size
 
-    static int fCount; ///< Object counter
     static int fDebug; ///< Debug level
 
   public:
@@ -93,9 +92,6 @@ class shorttree {
     void Print(bool recursive = false, int indent = 0);
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const shorttree& st);
-
-    /// Get number of objects
-    static const int GetCount() { return fCount; };
 
 }; // class shorttree
 

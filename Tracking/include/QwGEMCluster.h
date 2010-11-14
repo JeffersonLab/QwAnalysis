@@ -14,6 +14,7 @@
 
 // Qweak headers
 #include "VQwTrackingElement.h"
+#include "QwObjectCounter.h"
 #include "QwHitContainer.h"
 
 /**
@@ -24,7 +25,7 @@
  * Description to follow.
  *
  */
-class QwGEMCluster: public VQwTrackingElement {
+class QwGEMCluster: public VQwTrackingElement, public QwObjectCounter<QwGEMCluster> {
 
   public:
 

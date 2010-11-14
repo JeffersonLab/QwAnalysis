@@ -58,7 +58,7 @@ class QwTrackingTree: public VQwTrackingElement {
   public:
 
     /// \brief Default constructor
-    QwTrackingTree(unsigned int numlayers = MAX_LAYERS);
+    QwTrackingTree(unsigned int numlayers);
     /// \brief Destructor
     ~QwTrackingTree();
 
