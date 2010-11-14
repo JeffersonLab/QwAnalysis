@@ -31,7 +31,7 @@
  * allows for combining different QwPartialTracks with each other, and selecting
  * the optimal fit.
  */
-class QwTrack: public VQwTrackingElement {
+class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
   public:
 

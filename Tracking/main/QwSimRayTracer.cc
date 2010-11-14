@@ -130,8 +130,8 @@ int main (int argc, char* argv[])
 
       /// Get the generated event
       event = treebuffer->GetEvent();
-      event->GetEventHeader()->SetRunNumber(treebuffer->GetRunNumber());
-      event->GetEventHeader()->SetEventNumber(treebuffer->GetEventNumber());
+      QwEventHeader header(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
+      event->SetEventHeader(header);
 
       /// Get the partial tracks in the front and back region
       std::vector<QwPartialTrack*> tracks_r2 = treebuffer->GetPartialTracks(kRegionID2);

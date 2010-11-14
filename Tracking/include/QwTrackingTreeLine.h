@@ -99,22 +99,22 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
 
     //! \name Creating, adding, and getting hits and hit containers
     // @{
-    //! \brief Create a new empty hit
-    QwHit* CreateNewHit();
-    //! \brief Add an existing hit
-    void AddHit(QwHit* hit);
+    //! \brief Add a single hit
+    void AddHit(const QwHit* hit);
+    //! \brief Add a list of hits
+    void AddHitList(const std::vector<QwHit*> &fQwHits);
     //! \brief Add an existing hit container
     void AddHitContainer(QwHitContainer* hitlist);
     //! \brief Get the number of hits
-    Int_t GetNumberOfHits() const;
+    Int_t GetNumberOfHits() const { return fNQwHits; };
     //! \brief Get a specific hit
     QwHit* GetHit(int i = 0);
     //! \brief Get the hits as a hit container
     QwHitContainer* GetHitContainer();
-    //! \brief Clear the list of hits
-    void ClearHits(Option_t *option = "");
-    //! \brief Reset the list of hits
-    void ResetHits(Option_t *option = "");
+    //! \brief Clear the list of hits without deleting
+    void ClearHits();
+    //! \brief Delete the hits in the list
+    void DeleteHits();
     // @}
 
     //! \brief Get the weighted chi^2

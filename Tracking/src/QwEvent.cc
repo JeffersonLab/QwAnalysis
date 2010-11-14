@@ -28,8 +28,8 @@ ClassImp(QwEventHeader);
 
 QwEvent::QwEvent()
 {
-  // Create an event header
-  fEventHeader = new QwEventHeader();
+  // Reset the event header
+  fEventHeader = 0;
 
   #ifdef QWHITS_IN_LOCAL_TCLONESARRAY
     // Initialize the local list
@@ -133,7 +133,7 @@ QwEvent::~QwEvent()
   } // end of loop over packages
 
   // Delete the event header
-  delete fEventHeader;
+  if (fEventHeader) delete fEventHeader;
 }
 
 

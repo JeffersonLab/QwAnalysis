@@ -58,6 +58,17 @@ class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
       fRunNumber = run;
       fEventNumber = event;
     };
+    /// Copy constructor
+    QwEventHeader(const QwEventHeader& header) {
+      fRunNumber = header.fRunNumber;
+      //
+      fEventNumber = header.fEventNumber;
+      fEventTime = header.fEventTime;
+      fEventType = header.fEventType;
+      fEventTrigger = header.fEventTrigger;
+      //
+      fBeamHelicity = header.fBeamHelicity;
+    };
     /// Destructor
     virtual ~QwEventHeader(){};
 
@@ -203,13 +214,21 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
   public:
 
+    /// Default constructor
     QwEvent();
+    /// Virtual destructor
     virtual ~QwEvent();
 
     // Event header
-    QwEventHeader* GetEventHeader() { return fEventHeader; };
-    void SetEventHeader(QwEventHeader& eventheader) { *fEventHeader = eventheader; };
-    void SetEventHeader(QwEventHeader* eventheader) { *fEventHeader = *eventheader; };
+    const QwEventHeader* GetEventHeader() const { return fEventHeader; };
+    void SetEventHeader(const QwEventHeader& eventheader) {
+      if (fEventHeader) delete fEventHeader;
+      fEventHeader = new QwEventHeader(eventheader);
+    };
+    void SetEventHeader(const QwEventHeader* eventheader) {
+      if (fEventHeader) delete fEventHeader;
+      fEventHeader = new QwEventHeader(*eventheader);
+    };
 
   public:
 

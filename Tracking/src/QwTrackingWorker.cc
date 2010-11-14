@@ -501,6 +501,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
             QwDebug << *cluster << QwLog::endl;
         }
         delete clusterfinder; // TODO (wdc) should go somewhere else
+        delete hitlist_region1_r;
+        delete hitlist_region1_phi;
 
         /// Loop through the detector regions
         for (EQwRegionID region  = kRegionID2;
@@ -600,7 +602,10 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             /// Get the subhitlist of hits in this detector
                             QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, plane);
                             // If no hits in this detector, skip to the next detector.
-                            if (subhitlist->size() == 0) continue;
+                            if (subhitlist->size() == 0) {
+                              delete subhitlist;
+                              continue;
+                            }
                             // Print the hit list for this detector
                             if (fDebug) {
 				std::cout << "region: " << region << " package: " << package << " plane: " << plane << std::endl;
@@ -677,7 +682,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                                          1UL << (fLevelsR3 - 1), 0, dlayer, width);
 
                             QwDebug << "Sort patterns" << QwLog::endl;
-			 //what is this doing?s
                             fTreeSort->rcTreeConnSort (treelinelist, region);
 
                             if (plane < 3)
@@ -693,6 +697,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         } // end of loop over like-pitched planes in a region
                         event->AddTreeLineList(treelinelist1);
                         event->AddTreeLineList(treelinelist2);
+                        treelinelist = 0;
 
 			//treelinelist 1 and treelinelist 2 are in the same dir
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
@@ -714,8 +719,11 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                         }
 
-                        tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
+                        // Delete tree line lists after storing results in event structure
+                        delete treelinelist1; treelinelist1 = 0;
+                        delete treelinelist2; treelinelist2 = 0;
 
+                        tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
 
 
                     /* Region 2 HDC */

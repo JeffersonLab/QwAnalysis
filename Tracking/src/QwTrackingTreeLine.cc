@@ -60,6 +60,14 @@ QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* treeline)
     if (treeline->hits[i])
       this->hits[i] = new QwHit(treeline->hits[i]);
   }
+  for (int i = 0; i < MAX_LAYERS; i++) {
+    if (treeline->usedhits[i])
+      this->usedhits[i] = new QwHit(treeline->usedhits[i]);
+  }
+
+  // Copy hits
+  ClearHits();
+  AddHitList(treeline->fQwHits);
 }
 
 
@@ -71,7 +79,14 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
   // Delete the hits in this treeline
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     if (hits[i]) delete hits[i];
+    hits[i] = 0;
   }
+  for (int i = 0; i < MAX_LAYERS; i++) {
+    if (usedhits[i]) delete usedhits[i];
+    usedhits[i] = 0;
+  }
+
+  DeleteHits();
 }
 
 
@@ -80,14 +95,6 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
  */
 void QwTrackingTreeLine::Initialize()
 {
-  // Create the static TClonesArray for the hits if not existing yet
-  //if (! gQwHits)
-  //  gQwHits = new TClonesArray("QwHit", QWTREELINE_MAX_NUM_HITS);
-  // Set local TClonesArray to static TClonesArray and zero hits
-  //fQwHits = gQwHits;
-
-  //fQwHits = new TRefArray();
-
   // Clear the list of hits
   ClearHits();
 
@@ -125,55 +132,44 @@ void QwTrackingTreeLine::Initialize()
 }
 
 
-// Clear the local TClonesArray of hits
-void QwTrackingTreeLine::ClearHits(Option_t *option)
+// Clear the list of hits
+void QwTrackingTreeLine::ClearHits()
 {
-  fQwHits.clear(); // Clear the list of hits
-  fNQwHits = 0; // No hits in the list hits
+  fQwHits.clear();
+  fNQwHits = 0;
 };
 
-// Delete the static TClonesArray of hits
-void QwTrackingTreeLine::ResetHits(Option_t *option)
+// Delete the hits in the list
+void QwTrackingTreeLine::DeleteHits()
 {
-  //delete gQwHits;
-  //gQwHits = 0;
+  for (size_t i = 0; i < fQwHits.size(); i++)
+    delete fQwHits.at(i);
+  ClearHits();
 };
 
-// Create a new QwHit
-QwHit* QwTrackingTreeLine::CreateNewHit()
+// Add a single hit
+void QwTrackingTreeLine::AddHit(const QwHit* hit)
 {
-  //TClonesArray &hits = *fQwHits;
-  //QwHit *hit = new (hits[fNQwHits++]) QwHit();
-  //return hit;
-  QwHit* hit = new QwHit();
-  AddHit(hit);
-  return hit;
-};
-
-// Add an existing QwHit
-void QwTrackingTreeLine::AddHit(QwHit* hit)
-{
-  //QwHit* newhit = CreateNewHit();
-  //*newhit = *hit;
-  fQwHits.push_back(hit);
+  if (hit) fQwHits.push_back(new QwHit(hit));
   fNQwHits++;
 };
+
+// Add a list of hits
+void QwTrackingTreeLine::AddHitList(const std::vector<QwHit*> &hitlist)
+{
+  for (std::vector<QwHit*>::const_iterator hit = hitlist.begin();
+       hit != hitlist.end(); hit++)
+    AddHit(*hit);
+}
 
 // Add the hits of a QwHitContainer to the TClonesArray
 void QwTrackingTreeLine::AddHitContainer(QwHitContainer* hitlist)
 {
-  ClearHits();
   for (QwHitContainer::iterator hit = hitlist->begin();
        hit != hitlist->end(); hit++) {
     QwHit* p = &(*hit);
     AddHit(p);
   }
-}
-
-// Get the number of hits
-Int_t QwTrackingTreeLine::GetNumberOfHits() const
-{
-  return fQwHits.size();
 }
 
 // Get the hits from the TClonesArray to a QwHitContainer
@@ -189,11 +185,10 @@ QwHit* QwTrackingTreeLine::GetHit(int i)
 QwHitContainer* QwTrackingTreeLine::GetHitContainer()
 {
   QwHitContainer* hitlist = new QwHitContainer();
-  //TIterator* iterator = fQwHits->MakeIterator();
-  //QwHit* hit = 0;
-  //while ((hit = (QwHit*) iterator->Next())) {
-  //  hitlist->push_back(*hit);
-  //}
+  for (std::vector<QwHit*>::const_iterator hit = fQwHits.begin();
+       hit != fQwHits.end(); hit++)
+    if (*hit) hitlist->push_back(*hit);
+    else QwError << "null hit in hit list" << QwLog::endl;
   return hitlist;
 }
 

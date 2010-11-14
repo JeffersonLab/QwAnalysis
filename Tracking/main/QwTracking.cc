@@ -48,8 +48,6 @@
 
 // Debug level
 static const bool kDebug = false;
-// ROOT file output
-static const bool kEPICS = kFALSE;
 
 // Main function
 Int_t main(Int_t argc, Char_t* argv[])
@@ -69,21 +67,22 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwOptions.AddConfigFile("qweak_mysql.conf");
   ///  Define the command line options
   DefineOptionsTracking(gQwOptions);
-
-  ///  Setup screen and file logging
+  /// Load command line options for the histogram/tree helper class
+  //gQwHists.ProcessOptions(gQwOptions);
+  /// Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
-  // Either the DISPLAY is not set or JOB_ID is defined: we take it as in batch mode.
-  Bool_t kInQwBatchMode = kFALSE;
 
-  if (getenv("DISPLAY") == NULL
-   || getenv("JOB_ID")  != NULL) {
-     kInQwBatchMode = kTRUE;
-     gROOT->SetBatch(kTRUE);
-  }
+  ///  Create the event buffer
+  QwEventBuffer eventbuffer;
+  eventbuffer.ProcessOptions(gQwOptions);
+
+  ///  Set up the database connection
+  QwDatabase database(gQwOptions);
+
+
 
   Bool_t enablemapfile = gQwOptions.GetValue<bool>("enable-mapfile");
- 
   if(enablemapfile) {
     //std::cout << ">>>>>>>>>>> map file " << std::endl;
     gQwHists.LoadHistParamsFromFile("parity_hist.in");
@@ -97,24 +96,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
   }
 
-  ///  Create the event buffer
-  QwEventBuffer eventbuffer;
-  eventbuffer.ProcessOptions(gQwOptions);
-
-  ///  Create an EPICS event
-  QwEPICSEvent epics;
-  if (kEPICS)
-    epics.LoadEpicsVariableMap("EpicsTable.map");
-
-
-  ///  Load the tracking detectors from file
-  QwSubsystemArrayTracking tracking_detectors(gQwOptions);
-  tracking_detectors.ProcessOptions(gQwOptions);
-
-  ///  Load the parity detectors from file
-  QwSubsystemArrayParity parity_detectors(gQwOptions);
-  parity_detectors.ProcessOptions(gQwOptions);
-
   // Get vector with detector info (by region, plane number)
   //std::vector< std::vector< QwDetectorInfo > > detector_info;
   //tracking_detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
@@ -127,7 +108,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   // only an id as primary index) and write a couple of helper functions to
   // select the right subvectors of tracking_detectors.
 
-
   // Create and fill old detector structures (deprecated)
   Qset qset;
   qset.FillDetectors((getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/qweak.geo").c_str());
@@ -135,22 +115,44 @@ Int_t main(Int_t argc, Char_t* argv[])
   qset.DeterminePlanes();
 
 
-  // Create the tracking worker
-  QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
-
-  ///  Set up the database connection
-  QwDatabase database(gQwOptions);
-
   ///  Start loop over all runs
   QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
-    //  Begin processing for the first run.
+    ///  Begin processing for the first run.
 
-    //  Open the ROOT file
+
+    ///  Set the current event number for parameter file lookup
+    QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
+
+
+    ///  Create an EPICS event
+    QwEPICSEvent epics;
+    epics.LoadEpicsVariableMap("EpicsTable.map");
+
+
+    ///  Load the tracking detectors from file
+    QwSubsystemArrayTracking tracking_detectors(gQwOptions);
+    tracking_detectors.ProcessOptions(gQwOptions);
+
+    ///  Load the parity detectors from file
+    QwSubsystemArrayParity parity_detectors(gQwOptions);
+    parity_detectors.ProcessOptions(gQwOptions);
+
+    ///  Create the tracking worker
+    QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
+
+
+    //  Initialize the database connection.
+    database.SetupOneRun(eventbuffer);
+
+
+    // Open the ROOT file
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
-    QwEvent* event = 0;
+
+    // Create dummy event for branch creation (memory leak when using null)
+    QwEvent* event = new QwEvent();
 
     if (not enablemapfile) {
       // Create the tracking object branches
@@ -161,6 +163,9 @@ Int_t main(Int_t argc, Char_t* argv[])
       rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
       rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", parity_detectors);
     }
+
+    // Delete dummy event again
+    delete event; event = 0;
 
     // Create the subsystem histograms
     rootfile->ConstructHistograms("tracking_histo", tracking_detectors);
@@ -177,11 +182,9 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Loop over events in this CODA file
       //  First, do processing of non-physics events...
 
-      if (kEPICS) {
-        if (eventbuffer.IsEPICSEvent()) {
-          eventbuffer.FillEPICSData(epics);
-          epics.CalculateRunningValues();
-        }
+      if (eventbuffer.IsEPICSEvent()) {
+        eventbuffer.FillEPICSData(epics);
+        epics.CalculateRunningValues();
       }
 
 
@@ -216,9 +219,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
       // Create the event header with the run and event number
-      QwEventHeader* header = new QwEventHeader(
-        eventbuffer.GetRunNumber(),
-        eventbuffer.GetEventNumber());
+      QwEventHeader header(eventbuffer.GetRunNumber(),eventbuffer.GetEventNumber());
 
       // Create and fill hit list
       hitlist = new QwHitContainer();
@@ -274,13 +275,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Write and close file (after last access to ROOT tree)
     rootfile->Write(0, TObject::kOverwrite);
 
-    if (kEPICS) {
-      epics.ReportEPICSData();
-      epics.PrintVariableList();
-      epics.PrintAverages();
-      //TString tag; epics.GetDataValue(tag);
-    }
-
     // Close CODA file
     eventbuffer.CloseStream();
 
@@ -295,23 +289,26 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Delete objects (this is confusing: the if only applies to the delete)
     if (rootfile)       delete rootfile;       rootfile = 0;
     if (hitlist)        delete hitlist;        hitlist = 0;
-    if (event)          delete event;          event = 0;
-
-    QwMessage << "Number of objects of type still alive" << QwLog::endl;
-    QwMessage << "  QwHit: "          << QwHit::GetObjectsAlive() << QwLog::endl;
-    QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive() << QwLog::endl;
-    QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive() << QwLog::endl;
-    QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive() << QwLog::endl;
-    QwMessage << "  QwEvent: "        << QwEvent::GetObjectsAlive() << QwLog::endl;
 
     // Print run summary information
     eventbuffer.ReportRunSummary();
     eventbuffer.PrintRunTimes();
 
+    // Delete objects
+    if (trackingworker) delete trackingworker; trackingworker = 0;
+
   } // end of loop over runs
 
-  // Delete objects
-  if (trackingworker) delete trackingworker; trackingworker = 0;
+  QwMessage << QwLog::endl;
+  QwMessage << "Number of tracking objects still alive:" << QwLog::endl;
+  QwMessage << "  QwEvent: "        << QwEvent::GetObjectsAlive() << QwLog::endl;
+  QwMessage << "  QwEventHeader: "  << QwEventHeader::GetObjectsAlive() << QwLog::endl;
+  QwMessage << "  QwHit: "          << QwHit::GetObjectsAlive() << QwLog::endl;
+  QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive() << QwLog::endl;
+  QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive() << QwLog::endl;
+  QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive() << QwLog::endl;
+  QwMessage << "  QwTrack: "        << QwTrack::GetObjectsAlive() << QwLog::endl;
+  QwMessage << QwLog::endl;
 
   QwMessage << "I have done everything I can do..." << QwLog::endl;
 

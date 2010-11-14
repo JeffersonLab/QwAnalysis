@@ -553,7 +553,7 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
 	if ( wire_offset == -1 )
 	{
 		for ( int i = 0; i < n; i++ )
-		{       
+		{
 			hits[i]->SetTrackPosition ( slope * ( hits[i]->GetWirePosition() - z1 ) + offset );
 			hits[i]->CalculateResidual();
 			double residual = hits[i]->GetResidual();
@@ -1083,7 +1083,7 @@ int QwTrackingTreeCombine::TlMatchHits (
 // 		int begin=0,end=0;
 // 		double track_resolution=hit->GetDetectorInfo()->GetTrackResolution();
 // 		double halfwidth=1.52;
-		int wire=hit->GetElement();	
+		int wire=hit->GetElement();
 
 		if ( wire < tl_first || wire > tl_last){
  			continue;
@@ -1094,7 +1094,7 @@ int QwTrackingTreeCombine::TlMatchHits (
 // 		|| wire > (tl_last + fMaxMissedWires-2)
 // 		        || hit->GetHitNumber() != 0 )
 // 			continue;
-// 
+//
 // 		if(wire < tl_first){
 // 		 begin=(halfwidth-hit->GetDriftDistance()-track_resolution)/halfwidth*4;
 // 		 if(begin > treeline->a_beg) continue;
@@ -1117,7 +1117,7 @@ int QwTrackingTreeCombine::TlMatchHits (
 	// number of hits found (missing wires or wires wit multiple hits)
 	if ( nHits != nWires )
 		QwWarning << "Expected " << nWires << " consecutive wires to be hit, " << "but found " << nHits << " hits in plane" << treeline->GetPlane() <<  QwLog::endl;
-        
+
 	//############################
 	//RETURN HITS FOUND IN BESTX #
 	//############################
@@ -1125,7 +1125,7 @@ int QwTrackingTreeCombine::TlMatchHits (
 	{
 		goodHits[hit]->SetUsed ( true );
 		treeline->usedhits[hit] = goodHits[hit];
-		treeline->hits[hit] = treeline->usedhits[hit];
+		treeline->hits[hit] = new QwHit(goodHits[hit]);
 		treeline->AddHit ( goodHits[hit] );
 	}
 
@@ -1211,7 +1211,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 			double z1 = ( double ) ( treeline->fR3Offset + treeline->fR3FirstWire );
 			// Last wire position
 			double z2 = ( double ) ( treeline->fR3Offset + treeline->fR3LastWire );
-			
+
 			double d1=0,d2=0;
 
 			for ( QwHitContainer::iterator hit=hitlist->begin();hit!=hitlist->end();hit++ ){
@@ -1570,12 +1570,12 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	double angle = hits[0]->GetDetectorInfo()->GetElementAngle();
 	Uv2xy uv2xy ( angle, 2*Qw::pi - angle );
 	double rCos[kNumDirections],rSin[kNumDirections];
-	
+
 	rCos[kDirectionU] = uv2xy.fXY[0][0];
 	rCos[kDirectionV] = uv2xy.fXY[1][0];
 	rSin[kDirectionU] = uv2xy.fXY[0][1];
 	rSin[kDirectionV] = uv2xy.fXY[1][1];
-	
+
 	// NOTE: the parameter contains the uoffset, uslope,voffset,vslope from treeline 0
 	// TASK: transfer partial track in u/v to xy(local coordination)
 	double perp;
@@ -1583,11 +1583,11 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	double uvshift=2.5424;
 	if(hits[0]->GetDetectorInfo()->fPackage==kPackageUp)
 		perp=39.2037;
-	else 
+	else
 		perp=39.3509;
 	double ufront=-parameter[0]/parameter[1];
 	double uback=ufront+perp/parameter[1];
-	
+
 	double vfront=-parameter[2]/parameter[3];
 	double vback=vfront+perp/parameter[3];
 
@@ -1604,7 +1604,7 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	uplane[1]=1;
 	uplane[3]=-(Pufront[1]+uplane[0]*Pufront[0]);
 	uplane[2]=-(uplane[0]*Puback[0]+uplane[1]*Puback[1]+uplane[3])/Puback[2];
-	
+
         Pvfront[0]=vfront*rCos[kDirectionV];
 	Pvfront[1]=vfront*rSin[kDirectionV];
 	Pvfront[2]=-uvshift;
@@ -1616,7 +1616,7 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	vplane[2]=(-(vplane[0]*Pvfront[0]+vplane[1]*Pvfront[1])+(vplane[0]*Pvback[0]+vplane[1]*Pvback[1]))/(Pvfront[2]-Pvback[2]);
 	vplane[3]=-(vplane[0]*Pvfront[0]+vplane[1]*Pvfront[1])-vplane[2]*Pvfront[2];
 
-	
+
 	// TASK 2:hook two planes together to get partial track in local xy;
 	double P[3],P_dir[3];
 
@@ -1624,12 +1624,12 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	P_dir[1]=uplane[2]*vplane[0]-uplane[0]*vplane[2];
 	P_dir[2]=uplane[0]*vplane[1]-uplane[1]*vplane[0];
 
-	
+
 	P[0]=-(uplane[3]-vplane[3])/(uplane[0]-vplane[0]);
 	P[1]=-(uplane[0]*P[0]+uplane[3]);
 	P[2]=0;
-	
- 	
+
+
 	fit[0]=P[0];
 	fit[1]=P_dir[0]/P_dir[2];
 	fit[2]=P[1];
@@ -1641,7 +1641,7 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	//get some detector information
 	// NOTE: since the first plane is in v direction and hits[0] is in u, so here 1 should be changed to 2
 
-	
+
 	if ( hits[0]->GetDetectorInfo()->fPlane == 2 )
 	{
 
@@ -1674,7 +1674,7 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	Pp1[0] = ytrans + P1[0] * costheta + P1[2] * sintheta;
 	Pp1[1] = xtrans + P1[1];
 	Pp1[2] = ztrans - P1[0] * sintheta + P1[2] * costheta;
-	
+
 	Pp2[0] = ytrans + P2[0] * costheta + P2[2] * sintheta;
 	Pp2[1] = xtrans + P2[1];
 	Pp2[2] = ztrans - P2[0] * sintheta + P2[2] * costheta;
@@ -1692,7 +1692,7 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	}
 
 	return 1;
-	
+
 }
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -1712,7 +1712,7 @@ int QwTrackingTreeCombine::r3_TrackFit2 (
 
 	// Create the transformation helper object
 	double angle = hits[0]->GetDetectorInfo()->GetElementAngle();
-// 	std::cout << hits[0]->GetDirection() << " angle: " << angle << std::endl; 
+// 	std::cout << hits[0]->GetDirection() << " angle: " << angle << std::endl;
 	// The angle for U is smaller than 90 deg, the other one is the complement
 // 	if ( angle > Qw::pi/2.0 ) angle = Qw::pi - angle;
 // 	Uv2xy uv2xy ( angle, Qw::pi - angle );
@@ -1725,12 +1725,12 @@ int QwTrackingTreeCombine::r3_TrackFit2 (
 // 	rCos[kDirectionV] = hits[0]->GetDetectorInfo()->GetElementAngleCos();
 // 	rSin[kDirectionU] = hits[0]->GetDetectorInfo()->GetElementAngleSin();
 // 	rSin[kDirectionV] = hits[0]->GetDetectorInfo()->GetElementAngleSin();
-	
+
 	rCos[kDirectionU] = uv2xy.fXY[0][0];
 	rCos[kDirectionV] = uv2xy.fXY[1][0];
 	rSin[kDirectionU] = uv2xy.fXY[0][1];
 	rSin[kDirectionV] = uv2xy.fXY[1][1];
-	
+
 
 	// Initialize
 	double B[4];
@@ -1803,7 +1803,7 @@ int QwTrackingTreeCombine::r3_TrackFit2 (
 		QwMessage << "u = " << offset[kDirectionU] << " + z * " << slope[kDirectionU] << QwLog::endl;
 		QwMessage << "v = " << offset[kDirectionV] << " + z * " << slope[kDirectionV] << QwLog::endl;
 	}
-	
+
 	if ( fDebug )
 	{
 		QwMessage << "Reconstructed partial track in u,v" << QwLog::endl;
@@ -1816,7 +1816,7 @@ int QwTrackingTreeCombine::r3_TrackFit2 (
 	fit[1] = -fit[1];
 
 
-	
+
 
 	if ( fDebug )
 	{
@@ -2099,7 +2099,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2 (
 			h = *hitarray;
 			ntotal++;
 			if ( h->IsUsed() != 0 )
-			{       
+			{
 				hits[hitc] = h;
 				hitc++;
 			}
