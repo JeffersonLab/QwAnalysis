@@ -69,7 +69,15 @@
 //
 //          0.0.8 : Monday, October 25 01:23:55 EDT 2010, jhlee
 //                   - improved the way to handle (a) ROOT file(s) (TChain) 
-
+//
+//          0.0.9 : Sunday, Nomember 14 10:47:55 EDT 2010, Buddhini
+//                   - added a command line option, "s" to apply event cuts if needed. Default is no event cuts. 
+//                   - fine tuned the current range obtained from the bcm. Earlier we were just using the mac and min from the
+//                     bcm histogram axis which gave default min and max set by root and so was not right always.
+//                     Now we scan the axis to find the minimum and maximum current.
+//                   - Fixed the way the fitting range was being calculated.
+//                   - Passed the correct command to plot residuals in to residual plots. 
+//
 // Additional BPM calibration run info
 //
 //  run 
@@ -78,6 +86,7 @@
 //                    https://hallcweb.jlab.org/hclog/1008_archive/100806050806.html
 // 5900            * BPM Calibration
 //
+// 6908            * BPM Calibration
 
 
 #include <iostream>
@@ -662,6 +671,11 @@ TChain  *mps_tree_in_chain = NULL;
 TCanvas *bpm_canvas        = NULL;
 TString  bpm_plots_filename;
 
+Bool_t event_range_flag    = false;
+Double_t event_range[2] = {0.0};
+
+Double_t tmp_max = 0.0;
+Double_t tmp_min = 0.0;
 
 Int_t w = 1200;
 Int_t h = 800;
@@ -715,7 +729,7 @@ main(int argc, char **argv)
   int cc = 0; 
 
   /*command line arguments*/
-  while ( (cc= getopt(argc, argv, "r:c:b:e:")) != -1)
+  while ( (cc= getopt(argc, argv, "r:c:b:e:s:")) != -1)
     switch (cc)
       {
       case 'r': /*run number of the pedestal run*/
@@ -759,6 +773,29 @@ main(int argc, char **argv)
 	      print_usage(stdout,0);
 	    }
 	}
+      case 's': /*event range*/
+	{
+	  event_range_flag    = true;
+	  char *s;
+	  /*
+	   * Allow the specification of alterations
+	   * to the pty search range.  It is legal to
+	   * specify only one, and not change the
+	   * other from its default.
+	   */
+	  s = strchr(optarg, ':');
+	  if (s) {
+	    *s++ = '\0';
+	    event_range[1] = atof(s);
+	  }
+	  if (*optarg != '\0') {
+	    event_range[0] = atof(optarg);
+	  }
+	  if ((event_range[0] > event_range[1]) || (event_range[0] < 0) ) 
+	    {
+	      print_usage(stdout,0);
+	    }
+	}
 	break;
       case '?':  /*if no argument is given*/
 	{
@@ -769,6 +806,8 @@ main(int argc, char **argv)
 	  else if (optopt == 'c')
 	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 	  else if (optopt == 'b')
+	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
+	 else if (optopt == 's')
 	    fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 	  else if (isprint (optopt))
 	    fprintf (stderr, "Unknown option `-%c'.\n", optopt);
@@ -882,7 +921,9 @@ main(int argc, char **argv)
   
   /*If a bcm calibration file is specified, open the bcm calibration results file*/
   if (bcm_ped_file_flag) {
-    bcm_ped_filename = Form("hallc_bcm_pedestal_%d.txt", bcm_ped_runnumber);
+    //    bcm_ped_filename = Form("hallc_bcm_pedestal_%d.txt", bcm_ped_runnumber);
+    bcm_ped_filename = Form("hallc_bcm_pedestal_%d_events_%d_%d.txt", bcm_ped_runnumber,event_range[0], event_range[1]);
+
     ifstream in;
     in.open(bcm_ped_filename.Data());
     if(not in.is_open() ) {
@@ -931,7 +972,6 @@ main(int argc, char **argv)
  
   mps_tree_in_chain = new TChain("Mps_Tree");
 
-
   TString bpm_calibration_filename = Form("BPMCalib_%s*.root", run_number);
   Int_t chain_status = 0;
   chain_status = GetTree(bpm_calibration_filename, mps_tree_in_chain);
@@ -958,8 +998,11 @@ main(int argc, char **argv)
 
 
   TH2D *tmp;
-  Double_t tmp_max = 0.0;
-  
+  Double_t nbins = 0;
+  Double_t range_length = 0.0;
+
+  TString scut = "";
+
   /* Use the current readings from the bcm */
   bpm_canvas = new TCanvas("Current" , Form("Range of currents form %s",ref_bcm_name), w, h);  
   bpm_canvas->Clear();
@@ -984,10 +1027,14 @@ main(int argc, char **argv)
 		       Form("%s.hw_sum",hallc_bcm.GetName().Data())); 
   }
 
-  mps_tree_in_chain->Draw("current>>tmp", 
-  		 Form("%s.Device_Error_Code==0", hallc_bcm.GetName().Data()));
-  
+  if(event_range_flag)
+    scut = Form("%s.Device_Error_Code==0 && CodaEventNumber < %f && CodaEventNumber > %f", 
+		hallc_bcm.GetName().Data(),event_range[1],event_range[0]);
+  else
+    Form("%s.Device_Error_Code==0", hallc_bcm.GetName().Data());
 
+  mps_tree_in_chain->Draw("current>>tmp", scut);
+  
   tmp = (TH2D*)gDirectory->Get("tmp");
   if(not tmp) {
     std::cout << "Please check to see if " 
@@ -996,12 +1043,39 @@ main(int argc, char **argv)
     theApp.Run();
     
   }
+
+  /* get maximum and minimum range of the plot */
   tmp_max = tmp -> GetXaxis() -> GetXmax();
+  tmp_min = tmp -> GetXaxis() -> GetXmin();
+  nbins = tmp -> GetXaxis() -> GetNbins();
+
+  /* now to get maximum and minimum range of current, */
+  for(Int_t i=0;i<nbins; i++){
+    if(tmp_max>tmp->GetBinContent(i))
+      tmp_max  = tmp->GetXaxis()->GetBinUpEdge(i);
+  }
+
+  for(Int_t i=nbins;i>0;i--){
+    if(tmp_min<tmp->GetBinContent(i))
+      tmp_min = tmp->GetXaxis()->GetBinLowEdge(i);
+  }
+
   tmp -> GetXaxis() -> SetTitle("current (#muA)");
 
-  fit_range[0] *= 15.0;
-  fit_range[1] *= tmp_max;
-  
+
+  /*Calculate the fitting range for current based on the percent range
+    given by user/default */
+  range_length = tmp_max-tmp_min;
+
+  fit_range[0] *= range_length;
+  fit_range[0] += tmp_min; //lower limit of range
+
+  fit_range[1] *= range_length; 
+  fit_range[1] += tmp_min ; //upper limit of range
+
+//   fit_range[0] *= 0.15;
+//   fit_range[1] *= tmp_max;
+
   hallc_bcm.SetAliasName("current"); 
   hallc_bcm.SetFitRange(fit_range);
   hallc_bcm.SetReference();
@@ -1088,9 +1162,8 @@ bpm_calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference, const char*
   TString  bpm_samples[4];
   TString  reference_name;
   TCut     bpm_cut    [4] = {""};
- 
-  Double_t reference_fit_range[2] = {0.0};
 
+  Double_t reference_fit_range[2] = {0.0};
  
   TF1  *bpm_fit[4]  = {NULL};
   TH1D *bpm_hist[4] = {NULL};
@@ -1102,24 +1175,26 @@ bpm_calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference, const char*
   reference_name = reference.GetAliasName();
   reference_fit_range[0] = reference.GetFitRangeMin();
   reference_fit_range[1] = reference.GetFitRangeMax();
-
-
   
   bpm_canvas->Clear();
   bpm_canvas->Divide(4,2);
-  
  
- 
-  
+
   for(i=0;i<4;i++) {
     
     bpm_name[i]    = device_name + antenna[i];
     bpm.at(i).SetName(bpm_name[i]);
     
     bpm_samples[i] = bpm_name[i] + ".num_samples";
-    bpm_cut[i]     = Form("%s.Device_Error_Code == 0", bpm_name[i].Data());
+    if(event_range_flag)
+      bpm_cut[i]     = Form("%s.Device_Error_Code == 0 && %s.Device_Error_Code == 0 &&  CodaEventNumber>%f && CodaEventNumber<%f", 
+			    bpm_name[i].Data(),hallc_bcm.GetName().Data(),event_range[0],event_range[1]);
+    else
+      bpm_cut[i]     = Form("%s.Device_Error_Code == 0 && %s.Device_Error_Code == 0", 
+			    bpm_name[i].Data(), hallc_bcm.GetName().Data());
+
     plotcommand[i] = bpm_name[i] + ".hw_sum_raw/" + bpm_samples[i] + ":" + reference_name;
-    
+
     bpm_canvas->cd(i+1);
     
     bpm_hist[i] = GetHisto(
@@ -1157,7 +1232,7 @@ bpm_calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference, const char*
       /* Draw fit residuals */
       bpm_canvas->cd(4+i+1);
       
-      plot_residual_command[i] = Form("(( %s.hw_sum_raw/%s )-( %s*%1f + %1f )):%s",
+      plot_residual_command[i] = Form("(( %s.hw_sum_raw/%s )-( %s*%f + %f )):%s",
 				      bpm_name[i].Data(),
 				      bpm_samples[i].Data(),
 				      reference_name.Data(),
@@ -1165,10 +1240,20 @@ bpm_calibrate(std::vector<BeamMonitor> &bpm, BeamMonitor &reference, const char*
 				      bpm.at(i).GetPed(),
 				      reference_name.Data() );
       
-      bpm_res[i] = GetHisto(mps_tree_in_chain, plotcommand[i], bpm_cut[i], "BOX");
+      if(event_range_flag)
+	bpm_cut[i]     = Form("%s.Device_Error_Code == 0 && %s.Device_Error_Code == 0 && CodaEventNumber>%f && CodaEventNumber<%f && %s>%f && %s<%f", 
+			      bpm_name[i].Data(),reference.GetName().Data(),event_range[0],event_range[1],
+			      reference_name.Data(),reference_fit_range[0],reference_name.Data(),reference_fit_range[1]);
+      else
+	bpm_cut[i]     = Form("%s.Device_Error_Code == 0 && %s.Device_Error_Code == 0 &&  %s>%f && %s<%f", 
+			      bpm_name[i].Data(), hallc_bcm.GetName().Data(),
+			      reference_name.Data(),reference_fit_range[0],reference_name.Data(),reference_fit_range[1]);
+      
+
+      bpm_res[i] = GetHisto(mps_tree_in_chain, plot_residual_command[i], bpm_cut[i], "BOX");
 
       if (not bpm_res[i]) {
-	std::cout<<" Unable to draw residual plot"<<plotcommand[i]<<std::endl;
+	std::cout<<" Unable to draw residual plot"<<plot_residual_command[i]<<std::endl;
 	//	bpm_canvas ->Close();
 	//	delete bpm_canvas; bpm_canvas = NULL;
 	return false;	
@@ -1213,7 +1298,8 @@ print_usage (FILE* stream, int exit_code)
   	   " -r bpm_run_number : run number of BPMs calibration \n"
 	   " -c bcm_run_number : run number of BCMs calibration \n"
 	   " -c ref_bcm_name : bcm used for calibration \n"
-	   " -e fit percent range (default [0.01*a*bcm_current_range, 0.01*b*bcm_current_range]\n"
+	   " -e fit percent range :  -e a:b [0.01*a*bcm_current_range, 0.01*b*bcm_current_range] default a=20 and b=95\n"
+	   " -s event range : event cut based on CodaEventNumber\n"
 	   );
   fprintf(stream, 
 	  "\n Note: If a bcm calibration run is not selected using the -c flag,\n"
