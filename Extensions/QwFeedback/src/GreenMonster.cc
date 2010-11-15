@@ -61,7 +61,7 @@ void GreenMonster::SCNUpdateStatus(Int_t id) {
 	break;
       }
     default:
-      cout << "ERROR: Unrecognized SCAN status flag" << endl;
+      std::cout << "ERROR: Unrecognized SCAN status flag" << std::endl;
     }
   return;
 }
@@ -111,7 +111,7 @@ void GreenMonster::SCNSetStatus(Int_t status) {
   par1 = status;                gRequest.par1 = par1;
   par2 = 0;                     gRequest.par2 = par2;
 
-  if (fVerbose) cout << "Setting SCN status: " << par1 << endl;
+  if (fVerbose) std::cout << "Setting SCN status: " << par1 << std::endl;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
   if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
     if (fVerbose) printf("SCAN status change call is complete\n");
@@ -134,8 +134,8 @@ void GreenMonster::SCNSetValue(Int_t which, Int_t value) {
   if (which==1)      setpoint1SCN=value;
   else if (which==2) setpoint2SCN=value;
 
-  if (fVerbose) cout << " writing new SCAN set point " << value 
-		     << " to data" << which <<endl;
+  if (fVerbose) std::cout << " writing new SCAN set point " << value 
+			  << " to data" << which <<std::endl;
   //
   // send set message for obj, value
   //

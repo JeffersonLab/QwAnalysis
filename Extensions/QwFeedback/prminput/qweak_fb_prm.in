@@ -49,8 +49,8 @@ PITASLOPE_IN = -0.73
 ###  PITANEG = 200
 
 #PITA starting setpoints
-PC_pos_t0 = 0
-PC_neg_t0 = 0
+PC_pos_t0 = 42500
+PC_neg_t0 = 41900
 
 
 

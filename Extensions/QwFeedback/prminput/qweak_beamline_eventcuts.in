@@ -23,9 +23,23 @@ EVENTCUTS = 2
 
 !***************************************************
 !for bcm devices
-!device_type, device_name,      lower limit, upper limit
- 
-bcm, qwk_bcm1,			5,		1000000
+!device_type, device_name,  lower limit [uA], upper limit [uA]
+
+! for 140 uA, lower limit 98 uA
+! bcm, qwk_bcm1,			98,		1000000 
+! for 130 uA, lower limit 91 uA
+! bcm, qwk_bcm1,			91,		1000000 
+! for 120 uA, lower limit 84 uA
+bcm, qwk_bcm1,		105,		1000000 
+
+! for 90 uA, lower limit 63 uA
+! bcm, qwk_bcm1,			63,		1000000 
+! for 80 uA, lower limit 56 uA
+! bcm, qwk_bcm1,			56,		1000000 
+
+!bcm, qwk_bcm1,			35,		1000000
+!bcm, qwk_bcm1,                  14,             1000000
+!bcm, qwk_bcm1,  		7,		1000000
 !bcm, qwk_bcm2, 		0, 		0
 !bcm, qwk_bcm3, 		0, 		0
 !bcm, qwk_bcm5, 		0, 		0
