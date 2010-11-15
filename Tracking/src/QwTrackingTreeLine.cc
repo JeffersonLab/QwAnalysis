@@ -54,13 +54,13 @@ QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* treeline)
 
   // Naive copy
   *this = *treeline;
-
+  this->next=0;
   // Copy the hits
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     if (treeline->hits[i])
       this->hits[i] = new QwHit(treeline->hits[i]);
   }
-  for (int i = 0; i < MAX_LAYERS; i++) {
+  for (int i = 0; i < 2*MAX_LAYERS; i++) {
     if (treeline->usedhits[i])
       this->usedhits[i] = new QwHit(treeline->usedhits[i]);
   }
@@ -76,17 +76,22 @@ QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* treeline)
  */
 QwTrackingTreeLine::~QwTrackingTreeLine()
 {
-  // Delete the hits in this treeline
+  // Delete the hits in this treeline, should this be recursive?
+  QwTrackingTreeLine* tl_next=this->next;
+  if(tl_next) {delete tl_next;tl_next=0;}
+
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     if (hits[i]) delete hits[i];
     hits[i] = 0;
   }
-  for (int i = 0; i < MAX_LAYERS; i++) {
+  for (int i = 0; i < 2*MAX_LAYERS; i++) {
     if (usedhits[i]) delete usedhits[i];
     usedhits[i] = 0;
-  }
+    }
+  
 
   DeleteHits();
+ 
 }
 
 
@@ -119,7 +124,7 @@ void QwTrackingTreeLine::Initialize()
   fNumHits = 0;
   fNumMiss = 0;
 
-  for (int i = 0; i < MAX_LAYERS; i++) {
+  for (int i = 0; i < 2*MAX_LAYERS; i++) {
     usedhits[i] = 0;
   }
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
@@ -319,17 +324,17 @@ void QwTrackingTreeLine::SetMatchingPattern(std::vector<int>& box)
 std::pair<double,double> QwTrackingTreeLine::CalculateDistance(int row,double width,unsigned int bins,double resolution)
 {
    std::pair<double,double> boundary(0,0);
-   unsigned int fBins=bins;
    int bin=MatchingPattern.at(row);
 
 	
    double dx=width/bins,lower=0,upper=0;
    bin+=1;
    if(bin<=bins/2) bin=bins-bin+1;
-	lower=(bin-1)*width/bins-width/2-resolution;
-	upper=bin*width/bins-width/2+resolution;
+	lower=(bin-1)*dx-width/2-resolution;
+	upper=bin*dx-width/2+resolution;
    boundary.first=lower;
    boundary.second=upper;
    	
    return boundary;
 }
+

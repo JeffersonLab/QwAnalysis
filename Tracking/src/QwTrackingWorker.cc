@@ -859,12 +859,17 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                 QwPartialTrack* parttrack = 0; // list of partial tracks
 
+		
+
                 // This if statement may be done wrong
                 // TODO (wdc) why does this have last index dir instead of something in scope?
-                if (rcDETRegion[package][region][kDirectionU]
-                        && fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                                       +region*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
-                        && tlayers) {
+//                 if (rcDETRegion[package][region][kDirectionU]
+//                         && fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
+//                                        +region*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
+//                         && tlayers) {
+		if(region==kRegionID3){
+		    if(event->treeline[package][region][type][kDirectionU] && event->treeline[package][region][type][kDirectionV]
+		    && tlayers)
                     parttrack = fTreeCombine->TlTreeCombine(
                                     event->treeline[package][region][type],
                                     package, region,
@@ -872,17 +877,38 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                     dlayer,
                                     fSearchTree);
 
-                } else continue;
+                } 
+		else if(region==kRegionID2){
+		   
+		    if(event->treeline[package][region][type][kDirectionU]
+			&& event->treeline[package][region][type][kDirectionV]
+			&& event->treeline[package][region][type][kDirectionX]
+                        && tlayers){
+		    parttrack = fTreeCombine->TlTreeCombine(
+                                    event->treeline[package][region][type],
+                                    package, region,
+                                    tlayers,
+                                    dlayer,
+                                    fSearchTree);}
+		}
+		else continue;
+
+		
 
 
                 /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
 
                 if (parttrack) fTreeSort->rcPartConnSort(parttrack);
 
+		
                 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
+		
+                if(parttrack){
                 event->parttrack[package][region][type] = parttrack;
                 event->AddPartialTrackList(parttrack);
+		}
+
 
                 if (parttrack) {
                     if (fDebug) parttrack->Print();
@@ -896,12 +922,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                     if (region ==3) R3Bad++;
                     nbad++;
                 }
-
+		
             } /* end of loop over the detector types */
 
         } /* end of loop over the regions */
 
-
+		
         /* ==============================
         * Correlate front and back
         * tracks from x, y and y' infor-
@@ -909,6 +935,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
         * ============================== */
 
         // If there were partial tracks in the HDC and VDC regions
+
         if (! fDisableMomentum
          && event->parttrack[package][kRegionID2][kTypeDriftHDC]
          && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {

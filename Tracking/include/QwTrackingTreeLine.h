@@ -181,6 +181,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     void SetMatchingPattern(std::vector<int>& box);
     /// calculate the upper and lower bound of the drift distance give the row number
     std::pair<double,double> CalculateDistance(int row,double width,unsigned int bins,double error);
+
   private:
 
     bool fIsVoid;			///< has been found void
@@ -188,7 +189,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
 
   public:
 
-    QwHitPattern* fMatchingPattern; //!	///< matching hit pattern
+//   QwHitPattern* fMatchingPattern; //!	///< matching hit pattern
     std::vector<int> MatchingPattern;
     double fOffset;			///< track offset
     double fSlope;			///< track slope
@@ -202,7 +203,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     int   fNumMiss;			///< number of planes without hits
 
     QwHit* hits[2*MAX_LAYERS];	//!	///< all hits that satisfy road requirement
-    QwHit* usedhits[MAX_LAYERS];//!	///< hits that correspond to optimal chi^2
+    QwHit* usedhits[2*MAX_LAYERS];//!	///< hits that correspond to optimal chi^2
 
     int   hasharray[2*MAX_LAYERS];	//!
     int   ID;				///< adamo ID

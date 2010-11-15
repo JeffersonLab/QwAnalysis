@@ -122,11 +122,12 @@ QwEvent::~QwEvent()
         // Delete all those treelines
         for (int l = 0; l < kNumDirections; l++) {
           QwTrackingTreeLine* tl = treeline[i][j][k][l];
-          while (tl) {
-            QwTrackingTreeLine* tl_next = tl->next;
-            delete tl;
-            tl = tl_next;
-          }
+	  delete tl;
+//           while (tl) {
+//             QwTrackingTreeLine* tl_next = tl->next;
+//             delete tl;
+//             tl = tl_next;
+//           }
         } // end of loop over directions
       } // end of loop over types
     } // end of loop over regions
@@ -318,9 +319,11 @@ void QwEvent::AddTreeLine(QwTrackingTreeLine* treeline)
 void QwEvent::AddTreeLineList(QwTrackingTreeLine* treelinelist)
 {
   for (QwTrackingTreeLine *treeline = treelinelist;
-         treeline; treeline = treeline->next)
-    if (treeline->IsValid())
-      AddTreeLine(treeline);
+         treeline; treeline = treeline->next){
+    if (treeline->IsValid()){
+       AddTreeLine(treeline);
+    }
+  }	
 };
 
 // Clear the local TClonesArray of tree lines
@@ -329,8 +332,15 @@ void QwEvent::ClearTreeLines(Option_t *option)
   #if defined QWTREELINES_IN_STATIC_TCLONESARRAY || defined QWTREELINES_IN_LOCAL_TCLONESARRAY
     fQwTreeLines->Clear(option); // Clear the local TClonesArray
   #elif defined QWTREELINES_IN_STL_VECTOR
-    for (size_t i = 0; i < fQwTreeLines.size(); i++)
-      delete fQwTreeLines.at(i);
+    for (size_t i = 0; i < fQwTreeLines.size(); i++){
+      QwTrackingTreeLine* tl=fQwTreeLines.at(i);
+      delete tl;
+//       while(tl){
+// 	QwTrackingTreeLine* tl_next=tl->next;
+// 	delete tl;
+// 	tl=tl_next;
+//       }
+     }
     fQwTreeLines.clear();
   #elif defined QWTREELINES_IN_TEMPLATED_LIST
     fQwTreeLines.Clear(option);
@@ -370,8 +380,14 @@ void QwEvent::PrintTreeLines(Option_t* option) const
     delete iterator;
   #else // QWTREELINES_IN_STL_VECTOR
     for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
-         treeline != fQwTreeLines.end(); treeline++)
+         treeline != fQwTreeLines.end(); treeline++){
       std::cout << **treeline << std::endl;
+      QwTrackingTreeLine* tl=(*treeline)->next;
+      while (tl){
+	 std::cout << *tl << std::endl;
+	 tl=tl->next;
+	}
+    }
   #endif
 }
 
@@ -407,9 +423,10 @@ void QwEvent::AddPartialTrack(QwPartialTrack* partialtrack)
 void QwEvent::AddPartialTrackList(QwPartialTrack* partialtracklist)
 {
   for (QwPartialTrack *partialtrack = partialtracklist;
-         partialtrack; partialtrack =  partialtrack->next)
+         partialtrack; partialtrack =  partialtrack->next){
     if (partialtrack->IsValid())
       AddPartialTrack(partialtrack);
+	}
 };
 
 // Add a vector of QwPartialTracks
