@@ -58,7 +58,7 @@ class QwScaler: public VQwSubsystemParity
 		Bool_t ApplySingleEventCuts();
 
 		Int_t GetEventcutErrorCounters();
-		Int_t GetEventcutErrorFlag();
+		UInt_t GetEventcutErrorFlag();
 		Bool_t Compare ( VQwSubsystem *source );
 		void print();
 		void PrintValue() const;

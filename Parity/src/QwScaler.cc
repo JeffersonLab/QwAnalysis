@@ -329,7 +329,7 @@ Int_t QwScaler::GetEventcutErrorCounters(){
   return 0;
 };
 
-Int_t QwScaler::GetEventcutErrorFlag(){
+UInt_t QwScaler::GetEventcutErrorFlag(){
   return 0;
 };
 

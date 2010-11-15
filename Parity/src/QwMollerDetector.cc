@@ -424,7 +424,7 @@ Int_t QwMollerDetector::GetEventcutErrorCounters(){
   return 0;
 };
 
-Int_t QwMollerDetector::GetEventcutErrorFlag(){
+UInt_t QwMollerDetector::GetEventcutErrorFlag(){
   return 0;
 };
 
