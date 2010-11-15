@@ -199,6 +199,8 @@ void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
     QwMessage<<"FeedPITASetPoint Initial correction applied "<<" "<<fChargeAsymmetry<<" +/- "<<fChargeAsymmetryError<<" new set point[+]  "<<fPITASetpointPOS_t0<<" [-] "<<fPITASetpointNEG_t0<<QwLog::endl;
     fPrevPITASetpointPOS=fPITASetpointPOS_t0;//setting t_0 correctio to previous value will keep the PC value at the t_0 setting all the time if the fPITASlopeIN is zero
     fPrevPITASetpointNEG=fPITASetpointNEG_t0;
+    fPITASetpointPOS=fPITASetpointPOS_t0;
+    fPITASetpointNEG=fPITASetpointNEG_t0;
     return;
   }else{
     fEPICSCtrl.Get_Pockels_Cell_plus(fPrevPITASetpointPOS);
