@@ -720,8 +720,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         }
 
                         // Delete tree line lists after storing results in event structure
-                        delete treelinelist1; treelinelist1 = 0;
-                        delete treelinelist2; treelinelist2 = 0;
+                        QwTrackingTreeLine* tl = 0;
+                        QwTrackingTreeLine* tl_next = 0;
+                        tl = treelinelist1;
+                        while (tl) { tl_next = tl->next; delete tl; tl = tl_next; }
+                        tl = treelinelist2;
+                        while (tl) { tl_next = tl->next; delete tl; tl = tl_next; }
 
                         tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
 

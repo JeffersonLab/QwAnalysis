@@ -19,10 +19,6 @@ ClassImp(QwTrackingTreeLine);
 #include "QwHitContainer.h"
 
 
-// Initialize the static list of hits
-//TClonesArray* QwTrackingTreeLine::gQwHits = 0;
-
-
 /// Default constructor
 QwTrackingTreeLine::QwTrackingTreeLine()
 {
@@ -54,13 +50,14 @@ QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* treeline)
 
   // Naive copy
   *this = *treeline;
-  this->next=0;
+  this->next = 0;
+
   // Copy the hits
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     if (treeline->hits[i])
       this->hits[i] = new QwHit(treeline->hits[i]);
   }
-  for (int i = 0; i < 2*MAX_LAYERS; i++) {
+  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     if (treeline->usedhits[i])
       this->usedhits[i] = new QwHit(treeline->usedhits[i]);
   }
@@ -76,22 +73,19 @@ QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* treeline)
  */
 QwTrackingTreeLine::~QwTrackingTreeLine()
 {
-  // Delete the hits in this treeline, should this be recursive?
-  QwTrackingTreeLine* tl_next=this->next;
-  if(tl_next) {delete tl_next;tl_next=0;}
-
+  // Delete the hits in this treeline
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     if (hits[i]) delete hits[i];
     hits[i] = 0;
   }
-  for (int i = 0; i < 2*MAX_LAYERS; i++) {
+  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     if (usedhits[i]) delete usedhits[i];
     usedhits[i] = 0;
-    }
-  
+  }
 
   DeleteHits();
- 
+
+  // No recursive delete of the next pointer is done here
 }
 
 
