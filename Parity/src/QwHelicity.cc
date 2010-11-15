@@ -1406,7 +1406,7 @@ void QwHelicity::RunPredictor()
     */
 
 
-    for( size_t i=0;i<size_t(fPatternNumber- fPatternNumberOld);i++) //got a new pattern
+    for (int i = 0; i < fPatternNumber - fPatternNumberOld; i++) //got a new pattern
       {
 	fPreviousPatternPolarity = fActualPatternPolarity;
 	fActualPatternPolarity   = GetRandbit(iseed_Actual);
