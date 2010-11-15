@@ -77,7 +77,7 @@ class QwBlinder {
     kBlindableFail
   };
   ///  Error flag value 
-  static const Int_t kErrorFlag_BlinderFail = 0x200;
+  static const UInt_t kErrorFlag_BlinderFail = 0x200;
 
   static void DefineOptions(QwOptions &options);
 
@@ -110,7 +110,7 @@ class QwBlinder {
 
     /// Modifies the device error code variable passed to it, if the blinder is
     /// not okay.
-    void ModifyThisErrorCode(Int_t &errorcode) const {
+    void ModifyThisErrorCode(UInt_t &errorcode) const {
       if (!fBlinderIsOkay) errorcode |= kErrorFlag_BlinderFail;
     };
 

@@ -121,8 +121,6 @@ void  QwBCM::ProcessEvent()
 {
   ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fTriumf_ADC.ProcessEvent();
-  //update the event cut counters
-  fTriumf_ADC.UpdateHWErrorCounters();
   return;
 };
 /********************************************************/
@@ -138,9 +136,19 @@ Bool_t QwBCM::ApplyHWChecks()
 };
 /********************************************************/
 
-Int_t QwBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
+Int_t QwBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
   fTriumf_ADC.SetSingleEventCuts(LL,UL);
   return 1;
+};
+
+/********************************************************/
+
+void QwBCM::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+  //set the unique tag to identify device type (bcm,bpm & etc)
+  errorflag|=kBCMErrorFlag;
+  QwMessage<<"QwBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  fTriumf_ADC.SetSingleEventCuts(errorflag,LL,UL,stability);
+
 };
 
 void QwBCM::SetDefaultSampleSize(Int_t sample_size){
@@ -158,7 +166,7 @@ Bool_t QwBCM::ApplySingleEventCuts(){
     status=kTRUE;
   }
   else{
-    fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
+
     if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fTriumf_ADC.GetHardwareSum();
     status&=kFALSE;
   }

@@ -55,13 +55,15 @@ class QwEnergyCalculator : public VQwDataElement{
     Bool_t  ApplyHWChecks();//Check for harware errors in the devices
     Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
     Int_t   SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
+    /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+    void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
     void    SetEventCutMode(Int_t bcuts){
       bEVENTCUTMODE=bcuts;
       fEnergyChange.SetEventCutMode(bcuts);
     }
     Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
     Int_t   GetEventcutErrorFlag(){//return the error flag
-    return fDeviceErrorCode;
+      return fEnergyChange.GetEventcutErrorFlag();
     }
     void    Set(VQwBPM* device,TString type, TString property ,Double_t tmatrix_ratio);
     void    Copy(VQwDataElement *source);

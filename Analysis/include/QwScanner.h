@@ -213,7 +213,7 @@ class QwScanner: public VQwSubsystemParity,
     std::vector< enum EModuleType > fModuleTypes;
     std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel
 
-    Int_t GetEventcutErrorFlag()
+    UInt_t GetEventcutErrorFlag()
     {
       return 0;
     };//return the error flag to the main routine

@@ -117,21 +117,18 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t i=0;
-
+  fErrorFlag=0;
   //Event cuts for four wires
   for(i=0;i<4;i++){
     if (fWire[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
     else{
-      fWire[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //update the event cut counters
-    fWire[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for wires
-    fDeviceErrorCode|=fWire[i].GetEventcutErrorFlag();
+    fErrorFlag|=fWire[i].GetEventcutErrorFlag();
   }
 
    //Event cuts for Relative X & Y
@@ -141,15 +138,12 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fRelPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
 
-    //update the event cut counters
-    fRelPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for RelX/Y
-    fDeviceErrorCode|=fRelPos[i].GetEventcutErrorFlag();
+    fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
   }
 
   for(i=0;i<2;i++){
@@ -157,15 +151,11 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fAbsPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //update the event cut counters
-    fAbsPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for AbsX/Y
-    fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();
-
+    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
@@ -173,15 +163,11 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kTRUE;
   }
   else{
-    fEffectiveCharge.UpdateEventCutErrorCount();
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //update the event cut counters
-  fEffectiveCharge.UpdateHWErrorCounters();
   //Get the Event cut error flag for EffectiveCharge
-  fDeviceErrorCode|=fEffectiveCharge.GetEventcutErrorFlag();
-
+  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
 
   return status;
 
@@ -232,6 +218,48 @@ void QwBPMStripline::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t
 
 };
 
+
+void QwBPMStripline::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
+  errorflag|=kBPMErrorFlag;//update the device flag
+  if (ch_name=="xp"){
+    QwMessage<<"XP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="xm"){
+    QwMessage<<"XM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="yp"){
+    QwMessage<<"YP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[2].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="ym"){
+    QwMessage<<"YM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[3].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="relx"){
+    QwMessage<<"RelX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="rely"){
+    QwMessage<<"RelY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  } else  if (ch_name=="absx"){
+  //cuts for the absolute x and y
+    QwMessage<<"AbsX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="absy"){
+    QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="effectivecharge"){
+    QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }
+};
 
 void  QwBPMStripline::ProcessEvent()
 {

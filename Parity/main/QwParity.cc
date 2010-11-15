@@ -213,7 +213,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Failed single event cuts
       } else {
-        eventring.FailedEvent(detectors.GetEventcutErrorFlag()); //event cut failed update the ring status
+	eventring.FailedEvent(detectors.GetEventcutErrorFlag());
       }
 
       // Burst mode
@@ -226,7 +226,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     } // end of loop over events
 
     QwMessage << "Number of events processed at end of run: "
-              << eventbuffer.GetEventNumber() << std::endl;
+              << eventbuffer.GetEventNumber() << QwLog::endl;
 
 
     // Calculate running averages over helicity patterns

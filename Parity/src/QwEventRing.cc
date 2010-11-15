@@ -118,7 +118,7 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
 };
 
 void QwEventRing::FailedEvent(Int_t error_flag){
-  if ((error_flag & kErrorFlag_BeamTrip)==kErrorFlag_BeamTrip){//check to see the single event cut is related to a beam current error
+  if ((error_flag & kBCMErrorFlag)==kBCMErrorFlag && (error_flag & kEventCutMode3)== 0){//check to see the single event cut is related to a beam current error and not in event cut mode 3
     if (bDEBUG) 
       QwMessage<<"Beam Trip kind single event cut failed!"<<QwLog::endl;
   } else

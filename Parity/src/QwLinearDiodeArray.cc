@@ -99,21 +99,18 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   size_t i=0;
-
+  fErrorFlag=0;
   //Event cuts for four wires
   for(i=0;i<fPhotodiode.size();i++){
-    if (fPhotodiode[i].ApplySingleEventCuts()){ //for RelX
+    if (fPhotodiode[i].ApplySingleEventCuts()){ 
       status&=kTRUE;
     }
     else{
-      fPhotodiode[i].UpdateEventCutErrorCount();
       status&=kFALSE;
-      if (bDEBUG) std::cout<<" Abs X event cut failed ";
+      if (bDEBUG) std::cout<<" array ["<<i<<"] event cut failed ";
     }
-    //update the event cut counters
-    fPhotodiode[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for wires
-    fDeviceErrorCode|=fPhotodiode[i].GetEventcutErrorFlag();
+    fErrorFlag|=fPhotodiode[i].GetEventcutErrorFlag();
   }
 
    //Event cuts for Relative X & Y
@@ -123,15 +120,12 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fRelPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
 
-    //update the event cut counters
-    fRelPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for RelX/Y
-    fDeviceErrorCode|=fRelPos[i].GetEventcutErrorFlag();
+    fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
@@ -139,14 +133,11 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
       status&=kTRUE;
   }
   else{
-    fEffectiveCharge.UpdateEventCutErrorCount();
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //update the event cut counters
-  fEffectiveCharge.UpdateHWErrorCounters();
   //Get the Event cut error flag for EffectiveCharge
-  fDeviceErrorCode|=fEffectiveCharge.GetEventcutErrorFlag();
+  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
 
 
   return status;
@@ -158,6 +149,23 @@ void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, Double_t minX, Doub
 {
   QwWarning << "QwLinearDiodeArray::SetSingleEventCuts:  "
 	    << "Does not do anything yet." << QwLog::endl;
+};
+
+void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
+  errorflag|=kBPMErrorFlag;//update the device flag (Do not have a error flag yet)
+  //  QwWarning << "QwLinearDiodeArray::SetSingleEventCuts:  " << "Does not do anything yet." << QwLog::endl;
+  if (ch_name=="relx"){
+    QwMessage<<"RelX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="rely"){
+    QwMessage<<"RelY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  } else if (ch_name=="effectivecharge"){
+    QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
+  }
 };
 
 

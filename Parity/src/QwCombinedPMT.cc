@@ -123,19 +123,30 @@ void QwCombinedPMT::CalculateSumAndAverage()
 
 }
 
-
-Int_t QwCombinedPMT::SetSingleEventCuts(std::vector<Double_t> & dEventCuts)
+/********************************************************/
+Bool_t QwCombinedPMT::ApplyHWChecks()
 {
-  //fSumADC.SetSingleEventCuts(dEventCuts);
-  //fAvgADC.SetSingleEventCuts(dEventCuts);
-  return 1;
-}
+  Bool_t fEventIsGood=kTRUE;
+
+ 
+  return fEventIsGood;
+};
+/********************************************************/
+
+void QwCombinedPMT::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+  //set the unique tag to identify device type (Int.PMT & Comb. PMT)
+  //errorflag|=kPMTErrorFlag;
+  QwMessage<<"QwCombinedPMT Error Code passing to QwIntegrationPMT "<<errorflag<<QwLog::endl;
+  fSumADC.SetSingleEventCuts(errorflag,LL,UL,stability);
+  
+};
 
 
 void  QwCombinedPMT::ProcessEvent()
 {
 //Calculate the weigted averages of the hardware sum and each of the four blocks.
   CalculateSumAndAverage();
+  //fSumADC.ProcessEvent(); //This is not necessary for combined devices-Rakitha 11-15-2010
 
   return;
 };
@@ -143,15 +154,22 @@ void  QwCombinedPMT::ProcessEvent()
 
 void QwCombinedPMT::SetDefaultSampleSize(Int_t sample_size)
 {
-
+  fSumADC.SetDefaultSampleSize((size_t)sample_size);
 }
 
 // report number of events falied due to HW and event cut faliure
 Int_t QwCombinedPMT::GetEventcutErrorCounters()
 {
+  fSumADC.GetEventcutErrorCounters();
   return 1;
 }
 
+/********************************************************/
+Bool_t QwCombinedPMT::ApplySingleEventCuts(){
+  return fSumADC.ApplySingleEventCuts();
+};
+
+/********************************************************/
 
 Int_t QwCombinedPMT::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
 {

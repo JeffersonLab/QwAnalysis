@@ -91,7 +91,16 @@ class VQwDataElement {
 
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+
+  /*! \brief set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  /*! \brief report number of events falied due to HW and event cut faliure */
+  Int_t GetEventcutErrorCounters();
+  void ResetErrorFlag(UInt_t flag){
+    fErrorFlag=flag;
+  }
+
+  
   
   /*! \brief Return the name of the inheriting subsystem name*/
   TString GetSubsystemName() const {
@@ -128,6 +137,9 @@ class VQwDataElement {
   TString  fSubsystemName;
   //Data module Type 
   TString  fModuleType;
+
+  //Error flag
+  UInt_t fErrorFlag;
 
 }; // class VQwDataElement
 

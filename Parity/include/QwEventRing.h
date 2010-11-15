@@ -81,8 +81,6 @@ class QwEventRing {
   static const Bool_t bDEBUG=kFALSE;//kTRUE;
   static const Bool_t bDEBUG_Write=kFALSE;
 
-  static const Int_t kErrorFlag_BeamTrip = 0x100; // in Decimal 256 to event ring to identify the single event cut is failed for a BCM
-
 };
 
 

@@ -137,7 +137,6 @@ void  QwIntegrationPMT::ProcessEvent()
   ApplyHWChecks();//first apply HW checks and update HW  error flags.
   fTriumf_ADC.ProcessEvent();
 
-
   return;
 };
 /********************************************************/
@@ -158,8 +157,17 @@ Int_t QwIntegrationPMT::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::
   return 1;
 };
 
+/********************************************************/
+void QwIntegrationPMT::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+  //set the unique tag to identify device type (bcm,bpm & etc)
+  errorflag|=kPMTErrorFlag;
+  QwMessage<<"QwIntegrationPMT Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  fTriumf_ADC.SetSingleEventCuts(errorflag,LL,UL,stability);
 
-///* will not compile with Buddhini's code 12nov09
+};
+
+/********************************************************/
+
 void QwIntegrationPMT::SetDefaultSampleSize(Int_t sample_size){
  fTriumf_ADC.SetDefaultSampleSize((size_t)sample_size);
 }
@@ -177,12 +185,8 @@ Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
     //std::cout<<" BCM Sample size "<<fTriumf_ADC.GetNumberOfSamples()<<std::endl;
   }
   else{
-    fTriumf_ADC.UpdateEventCutErrorCount();//update event cut falied counts
     status&=kFALSE;//kTRUE;//kFALSE;
   }
-
-  //Update the error counters
-  fTriumf_ADC.UpdateHWErrorCounters();
 
   return status;
 
@@ -191,7 +195,7 @@ Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
 /********************************************************/
 
 Int_t QwIntegrationPMT::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
-
+  fTriumf_ADC.GetEventcutErrorCounters();
   return 1;
 }
 

@@ -659,8 +659,8 @@ Int_t QwBeamMod::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPar
 }
 
 
-Int_t QwBeamMod::GetEventcutErrorFlag(){//return the error flag
-  Int_t ErrorFlag;
+UInt_t QwBeamMod::GetEventcutErrorFlag(){//return the error flag
+  UInt_t ErrorFlag;
   ErrorFlag=0;
   for(size_t i=0;i<fModChannel.size();i++){
     ErrorFlag |= fModChannel[i].GetEventcutErrorFlag();

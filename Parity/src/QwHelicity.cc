@@ -224,7 +224,7 @@ Int_t QwHelicity::GetEventcutErrorCounters(){
   return 1;
 };
 
-Int_t QwHelicity::GetEventcutErrorFlag(){//return the error flag
+UInt_t QwHelicity::GetEventcutErrorFlag(){//return the error flag
 
   return 0;
 
