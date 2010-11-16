@@ -247,8 +247,8 @@ int QwTrackingTreeSort::rcCommonWires_r3 (QwTrackingTreeLine *line1, QwTrackingT
   //DEFINE VARIABLES #
   //##################
   common = total1 = total2 = total = 0;
-  hits1  = line1->hits;
-  hits2  = line2->hits;
+  hits1  = line1->fHits;
+  hits2  = line2->fHits;
 
   //##############################################
   //Count the wires shared between the treelines #
@@ -341,8 +341,8 @@ int QwTrackingTreeSort::rcCommonWires (
 	QwTrackingTreeLine *treeline2) ///< second tree line
 {
   // Get the lists of hits associated with the two tree lines
-  QwHit **hits1  = treeline1->hits;
-  QwHit **hits2  = treeline2->hits;
+  QwHit **hits1  = treeline1->fHits;
+  QwHit **hits2  = treeline2->fHits;
 
   // A two-bit pattern indicates on which treeline we should advance in the
   // next iteration of the search.  This assumes that the detectors are ordered.

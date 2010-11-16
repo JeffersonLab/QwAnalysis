@@ -871,7 +871,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 
 		}
 		else			/* in iteration process (not used by TlTreeLineSort)*/
-			nHitsInPlane[nPlanesWithHits] = selectx ( &thisX, resnow,/* rd,*/ treeline->hits, goodHits[nPlanesWithHits] );
+			nHitsInPlane[nPlanesWithHits] = selectx ( &thisX, resnow,/* rd,*/ treeline->fHits, goodHits[nPlanesWithHits] );
 
 		/* If there are hits in this detector plane */
 		if ( nHitsInPlane[nPlanesWithHits] )
@@ -888,7 +888,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 	// This is done by using the temporary pointer hitarray
 	if ( ! iteration ) // return the hits found in SelectLeftRightHit()
 	{
-		QwHit **hitarray = treeline->hits;
+		QwHit **hitarray = treeline->fHits;
 		for ( int planeWithHits = 0; planeWithHits < nPlanesWithHits; planeWithHits++ )
 		{
 			for ( int hitInPlane = 0; hitInPlane < nHitsInPlane[planeWithHits]; hitInPlane++ )
@@ -898,7 +898,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 			}
 		}
 		// Check number of hits that have been written and add terminating null
-		if ( hitarray - treeline->hits < DLAYERS*MAXHITPERLINE + 1 )
+		if ( hitarray - treeline->fHits < DLAYERS*MAXHITPERLINE + 1 )
 			*hitarray = 0;		/* add a terminating 0 for later selectx()*/
 	}
 
@@ -967,13 +967,13 @@ bool QwTrackingTreeCombine::TlCheckForX (
 			         nPlanesWithHits, nHitsInPlane, goodHits, usedHits );
 
 			// Reset the used flags
-			for ( int i = 0; i < MAXHITPERLINE * DLAYERS && treeline->hits[i]; i++ )
-				treeline->hits[i]->SetUsed ( false );
+			for ( int i = 0; i < MAXHITPERLINE * DLAYERS && treeline->fHits[i]; i++ )
+				treeline->fHits[i]->SetUsed ( false );
 
 			// Set the used flag on all hits that are used in this treeline
 			for ( int plane = 0; plane < nPlanesWithHits; plane++ )
 			{
-				treeline->usedhits[plane] = usedHits[plane];
+				treeline->fUsedHits[plane] = new QwHit(usedHits[plane]);
 				if ( usedHits[plane] )
 					usedHits[plane]->SetUsed ( true );
 			}
@@ -986,7 +986,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 		}
 
 		// Set the detector info pointer
-		treeline->SetDetectorInfo ( treeline->hits[0]->GetDetectorInfo() );
+		treeline->SetDetectorInfo ( treeline->fHits[0]->GetDetectorInfo() );
 
 		// Check whether we found an optimal track
 		if ( best_permutation == -1 )
@@ -1124,8 +1124,8 @@ int QwTrackingTreeCombine::TlMatchHits (
 	for ( int hit = 0; hit < nHits; hit++ )
 	{
 		goodHits[hit]->SetUsed ( true );
-		treeline->usedhits[hit] = goodHits[hit];
-		treeline->hits[hit] = new QwHit(goodHits[hit]);
+		treeline->fUsedHits[hit] = goodHits[hit];
+		treeline->fHits[hit] = new QwHit(goodHits[hit]);
 		treeline->AddHit ( goodHits[hit] );
 	}
 
@@ -1135,7 +1135,7 @@ int QwTrackingTreeCombine::TlMatchHits (
 	double chi = 0.0;
 	double slope = 0.0, offset = 0.0;
 	double cov[3] = {0.0, 0.0, 0.0};
-	weight_lsq_r3 ( slope, offset, cov, chi, treeline->hits, nHits, z1, treeline->fR3Offset );
+	weight_lsq_r3 ( slope, offset, cov, chi, treeline->fHits, nHits, z1, treeline->fR3Offset );
 	//    (returns slope, offset, cov, chi)
 
 	//################
@@ -1149,7 +1149,7 @@ int QwTrackingTreeCombine::TlMatchHits (
 	treeline->SetCov ( cov );
 
 	// Set the detector info pointer
-	treeline->SetDetectorInfo ( treeline->hits[0]->GetDetectorInfo() );
+	treeline->SetDetectorInfo ( treeline->fHits[0]->GetDetectorInfo() );
 
 	int ret = 1;  //need to set up a check that the missing hits is not greater than 1.
 	if ( ! ret )
@@ -2077,11 +2077,11 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine2 (
 		switch ( dir )
 		{
 			case kDirectionU:
-				hitarray = wu->hits;
+				hitarray = wu->fHits;
 				num = wu->fNumHits;
 				break;
 			case kDirectionV:
-				hitarray = wv->hits;
+				hitarray = wv->fHits;
 				num = wv->fNumHits;
 				break;
 			default:
@@ -2178,14 +2178,14 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	{
 		if ( dir == kDirectionU )
 		{
-			hitarray = wu->hits;
+			hitarray = wu->fHits;
 			num = wu->fNumHits;
 			m = 1.0 / wv->fSlope;
 			b = -wv->fOffset / wv->fSlope;
 		}
 		else
 		{
-			hitarray = wv->hits;
+			hitarray = wv->fHits;
 			num = wv->fNumHits;
 			m = 1.0/ wu->fSlope;
 			b = -wu->fOffset / wu->fSlope;
@@ -2324,9 +2324,9 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	{
 		switch ( dir )
 		{
-			case kDirectionU: hitarray = wu->hits; break;
-			case kDirectionV: hitarray = wv->hits; break;
-			case kDirectionX: hitarray = wx->hits; break;
+			case kDirectionU: hitarray = wu->fHits; break;
+			case kDirectionV: hitarray = wv->fHits; break;
+			case kDirectionX: hitarray = wx->fHits; break;
 			default: hitarray = 0; break;
 		}
 		if ( ! hitarray ) continue;

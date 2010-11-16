@@ -42,29 +42,23 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 
 
 /// Copy constructor
-/// \todo TODO (wdc) this copy constructor is horribly incomplete!
+QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine& treeline)
+{
+	// Initialize
+	Initialize();
+
+  // Copy object
+  Copy(&treeline);
+}
+
+/// Copy constructor
 QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* treeline)
 {
   // Initialize
   Initialize();
 
-  // Naive copy
-  *this = *treeline;
-  this->next = 0;
-
-  // Copy the hits
-  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
-    if (treeline->hits[i])
-      this->hits[i] = new QwHit(treeline->hits[i]);
-  }
-  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
-    if (treeline->usedhits[i])
-      this->usedhits[i] = new QwHit(treeline->usedhits[i]);
-  }
-
-  // Copy hits
-  ClearHits();
-  AddHitList(treeline->fQwHits);
+  // Copy object
+  Copy(treeline);
 }
 
 
@@ -75,12 +69,12 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
 {
   // Delete the hits in this treeline
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
-    if (hits[i]) delete hits[i];
-    hits[i] = 0;
+    if (fHits[i]) delete fHits[i];
+    fHits[i] = 0;
   }
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
-    if (usedhits[i]) delete usedhits[i];
-    usedhits[i] = 0;
+    if (fUsedHits[i]) delete fUsedHits[i];
+    fUsedHits[i] = 0;
   }
 
   DeleteHits();
@@ -118,16 +112,40 @@ void QwTrackingTreeLine::Initialize()
   fNumHits = 0;
   fNumMiss = 0;
 
-  for (int i = 0; i < 2*MAX_LAYERS; i++) {
-    usedhits[i] = 0;
-  }
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
-    hits[i] = 0;        /*!< hitarray */
+    fHits[i] = 0;
+    fUsedHits[i] = 0;
     hasharray[i] = 0;
   }
 
   ID = 0;
   fR3Offset = fR3FirstWire = fR3LastWire = 0;
+}
+
+
+/**
+ * Copy object
+ */
+void QwTrackingTreeLine::Copy(const QwTrackingTreeLine* treeline)
+{
+	// Null pointer
+	if (treeline == 0) return;
+
+  // Naive copy
+  *this = *treeline;
+  this->next = 0;
+
+  // Copy the hits
+  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
+    if (treeline->fHits[i])
+      this->fHits[i] = new QwHit(treeline->fHits[i]);
+    if (treeline->fUsedHits[i])
+      this->fUsedHits[i] = new QwHit(treeline->fUsedHits[i]);
+  }
+
+  // Copy hits
+  ClearHits();
+  AddHitList(treeline->fQwHits);
 }
 
 
@@ -223,13 +241,13 @@ QwHit* QwTrackingTreeLine::GetBestWireHit (double offset)
   int best_hit = 0;
   // Get the best measured hit in the back
   for (int hit = 0; hit < fNumHits; hit++) {
-    double position = fabs(hits[hit]->GetDriftPosition() - offset);
+    double position = fabs(fHits[hit]->GetDriftPosition() - offset);
     if (position < best_position) {
       best_position = position;
       best_hit = hit;
     }
   }
-  return hits[best_hit];
+  return fHits[best_hit];
 }
 
 /**
@@ -241,7 +259,7 @@ const double QwTrackingTreeLine::CalculateAverageResidual()
   int numHits = 0;
   double sumResiduals = 0.0;
   for (int layer = 0; layer < 2 * MAX_LAYERS; layer++) {
-    for (QwHit* hit = hits[layer]; hit; hit = hit->next) {
+    for (QwHit* hit = fHits[layer]; hit; hit = hit->next) {
       if (hit->IsUsed()) {
         double residual = hit->GetResidual();
         sumResiduals += residual;
@@ -310,16 +328,15 @@ std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl) {
 
 void QwTrackingTreeLine::SetMatchingPattern(std::vector<int>& box)
 {
-	std::vector<int>::iterator iter=box.begin();
-	while(iter!=box.end())
+	std::vector<int>::iterator iter = box.begin();
+	while (iter != box.end())
 		MatchingPattern.push_back(*iter++);
 };
 
 std::pair<double,double> QwTrackingTreeLine::CalculateDistance(int row,double width,unsigned int bins,double resolution)
 {
    std::pair<double,double> boundary(0,0);
-   int bin=MatchingPattern.at(row);
-
+   int bin = MatchingPattern.at(row);
 	
    double dx=width/bins,lower=0,upper=0;
    bin+=1;

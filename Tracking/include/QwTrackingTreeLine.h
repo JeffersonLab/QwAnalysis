@@ -70,6 +70,8 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     /// Constructor with tree search results
     QwTrackingTreeLine(int _a_beg, int _a_end , int _b_beg, int _b_end);
     /// Copy constructor
+    QwTrackingTreeLine(const QwTrackingTreeLine& orig);
+    /// Copy constructor
     QwTrackingTreeLine(const QwTrackingTreeLine* orig);
     /// Destructor
     virtual ~QwTrackingTreeLine();
@@ -78,6 +80,8 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
 
     /// Initialization
     void Initialize();
+    /// Copy method
+    void Copy(const QwTrackingTreeLine* treeline);
 
   public:
 
@@ -202,8 +206,8 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     int   fNumHits;			///< number of hits on this treeline
     int   fNumMiss;			///< number of planes without hits
 
-    QwHit* hits[2*MAX_LAYERS];	//!	///< all hits that satisfy road requirement
-    QwHit* usedhits[2*MAX_LAYERS];//!	///< hits that correspond to optimal chi^2
+    QwHit* fHits[2*MAX_LAYERS];	//!	///< all hits that satisfy road requirement
+    QwHit* fUsedHits[2*MAX_LAYERS];//!	///< hits that correspond to optimal chi^2
 
     int   hasharray[2*MAX_LAYERS];	//!
     int   ID;				///< adamo ID

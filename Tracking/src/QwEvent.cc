@@ -120,14 +120,13 @@ QwEvent::~QwEvent()
          }
 
         // Delete all those treelines
-        for (int l = 0; l < kNumDirections; l++) {
-          QwTrackingTreeLine* tl = treeline[i][j][k][l];
-	  delete tl;
-//           while (tl) {
-//             QwTrackingTreeLine* tl_next = tl->next;
-//             delete tl;
-//             tl = tl_next;
-//           }
+         for (int l = 0; l < kNumDirections; l++) {
+        	 QwTrackingTreeLine* tl = treeline[i][j][k][l];
+           while (tl) {
+             QwTrackingTreeLine* tl_next = tl->next;
+             delete tl;
+             tl = tl_next;
+           }
         } // end of loop over directions
       } // end of loop over types
     } // end of loop over regions

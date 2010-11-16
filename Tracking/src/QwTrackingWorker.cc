@@ -608,9 +608,9 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             }
                             // Print the hit list for this detector
                             if (fDebug) {
-				std::cout << "region: " << region << " package: " << package << " plane: " << plane << std::endl;
-				subhitlist->Print();
-			    }
+                            	std::cout << "region: " << region << " package: " << package << " plane: " << plane << std::endl;
+                            	subhitlist->Print();
+                            }
                             // Loop over the hits in the subhitlist
                             for (QwHitContainer::iterator hit = subhitlist->begin();
                                     hit != subhitlist->end(); hit++) {
@@ -625,12 +625,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             } // end of loop over hits in this event
 
                             // Print hit pattern, if requested
-                            if (fShowEventPattern){
-			      std::cout << "event pattern: " << std::endl;
+                            if (fShowEventPattern) {
+                            	std::cout << "event pattern: " << std::endl;
                               for (size_t wire = 0; wire < patterns.size(); wire++)
                                 if (patterns.at(wire).HasHits())
                                   QwMessage << wire << ":" << patterns.at(wire) << QwLog::endl;
-				}
+                            }
 
                             // Copy the new hit patterns into the old array structure
                             // TODO This is temporary
@@ -699,7 +699,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         event->AddTreeLineList(treelinelist2);
                         treelinelist = 0;
 
-			//treelinelist 1 and treelinelist 2 are in the same dir
+			                  // treelinelist 1 and treelinelist 2 are in the same dir
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
                         if (treelinelist1 && treelinelist2) {
                             treelinelist = fTreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
@@ -837,14 +837,14 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         }
 
                         QwDebug << "Sort patterns" << QwLog::endl;
-                        fTreeSort->rcTreeConnSort (treelinelist, region);
+//                        fTreeSort->rcTreeConnSort (treelinelist, region);
 
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
                             treelinelist->Print();
                         }
                         event->treeline[package][region][type][dir] = treelinelist;
-                        event->AddTreeLineList(treelinelist);
+//                        event->AddTreeLineList(treelinelist);
 
                         // Delete subhitlist
                         delete subhitlist;
@@ -863,17 +863,13 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                 QwPartialTrack* parttrack = 0; // list of partial tracks
 
-		
+
 
                 // This if statement may be done wrong
                 // TODO (wdc) why does this have last index dir instead of something in scope?
-//                 if (rcDETRegion[package][region][kDirectionU]
-//                         && fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-//                                        +region*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
-//                         && tlayers) {
-		if(region==kRegionID3){
-		    if(event->treeline[package][region][type][kDirectionU] && event->treeline[package][region][type][kDirectionV]
-		    && tlayers)
+                if (region == kRegionID3) {
+                    if (event->treeline[package][region][type][kDirectionU] && event->treeline[package][region][type][kDirectionV]
+                     && tlayers)
                     parttrack = fTreeCombine->TlTreeCombine(
                                     event->treeline[package][region][type],
                                     package, region,
@@ -881,37 +877,37 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                     dlayer,
                                     fSearchTree);
 
-                } 
-		else if(region==kRegionID2){
-		   
-		    if(event->treeline[package][region][type][kDirectionU]
-			&& event->treeline[package][region][type][kDirectionV]
-			&& event->treeline[package][region][type][kDirectionX]
-                        && tlayers){
-		    parttrack = fTreeCombine->TlTreeCombine(
+                }
+                else if(region==kRegionID2){
+
+                        if (event->treeline[package][region][type][kDirectionU]
+                         && event->treeline[package][region][type][kDirectionV]
+                         && event->treeline[package][region][type][kDirectionX]
+                         && tlayers){
+                parttrack = fTreeCombine->TlTreeCombine(
                                     event->treeline[package][region][type],
                                     package, region,
                                     tlayers,
                                     dlayer,
                                     fSearchTree);}
-		}
-		else continue;
+                }
+                else continue;
 
-		
+
 
 
                 /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
 
                 if (parttrack) fTreeSort->rcPartConnSort(parttrack);
 
-		
+
                 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
-		
-                if(parttrack){
-                event->parttrack[package][region][type] = parttrack;
-                event->AddPartialTrackList(parttrack);
-		}
+
+                if (parttrack) {
+                        event->parttrack[package][region][type] = parttrack;
+                        event->AddPartialTrackList(parttrack);
+                }
 
 
                 if (parttrack) {
@@ -926,12 +922,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                     if (region ==3) R3Bad++;
                     nbad++;
                 }
-		
+
             } /* end of loop over the detector types */
 
         } /* end of loop over the regions */
 
-		
+
         /* ==============================
         * Correlate front and back
         * tracks from x, y and y' infor-

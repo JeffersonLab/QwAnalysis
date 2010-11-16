@@ -161,12 +161,12 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     if (frontline->IsVoid()) continue;
     // Loop over all hits of the valid tree lines
     for (int hit = 0; hit < frontline->fNumHits; hit++) {
-      int element = frontline->hits[hit]->GetElement();
+      int element = frontline->fHits[hit]->GetElement();
       double wire = frontdetector->GetElementCoordinate(element);
-      frontline->hits[hit]->SetWirePosition(wire);
+      frontline->fHits[hit]->SetWirePosition(wire);
       if (fDebug) QwMessage << "wire " << element << ": "
-                  << frontline->hits[hit]->GetWirePosition()  << " "
-                  << frontline->hits[hit]->GetDriftPosition() << QwLog::endl;
+                  << frontline->fHits[hit]->GetWirePosition()  << " "
+                  << frontline->fHits[hit]->GetDriftPosition() << QwLog::endl;
     }
   }
   // Loop over the tree lines in the back VDC plane to set the wire position
@@ -177,12 +177,12 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     if (backline->IsVoid()) continue;
     // Loop over all hits of the valid tree lines
     for (int hit = 0; hit < backline->fNumHits; hit++) {
-      int element = backline->hits[hit]->GetElement();
+      int element = backline->fHits[hit]->GetElement();
       double wire = backdetector->GetElementCoordinate(element);
-      backline->hits[hit]->SetWirePosition(wire);
+      backline->fHits[hit]->SetWirePosition(wire);
       if (fDebug) QwMessage << "wire " << element << ": "
-                  << backline->hits[hit]->GetWirePosition() + delta_u << " "
-                  << backline->hits[hit]->GetDriftPosition() + delta_perp << QwLog::endl;
+                  << backline->fHits[hit]->GetWirePosition() + delta_u << " "
+                  << backline->fHits[hit]->GetDriftPosition() + delta_perp << QwLog::endl;
     }
   }
 
@@ -322,21 +322,22 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
         // NOTE:Set the hits for front VDC, the reverse will determine how we should align the treelines
         int fronthits = frontline->fNumHits;
         for (int hit = 0; hit < fronthits; hit++) {
-          treeline->hits[hit] = new QwHit(frontline->hits[hit]);
-          DetecHits[hit] = treeline->hits[hit];
-	  DetecHits[hit]->fDriftPosition *= reverse[ifront*numblines+iback];
+          treeline->fHits[hit] = new QwHit(frontline->fHits[hit]);
+          DetecHits[hit] = treeline->fHits[hit];
+	        DetecHits[hit]->fDriftPosition *= reverse[ifront*numblines+iback];
         }
         // Set the hits for back VDC
         int backhits = backline->fNumHits;
         for (int hit = 0; hit < backhits; hit++) {
-          treeline->hits[hit+fronthits] = new QwHit(backline->hits[hit]);
-          DetecHits[hit+fronthits] = treeline->hits[hit+fronthits];
-	  if(backline->GetPackage()==1) 
-          DetecHits[hit+fronthits]->fWirePosition -= delta_u;
-	  else
-	  DetecHits[hit+fronthits]->fWirePosition += delta_u;
-	
-	  DetecHits[hit+fronthits]->fDriftPosition *= reverse[ifront*numblines+iback];
+          treeline->fHits[hit+fronthits] = new QwHit(backline->fHits[hit]);
+          DetecHits[hit+fronthits] = treeline->fHits[hit+fronthits];
+
+          if (backline->GetPackage() == 1)
+            DetecHits[hit+fronthits]->fWirePosition -= delta_u;
+          else
+            DetecHits[hit+fronthits]->fWirePosition += delta_u;
+
+          DetecHits[hit+fronthits]->fDriftPosition *= reverse[ifront*numblines+iback];
           DetecHits[hit+fronthits]->fDriftPosition += delta_perp;
         }
         int nhits = fronthits + backhits;
@@ -367,11 +368,11 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
 
         // Store the final set of hits into this tree line
         for (int hit = 0; hit < fronthits; hit++) {
-          treeline->usedhits[hit] = new QwHit(DetecHits[hit]);
+          treeline->fUsedHits[hit] = new QwHit(DetecHits[hit]);
           treeline->AddHit(DetecHits[hit]);
         }
         for (int hit = fronthits; hit < fronthits + backhits; hit++) {
-          treeline->usedhits[hit] = new QwHit(DetecHits[hit]);
+          treeline->fUsedHits[hit] = new QwHit(DetecHits[hit]);
           treeline->AddHit(DetecHits[hit]);
         }
 
