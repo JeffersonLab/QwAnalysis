@@ -2,6 +2,15 @@
 #include "GreenMonster.h"
 #include <csignal>
 
+// #define BLACK 		0
+// #define RED 		1
+// #define GREEN		2
+// #define YELLOW		3
+// #define BLUE		4
+// #define MAGENTA		5
+// #define CYAN		6
+// #define	WHITE		7
+
 Bool_t globalEXIT;
 
 Int_t rhwpscan(QwEPICSControl, int, int, int, int);
@@ -9,6 +18,7 @@ Int_t pitascan_DAC(QwEPICSControl, int, int, int);
 Int_t generalDACscan(QwEPICSControl);
 Int_t IACscan(QwEPICSControl, int, int, int);
 Int_t pedestalscan(QwEPICSControl);
+Int_t PCtransScan(QwEPICSControl);
 void sigint_handler(int sig)
 {
 	std::cout << "handling signal no. " << sig << "\n";
@@ -43,12 +53,12 @@ Int_t main(Int_t argc, Char_t* argv[])
 		printf("||                 (%2i points at %3i seconds per point over %3i Volts range.) ||\n", 
 			   kPITANumberOfPoints, kPITASecondsPerPoint, kPITATotalVoltageRange);
 		printf("||  (3) Do a RHWP scan                                                        ||\n");
-		printf("||                 (%2i points at %3i seconds per point from %4i to %4i.)    ||\n",
-			   kRHWPNumberOfPoints, kRHWPSecondsPerPoint, kRHWPStartAngleSet, kRHWPEndAngleSet);
+//		printf("||                 (%2i points at %3i seconds per point from %4i to %4i.)    ||\n",
+//			   kRHWPNumberOfPoints, kRHWPSecondsPerPoint, kRHWPStartAngleSet, kRHWPEndAngleSet);
 		printf("||  (4) Do a general DAC scan (IA scan)                                       ||\n");
-		printf("||  (5) Change PITA scan parameters                                           ||\n");
-		printf("||  (6) Change RHWP scan parameters                                           ||\n");
-		printf("||  (7) Change IA scan parameters                                             ||\n");
+//		printf("||  (5) Change PITA scan parameters                                           ||\n");
+//		printf("||  (6) Change RHWP scan parameters                                           ||\n");
+		printf("||  (8) Pockels Cell translation scan helper                                  ||\n");
 		printf("||  (9) Print current injector properties                                     ||\n");
 		printf("||  (0) Quit                                                                  ||\n");
 		printf("================================================================================\n");
@@ -78,31 +88,35 @@ Int_t main(Int_t argc, Char_t* argv[])
 			generalDACscan(fEPICSCtrlVar);
 			system("clear");
 			break;
-		case '5':
-			printf("New PITA scan parameters\nEnter the number of points: ");
-			cin >> newValue;
-			kPITANumberOfPoints=newValue;
-			printf("Enter the number of seconds per point: ");
-			cin >> newValue;
-			kPITASecondsPerPoint=newValue;
-			printf("Enter the total voltage range: ");
-			cin >> newValue;
-			kPITATotalVoltageRange=newValue;
-			system("clear");
-			break;
-		case '6':
-			printf("New RHWP scan parameters\nEnter the number of points: ");
-			cin >> newValue;
-			kRHWPNumberOfPoints=newValue;
-			printf("Enter the number of seconds per point: ");
-			cin >> newValue;
-			kRHWPSecondsPerPoint=newValue;
-			printf("Enter the starting angle: ");
-			cin >> newValue;
-			kRHWPStartAngleSet=newValue;
-			printf("Enter the ending angle: ");
-			cin >> newValue;
-			kRHWPEndAngleSet=newValue;
+// 		case '5':
+// 			printf("New PITA scan parameters\nEnter the number of points: ");
+// 			cin >> newValue;
+// 			kPITANumberOfPoints=newValue;
+// 			printf("Enter the number of seconds per point: ");
+// 			cin >> newValue;
+// 			kPITASecondsPerPoint=newValue;
+// 			printf("Enter the total voltage range: ");
+// 			cin >> newValue;
+// 			kPITATotalVoltageRange=newValue;
+// 			system("clear");
+// 			break;
+// 		case '6':
+// 			printf("New RHWP scan parameters\nEnter the number of points: ");
+// 			cin >> newValue;
+// 			kRHWPNumberOfPoints=newValue;
+// 			printf("Enter the number of seconds per point: ");
+// 			cin >> newValue;
+// 			kRHWPSecondsPerPoint=newValue;
+// 			printf("Enter the starting angle: ");
+// 			cin >> newValue;
+// 			kRHWPStartAngleSet=newValue;
+// 			printf("Enter the ending angle: ");
+// 			cin >> newValue;
+// 			kRHWPEndAngleSet=newValue;
+// 			system("clear");
+// 			break;
+		case '8':
+			PCtransScan(fEPICSCtrlVar);
 			system("clear");
 			break;
 		case '9':
@@ -125,6 +139,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 Int_t pedestalscan(QwEPICSControl fEPICSCtrl)
 { 
+	char dummychar;
 	Int_t kSecondsPerPoint=1;
 	printf("--------------------\n");
 	printf("Pedestal scan helper\n");
@@ -132,10 +147,11 @@ Int_t pedestalscan(QwEPICSControl fEPICSCtrl)
 	printf("\nMake sure that the BPMs are in \"gains off\" mode!\n\n");
 	printf("This routine will write the value of the epics channel \"FCupsCORRECTED.VAL\" \n");
 	printf("(the current on the first Faraday cup i the beam) to the DAQ quantity \"scandata1\".\n");
-	printf("This is used to have a more accurate value of the current for plotting the BPM wire \n");
+	printf("This is used to have a more accurate value of the current for plotting the BPM wire.\n");
 	printf("signals against for the purposes of fitting.\n\n");
 	printf("You can ctrl-C out at any point.\n");
-	printf("Press any key to continue.\n");
+	printf("Enter any value to continue.\n");
+	cin >> dummychar;
 	cout << "Starting scan control.\n";
 	GreenMonster  fScanCtrl;
 	//  Let's clear the values for the scan data & set "not clean".
@@ -155,14 +171,72 @@ Int_t pedestalscan(QwEPICSControl fEPICSCtrl)
 		fScanCtrl.CheckScan();
 		fScanCtrl.PrintScanInfo();
 		signal(SIGINT, sigint_handler);
-		if (globalEXIT) {
+		if (globalEXIT) { 		// Allow ctrl-C escape 
 			globalEXIT=0;
+			cout << "Exiting pedestal scan.\n";
 			return 0;
+			// Clearing the scandata.
+			fScanCtrl.SCNSetStatus(SCN_INT_NOT);
+			fScanCtrl.SCNSetValue(1,0);
+			fScanCtrl.SCNSetValue(2,0);
+			fScanCtrl.CheckScan();
+			fScanCtrl.PrintScanInfo();
+			fScanCtrl.Close();
 		}
-		sleep(kSecondsPerPoint);
+	}
+	// *** Make some noise to signal the end of the scan.
+	for (int i=0; i<=5; i++) {
+		printf("\a\n");
+		usleep(200000);
+	}
+	return 0;
+}
+
+Int_t PCtransScan(QwEPICSControl fEPICSCtrl)
+{ 
+	char dummychar;
+	Int_t kSecondsPerPoint=1;
+	printf("------------------------------------\n");
+	printf("Pockels Cell translation scan helper\n");
+	printf("------------------------------------\n");
+	printf("\nThis routine will write the value of the epics channels \"cdipc_xpos\" and\n");
+	printf("\"cdipc_ypos\" (the PC X and Y positions) to the DAQ quantities \"scandata1\"\n");
+	printf("and \"scandata2\" respectively.  This is used to have a more accurate value \n");
+	printf("of the position for plotting and to complete the scan quicker.\n");
+	printf("\nYou can ctrl-C out at any point.\n");
+	printf("Enter any value to continue.\n");
+	cin >> dummychar;
+	cout << "Starting scan control.\n";
+	GreenMonster  fScanCtrl;
+	//  Let's clear the values for the scan data & set "not clean".
+	fScanCtrl.Open();
+	fScanCtrl.SCNSetStatus(SCN_INT_NOT);
+	fScanCtrl.SCNSetValue(1,0);
+	fScanCtrl.SCNSetValue(2,0);
+	fScanCtrl.CheckScan();
+	fScanCtrl.PrintScanInfo();
+
+	//Double_t PCXPos, PCYPos;
+	while (1) {
+		Double_t PCXPos = fEPICSCtrl.Get_PCXPos();
+		Double_t PCYPos = fEPICSCtrl.Get_PCYPos();
+		fScanCtrl.SCNSetValue(1, PCXPos*10000);
+		fScanCtrl.SCNSetValue(2, PCYPos*10000);
+		//    fScanCtrl.SCNSetStatus(SCN_INT_CLN);
+		fScanCtrl.CheckScan();
+		fScanCtrl.PrintScanInfo();
+		// Allow ctrl-C escape while sleeping
+		for (Int_t i=0; i<=kSecondsPerPoint; i++) {			
+			sleep(1);
+			signal(SIGINT, sigint_handler);
+			if (globalEXIT) {
+				globalEXIT=0;
+				return 0;
+			}
+		}
 	}
 
-	// Return voltages to initial numbers and clearing the scandata.
+	// Return to initial position and clear the scandata.
 	printf("\nScan complete\n");
 	fScanCtrl.SCNSetStatus(SCN_INT_NOT);
 	fScanCtrl.SCNSetValue(1,0);
@@ -178,28 +252,54 @@ Int_t pedestalscan(QwEPICSControl fEPICSCtrl)
 	return 0;
 }
 
-
 Int_t rhwpscan(QwEPICSControl fEPICSCtrl,
 			   int kNumberOfPoints=19,
 			   int kSecondsPerPoint=10,
 			   int kStartAngleSet=0,    
 			   int kEndAngleSet=9000) 
 {
-	int kAngleSetChangePerStep=(kEndAngleSet-kStartAngleSet)/(kNumberOfPoints-1);
-
-	printf("-----------------------------\n");
-	printf("Doing an automated RHWP scan.\n");
-	printf("-----------------------------\n");
-	printf("Taking %i points of %i seconds each.\n",kNumberOfPoints,kSecondsPerPoint);
-	printf("Scan will take about %i minute %i seconds.\n",
-		   (kNumberOfPoints*kSecondsPerPoint)/60,(kNumberOfPoints*kSecondsPerPoint)%60);
-	if ((kEndAngleSet-kStartAngleSet)%(kNumberOfPoints-1)!=0) {
-		printf("Error: Angle range not integer divisible by number of steps.\n\n");
-		return -1;
+	int kAngleSetChangePerStep;
+	char inchar[2];
+	printf("\n--------------------\n");
+	printf("Automated RHWP scan.\n");
+	printf("--------------------\n");
+	Bool_t goodvals=0;
+	while (!goodvals) {
+		kAngleSetChangePerStep=(kEndAngleSet-kStartAngleSet)/(kNumberOfPoints-1);
+		printf("start angle:\t\t%i\n",kStartAngleSet);
+		printf("end angle:\t\t%i\n",kEndAngleSet);
+		printf("number of points:\t%i\n",kNumberOfPoints);
+		printf("change per step:\t%i\n",kAngleSetChangePerStep);
+		printf("seconds per point:\t%i\n",kSecondsPerPoint);
+		printf("%i points of %i seconds each => %i minute %i seconds.\n",
+			   kNumberOfPoints,kSecondsPerPoint,
+			   (kNumberOfPoints*kSecondsPerPoint)/60,
+			   (kNumberOfPoints*kSecondsPerPoint)%60);
+		printf("\nEnter 'Y','y' or '1' to contuinue, all else to change parameters:");
+		cin >> inchar;
+		if ((strcmp(inchar,"Y") == 0) || (strcmp(inchar,"y") == 0) || (strcmp(inchar,"1") == 0)) {
+			goodvals=1;
+		}
+		if (!goodvals) {
+			int newValue;
+			printf("New RHWP scan parameters\nEnter the number of points: ");
+			cin >> newValue;
+			kNumberOfPoints=newValue;
+			printf("Enter the number of seconds per point: ");
+			cin >> newValue;
+			kSecondsPerPoint=newValue;
+			printf("Enter the starting angle: ");
+			cin >> newValue;
+			kStartAngleSet=newValue;
+			printf("Enter the ending angle: ");
+			cin >> newValue;
+			kEndAngleSet=newValue;
+		}
+		if ((kEndAngleSet-kStartAngleSet)%(kNumberOfPoints-1)!=0) {
+			printf("Error: Angle range not integer divisible by number of steps.\n\n");
+			goodvals=0;
+		}
 	}
-	printf("RHWP change %i per step\n",kAngleSetChangePerStep);
-  
-
 	cout << "Starting scan control.\n";
 	GreenMonster  fScanCtrl;
 	//  Let's clear the values for the scan data & set "not clean".
@@ -239,7 +339,7 @@ Int_t rhwpscan(QwEPICSControl fEPICSCtrl,
 		fScanCtrl.SCNSetStatus(SCN_INT_CLN);
 		fScanCtrl.CheckScan();
 		fScanCtrl.PrintScanInfo();
-		//sleep(kSecondsPerPoint);
+		// Allow ctrl-C escape while sleeping
 		for (Int_t i=0; i<=kSecondsPerPoint; i++) {
 			sleep(1);
 			signal(SIGINT, sigint_handler);
@@ -279,21 +379,41 @@ Int_t pitascan_DAC(QwEPICSControl fEPICSCtrl,
 	int kActualVoltagePerStep=kActualVoltageRange/(kNumberOfPoints-1);
 	int kDACTicksPerStep=kDACTicksPerVolt*kActualVoltagePerStep;
 
-	if (localdebug) {printf("localdebug: kDACTicksPerVolt %i  kActualVoltagePerStep %i  kDACTicksPerStep %i\n",
-							kDACTicksPerVolt,kActualVoltagePerStep,kDACTicksPerStep);}
-
-	printf("-----------------------------\n");
-	printf("Doing an automated PITA scan.\n");
-	printf("-----------------------------\n");
-	printf("Taking %i points of %i seconds each.\n",kNumberOfPoints,kSecondsPerPoint);
-	printf("Scan will take about %i minute %i seconds.\n",
-		   (kNumberOfPoints*kSecondsPerPoint)/60,(kNumberOfPoints*kSecondsPerPoint)%60);
-	if (kActualVoltageRange%(kNumberOfPoints-1)!=0) {
-		printf("Error: Voltage range not integer divisible by number of steps.\n\n");
-		return -1;
-	}
-	printf("PITA change %i Volts per step, %i ticks on the DAC.\n",kActualVoltagePerStep,kDACTicksPerStep);
-  
+	char inchar[2];
+	printf("\n--------------------\n");
+	printf("Automated PITA scan.\n");
+	printf("--------------------\n");
+	Bool_t goodvals=0;
+	while (!goodvals) {
+		printf("number of points:\t%i\n",kNumberOfPoints);
+		printf("seconds per point:\t%i\n",kSecondsPerPoint);
+		printf("PITA change %i Volts per step, %i ticks on the DAC.\n",kActualVoltagePerStep,kDACTicksPerStep);
+		printf("%i points of %i seconds each => %i minute %i seconds.\n",
+			   kNumberOfPoints,kSecondsPerPoint,
+			   (kNumberOfPoints*kSecondsPerPoint)/60,
+			   (kNumberOfPoints*kSecondsPerPoint)%60);
+		printf("\nEnter 'Y','y' or '1' to contuinue, all else to change parameters:");
+		cin >> inchar;
+		if ((strcmp(inchar,"Y") == 0) || (strcmp(inchar,"y") == 0) || (strcmp(inchar,"1") == 0)) {
+			goodvals=1;
+		}
+		if (!goodvals) {
+			int newValue;
+			printf("New PITA scan parameters\nEnter the number of points: ");
+			cin >> newValue;
+			kNumberOfPoints=newValue;
+			printf("Enter the number of seconds per point: ");
+			cin >> newValue;
+			kSecondsPerPoint=newValue;
+			printf("Enter the total voltage range: ");
+			cin >> newValue;
+			kActualVoltageRange=newValue;
+		}
+		if (kActualVoltageRange%(kNumberOfPoints-1)!=0) {
+			printf("Error: Voltage range not integer divisible by number of steps.\n\n");
+			return -1;
+		}
+	} 
 
 	cout << "Starting scan control.\n";
 	GreenMonster  fScanCtrl;
@@ -365,7 +485,7 @@ Int_t pitascan_DAC(QwEPICSControl fEPICSCtrl,
 		fScanCtrl.SCNSetStatus(SCN_INT_CLN);
 		fScanCtrl.CheckScan();
 		fScanCtrl.PrintScanInfo();
-		//sleep(kSecondsPerPoint);
+		// Allow ctrl-C escape while sleeping
 		for (Int_t i=0; i<=kSecondsPerPoint; i++) {
 			sleep(1);
 			signal(SIGINT, sigint_handler);

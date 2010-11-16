@@ -74,6 +74,12 @@ QwEPICSControl::QwEPICSControl()
   status = ca_pend_io(10);
   status = ca_search("psub_ac_pos", &fIDCLaser_Att);
   status = ca_pend_io(10);
+  status = ca_search("cdipc_xpos", &fIDPCXPos);
+  status = ca_pend_io(10);
+  status = ca_search("cdipc_ypos", &fIDPCYPos);
+  status = ca_pend_io(10);
+  status = ca_search("OPCR00Lpico_moving", &fIDPCMoving);
+  status = ca_pend_io(10);
 };
 
 
