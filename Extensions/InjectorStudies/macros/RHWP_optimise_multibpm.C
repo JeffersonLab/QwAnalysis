@@ -30,8 +30,8 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 
 	TString cut = "cleandata&&" + usercut;
 
-	TCanvas *RHWPcanvas = new TCanvas("RHWPcanvas","Optimisation",40,40,1200,800);
-	RHWPcanvas->Divide(3,4,0.0001,0.0001);   
+	TCanvas *RHWPcanvas = new TCanvas("RHWPcanvas","Optimisation",40,80,1200,800);
+	RHWPcanvas->Divide(3,5,0.0001,0.0001);   
 
 // 	const Int_t numbpms=4;
 // 	char bpmlist[numbpms][30]={"1i02","1i04","0i02","0l01"};
@@ -43,6 +43,7 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 
 	const Int_t numbpms=6;
 	TString bpmlist[] = {"1i02", "1i04","1i06","0i02","0i02a","0i05"};
+	TH1F *histresulty[numbpms], *histresultx[numbpms];
 
 	Float_t titlesize=0.06;
 
@@ -146,6 +147,7 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 // 		fresultx->DrawCopy();
 // 		TLine *t1 = new TLine(0,0.0,180,0.0);
 // 		t1->Draw();
+		histresultx[bpmcount-1] = (TH1F*)(fresultx->GetHistogram());
 
 		// Make TGraph
 		TGraph *gresultx = new TGraph(fresultx);
@@ -168,6 +170,7 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 // 		fresulty->SetMaximum(0.9);
 // 		fresulty->SetMinimum(-0.9);
 // 		fresulty->DrawCopy();
+		histresulty[bpmcount-1] = (TH1F*)(fresulty->GetHistogram());
 
 		TGraph *gresulty = new TGraph(fresulty);
 		gresulty->GetHistogram()->SetTitleSize(titlesize);
@@ -180,6 +183,49 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 		t1->Draw();
 
 	}
+// 	TH1F *quadsumx = new TH1F((TH1F*)histresultx[0]);
+// 	TH1F *quadsumy = new TH1F((TH1F*)histresulty[0]);
+// 	TH1F *quadsumtot = new TH1F((TH1F*)histresulty[0]);
+	TH1F *quadsumx = histresulty[0]->Clone();
+	quadsumx->SetTitle("Figure of merit X;angle   (degrees);HCPD quadrature sum");
+	quadsumx->SetLineWidth(1);
+	quadsumx->SetLineColor(kBlue);
+	TH1F *quadsumy = histresulty[0]->Clone();
+	quadsumy->SetTitle("Figure of merit Y;angle   (degrees);HCPD quadrature sum");
+	quadsumy->SetLineWidth(1);
+	quadsumy->SetLineColor(kBlue);
+	TH1F *quadsumtot = histresulty[0]->Clone();
+	quadsumtot->SetTitle("Figure of merit both;angle   (degrees);HCPD quadrature sum");
+	quadsumtot->SetLineWidth(1);
+	quadsumtot->SetLineColor(kBlue);
+	Double_t xval, yval, xval2sum, yval2sum, totval;
+	for (int i=1; i<=quadsumx->GetNbinsX(); i++) {
+		xval2sum = yval2sum =0;
+		for (Int_t bpmcount=0; bpmcount<numbpms; bpmcount++) {
+			xval2sum = xval2sum + histresultx[bpmcount]->GetBinContent(i) * histresultx[bpmcount]->GetBinContent(i);
+			yval2sum = yval2sum + histresulty[bpmcount]->GetBinContent(i) * histresulty[bpmcount]->GetBinContent(i);
+		}
+		totval = sqrt(xval2sum + yval2sum);
+		xval = sqrt(xval2sum);
+		yval = sqrt(yval2sum);
+		quadsumx->SetBinContent(i,xval);
+		quadsumy->SetBinContent(i,yval);
+		quadsumtot->SetBinContent(i,totval);
+	}
+
+	RHWPcanvas->cd(2*bpmcount+1);
+	quadsumx->SetMinimum(0);
+	quadsumx->SetMaximum(1);
+	quadsumx->Draw();
+	RHWPcanvas->cd(2*bpmcount+2);
+	quadsumy->SetMinimum(0);
+	quadsumy->SetMaximum(1);
+	quadsumy->Draw();
+	RHWPcanvas->cd(2*bpmcount+3);
+	quadsumtot->SetMinimum(0);
+	quadsumtot->SetMaximum(1);
+	quadsumtot->Draw();
+
 	TString psnam = "plots/RHWP_optimize_multibpm_";
 	psnam += runnum1;
 	psnam += "_";

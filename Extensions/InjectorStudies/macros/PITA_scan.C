@@ -4,11 +4,27 @@
 
 void plot_element(TPad *p1, TPad* p2, char *devnam, TString lcut, Int_t dset);
 
-void PITA_scan(Int_t runnumber=1, Int_t ihwp=-1, TString device="1i02", TString usercut ="1") {
+void PITA_scan(Int_t runnumber=1, Int_t ihwp=-1, TString device="1i02", TString usercut ="1", TString intitle="PITA") {
 	if (runnumber==1) {
-		printf("Usage:\n\t.x PITA_scan_new.C(runnum,ihwp,[device],[cut])\n\n");
+		printf("Usage:\n\t.x PITA_scan.C(runnum,  ihwp,[device],[cut],[title])\n");
+		printf("OR\t.x PITA_scan.C(filename,ihwp,[device],[cut],[title])\n\n");
+//		printf("Usage:\n\t.x PITA_scan.C(runnum,ihwp,[device],[cut], [title])\n\n");
+		printf("defaults:\n\t[device] = \"1i02\"\n\t[cut]    = \"1\"\n\t[title]  = \"PITA\"\n\n");
 		return;
 	}
+	TString infilename = Form("$QW_ROOTFILES/Qweak_%i.000.root",runnumber);
+	PITA_scan(infilename, ihwp, device, usercut, intitle, runnumber);
+}
+
+void PITA_scan(TString infilename = "1", Int_t ihwp=-1, TString device="1i02", 
+			   TString usercut ="1", TString intitle="PITA", Int_t runnumber=1) {
+	if (infilename=="1") {
+		printf("Usage:\n\t.x PITA_scan.C(runnum,ihwp,[device],[cut], [title])\n");
+		printf("OR\t.x PITA_scan.C(filename,ihwp,[device],[cut], [title])\n\n");
+		printf("defaults:\n\t[device] = \"1i02\"\n\t[cut]    = \"1\"\n\t[title]  = \"PITA\"\n\n");
+		return;
+	}
+
 	gROOT->Reset();
 	while (ihwp!=0 && ihwp!=1) {
 		printf("Please enter the IHWP position: (1) IN (0) OUT\n");
@@ -29,10 +45,14 @@ void PITA_scan(Int_t runnumber=1, Int_t ihwp=-1, TString device="1i02", TString 
 			return;
 		}
 	}
-    gtitle = "PITA Scan, IHWP ";
+	gtitle = intitle + " Scan, IHWP ";
 	gtitle += ihwppos;
-    gtitle += ", Run ";
-	gtitle += runnumber;
+	if (runnumber!=1) {
+		gtitle += ", Run ";
+		gtitle += runnumber;
+	} else {
+		gtitle += infilename;
+	}
 
     plotname = "pitascan_run";
     plotname += runnumber;
@@ -87,11 +107,11 @@ void PITA_scan(Int_t runnumber=1, Int_t ihwp=-1, TString device="1i02", TString 
 	pt2->Draw();
 	pt2->SetTextAlign(22);
 
-	plot_element(a1_p[0],a1_p[1],"qwk_"+device+"_EffectiveCharge.hw_sum",usercut,runnumber);
-
-	plot_element(a1_p[2],a1_p[3],"qwk_"+device+"X.hw_sum",usercut,runnumber);
-
-	plot_element(a1_p[4],a1_p[5],"qwk_"+device+"Y.hw_sum",usercut,runnumber);
+	plot_element(a1_p[0],a1_p[1],"qwk_"+device+"_EffectiveCharge.hw_sum",usercut,infilename);
+	
+	plot_element(a1_p[2],a1_p[3],"qwk_"+device+"RelX.hw_sum",usercut,infilename);
+	
+	plot_element(a1_p[4],a1_p[5],"qwk_"+device+"RelY.hw_sum",usercut,infilename);
 
 	a1->cd();
 	a1->Update();
@@ -102,7 +122,7 @@ void PITA_scan(Int_t runnumber=1, Int_t ihwp=-1, TString device="1i02", TString 
   
 }
 
-void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, Int_t runnumber) {
+void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, TString infilename) {
 
 	TString *bpmNam = new TString(devnam);
 
@@ -114,9 +134,7 @@ void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, Int_t runn
 	char buff[170];
 
 	// Open the file
-	char filename[255];
-	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnumber);
-	TFile *_file0 = TFile::Open(filename);
+	TFile *_file0 = TFile::Open(infilename.Data());
 	TTree *p = (TTree*)gROOT->FindObject("Hel_Tree");
 	TTree *r = (TTree*)gROOT->FindObject("Mps_Tree");
 
@@ -145,7 +163,7 @@ void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, Int_t runn
 	}
 
 	plotcommand += ":scandata1>>hAq";
-	cout << plotcommand << endl;
+	printf("%s\n%s\n",plotcommand.Data(),cut.Data());
 	p1->cd();
 	
 	Int_t successes = p->Draw(plotcommand.Data(),cut.Data(),"prof");
@@ -183,13 +201,15 @@ void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, Int_t runn
 		pt->AddText(linetxt);
 		sprintf(linetxt,"slope = %7.4f", f1->GetParameter(1));
 		pt->AddText(linetxt);
-		//sprintf(linetxt,"zero at = %7.2f", f1->GetParameter(1));
-		//pt->AddText(linetxt);
+		sprintf(linetxt,"zero at = %7.2f", -(f1->GetParameter(0)/f1->GetParameter(1)));
+		pt->AddText(linetxt);
 	} else {
 		if (tmpname.Contains("Y")) {
 			sprintf(linetxt,"D_{y}(0) = %7.2f",f1->GetParameter(0));
 			pt->AddText(linetxt);
 			sprintf(linetxt,"slope = %7.4f", f1->GetParameter(1));
+			pt->AddText(linetxt);
+			sprintf(linetxt,"zero at = %7.2f", -(f1->GetParameter(0)/f1->GetParameter(1)));
 			pt->AddText(linetxt);
 			//sprintf(linetxt,"zero at = %7.4f", f1->GetParameter(1));
 			//pt->AddText(linetxt);
@@ -197,7 +217,9 @@ void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, Int_t runn
 			if (tmpname.Contains("EffectiveCharge")) {
 				sprintf(linetxt,"A_{q}(0) = %7.2f",f1->GetParameter(0));
 				pt->AddText(linetxt);
-				sprintf(linetxt,"slope = %7.2f", f1->GetParameter(1));
+				sprintf(linetxt,"slope = %7.4f", f1->GetParameter(1));
+				pt->AddText(linetxt);
+				sprintf(linetxt,"zero at = %7.2f", -(f1->GetParameter(0)/f1->GetParameter(1)));
 				pt->AddText(linetxt);
 				//sprintf(linetxt,"zero at = %7.4f", f1->GetParameter(1));
 				//pt->AddText(linetxt);

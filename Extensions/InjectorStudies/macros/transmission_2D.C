@@ -11,7 +11,7 @@ void transmission_2D(Int_t runnumber=1)
 	gROOT->SetStyle("Plain");
 	Bool_t debug=0;
 	Bool_t setsize=1;
-	Double_t maxx=0.3;
+	Double_t maxx=1;
 
 	Double_t maxy, maxxplot, maxyplot;
 	maxy=maxx;
@@ -28,11 +28,14 @@ void transmission_2D(Int_t runnumber=1)
 // 	TString bpmlist[] = {"1i02", "1i04","1i06","0i01","0i01A","0i02","0i02A","0i05",
 // 						"0i07","0l02","0l03","0l04","0l05","0l06","0l07","0l08",
 // 						"0l09","0l10","0r03","0r04"};
+// 	TString bpmlist[] = {"1i02", "1i04","1i06","0i02","0i02a","0i05",
+// 						"0i07","0l02 ","0l03","0l04","0l05","0l06","0l07","0l08",
+// 						"0l09","0l10"};
+// 	const Int_t numplots=16;
 	TString bpmlist[] = {"1i02", "1i04","1i06","0i02","0i02a","0i05",
 						"0i07","0l02 ","0l03","0l04","0l05","0l06","0l07","0l08",
 						"0l09","0l10"};
 	const Int_t numplots=16;
-
 
 	char filename[255];
 	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnumber);
@@ -44,9 +47,9 @@ void transmission_2D(Int_t runnumber=1)
 
 	TString plotname, histname, title;
 
-	TCanvas *Transcanvas = new TCanvas("Transcanvas","Transmission",40,0,800,800);
+	TCanvas *Transcanvas = new TCanvas("Transcanvas","Transmission",40,0,1200,600);
 	Transcanvas->Clear();
-	Transcanvas->Divide(4,4,0.0001,0.0001);
+	Transcanvas->Divide(4,2,0.0001,0.0001);
 	TH1F *hx[numplots], *hy[numplots];
 	Double_t xpos[numplots],xerr[numplots],ypos[numplots],yerr[numplots];
 	Double_t xposall[numplots],xerrall[numplots],yposall[numplots],yerrall[numplots];
@@ -76,8 +79,8 @@ void transmission_2D(Int_t runnumber=1)
 		tree->Draw(plotname,"1","goff");
 		hx[i-1] = (TH1F*)gROOT->FindObject(histname);
 		xposall[i-1] = xpos[0] = hx[i-1]->GetMean();
-		xerrall[i-1] = xerr[0] = hx[i-1]->GetRMS()/sqrt(hx[i-1]->GetEntries());
-		printf("%s X, mean: %f, error: %f\n",bpmlist[i-1].Data(),xpos[0], xerr[0]);
+		xerrall[i-1] = xerr[0] = hx[i-1]->GetRMS()/sqrt(hx[i-1]->GetEntries()-1);
+		printf("%6s X, mean: %8.4f +- %.4f um\n",bpmlist[i-1].Data(),xpos[0], xerr[0]);
 
 		histname = "hy";
 		histname += i;
@@ -88,8 +91,9 @@ void transmission_2D(Int_t runnumber=1)
 		tree->Draw(plotname,"1","goff");
 		hy[i-1] = (TH1F*)gROOT->FindObject(histname);
 		yposall[i-1] = ypos[0] = hy[i-1]->GetMean();
-		yerrall[i-1] = yerr[0] = hy[i-1]->GetRMS()/sqrt(hy[i-1]->GetEntries());
-		printf("%s Y, mean: %f, error: %f\n",bpmlist[i-1].Data(), ypos[0], yerr[0]);
+		yerrall[i-1] = yerr[0] = hy[i-1]->GetRMS()/sqrt(hy[i-1]->GetEntries()-1);
+		printf("%6s Y, mean: %8.4f +- %.4f um\n",bpmlist[i-1].Data(),ypos[0], yerr[0]);
+//		printf("%s Y, mean: %f, error: %f\n",bpmlist[i-1].Data(), ypos[0], yerr[0]);
 	
 		graph[i-1] = new TGraphErrors(2,xpos,ypos,xerr,yerr);
 		graph[i-1]->SetMarkerStyle(20);
