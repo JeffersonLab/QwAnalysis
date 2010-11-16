@@ -676,7 +676,11 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   values.push_back(0.0);
   TString list = "sample0/D";
   values.push_back(0.0);
+  list += ":i_min/D";
+  values.push_back(0.0);
   list += ":sw_min/D";
+  values.push_back(0.0);
+  list += ":i_max/D";
   values.push_back(0.0);
   list += ":sw_max/D";
   values.push_back(0.0);
@@ -722,10 +726,15 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
     size_t index = fTreeArrayIndex;
     if (fSamples.size() > 0) {
       values[index++] = fSamples[0].GetSample(0);
-      values[index++] = fSamples[0].GetMin();
-      values[index++] = fSamples[0].GetMax();
+      std::pair<size_t,double> min = fSamples[0].GetMin();
+      values[index++] = min.first;
+      values[index++] = min.second;
+      std::pair<size_t,double> max = fSamples[0].GetMax();
+      values[index++] = max.first;
+      values[index++] = max.second;
       values[index++] = fSamples[0].GetSum();
     } else {
+      values[index++] = -1;
       values[index++] = -1;
       values[index++] = -1;
       values[index++] = -1;

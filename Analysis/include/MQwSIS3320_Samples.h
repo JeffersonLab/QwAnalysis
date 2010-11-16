@@ -50,8 +50,8 @@ class MQwSIS3320_Samples: public VQwDataElement {
     ~MQwSIS3320_Samples() { };
 
     const MQwSIS3320_Type GetSum() const;
-    const MQwSIS3320_Type GetMin() const;
-    const MQwSIS3320_Type GetMax() const;
+    std::pair<size_t,MQwSIS3320_Type> GetMin() const;
+    std::pair<size_t,MQwSIS3320_Type> GetMax() const;
     const MQwSIS3320_Type GetSample(size_t i) const { return fSamples.at(i); };
     const MQwSIS3320_Type GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const;
 
