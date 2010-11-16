@@ -114,7 +114,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
 
     Bool_t IsGoodEvent();
 
-    void Copy(VQwDataElement *source) { };
+    void Copy(MQwSIS3320_Channel *source);
 
     void PrintValue() const;
     void PrintInfo() const;

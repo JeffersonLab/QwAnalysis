@@ -786,3 +786,61 @@ void MQwSIS3320_Channel::PrintInfo() const
   }
 }
 
+/*
+ * Copy
+ */
+void MQwSIS3320_Channel::Copy(MQwSIS3320_Channel *source)
+{
+   try {
+      if( typeid(*source)==typeid(*this)) {
+         MQwSIS3320_Channel* input = ((MQwSIS3320_Channel*)source);
+
+         // Now copy all the data
+         this->fChannel                = source->fChannel;
+         this->fHasSamplingData        = source->fHasSamplingData;
+         this->fHasAccumulatorData     = source->fHasAccumulatorData;
+         this->fRandomnessGenerator    = source->fRandomnessGenerator;
+         this->fNormalDistribution     = source->fNormalDistribution;
+         //this->kVoltsPerBit            = source->kVoltsPerBit;
+         //this->kNanoSecondsPerSample   = source->kNanoSecondsPerSample;
+         this->fPedestal               = source->fPedestal;
+         this->fCalibrationFactor      = source->fCalibrationFactor;
+         this->fCurrentEvent           = source->fCurrentEvent;
+         this->fNumberOfEvents         = source->fNumberOfEvents;
+         this->fSampleFormat           = source->fSampleFormat;
+         this->fSamplePointer          = source->fSamplePointer;
+         this->fSamples                = source->fSamples;
+         this->fSamplesRaw             = source->fSamplesRaw;
+         this->fAverageSamples         = source->fAverageSamples;
+         this->fTimeWindowAverages     = source->fTimeWindowAverages;
+         this->fTimeWindows            = source->fTimeWindows;
+         this->fSampleWindowAverages   = source->fTimeWindowAverages;
+         this->fSampleWindows          = source->fSampleWindows;
+         this->fTreeArrayIndex         = source->fTreeArrayIndex;
+         this->fTreeArrayNumEntries    = source->fTreeArrayNumEntries;
+         this->fAccumulatorDAC         = source->fAccumulatorDAC;
+         this->fAccumulatorThreshold1  = source->fAccumulatorThreshold1;
+         this->fAccumulatorThreshold2  = source->fAccumulatorThreshold2;
+         this->fAccumulatorTimingBefore5 = source->fAccumulatorTimingBefore5;
+         this->fAccumulatorTimingBefore6 = source->fAccumulatorTimingBefore6;
+         this->fAccumulatorTimingAfter5 = source->fAccumulatorTimingAfter5;
+         this->fAccumulatorTimingAfter6 = source->fAccumulatorTimingAfter6;
+         this->fAccumulators           = source->fAccumulators;
+         this->fAccumulatorsRaw        = source->fAccumulatorsRaw;
+         this->fSequenceNumber         = source->fSequenceNumber;
+         this->fMockAsymmetry          = source->fMockAsymmetry;
+         this->fMockGaussianMean       = source->fMockGaussianMean;
+         this->fMockGaussianSigma      = source->fMockGaussianSigma;
+
+      } else {
+         TString message = "Standard exception from MQwSIS3320_Channel::Copy = "
+            + source->GetElementName() + " "
+            + this->GetElementName() + " are not of the same type";
+         throw std::invalid_argument(message.Data());
+      }
+   } catch (std::exception& e) {
+      std::cerr << e.what() << "\n";
+   }
+
+   return;
+}
