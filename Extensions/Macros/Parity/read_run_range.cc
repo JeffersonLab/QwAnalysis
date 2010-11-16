@@ -112,11 +112,11 @@ int main(Int_t argc,Char_t* argv[])
   // histo parameters
   gStyle->SetTitleYOffset(1.0);
   gStyle->SetTitleXOffset(0.7);
-  gStyle->SetTitleX(0.1);
-  gStyle->SetTitleW(0.7);
+  gStyle->SetTitleX(0.08);
+  gStyle->SetTitleW(0.6);
   gStyle->SetTitleSize(0.05);
   gStyle->SetTitleOffset(1.5);
-  gStyle->SetTitleBorderSize(0);
+  gStyle->SetTitleBorderSize(1);
   gStyle->SetTitleFillColor(kYellow-8);
   gStyle->SetTitleFontSize(0.08);
   gStyle->SetLabelSize(0.04,"x");
@@ -224,26 +224,45 @@ int main(Int_t argc,Char_t* argv[])
 
       //Found rootfiles for this run, get the histogram info from them.
       TH1F* htemp = NULL;
-      htemp = GetHisto(histoname,file_list);
-      if(!htemp){
-	std::cerr<<"Unable to find histogram "<<histoname<<" in "<<run<<std::endl;
-      }
-      else{
-	// Found the histogram, fill the arrays to plot the graph
-	mean.ResizeTo(k+1);
-	sigma.ResizeTo(k+1);
-	error.ResizeTo(k+1);
-	runs.ResizeTo(k+1);
-	fakeerror.ResizeTo(k+1);
-      
-	if((htemp->GetEntries())!= 0){
-	  mean.operator()(k)      = htemp->GetMean();
-	  error.operator()(k)     = htemp->GetMeanError();
-	  sigma.operator()(k)     = htemp->GetRMS(); // the width in root is called the RMS.
-	  runs.operator()(k)      = run;
-	  fakeerror.operator()(k) = 0.0;
+
+      for(size_t i=0; i<file_list.size();i++){
+	htemp = (TH1F*)file_list[i]->Get(histoname);
+	// htemp = GetHisto(histoname,file_list);
+	if(!htemp){
+	  std::cerr<<"Unable to find histogram "<<histoname<<" in "<<run<<std::endl;
 	}
-	k++;
+	else{
+	  // Found the histogram, fill the arrays to plot the graph
+	  mean.ResizeTo(k+1);
+	  sigma.ResizeTo(k+1);
+	  error.ResizeTo(k+1);
+	  runs.ResizeTo(k+1);
+	  fakeerror.ResizeTo(k+1);
+	  Double_t meanvalue = 0.0;
+	  Double_t meanerr = 0.0;
+	  
+	  if((htemp->GetEntries())!= 0){
+	    if((htemp->GetMean() == 0) &&  (htemp->GetRMS() == 0)){
+	      std::cout<<"histogram has zero mean and szero width!"<<std::endl;
+	      exit(1);
+	    } else{
+	      if(property.Contains("a") || property.Contains("d")){
+		meanvalue = (htemp->GetMean())*1e+6; //put asymmetry in ppm or put position differences in nm
+		meanerr =  (htemp->GetMeanError())*1e+6;
+	      }else{
+		meanvalue = (htemp->GetMean());
+		meanerr =  (htemp->GetMeanError());
+	      }
+	      
+	      mean.operator()(k)      = meanvalue;
+	      error.operator()(k)     = meanerr;
+	      sigma.operator()(k)     = htemp->GetRMS(); // the width in root is called the RMS.
+	      runs.operator()(k)      = run+(i*0.1);
+	      fakeerror.operator()(k) = 0.0;
+	      k++;
+	    }
+	  }
+	}
 	delete htemp;	
       }
     }
@@ -252,7 +271,7 @@ int main(Int_t argc,Char_t* argv[])
  
   // If all the available histograms have 0 netries, nothing to plot. exit.
   if(mean.GetNoElements() == 0){
-    std::cerr<<"All histograms "<<histoname<<" in this range ("<<run1<<"-"<<run2<<") are empty."<<std::endl;
+    std::cerr<<"There are no histograms called "<<histoname<<" in this range ("<<run1<<"-"<<run2<<")!."<<std::endl;
     exit(1);
   }
 
@@ -264,21 +283,20 @@ int main(Int_t argc,Char_t* argv[])
   g1->GetXaxis()->SetTitle("run number");
 
   TString prop;
-  if(property.Contains("a")) prop = "asymmetry";
+  if(property.Contains("a")) prop = "asymmetry (ppm)";
   if(property.Contains("y")) {
     if(device.Contains("bcm")) prop = "yields (uA)";
     else prop = "yields";
   }
-  if(property.Contains("d")) prop = "difference(mm)";
+  if(property.Contains("d")) prop = "differences(nm)";
   if(property.Contains("s")) {
     if(device.Contains("bcm")) prop = "current (uA)";
     else if(device.Contains("bpm")) prop = "position (mm)";
     else prop = "signal";
   }
-  g->GetYaxis()->SetTitle(Form("%s %s means",device.Data(), prop.Data()));
-
-  //  g->SetTitle(Form("%s  %s  during runs %i - %i",device.Data(), prop.Data(),run1, run2));
-  g->SetTitle("");
+  g->GetYaxis()->SetTitle(Form("%s %s",device.Data(), prop.Data()));
+  g->GetXaxis()->SetTitle("run number");
+  g->SetTitle(Form("%s  %s  during run range %i to %i",device.Data(), prop.Data(),run1, run2));
   g->SetMarkerColor(kBlue);
   g->SetMarkerStyle(21);
   g->SetMarkerSize(0.8);
@@ -315,7 +333,7 @@ int main(Int_t argc,Char_t* argv[])
   canvas->SetBorderMode(0);
   // Save the canvas on to a .gif file
   canvas->SaveAs(Form("$QWANALYSIS/Extensions/Macros/Parity/Plots/%i_%i_%s_%s_summary.gif",run1, run2, device.Data(),property.Data())); 
-  //  theApp.Run(); 
+  theApp.Run(); 
 
 };
 
@@ -362,11 +380,6 @@ TH1F* GetHisto(TString histoname, std::vector<TFile*> &atfile_list){
   return histo;
 };
 
-
-// Adapted from hallc_bcm_calib.C GetTree function written by J.H.Lee.
-// This function use the chain to add all of the files with name 
-// "filename" and then use that chain to get the corresponding file list.
-// it return s 1 if files are found. 0 if not.
 
 Bool_t FindFiles(TString filename, std::vector<TFile*> &atfile_list, TChain * chain)
 {
