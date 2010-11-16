@@ -17,7 +17,7 @@ echo "======\n"
 setenv QWANALYSIS $1
 setenv QWSCRATCH  $2
 source $QWANALYSIS/SetupFiles/SET_ME_UP.csh
-    
+
 #need to use the computer center recommended mysql
 setenv LD_LIBRARY_PATH /apps/mysql/lib/mysql:${LD_LIBRARY_PATH}
 
@@ -35,13 +35,13 @@ endif
 
 
 ####  Extract the options list.
-echo "s/`echo $QWANALYSIS|sed 's/\//\\\//g'`//g"  >! .tmpfile
-echo "s/`echo $QWSCRATCH|sed 's/\//\\\//g'`//g"  >>  .tmpfile
-echo "s/$runnumber//g"  >>  .tmpfile
+echo "s/`echo $QWANALYSIS|sed 's/\//\\\//g'`//"  >! .tmpfile
+echo "s/`echo $QWSCRATCH|sed 's/\//\\\//g'`//"  >>  .tmpfile
+echo "s/$runnumber//"  >>  .tmpfile
 echo 's/^\w+//'         >>  .tmpfile
 echo 's/\w+$//'         >>  .tmpfile
 
-set options      = `echo $*|sed -f .tmpfile`
+set exec_and_options      = `echo $*|sed -f .tmpfile`
 #  Remove the temporary file
 /bin/rm -f .tmpfile
 
@@ -71,23 +71,23 @@ set log_file = $WORKDIR/run_$runnumber.log
 echo "QWANALYSIS directory = $QWANALYSIS" >! $log_file
 echo "QWSCRATCH directory  = $QWSCRATCH"  >> $log_file
 echo "Run number(s)        = $runnumber"  >> $log_file
-echo "Analysis options     = $options"    >> $log_file
+echo "Command and options  = $exec_and_options" >> $log_file
 
 
 ####  Run the analysis job.
 date >>& $log_file
-$QW_BIN/qwparity -r $runnumber $options >>& $log_file
+$exec_and_options  -r $runnumber >>& $log_file
 
 if (-f $QW_TMP/G0EPICSData) then
     mv $QW_TMP/G0EPICSData $QW_TMP/G0EPICSData.$runnumber
 endif
 
-#set my_root_file = `find $QW_ROOTFILES -name \*$runnumber\*root`
-#echo "Trying to find rootfile... '$my_root_file' "
-#if ($my_root_file != "") then
-#   echo "Moving '$my_root_file' "
-#   mv $my_root_file $QWSCRATCH/rootfiles/.
-#endif
+set my_root_file = `find $QW_ROOTFILES -name \*$runnumber\*root`
+echo "Trying to find rootfile... '$my_root_file' "
+if ("$my_root_file" != "") then
+    echo "Moving '$my_root_file' "
+    mv $my_root_file $QWSCRATCH/rootfiles/.
+endif
 
 
 ####  Send the mail to the user.

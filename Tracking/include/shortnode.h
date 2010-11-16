@@ -21,6 +21,7 @@
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwObjectCounter.h"
 
 namespace QwTracking {
 
@@ -34,7 +35,7 @@ class shorttree;
  * \brief Similar to a nodenode.
  *
  */
-class shortnode {
+class shortnode: public QwObjectCounter<shortnode> {
 
   public:
 
@@ -81,7 +82,6 @@ class shortnode {
 
   private:
 
-    static int fCount; ///< Object counter
     static int fDebug; ///< Debug level
 
   public:
@@ -90,9 +90,6 @@ class shortnode {
     void Print(bool recursive = false, int indent = 0);
     /// \brief Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const shortnode& sn);
-
-    /// Get number of objects
-    static const int GetCount() { return fCount; };
 
 }; // class shortnode
 

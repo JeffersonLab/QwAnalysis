@@ -73,6 +73,29 @@ enum EQwBeamInstrumentType{
   kQwBPMCavity
 };
 
+//Beamline device errorflags
+static const UInt_t kErrorFlag_sample     = 0x2;  // in Decimal 2   for sample size check
+static const UInt_t kErrorFlag_SW_HW      = 0x4;  // in Decimal 4   HW_sum==SW_sum check
+static const UInt_t kErrorFlag_Sequence   = 0x8;  // in Decimal 8   sequence number check
+static const UInt_t kErrorFlag_SameHW     = 0x10; // in Decimal 16  check to see ADC returning same HW value
+static const UInt_t kErrorFlag_ZeroHW     = 0x20; // in Decimal 32  check to see ADC returning zero
+static const UInt_t kErrorFlag_EventCut_L = 0x40; // in Decimal 64  check to see ADC failed upper limit of the event cut
+static const UInt_t kErrorFlag_EventCut_U = 0x80; // in Decimal 128 check to see ADC failed upper limit of the event cut
+
+static const UInt_t kBCMErrorFlag = 0x100; // in Decimal 256 to identify the single event cut is failed for a BCM (regular or combo)
+static const UInt_t kBPMErrorFlag = 0x400; // in Decimal 1024 to identify the single event cut is failed for a BPM (Stripline or cavity or comboBPM)
+static const UInt_t kPMTErrorFlag = 0x800; // in Decimal 2048 to identify the single event cut is failed for a PMT (Combined or regular)
+
+static const UInt_t kEventCutMode3 = 0x10000;  // in Decimal 65536 to identify the mode 3 where we only flag event cut failed events 
+
+static const UInt_t kGlobalCut    = 0x4000000;// in Decimal 2^26 to identify the single event cut is a global cut
+static const UInt_t kLocalCut     = 0x2000000;// in Decimal 2^25 to identify the single event cut is a local cut
+static const UInt_t kStabilityCut = 0x1000000;// in Decimal 2^24 to identify the single event cut is a stability cut
+
+//To generate the error code based on global/local and stability cut value
+UInt_t GetGlobalErrorFlag(TString evtype,Int_t evMode,Double_t stabilitycut);
+
+
 EQwPMTInstrumentType GetQwPMTInstrumentType(TString name);
 TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type);
 

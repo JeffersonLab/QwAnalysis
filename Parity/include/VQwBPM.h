@@ -51,7 +51,8 @@ class VQwBPM : public VQwDataElement {
   void   GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
   void   GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY);
   Int_t  GetEventcutErrorFlag(){//return the error flag
-    return fDeviceErrorCode;
+    return fErrorFlag;
+    //return fDeviceErrorCode;
   };
   Int_t   GetEventcutErrorCounters();
 

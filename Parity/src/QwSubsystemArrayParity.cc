@@ -41,6 +41,7 @@ void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
   fnCanContain = CanContain;
   // Copy subsystems in the array
   if (!source->empty()) {
+    this->fErrorFlag=source->fErrorFlag;
     for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
       VQwSubsystemParity *srcptr =
           dynamic_cast<VQwSubsystemParity*>(subsys->get());
@@ -63,6 +64,7 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
   if(localdebug)  std::cout<<"QwSubsystemArrayParity::operator= \n";
   if (!source.empty()){
     if (this->size() == source.size()){
+      this->fErrorFlag=source.fErrorFlag;
       for(size_t i=0;i<source.size();i++){
 	if (source.at(i)==NULL || this->at(i)==NULL){
 	  //  Either the source or the destination subsystem
@@ -100,7 +102,9 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
 QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArrayParity &value)
 {
   if (!value.empty()){
+
     if (this->size() == value.size()){
+      this->fErrorFlag|=value.fErrorFlag;
       for(size_t i=0;i<value.size();i++){
 	if (value.at(i)==NULL || this->at(i)==NULL){
 	  //  Either the value or the destination subsystem
@@ -137,7 +141,9 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArr
 QwSubsystemArrayParity& QwSubsystemArrayParity::operator-= (const QwSubsystemArrayParity &value)
 {
   if (!value.empty()){
+
     if (this->size() == value.size()){
+      this->fErrorFlag|=value.fErrorFlag;
       for(size_t i=0;i<value.size();i++){
 	if (value.at(i)==NULL || this->at(i)==NULL){
 	  //  Either the value or the destination subsystem
@@ -316,6 +322,7 @@ void QwSubsystemArrayParity::Ratio(
   if(localdebug) std::cout<<"QwSubsystemArrayParity::Ratio \n";
   *this=numer;
   if ( !denom.empty()){
+    this->fErrorFlag=(numer.fErrorFlag|denom.fErrorFlag);
     if (this->size() == denom.size() ){
       for(size_t i=0;i<denom.size();i++){
         if (denom.at(i)==NULL || this->at(i)==NULL){
@@ -349,26 +356,32 @@ void QwSubsystemArrayParity::Ratio(
 Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
   Int_t CountFalse;
   Bool_t status;
-  //fSubsystem_Error_Flag=0;//set the error flag
+  UInt_t ErrorFlag;
+  fErrorFlag=0;
   VQwSubsystemParity *subsys_parity;
   CountFalse=0;
-  //std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
   if (!empty()){
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      if (!subsys_parity->ApplySingleEventCuts())
+      status=subsys_parity->ApplySingleEventCuts();
+      ErrorFlag = subsys_parity->GetEventcutErrorFlag();
+      if ((ErrorFlag & kEventCutMode3)==kEventCutMode3)//we only care about the event cut flag in event cut mode 3
+	fErrorFlag |= ErrorFlag; 
+      if (!status)
       {
-	CountFalse++;
-	//update the sFailedSubsystem vector
-	//std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
-	sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
+	if ((ErrorFlag&kGlobalCut)==kGlobalCut){
+	  CountFalse++;
+	  fErrorFlag |= ErrorFlag; //we need the error code for failed events in event mode 2 for beam trips and etc.
+	}
       }
+      
+
     }
   }
   if (CountFalse > 0)
-    status = false;
+    status = kFALSE;
   else
-    status = true;
+    status = kTRUE;
 
  return status;
 }
@@ -397,17 +410,14 @@ Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
   return 1;
 }
 
-Int_t QwSubsystemArrayParity::GetEventcutErrorFlag(){// report number of events falied due to HW and event cut faliure
-  VQwSubsystemParity *subsys_parity;
-  Int_t ErrorFlag;
+UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag(){// report number of events falied due to HW and event cut faliure
+  return fErrorFlag;
+};
 
-  ErrorFlag=0;
-  if (!empty()){
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      ErrorFlag |= subsys_parity->GetEventcutErrorFlag();
-    }
-  }
 
-  return ErrorFlag;
+void QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t>& values) const
+{
+  QwSubsystemArray::FillTreeVector(values);
+  size_t index = values.size()-1;
+  values[index] = fErrorFlag;
 };

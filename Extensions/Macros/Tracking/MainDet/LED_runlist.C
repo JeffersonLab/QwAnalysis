@@ -98,6 +98,9 @@
 	if (compute_pedestals) {
 	  if (signal.Match(adc)) continue;
 
+	  cerr << "fitting pedestal for " 
+	       << adc << ", run " << runnum << "\n";
+
 	  event_tree->Draw( Form(" %s >> fitter ",	adc),
 			    Form(" %s != 0 " ,		adc),
 			    "goff"); 
@@ -114,6 +117,9 @@
 	} 
 	if (!compute_pedestals) {
 	  if (!signal.Match(adc)) continue;
+
+	  cerr << "fitting signals for " 
+	       << adc << ", run " << runnum << "\n";
 
 	  // Get the pedestal mean and width from the nearest preceding run
 	  // based on http://root.cern.ch/root/roottalk/roottalk01/3646.html
@@ -172,12 +178,12 @@
 	  }
 	  signal_output << '\n';
 	  signal_output.flush();
-	}
 
-	fitter->SetAxisRange( mean - 5*sigma, 
-			      mean + 5*r.Parameters()[5]*r.Parameters()[4] );
-	c->Update();
-	c->SaveAs( Form( "%s.%d.png", adc, runnum ) );
+	  fitter->SetAxisRange( mean - 5*sigma, 
+				mean + 5*r.Parameters()[5]*r.Parameters()[4] );
+	  c->Update();
+	  c->SaveAs( Form( "%s.%d.png", adc, runnum ) );
+	}
 
 	// Clean up
 	delete[] adc;

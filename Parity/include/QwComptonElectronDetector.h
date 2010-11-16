@@ -75,7 +75,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
-    Int_t GetEventcutErrorFlag() { return 0; };
+    UInt_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void AccumulateRunningSum(VQwSubsystem* value) { };

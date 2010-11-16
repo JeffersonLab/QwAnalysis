@@ -885,6 +885,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
   if(search_debug_level)
   std::cout << "entering _SearchTreeLines with level" << level << " and row_offset " << row_offset << std::endl;
   int nextlevel = level + 1;
+  std::vector<int> patterns(MAX_LAYERS);
 
   // Fail if we have already found enough treelines
   if (fNTreeLines > TREESEARCH_MAX_TREELINES)
@@ -1018,9 +1019,11 @@ void QwTrackingTreeSearch::_SearchTreeLines (
  	  if(search_debug_level)
            std::cout << "for level" << level <<" bin:" << bin << std::endl;
           // Bounds checking
+	  patterns.at(row)=bin;
           assert(row_offset + row     < fPattern_fMaxRows);
           assert(pattern_offset + bin < fPattern_fMaxBins);
           // If the bin is set
+	  
           if (static_pattern[row_offset + row][pattern_offset + bin]) {
             matched_wires++; /* number of matched tree-planes */
             if ((int) row < firstwire) firstwire = row;
@@ -1047,10 +1050,10 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 			int bin = (*tree_pattern_copy++);
 			assert( row_offset + row < fPattern_fMaxRows);
                         assert(pattern_offset + bin < fPattern_fMaxBins);
-			if(row > firstwire && (int)row<lastwire){
-			if (static_pattern[row_offset + row][pattern_offset + bin])
+			if ((int)row > firstwire && (int)row < lastwire){
+                            if (static_pattern[row_offset + row][pattern_offset + bin])
 				continue;
-			else if(has_hits[row]==0) matched_wires++;
+                            else if (has_hits[row] == 0) matched_wires++;
 			}
 		}
 	    }
@@ -1112,8 +1115,10 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 
           /* Check whether this treeline already exists */
           if (! exists(hashpat, frontbin, backbin, fTreeLineList)) {
+
             /* Print tree */
             if (fShowMatchingPatterns) tree->Print();
+
             /* Create new treeline */ 
             QwTrackingTreeLine* treeline = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
 
@@ -1131,15 +1136,18 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             treeline->fR3Offset = row_offset;
             treeline->fR3FirstWire = firstwire;
             treeline->fR3LastWire  = lastwire;
-
-
-	    if(search_debug_level){
-	    std::cout << "first wire: " << firstwire << std::endl;
-	    std::cout << "last wire: " << lastwire << std::endl;
-		}
+	    treeline->SetMatchingPattern(patterns);
+// 	    for(int i=0;i< patterns.size();i++)
+// 		std::cout << "bin value: "<< patterns.at(i) << std::endl;
+	    if (search_debug_level) {
+	      std::cout << "first wire: " << firstwire << std::endl;
+	      std::cout << "last wire: " << lastwire << std::endl;
+	    }
             /* Add this treeline to the linked-list */
-            treeline->next = fTreeLineList;
-            fTreeLineList = treeline;
+	    if (firstwire != lastwire) {
+              treeline->next = fTreeLineList;
+              fTreeLineList = treeline;
+	    } else delete treeline;
           }
 
 

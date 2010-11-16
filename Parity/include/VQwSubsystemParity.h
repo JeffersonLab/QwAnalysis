@@ -71,7 +71,7 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// \brief Report the number of events failed due to HW and event cut failures
     virtual Int_t GetEventcutErrorCounters() = 0;
     /// \brief Return the error flag to the main routine
-    virtual Int_t GetEventcutErrorFlag() = 0;
+    virtual UInt_t GetEventcutErrorFlag() = 0;
 
     /// \brief Blind the asymmetry of this subsystem
     virtual void Blind(const QwBlinder *blinder) { return; };

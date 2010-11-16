@@ -83,7 +83,7 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	  currentbankread=value;
 	  RegisterSubbank(value);
 	  fWordsPerSubbank.push_back( std::pair<Int_t, Int_t>(fWord.size(),fWord.size()));
-	std::cout<<"bank " <<  currentbankread <<std::endl;
+	  //	std::cout<<"bank " <<  currentbankread <<std::endl;
 	}
       else if (varname=="sample_size")
 	{
@@ -133,10 +133,9 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 	       localModChannelID.Print();
 	       std::cout<<"line ok=";
 	       if(lineok) std::cout<<"TRUE"<<std::endl;
+	       else
+		 std::cout<<"FALSE"<<std::endl;
 	     }
-	   else
-	     std::cout<<"FALSE"<<std::endl;
-	     
 
           
 	 }
@@ -166,7 +165,7 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 
       if(modtype == "WORD")
 	{
-	  std::cout << "Decoding QwWord :: " << namech << std::endl;
+	  //  std::cout << "Decoding QwWord :: " << namech << std::endl;
 
 
 	  QwWord localword;
@@ -660,8 +659,8 @@ Int_t QwBeamMod::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPar
 }
 
 
-Int_t QwBeamMod::GetEventcutErrorFlag(){//return the error flag
-  Int_t ErrorFlag;
+UInt_t QwBeamMod::GetEventcutErrorFlag(){//return the error flag
+  UInt_t ErrorFlag;
   ErrorFlag=0;
   for(size_t i=0;i<fModChannel.size();i++){
     ErrorFlag |= fModChannel[i].GetEventcutErrorFlag();

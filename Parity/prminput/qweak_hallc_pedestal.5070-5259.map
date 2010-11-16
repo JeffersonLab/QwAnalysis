@@ -3,6 +3,10 @@
 ! HallC BPM pedestals (per sample) obtained 
 ! using bcm1.
 ! BCM pedestals were obtained using run 5070.
+!
+! 
+!
+!
 ! 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
@@ -99,10 +103,10 @@
   qwk_bpm3h09bXM    ,   2266.3  , 1.0
   qwk_bpm3h09bYP    ,  3552.47  , 1.0
   qwk_bpm3h09bYM    ,  1767.51  , 1.0
-  qwk_bcm6             ,  -130278.73	, 0.0025399
-  qwk_bcm5             ,  -129634.47 	, 0.0054779
-  qwk_bcm2             ,     -615.62 	, 0.0014363
-  qwk_bcm1             ,     -187.678 	, 0.0013569
+  qwk_bcm6             ,  -130161	, 0.0025596
+  qwk_bcm5             ,  -129483 	, 0.0055484
+  qwk_bcm2             ,     -263.829 	, 0.0014551
+  qwk_bcm1             ,     187.757 	, 0.0013751
   qwk_linephase        ,     -382.662 	, 1.0
   qwk_invert_tstable   ,     -541.714 	, 1.0
 

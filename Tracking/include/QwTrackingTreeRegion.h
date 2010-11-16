@@ -43,7 +43,9 @@ using QwTracking::shorttree;
  * For each shorttree there is a linked list of shortnode objects using the
  * next pointers, which branches off to other trees using the tree pointers.
  */
-class QwTrackingTreeRegion: public VQwTrackingElement {
+class QwTrackingTreeRegion:
+    public VQwTrackingElement,
+    public QwObjectCounter<QwTrackingTreeRegion> {
 
   public:
 

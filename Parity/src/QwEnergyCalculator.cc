@@ -76,6 +76,7 @@ void  QwEnergyCalculator::ProcessEvent(){
       fEnergyChange += tmp;
     }
   }
+
   return;
 };
 
@@ -87,12 +88,9 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
     status=kTRUE;
   }
   else{
-    fEnergyChange.UpdateEventCutErrorCount();//update event cut falied counts
     status&=kFALSE;
   }
   fDeviceErrorCode|=fEnergyChange.GetEventcutErrorFlag();//retrun the error flag for event cuts
-  //Update the error counters
-  fEnergyChange.UpdateHWErrorCounters();
 
   return status;
 
@@ -183,6 +181,13 @@ Bool_t QwEnergyCalculator::ApplyHWChecks(){
 Int_t QwEnergyCalculator::SetSingleEventCuts(Double_t minX, Double_t maxX){
   fEnergyChange.SetSingleEventCuts(minX,maxX);
   return 1;
+};
+
+void QwEnergyCalculator::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+  //set the unique tag to identify device type (bcm,bpm & etc)
+  errorflag|=kBCMErrorFlag;//currently I use the same flag for bcm
+  QwMessage<<"QwEnergyCalculator Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  fEnergyChange.SetSingleEventCuts(errorflag,LL,UL,stability);
 };
 
 

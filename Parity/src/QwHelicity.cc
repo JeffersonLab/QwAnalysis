@@ -224,7 +224,7 @@ Int_t QwHelicity::GetEventcutErrorCounters(){
   return 1;
 };
 
-Int_t QwHelicity::GetEventcutErrorFlag(){//return the error flag
+UInt_t QwHelicity::GetEventcutErrorFlag(){//return the error flag
 
   return 0;
 
@@ -1406,7 +1406,7 @@ void QwHelicity::RunPredictor()
     */
 
 
-    for( size_t i=0;i<size_t(fPatternNumber- fPatternNumberOld);i++) //got a new pattern
+    for (int i = 0; i < fPatternNumber - fPatternNumberOld; i++) //got a new pattern
       {
 	fPreviousPatternPolarity = fActualPatternPolarity;
 	fActualPatternPolarity   = GetRandbit(iseed_Actual);

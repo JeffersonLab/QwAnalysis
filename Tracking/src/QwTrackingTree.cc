@@ -198,10 +198,10 @@ QwTrackingTree::~QwTrackingTree ()
   delete fFather;
 
   // Report memory statistics
-  if (treenode::GetCount() > 0 || nodenode::GetCount() > 0) {
+  if (treenode::GetObjectsAlive() > 0 || nodenode::GetObjectsAlive() > 0) {
     QwVerbose << "Memory occupied by tree objects (should be close to zero when all trees cleared):" << QwLog::endl;
-    QwVerbose << "- allocated treenode objects: " << treenode::GetCount() << QwLog::endl;
-    QwVerbose << "- allocated nodenode objects: " << nodenode::GetCount() << QwLog::endl;
+    QwVerbose << "- allocated treenode objects: " << treenode::GetObjectsAlive() << QwLog::endl;
+    QwVerbose << "- allocated nodenode objects: " << nodenode::GetObjectsAlive() << QwLog::endl;
   }
 }
 
@@ -1128,7 +1128,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 
   /*! Try to read in an existing database */
   QwMessage << "Attempting to read tree from " << filename << QwLog::endl;
-  bool regenerate = true; // flag to force regeneration every time
+  bool regenerate = false; // flag to force regeneration every time
   trr = readtree(filename, levels, tlayer, width, regenerate);
   if (trr == 0) {
 

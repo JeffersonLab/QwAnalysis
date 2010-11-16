@@ -42,30 +42,73 @@
 
 [DEVICELIST]
 
-
-# Mps Tree  
-
+##########################
+## Mps_Tree
+##########################
 
 CodaEventNumber
 
-#qwk_bpm3c14X
+#####################
+## BPMS
+#####################
+#qwk_bpm3C07X
+#qwk_bpm3C07Y
+#qwk_bpm3C08X
+#qwk_bpm3C08Y
 
-#qwk_bpm3c14Y
-#qwk_bpm3c16X
+qwk_bpm3C11X
+qwk_bpm3C11Y
+qwk_bpm3C12X
+qwk_bpm3C12Y
+qwk_bpm3c14X
+qwk_bpm3c14Y
+qwk_bpm3c16X
+qwk_bpm3c16Y
 
-#qwk_bpm3c16Y
+#qwk_bpm3c17X
+#qwk_bpm3c17Y
+#qwk_bpm3c18X
+#qwk_bpm3c18Y
+#qwk_bpm3c19X
+#qwk_bpm3c19Y
+#qwk_bpm3p02aX
+#qwk_bpm3p02aY
 #qwk_bpm3p02bX
-#qwk_bpm3p02bY
+#qwk_bpm3p03aY
+#qwk_bpm3p03aX
+#qwk_bpm3p02aY
+#qwk_bpm3C20X
+#qwk_bpm3C20Y
+#qwk_bpm3C21X
+#qwk_bpm3C21Y
 #qwk_bpm3h02X
-
 #qwk_bpm3h02Y
-#qwk_bpm3h07bX
-#qwk_bpm3h07bY
-#qwk_bcm6
-#qwk_bcm5
-#qwk_bcm2
-#qwk_bcm1
 
+qwk_bpm3h04X
+qwk_bpm3h04Y
+qwk_bpm3h07aX
+qwk_bpm3h07aY
+qwk_bpm3h07bX
+qwk_bpm3h07bY
+qwk_bpm3h07cX
+qwk_bpm3h07cY
+qwk_bpm3h09X
+qwk_bpm3h09Y
+qwk_bpm3h09bX
+qwk_bpm3h09bY
+
+#####################
+## BCMS
+#####################
+qwk_bcm6
+qwk_bcm5
+qwk_bcm2
+qwk_bcm1
+
+
+#####################
+## Scalers
+#####################
 #sca_bcm1
 #sca_bcm2
 #sca_bcm17
@@ -75,6 +118,11 @@ CodaEventNumber
 #sca_31mhz
 #sca_4mhz
 #sca_31mhzreturn
+
+
+#####################
+## halo monitors
+#####################
 #sca_halo3
 #sca_halo4
 #sca_halo5
@@ -83,6 +131,10 @@ CodaEventNumber
 #sca_halo8
 #sca_halo9
 #sca_halo10
+
+#####################
+## combined beam monitors
+#####################
 qwk_average_charge
 qwk_target_EffectiveCharge
 qwk_targetXSlope
@@ -100,14 +152,21 @@ mps_counter
 pat_counter
 #pat_phase
 
-
+##########################
 ## Hel Tree  
+##########################
+
 mps_counter
 pat_counter
 pat_phase
 cleandata
 scandata1
 scandata2
+
+
+##########################
+## bpms
+##########################
 
 yield_qwk_bpm3h09X
 yield_qwk_bpm3h09Y
@@ -118,14 +177,16 @@ yield_qwk_bcm1
 #diff_qwk_bpm3c07Y
 #diff_qwk_bpm3c08X
 #diff_qwk_bpm3c08Y
-#diff_qwk_bpm3c11X
-#diff_qwk_bpm3c11Y
-#diff_qwk_bpm3c12X
-#diff_qwk_bpm3c12Y
-#diff_qwk_bpm3c14X
-#diff_qwk_bpm3c14Y
-#diff_qwk_bpm3c16X
-#diff_qwk_bpm3c16Y
+
+diff_qwk_bpm3c11X
+diff_qwk_bpm3c11Y
+diff_qwk_bpm3c12X
+diff_qwk_bpm3c12Y
+diff_qwk_bpm3c14X
+diff_qwk_bpm3c14Y
+diff_qwk_bpm3c16X
+diff_qwk_bpm3c16Y
+
 #diff_qwk_bpm3c17X
 #diff_qwk_bpm3c17Y
 #diff_qwk_bpm3c18X
@@ -146,26 +207,36 @@ yield_qwk_bcm1
 #diff_qwk_bpm3c21Y
 #diff_qwk_bpm3h02X
 #diff_qwk_bpm3h02Y
-#diff_qwk_bpm3h04aX
-#diff_qwk_bpm3h04aY
-#diff_qwk_bpm3h07aX
-#diff_qwk_bpm3h07aY
-#diff_qwk_bpm3h07bX
-#diff_qwk_bpm3h07bY
-#diff_qwk_bpm3h07cX
-#diff_qwk_bpm3h07cY
-#diff_qwk_bpm3h08X
-#diff_qwk_bpm3h08Y
-diff_qwk_bpm3h09X
-diff_qwk_bpm3h09Y
-#diff_qwk_bpm3h09aX
-#diff_qwk_bpm3h09aY
+
+diff_qwk_bpm3h04aX
+diff_qwk_bpm3h04aY
+diff_qwk_bpm3h07aX
+diff_qwk_bpm3h07aY
+diff_qwk_bpm3h07bX
+diff_qwk_bpm3h07bY
+diff_qwk_bpm3h07cX
+diff_qwk_bpm3h07cY
+diff_qwk_bpm3h08X
+diff_qwk_bpm3h08Y
+iff_qwk_bpm3h09X
+iff_qwk_bpm3h09Y
+diff_qwk_bpm3h09aX
+diff_qwk_bpm3h09aY
+
+##########################
+##bcms
+##########################
+
 asym_qwk_bcm6
 asym_qwk_bcm5
 asym_qwk_bcm2
 asym_qwk_bcm1
 #asym_qwk_linephase
 #asym_qwk_invert_tstable
+
+##########################
+##beamline scalers
+##########################
 #asym_sca_bcm1
 #asym_sca_bcm2
 #asym_sca_bcm17
@@ -175,6 +246,10 @@ asym_qwk_bcm1
 #asym_sca_31mhz
 #asym_sca_4mhz
 #asym_sca_31mhzreturn
+
+##########################
+## halo monitors
+##########################
 asym_sca_halo3
 asym_sca_halo4
 asym_sca_halo5
@@ -183,6 +258,10 @@ asym_sca_halo7
 asym_sca_halo8
 asym_sca_halo9
 asym_sca_halo10
+
+##########################
+## combined beam monitors
+##########################
 asym_qwk_average_charge
 asym_qwk_target_EffectiveCharge
 diff_qwk_targetXSlope
@@ -192,41 +271,50 @@ diff_qwk_targetYSlope
 diff_qwk_targetYIntercept
 diff_qwk_targetY
 asym_qwk_energy
-#asym_md1neg
-#asym_md2neg
-#asym_md3neg
-#asym_md4neg
-#asym_md5neg
-#asym_md6neg
-#asym_md7neg
-#asym_md8neg
-#asym_md1pos
-#asym_md2pos
-#asym_md3pos
-#asym_md4pos
-#asym_md5pos
-#asym_md6pos
-#asym_md7pos
-#asym_md8pos
-asym_md1barsum 
-asym_md2barsum 
-asym_md3barsum 
-asym_md4barsum 
-asym_md5barsum 
-asym_md6barsum 
-asym_md7barsum 
-asym_md8barsum 
 
-asym_pmtled
-asym_pmtonl
-asym_pmtltg
-asym_md9neg
-asym_md9pos
-#asym_isourc
-#asym_preamp
-#asym_cagesr
+##########################
+## main detector
+##########################
+#asym_qwk_md1neg
+#asym_qwk_md2neg
+#asym_qwk_md3neg
+#asym_qwk_md4neg
+#asym_qwk_md5neg
+#asym_qwk_md6neg
+#asym_qwk_md7neg
+#asym_qwk_md8neg
+#asym_qwk_md1pos
+#asym_qwk_md2pos
+#asym_qwk_md3pos
+#asym_qwk_md4pos
+#asym_qwk_md5pos
+#asym_qwk_md6pos
+#asym_qwk_md7pos
+#asym_qwk_md8pos
+asym_qwk_md1barsum 
+asym_qwk_md2barsum 
+asym_qwk_md3barsum 
+asym_qwk_md4barsum 
+asym_qwk_md5barsum 
+asym_qwk_md6barsum 
+asym_qwk_md7barsum 
+asym_qwk_md8barsum 
 
-asym_combinationallmd
+asym_qwk_pmtled
+asym_qwk_pmtonl
+asym_qwk_pmtltg
+asym_qwk_md9neg
+asym_qwk_md9pos
+#asym_qwk_isourc
+#asym_qwk_preamp
+#asym_qwk_cagesr
+asym_qwk_mdoddbars 
+asym_qwk_mdevenbars 
+asym_qwk_mdallbars 
+
+##########################
+## lumis
+##########################
 #asym_qwk_uslumi1neg
 #asym_qwk_uslumi1pos
 #asym_qwk_uslumi3neg
@@ -258,3 +346,4 @@ asym_combinationallmd
 #asym_sca_dslumi4
 #asym_sca_dslumi3
 #asym_sca_dslumi2
+ 

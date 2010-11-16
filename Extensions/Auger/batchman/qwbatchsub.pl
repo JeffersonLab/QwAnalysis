@@ -30,7 +30,7 @@ use strict 'vars';
 use vars qw($original_cwd $executable $script_dir
 	    $analysis_directory $real_path_to_analysis $scratch_directory
 	    $Default_Analysis_Options $option_list
-	    $opt_h  $opt_n $opt_r $opt_O $opt_F $opt_Q
+	    $opt_h  $opt_E $opt_n $opt_r $opt_O $opt_F $opt_Q
 	    $batch_queue
 	    @run_list @discards $first_run $last_run
 	    @good_runs $goodrunfile 
@@ -83,7 +83,7 @@ crashout("The QW_TMP directory, $ENV{QW_TMP}, does not exist.  Exiting")
 ###  Get the option flags.
 # added -F option to check the runs against good runs in the input file
 # jianglai 03-02-2003
-getopts('hnr:O:F:Q:');
+getopts('hE:nr:O:F:Q:');
 
 $Default_Analysis_Options = "";
 
@@ -96,6 +96,21 @@ if ($#ARGV > -1){
 if ($opt_h){
     displayusage();
     exit;
+}
+
+if ($opt_E ne ""){
+    $executable = $opt_E;
+    if (-e "$ENV{QW_BIN}/$opt_E") {
+	$executable = "$ENV{QW_BIN}/$opt_E";
+    } elsif (-e "$opt_E") {
+	$executable = $opt_E;
+    } else {
+	print STDERR
+	    "Neither $ENV{QW_BIN}/$opt_E or $executable are executable files.\n";
+	exit;
+    }
+} else {
+    $executable = "$ENV{QW_BIN}/qwparity";
 }
 
 if ($opt_Q ne ""){
@@ -176,6 +191,7 @@ if ($opt_O ne ""){
 }
 
 print STDOUT "\nRuns to be analyzed:\t@good_runs\n",
+    "Executable:   \t$executable\n\n",
     "Analysis options:   \t$option_list\n\n";
 
 
@@ -219,7 +235,7 @@ foreach $runnumber (@good_runs){
 	my $rootfile_stem=undef;
 	foreach (@flags){
 	    $where++;
-	    if(/--outputstem/) {# if "stem" is specified
+	    if(/--rootfile-stem/) {# if "stem" is specified
 		$rootfile_stem = $flags[$where];
 		last;
 	    }
@@ -267,7 +283,7 @@ foreach $runnumber (@good_runs){
 	print JOBFILE  "TRACK:   $batch_queue\n";
 	print JOBFILE  
 	    "OPTIONS: $analysis_directory $scratch_directory ",
-	    "$runnumber $option_list\n";
+	    "$runnumber $executable $option_list\n";
 	print JOBFILE  
 	    "SINGLE_JOB\n",
 	    "INPUT_FILES: @input_files\n",
@@ -277,7 +293,7 @@ foreach $runnumber (@good_runs){
 	    "TOWORK\n",
 	    ####
 	    "OUTPUT_DATA: run_$runnumber.log\n",
-	    "OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber.log\n",
+	    "OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber.log\n";
 	    #
 	    #"OUTPUT_DATA: tmp/* \n",
 	    #"OUTPUT_TEMPLATE: $ENV{QW_TMP}/.\n",
@@ -286,16 +302,15 @@ foreach $runnumber (@good_runs){
 	    #"OUTPUT_TEMPLATE: $ENV{ASYMDIR}/.\n";
 	    #
 	    ####  Now rootfiles are copied by the qwbatch.csh script.
-	    ####  2004aug25; pking.
-	    "OUTPUT_DATA: rootfiles/* \n",
-	    "OUTPUT_TEMPLATE: $ENV{QW_ROOTFILES}/.\n";
+	    #"OUTPUT_DATA: rootfiles/* \n",
+	    #"OUTPUT_TEMPLATE: $ENV{QW_ROOTFILES}/.\n";
 	    #
 	    #"OUTPUT_DATA: sum/* \n",
 	    #"OUTPUT_TEMPLATE: $ENV{SUMMARYDIR}/.\n",
 	    #
 	    #"OUTPUT_DATA: calib/* \n",
 	    #"OUTPUT_TEMPLATE: $ENV{PEDESTAL_DIR}/.\n";
-	
+
 	print JOBFILE  "MAIL: $ENV{USER}\@jlab.org\n";
 	print JOBFILE  "OS: linux64\n";
 	

@@ -103,7 +103,7 @@ class QwMollerDetector: public VQwSubsystemParity {
     Int_t LoadEventCuts(TString filename);
     Bool_t  ApplySingleEventCuts();
     Int_t GetEventcutErrorCounters();
-    Int_t GetEventcutErrorFlag();
+    UInt_t GetEventcutErrorFlag();
     void ConstructBranchAndVector(TTree*, TString&, std::vector<double, std::allocator<double> >&);
     void ConstructBranch(TTree *tree, TString& prefix) { };
     void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };

@@ -110,41 +110,41 @@ yield_qwk_dslumi._hw			TH1F	1001	0	0	ds Lumi Yield
 #  VQWK wildcard names for MD
 ##########################################################################################
 
-asym_md...._hw			TH1F	1001	0	0	MD Asym
-yield_md...._hw			TH1F	1001	0	0	MD Yield
+asym_qwk_md...._hw			TH1F	1001	0	0	MD Asym
+yield_qwk_md...._hw			TH1F	1001	0	0	MD Yield
 
-asym_pmt..._hw			TH1F	1001	0	0	Aux MD Asym
-asym_isourc_hw			TH1F	1001	0	0	Aux MD Asym                    
-asym_preamp_hw			TH1F	1001	0	0	Aux MD Asym                    
-asym_cagesr_hw			TH1F	1001	0	0	Aux MD Asym	 
-asym_combinationallmd_hw	TH1F	1001	0	0	comb MD Asym 
-asym_mdoddbars_hw		TH1F	1001	0	0	comb MD Asym
-asym_mdevenbars_hw		TH1F	1001	0	0	comb MD Asym
-asym_md1_md5_hw			TH1F	1001	0	0	comb MD Asym              
-asym_md2_md6_hw			TH1F	1001	0	0	comb MD Asym              
-asym_md3_md7_hw			TH1F	1001	0	0	comb MD Asym              
-asym_md4_md8_hw			TH1F	1001	0	0	comb MD Asym 
+asym_qwk_pmt..._hw			TH1F	1001	0	0	Aux MD Asym
+asym_qwk_isourc_hw			TH1F	1001	0	0	Aux MD Asym                    
+asym_qwk_preamp_hw			TH1F	1001	0	0	Aux MD Asym                    
+asym_qwk_cagesr_hw			TH1F	1001	0	0	Aux MD Asym	 
+asym_qwk_mdallbars			TH1F	1001	0	0	comb MD Asym 
+asym_qwk_mdoddbars_hw		TH1F	1001	0	0	comb MD Asym
+asym_qwk_mdevenbars_hw		TH1F	1001	0	0	comb MD Asym
+asym_qwk_md1_md5_hw			TH1F	1001	0	0	comb MD Asym              
+asym_qwk_md2_md6_hw			TH1F	1001	0	0	comb MD Asym              
+asym_qwk_md3_md7_hw			TH1F	1001	0	0	comb MD Asym              
+asym_qwk_md4_md8_hw			TH1F	1001	0	0	comb MD Asym 
 
-yield_pmt..._hw			TH1F	1001	0	0	Aux MD Yield  
-yield_isourc_hw			TH1F	1001	0	0	Aux MD Yield                    
-yield_preamp_hw			TH1F	1001	0	0	Aux MD Yield                    
-yield_cagesr_hw			TH1F	1001	0	0	Aux MD Yield 
-yield_combinationallmd_hw	TH1F	1001	0	0	comb MD Yield  
-yield_mdoddbars_hw		TH1F	1001	0	0	comb MD Yield
-yield_mdevenbars_hw		TH1F	1001	0	0	comb MD Yield
+yield_qwk_pmt..._hw			TH1F	1001	0	0	Aux MD Yield  
+yield_qwk_isourc_hw			TH1F	1001	0	0	Aux MD Yield                    
+yield_qwk_preamp_hw			TH1F	1001	0	0	Aux MD Yield                    
+yield_qwk_cagesr_hw			TH1F	1001	0	0	Aux MD Yield 
+yield_qwk_mdall_hw	TH1F	1001	0	0	comb MD Yield  
+yield_qwk_mdoddbars_hw		TH1F	1001	0	0	comb MD Yield
+yield_qwk_mdevenbars_hw		TH1F	1001	0	0	comb MD Yield
 yield_md1_md5_hw		TH1F	1001	0	0	Comb MD Yield              
 yield_md2_md6_hw		TH1F	1001	0	0	Comb MD Yield              
 yield_md3_md7_hw		TH1F	1001	0	0	Comb MD Yield              
 yield_md4_md8_hw		TH1F	1001	0	0	Comb MD Yield         
 
-#for example device md1neg_md5neg_hw 
-asym_md...._md...._hw		TH1F	1001	0	0	Comb MD Asym
-yield_md...._md...._hw          TH1F	1001	0	0	Comb MD Yield          
+#for example device md1neg_md5neg_hw (No longer used!!!)
+#asym_md...._md...._hw		TH1F	1001	0	0	Comb MD Asym
+#yield_md...._md...._hw          TH1F	1001	0	0	Comb MD Yield          
 
 
 #for example device md1barsum_hw                 
-asym_md......._hw		TH1F	1001	0	0	Comb MD Asym      
-yield_md......._hw 		TH1F	1001	0	0	Comb MD Asym  
+asym_qwk_md......._hw		TH1F	1001	0	0	Comb MD Asym      
+yield_qwk_md......._hw 		TH1F	1001	0	0	Comb MD Asym  
 
             
         

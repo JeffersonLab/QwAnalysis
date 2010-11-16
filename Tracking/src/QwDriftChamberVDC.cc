@@ -1316,9 +1316,9 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
 		wire    = iter->GetElement();
 		t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
 		if(package==1)
-		iter->SetTime ( iter->GetTime()-t0-101 );
+		iter->SetTime ( iter->GetTime()-t0);
 		else if(package==2)
-		iter->SetTime ( iter->GetTime()-t0-102 );
+		iter->SetTime ( iter->GetTime()-t0);
 	}
 	return;
 };

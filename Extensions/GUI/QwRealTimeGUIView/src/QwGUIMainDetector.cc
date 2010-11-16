@@ -715,7 +715,7 @@ void QwGUIMainDetector::CalculateCommNoise(){
   }
 
   
-  md_pair_hist26=(TH1F*) GetHisto(tree,"(asym_md2barsum+asym_md6barsum)/2.0*1.0e6","","");
+  md_pair_hist26=(TH1F*) GetHisto(tree,"(asym_qwk_md2barsum+asym_qwk_md6barsum)/2.0*1.0e6","","");
   if (!md_pair_hist26) {
     printf("md_pair_hist26 unable to process!\n");
     return;
@@ -734,7 +734,7 @@ void QwGUIMainDetector::CalculateCommNoise(){
   
   
   mc->cd(2);  
-  md_pair_hist48=(TH1F*) GetHisto(tree,"(asym_md4barsum+asym_md8barsum)/2.0*1.0e6","","");
+  md_pair_hist48=(TH1F*) GetHisto(tree,"(asym_qwk_md4barsum+asym_qwk_md8barsum)/2.0*1.0e6","","");
   if (!md_pair_hist48) {
     printf("md_pair_hist48 unable to process!\n");
     return;
@@ -752,7 +752,7 @@ void QwGUIMainDetector::CalculateCommNoise(){
   }
  
   mc->cd(3);
-  md_pair_hist15=(TH1F*) GetHisto(tree,"(asym_md1barsum+asym_md5barsum)/2.0*1.0e6","","");
+  md_pair_hist15=(TH1F*) GetHisto(tree,"(asym_qwk_md1barsum+asym_qwk_md5barsum)/2.0*1.0e6","","");
   if (!md_pair_hist15) {
     printf("md_pair_hist15 unable to process!\n");
     return;
@@ -771,7 +771,7 @@ void QwGUIMainDetector::CalculateCommNoise(){
 
 
   mc->cd(4);
-  md_pair_hist37=(TH1F*) GetHisto(tree,"(asym_md3barsum+asym_md7barsum)/2.0*1.0e6","","");
+  md_pair_hist37=(TH1F*) GetHisto(tree,"(asym_qwk_md3barsum+asym_qwk_md7barsum)/2.0*1.0e6","","");
   if (!md_pair_hist37) {
     printf("md_pair_hist37 unable to process!\n");
     return;
@@ -788,7 +788,7 @@ void QwGUIMainDetector::CalculateCommNoise(){
   }
 
   mc->cd(5);
-  md_all_even_hist=(TH1F*) GetHisto(tree,"(asym_md2barsum+asym_md4barsum+asym_md6barsum+asym_md8barsum)/4.0*1.0e6","","");
+  md_all_even_hist=(TH1F*) GetHisto(tree,"(asym_qwk_md2barsum+asym_qwk_md4barsum+asym_qwk_md6barsum+asym_qwk_md8barsum)/4.0*1.0e6","","");
   if (!md_all_even_hist) {
     printf("md_all_even_hist unable to process!\n");
     return;
@@ -806,7 +806,7 @@ void QwGUIMainDetector::CalculateCommNoise(){
     md_evenall_sigma = MDEvenAll_fit -> GetParameter(2);
   }
 
-  md_all_odd_hist=(TH1F*) GetHisto(tree,"(asym_md1barsum+asym_md3barsum+asym_md5barsum+asym_md7barsum)/4.0*1.0e6","","");
+  md_all_odd_hist=(TH1F*) GetHisto(tree,"(asym_qwk_md1barsum+asym_qwk_md3barsum+asym_qwk_md5barsum+asym_qwk_md7barsum)/4.0*1.0e6","","");
   if (!md_all_odd_hist) {
     printf("md_all_odd_hist unable to process!\n");
     return;
@@ -824,7 +824,7 @@ void QwGUIMainDetector::CalculateCommNoise(){
     md_oddall_sigma = MDOddAll_fit -> GetParameter(2);
   }
 
-  md_all_hist=(TH1F*) GetHisto(tree,"(asym_md2barsum+asym_md4barsum+asym_md6barsum+asym_md8barsum+asym_md1barsum+asym_md3barsum+asym_md5barsum+asym_md7barsum)/8.0*1.0e6","","");
+  md_all_hist=(TH1F*) GetHisto(tree,"(asym_qwk_md2barsum+asym_qwk_md4barsum+asym_qwk_md6barsum+asym_qwk_md8barsum+asym_qwk_md1barsum+asym_qwk_md3barsum+asym_qwk_md5barsum+asym_qwk_md7barsum)/8.0*1.0e6","","");
   if (!md_all_hist) {
     printf("md_all_hist unable to process!\n");
     return;

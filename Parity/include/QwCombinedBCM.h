@@ -59,9 +59,11 @@ class QwCombinedBCM : public VQwDataElement{
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag
-    return fDeviceErrorCode;
+    return fCombined_bcm.GetEventcutErrorFlag();
   }
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;

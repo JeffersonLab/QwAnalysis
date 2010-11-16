@@ -70,7 +70,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
   Bool_t bStatus;
-
+  //  fDeviceErrorCode=0;
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
     if (bDEBUG)
@@ -138,8 +138,9 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
  return fDeviceErrorCode;
 };
 
+
 /********************************************************/
-void QwVQWK_Channel::UpdateHWErrorCounters(Int_t error_flag){
+void QwVQWK_Channel::UpdateErrorCounters(UInt_t error_flag){
   if ( (kErrorFlag_sample &  error_flag)==kErrorFlag_sample)
     fErrorCount_sample++; //increment the hw error counter
   if ( (kErrorFlag_SW_HW &  error_flag)==kErrorFlag_SW_HW)
@@ -150,6 +151,9 @@ void QwVQWK_Channel::UpdateHWErrorCounters(Int_t error_flag){
     fErrorCount_SameHW++; //increment the hw error counter
   if ( (kErrorFlag_ZeroHW &  error_flag)==kErrorFlag_ZeroHW)
     fErrorCount_ZeroHW++; //increment the hw error counter
+  if ( ((kErrorFlag_EventCut_L &  error_flag)==kErrorFlag_EventCut_L) || ((kErrorFlag_EventCut_U &  error_flag)==kErrorFlag_EventCut_U))
+    fNumEvtsWithEventCutsRejected++; //increment the event cut error counter
+  
 };
 /********************************************************/
 
@@ -165,7 +169,8 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   else
     fDataToSave = kRaw; // wdc, added default fall-through
 
-  fDeviceErrorCode=0;//Initialize the error flag
+  fDeviceErrorCode=0;//Initialize the device error code
+  fErrorFlag=0;//Initialize the error flag
 
   kFoundPedestal = 0;
   kFoundGain = 0;
@@ -210,6 +215,7 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   fErrorCount_ZeroHW     = 0;
 
   fDeviceErrorCode       = 0;
+  fDefErrorFlag          = 0;
 
   fADC_Same_NumEvt       = 0;
   fSequenceNo_Prev       = 0;
@@ -257,6 +263,7 @@ void QwVQWK_Channel::ClearEventData()
   fNumberOfSamples  = 0;
   fGoodEventCount   = 0;
   fDeviceErrorCode  = 0; // set to zero. Important for derrived devices.
+  fErrorFlag=fDefErrorFlag;
   return;
 };
 
@@ -825,7 +832,8 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
       this->fHardwareBlockSumError = value.fHardwareBlockSumError;
       this->fNumberOfSamples = value.fNumberOfSamples;
       this->fSequenceNumber  = value.fSequenceNumber;
-      this->fDeviceErrorCode = (value.fDeviceErrorCode);//error code is updated.
+      this->fErrorFlag       = (value.fErrorFlag);
+      this->fDeviceErrorCode = (value.fDeviceErrorCode);
     }
 
   return *this;
@@ -854,6 +862,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const VQwDataElement &value_tmp)
     this->fNumberOfSamples  += value->fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value->fDeviceErrorCode);//error code is ORed.
+    this->fErrorFlag       |= (value->fErrorFlag);
   }
 
   return *this;
@@ -881,6 +890,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
     this->fNumberOfSamples += value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+    this->fErrorFlag       |= (value.fErrorFlag);
   }
 
   return *this;
@@ -908,6 +918,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator*= (const QwVQWK_Channel &value)
     this->fNumberOfSamples *= value.fNumberOfSamples;
     this->fSequenceNumber   = 0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+    this->fErrorFlag       |= (value.fErrorFlag);
   }
 
   return *this;
@@ -981,6 +992,7 @@ void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
     fSequenceNumber  = 0;
     fGoodEventCount  = denom.fGoodEventCount;
     fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
+    fErrorFlag       = (numer.fErrorFlag|denom.fErrorFlag);
   }
 
   // Nanny
@@ -1009,6 +1021,7 @@ void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
     this->fNumberOfSamples = value1.fNumberOfSamples;
     this->fSequenceNumber  = 0;
     this->fDeviceErrorCode = (value1.fDeviceErrorCode|value2.fDeviceErrorCode);//error code is ORed.
+    this->fErrorFlag       = (value1.fErrorFlag|value2.fErrorFlag);
   }
   return;
 };
@@ -1042,7 +1055,6 @@ void QwVQWK_Channel::Scale(Double_t scale)
 
 
 /** Moments and uncertainty calculation on the running sums and averages
- *
  * The calculation of the first and second moments of the running sum is not
  * completely straightforward due to numerical instabilities associated with
  * small variances and large average values.  The naive computation taking
@@ -1284,15 +1296,24 @@ void QwVQWK_Channel::SetSingleEventCuts(Double_t min, Double_t max){
   fLLimit=min;
 };
 
+void QwVQWK_Channel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
+  fErrorFlag=errorflag;
+  fDefErrorFlag=errorflag;
+  QwMessage<<"QwVQWK_Ch before setting device error code "<<errorflag<<" Global ? "<<(fErrorFlag & kGlobalCut)<<QwLog::endl;
+  fStability=stability;
+  SetSingleEventCuts(min,max);
+};
+
 Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and update event_flags and error counters
 {
   Bool_t status;
+
   if (bEVENTCUTMODE>=2){//Global switch to ON/OFF event cuts set at the event cut file
 
     if (fULimit==0 && fLLimit==0){
       status=kTRUE;
     } else  if (GetHardwareSum()<=fULimit && GetHardwareSum()>=fLLimit){
-      if (!fDeviceErrorCode)
+      if (fDeviceErrorCode==0)
 	status=kTRUE;
       else
 	status=kFALSE;//If the device HW is failed
@@ -1304,18 +1325,23 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
 	fDeviceErrorCode|=kErrorFlag_EventCut_L;
       status=kFALSE;
     }
+    UpdateErrorCounters(fDeviceErrorCode);//update the event cut/HW  error count
     if (bEVENTCUTMODE==3){
-      if (!status)
-	UpdateEventCutErrorCount();//update the event cut  error count
       status=kTRUE; //Update the event cut fail flag but pass the event.
     }
 
+    fErrorFlag |=fDeviceErrorCode; //update the device error code to the fErrorFlag.
+    //if (GetElementName()=="qwk_bcm1" )//&& fErrorFlag==67109136)
+    //  QwMessage<<"QwVQWK_Ch after setting device error code "<<fErrorFlag<<" ev state "<<status <<QwLog::endl;
 
   }
-  else
+  else{
     status=kTRUE;
+    fErrorFlag=0;
+  }
 
-    return status;
+
+  return status;
 };
 
 
@@ -1332,6 +1358,7 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
 	 this->fSubsystemName         = input->fSubsystemName;
 	 this->fModuleType            = input->fModuleType;
 	 this->fElementName           = input->fElementName;
+	 this->fErrorFlag             = input->fErrorFlag;
 	 this->fPedestal              = input->GetPedestal();
 	 this->fCalibrationFactor     = input->GetCalibrationFactor();
 	 this->fDataToSave            = kDerived;
@@ -1378,7 +1405,7 @@ void  QwVQWK_Channel::ReportErrorCounters()
       std::cout <<" \t "<<fErrorCount_ZeroHW ;
       //if (fNumEvtsWithEventCutsRejected)
       std::cout<< " \t " << fNumEvtsWithEventCutsRejected;
-      if(!kFoundPedestal||!kFoundGain)
+      if((fDataToSave == kRaw) && (!kFoundPedestal||!kFoundGain))
 	std::cout << " \t " <<  "~Warning~ No Pedestal or Gain entered in map file for this channel" << "\n";
       else
 	std::cout << "\n";

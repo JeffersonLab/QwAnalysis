@@ -159,6 +159,10 @@ class MQwSIS3320_Channel: public VQwDataElement {
     std::vector<Double_t> fSampleWindowAverages;
     std::vector<std::pair<Double_t, Double_t> > fSampleWindows;
 
+    // Ntuple array indices
+    size_t fTreeArrayIndex; //! Index of this data element in tree
+    size_t fTreeArrayNumEntries; //! Number of entries from this data element
+
     /* ADC accumulator data */
     Int_t fNumberOfAccumulators;
     Int_t fAccumulatorDAC;

@@ -496,9 +496,10 @@ class QwRootFile {
   private:
 
     /// Prescaling of events written to tree
-    UInt_t fNumEventsCycle;
-    UInt_t fNumEventsToSkip;
-    UInt_t fNumEventsToSave;
+    UInt_t fNumMpsEventsToSkip;
+    UInt_t fNumMpsEventsToSave;
+    UInt_t fNumHelEventsToSkip;
+    UInt_t fNumHelEventsToSave;
     UInt_t fCircularBufferSize;
     UInt_t fCurrentEvent;
 
@@ -532,7 +533,10 @@ void QwRootFile::ConstructTreeBranches(
     fTreeByName[name].push_back(new QwRootTree(name, desc, detectors));
 
     // Settings only relevant for new trees
-    fTreeByName[name].back()->SetPrescaling(fNumEventsToSave, fNumEventsToSkip);
+    if (name == "Mps_Tree")
+      fTreeByName[name].back()->SetPrescaling(fNumMpsEventsToSave, fNumMpsEventsToSkip);
+    else if (name == "Hel_Tree")
+      fTreeByName[name].back()->SetPrescaling(fNumHelEventsToSave, fNumHelEventsToSkip);
     fTreeByName[name].back()->SetMaxTreeSize(kMaxTreeSize);
     #if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
       fTreeByName[name].back()->SetAutoFlush(fAutoFlush);

@@ -80,7 +80,7 @@ class QwLumi : public VQwSubsystemParity{
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
-  Int_t GetEventcutErrorFlag();//return the error flag
+  UInt_t GetEventcutErrorFlag();//return the error flag
 
   void AccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();

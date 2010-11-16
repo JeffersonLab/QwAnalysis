@@ -18,7 +18,7 @@ void  VQwBPM::InitializeChannel(TString name)
 
   bEVENTCUTMODE    = false;
   fDeviceErrorCode = 0;
-
+  fErrorFlag=0;
   Short_t i = 0; 
 
   for(i=0;i<2;i++)
@@ -87,7 +87,7 @@ Bool_t VQwBPM::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Short_t i=0;
-
+  fErrorFlag=0;
  
   //Event cuts for Absolute X & Y
   for(i=0;i<2;i++){
@@ -95,14 +95,11 @@ Bool_t VQwBPM::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fAbsPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //update the event cut counters
-    fAbsPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for AbsX/Y
-    fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();
+    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
@@ -110,14 +107,11 @@ Bool_t VQwBPM::ApplySingleEventCuts()
       status&=kTRUE;
   }
   else{
-    fEffectiveCharge.UpdateEventCutErrorCount();
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //update the event cut counters
-  fEffectiveCharge.UpdateHWErrorCounters();
   //Get the Event cut error flag for EffectiveCharge
-  fDeviceErrorCode|=fEffectiveCharge.GetEventcutErrorFlag();
+  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
 
 
   return status;

@@ -235,7 +235,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Failed single event cuts
       } else {
-        eventring.FailedEvent(detectors.GetEventcutErrorFlag()); //event cut failed update the ring status
+	eventring.FailedEvent(detectors.GetEventcutErrorFlag());
       }
 
       // Burst mode
@@ -248,7 +248,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     } // end of loop over events
 
     QwMessage << "Number of events processed at end of run: "
-              << eventbuffer.GetEventNumber() << std::endl;
+              << eventbuffer.GetEventNumber() << QwLog::endl;
 
 
     // Calculate running averages over helicity patterns
@@ -282,10 +282,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->DeleteHistograms(detectors);
     rootfile->DeleteHistograms(helicitypattern);
 
-    //  Close event buffer stream
-    eventbuffer.CloseStream();
-
-
 
     //  Print the event cut error summary for each subsystem
     detectors.GetEventcutErrorCounters();
@@ -299,6 +295,10 @@ Int_t main(Int_t argc, Char_t* argv[])
       helicitypattern.FillDB(&database);
       epicsevent.FillDB(&database);
     }
+
+    //  Close event buffer stream
+    eventbuffer.CloseStream();
+
 
 
     QwMessage << "Total events failed " << eventring.GetFailedEventCount() << QwLog::endl;

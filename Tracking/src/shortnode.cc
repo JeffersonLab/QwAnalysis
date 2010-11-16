@@ -23,7 +23,6 @@
 
 namespace QwTracking {
 
-int shortnode::fCount = 0;
 int shortnode::fDebug = 0;
 
 /**
@@ -36,9 +35,6 @@ shortnode::shortnode()
   fTree = 0;
   // No tree pointed at yet
   fNTrees = 0;
-
-  // Count objects
-  fCount++;
 }
 
 /**
@@ -48,9 +44,6 @@ shortnode::~shortnode()
 {
   // Delete the next node in the linked list (recursion)
   if (fNext) delete fNext;
-
-  // Count objects
-  fCount--;
 }
 
 /**

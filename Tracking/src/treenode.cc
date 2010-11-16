@@ -21,7 +21,6 @@
 
 namespace QwTracking {
 
-int treenode::fCount = 0;
 int treenode::fDebug = 0;
 
 /**
@@ -38,9 +37,6 @@ treenode::treenode(unsigned int size)
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;
-
-  // Count objects
-  fCount++;
 };
 
 /**
@@ -62,9 +58,6 @@ treenode::treenode(treenode& node)
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;
-
-  // Count objects
-  fCount++;
 };
 
 /**
@@ -86,9 +79,6 @@ treenode::treenode(treenode* node)
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;
-
-  // Count objects
-  fCount++;
 };
 
 /**
@@ -104,9 +94,6 @@ treenode::~treenode()
 
   // Delete the bit pattern
   delete[] fBit;
-
-  // Count objects
-  fCount--;
 }
 
 /**

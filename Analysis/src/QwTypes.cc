@@ -75,12 +75,15 @@ TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type){
   result = "UnknownPMT";
   if (type==kQwIntegrationPMT){
     result = "IntegrationPMT";
+    result.ToLower();
   } 
   else if (type==kQwScalerPMT){
     result = "ScalerPMT";
+    result.ToLower();
   } 
   else if (type==kQwCombinedPMT){
     result = "CombinationPMT";
+    result.ToLower();
   }
   return result;
 };
@@ -90,7 +93,7 @@ TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type){
   TString result;
   result = "kQwUnknownDeviceType";
   if (type==kQwBPMStripline){
-    result = "bpmtripline";
+    result = "bpmstripline";
   } 
   else if (type==kQwBCM){
     result = "bcm";
@@ -116,4 +119,21 @@ TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type){
   else if (type==kQwBPMCavity)
     result = "bpmcavity";
   return result;
+};
+
+UInt_t GetGlobalErrorFlag(TString evtype,Int_t evMode,Double_t stabilitycut){
+  UInt_t evntMode;
+  if (evMode==3)
+    evntMode=kEventCutMode3;
+  else
+    evntMode=0;
+  if (evtype=="g" && stabilitycut>0)
+    return (kGlobalCut|kStabilityCut|evntMode);
+  else if (evtype=="g" && stabilitycut<=0)
+    return (kGlobalCut|evntMode);
+  
+  else if (evtype=="l")
+    return (kLocalCut|evntMode);
+
+  return 0;
 };

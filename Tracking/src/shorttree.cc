@@ -16,6 +16,7 @@
 #include "shorttree.h"
 
 // Qweak headers
+#include "globals.h"
 #include "QwLog.h"
 
 // Qweak tree headers
@@ -26,8 +27,7 @@ namespace QwTracking {
 // Default size
 unsigned int shorttree::fDefaultSize = MAX_LAYERS;
 
-// Reset counts and debug level
-int shorttree::fCount = 0;
+// Reset debug level
 int shorttree::fDebug = 0;
 
 /**
@@ -44,9 +44,6 @@ shorttree::shorttree(unsigned int size)
   // Initialize pointers
   for (int i = 0; i < 4; i++)
     son[i] = 0;
-
-  // Count objects
-  fCount++;
 }
 
 /**
@@ -56,9 +53,6 @@ shorttree::~shorttree()
 {
   // Delete the bit pattern
   delete[] fBit;
-
-  // Count objects
-  fCount--;
 }
 
 /**
@@ -73,7 +67,7 @@ void shorttree::Print(bool recursive, int indent)
   // Bit pattern
   for (unsigned int i = 0; i < fSize; i++) {
     QwOut << indentation;
-    for (unsigned int j = 0; j < (1 << fMinLevel + 1); j++) {
+    for (int j = 0; j < (1 << (fMinLevel + 1)); j++) {
       if (j == fBit[i]) QwOut << "|";
       else QwOut << ".";
     }

@@ -136,7 +136,6 @@ void  QwCombinedBCM::ProcessEvent()
     }
     std::cout<<"***************** \n";
   }
-
   return;
 };
 
@@ -153,14 +152,11 @@ Bool_t QwCombinedBCM::ApplySingleEventCuts(){
     status=kTRUE;
   }
   else{
-    fCombined_bcm.UpdateEventCutErrorCount();//update event cut falied counts
     if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fCombined_bcm.GetHardwareSum();
     status&=kFALSE;
   }
   fDeviceErrorCode|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
   //std::cout<<"combined bcm "<<GetElementName()<<" error flag "<<fCombined_bcm.GetEventcutErrorFlag()<<std::endl;
-  //Update the error counters
-  fCombined_bcm.UpdateHWErrorCounters();
 
   return status;
 
@@ -266,22 +262,21 @@ Bool_t QwCombinedBCM::ApplyHWChecks()
 
   Bool_t fEventIsGood=kTRUE;
 
-//   fDeviceErrorCode=0;
-//   for(int i=0;i<4;i++)
-//     {
-//       fDeviceErrorCode|= fCombinedWire[i].ApplyHWChecks();  //OR the error code from each wire
-//       fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.
-
-//       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;
-//       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fCombinedWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
-//     }
-
   return fEventIsGood;
 };
 
 Int_t QwCombinedBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
   fCombined_bcm.SetSingleEventCuts(LL,UL);
   return 1;
+};
+
+/********************************************************/
+void QwCombinedBCM::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+  //set the unique tag to identify device type (bcm,bpm & etc)
+  errorflag|=kBCMErrorFlag;//currently I use the same flag for bcm & combinedbcm
+  QwMessage<<"QwCombinedBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  fCombined_bcm.SetSingleEventCuts(errorflag,LL,UL,stability);
+
 };
 
 /********************************************************/

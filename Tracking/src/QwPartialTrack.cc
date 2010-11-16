@@ -306,8 +306,8 @@ const QwVertex* QwPartialTrack::DeterminePositionInDetector(const QwDetectorInfo
     double z = detector.GetZPosition();
     TVector3 position = GetPosition(z);
     // Check acceptance with active width
-    if (abs(position.X() - detector.GetPosition().X()) < detector.GetActiveWidthX()
-     && abs(position.Y() - detector.GetPosition().Y()) < detector.GetActiveWidthY()) {
+    if (fabs(position.X() - detector.GetPosition().X()) < detector.GetActiveWidthX()
+     && fabs(position.Y() - detector.GetPosition().Y()) < detector.GetActiveWidthY()) {
       vertex = new QwVertex(position);
     } else {
       QwMessage << "No support for intersections of partial tracks "

@@ -30,22 +30,59 @@
 //Info in <TCanvas::Print>: GIF file 6206_FFT_of_bpmx_1.gif has been created
 //Info in <TCanvas::Print>: GIF file 6206_FFT_of_bpmx_2.gif has been created
 //
+
+#include <cstdlib>
+
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <new>
+#include <stdexcept>
+#include <time.h>
+
+#include "TMath.h"
+#include "TRandom.h"
+#include "TGraphErrors.h"
+#include "TStyle.h"
+#include "TApplication.h"
+
+
+#include "TH2F.h"
+#include "TCanvas.h"
+#include "TTree.h"
+
+#include "TF1.h"
+#include "Rtypes.h"
+#include "TROOT.h"
+#include "TFile.h"
+#include "TProfile.h"
+#include "TString.h"
+#include "TLine.h"
+#include "TBox.h"
+#include "TChain.h"
+
+#include "TVirtualFFT.h"
+
+void get_fft(Int_t runnumber, TChain* tree, TString device, Int_t events,  Double_t up, Double_t low, 
+	     TString error_code, Double_t event_rate);
+
 void 
 FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
 {
   gDirectory->Delete("*") ;
+
   //stats
   gDirectory->Delete("*") ;
   gStyle->Reset();
   gStyle->SetOptTitle(1);     
-  gStyle->SetOptStat(0); 
-
+  gStyle->SetStatH(0.3);
+  gStyle->SetStatW(0.3); 
   
   // histo parameters
   //  gStyle->SetTitleYOffset(1);
   gStyle->SetTitleXOffset(0.9);
   gStyle->SetTitleX(0.2);
-  gStyle->SetTitleW(0.6);
+  gStyle->SetTitleW(0.65);
   gStyle->SetTitleSize(0.5);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(18);
@@ -61,22 +98,19 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
   //******* ADC settings
   //   const Double_t count_to_voltage = 0.00007629; //conversion factor
   const Double_t time_per_sample = 2e-06;//s
-  const Double_t t_settle = 50e-06;//s
+  const Double_t t_settle = 70e-06;//s
   
-  //******* Signal Settings
-  // get num samples from bcm1. 
-  TString time    = Form("mps_counter*((qwk_1i02XP.num_samples*%f)+%f)",time_per_sample,t_settle);// units seconds.
 
   //*******BPM list
-  const Int_t nbpms = 22;
+  const Int_t nbpms = 23;
   const Int_t injbpms = 21;
 
   TString axis[2] ={"X","Y"};
   TString bpms[nbpms]= {
-    "qwk_bpm3c07","qwk_bpm3c08","qwk_bpm3c11","qwk_bpm3c12","qwk_bpm3c14","qwk_bpm3c16",
-    "qwk_bpm3c17","qwk_bpm3c18","qwk_bpm3c19","qwk_bpm3p02a","qwk_bpm3p02b","qwk_bpm3p03a",
-    "qwk_bpm3c20","qwk_bpm3c21","qwk_bpm3h02","qwk_bpm3h04","qwk_bpm3h07a","qwk_bpm3h07b",
-    "qwk_bpm3h07c","qwk_bpm3h08","qwk_bpm3h09","qwk_bpm3h09b"
+    "qwk_bpm3c07","qwk_bpm3c07a","qwk_bpm3c08","qwk_bpm3c11","qwk_bpm3c12","qwk_bpm3c14",
+    "qwk_bpm3c16","qwk_bpm3c17","qwk_bpm3c18","qwk_bpm3c19","qwk_bpm3p02a","qwk_bpm3p02b",
+    "qwk_bpm3p03a","qwk_bpm3c20","qwk_bpm3c21","qwk_bpm3h02","qwk_bpm3h04","qwk_bpm3h07a",
+    "qwk_bpm3h07b","qwk_bpm3h07c","qwk_bpm3h08","qwk_bpm3h09","qwk_bpm3h09b"
   };
 
   TString injbpm[injbpms]={
@@ -93,7 +127,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
   canvas->Draw();
 
 
-  //******** get tree
+  //******** get tree from the appropriate root file
   TChain *tree = new TChain("Mps_Tree");
 
   TString filename = Form("QwPass1_%i.000.root", run_number);
@@ -101,7 +135,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
   
   if (file->IsZombie()) {
     std::cout << "Error opening root file chain " << filename << std::endl;
-    filename = Form("QwPass1_%i.root", run_number);
+    filename = Form("first100k_%i.root", run_number);
     std::cout << "Try to open chain " << filename << std::endl;
     file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
     if (file->IsZombie()) {
@@ -117,124 +151,202 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
 	tree->Add(Form("$QW_ROOTFILES/Qweak_%i.*.root", run_number));	
     }
     else 
-      tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.root", run_number));
+    tree->Add(Form("$QW_ROOTFILES/first100k_%i.root", run_number));
   }
   else 
     tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.*.root", run_number));
+
   
-  tree->SetAlias("time",time);
-  
-  
-  //************ Signal properties
-  Int_t samples = (max-min);
-  
+  //************ Calculate signal properties
+
+  // number of events/samples
+  Int_t   events = (max-min);
+  TString command = "";
+  TString cut = "";
+  TString useaxis ="";
+  TString time    = "";
+
   // get sampling rate/event rate
-  // for this I am going to use the bcm1 num spales.
+  // for this I am going to use a specific device.
+  if(devicelist.Contains("inj")){
+    if(devicelist.Contains("injbpmy")) useaxis = axis[1];
+    if(devicelist.Contains("injbpmx")) useaxis = axis[0];
+    command = "qwk_1i02XP.num_samples>>htemp";
+    cut  =  "qwk_1i02XP.Device_Error_Code == 0";
+    time = Form("mps_counter*((qwk_1i02XP.num_samples*%f)+%f)",time_per_sample,t_settle);// units seconds.
+
+  }
+  else if(devicelist.Contains("hc")){
+    if(devicelist.Contains("hcbpmy")) useaxis = axis[1];
+    if(devicelist.Contains("hcbpmx")) useaxis = axis[0];
+    command = "qwk_bpm3h09bXP.num_samples>>htemp";
+    cut  =  "qwk_bpm3h09bXP.Device_Error_Code == 0";
+    time = Form("mps_counter*((qwk_bpm3h09bXP.num_samples*%f)+%f)",time_per_sample,t_settle);// units seconds.
+
+  }
+  else{
+    std::cout<<"Unknown device type "<<devicelist<<std::endl;
+    exit(1);
+  }; 
+
+  tree->SetAlias("time",time);
+
   TH1*h=NULL;
-  tree->Draw("qwk_1i02XP.num_samples>>htemp","qwk_1i02XP.Device_Error_Code == 0");
+  tree->Draw(command);
   h = (TH1*)gDirectory->Get("htemp");
   if(h==NULL){
     std::cout<<"Unable to get num_samples using bcm1!"<<std::endl;
     exit(1);
   }
-  std::cout<<h->GetMean()<<std::endl;
-  Double_t sampling_rate = 1.0/(h->GetMean()*time_per_sample+t_settle);
-  Double_t length = samples*1.0/sampling_rate; 
+
+  Double_t event_rate = 1.0/(h->GetMean()*time_per_sample+t_settle);
+  Double_t signal_length = events*1.0/event_rate; 
   
   std::cout<<" --- Signal = "<<devicelist<<"\n";
-  std::cout<<" --- Length of the signal = "<<length<<"s\n";
-  std::cout<<" --- Sampling Rate = "<<sampling_rate<<"\n";
+  std::cout<<" --- Length of the signal = "<<signal_length<<"s\n";
+  std::cout<<" --- Sampling Rate = "<<event_rate<<"\n";
   std::cout<<" --- Sample Size = "<<(max-min)<<"\n";
-  
   delete h;
 
-  //************  Plot the signal.
-  Double_t up = (1.0*max)/sampling_rate;
-  Double_t low = (1.0*min)/sampling_rate;
   
-  if(devicelist == "bpmx"||devicelist =="injbpmx")
-    TString useaxis = axis[0];
-  else if(devicelist == "bpmy"||devicelist =="injbpmy")
-    TString useaxis = axis[1];
-  else{
-    std::cout<<"Unknown device type "<<devicelist<<std::endl;
-    exit(1);
-  }; 
+  //************  Plot the signal.
+
+  // conver events to seconds using the sampling rate.
+  Double_t up  = (1.0*max)/event_rate;
+  Double_t low = (1.0*min)/event_rate;
+
+  TH1D *h2_1   = new TH1D("h2_1","Distributions",events+1,min-0.5,max+0.5);    
+
   
   Int_t k =1;
-  canvas -> Divide(4,3);
-  //     canvas -> Print(Form("%d_FFT_of_%s%s.ps(",run_number,devicelist.Data(),axis[j].Data()));
+  Int_t j= 0;
+  canvas -> Divide(4,4);
 
-  // Do FFT on hallC bpms
+  //************************************* Do FFT on hallC bpms
   if(devicelist.Contains("hc")){
     for(Int_t i=0;i<nbpms;i++){
-      canvas -> cd(k);
+
+      canvas -> cd(2*k);
+      gStyle->SetOptStat(0);
+      gPad->SetLogy();
+      gPad->SetLogx();
       TString device = Form("%s%s",bpms[i].Data(),useaxis.Data());      
       std::cout<<"Get FFT of "<<device<<std::endl;
-      get_fft(run_number, tree, device, samples, up, low, sampling_rate); 
+      get_fft(run_number, tree, device, events, up, low, cut, event_rate); 
+
+      canvas -> cd(2*k-1);
+      gPad->SetLogy();
+      gStyle->SetOptStat(1);
+      // Get the base signal distribution.
+      tree->Draw(Form("%s.hw_sum>>htemp",device.Data()),
+		 Form("mps_counter>%d && mps_counter<%d && %s.Device_Error_Code == 0",
+		      min,max,device.Data()));
+      h2_1 = (TH1D*) gDirectory -> Get("htemp");
+      if(h2_1 == NULL){
+	std::cout<<"Unable to plot "<<Form("%s.hw_sum>>htemp",device.Data())<<std::endl;
+	exit(1);
+      }
+      
+      h2_1 -> SetTitle(Form("Distribution of %s in %i",device.Data(), run_number));
+      h2_1 -> GetXaxis() -> SetTitle("Position (mm)");
+      h2_1 -> GetXaxis() -> SetTitleSize(0.05);
+      h2_1 -> GetYaxis() -> SetTitle("Events");
+      h2_1 -> SetName(device);
+      h2_1 -> SetTitle("");
+      h2_1->DrawCopy();
+      delete h2_1;
+
       canvas -> Modified();
       canvas -> Update();
       k++;
-      if(k==13){
+      if(k==9){
 	k=1;
-	canvas -> Print(Form("%d_FFT_of_%s_1.gif",run_number,devicelist.Data()));
+	j++;
+	canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
       }
+
     };
-    
-    canvas->cd(11);
-    gPad->Clear();
-    canvas->cd(12);
-    gPad->Clear();
+     //Clear out the rest of the pads
+     for(Int_t i =15; i<17; i++){
+       canvas->cd(i);
+       gPad->Clear();
+     }
   }
 
 
-  // Do FFT on injector bpms
+  //***********************************  Do FFT on injector bpms
    if(devicelist.Contains("inj")){
      for(Int_t i=0;i<injbpms;i++){
-       canvas -> cd(k);
+
+       canvas -> cd(2*k);
+       gPad->SetLogy();
+       gPad->SetLogx();
        TString device = Form("%s%s",injbpm[i].Data(),useaxis.Data());
        std::cout<<"Get FFT of "<<device<<std::endl;
-       get_fft(run_number, tree, device, samples, up, low, sampling_rate); 
+       get_fft(run_number, tree, device, events, up, low, cut, event_rate); 
+
+       canvas ->cd(2*k-1);
+       gPad->SetLogy();
+       if(h2_1 != NULL) h2_1 ->DrawCopy();
+       else {
+	 std::cout<<"Unable to plot signal "<<device<<std::endl;
+	 exit(1);
+       }       
        canvas -> Modified();
        canvas -> Update();
        k++;
-       if(k==13){
+       if(k==9){
 	 k=1;
-	 canvas -> Print(Form("%d_FFT_of_%s_1.gif",run_number,devicelist.Data()));
+	 j++;
+	 canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
        }
      };
-     canvas->cd(10);
-     gPad->Clear();
-     canvas->cd(11);
-     gPad->Clear();
-     canvas->cd(12);
-     gPad->Clear();
-
+     //Clear out the rest of the pads
+     for(Int_t i =11; i<17; i++){
+       canvas->cd(i);
+       gPad->Clear();
+     }
    }
-   canvas -> Print(Form("%d_FFT_of_%s_2.gif",run_number,devicelist.Data()));
-   
+
+   // Print the last page of the canvas.
+   std::cout<<j<<std::endl;
+   j++;
+   canvas -> Print(Form("%d_FFT_of_%s_%i.gif",run_number,devicelist.Data(),j));
+  
    return;
 }
 
 
-void get_fft(Int_t runnumber, TChain* tree, TString device, Int_t samples, Double_t up, Double_t low, Double_t sampling_rate)
+void get_fft(Int_t runnumber, TChain* tree, TString device, Int_t events, Double_t up, Double_t low,
+	     TString error_code, Double_t event_rate)
 {
   
+  TProfile *profile1 = new TProfile("profile1","Signal Profile1",events+1,low-0.5,up+0.5);
+  TProfile *profile2 = new TProfile("profile2","Signal Profile2",events+1,low-0.5,up+0.5);
+  TProfile *profile3 = new TProfile("profile3","Signal Profile3",events+1,low-0.5,up+0.5);
+  TProfile *profile4 = new TProfile("profile4","Signal Profile4",events+1,low-0.5,up+0.5);
  
-  TProfile *profile1 = new TProfile("profile1","Signal Profile1",samples,low,up);
-  TProfile *profile2 = new TProfile("profile2","Signal Profile2",samples,low,up);
-  TProfile *profile3 = new TProfile("profile3","Signal Profile3",samples,low,up);
-  TProfile *profile4 = new TProfile("profile4","Signal Profile4",samples,low,up);
-  
-  TH1D *htemp0 = new TH1D("htemp0","htemp0",samples,low,up);
-  TH1D *htemp1 = new TH1D("htemp1","htemp1",samples,low,up);
-  TH1D *htemp2 = new TH1D("htemp2","htemp2",samples,low,up);
-  TH1D *htemp3 = new TH1D("htemp3","htemp3",samples,low,up);
+  TH1D *htemp0 = new TH1D("htemp0","htemp0",events+1,low-0.5,up+0.5);
+  TH1D *htemp1 = new TH1D("htemp1","htemp1",events+1,low-0.5,up+0.5);
+  TH1D *htemp2 = new TH1D("htemp2","htemp2",events+1,low-0.5,up+0.5);
+  TH1D *htemp3 = new TH1D("htemp3","htemp3",events+1,low-0.5,up+0.5);
 
-  TString scut = Form("time>%f && time<%f && %s.Device_Error_Code == 0",low,up,device.Data());
-      
+
+  //  TString scut = Form("time>%f && time<%f && %s.Device_Error_Code == 0",low,up,device.Data());
+  TString scut = Form("time>%f && time<%f && %s",low,up,error_code.Data());
+  //  Double_t elcut =  low * event_rate/(1.0*min);
+  //  Double_t eucut =  up * event_rate/(1.0*max);
+
+
+  // Here I am using the individual sub_blocks instead of the hw_sum because I want to use theoversampling feature of VQWKS
+  // to increase the detectable frequency range by 4 times. 
+  // e.g. with oversampling we can detect upto 960/2 *4 Hz = 1860Hz of frequency at 960Hz running.
+  // This is still not working .. sigh..
+
   TString amplitude = Form("%s.bclock0",device.Data());
   tree->SetAlias("amplitude",amplitude);
+
+   // Now plot the signal
   tree->Draw("amplitude:time>>profile1",scut,"prof");
   profile1 = (TProfile*) gDirectory -> Get("profile1");
   if(profile1 == NULL){
@@ -293,24 +405,39 @@ void get_fft(Int_t runnumber, TChain* tree, TString device, Int_t samples, Doubl
   htemp0->Add(htemp2,1);
   htemp0->Add(htemp3,1);
   htemp0->Scale(1.0/4);
-  //  htemp0->DrawCopy();
+  htemp0->Draw();
   
+
   
   std::cout<<" --- Average signal ="<<m/4<<"\n";
       
   
   //Remove the DC/zero frequency component 
-  TH1D *h2 = new TH1D("h2","noise profile",samples,low,up);    
   Double_t setvalue;
   
+  TH1D * h2 = new TH1D("h2","h2",events+1,low-0.5,up+0.5);
+  //  TH1D * h2_1 = new TH1D("h2_1","h2_1",events+1,low-0.5,up+0.5);
+
   TAxis *xa = htemp0 -> GetXaxis();
-  Double_t nbins =  xa->GetNbins();
-  for(Int_t n = 0;n < nbins;n++){
+  Int_t nbins =  xa->GetNbins();
+  
+  for(Int_t n = -1;n < nbins;n++){
+  
     setvalue = (htemp0->GetBinContent(n+1)-m/4);
-    // to get rid of the dc component 
+    //   if((htemp0->GetBinContent(n+1))!= 0)
+    //       h2_1->SetBinContent(n+1,setvalue);
+//     if((htemp0->GetBinContent(n+1))!= 0)
+//       h2_1->SetBinContent(n+1,(htemp0->GetBinContent(n+1)));
     h2->SetBinContent(n+1,setvalue);
   }
+//   h2_1 -> SetTitle(Form("Signal of %s in %i",device.Data(), runnumber));
+//   h2_1 -> GetXaxis() -> SetTitle("Time (s)");
+//   h2_1 -> GetXaxis() -> SetTitleSize(0.05);
+//   h2_1 -> GetYaxis() -> SetTitle("signal (V)");
+//   h2_1->SetLineColor(46);
+//   h2_1->Draw();
 
+  
   // //Get the magnitude of the fourier transform
   TH1 * fftmag = NULL;
   TVirtualFFT::SetTransform(0);
@@ -321,11 +448,11 @@ void get_fft(Int_t runnumber, TChain* tree, TString device, Int_t samples, Doubl
   // rescale the x axis of the transform to get only the positive frequencies. 
   // Due to the periodicity of FFT in number of samples the FFT output will be a mirrored image.
   
-  TAxis *xa = fftmag -> GetXaxis();
-  Double_t nbins =  xa->GetNbins();
+  xa = fftmag -> GetXaxis();
+  nbins =  xa->GetNbins();
   
-  Double_t frequency = sampling_rate;
-  Double_t scale = 1.0/sqrt(samples);
+  Double_t frequency = event_rate; //consider the oversampling using the 4 sub_blocks 
+  Double_t scale = 1.0/sqrt(events);
   
   TH1D *h3 = new TH1D("h3",Form("FFT of %s in run %i",device.Data(), runnumber) ,nbins,1,frequency);  
   for(Int_t n = 0;n<nbins;n++){
@@ -336,17 +463,17 @@ void get_fft(Int_t runnumber, TChain* tree, TString device, Int_t samples, Doubl
   h3 -> GetYaxis() -> SetTitle("Amplitude");
   h3->Draw();
   
-  TAxis *xa = h3 -> GetXaxis();
-  xa -> SetRangeUser(xa->GetBinLowEdge(1), xa->GetBinUpEdge(xa->GetNbins()/2.0));
+  xa = h3 -> GetXaxis();
+  xa -> SetRangeUser((xa->GetBinLowEdge(1)), xa->GetBinUpEdge(xa->GetNbins()/3.0));
+  h3 -> GetYaxis() -> SetRangeUser(0.00001,10000);
+  h3->SetLineColor(1);
   h3 -> DrawCopy();
 
   delete htemp0;  
   delete htemp1;
   delete htemp2;
   delete htemp3;
-  delete h2;    
+  delete h2;
   delete h3;
   delete fftmag;
-  
-  
 }

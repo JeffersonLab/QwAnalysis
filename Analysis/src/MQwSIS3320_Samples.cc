@@ -51,15 +51,28 @@ Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 };
 
 
+std::pair<size_t,MQwSIS3320_Type> MQwSIS3320_Samples::GetMax() const
+{
+  std::vector<MQwSIS3320_Type>::const_iterator max = std::max_element(fSamples.begin(), fSamples.end());
+  return std::pair<size_t,MQwSIS3320_Type>(max - fSamples.begin(),*max);
+};
+
+std::pair<size_t,MQwSIS3320_Type> MQwSIS3320_Samples::GetMin() const
+{
+  std::vector<MQwSIS3320_Type>::const_iterator min = std::min_element(fSamples.begin(), fSamples.end());
+  return std::pair<size_t,MQwSIS3320_Type>(min - fSamples.begin(),*min);
+};
+
 const MQwSIS3320_Type MQwSIS3320_Samples::GetSum() const
 {
-  return std::accumulate(fSamples.begin(), fSamples.end(), 0);
+  return std::accumulate(fSamples.begin(), fSamples.end(), 0.0);
 };
+
 
 const MQwSIS3320_Type MQwSIS3320_Samples::GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const
 {
   if (start >= fSamples.size() || stop >= fSamples.size()) return 0;
-  return std::accumulate(&fSamples.at(start), &fSamples.at(stop), 0);
+  return std::accumulate(&fSamples.at(start), &fSamples.at(stop), 0.0);
 };
 
 

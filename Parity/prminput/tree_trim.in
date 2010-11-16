@@ -113,15 +113,20 @@ qwk_bcm6
 event_number
 
 
-qwk_bpm3c07XP
-qwk_bpm3c07XM
-qwk_bpm3c07YP
-qwk_bpm3c07YM
+#qwk_bpm3c07XP
+#qwk_bpm3c07XM
+#qwk_bpm3c07YP
+#qwk_bpm3c07YM
 
-qwk_bpm3c08XP
-qwk_bpm3c08XM
-qwk_bpm3c08YP
-qwk_bpm3c08YM
+#qwk_bpm3c07aXP
+#qwk_bpm3c07aXM
+#qwk_bpm3c07aYP
+#qwk_bpm3c07aYM
+
+#qwk_bpm3c08XP
+#qwk_bpm3c08XM
+#qwk_bpm3c08YP
+#qwk_bpm3c08YM
 
 qwk_bpm3c11XP 
 qwk_bpm3c11XM 
@@ -143,50 +148,50 @@ qwk_bpm3c16XM
 qwk_bpm3c16YP
 qwk_bpm3c16YM
 
-qwk_bpm3c17XP
-qwk_bpm3c17XM
-qwk_bpm3c17YP
-qwk_bpm3c17YM
+#qwk_bpm3c17XP
+#qwk_bpm3c17XM
+#qwk_bpm3c17YP
+#qwk_bpm3c17YM
 
-qwk_bpm3c18XP
-qwk_bpm3c18XM
-qwk_bpm3c18YP
-qwk_bpm3c18YM
+#qwk_bpm3c18XP
+#qwk_bpm3c18XM
+#qwk_bpm3c18YP
+#qwk_bpm3c18YM
 
-qwk_bpm3c19XP
-qwk_bpm3c19XM
-qwk_bpm3c19YP
-qwk_bpm3c19YM
+#qwk_bpm3c19XP
+#qwk_bpm3c19XM
+#qwk_bpm3c19YP
+#qwk_bpm3c19YM
 
-qwk_bpm3p02aXP
-qwk_bpm3p02aXM
-qwk_bpm3p02aYP
-qwk_bpm3p02aYM
+#qwk_bpm3p02aXP
+#qwk_bpm3p02aXM
+#qwk_bpm3p02aYP
+#qwk_bpm3p02aYM
 
-qwk_bpm3p02bXP
-qwk_bpm3p02bXM
-qwk_bpm3p02bYP
-qwk_bpm3p02bYM
+#qwk_bpm3p02bXP
+#qwk_bpm3p02bXM
+#qwk_bpm3p02bYP
+#qwk_bpm3p02bYM
 
-qwk_bpm3p03aXP
-qwk_bpm3p03aXM
-qwk_bpm3p03aYP
-qwk_bpm3p03aYM
+#qwk_bpm3p03aXP
+#qwk_bpm3p03aXM
+#qwk_bpm3p03aYP
+#qwk_bpm3p03aYM
 
-qwk_bpm3c20XP
-qwk_bpm3c20XM
-qwk_bpm3c20YP
-qwk_bpm3c20YM
+#qwk_bpm3c20XP
+#qwk_bpm3c20XM
+#qwk_bpm3c20YP
+#qwk_bpm3c20YM
 
-qwk_bpm3c21XP
-qwk_bpm3c21XM
-qwk_bpm3c21YP
-qwk_bpm3c21YM
+#qwk_bpm3c21XP
+#qwk_bpm3c21XM
+#qwk_bpm3c21YP
+#qwk_bpm3c21YM
 
-qwk_bpm3h02XP
-qwk_bpm3h02XM
-qwk_bpm3h02YP
-qwk_bpm3h02YM
+#qwk_bpm3h02XP
+#qwk_bpm3h02XM
+#qwk_bpm3h02YP
+#qwk_bpm3h02YM
 
 qwk_bpm3h04XP
 qwk_bpm3h04XM

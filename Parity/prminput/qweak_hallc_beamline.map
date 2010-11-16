@@ -58,10 +58,10 @@ sample_size==480
    VQWK, 4, 1,  bpmstripline,  QWK_BPM3C19XM
    VQWK, 4, 2,  bpmstripline,  QWK_BPM3C19YP
    VQWK, 4, 3,  bpmstripline,  QWK_BPM3C19YM
-   VQWK, 4, 4,  bpmstripline,  QWK_BPM3P01XP
-   VQWK, 4, 5,  bpmstripline,  QWK_BPM3P01XM
-   VQWK, 4, 6,  bpmstripline,  QWK_BPM3P01YP
-   VQWK, 4, 7,  bpmstripline,  QWK_BPM3P01YM
+   VQWK, 4, 4,  bpmstripline,  QWK_BPM3C07AXP
+   VQWK, 4, 5,  bpmstripline,  QWK_BPM3C07AXM
+   VQWK, 4, 6,  bpmstripline,  QWK_BPM3C07AYP
+   VQWK, 4, 7,  bpmstripline,  QWK_BPM3C07AYM
 
 !ADC5	
    VQWK, 5, 0,  bpmstripline,  QWK_BPM3P02AXP
@@ -191,14 +191,14 @@ end=combinedbcm
 
 begin=combinedbpm
 name=qwk_target
-!name		type 	      q      x     y    
- QWK_BPM3H07A,  bpmstripline, 1.0,  1.0,  1.0
- QWK_BPM3H07B,  bpmstripline, 1.0,  1.0,  1.0
- QWK_BPM3H07C,  bpmstripline, 1.0,  1.0,  1.0
- QWK_BPM3H09,   bpmstripline, 1.0,  1.0,  1.0
- QWK_BPM3H09B,  bpmstripline, 1.0,  1.0,  1.0
+!name		type 	      q      x         y    
+ QWK_BPM3H07A,  bpmstripline, 1.0,  420.43,   324.53 
+ QWK_BPM3H07B,  bpmstripline, 1.0,  532.87,   408.29
+ QWK_BPM3H07C,  bpmstripline, 1.0,  371.82,   308.33
+ QWK_BPM3H09,   bpmstripline, 1.0,  313.04,   278.71
+ QWK_BPM3H09B,  bpmstripline, 1.0,  337.29,   330.10
 end=combinedbpm
-
+! The X and Y weights were obtained using run 5842 taken with 48-43uA on LH2.
 
 
 !**************************************************************************

@@ -52,7 +52,7 @@ class QwVQWK_Channel: public VQwDataElement {
   QwVQWK_Channel(TString name, TString datatosave = "raw") {
     InitializeChannel(name, datatosave);
   };
-  ~QwVQWK_Channel() {
+  virtual ~QwVQWK_Channel() {
     //DeleteHistograms();
   };
 
@@ -76,7 +76,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
   void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
-    fNumEvtsWithEventCutsRejected++;
+
   }
 
   /// \name Parity mock data generation
@@ -138,9 +138,22 @@ class QwVQWK_Channel: public VQwDataElement {
   Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level by comparing upper and lower limits (fULimit and fLLimit) set on this channel
   void SetSingleEventCuts(Double_t min, Double_t max);//set the upper and lower limits (fULimit and fLLimit) set on this channel
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
-  Int_t GetEventcutErrorFlag(){//return the error flag
-    return fDeviceErrorCode;
+  /*! \brief return the error flag on this channel/device*/
+  UInt_t GetEventcutErrorFlag(){//return the error flag
+    //if (GetElementName()=="qwk_bcm1" && fDeviceErrorCode)
+    //if ((fDeviceErrorCode&kErrorFlag_EventCut_L)==kErrorFlag_EventCut_L )
+    //std::cout<<"QwVQWK_Channel Failed eflag "<<fErrorFlag<<" D E "<<fDeviceErrorCode<<" "<<((fErrorFlag & kGlobalCut) == kGlobalCut)<<" kGlobalCut  "<<kGlobalCut<<std::endl;
+
+    if (((fErrorFlag & kGlobalCut) == kGlobalCut) && fDeviceErrorCode>0){//we care only about global cuts
+      //std::cout<<" Failed "<<std::endl;
+      //if (GetElementName()=="qwk_bcm1" )
+      //std::cout<<"QwVQWK_Channel Failed eflag "<<fErrorFlag<<" D E "<<fDeviceErrorCode<<" "<<((fErrorFlag & kGlobalCut) == kGlobalCut)<<" kGlobalCut  "<<kGlobalCut<<std::endl;
+      return fErrorFlag;
+    }
+    return 0;
   };
   Double_t GetEventCutUpperLimit(){
     return fULimit;
@@ -155,10 +168,9 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
-  void UpdateHWErrorCounters(Int_t error_flag);//update counters based on the flag passed to it
-  void UpdateHWErrorCounters(){//update the counters based on the this->fDeviceErrorCode
-    UpdateHWErrorCounters(fDeviceErrorCode);
-  };
+  void UpdateErrorCounters(UInt_t error_flag);//update counters based on the flag passed to it
+    
+  
   /*End*/
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -307,17 +319,10 @@ class QwVQWK_Channel: public VQwDataElement {
   Int_t fErrorCount_ZeroHW;   // check to see ADC returning zero
 
 
-  static const Int_t kErrorFlag_sample     = 0x2;  // in Decimal 2   for sample size check
-  static const Int_t kErrorFlag_SW_HW      = 0x4;  // in Decimal 4   HW_sum==SW_sum check
-  static const Int_t kErrorFlag_Sequence   = 0x8;  // in Decimal 8   sequence number check
-  static const Int_t kErrorFlag_SameHW     = 0x10; // in Decimal 16  check to see ADC returning same HW value
-  static const Int_t kErrorFlag_ZeroHW     = 0x20; // in Decimal 32  check to see ADC returning zero
-  static const Int_t kErrorFlag_EventCut_L = 0x40; // in Decimal 64  check to see ADC failed upper limit of the event cut
-  static const Int_t kErrorFlag_EventCut_U = 0x80; // in Decimal 128 check to see ADC failed upper limit of the event cut
 
 
 
-  Int_t fDeviceErrorCode; ///< Unique error code for HW failed beam line devices
+  UInt_t fDeviceErrorCode; ///< Unique error code for HW failed beam line devices
 
 
   Int_t fADC_Same_NumEvt; ///< Keep track of how many events with same ADC value returned
@@ -329,13 +334,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
   Double_t fULimit, fLLimit;//this sets the upper and lower limits on the VQWK_Channel::fHardwareBlockSum
-
-  /*
-  //debug- Ring analysis
-  Int_t fEventCounter;
-  Int_t fTripCounter;
-  Bool_t bTrip;
-  */
+  Double_t fStability;//how much deviaton from the stable reading is allowed
 
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
@@ -348,6 +347,8 @@ class QwVQWK_Channel: public VQwDataElement {
   Bool_t bNum_samples;
   Bool_t bDevice_Error_Code;
   Bool_t bSequence_number;
+
+  UInt_t fDefErrorFlag;
   
 
 

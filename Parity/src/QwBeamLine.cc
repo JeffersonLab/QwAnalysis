@@ -497,6 +497,8 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   TString varname, varvalue, vartypeID,varname2, varvalue2;
   TString device_type,device_name,channel_name;
   Int_t det_index = -1;
+  Double_t stabilitycut;
+  
 
   QwParameterFile mapstr(filename.Data());  //Open the file
 
@@ -523,19 +525,26 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 
       det_index=GetDetectorIndex(GetQwBeamInstrumentType(device_type),device_name);
 
-
+      if (det_index==-1){
+	QwWarning<<" Device not found "<<device_name<<" of type "<<device_type<<QwLog::endl;
+	continue;
+      }
       //set limits to zero
       ULX=0;
       LLX=0;
       ULY=0;
       LLY=0;
-      //std::cout << "SHOWME device_type = " << device_type << " and device name = " << device_name << "\n" << std::endl;
+      //std::cout << "SHOWME device_type = " << device_type << " and device name = " << device_name << " "<< GetQwBeamInstrumentTypeName(kQwBPMStripline)<< std::endl;
       //std::cout << "WHATIS Cavity = " << GetQwBeamInstrumentTypeName(kQwBPMCavity) << "\n" << std::endl;
 
       if (device_type == GetQwBeamInstrumentTypeName(kQwBCM)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
-	fBCM[det_index].SetSingleEventCuts(LLX,ULX);//(fBCMEventCuts);
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwBeamLine Error Code passing to QwBCM "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	fBCM[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);//(fBCMEventCuts);
       }
       else if (device_type == GetQwBeamInstrumentTypeName(kQwHaloMonitor)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for HaloMonitor value
@@ -545,53 +554,79 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	else if (device_type ==GetQwBeamInstrumentTypeName(kQwEnergyCalculator)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for energy
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for energy
-	fECalculator[det_index].SetSingleEventCuts(LLX,ULX);//(fEnergyEventCuts);
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwBeamLine Error Code passing to QwEnergyCalculator "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	fECalculator[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);//(fEnergyEventCuts);
       }
 	else if (device_type == GetQwBeamInstrumentTypeName(kQwBPMStripline)){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
-	fStripline[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwBeamLine Error Code passing to QwBPMStripline "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	fStripline[det_index].SetSingleEventCuts(channel_name, GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut), LLX, ULX, stabilitycut);
       }
 	else if (device_type == GetQwBeamInstrumentTypeName(kQwQPD)){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for QPD X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for QPD X
-	fQPD[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwBeamLine Error Code passing to QwQPD "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	fQPD[det_index].SetSingleEventCuts(channel_name, GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut), LLX, ULX, stabilitycut);
 	}
 	else if (device_type == GetQwBeamInstrumentTypeName(kQwLinearArray)){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for LinearArray X
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for LinearArray X
-	fLinearArray[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwBeamLine Error Code passing to QwLinearArray "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	fLinearArray[det_index].SetSingleEventCuts(channel_name, GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut), LLX, ULX, stabilitycut);
 	}
 	else if (device_type ==  GetQwBeamInstrumentTypeName(kQwBPMCavity)){
 	channel_name= mapstr.GetNextToken(", ").c_str();
 	channel_name.ToLower();
 	  LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for cavity bpm X
 	  ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for cavity bpm X
-	  fCavity[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
-      }
-      else if (device_type == GetQwBeamInstrumentTypeName(kQwCombinedBCM)){
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
-	fBCMCombo[det_index].PrintInfo();
-	fBCMCombo[det_index].SetSingleEventCuts(LLX,ULX);//(fBCMComboEventCuts);
+	  varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	  stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	  varvalue.ToLower();
+	  QwMessage<<"QwBeamLine Error Code passing to QwBPMCavity "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<" "<<det_index<<QwLog::endl;	  
+	  fCavity[det_index].SetSingleEventCuts(channel_name, GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut), LLX, ULX, stabilitycut);
+	}
+	else if (device_type == GetQwBeamInstrumentTypeName(kQwCombinedBCM)){
+	  LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
+	  ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
+	  varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	  stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	  varvalue.ToLower();
+	  QwMessage<<"QwBeamLine Error Code passing to QwCombinedBCM "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	  fBCMCombo[det_index].PrintInfo();
+	  fBCMCombo[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut), LLX, ULX, stabilitycut);
 
-      }
-      else if (device_type == GetQwBeamInstrumentTypeName(kQwCombinedBPM)){
-	channel_name= mapstr.GetNextToken(", ").c_str();
-	channel_name.ToLower();
-
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for combined bpm X
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for combined bpm X
-
-	fBPMCombo[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
-	fBPMCombo[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
-      }
+	}
+	else if (device_type == GetQwBeamInstrumentTypeName(kQwCombinedBPM)){
+	  channel_name= mapstr.GetNextToken(", ").c_str();
+	  channel_name.ToLower();
+	  
+	  LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for combined bpm X
+	  ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for combined bpm X
+	  varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	  stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	  varvalue.ToLower();
+	  QwMessage<<"QwBeamLine Error Code passing to QwCombinedBPM "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	  fBPMCombo[det_index].SetSingleEventCuts(channel_name, GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut), LLX, ULX, stabilitycut);
+	}
 
     }
 
@@ -1171,8 +1206,8 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
 //*****************************************************************
 Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
 
-  std::cout<<"*********QwBeamLine Error Summary****************"<<std::endl;
-  std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || ZeroHW || EventCut\n";
+  QwMessage<<"*********QwBeamLine Error Summary****************"<<QwLog::endl;
+  QwMessage<<"Device name ||  Sample || SW_HW || Sequence || SameHW || ZeroHW || EventCut\n";
   for(size_t i=0;i<fBCM.size();i++){
     fBCM[i].GetEventcutErrorCounters();
   }
@@ -1208,42 +1243,57 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
   for(size_t i=0;i<fECalculator.size();i++){
     fECalculator[i].GetEventcutErrorCounters();
   }
-   std::cout<<"---------------------------------------------------"<<std::endl;
-   std::cout<<std::endl;
+   QwMessage<<"---------------------------------------------------"<<QwLog::endl;
+   QwMessage<<std::endl;
   return 1;
 };
 
 //*****************************************************************
-Int_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
-  Int_t ErrorFlag;
+UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
+  UInt_t ErrorFlag;
+  UInt_t ErrorFlagtmp;
   ErrorFlag=0;
   for(size_t i=0;i<fBCM.size();i++){
-    ErrorFlag |= fBCM[i].GetEventcutErrorFlag();
+    ErrorFlagtmp = fBCM[i].GetEventcutErrorFlag();
+    ErrorFlag |=ErrorFlagtmp;
+    //if ((fBCM[i].GetElementName()=="qwk_bcm1") && ErrorFlagtmp)
+    //if ((fDeviceErrorCode&kErrorFlag_EventCut_L)==kErrorFlag_EventCut_L )
+    //  std::cout<<"QwBeamLine Failed eflag "<<ErrorFlagtmp<<" accumu  "<<ErrorFlag<<" "<<((ErrorFlag & kGlobalCut) == kGlobalCut)<<" kGlobalCut  "<<kGlobalCut<<std::endl;
   }
-  for(size_t i=0;i<fHaloMonitor.size();i++){
+  
+  //for(size_t i=0;i<fHaloMonitor.size();i++){
     //ErrorFlag |= fHaloMonitor[i].GetEventcutErrorFlag();
-  }
+  //}
+
   for(size_t i=0;i<fStripline.size();i++){
     ErrorFlag |= fStripline[i].GetEventcutErrorFlag();
   }
+
+  
+
   for(size_t i=0;i<fQPD.size();i++){
     ErrorFlag |= fQPD[i].GetEventcutErrorFlag();
   }
+  
   for(size_t i=0;i<fLinearArray.size();i++){
     ErrorFlag |= fLinearArray[i].GetEventcutErrorFlag();
   }
   for(size_t i=0;i<fCavity.size();i++){
     ErrorFlag |= fCavity[i].GetEventcutErrorFlag();
   }
+  
   for(size_t i=0;i<fBCMCombo.size();i++){
     ErrorFlag |= fBCMCombo[i].GetEventcutErrorFlag();
   }
+  
   for(size_t i=0;i<fBPMCombo.size();i++){
     ErrorFlag |= fBPMCombo[i].GetEventcutErrorFlag();
   }
+  
   for(size_t i=0;i<fECalculator.size();i++){
     ErrorFlag |= fECalculator[i].GetEventcutErrorFlag();
   }
+  
   return ErrorFlag;
 
 };

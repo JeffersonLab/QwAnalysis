@@ -1,4 +1,3 @@
-
 /**********************************************************\
 * File: QwHelicityPattern.cc                              *
 *                                                         *
@@ -179,7 +178,8 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
   Int_t  localPhaseNumber = -1;
   Int_t  localHelicityActual = -1;
   Bool_t localIgnoreHelicity = kFALSE;
-
+  
+  
   // Get the list of helicity subsystems
   if (! fHelicityIsMissing){
     std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");
@@ -393,6 +393,9 @@ void  QwHelicityPattern::CalculateAsymmetry()
     fYield.Scale(1.0/fPatternSize);
     fDifference.Difference(fPositiveHelicitySum,fNegativeHelicitySum);
     fDifference.Scale(1.0/fPatternSize);
+
+    
+    
     if (! fIgnoreHelicity){
       //  Only blind the difference if we're using the real helicity.
       fBlinder.Blind(fDifference,fYield);
@@ -463,10 +466,16 @@ void  QwHelicityPattern::CalculateAsymmetry()
  *
  */
 void QwHelicityPattern::GetTargetChargeStat(Double_t & asym, Double_t & error, Double_t & width){
+  fTargetCharge.InitializeChannel("q_targ","derived");
   VQwDataElement *data_channel;
   TString name="q_targ";
   fRunningAsymmetry.CalculateRunningAverage();
-  data_channel=const_cast<VQwDataElement*>(fRunningAsymmetry.ReturnInternalValue(name));	
+  data_channel=const_cast<VQwDataElement*>(fRunningAsymmetry.ReturnInternalValue(name));
+  //fRunningAsymmetry.ReturnInternalValue(name,&fTargetCharge);
+  if(fRunningAsymmetry.RequestExternalValue("q_targ", &fTargetCharge)){
+    fTargetCharge.PrintInfo();
+    QwError <<fTargetCharge.GetHardwareSum()<<"+-"<<(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))->GetHardwareSumError()<<QwLog::endl;
+  }
   if (!data_channel){
     QwError << " Could not get external value setting parameters to  " <<name <<QwLog::endl;
     asym=-1;
@@ -474,6 +483,9 @@ void QwHelicityPattern::GetTargetChargeStat(Double_t & asym, Double_t & error, D
     width=-1;
     return ;
   }
+
+  //*(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))=*(dynamic_cast<QwVQWK_Channel*>(data_channel));
+  //fTargetCharge.PrintInfo();
   
   (dynamic_cast<QwVQWK_Channel*>(data_channel))->PrintInfo();
   asym=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSum();

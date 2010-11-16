@@ -14,6 +14,7 @@
 
 // Qweak headers
 #include "QwTypes.h"
+#include "QwObjectCounter.h"
 #include "QwTrackingTreeLine.h"
 #include "QwPartialTrack.h"
 #include "QwTrack.h"
@@ -34,7 +35,7 @@ class QwVertex;
  * Objects of this class contain the header information of a tracked event,
  * such as the run number, event number, the trigger type, etc.
  */
-class QwEventHeader: public TObject {
+class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
 
   private:
 
@@ -56,6 +57,17 @@ class QwEventHeader: public TObject {
     QwEventHeader(const UInt_t run, const ULong_t event) {
       fRunNumber = run;
       fEventNumber = event;
+    };
+    /// Copy constructor
+    QwEventHeader(const QwEventHeader& header) {
+      fRunNumber = header.fRunNumber;
+      //
+      fEventNumber = header.fEventNumber;
+      fEventTime = header.fEventTime;
+      fEventType = header.fEventType;
+      fEventTrigger = header.fEventTrigger;
+      //
+      fBeamHelicity = header.fBeamHelicity;
     };
     /// Destructor
     virtual ~QwEventHeader(){};
@@ -113,7 +125,7 @@ inline ostream& operator<< (ostream& stream, const QwEventHeader& h) {
  * A QwEvent contains all event information, from hits over partial track to
  * complete tracks.  It serves as the final product of the tracking code.
  */
-class QwEvent: public TObject {
+class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
   public:
 
@@ -202,13 +214,21 @@ class QwEvent: public TObject {
 
   public:
 
+    /// Default constructor
     QwEvent();
+    /// Virtual destructor
     virtual ~QwEvent();
 
     // Event header
-    QwEventHeader* GetEventHeader() { return fEventHeader; };
-    void SetEventHeader(QwEventHeader& eventheader) { *fEventHeader = eventheader; };
-    void SetEventHeader(QwEventHeader* eventheader) { *fEventHeader = *eventheader; };
+    const QwEventHeader* GetEventHeader() const { return fEventHeader; };
+    void SetEventHeader(const QwEventHeader& eventheader) {
+      if (fEventHeader) delete fEventHeader;
+      fEventHeader = new QwEventHeader(eventheader);
+    };
+    void SetEventHeader(const QwEventHeader* eventheader) {
+      if (fEventHeader) delete fEventHeader;
+      fEventHeader = new QwEventHeader(*eventheader);
+    };
 
   public:
 

@@ -471,6 +471,7 @@ scanner_ref_t_f1		TH1F	4096	0.5		4096.5			ref_t_f1	Events
 scanner_front_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 scanner_back__sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 scanner_coinc_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
+scanner_randm_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 
 scanner_bg_chrlt_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events
 scanner_bg_wilbr_sca		TH1F	1500	0.5		1500.5			rate[kps]	Events

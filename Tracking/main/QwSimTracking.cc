@@ -172,8 +172,8 @@ int main (int argc, char* argv[])
 
 
       // Do something with this event
-      event->GetEventHeader()->SetRunNumber(treebuffer->GetRunNumber());
-      event->GetEventHeader()->SetEventNumber(treebuffer->GetEventNumber());
+      QwEventHeader header(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
+      event->SetEventHeader(header);
       if (kDebug) event->Print();
 
 

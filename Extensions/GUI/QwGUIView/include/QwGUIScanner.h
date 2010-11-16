@@ -32,7 +32,7 @@
 ///
 /// \ingroup QwGUIMain
 
-#define SCANNER_INDEX       27
+#define SCANNER_INDEX       30
 
 #ifndef QWGUISCANNER_H
 #define QWGUISCANNER_H
@@ -48,12 +48,13 @@ enum ScannerDataPlotType
 enum ScannerMenuIdentifiers
 {
   SCANNER_PLOT_RATEMAP,
-  SCANNER_PLOT_PROJECTION
+  SCANNER_PLOT_PROJECTION,
 //   SCANNER_PLOT_HISTOGRAM,
 //   SCANNER_PLOT_RAW
 };
 
 enum ScannerRunMode {EVENT_MODE, CURRENT_MODE};
+enum PosData {PVQWK, PQDC};
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -68,6 +69,7 @@ using std::vector;
 #include <TH1D.h>
 #include <TProfile.h>
 #include <TProfile2D.h>
+#include <TLeaf.h>
 #include <TVirtualFFT.h>
 #include "QwGUISubSystem.h"
 #include "QwGUIDataWindow.h"
@@ -136,6 +138,7 @@ class QwGUIScanner : public QwGUISubSystem
     //!Return value: none
     void                 PlotRateMap();
     void                 PlotProjections();
+    void                 PlotSinglesMap();
 
     //!This function plots histograms of the data in the current file, in the main canvas.
     //!
@@ -232,47 +235,12 @@ class QwGUIScanner : public QwGUISubSystem
 
   private:
 
-    Int_t   CodaEventNumber;
-    Double_t PowerSupply_VQWK;
-    Double_t PositionX_VQWK;
-    Double_t PositionY_VQWK;
-    Double_t FrontSCA;
-    Double_t BackSCA;
-    Double_t CoincidenceSCA;
-    Double_t FrontADC;
-    Double_t BackADC;
-    Double_t FrontTDC;
-    Double_t BackTDC;
-    Double_t PositionX_QDC;
-    Double_t PositionY_QDC;
-    Double_t front_adc_raw;
-    Double_t back__adc_raw;
-    Double_t pos_x_adc_raw;
-    Double_t pos_y_adc_raw;
-    Double_t front_f1_raw;
-    Double_t back__f1_raw;
-    Double_t coinc_f1_raw;
-    Double_t ref_t_f1_raw;
-    Double_t bg_wilbr_sca_raw;
-    Double_t bg_chrlt_sca_raw;
-    Double_t coinc_sca_raw;
-    Double_t back__sca_raw;
-    Double_t front_sca_raw;
-    Double_t phase_monitor_raw;
-    Double_t power_vqwk_raw;
-    Double_t pos_y_vqwk_raw;
-    Double_t pos_x_vqwk_raw;
-
-    Double_t MeanPositionX_QDC;
-    Double_t MeanPositionY_QDC;
-
-    Double_t scanner[27];
 
     Int_t RunMode;
+    Int_t PositionDataType;
 
     TProfile2D *RateMap;
-    TProfile2D *RateMap_FrontQuartz;
-    TProfile2D *RateMap_BackQuartz;
+    TProfile2D *RandomMap;
 
     TH2D *RateMapProjectionXY;
     TH1D *RateMapProjectionX;
@@ -282,3 +250,4 @@ class QwGUIScanner : public QwGUISubSystem
   };
 
 #endif
+

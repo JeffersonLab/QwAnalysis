@@ -501,6 +501,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
             QwDebug << *cluster << QwLog::endl;
         }
         delete clusterfinder; // TODO (wdc) should go somewhere else
+        delete hitlist_region1_r;
+        delete hitlist_region1_phi;
 
         /// Loop through the detector regions
         for (EQwRegionID region  = kRegionID2;
@@ -600,10 +602,15 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             /// Get the subhitlist of hits in this detector
                             QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, plane);
                             // If no hits in this detector, skip to the next detector.
-                            if (subhitlist->size() == 0) continue;
+                            if (subhitlist->size() == 0) {
+                              delete subhitlist;
+                              continue;
+                            }
                             // Print the hit list for this detector
-                            if (fDebug) subhitlist->Print();
-
+                            if (fDebug) {
+                            	std::cout << "region: " << region << " package: " << package << " plane: " << plane << std::endl;
+                            	subhitlist->Print();
+                            }
                             // Loop over the hits in the subhitlist
                             for (QwHitContainer::iterator hit = subhitlist->begin();
                                     hit != subhitlist->end(); hit++) {
@@ -618,10 +625,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             } // end of loop over hits in this event
 
                             // Print hit pattern, if requested
-                            if (fShowEventPattern)
+                            if (fShowEventPattern) {
+                            	std::cout << "event pattern: " << std::endl;
                               for (size_t wire = 0; wire < patterns.size(); wire++)
                                 if (patterns.at(wire).HasHits())
                                   QwMessage << wire << ":" << patterns.at(wire) << QwLog::endl;
+                            }
 
                             // Copy the new hit patterns into the old array structure
                             // TODO This is temporary
@@ -688,7 +697,9 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         } // end of loop over like-pitched planes in a region
                         event->AddTreeLineList(treelinelist1);
                         event->AddTreeLineList(treelinelist2);
+                        treelinelist = 0;
 
+			                  // treelinelist 1 and treelinelist 2 are in the same dir
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
                         if (treelinelist1 && treelinelist2) {
                             treelinelist = fTreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
@@ -708,8 +719,15 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                         }
 
-                        tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
+                        // Delete tree line lists after storing results in event structure
+                        QwTrackingTreeLine* tl = 0;
+                        QwTrackingTreeLine* tl_next = 0;
+                        tl = treelinelist1;
+                        while (tl) { tl_next = tl->next; delete tl; tl = tl_next; }
+                        tl = treelinelist2;
+                        while (tl) { tl_next = tl->next; delete tl; tl = tl_next; }
 
+                        tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
 
 
                     /* Region 2 HDC */
@@ -819,14 +837,14 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         }
 
                         QwDebug << "Sort patterns" << QwLog::endl;
-                        fTreeSort->rcTreeConnSort (treelinelist, region);
+//                        fTreeSort->rcTreeConnSort (treelinelist, region);
 
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
                             treelinelist->Print();
                         }
                         event->treeline[package][region][type][dir] = treelinelist;
-                        event->AddTreeLineList(treelinelist);
+//                        event->AddTreeLineList(treelinelist);
 
                         // Delete subhitlist
                         delete subhitlist;
@@ -845,12 +863,13 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                 QwPartialTrack* parttrack = 0; // list of partial tracks
 
+
+
                 // This if statement may be done wrong
                 // TODO (wdc) why does this have last index dir instead of something in scope?
-                if (rcDETRegion[package][region][kDirectionU]
-                        && fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                                       +region*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
-                        && tlayers) {
+                if (region == kRegionID3) {
+                    if (event->treeline[package][region][type][kDirectionU] && event->treeline[package][region][type][kDirectionV]
+                     && tlayers)
                     parttrack = fTreeCombine->TlTreeCombine(
                                     event->treeline[package][region][type],
                                     package, region,
@@ -858,17 +877,38 @@ QwEvent* QwTrackingWorker::ProcessHits (
                                     dlayer,
                                     fSearchTree);
 
-                } else continue;
+                }
+                else if(region==kRegionID2){
+
+                        if (event->treeline[package][region][type][kDirectionU]
+                         && event->treeline[package][region][type][kDirectionV]
+                         && event->treeline[package][region][type][kDirectionX]
+                         && tlayers){
+                parttrack = fTreeCombine->TlTreeCombine(
+                                    event->treeline[package][region][type],
+                                    package, region,
+                                    tlayers,
+                                    dlayer,
+                                    fSearchTree);}
+                }
+                else continue;
+
+
 
 
                 /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
 
                 if (parttrack) fTreeSort->rcPartConnSort(parttrack);
 
+
                 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
-                event->parttrack[package][region][type] = parttrack;
-                event->AddPartialTrackList(parttrack);
+
+                if (parttrack) {
+                        event->parttrack[package][region][type] = parttrack;
+                        event->AddPartialTrackList(parttrack);
+                }
+
 
                 if (parttrack) {
                     if (fDebug) parttrack->Print();
@@ -895,6 +935,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
         * ============================== */
 
         // If there were partial tracks in the HDC and VDC regions
+
         if (! fDisableMomentum
          && event->parttrack[package][kRegionID2][kTypeDriftHDC]
          && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {

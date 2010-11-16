@@ -275,7 +275,8 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
                                                    fLumiDetectorID[i].fCombinedChannelNames[l]);
 
                   fCombinedPMT[ind].Add(&fIntegrationPMT[ind_pmt],fLumiDetectorID[i].fWeight[l]);
-                  std::cout<<"added combined pmt "<<fLumiDetectorID[i].fWeight[l] <<" to array"<<std::endl;
+
+                 if (ldebug) std::cout<<"added combined pmt "<<fLumiDetectorID[i].fWeight[l] <<" to array"<<std::endl;
                 }
               fCombinedPMT[ind].LinkChannel(fLumiDetectorID[i].fdetectorname);
               if (ldebug)
@@ -332,7 +333,8 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
   TString device_type,device_name;
   std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl;
   QwParameterFile mapstr(filename.Data());  //Open the file
-
+  Int_t det_index= -1; 
+  Double_t stabilitycut;
   samplesize = 0;
   check_flag = 0;
   eventcut_flag=1;
@@ -355,21 +357,43 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
       device_name= mapstr.GetNextToken(", ").c_str();
       device_name.ToLower();
 
+      det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+      if (det_index==-1){
+	QwWarning<<" Device not found "<<device_name<<" of type "<<device_type<<QwLog::endl;
+	continue;
+      }
       //set limits to zero
       ULX=0;
       LLX=0;
       ULY=0;
       LLY=0;
 
-      if (device_type == "integrationpmt"){
+      if (device_type == GetQwPMTInstrumentTypeName(kQwIntegrationPMT)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwLumi Error Code passing to QwIntegrationPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
 	//std::cout<<"*****************************"<<std::endl;
 	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
 
-	fIntegrationPMT[det_index].SetSingleEventCuts(LLX,ULX);
+	fIntegrationPMT[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);
+	//std::cout<<"*****************************"<<std::endl;
+
+      } else if (device_type == GetQwPMTInstrumentTypeName(kQwCombinedPMT)){
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwLumi Error Code passing to QwCombinedPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+
+	//std::cout<<"*****************************"<<std::endl;
+	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
+
+	fCombinedPMT[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);
 	//std::cout<<"*****************************"<<std::endl;
 
       }
@@ -379,6 +403,8 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
   }
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].SetEventCutMode(eventcut_flag);
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].SetEventCutMode(eventcut_flag);
 
   fQwLumiErrorCount=0; //set the error counter to zero
 
@@ -568,20 +594,21 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 //*****************************************************************
 Bool_t QwLumi::ApplySingleEventCuts(){
 
-  Bool_t test_IntegrationPMT=kTRUE;
-  Bool_t test_IntegrationPMT1=kTRUE;
-
+  Bool_t status=kTRUE;
   for(size_t i=0;i<fIntegrationPMT.size();i++){
-    test_IntegrationPMT1=fIntegrationPMT[i].ApplySingleEventCuts();
-    test_IntegrationPMT&=test_IntegrationPMT1;
-    if(!test_IntegrationPMT1 && bDEBUG)
-      std::cout<<"******* QwLumi::SingleEventCuts()->IntegrationPMT[ "<<i<<" , "
-	       <<fIntegrationPMT[i].GetElementName()<<" ] ******\n";
+    status &= fIntegrationPMT[i].ApplySingleEventCuts();
+    if(!status && bDEBUG) std::cout<<"******* QwLumi::SingleEventCuts()->IntegrationPMT[ "<<i<<" , "<<fIntegrationPMT[i].GetElementName()<<" ] ******\n"; 
   }
-  if (!test_IntegrationPMT1 || !test_IntegrationPMT)
-   fQwLumiErrorCount++;//BPM falied  event counter for QwLumi
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    status &= fCombinedPMT[i].ApplySingleEventCuts();
+    if(!status && bDEBUG) std::cout<<"******* QwLumi::SingleEventCuts()->CombinedPMT[ "<<i<<" , "<<fCombinedPMT[i].GetElementName()<<" ] ******\n"; 
+  }
 
-  return test_IntegrationPMT;
+
+  if (!status) 
+   fQwLumiErrorCount++;//falied  event counter for QwLumi
+
+  return status;
 
 };
 
@@ -589,21 +616,33 @@ Bool_t QwLumi::ApplySingleEventCuts(){
 //*****************************************************************
 Int_t QwLumi::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
 
-  std::cout<<"*********QwLumi Error Summary****************"<<std::endl;
+  QwMessage<<"*********QwLumi Error Summary****************"<<QwLog::endl;
   std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || EventCut\n";
   for(size_t i=0;i<fIntegrationPMT.size();i++){
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
-    fIntegrationPMT[i].ReportErrorCounters();
+    fIntegrationPMT[i].GetEventcutErrorCounters();
   }
-
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    //std::cout<<"  CombinedPMT ["<<i<<"] "<<std::endl;
+    fCombinedPMT[i].GetEventcutErrorCounters();
+  }
+  QwMessage<<"---------------------------------------------------"<<QwLog::endl;
+  QwMessage<<QwLog::endl;
   return 1;
 };
 
 
 //*****************************************************************
-Int_t QwLumi::GetEventcutErrorFlag(){//return the error flag
-
-  return 0;
+UInt_t QwLumi::GetEventcutErrorFlag(){//return the error flag
+  UInt_t ErrorFlag;
+  ErrorFlag=0;
+  for(size_t i=0;i<fIntegrationPMT.size();i++){
+    ErrorFlag |= fIntegrationPMT[i].GetEventcutErrorFlag();
+  }
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    ErrorFlag |= fCombinedPMT[i].GetEventcutErrorFlag();
+  }
+  return ErrorFlag;
 
 };
 

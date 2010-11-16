@@ -7,7 +7,9 @@
 ROC=1
 Bank=0x102
 !same sample size for ADCs in a given bank
-sample_size==480 
+!  The 1ms integration window (943 Hz) uses 480 samples, but the 960 Hz
+!  (972 us integration window) should use 464 samples.
+sample_size==464
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED

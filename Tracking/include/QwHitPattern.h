@@ -14,6 +14,7 @@
 
 // Qweak headers
 #include "VQwTrackingElement.h"
+#include "QwObjectCounter.h"
 
 // Forward declarations
 class QwHit;
@@ -40,7 +41,7 @@ class QwHitContainer;
  *   Number of bins at bottom = (1UL << (levels - 1)) == 2^(levels-1)
  * For e.g. 4 levels we need 1 + 2 + 4 + 8 = 15 = (2^4 - 1) bits.
  */
-class QwHitPattern: public VQwTrackingElement {
+class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPattern> {
 
   public:
 

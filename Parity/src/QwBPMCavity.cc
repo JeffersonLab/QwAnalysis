@@ -94,8 +94,8 @@ Bool_t QwBPMCavity::ApplyHWChecks()
       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;
       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
     }
-  fDeviceErrorCode|= fEffectiveCharge.ApplyHWChecks();
-
+  fDeviceErrorCode = fEffectiveCharge.ApplyHWChecks();
+  fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 
   return fEventIsGood;
 };
 
@@ -119,7 +119,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t i=0;
-
+  fErrorFlag=0;
   //Event cuts for X & Y
   for(i=0;i<2;i++){
 
@@ -127,30 +127,24 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fWire[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
 
-    //update the event cut counters
-    fWire[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for RelX/Y
-    fDeviceErrorCode|=fWire[i].GetEventcutErrorFlag();
+    fErrorFlag |=fWire[i].GetEventcutErrorFlag();
   }
   for(i=0;i<2;i++){
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
     else{
-      fRelPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
 
-    //update the event cut counters
-    fRelPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for RelX/Y
-    fDeviceErrorCode|=fRelPos[i].GetEventcutErrorFlag();
+    fErrorFlag |=fRelPos[i].GetEventcutErrorFlag();
   }
 
   for(i=0;i<2;i++){
@@ -158,14 +152,11 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fAbsPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //update the event cut counters
-    fAbsPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for AbsX/Y
-    fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();
+    fErrorFlag |=fAbsPos[i].GetEventcutErrorFlag();
 
   }
 
@@ -174,14 +165,11 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
     status&=kTRUE;
   }
   else{
-    fEffectiveCharge.UpdateEventCutErrorCount();
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //update the event cut counters
-  fEffectiveCharge.UpdateHWErrorCounters();
   //Get the Event cut error flag for EffectiveCharge
-  fDeviceErrorCode|=fEffectiveCharge.GetEventcutErrorFlag();
+  fErrorFlag |=fEffectiveCharge.GetEventcutErrorFlag();
 
 
   return status;
@@ -192,19 +180,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
 void QwBPMCavity::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
 
-  if (ch_name=="x"){
-    QwMessage<<"X LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-    fWire[0].SetSingleEventCuts(minX,maxX);
-
-  }else if (ch_name=="y"){
-    QwMessage<<"Y LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-    fWire[1].SetSingleEventCuts(minX,maxX);
-
-  }else if (ch_name=="q"){
-    QwMessage<<"Q LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-    fEffectiveCharge.SetSingleEventCuts(minX,maxX);
-
-  }else if (ch_name=="relx"){
+  if (ch_name=="relx"){
     QwMessage<<"RelX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
      fRelPos[0].SetSingleEventCuts(minX,maxX);
 
@@ -228,14 +204,45 @@ void QwBPMCavity::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t ma
 
 };
 
+void QwBPMCavity::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
+  errorflag|=kBPMErrorFlag;//update the device flag
+  if (ch_name=="relx"){
+    QwMessage<<"RelX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+     fRelPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability); 
+
+  }else if (ch_name=="rely"){
+    QwMessage<<"RelY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability); 
+
+  } else  if (ch_name=="absx"){
+    QwMessage<<"AbsX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability); 
+
+  }else if (ch_name=="absy"){
+    QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+      fAbsPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="effectivecharge"){
+    QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+     fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }
+
+};
+
+
 
 void  QwBPMCavity::ProcessEvent()
 {
   Bool_t localdebug = kFALSE;
   Short_t i = 0;
 
-  ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine here and not in ApplySingleEventCuts  makes a difference for a BPMs because they have derrived devices.
 
+  ApplyHWChecks();
+  /**First apply HW checks and update HW  error flags. 
+     Calling this routine here and not in ApplySingleEventCuts  
+     makes a difference for a BPMs because they have derrived devices.
+  */
   for(i=0;i<2;i++)
     {
       fWire[i].ProcessEvent();
