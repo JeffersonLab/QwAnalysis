@@ -187,6 +187,7 @@ class QwRootTree {
     Long64_t fMaxTreeSize;
     Long64_t fAutoFlush;
     Long64_t fAutoSave;
+    Int_t fBasketSize;
 
     /// Set maximum tree size
     void SetMaxTreeSize(Long64_t maxsize = 1900000000) {
@@ -195,17 +196,23 @@ class QwRootTree {
     }
 
     /// Set autoflush size
-    void SetAutoFlush(Long64_t autof = 30000000) {
-      fAutoFlush = autof;
+    void SetAutoFlush(Long64_t autoflush = 30000000) {
+      fAutoFlush = autoflush;
       #if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
-        if (fTree) fTree->SetAutoFlush(autof);
+        if (fTree) fTree->SetAutoFlush(autoflush);
       #endif
     }
 
     /// Set autosave size
-    void SetAutoSave(Long64_t autos = 300000000) {
-      fAutoSave = autos;
-      if (fTree) fTree->SetAutoSave(autos);
+    void SetAutoSave(Long64_t autosave = 300000000) {
+      fAutoSave = autosave;
+      if (fTree) fTree->SetAutoSave(autosave);
+    }
+
+    /// Set basket size
+    void SetBasketSize(Int_t basketsize = 16000) {
+      fBasketSize = basketsize;
+      if (fTree) fTree->SetBasketSize("*",basketsize);
     }
 
     //Set circular buffer size for the memory resident tree
@@ -380,6 +387,7 @@ class QwRootFile {
     void Close()  { if (fMapFile) fMapFile->Close();  if (fRootFile) fRootFile->Close(); }
     void Print()  { if (fMapFile) fMapFile->Print();  if (fRootFile) fRootFile->Print(); }
     void ls()     { if (fMapFile) fMapFile->ls();     if (fRootFile) fRootFile->ls(); }
+    void Map()    { if (fRootFile) fRootFile->Map(); }
 
     // Wrapped functionality
     Bool_t cd(const char* path = 0) {
@@ -423,6 +431,8 @@ class QwRootFile {
     TMapFile* fMapFile;
     Bool_t fEnableMapFile;
     Int_t fUpdateInterval;
+    Int_t fCompressionLevel;
+    Int_t fBasketSize;
     Int_t fAutoFlush;
     Int_t fAutoSave;
 
@@ -537,13 +547,15 @@ void QwRootFile::ConstructTreeBranches(
       fTreeByName[name].back()->SetPrescaling(fNumMpsEventsToSave, fNumMpsEventsToSkip);
     else if (name == "Hel_Tree")
       fTreeByName[name].back()->SetPrescaling(fNumHelEventsToSave, fNumHelEventsToSkip);
-    fTreeByName[name].back()->SetMaxTreeSize(kMaxTreeSize);
+
     #if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
-      fTreeByName[name].back()->SetAutoFlush(fAutoFlush);
+    fTreeByName[name].back()->SetAutoFlush(fAutoFlush);
     #endif
     fTreeByName[name].back()->SetAutoSave(fAutoSave);
+    fTreeByName[name].back()->SetBasketSize(fBasketSize);
+    fTreeByName[name].back()->SetMaxTreeSize(kMaxTreeSize);
 
-    if (fEnableMapFile && fCircularBufferSize>0)
+    if (fEnableMapFile && fCircularBufferSize > 0)
       fTreeByName[name].back()->SetCircular(fCircularBufferSize);
 
   } else {
@@ -625,10 +637,10 @@ void QwRootFile::ConstructHistograms(const std::string& name, T& detectors)
 
   // No support for directories in a map file
   if (fMapFile) {
-    std::cout << "QwRootFile::ConstructHistograms::detectors address "  
+    QwMessage << "QwRootFile::ConstructHistograms::detectors address "
 	      << &detectors  
 	      << " and its name " << name 
-	      << std::endl; 
+	      << QwLog::endl;
     
     std::string type = typeid(detectors).name();
     fDirsByName[name] = fMapFile->GetDirectory()->mkdir(name.c_str());
