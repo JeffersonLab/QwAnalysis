@@ -1011,7 +1011,7 @@ void QwTrackingTree::marklin (
  */
 
 QwTrackingTreeRegion* QwTrackingTree::readtree (
-	string filename,
+	const string& filename,
 	int levels,
 	int tlayers,
 	double rwidth,
@@ -1100,14 +1100,15 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
  */
 
 QwTrackingTreeRegion* QwTrackingTree::inittree (
-	string filename,
+	const string& filename,
 	int levels,
 	int tlayer,
 	double width,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
 	EQwRegionID region,
-	EQwDirectionID dir)
+	EQwDirectionID dir,
+	bool regenerate)
 {
 // TODO: This routine assumes that the directory 'trees' exists and doesn't create it itself. (wdconinc)
   QwTrackingTreeRegion *trr = 0;
@@ -1128,7 +1129,6 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 
   /*! Try to read in an existing database */
   QwMessage << "Attempting to read tree from " << filename << QwLog::endl;
-  bool regenerate = false; // flag to force regeneration every time
   trr = readtree(filename, levels, tlayer, width, regenerate);
   if (trr == 0) {
 
@@ -1244,7 +1244,7 @@ int QwTrackingTree::_writetree (treenode *tn, FILE *fp, int tlayers)
  */
 
 long QwTrackingTree::writetree (
-	string filename,
+	const string& filename,
 	treenode *tn,
 	int levels,
 	int tlayers,

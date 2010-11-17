@@ -81,6 +81,9 @@ class QwTrackingWorker {
     /// \brief Debug level
     int fDebug;
 
+    /// \brief Regenerate the search tree
+    bool fRegenerate;
+
     /// \brief Region 2 levels
     int fLevelsR2;
     /// \brief Region 3 levels
