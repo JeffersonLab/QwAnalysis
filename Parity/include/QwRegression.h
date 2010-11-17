@@ -13,7 +13,7 @@
 #include "QwSubsystemArrayParity.h"
 
 /**
- * ... info to follow ...
+ * ... info to follow ... really, I promise ...
  */
 class QwRegression {
 
@@ -31,7 +31,7 @@ class QwRegression {
         QwSubsystemArrayParity& event,
         QwHelicityPattern& helicitypattern);
     /// Virtual destructor
-    virtual ~QwRegression() { };
+    virtual ~QwRegression();
 
 
     /// \brief Define the configuration options
@@ -51,6 +51,19 @@ class QwRegression {
     /// \brief Linear regression
     void LinearRegression(EQwRegType type);
 
+
+    /// \name Tree and vector construction and maintenance
+    // @{
+    /// Construct the tree and vector for this subsystem
+    void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
+      TString tmpstr("");
+      ConstructBranchAndVector(tree,tmpstr,values);
+    };
+    /// \brief Construct a branch and vector for this subsystem with a prefix
+    void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values);
+    /// \brief Fill the vector for this subsystem
+    void FillTreeVector(std::vector<Double_t> &values) const;
+    // @}
 
   private:
 
@@ -74,7 +87,7 @@ class QwRegression {
     /// List of channels to use in the regression
     std::vector< EQwRegType > fDependentType;
     std::vector< std::string > fDependentName;
-    std::vector< VQwDataElement* > fDependentVar;
+    std::vector< std::pair< VQwDataElement*, VQwDataElement*> > fDependentVar;
     std::vector< std::vector< EQwRegType > > fIndependentType;
     std::vector< std::vector< std::string > > fIndependentName;
     std::vector< std::vector< VQwDataElement* > > fIndependentVar;

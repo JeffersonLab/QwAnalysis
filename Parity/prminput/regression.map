@@ -5,9 +5,9 @@
 # This is a simple case:
 #  two dependent variables
 #  two independent variables
-[diff:qwk_md1neg, diff:qwk_md1pos]
-diff:x_targ, 0.11, -0.11
-diff:y_targ, 0.12, -0.12
+[asym:qwk_md1neg, asym:qwk_md1pos]
+diff:x_targ, 0.0, -0.0
+diff:y_targ, 0.0, -0.0
 
 #  four independent variables
 #  asymmetry for dependent variables
@@ -18,14 +18,14 @@ diff:xp_targ, 0.10, -0.10
 diff:yp_targ, 0.09, -0.09
 
 #  four dependent variables
-[diff:qwk_md3neg, diff:qwk_md3pos, diff:qwk_md4neg, diff:qwk_md4pos]
+[asym:qwk_md3neg, asym:qwk_md3pos, asym:qwk_md4neg, asym:qwk_md4pos]
 diff:x_targ, 0.11, -0.11, 0.11, -0.11
 diff:y_targ, 0.12, -0.12, 0.12, -0.12
 diff:xp_targ, 0.10, -0.10, 0.10, -0.10
 diff:yp_targ, 0.09, -0.09, 0.09, -0.09
 
 #  eight dependent variables
-[diff:qwk_md5neg, diff:qwk_md5pos, diff:qwk_md6neg, diff:qwk_md6pos, diff:qwk_md7neg, diff:qwk_md7pos, diff:qwk_md8neg, diff:qwk_md8pos]
+[asym:qwk_md5neg, asym:qwk_md5pos, asym:qwk_md6neg, asym:qwk_md6pos, asym:qwk_md7neg, asym:qwk_md7pos, asym:qwk_md8neg, asym:qwk_md8pos]
 diff:x_targ, 0.11, -0.11, 0.11, -0.11, 0.11, -0.11, 0.11, -0.11
 diff:y_targ, 0.12, -0.12, 0.12, -0.12, 0.12, -0.12, 0.12, -0.12
 diff:xp_targ, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10, 0.10, -0.10
@@ -35,7 +35,10 @@ diff:yp_targ, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09, 0.09, -0.09
 # This is an event case:
 #  two dependent variables
 #  two independent variables
-[mps:qwk_md1neg, mps:qwk_md1pos]
-mps:x_targ, 0.11, -0.11
-mps:y_targ, 0.12, -0.12
+#
+# Currently disabled because of how we write ROOT trees
+#
+#[mps:qwk_md1neg, mps:qwk_md1pos]
+#mps:x_targ, 0.11, -0.11
+#mps:y_targ, 0.12, -0.12
 

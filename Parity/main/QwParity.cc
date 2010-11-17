@@ -97,6 +97,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwHelicityPattern helicitypattern(detectors);
     helicitypattern.ProcessOptions(gQwOptions);
 
+    ///  Create the linear regression
+    QwRegression regression(gQwOptions,detectors,helicitypattern);
+
     ///  Create the event ring
     QwEventRing eventring;
     eventring.ProcessOptions(gQwOptions);
@@ -122,15 +125,11 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Construct tree branches
     rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
-    rootfile->ConstructTreeBranches("Hel_Tree_Reg", "Helicity event data tree", helicitypattern);
+    rootfile->ConstructTreeBranches("Hel_Tree_Reg", "Helicity event data tree (regressed)", regression);
 
     // Summarize the ROOT file structure
     rootfile->PrintTrees();
     rootfile->PrintDirs();
-
-
-    //  Create linear regression object
-    QwRegression regression(gQwOptions,detectors,helicitypattern);
 
 
     //  Clear the single-event running sum at the beginning of the runlet
@@ -186,9 +185,6 @@ Int_t main(Int_t argc, Char_t* argv[])
         rootfile->FillTreeBranches(detectors);
         rootfile->FillTree("Mps_Tree");
 
-        // Linear regression on single events
-        regression.LinearRegression(QwRegression::kRegTypeMps);
-
         // Add event to the ring
         eventring.push(detectors);
 
@@ -204,25 +200,25 @@ Int_t main(Int_t argc, Char_t* argv[])
             // Update the blinder if conditions have changed
             helicitypattern.UpdateBlinder(detectors);
 
-            // Linear regression on differences
-            regression.LinearRegression(QwRegression::kRegTypeDiff);
-
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
             if (helicitypattern.IsGoodAsymmetry()) {
 
               // Fill histograms
               rootfile->FillHistograms(helicitypattern);
+
               // Fill tree branches
               rootfile->FillTreeBranches(helicitypattern);
               rootfile->FillTree("Hel_Tree");
 
+
               // Linear regression on asymmetries
               regression.LinearRegression(QwRegression::kRegTypeAsym);
 
-              // Fill tree branches
-              rootfile->FillTreeBranches(helicitypattern);
+              // Fill regressed tree branches
+              rootfile->FillTreeBranches(regression);
               rootfile->FillTree("Hel_Tree_Reg");
+
 
               // Clear the data
               helicitypattern.ClearEventData();
@@ -282,6 +278,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->DeleteHistograms(detectors);
     rootfile->DeleteHistograms(helicitypattern);
 
+    // Close ROOT file
+    rootfile->Close();
+    // Note: Closing rootfile too early causes segfaults when deleting histos
 
     //  Print the event cut error summary for each subsystem
     detectors.GetEventcutErrorCounters();

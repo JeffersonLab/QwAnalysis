@@ -28,6 +28,19 @@ QwRegression::QwRegression(
   fHelicityPattern = &helicitypattern;
 }
 
+
+/// Destructor
+QwRegression::~QwRegression()
+{
+  std::vector< std::pair< VQwDataElement*,VQwDataElement*> >::iterator element;
+  for (element = fDependentVar.begin();
+      element != fDependentVar.end(); element++) {
+    delete element->second;
+  }
+  fDependentVar.clear();
+}
+
+
 /** Parse the variable type and name from a section header
  *
  * @param variable String with variable type and name
@@ -59,6 +72,12 @@ std::pair<QwRegression::EQwRegType,std::string> QwRegression::ParseRegressionVar
   return type_name;
 }
 
+
+/** Load the channel map
+ *
+ * @param mapfile Filename of map file
+ * @return Zero when success
+ */
 Int_t QwRegression::LoadChannelMap(const std::string& mapfile)
 {
   // Return if regression is not enabled
@@ -122,7 +141,13 @@ Int_t QwRegression::LoadChannelMap(const std::string& mapfile)
   return 0;
 }
 
-
+/** Connect to the dependent and independent channels
+ *
+ * @param event Helicity event structure
+ * @param asym Asymmetry event structure
+ * @param diff Difference event structure
+ * @return Zero on success
+ */
 Int_t QwRegression::ConnectChannels(
     QwSubsystemArrayParity& event,
     QwSubsystemArrayParity& asym,
@@ -150,9 +175,13 @@ Int_t QwRegression::ConnectChannels(
                   << QwLog::endl;
         break;
     }
-    if (dv_ptr) {
+    QwVQWK_Channel* vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
+    if (vqwk) {
       QwMessage << "dv: " << fDependentName.at(dv) << QwLog::endl;
-      fDependentVar.push_back(dv_ptr);
+      // Store dependent variable as pointer and make copy
+      QwVQWK_Channel* new_vqwk = new QwVQWK_Channel(); new_vqwk->Copy(vqwk);
+      fDependentVar.push_back(std::pair<VQwDataElement*,VQwDataElement*>(vqwk, new_vqwk));
+      // Add independent variables
       fIndependentVar.resize(fDependentVar.size());
       for (size_t iv = 0; iv < fIndependentName.at(dv).size(); iv++) {
         // Get the independent variables
@@ -183,8 +212,8 @@ Int_t QwRegression::ConnectChannels(
         }
       }
     } else {
-      QwWarning << "Dependent variable " << fDependentName.at(dv) << " could not be found."
-                << QwLog::endl;
+      QwWarning << "Dependent variable " << fDependentName.at(dv) << " could not be found, "
+                << "or is not a VQWK channel." << QwLog::endl;
     }
   }
   return 0;
@@ -201,7 +230,7 @@ void QwRegression::DefineOptions(QwOptions &options)
     ("enable-regression", po::value<bool>()->zero_tokens()->default_value(false),
      "enable linear regression");
   options.AddOptions("Linear regression")
-    ("regression-variable-map", po::value<std::string>()->default_value("regression.map"),
+    ("regression-map", po::value<std::string>()->default_value("regression.map"),
      "variables and sensitivities for regression");
 }
 
@@ -212,7 +241,7 @@ void QwRegression::DefineOptions(QwOptions &options)
 void QwRegression::ProcessOptions(QwOptions &options)
 {
   fEnableRegression = options.GetValue<bool>("enable-regression");
-  fRegressionMapFile = options.GetValue<std::string>("regression-variable-map");
+  fRegressionMapFile = options.GetValue<std::string>("regression-map");
 }
 
 
@@ -222,16 +251,67 @@ void QwRegression::LinearRegression(EQwRegType type)
   // Return if regression is not enabled
   if (! fEnableRegression) return;
 
-  // Linear regression
+  // Linear regression for each dependent variable
   for (size_t dv = 0; dv < fDependentVar.size(); dv++) {
+    // For correct type (asym, diff, mps)
     if (fDependentType.at(dv) != type) continue;
+    // Start from original dependent value
+    QwVQWK_Channel* vqwk = dynamic_cast<QwVQWK_Channel*>(fDependentVar.at(dv).second);
+    if (vqwk) vqwk->Copy(fDependentVar.at(dv).first);
+    else continue;
+    // Add corrections
     for (size_t iv = 0; iv < fIndependentVar.at(dv).size(); iv++) {
       // TODO: avoid the need for a temporary channel here by defining
       // the proper operators
-      QwVQWK_Channel correction("correction");
+      static QwVQWK_Channel correction("correction");
       correction.Copy(fIndependentVar.at(dv).at(iv));
       correction.Scale(fSensitivity.at(dv).at(iv));
-      *(fDependentVar.at(dv)) += correction;
+      *(fDependentVar.at(dv).second) += correction;
     }
   }
 }
+
+
+/**
+ * Construct the branch and tree vector
+ * @param tree Tree
+ * @param prefix Prefix
+ * @param values Vector of values
+ */
+void  QwRegression::ConstructBranchAndVector(
+    TTree *tree,
+    TString& prefix,
+    std::vector<Double_t>& values)
+{
+  for (size_t element = 0; element < fDependentVar.size(); ++element) {
+    switch (fDependentType.at(element)) {
+      case kRegTypeAsym:
+        prefix = "asym_"; break;
+      case kRegTypeDiff:
+        prefix = "diff_"; break;
+      case kRegTypeMps:
+        prefix = ""; break;
+      default: // nothing
+        break;
+    }
+    // Only QwVQWK_Channel has support for branch vectors built in
+    QwVQWK_Channel* vqwk = dynamic_cast<QwVQWK_Channel*>(fDependentVar.at(element).second);
+    if (vqwk) vqwk->ConstructBranchAndVector(tree, prefix, values);
+  }
+};
+
+/**
+ * Fill the tree vector
+ * @param values Vector of values
+ */
+void QwRegression::FillTreeVector(std::vector<Double_t>& values) const
+{
+  // Fill the data element
+  std::vector< std::pair<VQwDataElement*, VQwDataElement*> >::const_iterator element;
+  for (element = fDependentVar.begin();
+      element != fDependentVar.end(); ++element) {
+    // Only QwVQWK_Channel has support for branch vectors built in
+    const QwVQWK_Channel* vqwk = dynamic_cast<const QwVQWK_Channel*>(element->second);
+    if (vqwk) vqwk->FillTreeVector(values);
+  }
+};
