@@ -799,10 +799,6 @@ void MQwSIS3320_Channel::Copy(MQwSIS3320_Channel *source)
          this->fChannel                = source->fChannel;
          this->fHasSamplingData        = source->fHasSamplingData;
          this->fHasAccumulatorData     = source->fHasAccumulatorData;
-         this->fRandomnessGenerator    = source->fRandomnessGenerator;
-         this->fNormalDistribution     = source->fNormalDistribution;
-         //this->kVoltsPerBit            = source->kVoltsPerBit;
-         //this->kNanoSecondsPerSample   = source->kNanoSecondsPerSample;
          this->fPedestal               = source->fPedestal;
          this->fCalibrationFactor      = source->fCalibrationFactor;
          this->fCurrentEvent           = source->fCurrentEvent;
