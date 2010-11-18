@@ -93,6 +93,9 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     VQwSubsystem*  Copy();
 
     Bool_t Compare(VQwSubsystem *source);
+    Bool_t CompareADC(VQwSubsystem *source);
+    Bool_t CompareTDC(VQwSubsystem *source);
+    Bool_t CompareQDC(VQwSubsystem *source);
 
     void PrintValue() const;
     void PrintInfo() const;

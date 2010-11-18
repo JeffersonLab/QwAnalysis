@@ -459,6 +459,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator= (const MQwSIS3320_Channel &val
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
       fSamples[i] = value.fSamples.at(i);
+    for (size_t i = 0; i < fAccumulators.size(); i++ ) {
+      fAccumulators[i] = value.fAccumulators.at(i);
+    }
   }
   return *this;
 };

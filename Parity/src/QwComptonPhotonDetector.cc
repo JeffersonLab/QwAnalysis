@@ -523,15 +523,24 @@ void QwComptonPhotonDetector::ClearEventData()
  */
 VQwSubsystem&  QwComptonPhotonDetector::operator=  (VQwSubsystem *value)
 {
-  if (Compare(value)) {
+  if (CompareADC(value)) {
     QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(value);
     for (size_t i = 0; i < input->fSamplingADC.size(); i++)
       this->fSamplingADC[i] = input->fSamplingADC[i];
+  }
+
+  if (CompareTDC(value)) {
+    QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(value);
     for (size_t i = 0; i < input->fMultiTDC_Channel.size();i++)
       this->fMultiTDC_Channel[i] = input->fMultiTDC_Channel[i];
+  }
+
+  if (CompareQDC(value)) {
+    QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(value);
     for (size_t i = 0; i < input->fMultiQDC_Channel.size();i++)
       this->fMultiQDC_Channel[i] = input->fMultiQDC_Channel[i];
   }
+
   return *this;
 };
 
@@ -663,6 +672,80 @@ Bool_t QwComptonPhotonDetector::Compare(VQwSubsystem *value)
   }
   return result;
 }
+
+/**
+ * Compare two QwComptonPhotonDetector ADC objects
+ * @param value Object to compare with
+ * @return kTRUE if the object is equal
+ */
+Bool_t QwComptonPhotonDetector::CompareADC(VQwSubsystem *value)
+{
+  // Immediately fail on null objects
+  if (value == 0) return kFALSE;
+
+  // Continue testing on actual object
+  Bool_t result = kTRUE;
+  if (typeid(*value) != typeid(*this)) {
+    result = kFALSE;
+
+  } else {
+    QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*> (value);
+    if (input->fSamplingADC.size() != fSamplingADC.size()) {
+      result = kFALSE;
+    }
+  }
+  return result;
+}
+
+/**
+ * Compare two QwComptonPhotonDetector TDC objects
+ * @param value Object to compare with
+ * @return kTRUE if the object is equal
+ */
+Bool_t QwComptonPhotonDetector::CompareTDC(VQwSubsystem *value)
+{
+  // Immediately fail on null objects
+  if (value == 0) return kFALSE;
+
+  // Continue testing on actual object
+  Bool_t result = kTRUE;
+  if (typeid(*value) != typeid(*this)) {
+    result = kFALSE;
+
+  } else {
+    QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*> (value);
+    if (input->fMultiTDC_Channel.size() != fMultiTDC_Channel.size()) {
+      result = kFALSE;
+    }
+  }
+  return result;
+}
+
+/**
+ * Compare two QwComptonPhotonDetector QDC objects
+ * @param value Object to compare with
+ * @return kTRUE if the object is equal
+ */
+Bool_t QwComptonPhotonDetector::CompareQDC(VQwSubsystem *value)
+{
+  // Immediately fail on null objects
+  if (value == 0) return kFALSE;
+
+  // Continue testing on actual object
+  Bool_t result = kTRUE;
+  if (typeid(*value) != typeid(*this)) {
+    result = kFALSE;
+
+  } else {
+    QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*> (value);
+    if (input->fMultiQDC_Channel.size() != fMultiQDC_Channel.size()) {
+      result = kFALSE;
+    }
+  }
+  return result;
+}
+
+
 
 /**
  * Construct the histograms
