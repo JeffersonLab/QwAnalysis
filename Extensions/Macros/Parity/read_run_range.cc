@@ -114,13 +114,13 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetTitleXOffset(0.7);
   gStyle->SetTitleX(0.08);
   gStyle->SetTitleW(0.6);
-  gStyle->SetTitleSize(0.05);
+  gStyle->SetTitleSize(0.07);
   gStyle->SetTitleOffset(1.5);
   gStyle->SetTitleBorderSize(1);
   gStyle->SetTitleFillColor(kYellow-8);
   gStyle->SetTitleFontSize(0.08);
-  gStyle->SetLabelSize(0.04,"x");
-  gStyle->SetLabelSize(0.04,"y");
+  gStyle->SetLabelSize(0.06,"x");
+  gStyle->SetLabelSize(0.06,"y");
   gStyle->SetHistMinimumZero();
   gStyle->SetBarOffset(0.25);
   gStyle->SetBarWidth(0.5);
@@ -163,7 +163,19 @@ int main(Int_t argc,Char_t* argv[])
     std::cout<<"Get mean and mean error for "<<property<<" of "<<device<<std::endl;
 
   }
-   
+  std::cout<<"Enter current? enter 1 for yes and 0 for no"<<std::endl;
+  Int_t op = 0;
+  Double_t current = 0;
+  Double_t Ilcut = 0;
+  Double_t Iucut = 0;
+  std::cin>>op;
+  if(op == 1){
+    std::cout<<"current ~ "<<std::endl;
+    std::cin>>current;
+    Ilcut = current * 0.95;
+    Iucut = current*1.05;
+  }
+
   // Now clear out what we want to get from where.
   // Q:Which tree to access?
   // Q:What histogram to get?
@@ -177,33 +189,41 @@ int main(Int_t argc,Char_t* argv[])
   TVectorD error(0);
   TVectorD runs(0);
   TVectorD fakeerror(0);
+  std::vector<TString> labels;
+
   TString filename = "";
   file_list.clear();
+  labels.clear();
+  TString currentcut;
+
   Char_t  treename[200];
+
   for(Int_t run = run1; run< run2+1; run++){
  
     // first create chains
     if(property.Contains("d")||property.Contains("a")||property.Contains("y")){
       tree = new TChain("Hel_Tree");
       sprintf(treename,"Hel_Tree");
+      currentcut = "yield_qwk_bcm1.hw_sum";
       if(property.Contains("y")){
 	histoname = Form("yield_%s.hw_sum>>htemp",device.Data());
-	cut = Form("yield_%s.Device_Error_Code == 0",device.Data());
+	cut = Form("yield_%s.Device_Error_Code == 0 && yield_qwk_bcm1.Device_Error_Code == 0",device.Data());
       }
       if(property.Contains("a")){
 	histoname = Form("asym_%s.hw_sum>>htemp",device.Data());
-	cut = Form("asym_%s.Device_Error_Code == 0",device.Data());
+	cut = Form("asym_%s.Device_Error_Code == 0 && asym_qwk_bcm1.Device_Error_Code == 0",device.Data());
       }
       if(property.Contains("d")){
 	histoname = Form("diff_%s.hw_sum>>htemp",device.Data());
-	cut = Form("diff_%s.Device_Error_Code == 0",device.Data());
+	cut = Form("diff_%s.Device_Error_Code == 0 && yield_qwk_bcm1.Device_Error_Code == 0",device.Data());
       }
     }
     else if (property.Contains("s")){
       tree = new TChain("Mps_Tree");
+      currentcut = "qwk_bcm1.hw_sum";
       sprintf(treename,"Mps_Tree");
       histoname = Form("%s.hw_sum>>htemp",device.Data());
-      cut = Form("%s.Device_Error_Code == 0",device.Data());
+      cut = Form("%s.Device_Error_Code == 0 && qwk_bcm1.Device_Error_Code == 0",device.Data());
     }
     else{
       std::cout<<"Requested unknown "<<property<<" from device "<<device<<".\n I don't know this"<<std::endl;
@@ -236,16 +256,36 @@ int main(Int_t argc,Char_t* argv[])
       
       //Found rootfiles for this run, get the histogram info from them.
       TH1F* htemp = NULL;
+      TH1F* htemp1 = NULL;
       Double_t meanl = 0;
       Double_t errorl = 0;
       Double_t widthl = 0.0;
 
-      for(Int_t i = 0;i<file_list.size();i++){
+      TString tcut;
+
+      for(size_t i = 0;i<file_list.size();i++){
 	TFile* f = new TFile(file_list[i]->GetName()); 
 	TTree* nt = (TTree*)(f->Get(treename));
-	std::cout<<file_list[i]->GetName()<<std::endl;
 	if(!nt) exit(1);
-	nt->Draw(histoname,cut);
+	nt->Draw(Form("%s>>htemp1",currentcut.Data()), cut);
+	htemp1 = (TH1F*)gDirectory->Get("htemp1");
+
+	if (!htemp1){
+	  std::cerr<<"Cannot apply current cuts of +- 10%"<<std::endl;
+	  tcut = cut;
+	} else{
+	  if(op == 1)
+	    tcut = Form("%s && %s>%f && %s < %f",cut.Data(),currentcut.Data(),
+			Ilcut, currentcut.Data(), Iucut);
+	  else{
+	    Ilcut = htemp1->GetMean()*0.95;
+	    Iucut = htemp1->GetMean()*1.05;
+	    tcut = Form("%s && %s>%f && %s < %f",cut.Data(),currentcut.Data(),
+			Ilcut, currentcut.Data(), Iucut);
+	  }
+	}
+	//	std::cout<<tcut<<std::endl;
+	nt->Draw(histoname,tcut);
 	htemp = (TH1F*)gDirectory->Get("htemp");
 	if (!htemp){
 	  std::cerr<<"Histogram name does not exist"<<std::endl;
@@ -276,8 +316,8 @@ int main(Int_t argc,Char_t* argv[])
 	      error.operator()(k) = errorl;
 	      sigma.operator()(k) = widthl; // the width in root is called the RMS.
 	    }
-	    
 	    runs.operator()(k)      = run+(i*0.1);
+	    labels.push_back(Form("%4.1f",runs[i]));
 	    fakeerror.operator()(k) = 0.0;
 	    k++;
 	  }
@@ -289,6 +329,7 @@ int main(Int_t argc,Char_t* argv[])
   }
 
   c1->Close();
+
 
   // If all the available histograms have 0 netries, nothing to plot. exit.
   if(mean.GetNoElements() == 0){
@@ -317,13 +358,19 @@ int main(Int_t argc,Char_t* argv[])
   }
   g->GetYaxis()->SetTitle(Form("%s %s",device.Data(), prop.Data()));
   g->GetXaxis()->SetTitle("run number");
-  //  g->SetTitle(Form("%s  %s  during run range %i to %i",device.Data(), prop.Data(),run1, run2));
+
+
+//   Int_t nbins = g  // draw labels along X
+// h->GetXaxis()->GetNbins();
+//   std::cout<<nbins<<std::endl;
+//   for(size_t i=0;i<labels.size();i++)
+//     gh -> GetXaxis()->SetBinLabel(i+1,labels[i]);
+
   g->SetMarkerColor(kBlue);
   g->SetMarkerStyle(21);
   g->SetMarkerSize(0.7);
   g->SetLineWidth(2);
   g->SetLineColor(2);
-  //  g->Fit("pol0");
 
 
   g1->SetTitle("");
@@ -331,7 +378,7 @@ int main(Int_t argc,Char_t* argv[])
   
   // Create a canvas 
   TString title = Form("Run range summary of %s %s for runs %i to %i",device.Data(), prop.Data(),run1,run2);
-  TCanvas *canvas = new TCanvas("canvas",title,800,600);
+  TCanvas *canvas = new TCanvas("canvas",title,1200,600);
   canvas->SetFillColor(kYellow-8);
   TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
   TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
@@ -346,7 +393,27 @@ int main(Int_t argc,Char_t* argv[])
   pad2->Divide(1,2);
   pad2->cd(1);
   g->Draw("APE1");
+
+//   // draw labels along X
+//   TH1F* gh = g->GetHistogram();
+//   gh->GetXaxis()->SetLabelOffset(99);
+//   gh->GetYaxis()->SetLabelOffset(99);
+//   std::cout<<"here\n";
+//   std::cout<<gPad->GetUymin();
+//   Float_t xaxis = 0, yaxis = 0;
+//   yaxis = gPad->GetUymin()- 0.2*(gh->GetYaxis()->GetBinWidth(1));
+
+//   TText tl;
+//   tl.SetTextAngle(60);
+//   tl.SetTextSize(0.02);
+//   tl.SetTextAlign(33);
+//   for(size_t i=0;i<labels.size();i++) {
+//     xaxis = gh->GetXaxis()->GetBinCenter(i+1);
+//     tl.DrawText(xaxis,yaxis,labels[i]);
+//   }
   
+//   g->Draw("APE1");
+
   pad2->cd(2);
   //  gPad->SetLogy();
   g1->Draw("ABP");
