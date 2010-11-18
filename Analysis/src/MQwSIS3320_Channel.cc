@@ -537,7 +537,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &va
  */
 void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
 {
-  *this =  value1;
+  *this  =  value1;
   *this += value2;
 };
 
@@ -548,9 +548,17 @@ void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &val
  */
 void MQwSIS3320_Channel::Difference(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
 {
-  *this =  value1;
+  *this  =  value1;
   *this -= value2;
-};
+}
+
+void MQwSIS3320_Channel::Ratio(MQwSIS3320_Channel &numer, MQwSIS3320_Channel &denom)
+{
+  if (!IsNameEmpty()) {
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators[i].Ratio(numer.fAccumulators[i],denom.fAccumulators[i]);
+  }
+}
 
 /**
  * Addition of a offset

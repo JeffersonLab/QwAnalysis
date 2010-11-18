@@ -95,7 +95,8 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator* (const Double_t &
 const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator/ (const Double_t &value) const
 {
   MQwSIS3320_Accumulator result = *this;
-  result /= value;
+  if (value != 0)
+    result /= value;
   return result;
 };
 
@@ -120,7 +121,8 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator*= (const Double_t &valu
 MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator/= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
-    this->fAccumulatorSum /= value;
+    if (value != 0.0)
+      this->fAccumulatorSum /= value;
   }
   return *this;
 };
@@ -216,6 +218,30 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const MQwSIS3320_Acc
   }
   return *this;
 };
+
+
+void MQwSIS3320_Accumulator::Sum(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2)
+{
+  *this  = value1;
+  *this += value2;
+}
+
+
+void MQwSIS3320_Accumulator::Difference(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2)
+{
+  *this  = value1;
+  *this -= value2;
+}
+
+
+void MQwSIS3320_Accumulator::Ratio(const MQwSIS3320_Accumulator &numer, const MQwSIS3320_Accumulator &denom)
+{
+  if (!IsNameEmpty()) {
+    if (denom.fAccumulatorSum != 0.0)
+      fAccumulatorSum = numer.fAccumulatorSum / denom.fAccumulatorSum;
+    fNumberOfSamples = numer.fNumberOfSamples + denom.fNumberOfSamples;
+  }
+}
 
 
 void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
