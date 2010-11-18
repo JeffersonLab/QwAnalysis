@@ -5,7 +5,8 @@
 std::string QwRootFile::fDefaultRootFileStem = "Qweak_";
 
 const Long64_t QwRootFile::kMaxTreeSize = 10000000000LL;
-const Int_t QwRootFile::kMaxMapFileSize = 0x20000000; // 512 MiB
+//const Int_t QwRootFile::kMaxMapFileSize = 0x20000000; // 512 MiB
+const Int_t QwRootFile::kMaxMapFileSize = 0x10000000; // 256 MiB
 
 /**
  * Constructor with relative filename
@@ -18,7 +19,25 @@ QwRootFile::QwRootFile(const TString& run_label)
 
   // Check for the memory-mapped file flag
   if (fEnableMapFile) {
-    TString mapfilename = getenv_safe_TString("QW_ROOTFILES");
+
+    // // get hostname and user name
+    // char host_string[127];
+    // char user_string[127];
+    
+    // gethostname(host_string, 127);
+    // getlogin_r (user_string, 127);
+    
+    // TString host_name = host_string;
+    // TString user_name = user_string;
+    TString mapfilename = "/dev/shm/";
+
+    // if( host_name.Contains("cdaql4") and (not user_name.CompareTo("cdaq", TString::kExact)) ) {
+    //   mapfilename = "/local/scratch/qweak/";
+    // }
+    // else {
+    //   mapfilename = getenv_safe_TString("QW_ROOTFILES");
+    // }
+
     mapfilename += "/QwMemMapFile.map";
  
     fMapFile = TMapFile::Create(mapfilename,"RECREATE", kMaxMapFileSize, "RealTime Producer File");

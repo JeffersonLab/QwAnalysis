@@ -3,6 +3,7 @@
 
 // System headers
 #include <typeinfo>
+#include <unistd.h>
 
 // ROOT headers
 #include <TFile.h>
@@ -11,7 +12,6 @@
 
 // Qweak headers
 #include "QwOptions.h"
-//#include "QwMapFile.h"
 #include "TMapFile.h"
 
 

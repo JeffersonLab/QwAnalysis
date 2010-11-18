@@ -33,8 +33,9 @@
 
 #include "QwGUIMain.h"
 
-const Int_t QwGUIMain::kMaxMapFileSize = 0x20000000; // 512 MiB
-
+//const Int_t QwGUIMain::kMaxMapFileSize = 0x20000000; // 512 MiB
+const Int_t QwGUIMain::kMaxMapFileSize = 0x10000000; // 256 MiB
+//const Int_t QwGUIMain::kCharLength = 127;
 
 QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   : TGMainFrame(p, w, h), dMWWidth(w), dMWHeight(h), dClArgs(clargs)
@@ -473,8 +474,25 @@ Bool_t QwGUIMain::OpenMapFile()
 
   this-> CloseMapFile();
 
-  TString mapfilename = gSystem->Getenv("QW_ROOTFILES");
-  mapfilename += "/QwMemMapFile.map";
+  // // get hostname and user name
+  // char host_string[kCharLength];
+  // char user_string[kCharLength];
+
+  // gethostname(host_string, kCharLength);
+  // getlogin_r (user_string, kCharLength);
+  
+  // TString host_name = host_string;
+  // TString user_name = user_string;
+   TString mapfilename = "/dev/shm/";
+  
+  // if( (host_name.Contains("cdaql4")) and (not user_name.CompareTo("cdaq", TString::kExact)) ) {
+   //   mapfilename = "/local/scratch/qweak/";
+  // }
+  // else {
+  //   mapfilename = gSystem->Getenv("QW_ROOTFILES");
+  // }
+
+   mapfilename += "/QwMemMapFile.map";
 
 
   // hmmm, strange, I cannot catch any error here, 
@@ -482,24 +500,24 @@ Bool_t QwGUIMain::OpenMapFile()
   // Friday, October 29 16:19:35 EDT 2010, jhlee
 
 
-  // try 
-  //   {
+  try 
+    {
   //  printf("Reading %s\n", mapfilename.Data());
   //   new TMapFile(mapfilename, "", "READ", kMaxMapFileSize , dMemoryMapFile); // protected..
   //   dMemoryMapFile = TMapFile::Create(mapfilename, "READ",  kMaxMapFileSize, ""); //// default is "read"
   dMemoryMapFile = TMapFile::Create(mapfilename);
-  //   }
-  // catch  (std::exception& e)
-  //   {
-  //     std::cerr << "exception caught: " << e.what() << std::endl;
-  //   }
+    }
+  catch  (std::exception& e)
+    {
+      std::cerr << "exception caught: " << e.what() << std::endl;
+    }
   
   if ((dMemoryMapFile->IsOnHeap()) && not (dMemoryMapFile->IsZombie()) ) {
-    //    printf("===== QwRealTimeGUI Reads the RealTime Producer Memory Map File ======\n");
+    printf("===== QwRealTimeGUI Reads the RealTime Producer Memory Map File ======\n");
     //    std::cout << dMemoryMapFile << std::endl;
     dMemoryMapFile->Print();
     dMapFileOpen = true;
-    //    printf("======================================================================\n");
+    printf("======================================================================\n");
   
   }
   else {
