@@ -48,6 +48,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
     /// \brief Get the subsystem with the specified name
     VQwSubsystemParity* GetSubsystemByName(const TString& name);
+    /// \brief Construct a branch and vector for this subsystem with a prefix
+    void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values);
     /// \brief Fill the vector for this subsystem
     void FillTreeVector(std::vector<Double_t>& values) const;
 
@@ -95,7 +97,11 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// \brief Report the number of events failed due to HW and event cut failures
     Int_t GetEventcutErrorCounters();
     /// \brief Return the error flag to the main routine
-    UInt_t GetEventcutErrorFlag();
+    UInt_t GetEventcutErrorFlag() const;
+    /// \brief Return the error flag to the main routine
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+      fErrorFlag|=errorflag;
+    };
 
     /// \brief Print value of all channels
     void PrintValue() const;

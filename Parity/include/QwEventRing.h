@@ -42,7 +42,9 @@ class QwEventRing {
   /// \brief Return the read status of the ring
   Bool_t IsReady();
   /// \brief Update parameters when an event fails
-  void FailedEvent(Int_t);
+  void FailedEvent(UInt_t);
+  /// \brief check the error flag and flag with kBeamTripError for failed events in ev mode = 3
+  Bool_t CheckEvent(UInt_t);
 
   Int_t GetFailedEventCount() const { return fFailedEventCount; };
 
@@ -62,8 +64,7 @@ class QwEventRing {
   
   Int_t fEventsSinceLastTrip;//no.of good events after a beam trip
   Int_t fFailedEventCount;//Counts on.of failed events. if the fFailedEventCount> Min_BT_COUNT then we have a beam trip
-
-  
+    
   Bool_t bGoodEvent; //beam trip status.
   //kTRUE -> At present no beam trip occurred
   //kFALSE -> A beam trip occurred
@@ -74,7 +75,10 @@ class QwEventRing {
   //all the events in the ring
   std::vector<QwSubsystemArrayParity> fEvent_Ring;
 
-
+  //parameters used in event cut mode 3
+  Bool_t  bGoodEvent_ev3; //beam trip status in event cut mode 3
+  Bool_t bEVENT_READY_ev3; //After a beam trip this is set to kFALSE, after flagging  LEAVE_COUNT no.of good event this is set to kTRUE
+  
   //for debugging purposes
   
   FILE *out_file;   

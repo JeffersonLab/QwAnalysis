@@ -447,11 +447,6 @@ void  QwSubsystemArray::ConstructBranchAndVector(
     VQwSubsystem* subsys_ptr = dynamic_cast<VQwSubsystem*>(subsys->get());
     subsys_ptr->ConstructBranchAndVector(tree, prefix, values);
   }
-  values.push_back(0.0);
-  if (prefix=="asym_" || prefix=="")
-    tree->Branch("ErrorFlag",&(values[values.size()-1]),"ErrorFlag/D");
-
-  //tree->Branch(Form("%sErrorFlag",prefix.Data()),&(values[values.size()-1]),Form("%sErrorFlag/D",prefix.Data()));
 
 };
 
