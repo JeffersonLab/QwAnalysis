@@ -771,7 +771,6 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
       values[index++] = -1;
       values[index++] = -1;
       values[index++] = -1;
-      values[index++] = -1;
       for (size_t j=0; j<128; j++) {
 	values[index++] = -1;
       }
