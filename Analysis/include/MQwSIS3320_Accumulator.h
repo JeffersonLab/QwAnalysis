@@ -78,6 +78,7 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
+    void  DeleteHistograms();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values) const;

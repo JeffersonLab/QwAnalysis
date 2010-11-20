@@ -54,7 +54,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
   // Process preamble
   QwVerbose << "Preamble:" << QwLog::endl;
   QwVerbose << *preamble << QwLog::endl;
-
+  if (preamble) delete preamble;
 
   QwParameterFile* section;
   std::string section_name;

@@ -370,9 +370,12 @@ void MQwSIS3320_Channel::ProcessEvent()
   // Correct for pedestal and calibration factor
   if (fSamplesRaw.size() > 0) fSamples.resize(fSamplesRaw.size(), fSamplesRaw[0]);
   for (size_t i = 0; i < fSamplesRaw.size(); i++) {
-    fSamples[i] = (fSamplesRaw[i] - fPedestal) * fCalibrationFactor;
+    fSamples[i] = fSamplesRaw[i];
+    fSamples[i] -= fPedestal;
+    fSamples[i] *= fCalibrationFactor;
   }
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
+    fAccumulators[i] = fAccumulatorsRaw[i];
     fAccumulators[i] -= fPedestal * fAccumulatorsRaw[i].GetNumberOfSamples();
     fAccumulators[i] *= fCalibrationFactor;
   }
@@ -666,6 +669,16 @@ void MQwSIS3320_Channel::FillHistograms()
   }
 };
 
+void  MQwSIS3320_Channel::DeleteHistograms()
+{
+  for (UInt_t i = 0; i < fHistograms.size(); i++) {
+    if (fHistograms[i] != NULL)
+      fHistograms[i]->Delete();
+    fHistograms[i] = NULL;
+  }
+  fHistograms.clear();
+};
+
 
 void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
@@ -681,7 +694,7 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   // TODO See below for issues with including samples in the mps tree
 
   // This is a quick and dirty way to read out the samples MMD
-  TString basename = prefix + GetElementName();
+  TString basename = prefix + GetElementName() + "_samples";
   fTreeArrayIndex  = values.size();
   
   values.push_back(0.0);
@@ -745,6 +758,7 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
       values[index++] = max.second;
       values[index++] = fSamples[0].GetSum();
     } else {
+      values[index++] = -1;
       values[index++] = -1;
       values[index++] = -1;
       values[index++] = -1;

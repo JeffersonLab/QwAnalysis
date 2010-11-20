@@ -75,6 +75,10 @@ class QwRootTree {
       ConstructBranchAndVector(detectors);
     }
 
+    /// Destructor
+    virtual ~QwRootTree() {
+      delete fTree;
+    }
 
     /// Construct the tree
     void ConstructNewTree(const std::string& name, const std::string& desc) {
