@@ -696,11 +696,9 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   // This is a quick and dirty way to read out the samples MMD
   TString basename = prefix + GetElementName() + "_samples";
   fTreeArrayIndex  = values.size();
-  
+
   values.push_back(0.0);
-  TString list = "sample0/D";
-  values.push_back(0.0);
-  list += ":i_min/D";
+  TString list = "i_min/D";
   values.push_back(0.0);
   list += ":sw_min/D";
   values.push_back(0.0);
@@ -709,6 +707,14 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   list += ":sw_max/D";
   values.push_back(0.0);
   list += ":sw_sum/D";
+  values.push_back(0.0);
+  list += ":sample0/D";  
+  // this bit is a horrible kludge to read out the full sample set MMD
+  for (int ij=1; ij<128; ij++) {
+    values.push_back(0.0);
+    list += Form(":s%i/D",ij);
+  }
+  // end kludge MMD
   
   fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
   tree->Branch(basename, &(values[fTreeArrayIndex]), list);  
@@ -749,7 +755,6 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
   } else {
     size_t index = fTreeArrayIndex;
     if (fSamples.size() > 0) {
-      values[index++] = fSamples[0].GetSample(0);
       std::pair<size_t,double> min = fSamples[0].GetMin();
       values[index++] = min.first;
       values[index++] = min.second;
@@ -757,6 +762,9 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
       values[index++] = max.first;
       values[index++] = max.second;
       values[index++] = fSamples[0].GetSum();
+      for (size_t j=0; j<128; j++) {
+	values[index++] = fSamples[0].GetSample(j);
+      }
     } else {
       values[index++] = -1;
       values[index++] = -1;
@@ -764,6 +772,9 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
       values[index++] = -1;
       values[index++] = -1;
       values[index++] = -1;
+      for (size_t j=0; j<128; j++) {
+	values[index++] = -1;
+      }
     }
   }
 };
