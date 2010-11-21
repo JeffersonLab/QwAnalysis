@@ -961,6 +961,10 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
       //for (size_t i = 0; i < this->fMultiQDC_Channel.size(); i++)
       //  this->fMultiQDC_Channel[i].Copy(&(input->fMultiQDC_Channel[i]));
 
+      this->fScaler.resize(input->fScaler.size());
+      for (size_t i = 0; i < this->fScaler.size(); i++)
+        this->fScaler[i].Copy(&(input->fScaler[i]));
+
     } else {
       TString loc = "Standard exception from QwComptonPhotonDetector::Copy = "
              + source->GetSubsystemName() + " "
