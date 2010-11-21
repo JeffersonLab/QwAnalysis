@@ -73,7 +73,7 @@ void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
   }
 
   // Start with zero samples
-  fSamples.resize(0); fSamplesRaw.resize(0);
+  fSamples.clear(); fSamplesRaw.clear();
   // Clear the average samples
   fAverageSamples.ClearEventData();
   fAverageSamplesRaw.ClearEventData();
@@ -373,6 +373,7 @@ void MQwSIS3320_Channel::ProcessEvent()
     fSamples[i] = fSamplesRaw[i];
     fSamples[i] -= fPedestal;
     fSamples[i] *= fCalibrationFactor;
+    fSamples[i].UpdateGraph();
   }
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
     fAccumulators[i] = fAccumulatorsRaw[i];
@@ -689,35 +690,9 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   }
   // Samples (only collected when running over data, so structure does not
   // actually exist yet at time of branch construction)
-  //fSamples[0].ConstructBranchAndVector(tree, prefix, values);
-  //fSamplesRaw[0].ConstructBranchAndVector(tree, prefix, values);
-  // TODO See below for issues with including samples in the mps tree
-
-  // This is a quick and dirty way to read out the samples MMD
   TString basename = prefix + GetElementName() + "_samples";
-  fTreeArrayIndex  = values.size();
-
-  values.push_back(0.0);
-  TString list = "i_min/D";
-  values.push_back(0.0);
-  list += ":sw_min/D";
-  values.push_back(0.0);
-  list += ":i_max/D";
-  values.push_back(0.0);
-  list += ":sw_max/D";
-  values.push_back(0.0);
-  list += ":sw_sum/D";
-  values.push_back(0.0);
-  list += ":sample0/D";  
-  // this bit is a horrible kludge to read out the full sample set MMD
-  for (int ij=1; ij<128; ij++) {
-    values.push_back(0.0);
-    list += Form(":s%i/D",ij);
-  }
-  // end kludge MMD
-  
-  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-  tree->Branch(basename, &(values[fTreeArrayIndex]), list);  
+  tree->Branch(basename, &fSamples);
+  //tree->Branch(basename + "_avg", &fAverageSamples);
 };
 
 void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
@@ -726,55 +701,6 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
   for (size_t i = 0; i < fAccumulators.size(); i++) {
     fAccumulators[i].FillTreeVector(values);
     fAccumulatorsRaw[i].FillTreeVector(values);
-  }
-  // Samples
-// TODO The following is disabled because it doesn't work.  The number of samples
-// varies from mps to mps, so we keep a dynamic list.  This causes problems because
-// the array indices that are fixed on an artificial dummy during the tree and branch
-// construction are gone when we get to a (new) actual event.  Garbage gets written
-// to the ROOT file and it plain doesn't work(TM).  Need a different approach to
-// trigger events: a dedicated tree (useful for qweak tracking too) or a subtree
-// of the existing MPS tree (correlation between mps and triggered events is clearer).
-// Let's see what we can come up with...
-//
-//  for (size_t i = 0; i < fSamples.size(); i++) {
-//    fSamples[i].FillTreeVector(values);
-//    fSamplesRaw[i].FillTreeVector(values);
-//  }
-
-// More of the quick and dirty MMD
-  if (fTreeArrayNumEntries <= 0) {
-    QwWarning << "MQwSIS3320_Samples::FillTreeVector: fTreeArrayNumEntries == "
-              << fTreeArrayNumEntries << QwLog::endl;
-  } else if (values.size() < fTreeArrayIndex + fTreeArrayNumEntries) {
-    QwWarning << "MQwSIS3320_Samples::FillTreeVector:  values.size() == "
-              << values.size()
-              << "; fTreeArrayIndex + fTreeArrayNumEntries == "
-              << fTreeArrayIndex + fTreeArrayNumEntries
-              << QwLog::endl;
-  } else {
-    size_t index = fTreeArrayIndex;
-    if (fSamples.size() > 0) {
-      std::pair<size_t,double> min = fSamples[0].GetMin();
-      values[index++] = min.first;
-      values[index++] = min.second;
-      std::pair<size_t,double> max = fSamples[0].GetMax();
-      values[index++] = max.first;
-      values[index++] = max.second;
-      values[index++] = fSamples[0].GetSum();
-      for (size_t j=0; j<128; j++) {
-	values[index++] = fSamples[0].GetSample(j);
-      }
-    } else {
-      values[index++] = -1;
-      values[index++] = -1;
-      values[index++] = -1;
-      values[index++] = -1;
-      values[index++] = -1;
-      for (size_t j=0; j<128; j++) {
-	values[index++] = -1;
-      }
-    }
   }
 };
 
@@ -785,8 +711,6 @@ void MQwSIS3320_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
             << std::setw(18) << std::left << GetElementName() << ", "
-// n/a            << std::setw(15) << std::left << GetHardwareSum() << ", "
-// n/a            << std::setw(15) << std::left << GetSampleAverage() << ", "
             << std::setw(15) << std::left << GetNumberOfEvents() << ", "
             << QwLog::endl;
 }

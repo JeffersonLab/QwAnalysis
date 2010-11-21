@@ -15,9 +15,16 @@
  */
 
 #include "MQwSIS3320_Samples.h"
+ClassImp(MQwSIS3320_Samples);
+
+// System headers
+#include <numeric>
+#include <algorithm>
 
 // Qweak headers
 #include "QwLog.h"
+
+std::vector<MQwSIS3320_Type> MQwSIS3320_Samples::fIndex;
 
 Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement)
 {
@@ -74,6 +81,15 @@ const MQwSIS3320_Type MQwSIS3320_Samples::GetSumInTimeWindow(const UInt_t start,
   if (start >= fSamples.size() || stop >= fSamples.size()) return 0;
   return std::accumulate(&fSamples.at(start), &fSamples.at(stop), 0.0);
 };
+
+
+void MQwSIS3320_Samples::UpdateGraph()
+{
+  const size_t n = fSamples.size();
+  const MQwSIS3320_Type* vx = &(*fIndex.begin());
+  const MQwSIS3320_Type* vy = &(*fSamples.begin());
+  fGraph = new TGraph(n, vx, vy);
+}
 
 
 /**
@@ -234,41 +250,21 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator-= (const MQwSIS3320_Samples &va
 };
 
 
-void  MQwSIS3320_Samples::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+void MQwSIS3320_Samples::Sum(const MQwSIS3320_Samples &value1, const MQwSIS3320_Samples &value2)
 {
-  if (IsNameEmpty()) {
-    //  This list of samples is not used, so skip setting up the tree.
-  } else {
-    TString basename = prefix + GetElementName();
-    fTreeArrayIndex  = values.size();
+  *this  = value1;
+  *this += value2;
+}
 
-    values.push_back(0.0);
-    TString list = "sample0/D";
-    values.push_back(0.0);
-    list += ":sw_ped/D";
-    values.push_back(0.0);
-    list += ":sw_sum/D";
 
-    fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-    tree->Branch(basename, &(values[fTreeArrayIndex]), list);
-  }
-};
-
-void MQwSIS3320_Samples::FillTreeVector(std::vector<Double_t> &values) const
+void MQwSIS3320_Samples::Difference(const MQwSIS3320_Samples &value1, const MQwSIS3320_Samples &value2)
 {
-  if (fTreeArrayNumEntries <= 0) {
-    QwWarning << "MQwSIS3320_Samples::FillTreeVector: fTreeArrayNumEntries == "
-              << fTreeArrayNumEntries << QwLog::endl;
-  } else if (values.size() < fTreeArrayIndex + fTreeArrayNumEntries) {
-    QwWarning << "MQwSIS3320_Samples::FillTreeVector:  values.size() == "
-              << values.size()
-              << "; fTreeArrayIndex + fTreeArrayNumEntries == "
-              << fTreeArrayIndex + fTreeArrayNumEntries
-              << QwLog::endl;
-  } else {
-    size_t index = fTreeArrayIndex;
-    values[index++] = GetSample(0);
-    values[index++] = GetSumInTimeWindow(0, 15) / 15;
-    values[index++] = GetSum();
-  }
-};
+  *this  = value1;
+  *this -= value2;
+}
+
+
+void MQwSIS3320_Samples::Ratio(const MQwSIS3320_Samples &numer, const MQwSIS3320_Samples &denom)
+{
+  // ?!?
+}
