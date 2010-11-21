@@ -94,6 +94,7 @@ int main(Int_t argc,Char_t* argv[])
   Int_t outputformat=0;
   Int_t noofrunlets;
 
+  results.clear();
   if(argc<2){
     std::cerr<<"!!  Not enough arguments to run this code, the correct syntax is \n";
     std::cerr<<" ./promptsummary  runnumber i rootfile-stem=Qweak_\n";
@@ -193,8 +194,10 @@ int main(Int_t argc,Char_t* argv[])
   //TString name_of_ref_file=TString(getenv("QWSCRATCH")) +"/calib/golden_values_run_summary";
   TString name_of_ref_file="./golden_values_run_summary";
   results.push_back(" \n \nRoot file  on which this analysis based =\n \t");
-  for (UInt_t nf=0;nf<filenames.size();nf++)
+  for (UInt_t nf=0;nf<filenames.size();nf++){
     results.push_back(filenames.at(nf));
+    results.push_back("\n");
+  }
 
   results.push_back("\n\n");
   if(comparisonon)
@@ -414,10 +417,10 @@ void FillMDParameters(){
   Double_t mean;
   Double_t val[4];
   for (int count=1;count<9;count++){
-    histname=Form("hel_histo/yield_md%ibarsum_hw",count);
+    histname=Form("hel_histo/yield_qwk_md%ibarsum_hw",count);
     //std::cout<<histname<<"\n";
     Get_Mean(histname,mean,1.);
-    histname=Form("hel_histo/asym_md%ibarsum_hw",count);
+    histname=Form("hel_histo/asym_qwk_md%ibarsum_hw",count);
     Fit_with_a_gaussian(histname,val,1.e+6);//factor 1e+6 to convert to nm
     util.push_back(Form("\n MD%i  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",count,mean,val[0],val[2],val[1],val[3]));
     histname=Form("MD_pmt%i_pos",count);
