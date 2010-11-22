@@ -4,7 +4,7 @@ int pl=2; //1=gif, 2=ps, 3=both
 TFile* fd=0;
 enum{ nP=5,nY=15}; 
 TString cor1="input";
-TString runName="R5827.000";
+TString runName="R6886.000";
 
 //TString inpPath="./web/R5822.001/";
 TString inpPath="./out/";

@@ -8,7 +8,7 @@ Executing shell commande depending on params
 import os
 import time
 
-lastRunSeg="6800.000"
+lastRunSeg="7395.000"
 sleepSec=300
 fileSize=900000000
 webPath="web/"
@@ -40,7 +40,7 @@ def queryDB():
     run0=RunSegL[0]
     seg0=RunSegL[1]
     print run0,seg0
-    cmd="mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e \"select   filename,run_Number,segment,start_time from analysis  where backup_status>10 AND run_number>%s "%run0+ " AND size>%d"% fileSize+" order by filename\" |grep dat"
+    cmd="mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e \"select   filename,run_Number,segment,start_time from analysis  where backup_status>10 AND run_number>%s "%run0+ " AND size>%d"% fileSize+" order by filename\" |grep dat |grep pari"
     print cmd
     fin,fout=os.popen4(cmd)
     for line in fout:
@@ -84,3 +84,5 @@ while (1):
     if (x>1000):
         break
 print "autoloop ended"
+
+# test: mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select filename,run_Number,segment,start_time from analysis where backup_status > 10 AND run_number > 7390  order by filename"

@@ -18,7 +18,6 @@ class LinRegBevPeb {
   int  par_nY; // number of   dependent variables
  
  private:
-
   Long64_t fGoodEventNumber;    ///< accumulated so far  
 
  public:
@@ -58,6 +57,9 @@ class LinRegBevPeb {
   /// Get mean value of a variable, returns error code
   Int_t getCovarianceP ( int i,  int j,  Double_t &covar );
   Int_t getCovariancePY( int ip, int iy, Double_t &covar );
+
+  double  getUsedEve(){ return fGoodEventNumber;}
+
 
   /// \brief Output stream operator
   friend std::ostream& operator<< (std::ostream& stream, const LinRegBevPeb& h);

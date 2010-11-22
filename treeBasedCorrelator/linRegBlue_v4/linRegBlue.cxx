@@ -181,10 +181,10 @@ int main(int argc, char *argv[]) {
   mHfile->Write(); 
   mHfile->Close();
   TString outAlphas=Form("%sblueR%snew.slope.root",outPath,runName.Data());
-  corA.exportAlphas(outAlphas); 
+  corA.exportAlphas(outAlphas, eve.ivName, eve.dvName); 
   if(alphasM) {
     outAlphas=Form("%sblueR%snewB.slope.root",outPath,runName.Data());
-    corB->exportAlphas(outAlphas); 
+    corB->exportAlphas(outAlphas, eve.ivName, eve.dvName); 
   }
 
 

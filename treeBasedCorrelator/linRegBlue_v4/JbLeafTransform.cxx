@@ -220,8 +220,8 @@ JbLeafTransform::initHistos(){
   hydv=new TH1 *[ndv()];
   for(int i=0;i<ndv();i++) {   
     TString name=humanizeLeafName(setLeafName2Yield(dvName[i])) ;
-    hydv[i]=h=new TH1D(Form("yieldDV%d",i),Form("%s, DV%d ;%s",name.Data(),i,name.Data()),128,0.,0.);
-    h->GetXaxis()->SetNdivisions(4);    h->SetBit(TH1::kCanRebin);
+    hydv[i]=h=new TH1D(Form("yieldDV%d",i),Form("%s, DV%d ;%s",name.Data(),i,name.Data()),128,-0.,0.);
+    h->GetXaxis()->SetNdivisions(4);  h->SetBit(TH1::kCanRebin);
     h->GetXaxis()->SetTitleColor(kBlue);
   }
 

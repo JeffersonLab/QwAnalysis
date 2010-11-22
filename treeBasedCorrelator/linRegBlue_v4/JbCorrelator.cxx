@@ -184,7 +184,7 @@ JbCorrelator::finish(){
 //________________________________________________
 //________________________________________________
 void
-JbCorrelator::exportAlphas(TString outName){
+JbCorrelator::exportAlphas(TString outName, std::vector < TString > ivName, std::vector < TString > dvName){
   printf("::::::::::::::::JbCorrelator::exportAlphas(%s) :::::::::::\n",outName.Data());  
   TFile*  hFile=new TFile(outName,"RECREATE","correlation coefficents");
 
@@ -193,10 +193,44 @@ JbCorrelator::exportAlphas(TString outName){
   linReg.mRjk.Write("IV_covariance");
   linReg.mMP.Write("IV_mean");
   linReg.mMY.Write("DV_mean");
+ 
+  //add processed  matrices
+  double usedEve=linReg.getUsedEve();
+  TMatrixD Mstat(1,1);
+  Mstat(0,0)=usedEve;
+  Mstat.Write("MyStat");
+
+  //... IVs
+  TMatrixD MsigIV(nP,1);
+  TH1D hiv("IVname","names of IVs",nP,-0.5,nP-0.5); 
+  double val;
+  for(int i=0;i<nP;i++){
+    assert( linReg.getSigmaP(i,val)==0);
+    MsigIV(i,0)=val;
+    hiv.Fill(ivName[i],i);
+  }
+  MsigIV.Write("IV_sigma"); // of distribution
+  hiv.Write();
+
+  //... DVs
+  TMatrixD MsigDV(nY,1);
+  TH1D hdv("DVname","names of IVs",nY,-0.5,nY-0.5); 
+  for(int i=0;i<nY;i++){
+    assert( linReg.getSigmaY(i,val)==0);
+    MsigDV(i,0)=val;
+    hdv.Fill(dvName[i],i);
+  }
+  MsigDV.Write("DV_sigma"); // of distribution
+  hdv.Write();
+
+  //raw matrices
   linReg.mVPP.Write("IV_rawVariance");
   linReg.mVPY.Write("IV_DV_rawVariance");
   linReg.mVY2.Write("DV_rawVariance");
- 
+
+  //  TMatrixD Mstats(1,0);
+
+
   hFile->Close();
   printf("saved %s\n",hFile->GetName());
 }

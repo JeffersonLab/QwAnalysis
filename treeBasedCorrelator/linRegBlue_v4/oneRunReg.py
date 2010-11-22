@@ -11,9 +11,10 @@ print "START JAN"
 
 wrkDir="./out/"
 safeDir="./web/"
-
+destWeb="/group/qweak/www/html/onlineRegression/autoA/"
+#destWeb="/group/qweak/www/html/onlineRegression/B/"
 hclogWeb="https://hallcweb.jlab.org/hclog/1011_archive/"
-
+motherCsv="mother_online_summary.csv"
 
 
 # -- command line options
@@ -116,9 +117,13 @@ def  exportHtml(inpFile,outFile,pdfURL) :
       
     myURL1=f1.readlines()[-1]
     f1.close()
-    print "aa",myURL1
-    myURL=myURL1.replace('HREF="','HREF="'+hclogWeb)
-    print "bb",myURL
+    #print "aa1 ",myURL1
+    # in rare case there are multiple URLs in the same line
+    myURL2=myURL1.split("<LI>")[-1]
+    print "aa2 ",myURL2
+    
+    myURL=myURL2.replace('HREF="','HREF="'+hclogWeb)
+    #print "bb",myURL
     f.write("<td  rowspan=2 > "+ myURL+"\n")     
 
     # .... get nonregr RMS
@@ -180,7 +185,7 @@ def  abortMe(code):
     #.....  get Sorting date'
     now=datetime.datetime.now()
     
-    cmd_stringAb = 'echo "<tr> <td>R%s'%RUNiSEG+'<td colspan=3 > aborted linear  regression <td  colspan=4 > sorted: '+now.strftime("%Y-%m-%d %H:%M:%S")+'">'+safeDir+"R%s.html"%RUNiSEG
+    cmd_stringAb = 'echo "<tr> <td>R%s'%RUNiSEG+' <td><td colspan=6 > aborted linear  regression <td  colspan=4 > sorted: '+now.strftime("%Y-%m-%d %H:%M:%S")+'">'+safeDir+"R%s.html"%RUNiSEG
     print "execAb:%s" % cmd_stringAb
     os.system(cmd_stringAb)
 
@@ -193,7 +198,8 @@ if VERBOSE:
 
 
 #os._exit(1)
-os.system("rm -rf out")
+os.system("rm -rf outOld")
+os.system("mv out outOld")
 outDirName="R%s/"%RUNiSEG
 retCode=0
 
@@ -224,23 +230,56 @@ os.system(cmd_string6+">& out/log6")
 pdfURL="<A HREF=\""+outDirName+pdfName+"\"> R%s"%RUNiSEG+"</A>" + "<br> <A HREF=\""+outDirName+"logS2\"> log </A>"
 print pdfURL
 
-exportHtml("out/logS2", "web/R%s"%RUNiSEG+".html",pdfURL)
+exportHtml("out/logS2", safeDir+"R%s"%RUNiSEG+".html",pdfURL)
 
-cmd_string7 = "mv out web/"+outDirName 
+cmd_string7 = "mv out "+safeDir+outDirName 
 print "exec7:%s" % cmd_string7
 os.system(cmd_string7)
 
-cmd_string8 = "rm -f web/index.html; cat web/top.html web/R*html web/bottom.html > web/index.html "
+cmd_string8 = "ls -r "+safeDir+"R*html "
 print "exec8:%s" % cmd_string8
-os.system(cmd_string8)
+fin,fout=os.popen4(cmd_string8)
+line=fout.read()
+#print "cc1 ",line
+line2=line.replace("\n"," ");
+#print "cc1 ",line2
 
-#os._exit(1)
-#cmd_string9 = "scp -rp -i ~/balewski/keys/id_dsa-janDeltag5 index.html "+outDirName+" balewski@deltag5.lns.mit.edu:Sites/QweakA/"
-
-cmd_string9 = "scp -rp -i ~/balewski/keys/id_rsa-ifarml4  web/index.html web/"+outDirName+" balewski@ifarml4:/group/qweak/www/html/onlineRegression/autoA/"
-
-print "exec9:%s" % cmd_string9
+cmd_string9 = "rm -f "+safeDir+"index.html; cat "+safeDir+"top.html "+line2+safeDir+"bottom.html > "+safeDir+"index.html "
+#print "exec9:%s" % cmd_string9
 os.system(cmd_string9)
+
+#..... generate mothr CVS table
+print "rr ", RUNiSEG
+run=RUNiSEG[:4]
+seg=int(RUNiSEG[5:])
+print run, seg
+cmd="mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e \"select   filename,start_time from total  where run_number=%s"%run+" and segment=%d"%seg+"\" |grep dat"
+print "exec DB time query:%s" % cmd
+fin,fout=os.popen4(cmd)
+string=fout.read()
+#print string
+unixTime=string.split()[1]
+print "R"+run+".%03d"%seg+ " "+ unixTime
+
+ioPath=safeDir+"R%s"%RUNiSEG+"/"
+print "ioPath=",ioPath
+cmd_string12 = "root -b -q prCsvRecord.C'("+RUNiSEG+',%s ,"'%unixTime+ioPath+'","'+ioPath+"\")'"
+print "exec12:%s" % cmd_string12
+os.system(cmd_string12)
+
+#...  merrge all CSV in to one big table
+cmd_string13 = "rm -f "+safeDir+motherCsv+"; cat "+safeDir+"R*/*csv  > "+safeDir+motherCsv
+print "exec13:%s" % cmd_string13
+os.system(cmd_string13)
+
+
+
+
+#...... copy all to final web page
+cmd_string100 = "scp -rp -i ~/balewski/keys/id_rsa-ifarml4  "+safeDir+"/index.html  "+safeDir+outDirName+" "+safeDir+motherCsv+" balewski@ifarml4:"+destWeb
+
+print "exec100:%s" % cmd_string100
+os.system(cmd_string100)
 os.system("date")
 
 os._exit(1)
@@ -251,3 +290,5 @@ os._exit(1)
 # transfer host memory to device 
 
 #print  "scp -rp outR%d balewski@deltag5.lns.mit.edu:0x" % RUN_NO
+#os._exit(1)
+#cmd_string9 = "scp -rp -i ~/balewski/keys/id_dsa-janDeltag5 index.html "+outDirName+" balewski@deltag5.lns.mit.edu:Sites/QweakA/"
