@@ -285,22 +285,27 @@ int main(Int_t argc,Char_t* argv[])
 	  ok = kFALSE;
 	}
 	else{
-
-	  htemp1->Fit("landaun","W I Q E M");
-	  fit = htemp1->GetFunction("landaun");
-	  cutmean = fit->GetParameter(1); //most probable value
-	  if(cutmean < 2)
+	  if(htemp1->GetEntries() != 0){
+	    htemp1->Fit("landaun","W Q E M");
+	    fit = htemp1->GetFunction("landaun");
+	    cutmean = fit->GetParameter(1); //most probable value
+	    if(cutmean < 2)
+	      ok = kFALSE;
+	    else{
+	      lcut = cutmean*0.97; // 3% down
+	      ucut = cutmean*1.03; // 3% up
+	      tcut = Form("%s && %s > %f && %s < %f",
+			  cut.Data(),currentcut.Data(),lcut,
+			  currentcut.Data(),ucut);
+	      std::cout<<"###############\n";
+	      std::cout<<" Most probable current(uA) from landaun fit = "<<cutmean<<std::endl;
+	      std::cout<<" Select currents(uA) >"<<lcut<<" and <"<<ucut<<std::endl;
+	      std::cout<<"###############\n";
+	    }
+	  }
+	  else {
+	    std::cout<<"bcm1 had HW errors. Device_Error_Code ! = 0 for all events.\n";
 	    ok = kFALSE;
-	  else{
-	    lcut = cutmean*0.97; // 3% down
-	    ucut = cutmean*1.03; // 3% up
-	    tcut = Form("%s && %s > %f && %s < %f",
-			cut.Data(),currentcut.Data(),lcut,
-			currentcut.Data(),ucut);
-	    std::cout<<"###############\n";
-	    std::cout<<" Most probable current(uA) from landaun fit = "<<cutmean<<std::endl;
-	    std::cout<<" Select currents(uA) >"<<lcut<<" and <"<<ucut<<std::endl;
-	    std::cout<<"###############\n";
 	  }
 	}
 	
@@ -417,11 +422,11 @@ int main(Int_t argc,Char_t* argv[])
   g1->Draw("ABP");
   g1->GetYaxis()->SetTitle(Form("%s %s widths",device.Data(), prop.Data()));
   canvas->Update();
-  c1->Update();
   canvas->SetBorderMode(0);
- 
+  canvas->SaveAs(Form("$QWANALYSIS/Extensions/Macros/Parity/Plots/%i_%i_%s_%s_summary.gif",run1, run2, device.Data(),property.Data()));
   //  theApp.Run(); 
-  Int_t l = 0;
+  Char_t l;
+  std::cout<<"Press any key to continue \n";
   std::cin>>l;
 };
 
