@@ -485,9 +485,9 @@ void  QwComptonElectronDetector::FillHistograms()
   for (i=0; i<NPlanes; i++) {
     for (j=0; j<StripsPerPlane; j++) {
      if (fHistograms1D[4*i] != NULL)
-      for (k=0; k<fStripsRaw[i][j]; k++)
-       fHistograms1D[4*i]->Fill(j);
-
+       //      for (k=0; k<fStripsRaw[i][j]; k++)
+       //       fHistograms1D[4*i]->Fill(j);
+     fHistograms1D[4*i]->Fill(j,fStripsRaw[i][j]);
      if (fHistograms1D[4*i+1] != NULL)
       for (k=0; k<fStrips[i][j]; k++)
        fHistograms1D[4*i+1]->Fill(j);
@@ -502,6 +502,61 @@ void  QwComptonElectronDetector::FillHistograms()
 
     }
   }
+  return;
+};
+
+void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+{
+  //  SetHistoTreeSave(prefix);
+
+
+  fTreeArrayIndex  = values.size();
+  TString basename;
+//   if(fHistoType==kHelNoSave)
+//     {
+//       //do nothing
+//     }
+//   else if(fHistoType==kHelSaveMPS)
+//     {
+      //       basename = "plane1";    //predicted actual helicity before being delayed.
+      //       values.push_back(0.0);
+      //       tree->Branch(basename, &(values.back()), basename+"/D");
+      
+      for (int i=1; i<NPlanes; i++) {
+	for (int j=0; j<32; j++) {
+	  basename = Form("p%ds%dRawEv",i,j);
+	  values.push_back(0.0);
+	  tree->Branch(basename, &(values.back()), basename+"/D");
+	}
+      }
+      //  And so on...
+
+//     }
+//   else if(fHistoType==kHelSavePattern)
+//     {
+
+//     }
+
+  return;
+};
+void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) const
+{
+  Int_t i, j, k;
+  size_t index=fTreeArrayIndex;
+//   if(fHistoType==kHelSaveMPS)
+//     {
+      
+      for (i=1; i<NPlanes; i++) {
+	for (j=0; j<32; j++) {
+	  values[index++] = fStripsRawEv[i][j];
+	}
+      }
+      //    }
+//   else if(fHistoType==kHelSavePattern)
+//     {
+ 
+//     }
+
   return;
 };
 
@@ -557,15 +612,6 @@ void  QwComptonElectronDetector::FillTree()
 };
 
 
-void QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
-{
-  return;
-};
-
-void QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) const
-{
-  return;
-};
 
 
 //*****************************************************************
