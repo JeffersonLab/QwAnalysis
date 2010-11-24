@@ -25,28 +25,39 @@ extern QwHistogramHelper gQwHists;
 //**************************************************//
 
 //**************************************************//
-void QwHelicity::DefineOptions(QwOptions &options){
-  //QwHelicity options
-  options.AddOptions()("helicity.30bitseed", po::value<bool>()->zero_tokens(), "QwHelicty: 30bit random seed");
-  options.AddOptions()("helicity.24bitseed", po::value<bool>()->zero_tokens(), "QwHelicty: 24bit random seed");
-  options.AddOptions()("helicity.patternoffset", po::value<int>(),"QwHelicity: pattern offset. Set 1 when pattern starts with 1 or 0 when starts with 0");
-  options.AddOptions()("helicity.patternphase", po::value<int>(),"QwHelicity: pattern phase. Can be set to 4 or 8");
-  options.AddOptions()("helicity.delay", po::value<int>(),"QwHelicity: pattern delay. Default delay is 2 patterns, set at the helicity map file.");
-  //End of QwHelicity options
-
+void QwHelicity::DefineOptions(QwOptions &options)
+{
+  options.AddOptions("Helicity options")
+      ("helicity.30bitseed", po::value<bool>()->zero_tokens(),
+          "Use 30-bit random seed");
+  options.AddOptions("Helicity options")
+      ("helicity.24bitseed", po::value<bool>()->zero_tokens(),
+          "Use 24-bit random seed");
+  options.AddOptions("Helicity options")
+      ("helicity.bitpattern", po::value<std::string>(),
+          "Helicity bit pattern");
+  options.AddOptions("Helicity options")
+      ("helicity.patternoffset", po::value<int>(),
+          "Set 1 when pattern starts with 1 or 0 when starts with 0");
+  options.AddOptions("Helicity options")
+      ("helicity.patternphase", po::value<int>(),
+          "Maximum pattern phase");
+  options.AddOptions("Helicity options")
+      ("helicity.delay", po::value<int>(),
+          "Default delay is 2 patterns, set at the helicity map file.");
 };
 
 //**************************************************//
 
 void QwHelicity::ProcessOptions(QwOptions &options){
-  //Read the cmd options and override channel map settings
+  // Read the cmd options and override channel map settings
   QwMessage << "QwHelicity::ProcessOptions" << QwLog::endl;
   if (gQwOptions.HasValue("helicity.patternoffset"))
     if (gQwOptions.GetValue<int>("helicity.patternoffset")==1 || gQwOptions.GetValue<int>("helicity.patternoffset")==0)
       fPATTERNPHASEOFFSET=gQwOptions.GetValue<int>("helicity.patternoffset");
 
   if (gQwOptions.HasValue("helicity.patternphase"))
-    if (gQwOptions.GetValue<int>("helicity.patternphase")==4 || gQwOptions.GetValue<int>("helicity.patternphase")==8)
+    if (gQwOptions.GetValue<int>("helicity.patternphase") % 2 == 0)
       fMaxPatternPhase=gQwOptions.GetValue<int>("helicity.patternphase");
 
   if (gQwOptions.HasValue("helicity.30bitseed")){
@@ -56,9 +67,15 @@ void QwHelicity::ProcessOptions(QwOptions &options){
     BIT24=gQwOptions.GetValue<bool>("helicity.24bitseed");
     BIT30=kFALSE;
   }
-  if (gQwOptions.HasValue("helicity.delay")){
+  if (gQwOptions.HasValue("helicity.delay")) {
     QwMessage << " Helicity Delay =" << gQwOptions.GetValue<int>("helicity.delay") << QwLog::endl;
     SetHelicityDelay(gQwOptions.GetValue<int>("helicity.delay"));
+  }
+  if (gQwOptions.HasValue("helicity.bitpattern")) {
+    QwMessage << " Helicity Pattern =" << gQwOptions.GetValue<std::string>("helicity.bitpattern") << QwLog::endl;
+    std::string hex = gQwOptions.GetValue<std::string>("helicity.bitpattern");
+    UInt_t bits = QwParameterFile::GetUInt(hex);
+    SetHelicityPattern(bits);
   }
 };
 
@@ -624,8 +641,13 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
       else if (varname=="patternphase")
 	{
 	  fMaxPatternPhase=value;
-	  //QwMessage << " fMaxPatternPhase " << fMaxPatternPhase << std::endl;
+	  //QwMessage << " fMaxPatternPhase " << fMaxPatternPhase << QwLog::endl;
 	}
+      else if (varname=="patternbits")
+        {
+          SetHelicityPattern(value);
+          QwMessage << " fPatternBits " << fHelicityPattern << QwLog::endl;
+        }
       else if (varname=="numberpatternsdelayed")
 	{
 	  SetHelicityDelay(value);
@@ -1060,6 +1082,10 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
       values.push_back(0.0);
       tree->Branch(basename, &(values.back()), basename+"/D");
       //
+      basename = "pattern_seed";
+      values.push_back(0.0);
+      tree->Branch(basename, &(values.back()), basename+"/D");
+      //
       basename = "event_number";
       values.push_back(0.0);
       tree->Branch(basename, &(values.back()), basename+"/D");
@@ -1086,6 +1112,10 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
       tree->Branch(basename, &(values.back()), basename+"/D");
       //
       basename = "pattern_number";
+      values.push_back(0.0);
+      tree->Branch(basename, &(values.back()), basename+"/D");
+      //
+      basename = "pattern_seed";
       values.push_back(0.0);
       tree->Branch(basename, &(values.back()), basename+"/D");
       //
@@ -1126,6 +1156,9 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix)
       basename = "pattern_number";
       tree->Branch(basename, &fPatternNumber, basename+"/I");
       //
+      basename = "pattern_seed";
+      tree->Branch(basename, &fPatternSeed, basename+"/I");
+      //
       basename = "event_number";
       tree->Branch(basename, &fEventNumber, basename+"/I");
     }
@@ -1142,6 +1175,9 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix)
       //
       basename = "pattern_number";
       tree->Branch(basename, &fPatternNumber, basename+"/I");
+      //
+      basename = "pattern_seed";
+      tree->Branch(basename, &fPatternSeed, basename+"/I");
 
       for (size_t i=0; i<fWord.size(); i++)
 	{
@@ -1179,6 +1215,9 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile&
       basename = "pattern_number";
       tree->Branch(basename, &fPatternNumber, basename+"/I");
       //
+      basename = "pattern_seed";
+      tree->Branch(basename, &fPatternSeed, basename+"/I");
+      //
       basename = "event_number";
       tree->Branch(basename, &fEventNumber, basename+"/I");
     }
@@ -1195,6 +1234,9 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile&
       //
       basename = "pattern_number";
       tree->Branch(basename, &fPatternNumber, basename+"/I");
+      //
+      basename = "pattern_seed";
+      tree->Branch(basename, &fPatternSeed, basename+"/I");
 
       for (size_t i=0; i<fWord.size(); i++)
 	{
@@ -1219,6 +1261,7 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values) const
       values[index++] = fHelicityReported;
       values[index++] = fPatternPhaseNumber;
       values[index++] = fPatternNumber;
+      values[index++] = fPatternSeed;
       values[index++] = fEventNumber;
       for (size_t i=0; i<fWord.size(); i++)
 	values[index++] = fWord[i].fValue;
@@ -1229,6 +1272,7 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values) const
       values[index++] = fPreviousPatternPolarity;
       values[index++] = fDelayedPatternPolarity;
       values[index++] = fPatternNumber;
+      values[index++] = fPatternSeed;
       for (size_t i=0; i<fWord.size(); i++){
 	values[index++] = fWord[i].fValue;
       }
@@ -1421,55 +1465,24 @@ void QwHelicity::RunPredictor()
      Quartet: +--+     or -++-
      Octet:   +--+-++- or -++-+--+
      Symmetric octet:  +-+--+-+ or -+-++-+-
+     Octo-quad: +--++--++--++--+-++--++--++--++-
   */
 
   Int_t localphase = fPatternPhaseNumber-fMinPatternPhase;//Paul's modifications
 
 
-  /** For Quartets and Pairs */
-  if ((fMaxPatternPhase<=4) || (1==1)){//Paul's modifications. This term is always true! Why do we want it?
-    switch(localphase){
-    case 0: /**phase 0 -> new pattern, fHelicityActual has been predicteed in the for loop.*/
-    case 3:
-    case 5:
-    case 6:
-      fHelicityActual  = fActualPatternPolarity;  //DON'T flip helicity
-      fHelicityDelayed = fDelayedPatternPolarity; //DON'T flip helicity
-      break;
-    case 1:
-    case 2: /**phase 2 helicity  = phase 1 helicity */
-    case 4: /**phase 4 helicity  = phase 1 helicity */
-    case 7: /**phase 7 helicity  = phase 4 helicity */
-      fHelicityActual  = fActualPatternPolarity  ^ 0x1; //flip helicity
-      fHelicityDelayed = fDelayedPatternPolarity ^ 0x1; //flip helicity
-      break;
-
-    default: //for values other than 1,2,3,4. //This would be discovered in error checking.
-      ResetPredictor();
-      break;
-    }
+  // Use the stored helicity bit pattern to calculate the helicity of this window
+  if (((fHelicityPattern >> localphase) & 0x1) == (fHelicityPattern & 0x1)) {
+    fHelicityActual  = fActualPatternPolarity;
+    fHelicityDelayed = fDelayedPatternPolarity;
   } else {
-    /**  This is the Symmetric octet:  +-+--+-+ or -+-++-+- */
-    switch(localphase){
-    case 0: /**phase 1 -> new pattern, fHelicityActual has been predicteed in the for loop.*/
-    case 2:
-    case 5:
-    case 7:
-      fHelicityActual  = fActualPatternPolarity;  //DON'T flip helicity
-      fHelicityDelayed = fDelayedPatternPolarity; //DON'T flip helicity
-      break;
-    case 1:
-    case 3:
-    case 4:
-    case 6:
-      fHelicityActual  = fActualPatternPolarity  ^ 0x1; //flip helicity
-      fHelicityDelayed = fDelayedPatternPolarity ^ 0x1; //flip helicity
-      break;
-    default: /**for values other than 1,2,3,4 reset the predictor. This would be discovered in error checking.*/
-      ResetPredictor();
-      break;
-    }
-   }
+    fHelicityActual  = fActualPatternPolarity ^ 0x1;
+    fHelicityDelayed = fDelayedPatternPolarity ^ 0x1;
+  }
+  // Past highest pattern phase
+  if (localphase > fMaxPatternPhase)
+    ResetPredictor();
+
   if(ldebug){
     std::cout << "Predicted Polarity ::: Delayed ="
 	      << fDelayedPatternPolarity << " Actual ="
@@ -1718,6 +1731,14 @@ void QwHelicity::SetHelicityDelay(Int_t delay)
 };
 
 
+void QwHelicity::SetHelicityPattern(UInt_t bits)
+{
+  // Set the helicity pattern bits
+  if (parity(bits) == 0)
+    fHelicityPattern = bits;
+  else QwError << "What, exactly, are you trying to do ?!?!?" << QwLog::endl;
+}
+
 void QwHelicity::ResetPredictor()
 {
   /**Start a new helicity prediction sequence.*/
@@ -1786,8 +1807,9 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
 
       for(size_t i=0;i<input->fWord.size();i++)
 	this->fWord[i].fValue=input->fWord[i].fValue;
-      this->fHelicityActual=input->fHelicityActual;
-      this->fPatternNumber =input->fPatternNumber ;
+      this->fHelicityActual = input->fHelicityActual;
+      this->fPatternNumber  = input->fPatternNumber;
+      this->fPatternSeed    = input->fPatternSeed;
       this->fPatternPhaseNumber=input->fPatternPhaseNumber;
       this->fEventNumber=input->fEventNumber;
       this->fActualPatternPolarity=input->fActualPatternPolarity;

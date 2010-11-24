@@ -31,6 +31,8 @@ HelicityDecodingMode=InputRegisterMode
 
 !The size of pattern. toggle = 2, quartets = 4, octets = 8.
 PatternPhase=4
+!Helicity bit pattern (lowest bit = earliest window)
+PatternBits=0x69
 
 !Need to set the NumberPatternsDelayed = 0 when using togling mode. Default value is 2.
 !NumberPatternsDelayed=0

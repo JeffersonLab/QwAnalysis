@@ -70,8 +70,10 @@ class QwHelicity: public VQwSubsystemParity{
     VQwSubsystemParity(region_tmp),
     fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE)
   {
-    //  Default helicity delay to two patterns.
+    // Default helicity delay to two patterns.
     fHelicityDelay = 2;
+    // Default helicity bit pattern
+    fHelicityPattern = 0x69; // this is +--+-++-
     // Default the EventType flags to HelPlus=1 and HelMinus=4
     // These are only used in Moller decoding mode.
     kEventTypeHelPlus  = 4;
@@ -133,6 +135,7 @@ class QwHelicity: public VQwSubsystemParity{
   void   PredictHelicity();
   void   RunPredictor();
   void   SetHelicityDelay(Int_t delay);
+  void   SetHelicityPattern(UInt_t bits);
 
   Int_t  GetHelicityReported();
   Int_t  GetHelicityActual();
@@ -225,7 +228,8 @@ class QwHelicity: public VQwSubsystemParity{
 
   Int_t fEventNumberOld, fEventNumber;
   Int_t fPatternPhaseNumberOld, fPatternPhaseNumber;
-  Int_t fPatternNumberOld,  fPatternNumber;
+  Int_t fPatternNumberOld, fPatternNumber;
+  Int_t fPatternSeed;
   Int_t fActualPatternPolarity;   ///<  True polarity of the current pattern
   Int_t fDelayedPatternPolarity;  ///<  Reported polarity of the current pattern
   Int_t fPreviousPatternPolarity; ///<  True polarity of the previous pattern.
@@ -239,6 +243,8 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t fHelicityBitMinus;
   Bool_t fGoodHelicity;
   Bool_t fGoodPattern;
+
+  UInt_t fHelicityPattern;
 
   std::vector<TH1*> fHistograms;
   Int_t fHistoType;
@@ -295,6 +301,18 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t fIgnoreHelicity;
 
   UInt_t fEventType;
+
+
+ private:
+
+  unsigned int parity(unsigned int v) {
+    // http://graphics.stanford.edu/~seander/bithacks.html#ParityParallel
+    v ^= v >> 16;
+    v ^= v >> 8;
+    v ^= v >> 4;
+    v &= 0xf;
+    return (0x6996 >> v) & 1;
+  }
 
 };
 
