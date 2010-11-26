@@ -7,7 +7,9 @@
 ROC=1
 Bank=0x102
 !same sample size for ADCs in a given bank
-sample_size==480 
+!sample_size==480
+!for 960Hz
+sample_size=464  
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
@@ -185,7 +187,6 @@ begin=combinedbcm
 name=qwk_charge
 !name	   type	 wieght
  qwk_bcm1,  bcm, 1.0
- qwk_bcm2,  bcm, 1.0
 end=combinedbcm
 
 
@@ -198,6 +199,7 @@ name=qwk_target
  QWK_BPM3H09,   bpmstripline, 1.0,  313.04,   278.71
  QWK_BPM3H09B,  bpmstripline, 1.0,  337.29,   330.10
 end=combinedbpm
+
 ! The X and Y weights were obtained using run 5842 taken with 48-43uA on LH2.
 
 
