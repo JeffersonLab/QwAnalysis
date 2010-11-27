@@ -867,11 +867,7 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
   f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
   if (f1tdc_resolution_ns==0.0) {
     f1tdc_resolution_ns = 0.116312881651642913;
-    std::cout << "NEVER to see this message."
-	      << "If one see this, F1TDC configurations are corrupted!\n";
-    std::cout << "Tempoarary, the predefined resolution "
-	      << f1tdc_resolution_ns
-	      << " (ns) is used to do further, but it must be checked.\n";
+    printf("WARNING : QwDriftChamberHDC::ApplyTimeCalibration() the predefined resolution %8.6lf (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
   }
 
   for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) 

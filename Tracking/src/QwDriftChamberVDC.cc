@@ -1324,42 +1324,24 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
 };
 
 
+
 void QwDriftChamberVDC::ApplyTimeCalibration()
 {
+  Double_t f1tdc_resolution_ns = 0.0;
+  f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
+  if (f1tdc_resolution_ns==0.0) {
+    f1tdc_resolution_ns = 0.116312881651642913;
+    printf("WARNING : QwDriftChamberVDC::ApplyTimeCalibration() the predefined resolution %8.6lf (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
+  }
 
-	//  Double_t region3_f1tdc_resolution = 0.113186191284663271;
-	// Double_t f1tdc_resolution_ns = 0.116312881651642913;
-	Double_t f1tdc_resolution_ns = 0.0;
-
-
-
-	f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
-
-	if ( f1tdc_resolution_ns == 0.0 )
-	{
-		f1tdc_resolution_ns = 0.116312881651642913;
-		std::cout << "NEVER to see this message."
-		<< "If one see this, F1TDC configurations are corrupted!\n";
-		std::cout << "Tempoarary, the predefined resolution "
-		<< f1tdc_resolution_ns
-		<< " (ns) is used to do further, but it must be checked.\n";
-	}
-
-	//  printf("test %18.8lf\n", f1tdc_resolution_ns);
-	// 0.1132 ns is for the first CODA setup,  it was replaced as 0.1163ns after March 13 2010
-	// need to check them with Siyuan (jhlee)
-	//
-	// 0.1163 ns is the magic number we want to setup during the Qweak experiment
-	// because of the DAQ team suggestion. That guarantees the stable resolution during
-	// temperature fluctuation.
-
-	for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
-	{
-		iter->SetTime ( f1tdc_resolution_ns*iter->GetTime() );
-	}
-
-	return;
+  for(std::vector<QwHit>::iterator iter=fWireHits.begin(); iter!=fWireHits.end(); iter++)
+    {
+      iter->SetTime(f1tdc_resolution_ns*iter->GetTime());
+    }
+  
+  return;
 };
+
 
 
 void QwDriftChamberVDC::LoadTtoDParameters ( TString ttod_map )

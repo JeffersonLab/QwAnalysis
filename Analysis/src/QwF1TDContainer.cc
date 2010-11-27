@@ -878,8 +878,13 @@ QwF1TDContainer::GetF1TDCResolution()
       //   printf("cnt %d, new %f , old %f\n", cnt, new_r, old_r);
       if(cnt not_eq 0) {
 	if(old_r not_eq new_r) {
-	  std::cout << "NEVER see this message."
-		    << "If one can see this, F1TDC configurations are corrupted!\n";
+	  //	    <<  this->GetSystemName()
+	  //	    << ", DetectorType " 
+	  //	    << this->GetDetectorType()
+	  //	    << ", RegionType "   
+	  //	    << this->GetRegion()
+	  //	    << ", How many F1TDCs are : " 
+	  printf("%s : QwF1TDContainer::GetF1TDCResolution(): F1TDC configurations are corrupted!\n", GetSystemName().Data());
 	  return 0.0;
 	}
 
@@ -910,8 +915,7 @@ QwF1TDContainer::GetF1TDCTriggerRollover()
       //  printf("cnt %d, new %f , old %f\n", cnt, new_r, old_r);
       if(cnt not_eq 0) {
 	if(old_r not_eq new_r) {
-	  std::cout << "NEVER see this message."
-		    << "If one can see this, F1TDC configurations are corrupted!\n";
+	  printf("%s : QwF1TDContainer::GetF1TDCTriggerRollover(): F1TDC configurations are corrupted!\n", GetSystemName().Data());
 	  return 0.0;
 	}
 
@@ -950,8 +954,7 @@ QwF1TDContainer::GetF1TDCChannelNumber()
       //   printf("cnt %d, new %d , old %d\n", cnt, new_c, old_c);
       if(cnt not_eq 0) {
 	if(old_c not_eq new_c) {
-	  std::cout << "NEVER see this message."
-		    << "If one can see this, F1TDC configurations are corrupted!\n";
+	  printf("%s : QwF1TDContainer::GetF1TDCChannelNumber(): F1TDC configurations are corrupted!\n", GetSystemName().Data());
 	  return 0;
 	}
 
