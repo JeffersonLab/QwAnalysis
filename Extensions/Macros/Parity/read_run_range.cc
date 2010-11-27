@@ -233,10 +233,10 @@ int main(Int_t argc,Char_t* argv[])
       // Open the file
       file_list.clear();
       filename = "";
-      filename = Form("QwPass*_%i.*root", run);
+      filename = Form("first*_%i.root", run);  
       found = FindFiles(filename, file_list, tree);
       if(!found){
-	filename = Form("first*_%i.root", run);      
+	filename = Form("QwPass*_%i.*root", run);	
 	found = FindFiles(filename, file_list, tree);
 	if(!found){
 	  filename = Form("Qweak*_%i.*root", run);
