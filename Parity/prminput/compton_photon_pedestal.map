@@ -2,12 +2,12 @@
 ! Respect the format of the file:
 
 ! channel name,	pedestal,	gain
-compton,	3811.0,		1
+fadc_compton,	3890.0,		-1.0
 
 ! channel name,	type of cut	low	high
-compton,	timewindow	10	50
-compton,	timewindow	100	140
-compton,	valuewindow	3000	4000
-compton,	valuewindow	4000	5000
+fadc_compton,	timewindow	10	50
+fadc_compton,	timewindow	100	140
+fadc_compton,	valuewindow	3000	4000
+fadc_compton,	valuewindow	4000	5000
 
 !END

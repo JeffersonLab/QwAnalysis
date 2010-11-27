@@ -113,14 +113,14 @@ void project(){
 	return;
 }
 
-void project_root(string command="", int package=1,int run_number=6327){
+void project_root(string command="", int package=1,int md_number=1,int run_number=6327){
 	string file_name= Form ( "%s/Qweak_%d.root",gSystem->Getenv ( "QWSCRATCH" ),run_number );	
         TFile *file = new TFile ( file_name.c_str() );
 
         TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
- 	QwEvent* fEvent=NULL;
-	QwPartialTrack* pt=NULL; 
-	QwTrackingTreeLine* tl=NULL;
+ 	QwEvent* fEvent=0;
+	QwPartialTrack* pt=0; 
+	QwTrackingTreeLine* tl=0;
 
 	// section to process the command
 	
@@ -165,9 +165,9 @@ void project_root(string command="", int package=1,int run_number=6327){
 	TBranch* branch_event=event_tree->GetBranch("events");
 	TBranch* branch=event_tree->GetBranch("maindet");
 	branch_event->SetAddress(&fEvent);
-
-        TLeaf* mdp=branch->GetLeaf(Form("md%dp_adc",-4*package+9));
-	TLeaf* mdm=branch->GetLeaf(Form("md%dm_adc",-4*package+9));
+	TLeaf* mdp=branch->GetLeaf(Form("md%dp_adc",md_number));
+	TLeaf* mdm=branch->GetLeaf(Form("md%dm_adc",md_number));
+        
 
 	Int_t nevents=event_tree->GetEntries();
 	
@@ -189,11 +189,12 @@ void project_root(string command="", int package=1,int run_number=6327){
 
 
 	for(int i=0;i<nevents;i++){
-		
+			
 		branch_event->GetEntry(i);
 		branch->GetEntry(i);
+		
 		double xoffset,yoffset,xslope,yslope,x,y;
-		for(int p=0;p<fEvent->GetNumberOfPartialTracks();p++){
+		for(int p=0;p< fEvent->GetNumberOfPartialTracks();p++){
 			pt=fEvent->GetPartialTrack(p);
 			if(pt->GetRegion()==3 && pt->GetPackage()==package){
 			   xoffset=pt->fOffsetX;
@@ -233,7 +234,7 @@ void project_root(string command="", int package=1,int run_number=6327){
 		}
 	}
 
-	
+
 	gStyle->SetPalette(1);
 	if(IsProfile==false){
 	string title="track projection on main detector: " + w_title + ": not profile";
@@ -243,7 +244,7 @@ void project_root(string command="", int package=1,int run_number=6327){
 	h_2d->Draw("colz");
 	}
 	else{
-	string title="track projection on main detector: " + w_title + ": profile";
+	string title="track projection on main detector: " + w_title + "light per event";
 	hp_2d->GetXaxis()->SetTitle("position x:cm");
 	hp_2d->GetYaxis()->SetTitle("position y:cm");
 	hp_2d->SetTitle(title.c_str());

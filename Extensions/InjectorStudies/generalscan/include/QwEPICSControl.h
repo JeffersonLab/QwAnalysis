@@ -22,25 +22,8 @@ public:
   QwEPICSControl();
   ~QwEPICSControl();
 
-/*   void Print_HallAIA(){ */
-/*     int status; */
-/*     //    Char_t tmp[30]; */
-/*     //    status = ca_get(DBR_STRING, fIDHall_A_IA, tmp); */
-/*     //    status = ca_pend_io(10); */
-/*     //    std::cout << "Hall A IA value: " << tmp << std::endl; */
-/*     Double_t value; */
-/*     status = ca_get(DBR_DOUBLE, fIDHall_A_IA, &value); */
-/*     status = ca_pend_io(10); */
-/*     std::cout << "Hall A IA value: " << value << std::endl; */
-/*   }; */
-
-
   void Print_Qasym_Ctrls(){
     int status;
-    //Char_t tmp[30]; 
-    //    status = ca_get(DBR_STRING, fIDHall_A_IA, tmp);
-    //    status = ca_pend_io(10);
-    //    std::cout << "Hall A IA value: " << tmp << std::endl;
 
     Double_t value;
     status = ca_get(DBR_DOUBLE, fIDPC_status, &value);
@@ -63,14 +46,52 @@ public:
     status = ca_pend_io(10);
     std::cout << "RHWP angle:                  " << value << std::endl;
 
-/*     status = ca_get(DBR_DOUBLE, fIDHall_C_IA, &value); */
-/*     status = ca_pend_io(10); */
-/*     std::cout << "Hall C IA value:              " << value << std::endl;*/ 
+    status = ca_get(DBR_DOUBLE, fIDIADAC11, &value);
+    status = ca_pend_io(10);
+    std::cout << "Hall C IA DAC11:             " << value << std::endl;
+    status = ca_get(DBR_DOUBLE, fIDIADAC12, &value);
+    status = ca_pend_io(10);
+    std::cout << "Hall C IA DAC12:             " << value << std::endl;
+    status = ca_get(DBR_DOUBLE, fIDIADAC13, &value);
+    status = ca_pend_io(10);
+    std::cout << "Hall C IA DAC13:             " << value << std::endl;
+    status = ca_get(DBR_DOUBLE, fIDIADAC14, &value);
+    status = ca_pend_io(10);
+    std::cout << "Hall C IA DAC14:             " << value << std::endl;
+
+    status = ca_get(DBR_DOUBLE, fIDPCXPos, &value);
+    status = ca_pend_io(10);
+    std::cout << "PC X position                " << value << std::endl;
+
+    status = ca_get(DBR_DOUBLE, fIDPCYPos, &value);
+    status = ca_pend_io(10);
+    std::cout << "PC Y position                " << value << std::endl;
 
     status = ca_get(DBR_DOUBLE, fIDHelicity_frequency, &value);
     status = ca_pend_io(10);
     std::cout << "Helicity frequency:          " << value << " Hz" << std::endl;
-  };
+  }
+  Double_t Get_PCXPos() {
+    int status;
+    Double_t value;
+    status = ca_get(DBR_DOUBLE, fIDPCXPos, &value);
+    status = ca_pend_io(10);
+    return value;  
+  }
+  Double_t Get_PCYPos() {
+    int status;
+    Double_t value;
+    status = ca_get(DBR_DOUBLE, fIDPCYPos, &value);
+    status = ca_pend_io(10);
+    return value;  
+  }
+  Double_t Get_PCMoving() {
+    int status;
+    Double_t value;
+    status = ca_get(DBR_DOUBLE, fIDPCMoving, &value);
+    status = ca_pend_io(10);
+    return value;  
+  }
   Double_t Get_CLaser_Att() {
     int status;
     Double_t value;
@@ -113,8 +134,8 @@ public:
     else if (DACnumber==10) status = ca_get(DBR_DOUBLE, fIDIADAC10, &value);
     else if (DACnumber==11) status = ca_get(DBR_DOUBLE, fIDIADAC11, &value);
     else if (DACnumber==12) status = ca_get(DBR_DOUBLE, fIDIADAC12, &value);
-    else if (DACnumber==11) status = ca_get(DBR_DOUBLE, fIDIADAC13, &value);
-    else if (DACnumber==12) status = ca_get(DBR_DOUBLE, fIDIADAC14, &value);
+    else if (DACnumber==13) status = ca_get(DBR_DOUBLE, fIDIADAC13, &value);
+    else if (DACnumber==14) status = ca_get(DBR_DOUBLE, fIDIADAC14, &value);
     else std::cerr << "Get_IADAC(): error: " << DACnumber << " not a valid DAC number\n";
      status = ca_pend_io(10); 
      return value; 
@@ -190,8 +211,8 @@ public:
     else if (DACnumber==10) status = ca_put(DBR_DOUBLE, fIDIADAC10, &value);
     else if (DACnumber==11) status = ca_put(DBR_DOUBLE, fIDIADAC11, &value);
     else if (DACnumber==12) status = ca_put(DBR_DOUBLE, fIDIADAC12, &value);
-    else if (DACnumber==11) status = ca_put(DBR_DOUBLE, fIDIADAC13, &value);
-    else if (DACnumber==12) status = ca_put(DBR_DOUBLE, fIDIADAC14, &value);
+    else if (DACnumber==13) status = ca_put(DBR_DOUBLE, fIDIADAC13, &value);
+    else if (DACnumber==14) status = ca_put(DBR_DOUBLE, fIDIADAC14, &value);
     else std::cerr << "Set_IADAC(): error: " << DACnumber << " not a valid DAC number\n";
     status = ca_pend_io(10);
     std::cout << "Setting IA DAC" << DACnumber << " value: " << value << std::endl;
@@ -304,6 +325,9 @@ public:
   chid fIDHelicity_frequency;
   chid fIDFC2_Current;
   chid fIDCLaser_Att;
+  chid fIDPCXPos;
+  chid fIDPCYPos;
+  chid fIDPCMoving;
 ;
 
 

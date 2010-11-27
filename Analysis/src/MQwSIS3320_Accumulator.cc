@@ -28,20 +28,20 @@ Int_t MQwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_l
 {
   UInt_t words_read = 0;
   UInt_t index;
-  Long_t sum;
-  Int_t nsamples;
+  Long64_t hw_sum;
+  Long64_t num_samples;
   index = 0;
   if (num_words_left >= fNumberOfDataWords) {
 
     // Read all words
-    nsamples = buffer[0];
-    sum = buffer[2];		// first assign Int_t to Long_t, so that we
-    sum <<= sizeof(Int_t);	//  can shift it into the higher registers
-    sum += buffer[1];
+    num_samples = buffer[0];
+    hw_sum = buffer[2];		// first assign Int_t to Long_t, so that we
+    hw_sum <<= sizeof(Int_t);	// can shift it into the higher registers
+    hw_sum += buffer[1];
     words_read = fNumberOfDataWords;
 
-    fNumberOfSamples = nsamples;
-    fAccumulatorSum = sum;
+    fNumberOfSamples = num_samples;
+    fAccumulatorSum = hw_sum;
 
   } else {
     QwWarning << "MQwSIS3320_Accumulator::ProcessEvBuffer: Not enough words!" << QwLog::endl;
@@ -95,7 +95,8 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator* (const Double_t &
 const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator/ (const Double_t &value) const
 {
   MQwSIS3320_Accumulator result = *this;
-  result /= value;
+  if (value != 0)
+    result /= value;
   return result;
 };
 
@@ -120,7 +121,8 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator*= (const Double_t &valu
 MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator/= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
-    this->fAccumulatorSum /= value;
+    if (value != 0.0)
+      this->fAccumulatorSum /= value;
   }
   return *this;
 };
@@ -218,6 +220,30 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const MQwSIS3320_Acc
 };
 
 
+void MQwSIS3320_Accumulator::Sum(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2)
+{
+  *this  = value1;
+  *this += value2;
+}
+
+
+void MQwSIS3320_Accumulator::Difference(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2)
+{
+  *this  = value1;
+  *this -= value2;
+}
+
+
+void MQwSIS3320_Accumulator::Ratio(const MQwSIS3320_Accumulator &numer, const MQwSIS3320_Accumulator &denom)
+{
+  if (!IsNameEmpty()) {
+    if (denom.fAccumulatorSum != 0.0)
+      fAccumulatorSum = numer.fAccumulatorSum / denom.fAccumulatorSum;
+    fNumberOfSamples = numer.fNumberOfSamples + denom.fNumberOfSamples;
+  }
+}
+
+
 void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()) {
@@ -227,9 +253,9 @@ void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &pre
     fTreeArrayIndex  = values.size();
 
     values.push_back(0.0);
-    TString list = "sum/D";
+    TString list = "hw_sum/D";
     values.push_back(0.0);
-    list += ":nevents/D"; // TODO this should actually be an int
+    list += ":num_samples/D";
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     tree->Branch(basename, &(values[fTreeArrayIndex]), list);
@@ -251,8 +277,8 @@ void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values) const
             << QwLog::endl;
   } else {
     size_t index = fTreeArrayIndex;
-    values[index++] = this->GetAccumulatorSum();
-    values[index++] = this->GetNumberOfSamples();
+    values[index++] = GetAccumulatorSum();
+    values[index++] = GetNumberOfSamples();
   }
 };
 
@@ -298,3 +324,12 @@ void MQwSIS3320_Accumulator::FillHistograms()
   }
 };
 
+void  MQwSIS3320_Accumulator::DeleteHistograms()
+{
+  for (UInt_t i = 0; i < fHistograms.size(); i++) {
+    if (fHistograms[i] != NULL)
+      fHistograms[i]->Delete();
+    fHistograms[i] = NULL;
+  }
+  fHistograms.clear();
+};

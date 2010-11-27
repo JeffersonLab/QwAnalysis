@@ -88,6 +88,7 @@ static const UInt_t kPMTErrorFlag = 0x800; // in Decimal 2048 to identify the si
 
 static const UInt_t kEventCutMode3 = 0x10000;  // in Decimal 65536 to identify the mode 3 where we only flag event cut failed events 
 
+static const UInt_t kBeamTripError= 0x8000000;// in Decimal 2^27(134217728) to identify the an event within a beam trip range set by ring parameters
 static const UInt_t kGlobalCut    = 0x4000000;// in Decimal 2^26 to identify the single event cut is a global cut
 static const UInt_t kLocalCut     = 0x2000000;// in Decimal 2^25 to identify the single event cut is a local cut
 static const UInt_t kStabilityCut = 0x1000000;// in Decimal 2^24 to identify the single event cut is a stability cut

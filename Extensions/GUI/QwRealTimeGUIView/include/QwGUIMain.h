@@ -222,6 +222,7 @@ class QwGUIMain : public TGMainFrame {
  private:
 
   static const Int_t kMaxMapFileSize;
+  /* static const Int_t  kCharLength; */
   //!Every instantiated subsystem gets added to this object array, as a cleanup mechanism.
   TObjArray               SubSystemArray;
 

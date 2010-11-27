@@ -69,7 +69,7 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   //! \brief Assignment operator
   QwHit& operator= (const QwHit& hit);
   //! \brief Ordering operator
-  Bool_t operator< (QwHit& hit);
+  Bool_t operator< (const QwHit& hit);
   //! \brief Output stream operator
   friend ostream& operator<< (ostream& stream, const QwHit& hit);
 

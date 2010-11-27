@@ -94,28 +94,29 @@ class QwTrackingTree: public VQwTrackingElement {
 	EQwDirectionID dir);
 
     long writetree (
-	string filename,
+	const string& filename,
 	treenode *tn,
 	int levels,
 	int tlayers,
 	double width);
 
     QwTrackingTreeRegion* readtree (
-	string filename,
+	const string& filename,
 	int levels,
 	int tlayers,
 	double rwidth,
 	bool regenerate);
 
     QwTrackingTreeRegion* inittree (
-	string filename,
+	const string& filename,
 	int levels,
 	int tlayer,
 	double width,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
 	EQwRegionID region,
-	EQwDirectionID dir);
+	EQwDirectionID dir,
+	bool regenerate);
 
   private:
 

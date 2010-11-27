@@ -241,23 +241,25 @@ void QwSubsystemArrayParity::AccumulateRunningSum(const QwSubsystemArrayParity& 
 {
   if (!value.empty()) {
     if (this->size() == value.size()) {
-      for (size_t i = 0; i < value.size(); i++) {
-        if (value.at(i)==NULL || this->at(i)==NULL) {
-          //  Either the value or the destination subsystem
-          //  are null
-        } else {
-          VQwSubsystemParity *ptr1 =
-            dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
-          if (typeid(*ptr1) == typeid(*(value.at(i).get()))) {
-            ptr1->AccumulateRunningSum(value.at(i).get());
-          } else {
-            QwError << "QwSubsystemArrayParity::AccumulateRunningSum here where types don't match" << QwLog::endl;
-            QwError << " typeid(ptr1)=" << typeid(ptr1).name()
-                    << " but typeid(value.at(i)))=" << typeid(value.at(i)).name()
-                    << QwLog::endl;
-            //  Subsystems don't match
-          }
-        }
+      if (value.GetEventcutErrorFlag()==0){//do running sum only if error flag is zero. This way will prevent any Beam Trip(in ev mode 3) related events going into the running sum.
+	for (size_t i = 0; i < value.size(); i++) {
+	  if (value.at(i)==NULL || this->at(i)==NULL) {
+	    //  Either the value or the destination subsystem
+	    //  are null
+	  } else {
+	    VQwSubsystemParity *ptr1 =
+	      dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
+	    if (typeid(*ptr1) == typeid(*(value.at(i).get()))) {
+	      ptr1->AccumulateRunningSum(value.at(i).get());
+	    } else {
+	      QwError << "QwSubsystemArrayParity::AccumulateRunningSum here where types don't match" << QwLog::endl;
+	      QwError << " typeid(ptr1)=" << typeid(ptr1).name()
+		      << " but typeid(value.at(i)))=" << typeid(value.at(i)).name()
+		      << QwLog::endl;
+	      //  Subsystems don't match
+	    }
+	  }
+	}
       }
     } else {
       //  Array sizes don't match
@@ -410,11 +412,19 @@ Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
   return 1;
 }
 
-UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag(){// report number of events falied due to HW and event cut faliure
+UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() const{// report number of events falied due to HW and event cut faliure
   return fErrorFlag;
 };
 
+void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values){
+  QwSubsystemArray::ConstructBranchAndVector(tree, prefix, values);
+  values.push_back(0.0);
+  if (prefix=="asym_" || prefix=="")//to create single entry in two trees
+    tree->Branch("ErrorFlag",&(values[values.size()-1]),"ErrorFlag/D");
 
+  //tree->Branch(Form("%sErrorFlag",prefix.Data()),&(values[values.size()-1]),Form("%sErrorFlag/D",prefix.Data()));
+
+};
 void QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t>& values) const
 {
   QwSubsystemArray::FillTreeVector(values);

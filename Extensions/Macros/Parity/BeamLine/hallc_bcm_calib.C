@@ -86,7 +86,17 @@
 //                   - replaced event_number by CodaEventNumber
 //                     , because event_number is belong to a "helicity" subsystem.
 //
-
+//          0.0.12 : Saturday, November 13 21:48:48 EST 2010, jhlee
+//                   - added sca_bcm17
+//          
+//          0.0.13 : Wednesday, November 17 15:52:53 EST 2010, jhlee
+//                   - removed the naive method to find the unser pedestral
+//                     added the better way to determine it,
+//                     but it works with a well-measured calibration BCM
+//                     calibration run. (5070, 6846)     
+//          0.0.14 : Thursday, November 18 12:03:36 EST 2010, jhlee
+//                   - cleaned up codes and added some commments 
+//           
 // TODO List
 
 // Additional BCM calibration run info
@@ -100,14 +110,26 @@
 // 
 //  5669             BCM gain setting 2
 //  5807             BCM gain setting 2   * BCM calibration RUN 
+//                   https://hallcweb.jlab.org/hclog/1010_archive/101013045438.html
 //                   ./hallc_bcm_calib -r 5807 -e 10:75
 //                   https://hallcweb.jlab.org/hclog/1010_archive/101014011357.html
 
 //  5889 - 6114      BCM gain setting 2
 //  6115 - 6158      BCM gain setting 5  >>  BCM calibration RUN 6158 / ./hallc_bcm_calib -r 6158 -e 5:60 
 //  6159 - 6301      BCM gain setting 2  
-//  6302 -           BCM gain setting 5
+//  6302 - 6542      BCM gain setting 5
 //                   https://hallcweb.jlab.org/hclog/1010_archive/101029193112.html
+//  6543 - 6845      BCM gain setting 
+//  6846 -           BCM gain setting 2  >> BCM calibration RUN 6846 / 20uA - 150uA
+//                   https://hallcweb.jlab.org/hclog/1011_archive/101110223106.html
+
+
+#define ITMAX 100
+#define MAXN  1000 
+#define EPS 3.0e-7
+#define FPMIN 1.0e-30 //Number near the smallest representable floating-point number.
+
+
 
 #include <iostream>
 #include <fstream>
@@ -133,6 +155,12 @@
 
 #include "TStopwatch.h"
 
+#include "TSpectrum.h"
+#include "TMath.h"
+#include "TVirtualFitter.h"
+#include "TLine.h"
+
+
 #include "TCut.h"
 #include "TChain.h"
 #include "TChainElement.h"
@@ -157,6 +185,7 @@ public:
   void SetSlopErr(const Double_t in) {slope[1] = in; SetGainErr();} // must calculate gain[1] error later, jhlee
  
   void SetFitRange(const Double_t in[2]) {fit_range[0] = in[0]; fit_range[1] = in[1];};
+  
   void SetReference()  {reference_flag = true;};
   void SetFileStream() {filestream_flag = true;};
   void SetBPM()        {bpm_flag = true;}
@@ -292,22 +321,22 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
   if(device.filestream_flag) { 
     stream << std::setprecision(file_precision);
     stream << std::setiosflags(std::ios_base::scientific);
-    stream <<  std::setw(name_output_width) << device_name;
-    stream << ", ";
-    stream <<  std::setw(file_output_width) << device.offset[0];
-    stream << ", " ;
-    stream <<  std::setw(file_output_width) << device.offset[1];
-    stream << ", " ;
+    stream << std::setw(name_output_width) << device_name;
+    stream << " ";
+    stream << std::setw(file_output_width) << device.offset[0];
+    stream << " " ;
+    stream << std::setw(file_output_width) << device.offset[1];
+    stream << " " ;
     if(not device.bpm_flag) {
-      stream <<  std::setw(file_output_width) << device.slope[0];
-      stream << ", " ;
-      stream <<  std::setw(file_output_width) << device.slope[1];
-      stream << ", " ;
+      stream << std::setw(file_output_width) << device.slope[0];
+      stream << " " ;
+      stream << std::setw(file_output_width) << device.slope[1];
+      stream << " " ;
     }
-    stream <<  std::setw(file_output_width) << device.gain[0];
-    stream << ", " ;
-    stream <<  std::setw(file_output_width) << device.gain[1];
-    stream << "\n";
+    stream << std::setw(file_output_width) << device.gain[0];
+    stream << " " ;
+    stream << std::setw(file_output_width) << device.gain[1];
+    //    stream << "\n";
   }
   else {
 
@@ -331,7 +360,7 @@ std::ostream& operator<< (std::ostream& stream, const BeamMonitor &device)
     if(device.reference_flag) {
       stream << std::setfill(' ') << std::setw(38);
       stream << " Fit Range : "   << std::setw(term_output_width) << device.fit_range[0];
-      stream << " -- "            << std::setw(term_output_width) << device.fit_range[1];
+      stream << " +- "            << std::setw(term_output_width) << device.fit_range[1];
     }
     else {
       stream << std::setfill(' ') << std::setw(38);
@@ -355,6 +384,8 @@ print_usage(FILE* stream, int exit_code);
 Bool_t 
 bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
 
+Bool_t
+Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number);
 
 Bool_t
 check_bcm_branches(std::vector<TString> &branches, TTree *roottree)
@@ -440,13 +471,54 @@ GetTree(TString filename, TChain* chain)
   return chain_status;
 };
 
+
+
+Double_t
+background(Double_t *x, Double_t *par)
+{
+  return par[0] + par[1]*x[0] + par[2]*x[0]*x[0];
+};
+
+Double_t
+gaussian(Double_t *x, Double_t *par)
+{
+ 
+  Double_t norm  = par[0]; // par[3] in fitFunction
+  Double_t mean  = par[1]; // par[4] in fitFunction
+  Double_t sigma = par[2]; // par[5] in fitFunction
+  Double_t arg = 0.0;
+  if(sigma not_eq 0.0) arg = (x[0]-mean)/sigma;
+  else                 return 1.e30; // the same as TMath::Gaus // not sure it works??
+  Double_t res   = TMath::Exp(-0.5*arg*arg);
+
+  return norm*res;
+
+};
+
+
+Double_t
+fitFunction(Double_t *x, Double_t *par)
+{
+  return background(x,par)+gaussian(x,&par[3]);
+};
+
+
+
+void nrerror(const char *error_text);
+double gammln(double xx);
+void gser(double *gamser, double a, double x, double *gln);
+void gcf(double *gammcf, double a, double x, double *gln);
+double gammp(double a, double x);
+double gammq(double a, double x);
+
+
 const char* program_name;
 std::vector<BeamMonitor> hallc_bcms_list;
 
 TChain  *mps_tree_in_chain  = NULL;
 TCanvas *unser_canvas       = NULL;
 TCanvas *bcm_canvas         = NULL;
-TString  bcm_plots_filename;
+TString  g_bcm_plots_filename;
 
 
 Int_t
@@ -457,12 +529,12 @@ main(int argc, char **argv)
 
   char* run_number = NULL;
 
-  Double_t naive_beam_off_cut = 0.0;
+  //  Double_t naive_beam_off_cut = 0.0;
   Double_t fit_range[2] = {0.0};
 
   Bool_t file_flag         = false;
   Bool_t fit_range_flag    = false;
-  Bool_t unser_offset_flag = false;
+  //  Bool_t unser_offset_flag = false;
 
     // Fit and stat parameters
   gStyle->SetOptFit(1111);
@@ -473,7 +545,7 @@ main(int argc, char **argv)
 
   int cc = 0; 
 
-  while ( (cc= getopt(argc, argv, "r:i:e:")) != -1)
+  while ( (cc= getopt(argc, argv, "r:e:")) != -1)
     {
       switch (cc)
 	{
@@ -483,12 +555,12 @@ main(int argc, char **argv)
 	    run_number = optarg;
 	  }
 	  break;
-	case 'i':
-	  {
-	    unser_offset_flag    = true;
-	    naive_beam_off_cut = atof(optarg);
-	  }
-	  break;
+	// case 'i':
+	//   {
+	//     unser_offset_flag    = true;
+	//     naive_beam_off_cut = atof(optarg);
+	//   }
+	//   break;
 	case 'e':
 	  {
 	    fit_range_flag = true;
@@ -533,19 +605,15 @@ main(int argc, char **argv)
     }
   
   if(not fit_range_flag) {
-    fit_range[0] = 0.10;
-    fit_range[1] = 0.80;
+    fit_range[0] = 0.1288915;
+    fit_range[1] = 0.966688;
+    // fit_range[0] = 0.15;
+    // fit_range[1] = 0.95;
   }
   else {
     fit_range[0] = fit_range[0]/100.0;
     fit_range[1] = fit_range[1]/100.0;
     
-  }
-  if(unser_offset_flag) {
-    naive_beam_off_cut = naive_beam_off_cut*1e3;
-  }
-  else {
-    naive_beam_off_cut = 318*1e3;   
   }
   
   if (not file_flag) {
@@ -562,6 +630,7 @@ main(int argc, char **argv)
   branches_for_bcm_calibration.push_back("sca_unser");
   branches_for_bcm_calibration.push_back("sca_bcm1");
   branches_for_bcm_calibration.push_back("sca_bcm2");
+  branches_for_bcm_calibration.push_back("sca_bcm17");
   branches_for_bcm_calibration.push_back("qwk_bcm1");
   branches_for_bcm_calibration.push_back("qwk_bcm2");
   branches_for_bcm_calibration.push_back("qwk_bcm5");
@@ -572,8 +641,10 @@ main(int argc, char **argv)
   TString temp;
   TString unser_branch_name;
   TString clock_name;
+  std::size_t i = 0; 
 
-  for(std::size_t i=0; i<branches_for_bcm_calibration.size(); i++)
+  
+  for(i=0; i<branches_for_bcm_calibration.size(); i++)
     {
       temp = branches_for_bcm_calibration.at(i);
       if( temp.Contains("bcm") ) {
@@ -587,20 +658,22 @@ main(int argc, char **argv)
       }
   
     }
-
+  
+  // define unser, and set it as reference
   BeamMonitor sca_unser(unser_branch_name);
   sca_unser.SetReference();
 
+  // define chain to access tree in (a) root file(s)
   mps_tree_in_chain = new TChain("Mps_Tree");
   
   TString bcm_calibration_filename = Form("BCMCalib_%s*.root", run_number);
   Int_t chain_status = 0;
   chain_status = GetTree(bcm_calibration_filename, mps_tree_in_chain);
-
   if(chain_status == 0) {
     exit(1);
   }
 
+  // check the rootfiles are valid for the BCM calibration
   Bool_t bcm_valid_rootfiles = false;
   bcm_valid_rootfiles = check_bcm_branches(branches_for_bcm_calibration,mps_tree_in_chain);
   
@@ -660,125 +733,50 @@ main(int argc, char **argv)
   //  timer.Stop(); 
   //  printf("RealTime=%f seconds, CpuTime=%f seconds\n", timer.RealTime(), timer.CpuTime());
 
-
   // TEST end
 
 
-  Int_t w = 1200;
-  Int_t h = 600;
-  unser_canvas = new TCanvas("sca_unser","SCA Unser", w, h);  
-  //
-  // extract unser maximum range in order to determine fit range
-  //
-
-  // Clock Corrected qwk_sca_unser;
-
-  //  TString clock_name = "sca_4mhz";
-  
+  // do the 4MHz clock corrections
   mps_tree_in_chain -> SetAlias("clock_correct", Form("4e6/%s", clock_name.Data())); 
   mps_tree_in_chain -> SetAlias("cc_sca_unser",  Form("clock_correct*%s", sca_unser.GetCName()));
 
   mps_tree_in_chain -> SetAlias("cc_sca_bcm1",  "clock_correct*sca_bcm1");
   mps_tree_in_chain -> SetAlias("cc_sca_bcm2",  "clock_correct*sca_bcm2");
+  mps_tree_in_chain -> SetAlias("cc_sca_bcm17", "clock_correct*sca_bcm17");
+
   hallc_bcms_list.at(0).SetAliasName("cc_sca_bcm1");
   hallc_bcms_list.at(1).SetAliasName("cc_sca_bcm2");
-
-
-  unser_canvas -> Divide(2,1);
-  unser_canvas -> cd(1);
-  
-  TH1D* sca_unser_event = NULL;
-  sca_unser_event = GetHisto(mps_tree_in_chain, "cc_sca_unser:CodaEventNumber", "");
-  if(not sca_unser_event) {
-    std::cout << "Please check clock corrected sca_unser:CodaEventNumber"
-	      << std::endl;
-    theApp.Run();
-    return 0;
-  }
-
-  sca_unser_event -> SetTitle(Form("Run %s  cc_sca_unser:CodaEventNumber", run_number));
-  gPad->Update();
-
-  Double_t unser_max = sca_unser_event -> GetYaxis() -> GetXmax();
-
-
-  //
-  // extract unser offset, offset error, slope, and slope error.
-  //
-  unser_canvas -> cd(2);
-
-  TCut unser_cut(Form("%s<%lf", "cc_sca_unser",  naive_beam_off_cut));
-
-  TH1D* cc_sca_unser_gaus = GetHisto(mps_tree_in_chain, "cc_sca_unser", unser_cut);
-
-  if(not cc_sca_unser_gaus) {
-    std::cout << " This programs doesn't handle this run correctly. \n"
-  	      << " Please report this problem via an email to jhlee@jlab.org\n"
-	      << " or\n You can adjust unser beam off offset. See usage."
-  	      << std::endl;
-    theApp.Run();
-  }
-  cc_sca_unser_gaus -> SetTitle(Form("Run %s cc_sca_unser", run_number));
-  cc_sca_unser_gaus -> Fit("gaus", "M");
-
-  TF1 *unser_fit = cc_sca_unser_gaus -> GetFunction("gaus");
-  unser_fit->SetLineColor(kRed);
-
-  TString unser_name = "unser_current";
-
-  if(unser_fit) {
-  
-    Double_t unser_scaler_unit = 2.5e-3;
-    Double_t mean = unser_fit -> GetParameter(1);
-    Double_t unser_max_current = (unser_max-mean)*unser_scaler_unit;
-
-    fit_range[0] *= unser_max_current;
-    fit_range[1] *= unser_max_current;
-
-    std::cout << "range " << fit_range[0] << " " << fit_range[1] << std::endl;
-    mps_tree_in_chain->SetAlias(unser_name.Data(), Form("((cc_sca_unser-%lf)*%lf)", mean, unser_scaler_unit));
-    sca_unser.SetAliasName(unser_name.Data());
-    sca_unser.SetPed(mean);
-    sca_unser.SetPedErr(unser_fit -> GetParError(1));
-    sca_unser.SetFitRange(fit_range);
-    std::cout << sca_unser << std::endl;
-  }
-  else {
-    std::cout << "This program does not fit the Unser BCM correctly."
-	      << "Please report this problem via an email to jhlee@jlab.org"
-	      << std::endl;
-    theApp.Run();
-  }
-
-
-
-  unser_canvas -> Modified();
-  unser_canvas -> Update();
- 
-  // 
-  // Save as ROOT C++ Macro and png of unser_canvas
-  //
-  TString output_name = unser_canvas->GetName();
-  unser_canvas -> SaveAs(Form("BCMCalib%s_%s.cxx", run_number, output_name.Data()));
-  unser_canvas -> SaveAs(Form("BCMCalib%s_%s.png", run_number, output_name.Data()));
+  hallc_bcms_list.at(2).SetAliasName("cc_sca_bcm17");
 
   // Print the plot on to a file
   // file containing the bcm calibration plots
 
-  bcm_plots_filename = "_hallc_bcm_calib_plots.ps";
-  bcm_plots_filename.Insert(0, run_number);
+  g_bcm_plots_filename = "_hallc_bcm_calib_plots.ps";
+  g_bcm_plots_filename.Insert(0, run_number);
 
-  // Open ps file
-  unser_canvas -> Print(bcm_plots_filename+"[");
-  // Save "unser" plot into the ps file.
-  unser_canvas -> Print(bcm_plots_filename);
+  //
+  // deliver the initial fit_range in order to scale them to unser max current range
+  //
+  Bool_t unser_calib_flag = false;
+  sca_unser.SetFitRange(fit_range);
 
-  std::size_t i = 0; 
+  //
+  // Unser calibration
+  //
+  unser_calib_flag = Unser_calibrate(sca_unser, clock_name, run_number);
+  if(not unser_calib_flag) {
+    printf("Unser calibration is failed, no meaning to go further.\n");
+    printf("Ctrl+c will be used to close this program.\n");
+    theApp.Run();
+  }
+
+
+
   Int_t cnt = 0;
   std::cout << "how many bcms at Hall C ? " << hallc_bcms_list.size() << std::endl;
 
   for (i=0; i<hallc_bcms_list.size(); i++) 
-    //  for (i=2; i<3; i++)  for only qwk_bcm1
+    // for (i=3; i<4; i++) // for only qwk_bcm1
     {
       std::cout << "\n" 
 		<< cnt++ 
@@ -789,8 +787,9 @@ main(int argc, char **argv)
       //  if(not check) theApp.Run();
     }
 
+  
   /* Close ps file */
-  unser_canvas -> Print(bcm_plots_filename+"]");
+  unser_canvas -> Print(g_bcm_plots_filename+"]");
 
   /* open a file to store the calibration results for qwk_bcm1, qwk_bcm2, qwk_bcm5, and qwk_bcm6*/
   std::ofstream       hallc_bcms_pedestal_output;
@@ -805,8 +804,9 @@ main(int argc, char **argv)
       /* exclude sca_bcm results from the output to the file. */
       if(not hallc_bcms_list.at(i).GetName().Contains("sca")) {
 	hallc_bcms_list.at(i).SetFileStream();
-	hallc_bcms_pedestal_stream << hallc_bcms_list.at(i);
+	hallc_bcms_pedestal_stream << hallc_bcms_list.at(i) << "\n";
       }
+      
     } 
 
   //  time_t theTime;
@@ -827,7 +827,298 @@ main(int argc, char **argv)
   return 0;
 }
 
+Bool_t
+Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
+{
+  Bool_t local_debug = false;
+  
+  TString unser_name = unser.GetName();
+  Double_t unser_fit_range[2] = {0.0};
+  // get user defined fit ranges 
+  unser_fit_range[0] = unser.GetFitRangeMin();
+  unser_fit_range[1] = unser.GetFitRangeMax();
 
+  static Double_t qwk_sca_unser = 0.0;
+  static Double_t qwk_sca_4mhz  = 0.0;
+  Double_t clock_corrected_unser = 0.0;
+
+  TBranch *b_unser = mps_tree_in_chain->GetBranch(unser_name.Data());
+  TBranch *b_4mhz  = mps_tree_in_chain->GetBranch(clock_name.Data());
+  b_unser -> SetAddress(&qwk_sca_unser);
+  b_4mhz  -> SetAddress(&qwk_sca_4mhz);
+
+  Int_t nentries = (Int_t) mps_tree_in_chain -> GetEntries();
+  Int_t nbins    = nentries - 1;
+
+  TH1D *unser_TM   = new TH1D("UnserTM", Form("Run %s : Unser Timing Module", run_number), nbins, 0, nbins);
+
+  unser_TM -> SetStats(0);
+  unser_TM -> GetXaxis() -> SetTitle("measurement time (event number ?)");
+  unser_TM -> GetYaxis() -> SetTitle("uncorrected unser");
+  for (Int_t i=0; i<nentries; i++) 
+    {
+      b_unser -> GetEntry(i);
+      b_4mhz  -> GetEntry(i);
+      clock_corrected_unser = qwk_sca_unser*4e6/qwk_sca_4mhz;
+      if(local_debug) {
+	std::cout << "i " << i
+		  << " unser " << qwk_sca_unser
+		  << " 4mhz  " << qwk_sca_4mhz
+		  << " cc unser "  << clock_corrected_unser
+		  << std::endl;
+      }
+
+      unser_TM -> SetBinContent(i, clock_corrected_unser);
+    }
+
+  Double_t unser_max = 0.0;
+  Double_t unser_min = 0.0;
+
+  unser_max = unser_TM->GetBinContent(unser_TM->GetMaximumBin());
+  unser_min = unser_TM->GetBinContent(unser_TM->GetMinimumBin());
+
+  Int_t rd_unser_min   = (Int_t) unser_min;
+  Int_t rd_unser_max   = (Int_t) (unser_max) + 1 ;
+  Int_t nbins_rd_unser = (rd_unser_max - rd_unser_min)/1000; // normalize a kHz offset in order to increase "bin size".
+
+  printf(" UnserHist Nbins %d Min %d Max %d\n", nbins_rd_unser, rd_unser_min, rd_unser_max);
+  TH1D *unser_hist = new TH1D("UnserHist", Form("Run %s : Unser Histogram", run_number), nbins_rd_unser, rd_unser_min, rd_unser_max);
+  unser_hist -> SetMarkerStyle(21);
+  unser_hist -> SetMarkerSize(0.8);
+  for (Int_t i=0; i<nbins; i++) 
+    {
+      unser_hist->Fill(unser_TM -> GetBinContent(i));
+    }
+
+  if(local_debug) printf("entries %d unser_max %lf min %lf\n", nentries, unser_max, unser_min);
+  
+  
+  Int_t w = 1000;
+  Int_t h = 500;
+
+  unser_canvas = new TCanvas("sca_unser", "sca_unser", w, h);  
+
+  unser_canvas -> Divide(2,1);
+
+  unser_canvas -> cd(1);
+  unser_TM -> Draw();
+  gPad->Update();
+  unser_canvas -> cd(2);
+  Int_t npeaks = 20; 
+  Int_t nfound = 0 ;
+
+  TSpectrum *s = new TSpectrum(npeaks);
+  nfound = s->Search(unser_hist, 2, "noMarkov goff", 0.05);
+ 
+  Float_t *xpeaks = s->GetPositionX();
+  printf("Found %d candidate peaks to fit\n",nfound);
+
+
+  Double_t peak_xpos = 0.0;
+  Int_t    peak_bin  = 0;
+  Double_t peak_ypos = 0.0;
+  // Double_t raw_sigma = 0.0;
+
+  Int_t    unser_peak_idx  = 0;
+  Int_t    unser_peak_bin  = 0;
+  Double_t unser_peak_xpos = 0.0;
+  Double_t unser_peak_ypos = 0.0;
+  Double_t unser_raw_sigma = 0.0;
+
+  if ( nfound !=0 ) {
+
+
+    // try to find the Unser peak that has the smallest bin number
+    //
+    for(Int_t i=0; i<nfound; i++)
+      {
+	peak_xpos = (Double_t) xpeaks[i];
+	peak_bin  = unser_hist->GetXaxis()->FindBin(peak_xpos);
+	if(i==0) {
+	  unser_peak_bin = peak_bin;
+	}
+	else {
+	  if(unser_peak_bin > peak_bin) { 
+	    unser_peak_bin = peak_bin;
+	    unser_peak_idx = i;
+	  }
+	}
+	peak_ypos = unser_hist->GetBinContent(peak_bin);
+      }
+
+    //
+    // get xpos, bin, ypos, estimated width of the Unser peak
+    //
+    unser_peak_xpos = (Double_t) xpeaks[unser_peak_idx];
+    unser_peak_bin  = unser_hist->GetXaxis()->FindBin(unser_peak_xpos);
+    unser_peak_ypos = unser_hist->GetBinContent(unser_peak_bin);
+    unser_raw_sigma = 0.34*TMath::Abs(unser_peak_xpos-unser_min); // 0.5 sigma I selected
+    
+    printf("Unser Peak %d : peak_xpos %4.2lf peak_bin %4d peak_ypos %4.2lf raw_sigma %4.2lf\n",
+	   unser_peak_idx, unser_peak_xpos, unser_peak_bin, unser_peak_ypos, unser_raw_sigma);
+
+    // TH1 *hb = s->Background(unser_hist, 20, "same");
+    // if (hb) gPad->Update();
+    
+    
+
+    // Default the number of points to draw TF1 function
+    Int_t number_of_points = 2000;
+
+    TF1 *unser_fit = new TF1("fitFcn", fitFunction, unser_min, unser_max, 6);// 6 is the number of parameter in fitFunction
+    unser_fit -> SetNpx(number_of_points);
+    // unser_fit -> SetParameter(0,1);
+    // unser_fit -> SetParameter(1,1);
+    // unser_fit -> SetParameter(2,1);
+
+    // give the parameter names to par[i]
+    unser_fit -> SetParName(0, "a1");
+    unser_fit -> SetParName(1, "a2");
+    unser_fit -> SetParName(2, "a3");
+    unser_fit -> SetParName(3, "Norm");
+    unser_fit -> SetParName(4, "Mean");
+    unser_fit -> SetParName(5, "Sigma");
+
+    // initialize three parameters with values from guessing and results from TSpectrum
+    unser_fit -> SetParameter(3, unser_peak_ypos);
+    unser_fit -> SetParameter(4, unser_peak_xpos);
+    unser_fit -> SetParameter(5, unser_raw_sigma);
+
+    // set estimated parameter limits to mean and sigma
+    unser_fit -> SetParLimits(4, unser_peak_xpos - unser_raw_sigma, unser_peak_xpos + unser_raw_sigma);
+    unser_fit -> SetParLimits(5, 0, unser_peak_xpos-unser_min);
+
+    unser_fit -> SetLineWidth(2);
+    unser_fit -> SetLineColor(kRed);
+
+    gStyle -> SetOptFit(1111);
+    gStyle -> SetOptStat("ei");
+  
+    unser_hist->Fit("fitFcn", "E M B Q");
+
+    if(unser_fit) {
+      
+      Double_t height[2] = {0.0};
+      Double_t mean[2]   = {0.0};
+      Double_t sigma[2]  = {0.0};
+
+      height[0] = unser_fit -> GetParameter("Norm");
+      height[1] = unser_fit -> GetParError(3);
+      mean[0]   = unser_fit -> GetParameter("Mean");
+      mean[1]   = unser_fit -> GetParError(4);
+      sigma[0]  = unser_fit -> GetParameter("Sigma");
+      sigma[1]  = unser_fit -> GetParError(5);
+      printf("Gaussian N: %12.2lf +- %8.2lf, Mean: %12.2lf +-%8.2lf, Sigma: %12.2lf +-%8.2lf\n", 
+	     height[0], height[1], mean[0], mean[1], sigma[0], sigma[1]);
+    
+      //
+      // draw two vertical lines to estimate the unser baseline, just for a nice view  
+      //
+
+      Double_t vertical_line_xrange[2] = {0.0};
+      vertical_line_xrange[0] = mean[0] - 3.0*sigma[0]; // 3 sigma guided lines
+      vertical_line_xrange[1] = mean[0] + 3.0*sigma[0];
+
+      TLine* line = new TLine();
+      line -> SetLineStyle(3);
+
+      line -> DrawLine(vertical_line_xrange[0], 0, vertical_line_xrange[0], 0.8*unser_peak_ypos);
+      line -> DrawLine(vertical_line_xrange[1], 0, vertical_line_xrange[1], 0.8*unser_peak_ypos);
+  
+      // get some important (?) values from unser_fit
+      // and calculate probabilities 
+      double chisq         = unser_fit -> GetChisquare();
+      double ndf           = unser_fit -> GetNDF();
+      double reduced_chisq = chisq/ndf;
+    
+      double prob          = unser_fit -> GetProb();  // ROOT provide
+      double probQ         = gammq(0.5*ndf, 0.5*chisq); // numerical recipe
+      double probP         = gammp(0.5*ndf, 0.5*chisq); // numerical recipe
+    
+      printf("chisq %6.1lf ndf %3.0lf chisq/ndf %6.2lf, prob %6.3lf, probQ %6.3lf, probP %6.3lf\n",
+	     chisq, ndf, reduced_chisq, prob, probQ, probP);
+
+      //
+      // draw the background and Gaussian
+      //
+      TF1 *bgFunc = new TF1("backFcn", background, unser_min, unser_max, 3);
+  
+      bgFunc -> SetNpx(number_of_points);
+      bgFunc -> SetLineColor(13);
+      bgFunc -> SetLineStyle(2);
+      bgFunc -> SetLineWidth(3);
+      bgFunc -> SetParameter(0,unser_fit -> GetParameter("a1"));
+      bgFunc -> SetParameter(1,unser_fit -> GetParameter("a2"));
+      bgFunc -> SetParameter(2,unser_fit -> GetParameter("a3"));
+      bgFunc -> Draw("same");
+      gPad->Update();
+ 
+      TF1 *sgFunc = new TF1("signFcn", gaussian, unser_min, unser_max, 3);
+      sgFunc -> SetNpx(number_of_points);
+      sgFunc -> SetLineColor(kBlue);
+      sgFunc -> SetLineWidth(2);
+      sgFunc -> SetParameter(0, unser_fit -> GetParameter("Norm"));
+      sgFunc -> SetParameter(1, unser_fit -> GetParameter("Mean"));
+      sgFunc -> SetParameter(2, unser_fit -> GetParameter("Sigma"));
+      sgFunc -> Draw("same");
+      gPad->Update();
+
+      TString unser_name = "unser_current";
+    
+      Double_t unser_scaler_unit = 2.5e-3;
+      Double_t unser_max_current = (unser_max-mean[0])*unser_scaler_unit;
+
+      if(local_debug) printf("unser_max_current %lf\n", unser_max_current);
+      unser_fit_range[0] *= unser_max_current;
+      unser_fit_range[1] *= unser_max_current;
+
+      if(local_debug) {
+	printf("Unser maximum current %8.4lf\n", unser_max_current);
+	printf("Unser Fit range [ %8.4lf, %8.4lf ]\n", unser_fit_range[0], unser_fit_range[1]); 
+      }
+      
+      // return important values to a unser class
+      // 1) alias name
+      // 2) pedestal (mean)
+      // 3) pedestal error (sigma)
+      // 4) fit ranges
+      mps_tree_in_chain->SetAlias(unser_name.Data(), Form("((cc_sca_unser-%lf)*%lf)", mean[0], unser_scaler_unit));
+      unser.SetAliasName(unser_name.Data());
+      unser.SetPed(mean[0]);
+      unser.SetPedErr(sigma[0]);
+      unser.SetFitRange(unser_fit_range);
+      
+      std::cout << unser << std::endl;
+    }
+    else {
+      printf("This program does not fit the Unser BCM correctly.\n");
+      printf("Please report this problem via an email to jhlee@jlab.org.\n");
+      return false;
+    }
+  }
+  else {
+    // if any peaks are not found, just draw only unser_hist 
+    unser_hist->Draw();
+  }
+
+  unser_canvas -> Modified();
+  unser_canvas -> Update();
+ 
+  // 
+  // Save as ROOT C++ Macro and png of unser_canvas
+  //
+  TString output_name = unser_canvas->GetName();
+  unser_canvas -> SaveAs(Form("BCMCalib%s_%s.cxx", run_number, output_name.Data()));
+  unser_canvas -> SaveAs(Form("BCMCalib%s_%s.png", run_number, output_name.Data()));
+
+  // // Open ps file
+  unser_canvas -> Print(g_bcm_plots_filename+"[");
+
+  // Save "unser" plot into the ps file.
+  unser_canvas -> Print(g_bcm_plots_filename);
+
+  return true;
+}
 
 Bool_t
 bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number )
@@ -852,7 +1143,7 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
   TH1D* device_hist = NULL;
   TF1* device_fit = NULL;
   TH1D * device_res = NULL;
-  Int_t w = 1200;
+  Int_t w = 800;
   Int_t h = 600;
 
 
@@ -924,7 +1215,7 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
     device.SetSlop   (device_fit->GetParameter(1));
     device.SetSlopErr(device_fit->GetParError(1));
 
-   // Draw the residuals
+    // Draw the residuals
     bcm_canvas->cd(2);
     gPad->SetGridx();
     gPad->SetGridy();
@@ -971,10 +1262,14 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
 
   bcm_canvas -> Modified();
   bcm_canvas -> Update();
+
+  // Open ps file
+  // unser_canvas -> Print(g_bcm_plots_filename+"[");
+
   //
   // Print bcm_canvas into a ps file that is defined in main() function
   // 
-  bcm_canvas -> Print(bcm_plots_filename);
+  bcm_canvas -> Print(g_bcm_plots_filename);
 
   // 
   // Save as ROOT C++ Macro and png of bcm_canvas. 
@@ -1003,4 +1298,130 @@ print_usage (FILE* stream, int exit_code)
   exit (exit_code);
 }
 
+
+
+void 
+nrerror(const char *error_text)
+/* Numerical Recipes standard error handler */
+{
+  fprintf(stderr,"Numerical Recipes run-time error...\n");
+  fprintf(stderr,"%s\n", error_text);
+  fprintf(stderr,"...now exiting to system...\n");
+  exit(1);
+};
+
+
+double 
+gammln(double xx)
+{
+  double x,y,tmp,ser;
+  static double cof[6]={76.18009172947146,-86.50532032941677,
+			24.01409824083091,-1.231739572450155,
+			0.1208650973866179e-2,-0.5395239384953e-5};
+  int j;
+  y=x=xx;
+  tmp=x+5.5;
+  tmp -= (x+0.5)*log(tmp);
+  ser=1.000000000190015;
+  for (j=0;j<=5;j++) ser += cof[j]/++y;
+  return -tmp+log(2.5066282746310005*ser/x);
+};
+
+
+void 
+gser(double *gamser, double a, double x, double *gln)
+{
+  int n;
+  double sum,del,ap;
+  *gln=gammln(a);
+  if (x <= 0.0) 
+    {
+      if (x < 0.0) nrerror("x less than 0 in routine gser");
+      *gamser=0.0;
+      return;
+    } 
+  else 
+    {
+      ap=a;
+      del=sum=1.0/a;
+      for (n=1;n<=ITMAX;n++) 
+	{
+	  ++ap;
+	  del *= x/ap;
+	  sum += del;
+	  if (fabs(del) < fabs(sum)*EPS) 
+	    {
+	      *gamser=sum*exp(-x+a*log(x)-(*gln));
+	      return;
+	    }
+	}
+      nrerror("a too large, ITMAX too small in routine gser");
+      return;
+    }
+};
+;
+
+void 
+gcf(double *gammcf, double a, double x, double *gln)
+{
+
+  int i;
+  double an,b,c,d,del,h;
+  *gln=gammln(a);
+  b=x+1.0-a;
+  // Set up for evaluating continued fraction
+  //				     by modified Lentzs method (§5.2)
+  //				     with b0 = 0.
+  c=1.0/FPMIN;
+  d=1.0/b;
+  h=d;
+  for (i=1;i<=ITMAX;i++) 
+    {// Iterate to convergence.
+      an = -i*(i-a);
+      b += 2.0;
+      d=an*d+b;
+      if (fabs(d) < FPMIN) d=FPMIN;
+      c=b+an/c;
+      if (fabs(c) < FPMIN) c=FPMIN;
+      d=1.0/d;
+      del=d*c;
+      h *= del;
+      if (fabs(del-1.0) < EPS) break;
+    }
+  if (i > ITMAX) nrerror("a too large, ITMAX too small in gcf");
+  *gammcf=exp(-x+a*log(x)-(*gln))*h; 
+  //Put factors in front.
+};
+
+
+
+double
+gammp(double a, double x)
+{
+  double gamser,gammcf,gln;
+  if (x < 0.0 || a <= 0.0) nrerror("Invalid arguments in routine gammp");
+  if (x < (a+1.0)) { 
+    gser(&gamser,a,x,&gln);
+    return gamser;
+  } else { 
+    gcf(&gammcf,a,x,&gln);
+    return 1.0-gammcf; 
+  }
+}
+
+
+
+double 
+gammq(double a, double x)
+{
+  double gamser,gammcf,gln;
+  if (x < 0.0 || a <= 0.0) nrerror("Invalid arguments in routine gammq");
+  if (x < (a+1.0)) { 
+    gser(&gamser,a,x,&gln);
+    return 1.0-gamser; 
+  } else { 
+    gcf(&gammcf,a,x,&gln);
+    return gammcf;
+  }
+};
 

@@ -20,14 +20,11 @@
 // System headers
 #include <iostream>
 #include <vector>
-#include <numeric>
-#include <algorithm>
 
 // ROOT headers
+#include <TObject.h>
+#include <TGraph.h>
 #include <TTree.h>
-
-// Boost math library for random number generation
-#include <boost/random.hpp>
 
 // Qweak headers
 #include "VQwDataElement.h"
@@ -39,24 +36,35 @@
 /// thinking.
 typedef Double_t MQwSIS3320_Type;
 
-class MQwSIS3320_Samples: public VQwDataElement {
+class MQwSIS3320_Samples: public TObject, public VQwDataElement {
 
   public:
 
     MQwSIS3320_Samples(UInt_t nsamples = 256) {
+      fGraph = 0;
       SetSamplesPerWord(2);
       SetNumberOfSamples(nsamples);
     };
-    ~MQwSIS3320_Samples() { };
+    virtual ~MQwSIS3320_Samples() {
+      if (fGraph) delete fGraph;
+    };
+
+    size_t GetMinIndex() const { return GetMin().first; };
+    size_t GetMaxIndex() const { return GetMax().first; };
+    MQwSIS3320_Type GetMinSample() const { return GetMin().second; };
+    MQwSIS3320_Type GetMaxSample() const { return GetMax().second; };
 
     const MQwSIS3320_Type GetSum() const;
-    std::pair<size_t,MQwSIS3320_Type> GetMin() const;
-    std::pair<size_t,MQwSIS3320_Type> GetMax() const;
     const MQwSIS3320_Type GetSample(size_t i) const { return fSamples.at(i); };
+    const MQwSIS3320_Type GetPedestal() const { return GetSample(0); };
     const MQwSIS3320_Type GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const;
 
     const UInt_t GetNumberOfSamples() const { return fSamples.size(); };
     void SetNumberOfSamples(const UInt_t nsamples) {
+      // Initialize index vector
+      fIndex.resize(nsamples);
+      for (size_t i = 0; i < fIndex.size(); i++) fIndex[i] = i;
+      // Initialize sample vector
       fSamples.resize(nsamples);
       SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
     };
@@ -66,6 +74,9 @@ class MQwSIS3320_Samples: public VQwDataElement {
       fSamplesPerWord = nsamples;
       SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
     };
+
+    const TGraph* GetGraph() const { return fGraph; };
+
 
     void  ClearEventData() { fSamples.clear(); };
     Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0);
@@ -90,25 +101,34 @@ class MQwSIS3320_Samples: public VQwDataElement {
     void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
     void  FillHistograms() { };
 
-    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-    void  FillTreeVector(std::vector<Double_t> &values) const;
+    // Update the graph from the index and value vectors
+    void UpdateGraph();
 
     // Output stream operator<< for an accumulator
     friend std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples& s);
 
-    // Define operator+=, operator-=, etc, for accumulator asymmetries
+  private:
 
-  protected:
-
-    UInt_t fSamplesPerWord; //! Number of 12-bit sample values per data word
-    std::vector<MQwSIS3320_Type> fSamples; //! Samples data buffer
+    // Private helper methods for getting minimum and maximum index and samples
+    std::pair<size_t,MQwSIS3320_Type> GetMin() const; //!
+    std::pair<size_t,MQwSIS3320_Type> GetMax() const; //!
 
   private:
 
-    // Ntuple array indices
-    size_t fTreeArrayIndex; //! Index of this data element in tree
-    size_t fTreeArrayNumEntries; //! Number of entries from this data element
+    //! Number of 12-bit sample values per data word
+    UInt_t fSamplesPerWord;
+    //! Samples index
+    static std::vector<MQwSIS3320_Type> fIndex; //!
+    //! Samples values
+    std::vector<MQwSIS3320_Type> fSamples;
+    //! Graph of samples
+    TGraph* fGraph;
 
+    // Ntuple array indices
+    size_t fTreeArrayIndex; //!< Index of this data element in tree
+    size_t fTreeArrayNumEntries; //!< Number of entries from this data element
+
+  ClassDef(MQwSIS3320_Samples,1);
 };
 
 // Output stream operator<< for the samples

@@ -73,7 +73,7 @@ void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
   }
 
   // Start with zero samples
-  fSamples.resize(0); fSamplesRaw.resize(0);
+  fSamples.clear(); fSamplesRaw.clear();
   // Clear the average samples
   fAverageSamples.ClearEventData();
   fAverageSamplesRaw.ClearEventData();
@@ -370,9 +370,13 @@ void MQwSIS3320_Channel::ProcessEvent()
   // Correct for pedestal and calibration factor
   if (fSamplesRaw.size() > 0) fSamples.resize(fSamplesRaw.size(), fSamplesRaw[0]);
   for (size_t i = 0; i < fSamplesRaw.size(); i++) {
-    fSamples[i] = (fSamplesRaw[i] - fPedestal) * fCalibrationFactor;
+    fSamples[i] = fSamplesRaw[i];
+    fSamples[i] -= fPedestal;
+    fSamples[i] *= fCalibrationFactor;
+    fSamples[i].UpdateGraph();
   }
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
+    fAccumulators[i] = fAccumulatorsRaw[i];
     fAccumulators[i] -= fPedestal * fAccumulatorsRaw[i].GetNumberOfSamples();
     fAccumulators[i] *= fCalibrationFactor;
   }
@@ -459,6 +463,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator= (const MQwSIS3320_Channel &val
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
       fSamples[i] = value.fSamples.at(i);
+    for (size_t i = 0; i < fAccumulators.size(); i++ ) {
+      fAccumulators[i] = value.fAccumulators.at(i);
+    }
   }
   return *this;
 };
@@ -534,7 +541,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &va
  */
 void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
 {
-  *this =  value1;
+  *this  =  value1;
   *this += value2;
 };
 
@@ -545,9 +552,17 @@ void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &val
  */
 void MQwSIS3320_Channel::Difference(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
 {
-  *this =  value1;
+  *this  =  value1;
   *this -= value2;
-};
+}
+
+void MQwSIS3320_Channel::Ratio(MQwSIS3320_Channel &numer, MQwSIS3320_Channel &denom)
+{
+  if (!IsNameEmpty()) {
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators[i].Ratio(numer.fAccumulators[i],denom.fAccumulators[i]);
+  }
+}
 
 /**
  * Addition of a offset
@@ -655,6 +670,16 @@ void MQwSIS3320_Channel::FillHistograms()
   }
 };
 
+void  MQwSIS3320_Channel::DeleteHistograms()
+{
+  for (UInt_t i = 0; i < fHistograms.size(); i++) {
+    if (fHistograms[i] != NULL)
+      fHistograms[i]->Delete();
+    fHistograms[i] = NULL;
+  }
+  fHistograms.clear();
+};
+
 
 void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
@@ -665,29 +690,9 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   }
   // Samples (only collected when running over data, so structure does not
   // actually exist yet at time of branch construction)
-  //fSamples[0].ConstructBranchAndVector(tree, prefix, values);
-  //fSamplesRaw[0].ConstructBranchAndVector(tree, prefix, values);
-  // TODO See below for issues with including samples in the mps tree
-
-  // This is a quick and dirty way to read out the samples MMD
-  TString basename = prefix + GetElementName();
-  fTreeArrayIndex  = values.size();
-  
-  values.push_back(0.0);
-  TString list = "sample0/D";
-  values.push_back(0.0);
-  list += ":i_min/D";
-  values.push_back(0.0);
-  list += ":sw_min/D";
-  values.push_back(0.0);
-  list += ":i_max/D";
-  values.push_back(0.0);
-  list += ":sw_max/D";
-  values.push_back(0.0);
-  list += ":sw_sum/D";
-  
-  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-  tree->Branch(basename, &(values[fTreeArrayIndex]), list);  
+  TString basename = prefix + GetElementName() + "_samples";
+  tree->Branch(basename, &fSamples);
+  //tree->Branch(basename + "_avg", &fAverageSamples);
 };
 
 void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
@@ -696,50 +701,6 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
   for (size_t i = 0; i < fAccumulators.size(); i++) {
     fAccumulators[i].FillTreeVector(values);
     fAccumulatorsRaw[i].FillTreeVector(values);
-  }
-  // Samples
-// TODO The following is disabled because it doesn't work.  The number of samples
-// varies from mps to mps, so we keep a dynamic list.  This causes problems because
-// the array indices that are fixed on an artificial dummy during the tree and branch
-// construction are gone when we get to a (new) actual event.  Garbage gets written
-// to the ROOT file and it plain doesn't work(TM).  Need a different approach to
-// trigger events: a dedicated tree (useful for qweak tracking too) or a subtree
-// of the existing MPS tree (correlation between mps and triggered events is clearer).
-// Let's see what we can come up with...
-//
-//  for (size_t i = 0; i < fSamples.size(); i++) {
-//    fSamples[i].FillTreeVector(values);
-//    fSamplesRaw[i].FillTreeVector(values);
-//  }
-
-// More of the quick and dirty MMD
-  if (fTreeArrayNumEntries <= 0) {
-    QwWarning << "MQwSIS3320_Samples::FillTreeVector: fTreeArrayNumEntries == "
-              << fTreeArrayNumEntries << QwLog::endl;
-  } else if (values.size() < fTreeArrayIndex + fTreeArrayNumEntries) {
-    QwWarning << "MQwSIS3320_Samples::FillTreeVector:  values.size() == "
-              << values.size()
-              << "; fTreeArrayIndex + fTreeArrayNumEntries == "
-              << fTreeArrayIndex + fTreeArrayNumEntries
-              << QwLog::endl;
-  } else {
-    size_t index = fTreeArrayIndex;
-    if (fSamples.size() > 0) {
-      values[index++] = fSamples[0].GetSample(0);
-      std::pair<size_t,double> min = fSamples[0].GetMin();
-      values[index++] = min.first;
-      values[index++] = min.second;
-      std::pair<size_t,double> max = fSamples[0].GetMax();
-      values[index++] = max.first;
-      values[index++] = max.second;
-      values[index++] = fSamples[0].GetSum();
-    } else {
-      values[index++] = -1;
-      values[index++] = -1;
-      values[index++] = -1;
-      values[index++] = -1;
-      values[index++] = -1;
-    }
   }
 };
 
@@ -750,8 +711,6 @@ void MQwSIS3320_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
             << std::setw(18) << std::left << GetElementName() << ", "
-// n/a            << std::setw(15) << std::left << GetHardwareSum() << ", "
-// n/a            << std::setw(15) << std::left << GetSampleAverage() << ", "
             << std::setw(15) << std::left << GetNumberOfEvents() << ", "
             << QwLog::endl;
 }
@@ -786,3 +745,57 @@ void MQwSIS3320_Channel::PrintInfo() const
   }
 }
 
+/*
+ * Copy
+ */
+void MQwSIS3320_Channel::Copy(MQwSIS3320_Channel *source)
+{
+   try {
+      if( typeid(*source)==typeid(*this)) {
+         MQwSIS3320_Channel* input = ((MQwSIS3320_Channel*)source);
+
+         // Now copy all the data
+         this->fChannel                = source->fChannel;
+         this->fHasSamplingData        = source->fHasSamplingData;
+         this->fHasAccumulatorData     = source->fHasAccumulatorData;
+         this->fPedestal               = source->fPedestal;
+         this->fCalibrationFactor      = source->fCalibrationFactor;
+         this->fCurrentEvent           = source->fCurrentEvent;
+         this->fNumberOfEvents         = source->fNumberOfEvents;
+         this->fSampleFormat           = source->fSampleFormat;
+         this->fSamplePointer          = source->fSamplePointer;
+         this->fSamples                = source->fSamples;
+         this->fSamplesRaw             = source->fSamplesRaw;
+         this->fAverageSamples         = source->fAverageSamples;
+         this->fTimeWindowAverages     = source->fTimeWindowAverages;
+         this->fTimeWindows            = source->fTimeWindows;
+         this->fSampleWindowAverages   = source->fTimeWindowAverages;
+         this->fSampleWindows          = source->fSampleWindows;
+         this->fTreeArrayIndex         = source->fTreeArrayIndex;
+         this->fTreeArrayNumEntries    = source->fTreeArrayNumEntries;
+         this->fAccumulatorDAC         = source->fAccumulatorDAC;
+         this->fAccumulatorThreshold1  = source->fAccumulatorThreshold1;
+         this->fAccumulatorThreshold2  = source->fAccumulatorThreshold2;
+         this->fAccumulatorTimingBefore5 = source->fAccumulatorTimingBefore5;
+         this->fAccumulatorTimingBefore6 = source->fAccumulatorTimingBefore6;
+         this->fAccumulatorTimingAfter5 = source->fAccumulatorTimingAfter5;
+         this->fAccumulatorTimingAfter6 = source->fAccumulatorTimingAfter6;
+         this->fAccumulators           = source->fAccumulators;
+         this->fAccumulatorsRaw        = source->fAccumulatorsRaw;
+         this->fSequenceNumber         = source->fSequenceNumber;
+         this->fMockAsymmetry          = source->fMockAsymmetry;
+         this->fMockGaussianMean       = source->fMockGaussianMean;
+         this->fMockGaussianSigma      = source->fMockGaussianSigma;
+
+      } else {
+         TString message = "Standard exception from MQwSIS3320_Channel::Copy = "
+            + source->GetElementName() + " "
+            + this->GetElementName() + " are not of the same type";
+         throw std::invalid_argument(message.Data());
+      }
+   } catch (std::exception& e) {
+      std::cerr << e.what() << "\n";
+   }
+
+   return;
+}

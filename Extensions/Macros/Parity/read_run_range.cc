@@ -2,14 +2,21 @@
 // Author : B. Waidyawansa (buddhini@jlab.org)
 // Date   : November 6th, 2010
 //**********************************************************************************************//
+// 
+// November 16th Buddhini : Updated to read trees instead of histograms. 
+//                          Use error Device_Error_Code == 0 to identify good events.
+// November 21st Buddhini : Updated to use a landaun fit to get rid of beam trips and rampings.
+//
 // This macro can access a range of runs specified by "run1" to "run2" to
 // to get the mean value and mean error of the "property" of the "device".
 // The canvas is then saved in to a .gif file with name e.g.5070_5080_qwk_bpm3h09bXP_s_summary.gif.
-// 
-// It access the histograms (not the trees) so I am not sure how to remove entries with errors on them 
-// by using a flag like using  Device_Error_Code == 0 when we are using trees.
 //
-// To use it, compile and do,
+// To get rid of beam trips and current ramps, I use a landaun fit on the bcm1 value and then select 
+// events that fall within mean*0.97 and mean*1.03, where mean = most probable value from landaun fit.
+// In the case of mean < 2 (this happens when most of the run there was a beamtrip), those events are 
+// rejected.
+//
+// To use this script, compile and do,
 // ./get_from_runs run1 run2 device property
 //  device - Give the full name of the device as it appears in the mapfiles. e.g. qwk_bpm3h09b
 //  property - There are 4 properties that you can access with this script.
@@ -73,7 +80,6 @@ TString  property  = "";
 TString  filename  = "";
 TString  directory="$QW_ROOTFILES/"; // the location of the rootfile used for calibration
 
-TH1F* GetHisto(TString histoname, std::vector<TFile*> &atfile_list);
 Bool_t FindFiles(TString filename, std::vector<TFile*> &atfile_list, TChain * chain);
 
 //***********************************
@@ -87,7 +93,7 @@ int main(Int_t argc,Char_t* argv[])
   gDirectory->Delete("*") ;
   gStyle->Reset();
   gStyle->SetOptTitle(1);
-  gStyle->SetOptFit(1111);
+  gStyle->SetOptFit(0);
   gStyle->SetStatColor(10);  
   gStyle->SetStatH(0.2);
   gStyle->SetStatW(0.1);     
@@ -99,7 +105,7 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetFrameFillColor(0);
 
   // pads parameters
-  gStyle->SetPadColor(kYellow-8); 
+  gStyle->SetPadColor(kOrange-8); 
   gStyle->SetPadBorderMode(0);
   gStyle->SetPadBorderSize(0);
   gStyle->SetPadGridX(kTRUE);
@@ -112,15 +118,15 @@ int main(Int_t argc,Char_t* argv[])
   // histo parameters
   gStyle->SetTitleYOffset(1.0);
   gStyle->SetTitleXOffset(0.7);
-  gStyle->SetTitleX(0.1);
-  gStyle->SetTitleW(0.7);
-  gStyle->SetTitleSize(0.05);
+  gStyle->SetTitleX(0.08);
+  gStyle->SetTitleW(0.6);
+  gStyle->SetTitleSize(0.07);
   gStyle->SetTitleOffset(1.5);
-  gStyle->SetTitleBorderSize(0);
+  gStyle->SetTitleBorderSize(1);
   gStyle->SetTitleFillColor(kYellow-8);
   gStyle->SetTitleFontSize(0.08);
-  gStyle->SetLabelSize(0.04,"x");
-  gStyle->SetLabelSize(0.04,"y");
+  gStyle->SetLabelSize(0.06,"x");
+  gStyle->SetLabelSize(0.06,"y");
   gStyle->SetHistMinimumZero();
   gStyle->SetBarOffset(0.25);
   gStyle->SetBarWidth(0.5);
@@ -132,6 +138,9 @@ int main(Int_t argc,Char_t* argv[])
   TChain * tree = NULL;
   std::vector<TFile*> file_list;//List of TFile  to access histograms
   TString histoname = "";
+  TString cut = "";
+  TString counter = "";
+  TCanvas *c1 = new TCanvas("c1","c1",800,300);
 
   // Read in the arguments.
   // The first argument should be the program name itself.
@@ -160,101 +169,203 @@ int main(Int_t argc,Char_t* argv[])
     std::cout<<"Get mean and mean error for "<<property<<" of "<<device<<std::endl;
 
   }
-   
-  // Now clear out what we want to get from where.
-  // Q:Which tree to access?
-  // Q:What histogram to get?
 
-  
- // Find the files from given run range.
-  Bool_t found = kFALSE;
-  Int_t k = 0;
-  TVectorD mean(0);
-  TVectorD sigma(0);
-  TVectorD error(0);
-  TVectorD runs(0);
-  TVectorD fakeerror(0);
-  TString filename = "";
-  file_list.clear();
 
-  for(Int_t run = run1; run< run2+1; run++){
- 
-    // first create chains
+  // assign proper tree variables
+  TString currentcut;
+  Char_t  treename[200];
+  TH1F* htemp1 = NULL;
+
     if(property.Contains("d")||property.Contains("a")||property.Contains("y")){
-      tree = new TChain("Hel_Tree");
-      if(property.Contains("y"))
-	histoname = Form("hel_histo/yield_%s_hw",device.Data());
-      if(property.Contains("a"))
-	histoname = Form("hel_histo/asym_%s_hw",device.Data());
-      if(property.Contains("d"))
-	histoname = Form("hel_histo/diff_%s_hw",device.Data());
+      sprintf(treename,"Hel_Tree");
+      currentcut = "yield_qwk_bcm1.hw_sum";
+      counter = "pattern_number";
+      if(property.Contains("y")){
+	histoname = Form("yield_%s.hw_sum>>htemp",device.Data());
+	cut = Form("yield_%s.Device_Error_Code == 0 && yield_qwk_bcm1.Device_Error_Code == 0",device.Data());
+      }
+      if(property.Contains("a")){
+	histoname = Form("asym_%s.hw_sum>>htemp",device.Data());
+	cut = Form("asym_%s.Device_Error_Code == 0 && asym_qwk_bcm1.Device_Error_Code == 0",device.Data());
+      }
+      if(property.Contains("d")){
+	histoname = Form("diff_%s.hw_sum>>htemp",device.Data());
+	cut = Form("diff_%s.Device_Error_Code == 0 && yield_qwk_bcm1.Device_Error_Code == 0",device.Data());
+      }
     }
     else if (property.Contains("s")){
-      tree = new TChain("Mps_Tree");
-      histoname = Form("mps_histo/%s_hw",device.Data());
+      currentcut = "qwk_bcm1.hw_sum";
+      counter = "mps_counter";
+      sprintf(treename,"Mps_Tree");
+      histoname = Form("%s.hw_sum>>htemp",device.Data());
+      cut = Form("%s.Device_Error_Code == 0 && qwk_bcm1.Device_Error_Code == 0",device.Data());
     }
     else{
       std::cout<<"Requested unknown "<<property<<" from device "<<device<<".\n I don't know this"<<std::endl;
       exit(1);
     }
-    
 
-    // Open the file
+    // Find the files from given run range.
+    Bool_t found = kFALSE;
+    Int_t k = 0;
+    TVectorD mean(0);
+    TVectorD sigma(0);
+    TVectorD error(0);
+    TVectorD runs(0);
+    TVectorD fakeerror(0);
+    std::vector<TString> labels;
+    
+    TString filename = "";
     file_list.clear();
-    filename = "";
-    filename = Form("first*_%i.root", run);
-    found = FindFiles(filename, file_list, tree);
-    if(!found){
+    labels.clear();
+
+
+    for(Int_t run = run1; run< run2+1; run++){
+ 
+      //create chains
+      if(property.Contains("d")||property.Contains("a")||property.Contains("y")){
+	tree = new TChain("Hel_Tree");
+      }
+      else if (property.Contains("s")){
+	tree = new TChain("Mps_Tree");
+      }
+    
+      // Open the file
+      file_list.clear();
+      filename = "";
       filename = Form("QwPass*_%i.*root", run);
       found = FindFiles(filename, file_list, tree);
       if(!found){
-	filename = Form("Qweak*_%i.*root", run);
+	filename = Form("first*_%i.root", run);      
 	found = FindFiles(filename, file_list, tree);
 	if(!found){
-	  std::cerr<<"Unable to find root file(s) for run "<<run<<std::endl;
-	  file_list.clear();
-	} 
+	  filename = Form("Qweak*_%i.*root", run);
+	  found = FindFiles(filename, file_list, tree);
+	  if(!found){
+	    std::cerr<<"Unable to find root file(s) for run "<<run<<std::endl;
+	    file_list.clear();
+	  } 
+	}
       }
-    }
-    // If there are no files in this range, nothing to plot. Move to next run.
-    if(file_list.size() == 0){
-      //do nithing.
-    }
-    else{
-
-      //Found rootfiles for this run, get the histogram info from them.
-      TH1F* htemp = NULL;
-      htemp = GetHisto(histoname,file_list);
-      if(!htemp){
-	std::cerr<<"Unable to find histogram "<<histoname<<" in "<<run<<std::endl;
+      // If there are no files in this range, nothing to plot. Move to next run.
+      if(file_list.size() == 0){
+	//do nithing.
       }
       else{
-	// Found the histogram, fill the arrays to plot the graph
-	mean.ResizeTo(k+1);
-	sigma.ResizeTo(k+1);
-	error.ResizeTo(k+1);
-	runs.ResizeTo(k+1);
-	fakeerror.ResizeTo(k+1);
-      
-	if((htemp->GetEntries())!= 0){
-	  mean.operator()(k)      = htemp->GetMean();
-	  error.operator()(k)     = htemp->GetMeanError();
-	  sigma.operator()(k)     = htemp->GetRMS(); // the width in root is called the RMS.
-	  runs.operator()(k)      = run;
-	  fakeerror.operator()(k) = 0.0;
+	
+      //Found rootfiles for this run, get the histogram info from them.
+      TH1F* htemp = NULL;
+      TF1* fit = NULL;
+
+      Double_t meanl = 0;
+      Double_t errorl = 0;
+      Double_t widthl = 0.0;
+      Bool_t ok = kTRUE;
+      Double_t cutmean = 0;     
+      Double_t lcut = 0;
+      Double_t ucut = 0;
+
+      TString tcut;
+
+      for(size_t i = 0;i<file_list.size();i++){
+	TFile* f = new TFile(file_list[i]->GetName()); 
+	std::cout << "\nFound file "<<f->GetName()<<std::endl; 
+
+	TTree* nt = (TTree*)(f->Get(treename));
+	if(!nt) exit(1);
+
+	// apply cuts for average current and current fluctuations.
+	// I fit bcm1 data with landaun fit to get the most probable current
+	// and then select events with currents ranging from mean+=3%.
+
+	nt->Draw(Form("%s>>htemp1",currentcut.Data()),cut);
+	htemp1 = (TH1F*)gDirectory->Get("htemp1");
+	if (!htemp1){
+	  std::cerr<<"There are no bcm1 data in this segment"<<std::endl;
+	  ok = kFALSE;
 	}
-	k++;
-	delete htemp;	
+	else{
+	  if(htemp1->GetEntries() != 0){
+	    htemp1->Fit("landaun","W Q E M");
+	    fit = htemp1->GetFunction("landaun");
+	    cutmean = fit->GetParameter(1); //most probable value
+	    if(cutmean < 2)
+	      ok = kFALSE;
+	    else{
+	      lcut = cutmean*0.97; // 3% down
+	      ucut = cutmean*1.03; // 3% up
+	      tcut = Form("%s && %s > %f && %s < %f",
+			  cut.Data(),currentcut.Data(),lcut,
+			  currentcut.Data(),ucut);
+	      std::cout<<"###############\n";
+	      std::cout<<" Most probable current(uA) from landaun fit = "<<cutmean<<std::endl;
+	      std::cout<<" Select currents(uA) >"<<lcut<<" and <"<<ucut<<std::endl;
+	      std::cout<<"###############\n";
+	    }
+	  }
+	  else {
+	    std::cout<<"bcm1 had HW errors. Device_Error_Code ! = 0 for all events.\n";
+	    ok = kFALSE;
+	  }
+	}
+	
+
+	if(ok){
+	  nt->Draw(histoname,tcut);
+	  htemp = (TH1F*)gDirectory->Get("htemp");
+	  if (!htemp){
+	    std::cerr<<"Histogram name does not exist"<<std::endl;
+	  } else {
+	    meanl  =  htemp->GetMean();
+	    errorl =  htemp->GetMeanError();
+	    widthl =  htemp->GetRMS();
+	    if((meanl == 0) &&  (errorl == 0)){
+	      std::cout<<"histogram has zero mean and szero width!"<<std::endl;
+	    } 
+	    else{
+	      mean.ResizeTo(k+1);
+	      sigma.ResizeTo(k+1);
+	      error.ResizeTo(k+1);
+	      runs.ResizeTo(k+1);
+	      fakeerror.ResizeTo(k+1);
+	      
+	      if(property.Contains("a") || property.Contains("d")){
+		if(device.Contains("md"))
+		  mean.operator()(k) = meanl*1e+6 + 80; //put asymmetry in ppm and add a blinder to md asyms of 60ppm
+		mean.operator()(k) = meanl*1e+6; //put ather asyms and diffs in ppm/nm. 
+		error.operator()(k) =  errorl*1e+6;
+		sigma.operator()(k)  = widthl*1e+6; // the width in root is called the RMS.
+	      }else{
+		mean.operator()(k)  = meanl;
+		error.operator()(k) = errorl;
+		sigma.operator()(k) = widthl; // the width in root is called the RMS.
+	      }
+	      runs.operator()(k)      = run+(i*0.1);
+	      labels.push_back(Form("%4.1f",runs[i]));
+	      fakeerror.operator()(k) = 0.0;
+	      htemp1->Fill(sigma[i]);
+	      
+	      k++;
+	    }
+	  }
+	}
+	else {
+	  std::cout<<"Failed bcm1 RMS cut. Probebly a beam ramp/trip."<<std::endl;
+	}
       }
+
+      delete tree;
     }
-    delete tree;
+    
   }
- 
+
+
   // If all the available histograms have 0 netries, nothing to plot. exit.
   if(mean.GetNoElements() == 0){
-    std::cerr<<"All histograms "<<histoname<<" in this range ("<<run1<<"-"<<run2<<") are empty."<<std::endl;
+    std::cerr<<"There are no histograms called "<<histoname<<" in this range ("<<run1<<"-"<<run2<<")!."<<std::endl;
     exit(1);
   }
+  c1->Close();
 
   // Create a graph and a histogram using these information.
   TGraphErrors* g  = new TGraphErrors(runs, mean, fakeerror, error);
@@ -262,37 +373,36 @@ int main(Int_t argc,Char_t* argv[])
 
   g->GetXaxis()->SetTitle("run number");
   g1->GetXaxis()->SetTitle("run number");
-
+    
   TString prop;
-  if(property.Contains("a")) prop = "asymmetry";
+  if(property.Contains("a")) prop = "asymmetry (ppm)";
   if(property.Contains("y")) {
     if(device.Contains("bcm")) prop = "yields (uA)";
     else prop = "yields";
   }
-  if(property.Contains("d")) prop = "difference(mm)";
+  if(property.Contains("d")) prop = "differences(nm)";
   if(property.Contains("s")) {
     if(device.Contains("bcm")) prop = "current (uA)";
     else if(device.Contains("bpm")) prop = "position (mm)";
     else prop = "signal";
   }
-  g->GetYaxis()->SetTitle(Form("%s %s means",device.Data(), prop.Data()));
+  g->GetYaxis()->SetTitle(Form("%s %s",device.Data(), prop.Data()));
+  g->GetXaxis()->SetTitle("run number");
 
-  //  g->SetTitle(Form("%s  %s  during runs %i - %i",device.Data(), prop.Data(),run1, run2));
-  g->SetTitle("");
+
   g->SetMarkerColor(kBlue);
   g->SetMarkerStyle(21);
-  g->SetMarkerSize(0.8);
+  g->SetMarkerSize(0.7);
   g->SetLineWidth(2);
   g->SetLineColor(2);
-  g->Fit("pol0");
 
 
   g1->SetTitle("");
-  g1->SetFillColor(kAzure+3);
+  g1->SetFillColor(kGreen-1);
   
   // Create a canvas 
   TString title = Form("Run range summary of %s %s for runs %i to %i",device.Data(), prop.Data(),run1,run2);
-  TCanvas *canvas = new TCanvas("canvas",title,1200,800);
+  TCanvas *canvas = new TCanvas("canvas",title,1200,600);
   canvas->SetFillColor(kYellow-8);
   TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
   TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
@@ -307,66 +417,19 @@ int main(Int_t argc,Char_t* argv[])
   pad2->Divide(1,2);
   pad2->cd(1);
   g->Draw("APE1");
-  
+
   pad2->cd(2);
   g1->Draw("ABP");
   g1->GetYaxis()->SetTitle(Form("%s %s widths",device.Data(), prop.Data()));
   canvas->Update();
   canvas->SetBorderMode(0);
-  // Save the canvas on to a .gif file
-  canvas->SaveAs(Form("$QWANALYSIS/Extensions/Macros/Parity/Plots/%i_%i_%s_%s_summary.gif",run1, run2, device.Data(),property.Data())); 
+  canvas->SaveAs(Form("$QWANALYSIS/Extensions/Macros/Parity/Plots/%i_%i_%s_%s_summary.gif",run1, run2, device.Data(),property.Data()));
   //  theApp.Run(); 
-
+  Char_t l;
+  std::cout<<"Press any key to continue \n";
+  std::cin>>l;
 };
 
-// Adapted from QwPromtSummary.cc by R.Beminiwattha
-// This function add same histogram in each runlet root file to get histogram for a run   
-// Parameter - Pass the histogram name along with the directory ex. "mps_histo/qwk_bcm6_hw"        
-
-TH1F* GetHisto(TString histoname, std::vector<TFile*> &atfile_list){
-
-  TH1F* histo = NULL;
-  TH1F* htemp = NULL;
-
-  if (atfile_list.size()==0)
-    return histo;
-
-  histo = (TH1F*)atfile_list[0]->Get(histoname);
-  if (!histo){
-    std::cerr<<"Histogram name does not exist"<<std::endl;
-  }
-  else if((histo->GetMean() == 0) &&  (histo->GetRMS() == 0)){
-    std::cerr<<"Histogram is there but it has 0 mean and 0 RMS for rootfile ";
-    atfile_list[0]->Print();
-    histo = NULL;
-  }
-  else{ 
-
-    for(size_t i=0; i<atfile_list.size();i++){
-      htemp = (TH1F*)atfile_list[i]->Get(histoname);
-      
-      if(!htemp){
-	std::cerr<<"Histogram name does not exist in rootfile ";
-	atfile_list[i]->Print();
-      } 
-      else if((htemp->GetMean() == 0) &&  (htemp->GetRMS() == 0)){
-	std::cerr<<"Histogram is there but it has 0 mean and 0 RMS for rootfile ";
-	atfile_list[i]->Print();
-	histo = NULL;
-      }
-      else{			
-	histo->Add(htemp,1);//this=this+histo*c1 where c1=1
-      }
-    }
-  }
-  return histo;
-};
-
-
-// Adapted from hallc_bcm_calib.C GetTree function written by J.H.Lee.
-// This function use the chain to add all of the files with name 
-// "filename" and then use that chain to get the corresponding file list.
-// it return s 1 if files are found. 0 if not.
 
 Bool_t FindFiles(TString filename, std::vector<TFile*> &atfile_list, TChain * chain)
 {
@@ -389,8 +452,7 @@ Bool_t FindFiles(TString filename, std::vector<TFile*> &atfile_list, TChain * ch
     while (( chain_element=(TChainElement*)next() )){
       TFile *f=new TFile(chain_element->GetTitle());
       atfile_list.push_back(f);
-      std::cout << "Found file:  ";
-      f->Print(); 
+      // std::cout << "Found file "<<f->GetName()<<std::endl; 
     }
   }
 

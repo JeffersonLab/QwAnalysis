@@ -11,10 +11,14 @@
 
 void
 raster(TString name="")
-{
-  TFile *file =  new TFile(name.Data());
+{ 
+  TString file_dir;
+  file_dir = gSystem->Getenv("QWSCRATCH");
+  file_dir += "/rootfiles/";
+
+  TFile *file =  new TFile(Form("%s%s", file_dir.Data(), name.Data()));
   gStyle->SetPalette(1); 
-  TCanvas *c1 = new TCanvas();
+  TCanvas *c1 = new TCanvas(Form("1DRaster"), Form("RasterMap1D in %s", name.Data()), 600,400);
  
   tracking_histo->cd();
   c1->Divide(2,2);
@@ -32,13 +36,15 @@ raster(TString name="")
   raster_posy_adc -> SetTitle(Form("Raster PosY ADC in %s", name.Data()));
   raster_posy_adc -> Draw();
   c1->Update();
-  
-  TCanvas *c2 = new TCanvas(name.Data(), name.Data(), 600, 600);
+  TString image_name;
+  image_name = name + "1D.png";
+  c1 -> SaveAs(file_dir + image_name);
+  TCanvas *c2 = new TCanvas(name.Data(), name.Data(), 700, 700);
   raster_rate_map->SetTitle(Form("Raster Rate Map in %s", name.Data()));
   raster_rate_map -> Draw();
   c2->Update();
-  TString image_name;
-  image_name = name + ".png";
-  c2 -> SaveAs(image_name);
+
+  image_name = name +".png";
+  c2 -> SaveAs(file_dir+image_name);
  
 }

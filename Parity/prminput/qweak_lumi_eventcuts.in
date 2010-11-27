@@ -7,9 +7,9 @@
 !To turn OFF event cuts and perform only HW checks
 !EVENTCUTS = 1
 !To turn do both event cuts and HW checks
-EVENTCUTS = 2
+!EVENTCUTS = 2
 !To turn do both event cuts and HW checks and only flag event cut failed events
-!EVENTCUTS = 3
+EVENTCUTS = 3
 
 !IMPORTANT
 !---------

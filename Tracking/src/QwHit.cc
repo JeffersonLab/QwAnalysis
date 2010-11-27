@@ -194,7 +194,7 @@ QwHit& QwHit::operator=(const QwHit& hit)
  * @param obj Right-hand side
  * @return Ordering
  */
-Bool_t QwHit::operator<(QwHit& obj)
+Bool_t QwHit::operator<(const QwHit& obj)
 {
   Bool_t bCompare = false;
 

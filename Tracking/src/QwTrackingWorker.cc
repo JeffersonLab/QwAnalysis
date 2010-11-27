@@ -231,6 +231,9 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
   options.AddOptions("Tracking options")("QwTracking.debug",
                           po::value<int>()->default_value(0),
                           "track reconstruction debug level");
+  options.AddOptions("Tracking options")("QwTracking.regenerate",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "regenerate search trees");
   options.AddOptions("Tracking options")("QwTracking.disable-tracking",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable all tracking analysis");
@@ -240,6 +243,7 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
   options.AddOptions("Tracking options")("QwTracking.showmatchingpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for matching tracks");
+
   // Region 2
   options.AddOptions("Tracking options")("QwTracking.R2.levels",
                           po::value<int>()->default_value(8),
@@ -289,6 +293,7 @@ void QwTrackingWorker::ProcessOptions(QwOptions& options)
 {
   // Enable tracking debug flag
   fDebug = options.GetValue<int>("QwTracking.debug");
+  fRegenerate = options.GetValue<bool>("QwTracking.regenerate");
 
   // Disable tracking and/or momentu reconstruction
   fDisableTracking = options.GetValue<bool>("QwTracking.disable-tracking");
@@ -392,12 +397,13 @@ void QwTrackingWorker::InitTree()
           ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
           std::stringstream filename;
           filename << getenv_safe_string("QW_SEARCHTREE")
-                   << "/tree" << numlayers
+                       << "/tree" << numlayers
                        << "-" << levels
                        << "-" << "0ud"[package]
                        << "-" << "0123TCS"[region]
                        << "-" << "0hvgtc"[type]
                        << "-" << "0xyuvrq"[direction] << ".tre";
+
           QwDebug << "Tree filename: " << filename.str() << QwLog::endl;
 
           /// Each element of fSearchTree will point to a pattern database
@@ -411,7 +417,8 @@ void QwTrackingWorker::InitTree()
                                                  package,
                                                  type,
                                                  region,
-                                                 direction);
+                                                 direction,
+                                                 fRegenerate);
 
           // Set the detector identification
           fSearchTree[index]->SetRegion(region);
