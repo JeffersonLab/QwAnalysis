@@ -21,12 +21,11 @@
 
 namespace QwTracking {
 
-int treenode::fCount = 0;
 int treenode::fDebug = 0;
 
 /**
  * Default constructor
- * @param size Size of the bit pattern (default value is MAX_LAYERS)
+ * @param size Size of the bit pattern
  */
 treenode::treenode(unsigned int size)
 {
@@ -38,9 +37,6 @@ treenode::treenode(unsigned int size)
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;
-
-  // Count objects
-  fCount++;
 };
 
 /**
@@ -62,9 +58,6 @@ treenode::treenode(treenode& node)
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;
-
-  // Count objects
-  fCount++;
 };
 
 /**
@@ -86,9 +79,6 @@ treenode::treenode(treenode* node)
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;
-
-  // Count objects
-  fCount++;
 };
 
 /**
@@ -104,9 +94,6 @@ treenode::~treenode()
 
   // Delete the bit pattern
   delete[] fBit;
-
-  // Count objects
-  fCount--;
 }
 
 /**
@@ -115,7 +102,7 @@ treenode::~treenode()
  *
  * @param indent Indentation level (for recursive calls)
  */
-void treenode::Print(int indent)
+void treenode::Print(bool recursive, int indent)
 {
   // Print this node
   std::string indentation;
@@ -129,12 +116,12 @@ void treenode::Print(int indent)
   }
 
   // Descend to the sons of this node
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; recursive && i < 4; i++) {
     nodenode* node = this->fSon[i];
     if (node) {
       treenode* tree = node->GetTree();
       if (tree)
-        tree->Print(indent+1);
+        tree->Print(recursive,indent+1);
     } // if (node)
 
   } // loop over sons

@@ -18,7 +18,7 @@ void  VQwBPM::InitializeChannel(TString name)
 
   bEVENTCUTMODE    = false;
   fDeviceErrorCode = 0;
-
+  fErrorFlag=0;
   Short_t i = 0; 
 
   for(i=0;i<2;i++)
@@ -26,7 +26,7 @@ void  VQwBPM::InitializeChannel(TString name)
 
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
   
-  for(i=0;i<3;i++) fPositionCenter[0] = 0.0;
+  for(i=0;i<3;i++) fPositionCenter[i] = 0.0;
 
   SetElementName(name);
 
@@ -43,7 +43,7 @@ void VQwBPM::ClearEventData()
   return;
 };
 
-void VQwBPM::GetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset)
+void VQwBPM::GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset)
 {
   // Read in the position offsets from the geometry map file
   for(Short_t i=0;i<3;i++) fPositionCenter[i]=0.0;
@@ -53,7 +53,25 @@ void VQwBPM::GetOffset(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset)
   return;
 };
 
+void VQwBPM::GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY)
+{
+  // Read in the electronic factors from the file
+  Bool_t ldebug = kFALSE;
 
+  fQwStriplineCalibration = BSENfactor*18.81;
+   fRelativeGains[0]=AlphaX;
+   fRelativeGains[1]=AlphaY;
+
+   if(ldebug){
+     std::cout<<"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+     std::cout<<this->GetElementName();
+     std::cout<<"\nfQwStriplineCalibration = "<<fQwStriplineCalibration<<std::endl;
+     std::cout<<"AlphaX = "<<fRelativeGains[0]<<std::endl;
+     std::cout<<"AlphaY = "<<fRelativeGains[1]<<std::endl;
+
+   }
+  return;
+};
 
 Int_t VQwBPM::GetEventcutErrorCounters()
 {
@@ -69,7 +87,7 @@ Bool_t VQwBPM::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Short_t i=0;
-
+  fErrorFlag=0;
  
   //Event cuts for Absolute X & Y
   for(i=0;i<2;i++){
@@ -77,14 +95,11 @@ Bool_t VQwBPM::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fAbsPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //update the event cut counters
-    fAbsPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for AbsX/Y
-    fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();
+    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
@@ -92,14 +107,11 @@ Bool_t VQwBPM::ApplySingleEventCuts()
       status&=kTRUE;
   }
   else{
-    fEffectiveCharge.UpdateEventCutErrorCount();
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //update the event cut counters
-  fEffectiveCharge.UpdateHWErrorCounters();
   //Get the Event cut error flag for EffectiveCharge
-  fDeviceErrorCode|=fEffectiveCharge.GetEventcutErrorFlag();
+  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
 
 
   return status;

@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 /* Position calibration factor, transform ADC counts in mm*/
-const Double_t QwBPMStripline::kQwStriplineCalibration = 18.77;
+//const Double_t QwBPMStripline::kQwStriplineCalibration = 18.77;
 const Double_t QwBPMStripline::kRotationCorrection = 1./1.414;
 const TString QwBPMStripline::subelement[4]={"XP","XM","YP","YM"};
 
@@ -33,6 +33,31 @@ void  QwBPMStripline::InitializeChannel(TString name)
   }
 
   for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");
+
+  bFullSave=kTRUE;
+
+  return;
+};
+
+void  QwBPMStripline::InitializeChannel(TString subsystem, TString name)
+{
+  Short_t i=0;
+  Bool_t localdebug = kFALSE;
+
+  VQwBPM::InitializeChannel(name);
+
+  for(i=0;i<2;i++)
+    fAbsPos[i].InitializeChannel(subsystem, "QwBPMStripline", name+axis[i],"derived");
+
+  fEffectiveCharge.InitializeChannel(subsystem, "QwBPMStripline", name+"_EffectiveCharge","derived");
+
+  for(i=0;i<4;i++) {
+    fWire[i].InitializeChannel(subsystem, "QwBPMStripline", name+subelement[i],"raw");
+    if(localdebug)
+      std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
+  }
+
+  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(subsystem, "QwBPMStripline", name+"Rel"+axis[i],"derived");
 
   bFullSave=kTRUE;
 
@@ -92,21 +117,18 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t i=0;
-
+  fErrorFlag=0;
   //Event cuts for four wires
   for(i=0;i<4;i++){
     if (fWire[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
     else{
-      fWire[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //update the event cut counters
-    fWire[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for wires
-    fDeviceErrorCode|=fWire[i].GetEventcutErrorFlag();
+    fErrorFlag|=fWire[i].GetEventcutErrorFlag();
   }
 
    //Event cuts for Relative X & Y
@@ -116,15 +138,12 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fRelPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Rel X event cut failed ";
     }
 
-    //update the event cut counters
-    fRelPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for RelX/Y
-    fDeviceErrorCode|=fRelPos[i].GetEventcutErrorFlag();
+    fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
   }
 
   for(i=0;i<2;i++){
@@ -132,15 +151,11 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fAbsPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //update the event cut counters
-    fAbsPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for AbsX/Y
-    fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();
-
+    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
@@ -148,15 +163,11 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
       status&=kTRUE;
   }
   else{
-    fEffectiveCharge.UpdateEventCutErrorCount();
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //update the event cut counters
-  fEffectiveCharge.UpdateHWErrorCounters();
   //Get the Event cut error flag for EffectiveCharge
-  fDeviceErrorCode|=fEffectiveCharge.GetEventcutErrorFlag();
-
+  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
 
   return status;
 
@@ -208,6 +219,48 @@ void QwBPMStripline::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t
 };
 
 
+void QwBPMStripline::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
+  errorflag|=kBPMErrorFlag;//update the device flag
+  if (ch_name=="xp"){
+    QwMessage<<"XP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="xm"){
+    QwMessage<<"XM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="yp"){
+    QwMessage<<"YP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[2].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="ym"){
+    QwMessage<<"YM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[3].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="relx"){
+    QwMessage<<"RelX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="rely"){
+    QwMessage<<"RelY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  } else  if (ch_name=="absx"){
+  //cuts for the absolute x and y
+    QwMessage<<"AbsX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="absy"){
+    QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }else if (ch_name=="effectivecharge"){
+    QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
+
+  }
+};
+
 void  QwBPMStripline::ProcessEvent()
 {
   Bool_t localdebug = kFALSE;
@@ -215,7 +268,11 @@ void  QwBPMStripline::ProcessEvent()
   Short_t i = 0;
 
 
-  ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine here and not in ApplySingleEventCuts  makes a difference for a BPMs because they have derrived devices.
+  ApplyHWChecks();
+  /**First apply HW checks and update HW  error flags. 
+     Calling this routine here and not in ApplySingleEventCuts  
+     makes a difference for a BPMs because they have derrived devices.
+  */
 
   fEffectiveCharge.ClearEventData();
 
@@ -225,45 +282,72 @@ void  QwBPMStripline::ProcessEvent()
       fEffectiveCharge+=fWire[i];
     }
 
-  if (localdebug) fEffectiveCharge.PrintInfo();
 
+  /**
+     To obtain the beam position in X and Y in the CEBAF coordinates, we use the following equations
+     
+                                                       (XP - AlphaX.XM)
+     RelX (bpm coordinates) = fQwStriplineCalibration x ----------------
+                                                       (XP + AlphaX.XM) 
 
+                                                        (YP - AlphaY.YM)
+     RelY (bpm coordinates) = fQwStriplineCalibration x ----------------
+                                                        (YP + AlphaY.YM)
+
+     To get back to accelerator coordinates, rotate clockwise around Z by 45 degrees.							
+     
+     RelX (accelarator coordinates) =  1/sqrt(2)( RelX - RelY)
+    
+     RelY (accelarator coordinates) =  1/sqrt(2)( RelX + RelY) 
+ 
+  */
 
   for(i=0;i<2;i++)
     {
+      fWire[i*2+1].Scale(fRelativeGains[i]);
       numer.Difference(fWire[i*2],fWire[i*2+1]);
       denom.Sum(fWire[i*2],fWire[i*2+1]);
       fRelPos[i].Ratio(numer,denom);
-      fRelPos[i].Scale(kQwStriplineCalibration);
-      if(localdebug)
-	{
+      fRelPos[i].Scale(fQwStriplineCalibration);
+
+
+    if(localdebug)
+      {
 	  std::cout<<" stripline name="<<fElementName<<axis[i];
 	  std::cout<<" event number= "<<fWire[i*2].GetSequenceNumber()<<" \n";
 	  std::cout<<" hw  Wire["<<i*2<<"]="<<fWire[i*2].GetHardwareSum()<<"  ";
-	  std::cout<<" hw  Wire["<<i*2+1<<"]="<<fWire[i*2+1].GetHardwareSum()<<"\n";
+	  std::cout<<" hw relative gain *  Wire["<<i*2+1<<"]="<<fWire[i*2+1].GetHardwareSum()<<"\n";
+	  std::cout<<" Relative gain["<<i<<"]="<<fRelativeGains[i]<<"\n";
 	  std::cout<<" hw numerator= "<<numer.GetHardwareSum()<<"  ";
 	  std::cout<<" hw denominator= "<<denom.GetHardwareSum()<<"\n";
-	  std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
 	}
     }
   if(bRotated)
     {
-      /* for this one I suppose that the direction [0] is vertical and up,
+      /* for this one the direction [1] is vertical and up,
 	 direction[3] is the beam line direction toward the beamdump
-	 if rotated than the frame is rotated by 45 deg counter clockwise*/
-      numer=fRelPos[0];
-      denom=fRelPos[1];
-      fRelPos[0].Sum(numer,denom);
-      fRelPos[1].Difference(numer,denom);
-      fRelPos[0].Scale(kRotationCorrection);
-      fRelPos[1].Scale(kRotationCorrection);
+	 if rotated then the frame is rotated by 45 deg clockwise around direction[3] axis*/
+      numer=fRelPos[0]; 
+      denom=fRelPos[1]; 
+      fRelPos[0].Difference(numer,denom); 
+      fRelPos[1].Sum(numer,denom); 
+      fRelPos[0].Scale(kRotationCorrection); // RealX = 1/sqrt(2)( RelX - RelY)
+      fRelPos[1].Scale(kRotationCorrection);// Real Y =(RelX +RelY )
     }
 
   for(i=0;i<2;i++){
     fAbsPos[i]= fRelPos[i];
-    //  fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
-  }
+    fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
 
+    if(localdebug)
+      {
+	std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n";
+	std::cout<<" hw  fOffset["<<axis[i]<<"]="<<fPositionCenter[i]<<"\n";
+	std::cout<<" hw  fAbsPos["<<axis[i]<<"]="<<fAbsPos[i].GetHardwareSum()<<"\n \n";
+      }
+    
+  }
+  
   return;
 };
 
@@ -454,7 +538,7 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
     for(i=0;i<2;i++) {
       fRelPos[i].ConstructHistograms(folder, thisprefix);
-      fAbsPos[i].ConstructHistograms(folder, prefix);
+      fAbsPos[i].ConstructHistograms(folder, thisprefix);
     }
   }
   return;
@@ -586,20 +670,20 @@ void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix, QwParameterF
 	  fRelPos[i].ConstructBranch(tree,thisprefix);
 	  fAbsPos[i].ConstructBranch(tree,thisprefix);
 	}
-		
+
 	QwMessage <<" Tree leaves added to "<<devicename<<" Corresponding channels"<<QwLog::endl;
       }
       // this functions doesn't do anything yet
     }
 
-   
-    
 
-  
+
+
+
   return;
 };
 
-void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values)
+void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()=="") {
     //  This channel is not used, so skip filling the tree.
@@ -676,7 +760,16 @@ void QwBPMStripline::MakeBPMList()
     bpm_sub_element.Copy(&fRelPos[i]);
     bpm_sub_element = fRelPos[i];
     fBPMElementList.push_back( bpm_sub_element );
+    bpm_sub_element.ClearEventData();
+    bpm_sub_element.Copy(&fAbsPos[i]);
+    bpm_sub_element = fAbsPos[i];
+    fBPMElementList.push_back( bpm_sub_element );
   }
+  bpm_sub_element.ClearEventData();
+  bpm_sub_element.Copy(&fEffectiveCharge);
+  bpm_sub_element = fEffectiveCharge;
+  fBPMElementList.push_back( bpm_sub_element );
+
   return;
 }
 
@@ -766,10 +859,10 @@ void  QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, 
   }
 
   // Determine the asymmetry from the position
-  Double_t meanXP = (1.0 + meanX / kQwStriplineCalibration) * sumX / 2.0;
-  Double_t meanXM = (1.0 - meanX / kQwStriplineCalibration) * sumX / 2.0; // = sumX - meanXP;
-  Double_t meanYP = (1.0 + meanY / kQwStriplineCalibration) * sumY / 2.0;
-  Double_t meanYM = (1.0 - meanY / kQwStriplineCalibration) * sumY / 2.0; // = sumY - meanYP;
+  Double_t meanXP = (1.0 + meanX / fQwStriplineCalibration) * sumX / 2.0;
+  Double_t meanXM = (1.0 - meanX / fQwStriplineCalibration) * sumX / 2.0; // = sumX - meanXP;
+  Double_t meanYP = (1.0 + meanY / fQwStriplineCalibration) * sumY / 2.0;
+  Double_t meanYM = (1.0 - meanY / fQwStriplineCalibration) * sumY / 2.0; // = sumY - meanYP;
 
   // Determine the spread of the asymmetry (this is not tested yet)
   // (negative sigma should work in the QwVQWK_Channel, but still using fabs)

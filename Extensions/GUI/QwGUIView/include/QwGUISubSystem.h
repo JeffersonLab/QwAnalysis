@@ -34,6 +34,8 @@
 #ifndef QWGUISUBSYSTEM_H
 #define QWGUISUBSYSTEM_H
 
+#define SAMPLING_RATE  960
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -411,6 +413,8 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none 
   void             TabMenuEntryChecked(Bool_t set) {dTabMenuItemChecked = set; 
     dTabMenuItemChecked ? OnAddThisTab() : OnRemoveThisTab();};
+
+  char            *GetRootFileName(){ if(!dROOTCont) return NULL; return dROOTCont->GetFileName();};
   
   ClassDef(QwGUISubSystem,0);
 };

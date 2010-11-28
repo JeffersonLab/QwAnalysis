@@ -1725,7 +1725,7 @@ while {$keep_looping == 1} {
 
 	set maxNumJobs 400
 
-	set ierror [catch {exec jobstat -a qweak | grep "${experiment_label}_" } jobList]
+	set ierror [catch {exec jobstat -a hallc | grep "${experiment_label}_" } jobList]
 	set jobListSplit [split $jobList \n]
    	set numJobsTot [llength $jobListSplit]
 

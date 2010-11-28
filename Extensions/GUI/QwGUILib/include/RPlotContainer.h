@@ -105,7 +105,7 @@ public:
   Int_t                GetFuncCount();
   TObject             *GetGraph(Int_t index, Char_t *type, Char_t *name = NULL);
   Int_t                GetGraphCount();
-  TObject             *GetHistogram(Int_t index, Char_t *type, Char_t *name = NULL);
+  TObject             *GetHistogram(Int_t index, const Char_t *type, const Char_t *name = NULL);
   TObject             *GetProfile(Int_t index, Char_t *type, Char_t *name = NULL);
   Char_t              *GetMessage();
   TH1D                *GetNew1DHistogram(Char_t*,Char_t*,Int_t,Double_t,Double_t);

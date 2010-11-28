@@ -25,22 +25,30 @@
 /// \ingroup QwAnalysis_BL
 
 class QwBPMStripline : public VQwBPM {
-  friend class QwCombinedBPM;  
-  friend class QwEnergyCalculator;  
+  friend class QwCombinedBPM;
+  friend class QwEnergyCalculator;
 
  public:
   QwBPMStripline() { };
   QwBPMStripline(TString name, Bool_t ROTATED):VQwBPM(name){
     InitializeChannel(name);
     bRotated=ROTATED;
-
   };
+    
+    
+    QwBPMStripline(TString subsystemname, TString name, Bool_t ROTATED):VQwBPM(name){
+      SetSubsystemName(subsystemname);
+      InitializeChannel(subsystemname, name);
+      bRotated=ROTATED;
+    };    
 
-  ~QwBPMStripline() {
-    DeleteHistograms();
-  };
+    ~QwBPMStripline() {
+      DeleteHistograms();
+    };
 
   void    InitializeChannel(TString name);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name);
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
@@ -55,6 +63,8 @@ class QwBPMStripline : public VQwBPM {
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
@@ -65,7 +75,7 @@ class QwBPMStripline : public VQwBPM {
   void    EncodeEventData(std::vector<UInt_t> &buffer);
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
-  
+
   void    Copy(VQwDataElement *source);
   void    Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
   void    Scale(Double_t factor);
@@ -84,7 +94,7 @@ class QwBPMStripline : public VQwBPM {
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void    ConstructBranch(TTree *tree, TString &prefix);
   void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void    FillTreeVector(std::vector<Double_t> &values);
+  void    FillTreeVector(std::vector<Double_t> &values) const;
 
 
 
@@ -94,8 +104,9 @@ class QwBPMStripline : public VQwBPM {
 
   /////
  private:
-  /*  Position calibration factor, transform ADC counts in mm */
-  static const Double_t kQwStriplineCalibration;
+  /* /\*  Position calibration factor, transform ADC counts in mm *\/ */
+  /* static Double_t kQwStriplineCalibration; */
+  /* static Double_t fRelativeGains[2]; */
   /* Rotation factor for the BPM which antenna are at 45 deg */
   static const Double_t kRotationCorrection;
   static const TString subelement[4];
@@ -105,12 +116,10 @@ class QwBPMStripline : public VQwBPM {
  protected:
   Bool_t   bRotated;
   QwVQWK_Channel fWire[4];
-  QwVQWK_Channel fRelPos[2]; 
-  QwVQWK_Channel fAbsPos[2]; // Z will not be considered as a vqwk_channel
-  QwVQWK_Channel fEffectiveCharge;
+  QwVQWK_Channel fRelPos[2];
 
-  std::vector<QwVQWK_Channel> fBPMElementList; 
-  
+  std::vector<QwVQWK_Channel> fBPMElementList;
+
 };
 
 

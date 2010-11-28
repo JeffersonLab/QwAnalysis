@@ -16,9 +16,9 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
-#include "QwVQWK_Module.h"
 
 #include "QwIntegrationPMT.h"
+#include "QwCombinedPMT.h"
 #include "QwTypes.h"
 #include "QwScaler_Channel.h"
 
@@ -26,7 +26,7 @@
 class QwLumiDetectorID{
 
  public:
-  
+
   QwLumiDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),
     fTypeID(kQwUnknownPMT),fIndex(-1),
     fSubelement(999999),fmoduletype(""),fdetectorname("")
@@ -44,7 +44,8 @@ class QwLumiDetectorID{
   TString fmoduletype; // eg: VQWK, SCALER
   TString fdetectorname;
   TString fdetectortype; // IntegrationPMT,fLumiCounter .. this string is encoded by fTypeID
-
+  std::vector<TString> fCombinedChannelNames;
+  std::vector<Double_t> fWeight;
   void Print() const;
 
 };
@@ -54,13 +55,14 @@ class QwLumiDetectorID{
 *  Class:
 ******************************************************************/
 class QwLumi : public VQwSubsystemParity{
-  /////
+  /////  
+  friend class QwCombinedPMT;
  public:
   QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),bNormalization(kFALSE)
    {
     fTargetCharge.InitializeChannel("q_targ","derived");
    };
-    
+
   ~QwLumi() {
     DeleteHistograms();
   };
@@ -78,7 +80,7 @@ class QwLumi : public VQwSubsystemParity{
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
-  Int_t GetEventcutErrorFlag();//return the error flag
+  UInt_t GetEventcutErrorFlag();//return the error flag
 
   void AccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();
@@ -88,7 +90,7 @@ class QwLumi : public VQwSubsystemParity{
   void  PrintDetectorID() const;
 
   void  ClearEventData();
-  Bool_t IsGoodEvent(); 
+  Bool_t IsGoodEvent();
 
   void  ProcessEvent();
   void  ExchangeProcessedData();
@@ -116,11 +118,12 @@ class QwLumi : public VQwSubsystemParity{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwDatabase *db, TString datatype);
 
   QwIntegrationPMT* GetChannel(const TString name);
   QwIntegrationPMT* GetIntegrationPMT(const TString name);
+  const QwCombinedPMT* GetCombinedPMT(const TString name) const;
 
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();
@@ -133,12 +136,16 @@ class QwLumi : public VQwSubsystemParity{
 
 
 /////
- protected:
+ protected: 
+ 
+ EQwPMTInstrumentType GetDetectorTypeID(TString name);
+ 
  Int_t GetDetectorIndex(EQwPMTInstrumentType TypeID, TString name);
  //when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is IntegrationPMT  then the index of the detector from fIntegrationPMT vector for given name will be returnd.
- 
- std::vector <QwIntegrationPMT>      fIntegrationPMT;
+
+ std::vector <QwIntegrationPMT>      fIntegrationPMT;  
+ std::vector <QwCombinedPMT> fCombinedPMT;
  std::vector <QwLumiDetectorID>      fLumiDetectorID;
  std::vector <QwSIS3801D24_Channel>  fScalerPMT;
 

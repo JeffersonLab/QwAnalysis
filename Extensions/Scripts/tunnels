@@ -1,0 +1,58 @@
+#!/usr/bin/perl -T
+use strict; 
+use warnings; 
+use Getopt::Long; 
+my @path = 
+  qw[ /bin /usr/bin /sbin /usr/sbin
+   ];
+$ENV{PATH} = join ":", @path; 
+
+my ($help,$kill);
+$help = 1 unless GetOptions
+  "help|h|?"	=> \$help,
+  "kill"	=> \$kill,
+  ;
+
+if ($help) {
+  my ($name) = reverse split m./., $0; 
+  print <<EOF;
+$name: list of kill ssh processes matching a pattern
+	$name
+		list all ssh processes
+	$name foo bar
+		... matching /foo/ or /bar/
+	$name --kill
+		send kill signal to matches
+EOF
+  exit 0; 
+}
+
+my ($ssh,@junk) = grep { -x } map { "$_/ssh" } @path; 
+die "multiple ssh executables in path?\n" if @junk; 
+
+open LSOF, "lsof $ssh|" 
+  or die "couldn't open lsof: $!\n"; 
+<LSOF>; # header line
+my @pid = map { (split /\s+/, $_)[1] } <LSOF> ;
+close LSOF; 
+
+my $expr = join "|", @ARGV;
+$expr = qr/($expr)/ if $expr;
+
+my %command;
+foreach my $pid (@pid) {
+  die "'$pid' isn't a pid?\n"
+    unless $pid =~ m/^(\d+)$/;
+  open PS, "ps $1|"
+    or die "couldn't open ps: $!\n"; 
+  <PS>;  #header
+  my ($pid,$tt,$stat,$time,$command) = split " ", <PS>, 5; 
+  close PS; 
+  next if $expr and $command !~ /$expr/; 
+  $command{$pid} = $command if chomp $command; 
+}
+
+print "\t$_\t$command{$_}\n" foreach (sort keys %command) ;
+
+print "sent ", kill(15, keys %command), " KILL signals\n" 
+  if $kill; 

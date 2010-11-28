@@ -1,5 +1,5 @@
 
-
+#include <algorithm>
 
 void transmission_2D_compare(Int_t runnum1=1, Int_t runnum2=1, 
 							 const string comment="", const string comment2="", TString usercut ="1") {
@@ -20,9 +20,21 @@ void transmission_2D_compare(Int_t runnum1=1, Int_t runnum2=1,
     // gStyle->SetOptStat(kFALSE);
     gStyle->SetTitleBorderSize(0);
 
-    TCanvas *Transcanvas = new TCanvas("Transcanvas","Transmission",40,0,800,800);
-    Transcanvas->Clear();
-    Transcanvas->Divide(4,4,0.0001,0.0001);
+//     TCanvas *Trans2DCompCanvas = new TCanvas("Trans2DCompCanvas","Transmission",40,0,800,800);
+//     Trans2DCompCanvas->Clear();
+//     Trans2DCompCanvas->Divide(4,4,0.0001,0.0001);
+// 	TString bpmlist[] = {"1i02", "1i04","1i06","0i02","0i02a","0i05",
+// 						"0i07","0l02","0l03","0l04","0l05","0l06","0l07","0l08",
+// 						"0l09","0l10"};
+// 	const Int_t numbpms=16;
+// 	Double_t maxx=4;
+
+    TCanvas *Trans2DCompCanvas = new TCanvas("Trans2DCompCanvas","Transmission",40,0,1200,600);
+    Trans2DCompCanvas->Clear();
+    Trans2DCompCanvas->Divide(4,2,0.0001,0.0001);
+	TString bpmlist[] = {"1i02", "1i04","1i06","0i02","0i02a","0i05","0i07","0l02"};
+	const Int_t numbpms=8;
+	Double_t maxx=0.2;
 
 //    TString bpmlist[] = {"bpm1i02", "bpm1i04","bpm1i06","bpm0i01","bpm0i01A","bpm0i02","bpm0i02A","bpm0i05"};
 //    const Int_t numplots=8;
@@ -31,12 +43,6 @@ void transmission_2D_compare(Int_t runnum1=1, Int_t runnum2=1,
 // 			"bpm0l09","bpm0l10","bpm0r03","bpm0r04"};
 //     const Int_t numplots=20;
 
-	TString bpmlist[] = {"1i02", "1i04","1i06","0i02","0i02a","0i05",
-						"0i07","0l02","0l03","0l04","0l05","0l06","0l07","0l08",
-						"0l09","0l10"};
-	const Int_t numbpms=16;
-
-	Double_t maxx=4;
 
 	Double_t maxy, maxxplot, maxyplot;
 	maxy=maxx;
@@ -54,7 +60,7 @@ void transmission_2D_compare(Int_t runnum1=1, Int_t runnum2=1,
 	TTree *tree2 = (TTree*)gROOT->FindObject("Hel_Tree");
 
 //	TString cut = "cleandata&&" + usercut;
-	TString cut = usercut;
+	TString cut = usercut+"&&pattern_number>10";
 
     TString plotcommand, histname, title;
 
@@ -75,14 +81,18 @@ void transmission_2D_compare(Int_t runnum1=1, Int_t runnum2=1,
     TLine *t1 = new TLine(0,-maxyplot,0,maxyplot);
     TLine *t2 = new TLine(-maxxplot,0,maxxplot,0);
 
-    Transcanvas->cd();
+    Trans2DCompCanvas->cd();
     xpos[1]=0;
     xerr[1]=0;
     ypos[1]=0;
     yerr[1]=0;
+    xpos2[1]=0;
+    xerr2[1]=0;
+    ypos2[1]=0;
+    yerr2[1]=0;
 
     for (Int_t i=1; i<=numbpms; i++) {
-        Transcanvas->cd(i);
+        Trans2DCompCanvas->cd(i);
 
 		TString detname = "qwk_";
 		detname += bpmlist[i-1];
@@ -96,14 +106,14 @@ void transmission_2D_compare(Int_t runnum1=1, Int_t runnum2=1,
 		plotcommand += histname;
 
 		if (debug) printf("%i  %s   %s\n",i, plotcommand.Data(), histname.Data() );
-		tree1->Draw(plotcommand,cut,"goff");
+		tree1->Draw(plotcommand,cut.Data(),"goff");
 		hx[i-1] = (TH1F*)gROOT->FindObject(histname);
 		xposall[i-1] = xpos[0] = hx[i-1]->GetMean();
-		xerrall[i-1] = xerr[0] = hx[i-1]->GetRMS()/hx[i-1]->GetEntries();
-		tree2->Draw(plotcommand,cut,"goff");
+		xerrall[i-1] = xerr[0] = hx[i-1]->GetRMS()/sqrt(hx[i-1]->GetEntries()-1);
+		tree2->Draw(plotcommand,cut.Data(),"goff");
 		hx2[i-1] = (TH1F*)gROOT->FindObject(histname);
 		xposall2[i-1] = xpos2[0] = hx2[i-1]->GetMean();
-		xerrall2[i-1] = xerr2[0] = hx2[i-1]->GetRMS()/hx2[i-1]->GetEntries();
+		xerrall2[i-1] = xerr2[0] = hx2[i-1]->GetRMS()/sqrt(hx2[i-1]->GetEntries()-1);
 
 		histname = "hy";
 		histname += i;
@@ -112,16 +122,20 @@ void transmission_2D_compare(Int_t runnum1=1, Int_t runnum2=1,
 		plotcommand += "Y.hw_sum";
 		plotcommand += "*1000>>";
 		plotcommand += histname;
-		tree1->Draw(plotcommand,cut,"goff");
+
+		if (debug) printf("%i  %s   %s\n",i, plotcommand.Data(), histname.Data() );
+		tree1->Draw(plotcommand,cut.Data(),"goff");
 		hy[i-1] = (TH1F*)gROOT->FindObject(histname);
 		yposall[i-1] = ypos[0] = hy[i-1]->GetMean();
-		yerrall[i-1] = yerr[0] = hy[i-1]->GetRMS()/hy[i-1]->GetEntries();
-		tree2->Draw(plotcommand,cut,"goff");
+		yerrall[i-1] = yerr[0] = hy[i-1]->GetRMS()/sqrt(hy[i-1]->GetEntries()-1);
+		tree2->Draw(plotcommand,cut.Data(),"goff");
 		hy2[i-1] = (TH1F*)gROOT->FindObject(histname);
 		yposall2[i-1] = ypos2[0] = hy2[i-1]->GetMean();
-		yerrall2[i-1] = yerr2[0] = hy2[i-1]->GetRMS()/hy2[i-1]->GetEntries();
-		printf("%s X, mean: %f, error: %f\n", bpmlist[i-1].Data(), xpos[0], xerr[0], xpos2[0], xerr2[0]);	
-		printf("%s Y, mean: %f, error: %f\n", bpmlist[i-1].Data(), ypos[0], yerr[0], ypos2[0], yerr2[0]);	
+		yerrall2[i-1] = yerr2[0] = hy2[i-1]->GetRMS()/sqrt(hy[i-1]->GetEntries()-1);
+		printf("%6s X, mean: %8.4f +- %.4f        %8.4f +- %.4f        %8.4f +- %.4f\n", 
+			   bpmlist[i-1].Data(), xpos[0], xerr[0], xpos2[0], xerr2[0], (xpos[0]+ypos2[0])/2, max(yerr[0],yerr2[0]));	
+		printf("%6s Y, mean: %8.4f +- %.4f        %8.4f +- %.4f        %8.4f +- %.4f\n", 
+			   bpmlist[i-1].Data(), ypos[0], yerr[0], ypos2[0], yerr2[0], (ypos[0]+ypos2[0])/2, max(yerr[0],yerr2[0]));	
 
 		graph[i-1] = new TGraphErrors(2,xpos,ypos,xerr,yerr);
 		graph[i-1]->SetMarkerStyle(20);

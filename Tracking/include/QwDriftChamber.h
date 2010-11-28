@@ -28,8 +28,10 @@
 #include <iomanip>
 
 #include "VQwSubsystemTracking.h"
-#include "MQwF1TDC.h"
-#include "MQwV775TDC.h"
+//#include "MQwF1TDC.h"
+//#include "MQwV775TDC.h"
+
+
 
 #include "QwF1TDContainer.h"
 
@@ -45,7 +47,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   QwDriftChamber(TString region_tmp);
   QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHits_TEMP);
 
-  virtual ~QwDriftChamber(){};
+  virtual ~QwDriftChamber();
 
   /*  Member functions derived from VQwSubsystem. */
 
@@ -63,17 +65,16 @@ class QwDriftChamber: public VQwSubsystemTracking{
  
 
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-
-
-  void  ReportConfiguration();
-  void  AddF1Configuration();
-
-  //has separate meanings in VDC and HDC
  
+  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  void  PrintConfigurationBuffer(UInt_t *buffer,UInt_t num_words);
+  void  ReportConfiguration();
+
+  //separate meanings in VDC and HDC
   virtual void  SubtractReferenceTimes() = 0;
   virtual void  ProcessEvent() = 0;
   virtual Int_t LoadGeometryDefinition(TString mapfile ) = 0;
-  virtual Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) = 0;
+ 
   virtual Int_t LoadChannelMap(TString mapfile ) = 0;
   virtual void  ClearEventData() = 0;
 
@@ -109,7 +110,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
   virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void  FillHistograms() = 0;
-  virtual void  DeleteHistograms() = 0;
+  virtual void  DeleteHistograms();
   virtual Int_t LoadTimeWireOffset(TString t0_map) = 0;
   virtual void SubtractWireTimeOffset() = 0;
   virtual void ApplyTimeCalibration() = 0;
@@ -134,9 +135,10 @@ class QwDriftChamber: public VQwSubsystemTracking{
   Int_t fCurrentSlot;
   Int_t fCurrentTDCIndex;
 
-  // static const UInt_t kMaxNumberOfTDCsPerROC;
+  //static const UInt_t kMaxNumberOfTDCsPerROC;
   static const UInt_t kMaxNumberOfSlotsPerROC;
   static const Int_t kReferenceChannelPlaneNumber; // plane is Int_t
+  static const Int_t kCodaMasterPlaneNumber;
 
   UInt_t kMaxNumberOfChannelsPerTDC;
   
@@ -149,6 +151,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
   // reference chans number <first:tdc_index, second:channel_number>
   // fReferenceChannels[tdc_index,channel_number][ num of [tdc,chan] set]
   std::vector< std::vector<Double_t> > fReferenceData; 
+  std::vector< std::vector<Double_t> > fReferenceMaster;
   // wire number  < reference time > 
   // we use a wire number of QwHit to save a bank id of a reference time.
   // thus, for fReferenceData, the wire (fElement) is the same as
@@ -159,12 +162,9 @@ class QwDriftChamber: public VQwSubsystemTracking{
   std::vector< QwHit > &fWireHits;
   std::vector< Int_t > fWiresPerPlane;
 
-  MQwF1TDC fF1TDC;
+  MQwF1TDC fF1TDCDecoder;
 
   QwF1TDContainer *fF1TDContainer;
-
-  UInt_t fF1TDCBadDataCount;
-
 
   //  NOTE:  The plane and wire indices count from "1" instead
   //         of from "0".

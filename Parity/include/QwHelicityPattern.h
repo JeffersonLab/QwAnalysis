@@ -43,6 +43,7 @@ class QwHelicityPattern{
   void  LoadEventData(QwSubsystemArrayParity &event);
   Bool_t IsCompletePattern() const;
   void  CalculateAsymmetry();
+  void GetTargetChargeStat(Double_t & asym, Double_t & error, Double_t & width);//retrieves the target charge asymmetry,asymmetry error ,asymmetry width
 
   /// Enable/disable alternate asymmetry calculation
   void  EnableAlternateAsymmetry(const Bool_t flag = kTRUE) { fEnableAlternateAsym = flag; };
@@ -66,12 +67,16 @@ class QwHelicityPattern{
   Bool_t IsRunningSumEnabled() { return fEnableRunningSum; };
 
   /// Update the blinder status with new external information
-  void UpdateBlinder(QwDatabase* db, const QwSubsystemArrayParity& detectors) {
-    fBlinder.Update(db, detectors);
+  void UpdateBlinder(QwDatabase* db){
+    fBlinder.Update(db);
   };
   /// Update the blinder status with new external information
-  void UpdateBlinder(QwDatabase* db, const QwEPICSEvent& epics) {
-    fBlinder.Update(db, epics);
+  void UpdateBlinder(const QwSubsystemArrayParity& detectors) {
+    fBlinder.Update(detectors);
+  };
+  /// Update the blinder status with new external information
+  void UpdateBlinder(const QwEPICSEvent& epics) {
+    fBlinder.Update(epics);
   };
 
   void  AccumulateBurstSum();
@@ -92,9 +97,9 @@ class QwHelicityPattern{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile &trim_tree);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwDatabase *db);
-  Bool_t IsGoodAsymmetry(){ return IsGood;};
+  Bool_t IsGoodAsymmetry(){ return fPatternIsGood;};
 
   void  ClearEventData();
   void  ClearBurstSum();
@@ -117,6 +122,13 @@ class QwHelicityPattern{
 
   // Blinding strategy
   QwBlinder fBlinder;
+
+  /// This indicates if the subsystem arrays are missing the helicity object.
+  /// It is updated once during initialization and once when processing the first event
+  Bool_t fHelicityIsMissing;
+  /// This is true if any of the helicity objects of this pattern have indicated that
+  /// we should ignore the helicity.  It is updated every event and reset by ClearEventData.
+  Bool_t fIgnoreHelicity;
 
   // Yield and asymmetry of a single helicity pattern
   QwSubsystemArrayParity fYield;
@@ -143,14 +155,18 @@ class QwHelicityPattern{
   QwSubsystemArrayParity fRunningAsymmetry1;
   QwSubsystemArrayParity fRunningAsymmetry2;
 
- private:
-
   QwSubsystemArrayParity fDifference;
+  QwSubsystemArrayParity fAlternateDiff;
   QwSubsystemArrayParity fPositiveHelicitySum;
   QwSubsystemArrayParity fNegativeHelicitySum;
 
+  Long_t fLastWindowNumber;
+  Long_t fLastPatternNumber;
+  Int_t  fLastPhaseNumber;
 
-  Bool_t IsGood;
+  Bool_t fPatternIsGood;
+
+  QwBeamCharge   fTargetCharge;
 
 
 

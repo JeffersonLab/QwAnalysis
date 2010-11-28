@@ -33,7 +33,6 @@
 /// \ingroup QwGUIMain
 
 #define MAIN_DET_BLOCKIND   5
-#define SAMPLING_RATE       909
 
 enum ENPlotType {
   PLOT_TYPE_HISTO,           
@@ -145,7 +144,7 @@ using std::vector;
 #include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"
 #include "RMsgBox.h"
-#include "QwGUIFFTWindowSelectionDialog.h"
+#include "QwGUIEventWindowSelectionDialog.h"
 
 class QwGUIMainDetectorDataStructure{
 

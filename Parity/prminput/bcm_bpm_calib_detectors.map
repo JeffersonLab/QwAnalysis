@@ -1,0 +1,12 @@
+# This is the detector definition for Hall C 
+# BCM and BPM calibrations
+#
+# Monday, October 25 10:29:03 EDT 2010, jhlee
+
+[QwBeamLine]
+ name = HallCBeamLine
+ map = qweak_hallc_beamline.map
+ geom = qweak_beamline_geometry.map
+ param = qweak_hallc_pedestal.map
+ eventcut = bcm_bpm_calib_eventcuts.in
+

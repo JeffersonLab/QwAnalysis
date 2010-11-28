@@ -19,89 +19,7 @@ VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystemByName(const TString& na
   return dynamic_cast<VQwSubsystemParity*>(QwSubsystemArray::GetSubsystemByName(name));
 };
 
-void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
-{
-  fTreeArrayIndex  = values.size();
-  values.push_back(0.0);
-  tree->Branch("CodaEventNumber",&(values[fTreeArrayIndex]),"CodaEventNumber/D" );
-  values.push_back(0.0);
-  tree->Branch("CodaEventType",&(values[fTreeArrayIndex+1]),"CodaEventType/D" );
-
-  for (iterator subsys = begin(); subsys != end(); ++subsys) {
-    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
-    subsys_parity->ConstructBranchAndVector(tree, prefix, values);
-  }
-};
-
-void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix)
-{
-
-  tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
-  tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
-
-  for (iterator subsys = begin(); subsys != end(); ++subsys) {
-    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
-
-    subsys_parity->ConstructBranch(tree, prefix);
-  }
-};
-
-void  QwSubsystemArrayParity::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
-{
-  QwMessage <<" QwSubsystemArrayParity::ConstructBranch "<<QwLog::endl;
-
-
-  QwParameterFile* preamble;
-  QwParameterFile* nextsection;
-  preamble = trim_file.ReadPreamble();
-  // Process preamble
-  QwVerbose << "QwSubsystemArrayParity::ConstructBranch  Preamble:" << QwLog::endl;
-  QwVerbose << *preamble << QwLog::endl;
-
-  TString subsysname;
-  TString sub2;//="QwBPMStripline";
-
-  if (prefix==""){
-    tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
-    tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
-  }
-
-  for (iterator subsys = begin(); subsys != end(); ++subsys) {
-    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
-
-    subsysname=subsys_parity->GetSubsystemName();
-    //QwMessage <<"Tree leaves created for "<<subsysname<<QwLog::endl;
-
-    if (trim_file.FileHasSectionHeader(subsysname)){
-      nextsection=trim_file.ReadUntilNextSection();//This section contains modules and their channels to be included in the tree
-      /*
-       if (nextsection->FileHasVariablePair("=","module",sub2)){
-	QwMessage <<sub2<<QwLog::endl;
-       }
-       else
-	 QwMessage <<"No modules"<<QwLog::endl;
-      */
-      subsys_parity->ConstructBranch(tree, prefix,*nextsection);
-      QwMessage <<"Tree leaves created for "<<subsysname<<QwLog::endl;
-    }
-    else
-      QwMessage <<"No Tree leaves created for "<<subsysname<<QwLog::endl;
-  }
-};
-
-void  QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t> &values)
-{
-  size_t index=fTreeArrayIndex;
-  values[index++] = this->GetCodaEventNumber();
-  values[index++] = this->GetCodaEventType();
-
-  for (iterator subsys = begin(); subsys != end(); ++subsys) {
-    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
-    subsys_parity->FillTreeVector(values);
-  }
-};
-
-
+//*****************************************************************
 
 void  QwSubsystemArrayParity::FillDB(QwDatabase *db, TString type)
 {
@@ -110,7 +28,6 @@ void  QwSubsystemArrayParity::FillDB(QwDatabase *db, TString type)
     subsys_parity->FillDB(db, type);
   }
 };
-
 
 //*****************************************************************
 
@@ -124,6 +41,7 @@ void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
   fnCanContain = CanContain;
   // Copy subsystems in the array
   if (!source->empty()) {
+    this->fErrorFlag=source->fErrorFlag;
     for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
       VQwSubsystemParity *srcptr =
           dynamic_cast<VQwSubsystemParity*>(subsys->get());
@@ -146,6 +64,7 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
   if(localdebug)  std::cout<<"QwSubsystemArrayParity::operator= \n";
   if (!source.empty()){
     if (this->size() == source.size()){
+      this->fErrorFlag=source.fErrorFlag;
       for(size_t i=0;i<source.size();i++){
 	if (source.at(i)==NULL || this->at(i)==NULL){
 	  //  Either the source or the destination subsystem
@@ -183,7 +102,9 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
 QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArrayParity &value)
 {
   if (!value.empty()){
+
     if (this->size() == value.size()){
+      this->fErrorFlag|=value.fErrorFlag;
       for(size_t i=0;i<value.size();i++){
 	if (value.at(i)==NULL || this->at(i)==NULL){
 	  //  Either the value or the destination subsystem
@@ -220,7 +141,9 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArr
 QwSubsystemArrayParity& QwSubsystemArrayParity::operator-= (const QwSubsystemArrayParity &value)
 {
   if (!value.empty()){
+
     if (this->size() == value.size()){
+      this->fErrorFlag|=value.fErrorFlag;
       for(size_t i=0;i<value.size();i++){
 	if (value.at(i)==NULL || this->at(i)==NULL){
 	  //  Either the value or the destination subsystem
@@ -318,23 +241,25 @@ void QwSubsystemArrayParity::AccumulateRunningSum(const QwSubsystemArrayParity& 
 {
   if (!value.empty()) {
     if (this->size() == value.size()) {
-      for (size_t i = 0; i < value.size(); i++) {
-        if (value.at(i)==NULL || this->at(i)==NULL) {
-          //  Either the value or the destination subsystem
-          //  are null
-        } else {
-          VQwSubsystemParity *ptr1 =
-            dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
-          if (typeid(*ptr1) == typeid(*(value.at(i).get()))) {
-            ptr1->AccumulateRunningSum(value.at(i).get());
-          } else {
-            QwError << "QwSubsystemArrayParity::AccumulateRunningSum here where types don't match" << QwLog::endl;
-            QwError << " typeid(ptr1)=" << typeid(ptr1).name()
-                    << " but typeid(value.at(i)))=" << typeid(value.at(i)).name()
-                    << QwLog::endl;
-            //  Subsystems don't match
-          }
-        }
+      if (value.GetEventcutErrorFlag()==0){//do running sum only if error flag is zero. This way will prevent any Beam Trip(in ev mode 3) related events going into the running sum.
+	for (size_t i = 0; i < value.size(); i++) {
+	  if (value.at(i)==NULL || this->at(i)==NULL) {
+	    //  Either the value or the destination subsystem
+	    //  are null
+	  } else {
+	    VQwSubsystemParity *ptr1 =
+	      dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
+	    if (typeid(*ptr1) == typeid(*(value.at(i).get()))) {
+	      ptr1->AccumulateRunningSum(value.at(i).get());
+	    } else {
+	      QwError << "QwSubsystemArrayParity::AccumulateRunningSum here where types don't match" << QwLog::endl;
+	      QwError << " typeid(ptr1)=" << typeid(ptr1).name()
+		      << " but typeid(value.at(i)))=" << typeid(value.at(i)).name()
+		      << QwLog::endl;
+	      //  Subsystems don't match
+	    }
+	  }
+	}
       }
     } else {
       //  Array sizes don't match
@@ -399,6 +324,7 @@ void QwSubsystemArrayParity::Ratio(
   if(localdebug) std::cout<<"QwSubsystemArrayParity::Ratio \n";
   *this=numer;
   if ( !denom.empty()){
+    this->fErrorFlag=(numer.fErrorFlag|denom.fErrorFlag);
     if (this->size() == denom.size() ){
       for(size_t i=0;i<denom.size();i++){
         if (denom.at(i)==NULL || this->at(i)==NULL){
@@ -432,26 +358,32 @@ void QwSubsystemArrayParity::Ratio(
 Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
   Int_t CountFalse;
   Bool_t status;
-  //fSubsystem_Error_Flag=0;//set the error flag
+  UInt_t ErrorFlag;
+  fErrorFlag=0;
   VQwSubsystemParity *subsys_parity;
   CountFalse=0;
-  //std::cout<<" here in QwSubsystemArrayParity::SingleEventCut()"<<std::endl;
   if (!empty()){
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      if (!subsys_parity->ApplySingleEventCuts())
+      status=subsys_parity->ApplySingleEventCuts();
+      ErrorFlag = subsys_parity->GetEventcutErrorFlag();
+      if ((ErrorFlag & kEventCutMode3)==kEventCutMode3)//we only care about the event cut flag in event cut mode 3
+	fErrorFlag |= ErrorFlag; 
+      if (!status)
       {
-	CountFalse++;
-	//update the sFailedSubsystem vector
-	//std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
-	sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
+	if ((ErrorFlag&kGlobalCut)==kGlobalCut){
+	  CountFalse++;
+	  fErrorFlag |= ErrorFlag; //we need the error code for failed events in event mode 2 for beam trips and etc.
+	}
       }
+      
+
     }
   }
   if (CountFalse > 0)
-    status = false;
+    status = kFALSE;
   else
-    status = true;
+    status = kTRUE;
 
  return status;
 }
@@ -480,17 +412,22 @@ Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
   return 1;
 }
 
-Int_t QwSubsystemArrayParity::GetEventcutErrorFlag(){// report number of events falied due to HW and event cut faliure
-  VQwSubsystemParity *subsys_parity;
-  Int_t ErrorFlag;
+UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() const{// report number of events falied due to HW and event cut faliure
+  return fErrorFlag;
+};
 
-  ErrorFlag=0;
-  if (!empty()){
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      ErrorFlag |= subsys_parity->GetEventcutErrorFlag();
-    }
-  }
+void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values){
+  QwSubsystemArray::ConstructBranchAndVector(tree, prefix, values);
+  values.push_back(0.0);
+  if (prefix=="asym_" || prefix=="")//to create single entry in two trees
+    tree->Branch("ErrorFlag",&(values[values.size()-1]),"ErrorFlag/D");
 
-  return ErrorFlag;
+  //tree->Branch(Form("%sErrorFlag",prefix.Data()),&(values[values.size()-1]),Form("%sErrorFlag/D",prefix.Data()));
+
+};
+void QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t>& values) const
+{
+  QwSubsystemArray::FillTreeVector(values);
+  size_t index = values.size()-1;
+  values[index] = fErrorFlag;
 };

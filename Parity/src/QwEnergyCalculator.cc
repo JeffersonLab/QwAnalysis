@@ -9,37 +9,52 @@
 #include "QwHistogramHelper.h"
 #include <stdexcept>
 
-static QwVQWK_Channel  targetbeamangle; 
-static QwVQWK_Channel  targetbeamx; 
+static QwVQWK_Channel  targetbeamangle;
+static QwVQWK_Channel  targetbeamx;
 static QwVQWK_Channel  beamx;
 
-void QwEnergyCalculator::InitializeChannel(TString name,TString datatosave ){
+void QwEnergyCalculator::InitializeChannel(TString name,TString datatosave )
+{
   SetElementName(name);
   fEnergyChange.InitializeChannel(name,datatosave);
   beamx.InitializeChannel("beamx","derived");
   return;
 };
 
-void QwEnergyCalculator::Set(VQwBPM* device, TString type, TString property,Double_t tmatrix_ratio){
+void QwEnergyCalculator::InitializeChannel(TString subsystem, TString name,TString datatosave )
+{
+  SetElementName(name);
+  fEnergyChange.InitializeChannel(subsystem, "QwEnergyCalculator", name,datatosave);
+  beamx.InitializeChannel("beamx","derived");
+  return;
+};
+
+void QwEnergyCalculator::Set(VQwBPM* device, TString type, TString property,Double_t tmatrix_ratio)
+{
+  Bool_t ldebug = kFALSE;
 
   fDevice.push_back(device);
   fProperty.push_back(property);
   fType.push_back(type);
   fTMatrixRatio.push_back(tmatrix_ratio);
+
+  if(ldebug)
+    std::cout<<"QwEnergyCalculator:: Using "<<device->GetElementName()<<" with ratio "<< tmatrix_ratio <<" for "<<property<<std::endl;
+ 
   return;
 };
 
 
 void QwEnergyCalculator::ClearEventData(){
   fEnergyChange.ClearEventData();
-  return; 
+  return;
 }
 
 
 
 void  QwEnergyCalculator::ProcessEvent(){
 
-  Bool_t ldebug = kFALSE;
+  //  Bool_t ldebug = kFALSE;
   Double_t targetbeamangle = 0;
 
   static QwVQWK_Channel tmp;
@@ -61,6 +76,7 @@ void  QwEnergyCalculator::ProcessEvent(){
       fEnergyChange += tmp;
     }
   }
+
   return;
 };
 
@@ -72,12 +88,9 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
     status=kTRUE;
   }
   else{
-    fEnergyChange.UpdateEventCutErrorCount();//update event cut falied counts
     status&=kFALSE;
   }
   fDeviceErrorCode|=fEnergyChange.GetEventcutErrorFlag();//retrun the error flag for event cuts
-  //Update the error counters
-  fEnergyChange.UpdateHWErrorCounters();
 
   return status;
 
@@ -87,7 +100,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
 Int_t QwEnergyCalculator::GetEventcutErrorCounters(){
   // report number of events falied due to HW and event cut faliure
   fEnergyChange.GetEventcutErrorCounters();
- 
+
   return 1;
 }
 
@@ -170,6 +183,13 @@ Int_t QwEnergyCalculator::SetSingleEventCuts(Double_t minX, Double_t maxX){
   return 1;
 };
 
+void QwEnergyCalculator::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+  //set the unique tag to identify device type (bcm,bpm & etc)
+  errorflag|=kBCMErrorFlag;//currently I use the same flag for bcm
+  QwMessage<<"QwEnergyCalculator Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  fEnergyChange.SetSingleEventCuts(errorflag,LL,UL,stability);
+};
+
 
 void  QwEnergyCalculator::ConstructHistograms(TDirectory *folder, TString &prefix){
   if (GetElementName()==""){
@@ -193,14 +213,14 @@ void  QwEnergyCalculator::FillHistograms(){
 void  QwEnergyCalculator::DeleteHistograms(){
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
-  } 
+  }
   else
     fEnergyChange.DeleteHistograms();
   return;
 };
 
 
-void  QwEnergyCalculator::ConstructBranchAndVector(TTree *tree, TString &prefix, 
+void  QwEnergyCalculator::ConstructBranchAndVector(TTree *tree, TString &prefix,
 						   std::vector<Double_t> &values){
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
@@ -222,7 +242,7 @@ void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix){
 };
 
 void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist){
-  
+
   TString devicename;
   devicename=GetElementName();
   devicename.ToLower();
@@ -237,11 +257,12 @@ void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix, QwParame
   return;
 };
 
-void  QwEnergyCalculator::FillTreeVector(std::vector<Double_t> &values){
+void  QwEnergyCalculator::FillTreeVector(std::vector<Double_t> &values) const
+{
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
-  } 
-  else 
+  }
+  else
     fEnergyChange.FillTreeVector(values);
   return;
 };
@@ -266,6 +287,69 @@ void  QwEnergyCalculator::Copy(VQwDataElement *source){
   }
 
   return;
+};
+
+
+
+std::vector<QwDBInterface> QwEnergyCalculator::GetDBEntry()
+{
+  UShort_t i = 0;
+
+  std::vector <QwDBInterface> row_list;
+  QwDBInterface row;
+
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
+
+  row.Reset();
+
+  // the element name and the n (number of measurements in average)
+  // is the same in each block and hardwaresum.
+
+  name          = fEnergyChange.GetElementName();
+  beam_n        = fEnergyChange.GetGoodEventCount();
+
+  // Get HardwareSum average and its error
+  avg           = fEnergyChange.GetHardwareSum();
+  err           = fEnergyChange.GetHardwareSumError();
+  // ADC subblock sum : 0 in MySQL database
+  beam_subblock = 0;
+
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
+
+  row_list.push_back(row);
+
+
+  // Get four Block averages and thier errors
+
+  for(i=0; i<4; i++) {
+    row.Reset();
+    avg           = fEnergyChange.GetBlockValue(i);
+    err           = fEnergyChange.GetBlockErrorValue(i);
+    beam_subblock = (UInt_t) (i+1);
+    // QwVQWK_Channel  | MySQL
+    // fBlock[0]       | subblock 1
+    // fBlock[1]       | subblock 2
+    // fBlock[2]       | subblock 3
+    // fBlock[3]       | subblock 4
+    row.SetDetectorName(name);
+    row.SetSubblock(beam_subblock);
+    row.SetN(beam_n);
+    row.SetValue(avg);
+    row.SetError(err);
+
+    row_list.push_back(row);
+  }
+
+  return row_list;
+
 };
 
 

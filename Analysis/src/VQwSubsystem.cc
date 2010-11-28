@@ -29,6 +29,7 @@
 #include "QwLog.h"
 #include "QwSubsystemArray.h"
 
+
 Int_t ERROR = -1;
 
 
@@ -137,14 +138,13 @@ VQwSubsystem* VQwSubsystem::GetSibling(const std::string& name) const
  * @param value Pointer to the value to be filled by the call
  * @return True if the variable was found, false if not found
  */
-const Bool_t VQwSubsystem::RequestExternalValue(
+Bool_t VQwSubsystem::RequestExternalValue(
 	const TString& name,
 	VQwDataElement* value) const
 {
   // Get the parent and check for existence (NOTE: only one parent supported)
   QwSubsystemArray* parent = GetParent();
   if (parent != 0) {
-    // Request the named variable from the parent, return true if found
     return parent->RequestExternalValue(name, value);
   }
   return kFALSE; // Error: could not find variable in parent
@@ -157,13 +157,16 @@ const Bool_t VQwSubsystem::RequestExternalValue(
  * @param desc Description of the variable
  * @return True if the variable could be published, false otherwise
  */
-const Bool_t VQwSubsystem::PublishInternalValue(const TString name, const TString desc) const
+Bool_t VQwSubsystem::PublishInternalValue(
+    const TString& name,
+    const TString& desc,
+    const VQwDataElement* value) const
 {
   // Get the parent and check for existence
   QwSubsystemArray* parent = GetParent();
   if (parent != 0) {
     // Publish the variable with name in the parent
-    if (parent->PublishInternalValue(name, desc, this) == kFALSE) {
+    if (parent->PublishInternalValue(name, desc, this, value) == kFALSE) {
       QwError << "Could not publish variable " << name
               << " in subsystem " << GetSubsystemName() << "!" << QwLog::endl;
       return kFALSE; // Error: variable could not be puslished

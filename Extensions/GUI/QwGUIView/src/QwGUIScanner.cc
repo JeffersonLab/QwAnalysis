@@ -5,7 +5,7 @@ ClassImp(QwGUIScanner);
 using namespace QwParityDB;
 
 const char *QwGUIScanner::ScannerDataNames[SCANNER_INDEX] =
-  {"RateMap","RateMapProjectionXY","RateMapProjectionX","RateMapProjectionY"};
+  {"RateMap","RandomMap","RateMapProjectionXY","RateMapProjectionX","RateMapProjectionY"};
 
 QwGUIScanner::QwGUIScanner(const TGWindow *p, const TGWindow *main, const TGTab *tab,
                            const char *objName, const char *mainname, UInt_t w, UInt_t h)
@@ -53,7 +53,8 @@ void QwGUIScanner::MakeLayout()
 
   dMenuPlot = new TGPopupMenu(fClient->GetRoot());
   dMenuPlot->AddEntry("&Rate Map", SCANNER_PLOT_RATEMAP);
-  dMenuPlot->AddEntry("&Projection", SCANNER_PLOT_PROJECTION);
+  dMenuPlot->AddEntry("&Projection XY", SCANNER_PLOT_PROJECTION);
+
   //dMenuPlot->AddEntry("&Histograms (raw data)", SCANNER_PLOT_RAW);
   //dMenuPlot->AddSeparator();
 
@@ -128,7 +129,7 @@ void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
   if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont)
     {
 
-      obj = dROOTCont->ReadData("event_tree");
+      obj = dROOTCont->ReadData("tree");
       if (obj)
         {
           printf("Reading data from 'tree'\n");
@@ -142,113 +143,146 @@ void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
               printf("Reading data from 'Mps_Tree'\n");
               RunMode = CURRENT_MODE;
             }
+        }
 
-          if (obj)
+        if (!obj)
+          {
+             printf("Can't find data tree.\n");
+             return;
+          }
+
+          if (obj->InheritsFrom("TTree"))  
             {
-              if (obj->InheritsFrom("TTree"))
+              tree = (TTree*)obj->Clone();
+              ClearRootData();
+
+              RateMap  = new TProfile2D("RateMap","Scanner Rate Map",210,-105.0,105.0,40,-350.0,-310.0);
+              RandomMap  = new TProfile2D("RandomMap","Scanner Random Rate Map",210,-105.0,105.0,40,-350.0,-310.0);
+
+              //test 100 entries
+
+              UInt_t NumberOfEntries = tree->GetEntries();
+              if (NumberOfEntries<200)
                 {
-                  tree = (TTree*)obj->Clone();
+                  printf("No enough data to draw a rate map\n");
+                  return;
+                }
 
-                  ClearRootData();
+              Int_t i_vqwk=0, i_qdc=0;
+              for (Int_t jentry=100; jentry<NumberOfEntries && jentry<200; jentry++)
+               {
+                 tree->GetEntry(jentry);
+                 Double_t tmpt1 =  tree->FindLeaf("scanner.PositionX_VQWK")->GetValue(0);
+                 Double_t tmpt2 =  tree->FindLeaf("scanner.PositionY_VQWK")->GetValue(0);
+                 if (TMath::IsNaN(tmpt1) || TMath::IsNaN(tmpt2))
+                     i_vqwk++;
+                 Double_t tmpt3 =  tree->FindLeaf("scanner.PositionX_QDC")->GetValue(0);
+                 Double_t tmpt4 =  tree->FindLeaf("scanner.PositionY_QDC")->GetValue(0);
+                 if (TMath::IsNaN(tmpt3) || TMath::IsNaN(tmpt4))
+                     i_qdc++;
 
-                  tree->SetBranchAddress("CodaEventNumber",&CodaEventNumber);
-                  tree->SetBranchAddress("scanner",&scanner);
+                 printf("VQWK: %f, %f \t QDC: %f, %f\n",tmpt1, tmpt2, tmpt3, tmpt4);
+               }
 
-                  RateMap  = new TProfile2D("Scanner_Rate_Map_CM",
-                                            "Scanner Rate Map (Current Mode)",210,-105.0,105.0,40,-360.0,-320.0);
+               printf("position data test: %d%% VQWK data is nan, %d%% QDC data is nan\n",i_vqwk, i_qdc);
 
-                  RateMap_FrontQuartz  = new TProfile2D("Scanner_Rate_Map_CM_FrontQuartz",
-                                                        "Scanner Rate Map (Current Mode, Measured with Front Quartz)",210,-105.0,105.0,40,-360.0,-320.0);
+              if (i_vqwk==0)
+                {
+                   PositionDataType = PVQWK;
+                   printf("==>> VQWK position data available.\n");
+                }
+              else if (i_qdc==0)
+                {
+                   PositionDataType = PQDC;
+                   printf("==>> QDC position data available.\n");
+                }
+              else
+                {
+                   printf("==>> No position data available.\n");
+                   return;
+                }
 
-                  RateMap_BackQuartz  = new TProfile2D("Scanner_Rate_Map_CM_BackQuartz",
-                                                       "Scanner Rate Map (Current Mode, Measured with Back Quartz)",210,-105.0,105.0,40,-360.0,-320.0);
+               // loop over all entries
 
-                  // loop over all entries
-                  UInt_t NumberOfEntries = tree->GetEntries();
-
-                  for (Int_t jentry=0; jentry<NumberOfEntries; jentry++)
-                    {
-
-                      Int_t entryNumber = tree->GetEntryNumber(jentry);
-                      if (entryNumber%1000==0)
+/*
+              for (Int_t jentry=0; jentry<NumberOfEntries; jentry++)
+                {
+                  Int_t entryNumber = tree->GetEntryNumber(jentry);
+                  if (entryNumber%10000==0)
                         std::cout << "entryNumber: " << entryNumber << std::endl;
 
-                      tree->GetEntry(entryNumber);
+                  tree->GetEntry(entryNumber);
 
-                      UInt_t index = -1;
+                  Double_t PositionX, PositionY;
+                  Double_t CoincidenceSCA = tree->FindLeaf("scanner.CoincidenceSCA")->GetValue(0);
 
-                      PowerSupply_VQWK = scanner[++index];
-                      PositionX_VQWK   = scanner[++index];
-                      PositionY_VQWK   = scanner[++index];
-                      FrontSCA         = scanner[++index];
-                      BackSCA          = scanner[++index];
-                      CoincidenceSCA   = scanner[++index];
-                      FrontADC         = scanner[++index];
-                      BackADC          = scanner[++index];
-                      FrontTDC         = scanner[++index];
-                      BackTDC          = scanner[++index];
-                      PositionX_QDC    = scanner[++index];
-                      PositionY_QDC    = scanner[++index];
-                      front_adc_raw    = scanner[++index];
-                      back__adc_raw    = scanner[++index];
-                      pos_x_adc_raw    = scanner[++index];
-                      pos_y_adc_raw    = scanner[++index];
-                      front_f1_raw     = scanner[++index];
-                      back__f1_raw     = scanner[++index];
-                      coinc_f1_raw     = scanner[++index];
-                      ref_t_f1_raw     = scanner[++index];
-                      coinc_sca_raw    = scanner[++index];
-                      back__sca_raw    = scanner[++index];
-                      front_sca_raw    = scanner[++index];
-                      phase_monitor_raw= scanner[++index];
-                      power_vqwk_raw   = scanner[++index];
-                      pos_y_vqwk_raw   = scanner[++index];
-                      pos_x_vqwk_raw   = scanner[++index];
-
-                      if (false)
+                  if(CoincidenceSCA>0)
+                    {
+                      if (PositionDataType == PVQWK)
                         {
-                          std::cout << "entryNumber: " << entryNumber << std::endl;
-                          std::cout<<"CodaEventNumber: "<<CodaEventNumber<<std::endl;
-                          std::cout<<"PositionX_VQWK="<<PositionX_VQWK<<"\n";
-                          std::cout<<"PositionY_VQWK="<<PositionY_VQWK<<"\n";
-                          std::cout<<"PositionX_QDC="<<PositionX_QDC<<"\n";
-                          std::cout<<"PositionY_QDC="<<PositionY_QDC<<"\n";
-                          std::cout<<"CoincidenceSCA="<<CoincidenceSCA<<"\n";
-                          std::cout<<"FrontSCA="<<FrontSCA<<"\n";
-                          std::cout<<"BackSCA="<<BackSCA<<"\n";
+                           PositionX = tree->FindLeaf("scanner.PositionX_VQWK")->GetValue(0);
+                           PositionY = tree->FindLeaf("scanner.PositionY_VQWK")->GetValue(0);
                         }
-
-                      if (RunMode == CURRENT_MODE)
+                      else if (PositionDataType == PQDC)
                         {
-                          RateMap->Fill(PositionX_VQWK,PositionY_VQWK,CoincidenceSCA,1);
-                          RateMap_FrontQuartz->Fill(PositionX_VQWK,PositionY_VQWK,FrontSCA,1);
-                          RateMap_BackQuartz->Fill(PositionX_VQWK,PositionY_VQWK,BackSCA,1);
-                        }
-                      else if (RunMode == EVENT_MODE)
-                        {
-                          RateMap->Fill(PositionX_QDC,PositionY_QDC,CoincidenceSCA,1);
-                          RateMap_FrontQuartz->Fill(PositionX_QDC,PositionY_QDC,FrontSCA,1);
-                          RateMap_BackQuartz->Fill(PositionX_QDC,PositionY_QDC,BackSCA,1);
+                           PositionX = tree->FindLeaf("scanner.PositionX_QDC")->GetValue(0);
+                           PositionY = tree->FindLeaf("scanner.PositionY_QDC")->GetValue(0);
                         }
                       else
                         {
-                          printf("Warning: Unknown run mode\n");
+                           printf("Warning: Unknown position data type.\n");
+                           continue;
                         }
-                    }
-                  RateMapProjectionXY = RateMap->ProjectionXY("RateMapProjectionXY");
-                  RateMapProjectionX = RateMapProjectionXY->ProjectionX("RateMapProjectionX");
-                  RateMapProjectionY = RateMapProjectionXY->ProjectionY("RateMapProjectionY");
-                  PlotRateMap();
-                }
-            }
 
-          if (!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont)
-            {
-              ClearDBData();
-            }
+                       Double_t RandomSCA = tree->FindLeaf("scanner.randm_sca_raw")->GetValue(0);
+
+                       RateMap->Fill(PositionX*1.025-6, PositionY+5*2.54,CoincidenceSCA-RandomSCA,1);
+                       RandomMap->Fill(PositionX*1.025-6,PositionY+5*2.54,RandomSCA,1);
+                    }
+                 }
+
+*/
+                 TCanvas *mc = dCanvas->GetCanvas();
+
+                 mc->cd(1);
+                 // add 5*2.54 cm 
+                 if (PositionDataType == PVQWK)
+                   {
+                     tree->Draw("(scanner.CoincidenceSCA-scanner.randm_sca_raw):(scanner.PositionY_VQWK+5*2.54):(scanner.PositionX_VQWK)>>RateMap","scanner.CoincidenceSCA>0","prof");
+                   }
+                 else
+                   {
+                     tree->Draw("(scanner.CoincidenceSCA-scanner.randm_sca_raw):(scanner.PositionY_QDC+5*2.54):(scanner.PositionX_QDC*1.025-6)>>RateMap","scanner.CoincidenceSCA>0","prof");
+                   }
+                 RateMap->SetStats(0);
+
+                 mc->cd(2);
+                 if (PositionDataType == PVQWK)
+                   {
+                      tree->Draw("(scanner.randm_sca_raw):(scanner.PositionY_VQWK+5*2.54):(scanner.PositionX_VQWK)>>RandomMap","scanner.CoincidenceSCA>0","prof");
+                   }
+                 else
+                   {
+                      tree->Draw("(scanner.randm_sca_raw):(scanner.PositionY_QDC+5*2.54):(scanner.PositionX_QDC*1.025-6)>>RandomMap","scanner.CoincidenceSCA>0","prof");
+                   }
+                 RandomMap->SetStats(0);
+
+                 RateMapProjectionXY = RateMap->ProjectionXY("RateMapProjectionXY");
+                 RateMapProjectionX  = RateMapProjectionXY->ProjectionX("RateMapProjectionX");
+                 RateMapProjectionY  = RateMapProjectionXY->ProjectionY("RateMapProjectionY");
+
+                 PlotRateMap();
+
+             }  // END OF: if (obj->InheritsFrom("TTree"))
+        } // END OF: if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont)
+
+     if (!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont)
+        {
+          ClearDBData();
         }
-    }
-}
+
+} // END OF:  void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
+
 void QwGUIScanner::OnRemoveThisTab()
 {
 
@@ -423,7 +457,7 @@ void QwGUIScanner::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
               if (pad == 1)
                   RateMap->Draw("COLZ");
               if (pad ==2 )
-                  RateMap->Draw("LEGO");
+                  RandomMap->Draw("COLZ");
               SetLogMessage(Form("Looking at profile %s\n",(char*)ProfileArray[pad-1]->GetTitle()),kTrue);
             }
         }
@@ -480,7 +514,6 @@ Bool_t QwGUIScanner::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
               PlotProjections();
               break;
 
-
             default:
               break;
             }
@@ -513,13 +546,14 @@ void QwGUIScanner::PlotRateMap()
   ProfileArray.Add(RateMap);
 
   mc->cd(2);
-  gStyle->SetOptStat(1000011);
-  RateMap->GetXaxis()->SetTitle("PositionX [cm]");
-  RateMap->GetYaxis()->SetTitle("PositionY [cm]");
-  RateMap->GetZaxis()->SetTitle("Rate");
-  //RateMap->SetOption("lego");
-  RateMap->Draw("lego");
-  ProfileArray.Add(RateMap);
+  //gStyle->SetOptStat(1000011);
+  gStyle->SetOptStat(0);
+  RandomMap->GetXaxis()->SetTitle("PositionX [cm]");
+  RandomMap->GetYaxis()->SetTitle("PositionY [cm]");
+  RandomMap->GetZaxis()->SetTitle("Rate");
+  //RandomMap->SetOption("lego");
+  RandomMap->Draw("colz");
+  ProfileArray.Add(RandomMap);
 
   mc->Modified();
   mc->Update();
@@ -529,10 +563,9 @@ void QwGUIScanner::PlotRateMap()
 }
 
 
-
 void QwGUIScanner::PlotProjections()
 {
-  printf("QwGUIScanner::PlotRateMap()\n");
+  printf("QwGUIScanner::PlotProjections()\n");
   TCanvas *mc = dCanvas->GetCanvas();
 
   mc->cd(1);
@@ -554,3 +587,4 @@ void QwGUIScanner::PlotProjections()
 
   SetPlotDataType(SCANNER_PLOT_TYPE_HISTO);
 }
+

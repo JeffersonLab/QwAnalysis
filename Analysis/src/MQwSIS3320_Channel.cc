@@ -28,12 +28,13 @@ const unsigned int MQwSIS3320_Channel::FORMAT_ACCUMULATOR = 0x0;
 const unsigned int MQwSIS3320_Channel::FORMAT_LONG_WORD_SAMPLING = 0x1;
 const unsigned int MQwSIS3320_Channel::FORMAT_SHORT_WORD_SAMPLING = 0x2;
 // Initialize sampling mode format flags
+const unsigned int MQwSIS3320_Channel::MODE_ACCUM_EVENT = 0x1;
 const unsigned int MQwSIS3320_Channel::MODE_MULTI_EVENT = 0x3;
 const unsigned int MQwSIS3320_Channel::MODE_SINGLE_EVENT = 0x4;
 const unsigned int MQwSIS3320_Channel::MODE_NOTREADY = 0xda00;
 
 // Compile-time debug level
-const Bool_t MQwSIS3320_Channel::kDEBUG = kTRUE;
+const Bool_t MQwSIS3320_Channel::kDEBUG = kFALSE;
 
 
 /**
@@ -72,11 +73,12 @@ void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
   }
 
   // Start with zero samples
-  fSamples.resize(0); fSamplesRaw.resize(0);
+  fSamples.clear(); fSamplesRaw.clear();
   // Clear the average samples
   fAverageSamples.ClearEventData();
   fAverageSamplesRaw.ClearEventData();
 
+  // Enabled by MMD
   //for (size_t i = 0; i < fSamples.size(); i++) {
   //  TString name = GetElementName() + TString("_samples") + Form("%ld",i);
   //  fSamples[i].SetElementName(name);
@@ -161,8 +163,10 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
     if (local_tag != 0xFADC) return words_read;
 
     // Check whether the first word contains the correct channel number
-    UInt_t local_module = (buffer[0] >> 8) & 0xFF;
+    UInt_t local_module = 0;
+    local_module = (buffer[0] >> 8) & 0xFF;
     UInt_t local_channel = buffer[0] & 0xFF;
+ 
     if (local_channel != fChannel) return words_read;
 
     // Determine whether we are receiving a sampling or accumulator buffer:
@@ -174,7 +178,9 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
     // - stop mode is 1 for hardware trigger
     // - setup mode is 1,2,3,4...
     UInt_t local_format = (buffer[1] >> 16) & 0xFFFF;
-    UInt_t local_stopmode = (buffer[1] >> 8) & 0xFF;
+    UInt_t local_stopmode = 0;
+    local_stopmode = (buffer[1] >> 8) & 0xFF;
+
     UInt_t local_setupmode = (buffer[1]) & 0xFF;
     words_read = 2;
     UInt_t packedtiming; // locals declared outside of switch/case
@@ -193,6 +199,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
           // This is a sampling buffer in multi event mode:
           // - many events are saved in one buffer for a complete helicity event
+          case MODE_ACCUM_EVENT:
           case MODE_MULTI_EVENT:
             numberofsamples = buffer[3];
             numberofevents_expected = buffer[4];
@@ -361,13 +368,17 @@ void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 void MQwSIS3320_Channel::ProcessEvent()
 {
   // Correct for pedestal and calibration factor
-  fSamples.resize(fSamplesRaw.size());
+  if (fSamplesRaw.size() > 0) fSamples.resize(fSamplesRaw.size(), fSamplesRaw[0]);
   for (size_t i = 0; i < fSamplesRaw.size(); i++) {
-    fSamples[i] = (fSamplesRaw[i] - fPedestal) * fCalibrationFactor;
+    fSamples[i] = fSamplesRaw[i];
+    fSamples[i] -= fPedestal;
+    fSamples[i] *= fCalibrationFactor;
+    fSamples[i].UpdateGraph();
   }
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++) {
-    Double_t pedestal = fPedestal * fAccumulatorsRaw[i].GetNumberOfSamples();
-    fAccumulators[i] = (fAccumulatorsRaw[i] - pedestal) * fCalibrationFactor;
+    fAccumulators[i] = fAccumulatorsRaw[i];
+    fAccumulators[i] -= fPedestal * fAccumulatorsRaw[i].GetNumberOfSamples();
+    fAccumulators[i] *= fCalibrationFactor;
   }
 
   // Calculate the average sample snapshot
@@ -392,12 +403,6 @@ void MQwSIS3320_Channel::ProcessEvent()
       fTimeWindowAverages[timewindow] += fSamples[i].GetSumInTimeWindow(start, stop);
     }
   }
-
-  for (size_t i = 0; i < fSamples.size(); i++) {
-    QwMessage << fSamples[i] << QwLog::endl;
-  }
-
-  return;
 };
 
 /**
@@ -457,7 +462,10 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator= (const MQwSIS3320_Channel &val
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) = value.fSamples.at(i);
+      fSamples[i] = value.fSamples.at(i);
+    for (size_t i = 0; i < fAccumulators.size(); i++ ) {
+      fAccumulators[i] = value.fAccumulators.at(i);
+    }
   }
   return *this;
 };
@@ -471,7 +479,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) += value;
+      fSamples[i] += value;
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators[i] += value;
   }
   return *this;
 };
@@ -485,7 +495,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) -= value;
+      fSamples[i] -= value;
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators[i] -= value;
   }
   return *this;
 };
@@ -499,7 +511,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const MQwSIS3320_Channel &va
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) += value.fSamples.at(i);
+      fSamples[i] += value.fSamples.at(i);
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators[i] += value.fAccumulators.at(i);
   }
   return *this;
 };
@@ -513,7 +527,9 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &va
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      this->fSamples.at(i) -= value.fSamples.at(i);
+      fSamples[i] -= value.fSamples.at(i);
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators[i] -= value.fAccumulators.at(i);
   }
   return *this;
 };
@@ -525,7 +541,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &va
  */
 void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
 {
-  *this =  value1;
+  *this  =  value1;
   *this += value2;
 };
 
@@ -536,9 +552,17 @@ void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &val
  */
 void MQwSIS3320_Channel::Difference(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
 {
-  *this =  value1;
+  *this  =  value1;
   *this -= value2;
-};
+}
+
+void MQwSIS3320_Channel::Ratio(MQwSIS3320_Channel &numer, MQwSIS3320_Channel &denom)
+{
+  if (!IsNameEmpty()) {
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators[i].Ratio(numer.fAccumulators[i],denom.fAccumulators[i]);
+  }
+}
 
 /**
  * Addition of a offset
@@ -548,7 +572,9 @@ void MQwSIS3320_Channel::Offset(Double_t offset)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      fSamples.at(i) += offset;
+      fSamples[i] += offset;
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators[i] += offset;
   }
 };
 
@@ -560,7 +586,9 @@ void MQwSIS3320_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
-      fSamples.at(i) *= scale;
+      fSamples[i] *= scale;
+    for (size_t i = 0; i < fAccumulators.size(); i++)
+      fAccumulators[i] *= scale;
   }
 };
 
@@ -602,14 +630,19 @@ void MQwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix
     //  This channel is not used, so skip filling the histograms.
   } else {
 
-    TString basename, fullname;
-    basename = prefix + GetElementName();
+    // Accumulators
+    for (size_t i = 0; i < fAccumulators.size(); i++) {
+      fAccumulators[i].ConstructHistograms(folder,prefix);
+      fAccumulatorsRaw[i].ConstructHistograms(folder,prefix);
+    }
+
+    TString basename = prefix + GetElementName();
 
     fHistograms.resize(3, NULL);
-    size_t index = -1;
-    fHistograms[++index] = gQwHists.Construct1DHist(basename+Form("_sum"));
-    fHistograms[++index] = gQwHists.Construct1DHist(basename+Form("_ped"));
-    fHistograms[++index] = gQwHists.Construct1DHist(basename+Form("_ped_raw"));
+    size_t index = 0;
+    fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_sum"));
+    fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_ped"));
+    fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_ped_raw"));
   }
 };
 
@@ -621,6 +654,13 @@ void MQwSIS3320_Channel::FillHistograms()
   if (IsNameEmpty()) {
       //  This channel is not used, so skip creating the histograms.
   } else {
+
+    // Accumulators
+    for (size_t i = 0; i < fAccumulators.size(); i++) {
+      fAccumulators[i].FillHistograms();
+      fAccumulatorsRaw[i].FillHistograms();
+    }
+
     if (fHistograms[++index] != NULL)
       fHistograms[index]->Fill(fAverageSamples.GetSum());
     if (fHistograms[++index] != NULL)
@@ -628,6 +668,16 @@ void MQwSIS3320_Channel::FillHistograms()
     if (fHistograms[++index] != NULL)
       fHistograms[index]->Fill(fAverageSamplesRaw.GetSample(0));
   }
+};
+
+void  MQwSIS3320_Channel::DeleteHistograms()
+{
+  for (UInt_t i = 0; i < fHistograms.size(); i++) {
+    if (fHistograms[i] != NULL)
+      fHistograms[i]->Delete();
+    fHistograms[i] = NULL;
+  }
+  fHistograms.clear();
 };
 
 
@@ -640,32 +690,18 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   }
   // Samples (only collected when running over data, so structure does not
   // actually exist yet at time of branch construction)
-  //fSamples[0].ConstructBranchAndVector(tree, prefix, values);
-  //fSamplesRaw[0].ConstructBranchAndVector(tree, prefix, values);
-  // TODO See below for issues with including samples in the mps tree
+  TString basename = prefix + GetElementName() + "_samples";
+  tree->Branch(basename, &fSamples);
+  //tree->Branch(basename + "_avg", &fAverageSamples);
 };
 
-void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values)
+void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   // Accumulators
   for (size_t i = 0; i < fAccumulators.size(); i++) {
     fAccumulators[i].FillTreeVector(values);
     fAccumulatorsRaw[i].FillTreeVector(values);
   }
-  // Samples
-// TODO The following is disabled because it doesn't work.  The number of samples
-// varies from mps to mps, so we keep a dynamic list.  This causes problems because
-// the array indices that are fixed on an artificial dummy during the tree and branch
-// construction are gone when we get to a (new) actual event.  Garbage gets written
-// to the ROOT file and it plain doesn't work(TM).  Need a different approach to
-// trigger events: a dedicated tree (useful for qweak tracking too) or a subtree
-// of the existing MPS tree (correlation between mps and triggered events is clearer).
-// Let's see what we can come up with...
-//
-//  for (size_t i = 0; i < fSamples.size(); i++) {
-//    fSamples[i].FillTreeVector(values);
-//    fSamplesRaw[i].FillTreeVector(values);
-//  }
 };
 
 /**
@@ -675,8 +711,6 @@ void MQwSIS3320_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
             << std::setw(18) << std::left << GetElementName() << ", "
-// n/a            << std::setw(15) << std::left << GetHardwareSum() << ", "
-// n/a            << std::setw(15) << std::left << GetSampleAverage() << ", "
             << std::setw(15) << std::left << GetNumberOfEvents() << ", "
             << QwLog::endl;
 }
@@ -711,3 +745,57 @@ void MQwSIS3320_Channel::PrintInfo() const
   }
 }
 
+/*
+ * Copy
+ */
+void MQwSIS3320_Channel::Copy(MQwSIS3320_Channel *source)
+{
+   try {
+      if( typeid(*source)==typeid(*this)) {
+         MQwSIS3320_Channel* input = ((MQwSIS3320_Channel*)source);
+
+         // Now copy all the data
+         this->fChannel                = source->fChannel;
+         this->fHasSamplingData        = source->fHasSamplingData;
+         this->fHasAccumulatorData     = source->fHasAccumulatorData;
+         this->fPedestal               = source->fPedestal;
+         this->fCalibrationFactor      = source->fCalibrationFactor;
+         this->fCurrentEvent           = source->fCurrentEvent;
+         this->fNumberOfEvents         = source->fNumberOfEvents;
+         this->fSampleFormat           = source->fSampleFormat;
+         this->fSamplePointer          = source->fSamplePointer;
+         this->fSamples                = source->fSamples;
+         this->fSamplesRaw             = source->fSamplesRaw;
+         this->fAverageSamples         = source->fAverageSamples;
+         this->fTimeWindowAverages     = source->fTimeWindowAverages;
+         this->fTimeWindows            = source->fTimeWindows;
+         this->fSampleWindowAverages   = source->fTimeWindowAverages;
+         this->fSampleWindows          = source->fSampleWindows;
+         this->fTreeArrayIndex         = source->fTreeArrayIndex;
+         this->fTreeArrayNumEntries    = source->fTreeArrayNumEntries;
+         this->fAccumulatorDAC         = source->fAccumulatorDAC;
+         this->fAccumulatorThreshold1  = source->fAccumulatorThreshold1;
+         this->fAccumulatorThreshold2  = source->fAccumulatorThreshold2;
+         this->fAccumulatorTimingBefore5 = source->fAccumulatorTimingBefore5;
+         this->fAccumulatorTimingBefore6 = source->fAccumulatorTimingBefore6;
+         this->fAccumulatorTimingAfter5 = source->fAccumulatorTimingAfter5;
+         this->fAccumulatorTimingAfter6 = source->fAccumulatorTimingAfter6;
+         this->fAccumulators           = source->fAccumulators;
+         this->fAccumulatorsRaw        = source->fAccumulatorsRaw;
+         this->fSequenceNumber         = source->fSequenceNumber;
+         this->fMockAsymmetry          = source->fMockAsymmetry;
+         this->fMockGaussianMean       = source->fMockGaussianMean;
+         this->fMockGaussianSigma      = source->fMockGaussianSigma;
+
+      } else {
+         TString message = "Standard exception from MQwSIS3320_Channel::Copy = "
+            + source->GetElementName() + " "
+            + this->GetElementName() + " are not of the same type";
+         throw std::invalid_argument(message.Data());
+      }
+   } catch (std::exception& e) {
+      std::cerr << e.what() << "\n";
+   }
+
+   return;
+}

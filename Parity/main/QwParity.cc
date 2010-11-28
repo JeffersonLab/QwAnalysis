@@ -56,69 +56,74 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Then, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.AddConfigFile("qwparity.conf");
   gQwOptions.AddConfigFile("qweak_mysql.conf");
   ///  Define the command line options
   DefineOptionsParity(gQwOptions);
-  //Load command line options for the histogram/tree helper class
+  /// Load command line options for the histogram/tree helper class
   gQwHists.ProcessOptions(gQwOptions);
   /// Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
-  ///  Load the histogram parameter definitions (from parity_hists.txt) into the global
-  ///  histogram helper: QwHistogramHelper
-  gQwHists.LoadHistParamsFromFile("qweak_parity_hists.in");
-  gQwHists.LoadTreeParamsFromFile("Qweak_Tree_Trim_List.in");
 
   ///  Create the event buffer
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);
 
-  ///  Create an EPICS event
-  QwEPICSEvent epicsevent;
-  epicsevent.LoadEpicsVariableMap("EpicsTable.map");
-
-
-  ///  Load the detectors from file
-  QwSubsystemArrayParity detectors(gQwOptions);
-  detectors.ProcessOptions(gQwOptions);
-
-  ///  Create the helicity pattern
-  QwHelicityPattern helicitypattern(detectors);
-  helicitypattern.ProcessOptions(gQwOptions);
-
-  ///  Create the event ring
-  QwEventRing eventring;
-  eventring.ProcessOptions(gQwOptions);
-  //  Set up the ring with subsysten array with CMD ring parameters
-  eventring.SetupRing(detectors); // TODO (wdc) in QwEventRing constructor?
-
-  ///  Create the running sum
-  QwSubsystemArrayParity runningsum(detectors);
-
-  ///  Set up the database connection
+  ///  Create the database connection
   QwDatabase database(gQwOptions);
 
+
   ///  Start loop over all runs
-  QwRootFile* rootfile = 0;
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
-    //  Begin processing for the first run.
+    ///  Begin processing for the first run
+
+
+    ///  Set the current event number for parameter file lookup
+    QwParameterFile::SetCurrentRunNumber(eventbuffer.GetRunNumber());
+
+
+    ///  Create an EPICS event
+    QwEPICSEvent epicsevent;
+    epicsevent.LoadEpicsVariableMap("EpicsTable.map");
+
+    ///  Load the detectors from file
+    QwSubsystemArrayParity detectors(gQwOptions);
+    detectors.ProcessOptions(gQwOptions);
+
+    ///  Create the helicity pattern
+    QwHelicityPattern helicitypattern(detectors);
+    helicitypattern.ProcessOptions(gQwOptions);
+
+    ///  Create the event ring
+    QwEventRing eventring;
+    eventring.ProcessOptions(gQwOptions);
+    ///  Set up the ring with the subsystem array
+    eventring.SetupRing(detectors);
+
+    ///  Create the running sum
+    QwSubsystemArrayParity runningsum(detectors);
+
+
+    //  Initialize the database connection.
+    database.SetupOneRun(eventbuffer);
+
 
     //  Open the ROOT file
-    rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+    QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
-
     //  Construct histograms
-    rootfile->ConstructHistograms(detectors);
-    rootfile->ConstructHistograms(helicitypattern);
+    rootfile->ConstructHistograms("mps_histo", detectors);
+    rootfile->ConstructHistograms("hel_histo", helicitypattern);
 
     //  Construct tree branches
-    rootfile->ConstructTreeBranches(detectors);
-    rootfile->ConstructTreeBranches(helicitypattern);
-    Int_t failed_events_counts = 0; // count failed total events
-    // TODO (wdc) failed event counter in QwEventRing?
+    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
+    rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+
+    // Summarize the ROOT file structure
+    rootfile->PrintTrees();
+    rootfile->PrintDirs();
 
 
     //  Clear the single-event running sum at the beginning of the runlet
@@ -127,6 +132,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Clear the running sum of the burst values at the beginning of the runlet
     helicitypattern.ClearBurstSum();
 
+
+    //  Load the blinder seed from the database for this runlet.
+    helicitypattern.UpdateBlinder(&database);
 
     ///  Start loop over events
     while (eventbuffer.GetNextEvent() == CODA_OK) {
@@ -141,7 +149,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
-        helicitypattern.UpdateBlinder(&database,epicsevent);
+        helicitypattern.UpdateBlinder(epicsevent);
       }
 
 
@@ -169,7 +177,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
         // Fill the tree branches
         rootfile->FillTreeBranches(detectors);
-
+        rootfile->FillTree("Mps_Tree");
 
         // Add event to the ring
         eventring.push(detectors);
@@ -184,7 +192,7 @@ Int_t main(Int_t argc, Char_t* argv[])
           if (helicitypattern.IsCompletePattern()) {
 
             // Update the blinder if conditions have changed
-            helicitypattern.UpdateBlinder(&database,detectors);
+            helicitypattern.UpdateBlinder(detectors);
 
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
@@ -193,6 +201,7 @@ Int_t main(Int_t argc, Char_t* argv[])
               rootfile->FillHistograms(helicitypattern);
               // Fill tree branches
               rootfile->FillTreeBranches(helicitypattern);
+              rootfile->FillTree("Hel_Tree");
               // Clear the data
               helicitypattern.ClearEventData();
             }
@@ -204,10 +213,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Failed single event cuts
       } else {
-        eventring.FailedEvent(detectors.GetEventcutErrorFlag()); //event cut failed update the ring status
-	//	QwMessage << "FailedEven: "<< eventbuffer.GetEventNumber() << std::endl;
-
-        failed_events_counts++;
+	eventring.FailedEvent(detectors.GetEventcutErrorFlag());
       }
 
       // Burst mode
@@ -220,7 +226,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     } // end of loop over events
 
     QwMessage << "Number of events processed at end of run: "
-              << eventbuffer.GetEventNumber() << std::endl;
+              << eventbuffer.GetEventNumber() << QwLog::endl;
 
 
     // Calculate running averages over helicity patterns
@@ -246,7 +252,7 @@ Int_t main(Int_t argc, Char_t* argv[])
      *                                                               *
      *  Then, we need to delete the histograms here.                 *
      *  If we wait until the subsystem destructors, we get a         *
-     *  segfault; but in additiona to that we should delete them     *
+     *  segfault; but in addition to that we should delete them     *
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
 
@@ -254,40 +260,26 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->DeleteHistograms(detectors);
     rootfile->DeleteHistograms(helicitypattern);
 
-    //  Close event buffer stream
-    eventbuffer.CloseStream();
 
-
-
-    //  Print the event cut error summery for each subsystem
+    //  Print the event cut error summary for each subsystem
     detectors.GetEventcutErrorCounters();
 
 
-    //  Read from the datebase
-    if (database.AllowsReadAccess()) {
+    //  Read from the database
+    database.SetupOneRun(eventbuffer);
 
-      // GetRunID(), GetRunletID(), and GetAnalysisID have their own Connect() and Disconnect() functions.
-      UInt_t run_id      = database.GetRunID(eventbuffer);
-      UInt_t runlet_id   = database.GetRunletID(eventbuffer);
-      UInt_t analysis_id = database.GetAnalysisID(eventbuffer);
-
-     //  Write to from the datebase
-     QwMessage << "QwAnalysis.cc::"
-                << " Run Number "  << QwColor(Qw::kBoldMagenta) << eventbuffer.GetRunNumber() << QwColor(Qw::kNormal)
-                << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id << QwColor(Qw::kNormal)
-                << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id << QwColor(Qw::kNormal)
-                << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
-                << QwLog::endl;
-    }
-
-    // Each sussystem has its own Connect() and Disconnect() functions.
+    // Each subsystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {
       helicitypattern.FillDB(&database);
       epicsevent.FillDB(&database);
     }
 
+    //  Close event buffer stream
+    eventbuffer.CloseStream();
 
-    QwMessage << "Total events failed " << failed_events_counts << QwLog::endl;
+
+
+    QwMessage << "Total events failed " << eventring.GetFailedEventCount() << QwLog::endl;
 
     //  Report run summary
     eventbuffer.ReportRunSummary();

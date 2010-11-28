@@ -16,6 +16,7 @@
 #include "shorttree.h"
 
 // Qweak headers
+#include "globals.h"
 #include "QwLog.h"
 
 // Qweak tree headers
@@ -23,12 +24,15 @@
 
 namespace QwTracking {
 
-int shorttree::fCount = 0;
+// Default size
+unsigned int shorttree::fDefaultSize = MAX_LAYERS;
+
+// Reset debug level
 int shorttree::fDebug = 0;
 
 /**
  * Default constructor, initializes the son pointer to null
- * @param size Size of the bit pattern (default value is MAX_LAYERS)
+ * @param size Size of the bit pattern
  */
 shorttree::shorttree(unsigned int size)
 {
@@ -40,9 +44,6 @@ shorttree::shorttree(unsigned int size)
   // Initialize pointers
   for (int i = 0; i < 4; i++)
     son[i] = 0;
-
-  // Count objects
-  fCount++;
 }
 
 /**
@@ -52,27 +53,33 @@ shorttree::~shorttree()
 {
   // Delete the bit pattern
   delete[] fBit;
-
-  // Count objects
-  fCount--;
 }
 
 /**
  * Print some debugging information
  */
-void shorttree::Print(int indent)
+void shorttree::Print(bool recursive, int indent)
 {
   // Print this node
   std::string indentation;
   for (int i = 0; i < indent; i++) indentation += " ";
   QwOut << this << ": " << *this << QwLog::endl;
+  // Bit pattern
+  for (unsigned int i = 0; i < fSize; i++) {
+    QwOut << indentation;
+    for (int j = 0; j < (1 << (fMinLevel + 1)); j++) {
+      if (j == fBit[i]) QwOut << "|";
+      else QwOut << ".";
+    }
+    QwOut << QwLog::endl;
+  }
 
   // Descend to the sons of this node
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; recursive && i < 4; i++) {
     shortnode* node = this->son[i];
     if (node) {
       QwOut << indentation << "son " <<  i << ": ";
-      node->Print(indent+1);
+      node->Print(recursive,indent+1);
     }
   }
 }

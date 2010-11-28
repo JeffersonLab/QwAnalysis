@@ -28,6 +28,13 @@ class QwBridgingTrackFilter;
 class QwMatrixLookup;
 class QwRayTracer;
 
+// Forward declarations (modules)
+class QwTrackingTreeSearch;
+class QwTrackingTreeCombine;
+class QwTrackingTreeSort;
+class QwTrackingTreeMatch;
+
+
 /**
  *  \class QwTrackingWorker
  *  \ingroup QwTracking
@@ -39,9 +46,6 @@ class QwRayTracer;
 class QwTrackingWorker {
 
   public:
-
-    int tlayers;	///< number of tracking layers
-    int tlaym1;		///< ...
 
     int ngood;		///< number of good events
     int nbad;		///< number of bad events
@@ -66,9 +70,6 @@ class QwTrackingWorker {
     /// \brief Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };
 
-    void BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, double TVertex, double ZVertex);
-    QwTrack* rcLinkUsedTracks (QwTrack *track, int package);
-
     /// \brief Process the hit list and construct the event
     QwEvent* ProcessHits (QwSubsystemArrayTracking *detectors, QwHitContainer *hitlist);
 
@@ -79,6 +80,9 @@ class QwTrackingWorker {
 
     /// \brief Debug level
     int fDebug;
+
+    /// \brief Regenerate the search tree
+    bool fRegenerate;
 
     /// \brief Region 2 levels
     int fLevelsR2;
@@ -109,6 +113,16 @@ class QwTrackingWorker {
     bool fDisableRayTracer;	///< Disable ray tracer momentum reconstruction
     std::string fFilenameFieldmap;	///< Filename of the fieldmap in QW_FIELDMAP
     std::string fFilenameLookupTable;	///< Filename of the lookup table in QW_LOOKUP
+    //@}
+
+  private:
+
+    /// \name Helper modules
+    //@{
+    QwTrackingTreeSearch*  fTreeSearch;  ///< Module that handles the tree search
+    QwTrackingTreeCombine* fTreeCombine; ///< Module that combines treelines and partial tracks
+    QwTrackingTreeSort*    fTreeSort;    ///< Module that sorts lists of treelines and partial tracks
+    QwTrackingTreeMatch*   fTreeMatch;   ///< Module that matches up VDC front and back treelines
     //@}
 
 }; // class QwTrackingWorker

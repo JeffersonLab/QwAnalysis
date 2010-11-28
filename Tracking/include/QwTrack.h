@@ -31,12 +31,21 @@
  * allows for combining different QwPartialTracks with each other, and selecting
  * the optimal fit.
  */
-class QwTrack: public VQwTrackingElement {
+class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
   public:
 
+    /// Default constructor
     QwTrack();
+    /// Copy constructor by reference
+    QwTrack(const QwTrack& orig);
+    /// Copy constructor from pointer
+    QwTrack(const QwTrack* orig) { *this = *orig; };
+    /// Virtual destructor
     virtual ~QwTrack();
+
+    /// Initialization
+    void Initialize();
 
     bool IsUsed() { return isused; };
 

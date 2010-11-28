@@ -18,7 +18,7 @@
 /// \ingroup QwAnalysis
 class QwHistogramHelper{
  public:
-  QwHistogramHelper():fDEBUG(kFALSE) { fHistParams.clear(); };
+  QwHistogramHelper(): fDEBUG(kFALSE) { fHistParams.clear(); };
   ~QwHistogramHelper() { };
 
   /// \brief Define the configuration options
@@ -26,47 +26,40 @@ class QwHistogramHelper{
   /// \brief Process the configuration options
   void ProcessOptions(QwOptions &options);
 
-  void  LoadHistParamsFromFile(const std::string filename);
-  void  LoadTreeParamsFromFile(const std::string filename);
+  void  LoadHistParamsFromFile(const std::string& filename);
+  void  LoadTreeParamsFromFile(const std::string& filename);
 
   // Print the histogram parameters
   void PrintHistParams() const;
 
-  TH1F* Construct1DHist(const TString name_title){
-    std::string tmpname = name_title.Data();
-    return Construct1DHist(tmpname);
-  };
-  TH2F* Construct2DHist(const TString name_title){
-    std::string tmpname = name_title.Data();
-    return Construct2DHist(tmpname);
-  };
-
-  TH1F* Construct1DHist(const TString inputfile, const TString name_title){
+  TH1F* Construct1DHist(const TString& inputfile, const TString& name_title) {
     std::string tmpfile = inputfile.Data();
-    std::string tmpname = name_title.Data();
-    return Construct1DHist(tmpfile, tmpname);
+    return Construct1DHist(tmpfile, name_title);
   };
-  TH2F* Construct2DHist(const TString inputfile, const TString name_title){
+  TH2F* Construct2DHist(const TString& inputfile, const TString& name_title) {
     std::string tmpfile = inputfile.Data();
-    std::string tmpname = name_title.Data();
-    return Construct2DHist(tmpfile, tmpname);
+    return Construct2DHist(tmpfile, name_title);
   };
 
-  TH1F* Construct1DHist(const std::string name_title);
-  TH2F* Construct2DHist(const std::string name_title);
+  TH1F* Construct1DHist(const TString& name_title);
+  TH2F* Construct2DHist(const TString& name_title);
 
-  TH1F* Construct1DHist(const std::string inputfile, const std::string name_title);
-  TH2F* Construct2DHist(const std::string inputfile, const std::string name_title);
+  TH1F* Construct1DHist(const std::string& inputfile, const TString& name_title);
+  TH2F* Construct2DHist(const std::string& inputfile, const TString& name_title);
 
-  const Bool_t MatchDeviceParamsFromList(const std::string devicename);
+  const Bool_t MatchDeviceParamsFromList(const std::string& devicename);
+  const Bool_t MatchVQWKElementFromList(const std::string& subsystemname,
+      const std::string& moduletype,
+      const std::string& devicename);
   
  protected:
 
   /// Histogram parameter class
   class HistParams {
    public:
-    std::string name_title;
-    std::string type;
+    TRegexp expression;
+    TString name_title;
+    TString type;
     Int_t nbins;
     Int_t x_nbins;          
     Float_t x_min;
@@ -74,10 +67,13 @@ class QwHistogramHelper{
     Int_t y_nbins;
     Float_t y_min;
     Float_t y_max;
-    std::string xtitle;
-    std::string ytitle;
+    TString xtitle;
+    TString ytitle;
     Float_t min;
     Float_t max;
+
+    /// Constructor
+    HistParams(): expression("") {};
 
    public:
     /// Relational less-than operator overload  
@@ -125,22 +121,27 @@ class QwHistogramHelper{
   const HistParams GetHistParamsFromLine(QwParameterFile &mapstr);
 
   // Look up the histogram parameters from a file according to histname.
-  const HistParams GetHistParamsFromFile(const std::string filename,
-                                      const std::string histname);
-  const HistParams GetHistParamsFromList(const std::string histname);
+  const HistParams GetHistParamsFromFile(const std::string& filename,
+                                         const TString& histname);
+  const HistParams GetHistParamsFromList(const TString& histname);
 
-  Bool_t DoesMatch(const std::string s, const std::string s_wildcard);
+  Bool_t DoesMatch(const TString& s, const TRegexp& wildcard);
 
  protected:
   static const Double_t fInvalidNumber;
-  static const std::string fInvalidName;
+  static const TString fInvalidName;
   Bool_t fDEBUG;
   Bool_t fTrimDisable;
+  Bool_t fTrimHistoEnable;
   Bool_t fTreeTrimFileLoaded;
 
   std::string fInputFile;
   std::vector<HistParams> fHistParams;
-  std::vector<TString> fTreeParams;
+  std::vector< std::pair< TString,TRegexp > > fTreeParams;
+
+  std::vector<TString> fSubsystemList;//stores the list of subsystems
+  std::vector<std::vector<TString> > fModuleList;//will store list modules in  each subsystem (ex. for BCM, BPM etc in Beam line sub system)
+  std::vector<std::vector<std::vector<TString> > > fVQWKTrimmedList; //will store list of VQWK elements for each subsystem for each module  
 };
 
 //  Declare a global copy of the histogram helper.

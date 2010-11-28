@@ -7,13 +7,14 @@
  */
 
 #include "QwOptions.h"
+#include "QwRootFile.h"
 #include "QwParameterFile.h"
+#include "QwHistogramHelper.h"
 
 // System headers
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <climits>
 
 // Statically defined option descriptions grouped by parser
 po::options_description QwOptions::fCommandLineOptions("Command line options");
@@ -63,8 +64,12 @@ void QwOptions::DefineOptions(QwOptions& options)
   QwEventBuffer::DefineOptions(options);
   // Define database options
   QwDatabase::DefineOptions(options);
+  // Define ROOT file options
+  QwRootFile::DefineOptions(options);
   // Define subsystem array options
   QwSubsystemArray::DefineOptions(options);
+  // Define histogram helper options
+  QwHistogramHelper::DefineOptions(options);
 }
 
 /**
@@ -100,6 +105,19 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
     fArgv[i] = argv[i];
   }
   fParsed = false;
+
+  // Add default config file based on file name
+  if (fArgc > 0) {
+    std::string path = fArgv[0];
+    // Find file name from full path
+    size_t pos = path.find_last_of('/');
+    if (pos != std::string::npos)
+      // Called with path
+      AddConfigFile(path.substr(pos+1) + ".conf");
+    else
+      // Called without path
+      AddConfigFile(path + ".conf");
+  }
 }
 
 
@@ -111,10 +129,9 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
  */
 void QwOptions::CombineOptions()
 {
-  // TODO The options could be grouped in a smarter way by subsystem or
-  // class, by defining a vector fOptions of options_description objects.
-  // Each entry could have a name and would show up as a separate section
-  // in the usage information.
+  // The options can be grouped by defining a vector fOptions of
+  // options_description objects. Each entry can have a name and
+  // will show up as a separate section in the usage information.
   for (size_t i = 0; i < fOptionBlockName.size(); i++) {
     // Right now every parser gets access to all options
     fCommandLineOptions.add(*fOptionBlock.at(i));
@@ -235,10 +252,11 @@ void QwOptions::Usage()
 
 /**
  * Get a pair of integers specified as a colon-separated range
+ * This function uses the utility function QwParameterFile::ParseIntRange.
  * @param key Option key
  * @return Pair of integers
  */
-std::pair<int,int> QwOptions::GetIntValuePair(std::string key)
+std::pair<int,int> QwOptions::GetIntValuePair(const std::string& key)
 {
   std::pair<int, int> mypair;
   mypair.first = 0;
@@ -247,63 +265,8 @@ std::pair<int,int> QwOptions::GetIntValuePair(std::string key)
   if (fParsed == false) Parse();
   if (fVariablesMap.count(key)) {
     std::string range = fVariablesMap[key].as<std::string>();
-    mypair = ParseIntRange(range);
+    mypair = QwParameterFile::ParseIntRange(":",range);
   }
 
   return mypair;
 }
-
-std::pair<int, int> QwOptions::ParseIntRange(std::string range)
-{
-  /** @brief Separates a colon separated range of integers into a pair of values
-   *
-   *  @param range String containing two integers separated by a colon,
-   *               or a single value.
-   *               If the string begins with a colon, the first value is taken
-   *               as zero.  If the string ends with a colon, the second value
-   *               is taken as kMaxInt.
-   *
-   *  @return  Pair of integers of the first and last values of the range.
-   *           If the range contains a single value, the two integers will
-   *           be identical.
-   */
-  std::pair<int, int> mypair;
-  size_t pos = range.find(":");
-  if (pos == std::string::npos) {
-    //  Separator not found.
-    mypair.first  = atoi(range.substr(0,range.length()).c_str());
-    mypair.second = mypair.first;
-  } else {
-    size_t end = range.length() - pos - 1;
-    if (pos == 0) {
-      // Separator is the first character
-      mypair.first  = 0;
-      mypair.second = atoi(range.substr(pos+1, end).c_str());
-    } else if (pos == range.length()-1) {
-      // Separator is the last character
-      mypair.first  = atoi(range.substr(0,pos).c_str());
-      mypair.second = INT_MAX;
-    } else {
-      mypair.first  = atoi(range.substr(0,pos).c_str());
-      mypair.second = atoi(range.substr(pos+1, end).c_str());
-    }
-  }
-
-  //  Check the values for common errors.
-  if (mypair.first < 0){
-    QwError << "The first value must not be negative!"
-            << QwLog::endl;
-    exit(1);
-  } else if (mypair.first > mypair.second){
-    QwError << "The first value must not be larger than the second value"
-            << QwLog::endl;
-    exit(1);
-  }
-
-  //  Print the contents of the pair for debugging.
-  QwVerbose << "The range goes from " << mypair.first
-            << " to " << mypair.second
-            << QwLog::endl;
-
-  return mypair;
-};

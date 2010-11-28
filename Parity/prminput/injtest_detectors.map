@@ -1,9 +1,9 @@
 # This is an example of a detector definition file.
 
 [QwBeamLine]
- name = Injector BeamLine
+ name = Injector
  map = injtest_beamline.map
- geom = qweak_beamline_geometry.map
+ #### geom = qweak_beamline_geometry.map
  eventcut = injtest_beamline_eventcuts.in
  param = injtest_pedestal.in
 

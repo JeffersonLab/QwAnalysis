@@ -15,6 +15,7 @@
 #include "TString.h"
 #include "TDirectory.h"
 #include "TH1.h"
+#include "QwTypes.h"
 
 /**
  *  \class   VQwDataElement
@@ -51,7 +52,7 @@ class VQwDataElement {
   /*! \brief Set the name of this element */
   void SetElementName(const TString &name) { fElementName = name; };
   /*! \brief Get the name of this element */
-  virtual TString GetElementName() const { return fElementName; };
+  virtual const TString& GetElementName() const { return fElementName; };
 
   /*! \brief Clear the event data in this element */
   virtual void  ClearEventData() = 0;
@@ -90,9 +91,36 @@ class VQwDataElement {
 
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
+  /*! \brief set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  /*! \brief report number of events falied due to HW and event cut faliure */
+  Int_t GetEventcutErrorCounters();
+  void ResetErrorFlag(UInt_t flag){
+    fErrorFlag=flag;
+  }
 
+  
+  
+  /*! \brief Return the name of the inheriting subsystem name*/
+  TString GetSubsystemName() const {
+    return fSubsystemName;
+  };
+
+   /*! \brief Set the name of the inheriting subsystem name*/
+  void SetSubsystemName(TString sysname){
+    fSubsystemName=sysname;
+  };
+  
+   /*! \brief Return the type of the beam instrument*/
+  TString GetModuleType() const {
+    return fModuleType;
+  };
+
+   /*! \brief set the type of the beam instrument*/
+  void SetModuleType(TString ModuleType){
+    fModuleType=ModuleType;
+  };
 
  protected:
   /*! \brief Set the number of data words in this data element */
@@ -104,6 +132,14 @@ class VQwDataElement {
 
   /// Histograms associated with this data element
   std::vector<TH1*> fHistograms;
+
+  //name of the inheriting subsystem
+  TString  fSubsystemName;
+  //Data module Type 
+  TString  fModuleType;
+
+  //Error flag
+  UInt_t fErrorFlag;
 
 }; // class VQwDataElement
 

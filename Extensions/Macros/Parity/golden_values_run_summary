@@ -1,0 +1,173 @@
+=  program run_summary.C
+= 
+=  this program produces a summary file of the quality of the data during one run
+=  it goes through the rootfile output of the g0analysis produced with the option
+=  --hists. The rootfile is outputed under $G0_ROOT_DIR/G0Scaler.####.root where
+=  #### is the run number
+= 
+=  The program compares the value found in the rootfiles with a a set standard values 
+=  read in a input file. If the values are significantly different an error message is 
+=  printed. Carefull the format of this file is somewhat rigid
+= 
+=  Needed to be able to run this program :
+=  root file $G0_ROOT_DIR/G0Scaler.####.root where  #### is the run number
+=  a reference file located in the directory where you run the program
+= 
+= please do not change the format of this file,
+= specially 
+= comments line should be preceeded by "= "
+= the code need to find the "|" sign to recognize values, the _ are needed too
+= ===================================================
+= quantity                  |unit       | nominal   |tolerance     
+x_beam_position             |	 (mm)   |  0.0      |  0.2
+x_position_difference 	    |	 (nm)   |  0	    | 50       
+x_position_difference_width |    (nm)   | 7000      | 7000	    
+charge_asymmetry  	    |	(ppm)   |  0	    | 10	    
+charge_asymmetry_width      |	(ppm)   | 1000	    | 100	       
+y_beam_position             |	 (mm)   |  4.2      |  0.2	    
+y_position_difference       |	 (nm)   |  0	    | 50     
+y_position_difference_width |    (nm)   | 7550      | 8500	    
+x_beam_angle    	    |  (mrad)   |  0.1      |  1.0	    
+x_angle_difference          |  (nrad)   |  0	    | 2000	     
+x_angle_difference_width    |  (nrad)   | 2050      | 2000	    
+y_beam_angle           	    |  (mrad)   |  0.7      |  1.0	    
+y_angle_difference          |  (nrad)   |  0	    | 2000	    
+y_angle_difference_width    |  (nrad)   | 2050      | 2000  
+beam_energy		    |	(1)	|  4.2      |  0.2	    
+beam_energy_asymmetry       |	(ppm)   |  0	    | 50     
+beam_energy_asymmetry_width |   (ppm)  	| 7550      | 8500	     
+= ---------------------------------------------------------------	    
+
+= ---------------------------------------------------------------
+= quantity		      |unit     | nominal   |tolerance     
+dslumi_det_1_asymmetry_width  | (ppm)  	| 300	    | 150	    
+dslumi_det_2_asymmetry_width  | (ppm)  	| 300	    | 150	    
+dslumi_det_3_asymmetry_width  | (ppm)  	| 300	    | 150	    
+dslumi_det_4_asymmetry_width  | (ppm)  	| 300	    | 150	    
+dslumi_det_5_asymmetry_width  | (ppm)  	| 300	    | 150	    
+dslumi_det_6_asymmetry_width  | (ppm)  	| 300	    | 150	    
+dslumi_det_7_asymmetry_width  | (ppm)  	| 300	    | 150	    
+dslumi_det_8_asymmetry_width  | (ppm)  	| 300	    | 150	    
+dslumi_det_1_yield            | (ch/nC)	| 11.0      | 2%	    
+dslumi_det_2_yield            | (ch/nC)   | 11.0      | 2%	    
+dslumi_det_3_yield            | (ch/nC)	| 11	    | 2%	    
+dslumi_det_4_yield            | (ch/nC)	| 11	    | 2%	    
+dslumi_det_5_yield            | (ch/nC)	| 11	    | 2%	    
+dslumi_det_6_yield            | (ch/nC)	| 11	    | 2%	    
+dslumi_det_7_yield            | (ch/nC)	| 11	    | 2%	    
+dslumi_det_8_yield            | (ch/nC)	| 11	    | 2%	    
+dslumi_det_1_asymmetry 	      | (ppm)  	| 0	    | 150	    
+dslumi_det_2_asymmetry 	      | (ppm)  	| 0	    | 150	    
+dslumi_det_3_asymmetry 	      | (ppm)  	| 0	    | 150	    
+dslumi_det_4_asymmetry 	      | (ppm)  	| 0	    | 150	    
+dslumi_det_5_asymmetry 	      | (ppm)  	| 0	    | 150	  
+dslumi_det_6_asymmetry 	      | (ppm)  	| 0	    | 150	  
+dslumi_det_7_asymmetry 	      | (ppm)  	| 0	    | 150	  
+dslumi_det_8_asymmetry 	      | (ppm)  	| 0	    | 150	  
+= ---------------------------------------------------------------	    
+= quantity		      |unit     | nominal   |tolerance     
+uslumi_det_1_asymmetry_width  | (ppm)  	| 300	    | 150	    
+=uslumi_det_1_asymmetry_width  | (ppm)  	| 300	    | 150	    
+uslumi_det_3_asymmetry_width  | (ppm)  	| 300	    | 150	    
+=uslumi_det_3_asymmetry_width  | (ppm)  	| 300	    | 150	    
+uslumi_det_5_asymmetry_width  | (ppm)  	| 300	    | 150	    
+=uslumi_det_5_asymmetry_width  | (ppm)  	| 300	    | 150	    
+uslumi_det_7_asymmetry_width  | (ppm)  	| 300	    | 150	    
+=uslumi_det_7_asymmetry_width  | (ppm)  	| 300	    | 150	    
+uslumi_det_1_yield            | (ch/nC)	| 11.0      | 2%	    
+=uslumi_det_1_yield            | (ch/nC)   | 11.0      | 2%	    
+uslumi_det_3_yield            | (ch/nC)	| 11	    | 2%	    
+=uslumi_det_3_yield            | (ch/nC)	| 11	    | 2%	    
+uslumi_det_5_yield            | (ch/nC)	| 11	    | 2%	    
+=uslumi_det_5_yield            | (ch/nC)	| 11	    | 2%	    
+uslumi_det_7_yield            | (ch/nC)	| 11	    | 2%	    
+=uslumi_det_7_yield            | (ch/nC)	| 11	    | 2%	    
+uslumi_det_1_asymmetry 	      | (ppm)  	| 0	    | 150	    
+=uslumi_det_1_asymmetry 	      | (ppm)  	| 0	    | 150	    
+uslumi_det_3_asymmetry 	      | (ppm)  	| 0	    | 150	    
+=uslumi_det_3_asymmetry 	      | (ppm)  	| 0	    | 150	    
+uslumi_det_5_asymmetry 	      | (ppm)  	| 0	    | 150	  
+=uslumi_det_5_asymmetry 	      | (ppm)  	| 0	    | 150	  
+uslumi_det_7_asymmetry 	      | (ppm)  	| 0	    | 150	  
+=uslumi_det_7_asymmetry 	      | (ppm)  	| 0	    | 150	  
+= ---------------------------------------------------------------
+= ----------------------------------------------------
+asymmetry_to_statistic      |  none     |  0.106     | 10%
+= -----------------------------------------------------
+= quantity		    |unit	| nominal   |tolerance     
+MD_pmt1_pos	     	    | (V/uA)  	| 100	    | 50% 
+MD_pmt1_neg	     	    | (V/uA)  	| 100	    | 50% 
+MD_pmt2_pos	     	    | (V/uA)  	| 100	    | 50% 
+MD_pmt2_neg	     	    | (V/uA)  	| 100	    | 50% 
+MD_pmt3_pos	     	    | (V/uA)  	| 100	    | 50%
+MD_pmt3_neg	     	    | (V/uA)  	| 100	    | 50%  
+MD_pmt4_pos  	   	    | (V/uA)  	| 100	    | 50%
+MD_pmt4_neg  	   	    | (V/uA)  	| 100	    | 50% 
+MD_pmt5_pos 	    	    | (V/uA)  	| 100	    | 80% 
+MD_pmt5_neg 	    	    | (V/uA)  	| 100	    | 80% 
+MD_pmt6_pos   	  	    | (V/uA)  	| 100	    | 80% 
+MD_pmt6_neg   	  	    | (V/uA)  	| 100	    | 80% 
+MD_pmt7_pos   	  	    | (V/uA)  	| 100	    | 40% 
+MD_pmt7_neg   	  	    | (V/uA)  	| 100	    | 40% 
+MD_pmt8_pos    	 	    | (V/uA)  	| 100	    | 80% 
+MD_pmt8_neg   	  	    | (V/uA)  	| 100	    | 40% 
+MD_pmtled   	  	    | (V/uA)  	| 100	    | 40% 
+MD_pmtonl   	  	    | (V/uA)  	| 100	    | 40% 
+MD_pmtltg   	  	    | (V/uA)  	| 100	    | 40% 
+MD_pmt9_neg   	  	    | (V/uA)  	| 100	    | 40% 
+MD_pmt9_pos   	  	    | (V/uA)  	| 100	    | 40% 
+MD_isourc   	  	    | (V/uA)  	| 100	    | 40% 
+MD_preamp   	  	    | (V/uA)  	| 100	    | 40% 
+MD_cagesr   	  	    | (V/uA)  	| 100	    | 40% 
+= -------------------------------------------------------
+= quantity		      |unit     | nominal   |tolerance     
+MD_pmt1_pos_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt1_neg_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt2_pos_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt2_neg_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt3_pos_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt3_neg_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt4_pos_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt4_neg_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt5_pos_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt5_neg_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt6_pos_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt6_neg_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt7_pos_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt7_neg_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt8_pos_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmt8_neg_asymmetry 	      | (ppm)  	| 0	    | 150
+MD_pmtled_asymmetry    	      | (ppm)  	| 0	    | 150
+MD_pmtonl_asymmetry    	      | (ppm)  	| 0	    | 150
+MD_pmtltg_asymmetry    	      | (ppm)  	| 0	    | 150
+MD_pmt9_neg_asymmetry  	      | (ppm)  	| 0	    | 150
+MD_pmt9_pos_asymmetry  	      | (ppm)  	| 0	    | 150
+MD_isourc_asymmetry    	      | (ppm)  	| 0	    | 150
+MD_preamp_asymmetry    	      | (ppm)  	| 0	    | 150
+MD_cagesr_asymmetry    	      | (ppm)  	| 0	    | 150
+= -------------------------------------------------------
+MD_pmt1_pos_width 	      | (ppm)  	| 300	    | 150
+MD_pmt1_neg_width 	      | (ppm)  	| 300	    | 150
+MD_pmt2_pos_width 	      | (ppm)  	| 300	    | 150
+MD_pmt2_neg_width 	      | (ppm)  	| 300	    | 150
+MD_pmt3_pos_width 	      | (ppm)  	| 300	    | 150
+MD_pmt3_neg_width 	      | (ppm)  	| 300	    | 150
+MD_pmt4_pos_width 	      | (ppm)  	| 300	    | 150
+MD_pmt4_neg_width 	      | (ppm)  	| 300	    | 150
+MD_pmt5_pos_width 	      | (ppm)  	| 300	    | 150
+MD_pmt5_neg_width 	      | (ppm)  	| 300	    | 150
+MD_pmt6_pos_width 	      | (ppm)  	| 300	    | 150
+MD_pmt6_neg_width 	      | (ppm)  	| 300	    | 150
+MD_pmt7_pos_width 	      | (ppm)  	| 300	    | 150
+MD_pmt7_neg_width 	      | (ppm)  	| 300	    | 150
+MD_pmt8_pos_width 	      | (ppm)  	| 300	    | 150
+MD_pmt8_neg_width 	      | (ppm)  	| 300	    | 150
+MD_pmtled_width 	      | (ppm)  	| 300	    | 150
+MD_pmtonl_width 	      | (ppm)  	| 300	    | 150
+MD_pmtltg_width 	      | (ppm)  	| 300	    | 150
+MD_pmt9_neg_width 	      | (ppm)  	| 300	    | 150
+MD_pmt9_pos_width 	      | (ppm)  	| 300	    | 150
+MD_isourc_width 	      | (ppm)  	| 300	    | 150
+MD_preamp_width 	      | (ppm)  	| 300	    | 150
+MD_cagesr_width 	      | (ppm)  	| 300	    | 150
+= -------------------------------------------------------

@@ -122,7 +122,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   if(!GetSubSystemPtr("Scanner"))
     ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
-					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
   if(!GetSubSystemPtr("Beam Modulation"))
     BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
 					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
@@ -431,6 +432,11 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
   dMenuTabs->CheckEntry(GetTabMenuID(s.Data()));
   sbSystem->TabMenuEntryChecked(kTrue);
   MapLayout();
+
+  if(IsRootFileOpen()){
+    if(!sbSystem->GetRootFileName() || strcmp(sbSystem->GetRootFileName(),dROOTFile->GetFileName()))
+      sbSystem->SetDataContainer(dROOTFile);
+  }
 }
 
 Int_t QwGUIMain::GetTabMenuID(const char* TabName)
@@ -943,16 +949,28 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
     return PROCESS_FAILED;
   }
 
+//   new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), GetMain(), "evslcd","QwGUIMain",fftopts);
+
+//   if(fftopts->cancelFlag) return kFalse;
+//   if(fftopts->changeFlag || !dCurrentData->IsFFTCalculated()){
+
+//     if(fftopts->Length <= 0) return kFalse;
+//     if(fftopts->Start < 0 || fftopts->Start >= dCurrentDataStr[0].Length()) return kFalse;
+//     if(fftopts->Start + fftopts->Length > dCurrentDataStr[0].Length()) return kFalse;
+
+
   dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
   TObject *obj;
   TIter next(SubSystemArray.MakeIterator());
   obj = next();
   while(obj){
     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-    entry->SetDataContainer(dROOTFile);
+    if(entry->IsTabMenuEntryChecked()){
+      entry->SetDataContainer(dROOTFile);
+    };
     obj = next();
   }
-
+  
   SetRootFileOpen(kTrue);
   SetRootFileName(filename);
   return PROCESS_OK;
@@ -1211,9 +1229,9 @@ Bool_t QwGUIMain::HandleKey(Event_t *event)
   UInt_t keysym;
 
   printf("Line 1116\n");
-  printf("Window id = %d dLogEdit id = %d\n",event->fWindow, dLogEdit->GetId());
+  printf("Window id = %d dLogEdit id = %d\n", (Int_t) event->fWindow, (Int_t) dLogEdit->GetId());
 
-  printf("event type = %d\n",event->fType);
+  printf("event type = %d\n",(Int_t) event->fType);
 
   if (event->fType == kGKeyPress) {
     gVirtualX->LookupString(event, input, sizeof(input), keysym);

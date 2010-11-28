@@ -49,10 +49,10 @@ QwTrackingTreeRegion::~QwTrackingTreeRegion()
   delete[] fNode.GetTree();
 
   // Report memory statistics
-  if (shortnode::GetCount() > 0 || shorttree::GetCount() > 0) {
-    QwMessage << "Memory occupied by tree objects (should be a single shortnode when all trees cleared):" << QwLog::endl;
-    QwMessage << "- allocated shortnode objects: " << shortnode::GetCount() << QwLog::endl;
-    QwMessage << "- allocated shorttree objects: " << shorttree::GetCount() << QwLog::endl;
+  if (shortnode::GetObjectsAlive() > 0 || shorttree::GetObjectsAlive() > 0) {
+    QwVerbose << "Memory occupied by tree objects (should be a single shortnode when all trees cleared):" << QwLog::endl;
+    QwVerbose << "- allocated shortnode objects: " << shortnode::GetObjectsAlive() << QwLog::endl;
+    QwVerbose << "- allocated shorttree objects: " << shorttree::GetObjectsAlive() << QwLog::endl;
   }
 }
 

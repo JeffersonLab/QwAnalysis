@@ -106,7 +106,7 @@ class QwOmnivore: public VQwSubsystem_t {
     /// Construct the branch and tree vector
     void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values) { };
     /// Fill the tree vector
-    void FillTreeVector(std::vector<Double_t> &values) { };
+    void FillTreeVector(std::vector<Double_t> &values) const { };
 
     /// \brief Update the running sums for devices
     void AccumulateRunningSum(VQwSubsystem* value) { };

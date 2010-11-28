@@ -31,11 +31,18 @@ class QwCombinedPMT : public VQwDataElement {
     InitializeChannel(name, "derived");
   };
 
+  QwCombinedPMT(TString subsystemname, TString name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name, "derived");
+  };
+
   ~QwCombinedPMT() {
     DeleteHistograms();
   };
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave); 
   void  LinkChannel(TString name);
 
   const QwVQWK_Channel* GetChannel(const TString name) const {
@@ -63,11 +70,16 @@ class QwCombinedPMT : public VQwDataElement {
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t SetSingleEventCuts(std::vector<Double_t> &);//two limts and sample size
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag, Double_t LL, Double_t UL, Double_t stability);
+
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
-    //fCombinedPMT.SetEventCutMode(bcuts);
+    fSumADC.SetEventCutMode(bcuts);
+  }
+  UInt_t GetEventcutErrorFlag(){//return the error flag
+    return fSumADC.GetEventcutErrorFlag();
   }
 
   void PrintInfo() const;
@@ -84,6 +96,8 @@ class QwCombinedPMT : public VQwDataElement {
   void AccumulateRunningSum(const QwCombinedPMT& value);
   void CalculateRunningAverage();
 
+  void SetBlindability(Bool_t isblindable){fSumADC.SetBlindability(isblindable);};
+
   /// \brief Blind the asymmetry
   void Blind(const QwBlinder *blinder);
   /// \brief Blind the difference using the yield
@@ -98,7 +112,7 @@ class QwCombinedPMT : public VQwDataElement {
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  DeleteHistograms();
 
   Double_t GetAverage()        {return fSumADC.GetAverage();};

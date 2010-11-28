@@ -27,6 +27,9 @@ class QwCombinedBCM : public VQwDataElement{
   QwCombinedBCM(TString name){
     InitializeChannel(name, "derived");
   };
+  QwCombinedBCM(TString subsystem, TString name){
+    InitializeChannel(subsystem, name, "derived");
+  };
   ~QwCombinedBCM() {
     DeleteHistograms();
   };
@@ -40,6 +43,8 @@ class QwCombinedBCM : public VQwDataElement{
   void  ClearEventData();
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave);
 
   void ReportErrorCounters();
 
@@ -56,9 +61,11 @@ class QwCombinedBCM : public VQwDataElement{
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Int_t GetEventcutErrorFlag(){//return the error flag
-    return fDeviceErrorCode;
+    return fCombined_bcm.GetEventcutErrorFlag();
   }
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
@@ -91,10 +98,20 @@ class QwCombinedBCM : public VQwDataElement{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  DeleteHistograms();
 
   void Copy(VQwDataElement *source);
+
+  VQwDataElement* GetCharge(){
+    return &fCombined_bcm;
+  };
+
+  const VQwDataElement* GetCharge() const {
+    return const_cast<QwCombinedBCM*>(this)->GetCharge();
+  };
+
+  std::vector<QwDBInterface> GetDBEntry();
 
 
 /////
@@ -120,6 +137,8 @@ class QwCombinedBCM : public VQwDataElement{
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes */
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
+
+  std::vector<QwVQWK_Channel> fBCMComboElementList;
 
 };
 

@@ -48,20 +48,10 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
     /// \brief Get the subsystem with the specified name
     VQwSubsystemParity* GetSubsystemByName(const TString& name);
-
-    /// \brief Construct the branch and tree vector
-    void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values);
-    /// \brief Construct the branch and tree vector with trim tree feature
-    void ConstructBranchAndVector(TTree *tree, std::vector <Double_t> &values) {
-      TString tmpstr("");
-      ConstructBranchAndVector(tree,tmpstr,values);
-    };
-    /// \brief Construct the branch for the flat tree
-    void ConstructBranch(TTree *tree, TString & prefix);
-    /// \brief Construct the branch for the flat tree with tree trim files accepted
-    void ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& detectors);
-    /// \brief Fill the tree vector
-    void FillTreeVector(std::vector<Double_t> &values);
+    /// \brief Construct a branch and vector for this subsystem with a prefix
+    void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values);
+    /// \brief Fill the vector for this subsystem
+    void FillTreeVector(std::vector<Double_t>& values) const;
 
     /// \brief Fill the database
     void FillDB(QwDatabase *db, TString type);
@@ -107,14 +97,16 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// \brief Report the number of events failed due to HW and event cut failures
     Int_t GetEventcutErrorCounters();
     /// \brief Return the error flag to the main routine
-    Int_t GetEventcutErrorFlag();
+    UInt_t GetEventcutErrorFlag() const;
+    /// \brief Return the error flag to the main routine
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+      fErrorFlag|=errorflag;
+    };
 
     /// \brief Print value of all channels
     void PrintValue() const;
 
   public:
-
-    std::vector<TString> sFailedSubsystems;
 
     //Int_t fSubsystem_Error_Flag;
     //static const Int_t kErrorFlag_Helicity=0x2;   // in Decimal 2. Helicity bit faliure
@@ -126,6 +118,7 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     static Bool_t CanContain(VQwSubsystem* subsys) {
       return (dynamic_cast<VQwSubsystemParity*>(subsys) != 0);
     };
+    UInt_t fErrorFlag;
 
 }; // class QwSubsystemArrayParity
 

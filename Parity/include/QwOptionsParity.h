@@ -24,7 +24,6 @@
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwRootFile.h"
-#include "QwHistogramHelper.h"
 
 void DefineOptionsParity(QwOptions& options)
 {
@@ -32,13 +31,11 @@ void DefineOptionsParity(QwOptions& options)
   QwOptions::DefineOptions(options);
 
   /* Define parity options */
-  QwMainCerenkovDetector::DefineOptions(options);  
+  QwMainCerenkovDetector::DefineOptions(options);
   QwLumi::DefineOptions(options);
   QwEventRing::DefineOptions(options);
   QwHelicity::DefineOptions(options);
   QwHelicityPattern::DefineOptions(options);
-  QwRootFile::DefineOptions(options);
-  QwHistogramHelper::DefineOptions(options);
 }
 
 #endif // QWOPTIONSPARITY_H

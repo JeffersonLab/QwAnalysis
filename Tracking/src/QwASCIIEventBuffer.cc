@@ -23,9 +23,6 @@ Rakitha (04/24/2009)
 
 
 
-//#define PI 3.141592653589793
-
-
 //Loadchannel Map was intended to include decoding qweak.geo map file
 
 Int_t QwASCIIEventBuffer::LoadChannelMap(const char *geomname) {

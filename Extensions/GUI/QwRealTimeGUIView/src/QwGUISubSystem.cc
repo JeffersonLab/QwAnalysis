@@ -1,4 +1,5 @@
-#include <QwGUISubSystem.h>
+#include "QwGUISubSystem.h"
+
 
 ClassImp(QwGUISubSystem);
 
@@ -12,16 +13,22 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   dParent            = (TGWindow*)p;
   dMain              = (TGWindow*)main;
   dWinCnt            = 0;
-  strcpy(dMainName,mainname);
-  strcpy(dThisName,objName);
 
-  TabMenuEntryChecked(kFalse);
+  dMainName = mainname;
+  dThisName = objName;
 
-  dProgrDlg          = NULL;
+  dTabMenuID          = 0;
+ 
+  dHistoReset = 0;
+  dHistoAccum = 0;
+  dHistoPause = 0;
+  dMapFile    = NULL;
+
+  dMapFileFlag = false;
+
 
   Connect("AddThisTab(QwGUISubSystem*)",dMainName,(void*)main,"AddATab(QwGUISubSystem*)");  
-  Connect("RemoveThisTab(QwGUISubSystem*)",dMainName,(void*)main,"RemoveTab(QwGUISubSystem*)");  
-  Connect("IsClosing(const char*)",dMainName,(void*)main,"OnObjClose(const char*)");    
+
   Connect("SendMessageSignal(const char*)",dMainName,(void*)main,"OnReceiveMessage(const char*)");
 
 }
@@ -31,100 +38,33 @@ QwGUISubSystem::~QwGUISubSystem()
 
 }
 
-void QwGUISubSystem::InitProgressDlg(const char* title, const char *macrotext, const char *microtext, 
-				     const char *microtext2, Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels)
-{
-  dProgrDlg = new QwGUIProgressDialog((const TGWindow*)dParent, 
-				      (const TGWindow*)dMain, 
-				      "dProgrDlg","QwGUIMain",
-				      title,macrotext,microtext,
-				      microtext2,nitems1,nitems2, 
-				      nitems3,600,300,kTrue,nLevels);
-
-  Connect(dProgrDlg,"IsClosing(char*)","QwGUISubSystem",(void*)this,
-	  "OnObjClose(char*)");
-  dProcessHalt = kFalse;
-  gSystem->ProcessEvents();
-}
-
-void QwGUISubSystem::IncreaseProgress(Int_t *nItems1, Int_t *nItems2, Int_t *nItems3, 
-				      Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3)
-{
-  TGFrame *frame = (TGFrame*)dMain;
-  if(dProgrDlg){
-    if(nItems1){
-      if(*nItems1 >= nInc1){
-	frame->SendMessage(dProgrDlg,
-			   MK_MSG((EWidgetMessageTypes)kC_PR_DIALOG,
-				  (EWidgetMessageTypes)kCM_PR_MSG),
-			   M_PR_RUN,*nItems1);
-	gSystem->ProcessEvents();
-	*nItems1 = 0;
-      }    
-    }
-    if(nItems2){
-      if(*nItems2 >= nInc2){
-	frame->SendMessage(dProgrDlg,
-			   MK_MSG((EWidgetMessageTypes)kC_PR_DIALOG,
-				  (EWidgetMessageTypes)kCM_PR_MSG),
-			   M_PR_SEQ,*nItems2);
-	gSystem->ProcessEvents();
-	*nItems2 = 0;
-      }
-    }
-    if(nItems3){
-      if(*nItems3 >= nInc3){
-	frame->SendMessage(dProgrDlg,
-			   MK_MSG((EWidgetMessageTypes)kC_PR_DIALOG,
-				  (EWidgetMessageTypes)kCM_PR_MSG),
-			   M_PR_SEQ2,*nItems3);
-	gSystem->ProcessEvents();
-	*nItems3 = 0;
-      }
-    }
-  }
-}
-
 const char* QwGUISubSystem::GetNewWindowName()
 {
   return Form("dMiscWindow_%02d",GetNewWindowCount());
 }
 
-void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
+
+void QwGUISubSystem::SetMapFile(TMapFile *file)
 {
-  if(cont){    
-    if(!strcmp(cont->GetDataName(),"ROOT")){
-      dROOTCont = cont;
-      Connect(dROOTCont,"SendMessageSignal(char*)","QwGUISubSystem",(void*)this,
-	      "OnReceiveMessage(char*)");      	  
-      Connect(dROOTCont,"IsClosing(char*)","QwGUISubSystem",(void*)this,
-	      "OnObjClose(char*)");
-    }
+  if(file) {
+    dMapFile = file;
+    dMapFileFlag = true;
+    std::cout << "Subsystem " << std::setw(22) << this->GetName()
+	      << " now can access the map file at the address "
+	      << dMapFile << std::endl;
   }
-  else
-    dROOTCont = NULL;
-
-  sprintf(dMiscbuffer2,"Sub system %s message: Received new data\n",GetName());
-  SetLogMessage(dMiscbuffer2, kTrue);
-
-  OnNewDataContainer();
-}
-
-void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
-{
-  if(!buffer) return;
-  Int_t length = strlen(buffer);
-  if(length >= MSG_SIZE_MAX) length = MSG_SIZE_MAX-1;
-  snprintf(dMiscbuffer,length+2,"%s\n%c",buffer,'\0');
+  else {
+    dMapFileFlag = false;
+  }
   
-  dLogTStampFlag = tStamp;
-  SendMessageSignal(GetName());
-}
-
-void QwGUISubSystem::OnObjClose(char *obj)
-{
-
 };
+
+
+// void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
+// {
+
+// }
+
 
 
 void QwGUISubSystem::AddThisTab(QwGUISubSystem* sbSystem)
@@ -132,19 +72,9 @@ void QwGUISubSystem::AddThisTab(QwGUISubSystem* sbSystem)
   Emit("AddThisTab(QwGUISubSystem*)",(long)sbSystem);
 }
 
-void QwGUISubSystem::RemoveThisTab(QwGUISubSystem* sbSystem)
-{
-  OnRemoveThisTab();
-  Emit("RemoveThisTab(QwGUISubSystem*)",(long)sbSystem);
-}
-
-void QwGUISubSystem::IsClosing(const char *objname)
-{
-  Emit("IsClosing(const char*)",(long)objname);
-}
-
 void QwGUISubSystem::SendMessageSignal(const char*objname)
 {
+
   Emit("SendMessageSignal(const char*)",(long)objname);
 }
 
@@ -152,3 +82,32 @@ Bool_t QwGUISubSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   return kTRUE;
 }
+
+
+
+void QwGUISubSystem::SummaryHist(TH1 *in)
+{
+
+  Double_t out[4] = {0.0};
+  Double_t test   = 0.0;
+
+         
+  out[0] = in -> GetMean();
+  out[1] = in -> GetMeanError();
+  out[2] = in -> GetRMS();
+  out[3] = in -> GetRMSError();
+
+  Int_t entries = 0;
+  entries = in->GetEntries();
+  if(entries == 0) test = 0.0;
+  else             test = out[2]/TMath::Sqrt(entries);
+
+  printf("%sName%s", BOLD, NORMAL);
+  printf("%22s", in->GetName());
+  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
+  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+  return;
+};

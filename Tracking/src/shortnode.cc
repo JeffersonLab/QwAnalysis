@@ -23,7 +23,6 @@
 
 namespace QwTracking {
 
-int shortnode::fCount = 0;
 int shortnode::fDebug = 0;
 
 /**
@@ -36,9 +35,6 @@ shortnode::shortnode()
   fTree = 0;
   // No tree pointed at yet
   fNTrees = 0;
-
-  // Count objects
-  fCount++;
 }
 
 /**
@@ -48,9 +44,6 @@ shortnode::~shortnode()
 {
   // Delete the next node in the linked list (recursion)
   if (fNext) delete fNext;
-
-  // Count objects
-  fCount--;
 }
 
 /**
@@ -70,7 +63,7 @@ shorttree* shortnode::GetTree(int i) const
  * Print some debugging information
  * @param indent Indentation level
  */
-void shortnode::Print(int indent)
+void shortnode::Print(bool recursive, int indent)
 {
   // Print this node
   std::string indentation;
@@ -78,15 +71,15 @@ void shortnode::Print(int indent)
   QwOut << this << ": " << *this << QwLog::endl;
 
   // Print next node
-  if (fNext) {
+  if (recursive && fNext) {
     QwOut << indentation << "next: ";
-    fNext->Print(indent+1);
+    fNext->Print(recursive,indent+1);
   }
 
   // Print tree
-  if (fTree) {
+  if (recursive && fTree) {
     QwOut << indentation << "tree: ";
-    fTree->Print(indent+1);
+    fTree->Print(recursive,indent+1);
   }
 }
 

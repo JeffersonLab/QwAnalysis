@@ -23,20 +23,10 @@
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"
 #include "QwEnergyCalculator.h"
-#include "QwBlinder.h"
 #include "QwHaloMonitor.h"
+#include "QwQPD.h"
+#include "QwLinearDiodeArray.h"
 
-
-/// \todo TODO (wdc) EBeamInstrumentType is global in QwBeamLine.cc but could be class local
-/* enum EBeamInstrumentType{kBPMStripline = 0, */
-/* 			 kBCM, */
-/* 			 kCombinedBCM, */
-/* 			 kCombinedBPM, */
-/* 			 kEnergyCalculator, */
-/* 			 kHaloMonitor */
-/* }; */
-
-// this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
 
 class QwBeamDetectorID;
 
@@ -48,19 +38,7 @@ class QwBeamLine : public VQwSubsystemParity{
  public:
 
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
-    {
-
-/*       // these declaration need to be coherent with the enum vector EBeamInstrumentType */
-/*       fgDetectorTypeNames.push_back("bpmstripline"); */
-/*       fgDetectorTypeNames.push_back("bcm"); */
-/*       fgDetectorTypeNames.push_back("combinedbcm"); */
-/*       fgDetectorTypeNames.push_back("combinedbpm"); */
-/*       fgDetectorTypeNames.push_back("energycalculator"); */
-/*       fgDetectorTypeNames.push_back("halomonitor"); */
-
-/*       for(size_t i=0;i<fgDetectorTypeNames.size();i++) */
-/*         fgDetectorTypeNames[i].ToLower(); */
-    };
+    { };
 
   ~QwBeamLine() {
     DeleteHistograms();
@@ -68,6 +46,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
 
   /* derived from VQwSubsystem */
+  
   void  ProcessOptions(QwOptions &options);//Handle command line options
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
@@ -76,7 +55,7 @@ class QwBeamLine : public VQwSubsystemParity{
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
-  Int_t GetEventcutErrorFlag();//return the error flag
+  UInt_t GetEventcutErrorFlag();//return the error flag
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -85,10 +64,9 @@ class QwBeamLine : public VQwSubsystemParity{
   void  ClearEventData();
   void  ProcessEvent();
 
+  Bool_t PublishInternalValues() const;
 
-  const Bool_t PublishInternalValues() const;
-  const Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
-
+ public:
   void RandomizeEventData(int helicity = 0, double time = 0.0);
   void EncodeEventData(std::vector<UInt_t> &buffer);
 
@@ -111,7 +89,7 @@ class QwBeamLine : public VQwSubsystemParity{
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void ConstructBranch(TTree *tree, TString &prefix);
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
-  void FillTreeVector(std::vector<Double_t> &values);
+  void FillTreeVector(std::vector<Double_t> &values) const;
   void FillDB(QwDatabase *db, TString datatype);
 
   void Copy(VQwSubsystem *source);
@@ -125,9 +103,15 @@ class QwBeamLine : public VQwSubsystemParity{
   QwBPMStripline* GetBPMStripline(const TString name);
   QwBCM<QwVQWK_Channel>* GetBCM(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
+  QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name);
+  QwCombinedBPM* GetCombinedBPM(const TString name);
+  QwEnergyCalculator* GetEnergyCalculator(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
   const QwBPMStripline* GetBPMStripline(const TString name) const;
   const QwBCM<QwVQWK_Channel>* GetBCM(const TString name) const;
+  const QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name) const;
+  const QwCombinedBPM* GetCombinedBPM(const TString name) const;
+  const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
 
 
 
@@ -141,6 +125,8 @@ class QwBeamLine : public VQwSubsystemParity{
  std::vector <QwBCM<QwVQWK_Channel> > fBCM;
  std::vector <QwCombinedBCM<QwVQWK_Channel> > fBCMCombo;
 
+ std::vector <QwQPD> fQPD;
+ std::vector <QwLinearDiodeArray> fLinearArray;
  std::vector <QwBPMCavity> fCavity;
  std::vector <QwHaloMonitor> fHaloMonitor;
 

@@ -6,10 +6,6 @@
 #
 ################################################
 
-$hostname="cdaql6.jlab.org";
-$database="data_tracker";
-
-use Mysql;
 use File::Find ();
 use File::Basename;
 
@@ -184,28 +180,6 @@ sub displayusage {
 	"\t\t  A comma separated list:   15775,15781,15789\n",
 	"\t\t  A colon separated range:  15775:15793\n";
 }
-
-
-sub get_filelist_from_DB{
-###  Connect to the datatracker database on cdaql6.
-    $db = Mysql->connect($hostname,$database) || die "$Mysql::db_errstr\n";
-
-###  Get the file names from the database.
-    @file_list = ();
-    if ($#run_list > -1){
-	foreach $runnumber (@run_list){
-	    $sth = $db->query("SELECT filename FROM silo WHERE run_number = $runnumber") || die "$Mysql::db_errstr\n";
-	    if(%data = $sth->FetchHash) {		# There are some files
-		print keys %data,"\n";
-		push @file_list, $data{'filename'};
-	    } else {
-		print STDERR "There are no files on the silo for run $runnumber\n";
-	    }
-	}
-    }
-    return @file_list;
-}
-
 
 
 sub get_filelist_from_mss (\@) {

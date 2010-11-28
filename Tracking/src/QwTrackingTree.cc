@@ -198,10 +198,10 @@ QwTrackingTree::~QwTrackingTree ()
   delete fFather;
 
   // Report memory statistics
-  if (treenode::GetCount() > 0 || nodenode::GetCount() > 0) {
-    QwMessage << "Memory occupied by tree objects (should be close to zero when all trees cleared):" << QwLog::endl;
-    QwMessage << "- allocated treenode objects: " << treenode::GetCount() << QwLog::endl;
-    QwMessage << "- allocated nodenode objects: " << nodenode::GetCount() << QwLog::endl;
+  if (treenode::GetObjectsAlive() > 0 || nodenode::GetObjectsAlive() > 0) {
+    QwVerbose << "Memory occupied by tree objects (should be close to zero when all trees cleared):" << QwLog::endl;
+    QwVerbose << "- allocated treenode objects: " << treenode::GetObjectsAlive() << QwLog::endl;
+    QwVerbose << "- allocated nodenode objects: " << nodenode::GetObjectsAlive() << QwLog::endl;
   }
 }
 
@@ -212,7 +212,7 @@ QwTrackingTree::~QwTrackingTree ()
  *
  *  ...
  *
- * @param tst
+ * @param testnode
  * @param level
  * @param package
  * @param type
@@ -221,7 +221,7 @@ QwTrackingTree::~QwTrackingTree ()
  * @return
  */
 int QwTrackingTree::consistent(
-	treenode *tst,
+	treenode *testnode,
 	int level,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
@@ -231,22 +231,22 @@ int QwTrackingTree::consistent(
   //###############
   // DECLARATIONS #
   //###############
-  int i;
-  int *b = tst->fBit;	/* For faster access to pattern in tst->bit */
+
+  /* For faster access to pattern in tst->bit */
+  int *bitpattern = testnode->fBit;
+
   double x0;		/* Bitnumber in the first tree-detector,
                            i.e. treelayer 0                         */
   double x3e, x3a;	/* Bitnumber in last / last checked layer   */
   double adda, adde;
   double dze, dza;
-  double zv;
-  Det *rd;
-
 
 
   //###########
   // REGION 2 #
   //###########
   if (type == kTypeDriftHDC && region == kRegionID2) {
+    int layer;
     int templayers = 4;
     int tlaym1 = templayers - 1;
     double z[templayers];
@@ -260,38 +260,47 @@ int QwTrackingTree::consistent(
 
     y0 = binwidth = dy = off = 0.0;
 
-    /// find the z position of each tree-detector relative to the first tree-detector
-    for (rd = rcDETRegion[package][region][dir], i = 0;
-         rd && i < templayers;
-         rd = rd->nextsame, i++) {   // Loop through each plane
 
-      zv = rd->Zpos;                 // Get z position of the plane
+    // Find the z position of each tree-detector relative to the first tree-detector
 
-      if (i) {                       // Compute the relative position to the upstream plane
-        z[i] = zv - z[0];
-	if (z[i] < z[0]) {
+    // Loop through each plane
+    Det* rd = 0;
+    for (rd = rcDETRegion[package][region][dir], layer = 0;
+         rd && layer < templayers;
+         rd = rd->nextsame, layer++) {
+
+      // Get z position of this plane
+      double zv = rd->Zpos;
+
+      // Compute the relative position to the upstream plane
+      if (layer > 0) {
+        z[layer] = zv - z[0];
+	if (z[layer] < z[0]) {
 	  QwError << "Region 2 planes are out of order" << QwLog::endl;
 	  exit(1);
 	}
-	/// the offset distance between the first and last planes of this wire direction
-	if (i == templayers-1) dy = off = fabs((rd->center[1] - y0)*rd->rCos);
+	// the offset distance between the first and last planes of this wire direction
+	if (layer == templayers-1) dy = off = fabs((rd->center[1] - y0)*rd->rCos);
+
       } else {
+
         z[0] = zv;
-        binwidth = rd->NumOfWires * rd->WireSpacing / (1 << level); /// the binwidth at this level
-	y0 = fabs(rd->center[1]); /// the first plane's radial distance
+        binwidth = rd->NumOfWires * rd->WireSpacing / (1 << level); // the binwidth at this level
+	y0 = fabs(rd->center[1]); // the first plane's radial distance
       }
     }
-    z[0] = 0.0; // set the first plane's z position to zero
+    // Set the first plane's z position to zero
+    z[0] = 0.0;
 
     /*  initial setting for the line check using the first and
-           the last tree-detectors                                    */
+        the last tree-detectors                                    */
     dza = z[tlaym1];
-    x0 = b[0];               /* Fetch the pattern for 1st tree-det.    */
-    xf = b[tlaym1];          /* Fetch the pattern for last tree-det.   */
+    x0 = bitpattern[0];          /* Fetch the pattern for 1st tree det  */
+    xf = bitpattern[tlaym1];     /* Fetch the pattern for last tree det */
 
     /*  first check if a straight track through the bins in the
-           first and the last tree-detectors fulfill the max angle
-           condition set in QwOptions     */
+        first and the last tree-detectors fulfill the max angle
+        condition set in QwOptions     */
     dy -= x0 * binwidth; /// dy is decreased by a larger first layer bin
     dy += xf * binwidth; /// and increased by a larger last layer bin
 
@@ -299,30 +308,28 @@ int QwTrackingTree::consistent(
       return 0;
     }
 
-    if (b[0] == 1 && b[1] == 1 && b[2] == 0 && b[3] == 0 /*&& level == 5*/)
-      cout << "gotcha" << endl;
     /* check if all the bits are along a straight line by
        looping through each pair of outer tree-detectors and
        seeing if the bins on the enclosed tree-detectors are
        along a straight line                                      */
-    x0 = b[0] * binwidth;
-    xf = b[tlaym1] * binwidth + off;
+    x0 = bitpattern[0] * binwidth;
+    xf = bitpattern[tlaym1] * binwidth + off;
     mL = mR = (xf - x0) / z[tlaym1]; /// get the initial bounding slopes
-    i = 2; /// check if the bin in the 3rd layer is within the bounds
-    xmin = mL * z[i] + x0;
-    xmax = mR * z[i] + x0 + binwidth;
-    xiL = b[i] * binwidth + off;///this layer is offset
-    xiR = (b[i] + 1) * binwidth + off;
+    layer = 2; /// check if the bin in the 3rd layer is within the bounds
+    xmin = mL * z[layer] + x0;
+    xmax = mR * z[layer] + x0 + binwidth;
+    xiL =  bitpattern[layer] * binwidth + off;///this layer is offset
+    xiR = (bitpattern[layer] + 1) * binwidth + off;
     if (xiL > xmax || xiR < xmin) {
       return 0; /// if the hit is out of bounds, cut the pattern
     }
-    if (xiR > xmax) mL = (xiL - x0) / z[i]; /// this hit requires the boundaries to be narrowed
-    if (xiL < xmin) mR = (xiR - x0) / z[i];
-    i = 1; /// check if the bin in the 2nd layer is within the bounds
-    xmin = mL * z[i] + x0;
-    xmax = mR * z[i] + x0 + binwidth;
-    xiL = b[i] * binwidth; /// this layer is not offset
-    xiR = (b[i] + 1) * binwidth;
+    if (xiR > xmax) mL = (xiL - x0) / z[layer]; /// this hit requires the boundaries to be narrowed
+    if (xiL < xmin) mR = (xiR - x0) / z[layer];
+    layer = 1; /// check if the bin in the 2nd layer is within the bounds
+    xmin = mL * z[layer] + x0;
+    xmax = mR * z[layer] + x0 + binwidth;
+    xiL =  bitpattern[layer] * binwidth; /// this layer is not offset
+    xiR = (bitpattern[layer] + 1) * binwidth;
     if (xiL > xmax || xiR < xmin) {
       return 0; /// if the hit is out of bounds, cut the pattern
     }
@@ -339,36 +346,36 @@ int QwTrackingTree::consistent(
 
     double xf = 0, zf = 0.0;
     double z[templayers];
-    double cellwidth = 1; // distance between wires
-    //double cellwidth = 1.11125;
-    //cout << cellwidth << endl;
+
+    // Distance between wires, assumed normalized to one
+    double cellwidth = 1;
     int firstnonzero = 0;
 
-    for (i = 0; i < templayers; i++) {
-      if (b[i]) firstnonzero++;
-      if (firstnonzero && ! b[i]) templayers = i + 1;
+    for (int layer = 0; layer < templayers; layer++) {
+      if (bitpattern[layer]) firstnonzero++;
+      if (firstnonzero && ! bitpattern[layer]) templayers = layer + 1;
     }
 
     /* ----- find the z position of each tree-detector relative to
              the first tree-detector                                   ----- */
 
     z[0] = 0;
-    for (i = 1; i < templayers; i++) {
-      z[i] = z[i-1] + cellwidth;
+    for (int layer = 1; layer < templayers; layer++) {
+      z[layer] = z[layer-1] + cellwidth;
     }
 
     /* Get the layer with the largest bit value (dependent on rules in marklin)*/
-    for (i = 0; i < templayers; i++) {
-      if (b[i] >= xf) {
-	zf = i;
-	xf = b[i];
+    for (int layer = 0; layer < templayers; layer++) {
+      if (bitpattern[layer] >= xf) {
+	zf = layer;
+	xf = bitpattern[layer];
       }
     }
 
     /* ----- initial setting for the line check using the first and
              the last tree-detectors                                   ----- */
     dze = dza = zf;
-    x0 = b[0];                      /* Fetch the pattern for 1st tree-det.   */
+    x0 = bitpattern[0];      /* Fetch the pattern for 1st tree-det.   */
     x3a = x3e = xf;          /* Fetch the pattern for last tree-det.         */
     x3e++;
 
@@ -387,22 +394,25 @@ int QwTrackingTree::consistent(
              seeing if the bins on the enclosed tree-detectors are
              along a straight line                                     ----- */
 
-    for (i = (int) zf - 1; i > 0; i--) {     /* loop from the back
-                                             tree-detectors forward */
-      adda = (x0 - b[i]) * dza + (x3a - x0) * z[i];
+    /* loop from the back tree-detectors forward */
+    for (int layer = (int) zf - 1; layer > 0; layer--) {
+
+      adda = (x0 - bitpattern[layer]) * dza + (x3a - x0) * z[layer];
       if (adda <= -dza || dza <= adda)
         return 0;
-      adde = (x0 - b[i]) * dze + (x3e - x0 - 1) * z[i];
+
+      adde = (x0 - bitpattern[layer]) * dze + (x3e - x0 - 1) * z[layer];
       if (adde <= -dze || dze <= adde)
         return 0;
-      if (i > 1) {
+
+      if (layer > 1) {
         if (adda > 0) {
-	  x3e = b[i] + 1;
-	  dze = z[i];
+	  x3e = bitpattern[layer] + 1;
+	  dze = z[layer];
         }
         if (adde < 0) {
-	  x3a = b[i];
-	  dza = z[i];
+	  x3a = bitpattern[layer];
+	  dza = z[layer];
         }
       }
     }
@@ -1001,7 +1011,7 @@ void QwTrackingTree::marklin (
  */
 
 QwTrackingTreeRegion* QwTrackingTree::readtree (
-	string filename,
+	const string& filename,
 	int levels,
 	int tlayers,
 	double rwidth,
@@ -1046,6 +1056,9 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
   }
 
   /// Allocate a shorttree array
+  // Note: new of an array needs a default constructor,
+  //       so set default size with a static function
+  shorttree::SetDefaultSize(tlayers);
   stb = new shorttree[num];
 
   /// Allocate a QwTrackingTreeRegion object
@@ -1087,14 +1100,15 @@ QwTrackingTreeRegion* QwTrackingTree::readtree (
  */
 
 QwTrackingTreeRegion* QwTrackingTree::inittree (
-	string filename,
+	const string& filename,
 	int levels,
 	int tlayer,
 	double width,
 	EQwDetectorPackage package,
 	EQwDetectorType type,
 	EQwRegionID region,
-	EQwDirectionID dir)
+	EQwDirectionID dir,
+	bool regenerate)
 {
 // TODO: This routine assumes that the directory 'trees' exists and doesn't create it itself. (wdconinc)
   QwTrackingTreeRegion *trr = 0;
@@ -1115,7 +1129,6 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 
   /*! Try to read in an existing database */
   QwMessage << "Attempting to read tree from " << filename << QwLog::endl;
-  bool regenerate = true; // flag to force regeneration every time
   trr = readtree(filename, levels, tlayer, width, regenerate);
   if (trr == 0) {
 
@@ -1231,7 +1244,7 @@ int QwTrackingTree::_writetree (treenode *tn, FILE *fp, int tlayers)
  */
 
 long QwTrackingTree::writetree (
-	string filename,
+	const string& filename,
 	treenode *tn,
 	int levels,
 	int tlayers,

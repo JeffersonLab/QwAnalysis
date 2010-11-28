@@ -33,19 +33,20 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     virtual ~VQwSubsystemTracking() { };
 
 
+    /// \name Tree and branch construction and maintenance
+    /// These functions are optional for tracking subsystems; some tracking
+    /// subsystems might not need to write anything to a tree.
+    // @{
     /// \brief Construct the branch and tree vector
     virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values) { };
-    /// \brief Construct the branch and tree vector
-    virtual void ConstructBranchAndVector(TTree *tree, std::vector<Double_t>& values) {
-      TString tmpstr("");
-      ConstructBranchAndVector(tree,tmpstr,values);
-    };
     /// \brief Construct the branch and tree vector
     virtual void ConstructBranch(TTree *tree, TString& prefix) { };
     /// \brief Construct the branch and tree vector based on the trim file
     virtual void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     /// \brief Fill the tree vector
-    virtual void FillTreeVector(std::vector<Double_t>& values) { };
+    virtual void FillTreeVector(std::vector<Double_t>& values) const { };
+    // @}
+    // @}
 
 
     /// Load geometry definition for tracking subsystems (required)

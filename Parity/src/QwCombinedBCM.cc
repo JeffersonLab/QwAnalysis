@@ -53,6 +53,16 @@ void  QwCombinedBCM<T>::InitializeChannel(TString name, TString datatosave)
 };
 
 template<typename T>
+void  QwCombinedBCM<T>::InitializeChannel(TString subsystem, TString name, TString datatosave)
+{
+  SetElementName(name);
+  fCombined_bcm.InitializeChannel(subsystem, "QwCombinedBCM", name,"derived");
+
+  return;
+};
+
+
+template<typename T>
 void QwCombinedBCM<T>::ClearEventData()
 {
   fCombined_bcm.ClearEventData();
@@ -141,7 +151,6 @@ void  QwCombinedBCM<T>::ProcessEvent()
     }
     std::cout<<"***************** \n";
   }
-
   return;
 };
 
@@ -159,14 +168,11 @@ Bool_t QwCombinedBCM<T>::ApplySingleEventCuts(){
     status=kTRUE;
   }
   else{
-    fCombined_bcm.UpdateEventCutErrorCount();//update event cut falied counts
     if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fCombined_bcm.GetHardwareSum();
     status&=kFALSE;
   }
   fDeviceErrorCode|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
   //std::cout<<"combined bcm "<<GetElementName()<<" error flag "<<fCombined_bcm.GetEventcutErrorFlag()<<std::endl;
-  //Update the error counters
-  fCombined_bcm.UpdateHWErrorCounters();
 
   return status;
 
@@ -285,16 +291,6 @@ Bool_t QwCombinedBCM<T>::ApplyHWChecks()
 
   Bool_t fEventIsGood=kTRUE;
 
-//   fDeviceErrorCode=0;
-//   for(int i=0;i<4;i++)
-//     {
-//       fDeviceErrorCode|= fCombinedWire[i].ApplyHWChecks();  //OR the error code from each wire
-//       fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.
-
-//       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;
-//       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fCombinedWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
-//     }
-
   return fEventIsGood;
 };
 
@@ -302,6 +298,16 @@ template<typename T>
 Int_t QwCombinedBCM<T>::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
   fCombined_bcm.SetSingleEventCuts(LL,UL);
   return 1;
+};
+
+/********************************************************/
+template<typename T>
+void QwCombinedBCM<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+  //set the unique tag to identify device type (bcm,bpm & etc)
+  errorflag|=kBCMErrorFlag;//currently I use the same flag for bcm & combinedbcm
+  QwMessage<<"QwCombinedBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  fCombined_bcm.SetSingleEventCuts(errorflag,LL,UL,stability);
+
 };
 
 /********************************************************/
@@ -391,8 +397,9 @@ void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParamete
   return;
 };
 
+
 template<typename T>
-void  QwCombinedBCM<T>::FillTreeVector(std::vector<Double_t> &values)
+void  QwCombinedBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
@@ -431,6 +438,71 @@ void  QwCombinedBCM<T>::Copy(VQwDataElement *source)
 
   return;
 }
+
+
+
+/********************************************************/
+template<typename T>
+std::vector<QwDBInterface> QwCombinedBCM<T>::GetDBEntry()
+{
+  UShort_t i = 0;
+
+  std::vector <QwDBInterface> row_list;
+  QwDBInterface row;
+
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
+
+  row.Reset();
+
+  // the element name and the n (number of measurements in average)
+  // is the same in each block and hardwaresum.
+
+  name          =  fCombined_bcm.GetElementName();
+  beam_n        =  fCombined_bcm.GetGoodEventCount();
+
+  // Get HardwareSum average and its error
+  avg           =  fCombined_bcm.GetHardwareSum();
+  err           =  fCombined_bcm.GetHardwareSumError();
+  // ADC subblock sum : 0 in MySQL database
+  beam_subblock = 0;
+
+  row.SetDetectorName(name);
+  row.SetSubblock(beam_subblock);
+  row.SetN(beam_n);
+  row.SetValue(avg);
+  row.SetError(err);
+
+  row_list.push_back(row);
+
+
+  // Get four Block averages and thier errors
+
+  for(i=0; i<4; i++) {
+    row.Reset();
+    avg           =  fCombined_bcm.GetBlockValue(i);
+    err           =  fCombined_bcm.GetBlockErrorValue(i);
+    beam_subblock = (UInt_t) (i+1);
+    // QwVQWK_Channel  | MySQL
+    // fBlock[0]       | subblock 1
+    // fBlock[1]       | subblock 2
+    // fBlock[2]       | subblock 3
+    // fBlock[3]       | subblock 4
+    row.SetDetectorName(name);
+    row.SetSubblock(beam_subblock);
+    row.SetN(beam_n);
+    row.SetValue(avg);
+    row.SetError(err);
+
+    row_list.push_back(row);
+  }
+
+  return row_list;
+
+};
 
 
 template class QwCombinedBCM<QwVQWK_Channel>; 

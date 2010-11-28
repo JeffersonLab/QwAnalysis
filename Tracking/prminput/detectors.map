@@ -17,7 +17,7 @@
 
 [QwDriftChamberVDC]
  name = R3
- map = TDCtoDL_after705.map
+ map = TDCtoDL.map
  geom = qweak_new.geo
 
 [QwTriggerScintillator]
@@ -47,3 +47,7 @@
  name = FR
  map = qweak_raster_channel.map
  param = qweak_raster_parameter.map
+
+[QwScaler]
+ name = Scaler
+ map = qweak_scaler.map

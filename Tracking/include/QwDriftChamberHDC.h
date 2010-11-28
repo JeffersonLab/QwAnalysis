@@ -22,7 +22,7 @@ class QwDriftChamberHDC: public QwDriftChamber {
   QwDriftChamberHDC(TString region_tmp);
   ~QwDriftChamberHDC()
     {
-      DeleteHistograms();
+      // DeleteHistograms();
     };
   
   /* Unique virtual member functions from QwDrifChamber base class */
@@ -32,8 +32,8 @@ class QwDriftChamberHDC: public QwDriftChamber {
   void  SubtractReferenceTimes();
   void  ProcessEvent();
   Int_t LoadGeometryDefinition(TString mapfile );
-  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
+  //  Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+  //  void  PrintConfigrationBuffer(UInt_t *buffer, UInt_t num_words);
   Int_t LoadChannelMap ( TString mapfile ) ;
   void  ClearEventData();
   
@@ -46,10 +46,10 @@ class QwDriftChamberHDC: public QwDriftChamber {
   Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
   void  ConstructHistograms(TDirectory *folder, TString &prefix) ;
   void  FillHistograms();
-  void  DeleteHistograms();
+  //  void  DeleteHistograms();
   Int_t LoadTimeWireOffset(TString t0_map) {return 0;}; 
   void SubtractWireTimeOffset() {};
-  void ApplyTimeCalibration(){};
+  void ApplyTimeCalibration();
 
   // HDC
   Double_t trig_h1;//this will keep the first hit time of trig_h1 (plane 7)

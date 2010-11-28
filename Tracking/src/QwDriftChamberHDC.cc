@@ -8,11 +8,7 @@
 
 #include "QwParameterFile.h"
 #include "QwLog.h"
-
 #include<boost/bind.hpp>
-
-
-
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwDriftChamberHDC> theDriftChamberHDCFactory("QwDriftChamberHDC");
@@ -171,7 +167,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   std::vector<Bool_t>   refchecked;
   std::vector<Bool_t>   refokay;
   Bool_t allrefsokay;
-  Int_t counter = 1;
+  //  Int_t counter = 1;
 
   std::size_t ref_size = 0;
   std::size_t i = 0;
@@ -196,72 +192,73 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   Double_t raw_time  = 0.0;
   Double_t ref_time  = 0.0;
   Double_t time      = 0.0;
+  Double_t educated_guess_t0_correction = 11255.0;
+
   Bool_t local_debug = false;
-
-  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) {
-    //  Only try to check the reference time for a bank if there is at least one
-    //  non-reference hit in the bank.
-    bankid = hit->GetSubbankID();
-
-    // if (bankid == 0) QwMessage << "BANK id" << bankid << QwLog::endl;
-    //
-    // if bankid == 0, print out bank id, and then what?
-    //
-    if ( not refchecked.at(bankid) ){
-
-      if ( fReferenceData.at( bankid ).empty() ) {
-	QwWarning << "QwDriftChamberHDC::SubtractReferenceTimes:  Subbank ID "
-		  << bankid << " is missing a reference time." << QwLog::endl;
-	refokay.at(bankid) = kFALSE;
-	allrefsokay        = kFALSE;
-      }
-      else {
-	reftimes.at(bankid) = fReferenceData.at(bankid).at(0);
-	refokay.at(bankid)  = kTRUE;
-      }
-
-      if ( refokay.at(bankid) ){
-	for ( j=0; i<fReferenceData.at(bankid).size(); j++ ) {
-	  fReferenceData.at(bankid).at(j) -= reftimes.at(bankid);
+  for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+    {
+      //  Only try to check the reference time for a bank if there is at least one
+      //  non-reference hit in the bank.
+      bankid = hit->GetSubbankID();
+      if ( not refchecked.at(bankid) ) {
+	if ( fReferenceData.at(bankid).empty() ) {
+	  QwWarning << "QwDriftChamberHDC::SubtractReferenceTimes:  Subbank ID "
+		    << bankid << " is missing a reference time." << QwLog::endl;
+	  refokay.at(bankid) = kFALSE;
+	  allrefsokay        = kFALSE;
 	}
+	else {
+	  reftimes.at(bankid) = fReferenceData.at(bankid).at(0);
+	  refokay.at(bankid)  = kTRUE;
+	}
+	if ( refokay.at(bankid) ){
+	  for ( j=0; i<fReferenceData.at(bankid).size(); j++ ) 
+	    {
+	      fReferenceData.at(bankid).at(j) -= reftimes.at(bankid);
+	    }
+	}
+	refchecked.at(bankid) = kTRUE;
       }
-      refchecked.at(bankid) = kTRUE;
-    }
-
-    if ( refokay.at(bankid) ){
+      
+    if ( refokay.at(bankid) ) {
       raw_time = (Double_t) hit -> GetRawTime();
       ref_time = (Double_t) reftimes.at(bankid);
-      time     = QwDriftChamber::fF1TDC.ActualTimeDifference(raw_time, ref_time);
-      hit -> SetTime(time);
+      Int_t bank_index = hit->GetSubbankID();
+      Int_t slot_num   = hit->GetModule();
+      time = fF1TDContainer->ReferenceSignalCorrection(raw_time, ref_time, bank_index, slot_num);
+
+      hit -> SetTime(time+educated_guess_t0_correction); // an educated guess 
       if(local_debug) {
-	QwMessage << " RawTime : " << raw_time
-		  << " RefTime : " << ref_time
-		  << " time    : " << time
+	QwMessage << this->GetSubsystemName()
+		  << " BankIndex " << std::setw(2) << bank_index
+		  << " Slot "      << std::setw(2) << slot_num
+		  << " RawTime : " << std::setw(6) << raw_time
+		  << " RefTime : " << std::setw(6) << ref_time
+		  << " time : "    << std::setw(6) << time
 		  << std::endl;
 	
       }
-      if ( counter>0 ) {
-  	if (hit->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
-  	  trig_h1=hit->GetTime();
-  	  //std::cout<<"********Found trig_h1 "<< trig_h1<<std::endl;
-  	  counter=0;
-  	}
-      }
-      counter++;
+      // if ( counter>0 ) {
+      // 	if (hit->GetDetectorID().fPlane==7){//this will read the first hit time of trig_h1
+      // 	  trig_h1=hit->GetTime();
+      // 	  //std::cout<<"********Found trig_h1 "<< trig_h1<<std::endl;
+      // 	  counter=0;
+      // 	}
+      // }
+      //      counter++;
     }
   }
   
   bankid = 0;
   
-  if (not allrefsokay){
+  if ( not allrefsokay ) {
     std::vector<QwHit> tmp_hits;
     tmp_hits.clear();
-    for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) {
-      bankid = hit->GetSubbankID();
-      if ( refokay.at(bankid) ){
-	tmp_hits.push_back(*hit);
+    for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
+      {
+	bankid = hit->GetSubbankID();
+	if ( refokay.at(bankid) ) tmp_hits.push_back(*hit);
       }
-    }
     // std::cout << "FTDC size " << fTDCHits.size() << "tmp hit size " << tmp_hits.size() << std::endl;
     fTDCHits.clear();
     fTDCHits = tmp_hits;
@@ -310,10 +307,12 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   return;
 };
 
+
 Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)
 {
   //0.00545449393  0.0668865488  0.000352462179 -2.00383196E-05  3.57577417E-07  -2.82802562E-09  7.89009965E-12
-  Double_t dt_ = 0.12 * (drifttime-trig_h1 + 933.0);
+  // Double_t dt_ = 0.12 * (drifttime-trig_h1 + 933.0);
+  Double_t dt_ = 0.12 * (drifttime);
   Double_t dd_ = 0.0;
 
   dd_ = 0.00545449393
@@ -518,7 +517,8 @@ void  QwDriftChamberHDC::ProcessEvent()
     //     hit->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
     //}
   }
-
+  
+  ApplyTimeCalibration();
   FillDriftDistanceToHits();
 
   return;
@@ -610,69 +610,39 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 
     // /   ReportConfiguration();
 
-    AddF1Configuration();
-
     return OK;
 };
 
 
 
 
-Int_t QwDriftChamberHDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
-{
-  Int_t subbank_index = 0;
-  Bool_t local_debug = false;
+// Int_t QwDriftChamberHDC::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+// {
+//   Int_t subbank_index = 0;
+//   Bool_t local_debug = false;
   
-  subbank_index = GetSubbankIndex(roc_id, bank_id);
-  if ( local_debug ) {
-    std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
-    std::cout << " roc id " << roc_id
-	      << " bank_id " << bank_id
-	      << " subbank_index " << subbank_index
-	      << " num_words " << num_words
-	      << std::endl;
-  }
+//   subbank_index = GetSubbankIndex(roc_id, bank_id);
+//   if ( local_debug ) {
+//     std::cout << "QwDriftChamberVDC::ProcessConfigurationBuffer" << std::endl;
+//     std::cout << " roc id " << roc_id
+// 	      << " bank_id " << bank_id
+// 	      << " subbank_index " << subbank_index
+// 	      << " num_words " << num_words
+// 	      << std::endl;
+//   }
   
-  if (subbank_index>=0 and num_words>0) {
-    //    SetDataLoaded(kTRUE);
-    if (local_debug) {
-      std::cout << "QwDriftChamberHDC::ProcessConfigurationBuffer:  "
-		<< "Begin processing ROC" << roc_id << std::endl;
-      PrintConfigrationBuffer(buffer,num_words);
-    }
-  }
+//   if (subbank_index>=0 and num_words>0) {
+//     //    SetDataLoaded(kTRUE);
+//     if (local_debug) {
+//       std::cout << "QwDriftChamberHDC::ProcessConfigurationBuffer:  "
+// 		<< "Begin processing ROC" << roc_id << std::endl;
+//       PrintConfigrationBuffer(buffer,num_words);
+//     }
+//   }
   
-  return OK;
-};
+//   return OK;
+// };
 
-
-
-// Test function
-void QwDriftChamberHDC::PrintConfigrationBuffer(UInt_t *buffer,UInt_t num_words)
-{
-  UInt_t ipt = 0;
-  UInt_t j = 0;
-  UInt_t k = 0;
-  
-  for ( j=0; j<(num_words/5); j++ ) {
-    printf ( "buffer[%5d] = 0x:", ipt );
-    for ( k=j; k<j+5; k++ ) {
-      printf ( "%12x", buffer[ipt++] );
-    }
-    printf ( "\n" );
-  }
-  
-  if ( ipt<num_words ) {
-    printf ( "buffer[%5d] = 0x:", ipt );
-    for ( k=ipt; k<num_words; k++ ) {
-      printf ( "%12x", buffer[ipt++] );
-    }
-    printf ( "\n" );
-  }
-  printf ( "\n" );
-  
-  return;
-}
 
 
 void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix)
@@ -857,10 +827,18 @@ void  QwDriftChamberHDC::FillHistograms()
 
 
 
-void  QwDriftChamberHDC::DeleteHistograms()
-{
-  return;
-};
+// void  QwDriftChamberHDC::DeleteHistograms()
+// {
+//   TSeqCollection *file_list = gROOT->GetListOfFiles();
+//   for(Int_t i=0; i<file_list->GetSize(); i++) {
+//     TFile * file = (TFile*) file_list->At(i);
+//     file -> WriteObject(QwDriftChamber::fF1TDContainer->GetErrorSummary(),
+// 			Form("%s : F1TDC Error Summary", GetSubsystemName().Data())
+// 			);
+//   }
+
+//   return;
+// };
 
 
 void  QwDriftChamberHDC::ClearEventData()
@@ -880,3 +858,26 @@ void  QwDriftChamberHDC::ClearEventData()
   return;
 };
 
+
+
+
+void QwDriftChamberHDC::ApplyTimeCalibration()
+{
+  Double_t f1tdc_resolution_ns = 0.0;
+  f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
+  if (f1tdc_resolution_ns==0.0) {
+    f1tdc_resolution_ns = 0.116312881651642913;
+    std::cout << "NEVER to see this message."
+	      << "If one see this, F1TDC configurations are corrupted!\n";
+    std::cout << "Tempoarary, the predefined resolution "
+	      << f1tdc_resolution_ns
+	      << " (ns) is used to do further, but it must be checked.\n";
+  }
+
+  for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) 
+    {
+      hit -> SetTime(f1tdc_resolution_ns*hit->GetTime() );
+    }
+  
+  return;
+};

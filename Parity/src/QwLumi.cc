@@ -39,8 +39,10 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
   Bool_t ldebug=kFALSE;
 
   TString varname, varvalue;
-  TString modtype, dettype, namech, keyword;
-  Int_t modnum, channum;
+  TString modtype, dettype, namech, nameofcombinedchan, keyword;
+  Int_t modnum, channum,combinedchans;  
+  std::vector<TString> combinedchannelnames;
+  std::vector<Double_t> weight;
   Int_t currentrocread=0;
   Int_t currentbankread=0;
   Int_t offset = -1;
@@ -80,28 +82,78 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	  Bool_t lineok=kTRUE;
 	  //  Break this line into tokens to process it.
 	  modtype   = mapstr.GetNextToken(", ").c_str();	// module type
-	  modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-	  channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-	  dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
-	  dettype.ToLower();
-	  namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
-	  namech.ToLower();
-	  keyword = mapstr.GetNextToken(", ").c_str();
-	  keyword.ToLower();
-
+	  if (modtype == "VQWK")
+	    {
+	      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
+	      channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
+	      dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+	      dettype.ToLower();
+	      namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	      namech.ToLower();
+	      keyword = mapstr.GetNextToken(", ").c_str();
+	      keyword.ToLower();
+        }
+      else if (modtype == "VPMT")
+        {
+          channum       = (atol(mapstr.GetNextToken(", \t").c_str()));	//channel number
+          combinedchans = (atol(mapstr.GetNextToken(", \t").c_str()));	//number of combined channels
+          dettype   = mapstr.GetNextToken(", \t").c_str();	//type-purpose of the detector
+          dettype.ToLower();
+          namech    = mapstr.GetNextToken(", \t").c_str();  //name of the detector
+          namech.ToLower();
+          //TString nameofchannel;
+          combinedchannelnames.clear();
+          for (int i=0; i<combinedchans; i++)
+            {
+              nameofcombinedchan = mapstr.GetNextToken(", \t").c_str();
+              nameofcombinedchan.ToLower();
+              combinedchannelnames.push_back(nameofcombinedchan);
+            }
+            weight.clear();
+          for (int i=0; i<combinedchans; i++)
+            {
+              weight.push_back( atof(mapstr.GetNextToken(", \t").c_str()));
+            }
+	      keyword   = mapstr.GetNextToken(", \t").c_str();
+	      keyword.ToLower();
+      
+      
+      
+      
+      
+      
+      
+      
+        }  
 	  if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread))
 	    {
 	      currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
 	    }
 
+
+
+	  QwLumiDetectorID localLumiDetectorID;
+	  localLumiDetectorID.fdetectorname=namech;
+	  localLumiDetectorID.fmoduletype=modtype;
+	  localLumiDetectorID.fSubbankIndex=currentsubbankindex;
+	  localLumiDetectorID.fdetectortype=dettype;
+
+
 	  if(modtype=="VQWK")
 	    {
 	      offset = QwVQWK_Channel::GetBufferOffset(modnum, channum);
+	      localLumiDetectorID.fWordInSubbank = offset;
 	    }
 	  else if(modtype=="SCALER")
 	    {
 	      offset = QwSIS3801D24_Channel::GetBufferOffset(modnum, channum);
-	    }
+	    }          
+	  else if (modtype=="VPMT")
+        {
+          localLumiDetectorID.fCombinedChannelNames = combinedchannelnames;
+          localLumiDetectorID.fWeight = weight;
+          //std::cout<<"Add in a combined channel"<<std::endl;
+        }
 
 	  if(offset<0)
 	    {
@@ -113,14 +165,9 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	    }
 
 
-	  QwLumiDetectorID localLumiDetectorID;
-	  localLumiDetectorID.fdetectorname=namech;
-	  localLumiDetectorID.fmoduletype=modtype;
-	  localLumiDetectorID.fSubbankIndex=currentsubbankindex;
-	  localLumiDetectorID.fdetectortype=dettype;
-	  localLumiDetectorID.fWordInSubbank=offset;
 
-	  localLumiDetectorID.fTypeID=GetQwPMTInstrumentType(dettype);
+
+	  localLumiDetectorID.fTypeID=GetDetectorTypeID(dettype);
 	  if(localLumiDetectorID.fTypeID==-1)
 	    {
 	      QwError << "QwLumi::LoadChannelMap:  Unknown detector type: "
@@ -138,11 +185,25 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	    {
 	      if(localLumiDetectorID.fTypeID==kQwIntegrationPMT)
 		{
-		  QwIntegrationPMT localIntegrationPMT(localLumiDetectorID.fdetectorname);
+		  QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
 		  fIntegrationPMT.push_back(localIntegrationPMT);
 		  fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localLumiDetectorID.fIndex=fIntegrationPMT.size()-1;
 		}
+          else if (localLumiDetectorID.fTypeID==kQwCombinedPMT)
+            {
+		      QwCombinedPMT localcombinedPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
+		      fCombinedPMT.push_back(localcombinedPMT);
+              fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
+              localLumiDetectorID.fIndex=fCombinedPMT.size()-1;
+            }
+
+
+
+
+
+
+
 
 	      if(localLumiDetectorID.fTypeID==kQwScalerPMT)
 		{
@@ -168,6 +229,87 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
       }
   }
 
+
+
+
+
+//std::cout<<"linking combined channels"<<std::endl;
+
+  for (size_t i=0; i<fLumiDetectorID.size(); i++)
+    {
+      if (fLumiDetectorID[i].fTypeID==kQwCombinedPMT)
+        {
+          Int_t ind = fLumiDetectorID[i].fIndex;
+
+          //check to see if all required channels are available
+          if (ldebug)
+            {
+              std::cout<<"fLumiDetectorID[i].fCombinedChannelNames.size()="
+              <<fLumiDetectorID[i].fCombinedChannelNames.size()<<std::endl<<"name list: ";
+              for (size_t n=0; n<fLumiDetectorID[i].fCombinedChannelNames.size(); n++)
+                std::cout<<"  "<<fLumiDetectorID[i].fCombinedChannelNames[n];
+              std::cout<<std::endl;
+            }
+
+          Int_t chanmatched=0;
+          for (size_t j=0; j<fLumiDetectorID[i].fCombinedChannelNames.size(); j++)
+            {
+
+              for (size_t k=0; k<fLumiDetectorID.size(); k++)
+                {
+                  if (fLumiDetectorID[i].fCombinedChannelNames[j]==fLumiDetectorID[k].fdetectorname)
+                    {
+                      if (ldebug)
+                        std::cout<<"found a to-be-combined channel candidate"<<std::endl;
+                      chanmatched ++;
+                      break;
+                    }
+                }
+            }
+
+          if ((Int_t) fLumiDetectorID[i].fCombinedChannelNames.size()==chanmatched)
+            {
+              for (size_t l=0; l<fLumiDetectorID[i].fCombinedChannelNames.size(); l++)
+                {
+                  Int_t ind_pmt = GetDetectorIndex(GetDetectorTypeID("integrationpmt"),
+                                                   fLumiDetectorID[i].fCombinedChannelNames[l]);
+
+                  fCombinedPMT[ind].Add(&fIntegrationPMT[ind_pmt],fLumiDetectorID[i].fWeight[l]);
+
+                 if (ldebug) std::cout<<"added combined pmt "<<fLumiDetectorID[i].fWeight[l] <<" to array"<<std::endl;
+                }
+              fCombinedPMT[ind].LinkChannel(fLumiDetectorID[i].fdetectorname);
+              if (ldebug)
+                std::cout<<"linked a combined channel"<<std::endl;
+            }
+          else
+            {
+              std::cerr<<"cannot combine void channels for "<<fLumiDetectorID[i].fdetectorname<<std::endl;
+              fLumiDetectorID[i].fIndex = -1;
+              continue;
+            }
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   if(ldebug)
     {
       std::cout<<"QwLumi::Done with Load map channel \n";
@@ -191,7 +333,8 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
   TString device_type,device_name;
   std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl;
   QwParameterFile mapstr(filename.Data());  //Open the file
-
+  Int_t det_index= -1; 
+  Double_t stabilitycut;
   samplesize = 0;
   check_flag = 0;
   eventcut_flag=1;
@@ -214,21 +357,43 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
       device_name= mapstr.GetNextToken(", ").c_str();
       device_name.ToLower();
 
+      det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
+      if (det_index==-1){
+	QwWarning<<" Device not found "<<device_name<<" of type "<<device_type<<QwLog::endl;
+	continue;
+      }
       //set limits to zero
       ULX=0;
       LLX=0;
       ULY=0;
       LLY=0;
 
-      if (device_type == kQwIntegrationPMT){
+      if (device_type == GetQwPMTInstrumentTypeName(kQwIntegrationPMT)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwLumi Error Code passing to QwIntegrationPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 
-	Int_t det_index=GetDetectorIndex(GetQwPMTInstrumentType(device_type),device_name);
 	//std::cout<<"*****************************"<<std::endl;
 	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
 
-	fIntegrationPMT[det_index].SetSingleEventCuts(LLX,ULX);
+	fIntegrationPMT[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);
+	//std::cout<<"*****************************"<<std::endl;
+
+      } else if (device_type == GetQwPMTInstrumentTypeName(kQwCombinedPMT)){
+	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
+	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwLumi Error Code passing to QwCombinedPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+
+	//std::cout<<"*****************************"<<std::endl;
+	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
+
+	fCombinedPMT[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);
 	//std::cout<<"*****************************"<<std::endl;
 
       }
@@ -238,6 +403,8 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
   }
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].SetEventCutMode(eventcut_flag);
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].SetEventCutMode(eventcut_flag);
 
   fQwLumiErrorCount=0; //set the error counter to zero
 
@@ -397,7 +564,7 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 		  }
 
 // This was added to check if the buffer contains more than one event.  If it does then throw those events away.  A better way to do this would be to find how many events were in the buffer then change the offset to be able to read them all.
-                if (firsttime) 
+                if (firsttime)
                   {
                     firsttime=kFALSE;
                     if (buffer[0]/32!=1)
@@ -405,7 +572,7 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
                         issingleevent=kFALSE;
                         std::cout<<"More than one event was found in the buffer.  Setting these events to zero."<<std::endl;
                       }
-                  }    
+                  }
                 if (issingleevent==kFALSE) continue;
 
 
@@ -427,20 +594,21 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 //*****************************************************************
 Bool_t QwLumi::ApplySingleEventCuts(){
 
-  Bool_t test_IntegrationPMT=kTRUE;
-  Bool_t test_IntegrationPMT1=kTRUE;
-
+  Bool_t status=kTRUE;
   for(size_t i=0;i<fIntegrationPMT.size();i++){
-    test_IntegrationPMT1=fIntegrationPMT[i].ApplySingleEventCuts();
-    test_IntegrationPMT&=test_IntegrationPMT1;
-    if(!test_IntegrationPMT1 && bDEBUG)
-      std::cout<<"******* QwLumi::SingleEventCuts()->IntegrationPMT[ "<<i<<" , "
-	       <<fIntegrationPMT[i].GetElementName()<<" ] ******\n";
+    status &= fIntegrationPMT[i].ApplySingleEventCuts();
+    if(!status && bDEBUG) std::cout<<"******* QwLumi::SingleEventCuts()->IntegrationPMT[ "<<i<<" , "<<fIntegrationPMT[i].GetElementName()<<" ] ******\n"; 
   }
-  if (!test_IntegrationPMT1 || !test_IntegrationPMT)
-   fQwLumiErrorCount++;//BPM falied  event counter for QwLumi
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    status &= fCombinedPMT[i].ApplySingleEventCuts();
+    if(!status && bDEBUG) std::cout<<"******* QwLumi::SingleEventCuts()->CombinedPMT[ "<<i<<" , "<<fCombinedPMT[i].GetElementName()<<" ] ******\n"; 
+  }
 
-  return test_IntegrationPMT;
+
+  if (!status) 
+   fQwLumiErrorCount++;//falied  event counter for QwLumi
+
+  return status;
 
 };
 
@@ -448,21 +616,33 @@ Bool_t QwLumi::ApplySingleEventCuts(){
 //*****************************************************************
 Int_t QwLumi::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
 
-  std::cout<<"*********QwLumi Error Summary****************"<<std::endl;
+  QwMessage<<"*********QwLumi Error Summary****************"<<QwLog::endl;
   std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || EventCut\n";
   for(size_t i=0;i<fIntegrationPMT.size();i++){
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
-    fIntegrationPMT[i].ReportErrorCounters();
+    fIntegrationPMT[i].GetEventcutErrorCounters();
   }
-
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    //std::cout<<"  CombinedPMT ["<<i<<"] "<<std::endl;
+    fCombinedPMT[i].GetEventcutErrorCounters();
+  }
+  QwMessage<<"---------------------------------------------------"<<QwLog::endl;
+  QwMessage<<QwLog::endl;
   return 1;
 };
 
 
 //*****************************************************************
-Int_t QwLumi::GetEventcutErrorFlag(){//return the error flag
-
-  return 0;
+UInt_t QwLumi::GetEventcutErrorFlag(){//return the error flag
+  UInt_t ErrorFlag;
+  ErrorFlag=0;
+  for(size_t i=0;i<fIntegrationPMT.size();i++){
+    ErrorFlag |= fIntegrationPMT[i].GetEventcutErrorFlag();
+  }
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    ErrorFlag |= fCombinedPMT[i].GetEventcutErrorFlag();
+  }
+  return ErrorFlag;
 
 };
 
@@ -470,7 +650,13 @@ Int_t QwLumi::GetEventcutErrorFlag(){//return the error flag
 void  QwLumi::ProcessEvent()
 {
   for(size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].ProcessEvent();
+    fIntegrationPMT[i].ProcessEvent();  
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    {
+      //std::cout<<"Process combination "<<i<<std::endl;
+      fCombinedPMT[i].ProcessEvent();
+
+    }
   for(size_t i=0;i<fScalerPMT.size();i++)
     fScalerPMT[i].ProcessEvent();
 
@@ -579,12 +765,18 @@ void QwLumi::ClearEventData()
 {
 
   for(size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].ClearEventData();
+    fIntegrationPMT[i].ClearEventData();  
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].ClearEventData();
   for(size_t i=0;i<fScalerPMT.size();i++)
     fScalerPMT[i].ClearEventData();
   return;
 };
 
+EQwPMTInstrumentType QwLumi::GetDetectorTypeID(TString name)
+{
+  return GetQwPMTInstrumentType(name);
+};
 
 //*****************************************************************
 Int_t QwLumi::GetDetectorIndex(EQwPMTInstrumentType type_id, TString name)
@@ -633,6 +825,38 @@ QwIntegrationPMT* QwLumi::GetIntegrationPMT(const TString name)
   return 0;
 };
 
+
+
+const QwCombinedPMT* QwLumi::GetCombinedPMT(const TString name) const
+{
+  TString tmpname = name;
+  tmpname.ToLower();
+  if (! fCombinedPMT.empty())
+    {
+      for (size_t i=0;i<fCombinedPMT.size();i++)
+        {
+          if (fCombinedPMT.at(i).GetElementName() == tmpname)
+            {
+              //std::cout<<"Get CombinedPMT "<<tmpname<<std::endl;
+              return &(fCombinedPMT.at(i));
+            }
+        }
+    }
+  QwMessage << "QwLumi::GetCombinedPMT: cannot find channel " << tmpname << QwLog::endl;
+  return NULL;
+};
+
+
+
+
+
+
+
+
+
+
+
+
 //*****************************************************************
 VQwSubsystem&  QwLumi::operator=  (VQwSubsystem *value)
 {
@@ -644,6 +868,10 @@ VQwSubsystem&  QwLumi::operator=  (VQwSubsystem *value)
 
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i]=input->fIntegrationPMT[i];
+	
+	 for (size_t i=0;i<input->fCombinedPMT.size();i++)
+        this->fCombinedPMT[i]=input->fCombinedPMT[i];
+     
       for(size_t i=0;i<input->fScalerPMT.size();i++)
 	this->fScalerPMT[i]=input->fScalerPMT[i];
 
@@ -659,7 +887,11 @@ VQwSubsystem&  QwLumi::operator+=  (VQwSubsystem *value)
       QwLumi* input= dynamic_cast<QwLumi*>(value) ;
 
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
-	this->fIntegrationPMT[i]+=input->fIntegrationPMT[i];
+	this->fIntegrationPMT[i]+=input->fIntegrationPMT[i];      
+	
+	  for (size_t i=0;i<input->fCombinedPMT.size();i++)
+        this->fCombinedPMT[i]+=input->fCombinedPMT[i];
+    
       for(size_t i=0;i<input->fScalerPMT.size();i++)
 	this->fScalerPMT[i]+=input->fScalerPMT[i];
     }
@@ -675,7 +907,11 @@ VQwSubsystem&  QwLumi::operator-=  (VQwSubsystem *value)
       QwLumi* input= dynamic_cast<QwLumi*>(value);
 
       for(size_t i=0;i<input->fIntegrationPMT.size();i++)
-	this->fIntegrationPMT[i]-=input->fIntegrationPMT[i];
+	this->fIntegrationPMT[i]-=input->fIntegrationPMT[i];      
+	
+	for (size_t i=0;i<input->fCombinedPMT.size();i++)
+        this->fCombinedPMT[i]-=input->fCombinedPMT[i];
+    
       for(size_t i=0;i<input->fScalerPMT.size();i++)
 	this->fScalerPMT[i]-=input->fScalerPMT[i];
 
@@ -716,6 +952,10 @@ void QwLumi::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 
       for(size_t i=0;i<innumer->fIntegrationPMT.size();i++)
 	this->fIntegrationPMT[i].Ratio(innumer->fIntegrationPMT[i],indenom->fIntegrationPMT[i]);
+	
+	      for (size_t i=0;i<innumer->fCombinedPMT.size();i++)
+        this->fCombinedPMT[i].Ratio(innumer->fCombinedPMT[i],indenom->fCombinedPMT[i]);
+    
       for(size_t i=0;i<innumer->fScalerPMT.size();i++)
 	this->fScalerPMT[i].Ratio(innumer->fScalerPMT[i],indenom->fScalerPMT[i]);
 
@@ -728,6 +968,10 @@ void QwLumi::Scale(Double_t factor)
 {
   for(size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].Scale(factor);
+    
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].Scale(factor);
+
   for(size_t i=0;i<fScalerPMT.size();i++)
     fScalerPMT[i].Scale(factor);
   return;
@@ -748,7 +992,8 @@ Bool_t QwLumi::Compare(VQwSubsystem *value)
   else
     {
       QwLumi* input= dynamic_cast<QwLumi*>(value);
-	if(input->fIntegrationPMT.size()!=fIntegrationPMT.size())
+	if(input->fIntegrationPMT.size()!=fIntegrationPMT.size() ||
+          input->fCombinedPMT.size()!=fCombinedPMT.size() )
 	  {
 	    res=kFALSE;
 	  }
@@ -765,7 +1010,9 @@ Bool_t QwLumi::Compare(VQwSubsystem *value)
 void  QwLumi::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   for(size_t i=0;i<fIntegrationPMT.size();i++)
-      fIntegrationPMT[i].ConstructHistograms(folder,prefix);
+      fIntegrationPMT[i].ConstructHistograms(folder,prefix);  
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].ConstructHistograms(folder,prefix);
   for(size_t i=0;i<fScalerPMT.size();i++)
     fScalerPMT[i].ConstructHistograms(folder,prefix);
 
@@ -777,7 +1024,9 @@ void  QwLumi::ConstructHistograms(TDirectory *folder, TString &prefix)
 void  QwLumi::DeleteHistograms()
 {
   for(size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].DeleteHistograms();
+    fIntegrationPMT[i].DeleteHistograms();  
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].DeleteHistograms();
   for(size_t i=0;i<fScalerPMT.size();i++)
     fScalerPMT[i].DeleteHistograms();
 
@@ -789,7 +1038,9 @@ void  QwLumi::FillHistograms()
 {
 
   for(size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].FillHistograms();
+    fIntegrationPMT[i].FillHistograms();  
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].FillHistograms();
   for(size_t i=0;i<fScalerPMT.size();i++)
     fScalerPMT[i].FillHistograms();
 
@@ -803,6 +1054,8 @@ void QwLumi::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector
 
   for(size_t i = 0; i < fIntegrationPMT.size(); i++)
     fIntegrationPMT[i].ConstructBranchAndVector(tree, prefix, values);
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].ConstructBranchAndVector(tree, prefix, values);
   for(size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].ConstructBranchAndVector(tree, prefix, values);
 
@@ -814,7 +1067,9 @@ void QwLumi::ConstructBranch(TTree *tree, TString & prefix)
 {
 
   for(size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].ConstructBranch(tree, prefix);
+    fIntegrationPMT[i].ConstructBranch(tree, prefix);  
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].ConstructBranch(tree, prefix);
   for(size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].ConstructBranch(tree, prefix);
 
@@ -839,17 +1094,34 @@ void QwLumi::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& tri
       fScalerPMT[i].ConstructBranch(tree, prefix);
 
   }
+  
+  tmp="QwCombinedPMT";
+  trim_file.RewindToFileStart();
+   if (trim_file.FileHasModuleHeader(tmp)){
+     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+     for (size_t i=0;i<fCombinedPMT.size();i++)
+       fCombinedPMT[i].ConstructBranch(tree, prefix, *nextmodule );
+   }
+  
+  
+  
+  
+  
+  
   return;
 };
 
 //*****************************************************************
-void QwLumi::FillTreeVector(std::vector<Double_t> &values)
+void QwLumi::FillTreeVector(std::vector<Double_t> &values) const
 {
 
   for(size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].FillTreeVector(values);
+    fIntegrationPMT[i].FillTreeVector(values);  
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].FillTreeVector(values);
   for(size_t i = 0; i < fScalerPMT.size(); i++)
-    fScalerPMT[i].FillTreeVector(values);
+    fScalerPMT[i].FillTreeVector(values);  
+
   return;
 };
 
@@ -859,7 +1131,9 @@ void  QwLumi::PrintValue() const
 {
   QwMessage << "=== QwLumi: " << GetSubsystemName() << " ===" << QwLog::endl;
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].PrintValue();
+    fIntegrationPMT[i].PrintValue();  
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].PrintValue();
   for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].PrintValue();
 };
@@ -868,13 +1142,16 @@ void  QwLumi::PrintValue() const
 void  QwLumi::PrintInfo() const
 {
   std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";
-  std::cout<<"There are "<<fIntegrationPMT.size()<<" IntegrationPMT \n";
+  std::cout<<"There are "<<fIntegrationPMT.size()<<" IntegrationPMT \n";  
+  std::cout<<"          "<<fCombinedPMT.size()<<" CombinedPMT \n";
   std::cout<<"There are "<<fScalerPMT.size()<<" halo counters \n";
 
 
-  std::cout<<" Printing Running AVG and other channel info for IntegrationPMTs"<<std::endl;
+  std::cout<<" Printing Running AVG and other channel info"<<std::endl;
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].PrintInfo();
+    fIntegrationPMT[i].PrintInfo();  
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].PrintInfo();
   for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].PrintInfo();
 
@@ -925,7 +1202,11 @@ void  QwLumi::Copy(VQwSubsystem *source)
 	  this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
 	  for(size_t i=0;i<this->fIntegrationPMT.size();i++)
 	    this->fIntegrationPMT[i].Copy(&(input->fIntegrationPMT[i]));
-
+      
+      this->fCombinedPMT.resize(input->fCombinedPMT.size());
+      for (size_t i=0;i<this->fCombinedPMT.size();i++)
+        this->fCombinedPMT[i].Copy(&(input->fCombinedPMT[i]));
+        
 	  this->fScalerPMT.resize(input->fScalerPMT.size());
 	  for(size_t i=0;i<this->fScalerPMT.size();i++)
 	    this->fScalerPMT[i].Copy(&(input->fScalerPMT[i]));
@@ -962,6 +1243,9 @@ void QwLumi::CalculateRunningAverage()
 {
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
     fIntegrationPMT[i].CalculateRunningAverage();
+    
+  for (size_t i=0;i<fCombinedPMT.size();i++)
+    fCombinedPMT[i].CalculateRunningAverage();
 };
 
 //*****************************************************************
@@ -972,6 +1256,9 @@ void QwLumi::AccumulateRunningSum(VQwSubsystem* value1)
 
     for (size_t i = 0; i < fIntegrationPMT.size(); i++)
       fIntegrationPMT[i].AccumulateRunningSum(value->fIntegrationPMT[i]);
+      
+    for (size_t i = 0; i < fCombinedPMT.size(); i++)
+      fCombinedPMT[i].AccumulateRunningSum(value->fCombinedPMT[i]);
   }
 };
 
@@ -1052,9 +1339,28 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
       interface.at(j).AddThisEntryToList( entrylist );
     }
   }
+  if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined PMT" <<QwLog::endl;
+
+  for(i=0; i< fCombinedPMT.size(); i++)
+    {
+      interface.clear();
+      interface = fCombinedPMT[i].GetDBEntry();
+      for(j=0; j<interface.size(); j++) {
+	interface.at(j).SetAnalysisID( analysis_id );
+	interface.at(j).SetLumiDetectorID( db );
+	interface.at(j).SetMeasurementTypeID( measurement_type );
+	interface.at(j).PrintStatus( local_print_flag );
+	interface.at(j).AddThisEntryToList( entrylist );
+      }
+    }
+  
+  
+  
+  
   if(local_print_flag) {
     QwMessage << QwColor(Qw::kGreen) << "Entrylist Size : "
-	      << QwColor(Qw::kBoldRed) << entrylist.size() << QwLog::endl;
+	      << QwColor(Qw::kBoldRed) << entrylist.size()
+              << QwColor(Qw::kNormal) << QwLog::endl;
   }
 
   db->Connect();

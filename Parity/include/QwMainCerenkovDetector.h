@@ -15,7 +15,6 @@
 #include <TTree.h>
 
 #include "VQwSubsystemParity.h"
-#include "QwVQWK_Module.h"
 
 #include "QwIntegrationPMT.h"
 #include "QwCombinedPMT.h"
@@ -64,7 +63,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   Int_t LoadEventCuts(TString  filename);
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t GetEventcutErrorFlag();//return the error flag
+  UInt_t GetEventcutErrorFlag();//return the error flag
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -77,9 +76,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void  ProcessEvent_2();
 
 
-  const Bool_t PublishInternalValues() const;
-  const Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
-  const VQwDataElement* ReturnInternalValue(const TString& name) const;
+  Bool_t PublishInternalValues() const;
 
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
@@ -99,7 +96,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void ConstructBranch(TTree *tree, TString &prefix);
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
 
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwDatabase *db, TString datatype);
 
   const QwIntegrationPMT* GetChannel(const TString name) const;
@@ -155,8 +152,6 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
  // will be returned. For example if TypeID is IntegrationPMT  then the index of
  // the detector from fIntegrationPMT vector for given name will be returnd.
  Int_t GetDetectorIndex(EQwPMTInstrumentType TypeID, TString name);
-
-  //std::vector<QwVQWK_Module> fADC_Data;
 
   std::vector <QwIntegrationPMT> fIntegrationPMT;
   std::vector <QwCombinedPMT> fCombinedPMT;

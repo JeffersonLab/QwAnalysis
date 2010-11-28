@@ -98,7 +98,9 @@ Int_t QwMollerDetector::LoadChannelMap(TString mapfile)
       }
 
 //    add new modules until current number (modnum) is reached 
-      while (fSTR7200_Channel.size() <= modnum) {
+      std::size_t chan_size;
+      chan_size = fSTR7200_Channel.size();
+      while ((Int_t) chan_size <= modnum) {
         std::vector<QwSTR7200_Channel> new_module;
         fSTR7200_Channel.push_back(new_module);
       }
@@ -286,7 +288,7 @@ void QwMollerDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, s
   }
 };
 
-void QwMollerDetector::FillTreeVector(std::vector<Double_t> &values){
+void QwMollerDetector::FillTreeVector(std::vector<Double_t> &values) const {
   for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
     for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
       fSTR7200_Channel[i][j].FillTreeVector(values);
@@ -422,7 +424,7 @@ Int_t QwMollerDetector::GetEventcutErrorCounters(){
   return 0;
 };
 
-Int_t QwMollerDetector::GetEventcutErrorFlag(){
+UInt_t QwMollerDetector::GetEventcutErrorFlag(){
   return 0;
 };
 
@@ -448,7 +450,8 @@ float* QwMollerDetector::GetRawChannelArray(){
   return result;
 };
 
-Int_t QwMollerDetector::GetChannelIndex(TString channelName, Int_t module_number){
+Int_t QwMollerDetector::GetChannelIndex(TString channelName, UInt_t module_number)
+{
   Bool_t ldebug=kFALSE;
 
   channelName.ToLower();

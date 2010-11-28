@@ -75,7 +75,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
-    Int_t GetEventcutErrorFlag() { return 0; };
+    UInt_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void AccumulateRunningSum(VQwSubsystem* value) { };
@@ -90,7 +90,9 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     void  DeleteTree();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-    void  FillTreeVector(std::vector<Double_t> &values);
+    void  ConstructBranch(TTree *tree, TString& prefix) { };
+    void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
+    void  FillTreeVector(std::vector<Double_t> &values) const;
     void  FillDB(QwDatabase *db, TString datatype){};
 
     const size_t GetNumberOfEvents() const { return (fNumberOfEvents); };

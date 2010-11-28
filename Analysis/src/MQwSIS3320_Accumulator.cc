@@ -18,6 +18,7 @@
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwHistogramHelper.h"
 
 // Fields in accumulator data buffer
 const unsigned int MQwSIS3320_Accumulator::INDEX_NUM = 0;
@@ -27,17 +28,23 @@ Int_t MQwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_l
 {
   UInt_t words_read = 0;
   UInt_t index;
+  Long64_t hw_sum;
+  Long64_t num_samples;
   index = 0;
   if (num_words_left >= fNumberOfDataWords) {
+
     // Read all words
-    fNumberOfSamples = buffer[0];
-    fAccumulatorSum = buffer[2];  // first assign Int_t to Long_t, so that we
-    fAccumulatorSum <<= sizeof(Int_t);      //  can shift it into the higher registers
-    fAccumulatorSum += buffer[1];
+    num_samples = buffer[0];
+    hw_sum = buffer[2];		// first assign Int_t to Long_t, so that we
+    hw_sum <<= sizeof(Int_t);	// can shift it into the higher registers
+    hw_sum += buffer[1];
     words_read = fNumberOfDataWords;
 
+    fNumberOfSamples = num_samples;
+    fAccumulatorSum = hw_sum;
+
   } else {
-    std::cerr << "MQwSIS3320_Samples::ProcessEvBuffer: Not enough words!" << std::endl;
+    QwWarning << "MQwSIS3320_Accumulator::ProcessEvBuffer: Not enough words!" << QwLog::endl;
   }
 
   return words_read;
@@ -88,7 +95,8 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator* (const Double_t &
 const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator/ (const Double_t &value) const
 {
   MQwSIS3320_Accumulator result = *this;
-  result /= value;
+  if (value != 0)
+    result /= value;
   return result;
 };
 
@@ -113,7 +121,8 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator*= (const Double_t &valu
 MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator/= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
-    this->fAccumulatorSum /= value;
+    if (value != 0.0)
+      this->fAccumulatorSum /= value;
   }
   return *this;
 };
@@ -211,6 +220,30 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const MQwSIS3320_Acc
 };
 
 
+void MQwSIS3320_Accumulator::Sum(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2)
+{
+  *this  = value1;
+  *this += value2;
+}
+
+
+void MQwSIS3320_Accumulator::Difference(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2)
+{
+  *this  = value1;
+  *this -= value2;
+}
+
+
+void MQwSIS3320_Accumulator::Ratio(const MQwSIS3320_Accumulator &numer, const MQwSIS3320_Accumulator &denom)
+{
+  if (!IsNameEmpty()) {
+    if (denom.fAccumulatorSum != 0.0)
+      fAccumulatorSum = numer.fAccumulatorSum / denom.fAccumulatorSum;
+    fNumberOfSamples = numer.fNumberOfSamples + denom.fNumberOfSamples;
+  }
+}
+
+
 void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()) {
@@ -220,33 +253,83 @@ void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &pre
     fTreeArrayIndex  = values.size();
 
     values.push_back(0.0);
-    TString list = "sum/D";
+    TString list = "hw_sum/D";
     values.push_back(0.0);
-    list += ":nevents/D"; // TODO this should actually be an int
+    list += ":num_samples/D";
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     tree->Branch(basename, &(values[fTreeArrayIndex]), list);
   }
 };
 
-void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values)
+void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (IsNameEmpty()) {
     //  This accumulator is not used, so skip filling the tree vector.
   } else if (fTreeArrayNumEntries <= 0) {
-    std::cerr << "MQwSIS3320_Accumulator::FillTreeVector:  fTreeArrayNumEntries == "
-              << fTreeArrayNumEntries << std::endl;
+    QwError << "MQwSIS3320_Accumulator::FillTreeVector:  fTreeArrayNumEntries == "
+            << fTreeArrayNumEntries << QwLog::endl;
   } else if (values.size() < fTreeArrayIndex + fTreeArrayNumEntries) {
-    std::cerr << "MQwSIS3320_Accumulator::FillTreeVector:  values.size() == "
-              << values.size()
-              << "; fTreeArrayIndex + fTreeArrayNumEntries == "
-              << fTreeArrayIndex + fTreeArrayNumEntries
-              << std::endl;
+    QwError << "MQwSIS3320_Accumulator::FillTreeVector:  values.size() == "
+            << values.size()
+            << "; fTreeArrayIndex + fTreeArrayNumEntries == "
+            << fTreeArrayIndex + fTreeArrayNumEntries
+            << QwLog::endl;
   } else {
     size_t index = fTreeArrayIndex;
-    values[index++] = this->GetAccumulatorSum();
-    values[index++] = this->GetNumberOfSamples();
+    values[index++] = GetAccumulatorSum();
+    values[index++] = GetNumberOfSamples();
   }
 };
 
 
+void MQwSIS3320_Accumulator::ConstructHistograms(TDirectory *folder, TString &prefix)
+{
+  //  If we have defined a subdirectory in the ROOT file, then change into it.
+  if (folder != NULL) folder->cd();
+
+  if (IsNameEmpty()) {
+
+    //  This channel is not used, so skip filling the histograms.
+
+  } else {
+
+    TString basename = prefix + GetElementName();
+
+    fHistograms.resize(3, NULL);
+    size_t index = 0;
+    fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_nevents"));
+    fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_sum"));
+    fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_avg"));
+
+  }
+};
+
+void MQwSIS3320_Accumulator::FillHistograms()
+{
+  Int_t index = 0;
+  if (IsNameEmpty()) {
+
+    //  This channel is not used, so skip creating the histograms.
+
+  } else {
+
+    if (fHistograms[index] != NULL)
+      fHistograms[index++]->Fill(GetNumberOfSamples());
+    if (fHistograms[index] != NULL)
+      fHistograms[index+1]->Fill(GetAccumulatorSum());
+    if (fHistograms[index] != NULL)
+      fHistograms[index+1]->Fill(GetAccumulatorAvg());
+
+  }
+};
+
+void  MQwSIS3320_Accumulator::DeleteHistograms()
+{
+  for (UInt_t i = 0; i < fHistograms.size(); i++) {
+    if (fHistograms[i] != NULL)
+      fHistograms[i]->Delete();
+    fHistograms[i] = NULL;
+  }
+  fHistograms.clear();
+};

@@ -38,6 +38,10 @@ class QwBCM : public VQwDataElement{
   QwBCM(TString name){
     InitializeChannel(name,"raw");
   };
+  QwBCM(TString subsystemname, TString name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name,"raw");
+  };
   ~QwBCM() {
     DeleteHistograms();
   };
@@ -45,6 +49,8 @@ class QwBCM : public VQwDataElement{
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
   void  InitializeChannel(TString name, TString datatosave);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name, TString datatosave);
   void  ClearEventData();
 
 
@@ -65,11 +71,14 @@ class QwBCM : public VQwDataElement{
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  Int_t GetEventcutErrorFlag(){//return the error flag
-    return fDeviceErrorCode;
+  UInt_t GetEventcutErrorFlag(){//return the error flag
+    return fBeamCurrent.GetEventcutErrorFlag();
   }
 
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
@@ -79,7 +88,9 @@ class QwBCM : public VQwDataElement{
   void PrintValue() const;
   void PrintInfo() const;
 
-  const T& GetCharge() const {return fBeamCurrent;};
+  const VQwDataElement* GetCharge() const {
+    return &fBeamCurrent;
+  };
 
 
   QwBCM& operator=  (const QwBCM &value);
@@ -102,7 +113,7 @@ class QwBCM : public VQwDataElement{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  DeleteHistograms();
 
   Double_t GetAverage()        {return fBeamCurrent.GetAverage();};
@@ -134,6 +145,7 @@ class QwBCM : public VQwDataElement{
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
+
 
 };
 

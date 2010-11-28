@@ -8,6 +8,7 @@ ClassImp(QwPartialTrack);
 // Qweak headers
 #include "QwLog.h"
 #include "QwUnits.h"
+#include "QwVertex.h"
 
 // Qweak headers (deprecated)
 #include "Det.h"
@@ -20,14 +21,8 @@ TClonesArray* QwPartialTrack::gQwTreeLines = 0;
  */
 QwPartialTrack::QwPartialTrack()
 {
-  InitializeTreeLines();
-
-  fOffsetX = 0.0; fOffsetY = 0.0;
-  fSlopeX = 0.0;  fSlopeY = 0.0;
-  fIsVoid = false; fIsUsed = false; fIsGood = false;
-  next = 0;
-  for (int i = 0; i < kNumDirections; i++)
-    tline[i] = 0;
+  // Initialize
+  Initialize();
 }
 
 /**
@@ -37,7 +32,8 @@ QwPartialTrack::QwPartialTrack()
  */
 QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction)
 {
-  InitializeTreeLines();
+  // Initialize
+  Initialize();
 
   // Calculate slopes
   fSlopeX = direction.X() / direction.Z();
@@ -48,13 +44,47 @@ QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction
   fOffsetY = position.Y() - fSlopeY * position.Z();
 }
 
+/**
+ * Copy constructor
+ * \todo TODO (wdc) this copy constructor is horribly incomplete!
+ */
+QwPartialTrack::QwPartialTrack(const QwPartialTrack* partialtrack)
+{
+  // Initialize
+  Initialize();
+
+  // Naive copy
+  *this = *partialtrack;
+}
+
+
+/**
+ * Perform object initialization
+ */
+void QwPartialTrack::Initialize()
+{
+  // Initialize the tree line storage structure
+  InitializeTreeLines();
+
+  // Initialize the member fields
+  fOffsetX = 0.0; fOffsetY = 0.0;
+  fSlopeX = 0.0;  fSlopeY = 0.0;
+  fIsVoid = false; fIsUsed = false; fIsGood = false;
+
+  // Initialize pointers
+  next = 0;
+  bridge = 0;
+  for (int i = 0; i < kNumDirections; i++)
+    tline[i] = 0;
+}
+
 
 /**
  * Determine the chi^2 for a partial track, weighted by the number of hits
  *
  * @return Weighted chi^2
  */
-double QwPartialTrack::GetChiWeight ()
+double QwPartialTrack::GetChiWeight () const
 {
   // Determine the weight if there enough hits
   if (numhits >= nummiss) {
@@ -187,9 +217,9 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
 {
   stream << "pt: ";
   if (pt.GetRegion() != kRegionIDNull)
-    stream << "(" << pt.GetRegion() << "/" << "?UD"[pt.GetPackage()] << ") ";
-  stream << "(x,y) = (" << pt.fOffsetX << ", " << pt.fOffsetY << "), ";
-  stream << "d/dz(x,y) = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
+    stream << "(" << pt.GetRegion() << "/" << "?UD"[pt.GetPackage()] << "); ";
+  stream << "x,y(z=0) = (" << pt.fOffsetX/Qw::cm << " cm, " << pt.fOffsetY/Qw::cm << " cm), ";
+  stream << "d(x,y)/dz = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
   if (pt.fChi > 0.0) { // parttrack has been fitted
     stream << ", chi = " << pt.fChi;
   }
@@ -263,6 +293,31 @@ QwPartialTrack& QwPartialTrack::SmearAnglePhi(double sigma)
   return *this;
 }
 
+
+/**
+ * This method checks determines the intersection of the partial track
+ * with a planar detector.
+ */
+const QwVertex* QwPartialTrack::DeterminePositionInDetector(const QwDetectorInfo& detector)
+{
+  QwVertex* vertex = 0;
+  if (detector.GetDetectorRotation() != 0) {
+    // Get intersection with z-plane
+    double z = detector.GetZPosition();
+    TVector3 position = GetPosition(z);
+    // Check acceptance with active width
+    if (fabs(position.X() - detector.GetPosition().X()) < detector.GetActiveWidthX()
+     && fabs(position.Y() - detector.GetPosition().Y()) < detector.GetActiveWidthY()) {
+      vertex = new QwVertex(position);
+    } else {
+      QwMessage << "No support for intersections of partial tracks "
+          << "with tilted detectors yet..." << QwLog::endl;
+    }
+  }
+  return vertex;
+}
+
+
 /**
  * This method checks determines the intersection of the partial track
  * with the target.
@@ -273,11 +328,11 @@ QwPartialTrack& QwPartialTrack::SmearAnglePhi(double sigma)
  */
 int QwPartialTrack::DeterminePositionInTarget ()
 {
+  // TODO target should be put in in the geometry file
   TVector3 primary = GetPosition(0.0);
   QwVerbose << "Target vertex at : (" << primary.X() << "," << primary.Y() << "," << primary.Z() << ")" << QwLog::endl;
   return 0;
 }
-
 
 /**
  * This method checks whether the region 3 partial track has an intersection
@@ -296,7 +351,8 @@ int QwPartialTrack::DeterminePositionInTriggerScintillators (EQwDetectorPackage 
   double trig[3];
   double lim_trig[2][2];
 
-  // Get the trig scintillator
+  // Get the trigger scintillator
+  // TODO use generic detector intersection routine
   Det* rd = rcDETRegion[package][kRegionIDTrig][kDirectionX];
 
   // Get the point where the track intersects the detector planes
@@ -316,7 +372,7 @@ int QwPartialTrack::DeterminePositionInTriggerScintillators (EQwDetectorPackage 
     triggerhit = 1;
     trig[0]    = trig[0];
     trig[1]    = trig[1];
-    QwVerbose << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << QwLog::endl;
+    QwMessage << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << QwLog::endl;
   } else triggerhit = 0;
 
   return triggerhit;
@@ -342,6 +398,7 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
   //QwVerbose<<"r3: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<QwLog::endl;
 
   // Get the Cherenkov detector
+  // TODO use generic detector intersection routine
   Det* rd = rcDETRegion[package][kRegionIDCer][kDirectionY];
 
   // Get the point where the track intersects the detector planes
@@ -375,7 +432,7 @@ int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
     uvR3hit[1] = fSlopeY / kz;
     uvR3hit[2] = 1 / kz;
 
-    QwVerbose << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
+    QwMessage << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
               << "direction ("<<uvR3hit[0]<<","<<uvR3hit[1]<<","<<uvR3hit[2] << QwLog::endl;
   } else {
     cerenkovhit = 0;
@@ -392,11 +449,13 @@ int QwPartialTrack::DeterminePositionInHDC (EQwDetectorPackage package)
   //QwVerbose<<"r2: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<QwLog::endl;
 
   // Get the HDC detector
+  // TODO use generic detector intersection routine
   Det* rd = rcDETRegion[package][kRegionID2][kDirectionX];
   // Get the point where the track intersects the detector planes
   TVector3 hdc_front = GetPosition(rd->Zpos);
 
   // Get the HDC detector
+  // TODO use generic detector intersection routine
   rd = rcDETRegion[package][kRegionID2][kDirectionV];
   // Get the point where the track intersects the detector planes
   TVector3 hdc_back = GetPosition(rd->Zpos);

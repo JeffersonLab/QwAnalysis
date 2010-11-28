@@ -75,7 +75,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
     MQwSIS3320_Channel& operator-= (const MQwSIS3320_Channel &value);
     void Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2);
     void Difference(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2);
-    void Ratio(MQwSIS3320_Channel &numer, MQwSIS3320_Channel &denom) { };
+    void Ratio(MQwSIS3320_Channel &numer, MQwSIS3320_Channel &denom);
     void Offset(Double_t Offset);
     void Scale(Double_t Offset);
 
@@ -84,9 +84,10 @@ class MQwSIS3320_Channel: public VQwDataElement {
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
+    void  DeleteHistograms();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-    void  FillTreeVector(std::vector<Double_t> &values);
+    void  FillTreeVector(std::vector<Double_t> &values) const;
 
     MQwSIS3320_Samples& GetSamples(size_t i) { return fSamples.at(i); };
     MQwSIS3320_Samples& GetSamplesRaw(size_t i) { return fSamplesRaw.at(i); };
@@ -114,7 +115,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
 
     Bool_t IsGoodEvent();
 
-    void Copy(VQwDataElement *source) { };
+    void Copy(MQwSIS3320_Channel *source);
 
     void PrintValue() const;
     void PrintInfo() const;
@@ -126,7 +127,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
     static const Bool_t kDEBUG;
 
     // Identification information
-    Int_t fChannel;
+    UInt_t fChannel;
     Bool_t fHasSamplingData;
     Bool_t fHasAccumulatorData;
 
@@ -159,6 +160,10 @@ class MQwSIS3320_Channel: public VQwDataElement {
     std::vector<Double_t> fSampleWindowAverages;
     std::vector<std::pair<Double_t, Double_t> > fSampleWindows;
 
+    // Ntuple array indices
+    size_t fTreeArrayIndex; //! Index of this data element in tree
+    size_t fTreeArrayNumEntries; //! Number of entries from this data element
+
     /* ADC accumulator data */
     Int_t fNumberOfAccumulators;
     Int_t fAccumulatorDAC;
@@ -182,6 +187,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
     Double_t fMockGaussianSigma;
 
     // Operation mode flags
+    static const unsigned int MODE_ACCUM_EVENT;
     static const unsigned int MODE_MULTI_EVENT;
     static const unsigned int MODE_SINGLE_EVENT;
     static const unsigned int MODE_NOTREADY;

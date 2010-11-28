@@ -184,6 +184,24 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   R3Bad = 0;
 
 
+  // Initialize the tracking modules
+  // Tracking functionality is provided by these four sub-blocks.
+  fTreeSearch  = new QwTrackingTreeSearch();
+  fTreeCombine = new QwTrackingTreeCombine();
+  fTreeSort    = new QwTrackingTreeSort();
+  fTreeMatch   = new QwTrackingTreeMatch();
+
+  // Debug level of the various tracking modules
+  fTreeSearch->SetDebugLevel(fDebug);
+  fTreeCombine->SetDebugLevel(fDebug);
+  fTreeSort->SetDebugLevel(fDebug);
+  fTreeMatch->SetDebugLevel(fDebug);
+
+  // Process the options and set the respective flags in the modules
+  fTreeSearch->SetShowMatchingPatterns(fShowMatchingPattern);
+  fTreeCombine->SetMaxRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxroad"));
+  fTreeCombine->SetMaxXRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxxroad"));
+
   QwDebug << "###### Leaving QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 }
 
@@ -197,6 +215,12 @@ QwTrackingWorker::~QwTrackingWorker ()
 
   if (fMatrixLookup) delete fMatrixLookup;
   if (fRayTracer)    delete fRayTracer;
+
+  // Delete tracking modules
+  if (fTreeSearch)  delete fTreeSearch;
+  if (fTreeCombine) delete fTreeCombine;
+  if (fTreeSort)    delete fTreeSort;
+  if (fTreeMatch)   delete fTreeMatch;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
@@ -204,54 +228,61 @@ QwTrackingWorker::~QwTrackingWorker ()
 void QwTrackingWorker::DefineOptions(QwOptions& options)
 {
   // General options
-  options.AddOptions()("QwTracking.disable-tracking",
+  options.AddOptions("Tracking options")("QwTracking.debug",
+                          po::value<int>()->default_value(0),
+                          "track reconstruction debug level");
+  options.AddOptions("Tracking options")("QwTracking.regenerate",
+                          po::value<bool>()->zero_tokens()->default_value(false),
+                          "regenerate search trees");
+  options.AddOptions("Tracking options")("QwTracking.disable-tracking",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable all tracking analysis");
-  options.AddOptions()("QwTracking.showeventpattern",
+  options.AddOptions("Tracking options")("QwTracking.showeventpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for all events");
-  options.AddOptions()("QwTracking.showmatchingpattern",
+  options.AddOptions("Tracking options")("QwTracking.showmatchingpattern",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "show bit pattern for matching tracks");
+
   // Region 2
-  options.AddOptions()("QwTracking.R2.levels",
+  options.AddOptions("Tracking options")("QwTracking.R2.levels",
                           po::value<int>()->default_value(8),
                           "number of search tree levels in region 2");
-  options.AddOptions()("QwTracking.R2.maxslope",
+  options.AddOptions("Tracking options")("QwTracking.R2.maxslope",
                           po::value<float>()->default_value(0.862),
                           "maximum allowed slope for region 2 tracks");
-  options.AddOptions()("QwTracking.R2.maxroad",
+  options.AddOptions("Tracking options")("QwTracking.R2.maxroad",
                           po::value<float>()->default_value(1.4),
                           "maximum allowed road width for region 2 tracks");
-  options.AddOptions()("QwTracking.R2.maxxroad",
+  options.AddOptions("Tracking options")("QwTracking.R2.maxxroad",
                           po::value<float>()->default_value(25.0),
                           "maximum allowed X road width for region 2 tracks");
-  options.AddOptions()("QwTracking.R2.MaxMissedPlanes",
+  options.AddOptions("Tracking options")("QwTracking.R2.MaxMissedPlanes",
                           po::value<int>()->default_value(1),
                           "maximum number of missed planes");
 
   // Region 3
-  options.AddOptions()("QwTracking.R3.levels",
+  options.AddOptions("Tracking options")("QwTracking.R3.levels",
                           po::value<int>()->default_value(4),
                           "number of search tree levels in region 3");
-  options.AddOptions()("QwTracking.R3.MaxMissedWires",
+  options.AddOptions("Tracking options")("QwTracking.R3.MaxMissedWires",
                           po::value<int>()->default_value(4),
                           "maximum number of missed wires");
 
   // Momentum reconstruction
-  options.AddOptions()("QwTracking.disable-momentum",
+  options.AddOptions("Tracking options")("QwTracking.disable-momentum",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable the momentum reconstruction");
-  options.AddOptions()("QwTracking.disable-matrixlookup",
+  options.AddOptions("Tracking options")("QwTracking.disable-matrixlookup",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable the use of the momentum lookup table");
-  options.AddOptions()("QwTracking.disable-raytracer",
+  options.AddOptions("Tracking options")("QwTracking.disable-raytracer",
                           po::value<bool>()->zero_tokens()->default_value(false),
                           "disable the magnetic field map tracking");
-  options.AddOptions()("QwTracking.fieldmap",
+  options.AddOptions("Tracking options")("QwTracking.fieldmap",
                           po::value<std::string>()->default_value("peiqing_2007.dat"),
                           "filename of the fieldmap file in QW_FIELDMAP");
-  options.AddOptions()("QwTracking.lookuptable",
+  options.AddOptions("Tracking options")("QwTracking.lookuptable",
                           po::value<std::string>()->default_value("QwTrajMatrix.root"),
                           "filename of the lookup table in QW_LOOKUP");
 }
@@ -260,6 +291,10 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
 
 void QwTrackingWorker::ProcessOptions(QwOptions& options)
 {
+  // Enable tracking debug flag
+  fDebug = options.GetValue<int>("QwTracking.debug");
+  fRegenerate = options.GetValue<bool>("QwTracking.regenerate");
+
   // Disable tracking and/or momentu reconstruction
   fDisableTracking = options.GetValue<bool>("QwTracking.disable-tracking");
   fDisableMomentum = options.GetValue<bool>("QwTracking.disable-momentum");
@@ -362,12 +397,13 @@ void QwTrackingWorker::InitTree()
           ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
           std::stringstream filename;
           filename << getenv_safe_string("QW_SEARCHTREE")
-                   << "/tree" << numlayers
+                       << "/tree" << numlayers
                        << "-" << levels
                        << "-" << "0ud"[package]
                        << "-" << "0123TCS"[region]
                        << "-" << "0hvgtc"[type]
                        << "-" << "0xyuvrq"[direction] << ".tre";
+
           QwDebug << "Tree filename: " << filename.str() << QwLog::endl;
 
           /// Each element of fSearchTree will point to a pattern database
@@ -381,7 +417,8 @@ void QwTrackingWorker::InitTree()
                                                  package,
                                                  type,
                                                  region,
-                                                 direction);
+                                                 direction,
+                                                 fRegenerate);
 
           // Set the detector identification
           fSearchTree[index]->SetRegion(region);
@@ -402,85 +439,6 @@ void QwTrackingWorker::InitTree()
 
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*------------------------------------------------------------------------*//*!
-
-   Bcheck() - this function compares the momentum look-up energy with the
-              shooting method result.  This function is for fDebugging
-              purposes only.
-
-    inputs: (1) double E       - the momentum lookup energy
-            (2) QwPartialTrack *f   - pointer to the front partial track for the
-                                 track
-            (3) QwPartialTrack *b   - pointer to the back partial track of the
-                                 track
-            (4) double TVertex - transverse position of the vertex for the
-                                 track
-            (5) double ZVertex - Z position of the vertex for the track
-
-   outputs: an ASCII ntuple file.
-
-*//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-double rcShootP (double Pest,QwPartialTrack *front, QwPartialTrack *back, double accuracy) {
-    std::cerr << "Warning: The function rcShootP is only a stub" << std::endl;
-    return -1000;
-}
-
-void QwTrackingWorker::BCheck (double E, QwPartialTrack *f, QwPartialTrack *b, double TVertex, double ZVertex) {
-    double Es = rcShootP(0.0,f,b,0.005);
-    //extern physic phys_carlo;
-    static FILE *test = 0;
-
-    if ( !test )
-        test = fopen("magcheck","w");
-    if ( test && E > 0.0) {
-        fprintf(test,"%f %f %f %f %f %f\n",
-                /*phys_carlo.E,*/E,Es, f->fSlopeX, f->fSlopeY, TVertex, ZVertex);
-    }
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-/*------------------------------------------------------------------------*//*!
-
-  rcLinkUsedTracks() - this function links the track cross-linked list to
-                       a single-linked list to ease the access for later
-		       functions. The new link is done via the usenext
-		       pointer.
-
-    inputs: (1) Track *track -
-            (2) int package   -
-
-   returns: the head to the linked list.
-
-*//*-------------------------------------------------------------------------*/
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
-QwTrack* QwTrackingWorker::rcLinkUsedTracks (QwTrack *track, int package ) {
-    QwTrack *ret =0, *usedwalk = 0;
-    QwTrack *trackwalk = NULL, *ytrack = NULL;
-
-    /* loop over all found tracks */
-    for (trackwalk = track; trackwalk; trackwalk = trackwalk->next ) {
-        /* and the possible y-tracks */
-        for (ytrack = trackwalk; ytrack; ytrack = ytrack->ynext ) {
-            if (!ytrack->isused) continue;
-            if ( !ret ) /* return the first used track */
-                ret = usedwalk = ytrack;
-            else {
-                usedwalk->usednext = ytrack; /* and link them together */
-                usedwalk = ytrack;
-            }
-        }
-    }
-    delete usedwalk;
-    delete trackwalk;
-    delete ytrack;
-    return ret;
-}
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /*------------------------------------------------------------------------*//*!
 
   ProcessHits() - this function is the main tracking function. It
@@ -507,37 +465,14 @@ QwEvent* QwTrackingWorker::ProcessHits (
     QwSubsystemArrayTracking *detectors,
     QwHitContainer *hitlist)
 {
-    int dlayer = 0;		/* number of detector planes in the search    */
-
-    // Create a new event structure
+    /// Create a new event structure
     QwEvent *event = new QwEvent();
-    // and fill it with the hitlist
+    // and fill it with the original hitlist
     event->AddHitContainer(hitlist);
 
-    // If tracking is disabled, stop here
+    /// If tracking is disabled, stop here
     if (fDisableTracking) return event;
 
-    // Tracking functionality is provided by these four sub-blocks.
-    QwTrackingTreeSearch  *TreeSearch  = new QwTrackingTreeSearch();
-    TreeSearch->SetDebugLevel(fDebug);
-    QwTrackingTreeCombine *TreeCombine = new QwTrackingTreeCombine();
-    TreeCombine->SetDebugLevel(fDebug);
-    QwTrackingTreeSort    *TreeSort    = new QwTrackingTreeSort();
-    TreeSort->SetDebugLevel(fDebug);
-    QwTrackingTreeMatch   *TreeMatch   = new QwTrackingTreeMatch();
-    TreeMatch->SetDebugLevel(fDebug);
-
-    // Process the options and set the respective flags in the modules
-    if (fShowMatchingPattern) TreeSearch->SetShowMatchingPatterns();
-    TreeCombine->SetMaxRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxroad"));
-    TreeCombine->SetMaxXRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxxroad"));
-
-    /*
-    int charge;
-    int found_front = 0;
-    double ZVertex, bending, theta, phi, ESpec;
-    int outbounds = 0;
-    */
 
     /// Loop through all detector packages
     // Normally only two of these will generate actual tracks,
@@ -573,6 +508,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
             QwDebug << *cluster << QwLog::endl;
         }
         delete clusterfinder; // TODO (wdc) should go somewhere else
+        delete hitlist_region1_r;
+        delete hitlist_region1_phi;
 
         /// Loop through the detector regions
         for (EQwRegionID region  = kRegionID2;
@@ -585,6 +522,9 @@ QwEvent* QwTrackingWorker::ProcessHits (
                     type <= kTypeDriftVDC; type++) {
                 QwDebug << "[QwTrackingWorker::ProcessHits]   Detector: " << type << QwLog::endl;
 
+
+                int dlayer = 0; // number of detector planes in the search
+                int tlayers = 0; // number of tracking layers
 
                 /// Loop through the detector directions
                 for (EQwDirectionID dir  = kDirectionX;
@@ -668,10 +608,16 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                             /// Get the subhitlist of hits in this detector
                             QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, plane);
-                            if (fDebug) subhitlist->Print();
                             // If no hits in this detector, skip to the next detector.
-                            if (! subhitlist) continue;
-
+                            if (subhitlist->size() == 0) {
+                              delete subhitlist;
+                              continue;
+                            }
+                            // Print the hit list for this detector
+                            if (fDebug) {
+                            	std::cout << "region: " << region << " package: " << package << " plane: " << plane << std::endl;
+                            	subhitlist->Print();
+                            }
                             // Loop over the hits in the subhitlist
                             for (QwHitContainer::iterator hit = subhitlist->begin();
                                     hit != subhitlist->end(); hit++) {
@@ -686,10 +632,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             } // end of loop over hits in this event
 
                             // Print hit pattern, if requested
-                            if (fShowEventPattern)
+                            if (fShowEventPattern) {
+                            	std::cout << "event pattern: " << std::endl;
                               for (size_t wire = 0; wire < patterns.size(); wire++)
                                 if (patterns.at(wire).HasHits())
                                   QwMessage << wire << ":" << patterns.at(wire) << QwLog::endl;
+                            }
 
                             // Copy the new hit patterns into the old array structure
                             // TODO This is temporary
@@ -706,7 +654,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                             // We can start the tree search now.
                             // NOTE Somewhere around here a memory leak lurks
                             QwDebug << "Searching for matching patterns (direction " << dir << ")" << QwLog::endl;
-                            treelinelist = TreeSearch->SearchTreeLines(searchtree,
+                            treelinelist = fTreeSearch->SearchTreeLines(searchtree,
                                                  channel, hashchannel, fLevelsR3,
                                                  NUMWIRESR3, MAX_LAYERS);
 
@@ -736,12 +684,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                             QwDebug << "Calculate chi^2" << QwLog::endl;
                             double width = searchtree->GetWidth();
-                            TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
+                            fTreeCombine->TlTreeLineSort(treelinelist, subhitlist,
                                                          package, region, dir,
                                                          1UL << (fLevelsR3 - 1), 0, dlayer, width);
 
                             QwDebug << "Sort patterns" << QwLog::endl;
-                            TreeSort->rcTreeConnSort (treelinelist, region);
+                            fTreeSort->rcTreeConnSort (treelinelist, region);
 
                             if (plane < 3)
                                 treelinelist1 = treelinelist;
@@ -756,10 +704,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         } // end of loop over like-pitched planes in a region
                         event->AddTreeLineList(treelinelist1);
                         event->AddTreeLineList(treelinelist2);
+                        treelinelist = 0;
 
+			                  // treelinelist 1 and treelinelist 2 are in the same dir
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
                         if (treelinelist1 && treelinelist2) {
-                            treelinelist = TreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
+                            treelinelist = fTreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
                             event->treeline[package][region][type][dir] = treelinelist;
                             event->AddTreeLineList(treelinelist);
 
@@ -776,15 +726,21 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                         }
 
-                        tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
-                        tlaym1  = tlayers - 1; /* remember tlayers - 1 for convenience */
+                        // Delete tree line lists after storing results in event structure
+                        QwTrackingTreeLine* tl = 0;
+                        QwTrackingTreeLine* tl_next = 0;
+                        tl = treelinelist1;
+                        while (tl) { tl_next = tl->next; delete tl; tl = tl_next; }
+                        tl = treelinelist2;
+                        while (tl) { tl_next = tl->next; delete tl; tl = tl_next; }
 
+                        tlayers = MAX_LAYERS;  /* remember the number of tree-detector */
 
 
                     /* Region 2 HDC */
                     } else if (region == kRegionID2 && type == kTypeDriftHDC) {
 
-                        // Set ht pattern for this region
+                        // Set hit pattern for this region
                         QwDebug << "Setting hit pattern (region 2)" << QwLog::endl;
 
                         // Create a vector of hit patterns
@@ -846,7 +802,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         }
 
                         QwDebug << "Search for matching patterns (direction " << dir << ")" << QwLog::endl;
-                        treelinelist = TreeSearch->SearchTreeLines(searchtree,
+                        treelinelist = fTreeSearch->SearchTreeLines(searchtree,
                                              channel, hashchannel, levels,
                                              0, tlayers);
 
@@ -881,21 +837,21 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         if (searchtree) {
 
                             double width = searchtree->GetWidth();
-                            TreeCombine->TlTreeLineSort (treelinelist, subhitlist,
+                            fTreeCombine->TlTreeLineSort (treelinelist, subhitlist,
                                                          package, region, dir,
                                                          1UL << (fLevelsR2 - 1),
                                                          tlayers, 0, width);
                         }
 
                         QwDebug << "Sort patterns" << QwLog::endl;
-                        TreeSort->rcTreeConnSort (treelinelist, region);
+//                        fTreeSort->rcTreeConnSort (treelinelist, region);
 
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
                             treelinelist->Print();
                         }
                         event->treeline[package][region][type][dir] = treelinelist;
-                        event->AddTreeLineList(treelinelist);
+//                        event->AddTreeLineList(treelinelist);
 
                         // Delete subhitlist
                         delete subhitlist;
@@ -914,30 +870,52 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                 QwPartialTrack* parttrack = 0; // list of partial tracks
 
+
+
                 // This if statement may be done wrong
                 // TODO (wdc) why does this have last index dir instead of something in scope?
-                if (rcDETRegion[package][region][kDirectionU]
-                        && fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                                       +region*kNumTypes*kNumDirections+type*kNumDirections+kDirectionU]
-                        && tlayers) {
-                    parttrack = TreeCombine->TlTreeCombine(
+                if (region == kRegionID3) {
+                    if (event->treeline[package][region][type][kDirectionU] && event->treeline[package][region][type][kDirectionV]
+                     && tlayers)
+                    parttrack = fTreeCombine->TlTreeCombine(
                                     event->treeline[package][region][type],
                                     package, region,
                                     tlayers,
                                     dlayer,
                                     fSearchTree);
 
-                } else continue;
+                }
+                else if(region==kRegionID2){
+
+                        if (event->treeline[package][region][type][kDirectionU]
+                         && event->treeline[package][region][type][kDirectionV]
+                         && event->treeline[package][region][type][kDirectionX]
+                         && tlayers){
+                parttrack = fTreeCombine->TlTreeCombine(
+                                    event->treeline[package][region][type],
+                                    package, region,
+                                    tlayers,
+                                    dlayer,
+                                    fSearchTree);}
+                }
+                else continue;
+
+
 
 
                 /*! ---- TASK 3: Sort out the Partial Tracks                          ---- */
 
-                if (parttrack) TreeSort->rcPartConnSort(parttrack);
+                if (parttrack) fTreeSort->rcPartConnSort(parttrack);
+
 
                 /*! ---- TASK 4: Hook up the partial track info to the event info     ---- */
 
-                event->parttrack[package][region][type] = parttrack;
-                event->AddPartialTrackList(parttrack);
+
+                if (parttrack) {
+                        event->parttrack[package][region][type] = parttrack;
+                        event->AddPartialTrackList(parttrack);
+                }
+
 
                 if (parttrack) {
                     if (fDebug) parttrack->Print();
@@ -964,6 +942,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
         * ============================== */
 
         // If there were partial tracks in the HDC and VDC regions
+
         if (! fDisableMomentum
          && event->parttrack[package][kRegionID2][kTypeDriftHDC]
          && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
@@ -1025,12 +1004,6 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
     } /* end of loop over the detector packages */
 
-
-    // Delete tracking objects
-    if (TreeSearch)  delete TreeSearch;
-    if (TreeCombine) delete TreeCombine;
-    if (TreeSort)    delete TreeSort;
-    if (TreeMatch)   delete TreeMatch;
 
 //   if (fDebug)
 //     cout<<"R2Good, R2Bad, R3Good, R3Bad: "<<R2Good<<" "<<R2Bad<<" "<<R3Good<<" "<<R3Bad<<endl;

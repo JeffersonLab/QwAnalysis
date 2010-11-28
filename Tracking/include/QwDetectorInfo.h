@@ -8,12 +8,13 @@
 #include <TString.h>
 #include <TObject.h>
 #include "TMath.h"
+#include "TVector3.h"
 
 #include "QwTypes.h"
 
 ///
 /// \ingroup QwTracking
-class QwDetectorInfo {
+class QwDetectorInfo: public TObject {
   ///
   ///  Tracking detector information class.  This will be used in an array
   ///  indexed by the package, plane, and wire,
@@ -21,7 +22,7 @@ class QwDetectorInfo {
 
   public:
 
-    void SetDetectorInfo(TString sdType, Double_t Zpos1, Double_t rot, Double_t  sp_res, Double_t  track_res, Double_t slope_match, TString spackage, Int_t region, TString planeDir, Double_t Det_originX, Double_t Det_originY, Double_t ActivewidthX, Double_t ActivewidthY, Double_t ActivewidthZ, Double_t WireSpace, Double_t FirstWire, Double_t W_rcos, Double_t W_rsin, Int_t totalwires, Int_t detId);
+    void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, int totalwires, int detId);
 
     // Get/set spatial resolution
     const double GetSpatialResolution() const { return fSpatialResolution; };
@@ -36,15 +37,16 @@ class QwDetectorInfo {
     void SetSlopeMatching(const double slope) { fSlopeMatching = slope; };
 
     // Get/set x and y position
+    const TVector3 GetPosition() const;
     const double GetXPosition() const { return fDetectorOriginX; };
     const double GetYPosition() const { return fDetectorOriginY; };
+    const double GetZPosition() const { return fDetectorOriginZ; };
+    void SetPosition(const TVector3& position);
+    void SetZPosition(const double z) { fDetectorOriginZ = z; };
     void SetXYPosition(const double x, const double y) {
       fDetectorOriginX = x;
       fDetectorOriginY = y;
     };
-    // Get/set z position
-    const double GetZPosition() const { return fDetectorOriginZ; };
-    void SetZPosition(const double z) { fDetectorOriginZ = z; };
     void SetXYZPosition(const double x, const double y, const double z) {
       SetXYPosition(x,y);
       SetZPosition(z);
@@ -77,6 +79,9 @@ class QwDetectorInfo {
     // Get/set element offset
     const double GetElementOffset() const { return fElementOffset; };
     void SetElementOffset(const double offset) { fElementOffset = offset; };
+
+    // Get element coordinate
+    const double GetElementCoordinate(const int element) const;
 
     // Get/set element orientation
     const double GetElementAngle() const { return fElementAngle; };
@@ -115,61 +120,61 @@ class QwDetectorInfo {
     const int GetID() const { return fDetectorID; };
 
     // Output stream operator
-    friend ostream& operator<< (ostream& stream, const QwDetectorInfo& det);
+    friend std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det);
 
     // Detector information
     EQwDetectorType fType;
     EQwDetectorPackage fPackage;
     EQwRegionID fRegion;
     EQwDirectionID fDirection;
-    Int_t fPlane;
+    int fPlane;
 
   private:
 
     // Identification info for readout channels. Filled at load time.
-    Int_t fCrate; //ROC number
-    Int_t fModule; //F1TDC slot number or module index
-    Int_t fChannel; //channel number
+    int fCrate; //ROC number
+    int fModule; //F1TDC slot number or module index
+    int fChannel; //channel number
 
     // Geometry information
-    Double_t fDetectorOriginX;	///< Detector position in x
-    Double_t fDetectorOriginY;	///< Detector position in y
-    Double_t fDetectorOriginZ;	///< Detector position in z
-    Double_t fDetectorRotation;	///< Orientation of the detector around the
+    double fDetectorOriginX;	///< Detector position in x
+    double fDetectorOriginY;	///< Detector position in y
+    double fDetectorOriginZ;	///< Detector position in z
+    double fDetectorRotation;	///< Orientation of the detector around the
       /// Y axis with respect to the X axis.  Region 2 has zero degrees here.
       /// Region 3 is rotated around the Y axis over approximately 65 degrees.
       /// \todo This is an inconsistent definition of coordinate frames.
-    Double_t fDetectorRotationCos;	///< Cos of detector orientation
-    Double_t fDetectorRotationSin;	///< Sin of detector orientation
+    double fDetectorRotationCos;	///< Cos of detector orientation
+    double fDetectorRotationSin;	///< Sin of detector orientation
 
-    Bool_t fIsActive;		///< Is this detector activated in tracking
+    bool   fIsActive;		///< Is this detector activated in tracking
 
-    Double_t fSpatialResolution;///< Spatial resolution (how accurate is the timing info)
-    Double_t fTrackResolution;	///< Track resolution (how accurate are the tracks through the hits)
-    Double_t fSlopeMatching;	///< Slope matching resolution (how accurate do the tracks line up)
+    double fSpatialResolution;///< Spatial resolution (how accurate is the timing info)
+    double fTrackResolution;	///< Track resolution (how accurate are the tracks through the hits)
+    double fSlopeMatching;	///< Slope matching resolution (how accurate do the tracks line up)
 
-    Double_t fActiveWidthX;	///< Active volume in x
-    Double_t fActiveWidthY;	///< Active volume in y
-    Double_t fActiveWidthZ;	///< Active volume in z
+    double fActiveWidthX;	///< Active volume in x
+    double fActiveWidthY;	///< Active volume in y
+    double fActiveWidthZ;	///< Active volume in z
 
-    Double_t fElementSpacing;	///< Perpendicular distance between the elements
-    Double_t fElementAngle;	///< Element orientation with respect to the X axis
-    Double_t fElementAngleCos;	///< Cos of the element orientation
-    Double_t fElementAngleSin;	///< Sin of the element orientation
-    Double_t fElementOffset;	///< Position of the first element (it is not
+    double fElementSpacing;	///< Perpendicular distance between the elements
+    double fElementAngle;	///< Element orientation with respect to the X axis
+    double fElementAngleCos;	///< Cos of the element orientation
+    double fElementAngleSin;	///< Sin of the element orientation
+    double fElementOffset;	///< Position of the first element (it is not
                                 ///  exactly clear to me what that exactly means)
-    Int_t fNumberOfElements;	///< Total number of elements in this detector
+    int fNumberOfElements;	///< Total number of elements in this detector
 
   public:
     // Unique detector identifier
-    Int_t fDetectorID;
+    int fDetectorID;
 
     // Reference channel index in list of reference channels (most prob. filled at load time)
-    Int_t fReferenceChannelIndex;
+    int fReferenceChannelIndex;
 
 
     // List of active hits by absolute hit number from QwHit array. filled for each event; cleared after each event.
-    std::vector<Int_t> fHitID;
+    std::vector<int> fHitID;
 
 
     void SetElectronics(int crt,int mdl,int chn) {
@@ -179,9 +184,9 @@ class QwDetectorInfo {
       fReferenceChannelIndex = 1;
     }
 
-    Bool_t IsHit() { return (!fHitID.empty()); };
+    bool IsHit() { return (!fHitID.empty()); };
 
-    Int_t GetNumHits() { return fHitID.size(); };
+    int GetNumHits() { return fHitID.size(); };
 
     void ClearHits() {
       if (!fHitID.empty())
@@ -192,8 +197,7 @@ class QwDetectorInfo {
       fHitID.push_back(time);
     }
 
-
-  private:
+  ClassDef(QwDetectorInfo,0);
 
 };
 

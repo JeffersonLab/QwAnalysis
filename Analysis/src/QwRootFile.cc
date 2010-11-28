@@ -1,17 +1,18 @@
 #include "QwRootFile.h"
+#include "QwHistogramHelper.h"
+#include "QwRunCondition.h"
 
+std::string QwRootFile::fDefaultRootFileStem = "Qweak_";
 
 const Long64_t QwRootFile::kMaxTreeSize = 10000000000LL;
-
+//const Int_t QwRootFile::kMaxMapFileSize = 0x20000000; // 512 MiB
+const Int_t QwRootFile::kMaxMapFileSize = 0x10000000; // 256 MiB
 
 /**
  * Constructor with relative filename
  */
 QwRootFile::QwRootFile(const TString& run_label)
-: fEnableMapFile(kFALSE),
-  fEnableTree(kTRUE),fEnableHisto(kTRUE),
-  fEnableMps(kTRUE),fEnableHel(kTRUE),
-  fUpdateInterval(400)
+: fEnableMapFile(kFALSE),fUpdateInterval(400)
 {
   // Process the configuration options
   ProcessOptions(gQwOptions);
@@ -19,31 +20,67 @@ QwRootFile::QwRootFile(const TString& run_label)
   // Check for the memory-mapped file flag
   if (fEnableMapFile) {
 
-    // Set up map file
-    TString mapfilename = getenv_safe_TString("QW_ROOTFILES");
+    // // get hostname and user name
+    // char host_string[127];
+    // char user_string[127];
+    
+    // gethostname(host_string, 127);
+    // getlogin_r (user_string, 127);
+    
+    // TString host_name = host_string;
+    // TString user_name = user_string;
+    TString mapfilename = "/dev/shm/";
+
+    // if( host_name.Contains("cdaql4") and (not user_name.CompareTo("cdaq", TString::kExact)) ) {
+    //   mapfilename = "/local/scratch/qweak/";
+    // }
+    // else {
+    //   mapfilename = getenv_safe_TString("QW_ROOTFILES");
+    // }
+
     mapfilename += "/QwMemMapFile.map";
-    fMapFile = new QwMapFile(mapfilename, "Memory Mapped File", "RECREATE");
-    if (! fMapFile)
+ 
+    fMapFile = TMapFile::Create(mapfilename,"RECREATE", kMaxMapFileSize, "RealTime Producer File");
+
+    if (not fMapFile) {
       QwError << "Memory-mapped file " << mapfilename
               << " could not be opened!" << QwLog::endl;
-    else
-      fMapFile->Print();
+      return;
+    }
 
-    //    // Disable tree in map file mode
-    //    fEnableTree = false; //Since we are using a tree within the map file we no longer scifically set this to false in RT mode
+    QwMessage << "================== RealTime Producer Memory Map File =================" << QwLog::endl;
+    fMapFile->Print();
+    QwMessage << "======================================================================" << QwLog::endl;
 
-  // Otherwise we are in offline mode
   } else {
 
     TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
     rootfilename += Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
     fRootFile = new TFile(rootfilename, "RECREATE", "QWeak ROOT file");
-    if (! fRootFile)
+    if (! fRootFile) {
       QwError << "ROOT file " << rootfilename
               << " could not be opened!" << QwLog::endl;
+      return;
+    }
 
+    TString run_condition_name = Form("%s_condition", run_label.Data());
+    TList *run_cond_list = (TList*) fRootFile -> FindObjectAny(run_condition_name);
+    if (not run_cond_list) {
+      QwRunCondition run_condition(
+          gQwOptions.GetArgc(),
+          gQwOptions.GetArgv(),
+          run_condition_name
+      );
+	
+      fRootFile -> WriteObject(
+          run_condition.Get(),
+          run_condition.GetName()
+      );
+    }
+
+    fRootFile->SetCompressionLevel(fCompressionLevel);
   }
-}
+};
 
 
 /**
@@ -51,12 +88,14 @@ QwRootFile::QwRootFile(const TString& run_label)
  */
 QwRootFile::~QwRootFile()
 {
+  // Close the map file
   if (fMapFile) {
     fMapFile->Close();
-    delete fMapFile;
+    // TMapFiles may not be deleted
     fMapFile = 0;
   }
 
+  // Close the ROOT file
   if (fRootFile) {
     fRootFile->Close();
     delete fRootFile;
@@ -72,7 +111,7 @@ void QwRootFile::DefineOptions(QwOptions &options)
 {
   // Define the ROOT filename stem
   options.AddOptions("Default options")
-    ("rootfile-stem", po::value<std::string>()->default_value("Qweak_"),
+    ("rootfile-stem", po::value<std::string>()->default_value(fDefaultRootFileStem),
      "stem of the output ROOT filename");
 
   // Define the memory map option
@@ -98,28 +137,37 @@ void QwRootFile::DefineOptions(QwOptions &options)
 
   // Define the tree output prescaling options
   options.AddOptions()
-    ("num-accepted-events", po::value<int>()->default_value(0),
-     "number of accepted consecutive events");
+    ("num-mps-accepted-events", po::value<int>()->default_value(0),
+     "number of accepted consecutive MPS events");
   options.AddOptions()
-    ("num-discarded-events", po::value<int>()->default_value(0),
-     "number of discarded consective events");
+    ("num-mps-discarded-events", po::value<int>()->default_value(0),
+     "number of discarded consecutive MPS events");
+  options.AddOptions()
+    ("num-hel-accepted-events", po::value<int>()->default_value(0),
+     "number of accepted consecutive pattern events");
+  options.AddOptions()
+    ("num-hel-discarded-events", po::value<int>()->default_value(0),
+     "number of discarded consecutive pattern events");
   options.AddOptions()
     ("mapfile-update-interval", po::value<int>()->default_value(400),
      "Events between a map file update");
-   options.AddOptions()("trim-tree",
-                       po::value<std::string>()->default_value("tree_trim.in"),
-                       "Contains subsystems/elements to be included in the real time flat tree");
 
   // Define the autoflush and autosave option (default values by ROOT)
-  options.AddOptions()
-    ("autoflush", po::value<int>()->default_value(-30000000),
-     "TTree autoflush value");
-  options.AddOptions()
+  options.AddOptions("ROOT performance")
+    ("autoflush", po::value<int>()->default_value(0),
+     "TTree autoflush");
+  options.AddOptions("ROOT performance")
     ("autosave", po::value<int>()->default_value(300000000),
-     "TTree autosave value");
-  
-
-  
+     "TTree autosave");
+  options.AddOptions("ROOT performance")
+    ("basket-size", po::value<int>()->default_value(16000),
+     "TTree basket size");
+  options.AddOptions("ROOT performance")
+    ("circular-buffer", po::value<int>()->default_value(0),
+     "TTree circular buffer");
+  options.AddOptions("ROOT performance")
+    ("compression-level", po::value<int>()->default_value(1),
+     "TFile compression level");
 }
 
 
@@ -137,219 +185,38 @@ void QwRootFile::ProcessOptions(QwOptions &options)
 
   // Options 'disable-trees' and 'disable-histos' for disabling
   // tree and histogram output
-  fEnableTree  = ! options.GetValue<bool>("disable-trees");
-  fEnableHisto = ! options.GetValue<bool>("disable-histos");
+  if (options.GetValue<bool>("disable-trees"))  DisableTree(".*");
+  if (options.GetValue<bool>("disable-histos")) DisableHisto(".*");
 
   // Options 'disable-mps' and 'disable-hel' for disabling
   // helicity window and helicity pattern output
-  fEnableMps = ! options.GetValue<bool>("disable-mps");
-  fEnableHel = ! options.GetValue<bool>("disable-hel");
+  if (options.GetValue<bool>("disable-mps"))  DisableTree("Mps_Tree");
+  if (options.GetValue<bool>("disable-hel"))  DisableTree("Hel_Tree");
 
   // Options 'num-accepted-events' and 'num-discarded-events' for
   // prescaling of the tree output
-  fNumEventsToSave = options.GetValue<int>("num-accepted-events");
-  fNumEventsToSkip = options.GetValue<int>("num-discarded-events");
-  fNumEventsCycle = fNumEventsToSave + fNumEventsToSkip;
+  fNumMpsEventsToSave = options.GetValue<int>("num-mps-accepted-events");
+  fNumMpsEventsToSkip = options.GetValue<int>("num-mps-discarded-events");
+  fNumHelEventsToSave = options.GetValue<int>("num-mps-accepted-events");
+  fNumHelEventsToSkip = options.GetValue<int>("num-mps-discarded-events");
 
-  //Update interval for the map file
+  // Update interval for the map file
+  fCircularBufferSize = options.GetValue<int>("circular-buffer");
   fUpdateInterval = options.GetValue<int>("mapfile-update-interval");
+  fCompressionLevel = options.GetValue<int>("compression-level");
+  fBasketSize = options.GetValue<int>("basket-size");
 
   // Autoflush and autosave
   fAutoFlush = options.GetValue<int>("autoflush");
   if ((ROOT_VERSION_CODE < ROOT_VERSION(5,26,00)) && fAutoFlush != -30000000){
-    std::cout << QwLog::endl;
+    QwMessage << QwLog::endl;
     QwWarning << "QwRootFile::ProcessOptions:  "
-	      << "The 'autoflush' flag is not supported by ROOT version "
-	      << ROOT_RELEASE
-	      << QwLog::endl;
+              << "The 'autoflush' flag is not supported by ROOT version "
+              << ROOT_RELEASE
+              << QwLog::endl;
   }
   fAutoSave  = options.GetValue<int>("autosave");
-
-  fTreeTrim_Filename = options.GetValue<std::string>("trim-tree").c_str();  
-
-}
+  return;
+};
 
 
-/**
- * Construct the histogram of the subsystem array
- * @param detectors Subsystem array
- */
-void QwRootFile::ConstructHistograms(QwSubsystemArray& detectors)
-{
-  // Return if we do not want histo or mps information
-  if (! fEnableHisto) return;
-  if (! fEnableMps) return;
-
-  // Create the histograms in a directory
-  if (fRootFile) {
-    fRootFile->cd();
-    detectors.ConstructHistograms(fRootFile->mkdir("mps_histo"));
-  }
-
-  // No support for directories in a map file
-  if (fMapFile) {
-    detectors.ConstructHistograms();
-  }
-}
-
-
-/**
- * Construct the histogram of the helicity pattern
- * @param helicity_pattern Helicity pattern
- */
-void QwRootFile::ConstructHistograms(QwHelicityPattern& helicity_pattern)
-{
-  // Return if we do not want histo or hel information
-  if (! fEnableHisto) return;
-  if (! fEnableHel) return;
-
-  // Create the histograms in a directory
-  if (fRootFile) {
-    fRootFile->cd();
-    helicity_pattern.ConstructHistograms(fRootFile->mkdir("hel_histo"));
-  }
-
-  // No support for directories in a map file
-  if (fMapFile) {
-    helicity_pattern.ConstructHistograms();
-  }
-}
-
-
-/**
- * Construct the tree branches of the subsystem array
- * @param detectors Subsystem array
- */
-void QwRootFile::ConstructTreeBranches(QwSubsystemArrayParity& detectors)
-{
-  // Return if we do not want tree or mps information
-  if (! fEnableTree) return;
-  if (! fEnableMps) return;
-
-  // Go to top level directory
-  cd();
-
-  // Create tree
-  fMpsTree = new TTree("Mps_Tree", "MPS event data tree");
-  fMpsTree->SetMaxTreeSize(kMaxTreeSize);
-#if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
-  fMpsTree->SetAutoFlush(fAutoFlush);
-#endif
-  fMpsTree->SetAutoSave(fAutoSave);
-
-  // Reserve space for vector
-  // If one defines more than 6000 words in the full ntuple
-  // results are going to get very very crazy.
-  fMpsVector.reserve(6000);
-
-  // Associate branches with vector
-  TString dummystr = "";
-  if (fEnableMapFile){
-    //Access the tree trimming definition file
-    QwMessage << "Tree trim definition file for RT engine" << fTreeTrim_Filename << QwLog::endl;
-    QwParameterFile trim_tree(fTreeTrim_Filename);
-    detectors.ConstructBranch(fMpsTree, dummystr, trim_tree);
-  }
-  else
-    detectors.ConstructBranchAndVector(fMpsTree, dummystr, fMpsVector);
-
-}
-
-
-/**
- * Construct the tree branches of the helicity pattern
- * @param helicity_pattern Helicity pattern
- */
-void QwRootFile::ConstructTreeBranches(QwHelicityPattern& helicity_pattern)
-{
-  // Return if we do not want tree or hel information
-  if (! fEnableTree) return;
-  if (! fEnableHel) return;
-
-  // Go to top level directory
-  cd();
-
-  // Create tree
-  fHelTree = new TTree("Hel_Tree", "Helicity event data tree");
-  fHelTree->SetMaxTreeSize(kMaxTreeSize);
-#if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
-  fHelTree->SetAutoFlush(fAutoFlush);
-#endif
-  fHelTree->SetAutoSave(fAutoSave);
-
-  // Reserve space for vector
-  // If one defines more than 6000 words in the full ntuple
-  // results are going to get very very crazy.
-  fHelVector.reserve(6000);
-
-  // Associate branches with vector
-  TString dummystr = "";
-
-  if (fEnableMapFile){
-    //Access the tree trimming definition file
-    QwParameterFile trim_tree(fTreeTrim_Filename);
-    helicity_pattern.ConstructBranch(fHelTree, dummystr, trim_tree);
-  }
-  else
-    helicity_pattern.ConstructBranchAndVector(fHelTree, dummystr, fHelVector);
-}
-
-
-/**
- * Fill the tree branches of the subsystem array
- * @param detectors Subsystem array
- */
-void QwRootFile::FillTreeBranches(QwSubsystemArrayParity& detectors)
-{
-  // Calculate the event number before bailing out
-  if (fNumEventsCycle > 0) {
-    fCurrentEvent = detectors.GetCodaEventNumber() % fNumEventsCycle;
-  }
-
-  // Return if we do not want tree or mps information
-  if (! fEnableTree) return;
-  if (! fEnableMps) return;
-
-  // Output ROOT tree prescaling
-  // One cycle starts with fNumEventsToTake accepted events
-  if (fNumEventsCycle > 0) {
-    if (fCurrentEvent > fNumEventsToSave) return;
-  }
-
-  // Fill the vector
-  if (!fEnableMapFile)
-    detectors.FillTreeVector(fMpsVector);
-  // Fill the tree
-  fMpsTree->Fill();  
-}
-
-
-/**
- * Fill the tree branches of the helicity pattern
- * @param helicity_pattern Helicity pattern
- */
-void QwRootFile::FillTreeBranches(QwHelicityPattern& helicity_pattern)
-{
-  // TODO (wdc) Assuming that the event number has been calculated by
-  // the call to FillTreeBranches on the detector array.  No event number
-  // in QwHelicityPattern.
-
-  // Return if we do not want tree or hel information
-  if (! fEnableTree) return;
-  if (! fEnableHel) return;
-
-  // Output ROOT tree prescaling
-  // One cycle starts with fNumEventsToTake accepted events
-  if (fNumEventsCycle > 0) {
-    if (fCurrentEvent > fNumEventsToSave) return;
-  }
-
-  // Fill the vector
-  //helicity_pattern.FillTreeVector(fHelVector);
-
-  // Fill the tree
-  if (!fEnableMapFile)
-    helicity_pattern.FillTreeVector(fHelVector);
-  // Fill the tree
-  fHelTree->Fill();
-}

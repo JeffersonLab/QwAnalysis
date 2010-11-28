@@ -21,8 +21,10 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 !INPUT REGISTER MODE
+HelicityDecodingMode=InputRegisterMode
 
-!Need to set PATTERNPHASEOFFSET = 1 (when pattern number starts with 1) or 0 (when pattern number starts with 0)
+
+!Need to set PATTERNPHASEOFFSET = 1 (when pattern phase starts with 1) or 0 (when pattern phase starts with 0)
 !default value for PATTERNPHASEOFFSET = 1 is set within the code itself which works fine with regular injector/beamline/parity mock data
 !uncomment below line only if phase number start from 0
 PATTERNPHASEOFFSET=0
@@ -30,11 +32,9 @@ PATTERNPHASEOFFSET=0
 
 HelicityDecodingMode=InputRegisterMode
 PatternPhase=4
-!NumberPatternsDelayed=2
 
-!seed size is either 24 bit or 30 bit. default is 24 bit
+!seed size is either 24 bit or 30 bit. default is 30 bit
 !RandSeedBits=24
-RandSeedBits=30
 
 ROC=31
 Bank=0x3103
@@ -47,19 +47,11 @@ WORD, 0,  0, helicitydata,  output_register
 WORD, 0,  0, helicitydata,  MPS_counter
 WORD, 0,  0, helicitydata,  PAT_counter
 WORD, 0,  0, helicitydata,  PAT_phase
-!  Runs starting in Summer2009 have these three counter words added.
-!   WORD, 0,  0, helicitydata,  oversample_phase
-!   WORD, 0,  0, helicitydata,  gate_counter
-SKIP 2
-!
-SKIP 1
-!
+SKIP 3
 WORD, 0,  0, helicitydata,  cleandata
 WORD, 0,  0, helicitydata,  scandata1
 WORD, 0,  0, helicitydata,  scandata2
 SKIP 1
-!  Next word is ' ADC', then 1 word for each VQWK.
-
 !END
 ! 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -85,4 +77,3 @@ SKIP 1
 !WORD, 0,  0, helicitydata,  scalercounter
 !WORD, 0,  0, helicitydata,  userbit 
 !END
-  

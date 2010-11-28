@@ -1,0 +1,61 @@
+#feedback parameters are stored here
+
+#No.of good patterns to accumulate before triggering the feedback algorithm.
+
+patterns = 4000
+
+#The precision of the charge asymmetry in ppm
+
+#deltaAq = 62
+deltaAq = 7500
+#optimal IA values in volts
+optimalIA = 5.5
+
+#optimal PC POS in volts
+optimalPCP = 5.1
+
+#optimal PC NEG in volts
+optimalPCN = 5.2
+
+
+
+#IA Slopes for 4 modes
+
+#source POLOG entry 1543984 (M_Dalton) 
+
+A0 = -4.482e-2
+DeltaA0 = 3.614e-4
+
+A1 = -4.525e-2
+DeltaA1=3.555e-4
+
+A2 = -4.586e-2
+DeltaA2 = 3.482e-4
+
+A3 = -4.553e-2
+DeltaA3 = 3.431e-4
+
+#IA hardware counts set-point limits
+
+IA_low = 10000
+IA_up  = 50000
+
+#PITA slopes
+#  From M.Dalton, as of 00:10,23oct2010, use a slope of:  -0.73 ppm/dac-tick
+# 
+PITASLOPE_OUT = +0.73
+PITASLOPE_IN = -0.73
+
+###  PITANEG = 200
+
+#PITA starting setpoints
+PC_pos_t0 = 42500
+PC_neg_t0 = 41900
+
+
+
+#PC hardware count set-point limits
+#  These should be just inside the low alarm limits on the PC, as
+#  referenced by Riad in OPS Elog 1549310.
+PC_low = 38018
+PC_up  = 48016

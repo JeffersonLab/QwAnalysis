@@ -47,6 +47,42 @@ void  QwCombinedBPM::InitializeChannel(TString name)
   return;
 };
 
+void  QwCombinedBPM::InitializeChannel(TString subsystem, TString name)
+{
+
+  VQwBPM::InitializeChannel(name);
+
+  fEffectiveCharge.InitializeChannel(subsystem, "QwCombinedBPM", name+"_EffectiveCharge","derived");
+
+  for( Short_t i=0;i<2;i++){
+    fAbsPos[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i],"derived");
+    fSlope[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i]+"Slope","derived");
+    fIntercept[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i]+"Intercept","derived");
+  }
+
+  fixedParamCalculated = false;
+
+  fElement.clear();
+  fQWeights.clear();
+  fXWeights.clear();
+  fYWeights.clear();
+
+  fSumQweights = 0.0;
+
+  for(Short_t i=0;i<2;i++){
+    erra[i]       = 0.0;
+    errb[i]       = 0.0;
+    covab[i]      = 0.0;
+    A[i]          = 0.0;
+    B[i]          = 0.0;
+    D[i]          = 0.0;
+    m[i]          = 0.0;
+    chi_square[i] = 0.0;
+  }
+
+  return;
+};
+
 
 void QwCombinedBPM::ClearEventData()
 {
@@ -102,21 +138,18 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t i=0;
-
+  fErrorFlag=0;
   //Event cuts for  X & Y slopes
   for(i=0;i<2;i++){
     if (fSlope[i].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
     else{
-      fSlope[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" X Slope event cut failed ";
     }
     //Get the Event cut error flag for SlopeX/Y
-    fDeviceErrorCode|=fSlope[i].GetEventcutErrorFlag();
-    //Update the error counters
-    fSlope[i].UpdateHWErrorCounters();
+    fErrorFlag|=fSlope[i].GetEventcutErrorFlag();
   }
 
   //Event cuts for  X & Y intercepts
@@ -125,29 +158,25 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
       status&=kTRUE;
     }
     else{
-      fIntercept[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" X Intercept event cut failed ";
     }
     //Get the Event cut error flag for SlopeX/Y
-    fDeviceErrorCode|=fIntercept[i].GetEventcutErrorFlag();
-    //Update the error counters
-    fIntercept[i].UpdateHWErrorCounters();
+    fErrorFlag|=fIntercept[i].GetEventcutErrorFlag();
   }
 
   for(i=0;i<2;i++){
-    if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
+    if (fAbsPos[i].ApplySingleEventCuts()){ 
       status&=kTRUE;
     }
     else{
-      fAbsPos[i].UpdateEventCutErrorCount();
       status&=kFALSE;
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
-    //update the event cut counters
-    fAbsPos[i].UpdateHWErrorCounters();
     //Get the Event cut error flag for AbsX/Y
-    fDeviceErrorCode|=fAbsPos[i].GetEventcutErrorFlag();
+    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
+    //if (fAbsPos[i].GetElementName()=="qwk_targetX")
+    //std::cout<<" Abs X event cut "<<fAbsPos[i].GetEventcutErrorFlag()<<std::endl;
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
@@ -155,14 +184,11 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
       status&=kTRUE;
   }
   else{
-    fEffectiveCharge.UpdateEventCutErrorCount();
     status&=kFALSE;
     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
   }
-  //update the event cut counters
-  fEffectiveCharge.UpdateHWErrorCounters();
   //Get the Event cut error flag for EffectiveCharge
-  fDeviceErrorCode|=fEffectiveCharge.GetEventcutErrorFlag();
+  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
 
   return status;
 };
@@ -203,26 +229,50 @@ void QwCombinedBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t 
   }
 };
 
+void QwCombinedBPM::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
+  errorflag|=kBPMErrorFlag;//update the device flag
+  if (ch_name=="xslope"){//cuts for the x slope
+    QwMessage<<"XSlope LL " <<  minX <<" UL " << maxX << " kGlobalCut  "<< (errorflag&kGlobalCut)<< QwLog::endl;
+    fSlope[0].SetSingleEventCuts(errorflag, minX,maxX, stability);
+
+  }else if (ch_name=="yslope"){//cuts for the y slope
+    QwMessage<<"YSlope LL " <<  minX <<" UL " << maxX <<" kGlobalCut  "<< (errorflag&kGlobalCut)<< QwLog::endl;
+    fSlope[1].SetSingleEventCuts(errorflag, minX,maxX, stability);
+
+  }else if (ch_name=="xintercept"){//cuts for the x intercept
+    QwMessage<<"XIntercept LL " <<  minX <<" UL " << maxX <<" kGlobalCut  "<< (errorflag&kGlobalCut)<< QwLog::endl;
+    fIntercept[0].SetSingleEventCuts(errorflag, minX,maxX, stability);
+
+  }else if (ch_name=="yintercept"){//cuts for the y intercept
+    QwMessage<<"YIntercept LL " <<  minX <<" UL " << maxX <<" kGlobalCut  "<< (errorflag&kGlobalCut)<< QwLog::endl;
+    fIntercept[1].SetSingleEventCuts(errorflag, minX,maxX, stability);
+
+  } else  if (ch_name=="absx"){
+  //cuts for the absolute x and y
+    QwMessage<<"AbsX LL " <<  minX <<" UL " << maxX <<" kGlobalCut  "<< (errorflag&kGlobalCut)<< QwLog::endl;
+    fIntercept[0].SetSingleEventCuts(errorflag, 0,0,0);
+    fAbsPos[0].SetSingleEventCuts(errorflag, minX,maxX, stability);
+
+  }else if (ch_name=="absy"){
+    QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<" kGlobalCut  "<< (errorflag&kGlobalCut)<< QwLog::endl;
+    fIntercept[1].SetSingleEventCuts(errorflag, 0,0,0);
+    fAbsPos[1].SetSingleEventCuts(errorflag, minX,maxX, stability);
+
+  }else if (ch_name=="effectivecharge"){ //cuts for the effective charge
+    QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<" kGlobalCut  "<< (errorflag&kGlobalCut)<< QwLog::endl;
+    fEffectiveCharge.SetSingleEventCuts(errorflag, minX,maxX, stability);
+  }
+};
+
+
 
 void  QwCombinedBPM::ProcessEvent()
 {
   Bool_t ldebug = kFALSE;
-  Bool_t display_min_chi = kFALSE;
 
 
   static QwVQWK_Channel  tmpQADC("tmpQADC"), tmpADC("tmpADC");
 
-
-  // check to see if there are correct number of elements to perform least squares fit on.
-  // For a linear fit the number of points should be greater than 2.
-  // If not stop the process.
-
-//   if(fElement.size()<2)
-//     {
-//       QwWarning<<" QwCombinedBPM:: Process event can't carry out the linear least square fit with o 2 points!"
-// 	       <<QwLog::endl;
-//       abort();
-//     }
 
   //check to see if the fixed parameters are calculated
   if(!fixedParamCalculated){
@@ -255,7 +305,7 @@ void  QwCombinedBPM::ProcessEvent()
   }
 
   fEffectiveCharge.Scale(1.0/fSumQweights);
-
+  //fAbsPos[0].ResetErrorFlag(0x4000000);
   //Least squares fit for X
   LeastSquareFit(0, fXWeights );
 
@@ -272,7 +322,7 @@ void  QwCombinedBPM::ProcessEvent()
 	     <<" and target Y intercept = "<<fIntercept[1].GetHardwareSum()<<std::endl;
   }
 
-  if(display_min_chi){
+  if(ldebug){
     std::cout<<" QwCombinedBPM:: The minimul chi-square for the fit on X is  "<<chi_square[0]
 	     <<" and for Y = "<<chi_square[1]<<std::endl;
     std::cout<<" For a good fit minimul-chisquare should be close to 1!"<<std::endl;
@@ -298,12 +348,12 @@ void  QwCombinedBPM::ProcessEvent()
  {
 
    Bool_t ldebug = kFALSE;
-   static Double_t zpos = 0;
+   static Double_t zpos = 0.0;
 
    for(size_t i=0;i<fElement.size();i++){
      zpos = fElement[i]->fPositionCenter[2];
-     A[pos] += zpos*fWeights[i]*fWeights[i]; //zw^2
-     B[pos] += fWeights[i]; //zw
+     A[pos] += zpos*fWeights[i]; //zw
+     B[pos] += fWeights[i]; //w
      D[pos] += zpos*zpos*fWeights[i]; //z^2w
    }
 
@@ -318,7 +368,7 @@ void  QwCombinedBPM::ProcessEvent()
 
    if(ldebug){
      std::cout<<" A = "<<A[pos]<<", B = "<<B[pos]<<", D = "<<D[pos]<<", m = "<<m[pos]<<std::endl;
-     std::cout<<"From least square fit error are  "<<erra[pos]
+     std::cout<<"For least square fit, errors are  "<<erra[pos]
 	      <<"\ncovariance  = "<<covab[pos]<<"\n\n";
    }
 
@@ -346,6 +396,19 @@ void  QwCombinedBPM::ProcessEvent()
 
  void QwCombinedBPM::LeastSquareFit(Int_t n, std::vector<Double_t> fWeights)
  {
+
+   /**
+      REF : W.R Leo
+
+      For Y = aX +b
+
+      A = sigma(X * Wy)     B = sigma(Wy)    C = sigma(Y*Wy)    D = sigma(X *X * Wy)     E = sigma(X*Y*Wy)   F = sigma(Y * Y *Wy)
+
+      then
+      a = (EB-CA)/(DB-AA)      b =(DC-EA)/(DB-AA)   
+   **/
+
+
    Bool_t ldebug = kFALSE;
    static Double_t zpos = 0;
    static QwVQWK_Channel tmp1;
@@ -366,9 +429,9 @@ void  QwCombinedBPM::ProcessEvent()
      tmp2.ClearEventData();
      tmp1 = fElement[i]->fAbsPos[n];
      zpos = fElement[i]->fPositionCenter[2];
-     tmp1.Scale(fWeights[i]);//xw
-     C[n]+= tmp1;
-     tmp1.Scale(zpos);//xzw
+     tmp1.Scale(fWeights[i]);
+     C[n]+= tmp1; //xw or yw
+     tmp1.Scale(zpos);//xzw or yzw
      E[n]+= tmp1;
    }
 
@@ -406,7 +469,10 @@ void  QwCombinedBPM::ProcessEvent()
    // absolute positions at target  using X = Za + b
    tmp1.ClearEventData();
    // Absolute position of the combined bpm is not a physical position but a derived one.
+
+   //UInt_t err_flag=fAbsPos[n].GetEventcutErrorFlag();   
    fAbsPos[n]= fIntercept[n]; // X =  b
+   //fAbsPos[n].ResetErrorFlag(err_flag);
    tmp1 = fSlope[n];
    tmp1.Scale(zpos); //az
    fAbsPos[n]+=tmp1;  //X = az+b
@@ -422,7 +488,7 @@ void  QwCombinedBPM::ProcessEvent()
      tmp2+=tmp1; //sum over
    }
 
-   chi_square[n]=tmp2.GetHardwareSum()/(fElement.size()-2); //mimul ch-square
+   chi_square[n]=tmp2.GetHardwareSum()/(fElement.size()-2); //minimul chi-square
 
 
    return;
@@ -518,10 +584,11 @@ void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   if (GetElementName()!=""){
+    //    The slope, intercept and absolute positions should all be differences, not asymmetries.
     for(Short_t i=0;i<2;i++) {
-      this->fSlope[i].Ratio(numer.fSlope[i], denom.fSlope[i]);
-      this->fIntercept[i].Ratio(numer.fIntercept[i],denom.fIntercept[i]);
-      this->fAbsPos[i].Ratio(numer.fAbsPos[i], denom.fAbsPos[i]);
+      this->fSlope[i]     = numer.fSlope[i];
+      this->fIntercept[i] = numer.fIntercept[i];
+      this->fAbsPos[i]    = numer.fAbsPos[i];
     }
   }
 
@@ -581,7 +648,7 @@ void  QwCombinedBPM::ConstructHistograms(TDirectory *folder, TString &prefix)
     for(Short_t i=0;i<2;i++) {
 	fSlope[i].ConstructHistograms(folder, thisprefix);
 	fIntercept[i].ConstructHistograms(folder, thisprefix);
-	fAbsPos[i].ConstructHistograms(folder, prefix);
+	fAbsPos[i].ConstructHistograms(folder, thisprefix);
     }
 
   }
@@ -628,6 +695,7 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
     //  This channel is not used, so skip constructing trees.
   } else
     {
+
       TString thisprefix=prefix;
       if(prefix=="asym_")
 	thisprefix="diff_";
@@ -635,7 +703,6 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
       SetRootSaveStatus(prefix);
 
       fEffectiveCharge.ConstructBranchAndVector(tree,prefix,values);
-
       for(Short_t i=0;i<2;i++){
 	fSlope[i].ConstructBranchAndVector(tree,thisprefix,values);
 	fIntercept[i].ConstructBranchAndVector(tree,thisprefix,values);
@@ -643,6 +710,7 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
       }
 
     }
+
   return;
 };
 
@@ -656,7 +724,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix)
       if(prefix=="asym_")
 	thisprefix="diff_";
 
-      
+
       fEffectiveCharge.ConstructBranch(tree,prefix);
 
       for(Short_t i=0;i<2;i++){
@@ -684,7 +752,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 	if(prefix=="asym_")
 	  thisprefix="diff_";
 
-      
+
 	fEffectiveCharge.ConstructBranch(tree,prefix);
 
 	for(Short_t i=0;i<2;i++){
@@ -700,7 +768,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 };
 
 
-void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values)
+void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the tree.
@@ -767,3 +835,96 @@ void QwCombinedBPM::SetEventCutMode(Int_t bcuts)
 };
 
 
+void QwCombinedBPM::MakeBPMComboList()
+{
+  UShort_t i = 0;
+
+  QwVQWK_Channel combo_bpm_sub_element;
+  
+  for(i=0;i<2;i++) {
+    combo_bpm_sub_element.ClearEventData();
+    combo_bpm_sub_element.Copy(&fAbsPos[i]);
+    combo_bpm_sub_element = fAbsPos[i];
+    fBPMComboElementList.push_back( combo_bpm_sub_element );
+    combo_bpm_sub_element.Copy(&fSlope[i]);
+    combo_bpm_sub_element = fSlope[i];
+    fBPMComboElementList.push_back( combo_bpm_sub_element );
+    combo_bpm_sub_element.Copy(&fIntercept[i]);
+    combo_bpm_sub_element = fIntercept[i];
+    fBPMComboElementList.push_back( combo_bpm_sub_element );
+  }
+  combo_bpm_sub_element.Copy(&fEffectiveCharge);
+  combo_bpm_sub_element = fEffectiveCharge;
+  fBPMComboElementList.push_back( combo_bpm_sub_element );
+
+
+  return;
+};
+
+
+
+std::vector<QwDBInterface> QwCombinedBPM::GetDBEntry()
+{
+  UShort_t i = 0;
+  UShort_t n_element = 0;
+
+  std::vector <QwDBInterface> row_list;
+  row_list.clear();
+
+  QwDBInterface row;
+
+  TString name;
+  Double_t avg         = 0.0;
+  Double_t err         = 0.0;
+  UInt_t beam_subblock = 0;
+  UInt_t beam_n        = 0;
+
+
+  for(n_element=0; n_element<fBPMComboElementList.size(); n_element++) {
+
+    row.Reset();
+    // the element name and the n (number of measurements in average)
+    // is the same in each block and hardwaresum.
+
+    name          = fBPMComboElementList.at(n_element).GetElementName();
+    beam_n        = fBPMComboElementList.at(n_element).GetGoodEventCount();
+
+    // Get HardwareSum average and its error
+    avg           = fBPMComboElementList.at(n_element).GetHardwareSum();
+    err           = fBPMComboElementList.at(n_element).GetHardwareSumError();
+    // ADC subblock sum : 0 in MySQL database
+    beam_subblock = 0;
+
+    row.SetDetectorName(name);
+    row.SetSubblock(beam_subblock);
+    row.SetN(beam_n);
+    row.SetValue(avg);
+    row.SetError(err);
+
+    row_list.push_back(row);
+
+    // Get four Block averages and thier errors
+
+    for(i=0; i<4; i++) {
+      row.Reset();
+      avg           = fBPMComboElementList.at(n_element).GetBlockValue(i);
+      err           = fBPMComboElementList.at(n_element).GetBlockErrorValue(i);
+      beam_subblock = (UInt_t) (i+1);
+      // QwVQWK_Channel  | MySQL
+      // fBlock[0]       | subblock 1
+      // fBlock[1]       | subblock 2
+      // fBlock[2]       | subblock 3
+      // fBlock[3]       | subblock 4
+      row.SetDetectorName(name);
+      row.SetSubblock(beam_subblock);
+      row.SetN(beam_n);
+      row.SetValue(avg);
+      row.SetError(err);
+
+      row_list.push_back(row);
+    }
+  }
+
+  return row_list;
+
+};

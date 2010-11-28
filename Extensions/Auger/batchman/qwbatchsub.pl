@@ -19,8 +19,6 @@
 #
 ################################################
 
-use Mysql;
-
 use Cwd;
 use Cwd 'abs_path';
 use File::Find ();
@@ -32,7 +30,7 @@ use strict 'vars';
 use vars qw($original_cwd $executable $script_dir
 	    $analysis_directory $real_path_to_analysis $scratch_directory
 	    $Default_Analysis_Options $option_list
-	    $opt_h  $opt_n $opt_r $opt_O $opt_F $opt_Q
+	    $opt_h  $opt_E $opt_n $opt_r $opt_O $opt_F $opt_Q
 	    $batch_queue
 	    @run_list @discards $first_run $last_run
 	    @good_runs $goodrunfile 
@@ -85,7 +83,7 @@ crashout("The QW_TMP directory, $ENV{QW_TMP}, does not exist.  Exiting")
 ###  Get the option flags.
 # added -F option to check the runs against good runs in the input file
 # jianglai 03-02-2003
-getopts('hnr:O:F:Q:');
+getopts('hE:nr:O:F:Q:');
 
 $Default_Analysis_Options = "";
 
@@ -98,6 +96,21 @@ if ($#ARGV > -1){
 if ($opt_h){
     displayusage();
     exit;
+}
+
+if ($opt_E ne ""){
+    $executable = $opt_E;
+    if (-e "$ENV{QW_BIN}/$opt_E") {
+	$executable = "$ENV{QW_BIN}/$opt_E";
+    } elsif (-e "$opt_E") {
+	$executable = $opt_E;
+    } else {
+	print STDERR
+	    "Neither $ENV{QW_BIN}/$opt_E or $executable are executable files.\n";
+	exit;
+    }
+} else {
+    $executable = "$ENV{QW_BIN}/qwparity";
 }
 
 if ($opt_Q ne ""){
@@ -178,6 +191,7 @@ if ($opt_O ne ""){
 }
 
 print STDOUT "\nRuns to be analyzed:\t@good_runs\n",
+    "Executable:   \t$executable\n\n",
     "Analysis options:   \t$option_list\n\n";
 
 
@@ -221,7 +235,7 @@ foreach $runnumber (@good_runs){
 	my $rootfile_stem=undef;
 	foreach (@flags){
 	    $where++;
-	    if(/--outputstem/) {# if "stem" is specified
+	    if(/--rootfile-stem/) {# if "stem" is specified
 		$rootfile_stem = $flags[$where];
 		last;
 	    }
@@ -269,11 +283,11 @@ foreach $runnumber (@good_runs){
 	print JOBFILE  "TRACK:   $batch_queue\n";
 	print JOBFILE  
 	    "OPTIONS: $analysis_directory $scratch_directory ",
-	    "$runnumber $option_list\n";
+	    "$runnumber $executable $option_list\n";
 	print JOBFILE  
 	    "SINGLE_JOB\n",
 	    "INPUT_FILES: @input_files\n",
-	    "MEMORY: 1024 MB\n",
+	    "MEMORY: 2048 MB\n",
 	    "DISK_SPACE: ",($#input_files+1)*1600+3000," MB\n",
 	    ### "OTHER_FILES: ....\n",
 	    "TOWORK\n",
@@ -288,16 +302,15 @@ foreach $runnumber (@good_runs){
 	    #"OUTPUT_TEMPLATE: $ENV{ASYMDIR}/.\n";
 	    #
 	    ####  Now rootfiles are copied by the qwbatch.csh script.
-	    ####  2004aug25; pking.
 	    #"OUTPUT_DATA: rootfiles/* \n",
-	    #"OUTPUT_TEMPLATE: $ENV{QW_ROOTFILES}/.\n",
+	    #"OUTPUT_TEMPLATE: $ENV{QW_ROOTFILES}/.\n";
 	    #
 	    #"OUTPUT_DATA: sum/* \n",
 	    #"OUTPUT_TEMPLATE: $ENV{SUMMARYDIR}/.\n",
 	    #
 	    #"OUTPUT_DATA: calib/* \n",
 	    #"OUTPUT_TEMPLATE: $ENV{PEDESTAL_DIR}/.\n";
-	
+
 	print JOBFILE  "MAIL: $ENV{USER}\@jlab.org\n";
 	print JOBFILE  "OS: linux64\n";
 	
@@ -322,33 +335,6 @@ exit;
 ################################################
 ################################################
 ################################################
-
-
-############################################################################
-sub get_filelist_from_DB($,$,\@) {
-    my ($hostname,$database,@run_list) = @_;
-
-    my ($db, $runnumber, $sth, %data);
-
-###  Connect to the datatracker database on cdaql6.
-    $db = Mysql->connect($hostname,$database) || die "$Mysql::db_errstr\n";
-
-###  Get the file names from the database.
-    my @file_list = ();
-    if ($#run_list > -1){
-	foreach $runnumber (@run_list){
-	    $sth = $db->query("SELECT filename FROM silo WHERE run_number = $runnumber") || die "$Mysql::db_errstr\n";
-	    if(%data = $sth->FetchHash) {		# There are some files
-		print keys %data,"\n";
-		push @file_list, $data{'filename'};
-	    } else {
-		print STDERR "There are no files on the silo for run $runnumber\n";
-	    }
-	}
-    }
-    return @file_list;
-}
-
 
 
 ############################################################################

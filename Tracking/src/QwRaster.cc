@@ -8,6 +8,7 @@
 \**********************************************************/
 
 #include "QwRaster.h"
+#include "TStyle.h"
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwRaster> theRasterFactory("QwRaster");
@@ -141,21 +142,13 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
         {
             varname.ToLower();
             Double_t value = atof(varvalue.Data());
-           if (varname=="position_offset_x")
+            if (varname=="position_offset_x")
             {
                 fPositionOffsetX = value;
             }
             else if (varname=="position_offset_y")
             {
                 fPositionOffsetY = value;
-            }
-            else if (varname=="cal_factor_vqwk_x")
-            {
-                fCal_Factor_VQWK_X = value;
-            }
-            else if (varname=="cal_factor_vqwk_y")
-            {
-                fCal_Factor_VQWK_Y = value;
             }
             else if (varname=="cal_factor_qdc_x")
             {
@@ -165,14 +158,6 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
             {
                 fCal_Factor_QDC_Y = value;
             }
-            else if (varname=="voltage_offset_x")
-            {
-                fVoltage_Offset_X = value;
-            }
-            else if (varname=="voltage_offset_y")
-            {
-                fVoltage_Offset_Y = value;
-            }
             else if (varname=="channel_offset_x")
             {
                 fChannel_Offset_X = value;
@@ -181,6 +166,23 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
             {
                 fChannel_Offset_Y = value;
             }
+            else if (varname=="bpm_3h07a_slope")
+            {
+                fbpm_3h07a_slope = value;
+            }
+            else if (varname=="bpm_3h07a_intercept")
+            {
+                fbpm_3h07a_intercept = value;
+            }
+            else if (varname=="bpm_3h09b_slope")
+            {
+                fbpm_3h09b_slope = value;
+            }
+            else if (varname=="bpm_3h09b_intercept")
+            {
+                fbpm_3h09b_intercept = value;
+            }
+
             if (ldebug) std::cout<<"inputs for "<<varname<<": "<<value<<"\n";
         }
 
@@ -254,53 +256,10 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
     Int_t index = GetSubbankIndex(roc_id,bank_id);
 
     SetDataLoaded(kTRUE);
-    if (fDEBUG) std::cout << "FocalPlaneRaster::ProcessEvBuffer:  "
+    if (fDEBUG) std::cout << "Raster::ProcessEvBuffer:  "
         << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
         <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
         << ", num_words "<<num_words<<", index "<<index<<std::endl;
-
-    //  This is a VQWK bank
-    if (bank_id==fBankID[1])
-    {
-
-        if (index>=0 && num_words>0)
-        {
-
-            //  This is a VQWK bank We want to process this ROC.  Begin looping through the data.
-            if (fDEBUG) std::cout << "FocalPlaneRaster::ProcessEvBuffer: Processing VQWK Bank "<<bank_id
-                <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
-                << " fADC_Data.size() = "<<fADC_Data.size()<<std::endl;
-            UInt_t words_read = 0;
-            for (size_t i=0; i<fADC_Data.size(); i++)
-            {
-                if (fADC_Data.at(i) != NULL)
-                {
-                    words_read += fADC_Data.at(i)->ProcessEvBuffer(&(buffer[words_read]),
-                                  num_words-words_read);
-                    if (fDEBUG)
-                    {
-                        std::cout<<"QwRaster::ProcessEvBuffer(VQWK): "<<words_read<<" words_read, "
-                        <<num_words<<" num_words"<<" Data: ";
-                        for (UInt_t j=(words_read-48); j<words_read; j++)
-                            std::cout<<"     "<<std::hex<<buffer[j]<<std::dec;
-                        std::cout<<std::endl;
-                    }
-                }
-                else
-                {
-                    words_read += 48; // skip 48 data words (8 channel x 6 words/ch)
-                }
-            }
-
-            if (fDEBUG & (num_words != words_read))
-            {
-                std::cerr << "QwRaster::ProcessEvBuffer(VQWK):  There were "
-                << num_words-words_read
-                << " leftover words after decoding everything we recognize."
-                << std::endl;
-            }
-        }
-    }
 
     //  This is a QADC/TDC bank
     if (bank_id==fBankID[0])
@@ -308,7 +267,7 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
         if (index>=0 && num_words>0)
         {
             //  We want to process this ROC.  Begin looping through the data.
-            if (fDEBUG) std::cout << "FocalPlaneRaster::ProcessEvBuffer:  "
+            if (fDEBUG) std::cout << "Raster::ProcessEvBuffer:  "
                 << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
                 <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"<< std::endl;
 
@@ -338,11 +297,10 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
                         // using 0 for now
                         FillRawWord(index,fQDCTDC.GetTDCSlotNumber(),fQDCTDC.GetTDCChannelNumber(),
                                           fQDCTDC.GetTDCData());
-                        //FillRawWord(index,0,GetTDCChannelNumber(),GetTDCData());
                     }
                     catch (std::exception& e)
                     {
-                        std::cerr << "Standard exception from FocalPlaneRaster::FillRawTDCWord: "
+                        std::cerr << "Standard exception from Raster::FillRawTDCWord: "
                         << e.what() << std::endl;
                         Int_t chan = fQDCTDC.GetTDCChannelNumber();
                         std::cerr << "   Parameters:  index=="<<index
@@ -372,7 +330,6 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
 void  QwRaster::ProcessEvent()
 {
     if (! HasDataLoaded()) return;
-    //std::cout<<"Raster Events will be processed here."<<std::endl;
 
     for (size_t i=0; i<fPMTs.size(); i++)
     {
@@ -397,69 +354,97 @@ void  QwRaster::ProcessEvent()
         {
 
             TString element_name = fPMTs.at(i).at(j).GetElementName();
-            if (element_name==TString("posx_adc"))
+            if (element_name==TString("raster_posx_adc"))
             {
                 fPositionX_ADC = fPMTs.at(i).at(j).GetValue();
                 fPositionX_ADC = (fPositionX_ADC-fChannel_Offset_X)*fCal_Factor_QDC_X + fPositionOffsetX;
             }
-            else if (element_name==TString("posy_adc"))
+            else if (element_name==TString("raster_posy_adc"))
             {
                 fPositionY_ADC = fPMTs.at(i).at(j).GetValue();
                 fPositionY_ADC = (fPositionY_ADC-fChannel_Offset_Y)*fCal_Factor_QDC_Y + fPositionOffsetY;
             }
+
+            else if (element_name==TString("bpm_3h07a_xp_adc"))
+            {
+                fbpm_3h07a_xp = fPMTs.at(i).at(j).GetValue();
+            }
+            else if (element_name==TString("bpm_3h07a_xm_adc"))
+            {
+                fbpm_3h07a_xm = fPMTs.at(i).at(j).GetValue();
+            }
+            else if (element_name==TString("bpm_3h07a_yp_adc"))
+            {
+                fbpm_3h07a_yp = fPMTs.at(i).at(j).GetValue();
+            }
+            else if (element_name==TString("bpm_3h07a_ym_adc"))
+            {
+                fbpm_3h07a_ym = fPMTs.at(i).at(j).GetValue();
+            }
+            else if (element_name==TString("bpm_3h09b_xp_adc"))
+            {
+                fbpm_3h09b_xp = fPMTs.at(i).at(j).GetValue();
+            }
+            else if (element_name==TString("bpm_3h09b_xm_adc"))
+            {
+                fbpm_3h09b_xm = fPMTs.at(i).at(j).GetValue();
+            }
+            else if (element_name==TString("bpm_3h09b_yp_adc"))
+            {
+                fbpm_3h09b_yp = fPMTs.at(i).at(j).GetValue();
+            }
+            else if (element_name==TString("bpm_3h09b_ym_adc"))
+            {
+                fbpm_3h09b_ym = fPMTs.at(i).at(j).GetValue();
+            }
         }
-    }
-
-    //Fill position data
-    for (size_t i=0; i<fADC_Data.size(); i++)
-    {
-        if (fADC_Data.at(i) != NULL)
-        {
-            fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("posx_vqwk"))->GetAverageVolts();
-            fPositionX_VQWK = (fPositionX_VQWK-fVoltage_Offset_X)*fCal_Factor_VQWK_X + fPositionOffsetX;
-
-            fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("posy_vqwk"))->GetAverageVolts();
-            fPositionY_VQWK = (fPositionY_VQWK-fVoltage_Offset_Y)*fCal_Factor_VQWK_Y + fPositionOffsetY;
-        }
-    }
-
+     }
+     fbpm_3h07a_pos_x = fbpm_3h07a_slope*(fbpm_3h07a_xp-fbpm_3h07a_xm)/
+                        (fbpm_3h07a_xp+fbpm_3h07a_xm)+fbpm_3h07a_intercept;
+     fbpm_3h07a_pos_y = fbpm_3h07a_slope*(fbpm_3h07a_yp-fbpm_3h07a_ym)/
+                        (fbpm_3h07a_yp+fbpm_3h07a_ym)+fbpm_3h07a_intercept;
+     fbpm_3h09b_pos_x = fbpm_3h09b_slope*(fbpm_3h09b_xp-fbpm_3h09b_xm)/
+                        (fbpm_3h09b_xp+fbpm_3h09b_xm)+fbpm_3h09b_intercept;
+     fbpm_3h09b_pos_y = fbpm_3h09b_slope*(fbpm_3h09b_yp-fbpm_3h09b_ym)/
+                        (fbpm_3h09b_yp+fbpm_3h09b_ym)+fbpm_3h09b_intercept;
 };
 
 
 void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
 
-    TString pat1 = "asym";
-    TString pat2 = "yield";
     TString basename;
 
-    if (prefix.BeginsWith(pat1)) {   }    //construct histograms in hel_histo folder if need
-    else if (prefix.BeginsWith(pat2)) {    }
+    if (prefix = "")  basename = "";
+    else  basename = prefix;
 
-    else
+    if (folder != NULL) folder->cd();
+
+    if (bStoreRawData)
     {
-        if (prefix = "")  basename = "raster_";
-        else  basename = prefix;
-
-        if (folder != NULL) folder->cd();
-
-        if (bStoreRawData)
+        for (size_t i=0; i<fPMTs.size(); i++)
         {
-            for (size_t i=0; i<fPMTs.size(); i++)
-            {
-                for (size_t j=0; j<fPMTs.at(i).size(); j++)
-                    fPMTs.at(i).at(j).ConstructHistograms(folder, basename);
-            }
+            for (size_t j=0; j<fPMTs.at(i).size(); j++)
+                fPMTs.at(i).at(j).ConstructHistograms(folder, basename);
         }
-
-        fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
-        fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_y")));
-
-        fRateMap  = new TH2D("raster_rate_map","Raster Rate Map",500,-2.5,2.5,500,-2.5,2.5);
-        fRateMap->GetXaxis()->SetTitle("PositionX");
-        fRateMap->GetYaxis()->SetTitle("PositionY");
-        fRateMap->SetOption("colz");
     }
+
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_y")));
+  
+    fRateMap  = new TH2D("raster_rate_map","Raster Rate Map",125,0,0,125,0,0);
+    
+    fRateMap->GetXaxis()->SetTitle(" X [mm]");
+    fRateMap->GetYaxis()->SetTitle(" Y [mm]");
+
+    gStyle     -> SetPalette(1);
+    fRateMap->SetOption("colz");
+
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_x")));
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_y")));
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_x")));
+    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_y")));
+
 };
 
 void  QwRaster::FillHistograms()
@@ -479,20 +464,50 @@ void  QwRaster::FillHistograms()
         }
     }
 
+   
+    // FR fudge factor is 3.2, by Dave Mack
+    // See hclog ttps://hallcweb.jlab.org/hclog/1010_archive/101012134143.html
+    // I inverse x axis and multiply the FR fudge factor to x and y values
+    // in order to see the unit is mm in the FR plot
+    // Tuesday, October 12 17:11:52 EDT 2010, jhlee
+
+    Double_t fudge_factor = 3.2;
+    
+    Double_t raster_x_mm = 0.0;
+    Double_t raster_y_mm = 0.0;
+
+    raster_x_mm = - fudge_factor*fPositionX_ADC;
+    raster_y_mm =   fudge_factor*fPositionY_ADC;
+
     for (size_t j=0; j<fHistograms1D.size();j++)
     {
-        if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_x"))
+      if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_x"))
         {
-            fHistograms1D.at(j)->Fill(fPositionX_ADC);
+	  fHistograms1D.at(j)->Fill(raster_x_mm);
         }
-
-        if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_y"))
+      if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_y"))
         {
-            fHistograms1D.at(j)->Fill(fPositionY_ADC);
+	  fHistograms1D.at(j)->Fill(raster_y_mm);
+        }
+      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_x"))
+        {
+	  fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_x);
+        }
+      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_y"))
+        {
+	  fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_y);
+        }
+      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_x"))
+        {
+	  fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_x);
+        }
+      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_y"))
+        {
+	  fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_y);
         }
     }
-
-    fRateMap->Fill(fPositionX_ADC,fPositionY_ADC);
+    
+    fRateMap->Fill(raster_x_mm, raster_y_mm);
 };
 
 
@@ -501,68 +516,72 @@ void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vect
     fTreeArrayIndex = values.size();
 
     TString basename;
-    if (prefix=="") basename = "raster";
+    if (prefix=="") basename = "beamline";
     else basename = prefix;
 
-        values.push_back(0.0);
-        TString list = "PositionX_ADC/D";
-        values.push_back(0.0);
-        list += ":PositionY_ADC/D";
+    values.push_back(0.0);
+    TString list = "PositionX_ADC/D";
+    values.push_back(0.0);
+    list += ":PositionY_ADC/D";
+    list += ":bpm_3h07a_pos_x/D";
+    list += ":bpm_3h07a_pos_y/D";
+    list += ":bpm_3h09b_pos_x/D";
+    list += ":bpm_3h09b_pos_y/D";
 
-        if (bStoreRawData)
+    if (bStoreRawData)
+    {
+
+      for (size_t i=0; i<fPMTs.size(); i++)
+      {
+        for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
+          //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
+          if (fPMTs.at(i).at(j).GetElementName()=="")
+          {
+            //  This channel is not used, so skip setting up the tree.
+          }
+          else
+          {
+            values.push_back(0.0);
+            list += ":"+fPMTs.at(i).at(j).GetElementName()+"_raw/D";
+          }
+        }
+      }
 
-            for (size_t i=0; i<fPMTs.size(); i++)
-            {
-                for (size_t j=0; j<fPMTs.at(i).size(); j++)
-                {
-                    //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
-                    if (fPMTs.at(i).at(j).GetElementName()=="")
-                    {
-                        //  This channel is not used, so skip setting up the tree.
-                    }
-                    else
-                    {
-                        values.push_back(0.0);
-                        list += ":"+fPMTs.at(i).at(j).GetElementName()+"_raw/D";
-                    }
-                }
-            }
-
-
-
-        fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-        tree->Branch(basename, &values[fTreeArrayIndex], list);
-
+      fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+      tree->Branch(basename, &values[fTreeArrayIndex], list);
     }
     return;
 };
 
 
-void  QwRaster::FillTreeVector(std::vector<Double_t> &values)
+void  QwRaster::FillTreeVector(std::vector<Double_t> &values) const
 {
     if (! HasDataLoaded()) return;
 
     Int_t index = fTreeArrayIndex;
     values[index++] = fPositionX_ADC;
     values[index++] = fPositionY_ADC;
+    values[index++] = fbpm_3h07a_pos_x;
+    values[index++] = fbpm_3h07a_pos_y;
+    values[index++] = fbpm_3h09b_pos_x;
+    values[index++] = fbpm_3h09b_pos_y;
 
     if (bStoreRawData)
     {
-
-        //fill trigvalues
-        for (size_t i=0; i<fPMTs.size(); i++)
+      //fill trigvalues
+      for (size_t i=0; i<fPMTs.size(); i++)
+      {
+        for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
-            for (size_t j=0; j<fPMTs.at(i).size(); j++)
-            {
-                if (fPMTs.at(i).at(j).GetElementName()=="") {}
-                else
-                {
-                    values[index++] = fPMTs.at(i).at(j).GetValue();
-                }
-            }
+          if (fPMTs.at(i).at(j).GetElementName()=="") {}
+          else
+          {
+            values[index++] = fPMTs.at(i).at(j).GetValue();
+          }
         }
-}
+      }
+    }
     return;
 };
 

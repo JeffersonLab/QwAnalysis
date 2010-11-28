@@ -311,6 +311,26 @@ void QwDatabase::SetAccessLevel(string accesslevel)
   return;
 };
 
+/*!
+ * Sets run number for subsequent database interactions.  Makes sure correct
+ * entry exists in run table and retrieves run_id.
+ */
+void QwDatabase::SetupOneRun(QwEventBuffer& qwevt)
+{
+  if (this->AllowsReadAccess()) {
+    UInt_t run_id      = this->GetRunID(qwevt);
+    UInt_t runlet_id   = this->GetRunletID(qwevt);
+    UInt_t analysis_id = this->GetAnalysisID(qwevt);
+    
+    //  Write from the datebase
+    QwMessage << "QwDatabase::SetupOneRun::"
+	      << " Run Number "  << QwColor(Qw::kBoldMagenta) << qwevt.GetRunNumber() << QwColor(Qw::kNormal)
+	      << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id << QwColor(Qw::kNormal)
+	      << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id << QwColor(Qw::kNormal)
+	      << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
+	      << QwLog::endl;
+  }
+}
 
 /*!
  * Sets run number for subsequent database interactions.  Makes sure correct

@@ -25,20 +25,28 @@
 /// \ingroup QwAnalysis_BL
 
 class QwBPMCavity : public VQwBPM {
-  friend class QwCombinedBPM;  
-  friend class QwEnergyCalculator;  
+  friend class QwCombinedBPM;
+  friend class QwEnergyCalculator;
 
  public:
   QwBPMCavity() { };
- QwBPMCavity(TString name, Bool_t ROTATED):VQwBPM(name){
+  QwBPMCavity(TString name, Bool_t ROTATED):VQwBPM(name){
     InitializeChannel(name);
     bRotated=ROTATED;
 
   };
+    QwBPMCavity(TString subsystemname, TString name, Bool_t ROTATED):VQwBPM(name){
+      SetSubsystemName(subsystemname);
+      InitializeChannel(subsystemname, name);
+      bRotated=ROTATED;
+
+    };
 
   ~QwBPMCavity() {DeleteHistograms();};
 
   void    InitializeChannel(TString name);
+  // new routine added to update necessary information for tree trimming
+  void  InitializeChannel(TString subsystem, TString name);
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
@@ -53,6 +61,8 @@ class QwBPMCavity : public VQwBPM {
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
@@ -63,7 +73,7 @@ class QwBPMCavity : public VQwBPM {
   void    EncodeEventData(std::vector<UInt_t> &buffer);
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
-  
+
   void    Copy(VQwDataElement *source);
   void    Ratio(QwBPMCavity &numer, QwBPMCavity &denom);
   void    Scale(Double_t factor);
@@ -80,7 +90,7 @@ class QwBPMCavity : public VQwBPM {
   void    DeleteHistograms();
 
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void    FillTreeVector(std::vector<Double_t> &values);
+  void    FillTreeVector(std::vector<Double_t> &values) const;
   void    ConstructBranch(TTree *tree, TString &prefix);
   void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
 
@@ -102,12 +112,12 @@ class QwBPMCavity : public VQwBPM {
  protected:
   Bool_t   bRotated;
   QwVQWK_Channel fWire[2];
-  QwVQWK_Channel fRelPos[2]; 
+  QwVQWK_Channel fRelPos[2];
   QwVQWK_Channel fAbsPos[2]; // Z will not be considered as a vqwk_channel
   QwVQWK_Channel fEffectiveCharge;
 
-  std::vector<QwVQWK_Channel> fBPMElementList; 
-  
+  std::vector<QwVQWK_Channel> fBPMElementList;
+
 };
 
 

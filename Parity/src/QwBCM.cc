@@ -46,6 +46,18 @@ void QwBCM<T>::InitializeChannel(TString name, TString datatosave)
 };
 /********************************************************/
 template<typename T>
+void  QwBCM<T>::InitializeChannel(TString subsystem, TString name, TString datatosave){
+  SetPedestal(0.);
+  SetCalibrationFactor(1.);
+  fBeamCurrent.InitializeChannel(subsystem, "QwBCM", name, datatosave);
+  SetElementName(name);
+  //set default limits to event cuts
+  fLLimit=0;//init two timits
+  fULimit=0;//init two timits
+  return;  
+};
+/********************************************************/
+template<typename T>
 void QwBCM<T>::ClearEventData()
 {
   fBeamCurrent.ClearEventData();
@@ -135,8 +147,6 @@ void QwBCM<T>::ProcessEvent()
 {
   this->ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fBeamCurrent.ProcessEvent();
-  //update the event cut counters
-  fBeamCurrent.UpdateHWErrorCounters();
   return;
 };
 /********************************************************/
@@ -160,6 +170,15 @@ Int_t QwBCM<T>::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<D
 };
 
 template<typename T>
+void QwBCM<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+  //set the unique tag to identify device type (bcm,bpm & etc)
+  errorflag|=kBCMErrorFlag;
+  QwMessage<<"QwBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  fBeamCurrent.SetSingleEventCuts(errorflag,LL,UL,stability);
+
+};
+
+template<typename T>
 void QwBCM<T>::SetDefaultSampleSize(Int_t sample_size){
   fBeamCurrent.SetDefaultSampleSize((size_t)sample_size);
 }
@@ -175,7 +194,7 @@ Bool_t QwBCM<T>::ApplySingleEventCuts(){
     status=kTRUE;
   }
   else{
-    fBeamCurrent.UpdateEventCutErrorCount();//update event cut falied counts
+
     if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fBeamCurrent.GetHardwareSum();
     status&=kFALSE;
   }
@@ -338,11 +357,10 @@ template<typename T>
 void QwBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (this->GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
+    //  This channel is not used, so skip
   } else
     {
       fBeamCurrent.ConstructBranchAndVector(tree, prefix,values);
-      // this functions doesn't do anything yet
     }
   return;
 };
@@ -371,7 +389,7 @@ void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& m
     //  This channel is not used, so skip filling the histograms.
   } else
     {
-      
+
       //QwMessage <<" QwBCM "<<devicename<<QwLog::endl;
       if (modulelist.HasValue(devicename)){
 	fBeamCurrent.ConstructBranch(tree, prefix);
@@ -383,7 +401,7 @@ void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& m
 };
 
 template<typename T>
-void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values)
+void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.

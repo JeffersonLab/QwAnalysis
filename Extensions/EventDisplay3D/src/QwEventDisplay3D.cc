@@ -3,6 +3,14 @@ ClassImp(QwEventDisplay3D);
 
 // ROOT Includes
 
+// Global defines
+// These represent the conversion from degrees to radians
+#define _45DEG_  0.78539816
+#define _90DEG_  1.57079633
+#define _135DEG_ 2.35619449
+#define _180DEG_ 3.14159265
+#define _TO_DEG_ 57.2957795
+
 // Global constants (mostly flags)
 const Bool_t kDebug = kTRUE;
 
@@ -14,25 +22,34 @@ QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
    // First initialize the wire constants
    // TODO:(jc2) Read these from a configuration. Also check these numbers,
    // these were the figures I had on hand when I did this on 07/14/2010
-  
 
-   //The Following are VDC specs from old survey 07/14/2010 
-   fVDC_AngleOfWires = 0.463647609;  // atan(1/2) in radians
-   fAngleOfVDC  =  1.144412391;   // 65.57deg in radians
-   fVDC_WireSeparation = 0.5;        // in cm
-   fVDC_WireXSpacing = 1.11125;  // in cm
-   fVDC_WireYSpacing = 0.559016994;  // in cm
-   fVDC_WireZProjectedSpacing = 0.231198922;  // in cm
-   fVDC_XLength      = 204.47;       // in cm
-   fVDC_YLength      = 53.34;        // in cm
-   fVDC_PlaneZPos[0] = 442.74;       // in cm
-   fVDC_PlaneZPos[1] = 445.10;       // in cm
-   fVDC_PlaneZPos[2] = 494.74;       // in cm
-   fVDC_PlaneZPos[3] = 497.06;       // in cm
-   fVDC_PlaneYPos[0] = 276.63;       // in cm
-   fVDC_PlaneYPos[1] = 275.70;       // in cm
-   fVDC_PlaneYPos[2] = 296.24;       // in cm
-   fVDC_PlaneYPos[3] = 295.2;        // in cm
+
+   // The Following are VDC specs from a survey and are updated
+   // as of 09/15/2010 (jcc)
+   fVDC_AngleOfWires = 0.463647609;       // atan(1/2) in radians
+   fAngleOfVDC  =  1.144935989;           // 65.6deg in radians
+   fVDC_WireSeparation = 0.5;             // in cm
+   fVDC_WireXSpacing = 1.11125;           // in cm
+   fVDC_WireYSpacing = 0.559016994;       // in cm
+   fVDC_WireZProjectedSpacing = 0.231198922; // in cm
+   fVDC_XLength      = 204.47;            // in cm
+   fVDC_YLength      = 53.34;             // in cm
+   fVDC_PlaneZPos[0][0] = 448.54;         // in cm
+   fVDC_PlaneZPos[0][1] = 450.86;         // in cm
+   fVDC_PlaneZPos[0][2] = 501.68;         // in cm
+   fVDC_PlaneZPos[0][3] = 501.68;         // in cm
+   fVDC_PlaneZPos[1][0] = 449.56;         // in cm
+   fVDC_PlaneZPos[1][1] = 451.88;         // in cm
+   fVDC_PlaneZPos[1][2] = 502.62;         // in cm
+   fVDC_PlaneZPos[1][3] = 504.94;         // in cm
+   fVDC_PlaneYPos[0][0] = 271.39;         // in cm
+   fVDC_PlaneYPos[0][1] = 270.35;         // in cm
+   fVDC_PlaneYPos[0][2] = 293.28;         // in cm
+   fVDC_PlaneYPos[0][3] = 292.24;         // in cm
+   fVDC_PlaneYPos[1][0] = 269.81;         // in cm
+   fVDC_PlaneYPos[1][1] = 268.77;         // in cm
+   fVDC_PlaneYPos[1][2] = 291.88;         // in cm
+   fVDC_PlaneYPos[1][3] = 290.84;         // in cm
    fVDC_SinAngleWires =  0.447213595;  // unitless
    fVDC_CosAngleWires =  0.894427191;  // unitless
    fVDC_TanAngleWires =  0.500000000;  // unitless
@@ -72,6 +89,10 @@ QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
    fCurrentTrackArray = new TObjArray();
    fCurrentOutlineArray= new TObjArray();   
 
+   // Enable various flags (for now, should be done through the GUI later)
+   fDrawTracks = kFALSE;
+   fDrawTreeLines = kFALSE;
+
 
    // For now, just initialize
    Init();
@@ -101,6 +122,10 @@ void QwEventDisplay3D::Init()
    // loaded
    //InitEvents();
 
+   // Setup the rotation for now, assuming a default of horizontal position
+   // for the tracking hardware
+   SetRotation(0.);
+
    // TODO: Erase the following
    SwitchViewVDC();
    SwitchViewHDC();
@@ -121,6 +146,11 @@ void QwEventDisplay3D::LoadGeometry()
 
    // Retrieve the top node of the geometry manager
    fTopNode = fGeoManager->GetTopNode();
+
+   // Uncomment the following two lines to print out the names and numbers
+   // of the nodes
+   // fTopNode->GetVolume()->PrintNodes();
+   // exit(0);
 
    // Format for proper usage with EVE
    fGeometry = new TEveGeoTopNode(fGeoManager, fTopNode);
@@ -245,7 +275,7 @@ void QwEventDisplay3D::InitEvents()
   // there is an Event which contains the details of the specific tracks.
   fHitContainer = NULL; // To allocate the memory already!
   fEvent = NULL;        // To allocate the memory already!
-  fTree->SetBranchAddress("hits",&fHitContainer);
+  //fTree->SetBranchAddress("hits",&fHitContainer);
   fTree->SetBranchAddress("events",&fEvent);
 
   // Read the number of events available
@@ -620,7 +650,7 @@ void QwEventDisplay3D::DisplayEvent()
 
    // Check to see if a previous event was already drawn and remove it
      if( fCurrentTrack )
-      ClearTracks();       
+      ClearTracks();
 
 
    // Find out if there are any valid "hits" in this event
@@ -654,14 +684,18 @@ void QwEventDisplay3D::DisplayEvent()
 
       // Now loop through the hit container to extract all information about
       // all hits in his event (accross _all_ regions)
-      for( Int_t j = 0; j < numberOfHits; j++ ) {
-         hit = (QwHit*)fHitContainer->GetHit(j);
-         region = hit->GetRegion();
-         direction = hit->GetDirection();
-         package = hit->GetPackage();
-         plane = hit->GetPlane();
-         wire = hit->GetElement();
-         ambiguousR3Wire = (Bool_t)hit->AmbiguousElement();
+      fHitContainer = fEvent->GetHitContainer();
+      QwHitContainer::iterator it =
+         fHitContainer->begin();
+      Int_t j = 0;
+      while ( it != fHitContainer->end() ) {
+         j++;
+         region = (*it).GetRegion();
+         direction = (*it).GetDirection();
+         package = (*it).GetPackage();
+         plane = (*it).GetPlane();
+         wire = (*it).GetElement();
+         ambiguousR3Wire = (Bool_t)(*it).AmbiguousElement();
          if (kDebug) {
             std::cout << "---Hit: " << j << "\n";
             std::cout << "Region: " << region << "\n";
@@ -711,81 +745,109 @@ void QwEventDisplay3D::DisplayEvent()
          // Display the wire hit
          DisplayWire(wire,plane,package,region,message);
 
+         // Go to the next
+         it++;
      }
      // For now we will display multiple partial, possibly not connected,
      // tracks until a good one is produced in the rootfiles.
-     const TClonesArray *partialTracksList = fEvent->GetListOfPartialTracks();
      Int_t numberOfPartialTracks = fEvent->GetNumberOfPartialTracks();
      std::cout << "Number of Partial Tracks: " << numberOfPartialTracks <<"\n";
      for (Int_t k = 0; k < numberOfPartialTracks; k++ ) {
         // Extract the PartialTrack
-        QwPartialTrack *partialTrack = 
-           (QwPartialTrack*)partialTracksList->At(k);
+        const QwPartialTrack *partialTrack = fEvent->GetPartialTrack(k);
 
         // Region 1 & 2 should point back toward the target, while Region 3
         // should point towards the beam dump
-        Int_t sign = 1;
-        if( partialTrack->GetRegion() == kRegionID2)
-           sign = -1;
+        if( fDrawTracks ) {
+           Int_t sign = 1;
+           if( partialTrack && partialTrack->GetRegion() == kRegionID2)
+              sign = -1;
 
-        if( partialTrack->IsValid() ) {
-           std::cout << "Region: " << partialTrack->GetRegion() << "\n";
+           if( partialTrack->IsValid() ) {
+              std::cout << "Region: " << partialTrack->GetRegion() << "\n";
 
-           TEveRecTrack *track = new TEveRecTrack();
-           TEveTrackPropagator *prop = new TEveTrackPropagator();
-           prop->SetMagField(0.,0.,0.);
-           prop->SetFitDaughters(kFALSE);
-           prop->SetMaxR(1000.);
+              TEveRecTrack *track = new TEveRecTrack();
+              TEveTrackPropagator *prop = new TEveTrackPropagator();
+              prop->SetMagField(0.,0.,0.);
+              prop->SetFitDaughters(kFALSE);
+              prop->SetMaxR(650.);
+              prop->SetMaxZ(650.);
 
-           // This assumes the Origin is centered at z=0, and the two offsets
-           // found no the partial tracks
-           std::cout << "Origin: (" << partialTrack->fOffsetX/10. << "," <<
-              partialTrack->fOffsetY/10. << ",0.)\n";
-           track->fV.Set(partialTrack->fOffsetX/10.,
-                 partialTrack->fOffsetY/10.,0.);
+              // This assumes the Origin is centered at z=0, and the two offsets
+              // found to the partial tracks
+              std::cout << "Origin: (" << partialTrack->fOffsetX << "," <<
+                 partialTrack->fOffsetY << ",0.)";
+              if( partialTrack->fOffsetX>1000 || partialTrack->fOffsetY>1000
+                    || partialTrack->fOffsetX<-1000 || 
+                    partialTrack->fOffsetY<-1000 ) {
+                    std::cout << "\tOut of range!";
+              }
+              std::cout << "\n";
+              track->fV.Set(RotateXonZ(partialTrack->fOffsetX,
+                       partialTrack->fOffsetY,fPackageAngle+_90DEG_),
+                    RotateYonZ(partialTrack->fOffsetX,
+                       partialTrack->fOffsetY,fPackageAngle+_90DEG_),0.);
 
-           // The components of this vector are represented only by ratios
-           // of X and Y to Z. That assumes that fSlopeX and fSlopeY are
-           // proper ratios compared to z. Let z = 1 for simplicity
-           std::cout << "Slopes: (" << partialTrack->fSlopeX << "," <<
-              partialTrack->fSlopeY << "," << sign*1. << ")\n";
-           track->fP.Set(partialTrack->fSlopeX*sign,
-                 partialTrack->fSlopeY*sign,1.);
+              // The components of this vector are represented only by ratios
+              // of X and Y to Z. That assumes that fSlopeX and fSlopeY are
+              // proper ratios compared to z. Let z = 1 for simplicity
+              std::cout << "Slopes: (" << partialTrack->fSlopeX << "," <<
+                 partialTrack->fSlopeY << "," << sign*1. << ")\n";
+              track->fP.Set(RotateXonZ(partialTrack->fSlopeX*sign,
+                    partialTrack->fSlopeY*sign,fPackageAngle+_90DEG_),
+                    RotateYonZ(partialTrack->fSlopeX*sign,
+                    partialTrack->fSlopeY*sign,fPackageAngle+_90DEG_),sign*1.);
 
-           // The technical details of drawing the track
-           fCurrentTrack = new TEveTrack(track,prop);
-           fCurrentTrackArray->Add(fCurrentTrack);
-           fCurrentTrack->SetMainColor(6);
-           fCurrentTrack->SetMarkerColor(kGreen);
-           fCurrentTrack->SetMarkerStyle(5);
-           fCurrentTrack->SetMarkerSize(0.5);
-           fCurrentTrack->SetTitle(Form("Track for region: %d\n\nOrigin: "
-                    "(%.3f,%.3f,%.3f)\nSlope: (%.3f,%.3f,%.3f)",
-                    partialTrack->GetRegion(),
-                    partialTrack->fOffsetX/10.,
-                    partialTrack->fOffsetY/10., 0.,
-                    partialTrack->fSlopeX,partialTrack->fSlopeY,1.));
-           fEveManager->AddElement(fCurrentTrackList);
-           fEveManager->AddElement(fCurrentTrack);
-           fCurrentTrack->MakeTrack();
+              // The technical details of drawing the track
+              fCurrentTrack = new TEveTrack(track,prop);
+              fCurrentTrackArray->Add(fCurrentTrack);
+              fCurrentTrack->SetMainColor(6);
+              fCurrentTrack->SetMarkerColor(kGreen);
+              fCurrentTrack->SetMarkerStyle(5);
+              fCurrentTrack->SetMarkerSize(0.5);
+              fCurrentTrack->SetTitle(Form("Track for region: %d\n\nOrigin: "
+                       "(%.3f,%.3f,%.3f)\nSlope: (%.3f,%.3f,%.3f)",
+                       partialTrack->GetRegion(),
+                       partialTrack->fOffsetX/10.,
+                       partialTrack->fOffsetY/10., 0.,
+                       partialTrack->fSlopeX,partialTrack->fSlopeY,1.));
+              fEveManager->AddElement(fCurrentTrackList);
+              fEveManager->AddElement(fCurrentTrack);
+              fCurrentTrack->MakeTrack();
+           }
         }
      }
 
+     if( fDrawTreeLines ) {
+         // For now, we also draw planes representing the tree lines
+         Int_t numberOfTreeLines = fEvent->GetNumberOfTreeLines();
+         std::cout << "Number of Tree Lines: " << numberOfTreeLines << "\n";
+         for (Int_t k = 0; k < numberOfTreeLines; k++ ) {
+            // Extract the TreeLine
+            const QwTrackingTreeLine *treeline = fEvent->GetTreeLine(k);
+
+            if (treeline && treeline->IsValid()) {
+               std::cout << "Region: " << treeline->GetRegion() << "\t"
+                  << "Plane: " << treeline->GetPlane() << "\t"
+                  << "Slope: " << treeline->GetSlope() << "\n";
+
+               // Draw the plane
+               TEveQuadSet *evePlane = new TEveQuadSet(
+                     TEveQuadSet::kQT_RectangleYZ, kTRUE, 1);
+               evePlane->AddQuad(0.,0.,0.,100.);
+               evePlane->ComputeBBox();
+               evePlane->AddQuad(0.,0.,1000.);
+               evePlane->AddQuad(0.,1000.,1000.);
+               evePlane->AddQuad(0.,1000.,0.);
+               //TEveQuadSetGL *planeGL = new TEveQuadSetGL();
+               //planeGL->SetModel(evePlane);
+               fEveManager->AddElement(evePlane);
+            }
+        }
+     }
+
+
 /*
-      TEveRecTrack  rt;
-      rt.fV.Set(0.,276.-75.05,442.-200.);
-      rt.fP.Set(0.+(rand()%100)/10.-5.,3.802+(rand()%100)/90.-.5,10.);
-      rt.fSign=1;
-      fCurrentTrack = new TEveTrack(&rt,prop);
-      fCurrentTrack->SetMainColor(6);
-      fCurrentTrack->SetMarkerColor(kYellow);
-      fCurrentTrack->SetMarkerStyle(4);
-      fCurrentTrack->SetMarkerSize(0.5);
-
-      fEveManager->AddElement(fCurrentTrack);
-      fCurrentTrackArray->Add(fCurrentTrack);
-      fCurrentTrack->MakeTrack();
-
       fSideProjectionManager->ImportElements( (TEveElement*)fEveManager->GetCurrentEvent(), fSideScene );
       fTopProjectionManager->ImportElements( (TEveElement*)fEveManager->GetCurrentEvent(), fTopScene );
       gSystem->ProcessEvents();
@@ -795,15 +857,12 @@ void QwEventDisplay3D::DisplayEvent()
       if( kDebug )
          std::cout << "==================END EVENT=============\n";
 
-      // Uncomment the following if you want to see the
-      // full drawing of the planes.
-      /*
-      for( Int_t plane = 1; plane <=4; plane++ ) {
-         for( Int_t wire = 1; wire<=279; wire++ ) {
-            DisplayWire(wire,plane,1);
-        }
-      }
-      */
+      // Uncomment the following if you want to see the full drawing of
+      // the planes for region 3
+      /*for(Int_t package = 1; package<=2; package++ )
+         for( Int_t plane = 1; plane<=4; plane++ )
+            for ( Int_t wire = 1; wire <= 279; wire++ )
+               DisplayWire(wire,plane,package,3,"");*/
    }
 
    fEveManager->Redraw3D(kFALSE,kTRUE);
@@ -833,7 +892,7 @@ void QwEventDisplay3D::HideUnecessary()
 
    // Hide the plane between the two VDC's (I'm not sure what this plane is,
    // actually, but it certainly should not be there I think.)
-   SetVisibility("VDC_DriftCellMasterContainer_Log#13acf38_239",kFALSE);
+   SetVisibility("VDC_DriftCellMasterContainer_Log#13acf38_241",kFALSE);
 }
 
 void QwEventDisplay3D::SwitchViewVDC()
@@ -851,7 +910,7 @@ void QwEventDisplay3D::SwitchViewVDC()
    // For the VDC's
    if (!fVDC_IsWireView) {
       // Reset button text
-      fVDC_SwitchViewButton->SetText("Switch to Detector View");     
+      fVDC_SwitchViewButton->SetText("Switch to Detector View");
 
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();
@@ -867,6 +926,11 @@ void QwEventDisplay3D::SwitchViewVDC()
          ->SetVisibility(kTRUE);
       fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_237")
          ->SetVisibility(kTRUE);
+      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")
+         ->SetVisibility(kTRUE);
+      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")
+         ->SetVisibility(kTRUE);
+
 
       // Disable the Detector buttons
       DetectorButtonsEnable(kFALSE);
@@ -1070,7 +1134,7 @@ else { // Detector View
 
       // Of course hide those undesirable objects.
       HideUnecessary();
-      
+
       fVDC_IsWireView = !fVDC_IsWireView;
 
       // Clear HDC Wire Plane Outlines
@@ -1148,75 +1212,131 @@ void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
    prop->SetMagField(0.,0.,0.);
    prop->SetFitDaughters(kFALSE);
 
-
    //For Region 2 We draw with Lines rather then tracks.
    TEveStraightLineSet* ls = new TEveStraightLineSet();
-  
-
-
-
 
    // The Following is for region 3:
    if ( region == kRegionID3 ) {
+      // TODO: There was a time when we were fed planes 1-8. This should
+      // prevent someone from accidentally feeding us these numbers in the
+      // future again.If this issue has been fixed, this can safely be removed.
+      plane = (plane-1)%4 + 1;
 
-   // TODO: There was a time when we were fed planes 1-8. This should prevent
-   // someone from accidentally feeding us these numbers in the future again.
-   // If this issue has been fixed, this can safely be removed.
-   plane = (plane-1)%4 + 1;
+      // The sign corresponds to the direction of the wires. Planes U and V
+      // inverted over the local y axis, with respect to each other.
+      Int_t sign = 1;
+      if( ((plane-1)%2) == 1 )
+         sign = -1;
 
-   // The sign corresponds to the direction of the wires. Planes U and V
-   // inverted over the local y axis, with respect to each other.
-   Int_t sign = 1;
-   if( ((plane-1)%2) == 1 )
-      sign = -1;
+      // In region 3 there are 3 wire length types. The ones in the center 
+      // which are all the same length, and consequently happen to be the
+      // longest ones. Additionally, there are the ones on either side that
+      // are apparently not necessarily symmetric. But that's ok.
 
+      // Place holders for the vector components and origin
+      Double_t originX = 0., originY = 0., originZ = 0.;
+      Double_t momentumX = 0, momentumY = 0, momentumZ = 0;
+      Double_t originYSign = 1;
+      if (package == 1 )
+         originYSign = -1.;
 
-   // In region 3 there are 3 wire length types. The ones in the center
-   // which are all the same length, and consequently happen to be the longest
-   // ones. Additionally, there are the ones on either side that are apparently
-   // not necessarily symmetric. But that's ok.
+      if ( wire <= 95 ) {
+        if ( package == 1 ) {
+           prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]+
+                 TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
 
-    if ( wire <= 95 ) {
-         prop->SetMaxZ(fVDC_PlaneZPos[plane-1]+
-               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.
-               -(96-wire)*fVDC_WireZProjectedSpacing);
-         wireT->fV.Set(sign*(fVDC_WireXSpacing*(92-wire)),
-                  fVDC_PlaneYPos[plane-1]-TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.,
-                  fVDC_PlaneZPos[plane-1]-TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
+            originX = sign*(fVDC_WireXSpacing*+92.);
+            originY = -1*fVDC_PlaneYPos[package-1][plane-1]+
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.-
+               TMath::Sin(fAngleOfVDC)*fVDC_WireYSpacing*(95-wire);
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.+
+               (95-wire)*fVDC_WireZProjectedSpacing;
+        } else if ( package == 2 ) {
+            prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]+
+                  TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.
+                  -(96-wire)*fVDC_WireZProjectedSpacing);
+
+            originX = sign*(fVDC_WireXSpacing*(92-wire));
+            originY = fVDC_PlaneYPos[package-1][plane-1]-
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+         }
       } else if ( wire <= 184 ) {
-         prop->SetMaxZ(fVDC_PlaneZPos[plane-1]+
+         prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]+
                TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
-         wireT->fV.Set(sign*(fVDC_WireXSpacing*(92-wire)),
-                 fVDC_PlaneYPos[plane-1]-TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.,
-                  fVDC_PlaneZPos[plane-1]-TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
+
+         if ( package == 1 ) {
+            originX = sign*(fVDC_WireXSpacing*(92-wire)+2*fVDC_YLength);
+            originY = -1*fVDC_PlaneYPos[package-1][plane-1]+
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+         } else if ( package == 2 ) {
+            originX = sign*(fVDC_WireXSpacing*(92-wire));
+            originY = originYSign*fVDC_PlaneYPos[package-1][plane-1]-
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+         }
       } else {
-         prop->SetMaxZ(fVDC_PlaneZPos[plane-1]+
+         prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]+
                TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.);
-         wireT->fV.Set(sign*(fVDC_WireXSpacing*-92.),
-                 fVDC_PlaneYPos[plane-1]-TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.+
-                  TMath::Sin(fAngleOfVDC)*fVDC_WireYSpacing*(wire-184),
-                  fVDC_PlaneZPos[plane-1]-TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.+
-                  (wire-184)*fVDC_WireZProjectedSpacing);
+
+         if ( package == 1 ) {
+            prop->SetMaxZ(fVDC_PlaneZPos[package-1][plane-1]-
+                  TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.
+                  +(280-wire)*fVDC_WireZProjectedSpacing);
+
+            originX = sign*(fVDC_WireXSpacing*(187-wire));
+            originY = -1*fVDC_PlaneYPos[package-1][plane-1]+
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.;
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.;
+        } else if ( package == 2 ) {
+            originX = sign*(fVDC_WireXSpacing*-92.);
+            originY = originYSign*fVDC_PlaneYPos[package-1][plane-1]-
+               TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.+
+               TMath::Sin(fAngleOfVDC)*fVDC_WireYSpacing*(wire-184);
+            originZ = fVDC_PlaneZPos[package-1][plane-1]-
+               TMath::Cos(fAngleOfVDC)*fVDC_YLength/2.+
+               (wire-184)*fVDC_WireZProjectedSpacing;
+         }
+
+/*         if ( package == 1 ) {
+         originY -= (originYSign*fVDC_PlaneYPos[package-1][plane-1]-
+            TMath::Sin(fAngleOfVDC)*fVDC_YLength/2.);
+         }*/
       }
-      wireT->fP.Set(sign*TMath::Cos(fVDC_AngleOfWires),
-            TMath::Sin(fVDC_AngleOfWires)*TMath::Sin(fAngleOfVDC),
-            TMath::Sin(fVDC_AngleOfWires)*TMath::Cos(fAngleOfVDC));
 
+      // If we are dealing with package 1, then we need to transpose it to
+      // the bottom octant, so that once it rotates it can still be consistent
+      // with the true configuration.
 
-   fCurrentTrack = new TEveTrack(wireT,prop);
-   fCurrentTrackArray->Add(fCurrentTrack);
-   fCurrentTrack->SetMainColor(plane+1);
-   fCurrentTrack->SetMarkerColor(kGreen);
-   fCurrentTrack->SetMarkerStyle(5);
-   fCurrentTrack->SetMarkerSize(0.5);
-   fCurrentTrack->SetTitle(Form("Plane: %d\nWire: %d\nPackage: %d",plane,wire,
-            package));
-   fEveManager->AddElement(fCurrentTrackList);
-   fEveManager->AddElement(fCurrentTrack);
-   fCurrentTrack->MakeTrack();
+      // Now we set the origin of this wire, after a proper rotation.
+      wireT->fV.Set(RotateXonZ(originX,originY,fPackageAngle),
+            RotateYonZ(originX,originY,fPackageAngle),
+            originZ);
+      momentumX = sign*TMath::Cos(fVDC_AngleOfWires);
+      momentumY = TMath::Sin(fVDC_AngleOfWires)*TMath::Sin(fAngleOfVDC);
+      momentumZ = TMath::Sin(fVDC_AngleOfWires)*TMath::Cos(fAngleOfVDC);
+      wireT->fP.Set(originYSign*RotateXonZ(momentumX,momentumY,fPackageAngle),
+            originYSign*RotateYonZ(momentumX,momentumY,fPackageAngle),
+            momentumZ);
 
-
-}
+      fCurrentTrack = new TEveTrack(wireT,prop);
+      fCurrentTrackArray->Add(fCurrentTrack);
+      fCurrentTrack->SetMainColor(plane+1);
+      fCurrentTrack->SetMarkerColor(kGreen);
+      fCurrentTrack->SetMarkerStyle(5);
+      fCurrentTrack->SetMarkerSize(0.5);
+      fCurrentTrack->SetTitle(Form("Plane: %d\nWire: %d\nPackage: %d",
+            plane,wire, package));
+      fEveManager->AddElement(fCurrentTrackList);
+      fEveManager->AddElement(fCurrentTrack);
+      fCurrentTrack->MakeTrack();
+   }
 
 
 
@@ -1619,20 +1739,23 @@ void QwEventDisplay3D::UpdateView()
    // VDC
    SetVisibility("VDC_MasterContainer_Log#13abb58_237",fShowVDC);
    SetVisibility("VDC_MasterContainer_Log#13abb58_238",fShowVDC);
+   SetVisibility("VDC_MasterContainer_Log#13abb58_239",fShowVDC);
+   SetVisibility("VDC_MasterContainer_Log#13abb58_240",fShowVDC);
+
 
    //Trigger
-   SetVisibility("TriggerScintillatorContainer_Logical#13ba010_248",
+   SetVisibility("TriggerScintillatorContainer_Logical#13ba010_250",
          fShowTrigger);
 
    // Cerenkov/Main Detector
-   SetVisibility("CerenkovContainer_Logical#13ae0d8_240",fShowCerenkov);
-   SetVisibility("CerenkovContainer_Logical#13ae0d8_241",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_242",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_243",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_244",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_245",fShowCerenkov);
-   SetVisibility("CerenkovContainer_Logical#13ae0d8_245",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_246",fShowCerenkov);
+   SetVisibility("CerenkovContainer_Logical#13ae0d8_247",fShowCerenkov);
+   SetVisibility("CerenkovContainer_Logical#13ae0d8_248",fShowCerenkov);
+   SetVisibility("CerenkovContainer_Logical#13ae0d8_249",fShowCerenkov);
 
    // Redraw just for good measure :)
    RedrawViews();
@@ -1834,6 +1957,61 @@ void QwEventDisplay3D::OpenRoot(Int_t runnumber)
    }
 
 }
+
+Double_t QwEventDisplay3D::RotateXonZ(Double_t x, Double_t y, Double_t angle)
+{
+   // Rotate X about the Z axis by the given angle
+   return x*TMath::Cos(angle)-y*TMath::Sin(angle);
+}
+
+
+Double_t QwEventDisplay3D::RotateYonZ(Double_t x, Double_t y, Double_t angle)
+{
+   // Rotate Y about the Z axis by the given angle
+   return x*TMath::Sin(angle)+y*TMath::Cos(angle);
+}
+
+void QwEventDisplay3D::SetRotation( Double_t phi )
+{
+   //! This defines the rotation of the tracking system. Where the octant for
+   //! package (1,2) or (up,down) are:
+   //!   0deg : (5,1)
+   //! +45deg : (6,2)
+   //! +90deg : (7,3)
+   //! -45deg : (4,8)
+   //! -90deg : (3,7)
+   //! The way I draw the wires, they are all calculated for a position
+   //! assuming phi = +90deg, and then rotated from there by a given
+   //! fPackageAngle. From there, if the package is 1, it is translated
+   //! towards its correct side.
+   fDetectorPhi = phi;
+   switch( (int)phi ) {
+      case -90:
+         fPackageAngle = -_180DEG_;
+         break;
+      case -45:
+         fPackageAngle = -1*_135DEG_;
+         break;
+      case 90:
+         fPackageAngle = 0;
+         break;
+      case 45:
+         fPackageAngle = -1*_45DEG_;
+         break;
+      case 0:
+      default:
+         fPackageAngle = -1*_90DEG_;
+         break;
+   }
+
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_237")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_238")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   //std::cout << "Initialized the run with rotation of coordinate system to to "
+      //<< phi << ".\n The respective packages are: Package1: " << fPackageAngle[0] << "\tPackage2: " << fPackageAngle[1] << "\n.";
+}
+
 // END OF THE FILE
 ////////////////////////////////////////////////////////////////////////////////
 // Notes: sample rotation of detectors. Hold on to it for now, will delete it later.

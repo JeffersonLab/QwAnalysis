@@ -54,7 +54,7 @@ class QwRaster: public VQwSubsystemTracking
   void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
 
   void  FillDB(QwDatabase *db, TString type) {return;};
 
@@ -116,21 +116,30 @@ class QwRaster: public VQwSubsystemTracking
   Double_t fPositionOffsetY;
   Double_t fChannel_Offset_X;
   Double_t fChannel_Offset_Y;
-
   Double_t fCal_Factor_QDC_X;
   Double_t fCal_Factor_QDC_Y;
-
-  Double_t fCal_Factor_VQWK_X;
-  Double_t fCal_Factor_VQWK_Y;
-
-  Double_t fVoltage_Offset_X;
-  Double_t fVoltage_Offset_Y;
 
   Double_t fPositionX_ADC;
   Double_t fPositionY_ADC;
 
-  Double_t fPositionX_VQWK;
-  Double_t fPositionY_VQWK;
+  Double_t fbpm_3h07a_slope;
+  Double_t fbpm_3h07a_intercept;
+  Double_t fbpm_3h09b_slope;
+  Double_t fbpm_3h09b_intercept;
+
+  Double_t fbpm_3h07a_xp;
+  Double_t fbpm_3h07a_xm;
+  Double_t fbpm_3h07a_yp;
+  Double_t fbpm_3h07a_ym;
+  Double_t fbpm_3h09b_xp;
+  Double_t fbpm_3h09b_xm;
+  Double_t fbpm_3h09b_yp;
+  Double_t fbpm_3h09b_ym;
+
+  Double_t fbpm_3h07a_pos_x;
+  Double_t fbpm_3h07a_pos_y;
+  Double_t fbpm_3h09b_pos_x;
+  Double_t fbpm_3h09b_pos_y;
 
   UInt_t fBankID[2];  //fBankID[0] for V792/V775 QDC_Bank
                       //fBankID[1] for VQWK_Bank

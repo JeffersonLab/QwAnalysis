@@ -34,23 +34,40 @@
 #ifndef QWGUISUBSYSTEM_H
 #define QWGUISUBSYSTEM_H
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <TGWindow.h>
-#include <TGFrame.h>
-#include <TNamed.h>
-#include <TString.h>
-#include <TQObject.h>
-#include <TGTab.h>
-#include "RDataContainer.h"
-#include "QwGUIMainDef.h"
-#include "QwGUIProgressDialog.h"
+#include <cstdlib>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <iomanip>
 
-#include "QwGUISuperCanvas.h"
 
-// QwAnalysis / Analysis/ include 
 #include "QwColor.h"
+
+#include "TMapFile.h"
+#include "TRootEmbeddedCanvas.h"
+#include "TRootCanvas.h"
+#include "TVirtualPad.h"
+#include "TCut.h"
+#include "TTree.h"
+#include "TGComboBox.h"
+#include "TGNumberEntry.h"
+#include "TGTextEntry.h"
+#include "TGLabel.h"
+#include "TCanvas.h"
+#include "TSystem.h"
+#include "TF1.h"
+#include "TGWindow.h"
+#include "TGFrame.h"
+#include "TNamed.h"
+#include "TString.h"
+#include "TQObject.h"
+#include "TGTab.h"
+#include "TH1.h"
+#include "TH2.h"
+#include "TPaveText.h"
+#include "TMath.h"
+#include "TPaveText.h"
+
 
 class QwGUISubSystem : public TGCompositeFrame {
 
@@ -65,20 +82,12 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!user.
   UInt_t           dWinCnt;
 
-  //!The name/label of the main window object
-  char             dMainName[NAME_STR_MAX];
-  //!The name/lable of this subsystem object, as passed to the constructor
-  char             dThisName[NAME_STR_MAX];
-
+  TString          dMainName;
+  TString          dThisName;
+ 
   //!The tab menu ID associated with this subsystem
   Long_t           dTabMenuID;   
   
-  //!Flag indicates whether the menu item belonging to this subsystem is checked/active.
-  //!In other words, is this tab currently visible or not?
-  Bool_t           dTabMenuItemChecked;
-
-  //!Flag indicates whether a log message should be displayed with the current time and date.  
-  Bool_t           dLogTStampFlag;
 
   //!Main window object reference
   TGWindow        *dMain;
@@ -87,16 +96,14 @@ class QwGUISubSystem : public TGCompositeFrame {
 
  protected:
 
-  //!Buffer, mainly used in message passing and for other temporary storage.
-  char             dMiscbuffer[MSG_SIZE_MAX];
-  //!Buffer, mainly used in message passing and for other temporary storage.
-  char             dMiscbuffer2[MSG_SIZE_MAX];
+  //!histo modes
+  Int_t dHistoReset;
+  Int_t dHistoAccum;
+  Int_t dHistoPause;
+ 
 
-  //!This is a data container reference, it contains the root file and provides a series of 
-  //!convenience access functions. The pointer is set by the QwGUIMain class, when a new ROOT file is opened,
-  //!by calling the member function SetDataContainer(RDataContainer *cont) in this class.  There is no 
-  //!direct instance of this container kept within the class. 
-  RDataContainer  *dROOTCont;
+  TMapFile *dMapFile;
+ 
 
   //!This function must be defined by the derived class, to implement the overal layout of the subsystem class.
   //!For example, this is where the derived class would implement the display of graphs (see QwGUIMainDetector 
@@ -112,16 +119,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none
   virtual void     MakeLayout() = 0;
 
-  //!This function can be overwritten by the derived class, to perform cleanup tasks, when the subsystem 
-  //!tab is toggled on to off.
-  //!The function is called everytime the given subsystem tab is
-  //!removed (whether it is being destroyed entirely, or just toggled on to off).  
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  virtual void     OnRemoveThisTab(){};
 
   //!This function can be overwritten by the derived class, to perform additional tasks, when the subsystem 
   //!tab is toggled off to on or created.
@@ -134,41 +131,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none
   virtual void     OnAddThisTab(){};
 
-  
-  //!This function can be overwritten by the derived class, to perform additional tasks, when the use has  
-  //!opened a new data file (any file). It is the responsibility of the derived class implmentation to 
-  //!identify what type of file was opened.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  virtual void     OnNewDataContainer(){};
-
-  //!This function can be used to pass messages to the log book. The message content is 
-  //!reformated slightly and copied to the dMiscbuffer member, to be picked up by the
-  //!QwGUIMain class via the GetMessage() member function of this class, when QwGUIMain
-  //!receives the message signal from the SendMessageSignal(const char*objname) function 
-  //!in this class.
-  //!
-  //!Parameters:
-  //! - 1) Message buffer: Can be passed as a constant string or a preallocated buffer. 
-  //! - 2) Flag: To indicate whether the message is to be displayed with a time and date stamp.
-  //!
-  //!Return value: none  
-  void             SetLogMessage(const char *buffer, Bool_t tStamp = kFalse);
-
-
-
-  void             IncreaseProgress(Int_t *nItems1, Int_t *nItems2, Int_t *nItems3, 
-				    Int_t  nInc1,   Int_t  nInc2,   Int_t  nInc3);
-
-  void             InitProgressDlg(const char* title, const char *macrotext, const char *microtext, const char *microtext2, 
-				   Int_t nitems1, Int_t nitems2, Int_t nitems3, Int_t nLevels);
-
-  Bool_t               dProcessHalt;
-
-  QwGUIProgressDialog *dProgrDlg;
 
  public:
   
@@ -194,16 +156,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: Height in pixels.  
   UInt_t           GetHeight(){return dHeight;};
 
-  //!This function is called by QwGUIMain, to retrieve the message that was set by this subsystem, 
-  //!when it receives a new log message signal (see function SetLogMessage). The message container
-  //!must be allocated with in the subsystem class. This happens automatically if the subsystem 
-  //!class is derived from QwGUISubSystem.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: message string pointer.  
-  const char*      GetMessage() {return dMiscbuffer;};
 
   //!This function returns the name/label of this subsystem object.
   //!
@@ -257,47 +209,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: A new window name
   const char*      GetNewWindowName();
 
-  //!This function returns a flag indicating whether a message to be placed in the log is to have
-  //!a time and date stamp or not. The function is called by QwGUIMain before adding the message to
-  //!the log.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: boolean time stamp flag
-  Bool_t           IfTimeStamp(){return dLogTStampFlag;}
-
-  //!This function returns a flag indicating whether the tab menu entry for this subsystem is currently
-  //!checked (i.e. whether the subsystem tab is visible or not).
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: boolean menu item flag
-  Bool_t           IsTabMenuEntryChecked() {return dTabMenuItemChecked;};
-
-  //!Sender function which connects to QwGUIMain::OnObjClose(const char*), to perform cleanup tasks
-  //!when this subsystem object is destroyed. 
-  //!
-  //!Parameters:
-  //! - 1) Subsystem object name/lable: must be the same as the one passed to the constructor dThisName.
-  //!
-  //!Return value: none  
-  void             IsClosing(const char *objname);
-
-
-  //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
-  //!IsClosing member function (a new data container or window for example), if it is anticipated that there are
-  //!cleanup tasks to perform when this object is destroyed. Derived classes should always call 
-  //!QwGUISubSystem::OnObjClose(char *) in the derived OnObjClose(char *).
-  //!
-  //!Parameters:
-  //! - 1) Subsystem object name/label: will the same as the one passed to the constructor of the object.
-  //!      (see QwGUIMainDetector for an example).
-  //!
-  //!Return value: none  
-  virtual void     OnObjClose(char *);
-
   //!This revceiver function can be overwritten by the derived subsystem class to connect to another object's 
   //!SendMessageSignal member function (a new data container or window for example), if it is anticipated that 
   //!there are messages or commands to be processed. 
@@ -308,19 +219,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!
   //!Return value: none  
   virtual void     OnReceiveMessage(char*) {};
-
-  //!This revceiver function can be overwritten by the derived subsystem class to connect to a canvas object 
-  //!to process mouse events. This is usefull in opening a particular plot in the standard ROOT canvas window,
-  //!when double clicking on a graph, for example. 
-  //!
-  //!Parameters:
-  //! - 1) Event type, such as kButton1Double
-  //! - 2) Event x coordinate
-  //! - 3) Event y coordinate
-  //! - 4) Pointer to the selected object (i.e. pad, etc ...)
-  //!
-  //!Return value: none  
-  virtual void     TabEvent(Int_t,Int_t,Int_t,TObject*) {};
 
   //!This function is overwritten from the TGTransientFrame class, to handle all mouse and keyboard interactions
   //!with any widget within this tab.  
@@ -333,15 +231,6 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none  
   virtual Bool_t   ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   
-  //!Sender function which connects to QwGUIMain::RemoveTab(QwGUISubSystem*) and removes the subsystem tab
-  //!This function should only be called in the destructor of this class. 
-  //!
-  //!Parameters:
-  //! - 1) Subsystem pointer.
-  //!
-  //!Return value: none  
-  void             RemoveThisTab(QwGUISubSystem*);
-
   //!This function is called by the QwGUIMain::AddATab function once each time a new subsystem tab is created
   //!(not when it is simply toggled on/off). It in turn initiates the actual layout of the subsystem tab.
   //!
@@ -351,16 +240,7 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none    
   void             SubSystemLayout(){this->MakeLayout();};
 
-
-  //!This function is called by the QwGUIMain::AddATab function when the user has  
-  //!opened a new data file (any file). The actual ownership of the file container is kept in the QwGUIMain class.
-  //!
-  //!Parameters:
-  //! - 1) A pointer to the data container, containing the newly opened file.
-  //!
-  //!Return value: none
-  void             SetDataContainer(RDataContainer *cont);
-
+  
   //!Setter function for the subsystem tab menu ID. Called once from QwGUIMain::AddATab, when a new subsystem is
   //!is created.
   //!
@@ -380,18 +260,75 @@ class QwGUISubSystem : public TGCompositeFrame {
   //!Return value: none
   void             SendMessageSignal(const char*objname);
 
-  //!This function is called from QwGUIMain::AddATab or QwGUIMain::RemoveTab, to set the flag indicating
-  //!whether the subsystem tab is displayed (on/off) or not. The function also calls the corresponding
-  //!functions to implement additional tasks on toggle on/off.
+
+  //!Set histomode. This is called at QwGUIMain and other subsystems
   //!
   //!Parameters:
-  //! - 1) Boolean flag indicating whether the subsystem tab is visible or not.
+  //! - 1) Histo reset
+  //!Return value: none
+  void             SetHistoReset(Int_t historeset){
+    dHistoReset=historeset;
+  };
+
+  //!Set histomode. This is called at QwGUIMain and other subsystems
   //!
-  //!Return value: none 
-  void             TabMenuEntryChecked(Bool_t set) {dTabMenuItemChecked = set; 
-    dTabMenuItemChecked ? OnAddThisTab() : OnRemoveThisTab();};
+  //!Parameters:
+  //! - 1) Histo Accum
+  //!Return value: none
+  void             SetHistoAccumulate(Int_t histoaccum){
+    dHistoAccum=histoaccum;
+  }; 
+
+  //!Set histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters:
+  //! - 1) Histo pause
+  //!Return value: none
+  void             SetHistoPause(Int_t histopause){
+    dHistoPause=histopause;
+  };  
+
+  //!Set histomode to accumulate. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters:
+  //! - 1) Histo none
+  //!Return value: none
+  void             SetHistoDefaultMode(){
+    SetHistoReset(0);
+    SetHistoAccumulate(1);
+    SetHistoPause(0); 
+  };      
+ 
+  //!Get histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters: none
+  //!Return value: Histo Reset status
+  Int_t            GetHistoReset(){
+    return dHistoReset;
+  };
+
+  //!Get histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters: none
+  //!Return value: Histo accumu status
+  Int_t            GetHistoAccumulate(){
+    return dHistoAccum;
+  };
+
+  //!Set histomode. This is called at QwGUIMain and other subsystems
+  //!
+  //!Parameters: none
+  //!Return value: Histo pause status
+  Int_t             GetHistoPause(){
+    return dHistoPause;
+  };
   
-  ClassDef(QwGUISubSystem,0);
+ 
+  virtual void   SetMapFile(TMapFile *file);
+  virtual void   SummaryHist(TH1*in);
+  Bool_t dMapFileFlag;
+
+  ClassDef(QwGUISubSystem, 1);
 };
 
 #endif

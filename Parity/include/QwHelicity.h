@@ -66,11 +66,14 @@ class QwHelicity: public VQwSubsystemParity{
  public:
 
 
-  QwHelicity(TString region_tmp)
-    : VQwSubsystem(region_tmp), VQwSubsystemParity(region_tmp), fMinPatternPhase(1)
+ QwHelicity(TString region_tmp): VQwSubsystem(region_tmp),
+    VQwSubsystemParity(region_tmp),
+    fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE)
   {
-    //  Default helicity delay to two patterns.
+    // Default helicity delay to two patterns.
     fHelicityDelay = 2;
+    // Default helicity bit pattern
+    fHelicityPattern = 0x69; // this is +--+-++-
     // Default the EventType flags to HelPlus=1 and HelMinus=4
     // These are only used in Moller decoding mode.
     kEventTypeHelPlus  = 4;
@@ -108,7 +111,7 @@ class QwHelicity: public VQwSubsystemParity{
   Int_t LoadEventCuts(TString  filename);//Loads event cuts applicabale to QwHelicity class, derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//Apply event cuts in the QwHelicity class, derived from VQwSubsystemParity
   Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure, derived from VQwSubsystemParity
-  Int_t  GetEventcutErrorFlag();//return the error flag
+  UInt_t  GetEventcutErrorFlag();//return the error flag
 
   Int_t  ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);
@@ -132,6 +135,7 @@ class QwHelicity: public VQwSubsystemParity{
   void   PredictHelicity();
   void   RunPredictor();
   void   SetHelicityDelay(Int_t delay);
+  void   SetHelicityPattern(UInt_t bits);
 
   Int_t  GetHelicityReported();
   Int_t  GetHelicityActual();
@@ -170,14 +174,20 @@ class QwHelicity: public VQwSubsystemParity{
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
-  void  FillTreeVector(std::vector<Double_t> &values);
+  void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwDatabase *db, TString type);
   void  Print() const;
 
+  Bool_t IsHelicityIgnored(){return fIgnoreHelicity;};
 
   virtual Bool_t IsGoodHelicity();
 
 /////
+ protected:
+  Bool_t CheckIORegisterMask(const UInt_t& ioregister, const UInt_t& mask) const {
+    return ((ioregister & mask) == mask);
+  };
+
  protected:
   enum HelicityRootSavingType{kHelSaveMPS = 0,
 			      kHelSavePattern,
@@ -188,6 +198,11 @@ class QwHelicity: public VQwSubsystemParity{
 			    kHelLocalyMadeUp,
 			    kHelInputMollerMode};
   // this values allow to switch the code between different helicity encoding mode.
+
+  enum InputRegisterBits{kInputReg_HelPlus     = 0x1,
+			 kInputReg_HelMinus    = 0x2,
+			 kInputReg_PatternSync = 0x4,
+			 kInputReg_FakeMPS     = 0x8000};
 
   std::vector <QwWord> fWord;
   std::vector < std::pair<Int_t, Int_t> > fWordsPerSubbank;  // The indices of the first & last word in each subbank
@@ -213,8 +228,11 @@ class QwHelicity: public VQwSubsystemParity{
 
   Int_t fEventNumberOld, fEventNumber;
   Int_t fPatternPhaseNumberOld, fPatternPhaseNumber;
-  Int_t fPatternNumberOld,  fPatternNumber;
-  Int_t fActualPatternPolarity, fDelayedPatternPolarity;
+  Int_t fPatternNumberOld, fPatternNumber;
+  Int_t fPatternSeed;
+  Int_t fActualPatternPolarity;   ///<  True polarity of the current pattern
+  Int_t fDelayedPatternPolarity;  ///<  Reported polarity of the current pattern
+  Int_t fPreviousPatternPolarity; ///<  True polarity of the previous pattern.
   Int_t fHelicityReported, fHelicityActual, fHelicityDelayed;
   // reported is what is registered in the coda file (it is the actual beam helicity fHelicityDelay pattern before this event)
   // actual is the helicity of the beam for this event
@@ -225,6 +243,8 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t fHelicityBitMinus;
   Bool_t fGoodHelicity;
   Bool_t fGoodPattern;
+
+  UInt_t fHelicityPattern;
 
   std::vector<TH1*> fHistograms;
   Int_t fHistoType;
@@ -274,10 +294,25 @@ class QwHelicity: public VQwSubsystemParity{
 
   Bool_t BIT24;//sets the random seed size 24bit/30bits
   Bool_t BIT30;
+  Bool_t fUsePredictor;
+  Bool_t fHelicityInfoOK;
+  Int_t  fPATTERNPHASEOFFSET;
 
-  Int_t fPATTERNPHASEOFFSET;
+  Bool_t fIgnoreHelicity;
 
   UInt_t fEventType;
+
+
+ private:
+
+  unsigned int parity(unsigned int v) {
+    // http://graphics.stanford.edu/~seander/bithacks.html#ParityParallel
+    v ^= v >> 16;
+    v ^= v >> 8;
+    v ^= v >> 4;
+    v &= 0xf;
+    return (0x6996 >> v) & 1;
+  }
 
 };
 

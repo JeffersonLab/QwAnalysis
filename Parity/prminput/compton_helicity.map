@@ -22,7 +22,7 @@ HelicityDecodingMode=InputRegisterMode
 PatternPhase=4
 RandSeedBits=30
 NumberPatternsDelayed=2
-PatternPhaseOffset=0
+PatternPhaseOffset=1
 
 ROC=31
 Bank=0x1f01

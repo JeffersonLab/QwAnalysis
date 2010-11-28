@@ -5091,15 +5091,25 @@
         <volumeref ref="HDC_MasterContainer_Log#13aab08"/>
         <position name="HDC_MasterContainerBack_Physical#13aac08_pos" unit="mm" x="0" y="600" z="-2966.75"/>
       </physvol>
-      <physvol name="VDC_MasterContainerFront_Physical#13abbe8">
+      <physvol name="VDC_MasterContainerFront_PhysicalPkg1#13abbe8">
         <volumeref ref="VDC_MasterContainer_Log#13abb58"/>
-        <position name="VDC_MasterContainerFront_Physical#13abbe8_pos" unit="mm" x="0" y="2761.65" z="4439.2"/>
+        <position name="VDC_MasterContainerFront_Physical#13abbe8_pos" unit="mm" x="0" y="2692.9" z="4507.2"/>
         <rotation name="VDC_MasterContainerFront_Physical#13abbe8_rot" unit="deg" x="-24.18" y="0" z="0"/>
       </physvol>
-      <physvol name="VDC_MasterContainerBack_Physical#13abc58">
+      <physvol name="VDC_MasterContainerBack_PhysicalPkg1#13abc58">
         <volumeref ref="VDC_MasterContainer_Log#13abb58"/>
-        <position name="VDC_MasterContainerBack_Physical#13abc58_pos" unit="mm" x="0" y="2943.35064341589" z="4839.2"/>
+        <position name="VDC_MasterContainerBack_Physical#13abc58_pos" unit="mm" x="0" y="2913.6" z="5037.8"/>
         <rotation name="VDC_MasterContainerBack_Physical#13abc58_rot" unit="deg" x="-24.18" y="0" z="0"/>
+      </physvol>
+      <physvol name="VDC_MasterContainerFront_PhysicalPkg2#13abbe8">
+        <volumeref ref="VDC_MasterContainer_Log#13abb58"/>
+        <position name="VDC_MasterContainerFront_Physical#13abbe8_pos" unit="mm" x="0" y="-2708.7" z="4497.0"/>
+        <rotation name="VDC_MasterContainerFront_Physical#13abbe8_rot" unit="deg" x="24.18" y="0" z="0"/>
+      </physvol>
+      <physvol name="VDC_MasterContainerBack_PhysicalPkg2#13abc58">
+        <volumeref ref="VDC_MasterContainer_Log#13abb58"/>
+        <position name="VDC_MasterContainerBack_Physical#13abc58_pos" unit="mm" x="0" y="-2927.6" z="5028.4"/>
+        <rotation name="VDC_MasterContainerBack_Physical#13abc58_rot" unit="deg" x="24.18" y="0" z="0"/>
       </physvol>
       <physvol name="VDC_DriftCellMasterContainer_Physical#13acfc8">
         <volumeref ref="VDC_DriftCellMasterContainer_Log#13acf38"/>
