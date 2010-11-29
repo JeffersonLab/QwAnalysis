@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
-    epicsevent.LoadEpicsVariableMap("EpicsTable.map");
+    epicsevent.LoadChannelMap("EpicsTable.map");
 
 
     ///  Load the detectors from file

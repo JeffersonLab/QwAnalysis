@@ -14,6 +14,7 @@ using std::string;
 // ROOT headers
 #include "Rtypes.h"
 #include "TString.h"
+#include "TTree.h"
 
 // Forward declarations
 class QwDatabase;
@@ -22,19 +23,25 @@ class QwDatabase;
 class QwEPICSEvent
 {
  public:
+
+	/// EPICS data types
   enum EQwEPICSDataType {kEPICSString, kEPICSFloat, kEPICSInt};
 
+
+  /// Default constructor
   QwEPICSEvent();
+  /// Virtual destructor
   virtual ~QwEPICSEvent();
+
+
 
   // Add a tag to the list
   Int_t AddEPICSTag(const string& tag, const string& table = "",
       EQwEPICSDataType datatype = kEPICSFloat);
 
-  Int_t LoadEpicsVariableMap(const string& mapfile);
+  Int_t LoadChannelMap(TString mapfile);
 
-  std::vector<Double_t> ReportAutogains();
-  std::vector<Double_t> ReportAutogains(std::vector<std::string> tag_list);
+  std::vector<Double_t> ReportAutogains(std::vector<std::string> tag_list = fDefaultAutogainList);
 
   void ExtractEPICSValues(const string& data, int event);
 
@@ -56,9 +63,6 @@ class QwEPICSEvent
   // void DefineEPICSVariables();
   void  ReportEPICSData() const;
 
-  std::vector<std::string>  GetDefaultAutogainList();
-  void  SetDefaultAutogainList(std::vector<std::string> input_list);
-
   void  ResetCounters();
 
   void FillDB(QwDatabase *db);
@@ -66,15 +70,42 @@ class QwEPICSEvent
   void FillSlowControlsStrigs(QwDatabase *db);
   void FillSlowControlsSettings(QwDatabase *db);
 
+
  private:
+
+  // Tree array indices
+  size_t fTreeArrayIndex;
+  size_t fTreeArrayNumEntries;
+
+ public:
+
+  /// \brief Construct the branch and tree vector
+  void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values);
+  /// \brief Fill the tree vector
+  void FillTreeVector(std::vector<Double_t>& values) const;
+
+
+ public:
+
+  static std::vector<std::string> GetDefaultAutogainList() { return fDefaultAutogainList; };
+  static void SetDefaultAutogainList(std::vector<std::string>& input_list);
+
+ private:
+
+  /// Default autogain list
+  static std::vector<std::string> fDefaultAutogainList;
+  /// Initialize the default autogain list
+  static void InitDefaultAutogainList();
+
+
+ private:
+
   static const int kDebug;
   static const int kEPICS_Error;
   static const int kEPICS_OK;
   static const Double_t kInvalidEPICSData;
   // Int_t maxsize = 300;
 
-  std::vector<std::string> fDefaultAutogainList;
-  void  InitDefaultAutogainList();
 
   // Test whether the string is a number string or not
   Bool_t IsNumber(const string& word) {

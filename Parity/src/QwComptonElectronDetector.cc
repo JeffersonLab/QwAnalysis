@@ -374,11 +374,11 @@ void  QwComptonElectronDetector::ProcessEvent()
  
 if(trig==3) {
  
-   for(Int_t i=0; i<det1.size(); i++)
+   for(size_t i=0; i<det1.size(); i++)
    {
-      for(Int_t j=0; j<det2.size(); j++)
+      for(size_t j=0; j<det2.size(); j++)
       {
-  	 for(Int_t k=0; k<det3.size(); k++)
+  	 for(size_t k=0; k<det3.size(); k++)
   	 {
   	  
 	  track++;

@@ -128,7 +128,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epics;
-    epics.LoadEpicsVariableMap("EpicsTable.map");
+    epics.LoadChannelMap("EpicsTable.map");
 
 
     ///  Load the tracking detectors from file

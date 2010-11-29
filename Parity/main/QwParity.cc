@@ -85,7 +85,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
-    epicsevent.LoadEpicsVariableMap("EpicsTable.map");
+    epicsevent.LoadChannelMap("EpicsTable.map");
 
     ///  Load the detectors from file
     QwSubsystemArrayParity detectors(gQwOptions);
@@ -120,6 +120,7 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Construct tree branches
     rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+    rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
 
     // Summarize the ROOT file structure
     rootfile->PrintTrees();
@@ -150,6 +151,9 @@ Int_t main(Int_t argc, Char_t* argv[])
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
         helicitypattern.UpdateBlinder(epicsevent);
+
+        rootfile->FillTreeBranches(epicsevent);
+        rootfile->FillTree("Slow_Tree");
       }
 
 
