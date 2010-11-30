@@ -14,6 +14,10 @@
 //                   on pad in order to plot multiple points
 //                   of BPMs and Target...
 //                 - rearranged TPad
+//          0.0.4 : Monday, November 29 19:22:44 EST 2010
+//                  jhlee
+//                 - do not draw when there are nothing
+//                   in a root file
 // 
 // For example,
 // 1) run root
@@ -48,25 +52,54 @@ raster(TString name="")
   TCanvas *c1 = new TCanvas(Form("1DRaster"), Form("RasterMap1D in %s", name.Data()), 600,400);
  
   tracking_histo->cd();
+
+  Bool_t file_output_flag = true;
+
   c1->Divide(2,2);
   c1->cd(1);
-  raster_position_x -> SetTitle(Form("Raster Position X in %s", name.Data()));
-  raster_position_x -> Draw();
+  if(raster_position_x-> GetEntries() != 0.0) {
+    raster_position_x -> SetTitle(Form("Raster Position X in %s", name.Data()));
+    raster_position_x -> Draw();
+    file_output_flag &= true;
+  }
+  else {
+    file_output_flag &= false;
+  }
 
   c1->cd(2);
-  raster_position_y -> SetTitle(Form("Raster Position Y in %s", name.Data()));
-  raster_position_y -> Draw();
+  if(raster_position_y-> GetEntries() != 0.0) {
+    raster_position_y -> SetTitle(Form("Raster Position Y in %s", name.Data()));
+    raster_position_y -> Draw();
+    file_output_flag &= true;
+  }
+  else {
+    file_output_flag &= false;
+  }
   c1->cd(3);
-  raster_posx_adc -> SetTitle(Form("Raster PosX ADC in %s", name.Data()));
-  raster_posx_adc -> Draw();
+  if(raster_posx_adc-> GetEntries() != 0.0) {
+    raster_posx_adc -> SetTitle(Form("Raster PosX ADC in %s", name.Data()));
+    raster_posx_adc -> Draw();
+    file_output_flag &= true;
+  }
+  else {
+    file_output_flag &= false;
+  }
   c1->cd(4);
-  raster_posy_adc -> SetTitle(Form("Raster PosY ADC in %s", name.Data()));
-  raster_posy_adc -> Draw();
+  if(raster_posy_adc-> GetEntries() != 0.0) {
+    raster_posy_adc -> SetTitle(Form("Raster PosY ADC in %s", name.Data()));
+    raster_posy_adc -> Draw();
+    file_output_flag &= true;
+  }
+  else {
+    file_output_flag &= false;
+  }
   c1->Update();
-  TString image_name;
-  image_name = name + "1D.png";
-  c1 -> SaveAs(output_dir + image_name);
 
+  TString image_name;
+  if(file_output_flag) {
+    image_name = name + "1D.png";
+    c1 -> SaveAs(output_dir + image_name);
+  }
 
 
   TCanvas *c2 = new TCanvas(name.Data(), name.Data(), 600, 800);
@@ -83,7 +116,9 @@ raster(TString name="")
   pad1 -> SetBorderSize(0);
   //  pad1 -> SetFixedAspectRatio();
   pad1 -> SetPad(0.1,0.4,0.9,1.0);
-  raster_rate_map -> Draw();
+  if(raster_rate_map-> GetEntries() != 0.0) {
+    raster_rate_map -> Draw();
+  }
   gPad->Update();
   
   pad2 -> cd();
