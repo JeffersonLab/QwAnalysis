@@ -668,16 +668,17 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
   HitsWire.resize(total_plane_number);
 
   std::size_t iplane = 0;
-  std::cout <<  "QwDriftChamberHDC::ConstructHistograms, " 
-	    <<  "we are contructing histograms with index from 0 to " <<total_plane_number 
-	    << "\n"
-	    <<  "Thus, fWiresPerPlane.size() returns "
-	    << total_plane_number
-	    << " and its array definition is ["
-	    << total_plane_number
-	    << "]."
-	    <<  " And hist[i] <-> hist.at(i) <-> fWiresPerplane[i] <-> fWiresPerPlane.at(i)"
-	    << std::endl;
+  
+  //std::cout <<  "QwDriftChamberHDC::ConstructHistograms, " 
+  //	    <<  "we are contructing histograms with index from 0 to " <<total_plane_number 
+  //	    << "\n"
+  //	    <<  "Thus, fWiresPerPlane.size() returns "
+  //	    << total_plane_number
+  //	    << " and its array definition is ["
+  //	    << total_plane_number
+  //	    << "]."
+  //	    <<  " And hist[i] <-> hist.at(i) <-> fWiresPerplane[i] <-> fWiresPerPlane.at(i)"
+  //	    << std::endl;
 
   // wire_per_plane is the number of wire per plane?
   // 
@@ -867,7 +868,7 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
   f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
   if (f1tdc_resolution_ns==0.0) {
     f1tdc_resolution_ns = 0.116312881651642913;
-    printf("WARNING : QwDriftChamberHDC::ApplyTimeCalibration() the predefined resolution %8.6lf (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
+    //  printf("WARNING : QwDriftChamberHDC::ApplyTimeCalibration() the predefined resolution %8.6lf (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
   }
 
   for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) 

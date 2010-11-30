@@ -1032,16 +1032,16 @@ void  QwDriftChamberVDC::ConstructHistograms ( TDirectory *folder, TString& pref
 	HitsWire.resize ( total_plane_number );
 
 	std::size_t iplane = 0;
-	std::cout <<  "QwDriftChamberVDC::ConstructHistograms, "
-	<<  "we are contructing histograms with index from 0 to " <<total_plane_number
-	<< "\n"
-	<<  "Thus, fWiresPerPlane.size() returns "
-	<< total_plane_number
-	<< " and its array definition is ["
-	<< total_plane_number
-	<< "]."
-	<<  " And hist[i] <-> hist.at(i) <-> fWiresPerplane[i] <-> fWiresPerPlane.at(i)"
-	<< std::endl;
+	// std::cout <<  "QwDriftChamberVDC::ConstructHistograms, "
+	// <<  "we are contructing histograms with index from 0 to " <<total_plane_number
+	// << "\n"
+	// <<  "Thus, fWiresPerPlane.size() returns "
+	// << total_plane_number
+	// << " and its array definition is ["
+	// << total_plane_number
+	// << "]."
+	// <<  " And hist[i] <-> hist.at(i) <-> fWiresPerplane[i] <-> fWiresPerPlane.at(i)"
+	// << std::endl;
 
 	// wire_per_plane is the number of wire per plane?
 	//

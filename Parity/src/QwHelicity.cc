@@ -219,7 +219,7 @@ void QwHelicity::ClearEventData()
 Int_t QwHelicity::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   //stub function
-  QwError << " this function QwHelicity::ProcessConfigurationBuffer does nothing yet " << QwLog::endl;
+  // QwError << " this function QwHelicity::ProcessConfigurationBuffer does nothing yet " << QwLog::endl;
   return 0;
 };
 

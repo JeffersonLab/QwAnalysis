@@ -111,6 +111,9 @@ sca_unser
 sca_4mhz
 sca_bcm1
 sca_bcm2
+sca_bcm5
+sca_bcm6
+sca_bcm17
 qwk_bcm1
 qwk_bcm2
 qwk_bcm5

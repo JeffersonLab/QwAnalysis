@@ -551,7 +551,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 
     if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
   
-    std::cout << "QwDriftChamber : " 
+    std::cout << "\nQwDriftChamber : " 
 	      << subsystem_name
 	      << ", "
 	      << "ProcessConfigurationBuffer"
@@ -573,16 +573,13 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	tdc_index    = GetTDCIndex(bank_index, slot_id);
 	vme_slot_num = slot_id;
       
-	if(local_debug) {
-	  std::cout << "    "
-		    << "Slot [id, VME num] [" 
-		    << std::setw(2) << slot_id
-		    << ","
-		    << std::setw(2) << vme_slot_num
-		    << "]";
-	  std::cout << "    ";
-	}
-
+	std::cout << "    "
+		  << "Slot [id, VME num] [" 
+		  << std::setw(2) << slot_id
+		  << ","
+		  << std::setw(2) << vme_slot_num
+		  << "]";
+	std::cout << "    ";
       
 	local_f1tdc = NULL;
 
@@ -601,49 +598,38 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 
 	    fF1TDContainer->AddQwF1TDC(local_f1tdc);
 	  
-	    if(local_debug) {
-	      std::cout << "F1TDC index " 
-			<< std::setw(2) 
-			<< tdc_index
-			<< std::setw(16) 
-			<< " local_f1tdc " 
-			<< *local_f1tdc
-			<< " at " 
-			<< local_f1tdc;
-	    }
-
+	    std::cout << "F1TDC index " 
+		      << std::setw(2) 
+		      << tdc_index
+		      << std::setw(16) 
+		      << " local_f1tdc " 
+		      << *local_f1tdc
+		      << " at " 
+		      << local_f1tdc;
 	  }
 	  else {
 
-	    if(local_debug) {
-	      std::cout << "Unused in "  
-			<< std::setw(4) 
-			<< subsystem_name	
-			<< std::setw(16) 
-			<< " local_f1tdc  at " 
-			<< local_f1tdc;
-	    }
-	  
+	    std::cout << "Unused in "  
+		      << std::setw(4) 
+		      << subsystem_name	
+		      << std::setw(16) 
+		      << " local_f1tdc  at " 
+		      << local_f1tdc;
 	  }
 		
 	}
 	else { // slot_id == only 0, 1, & 2
 	
-	  if(local_debug) {
-	    if      (slot_id == 0) std::cout << "         ";
-	    else if (slot_id == 1) std::cout << "MVME CPU ";
-	    else                   std::cout << "Trigger Interface"; // slot_id == 2;
-
-	  }
+	  if      (slot_id == 0) std::cout << "         ";
+	  else if (slot_id == 1) std::cout << "MVME CPU ";
+	  else                   std::cout << "Trigger Interface"; // slot_id == 2;
 	}
    
-	if(local_debug) std::cout << std::endl;
+	std::cout << std::endl;
       }
   
-    if(local_debug) {
-      fF1TDContainer->Print();
-      std::cout << "-----------------------------------------------------" << std::endl;
-    }
+    fF1TDContainer->Print();
+    std::cout << "-----------------------------------------------------" << std::endl;
 
     
     // kMaxNumberOfChannelsPerTDC = fF1TDContainer->GetF1TDCChannelNumber();
