@@ -19,6 +19,16 @@
 //                 - do not draw when there are nothing
 //                   in a root file
 // 
+//          0.0.5 : Monday, November 29 23:06:56 EST 2010, jhlee
+//                 - added the golden BPM measurement if there is no
+//                   way to run "caget" for test purpose
+//                   https://hallcweb.jlab.org/hclog/1011_archive/101129222940.html
+//
+//
+// TO LIST
+//   * BPM offsets ?
+//   * BPMs X/Y along z
+
 // For example,
 // 1) run root
 // 2) .x raster.C(a root file name)
@@ -140,14 +150,14 @@ raster(TString name="")
   // H07C and H09B are the most interesting BPMs.
   //Get BCM, target, W plug position values and save as strings
   //                                                                         xoffset, yoffset, zoffset 
-  TString H07AX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07A.XPOS"); // 0.4,    0.2,   138406.0
-  TString H07BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07B.XPOS"); // 0.2,   -0.2,   139363.0
-  TString H07CX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07C.XPOS"); // 0.6,    0.0,   140329.0
-  TString H08X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H08.XPOS");  // 0.6,    1.6,   143576.0
-  TString H09X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H09.XPOS");  //-0.1,    0.6,   144803.0
-  TString H09BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H09B.XPOS"); //-0.6,    0.3,   147351.0
-  TString targetX   = gSystem->GetFromPipe("caget -t -f 3 qw:targetX");    // 14.1,    0.1,   148739.0
-  TString tungstenX = gSystem->GetFromPipe("caget -t -f 3 qw:tungstenX");  // 14.1,    0.1,   149397.0
+  TString H07AX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07A.XPOS");  // 0.4,    0.2,   138406.0
+  TString H07BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07B.XPOS");  // 0.2,   -0.2,   139363.0
+  TString H07CX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07C.XPOS");  // 0.6,    0.0,   140329.0
+  TString H08X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H08.XPOS");   // 0.6,    1.6,   143576.0
+  TString H09X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H09.XPOS");   //-0.1,    0.6,   144803.0
+  TString H09BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H09B.XPOS");  //-0.6,    0.3,   147351.0
+  TString targetX   = gSystem->GetFromPipe("caget -t -f 3 qw:targetX");     // 14.1,    0.1,   148739.0
+  TString tungstenX = gSystem->GetFromPipe("caget -t -f 3 qw:tungstenX");   // 14.1,    0.1,   149397.0
 
   TString H07AY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07A.YPOS");
   TString H07BY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07B.YPOS");
@@ -162,13 +172,26 @@ raster(TString name="")
   //
   // Just in case, when 'caget' doesn't work well or when we
   // want to test this script not on cdaqlx machine.
-  // 
-  if(targetX.IsNull()) targetX = "0.0";
-  if(targetY.IsNull()) targetY = "0.0";
-  if(H07CX.IsNull())   H07CX   = "1.0";
-  if(H07CY.IsNull())   H07CY   = "1.0";
-  if(H09BX.IsNull())   H09BX   = "-1.0";
-  if(H09BY.IsNull())   H09BY   = "-1.0";
+  // I took all values from qwick_19500-215000_7679.root
+  // see https://hallcweb.jlab.org/hclog/1011_archive/101129222940.html
+  //
+
+  if(H07AX.IsNull())     H07AX     = "2.553";
+  if(H07AY.IsNull())     H07AY     = "2.692";
+  if(H07BX.IsNull())     H07BX     = "1.965";
+  if(H07BY.IsNull())     H07BY     = "2.191";
+  if(H07CX.IsNull())     H07CX     = "1.663";
+  if(H07CY.IsNull())     H07CY     = "2.072";
+  if(H08X.IsNull())      H08X      = "1.314";
+  if(H08Y.IsNull())      H08Y      = "1.055";
+  if(H09X.IsNull())      H09X      = "0.630";
+  if(H09Y.IsNull())      H09Y      = "0.624";
+  if(H09BX.IsNull())     H09BX     = "0.188";
+  if(H09BY.IsNull())     H09BY     = "0.020";
+  if(targetX.IsNull())   targetX   = "-0.176";
+  if(targetY.IsNull())   targetY   = "-0.457";
+  if(tungstenX.IsNull()) tungstenX = "-0.336";
+  if(tungstenY.IsNull()) tungstenY = "-0.651";
 
   //Convert target position strings into doubles for plotting
 
