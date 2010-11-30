@@ -8,7 +8,7 @@ Executing shell commande depending on params
 import os
 import time
 
-lastRunSeg="7395.000"
+lastRunSeg="7600.000"
 sleepSec=300
 fileSize=900000000
 webPath="web/"
@@ -81,8 +81,10 @@ while (1):
     x+=1
     #os._exit(1)
     time.sleep(sleepSec)
-    if (x>1000):
-        break
+    #if (x>10000):
+    #    break
 print "autoloop ended"
 
-# test: mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select filename,run_Number,segment,start_time from analysis where backup_status > 10 AND run_number > 7390  order by filename"
+#OLD test: mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select filename,run_Number,segment,start_time from analysis where backup_status > 10 AND run_number > 7600  order by filename"
+
+#mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select filename,backup_status,start_time from analysis where backup_status > 10 AND run_number > 7600  and filename like 'parity%' order by filename"

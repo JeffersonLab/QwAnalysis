@@ -2,7 +2,8 @@
 
 """ 
  ./linRegBlue 5844 0 10000 blueReg.conf blueR5844.000.slope.root
- 
+
+ scp -rp -i ~/balewski/keys/id_rsa-ifarml4 xxx balewski@ifarml4:/group/qweak/www/html/onlineRegression/A
 """
 import os
 from optparse import OptionParser
@@ -282,6 +283,12 @@ print "exec100:%s" % cmd_string100
 os.system(cmd_string100)
 os.system("date")
 
+
+#..... regenarate plots, after CSV table is rebuild
+cmd_string110 = "(./doAutoPlots.sh)"
+print "exec110:%s" % cmd_string110
+os.system(cmd_string110)
+          
 os._exit(1)
 
 

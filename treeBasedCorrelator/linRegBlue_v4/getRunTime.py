@@ -5,7 +5,6 @@ produce run list w/ time staps from the
 """
 import os
 
-#path="../stableOct/sort6913-7099-hw_sum/"
 path="../stableOct/sort7100-7199-hw_sum/"
 path="./web/"
 print "read from ", path
@@ -26,8 +25,7 @@ for line in f:
     #print string
     unixTime=string.split()[1]
     print run+".%03d"%seg+ " "+ unixTime
-    # break; 
-    continue;
+   #    continue;
 
     
     RUNiSEG=run+".%03d"%seg
