@@ -6,7 +6,7 @@
 !Available settings
 !***************************************************
 !To turn OFF all checks
-!EVENTCUTS = 0 
+EVENTCUTS = 0 
 
 !***************************************************
 !To turn OFF event cuts and perform only HW checks

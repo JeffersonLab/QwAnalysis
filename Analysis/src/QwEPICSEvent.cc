@@ -15,14 +15,19 @@
 #include "QwParameterFile.h"
 
 /*************************************
- *  Constant definitions.
+ *  Static definitions
  *************************************/
 
 const int QwEPICSEvent::kDebug  = 0;  /* Debugging flag, set this to 1 to  *
 				       * enable debugging output, otherwise 0.*/
 const int QwEPICSEvent::kEPICS_Error = -1;
 const int QwEPICSEvent::kEPICS_OK    =  1;
+
 const Double_t QwEPICSEvent::kInvalidEPICSData = -999999.0;
+
+
+// Default autogain list
+std::vector<std::string> QwEPICSEvent::fDefaultAutogainList;
 
 
 /*************************************
@@ -30,7 +35,7 @@ const Double_t QwEPICSEvent::kInvalidEPICSData = -999999.0;
  *************************************/
 QwEPICSEvent::QwEPICSEvent()
 {
-  InitDefaultAutogainList();
+  QwEPICSEvent::InitDefaultAutogainList();
   if (kDebug == 1) PrintVariableList();
 };
 
@@ -44,7 +49,7 @@ QwEPICSEvent::~QwEPICSEvent(){};
 
 
 
-Int_t QwEPICSEvent::LoadEpicsVariableMap(const string& mapfile)
+Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
 {
   Int_t lineread = 0;
 
@@ -53,7 +58,7 @@ Int_t QwEPICSEvent::LoadEpicsVariableMap(const string& mapfile)
   fEPICSVariableType.clear();
 
   // Open the file
-  QwParameterFile mapstr(mapfile);
+  QwParameterFile mapstr(mapfile.Data());
   while (mapstr.ReadNextLine()) {
     lineread++;
 
@@ -83,6 +88,46 @@ Int_t QwEPICSEvent::LoadEpicsVariableMap(const string& mapfile)
 
   return 0;
 };
+
+
+/// \brief Construct the branch and tree vector
+void QwEPICSEvent::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values)
+{
+  fTreeArrayIndex = values.size();
+  Int_t treeindex = fTreeArrayIndex;
+  for (size_t tagindex = 0; tagindex < fEPICSVariableType.size(); tagindex++) {
+    if (fEPICSVariableType[tagindex] == kEPICSFloat ||
+        fEPICSVariableType[tagindex] == kEPICSInt) {
+
+    	// Add element to vector
+    	values.push_back(0.0);
+    	treeindex++;
+
+    	TString name = fEPICSVariableList[tagindex];
+    	name.ReplaceAll(':','_'); // remove colons before creating branch
+    	TString name_type = name + "/D";\
+
+    	// Create branch
+    	tree->Branch(name, &(values[treeindex]), name_type);
+    }
+  }
+  fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+}
+
+/// \brief Fill the tree vector
+void QwEPICSEvent::FillTreeVector(std::vector<Double_t>& values) const
+{
+	Int_t treeindex = fTreeArrayIndex;
+  for (size_t tagindex = 0; tagindex < fEPICSVariableType.size(); tagindex++) {
+    if (fEPICSVariableType[tagindex] == kEPICSFloat ||
+        fEPICSVariableType[tagindex] == kEPICSInt) {
+
+    	// Add value to vector
+    	values[treeindex] = fEPICSDataEvent[tagindex].Value;
+    	treeindex++;
+    }
+  }
+}
 
 
 Int_t QwEPICSEvent::AddEPICSTag(
@@ -234,16 +279,12 @@ Double_t QwEPICSEvent::GetDataValue(const string& tag) const
 };
 
 
-std::vector<std::string> QwEPICSEvent::GetDefaultAutogainList()
-{
-  return fDefaultAutogainList;
-};
-
-
 void QwEPICSEvent::InitDefaultAutogainList()
 {
-  fDefaultAutogainList.clear();  //clear the vector first
+	// Clear the vector first
+	fDefaultAutogainList.clear();
 
+	// Add default autogain channels
   fDefaultAutogainList.push_back("IPM3C17.XIFG");
   fDefaultAutogainList.push_back("IPM3C17.YIFG");
   fDefaultAutogainList.push_back("IBC3C17.XIFG");
@@ -279,6 +320,12 @@ void QwEPICSEvent::InitDefaultAutogainList()
   fDefaultAutogainList.push_back("IPM3H09.YIFG");
   fDefaultAutogainList.push_back("IPM3H09B.XIFG");
   fDefaultAutogainList.push_back("IPM3H09B.YIFG");
+};
+
+void QwEPICSEvent::SetDefaultAutogainList(std::vector<std::string>& input_list)
+{
+  fDefaultAutogainList.clear();  //clear the vector first
+  fDefaultAutogainList = input_list;
 };
 
 
@@ -424,13 +471,6 @@ void QwEPICSEvent::PrintVariableList() const
 };
 
 
-std::vector<Double_t> QwEPICSEvent::ReportAutogains()
-{
-  return ReportAutogains(fDefaultAutogainList);
-};
-
-
-
 std::vector<Double_t> QwEPICSEvent::ReportAutogains(std::vector<std::string> tag_list)
 {
   std::vector<Double_t> autogain_values;
@@ -553,12 +593,6 @@ void  QwEPICSEvent::ResetCounters()
     fEPICSCumulativeData[tagindex].Maximum       = 0.0;
   }
   fNumberEPICSEvents = 0;
-};
-
-void QwEPICSEvent::SetDefaultAutogainList(std::vector<std::string> input_list)
-{
-  fDefaultAutogainList.clear();  //clear the vector first
-  fDefaultAutogainList = input_list;
 };
 
 

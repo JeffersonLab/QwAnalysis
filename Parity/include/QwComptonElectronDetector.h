@@ -130,6 +130,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     std::vector< std::vector <Double_t> > fStripsEv;
     std::vector< std::vector <Double_t> > fStripsRawEv;
 
+
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
     //   array_type fStripsRaw(boost::extents[NPlanes][StripsPerPlane]);
@@ -147,8 +148,16 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
   private:
 
     static const Bool_t kDebug = kTRUE;
+    Int_t edet_cut_on_x2;
+    Int_t edet_cut_on_ntracks;    
     Double_t fCalibrationFactor;
     Double_t fOffset;
+    Double_t edet_x2;
+    Double_t edet_TotalNumberTracks;
+    Int_t fStripsEvBest1;
+    Int_t fStripsEvBest2;
+    Int_t fStripsEvBest3;
+    Double_t edet_angle;
     Int_t fTreeArrayNumEntries;
     Int_t fTreeArrayIndex;
     UInt_t fNumberOfEvents; //! Number of triggered events

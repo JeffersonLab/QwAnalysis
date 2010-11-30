@@ -300,6 +300,8 @@ QwF1TDC::PrintF1TDCBuffer()
 void
 QwF1TDC::PrintF1TDCConfigure()
 {
+
+  printf("%s, ROC%2d slot%2d ", GetF1SystemName().Data(), GetROCNumber(), GetSlotNumber());
   if(IsNormResolution()) printf("Normal Resolution mode ");
   else                   printf("High Resolution mMode ");
   
@@ -400,6 +402,15 @@ QwF1TDC::GetErrorCounter()
 }
 
 
+void
+QwF1TDC::PrintContact()
+{
+  printf("-------------------------------------------------------------------------------- \n");
+  printf("%s : Roc%2d, slot%d is trouble now, please contact jhlee or rakithab immediately\n", 
+	 GetF1SystemName().Data(), GetROCNumber(), GetSlotNumber());
+  printf("-------------------------------------------------------------------------------- \n");
+  return;
+}
 
 // void 
 // SetRefernceSignals(Int_t chan, Double_t val)
@@ -486,9 +497,7 @@ QwF1TDContainer::AddQwF1TDC(QwF1TDC *in)
 
   pos = fQwF1TDCList -> AddAtFree(in);
   if(fLocalDebug2) {
-    std::cout << "AddQwF1TDC at pos " 
-	      << pos 
-	      << std::endl;
+    printf("AddQwF1TDC at pos %d\n", pos);
   }
 
   fNQwF1TDCs++;
@@ -860,7 +869,7 @@ QwF1TDContainer::GetF1TDCResolution()
 
   // F1TDC resolution must be the same
   // among VME crates and among F1TDC boards
-  // We cannot change it on each F1TDC board.
+  // We cannot change it on each F1TDC board.QwF1TDContainer::GetF1TDCResolution()
   // Thus, this function return one value of them.
   // Wednesday, September  1 16:52:05 EDT 2010, jhlee
 
@@ -869,17 +878,19 @@ QwF1TDContainer::GetF1TDCResolution()
   Int_t cnt      = 0;
 
   TObjArrayIter next(fQwF1TDCList);
-  TObject* obj;
+  TObject* obj = NULL;
 
   while ( (obj = next()) )
     {
       QwF1TDC* F1 = (QwF1TDC*) obj;
       new_r = F1->GetF1TDC_resolution();
-      //   printf("cnt %d, new %f , old %f\n", cnt, new_r, old_r);
       if(cnt not_eq 0) {
 	if(old_r not_eq new_r) {
-	  std::cout << "NEVER see this message."
-		    << "If one can see this, F1TDC configurations are corrupted!\n";
+	  F1->PrintContact();
+	  printf("%s : QwF1TDContainer::GetF1TDCResolution(): F1TDC configurations are corrupted!\n", 
+		 GetSystemName().Data());
+	  F1->PrintF1TDCConfigure();
+
 	  return 0.0;
 	}
 
@@ -901,19 +912,23 @@ QwF1TDContainer::GetF1TDCTriggerRollover()
   Int_t cnt      = 0;
 
   TObjArrayIter next(fQwF1TDCList);
-  TObject* obj;
+  TObject* obj = NULL;
+
+  if(fLocalDebug) printf("\nHow many F1TDC in %s : %d\n", GetSystemName().Data(), fQwF1TDCList->GetEntriesFast());
 
   while ( (obj = next()) )
     {
       QwF1TDC* F1 = (QwF1TDC*) obj;
       new_r = F1->GetF1TDC_trig_t_offset();
-      //  printf("cnt %d, new %f , old %f\n", cnt, new_r, old_r);
+      //      printf("QwF1TDContainer::GetF1TDCTriggerRollover():: cnt %d, new %lf , old %lf\n", cnt, new_r, old_r);
       if(cnt not_eq 0) {
-	if(old_r not_eq new_r) {
-	  std::cout << "NEVER see this message."
-		    << "If one can see this, F1TDC configurations are corrupted!\n";
+       	if(old_r not_eq new_r) {
+	  F1->PrintContact();
+	  printf("%s : QwF1TDContainer::GetF1TDCTriggerRollover(): F1TDC configurations are corrupted!\n", 
+		 GetSystemName().Data());
+	  F1->PrintF1TDCConfigure();
 	  return 0.0;
-	}
+      	}
 
       }
       old_r = new_r;
@@ -941,17 +956,19 @@ QwF1TDContainer::GetF1TDCChannelNumber()
   Int_t cnt   = 0;
 
   TObjArrayIter next(fQwF1TDCList);
-  TObject* obj;
+  TObject* obj = NULL;
 
   while ( (obj = next()) )
     {
       QwF1TDC* F1 = (QwF1TDC*) obj;
       new_c = F1->GetChannelNumber();
-      //   printf("cnt %d, new %d , old %d\n", cnt, new_c, old_c);
+      //  printf("QwF1TDContainer::GetF1TDCChannelNumber() cnt %d, new %d , old %d\n", cnt, new_c, old_c);
       if(cnt not_eq 0) {
 	if(old_c not_eq new_c) {
-	  std::cout << "NEVER see this message."
-		    << "If one can see this, F1TDC configurations are corrupted!\n";
+	  F1->PrintContact();
+	  printf("%s : QwF1TDContainer::GetF1TDCChannelNumber(): F1TDC configurations are corrupted!\n", 
+		 GetSystemName().Data());
+	  F1->PrintF1TDCConfigure();
 	  return 0;
 	}
 
@@ -968,7 +985,7 @@ QwF1TDContainer::GetF1TDCChannelNumber()
 void
 QwF1TDContainer::PrintErrorSummary()
 {
-  std::cout << "-----------------------" << std::endl;
+  printf("-----------------------\n");
   TObjArrayIter next(fQwF1TDCList);
   TObject* obj = NULL;
   while ( (obj = next()) )
@@ -976,7 +993,7 @@ QwF1TDContainer::PrintErrorSummary()
       QwF1TDC* F1 = (QwF1TDC*) obj;
       F1 -> PrintErrorCounter();
     }
-  std::cout << "-----------------------" << std::endl;
+  printf("-----------------------\n");
   return;
 };
 
@@ -1060,8 +1077,8 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   trigger_rollover         = GetF1TDCTriggerRollover();
   rounded_trigger_rollover = (Int_t) trigger_rollover;
 
-
-  if(fLocalDebug) printf("trigger rollover %lf, %d\n", trigger_rollover, rounded_trigger_rollover);
+  //  fLocalDebug = true;
+  if(fLocalDebug) printf("roc_id %d trigger rollover %lf, %d\n", roc_id, trigger_rollover, rounded_trigger_rollover);
 
   
   const Int_t valid_trigger_time_offset[3] = {0, 1, rounded_trigger_rollover};
