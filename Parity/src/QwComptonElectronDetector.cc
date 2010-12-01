@@ -23,7 +23,7 @@
 #include "QwTreeEventBuffer.h"
 #include "QwEventBuffer.h"
 #include "QwEvent.h"
-#include "QwOptionsParity.h"
+#include "QwSubsystemArrayParity.h"
 
 
 
