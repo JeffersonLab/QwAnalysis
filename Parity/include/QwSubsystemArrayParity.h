@@ -52,6 +52,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values);
     /// \brief Fill the vector for this subsystem
     void FillTreeVector(std::vector<Double_t>& values) const;
+    /// \brief Fill the histograms for this subsystem
+    void  FillHistograms();
 
     /// \brief Fill the database
     void FillDB(QwDatabase *db, TString type);

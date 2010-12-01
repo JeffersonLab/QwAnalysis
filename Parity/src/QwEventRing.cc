@@ -37,7 +37,7 @@ void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
   fMIN_BT_COUNT=min_BT_count;
   */
   QwMessage<<" Ring "<<fRING_SIZE<<" , "<<fMIN_BT_COUNT<<" , "<<fEVENT_HOLDOFF<<QwLog::endl;
-  if (fRING_SIZE>10001){
+  if (fRING_SIZE>10000){
     QwError<<"Ring size is too large. Set a value below 10000 events."<<QwLog::endl;
     exit(1);
   }
@@ -65,9 +65,9 @@ void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
 void QwEventRing::DefineOptions(QwOptions &options){
   // Define the execution options
   options.AddDefaultOptions();
-  options.AddOptions()("ring.size", po::value<int>()->default_value(32),"QwEventRing: ring/buffer size");
+  options.AddOptions()("ring.size", po::value<int>()->default_value(1200),"QwEventRing: ring/buffer size");
   options.AddOptions()("ring.bt", po::value<int>()->default_value(4),"QwEventRing: minimum beam trip count");
-  options.AddOptions()("ring.hld", po::value<int>()->default_value(16),"QwEventRing: ring hold off");
+  options.AddOptions()("ring.hld", po::value<int>()->default_value(52000),"QwEventRing: ring hold off");
 
 }
 

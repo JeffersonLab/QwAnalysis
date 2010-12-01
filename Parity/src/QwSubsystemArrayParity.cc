@@ -431,3 +431,11 @@ void QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t>& values) const
   size_t index = values.size()-1;
   values[index] = fErrorFlag;
 };
+
+
+//*****************************************************************
+void  QwSubsystemArrayParity::FillHistograms()
+{
+  if (GetEventcutErrorFlag()==0)
+    QwSubsystemArray::FillHistograms();
+};
