@@ -13,6 +13,7 @@ prCsvRecord(double run_seg0=7214.001, int start_time0=12345678, TString inpPath0
   inpPath=inpPath0;
   start_time=start_time0;
   fetchNamesAnd();
+  // dvName.Set(15); //tmp
   int nP=ivName.size();
   int nY=dvName.size();
   printf(" found nIV=%d  nDV=%d  time=%d\n",nP,nY,start_time);
@@ -245,6 +246,7 @@ void fetchNamesAnd() {
     TString name=ax->GetBinLabel(b);
     // printf(" dv=%d name=%s\n", b-1,name.Data());
     dvName.push_back(name);
+    if (b>=15) break; //tmp
   }
 
   //........  

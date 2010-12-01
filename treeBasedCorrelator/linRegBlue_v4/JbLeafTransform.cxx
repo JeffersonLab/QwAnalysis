@@ -81,11 +81,14 @@ JbLeafTransform::findInputLeafs(TChain *chain){
   hA[3]->SetFillColor(kGreen);
 
   //...... now you can shorten names so they are easier to read & print
-  for(unsigned int i=0; i<dvName.size(); i++) 
+  for(unsigned int i=0; i<dvName.size(); i++) {
+    printf("dv=%d : ",i);
     dvName[i]=humanizeLeafName(dvName[i]);
-  for(unsigned int i=0; i<ivName.size(); i++) 
+  }
+  for(unsigned int i=0; i<ivName.size(); i++) {
+    printf("iv=%d : ",i);
     ivName[i]=humanizeLeafName(ivName[i]);
-
+  }
 
 
 }
@@ -219,7 +222,7 @@ JbLeafTransform::initHistos(){
   //.....  yield  dv
   hydv=new TH1 *[ndv()];
   for(int i=0;i<ndv();i++) {   
-    TString name=humanizeLeafName(setLeafName2Yield(dvName[i])) ;
+    TString name=setLeafName2Yield(humanizeLeafName(dvName[i])) ;
     hydv[i]=h=new TH1D(Form("yieldDV%d",i),Form("%s, DV%d ;%s",name.Data(),i,name.Data()),128,-0.,0.);
     h->GetXaxis()->SetNdivisions(4);  h->SetBit(TH1::kCanRebin);
     h->GetXaxis()->SetTitleColor(kBlue);
@@ -228,7 +231,7 @@ JbLeafTransform::initHistos(){
   //.....  yield  iv
   hyiv=new TH1 *[niv()];
   for(int i=0;i<niv();i++) {   
-    TString name=humanizeLeafName(setLeafName2Yield(ivName[i])) ;
+    TString name=setLeafName2Yield(humanizeLeafName(ivName[i])) ;
     hyiv[i]=h=new TH1D(Form("yieldIV%d",i),Form("%s, IV%d ;%s",name.Data(),i,name.Data()),128,0.,0.);
     h->GetXaxis()->SetNdivisions(4);    h->SetBit(TH1::kCanRebin);
     h->GetXaxis()->SetTitleColor(kBlue);
@@ -342,6 +345,12 @@ JbLeafTransform::humanizeLeafName(TString longName) {
   name.ReplaceAll("_md","_MD");
   name.ReplaceAll("barsum","");
   name.ReplaceAll("bars","");
+  // added for lumi
+  name.ReplaceAll("asym_uslumi","asym_USLum");
+  name.ReplaceAll("asym_dslumi","asym_DSLum");
+  name.ReplaceAll("_uslumi","_");
+  name.ReplaceAll("_dslumi","_");
+  name.ReplaceAll("_sum","");
   printf("Humanize '%s' --> '%s'\n", longName.Data(),name.Data());
   return name;
 }
@@ -352,6 +361,6 @@ JbLeafTransform::setLeafName2Yield(TString longName){
   TString name=longName;
   name.ReplaceAll("asym_","yield_");
   name.ReplaceAll("diff_","yield_");
-  //printf("leaf2yield: '%s' \n",name.Data());
+  //printf("  leaf2yield: '%s'-> '%s' \n\n",longName.Data(),name.Data());
   return name;
 }

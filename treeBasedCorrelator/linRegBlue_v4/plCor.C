@@ -2,9 +2,9 @@ TCanvas *can=0;
 int pl=2; //1=gif, 2=ps, 3=both
 
 TFile* fd=0;
-enum{ nP=5,nY=15}; 
+enum{ nP=5}; //,nY=15}; 
 TString cor1="input";
-TString runName="R6886.000";
+TString runName="R7684.003";
 
 //TString inpPath="./web/R5822.001/";
 TString inpPath="./out/";
@@ -21,23 +21,38 @@ plCor(int page=1, char *runName0="RfixMe.000") {
   fd=new TFile( dataFinalRoot); assert(fd->IsOpen());
   printf("Opened  histo=%s=\n",fd->GetName());
 
-  if(page==1) mySum("mySummary","summary +QA ,"+runName); // just one set, old
-  if(page==2) DV_1D("DV_1Da","regressed DV,"+runName,"regres"); // just one set, old
-  if(page==3) DV_1D("DV_1Db","NOT regressed DV, "+runName,"input"); // just one set, old
+  if(page==1) mySum("summary ,"+runName); 
+  if(page==2) IV_IV("Independent variables, "+runName);
+  if(page==3) yield_1D("Yield of IVs, "+runName,"yieldIV",0,4);
+
+  if(page==10) DV_1D("Regressed DV: MD, "+runName,"regres",0,15);
+  if(page==11) DV_1D("Regressed DV: Lumi coinc "+runName,"regres",16,28);
+  if(page==12) DV_1D("Regressed DV: Lumi single "+runName,"regres",29,44);
+
+  if(page==20) DV_1D("NOT regressed DV: MD, "+runName,"input",0,15);
+  if(page==21) DV_1D("NOT regressed DV: Lumi coinc "+runName,"input",16,28);
+  if(page==22) DV_1D("NOT regressed DV: Lumi single "+runName,"input",29,44);
 
  
-  if(page==4) IV_DV("IV_DV","Correlation MD1..MD4 vs. IV's, "+runName,0,3);
-  if(page==5) IV_DV("IV_DV","Correlation MD5..MD8 vs. IV's, "+runName,4,7);
-  if(page==6) IV_DV("IV_DV","Correlation MDH,V,D1,D2 vs. IV's, "+runName,8,11);
-  if(page==7) IV_DV("IV_DV","Correlation MDC,MDX, MDA vs. IV's, "+runName,12,14);
+  if(page==30) IV_DV("Correlation MD1..MD4 vs. IV's, "+runName,0,3);
+  if(page==31) IV_DV("Correlation MD5..MD8 vs. IV's, "+runName,4,7);
+  if(page==32) IV_DV("Correlation MDH,V,D1,D2 vs. IV's, "+runName,8,11);
+  if(page==33) IV_DV("Correlation MDC,MDX, MDA vs. IV's, "+runName,12,14);
+  if(page==34) IV_DV("Correlation Downstream Lumi combos vs. IV's,"+runName,15,17);
+  if(page==35) IV_DV("Correlation Downstream Lumi pairs vs. IV's, "+runName,18,21);
+  if(page==36) IV_DV("Correlation Upstream Lumi combos vs. IV's, "+runName,22,24);
+  if(page==37) IV_DV("Correlation Upstream Lumi pairs vs. IV's, "+runName,25,28);
+  if(page==38) IV_DV("Correlation Downstream Lumi single 1-4 vs. IV's, "+runName,29,32);
+  if(page==39) IV_DV("Correlation Downstream Lumi single 5-8 vs. IV's, "+runName,33,36);
+  if(page==40) IV_DV("Correlation Upstream Lumi ends 1,3 vs. IV's, "+runName,37,40);
+  if(page==41) IV_DV("Correlation Upstream Lumi ends 5,7 vs. IV's, "+runName,41,44);
 
-  if(page==8) IV_IV("IV","Independent variables, "+runName);
-  if(page==9) yield_1D("DVyield","Yield of DVs, "+runName,"yieldDV",nY);
-  if(page==10) yield_1D("IVyield","Yield of IVs, "+runName,"yieldIV",nP);
 
- 
+  if(page==50) yield_1D("Yield of DV: MD, "+runName,"yieldDV",0,15);
+  if(page==51) yield_1D("Yield of DV: Lumi coinc "+runName,"yieldDV",16,28);
+  if(page==52) yield_1D("Yield of DV: Lumi single "+runName,"yieldDV",29,44);
 
-
+  can->Update();
   if(can) {
     TString tit=Form("%s%s_page%03d",oPath,runName.Data(),page);
     can->SetTitle(tit);
@@ -51,7 +66,7 @@ plCor(int page=1, char *runName0="RfixMe.000") {
 
 //============================================
 //============================================
-void   mySum(TString cCore, TString text){
+void   mySum( TString text){
 
   gStyle->SetOptFit(1); gStyle->SetOptStat(10);
   
@@ -86,23 +101,91 @@ void   mySum(TString cCore, TString text){
   h->SetMaximum(h->GetMaximum()*1.2);
 
   cD->cd(2);
-  h=(TH1 *)fd->Get("inpBcm1"); assert(h);
-  
+  h=(TH1 *)fd->Get("inpBcm1"); assert(h);  
   h->Draw();
+  h->GetXaxis()->SetNdivisions(6); 
   
  
   cD->cd(3);
   h=(TH1 *)fd->Get("inpDevErr"); assert(h);
   h->Draw();
   if(h->Integral()>20) gPad->SetLogy();
- 
+
+}
+
+//============================================
+//============================================
+void   DV_1D(TString text, TString preFix, int i1, int i2){
+
+  gStyle->SetOptStat(1001110);
+  gStyle->SetOptFit(1);
+  
+  can=new TCanvas("aa","aa",700,500);    TPad *c=makeTitle(can,text);
+  c->Divide(4,4);
+  //...... diagonal
+  int k=1;
+  for(int i=i1;i<=i2;i++) {    
+    c->cd(k++);
+    TString name=preFix+Form("Y%d",i); cout<<name.Data()<<endl;
+    TH1 * h=(TH1 *)fd->Get(name);
+    if(h==0) continue;
+    assert(h);
+    h->Draw();
+
+    double xm=-trimDisplayRange(h,6.0)*.8;
+
+    TAxis *ax=h->GetXaxis();
+    ax->SetLabelSize(0.10); 
+
+    double w1=h->GetRMS();
+    double ym=h->GetMaximum()*0.75;
+    TText *tx=new TText(xm,ym/2.,Form("RMS=%.0f",w1)); tx->Draw();
+    tx->SetTextSize(0.15);  tx->SetTextColor(45);
+    tx=new TText(xm,ym,ax->GetTitle()+3); tx->Draw();
+    tx->SetTextSize(0.15);  tx->SetTextColor(45);
+
+  }
 
 }
 
 
+
 //============================================
 //============================================
-void   IV_IV(TString cCore, TString text){
+void   IV_DV( TString text, int iy1, int iy2){
+  gStyle->SetOptStat(1001110);
+  gStyle->SetOptFit(1);
+  can=new TCanvas("aa","aa",700,600);    TPad *c=makeTitle(can,text);
+  c->Divide(nP,4);
+  // .... correlations 
+  int k=1;
+  for(int j=iy1;j<=iy2;j++) {      
+    for(int i=0;i<nP;i++) {    
+      c->cd(k);
+      gPad->SetLeftMargin(0.15);
+
+      TString name=Form("inputP%d_Y%d",i,j); cout<<k<<name.Data()<<endl;
+      TH2F * h=(TH2F *)fd->Get(name); 
+      if(h==0) continue;
+      assert(h);
+      h->Draw("colz");
+      prX=h->ProfileX();
+
+      trimDisplayRange(h,6.);
+      prX->Draw("same");
+      k++;
+      h->GetXaxis()->SetLabelSize(0.06); 
+
+      // return;
+    }
+  }
+}
+
+
+
+//============================================
+//============================================
+void   IV_IV(TString text){
   gStyle->SetOptStat(1001110);
   gStyle->SetOptFit(1);
   
@@ -133,62 +216,30 @@ void   IV_IV(TString cCore, TString text){
     for(int j=i+1;j<nP;j++) {      
       c->cd(1+i*nP+j);
       TString name=Form("inputP%d_P%d",i,j); // cout<<name.Data()<<endl;
-      TH1 * h=(TH1 *)fd->Get(name); assert(h);
-      h->Draw("colz");
-      trimDisplayRange(h,5.);
+      TH2F * h2=(TH2F *)fd->Get(name); assert(h);
+      h2->Draw("colz");
+      prX=h2->ProfileX();
+      trimDisplayRange(h2,5.);
+      prX->Draw("same");
+
       //  return;
     }
   }
 }
 
-//============================================
-//============================================
-void   DV_1D(TString cCore,TString text, TString preFix){
-
-  gStyle->SetOptStat(1001110);
-  gStyle->SetOptFit(1);
-  
-  can=new TCanvas("aa","aa",700,500);    TPad *c=makeTitle(can,text);
-  c->Divide(4,4);
-  //...... diagonal
-  for(int i=0;i<nY;i++) {    
-    c->cd(1+i);
-    TString name=preFix+Form("Y%d",i); cout<<name.Data()<<endl;
-    TH1 * h=(TH1 *)fd->Get(name);
-    if(h==0) continue;
-    assert(h);
-    h->Draw();
-
-    double xm=-trimDisplayRange(h,6.0)*.8;
-
-    TAxis *ax=h->GetXaxis();
-    ax->SetLabelSize(0.10); 
-
-    double w1=h->GetRMS();
-    double ym=h->GetMaximum()*0.75;
-    TText *tx=new TText(xm,ym/2.g,Form("RMS=%.0f",w1)); tx->Draw();
-    tx->SetTextSize(0.15);  tx->SetTextColor(45);
-    tx=new TText(xm,ym,ax->GetTitle()+3); tx->Draw();
-    tx->SetTextSize(0.15);  tx->SetTextColor(45);
-
-  }
-
-
-
-}
 
 //============================================
 //============================================
-void   yield_1D(TString cCore,TString text, TString preFix, int np){
+void   yield_1D(TString text, TString preFix, int i1,int i2){
 
   gStyle->SetOptStat(1110);
   gStyle->SetOptFit(1);
 
   can=new TCanvas("aa","aa",700,500);    TPad *c=makeTitle(can,text);
   c->Divide(4,4);
-  //...... diagonal
-  for(int i=0;i<np;i++) {    
-    c->cd(1+i);
+  int k=1;
+  for(int i=i1;i<=i2;i++) {    
+    c->cd(k++);
     TString name=preFix+Form("%d",i); cout<<name.Data()<<endl;
     TH1 * h=(TH1 *)fd->Get(name);
     if(h==0) continue;
@@ -205,34 +256,6 @@ void   yield_1D(TString cCore,TString text, TString preFix, int np){
 
 }
 
-
-
-//============================================
-//============================================
-void   IV_DV(TString cCore, TString text, int iy1, int iy2){
-  gStyle->SetOptStat(1001110);
-  gStyle->SetOptFit(1);
-  can=new TCanvas("aa","aa",700,600);    TPad *c=makeTitle(can,text);
-  c->Divide(nP,4);
-  // .... correlations 
-  int k=1;
-  for(int j=iy1;j<=iy2;j++) {      
-    for(int i=0;i<nP;i++) {    
-      c->cd(k);
-      TString name=Form("inputP%d_Y%d",i,j); cout<<k<<name.Data()<<endl;
-      TH1 * h=(TH1 *)fd->Get(name); 
-      if(h==0) continue;
-      assert(h);
-      h->Draw("colz");
-      trimDisplayRange(h,6.);
-      k++;
-      h->GetXaxis()->SetLabelSize(0.06); 
-
-      //break;
-    }
-  }
-}
-
 //============================================
 //============================================
 void  trimDisplayRange(TH1 *h, double fac=0.8) {
@@ -245,7 +268,7 @@ void  trimDisplayRange(TH1 *h, double fac=0.8) {
   double basx=h->GetRMS()*fac;
   basx=ax->GetXmin();
   h->SetAxisRange(-basx,basx,"x");
-  printf("%s rms=%f xbas=%f %d\n", h->GetName(), h->GetRMS(),basx,ax->GetNbins());
+  //  printf("%s rms=%f xbas=%f %d\n", h->GetName(), h->GetRMS(),basx,ax->GetNbins());
   
 	   
   ax=h->GetYaxis();
@@ -260,15 +283,6 @@ void  trimDisplayRange(TH1 *h, double fac=0.8) {
   return basx;
 }
 
-
-
-// c->SetFillColor(kWhite);
-  //  gStyle->SetOptStat(1001110);
-  //  gStyle->SetOptFit(1);
-  
-
-    //    TF1 *ff=h->GetFunction("gaus");
-    // ff->SetLineColor(kRed);    ff->SetLineWidth(1);
 
 //------------------------
 TPad *makeTitle(TCanvas *c,char *core) {
@@ -294,13 +308,14 @@ TPad *makeTitle(TCanvas *c,char *core) {
 
 //============================
 void doAll(){
-  for(int i=1;i<=10;i++)  {
-    // if(i==6||i==7) continue; //tmp, if no 2,4,8-sums
-    plCor(i);
-  }
+   for(int i=1;i<=3;i++) plCor(i);
+   for(int i=10;i<=12;i++) plCor(i);
+   for(int i=20;i<=22;i++) plCor(i);
+   for(int i=30;i<=41;i++) plCor(i);
+   for(int i=50;i<=52;i++) plCor(i);
 
   cout<<"cat "+runName+"_page*ps  |ps2pdf - all"+runName+".pdf"<<endl;
-  cout<<"scp all"+runName+".pdf  balewski@deltag5.lns.mit.edu:0x"<<endl;
+  cout<<"scp -rp -i ~/balewski/keys/id_rsa-ifarml4 all"+runName+".pdf balewski@ifarml4:/group/qweak/www/html/onlineRegression/B"<<endl;
 }
 
 

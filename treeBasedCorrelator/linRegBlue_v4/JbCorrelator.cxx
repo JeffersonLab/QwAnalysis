@@ -159,6 +159,7 @@ JbCorrelator::finish(){
   TString rmsStr, avrStr;
   double avrL=99999.99,avrH=99999.9;
   for (int i = nY-1; i >=0; i--) {
+    if(i>=15) continue; // do not print out Lumi DVs
     double meanI,sigI;
     assert( linReg.getMeanY(i,meanI)==0);
     assert( linReg.getSigmaY(i,sigI)==0);
@@ -167,6 +168,7 @@ JbCorrelator::finish(){
       if(avrL>meanI) avrL=meanI;
       if(avrH<meanI) avrH=meanI;
     }
+
     if(sigI<10000)
       rmsStr+=Form("<td> %.0f",sigI);
     else
