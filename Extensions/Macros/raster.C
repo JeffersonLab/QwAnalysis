@@ -24,6 +24,8 @@
 //                   way to run "caget" for test purpose
 //                   https://hallcweb.jlab.org/hclog/1011_archive/101129222940.html
 //
+//          0.0.6 : Tuesday, November 30 22:52:39 EST 2010, jhlee
+//                 - added the time stamp when it is created.
 //
 // TO LIST
 //   * BPM offsets ?
@@ -39,6 +41,7 @@
 
 #include "TSystem.h"
 #include "TString.h"
+#include <ctime>
 
 void
 raster(TString name="")
@@ -312,7 +315,13 @@ raster(TString name="")
   y -= d ; l.DrawLatex(x1, y, tungstenY.Data())  ;
 
 
-
+  
+  time_t rawtime;
+  time ( &rawtime );
+  //  printf ( "The current local time is: %s", ctime (&rawtime) );
+  l.SetTextFont(12);
+  l.SetTextSize(0.08);
+  l.DrawLatex(0.2,0.08, Form("%s",ctime (&rawtime)));
   
   c2->Update();
   image_name = name +".png";
