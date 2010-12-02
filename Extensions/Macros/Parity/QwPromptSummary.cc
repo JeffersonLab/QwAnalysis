@@ -43,7 +43,7 @@ TTree *t_hel;
 
 
 
-Bool_t comparisonon=kTRUE;  //this should be truned on in order to compare to golden values from the reference file
+Bool_t comparisonon=kFALSE;//kTRUE;  //this should be truned on in order to compare to golden values from the reference file
 
 Int_t Read_ref_file(TString name_of_ref_file);
 void compare_to_golden_value(TString valuetocompareto, Double_t valuet, Double_t precision=0);
@@ -78,6 +78,7 @@ Bool_t verbose;
 //vectors to store TDirecotry from each runlet
 std::vector<TFile*> file_list;//List of TFile  to access histograms
 
+Bool_t NoFits=kTRUE;
 
 int main(Int_t argc,Char_t* argv[])
 {
@@ -210,6 +211,7 @@ int main(Int_t argc,Char_t* argv[])
 
   h=GetHisto("mps_histo/qwk_charge_hw");
   mps_normalizer=h->GetMean()*h->GetEntries();
+  delete h;
   h=NULL;
   h = GetHisto("hel_histo/yield_qwk_charge_hw");
   qrt_normalizer=h->GetMean()*h->GetEntries();
@@ -299,7 +301,7 @@ void FillBeamParameters(){
   util.push_back("BEAM PARAMETERS \n");
   util.push_back("--------------- \n \n");
 
-  Get_Mean("mps_histo/qwk_charge_hw",intensity,1);
+  Get_Mean("hel_histo/yield_qwk_charge_hw",intensity,1);
 
 
   if(intensity==0){
@@ -320,30 +322,30 @@ void FillBeamParameters(){
   compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
 
   //Beam on target positions
-  Get_Mean("mps_histo/qwk_targetX_hw",mean,1.);
+  Get_Mean("hel_histo/yield_qwk_targetX_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetX_hw",val,1.e+6);//factor 1e+6 to convert to nm
   util.push_back(Form("\n x targ  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
-  Get_Mean("mps_histo/qwk_targetY_hw",mean,1.);
+  Get_Mean("hel_histo/yield_qwk_targetY_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetY_hw",val,1.e+6);
-  util.push_back(Form("\n y targ  |   %5.1f    | %7.1f +/- %7.1f  | %7.1f +/- %7.1f ",mean,val[0],val[2],val[1],val[3]));
+  util.push_back(Form("\n y targ  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
 
-  Get_Mean("mps_histo/qwk_targetXSlope_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetXSlope_hw",val,1000.);
-  util.push_back(Form("\n Angle x    |   %5.1f    | %7.1f +/- %7.1f  | %7.1f +/- %7.1f ",TMath::ATan(mean),val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("x_beam_angle", TMath::ATan(mean),0);
+  Get_Mean("hel_histo/yield_qwk_targetXSlope_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetXSlope_hw",val,1.000);
+  util.push_back(Form("\n Angle x    |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("x_beam_angle", mean,0);
   compare_to_golden_value("x_angle_difference", val[0], val[2]);
   compare_to_golden_value("x_angle_difference_width", val[1], val[3]);
 
 
-  Get_Mean("mps_histo/qwk_targetYSlope_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetYSlope_hw",val,1000.);
+  Get_Mean("hel_histo/yield_qwk_targetYSlope_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetYSlope_hw",val,1.000);
   util.push_back(Form("\n Angle y    |   %5.1f    | %7.1f +/- %7.1f  | %7.1f +/- %7.1f ",TMath::ATan(mean),val[0],val[2],val[1],val[3]));
   compare_to_golden_value("y_beam_angle", TMath::ATan(mean),0);
   compare_to_golden_value("y_angle_difference", val[0], val[2]);
@@ -351,7 +353,7 @@ void FillBeamParameters(){
   util.push_back("\n Note: Angles are in radians while angle differences are still presented in gradient differences /n");
 
   
-  Get_Mean("mps_histo/qwk_energy_hw",mean,1.);
+  Get_Mean("hel_histo/yield_qwk_energy_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/asym_qwk_energy_hw",val,1.e+6);
   util.push_back(Form("\n Energy (dP/P)  |   %5.1f    | %7.1f +/- %7.1f  | %7.1f +/- %7.1f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("beam_energy", mean,0);
@@ -361,34 +363,34 @@ void FillBeamParameters(){
 
 
   // halo rates
-  Get_Mean("mps_histo/sca_halo3",mean,1.);
+  Get_Mean("hel_histo/yield_sca_halo3",mean,1.);
   sprintf(tmp,"\n\n  Halo 3 rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
-  Get_Mean("mps_histo/sca_halo4",mean,1.);
+  Get_Mean("hel_histo/yield_sca_halo4",mean,1.);
   sprintf(tmp,"\n\n  Halo 4 rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
-  Get_Mean("mps_histo/sca_halo5",mean,1.);
+  Get_Mean("hel_histo/yield_sca_halo5",mean,1.);
   sprintf(tmp,"\n\n  Halo 5 rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
-  Get_Mean("mps_histo/sca_halo6",mean,1.);
+  Get_Mean("hel_histo/yield_sca_halo6",mean,1.);
   sprintf(tmp,"\n\n  Halo 6 rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
-  Get_Mean("mps_histo/sca_halo7",mean,1.);
+  Get_Mean("hel_histo/yield_sca_halo7",mean,1.);
   sprintf(tmp,"\n\n  Halo 7 rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
-  Get_Mean("mps_histo/sca_halo8",mean,1.);
+  Get_Mean("hel_histo/yield_sca_halo8",mean,1.);
   sprintf(tmp,"\n\n  Halo 8 rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
-  Get_Mean("mps_histo/sca_halo9",mean,1.);
+  Get_Mean("hel_histo/yield_sca_halo9",mean,1.);
   sprintf(tmp,"\n\n  Halo 9 rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
-  Get_Mean("mps_histo/sca_31mhz",mean,1.);
+  Get_Mean("hel_histo/yield_sca_31mhz",mean,1.);
   sprintf(tmp,"\n\n  31MHz Clock rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
-  Get_Mean("mps_histo/sca_31mhzreturn",mean,1.);
+  Get_Mean("hel_histo/yield_sca_31mhzreturn",mean,1.);
   sprintf(tmp,"\n\n  31MHz Clock return rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
-  Get_Mean("mps_histo/sca_4mhz",mean,1.);
+  Get_Mean("hel_histo/yield_sca_4mhz",mean,1.);
   sprintf(tmp,"\n\n  4MHz Clock rate (KHz) = %7.1f (%7.1f (KHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
   util.push_back(TString(tmp)+" \n");
   for(size_t i=0;i<util.size();i++)
@@ -590,12 +592,19 @@ void Fit_with_a_gaussian(TString histname, Double_t *container, Double_t factor)
   TH1F* h = NULL;
   h = GetHisto(histname);
   if (h != NULL) {
-    h->Fit("gaus","Q");
-    *container=h->GetFunction("gaus")->GetParameter(1)*factor; // mean
-    *(container+1)=h->GetFunction("gaus")->GetParameter(2)*factor; //width
-    *(container+2)=h->GetFunction("gaus")->GetParError(1)*factor;
-    *(container+3)=h->GetFunction("gaus")->GetParError(2)*factor;
+    if (NoFits){
+      *container=h->GetMean()*factor;
+      *(container+1)=h->GetRMS()*factor;
+      *(container+2)=h->GetMeanError()*factor;
+      *(container+3)=h->GetRMSError()*factor;
+    }else{
+      h->Fit("gaus","Q");
+      *container=h->GetFunction("gaus")->GetParameter(1)*factor; // mean
+      *(container+1)=h->GetFunction("gaus")->GetParameter(2)*factor; //width
+      *(container+2)=h->GetFunction("gaus")->GetParError(1)*factor;
+      *(container+3)=h->GetFunction("gaus")->GetParError(2)*factor;
     delete h;
+    }
   } else {
     std::cout<<"Fit_with_a_gaussian Error: "<<histname<<" Not found!"<<std::endl;
     *container     = 0.0;
@@ -671,10 +680,11 @@ void compare_to_golden_value(TString valuetocompareto, Double_t value, Double_t 
 		  std::cout<<valuetocompareto<<" with value ="<<value<<" +- "<<precision<<" is out of range \n";
 		  std::cout<<"acceptable value is between "<<low<<" and "<<high<<std::endl;
 		}
-	      if(!util[util.size()-1].Contains("***")&&comparisonon)
-		//		 util[util.size()-1].Append(" *** out of acceptable range ***");
-		 util[util.size()-1].Append(" *** values out of acceptable range:");
-	      util[util.size()-1].Append(Form("%5.2f; ",value));
+	      if(!util[util.size()-1].Contains("***")&&comparisonon){
+		//util[util.size()-1].Append(" *** out of acceptable range ***");
+		util[util.size()-1].Append(" *** values out of acceptable range:");
+		util[util.size()-1].Append(Form("%5.2f; ",value));
+	      }
 	    }
 	  notfound=kFALSE;
 	}
