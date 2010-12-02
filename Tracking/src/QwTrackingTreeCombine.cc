@@ -439,8 +439,9 @@ void QwTrackingTreeCombine::weight_lsq (
 	double sum = 0.0;
 	for ( int i = 0; i < n; i++ )
 	{
-		double residual = ( slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset
-		                    - hits[i]->GetDriftPosition() );
+                hits[i]->SetTrackPosition(slope * hits[i]->GetDetectorInfo()->GetZPosition() + offset);
+                hits[i]->CalculateResidual();
+                double residual = hits[i]->GetResidual();
 		sum += G[i][i] * residual * residual;
 	}
 	// Normalize chi^2
