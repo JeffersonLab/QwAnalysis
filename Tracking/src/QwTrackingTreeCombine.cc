@@ -1207,30 +1207,28 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 		{
 
 			// First wire position
-
 			double z1 = ( double ) ( treeline->fR3Offset + treeline->fR3FirstWire );
 			// Last wire position
 			double z2 = ( double ) ( treeline->fR3Offset + treeline->fR3LastWire );
 
-			double d1=0,d2=0;
-
-			for ( QwHitContainer::iterator hit=hitlist->begin();hit!=hitlist->end();hit++ ){
-			int wire=hit->GetElement();
-			int row =wire-treeline->fR3Offset;
-			if(row<0 || row>7) continue;
-			double distance=hit->GetDriftDistance();
-			double track_resolution=hit->GetDetectorInfo()->GetTrackResolution();
-			std::pair<double,double> range=treeline->CalculateDistance(row,width,bins,track_resolution);
-			if(distance>=range.first && distance <= range.second){
-				hit->SetUsed(true);
+			double d1 = 0, d2 = 0;
+			for (QwHitContainer::iterator hit = hitlist->begin(); hit != hitlist->end(); hit++) {
+				int wire = hit->GetElement();
+				int row = wire-treeline->fR3Offset;
+				if (row < 0 || row > 7) continue;
+				double distance = hit->GetDriftDistance();
+				double track_resolution = hit->GetDetectorInfo()->GetTrackResolution();
+				std::pair<double,double> range = treeline->CalculateDistance(row,width,bins,track_resolution);
+				if (distance >= range.first && distance <= range.second) {
+					hit->SetUsed(true);
+				}
+				if (wire == z1 && hit->IsUsed())
+					d1 = distance;
+				else if (wire == z2 && hit->IsUsed())
+					d2 = distance;
 			}
-			if(wire==z1 && hit->IsUsed())
-				d1=distance;
-			else if(wire==z2 && hit->IsUsed())
-				d2=distance;
-			}
 
-			d1*=-1;
+			d1 *= -1;
 
 
 			// Bin width (bins in the direction of chamber thickness)

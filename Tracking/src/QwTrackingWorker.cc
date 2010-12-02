@@ -844,14 +844,14 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         }
 
                         QwDebug << "Sort patterns" << QwLog::endl;
-//                        fTreeSort->rcTreeConnSort (treelinelist, region);
+                        fTreeSort->rcTreeConnSort (treelinelist, region);
 
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
                             treelinelist->Print();
                         }
                         event->treeline[package][region][type][dir] = treelinelist;
-//                        event->AddTreeLineList(treelinelist);
+                        event->AddTreeLineList(treelinelist);
 
                         // Delete subhitlist
                         delete subhitlist;
