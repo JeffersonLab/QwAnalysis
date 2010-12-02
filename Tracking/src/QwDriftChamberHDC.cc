@@ -312,16 +312,26 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
 {
   //0.00545449393  0.0668865488  0.000352462179 -2.00383196E-05  3.57577417E-07  -2.82802562E-09  7.89009965E-12
   // Double_t dt_ = 0.12 * (drifttime-trig_h1 + 933.0);
-  Double_t dt_ = 0.12 * (drifttime);
+  //Double_t dt_ = 0.12 * (drifttime);
+ 
+  Double_t dt_= drifttime;
   Double_t dd_ = 0.0;
+  if(dt_<0 || dt_ >350) return dd_ ;
+  dd_ = -0.0916472
+      + 0.0167346 * dt_
+      + 0.000523155 * dt_ * dt_
+      + (-5.08001E-06 * dt_ * dt_ * dt_)
+      + ( 2.0181E-08 * dt_ * dt_ * dt_ * dt_)
+      + (-3.85257E-11 * dt_ * dt_ * dt_ * dt_ * dt_)
+      + ( 2.89459E-14 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
 
-  dd_ = 0.00545449393
-      + 0.0668865488 * dt_
-      + 0.000352462179 * dt_ * dt_
-      + (-2.00383196E-05 * dt_ * dt_ * dt_)
-      + ( 3.57577417E-07 * dt_ * dt_ * dt_ * dt_)
-      + (-2.82802562E-09 * dt_ * dt_ * dt_ * dt_ * dt_)
-      + ( 7.89009965E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
+   //   dd_ = 0.00545449393
+//       + 0.0668865488 * dt_
+//       + 0.000352462179 * dt_ * dt_
+//       + (-2.00383196E-05 * dt_ * dt_ * dt_)
+//       + ( 3.57577417E-07 * dt_ * dt_ * dt_ * dt_)
+//       + (-2.82802562E-09 * dt_ * dt_ * dt_ * dt_ * dt_)
+//       + ( 7.89009965E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
 
   //std::cout<<" Drift distance "<<dd_<<" Drift time "<<dt_<<" Original value  "<<drifttime<<std::endl;
 
