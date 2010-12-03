@@ -14,7 +14,8 @@ wrkDir="./out/"
 safeDir="./web/"
 destWeb="/group/qweak/www/html/onlineRegression/autoA/"
 #destWeb="/group/qweak/www/html/onlineRegression/B/"
-hclogWeb="https://hallcweb.jlab.org/hclog/1011_archive/"
+# for run<=7717 use  1011_archive
+hclogWeb="https://hallcweb.jlab.org/hclog/1012_archive/"
 motherCsv="mother_online_summary.csv"
 
 
@@ -113,6 +114,7 @@ def  exportHtml(inpFile,outFile,pdfURL) :
 
     # .... get HClog URL  
     cmd= "wget --no-check-certificate "+hclogWeb+"logdir_auto.html -O - | grep \"Run %d"%RUN_NO+"\" | tail -n  1 >" +wrkDir+"logHC"
+    print "cmd_wget=",cmd
     os.system(cmd)
     f1=open(wrkDir+"logHC","r")
       

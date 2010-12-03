@@ -87,4 +87,4 @@ print "autoloop ended"
 
 #OLD test: mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select filename,run_Number,segment,start_time from analysis where backup_status > 10 AND run_number > 7600  order by filename"
 
-#mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select filename,backup_status,start_time from analysis where backup_status > 10 AND run_number > 7600  and filename like 'parity%' order by filename"
+# mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select filename,backup_status,start_time from analysis where backup_status > 10 AND run_number > 7600  and filename like 'parity%' order by filename"

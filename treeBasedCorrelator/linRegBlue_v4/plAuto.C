@@ -5,13 +5,14 @@ enum {nY=15,nAuxGr=3};
 TGraphErrors *grRegDvRms[nY];
 
 TGraphErrors *grAux[nAuxGr];
-double limRmsDV[2]={250,800};
+double limRmsDV[2]={270,650};
 TDatime myTime;
 TString runRange="";
 TString stringTime[2]={"bad T1","bad T2"};
 TString stringDayOne;
 
-UInt_t unixTimeOff=234470463-3*3600; // adjusted by hand to match root time to unix time
+UInt_t unixTimeOff=234470463-3*3600; // November 2010 
+ unixTimeOff-=4*24*3600; // adjusted by hand to match root time to unix time
 UInt_t backSec=5*12*3600;
 double nomCharge=60 ; // mC
 
@@ -28,12 +29,12 @@ plAuto(int page=1, int psx=0, int toffX=0) {
   printf("toffX=%d\n", toffX);
   myTime.Print();
   const char * timeString=myTime.AsString();
-  fprintf(stdout, "NOW time: unix= %d , string=%s=\n",myTime.Get()-1290991480,timeString);
-  // return;
+  fprintf(stdout, "NOW time: TTime= %u , string=%s=\n",myTime.Get()-1291207091,timeString);
+  //return;
   TString csvFile=inpPath+"mother_online_summary.csv";
   int r=readCsv(csvFile.Data(), toffX);
-  printf("r=%d  nItems=%d\n",r,itemName.size());
-  // return;
+  printf("r=%d  nItemsNames=%d nRuns=%d\n",r,itemName.size(),grAux[0]->GetN());
+  //return;
   if(page==1||page==0)  plotRms(grRegDvRms,1, "Regr RMS MD-combos (ppm)");
   if(page==2||page==0) plotRms(grRegDvRms,2, "Regr RMS MD-pairs (ppm)");
   if(page==3||page==0) plotRms(grRegDvRms,3, "Regr RMS MD-singles (ppm)");
@@ -81,7 +82,7 @@ int readCsv(char *fname, int toffX=0){
     int n=sscanf(buf,"%lf, %lf, %lf, %lf, %d , %s %s",&runSeg,&totCharge,&avrCur,&totPatt,&unixTime, stringDay, stringHour); //printf("n=%d\n",n); 
     assert(n==7);
     int delTimeSec=myTime.Get()-unixTime+unixTimeOff;
-  
+    //printf("k=%d R%.3f   uT=%d sT=%s %s  delSec=%d\n", k,runSeg,unixTime, stringDay, stringHour, delTimeSec);
     if(delTimeSec> backSec+toffX) continue; 
     // if(delTimeSec<toffX) break; // upper time limit
     if(totPatt<par_minTotPatt) continue;
@@ -244,7 +245,7 @@ void plotRms(TGraphErrors **grA, int page,TString title) {
   if(page==1) { // 3 MD-combos
     c0->Divide(2,2);
     for(int k=0;k<3;k++) {
-      c0->cd(1+k);  
+      c0->cd(4-k);  
       gPad->SetLeftMargin(0.15);
       TGraphErrors *gr=grA[12+k];
       gr->Draw("AP");
@@ -252,11 +253,11 @@ void plotRms(TGraphErrors **grA, int page,TString title) {
       else niceIt(gr,yDw,yUp*0.6);
     }
     
-    c0->cd(4);  
+    c0->cd(1);  
     gPad->SetLeftMargin(0.15);
     TGraphErrors *gr=grAux[1];
     gr->Draw("AP");
-    niceIt(gr,0,0);
+    niceIt(gr,130,160);
   } // page 1 end
 
   // final printing
@@ -295,7 +296,7 @@ void drawTimeLabel(double t, double y, TString full) {
 void niceIt(   TGraphErrors* gr, double yDw, double yUp){
   assert(gr);
   gPad->SetGrid();
-  double ym=(yDw+yUp)/2.;
+  double ym=yDw*.4+yUp*0.6;
   TH1*h =gr->GetHistogram();     assert(h);
   if(yDw<yUp) { h->SetMinimum(yDw);  h->SetMaximum(yUp);}
   else ym=h->GetMinimum();
@@ -303,15 +304,15 @@ void niceIt(   TGraphErrors* gr, double yDw, double yUp){
   double t0=gr->GetX()[0];
   // printf("t0=%f\n",t0);
   
-  drawTimeLabel(t0,ym,stringTime[0]);
+  drawTimeLabel(t0-0.5,ym,stringTime[0]);
   
   double t1=gr->GetX()[gr->GetN()-1];
   //printf("t1=%f\n",t1);
-  drawTimeLabel(t1,ym,stringTime[1]);
+  drawTimeLabel(t1+1.5,ym,stringTime[1]);
   
   //X-axis ....
   TAxis *ax=h->GetXaxis();    ax->SetTitle("run number     ");
-  ax->SetNdivisions(4);  ax->SetLabelSize(0.06);
+  ax->SetNdivisions(6);  ax->SetLabelSize(0.06);
   //Yaxis ....
   ax=h->GetYaxis();
   ax->SetNdivisions(5);  ax->SetLabelSize(0.06);

@@ -22,16 +22,16 @@ plCor(int page=1, char *runName0="RfixMe.000") {
   printf("Opened  histo=%s=\n",fd->GetName());
 
   if(page==1) mySum("summary ,"+runName); 
-  if(page==2) IV_IV("Independent variables, "+runName);
+  if(page==2) IV_IV("Independent variables, (ppm), "+runName);
   if(page==3) yield_1D("Yield of IVs, "+runName,"yieldIV",0,4);
 
   if(page==10) DV_1D("Regressed DV: MD, "+runName,"regres",0,15);
-  if(page==11) DV_1D("Regressed DV: Lumi coinc "+runName,"regres",16,28);
-  if(page==12) DV_1D("Regressed DV: Lumi single "+runName,"regres",29,44);
+  if(page==11) DV_1D("Regressed DV: Lumi coinc, "+runName,"regres",16,28);
+  if(page==12) DV_1D("Regressed DV: Lumi single, "+runName,"regres",29,44);
 
   if(page==20) DV_1D("NOT regressed DV: MD, "+runName,"input",0,15);
-  if(page==21) DV_1D("NOT regressed DV: Lumi coinc "+runName,"input",16,28);
-  if(page==22) DV_1D("NOT regressed DV: Lumi single "+runName,"input",29,44);
+  if(page==21) DV_1D("NOT regressed DV: Lumi coinc + single US, "+runName,"input",16,28);
+  if(page==22) DV_1D("NOT regressed DV: Lumi single US+DS, "+runName,"input",29,44);
 
  
   if(page==30) IV_DV("Correlation MD1..MD4 vs. IV's, "+runName,0,3);
@@ -49,8 +49,8 @@ plCor(int page=1, char *runName0="RfixMe.000") {
 
 
   if(page==50) yield_1D("Yield of DV: MD, "+runName,"yieldDV",0,15);
-  if(page==51) yield_1D("Yield of DV: Lumi coinc "+runName,"yieldDV",16,28);
-  if(page==52) yield_1D("Yield of DV: Lumi single "+runName,"yieldDV",29,44);
+  if(page==51) yield_1D("Yield of DV: Lumi coinc, "+runName,"yieldDV",16,28);
+  if(page==52) yield_1D("Yield of DV: Lumi single, "+runName,"yieldDV",29,44);
 
   can->Update();
   if(can) {
@@ -189,7 +189,7 @@ void   IV_IV(TString text){
   gStyle->SetOptStat(1001110);
   gStyle->SetOptFit(1);
   
-  can=new TCanvas("aa","aa",800,700);    TPad *c=makeTitle(can,text);
+  can=new TCanvas("aa","aa",900,700);    TPad *c=makeTitle(can,text);
 
   c->Divide(nP,nP);
 
