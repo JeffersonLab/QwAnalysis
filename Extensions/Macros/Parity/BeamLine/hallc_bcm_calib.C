@@ -97,9 +97,15 @@
 //          0.0.14 : Thursday, November 18 12:03:36 EST 2010, jhlee
 //                   - cleaned up codes and added some commments 
 //         
-//          0.0.15 : Friday, December  3 00:15:25 EST 2010, jhll
+//          0.0.15 : Friday, December  3 00:15:25 EST 2010, jhlee
 //                  - changed fit_range from % to current (uA)
 //                    if there is no default range, 10 - max uA is used
+//
+//          0.0.16 : Friday, December  3 17:07:32 EST 2010, jhlee
+//                  - removed some warnings during compiling
+//                  - prepared to replace all draw commands to extract data points
+//                  - adjusted the position of TPaveStat on bcm fitting pad.
+//  
 //           
 // TODO List
 // 1) replaced all Draw command with real data points
@@ -169,12 +175,14 @@
 #include "TVirtualFitter.h"
 #include "TLine.h"
 
-
+#include "TPaveStats.h"
 #include "TCut.h"
 #include "TChain.h"
 #include "TChainElement.h"
 #include "TStyle.h"
 #include "TSystem.h"
+
+Bool_t output_flag = true;
 
 
 class BeamMonitor 
@@ -391,7 +399,10 @@ void
 print_usage(FILE* stream, int exit_code);
 
 Bool_t 
-bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
+bcm_calibrate_draw(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
+
+Bool_t 
+bcm_calibrate_nodraw(BeamMonitor &device, BeamMonitor &reference, const char* run_number);
 
 Bool_t
 Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number);
@@ -529,7 +540,7 @@ TCanvas *unser_canvas       = NULL;
 TCanvas *bcm_canvas         = NULL;
 TString  g_bcm_plots_filename;
 
-Bool_t output_flag = true;
+
 
 Int_t
 main(int argc, char **argv)
@@ -794,7 +805,8 @@ main(int argc, char **argv)
 		  << ": onto calibrating " << hallc_bcms_list.at(i).GetName() 
 		  << std::endl;
 	Bool_t check = false;
-	check = bcm_calibrate(hallc_bcms_list.at(i), sca_unser, run_number) ; 
+	check = bcm_calibrate_draw(hallc_bcms_list.at(i), sca_unser, run_number) ; 
+	//check = bcm_calibrate_nodraw(hallc_bcms_list.at(i), sca_unser, run_number) ; 
 	//  if(not check) theApp.Run();
       }
     
@@ -917,9 +929,12 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
   unser_canvas -> Divide(2,1);
 
   unser_canvas -> cd(1);
+  gPad->SetGridx();
+  gPad->SetGridy();
   unser_TM -> Draw();
   gPad->Update();
   unser_canvas -> cd(2);
+  gPad->SetGridy();
   Int_t npeaks = 20; 
   Int_t nfound = 0 ;
 
@@ -979,7 +994,7 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
     
 
     // Default the number of points to draw TF1 function
-    Int_t number_of_points = 2000;
+    Int_t number_of_points = 1000;
 
     TF1 *unser_fit = new TF1("fitFcn", fitFunction, unser_min, unser_max, 6);// 6 is the number of parameter in fitFunction
     unser_fit -> SetNpx(number_of_points);
@@ -1137,7 +1152,7 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
 }
 
 Bool_t
-bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_number )
+bcm_calibrate_draw(BeamMonitor &device, BeamMonitor &reference, const char* run_number )
 {
 
   std::cout << "\n";
@@ -1155,10 +1170,14 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
 
   Bool_t  sca_flag = false;
   Double_t fit_range[2] = {0.0};
-  TCut device_cut = "";
+  
+  TCut  device_cut = "";
   TH1D* device_hist = NULL;
-  TF1* device_fit = NULL;
-  TH1D * device_res = NULL;
+  TH1D* device_res  = NULL;
+  
+  TF1*  device_fit = NULL;
+
+ 
   Int_t w = 800;
   Int_t h = 600;
 
@@ -1221,7 +1240,7 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
     return false;
   }
 
-  Double_t x_axis_binrange[2] = {0.0};
+  Int_t x_axis_binrange[2] = {0};
   x_axis_binrange[0] = device_hist->GetMinimumBin();
   x_axis_binrange[1] = device_hist->GetMaximumBin()+2; // 2 bins more
 
@@ -1258,7 +1277,13 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
     device.SetSlop   (device_fit->GetParameter(1));
     device.SetSlopErr(device_fit->GetParError(1));
     gPad->Update();
-
+    TPaveStats *st = (TPaveStats*)device_hist->FindObject("stats");
+    st->SetX1NDC(0.76); //new x start position
+    st->SetX2NDC(1.0); //new x end position
+    st->SetY1NDC(0.16); //new y start position
+    st->SetY2NDC(0.46); //new y end position
+    st->Draw("same");
+    gPad->Update();
     // Draw the residuals
     bcm_canvas->cd(2);
     gPad->SetGridx();
@@ -1330,6 +1355,226 @@ bcm_calibrate(BeamMonitor &device, BeamMonitor &reference, const char* run_numbe
   }
   return true;
 }
+
+
+
+Bool_t
+bcm_calibrate_nodraw(BeamMonitor &device, BeamMonitor &reference, const char* run_number )
+{
+
+  printf("\nWe are entering bcm calibration routine without Draw command\n");
+  std::cout << reference << std::endl;
+
+  Bool_t local_debug = true;
+  TString device_name;
+  TString reference_name;
+ 
+  device_name    = device.GetName();
+  reference_name = reference.GetName();
+
+  if(local_debug) {
+    std::cout << " Device name " << device_name
+	      << " Reference name " << reference_name
+	      << std::endl;
+  }
+
+  // TString plotcommand;
+  // TString plot_residual_command;
+
+  // TString device_name;
+  // TString device_samples;
+  
+  // TString reference_name;
+  // TString residual_name;
+
+  // Bool_t  sca_flag = false;
+  // Double_t fit_range[2] = {0.0};
+  
+  // TCut  device_cut = "";
+  // TH1D* device_hist = NULL;
+  // TH1D* device_res  = NULL;
+  
+  // TF1*  device_fit = NULL;
+
+ 
+  // Int_t w = 800;
+  // Int_t h = 600;
+
+
+  // //  unser_canvas->Clear();
+
+  // device_name = device.GetName();
+  // reference_name = reference.GetAliasName();
+  // if(device_name.Contains("sca")) {
+  //   sca_flag = true;
+  // }
+  
+  // bcm_canvas = new TCanvas(device_name.Data() , device_name.Data(), w, h);  
+
+  // fit_range[0] = reference.GetFitRangeMin();
+  // fit_range[1] = reference.GetFitRangeMax();
+
+  // if(not sca_flag) {
+  //   device_samples = device_name + ".num_samples";
+  //   device_cut     = device_name + ".Device_Error_Code == 0";
+  //   device_name    = device_name + ".hw_sum_raw/" + device_samples;
+  // }
+  // else {
+  //   device_name = device.GetAliasName();
+  // }
+
+  // plotcommand = device_name + ":" +  reference_name;
+  
+ 
+  // bcm_canvas->Divide(1,2);
+  // bcm_canvas->cd(1);
+  // gPad->SetGridx();
+  // gPad->SetGridy();
+  // // prof+    >> prof
+  // // prof+"s" >> profs
+  // // prof+"i" >> profi
+  // // prof+"G" >> profG
+  // // I choose "s" , before I completely remove "Draw" command
+  // // in this program.
+  // // See 
+  // // http://root.cern.ch/root/html/TProfile.html#TProfile:BuildOptions
+  // // 
+
+  // const char plot_option[] = "profs";
+
+  // device_hist = GetHisto(
+  // 			 mps_tree_in_chain, 
+  // 			 plotcommand, 
+  // 			 device_cut, 
+  // 			 plot_option); 
+  
+  // if(not device_hist) {
+  //   std::cout << "Please check  "
+  // 	      << device_name
+  // 	      << std::endl;
+    
+  //   bcm_canvas ->Close();
+  //   delete bcm_canvas; bcm_canvas = NULL;
+    
+  //   return false;
+  // }
+
+  // Int_t x_axis_binrange[2] = {0};
+  // x_axis_binrange[0] = device_hist->GetMinimumBin();
+  // x_axis_binrange[1] = device_hist->GetMaximumBin()+2; // 2 bins more
+
+  // device_hist -> SetName(device.GetName().Data());
+  // device_hist -> GetXaxis() -> SetTitle(reference_name.Data());
+  // //  device_hist -> GetYaxis() -> SetTitle(device_name.Data());
+  // device_hist -> SetTitle(Form("Run %s : %s vs %s", 
+  // 			       run_number, 
+  // 			       device_name.Data(), 
+  // 			       reference_name.Data()
+  // 			       )
+  // 			  );
+  // device_hist -> GetXaxis() -> SetTitle(Form("%s (#muA)", reference_name.Data()));
+  // device_hist -> GetXaxis() -> SetRange(x_axis_binrange[0], x_axis_binrange[1]);
+  // device_hist -> Fit("pol1", "E M R F Q", "", fit_range[0], fit_range[1]);
+  // //  printf(">>%d %d\n", device_hist -> GetMaximumBin(), device_hist->GetMinimumBin());
+  // device_hist -> SetMarkerStyle(21);
+  // device_hist -> SetMarkerSize(0.8);
+  // device_hist -> Draw("");
+
+  
+  // device_fit = device_hist  -> GetFunction("pol1");
+ 
+  // // gStyle -> SetOptFit(1111);
+  // // gStyle -> SetOptStat("ei");
+
+  // if(device_fit) {
+  
+  //   device_fit -> SetLineWidth(2);
+  //   device_fit -> SetLineColor(kRed); 
+
+  //   device.SetPed    (device_fit->GetParameter(0));
+  //   device.SetPedErr (device_fit->GetParError(0));
+  //   device.SetSlop   (device_fit->GetParameter(1));
+  //   device.SetSlopErr(device_fit->GetParError(1));
+  //   gPad->Update();
+  //   TPaveStats *st = (TPaveStats*)device_hist->FindObject("stats");
+  //   st->SetX1NDC(0.76); //new x start position
+  //   st->SetX2NDC(1.0); //new x end position
+  //   st->SetY1NDC(0.16); //new y start position
+  //   st->SetY2NDC(0.46); //new y end position
+  //   st->Draw("same");
+  //   gPad->Update();
+  //   // Draw the residuals
+  //   bcm_canvas->cd(2);
+  //   gPad->SetGridx();
+  //   gPad->SetGridy();
+  //   // device_name is already well determined before
+  //   // now we don't need to distinguish between sca and vqwk
+
+  //   device_name = Form("(%s) - (%s*%e + %e)"
+  // 		       , device_name.Data()
+  // 		       , reference_name.Data()
+  // 		       , device.GetSlope()
+  // 		       , device.GetPed()
+  // 		       );
+
+  //   plot_residual_command = device_name + ":" +  reference_name;
+
+  //   device_res = GetHisto(mps_tree_in_chain, plot_residual_command, device_cut, plot_option);
+
+  //   if (not device_res) {
+  //     std::cout << " Please check residual plot : "
+  // 		<< plot_residual_command
+  // 		<<std::endl;
+
+  //     return false;	
+  //   }
+
+  //   device_res -> GetXaxis()->SetTitle("current (#muA)");
+  //   device_res -> GetXaxis()->SetRange(x_axis_binrange[0], x_axis_binrange[1]);
+  //   device_res -> GetYaxis()->SetTitle("fit residual");
+  //   device_res -> GetYaxis()->SetTitleOffset(2.2);
+  //   device_res -> SetTitle(device_name+" fit residual");
+  //   device_res -> SetMarkerStyle(21);
+  //   device_res -> SetMarkerSize(0.8);
+  //   device_res -> Draw("same p");
+  
+      
+  // }
+  // else {
+  
+  //   device.SetPed(-1);
+  //   device.SetPedErr(-1);
+  //   device.SetSlop(-1);
+  //   device.SetSlopErr(-1);
+  //   bcm_canvas->Close();
+  //   delete bcm_canvas; bcm_canvas = NULL;
+  //   return false;
+  // }
+
+  // std::cout << device << std::endl;
+
+  // bcm_canvas -> Modified();
+  // bcm_canvas -> Update();
+
+  // if(output_flag) {
+  //   // Open ps file
+  //   // unser_canvas -> Print(g_bcm_plots_filename+"[");
+    
+  //   //
+  //   // Print bcm_canvas into a ps file that is defined in main() function
+  //   // 
+  //   bcm_canvas -> Print(g_bcm_plots_filename);
+    
+  //   // 
+  //   // Save as ROOT C++ Macro and png of bcm_canvas. 
+  //   //
+  //   TString root_c_name = bcm_canvas->GetName();
+  //   bcm_canvas -> SaveAs(Form("BCMCalib%s_%s.cxx", run_number, root_c_name.Data()));
+  //   bcm_canvas -> SaveAs(Form("BCMCalib%s_%s.png", run_number, root_c_name.Data()));
+  // }
+  return true;
+}
+
 
 
 
