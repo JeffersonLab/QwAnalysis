@@ -8,8 +8,11 @@ Bank=0x0202
 !same sample size for ADCs in a given bank
 !use 480 for 1kHz
 !use 2000 for 240Hz 
-sample_size=480
+!sample_size=480
 !sample_size=2000
+!for 960Hz
+sample_size=464  
+
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
