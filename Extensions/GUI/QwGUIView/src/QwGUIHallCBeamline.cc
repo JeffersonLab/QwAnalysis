@@ -47,12 +47,12 @@ enum EQwGUIDatabaseHistogramIDs {
 
 };
 
-// The list of BPMs in the  Hall C beamline. Please don't change this. 
+// The list of BPMs in the  Hall C beamline including the virtual target bpm. Please don't change this. 
 const char *QwGUIHallCBeamline::HallC_BPMS[HCLINE_BPMS]=
   {
     "bpm3c07","bpm3c07a","bpm3c08","bpm3c11","bpm3c12","bpm3c14","bpm3c16","bpm3c17",
     "bpm3c18","bpm3c19","bpm3p02a","bpm3p02b","bpm3p03a","bpm3c20","bpm3c21","bpm3h02",
-    "bpm3h04","bpm3h07a","bpm3h07b","bpm3h07c","bpm3h08","bpm3h09","bpm3h09b","qwk_target"
+    "bpm3h04","bpm3h07a","bpm3h07b","bpm3h07c","bpm3h08","bpm3h09","bpm3h09b","target"
   };
 
 // The list of BCMs in the Hall C line. 
@@ -134,10 +134,9 @@ void QwGUIHallCBeamline::MakeLayout()
   gStyle->SetPadBorderSize(0);
   gStyle->SetPadGridX(kTRUE);
   gStyle->SetPadGridY(kTRUE);
-  gStyle->SetPadTopMargin(0.1);
-  gStyle->SetPadBottomMargin(0.25);
-  gStyle->SetPadLeftMargin(0.1);  
-  //gStyle->SetPadRightMargin(0.03);  
+//   gStyle->SetPadTopMargin(0.01);
+//   gStyle->SetPadBottomMargin(0.25);
+//   gStyle->SetPadLeftMargin(0.1);  
 
   // histo parameters
   gStyle->SetPalette(1,0);
@@ -147,11 +146,11 @@ void QwGUIHallCBeamline::MakeLayout()
   gStyle->SetTitleW(0.4);
   gStyle->SetTitleSize(0.08);
   gStyle->SetTitleBorderSize(0);
-  gStyle->SetTitleFillColor(10);
+  gStyle->SetTitleColor(1);
   gStyle->SetTitleFontSize(0.08);
   gStyle->SetLabelSize(0.06,"x");
   gStyle->SetLabelSize(0.06,"y");
- 
+  gROOT->ForceStyle();
 
   dTabFrame= new TGHorizontalFrame(this);  
   AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 5, 5));
@@ -415,6 +414,8 @@ void QwGUIHallCBeamline::PositionDifferences()
 
   Bool_t ldebug = kFALSE;
 
+  gStyle->SetLabelSize(0.05,"x");
+
   TObject *obj       = NULL;
   TCanvas *mc        = NULL;
   TH1D    *dummyhist = NULL;
@@ -494,7 +495,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     PosDiffVar[1] -> SetBinContent(p+1, y_mean[p]); //mm -> um
     PosDiffVar[1] -> SetBinError  (p+1, y_err[p]);
     PosDiffVar[1] -> GetXaxis()->SetBinLabel(p+1, HallC_BPMS[y_devices[p]]);
-    PosDiffVar[1]->SetStats(0);
+    PosDiffVar[1] -> SetStats(0);
   }
 
     mc->Clear();
@@ -506,7 +507,6 @@ void QwGUIHallCBeamline::PositionDifferences()
     PosDiffVar[0] -> SetMarkerColor(2);
     PosDiffVar[0] -> SetTitle("#Delta X Variation");
     PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (#mum)");
-    PosDiffVar[0] -> GetXaxis() -> SetTitle("BPM names");
     PosDiffVar[0] -> Draw("E1");
     gPad->Update();
   
@@ -517,7 +517,6 @@ void QwGUIHallCBeamline::PositionDifferences()
     PosDiffVar[1] -> SetMarkerColor(4);
     PosDiffVar[1] -> SetTitle("#Delta Y Variation");
     PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (#mum)");
-    PosDiffVar[1] -> GetXaxis() -> SetTitle("BPM names");
     PosDiffVar[1] -> Draw("E1");
     gPad->Update();
     
@@ -575,12 +574,14 @@ void QwGUIHallCBeamline::BCMDoubleDifference()
 {
   Bool_t ldebug = kFALSE;
 
-  gStyle->SetStatY(0.99);
-  gStyle->SetStatX(0.99);
+  gStyle->SetStatY(0.999);
+  gStyle->SetStatX(0.999);
   gStyle->SetStatW(0.3);
-  gStyle->SetStatH(0.4); 
+  gStyle->SetStatH(0.3); 
   gStyle->SetLabelSize(0.07,"x");
   gStyle->SetLabelSize(0.07,"y");
+  gStyle->SetPadTopMargin(0.02);
+  gStyle->SetPadBottomMargin(0.2);
 
   TString plotcommand;
   TString cut;
@@ -612,7 +613,7 @@ void QwGUIHallCBeamline::BCMDoubleDifference()
     mc->cd(p);
     plotcommand = Form("(asym_qwk_%s.hw_sum - asym_qwk_%s.hw_sum)*1e6 >>htemp",
 		       HallC_BCMS[0],HallC_BCMS[p]);
-    cut = Form("asym_qwk_%s.Device_Error_Code == 0 && asym_qwk_%s.Device_Error_Code == 0",
+    cut = Form("asym_qwk_%s.Device_Error_Code == 0 && asym_qwk_%s.Device_Error_Code == 0 && ErrorFlag==0",
 	       HallC_BCMS[0],HallC_BCMS[p]);
     
     tree->Draw(plotcommand,cut);
@@ -626,7 +627,9 @@ void QwGUIHallCBeamline::BCMDoubleDifference()
       h->SetTitle("");
       h -> GetYaxis()->SetTitle("Quartets");
       h -> GetXaxis()->SetTitle("ppm");
+      h -> GetXaxis()->SetTitleColor(1);
       h -> GetYaxis()->SetTitleSize(0.08);
+      h -> GetXaxis()->SetTitleSize(0.08);
       h -> GetYaxis()->CenterTitle();
       h -> GetXaxis()->CenterTitle();
       h->SetFillColor(kGreen-5);
@@ -651,7 +654,7 @@ void QwGUIHallCBeamline::BCMDoubleDifference()
     plotcommand = Form("(asym_qwk_%s.hw_sum - asym_qwk_%s.hw_sum)*1e6 >>htemp",
 		       HallC_BCMS[1],HallC_BCMS[p]);
     
-    cut = Form("asym_qwk_%s.Device_Error_Code == 0 && asym_qwk_%s.Device_Error_Code == 0",
+    cut = Form("asym_qwk_%s.Device_Error_Code == 0 && asym_qwk_%s.Device_Error_Code == 0 && ErrorFlag==0",
 	       HallC_BCMS[1],HallC_BCMS[p]);
     
     tree->Draw(plotcommand,cut);
@@ -664,7 +667,9 @@ void QwGUIHallCBeamline::BCMDoubleDifference()
       h->SetTitle("");
       h -> GetYaxis()->SetTitle("Quartets");
       h -> GetXaxis()->SetTitle("ppm");
+      h -> GetXaxis()->SetTitleColor(1);
       h -> GetYaxis()->SetTitleSize(0.08);
+      h -> GetXaxis()->SetTitleSize(0.08);
       h -> GetYaxis()->CenterTitle();
       h -> GetXaxis()->CenterTitle();
       h->SetFillColor(kGreen-5);
@@ -686,7 +691,7 @@ void QwGUIHallCBeamline::BCMDoubleDifference()
   plotcommand = Form("(asym_qwk_%s.hw_sum - asym_qwk_%s.hw_sum)*1e6 >>htemp",
 			       HallC_BCMS[2],HallC_BCMS[3]);
   
-  cut = Form("asym_qwk_%s.Device_Error_Code == 0 && asym_qwk_%s.Device_Error_Code == 0",
+  cut = Form("asym_qwk_%s.Device_Error_Code == 0 && asym_qwk_%s.Device_Error_Code == 0 && ErrorFlag==0",
 		     HallC_BCMS[2],HallC_BCMS[3]);
   
   tree->Draw(plotcommand,cut);
@@ -699,7 +704,9 @@ void QwGUIHallCBeamline::BCMDoubleDifference()
       h->SetTitle("");
       h -> GetYaxis()->SetTitle("Quartets");
       h -> GetXaxis()->SetTitle("ppm");
+      h -> GetXaxis()->SetTitleColor(1);
       h -> GetYaxis()->SetTitleSize(0.08);
+      h -> GetXaxis()->SetTitleSize(0.08);
       h -> GetYaxis()->CenterTitle();
       h -> GetXaxis()->CenterTitle();
       h->SetFillColor(kGreen-5);
@@ -735,11 +742,13 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
   gStyle->SetStatY(0.99);
   gStyle->SetStatX(0.99);
   gStyle->SetStatW(0.3);
-  gStyle->SetStatH(0.4); 
+  gStyle->SetStatH(0.3); 
   gStyle->SetLabelSize(0.07,"x");
   gStyle->SetLabelSize(0.05,"y");
+  gStyle->SetPadTopMargin(0.02);
+  gStyle->SetPadBottomMargin(0.2);
 
-  TH1D * t[5];
+  TH1D * t[6];
   TString xlabel;
   TObject *obj = NULL;
   TCanvas *mc = NULL;
@@ -749,9 +758,9 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
   not_found->SetTextColor(2);
 
   // Beam energy is not calculated by the analyser yet. 
-  const char * TgtBeamParameters[5]=
+  const char * TgtBeamParameters[6]=
     {
-      "targetX","targetY","targetXSlope","targetYSlope","charge"
+      "targetX","targetY","targetXSlope","targetYSlope","charge","energy"
     }; 
 
 
@@ -768,12 +777,12 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
     printf("Found the tree named %s \n", obj->GetName());
   }
 
-  for(Short_t i=0;i<5;i++) 
+  for(Short_t i=0;i<6;i++) 
     {
       t[i] = NULL;
     }
   
-  for(Int_t p = 0; p <5 ; p++) {
+  for(Int_t p = 0; p <6 ; p++) {
     mc->cd(p+1);
     gPad->SetLogy();
     sprintf (histo, "yield_qwk_%s.hw_sum", TgtBeamParameters[p]);
@@ -791,10 +800,13 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
       t[p] -> SetTitle("");
       t[p] -> GetYaxis()->SetTitle("Quartets");
       t[p] -> GetYaxis()->SetTitleSize(0.08);
+      t[p] -> GetXaxis()->SetTitleSize(0.08);
       t[p] -> GetYaxis()->CenterTitle();
       t[p] -> GetXaxis()->CenterTitle();
       t[p] -> GetXaxis()->SetTitleOffset(0.9);
-      t[p] -> GetYaxis()->SetTitleOffset(0.7);
+      t[p] -> GetYaxis()->SetTitleOffset(0.5);
+      t[p] -> GetXaxis()->SetTitleColor(1);
+
 
       if(strcmp( TgtBeamParameters[p],"charge") == 0) { 
 	t[p] -> GetXaxis()->SetTitle("Current (#muA)");
@@ -802,12 +814,12 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
 	t[p] -> SetFillColor(42);
       }
       else if(strcmp( TgtBeamParameters[p],"targetX") == 0){ 
-	t[p] -> GetXaxis()->SetTitle("X Position (#mum)");
+	t[p] -> GetXaxis()->SetTitle("X Position (mm)");
 	t[p] -> GetXaxis()->SetDecimals();
 	t[p] -> SetFillColor(34);
       }
       else if(strcmp( TgtBeamParameters[p],"targetY") == 0) {
-	t[p] -> GetXaxis()->SetTitle("Y Position (#mum)");
+	t[p] -> GetXaxis()->SetTitle("Y Position (mm)");
 	t[p] -> GetXaxis()->SetDecimals();
 	t[p] -> SetFillColor(46);
       }
@@ -821,7 +833,11 @@ void QwGUIHallCBeamline::DisplayTargetParameters()
 	t[p] -> GetXaxis()->SetDecimals();
 	t[p] -> SetFillColor(46);
       }
-
+      else if(strcmp( TgtBeamParameters[p],"energy") == 0) {
+	t[p] -> GetXaxis()->SetTitle("dP/P");
+	t[p] -> GetXaxis()->SetDecimals();
+	t[p] -> SetFillColor(kGreen-5);
+      }
       SummaryHist(t[p]);	      
       
     }
@@ -855,6 +871,9 @@ void QwGUIHallCBeamline::PlotHistograms()
   gStyle->SetLabelSize(0.08,"x");
   gStyle->SetLabelSize(0.07,"y");
   gStyle->SetTextSize(0.13);
+  gStyle->SetPadTopMargin(0.02);
+  gStyle->SetPadBottomMargin(0.2);
+  gStyle->SetLabelSize(0.09,"x");
 
   Bool_t ldebug = kFALSE;
 
@@ -863,6 +882,8 @@ void QwGUIHallCBeamline::PlotHistograms()
   TH1 * dummyhist = NULL;
 
   TString element;
+  TString name;
+
   TText* not_found  = new TText(); 
   not_found->SetTextColor(2);
 
@@ -890,11 +911,15 @@ void QwGUIHallCBeamline::PlotHistograms()
 	
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);	 
-	  dummyhist = (TH1*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(HallC_BPMS[p]+element);
+	  dummyhist = (TH1*)gPad->GetPrimitive("htemp");
+	  name = Form("%s %s",HallC_BPMS[p],element.Data()); 
+	  dummyhist -> SetName(name);
 	  dummyhist -> SetTitle("");
-	  // dummyhist -> GetYaxis() -> SetTitle("Events");
+	  dummyhist -> GetXaxis() -> SetTitleSize(0.1);
+	  dummyhist -> GetXaxis() -> SetTitleColor(1);
+	  dummyhist -> GetXaxis() -> CenterTitle();
 	  dummyhist -> GetXaxis() -> SetTitle("ADC counts");
+	  dummyhist -> GetXaxis() ->SetNdivisions(010);
 	  dummyhist->SetFillColor(40);
 	  dummyhist->Draw();
 	}
@@ -916,10 +941,14 @@ void QwGUIHallCBeamline::PlotHistograms()
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);
 	  dummyhist = (TH1*)gPad->GetPrimitive("htemp");
-	  dummyhist -> SetName(HallC_BPMS[p]+element);
+	  name = Form("%s Abs%s",HallC_BPMS[p],element.Data()); 
+	  dummyhist -> SetName(name);
 	  dummyhist -> SetTitle("");
-	  // dummyhist -> GetYaxis() -> SetTitle("Events");
+	  dummyhist -> GetXaxis() -> SetTitleSize(0.1);
+	  dummyhist -> GetXaxis() -> SetTitleColor(1);
+	  dummyhist -> GetXaxis() -> CenterTitle();
 	  dummyhist -> GetXaxis() -> SetTitle("Position (mm)");
+	  dummyhist -> GetXaxis() ->SetNdivisions(010);
 	  dummyhist->SetFillColor(41);
 	  dummyhist->Draw();
 	}  
@@ -940,10 +969,14 @@ void QwGUIHallCBeamline::PlotHistograms()
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);	 
 	  dummyhist = (TH1*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(HallC_BPMS[p]+select);
+	  name = Form("%s eff Q",HallC_BPMS[p]); 
+	  dummyhist -> SetName(name);
 	  dummyhist -> SetTitle("");
-	  // dummyhist -> GetYaxis() -> SetTitle("Events");
+	  dummyhist -> GetXaxis() -> SetTitleSize(0.1);
+	  dummyhist -> GetXaxis() -> SetTitleColor(1);
+	  dummyhist -> GetXaxis() -> CenterTitle();
 	  dummyhist -> GetXaxis() -> SetTitle("ADC counts");
+	  dummyhist -> GetXaxis() -> SetNdivisions(010);
 	  dummyhist->SetFillColor(42);
 	  dummyhist->Draw();
 	}
@@ -965,10 +998,14 @@ void QwGUIHallCBeamline::PlotHistograms()
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);	 
 	  dummyhist = (TH1*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(HallC_BCMS[p]);
+	  name = Form("%s",HallC_BCMS[p]); 
+	  dummyhist -> SetName(name);
 	  dummyhist -> SetTitle("");
-	  // dummyhist -> GetYaxis() -> SetTitle("Events");
-	  dummyhist -> GetXaxis() -> SetTitle("Charge");
+	  dummyhist -> GetXaxis() -> SetTitleSize(0.1);
+	  dummyhist -> GetXaxis() -> SetTitleColor(1);
+	  dummyhist -> GetXaxis() -> CenterTitle();
+	  dummyhist -> GetXaxis() -> SetTitle("current(#muA)");
+	  dummyhist -> GetXaxis() ->SetNdivisions(010);
 	  dummyhist->SetFillColor(43);
 	  dummyhist->Draw();
 	}
@@ -1001,11 +1038,15 @@ void QwGUIHallCBeamline::PlotHistograms()
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);	 
 	  dummyhist = (TH1*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(HallC_BPMS[p]+element);
+	  name = Form("%s diff%s",HallC_BPMS[p],element.Data()); 
+	  dummyhist -> SetName(name);
 	  dummyhist->SetFillColor(44);
 	  dummyhist -> SetTitle("");
-	  // dummyhist -> GetYaxis() -> SetTitle("Quartets");
-	  dummyhist -> GetXaxis() -> SetTitle("Position (mm)");
+	  dummyhist -> GetXaxis() -> SetTitleSize(0.1);
+	  dummyhist -> GetXaxis() -> SetTitleColor(1);
+	  dummyhist -> GetXaxis() -> CenterTitle();
+	  dummyhist -> GetXaxis() -> SetTitle("Position Diff (mm)");
+	  dummyhist -> GetXaxis() ->SetNdivisions(010);
 	  dummyhist->Draw();
 	}
 	else {
@@ -1026,11 +1067,16 @@ void QwGUIHallCBeamline::PlotHistograms()
 	
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);	 
-	  dummyhist = (TH1*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(HallC_BPMS[p]+element);
+	  dummyhist = (TH1*)gPad->GetPrimitive("htemp");
+	  name = Form("%s Yield%s",HallC_BPMS[p],element.Data());  
+	  dummyhist -> SetName(name);
 	  dummyhist -> SetTitle("");
+	  dummyhist -> GetXaxis() -> SetTitleSize(0.1);
+	  dummyhist -> GetXaxis() -> SetTitleColor(1);
+	  dummyhist -> GetXaxis() -> CenterTitle();
 	  // dummyhist -> GetYaxis() -> SetTitle("Quartets");
 	  dummyhist -> GetXaxis() -> SetTitle("Position (mm)");
+	  dummyhist -> GetXaxis() ->SetNdivisions(010);
 	  dummyhist->SetFillColor(45);
 	  dummyhist->Draw();
 	}
@@ -1052,10 +1098,15 @@ void QwGUIHallCBeamline::PlotHistograms()
 	if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	  obj -> Draw(histogram);	 
 	  dummyhist = (TH1*)gPad->GetPrimitive("htemp"); 
-	  dummyhist -> SetName(HallC_BPMS[p]+select);
+	  name = Form("%s eff Q",HallC_BPMS[p]); 
+	  dummyhist -> SetName(name);
 	  dummyhist -> SetTitle("");
+	  dummyhist -> GetXaxis() -> SetTitleSize(0.1);
+	  dummyhist -> GetXaxis() -> SetTitleColor(1);
+	  dummyhist -> GetXaxis() -> CenterTitle();
 	  //dummyhist -> GetYaxis() -> SetTitle("Quartets");
 	  dummyhist -> GetXaxis() -> SetTitle("Charge");
+	  dummyhist -> GetXaxis() ->SetNdivisions(010);
 	  dummyhist->SetFillColor(46);
 	  dummyhist->Draw();
 	}
@@ -1072,20 +1123,28 @@ void QwGUIHallCBeamline::PlotHistograms()
 	for(Int_t p = 0; p <HCLINE_BCMS ; p++) {
 	  mc->cd(p+1);
 	  gPad->SetLogy();
-	  if(select.Contains("YBCM"))
+	  if(select.Contains("YBCM")){
 	    sprintf (histogram, "yield_qwk_%s.hw_sum", HallC_BCMS[p]);
-	  else if (select.Contains("DBCM"))
-	    sprintf (histogram, "diff_qwk_%s.hw_sum", HallC_BCMS[p]);
-	  else if(select.Contains("ABCM"))
+	    name = Form("yield %s",HallC_BCMS[p]); 
+	  }
+	  else if(select.Contains("ABCM")){
 	    sprintf (histogram, "asym_qwk_%s.hw_sum", HallC_BCMS[p]); 
+	    name = Form("asym %s",HallC_BCMS[p]); 
+	  }
 	  if (ldebug) std::cout << "histogram = " << histogram <<  std::endl;
 	  if( ((TTree*) obj)->FindLeaf(histogram) ) {
 	    obj -> Draw(histogram);	 
-	    dummyhist = (TH1*)gPad->GetPrimitive("htemp"); 
-	    dummyhist -> SetName(HallC_BCMS[p]);
+	    dummyhist = (TH1*)gPad->GetPrimitive("htemp");
+	    dummyhist -> SetName(name);
 	    dummyhist -> SetTitle("");
-	    //dummyhist -> GetYaxis() -> SetTitle("Quartets");
-	    dummyhist -> GetXaxis() -> SetTitle("Position (mm)");
+	    dummyhist -> GetXaxis() -> SetTitleSize(0.1);
+	    dummyhist -> GetXaxis() -> SetTitleColor(1);
+	    dummyhist -> GetXaxis() -> CenterTitle();
+	    dummyhist -> GetXaxis() ->SetNdivisions(010);
+	    if(select.Contains("YBCM"))
+	      dummyhist -> GetXaxis() -> SetTitle("Current (#muA)");
+	    if(select.Contains("ABCM"))
+	      dummyhist -> GetXaxis() -> SetTitle("asymmetry (ppm)");
 	    dummyhist->SetFillColor(47);
 	    dummyhist->Draw();
 	  }
