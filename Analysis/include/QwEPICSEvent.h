@@ -49,6 +49,7 @@ class QwEPICSEvent
   Int_t FindIndex(const string& tag) const;
 
   Double_t GetDataValue(const string& tag) const;      // get recent value corr. to tag
+  TString  GetDataString(const string& tag) const;
 
 
   int SetDataValue(const string& tag, const Double_t value, const int event);
