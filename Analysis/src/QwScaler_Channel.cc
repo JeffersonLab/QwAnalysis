@@ -323,7 +323,7 @@ void QwScaler_Channel<data_mask,data_shift>::Scale(Double_t scale)
 {
   if (!IsNameEmpty())
     {
-      this->fValue  = (UInt_t)( this->fValue*scale);
+      this->fValue *= scale;
     }
 };
 
