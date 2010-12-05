@@ -31,6 +31,7 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
+#include "QwScaler_Channel.h"
 #include "QwVQWK_Channel.h"
 
 
@@ -115,10 +116,10 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     /// Expert tree fields
     Int_t fTree_fNEvents;
 
-    static const Int_t NModules = 3;
-    static const Int_t NPlanes = 4;
-    static const Int_t StripsPerModule = 32;
-    static const Int_t StripsPerPlane = 96;
+    static const Int_t NModules;
+    static const Int_t NPlanes;
+    static const Int_t StripsPerModule;
+    static const Int_t StripsPerPlane;
 
     std::vector< std::vector <Int_t> > fSubbankIndex;
 
@@ -162,7 +163,14 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Int_t fTreeArrayIndex;
     UInt_t fNumberOfEvents; //! Number of triggered events
 
+    /// Mapping from ROC/subbank to channel type
+    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single, kScaler };
+    std::map< Int_t, ChannelType_t > fMapping;
 
+    /// List of scaler channels
+    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > Scaler_Mapping_t;
+    Scaler_Mapping_t fScaler_Mapping;
+    std::vector< QwSIS3801D24_Channel > fScaler;
 
 };
 

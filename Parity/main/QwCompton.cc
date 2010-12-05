@@ -200,18 +200,16 @@ int main(int argc, char* argv[])
       // Process this events
       detectors.ProcessEvent();
 
-
-
-      // Helicity pattern
-      helicitypattern.LoadEventData(detectors);
-
-
       // Fill the histograms
       rootfile->FillHistograms(detectors);
 
       // Fill the tree
       rootfile->FillTreeBranches(detectors);
       rootfile->FillTree("Mps_Tree");
+
+
+      // Helicity pattern
+      helicitypattern.LoadEventData(detectors);
 
 
       // TODO We need another check here to test for pattern validity.  Right

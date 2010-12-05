@@ -44,6 +44,11 @@ using namespace std;
 QwSubsystemFactory<QwComptonElectronDetector>
   theComptonElectronDetectorFactory("QwComptonElectronDetector");
 
+// Assign static const member fields
+const Int_t QwComptonElectronDetector::NModules = 3;
+const Int_t QwComptonElectronDetector::NPlanes = 4;
+const Int_t QwComptonElectronDetector::StripsPerModule = 32;
+const Int_t QwComptonElectronDetector::StripsPerPlane = 96;
 
 //*****************************************************************
 /**
@@ -55,7 +60,8 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 {
   TString varname, varvalue;
   TString modtype, dettype, name;
-  Int_t modnum, channum, plane, stripnum, fdettype;
+  UInt_t modnum, channum;
+  Int_t plane, stripnum, fdettype;
   Int_t currentrocread=0;
   Int_t currentbankread=0;
   Int_t currentsubbankindex=-1;
@@ -63,8 +69,8 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 
   QwParameterFile mapstr(mapfile.Data());  // Open the file
   while (mapstr.ReadNextLine()) {
-    mapstr.TrimComment('!');   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace (spaces or tabs).
+    mapstr.TrimComment();    // Remove everything after a comment character.
+    mapstr.TrimWhitespace(); // Get rid of leading and trailing whitespace (spaces or tabs).
     if (mapstr.LineIsEmpty())  continue;
 
     if (mapstr.HasVariablePair("=", varname, varvalue)) {
@@ -83,54 +89,80 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
     } else {
       //  Break this line into tokens to process it.
       modtype   = mapstr.GetNextToken(", \t").c_str();
-      modnum    = (atol(mapstr.GetNextToken(", \t").c_str()));
-      channum   = (atol(mapstr.GetNextToken(", \t").c_str()));
+      modnum    = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
+      channum   = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
       dettype   = mapstr.GetNextToken(", \t").c_str();
       name      = mapstr.GetNextToken(", \t").c_str();
       plane     = (atol(mapstr.GetNextToken(", \t").c_str()));
       stripnum  = (atol(mapstr.GetNextToken(", \t").c_str()));
       //  Push a new record into the element array
       if (modtype == "V1495") {
-	if (dettype == "eacuum") {
+	if (dettype == "eaccum") {
+          // Register data channel type
+          fMapping[currentsubbankindex] = kV1495Accum;
           fdettype = 1;
-	  if (fdettype >= (Int_t) fSubbankIndex.size())
-	    fSubbankIndex.push_back(std::vector <Int_t>());
-          if (modnum >= (Int_t) fSubbankIndex[fdettype].size()){
+ 	  if (fdettype >= (Int_t) fSubbankIndex.size())
+	    fSubbankIndex.resize(fdettype+1);
+          if (modnum >= fSubbankIndex[fdettype].size()){
             fSubbankIndex[fdettype].push_back(modnum);
             fSubbankIndex[fdettype][modnum] = currentsubbankindex;
           }
 	  if (plane >= (Int_t) fStripsRaw.size())
-	    fStripsRaw.push_back(std::vector <Double_t>());
+	    fStripsRaw.resize(plane);
 	    if (stripnum >= (Int_t) fStripsRaw[plane-1].size())
              fStripsRaw[plane-1].push_back(0.0);
              // plane goes from 1 - 4 instead of 0 - 3,
 
 	  if (plane >= (Int_t) fStrips.size())
-	   fStrips.push_back(std::vector <Double_t>());
+	   fStrips.resize(plane);
            if (stripnum >= (Int_t) fStrips[plane-1].size())
             fStrips[plane-1].push_back(0.0);
              // plane goes from 1 - 4 instead of 0 - 3,
         }
 	else if (dettype == "esingle") {
+          // Register data channel type
+          fMapping[currentsubbankindex] = kV1495Single;
           fdettype = 0;
 	  if (fdettype >= (Int_t) fSubbankIndex.size())
-	    fSubbankIndex.push_back(std::vector <Int_t>());
-          if (modnum >= (Int_t) fSubbankIndex[fdettype].size()){
+	    fSubbankIndex.resize(fdettype+1);
+          if (modnum >= fSubbankIndex[fdettype].size()){
             fSubbankIndex[fdettype].push_back(modnum);
             fSubbankIndex[fdettype][modnum] = currentsubbankindex;
           }
 	  if (plane >= (Int_t) fStripsRawEv.size())
-	    fStripsRawEv.push_back(std::vector <Double_t>());
+	    fStripsRawEv.resize(plane);
 	    if (stripnum >= (Int_t) fStripsRawEv[plane-1].size())
              fStripsRawEv[plane-1].push_back(0.0);
              // plane goes from 1 - 4 instead of 0 - 3,
 
 	  if (plane >= (Int_t) fStripsEv.size())
-	   fStripsEv.push_back(std::vector <Double_t>());
+	   fStripsEv.resize(plane);
            if (stripnum >= (Int_t) fStripsEv[plane-1].size())
             fStripsEv[plane-1].push_back(0.0);
              // plane goes from 1 - 4 instead of 0 - 3,
 	} // end of switch (dettype)
+
+      } else if (modtype == "SIS3801D24") {
+        // Register data channel type
+        fMapping[currentsubbankindex] = kScaler;
+        // Add to mapping
+        if (modnum >= fScaler_Mapping[currentsubbankindex].size())
+          fScaler_Mapping[currentsubbankindex].resize(modnum+1);
+        if (channum >= fScaler_Mapping[currentsubbankindex].at(modnum).size())
+          fScaler_Mapping[currentsubbankindex].at(modnum).resize(channum+1,-1);
+        // Add scaler channel
+        if (fScaler_Mapping[currentsubbankindex].at(modnum).at(channum) < 0) {
+          QwMessage << "Registering SIS3801D24 " << name
+                    << std::hex
+                    << " in ROC 0x" << currentrocread << ", bank 0x" << currentbankread
+                    << std::dec
+                    << " at mod " << modnum << ", chan " << channum
+                    << QwLog::endl;
+          UInt_t index = fScaler.size();
+          fScaler_Mapping[currentsubbankindex].at(modnum).at(channum) = index;
+          fScaler.push_back(QwSIS3801D24_Channel(name));
+        }
+
       } // end of switch (modtype)
     } // end of if for token line
   } // end of while over parameter file
@@ -197,63 +229,109 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 
   ports_read = 0;
   // Get the subbank index (or -1 when no match)
-  Int_t index = GetSubbankIndex(roc_id, bank_id);
-  //    QwOut << "bankindex for"<<bank_id << "is =" << index <<QwLog::endl;
+  Int_t subbank = GetSubbankIndex(roc_id, bank_id);
+  //    QwOut << "bankindex for " << bank_id << " is =" << subbank <<QwLog::endl;
 
-  for (Int_t jj = 0; jj < NModules; jj++) {
-   if (fSubbankIndex[0][jj]==index) {
-    if (num_words > 0) {
+  if (subbank >= 0 && num_words > 0) {
 
     //  We want to process this ROC.  Begin looping through the data.
-     for (Int_t i = 0; i < NPlanes; i++) { // loop all words in bank
-       for (Int_t j = 0; j < StripsPerModule; j++) {
-	Int_t k = jj*StripsPerModule + j;
-        bitwise_mask = (UInt_t) pow(2.0,j);
-        fStripsRawEv[i][k] = (buffer[(i)] & bitwise_mask)>>j;
-       }
-       words_read++;
+
+    switch (fMapping[subbank]) {
+
+      // Scalers
+      case kScaler:
+      {
+        // Read header word
+        //UInt_t num_events = buffer[words_read];
+        words_read++;
+        // TODO Multiscaler functionality
+
+        // Read scalers
+        for (size_t modnum = 0; modnum < fScaler_Mapping[subbank].size(); modnum++) {
+          for (size_t channum = 0; channum < fScaler_Mapping[subbank].at(modnum).size(); channum++) {
+            Int_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
+            if (index >= 0) {
+              words_read += fScaler[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
+            }
+          }
+        }
+        words_read = num_words;
+        break;
       }
-     Int_t ExtraWord = 0;
-     ExtraWord = buffer[NPlanes];//diagnostic word for later use, ignore warning
-     words_read++;
-    }
-    if (num_words != words_read) {
-      QwError << "QwComptonElectronDetector: There were "
-              << num_words - words_read
-              << " leftover words after decoding everything we recognize."
-              << QwLog::endl;
+
+      // V1495
+      case kV1495Accum:
+      case kV1495Single:
+      {
+	for (Int_t jj = 0; jj < NModules; jj++) {
+	  if (fSubbankIndex[0][jj]==subbank) {
+	    if (num_words > 0) {
+
+	      //  We want to process this ROC.  Begin looping through the data.
+	      for (Int_t i = 0; i < NPlanes; i++) { // loop all words in bank
+		for (Int_t j = 0; j < StripsPerModule; j++) {
+		  Int_t k = jj*StripsPerModule + j;
+                  bitwise_mask = 0x1 << j; // == 2 ^ j
+		  fStripsRawEv[i][k] = (buffer[i] & bitwise_mask) >> j;
+		}
+		words_read++;
+	      }
+	      Int_t ExtraWord = 0;
+	      ExtraWord = buffer[NPlanes];//diagnostic word for later use, ignore warning
+	      words_read++;
+	    }
+	    if (num_words != words_read) {
+	      QwError << "QwComptonElectronDetector: There were "
+		      << num_words - words_read
+		      << " leftover words after decoding everything we recognize."
+		      << QwLog::endl;
+	    }
+	    
+	  }
+	}
+	
+	for (Int_t k = 0; k < NModules; k++) {
+	  if (fSubbankIndex[1][k]==subbank) {
+	    // sub-bank 0x0204, accum mode data from strips 0-31 of planes 1 thru 4
+	    
+	    if (num_words > 0) {
+	      
+	      //  We want to process this ROC.  Begin looping through the data.
+	      for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
+		Int_t j = k*StripsPerModule+i;
+		fStripsRaw[0][j] = (buffer[i] & 0xff000000) >> 24;
+		fStripsRaw[1][j] = (buffer[i] & 0x00ff0000) >> 16;
+		fStripsRaw[2][j] = (buffer[i] & 0x0000ff00) >> 8;
+		fStripsRaw[3][j] = (buffer[i] & 0x000000ff);
+		words_read++;
+	      }
+	    }
+	    if (num_words != words_read) {
+	      QwError << "QwComptonElectronDetector: There were "
+		      << num_words - words_read
+		      << " leftover words after decoding everything we recognize"
+		      << std::hex
+		      << " in ROC " << roc_id << ", bank " << bank_id << "."
+		      << std::dec
+		      << QwLog::endl;
+	    }
+	  }
+	}
+        break;
+      }
+
+      // Unknown data channel type
+      case kUnknown:
+      default:
+      {
+        QwError << "QwComptonElectronDetector: Unknown data channel type for ROC " 
+                << roc_id << ", bank " << bank_id << QwLog::endl;
+        break;
+      }
     }
 
-   }
   }
 
-  for (Int_t k = 0; k < NModules; k++) {
-   if (fSubbankIndex[1][k]==index) {
-// sub-bank 0x0204, accum mode data from strips 0-31 of planes 1 thru 4
-
-    if (num_words > 0) {
-
-    //  We want to process this ROC.  Begin looping through the data.
-     for (Int_t i = 0; i < StripsPerModule; i++) { // loop all words in bank
-       Int_t j = k*StripsPerModule+i;
-       fStripsRaw[0][j] = (buffer[(i)] &0xff000000)>>24;
-       fStripsRaw[1][j] = (buffer[(i)] &0x00ff0000)>>16;
-       fStripsRaw[2][j] = (buffer[(i)] &0x0000ff00)>>8;
-       fStripsRaw[3][j] = (buffer[(i)] &0x000000ff);
-       words_read++;
-      }
-    }
-    if (num_words != words_read) {
-      QwError << "QwComptonElectronDetector: There were "
-              << num_words - words_read
-              << " leftover words after decoding everything we recognize"
-              << std::hex
-              << " in ROC " << roc_id << ", bank " << bank_id << "."
-              << std::dec
-              << QwLog::endl;
-    }
-   }
-  }
   return words_read;
 };
 
@@ -264,7 +342,6 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 //*****************************************************************
 Bool_t QwComptonElectronDetector::SingleEventCuts()
 {
-  QwOut << "QwComptonElectronDetector::SingleEventCuts()" << QwLog::endl;
   return IsGoodEvent();
 };
 
@@ -274,7 +351,6 @@ Bool_t QwComptonElectronDetector::SingleEventCuts()
 //*****************************************************************
 void  QwComptonElectronDetector::ProcessEvent()
 {
-
   fCalibrationFactor = 1.0;
   fOffset = 0.0;
   int pas1 =0;
@@ -517,6 +593,7 @@ void QwComptonElectronDetector::ClearEventData()
      fStripsEv[i][j] = 0;
     }
    }
+
    fStripsEvBest1 = 1000000;
    fStripsEvBest2 = 1000000;
    fStripsEvBest3 = 1000000;
@@ -524,6 +601,10 @@ void QwComptonElectronDetector::ClearEventData()
    edet_TotalNumberTracks = 1000000;
    edet_angle = 1000000;
    
+  // Clear all scaler channels
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i].ClearEventData();
+
   return;
 };
 
@@ -532,11 +613,14 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
-   for (Int_t i = 0; i < NPlanes; i++){
-    for (Int_t j = 0; j < StripsPerPlane; j++){
-      this->fStripsRaw[i][j] = input->fStripsRaw[i][j];
+    for (Int_t i = 0; i < NPlanes; i++){
+      for (Int_t j = 0; j < StripsPerPlane; j++){
+        this->fStripsRaw[i][j] = input->fStripsRaw[i][j];
+      }
     }
-   }
+
+    for (size_t i = 0; i < fScaler.size(); i++)
+      this->fScaler[i] = input->fScaler[i];
   }
   return *this;
 };
@@ -545,11 +629,14 @@ VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
-   for (Int_t i = 0; i < NPlanes; i++){
-    for (Int_t j = 0; j < StripsPerPlane; j++){
-      this->fStripsRaw[i][j] += input->fStripsRaw[i][j];
+    for (Int_t i = 0; i < NPlanes; i++){
+      for (Int_t j = 0; j < StripsPerPlane; j++){
+        this->fStripsRaw[i][j] += input->fStripsRaw[i][j];
+      }
     }
-   }
+
+    for (size_t i = 0; i < fScaler.size(); i++)
+      this->fScaler[i] += input->fScaler[i];
   }
   return *this;
 };
@@ -558,11 +645,14 @@ VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
-   for (Int_t i = 0; i < NPlanes; i++){
-    for (Int_t j = 0; j < StripsPerPlane; j++){
-      this->fStripsRaw[i][j] -= input->fStripsRaw[i][j];
+    for (Int_t i = 0; i < NPlanes; i++){
+      for (Int_t j = 0; j < StripsPerPlane; j++){
+        this->fStripsRaw[i][j] -= input->fStripsRaw[i][j];
+      }
     }
-   }
+
+    for (size_t i = 0; i < fScaler.size(); i++)
+      this->fScaler[i] -= input->fScaler[i];
   }
   return *this;
 };
@@ -571,11 +661,11 @@ VQwSubsystem&  QwComptonElectronDetector::operator*=  (VQwSubsystem *value)
 {
   if (Compare(value)) {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
-   for (Int_t i = 0; i < NPlanes; i++){
-    for (Int_t j = 0; j < StripsPerPlane; j++){
-      this->fStripsRaw[i][j] *= input->fStripsRaw[i][j];
+    for (Int_t i = 0; i < NPlanes; i++){
+      for (Int_t j = 0; j < StripsPerPlane; j++){
+        this->fStripsRaw[i][j] *= input->fStripsRaw[i][j];
+      }
     }
-   }
   }
   return *this;
 };
@@ -600,29 +690,32 @@ void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem 
 
 void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 {
-
-  //  if (Compare(numer) && Compare(denom)) {
-  //  QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
-  //  QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
+  if (Compare(numer) && Compare(denom)) {
+    QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
+    QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
 
   // for (Int_t i = 0; i < NPlanes; i++){
   //  for (Int_t j = 0; j < StripsPerPlane; j++){
       //      this->fStripsRaw.Ratio(innumer->fStripsRaw[i][j], indenom->fStripsRaw[i][j]);
   //  }
   // }
-  // }
 
-  return;
+    for (size_t i = 0; i < fScaler.size(); i++)
+      this->fScaler[i].Ratio(innumer->fScaler[i],indenom->fScaler[i]);
+
+  }
 };
 
 void QwComptonElectronDetector::Scale(Double_t factor)
 {
-
-   for (Int_t i = 0; i < NPlanes; i++){
+  for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
-     this->fStripsRaw[i][j] *= factor;
+      this->fStripsRaw[i][j] *= factor;
     }
-   }
+  }
+
+  for (size_t i = 0; i < fScaler.size(); i++)
+    this->fScaler[i].Scale(factor);
 };
 
 Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
@@ -637,6 +730,9 @@ Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
   } else {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     if (input->fStripsRaw.size() != fStripsRaw.size()) {
+      result = kFALSE;
+    }
+    if (input->fScaler.size() != fScaler.size()) {
       result = kFALSE;
     }
   }
@@ -673,19 +769,22 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
     fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));
   }
 
-    TString histname = Form("Compton_eDet_Evt_Best_Plane1");
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
-    histname = Form("Compton_eDet_Evt_Best_Plane2");
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
-    histname = Form("Compton_eDet_Evt_Best_Plane3");
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
-    histname = Form("Compton_eDet_Evt_Best_x2");
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
-    histname = Form("Compton_eDet_Evt_NTracks");
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
-    histname = Form("Compton_eDet_Evt_Track_Angle");
-    fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  TString histname = Form("Compton_eDet_Evt_Best_Plane1");
+  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  histname = Form("Compton_eDet_Evt_Best_Plane2");
+  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  histname = Form("Compton_eDet_Evt_Best_Plane3");
+  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  histname = Form("Compton_eDet_Evt_Best_x2");
+  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  histname = Form("Compton_eDet_Evt_NTracks");
+  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  histname = Form("Compton_eDet_Evt_Track_Angle");
+  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
  
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i].ConstructHistograms(folder,prefix);
+
   return;
 };
 
@@ -697,7 +796,9 @@ void  QwComptonElectronDetector::DeleteHistograms()
     fHistograms1D.at(i) =  NULL;
    }
   }
-  return;
+
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i].DeleteHistograms();
 };
 
 void  QwComptonElectronDetector::FillHistograms()
@@ -712,7 +813,8 @@ void  QwComptonElectronDetector::FillHistograms()
      if (fHistograms1D[4*i] != NULL)
        //      for (k=0; k<fStripsRaw[i][j]; k++)
        //       fHistograms1D[4*i]->Fill(j);
-     fHistograms1D[4*i]->Fill(j,fStripsRaw[i][j]);
+       fHistograms1D[4*i]->Fill(j,fStripsRaw[i][j]);
+
      if (fHistograms1D[4*i+1] != NULL)
       for (k=0; k<fStrips[i][j]; k++)
        fHistograms1D[4*i+1]->Fill(j);
@@ -722,12 +824,12 @@ void  QwComptonElectronDetector::FillHistograms()
        fHistograms1D[4*i+2]->Fill(j);
 
      if (fHistograms1D[4*i+3] != NULL)
-      for (k=0; k<fStripsEv[i][j]; k++) 
+      for (k=0; k<fStripsEv[i][j]; k++)
        fHistograms1D[4*i+3]->Fill(j);
+
     }
   }
-   
-  
+
   if(edet_x2 < edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {
    fHistograms1D[16]->Fill(fStripsEvBest1); 
    fHistograms1D[17]->Fill(fStripsEvBest2); 
@@ -738,6 +840,9 @@ void  QwComptonElectronDetector::FillHistograms()
   fHistograms1D[20]->Fill(edet_TotalNumberTracks); 
   fHistograms1D[21]->Fill(edet_angle); 
    
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i].FillHistograms();
+  
   return;
 };
 
@@ -759,7 +864,7 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
       //       tree->Branch(basename, &(values.back()), basename+"/D");
       
       for (int i=1; i<NPlanes; i++) {
-	for (int j=0; j<32; j++) {
+	for (int j=0; j<96; j++) {
 	  basename = Form("p%ds%dRawEv",i,j);
 	  values.push_back(0.0);
 	  tree->Branch(basename, &(values.back()), basename+"/D");
@@ -773,17 +878,20 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
 
 //     }
 
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i].ConstructBranchAndVector(tree, prefix, values);
+
   return;
 };
 void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
-  Int_t i, j, k;
+  Int_t i, j;
   size_t index=fTreeArrayIndex;
 //   if(fHistoType==kHelSaveMPS)
 //     {
       
       for (i=1; i<NPlanes; i++) {
-	for (j=0; j<32; j++) {
+	for (j=0; j<96; j++) {
 	  values[index++] = fStripsRawEv[i][j];
 	}
       }
@@ -792,6 +900,9 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
 //     {
  
 //     }
+
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i].FillTreeVector(values);
 
   return;
 };
@@ -895,6 +1006,10 @@ void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
           fStripsEv[i][j] = input->fStripsRaw[i][j];
         }
       }
+
+      this->fScaler.resize(input->fScaler.size());
+      for (size_t i = 0; i < this->fScaler.size(); i++)
+        this->fScaler[i].Copy(&(input->fScaler[i]));
 
     } else {
       TString loc = "Standard exception from QwComptonElectronDetector::Copy = "
