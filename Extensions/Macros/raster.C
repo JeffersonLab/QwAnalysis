@@ -31,6 +31,10 @@
 //                 - added three interesting beam position
 //                   aloing z offsets (1D)
 //                 - check "cdaqlx" or not (if not, don't run caget)
+//          0.0.8 : Monday, December  6 16:24:43 EST 2010, jhlee
+//                 - added GUI 
+//                 - prepared "submit" to HClog supported by Brad
+//
 // 
 // TO LIST
 //   * BPM offsets      -> fixed by Buddhini (0.0.7) QwAnalysis Rev 2272
@@ -39,7 +43,7 @@
 //     under the midplane asymmetry. 
 //   * One Frame with two buttons (Submit to HClog and Exit)
 //     may be Transient Frame? need to contact Brad how to submit HClog automatically
-//
+//     (partly done 0.0.8)
 
 
 
@@ -51,47 +55,221 @@
 //
 
 
+#include <iostream>
+#include "TApplication.h"
+#include "TRint.h"
+#include "TROOT.h"
 #include "TSystem.h"
+#include "TGTextEntry.h"
+#include "TGClient.h"
+#include "TGButton.h"
+#include "TGLabel.h"
+#include "TGFrame.h"
+#include "TGLayout.h"
+#include "TGWindow.h"
+#include "TGLabel.h"
 #include "TString.h"
-#include "TGraph.h"
-#include "TMarker.h"
+#include "TGTextEdit.h"
+#include "TGComboBox.h"
+#include "TGText.h" 
 
-#include <ctime>
-#include <unistd.h>
 
+enum RasterMapIndentificator {
+  RM_EXIT,
+  RM_SUBMIT,
+  RM_CLEAR,
+  RM_USERNAME
+};
+
+class RasterMap : public TGMainFrame {
+
+private:
+
+  TCanvas           *fRasterMap2D;
+  TCanvas           *fRasterMap1D;
+
+  TGTextButton      *fSubmitButton;
+  TGTextButton      *fClearButton;
+  TGTextButton      *fExitButton;
+  TGTextEdit        *fCommentWindow;
+  TGTextEntry       *fUserNameEntry;
+  TGLabel           *fUserNameLabel;
+
+  TString           filename;
+  TString           output_dir;
+  TString           image_name;
+
+  Bool_t            file_output_flag;
+
+public:
+  RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name);
+  virtual ~RasterMap();
+
+  void Exit();
+  void SubmitHClog();
+  void ClearComment();
+  
+  void raster();
+
+  ClassDef(RasterMap, 0)
+};
+                          
+RasterMap::RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name) 
+  : TGMainFrame(p, w, h)   
+{
+  SetCleanup(kDeepCleanup);
+  Connect("CloseWindow()", "RasterMap", this, "Exit()");
+  DontCallClose();
+   
+
+  file_output_flag = true;
+  Int_t  ten_percent_height = (UInt_t) 0.1*h;
+  TGHorizontalFrame *main_button_frame = new TGHorizontalFrame(this, w, ten_percent_height);
+  AddFrame(main_button_frame, new TGLayoutHints(kLHintsBottom | kLHintsExpandX, 1,1,1,1));
+   
+  fSubmitButton = new TGTextButton(main_button_frame, "Submit to HClog", RM_SUBMIT);
+  fClearButton  = new TGTextButton(main_button_frame, "Clear",           RM_CLEAR);
+  fExitButton   = new TGTextButton(main_button_frame, "Exit",            RM_EXIT);
+   
+  fSubmitButton -> Connect("Clicked()", "RasterMap", this, "SubmitHClog()");
+  fClearButton  -> Connect("Clicked()", "RasterMap", this, "ClearComment()");
+  fExitButton   -> Connect("Clicked()", "RasterMap", this, "Exit()");
+  //
+  // only cdaqlx, don't support old root version, jhlee
+  //
+  fSubmitButton -> SetToolTipText("Submit the plots to HClog (Not working)");
+  fClearButton  -> SetToolTipText("Clear comments");
+  fExitButton   -> SetToolTipText("Bye!");
+  main_button_frame -> AddFrame(fSubmitButton, new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  main_button_frame -> AddFrame(fClearButton,  new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  main_button_frame -> AddFrame(fExitButton,   new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+   
+ 
+  TGHorizontalFrame  *h_frame = new TGHorizontalFrame(this);
+  AddFrame(h_frame, new TGLayoutHints(kLHintsExpandX, 0,10,10,0));
+   
+  fUserNameLabel = new TGLabel(h_frame, " User Name : ");
+  fUserNameEntry = new TGTextEntry(h_frame, "cdaq", RM_USERNAME);
+  //   fUserNameEntry -> SetToolTipText("");
+  h_frame -> AddFrame(fUserNameLabel, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+  h_frame -> AddFrame(fUserNameEntry, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+   
+  fUserNameEntry -> Associate(this);
+   
+  TGGroupFrame *comment_frame = new TGGroupFrame(this, "Comments");
+  AddFrame(comment_frame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+   
+  fCommentWindow = new TGTextEdit(comment_frame, w, 212);
+  fCommentWindow -> Clear();
+  fCommentWindow -> Resize();
+  comment_frame -> AddFrame(fCommentWindow, new TGLayoutHints(kLHintsExpandX|kLHintsCenterX,0,0,0,0));
+   
+  SetWindowName("Raster Map and BPMs Helper v0.1");
+  MapSubwindows();
+  Resize(GetDefaultSize());
+  MapWindow();
+  Resize(600,300);
+  filename = name;
+   
+  raster();
+};
+
+RasterMap::~RasterMap()
+{
+  // Destructor.
+   
+  Cleanup();
+}
+
+
+void 
+RasterMap::Exit()
+{
+  
+  gApplication->Terminate(0);
+}
+
+
+void 
+RasterMap::SubmitHClog()
+{
+  char* user_name_hclog;
+  TString comments_hclog;
+  
+  TGTextBuffer *user_name_buffer = fUserNameEntry -> GetBuffer();  
+  TGText  *comments_text         = fCommentWindow -> GetText();
+  TString path_1D_png;
+  TString path_2D_png;
+
+  user_name_hclog = Form("%s", user_name_buffer->GetString());
+  comments_hclog  = comments_text -> AsString();
+
+  if(file_output_flag) {
+    image_name = filename + ".1D.png";
+    path_1D_png = output_dir + image_name;
+    fRasterMap1D -> SaveAs(path_1D_png);
+    std::cout << "\nImage File: "
+	      <<  image_name 
+	      << " has been created in "
+	      << output_dir
+	      << std::endl;
+
+
+    image_name = filename +".2D.png";
+    path_2D_png = output_dir + image_name;
+    fRasterMap2D -> SaveAs(path_2D_png);
+    std::cout << "Image File: "
+	      <<  image_name 
+	      << " has been created in "
+	      << output_dir
+	      << std::endl;
+  }
+
+
+  printf("User Name : %s\n", user_name_hclog);
+  printf("\n--------------------- Comments -------------------\n\n");
+  printf("%s", comments_hclog.Data());
+}
+
+
+void 
+RasterMap::ClearComment()
+{
+  fCommentWindow -> Clear();
+}
 
 void
-raster(TString name="")
+RasterMap::raster()
 { 
   Int_t i = 0;
 
   TString file_dir;
-  TString output_dir;
+  //  TString output_dir;
   file_dir = gSystem->Getenv("QWSCRATCH");
   output_dir = file_dir;
   file_dir += "/rootfiles/";
   output_dir += "/plots/";
 
-  if(name.IsNull()) {
+  if(filename.IsNull()) {
     printf("There is no root file\n");
     exit(-1);
   }
   else {
-    TFile *file =  new TFile(Form("%s%s", file_dir.Data(), name.Data()));
+    TFile *file =  new TFile(Form("%s%s", file_dir.Data(), filename.Data()));
   }
 
   gStyle->SetPalette(1); 
   tracking_histo->cd();
 
-  TCanvas *c2 = new TCanvas(name.Data(), name.Data(), 600, 800);
-  raster_rate_map->SetTitle(Form("Raster Rate Map in %s", name.Data()));
-  c2->Divide(1,2,0.0001,0.0001);
-  TPad *pad1 = (TPad*) c2->GetPrimitive(Form("%s_1", name.Data()));
-  TPad *pad2 = (TPad*) c2->GetPrimitive(Form("%s_2", name.Data()));
+  fRasterMap2D = new TCanvas(filename.Data(), filename.Data(), 600, 800);
+  raster_rate_map->SetTitle(Form("Raster Rate Map in %s", filename.Data()));
+  fRasterMap2D -> Divide(1,2,0.0001,0.0001);
+  TPad *pad1 = (TPad*) fRasterMap2D->GetPrimitive(Form("%s_1", filename.Data()));
+  TPad *pad2 = (TPad*) fRasterMap2D->GetPrimitive(Form("%s_2", filename.Data()));
  
   pad2->Divide(2,1, 0.000, 0.000);
-  TPad *pad21 = (TPad*) pad2->GetPrimitive(Form("%s_2_1", name.Data()));
-  TPad *pad22 = (TPad*) pad2->GetPrimitive(Form("%s_2_2", name.Data()));
+  TPad *pad21 = (TPad*) pad2->GetPrimitive(Form("%s_2_1", filename.Data()));
+  TPad *pad22 = (TPad*) pad2->GetPrimitive(Form("%s_2_2", filename.Data()));
   
   pad1 -> cd();
   pad1 -> SetBorderSize(0);
@@ -331,24 +509,23 @@ raster(TString name="")
   l.SetTextSize(0.08);
   l.DrawLatex(0.2,0.08, Form("%s",ctime (&rawtime)));
   
-  c2->Update();
-  image_name = name +".png";
-  c2 -> SaveAs(output_dir+image_name);
+  fRasterMap2D->Update();
+  // image_name = filename +".png";
+  // RasterMap2D -> SaveAs(output_dir+image_name);
  
 
 
-  TCanvas *c1 = new TCanvas("1DRaster", Form("RasterMap1D in %s", name.Data()), 1100,640);
+  fRasterMap1D = new TCanvas("1DRaster", Form("RasterMap1D in %s", filename.Data()), 1100,640);
  
-  c1->Divide(2,1,0.0001,0.0001);
-  TPad *c11 = (TPad*) c1->GetPrimitive("1DRaster_1");
-  TPad *c12 = (TPad*) c1->GetPrimitive("1DRaster_2");
+  fRasterMap1D->Divide(2,1,0.0001,0.0001);
+  TPad *c11 = (TPad*) fRasterMap1D->GetPrimitive("1DRaster_1");
+  TPad *c12 = (TPad*) fRasterMap1D->GetPrimitive("1DRaster_2");
   
-  Bool_t file_output_flag = true;
 
   c11->Divide(2,2);
   c11->cd(1);
   if(raster_position_x-> GetEntries() != 0.0) {
-    raster_position_x -> SetTitle(Form("Raster Position X in %s", name.Data()));
+    raster_position_x -> SetTitle(Form("Raster Position X in %s", filename.Data()));
     raster_position_x -> Draw();
     file_output_flag &= true;
   }
@@ -358,7 +535,7 @@ raster(TString name="")
 
   c11->cd(2);
   if(raster_position_y-> GetEntries() != 0.0) {
-    raster_position_y -> SetTitle(Form("Raster Position Y in %s", name.Data()));
+    raster_position_y -> SetTitle(Form("Raster Position Y in %s", filename.Data()));
     raster_position_y -> Draw();
     file_output_flag &= true;
   }
@@ -367,7 +544,7 @@ raster(TString name="")
   }
   c11->cd(3);
   if(raster_posx_adc-> GetEntries() != 0.0) {
-    raster_posx_adc -> SetTitle(Form("Raster PosX ADC in %s", name.Data()));
+    raster_posx_adc -> SetTitle(Form("Raster PosX ADC in %s", filename.Data()));
     raster_posx_adc -> Draw();
     file_output_flag &= true;
   }
@@ -376,7 +553,7 @@ raster(TString name="")
   }
   c11->cd(4);
   if(raster_posy_adc-> GetEntries() != 0.0) {
-    raster_posy_adc -> SetTitle(Form("Raster PosY ADC in %s", name.Data()));
+    raster_posy_adc -> SetTitle(Form("Raster PosY ADC in %s", filename.Data()));
     raster_posy_adc -> Draw();
     file_output_flag &= true;
   }
@@ -471,11 +648,13 @@ raster(TString name="")
   c12->Modified();
   c12->Update();
 
-  TString image_name;
-  if(file_output_flag) {
-    image_name = name + "1D.png";
-    c1 -> SaveAs(output_dir + image_name);
-  }
-
-
 }
+
+
+
+void raster(TString name="") 
+{
+  new RasterMap(gClient->GetRoot(), 600,300, name);
+}
+
+
