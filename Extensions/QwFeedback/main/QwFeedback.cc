@@ -59,7 +59,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   // and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.AddConfigFile("qwfeedback.conf");
-  gQwOptions.AddConfigFile("qweak_mysql.conf");
+  //gQwOptions.AddConfigFile("qweak_mysql.conf");
     // Define the command line options
   DefineOptionsParity(gQwOptions);
   QwHelicityCorrelatedFeedback::DefineOptions(gQwOptions);
@@ -81,7 +81,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
   ///  Create the database connection
-  QwDatabase database(gQwOptions);
+  //  QwDatabase database(gQwOptions);
 
 
   ///  Start loop over all runs
@@ -115,7 +115,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
-    epicsevent.LoadEpicsVariableMap("EpicsTable.map");
+    epicsevent.LoadChannelMap("EpicsTable.map");
 
     ///  Load the detectors from file
     QwSubsystemArrayParity detectors(gQwOptions);
@@ -143,7 +143,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Initialize the database connection.
-    database.SetupOneRun(eventbuffer);
+    //    database.SetupOneRun(eventbuffer);
     
 //     //  Open the ROOT file
 //     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
@@ -317,13 +317,13 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Read from the datebase
-    database.SetupOneRun(eventbuffer);
+    //    database.SetupOneRun(eventbuffer);
 
     // Each sussystem has its own Connect() and Disconnect() functions.
-    if (database.AllowsWriteAccess()) {
-      helicitypattern.FillDB(&database);
-      epicsevent.FillDB(&database);
-    }
+    //    if (database.AllowsWriteAccess()) {
+    //      helicitypattern.FillDB(&database);
+    //      epicsevent.FillDB(&database);
+    //    }
 
 
     QwMessage << "Total events failed " << failed_events_counts << QwLog::endl;
