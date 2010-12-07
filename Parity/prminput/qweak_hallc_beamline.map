@@ -145,8 +145,16 @@ sample_size==480
 !ADC0
    VQWK, 0, 0,  bcm,  QWK_LINEPHASE
    VQWK, 0, 1,  bcm,  QWK_INVERT_TStable
-
-
+!These are cavity BPM1 signals (IPM3H04)
+   VQWK, 1, 0,  bcm,  QWK_BCM5_Ix
+   VQWK, 1, 1,  bcm,  QWK_BCM5_Iy
+   VQWK, 1, 2,  bcm,  QWK_BCM5_Phase
+!These are cavity BPM2 signals (IPM3H09)
+   VQWK, 1, 3,  bcm,  QWK_BCM6_Ix
+   VQWK, 1, 4,  bcm,  QWK_BCM6_Iy
+   VQWK, 1, 5,  bcm,  QWK_BCM6_Phase
+!
+!
 !**************************************************************************
 ! HALL C BEAMLINE SCALERS
 !**************************************************************************
