@@ -18,13 +18,13 @@ using namespace std;
 const double wirespace=0.496965;
 
 
-void efficiency(int ev_start=-1,int ev_end=-1,Int_t run_number=6327){
+void efficiency(int ev_start=-1,int ev_end=-1,Int_t run_number=6327,const string subsystem="r3"){
  
     Int_t start=0,end=0;
     string file_name= Form ( "%s/Qweak_%d.root",gSystem->Getenv ( "QWSCRATCH" ),run_number );
     TFile *file = new TFile ( file_name.c_str() );
-    ofstream ifile;
-    ifile.open("failed_events_list.txt");
+    ofstream events_log;
+    events_log.open(Form("%s/failed_events_list.txt",gSystem->Getenv ( "QWSCRATCH" )));
            
     TTree* event_tree= ( TTree* ) file->Get ( "event_tree" );
     QwEvent* fEvent=0;
@@ -44,14 +44,20 @@ void efficiency(int ev_start=-1,int ev_end=-1,Int_t run_number=6327){
     int qualified_events=0;
     int total_pt=0;
     for(int i=start;i< end;i++){
+        if(i%1000==0)
+        cout << "events process so far: " << i << endl;  
         event_tree->GetEntry(i);
         int nhits=fEvent->GetNumberOfHits();
         int npts=fEvent->GetNumberOfPartialTracks();
         int a[8]={0};            //represents eight planes, in case both packages get hits
+        bool has_pt=false;
         for(int j=0;j<npts;j++){
                 pt=fEvent->GetPartialTrack(j);
-                if(pt->GetRegion()==3)
-                        total_pt++;}         
+                if(pt->GetRegion()==3){
+                        total_pt++;
+                        has_pt=true;
+                }
+        }         
                       
         for(int j=0;j<nhits;j++){
                 hit=fEvent->GetHit(j);
@@ -62,14 +68,20 @@ void efficiency(int ev_start=-1,int ev_end=-1,Int_t run_number=6327){
         
                 if(a[0]>=4&&a[1]>=4&&a[2]>=4&&a[3]>=4){
                         qualified_events++;
+                        if(has_pt==false)
+                             events_log << "event: " << i+1 << endl;
                 }
                 else if(a[4]>=4&&a[5]>=4&&a[6]>=4&&a[7]>=4){
                         qualified_events++;
+                        if(has_pt==false)
+                             events_log << "event: " << i+1 << endl;       
                 }
+                
+        //NOTE:adding one more funtion in to print out the failed events
         }
 
         cout << "efficiency: " << (double)total_pt/qualified_events << endl;
-        
+        events_log.close();
     return;
 }
 
