@@ -84,6 +84,9 @@ Compton_eDet_Evt_Track_Angle    TH1F    40     -25	25	Tracks  Angle
 .*sca_fadc_clock.*		TH1F	100	0	2e6	Counts	Events
 .*sca_ref_4MHz.*		TH1F	100	0	1e6	Counts	Events	
 
+.*sca_evnum.*			TH1F	100	0	1e9	Counts	Events
+.*time.*			TH1F	100	0	1e9	Counts	Events
+
 ###  Compton fast laser channels
 .*laser.*			TH1F	100	0	4e3	Counts	Events
 

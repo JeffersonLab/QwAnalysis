@@ -133,7 +133,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     /// List of scaler channels
     typedef std::map< Int_t, std::vector< std::vector< Int_t > > > Scaler_Mapping_t;
     Scaler_Mapping_t fScaler_Mapping;
-    std::vector< QwSIS3801D24_Channel > fScaler;
+    std::vector< VQwScaler_Channel* > fScaler;
 
   private:
 
