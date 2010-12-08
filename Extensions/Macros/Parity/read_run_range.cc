@@ -272,7 +272,7 @@ int main(Int_t argc,Char_t* argv[])
 	std::cout << "\nFound file "<<f->GetName()<<std::endl; 
 
 	TTree* nt = (TTree*)(f->Get(treename));
-	if(!nt) exit(1);
+	if(!nt) continue;
 
 	// apply cuts for average current and current fluctuations.
 	// I fit bcm1 data with landaun fit to get the most probable current
@@ -439,10 +439,9 @@ Bool_t FindFiles(TString filename, std::vector<TFile*> &atfile_list, TChain * ch
   TChainElement *chain_element = NULL;
 
   chain ->Clear();
-  file_dir = gSystem->Getenv("QWSCRATCH");
-  if (!file_dir) file_dir = "~/scratch/";
-  file_dir += "/rootfiles/";
-  chain_status = chain->Add(Form("%s%s", file_dir.Data(), filename.Data()));
+  file_dir = gSystem->Getenv("QW_ROOTFILES");
+  if (!file_dir) file_dir = "~/scratch/rootfiles/";
+  chain_status = chain->Add(Form("%s/%s", file_dir.Data(), filename.Data()));
 
   if(chain_status) {
 
