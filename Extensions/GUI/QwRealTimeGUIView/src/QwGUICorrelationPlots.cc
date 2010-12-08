@@ -388,7 +388,7 @@ void QwGUICorrelationPlots::PlotCorrelation()
     mc->Update();
      
      
-    gSystem->Sleep(100);
+    gSystem->Sleep(2000);
     if (gSystem->ProcessEvents()){
       break;
     }

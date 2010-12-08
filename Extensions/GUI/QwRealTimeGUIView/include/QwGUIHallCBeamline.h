@@ -192,6 +192,9 @@ class QwGUIHallCBeamline : public QwGUISubSystem {
   Int_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
   Int_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
+ private:
+  static const Int_t fSleepTimeMS;
+
  protected:
 
   //!Overwritten virtual function from QwGUISubSystem::MakeLayout(). This function simply adds an
