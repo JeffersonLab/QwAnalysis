@@ -772,7 +772,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
       }
 
       else if(GetQwBeamInstrumentType(devtype)==kQwBPMCavity){
-	//Load bpm offsets
+	//Load cavity bpm offsets
 	if(index == -1){
 	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm : "
 		  <<devname<<" will not be asigned with geometry parameters. \n"
@@ -788,6 +788,27 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 	if(localname==devname){
 	  if(ldebug) std::cout<<" I found the cavity bpm !\n";
 	  fCavity[index].GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
+	  notfound=kFALSE;
+	}
+      }
+
+      else if(GetQwBeamInstrumentType(devtype)==kQwQPD){
+	//Load QPD calibration factors
+	if(index == -1){
+	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown QPD : "
+		  <<devname<<" will not be asigned with calibration factors. \n"
+		  <<QwLog::endl;
+	  notfound=kFALSE;
+	  continue;
+	}
+	localname=fQPD[index].GetElementName();
+	localname.ToLower();
+	if(ldebug)  std::cout<<"element name =="<<localname
+			     <<"== to be compared to =="<<devname<<"== \n";
+
+	if(localname==devname){
+	  if(ldebug) std::cout<<" I found the QPD !\n";
+	  fQPD[index].GetCalibrationFactors(devAlphaX, devAlphaY);
 	  notfound=kFALSE;
 	}
       }

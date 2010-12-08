@@ -1,0 +1,37 @@
+!**************************************************************************
+! Geometry information for the BPMs in Hall C beamline.
+!**************************************************************************
+! [Last updated by buddhini(buddhini@jlab.org) on 12-07-2010]
+!
+! 12-07-2010  B.Waidyawansa  Created from qwek_beamline_geometry.map
+
+!
+! X/Yoffset - The difference in the ideal position and the surveyed position of a BPM in X/Y axis.
+!
+! Z offset  - The location of the BPM in the hallC beamline (alog Z axis) from the begining of the arc
+!             to the center of the device/ origin of device coordinate system.
+!
+! BSEN scaling factor - Bpm SENsitivity scaling factor is the ratio of general BSEN = 18.81 adc counts/mm 
+!                       seen in most of the BPMs in the hall and the actual BSEN of a BPM. 
+!                       Almost all the BPMs in the hallC beamline except 3H08 has BSEN=25.8 adc counts/mm
+!                       So we use this factor to apply such changes.
+!
+! AlphaX/Y  - Relative gains of the individual XM,YM pairs compared to XP,YP pairs for the BPMs
+!            - X and Y ADC counts to mm conversion factors for the QPD (counts/mm).
+! 
+! The units of the offsets are in millemeters to be comparable with the units of the analysis results.
+!
+!
+! For BPMs that don't have factors or offsets given in the list below, default values will
+! be assigned. 
+!   default  offset (X/Y/Z) = 0.0
+!   default BSEN scaling factor = 18.81
+!   default AlphaX/AlphaY = 1.0
+!
+! device type, device_name,   Xoffset,Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY
+!	
+ bpmstripline,   QWK_1I02,      0.0,    0.0          0.0,       1.0,  	1.0,       1.0
+ qpd,             QWK_QPD,      0.0,    0.0,         0.0,  	0.0,   -0.00279,  -2.049
+
+
+!END
