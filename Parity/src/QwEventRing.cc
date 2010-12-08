@@ -180,7 +180,7 @@ Bool_t QwEventRing::CheckEvent(UInt_t error_flag){
 	if (bGoodEvent_ev3) QwMessage<<" Beam Trip [ev mode 3]"<<QwLog::endl;
 	bGoodEvent_ev3=kFALSE;// a beam trip occured, set this to false
 	//Now the all the event in the ring must be flagged with kBeamTripError flag
-	for(Size_t i=0;i<fRING_SIZE;i++)
+	for(Int_t i=0;i<fRING_SIZE;i++)
 	  fEvent_Ring[i].UpdateEventcutErrorFlag(kBeamTripError);
       }
     }     
