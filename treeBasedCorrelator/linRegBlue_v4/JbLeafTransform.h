@@ -29,15 +29,17 @@ class JbLeafTransform {
   
  private:
   TString myName;
-  enum{ mxAux=3};// auxiliary variables: pattern, bcm1, bcm2
-   
+  enum{ mxAux=3+4+1};// auxiliary variables: pattern, bcm1, bcm2
+  // added 4 bcm asym, + double differences 
+  // + asym_qwk_bpm3h09b_EffectiveCharge
+
   // pointers to leaf variables
   Double_t **pLeafDV, **pLeafIV, *pLeafAux[mxAux], **pLeafError; 
   Double_t **pYieldDV, **pYieldIV;
   int nLeafError;
   Double_t * getOneLeaf(TChain *chain,TString name,TString sub=""); 
   // histograms
-  enum {mxHA=16}; TH1 * hA[mxHA];
+  enum {mxHA=32}; TH1 * hA[mxHA];
   TH1 ** hydv, ** hyiv;
   void initHistos();
   

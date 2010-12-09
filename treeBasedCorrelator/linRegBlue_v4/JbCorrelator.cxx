@@ -155,30 +155,6 @@ JbCorrelator::finish(){
   linReg.solve();
   linReg.printSummaryAlphas();
 
-  // assemble string for automatic WEB-based monitoring
-  TString rmsStr, avrStr;
-  double avrL=99999.99,avrH=99999.9;
-  for (int i = nY-1; i >=0; i--) {
-    if(i>=15) continue; // do not print out Lumi DVs
-    double meanI,sigI;
-    assert( linReg.getMeanY(i,meanI)==0);
-    assert( linReg.getSigmaY(i,sigI)==0);
-    if(i==nY-1) avrL=avrH=meanI;
-    else {
-      if(avrL>meanI) avrL=meanI;
-      if(avrH<meanI) avrH=meanI;
-    }
-
-    if(sigI<10000)
-      rmsStr+=Form("<td> %.0f",sigI);
-    else
-      rmsStr+=Form("<td> %.2e",sigI);
-
-  }
-  cout<<"#"<<mCore<<"RMS,"<<rmsStr<<endl;
-  cout<<Form("#%sAVR, %.1f  to  %.1f",mCore.Data(),avrL, avrH) <<endl;
-
-
   printf("::::::::::::::::JbCorrelator::finish(%s) :::::::::::END\n",mCore.Data());
 }
 

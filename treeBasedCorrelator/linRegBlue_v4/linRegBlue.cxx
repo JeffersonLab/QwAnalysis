@@ -29,8 +29,7 @@ int main(int argc, char *argv[]) {
   int runSeg=0;
   const char * inpPath="/home/cdaq/qweak/QwScratch/rootfiles/QwPass1_"; //cdaq:Pass1
   //const char * inpPath="/group/qweak/QwAnalysis/common/QwScratch/rootfiles/QwPass1.1_";//*QwPass1.1* from Paul
-
-  //const char * inpPath="/cache/mss/hallc/qweak/rootfiles/pass0/QwPass1.1.";// QwPass1.1* from Juliette
+  //const char * inpPath="/cache/mss/hallc/qweak/rootfiles/pass0/QwPass1_";// from the silo
 
   const char * outPath="./out/";
   const char * configFName="blueReg.conf";
@@ -46,7 +45,6 @@ int main(int argc, char *argv[]) {
   if ( argc>=4)  mxEve =atoi(argv[3]);
   if ( argc>=5)  configFName=argv[4];
   if ( argc>=6)  slopeFName =argv[5];
-
 
   TString runName=Form("%d.%03d",runNo,runSeg);
 

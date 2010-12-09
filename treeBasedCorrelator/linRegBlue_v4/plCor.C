@@ -4,13 +4,13 @@ int pl=2; //1=gif, 2=ps, 3=both
 TFile* fd=0;
 enum{ nP=5}; //,nY=15}; 
 TString cor1="input";
-TString runName="R7684.003";
+TString runName="R8014.000";
 
 //TString inpPath="./web/R5822.001/";
 TString inpPath="./out/";
 char *oPath="./out/";
 
-plCor(int page=1, char *runName0="RfixMe.000") {
+plCor(int page=4, char *runName0="RfixMe.000") {
   //  printf("ss=%s=\n",runName0);
  
   if(page==0) {   runName=runName0;  doAll();    return;   }
@@ -24,6 +24,7 @@ plCor(int page=1, char *runName0="RfixMe.000") {
   if(page==1) mySum("summary ,"+runName); 
   if(page==2) IV_IV("Independent variables, (ppm), "+runName);
   if(page==3) yield_1D("Yield of IVs, "+runName,"yieldIV",0,4);
+  if(page==4) asym_BCM("Asym for BCMs, "+runName);
 
   if(page==10) DV_1D("Regressed DV: MD, "+runName,"regres",0,15);
   if(page==11) DV_1D("Regressed DV: Lumi coinc, "+runName,"regres",16,28);
@@ -112,6 +113,7 @@ void   mySum( TString text){
   if(h->Integral()>20) gPad->SetLogy();
 
 }
+
 
 //============================================
 //============================================
@@ -256,6 +258,36 @@ void   yield_1D(TString text, TString preFix, int i1,int i2){
 
 }
 
+
+
+//============================================
+//============================================
+void   asym_BCM( TString text){
+  gStyle->SetOptStat(1001110);
+  gStyle->SetOptFit(0);
+  can=new TCanvas("aa","aa",700,600);    TPad *c=makeTitle(can,text);
+  c->Divide(3,3);
+  // .... asym for BCM's
+  const int mxBB=9;
+  TString bbName[mxBB]={"asym_bcm1","asym_bcm2","asym_bcm5","asym_bcm6",
+			"bcmDD12","bcmDD15","bcmDD25","bcmDD56",
+			"asym_bpm3h09b_EfCh"};
+  for(int j=0;j<mxBB;j++){   
+      c->cd(1+j);
+      gPad->SetLeftMargin(0.15);
+      TH2F * h=(TH2F *)fd->Get(bbName[j]); 
+      if(h==0) continue;
+      assert(h);
+      h->Draw();
+      trimDisplayRange(h,6.);
+      h->GetXaxis()->SetLabelSize(0.06); 
+
+      // return;
+  }
+}
+
+
+
 //============================================
 //============================================
 void  trimDisplayRange(TH1 *h, double fac=0.8) {
@@ -308,7 +340,7 @@ TPad *makeTitle(TCanvas *c,char *core) {
 
 //============================
 void doAll(){
-   for(int i=1;i<=3;i++) plCor(i);
+   for(int i=1;i<=4;i++) plCor(i);
    for(int i=10;i<=12;i++) plCor(i);
    for(int i=20;i<=22;i++) plCor(i);
    for(int i=30;i<=41;i++) plCor(i);

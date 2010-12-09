@@ -8,21 +8,25 @@ from  JanQwOnlLib import *
 
 #os._exit(1)
 
-path="./webX/"
+path="./web/"
 print "read from ", path
-f=open(path+"12","r")
+f=open(path+"ldb","r")
 #print f
 k=1
 t0=0
 for line in f:
     k=k+1
-    #print line
-    x,a,b,c,d=line.split('.')
-    #print a,b
+    print line
+
+    x,a,b,c,y=line.split('.')
+    print "a=",a,"b=",b
     #run=a[5:]
-    run=a[9:]
+    run=a[-4:]
     seg=int(b[:3])
-    #print run, seg
+    #run="7110"
+    #seg=0
+    print run, seg
+    #break
     if seg<0:
         continue
     if k<0:
@@ -39,24 +43,19 @@ for line in f:
     #print "  HClogUrl=",text
     target=whatTarget(url)
     print "target(s)=",target
-    # print "------------------"
+    print "------------------"
     
     miscVal=', '.join(target)+", "+unixTime+", "+mmddyy+" "+hhmm+", "+url+", "+text.replace(',',';')
-    ioPath=path+"R%s"%RUNiSEG+"/"
-    print "ioPath=",ioPath
-    cmd_string12 = "root -b -q prCsvRecordTwo.C'(1,"+RUNiSEG+',"%s","'%miscVal+ioPath+'","'+ioPath+"\")'"
+    iPath=path+"R%s"%RUNiSEG+"/"
+    oPath=path+"4damon/"
+    print "iPath=",iPath, " oPath=",oPath
+    cmd_string12 = "root -b -q prCsvRecordTwo.C'(2,"+RUNiSEG+',"%s","'%miscVal+iPath+'","'+oPath+"\")'"
     print "exec12:%s" % cmd_string12
     os.system(cmd_string12)
     #break
 
-    if k>2000 or len(target)<0:
+    if k>10000:
         break
     continue
 
   
-#mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select   run_number, segment,size,start_time from analysis  where backup_status=11 and start_time>unix_timestamp('2010-10-28 12:00:00') and  size >1000000 order by start_time" | nl
-
-#better
-
-#mysql --host=cdaql6.jlab.org --user=tracker data_tracker_qweak -e "select   run_number, filename,segment from analysis  where run_number=5999" | nl
-

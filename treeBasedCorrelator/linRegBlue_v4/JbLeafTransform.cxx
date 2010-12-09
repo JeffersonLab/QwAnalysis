@@ -76,8 +76,14 @@ JbLeafTransform::findInputLeafs(TChain *chain){
   pLeafError[k++]=getOneLeaf(chain,"yield_qwk_bcm1","Device_Error_Code");   
   pLeafError[k++]=getOneLeaf(chain,"yield_qwk_bcm2","Device_Error_Code");   
 
+  pLeafAux[3]=getOneLeaf(chain,"asym_qwk_bcm1",afixName); // December 2010
+  pLeafAux[4]=getOneLeaf(chain,"asym_qwk_bcm2",afixName); // December 2010
+  pLeafAux[5]=getOneLeaf(chain,"asym_qwk_bcm5",afixName); // December 2010
+  pLeafAux[6]=getOneLeaf(chain,"asym_qwk_bcm6",afixName); // December 2010
+  pLeafAux[7]=getOneLeaf(chain,"asym_qwk_bpm3h09b_EffectiveCharge",afixName); // 4 Juliette
+ 
   assert(nLeafError==k);
-  hA[3]=new TH1F("inpDevErr",Form("device error code  !=0;channels: DV[0-%d], IV[%d-%d], BCM1,2   ",ndv()-1,ndv(),ndv()+niv()-1),nLeafError,-0.5,nLeafError-0.5);
+  hA[3]=new TH1F("inpDevErr",Form("device error code  !=0;channels: DV[0-%d], IV[%d-%d], yield BCM1,2  ",ndv()-1,ndv(),ndv()+niv()-1),nLeafError,-0.5,nLeafError-0.5);
   hA[3]->SetFillColor(kGreen);
 
   //...... now you can shorten names so they are easier to read & print
@@ -167,7 +173,21 @@ JbLeafTransform::unpackEvent(){
   for(int i=0;i<niv();i++)
     hyiv[i]->Fill(*pYieldIV[i]);
   
-
+  // fill histos for asym_bcm's, December 2010
+  double asyBcm1= 1e6*(*pLeafAux[3]);
+  double asyBcm2= 1e6*(*pLeafAux[4]);
+  double asyBcm5= 1e6*(*pLeafAux[5]);
+  double asyBcm6= 1e6*(*pLeafAux[6]);
+  double asyBpmEfCh= 1e6*(*pLeafAux[7]);
+  hA[10]->Fill(asyBcm1);
+  hA[11]->Fill(asyBcm2);
+  hA[12]->Fill(asyBcm5);
+  hA[13]->Fill(asyBcm6);
+  hA[14]->Fill(asyBcm1-asyBcm2);
+  hA[15]->Fill(asyBcm1-asyBcm5);
+  hA[16]->Fill(asyBcm2-asyBcm5);
+  hA[17]->Fill(asyBcm5-asyBcm6);
+  hA[18]->Fill(asyBpmEfCh);
   /* arrays w/ final 15 dv & iv variables
      1-bar tube combos:    MD 1-8 (all bars)
      2-bar combos:             MD H (3+7), V (1+5), D1 (2+6), D2(4+8)
@@ -214,9 +234,21 @@ JbLeafTransform::initHistos(){
 
   hA[2]=h=new TProfile("inpPattNo","Current stability; Pattern_number; average BCM1 (#mu A)    ",200,0.,0.);
   h->SetFillColor(kYellow);  h->SetBit(TH1::kCanRebin); // rescalled in finish
-
-
+  
   // hA[3] is set in findInputLeafs()
+  // 4...9 free
+  
+  // 10-18:   histos for asym_bcm's, December 2010
+  const int mxBB=9;
+  TString bbName[mxBB]={"asym_bcm1","asym_bcm2","asym_bcm5","asym_bcm6",
+			"bcmDD12","bcmDD15","bcmDD25","bcmDD56",
+			"asym_bpm3h09b_EfCh"};
+
+  for(int j=0;j<mxBB;j++) {
+    TString name= bbName[j], name2=name+" (ppm)";
+    hA[10+j]=h=new TH1D(name, name2+";"+name2,128,-0.,0.);
+    h->GetXaxis()->SetNdivisions(4);  h->SetBit(TH1::kCanRebin);
+  }
 
   
   //.....  yield  dv
@@ -351,6 +383,9 @@ JbLeafTransform::humanizeLeafName(TString longName) {
   name.ReplaceAll("_uslumi","_");
   name.ReplaceAll("_dslumi","_");
   name.ReplaceAll("_sum","");
+  name.ReplaceAll("_EffectiveCharge","EfCh");
+
+
   printf("Humanize '%s' --> '%s'\n", longName.Data(),name.Data());
   return name;
 }

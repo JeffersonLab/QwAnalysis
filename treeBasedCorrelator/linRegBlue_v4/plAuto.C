@@ -31,7 +31,7 @@ plAuto(int page=1, int psx=0, int toffX=0) {
   const char * timeString=myTime.AsString();
   fprintf(stdout, "NOW time: TTime= %u , string=%s=\n",myTime.Get()-1291207091,timeString);
   //return;
-  TString csvFile=inpPath+"mother_online_summary.csv";
+  TString csvFile=inpPath+"mother_online_MD.csv";
   int r=readCsv(csvFile.Data(), toffX);
   printf("r=%d  nItemsNames=%d nRuns=%d\n",r,itemName.size(),grAux[0]->GetN());
   //return;
