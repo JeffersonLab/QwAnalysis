@@ -42,13 +42,17 @@ QwBlinder::QwBlinder(const EQwBlindingStrategy blinding_strategy):
   fTargetBlindability_firstread(kIndeterminate),
   //  fTargetBlindability(kIndeterminate),
   //  fTargetPositionForced(kFALSE),
-  fTargetBlindability(kNotBlindable),
-  fTargetPositionForced(kTRUE),
+  fTargetBlindability(kIndeterminate),
+  fTargetPositionForced(kFALSE),
+  //
+  fIHWPPolarity(0),
+  fWienPolarity(0),
   //
   fBeamCurrentThreshold(1.0),
   fBeamIsPresent(kFALSE),
   fBlindingStrategy(blinding_strategy),
   fBlindingOffset(0.0),
+  fBlindingOffset_Base(0.0),
   fBlindingFactor(1.0)
 {
   // Set up the blinder with seed_id 0
@@ -133,6 +137,8 @@ void QwBlinder::Update(const QwSubsystemArrayParity& detectors)
     Bool_t tmp_beam = kFALSE;
     if (detectors.ReturnInternalValue(q_targ.GetElementName(), &q_targ)) {
       if (q_targ.GetHardwareSum() > fBeamCurrentThreshold){
+	// 	std::cerr << "q_targ.GetHardwareSum()==" 
+	// 		  << q_targ.GetHardwareSum() << std::endl;
 	tmp_beam = kTRUE;
       }
     }
@@ -162,14 +168,39 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
 	&& (tgt_temperture>18.0 && tgt_temperture<22.0)
 	&& (tgt_pressure>20.0 && tgt_pressure < 35.0)){
       SetTargetBlindability(QwBlinder::kBlindable);
-    } else if (tgt_pos == 0 
-	       || (tgt_temperture==0.0)
-	       || (tgt_pressure==0.0)){
+    } else if ((tgt_pos == 0 || tgt_pos==-999999.0)
+	       || (tgt_temperture==0.0 || tgt_temperture==-999999.0)
+	       || (tgt_pressure==0.0 || tgt_pressure==-999999.0)){
       SetTargetBlindability(QwBlinder::kIndeterminate);
     } else {
       SetTargetBlindability(QwBlinder::kNotBlindable);
     }
   }
+  // Check for the beam polarity information
+  //     IGL1I00DI24_24M         Beam Half-wave plate Read(off=out)
+  //
+  if (fBlindingStrategy != kDisabled) {
+    Int_t localIHWPPolarity = fIHWPPolarity;
+    if (epics.GetDataString("IGL1I00DI24_24M")=="OUT"){
+      fIHWPPolarity = 1;
+    } else if (epics.GetDataString("IGL1I00DI24_24M")=="IN"){
+      fIHWPPolarity = -1;
+    } else {
+      fIHWPPolarity = 0;
+    }
+    //  Check for Wien polarity should go here.
+
+    if (localIHWPPolarity!=fIHWPPolarity){
+      //  Report old test values.
+      PrintFinalValues();
+    }
+    fBlindingOffset = fBlindingOffset_Base * fIHWPPolarity;
+    if (localIHWPPolarity!=fIHWPPolarity){
+      //  Regenerate the test values.
+      InitTestValues(10);
+    }
+  }
+  
 }
 
 /*!-----------------------------------------------------------
@@ -358,6 +389,7 @@ void QwBlinder::InitBlinders(const UInt_t seed_id)
       fSeedID = 0;
       fBlindingFactor = 1.0;
       fBlindingOffset = 0.0;
+      fBlindingOffset_Base = 0.0;
       QwWarning << "Blinding parameters have been disabled!"<< QwLog::endl;
 
   // Else blinding is enabled
@@ -387,6 +419,9 @@ void QwBlinder::InitBlinders(const UInt_t seed_id)
     tmp1 = fBlindingOffset * 4;    // Exactly shifts by two binary places
     tmp2 = tmp1 + fBlindingOffset; // Rounds 5*fBlindingOffset
     fBlindingOffset = tmp2 - tmp1; // fBlindingOffset has been rounded.
+    
+    //  Set the base blinding offset.
+    fBlindingOffset_Base = fBlindingOffset;
 
     /// Secondly, the multiplicative blinding factor is determined.  This
     /// number is generated from the blinding asymmetry between, say, 0.9 and 1.1
@@ -714,17 +749,19 @@ Bool_t QwBlinder::CheckTestValues()
   for (size_t i = 0; i < fTestValues.size(); i++) {
 
     /// First test: compare a blinded value with a second computation
-    double checkval = fTestValues[i];
-    BlindValue(checkval);
+    double checkval = fBlindTestValues[i];
+    UnBlindValue(checkval);
 
-    double test1 = fBlindTestValues[i];
+    double test1 = fTestValues[i];
     double test2 = checkval;
     if ((test1 - test2) <= -epsilon || (test1 - test2) >= epsilon) {
-      QwError << "QwBlinder::CheckTestValues():  Blinded test value "
+      QwError << "QwBlinder::CheckTestValues():  Unblinded test value "
               << i
-              << " does not agree with reblinded test value, "
+              << " does not agree with original test value, "
               << "with a difference of "
-              << (test1 - test2) << "." << QwLog::endl;
+              << (test1 - test2) 
+	      << " (epsilon==" << epsilon << ")"
+	      << "." << QwLog::endl;
       status = kFALSE;
     }
 
@@ -896,10 +933,12 @@ QwBlinder::EQwBlinderStatus QwBlinder::CheckBlindability(){
   } else if (fTargetBlindability==kNotBlindable) {
     //  This isn't a blindable target, so don't do anything.
     status = QwBlinder::kNotBlindable;
-  } else if (fTargetBlindability==kBlindable && fBeamIsPresent) {
+  } else if (fTargetBlindability==kBlindable 
+	     && fBeamIsPresent && fIHWPPolarity!=0) {
     //  This is a blindable target and the beam is sufficent.
     status = QwBlinder::kBlindable;
-  } else if (fTargetBlindability==kBlindable && ! fBeamIsPresent) {
+  } else if (fTargetBlindability==kBlindable 
+	     && (! fBeamIsPresent || fIHWPPolarity==0) ) {
     //  This is a blindable target but there is insufficent beam present
     status = QwBlinder::kBlindableFail;
   } else {
