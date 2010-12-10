@@ -684,6 +684,9 @@ void QwQPD::MakeQPDList()
     qpd_sub_element = fRelPos[i];
     fQPDElementList.push_back( qpd_sub_element );
   }
+  qpd_sub_element.Copy(&fEffectiveCharge);
+  qpd_sub_element = fEffectiveCharge;
+  fQPDElementList.push_back(qpd_sub_element );
   return;
 }
 

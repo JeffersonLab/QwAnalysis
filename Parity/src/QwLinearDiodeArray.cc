@@ -627,6 +627,9 @@ void QwLinearDiodeArray::MakeLinearArrayList()
     qpd_sub_element = fRelPos[i];
     fLinearArrayElementList.push_back( qpd_sub_element );
   }
+  qpd_sub_element.Copy(&fEffectiveCharge);
+  qpd_sub_element = fEffectiveCharge;
+  fLinearArrayElementList.push_back(qpd_sub_element );
   return;
 }
 
