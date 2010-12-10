@@ -316,14 +316,13 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
  
   Double_t dt_= drifttime;
   Double_t dd_ = 0.0;
-  if(dt_<0 || dt_ >350) return dd_ ;
-  dd_ = -0.0916472
-      + 0.0167346 * dt_
-      + 0.000523155 * dt_ * dt_
-      + (-5.08001E-06 * dt_ * dt_ * dt_)
-      + ( 2.0181E-08 * dt_ * dt_ * dt_ * dt_)
-      + (-3.85257E-11 * dt_ * dt_ * dt_ * dt_ * dt_)
-      + ( 2.89459E-14 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
+  dd_ = -0.0138896
+      + 0.00987685 * dt_
+      + 0.00100368 * dt_ * dt_
+      + (-1.79785E-06 * dt_ * dt_ * dt_)
+      + ( -8.96859E-08 * dt_ * dt_ * dt_ * dt_)
+      + (6.11736E-10 * dt_ * dt_ * dt_ * dt_ * dt_)
+      + ( -1.15889E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
 
    //   dd_ = 0.00545449393
 //       + 0.0668865488 * dt_
@@ -522,13 +521,14 @@ void  QwDriftChamberHDC::ProcessEvent()
     plane      = local_id.fPlane - 1;
     // ahha, here is a hidden magic number 1.
     local_info = & fDetectorInfo.at(package).at(plane);
-    
     hit->SetDetectorInfo(local_info);
+//     std::cout << "Plane: " << plane+1 << " " << hit->fDirection << std::endl;
     //     hit->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
     //}
   }
   
   ApplyTimeCalibration();
+  SubtractWireTimeOffset();
   FillDriftDistanceToHits();
 
   return;
@@ -881,10 +881,48 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
     //  printf("WARNING : QwDriftChamberHDC::ApplyTimeCalibration() the predefined resolution %8.6lf (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
   }
 
-  for(std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++) 
+  size_t nhits=fTDCHits.size();
+  for(size_t i=0;i<nhits;i++) 
     {
-      hit -> SetTime(f1tdc_resolution_ns*hit->GetTime() );
+      double time=f1tdc_resolution_ns*fTDCHits.at(i).GetTime() ;
+      if(time<0 || time > 160){
+        fTDCHits.erase(fTDCHits.begin()+i);
+        --nhits;
+        --i;
+        continue;
+      }
+        
+      fTDCHits.at(i).SetTime( time );
     }
-  
   return;
+};
+
+void QwDriftChamberHDC::SubtractWireTimeOffset()
+{
+        Int_t plane=0,wire=0;
+        EQwDetectorPackage package = kPackageNull;
+        Double_t t0 = 0.0;
+        Double_t real_time=0.0;       
+        size_t nhits=fTDCHits.size();
+        for(size_t i=0;i<nhits;i++)
+        {
+
+                package = fTDCHits.at(i).GetPackage();
+                plane   = fTDCHits.at(i).GetPlane();
+                wire    = fTDCHits.at(i).GetElement();
+//                 t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
+                              
+                real_time=fTDCHits.at(i).GetTime()-t0;
+                                      
+                if(real_time<0 || real_time>160){
+                       fTDCHits.erase(fTDCHits.begin()+i);
+                       --nhits;
+                       --i;
+                       continue;
+                }
+                else{
+                       fTDCHits.at(i).SetTime(real_time);
+                    }
+                }
+        return;
 };

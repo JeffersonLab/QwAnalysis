@@ -322,11 +322,11 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 	Double_t resolution=0.5;     //resolution is 0.5ns
 //     Double_t cut0=0,cut1=0,cut2=0;
 
-	if ( fTtoDNumbers.size() <15 )
-	{
-		std::cerr << "the size of parameters is not correct, please check! " << std::endl;
-		return -1;
-	}
+// 	if ( fTtoDNumbers.size() <15 )
+// 	{
+// 		std::cerr << "the size of parameters is not correct, please check! " << std::endl;
+// 		return -1;
+// 	}
 
 //     cut0=fTtoDNumbers.at(0);
 //     cut1=fTtoDNumbers.at(1);
@@ -335,12 +335,13 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 
 	Int_t index = (Int_t) (dt/resolution);
 
-	if ( index>=800 || index < 0 ) {
-	  distance_mm = -50.0;
-	}
-	else {
+// 	if ( index>=800 || index < 0 ) {
+// 	  distance_mm = -50.0;
+// 	}
+// 	else {
+        if(dt>400) std::cout << "error!" << dt << std::endl;
 	  distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );
-	}
+// 	}
 //     if ( dt < cut0 )
 //       {
 //         distance_mm = fTtoDNumbers.at(3)+fTtoDNumbers.at(4)*dt+fTtoDNumbers.at(5)*dt*dt+fTtoDNumbers.at(6)*dt*dt*dt/1000000;
@@ -905,12 +906,14 @@ void QwDriftChamberVDC::ProcessEvent()
 	}
 
 
-	ApplyTimeCalibration();
-
+	
+        ApplyTimeCalibration();
 
 	if ( fDisableWireTimeOffset==false )
 		SubtractWireTimeOffset();
 	else {};
+        
+        
 //    std::cout << "leaving.." << std::endl;
 	FillDriftDistanceToHits();
 };
@@ -1307,19 +1310,33 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
 	Int_t plane=0,wire=0;
 	EQwDetectorPackage package = kPackageNull;
 	Double_t t0 = 0.0;
+        Double_t real_time=0.0;       
 
-	for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
+// 	for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
+        size_t nhits=fWireHits.size();
+        for(size_t i=0;i<nhits;i++)
 	{
 
-		package = iter->GetPackage();
-		plane   = iter->GetPlane();
-		wire    = iter->GetElement();
+		package = fWireHits.at(i).GetPackage();
+		plane   = fWireHits.at(i).GetPlane();
+		wire    = fWireHits.at(i).GetElement();
 		t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
+                              
 		if(package==1)
-		iter->SetTime ( iter->GetTime()-t0);
-		else if(package==2)
-		iter->SetTime ( iter->GetTime()-t0);
-	}
+                        real_time=fWireHits.at(i).GetTime()-t0-91;
+                else if(package==2)
+                        real_time=fWireHits.at(i).GetTime()-t0-91;
+                                      
+                if(real_time<0 || real_time>400){
+                       fWireHits.erase(fWireHits.begin()+i);
+                       --nhits;
+                       --i;
+                       continue;
+                }
+                else{
+                       fWireHits.at(i).SetTime(real_time);
+                    }
+           	}
 	return;
 };
 
