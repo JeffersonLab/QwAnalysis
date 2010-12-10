@@ -12,38 +12,39 @@
 ! is IGL1I00DI24_24M and has either IN or OUT value).
 !
 !
-QW_T_miA		slow_controls_data    	   	!Temp A at manifold inlet K Cernox		
-QW_T_moA		slow_controls_data    	   	!Temp A at manifold outlet K Cernox		
-QW_T_hxiA		slow_controls_data    	   	!Temp A at heat exchanger inlet K Cernox Phytron brake
-QW_T_hxoA		slow_controls_data    	   	!Temp A at heat exchanger outlet	K Cernox Phytron home switch
-QW_T_piA		slow_controls_data    	   	!Temp A at pump inlet K Cernox	GV open switch
+QWTGTPOS	slow_controls_data    	   	!Vertical position of the target
+QWT_miA		slow_controls_data    	   	!Temp A at manifold inlet K Cernox		
+QWT_moA		slow_controls_data    	   	!Temp A at manifold outlet K Cernox		
+QWT_hxiA		slow_controls_data    	   	!Temp A at heat exchanger inlet K Cernox Phytron brake
+QWT_hxoA		slow_controls_data    	   	!Temp A at heat exchanger outlet	K Cernox Phytron home switch
+QWT_piA		slow_controls_data    	   	!Temp A at pump inlet K Cernox	GV open switch
 !			slow_controls_data    	   	!GV closed switch   [something to be added here]
-QW_T_miB		slow_controls_data    	   	!Temp B at manifold inlet K Cernox Turbo status *5?
-QW_T_moB	  	slow_controls_data    	   	!Temp B at manifold outlet K Cernox CCG *5?
-QW_T_hxiB		slow_controls_data    	   	!Temp B at heat exchanger inlet K Cernox Ballast vacuum
-QW_T_hxoB		slow_controls_data    	   	!Temp B at heat exchanger outlet	K Cernox
-QW_T_piB		slow_controls_data    	   	!Temp B at pump inlet K Cernox
-QW_T_ladderA		slow_controls_data    	   	!Temp A on dummy tgt ladder K			
-QW_T_USdmA		slow_controls_data    	   	!Temp A on upstream dummy frame K			
-QW_T_DSdmA		slow_controls_data    	   	!Temp A on downstream dummy frame K			
-QW_T_phytronA		slow_controls_data    	   	!Temp A on Phytron motor	K			
-QW_T_tableA		slow_controls_data    	   	!Temp A on Horizontal Motion table K
-QW_T_ladderB		slow_controls_data    	   	!Temp B on dummy tgt ladder K			
-QW_T_USdmB		slow_controls_data    	   	!Temp B on upstream dummy frame K			
-QW_T_DSdmB		slow_controls_data    	   	!Temp B on downstream dummy frame K			
-QW_T_phytronB		slow_controls_data    	   	!Temp B on Phytron motor	K			
-QW_T_tableB		slow_controls_data    	   	!Temp B on Horizontal Motion table K
-QW_T_solidA		slow_controls_data    	   	!Temp A on solid target frame K			
-QW_T_solidB		slow_controls_data    	   	!Temp B on solid target frame K			
-QW_T_spareA		slow_controls_data    	   	!K			
-QW_T_spareB		slow_controls_data    	   	!K			
-QW_T_pumpA		slow_controls_data    	   	!Temp A on pump motor house K			
-QW_T_pumpB		slow_controls_data    	   	!Temp B on pump motor house K			
+QWT_miB		slow_controls_data    	   	!Temp B at manifold inlet K Cernox Turbo status *5?
+QWT_moB	  	slow_controls_data    	   	!Temp B at manifold outlet K Cernox CCG *5?
+QWT_hxiB		slow_controls_data    	   	!Temp B at heat exchanger inlet K Cernox Ballast vacuum
+QWT_hxoB		slow_controls_data    	   	!Temp B at heat exchanger outlet	K Cernox
+QWT_piB		slow_controls_data    	   	!Temp B at pump inlet K Cernox
+QWT_ladderA		slow_controls_data    	   	!Temp A on dummy tgt ladder K			
+QWT_USdmA		slow_controls_data    	   	!Temp A on upstream dummy frame K			
+QWT_DSdmA		slow_controls_data    	   	!Temp A on downstream dummy frame K			
+QWT_phytronA		slow_controls_data    	   	!Temp A on Phytron motor	K			
+QWT_tableA		slow_controls_data    	   	!Temp A on Horizontal Motion table K
+QWT_ladderB		slow_controls_data    	   	!Temp B on dummy tgt ladder K			
+QWT_USdmB		slow_controls_data    	   	!Temp B on upstream dummy frame K			
+QWT_DSdmB		slow_controls_data    	   	!Temp B on downstream dummy frame K			
+QWT_phytronB		slow_controls_data    	   	!Temp B on Phytron motor	K			
+QWT_tableB		slow_controls_data    	   	!Temp B on Horizontal Motion table K
+QWT_solidA		slow_controls_data    	   	!Temp A on solid target frame K			
+QWT_solidB		slow_controls_data    	   	!Temp B on solid target frame K			
+QWT_spareA		slow_controls_data    	   	!K			
+QWT_spareB		slow_controls_data    	   	!K			
+QWT_pumpA		slow_controls_data    	   	!Temp A on pump motor house K			
+QWT_pumpB		slow_controls_data    	   	!Temp B on pump motor house K			
 !			slow_controls_data    	   	!K [something to be added here]
-QW_T_4kjt		slow_controls_data    	   	!Coolant Temp at outlet of 4K JT valve K	Cernox		
-QW_T_4ko		slow_controls_data    	   	!Temp of returning 4K coolant K Cernox
-QW_T_15kjt		slow_controls_data    	   	!Coolant Temp at outlet of 15K JT valve K Cernox		
-QW_T_15ko		slow_controls_data    	   	!Temp of returning 15K coolant K	Cernox
+QWT_4kjt		slow_controls_data    	   	!Coolant Temp at outlet of 4K JT valve K	Cernox		
+QWT_4ko		slow_controls_data    	   	!Temp of returning 4K coolant K Cernox
+QWT_15kjt		slow_controls_data    	   	!Coolant Temp at outlet of 15K JT valve K Cernox		
+QWT_15ko		slow_controls_data    	   	!Temp of returning 15K coolant K	Cernox
 QW_Pmp_TachSet		slow_controls_data    	   	!Set value for pump tach	Hz			
 QW_Pmp_VSet		slow_controls_data    	   	!Set value for pump voltage Volts			
 QW_Pmp_I1Set		slow_controls_data    	   	!Set value for pump current phase 1 Amps			
@@ -121,6 +122,7 @@ QW_EC5_AxisStatus	slow_controls_data    	   	!
 QW_EC5_DriveStatus	slow_controls_data    	   	!			
 QW_EC5_SystemStatus	slow_controls_data    	   	!			
 QW_EC5_ResPos		slow_controls_data    	   	!Lifter EC5 resistive position readout
+QW_PT3			slow_controls_data    	   	!Gas panel pressure transducer PT3 psia			
 QW_PT4			slow_controls_data    	   	!Gas panel pressure transducer PT4 psia			
 QW_PT9			slow_controls_data    	   	!Gas panel pressure transducer PT9 psia			
 QW_PT7			slow_controls_data    	   	!Gas panel pressure transducer PT7 psia			
