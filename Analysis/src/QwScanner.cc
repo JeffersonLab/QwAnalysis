@@ -659,6 +659,9 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
   if (bank_id==fBankID[1])
     {
 
+      // Check if scaler buffer contains more than one event
+      if (buffer[0]/32!=1) return 0;
+     
       if (index>=0 && num_words>0)
         {
           SetDataLoaded(kTRUE);
