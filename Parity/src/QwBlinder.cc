@@ -163,12 +163,12 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
   if (fBlindingStrategy != kDisabled && !(fTargetPositionForced) ) {
     Double_t tgt_pos   = epics.GetDataValue("QWTGTPOS");
     Double_t tgt_temperture = epics.GetDataValue("QWT_miA");
-    Double_t tgt_pressure   = epics.GetDataValue("QW_PT3"); 
+    Double_t tgt_pressure   = epics.GetDataValue("QW_PT3");
     if (tgt_pos > 350. 
 	&& (tgt_temperture>18.0 && tgt_temperture<22.0)
 	&& (tgt_pressure>20.0 && tgt_pressure < 35.0)){
       SetTargetBlindability(QwBlinder::kBlindable);
-    } else if ((tgt_pos == 0 || tgt_pos==-999999.0)
+    } else if ((tgt_pos==-999999.0)
 	       || (tgt_temperture==0.0 || tgt_temperture==-999999.0)
 	       || (tgt_pressure==0.0 || tgt_pressure==-999999.0)){
       SetTargetBlindability(QwBlinder::kIndeterminate);
