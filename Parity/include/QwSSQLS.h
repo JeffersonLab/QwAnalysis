@@ -33,9 +33,10 @@ namespace QwParityDB{
 			, mysqlpp::Null<mysqlpp::sql_text> , type
 		) 
   
-    sql_create_8(run, 1, 2 
+    sql_create_9(run, 1, 2 
 			, mysqlpp::sql_int_unsigned , run_id
 			, mysqlpp::sql_int_unsigned , run_number 	
+      , mysqlpp::sql_int_unsigned , slug
 			, mysqlpp::Null<mysqlpp::sql_text> , run_type
 //			, mysqlpp::Null<mysqlpp::sql_set> , good_for_id
 //			, mysqlpp::Null<mysqlpp::sql_set> , run_quality_id
@@ -58,7 +59,7 @@ namespace QwParityDB{
       , mysqlpp::sql_int_unsigned , last_mps
   ) 
   
-    sql_create_15(analysis, 1, 2 
+    sql_create_16(analysis, 1, 2 
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::sql_int_unsigned , runlet_id
 			, mysqlpp::sql_int_unsigned , seed_id
@@ -74,13 +75,25 @@ namespace QwParityDB{
 			, mysqlpp::Null<mysqlpp::sql_int> , segment
 			, mysqlpp::Null<mysqlpp::sql_enum> , slope_calculation
 			, mysqlpp::Null<mysqlpp::sql_enum> , slope_correction
+      , mysqlpp::Null<mysqlpp::sql_enum> , root_based_regression
 		) 
   
-    sql_create_6(slope, 1, 2 
-			, mysqlpp::sql_int_unsigned , slope_id
+    sql_create_7(md_slope, 1, 2 
+			, mysqlpp::sql_int_unsigned , md_slope_id
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::sql_int_unsigned , slope_type_id
-			, mysqlpp::sql_int_unsigned , detector_id
+			, mysqlpp::sql_char , measurement_type_id
+			, mysqlpp::sql_int_unsigned , main_detector_id
+			, mysqlpp::sql_float , value
+			, mysqlpp::sql_float , error
+		) 
+  
+    sql_create_7(lumi_slope, 1, 2 
+			, mysqlpp::sql_int_unsigned , lumi_slope_id
+			, mysqlpp::sql_int_unsigned , analysis_id
+			, mysqlpp::sql_int_unsigned , slope_type_id
+			, mysqlpp::sql_char , measurement_type_id
+			, mysqlpp::sql_int_unsigned , lumi_detector_id
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
 		) 
@@ -174,7 +187,7 @@ namespace QwParityDB{
       , mysqlpp::Null<mysqlpp::sql_enum> , charge_feedback
       , mysqlpp::Null<mysqlpp::sql_enum> , position_feedback
       , mysqlpp::Null<mysqlpp::sql_float> , qtor_current
-      , mysqlpp::Null<mysqlpp::sql_int_unsigned> , target_position
+      , mysqlpp::Null<mysqlpp::sql_text> , target_position
     ) 
   
     sql_create_4(sc_detector, 1, 2 

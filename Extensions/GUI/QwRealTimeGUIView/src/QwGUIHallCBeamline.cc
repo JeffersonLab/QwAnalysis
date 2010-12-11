@@ -7,6 +7,8 @@
 
 ClassImp(QwGUIHallCBeamline);
 
+const Int_t QwGUIHallCBeamline::fSleepTimeMS = 2000;
+
 enum QwGUIHallCBeamlineIndentificator {
   BA_POS_DIFF,
   BA_CHARGE,
@@ -389,7 +391,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -449,7 +451,7 @@ void QwGUIHallCBeamline::PlotChargeAsym()
       mc->Update();
     }
 
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -569,7 +571,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
     for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -686,7 +688,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
     for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -747,7 +749,7 @@ void QwGUIHallCBeamline::PlotSCALER(){
       mc->Update();
     }
 
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -830,7 +832,7 @@ void QwGUIHallCBeamline::PlotTargetPos(Int_t tgtcoord){
       mc->Update();
     }
 
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -894,7 +896,7 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
       mc->Update();
     }
 
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -948,7 +950,7 @@ void QwGUIHallCBeamline::PlotFastRaster()
       }
       mc->Modified();
       mc->Update();
-      gSystem->Sleep(100);
+      gSystem->Sleep(fSleepTimeMS);
       if (gSystem->ProcessEvents()){
 	break;
       }

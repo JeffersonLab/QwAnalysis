@@ -255,8 +255,10 @@ Int_t QwEventBuffer::OpenNextStream()
     status = OpenETStream(fETHostname, fETSession, 0);
 
   } else {
-    //  Try to open the next data file for the current run.
-    if (fCurrentRun != -1 && !fChainDataFiles) {
+    //  Try to open the next data file for the current run,
+    //  but only if we haven't hit the event limit.
+    if (fCurrentRun != -1 && !fChainDataFiles
+	&& fEvtNumber <= fEventRange.second) {
       status = OpenNextSegment();
     }
     while (status != CODA_OK && GetNextRunNumber()) {

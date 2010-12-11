@@ -278,6 +278,17 @@ Double_t QwEPICSEvent::GetDataValue(const string& tag) const
   return data_value;
 };
 
+TString QwEPICSEvent::GetDataString(const string& tag) const
+{
+  Int_t tagindex = FindIndex(tag);
+  if (tagindex != kEPICS_Error) {
+    if (fEPICSVariableType[tagindex]==kEPICSString
+	&& fEPICSDataEvent[tagindex].Filled) {
+      return(fEPICSDataEvent[tagindex].StringValue);
+    }
+  }
+  return TString("");
+};
 
 void QwEPICSEvent::InitDefaultAutogainList()
 {

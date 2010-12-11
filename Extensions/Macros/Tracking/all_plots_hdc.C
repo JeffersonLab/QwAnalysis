@@ -1,0 +1,60 @@
+
+// Author : Jeong Han Lee / John leacock
+// Date   : Sunday, December  5 21:31:38 EST 2010
+// 
+// 
+//          0.0.1 : Sunday, December  5 21:31:43 EST 2010, jhlee
+//                 - copied John script to modify them
+//                   to fit plot_HDC
+//
+
+#include "TSystem.h"
+#include "TString.h"
+
+void 
+all_plots_hdc(TString name="")
+{
+  TString file_dir;
+  file_dir = gSystem->Getenv("QWSCRATCH");
+  file_dir += "/rootfiles/";
+ 
+  if(name.IsNull()) {
+    printf("There is no root file\n");
+    exit(-1);
+  }
+  else {
+    TFile *file =  new TFile(Form("%s%s", file_dir.Data(), name.Data()));
+  }
+
+  gStyle->SetPalette(1); 
+  tracking_histo->cd();
+
+  TCanvas *c1 = new TCanvas(name.Data(), name.Data(), 1100, 700);
+  c1->Divide(4,3);
+  c1->cd(1);
+  R2HitsOnEachWirePlane1->Draw();
+  c1->cd(2);
+  R2HitsOnEachWirePlane2->Draw();
+  c1->cd(3);
+  R2HitsOnEachWirePlane3->Draw();
+  c1->cd(4);
+  R2HitsOnEachWirePlane4->Draw();
+  c1->cd(5);
+  R2HitsOnEachWirePlane5->Draw();
+  c1->cd(6);
+  R2HitsOnEachWirePlane6->Draw();
+  c1->cd(7);
+  R2HitsOnEachWirePlane7->Draw();
+  c1->cd(8);
+  R2HitsOnEachWirePlane8->Draw();
+  c1->cd(9);
+  R2HitsOnEachWirePlane9->Draw();
+  c1->cd(10);
+  R2HitsOnEachWirePlane10->Draw();
+  c1->cd(11);
+  R2HitsOnEachWirePlane11->Draw();
+  c1->cd(12);
+  R2HitsOnEachWirePlane12->Draw();
+
+}
+

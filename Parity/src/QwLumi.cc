@@ -82,7 +82,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	  Bool_t lineok=kTRUE;
 	  //  Break this line into tokens to process it.
 	  modtype   = mapstr.GetNextToken(", ").c_str();	// module type
-	  if (modtype == "VQWK")
+	  if (modtype == "VQWK" || modtype == "SCALER")
 	    {
 	      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
 	      channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
@@ -147,6 +147,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	  else if(modtype=="SCALER")
 	    {
 	      offset = QwSIS3801D24_Channel::GetBufferOffset(modnum, channum);
+	      localLumiDetectorID.fWordInSubbank = offset;
 	    }          
 	  else if (modtype=="VPMT")
         {

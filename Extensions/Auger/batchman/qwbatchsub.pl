@@ -27,10 +27,10 @@ use File::Basename;
 use Getopt::Std;
 
 use strict 'vars';
-use vars qw($original_cwd $executable $script_dir
+use vars qw($original_cwd $executable $script_dir $mss_dir
 	    $analysis_directory $real_path_to_analysis $scratch_directory
 	    $Default_Analysis_Options $option_list
-	    $opt_h  $opt_E $opt_n $opt_r $opt_O $opt_F $opt_Q
+	    $opt_h $opt_E $opt_n $opt_r $opt_O $opt_F $opt_Q $opt_M
 	    $batch_queue
 	    @run_list @discards $first_run $last_run
 	    @good_runs $goodrunfile 
@@ -83,7 +83,7 @@ crashout("The QW_TMP directory, $ENV{QW_TMP}, does not exist.  Exiting")
 ###  Get the option flags.
 # added -F option to check the runs against good runs in the input file
 # jianglai 03-02-2003
-getopts('hE:nr:O:F:Q:');
+getopts('hnr:E:M:O:F:Q:');
 
 $Default_Analysis_Options = "";
 
@@ -111,6 +111,13 @@ if ($opt_E ne ""){
     }
 } else {
     $executable = "$ENV{QW_BIN}/qwparity";
+}
+
+
+if ($opt_M ne ""){
+    $mss_dir = $opt_M;
+} else {
+    $mss_dir = "/mss/hallc/qweak";
 }
 
 if ($opt_Q ne ""){
@@ -192,6 +199,7 @@ if ($opt_O ne ""){
 
 print STDOUT "\nRuns to be analyzed:\t@good_runs\n",
     "Executable:   \t$executable\n\n",
+    "MSS directory:    \t$mss_dir\n\n",
     "Analysis options:   \t$option_list\n\n";
 
 
@@ -360,7 +368,7 @@ sub get_files_for_one_run_from_mss ($$) {
 
     @filelist = ();
     #  Get the file names from the MSS file listings.
-    $list = `ls /mss/hallc/qweak/$cachedir/\*_$runnumber.dat\*`;
+    $list = `ls $mss_dir/$cachedir/\*_$runnumber.dat\*`;
     if ($list ne "") {
 	chomp $list;
 	push @filelist, split /[\s+,\n]/, $list;
@@ -439,6 +447,13 @@ sub displayusage {
 	"\t\t  A single run number:      15789\n",
 	"\t\t  A comma separated list:   15775,15781,15789\n",
 	"\t\t  A colon separated range:  15775:15793\n",
+	"\t-E <executable>\n",
+	"\t\tThis specifies the  name of the analysis executable\n",
+	"\t\tused;  it defaults to be  \"qwparity\".   Check the\n",
+	"\t\tanalyzer documentation for other possible analyzers.\n",
+	"\t-M <MSS directory>\n",
+	"\t\tThis specifies the MSS directory  where data files\n",
+	"\t\tare stored;  it defaults to \"\/mss\/hallc\/qweak\".\n",
 	"\t-Q <batch queue>\n",
 	"\t\tThis  specifies the  name of the batch  queue to be\n",
 	"\t\tused;  it defaults to be  \"one_pass\".   Check the\n",

@@ -10,7 +10,6 @@
 #include <stdexcept>
 
 /* Position calibration factor, transform ADC counts in mm*/
-const Double_t QwQPD::kQwQPDCalibration = 1340;
 const TString  QwQPD::subelement[4]={"TL","TR","BR","BL"};
 
 void  QwQPD::InitializeChannel(TString name)
@@ -56,6 +55,27 @@ void  QwQPD::InitializeChannel(TString subsystem, TString name)
 
   bFullSave=kTRUE;
 
+  return;
+};
+
+void QwQPD::GetCalibrationFactors(Double_t AlphaX, Double_t AlphaY)
+{
+  // Read in the calibration factors from the injector_beamline_geometry.map
+  // for the QPD, AlphaX and AlphaY gives the conversion from adc counts to mm.
+ 
+  Bool_t ldebug = kFALSE;
+
+  fQwQPDCalibration[0]=1.0/AlphaX;
+  fQwQPDCalibration[1]=1.0/AlphaY;
+
+  if(ldebug){
+    std::cout<<"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    std::cout<<this->GetElementName();
+    std::cout<<"\nfQwQPDCalibration[0]  = "<<fQwQPDCalibration[0]<<std::endl;
+    std::cout<<"\nfQwQPDCalibration[1]  = "<<fQwQPDCalibration[1]<<std::endl;
+    std::cout<<"AlphaX = "<<fRelativeGains[0]<<std::endl;
+    std::cout<<"AlphaY = "<<fRelativeGains[1]<<std::endl;    
+  }
   return;
 };
 
@@ -252,6 +272,13 @@ void  QwQPD::ProcessEvent()
   
   if (localdebug) fEffectiveCharge.PrintInfo();
    
+
+  // The positions X and Y are calculated using following equations,
+  //
+  //      (1-3)-(2-4)                (1-3) + (2-4)
+  //  X = ------------           Y = -------------
+  //       1+2+3+4                     1+2+3+4
+  //
   for(i=0;i<2;i++){
     numer[i].ClearEventData();
     tmp.ClearEventData();
@@ -260,15 +287,20 @@ void  QwQPD::ProcessEvent()
     tmp.Scale((2*i-1));
     numer[i]+=tmp;
     
+    // X/Y reading in ADC counts
     fRelPos[i].Ratio(numer[i],fEffectiveCharge);
-    fRelPos[i].Scale(kQwQPDCalibration);
+
+    // X/Y reading in mm.
+    fRelPos[i].Scale(fQwQPDCalibration[i]);
+
     if(localdebug){
       std::cout<<" QPD name="<<fElementName<<axis[i];
       std::cout<<" event number= "<<fPhotodiode[i*2].GetSequenceNumber()<<" \n";
       std::cout<<" hw  photodiode["<<i*2<<"]="<<fPhotodiode[i*2].GetHardwareSum()<<"  ";
       std::cout<<" hw  photodiode["<<i*2+1<<"]="<<fPhotodiode[i*2+1].GetHardwareSum()<<"\n";
-      std::cout<<" hw numerator= "<<numer[i].GetHardwareSum()<<"  ";
-      std::cout<<" hw denominator= "<<fEffectiveCharge.GetHardwareSum()<<"\n";
+      std::cout<<" hw  numerator= "<<numer[i].GetHardwareSum()<<"  ";
+      std::cout<<" hw  denominator= "<<fEffectiveCharge.GetHardwareSum()<<"\n";
+      std::cout<<" hw  clibration factors= "<<fQwQPDCalibration[i]<<"\n";
       std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
     }
   }
@@ -652,6 +684,9 @@ void QwQPD::MakeQPDList()
     qpd_sub_element = fRelPos[i];
     fQPDElementList.push_back( qpd_sub_element );
   }
+  qpd_sub_element.Copy(&fEffectiveCharge);
+  qpd_sub_element = fEffectiveCharge;
+  fQPDElementList.push_back(qpd_sub_element );
   return;
 }
 
@@ -734,10 +769,10 @@ void  QwQPD::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t 
 
   
   // Determine the asymmetry from the position
-  Double_t meanXP = (1.0 + meanX / kQwQPDCalibration) * sumX / 2.0;
-  Double_t meanXM = (1.0 - meanX / kQwQPDCalibration) * sumX / 2.0; // = sumX - meanXP;
-  Double_t meanYP = (1.0 + meanY / kQwQPDCalibration) * sumY / 2.0;
-  Double_t meanYM = (1.0 - meanY / kQwQPDCalibration) * sumY / 2.0; // = sumY - meanYP;
+  Double_t meanXP = (1.0 + meanX / fQwQPDCalibration[0]) * sumX / 2.0;
+  Double_t meanXM = (1.0 - meanX / fQwQPDCalibration[0]) * sumX / 2.0; // = sumX - meanXP;
+  Double_t meanYP = (1.0 + meanY / fQwQPDCalibration[1]) * sumY / 2.0;
+  Double_t meanYM = (1.0 - meanY / fQwQPDCalibration[1]) * sumY / 2.0; // = sumY - meanYP;
 
   // Determine the spread of the asymmetry (this is not tested yet)
   // (negative sigma should work in the QwVQWK_Channel, but still using fabs)

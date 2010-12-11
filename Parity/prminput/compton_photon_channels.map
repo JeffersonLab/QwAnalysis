@@ -37,6 +37,11 @@ SIS3801D24, 0, 0x1d, scalerbcm, bcm6_3c17
 SIS3801D24, 0, 0x1e, scalerbcm, unser_3h05
 SIS3801D24, 0, 0x1f, scaler, sca_ref_4MHz
 
+Bank=0x1f03
+! module.type, module.num  chan.num, det.type, det.name
+SIS3801D32, 0, 0x01, scaler, time_unix
+SIS3801D32, 0, 0x02, scaler, time_nano
+
 
 ROC=1
 Bank=0x0100

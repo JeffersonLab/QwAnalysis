@@ -36,6 +36,9 @@ class QwQPD : public VQwBPM {
  QwQPD(TString subsystemname, TString name):VQwBPM(name){
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name);
+    fQwQPDCalibration[0] = 1.0;
+    fQwQPDCalibration[1] = 1.0;
+
   };    
   
   ~QwQPD() {
@@ -45,6 +48,8 @@ class QwQPD : public VQwBPM {
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
   void    InitializeChannel(TString subsystem, TString name);
+  void    GetCalibrationFactors(Double_t AlphaX, Double_t AlphaY);
+  
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
@@ -100,16 +105,16 @@ class QwQPD : public VQwBPM {
 
   /////
  private:
-  /*  Position calibration factor, transform ADC counts in mm */
-  static const Double_t kQwQPDCalibration;
   static const TString subelement[4]; 
-
+  /*  Position calibration factor, transform ADC counts in mm */
+  Double_t fQwQPDCalibration[2];
 
 
  protected:
   QwVQWK_Channel fPhotodiode[4];
   QwVQWK_Channel fRelPos[2];
   QwVQWK_Channel fEffectiveCharge;
+
 
   std::vector<QwVQWK_Channel> fQPDElementList;
 

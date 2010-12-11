@@ -52,10 +52,12 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     //    out_file_IA = fopen("Feedback_IA_log.txt", "wt");
     out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
+    //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
     fprintf(out_file_IA,"Pat num. \t\t  A_q[mode]\t\t\t\t\t\t\t\t\t  IA Setpoint \t\t  IA Previous Setpoint \t\t\n");
     fclose(out_file_IA);
     //    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
     out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
+    //out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a");     
     fprintf(out_file_PITA,"Pat num. \t\t  A_q\t\t\t\t\t\t\t\t\t  PITA Setpoint[+] \t\t  PITA Previous Setpoint \t\tPITA Setpoint[-] \t\t  PITA Previous Setpoint \n");
     fclose(out_file_PITA);
   

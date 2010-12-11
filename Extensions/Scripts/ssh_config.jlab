@@ -37,6 +37,13 @@
 ### used for anything else.  I generated these using  
 ###	bash -c 'echo $((2**15 + RANDOM))'
 ###
+### Trying to connect to a host which matches a wildcard but is absent
+### from this file (e.g. a hypothetical cdaql42) will open a
+### connection to the ssh server on your local machine.  Most people
+### who've encountered this behavior have been confused by it. 
+### You can check which hosts are available in the file by running
+###	egrep '^Host [^*]*$' Extensions/Scripts/ssh_config.jlab | sort -u
+###
 ### Rob Mahurin <rob@jlab.org> 2010-10-21
 
 ################
@@ -112,6 +119,18 @@ HostKeyAlias cdaql6
 Port 46476
 Host jlab_login
 LocalForward 46476 cdaql6:22
+
+Host cdaql7
+HostKeyAlias cdaql7
+Port 47256
+Host jlab_login
+LocalForward 47256 cdaql7:22
+
+Host cdaql8
+HostKeyAlias cdaql8
+Port 54042
+Host jlab_login
+LocalForward 54042 cdaql8:22
 
 ################
 Host ifarml3

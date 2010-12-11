@@ -116,6 +116,11 @@ class QwBlinder {
 
     /// Asymmetry blinding
     void  BlindValue(Double_t& value) const {
+      /*       std::cerr <<"blinding!!! Polarity==" */
+      /* 		<< fIHWPPolarity */
+      /* 		<< " fBlindingOffset/fBlindingOffset_Base==" */
+      /* 		<< fBlindingOffset/fBlindingOffset_Base */
+      /* 		<< std::endl; */
       switch (fBlindingStrategy) {
         case kAdditive:
           value += fBlindingOffset; break;
@@ -141,6 +146,11 @@ class QwBlinder {
 
     /// Difference blinding
     void  BlindValue(Double_t& value, const Double_t& yield) const {
+      /*       std::cerr <<"blinding!!! Polarity==" */
+      /* 		<< fIHWPPolarity */
+      /* 		<< " fBlindingOffset/fBlindingOffset_Base==" */
+      /* 		<< fBlindingOffset/fBlindingOffset_Base */
+      /* 		<< std::endl; */
       switch (fBlindingStrategy) {
       case kAdditive:
 	value += yield * fBlindingOffset; break;
@@ -193,6 +203,9 @@ class QwBlinder {
     Bool_t fTargetPositionForced;
     void SetTargetBlindability(EQwBlinderStatus status);
 
+    Int_t fIHWPPolarity;
+    Int_t fWienPolarity;
+
     Double_t fBeamCurrentThreshold;
     Bool_t fBeamIsPresent;
 
@@ -212,7 +225,9 @@ class QwBlinder {
     //  Variables and functions used in blinding the detector asymmetries
     const EQwBlindingStrategy fBlindingStrategy; /// Blinding strategy
     Double_t fBlindingOffset; /// The term to be added to detector asymmetries
+    Double_t fBlindingOffset_Base; /// The term to be added to detector asymmetries, before polarity correction
     Double_t fBlindingFactor; /// The factor to be mutliplied to detector asymmetries
+
 
     static const Double_t kMaximumBlindingAsymmetry; /// Maximum blinding asymmetry (in ppm)
     static const Double_t kMaximumBlindingFactor;    /// Maximum blinding factor (in % from identity)

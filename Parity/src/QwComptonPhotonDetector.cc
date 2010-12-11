@@ -162,7 +162,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fMultiTDC_Channel.at(index).SetSubbankID(current_bank_id);
         }
 
-      } else if (modtype == "SIS3801D24") {
+      } else if (modtype == "SIS3801D24" || modtype == "SIS3801D32") {
         // Register data channel type
         fMapping[subbank] = kScaler;
         // Add to mapping
@@ -172,7 +172,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fScaler_Mapping[subbank].at(modnum).resize(channum+1,-1);
         // Add scaler channel
         if (fScaler_Mapping[subbank].at(modnum).at(channum) < 0) {
-          QwMessage << "Registering SIS3801D24 " << name
+          QwMessage << "Registering " << modtype << " " << name
                     << std::hex
                     << " in ROC 0x" << current_roc_id << ", bank 0x" << current_bank_id
                     << std::dec
@@ -180,7 +180,11 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
                     << QwLog::endl;
           UInt_t index = fScaler.size();
           fScaler_Mapping[subbank].at(modnum).at(channum) = index;
-          fScaler.push_back(QwSIS3801D24_Channel(name));
+          if (modtype == "SIS3801D24")
+            fScaler.push_back(new QwSIS3801D24_Channel(name));
+          else if (modtype == "SIS3801D32")
+            fScaler.push_back(new QwSIS3801D32_Channel(name));
+
         }
 
       } // end of switch by modtype
@@ -341,7 +345,7 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
       case kScaler:
       {
         // Read header word
-        UInt_t num_events = buffer[words_read];
+        //UInt_t num_events = buffer[words_read];
         words_read++;
         // TODO Multiscaler functionality
 
@@ -350,7 +354,7 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
           for (size_t channum = 0; channum < fScaler_Mapping[subbank].at(modnum).size(); channum++) {
             Int_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
             if (index >= 0) {
-              words_read += fScaler[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
+              words_read += fScaler[index]->ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
             }
           }
         }
@@ -517,7 +521,7 @@ void QwComptonPhotonDetector::ClearEventData()
 
   // Clear all scaler channels
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].ClearEventData();
+    fScaler[i]->ClearEventData();
 };
 
 /**
@@ -548,7 +552,7 @@ VQwSubsystem&  QwComptonPhotonDetector::operator=  (VQwSubsystem *value)
   if (CompareScaler(value)) {
     QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(value);
     for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i] = input->fScaler[i];
+      *(this->fScaler[i]) = *(input->fScaler[i]);
   }
 
   return *this;
@@ -570,7 +574,7 @@ VQwSubsystem&  QwComptonPhotonDetector::operator+=  (VQwSubsystem *value)
     for (size_t i = 0; i < input->fMultiQDC_Channel.size(); i++)
       this->fMultiQDC_Channel[i] += input->fMultiQDC_Channel[i];
     for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i] += input->fScaler[i];
+      *(this->fScaler[i]) += *(input->fScaler[i]);
   }
   return *this;
 };
@@ -591,7 +595,7 @@ VQwSubsystem&  QwComptonPhotonDetector::operator-=  (VQwSubsystem *value)
     for (size_t i = 0; i < input->fMultiQDC_Channel.size(); i++)
       this->fMultiQDC_Channel[i] -= input->fMultiQDC_Channel[i];
     for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i] -= input->fScaler[i];
+      *(this->fScaler[i]) -= *(input->fScaler[i]);
   }
   return *this;
 };
@@ -639,7 +643,7 @@ void QwComptonPhotonDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
     for (size_t i = 0; i < innumer->fMultiQDC_Channel.size(); i++)
       this->fMultiQDC_Channel[i].Ratio(innumer->fMultiQDC_Channel[i], indenom->fMultiQDC_Channel[i]);
     for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i].Ratio(innumer->fScaler[i],indenom->fScaler[i]);
+      this->fScaler[i]->Ratio(*(innumer->fScaler[i]),*(indenom->fScaler[i]));
   }
 };
 
@@ -656,7 +660,7 @@ void QwComptonPhotonDetector::Scale(Double_t factor)
   //for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
   //  fMultiQDC_Channel[i].Scale(factor);
   for (size_t i = 0; i < fScaler.size(); i++)
-    this->fScaler[i].Scale(factor);
+    this->fScaler[i]->Scale(factor);
 };
 
 /**
@@ -802,7 +806,7 @@ void  QwComptonPhotonDetector::ConstructHistograms(TDirectory *folder, TString &
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].ConstructHistograms(folder,prefix);
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].ConstructHistograms(folder,prefix);
+    fScaler[i]->ConstructHistograms(folder,prefix);
 };
 
 /**
@@ -817,7 +821,7 @@ void  QwComptonPhotonDetector::FillHistograms()
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].FillHistograms();
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].FillHistograms();
+    fScaler[i]->FillHistograms();
 };
 
 /**
@@ -832,7 +836,7 @@ void  QwComptonPhotonDetector::DeleteHistograms()
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].DeleteHistograms();
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].DeleteHistograms();
+    fScaler[i]->DeleteHistograms();
 };
 
 /**
@@ -881,7 +885,7 @@ void QwComptonPhotonDetector::ConstructBranchAndVector(TTree *tree, TString & pr
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].ConstructBranchAndVector(tree, prefix, values);
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].ConstructBranchAndVector(tree, prefix, values);
+    fScaler[i]->ConstructBranchAndVector(tree, prefix, values);
 };
 
 /**
@@ -897,7 +901,7 @@ void QwComptonPhotonDetector::FillTreeVector(std::vector<Double_t> &values) cons
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].FillTreeVector(values);
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].FillTreeVector(values);
+    fScaler[i]->FillTreeVector(values);
 };
 
 /**
@@ -962,8 +966,15 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
       //  this->fMultiQDC_Channel[i].Copy(&(input->fMultiQDC_Channel[i]));
 
       this->fScaler.resize(input->fScaler.size());
-      for (size_t i = 0; i < this->fScaler.size(); i++)
-        this->fScaler[i].Copy(&(input->fScaler[i]));
+      for (size_t i = 0; i < this->fScaler.size(); i++) {
+        VQwScaler_Channel* scaler = 0;
+        if ((scaler = dynamic_cast<QwSIS3801D24_Channel*>(input->fScaler[i]))) {
+          this->fScaler[i] = new QwSIS3801D24_Channel();
+        } else if ((scaler = dynamic_cast<QwSIS3801D32_Channel*>(input->fScaler[i]))) {
+          this->fScaler[i] = new QwSIS3801D32_Channel();
+        }
+        this->fScaler[i]->Copy(scaler);
+      }
 
     } else {
       TString loc = "Standard exception from QwComptonPhotonDetector::Copy = "

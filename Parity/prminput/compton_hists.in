@@ -64,6 +64,9 @@ Compton_eDet_Evt_Best_x2        TH1F    40	0	100	x2      Tracks
 Compton_eDet_Evt_NTracks        TH1F    40	0	50	Tracks  NTracks
 Compton_eDet_Evt_Track_Angle    TH1F    40     -25	25	Tracks  Angle
  
+.*sca_edet.*			TH1F	100	0	4e3	Counts	Events
+
+
 ###  Compton Photon accumulator histograms
 .*fadc_compton_accum.*_nevents		TH1F	100	0	5e7	AccumulatedEvents	Events
 .*fadc_compton_accum.*_sum		TH1F	100	-5e7	5e7	AccumulatedChannel	Events
@@ -80,6 +83,9 @@ Compton_eDet_Evt_Track_Angle    TH1F    40     -25	25	Tracks  Angle
 .*rate.*			TH1F	100	0	4e3	Counts	Events
 .*sca_fadc_clock.*		TH1F	100	0	2e6	Counts	Events
 .*sca_ref_4MHz.*		TH1F	100	0	1e6	Counts	Events	
+
+.*sca_evnum.*			TH1F	100	0	1e9	Counts	Events
+.*time.*			TH1F	100	0	1e9	Counts	Events
 
 ###  Compton fast laser channels
 .*laser.*			TH1F	100	0	4e3	Counts	Events

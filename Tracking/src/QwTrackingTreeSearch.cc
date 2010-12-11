@@ -1038,9 +1038,10 @@ void QwTrackingTreeSearch::_SearchTreeLines (
         } // end of loop over wires
       } // end of if reversed
 	
-	// chcke if there's any missing wires in the middle.
+	// chcke if there's any missing wires in the middle or allow only 1 goofy wires
 
 	if(matched_wires < fNumWires ){
+           int goofy=0;       
 	   int* tree_pattern_copy = tree->fBit;
            if(reverse){
               // needs to do something?
@@ -1052,8 +1053,9 @@ void QwTrackingTreeSearch::_SearchTreeLines (
                         assert(pattern_offset + bin < fPattern_fMaxBins);
 			if ((int)row > firstwire && (int)row < lastwire){
                             if (static_pattern[row_offset + row][pattern_offset + bin])
-				continue;
+				continue;                            
                             else if (has_hits[row] == 0) matched_wires++;
+                            else if(goofy<1) {matched_wires++;goofy++;}
 			}
 		}
 	    }

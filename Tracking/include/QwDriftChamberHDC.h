@@ -48,7 +48,7 @@ class QwDriftChamberHDC: public QwDriftChamber {
   void  FillHistograms();
   //  void  DeleteHistograms();
   Int_t LoadTimeWireOffset(TString t0_map) {return 0;}; 
-  void SubtractWireTimeOffset() {};
+  void SubtractWireTimeOffset();
   void ApplyTimeCalibration();
 
   // HDC

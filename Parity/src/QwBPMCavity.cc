@@ -668,6 +668,10 @@ void QwBPMCavity::MakeBPMCavityList()
     bpm_sub_element = fRelPos[i];
     fBPMElementList.push_back( bpm_sub_element );
   }
+  bpm_sub_element.ClearEventData();
+  bpm_sub_element.Copy(&fEffectiveCharge);
+  bpm_sub_element = fEffectiveCharge;
+  fBPMElementList.push_back( bpm_sub_element );
   return;
 }
 

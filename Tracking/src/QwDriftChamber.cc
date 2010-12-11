@@ -73,9 +73,9 @@ QwDriftChamber::~QwDriftChamber()
 
 void  QwDriftChamber::FillDriftDistanceToHits()
 { //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
+//   std::cout << "size: " << fWireHits.size() << std::endl;
   for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
     
-    if (hit1->GetTime()<0) continue;
     hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
     
   }

@@ -35,11 +35,11 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
  public:
 
     /// Default constructor
-    QwSubsystemArrayParity(): QwSubsystemArray(CanContain) { };
+    QwSubsystemArrayParity(): QwSubsystemArray(CanContain),fErrorFlag(0) { };
     /// Constructor with options
-    QwSubsystemArrayParity(QwOptions& options): QwSubsystemArray(options, CanContain) { };
+    QwSubsystemArrayParity(QwOptions& options): QwSubsystemArray(options, CanContain),fErrorFlag(0) { };
     /// Constructor with map file
-    QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename, CanContain) { };
+    QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename, CanContain),fErrorFlag(0) { };
     /// Copy constructor by pointer
     QwSubsystemArrayParity(const QwSubsystemArrayParity* source) { this->Copy(source); };
     /// Copy constructor by reference
@@ -53,6 +53,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values);
     /// \brief Fill the vector for this subsystem
     void FillTreeVector(std::vector<Double_t>& values) const;
+    /// \brief Fill the histograms for this subsystem
+    void FillHistograms();
 
     /// \brief Fill the database
     void FillDB(QwDatabase *db, TString type);

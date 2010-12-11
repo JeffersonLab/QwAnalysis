@@ -392,7 +392,22 @@ void plot_hitnumber(){
   gPad->SetLogy();
   h_nhits_4 -> Draw();
 }
-void plot_all(){
+
+void all_plots_vdc(TString name="")
+{ 
+  TString file_dir;
+  file_dir = gSystem->Getenv("QWSCRATCH");
+  file_dir += "/rootfiles/";
+ 
+  if(name.IsNull()) {
+    printf("There is no root file\n");
+    exit(-1);
+  }
+  else {
+    TFile *file =  new TFile(Form("%s%s", file_dir.Data(), name.Data()));
+  }
+  gStyle->SetPalette(1); 
+
   //plots them all - many canvases!!
 
   gROOT->Reset();

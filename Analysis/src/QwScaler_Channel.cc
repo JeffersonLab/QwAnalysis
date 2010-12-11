@@ -12,19 +12,16 @@
 #include <QwLog.h>
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-const Bool_t QwScaler_Channel<data_mask,data_shift>::kDEBUG = kFALSE;
+const Bool_t VQwScaler_Channel::kDEBUG = kFALSE;
 
 
 /********************************************************/
-template<unsigned int data_mask, unsigned int data_shift>
-Int_t QwScaler_Channel<data_mask,data_shift>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
 
   return 1;
 }
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::ClearEventData()
+void VQwScaler_Channel::ClearEventData()
 {
   fValue_Raw = 0;
   fValue     = 0.0;
@@ -33,8 +30,7 @@ void QwScaler_Channel<data_mask,data_shift>::ClearEventData()
   fDeviceErrorCode = 0;
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::RandomizeEventData(int helicity)
+void VQwScaler_Channel::RandomizeEventData(int helicity)
 {
 
   Double_t mean = 300.0;
@@ -55,8 +51,8 @@ void QwScaler_Channel<data_mask,data_shift>::RandomizeEventData(int helicity)
  *   @return   The number of words offset to the beginning of this
  *             scaler word from the beginning of the buffer.
  */
-template<unsigned int data_mask, unsigned int data_shift>
-Int_t QwScaler_Channel<data_mask,data_shift>::GetBufferOffset(Int_t scalerindex, Int_t wordindex){
+Int_t VQwScaler_Channel::GetBufferOffset(Int_t scalerindex, Int_t wordindex)
+{
   Int_t offset = -1;
   Int_t kMaxWords = 32; // usually the scalers have 32 data words starting from 0
   Int_t header = 1;
@@ -78,6 +74,27 @@ Int_t QwScaler_Channel<data_mask,data_shift>::GetBufferOffset(Int_t scalerindex,
 }
 
 
+void VQwScaler_Channel::SetEventData(Double_t value){
+
+  this->fValue     = value;
+  this->fValue_Raw = (UInt_t)value;
+  //std::cout<<"fValue is set to: value = "<<value<<std::endl;
+
+}
+
+
+template<unsigned int data_mask, unsigned int data_shift>
+void QwScaler_Channel<data_mask,data_shift>::EncodeEventData(std::vector<UInt_t> &buffer)
+{
+  if (IsNameEmpty()) {
+    //  This channel is not used, but is present in the data stream.
+    //  Skip over this data.
+  } else {
+    buffer.push_back( ((this->fValue_Raw<<data_shift)&data_mask) );
+    //std::cout<<"this->fValue="<<this->fValue<<std::endl;
+  }
+};
+
 
 template<unsigned int data_mask, unsigned int data_shift>
 Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
@@ -98,38 +115,15 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
   return words_read;
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::SetEventData(Double_t value){
 
-  this->fValue     = value;
-  this->fValue_Raw = (UInt_t)value;
-  //std::cout<<"fValue is set to: value = "<<value<<std::endl;
-
-}
-
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::EncodeEventData(std::vector<UInt_t> &buffer)
-{
-  if (IsNameEmpty()) {
-    //  This channel is not used, but is present in the data stream.
-    //  Skip over this data.
-  } else {
-    buffer.push_back( ((this->fValue_Raw<<data_shift)&data_mask) );
-    //std::cout<<"this->fValue="<<this->fValue<<std::endl;
-  }
-};
-
-
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::ProcessEvent()
+void VQwScaler_Channel::ProcessEvent()
 {
   //scaler events processed here.
   return;
 };
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::PrintValue() const
+void VQwScaler_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
             << std::setw(23) << std::left << GetElementName() << ","
@@ -137,16 +131,14 @@ void QwScaler_Channel<data_mask,data_shift>::PrintValue() const
             << QwLog::endl;
 }
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::PrintInfo() const
+void VQwScaler_Channel::PrintInfo() const
 {
   QwMessage << "***************************************" << QwLog::endl;
   QwMessage << "QwScaler channel: " << GetElementName()
             << QwLog::endl;
 }
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::ConstructHistograms(TDirectory *folder, TString &prefix){
+void VQwScaler_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
 
@@ -164,8 +156,7 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructHistograms(TDirectory *fo
   }
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::FillHistograms(){
+void  VQwScaler_Channel::FillHistograms(){
 
   size_t index=0;
   if (IsNameEmpty()){
@@ -179,8 +170,7 @@ void  QwScaler_Channel<data_mask,data_shift>::FillHistograms(){
 };
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+void  VQwScaler_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
@@ -197,8 +187,7 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructBranchAndVector(TTree *tr
   }
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::ConstructBranch(TTree *tree, TString &prefix)
+void  VQwScaler_Channel::ConstructBranch(TTree *tree, TString &prefix)
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
@@ -209,16 +198,15 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructBranch(TTree *tree, TStri
   }
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::FillTreeVector(std::vector<Double_t> &values) const
+void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
   } else if (fTreeArrayNumEntries<=0){
-    QwError << "QwScaler_Channel::FillTreeVector:  fTreeArrayNumEntries=="
+    QwError << "VQwScaler_Channel::FillTreeVector:  fTreeArrayNumEntries=="
 	    << fTreeArrayNumEntries << QwLog::endl;
   } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries){
-    QwError << "QwScaler_Channel::FillTreeVector:  values.size()=="
+    QwError << "VQwScaler_Channel::FillTreeVector:  values.size()=="
 	    << values.size() << " name: " << fElementName
 	    << "; fTreeArrayIndex+fTreeArrayNumEntries=="
       << fTreeArrayIndex << '+' << fTreeArrayNumEntries << '='
@@ -231,8 +219,8 @@ void  QwScaler_Channel<data_mask,data_shift>::FillTreeVector(std::vector<Double_
 };
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::operator= (const QwScaler_Channel<data_mask,data_shift> &value){
+VQwScaler_Channel& VQwScaler_Channel::operator= (const VQwScaler_Channel &value)
+{
   if (!IsNameEmpty()) {
     this->fValue  = value.fValue;
     this->fValueM2 = value.fValueM2;
@@ -243,8 +231,8 @@ QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::
 };
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::operator+= (const QwScaler_Channel<data_mask,data_shift> &value){
+VQwScaler_Channel& VQwScaler_Channel::operator+= (const VQwScaler_Channel &value)
+{
   if (!IsNameEmpty()){
     this->fValue  += value.fValue;
     this->fValueM2 = 0.0;
@@ -254,8 +242,8 @@ QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::
   return *this;
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::operator-= (const QwScaler_Channel<data_mask,data_shift> &value){
+VQwScaler_Channel& VQwScaler_Channel::operator-= (const VQwScaler_Channel &value)
+{
   if (!IsNameEmpty()){
     this->fValue  -= value.fValue;
     this->fValueM2 = 0.0;
@@ -264,20 +252,18 @@ QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::
   return *this;
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Sum(QwScaler_Channel<data_mask,data_shift> &value1, QwScaler_Channel<data_mask,data_shift> &value2){
+void VQwScaler_Channel::Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2)
+{
   *this =  value1;
   *this += value2;
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Difference(QwScaler_Channel<data_mask,data_shift> &value1, QwScaler_Channel<data_mask,data_shift> &value2){
+void VQwScaler_Channel::Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2){
   *this =  value1;
   *this -= value2;
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Ratio(QwScaler_Channel<data_mask,data_shift> &numer, QwScaler_Channel<data_mask,data_shift> &denom){
+void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom){
   if (!IsNameEmpty()){
 
     // Take the ratio of the hardware sum
@@ -308,8 +294,7 @@ void QwScaler_Channel<data_mask,data_shift>::Ratio(QwScaler_Channel<data_mask,da
   }
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Offset(Double_t offset)
+void VQwScaler_Channel::Offset(Double_t offset)
 {
   if (!IsNameEmpty())
     {
@@ -318,27 +303,22 @@ void QwScaler_Channel<data_mask,data_shift>::Offset(Double_t offset)
 };
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Scale(Double_t scale)
+void VQwScaler_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty())
     {
-      this->fValue  = (UInt_t)( this->fValue*scale);
+      this->fValue *= scale;
     }
 };
 
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-Bool_t QwScaler_Channel<data_mask,data_shift>::ApplySingleEventCuts(){
-
-
+Bool_t VQwScaler_Channel::ApplySingleEventCuts()
+{
   return kTRUE;
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::AccumulateRunningSum(const 
-QwScaler_Channel<data_mask,data_shift>& value)
+void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value)
 {
   // Moment calculations
   Int_t n1 = fGoodEventCount;
@@ -376,8 +356,7 @@ QwScaler_Channel<data_mask,data_shift>& value)
   return;
 };
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::CalculateRunningAverage(){
+void VQwScaler_Channel::CalculateRunningAverage(){
   //  See notes in QwVQWK_Channel;  we are using:
   //         error = sqrt(M2)/n,
   //  or alternately we could use the unbiased estimator for both
@@ -391,24 +370,23 @@ void QwScaler_Channel<data_mask,data_shift>::CalculateRunningAverage(){
 
 }
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Copy(VQwDataElement *source)
+void VQwScaler_Channel::Copy(VQwDataElement *source)
 {
     try
     {
      if(typeid(*source)==typeid(*this))
        {
-	 QwScaler_Channel<data_mask,data_shift>* input=((QwScaler_Channel<data_mask,data_shift>*)source);
-	    this->fElementName      = input->fElementName;
-      this->fValue_Raw        = input->fValue_Raw;
-      this->fValue            = input->fValue;
-      this->fValueM2          = input->fValueM2;
-      this->fGoodEventCount   = input->fGoodEventCount;
-      this->fDeviceErrorCode = input->fDeviceErrorCode;
+	 VQwScaler_Channel* input = dynamic_cast<VQwScaler_Channel*>(source);
+         this->fElementName     = input->fElementName;
+         this->fValue_Raw       = input->fValue_Raw;
+         this->fValue           = input->fValue;
+         this->fValueM2         = input->fValueM2;
+         this->fGoodEventCount  = input->fGoodEventCount;
+         this->fDeviceErrorCode = input->fDeviceErrorCode;
        }
      else
        {
-	 TString loc="Standard exception from QwScaler_Channel::Copy = "
+	 TString loc="Standard exception from VQwScaler_Channel::Copy = "
 	   +source->GetElementName()+" "
 	   +this->GetElementName()+" are not of the same type";
 	 throw std::invalid_argument(loc.Data());
@@ -422,8 +400,7 @@ void QwScaler_Channel<data_mask,data_shift>::Copy(VQwDataElement *source)
     return;
 }
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::ReportErrorCounters(){
+void  VQwScaler_Channel::ReportErrorCounters(){
     if (fNumEvtsWithHWErrors>0)
       QwMessage << "QwScaler_Channel " << GetElementName()
 		<< " had " << fNumEvtsWithHWErrors

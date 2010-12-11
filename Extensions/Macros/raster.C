@@ -24,103 +24,252 @@
 //                   way to run "caget" for test purpose
 //                   https://hallcweb.jlab.org/hclog/1011_archive/101129222940.html
 //
+//          0.0.6 : Tuesday, November 30 22:52:39 EST 2010, jhlee
+//                 - added the time stamp when it is created.
 //
+//          0.0.7 : Sunday, December  5 03:06:26 EST 2010, jhlee
+//                 - added three interesting beam position
+//                   aloing z offsets (1D)
+//                 - check "cdaqlx" or not (if not, don't run caget)
+//          0.0.8 : Monday, December  6 16:24:43 EST 2010, jhlee
+//                 - added GUI 
+//                 - prepared "submit" to HClog supported by Brad
+//
+// 
 // TO LIST
-//   * BPM offsets ?
-//   * BPMs X/Y along z
+//   * BPM offsets      -> fixed by Buddhini (0.0.7) QwAnalysis Rev 2272
+//   * BPMs X/Y along z -> done jhlee (0.0.7)
+//   * Calculated BPMs X/Y along z according to the beam optics
+//     under the midplane asymmetry. 
+//   * One Frame with two buttons (Submit to HClog and Exit)
+//     may be Transient Frame? need to contact Brad how to submit HClog automatically
+//     (partly done 0.0.8)
+
+
 
 // For example,
 // 1) run root
 // 2) .x raster.C(a root file name)
 // 
-// root [0] .x raster.C("Qweak_6949.000.root")
+// root [0] .x raster.C("qwick_145000-165000_7292.root")
 //
 
 
+#include <iostream>
+#include "TApplication.h"
+#include "TRint.h"
+#include "TROOT.h"
 #include "TSystem.h"
+#include "TGTextEntry.h"
+#include "TGClient.h"
+#include "TGButton.h"
+#include "TGLabel.h"
+#include "TGFrame.h"
+#include "TGLayout.h"
+#include "TGWindow.h"
+#include "TGLabel.h"
 #include "TString.h"
+#include "TGTextEdit.h"
+#include "TGComboBox.h"
+#include "TGText.h" 
+
+
+enum RasterMapIndentificator {
+  RM_EXIT,
+  RM_SUBMIT,
+  RM_CLEAR,
+  RM_USERNAME
+};
+
+class RasterMap : public TGMainFrame {
+
+private:
+
+  TCanvas           *fRasterMap2D;
+  TCanvas           *fRasterMap1D;
+
+  TGTextButton      *fSubmitButton;
+  TGTextButton      *fClearButton;
+  TGTextButton      *fExitButton;
+  TGTextEdit        *fCommentWindow;
+  TGTextEntry       *fUserNameEntry;
+  TGLabel           *fUserNameLabel;
+
+  TString           filename;
+  TString           output_dir;
+  TString           image_name;
+
+  Bool_t            file_output_flag;
+
+public:
+  RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name);
+  virtual ~RasterMap();
+
+  void Exit();
+  void SubmitHClog();
+  void ClearComment();
+  
+  void raster();
+
+  ClassDef(RasterMap, 0)
+};
+                          
+RasterMap::RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name) 
+  : TGMainFrame(p, w, h)   
+{
+  SetCleanup(kDeepCleanup);
+  Connect("CloseWindow()", "RasterMap", this, "Exit()");
+  DontCallClose();
+   
+
+  file_output_flag = true;
+  Int_t  ten_percent_height = (UInt_t) 0.1*h;
+  TGHorizontalFrame *main_button_frame = new TGHorizontalFrame(this, w, ten_percent_height);
+  AddFrame(main_button_frame, new TGLayoutHints(kLHintsBottom | kLHintsExpandX, 1,1,1,1));
+   
+  fSubmitButton = new TGTextButton(main_button_frame, "Submit to HClog", RM_SUBMIT);
+  fClearButton  = new TGTextButton(main_button_frame, "Clear",           RM_CLEAR);
+  fExitButton   = new TGTextButton(main_button_frame, "Exit",            RM_EXIT);
+   
+  fSubmitButton -> Connect("Clicked()", "RasterMap", this, "SubmitHClog()");
+  fClearButton  -> Connect("Clicked()", "RasterMap", this, "ClearComment()");
+  fExitButton   -> Connect("Clicked()", "RasterMap", this, "Exit()");
+  //
+  // only cdaqlx, don't support old root version, jhlee
+  //
+  fSubmitButton -> SetToolTipText("Submit the plots to HClog (Not working)");
+  fClearButton  -> SetToolTipText("Clear comments");
+  fExitButton   -> SetToolTipText("Bye!");
+  main_button_frame -> AddFrame(fSubmitButton, new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  main_button_frame -> AddFrame(fClearButton,  new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  main_button_frame -> AddFrame(fExitButton,   new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+   
+ 
+  TGHorizontalFrame  *h_frame = new TGHorizontalFrame(this);
+  AddFrame(h_frame, new TGLayoutHints(kLHintsExpandX, 0,10,10,0));
+   
+  fUserNameLabel = new TGLabel(h_frame, " User Name : ");
+  fUserNameEntry = new TGTextEntry(h_frame, "cdaq", RM_USERNAME);
+  //   fUserNameEntry -> SetToolTipText("");
+  h_frame -> AddFrame(fUserNameLabel, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+  h_frame -> AddFrame(fUserNameEntry, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+   
+  fUserNameEntry -> Associate(this);
+   
+  TGGroupFrame *comment_frame = new TGGroupFrame(this, "Comments");
+  AddFrame(comment_frame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+   
+  fCommentWindow = new TGTextEdit(comment_frame, w, 212);
+  fCommentWindow -> Clear();
+  fCommentWindow -> Resize();
+  comment_frame -> AddFrame(fCommentWindow, new TGLayoutHints(kLHintsExpandX|kLHintsCenterX,0,0,0,0));
+   
+  SetWindowName("Raster Map and BPMs Helper v0.1");
+  MapSubwindows();
+  Resize(GetDefaultSize());
+  MapWindow();
+  Resize(600,300);
+  filename = name;
+   
+  raster();
+};
+
+RasterMap::~RasterMap()
+{
+  // Destructor.
+   
+  Cleanup();
+}
+
+
+void 
+RasterMap::Exit()
+{
+  
+  gApplication->Terminate(0);
+}
+
+
+void 
+RasterMap::SubmitHClog()
+{
+  char* user_name_hclog;
+  TString comments_hclog;
+  
+  TGTextBuffer *user_name_buffer = fUserNameEntry -> GetBuffer();  
+  TGText  *comments_text         = fCommentWindow -> GetText();
+  TString path_1D_png;
+  TString path_2D_png;
+
+  user_name_hclog = Form("%s", user_name_buffer->GetString());
+  comments_hclog  = comments_text -> AsString();
+
+  if(file_output_flag) {
+    image_name = filename + ".1D.png";
+    path_1D_png = output_dir + image_name;
+    fRasterMap1D -> SaveAs(path_1D_png);
+    std::cout << "\nImage File: "
+	      <<  image_name 
+	      << " has been created in "
+	      << output_dir
+	      << std::endl;
+
+
+    image_name = filename +".2D.png";
+    path_2D_png = output_dir + image_name;
+    fRasterMap2D -> SaveAs(path_2D_png);
+    std::cout << "Image File: "
+	      <<  image_name 
+	      << " has been created in "
+	      << output_dir
+	      << std::endl;
+  }
+
+
+  printf("User Name : %s\n", user_name_hclog);
+  printf("\n--------------------- Comments -------------------\n\n");
+  printf("%s", comments_hclog.Data());
+}
+
+
+void 
+RasterMap::ClearComment()
+{
+  fCommentWindow -> Clear();
+}
 
 void
-raster(TString name="")
+RasterMap::raster()
 { 
+  Int_t i = 0;
+
   TString file_dir;
-  TString output_dir;
+  //  TString output_dir;
   file_dir = gSystem->Getenv("QWSCRATCH");
   output_dir = file_dir;
   file_dir += "/rootfiles/";
   output_dir += "/plots/";
 
-  if(name.IsNull()) {
+  if(filename.IsNull()) {
     printf("There is no root file\n");
     exit(-1);
   }
   else {
-    TFile *file =  new TFile(Form("%s%s", file_dir.Data(), name.Data()));
+    TFile *file =  new TFile(Form("%s%s", file_dir.Data(), filename.Data()));
   }
 
   gStyle->SetPalette(1); 
-  TCanvas *c1 = new TCanvas(Form("1DRaster"), Form("RasterMap1D in %s", name.Data()), 600,400);
- 
   tracking_histo->cd();
 
-  Bool_t file_output_flag = true;
-
-  c1->Divide(2,2);
-  c1->cd(1);
-  if(raster_position_x-> GetEntries() != 0.0) {
-    raster_position_x -> SetTitle(Form("Raster Position X in %s", name.Data()));
-    raster_position_x -> Draw();
-    file_output_flag &= true;
-  }
-  else {
-    file_output_flag &= false;
-  }
-
-  c1->cd(2);
-  if(raster_position_y-> GetEntries() != 0.0) {
-    raster_position_y -> SetTitle(Form("Raster Position Y in %s", name.Data()));
-    raster_position_y -> Draw();
-    file_output_flag &= true;
-  }
-  else {
-    file_output_flag &= false;
-  }
-  c1->cd(3);
-  if(raster_posx_adc-> GetEntries() != 0.0) {
-    raster_posx_adc -> SetTitle(Form("Raster PosX ADC in %s", name.Data()));
-    raster_posx_adc -> Draw();
-    file_output_flag &= true;
-  }
-  else {
-    file_output_flag &= false;
-  }
-  c1->cd(4);
-  if(raster_posy_adc-> GetEntries() != 0.0) {
-    raster_posy_adc -> SetTitle(Form("Raster PosY ADC in %s", name.Data()));
-    raster_posy_adc -> Draw();
-    file_output_flag &= true;
-  }
-  else {
-    file_output_flag &= false;
-  }
-  c1->Update();
-
-  TString image_name;
-  if(file_output_flag) {
-    image_name = name + "1D.png";
-    c1 -> SaveAs(output_dir + image_name);
-  }
-
-
-  TCanvas *c2 = new TCanvas(name.Data(), name.Data(), 600, 800);
-  raster_rate_map->SetTitle(Form("Raster Rate Map in %s", name.Data()));
-  c2->Divide(1,2,0.0001,0.0001);
-  TPad *pad1 = (TPad*) c2->GetPrimitive(Form("%s_1", name.Data()));
-  TPad *pad2 = (TPad*) c2->GetPrimitive(Form("%s_2", name.Data()));
+  fRasterMap2D = new TCanvas(filename.Data(), filename.Data(), 600, 800);
+  raster_rate_map->SetTitle(Form("Raster Rate Map in %s", filename.Data()));
+  fRasterMap2D -> Divide(1,2,0.0001,0.0001);
+  TPad *pad1 = (TPad*) fRasterMap2D->GetPrimitive(Form("%s_1", filename.Data()));
+  TPad *pad2 = (TPad*) fRasterMap2D->GetPrimitive(Form("%s_2", filename.Data()));
  
   pad2->Divide(2,1, 0.000, 0.000);
-  TPad *pad21 = (TPad*) pad2->GetPrimitive(Form("%s_2_1", name.Data()));
-  TPad *pad22 = (TPad*) pad2->GetPrimitive(Form("%s_2_2", name.Data()));
+  TPad *pad21 = (TPad*) pad2->GetPrimitive(Form("%s_2_1", filename.Data()));
+  TPad *pad22 = (TPad*) pad2->GetPrimitive(Form("%s_2_2", filename.Data()));
   
   pad1 -> cd();
   pad1 -> SetBorderSize(0);
@@ -147,79 +296,135 @@ raster(TString name="")
   bpm_pos->SetTextFont(22);
   bpm_pos->SetTextSize(0.05);
 
-  // H07C and H09B are the most interesting BPMs.
-  //Get BCM, target, W plug position values and save as strings
-  //                                                                         xoffset, yoffset, zoffset 
-  TString H07AX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07A.XPOS");  // 0.4,    0.2,   138406.0
-  TString H07BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07B.XPOS");  // 0.2,   -0.2,   139363.0
-  TString H07CX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07C.XPOS");  // 0.6,    0.0,   140329.0
-  TString H08X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H08.XPOS");   // 0.6,    1.6,   143576.0
-  TString H09X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H09.XPOS");   //-0.1,    0.6,   144803.0
-  TString H09BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H09B.XPOS");  //-0.6,    0.3,   147351.0
-  TString targetX   = gSystem->GetFromPipe("caget -t -f 3 qw:targetX");     // 14.1,    0.1,   148739.0
-  TString tungstenX = gSystem->GetFromPipe("caget -t -f 3 qw:tungstenX");   // 14.1,    0.1,   149397.0
+  TString H07AX;
+  TString H07BX;
+  TString H07CX;
+  TString H08X;
+  TString H09X;
+  TString H09BX;
+  TString targetX;
+  TString tungstenX;
 
-  TString H07AY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07A.YPOS");
-  TString H07BY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07B.YPOS");
-  TString H07CY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07C.YPOS");
-  TString H08Y      = gSystem->GetFromPipe("caget -t -f 3 IPM3H08.YPOS");
-  TString H09Y      = gSystem->GetFromPipe("caget -t -f 3 IPM3H09.YPOS");
-  TString H09BY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H09B.YPOS");
-  TString targetY   = gSystem->GetFromPipe("caget -t -f 3 qw:targetY");
-  TString tungstenY = gSystem->GetFromPipe("caget -t -f 3 qw:tungstenY");
-
+  TString H07AY;
+  TString H07BY;
+  TString H07CY;
+  TString H08Y;
+  TString H09Y;
+  TString H09BY;
+  TString targetY;
+  TString tungstenY;
+ 
+  TString host_name;
+  host_name = gSystem->HostName();
+ 
+  //  printf("This machine is %s\n", host_name.Data());
+  if( host_name.Contains("cdaql") ) {
+    // H07C and H09B are the most interesting BPMs.
+    //Get BCM, target, W plug position values and save as strings
+    //                                                                         xoffset, yoffset, zoffset 
+    H07AX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07A.XPOS");  // 0.4,    0.2,   138406.0
+    H07BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07B.XPOS");  // 0.2,   -0.2,   139363.0
+    H07CX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07C.XPOS");  // 0.6,    0.0,   140329.0 (*)
+    H08X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H08.XPOS");   // 0.6,    1.6,   143576.0
+    H09X      = gSystem->GetFromPipe("caget -t -f 3 IPM3H09.XPOS");   //-0.1,    0.6,   144803.0 
+    H09BX     = gSystem->GetFromPipe("caget -t -f 3 IPM3H09B.XPOS");  //-0.6,    0.3,   147351.0 (*)
+    targetX   = gSystem->GetFromPipe("caget -t -f 3 qw:targetX");     // 0.1,    1.2,   148750.0 (*)
+    tungstenX = gSystem->GetFromPipe("caget -t -f 3 qw:tungstenX");   // 0.1,    0.1,   149408.0
   
-  //
-  // Just in case, when 'caget' doesn't work well or when we
-  // want to test this script not on cdaqlx machine.
-  // I took all values from qwick_19500-215000_7679.root
-  // see https://hallcweb.jlab.org/hclog/1011_archive/101129222940.html
-  //
+    H07AY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07A.YPOS");
+    H07BY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07B.YPOS");
+    H07CY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H07C.YPOS");
+    H08Y      = gSystem->GetFromPipe("caget -t -f 3 IPM3H08.YPOS");
+    H09Y      = gSystem->GetFromPipe("caget -t -f 3 IPM3H09.YPOS");
+    H09BY     = gSystem->GetFromPipe("caget -t -f 3 IPM3H09B.YPOS");
+    targetY   = gSystem->GetFromPipe("caget -t -f 3 qw:targetY");
+    tungstenY = gSystem->GetFromPipe("caget -t -f 3 qw:tungstenY");
 
-  if(H07AX.IsNull())     H07AX     = "2.553";
-  if(H07AY.IsNull())     H07AY     = "2.692";
-  if(H07BX.IsNull())     H07BX     = "1.965";
-  if(H07BY.IsNull())     H07BY     = "2.191";
-  if(H07CX.IsNull())     H07CX     = "1.663";
-  if(H07CY.IsNull())     H07CY     = "2.072";
-  if(H08X.IsNull())      H08X      = "1.314";
-  if(H08Y.IsNull())      H08Y      = "1.055";
-  if(H09X.IsNull())      H09X      = "0.630";
-  if(H09Y.IsNull())      H09Y      = "0.624";
-  if(H09BX.IsNull())     H09BX     = "0.188";
-  if(H09BY.IsNull())     H09BY     = "0.020";
-  if(targetX.IsNull())   targetX   = "-0.176";
-  if(targetY.IsNull())   targetY   = "-0.457";
-  if(tungstenX.IsNull()) tungstenX = "-0.336";
-  if(tungstenY.IsNull()) tungstenY = "-0.651";
+
+    //
+    // Just in case, when 'caget' doesn't work well or when we
+    // want to test this script not on cdaqlx machine.
+    // I took all values from qwick_19500-215000_7679.root
+    // see https://hallcweb.jlab.org/hclog/1011_archive/101129222940.html
+    //
+
+    if(H07AX.IsNull())     H07AX     = "2.553";
+    if(H07AY.IsNull())     H07AY     = "2.692";
+    if(H07BX.IsNull())     H07BX     = "1.965";
+    if(H07BY.IsNull())     H07BY     = "2.191";
+    if(H07CX.IsNull())     H07CX     = "1.663";
+    if(H07CY.IsNull())     H07CY     = "2.072";
+    if(H08X.IsNull())      H08X      = "1.314";
+    if(H08Y.IsNull())      H08Y      = "1.055";
+    if(H09X.IsNull())      H09X      = "0.630";
+    if(H09Y.IsNull())      H09Y      = "0.624";
+    if(H09BX.IsNull())     H09BX     = "0.188";
+    if(H09BY.IsNull())     H09BY     = "0.020";
+    if(targetX.IsNull())   targetX   = "-0.176";
+    if(targetY.IsNull())   targetY   = "-0.457";
+    if(tungstenX.IsNull()) tungstenX = "-0.336";
+    if(tungstenY.IsNull()) tungstenY = "-0.651";
+
+  }
+  else {
+    H07AX     = "2.553";
+    H07AY     = "2.692";
+    H07BX     = "1.965";
+    H07BY     = "2.191";
+    H07CX     = "1.663";
+    H07CY     = "2.072";
+    H08X      = "1.314";
+    H08Y      = "1.055";
+    H09X      = "0.630";
+    H09Y      = "0.624";
+    H09BX     = "0.188";
+    H09BY     = "0.020";
+    targetX   = "-0.176";
+    targetY   = "-0.457";
+    tungstenX = "-0.336";
+    tungstenY = "-0.651";
+  }
 
   //Convert target position strings into doubles for plotting
 
-  // TObjArray *  Array_targetX     = targetX.Tokenize(" ");
-  // TObjString * Value_targetX     = (TObjString*) Array_targetX->At(0);
-  // Double_t     Double_targetX    = Value_targetX->GetString().Atof();
-  // TObjArray *  Array_targetY     = targetY.Tokenize(" ");
-  // TObjString * Value_targetY     = (TObjString*) Array_targetY->At(0);
-  // Double_t     Double_targetY    = Value_targetY->GetString().Atof();
+  Double_t Double_H07AX     = H07AX.Atof();
+  Double_t Double_H07BX     = H07BX.Atof();
+  Double_t Double_H07CX     = H07CX.Atof();
+  Double_t Double_H09BX     = H09BX.Atof();
+  Double_t Double_H08X      = H08X.Atof();
+  Double_t Double_H09X      = H09X.Atof();
+  Double_t Double_targetX   = targetX.Atof();
+  Double_t Double_tungstenX = tungstenX.Atof();
 
-  // we already use "caget -t option", it returns only "number",
-  // thus, we don't need to tokenize them to convert "double".
-  Double_t Double_targetX = targetX.Atof();
-  Double_t Double_targetY = targetY.Atof();
-  Double_t Double_H07CX   = H07CX.Atof();
-  Double_t Double_H07CY   = H07CY.Atof();
-  Double_t Double_H09BX   = H09BX.Atof();
-  Double_t Double_H09BY   = H09BY.Atof();
 
-  Double_t BPMs_PosX[3] = {0.0};
-  Double_t BPMs_PosY[3] = {0.0};
-  BPMs_PosX[0] = H07CX.Atof();
-  BPMs_PosX[1] = H09BX.Atof();
-  BPMs_PosX[2] = targetX.Atof();
-  BPMs_PosY[0] = H07CY.Atof();
-  BPMs_PosY[1] = H09BY.Atof();
-  BPMs_PosY[2] = targetY.Atof();
+  Double_t Double_H07AY     = H07AY.Atof();
+  Double_t Double_H07BY     = H07BY.Atof();
+  Double_t Double_H07CY     = H07CY.Atof();
+  Double_t Double_H09BY     = H09BY.Atof();
+  Double_t Double_H08Y      = H08Y.Atof();
+  Double_t Double_H09Y      = H09Y.Atof();
+  Double_t Double_targetY   = targetY.Atof();
+  Double_t Double_tungstenY = tungstenY.Atof();
 
+  Double_t Double_H07AZ     = 138406.0;
+  Double_t Double_H07BZ     = 139363.0;
+  Double_t Double_H07CZ     = 140329.0;
+  Double_t Double_H08Z      = 143576.0;
+  Double_t Double_H09Z      = 144803.0;
+  Double_t Double_H09BZ     = 147351.0;
+  Double_t Double_targetZ   = 148750.0;
+  Double_t Double_tungstenZ = 149408.0;
+
+ 
+  Double_t BPMs_X[3] = {0.0};
+  Double_t BPMs_Y[3] = {0.0};
+  BPMs_X[0] = H07CX.Atof();
+  BPMs_X[1] = H09BX.Atof();
+  BPMs_X[2] = targetX.Atof();
+  BPMs_Y[0] = H07CY.Atof();
+  BPMs_Y[1] = H09BY.Atof();
+  BPMs_Y[2] = targetY.Atof();
+  
 
   //Create a plot for beam position
   Int_t max_plot_range = 3;
@@ -234,9 +439,9 @@ raster(TString name="")
   yaxis -> SetTickSize(0.01);
   
   TEllipse *BPMs[3] = {NULL};
-  for(Int_t i=0;i<3;i++) 
+  for(i=0;i<3;i++) 
     {
-      BPMs[i] = new TEllipse(BPMs_PosX[i], BPMs_PosY[i], 0.14);
+      BPMs[i] = new TEllipse(BPMs_X[i], BPMs_Y[i], 0.14);
       BPMs[i] -> SetLineWidth(1);
       BPMs[i] -> SetFillStyle(0);
     }
@@ -248,25 +453,10 @@ raster(TString name="")
   xaxis   -> Draw();
   yaxis   -> Draw();
   
-  for(Int_t i=0;i<3;i++) 
+  for(i=0;i<3;i++) 
     {
       BPMs[i] -> Draw();
     }
-
-
-  // TH2F *target_Histo=NULL;
-  // if(target_Histo!=NULL) delete target_Histo;
-  // target_Histo= new TH2F("h2", "Beam Position on Target", 200,-2,2,200,-2,2);
-  // target_Histo->SetStats(0);   
-  // target_Histo->SetMarkerStyle(3); 
-  // target_Histo->SetMarkerColor(4); 
-  // target_Histo->Fill(Double_targetX, Double_targetY); 
-  // target_Histo->Draw();
-  // target_Histo->SetMarkerStyle(4); 
-  // target_Histo->SetMarkerColor(4); 
-  // target_Histo->Fill(Double_H07CX, Double_H07CY); 
-  // target_Histo->Draw("same");
-
   
   pad22 ->cd();
   pad22 -> SetBorderSize(0);
@@ -312,10 +502,159 @@ raster(TString name="")
   y -= d ; l.DrawLatex(x1, y, tungstenY.Data())  ;
 
 
+  time_t rawtime;
+  time ( &rawtime );
+  //  printf ( "The current local time is: %s", ctime (&rawtime) );
+  l.SetTextFont(12);
+  l.SetTextSize(0.08);
+  l.DrawLatex(0.2,0.08, Form("%s",ctime (&rawtime)));
+  
+  fRasterMap2D->Update();
+  // image_name = filename +".png";
+  // RasterMap2D -> SaveAs(output_dir+image_name);
+ 
+
+
+  fRasterMap1D = new TCanvas("1DRaster", Form("RasterMap1D in %s", filename.Data()), 1100,640);
+ 
+  fRasterMap1D->Divide(2,1,0.0001,0.0001);
+  TPad *c11 = (TPad*) fRasterMap1D->GetPrimitive("1DRaster_1");
+  TPad *c12 = (TPad*) fRasterMap1D->GetPrimitive("1DRaster_2");
+  
+
+  c11->Divide(2,2);
+  c11->cd(1);
+  if(raster_position_x-> GetEntries() != 0.0) {
+    raster_position_x -> SetTitle(Form("Raster Position X in %s", filename.Data()));
+    raster_position_x -> Draw();
+    file_output_flag &= true;
+  }
+  else {
+    file_output_flag &= false;
+  }
+
+  c11->cd(2);
+  if(raster_position_y-> GetEntries() != 0.0) {
+    raster_position_y -> SetTitle(Form("Raster Position Y in %s", filename.Data()));
+    raster_position_y -> Draw();
+    file_output_flag &= true;
+  }
+  else {
+    file_output_flag &= false;
+  }
+  c11->cd(3);
+  if(raster_posx_adc-> GetEntries() != 0.0) {
+    raster_posx_adc -> SetTitle(Form("Raster PosX ADC in %s", filename.Data()));
+    raster_posx_adc -> Draw();
+    file_output_flag &= true;
+  }
+  else {
+    file_output_flag &= false;
+  }
+  c11->cd(4);
+  if(raster_posy_adc-> GetEntries() != 0.0) {
+    raster_posy_adc -> SetTitle(Form("Raster PosY ADC in %s", filename.Data()));
+    raster_posy_adc -> Draw();
+    file_output_flag &= true;
+  }
+  else {
+    file_output_flag &= false;
+  }
+  c11->Update();
+
+  c12-> cd();
+ 
+
+  TMultiGraph *hor_mgraph = new TMultiGraph();
+  TMultiGraph *ver_mgraph = new TMultiGraph();
+
+  Double_t pos[3] = {0.0};
+  Double_t zz[3] = {Double_H07CZ, Double_H09BZ, Double_targetZ};
+  for(i=0;i<3;i++) zz[i] *= 1e-3;
+  TGraph* bpms_pos = new TGraph(3,zz,pos);
+  // TGraph* horizontal = new TGraph(3, zz, BPMs_X);
+  // TGraph* vertical = new TGraph(3, zz, BPMs_Y);
+
+  TMarker *x_pos[3] = {NULL};
+  TMarker *y_pos[3] = {NULL};
+  for(i=0;i<3;i++) 
+    {
+      x_pos[i] = new TMarker(zz[i], BPMs_X[i], 4);
+      y_pos[i] = new TMarker(zz[i], BPMs_Y[i], 4);
+    
+    }
+  bpms_pos   -> SetMarkerStyle(5);
+  bpms_pos   -> SetMarkerSize(2);
+  // horizontal -> SetLineColor(kRed);
+  // horizontal -> SetLineWidth(0);
+  // vertical   -> SetLineColor(kRed);
+  // vertical   -> SetLineWidth(0);
+
+  hor_mgraph -> Add(bpms_pos, "p");
+  // hor_mgraph -> Add(horizontal);
+  ver_mgraph -> Add(bpms_pos, "p");
+  // ver_mgraph -> Add(vertical);
+  
+
+  hor_mgraph -> SetMaximum(+max_plot_range);
+  hor_mgraph -> SetMinimum(-max_plot_range);
+  ver_mgraph -> SetMaximum(+max_plot_range);
+  ver_mgraph -> SetMinimum(-max_plot_range);
+
+  c12->Divide(1,2);
+  c12->cd(1);
+  gPad -> SetGridy();
+  hor_mgraph -> Draw("apl");
+  hor_mgraph -> SetTitle("Electron Beam Centroids (horizontal plane)");
+  hor_mgraph -> GetXaxis() -> SetTitle("z (m)");
+  hor_mgraph -> GetXaxis() -> SetTitleSize(0.05);
+  hor_mgraph -> GetXaxis() -> SetTitleFont(22);
+  hor_mgraph -> GetYaxis() -> SetTitle("x (mm)");
+  hor_mgraph -> GetYaxis() -> CenterTitle(true);
+  hor_mgraph -> GetYaxis() -> SetTitleSize(0.05);
+  hor_mgraph -> GetYaxis() -> SetTitleOffset(0.5);
+  hor_mgraph -> GetYaxis() -> SetTitleFont(22);
+  x_pos[0] -> SetMarkerColor(kBlue);
+  x_pos[1] -> SetMarkerColor(kGreen);
+  x_pos[2] -> SetMarkerColor(kRed);
+  x_pos[0] -> Draw();
+  x_pos[1] -> Draw();
+  x_pos[2] -> Draw();
+  
+  gPad->Update();
+
+  c12->cd(2);
+  gPad -> SetGridy();
+  ver_mgraph -> Draw("apl");
+  ver_mgraph -> SetTitle("Electron Beam Centroids (vertical plane)");
+  ver_mgraph -> GetXaxis() -> SetTitle("z (m)");
+  ver_mgraph -> GetXaxis() -> SetTitleSize(0.05);
+  ver_mgraph -> GetXaxis() -> SetTitleFont(22);
+  ver_mgraph -> GetYaxis() -> SetTitle("y (mm)");
+  ver_mgraph -> GetYaxis() -> CenterTitle(true);
+  ver_mgraph -> GetYaxis() -> SetTitleSize(0.05);
+  ver_mgraph -> GetYaxis() -> SetTitleOffset(0.5);
+  ver_mgraph -> GetYaxis() -> SetTitleFont(22);
+  y_pos[0] -> SetMarkerColor(kBlue);
+  y_pos[1] -> SetMarkerColor(kGreen);
+  y_pos[2] -> SetMarkerColor(kRed);
+  y_pos[0] -> Draw();
+  y_pos[1] -> Draw();
+  y_pos[2] -> Draw();
+  gPad->Update();
 
   
-  c2->Update();
-  image_name = name +".png";
-  c2 -> SaveAs(output_dir+image_name);
- 
+  c12->cd(0);
+  c12->Modified();
+  c12->Update();
+
 }
+
+
+
+void raster(TString name="") 
+{
+  new RasterMap(gClient->GetRoot(), 600,300, name);
+}
+
+

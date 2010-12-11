@@ -30,24 +30,23 @@
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
-  class QwScaler_Channel: public VQwDataElement {
+class VQwScaler_Channel: public VQwDataElement {
 
   public:
   static Int_t GetBufferOffset(Int_t scalerindex, Int_t wordindex);
 
 
   public:
-  QwScaler_Channel(){ 
+  VQwScaler_Channel() {
     InitializeChannel("");
   };
 
-  QwScaler_Channel(TString name){
+  VQwScaler_Channel(TString name) {
     InitializeChannel(name);
   };
-  ~QwScaler_Channel() {DeleteHistograms();};
+  virtual ~VQwScaler_Channel() { DeleteHistograms(); };
 
-  void  InitializeChannel(TString name){
+  void  InitializeChannel(TString name) {
     fValue = 0;
     fValueM2 = 0;
     SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
@@ -72,20 +71,21 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
 
   void  RandomizeEventData(int helicity);
   void  SetEventData(Double_t value);
-  void  EncodeEventData(std::vector<UInt_t> &buffer);
 
-  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index=0);
+  virtual void  EncodeEventData(std::vector<UInt_t> &buffer) = 0;
+  virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0) = 0;
+
   void  ProcessEvent();
 
   Double_t GetValue() const { return fValue; };
 
 
-  QwScaler_Channel& operator=  (const QwScaler_Channel &value);
-  QwScaler_Channel& operator+= (const QwScaler_Channel &value);
-  QwScaler_Channel& operator-= (const QwScaler_Channel &value);
-  void Sum(QwScaler_Channel &value1, QwScaler_Channel &value2);
-  void Difference(QwScaler_Channel &value1, QwScaler_Channel &value2);
-  void Ratio(QwScaler_Channel &numer, QwScaler_Channel &denom);
+  VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
+  VQwScaler_Channel& operator+= (const VQwScaler_Channel &value);
+  VQwScaler_Channel& operator-= (const VQwScaler_Channel &value);
+  void Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
+  void Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
+  void Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
 
@@ -100,7 +100,7 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  void AccumulateRunningSum(const QwScaler_Channel &value);
+  void AccumulateRunningSum(const VQwScaler_Channel &value);
 
   void Copy(VQwDataElement *source);
 
@@ -110,7 +110,6 @@ template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
 
 protected:
 
-private:
   static const Bool_t kDEBUG;
 
   UInt_t   fValue_Raw;
@@ -130,10 +129,31 @@ private:
 
 };
 
+
+//  Derived templated class
+template <UInt_t data_mask=0xffffffff, UInt_t data_shift=0 >
+class QwScaler_Channel: public VQwScaler_Channel
+{
+  public:
+
+    // Define the constructors (cascade)
+    QwScaler_Channel(): VQwScaler_Channel() { };
+    QwScaler_Channel(TString name): VQwScaler_Channel(name) { };
+
+  public:
+
+    // Implement the templated methods
+    void  EncodeEventData(std::vector<UInt_t> &buffer);
+    Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0);
+
+};
+
+
 //  These typedef's should be the last things in the file.
 //  Class template instationation must be made in the source
 //  file for anything defined here.
 typedef class QwScaler_Channel<0x00ffffff,0> QwSIS3801D24_Channel;
+typedef class QwScaler_Channel<0xffffffff,0> QwSIS3801D32_Channel;
 typedef class QwScaler_Channel<0xffffffff,0>    QwSIS3801_Channel;
 typedef class QwScaler_Channel<0xffffffff,0>    QwSTR7200_Channel;
 

@@ -16,14 +16,14 @@ const string cut1 = "mps_counter>500";
 const string cut2 = "mps_counter<2400e6";
 
 const string md[16] ={
-"md1neg","md2neg","md3neg","md4neg",
-"md5neg","md6neg","md7neg","md8neg",
-"md1pos","md2pos","md3pos","md4pos",
-"md5pos","md6pos","md7pos","md8pos"};
+"qwk_md1neg","qwk_md2neg","qwk_md3neg","qwk_md4neg",
+"qwk_md5neg","qwk_md6neg","qwk_md7neg","qwk_md8neg",
+"qwk_md1pos","qwk_md2pos","qwk_md3pos","qwk_md4pos",
+"qwk_md5pos","qwk_md6pos","qwk_md7pos","qwk_md8pos"};
 
 const string mdbkgd[8] ={
-"pmtled","pmtonl","pmtltg","md9neg",
-"md9pos","isourc","preamp","cagesr"};
+"qwk_pmtled","qwk_pmtonl","qwk_pmtltg","qwk_md9neg",
+"qwk_md9pos","qwk_isourc","qwk_preamp","qwk_cagesr"};
 
 Char_t filename[100];
 sprintf(filename,"$QW_ROOTFILES/mdPed_%i.root",runNum);

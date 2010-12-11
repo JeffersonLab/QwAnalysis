@@ -174,7 +174,8 @@ class QwGUILumiDetector : public QwGUISubSystem {
   //!
   //!Return value: none  
   virtual void         MakeLayout();
-
+ private:
+  static const Int_t fSleepTimeMS;
  public:
   
   QwGUILumiDetector(const TGWindow *p, const TGWindow *main, const TGTab *tab,
