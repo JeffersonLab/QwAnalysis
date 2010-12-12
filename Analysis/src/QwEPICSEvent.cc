@@ -797,6 +797,29 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
 
   ////////////////////////////////////////////////////////////
 
+  // For target position
+  tagindex = FindIndex("QWTGTPOS");
+  if (kDebug) std::cout << "\n\ntagindex for  = QWTGTPOS" << tagindex << std::endl;
+  if (! fEPICSCumulativeData[tagindex].Filled) {
+    //  No data for this run.
+    tmp_row.target_position = "";
+  } else if (fEPICSCumulativeData[tagindex].NumberRecords
+	     != fNumberEPICSEvents) {
+    // Target position changed
+    tmp_row.target_position = "";
+  }
+  if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
+    QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
+    tmp_row.target_position ="";
+  }  else {
+    // Target position did not change.
+    // Store the position as a text string.
+    QwError<<"\n\nfEPICSDataEvent[tagindex].StringValue.Data() = "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
+    tmp_row.target_position = fEPICSDataEvent[tagindex].StringValue.Data();
+  }
+
+  ////////////////////////////////////////////////////////////
+
   // For rotatable Half Wave Plate Setting
   tagindex = FindIndex("IGL1I00DI24_24M");
   if (kDebug) std::cout << "\n\ntagindex for IGL1I00DI24_24M = " << tagindex << std::endl;
