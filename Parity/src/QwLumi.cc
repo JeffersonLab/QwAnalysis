@@ -587,6 +587,7 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 
 	  }
       }
+    SetDataLoaded(kTRUE);
   }
 
   return 0;
@@ -650,18 +651,14 @@ UInt_t QwLumi::GetEventcutErrorFlag(){//return the error flag
 //*****************************************************************
 void  QwLumi::ProcessEvent()
 {
-  for(size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].ProcessEvent();  
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    {
-      //std::cout<<"Process combination "<<i<<std::endl;
+  if (! HasDataLoaded()) return;
+
+  for (size_t i = 0; i < fIntegrationPMT.size();  i++)
+    fIntegrationPMT[i].ProcessEvent();
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
       fCombinedPMT[i].ProcessEvent();
-
-    }
-  for(size_t i=0;i<fScalerPMT.size();i++)
+  for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].ProcessEvent();
-
-  return;
 };
 
 
@@ -670,6 +667,8 @@ void  QwLumi::ProcessEvent()
  */
 void  QwLumi::ExchangeProcessedData()
 {
+  if (! HasDataLoaded()) return;
+
   bIsExchangedDataValid = kTRUE;
   if (bNormalization){
     // Create a list of all variables that we need
@@ -709,6 +708,8 @@ void  QwLumi::ExchangeProcessedData()
 
 void  QwLumi::ProcessEvent_2()
 {
+  if (! HasDataLoaded()) return;
+
   if (bIsExchangedDataValid)
     {
       //data is valid, process it
@@ -735,19 +736,9 @@ void  QwLumi::ProcessEvent_2()
 
 
 
-
-
-
-
-
-
-
-
-
 //*****************************************************************
 Int_t QwLumi::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-
   return 0;
 };
 
@@ -756,7 +747,6 @@ Bool_t QwLumi::IsGoodEvent()
 {
   Bool_t test=kTRUE;
 
-
   return test;
 };
 
@@ -764,9 +754,9 @@ Bool_t QwLumi::IsGoodEvent()
 //*****************************************************************
 void QwLumi::ClearEventData()
 {
-
+  SetDataLoaded(kFALSE);
   for(size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].ClearEventData();  
+    fIntegrationPMT[i].ClearEventData();
   for (size_t i=0;i<fCombinedPMT.size();i++)
     fCombinedPMT[i].ClearEventData();
   for(size_t i=0;i<fScalerPMT.size();i++)
@@ -852,29 +842,21 @@ const QwCombinedPMT* QwLumi::GetCombinedPMT(const TString name) const
 
 
 
-
-
-
-
-
-
 //*****************************************************************
 VQwSubsystem&  QwLumi::operator=  (VQwSubsystem *value)
 {
   //  std::cout<<" here in QwLumi::operator= \n";
-  if(Compare(value))
+  if (Compare(value))
     {
       VQwSubsystem::operator=(value);
       QwLumi* input = dynamic_cast<QwLumi*> (value);
 
-      for(size_t i=0;i<input->fIntegrationPMT.size();i++)
-	this->fIntegrationPMT[i]=input->fIntegrationPMT[i];
-	
-	 for (size_t i=0;i<input->fCombinedPMT.size();i++)
-        this->fCombinedPMT[i]=input->fCombinedPMT[i];
-     
-      for(size_t i=0;i<input->fScalerPMT.size();i++)
-	this->fScalerPMT[i]=input->fScalerPMT[i];
+      for (size_t i = 0; i < input->fIntegrationPMT.size(); i++)
+	this->fIntegrationPMT[i] = input->fIntegrationPMT[i];
+      for (size_t i = 0; i < input->fCombinedPMT.size(); i++)
+        this->fCombinedPMT[i] = input->fCombinedPMT[i];
+      for (size_t i = 0; i < input->fScalerPMT.size(); i++)
+	this->fScalerPMT[i] = input->fScalerPMT[i];
 
     }
   return *this;
@@ -883,18 +865,16 @@ VQwSubsystem&  QwLumi::operator=  (VQwSubsystem *value)
 //*****************************************************************
 VQwSubsystem&  QwLumi::operator+=  (VQwSubsystem *value)
 {
-  if(Compare(value))
+  if (Compare(value))
     {
-      QwLumi* input= dynamic_cast<QwLumi*>(value) ;
+      QwLumi* input= dynamic_cast<QwLumi*>(value);
 
-      for(size_t i=0;i<input->fIntegrationPMT.size();i++)
-	this->fIntegrationPMT[i]+=input->fIntegrationPMT[i];      
-	
-	  for (size_t i=0;i<input->fCombinedPMT.size();i++)
-        this->fCombinedPMT[i]+=input->fCombinedPMT[i];
-    
-      for(size_t i=0;i<input->fScalerPMT.size();i++)
-	this->fScalerPMT[i]+=input->fScalerPMT[i];
+      for (size_t i = 0; i < input->fIntegrationPMT.size(); i++)
+	this->fIntegrationPMT[i] += input->fIntegrationPMT[i];
+      for (size_t i = 0; i < input->fCombinedPMT.size(); i++)
+        this->fCombinedPMT[i] += input->fCombinedPMT[i];
+      for (size_t i = 0; i < input->fScalerPMT.size(); i++)
+	this->fScalerPMT[i] += input->fScalerPMT[i];
     }
   return *this;
 };
@@ -903,19 +883,16 @@ VQwSubsystem&  QwLumi::operator+=  (VQwSubsystem *value)
 VQwSubsystem&  QwLumi::operator-=  (VQwSubsystem *value)
 {
 
-  if(Compare(value))
+  if (Compare(value))
     {
       QwLumi* input= dynamic_cast<QwLumi*>(value);
 
-      for(size_t i=0;i<input->fIntegrationPMT.size();i++)
-	this->fIntegrationPMT[i]-=input->fIntegrationPMT[i];      
-	
-	for (size_t i=0;i<input->fCombinedPMT.size();i++)
-        this->fCombinedPMT[i]-=input->fCombinedPMT[i];
-    
-      for(size_t i=0;i<input->fScalerPMT.size();i++)
-	this->fScalerPMT[i]-=input->fScalerPMT[i];
-
+      for (size_t i = 0; i < input->fIntegrationPMT.size(); i++)
+	this->fIntegrationPMT[i] -= input->fIntegrationPMT[i];
+      for (size_t i = 0; i < input->fCombinedPMT.size(); i++)
+        this->fCombinedPMT[i] -= input->fCombinedPMT[i];
+      for (size_t i = 0; i < input->fScalerPMT.size(); i++)
+	this->fScalerPMT[i] -= input->fScalerPMT[i];
     }
   return *this;
 };
@@ -923,10 +900,8 @@ VQwSubsystem&  QwLumi::operator-=  (VQwSubsystem *value)
 //*****************************************************************
 void  QwLumi::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
-  if(Compare(value1)&&Compare(value2))
+  if (Compare(value1) && Compare(value2))
     {
-
-
       *this =  value1;
       *this += value2;
     }
@@ -935,9 +910,8 @@ void  QwLumi::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 //*****************************************************************
 void  QwLumi::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
-  if(Compare(value1)&&Compare(value2))
+  if (Compare(value1) && Compare(value2))
     {
-
       *this =  value1;
       *this -= value2;
     }
@@ -946,36 +920,29 @@ void  QwLumi::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
 //*****************************************************************
 void QwLumi::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 {
-  if(Compare(numer)&&Compare(denom))
+  if (Compare(numer) && Compare(denom))
     {
-      QwLumi* innumer= dynamic_cast<QwLumi*>(numer) ;
-      QwLumi* indenom= dynamic_cast<QwLumi*>(denom) ;
+      QwLumi* innumer = dynamic_cast<QwLumi*>(numer);
+      QwLumi* indenom = dynamic_cast<QwLumi*>(denom);
 
-      for(size_t i=0;i<innumer->fIntegrationPMT.size();i++)
+      for (size_t i = 0; i < innumer->fIntegrationPMT.size(); i++)
 	this->fIntegrationPMT[i].Ratio(innumer->fIntegrationPMT[i],indenom->fIntegrationPMT[i]);
-	
-	      for (size_t i=0;i<innumer->fCombinedPMT.size();i++)
+      for (size_t i = 0; i < innumer->fCombinedPMT.size(); i++)
         this->fCombinedPMT[i].Ratio(innumer->fCombinedPMT[i],indenom->fCombinedPMT[i]);
-    
-      for(size_t i=0;i<innumer->fScalerPMT.size();i++)
+      for (size_t i = 0; i < innumer->fScalerPMT.size(); i++)
 	this->fScalerPMT[i].Ratio(innumer->fScalerPMT[i],indenom->fScalerPMT[i]);
-
     }
-  return;
 };
 
 //*****************************************************************
 void QwLumi::Scale(Double_t factor)
 {
-  for(size_t i=0;i<fIntegrationPMT.size();i++)
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
     fIntegrationPMT[i].Scale(factor);
-    
-  for (size_t i=0;i<fCombinedPMT.size();i++)
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].Scale(factor);
-
-  for(size_t i=0;i<fScalerPMT.size();i++)
+  for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].Scale(factor);
-  return;
 };
 
 //*****************************************************************
@@ -1010,71 +977,60 @@ Bool_t QwLumi::Compare(VQwSubsystem *value)
 //*****************************************************************
 void  QwLumi::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
-  for(size_t i=0;i<fIntegrationPMT.size();i++)
-      fIntegrationPMT[i].ConstructHistograms(folder,prefix);  
-  for (size_t i=0;i<fCombinedPMT.size();i++)
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].ConstructHistograms(folder,prefix);
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].ConstructHistograms(folder,prefix);
-  for(size_t i=0;i<fScalerPMT.size();i++)
+  for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].ConstructHistograms(folder,prefix);
-
-  return;
 };
 
 
 //*****************************************************************
 void  QwLumi::DeleteHistograms()
 {
-  for(size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].DeleteHistograms();  
-  for (size_t i=0;i<fCombinedPMT.size();i++)
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].DeleteHistograms();
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].DeleteHistograms();
-  for(size_t i=0;i<fScalerPMT.size();i++)
+  for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].DeleteHistograms();
-
-  return;
 };
 
 //*****************************************************************
 void  QwLumi::FillHistograms()
 {
+  if (! HasDataLoaded()) return;
 
-  for(size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].FillHistograms();  
-  for (size_t i=0;i<fCombinedPMT.size();i++)
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].FillHistograms();
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].FillHistograms();
-  for(size_t i=0;i<fScalerPMT.size();i++)
+  for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].FillHistograms();
-
-  return;
 };
 
 
 //*****************************************************************
 void QwLumi::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
-
-  for(size_t i = 0; i < fIntegrationPMT.size(); i++)
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
     fIntegrationPMT[i].ConstructBranchAndVector(tree, prefix, values);
-  for (size_t i=0;i<fCombinedPMT.size();i++)
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].ConstructBranchAndVector(tree, prefix, values);
-  for(size_t i = 0; i < fScalerPMT.size(); i++)
+  for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].ConstructBranchAndVector(tree, prefix, values);
-
-  return;
 };
 
 //*****************************************************************
 void QwLumi::ConstructBranch(TTree *tree, TString & prefix)
 {
-
-  for(size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].ConstructBranch(tree, prefix);  
-  for (size_t i=0;i<fCombinedPMT.size();i++)
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].ConstructBranch(tree, prefix);
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].ConstructBranch(tree, prefix);
-  for(size_t i = 0; i < fScalerPMT.size(); i++)
+  for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].ConstructBranch(tree, prefix);
-
-  return;
 };
 
 //*****************************************************************
@@ -1115,6 +1071,7 @@ void QwLumi::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& tri
 //*****************************************************************
 void QwLumi::FillTreeVector(std::vector<Double_t> &values) const
 {
+  if (! HasDataLoaded()) return;
 
   for(size_t i = 0; i < fIntegrationPMT.size(); i++)
     fIntegrationPMT[i].FillTreeVector(values);  
@@ -1122,8 +1079,6 @@ void QwLumi::FillTreeVector(std::vector<Double_t> &values) const
     fCombinedPMT[i].FillTreeVector(values);
   for(size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].FillTreeVector(values);  
-
-  return;
 };
 
 
@@ -1142,21 +1097,18 @@ void  QwLumi::PrintValue() const
 //*****************************************************************
 void  QwLumi::PrintInfo() const
 {
-  std::cout<<"Name of the subsystem ="<<fSystemName<<"\n";
-  std::cout<<"There are "<<fIntegrationPMT.size()<<" IntegrationPMT \n";  
-  std::cout<<"          "<<fCombinedPMT.size()<<" CombinedPMT \n";
-  std::cout<<"There are "<<fScalerPMT.size()<<" halo counters \n";
+  QwMessage << "Name of the subsystem = " << fSystemName << QwLog::endl;
+  QwMessage << "There are " << fIntegrationPMT.size() << " IntegrationPMT" << QwLog::endl;
+  QwMessage << "          " << fCombinedPMT.size() << " CombinedPMT" << QwLog::endl;
+  QwMessage << "There are " << fScalerPMT.size() << " halo counters" << QwLog::endl;
 
-
-  std::cout<<" Printing Running AVG and other channel info"<<std::endl;
+  QwMessage << " Printing Running AVG and other channel info" << QwLog::endl;
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
     fIntegrationPMT[i].PrintInfo();  
   for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].PrintInfo();
   for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].PrintInfo();
-
-  return;
 };
 
 //*****************************************************************
@@ -1168,13 +1120,11 @@ void  QwLumi::PrintDetectorID() const
       std::cout<<" Detector ID="<<i<<std::endl;
       fLumiDetectorID[i].Print();
     }
-  return;
 };
 
 //*****************************************************************
 void  QwLumiDetectorID::Print() const
 {
-
   std::cout<<std::endl<<"Detector name= "<<fdetectorname<<std::endl;
   std::cout<<"SubbankkIndex= "<<fSubbankIndex<<std::endl;
   std::cout<<"word index in subbank= "<<fWordInSubbank<<std::endl;
@@ -1185,8 +1135,6 @@ void  QwLumiDetectorID::Print() const
   std::cout<<"Subelement index= "<<
     fSubelement<<std::endl;
   std::cout<<"==========================================\n";
-
-  return;
 };
 
 //*****************************************************************
@@ -1226,8 +1174,6 @@ void  QwLumi::Copy(VQwSubsystem *source)
       std::cerr << e.what() << std::endl;
     }
   // this->Print();
-
-  return;
 };
 
 //*****************************************************************

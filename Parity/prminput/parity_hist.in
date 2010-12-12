@@ -537,14 +537,14 @@ asym_sca_halo9			TH1F
 asym_sca_halo10			TH1F
 
 ### downstream lumi scaler histograms
-sca_dslumi1			TH1F
-sca_dslumi2			TH1F
-sca_dslumi3			TH1F
-sca_dslumi4			TH1F
-sca_dslumi5			TH1F
-sca_dslumi6			TH1F
-sca_dslumi7			TH1F
-sca_dslumi8			TH1F
+sca_dslumi1			TH1F	100	0	1e6	Rate	Events
+sca_dslumi2			TH1F	100	0	1e6	Rate	Events
+sca_dslumi3			TH1F	100	0	1e6	Rate	Events
+sca_dslumi4			TH1F	100	0	1e6	Rate	Events
+sca_dslumi5			TH1F	100	0	1e6	Rate	Events
+sca_dslumi6			TH1F	100	0	1e6	Rate	Events
+sca_dslumi7			TH1F	100	0	1e6	Rate	Events
+sca_dslumi8			TH1F	100	0	1e6	Rate	Events
 
 yield_sca_dslumi1		TH1F
 yield_sca_dslumi2		TH1F

@@ -641,8 +641,13 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
 
 Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 {
-  // Initialize local flag
+  //  Initialize local flag
   Bool_t okay = kTRUE;
+
+  //  Reload the data buffer and decode the header again, this allows
+  //  multiple calls to this function for different subsystem arrays.
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  DecodeEventIDBank(localbuff);
 
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
@@ -657,7 +662,6 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
   }
 
   //  Loop through the data buffer in this event.
-  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
 
     //  If this bank has further subbanks, restart the loop.

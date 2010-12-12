@@ -156,10 +156,10 @@ void VQwScaler_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
   }
 };
 
-void  VQwScaler_Channel::FillHistograms(){
-
-  size_t index=0;
-  if (IsNameEmpty()){
+void  VQwScaler_Channel::FillHistograms()
+{
+  size_t index = 0;
+  if (IsNameEmpty()) {
     //  This channel is not used, so skip creating the histograms.
   } else {
     if (fHistograms[index] != NULL)
@@ -213,7 +213,7 @@ void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
 	    << fTreeArrayIndex+fTreeArrayNumEntries
 	    << QwLog::endl;
   } else {
-    size_t index=fTreeArrayIndex;
+    size_t index = fTreeArrayIndex;
     values[index++] = this->fValue;
   }
 };
