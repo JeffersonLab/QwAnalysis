@@ -19,8 +19,8 @@ EVENTCUTS = 3
 
 
 !device_type, device_name, lower limit, upper limit, local(l)/global(g), stability percentage
- integrationpmt, qwk_md1neg, 1275 ,	1000000, l, 0
- combinationpmt, qwk_md2barsum, 1021 ,	1000000, l, 0
+! integrationpmt, qwk_md1neg, 1275 ,	1000000, l, 0
+! combinationpmt, qwk_md2barsum, 1021 ,	1000000, l, 0
 
 
 
