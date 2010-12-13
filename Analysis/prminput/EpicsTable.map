@@ -13,6 +13,7 @@
 !
 !
 QWTGTPOS	slow_controls_data    	   	!Vertical position of the target
+QWtgt_name	slow_controls_data	String	! Name of the target position
 QWT_miA		slow_controls_data    	   	!Temp A at manifold inlet K Cernox		
 QWT_moA		slow_controls_data    	   	!Temp A at manifold outlet K Cernox		
 QWT_hxiA		slow_controls_data    	   	!Temp A at heat exchanger inlet K Cernox Phytron brake

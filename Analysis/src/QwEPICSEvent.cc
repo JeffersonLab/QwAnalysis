@@ -798,8 +798,8 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   ////////////////////////////////////////////////////////////
 
   // For target position
-  tagindex = FindIndex("QWTGTPOS");
-  if (kDebug) std::cout << "\n\ntagindex for  = QWTGTPOS" << tagindex << std::endl;
+  tagindex = FindIndex("QWtgt_name");
+  if (kDebug) std::cout << "\n\ntagindex for  = QWtgt_name" << tagindex << std::endl;
   if (! fEPICSCumulativeData[tagindex].Filled) {
     //  No data for this run.
     tmp_row.target_position = "";
