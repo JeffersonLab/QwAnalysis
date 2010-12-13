@@ -8,6 +8,7 @@
 // To compile this code do a make.
 // To use the exe file from command prompt type:
 // ./promptsummary  runnumber  i stem
+//contact rakitha b (rakithab@jlab.org) for any information/updates
 
 
 
@@ -53,9 +54,16 @@ void FillMDParameters();
 void FillLUMIParameters();
 //Fit the histogram with a gaussian to obtain the mean and width
 void Fit_with_a_gaussian(TString histname, Double_t *container, Double_t factor=1);
+//Fit the diff histogram with a gaussian to obtain the mean and width
+void Fit_with_a_gaussian_diff(TString histname1,TString histname2, Double_t *container, Double_t factor=1);
+//Obtain the mean
 void Get_Mean(TString histname, Double_t &container, Double_t factor);
+//Obtain the mean for diff histo
+void Get_Mean_Diff(TString histname1,TString histname2, Double_t &container, Double_t factor);
 //To obtain a histo from set of runlets using TH::Add
 TH1F* GetHisto(TString histoname);
+//To obtain a histo of asymmetry difference for two devices  from set of runlets using TH::Add
+TH1F* GetDiffHisto(TString histoname1,TString histoname2);
 //////////////////////////////////////////////////////// 
 // the following values are needed for the comparison of the extracted
 // values with the golden values
@@ -271,7 +279,7 @@ TH1F* GetHisto(TString histoname){
 
   histo=(TH1F*)file_list.at(0)->Get(histoname);
   if (histo==NULL){
-    std::cerr<<"Histogram name does not exist in MPS \n";
+    std::cerr<<"Histogram "<<histoname<<" does not exist in the root file \n";
     return histo;
   }
 
@@ -282,6 +290,25 @@ TH1F* GetHisto(TString histoname){
   return histo;
 };
 
+//***************************************************
+//***************************************************
+//         Differnce of two histogram for given two devices
+// Parameter - Pass the two histogram names along with the directory ex. "mps_histo/qwk_bcm6_hw"        
+//***************************************************
+//***************************************************
+
+TH1F* GetDiffHisto(TString histoname1,TString histoname2){
+  TH1F* histo1=NULL;
+  TH1F* histo2=NULL;
+  
+  histo1= GetHisto(histoname1);
+  histo2= GetHisto(histoname2);
+  if (histo1!=NULL && histo2!=NULL){
+    histo1->Add((TH1F*)histo2,-1);
+  }
+
+  return histo1;
+};
 
 
 
@@ -309,7 +336,9 @@ void FillBeamParameters(){
     for (int i=0;i<10;i++)
       std::cout<<" NO beam detected ! \n";
   }
-
+  util.push_back("\n Beam Properties at the Target \n");
+  util.push_back(" ----------------------------- \n");
+  
   util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
   util.push_back("\n ........|(uA,mm,mrad)|    (ppm,nm,nrad)     | (ppm, nm, nrad) ");
 
@@ -360,6 +389,121 @@ void FillBeamParameters(){
   compare_to_golden_value("beam_energy_asymmetry", val[0], val[2]);
   compare_to_golden_value("beam_energy_asymmetry_width", val[1], val[3]);
   
+  //individual devices
+  //bcm 1,2,5,6
+  util.push_back("\n\n\n Beam Line Devices Summary \n");
+  util.push_back("---------------------------\n");
+  util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
+  util.push_back("\n ........|(uA,mm,mrad)|    (ppm,nm,nrad)     | (ppm, nm, nrad) ");
+
+  Get_Mean("hel_histo/yield_qwk_bcm1_hw",intensity,1);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_bcm1_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n bcm1  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bcm2_hw",intensity,1);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_bcm2_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n bcm2  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bcm5_hw",intensity,1);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_bcm5_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bcm6_hw",intensity,1);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_bcm6_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n bcm6  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3c12X_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12X_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n 3c12  x  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("x_beam_position", mean,0);
+  compare_to_golden_value("x_position_difference", val[0], val[2]);
+  compare_to_golden_value("x_position_difference_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3c12Y_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n 3c12  y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("y_beam_position", mean,0);
+  compare_to_golden_value("y_position_difference", val[0], val[2]);
+  compare_to_golden_value("y_position_difference_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3h04X_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04X_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n 3h04 x  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("x_beam_position", mean,0);
+  compare_to_golden_value("x_position_difference", val[0], val[2]);
+  compare_to_golden_value("x_position_difference_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3h04Y_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n  3h04 y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("y_beam_position", mean,0);
+  compare_to_golden_value("y_position_difference", val[0], val[2]);
+  compare_to_golden_value("y_position_difference_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3h09X_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09X_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n 3h09 x  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("x_beam_position", mean,0);
+  compare_to_golden_value("x_position_difference", val[0], val[2]);
+  compare_to_golden_value("x_position_difference_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3h09Y_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n 3h09 y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("y_beam_position", mean,0);
+  compare_to_golden_value("y_position_difference", val[0], val[2]);
+  compare_to_golden_value("y_position_difference_width", val[1], val[3]);
+
+  util.push_back("\n\n\n Beam Line Devices Double Differences Summary \n");
+  util.push_back("---------------------------------------------\n");
+  util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
+  util.push_back("\n ........|(uA,mm,mrad)|    (ppm,nm,nrad)     | (ppm, nm, nrad) ");
+
+  Get_Mean_Diff("hel_histo/yield_qwk_bcm1_hw","hel_histo/yield_qwk_bcm2_hw",intensity,1);
+  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_bcm1_hw","hel_histo/asym_qwk_bcm2_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n bcm1-bcm2  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+
+  Get_Mean_Diff("hel_histo/yield_qwk_bcm1_hw","hel_histo/yield_qwk_bcm5_hw",intensity,1);
+  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_bcm1_hw","hel_histo/asym_qwk_bcm5_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n bcm1-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+
+  Get_Mean_Diff("hel_histo/yield_qwk_bcm2_hw","hel_histo/yield_qwk_bcm5_hw",intensity,1);
+  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_bcm2_hw","hel_histo/asym_qwk_bcm5_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n bcm2-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+
+  Get_Mean_Diff("hel_histo/yield_qwk_bcm5_hw","hel_histo/yield_qwk_bcm6_hw",intensity,1);
+  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_bcm5_hw","hel_histo/asym_qwk_bcm6_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n bcm5-bcm6  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+
+  Get_Mean_Diff("hel_histo/yield_qwk_bpm3h09X_hw","hel_histo/yield_qwk_bpm3h04X_hw",mean,1.);
+  Fit_with_a_gaussian_diff("hel_histo/diff_qwk_bpm3h09X_hw","hel_histo/diff_qwk_bpm3h04X_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n (3h09-3h04) x  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("double_x_diff_position", mean,0);
+  compare_to_golden_value("double_x_difference", val[0], val[2]);
+  compare_to_golden_value("double_x_difference_width", val[1], val[3]);
+
+  Get_Mean_Diff("hel_histo/yield_qwk_bpm3h09Y_hw","hel_histo/yield_qwk_bpm3h04Y_hw",mean,1.);
+  Fit_with_a_gaussian_diff("hel_histo/diff_qwk_bpm3h09X_hw","hel_histo/diff_qwk_bpm3h04X_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n (3h09-3h04) y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("double_y_diff_position", mean,0);
+  compare_to_golden_value("double_y_difference", val[0], val[2]);
+  compare_to_golden_value("double_y_difference_width", val[1], val[3]);
 
 
   // halo rates
@@ -433,6 +577,80 @@ void FillMDParameters(){
     compare_to_golden_value(histname, val[1], val[3]);
   }
 
+  Get_Mean("hel_histo/yield_qwk_md1_qwk_md5_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_md1_qwk_md5_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n md1-5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_1-5", mean,0);
+  compare_to_golden_value("MD_1-5_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_1-5_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_md2_qwk_md6_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_md2_qwk_md6_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n md2-6  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_2-6", mean,0);
+  compare_to_golden_value("MD_2-6_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_2-6_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_md3_qwk_md7_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_md3_qwk_md7_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n md1-5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_3-7", mean,0);
+  compare_to_golden_value("MD_3-7_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_3-7_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_md4_qwk_md8_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_md4_qwk_md8_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n md1-5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_4-8", mean,0);
+  compare_to_golden_value("MD_4-8_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_4-8_width", val[1], val[3]);
+    
+  Get_Mean("hel_histo/yield_qwk_mdallbars_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_mdallbars_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n mdallbars  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_all", mean,0);
+  compare_to_golden_value("MD_all_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_all_width", val[1], val[3]);
+ 
+  Get_Mean("hel_histo/yield_qwk_mdevenbars_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_mdevenbars_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n mdevenbars  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_even", mean,0);
+  compare_to_golden_value("MD_even_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_even_width", val[1], val[3]);
+ 
+  Get_Mean("hel_histo/yield_qwk_mdoddbars_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_mdoddbars_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(Form("\n mdoddbars  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_odd", mean,0);
+  compare_to_golden_value("MD_odd_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_odd_width", val[1], val[3]);
+ 
+  util.push_back("\n\n\n Main Detector Double Differences Summary \n");
+  util.push_back("------------------------------------------\n");
+  util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
+  util.push_back("\n ........|(V/uA)      |       (ppm)          |    (ppm) ");
+
+  Get_Mean_Diff("hel_histo/yield_qwk_mdevenbars_hw","hel_histo/yield_qwk_mdoddbars_hw",mean,1.);
+  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_mdevenbars_hw","hel_histo/asym_qwk_mdoddbars_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n even-odd   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_all_diff", mean,0);
+  compare_to_golden_value("MD_all_diff_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_all_diff_width", val[1], val[3]);
+
+  Get_Mean_Diff("hel_histo/yield_qwk_md1_qwk_md5_hw","hel_histo/yield_qwk_md3_qwk_md7_hw",mean,1.);
+  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_md1_qwk_md5_hw","hel_histo/asym_qwk_md3_qwk_md7_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n md 1/5-3/7   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_2bar_diff", mean,0);
+  compare_to_golden_value("MD_2bar_diff_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_2bar_diff_width", val[1], val[3]);
+
+  Get_Mean_Diff("hel_histo/yield_qwk_md2_qwk_md6_hw","hel_histo/yield_qwk_md4_qwk_md8_hw",mean,1.);
+  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_md2_qwk_md6_hw","hel_histo/asym_qwk_md4_qwk_md8_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(Form("\n md 2/6-4/8   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("MD_2bar_diff", mean,0);
+  compare_to_golden_value("MD_2bar_diff_asymmetry", val[0], val[2]);
+  compare_to_golden_value("MD_2bar_diff_width", val[1], val[3]);
 
    for(size_t i=0;i<util.size();i++)
     results.push_back(util[i]);
@@ -616,6 +834,34 @@ void Fit_with_a_gaussian(TString histname, Double_t *container, Double_t factor)
   return;
 }
 
+void Fit_with_a_gaussian_diff(TString histname1,TString histname2, Double_t *container, Double_t factor){
+  TH1F* h = NULL;
+  h = GetDiffHisto(histname1,histname2);
+  if (h != NULL) {
+    if (NoFits){
+      *container=h->GetMean()*factor;
+      *(container+1)=h->GetRMS()*factor;
+      *(container+2)=h->GetMeanError()*factor;
+      *(container+3)=h->GetRMSError()*factor;
+    }else{
+      h->Fit("gaus","Q");
+      *container=h->GetFunction("gaus")->GetParameter(1)*factor; // mean
+      *(container+1)=h->GetFunction("gaus")->GetParameter(2)*factor; //width
+      *(container+2)=h->GetFunction("gaus")->GetParError(1)*factor;
+      *(container+3)=h->GetFunction("gaus")->GetParError(2)*factor;
+    delete h;
+    }
+  } else {
+    std::cout<<"Fit_with_a_gaussian Error: "<<histname1<<" - "<<histname2<<" Not found!"<<std::endl;
+    *container     = 0.0;
+    *(container+1) = 0.0;
+    *(container+2) = 0.0;
+    *(container+3) = 0.0;
+  }
+
+  return;  
+};
+
 //***************************************************
 //***************************************************
 //         Obtain the mean from a histogram              
@@ -636,6 +882,20 @@ void Get_Mean(TString histname, Double_t &container, Double_t factor)
   }
   return;
 }
+void Get_Mean_Diff(TString histname1,TString histname2, Double_t &container, Double_t factor){
+  TH1F* h = NULL;
+  h = GetDiffHisto(histname1,histname2); 
+  if (h != NULL) {
+//     cout<<histname<<" mean value is "<<h->GetMean()<<endl;
+//     cout<<histname<<" mean value is "<<h->GetEntries()<<endl;
+//     cout<<"the factor is "<<factor<<endl;
+    container=h->GetMean()*factor;
+    delete h;
+  } else {
+    container = 0.0;
+  }
+  return;  
+};
 
 //***************************************************
 //***************************************************
