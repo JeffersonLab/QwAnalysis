@@ -277,7 +277,7 @@ void  QwQPD::ProcessEvent()
   for(i=0;i<2;i++){
     numer[i].ClearEventData();
     tmp.ClearEventData();
-    tmp1.CilearEventData();
+    tmp1.ClearEventData();
     tmp2.ClearEventData();
     j = 1 - 2*i;
     tmp1 = fPhotodiode[1]; // 2
