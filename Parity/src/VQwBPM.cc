@@ -23,7 +23,7 @@ void  VQwBPM::InitializeChannel(TString name)
 
   for(i=0;i<2;i++)
     fAbsPos[i].InitializeChannel(name+axis[i],"derived");
-
+  
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
   
   for(i=0;i<3;i++) fPositionCenter[i] = 0.0;
@@ -59,17 +59,17 @@ void VQwBPM::GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t
   Bool_t ldebug = kFALSE;
 
   fQwStriplineCalibration = BSENfactor*18.81;
-   fRelativeGains[0]=AlphaX;
-   fRelativeGains[1]=AlphaY;
+  fRelativeGains[0]=AlphaX;
+  fRelativeGains[1]=AlphaY;
 
-   if(ldebug){
-     std::cout<<"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-     std::cout<<this->GetElementName();
-     std::cout<<"\nfQwStriplineCalibration = "<<fQwStriplineCalibration<<std::endl;
-     std::cout<<"AlphaX = "<<fRelativeGains[0]<<std::endl;
-     std::cout<<"AlphaY = "<<fRelativeGains[1]<<std::endl;
-
-   }
+  if(ldebug){
+    std::cout<<"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    std::cout<<this->GetElementName();
+    std::cout<<"\nfQwStriplineCalibration = "<<fQwStriplineCalibration<<std::endl;
+    std::cout<<"AlphaX = "<<fRelativeGains[0]<<std::endl;
+    std::cout<<"AlphaY = "<<fRelativeGains[1]<<std::endl;
+    
+  }
   return;
 };
 
@@ -198,4 +198,38 @@ void VQwBPM::SetRootSaveStatus(TString &prefix)
   return;
 }
 
+void VQwBPM::PrintValue() const
+{
+  Short_t i;
+  for (i = 0; i < 2; i++) fAbsPos[i].PrintValue();
+  fEffectiveCharge.PrintValue();
+    
+  return;
+};
 
+void VQwBPM::PrintInfo() const
+{
+  Short_t i = 0;
+  for (i = 0; i < 4; i++)  fAbsPos[i].PrintInfo();
+  fEffectiveCharge.PrintInfo();
+};
+
+
+void VQwBPM::CalculateRunningAverage()
+{
+  Short_t i = 0;
+  for (i = 0; i < 2; i++) fAbsPos[i].CalculateRunningAverage();
+  fEffectiveCharge.CalculateRunningAverage();
+
+  return;
+};
+
+
+void VQwBPM::AccumulateRunningSum(const VQwBPM& value)
+{
+  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
+  Short_t i = 0;
+  for (i = 0; i < 2; i++) fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
+  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
+  return;
+};

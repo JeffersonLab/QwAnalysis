@@ -1805,12 +1805,11 @@ void QwBeamLine::Scale(Double_t factor)
 void QwBeamLine::CalculateRunningAverage()
 {
   for (size_t i = 0; i < fStripline.size();    i++) fStripline[i].CalculateRunningAverage();
-  for (size_t i = 0; i < fCavity.size();    i++) fCavity[i].CalculateRunningAverage();
-  for(size_t i=0;i<fQPD.size();i++)         fQPD[i].CalculateRunningAverage();
-  for(size_t i=0;i<fLinearArray.size();i++) fLinearArray[i].CalculateRunningAverage();
-
+  for (size_t i = 0; i < fCavity.size();       i++) fCavity[i].CalculateRunningAverage();
+  for (size_t i = 0; i < fQPD.size();          i++) fQPD[i].CalculateRunningAverage();
+  for (size_t i = 0; i < fLinearArray.size();  i++) fLinearArray[i].CalculateRunningAverage();
   for (size_t i = 0; i < fBCM.size();          i++) fBCM[i].CalculateRunningAverage();
-  for(size_t i=0;i<fHaloMonitor.size();i++) fHaloMonitor[i].CalculateRunningAverage();
+  for (size_t i = 0; i < fHaloMonitor.size();  i++) fHaloMonitor[i].CalculateRunningAverage();
   for (size_t i = 0; i < fBCMCombo.size();     i++) fBCMCombo[i].CalculateRunningAverage();
   for (size_t i = 0; i < fBPMCombo.size();     i++) fBPMCombo[i].CalculateRunningAverage();
   for (size_t i = 0; i < fECalculator.size();  i++) fECalculator[i].CalculateRunningAverage();
@@ -1859,6 +1858,8 @@ void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
       fBPMCombo[i].AccumulateRunningSum(value->fBPMCombo[i]);
     for (size_t i = 0; i < fECalculator.size();  i++)
       fECalculator[i].AccumulateRunningSum(value->fECalculator[i]);
+    for (size_t i = 0; i < fQPD.size();  i++)
+      fQPD[i].AccumulateRunningSum(value->fQPD[i]);
   }
 };
 

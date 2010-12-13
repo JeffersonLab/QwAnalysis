@@ -95,7 +95,11 @@ class VQwBPM : public VQwDataElement {
     return const_cast<VQwBPM*>(this)->GetEffectiveCharge();
   };
 
-  
+  void PrintValue() const;
+  void PrintInfo() const;
+  void CalculateRunningAverage();
+  void AccumulateRunningSum(const VQwBPM& value);
+
 
   private:
 

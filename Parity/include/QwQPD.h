@@ -54,8 +54,6 @@ class QwQPD : public VQwBPM {
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
   void    ProcessEvent();
-  void    PrintValue() const;
-  void    PrintInfo() const;
 
   UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
@@ -85,8 +83,8 @@ class QwQPD : public VQwBPM {
   virtual QwQPD& operator+= (const QwQPD &value);
   virtual QwQPD& operator-= (const QwQPD &value);
 
-  void    AccumulateRunningSum(const QwQPD& value);
-  void    CalculateRunningAverage();
+ /*  void    AccumulateRunningSum(const QwQPD& value); */
+/*   void    CalculateRunningAverage(); */
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
   void    FillHistograms();
@@ -113,8 +111,6 @@ class QwQPD : public VQwBPM {
  protected:
   QwVQWK_Channel fPhotodiode[4];
   QwVQWK_Channel fRelPos[2];
-  QwVQWK_Channel fEffectiveCharge;
-
 
   std::vector<QwVQWK_Channel> fQPDElementList;
 
