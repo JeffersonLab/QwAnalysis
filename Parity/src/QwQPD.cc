@@ -281,26 +281,23 @@ void  QwQPD::ProcessEvent()
     std::cout<<" hw  TL ="<<fPhotodiode[3].GetHardwareSum()<<"\n\n";
   }
 
+  // X numerator
+  tmp1.ClearEventData();
+  tmp1.Difference(fPhotodiode[3],fPhotodiode[1]);  // 4-2
+  tmp2.ClearEventData();
+  tmp2.Difference(fPhotodiode[2],fPhotodiode[0]);  // 3-1
+  tmp.ClearEventData();
+  numer[0].Sum(tmp1,tmp2);
+
+  // Y numerator
+  tmp1.ClearEventData();
+  tmp1.Difference(fPhotodiode[3],fPhotodiode[2]);  // 4-3
+  tmp2.ClearEventData();
+  tmp2.Difference(fPhotodiode[1],fPhotodiode[0]);  // 2-1
+  tmp.ClearEventData();
+  numer[1].Sum(tmp1,tmp2);
+
   for(i=0;i<2;i++){
-    numer[i].ClearEventData();
-    tmp.ClearEventData();
-    tmp1.ClearEventData();
-    tmp2.ClearEventData();
-    tmp1 = fPhotodiode[1]; // 2
-    tmp2 = fPhotodiode[2]; // 3
-    j = 1 - 2*i;
-    tmp1.Scale(j); 
-    tmp2.Scale(j);
-
-    tmp.Sum(fPhotodiode[0],tmp1); // 1 + (-1)^i * 2
-    tmp1.ClearEventData();
-    tmp1 = tmp;
-    tmp.ClearEventData();
-    tmp.Sum(fPhotodiode[3],tmp2); // 4 + (-1)^i * 3
-    tmp2.ClearEventData();
-    tmp2 = tmp;
-
-    numer[i].Difference(tmp1,tmp2);  //[4 + (-1)^i * 3] - [ 1 + (-1)^i * 2]
     tmp.ClearEventData();
     tmp.Sum(fPhotodiode[0],fPhotodiode[1]);
     tmp1.ClearEventData();
