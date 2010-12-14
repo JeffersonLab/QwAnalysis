@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 /* Position calibration factor, transform ADC counts in mm*/
-const TString  QwQPD::subelement[4]={"TL","TR","BR","BL"};
+const TString  QwQPD::subelement[4]={"BR","TR","BL","TL"};
 
 void  QwQPD::InitializeChannel(TString name)
 {
@@ -258,20 +258,27 @@ void  QwQPD::ProcessEvent()
    
 
   /** The positions X and Y from a QPD are calculated using following equations,
-  
-          (1-2)+(3-4)                (1-3) + (2-4)
-      X = ------------           Y = -------------
-           1+2+3+4                     1+2+3+4
+
+ TL   ---------  TR
+     | 4  |  2 |
+      ---------
+ BL  | 3  |  1 | BR
+      ---------
+
+
+          (4-2) + (3-1)                (4-3) + (2-1)
+      X =  ------------           Y =  -------------
+             1+2+3+4                      1+2+3+4
   **/
 
   if(localdebug){
     std::cout<<"#############################\n";
     std::cout<<" QPD name = "<<fElementName<<std::endl;
     std::cout<<" event number = "<<fPhotodiode[0].GetSequenceNumber()<<"\n";
-    std::cout<<" hw  photodiode[0]="<<fPhotodiode[0].GetHardwareSum()<<"\n";
-    std::cout<<" hw  photodiode[1]="<<fPhotodiode[1].GetHardwareSum()<<"\n";
-    std::cout<<" hw  photodiode[2]="<<fPhotodiode[2].GetHardwareSum()<<"\n";
-    std::cout<<" hw  photodiode[3]="<<fPhotodiode[3].GetHardwareSum()<<"\n\n";
+    std::cout<<" hw  BR ="<<fPhotodiode[0].GetHardwareSum()<<"\n";
+    std::cout<<" hw  TR ="<<fPhotodiode[1].GetHardwareSum()<<"\n";
+    std::cout<<" hw  BL ="<<fPhotodiode[2].GetHardwareSum()<<"\n";
+    std::cout<<" hw  TL ="<<fPhotodiode[3].GetHardwareSum()<<"\n\n";
   }
 
   for(i=0;i<2;i++){
@@ -279,20 +286,22 @@ void  QwQPD::ProcessEvent()
     tmp.ClearEventData();
     tmp1.ClearEventData();
     tmp2.ClearEventData();
-    j = 1 - 2*i;
     tmp1 = fPhotodiode[1]; // 2
     tmp2 = fPhotodiode[2]; // 3
+    j = 1 - 2*i;
     tmp1.Scale(j); 
     tmp2.Scale(j);
 
-    tmp.Difference(fPhotodiode[0],tmp1); // 1 - (-1)^i 2
+    tmp.Sum(fPhotodiode[0],tmp1); // 1 + (-1)^i * 2
+    tmp1.ClearEventData();
     tmp1 = tmp;
     tmp.ClearEventData();
-    tmp.Difference(tmp2,fPhotodiode[3]); // (-1)^i 3 - 4
+    tmp.Sum(fPhotodiode[3],tmp2); // 4 + (-1)^i * 3
+    tmp2.ClearEventData();
     tmp2 = tmp;
-    tmp.ClearEventData();
 
-    numer[i].Sum(tmp1,tmp2);  //[1 - (-1)^i 2] + [(-1)^i 3 - 4]
+    numer[i].Difference(tmp1,tmp2);  //[4 + (-1)^i * 3] - [ 1 + (-1)^i * 2]
+    tmp.ClearEventData();
     tmp.Sum(fPhotodiode[0],fPhotodiode[1]);
     tmp1.ClearEventData();
     tmp1.Sum(fPhotodiode[2],fPhotodiode[3]);
