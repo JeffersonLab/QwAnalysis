@@ -462,41 +462,6 @@ void  QwHelicityPattern::CalculateAsymmetry()
 
 //*****************************************************************
 /**
- *Access published variables to obtain the charge asymmetry mean, error and width
- *
- */
-void QwHelicityPattern::GetTargetChargeStat(Double_t & asym, Double_t & error, Double_t & width){
-  fTargetCharge.InitializeChannel("q_targ","derived");
-  VQwDataElement *data_channel;
-  TString name="q_targ";
-  fRunningAsymmetry.CalculateRunningAverage();
-  data_channel=const_cast<VQwDataElement*>(fRunningAsymmetry.ReturnInternalValue(name));
-  //fRunningAsymmetry.ReturnInternalValue(name,&fTargetCharge);
-  if(fRunningAsymmetry.RequestExternalValue("q_targ", &fTargetCharge)){
-    fTargetCharge.PrintInfo();
-    QwError <<fTargetCharge.GetHardwareSum()<<"+-"<<(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))->GetHardwareSumError()<<QwLog::endl;
-  }
-  if (!data_channel){
-    QwError << " Could not get external value setting parameters to  " <<name <<QwLog::endl;
-    asym=-1;
-    error=-1;
-    width=-1;
-    return ;
-  }
-
-  //*(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))=*(dynamic_cast<QwVQWK_Channel*>(data_channel));
-  //fTargetCharge.PrintInfo();
-  
-  (dynamic_cast<QwVQWK_Channel*>(data_channel))->PrintInfo();
-  asym=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSum();
-  error=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumError();
-  width=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumM2();
-  
-  return;
-};
-
-//*****************************************************************
-/**
  * Clear event data and the vectors used for the calculation of.
  * yields and asymmetries.
  */

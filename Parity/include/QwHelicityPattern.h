@@ -166,10 +166,6 @@ class QwHelicityPattern{
 
   Bool_t fPatternIsGood;
 
-  QwBeamCharge   fTargetCharge;
-
-
-
 };
 
 
