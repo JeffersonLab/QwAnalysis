@@ -34,16 +34,20 @@
 //          0.0.8 : Monday, December  6 16:24:43 EST 2010, jhlee
 //                 - added GUI 
 //                 - prepared "submit" to HClog supported by Brad
-//
+//          0.0.9 : Tuesday, December 14 02:30:27 EST 2010
+//                 - activated submit Hclog button
+//                 - added "default" button
 // 
 // TO LIST
 //   * BPM offsets      -> fixed by Buddhini (0.0.7) QwAnalysis Rev 2272
 //   * BPMs X/Y along z -> done jhlee (0.0.7)
 //   * Calculated BPMs X/Y along z according to the beam optics
 //     under the midplane asymmetry. 
+//
 //   * One Frame with two buttons (Submit to HClog and Exit)
 //     may be Transient Frame? need to contact Brad how to submit HClog automatically
 //     (partly done 0.0.8)
+//     (done, 0.0.9)
 
 
 
@@ -72,13 +76,16 @@
 #include "TGTextEdit.h"
 #include "TGComboBox.h"
 #include "TGText.h" 
+#include "TObjArray.h"
 
 
 enum RasterMapIndentificator {
   RM_EXIT,
   RM_SUBMIT,
+  RM_DEFAULT,
   RM_CLEAR,
-  RM_USERNAME
+  RM_USERNAME,
+  RM_SUBJECT
 };
 
 class RasterMap : public TGMainFrame {
@@ -89,17 +96,25 @@ private:
   TCanvas           *fRasterMap1D;
 
   TGTextButton      *fSubmitButton;
+  TGTextButton      *fDefaultButton;
   TGTextButton      *fClearButton;
   TGTextButton      *fExitButton;
   TGTextEdit        *fCommentWindow;
   TGTextEntry       *fUserNameEntry;
+  TGTextEntry       *fSubjectEntry;
   TGLabel           *fUserNameLabel;
+  TGLabel           *fSubjecLabel;
 
   TString           filename;
   TString           output_dir;
   TString           image_name;
 
   Bool_t            file_output_flag;
+
+  TString           default_username;
+  TString           default_subject;
+
+  TString           TokenString(TString in, char* delim, Int_t interesting_token_num, Int_t interesting_token_id);
 
 public:
   RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name);
@@ -108,6 +123,7 @@ public:
   void Exit();
   void SubmitHClog();
   void ClearComment();
+  void DefaultComment();
   
   void raster();
 
@@ -127,48 +143,67 @@ RasterMap::RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name)
   TGHorizontalFrame *main_button_frame = new TGHorizontalFrame(this, w, ten_percent_height);
   AddFrame(main_button_frame, new TGLayoutHints(kLHintsBottom | kLHintsExpandX, 1,1,1,1));
    
-  fSubmitButton = new TGTextButton(main_button_frame, "Submit to HClog", RM_SUBMIT);
-  fClearButton  = new TGTextButton(main_button_frame, "Clear",           RM_CLEAR);
-  fExitButton   = new TGTextButton(main_button_frame, "Exit",            RM_EXIT);
+  fSubmitButton  = new TGTextButton(main_button_frame, "Submit to HClog", RM_SUBMIT);
+  fDefaultButton = new TGTextButton(main_button_frame, "Default",         RM_DEFAULT);
+  fClearButton   = new TGTextButton(main_button_frame, "Clear",           RM_CLEAR);
+  fExitButton    = new TGTextButton(main_button_frame, "Exit",            RM_EXIT);
    
-  fSubmitButton -> Connect("Clicked()", "RasterMap", this, "SubmitHClog()");
-  fClearButton  -> Connect("Clicked()", "RasterMap", this, "ClearComment()");
-  fExitButton   -> Connect("Clicked()", "RasterMap", this, "Exit()");
+  fSubmitButton  -> Connect("Clicked()", "RasterMap", this, "SubmitHClog()");
+  fDefaultButton -> Connect("Clicked()", "RasterMap", this, "DefaultComment()");
+  fClearButton   -> Connect("Clicked()", "RasterMap", this, "ClearComment()");
+  fExitButton    -> Connect("Clicked()", "RasterMap", this, "Exit()");
+
   //
-  // only cdaqlx, don't support old root version, jhlee
+  // only cdaqlx, don't support old root version 5.18
   //
-  fSubmitButton -> SetToolTipText("Submit the plots to HClog (Not working)");
-  fClearButton  -> SetToolTipText("Clear comments");
-  fExitButton   -> SetToolTipText("Bye!");
-  main_button_frame -> AddFrame(fSubmitButton, new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
-  main_button_frame -> AddFrame(fClearButton,  new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
-  main_button_frame -> AddFrame(fExitButton,   new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  fSubmitButton  -> SetToolTipText("Submit the plots to HClog");
+  fDefaultButton -> SetToolTipText("Use default");
+  fClearButton   -> SetToolTipText("Clear all");
+  fExitButton    -> SetToolTipText("Bye!");
+
+  main_button_frame -> AddFrame(fSubmitButton,  new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  main_button_frame -> AddFrame(fDefaultButton, new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  main_button_frame -> AddFrame(fClearButton,   new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  main_button_frame -> AddFrame(fExitButton,    new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
    
  
   TGHorizontalFrame  *h_frame = new TGHorizontalFrame(this);
   AddFrame(h_frame, new TGLayoutHints(kLHintsExpandX, 0,10,10,0));
    
+  default_username = "cdaq";
+
   fUserNameLabel = new TGLabel(h_frame, " User Name : ");
-  fUserNameEntry = new TGTextEntry(h_frame, "cdaq", RM_USERNAME);
+  fUserNameEntry = new TGTextEntry(h_frame, default_username, RM_USERNAME);
   //   fUserNameEntry -> SetToolTipText("");
-  h_frame -> AddFrame(fUserNameLabel, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+  h_frame -> AddFrame(fUserNameLabel, new TGLayoutHints(kLHintsLeft,10,20,4,0));
   h_frame -> AddFrame(fUserNameEntry, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
    
   fUserNameEntry -> Associate(this);
    
-  TGGroupFrame *comment_frame = new TGGroupFrame(this, "Comments");
-  AddFrame(comment_frame, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
+  TGHorizontalFrame  *h2_frame = new TGHorizontalFrame(this);
+  AddFrame(h2_frame, new TGLayoutHints(kLHintsExpandX, 0,10,10,0));
+
+  fSubjectLabel = new TGLabel(h2_frame, " Subject : ");
+  fSubjectEntry = new TGTextEntry(h2_frame, "Raster Map", RM_SUBJECT);
+  
+  h2_frame -> AddFrame(fSubjectLabel, new TGLayoutHints(kLHintsLeft,10,20,4,0));
+  h2_frame -> AddFrame(fSubjectEntry, new TGLayoutHints(kLHintsExpandX,0,0,0,0));
    
-  fCommentWindow = new TGTextEdit(comment_frame, w, 212);
+  fSubjectEntry -> Associate(this);
+
+  TGGroupFrame *comment_frame = new TGGroupFrame(this, "Body : ");
+  AddFrame(comment_frame, new TGLayoutHints(kLHintsExpandX,4,4,0,0));
+   
+  fCommentWindow = new TGTextEdit(comment_frame, w, 210);
   fCommentWindow -> Clear();
   fCommentWindow -> Resize();
-  comment_frame -> AddFrame(fCommentWindow, new TGLayoutHints(kLHintsExpandX|kLHintsCenterX,0,0,0,0));
+  comment_frame -> AddFrame(fCommentWindow, new TGLayoutHints(kLHintsExpandX|kLHintsCenterX,0,0,10,0));
    
   SetWindowName("Raster Map and BPMs Helper v0.1");
   MapSubwindows();
   Resize(GetDefaultSize());
   MapWindow();
-  Resize(600,300);
+  Resize(600,340);
   filename = name;
    
   raster();
@@ -176,32 +211,74 @@ RasterMap::RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name)
 
 RasterMap::~RasterMap()
 {
-  // Destructor.
-   
   Cleanup();
-}
+};
+
 
 
 void 
 RasterMap::Exit()
 {
-  
   gApplication->Terminate(0);
-}
+};
 
+
+TString
+RasterMap::TokenString(TString in, char* delim, Int_t interesting_token_num, Int_t interesting_token_id)
+{
+  Bool_t local_debug = false;
+  TString name;  
+  
+  TObjArray* Strings = in.Tokenize(delim); // break line into tokens
+  Int_t token_numbers = Strings->GetEntriesFast();
+  
+  if(token_numbers == interesting_token_num) {
+    TIter iString(Strings);
+    TObjString* os= NULL;
+    Int_t token_ids = 0;
+    while ((os=(TObjString*)iString())) {
+      if(token_ids == interesting_token_id) {
+	name = os->GetString();
+	break;
+      }
+      token_ids++;
+    }
+    delete Strings;
+    
+    if(local_debug) {
+      std::cout << " tokens #"
+		<< token_numbers
+		<< " " << in
+		<< " " << name
+		<< std::endl;
+    }
+  }
+  else {   
+    name.Clear(); // return empty string
+    if(local_debug) {
+      std::cout << "Token number is not in the possible token numbers" << std::endl;
+    }
+  }
+  return name;
+}
 
 void 
 RasterMap::SubmitHClog()
 {
   char* user_name_hclog;
+  char* subject_hclog;
   TString comments_hclog;
   
   TGTextBuffer *user_name_buffer = fUserNameEntry -> GetBuffer();  
+  TGTextBuffer *subject_buffer   = fSubjectEntry  -> GetBuffer();
   TGText  *comments_text         = fCommentWindow -> GetText();
   TString path_1D_png;
   TString path_2D_png;
 
+  TString hclog_post_string;
+ 
   user_name_hclog = Form("%s", user_name_buffer->GetString());
+  subject_hclog   = Form("%s", subject_buffer->GetString());
   comments_hclog  = comments_text -> AsString();
 
   if(file_output_flag) {
@@ -226,17 +303,59 @@ RasterMap::SubmitHClog()
   }
 
 
-  printf("User Name : %s\n", user_name_hclog);
-  printf("\n--------------------- Comments -------------------\n\n");
-  printf("%s", comments_hclog.Data());
-}
+  printf("\nUser Name : %s\n", user_name_hclog);
+  printf("Subject : %s\n", subject_hclog);
+  //  printf("\n--------------------- Comments -------------------\n\n");
+  //  printf("%s", comments_hclog.Data());
+
+
+  hclog_post_string = "hclog_post";
+  hclog_post_string += " ";
+  hclog_post_string += "--subject=\"";
+  hclog_post_string += subject_hclog;
+  hclog_post_string += "\" ";
+  hclog_post_string += "--author=\"";
+  hclog_post_string += user_name_hclog;
+  hclog_post_string += "\" ";
+  hclog_post_string += "--body=\"";
+  hclog_post_string += comments_hclog;
+  hclog_post_string += "\" ";
+  if(file_output_flag) {
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += path_1D_png;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += path_2D_png;
+    hclog_post_string += "\" ";
+  }
+
+  hclog_post_string += "--tag=\"\"";
+  //  hclog_post_string += "  --test";
+
+  std::cout << hclog_post_string << std::endl;
+
+  gSystem->Exec(hclog_post_string.Data());
+
+  //  hclog_post --subject="test" --author="cdaq" --body="test" --attachment=/home/cdaq/qweak/QwScratch/plots/qwick_825000-845000_7338.root.2D.png --attachment=/home/cdaq/qweak/QwScratch/plots/qwick_825000-845000_7338.root.1D.png --test
+};
 
 
 void 
 RasterMap::ClearComment()
 {
   fCommentWindow -> Clear();
-}
+  fSubjectEntry  -> Clear();
+  fUserNameEntry -> Clear();
+};
+
+
+void 
+RasterMap::DefaultComment()
+{
+  fCommentWindow -> Clear();
+  fSubjectEntry  -> SetText(default_subject);
+  fUserNameEntry -> SetText(default_username);
+};
 
 void
 RasterMap::raster()
@@ -278,6 +397,7 @@ RasterMap::raster()
   if(raster_rate_map-> GetEntries() != 0.0) {
     raster_rate_map -> Draw();
   }
+
   gPad->Update();
   
   pad2 -> cd();
@@ -648,13 +768,29 @@ RasterMap::raster()
   c12->Modified();
   c12->Update();
 
-}
+  char delimiters[] = "_.-";
+  TString run_number; run_number.Clear();
+  TString ev_range0; ev_range0.Clear();
+  TString ev_range1; ev_range1.Clear();
 
+  run_number = this->TokenString(filename, delimiters, 5, 3);  
+  ev_range0  = this->TokenString(filename, delimiters, 5, 1);
+  ev_range1  = this->TokenString(filename, delimiters, 5, 2);
+  // 5 total, 4th (0,1,2, 3)  [0,5)
+  //          3rd (0,1,   2)  
+  //          2nd (0,     1)
+
+  default_subject = Form("Raster Map and BPMs : Run %s, event range %s - %s", 
+				run_number.Data(), ev_range0.Data(), ev_range1.Data() 
+			 );
+  fSubjectEntry -> SetText(default_subject);
+
+};
 
 
 void raster(TString name="") 
 {
   new RasterMap(gClient->GetRoot(), 600,300, name);
-}
+};
 
 
