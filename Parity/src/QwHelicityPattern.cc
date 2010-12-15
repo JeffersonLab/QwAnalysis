@@ -15,6 +15,7 @@
 #include "QwHistogramHelper.h"
 #include "QwHelicity.h"
 #include "QwBlinder.h"
+#include "VQwDataElement.h"
 
 
 /*****************************************************************/
@@ -25,14 +26,17 @@
 void QwHelicityPattern::DefineOptions(QwOptions &options)
 {
   options.AddOptions("Helicity pattern")
-    ("enable-alternateasym", po::value<bool>()->default_value(false)->zero_tokens(),
-     "enable alternate asymmetries");
-  options.AddOptions("Helicity pattern")
     ("enable-burstsum", po::value<bool>()->default_value(false)->zero_tokens(),
      "enable burst sum calculation");
   options.AddOptions("Helicity pattern")
     ("enable-runningsum", po::value<bool>()->default_value(true)->zero_tokens(),
      "enable running sum calculation");
+  options.AddOptions("Helicity pattern")
+    ("enable-differences", po::value<bool>()->default_value(false)->zero_tokens(),
+     "store pattern differences in tree");
+  options.AddOptions("Helicity pattern")
+    ("enable-alternateasym", po::value<bool>()->default_value(false)->zero_tokens(),
+     "enable alternate asymmetries");
 
   QwBlinder::DefineOptions(options);
 }
@@ -42,8 +46,9 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 {
   fEnableBurstSum   = options.GetValue<bool>("enable-burstsum");
   fEnableRunningSum = options.GetValue<bool>("enable-runningsum");
-
+  fEnableDifference = options.GetValue<bool>("enable-differences");
   fEnableAlternateAsym = options.GetValue<bool>("enable-alternateasym");
+
   fBlinder.ProcessOptions(options);
 }
 
@@ -491,7 +496,6 @@ void QwHelicityPattern::ClearEventData()
   fAlternateDiff.ClearEventData();
 
   fPatternIsGood = kFALSE;
-  return;
 };
 
 //*****************************************************************
@@ -505,7 +509,7 @@ void  QwHelicityPattern::ClearRunningSum()
     fRunningYield.ClearEventData();
     fRunningDifference.ClearEventData();
     fRunningAsymmetry.ClearEventData();
-    // Running altnerate asymmetries
+    // Running alternate asymmetries
     if (fEnableAlternateAsym) {
       fRunningAsymmetry1.ClearEventData();
       fRunningAsymmetry2.ClearEventData();
@@ -655,49 +659,50 @@ void  QwHelicityPattern::PrintRunningAverage() const
 //*****************************************************************
 void  QwHelicityPattern::ConstructHistograms(TDirectory *folder)
 {
-  TString prefix="yield_";
+  TString prefix = "yield_";
   fYield.ConstructHistograms(folder,prefix);
-
-  prefix="asym_";
+  prefix = "asym_";
   fAsymmetry.ConstructHistograms(folder,prefix);
-  
+
+  if (fEnableDifference) {
+    prefix = "diff_";
+    fDifference.ConstructHistograms(folder,prefix);
+  }
   if (fEnableAlternateAsym) {
-    prefix="asym1_";
+    prefix = "asym1_";
     fAsymmetry1.ConstructHistograms(folder,prefix);
-    prefix="asym2_";
+    prefix = "asym2_";
     fAsymmetry2.ConstructHistograms(folder,prefix);
   }
-  return;
 }
 
 void  QwHelicityPattern::FillHistograms()
 {
-  if(fPatternIsGood)
-    {
-      fYield.FillHistograms();
-      fAsymmetry.FillHistograms();
-      if (fEnableAlternateAsym){
-        fAsymmetry1.FillHistograms();
-        fAsymmetry2.FillHistograms();
-      }
+  if (fPatternIsGood) {
+    fYield.FillHistograms();
+    fAsymmetry.FillHistograms();
+    if (fEnableDifference) {
+      fDifference.FillHistograms();
     }
-
-  return;
+    if (fEnableAlternateAsym){
+      fAsymmetry1.FillHistograms();
+      fAsymmetry2.FillHistograms();
+    }
+  }
 }
 
 void  QwHelicityPattern::DeleteHistograms()
 {
-  //std::cout<<"fYield.DeleteHistograms() "<<std::endl;
   fYield.DeleteHistograms();
-  //std::cout<<"fAsymmetry.DeleteHistograms()"<<std::endl;
   fAsymmetry.DeleteHistograms();
-  if (fEnableAlternateAsym){
-    //std::cout<<"fAsymmetry1.DeleteHistograms()"<<std::endl;
+
+  if (fEnableDifference) {
+    fDifference.DeleteHistograms();
+  }
+  if (fEnableAlternateAsym) {
     fAsymmetry1.DeleteHistograms();
-    //std::cout<<"fAsymmetry2.DeleteHistograms()"<<std::endl;
     fAsymmetry2.DeleteHistograms();
   }
-  return;
 }
 
 void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
@@ -706,47 +711,55 @@ void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, 
   fYield.ConstructBranchAndVector(tree, newprefix, values);
   newprefix = "asym_" + prefix;
   fAsymmetry.ConstructBranchAndVector(tree, newprefix, values);
-  if (fEnableAlternateAsym){
+
+  if (fEnableDifference) {
+    newprefix = "diff_" + prefix;
+    fDifference.ConstructBranchAndVector(tree, newprefix, values);
+  }
+  if (fEnableAlternateAsym) {
     newprefix = "asym1_" + prefix;
     fAsymmetry1.ConstructBranchAndVector(tree, newprefix, values);
     newprefix = "asym2_" + prefix;
     fAsymmetry2.ConstructBranchAndVector(tree, newprefix, values);
   }
-  return;
 }
 
 void QwHelicityPattern::ConstructBranch(TTree *tree, TString & prefix)
 {
-  TString yieldprefix = "yield_" + prefix;
-  fYield.ConstructBranch(tree, yieldprefix);
+  TString newprefix = "yield_" + prefix;
+  fYield.ConstructBranch(tree, newprefix);
+  newprefix = "asym_" + prefix;
+  fAsymmetry.ConstructBranch(tree, newprefix);
 
-  TString asymprefix = "asym_" + prefix;
-  fAsymmetry.ConstructBranch(tree, asymprefix);
-
-  if (fEnableAlternateAsym){
-    asymprefix = "asym1_" + prefix;
-    fAsymmetry1.ConstructBranch(tree, asymprefix);
-    asymprefix = "asym2_" + prefix;
-    fAsymmetry2.ConstructBranch(tree, asymprefix);
+  if (fEnableDifference) {
+    newprefix = "diff_" + prefix;
+    fDifference.ConstructBranch(tree, newprefix);
   }
-  return;
+  if (fEnableAlternateAsym) {
+    newprefix = "asym1_" + prefix;
+    fAsymmetry1.ConstructBranch(tree, newprefix);
+    newprefix = "asym2_" + prefix;
+    fAsymmetry2.ConstructBranch(tree, newprefix);
+  }
 }
 
 void QwHelicityPattern::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile &trim_tree)
 {
-  TString yieldprefix = "yield_" + prefix;
-  fYield.ConstructBranch(tree, yieldprefix, trim_tree);
+  TString newprefix = "yield_" + prefix;
+  fYield.ConstructBranch(tree, newprefix, trim_tree);
+  newprefix = "asym_" + prefix;
+  fAsymmetry.ConstructBranch(tree, newprefix, trim_tree);
 
-  TString asymprefix = "asym_" + prefix;
-  fAsymmetry.ConstructBranch(tree, asymprefix, trim_tree);
-
-  if (fEnableAlternateAsym){
-    asymprefix = "asym1_" + prefix;
-    fAsymmetry1.ConstructBranch(tree, asymprefix, trim_tree);
-    asymprefix = "asym2_" + prefix;
-    fAsymmetry2.ConstructBranch(tree, asymprefix, trim_tree);
+  if (fEnableDifference) {
+    newprefix = "diff_" + prefix;
+    fDifference.ConstructBranch(tree, newprefix);
   }
-  return;
+  if (fEnableAlternateAsym) {
+    newprefix = "asym1_" + prefix;
+    fAsymmetry1.ConstructBranch(tree, newprefix, trim_tree);
+    newprefix = "asym2_" + prefix;
+    fAsymmetry2.ConstructBranch(tree, newprefix, trim_tree);
+  }
 }
 
 void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
@@ -754,12 +767,14 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
   if (fPatternIsGood) {
     fYield.FillTreeVector(values);
     fAsymmetry.FillTreeVector(values);
-    if (fEnableAlternateAsym){
+    if (fEnableDifference) {
+      fDifference.FillTreeVector(values);
+    }
+    if (fEnableAlternateAsym) {
       fAsymmetry1.FillTreeVector(values);
       fAsymmetry2.FillTreeVector(values);
     }
   }
-  return;
 };
 
 
@@ -767,20 +782,22 @@ void QwHelicityPattern::FillDB(QwDatabase *db)
 {
   fRunningYield.FillDB(db, "yield");
   fRunningAsymmetry.FillDB(db, "asymmetry");
+  if (fEnableDifference) {
+    fDifference.FillDB(db, "difference");
+  }
   if (fEnableAlternateAsym) {
     fAsymmetry1.FillDB(db, "asymmetry1");
     fAsymmetry2.FillDB(db, "asymmetry2");
   }
-  return;
 };
 
 //*****************************************************************
 
 void QwHelicityPattern::Print() const
 {
-   std::cout<<"\n Pattern number ="<<fCurrentPatternNumber<<"\n";
-  for(size_t i=0; i< (size_t) fPatternSize; i++)
-    std::cout<<"event "<<fEventNumber[i]<<":"<<fEventLoaded[i]<<", "<<fHelicity[i]<<"\n";
-  std::cout<<"Is a complete pattern ?(n/y:0/1) "<<IsCompletePattern()<<"\n";
-
+  QwOut << "Pattern number = " << fCurrentPatternNumber << QwLog::endl;
+  for (Int_t i = 0; i < fPatternSize; i++)
+    QwOut << "Event " << fEventNumber[i] << ": "
+          << fEventLoaded[i] << ", " << fHelicity[i] << QwLog::endl;
+  QwOut << "Is a complete pattern? (n/y:0/1) " << IsCompletePattern() << QwLog::endl;
 }
