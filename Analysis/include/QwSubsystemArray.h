@@ -127,129 +127,31 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ProcessEvent();
 
 
-  /**
-   * Retrieve the variable name from other subsystem arrays
-   * @param name Variable name to be retrieved
-   * @param value (return) Data element with the variable name
-   * @return True if the variable is found, false if not found
-   */
-  const Bool_t RequestExternalValue(TString name, VQwDataElement* value) const {
-    //  If this has a parent, we should escalate the call to that object,
-    //  but so far we don't have that capability.
-    return ReturnInternalValue(name, value);
-  };
+ public:
 
-  /**
-   * Retrieve the variable name from subsystems in this subsystem array
-   * @param name Variable name to be retrieved
-   * @param value (return) Data element with the variable name
-   * @return True if the variable was found, false if not found
-   */
-  const VQwDataElement* ReturnInternalValue(const TString& name) const {
-    //  First try to find the value in the list of published values.
-    std::map<TString, const VQwDataElement*>::const_iterator iter1 =
-        fPublishedValuesDataElement.find(name);
-    if (iter1 != fPublishedValuesDataElement.end()) {
-      return iter1->second;
-    }
-    //  Second, ask the subsystem that has claimed the value
-    std::map<TString, const VQwSubsystem*>::const_iterator iter2 =
-        fPublishedValuesSubsystem.find(name);
-    if (iter2 != fPublishedValuesSubsystem.end()) {
-      return (iter2->second)->ReturnInternalValue(name);
-    }
-    //  If the value is not yet published, try asking all subsystems for it.
-    for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
-      return (*subsys)->ReturnInternalValue(name);
-    }
-    //  Not found
-    return 0;
-  };
+  /// \brief Retrieve the variable name from other subsystem arrays
+  Bool_t RequestExternalValue(const TString& name, VQwDataElement* value) const;
 
-  /**
-   * Retrieve the variable name from subsystems in this subsystem array
-   * @param name Variable name to be retrieved
-   * @param value (return) Data element with the variable name
-   * @return True if the variable was found, false if not found
-   */
-  Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const {
-    Bool_t foundit = kFALSE;
+  /// \brief Retrieve the variable name from subsystems in this subsystem array
+  const VQwDataElement* ReturnInternalValue(const TString& name) const;
 
-   //Debug lines 
-    //QwWarning <<" QwSubsystemArray::ReturnInternalValue1: "<<name<<" ";
-    // Check for null pointer
-    if (! value)
-      QwWarning << "QwSubsystemArray::ReturnInternalValue requires that "
-                << "'value' be a non-null pointer to a VQwDataElement."
-                << QwLog::endl;
-    //  Get a const pointer to the internal value
-    VQwDataElement* internal_value = const_cast<VQwDataElement*>(ReturnInternalValue(name));
-    
- 
-    if (value && internal_value && typeid(value) == typeid(internal_value)) { 
-      //Debug lines
-      //QwWarning <<" Found "<< QwLog::endl; 
-       *(dynamic_cast<QwVQWK_Channel*>(value))=*(dynamic_cast<QwVQWK_Channel*>(internal_value));
- 
-      foundit = kTRUE;
-    }else
-      QwWarning <<" !Not Found! "<< QwLog::endl;
-    
-    return foundit;
-  };
+  /// \brief Retrieve the variable name from subsystems in this subsystem array
+  Bool_t ReturnInternalValue(const TString& name, VQwDataElement* value) const;
 
-  /**
-   * Publish the value name with description from a subsystem in this array
-   * @param name Name of the variable
-   * @param desc Description of the variable
-   * @param subsys Subsystem that contains the variable
-   * @return True if the variable could be published, false if not published
-   */
+  /// \brief Publish the value name with description from a subsystem in this array
   Bool_t PublishInternalValue(
       const TString name,
       const TString desc,
       const VQwSubsystem* subsys,
-      const VQwDataElement* element) {
-    if (fPublishedValuesSubsystem.count(name) > 0) {
-      QwError << "Attempting to publish existing variable key!" << QwLog::endl;
-      ListPublishedValues();
-      return kFALSE;
-    }
-    fPublishedValuesSubsystem[name] = subsys;
-    fPublishedValuesDescription[name] = desc;
-    fPublishedValuesDataElement[name] = element;
-    return kTRUE;
-  };
+      const VQwDataElement* element);
 
-  /**
-   * List the published values and description in this subsystem array
-   */
-  void ListPublishedValues() const {
-    QwOut << "List of published values:" << QwLog::endl;
-    std::map<TString,TString>::const_iterator iter;
-    for (iter  = fPublishedValuesDescription.begin();
-         iter != fPublishedValuesDescription.end(); iter++) {
-      QwOut << iter->first << ": " << iter->second << QwLog::endl;
-    }
-  };
+  /// \brief List the published values and description in this subsystem array
+  void ListPublishedValues() const;
 
  private:
 
-  /**
-   * Retrieve the variable name from subsystems in this subsystem array
-   * @param name Variable name to be retrieved
-   * @return Data element with the variable name
-   */
-  VQwDataElement* ReturnInternalValueForFriends(const TString& name) const {
-    //  First try to find the value in the list of published values.
-    std::map<TString, const VQwDataElement*>::const_iterator iter =
-        fPublishedValuesDataElement.find(name);
-    if (iter != fPublishedValuesDataElement.end()) {
-      return const_cast<VQwDataElement*>(iter->second);
-    }
-    //  Not found
-    return 0;
-  };
+  /// \brief Retrieve the variable name from subsystems in this subsystem array
+  VQwDataElement* ReturnInternalValueForFriends(const TString& name) const;
 
   /// Published values
   std::map<TString, const VQwDataElement*> fPublishedValuesDataElement;
