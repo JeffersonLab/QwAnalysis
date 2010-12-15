@@ -8,10 +8,18 @@
 #ifndef __QwHELICITY__
 #define __QwHELICITY__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include "TTree.h"
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
+#include "QwWord.h"
+
+// Forward declarations
+class QwDatabase;
 
 enum HelicityRootSavingType{kHelSaveMPS = 0,
 			    kHelSavePattern,
@@ -19,40 +27,6 @@ enum HelicityRootSavingType{kHelSaveMPS = 0,
 // this emun vector needs to be coherent with the DetectorTypes declaration in the QwBeamLine constructor
 
 
-///
-/// \ingroup QwAnalysis_ADC
-///
-/// \ingroup QwAnalysis_BL
-class QwWord
-{
- public:
- QwWord():fSubbankIndex(-1),fWordInSubbank(-1),fModuleType(""),
-	  fWordName(""),fWordType(""),fValue(-1){};
-
-  Int_t fSubbankIndex;
-  Int_t fWordInSubbank;
-  TString fModuleType;
-  TString fWordName;
-  TString fWordType;
-  Int_t fValue;
-
-  void PrintID() const
-    {
-      std::cout<<fWordName<<" :: "<<fSubbankIndex<<" ; "
-	       <<fModuleType<<" ; "<<fWordType<<"\n";
-    }
-
-  void Print() const
-    {
-      std::cout<<fWordName<<" :: "<<fValue<<"\n";
-    }
-
-  void ClearEventData()
-    {
-      fValue=-1;
-    }
-
-};
 
 /*****************************************************************
 *  Class:

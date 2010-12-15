@@ -14,12 +14,17 @@
 #ifndef __QwBEAMMOD__
 #define __QwBEAMMOD__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include "TTree.h"
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
-#include <QwVQWK_Channel.h>
-#include "QwHelicity.h"
+#include "QwVQWK_Channel.h"
+#include "QwWord.h"
+
 
 //enum EBeamInstrumentType{kBPMStripline = 0,
 //			 kBCM,
@@ -106,8 +111,8 @@ class QwBeamMod: public VQwSubsystemParity{
 
 
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
-  void  ConstructBranch(TTree *tree, TString& prefix) { };
-  void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
+  void ConstructBranch(TTree *tree, TString& prefix) { };
+  void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
   void FillTreeVector(std::vector<Double_t> &values) const;
   void FillDB(QwDatabase *db, TString datatype);
 
