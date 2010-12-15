@@ -160,7 +160,10 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator*= (const Double_t &value)
 MQwSIS3320_Samples& MQwSIS3320_Samples::operator/= (const Double_t &value)
 {
   for (size_t i = 0; i < fSamples.size(); i++)
-    this->fSamples.at(i) /= value;
+    if (value != 0.0)
+      this->fSamples.at(i) /= value;
+    else
+      this->fSamples.at(i) = 0.0;
   return *this;
 };
 
@@ -248,23 +251,3 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator-= (const MQwSIS3320_Samples &va
     this->fSamples.at(i) -= value.fSamples.at(i);
   return *this;
 };
-
-
-void MQwSIS3320_Samples::Sum(const MQwSIS3320_Samples &value1, const MQwSIS3320_Samples &value2)
-{
-  *this  = value1;
-  *this += value2;
-}
-
-
-void MQwSIS3320_Samples::Difference(const MQwSIS3320_Samples &value1, const MQwSIS3320_Samples &value2)
-{
-  *this  = value1;
-  *this -= value2;
-}
-
-
-void MQwSIS3320_Samples::Ratio(const MQwSIS3320_Samples &numer, const MQwSIS3320_Samples &denom)
-{
-  // ?!?
-}
