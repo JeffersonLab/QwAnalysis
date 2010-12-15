@@ -15,6 +15,7 @@
 
 // Qweak headers
 #include "QwHistogramHelper.h"
+#include "QwDatabase.h"
 #include "QwLog.h"
 
 // Register this subsystem with the factory
@@ -921,14 +922,13 @@ void QwHelicity::SetFirstBits(UInt_t nbits, UInt_t seed)
 void QwHelicity::SetHistoTreeSave(const TString &prefix)
 {
   Ssiz_t len;
-  if (TRegexp("asym[1-9]*_").Index(prefix,&len) == 0)
+  if (prefix == "diff_"
+   || TRegexp("asym[1-9]*_").Index(prefix,&len) == 0)
     fHistoType = kHelNoSave;
   else if (prefix == "yield_")
     fHistoType = kHelSavePattern;
   else
     fHistoType = kHelSaveMPS;
-
-  return;
 };
 
 void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
