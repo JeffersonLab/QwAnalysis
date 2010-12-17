@@ -22,16 +22,20 @@
 #include <fstream>
 #include <new>
 #include <TF1.h>
+#include <TF2.h>
+#include <TCut.h>
 #include <Rtypes.h>
 #include <TROOT.h>
 #include <TFile.h>
 #include <TChain.h>
+#include <TChainElement.h>
 #include <TString.h>
 #include <TDatime.h>
 #include <stdexcept>
 #include <time.h>
 #include <cstdio>
 #include <TMath.h>
+#include <TDirectory.h>
 
 #include <cstdlib>
 TTree *nt;
@@ -39,13 +43,11 @@ TTree *nt;
 TString CanvasTitle;
 TString get;
 
-TTree *t_mps;
-TTree *t_hel;
-
+TChain tree_chain("Hel_Tree");
 
 
 Bool_t comparisonon=kFALSE;//kTRUE;  //this should be truned on in order to compare to golden values from the reference file
-
+Bool_t expertmode = kTRUE;//kFALSE;//kTRUE;//plots generated from the tree
 Int_t Read_ref_file(TString name_of_ref_file);
 void compare_to_golden_value(TString valuetocompareto, Double_t valuet, Double_t precision=0);
 
@@ -58,12 +60,24 @@ void Fit_with_a_gaussian(TString histname, Double_t *container, Double_t factor=
 void Fit_with_a_gaussian_diff(TString histname1,TString histname2, Double_t *container, Double_t factor=1);
 //Obtain the mean
 void Get_Mean(TString histname, Double_t &container, Double_t factor);
+//Obtain the mean from the tree
+void Get_Tree_Mean(TString device_expression, Double_t &container, Double_t factor);
+//Fit the histogram obtained from the tree  with a gaussian to obtain the mean and width
+void Get_Tree_Mean_Fit_gaus(TString histname, Double_t *container, Double_t factor=1);
+
 //Obtain the mean for diff histo
 void Get_Mean_Diff(TString histname1,TString histname2, Double_t &container, Double_t factor);
 //To obtain a histo from set of runlets using TH::Add
 TH1F* GetHisto(TString histoname);
 //To obtain a histo of asymmetry difference for two devices  from set of runlets using TH::Add
 TH1F* GetDiffHisto(TString histoname1,TString histoname2);
+//To obtain a 1D histogram from helicity tree
+TH1F* Get1DHisto(const TString name, const TCut cut, Option_t* option="goff");
+//To obtain a 2D histogram from helicity tree
+TH2F* Get2DHisto(const TString name, const TCut cut, Option_t* option="goff");
+//Load the tree
+Int_t  GetTree(TString filename, TChain* chain);
+
 //////////////////////////////////////////////////////// 
 // the following values are needed for the comparison of the extracted
 // values with the golden values
@@ -85,6 +99,7 @@ Int_t total_bad;
 Bool_t verbose;
 //vectors to store TDirecotry from each runlet
 std::vector<TFile*> file_list;//List of TFile  to access histograms
+#include <TF1.h>
 
 Bool_t NoFits=kTRUE;
 
@@ -96,10 +111,6 @@ int main(Int_t argc,Char_t* argv[])
   TString s_argc;
   TString rootfile_stem="Qweak_";
   TFile *f;
-  TChain *chain_Mps_Tree=NULL;
-  TChain *chain_Hel_Tree=NULL;
-  TTree* mps_tree;
-  TTree* hel_tree;
   Int_t outputformat=0;
   Int_t noofrunlets;
 
@@ -137,7 +148,7 @@ int main(Int_t argc,Char_t* argv[])
       }
       outputformat=atoi(argv[2]);
       if (argc >= 4){
-	s_argc=argv[3];//reads the root file stem
+	s_argc=argv[3];//reads the root file stemTChain * tree_chain;
 	rootfile_stem=s_argc;
       }
       
@@ -150,11 +161,19 @@ int main(Int_t argc,Char_t* argv[])
   TString rootfilename;
   Int_t foundfile = 0;
   TString runlet="";
+  Int_t chain_status = 0;
   rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+".root";
   filenames.clear(); 
   if((f = new TFile(rootfilename.Data(),"READ"))!=NULL &&!(f->IsZombie()) &&(f->IsOpen())){
     foundfile = 1;//found regular root file (No runlets)
     filenames.push_back(rootfilename);
+    if (expertmode){
+      chain_status = GetTree(Form("%s%s.root",rootfile_stem.Data(),runnum.Data()), &tree_chain);
+      if(chain_status == 0) {
+	expertmode=kFALSE;
+	std::cerr<<" Failed to access the tree \n";
+      }
+    }
   }
   
   if (foundfile==0){//looking for runlet based root files
@@ -163,17 +182,19 @@ int main(Int_t argc,Char_t* argv[])
       noofrunlets=0;
       runlet.Form("%03d",noofrunlets);
       rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+"."+runlet+".root";
-      //      std::cout<<rootfilename<<std::endl;
+      if (expertmode){
+	chain_status = GetTree(Form("%s%s*.root",rootfile_stem.Data(),runnum.Data()), &tree_chain);
+	if(chain_status == 0) {
+	  expertmode=kFALSE;
+	  std::cerr<<" Failed to access the tree \n";
+	}
+      }
 
-      chain_Mps_Tree = new  TChain("Mps_Tree");
-      chain_Hel_Tree = new  TChain("Hel_Tree");
       while ((f = new TFile(rootfilename.Data(),"READ"))!=NULL &&!(f->IsZombie()) &&(f->IsOpen())){
 	std::cout<<rootfilename<<std::endl;
 	file_list.push_back(f);
 	filenames.push_back(rootfilename);
 	f=NULL;//reset the root file
-	chain_Mps_Tree->Add(rootfilename);
-	chain_Hel_Tree->Add(rootfilename);
 	noofrunlets++;
 	runlet.Form("%03d",noofrunlets);
 	rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+"."+runlet+".root";
@@ -188,8 +209,6 @@ int main(Int_t argc,Char_t* argv[])
   }
     
   if (foundfile == 1){//regular root file found
-    //mps_tree=(TTree*)f->Get("Mps_Tree");
-    //hel_tree=(TTree*)f->Get("Hel_Tree");
     file_list.push_back(f);//add the regular file to the file-list vector
   }else if (foundfile == 2){//In runlet mode. We need to create the TChain
     std::cout<<" found  "<<noofrunlets<<" runlets "<<std::endl;
@@ -235,7 +254,11 @@ int main(Int_t argc,Char_t* argv[])
   FillMDParameters();
   FillLUMIParameters();
 
-
+  results.push_back("\n \n ======== END of SUMMARY======== \n");
+  if (expertmode)
+    results.push_back("\n Expert mode is ON. \n");
+  else
+    results.push_back("\n No information from the tree. Expert mode is OFF. \n");
   
  if(outputformat==1)
     {
@@ -247,6 +270,7 @@ int main(Int_t argc,Char_t* argv[])
       for(size_t i=0;i<results.size();i++)
 	output<<results[i];
       output<<"\n ======== END ======== \n";
+      output<<"\n Please contact Rakitha Beminiwattha for any queries and suggestions \n rakithab@jlab.org \n\n";
       output.close();
     }
   else if(outputformat==0)
@@ -256,6 +280,7 @@ int main(Int_t argc,Char_t* argv[])
       for(size_t i=0;i<results.size();i++)
 	std::cout<<results[i];
       std::cout<<"\n ======== END ======== \n";
+      std::cout<<"\n Please contact Rakitha Beminiwattha for any queries and suggestions \n rakithab@jlab.org \n\n";
       std::cout<<std::endl<<std::endl;
     }
   else
@@ -274,6 +299,7 @@ int main(Int_t argc,Char_t* argv[])
 
 TH1F* GetHisto(TString histoname){
   TH1F* histo=NULL;
+  TH1F* histo_tmp=NULL;
   if (file_list.size()==0)
     return histo;
 
@@ -284,7 +310,12 @@ TH1F* GetHisto(TString histoname){
   }
 
   for(UInt_t i=1; i<file_list.size();i++){
-    histo->Add((TH1F*)file_list.at(i)->Get(histoname),1);//this=this+histo*c1 where c1=1
+    histo_tmp=(TH1F*)file_list.at(i)->Get(histoname);
+    if (histo_tmp!=NULL)
+      histo->Add(histo_tmp,1);//this=this+histo*c1 where c1=1
+    //else
+    //std::cerr<<"Histogram "<<histoname<<" does not exist in the runlet "<<i<<" \n";
+
   }
   
   return histo;
@@ -310,6 +341,83 @@ TH1F* GetDiffHisto(TString histoname1,TString histoname2){
   return histo1;
 };
 
+//***************************************************
+//***************************************************
+//         Get 1D histogram for the helicity tree   
+// Parameter - Pass the histogram name, cut and draw options
+//***************************************************
+//***************************************************
+
+TH1F* Get1DHisto(const TString name, const TCut cut, Option_t* option){
+  tree_chain.Draw(Form("(%s)>>temp",name.Data()), cut, option);
+  TH1F* temp;
+  temp = (TH1F*)  gDirectory -> Get("temp");
+  if(!temp) {
+    return 0;
+  }
+  return temp;  
+};
+//***************************************************
+//***************************************************
+//         Get 2D histogram for the helicity tree   
+// Parameter - Pass the histogram name, cut and draw options
+//***************************************************
+//***************************************************
+TH2F* Get2DHisto(const TString name, const TCut cut, Option_t* option){
+  TH2F* temp;
+  tree_chain.Draw(Form("(%s)>>temp",name.Data()), cut, option);
+  temp = (TH2F*)  gDirectory -> Get("temp");
+  if(!temp) {
+    return 0;
+  }
+  return temp;  
+};
+
+//***************************************************
+//***************************************************
+//         Load the tree for given file name
+// Parameter - Pass the file name and pointer to the TChain
+//***************************************************
+//***************************************************
+Int_t  GetTree(TString filename, TChain* chain){
+  TString file_dir;
+  Int_t   chain_status = 0;
+
+  file_dir = TString(getenv("QW_ROOTFILES"));
+  if (!file_dir) 
+    file_dir = "/home/cdaq/qweak/QwScratch/rootfiles";
+
+  //std::cout<<Form("%s/%s", file_dir.Data(), filename.Data())<<std::endl;
+
+ 
+  chain_status = chain->Add(Form("%s/%s", file_dir.Data(), filename.Data()));
+  
+  if(chain_status) {
+    
+    TString chain_name = chain -> GetName();
+    TObjArray *fileElements = chain->GetListOfFiles();
+    TIter next(fileElements);
+    TChainElement *chain_element = NULL;
+    while (( chain_element=(TChainElement*)next() )) 
+      {
+	std::cout << "File:  " 
+		  << chain_element->GetTitle() 
+		  << " is added into the Chain with the name ("
+		  << chain_name
+		  << ")."
+		  << std::endl;
+      }
+  }
+  else {
+    std::cout << "There is (are) no "
+	      << filename 
+	      << "."
+	      << std::endl;
+  }
+  return chain_status;
+};
+
+
 
 
 //***************************************************
@@ -329,10 +437,10 @@ void FillBeamParameters(){
   util.push_back("--------------- \n \n");
 
   Get_Mean("hel_histo/yield_qwk_charge_hw",intensity,1);
-
-
-  if(intensity==0){
-    util.push_back(" Beam current is zero \n Therefore then summary is not going to make much sense ");
+  
+  
+  if(intensity<0){
+    util.push_back(" Beam current appears to be zero \n Therefore the summary is not going to make much sense ");
     for (int i=0;i<10;i++)
       std::cout<<" NO beam detected ! \n";
   }
@@ -340,7 +448,7 @@ void FillBeamParameters(){
   util.push_back(" ----------------------------- \n");
   
   util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
-  util.push_back("\n ........|(uA,mm,mrad)|    (ppm,nm,nrad)     | (ppm, nm, nrad) ");
+  util.push_back("\n ........|(uA,mm,mrad)|    (ppm,mm,rad)     | (ppm, mm, rad) ");
 
   Double_t mean;
   Double_t val[4];
@@ -353,21 +461,21 @@ void FillBeamParameters(){
   //Beam on target positions
   Get_Mean("hel_histo/yield_qwk_targetX_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetX_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(Form("\n x targ  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  util.push_back(Form("\n x targ  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_targetY_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetY_hw",val,1.e+6);
-  util.push_back(Form("\n y targ  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  util.push_back(Form("\n y targ  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_targetXSlope_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetXSlope_hw",val,1.000);
-  util.push_back(Form("\n Angle x    |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  util.push_back(Form("\n Angle x    |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("x_beam_angle", mean,0);
   compare_to_golden_value("x_angle_difference", val[0], val[2]);
   compare_to_golden_value("x_angle_difference_width", val[1], val[3]);
@@ -375,8 +483,8 @@ void FillBeamParameters(){
 
   Get_Mean("hel_histo/yield_qwk_targetYSlope_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_targetYSlope_hw",val,1.000);
-  util.push_back(Form("\n Angle y    |   %5.1f    | %7.1f +/- %7.1f  | %7.1f +/- %7.1f ",TMath::ATan(mean),val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("y_beam_angle", TMath::ATan(mean),0);
+  util.push_back(Form("\n Angle y    |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
+  compare_to_golden_value("y_beam_angle", mean,0);
   compare_to_golden_value("y_angle_difference", val[0], val[2]);
   compare_to_golden_value("y_angle_difference_width", val[1], val[3]);
   util.push_back("\n Note: Angles are in radians while angle differences are still presented in gradient differences /n");
@@ -384,7 +492,7 @@ void FillBeamParameters(){
   
   Get_Mean("hel_histo/yield_qwk_energy_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/asym_qwk_energy_hw",val,1.e+6);
-  util.push_back(Form("\n Energy (dP/P)  |   %5.1f    | %7.1f +/- %7.1f  | %7.1f +/- %7.1f ",mean,val[0],val[2],val[1],val[3]));
+  util.push_back(Form("\n Energy (dP/P)  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("beam_energy", mean,0);
   compare_to_golden_value("beam_energy_asymmetry", val[0], val[2]);
   compare_to_golden_value("beam_energy_asymmetry_width", val[1], val[3]);
@@ -394,7 +502,7 @@ void FillBeamParameters(){
   util.push_back("\n\n\n Beam Line Devices Summary \n");
   util.push_back("---------------------------\n");
   util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
-  util.push_back("\n ........|(uA,mm,mrad)|    (ppm,nm,nrad)     | (ppm, nm, nrad) ");
+  util.push_back("\n ........|(uA,mm,mrad)|    (ppm,mm,rad)     | (ppm, mm, rad) ");
 
   Get_Mean("hel_histo/yield_qwk_bcm1_hw",intensity,1);
   Fit_with_a_gaussian("hel_histo/asym_qwk_bcm1_hw",val,1.e+6);//factor 1e+6 to convert to ppm
@@ -421,89 +529,93 @@ void FillBeamParameters(){
   compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3c12X_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12X_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(Form("\n 3c12  x  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12X_hw",val,1);
+  util.push_back(Form("\n 3c12  x  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3c12Y_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(Form("\n 3c12  y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12Y_hw",val,1);
+  util.push_back(Form("\n 3c12  y  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h04X_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04X_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(Form("\n 3h04 x  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04X_hw",val,1);
+  util.push_back(Form("\n 3h04 x  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h04Y_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(Form("\n  3h04 y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04Y_hw",val,1);
+  util.push_back(Form("\n  3h04 y  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h09X_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09X_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(Form("\n 3h09 x  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09X_hw",val,1);
+  util.push_back(Form("\n 3h09 x  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h09Y_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(Form("\n 3h09 y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09Y_hw",val,1);
+  util.push_back(Form("\n 3h09 y  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
 
-  util.push_back("\n\n\n Beam Line Devices Double Differences Summary \n");
-  util.push_back("---------------------------------------------\n");
-  util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
-  util.push_back("\n ........|(uA,mm,mrad)|    (ppm,nm,nrad)     | (ppm, nm, nrad) ");
+   if (expertmode){
 
-  Get_Mean_Diff("hel_histo/yield_qwk_bcm1_hw","hel_histo/yield_qwk_bcm2_hw",intensity,1);
-  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_bcm1_hw","hel_histo/asym_qwk_bcm2_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  util.push_back(Form("\n bcm1-bcm2  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
-  compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+     util.push_back("\n\n\n Beam Line Devices Double Differences Summary \n");
+     util.push_back("---------------------------------------------\n");
+     util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
+     util.push_back("\n ........|(uA,mm,mrad)|    (ppm,mm,rad)     | (ppm, mm, rad) ");
 
-  Get_Mean_Diff("hel_histo/yield_qwk_bcm1_hw","hel_histo/yield_qwk_bcm5_hw",intensity,1);
-  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_bcm1_hw","hel_histo/asym_qwk_bcm5_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  util.push_back(Form("\n bcm1-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
-  compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+     Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bcm2.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bcm2.hw_sum)",val,1.e+6);
+     util.push_back(Form("\n bcm1-bcm2  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
-  Get_Mean_Diff("hel_histo/yield_qwk_bcm2_hw","hel_histo/yield_qwk_bcm5_hw",intensity,1);
-  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_bcm2_hw","hel_histo/asym_qwk_bcm5_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  util.push_back(Form("\n bcm2-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
-  compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+     Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bcm5.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bcm5.hw_sum)",val,1.e+6);
+     util.push_back(Form("\n bcm1-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
-  Get_Mean_Diff("hel_histo/yield_qwk_bcm5_hw","hel_histo/yield_qwk_bcm6_hw",intensity,1);
-  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_bcm5_hw","hel_histo/asym_qwk_bcm6_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  util.push_back(Form("\n bcm5-bcm6  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
-  compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+     Get_Tree_Mean("(yield_qwk_bcm2.hw_sum-yield_qwk_bcm5.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm2.hw_sum-asym_qwk_bcm5.hw_sum)",val,1.e+6);
+     util.push_back(Form("\n bcm2-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
-  Get_Mean_Diff("hel_histo/yield_qwk_bpm3h09X_hw","hel_histo/yield_qwk_bpm3h04X_hw",mean,1.);
-  Fit_with_a_gaussian_diff("hel_histo/diff_qwk_bpm3h09X_hw","hel_histo/diff_qwk_bpm3h04X_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(Form("\n (3h09-3h04) x  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("double_x_diff_position", mean,0);
-  compare_to_golden_value("double_x_difference", val[0], val[2]);
-  compare_to_golden_value("double_x_difference_width", val[1], val[3]);
+     Get_Tree_Mean("(yield_qwk_bcm5.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm5.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
+     util.push_back(Form("\n bcm5-bcm6  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
-  Get_Mean_Diff("hel_histo/yield_qwk_bpm3h09Y_hw","hel_histo/yield_qwk_bpm3h04Y_hw",mean,1.);
-  Fit_with_a_gaussian_diff("hel_histo/diff_qwk_bpm3h09X_hw","hel_histo/diff_qwk_bpm3h04X_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(Form("\n (3h09-3h04) y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("double_y_diff_position", mean,0);
-  compare_to_golden_value("double_y_difference", val[0], val[2]);
-  compare_to_golden_value("double_y_difference_width", val[1], val[3]);
+     Get_Tree_Mean("(yield_qwk_bpm3h09X.hw_sum-yield_qwk_bpm3h04X.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09X.hw_sum-diff_qwk_bpm3h04X.hw_sum)",val,1.e+6);
+     util.push_back(Form("\n (3h09-3h04) x  |   %3.6f    | %3.6f +/- %3.6f  | %3.2f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
+     compare_to_golden_value("double_x_diff_position", mean,0);
+     compare_to_golden_value("double_x_difference", val[0], val[2]);
+     compare_to_golden_value("double_x_difference_width", val[1], val[3]);
+
+     Get_Tree_Mean("(yield_qwk_bpm3h09Y.hw_sum-yield_qwk_bpm3h04Y.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09Y.hw_sum-diff_qwk_bpm3h04Y.hw_sum)",val,1.e+6);
+     util.push_back(Form("\n (3h09-3h04) y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+     compare_to_golden_value("double_y_diff_position", mean,0);
+     compare_to_golden_value("double_y_difference", val[0], val[2]);
+     compare_to_golden_value("double_y_difference_width", val[1], val[3]);
+
+   }//end of expert mode
 
 
   // halo rates
@@ -625,33 +737,35 @@ void FillMDParameters(){
   compare_to_golden_value("MD_odd", mean,0);
   compare_to_golden_value("MD_odd_asymmetry", val[0], val[2]);
   compare_to_golden_value("MD_odd_width", val[1], val[3]);
+
+  if (expertmode){
  
-  util.push_back("\n\n\n Main Detector Double Differences Summary \n");
-  util.push_back("------------------------------------------\n");
-  util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
-  util.push_back("\n ........|(V/uA)      |       (ppm)          |    (ppm) ");
+    util.push_back("\n\n\n Main Detector Double Differences Summary \n");
+    util.push_back("------------------------------------------\n");
+    util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
+    util.push_back("\n ........|(V/uA)      |       (ppm)          |    (ppm) ");
 
-  Get_Mean_Diff("hel_histo/yield_qwk_mdevenbars_hw","hel_histo/yield_qwk_mdoddbars_hw",mean,1.);
-  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_mdevenbars_hw","hel_histo/asym_qwk_mdoddbars_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  util.push_back(Form("\n even-odd   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("MD_all_diff", mean,0);
-  compare_to_golden_value("MD_all_diff_asymmetry", val[0], val[2]);
-  compare_to_golden_value("MD_all_diff_width", val[1], val[3]);
+    Get_Tree_Mean("(yield_qwk_mdevenbars.hw_sum-yield_qwk_mdoddbars.hw_sum)",intensity,1);
+    Get_Tree_Mean_Fit_gaus("(asym_qwk_mdevenbars.hw_sum-asym_qwk_mdoddbars.hw_sum)",val,1.e+6);
+    util.push_back(Form("\n even-odd   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+    compare_to_golden_value("MD_all_diff", mean,0);
+    compare_to_golden_value("MD_all_diff_asymmetry", val[0], val[2]);
+    compare_to_golden_value("MD_all_diff_width", val[1], val[3]);
 
-  Get_Mean_Diff("hel_histo/yield_qwk_md1_qwk_md5_hw","hel_histo/yield_qwk_md3_qwk_md7_hw",mean,1.);
-  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_md1_qwk_md5_hw","hel_histo/asym_qwk_md3_qwk_md7_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  util.push_back(Form("\n md 1/5-3/7   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("MD_2bar_diff", mean,0);
-  compare_to_golden_value("MD_2bar_diff_asymmetry", val[0], val[2]);
-  compare_to_golden_value("MD_2bar_diff_width", val[1], val[3]);
-
-  Get_Mean_Diff("hel_histo/yield_qwk_md2_qwk_md6_hw","hel_histo/yield_qwk_md4_qwk_md8_hw",mean,1.);
-  Fit_with_a_gaussian_diff("hel_histo/asym_qwk_md2_qwk_md6_hw","hel_histo/asym_qwk_md4_qwk_md8_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  util.push_back(Form("\n md 2/6-4/8   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-  compare_to_golden_value("MD_2bar_diff", mean,0);
-  compare_to_golden_value("MD_2bar_diff_asymmetry", val[0], val[2]);
-  compare_to_golden_value("MD_2bar_diff_width", val[1], val[3]);
-
+    Get_Tree_Mean("(yield_qwk_md1_qwk_md5.hw_sum-yield_qwk_md3_qwk_md7.hw_sum)",intensity,1);
+    Get_Tree_Mean_Fit_gaus("(asym_qwk_md1_qwk_md5.hw_sum-asym_qwk_md3_qwk_md7.hw_sum)",val,1.e+6);
+    util.push_back(Form("\n md 1/5-3/7   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+    compare_to_golden_value("MD_2bar_diff", mean,0);
+    compare_to_golden_value("MD_2bar_diff_asymmetry", val[0], val[2]);
+    compare_to_golden_value("MD_2bar_diff_width", val[1], val[3]);
+    
+    Get_Tree_Mean("(yield_qwk_md2_qwk_md6.hw_sum-yield_qwk_md4_qwk_md8.hw_sum)",intensity,1);
+    Get_Tree_Mean_Fit_gaus("(asym_qwk_md2_qwk_md6.hw_sum-asym_qwk_md4_qwk_md8.hw_sum)",val,1.e+6);
+    util.push_back(Form("\n md 2/6-4/8   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+    compare_to_golden_value("MD_2bar_diff", mean,0);
+    compare_to_golden_value("MD_2bar_diff_asymmetry", val[0], val[2]);
+    compare_to_golden_value("MD_2bar_diff_width", val[1], val[3]);
+  }
    for(size_t i=0;i<util.size();i++)
     results.push_back(util[i]);
 
@@ -832,7 +946,44 @@ void Fit_with_a_gaussian(TString histname, Double_t *container, Double_t factor)
   }
 
   return;
-}
+};
+
+//***************************************************
+//***************************************************
+//         Obtain the mean+/-error and width+/- error from a gaussian fit to a histogram from the tree              
+//***************************************************
+//***************************************************
+void Get_Tree_Mean_Fit_gaus(TString device_expression, Double_t *container, Double_t factor){
+  TH1F* h = NULL;
+  h=Get1DHisto(device_expression,"ErrorFlag==0","goff");
+    if (h != NULL) {
+    if (NoFits){
+      *container=h->GetMean()*factor;
+      *(container+1)=h->GetRMS()*factor;
+      *(container+2)=h->GetMeanError()*factor;
+      *(container+3)=h->GetRMSError()*factor;
+    }else{
+      h->Fit("gaus","Q");
+      *container=h->GetFunction("gaus")->GetParameter(1)*factor; // mean
+      *(container+1)=h->GetFunction("gaus")->GetParameter(2)*factor; //width
+      *(container+2)=h->GetFunction("gaus")->GetParError(1)*factor;
+      *(container+3)=h->GetFunction("gaus")->GetParError(2)*factor;
+    delete h;
+    }
+  } else {
+    std::cout<<"Fit_gaus Error: "<<device_expression<<" Not found!"<<std::endl;
+    *container     = 0.0;
+    *(container+1) = 0.0;
+    *(container+2) = 0.0;
+    *(container+3) = 0.0;
+  }
+
+  return;
+
+};
+
+
+
 
 void Fit_with_a_gaussian_diff(TString histname1,TString histname2, Double_t *container, Double_t factor){
   TH1F* h = NULL;
@@ -882,6 +1033,25 @@ void Get_Mean(TString histname, Double_t &container, Double_t factor)
   }
   return;
 }
+//***************************************************
+//***************************************************
+//         Obtain the mean from the tree              
+//***************************************************
+//***************************************************
+void Get_Tree_Mean(TString device_expression, Double_t &container, Double_t factor){
+  TH1F* h = NULL;
+  h=Get1DHisto(device_expression,"ErrorFlag==0","goff");
+  if (h != NULL) {
+//     cout<<histname<<" mean value is "<<h->GetMean()<<endl;
+//     cout<<histname<<" mean value is "<<h->GetEntries()<<endl;
+//     cout<<"the factor is "<<factor<<endl;
+    container=h->GetMean()*factor;
+    delete h;
+  } else {
+    container = 0.0;
+  }
+  return;
+};
 void Get_Mean_Diff(TString histname1,TString histname2, Double_t &container, Double_t factor){
   TH1F* h = NULL;
   h = GetDiffHisto(histname1,histname2); 
@@ -941,7 +1111,6 @@ void compare_to_golden_value(TString valuetocompareto, Double_t value, Double_t 
 		  std::cout<<"acceptable value is between "<<low<<" and "<<high<<std::endl;
 		}
 	      if(!util[util.size()-1].Contains("***")&&comparisonon){
-		//util[util.size()-1].Append(" *** out of acceptable range ***");
 		util[util.size()-1].Append(" *** values out of acceptable range:");
 		util[util.size()-1].Append(Form("%5.2f; ",value));
 	      }
