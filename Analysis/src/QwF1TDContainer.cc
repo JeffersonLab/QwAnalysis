@@ -489,8 +489,8 @@ void
 QwF1TDC::PrintChannelErrorCounter(Int_t channel)
 {
   TString system_name = this->GetF1SystemName();
-  if(system_name.Contains("R2")){
-    std::cout << "System " << std::setw(4) << this->GetF1SystemName()
+  if(system_name.Contains("R2") || system_name.Contains("R3")){
+    std::cout << "System " << std::setw(4) << system_name
 	    << " QwF1TDC obj at " << this
 	    << *this
 	    << " CH " <<  std::setw(2) << channel
@@ -1358,18 +1358,33 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 		  << fF1TDCDecoder << std::endl;
       }    
 
-    
+
+      slot_number     = fF1TDCDecoder.GetTDCSlotNumber();
 
       if(fF1TDCDecoder.IsValidDataSlot()) {
 	// Check F1TDC slot, provided by buffer[i], is valid (1<=slot<=21)
 	//, because sometimes, slot 30 data (junk) is placed in the first one
 	// or two buffers.
 
-	slot_number     = fF1TDCDecoder.GetTDCSlotNumber();
 	chip_address    = fF1TDCDecoder.GetTDCChipAddress();
 	channel_address = fF1TDCDecoder.GetTDCChannelAddress();
 	channel_number  = fF1TDCDecoder.GetTDCChannelNumber();
 
+
+	if(fLocalDebug) {
+	  // this is for tracking down missing wires in Region 2
+	  // a quick and dirty way to check
+	  // Monday, December 20 10:38:38 EST 2010, jhlee
+	  
+	  if( (slot_number==10) and (roc_id==3) ) {
+	    if( (channel_number == 19) ||  (channel_number == 21) || (channel_number == 23) || (channel_number == 25) 
+		|| (channel_number == 27) ||  (channel_number == 29) || (channel_number == 31) || (channel_number == 17) 
+		) 
+	      {
+		printf("Roc %2d Slot%2d Ch %2d \n", roc_id, slot_number, channel_number);
+	      }
+	  }
+	}
 	
 	roc_idx = Form("R%2d-S%2d", roc_id, slot_number);
 
@@ -1615,10 +1630,13 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	  
 	} // if( CheckRegisteredF1(roc_id, slot_number) ) {
 
+
+
+
       }//if(fF1TDCDecoder.IsValidDataSlot()) {
       else {
 
-	slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+	//	slot_number = fF1TDCDecoder.GetTDCSlotNumber();
 	if( slot_number == 0 ) {
 	  if(fLocalDebug)  {
 	    std::cout << "Slot " << slot_number << " is a filler word," 
@@ -1642,6 +1660,8 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	}
       }
    
+
+
     }//for (UInt_t i=0; i<num_words ; i++) {
   
   
