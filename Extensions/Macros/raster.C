@@ -37,6 +37,9 @@
 //          0.0.9 : Tuesday, December 14 02:30:27 EST 2010
 //                 - activated submit Hclog button
 //                 - added "default" button
+//          0.0.10 : Monday, December 20 18:47:57 EST 2010, jhlee
+//                 - added the default "tag" and "body"
+//
 // 
 // TO LIST
 //   * BPM offsets      -> fixed by Buddhini (0.0.7) QwAnalysis Rev 2272
@@ -265,6 +268,9 @@ RasterMap::TokenString(TString in, char* delim, Int_t interesting_token_num, Int
 void 
 RasterMap::SubmitHClog()
 {
+  // I overwrite the flag as true always
+  // Monday, December 20 18:52:43 EST 2010, jhlee
+  file_output_flag = true;
   char* user_name_hclog;
   char* subject_hclog;
   TString comments_hclog;
@@ -308,6 +314,9 @@ RasterMap::SubmitHClog()
   //  printf("\n--------------------- Comments -------------------\n\n");
   //  printf("%s", comments_hclog.Data());
 
+  if( comments_hclog.IsNull() ) {
+    comments_hclog = "n/t";
+  }
 
   hclog_post_string = "hclog_post";
   hclog_post_string += " ";
@@ -329,7 +338,7 @@ RasterMap::SubmitHClog()
     hclog_post_string += "\" ";
   }
 
-  hclog_post_string += "--tag=\"\"";
+  hclog_post_string += "--tag=\"powered by plot_raster\"";
   //  hclog_post_string += "  --test";
 
   std::cout << hclog_post_string << std::endl;
@@ -627,7 +636,7 @@ RasterMap::raster()
   //  printf ( "The current local time is: %s", ctime (&rawtime) );
   l.SetTextFont(12);
   l.SetTextSize(0.08);
-  l.DrawLatex(0.2,0.08, Form("%s",ctime (&rawtime)));
+  l.DrawLatex(0.1,0.08, Form("%s",ctime (&rawtime)));
   
   fRasterMap2D->Update();
   // image_name = filename +".png";
