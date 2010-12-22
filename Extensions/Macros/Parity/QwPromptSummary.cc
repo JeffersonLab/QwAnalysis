@@ -692,12 +692,28 @@ void FillBeamParameters(){
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
+     Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_2("bcm1-bcm6", intensity, val));
+     //     util.push_back(Form("\n bcm1-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+
+
      Get_Tree_Mean("(yield_qwk_bcm2.hw_sum-yield_qwk_bcm5.hw_sum)",intensity,1);
      Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm2.hw_sum-asym_qwk_bcm5.hw_sum)",val,1.e+6);
      util.push_back(MidRule_2("bcm2-bcm5", intensity, val));
      //     util.push_back(Form("\n bcm2-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+
+     Get_Tree_Mean("(yield_qwk_bcm2.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm2.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_2("bcm2-bcm6", intensity, val));
+     //     util.push_back(Form("\n bcm2-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
+     compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+
 
      Get_Tree_Mean("(yield_qwk_bcm5.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
      Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm5.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
