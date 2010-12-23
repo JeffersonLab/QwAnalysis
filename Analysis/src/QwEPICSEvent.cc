@@ -956,14 +956,16 @@ TList *QwEPICSEvent::GetEPICSStringValues()
 void QwEPICSEvent::WriteEPICSStringValues()
 {
   Bool_t local_debug = false;
+
   TSeqCollection *file_list = gROOT->GetListOfFiles();
+
   if (file_list) {
     
     Int_t size = file_list->GetSize();
-    //   TString EPICS_string_name = "EPICS_String_Values";
     for (Int_t i=0; i<size; i++) 
       {
 	TFile *file = (TFile*) file_list->At(i);
+
 	if(local_debug) {
 	  std::cout << "QwEPICSEvent::WriteEPICSStringValue()"
 		    << file->GetName()
@@ -972,19 +974,19 @@ void QwEPICSEvent::WriteEPICSStringValues()
 	
 	TTree *slow_tree = (TTree*) file->Get("Slow_Tree");
 	
-	std::size_t tagindex = 0;
-	
-	for (tagindex=0; tagindex<fEPICSVariableList.size(); tagindex++) 
+	for (std::size_t tagindex=0; tagindex<fEPICSVariableList.size(); tagindex++) 
 	  {
+	    // only String 
 	    if (fEPICSVariableType[tagindex] == kEPICSString) {
 	      
 	      TString name = fEPICSVariableList[tagindex];
 	      name.ReplaceAll(':','_'); // remove colons before creating branch
 	      TString name_type = name + "/C";\
-	      Char_t *epics_char;
+
+	      Char_t epics_char[128];
 	      TString epics_string;
 
-	      TBranch *new_branch = slow_tree->Branch(name, &epics_char, name_type);
+	      TBranch *new_branch = slow_tree->Branch(name, epics_char, name_type);
 	      
 	      if (fEPICSDataEvent[tagindex].Filled) {
 		epics_string = fEPICSDataEvent[tagindex].StringValue;
@@ -993,9 +995,16 @@ void QwEPICSEvent::WriteEPICSStringValues()
 		epics_string = "empty";
 	      }
 
-	      epics_char = (Char_t*) epics_string.Data();
+	      if(local_debug) {
+		std::cout << "QwEPICSEvent::WriteEPICSStringValue()\n"
+		std::cout << name << " " << epics_string << std::endl;
+		std::cout <<"\n";
+	      }
+
+	      sprintf(epics_char, "%s", epics_string.Data());
 	      new_branch->Fill();
 	    }
+	    
 	  }
 
 	file -> Write("", TObject::kOverwrite);
