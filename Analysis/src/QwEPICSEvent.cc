@@ -5,8 +5,8 @@
 #include "QwDatabase.h"
 
 
-#include <TStyle.h>
-#include <TFile.h>
+#include "TStyle.h"
+#include "TFile.h"
 
 #include <iostream>
 #include <fstream>
@@ -40,7 +40,9 @@ QwEPICSEvent::QwEPICSEvent()
 };
 
 
-QwEPICSEvent::~QwEPICSEvent(){};
+QwEPICSEvent::~QwEPICSEvent()
+{
+};
 
 
 /*************************************
@@ -110,6 +112,10 @@ void QwEPICSEvent::ConstructBranchAndVector(TTree *tree, TString& prefix, std::v
     	// Create branch
     	tree->Branch(name, &(values[treeindex]), name_type);
     }
+    // else {
+    //   TString name = fEPICSVariableList[tagindex];
+    //   std::cout << "QwEPICSEvent::ConstructBranchAndVector" << name << std::endl;
+    // }
   }
   fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
 }
@@ -117,7 +123,7 @@ void QwEPICSEvent::ConstructBranchAndVector(TTree *tree, TString& prefix, std::v
 /// \brief Fill the tree vector
 void QwEPICSEvent::FillTreeVector(std::vector<Double_t>& values) const
 {
-	Int_t treeindex = fTreeArrayIndex;
+  Int_t treeindex = fTreeArrayIndex;
   for (size_t tagindex = 0; tagindex < fEPICSVariableType.size(); tagindex++) {
     if (fEPICSVariableType[tagindex] == kEPICSFloat ||
         fEPICSVariableType[tagindex] == kEPICSInt) {
@@ -911,4 +917,91 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
     QwMessage << "QwEPICSEvent::FillSlowControlsSettings :: This is the case when the entrylist contains nothing " << QwLog::endl;
   }
   db->Disconnect();
+};
+
+TList *QwEPICSEvent::GetEPICSStringValues()
+{
+  Bool_t local_debug = false;
+
+  TList *string_list = new TList;
+  string_list->SetOwner(true);
+
+  std::size_t tagindex = 0;
+  
+  for (tagindex=0; tagindex<fEPICSVariableList.size(); tagindex++) 
+    {
+      if (fEPICSVariableType[tagindex] == kEPICSString) {
+
+	TString epics_string = fEPICSVariableList[tagindex];
+	epics_string += "---";
+
+	if (fEPICSDataEvent[tagindex].Filled) {
+	  epics_string += fEPICSDataEvent[tagindex].StringValue;
+	} 
+	else {
+	  epics_string += "empty";
+	}
+	if(local_debug) {
+	  std::cout << "QwEPICSEvent::GetEPICSStringValues() "
+		    << epics_string
+		    << std::endl;
+	}
+	string_list -> Add(new TObjString(epics_string));
+      }
+    }
+    
+  return string_list;
+};
+
+void QwEPICSEvent::WriteEPICSStringValues()
+{
+  Bool_t local_debug = false;
+  TSeqCollection *file_list = gROOT->GetListOfFiles();
+  if (file_list) {
+    
+    Int_t size = file_list->GetSize();
+    //   TString EPICS_string_name = "EPICS_String_Values";
+    for (Int_t i=0; i<size; i++) 
+      {
+	TFile *file = (TFile*) file_list->At(i);
+	if(local_debug) {
+	  std::cout << "QwEPICSEvent::WriteEPICSStringValue()"
+		    << file->GetName()
+		    << std::endl;
+	}
+	
+	TTree *slow_tree = (TTree*) file->Get("Slow_Tree");
+	
+	std::size_t tagindex = 0;
+	
+	for (tagindex=0; tagindex<fEPICSVariableList.size(); tagindex++) 
+	  {
+	    if (fEPICSVariableType[tagindex] == kEPICSString) {
+	      
+	      TString name = fEPICSVariableList[tagindex];
+	      name.ReplaceAll(':','_'); // remove colons before creating branch
+	      TString name_type = name + "/C";\
+	      Char_t *epics_char;
+	      TString epics_string;
+
+	      TBranch *new_branch = slow_tree->Branch(name, &epics_char, name_type);
+	      
+	      if (fEPICSDataEvent[tagindex].Filled) {
+		epics_string = fEPICSDataEvent[tagindex].StringValue;
+	      } 
+	      else {
+		epics_string = "empty";
+	      }
+
+	      epics_char = (Char_t*) epics_string.Data();
+	      new_branch->Fill();
+	    }
+	  }
+
+	file -> Write("", TObject::kOverwrite);
+      }
+  }
+
+  return;
+  
 };

@@ -15,6 +15,13 @@ using std::string;
 #include "Rtypes.h"
 #include "TString.h"
 #include "TTree.h"
+#include "TObject.h"
+#include "TList.h"
+#include "TString.h"
+#include "TObjString.h"
+
+#include "TROOT.h"
+
 
 // Forward declarations
 class QwDatabase;
@@ -90,7 +97,8 @@ class QwEPICSEvent
 
   static std::vector<std::string> GetDefaultAutogainList() { return fDefaultAutogainList; };
   static void SetDefaultAutogainList(std::vector<std::string>& input_list);
-
+  void WriteEPICSStringValues();
+  
  private:
 
   /// Default autogain list
@@ -146,6 +154,8 @@ class QwEPICSEvent
   std::vector<EQwEPICSDataType> fEPICSVariableType;
 
   std::map<std::string,Int_t> fEPICSVariableMap;
+
+  TList *GetEPICSStringValues();
 
 }; // class QwEPICSEvent
 
