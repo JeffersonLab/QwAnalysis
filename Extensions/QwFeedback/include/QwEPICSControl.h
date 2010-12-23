@@ -164,6 +164,56 @@ public:
     std::cout << "Pockels Cell minus HW-count value: " << value << std::endl;
   };
 
+  void Set_ChargeAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    int status;
+    status = ca_put(DBR_DOUBLE,fChargeAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fChargeAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fChargeAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fChargeAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_put(DBR_DOUBLE,fChargeAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fChargeAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+
+    std::cout << "EPICS Charge asymmetry updated " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
+
+  };
+
+  void Get_ChargeAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
+    int status;
+    status = ca_get(DBR_DOUBLE,fChargeAsymmetry , &value);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fChargeAsymmetryError , &value_error);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE,fChargeAsymmetryWidth , &value_width);
+    status = ca_pend_io(10);
+    std::cout << "Charge asymmetry  " << value <<" +/- "<<value_error<<" width "<<value_width<< std::endl;
+
+  };
+ 
+  
+  void Set_FeedbackStatus(Double_t value){
+    int status;
+    status = ca_put(DBR_DOUBLE, fFeedbackStatus, &value);
+    status = ca_pend_io(10);
+    status = ca_get(DBR_DOUBLE, fFeedbackStatus, &value);
+    status = ca_pend_io(10);
+    std::cout << "Feedback status updated " << value << std::endl;
+
+  };
+  
+  Double_t Get_FeedbackStatus(){
+   int status;
+   Double_t fbstat;
+   status = ca_get(DBR_DOUBLE, fFeedbackStatus, &fbstat);
+   status = ca_pend_io(10); 
+   return fbstat;
+  }
+
 
   /*  
       static const Double_t kOn;
@@ -247,6 +297,14 @@ public:
 
   chid fIDPockels_Cell_plus;
   chid fIDPockels_Cell_minus;
+
+  chid fChargeAsymmetry;
+  chid fChargeAsymmetryError;
+  chid fChargeAsymmetryWidth;
+  chid fFeedbackStatus;
+
+  
+
   chid fIDMagnet_1_Even;
   chid fIDMagnet_1_Odd;
   chid fIDMagnet_2_Even;

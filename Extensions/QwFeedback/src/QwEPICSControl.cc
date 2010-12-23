@@ -23,6 +23,17 @@ QwEPICSControl::QwEPICSControl()
   status = ca_search("C1068_QDAC14", &fIDHall_C_IA_A3);//IA Cell Setpoint  Hall C
   status = ca_pend_io(10);
 
+  //Feedback status EPICS variables
+  status = ca_search("qw:ChargeFeedback", &fFeedbackStatus);//
+  status = ca_pend_io(10);
+  status = ca_search("qw:ChargeAsymmetry", &fChargeAsymmetry);//
+  status = ca_pend_io(10);
+  status = ca_search("qw:ChargeAsymmetryError", &fChargeAsymmetryError);//
+  status = ca_pend_io(10);
+  status = ca_search("qw:ChargeAsymmetryWidth", &fChargeAsymmetryWidth);//
+  status = ca_pend_io(10);
+  
+
 };
 
 QwEPICSControl::~QwEPICSControl()
