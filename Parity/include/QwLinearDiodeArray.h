@@ -72,7 +72,7 @@ class QwLinearDiodeArray : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(VQwDataElement *source);
+  void    Copy(QwLinearDiodeArray *source);
   void    Ratio(QwLinearDiodeArray &numer, QwLinearDiodeArray &denom);
   void    Scale(Double_t factor);
 
@@ -109,6 +109,7 @@ class QwLinearDiodeArray : public VQwBPM {
 
  protected:
   std::vector<QwVQWK_Channel> fPhotodiode;
+  // QwVQWK_Channel fPhotodiode[8];
   QwVQWK_Channel fRelPos[2];
   QwVQWK_Channel fEffectiveCharge;
 

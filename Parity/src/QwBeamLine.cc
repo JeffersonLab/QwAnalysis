@@ -277,6 +277,10 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
      if(localBeamDetectorID.fTypeID== kQwQPD)
 	localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-3);
 
+      // Remove the subelement name from the Lineararray name
+     if(localBeamDetectorID.fTypeID== kQwLinearArray)
+	localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-3);
+
      // Remove the subelement name from the cavity name
       if(localBeamDetectorID.fTypeID==kQwBPMCavity)
 	  localBeamDetectorID.fdetectorname=namech(0,namech.Sizeof()-2);
@@ -326,7 +330,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  fLinearArray[fLinearArray.size()-1].SetDefaultSampleSize(fSample_size);
 	  localBeamDetectorID.fIndex=fLinearArray.size()-1;
 	 }
-
       }
 
 	if(localBeamDetectorID.fTypeID == kQwBPMStripline){
@@ -423,14 +426,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  }
 	}
 
-      if(ldebug){
-	localBeamDetectorID.Print();
-	std::cout<<"line ok=";
-	if(lineok) std::cout<<"TRUE"<<std::endl;
-	else
-	  std::cout<<"FALSE"<<std::endl;
-      }
-
       if(lineok)
 	fBeamDetectorID.push_back(localBeamDetectorID);
 
@@ -468,7 +463,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 
   if(ldebug){
-    std::cout<<"QwLumi::Done with Load map channel \n";
+    std::cout<<"QwBeamLine::Done with Load map channel \n";
     for(size_t i=0;i<fBeamDetectorID.size();i++)
       fBeamDetectorID[i].Print();
   }
@@ -905,7 +900,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 
 	    for(size_t i=0;i<fLinearArray.size();i++)
 	      {
-		for(int j=0;j<4;j++)
+		for(int j=0;j<8;j++)
 		  {
 		    localname=fLinearArray[i].GetSubElementName(j);
 		    localname.ToLower();
@@ -917,7 +912,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 			fLinearArray[i].SetSubElementPedestal(j,varped);
 			fLinearArray[i].SetSubElementCalibrationFactor(j,varcal);
 			notfound=kFALSE;
-			j=5;
+			j=9;
 			i=fLinearArray.size()+1;
 		      }
 		  }
@@ -1098,13 +1093,14 @@ Int_t QwBeamLine::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UIn
 	      {
 		if (lkDEBUG)
 		  {
-		    std::cout<<"found qpd data for "<<fBeamDetectorID[i].fdetectorname<<std::endl;
+		    std::cout<<"found linear array data for "<<fBeamDetectorID[i].fdetectorname<<fBeamDetectorID[i].fIndex<<std::endl;
 		    std::cout<<"word left to read in this buffer:"<<num_words-fBeamDetectorID[i].fWordInSubbank<<std::endl;
 		  }
 		fLinearArray[fBeamDetectorID[i].fIndex].
 		  ProcessEvBuffer(&(buffer[fBeamDetectorID[i].fWordInSubbank]),
 				  num_words-fBeamDetectorID[i].fWordInSubbank,
 				  fBeamDetectorID[i].fSubelement);
+
 	      }
 
 	    if(fBeamDetectorID[i].fTypeID==kQwBPMCavity)
@@ -2387,6 +2383,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     }
     // effective charge (last element)  need to be saved as measurement_type_bcm
     interface.at(interface.size()-1).SetAnalysisID( analysis_id ) ;
+    std::cout<<analysis_id<<std::endl;
     interface.at(interface.size()-1).SetMonitorID( db );
     interface.at(interface.size()-1).SetMeasurementTypeID( measurement_type_bcm );
     interface.at(interface.size()-1).PrintStatus( local_print_flag);

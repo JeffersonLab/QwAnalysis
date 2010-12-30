@@ -189,7 +189,7 @@ void  QwLinearDiodeArray::ProcessEvent()
   //makes a difference for a LinearArrays because they have derrived devices.
 
   fEffectiveCharge.ClearEventData();
-
+  if(localdebug) std::cout<<"Size of the linear array = "<<fPhotodiode.size()<<std::endl;
   for(i=0;i<fPhotodiode.size();i++){
     fPhotodiode[i].ProcessEvent();
     fEffectiveCharge+=fPhotodiode[i];
@@ -243,7 +243,7 @@ Int_t QwLinearDiodeArray::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_i
   else
     {
     std::cerr <<
-      "QwLinearDiodeArray::ProcessEvBuffer(): attemp to fill in raw date for a wire that doesn't exist \n";
+      "QwLinearDiodeArray::ProcessEvBuffer(): attemp to fill in raw data for a pad that doesn't exist \n";
     }
   return word_position_in_buffer;
 };
@@ -288,16 +288,19 @@ TString QwLinearDiodeArray::GetSubElementName(Int_t subindex)
 UInt_t QwLinearDiodeArray::GetSubElementIndex(TString subname)
 {
   size_t localindex=999999;
+  TString padindex;
+  padindex = subname(subname.Sizeof()-2,1);
   //  Interpret the subname as the pad index.
-  if (subname.IsDigit()){
-    Int_t tmpval = subname.Atoi();
-    if (tmpval>-1) localindex = tmpval;
+  if (padindex.IsDigit()){
+    Int_t tmpval = padindex.Atoi();
+    if (tmpval>-1) localindex = tmpval-1;
   }
 
   if (localindex >=0 && localindex <= kMaxElements){
     //  Resize the array to include this subelement if it doesn't already.
     if (localindex >= fPhotodiode.size()){
-      TString name = GetSubsystemName();
+      //TString name = GetSubsystemName();
+      TString name = this->GetElementName();
       size_t oldsize = fPhotodiode.size();
       fPhotodiode.resize(localindex+1);
       for (size_t i=oldsize; i<fPhotodiode.size(); i++){
@@ -571,7 +574,7 @@ void  QwLinearDiodeArray::FillTreeVector(std::vector<Double_t> &values) const
   return;
 };
 
-void QwLinearDiodeArray::Copy(VQwDataElement *source)
+void QwLinearDiodeArray::Copy(QwLinearDiodeArray *source)
 {
   try
     {

@@ -75,7 +75,7 @@ class QwQPD : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(VQwDataElement *source);
+  void    Copy(QwQPD *source);
   void    Ratio(QwQPD &numer, QwQPD &denom);
   void    Scale(Double_t factor);
 

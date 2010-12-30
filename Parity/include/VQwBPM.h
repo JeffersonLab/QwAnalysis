@@ -65,6 +65,7 @@ class VQwBPM : public VQwDataElement {
   void Sum(VQwBPM &value1, VQwBPM &value2);
   void Difference(VQwBPM &value1, VQwBPM &value2);
   void Scale(Double_t factor);
+  void Copy(VQwBPM *source);
 
   virtual VQwBPM& operator=  (const VQwBPM &value);
 
