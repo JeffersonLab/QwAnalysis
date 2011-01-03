@@ -996,7 +996,7 @@ void QwEPICSEvent::WriteEPICSStringValues()
 	      }
 
 	      if(local_debug) {
-		std::cout << "QwEPICSEvent::WriteEPICSStringValue()\n"
+		std::cout << "QwEPICSEvent::WriteEPICSStringValue()\n";
 		std::cout << name << " " << epics_string << std::endl;
 		std::cout <<"\n";
 	      }
