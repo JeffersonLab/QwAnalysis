@@ -153,7 +153,7 @@ VQwBPM& VQwBPM::operator+= (const VQwBPM &value)
 {
   if (GetElementName()!=""){
     this->fEffectiveCharge+=value.fEffectiveCharge;
-    for(Short_t i=0;i<3;i++) this->fAbsPos[i]+=value.fAbsPos[i];
+    for(Short_t i=0;i<2;i++) this->fAbsPos[i]+=value.fAbsPos[i];
   }
   return *this;
 };
@@ -187,6 +187,7 @@ void VQwBPM::Scale(Double_t factor)
   for(Short_t i = 0;i<2;i++)fAbsPos[i].Scale(factor);
   return;
 };
+
 
 
 
@@ -231,5 +232,37 @@ void VQwBPM::AccumulateRunningSum(const VQwBPM& value)
   Short_t i = 0;
   for (i = 0; i < 2; i++) fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
   fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
+  return;
+};
+
+
+/********************************************************/
+void  VQwBPM::Copy(VQwBPM *source)
+{
+  try
+    {
+      if(typeid(*source)==typeid(*this))
+	{
+	  VQwBPM* input=((VQwBPM*)source);
+	  this->fElementName = input->fElementName;
+	  this->bFullSave = input->bFullSave;
+	  this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+	  for(size_t i =0;i<2;i++)
+	    this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
+
+	}
+      else
+	{
+	  TString loc="Standard exception from VQwBPM::Copy = "
+	    +source->GetElementName()+" "
+	    +this->GetElementName()+" are not of the same type";
+	  throw std::invalid_argument(loc.Data());
+	}
+    }
+  catch (std::exception& e)
+    {
+      std::cerr << e.what() << std::endl;
+    }
+
   return;
 };
