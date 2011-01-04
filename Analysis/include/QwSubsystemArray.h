@@ -66,6 +66,14 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Get the internal record of the CODA event type
   UInt_t GetCodaEventType() const { return fCodaEventType; };
 
+  /// \brief Set the internal record of the CODA event number
+  void SetCleanParameters(Double_t cleanparameter[]) 
+  { 
+    fCleanParameter[0] = cleanparameter[0];
+    fCleanParameter[1] = cleanparameter[1];
+    fCleanParameter[2] = cleanparameter[2];
+  };
+
   /// \brief Set event type mask
   void   SetEventTypeMask(const UInt_t mask) { fEventTypeMask = mask; };
   /// \brief Get event type mask
@@ -236,6 +244,7 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   UInt_t fCodaEventNumber; ///< CODA event number as provided by QwEventBuffer
   UInt_t fCodaEventType;   ///< CODA event type as provided by QwEventBuffer
 
+  Double_t fCleanParameter[3];
   UInt_t fEventTypeMask;   ///< Mask of event types
   Bool_t fHasDataLoaded;   ///< Has this array gotten data to be processed?
 

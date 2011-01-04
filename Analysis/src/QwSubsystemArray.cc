@@ -441,6 +441,12 @@ void  QwSubsystemArray::ConstructBranchAndVector(
   tree->Branch("CodaEventNumber",&(values[fTreeArrayIndex]),"CodaEventNumber/D");
   values.push_back(0.0);
   tree->Branch("CodaEventType",&(values[fTreeArrayIndex+1]),"CodaEventType/D");
+  values.push_back(0.0);
+  tree->Branch("Coda_CleanData",&(values[fTreeArrayIndex+2]),"Coda_CleanData/D");
+  values.push_back(0.0);
+  tree->Branch("Coda_ScanData1",&(values[fTreeArrayIndex+3]),"Coda_ScanData1/D");
+  values.push_back(0.0);
+  tree->Branch("Coda_ScanData2",&(values[fTreeArrayIndex+4]),"Coda_ScanData2/D");
   
 
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
@@ -521,6 +527,10 @@ void QwSubsystemArray::FillTreeVector(std::vector<Double_t>& values) const
   size_t index = fTreeArrayIndex;
   values[index++] = this->GetCodaEventNumber();
   values[index++] = this->GetCodaEventType();
+  values[index++] = this->fCleanParameter[0];
+  values[index++] = this->fCleanParameter[1];
+  values[index++] = this->fCleanParameter[2];
+
 
   // Fill the subsystem data
   for (const_iterator subsys = begin(); subsys != end(); ++subsys) {

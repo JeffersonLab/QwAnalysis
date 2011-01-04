@@ -241,6 +241,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fEvtClass;
   UInt_t fStatSum;
 
+  Double_t fCleanParameter[3];///Scan data/clean data  from the green monster
+
   UInt_t fFragLength;
   UInt_t fSubbankTag;
   UInt_t fSubbankType;

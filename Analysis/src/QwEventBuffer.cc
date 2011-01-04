@@ -656,6 +656,8 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
   subsystems.SetCodaEventNumber(fEvtNumber);
   subsystems.SetCodaEventType(fEvtType);
 
+
+
   // If this event type is masked for the subsystem array, return right away
   if (((0x1 << (fEvtType - 1)) & subsystems.GetEventTypeMask()) == 0) {
     return kTRUE;
@@ -689,8 +691,17 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
 
-//     QwDebug << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
-// 	    <<", FragLength="<<fFragLength <<QwLog::endl;
+    if( fROC == 0 && fSubbankTag==0x6101) {
+      //std::cout << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag<<", FragLength="<<fFragLength <<std::endl;
+      fCleanParameter[0]=localbuff[fWordsSoFar+fFragLength-4];//clean data
+      fCleanParameter[1]=localbuff[fWordsSoFar+fFragLength-3];//scan data 1
+      fCleanParameter[2]=localbuff[fWordsSoFar+fFragLength-2];//scan data 2
+      //std::cout << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
+      //		<<", FragLength="<<fFragLength << " " <<fCleanParameter[0]<< " " <<fCleanParameter[1]<< " " <<fCleanParameter[2]<<std::endl;
+
+    }
+    
+    subsystems.SetCleanParameters(fCleanParameter); // fCleanParameter[3]
 
     subsystems.ProcessEvBuffer(fEvtType, fROC, fSubbankTag,
 			       &localbuff[fWordsSoFar],
