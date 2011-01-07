@@ -15,13 +15,6 @@ using std::string;
 #include "Rtypes.h"
 #include "TString.h"
 #include "TTree.h"
-#include "TObject.h"
-#include "TList.h"
-#include "TString.h"
-#include "TObjString.h"
-
-#include "TROOT.h"
-
 
 // Forward declarations
 class QwDatabase;
@@ -64,6 +57,8 @@ class QwEPICSEvent
   int SetDataValue(const Int_t index,  const Double_t value, const int event);
   int SetDataValue(const Int_t index,  const string& value, const int event);
 
+  Bool_t HasDataLoaded() const { return fIsDataLoaded; };
+
   void  CalculateRunningValues();
 
   void  PrintAverages() const;
@@ -84,6 +79,10 @@ class QwEPICSEvent
   // Tree array indices
   size_t fTreeArrayIndex;
   size_t fTreeArrayNumEntries;
+
+  // Flag to indicate that the event contains data
+  Bool_t fIsDataLoaded;
+  void SetDataLoaded(Bool_t flag) { fIsDataLoaded = flag; };
 
  public:
 

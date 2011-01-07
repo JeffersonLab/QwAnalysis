@@ -200,16 +200,16 @@ void  VQwScaler_Channel::ConstructBranch(TTree *tree, TString &prefix)
 
 void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
-  if (IsNameEmpty()){
+  if (IsNameEmpty()) {
     //  This channel is not used, so skip setting up the tree.
-  } else if (fTreeArrayNumEntries<=0){
+  } else if (fTreeArrayNumEntries <= 0) {
     QwError << "VQwScaler_Channel::FillTreeVector:  fTreeArrayNumEntries=="
 	    << fTreeArrayNumEntries << QwLog::endl;
-  } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries){
+  } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries) {
     QwError << "VQwScaler_Channel::FillTreeVector:  values.size()=="
 	    << values.size() << " name: " << fElementName
 	    << "; fTreeArrayIndex+fTreeArrayNumEntries=="
-      << fTreeArrayIndex << '+' << fTreeArrayNumEntries << '='
+            << fTreeArrayIndex << '+' << fTreeArrayNumEntries << '='
 	    << fTreeArrayIndex+fTreeArrayNumEntries
 	    << QwLog::endl;
   } else {

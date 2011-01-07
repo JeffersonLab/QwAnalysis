@@ -10,13 +10,16 @@
 #ifndef __QWSCANNER__
 #define __QWSCANNER__
 
+// System headers
 #include <vector>
 
+// ROOT headers
 #include "TTree.h"
 #include "TFile.h"
 #include "TProfile2D.h"
 //#include "TRandom3.h"
 
+// Qweak headers
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
 

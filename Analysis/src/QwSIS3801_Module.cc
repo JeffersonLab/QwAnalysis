@@ -5,15 +5,7 @@
 * Date:   Thu Sep 16 18:08:33 CDT 2009                     *
 \**********************************************************/
 
-#include <vector>
-#include <TTree.h>
-#include <boost/array.hpp>
-
 #include "QwSIS3801_Module.h"
-
-#include "QwHistogramHelper.h"
-
-
 
 
 void QwSIS3801_Module::SetChannel(size_t channel, TString &name)

@@ -6,8 +6,12 @@
 \**********************************************************/
 
 #include "QwHaloMonitor.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwDBInterface.h"
 
 void  QwHaloMonitor::InitializeChannel(TString subsystem, TString name){
   fHalo_Counter.InitializeChannel(name);

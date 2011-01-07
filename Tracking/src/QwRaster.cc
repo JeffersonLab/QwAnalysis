@@ -8,12 +8,16 @@
 \**********************************************************/
 
 #include "QwRaster.h"
+
+// ROOT headers
 #include "TStyle.h"
+
+// Qweak headers
+#include "QwHistogramHelper.h"
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwRaster> theRasterFactory("QwRaster");
 
-extern QwHistogramHelper gQwHists;
 const Bool_t QwRaster::bStoreRawData = kTRUE;
 const UInt_t QwRaster::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwRaster::kMaxNumberOfChannelsPerModule = 32;

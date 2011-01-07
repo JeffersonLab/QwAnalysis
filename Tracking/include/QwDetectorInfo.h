@@ -25,22 +25,22 @@ class QwDetectorInfo: public TObject {
     void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, int totalwires, int detId);
 
     // Get/set spatial resolution
-    const double GetSpatialResolution() const { return fSpatialResolution; };
+    double GetSpatialResolution() const { return fSpatialResolution; };
     void SetSpatialResolution(const double res) { fSpatialResolution = res; };
 
     // Get/set track resolution
-    const double GetTrackResolution() const { return fTrackResolution; };
+    double GetTrackResolution() const { return fTrackResolution; };
     void SetTrackResolution(const double res) { fTrackResolution = res; };
 
     // Get/set slope matching
-    const double GetSlopeMatching() const { return fSlopeMatching; };
+    double GetSlopeMatching() const { return fSlopeMatching; };
     void SetSlopeMatching(const double slope) { fSlopeMatching = slope; };
 
     // Get/set x and y position
     const TVector3 GetPosition() const;
-    const double GetXPosition() const { return fDetectorOriginX; };
-    const double GetYPosition() const { return fDetectorOriginY; };
-    const double GetZPosition() const { return fDetectorOriginZ; };
+    double GetXPosition() const { return fDetectorOriginX; };
+    double GetYPosition() const { return fDetectorOriginY; };
+    double GetZPosition() const { return fDetectorOriginZ; };
     void SetPosition(const TVector3& position);
     void SetZPosition(const double z) { fDetectorOriginZ = z; };
     void SetXYPosition(const double x, const double y) {
@@ -53,42 +53,42 @@ class QwDetectorInfo: public TObject {
     };
 
     // Get/set active flag
-    const bool IsActive() const { return fIsActive; };
+    bool IsActive() const { return fIsActive; };
     void SetActive(const bool active = true) { fIsActive = active; };
     void SetNotActive(const bool active = false) { fIsActive = active; };
 
     // Get/set x and y active width
-    const double GetActiveWidthX() const { return fActiveWidthX; };
-    const double GetActiveWidthY() const { return fActiveWidthY; };
+    double GetActiveWidthX() const { return fActiveWidthX; };
+    double GetActiveWidthY() const { return fActiveWidthY; };
     void SetActiveWidthXY(const double x, const double y) {
       fActiveWidthX = x;
       fActiveWidthY = y;
     };
     // Get/set z active width
-    const double GetActiveWidthZ() const { return fActiveWidthZ; };
+    double GetActiveWidthZ() const { return fActiveWidthZ; };
     void SetActiveWidthZ(const double z) { fActiveWidthZ = z; };
 
     // Get/set element direction
-    const EQwDirectionID GetElementDirection() const { return fDirection; };
+    EQwDirectionID GetElementDirection() const { return fDirection; };
     void SetElementSpacing(const EQwDirectionID dir) { fDirection = dir; };
 
     // Get/set element spacing
-    const double GetElementSpacing() const { return fElementSpacing; };
+    double GetElementSpacing() const { return fElementSpacing; };
     void SetElementSpacing(const double spacing) { fElementSpacing = spacing; };
 
     // Get/set element offset
-    const double GetElementOffset() const { return fElementOffset; };
+    double GetElementOffset() const { return fElementOffset; };
     void SetElementOffset(const double offset) { fElementOffset = offset; };
 
     // Get element coordinate
-    const double GetElementCoordinate(const int element) const;
+    double GetElementCoordinate(const int element) const;
 
     // Get/set element orientation
-    const double GetElementAngle() const { return fElementAngle; };
-    const double GetElementAngleInRad() const { return fElementAngle; };
-    const double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
-    const double GetElementAngleCos() const { return fElementAngleCos; };
-    const double GetElementAngleSin() const { return fElementAngleSin; };
+    double GetElementAngle() const { return fElementAngle; };
+    double GetElementAngleInRad() const { return fElementAngle; };
+    double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
+    double GetElementAngleCos() const { return fElementAngleCos; };
+    double GetElementAngleSin() const { return fElementAngleSin; };
     void SetElementAngle(const double angle) {
       fElementAngle = angle;
       fElementAngleCos = std::cos(fElementAngle);
@@ -101,15 +101,15 @@ class QwDetectorInfo: public TObject {
     };
 
     // Get/set number of elements
-    const int GetNumberOfElements() const { return fNumberOfElements; };
+    int GetNumberOfElements() const { return fNumberOfElements; };
     void SetNumberOfElements(const int nelements) { fNumberOfElements = nelements; };
 
     // Get/set detector rotation (in degrees)
-    const double GetDetectorRotation() const { return fDetectorRotation; };
-    const double GetDetectorRotationInRad() const { return fDetectorRotation; };
-    const double GetDetectorRotationInDeg() const { return fDetectorRotation * TMath::RadToDeg(); };
-    const double GetDetectorRotationCos() const { return fDetectorRotationCos; };
-    const double GetDetectorRotationSin() const { return fDetectorRotationSin; };
+    double GetDetectorRotation() const { return fDetectorRotation; };
+    double GetDetectorRotationInRad() const { return fDetectorRotation; };
+    double GetDetectorRotationInDeg() const { return fDetectorRotation * TMath::RadToDeg(); };
+    double GetDetectorRotationCos() const { return fDetectorRotationCos; };
+    double GetDetectorRotationSin() const { return fDetectorRotationSin; };
     void SetDetectorRotation(const double rotation) {
       fDetectorRotation = rotation; // in degrees
       fDetectorRotationCos = std::cos(fDetectorRotation);
@@ -117,7 +117,7 @@ class QwDetectorInfo: public TObject {
     };
 
     // Get unique detector ID
-    const int GetID() const { return fDetectorID; };
+    int GetID() const { return fDetectorID; };
 
     // Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det);

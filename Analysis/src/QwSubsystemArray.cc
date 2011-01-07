@@ -11,7 +11,12 @@
 #include <stdexcept>
 
 // Qweak headers
+#include "VQwDataElement.h"
 #include "QwLog.h"
+#include "QwParameterFile.h"
+
+/// \todo TODO (wdc) QwVQWK_Channel necessary due to explicit cast in ReturnInternalValue (yuck)
+#include "QwVQWK_Channel.h"
 
 //*****************************************************************
 

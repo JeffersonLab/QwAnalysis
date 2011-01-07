@@ -23,7 +23,6 @@
 #include "QwLumi.h"
 #include "QwScanner.h"
 #include "QwSubsystemArrayParity.h"
-#include "QwVQWK_Channel.h"
 
 
 // Number of variables to correlate

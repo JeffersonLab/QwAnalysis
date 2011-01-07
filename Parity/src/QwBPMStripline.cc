@@ -6,8 +6,12 @@
 \**********************************************************/
 
 #include "QwBPMStripline.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwDBInterface.h"
 
 /* Position calibration factor, transform ADC counts in mm*/
 //const Double_t QwBPMStripline::kQwStriplineCalibration = 18.77;

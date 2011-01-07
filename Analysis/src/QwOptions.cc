@@ -7,9 +7,6 @@
  */
 
 #include "QwOptions.h"
-#include "QwRootFile.h"
-#include "QwParameterFile.h"
-#include "QwHistogramHelper.h"
 
 // System headers
 #include <iostream>
@@ -26,9 +23,14 @@ QwOptions gQwOptions;
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwParameterFile.h"
+
+// Qweak objects with default options
 #include "QwSubsystemArray.h"
 #include "QwEventBuffer.h"
 #include "QwDatabase.h"
+#include "QwRootFile.h"
+#include "QwHistogramHelper.h"
 
 // Initialize the static command line arguments to zero
 int QwOptions::fArgc = 0;

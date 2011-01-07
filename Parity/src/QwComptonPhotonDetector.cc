@@ -21,7 +21,7 @@
 
 // Qweak headers
 #include "QwLog.h"
-#include "QwHistogramHelper.h"
+#include "QwParameterFile.h"
 
 
 // Register this subsystem with the factory

@@ -9,11 +9,13 @@
 #ifndef __VQWBPM__
 #define __VQWBPM__
 
+// ROOT headers
 #include <TTree.h>
 
+// Qweak headers
 #include "QwVQWK_Channel.h"
 #include "VQwDataElement.h"
-#include "QwDatabase.h"
+
 ///
 /// \ingroup QwAnalysis_BeamLine
 ///

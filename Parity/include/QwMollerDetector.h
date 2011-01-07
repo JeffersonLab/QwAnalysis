@@ -16,17 +16,15 @@
 // System headers
 #include <vector>
 
-// ROOT headers
-#include <TTree.h>
-#include "TFile.h"
-#include<TH1D.h>
-
-// Boost math library for random number generation
+// Boost multi array
 #include <boost/multi_array.hpp>
 
+// ROOT headers
+#include "TTree.h"
+#include "TFile.h"
+#include "TH1D.h"
 
 // Qweak headers
-#include "VQwSubsystem.h"
 #include "VQwSubsystemParity.h"
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"

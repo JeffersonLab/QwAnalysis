@@ -6,8 +6,13 @@
 \**********************************************************/
 
 #include "QwEnergyCalculator.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwDBInterface.h"
+
 
 static QwVQWK_Channel  targetbeamangle;
 static QwVQWK_Channel  targetbeamx;

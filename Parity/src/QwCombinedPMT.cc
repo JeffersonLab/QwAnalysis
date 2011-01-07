@@ -1,7 +1,11 @@
 
 #include "QwCombinedPMT.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwDBInterface.h"
 
 void QwCombinedPMT::Add(QwIntegrationPMT* pmt, Double_t weight  )
 {
@@ -399,16 +403,12 @@ void  QwCombinedPMT::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 
 void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values) const
 {
-  if (GetElementName()=="")
-    {
-      //  This channel is not used, so skip filling the histograms.
-    }
-  else
-    {
-      fSumADC.FillTreeVector(values);
-//      fAvgADC.FillTreeVector(values);
-    }
-  return;
+  if (GetElementName()=="") {
+    //  This channel is not used, so skip filling the histograms.
+  } else {
+    fSumADC.FillTreeVector(values);
+//  fAvgADC.FillTreeVector(values);
+  }
 };
 
 void  QwCombinedPMT::DeleteHistograms()
@@ -466,4 +466,8 @@ void  QwCombinedPMT::Copy(VQwDataElement *source)
   return;
 }
 
-
+/********************************************************/
+std::vector<QwDBInterface>  QwCombinedPMT::GetDBEntry()
+{
+  return fSumADC.GetDBEntry();
+}

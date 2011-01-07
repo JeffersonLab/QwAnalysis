@@ -6,16 +6,20 @@
 \**********************************************************/
 
 #include "QwLumi.h"
-#include "QwHistogramHelper.h"
 
-#include "QwSubsystemArray.h"
+// System headers
 #include <stdexcept>
 #include <iostream>
+
+// Qweak headers
+#include "QwSubsystemArray.h"
+#include "QwDatabase.h"
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwLumi> theLumiFactory("QwLumi");
 
-void QwLumi::DefineOptions(QwOptions &options){
+void QwLumi::DefineOptions(QwOptions &options)
+{
   options.AddOptions()
     ("QwLumi.normalize",
      po::value<bool>()->default_value(false)->zero_tokens(),
@@ -24,7 +28,8 @@ void QwLumi::DefineOptions(QwOptions &options){
 
 
 //*****************************************************************
-void QwLumi::ProcessOptions(QwOptions &options){
+void QwLumi::ProcessOptions(QwOptions &options)
+{
   bNormalization = options.GetValue<bool>("QwLumi.normalize");
   if (! bNormalization){
     QwWarning << "QwLumi::ProcessOptions:  "
@@ -291,24 +296,6 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   if(ldebug)
@@ -611,13 +598,13 @@ Bool_t QwLumi::ApplySingleEventCuts(){
    fQwLumiErrorCount++;//falied  event counter for QwLumi
 
   return status;
-
 };
 
 
 //*****************************************************************
-Int_t QwLumi::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
-
+Int_t QwLumi::GetEventcutErrorCounters()
+{
+  //inherited from the VQwSubsystemParity; this will display the error summary
   QwMessage<<"*********QwLumi Error Summary****************"<<QwLog::endl;
   std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || EventCut\n";
   for(size_t i=0;i<fIntegrationPMT.size();i++){
@@ -645,7 +632,6 @@ UInt_t QwLumi::GetEventcutErrorFlag(){//return the error flag
     ErrorFlag |= fCombinedPMT[i].GetEventcutErrorFlag();
   }
   return ErrorFlag;
-
 };
 
 //*****************************************************************
@@ -672,7 +658,7 @@ void  QwLumi::ExchangeProcessedData()
   bIsExchangedDataValid = kTRUE;
   if (bNormalization){
     // Create a list of all variables that we need
-    // TODO This could be a static list to avoid repeated vector initializiations
+    // TODO This could be a static list to avoid repeated vector initializations
     std::vector<VQwDataElement*> variable_list;
     variable_list.push_back(&fTargetCharge);
     //variable_list.push_back(&fTargetX);
@@ -734,8 +720,6 @@ void  QwLumi::ProcessEvent_2()
 
 
 
-
-
 //*****************************************************************
 Int_t QwLumi::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
@@ -761,7 +745,6 @@ void QwLumi::ClearEventData()
     fCombinedPMT[i].ClearEventData();
   for(size_t i=0;i<fScalerPMT.size();i++)
     fScalerPMT[i].ClearEventData();
-  return;
 };
 
 EQwPMTInstrumentType QwLumi::GetDetectorTypeID(TString name)
@@ -817,7 +800,6 @@ QwIntegrationPMT* QwLumi::GetIntegrationPMT(const TString name)
 };
 
 
-
 const QwCombinedPMT* QwLumi::GetCombinedPMT(const TString name) const
 {
   TString tmpname = name;
@@ -836,8 +818,6 @@ const QwCombinedPMT* QwLumi::GetCombinedPMT(const TString name) const
   QwMessage << "QwLumi::GetCombinedPMT: cannot find channel " << tmpname << QwLog::endl;
   return NULL;
 };
-
-
 
 
 
@@ -978,7 +958,7 @@ Bool_t QwLumi::Compare(VQwSubsystem *value)
 void  QwLumi::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-      fIntegrationPMT[i].ConstructHistograms(folder,prefix);
+    fIntegrationPMT[i].ConstructHistograms(folder,prefix);
   for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].ConstructHistograms(folder,prefix);
   for (size_t i = 0; i < fScalerPMT.size(); i++)
@@ -1059,27 +1039,20 @@ void QwLumi::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& tri
      for (size_t i=0;i<fCombinedPMT.size();i++)
        fCombinedPMT[i].ConstructBranch(tree, prefix, *nextmodule );
    }
-  
-  
-  
-  
-  
-  
-  return;
 };
 
 //*****************************************************************
-void QwLumi::FillTreeVector(std::vector<Double_t> &values) const
+void  QwLumi::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (! HasDataLoaded()) return;
 
   for(size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].FillTreeVector(values);  
+    fIntegrationPMT[i].FillTreeVector(values);
   for (size_t i=0;i<fCombinedPMT.size();i++)
     fCombinedPMT[i].FillTreeVector(values);
   for(size_t i = 0; i < fScalerPMT.size(); i++)
-    fScalerPMT[i].FillTreeVector(values);  
-};
+    fScalerPMT[i].FillTreeVector(values);
+}
 
 
 //*****************************************************************
@@ -1087,7 +1060,7 @@ void  QwLumi::PrintValue() const
 {
   QwMessage << "=== QwLumi: " << GetSubsystemName() << " ===" << QwLog::endl;
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].PrintValue();  
+    fIntegrationPMT[i].PrintValue();
   for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].PrintValue();
   for (size_t i = 0; i < fScalerPMT.size(); i++)
@@ -1104,7 +1077,7 @@ void  QwLumi::PrintInfo() const
 
   QwMessage << " Printing Running AVG and other channel info" << QwLog::endl;
   for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].PrintInfo();  
+    fIntegrationPMT[i].PrintInfo();
   for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].PrintInfo();
   for (size_t i = 0; i < fScalerPMT.size(); i++)

@@ -10,17 +10,23 @@
 #ifndef __QWRASTER__
 #define __QWRASTER__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include "TTree.h"
 #include "TFile.h"
 #include "TProfile2D.h"
+
+// Qweak headers
 #include "VQwSubsystemTracking.h"
 #include "MQwV775TDC.h"
 #include "QwVQWK_Module.h"
 #include "QwVQWK_Channel.h"
 #include "QwPMT_Channel.h"
-#include "QwDatabase.h"
-#include "QwHistogramHelper.h"
+
+// Forward declarations
+class QwDatabase;
 
 class QwRaster: public VQwSubsystemTracking
 {

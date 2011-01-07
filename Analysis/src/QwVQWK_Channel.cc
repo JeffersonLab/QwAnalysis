@@ -747,9 +747,9 @@ void  QwVQWK_Channel::ConstructBranch(TTree *tree, TString &prefix)
 
 void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
-  if (IsNameEmpty()){
+  if (IsNameEmpty()) {
     //  This channel is not used, so skip filling the tree vector.
-  } else if (fTreeArrayNumEntries<=0){
+  } else if (fTreeArrayNumEntries <= 0) {
     if (bDEBUG) std::cerr << "QwVQWK_Channel::FillTreeVector:  fTreeArrayNumEntries=="
 	      << fTreeArrayNumEntries << std::endl;
   } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries){
@@ -759,7 +759,7 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values) const
 	      << fTreeArrayIndex+fTreeArrayNumEntries
 	      << std::endl;
   } else {
-    UInt_t index=fTreeArrayIndex;
+    UInt_t index = fTreeArrayIndex;
     //hw_sum
     if (bHw_sum)
       values[index++] = this->GetHardwareSum();
@@ -796,19 +796,6 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values) const
 	if (bSequence_number)
 	  values[index++]=this->fSequenceNumber;
       }
-  }
-  //if (kDEBUG && GetElementName()=="bar1right"){
-  if (kDEBUG && (GetElementName()=="bar1left_bar5left_sum" || GetElementName()=="bar1right"))
-    {
-    std::cerr<<"Fill vector for "<<GetElementName()<<std::endl;
-    std::cerr << "&(values["<<fTreeArrayIndex<<"])=="<< &(values[fTreeArrayIndex])
-	      << std::endl;
-    UInt_t index=fTreeArrayIndex;
-    for (UInt_t i=0; i<fTreeArrayNumEntries; i++){
-      std::cerr << "values[" << index << "]==" << values[index] << " ";
-      index++; // after previous statement to avoid ambiguity in ostream expression
-    }
-    std::cerr << std::endl;
   }
 };
 

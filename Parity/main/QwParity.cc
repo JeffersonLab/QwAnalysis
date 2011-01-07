@@ -25,6 +25,7 @@
 #include "QwRootFile.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
+#include "QwDatabase.h"
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwHelicityPattern.h"

@@ -263,6 +263,7 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     // Check to see if we should ignore the helicity; this is
     // reset to false in ClearEventData.
     fIgnoreHelicity |= localIgnoreHelicity;
+    SetDataLoaded(kTRUE);
   }
   if(localdebug){
     Print();
@@ -496,6 +497,7 @@ void QwHelicityPattern::ClearEventData()
   fAlternateDiff.ClearEventData();
 
   fPatternIsGood = kFALSE;
+  SetDataLoaded(kFALSE);
 };
 
 //*****************************************************************

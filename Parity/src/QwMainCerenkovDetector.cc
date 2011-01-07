@@ -7,10 +7,13 @@
 
 #include "QwMainCerenkovDetector.h"
 
+// System headers
 #include <sstream>
 
+// Qweak headers
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
+#include "QwDatabase.h"
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwMainCerenkovDetector>

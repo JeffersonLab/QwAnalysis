@@ -6,9 +6,11 @@
 \**********************************************************/
 
 #include "QwSubsystemArrayParity.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
 
 

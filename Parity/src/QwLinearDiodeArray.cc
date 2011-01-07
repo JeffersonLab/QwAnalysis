@@ -6,9 +6,13 @@
 \**********************************************************/
 
 #include "QwLinearDiodeArray.h"
-#include "QwHistogramHelper.h"
-#include "QwParameterFile.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwParameterFile.h"
+#include "QwDBInterface.h"
 
 
 const size_t QwLinearDiodeArray::kMaxElements = 8;

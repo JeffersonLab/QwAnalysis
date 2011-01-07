@@ -14,10 +14,10 @@
 
 // Qweak headers
 #include "VQwSubsystem.h"
-#include "QwDatabase.h"
 
 // Forward declarations
 class QwBlinder;
+class QwDatabase;
 
 
 /**

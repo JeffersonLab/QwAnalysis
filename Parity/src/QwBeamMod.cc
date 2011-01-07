@@ -5,16 +5,15 @@
 * Time-stamp: 052510                                      *
 \**********************************************************/
 
-#include "QwHelicity.h"
 #include "QwBeamMod.h"
-#include "QwHistogramHelper.h"
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
 
+// System headers
 #include <iostream>
 #include <stdexcept>
 
+// Qweak headers
 #include "QwLog.h"
+#include "QwParameterFile.h"
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwBeamMod> theBeamModFactory("QwBeamMod");

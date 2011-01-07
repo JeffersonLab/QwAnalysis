@@ -6,9 +6,12 @@
 \**********************************************************/
 
 #include "QwCombinedBPM.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// Qweak headers
+#include "QwDBInterface.h"
 
 
 void  QwCombinedBPM::InitializeChannel(TString name)

@@ -14,6 +14,7 @@
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwDatabase.h"
 #include "QwVQWK_Channel.h"
 
 // Maximum blinding asymmetry for additive blinding

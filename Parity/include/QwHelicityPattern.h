@@ -41,6 +41,8 @@ class QwHelicityPattern{
   void ProcessOptions(QwOptions &options);
 
   void  LoadEventData(QwSubsystemArrayParity &event);
+  Bool_t HasDataLoaded() const { return fIsDataLoaded; };
+
   Bool_t IsCompletePattern() const;
 
   void  CalculateAsymmetry();
@@ -174,6 +176,10 @@ class QwHelicityPattern{
   Int_t  fLastPhaseNumber;
 
   Bool_t fPatternIsGood;
+
+  // Flag to indicate that the pattern contains data
+  Bool_t fIsDataLoaded;
+  void SetDataLoaded(Bool_t flag) { fIsDataLoaded = flag; };
 
 };
 

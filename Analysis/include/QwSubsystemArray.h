@@ -20,16 +20,11 @@
 
 // Qweak headers
 #include "VQwSubsystem.h"
-#include "VQwDataElement.h"
-#include "QwParameterFile.h"
-#include "QwLog.h"
 #include "QwOptions.h"
-
-#include "QwVQWK_Channel.h"
 
 // Forward declarations
 class VQwDataElement;
-class QwSubsystemArrayParity;
+class QwParameterFile;
 
 ///
 /// \ingroup QwAnalysis

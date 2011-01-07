@@ -11,22 +11,18 @@
 #ifndef __QWMAINCERENKOVDETECTOR__
 #define __QWMAINCERENKOVDETECTOR__
 
+// System headers
 #include <vector>
-#include <TTree.h>
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
-
 #include "QwIntegrationPMT.h"
 #include "QwCombinedPMT.h"
-
-#include "QwTypes.h"
-
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
 
 // Forward declarations
 class QwBlinder;
 class QwMainCerenkovDetectorID;
+
 
 class QwMainCerenkovDetector: public VQwSubsystemParity {
 

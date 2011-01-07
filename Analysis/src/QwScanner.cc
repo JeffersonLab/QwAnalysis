@@ -9,10 +9,13 @@
 
 #include "QwScanner.h"
 
+// Qweak headers
+#include "QwParameterFile.h"
+#include "QwHistogramHelper.h"
+
 // Register this subsystem with the factory
 QwSubsystemFactory<QwScanner> theScannerFactory("QwScanner");
 
-extern QwHistogramHelper gQwHists;
 const Bool_t QwScanner::bStoreRawData = kTRUE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;

@@ -6,8 +6,12 @@
 \**********************************************************/
 
 #include "VQwBPM.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwLog.h"
 
 
 /* With X being vertical up and Z being the beam direction toward the beamdump */

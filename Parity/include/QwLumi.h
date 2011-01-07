@@ -145,7 +145,7 @@ class QwLumi : public VQwSubsystemParity{
  //for example if TypeID is IntegrationPMT  then the index of the detector from fIntegrationPMT vector for given name will be returnd.
 
  std::vector <QwIntegrationPMT>      fIntegrationPMT;  
- std::vector <QwCombinedPMT> fCombinedPMT;
+ std::vector <QwCombinedPMT>         fCombinedPMT;
  std::vector <QwLumiDetectorID>      fLumiDetectorID;
  std::vector <QwSIS3801D24_Channel>  fScalerPMT;
 

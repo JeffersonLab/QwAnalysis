@@ -19,9 +19,11 @@
 #include <TMD5.h>
 
 // Qweak headers
-#include "QwDatabase.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwEPICSEvent.h"
+
+// Forward declarations
+class QwDatabase;
 
 // Backup type definition for ULong64_t; needed with some older ROOT versions.
 #if !defined(ULong64_t)

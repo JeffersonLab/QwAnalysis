@@ -18,10 +18,8 @@
 #include "QwParameterFile.h"
 #include "QwScaler_Channel.h"
 
-// Qweak database headers
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
+// Forward declarations
+class QwDBInterface;
 
 /*****************************************************************
 *  Class: QwHaloMonitor handles the halo counters. This use

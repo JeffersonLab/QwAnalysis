@@ -289,7 +289,7 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromList(con
 };
 
 
-const Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string& devicename)
+Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string& devicename)
 {
   Int_t matched;
   matched=0;
@@ -315,7 +315,7 @@ const Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string& dev
     return kFALSE;
 };
 
-const Bool_t QwHistogramHelper::MatchVQWKElementFromList(
+Bool_t QwHistogramHelper::MatchVQWKElementFromList(
     const std::string& subsystemname,
     const std::string& moduletype,
     const std::string& elementname)

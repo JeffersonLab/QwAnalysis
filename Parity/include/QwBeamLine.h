@@ -27,7 +27,7 @@
 #include "QwQPD.h"
 #include "QwLinearDiodeArray.h"
 
-
+// Forward declarations
 class QwBeamDetectorID;
 
 /*****************************************************************

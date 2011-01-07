@@ -22,6 +22,7 @@
 #include "QwBeamLine.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
+#include "QwDatabase.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"

@@ -23,12 +23,11 @@
 // Note: the subsystem factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
 #include "QwSubsystemFactory.h"
-// Note: the parameter file is included for
-#include "QwParameterFile.h"
 
 // Forward declarations
-class QwSubsystemArray;
 class VQwDataElement;
+class QwSubsystemArray;
+class QwParameterFile;
 
 /**
  *  \class   VQwSubsystem

@@ -47,8 +47,8 @@ class QwHistogramHelper{
   TH1F* Construct1DHist(const std::string& inputfile, const TString& name_title);
   TH2F* Construct2DHist(const std::string& inputfile, const TString& name_title);
 
-  const Bool_t MatchDeviceParamsFromList(const std::string& devicename);
-  const Bool_t MatchVQWKElementFromList(const std::string& subsystemname,
+  Bool_t MatchDeviceParamsFromList(const std::string& devicename);
+  Bool_t MatchVQWKElementFromList(const std::string& subsystemname,
       const std::string& moduletype,
       const std::string& devicename);
   

@@ -14,13 +14,12 @@
 
 // System headers
 #include <stdexcept>
+#include <iomanip>
 
 // Qweak headers
 #include "QwLog.h"
-#include "QwHistogramHelper.h"
+#include "QwParameterFile.h"
 #include "QwScaler_Channel.h"
-
-#include <iomanip>
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwMollerDetector> theMollerDetectorFactory("QwMollerDetector");

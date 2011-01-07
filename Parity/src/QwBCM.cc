@@ -6,11 +6,12 @@
 \**********************************************************/
 
 #include "QwBCM.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
-
-
+// Qweak database headers
+#include "QwDBInterface.h"
 
 /********************************************************/
 void QwBCM::SetPedestal(Double_t pedestal)

@@ -10,6 +10,9 @@
 
 #include "QwScaler.h"
 
+// Qweak headers
+#include "QwParameterFile.h"
+
 QwSubsystemFactory<QwScaler> theScalerFactory("QwScaler");
 
 Int_t QwScaler::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){

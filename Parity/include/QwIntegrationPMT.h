@@ -18,13 +18,9 @@
 #include "QwVQWK_Channel.h"
 #include "QwParameterFile.h"
 
-// Qweak database headers
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
-
 // Forward declarations
 class QwBlinder;
+class QwDBInterface;
 
 
 /*****************************************************************
@@ -129,12 +125,12 @@ class QwIntegrationPMT : public VQwDataElement{
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
+  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
   Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};

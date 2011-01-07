@@ -17,6 +17,7 @@ using std::string;
 
 // Qweak headers
 #include "QwTypes.h"
+#include "QwColor.h"
 
 /*!
  * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,

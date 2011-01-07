@@ -6,8 +6,12 @@
 \**********************************************************/
 
 #include "QwQPD.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwDBInterface.h"
 
 /* Position calibration factor, transform ADC counts in mm*/
 const TString  QwQPD::subelement[4]={"BR","TR","BL","TL"};

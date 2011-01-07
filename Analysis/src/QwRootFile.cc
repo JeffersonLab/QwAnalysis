@@ -1,5 +1,4 @@
 #include "QwRootFile.h"
-#include "QwHistogramHelper.h"
 #include "QwRunCondition.h"
 
 std::string QwRootFile::fDefaultRootFileStem = "Qweak_";

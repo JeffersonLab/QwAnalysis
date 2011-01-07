@@ -1,12 +1,4 @@
-#include <vector>
-#include <TTree.h>
-#include <boost/array.hpp>
-
 #include "QwVQWK_Module.h"
-
-#include "QwHistogramHelper.h"
-
-
 
 
 void QwVQWK_Module::SetChannel(size_t channel, TString &name)

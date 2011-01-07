@@ -8,16 +8,20 @@
 #ifndef __QwVQWK_CAVITY__
 #define __QwVQWK_CAVITY__
 
+// System headers
 #include <vector>
+
+// ROOT headres
 #include <TTree.h>
 
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-
+// Qweak headers
 #include "QwVQWK_Channel.h"
-#include "QwDatabase.h"
 #include "VQwBPM.h"
 #include "QwParameterFile.h"
+
+// Forward declarations
+class QwDBInterface;
+
 /*****************************************************************
 *  Class:
 ******************************************************************/

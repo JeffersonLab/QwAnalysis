@@ -12,13 +12,9 @@
 #include "QwVQWK_Channel.h"
 #include "QwIntegrationPMT.h"
 
-// Qweak database headers
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
-
 // Forward declarations
 class QwBlinder;
+class QwDBInterface;
 
 class QwCombinedPMT : public VQwDataElement {
 /////
@@ -122,7 +118,7 @@ class QwCombinedPMT : public VQwDataElement {
 
   void Copy(VQwDataElement *source);
 
-  std::vector<QwDBInterface>  GetDBEntry() {return fSumADC.GetDBEntry();};
+  std::vector<QwDBInterface>  GetDBEntry();
 
  protected:
 

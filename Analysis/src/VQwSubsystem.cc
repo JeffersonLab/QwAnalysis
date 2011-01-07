@@ -28,6 +28,7 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwSubsystemArray.h"
+#include "QwParameterFile.h"
 
 
 Int_t ERROR = -1;

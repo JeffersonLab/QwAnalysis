@@ -1,18 +1,22 @@
 #include "QwEPICSEvent.h"
 
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
-
-
-#include "TStyle.h"
-#include "TFile.h"
-
+// System headers
 #include <iostream>
 #include <fstream>
 
+// ROOT headers
+#include "TObject.h"
+#include "TList.h"
+#include "TString.h"
+#include "TObjString.h"
+#include "TFile.h"
+#include "TROOT.h"
+
+// Qweak headers
 #include "QwLog.h"
 #include "QwParameterFile.h"
+#include "QwDatabase.h"
+
 
 /*************************************
  *  Static definitions
@@ -35,6 +39,7 @@ std::vector<std::string> QwEPICSEvent::fDefaultAutogainList;
  *************************************/
 QwEPICSEvent::QwEPICSEvent()
 {
+  SetDataLoaded(kFALSE);
   QwEPICSEvent::InitDefaultAutogainList();
   if (kDebug == 1) PrintVariableList();
 };
@@ -251,6 +256,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
       Int_t tagindex = FindIndex(varname);
       if (tagindex != kEPICS_Error) {
         SetDataValue(tagindex, varvalue, event);
+        SetDataLoaded(kTRUE);
       }
     }
   }

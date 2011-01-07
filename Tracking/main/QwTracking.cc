@@ -15,6 +15,7 @@
 #include "QwRootFile.h"
 #include "QwOptionsTracking.h"
 #include "QwEventBuffer.h"
+#include "QwDatabase.h"
 #include "QwHistogramHelper.h"
 #include "QwEPICSEvent.h"
 #include "QwTrackingWorker.h"

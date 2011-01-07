@@ -7,15 +7,14 @@
 \**********************************************************/
 
 #include "QwBeamLine.h"
-#include "QwHistogramHelper.h"
 
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-
+// System headers
 #include <iostream>
 #include <stdexcept>
 
+// Qweak headers
 #include "QwLog.h"
+#include "QwDatabase.h"
 
 // Register this subsystem with the factory
 QwSubsystemFactory<QwBeamLine> theBeamLineFactory("QwBeamLine");

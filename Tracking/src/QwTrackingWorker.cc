@@ -875,7 +875,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
                 // This if statement may be done wrong
                 // TODO (wdc) why does this have last index dir instead of something in scope?
                 if (region == kRegionID3) {
-                    if (event->treeline[package][region][type][kDirectionU] && event->treeline[package][region][type][kDirectionV]
+                    if (event->treeline[package][region][type][kDirectionU]
+                     && event->treeline[package][region][type][kDirectionV]
                      && tlayers)
                     parttrack = fTreeCombine->TlTreeCombine(
                                     event->treeline[package][region][type],
@@ -890,7 +891,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         if (event->treeline[package][region][type][kDirectionU]
                          && event->treeline[package][region][type][kDirectionV]
                          && event->treeline[package][region][type][kDirectionX]
-                         && tlayers){
+                         && tlayers) {
                 parttrack = fTreeCombine->TlTreeCombine(
                                     event->treeline[package][region][type],
                                     package, region,
