@@ -259,6 +259,7 @@ void QwVQWK_Channel::ClearEventData()
   fHardwareBlockSum   = 0.0;
   fHardwareBlockSumM2 = 0.0;
   fHardwareBlockSumError = 0.0;
+  fHardwareBlockSumWidth = 0.0;
   fSequenceNumber   = 0;
   fNumberOfSamples  = 0;
   fGoodEventCount   = 0;
@@ -1096,7 +1097,10 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   // If there are no good events, check whether device HW is good
   if (n2 == 0 && value.fDeviceErrorCode == 0) {
     n2 = 1;
-  }
+  }else if (n2 == -1 && value.fDeviceErrorCode == 0) {
+    n2 = -1;
+  }else
+    n2 = -100;//ignore it
   Int_t n = n1 + n2;
 
   // Set up variables
@@ -1106,6 +1110,39 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   if (n2 == 0) {
     // no good events for addition
     return;
+  } else if (n2 == -1) {
+    // simple version for removal of single event from the sum
+    fGoodEventCount--;
+    //QwMessage<<"Deaccumulate before "<<QwLog::endl;
+    if (n>0){
+      fHardwareBlockSum -= (M12 - M11) / n;
+      fHardwareBlockSumM2 -= (M12 - M11)
+	* (M12 - fHardwareBlockSum); // note: using updated mean
+      // and for individual blocks
+      for (Int_t i = 0; i < 4; i++) {
+	M11 = fBlock[i];
+	M12 = value.fBlock[i];
+	M22 = value.fBlockM2[i];
+	fBlock[i] -= (M12 - M11) / n;
+	fBlockM2[i] -= (M12 - M11) * (M12 - fBlock[i]); // note: using updated mean
+      }
+      //QwMessage<<"Deaccumulate "<<QwLog::endl;
+    }else if (n==0){
+      //QwMessage<<"Deaccumulate at zero "<<QwLog::endl;
+      /*
+      fHardwareBlockSum -= (M12 - M11) / n;
+      fHardwareBlockSumM2 -= (M12 - M11) * (M12 - fHardwareBlockSum); // note: using updated mean
+      // and for individual blocks
+      for (Int_t i = 0; i < 4; i++) {
+	M11 = fBlock[i];
+	M12 = value.fBlock[i];
+	M22 = value.fBlockM2[i];
+	fBlock[i] -= (M12 - M11) / n;
+	fBlockM2[i] -= (M12 - M11) * (M12 - fBlock[i]); // note: using updated mean
+      }
+      */
+    }
+
   } else if (n2 == 1) {
     // simple version for addition of single event
     fGoodEventCount++;
@@ -1141,7 +1178,6 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 };
 
 
-
 void QwVQWK_Channel::CalculateRunningAverage()
 {
   if (fGoodEventCount <= 0)
@@ -1150,6 +1186,7 @@ void QwVQWK_Channel::CalculateRunningAverage()
         fBlockError[i] = 0.0;
       }
       fHardwareBlockSumError = 0.0;
+      fHardwareBlockSumWidth = 0.0;
     }
   else
     {
@@ -1162,6 +1199,7 @@ void QwVQWK_Channel::CalculateRunningAverage()
       for (Int_t i = 0; i < fBlocksPerEvent; i++)
         fBlockError[i] = sqrt(fBlockM2[i]) / fGoodEventCount;
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
+      fHardwareBlockSumWidth = sqrt(fHardwareBlockSumM2/fGoodEventCount);
     }
 };
 
@@ -1173,7 +1211,8 @@ void QwVQWK_Channel::PrintValue() const
             << std::setw(18) << std::left << GetModuleType()      << " "
             << std::setw(18) << std::left << GetElementName()      << " "
             << std::setw(12) << std::left << GetHardwareSum()      << "+/- "
-            << std::setw(12) << std::left << GetHardwareSumError() << " "
+            << std::setw(12) << std::left << GetHardwareSumError() << " sig "
+	    << std::setw(12) << std::left << GetHardwareSumWidth() << " "
             << std::setw(10) << std::left << GetGoodEventCount()   << " "
             << std::setw(12) << std::left << GetBlockValue(0)      << "+/- "
             << std::setw(12) << std::left << GetBlockErrorValue(0) << " "

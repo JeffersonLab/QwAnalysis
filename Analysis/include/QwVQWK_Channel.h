@@ -129,6 +129,12 @@ class QwVQWK_Channel: public VQwDataElement {
   void Scale(Double_t Offset);
 
   void AccumulateRunningSum(const QwVQWK_Channel& value);
+  ////deaccumulate one value from the running sum
+  void DeaccumulateRunningSum(QwVQWK_Channel& value){
+    value.fGoodEventCount=-1;
+    AccumulateRunningSum(value);
+    value.fGoodEventCount=0;
+  };
   void CalculateRunningAverage();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
@@ -185,7 +191,9 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t GetBlockErrorValue(size_t blocknum) const { return fBlockError[blocknum]; };
   Double_t GetHardwareSum() const       { return fHardwareBlockSum; };
   Double_t GetHardwareSumM2() const     { return fHardwareBlockSumM2; };
+  Double_t GetHardwareSumWidth() const  { return fHardwareBlockSumWidth; };
   Double_t GetHardwareSumError() const  { return fHardwareBlockSumError; };
+  Double_t GetStabilityLimit() const { return fStability;};
   Double_t GetAverageVolts() const;
   //  Double_t GetSoftwareSum() const {return fSoftwareBlockSum;};
 
@@ -276,6 +284,7 @@ class QwVQWK_Channel: public VQwDataElement {
   // Moments of the hardware sum
   Double_t fHardwareBlockSumM2;    ///< Second moment of the hardware sum
   Double_t fHardwareBlockSumError; ///< Uncertainty on the hardware sum
+  Double_t fHardwareBlockSumWidth; ///< standard deviation  on the hardware sum
   // @}
 
 
