@@ -108,9 +108,12 @@ class QwDriftChamber: public VQwSubsystemTracking{
   virtual Int_t AddChannelDefinition() = 0;
   virtual Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire)=0;
   virtual Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)=0;
+
+  using VQwSubsystem::ConstructHistograms;
   virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
-  virtual void  FillHistograms() = 0;
-  virtual void  DeleteHistograms();
+  virtual void FillHistograms() = 0;
+  virtual void DeleteHistograms();
+
   virtual Int_t LoadTimeWireOffset(TString t0_map) = 0;
   virtual void SubtractWireTimeOffset() = 0;
   virtual void ApplyTimeCalibration() = 0;

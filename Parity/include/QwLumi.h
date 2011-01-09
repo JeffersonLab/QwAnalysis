@@ -111,6 +111,7 @@ class QwLumi : public VQwSubsystemParity{
 
   void Scale(Double_t factor);
 
+  using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();

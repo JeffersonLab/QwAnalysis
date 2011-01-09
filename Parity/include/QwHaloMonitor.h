@@ -66,14 +66,15 @@ class  QwHaloMonitor : public VQwDataElement{
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
   Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Bool_t ApplyHWChecks();
-  void   ConstructHistograms(TDirectory *folder, TString &prefix);
-  void   FillHistograms();
+
+  void  ConstructHistograms(TDirectory *folder, TString &prefix);
+  void  FillHistograms();
+  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   void  Copy(VQwDataElement *source);
 

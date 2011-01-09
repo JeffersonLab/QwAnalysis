@@ -225,7 +225,7 @@ Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) c
   return index;
 };
 
-Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0)
+Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id)
 {
   Int_t stat      = 0;
   Int_t roc_index = 0;
@@ -291,7 +291,8 @@ void VQwSubsystem::PrintInfo() const
 };
 
 
-void VQwSubsystem::Copy(VQwSubsystem *source){
+void VQwSubsystem::Copy(VQwSubsystem *source)
+{
   try
     {
 
@@ -323,8 +324,9 @@ void VQwSubsystem::Copy(VQwSubsystem *source){
   return;
 };
 
-VQwSubsystem&  VQwSubsystem::operator=  (VQwSubsystem *value){
-  this->fIsDataLoaded= value->fIsDataLoaded;
+VQwSubsystem& VQwSubsystem::operator=(VQwSubsystem *value)
+{
+  this->fIsDataLoaded = value->fIsDataLoaded;
   return *this;
 };
 

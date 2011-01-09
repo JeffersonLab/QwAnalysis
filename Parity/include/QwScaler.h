@@ -33,15 +33,18 @@ class QwScaler: public VQwSubsystemParity
 		void  PrintDetectorID();
 		void  ClearEventData();
 		void  ProcessEvent();
+
+		using VQwSubsystem::ConstructHistograms;
 		void  ConstructHistograms ( TDirectory *folder, TString &prefix );
 		void  FillHistograms();
 		void  DeleteHistograms();
 
-
+		using VQwSubsystem::ConstructBranchAndVector;
 		void ConstructBranchAndVector ( TTree *tree, TString &prefix, std::vector<Double_t> &values );
 		void ConstructBranch(TTree *tree, TString& prefix);
   		void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file);
 		void FillTreeVector ( std::vector<Double_t> &values ) const;
+
 		VQwSubsystem& operator= ( VQwSubsystem *value );
 		VQwSubsystem& operator+= ( VQwSubsystem *value );
 		VQwSubsystem& operator-= ( VQwSubsystem *value );

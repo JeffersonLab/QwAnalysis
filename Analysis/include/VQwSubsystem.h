@@ -62,7 +62,7 @@ class VQwSubsystem {
   VQwSubsystem(const TString& name)
     : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
     ClearAllBankRegistrations();
-  };
+  }
 
   /// Default destructor
   virtual ~VQwSubsystem() { };
@@ -249,8 +249,14 @@ class VQwSubsystem {
   /// \brief Print some information about the subsystem
   virtual void  PrintInfo() const;
 
-  virtual void Copy(VQwSubsystem *source);//Must call at the beginning of all subsystems rotuine call to Copy(VQwSubsystem *source)  by  using VQwSubsystem::Copy(source)
-  virtual VQwSubsystem&  operator=  (VQwSubsystem *value);//Must call at the beginning of all subsystems rotuine call to operator=  (VQwSubsystem *value)  by VQwSubsystem::operator=(value)
+  /// \brief Copy method
+  /// Note: Must be called at the beginning of all subsystems routine 
+  /// call to Copy(VQwSubsystem *source) by using VQwSubsystem::Copy(source)
+  virtual void Copy(VQwSubsystem *source);
+  /// \brief Assignment
+  /// Note: Must be called at the beginning of all subsystems routine 
+  /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)
+  virtual VQwSubsystem& operator=(VQwSubsystem *value);
 
 
  protected:
@@ -261,7 +267,7 @@ class VQwSubsystem {
 
   /*! \brief Tell the object that it will decode data from this ROC and sub-bank
    */
-  virtual Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
+  virtual Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0);
 
   /*! \brief Tell the object that it will decode data from this sub-bank in the ROC currently open for registration
    */

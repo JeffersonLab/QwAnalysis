@@ -1,4 +1,3 @@
-
 #ifndef QWSSQLS_HH
 #define QWSSQLS_HH
 

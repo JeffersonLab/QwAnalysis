@@ -84,9 +84,12 @@ class QwMollerDetector: public VQwSubsystemParity {
     void  PrintDetectorID();
     void  ClearEventData();
     void  ProcessEvent();
+
+    using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
     void  DeleteHistograms();
+
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);
     VQwSubsystem& operator-= (VQwSubsystem *value);
@@ -102,6 +105,8 @@ class QwMollerDetector: public VQwSubsystemParity {
     Bool_t  ApplySingleEventCuts();
     Int_t GetEventcutErrorCounters();
     UInt_t GetEventcutErrorFlag();
+
+    using VQwSubsystem::ConstructBranchAndVector;
     void ConstructBranchAndVector(TTree*, TString&, std::vector<double, std::allocator<double> >&);
     void ConstructBranch(TTree *tree, TString& prefix) { };
     void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };

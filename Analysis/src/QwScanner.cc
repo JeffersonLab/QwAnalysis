@@ -1734,7 +1734,7 @@ void  QwScanner::InitializeChannel(TString name, TString datatosave)
 };
 
 
-void QwScanner::PrintInfo()
+void QwScanner::PrintInfo() const
 {
   std::cout << "QwScanner: " << fSystemName << std::endl;
 
