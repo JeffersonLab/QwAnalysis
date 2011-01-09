@@ -83,8 +83,8 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
 
   private:
 
-    /// Private default constructor
-    VQwSubsystemParity() { };
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemParity();
 
 }; // class VQwSubsystemParity
 

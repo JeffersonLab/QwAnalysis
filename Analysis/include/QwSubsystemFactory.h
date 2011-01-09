@@ -1,6 +1,10 @@
 #ifndef __QWSUBSYSTEMFACTORY__
 #define __QWSUBSYSTEMFACTORY__
 
+// System headers
+#include <cxxabi.h>
+#include <cstdlib>
+
 // Qweak headers
 #include "QwLog.h"
 
@@ -44,12 +48,12 @@ class VQwSubsystemFactory {
       return (Cast(subsys,type) != 0);
     }
 
-  protected:
-
     /// Subsystem creation (pure virtual)
-    virtual VQwSubsystem* Create(const std::string& name) = 0;
-    /// Subsystem cast (pure virtual)
-    virtual VQwSubsystem* Cast(VQwSubsystem* subsys) = 0;
+    virtual VQwSubsystem* Create(const std::string& name) const = 0;
+    /// Subsystem dynamic cast (pure virtual)
+    virtual VQwSubsystem* Cast(VQwSubsystem* subsys) const = 0;
+
+  protected:
 
     /// Map from string to concrete subsystem factories
     static std::map<std::string,VQwSubsystemFactory*>& GetRegisteredSubsystems();
@@ -90,8 +94,9 @@ VQwSubsystemFactory::GetSubsystemFactory(const std::string& type)
     ListRegisteredSubsystems();
     QwWarning << "To register this subsystem, add the following line to the top "
               << "of the source file:" << QwLog::endl;
-    QwWarning << "  QwSubsystemFactory<" << type << "> the" << type
-              << "Factory(\"" << type << "\");" << QwLog::endl;
+    QwWarning << "  template <> const VQwSubsystemFactory*" << QwLog::endl;
+    QwWarning << "  MQwCloneable<" << type << ">::fFactory" << type
+              << "    = new QwSubsystemFactory<" << type << ">(\"" << type << "\");" << QwLog::endl;
     QwWarning << "Ensure that the dynamic library contains the factory object."
               << QwLog::endl;
     throw QwException_SubsystemUnknown();
@@ -118,18 +123,74 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
       VQwSubsystemFactory::GetRegisteredSubsystems()[type] = this;
     };
 
-  protected:
-
     /// Concrete subsystem creation
-    VQwSubsystem* Create(const std::string& name) {
+    VQwSubsystem* Create(const std::string& name) const {
       return new subsystem_t(name);
-    };
+    }
 
     /// Dynamic cast of subsystem
-    subsystem_t* Cast(VQwSubsystem* subsys) {
+    subsystem_t* Cast(VQwSubsystem* subsys) const {
       return dynamic_cast<subsystem_t*>(subsys);
     }
 
 }; // class QwSubsystemFactory
+
+
+/// Polymorphic copy constructor virtual base class
+class VQwCloneable {
+  public:
+    /// Virtual destructor
+    virtual ~VQwCloneable() { };
+
+    /// Abstract clone method when no derived method is defined
+    virtual VQwSubsystem* Clone() const {
+      int status;
+      const type_info& ti = typeid(*this);
+      char* name = abi::__cxa_demangle(ti.name(), 0, 0, &status);
+      QwError << "Clone() is not implemented for class " << name << "!" << QwLog::endl;
+      QwMessage << "Modify the class definition of " << name << " to:" << QwLog::endl;
+      QwMessage << "  class " << name << ": public VQwSubsystemParity, "
+                << "public MQwCloneable<" << name << ">" << QwLog::endl;
+      free(name);
+      return 0;
+    }
+
+    /// Virtual subsystem factory getter
+    virtual const VQwSubsystemFactory* Factory() const { return 0; };
+
+}; // class VQwCloneable
+
+
+/// Polymorphic copy construction by curiously recurring template pattern (mix-in)
+/// We have lost covariancy: clone will have the base type, not the derived type...
+template <typename subsystem_t>
+class MQwCloneable: virtual public VQwCloneable {
+  public:
+    /// Concrete clone method
+    virtual VQwSubsystem* Clone() const {
+      return new subsystem_t(static_cast<const subsystem_t&>(*this));
+    }
+
+    /// Subsystem factory getter
+    const VQwSubsystemFactory* Factory() const { return fFactory; };
+
+    /// Subsystem creation
+    static VQwSubsystem* Create(const std::string& name) {
+      if (fFactory) return fFactory->Create(name);
+      else return 0;
+    }
+
+    /// Subsystem dynamic cast
+    static subsystem_t* Cast(VQwSubsystem* subsys) {
+      if (fFactory) return fFactory->Cast(subsys);
+      else return 0;
+    }
+
+  private:
+    /// Pointer to the subsystem factory of this type
+    static const VQwSubsystemFactory* fFactory;
+
+}; // class MQwCloneable
+
 
 #endif // __QWSUBSYSTEMFACTORY__

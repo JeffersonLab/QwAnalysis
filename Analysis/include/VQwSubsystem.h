@@ -29,6 +29,7 @@ class VQwDataElement;
 class QwSubsystemArray;
 class QwParameterFile;
 
+
 /**
  *  \class   VQwSubsystem
  *  \ingroup QwAnalysis
@@ -54,18 +55,27 @@ class QwParameterFile;
  * This will define the interfaces used in communicating with the
  * CODA routines.
  */
-class VQwSubsystem {
+class VQwSubsystem: virtual public VQwCloneable {
 
  public:
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-    : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
+    : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
+      fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
     ClearAllBankRegistrations();
+  }
+  /// Copy constructor by object
+  VQwSubsystem(const VQwSubsystem& orig) {
+    *this = orig;
+  }
+  /// Copy constructor by pointer
+  VQwSubsystem(const VQwSubsystem* orig) {
+    *this = *orig;
   }
 
   /// Default destructor
-  virtual ~VQwSubsystem() { };
+  virtual ~VQwSubsystem() { }
 
 
   /// \brief Define options function (note: no virtual static functions in C++)
@@ -149,7 +159,7 @@ class VQwSubsystem {
 
   virtual Int_t ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
     /// TODO:  Subsystems should be changing their ProcessEvBuffer routines to take the event_type as the first
-    ///  arguement.  But in the meantime, default to just calling the non-event-type-aware ProcessEvBuffer routine.
+    ///  argument.  But in the meantime, default to just calling the non-event-type-aware ProcessEvBuffer routine.
     if (((0x1 << (event_type - 1)) & this->GetEventTypeMask()) == 0) return 0;
     else return this->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
   };
@@ -305,12 +315,18 @@ class VQwSubsystem {
 
 
  protected:
-  VQwSubsystem(){};  //  Private constructor.
-  VQwSubsystem&  operator=  (const VQwSubsystem &value){
-    return *this;
-  };
 
+  // Comparison of type
+  Bool_t Compare(VQwSubsystem* source) {
+    return (typeid(*this) == typeid(*source));
+  }
+
+ private:
+
+  // Private constructor (not implemented, will throw linker error on use)
+  VQwSubsystem();
 
 }; // class VQwSubsystem
+
 
 #endif // __VQWSUBSYSTEM__

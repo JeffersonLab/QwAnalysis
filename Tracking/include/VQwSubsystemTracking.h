@@ -67,8 +67,8 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
 
   private:
 
-    /// Private default constructor
-    VQwSubsystemTracking() { };
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemTracking();
 
 }; // class VQwSubsystemTracking
 
