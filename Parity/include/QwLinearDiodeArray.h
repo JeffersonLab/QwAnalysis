@@ -107,7 +107,7 @@ class QwLinearDiodeArray : public VQwBPM {
   static const size_t kMaxElements;
 
   /*  Position calibration factor, transform ADC counts in mm */
-  static const Double_t kQwLinearDiodeArrayCalibration;
+  static const Double_t kQwLinearDiodeArrayPadSize;
 
 
 

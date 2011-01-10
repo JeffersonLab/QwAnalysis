@@ -17,8 +17,8 @@
 
 const size_t QwLinearDiodeArray::kMaxElements = 8;
 
-/* Position calibration factor, transform ADC counts in mm*/
-const Double_t QwLinearDiodeArray::kQwLinearDiodeArrayCalibration = 18.77;
+/* Pad size in mm*/
+const Double_t QwLinearDiodeArray::kQwLinearDiodeArrayPadSize = 1.57;
 
 void  QwLinearDiodeArray::InitializeChannel(TString name)
 {
@@ -193,20 +193,18 @@ void  QwLinearDiodeArray::ProcessEvent()
   //makes a difference for a LinearArrays because they have derrived devices.
 
   fEffectiveCharge.ClearEventData();
-  if(localdebug) std::cout<<"Size of the linear array = "<<fPhotodiode.size()<<std::endl;
   for(i=0;i<fPhotodiode.size();i++){
     fPhotodiode[i].ProcessEvent();
     fEffectiveCharge+=fPhotodiode[i];
   }
   
-  if (localdebug) fEffectiveCharge.PrintInfo();
   
   //  First calculate the mean pad position and mean of squared pad position
   //  with respect to the center of the array, in units of pad spacing.
   mean.ClearEventData();
   meansqr.ClearEventData();
   for (i=0;i<fPhotodiode.size();i++){
-    Double_t pos = 0.5 + 1.0*i - 0.5*fPhotodiode.size();
+    Double_t pos = kQwLinearDiodeArrayPadSize*i*0.5;
     tmp = fPhotodiode[i];
     tmp.Scale(pos);  // Scale for S(i)*pos
     mean+=tmp;
@@ -221,17 +219,17 @@ void  QwLinearDiodeArray::ProcessEvent()
   //  Now calculate the variance
   fRelPos[1].Difference(meansqr,tmp2);
 
-  for(i=0;i<2;i++){
-    fRelPos[i].Scale(kQwLinearDiodeArrayCalibration);
-    if(localdebug){
-      std::cout<<" LinearArray name="<<fElementName<<axis[i];
-      std::cout<<" event number= "<<fPhotodiode[i*2].GetSequenceNumber()<<" \n";
-      std::cout<<" hw  photodiode["<<i*2<<"]="<<fPhotodiode[i*2].GetHardwareSum()<<"  ";
-      std::cout<<" hw  photodiode["<<i*2+1<<"]="<<fPhotodiode[i*2+1].GetHardwareSum()<<"\n";
-      std::cout<<" hw numerator= "<<mean.GetHardwareSum()<<"  ";
-      std::cout<<" hw denominator= "<<fEffectiveCharge.GetHardwareSum()<<"\n";
-      std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
-    }
+  if(localdebug){
+    std::cout<<"\n#################"<<std::endl;
+    std::cout<<" LinearArray name="<<fElementName<<std::endl;
+    std::cout<<" Size of the linear array = "<<fPhotodiode.size()<<std::endl;
+    std::cout<<" event number= "<<fPhotodiode[0].GetSequenceNumber()<<std::endl;
+    for(Int_t i = 0; i<8; i++)
+      std::cout<<" pad"<<i<<" ="<<fPhotodiode[i].GetHardwareSum()<<std::endl;
+      std::cout<<" mean ="<<fRelPos[0].GetHardwareSum()<<std::endl;
+    std::cout<<" varaiance ="<<fRelPos[1].GetHardwareSum()<<std::endl;
+    std::cout<<" total charge ="<<fEffectiveCharge.GetHardwareSum()<<std::endl;
+
   }
   
   return;
@@ -719,10 +717,10 @@ void  QwLinearDiodeArray::SetRandomEventParameters(Double_t meanX, Double_t sigm
 
   
   // Determine the asymmetry from the position
-  Double_t meanXP = (1.0 + meanX / kQwLinearDiodeArrayCalibration) * sumX / 2.0;
-  Double_t meanXM = (1.0 - meanX / kQwLinearDiodeArrayCalibration) * sumX / 2.0; // = sumX - meanXP;
-  Double_t meanYP = (1.0 + meanY / kQwLinearDiodeArrayCalibration) * sumY / 2.0;
-  Double_t meanYM = (1.0 - meanY / kQwLinearDiodeArrayCalibration) * sumY / 2.0; // = sumY - meanYP;
+  Double_t meanXP = (1.0 + meanX) * sumX / 2.0;
+  Double_t meanXM = (1.0 - meanX) * sumX / 2.0; // = sumX - meanXP;
+  Double_t meanYP = (1.0 + meanY) * sumY / 2.0;
+  Double_t meanYM = (1.0 - meanY) * sumY / 2.0; // = sumY - meanYP;
 
   // Determine the spread of the asymmetry (this is not tested yet)
   // (negative sigma should work in the QwVQWK_Channel, but still using fabs)
