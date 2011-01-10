@@ -414,7 +414,7 @@ QwF1TDC::ResetCounters()
       fF1TDC_S30_counter[i] = 0;
     }
   return;
-}
+};
 
 
 UInt_t
@@ -428,7 +428,7 @@ QwF1TDC::GetTotal(UInt_t *error_counter)
       error += error_counter[i];
     }
   return error;
-}
+};
 
 UInt_t
 QwF1TDC::GetTotalSEU()
@@ -525,7 +525,7 @@ QwF1TDC::PrintErrorCounter()
       PrintChannelErrorCounter(i);
     }
   return;
-}
+};
 
 
 
@@ -547,7 +547,7 @@ QwF1TDC::PrintTotalErrorCounter()
     //  	    << " S30 " << this->GetTotalS30()
 	    << std::endl;
   return;
-}
+};
 
 
 
@@ -578,7 +578,7 @@ QwF1TDC::GetChannelErrorCounter(Int_t channel)
   // error_counter += this->GetS30(channel);
 
   return error_counter;
-}
+};
 
 
 
@@ -597,7 +597,7 @@ QwF1TDC::GetErrorCounter()
       error_counter += GetChannelErrorCounter(i);
     }
   return error_counter;
-}
+};
 
 
 TString
@@ -627,7 +627,7 @@ QwF1TDC::GetTotalErrorCounter()
   //  error_counter += " S30 : ";
   // error_counter += this->GetTotalS30();
   return error_counter;
-}
+};
 
 
 void
@@ -638,7 +638,7 @@ QwF1TDC::PrintContact()
 	 GetF1SystemName().Data(), GetROCNumber(), GetSlotNumber());
   printf("-------------------------------------------------------------------------------- \n");
   return;
-}
+};
 
 // void 
 // SetRefernceSignals(Int_t chan, Double_t val)
@@ -663,7 +663,7 @@ std::ostream& operator<< (std::ostream& os, const QwF1TDC &f1tdc)
   os << std::setw(2) << f1tdc.fF1BankIndex;
 
   return os;
-}
+};
 
 
 
@@ -786,7 +786,7 @@ QwF1TDContainer::GetF1TDC(Int_t roc, Int_t slot)
     }
 
   return NULL;
-}
+};
 
 
 QwF1TDC *
@@ -812,7 +812,7 @@ QwF1TDContainer::GetF1TDCwithIndex(Int_t tdc_index)
     }
 
   return NULL;
-}
+};
 
 QwF1TDC *
 QwF1TDContainer::GetF1TDCwithBankIndexSLOT(Int_t bank_index, Int_t slot)
@@ -856,7 +856,7 @@ QwF1TDContainer::AddSYN(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddSYN : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-}
+};
 
 void
 QwF1TDContainer::AddEMM(Int_t roc, Int_t slot, Int_t channel)
@@ -872,7 +872,7 @@ QwF1TDContainer::AddEMM(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddEMM : " << PrintNoF1TDC(roc,slot)  << std::endl;
   }
   return;
-}
+};
 
 
 void
@@ -889,7 +889,7 @@ QwF1TDContainer::AddSEU(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddSEU : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-}
+};
 
 
 void
@@ -907,7 +907,7 @@ QwF1TDContainer::AddTFO(Int_t roc, Int_t slot, Int_t channel)
   }
   return;
 }
-
+;
 
 
 void
@@ -924,7 +924,7 @@ QwF1TDContainer::AddRLF(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddRLF : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-}
+};
 
 
 void
@@ -941,7 +941,7 @@ QwF1TDContainer::AddHFO(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddHFO : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-}
+};
 
 void
 QwF1TDContainer::AddOFO(Int_t roc, Int_t slot, Int_t channel)
@@ -957,7 +957,7 @@ QwF1TDContainer::AddOFO(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddOFO : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-}
+};
 
 
 void
@@ -974,7 +974,7 @@ QwF1TDContainer::AddFDF(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddFDF : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-}
+};
 
 
 
@@ -1090,7 +1090,7 @@ QwF1TDContainer::Print()
     }
 
   return;
-}
+};
 
 
 TString
@@ -1345,6 +1345,11 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   Int_t subsystem_cnt = 0;
   TString roc_idx;
 
+  if(fLocalF1RawDecodeDebug) {
+    printf("%s at %s nwrds %d\n", 
+	   __PRETTY_FUNCTION__, GetSystemName().Data(), num_words);
+  };
+
   for (UInt_t i=0; i<num_words ; i++) 
     {
       fF1TDCDecoder.DecodeTDCWord(buffer[i], roc_id); 
@@ -1371,20 +1376,22 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 	channel_number  = fF1TDCDecoder.GetTDCChannelNumber();
 
 
-	if(fLocalDebug) {
-	  // this is for tracking down missing wires in Region 2
-	  // a quick and dirty way to check
-	  // Monday, December 20 10:38:38 EST 2010, jhlee
+	// if(fLocalDebug) {
+	//   // this is for tracking down missing wires in Region 2
+	//   // a quick and dirty way to check
+	//   // Monday, December 20 10:38:38 EST 2010, jhlee
+	//      it turned out "loosing cabling....
+	//      Saturday, January  8 01:54:02 EST 2011, jhlee
 	  
-	  if( (slot_number==10) and (roc_id==3) ) {
-	    if( (channel_number == 19) ||  (channel_number == 21) || (channel_number == 23) || (channel_number == 25) 
-		|| (channel_number == 27) ||  (channel_number == 29) || (channel_number == 31) || (channel_number == 17) 
-		) 
-	      {
-		printf("Roc %2d Slot%2d Ch %2d \n", roc_id, slot_number, channel_number);
-	      }
-	  }
-	}
+	//   if( (slot_number==10) and (roc_id==3) ) {
+	//     if( (channel_number == 19) ||  (channel_number == 21) || (channel_number == 23) || (channel_number == 25) 
+	// 	|| (channel_number == 27) ||  (channel_number == 29) || (channel_number == 31) || (channel_number == 17) 
+	// 	) 
+	//       {
+	// 	printf("Roc %2d Slot%2d Ch %2d \n", roc_id, slot_number, channel_number);
+	//       }
+	//   }
+	// }
 	
 	roc_idx = Form("R%2d-S%2d", roc_id, slot_number);
 
@@ -1664,7 +1671,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
 
     }//for (UInt_t i=0; i<num_words ; i++) {
   
-  
+  if(fLocalF1RawDecodeDebug) printf("\n");
   return (data_integrity_flag); 
 };
 
