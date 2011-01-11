@@ -909,24 +909,24 @@ void FillMDParameters(){
     Get_Tree_Mean("(yield_qwk_mdevenbars.hw_sum-yield_qwk_mdoddbars.hw_sum)",intensity,1);
     Get_Tree_Mean_Fit_gaus("(asym_qwk_mdevenbars.hw_sum-asym_qwk_mdoddbars.hw_sum)",val,1.e+6);
     //    util.push_back(Form("\n even-odd   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-    util.push_back(MidRule_3("Even-Odd", mean, val));
-    compare_to_golden_value("MD_all_diff", mean,0);
+    util.push_back(MidRule_3("Even-Odd", intensity, val));
+    compare_to_golden_value("MD_all_diff", intensity,0);
     compare_to_golden_value("MD_all_diff_asymmetry", val[0], val[2]);
     compare_to_golden_value("MD_all_diff_width", val[1], val[3]);
 
     Get_Tree_Mean("(yield_qwk_md1_qwk_md5.hw_sum-yield_qwk_md3_qwk_md7.hw_sum)",intensity,1);
     Get_Tree_Mean_Fit_gaus("(asym_qwk_md1_qwk_md5.hw_sum-asym_qwk_md3_qwk_md7.hw_sum)",val,1.e+6);
     //util.push_back(Form("\n md 1/5-3/7   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-    util.push_back(MidRule_3("MD1/5-MD3/7", mean, val));
-    compare_to_golden_value("MD_2bar_diff", mean,0);
+    util.push_back(MidRule_3("MD1/5-MD3/7", intensity, val));
+    compare_to_golden_value("MD_2bar_diff", intensity,0);
     compare_to_golden_value("MD_2bar_diff_asymmetry", val[0], val[2]);
     compare_to_golden_value("MD_2bar_diff_width", val[1], val[3]);
     
     Get_Tree_Mean("(yield_qwk_md2_qwk_md6.hw_sum-yield_qwk_md4_qwk_md8.hw_sum)",intensity,1);
     Get_Tree_Mean_Fit_gaus("(asym_qwk_md2_qwk_md6.hw_sum-asym_qwk_md4_qwk_md8.hw_sum)",val,1.e+6);
 //    util.push_back(Form("\n md 2/6-4/8   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-    util.push_back(MidRule_3("MD2/6-MD4/8", mean, val));
-    compare_to_golden_value("MD_2bar_diff", mean,0);
+    util.push_back(MidRule_3("MD2/6-MD4/8", intensity, val));
+    compare_to_golden_value("MD_2bar_diff", intensity,0);
     compare_to_golden_value("MD_2bar_diff_asymmetry", val[0], val[2]);
     compare_to_golden_value("MD_2bar_diff_width", val[1], val[3]);
   }
