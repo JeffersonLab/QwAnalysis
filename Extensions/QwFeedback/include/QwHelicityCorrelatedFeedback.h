@@ -75,10 +75,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     
     
     ~QwHelicityCorrelatedFeedback() { 
-        if (!fFeedbackStatus){
-	  fFeedbackStatus=kFALSE;
-	  fEPICSCtrl.Set_FeedbackStatus(0);
-	}
+      //        if (!fFeedbackStatus){
+      //	  fFeedbackStatus=kFALSE;
+      fEPICSCtrl.Set_FeedbackStatus(0);
+	  //	}
 
     };  
     ///inherited from QwHelicityPattern

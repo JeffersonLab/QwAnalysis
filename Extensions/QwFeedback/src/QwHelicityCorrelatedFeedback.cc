@@ -35,6 +35,10 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
   fHalfWaveRevert      = options.GetValue<bool>("Half-wave-plate-revert");
   fHalfWavePlateStatus = GetHalfWavePlateState();
 
+  printf("NOTICS \n QwFeedback got the half-wave plate status %s\n", fHalfWavePlateStatus.Data());
+  if(fHalfWaveRevert) {
+  }
+
   if(fHalfWavePlateStatus.Contains("IN")) {
     if(fHalfWaveRevert) fHalfWaveIN = false;
     else                fHalfWaveIN = true;
@@ -46,22 +50,24 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
 
   fHalfWaveOUT = !fHalfWaveIN;
 
+
+
   if (fHalfWaveIN)
-    printf("NOTICE \n Half-wave-plate-IN\n ");
+    printf("NOTICE \n Half-wave-plate-IN\n");
   else
-    printf("NOTICE \n Half-wave-plate-OUT\n ");
+    printf("NOTICE \n Half-wave-plate-OUT\n");
 
   fPITAFB = options.GetValue<bool>("PITA-Feedback");
   fIAFB   = options.GetValue<bool>("IA-Feedback"); 
 
   if (fPITAFB)
-    printf("NOTICE \n   PITA-Feedback is running \n   ");
+    printf("NOTICE \n   PITA-Feedback is running.\n");
   else
-    printf("NOTICE \n   PITA-Feedback is not running \n");
+    printf("NOTICE \n   PITA-Feedback is not running.\n");
   if (fIAFB)
-    printf("NOTICE \n  IA-Feedback is running \n  ");
+    printf("NOTICE \n   IA-Feedback is running.\n");
   else
-    printf("NOTICE \n   IA-Feedback is not running \n ");
+    printf("NOTICE \n   IA-Feedback is not running.\n");
 
   if (!fPITAFB && !fIAFB){//no correction applied.
     fEPICSCtrl.Set_FeedbackStatus(0);
