@@ -35,13 +35,17 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fEnableBurstSum=kFALSE;
     fGoodPatternCounter=0;
-    fFeedbackStatus=kTRUE;
-    if (fEPICSCtrl.Get_FeedbackStatus()>0)
-      fEPICSCtrl.Set_FeedbackStatus(0);
-    if (fFeedbackStatus){
-      fFeedbackStatus=kFALSE;
-      fEPICSCtrl.Set_FeedbackStatus(1.0);
-    }
+
+
+/*     fFeedbackStatus=kTRUE; */
+/*     if (fEPICSCtrl.Get_FeedbackStatus()>0) */
+/*       fEPICSCtrl.Set_FeedbackStatus(0); */
+/*     if (fFeedbackStatus){ */
+/*       fFeedbackStatus=kFALSE; */
+/*       fEPICSCtrl.Set_FeedbackStatus(1.0); */
+/*     } */
+
+    CheckFeedbackStatus();
 
     fPreviousHelPat=0;//at the beginning of the run this is non existing
     fCurrentHelPatMode=-1;//at the beginning of the run this is non existing
@@ -181,6 +185,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
  
     
     TString GetHalfWavePlateState();
+    void    CheckFeedbackStatus();
 
     static const Int_t kHelPat1=1001;//to compare with current or previous helpat
     static const Int_t kHelPat2=110;

@@ -17,6 +17,8 @@
  */
 void QwHelicityCorrelatedFeedback::DefineOptions(QwOptions &options)
 {
+
+
   //options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-IN", po::value<bool>()->default_value(false)->zero_tokens(),"Set Half wave plate IN. The default is Half wave plate OUT");
   options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-revert", po::value<bool>()->default_value(false)->zero_tokens(),"Revert half-wave plate status. The default is determined via EPIC");
   //options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-OUT", po::value<bool>()->default_value(true)->zero_tokens(),"Half wave plate OUT");
@@ -757,3 +759,19 @@ TString  QwHelicityCorrelatedFeedback::GetHalfWavePlateState()
   TString plate_status = gSystem->GetFromPipe("caget -t -w 0.1 IGL1I00DI24_24M");
   return plate_status;
 };
+
+
+void QwHelicityCorrelatedFeedback::CheckFeedbackStatus()
+{
+  Double_t old_status = 0.0;
+  old_status = fEPICSCtrl.Get_FeedbackStatus();
+  if(old_status == 1.0) { 
+    // EPIC says, feedback is on, but we start it now. 
+    // qwfeedback was killed by "kill -9 option" or was ended improperly.
+    fEPICSCtrl.Set_FeedbackStatus(0.0);
+    fFeedbackStatus=kFALSE;
+    gSystem->Sleep(4000); // wait 4 secs
+  }
+  fEPICSCtrl.Set_FeedbackStatus(1.0);
+  fFeedbackStatus=kTRUE;
+}
