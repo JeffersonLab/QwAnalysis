@@ -11,9 +11,8 @@
 
 #include "QwEPICSControl.h"
 #include "GreenMonster.h"
-
-
-
+#include "QwVQWK_Channel.h"
+#include "QwParameterFile.h"
 ///
 /// \ingroup QwAnalysis_ADC
 ///
