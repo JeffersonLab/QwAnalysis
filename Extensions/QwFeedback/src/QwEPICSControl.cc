@@ -2,7 +2,7 @@
 
 QwEPICSControl::QwEPICSControl()
 {
-  int status;
+  Int_t status;
   status = ca_search("IGLdac3:ao_7", &fIDHall_A_IA);//IA Cell Setpoint  Hall A  
   status = ca_pend_io(10);
   status = ca_search("IGLdac3:ao_4", &fIDHall_C_IA);//IA Cell Setpoint  Hall C
@@ -33,6 +33,7 @@ QwEPICSControl::QwEPICSControl()
   status = ca_search("qw:ChargeAsymmetryWidth", &fChargeAsymmetryWidth);//
   status = ca_pend_io(10);
   
+  ca_search("IGL1I00DI24_24M", &fHalfWavePlateStatus);
 
 };
 

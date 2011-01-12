@@ -271,6 +271,11 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     Bool_t fHalfWaveIN;
     Bool_t fHalfWaveOUT;
+
+    Bool_t fHalfWaveRevert;
+
+    TString fHalfWavePlateStatus;
+
     Bool_t fPITAFB;
     Bool_t fIAFB;
     Bool_t fFeedbackStatus;

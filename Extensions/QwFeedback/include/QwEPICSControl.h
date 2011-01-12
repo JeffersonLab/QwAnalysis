@@ -8,15 +8,18 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <cadef.h>
+
 #include <time.h>
 #include <iterator>
+
+
 #include "Rtypes.h"
 
-#include <TMath.h>
-#include <TMatrix.h>
+#include "TMath.h"
+#include "TMatrix.h"
+#include "TString.h"
 
-
+#include "cadef.h"
 
 
 class QwEPICSControl{
@@ -26,7 +29,7 @@ public:
   ~QwEPICSControl();
 
   void Print_HallAIA(){
-    int status;
+    Int_t status;
     //    Char_t tmp[30];
     //    status = ca_get(DBR_STRING, fIDHall_A_IA, tmp);
     //    status = ca_pend_io(10);
@@ -34,12 +37,12 @@ public:
     Double_t value;
     status = ca_get(DBR_DOUBLE, fIDHall_A_IA, &value);
     status = ca_pend_io(10);
-    std::cout << "Hall A IA value: " << value << std::endl;
+    printf("Hall A IA value: %lf\n", value);
   };
 
 
   void Print_Qasym_Ctrls(){
-    int status;
+    Int_t status;
     //    Char_t tmp[30];
     //    status = ca_get(DBR_STRING, fIDHall_A_IA, tmp);
     //    status = ca_pend_io(10);
@@ -69,7 +72,7 @@ public:
   };
 
   void Set_HallCIA(Int_t mode, Double_t &value){
-    int status;
+    Int_t status;
     switch(mode){
     case 0:
       status = ca_put(DBR_DOUBLE, fIDHall_C_IA_A0, &value);
@@ -104,7 +107,7 @@ public:
   };
 
   void Get_HallCIA(Int_t mode, Double_t &value){
-    int status;
+    Int_t status;
     switch(mode){
     case 0:
       status = ca_get(DBR_DOUBLE, fIDHall_C_IA_A0, &value);
@@ -133,7 +136,7 @@ public:
 
 
   void Set_Pockels_Cell_plus(Double_t &value){
-    int status;
+    Int_t status;
     status = ca_put(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
     status = ca_pend_io(10);
     status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
@@ -142,7 +145,7 @@ public:
 
   };
   void Set_Pockels_Cell_minus(Double_t &value){
-    int status;
+    Int_t status;
     status = ca_put(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
     status = ca_pend_io(10);
     status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
@@ -151,21 +154,21 @@ public:
   };
 
   void Get_Pockels_Cell_plus(Double_t &value){ 
-    int status;
+    Int_t status;
     status = ca_get(DBR_DOUBLE, fIDPockels_Cell_plus, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell pos HW-count value: " << value << std::endl;
 
   };
   void Get_Pockels_Cell_minus(Double_t &value){
-    int status;
+    Int_t status;
     status = ca_get(DBR_DOUBLE, fIDPockels_Cell_minus, &value);
     status = ca_pend_io(10);
     std::cout << "Pockels Cell minus HW-count value: " << value << std::endl;
   };
 
   void Set_ChargeAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
-    int status;
+    Int_t status;
     status = ca_put(DBR_DOUBLE,fChargeAsymmetry , &value);
     status = ca_pend_io(10);
     status = ca_get(DBR_DOUBLE,fChargeAsymmetry , &value);
@@ -184,7 +187,7 @@ public:
   };
 
   void Get_ChargeAsymmetry(Double_t &value, Double_t &value_error, Double_t &value_width){
-    int status;
+    Int_t status;
     status = ca_get(DBR_DOUBLE,fChargeAsymmetry , &value);
     status = ca_pend_io(10);
     status = ca_get(DBR_DOUBLE,fChargeAsymmetryError , &value_error);
@@ -197,7 +200,7 @@ public:
  
   
   void Set_FeedbackStatus(Double_t value){
-    int status;
+    Int_t status;
     status = ca_put(DBR_DOUBLE, fFeedbackStatus, &value);
     status = ca_pend_io(10);
     status = ca_get(DBR_DOUBLE, fFeedbackStatus, &value);
@@ -207,13 +210,29 @@ public:
   };
   
   Double_t Get_FeedbackStatus(){
-   int status;
+   Int_t status;
    Double_t fbstat;
    status = ca_get(DBR_DOUBLE, fFeedbackStatus, &fbstat);
    status = ca_pend_io(10); 
    return fbstat;
   }
 
+  //
+  // not test yet, duplicated one to compare with QwHelicityCorrelatedFeedback::GetHalfWavePlateState()
+  //
+  // Wednesday, January 12 11:59:09 EST 2011, jhlee
+  //
+  TString Get_HalfWavePlateState() {
+    Int_t plate_status;
+    //   const char* epic_half_wave_plate = "IGL1I00DI24_24M";
+    plate_status = ca_get(DBF_STRING, fHalfWavePlateStatus, &plate_status);
+    if(plate_status == 1) {
+      return "IN";
+    }
+    else {
+      return "OUT";
+    }
+  };
 
   /*  
       static const Double_t kOn;
@@ -303,8 +322,8 @@ public:
   chid fChargeAsymmetryWidth;
   chid fFeedbackStatus;
 
+  chid fHalfWavePlateStatus;
   
-
   chid fIDMagnet_1_Even;
   chid fIDMagnet_1_Odd;
   chid fIDMagnet_2_Even;

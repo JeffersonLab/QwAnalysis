@@ -17,7 +17,8 @@
  */
 void QwHelicityCorrelatedFeedback::DefineOptions(QwOptions &options)
 {
-  options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-IN", po::value<bool>()->default_value(false)->zero_tokens(),"Set Half wave plate IN. The default is Half wave plate OUT");
+  //options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-IN", po::value<bool>()->default_value(false)->zero_tokens(),"Set Half wave plate IN. The default is Half wave plate OUT");
+  options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-revert", po::value<bool>()->default_value(false)->zero_tokens(),"Revert half-wave plate status. The default is determined via EPIC");
   //options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-OUT", po::value<bool>()->default_value(true)->zero_tokens(),"Half wave plate OUT");
   options.AddOptions("Helicity Correlated Feedback")("PITA-Feedback", po::value<bool>()->default_value(false)->zero_tokens(),"Run the PITA charge feedback");
   options.AddOptions("Helicity Correlated Feedback")("IA-Feedback", po::value<bool>()->default_value(false)->zero_tokens(),"Run the IA charge feedback");
@@ -29,48 +30,37 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
 {
   QwHelicityPattern::ProcessOptions(options);
 
-  fHalfWaveIN = options.GetValue<bool>("Half-wave-plate-IN");
-  
-  TString plate_status = GetHalfWavePlateState();
-  
+  fHalfWaveRevert      = options.GetValue<bool>("Half-wave-plate-revert");
+  fHalfWavePlateStatus = GetHalfWavePlateState();
 
-  //   OPTION     EPICS
-  //   OUT        OUT   -> No change : OUT
-  //   OUT        IN    -> Change    : IN
-  //   IN         OUT   -> Change    : OUT
-  //   IN         IN    -> No change : IN
+  if(fHalfWavePlateStatus.Contains("IN")) {
+    if(fHalfWaveRevert) fHalfWaveIN = false;
+    else                fHalfWaveIN = true;
+  }
+  else {
+    if(fHalfWaveRevert) fHalfWaveIN = true;
+    else                fHalfWaveIN = false;
+  }
 
-  if(!fHalfWaveIN) { // Option OUT 
-    if(plate_status.Contains("IN")) {
-      printf("Half-wave plate status mismatch between user input and EPIC, force to use EPICS half wave plate status %s\n", plate_status.Data());
-      fHalfWaveIN = true;
-    }
-  }
-  else { // option IN or the other 
-     if(plate_status.Contains("OUT")) {
-       printf("Half-wave plate status mismatch between user input and EPIC, force to use EPICS half wave plate status %s\n", plate_status.Data());
-       fHalfWaveIN = false;
-     }
-  }
-  
   fHalfWaveOUT = !fHalfWaveIN;
 
-
   if (fHalfWaveIN)
-    QwMessage<<"NOTICE \n   Half-wave-plate-IN  \n "<<QwLog::endl;
+    printf("NOTICE \n Half-wave-plate-IN\n ");
   else
-    QwMessage<<"NOTICE \n Half-wave-plate-OUT   \n "<<QwLog::endl;
+    printf("NOTICE \n Half-wave-plate-OUT\n ");
 
-  fPITAFB= options.GetValue<bool>("PITA-Feedback");
-  fIAFB= options.GetValue<bool>("IA-Feedback"); 
+  fPITAFB = options.GetValue<bool>("PITA-Feedback");
+  fIAFB   = options.GetValue<bool>("IA-Feedback"); 
+
   if (fPITAFB)
-    QwMessage<<"NOTICE \n   PITA-Feedback is running \n   "<<QwLog::endl;
+    printf("NOTICE \n   PITA-Feedback is running \n   ");
   else
-    QwWarning<<"NOTICE \n   PITA-Feedback is not running \n   "<<QwLog::endl;
+    printf("NOTICE \n   PITA-Feedback is not running \n");
   if (fIAFB)
-    QwMessage<<"NOTICE \n  IA-Feedback is running \n  "<<QwLog::endl;
+    printf("NOTICE \n  IA-Feedback is running \n  ");
   else
-    QwWarning<<"NOTICE \n   IA-Feedback is not running \n   "<<QwLog::endl;
+    printf("NOTICE \n   IA-Feedback is not running \n ");
+
   if (!fPITAFB && !fIAFB){//no correction applied.
     fEPICSCtrl.Set_FeedbackStatus(0);
     exit(1); 
@@ -185,6 +175,8 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
       }      
     }
   }
+
+  
   QwMessage<<"patternMax = "<<fAccumulatePatternMax<<" deltaAq "<<fChargeAsymPrecision<<"ppm"<<QwLog::endl;
   //QwMessage<<"Optimal values - IA ["<<fOptimalIA<<"] PC+["<<fOptimalPCP<<"] PC-["<<fOptimalPCN<<"]"<<QwLog::endl;
   QwMessage<<"IA DAC counts limits "<<fIASetpointlow<<" to "<< fIASetpointup <<QwLog::endl;
