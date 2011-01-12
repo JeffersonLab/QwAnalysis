@@ -13,6 +13,7 @@
 #include "GreenMonster.h"
 
 
+
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -180,6 +181,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     ///4. -++- -++-
  
     
+    TString GetHalfWavePlateState();
 
     static const Int_t kHelPat1=1001;//to compare with current or previous helpat
     static const Int_t kHelPat2=110;

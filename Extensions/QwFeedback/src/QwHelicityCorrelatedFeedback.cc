@@ -6,6 +6,7 @@
 \**********************************************************/
 
 #include "QwHelicityCorrelatedFeedback.h"
+#include "TSystem.h"
 
 /*****************************************************************/
 
@@ -27,8 +28,34 @@ void QwHelicityCorrelatedFeedback::DefineOptions(QwOptions &options)
 void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
 {
   QwHelicityPattern::ProcessOptions(options);
+
   fHalfWaveIN = options.GetValue<bool>("Half-wave-plate-IN");
+  
+  TString plate_status = GetHalfWavePlateState();
+  
+
+  //   OPTION     EPICS
+  //   OUT        OUT   -> No change : OUT
+  //   OUT        IN    -> Change    : IN
+  //   IN         OUT   -> Change    : OUT
+  //   IN         IN    -> No change : IN
+
+  if(! fHalfWaveIn) { // Option OUT 
+    if(plate_status.Contains("IN")) {
+      printf("Half-wave plate status mismatch between user input and EPIC, force to use EPICS half wave plate status %s\n", plate_status.Data());
+      fHalfWaveIn = true;
+    }
+  }
+  else { // option IN or the other 
+     if(plate_status.Contains("OUT")) {
+       printf("Half-wave plate status mismatch between user input and EPIC, force to use EPICS half wave plate status %s\n", plate_status.Data());
+       fHalfWaveIn = false;
+     }
+  }
+  
   fHalfWaveOUT = !fHalfWaveIN;
+
+
   if (fHalfWaveIN)
     QwMessage<<"NOTICE \n   Half-wave-plate-IN  \n "<<QwLog::endl;
   else
@@ -732,3 +759,9 @@ void  QwHelicityCorrelatedFeedback::FillTreeVector(std::vector<Double_t> &values
   QwHelicityPattern::FillTreeVector(values);
 };
 
+
+TString  QwHelicityCorrelatedFeedback::GetHalfWavePlateState()
+{
+  TString plate_staus = gSystem->GetFromPipe("caget -t -w 0.1 IGL1I00DI24_24M");
+  return plate_status;
+};
