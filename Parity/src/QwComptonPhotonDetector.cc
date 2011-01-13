@@ -212,16 +212,17 @@ Int_t QwComptonPhotonDetector::LoadEventCuts(TString & filename)
  */
 Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
 {
-  TString varname;
-  Double_t varped;
-  Double_t varcal;
-  Bool_t notfound = kTRUE;
-
   // Open the file
   QwParameterFile mapstr(pedestalfile.Data());
+  Bool_t found = kFALSE;
   while (mapstr.ReadNextLine()) {
-    mapstr.TrimComment('!');   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    mapstr.TrimComment();    // Remove everything after a comment character
+    mapstr.TrimWhitespace(); // Get rid of leading and trailing spaces
+
+    TString varname = "";
+    Double_t varped = 0.0;
+    Double_t varcal = 1.0;
+
     if (mapstr.LineIsEmpty())  continue;
     else {
       varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
@@ -231,16 +232,26 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
       varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
     }
 
-    for (size_t i = 0; i < fSamplingADC.size() && notfound; i++) {
+    for (size_t i = 0; i < fSamplingADC.size() && !found; i++) {
       TString localname = fSamplingADC[i].GetElementName();
       localname.ToLower();
       if (localname == varname) {
         fSamplingADC[i].SetPedestal(varped);
         fSamplingADC[i].SetCalibrationFactor(varcal);
-        notfound = kFALSE;
+        found = kTRUE;
       }
-
     } // end of loop over all sampling ADC channels
+
+
+    for (size_t i = 0; i < fScaler.size() && !found; i++) {
+      TString localname = fScaler[i]->GetElementName();
+      localname.ToLower();
+      if (localname == varname) {
+        fScaler[i]->SetPedestal(varped);
+        fScaler[i]->SetCalibrationFactor(varcal);
+        found = kTRUE;
+      }
+    } // end of loop over all scaler channels
 
   } // end of loop reading all lines of the pedestal file
 

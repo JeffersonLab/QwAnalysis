@@ -26,6 +26,10 @@ void VQwScaler_Channel::ClearEventData()
   fValue_Raw = 0;
   fValue     = 0.0;
   fValueM2   = 0.0;
+
+  fPedestal  = 0.0;
+  fCalibrationFactor = 1.0;
+
   fGoodEventCount = 0;
   fDeviceErrorCode = 0;
 };
@@ -106,8 +110,8 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
     //  Skip over this data.
       words_read = fNumberOfDataWords;
   } else if (num_words_left >= fNumberOfDataWords) {
-    this->fValue_Raw = ((buffer[0] & data_mask) >> data_shift);
-    this->fValue     = 0.0 + this->fValue_Raw;
+    fValue_Raw = ((buffer[0] & data_mask) >> data_shift);
+    fValue     = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
     words_read = fNumberOfDataWords;
   } else {
     //QwError << "QwScaler_Channel::ProcessEvBuffer: Not enough words!"<< QwLog::endl;
@@ -118,8 +122,7 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
 
 void VQwScaler_Channel::ProcessEvent()
 {
-  //scaler events processed here.
-  return;
+  fValue = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
 };
 
 
@@ -377,12 +380,14 @@ void VQwScaler_Channel::Copy(VQwDataElement *source)
      if(typeid(*source)==typeid(*this))
        {
 	 VQwScaler_Channel* input = dynamic_cast<VQwScaler_Channel*>(source);
-         this->fElementName     = input->fElementName;
-         this->fValue_Raw       = input->fValue_Raw;
-         this->fValue           = input->fValue;
-         this->fValueM2         = input->fValueM2;
-         this->fGoodEventCount  = input->fGoodEventCount;
-         this->fDeviceErrorCode = input->fDeviceErrorCode;
+         this->fElementName       = input->fElementName;
+         this->fValue_Raw         = input->fValue_Raw;
+         this->fValue             = input->fValue;
+         this->fValueM2           = input->fValueM2;
+         this->fPedestal          = input->fPedestal;
+         this->fCalibrationFactor = input->fCalibrationFactor;
+         this->fGoodEventCount    = input->fGoodEventCount;
+         this->fDeviceErrorCode   = input->fDeviceErrorCode;
        }
      else
        {

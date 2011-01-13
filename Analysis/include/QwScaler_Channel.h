@@ -58,6 +58,11 @@ class VQwScaler_Channel: public VQwDataElement {
     return;
   };
 
+  void     SetPedestal(Double_t ped) { fPedestal = ped; };
+  Double_t GetPedestal() const       { return fPedestal; };
+  void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; };
+  Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
+
   void  ClearEventData();
 
   void ReportErrorCounters();//This will display the error summary for each device
@@ -116,6 +121,9 @@ protected:
   Double_t fValue;
   Double_t fValueM2;
   Double_t fValueError;
+
+  Double_t fPedestal;
+  Double_t fCalibrationFactor;
 
   /*  Ntuple array indices */
   size_t fTreeArrayIndex;
