@@ -1005,7 +1005,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     mysqlpp::Query query     = dDatabaseCont->Query();
 
     if(ldebug){
-    std::cout<< " SELECT "<<det_table_id<<", value, error, run_number FROM "<<data_table<<", analysis, runlet "
+    std::cout<< " SELECT "<<det_table_id<<", value, error, run_number,segment_number FROM "<<data_table<<", analysis, runlet "
 	  << " WHERE "<<data_table<<".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id "
 	  << " AND "<<data_table<<"."<<det_table_id<<" = "<<monitor_id
 	  << " AND "<<data_table<<".subblock = "<< subblock 
@@ -1015,7 +1015,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 	  << " ORDER BY run_number, segment_number;"<<std::endl;
     }
 
-    query << " SELECT "<<det_table_id<<", value, error, run_number FROM "<<data_table<<", analysis, runlet "
+    query << " SELECT "<<det_table_id<<", value, error, run_number, segment_number FROM "<<data_table<<", analysis, runlet "
 	  << " WHERE "<<data_table<<".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id "
 	  << " AND "<<data_table<<"."<<det_table_id<<" = "<<monitor_id
 	  << " AND "<<data_table<<".subblock = "<< subblock 
@@ -1048,7 +1048,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     std::cout<<"Collecting data.."<<std::endl;
     for (size_t i = 0; i < row_size; ++i)
       { 
-	run.operator()(i) = read_data[i]["run_number"];
+	run.operator()(i) = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
 
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12"){
 	  x.operator()(i)    = (read_data[i]["value"])*1e9; // convert to  ppb
@@ -1074,11 +1074,11 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     TString title = GetTitle(measurement_type, device);
     grp ->GetXaxis()->SetTitle("Run Number");
     grp ->GetYaxis()->SetTitle(y_title);
-    grp->SetMarkerStyle(7);
+    grp ->SetMarkerStyle(23);
+    grp ->SetMarkerColor(kBlue);
     grp ->SetTitle(title);
     gerr->GetXaxis()->SetTitle("Run Number");
     gerr->GetYaxis()->SetTitle("Error in "+y_title);
-    grp ->SetMarkerStyle(7);
     gerr->SetTitle(title);
     gerr->SetFillColor(kRed-2);
 
