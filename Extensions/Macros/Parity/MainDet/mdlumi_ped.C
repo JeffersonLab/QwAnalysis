@@ -1,10 +1,8 @@
-void mdlumi_ped(int run_num,int mps_start, bool get_md, bool get_lumi)
+void mdlumi_ped(int run_num =8358,int mps_start =0, int mps_stop=20e3, bool get_md=kTRUE, bool get_lumi=kTRUE)
 {
   TChain chain("Mps_Tree");
-  for(int i=0;i<1;i++)
-    {
-      chain.Add(Form("$QW_ROOTFILES/pedMDLumi%i.root",run_num,i));
-    };
+  chain.Add(Form("$QW_ROOTFILES/QwPass1_%i.*.root",run_num));
+
   const string lumi[16] = {
   "qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4",
   "qwk_dslumi5","qwk_dslumi6","qwk_dslumi7","qwk_dslumi8",
@@ -22,7 +20,7 @@ void mdlumi_ped(int run_num,int mps_start, bool get_md, bool get_lumi)
   const int n = 24;
 
   Bool_t save_file = kTRUE;
-  Int_t mps_stop = mps_start + 10000;
+  //Int_t mps_stop = mps_start + 10000;
   char * pPath = "";
   if (save_file == kTRUE) pPath = getenv("QWANALYSIS");
   //printf ("The current save path is: %s",pPath);
@@ -42,7 +40,7 @@ void mdlumi_ped(int run_num,int mps_start, bool get_md, bool get_lumi)
           //c_md->cd(i+1);      
           mdhst[i] = new TH1F(Form("%h_%s",md[i]),"",100,0,0);
           mdhst[i]->SetDirectory(0);   
-          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples>>h_%s",md[i],md[i],md[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",md[i],mps_start,mps_stop),"");
+          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples>>h_%s",md[i],md[i],md[i]),Form("%s.num_samples!=0 && mps_counter>%i && mps_counter<%i",md[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",md[i]));
           md_pedestal_file<<Form("%s  ,  ",md[i])<<htemp->GetMean()<<"  ,  0.00007692"<<endl;  
           cout<<md[i]<<"  "<<htemp->GetMean()<<endl;
@@ -65,7 +63,7 @@ void mdlumi_ped(int run_num,int mps_start, bool get_md, bool get_lumi)
           //c_lumi->cd(i+1);      
           lumihst[i] = new TH1F(Form("%h_%s",lumi[i]),"",100,0,0);
           lumihst[i]->SetDirectory(0);   
-          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples>>h_%s",lumi[i],lumi[i],lumi[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",lumi[i],mps_start,mps_stop),"");
+          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples>>h_%s",lumi[i],lumi[i],lumi[i]),Form("%s.num_samples!=0 && mps_counter>%i && mps_counter<%i",lumi[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",lumi[i]));
           lumi_pedestal_file<<Form("%s  ,  ",lumi[i])<<htemp->GetMean()<<"  ,  0.00007692"<<endl;  
           cout<<lumi[i]<<"  "<<htemp->GetMean()<<endl;
