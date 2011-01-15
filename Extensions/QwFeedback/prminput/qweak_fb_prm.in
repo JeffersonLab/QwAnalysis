@@ -2,7 +2,7 @@
 
 #No.of good patterns to accumulate before triggering the feedback algorithm.
 
-patterns = 4000
+patterns = 10000
 
 #The precision of the charge asymmetry in ppm
 
@@ -47,11 +47,22 @@ IA_up  = 50000
 #PITASLOPE_IN = -0.73
 
 #PITA slopes
-#  From M.Dalton, as of ,02Dec2010, 
+#  From M.Dalton, as of ,03Dec2010, 
 #  units are ppm/dac-tick
-PITASLOPE_OUT = +0.554
-PITASLOPE_IN = -0.557
+#PITASLOPE_OUT = +0.554
+#PITASLOPE_IN = -0.557
 
+#PITA slopes
+#  From M.Dalton, as of ,06Jan2011, https://cebaf.jlab.org/elog/entry/1560667
+#  units are ppm/dac-tick
+PITASLOPE_OUT = -0.8588
+PITASLOPE_IN = +0.8588
+
+#PITA slopes
+#  From John Leacock, as of ,19Dec2010, 
+#  units are ppm/dac-tick
+#PITASLOPE_OUT = -0.996422
+#PITASLOPE_IN = +0.996422
 
 ###  PITANEG = 200
 
