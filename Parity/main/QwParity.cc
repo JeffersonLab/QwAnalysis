@@ -86,6 +86,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
+    epicsevent.ProcessOptions(gQwOptions);
     epicsevent.LoadChannelMap("EpicsTable.map");
 
     ///  Load the detectors from file
