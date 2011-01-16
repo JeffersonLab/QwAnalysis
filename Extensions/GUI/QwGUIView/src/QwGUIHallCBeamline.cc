@@ -50,6 +50,7 @@ enum EQwGUIDatabaseHistogramIDs {
 // The list of BPMs in the  Hall C beamline including the virtual target bpm. Please don't change this. 
 const char *QwGUIHallCBeamline::HallC_BPMS[HCLINE_BPMS]=
   {
+
     "bpm3c07","bpm3c07a","bpm3c08","bpm3c11","bpm3c12","bpm3c14","bpm3c16","bpm3c17",
     "bpm3c18","bpm3c19","bpm3p02a","bpm3p02b","bpm3p03a","bpm3c20","bpm3c21","bpm3h02",
     "bpm3h04","bpm3h07a","bpm3h07b","bpm3h07c","bpm3h08","bpm3h09","bpm3h09b","target"
@@ -415,6 +416,7 @@ void QwGUIHallCBeamline::PositionDifferences()
   Bool_t ldebug = kFALSE;
 
   gStyle->SetLabelSize(0.05,"x");
+  gStyle->SetLabelSize(0.06,"y");
 
   TObject *obj       = NULL;
   TCanvas *mc        = NULL;
@@ -431,7 +433,7 @@ void QwGUIHallCBeamline::PositionDifferences()
 
   // check to see if the TH1s used for the calculation are empty.
   for(Short_t i=0;i<2;i++) {
-    if(PosDiffVar[i]) delete PosDiffVar[i];  PosDiffVar[i] = NULL;
+    if(PosDiffVar[i]) delete PosDiffVar[i]; PosDiffVar[i] = NULL;
   }
 
  
@@ -506,6 +508,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     PosDiffVar[0] -> SetMarkerStyle(20);
     PosDiffVar[0] -> SetMarkerColor(2);
     PosDiffVar[0] -> SetTitle("#Delta X Variation");
+    PosDiffVar[0] -> GetYaxis()->CenterTitle();
     PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (#mum)");
     PosDiffVar[0] -> Draw("E1");
     gPad->Update();
@@ -515,6 +518,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     SummaryHist(PosDiffVar[1]);
     PosDiffVar[1] -> SetMarkerStyle(20);
     PosDiffVar[1] -> SetMarkerColor(4);
+    PosDiffVar[1] -> GetYaxis()->CenterTitle();
     PosDiffVar[1] -> SetTitle("#Delta Y Variation");
     PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (#mum)");
     PosDiffVar[1] -> Draw("E1");

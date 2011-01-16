@@ -689,17 +689,17 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap()
 
   for(int n = 0; n < MAIN_DET_BLOCKIND; n++){
     dCurrentYields[n] = new QwGUIMainDetectorData(MAIN_PMT_INDEX);
-    dCurrentYields[n]->SetName(MainDetectorBlockTypes[n]);
+    dCurrentYields[n]->SetName(MainDetectorBlockTypesRaw[n]);
     dCurrentPMTAsyms[n] = new QwGUIMainDetectorData(MAIN_PMT_INDEX);
-    dCurrentPMTAsyms[n]->SetName(MainDetectorBlockTypes[n]);
+    dCurrentPMTAsyms[n]->SetName(MainDetectorBlockTypesRaw[n]);
     dCurrentDETAsyms[n] = new QwGUIMainDetectorData(MAIN_DET_INDEX);
-    dCurrentDETAsyms[n]->SetName(MainDetectorBlockTypes[n]);
+    dCurrentDETAsyms[n]->SetName(MainDetectorBlockTypesRaw[n]);
     dCurrentCMBAsyms[n] = new QwGUIMainDetectorData(MAIN_DET_COMBIND);
-    dCurrentCMBAsyms[n]->SetName(MainDetectorBlockTypes[n]);
+    dCurrentCMBAsyms[n]->SetName(MainDetectorBlockTypesRaw[n]);
     dCurrentMSCAsyms[n] = new QwGUIMainDetectorData(MAIN_MSC_INDEX);
-    dCurrentMSCAsyms[n]->SetName(MainDetectorBlockTypes[n]);
+    dCurrentMSCAsyms[n]->SetName(MainDetectorBlockTypesRaw[n]);
     dCurrentMSCYields[n] = new QwGUIMainDetectorData(MAIN_MSC_INDEX);
-    dCurrentMSCYields[n]->SetName(MainDetectorBlockTypes[n]);
+    dCurrentMSCYields[n]->SetName(MainDetectorBlockTypesRaw[n]);
   }
 
   NewDataInit();
@@ -1299,13 +1299,13 @@ void QwGUIMainDetector::FillPMTAsymPlots(Int_t det, Int_t dTInd)
 				dCurrentData.GetDataMean() + 4.0*dCurrentData.GetDataRMS());
   grp->GetXaxis()->SetTitle("Time [sec]");
   grp->GetXaxis()->CenterTitle();
-  grp->GetXaxis()->SetTitleSize(0.04);
-  grp->GetXaxis()->SetLabelSize(0.04);
+  grp->GetXaxis()->SetTitleSize(0.06);
+  grp->GetXaxis()->SetLabelSize(0.06);
   grp->GetXaxis()->SetTitleOffset(1.25);
   grp->GetYaxis()->SetTitle("Amplitude [V]");
   grp->GetYaxis()->CenterTitle();
-  grp->GetYaxis()->SetTitleSize(0.04);
-  grp->GetYaxis()->SetLabelSize(0.04);
+  grp->GetYaxis()->SetTitleSize(0.06);
+  grp->GetYaxis()->SetLabelSize(0.06);
   grp->GetYaxis()->SetTitleOffset(1.5);
 
 

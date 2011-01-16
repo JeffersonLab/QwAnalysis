@@ -32,7 +32,7 @@
 ///
 /// \ingroup QwGUIMain
 
-#define MAIN_DET_BLOCKIND   5
+#define MAIN_DET_BLOCKIND   1
 
 enum ENPlotType {
   PLOT_TYPE_HISTO,           
