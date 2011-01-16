@@ -1,8 +1,17 @@
+<<<<<<< .mine
+void mdlumi_ped(string run, int run_num, int mps_start, int mps_stop, bool get_md, bool get_lumi)
+=======
 void mdlumi_ped(int run_num =8358,int mps_start =0, int mps_stop=20e3, bool get_md=kTRUE, bool get_lumi=kTRUE)
+>>>>>>> .r2393
 {
   TChain chain("Mps_Tree");
+<<<<<<< .mine
+  chain.Add(Form("$QW_ROOTFILES/%s",run));
+
+=======
   chain.Add(Form("$QW_ROOTFILES/QwPass1_%i.*.root",run_num));
 
+>>>>>>> .r2393
   const string lumi[16] = {
   "qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4",
   "qwk_dslumi5","qwk_dslumi6","qwk_dslumi7","qwk_dslumi8",
