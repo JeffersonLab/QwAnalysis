@@ -19,7 +19,7 @@ sample_size=464
 
 !ADC6
   VQWK, 5, 0,  integrationpmt,  QWK_USLUMI1NEG
-  VQWK, 5, 1,  integrationpmt,  QWK_USLUMI1POS
+  !VQWK, 5, 1,  integrationpmt,  QWK_USLUMI1POS
   VQWK, 5, 2,  integrationpmt,  QWK_USLUMI3NEG
   VQWK, 5, 3,  integrationpmt,  QWK_USLUMI3POS
   VQWK, 5, 4,  integrationpmt,  QWK_USLUMI5NEG
@@ -36,6 +36,9 @@ sample_size=464
   VQWK, 6, 5,  integrationpmt,  QWK_DSLUMI6
   VQWK, 6, 6,  integrationpmt,  QWK_DSLUMI7
   VQWK, 6, 7,  integrationpmt,  QWK_DSLUMI8
+
+!ADC8
+  VQWK, 7, 0,  integrationpmt,  QWK_USLUMI1POS
 
 
 !**************************************************************************
