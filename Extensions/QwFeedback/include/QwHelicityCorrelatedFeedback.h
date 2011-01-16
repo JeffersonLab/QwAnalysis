@@ -50,6 +50,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPreviousHelPat=0;//at the beginning of the run this is non existing
     fCurrentHelPatMode=-1;//at the beginning of the run this is non existing
 
+    fPITASetpointPOS=0;
+    fPrevPITASetpointPOS=0;
+    fPITASetpointNEG=0;
+    fPrevPITASetpointNEG=0;
 
     fTargetCharge.InitializeChannel("q_targ","derived");
     fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop

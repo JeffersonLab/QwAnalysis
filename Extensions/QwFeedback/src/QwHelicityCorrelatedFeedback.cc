@@ -234,11 +234,18 @@ void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
 
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
+
+  if (TMath::Abs(fChargeAsymmetry)<5){ 
+    fEPICSCtrl.Set_ChargeAsymmetry(fChargeAsymmetry,fChargeAsymmetryError,fChargeAsymmetryWidth);//updates the epics values
+    return;
+  }
   //calculate the new setpoint
   if (fHalfWaveIN)
     fPITASlope=fPITASlopeIN;
   else
     fPITASlope=fPITASlopeOUT;
+
+  
 
   if (fInitialCorrection){ //t_0 correction
     fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0);
@@ -301,6 +308,7 @@ void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
   //fScanCtrl.CheckScan();
   //fScanCtrl.PrintScanInfo();
   //fScanCtrl.Close();  
+  ClearRunningSum();//reset the running sum only if PITA correction applied
 };
 
 /*****************************************************************/
@@ -359,8 +367,8 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
     FeedPITASetPoints();//set the new PITA values
     LogParameters();//Log PITA setting after feedback
     UpdateGMClean(1);//set back to clean
-    ClearRunningSum();//reset the running sum
     status=kTRUE;
+    fGoodPatternCounter=0;//Reset after each feedback operation
   }
 
 
@@ -741,7 +749,7 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(Int_t mode){
 void  QwHelicityCorrelatedFeedback::ClearRunningSum()
 {
   QwHelicityPattern::ClearRunningSum();
-  fGoodPatternCounter=0;//Reset after each feedback operation
+  
 }
 
 void  QwHelicityCorrelatedFeedback::ClearRunningSum(Int_t mode)
