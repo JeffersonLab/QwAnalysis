@@ -54,6 +54,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPrevPITASetpointPOS=0;
     fPITASetpointNEG=0;
     fPrevPITASetpointNEG=0;
+    fPITA_MIN_Charge_asym=1;//default value is 1ppm
 
     fTargetCharge.InitializeChannel("q_targ","derived");
     fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop
@@ -248,6 +249,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fPrevPITASetpointNEG;//previous setpoint
     Double_t fPITASetpointlow;//lower and upper limits for PITA dac hardware counts
     Double_t fPITASetpointup;
+    Double_t fPITA_MIN_Charge_asym;//Minimum charge asymmetry at which feedback correction is applied. see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
 
     
     

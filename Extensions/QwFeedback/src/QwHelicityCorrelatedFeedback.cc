@@ -160,6 +160,7 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
 	fPITASlopeIN = dvalue;
       }
       else if (varname=="pitaslope_out"){
+
 	dvalue = atof(varvalue.Data());
 	fPITASlopeOUT = dvalue;
       }
@@ -180,7 +181,12 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
 	dvalue = atof(varvalue.Data());
 	if (dvalue>0)
 	  fPITASetpointlow = dvalue;
-      }      
+      }else if (varname=="min_charge_asym"){  
+	dvalue = atof(varvalue.Data());
+	if (dvalue>0)
+	  fPITA_MIN_Charge_asym = dvalue;
+      } 
+      
     }
   }
 
@@ -198,6 +204,10 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
     QwMessage<<"t_0 correction is enabled values + "<<fPITASetpointPOS_t0<<" - "<<fPITASetpointNEG_t0<<QwLog::endl;
   else
     QwMessage<<"t_0 correction is disabled"<<QwLog::endl;
+
+  QwMessage<<"fPITA_MIN_Charge_asym set to "<<fPITA_MIN_Charge_asym<<QwLog::endl;
+
+      
 
 };
 
@@ -235,7 +245,7 @@ void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
 
-  if (TMath::Abs(fChargeAsymmetry)<5){ 
+  if (TMath::Abs(fChargeAsymmetry)<fPITA_MIN_Charge_asym){ 
     fEPICSCtrl.Set_ChargeAsymmetry(fChargeAsymmetry,fChargeAsymmetryError,fChargeAsymmetryWidth);//updates the epics values
     return;
   }

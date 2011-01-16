@@ -78,3 +78,8 @@ PC_neg_t0 = 0
 #  referenced by Riad in OPS Elog 1549310.
 PC_low = 38018
 PC_up  = 48016
+
+#Minimum charge asymmetry at which feedback correction is applied. see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
+
+MIN_CHARGE_ASYM = 1
+
