@@ -1010,7 +1010,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 	  << " AND "<<data_table<<"."<<det_table_id<<" = "<<monitor_id
 	  << " AND "<<data_table<<".subblock = "<< subblock 
 	  << " AND measurement_type_id ='"<<measurement_type
-	  << "' AND value > 0 AND run_number > "<< run_first
+	  << "' AND value != 0 AND run_number > "<< run_first
 	  << " AND run_number < "<< run_last
 	  << " ORDER BY run_number, segment_number;"<<std::endl;
     }
@@ -1020,7 +1020,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 	  << " AND "<<data_table<<"."<<det_table_id<<" = "<<monitor_id
 	  << " AND "<<data_table<<".subblock = "<< subblock 
 	  << " AND measurement_type_id ='"<<measurement_type
-	  << "' AND value > 0 AND run_number > "<< run_first
+	  << "' AND value != 0 AND run_number > "<< run_first
 	  << " AND run_number < "<< run_last
 	  << " ORDER BY run_number, segment_number;";
 
