@@ -54,6 +54,29 @@ QwEPICSEvent::~QwEPICSEvent()
  *  Member functions.
  *************************************/
 
+/**
+ * Defines configuration options using QwOptions functionality.
+ * @param options Options object
+ */
+void QwEPICSEvent::DefineOptions(QwOptions &options)
+{
+  // Option to disable EPICS database accesses
+  options.AddOptions("Default options")
+    ("disable-db-epics", 
+     po::value<bool>()->default_value(false)->zero_tokens(),
+     "disable EPICS database access");
+}
+
+
+/**
+ * Parse the configuration options and store in class fields
+ * @param options Options object
+ */
+void QwEPICSEvent::ProcessOptions(QwOptions &options)
+{
+  // Option to disable EPICS database accesses
+  fDisableDatabase = options.GetValue<bool>("disable-db-epics");
+}
 
 
 Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
@@ -621,9 +644,11 @@ void  QwEPICSEvent::ResetCounters()
 
 void QwEPICSEvent::FillDB(QwDatabase *db)
 {
-  FillSlowControlsData(db);
-  FillSlowControlsStrigs(db);
-  FillSlowControlsSettings(db);
+  if (! fDisableDatabase) {
+    FillSlowControlsData(db);
+    FillSlowControlsStrigs(db);
+    FillSlowControlsSettings(db);
+  }
 };
 
 

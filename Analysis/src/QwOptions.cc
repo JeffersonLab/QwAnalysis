@@ -8,6 +8,11 @@
 
 #include "QwOptions.h"
 
+#include "QwRootFile.h"
+#include "QwEPICSEvent.h"
+#include "QwParameterFile.h"
+#include "QwHistogramHelper.h"
+
 // System headers
 #include <iostream>
 #include <fstream>
@@ -68,6 +73,8 @@ void QwOptions::DefineOptions(QwOptions& options)
   QwDatabase::DefineOptions(options);
   // Define ROOT file options
   QwRootFile::DefineOptions(options);
+  // Define EPICS event options
+  QwEPICSEvent::DefineOptions(options);
   // Define subsystem array options
   QwSubsystemArray::DefineOptions(options);
   // Define histogram helper options

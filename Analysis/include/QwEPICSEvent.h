@@ -16,6 +16,9 @@ using std::string;
 #include "TString.h"
 #include "TTree.h"
 
+// Qweak headers
+#include "QwOptions.h"
+
 // Forward declarations
 class QwDatabase;
 
@@ -33,6 +36,11 @@ class QwEPICSEvent
   /// Virtual destructor
   virtual ~QwEPICSEvent();
 
+
+  /// \brief Define the configuration options
+  static void DefineOptions(QwOptions &options);
+  /// \brief Process the configuration options
+  void ProcessOptions(QwOptions &options);
 
 
   // Add a tag to the list
@@ -114,6 +122,8 @@ class QwEPICSEvent
   static const Double_t kInvalidEPICSData;
   // Int_t maxsize = 300;
 
+  // Flag to disable database accesses for EPICS events
+  bool fDisableDatabase;
 
   // Test whether the string is a number string or not
   Bool_t IsNumber(const string& word) {
