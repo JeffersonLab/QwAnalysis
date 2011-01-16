@@ -524,7 +524,7 @@ void FillBeamParameters(){
 
   util.push_back(HorSingleLine());
   util.push_back(TopRule("quantity", "value", "Asym/Diff", "Asym/Diff width"));
-  util.push_back(TopRule("........", "(uA,mm,mrad)", "(ppm,mm,rad)", "(ppm,mm,rad)"));
+  util.push_back(TopRule("........", "(uA,mm,rad)", "(ppm,mm,rad)", "(ppm,mm,rad)"));
 
   Double_t mean;
   Double_t val[4];
@@ -539,17 +539,17 @@ void FillBeamParameters(){
   Get_Mean("hel_histo/yield_qwk_targetX_hw",mean,1.);
   //  Fit_with_a_gaussian("hel_histo/diff_qwk_targetX_hw",val,1.e+6);//factor 1e+6 to convert to nm 
   //  util.push_back(Form("\n x targ  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetX_hw",val,1e6); // unit is mm or nm?  
-  util.push_back(MidRule_2("target x", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetX_hw",val,1.); // unit is mm   
+  util.push_back(MidRule_6("target x", mean, val));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_targetY_hw",mean,1.);
 //   Fit_with_a_gaussian("hel_histo/diff_qwk_targetY_hw",val,1.e+6);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetY_hw",val,1e6);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetY_hw",val,1.);
   //  util.push_back(Form("\n y targ  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_2("target y", mean, val));
+  util.push_back(MidRule_6("target y", mean, val));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
@@ -590,7 +590,7 @@ void FillBeamParameters(){
   //  util.push_back(Form("\n %10s | %12s | %20s | %20s", "quantity", "value", "Asym/Diff", "Asym/Diff width"));
   //  util.push_back(Form("\n %10s | %12s | %20s | %20s", "........", "(uA,mm,mrad)", "(ppm,mm,rad)", "(ppm,mm,rad)"));
   util.push_back(TopRule("quantity", "value", "Asym/Diff", "Asym/Diff width"));
-  util.push_back(TopRule("........", "(uA,mm,mrad)", "(ppm,mm,rad)", "(ppm,mm,rad)"));
+  util.push_back(TopRule("........", "(uA,mm)", "(ppm,mm)", "(ppm,mm)"));
 
 
   Get_Mean("hel_histo/yield_qwk_bcm1_hw", bcm1_current_uA, 1);
@@ -674,7 +674,7 @@ void FillBeamParameters(){
      util.push_back("\n\n\n Beam Line Devices Double Differences Summary \n");
      util.push_back(HorSingleLine());
      util.push_back(TopRule("quantity", "value", "Asym/Diff", "Asym/Diff width"));
-     util.push_back(TopRule("........", "(uA,mm,mrad)", "(ppm,mm,rad)", "(ppm,mm,rad)"));
+     util.push_back(TopRule("........", "(uA,mm)", "(ppm,mm)", "(ppm,mm)"));
      //     util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
      //     util.push_back("\n ........|(uA,mm,mrad)|    (ppm,mm,rad)     | (ppm, mm, rad) ");
 
@@ -729,8 +729,8 @@ void FillBeamParameters(){
      //     util.push_back(Form("\n (3h09-3h04) x  |   %3.6f    | %3.6f +/- %3.6f  | %3.2f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
 
      Get_Tree_Mean("(yield_qwk_bpm3h09X.hw_sum-yield_qwk_bpm3h04X.hw_sum)",mean,1);
-     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09X.hw_sum-diff_qwk_bpm3h04X.hw_sum)",val,1e6);
-     util.push_back(MidRule_3("(3h09-3h04) x", mean, val));
+     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09X.hw_sum-diff_qwk_bpm3h04X.hw_sum)",val,1.);
+     util.push_back(MidRule_6("(3h09-3h04) x", mean, val));
      compare_to_golden_value("double_x_diff_position", mean,0);
      compare_to_golden_value("double_x_difference", val[0], val[2]);
      compare_to_golden_value("double_x_difference_width", val[1], val[3]);
@@ -740,8 +740,8 @@ void FillBeamParameters(){
      //     util.push_back(Form("\n (3h09-3h04) y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
      
      Get_Tree_Mean("(yield_qwk_bpm3h09Y.hw_sum-yield_qwk_bpm3h04Y.hw_sum)",mean,1);
-     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09Y.hw_sum-diff_qwk_bpm3h04Y.hw_sum)",val,1e6);
-     util.push_back(MidRule_3("(3h09-3h04) y", mean, val));
+     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09Y.hw_sum-diff_qwk_bpm3h04Y.hw_sum)",val,1.);
+     util.push_back(MidRule_6("(3h09-3h04) y", mean, val));
     
      compare_to_golden_value("double_y_diff_position", mean,0);
      compare_to_golden_value("double_y_difference", val[0], val[2]);
