@@ -28,7 +28,8 @@
    basic diagnostic quantities.
 
    This is Gericke's original code for the main detector. 
-Added by Buddhini to display the hall c Beamline data.
+   Added by Damon to display data from the data base.
+   Modified by Buddhini.
 
  */
 //=============================================================================

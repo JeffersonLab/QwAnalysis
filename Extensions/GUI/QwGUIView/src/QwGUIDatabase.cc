@@ -308,8 +308,8 @@ void QwGUIDatabase::MakeLayout()
   gStyle->SetPadGridX(kTRUE);
   gStyle->SetPadGridY(kTRUE);
   gStyle->SetPadTopMargin(0.1);
-  gStyle->SetPadBottomMargin(0.25);
-  gStyle->SetPadLeftMargin(0.1);  
+  gStyle->SetPadBottomMargin(0.12);
+  gStyle->SetPadLeftMargin(0.12);  
   gStyle->SetPadRightMargin(0.03);  
 
   // histo parameters
@@ -317,13 +317,14 @@ void QwGUIDatabase::MakeLayout()
   gStyle->SetTitleXOffset(0.8);
   gStyle->SetTitleX(0.3);
   gStyle->SetTitleW(0.4);
-  gStyle->SetTitleSize(0.08);
-  gStyle->SetTitleColor(1);
+  gStyle->SetTitleSize(0.03);
+  gStyle->SetTitleOffset(2);
+  //gStyle->SetTitleColor(1);
   gStyle->SetTitleBorderSize(0);
-  gStyle->SetTitleFillColor(10);
+  gStyle->SetTitleFillColor(0);
   gStyle->SetTitleFontSize(0.08);
-  gStyle->SetLabelSize(0.06,"x");
-  gStyle->SetLabelSize(0.06,"y");
+  gStyle->SetLabelSize(0.03,"x");
+  gStyle->SetLabelSize(0.03,"y");
 
 
   dTabFrame = new TGHorizontalFrame(this);  
@@ -348,7 +349,8 @@ void QwGUIDatabase::MakeLayout()
   dNumStartRun        = new TGNumberEntry(dControlsFrame, 0, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dLabStopRun         = new TGLabel(dControlsFrame, "Last Run");
   dNumStopRun         = new TGNumberEntry(dControlsFrame, 10000, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
-  dBtnSubmit          = new TGTextButton(dControlsFrame, "&Submit", BTN_SUBMIT);
+  dBtnSubmit          = new TGTextButton(dControlsFrame, "&Submit", BTN_SUBMIT);  //dSlowControls       = new TGButtonGroup(dControlsFrame, "Slow Controls");
+
 
   dLabLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
   dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
@@ -408,7 +410,9 @@ void QwGUIDatabase::MakeLayout()
 
   Int_t wid = dCanvas->GetCanvasWindowId();
   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
+  mc->Initialize();
   dCanvas->AdoptCanvas(mc);
+
 }
 
 
@@ -686,7 +690,7 @@ void QwGUIDatabase::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 
 /******************************************
 
-Plot detector data with beam parameters
+Plot detector data with beam parameters (still not finished)
 
 *******************************************/
 
@@ -864,13 +868,11 @@ void QwGUIDatabase::DetectorVsMonitorPlot()
       grp->SetTitle(grp_title.c_str());
 
       grp->GetXaxis()->CenterTitle();
-  	  grp->GetXaxis()->SetTitleSize(0.04);
-  	  grp->GetXaxis()->SetLabelSize(0.04);
+  	  grp->GetXaxis()->SetTitleSize(0.03);
   	  grp->GetXaxis()->SetTitleOffset(1.25);
       grp->GetYaxis()->SetTitle("Detector []");
    	  grp->GetYaxis()->CenterTitle();
-	    grp->GetYaxis()->SetTitleSize(0.04);
-	    grp->GetYaxis()->SetLabelSize(0.04);
+	    grp->GetYaxis()->SetTitleSize(0.03);
 	    grp->GetYaxis()->SetTitleOffset(1.5);
 
       GraphArray.Add(grp);
@@ -908,14 +910,14 @@ void QwGUIDatabase::DetectorVsMonitorPlot()
 
 /******************************************
 
-Plot detector data according to what is requested  using the combo boxes
+Plot detector data vs run number
 
 *******************************************/
 
 void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, Int_t det_id)
 {
 
-  Bool_t ldebug = kTRUE;
+  Bool_t ldebug = kFALSE;
 
   // histo parameters
   gStyle->SetTitleYOffset(1.0);
@@ -925,20 +927,23 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
   gStyle->SetTitleSize(0.07);
   gStyle->SetTitleOffset(1.5);
   gStyle->SetTitleBorderSize(0);
-  gStyle->SetTitleFillColor(kGray);
+  gStyle->SetTitleFillColor(0);
   gStyle->SetTitleFontSize(0.08);
-  gStyle->SetLabelSize(0.06,"x");
-  gStyle->SetLabelSize(0.06,"y");
   gStyle->SetHistMinimumZero();
   gStyle->SetBarOffset(0.25);
   gStyle->SetBarWidth(0.5);
-  
+  gStyle->SetLabelSize(0.03,"x");
+  gStyle->SetLabelSize(0.03,"y");
+  gStyle->SetTitleSize(0.03);
+
+  gDirectory->Delete();
+
   if(dDatabaseCont){
     std::cout << "Monitors selected and Submit pushed." <<std::endl;
 
     TCanvas *mc = dCanvas->GetCanvas();
     mc->Clear();
-    mc->SetFillColor(kGray);
+    mc->SetFillColor(0);
     //
     // Query Database for Data
     //
@@ -1002,29 +1007,30 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     if(ldebug)  std::cout<< "SELECT "<<det_table_id<<" FROM "<<det_table<<" WHERE quantity = "<<monitor_id<<";";
 
     // Now get the run number information
-    mysqlpp::Query query     = dDatabaseCont->Query();
+    mysqlpp::Query query      = dDatabaseCont->Query();
+
 
     if(ldebug){
-    std::cout<< " SELECT "<<det_table_id<<", value, error, run_number,segment_number FROM "<<data_table<<", analysis, runlet "
-	  << " WHERE "<<data_table<<".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id "
+    std::cout<< " SELECT "<<det_table_id<<", value, error, run_number,segment_number, slow_helicity_plate FROM "<<data_table<<", analysis, runlet, slow_controls_settings "
+	  << " WHERE "<<data_table<<".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id AND runlet.runlet_id = slow_controls_settings.runlet_id"
 	  << " AND "<<data_table<<"."<<det_table_id<<" = "<<monitor_id
 	  << " AND "<<data_table<<".subblock = "<< subblock 
 	  << " AND measurement_type_id ='"<<measurement_type
-	  << "' AND value != 0 AND run_number > "<< run_first
+	  << "' AND run_number > "<< run_first
 	  << " AND run_number < "<< run_last
 	  << " ORDER BY run_number, segment_number;"<<std::endl;
     }
 
-    query << " SELECT "<<det_table_id<<", value, error, run_number, segment_number FROM "<<data_table<<", analysis, runlet "
-	  << " WHERE "<<data_table<<".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id "
+    query << " SELECT "<<det_table_id<<", value, error, run_number, segment_number, slow_helicity_plate FROM "<<data_table<<", analysis, runlet, slow_controls_settings "
+	  << " WHERE "<<data_table<<".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id AND runlet.runlet_id = slow_controls_settings.runlet_id"
 	  << " AND "<<data_table<<"."<<det_table_id<<" = "<<monitor_id
 	  << " AND "<<data_table<<".subblock = "<< subblock 
 	  << " AND measurement_type_id ='"<<measurement_type
-	  << "' AND value != 0 AND run_number > "<< run_first
+	  << "' AND run_number > "<< run_first
 	  << " AND run_number < "<< run_last
 	  << " ORDER BY run_number, segment_number;";
 
-
+  
     mysqlpp::StoreQueryResult read_data = query.store();
     dDatabaseCont->Disconnect(); 
 
@@ -1041,24 +1047,64 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     }
 
 
-    TVectorF x(row_size), xerr(row_size);
-    TVectorF run(row_size), err(row_size);
+    TVectorF x_in(row_size), xerr_in(row_size);
+    TVectorF x_out(row_size), xerr_out(row_size);
+    TVectorF run_in(row_size), run_out(row_size);
+    TVectorF err_in(row_size), err_out(row_size);
+
+    x_in.Clear();
+    x_in.ResizeTo(row_size);
+    xerr_in.Clear();
+    xerr_in.ResizeTo(row_size);
+    run_in.Clear();
+    run_in.ResizeTo(row_size);
+
+
+    x_out.Clear();
+    x_out.ResizeTo(row_size);
+    xerr_out.Clear();
+    xerr_out.ResizeTo(row_size);
+    run_out.Clear();
+    run_out.ResizeTo(row_size);
+
+
+    Float_t x = 0.0 , xerr = 0.0;
+    Int_t m = 0;
+    Int_t k = 0;
 
     std::cout<<"###########\n";
     std::cout<<"Collecting data.."<<std::endl;
+
     for (size_t i = 0; i < row_size; ++i)
       { 
-	run.operator()(i) = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12"){
-	  x.operator()(i)    = (read_data[i]["value"])*1e9; // convert to  ppb
-	  xerr.operator()(i) = (read_data[i]["error"])*1e9; // convert to ppb
-	} else
-	  x.operator()(i)    = read_data[i]["value"];
-	xerr.operator()(i)   = read_data[i]["error"];
-	err.operator()(i)    = 0.0;
+	  x    = (read_data[i]["value"])*1e9; // convert to  ppb
+	  xerr = (read_data[i]["error"])*1e9; // convert to ppb
+	} else{
+	  x    = read_data[i]["value"];
+	  xerr = read_data[i]["error"];
+	}
+	
+	if(read_data[i]["slow_helicity_plate"] == "out") {
+	  run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	  x_out.operator()(k)    = x;
+	  xerr_out.operator()(k) = xerr;
+	  err_out.operator()(k)  = 0.0;
+	  k++;
+	}
 
-	} // End loop over results
+	if(read_data[i]["slow_helicity_plate"] == "in") {
+	  run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	  x_in.operator()(m)    = x;
+	  xerr_in.operator()(m) = xerr;
+	  err_in.operator()(m)  = 0.0;
+	  m++;
+	}
+
+
+      } // End loop over results
+
+
 
     //
     // Construct the Graphs for Plotting
@@ -1066,32 +1112,48 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     std::cout<<"Moving on to draw the graph"<<std::endl;
 
     // Graph for mean+error
-    TGraphErrors* grp = new TGraphErrors(run, x, err, xerr);
-    // graph for errors
-    TGraph* gerr      = new TGraph(run, xerr);
+    TGraphErrors* grp_in  = new TGraphErrors(run_in,   x_in, err_in,   xerr_in);
+    grp_in ->SetMarkerSize(0.6);
+    grp_in ->SetMarkerStyle(21);
+    grp_in ->SetMarkerColor(kBlue);
+
+    TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
+    grp_out ->SetMarkerSize(0.6);
+    grp_out ->SetMarkerStyle(21);
+    grp_out ->SetMarkerColor(kRed);
+
+    TMultiGraph * grp = new TMultiGraph();
 
     TString y_title = GetYTitle(measurement_type, det_id);
-    TString title = GetTitle(measurement_type, device);
-    grp ->GetXaxis()->SetTitle("Run Number");
-    grp ->GetYaxis()->SetTitle(y_title);
-    grp ->SetMarkerStyle(23);
-    grp ->SetMarkerColor(kBlue);
-    grp ->SetTitle(title);
-    gerr->GetXaxis()->SetTitle("Run Number");
-    gerr->GetYaxis()->SetTitle("Error in "+y_title);
-    gerr->SetTitle(title);
-    gerr->SetFillColor(kRed-2);
+    TString title   = GetTitle(measurement_type, device);
 
-    mc->Divide(1,2);
-    mc->cd(1);
-    grp->Draw("AE1P");
-    mc->cd(2);
-    gerr->Draw("APB");
-    std::cout<<"Done!"<<std::endl;
-    std::cout<<"###########\n";
+    grp->Add(grp_in);
+    grp->Add(grp_out);
+
+
+    TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
+    legend->AddEntry(grp_in, "IHWP-IN", "p");
+    legend->AddEntry(grp_out, "IHWP-OUT", "p");
+    legend->SetFillColor(0);
+
+    mc->cd();
+    grp->Draw("AP");
+    legend->Draw("");
+    
+    grp->SetTitle(title);
+    grp->GetYaxis()->SetTitle(y_title);
+    grp->GetYaxis()->SetTitleOffset(2);
+    grp->GetXaxis()->SetTitleOffset(2);
+    grp->GetYaxis()->SetTitleSize(0.03);
+    grp->GetXaxis()->SetTitleSize(0.03);
+    grp->GetXaxis()->SetRangeUser(run_first, run_last);
 
     mc->Modified();
+    mc->SetBorderMode(0);
     mc->Update();
+
+    std::cout<<"Done!"<<std::endl;
+    std::cout<<"###########\n";
     
   }
 }
@@ -1196,7 +1258,7 @@ void QwGUIDatabase::DetectorPlot()
     grp->GetXaxis() -> SetTitle("Run Number");
     grp->GetXaxis() -> CenterTitle();
     grp->GetXaxis() -> SetTitleSize(0.04);
-    grp->GetXaxis() -> SetLabelSize(0.04);
+    //grp->GetXaxis() -> SetLabelSize(0.04);
     grp->GetXaxis() -> SetTitleOffset(1.25);
 
     if (measurement_type == "y") {
@@ -1210,7 +1272,7 @@ void QwGUIDatabase::DetectorPlot()
     }
     grp->GetYaxis()->CenterTitle();
     grp->GetYaxis()->SetTitleSize(0.04);
-    grp->GetYaxis()->SetLabelSize(0.04);
+    // grp->GetYaxis()->SetLabelSize(0.04);
     grp->GetYaxis()->SetTitleOffset(1.5);
 
     GraphArray.Add(grp);
