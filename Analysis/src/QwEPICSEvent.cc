@@ -644,10 +644,14 @@ void  QwEPICSEvent::ResetCounters()
 
 void QwEPICSEvent::FillDB(QwDatabase *db)
 {
+  // Sunday, January 16 22:09:16 EST 2011, jhlee
+  // don't change disbale database flag
+  // just disable FillSlowControlsSettings(db) when fDisableDatabase is off
+  
   if (! fDisableDatabase) {
     FillSlowControlsData(db);
     FillSlowControlsStrigs(db);
-    FillSlowControlsSettings(db);
+    //FillSlowControlsSettings(db);
   }
 };
 
@@ -725,23 +729,24 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() ) {
-    QwMessage << "Writing to database now" << QwLog::endl;
+    QwMessage << "QwEPICSEvent::FillSlowControlsData::Writing to database now" << QwLog::endl;
     mysqlpp::Query query= db->Query();
-    query.insert(entrylist.begin(), entrylist.end());
+
+    //    query.insert(entrylist.begin(), entrylist.end());
 
     //QwMessage << "\n\nQuery: " << query.str() << "\n\n";
 
-    query.execute();
+    //    query.execute();
 
     ///////////////////////////////
-    //     try {
-    //       query.insert(entrylist.begin(), entrylist.end());
-    //       QwMessage << "Query: " << query.str() << QwLog::endl;
-    //       query.execute();
-    //       QwMessage << "Done executing MySQL query" << QwLog::endl;
-    //     } catch (const mysqlpp::Exception &er) {
-    //       QwError << "MySQL exception: " << er.what() << QwLog::endl;
-    //     }
+    try {
+      query.insert(entrylist.begin(), entrylist.end());
+      QwMessage << "Query: " << query.str() << QwLog::endl;
+      query.execute();
+      QwMessage << "Done executing MySQL query" << QwLog::endl;
+    } catch (const mysqlpp::Exception &er) {
+      QwError << "MySQL exception: " << er.what() << QwLog::endl;
+    }
     ///////////////////////////////
 
   } else {
@@ -795,24 +800,24 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query.
   if( entrylist.size() ) {
-    QwMessage << "Writing to database now" << QwLog::endl;
+    QwMessage << "QwEPICSEvent::FillSlowControlsStrigs Writing to database now" << QwLog::endl;
     mysqlpp::Query query= db->Query();
-    query.insert(entrylist.begin(), entrylist.end());
+//     query.insert(entrylist.begin(), entrylist.end());
 
-    QwMessage << "\n\nQuery: " << query.str() << "\n\n";
+//     QwMessage << "\n\nQuery: " << query.str() << "\n\n";
 
-    query.execute();
+//     query.execute();
 
 
     ///////////////////////////////
-//         try {
-//           query.insert(entrylist.begin(), entrylist.end());
-//           QwMessage << "Query: " << query.str() << QwLog::endl;
-//           query.execute();
-//           QwMessage << "\n\nDone executing MySQL query for FillSlowControlsStrigs \n\n";
-//         } catch (const mysqlpp::Exception &er) {
-//           QwError << "MySQL exception: " << er.what() << QwLog::endl;
-//         }
+        try {
+          query.insert(entrylist.begin(), entrylist.end());
+          QwMessage << "Query: " << query.str() << QwLog::endl;
+          query.execute();
+          QwMessage << "\n\nDone executing MySQL query for FillSlowControlsStrigs \n\n";
+        } catch (const mysqlpp::Exception &er) {
+          QwError << "MySQL exception: " << er.what() << QwLog::endl;
+        }
     ///////////////////////////////
 
   } else {
@@ -924,23 +929,23 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() ) {
-    QwMessage << "Writing to database now" << QwLog::endl;
+    QwMessage << "QwEPICSEvent::FillSlowControlsSettings Writing to database now" << QwLog::endl;
     mysqlpp::Query query= db->Query();
-    query.insert(entrylist.begin(), entrylist.end());
+  //   query.insert(entrylist.begin(), entrylist.end());
 
-    QwMessage << "\n\nQuery: " << query.str() << "\n\n";
+//     QwMessage << "\n\nQuery: " << query.str() << "\n\n";
 
-    query.execute();
+//     query.execute();
 
     ///////////////////////////////
-    //     try {
-    //       query.insert(entrylist.begin(), entrylist.end());
-    //       QwMessage << "Query: " << query.str() << QwLog::endl;
-    //       query.execute();
-    //       QwMessage << "Done executing MySQL query" << QwLog::endl;
-    //     } catch (const mysqlpp::Exception &er) {
-    //       QwError << "MySQL exception: " << er.what() << QwLog::endl;
-    //     }
+        try {
+          query.insert(entrylist.begin(), entrylist.end());
+          QwMessage << "Query: " << query.str() << QwLog::endl;
+          query.execute();
+          QwMessage << "Done executing MySQL query" << QwLog::endl;
+        } catch (const mysqlpp::Exception &er) {
+          QwError << "MySQL exception: " << er.what() << QwLog::endl;
+        }
     ///////////////////////////////
 
 
