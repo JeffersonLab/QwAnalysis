@@ -319,8 +319,9 @@ int main(Int_t argc,Char_t* argv[])
   //  results.push_back("========================================================\n");
   results.push_back("ANALYSIS CHECKS : \n");
   results.push_back("-----------------\n");
-  results.push_back(Form("number of good quartets in this run = %6.0f \n",h->GetEntries()));
-  results.push_back(Form("based on this number the run lasted = %5.1f minutes \n\n",h->GetEntries()*4./1000./60.));
+  results.push_back(Form("number of good quartets in this run    = %6.0f \n",h->GetEntries()));
+  results.push_back(Form("based on this number the run lasted    = %5.1f minutes \n\n",h->GetEntries()*4./1000./60.));
+  results.push_back(Form("based on this total charge accumulated = %5.1f Coulombs \n\n",(h->GetEntries()*4./1000.)*h->GetMean()*1e-6));
   results.push_back(Form("based on this total charge accumulated = %3.1f Coulombs \n\n",(h->GetEntries()*4./1000.)*h->GetMean()*1e-6));
   h=NULL;
   
@@ -503,10 +504,8 @@ void FillBeamParameters(){
 
   util.clear();
   TString comp;
-  //char tmp[100];
   util.push_back("\n");
   util.push_back(HorDoubleLine());
-  //util.push_back("========================================================\n");
   util.push_back("BEAM PARAMETERS \n");
   util.push_back("--------------- \n \n");
 
@@ -519,55 +518,46 @@ void FillBeamParameters(){
   }
   
   util.push_back("\n Beam Properties at the Target \n");
-  //util.push_back(" ----------------------------- \n");
-  //util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
-  //util.push_back("\n ........|(uA,mm,mrad)|    (ppm,mm,rad)     | (ppm, mm, rad) ");
+
 
   util.push_back(HorSingleLine());
   util.push_back(TopRule("quantity", "value", "Asym/Diff", "Asym/Diff width"));
-  util.push_back(TopRule("........", "(uA,mm,rad)", "(ppm,mm,rad)", "(ppm,mm,rad)"));
+  util.push_back(TopRule("........", "(uA,mm,mrad)", "(ppm,nm,mrad)", "(ppm,nm,mrad)"));
 
   Double_t mean;
   Double_t val[4];
   //Compare beam charge
   Fit_with_a_gaussian("hel_histo/asym_qwk_charge_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-//   util.push_back(Form("\n charge  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
   util.push_back(MidRule_2("charge", intensity, val));
   compare_to_golden_value("charge_asymmetry", val[0], val[2]);
   compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
   
   //Beam on target positions
   Get_Mean("hel_histo/yield_qwk_targetX_hw",mean,1.);
-  //  Fit_with_a_gaussian("hel_histo/diff_qwk_targetX_hw",val,1.e+6);//factor 1e+6 to convert to nm 
-  //  util.push_back(Form("\n x targ  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetX_hw",val,1.); // unit is mm   
-  util.push_back(MidRule_6("target x", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetX_hw",val,1.e+6); // unit is nm   
+  util.push_back(MidRule_3("target x", mean, val));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_targetY_hw",mean,1.);
-//   Fit_with_a_gaussian("hel_histo/diff_qwk_targetY_hw",val,1.e+6);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetY_hw",val,1.);
-  //  util.push_back(Form("\n y targ  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_6("target y", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetY_hw",val,1.e+6);
+  util.push_back(MidRule_3("target y", mean, val));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_targetXSlope_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetXSlope_hw",val,1.000);
-//   util.push_back(Form("\n Angle x    |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_6("angle x", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetXSlope_hw",val,1.e+3);// unit is mrad
+  util.push_back(MidRule_3("angle x", mean, val));
   compare_to_golden_value("x_beam_angle", mean,0);
   compare_to_golden_value("x_angle_difference", val[0], val[2]);
   compare_to_golden_value("x_angle_difference_width", val[1], val[3]);
 
 
   Get_Mean("hel_histo/yield_qwk_targetYSlope_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetYSlope_hw",val,1.000);
-  //  util.push_back(Form("\n Angle y    |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_6("angle y", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetYSlope_hw",val,1.e+3);// unit is mrad
+  util.push_back(MidRule_3("angle y", mean, val));
   compare_to_golden_value("y_beam_angle", mean,0);
   compare_to_golden_value("y_angle_difference", val[0], val[2]);
   compare_to_golden_value("y_angle_difference_width", val[1], val[3]);
@@ -576,8 +566,7 @@ void FillBeamParameters(){
   
   Get_Mean("hel_histo/yield_qwk_energy_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/asym_qwk_energy_hw",val,1.e+6);
- //  util.push_back(Form("\n Energy (dP/P)  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_2("Energy (dP/P)", mean, val));
+  util.push_back(MidRule_3("Energy (dP/P)", mean, val));
   compare_to_golden_value("beam_energy", mean,0);
   compare_to_golden_value("beam_energy_asymmetry", val[0], val[2]);
   compare_to_golden_value("beam_energy_asymmetry_width", val[1], val[3]);
@@ -586,86 +575,72 @@ void FillBeamParameters(){
   //bcm 1,2,5,6
   util.push_back("\n\n\n Beam Line Devices Summary \n");
   util.push_back(HorSingleLine());
-  //  util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
-  //   util.push_back("\n ........|(uA,mm,mrad)|    ( util.push_back("\n\n");ppm,mm,rad)     | (ppm, mm, rad) ");
-  //  util.push_back(Form("\n %10s | %12s | %20s | %20s", "quantity", "value", "Asym/Diff", "Asym/Diff width"));
-  //  util.push_back(Form("\n %10s | %12s | %20s | %20s", "........", "(uA,mm,mrad)", "(ppm,mm,rad)", "(ppm,mm,rad)"));
   util.push_back(TopRule("quantity", "value", "Asym/Diff", "Asym/Diff width"));
-  util.push_back(TopRule("........", "(uA,mm)", "(ppm,mm)", "(ppm,mm)"));
+  util.push_back(TopRule("........", "(uA,mm)", "(ppm,nm)", "(ppm,nm)"));
 
 
   Get_Mean("hel_histo/yield_qwk_bcm1_hw", bcm1_current_uA, 1);
   Fit_with_a_gaussian("hel_histo/asym_qwk_bcm1_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  //util.push_back(Form("\n bcm1  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
   util.push_back(MidRule_2("bcm1", bcm1_current_uA, val));
   compare_to_golden_value("charge_asymmetry", val[0], val[2]);
   compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bcm2_hw",intensity,1);
   Fit_with_a_gaussian("hel_histo/asym_qwk_bcm2_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  //  util.push_back(Form("\n bcm2  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
   util.push_back(MidRule_2("bcm2", intensity, val));
   compare_to_golden_value("charge_asymmetry", val[0], val[2]);
   compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bcm5_hw",intensity,1);
   Fit_with_a_gaussian("hel_histo/asym_qwk_bcm5_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  //  util.push_back(Form("\n bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
   util.push_back(MidRule_2("bcm5", intensity, val));
   compare_to_golden_value("charge_asymmetry", val[0], val[2]);
   compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bcm6_hw",intensity,1);
   Fit_with_a_gaussian("hel_histo/asym_qwk_bcm6_hw",val,1.e+6);//factor 1e+6 to convert to ppm
-  //  util.push_back(Form("\n bcm6  |   %5.2f   util.push_back("\n\n");  | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
   util.push_back(MidRule_2("bcm6", intensity, val));
   compare_to_golden_value("charge_asymmetry", val[0], val[2]);
   compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3c12X_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12X_hw",val,1);
-  //  util.push_back(Form("\n 3c12  x  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_6("3c12 x", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12X_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(MidRule_2("3c12 x", mean, val));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
-  Get_Mean("hel_histo/yield_qwk_bpm3c12Y_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12Y_hw",val,1);
-  //  util.push_back(Form("\n 3c12  y  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_6("3c12 y", mean, val));
+  Get_Mean("hel_histo/yield_qwk_bpm3c12Y_hw",mean,1);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(MidRule_2("3c12 y", mean, val));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h04X_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04X_hw",val,1);
-  //  util.push_back(Form("\n 3h04 x  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_6("3c04 x", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04X_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(MidRule_2("3c04 x", mean, val));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h04Y_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04Y_hw",val,1);
-  //  util.push_back(Form("\n  3h04 y  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_6("3c04 y", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(MidRule_2("3c04 y", mean, val));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h09X_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09X_hw",val,1);
-  //  util.push_back(Form("\n 3h09 x  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_6("3c09 x", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09X_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(MidRule_2("3c09 x", mean, val));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h09Y_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09Y_hw",val,1);
-  //  util.push_back(Form("\n 3h09 y  |   %3.6f    | %3.6f +/- %3.6f  | %3.6f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_6("3c09 y", mean, val));
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(MidRule_2("3c09 y", mean, val));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
@@ -675,74 +650,59 @@ void FillBeamParameters(){
      util.push_back("\n\n\n Beam Line Devices Double Differences Summary \n");
      util.push_back(HorSingleLine());
      util.push_back(TopRule("quantity", "value", "Asym/Diff", "Asym/Diff width"));
-     util.push_back(TopRule("........", "(uA,mm)", "(ppm,mm)", "(ppm,mm)"));
-     //     util.push_back("\n quantity|    value   |      Asym/Diff       | Asym/Diff width");
-     //     util.push_back("\n ........|(uA,mm,mrad)|    (ppm,mm,rad)     | (ppm, mm, rad) ");
+     util.push_back(TopRule("........", "(uA,mm)", "(ppm,nm)", "(ppm,nm)"));
 
      Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bcm2.hw_sum)",intensity,1);
      Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bcm2.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_2("bcm1-bcm2", intensity, val));
-     //     util.push_back(Form("\n bcm1-bcm2  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     util.push_back(MidRule_3("bcm1-bcm2", intensity, val));
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
      Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bcm5.hw_sum)",intensity,1);
      Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bcm5.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_2("bcm1-bcm5", intensity, val));
-     //     util.push_back(Form("\n bcm1-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     util.push_back(MidRule_3("bcm1-bcm5", intensity, val));
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
      Get_Tree_Mean("(yield_qwk_bcm1.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
      Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_2("bcm1-bcm6", intensity, val));
-     //     util.push_back(Form("\n bcm1-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     util.push_back(MidRule_3("bcm1-bcm6", intensity, val));
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
 
      Get_Tree_Mean("(yield_qwk_bcm2.hw_sum-yield_qwk_bcm5.hw_sum)",intensity,1);
      Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm2.hw_sum-asym_qwk_bcm5.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_2("bcm2-bcm5", intensity, val));
-     //     util.push_back(Form("\n bcm2-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     util.push_back(MidRule_3("bcm2-bcm5", intensity, val));
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
      Get_Tree_Mean("(yield_qwk_bcm2.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
      Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm2.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_2("bcm2-bcm6", intensity, val));
-     //     util.push_back(Form("\n bcm2-bcm5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     util.push_back(MidRule_3("bcm2-bcm6", intensity, val));
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
 
      Get_Tree_Mean("(yield_qwk_bcm5.hw_sum-yield_qwk_bcm6.hw_sum)",intensity,1);
      Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm5.hw_sum-asym_qwk_bcm6.hw_sum)",val,1.e+6);
-     util.push_back(MidRule_2("bcm5-bcm6", intensity, val));
-     //     util.push_back(Form("\n bcm5-bcm6  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",intensity,val[0],val[2],val[1],val[3]));
+     util.push_back(MidRule_3("bcm5-bcm6", intensity, val));
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
 
 
      
-     //    Get_Tree_Mean("(yield_qwk_bpm3h09X.hw_sum-yield_qwk_bpm3h04X.hw_sum)",intensity,1);
-     //    Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09X.hw_sum-diff_qwk_bpm3h04X.hw_sum)",val,1.e+6);
-     //     util.push_back(Form("\n (3h09-3h04) x  |   %3.6f    | %3.6f +/- %3.6f  | %3.2f +/- %3.6f ",mean,val[0],val[2],val[1],val[3]));
-
      Get_Tree_Mean("(yield_qwk_bpm3h09X.hw_sum-yield_qwk_bpm3h04X.hw_sum)",mean,1);
-     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09X.hw_sum-diff_qwk_bpm3h04X.hw_sum)",val,1.);
-     util.push_back(MidRule_6("(3h09-3h04) x", mean, val));
+     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09X.hw_sum-diff_qwk_bpm3h04X.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("(3h09-3h04) x", mean, val));
      compare_to_golden_value("double_x_diff_position", mean,0);
      compare_to_golden_value("double_x_difference", val[0], val[2]);
      compare_to_golden_value("double_x_difference_width", val[1], val[3]);
 
-     //     Get_Tree_Mean("(yield_qwk_bpm3h09Y.hw_sum-yield_qwk_bpm3h04Y.hw_sum)",intensity,1);
-     //      Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09Y.hw_sum-diff_qwk_bpm3h04Y.hw_sum)",val,1.e+6);
-     //     util.push_back(Form("\n (3h09-3h04) y  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
      
      Get_Tree_Mean("(yield_qwk_bpm3h09Y.hw_sum-yield_qwk_bpm3h04Y.hw_sum)",mean,1);
-     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09Y.hw_sum-diff_qwk_bpm3h04Y.hw_sum)",val,1.);
-     util.push_back(MidRule_6("(3h09-3h04) y", mean, val));
+     Get_Tree_Mean_Fit_gaus("(diff_qwk_bpm3h09Y.hw_sum-diff_qwk_bpm3h04Y.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("(3h09-3h04) y", mean, val));
     
      compare_to_golden_value("double_y_diff_position", mean,0);
      compare_to_golden_value("double_y_difference", val[0], val[2]);
@@ -755,44 +715,24 @@ void FillBeamParameters(){
    util.push_back("\n\n\n Halo Rate Summary (normalized by qwk_bcm1)\n");
    util.push_back(HorSingleLine());
    Get_Mean("hel_histo/yield_sca_halo3",mean,1.);
-   // sprintf(tmp,"\n  Halo 3 rate (KHz) = %7.1f (%7.1f (kHz/uA))\n", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //   util.push_back(TString(tmp)+" \n");
    util.push_back(Halo("Halo 3", mean, bcm1_current_uA));
    Get_Mean("hel_histo/yield_sca_halo4",mean,1.);
    util.push_back(Halo("Halo 4", mean, bcm1_current_uA));
-   //sprintf(tmp,"\n  Halo 4 rate (KHz) = %7.1f (%7.1f (kHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //   util.push_back(TString(tmp)+" \n");
    Get_Mean("hel_histo/yield_sca_halo5",mean,1.);
-   //sprintf(tmp,"\n  Halo 5 rate (KHz) = %7.1f (%7.1f (kHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //util.push_back(TString(tmp)+" \n");
    util.push_back(Halo("Halo 5", mean, bcm1_current_uA));
    Get_Mean("hel_histo/yield_sca_halo6",mean,1.);
-   //sprintf(tmp,"\n  Halo 6 rate (KHz) = %7.1f (%7.1f (kHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //util.push_back(TString(tmp)+" \n");
    util.push_back(Halo("Halo 6", mean, bcm1_current_uA));
    Get_Mean("hel_histo/yield_sca_halo7",mean,1.);
-   //   sprintf(tmp,"\n  Halo 7 rate (KHz) = %7.1f (%7.1f (kHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //util.push_back(TString(tmp)+" \n");
    util.push_back(Halo("Halo 7", mean, bcm1_current_uA));
    Get_Mean("hel_histo/yield_sca_halo8",mean,1.);
-   // sprintf(tmp,"\n  Halo 8 rate (KHz) = %7.1f (%7.1f (kHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //   util.push_back(TString(tmp)+" \n");
    util.push_back(Halo("Halo 8", mean, bcm1_current_uA));
    Get_Mean("hel_histo/yield_sca_halo9",mean,1.);
-   //   sprintf(tmp,"\n  Halo 9 rate (KHz) = %7.1f (%7.1f (kHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //util.push_back(TString(tmp)+" \n");
    util.push_back(Halo("Halo 9", mean, bcm1_current_uA));
    Get_Mean("hel_histo/yield_sca_31mhz",mean,1.);
-   //sprintf(tmp,"\n  31MHz Clock rate (KHz) = %7.1f (%7.1f (kHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //util.push_back(TString(tmp)+" \n");
    util.push_back(Clock("31MHz Clock", mean));
    Get_Mean("hel_histo/yield_sca_31mhzreturn",mean,1.);
-   //sprintf(tmp,"\n  31MHz Clock return rate (KHz) = %7.1f (%7.1f (kHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //util.push_back(TString(tmp)+" \n");
    util.push_back(Clock("31MHz Clock return", mean));
    Get_Mean("hel_histo/yield_sca_4mhz",mean,1.);
-   //   sprintf(tmp,"\n  4MHz Clock rate (KHz) = %7.1f (%7.1f (kHz/uA))", mean*1000.,intensity ==0? 0.0:mean*1000./intensity);
-   //util.push_back(TString(tmp)+" \n");
    util.push_back(Clock("4MHz Clock", mean));
    util.push_back("\n\n");
    for(size_t i=0;i<util.size();i++)
@@ -812,12 +752,9 @@ void FillMDParameters(){
    util.clear();
   TString histname;
   util.push_back("\n");
- //  util.push_back("========================================================\n");
   util.push_back(HorDoubleLine());
   util.push_back("MAIN DETECTOR PARAMETERS \n");
   util.push_back("------------------------ \n \n");
-  //   util.push_back("\n quantity|    value   |      Asym            | Asym width");
-  //   util.push_back("\n ........|(V/uA)      |    (ppm)             | (ppm) ");
   util.push_back(TopRule("quantity", "value", "asym", "asym width"));
   util.push_back(TopRule("........", "(V/uA)", "(ppm)", "(ppm)"));
 
@@ -826,11 +763,9 @@ void FillMDParameters(){
 
   for (int count=1;count<9;count++){
     histname=Form("hel_histo/yield_qwk_md%ibarsum_hw",count);
-    //std::cout<<histname<<"\n";
     Get_Mean(histname,mean,1.);
     histname=Form("hel_histo/asym_qwk_md%ibarsum_hw",count);
-    Fit_with_a_gaussian(histname,val,1.e+6);//factor 1e+6 to convert to nm
-  //   util.push_back(Form("\n MD%i  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",count,mean,val[0],val[2],val[1],val[3]));
+    Fit_with_a_gaussian(histname,val,1.e+6);//factor 1e+6 to convert to ppm
     util.push_back(MidRule_3(Form("MD%d", count), mean, val));
     histname=Form("MD_pmt%i_pos",count);
     compare_to_golden_value(histname, mean,0);
@@ -841,57 +776,50 @@ void FillMDParameters(){
   }
 
   Get_Mean("hel_histo/yield_qwk_md1_qwk_md5_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/asym_qwk_md1_qwk_md5_hw",val,1.e+6);//factor 1e+6 to convert to nm
- //  util.push_back(Form("\n md1-5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/asym_qwk_md1_qwk_md5_hw",val,1.e+6);//factor 1e+6 to convert to ppm
   util.push_back(MidRule_3("MD1-MD5", mean, val));
   compare_to_golden_value("MD_1-5", mean,0);
   compare_to_golden_value("MD_1-5_asymmetry", val[0], val[2]);
   compare_to_golden_value("MD_1-5_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_md2_qwk_md6_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/asym_qwk_md2_qwk_md6_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  //  util.push_back(Form("\n md2-6  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/asym_qwk_md2_qwk_md6_hw",val,1.e+6);//factor 1e+6 to convert to ppm
   util.push_back(MidRule_3("MD2-MD6", mean, val));
   compare_to_golden_value("MD_2-6", mean,0);
   compare_to_golden_value("MD_2-6_asymmetry", val[0], val[2]);
   compare_to_golden_value("MD_2-6_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_md3_qwk_md7_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/asym_qwk_md3_qwk_md7_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  //  util.push_back(Form("\n md1-5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/asym_qwk_md3_qwk_md7_hw",val,1.e+6);//factor 1e+6 to convert to ppm
   util.push_back(MidRule_3("MD3-MD7", mean, val));
   compare_to_golden_value("MD_3-7", mean,0);
   compare_to_golden_value("MD_3-7_asymmetry", val[0], val[2]);
   compare_to_golden_value("MD_3-7_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_md4_qwk_md8_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/asym_qwk_md4_qwk_md8_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  //  util.push_back(Form("\n md1-5  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/asym_qwk_md4_qwk_md8_hw",val,1.e+6);//factor 1e+6 to convert to ppm
   util.push_back(MidRule_3("MD4-MD8", mean, val));
   compare_to_golden_value("MD_4-8", mean,0);
   compare_to_golden_value("MD_4-8_asymmetry", val[0], val[2]);
   compare_to_golden_value("MD_4-8_width", val[1], val[3]);
     
   Get_Mean("hel_histo/yield_qwk_mdallbars_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/asym_qwk_mdallbars_hw",val,1.e+6);//factor 1e+6 to convert to nm
- //  util.push_back(Form("\n mdallbars  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
+  Fit_with_a_gaussian("hel_histo/asym_qwk_mdallbars_hw",val,1.e+6);//factor 1e+6 to convert to ppm
   util.push_back(MidRule_3("MD_AllBars", mean, val));
   compare_to_golden_value("MD_all", mean,0);
   compare_to_golden_value("MD_all_asymmetry", val[0], val[2]);
   compare_to_golden_value("MD_all_width", val[1], val[3]);
  
   Get_Mean("hel_histo/yield_qwk_mdevenbars_hw",mean,1.);
-  //  Fit_with_a_gaussian("hel_histo/asym_qwk_mdevenbars_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  //  util.push_back(Form("\n mdevenbars  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
-  util.push_back(MidRule_2("MD_EvenBars", mean, val));
+  Fit_with_a_gaussian("hel_histo/asym_qwk_mdevenbars_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(MidRule_3("MD_EvenBars", mean, val));
   compare_to_golden_value("MD_even", mean,0);
   compare_to_golden_value("MD_even_asymmetry", val[0], val[2]);
   compare_to_golden_value("MD_even_width", val[1], val[3]);
  
   Get_Mean("hel_histo/yield_qwk_mdoddbars_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/asym_qwk_mdoddbars_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  Fit_with_a_gaussian("hel_histo/asym_qwk_mdoddbars_hw",val,1.e+6);//factor 1e+6 to convert to ppm
   util.push_back(MidRule_3("MD_OddBars", mean, val));
-  //  util.push_back(Form("\n mdoddbars  |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",mean,val[0],val[2],val[1],val[3]));
   compare_to_golden_value("MD_odd", mean,0);
   compare_to_golden_value("MD_odd_asymmetry", val[0], val[2]);
   compare_to_golden_value("MD_odd_width", val[1], val[3]);
@@ -1009,7 +937,7 @@ void FillLUMIParameters(){
     histname=Form("hel_histo/yield_qwk_uslumi%ipos_hw",count);
     Get_Mean(histname,mean,1.);
     histname=Form("hel_histo/asym_qwk_uslumi%ipos_hw",count);
-    Fit_with_a_gaussian(histname,val,1.e+6);//factor 1e+6 to convert to nm
+    Fit_with_a_gaussian(histname,val,1.e+6);//factor 1e+6 to convert to ppm
     //    util.push_back(Form("\n uslumi%ipos   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",count,mean,val[0],val[2],val[1],val[3]));
     util.push_back(MidRule_3(Form("uslumi%dpos", count), mean, val));
     histname=Form("uslumi_det_%i_yield",count);
