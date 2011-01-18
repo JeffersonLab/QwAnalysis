@@ -7,7 +7,7 @@
 ROC=1
 Bank=0x102
 !same sample size for ADCs in a given bank
-!sample_size==480
+!sample_size=480
 !for 960Hz
 sample_size=464  
 !
@@ -153,6 +153,9 @@ sample_size==480
    VQWK, 1, 3,  bcm,  QWK_BCM6_Ix
    VQWK, 1, 4,  bcm,  QWK_BCM6_Iy
    VQWK, 1, 5,  bcm,  QWK_BCM6_Phase
+!Analog signal for BCM17, when used.
+   VQWK, 1, 7,  bcm,  QWK_BCM17
+
 !
 !
 !**************************************************************************

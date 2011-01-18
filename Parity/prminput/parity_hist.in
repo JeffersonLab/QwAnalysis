@@ -598,11 +598,11 @@ asym_sca_uslumi7pos		TH1F
 ###########################################
 qwk_.*			TH1F	1000	-5.0e2	5.0e2		Counts Events
 yield_qwk_.*		TH1F	1000	-5.0e2	5.0e2		Counts Events
-asym_qwk_.*		TH1F	1000	-5.0e2	5.0e2		Counts Events
+asym.*_qwk_.*		TH1F	1000	-5.0e2	5.0e2		Counts Events
 
 sca_.*			TH1F	1001	-1.0e1	1000.0e1	Counts Events
 yield_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
-asym_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
+asym.*_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
 
 ###########################################
 #  Adding some fully wildcarded histogram names.
