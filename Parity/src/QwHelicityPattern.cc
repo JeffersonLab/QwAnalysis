@@ -242,12 +242,12 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     fCurrentPatternNumber=localPatternNumber;
   }
   if(localPhaseNumber<0){
-    QwError << "QwHelicityPattern::LoadEventData:  "
+    QwWarning << "QwHelicityPattern::LoadEventData:  "
 	    << "Reduced event phase number is less than zero; ignore this event."
 	    << QwLog::endl;
     ClearEventData();
   } else if(localPhaseNumber>=fPatternSize){
-    QwError<<" In QwHelicityPattern::LoadEventData trying upload an event with a phase larger than expected \n"
+    QwWarning<<" In QwHelicityPattern::LoadEventData trying upload an event with a phase larger than expected \n"
 	   <<" phase ="<<localPhaseNumber+1<<" maximum expected phase="<<fPatternSize<<"\n"
 	   <<" operation impossible, pattern reset to 0: no asymmetries will be computed "<<QwLog::endl;
     ClearEventData();
@@ -345,30 +345,30 @@ void  QwHelicityPattern::CalculateAsymmetry()
     //  
     for (size_t i = 0; i < (size_t) fPatternSize; i++) {
       if (fHelicity[i] == plushel) {
-	if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: here filling fPositiveHelicitySum \n";
+	if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  here filling fPositiveHelicitySum \n";
 	if (firstplushel) {
-	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with = \n";
+	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  with = \n";
 	  fPositiveHelicitySum = fEvents.at(i);
 	  firstplushel = kFALSE;
 	} else {
-	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with += \n";
+	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  with += \n";
 	  fPositiveHelicitySum += fEvents.at(i);
 	}
 	checkhel += 1;
       } else if (fHelicity[i] == minushel) {
-	if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: here filling fNegativeHelicitySum \n";
+	if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  here filling fNegativeHelicitySum \n";
 	if (firstminushel) {
-	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with = \n";
+	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  with = \n";
 	  fNegativeHelicitySum = fEvents.at(i);
 	  firstminushel = kFALSE;
 	} else {
-	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with += \n";
+	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  with += \n";
 	  fNegativeHelicitySum += fEvents.at(i);
 	}
 	checkhel -= 1;
       } else {
-	QwError<< "QwHelicityPattern::CalculateAsymmetry =="
-	       << "Helicity should be "<<plushel<<" or "<<minushel<<" but is"<< fHelicity[i]
+	QwWarning<< "QwHelicityPattern::CalculateAsymmetry:  "
+	       << "Helicity should be "<<plushel<<" or "<<minushel<<" but is "<< fHelicity[i]
 	       << "; Asymmetry computation aborted!"<<QwLog::endl;
 	ClearEventData();
 	i = fPatternSize;

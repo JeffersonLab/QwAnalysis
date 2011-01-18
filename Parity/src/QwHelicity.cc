@@ -101,7 +101,7 @@ Bool_t QwHelicity::IsGoodPatternNumber()
   else results=kFALSE; //wrong pattern
 
   if(!results) {
-    QwWarning << "QwHelicity::IsGoodPatternNumber: \n this is not a good pattern number." << fPatternNumber << ' ' <<  fPatternNumberOld << QwLog::endl;
+    QwWarning << "QwHelicity::IsGoodPatternNumber:  This is not a good pattern number. New = "<< fPatternNumber << " Old = " <<  fPatternNumberOld << QwLog::endl;
     //Print();
   }
 
@@ -1633,16 +1633,16 @@ Bool_t QwHelicity::CollectRandBits30()
     /**  Make sure we are at the beging of a valid pattern. */
     if((fPatternPhaseNumber==fMinPatternPhase)&& (fPatternNumber>=0)) {
       iseed_Delayed = ((iseed_Delayed << 1)&0x3FFFFFFF)|fHelicityReported;
-      QwDebug << "QwHelicity:: CollectRandBits30, Collecting randbit " << n_ranbits << ".." << QwLog::endl;
+      QwDebug << "QwHelicity:: CollectRandBits30:  Collecting randbit " << n_ranbits << ".." << QwLog::endl;
       n_ranbits++;
 
       /** If we got the 30th bit,*/
       if(n_ranbits == ranbit_goal){
-	QwDebug << "QwHelicity:: CollectRandBits30, done Collecting 30 randbits" << QwLog::endl;
+	QwDebug << "QwHelicity:: CollectRandBits30:  done Collecting 30 randbits" << QwLog::endl;
 
 	/** set the polarity of the current pattern to be equal to the reported helicity,*/
 	fDelayedPatternPolarity = fHelicityReported;
-	QwDebug << "QwHelicity:: CollectRandBits30, delayedpatternpolarity =" << fDelayedPatternPolarity << QwLog::endl;
+	QwDebug << "QwHelicity:: CollectRandBits30:  delayedpatternpolarity =" << fDelayedPatternPolarity << QwLog::endl;
 
 	/** then use it as the delayed helicity, */
 	fHelicityDelayed = fDelayedPatternPolarity;
@@ -1658,7 +1658,7 @@ Bool_t QwHelicity::CollectRandBits30()
 	  }
 	} else {
 	  /** If we have a negative delay. Reset the predictor.*/
-	  QwError << "QwHelicity::CollectRandBits30,  We cannot handle negative delay(prediction) in the reported helicity. Exiting." << QwLog::endl;
+	  QwError << "QwHelicity::CollectRandBits30:  We cannot handle negative delay(prediction) in the reported helicity. Exiting." << QwLog::endl;
 	  ResetPredictor();
 	}
 	/** If all is well so far, set the actual pattern polarity as the actual helicity.*/
@@ -1668,9 +1668,8 @@ Bool_t QwHelicity::CollectRandBits30()
   } else {
     /** while collecting the seed, we encounter non continuous events.Discard bit. Reset the predition*/
     ResetPredictor();
-    QwError << "QwHelicity::CollectRandBits30, while collecting the seed, we encountered non continuous events: need to reset the seed collecting " << QwLog::endl;
-    QwError << " event number=" << fEventNumber << ", fPatternNumber="
-	    << fPatternNumber << ",  fPatternPhaseNumber=" << fPatternPhaseNumber << QwLog::endl;
+    QwWarning << "QwHelicity::CollectRandBits30:  While collecting the seed, we encountered non continuous events: Need to reset the seed collecting " << QwLog::endl;
+    QwDebug   << " event number=" << fEventNumber << ", fPatternNumber="<< fPatternNumber << ",  fPatternPhaseNumber=" << fPatternPhaseNumber << QwLog::endl;
   }
   return kFALSE;
 };
@@ -1743,7 +1742,7 @@ void QwHelicity::ResetPredictor()
 {
   /**Start a new helicity prediction sequence.*/
 
-  QwWarning << " QwHelicity:: Resetting helicity prediction!" << QwLog::endl;
+  QwWarning << "QwHelicity::ResetPredictor:  Resetting helicity prediction!" << QwLog::endl;
   n_ranbits = 0;
   fGoodHelicity = kFALSE;
   fGoodPattern = kFALSE;
