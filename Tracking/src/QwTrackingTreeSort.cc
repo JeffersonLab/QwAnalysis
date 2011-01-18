@@ -614,7 +614,9 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
    * find the number of used QwPartialTracks
    * ------------------------------------------------------------------ */
 
+  int rep = 0;
   do {        /* filter out high chi2 if needed */
+    rep++;
     nmaxch = 0.0;
     nminch = maxch;
     for (idx = 0, parttrack = parttracklist;
@@ -639,7 +641,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
       }
     }
     maxch = nminch + (nmaxch - nminch) * 0.66;
-  } while( idx > 30 );
+  } while( idx > 30 && rep < 10);
 
 
   num = idx;
