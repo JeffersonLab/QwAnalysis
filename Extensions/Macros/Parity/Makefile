@@ -43,7 +43,10 @@ all:  $(EXE)
 promptsummary : QwPromptSummary.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-get_from_runs : read_run_range.o 
+#get_from_runs : read_run_range.o 
+#	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+get_from_runs : read_run_range.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 SarahsCoolBPMScript : SarahsCoolBPMScript.o 
