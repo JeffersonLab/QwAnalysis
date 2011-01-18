@@ -321,7 +321,6 @@ int main(Int_t argc,Char_t* argv[])
   results.push_back("-----------------\n");
   results.push_back(Form("number of good quartets in this run    = %6.0f \n",h->GetEntries()));
   results.push_back(Form("based on this number the run lasted    = %5.1f minutes \n\n",h->GetEntries()*4./1000./60.));
-  results.push_back(Form("based on this total charge accumulated = %5.1f Coulombs \n\n",(h->GetEntries()*4./1000.)*h->GetMean()*1e-6));
   results.push_back(Form("based on this total charge accumulated = %3.1f Coulombs \n\n",(h->GetEntries()*4./1000.)*h->GetMean()*1e-6));
   h=NULL;
   
@@ -619,28 +618,56 @@ void FillBeamParameters(){
 
   Get_Mean("hel_histo/yield_qwk_bpm3h04X_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04X_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(MidRule_2("3c04 x", mean, val));
+  util.push_back(MidRule_2("3h04 x", mean, val));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h04Y_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h04Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(MidRule_2("3c04 y", mean, val));
+  util.push_back(MidRule_2("3h04 y", mean, val));
+  compare_to_golden_value("y_beam_position", mean,0);
+  compare_to_golden_value("y_position_difference", val[0], val[2]);
+  compare_to_golden_value("y_position_difference_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3h07cX_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h07cX_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(MidRule_2("3h07c x", mean, val));
+  compare_to_golden_value("x_beam_position", mean,0);
+  compare_to_golden_value("x_position_difference", val[0], val[2]);
+  compare_to_golden_value("x_position_difference_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3h07cY_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h07cY_hw",val,1.e+6);//factor 1e+6 to convert to nm
+  util.push_back(MidRule_2("3h07c y", mean, val));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h09X_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09X_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(MidRule_2("3c09 x", mean, val));
+  util.push_back(MidRule_2("3h09 x", mean, val));
   compare_to_golden_value("x_beam_position", mean,0);
   compare_to_golden_value("x_position_difference", val[0], val[2]);
   compare_to_golden_value("x_position_difference_width", val[1], val[3]);
 
   Get_Mean("hel_histo/yield_qwk_bpm3h09Y_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09Y_hw",val,1.e+6);//factor 1e+6 to convert to nm
-  util.push_back(MidRule_2("3c09 y", mean, val));
+  util.push_back(MidRule_2("3h09 y", mean, val));
+  compare_to_golden_value("y_beam_position", mean,0);
+  compare_to_golden_value("y_position_difference", val[0], val[2]);
+  compare_to_golden_value("y_position_difference_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3h09bX_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09bX_hw",val,1.e+6);
+  util.push_back(MidRule_2("3h09b x", mean, val));
+  compare_to_golden_value("x_beam_position", mean,0);
+  compare_to_golden_value("x_position_difference", val[0], val[2]);
+  compare_to_golden_value("x_position_difference_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3h09bY_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3h09bY_hw",val,1.e+6);
+  util.push_back(MidRule_2("3h09b y", mean, val));
   compare_to_golden_value("y_beam_position", mean,0);
   compare_to_golden_value("y_position_difference", val[0], val[2]);
   compare_to_golden_value("y_position_difference_width", val[1], val[3]);
