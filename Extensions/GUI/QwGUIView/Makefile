@@ -74,7 +74,7 @@ MFILE         = Makefile
 
 DEBUGFLAGS    = #-DQWGUI_DEBUG
 CXX           = g++
-CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g #-O2
+CXXFLAGS      = -O2 -Wall -fPIC -DVERS="\"$(VERS)\"" #-g #-O2
 LD            = g++
 LDFLAGS       = #-O
 SOFLAGS       = -shared

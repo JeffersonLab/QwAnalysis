@@ -41,9 +41,9 @@ MFILE         = Makefile
 
 DEBUGFLAGS    = #-DQWGUI_DEBUG
 CXX           = g++
-CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -g -O2
+CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -O2 #-g -O2
 LD            = g++
-LDFLAGS       = -O2
+LDFLAGS       = #-O2
 SOFLAGS       = -shared
 SYSLIBS       =
 GEOMLIB       = -lGeom

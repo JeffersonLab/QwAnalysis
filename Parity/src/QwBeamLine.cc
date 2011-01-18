@@ -1373,6 +1373,7 @@ Bool_t QwBeamLine::PublishInternalValues() const
     device_prop.ToLower();
 
     const VQwDataElement* tmp_channel;
+
     if (device_type == "bcm") {
       tmp_channel = GetBCM(device_name)->GetCharge();
     } else if (device_type == "bpmstripline") {
@@ -2302,7 +2303,7 @@ VQwSubsystem*  QwBeamLine::Copy()
 void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 {
 
-  Bool_t local_print_flag = true;
+  Bool_t local_print_flag = false;
 
   if(local_print_flag) {
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;

@@ -783,7 +783,7 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
 
     	if (fEPICSDataEvent[tagindex].Filled) {
 	  if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
-	    QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
+	    QwWarning<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
 	    tmp_row.value ="";
 	  }
 	  else {
@@ -860,12 +860,12 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
     tmp_row.target_position = mysqlpp::null;
   }
   if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
-    QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
+    QwWarning<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
     tmp_row.target_position =mysqlpp::null;
   }  else {
     // Target position did not change.
     // Store the position as a text string.
-    QwError<<"\n\nfEPICSDataEvent[tagindex].StringValue.Data() = "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
+    QwWarning<<"\n\nfEPICSDataEvent[tagindex].StringValue.Data() = "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
     tmp_row.target_position = fEPICSDataEvent[tagindex].StringValue.Data();
   }
   }
@@ -888,7 +888,7 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   }
 
   if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
-    QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
+    QwWarning<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
     tmp_row.slow_helicity_plate =mysqlpp::null;
   }
 
@@ -898,7 +898,7 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
     // Rotatable Half Wave Plate Setting setting is stored as a string with possible values
     // "OUT" and "IN".
 
-    QwError<<"\n\nfEPICSDataEvent[tagindex].StringValue.Data() = "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
+    QwWarning<<"\n\nfEPICSDataEvent[tagindex].StringValue.Data() = "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
     tmp_row.slow_helicity_plate = fEPICSDataEvent[tagindex].StringValue.Data();
   }
   }
@@ -922,7 +922,7 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   }
 
   if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
-    QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
+    QwWarning<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
     tmp_row.charge_feedback =mysqlpp::null;
   }
 

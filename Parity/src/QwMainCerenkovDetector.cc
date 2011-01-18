@@ -871,7 +871,7 @@ void  QwMainCerenkovDetector::ProcessEvent_2()
     }
   else
     {
-      QwError<<"QwMainCerenkovDetector::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
+      QwWarning<<"QwMainCerenkovDetector::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
     }
 };
 
@@ -1291,9 +1291,9 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
 	    notwarned = kTRUE;
 	  } else if (notwarned) {
 	    notwarned = kFALSE;
-	    QwError << "QwMainCerenkovDetector::DoNormalization:  Charge is too small to do the "
-		    << "normalization (fTargetCharge==" << fTargetCharge.GetHardwareSum()
-		    << ")" << QwLog::endl;
+	    QwWarning << "QwMainCerenkovDetector::DoNormalization:  Charge is too small to do the "
+		      << "normalization (fTargetCharge==" << fTargetCharge.GetHardwareSum()
+		      << ")" << QwLog::endl;
 	  }
         }
       catch (std::exception& e)
@@ -1305,7 +1305,8 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
 
 void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
 {
-  Bool_t local_print_flag = true;
+  Bool_t local_print_flag = false;
+
   if(local_print_flag) {
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
     QwMessage << "            QwMainCerenkovDetector::FillDB                       " << QwLog::endl;

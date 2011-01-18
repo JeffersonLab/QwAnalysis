@@ -714,7 +714,7 @@ void  QwLumi::ProcessEvent_2()
     }
   else
     {
-      QwError<<"QwLumi::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
+      QwWarning <<"QwLumi::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
     }
 };
 
@@ -1197,9 +1197,9 @@ void QwLumi::DoNormalization(Double_t factor)
 	    notwarned = kTRUE;
 	  } else if (notwarned) {
 	    notwarned = kFALSE;
-	    QwError << "QwLumi::DoNormalization:  Charge is too small to do the "
-		    << "normalization (fTargetCharge==" << fTargetCharge.GetHardwareSum()
-		    << ")" << QwLog::endl;
+	    QwWarning << "QwLumi::DoNormalization:  Charge is too small to do the "
+		      << "normalization (fTargetCharge==" << fTargetCharge.GetHardwareSum()
+		      << ")" << QwLog::endl;
 	  }
         }
       catch (std::exception& e)
@@ -1219,7 +1219,7 @@ void QwLumi::DoNormalization(Double_t factor)
 void QwLumi::FillDB(QwDatabase *db, TString datatype)
 {
 
-  Bool_t local_print_flag = true;
+  Bool_t local_print_flag = false;
   if(local_print_flag){
     QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
     QwMessage << "                         QwLumi::FillDB                          " << QwLog::endl;
