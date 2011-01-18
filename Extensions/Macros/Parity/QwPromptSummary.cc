@@ -321,7 +321,7 @@ int main(Int_t argc,Char_t* argv[])
   results.push_back("-----------------\n");
   results.push_back(Form("number of good quartets in this run    = %6.0f \n",h->GetEntries()));
   results.push_back(Form("based on this number the run lasted    = %5.1f minutes \n\n",h->GetEntries()*4./1000./60.));
-  results.push_back(Form("based on this total charge accumulated = %3.1f Coulombs \n\n",(h->GetEntries()*4./1000.)*h->GetMean()*1e-6));
+  results.push_back(Form("based on this total charge accumulated = %3.1f mC \n\n",(h->GetEntries()*4./1000.)*h->GetMean()*1e-6*1e+3));//charge in mC
   h=NULL;
   
   FillBeamParameters();
