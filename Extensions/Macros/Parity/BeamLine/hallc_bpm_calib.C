@@ -998,7 +998,7 @@ main(int argc, char **argv)
 
 
   TH2D *tmp;
-  Double_t nbins = 0;
+  Int_t nbins = 0;
   Double_t range_length = 0.0;
 
   TString scut = "";

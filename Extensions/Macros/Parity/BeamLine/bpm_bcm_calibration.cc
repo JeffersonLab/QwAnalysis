@@ -291,7 +291,7 @@ void initial_bcm_calibration(TString bcm_title)
     }
 
   // Get the number of total bins in the histogram
-  Int_t bins = set_current->GetNbinsX();
+  //  Int_t bins = set_current->GetNbinsX();
   
  //  //
 //   for(int i=1;i<bins+1;i++)
@@ -315,7 +315,7 @@ void initial_bcm_calibration(TString bcm_title)
   
   
   // to get rid of beam trip
-  nbin = (Int_t) (max_current + 0.5)/currentstep;
+  nbin = (Int_t)( (max_current + 0.5)/currentstep);
 
   TString histname=Form("prof_%s",bcm_title.Data());
   TProfile *hprofinit= new TProfile(histname, histname, nbin,(min_current/1.1), (max_current*1.1));

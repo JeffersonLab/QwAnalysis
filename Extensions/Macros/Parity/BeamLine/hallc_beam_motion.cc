@@ -330,13 +330,15 @@ int main(Int_t argc,Char_t* argv[])
   
   // define TGraphErrors 
   TGraphErrors * XVariation;
-  TGraphErrors * YVariation;; 
+  TGraphErrors * YVariation; 
   TGraphErrors * tgtX;
   TGraphErrors * tgtY;
   TGraphErrors * projX;
   TGraphErrors * projY;
 
-  Primitive("Graph");
+  
+  
+  //Primitive("Graph");
 
   pad2->cd(2);
   plot_data(tree, "Y", devicelist,z_pos,meany);
