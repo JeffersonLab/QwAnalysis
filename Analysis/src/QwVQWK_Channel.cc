@@ -582,7 +582,7 @@ void  QwVQWK_Channel::FillHistograms()
   if (IsNameEmpty())
     {
       //  This channel is not used, so skip creating the histograms.
-    } else
+    } else if (fDeviceErrorCode==0)//Fill only if no HW error in the channel
       {
 	if(fDataToSave==kRaw)
 	  {
