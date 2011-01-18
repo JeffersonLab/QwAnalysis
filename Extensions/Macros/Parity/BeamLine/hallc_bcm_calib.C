@@ -135,17 +135,35 @@
 //  6846 - 7756      BCM gain setting 2  >> BCM calibration RUN 6846 / 20uA - 150uA
 //                   https://hallcweb.jlab.org/hclog/1011_archive/101110223106.html
 //
-//  7757 -           BCM gain setting 2 >> BCM calibration RUN 7757/ 0uA - 140uA
+//  7757 - 8350      BCM gain setting 2 >> BCM calibration RUN 7757/ 0uA - 140uA
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101202051245.html
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101202063008.html
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101204145444.html
 
-//                   BCM calibration RUN 8351 
+
+//                   BCM gain setting 2 
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101211001641.html
+
+
+//  8351-8394        https://hallcweb.jlab.org/hclog/1012_archive/101221062621.html
+//
+//  8351-8369        BCM calibration RUN 8351 (*)
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101219234658.html
 //
-//                   BCM calibration RUN 8370
+//  8370-8394        BCM calibration RUN 8370 (*)
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101220200033.html
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101221120541.html
+// 
+//  8395-8396        BCM gain setting 3
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101221042257.html
+//                   only 8395, 8396 is junk
+//
+//
+//  8397-            BCM gain setting 2 
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101221061819.html
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062342.html
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062621.html  
+
 
 
 #define ITMAX 100

@@ -47,7 +47,7 @@ Double_t weightsq[3]  = {0.0, 0.0, 0.0};
 
 /*Device list*/
 TString devicelist[nbpms] = 
-  {"3h07a","3h07b","3h07c","3h07c","3h09","3h09b"};
+  {"3h04","3h07b","3h07c","3h07c","3h09","3h09b"};
 TString property[3] = 
   {"X", "Y", "_EffectiveCharge"};
 
@@ -75,7 +75,7 @@ int main(Int_t argc,Char_t* argv[])
   }
   else if (argc == 2)
     run_number = atoi(argv[1]);
-  std::cout<<"Runing bpm weight extractor.."<<std::endl;
+  std::cout<<"Extracting bpm weights...."<<std::endl;
 
   /*Open a file to store the output*/
   std::ofstream file;
@@ -92,32 +92,32 @@ int main(Int_t argc,Char_t* argv[])
   /*Open the rootfile/rootfiles*/
   TChain * tree      = new TChain("Mps_Tree");
   TString  Rfilename = Form("Qweak_%i.000.root", run_number);
-  TFile  * Rfile     = new TFile(Form("~/scratch/rootfiles/%s", Rfilename.Data()));
+  TFile  * Rfile     = new TFile(Form("$QW_ROOTFILES/%s", Rfilename.Data()));
 
   if (Rfile->IsZombie()) {
     std::cout << "Error opening root file chain "<< Rfilename << std::endl;
     Rfilename = Form("Qweak_%i.root", run_number);
     std::cout << "Try to open chain " << Rfilename << std::endl;
-    Rfile = new TFile(Form("~/scratch/rootfiles/%s", Rfilename.Data()));
+    Rfile = new TFile(Form("$QW_ROOTFILES/%s", Rfilename.Data()));
 
     if (Rfile->IsZombie()) {
       std::cout << "Error opening root file chain "<< Rfilename << std::endl;
       Rfilename = Form("QwPass1_%i.000.root", run_number);
       std::cout << "Try to open chain " << Rfilename << std::endl;
-      Rfile = new TFile(Form("~/scratch/rootfiles/%s", Rfilename.Data()));
+      Rfile = new TFile(Form("$QW_ROOTFILES/%s", Rfilename.Data()));
       
       if (Rfile->IsZombie()){
 	std::cout << "File exit failure."<<std::endl; 
 	tree = NULL;
       }
       else
-	tree->Add(Form("~/scratch/rootfiles/QwPass1_%i.000.root", run_number));
+	tree->Add(Form("$QW_ROOTFILES/QwPass1_%i.000.root", run_number));
     }
     else
-      tree->Add(Form("~/scratch/rootfiles/Qweak_%i.root", run_number));
+      tree->Add(Form("$QW_ROOTFILES/Qweak_%i.root", run_number));
   }
   else
-    tree->Add(Form("~/scratch/rootfiles/Qweak_%i.*.root", run_number));
+    tree->Add(Form("$QW_ROOTFILES/Qweak_%i.*.root", run_number));
   
     std::cout<<"Opened rootfile/s "<<Rfilename<<std::endl;
 
