@@ -280,7 +280,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       epicsevent.FillDB(&database);
     }
 
-    epicsevent.WriteEPICSStringValues();
+    //epicsevent.WriteEPICSStringValues();
 
     //  Close event buffer stream
     eventbuffer.CloseStream();
