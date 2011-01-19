@@ -260,7 +260,7 @@ void QwHelicity::ProcessEventUserbitMode()
   static UInt_t lastuserbits  = 0xFF;
   UInt_t scaleroffset=fWord[kScalerCounter].fValue/32;
 
-  if(scaleroffset==1) {
+  if(scaleroffset==1 || scaleroffset==0) {
     userbits = (fWord[kUserbit].fValue & 0xE0000000)>>28;
 
     //  Now fake the input register, MPS coutner, QRT counter, and QRT phase.
