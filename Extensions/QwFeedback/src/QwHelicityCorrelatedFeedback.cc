@@ -332,7 +332,7 @@ void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
   out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
   //   out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
   //  fprintf(out_file," Feedback at %d current A_q[%d]:%5.8f+/-%5.8f IA Setpoint:%5.3f  IA Previous Setpoint:%5.3f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
-  fprintf(out_file_IA," %d\t\t A_q[%d]\t %5.8f \t\t+/-  %5.8f \t %5.3f \t\t\t %5.3f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
+  fprintf(out_file_IA," %10.0d A_q[%1.0d] %20.4f +/-  %20.4f  %20.2f  %20.2f\n",fQuartetNumber,mode,fChargeAsym[mode],fChargeAsymError[mode],fIASetpoint[mode],fPrevIASetpoint[mode]);
   fclose(out_file_IA);
 };
 
@@ -340,7 +340,7 @@ void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
 void QwHelicityCorrelatedFeedback::LogParameters(){
   out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
   // out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a"); 
-  fprintf(out_file_PITA,"%d\t\t \t %5.8f \t\t+/-  %5.8f \t  %5.3f \t %5.3f \t  %5.3f \t %5.3f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
+  fprintf(out_file_PITA,"%10.0d %+22.4f %16.4f %26.2f %26.2f %26.2f %26.2f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
   fclose(out_file_PITA);
 };
 /*****************************************************************/
@@ -714,7 +714,7 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(){
     fTargetCharge.PrintInfo();
     fChargeAsymmetry=fTargetCharge.GetHardwareSum();
     fChargeAsymmetryError=fTargetCharge.GetHardwareSumError();
-    fChargeAsymmetryWidth=fTargetCharge.GetHardwareSumM2();
+    fChargeAsymmetryWidth=fTargetCharge.GetHardwareSumWidth();
     return ;
   }
   QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;
@@ -740,7 +740,7 @@ void QwHelicityCorrelatedFeedback::GetTargetChargeStat(Int_t mode){
     fTargetCharge.PrintInfo();
     fChargeAsym[mode]=fTargetCharge.GetHardwareSum();
     fChargeAsymError[mode]=fTargetCharge.GetHardwareSumError();
-    fChargeAsymWidth[mode]=fTargetCharge.GetHardwareSumM2();
+    fChargeAsymWidth[mode]=fTargetCharge.GetHardwareSumWidth();
     return ;
   }
   QwError << " Could not get external value setting parameters to  q_targ" <<QwLog::endl;
