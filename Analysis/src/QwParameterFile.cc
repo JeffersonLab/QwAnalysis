@@ -166,24 +166,27 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
 #else
   if (bfs::exists(file) /* pray */ ) {
 #endif
-    QwMessage << "Opening parameter file: "
+    QwMessage << "QwParameterFile::OpenFile Opening parameter file: "
               << file.string() << QwLog::endl;
     // Open file
     fFile.open(file.string().c_str());
     if (! fFile.good())
-      QwError << "Unable to read parameter file "
+      QwError << "QwParameterFile::OpenFile Unable to read parameter file "
               << file.string() << QwLog::endl;
     // Load into stream
     fStream << fFile.rdbuf();
     status = true;
+    // std::cout << fStream << std::endl;
+    // fFile.close();
 
   } else {
 
     // File does not exist or is not a regular file
-    QwError << "Unable to open parameter file "
+    QwError << "QwParameterFile::OpenFile Unable to open parameter file "
             << file.string() << QwLog::endl;
     status = false;
   }
+ 
 
   return status;
 }

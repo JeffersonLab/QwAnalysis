@@ -878,7 +878,8 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
     // Get the rows of the QwParityDB::analysis table
     mysqlpp::Query query = db->Query();
     query.execute(
-      Form("select * from analysis where analysis_id = ",analysis_id));
+		  Form("select * from analysis where analysis_id = %d",analysis_id))
+      ;
     mysqlpp::StoreQueryResult analysis_res = query.store();
     QwParityDB::analysis analysis_row_orig = analysis_res[0];
     QwParityDB::analysis analysis_row_new  = analysis_res[0];

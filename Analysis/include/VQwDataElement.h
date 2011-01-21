@@ -43,7 +43,11 @@ class VQwDataElement {
 
  public:
 
-  VQwDataElement(){};
+  VQwDataElement(){
+    fNumberOfDataWords = 0;
+    fErrorFlag = 0;
+    fHistograms.clear();
+  };
   //  VQwDataElement(UInt_t numwords):fNumberOfDataWords(numwords) {};
   virtual ~VQwDataElement();
 

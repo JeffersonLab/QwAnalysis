@@ -6,6 +6,15 @@
  * \date   2009-12-01
  */
 
+#if __STDC_VERSION__ < 199901L
+# if __GNUC__ >= 2
+#  define __func__ __FUNCTION__
+# else
+#  define __func__ "<unknown>"
+# endif
+#endif
+
+
 #include "QwOptions.h"
 
 #include "QwRootFile.h"
@@ -106,18 +115,22 @@ QwOptions::~QwOptions()
  */
 void QwOptions::SetCommandLine(int argc, char* argv[])
 {
+  Bool_t local_debug = false;
   // Copy command line options
   fArgc = argc;
   if (fArgv) delete[] fArgv;
   fArgv = new char*[fArgc];
+  if(local_debug) printf("****BEGIN %s\n", __PRETTY_FUNCTION__);
   for (int i = 0; i < argc; i++) {
     fArgv[i] = argv[i];
+    if(local_debug)  printf("%s\n", fArgv[i]);
   }
   fParsed = false;
 
   // Add default config file based on file name
   if (fArgc > 0) {
     std::string path = fArgv[0];
+    if(local_debug) std::cout << "path " << path << std::endl;
     // Find file name from full path
     size_t pos = path.find_last_of('/');
     if (pos != std::string::npos)
@@ -127,7 +140,8 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
       // Called without path
       AddConfigFile(path + ".conf");
   }
-}
+  if(local_debug) printf("**** END %s\n", __PRETTY_FUNCTION__);
+};
 
 
 
@@ -191,7 +205,7 @@ void QwOptions::ParseCommandLine()
 
   // If a configuration file is specified, load it.
   if (fVariablesMap.count("config") > 0) {
-    QwWarning << "Using configuration file "
+    QwWarning << "Using user-defined configuration file "
               << fVariablesMap["config"].as<std::string>() << QwLog::endl;
     SetConfigFile(fVariablesMap["config"].as<std::string>());
   }

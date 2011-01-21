@@ -58,6 +58,9 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.AddConfigFile("qweak_mysql.conf");
+
+  gQwOptions.ListConfigFiles();
+
   ///  Define the command line options
   DefineOptionsParity(gQwOptions);
   /// Load command line options for the histogram/tree helper class

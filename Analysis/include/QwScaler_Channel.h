@@ -47,11 +47,21 @@ class VQwScaler_Channel: public VQwDataElement {
   virtual ~VQwScaler_Channel() { DeleteHistograms(); };
 
   void  InitializeChannel(TString name) {
-    fValue = 0;
-    fValueM2 = 0;
+    fValue_Raw  = 0;
+    fValue      = 0.0;
+    fValueM2    = 0.0;
+    fValueError = 0.0;
+    fPedestal   = 0.0;
+    fCalibrationFactor = 1.0;
+
+    fTreeArrayIndex = 0;
+    fTreeArrayNumEntries =0;
+
     SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
+
     fNumEvtsWithHWErrors=0;//init error counters
     fNumEvtsWithEventCutsRejected=0;//init error counters
+
     fDeviceErrorCode = 0;
     fGoodEventCount = 0;
     SetElementName(name);
