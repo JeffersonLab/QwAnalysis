@@ -53,6 +53,11 @@ static const bool kDebug = false;
 // Main function
 Int_t main(Int_t argc, Char_t* argv[])
 {
+  /// without anything, print usage
+  if(argc == 1){
+    gQwOptions.Usage();
+    exit(0);
+  }
   ///  First, fill the search paths for the parameter files; this sets a static
   ///  variable within the QwParameterFile class which will be used by
   ///  all instances.

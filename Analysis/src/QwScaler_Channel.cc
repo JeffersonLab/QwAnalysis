@@ -23,15 +23,14 @@ Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events f
 
 void VQwScaler_Channel::ClearEventData()
 {
-  fValue_Raw = 0;
-  fValue     = 0.0;
-  fValueM2   = 0.0;
-  fValueError = 0.0;
-
-  fPedestal  = 0.0;
+  fValue_Raw   = 0;
+  fValue       = 0.0;
+  fValueM2     = 0.0;
+  fValueError  = 0.0;
+  fPedestal    = 0.0;
   fCalibrationFactor = 1.0;
 
-  fGoodEventCount = 0;
+  fGoodEventCount  = 0;
   fDeviceErrorCode = 0;
 };
 
@@ -129,11 +128,11 @@ void VQwScaler_Channel::ProcessEvent()
 
 void VQwScaler_Channel::PrintValue() const
 {
-  printf("Name %s %23.4lf +/- %15.4lf", GetElementName().Data(), fValue, fValueError);
-   // QwMessage << std::setprecision(4)
-   //           << std::setw(23) << std::left << GetElementName() << ","
-   //           << std::setw(15) << std::right << GetValue() << " +/- " << fValueError
-   //           << QwLog::endl;
+  //  printf("Name %s %23.4lf +/- %15.4lf", GetElementName().Data(), fValue, fValueError);
+  QwMessage << std::setw(23) << std::left << GetElementName() << ","
+	    << std::setprecision(4)
+	    << std::setw(15) << std::right << GetValue() << " +/- " << fValueError
+	    << QwLog::endl;
 }
 
 void VQwScaler_Channel::PrintInfo() const

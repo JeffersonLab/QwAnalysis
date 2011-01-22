@@ -36,6 +36,11 @@ void DefineOptionsParity(QwOptions& options)
   QwEventRing::DefineOptions(options);
   QwHelicity::DefineOptions(options);
   QwHelicityPattern::DefineOptions(options);
+  options.AddOptions()
+    ("enable-print-runningsum", po::value<bool>()->default_value(false)->zero_tokens(),
+     "enable print running sum of all subsystem");
+
+
 }
 
 #endif // QWOPTIONSPARITY_H

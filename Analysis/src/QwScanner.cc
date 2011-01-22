@@ -63,6 +63,7 @@ void QwScanner::ProcessOptions(QwOptions &options)
 
 Int_t QwScanner::LoadChannelMap(TString mapfile)
 {
+  Bool_t local_debug = false;
   TString varname, varvalue;
   TString modtype, dettype, name;
   Int_t modnum, channum;
@@ -149,22 +150,26 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
                 }
               else
                 {
-                  //  If not, push a new record into the element array
-                  if (modtype=="V792") std::cout<<"V792: ";
-                  else if (modtype=="V775") std::cout<<"V775: ";
-                  else if (modtype=="F1TDC") std::cout<<"F1TDC: ";
+		  if(local_debug) {
+		    //  If not, push a new record into the element array
+		    if (modtype=="V792") std::cout<<"V792: ";
+		    else if (modtype=="V775") std::cout<<"V775: ";
+		    else if (modtype=="F1TDC") std::cout<<"F1TDC: ";
+		  }
                   LinkChannelToSignal(channum, name);
                 }
             }
 
           else
             {
-              std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
-              << std::endl;
+	      if(local_debug) {
+		std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
+			  << std::endl;
+	      }
             }
         }
     }
-  ReportConfiguration();
+  if(local_debug) ReportConfiguration();
   return 0;
 };
 
@@ -172,8 +177,8 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
 {
   Bool_t ldebug=kFALSE;
   TString varname, varvalue;
-  Double_t varped;
-  Double_t varcal;
+  Double_t varped = 0.0;
+  Double_t varcal = 0.0;
   TString localname;
 
   Int_t lineread=0;
@@ -345,21 +350,23 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
       subsystem_name = this->GetSubsystemName();
       fF1TDContainer -> SetSystemName(subsystem_name);
       
-      if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
-      
-      std::cout << "QwScanner : " 
-		<< subsystem_name
-		<< ", "
-		<< "ProcessConfigurationBuffer"
-		<< std::endl;
-      std::cout << "ROC " 
-		<< std::setw(2) << roc_id
-		<< " Bank [index,id]["
-		<<  bank_index
-		<< ","
-		<< bank_id
-		<< "]"
-		<< std::endl;
+      if(local_debug) {
+	std::cout << "-----------------------------------------------------" << std::endl;
+	
+	std::cout << "QwScanner : " 
+		  << subsystem_name
+		  << ", "
+		  << "ProcessConfigurationBuffer"
+		  << std::endl;
+	std::cout << "ROC " 
+		  << std::setw(2) << roc_id
+		  << " Bank [index,id]["
+		  <<  bank_index
+		  << ","
+		  << bank_id
+		  << "]"
+		  << std::endl;
+      }
       for ( slot_id=0; slot_id<kMaxNumberOfModulesPerROC; slot_id++ ) { 
 	// slot id starts from 2, because 0 is one offset (1) difference between QwAnalyzer and VME definition, 
 	// and 1 and 2 are used for CPU and TI. Tuesday, August 31 10:57:07 EDT 2010, jhlee
@@ -1617,6 +1624,7 @@ const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
 
 Int_t QwScanner::LinkChannelToSignal(const UInt_t chan, const TString &name)
 {
+  Bool_t local_debug = false;
   size_t index = fCurrentType;
   if (index == 0 || index == 1)
     {
@@ -1626,9 +1634,10 @@ Int_t QwScanner::LinkChannelToSignal(const UInt_t chan, const TString &name)
     }
   else if (index ==2)
     {
-      std::cout<<"scaler module has not been implemented yet."<<std::endl;
+      if(local_debug) std::cout<<"scaler module has not been implemented yet."<<std::endl;
     }
-  std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
+  if (local_debug) 
+    std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
   return 0;
 };
 

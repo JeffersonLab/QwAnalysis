@@ -108,8 +108,8 @@ qwk_targetYAngle_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_empty._block.             TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_empty._.w                 TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_phasemonitor_block.       TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
-yield_phasemonitor_.w 
-yield_qwk_.....			TH1F	1000	-5.0e9	5.0e9				Counts	Events          TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_phasemonitor_.w 		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_.....			TH1F	1000	-5.0e9	5.0e9				Counts	Events          
 yield_qwk_....._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_....._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_....._.w_raw  	TH1F	1000	-5.0e9	5.0e9			        Counts	Events
@@ -393,11 +393,11 @@ SE......_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
 SETermDn_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
 SESpareE_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
 SEAmpCh2_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SEAmpCh1_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SESpareB_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SESpareA_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SETermUp_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SEBattDn_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SEAmpCh1_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SESpareB_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SESpareA_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SETermUp_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SEBattDn_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
 
 
 MD.Neg_block._raw		TH1F	1000	-5.0e7	5.0e7				Counts	Events

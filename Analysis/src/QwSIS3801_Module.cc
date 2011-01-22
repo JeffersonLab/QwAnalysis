@@ -10,6 +10,7 @@
 
 void QwSIS3801_Module::SetChannel(size_t channel, TString &name)
 {
+  Bool_t local_debug = false;
 //   std::cerr << "QwSIS3801_Module::SetChannel:  Trying to set channel "
 // 	    << channel << " to name "
 // 	    << name
@@ -23,7 +24,7 @@ void QwSIS3801_Module::SetChannel(size_t channel, TString &name)
 	      << ".  We can't rename it!."
 	      << std::endl;
   } else {
-    std::cout << "SIS3801: Set channel" << channel << " to " << name << std::endl;
+    if(local_debug) std::cout << "SIS3801: Set channel" << channel << " to " << name << std::endl;
     fChannels.at(channel).InitializeChannel(name);
   }
 };
@@ -33,6 +34,7 @@ Int_t QwSIS3801_Module::ProcessConfigBuffer(UInt_t* buffer, UInt_t num_words_lef
   UInt_t words_read = 0;
   UInt_t numblocks  = 0;
   UInt_t numsamples = 0;
+
   std::cout<<" ============================ \n";
   std::cout<<" In QwSIS3801_Module::ProcessConfigBuffer \n";
   std::cout<<" ============================ \n";

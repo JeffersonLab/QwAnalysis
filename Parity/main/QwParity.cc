@@ -16,9 +16,9 @@
 #include <boost/shared_ptr.hpp>
 
 // ROOT headers
-#include <Rtypes.h>
-#include <TROOT.h>
-#include <TFile.h>
+#include "Rtypes.h"
+#include "TROOT.h"
+#include "TFile.h"
 
 // Qweak headers
 #include "QwLog.h"
@@ -46,6 +46,12 @@
 
 Int_t main(Int_t argc, Char_t* argv[])
 {
+  /// without anything, print usage
+  if(argc == 1){
+    gQwOptions.Usage();
+    exit(0);
+  }
+
   ///  First, fill the search paths for the parameter files; this sets a
   ///  static variable within the QwParameterFile class which will be used by
   ///  all instances.
@@ -60,7 +66,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   gQwOptions.AddConfigFile("qweak_mysql.conf");
 
   gQwOptions.ListConfigFiles();
-
+ 
   ///  Define the command line options
   DefineOptionsParity(gQwOptions);
   /// Load command line options for the histogram/tree helper class
@@ -76,6 +82,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Create the database connection
   QwDatabase database(gQwOptions);
 
+  Bool_t print_runningsum_flag = gQwOptions.GetValue<bool>("enable-print-runningsum");
 
   ///  Start loop over all runs
   while (eventbuffer.OpenNextStream() == CODA_OK) {
@@ -128,8 +135,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
 
     // Summarize the ROOT file structure
-    rootfile->PrintTrees();
-    rootfile->PrintDirs();
+    // rootfile->PrintTrees();
+    // rootfile->PrintDirs();
 
 
     //  Clear the single-event running sum at the beginning of the runlet
@@ -241,18 +248,20 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Calculate running averages over helicity patterns
     if (helicitypattern.IsRunningSumEnabled()) {
       helicitypattern.CalculateRunningAverage();
-      helicitypattern.PrintRunningAverage();
+      if (print_runningsum_flag) helicitypattern.PrintRunningAverage();
       if (helicitypattern.IsBurstSumEnabled()) {
         helicitypattern.CalculateRunningBurstAverage();
-        helicitypattern.PrintRunningBurstAverage();
+	if (print_runningsum_flag) helicitypattern.PrintRunningBurstAverage();
       }
     }
 
     // This will calculate running averages over single helicity events
     runningsum.CalculateRunningAverage();
-    QwMessage << " Running average of events" << QwLog::endl;
-    QwMessage << " =========================" << QwLog::endl;
-    runningsum.PrintValue();
+    if (print_runningsum_flag) {
+      QwMessage << " Running average of events" << QwLog::endl;
+      QwMessage << " =========================" << QwLog::endl;
+      runningsum.PrintValue();
+    }
 
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
@@ -282,8 +291,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       helicitypattern.FillDB(&database);
       epicsevent.FillDB(&database);
     }
-
-    //epicsevent.WriteEPICSStringValues();
+    epicsevent.WriteEPICSStringValues();
 
     //  Close event buffer stream
     eventbuffer.CloseStream();

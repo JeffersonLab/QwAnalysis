@@ -1,8 +1,8 @@
 /**********************************************************\
-* File: QwLumi.C                                      *
-*                                                         *
-* Author:                                                 *
-* Time-stamp:                                             *
+ * File: QwLumi.C                                      *
+ *                                                         *
+ * Author:                                                 *
+ * Time-stamp:                                             *
 \**********************************************************/
 
 #include "QwLumi.h"
@@ -45,7 +45,9 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan, keyword;
-  Int_t modnum, channum,combinedchans;  
+  Int_t modnum = 0;
+  Int_t channum = 0;
+  Int_t combinedchans = 0;  
   std::vector<TString> combinedchannelnames;
   std::vector<Double_t> weight;
   Int_t currentrocread=0;
@@ -97,28 +99,28 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      namech.ToLower();
 	      keyword = mapstr.GetNextToken(", ").c_str();
 	      keyword.ToLower();
-        }
-      else if (modtype == "VPMT")
-        {
-          channum       = (atol(mapstr.GetNextToken(", \t").c_str()));	//channel number
-          combinedchans = (atol(mapstr.GetNextToken(", \t").c_str()));	//number of combined channels
-          dettype   = mapstr.GetNextToken(", \t").c_str();	//type-purpose of the detector
-          dettype.ToLower();
-          namech    = mapstr.GetNextToken(", \t").c_str();  //name of the detector
-          namech.ToLower();
-          //TString nameofchannel;
-          combinedchannelnames.clear();
-          for (int i=0; i<combinedchans; i++)
-            {
-              nameofcombinedchan = mapstr.GetNextToken(", \t").c_str();
-              nameofcombinedchan.ToLower();
-              combinedchannelnames.push_back(nameofcombinedchan);
-            }
-            weight.clear();
-          for (int i=0; i<combinedchans; i++)
-            {
-              weight.push_back( atof(mapstr.GetNextToken(", \t").c_str()));
-            }
+	    }
+	  else if (modtype == "VPMT")
+	    {
+	      channum       = (atol(mapstr.GetNextToken(", \t").c_str()));	//channel number
+	      combinedchans = (atol(mapstr.GetNextToken(", \t").c_str()));	//number of combined channels
+	      dettype   = mapstr.GetNextToken(", \t").c_str();	//type-purpose of the detector
+	      dettype.ToLower();
+	      namech    = mapstr.GetNextToken(", \t").c_str();  //name of the detector
+	      namech.ToLower();
+	      //TString nameofchannel;
+	      combinedchannelnames.clear();
+	      for (int i=0; i<combinedchans; i++)
+		{
+		  nameofcombinedchan = mapstr.GetNextToken(", \t").c_str();
+		  nameofcombinedchan.ToLower();
+		  combinedchannelnames.push_back(nameofcombinedchan);
+		}
+	      weight.clear();
+	      for (int i=0; i<combinedchans; i++)
+		{
+		  weight.push_back( atof(mapstr.GetNextToken(", \t").c_str()));
+		}
 	      keyword   = mapstr.GetNextToken(", \t").c_str();
 	      keyword.ToLower();
       
@@ -129,7 +131,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
       
       
       
-        }  
+	    }  
 	  if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread))
 	    {
 	      currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
@@ -155,11 +157,11 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      localLumiDetectorID.fWordInSubbank = offset;
 	    }          
 	  else if (modtype=="VPMT")
-        {
-          localLumiDetectorID.fCombinedChannelNames = combinedchannelnames;
-          localLumiDetectorID.fWeight = weight;
-          //std::cout<<"Add in a combined channel"<<std::endl;
-        }
+	    {
+	      localLumiDetectorID.fCombinedChannelNames = combinedchannelnames;
+	      localLumiDetectorID.fWeight = weight;
+	      //std::cout<<"Add in a combined channel"<<std::endl;
+	    }
 
 	  if(offset<0)
 	    {
@@ -196,13 +198,13 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 		  fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localLumiDetectorID.fIndex=fIntegrationPMT.size()-1;
 		}
-          else if (localLumiDetectorID.fTypeID==kQwCombinedPMT)
-            {
-		      QwCombinedPMT localcombinedPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
-		      fCombinedPMT.push_back(localcombinedPMT);
-              fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
-              localLumiDetectorID.fIndex=fCombinedPMT.size()-1;
-            }
+	      else if (localLumiDetectorID.fTypeID==kQwCombinedPMT)
+		{
+		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
+		  fCombinedPMT.push_back(localcombinedPMT);
+		  fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
+		  localLumiDetectorID.fIndex=fCombinedPMT.size()-1;
+		}
 
 
 
@@ -221,25 +223,25 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	    }
 
 
-	if(ldebug)
-	  {
-	    localLumiDetectorID.Print();
-	    std::cout<<"line ok=";
-	    if(lineok) std::cout<<"TRUE"<<std::endl;
-	    else
-	      std::cout<<"FALSE"<<std::endl;
-	  }
+	  if(ldebug)
+	    {
+	      localLumiDetectorID.Print();
+	      std::cout<<"line ok=";
+	      if(lineok) std::cout<<"TRUE"<<std::endl;
+	      else
+		std::cout<<"FALSE"<<std::endl;
+	    }
 
-	if(lineok)
-	  fLumiDetectorID.push_back(localLumiDetectorID);
-      }
-  }
-
-
+	  if(lineok)
+	    fLumiDetectorID.push_back(localLumiDetectorID);
+	}
+    }
 
 
 
-//std::cout<<"linking combined channels"<<std::endl;
+
+
+  //std::cout<<"linking combined channels"<<std::endl;
 
   for (size_t i=0; i<fLumiDetectorID.size(); i++)
     {
@@ -251,7 +253,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
           if (ldebug)
             {
               std::cout<<"fLumiDetectorID[i].fCombinedChannelNames.size()="
-              <<fLumiDetectorID[i].fCombinedChannelNames.size()<<std::endl<<"name list: ";
+		       <<fLumiDetectorID[i].fCombinedChannelNames.size()<<std::endl<<"name list: ";
               for (size_t n=0; n<fLumiDetectorID[i].fCombinedChannelNames.size(); n++)
                 std::cout<<"  "<<fLumiDetectorID[i].fCombinedChannelNames[n];
               std::cout<<std::endl;
@@ -282,7 +284,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 
                   fCombinedPMT[ind].Add(&fIntegrationPMT[ind_pmt],fLumiDetectorID[i].fWeight[l]);
 
-                 if (ldebug) std::cout<<"added combined pmt "<<fLumiDetectorID[i].fWeight[l] <<" to array"<<std::endl;
+		  if (ldebug) std::cout<<"added combined pmt "<<fLumiDetectorID[i].fWeight[l] <<" to array"<<std::endl;
                 }
               fCombinedPMT[ind].LinkChannel(fLumiDetectorID[i].fdetectorname);
               if (ldebug)
@@ -494,13 +496,13 @@ void QwLumi::EncodeEventData(std::vector<UInt_t> &buffer)
     subbankheader.clear();
     subbankheader.push_back(elements.size() + 1);	// subbank size
     subbankheader.push_back((fCurrentBank_ID << 16) | (0x01 << 8) | (1 & 0xff));
-		// subbank tag | subbank type | event number
+    // subbank tag | subbank type | event number
 
     // Form CODA bank/roc header
     rocheader.clear();
     rocheader.push_back(subbankheader.size() + elements.size() + 1);	// bank/roc size
     rocheader.push_back((fCurrentROC_ID << 16) | (0x10 << 8) | (1 & 0xff));
-		// bank tag == ROC | bank type | event number
+    // bank tag == ROC | bank type | event number
 
     // Add bank header, subbank header and element data to output buffer
     buffer.insert(buffer.end(), rocheader.begin(), rocheader.end());
@@ -551,7 +553,7 @@ Int_t QwLumi::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t*
 		    std::cout<<"word left to read in this buffer:"<<num_words-fLumiDetectorID[i].fWordInSubbank<<std::endl;
 		  }
 
-// This was added to check if the buffer contains more than one event.  If it does then throw those events away.  A better way to do this would be to find how many events were in the buffer then change the offset to be able to read them all.
+		// This was added to check if the buffer contains more than one event.  If it does then throw those events away.  A better way to do this would be to find how many events were in the buffer then change the offset to be able to read them all.
                 if (firsttime)
                   {
                     firsttime=kFALSE;
@@ -595,7 +597,7 @@ Bool_t QwLumi::ApplySingleEventCuts(){
 
 
   if (!status) 
-   fQwLumiErrorCount++;//falied  event counter for QwLumi
+    fQwLumiErrorCount++;//falied  event counter for QwLumi
 
   return status;
 };
@@ -642,7 +644,7 @@ void  QwLumi::ProcessEvent()
   for (size_t i = 0; i < fIntegrationPMT.size();  i++)
     fIntegrationPMT[i].ProcessEvent();
   for (size_t i = 0; i < fCombinedPMT.size(); i++)
-      fCombinedPMT[i].ProcessEvent();
+    fCombinedPMT[i].ProcessEvent();
   for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].ProcessEvent();
 };
@@ -940,15 +942,15 @@ Bool_t QwLumi::Compare(VQwSubsystem *value)
   else
     {
       QwLumi* input= dynamic_cast<QwLumi*>(value);
-	if(input->fIntegrationPMT.size()!=fIntegrationPMT.size() ||
-          input->fCombinedPMT.size()!=fCombinedPMT.size() )
-	  {
-	    res=kFALSE;
-	  }
-	if(input->fScalerPMT.size()!=fScalerPMT.size())
-	  {
-	    res=kFALSE;
-	  }
+      if(input->fIntegrationPMT.size()!=fIntegrationPMT.size() ||
+	 input->fCombinedPMT.size()!=fCombinedPMT.size() )
+	{
+	  res=kFALSE;
+	}
+      if(input->fScalerPMT.size()!=fScalerPMT.size())
+	{
+	  res=kFALSE;
+	}
     }
   return res;
 }
@@ -1034,11 +1036,11 @@ void QwLumi::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& tri
   
   tmp="QwCombinedPMT";
   trim_file.RewindToFileStart();
-   if (trim_file.FileHasModuleHeader(tmp)){
-     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
-     for (size_t i=0;i<fCombinedPMT.size();i++)
-       fCombinedPMT[i].ConstructBranch(tree, prefix, *nextmodule );
-   }
+  if (trim_file.FileHasModuleHeader(tmp)){
+    nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
+    for (size_t i=0;i<fCombinedPMT.size();i++)
+      fCombinedPMT[i].ConstructBranch(tree, prefix, *nextmodule );
+  }
 };
 
 //*****************************************************************
@@ -1116,7 +1118,7 @@ void  QwLumi::Copy(VQwSubsystem *source)
 
   try
     {
-     if(typeid(*source)==typeid(*this))
+      if(typeid(*source)==typeid(*this))
 	{
 	  VQwSubsystem::Copy(source);
 	  QwLumi* input= dynamic_cast<QwLumi*>(source);
@@ -1125,9 +1127,9 @@ void  QwLumi::Copy(VQwSubsystem *source)
 	  for(size_t i=0;i<this->fIntegrationPMT.size();i++)
 	    this->fIntegrationPMT[i].Copy(&(input->fIntegrationPMT[i]));
       
-      this->fCombinedPMT.resize(input->fCombinedPMT.size());
-      for (size_t i=0;i<this->fCombinedPMT.size();i++)
-        this->fCombinedPMT[i].Copy(&(input->fCombinedPMT[i]));
+	  this->fCombinedPMT.resize(input->fCombinedPMT.size());
+	  for (size_t i=0;i<this->fCombinedPMT.size();i++)
+	    this->fCombinedPMT[i].Copy(&(input->fCombinedPMT[i]));
         
 	  this->fScalerPMT.resize(input->fScalerPMT.size());
 	  for(size_t i=0;i<this->fScalerPMT.size();i++)

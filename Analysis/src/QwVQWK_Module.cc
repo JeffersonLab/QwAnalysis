@@ -8,6 +8,7 @@ void QwVQWK_Module::SetChannel(size_t channel, TString &name)
 // 	    << name
 // 	    << "; current name==\"" << fChannels.at(channel).GetElementName()
 // 	    << "\"" <<std::endl;
+  Bool_t local_debug = false;
   if (channel >= fChannels.size()){
     std::cerr << "QwVQWK_Module::SetChannel:  Channel number out of range: channel==" << channel << std::endl;
   } else if (fChannels.at(channel).GetElementName()!="") {
@@ -16,7 +17,7 @@ void QwVQWK_Module::SetChannel(size_t channel, TString &name)
 	      << ".  We can't rename it!."
 	      << std::endl;
   } else {
-    std::cout << "VQWK: Set channel" << channel << " to " << name << std::endl;
+    if(local_debug) std::cout << "VQWK: Set channel" << channel << " to " << name << std::endl;
     fChannels.at(channel).InitializeChannel(name,"raw");
   }
 };
