@@ -50,8 +50,6 @@ sample_size=464
    VQWK, 3, 1,  bpmstripline,  QWK_BPM3H09BXM
    VQWK, 3, 2,  bpmstripline,  QWK_BPM3H09BYP
    VQWK, 3, 3,  bpmstripline,  QWK_BPM3H09BYM
-!   VQWK, 3, 4,  bcm,  QWK_BCM6              
-!   VQWK, 3, 5,  bcm,  QWK_BCM5            
    VQWK, 3, 6,  bcm,  QWK_BCM2              
    VQWK, 3, 7,  bcm,  QWK_BCM1    
 
@@ -148,6 +146,10 @@ sample_size==480
 !ADC0
    VQWK, 0, 0,  bcm,  QWK_LINEPHASE
    VQWK, 0, 1,  bcm,  QWK_INVERT_TStable
+   VQWK, 0, 2,  bcm,  QWK_RASTER_X
+   VQWK, 0, 3,  bcm,  QWK_RASTER_Y
+   VQWK, 0, 5,  bcm,  QWK_RASTER_XYSUM
+	
 !These are cavity BPM1 signals (IPM3H04)
    VQWK, 1, 0,  bcm,  QWK_BCM5_Ix
    VQWK, 1, 1,  bcm,  QWK_BCM5_Iy
@@ -156,8 +158,11 @@ sample_size==480
    VQWK, 1, 3,  bcm,  QWK_BCM6_Ix
    VQWK, 1, 4,  bcm,  QWK_BCM6_Iy
    VQWK, 1, 5,  bcm,  QWK_BCM6_Phase
+   VQWK, 1, 6,  bcm,  QWK_BCM6 
+   VQWK, 1, 7,  bcm,  QWK_BCM5
+
 !Analog signal for BCM17, when used.
-   VQWK, 1, 7,  bcm,  QWK_BCM17
+!   VQWK, 1, 7,  bcm,  QWK_BCM17
 
 !
 !
