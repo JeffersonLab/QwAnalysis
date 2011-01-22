@@ -1350,6 +1350,12 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
 	fDeviceErrorCode|=kErrorFlag_EventCut_L;
       status=kFALSE;
     }
+    //QwError << GetRawHardwareSum()<< QwLog::endl;
+    if (GetRawHardwareSum()>547384979) // 547384979 = 9V 
+    {
+    QwWarning << "Event cut for saturating PMT invoked!" << QwLog::endl;
+    fDeviceErrorCode|=kErrorFlag_EventCut_Sat;
+    }
     UpdateErrorCounters(fDeviceErrorCode);//update the event cut/HW  error count
     if (bEVENTCUTMODE==3){
       status=kTRUE; //Update the event cut fail flag but pass the event.

@@ -84,6 +84,7 @@ static const UInt_t kErrorFlag_EventCut_U = 0x80; // in Decimal 128 check to see
 
 static const UInt_t kBCMErrorFlag = 0x100; // in Decimal 256 to identify the single event cut is failed for a BCM (regular or combo)
 static const UInt_t kBPMErrorFlag = 0x400; // in Decimal 1024 to identify the single event cut is failed for a BPM (Stripline or cavity or comboBPM)
+static const UInt_t kErrorFlag_EventCut_Sat = 0x600; // in Decimal 1536 to identify a PMT is saturating (Combined or single)
 static const UInt_t kPMTErrorFlag = 0x800; // in Decimal 2048 to identify the single event cut is failed for a PMT (Combined or regular)
 
 static const UInt_t kEventCutMode3 = 0x10000;  // in Decimal 65536 to identify the mode 3 where we only flag event cut failed events 
