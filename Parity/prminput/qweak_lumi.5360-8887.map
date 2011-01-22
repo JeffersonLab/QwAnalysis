@@ -44,22 +44,41 @@ ROC=0
 Bank=0x6103
 ! module.type, scaler.num  word.num, scaler.type, det.name
 ! pre august 26, 2010
-SCALER,2,1,scalerpmt,sca_uslumi7pos
-SCALER,2,2,scalerpmt,sca_uslumi7neg
-SCALER,2,3,scalerpmt,sca_uslumi5pos
-SCALER,2,4,scalerpmt,sca_uslumi5neg
-SCALER,2,5,scalerpmt,sca_uslumi3pos
-SCALER,2,6,scalerpmt,sca_uslumi3neg
-SCALER,2,7,scalerpmt,sca_uslumi1pos
+!SCALER,2,1,scalerpmt,sca_uslumi7pos
+!SCALER,2,2,scalerpmt,sca_uslumi7neg
+!SCALER,2,3,scalerpmt,sca_uslumi5pos
+!SCALER,2,4,scalerpmt,sca_uslumi5neg
+!SCALER,2,5,scalerpmt,sca_uslumi3pos
+!SCALER,2,6,scalerpmt,sca_uslumi3neg
+!SCALER,2,7,scalerpmt,sca_uslumi1pos
+!SCALER,2,8,scalerpmt,sca_uslumi1neg
+!SCALER,2,9,scalerpmt,sca_dslumi8
+!SCALER,2,10,scalerpmt,sca_dslumi7
+!SCALER,2,11,scalerpmt,sca_dslumi6
+!SCALER,2,12,scalerpmt,sca_dslumi5
+!SCALER,2,13,scalerpmt,sca_dslumi4
+!SCALER,2,14,scalerpmt,sca_dslumi3
+!SCALER,2,15,scalerpmt,sca_dslumi2
+!SCALER,2,16,scalerpmt,sca_dslumi1
+
+!post august 26,2010 sca_ below!
+SCALER,2,0,scalerpmt,sca_dslumi1
+SCALER,2,1,scalerpmt,sca_dslumi2
+SCALER,2,2,scalerpmt,sca_dslumi3
+SCALER,2,3,scalerpmt,sca_dslumi4
+SCALER,2,4,scalerpmt,sca_dslumi5
+SCALER,2,5,scalerpmt,sca_dslumi6
+SCALER,2,6,scalerpmt,sca_dslumi7
+SCALER,2,7,scalerpmt,sca_dslumi8
 SCALER,2,8,scalerpmt,sca_uslumi1neg
-SCALER,2,9,scalerpmt,sca_dslumi8
-SCALER,2,10,scalerpmt,sca_dslumi7
-SCALER,2,11,scalerpmt,sca_dslumi6
-SCALER,2,12,scalerpmt,sca_dslumi5
-SCALER,2,13,scalerpmt,sca_dslumi4
-SCALER,2,14,scalerpmt,sca_dslumi3
-SCALER,2,15,scalerpmt,sca_dslumi2
-SCALER,2,16,scalerpmt,sca_dslumi1
+SCALER,2,9,scalerpmt,sca_uslumi1pos
+SCALER,2,10,scalerpmt,sca_uslumi3neg
+SCALER,2,11,scalerpmt,sca_uslumi3pos
+SCALER,2,12,scalerpmt,sca_uslumi5neg
+SCALER,2,13,scalerpmt,sca_uslumi5pos
+SCALER,2,14,scalerpmt,sca_uslumi7neg
+SCALER,2,15,scalerpmt,sca_uslumi7pos
+
 
 !Bank=0x6103
 ! module.type, scaler.num  word.num, scaler.type, det.name
