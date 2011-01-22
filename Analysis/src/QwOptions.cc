@@ -17,11 +17,6 @@
 
 #include "QwOptions.h"
 
-#include "QwRootFile.h"
-#include "QwEPICSEvent.h"
-#include "QwParameterFile.h"
-#include "QwHistogramHelper.h"
-
 // System headers
 #include <iostream>
 #include <fstream>
@@ -42,6 +37,7 @@ QwOptions gQwOptions;
 // Qweak objects with default options
 #include "QwSubsystemArray.h"
 #include "QwEventBuffer.h"
+#include "QwEPICSEvent.h"
 #include "QwDatabase.h"
 #include "QwRootFile.h"
 #include "QwHistogramHelper.h"

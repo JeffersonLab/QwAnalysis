@@ -48,14 +48,17 @@ class QwDBInterface {
   TString fDeviceName;
 
  private:
-  template <class T> inline T TypedDBClone();
+  template <class T>
+  inline T TypedDBClone();
 
 
  public:
 
-  QwDBInterface():fAnalysisId(0),fDeviceId(0),fSubblock(0),fN(0),fValue(0.0),fError(0.0)
-    {std::strcpy(fMeasurementTypeId, "");fDeviceName ="";} ;
-    ~QwDBInterface(){};
+    QwDBInterface()
+    : fAnalysisId(0),fDeviceId(0),fSubblock(0),fN(0),fValue(0.0),fError(0.0) {
+      std::strcpy(fMeasurementTypeId, "");fDeviceName ="";
+    }
+    ~QwDBInterface() { }
 
     void SetAnalysisID(UInt_t id) {fAnalysisId = id;};
     void SetDetectorName(TString &in) {fDeviceName = in;};
@@ -82,7 +85,8 @@ class QwDBInterface {
       fDeviceName = "";
     };
 
-    template <class T> void AddThisEntryToList(std::vector<T> &list);
+    template <class T> inline
+    void AddThisEntryToList(std::vector<T> &list);
 
 
     void PrintStatus(Bool_t print_flag) {
@@ -100,8 +104,7 @@ class QwDBInterface {
                   << "]"
                   << QwLog::endl;
       }
-      return;
-    };
+    }
 };
 
 //
@@ -110,7 +113,7 @@ class QwDBInterface {
 //
 
 template <class T>
-void QwDBInterface::AddThisEntryToList(std::vector<T> &list)
+inline void QwDBInterface::AddThisEntryToList(std::vector<T> &list)
 {
   Bool_t okay = kTRUE;
   if (fAnalysisId == 0) {
@@ -138,7 +141,8 @@ void QwDBInterface::AddThisEntryToList(std::vector<T> &list)
   };
 };
 
-template <class T> inline T QwDBInterface::TypedDBClone()
+template <class T>
+inline T QwDBInterface::TypedDBClone()
 {
   T row(0);
   return row;

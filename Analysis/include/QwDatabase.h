@@ -10,8 +10,6 @@
 #define QWDATABASE_HH
 
 // System headers
-//#include <iostream>
-//#include <iomanip>
 #include <map>
 #include <vector>
 #include <string>
@@ -227,8 +225,8 @@ QwDBInterface::TypedDBClone<QwParityDB::beam>() {
   return row;
 };
 
-template void QwDBInterface::AddThisEntryToList<QwParityDB::md_data>(std::vector<QwParityDB::md_data> &list);
-template void QwDBInterface::AddThisEntryToList<QwParityDB::lumi_data>(std::vector<QwParityDB::lumi_data> &list);
-template void QwDBInterface::AddThisEntryToList<QwParityDB::beam>(std::vector<QwParityDB::beam> &list);
+template inline void QwDBInterface::AddThisEntryToList<QwParityDB::md_data>(std::vector<QwParityDB::md_data> &list);
+template inline void QwDBInterface::AddThisEntryToList<QwParityDB::lumi_data>(std::vector<QwParityDB::lumi_data> &list);
+template inline void QwDBInterface::AddThisEntryToList<QwParityDB::beam>(std::vector<QwParityDB::beam> &list);
 
 #endif
