@@ -21,6 +21,7 @@
 
 // Qweak headers
 #include "QwUnits.h"
+#include "QwInterpolator.h"
 
 // Forward declarations
 template <class value_t, unsigned int value_n> class QwInterpolator;
@@ -86,6 +87,17 @@ class QwMagneticField {
     /// Get the field translation along z
     double GetTranslation() const
       { return fTranslation; };
+
+    /// Set the interpolation method
+    void SetInterpolationMethod(const EQwInterpolationMethod method) {
+      if (fField) fField->SetInterpolationMethod(method);
+      else QwWarning << "Trying to set interpolation method on null object." << QwLog::endl;
+    }
+    /// Get the interpolation method
+    EQwInterpolationMethod GetInterpolationMethod() {
+      if (fField) return fField->GetInterpolationMethod();
+      else return kInterpolationMethodUnknown;
+    }
 
     /// Get the cartesian components of the field value
     void GetCartesianFieldValue(const double point_xyz[3], double field_xyz[3]) const {

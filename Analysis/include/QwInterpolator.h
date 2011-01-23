@@ -13,6 +13,7 @@
 
 /// Allowed interpolation methods
 enum EQwInterpolationMethod {
+  kInterpolationMethodUnknown,
   kMultiLinear,
   kNearestNeighbor
 };

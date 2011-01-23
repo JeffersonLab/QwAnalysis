@@ -151,7 +151,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
 
   // Declare variables
   double r, z, phi;
-  field_t bx, by, bz, br, bphi, bx_new, by_new;
+  field_t bx, by, bz, bx_new, by_new;
 
   // Check for stream
   if (!input.good()) {
@@ -192,8 +192,8 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
 
     #if N_FIELD_COMPONENTS == 5
       // Calculate the radial and azimuthal field components
-      br =    bx * cos(phi) + by * sin(phi);
-      bphi = -bx * sin(phi) + by * cos(phi);
+      double br =    bx * cos(phi) + by * sin(phi);
+      double bphi = -bx * sin(phi) + by * cos(phi);
 
       // Construct the field vector
       field[3] = br * fFieldScalingFactor;
