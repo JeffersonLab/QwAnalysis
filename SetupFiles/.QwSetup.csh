@@ -63,7 +63,7 @@ endif
 ###  Set up the analyzer and scratch environments.
 source ${QWANALYSIS}/SetupFiles/.Qwcshrc
 
-#${QWANALYSIS}/SetupFiles/make_scratch_dir
+${QWANALYSIS}/SetupFiles/make_scratch_dir
 
 source ${QWANALYSIS}/SetupFiles/.Qwcshrc_scratch
 
