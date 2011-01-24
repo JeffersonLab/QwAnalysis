@@ -818,6 +818,8 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
       this->fHardwareBlockSum = value.fHardwareBlockSum;
       this->fHardwareBlockSumM2 = value.fHardwareBlockSumM2;
       this->fHardwareBlockSumError = value.fHardwareBlockSumError;
+      this->fHardwareBlockSumWidth = value.fHardwareBlockSumWidth;
+      this->fGoodEventCount=value.fGoodEventCount;
       this->fNumberOfSamples = value.fNumberOfSamples;
       this->fSequenceNumber  = value.fSequenceNumber;
       this->fErrorFlag       = (value.fErrorFlag);
@@ -1398,6 +1400,7 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
 	 this->fNumberOfSamples       = input->fNumberOfSamples;
 	 this->fHardwareBlockSum      = input->fHardwareBlockSum;
 	 this->fHardwareBlockSumError = input->fHardwareBlockSumError;
+	 this->fGoodEventCount=input->fGoodEventCount;
 
 	 for(Int_t i=0; i<4; i++ ) {
 	   this->fBlock[i] = input->fBlock[i];
