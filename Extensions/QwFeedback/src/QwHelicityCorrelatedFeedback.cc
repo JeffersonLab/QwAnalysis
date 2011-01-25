@@ -367,6 +367,7 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
   }
   fChargeAsymmetryError=fChargeAsymmetryError*1e+6;//converts to ppm
   fChargeAsymmetry=fChargeAsymmetry*1e+6;//converts to ppm
+  fChargeAsymmetryWidth=fChargeAsymmetryWidth*1e+6;//converts to ppm
   if (fChargeAsymmetryError>fChargeAsymPrecision){
     QwError<<"Charge Asymmetry precision not reached current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
     status=kFALSE;

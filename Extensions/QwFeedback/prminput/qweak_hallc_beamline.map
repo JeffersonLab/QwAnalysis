@@ -7,25 +7,19 @@
 ROC=1
 Bank=0x102
 !same sample size for ADCs in a given bank
-!  The 1ms integration window (943 Hz) uses 480 samples, but the 960 Hz
-!  (972 us integration window) should use 464 samples.
-sample_size==464
+!sample_size=480
+!for 960Hz
+sample_size=464  
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
 
 
-!ADC11
-!   VQWK, 11, 4,  bcm,  QWK_BCM6              
-!   VQWK, 11, 5,  bcm,  QWK_BCM5            
-!   VQWK, 11, 6,  bcm,  QWK_BCM2              
-   VQWK, 11, 7,  bcm,  QWK_BCM1              
+!ADC3, Slot 7, Address 37, 0x7F
+   VQWK, 3, 6,  bcm,  QWK_BCM2              
+   VQWK, 3, 7,  bcm,  QWK_BCM1    
 
 
-!**************************************************************************
-! COMBINATIONS OF BEAM LINE DEVICES USED FOR BEAM ON TARGET 
-!**************************************************************************
-!
 ! Enter the device names in order they appear in the beamline.
 !
 begin=combinedbcm
@@ -34,6 +28,8 @@ name=qwk_charge
  qwk_bcm1,  bcm, 1.0
 end=combinedbcm
 
+
+!END
 
 !set of published variables
 !publish name,device_type, device name, property (x-pos,xp-angle,y-pos,yp-angle,c-charge,e-energy change, ef - effective charge)
@@ -59,3 +55,5 @@ end=combinedbcm
 
 [PUBLISH]
  q_targ, combobcm, qwk_charge, c
+
+

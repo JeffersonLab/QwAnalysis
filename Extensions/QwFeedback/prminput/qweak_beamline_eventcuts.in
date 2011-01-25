@@ -25,11 +25,12 @@ EVENTCUTS = 2
 !for bcm devices
 !device_type, device_name,  lower limit [uA], upper limit [uA]
 ! ****** The bcm lower cut value should be 70% of the asked current
-
+! for 150 uA, lower limit 100 uA
+!bcm, qwk_bcm1,			110,		1000000,  	g,  	0 
 ! for 140 uA, lower limit 100 uA
-! bcm, qwk_bcm1,			100,		1000000,  	g,  	0 
+bcm, qwk_bcm1,			100,		1000000,  	g,  	0 
 ! for 100 uA, lower limit 100 uA
-bcm, qwk_bcm1,			30,		1000000,  	g,  	0 
+bcm, qwk_bcm1,			80,		1000000,  	g,  	0 
 !bcm, qwk_bcm1,		20,		1000000,  	g,  	0 
 ! for 130 uA, lower limit 91 uA
 ! bcm, qwk_bcm1,			91,		1000000,  	g,  	0  
