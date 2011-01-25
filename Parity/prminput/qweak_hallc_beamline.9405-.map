@@ -125,15 +125,15 @@ sample_size=464
    VQWK, 10, 6,  bpmstripline,  QWK_BPM3C20YP
    VQWK, 10, 7,  bpmstripline,  QWK_BPM3C20YM
 
-!!ADC11, Slot 15, Address 5, 0x87
-!   VQWK, 11, 0,  bpmstripline,  QWK_BPM3C21XP
-!   VQWK, 11, 1,  bpmstripline,  QWK_BPM3C21XM
-!   VQWK, 11, 2,  bpmstripline,  QWK_BPM3C21YP
-!   VQWK, 11, 3,  bpmstripline,  QWK_BPM3C21YM
-!   VQWK, 11, 4,  bpmstripline,  QWK_BPM3H02XP
-!   VQWK, 11, 5,  bpmstripline,  QWK_BPM3H02XM
-!   VQWK, 11, 6,  bpmstripline,  QWK_BPM3H02YP
-!   VQWK, 11, 7,  bpmstripline,  QWK_BPM3H02YM
+!ADC11, Slot 15, Address 5, 0x87
+   VQWK, 11, 0,  bpmstripline,  QWK_BPM3C21XP
+   VQWK, 11, 1,  bpmstripline,  QWK_BPM3C21XM
+   VQWK, 11, 2,  bpmstripline,  QWK_BPM3C21YP
+   VQWK, 11, 3,  bpmstripline,  QWK_BPM3C21YM
+   VQWK, 11, 4,  bpmstripline,  QWK_BPM3H02XP
+   VQWK, 11, 5,  bpmstripline,  QWK_BPM3H02XM
+   VQWK, 11, 6,  bpmstripline,  QWK_BPM3H02YP
+   VQWK, 11, 7,  bpmstripline,  QWK_BPM3H02YM
           
 
 !**************************************************************************
