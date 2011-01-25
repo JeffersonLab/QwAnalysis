@@ -274,8 +274,24 @@ void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
 
   if (fPITASlope!=0) {
     Double_t correction = fChargeAsymmetry/fPITASlope;
+    //damp the correction when charge asymmetry is close to zero
+
+    if (TMath::Abs(fChargeAsymmetry)<0.01)//ppm
+      correction*=0.01;
+    else if (TMath::Abs(fChargeAsymmetry)<0.1)//ppm
+      correction*=0.1;
+    else if (TMath::Abs(fChargeAsymmetry)<1)//ppm
+      correction*=0.25;
+    else if (TMath::Abs(fChargeAsymmetry)<2)//ppm
+      correction*=0.5;
+    else if (TMath::Abs(fChargeAsymmetry)<5)//ppm
+      correction*=0.75;
+
+
     fPITASetpointPOS=fPrevPITASetpointPOS + correction;
     fPITASetpointNEG=fPrevPITASetpointNEG - correction;
+
+
   } else {
     fPITASetpointPOS=fPrevPITASetpointPOS;
     fPITASetpointNEG=fPrevPITASetpointNEG;
