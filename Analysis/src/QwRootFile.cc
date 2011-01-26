@@ -53,7 +53,16 @@ QwRootFile::QwRootFile(const TString& run_label)
 
   } else {
 
-    TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
+    //TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
+    TString hostname = gSystem -> HostName();
+    TString rootfilename;
+    if( hostname.Contains("cdaql") ) {
+      rootfilename = "/local/qweak/rootfiles";
+    }
+    else {
+      rootfilename = getenv_safe_TString("QW_ROOTFILES");
+    }
+
     rootfilename += Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
     fRootFile = new TFile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (! fRootFile) {
