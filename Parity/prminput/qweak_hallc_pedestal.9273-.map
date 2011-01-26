@@ -25,8 +25,11 @@
 !         
 !   Thursday, January 20 13:12:51 EST 2011, jhlee
 !
-!  For BCM1/2        https://hallcweb.jlab.org/hclog/1101_archive/110125222318.html
-!   Wednesday, January 26 09:00:19 EST 2011, jhlee
+!  For BCM1/2/5/6   https://hallcweb.jlab.org/hclog/1101_archive/110125222318.html
+!  		    Wednesday, January 26 09:00:19 EST 2011, jhlee
+!                   Ramesh confirmed the results is the better than run 8966,
+!                   thus, I simply use run 9723 
+!                   Wednesday, January 26 18:33:21 EST 2011, jhlee
 !  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
@@ -125,9 +128,9 @@
   qwk_bpm3h09bYM   , 2208.63  , 1.0
   qwk_bcm1,          +198.639970,            +0.004152
   qwk_bcm2,          -216.485074,            +0.004421
-!  qwk_bcm5,         +7080.590243,            +0.002827
-!  qwk_bcm6,         +6980.234367,            +0.002840
-  qwk_bcm5         ,7417, 0.0027041
-  qwk_bcm6         ,7372, 0.0027353
+  qwk_bcm5,         +7080.590243,            +0.002827
+  qwk_bcm6,         +6980.234367,            +0.002840
+!  qwk_bcm5         ,7417, 0.0027041
+!  qwk_bcm6         ,7372, 0.0027353
   qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
