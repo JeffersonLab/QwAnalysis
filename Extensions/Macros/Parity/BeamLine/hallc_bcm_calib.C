@@ -106,10 +106,19 @@
 //                  - prepared to replace all draw commands to extract data points
 //                  - adjusted the position of TPaveStat on bcm fitting pad.
 //  
+//          0.0.17 : Tuesday, January 25 22:36:42 EST 2011, jhlee
+//                  - added units on axis
+//                  - added one more peak search routine, that is useful for 
+//                    the ramping current does not exist. 
 //           
+//
 // TODO List
 // 1) replaced all Draw command with real data points
-// 2) 
+// 2) copied the Dave Mack's amazing method into here, and other possible methods
+// 3) compare all different methods with each other to select the best one.
+//
+
+
 //  
 // Additional BCM calibration run info
 //
@@ -163,7 +172,12 @@
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101221061819.html
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101221062342.html
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101221062621.html  
-
+//
+//
+//
+// 9273              BCM gain setting 2
+//                   https://hallcweb.jlab.org/hclog/1101_archive/110120230848.html
+//                   https://hallcweb.jlab.org/hclog/1101_archive/110125222318.html
 
 
 #define ITMAX 100
@@ -242,6 +256,8 @@ public:
   Double_t GetPedErr() {return offset[1];};
   Double_t GetSlope() {return slope[0];};
   Double_t GetSlopErr() {return slope[1];};
+  Double_t GetGain() {return gain[0];};
+  Double_t GetGainErr() {return gain[1];};
   // Double_t GetMean() {return mean[0];};
   // Double_t GetMeanErr() {return mean[1];};
   // Double_t GetRMS() {return rms[0];};
@@ -541,6 +557,7 @@ gaussian(Double_t *x, Double_t *par)
   return norm*res;
 
 };
+
 
 
 Double_t
@@ -860,6 +877,7 @@ main(int argc, char **argv)
       
 	} 
 
+    
       //  time_t theTime;
       // time(&theTime);
       //hallc_bcms_pedestal_output <<"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n" 
@@ -872,6 +890,25 @@ main(int argc, char **argv)
       hallc_bcms_pedestal_output << hallc_bcms_pedestal_stream.str();
       std::cout << "\n" << hallc_bcms_pedestal_stream.str() <<std::endl;
       hallc_bcms_pedestal_output.close();
+
+
+      Double_t ped     = 0.0;
+      //   Double_t pederr  = 0.0;
+      Double_t gain    = 0.0;
+      //      Double_t gainerr = 0.0;
+
+      printf("\n======= copy/& paste  for qweak_hallc_pedestal.xxx-.map  file =========\n\n");
+      for (i=0; i < hallc_bcms_list.size(); i++) 
+	{
+	  ped     = hallc_bcms_list.at(i).GetPed();
+	  //	  pederr  = hallc_bcms_list.at(i).GetPedErr();
+	  gain    = hallc_bcms_list.at(i).GetGain();
+	  //	  gainerr = hallc_bcms_list.at(i).GetGainErr();
+
+	  printf("%10s, %+20.6lf, %+20.6lf\n", hallc_bcms_list.at(i).GetName().Data(), ped, gain);
+	}
+      printf("\n\n===================================================================\n");
+      
     }
   }
   
@@ -893,7 +930,7 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
 
   static Double_t qwk_sca_unser = 0.0;
   static Double_t qwk_sca_4mhz  = 0.0;
-  Double_t clock_corrected_unser = 0.0;
+  Double_t clock_corrected_unser_Hz = 0.0;
 
   TBranch *b_unser = mps_tree_in_chain->GetBranch(unser_name.Data());
   TBranch *b_4mhz  = mps_tree_in_chain->GetBranch(clock_name.Data());
@@ -908,22 +945,25 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
 			    nbins, 0, nbins);
 
   unser_TM -> SetStats(0);
-  unser_TM -> GetXaxis() -> SetTitle("measurement time (event number ?)");
-  unser_TM -> GetYaxis() -> SetTitle("uncorrected unser");
+  unser_TM -> GetXaxis() -> SetTitle("event number");
+  unser_TM -> GetYaxis() -> SetTitle("Unser (Hz)");
+  
+  Double_t four_mega_hertz = 4e+6;
+
   for (i=0; i<nentries; i++) 
     {
       b_unser -> GetEntry(i);
       b_4mhz  -> GetEntry(i);
-      clock_corrected_unser = qwk_sca_unser*4e6/qwk_sca_4mhz;
+      clock_corrected_unser_Hz = qwk_sca_unser*four_mega_hertz/qwk_sca_4mhz; // Hz
       if(local_debug) {
 	std::cout << "i " << i
 		  << " unser " << qwk_sca_unser
 		  << " 4mhz  " << qwk_sca_4mhz
-		  << " cc unser "  << clock_corrected_unser
+		  << " cc unser Hz "  << clock_corrected_unser_Hz
 		  << std::endl;
       }
 
-      unser_TM -> SetBinContent(i, clock_corrected_unser);
+      unser_TM -> SetBinContent(i, clock_corrected_unser_Hz);
     }
 
   Double_t unser_max = 0.0;
@@ -940,6 +980,8 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
   TH1D *unser_hist = new TH1D("UnserHist", Form("Run %s : Unser Histogram", run_number), nbins_rd_unser, rd_unser_min, rd_unser_max);
   unser_hist -> SetMarkerStyle(21);
   unser_hist -> SetMarkerSize(0.8);
+  unser_hist -> GetYaxis() -> SetTitle("Counts");
+  unser_hist -> GetXaxis() -> SetTitle("Unser (Hz)");
   for (i=0; i<nbins; i++) 
     {
       unser_hist->Fill(unser_TM -> GetBinContent(i));
@@ -967,7 +1009,18 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
 
   TSpectrum *s = new TSpectrum(npeaks);
   nfound = s->Search(unser_hist, 2, "noMarkov goff", 0.05);
- 
+  
+  if(nfound == 0) {
+    // Sometime, we have no backgroud which means no beam ramping stage...
+    // TSpectrum returns the following error
+    // Error in <TSpectrum::SearchHighRes>: Too large clipping window
+    // In that case, try with no background to find the peak...
+    // 2011.01.20, run 9273
+
+    nfound = s->Search(unser_hist, 2, "noMarkov goff nobackground", 0.05);
+  }
+
+
   Float_t *xpeaks = s->GetPositionX();
   printf("Found %d candidate peaks to fit\n",nfound);
 
@@ -1033,6 +1086,7 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
     Int_t number_of_points = 1000;
 
     TF1 *unser_fit = new TF1("fitFcn", fitFunction, unser_min, unser_max, 6);// 6 is the number of parameter in fitFunction
+    
     unser_fit -> SetNpx(number_of_points);
     // unser_fit -> SetParameter(0,1);
     // unser_fit -> SetParameter(1,1);
@@ -1075,7 +1129,7 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
       mean[1]   = unser_fit -> GetParError(4);
       sigma[0]  = unser_fit -> GetParameter("Sigma");
       sigma[1]  = unser_fit -> GetParError(5);
-      printf("Gaussian N: %12.2lf +- %8.2lf, Mean: %12.2lf +-%8.2lf, Sigma: %12.2lf +-%8.2lf\n", 
+      printf("Gaussian N: %12.2lf +- %8.2lf, Mean: %12.2lf +-%8.2lf [Hz], Sigma: %12.2lf +-%8.2lf\n", 
 	     height[0], height[1], mean[0], mean[1], sigma[0], sigma[1]);
     
       //
@@ -1132,7 +1186,7 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
 
       TString unser_name = "unser_current";
     
-      Double_t unser_scaler_unit = 2.5e-3;
+      Double_t unser_scaler_unit = 2.5e-3; // unser gain from Dave Mack [Hz/microA]
       Double_t unser_max_current = (unser_max-mean[0])*unser_scaler_unit;
 
       if(unser_fit_range[1] == -10.0) {
@@ -1140,7 +1194,7 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
       }
 
       printf("Unser maximum current %8.4lf\n", unser_max_current);
-      printf("Unser Fit range [ %8.4lf, %8.4lf ]\n", unser_fit_range[0], unser_fit_range[1]); 
+      printf("Unser Fit range ( %8.4lf, %8.4lf ) [microA] \n", unser_fit_range[0], unser_fit_range[1]); 
       
       
       // return important values to a unser class
@@ -1196,13 +1250,13 @@ bcm_calibrate_draw(BeamMonitor &device, BeamMonitor &reference, const char* run_
   std::cout << reference << std::endl;
 
   TString plotcommand;
-  TString plot_residual_command;
+  TString plot_residuals_command;
 
   TString device_name;
   TString device_samples;
   
   TString reference_name;
-  TString residual_name;
+  TString residuals_name;
 
   Bool_t  sca_flag = false;
   Double_t fit_range[2] = {0.0};
@@ -1281,8 +1335,8 @@ bcm_calibrate_draw(BeamMonitor &device, BeamMonitor &reference, const char* run_
   x_axis_binrange[1] = device_hist->GetMaximumBin()+2; // 2 bins more
 
   device_hist -> SetName(device.GetName().Data());
-  device_hist -> GetXaxis() -> SetTitle(reference_name.Data());
-  //  device_hist -> GetYaxis() -> SetTitle(device_name.Data());
+  //device_hist -> GetXaxis() -> SetTitle(reference_name.Data());
+  device_hist -> GetYaxis() -> SetTitle("counts per sample_number");
   device_hist -> SetTitle(Form("Run %s : %s vs %s", 
 			       run_number, 
 			       device_name.Data(), 
@@ -1334,13 +1388,13 @@ bcm_calibrate_draw(BeamMonitor &device, BeamMonitor &reference, const char* run_
 		       , device.GetPed()
 		       );
 
-    plot_residual_command = device_name + ":" +  reference_name;
+    plot_residuals_command = device_name + ":" +  reference_name;
 
-    device_res = GetHisto(mps_tree_in_chain, plot_residual_command, device_cut, plot_option);
+    device_res = GetHisto(mps_tree_in_chain, plot_residuals_command, device_cut, plot_option);
 
     if (not device_res) {
-      std::cout << " Please check residual plot : "
-		<< plot_residual_command
+      std::cout << " Please check residuals plot : "
+		<< plot_residuals_command
 		<<std::endl;
 
       return false;	
@@ -1348,9 +1402,9 @@ bcm_calibrate_draw(BeamMonitor &device, BeamMonitor &reference, const char* run_
 
     device_res -> GetXaxis()->SetTitle("current (#muA)");
     device_res -> GetXaxis()->SetRange(x_axis_binrange[0], x_axis_binrange[1]);
-    device_res -> GetYaxis()->SetTitle("fit residual");
-    device_res -> GetYaxis()->SetTitleOffset(2.2);
-    device_res -> SetTitle(device_name+" fit residual");
+    device_res -> GetYaxis()->SetTitle("Residuals (Hz)");
+    //  device_res -> GetYaxis()->SetTitleOffset(2.2);
+    device_res -> SetTitle(device_name+" fit residuals");
     device_res -> SetMarkerStyle(21);
     device_res -> SetMarkerSize(0.8);
     device_res -> Draw("same p");
@@ -1415,13 +1469,13 @@ bcm_calibrate_nodraw(BeamMonitor &device, BeamMonitor &reference, const char* ru
   }
 
   // TString plotcommand;
-  // TString plot_residual_command;
+  // TString plot_residuals_command;
 
   // TString device_name;
   // TString device_samples;
   
   // TString reference_name;
-  // TString residual_name;
+  // TString residuals_name;
 
   // Bool_t  sca_flag = false;
   // Double_t fit_range[2] = {0.0};
@@ -1622,7 +1676,7 @@ print_usage (FILE* stream, int exit_code)
   fprintf (stream, "Usage: %s -r {run number} -e {a:b} \n", program_name);
   fprintf (stream, 
 	   " -r run number.\n"
-	   " -e current fit range (default [10, the maximum unser current] uA ) \n"
+	   " -e current fit range (default [10, the maximum unser current] microA ) \n"
 	   );
   fprintf (stream, "\n");
   exit (exit_code);
