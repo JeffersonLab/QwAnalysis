@@ -13,6 +13,7 @@
 #include "GreenMonster.h"
 #include "QwVQWK_Channel.h"
 #include "QwParameterFile.h"
+#include <time.h>
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -65,18 +66,23 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPreviousIAAsymmetry.InitializeChannel("q_targ","derived");//this is the charge asymmetry of the IA at the previous feedback loop
     fCurrentIAAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry of the IA
 
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+
     //    out_file_IA = fopen("Feedback_IA_log.txt", "wt");
-    out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "wt");
+    out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
     //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
+    fprintf(out_file_IA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_IA,"Pat num. \t  A_q[mode]\t  IA Setpoint \t  IA Previous Setpoint \n");
     fclose(out_file_IA);
     //    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
-    out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "wt");
+    out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
     //out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a"); 
-   
+
+    fprintf(out_file_PITA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_PITA,
-	    "%10s %22s +- %16s %26s %26s %26s %26s\n",
-	    "Pat num.", "Charge Asym [ppm]", "Asym Error", 
+	    "%10s %22s +- %16s %16s %26s %26s %26s %26s\n",
+	    "Pat num.", "Charge Asym [ppm]", "Asym Error", "Correction",
 	    "New PITA Setpoint[+]", "Old PITA Setpoint[+]",
     	    "New PITA Setpoint[-]", "Old PITA Setpoint[-]");
     fclose(out_file_PITA);
@@ -295,6 +301,12 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Bool_t fPITAFB;
     Bool_t fIAFB;
     Bool_t fFeedbackStatus;
+    Bool_t fFeedbackDamping;
+
+
+    time_t rawtime;
+    struct tm * timeinfo;
+
   
 };
 

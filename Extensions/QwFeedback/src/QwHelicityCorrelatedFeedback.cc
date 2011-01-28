@@ -185,7 +185,15 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
 	dvalue = atof(varvalue.Data());
 	if (dvalue>0)
 	  fPITA_MIN_Charge_asym = dvalue;
+      } else if (varname=="damping"){  
+	dvalue = atof(varvalue.Data());
+	if (dvalue>0)
+	  fFeedbackDamping=kTRUE;
+	else
+	  fFeedbackDamping=kFALSE;
       } 
+
+
       
     }
   }
@@ -208,6 +216,7 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
   QwMessage<<"fPITA_MIN_Charge_asym set to "<<fPITA_MIN_Charge_asym<<QwLog::endl;
 
       
+  QwMessage<<"Damping state "<<fFeedbackDamping<<QwLog::endl;
 
 };
 
@@ -275,18 +284,18 @@ void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
   if (fPITASlope!=0) {
     Double_t correction = fChargeAsymmetry/fPITASlope;
     //damp the correction when charge asymmetry is close to zero
-
-    if (TMath::Abs(fChargeAsymmetry)<0.01)//ppm
-      correction*=0.01;
-    else if (TMath::Abs(fChargeAsymmetry)<0.1)//ppm
-      correction*=0.1;
-    else if (TMath::Abs(fChargeAsymmetry)<1)//ppm
-      correction*=0.25;
-    else if (TMath::Abs(fChargeAsymmetry)<2)//ppm
-      correction*=0.5;
-    else if (TMath::Abs(fChargeAsymmetry)<5)//ppm
-      correction*=0.75;
-
+    if (fFeedbackDamping){
+      if (TMath::Abs(fChargeAsymmetry)<0.01)//ppm
+	correction*=0.01;
+      else if (TMath::Abs(fChargeAsymmetry)<0.1)//ppm
+	correction*=0.1;
+      else if (TMath::Abs(fChargeAsymmetry)<1)//ppm
+	correction*=0.25;
+      else if (TMath::Abs(fChargeAsymmetry)<2)//ppm
+	correction*=0.5;
+      else if (TMath::Abs(fChargeAsymmetry)<5)//ppm
+	correction*=0.75;
+    }
 
     fPITASetpointPOS=fPrevPITASetpointPOS + correction;
     fPITASetpointNEG=fPrevPITASetpointNEG - correction;
@@ -356,7 +365,7 @@ void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
 void QwHelicityCorrelatedFeedback::LogParameters(){
   out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
   // out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a"); 
-  fprintf(out_file_PITA,"%10.0d %+22.4f %16.4f %26.2f %26.2f %26.2f %26.2f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
+  fprintf(out_file_PITA,"%10.0d %+22.2f %16.2f %16.2f %26.2f %26.2f %26.2f %26.2f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,TMath::Abs(fPITASetpointPOS-fPrevPITASetpointPOS),fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
   fclose(out_file_PITA);
 };
 /*****************************************************************/
@@ -387,6 +396,7 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
   if (fChargeAsymmetryError>fChargeAsymPrecision){
     QwError<<"Charge Asymmetry precision not reached current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
     status=kFALSE;
+    fGoodPatternCounter=0;
   }
   else{
     QwError<<"Charge Asymmetry precision current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;

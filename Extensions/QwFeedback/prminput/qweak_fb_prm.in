@@ -2,12 +2,12 @@
 
 #No.of good patterns to accumulate before triggering the feedback algorithm.
 
-patterns = 8000
+patterns = 10000
 
 #The precision of the charge asymmetry in ppm
 
 #deltaAq = 62
-deltaAq = 7500
+deltaAq = 6
 #optimal IA values in volts
 optimalIA = 5.5
 
@@ -82,4 +82,4 @@ PC_up  = 48016
 #Minimum charge asymmetry at which feedback correction is applied. see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
 
 MIN_CHARGE_ASYM = 0.005
-
+DAMPING = 1
