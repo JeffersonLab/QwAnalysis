@@ -1,4 +1,3 @@
-
 !**************************************************************************
 !  HALL C  BEAMLINE
 !**************************************************************************
@@ -27,7 +26,6 @@ sample_size=464
 
 !ADC1, Slot 5, Address 22, 0x7D
    VQWK, 1, 0,  bpmstripline,  QWK_BPM3H07BXP
-   VQWK, 1, 1,  bpmstripline,  QWK_BPM3H07BXM
    VQWK, 1, 2,  bpmstripline,  QWK_BPM3H07BYP
    VQWK, 1, 3,  bpmstripline,  QWK_BPM3H07BYM
    VQWK, 1, 4,  bpmstripline,  QWK_BPM3H07CXP
@@ -50,6 +48,7 @@ sample_size=464
    VQWK, 3, 1,  bpmstripline,  QWK_BPM3H09BXM
    VQWK, 3, 2,  bpmstripline,  QWK_BPM3H09BYP
    VQWK, 3, 3,  bpmstripline,  QWK_BPM3H09BYM
+   VQWK, 3, 4,  bpmstripline,  QWK_BPM3H07BXM
    VQWK, 3, 6,  bcm,  QWK_BCM2              
    VQWK, 3, 7,  bcm,  QWK_BCM1    
 
