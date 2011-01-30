@@ -20,7 +20,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 MYOS := $(subst -,,$(shell uname))
 
 
-EXE := pedestal_extractor position_differnces hallc_beam_motion hallc_bcm_calib hallc_bpm_calib get_bpm_weights project_to_Wplug
+EXE := injector_pedestals position_differnces hallc_beam_motion hallc_bcm_calib hallc_bpm_calib get_bpm_weights project_to_Wplug 
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -40,7 +40,7 @@ EXE := pedestal_extractor position_differnces hallc_beam_motion hallc_bcm_calib 
 all:  $(EXE)
 	@echo "---------------------> $(EXE) done <---------------------- "
 
-pedestal_extractor : bpm_bcm_calibration.o 
+injector_pedestals : injector_beamline_calibration.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 position_differnces : PositionDifferences.o 
@@ -63,6 +63,7 @@ get_bpm_weights : GetBPMWeights.o
 
 project_to_Wplug : w_plug_projection.o
 	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
+
 %: %.C
 	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
 
