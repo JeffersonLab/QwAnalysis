@@ -602,6 +602,19 @@ void FillBeamParameters(){
   compare_to_golden_value("charge_asymmetry", val[0], val[2]);
   compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
 
+  Get_Mean("hel_histo/yield_qwk_bpm3h04_EffectiveCharge_hw",intensity,1);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_bpm3h04_EffectiveCharge_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(MidRule_2("bpm3h04", intensity, val));
+  compare_to_golden_value("charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+
+  Get_Mean("hel_histo/yield_qwk_bpm3h09_EffectiveCharge_hw",intensity,1);
+  Fit_with_a_gaussian("hel_histo/asym_qwk_bpm3h09_EffectiveCharge_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(MidRule_2("bpm3h09", intensity, val));
+  compare_to_golden_value("charge_asymmetry", val[0], val[2]);
+  compare_to_golden_value("charge_asymmetry_width", val[1], val[3]);
+   
+
   Get_Mean("hel_histo/yield_qwk_bpm3c12X_hw",mean,1.);
   Fit_with_a_gaussian("hel_histo/diff_qwk_bpm3c12X_hw",val,1.e+6);//factor 1e+6 to convert to nm
   util.push_back(MidRule_2("3c12 x", mean, val));
@@ -734,6 +747,18 @@ void FillBeamParameters(){
      compare_to_golden_value("double_y_diff_position", mean,0);
      compare_to_golden_value("double_y_difference", val[0], val[2]);
      compare_to_golden_value("double_y_difference_width", val[1], val[3]);
+
+     Get_Tree_Mean("(yield_qwk_bpm3h09_EffectiveCharge.hw_sum-yield_qwk_bpm3h04_EffectiveCharge.hw_sum)",mean,1);
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bpm3h09_EffectiveCharge.hw_sum-asym_qwk_bpm3h04_EffectiveCharge.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("(3h09-3h04) Q", mean, val));
+
+     mean=0;
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bpm3h04_EffectiveCharge.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("(bcm1-3h04Q)", mean, val));
+
+     mean=0;
+     Get_Tree_Mean_Fit_gaus("(asym_qwk_bcm1.hw_sum-asym_qwk_bpm3h09_EffectiveCharge.hw_sum)",val,1.e+6);
+     util.push_back(MidRule_3("(bcm1-3h09Q)", mean, val));
 
    }//end of expert mode
 
@@ -934,6 +959,19 @@ void FillLUMIParameters(){
     compare_to_golden_value(histname, val[1], val[3]);
   }
 
+  Get_Mean("hel_histo/yield_dslumi_even_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_dslumi_even_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(MidRule_3("dslumi_even", mean, val));
+
+  Get_Mean("hel_histo/yield_dslumi_odd_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_dslumi_odd_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(MidRule_3("dslumi_odd", mean, val));
+
+  Get_Mean("hel_histo/yield_dslumi_sum_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_dslumi_sum_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(MidRule_3("dslumi_sum", mean, val));
+
+
   util.push_back("\n\n");
   // util.push_back("========================================================\n");
   //  util.push_back("UP STREAM LUMINOSITY MONITORS \n");
@@ -948,19 +986,19 @@ void FillLUMIParameters(){
  
   for (int count=1;count<9;count+=2){
 
-    histname=Form("hel_histo/yield_qwk_uslumi%ineg_hw",count);
+    histname=Form("hel_histo/yield_uslumi%i_sum_hw",count);
     Get_Mean(histname,mean,1.);
-    histname=Form("hel_histo/asym_qwk_uslumi%ineg_hw",count);
+    histname=Form("hel_histo/asym_uslumi%i_sum_hw",count);
     Fit_with_a_gaussian(histname,val,1.e+6);//factor 1e+6 to convert to ppm
     //    util.push_back(Form("\n uslumi%ineg   |   %5.2f    | %7.2f +/- %7.2f  | %7.2f +/- %7.2f ",count,mean,val[0],val[2],val[1],val[3]));
-    util.push_back(MidRule_3(Form("uslumi%dneg", count), mean, val));
+    util.push_back(MidRule_3(Form("uslumi%d", count), mean, val));
     histname=Form("uslumi_det_%i_yield",count);
     compare_to_golden_value(histname, mean,0);
     histname=Form("uslumi_det_%i_asymmetry",count);
     compare_to_golden_value(histname, val[0],val[2]);
     histname=Form("uslumi_det_%i_asymmetry_width",count);
     compare_to_golden_value(histname, val[1],val[3]);
-
+    /*
     histname=Form("hel_histo/yield_qwk_uslumi%ipos_hw",count);
     Get_Mean(histname,mean,1.);
     histname=Form("hel_histo/asym_qwk_uslumi%ipos_hw",count);
@@ -972,8 +1010,12 @@ void FillLUMIParameters(){
     histname=Form("uslumi_det_%i_asymmetry",count);
     compare_to_golden_value(histname, val[0],val[2]);
     histname=Form("uslumi_det_%i_asymmetry_width",count);
-    compare_to_golden_value(histname,val[1],val[3] );    
+    compare_to_golden_value(histname,val[1],val[3] );   
+    */ 
   }
+  Get_Mean("hel_histo/yield_uslumi_sum_hw",mean,1.);
+  Fit_with_a_gaussian("hel_histo/asym_uslumi_sum_hw",val,1.e+6);//factor 1e+6 to convert to ppm
+  util.push_back(MidRule_3("uslumi_sum", mean, val));
   util.push_back("\n\n");
 
    for(size_t i=0;i<util.size();i++)
@@ -1090,8 +1132,27 @@ void Fit_with_a_gaussian(TString histname, Double_t *container, Double_t factor)
 //***************************************************
 //***************************************************
 void Get_Tree_Mean_Fit_gaus(TString device_expression, Double_t *container, Double_t factor){
+  TString device[2];
+  TCut cuts;
+  TObjString *str;
+  TObjArray * obj_array;
+  obj_array=device_expression.Tokenize("+-*/");//get the two devices, Routine wil check to see at least on of the delimeters to separate the string
+  str = (TObjString *)obj_array->At(0);
+  device[0]=str->GetString();//first device
+  device[0]=device[0].Remove(0,1);//There is '(' coming from the initail expression remove it
+  device[0]=device[0].Replace(device[0].Length()-6,6,"Device_Error_Code==0");//remove hw_sum and replace with the Device_Error_Code==0
+  str = (TObjString *)obj_array->At(1);
+  device[1]=str->GetString();//second device
+  device[1]=device[1].Remove(device[1].Length()-1,1);//There is '(' coming from the initail expression remove it
+  device[1]=device[1].Replace(device[1].Length()-6,6,"Device_Error_Code==0");
+  cuts="ErrorFlag==0 && "+device[0]+" && "+device[1];
+  //std::cout<<"cuts  "<<cuts<<std::endl;
+  //exit(0);
+
   TH1F* h = NULL;
-  h=Get1DHisto(device_expression,"ErrorFlag==0","goff");
+  
+  //h=Get1DHisto(device_expression,"ErrorFlag==0","goff");
+  h=Get1DHisto(device_expression,cuts,"goff");
     if (h != NULL) {
     if (NoFits){
       *container=h->GetMean()*factor;
@@ -1175,8 +1236,24 @@ void Get_Mean(TString histname, Double_t &container, Double_t factor)
 //***************************************************
 //***************************************************
 void Get_Tree_Mean(TString device_expression, Double_t &container, Double_t factor){
+  TString device[2];
+  TCut cuts;
+  TObjString *str;
+  TObjArray * obj_array;
+  obj_array=device_expression.Tokenize("+-*/");//get the two devices, Routine wil check to see at least on of the delimeters to separate the string
+  str = (TObjString *)obj_array->At(0);
+  device[0]=str->GetString();//first device
+  device[0]=device[0].Remove(0,1);//There is '(' coming from the initail expression remove it
+  device[0]=device[0].Replace(device[0].Length()-6,6,"Device_Error_Code==0");//remove hw_sum and replace with the Device_Error_Code==0
+  str = (TObjString *)obj_array->At(1);
+  device[1]=str->GetString();//second device
+  device[1]=device[1].Remove(device[1].Length()-1,1);//There is '(' coming from the initail expression remove it
+  device[1]=device[1].Replace(device[1].Length()-6,6,"Device_Error_Code==0");
+  cuts="ErrorFlag==0 && "+device[0]+" && "+device[1];
+  //std::cout<<"cuts  "<<cuts<<std::endl;
+  //exit(0);
   TH1F* h = NULL;
-  h=Get1DHisto(device_expression,"ErrorFlag==0","goff");
+  h=Get1DHisto(device_expression,cuts,"goff");
   if (h != NULL) {
 //     cout<<histname<<" mean value is "<<h->GetMean()<<endl;
 //     cout<<histname<<" mean value is "<<h->GetEntries()<<endl;
