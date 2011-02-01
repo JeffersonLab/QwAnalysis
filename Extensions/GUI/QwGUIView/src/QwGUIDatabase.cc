@@ -4,6 +4,7 @@
 #include "TGaxis.h"
 #include "TGTextEntry.h"
 #include "TStopwatch.h"
+#include "TLatex.h"
 
 ClassImp(QwGUIDatabase);
 
@@ -97,7 +98,7 @@ const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] =
   "qwk_bpm3c07","qwk_bpm3c08","qwk_bpm3c11","qwk_bpm3c12",
   "qwk_bpm3c14","qwk_bpm3c16","qwk_bpm3c17","qwk_bpm3c18",
   "qwk_bpm3c19","qwk_bpm3p02a","qwk_bpm3p02b","qwk_bpm3p03a",
-  "qwk_bpm3c20","qwk_bpm3c21","qwk_bpm3h02","qwk_bpm3h04a",
+  "qwk_bpm3c20","qwk_bpm3c21","qwk_bpm3h02","qwk_bpm3h04",
   "qwk_bpm3h07a","qwk_bpm3h07b","qwk_bpm3h07c","qwk_bpm3h08",
   "qwk_bpm3h09","qwk_bpm3h09b"
  
@@ -1010,25 +1011,41 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     mysqlpp::Query query      = dDatabaseCont->Query();
 
 
-    if(ldebug){
-    std::cout<< " SELECT "<<det_table_id<<", value, error, run_number,segment_number, slow_helicity_plate FROM "<<data_table<<", analysis, runlet, slow_controls_settings "
-	  << " WHERE "<<data_table<<".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id AND runlet.runlet_id = slow_controls_settings.runlet_id"
-	  << " AND "<<data_table<<"."<<det_table_id<<" = "<<monitor_id
-	  << " AND "<<data_table<<".subblock = "<< subblock 
-	  << " AND measurement_type_id ='"<<measurement_type
-	  << "' AND run_number > "<< run_first
-	  << " AND run_number < "<< run_last
-	  << " ORDER BY run_number, segment_number;"<<std::endl;
-    }
+    TString querystring= 
+      " SELECT "+det_table_id+", value, error, run_number, segment_number, slow_helicity_plate,target_position FROM "
+      + data_table+", analysis, runlet, slow_controls_settings "
+      + " WHERE "
+      + data_table+".analysis_id = analysis.analysis_id AND"
+      + " analysis.runlet_id = runlet.runlet_id AND"
+      + " runlet.runlet_id = slow_controls_settings.runlet_id AND "
+      + data_table+"."+ det_table_id +" = "+Form("%i", monitor_id) +" AND "
+      + data_table+".subblock = "+ Form("%i",subblock) +" AND "
+      + " measurement_type_id = '"+measurement_type+"' AND "
+      + " run_number > "+ Form("%i",run_first) + " AND "
+      + " run_number < "+ Form("%i",run_last)+ " AND "
+      + " error !=0  AND"
+      +" target_position = 'HYDROGEN-CELL' "
+      + " ORDER BY run_number, segment_number;";
 
-    query << " SELECT "<<det_table_id<<", value, error, run_number, segment_number, slow_helicity_plate FROM "<<data_table<<", analysis, runlet, slow_controls_settings "
-	  << " WHERE "<<data_table<<".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id AND runlet.runlet_id = slow_controls_settings.runlet_id"
-	  << " AND "<<data_table<<"."<<det_table_id<<" = "<<monitor_id
-	  << " AND "<<data_table<<".subblock = "<< subblock 
-	  << " AND measurement_type_id ='"<<measurement_type
-	  << "' AND run_number > "<< run_first
-	  << " AND run_number < "<< run_last
-	  << " ORDER BY run_number, segment_number;";
+    std::cout<<"QUERYSTING="
+	     <<querystring<<std::endl;
+
+    query << querystring;
+
+ //    query << " SELECT "<<det_table_id<<", value, error, run_number, segment_number, slow_helicity_plate,target_position FROM "
+// 	  << data_table<<", analysis, runlet, slow_controls_settings "
+// 	  << " WHERE "
+// 	  << data_table<<".analysis_id = analysis.analysis_id AND"
+// 	  << " analysis.runlet_id = runlet.runlet_id AND"
+// 	  << " runlet.runlet_id = slow_controls_settings.runlet_id AND "
+// 	  << data_table<<"."<<det_table_id<<" = "<<monitor_id <<" AND "
+// 	  << data_table<<".subblock = "<< subblock <<" AND "
+// 	  << " measurement_type_id = '"<<measurement_type<<"' AND "
+// 	  << " run_number > "<< run_first << " AND "
+// 	  << " run_number < "<< run_last<< " AND "
+// 	  << " error !=0  AND"
+// 	  <<" target_position = 'HYDROGEN-CELL' "
+// 	  << " ORDER BY run_number, segment_number;";
 
   
     mysqlpp::StoreQueryResult read_data = query.store();
@@ -1038,6 +1055,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     // Loop Over Results and Fill Vectors
     //
     size_t row_size =  read_data.num_rows();
+    std::cout<<" row_size="<<row_size<<"\n";
 
     //check for empty queries. If empty exit with error.
     if(row_size == 0){
@@ -1046,7 +1064,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
       return;
     }
 
-
+ 
     TVectorF x_in(row_size), xerr_in(row_size);
     TVectorF x_out(row_size), xerr_out(row_size);
     TVectorF run_in(row_size), run_out(row_size);
@@ -1059,7 +1077,6 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     run_in.Clear();
     run_in.ResizeTo(row_size);
 
-
     x_out.Clear();
     x_out.ResizeTo(row_size);
     xerr_out.Clear();
@@ -1067,13 +1084,13 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     run_out.Clear();
     run_out.ResizeTo(row_size);
 
-
     Float_t x = 0.0 , xerr = 0.0;
     Int_t m = 0;
     Int_t k = 0;
 
     std::cout<<"###########\n";
     std::cout<<"Collecting data.."<<std::endl;
+    std::cout<<" Retrieved "<<row_size<<" data points\n";
 
     for (size_t i = 0; i < row_size; ++i)
       { 
@@ -1084,27 +1101,34 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 	  x    = read_data[i]["value"];
 	  xerr = read_data[i]["error"];
 	}
-	
-	if(read_data[i]["slow_helicity_plate"] == "out") {
-	  run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	  x_out.operator()(k)    = x;
-	  xerr_out.operator()(k) = xerr;
-	  err_out.operator()(k)  = 0.0;
-	  k++;
-	}
 
-	if(read_data[i]["slow_helicity_plate"] == "in") {
-	  run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	  x_in.operator()(m)    = x;
-	  xerr_in.operator()(m) = xerr;
-	  err_in.operator()(m)  = 0.0;
-	  m++;
-	}
+// 	std::cout<<"i="<<i<<" HWP="<<read_data[i]["slow_helicity_plate"]
+// 		 <<" target ="<<read_data[i]["target_position"]
+// 		 <<" run="<<read_data[i]["run_number"]<<"."<<read_data[i]["segment_number"]
+// 		 <<" a="<<Form("%6.6f",x)<<"+/-"<<Form("%6.6f",xerr);
+// 	// I changed the precision to 
 
+	if(xerr!=0)
+	  {
+	    if(read_data[i]["slow_helicity_plate"] == "out") {
+	      run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	      x_out.operator()(k)    = x;
+	      xerr_out.operator()(k) = xerr;
+	      err_out.operator()(k)  = 0.0;
+	      k++;
+	    }
+	    
+	    if(read_data[i]["slow_helicity_plate"] == "in") {
+	      run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	      x_in.operator()(m)    = x;
+	      xerr_in.operator()(m) = xerr;
+	      err_in.operator()(m)  = 0.0;
+	      m++;
+	    }
+	  }
+	//	std::cout<<"\n";
 
       } // End loop over results
-
-
 
     //
     // Construct the Graphs for Plotting
@@ -1112,11 +1136,21 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     std::cout<<"Moving on to draw the graph"<<std::endl;
 
     // Graph for mean+error
+    run_in.ResizeTo(m);
+    x_in.ResizeTo(m);
+    err_in.ResizeTo(m);
+    xerr_in.ResizeTo(m);
+
     TGraphErrors* grp_in  = new TGraphErrors(run_in,   x_in, err_in,   xerr_in);
     grp_in ->SetMarkerSize(0.6);
     grp_in ->SetMarkerStyle(21);
     grp_in ->SetMarkerColor(kBlue);
 
+
+    run_out.ResizeTo(k);
+    x_out.ResizeTo(k);
+    err_out.ResizeTo(k);
+    xerr_out.ResizeTo(k);
     TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
     grp_out ->SetMarkerSize(0.6);
     grp_out ->SetMarkerStyle(21);
@@ -1127,8 +1161,8 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     TString y_title = GetYTitle(measurement_type, det_id);
     TString title   = GetTitle(measurement_type, device);
 
-    grp->Add(grp_in);
-    grp->Add(grp_out);
+    if(m>0)grp->Add(grp_in);
+    if(k>0)grp->Add(grp_out);
 
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
@@ -1146,7 +1180,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp->GetXaxis()->SetTitleOffset(2);
     grp->GetYaxis()->SetTitleSize(0.03);
     grp->GetXaxis()->SetTitleSize(0.03);
-    grp->GetXaxis()->SetRangeUser(run_first, run_last);
+
 
     mc->Modified();
     mc->SetBorderMode(0);
@@ -1156,6 +1190,29 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     std::cout<<"###########\n";
     
   }
+  else
+    {
+    TCanvas *mc = dCanvas->GetCanvas();
+    mc->Clear();
+    mc->SetFillColor(0);
+    //
+      mc->cd();
+      TLatex T1;
+      T1.SetTextAlign(12);
+      T1.SetTextSize(0.03);
+      T1.DrawLatex(0.1,0.8,"To execute the command, you need first to connect to the database !");
+      T1.DrawLatex(0.1,0.6,"To connect to the database:");
+      T1.DrawLatex(0.2,0.5,"#bullet Use the pull-down menu at the top left of the GUI (File)");
+      T1.DrawLatex(0.2,0.4,"#bullet Choose Open (Database)");      
+      T1.DrawLatex(0.2,0.3,"#bullet You can then resubmit your request.");      
+
+      mc->Modified();
+      mc->SetBorderMode(0);
+      mc->Update();
+      
+    }
+
+
 }
 
 
