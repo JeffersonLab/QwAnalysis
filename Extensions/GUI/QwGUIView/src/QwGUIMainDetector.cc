@@ -372,7 +372,7 @@ Int_t QwGUIMainDetectorDataStructure::CalculateFFTs(EventOptions *opts, UInt_t l
   }
   
   Int_t RATE = SAMPLING_RATE;
-  if(DetectorName.Contains("asym")) RATE = SAMPLING_RATE/4;
+  if(DetectorName.Contains("asym")) RATE = (Int_t)(SAMPLING_RATE/4);
   Double_t y;
   
   TProfile *prf = new TProfile(Form("%s_prf",DataName[ind].Data()),
@@ -499,28 +499,28 @@ const char* QwGUIMainDetectorDataStructure::GetTreeLeafName(UInt_t n)
 
 Double_t QwGUIMainDetectorDataStructure::GetTreeLeafMin(UInt_t n)
 {
-  if(n < 0 || n >= TreeLeafMin.size()) return NULL;
+  if(n < 0 || n >= TreeLeafMin.size()) return 0;
 
   return TreeLeafMin[n];
 }
 
 Double_t QwGUIMainDetectorDataStructure::GetTreeLeafMax(UInt_t n)
 {
-  if(n < 0 || n >= TreeLeafMax.size()) return NULL;
+  if(n < 0 || n >= TreeLeafMax.size()) return 0;
 
   return TreeLeafMax[n];
 }
 
 Double_t QwGUIMainDetectorDataStructure::GetTreeLeafMean(UInt_t n)
 {
-  if(n < 0 || n >= TreeLeafMean.size()) return NULL;
+  if(n < 0 || n >= TreeLeafMean.size()) return 0;
 
   return TreeLeafMean[n];
 }
 
 Double_t QwGUIMainDetectorDataStructure::GetTreeLeafRMS(UInt_t n)
 {
-  if(n < 0 || n >= TreeLeafRMS.size()) return NULL;
+  if(n < 0 || n >= TreeLeafRMS.size()) return 0;
 
   return TreeLeafRMS[n];
 }
@@ -534,7 +534,7 @@ Double_t QwGUIMainDetectorDataStructure::GetTreeLeafError(UInt_t n)
 
 Double_t QwGUIMainDetectorDataStructure::GetTreeLeafRMSError(UInt_t n)
 {
-  if(n < 0 || n >= TreeLeafRMSError.size()) return NULL;
+  if(n < 0 || n >= TreeLeafRMSError.size()) return 0;
 
   return TreeLeafRMSError[n];
 }

@@ -35,6 +35,7 @@
 #ifndef QWGUISUBSYSTEM_H
 #define QWGUISUBSYSTEM_H
 
+
 #define SAMPLING_RATE  960
 
 enum RUNTYPE  {
