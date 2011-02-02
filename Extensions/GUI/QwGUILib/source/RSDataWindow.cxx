@@ -1329,6 +1329,15 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 
     if(!chst[0]) return DATA_PLOT_ERROR;
 
+    Double_t cmean = hist->GetMean();
+    Double_t crms = hist->GetRMS();
+
+    Double_t minmean = hist->GetMean();
+    Double_t maxmean = hist->GetMean();
+
+    Double_t minrms = hist->GetRMS();
+    Double_t maxrms = hist->GetRMS();
+
     Double_t cmin = chst[0]->GetXaxis()->GetXmin();
     Double_t cmax = chst[0]->GetXaxis()->GetXmax(); 
     Double_t hmin = hist->GetXaxis()->GetXmin();
@@ -1352,6 +1361,15 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 	cymin = chst[i]->GetMinimum();
 	cymax = chst[i]->GetMaximum();
 
+	cmean = chst[i]->GetMean();
+	crms = chst[i]->GetRMS();
+
+	if(cmean < minmean) minmean = cmean;
+	if(cmean >= maxmean) maxmean = cmean;
+
+	if(crms < minrms) minrms = crms;
+	if(crms >= maxrms) maxrms = crms;
+
 	if(cmin < dMin[0]) dMin[0] = cmin;
 	if(cmax > dMax[0]) dMax[0] = cmax;
 	if(cymin < dMin[1]) dMin[1] = cymin;
@@ -1370,6 +1388,7 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
     }    
 //     tmp->SetLineColor(dPlotCont->GetNewLineColor(kRed));
     tmp->GetYaxis()->SetRangeUser(dMin[1]+0.1,dMax[1]);
+    tmp->GetXaxis()->SetRangeUser(minmean-10*maxrms,maxmean+10*maxrms);
     tmp->Draw();
     delete chst[0];
 

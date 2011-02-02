@@ -409,6 +409,8 @@ Int_t QwGUIMainDetectorDataStructure::CalculateFFTs(EventOptions *opts, UInt_t l
   for(int i = 0; i < (Int_t)(TreeLeafFFTOpts[ind]->Length/2); i++) {
     fft->SetBinContent(i,fftmag->GetBinContent(i)/TreeLeafFFTOpts[ind]->Length);
   }
+  TVirtualFFT *transf = TVirtualFFT::GetCurrentTransform();
+  delete transf;
 
   fft->GetXaxis()->SetTitle("Frequency [Hz]");
   fft->GetXaxis()->CenterTitle();
@@ -422,12 +424,13 @@ Int_t QwGUIMainDetectorDataStructure::CalculateFFTs(EventOptions *opts, UInt_t l
   fft->GetYaxis()->SetLabelSize(0.06);
   fft->GetYaxis()->SetTitleOffset(1.25);
   
+  fft->SetDirectory(0);
   FFTHisto.push_back(fft);
-  FFTProfile.push_back(prf);
+//   FFTProfile.push_back(prf);
   delete hst;
   delete fftmag;
-  prf->SetDirectory(0);
-  fft->SetDirectory(0);
+  delete prf;
+//   prf->SetDirectory(0);
   
   return 1;
   
@@ -1073,8 +1076,8 @@ TRootEmbeddedCanvas *QwGUIMainDetectorDataType::MakeDataTab(TGTab *dMDTab,
     dMenuPlot->AddEntry("&Graph", GraphMenuID);
     FFTMenuID = MenuBaseID+3;
     dMenuPlot->AddEntry("&FFT Histogram", FFTMenuID);
-    ProfMenuID = MenuBaseID+4;
-    dMenuPlot->AddEntry("FFT &Profile",ProfMenuID);
+//     ProfMenuID = MenuBaseID+4;
+//     dMenuPlot->AddEntry("FFT &Profile",ProfMenuID);
 
     dMenuPlotLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
     dMenuBar->AddPopup("&Plot Type", dMenuPlot, dMenuPlotLayout);
@@ -1084,7 +1087,7 @@ TRootEmbeddedCanvas *QwGUIMainDetectorDataType::MakeDataTab(TGTab *dMDTab,
     if(HistoMode){ 
       dMenuPlot->DisableEntry(GraphMenuID);
       dMenuPlot->DisableEntry(FFTMenuID);
-      dMenuPlot->DisableEntry(ProfMenuID);
+//       dMenuPlot->DisableEntry(ProfMenuID);
     }
 
     dMenuPlot->EnableEntry(FFTMenuID);
@@ -1259,25 +1262,10 @@ void QwGUIMainDetector::NewDataInit()
 
 QwGUIMainDetector::~QwGUIMainDetector()
 {
-  if(dTabFrame)  delete dTabFrame;
+  CleanUp();
+
   if(dMDTab) delete dMDTab;
-
-  for(uint i = 0; i < dCurrentModeData.size(); i++){
-    if(dCurrentModeData[i]) delete dCurrentModeData[i];
-  }
-  dCurrentModeData.clear();
-
-  TObject *obj;
-  TIter *next = new TIter(DataWindowArray.MakeIterator());
-
-  obj = next->Next();
-  while(obj){
-    delete obj;
-    obj = next->Next();
-  }
-  delete next;
-
-  DataWindowArray.Clear();
+  if(dTabFrame)  delete dTabFrame;
 
   RemoveThisTab(this);
   IsClosing(GetName());
@@ -1566,6 +1554,9 @@ void QwGUIMainDetector::OnReceiveMessage(char *msg)
   Int_t ind = 0;
   TString message = msg;
 //   char *ptr = NULL;
+
+//   printf("Message = %s\n",message.Data());
+
   if(message.Contains("dDataWindow")){
 
     if(message.Contains("Add to")){
@@ -2065,17 +2056,19 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
     
     if(plot->InheritsFrom("TH1")){
 
-      if(!dDataWindow)
+      if(!dDataWindow){
 	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
 					  "QwGUIMainDetector",((TH1D*)plot)->GetTitle(), PT_HISTO_1D,
 					  DDT_MD,600,400);
+
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
       else
 	add = kTrue;
       
-      if(!dDataWindow){
-	return;
-      }
-      DataWindowArray.Add(dDataWindow);
       
       dDataWindow->SetStaticData(plot,DataWindowArray.GetLast());
       dDataWindow->SetPlotTitle((char*)((TH1D*)plot)->GetTitle());
@@ -2090,17 +2083,18 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
     }
     if(plot->InheritsFrom("TGraphErrors")){
 
-      if(!dDataWindow)
+      if(!dDataWindow){
 	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
 					  "QwGUIMainDetector",((TGraphErrors*)plot)->GetTitle(), PT_GRAPH_ER,
 					  DDT_MD,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
       else
 	add = kTrue;
-      
-      if(!dDataWindow){
-	return;
-      }
-      
+            
       DataWindowArray.Add(dDataWindow);
       dDataWindow->SetPlotTitle((char*)((TGraphErrors*)plot)->GetTitle());
       if(!dCurrentModeData[GetActiveTab()]->IsSummary()){
@@ -2127,17 +2121,19 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       return;
     }
     if(plot->InheritsFrom("TGraph")){
-      if(!dDataWindow)
+
+      if(!dDataWindow){
 	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
 					  "QwGUIMainDetector",((TGraph*)plot)->GetTitle(), PT_GRAPH,
 					  DDT_MD,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
       else
 	add = kTrue;
       
-      if(!dDataWindow){
-	return;
-      }
-
       DataWindowArray.Add(dDataWindow);
       dDataWindow->SetPlotTitle((char*)((TGraph*)plot)->GetTitle());
       if(!dCurrentModeData[GetActiveTab()]->IsSummary()){
@@ -2163,17 +2159,18 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
 
     }
     if(plot->InheritsFrom("TProfile")){
-      if(!dDataWindow)
+
+      if(!dDataWindow){
 	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
 					  "QwGUIMainDetector",((TProfile*)plot)->GetTitle(), PT_PROFILE,
 					  DDT_MD,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
       else
 	add = kTrue;
-      
-      if(!dDataWindow){
-	return;
-      }
-
 
       DataWindowArray.Add(dDataWindow);
       dDataWindow->SetPlotTitle((char*)((TProfile*)plot)->GetTitle());
