@@ -104,11 +104,13 @@ using std::vector;
   TGComboBox          *dCmbSubblock;
   TGComboBox          *dCmbMeasurementType;
   TGComboBox          *dCmbTargetType;
+  TGComboBox          *dCmbPlotType;
   TGTextButton        *dBtnSubmit;
   TGLabel             *dLabStartRun;
   TGLabel             *dLabStopRun;
   TGLabel             *dLabTarget;
- 
+  TGLabel             *dLabPlot;
+
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            GraphArray;
@@ -177,6 +179,7 @@ using std::vector;
 
   // target types
   static const char   *Targets[N_TGTS];
+  static const char   *Plots[2];
 
   // static array for temporary measurement type storing. This makes things easier when trying to
   // retrieave data.

@@ -48,7 +48,8 @@ enum EQwGUIDatabaseWidgetIDs {
   BTN_SUBMIT,
   CMB_XAXIS,
   CMB_XDET,
-  CMB_TGT
+  CMB_TGT,
+  CMB_PLOT
 };
 
 
@@ -258,6 +259,12 @@ const char *QwGUIDatabase::Targets[N_TGTS] =
 };
 
 
+const char *QwGUIDatabase::Plots[2] =
+  {
+    "Mean", "RMS"
+  }; 
+
+
 QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
   : QwGUISubSystem(p,main,tab,objName,mainname,w,h)
@@ -278,6 +285,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dCmbProperty        = NULL;
   dCmbSubblock        = NULL;
   dCmbTargetType      = NULL;
+  dCmbPlotType        = NULL;
   dCmbMeasurementType = NULL;
   dNumStartRun        = NULL;
   dNumStopRun         = NULL;
@@ -285,6 +293,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dLabStartRun        = NULL;
   dLabStopRun         = NULL;
   dLabTarget          = NULL;
+  dLabPlot            = NULL;
 
   GraphArray.Clear();
   DataWindowArray.Clear();
@@ -309,6 +318,7 @@ QwGUIDatabase::~QwGUIDatabase()
   if(dLabStopRun)         delete dLabStopRun;
   if(dNumStartRun)        delete dNumStartRun;
   if(dLabTarget)          delete dLabTarget;
+  if(dLabPlot)            delete dLabPlot;
   if(dNumStopRun)         delete dNumStopRun;
   if(dCmbInstrument)      delete dCmbInstrument;
   if(dCmbXAxis)           delete dCmbXAxis;
@@ -317,6 +327,7 @@ QwGUIDatabase::~QwGUIDatabase()
   if(dCmbSubblock)        delete dCmbSubblock;
   if(dCmbTargetType)      delete dCmbTargetType;
   if(dCmbMeasurementType) delete dCmbMeasurementType;
+  if(dCmbPlotType)        delete dCmbPlotType;
   if(dBtnSubmit)          delete dBtnSubmit;
 
   RemoveThisTab(this);
@@ -386,6 +397,8 @@ void QwGUIDatabase::MakeLayout()
   dCmbSubblock        = new TGComboBox(dControlsFrame, CMB_SUBBLOCK);
   dLabTarget          = new TGLabel(dControlsFrame, "Target");
   dCmbTargetType      = new TGComboBox(dControlsFrame, CMB_TGT);
+  dLabPlot            = new TGLabel(dControlsFrame, "Plot Type");
+  dCmbPlotType        = new TGComboBox(dControlsFrame, CMB_PLOT);
   dLabStartRun        = new TGLabel(dControlsFrame, "First Run");
   dNumStartRun        = new TGNumberEntry(dControlsFrame, 0, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dLabStopRun         = new TGLabel(dControlsFrame, "Last Run");
@@ -423,8 +436,14 @@ void QwGUIDatabase::MakeLayout()
     dCmbTargetType->AddEntry(Targets[i], i);
   }
 
+  // Populate plot type
+  for (Int_t i = 0; i < 2; i++) {
+    dCmbPlotType->AddEntry(Plots[i], i);
+  }
+
   dCmbSubblock->Select(0);
   dCmbTargetType->Select(1);
+  dCmbPlotType->Select(0);
 
 
   dCmbXAxis           -> Resize(150,20);
@@ -434,6 +453,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbSubblock        -> Resize(150,20);
   dCmbMeasurementType -> Resize(150,20);
   dCmbTargetType      -> Resize(150,20);
+  dCmbPlotType        -> Resize(150,20);
 
 
   dControlsFrame      -> AddFrame(dCmbInstrument, dCmbLayout ); // detector type
@@ -448,6 +468,8 @@ void QwGUIDatabase::MakeLayout()
   dControlsFrame      -> AddFrame(dNumStartRun, dNumLayout );
   dControlsFrame      -> AddFrame(dLabStopRun, dLabLayout );
   dControlsFrame      -> AddFrame(dNumStopRun, dNumLayout );
+  dControlsFrame      -> AddFrame(dLabPlot, dLabLayout );
+  dControlsFrame      -> AddFrame(dCmbPlotType, dCmbLayout );
   dControlsFrame      -> AddFrame(dBtnSubmit, dBtnLayout);
 
   dCmbXAxis           -> Associate(this);
@@ -459,6 +481,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbSubblock        -> Associate(this);
   dCmbMeasurementType -> Associate(this);
   dCmbTargetType      -> Associate(this);
+  dCmbPlotType        -> Associate(this);
   dBtnSubmit          -> Associate(this);
 
   dCanvas -> GetCanvas() -> SetBorderMode(0);
@@ -1046,6 +1069,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
     TString device            = Form("%s%s",detector.Data(),measured_property.Data());
     TString target            = Targets[dCmbTargetType->GetSelected()];
+    TString plot              = Plots[dCmbPlotType->GetSelected()];
 
     TString det_table;
     TString data_table;
@@ -1100,7 +1124,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     mysqlpp::Query query      = dDatabaseCont->Query();
 
     TString querystring= 
-      " SELECT "+det_table_id+", value, error, run_number, segment_number, slow_helicity_plate,target_position FROM "
+      " SELECT "+det_table_id+", value, error, error*sqrt("+data_table+".n), run_number, segment_number, slow_helicity_plate,target_position FROM "
       + data_table+", analysis, runlet, slow_controls_settings "
       + " WHERE "
       + data_table+".analysis_id = analysis.analysis_id AND"
@@ -1165,40 +1189,55 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     std::cout<<"############################################\n";
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
     std::cout<<"QwGUI : Retrieved "<<row_size<<" data points\n";
-
     for (size_t i = 0; i < row_size; ++i)
-      { 
+      { 	    
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
-	  x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
-	  xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
+	  if(plot.Contains("RMS") == 1){
+	    x    = (read_data[i]["error*sqrt("+data_table+".n)"])*1e6; // convert to  ppm/ nm
+	    xerr = 0.0;
+	  }
+	  else {
+	    x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
+	    xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
+	  }
 	} 
 	else{
-	  x    = read_data[i]["value"];
-	  xerr = read_data[i]["error"];
+	  if(plot.Contains("RMS") == 1){
+	    x    = (read_data[i]["error*sqrt("+data_table+".n)"]);
+	    xerr = 0.0;
+	  }
+	  else {
+	    x    = read_data[i]["value"];
+	    xerr = read_data[i]["error"];
+	  }
 	}
 
-	if(xerr!=0)
-	  {
-	    if(read_data[i]["slow_helicity_plate"] == "out") {
-	      run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	      x_out.operator()(k)    = x;
-	      xerr_out.operator()(k) = xerr;
-	      err_out.operator()(k)  = 0.0;
-	      k++;
-	    }
-	    
-	    if(read_data[i]["slow_helicity_plate"] == "in") {
-	      run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	      x_in.operator()(m)    = x;
-	      xerr_in.operator()(m) = xerr;
-	      err_in.operator()(m)  = 0.0;
-	      m++;
-	    }
-	  }
+	if(read_data[i]["slow_helicity_plate"] == "out") {
+	  run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	  x_out.operator()(k)    = x;
+	  xerr_out.operator()(k) = xerr;
+	  err_out.operator()(k)  = 0.0;
+	  k++;
+	}
+	
+	if(read_data[i]["slow_helicity_plate"] == "in") {
+	  run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	  x_in.operator()(m)    = x;
+	  xerr_in.operator()(m) = xerr;
+	  err_in.operator()(m)  = 0.0;
+	  m++;
+	}
       }
-    std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
+
+    // Check to make sure graph is not empty.
+    if(m==0 && k==0){
+      std::cout<<"QwGUI : No data were found for the given criteria."<<std::endl;
+      exit(1);
+    }
+    else
+      std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
     
-    
+
     run_in.ResizeTo(m);
     x_in.ResizeTo(m);
     err_in.ResizeTo(m);
@@ -1214,6 +1253,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     x_out.ResizeTo(k);
     err_out.ResizeTo(k);
     xerr_out.ResizeTo(k);
+
     TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
     grp_out ->SetMarkerSize(0.6);
     grp_out ->SetMarkerStyle(21);
@@ -1221,8 +1261,16 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 
     TMultiGraph * grp = new TMultiGraph();
 
+
     TString y_title = GetYTitle(measurement_type, det_id);
     TString title   = GetTitle(measurement_type, device);
+
+    if(plot.Contains("RMS"))
+      {
+	y_title = "RMS of "+y_title;
+	title   = "RMS of "+title;
+      }
+
 
     if(m>0)grp->Add(grp_in);
     if(k>0)grp->Add(grp_out);
