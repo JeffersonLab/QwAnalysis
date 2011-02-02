@@ -527,7 +527,7 @@ Double_t QwGUIMainDetectorDataStructure::GetTreeLeafRMS(UInt_t n)
 
 Double_t QwGUIMainDetectorDataStructure::GetTreeLeafError(UInt_t n)
 {
-  if(n < 0 || n >= TreeLeafError.size()) return NULL;
+  if(n < 0 || n >= TreeLeafError.size()) return 0;
 
   return TreeLeafError[n];
 }

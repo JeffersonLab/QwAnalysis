@@ -970,6 +970,24 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
     new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), this, "evslcd","QwGUIMain",evtOpts);
 
     if(evtOpts->cancelFlag) {delete evtOpts; return PROCESS_FAILED;}
+//     if(evtOpts->changeFlag && evtOpts->Length > 100000){
+      
+//       Int_t retval= 0;
+//       char buffer[200];
+//       memset(buffer,'\0',sizeof(buffer));
+
+//       sprintf(buffer,
+// 	      "You selected %d events to process!\nThis may take a while!\nAre you sure you want to continue?",
+// 	      evtOpts->Length);
+      
+//       new TGMsgBox(fClient->GetRoot(), this,"File Open Operation",
+// 		   buffer,kMBIconQuestion, kMBOk | kMBCancel, &retval);
+      
+//       if(retval == kMBCancel){ 
+// 	delete evtOpts; return PROCESS_FAILED;
+//       }
+//     }    
+
 
     levt = evtOpts->Start;
     evts = evtOpts->Length;

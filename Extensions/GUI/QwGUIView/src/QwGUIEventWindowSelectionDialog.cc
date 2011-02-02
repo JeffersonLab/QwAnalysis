@@ -179,8 +179,9 @@ void QwGUIEventWindowSelectionDialog::SetOptions(Bool_t all)
 	    "You selected %d events to process!\nThis may take a while!\nAre you sure you want to continue?",
 	    dEventOptions->Length);
     
-    new TGMsgBox(fClient->GetRoot(), dMain,"File Open Operation",
+    new TGMsgBox(fClient->GetRoot(), this,"File Open Operation",
 		 buffer,kMBIconQuestion, kMBOk | kMBCancel, &retval);
+    
     if(retval == kMBCancel){ 
       return;
     }
