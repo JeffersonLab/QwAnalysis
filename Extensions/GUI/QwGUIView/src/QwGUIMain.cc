@@ -55,6 +55,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMWWidth              = w;
   dMWHeight             = h;
   dCurRun               = 0;
+  dCurRunType           = Parity;
 
   dROOTFile             = NULL;
   dDatabase             = NULL;
@@ -113,10 +114,10 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   Resize(GetDefaultSize());
   MapWindow();
 
-
   if(!GetSubSystemPtr("Main Detectors"))
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
 //   if(MainDetSubSystem)
 //     MainDetSubSystem->LoadChannelMap(Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH")));
 
@@ -149,6 +150,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Event Display"))
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+
+
 
 }
 
@@ -207,8 +210,9 @@ void QwGUIMain::MakeMenuLayout()
   dMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
 
   dMenuFile = new TGPopupMenu(fClient->GetRoot());
-  dMenuFile->AddEntry("O&pen (ROOT file)...", M_ROOT_FILE_OPEN);
-  dMenuFile->AddEntry("C&lose (ROOT file)", M_ROOT_FILE_CLOSE);
+  dMenuFile->AddEntry("O&pen ROOT file (Histo)...", M_ROOT_FILE_OPEN);
+  dMenuFile->AddEntry("O&pen ROOT file (Event)...", M_ROOT_FILE_EVENT_OPEN);
+  dMenuFile->AddEntry("C&lose ROOT file", M_ROOT_FILE_CLOSE);
   dMenuFile->AddSeparator();
   dMenuFile->AddEntry("Open (Database)...", M_DBASE_OPEN);
   dMenuFile->AddEntry("Close (Database)", M_DBASE_CLOSE);
@@ -243,15 +247,14 @@ void QwGUIMain::MakeMenuLayout()
 
 void QwGUIMain::MakeUtilityLayout()
 {
-
-//   dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 2,2,2,2);
+  dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 2,2,2,2);
 //   dTBinEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
-//   dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2);
+  dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2);
 
-//   dHorizontal3DLine = new TGHorizontal3DLine(this);
-//   AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
+  dHorizontal3DLine = new TGHorizontal3DLine(this);
+  AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
 
-//   dUtilityFrame = new TGHorizontalFrame(this,60,10);
+  dUtilityFrame = new TGHorizontalFrame(this,60,10);
 //   dTBinEntry = new TGComboBox(dUtilityFrame,M_TBIN_SELECT);
 //   dTBinEntry->Associate(this);
 //   dUtilityFrame->AddFrame(dTBinEntry,dTBinEntryLayout);
@@ -264,19 +267,19 @@ void QwGUIMain::MakeUtilityLayout()
 //   dTBinEntry->Resize(280, 20);
 
 //   if(!dClArgs.realtime){
-//     dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
-// 				  TGNumberFormat::kNESInteger,
-// 				  TGNumberFormat::kNEANonNegative,
-// 				  TGNumberFormat::kNELLimitMinMax,1,999999);
-//     if(dRunEntry){
-//       dRunEntryLabel = new TGLabel(dUtilityFrame,"Run Number:");
-//       if(dRunEntryLabel){
-// 	dUtilityFrame->AddFrame(dRunEntryLabel,dRunEntryLayout);
-//       }
-//       dRunEntry->Associate(this);
-//       dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
-//     }
-//   }
+  dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
+				TGNumberFormat::kNESInteger,
+				TGNumberFormat::kNEANonNegative,
+				TGNumberFormat::kNELLimitMinMax,1,999999);
+  if(dRunEntry){
+    dRunEntryLabel = new TGLabel(dUtilityFrame,"Run Number:");
+    if(dRunEntryLabel){
+      dUtilityFrame->AddFrame(dRunEntryLabel,dRunEntryLayout);
+    }
+    dRunEntry->Associate(this);
+    dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
+  }
+  //}
 
 //   if(dClArgs.realtime){
 //     const TGPicture *ipic =(TGPicture *)gClient->GetPicture("realtime.xpm");
@@ -284,7 +287,7 @@ void QwGUIMain::MakeUtilityLayout()
 //     dUtilityFrame->AddFrame(icon,new TGLayoutHints(kLHintsLeft | kLHintsBottom,1,15,1,1));
 //   }
 
-//   AddFrame(dUtilityFrame,dUtilityLayout);
+  AddFrame(dUtilityFrame,dUtilityLayout);
 }
 
 void QwGUIMain::MakeMainTab()
@@ -434,8 +437,11 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
   MapLayout();
 
   if(IsRootFileOpen()){
-    if(!sbSystem->GetRootFileName() || strcmp(sbSystem->GetRootFileName(),dROOTFile->GetFileName()))
+    if(!sbSystem->GetRootFileName() || strcmp(sbSystem->GetRootFileName(),dROOTFile->GetFileName())){
+      sbSystem->SetRunNumber(dCurRun);
+      sbSystem->SetRunType(dCurRunType);
       sbSystem->SetDataContainer(dROOTFile);
+    }
   }
 }
 
@@ -922,9 +928,8 @@ void QwGUIMain::CloseDatabase()
 }
 
 
-Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
+Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* file)
 {
-
   if(IsRootFileOpen()) CloseRootFile();
   char filename[NAME_STR_MAX];
   if(!file){
@@ -948,16 +953,65 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
     dROOTFile = NULL;
     return PROCESS_FAILED;
   }
+  
+  UInt_t levt = 0;
+  UInt_t evts = 0;
+  if(EventMode){
+    EventOptions *evtOpts = new EventOptions;
+    TObject *obj = dROOTFile->ReadData("Mps_Tree");
+    if(!evtOpts) return PROCESS_FAILED;
+    if(!obj) {delete evtOpts; return PROCESS_FAILED;}
+    if(!obj->InheritsFrom("TTree")) {delete evtOpts; return PROCESS_FAILED;}
 
-//   new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), GetMain(), "evslcd","QwGUIMain",fftopts);
+    evtOpts->calcFlag    = kFalse;
+    evtOpts->cancelFlag  = kFalse;
+    evtOpts->changeFlag  = kFalse;
+    evtOpts->Start       = 0;
+    evtOpts->Length      = 0; 
+    evtOpts->TotalLength = ((TTree*)obj)->GetEntries();
 
-//   if(fftopts->cancelFlag) return kFalse;
-//   if(fftopts->changeFlag || !dCurrentData->IsFFTCalculated()){
+    new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), this, "evslcd","QwGUIMain",evtOpts);
 
-//     if(fftopts->Length <= 0) return kFalse;
-//     if(fftopts->Start < 0 || fftopts->Start >= dCurrentDataStr[0].Length()) return kFalse;
-//     if(fftopts->Start + fftopts->Length > dCurrentDataStr[0].Length()) return kFalse;
+    if(evtOpts->cancelFlag) {delete evtOpts; return PROCESS_FAILED;}
 
+    levt = evtOpts->Start;
+    evts = evtOpts->Length;
+  }
+
+  Int_t n = dROOTFile->GetNumOfRootObjects();
+  TString *names = new TString[n];
+  TString conds;
+  dROOTFile->GetListOfRootObjects(names);
+  TList *conditions;
+  for(int l = 0; l < n; l++){
+    if(names[l].Contains("condition")){
+      conditions = (TList*)dROOTFile->GetObjFromFile(names[l].Data());
+      if(conditions){
+	for(int i = 0; i < conditions->GetSize(); i++){
+	  conds = ((TObjString*)(conditions->At(i)))->GetString();
+	    
+	  Append(conds.Data(),kTrue);
+	  
+	  if(conds && conds.Contains("QwAnalyzer Options")){
+	    Int_t loc = conds.Index("-r",2,0,TString::kExact)+2;
+	    dCurRun = atoi(&conds[loc]);
+	    //printf("Run %d\n",atoi(&conds[loc])); 
+	  }
+	  if(conds && conds.Contains("QwAnalyzer Name") && 
+	     conds.Contains("parity")){
+	    //This is a parity run
+	    dCurRunType = Parity;
+	  }
+	  if(conds && conds.Contains("QwAnalyzer Name") && 
+	     conds.Contains("tracking")){
+	    //This is a tracking run
+	    dCurRunType = Tracking;
+	  }
+	}	 
+      }
+    }
+  }
+  delete[] names;
 
   dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
   TObject *obj;
@@ -966,6 +1020,9 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
   while(obj){
     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
     if(entry->IsTabMenuEntryChecked()){
+      entry->SetRunNumber(dCurRun);
+      entry->SetRunType(dCurRunType);
+      entry->SetEventMode(EventMode,levt,evts);
       entry->SetDataContainer(dROOTFile);
     };
     obj = next();
@@ -977,10 +1034,23 @@ Int_t QwGUIMain::OpenRootFile(ERFileStatus status, const char* file)
 }
 
 
-// Int_t QwGUIMain::OpenRun(Bool_t kCalculate, Bool_t kSilent)
-// {
-//   return PROCESS_FAILED;
-// }
+Int_t QwGUIMain::OpenRun()
+{
+  if (gSystem->Getenv("QW_ROOTFILES"))
+    sprintf(dMiscbuffer2,"%s",gSystem->Getenv("QW_ROOTFILES"));
+  else if (gSystem->Getenv("QWSCRATCH"))
+    sprintf(dMiscbuffer2,"%s",gSystem->Getenv("QWSCRATCH"));
+  else
+    sprintf(dMiscbuffer2,"/home/%s/scratch",gSystem->Getenv("USER"));
+
+  TString file(Form("%s/first100k_%d.root",dMiscbuffer2,(Long_t)dRunEntry->GetNumber()));
+//   TString file(Form("%s/Qweak_%d.000.root",dMiscbuffer2,(Long_t)dRunEntry->GetNumber()));
+  
+  return OpenRootFile(kFalse,FS_OLD,file.Data());
+  
+  
+  return PROCESS_FAILED;
+}
 
 
 // void QwGUIMain::CloseRun()
@@ -993,8 +1063,10 @@ void QwGUIMain::CloseRootFile()
 
   if(dROOTFile != NULL){
     dROOTFile->Close(kFalse);
+    delete dROOTFile;
     dROOTFile = NULL;
   }
+
   SetRootFileOpen(kFalse);
   dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);
 
@@ -1272,6 +1344,13 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
  	  dDBQueryEntry->Clear();
 	  break;
 
+	case M_RUN_SELECT:
+
+	  OpenRun();
+
+	  break;
+	  
+	  
 	default:
 	  break;
 	}
@@ -1320,6 +1399,10 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
       case M_ROOT_FILE_OPEN:
 	OpenRootFile();
+	break;
+
+      case M_ROOT_FILE_EVENT_OPEN:
+	OpenRootFile(kTrue);
 	break;
 
       case M_DBASE_OPEN:

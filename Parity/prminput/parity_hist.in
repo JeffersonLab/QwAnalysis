@@ -103,8 +103,6 @@ qwk_targetXAngle_hw 		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_targetYAngle_block		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_targetYAngle_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 
-
-
 yield_empty._block.             TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_empty._.w                 TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_phasemonitor_block.       TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
@@ -450,6 +448,65 @@ asymMD.Pos_.w_raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
 asymMD.Pos_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymMD.Pos_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
 asymMD.Pos_numsamples	TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
+
+
+###  New MD yield histograms (the above MD setings are all junk!)
+
+qwk_md...._hw			TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md...._hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_md...._block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md...._block._raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_md......._hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md......._hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_md......._block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md......._block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_md._qwk_md._hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md._qwk_md._hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_md._qwk_md._block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md._qwk_md._block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_mdallbars_hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdallbars_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_mdallbars_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdallbars_block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_mdevenbars_hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdevenbars_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_mdevenbars_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdevenbars_block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_mdoddbars_hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdoddbars_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_mdoddbars_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdoddbars_block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_......_hw			TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_......_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_......_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_......_block._raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+asym_qwk_md...._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_md...._block.		TH1F	1000	-0.01	0.01				Asymmetry	Events
+
+asym_qwk_md......._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_md......._block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+
+asym_qwk_md._qwk_md._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_md._qwk_md._block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+
+asym_qqwk_mdallbars_hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qqwk_mdallbars_block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+
+asym_qwk_mdevenbars_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
+asym_qwk_mdevenbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
+											                      
+asym_qwk_mdoddbars_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
+asym_qwk_mdoddbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
+
+asym_qwk_......_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
+asym_qwk_......_block.		TH1F	1000	-0.01	0.01				Asymmetry       Events
 
 
 ###  Scanner histograms
