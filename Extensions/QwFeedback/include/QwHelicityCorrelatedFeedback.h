@@ -36,6 +36,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fEnableBurstSum=kFALSE;
     fGoodPatternCounter=0;
+    fPatternCounter=0;
 
 
 /*     fFeedbackStatus=kTRUE; */
@@ -58,6 +59,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPITA_MIN_Charge_asym=1;//default value is 1ppm
 
     fTargetCharge.InitializeChannel("q_targ","derived");
+    fRunningCharge.InitializeChannel("q_targ","derived");
     fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop
     fPreviousChargeAsymmetry.InitializeChannel("q_targ","derived");//charge asymmetry at the previous feedback loop
     fCurrentChargeAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry 
@@ -184,14 +186,6 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
       return fChargeAsymmetryWidth;
     };
 
-    Bool_t SetInitialCondition(){
-      if (fPITASetpointPOS_t0>0 && fPITASetpointNEG_t0>0)//apply the t_0 correction if it is available
-	fInitialCorrection=kTRUE;
-      else
-	fInitialCorrection=kFALSE;
-      return fInitialCorrection;
-    }
-
     //Define separate running sums for differents helicity pattern modes
     /// \brief The types of helicity patterns based on following pattern history
     ///1. +--+ +--+
@@ -251,8 +245,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     //PITA setpoints for pos hel and neg hel
     Double_t fPITASetpointPOS;
     Double_t fPITASetpointNEG;
-    Double_t fPITASetpointPOS_t0;//Initial PC positive HW setpoint
-    Double_t fPITASetpointNEG_t0;//Initial PC negative HW setpoint
+    Double_t fPITASetpointPOS_t0_IN;//Initial PC positive HW setpoint
+    Double_t fPITASetpointNEG_t0_IN;//Initial PC negative HW setpoint
+    Double_t fPITASetpointPOS_t0_OUT;//Initial PC positive HW setpoint
+    Double_t fPITASetpointNEG_t0_OUT;//Initial PC negative HW setpoint
     Bool_t fInitialCorrection;//Is true at the beginning so that t_0 correction is appiled before doing any correction
     
     
@@ -270,6 +266,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     //Pattern counter
     Int_t fGoodPatternCounter;//increment the quartet number - reset after each feedback operation
+    Int_t fPatternCounter;//increment the quartet number - reset after each feedback operation
+    
     Int_t fHelModeGoodPatternCounter[kHelModes];//count patterns for each mode seperately - reset after each feedback operation
 
     // Keep four VQWK channels, one each for pattern history 1, 2, 3, and 4
@@ -277,6 +275,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     // into the proper pattern history runnign sum.
 
     QwBeamCharge   fTargetCharge;
+    QwBeamCharge   fRunningCharge;
     QwBeamCharge   fChargeAsymmetry0;//this is the charge asym at the beginning of the feedback loop
     QwBeamCharge   fPreviousChargeAsymmetry;//charge asymmetry at the previous feedback loop
     QwBeamCharge   fCurrentChargeAsymmetry;//current charge asymmetry 
@@ -293,6 +292,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     Bool_t fHalfWaveIN;
     Bool_t fHalfWaveOUT;
+    Int_t fIHWP;
 
     Bool_t fHalfWaveRevert;
 
