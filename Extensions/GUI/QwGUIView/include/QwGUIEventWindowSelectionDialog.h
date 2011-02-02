@@ -18,6 +18,7 @@
 #include "QwGUIMainDef.h"
 #include "RSDataWindow.h"
 
+
 struct EventOptions {
   Bool_t       calcFlag;
   Bool_t       cancelFlag;
