@@ -300,9 +300,10 @@ int main(Int_t argc,Char_t* argv[])
   }
 
   results.push_back("\n\n");
-  if(comparisonon)
+  if(comparisonon){
     results.push_back("\nFile containing the golden values =\n \t"+name_of_ref_file+"\n\n");
-  Read_ref_file(name_of_ref_file);
+    Read_ref_file(name_of_ref_file);
+  }
 
   TH1F* h = NULL;
   Double_t mps_normalizer=0;
@@ -1289,6 +1290,10 @@ void compare_to_golden_value(TString valuetocompareto, Double_t value, Double_t 
   // you compare your value with a precision to a reference value with a tolerance
   // if the two of them are separated by more than two sigma than flag this result
   // as out of tolerance
+
+  if (!comparisonon)
+    return;
+
   Double_t fac_dev=2.;//two sigma diviation
 
   size_t i=0;
@@ -1297,6 +1302,8 @@ void compare_to_golden_value(TString valuetocompareto, Double_t value, Double_t 
   verbose=kFALSE;
   Bool_t notfound=kTRUE;
   good_or_bad=0;
+
+  
   
   while(i<ref.size()&&notfound)
     {
@@ -1335,10 +1342,13 @@ void compare_to_golden_value(TString valuetocompareto, Double_t value, Double_t 
   
   if(notfound==kTRUE)
     {
-      std::cout<<" no golden value to compare to "<<std::endl;
-      std::cout<<"there is a problem in the routine compare_to_golden_value for \n";
-      std::cout<<"the quantity :"<<value<<" and the name "<<valuetocompareto<<"\n";
-      std::cout<<" ** code problem **" <<std::endl;
+      if(verbose)
+	{
+	  std::cout<<" no golden value to compare to "<<std::endl;
+	  std::cout<<"there is a problem in the routine compare_to_golden_value for \n";
+	  std::cout<<"the quantity :"<<value<<" and the name "<<valuetocompareto<<"\n";
+	  std::cout<<" ** code problem **" <<std::endl;
+	}
     }  
 };
 
