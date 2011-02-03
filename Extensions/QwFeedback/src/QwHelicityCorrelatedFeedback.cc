@@ -18,8 +18,7 @@
 void QwHelicityCorrelatedFeedback::DefineOptions(QwOptions &options)
 {
 
-
-  //options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-IN", po::value<bool>()->default_value(false)->zero_tokens(),"Set Half wave plate IN. The default is Half wave plate OUT");
+  options.AddOptions("Helicity Correlated Feedback")("Auto-IHWP-Flip", po::value<bool>()->default_value(false)->zero_tokens(),"Set Half wave plate IN. The default is Half wave plate OUT");
   options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-revert", po::value<bool>()->default_value(false)->zero_tokens(),"Revert half-wave plate status. The default is determined via EPIC");
   //options.AddOptions("Helicity Correlated Feedback")("Half-wave-plate-OUT", po::value<bool>()->default_value(true)->zero_tokens(),"Half wave plate OUT");
   options.AddOptions("Helicity Correlated Feedback")("PITA-Feedback", po::value<bool>()->default_value(false)->zero_tokens(),"Run the PITA charge feedback");
@@ -34,6 +33,8 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
 
   fHalfWaveRevert      = options.GetValue<bool>("Half-wave-plate-revert");
   fHalfWavePlateStatus = GetHalfWavePlateState();
+  fAutoIHWP = options.GetValue<bool>("Auto-IHWP-Flip");
+
 
   printf("NOTICE \n QwFeedback got the half-wave plate status %s\n", fHalfWavePlateStatus.Data());
   if(fHalfWaveRevert) {
@@ -50,7 +51,7 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
 
   fHalfWaveOUT = !fHalfWaveIN;
 
-
+  
 
 
   if (fHalfWaveIN)
@@ -73,6 +74,14 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
   if (!fPITAFB && !fIAFB){//no correction applied.
     fEPICSCtrl.Set_FeedbackStatus(0);
     exit(1); 
+  }
+
+  if (fAutoIHWP){
+    printf("NOTICE \n   AUTO IHWP Flip is ON \n");
+    //exit(1);
+  }else{
+    printf("NOTICE \n   AUTO IHWP Flip is OFF \n");
+    //exit(1);
   }
 };
 
@@ -256,35 +265,37 @@ void QwHelicityCorrelatedFeedback::FeedIASetPoint(Int_t mode){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
 
-  Int_t PrevHalfWaveState=fHalfWaveIN;
-  fHalfWavePlateStatus = GetHalfWavePlateState();
+  if (fAutoIHWP){
+    Int_t PrevHalfWaveState=fHalfWaveIN;
+    fHalfWavePlateStatus = GetHalfWavePlateState();
 
-  //Reads the IHWP
-  if(fHalfWavePlateStatus.Contains("IN")) {
-    if(fHalfWaveRevert) fHalfWaveIN = false;
-    else                fHalfWaveIN = true;
-  }
-  else {
-    if(fHalfWaveRevert) fHalfWaveIN = true;
-    else                fHalfWaveIN = false;
-  }
-
-  fHalfWaveOUT = !fHalfWaveIN;
-
-  //If the IHWP state is changed set the initial set points for the PC+ and PC-
-  if (PrevHalfWaveState!=fHalfWaveIN){
-    printf("*NOTICE*\n******** \n QwFeedback got the new half-wave plate status %s\n", fHalfWavePlateStatus.Data());
-    if (fHalfWaveIN){
-      fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_IN);
-      fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_IN);
-    } else{
-      fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_OUT);
-      fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_OUT);
+    //Reads the IHWP
+    if(fHalfWavePlateStatus.Contains("IN")) {
+      if(fHalfWaveRevert) fHalfWaveIN = false;
+      else                fHalfWaveIN = true;
     }
-    //start accumulating asymmetry for the new set points
-    ClearRunningSum();//reset the running sum only if PITA correction applied
-    //QwMessage<<"FeedPITASetPoint Initial correction applied "<<" "<<fChargeAsymmetry<<" +/- "<<fChargeAsymmetryError<<" new set point[+]  "<<fPITASetpointPOS_t0<<" [-] "<<fPITASetpointNEG_t0<<QwLog::endl;
-    return;
+    else {
+      if(fHalfWaveRevert) fHalfWaveIN = true;
+      else                fHalfWaveIN = false;
+    }
+
+    fHalfWaveOUT = !fHalfWaveIN;
+
+    //If the IHWP state is changed set the initial set points for the PC+ and PC-
+    if (PrevHalfWaveState!=fHalfWaveIN){
+      printf("*NOTICE*\n******** \n QwFeedback got the new half-wave plate status %s\n", fHalfWavePlateStatus.Data());
+      if (fHalfWaveIN){
+	fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_IN);
+	fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_IN);
+      } else{
+	fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_OUT);
+	fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_OUT);
+      }
+      //start accumulating asymmetry for the new set points
+      ClearRunningSum();//reset the running sum only if PITA correction applied
+      //QwMessage<<"FeedPITASetPoint Initial correction applied "<<" "<<fChargeAsymmetry<<" +/- "<<fChargeAsymmetryError<<" new set point[+]  "<<fPITASetpointPOS_t0<<" [-] "<<fPITASetpointNEG_t0<<QwLog::endl;
+      return;
+    }
   }
   /*
   if (TMath::Abs(fChargeAsymmetry)<fPITA_MIN_Charge_asym){ 

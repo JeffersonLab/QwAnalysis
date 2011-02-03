@@ -295,6 +295,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Int_t fIHWP;
 
     Bool_t fHalfWaveRevert;
+    Bool_t fAutoIHWP;
 
     TString fHalfWavePlateStatus;
 
