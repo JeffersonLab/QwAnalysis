@@ -496,8 +496,8 @@ asym_qwk_md......._block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
 asym_qwk_md._qwk_md._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
 asym_qwk_md._qwk_md._block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
 
-asym_qqwk_mdallbars_hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
-asym_qqwk_mdallbars_block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_mdallbars_hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_mdallbars_block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
 
 asym_qwk_mdevenbars_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
 asym_qwk_mdevenbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
@@ -507,6 +507,18 @@ asym_qwk_mdoddbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
 
 asym_qwk_......_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
 asym_qwk_......_block.		TH1F	1000	-0.01	0.01				Asymmetry       Events
+
+
+###  New Lumi histograms 
+
+qwk_dslumi._hw			TH1F	10000	0.01	0.03				V/#muA	Events
+qwk_dslumi._hw_raw		TH1F	10000	0		3.1e7				Samples	Events
+qwk_uslumi...._hw		TH1F	10000	0.00	0.05				V/#muA	Events
+qwk_uslumi...._hw_raw	TH1F	10000	0		3.0e7				Samples Events
+
+asym_qwk_dslumi._hw		TH1F	10000	-0.2	0.2				Asymmetry	Events
+asym_qwk_uslumi...._hw	TH1F	10000	-0.2	0.2				Asymmetry	Events
+
 
 
 ###  Scanner histograms
