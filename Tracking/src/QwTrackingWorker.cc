@@ -986,6 +986,11 @@ QwEvent* QwTrackingWorker::ProcessHits (
                   QwMessage << "Ray tracer: " << status << QwLog::endl;
                   if (status == 0) {
                      event->AddTrackList(fRayTracer->GetListOfTracks());
+		     //fRayTracer->PrintInfo();
+		     double buff[14];
+		     fRayTracer->GetBridgingResult(buff);
+		     event->AddBridgingResult(buff);
+		     //event->Print();
                     back = back->next;
                     continue;
                   }

@@ -30,8 +30,8 @@ QwTrack::QwTrack(const QwTrack& track)
 QwTrack::~QwTrack()
 {
   // Delete objects
-  if (front) delete front;
-  if (back)  delete back;
+  //if (front) delete front;  //jpan: not sure why the program crash here, temporarily comment it out
+  //if (back)  delete back;
 }
 
 /**

@@ -115,8 +115,8 @@ QwEvent::~QwEvent()
          QwPartialTrack* pt = parttrack[i][j][k];
          while (pt) {
            QwPartialTrack* pt_next = pt->next;
-           delete pt;
-           pt = pt_next;
+           //delete pt;    //jpan: not sure why crashing here, comment it out temporarily
+           pt = pt_next;	   
          }
 
         // Delete all those treelines
@@ -155,19 +155,27 @@ void QwEvent::Reset(Option_t *option)
   ResetTracks(option);
 };
 
+void QwEvent::AddBridgingResult(double* buffer)
+{
+    fPrimaryQ2 = buffer[12];
+    fKineticEnergy = buffer[10];
+    fScatteringAngle = buffer[13];
+    fScatteringVertexZ = buffer[14];
+
+}
 
 // Print the event
 void QwEvent::Print(Option_t* option) const
 {
   // Event header
-  std::cout << *fEventHeader << std::endl;
+  //std::cout << *fEventHeader << std::endl;
   // Event kinematics
-  std::cout << "Q^2 = " << fPrimaryQ2/Qw::MeV << " MeV" << std::endl;
-  std::cout << "weight = " << fCrossSectionWeight << std::endl;
-  std::cout << "energy = " << fTotalEnergy/Qw::MeV << " MeV" << std::endl;
+  std::cout << "Q^2 = " << fPrimaryQ2 << " MeV/c^2" << std::endl;
+//  std::cout << "weight = " << fCrossSectionWeight << std::endl;
+//  std::cout << "energy = " << fTotalEnergy/Qw::MeV << " MeV" << std::endl;
   std::cout << "K.E. = " << fKineticEnergy/Qw::MeV << " MeV" << std::endl;
-  std::cout << "vertex position = " << fVertexPosition.Z()/Qw::cm << " cm" << std::endl;
-  std::cout << "vertex momentum = " << fVertexMomentum.Z()/Qw::MeV << " MeV" << std::endl;
+//  std::cout << "vertex position = " << fVertexPosition.Z()/Qw::cm << " cm" << std::endl;
+//  std::cout << "vertex momentum = " << fVertexMomentum.Z()/Qw::MeV << " MeV" << std::endl;
 
   // Event content
   std::cout << "Hits in this event:" << std::endl;

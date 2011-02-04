@@ -138,7 +138,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
   fField->SetInterpolationMethod(kMultiLinear);
 
   // Scale factor
-  SetFieldScalingFactor(1.04); // BFIL
+  SetFieldScalingFactor(1.035519443); // BFIL 8921/8615=1.035519443
   // Translation
   SetTranslation(0.0 * Qw::cm);
   // Rotation in degrees, half an octant offset
@@ -168,7 +168,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
     input >> r >> z >> phi >> bx >> by >> bz;
     if (! input.good()) continue;
     // Fix the units
-    r *= Qw::cm; z *= Qw::cm; phi *= Qw::deg;
+    r *= Qw::cm; z *= Qw::cm; phi *= Qw::deg; 
     bx *= Qw::kG; by *= Qw::kG; bz *= Qw::kG;
 
     // Correct for translation along z

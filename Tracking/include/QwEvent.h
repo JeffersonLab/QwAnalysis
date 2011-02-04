@@ -350,9 +350,11 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     void PrintTracks(Option_t* option = "") const;
     // @}
 
+    void AddBridgingResult(double*);
+    
     //! \brief Print the event
     void Print(Option_t* option = "") const;
-
+    
   public:
 
     /// \name Kinematic observables
@@ -363,6 +365,8 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     double fKineticEnergy;
     TVector3 fVertexPosition;
     TVector3 fVertexMomentum;
+    double fScatteringAngle;
+    double fScatteringVertexZ;
     // @}
 
     /*! List of QwGEMCluster objects */

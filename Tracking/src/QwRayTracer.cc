@@ -130,19 +130,25 @@ const int QwRayTracer::Bridge(
     // Ray-tracing parameters
     double res = 0.2 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
     double step = 1.0 * Qw::cm; // integration step size
-    double dp = 5.0 * Qw::MeV; // 10.0 * Qw::MeV; // momentum variation
+    double dp = 10.0 / Qw::GeV; // 10.0 * Qw::MeV; // momentum variation
 
     double p[2],x[2],y[2],r[2];
 
     // Front track position and direction
     TVector3 start_position = front->GetPosition(-330.685 * Qw::cm);
+    fStartPosition = start_position;
     TVector3 start_direction = front->GetMomentumDirection();
+    fScatteringAngle = start_direction.Theta();
     // Estimate initial momentum based on front track
-    p[0] = p[1] = EstimateInitialMomentum(start_direction);
+    p[0] = p[1] = EstimateInitialMomentum(start_direction)/Qw::GeV;
+    //std::cout<<"estimated momentum = "<<p[0]<<" GeV, dp="<<dp<<" GeV\n";
 
     // Back track position and direction
     TVector3 end_position = back->GetPosition(439.625 * Qw::cm);
     TVector3 end_direction = back->GetMomentumDirection();
+
+    //std::cout<<"start position(x,y,z)="<<start_position.X()<<","<<start_position.Y()<<", "<<start_position.Z()<<"\n";
+    //std::cout<<"end_position(x,y,z)="<<end_position.X()<<","<<end_position.Y()<<", "<<end_position.Z()<<"\n";
 
     fPositionROff = end_position.Perp();
 
@@ -195,16 +201,30 @@ const int QwRayTracer::Bridge(
         fDirectionPhiOff   = direction.Phi()   - end_direction.Phi();
 
         p[0] = p[1];
+	//std::cout<<"p[0]== "<<p[0]<<" GeV,  ";
+        //std::cout<<"hit at ("<<x[0]<<","<<y[0]<<")\n";
     }
 
     if (iterations < MAX_ITERATIONS_NEWTON) {
 
-        fMomentum = p[1];
+        fMomentum = p[1]*Qw::GeV;
         QwMessage << "Converged after " << iterations << " iterations." << QwLog::endl;
 
         if (fMomentum < 0.980 * Qw::GeV || fMomentum > 1.165 * Qw::GeV) {
             QwMessage << "Out of momentum range: determined momentum by shooting: "
                       << fMomentum / Qw::GeV << " GeV" << std::endl;
+            return -1;
+        }
+        
+        if (fabs(fPositionPhiOff) > 10*Qw::deg) {
+            QwMessage << "Out of position Phi-matching range: dPhi by shooting: "
+                      << fPositionPhiOff / Qw::deg << " deg" << std::endl;
+            return -1;
+        }
+        
+        if (fabs(fDirectionPhiOff) > 10*Qw::deg) {
+            QwMessage << "Out of direction phi-matching range: dphi by shooting: "
+                      << fDirectionPhiOff / Qw::deg << " deg" << std::endl;
             return -1;
         }
 
@@ -223,6 +243,9 @@ const int QwRayTracer::Bridge(
         bridge->fEndPositionActual = position;
         bridge->fEndDirectionActual = direction;
 
+        fHitPosition = position;
+        fHitDirection = direction;
+
         fListOfTracks.push_back(track);
 
 
@@ -232,8 +255,8 @@ const int QwRayTracer::Bridge(
     } else {
 
         QwMessage << "Can't converge after " << iterations << " iterations." << QwLog::endl;
-        QwMessage << "Hit at at " << fHitPosition * (1/Qw::cm) << " cm with momentum " << p[1] / Qw::GeV
-                  << " GeV and direction " << fHitDirection << QwLog::endl;
+        //QwMessage << "Hit at at " << fHitPosition * (1/Qw::cm) << " cm with momentum " << p[1]
+        //          << " GeV and direction " << fHitDirection << QwLog::endl;
         return -1;
     }
 };
@@ -266,8 +289,15 @@ const int QwRayTracer::Bridge(
  * @param step Step size
  * @return True if the integration was successful
  */
-const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, double z_end, const double step)
+const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, double z_end, double step)
 {
+
+    r0[0]/=Qw::m;
+    r0[1]/=Qw::m;
+    r0[2]/=Qw::m;
+    z_end/=Qw::m;
+    step /=Qw::m;
+
     // Local variables
     double xx[2],yy[2],zz[2];
     double uvx[2],uvy[2],uvz[2];
@@ -281,6 +311,8 @@ const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p
     double dvx2,dvy2,dvz2;
     double dvx3,dvy3,dvz3;
     double dvx4,dvy4,dvz4;
+
+    double point1[3];
 
     // Position vector and references to components
     double point[3];
@@ -330,7 +362,10 @@ const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p
         vx = vx1 = uvx[0];
         vy = vy1 = uvy[0];
         vz = vz1 = uvz[0];
-        fBfield->GetCartesianFieldValue(point, bfield);
+        point1[0]=x*Qw::m;
+        point1[1]=y*Qw::m;
+        point1[2]=z*Qw::m;
+        fBfield->GetCartesianFieldValue(point1, bfield);
 
         // First approximation to the changes in the variables for step h (k1)
         dx1 = step * vx;
@@ -347,7 +382,10 @@ const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p
         vx = vx1 + dvx1 / 2.0;
         vy = vy1 + dvy1 / 2.0;
         vz = vz1 + dvz1 / 2.0;
-        fBfield->GetCartesianFieldValue(point, bfield);
+        point1[0]=x*Qw::m;
+        point1[1]=y*Qw::m;
+        point1[2]=z*Qw::m;
+        fBfield->GetCartesianFieldValue(point1, bfield);
 
         // Second approximation to the changes in the variables for step h (k2)
         dx2 = step * vx;
@@ -364,7 +402,10 @@ const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p
         vx = vx1 + dvx2 / 2.0;
         vy = vy1 + dvy2 / 2.0;
         vz = vz1 + dvz2 / 2.0;
-        fBfield->GetCartesianFieldValue(point, bfield);
+        point1[0]=x*Qw::m;
+        point1[1]=y*Qw::m;
+        point1[2]=z*Qw::m;
+        fBfield->GetCartesianFieldValue(point1, bfield);
 
         // Third approximation to the changes in the variables for step h (k3)
         dx3 = step * vx;
@@ -381,7 +422,10 @@ const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p
         vx = vx1 + dvx3;
         vy = vy1 + dvy3;
         vz = vz1 + dvz3;
-        fBfield->GetCartesianFieldValue(point, bfield);
+        point1[0]=x*Qw::m;
+        point1[1]=y*Qw::m;
+        point1[2]=z*Qw::m;
+        fBfield->GetCartesianFieldValue(point1, bfield);
 
         // Fourth approximation to the changes in the variables for step h (k4)
         dx4 = step * vx;
@@ -395,7 +439,7 @@ const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p
         fBdlx += step * (vz*by - vy*bz);
         fBdly += step * (vx*bz - vz*bx);
         fBdlz += step * (vy*bx - vx*by);
-
+        //std::cout<<"Bfield(x,y,z)"<<bx<<", "<<by<<", "<<bz<<"\n";
         // Final estimates of trajectory
         xx[1] = xx[0] + (dx1 + 2.0*dx2 + 2.0*dx3 + dx4) / 6.0;
         yy[1] = yy[0] + (dy1 + 2.0*dy2 + 2.0*dy3 + dy4) / 6.0;
@@ -422,7 +466,7 @@ const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p
     }
 
     // Actual position of the track
-    r0 = TVector3(xx[0], yy[0], zz[0]);
+    r0 = TVector3(xx[0]*Qw::m, yy[0]*Qw::m, zz[0]*Qw::m);
     uv0 = TVector3(uvx[0], uvy[0], uvz[0]);
 
     return true;
@@ -450,17 +494,13 @@ void QwRayTracer::PrintInfo() {
 
     std::cout<<std::endl<<"   Front/back bridging information"<<std::endl;
     std::cout<<"====================================================================="<<std::endl;
-    std::cout<<" matched hit :    location (x,y,z) : ("<<fHitPosition.X()<<", "
-    <<fHitPosition.Y()<<", "
-    <<fHitPosition.Z()<<")"<<std::endl;
+    std::cout<<" matched hit :    location (x,y,z) : "<<fHitPosition<<std::endl;
 
     std::cout<<"                         (R,PHI,Z) : ("<<fHitPosition.Perp()<<", "
     <<fHitPosition.Phi() / Qw::deg<<", "
     <<fHitPosition.Z()<<")"<<std::endl;
 
-    std::cout<<"              direction (ux,uy,uz) : ("<<fHitDirection.X()<<", "
-    <<fHitDirection.Y()<<", "
-    <<fHitDirection.Z()<<")"<<std::endl;
+    std::cout<<"              direction (ux,uy,uz) : "<<fHitDirection<<std::endl;
 
     std::cout<<"                       (theta,phi) : ("<<fHitDirection.Theta() / Qw::deg<<", "
     <<fHitDirection.Phi() / Qw::deg<<")"<<std::endl;
@@ -476,17 +516,17 @@ void QwRayTracer::PrintInfo() {
 
 void QwRayTracer::GetBridgingResult(Double_t *buffer) {
 
-    buffer[20] = fHitPosition.X();
-    buffer[21] = fHitPosition.Y();
-    buffer[22] = fHitPosition.Z();
-    buffer[25] = fHitDirection.X();
-    buffer[26] = fHitDirection.Y();
-    buffer[27] = fHitDirection.Z();
+    buffer[0] = fHitPosition.X();
+    buffer[1] = fHitPosition.Y();
+    buffer[2] = fHitPosition.Z();
+    buffer[3] = fHitDirection.X();
+    buffer[4] = fHitDirection.Y();
+    buffer[5] = fHitDirection.Z();
 
-    buffer[30] = fPositionROff;
-    buffer[31] = fPositionPhiOff;
-    buffer[32] = fDirectionThetaOff;
-    buffer[33] = fDirectionPhiOff;
+    buffer[6] = fPositionROff;
+    buffer[7] = fPositionPhiOff;
+    buffer[8] = fDirectionThetaOff;
+    buffer[9] = fDirectionPhiOff;
 
     // jpan: fMomentum is the determined momentum on the z=-250 cm plane.
     // In order to get the scattered momentum (P') inside the target,
@@ -496,17 +536,35 @@ void QwRayTracer::GetBridgingResult(Double_t *buffer) {
     // When the correct scattering angle is determined, it could be used for
     // this purpose.
 
-    double momentum_correction = 0.0; // 32.0 * Qw::MeV;  // assume 32 MeV with multi-scattering, etc.
+    // test code for momentum correction
+    double vertex_z = fStartPosition.Z() - sqrt(fStartPosition.X()*fStartPosition.X()+fStartPosition.Y()*fStartPosition.Y())/tan(fScatteringAngle);
+    double length = 0.0;
+    if(vertex_z<(-650.0+35.0/2))
+        length = ((-650.0+35.0/2)-vertex_z)/cos(fScatteringAngle); //path length in target after scattering
+    double momentum_correction = (length/35.0)*48.0;  //assume 48 MeV total energy loss through the full target length
+    
+    momentum_correction = 0.0; // 32.0 * Qw::MeV;  // assume 32 MeV with multi-scattering, etc.
+    
     double PP = fMomentum + momentum_correction;
-    buffer[34] = PP;
+    buffer[10] = PP;
 
-//    double Mp = 0.938272013;    // Mass of the Proton
-//    double P0 = Mp*PP/(Mp-PP*(1-cos(fStartDirection.Theta()))); //pre-scattering energy
-//    double Q2 = 2.0*Mp*(P0-PP);
-//    buffer[35] = P0;
-//    buffer[36] = Q2;
+    double Mp = 938.272013;    // Mass of the Proton in MeV
+    
+    double P0 = Mp*PP/(Mp-PP*(1-cos(fScatteringAngle))); //pre-scattering energy
+    double Q2 = 2.0*Mp*(P0-PP);
+    buffer[11] = P0;
+    buffer[12] = Q2;
 
-// NOTE Had to comment the fPrimary variables as they are not read by anymore
+    buffer[13] = fScatteringAngle;
+    buffer[14] = vertex_z;
+    
+    buffer[15] = fMatchFlag;
+    
+    //std::cout<<"===========================\n";
+    //std::cout<<"eloss in target = "<<momentum_correction<< " MeV\n";
+    //std::cout<<"P0="<<P0<<" MeV,  P'="<<PP<<" MeV,  theta="<<fScatteringAngle/Qw::deg<<" deg,  Q2="<<Q2<<" (MeV/c)^2\n";
+    
+    // NOTE Had to comment the fPrimary variables as they are not read by anymore
 //     buffer[37] = fPrimary_OriginVertexKineticEnergy;
 //     buffer[38] = fPrimary_PrimaryQ2;
 
@@ -516,7 +574,6 @@ void QwRayTracer::GetBridgingResult(Double_t *buffer) {
 //     buffer[40] = Q2_Off;
 //     buffer[41] = fPrimary_CrossSectionWeight;
 
-    buffer[42] = fMatchFlag;
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

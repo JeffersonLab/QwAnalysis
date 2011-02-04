@@ -71,7 +71,7 @@ class QwRayTracer: public VQwBridgingMethod {
     };
 
     /// \brief Integrate using the Runge-Kutta 4th order algorithm
-    const bool IntegrateRK4(TVector3& r0, TVector3& v0, const double p0, double z_end, const double step);
+    const bool IntegrateRK4(TVector3& r0, TVector3& v0, const double p0, double z_end, double step);
 
     QwBridge* GetBridgingInfo();
 
@@ -113,6 +113,8 @@ class QwRayTracer: public VQwBridgingMethod {
     double fBdlz; /// z component of the field integral
 
     double fMomentum;  /// electron momentum
+    double fScatteringAngle;
+    TVector3 fStartPosition;
 
     TVector3 fHitPosition, fHitDirection;
 
