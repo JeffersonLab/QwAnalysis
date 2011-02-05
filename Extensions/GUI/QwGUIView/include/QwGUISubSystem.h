@@ -87,6 +87,10 @@ class QwGUISubSystem : public TGCompositeFrame {
 
   //!The tab menu ID associated with this subsystem
   Long_t           dTabMenuID;   
+
+  //!Flag indicates if there will be multiple files opened, for which the histograms
+  //!are supposed to be added. THIS IS ONLY IMPLEMENTED IN HISTOGRAM MODE, NOT TREE EVENT MODE!!!!
+  Bool_t           dMultipleFiles;
   
   //!Flag indicates whether the menu item belonging to this subsystem is checked/active.
   //!In other words, is this tab currently visible or not?
@@ -493,8 +497,8 @@ class QwGUISubSystem : public TGCompositeFrame {
 
   UInt_t         GetStartEvent(){return dStartEvent;}; 
   UInt_t         GetNumEvents() {return dNumEvents;};
-
-
+  void           SetMultipleFiles(Bool_t mf) {dMultipleFiles = mf;}; 
+  Bool_t         AddMultipleFiles() { return dMultipleFiles;};
 
   char            *GetRootFileName(){ if(!dROOTCont) return NULL; return dROOTCont->GetFileName();};
 

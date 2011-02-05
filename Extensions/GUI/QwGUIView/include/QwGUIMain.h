@@ -67,7 +67,8 @@
 #include <TApplication.h>
 #include <TGClient.h>
 #include <TRandom.h>
-#include <TGComboBox.h>
+//#include <TGComboBox.h>
+#include "QwGUIComboBox.h"
 #include <TGNumberEntry.h>
 #include <TString.h>
 #include <TGSplitter.h>
@@ -141,6 +142,8 @@ class QwGUIMain : public TGMainFrame {
   //!Menu ID counter
   Int_t                   MCnt;
 
+  Int_t                   dCurrentSegment;
+
   //!The following two flags are used in process increment dialog boxes
   Bool_t                  dProcessing;
   Bool_t                  dProcessHalt;
@@ -150,6 +153,7 @@ class QwGUIMain : public TGMainFrame {
   Bool_t                  dDatabaseOpen;
   Bool_t                  dLogFileOpen;
   Bool_t                  dRunOpen;
+  Bool_t                  dAllSegments;
 
   Char_t                  dLogfilename[NAME_STR_MAX];//Name for Current log file
   Char_t                  dRootfilename[NAME_STR_MAX];//Name for Current root file
@@ -168,8 +172,10 @@ class QwGUIMain : public TGMainFrame {
   RDataContainer         *dROOTFile;
 
   //!Standard GUI widgets and layouts for the main window
-  TGComboBox             *dTBinEntry;
-  TGLayoutHints          *dTBinEntryLayout;
+  QwGUIComboBox          *dSegmentEntry;
+  QwGUIComboBox          *dPrefixEntry;
+  TGLayoutHints          *dSegmentEntryLayout;
+  TGLayoutHints          *dPrefixEntryLayout;
   TGNumberEntry          *dRunEntry;
   TGLayoutHints          *dRunEntryLayout;
   TGLabel                *dRunEntryLabel;
@@ -213,6 +219,12 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dMenuBarLayout;
   TGLayoutHints          *dMenuBarItemLayout;
   TGLayoutHints          *dMenuBarHelpLayout;
+
+  TString                 fPrefix;
+  TString                 fDirectory;
+
+  vector <int>            dRunSegments;
+  vector <TString>        dFilePrefix;
 
   //!This function is used to append new messages to the log book. It cannot
   //!be used from other classes. Instead, the QwGUISubSystem class implements the
@@ -405,6 +417,24 @@ class QwGUIMain : public TGMainFrame {
   void                    SleepWithEvents(int seconds);
   TCanvas                *SplitCanvas(TRootEmbeddedCanvas *,int,int,const char*);
 
+  void                    SetReadAllRunSegments(Bool_t all) {dAllSegments = all;};
+  Bool_t                  ReadAllRunSegments(){return dAllSegments;};
+
+  void                    SetCurrentRunSegment(Int_t seg){dCurrentSegment = seg;};
+  Int_t                   GetCurrentRunSegment() {return dCurrentSegment;};
+  Int_t                   GetSegmentIndex(UInt_t n) {if(n >= 0 && n < dRunSegments.size()) return dRunSegments[n]; 
+                                                    return -1;};
+
+  void                    SetCurrentRunNumber(Int_t run) {dCurRun = run;};
+  const char             *GetCurrentFilePrefix(){return fPrefix.Data();};
+  const char             *GetCurrentFileDirectory(){return fDirectory.Data();};
+
+  void                    SetCurrentFilePrefix(const char* prefix){ fPrefix = prefix;};
+  void                    SetCurrentFileDirectory(const char* dir){fDirectory = dir;};
+
+  Int_t                   FindFileAndSegments();
+  void                    LoopOverRunSegments();
+  
 
   //!This function checks to see if a tab with a certain name is already active.
   //!

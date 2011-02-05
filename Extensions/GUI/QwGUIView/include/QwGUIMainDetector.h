@@ -147,6 +147,7 @@ class QwGUIMainDetectorDataStructure{
  
   Int_t SetTree(TTree *tree);
   Int_t SetHistograms(RDataContainer *cont, TTree *tree);
+  void  AddHistograms(RDataContainer *cont, TTree *tree);
 
   void FillData(Double_t sample);
   void FillHistograms();
@@ -267,9 +268,10 @@ class QwGUIMainDetectorDataType{
   UInt_t GetID(){return ID;};
   UInt_t SetTree(RDataContainer *cont, TTree *tree, vector <TString> DetNames, UInt_t run);
   UInt_t SetHistograms(RDataContainer *cont, TTree *tree, vector <TString> DetNames, UInt_t run);
+  UInt_t AddHistograms(RDataContainer *cont, TTree *tree, vector <TString> DetNames);
 
   void FillData(Double_t sample);
-  void ProcessData(const char* SummaryTitles);
+  void ProcessData(const char* SummaryTitles, Bool_t Add = kFalse);
   void PlotData();
   TObject *GetSelectedPlot();
   void CalculateFFTs(EventOptions*);
@@ -407,6 +409,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   void                 SetCurrentMenuItemID(Int_t id) {CurrentMenuItemID = id;};
 
   void                 CleanUp();
+  void                 AddDataHistograms(TTree *MPSTree,TTree *HELTree);
 
  protected:
 

@@ -494,8 +494,6 @@ Bool_t QwGUIScanner::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
         {
           switch (parm1)
             {
-            case M_TBIN_SELECT:
-              break;
             }
         }
         break;

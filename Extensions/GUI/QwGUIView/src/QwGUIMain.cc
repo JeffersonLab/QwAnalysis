@@ -54,14 +54,18 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   dMWWidth              = w;
   dMWHeight             = h;
-  dCurRun               = 0;
+  SetCurrentRunNumber(0);
+  SetCurrentFilePrefix("Qweak_");
+  SetCurrentFileDirectory("./");
   dCurRunType           = Parity;
 
   dROOTFile             = NULL;
   dDatabase             = NULL;
 
-  dTBinEntry            = NULL;
-  dTBinEntryLayout      = NULL;
+  dSegmentEntry         = NULL;
+  dSegmentEntryLayout   = NULL;
+  dPrefixEntry          = NULL;
+  dPrefixEntryLayout    = NULL;
   dRunEntry             = NULL;
   dRunEntryLayout       = NULL;
   dHorizontal3DLine     = NULL;
@@ -102,6 +106,9 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   SetDatabaseOpen(kFalse);
   SetLogFileOpen(kFalse);
   SetLogFileName("None");
+
+  SetReadAllRunSegments(kFalse);
+  SetCurrentRunSegment(0);
 
   MakeMenuLayout();
   MakeUtilityLayout();
@@ -165,8 +172,10 @@ QwGUIMain::~QwGUIMain()
 
   delete dROOTFile             ;
 
-  delete dTBinEntry            ;
-  delete dTBinEntryLayout      ;
+  delete dSegmentEntry         ;
+  delete dSegmentEntryLayout   ;
+  delete dPrefixEntry          ;
+  delete dPrefixEntryLayout    ;
   delete dRunEntry             ;
   delete dRunEntryLayout       ;
   delete dHorizontal3DLine     ;
@@ -245,23 +254,12 @@ void QwGUIMain::MakeMenuLayout()
 void QwGUIMain::MakeUtilityLayout()
 {
   dUtilityLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop | kLHintsExpandX, 2,2,2,2);
-//   dTBinEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
   dRunEntryLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 2, 2, 2, 2);
 
   dHorizontal3DLine = new TGHorizontal3DLine(this);
   AddFrame(dHorizontal3DLine, new TGLayoutHints(kLHintsTop | kLHintsExpandX));
 
   dUtilityFrame = new TGHorizontalFrame(this,60,10);
-//   dTBinEntry = new TGComboBox(dUtilityFrame,M_TBIN_SELECT);
-//   dTBinEntry->Associate(this);
-//   dUtilityFrame->AddFrame(dTBinEntry,dTBinEntryLayout);
-// //   for (int i = 0; i < VME2_MP_SIZE; i++){
-// //     tof = GetTBinWidth()*(i+0.5)+GetMPOffset();
-// //     eng = pow((21030.0/438/tof),2);
-// //     sprintf(dTOFBINStrings[i],"Bin %03d: tof %6.2f ms; Eng %9.2f meV", i, tof, eng);
-// //     dTBinEntry->AddEntry(dTOFBINStrings[i], i+1);
-// //   }
-//   dTBinEntry->Resize(280, 20);
 
 //   if(!dClArgs.realtime){
   dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
@@ -269,13 +267,37 @@ void QwGUIMain::MakeUtilityLayout()
 				TGNumberFormat::kNEANonNegative,
 				TGNumberFormat::kNELLimitMinMax,1,999999);
   if(dRunEntry){
-    dRunEntryLabel = new TGLabel(dUtilityFrame,"Run Number:");
+    dRunEntryLabel = new TGLabel(dUtilityFrame,"Run:");
     if(dRunEntryLabel){
       dUtilityFrame->AddFrame(dRunEntryLabel,dRunEntryLayout);
     }
     dRunEntry->Associate(this);
     dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
   }
+
+  TGLabel *dSegmentEntryLabel = new TGLabel(dUtilityFrame,"Segment:");  
+  dSegmentEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+  dUtilityFrame->AddFrame(dSegmentEntryLabel,dSegmentEntryLayout);
+  dSegmentEntry = new QwGUIComboBox(dUtilityFrame,"",M_SEGMENT_SELECT);
+  dSegmentEntry->Associate(this);
+  dUtilityFrame->AddFrame(dSegmentEntry,dSegmentEntryLayout);
+  dSegmentEntry->Resize(100,20);
+
+  TGLabel *dPrefixEntryLabel = new TGLabel(dUtilityFrame,"Prefix:");  
+  dPrefixEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+  dUtilityFrame->AddFrame(dPrefixEntryLabel,dPrefixEntryLayout);
+  dPrefixEntry = new QwGUIComboBox(dUtilityFrame,"",M_PREFIX_SELECT);
+  dPrefixEntry->AddEntry("Qweak",1);
+  dFilePrefix.push_back("Qweak_");
+  dPrefixEntry->AddEntry("first100k",2);
+  dFilePrefix.push_back("first100k_");
+  dPrefixEntry->AddEntry("QwPass1",3);
+  dFilePrefix.push_back("QwPass1_");
+  
+  dPrefixEntry->Associate(this);
+  dUtilityFrame->AddFrame(dPrefixEntry,dPrefixEntryLayout);
+  dPrefixEntry->Resize(100,20);
+
   //}
 
 //   if(dClArgs.realtime){
@@ -732,6 +754,8 @@ void QwGUIMain::OnReceiveMessage(const char *obj)
   QwGUISubSystem* sbSystem = GetSubSystemPtr(obj);
   if(sbSystem){
 
+    
+
     ptr = sbSystem->GetMessage();
     if(ptr)
       Append(ptr,sbSystem->IfTimeStamp());
@@ -970,24 +994,6 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
     new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), this, "evslcd","QwGUIMain",evtOpts);
 
     if(evtOpts->cancelFlag) {delete evtOpts; return PROCESS_FAILED;}
-//     if(evtOpts->changeFlag && evtOpts->Length > 100000){
-      
-//       Int_t retval= 0;
-//       char buffer[200];
-//       memset(buffer,'\0',sizeof(buffer));
-
-//       sprintf(buffer,
-// 	      "You selected %d events to process!\nThis may take a while!\nAre you sure you want to continue?",
-// 	      evtOpts->Length);
-      
-//       new TGMsgBox(fClient->GetRoot(), this,"File Open Operation",
-// 		   buffer,kMBIconQuestion, kMBOk | kMBCancel, &retval);
-      
-//       if(retval == kMBCancel){ 
-// 	delete evtOpts; return PROCESS_FAILED;
-//       }
-//     }    
-
 
     levt = evtOpts->Start;
     evts = evtOpts->Length;
@@ -1042,28 +1048,109 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
     };
     obj = next();
   }
-  
+
   SetRootFileOpen(kTrue);
   SetRootFileName(filename);
+  
   return PROCESS_OK;
 }
 
+void QwGUIMain::LoopOverRunSegments()
+{
+  SetCurrentRunSegment(dRunSegments[0]);
+  OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
+				  GetCurrentFilePrefix(),GetCurrentRunNumber(),
+				  GetCurrentRunSegment()));    
+
+  TObject *obj;
+  TIter next(SubSystemArray.MakeIterator());
+  obj = next();
+  while(obj){
+    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+    if(entry->IsTabMenuEntryChecked()){
+      entry->SetMultipleFiles(kTrue);
+    };
+    obj = next();
+  }
+
+  for(uint i = 1; i < dRunSegments.size(); i++){
+
+    SetCurrentRunSegment(dRunSegments[i]);
+    OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
+				    GetCurrentFilePrefix(),GetCurrentRunNumber(),
+				    GetCurrentRunSegment()));    
+  }
+}
+
+Int_t QwGUIMain::FindFileAndSegments()
+{
+  dRunSegments.clear();
+  dSegmentEntry->RemoveAll();
+  
+  TString tmpfile;  
+
+  Int_t etr = 0;
+  for (int i = 0; i < 1000; i++){    
+    tmpfile = Form("%s%d.%03d.root",GetCurrentFilePrefix(),GetCurrentRunNumber(),i);
+    if(gSystem->FindFile(GetCurrentFileDirectory(),tmpfile)){
+      etr++;
+      dSegmentEntry->AddEntry(Form("Segment %d",i), etr);
+      dRunSegments.push_back(i);
+    }
+  }
+  return etr;
+}
 
 Int_t QwGUIMain::OpenRun()
 {
-  if (gSystem->Getenv("QW_ROOTFILES"))
-    sprintf(dMiscbuffer2,"%s",gSystem->Getenv("QW_ROOTFILES"));
-  else if (gSystem->Getenv("QWSCRATCH"))
-    sprintf(dMiscbuffer2,"%s",gSystem->Getenv("QWSCRATCH"));
-  else
-    sprintf(dMiscbuffer2,"/home/%s/scratch",gSystem->Getenv("USER"));
+  SetCurrentRunNumber(dRunEntry->GetNumber());
+  Int_t etr = 0;
 
-  TString file(Form("%s/first100k_%d.root",dMiscbuffer2,(Long_t)dRunEntry->GetNumber()));
-//   TString file(Form("%s/Qweak_%d.000.root",dMiscbuffer2,(Long_t)dRunEntry->GetNumber()));
-  
-  return OpenRootFile(kFalse,FS_OLD,file.Data());
-  
-  
+  if (gSystem->Getenv("QW_ROOTFILES")){
+    SetCurrentFileDirectory(Form("%s",gSystem->Getenv("QW_ROOTFILES")));
+    etr = FindFileAndSegments();
+  }
+  if(!etr){
+    if (gSystem->Getenv("QWSCRATCH")){
+      SetCurrentFileDirectory(Form("%s",gSystem->Getenv("QWSCRATCH")));
+      etr = FindFileAndSegments();
+    }
+  }
+  if(!etr){
+      SetCurrentFileDirectory(Form("/home/%s/scratch",gSystem->Getenv("USER")));
+      etr = FindFileAndSegments();    
+  }
+
+  if(!etr){
+
+    Int_t retval;
+    TString buffer(Form("Can't find any segment of file %s%d.XXX.root",
+			GetCurrentFilePrefix(),GetCurrentRunNumber()));  
+    new TGMsgBox(fClient->GetRoot(), this,"File Open Operation",
+		 buffer.Data(),kMBIconQuestion, kMBOk, &retval);
+
+  }
+  else if(etr == 1){
+    
+    //There is only one run segment, so just open it:
+    SetCurrentRunSegment(0);
+//     TString file();
+    return OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
+					   GetCurrentFilePrefix(),GetCurrentRunNumber(),
+					   GetCurrentRunSegment()));
+
+  }
+  else{
+    
+    //There are multiple run segments, so popup a selection dialog and do any further processing
+    //from the ::ProcessMessage(...) function below ...
+
+    dSegmentEntry->AddEntry("All Segments", etr);
+    dSegmentEntry->PopThisUp();
+
+    return PROCESS_OK;
+
+  }
   return PROCESS_FAILED;
 }
 
@@ -1384,7 +1471,24 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
     case kCM_COMBOBOX:
       {
 	switch (parm1) {
-	case M_TBIN_SELECT:
+	case M_SEGMENT_SELECT:
+	  
+	  if(dSegmentEntry->GetSelected() == dSegmentEntry->GetNumberOfEntries()){
+	    SetReadAllRunSegments(kTrue);
+	    LoopOverRunSegments();
+	  }
+	  else{
+	    SetCurrentRunSegment(dRunSegments[dSegmentEntry->GetSelected()-1]);
+	    OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),GetCurrentFilePrefix(),
+					    GetCurrentRunNumber(),GetCurrentRunSegment()));  
+	  }
+	  
+	  break;
+
+	case M_PREFIX_SELECT:
+
+	  SetCurrentFilePrefix(dFilePrefix[dPrefixEntry->GetSelected()-1].Data());
+
 	  break;
 	}
       }
@@ -1413,7 +1517,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       switch (parm1) {
 
       case M_ROOT_FILE_OPEN:
-	OpenRootFile();
+	OpenRootFile(kFalse);
 	break;
 
       case M_ROOT_FILE_EVENT_OPEN:
