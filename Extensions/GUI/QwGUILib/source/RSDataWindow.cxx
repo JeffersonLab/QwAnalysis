@@ -159,6 +159,7 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
 
 RSDataWindow::~RSDataWindow()
 {
+  IsClosing(dObjName);
 
   delete fMenuFile;
   delete fMenuBar;
@@ -1024,11 +1025,27 @@ void RSDataWindow::PrintCanvas()
   flag = system(dMiscbuffer);  
 }
 
+void RSDataWindow::SleepWithEvents(int seconds)
+{
+  time_t start, now;
+  time(&start);
+  do {
+    time(&now);
+    gSystem->ProcessEvents();
+  } while (difftime(now,start) < seconds) ;
+}
+
+
 void RSDataWindow::CloseWindow()
 {
   FlushMessages();
   SetMessage(PLOTWIND_CLOSED_MSG,"",(int)dPtype,M_DTWIND_CLOSED);
-  IsClosing(dObjName);
+  
+//   IsClosing(dObjName);
+  
+//   SleepWithEvents(1);
+
+//   TGTransientFrame::CloseWindow();
 }
 
 Double_t RSDataWindow::minv(Double_t *x, Int_t size)

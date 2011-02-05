@@ -951,6 +951,7 @@ void QwGUIMain::CloseDatabase()
 
 Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* file)
 {
+
   if(IsRootFileOpen()) CloseRootFile();
   char filename[NAME_STR_MAX];
   if(!file){
@@ -1041,6 +1042,7 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
   while(obj){
     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
     if(entry->IsTabMenuEntryChecked()){
+      if(!ReadAllRunSegments()) entry->SetMultipleFiles(kFalse);
       entry->SetRunNumber(dCurRun);
       entry->SetRunType(dCurRunType);
       entry->SetEventMode(EventMode,levt,evts);
@@ -1048,6 +1050,8 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
     };
     obj = next();
   }
+
+  printf("Done Processing File %s\n",dROOTFile->GetFileName());
 
   SetRootFileOpen(kTrue);
   SetRootFileName(filename);
@@ -1057,7 +1061,7 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
 
 void QwGUIMain::LoopOverRunSegments()
 {
-  SetCurrentRunSegment(dRunSegments[0]);
+  SetCurrentRunSegment(GetRunSegment(0));
   OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
 				  GetCurrentFilePrefix(),GetCurrentRunNumber(),
 				  GetCurrentRunSegment()));    
@@ -1075,7 +1079,7 @@ void QwGUIMain::LoopOverRunSegments()
 
   for(uint i = 1; i < dRunSegments.size(); i++){
 
-    SetCurrentRunSegment(dRunSegments[i]);
+    SetCurrentRunSegment(GetRunSegment(i));
     OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
 				    GetCurrentFilePrefix(),GetCurrentRunNumber(),
 				    GetCurrentRunSegment()));    
@@ -1162,6 +1166,18 @@ Int_t QwGUIMain::OpenRun()
 
 void QwGUIMain::CloseRootFile()
 {
+  if(!ReadAllRunSegments()){ 
+    TObject *obj;
+    TIter next(SubSystemArray.MakeIterator());
+    obj = next();
+    while(obj){
+      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+      if(entry->IsTabMenuEntryChecked()){
+	entry->SetMultipleFiles(kFalse);
+      };
+      obj = next();
+    }
+  }
 
   if(dROOTFile != NULL){
     dROOTFile->Close(kFalse);
@@ -1448,6 +1464,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 	case M_RUN_SELECT:
 
+	  SetReadAllRunSegments(kFalse);
 	  OpenRun();
 
 	  break;
@@ -1472,13 +1489,14 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
       {
 	switch (parm1) {
 	case M_SEGMENT_SELECT:
-	  
-	  if(dSegmentEntry->GetSelected() == dSegmentEntry->GetNumberOfEntries()){
+
+	  if(dSegmentEntry->GetSelected() == dSegmentEntry->GetNumberOfEntries()-1){
 	    SetReadAllRunSegments(kTrue);
 	    LoopOverRunSegments();
 	  }
 	  else{
 	    SetCurrentRunSegment(dRunSegments[dSegmentEntry->GetSelected()-1]);
+	    SetReadAllRunSegments(kFalse);
 	    OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),GetCurrentFilePrefix(),
 					    GetCurrentRunNumber(),GetCurrentRunSegment()));  
 	  }
@@ -1521,6 +1539,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 
       case M_ROOT_FILE_EVENT_OPEN:
+	SetReadAllRunSegments(kFalse);
 	OpenRootFile(kTrue);
 	break;
 

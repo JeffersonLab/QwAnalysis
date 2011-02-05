@@ -332,7 +332,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGPopupMenu            *dMenuBlock;
 
   //!An object array to store data window pointers -- good for use in cleanup.
-  TObjArray            DataWindowArray;
+  TObjArray               DataWindowArray;
 
   //!A dioalog for number entry ...  
   RNumberEntryDialog   *dNumberEntryDlg;

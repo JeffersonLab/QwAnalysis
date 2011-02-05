@@ -422,8 +422,8 @@ class QwGUIMain : public TGMainFrame {
 
   void                    SetCurrentRunSegment(Int_t seg){dCurrentSegment = seg;};
   Int_t                   GetCurrentRunSegment() {return dCurrentSegment;};
-  Int_t                   GetSegmentIndex(UInt_t n) {if(n >= 0 && n < dRunSegments.size()) return dRunSegments[n]; 
-                                                    return -1;};
+  Int_t                   GetRunSegment(UInt_t n) {if(n >= 0 && n < dRunSegments.size()) return dRunSegments[n]; 
+                                                   return -1;};
 
   void                    SetCurrentRunNumber(Int_t run) {dCurRun = run;};
   const char             *GetCurrentFilePrefix(){return fPrefix.Data();};

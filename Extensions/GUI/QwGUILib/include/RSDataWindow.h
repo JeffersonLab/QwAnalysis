@@ -101,6 +101,8 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
 
   TH1D                *fFitHisto[10];
 
+  void                 SleepWithEvents(int sec);
+
  protected:
 
   void                 ClearPlots();

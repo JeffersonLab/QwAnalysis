@@ -134,6 +134,8 @@ void QwGUIMainDetectorDataStructure::AddHistograms(RDataContainer *cont, TTree *
   if(!HistoMode) return;
 
   TH1F *tmp = NULL;
+  CurrentTree = tree;
+  CurrentFile = cont;
 
   if(tree && cont){
     ThisDetectorBranch = CurrentTree->GetBranch(DetectorName);
@@ -1704,7 +1706,6 @@ void QwGUIMainDetector::OnObjClose(char *obj)
   if(name.Contains("dDataWindow")){
     QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(obj));
     if(window == GetSelectedDataWindow()) { RemoveSelectedDataWindow();}
-    printf("Removing %s\n",name.Data());
   }
 
   if(!strcmp(obj,"dNumberEntryDlg")){
@@ -1850,6 +1851,7 @@ void QwGUIMainDetector::AddDataHistograms(TTree *MPSTree,TTree *HELTree)
   dCurrentCMBAsyms->AddHistograms(dROOTCont,HELTree,temp4);
   dCurrentMSCAsyms->AddHistograms(dROOTCont,HELTree,temp2);
   dCurrentMSCYields->AddHistograms(dROOTCont,MPSTree,MainDetectorMscNames);
+
 
   dCurrentYields->ProcessData("(md1- -> md8+)",kTrue);
   printf("dCurrentYields->ProcessData Done\n");
