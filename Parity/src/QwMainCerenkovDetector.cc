@@ -263,6 +263,8 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
                   QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localMainDetID.fdetectorname);
 		  if (keyword=="not_blindable") 
 		    localIntegrationPMT.SetBlindability(kFALSE);
+		  else 
+		    localIntegrationPMT.SetBlindability(kTRUE);
 		  fIntegrationPMT.push_back(localIntegrationPMT);
                   fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localMainDetID.fIndex=fIntegrationPMT.size()-1;
@@ -273,6 +275,8 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
 		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localMainDetID.fdetectorname);
 		  if (keyword=="not_blindable") 
 		    localcombinedPMT.SetBlindability(kFALSE);
+		  else 
+		    localcombinedPMT.SetBlindability(kTRUE);
                   fCombinedPMT.push_back(localcombinedPMT);
                   fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
                   localMainDetID.fIndex=fCombinedPMT.size()-1;

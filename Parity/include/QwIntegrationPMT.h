@@ -31,7 +31,9 @@ class QwDBInterface;
 class QwIntegrationPMT : public VQwDataElement{
 /////
  public:
-  QwIntegrationPMT() { };
+  QwIntegrationPMT() { 
+    InitializeChannel("","raw");
+  };
   QwIntegrationPMT(TString name){
     InitializeChannel(name,"raw");
   };

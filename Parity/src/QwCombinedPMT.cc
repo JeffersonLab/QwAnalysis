@@ -39,6 +39,7 @@ void  QwCombinedPMT::InitializeChannel(TString subsystemname, TString name, TStr
     if (datatosave=="derived") fDataToSave=kDerived;
 
   fSumADC.InitializeChannel(subsystemname, "QwCombinedPMT", name, datatosave);
+  SetBlindability(kTRUE);
 
   return;
 };

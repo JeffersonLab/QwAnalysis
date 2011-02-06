@@ -20,7 +20,7 @@ class QwCombinedPMT : public VQwDataElement {
 /////
  public:
   QwCombinedPMT(){
-    QwCombinedPMT("");
+    InitializeChannel("", "derived");
   };
 
   QwCombinedPMT(TString name){
