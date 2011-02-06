@@ -68,7 +68,7 @@ void QwEventRing::DefineOptions(QwOptions &options){
   options.AddOptions()("ring.size", po::value<int>()->default_value(4800),"QwEventRing: ring/buffer size");
   options.AddOptions()("ring.bt", po::value<int>()->default_value(2),"QwEventRing: minimum beam trip count");
   options.AddOptions()("ring.hld", po::value<int>()->default_value(25000),"QwEventRing: ring hold off");
-  options.AddOptions()("ring.stability_cut", po::value<int>()->default_value(1.00),"QwEventRing: Stability level in units of sigma");
+  options.AddOptions()("ring.stability_cut", po::value<int>()->default_value(2.00),"QwEventRing: Stability level in units of uA");
 
 }
 
