@@ -86,6 +86,16 @@ JbLeafTransform::findInputLeafs(TChain *chain){
   hA[3]=new TH1F("inpDevErr",Form("device error code  !=0;channels: DV[0-%d], IV[%d-%d], yield BCM1,2  ",ndv()-1,ndv(),ndv()+niv()-1),nLeafError,-0.5,nLeafError-0.5);
   hA[3]->SetFillColor(kGreen);
 
+  // some aux variables realy on DVs defined in the input text file
+  assert(strstr(dvName[8].Data(),"qwk_md1_qwk_md5")>0);
+  assert(strstr(dvName[9].Data(),"qwk_md2_qwk_md6")>0);
+  assert(strstr(dvName[10].Data(),"qwk_md3_qwk_md7")>0);
+  assert(strstr(dvName[11].Data(),"qwk_md4_qwk_md8")>0);
+  assert(strstr(dvName[12].Data(),"qwk_mdoddbars")>0);
+  assert(strstr(dvName[13].Data(),"qwk_mdevenbars")>0);
+  assert(strstr(dvName[14].Data(),"qwk_mdallbars")>0);
+
+
   //...... now you can shorten names so they are easier to read & print
   for(unsigned int i=0; i<dvName.size(); i++) {
     printf("dv=%d : ",i);
@@ -123,13 +133,13 @@ JbLeafTransform::unpackEvent(){
 
   // test for NaN as data are accessed 
 
-  // printf("\n-----------JbLeafTransform_%s unpackEvent\n",myName.Data());
+  //printf("\n-----------JbLeafTransform_%s unpackEvent\n",myName.Data());
  
   // Access DV leafs
   for(int i=0;i<ndv();i++){
     //    printf("  dv=%d p=%p\n",i,pLeafDV[i]);
     Yvec[i]=1e6*(*pLeafDV[i]);    
-    // printf("  dv=%d val=%g\n",i,Yvec[i]);
+    //printf("  dv=%d val=%g\n",i,Yvec[i]);
     if(Yvec[i]!=Yvec[i])  return false; // corrupted event w/ NaN
   }
 
@@ -153,7 +163,7 @@ JbLeafTransform::unpackEvent(){
   int eveBad=false;
   for(int i=0; i<nLeafError;i++){
     if((*pLeafError[i])==0.) continue;
-    // printf("xx i=%d\n",i);
+    //printf("xx i=%d\n",i);
     eveBad=true;
     hA[3]->Fill(i);
   }
@@ -188,6 +198,11 @@ JbLeafTransform::unpackEvent(){
   hA[16]->Fill(asyBcm2-asyBcm5);
   hA[17]->Fill(asyBcm5-asyBcm6);
   hA[18]->Fill(asyBpmEfCh);
+  // 3 DD asyms
+  hA[19]->Fill(Yvec[13]-Yvec[12]); // asym_DD_MDeven_odd
+  hA[20]->Fill(Yvec[8]-Yvec[10]); // asym_DD_MD15_37
+  hA[21]->Fill(Yvec[9]-Yvec[11]); // asym_DD_MD26_48
+
   /* arrays w/ final 15 dv & iv variables
      1-bar tube combos:    MD 1-8 (all bars)
      2-bar combos:             MD H (3+7), V (1+5), D1 (2+6), D2(4+8)
@@ -238,11 +253,12 @@ JbLeafTransform::initHistos(){
   // hA[3] is set in findInputLeafs()
   // 4...9 free
   
-  // 10-18:   histos for asym_bcm's, December 2010
-  const int mxBB=9;
+  // 10-21:   histos for asym_bcm's, December 2010
+  const int mxBB=8+1+3;
   TString bbName[mxBB]={"asym_bcm1","asym_bcm2","asym_bcm5","asym_bcm6",
 			"bcmDD12","bcmDD15","bcmDD25","bcmDD56",
-			"asym_bpm3h09b_EfCh"};
+			"asym_bpm3h09b_EfCh", 
+                        "asym_DD_MDeven_odd", "asym_DD_MD15_37",  "asym_DD_MD26_48"};
 
   for(int j=0;j<mxBB;j++) {
     TString name= bbName[j], name2=name+" (ppm)";

@@ -31,7 +31,8 @@ class JbLeafTransform {
   TString myName;
   enum{ mxAux=3+4+1};// auxiliary variables: pattern, bcm1, bcm2
   // added 4 bcm asym, + double differences 
-  // + asym_qwk_bpm3h09b_EffectiveCharge
+  // + 1 asym_qwk_bpm3h09b_EffectiveCharge
+
 
   // pointers to leaf variables
   Double_t **pLeafDV, **pLeafIV, *pLeafAux[mxAux], **pLeafError; 

@@ -12,14 +12,15 @@ TMatrixD *   Mslopes=0, *MsigSlopes=0,
 enum {kMD=0,kLUMI=1,kDBdump=2};
 TString miscValBlob;
 int type;
-char *ctypeA[3]={"MD","LUMI","Bad1"}, *cDV=ctypeA[2];
+char *ctypeA[3]={"MD","LUMI","DBdump"}, *cDV=ctypeA[2];
 
+// .... asym for BCM's + some DDs for MD
+ const int mxBB=8+1+3;
+  TString bbName[mxBB]={"asym_bcm1","asym_bcm2","asym_bcm5","asym_bcm6",
+			"bcmDD12","bcmDD15","bcmDD25","bcmDD56",
+			"asym_bpm3h09b_EfCh", 
+                        "asym_DD_MDeven_odd", "asym_DD_MD15_37",  "asym_DD_MD26_48"};
 
-// .... asym for BCM's
-const int mxBB=9;
-TString bbName[mxBB]={"asym_bcm1","asym_bcm2","asym_bcm5","asym_bcm6",
-		      "bcmDD12","bcmDD15","bcmDD25","bcmDD56",
-			"asym_bpm3h09b_EfCh"};
 
 double bcmRms[mxBB],  bcmMean[mxBB];
   
@@ -58,7 +59,7 @@ prCsvRecordTwo(int type0, double run_seg0=7214.001,TString miscVal, TString inpP
   else  printDBrecord(fd);
   fclose(fd);
 
-  if(type==kLUMI) printHTML();
+  if(type==kDBdump) printHTML();
 
 }
 
@@ -73,7 +74,7 @@ void printHTML() {
 	 MDVsigReg(14,0),MDVsigReg(13,0),MDVsigReg(12,0),
 	 MDVsigReg(15,0),MDVsigReg(17,0),MDVsigReg(16,0), 
 	 MDVsigReg(22,0));  
-  //<th> regres <th bgcolor="#FFFFcc"> 3650<td> 6395<td> 4107<th bgcolor="#FFccFF"> 7032<td> 1.02e+04<td> 1.02e+04<th bgcolor="#ccFFFF"> 3735
+ 
 
   printf("#bcmRMS <th rowspan=2> %.0f <td rowspan=2> %.0f <td rowspan=2> %.0f \
           <td rowspan=2> %.0f\n  <th rowspan=2 bgcolor=\"#f5cece\"> %.0f  #bcmRMS",
@@ -501,10 +502,19 @@ TString deHumanizeLeafName(TString shortName) {
   name.ReplaceAll("asym_USLum1_5","asym_uslumi1_uslumi5_sum");
   name.ReplaceAll("asym_USLum3_7","asym_uslumi3_uslumi7_sum");
 
-  name.ReplaceAll("asym_USLum1","asym_uslumi1");
-  name.ReplaceAll("asym_USLum3","asym_uslumi3");
-  name.ReplaceAll("asym_USLum5","asym_uslumi5");
-  name.ReplaceAll("asym_USLum7","asym_uslumi7");
+  name.ReplaceAll("asym_USLum1neg","asym_qwk_uslumi1neg");
+  name.ReplaceAll("asym_USLum1pos","asym_qwk_uslumi1pos");
+  name.ReplaceAll("asym_USLum3neg","asym_qwk_uslumi3neg");
+  name.ReplaceAll("asym_USLum3pos","asym_qwk_uslumi3pos");
+  name.ReplaceAll("asym_USLum5neg","asym_qwk_uslumi5neg");
+  name.ReplaceAll("asym_USLum5pos","asym_qwk_uslumi5pos");
+  name.ReplaceAll("asym_USLum7neg","asym_qwk_uslumi7neg");
+  name.ReplaceAll("asym_USLum7pos","asym_qwk_uslumi7pos");
+
+  name.ReplaceAll("asym_USLum1","asym_uslumi1_sum");
+  name.ReplaceAll("asym_USLum3","asym_uslumi3_sum");
+  name.ReplaceAll("asym_USLum5","asym_uslumi5_sum");
+  name.ReplaceAll("asym_USLum7","asym_uslumi7_sum");
 
   name.ReplaceAll("asym_USLum",     "asym_uslumi_sum");
 

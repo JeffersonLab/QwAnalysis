@@ -4,13 +4,13 @@ int pl=2; //1=gif, 2=ps, 3=both
 TFile* fd=0;
 enum{ nP=5}; //,nY=15}; 
 TString cor1="input";
-TString runName="R8014.000";
+TString runName="R8891.000";
 
-//TString inpPath="./web/R5822.001/";
+
 TString inpPath="./out/";
 char *oPath="./out/";
 
-plCor(int page=4, char *runName0="RfixMe.000") {
+plCor(int page=1, char *runName0="RfixMe.000") {
   //  printf("ss=%s=\n",runName0);
  
   if(page==0) {   runName=runName0;  doAll();    return;   }
@@ -265,15 +265,16 @@ void   yield_1D(TString text, TString preFix, int i1,int i2){
 void   asym_BCM( TString text){
   gStyle->SetOptStat(1001110);
   gStyle->SetOptFit(0);
-  can=new TCanvas("aa","aa",700,600);    TPad *c=makeTitle(can,text);
-  c->Divide(3,3);
+  can=new TCanvas("aa","aa",800,600);    TPad *c=makeTitle(can,text);
+  c->Divide(4,3);
   // .... asym for BCM's
-  const int mxBB=9;
+  const int mxBB=8+1+3;
   TString bbName[mxBB]={"asym_bcm1","asym_bcm2","asym_bcm5","asym_bcm6",
 			"bcmDD12","bcmDD15","bcmDD25","bcmDD56",
-			"asym_bpm3h09b_EfCh"};
+			"asym_bpm3h09b_EfCh", 
+			"asym_DD_MDeven_odd", "asym_DD_MD15_37",  "asym_DD_MD26_48"};
   for(int j=0;j<mxBB;j++){   
-      c->cd(1+j);
+   c->cd(1+j);
       gPad->SetLeftMargin(0.15);
       TH2F * h=(TH2F *)fd->Get(bbName[j]); 
       if(h==0) continue;

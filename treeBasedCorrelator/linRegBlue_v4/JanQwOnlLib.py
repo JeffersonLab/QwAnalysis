@@ -31,13 +31,17 @@ def  HClog_r(run):
     badAnswer=1,"HClogURL_NotFound2_R"+run,0,0,0,0
     if run < "7717" :
         yymm="1011"
-    else:
+    elif run < "8540" :
         yymm="1012"
+    elif run < "9595" :
+        yymm="1101"
+    else:
+        yymm="1102"
     hclogWeb="https://hallcweb.jlab.org/hclog/"+yymm+"_archive/"
 
     # .... get HClog URL  
     cmd= "wget --no-check-certificate "+hclogWeb+"logdir_auto.html -O - | grep \"Run "+run+"\" | tail -n  1 "
-    #print "cmd_wget=",cmd
+    print "cmd_wget=",cmd
     fin,fout=os.popen4(cmd)
     myURL1=fout.readlines()[-1]
     if len(myURL1)<2 :

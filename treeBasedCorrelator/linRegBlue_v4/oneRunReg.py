@@ -82,25 +82,10 @@ def  exportHtml(inpFile,outFile,pdfURL) :
     miscVal=', '.join(target)+", "+unixTime+", "+mmddyy+" "+hhmm+", "+urlHClog+", "+text.replace(',',';')
     print "ioPath=",ioPath
 
-    #..... generate CVS record for MD
-    cmd_string12 = "root -b -q prCsvRecordTwo.C'(0,"+RUNiSEG+',"%s","'%miscVal+ioPath+'","'+ioPath+"\")'"
-    print "exec12:%s" % cmd_string12
-    fin,fout=os.popen4(cmd_string12)
-    fullLog=fout.readlines()
-    print fullLog
-
     print "..... generate DB record" 
     cmd_string12a = "root -b -q prCsvRecordTwo.C'(2,"+RUNiSEG+',"%s","'%miscVal+ioPath+'","'+ioPath+"\")'"
     print "exec12a:%s" % cmd_string12a
     fin,fout=os.popen4(cmd_string12a)
-    fullLog=fout.readlines()
-    print fullLog
-
-
-    #..... generate CVS record for LUMIs
-    cmd_string12b = "root -b -q prCsvRecordTwo.C'(1,"+RUNiSEG+',"%s","'%miscVal+ioPath+'","'+ioPath+"\")'"
-    print "exec12b:%s" % cmd_string12b
-    fin,fout=os.popen4(cmd_string12b)
     fullLog=fout.readlines()
     print fullLog
 
@@ -260,19 +245,8 @@ os.system(cmd_string9)
 #os._exit(1)
 
 
-#...  merrge all MD CSV in to one big table
-cmd_string13 = "rm -f "+safeDir+motherCsvMD+"; cat "+safeDir+"R*/*MD.csv  > "+safeDir+motherCsvMD
-print "exec13:%s" % cmd_string13
-os.system(cmd_string13)
-
-#...  merrge all LUMI CSV in to one big table
-cmd_string14 = "rm -f "+safeDir+motherCsvLumi+"; cat "+safeDir+"R*/*LUMI.csv  > "+safeDir+motherCsvLumi
-print "exec14:%s" % cmd_string14
-os.system(cmd_string14)
-
-
 #...... copy all to final web page
-cmd_string100 = "scp -rp -i ~/balewski/keys/id_rsa-ifarml4  "+safeDir+"/index.html  "+safeDir+outDirName+" "+safeDir+motherCsvMD+" "+safeDir+motherCsvLumi+" balewski@ifarml4:"+destWeb
+cmd_string100 = "scp -rp -i ~/balewski/keys/id_rsa-ifarml4  "+safeDir+"/index.html  "+safeDir+outDirName+" balewski@ifarml4:"+destWeb
 
 print "exec100:%s" % cmd_string100
 os.system(cmd_string100)

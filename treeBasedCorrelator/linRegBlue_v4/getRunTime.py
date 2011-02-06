@@ -10,7 +10,7 @@ from  JanQwOnlLib import *
 
 path="./web/"
 print "read from ", path
-f=open(path+"ldb","r")
+f=open(path+"lx1","r")
 #print f
 k=1
 t0=0
@@ -52,7 +52,7 @@ for line in f:
     cmd_string12 = "root -b -q prCsvRecordTwo.C'(2,"+RUNiSEG+',"%s","'%miscVal+iPath+'","'+oPath+"\")'"
     print "exec12:%s" % cmd_string12
     os.system(cmd_string12)
-    #break
+    break
 
     if k>10000:
         break

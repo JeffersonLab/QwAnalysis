@@ -167,6 +167,8 @@ int main(int argc, char *argv[]) {
   if(seenEve <parMinEve) {
     printf("aborting linear regerssion due to small # of events\n");
     printf("#abort JB2 seenEve=%d\n",seenEve);
+    mHfile->Write(); 
+    mHfile->Close();
     exit(1);
   }
 
