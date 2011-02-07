@@ -153,7 +153,10 @@ class QwGUIMain : public TGMainFrame {
   Bool_t                  dDatabaseOpen;
   Bool_t                  dLogFileOpen;
   Bool_t                  dRunOpen;
-  Bool_t                  dAllSegments;
+/*   Bool_t                  dAllSegments; */
+  Bool_t                  dAddSegments;
+  Bool_t                  dEventMode;
+  Bool_t                  dMainPlots;
 
   Char_t                  dLogfilename[NAME_STR_MAX];//Name for Current log file
   Char_t                  dRootfilename[NAME_STR_MAX];//Name for Current root file
@@ -174,11 +177,15 @@ class QwGUIMain : public TGMainFrame {
   //!Standard GUI widgets and layouts for the main window
   QwGUIComboBox          *dSegmentEntry;
   QwGUIComboBox          *dPrefixEntry;
-  TGLayoutHints          *dSegmentEntryLayout;
-  TGLayoutHints          *dPrefixEntryLayout;
+  TGCheckButton          *dAddSegmentCheckButton;
   TGNumberEntry          *dRunEntry;
   TGLayoutHints          *dRunEntryLayout;
+  TGLayoutHints          *dSegmentEntryLayout;
+  TGLayoutHints          *dPrefixEntryLayout;
+  TGLayoutHints          *dAddSegmentLayout;
   TGLabel                *dRunEntryLabel;
+  TGLabel                *dAddSegmentLabel;  
+  TGLabel                *dPrefixEntryLabel;  
   TGHorizontal3DLine     *dHorizontal3DLine;
   TGHorizontalFrame      *dUtilityFrame;
   TGLayoutHints          *dUtilityLayout;
@@ -225,6 +232,10 @@ class QwGUIMain : public TGMainFrame {
 
   vector <int>            dRunSegments;
   vector <TString>        dFilePrefix;
+  vector <TH1F*>          dMainHistos;
+  vector <TGraph*>        dMainGraphs;
+
+  EventOptions            dCurrentRunEventOptions;
 
   //!This function is used to append new messages to the log book. It cannot
   //!be used from other classes. Instead, the QwGUISubSystem class implements the
@@ -417,8 +428,12 @@ class QwGUIMain : public TGMainFrame {
   void                    SleepWithEvents(int seconds);
   TCanvas                *SplitCanvas(TRootEmbeddedCanvas *,int,int,const char*);
 
-  void                    SetReadAllRunSegments(Bool_t all) {dAllSegments = all;};
-  Bool_t                  ReadAllRunSegments(){return dAllSegments;};
+  void                    SetSubSystemSegmentAdd(Bool_t add);
+/*   void                    SetReadAllRunSegments(Bool_t all) {dAllSegments = all;}; */
+/*   Bool_t                  ReadAllRunSegments(){return dAllSegments;}; */
+
+  void                    SetAddSegments(Bool_t add) {dAddSegments = add;};
+  Bool_t                  AddSegments() {return dAddSegments;};
 
   void                    SetCurrentRunSegment(Int_t seg){dCurrentSegment = seg;};
   Int_t                   GetCurrentRunSegment() {return dCurrentSegment;};
@@ -432,8 +447,17 @@ class QwGUIMain : public TGMainFrame {
   void                    SetCurrentFilePrefix(const char* prefix){ fPrefix = prefix;};
   void                    SetCurrentFileDirectory(const char* dir){fDirectory = dir;};
 
+  UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;};
+  UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;};
+  UInt_t                  GetCurrentRunEventStop(){return dCurrentRunEventOptions.Start+dCurrentRunEventOptions.Length-1;};
+
+  void                    SetEventMode(Bool_t evM){dEventMode = evM;};
+  Bool_t                  EventMode() {return dEventMode;};
+
   Int_t                   FindFileAndSegments();
   void                    LoopOverRunSegments();
+
+  void                    PlotMainData();
   
 
   //!This function checks to see if a tab with a certain name is already active.

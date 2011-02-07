@@ -159,22 +159,20 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
 
 RSDataWindow::~RSDataWindow()
 {
-  IsClosing(dObjName);
-
-  delete fMenuFile;
-  delete fMenuBar;
-  delete fMenuBarItemLayout;
-  delete fMenuBarLayout;
-  delete fCancelButton;
-  delete fFrame1;
-  delete fDlgFrame;
-  delete fCnvFrame;
-  delete fDlgLayout;
-  delete fCnvLayout;
-  delete fL1;
-  delete fL2;
-  delete dPlotCont;
-  delete fPlotCanvas;
+  if(fMenuFile         ) delete fMenuFile;
+  if(fMenuBar          ) delete fMenuBar;
+  if(fMenuBarItemLayout) delete fMenuBarItemLayout;
+  if(fMenuBarLayout    ) delete fMenuBarLayout;
+  if(fCancelButton     ) delete fCancelButton;
+  if(fFrame1           ) delete fFrame1;
+  if(fDlgFrame         ) delete fDlgFrame;
+  if(fCnvFrame         ) delete fCnvFrame;
+  if(fDlgLayout        ) delete fDlgLayout;
+  if(fCnvLayout        ) delete fCnvLayout;
+  if(fL1               ) delete fL1;
+  if(fL2               ) delete fL2;
+  if(dPlotCont         ) delete dPlotCont;
+  if(fPlotCanvas       ) delete fPlotCanvas;       
 
   if(dFitOptions != NULL){
     delete dFitOptions;
@@ -1041,7 +1039,7 @@ void RSDataWindow::CloseWindow()
   FlushMessages();
   SetMessage(PLOTWIND_CLOSED_MSG,"",(int)dPtype,M_DTWIND_CLOSED);
   
-//   IsClosing(dObjName);
+  IsClosing(dObjName);
   
 //   SleepWithEvents(1);
 

@@ -120,7 +120,7 @@ yield_qwk_...Rel._.w		TH1F	2000	-5.0e1	5.0e1				mm	Events
 yield_qwk_......_block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_......_block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_......_.w_raw	        TH1F	1000	-5.0e9	5.0e9		        	Counts	Events
-yield_qwk_......_.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_......_.w		TH1F	10000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_......_sw-hw_raw	TH1F	1000	-5.0e2	5.0e2				CalibratedCounts Events
 yield_qwk_....Rel._block._raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
 yield_qwk_....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
@@ -345,18 +345,18 @@ yield......_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
 yield......_.w_volt		TH1F	2000	-0.05	0.01				Voltage	Events
 yield......_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
 yield......_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
-yieldMD.Neg_block._raw	TH1F	1000	-2.0e8	0.5e8				Counts	Events
-yieldMD.Neg_block._volt	TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Neg_block._raw		TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yieldMD.Neg_block._volt		TH1F	2000	-0.05	0.01				Voltage	Events
 yieldMD.Neg_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
 yieldMD.Neg_.w_volt		TH1F	2000	-0.05	0.01				Voltage	Events
 yieldMD.Neg_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
-yieldMD.Neg_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
-yieldMD.Pos_block._raw	TH1F	1000	-2.0e8	0.5e8				Counts	Events
-yieldMD.Pos_block._volt	TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Neg_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+yieldMD.Pos_block._raw		TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yieldMD.Pos_block._volt		TH1F	2000	-0.05	0.01				Voltage	Events
 yieldMD.Pos_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
 yieldMD.Pos_.w_volt		TH1F	2000	-1.25	-1.05				Voltage	Events
 yieldMD.Pos_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
-yieldMD.Pos_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+yieldMD.Pos_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
 ### Quartet asym histograms
 asym......_block._raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
 asym......_block._volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
@@ -365,17 +365,17 @@ asym......_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asym......_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
 asym......_numsamples		TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
 asymMD.Neg_block._raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
-asymMD.Neg_block._volt	TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
+asymMD.Neg_block._volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymMD.Neg_.w_raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
 asymMD.Neg_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymMD.Neg_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
 asymMD.Neg_numsamples		TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
-asymMD.Pos_block._raw	TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
-asymMD.Pos_block._volt	TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
+asymMD.Pos_block._raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
+asymMD.Pos_block._volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymMD.Pos_.w_raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
 asymMD.Pos_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymMD.Pos_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
-asymMD.Pos_numsamples	TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
+asymMD.Pos_numsamples		TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
 ###
 ###  
 ###  Single Ended adc histograms 
@@ -507,6 +507,13 @@ asym_qwk_mdoddbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
 
 asym_qwk_......_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
 asym_qwk_......_block.		TH1F	1000	-0.01	0.01				Asymmetry       Events
+
+
+### New beam-line histograms
+
+yield_qwk_charge_hw		TH1F	1000	0.0	200				Yield Events
+diff_qwk_bpm3h09X_hw		TH1F	5000	-5	5				Difference Events
+diff_qwk_bpm3h09Y_hw		TH1F	5000	-5	5    				Difference Events
 
 
 ###  New Lumi histograms 

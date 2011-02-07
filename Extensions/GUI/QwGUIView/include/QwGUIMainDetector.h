@@ -235,32 +235,8 @@ class QwGUIMainDetectorDataType{
 
   void Clean();
 
-/*   void   SetFFTCalculated(Bool_t flag) {fftopts.calcFlag = flag;}; */
-/*   Bool_t IsFFTCalculated()      {return FFTOpts.calcFlag;}; */
-
-/*   void   SetFFTCancelFlag(Bool_t flag) {fftopts.cancelFlag = flag;}; */
-/*   void   SetFFTChangeFlag(Bool_t flag) {fftopts.changeFlag = flag;}; */
-/*   void   SetFFTStart(Int_t start)      {fftopts.Start = start;}; */
-/*   void   SetFFTLength(Int_t length)    {fftopts.Length = length;}; */
-/*   void   SetFFTTotalLength(Int_t totallength) {fftopts.TotalLength = totallength;}; */
-/*   void   SetEventOptions(EventOptions opts){ */
-  
-/*     fftopts.calcFlag    = opts.calcFlag; */
-/*     fftopts.cancelFlag  = opts.cancelFlag; */
-/*     fftopts.changeFlag  = opts.changeFlag; */
-/*     fftopts.Start       = opts.Start; */
-/*     fftopts.Length      = opts.Length; */
-/*     fftopts.TotalLength = opts.TotalLength; */
-
-/*   }; */
   void   SetType(const char *name) {Type = name;};
 
-/*   void   SetIDArray(vector <Int_t> *array) { IDArray = array;}; */
-/*   Bool_t GetFFTCancelFlag() {return fftopts.cancelFlag;}; */
-/*   Bool_t GetFFTChangeFlag() {return fftopts.changeFlag;}; */
-/*   Int_t  GetFFTStart(Int_t start) {return fftopts.Start;}; */
-/*   Int_t  GetFFTLength(Int_t length) {return fftopts.Length;}; */
-/*   EventOptions *GetEventOptions(){ return &fftopts; }; */
   QwGUIMainDetectorDataStructure *GetDetector(UInt_t n) { if(n < dDetDataStr.size()) return dDetDataStr[n]; return NULL; };
   QwGUIMainDetectorDataStructure *GetSelectedDetector();
   UInt_t GetNumDetectors() {return dDetDataStr.size();};
@@ -274,6 +250,7 @@ class QwGUIMainDetectorDataType{
   void ProcessData(const char* SummaryTitles, Bool_t Add = kFalse);
   void PlotData();
   TObject *GetSelectedPlot();
+  TObject *FindPlot(const char* detector, const char* datatype);
   void CalculateFFTs(EventOptions*);
   TRootEmbeddedCanvas *MakeDataTab(TGTab *dMDTab, const TGWindow *parent, const TGWindow *client, Int_t w, Int_t h);
   TRootEmbeddedCanvas *GetCanvas(){return dCanvas;};
@@ -447,6 +424,8 @@ class QwGUIMainDetector : public QwGUISubSystem {
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
 
+  TObject*            GetAsymmetrySummaryPlot();
+  TObject*            GetMDAllAsymmetryHisto();
 
   ClassDef(QwGUIMainDetector,0);
 };

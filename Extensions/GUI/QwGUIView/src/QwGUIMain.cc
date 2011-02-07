@@ -57,7 +57,10 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   SetCurrentRunNumber(0);
   SetCurrentFilePrefix("Qweak_");
   SetCurrentFileDirectory("./");
+  SetAddSegments(kFalse);
+  SetEventMode(kFalse);
   dCurRunType           = Parity;
+  dMainPlots            = kFalse;
 
   dROOTFile             = NULL;
   dDatabase             = NULL;
@@ -71,6 +74,14 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dHorizontal3DLine     = NULL;
   dUtilityFrame         = NULL;
   dUtilityLayout        = NULL;
+  dAddSegmentCheckButton= NULL;
+
+  dSegmentEntryLayout   = NULL;
+  dPrefixEntryLayout    = NULL;
+  dAddSegmentLayout     = NULL;
+  dRunEntryLabel        = NULL;
+  dAddSegmentLabel      = NULL;  
+  dPrefixEntryLabel     = NULL;  
 
   dTab                  = NULL;
   dTabLayout            = NULL;
@@ -107,7 +118,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   SetLogFileOpen(kFalse);
   SetLogFileName("None");
 
-  SetReadAllRunSegments(kFalse);
   SetCurrentRunSegment(0);
 
   MakeMenuLayout();
@@ -157,6 +167,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   if(!GetSubSystemPtr("Event Display"))
     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+
+  SetSubSystemSegmentAdd(kFalse);
 }
 
 QwGUIMain::~QwGUIMain()
@@ -279,24 +291,36 @@ void QwGUIMain::MakeUtilityLayout()
   dSegmentEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
   dUtilityFrame->AddFrame(dSegmentEntryLabel,dSegmentEntryLayout);
   dSegmentEntry = new QwGUIComboBox(dUtilityFrame,"",M_SEGMENT_SELECT);
+  dSegmentEntry->EnableTextInput(kFalse);
   dSegmentEntry->Associate(this);
   dUtilityFrame->AddFrame(dSegmentEntry,dSegmentEntryLayout);
   dSegmentEntry->Resize(100,20);
 
-  TGLabel *dPrefixEntryLabel = new TGLabel(dUtilityFrame,"Prefix:");  
+  dPrefixEntryLabel = new TGLabel(dUtilityFrame,"Prefix:");  
   dPrefixEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
   dUtilityFrame->AddFrame(dPrefixEntryLabel,dPrefixEntryLayout);
   dPrefixEntry = new QwGUIComboBox(dUtilityFrame,"",M_PREFIX_SELECT);
-  dPrefixEntry->AddEntry("Qweak",1);
+  dPrefixEntry->EnableTextInput(kFalse);
+  dPrefixEntry->AddEntry("Qweak",111);
   dFilePrefix.push_back("Qweak_");
-  dPrefixEntry->AddEntry("first100k",2);
+  dPrefixEntry->AddEntry("first100k",112);
   dFilePrefix.push_back("first100k_");
-  dPrefixEntry->AddEntry("QwPass1",3);
+  dPrefixEntry->AddEntry("QwPass1",113);
   dFilePrefix.push_back("QwPass1_");
-  
+  dPrefixEntry->Select(111);
   dPrefixEntry->Associate(this);
   dUtilityFrame->AddFrame(dPrefixEntry,dPrefixEntryLayout);
   dPrefixEntry->Resize(100,20);
+
+//   dAddSegmentLabel = new TGLabel(dUtilityFrame,"Add Segments");  
+   dAddSegmentLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+//   dUtilityFrame->AddFrame(dAddSegmentLabel,dAddSegmentLayout);
+  dAddSegmentCheckButton = new TGCheckButton(dUtilityFrame, new TGHotString("Add Segments"),M_ADD_SEGMENT);
+  dUtilityFrame->AddFrame(dAddSegmentCheckButton, dAddSegmentLayout);
+  dAddSegmentCheckButton->Associate(this);
+  dAddSegmentCheckButton->SetState(kButtonUp);
+
+  
 
   //}
 
@@ -307,6 +331,7 @@ void QwGUIMain::MakeUtilityLayout()
 //   }
 
   AddFrame(dUtilityFrame,dUtilityLayout);
+
 }
 
 void QwGUIMain::MakeMainTab()
@@ -332,12 +357,16 @@ void QwGUIMain::MakeMainTab()
   tf->AddFrame(dMainTabFrame,dMainTabLayout);
   AddFrame(dTab, dTabLayout);
 
+
   dMainCanvas->GetCanvas()->SetBorderMode(0);
   dMainCanvas->GetCanvas()->Connect("Picked(TPad*, TObject*, Int_t)","QwGUIMain",
   				    this,"PadIsPicked(TPad*, TObject*, Int_t)");
   dMainCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
 				    "QwGUIMain",
 				    this,"MainTabEvent(Int_t,Int_t,Int_t,TObject*)");
+
+  SplitCanvas(dMainCanvas,3,2,"Main");
+
 }
 
 void QwGUIMain::MakeLogTab()
@@ -704,9 +733,219 @@ QwGUISubSystem *QwGUIMain::GetSubSystemPtr(const char *name)
 
 }
 
-// void QwGUIMain::PlotMainData(ERPlotTypes ptype)
-// {
-// }
+void QwGUIMain::PlotMainData()
+{
+  TGraphErrors *grp = NULL;
+  TH1F *hst = NULL;
+  TCanvas *mc = NULL;
+
+  if(!TabActive("Main")) return;
+  if(!IsRootFileOpen()) return;
+
+  mc = dMainCanvas->GetCanvas();
+  if(!mc) return;
+  
+  if(!dMainPlots){
+    
+    hst = (TH1F*)dROOTFile->ReadData("hel_histo/asym_qwk_charge_hw");
+    hst->SetTitle(Form("Run: %d.%03d asym_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+    hst->GetXaxis()->SetTitle("Asymmetry");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+
+    mc->cd(1);
+    if(hst){
+      dMainHistos.push_back((TH1F*)(hst->Clone()));
+      dMainHistos.back()->SetDirectory(0);
+      dMainHistos.back()->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+    }
+        
+    hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_charge_hw");
+    hst->SetTitle(Form("Run: %d.%03d yield_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+    hst->GetXaxis()->SetTitle("Yield [#muA]");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+    
+    mc->cd(2);
+    if(hst){
+      dMainHistos.push_back((TH1F*)(hst->Clone()));
+      dMainHistos.back()->SetDirectory(0);
+      dMainHistos.back()->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+    }
+    
+    hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09X_hw");
+    hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09X_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+    hst->GetXaxis()->SetTitle("X Position Difference [mm]");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+    
+    mc->cd(3);
+    if(hst){
+      dMainHistos.push_back((TH1F*)(hst->Clone()));
+      dMainHistos.back()->SetDirectory(0);
+      dMainHistos.back()->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+    }
+    
+    hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09Y_hw");
+    hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09Y_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+    hst->GetXaxis()->SetTitle("Y Position Difference [mm]");
+    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    hst->GetXaxis()->CenterTitle();
+    hst->GetXaxis()->SetTitleSize(0.06);
+    hst->GetXaxis()->SetLabelSize(0.06);
+    hst->GetXaxis()->SetTitleOffset(1.25);
+    hst->GetXaxis()->SetTitleColor(1);
+    hst->SetNdivisions(506,"X");
+    hst->GetYaxis()->SetLabelSize(0.06);
+    hst->Sumw2();
+    
+    mc->cd(4);
+    if(hst){
+      dMainHistos.push_back((TH1F*)(hst->Clone()));
+      dMainHistos.back()->SetDirectory(0);
+      dMainHistos.back()->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+      
+    }
+
+    dMainPlots = kTrue;
+  }
+  else{
+
+    hst = (TH1F*)dROOTFile->ReadData("hel_histo/asym_qwk_charge_hw");
+    //       hst->SetTitle(Form("Run: %d.%03d asym_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+    hst->Sumw2();
+    
+    mc->cd(1);
+    if(hst && dMainHistos[0]){
+      dMainHistos[0]->Add(hst);
+      dMainHistos[0]->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+    }    
+    
+    hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_charge_hw");
+    //     hst->SetTitle(Form("Run: %d.%03d yield_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+    hst->Sumw2();
+    
+    mc->cd(2);
+    if(hst && dMainHistos[1]){
+      dMainHistos[1]->Add(hst);
+      dMainHistos[1]->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+    }
+
+    hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09X_hw");
+    //       hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09X_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+    hst->Sumw2();
+    
+    mc->cd(3);
+    if(hst && dMainHistos[2]){
+      dMainHistos[2]->Add(hst);
+      dMainHistos[2]->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+    }
+
+
+    hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09Y_hw");
+    //       hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09Y_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+    hst->Sumw2();
+    
+    mc->cd(4);
+    if(hst && dMainHistos[3]){
+      dMainHistos[3]->Add(hst);
+      dMainHistos[3]->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+    }
+
+  }
+  if(MainDetSubSystem){
+    
+    grp = (TGraphErrors*)MainDetSubSystem->GetAsymmetrySummaryPlot();	
+    mc->cd(5);
+    if(grp){
+      dMainGraphs.push_back((TGraphErrors*)(grp->Clone()));
+      (dMainGraphs.back())->Draw("ap");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+      
+    }
+    
+    hst = (TH1F*)MainDetSubSystem->GetMDAllAsymmetryHisto();	
+    mc->cd(6);
+    if(hst){
+      dMainHistos.push_back((TH1F*)(hst->Clone()));
+      dMainHistos.back()->SetDirectory(0);
+      (dMainHistos.back())->Draw("");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();
+      
+    }
+    
+  }
+ 
+}
 
 void QwGUIMain::OnLogMessage(const char *msg)
 {
@@ -951,6 +1190,11 @@ void QwGUIMain::CloseDatabase()
 
 Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* file)
 {
+  Int_t flag = 0;
+  if(!IsRootFileOpen() && AddSegments()){
+    SetSubSystemSegmentAdd(kFalse);
+    flag = 1;
+  }
 
   if(IsRootFileOpen()) CloseRootFile();
   char filename[NAME_STR_MAX];
@@ -979,25 +1223,20 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
   UInt_t levt = 0;
   UInt_t evts = 0;
   if(EventMode){
-    EventOptions *evtOpts = new EventOptions;
+
     TObject *obj = dROOTFile->ReadData("Mps_Tree");
-    if(!evtOpts) return PROCESS_FAILED;
-    if(!obj) {delete evtOpts; return PROCESS_FAILED;}
-    if(!obj->InheritsFrom("TTree")) {delete evtOpts; return PROCESS_FAILED;}
+    if(!obj) {return PROCESS_FAILED;}
+    if(!obj->InheritsFrom("TTree")) {return PROCESS_FAILED;}
 
-    evtOpts->calcFlag    = kFalse;
-    evtOpts->cancelFlag  = kFalse;
-    evtOpts->changeFlag  = kFalse;
-    evtOpts->Start       = 0;
-    evtOpts->Length      = 0; 
-    evtOpts->TotalLength = ((TTree*)obj)->GetEntries();
+       dCurrentRunEventOptions.TotalLength = ((TTree*)obj)->GetEntries();
 
-    new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), this, "evslcd","QwGUIMain",evtOpts);
+    new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), this, "evslcd","QwGUIMain",&dCurrentRunEventOptions);
 
-    if(evtOpts->cancelFlag) {delete evtOpts; return PROCESS_FAILED;}
+    if(dCurrentRunEventOptions.cancelFlag) {return PROCESS_FAILED;}
 
-    levt = evtOpts->Start;
-    evts = evtOpts->Length;
+     levt = dCurrentRunEventOptions.Start;
+     evts = dCurrentRunEventOptions.Length;
+
   }
 
   Int_t n = dROOTFile->GetNumOfRootObjects();
@@ -1035,14 +1274,17 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
   }
   delete[] names;
 
-  dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
+//   dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
+
+  SetRootFileOpen(kTrue);
+  SetRootFileName(filename);
+
   TObject *obj;
   TIter next(SubSystemArray.MakeIterator());
   obj = next();
   while(obj){
     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
     if(entry->IsTabMenuEntryChecked()){
-      if(!ReadAllRunSegments()) entry->SetMultipleFiles(kFalse);
       entry->SetRunNumber(dCurRun);
       entry->SetRunType(dCurRunType);
       entry->SetEventMode(EventMode,levt,evts);
@@ -1051,20 +1293,18 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
     obj = next();
   }
 
-  printf("Done Processing File %s\n",dROOTFile->GetFileName());
+  if(flag) SetSubSystemSegmentAdd(kTrue);
 
-  SetRootFileOpen(kTrue);
-  SetRootFileName(filename);
+  PlotMainData();
+
+  printf("Done processing %s\n",dROOTFile->GetFileName());
   
   return PROCESS_OK;
 }
 
-void QwGUIMain::LoopOverRunSegments()
+void QwGUIMain::SetSubSystemSegmentAdd(Bool_t add)
 {
-  SetCurrentRunSegment(GetRunSegment(0));
-  OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
-				  GetCurrentFilePrefix(),GetCurrentRunNumber(),
-				  GetCurrentRunSegment()));    
+  if(!IsRootFileOpen()) return;
 
   TObject *obj;
   TIter next(SubSystemArray.MakeIterator());
@@ -1072,12 +1312,24 @@ void QwGUIMain::LoopOverRunSegments()
   while(obj){
     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
     if(entry->IsTabMenuEntryChecked()){
-      entry->SetMultipleFiles(kTrue);
+      entry->SetMultipleFiles(add);
     };
     obj = next();
   }
+}
 
-  for(uint i = 1; i < dRunSegments.size(); i++){
+void QwGUIMain::LoopOverRunSegments()
+{
+//   SetSubSystemSegmentAdd(kFalse);
+
+//   SetCurrentRunSegment(GetRunSegment(0));
+//   OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
+// 				  GetCurrentFilePrefix(),GetCurrentRunNumber(),
+// 				  GetCurrentRunSegment()));    
+
+//   SetSubSystemSegmentAdd(kTrue);
+
+  for(uint i = 0; i < dRunSegments.size(); i++){
 
     SetCurrentRunSegment(GetRunSegment(i));
     OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
@@ -1149,7 +1401,7 @@ Int_t QwGUIMain::OpenRun()
     //There are multiple run segments, so popup a selection dialog and do any further processing
     //from the ::ProcessMessage(...) function below ...
 
-    dSegmentEntry->AddEntry("All Segments", etr);
+    dSegmentEntry->AddEntry("All Segments", etr+1);
     dSegmentEntry->PopThisUp();
 
     return PROCESS_OK;
@@ -1166,17 +1418,17 @@ Int_t QwGUIMain::OpenRun()
 
 void QwGUIMain::CloseRootFile()
 {
-  if(!ReadAllRunSegments()){ 
-    TObject *obj;
-    TIter next(SubSystemArray.MakeIterator());
-    obj = next();
-    while(obj){
-      QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-      if(entry->IsTabMenuEntryChecked()){
-	entry->SetMultipleFiles(kFalse);
-      };
-      obj = next();
-    }
+  if(IsRootFileOpen() && !AddSegments()){ 
+    SetSubSystemSegmentAdd(kFalse);
+
+    for(uint i = 0; i < dMainHistos.size(); i++)
+      delete dMainHistos[i];
+    for(uint i = 0; i < dMainGraphs.size(); i++)
+      delete dMainGraphs[i];
+
+    dMainGraphs.clear();
+    dMainHistos.clear();
+    dMainPlots = kFalse;
   }
 
   if(dROOTFile != NULL){
@@ -1186,7 +1438,7 @@ void QwGUIMain::CloseRootFile()
   }
 
   SetRootFileOpen(kFalse);
-  dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);
+//   dMenuFile->EnableEntry(M_ROOT_FILE_OPEN);
 
 }
 
@@ -1440,6 +1692,7 @@ Bool_t QwGUIMain::HandleKey(Event_t *event)
 
 Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
+
   // Handle messages send to the MainFrame object. E.g. all menu button
   // messages.
 
@@ -1464,7 +1717,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 	case M_RUN_SELECT:
 
-	  SetReadAllRunSegments(kFalse);
+	  SetEventMode(kFalse);
 	  OpenRun();
 
 	  break;
@@ -1484,19 +1737,39 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   case kC_COMMAND:
 
     switch (GET_SUBMSG(msg)) {
+            
+    case kCM_CHECKBUTTON:
+      {
+	switch(parm1) {
+	case M_ADD_SEGMENT:
+	  {
+	    if (dAddSegmentCheckButton->GetState() == kButtonDown){
+	      SetAddSegments(kTrue);
+// 	      SetSubSystemSegmentAdd(kTrue);
+	    }
+	    else{
+	      SetAddSegments(kFalse);
+// 	      SetSubSystemSegmentAdd(kFalse);
+	    }
+	  }
+	  break;
+	}
+      }
+      break;
 
     case kCM_COMBOBOX:
       {
 	switch (parm1) {
 	case M_SEGMENT_SELECT:
 
-	  if(dSegmentEntry->GetSelected() == dSegmentEntry->GetNumberOfEntries()-1){
-	    SetReadAllRunSegments(kTrue);
+	  printf("Selected = %d\nNum Entries = %d\n",dSegmentEntry->GetSelected(),dSegmentEntry->GetNumberOfEntries());
+
+	  if(dSegmentEntry->GetSelected() == dSegmentEntry->GetNumberOfEntries()){
+	    SetAddSegments(kTrue);
 	    LoopOverRunSegments();
 	  }
 	  else{
 	    SetCurrentRunSegment(dRunSegments[dSegmentEntry->GetSelected()-1]);
-	    SetReadAllRunSegments(kFalse);
 	    OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),GetCurrentFilePrefix(),
 					    GetCurrentRunNumber(),GetCurrentRunSegment()));  
 	  }
@@ -1534,12 +1807,16 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
       switch (parm1) {
 
-      case M_ROOT_FILE_OPEN:
+      case M_ROOT_FILE_OPEN:	
+	SetEventMode(kFalse);
 	OpenRootFile(kFalse);
 	break;
 
       case M_ROOT_FILE_EVENT_OPEN:
-	SetReadAllRunSegments(kFalse);
+	SetEventMode(kTrue);
+	SetAddSegments(kFalse);
+	SetSubSystemSegmentAdd(kFalse);
+	dAddSegmentCheckButton->SetState(kButtonUp);
 	OpenRootFile(kTrue);
 	break;
 
@@ -1559,6 +1836,8 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	break;
 
       case M_ROOT_FILE_CLOSE:
+	SetAddSegments(kFalse);
+  	SetSubSystemSegmentAdd(kFalse);
 	if(IsRootFileOpen()) CloseRootFile();
 	break;
 
