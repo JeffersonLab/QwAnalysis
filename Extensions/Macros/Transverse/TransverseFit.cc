@@ -4,7 +4,7 @@
 //*****************************************************************************************************//
 //
 //
-//   This macro will plot the PMT POS, PMT NEG and BAR SUM variation across the octantsusing the first 100K rootfile
+//   This macro will plot the PMT POS, PMT NEG, BAR SUM, US LUMI and DS LUMI asymmetry variation across the octantsusing the first 100K rootfile
 //   and fit them with a sin fit of the form [0]Sin(phi+[1]) + [2] which is displayed in the left pannel in the canvas and 
 //   a constant fit which is displayed in the right side pannel of the canvas.
 //   The canvas is saved as ****_Transverse_fit.gif
@@ -56,17 +56,23 @@ TString directory = "$QW_ROOTFILES";
 
 // Left PMTs
 TString quartz_bar_POS[8]=
-  {"md1pos","md2pos","md3pos","md4pos","md5pos","md6pos","md7pos","md8pos"};
+  {"qwk_md1pos","qwk_md2pos","qwk_md3pos","qwk_md4pos","qwk_md5pos","qwk_md6pos","qwk_md7pos","qwk_md8pos"};
 
 // Right PMTs
 TString quartz_bar_NEG[8]=
-  {"md1neg","md2neg","md3neg","md4neg","md5neg","md6neg","md7neg","md8neg"};
+  {"qwk_md1neg","qwk_md2neg","qwk_md3neg","qwk_md4neg","qwk_md5neg","qwk_md6neg","qwk_md7neg","qwk_md8neg"};
 
 // barsum
 TString quartz_bar_SUM[8]=
-  {"md1barsum","md2barsum","md3barsum","md4barsum","md5barsum","md6barsum","md7barsum","md8barsum"};
+  {"qwk_md1barsum","qwk_md2barsum","qwk_md3barsum","qwk_md4barsum","qwk_md5barsum","qwk_md6barsum","qwk_md7barsum","qwk_md8barsum"};
 
+// us lumi sum
+TString us_lumi[4]=
+  {"uslumi1_sum","uslumi3_sum","uslumi5_sum","uslumi7_sum"};
 
+// ds lumi sum
+TString ds_lumi[8]=
+  {"qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4","qwk_dslumi5","qwk_dslumi6","qwk_dslumi7","qwk_dslumi8"};
 
 TPad * pad1, *pad2;
 TText *t1;
@@ -122,7 +128,7 @@ int main(Int_t argc,Char_t* argv[])
   // std::cin>>opt;
  
   
-  std::cout<<"Fitting octants of MD PMT-, PMT+, barsum w.r.t "<<bpm<<std::endl;
+  std::cout<<"Fitting octants of MD PMT-, PMT+, barsum, US lumi, DS Lumi asymmetries"<<std::endl;
   TApplication theApp("App",&argc,argv);
 
  
@@ -164,9 +170,15 @@ int main(Int_t argc,Char_t* argv[])
   gDirectory->Delete("*");
 
 
-  TString title = Form("%i : Transverse asymmetry fits (left cos fit, right constant fit)",run);
-  TCanvas * Canvas1 = new TCanvas("canvas1", title,0,0,1200,800);  
+  TString title1 = Form("%i : MD Transverse asymmetry fits (left cos fit, right constant fit)",run);
+  TString title2 = Form("%i : LUMI Transverse asymmetry fits (left cos fit, right constant fit)",run);  
+  TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1200,800);  
+  TCanvas * Canvas2 = new TCanvas("canvas2", title2,0,0,1200,800);  
+
   Canvas1->Draw();
+  Canvas2->Draw();
+
+  Canvas1->cd();
 
   TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
   TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
@@ -176,7 +188,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
   pad1->cd();
-  TString text = Form(title);
+  TString text = Form(title1);
   TText*t1 = new TText(0.23,0.3,text);
   t1->SetTextSize(0.6);
   t1->Draw();
@@ -219,6 +231,7 @@ int main(Int_t argc,Char_t* argv[])
   //cosfit->SetParameter(2,0);
 
 
+  // Draw MD asymmetries
 
   TGraphErrors * gr;
   TString gtitle;
@@ -264,7 +277,7 @@ int main(Int_t argc,Char_t* argv[])
   gr->SetTitle(gtitle);
 
   pad2->cd(4);
-  plot_octant(value1,err2);
+  plot_octant(value2,err2);
   gr=(TGraphErrors*)gPad->GetPrimitive("Graph");
   gr->Fit("pol0");
   fit = gr->GetFunction("pol0");
@@ -282,7 +295,73 @@ int main(Int_t argc,Char_t* argv[])
   gr->SetTitle(gtitle);
 
 
-  Canvas1->Print(Form("%i_Transverse_fit_plots.gif",run));
+  Canvas1->Print(Form("%i_MD_Transverse_fit_plots.gif",run));
+
+
+  // Draw Lumi asymmetries
+
+  TGraphErrors * gr1;
+  TString gtitle1;
+
+  Canvas2->cd();
+  TPad*pad11 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
+  TPad*pad22 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
+  pad11->SetFillColor(20);
+  pad11->Draw();
+  pad22->Draw();
+
+
+  pad11->cd();
+  TString text1 = Form(title2);
+  TText*t11 = new TText(0.23,0.3,text1);
+  t11->SetTextSize(0.6);
+  t11->Draw();
+
+  pad22->cd();
+  pad22->Divide(2,2);
+  pad22->SetFillColor(20);
+
+  pad22->cd(1);
+  get_octant_data(tree, run, us_lumi,opt, value1,err1);
+  plot_octant(value1,err1);
+  gr1=(TGraphErrors*)gPad->GetPrimitive("Graph");
+  gr1->Fit("cosfit");
+  TF1* fit1 = gr1->GetFunction("cosfit");
+  fit1->DrawCopy("same");
+  gtitle1 = Form("US lumi sum Asymmetry Fit : p0 cos(#phi + p1) + p2");
+  gr1->SetTitle(gtitle1);
+
+  pad22->cd(3);
+  get_octant_data(tree, run, ds_lumi,opt, value2,err2);
+  plot_octant(value2,err2);
+  gr1=(TGraphErrors*)gPad->GetPrimitive("Graph");
+  gr1->Fit("cosfit");
+  fit1 = gr1->GetFunction("cosfit");
+  fit1->DrawCopy("same");
+  gtitle1 = Form(" DS Lumi Asymmetry Fit : p0 cos(#phi + p1) + p2");
+  gr1->SetTitle(gtitle1);
+
+  pad22->cd(2);
+  plot_octant(value1,err1);
+  gr1=(TGraphErrors*)gPad->GetPrimitive("Graph");
+  gr1->Fit("pol0");
+  fit1 = gr1->GetFunction("pol0");
+  fit1->DrawCopy("same");
+  gtitle1 = Form("US Lumi Asymmetry Fit :  p0");
+  gr1->SetTitle(gtitle1);
+
+  pad22->cd(4);
+  plot_octant(value2,err2);
+  gr1=(TGraphErrors*)gPad->GetPrimitive("Graph");
+  gr1->Fit("pol0");
+  fit1 = gr->GetFunction("pol0");
+  fit1->DrawCopy("same");
+  gtitle1 = Form("DS Lumi Asymmetry Fit :  p0");
+  gr1->SetTitle(gtitle1);
+
+
+  Canvas2->Print(Form("%i_Lumi_Transverse_fit_plots.gif",run));
+
 
   std::cout<<"Done plotting fits \n";
 
@@ -308,12 +387,12 @@ void get_octant_data(TTree *heltree, Int_t run_number, TString devicelist[], Int
  
   for(Int_t i=1 ; i<9 ;i++){
     //event cut 
-    cut = Form("asym_qwk_%s.Device_Error_Code == 0 && ErrorFlag == 0",
+    cut = Form("asym_%s.Device_Error_Code == 0 && ErrorFlag == 0",
 	       devicelist[i-1].Data());
     TString ytitle =Form("1e6*%s",devicelist[i-1].Data()); //plot in ppm	
     
     // Plotcommand
-    TString plotc = Form("asym_qwk_%s.hw_sum*1e6>>htemp",devicelist[i-1].Data()); 
+    TString plotc = Form("asym_%s.hw_sum*1e6>>htemp",devicelist[i-1].Data()); 
     nt->Draw(plotc,cut,"goff");
     
     TH1D * h = (TH1D*)gDirectory->Get("htemp");
