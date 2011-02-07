@@ -301,13 +301,13 @@ void QwGUIMain::MakeUtilityLayout()
   dUtilityFrame->AddFrame(dPrefixEntryLabel,dPrefixEntryLayout);
   dPrefixEntry = new QwGUIComboBox(dUtilityFrame,"",M_PREFIX_SELECT);
   dPrefixEntry->EnableTextInput(kFalse);
-  dPrefixEntry->AddEntry("Qweak",111);
+  dPrefixEntry->AddEntry("Qweak",101);
   dFilePrefix.push_back("Qweak_");
-  dPrefixEntry->AddEntry("first100k",112);
+  dPrefixEntry->AddEntry("first100k",102);
   dFilePrefix.push_back("first100k_");
-  dPrefixEntry->AddEntry("QwPass1",113);
+  dPrefixEntry->AddEntry("QwPass1",103);
   dFilePrefix.push_back("QwPass1_");
-  dPrefixEntry->Select(111);
+  dPrefixEntry->Select(101);
   dPrefixEntry->Associate(this);
   dUtilityFrame->AddFrame(dPrefixEntry,dPrefixEntryLayout);
   dPrefixEntry->Resize(100,20);
@@ -1745,11 +1745,11 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	  {
 	    if (dAddSegmentCheckButton->GetState() == kButtonDown){
 	      SetAddSegments(kTrue);
-// 	      SetSubSystemSegmentAdd(kTrue);
+	      SetSubSystemSegmentAdd(kTrue);
 	    }
 	    else{
 	      SetAddSegments(kFalse);
-// 	      SetSubSystemSegmentAdd(kFalse);
+	      SetSubSystemSegmentAdd(kFalse);
 	    }
 	  }
 	  break;
@@ -1762,7 +1762,6 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	switch (parm1) {
 	case M_SEGMENT_SELECT:
 
-	  printf("Selected = %d\nNum Entries = %d\n",dSegmentEntry->GetSelected(),dSegmentEntry->GetNumberOfEntries());
 
 	  if(dSegmentEntry->GetSelected() == dSegmentEntry->GetNumberOfEntries()){
 	    SetAddSegments(kTrue);
@@ -1778,7 +1777,8 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 	case M_PREFIX_SELECT:
 
-	  SetCurrentFilePrefix(dFilePrefix[dPrefixEntry->GetSelected()-1].Data());
+// 	  printf("Entry = %d\n",dPrefixEntry->GetSelected());
+	  SetCurrentFilePrefix(dFilePrefix[dPrefixEntry->GetSelected()-101].Data());
 
 	  break;
 	}
