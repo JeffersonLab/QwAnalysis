@@ -1344,6 +1344,13 @@ Int_t QwGUIMain::FindFileAndSegments()
   dSegmentEntry->RemoveAll();
   
   TString tmpfile;  
+  TString prefix = GetCurrentFilePrefix();
+
+  if(prefix.Contains("first100k")){
+    tmpfile = Form("%s%d.root",GetCurrentFilePrefix(),GetCurrentRunNumber());
+    if(gSystem->FindFile(GetCurrentFileDirectory(),tmpfile))
+      return 1;
+  }
 
   Int_t etr = 0;
   for (int i = 0; i < 1000; i++){    
@@ -1364,7 +1371,7 @@ Int_t QwGUIMain::OpenRun()
 
   if (gSystem->Getenv("QW_ROOTFILES")){
     SetCurrentFileDirectory(Form("%s",gSystem->Getenv("QW_ROOTFILES")));
-    etr = FindFileAndSegments();
+      etr = FindFileAndSegments();
   }
   if(!etr){
     if (gSystem->Getenv("QWSCRATCH")){
