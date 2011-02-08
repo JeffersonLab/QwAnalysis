@@ -1366,7 +1366,7 @@ Int_t QwGUIMain::FindFileAndSegments()
 
 Int_t QwGUIMain::OpenRun()
 {
-  SetCurrentRunNumber(dRunEntry->GetNumber());
+  SetCurrentRunNumber((Int_t)dRunEntry->GetNumber());
   Int_t etr = 0;
 
   if (gSystem->Getenv("QW_ROOTFILES")){
@@ -1398,9 +1398,17 @@ Int_t QwGUIMain::OpenRun()
     //There is only one run segment, so just open it:
     SetCurrentRunSegment(0);
 //     TString file();
-    return OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
-					   GetCurrentFilePrefix(),GetCurrentRunNumber(),
-					   GetCurrentRunSegment()));
+    TString prefix = GetCurrentFilePrefix();
+
+    if(prefix.Contains("first100k")){
+      return OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.root",GetCurrentFileDirectory(),
+					     GetCurrentFilePrefix(),GetCurrentRunNumber()));
+
+    }
+    else
+      return OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
+					     GetCurrentFilePrefix(),GetCurrentRunNumber(),
+					     GetCurrentRunSegment()));
 
   }
   else{
