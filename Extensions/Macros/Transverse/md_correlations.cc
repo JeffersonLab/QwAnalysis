@@ -376,14 +376,16 @@ void get_fit_parameters( )
   std::cout<<i<<std::endl;
 
   g=(TGraph*)gPad->GetPrimitive("h");
-  Double_t n = g->GetN();
+  Double_t n = 0.0;
+  n = g->GetN();
 
   TF1 *fit = g->GetFunction("pol1");
   p0[i] = fit->GetParameter(0);
   ep0[i] = fit->GetParError(0);
   p1[i] = fit->GetParameter(1);
   ep1[i] = fit->GetParError(1);
-  Double_t chi2 = fit->GetChisquare() / (fit->GetNDF());
+  Double_t chi2 = 0.0;
+  chi2 = fit->GetChisquare() / (fit->GetNDF());
 
 //   Myfile << setw(20) <<  var1 <<",\t"
 // 	 << setw(20) <<  bpmdata << ",\t" 

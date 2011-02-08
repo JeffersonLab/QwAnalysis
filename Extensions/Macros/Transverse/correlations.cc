@@ -59,7 +59,7 @@ TH2F * ht;
 void plot(TString title, TTree * ntree, Int_t rnum, TString device1, TString device2 )
 {
   
-  TGraph * gr;
+  //TGraph * gr = NULL;
 
   //event cut 
   cut = Form("%s.Device_Error_Code == 0 && %s.Device_Error_Code ==0 && ErrorFlag == 0",device1.Data(),device2.Data() );

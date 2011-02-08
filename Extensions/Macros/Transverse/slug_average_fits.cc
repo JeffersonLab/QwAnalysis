@@ -98,38 +98,38 @@ std::ofstream Myfile;
 Char_t textfile[100];
 
 
-Double_t p0[8];
-Double_t ep0[8];
-Double_t p1[8];
+Double_t p0[8] ={0.0};
+Double_t ep0[8] ={0.0};
+Double_t p1[8] ={0.0};
 Int_t i = -1;
-Double_t ep1[8];
+Double_t ep1[8] ={0.0};
 
-Double_t value1[8];
-Double_t err1[8];
-Double_t value2[8];
-Double_t err2[8];
-Double_t value3[8];
-Double_t err3[8];
-Double_t value11[8];
-Double_t err11[8];
-Double_t value22[8];
-Double_t err22[8];
-Double_t value33[8];
-Double_t err33[8];
+Double_t value1[8] ={0.0};
+Double_t err1[8] ={0.0};
+Double_t value2[8] ={0.0};
+Double_t err2[8] ={0.0};
+Double_t value3[8] ={0.0};
+Double_t err3[8] ={0.0};
+Double_t value11[8] ={0.0};
+Double_t err11[8] ={0.0};
+Double_t value22[8] ={0.0};
+Double_t err22[8] ={0.0};
+Double_t value33[8] ={0.0};
+Double_t err33[8] ={0.0};
 
-Double_t value111[4];
-Double_t err111[4];
-Double_t value222[4];
-Double_t err222[4];
+Double_t value111[4] ={0.0};
+Double_t err111[4] ={0.0};
+Double_t value222[4] ={0.0};
+Double_t err222[4] ={0.0};
 
-Double_t valuein[8];
-Double_t errin[8];
-Double_t valueout[8];
-Double_t errout[8];
+Double_t valuein[8] ={0.0};
+Double_t errin[8] ={0.0};
+Double_t valueout[8] ={0.0};
+Double_t errout[8] ={0.0};
 
 TString xunit, yunit, slopeunit;
-void get_octant_data(Int_t size,TString devicelist[], TString det, TString target, TString ihwp, Double_t value[], Double_t error[]);
-TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString det);
+void get_octant_data(Int_t size,TString devicelist[], TString detector_type, TString target, TString ihwp, Double_t value[], Double_t error[]);
+TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type);
 void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Double_t errorsout[]);
 
 
@@ -262,19 +262,20 @@ int main(Int_t argc,Char_t* argv[])
   // plot MD asymmetries
 
   pad2->cd(1);
-  get_octant_data(8,quartz_bar_POS, target,"out", value1,err1);
-  get_octant_data(8,quartz_bar_POS, target,"in", value11,err11);
+  get_octant_data(8, quartz_bar_POS, "MD", target, "out", value1,  err1);
+  get_octant_data(8, quartz_bar_POS, "MD", target, "in",  value11, err11);
   plot_octant(8,"MD POS", value11,err11,value1,err1);
   
 
   pad2->cd(2);
-  get_octant_data(8,quartz_bar_NEG, target,"out", value2,err2);
-  get_octant_data(8,quartz_bar_NEG, target,"in", value22,err22);
+  get_octant_data(8,quartz_bar_NEG, "MD", target, "out", value2,  err2);
+  get_octant_data(8,quartz_bar_NEG, "MD", target, "in",  value22, err22);
+
   plot_octant(8,"MD NEG",value22,err22,value2,err2);
 
   pad2->cd(3);
-  get_octant_data(8,quartz_bar_SUM, target,"out", value3,err3);
-  get_octant_data(8,quartz_bar_SUM, target,"in", value33,err33);
+  get_octant_data(8,quartz_bar_SUM, "MD", target, "out", value3,  err3);
+  get_octant_data(8,quartz_bar_SUM, "MD", target, "in",  value33, err33);
   plot_octant(8,"MD BAR SUM", value33,err33,value3,err3);
 
 
@@ -305,7 +306,7 @@ int main(Int_t argc,Char_t* argv[])
   pad22->SetFillColor(20);
 
 
-  TGraphErrors * mg1;
+  //  TGraphErrors * mg1;
 
   pad22->cd(1);
   get_octant_data(4,us_lumi,"LUMI", target,"in", value111,err111);
@@ -336,16 +337,16 @@ int main(Int_t argc,Char_t* argv[])
 //         get query              
 //***************************************************
 //***************************************************
-TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString det){
+TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type){
 
 
 
   Bool_t ldebug = kFALSE;
   TString datatable;
 
-  if(det == "MD")
+  if(detector_type == "MD")
     datatable = "md_data_view";
-  if(det == "LUMI")
+  if(detector_type == "LUMI")
     datatable = "lumi_data_view";
 
   TString output = "slow_controls_settings.slow_helicity_plate, target_position, sum("+datatable+".value/(POWER("+datatable+".error,2)*"+datatable+".n))/sum(1/(POWER("+datatable+".error,2)*"+datatable+".n)), 1/SUM(1/(POWER("+datatable+".error,2)*"+datatable+".n))";
@@ -384,14 +385,14 @@ TString get_query(TString detector, TString measurement, TString target, TString
 //***************************************************
 //***************************************************
 
-void get_octant_data(Int_t size, TString devicelist[], TString det, TString target, TString ihwp, Double_t value[], Double_t error[])
+void get_octant_data(Int_t size, TString devicelist[], TString detector_type, TString target, TString ihwp, Double_t value[], Double_t error[])
 {
   Bool_t ldebug =kFALSE;
 
   std::cout<<"array size = "<<size<<std::endl;
   for(Int_t i=0 ; i<size ;i++){
     std::cout<<"Getting data for "<<devicelist[i]<<" ihwp "<<ihwp<<std::endl;
-    TString query = get_query(Form("%s",devicelist[i].Data()),"a",target,ihwp,det);
+    TString query = get_query(Form("%s",devicelist[i].Data()),"a",target,ihwp,detector_type);
     TSQLStatement* stmt = db->Statement(query,100);
     // process statement
     if (stmt->Process()) {
