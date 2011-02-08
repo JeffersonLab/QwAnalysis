@@ -12,6 +12,9 @@
 //   To compile this code do a gmake.
 //
 //   
+//  Tuesday, February  8 16:58:25 EST 2011, jhlee
+//     - fixed a bug not to disply MD canvas
+//    
 //*****************************************************************************************************//
 
 
@@ -197,8 +200,6 @@ int main(Int_t argc,Char_t* argv[])
 
   TString title1 = "Slug averages of Main detector asymmetries. FIT = p0*cos(phi + p1) + p2";
   TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,800);
-  TString title2 = "Slug averages of Lumi asymmetries. FIT = p0*cos(phi + p1) + p2";
-  TCanvas * Canvas2 = new TCanvas("canvas2", title2,0,0,1000,800);   
   Canvas1->Draw();
 
   TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
@@ -265,26 +266,27 @@ int main(Int_t argc,Char_t* argv[])
   get_octant_data(8, quartz_bar_POS, "MD", target, "out", value1,  err1);
   get_octant_data(8, quartz_bar_POS, "MD", target, "in",  value11, err11);
   plot_octant(8,"MD POS", value11,err11,value1,err1);
-  
+  gPad->Update();
 
   pad2->cd(2);
   get_octant_data(8,quartz_bar_NEG, "MD", target, "out", value2,  err2);
   get_octant_data(8,quartz_bar_NEG, "MD", target, "in",  value22, err22);
-
   plot_octant(8,"MD NEG",value22,err22,value2,err2);
+  gPad->Update();
 
   pad2->cd(3);
   get_octant_data(8,quartz_bar_SUM, "MD", target, "out", value3,  err3);
   get_octant_data(8,quartz_bar_SUM, "MD", target, "in",  value33, err33);
   plot_octant(8,"MD BAR SUM", value33,err33,value3,err3);
+  gPad->Update();
 
 
-
-
+  Canvas1->Update();
   Canvas1->Print("md_slug_summary_plots.gif");
 
   // plot LUMI asymmetries
-
+  TString title2 = "Slug averages of Lumi asymmetries. FIT = p0*cos(phi + p1) + p2";
+  TCanvas * Canvas2 = new TCanvas("canvas2", title2,0,0,1000,800);   
   Canvas2->Draw();
   Canvas2->cd();
 
@@ -312,13 +314,16 @@ int main(Int_t argc,Char_t* argv[])
   get_octant_data(4,us_lumi,"LUMI", target,"in", value111,err111);
   get_octant_data(4,us_lumi,"LUMI", target,"out", value222,err222);
   plot_octant(4,"US LUMI", value111,err111,value222,err222);
-  
+  gPad->Update();
+
 
   pad22->cd(2);
   get_octant_data(8,DS_lumi,"LUMI", target,"in", valuein,errin);
   get_octant_data(8,DS_lumi,"LUMI", target,"out", valueout,errout);
   plot_octant(8,"DS_LUMI",valuein,errin,valueout,errout);
+  gPad->Update();
 
+  Canvas2-> Update();
   Canvas2->Print("lumi_slug_summary_plots.gif");
 
 
@@ -387,11 +392,13 @@ TString get_query(TString detector, TString measurement, TString target, TString
 
 void get_octant_data(Int_t size, TString devicelist[], TString detector_type, TString target, TString ihwp, Double_t value[], Double_t error[])
 {
-  Bool_t ldebug =kFALSE;
+  Bool_t ldebug = true;
 
-  std::cout<<"array size = "<<size<<std::endl;
+  if(ldebug) printf("\nDetector Type %s, size %2d\n", detector_type.Data(), size);
   for(Int_t i=0 ; i<size ;i++){
-    std::cout<<"Getting data for "<<devicelist[i]<<" ihwp "<<ihwp<<std::endl;
+    if(ldebug) {
+      printf("Getting data for %20s ihwp %5s ", devicelist[i].Data(), ihwp.Data());
+    }
     TString query = get_query(Form("%s",devicelist[i].Data()),"a",target,ihwp,detector_type);
     TSQLStatement* stmt = db->Statement(query,100);
     // process statement
@@ -400,8 +407,8 @@ void get_octant_data(Int_t size, TString devicelist[], TString detector_type, TS
       stmt->StoreResult();
       while (stmt->NextResultRow()) {
 	value[i] = (Double_t)(stmt->GetDouble(2))*1e6; // convert to  ppm
-	error[i]= (Double_t)(stmt->GetDouble(3))*1e6; // ppm
-	if(ldebug)  std::cout<<"value = "<<value[i]<<"+-"<<error[i]<<std::endl;
+	error[i] = (Double_t)(stmt->GetDouble(3))*1e6; // ppm
+	if(ldebug) printf(" value = %16.8lf +- %10.8lf [ppm]\n", value[i], error[i]);
       }
     }
     delete stmt;    
@@ -483,7 +490,6 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   legend->SetFillColor(0);
   legend->Draw("");
 
-  gPad->Update();
   TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
   TPaveStats *stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
   stats1->SetTextColor(kBlue); 
@@ -491,7 +497,6 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); stats1->SetY1NDC(0.6);
   stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats2->SetY1NDC(0.05);stats2->SetY2NDC(0.4);
 
-  gPad->Modified();
 
 }
 
