@@ -1228,6 +1228,8 @@ Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* 
     if(!obj) {return PROCESS_FAILED;}
     if(!obj->InheritsFrom("TTree")) {return PROCESS_FAILED;}
 
+       dCurrentRunEventOptions.Start = 0;
+       dCurrentRunEventOptions.Length = 0;
        dCurrentRunEventOptions.TotalLength = ((TTree*)obj)->GetEntries();
 
     new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), this, "evslcd","QwGUIMain",&dCurrentRunEventOptions);

@@ -40,6 +40,16 @@ QwGUIMainDetectorDataStructure::QwGUIMainDetectorDataStructure(Int_t ID, Int_t R
 
 };
 
+Double_t QwGUIMainDetectorDataStructure::GetErrorCode(UInt_t event)
+{
+  TGraph *gr = (TGraph*)GetGraph(ErrorIndex); 
+
+  if(gr && event < (UInt_t)gr->GetN()) return gr->GetY()[event];
+  
+  return 0;
+}
+
+
 Int_t QwGUIMainDetectorDataStructure::SetTree(TTree *tree)
 {
   NumTreeLeafs = 0;
@@ -63,11 +73,9 @@ Int_t QwGUIMainDetectorDataStructure::SetTree(TTree *tree)
       while(obj){
 
 	objname = obj->GetName();
-	
-// 	if(onjname.Contains("sequence_number") ||
-// 	   onjname.Contains("num_samples") ||
-// 	   onjname.Contains("Device_Error_Code")) continue;
 
+ 	if(objname.Contains("Device_Error_Code")) ErrorIndex = c;
+	
 	TreeLeafName.push_back(objname.Data());
 	if(TreeLeafName[c].Contains("block") || TreeLeafName[c].Contains("sum")){
 
@@ -276,8 +284,8 @@ Int_t QwGUIMainDetectorDataStructure::SetHistograms(RDataContainer *cont, TTree 
 void QwGUIMainDetectorDataStructure::FillData(Double_t sample)
 {
   Double_t data;
-  Double_t scale = 1.0;
-  if(DetectorName.Contains("asym")) scale = 4.0;
+//   Double_t scale = 1.0;
+//   if(DetectorName.Contains("asym")) scale = 4.0;
 
   for(uint i = 0; i < NumTreeLeafs; i++){
     Int_t flag = 0;
@@ -344,6 +352,172 @@ void QwGUIMainDetectorDataStructure::CalculateStats()
   }
 }
 
+void QwGUIMainDetectorDataStructure::FillCorrelation(QwGUIMainDetectorDataStructure* XdataStr, const char* title)
+{
+  if(!XdataStr) return;
+
+  QwGUIMainDetectorDataStructure* smallStr;
+  QwGUIMainDetectorDataStructure* largeStr;
+  TString linkedname = XdataStr->GetDetectorName();
+  linkedname.ToLower();
+  TString temp;
+  TGraph *smaller = NULL;
+  TGraph *larger = NULL;
+  TProfile *prf = NULL;
+  TGraph * xgrp = NULL;
+  TGraph * ygrp = NULL;
+  TH1D *hst = NULL;
+  Int_t ind = LinProfile.size();
+  Int_t N = 0;
+  Int_t k = 0;
+  Int_t c = 0;
+//   Double_t xgrp_x;
+//   Double_t xgrp_y;
+//   Double_t ygrp_x;
+//   Double_t ygrp_y;
+  Double_t sum;
+
+  for(uint i = 0; i < NumTreeLeafs; i++){
+
+    k = 0;
+    N = 0;
+    if(TreeLeafName[i].Contains("sequence_number") ||
+       TreeLeafName[i].Contains("num_samples") ||
+       TreeLeafName[i].Contains("Device_Error_Code")) { 
+      LinProfile.push_back(NULL);
+      LinHist.push_back(NULL);
+      continue; 
+    }
+
+    xgrp = (TGraph*)XdataStr->GetGraph(i);
+    ygrp = DataGraph[i];
+
+    if(!xgrp){ 
+      if(TreeLeafName[i].Contains("raw") && linkedname.Contains("asym")){
+	
+	temp = TreeLeafName[i];
+	temp.ReplaceAll("_raw",4,"",0);
+	xgrp = (TGraph*)XdataStr->GetGraph(XdataStr->GetLeafIndex(temp.Data()));
+      }
+    }
+
+//     if(!xgrp && TreeLeafName[i].Contains("raw") && linkedname.Contains("asym")){
+
+//       temp = TreeLeafName[i];
+//       temp.Replace("_raw",4,"",0);
+//       xgrp = (TGraph*)XdataStr->GetGraph(XdataStr->GetLeafIndex(temp.Data()));
+
+//     }
+
+    if(xgrp && ygrp){      
+	
+      //These could be from the two different trees! 
+      //The helicity tree always has the lower entry count!
+      //So find out which one it is ...
+
+      if(xgrp->GetN() < ygrp->GetN()) {
+	smaller = xgrp; 
+	smallStr = XdataStr;
+	larger = ygrp; 
+	largeStr = this;
+      } 
+      else {
+	smaller = ygrp;
+	smallStr = this;
+	larger = xgrp; 
+	largeStr = XdataStr;
+      }
+      N = smaller->GetN();
+
+      //The smaller tree must have event skips!
+      
+
+      prf = new TProfile(Form("%s_prf_%d",DataName[i].Data(),ind),
+			 Form("Run %d %s %s",GetRunNumber(),DataName[i].Data(),title),
+			 1000,largeStr->GetTreeLeafMin(i),largeStr->GetTreeLeafMax(i),
+			 smallStr->GetTreeLeafMin(i),smallStr->GetTreeLeafMax(i));
+
+      hst = new TH1D(Form("%s_prjy_%d",DataName[i].Data(),ind),
+		     Form("Run %d %s %s",GetRunNumber(),DataName[i].Data(),title),
+		     1000,smallStr->GetTreeLeafMin(i),smallStr->GetTreeLeafMax(i));
+      
+      if(prf && hst){
+	k = 0;
+	for(int j = 0; j < N-1; j++){	
+	  
+	  if(smallStr->GetErrorCode(j)) continue;
+	  
+	  //find a common start
+	  
+	  
+	  // 	if(smaller->GetX()[j] < larger->GetX()[k]) {continue;}
+	  while(smaller->GetX()[j] > larger->GetX()[k] && k < N) {
+	    k++; 
+	  }
+	  
+	  c = 0;
+	  sum = 0;
+	  while(larger->GetX()[k] < smaller->GetX()[j+1] && k < N){
+	    if(!largeStr->GetErrorCode(k)){
+	      sum += larger->GetY()[k]; 
+	      c++;
+	    }
+	    k++;
+	  }
+	  if(c){
+	    prf->Fill(sum/c,smaller->GetY()[j],1);
+	    hst->Fill(smaller->GetY()[j]);
+	  }
+	}
+	prf->GetXaxis()->SetTitle(larger->GetYaxis()->GetTitle());
+	prf->GetYaxis()->SetTitle(smaller->GetYaxis()->GetTitle());
+	prf->SetDirectory(0);
+	prf->Sumw2();
+	
+	prf->GetXaxis()->CenterTitle();
+	prf->GetXaxis()->SetTitleSize(0.06);
+	prf->GetXaxis()->SetLabelSize(0.06);
+	prf->GetXaxis()->SetTitleOffset(1.25);
+	prf->GetXaxis()->SetTitleColor(1);
+	prf->SetNdivisions(506,"X");
+	prf->GetYaxis()->SetLabelSize(0.06);
+	prf->GetYaxis()->CenterTitle();
+	prf->GetYaxis()->SetTitleSize(0.06);
+	prf->GetYaxis()->SetTitleOffset(1.25);
+	prf->GetYaxis()->SetTitleColor(1);
+	
+	LinProfile.push_back(prf);
+      
+//       hst = prf->ProjectionX(Form("%s_prx",prf->GetName()));
+	hst->GetXaxis()->SetTitle(larger->GetYaxis()->GetTitle());
+	hst->SetDirectory(0);
+	hst->Sumw2();
+	
+	hst->GetXaxis()->CenterTitle();
+	hst->GetXaxis()->SetTitleSize(0.06);
+	hst->GetXaxis()->SetLabelSize(0.06);
+	hst->GetXaxis()->SetTitleOffset(1.25);
+	hst->GetXaxis()->SetTitleColor(1);
+	//hst->SetNdivisions(506,"X");
+	hst->GetYaxis()->SetLabelSize(0.06);
+	hst->GetYaxis()->CenterTitle();
+	hst->GetYaxis()->SetTitleSize(0.06);
+	hst->GetYaxis()->SetTitleOffset(1.25);
+	hst->GetYaxis()->SetTitleColor(1);
+	LinHist.push_back(hst);	
+      }
+      else{
+	LinProfile.push_back(NULL);
+	LinHist.push_back(NULL);
+      }
+    }
+    else{
+      LinProfile.push_back(NULL);
+      LinHist.push_back(NULL);
+    }
+  }
+}
+
 
 void QwGUIMainDetectorDataStructure::FillHistograms()
 {
@@ -353,6 +527,7 @@ void QwGUIMainDetectorDataStructure::FillHistograms()
   TGraph * grp = NULL;
   Double_t y;
 
+  
   for(uint i = 0; i < NumTreeLeafs; i++){
 
     grp = DataGraph[i];
@@ -413,7 +588,6 @@ Int_t QwGUIMainDetectorDataStructure::CalculateFFTs(EventOptions *opts, UInt_t l
      TreeLeafName[ind].Contains("num_samples") ||
      TreeLeafName[ind].Contains("Device_Error_Code")) { 
     FFTHisto.push_back(NULL);
-    FFTProfile.push_back(NULL);
     return 0;
   }
 
@@ -482,11 +656,9 @@ Int_t QwGUIMainDetectorDataStructure::CalculateFFTs(EventOptions *opts, UInt_t l
   
   fft->SetDirectory(0);
   FFTHisto.push_back(fft);
-//   FFTProfile.push_back(prf);
   delete hst;
   delete fftmag;
   delete prf;
-//   prf->SetDirectory(0);
   
   return 1;
   
@@ -508,10 +680,10 @@ void QwGUIMainDetectorDataStructure::Clean()
     if(FFTHisto[i]) { delete FFTHisto[i]; FFTHisto[i] = NULL;}
   }
   FFTHisto.clear();
-  for(uint i = 0; i < FFTProfile.size(); i++){    
-    if(FFTProfile[i]) { delete FFTProfile[i]; FFTProfile[i] = NULL;}
+  for(uint i = 0; i < LinProfile.size(); i++){    
+    if(LinProfile[i]) { delete LinProfile[i]; LinProfile[i] = NULL;}
   }
-  FFTProfile.clear();
+  LinProfile.clear();
 
   for(uint i = 0; i < TreeLeafFFTOpts.size(); i++){    
     if(TreeLeafFFTOpts[i]) { delete TreeLeafFFTOpts[i]; TreeLeafFFTOpts[i] = NULL;}
@@ -544,6 +716,19 @@ void QwGUIMainDetectorDataStructure::Clean()
 
   //PrintMemInfo("After QwGUIMainDetectorDataStructure::Clean()");
     
+}
+
+Int_t QwGUIMainDetectorDataStructure::GetLeafIndex(const char* leaf)
+{
+  TString leafname;
+
+  for(uint l = 0; l < GetNumberOfTreeLeafs(); l++){
+    leafname = GetTreeLeafName(l);
+    if(leafname.Contains(leaf)){
+      return l;
+    }
+  }
+  return -1;
 }
 
 const char* QwGUIMainDetectorDataStructure::GetTreeLeafName(UInt_t n)
@@ -603,7 +788,7 @@ void QwGUIMainDetectorDataStructure::DrawHistogram(UInt_t i)
     DataHisto[i]->Draw("");
 }
 
-TObject *QwGUIMainDetectorDataStructure::GetHistogram(UInt_t i)
+TH1D *QwGUIMainDetectorDataStructure::GetHistogram(UInt_t i)
 {
   if(i < 0 || i >= DataHisto.size()) return NULL;  
   return DataHisto[i];
@@ -618,7 +803,7 @@ void QwGUIMainDetectorDataStructure::DrawGraph(UInt_t i)
   }
 }
 
-TObject *QwGUIMainDetectorDataStructure::GetGraph(UInt_t i)
+TGraph *QwGUIMainDetectorDataStructure::GetGraph(UInt_t i)
 {
   if(i < 0 || i >= DataGraph.size()) return NULL;  
   return DataGraph[i];
@@ -635,28 +820,45 @@ void QwGUIMainDetectorDataStructure::DrawFFTHistogram(UInt_t i)
     FFTHisto[i]->Draw("");
 }
 
-TObject *QwGUIMainDetectorDataStructure::GetFFTHistogram(UInt_t i)
+TH1D *QwGUIMainDetectorDataStructure::GetFFTHistogram(UInt_t i)
 {
   if(i < 0 || i >= FFTHisto.size()) return NULL;  
   return FFTHisto[i];
 }
 
 
-void QwGUIMainDetectorDataStructure::DrawFFTProfile(UInt_t i)
+void QwGUIMainDetectorDataStructure::DrawCorrelationProfile(UInt_t i)
 {
   if(TreeLeafName[i].Contains("sequence_number") ||
      TreeLeafName[i].Contains("num_samples") ||
      TreeLeafName[i].Contains("Device_Error_Code")) { return;}
 
-  if(i < 0 || i >= FFTProfile.size()) return;
-  if(FFTProfile[i])
-    FFTProfile[i]->Draw("");
+  if(i < 0 || i >= LinProfile.size()) return;
+  if(LinProfile[i])
+    LinProfile[i]->Draw("");
 }
 
-TObject *QwGUIMainDetectorDataStructure::GetFFTProfile(UInt_t i)
+void QwGUIMainDetectorDataStructure::DrawCorrelationProjection(UInt_t i)
 {
-  if(i < 0 || i >= FFTProfile.size()) return NULL;  
-  return FFTProfile[i];
+  if(TreeLeafName[i].Contains("sequence_number") ||
+     TreeLeafName[i].Contains("num_samples") ||
+     TreeLeafName[i].Contains("Device_Error_Code")) { return;}
+
+  if(i < 0 || i >= LinHist.size()) return;
+  if(LinHist[i])
+    LinHist[i]->Draw("");
+}
+
+TProfile *QwGUIMainDetectorDataStructure::GetCorrelationProfile(UInt_t i)
+{
+  if(i < 0 || i >= LinProfile.size()) return NULL;  
+  return LinProfile[i];
+}
+
+TH1D *QwGUIMainDetectorDataStructure::GetCorrelationProjection(UInt_t i)
+{
+  if(i < 0 || i >= LinHist.size()) return NULL;  
+  return LinHist[i];
 }
 
 QwGUIMainDetectorDataType::QwGUIMainDetectorDataType(UInt_t thisID, Bool_t summary)
@@ -667,6 +869,7 @@ QwGUIMainDetectorDataType::QwGUIMainDetectorDataType(UInt_t thisID, Bool_t summa
   dSummary = summary;
   dLinkedInd = -1;
   dNumberOfPads = 0;
+  dRunNumber = 0;
   CurrentTree = NULL;
   CurrentFile = NULL;
   HistoMode = kFalse;
@@ -676,6 +879,7 @@ QwGUIMainDetectorDataType::QwGUIMainDetectorDataType(UInt_t thisID, Bool_t summa
   dMenuBlock = NULL;        
   dCanvas = NULL;      
   dFrame = NULL;       
+
 }
 
 void QwGUIMainDetectorDataType::Clean() 
@@ -752,6 +956,7 @@ UInt_t QwGUIMainDetectorDataType::SetHistograms(RDataContainer *cont, TTree *tre
     QwGUIMainDetectorDataStructure * dataStr;
     CurrentTree = tree;
     CurrentFile = cont;
+    dRunNumber = thisRun;
     for(uint i = 0; i < DetNames.size(); i++){
       TBranch *branch = CurrentTree->GetBranch(DetNames[i].Data());
       if(branch){
@@ -773,6 +978,7 @@ UInt_t QwGUIMainDetectorDataType::SetTree(RDataContainer *cont, TTree *tree, vec
   if(tree && tree){
     HistoMode = kFalse;
     QwGUIMainDetectorDataStructure * dataStr;
+    dRunNumber = thisRun;
     CurrentTree = tree;
     CurrentFile = cont;
     for(uint i = 0; i < DetNames.size(); i++){
@@ -799,6 +1005,11 @@ void QwGUIMainDetectorDataType::FillData(Double_t sample)
   }
 }
 
+void QwGUIMainDetectorDataType::LinkData(vector <QwGUIMainDetectorDataType*> types) 
+{
+  dLinkedTypes = types;
+};
+
 void QwGUIMainDetectorDataType::ProcessData(const char* SummaryTitle, Bool_t Add)
 {
   if(Add && HistoMode){
@@ -815,12 +1026,16 @@ void QwGUIMainDetectorDataType::ProcessData(const char* SummaryTitle, Bool_t Add
     dMeanGraph.clear();
     dRMSGraph.clear();
   }
-
+  
 
   if(!dSummary){
 
     TGraphErrors *grph = NULL;
 
+    TString thistype = Type;
+    thistype.ToLower();
+    TString linkedtype;
+ 
     for(uint i = 0; i < dDetDataStr.size(); i++){
       dDetDataStr[i]->CalculateStats();
       dDetDataStr[i]->FillHistograms();
@@ -828,6 +1043,20 @@ void QwGUIMainDetectorDataType::ProcessData(const char* SummaryTitle, Bool_t Add
 	for(uint j = 0; j < NumberOfLeafs; j++){
 	  dDetDataStr[i]->CalculateFFTs(0,j);      
 	}
+      }
+    }
+
+    if(!HistoMode){
+      for(uint i = 0; i < dLinkedTypes.size(); i++){
+	
+	linkedtype = dLinkedTypes[i]->GetType();
+	linkedtype.ToLower();
+	if(linkedtype.Contains("pmt") && linkedtype.Contains("asy") &&
+	   thistype.Contains("pmt") && thistype.Contains("yield")){	  
+	  for(uint j = 0; j < dDetDataStr.size(); j++){	 
+	    dDetDataStr[j]->FillCorrelation(dLinkedTypes[i]->GetDetector(j),"Linearity: Asymmetry vs. Yield");
+	  }	  
+	}    
       }
     }
     
@@ -947,9 +1176,17 @@ void QwGUIMainDetectorDataType::PlotData()
 	    if(CurrentPlotMenuItemID == ProfMenuID){
 	      
 	      mc->cd(i+1);
-	      GetDetector(i)->DrawFFTProfile(j);
-	      PlotType = PLOT_TYPE_HISTO;
+	      GetDetector(i)->DrawCorrelationProfile(j);
+	      PlotType = PLOT_TYPE_PROFILE;
+	      gPad->SetLogy(0);
 	      
+	    }
+	    if(CurrentPlotMenuItemID == ProjectionMenuID){
+	      
+	      mc->cd(i+1);
+	      GetDetector(i)->DrawCorrelationProjection(j);
+	      PlotType = PLOT_TYPE_HISTO;
+	      gPad->SetLogy(1);	      
 	    }
 	  }
 	}
@@ -979,7 +1216,7 @@ void QwGUIMainDetectorDataType::PlotData()
   }
 }
 
-TObject *QwGUIMainDetectorDataType::FindPlot(const char* detector, const char* datatype)
+Int_t QwGUIMainDetectorDataType::GetLeafIndex(const char* detector, const char* leaf)
 {
   TString detname;
   TString leafname;
@@ -990,13 +1227,89 @@ TObject *QwGUIMainDetectorDataType::FindPlot(const char* detector, const char* d
     if(detname.Contains(detector)){
       for(uint l = 0; l < dDetDataStr[i]->GetNumberOfTreeLeafs(); l++){
 	leafname = dDetDataStr[i]->GetTreeLeafName(l);
-	if(leafname.Contains(datatype))
+	if(leafname.Contains(leaf)){
+	  return l;
+	}
+      }
+    }
+  }
+  return -1;
+}
+
+Int_t QwGUIMainDetectorDataType::GetDetectorIndex(const char* detector)
+{
+  TString detname;
+
+  for(uint i = 0; i < dDetDataStr.size(); i++){
+    
+    detname = dDetDataStr[i]->GetDetectorName();
+    if(detname.Contains(detector)){
+      return i;
+    }
+  }
+  return -1;
+}
+
+TH1D *QwGUIMainDetectorDataType::FindHistogram(const char* detector, const char* datatype)
+{
+  TString detname;
+  TString leafname;
+
+  for(uint i = 0; i < dDetDataStr.size(); i++){
+    
+    detname = dDetDataStr[i]->GetDetectorName();
+    if(detname.Contains(detector)){
+      for(uint l = 0; l < dDetDataStr[i]->GetNumberOfTreeLeafs(); l++){
+	leafname = dDetDataStr[i]->GetTreeLeafName(l);
+	if(leafname.Contains(datatype)){
 	  return dDetDataStr[i]->GetHistogram(l);
+	}
       }
     }
   }
   return NULL;
 }
+
+TGraph *QwGUIMainDetectorDataType::FindGraph(const char* detector, const char* datatype)
+{
+  TString detname;
+  TString leafname;
+
+  for(uint i = 0; i < dDetDataStr.size(); i++){
+    
+    detname = dDetDataStr[i]->GetDetectorName();
+    if(detname.Contains(detector)){
+      for(uint l = 0; l < dDetDataStr[i]->GetNumberOfTreeLeafs(); l++){
+	leafname = dDetDataStr[i]->GetTreeLeafName(l);
+	if(leafname.Contains(datatype)){
+	  return dDetDataStr[i]->GetGraph(l);
+	}
+      }
+    }
+  }
+  return NULL;
+}
+
+TProfile *QwGUIMainDetectorDataType::FindProfile(const char* detector, const char* datatype)
+{
+  TString detname;
+  TString leafname;
+
+  for(uint i = 0; i < dDetDataStr.size(); i++){
+    
+    detname = dDetDataStr[i]->GetDetectorName();
+    if(detname.Contains(detector)){
+      for(uint l = 0; l < dDetDataStr[i]->GetNumberOfTreeLeafs(); l++){
+	leafname = dDetDataStr[i]->GetTreeLeafName(l);
+	if(leafname.Contains(datatype)){
+	  return dDetDataStr[i]->GetCorrelationProfile(l);
+	}
+      }
+    }
+  }
+  return NULL;
+}
+
 
 QwGUIMainDetectorDataStructure* QwGUIMainDetectorDataType::GetSelectedDetector()
 {
@@ -1040,7 +1353,10 @@ TObject* QwGUIMainDetectorDataType::GetSelectedPlot()
 	  return det->GetFFTHistogram(j);
 	}
 	if(CurrentPlotMenuItemID == ProfMenuID){
-	  return det->GetFFTProfile(j);
+	  return det->GetCorrelationProfile(j);
+	}
+	if(CurrentPlotMenuItemID == ProjectionMenuID){
+	  return det->GetCorrelationProjection(j);
 	}
       }
     }
@@ -1195,18 +1511,25 @@ TRootEmbeddedCanvas *QwGUIMainDetectorDataType::MakeDataTab(TGTab *dMDTab,
     dMenuPlot->AddEntry("&Graph", GraphMenuID);
     FFTMenuID = MenuBaseID+3;
     dMenuPlot->AddEntry("&FFT Histogram", FFTMenuID);
-//     ProfMenuID = MenuBaseID+4;
-//     dMenuPlot->AddEntry("FFT &Profile",ProfMenuID);
 
+    if(!HistoMode && Type.Contains("PMT") && Type.Contains("Yield")){
+      ProfMenuID = MenuBaseID+4;
+      dMenuPlot->AddEntry("Linearity",ProfMenuID);
+      ProjectionMenuID = MenuBaseID+5;
+      dMenuPlot->AddEntry("Linearity Projection",ProjectionMenuID);
+    }
     dMenuPlotLayout = new TGLayoutHints(kLHintsTop | kLHintsLeft, 0, 4, 0, 0);
     dMenuBar->AddPopup("&Plot Type", dMenuPlot, dMenuPlotLayout);
 
     dMenuPlot->EnableEntry(HistoMenuID);
     dMenuPlot->EnableEntry(GraphMenuID);
     dMenuPlot->EnableEntry(FFTMenuID);
+    dMenuPlot->EnableEntry(ProfMenuID);
     if(HistoMode){ 
       dMenuPlot->DisableEntry(GraphMenuID);
       dMenuPlot->DisableEntry(FFTMenuID);
+      dMenuPlot->DisableEntry(ProfMenuID);
+      dMenuPlot->DisableEntry(ProjectionMenuID);
     }
 
     dMenuPlot->CheckEntry(HistoMenuID);
@@ -1306,6 +1629,11 @@ void QwGUIMainDetectorDataType::SetCurrentMenuItemID(UInt_t id)
     dMenuPlot->UnCheckEntries();
     dMenuPlot->CheckEntry(ProfMenuID);
     CurrentPlotMenuItemID = ProfMenuID ;
+  }
+  if(id == ProjectionMenuID )	{
+    dMenuPlot->UnCheckEntries();
+    dMenuPlot->CheckEntry(ProjectionMenuID);
+    CurrentPlotMenuItemID = ProjectionMenuID ;
   }
 
   for(uint i = 0; i < dLeafMenuID.size(); i++){
@@ -1980,7 +2308,7 @@ Int_t QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
       MPSTree->GetEvent(i);
       dCurrentYields->FillData(tmp2);
       dCurrentMSCYields->FillData(tmp2);    
-      
+
       evn++;
       if(dProcessHalt) { return 0;}
       IncreaseProgress(&evn,0,0,1000,0,0);
@@ -1990,6 +2318,7 @@ Int_t QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
     for(int i = HelStart; i <= HelStop; i++){
 
       HELTree->GetEvent(i);
+
       dCurrentPMTAsyms->FillData(tmp1);
       dCurrentDETAsyms->FillData(tmp1);
       dCurrentMSCAsyms->FillData(tmp1);
@@ -2243,6 +2572,30 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
     if(!dCurrentModeData[GetActiveTab()]->IsSummary() && !detStr) return;
     leafInd = dCurrentModeData[GetActiveTab()]->GetCurrentLeafIndex();
     
+    if(plot->InheritsFrom("TProfile")){
+
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIMainDetector",((TProfile*)plot)->GetTitle(), PT_PROFILE,
+					  DDT_MD,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
+
+      DataWindowArray.Add(dDataWindow);
+      dDataWindow->SetPlotTitle((char*)((TProfile*)plot)->GetTitle());
+      dDataWindow->DrawData(*((TProfile*)plot));
+      SetLogMessage(Form("Looking at DFT profile %s\n",(char*)((TProfile*)plot)->GetTitle()),add);
+
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
+      return;
+    }
     if(plot->InheritsFrom("TH1")){
 
       if(!dDataWindow){
@@ -2343,31 +2696,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
-
-    }
-    if(plot->InheritsFrom("TProfile")){
-
-      if(!dDataWindow){
-	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
-					  "QwGUIMainDetector",((TProfile*)plot)->GetTitle(), PT_PROFILE,
-					  DDT_MD,600,400);
-	if(!dDataWindow){
-	  return;
-	}
-	DataWindowArray.Add(dDataWindow);
-      }
-      else
-	add = kTrue;
-
-      DataWindowArray.Add(dDataWindow);
-      dDataWindow->SetPlotTitle((char*)((TProfile*)plot)->GetTitle());
-      dDataWindow->DrawData(*((TProfile*)plot));
-      SetLogMessage(Form("Looking at DFT profile %s\n",(char*)((TProfile*)plot)->GetTitle()),add);
-
-      Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
-      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
-      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
-
+      return;
     }
   }
 }
@@ -2382,7 +2711,7 @@ TObject* QwGUIMainDetector::GetAsymmetrySummaryPlot()
 TObject* QwGUIMainDetector::GetMDAllAsymmetryHisto()
 {
   if(!dCurrentCMBAsyms) return NULL;
-  return dCurrentCMBAsyms->FindPlot("allbars","hw");
+  return dCurrentCMBAsyms->FindHistogram("allbars","hw");
 }
 
 
