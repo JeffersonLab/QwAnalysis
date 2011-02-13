@@ -52,7 +52,7 @@ typedef float field_t;
  *
  * Currently no function exists that takes cylindrical coordinates.
  */
-class QwMagneticField {
+class QwMagneticField: public QwInterpolator<field_t,N_FIELD_COMPONENTS> {
 
   public:
 

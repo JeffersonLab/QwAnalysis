@@ -34,7 +34,6 @@
 
 // Qweak headers
 #include "VQwBridgingMethod.h"
-#include "QwMagneticField.h"
 #include "QwPartialTrack.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

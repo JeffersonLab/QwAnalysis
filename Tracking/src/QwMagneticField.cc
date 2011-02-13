@@ -25,7 +25,6 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwUnits.h"
-#include "QwInterpolator.h"
 
 /**
  * Method to print arrays conveniently
@@ -44,7 +43,7 @@ inline ostream& operator<< (ostream& stream, const double v[3])
 QwMagneticField::QwMagneticField()
 {
   // Initialize pointers
-  fField = 0;
+  fField = this;
 
   // Initialize parameters
   SetFieldScalingFactor(1.0);
@@ -134,7 +133,8 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
   min.push_back(phiMinFromMap); max.push_back(phiMaxFromMap); step.push_back(gridstepsize_phi);
 
   // Create the field map interpolator
-  fField = new QwInterpolator<float,N_FIELD_COMPONENTS>(min,max,step);
+  fField->SetDimensions(min.size());
+  fField->SetMinimumMaximumStep(min,max,step);
   fField->SetInterpolationMethod(kMultiLinear);
 
   // Scale factor
@@ -229,7 +229,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
  */
 QwMagneticField::~QwMagneticField()
 {
-  delete fField;
+  //delete fField;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

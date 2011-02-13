@@ -53,7 +53,7 @@ class QwInterpolator {
   public: // constructors and destructor
 
     /// Constructor with number of dimensions
-    QwInterpolator(const unsigned int ndim) {
+    QwInterpolator(const unsigned int ndim = 1) {
       SetDimensions(ndim);
       SetInterpolationMethod(kMultiLinear);
     };
@@ -641,6 +641,8 @@ inline bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& stream) con
 template <class value_t, unsigned int value_n>
 inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
 {
+  // Informational message
+  QwMessage << "Reading text stream... ";
   // Read the dimensions
   unsigned int n;
   stream >> fNDim >> n;
@@ -660,6 +662,8 @@ inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
   // Check for end of file
   std::string end;
   stream >> end;
+  // Informational message
+  QwMessage << "done." << QwLog::endl;
   if (end == "end") return true;
   else return false;
 }
@@ -715,8 +719,10 @@ inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string filename
 {
   std::ifstream file(filename.c_str(), std::ios::binary);
   if (! file.is_open()) return false;
+  // Informational message
+  QwMessage << "Reading binary file... ";
   // Go to end and store length (could also use std::ios::ate)
-  file.seekg(0, std::ios::end); unsigned int length = file.tellg();
+  file.seekg(0, std::ios::end);
   // Go to begin and start reading template parameters
   file.seekg(0, std::ios::beg);
   uint32_t n, size;
@@ -743,7 +749,7 @@ inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string filename
   for (unsigned int index = 0; index < fValues[0].size(); index++)
     for (unsigned int i = 0; i < value_n; i++)
       file.read((char*)(&fValues[i][index]),value_size);
-  QwMessage << QwLog::endl;
+  QwMessage << "done." << QwLog::endl;
   file.close();
   return true;
 }

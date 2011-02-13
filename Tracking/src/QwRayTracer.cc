@@ -108,7 +108,11 @@ const bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
     // Otherwise reload the field map
     fBfield = new QwMagneticField();
     fBfield->SetFieldScalingFactor(BSCALE);
-    bool status = fBfield->ReadFieldMapFile(filename);
+    bool status = false;
+    if (filename.find(".dat") != std::string::npos)
+      status = fBfield->ReadFieldMapFile(filename);
+    if (filename.find(".bin") != std::string::npos)
+      status = fBfield->ReadBinaryFile(filename);
     return status;
 };
 
