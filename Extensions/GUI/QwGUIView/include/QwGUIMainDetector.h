@@ -347,10 +347,13 @@ class QwGUIMainDetector : public QwGUISubSystem {
   UInt_t MAIN_DET_COMBIND;
   UInt_t MAIN_MSC_INDEX;
 
-  vector <TString> MainDetectorPMTNames;
-  vector <TString> MainDetectorNames;
+  vector <TString> MainDetectorPMTYieldNames;
+  vector <TString> MainDetectorPMTAsymNames;
+  vector <TString> MainDetectorYieldNames;
+  vector <TString> MainDetectorAsymNames;
   vector <TString> MainDetectorCombinationNames;    
-  vector <TString> MainDetectorMscNames;    
+  vector <TString> MainDetectorMscYieldNames;    
+  vector <TString> MainDetectorMscAsymNames;    
   
   vector <QwGUIMainDetectorDataType*> dCurrentModeData;  
   QwGUIMainDetectorDataType *dCurrentYields;    //yields for block 1 - 4 and the hw sum
@@ -366,7 +369,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   QwGUIDataWindow     *GetSelectedDataWindow();  
 
   Int_t                MakeCurrentModeTabs();
-  Int_t                LoadCurrentModeChannelMap();
+  Int_t                LoadCurrentModeChannelMap(TTree *mps, TTree *hel);
   Int_t                GetCurrentModeData(TTree *mps, TTree *hel);
 
   Int_t                MakeTrackingModeTabs();

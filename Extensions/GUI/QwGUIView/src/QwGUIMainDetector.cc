@@ -60,7 +60,7 @@ Int_t QwGUIMainDetectorDataStructure::SetTree(TTree *tree)
     ThisDetectorBranch = CurrentTree->GetBranch(DetectorName);
     MPSCntLeaf = CurrentTree->GetLeaf("mps_counter");
     if(ThisDetectorBranch){
-      
+
       EventOptions *fft = NULL;
       TGraph *grp = NULL;
       TObjArray *leafes = ThisDetectorBranch->GetListOfLeaves();
@@ -71,6 +71,8 @@ Int_t QwGUIMainDetectorDataStructure::SetTree(TTree *tree)
       next = new TIter(leafes->MakeIterator());
       obj = next->Next();
       while(obj){
+
+//  	printf("Leaf name = %s\n",obj->GetName());
 
 	objname = obj->GetName();
 
@@ -929,6 +931,7 @@ UInt_t QwGUIMainDetectorDataType::AddHistograms(RDataContainer *cont, TTree *tre
   if(!HistoMode) return 0;
   if(dSummary) return 0;
 
+//   UInt_t cnt = 0;
   if(cont && tree){
 
     CurrentTree = tree;
@@ -939,6 +942,7 @@ UInt_t QwGUIMainDetectorDataType::AddHistograms(RDataContainer *cont, TTree *tre
 	if(dDetDataStr[i]){
 	  dDetDataStr[i]->AddHistograms(cont,tree);
 	}
+// 	cnt++;
       }
     }
   }
@@ -1754,10 +1758,13 @@ void QwGUIMainDetector::CleanUp()
   dMSCYieldCanvas = NULL;  
   dSUMCanvas = NULL;  
 
-  MainDetectorPMTNames.clear();
-  MainDetectorMscNames.clear();
+  MainDetectorPMTAsymNames.clear();
+  MainDetectorPMTYieldNames.clear();
+  MainDetectorMscAsymNames.clear();
+  MainDetectorMscYieldNames.clear();
   MainDetectorCombinationNames.clear();
-  MainDetectorNames.clear();
+  MainDetectorYieldNames.clear();
+  MainDetectorAsymNames.clear();
   MAIN_PMT_INDEX = 0;
   MAIN_DET_INDEX = 0;
   MAIN_DET_COMBIND = 0;
@@ -1915,15 +1922,20 @@ void QwGUIMainDetector::MakeLayout()
 
 #ifndef ROOTCINTMODE
 
-Int_t QwGUIMainDetector::LoadCurrentModeChannelMap()
+Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTree)
 {
+  if(!MPSTree || !HELTree) return PROCESS_FAILED;
+
   //This function should only be called if a new current mode root 
   //file is opened
 
-  MainDetectorPMTNames.clear();
-  MainDetectorMscNames.clear();
+  MainDetectorPMTYieldNames.clear();
+  MainDetectorPMTAsymNames.clear();
+  MainDetectorMscYieldNames.clear();
+  MainDetectorMscAsymNames.clear();
   MainDetectorCombinationNames.clear();
-  MainDetectorNames.clear();
+  MainDetectorYieldNames.clear();
+  MainDetectorAsymNames.clear();
   MAIN_PMT_INDEX = 0;
   MAIN_DET_INDEX = 0;
   MAIN_DET_COMBIND = 0;
@@ -1956,11 +1968,25 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap()
 	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
 	namech.ToLower();
 	if(modnum == 4){
-	  MainDetectorMscNames.push_back(namech);
+
+	  if(MPSTree->GetBranch(namech.Data()))
+	    MainDetectorMscYieldNames.push_back(namech);
+	  
+	  namech.Prepend("asym_");
+	  if(HELTree->GetBranch(namech.Data()))
+	    MainDetectorMscAsymNames.push_back(namech);
+
 	  MAIN_MSC_INDEX++;
 	}
 	if(modnum < 4){
-	  MainDetectorPMTNames.push_back(namech);
+
+	  if(MPSTree->GetBranch(namech.Data()))
+	    MainDetectorPMTYieldNames.push_back(namech);
+	  
+	  namech.Prepend("asym_");
+	  if(HELTree->GetBranch(namech.Data()))
+	    MainDetectorPMTAsymNames.push_back(namech);
+
 	  MAIN_PMT_INDEX++;
 	}
       }
@@ -1972,11 +1998,26 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap()
 	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
 	namech.ToLower();
 	if(combinedchans == 2){
-	  MainDetectorNames.push_back(namech);
+
+	  if(MPSTree->GetBranch(namech.Data()))
+	    MainDetectorYieldNames.push_back(namech);
+	  
+	  namech.Prepend("asym_");
+	  if(HELTree->GetBranch(namech.Data()))
+	    MainDetectorAsymNames.push_back(namech);
+
+// 	  MainDetectorNames.push_back(namech);
 	  MAIN_DET_INDEX++;
 	}
 	if(combinedchans >= 4){
-	  MainDetectorCombinationNames.push_back(namech);
+
+// 	  if(MPSTree->GetBranch(namech.Data()))
+// 	    MainDetectorYieldNames.push_back(namech);
+	  
+	  namech.Prepend("asym_");
+	  if(HELTree->GetBranch(namech.Data()))
+	    MainDetectorCombinationNames.push_back(namech);
+
 	  MAIN_DET_COMBIND++;
 	}
 
@@ -2086,45 +2127,49 @@ void QwGUIMainDetector::OnObjClose(char *obj)
 
 Int_t QwGUIMainDetector::SetupCurrentModeDataStructures(TTree *MPSTree,TTree *HELTree)
 {
-  vector <TString> temp1;
-  for(uint i = 0; i < MainDetectorPMTNames.size(); i++)
-    temp1.push_back(Form("asym_%s",MainDetectorPMTNames[i].Data()));
-  vector <TString> temp2;
-  for(uint j = 0; j < MainDetectorMscNames.size(); j++)
-    temp2.push_back(Form("asym_%s",MainDetectorMscNames[j].Data()));
-  vector <TString> temp3;
-  for(uint k = 0; k < MainDetectorNames.size(); k++)
-    temp3.push_back(Form("asym_%s",MainDetectorNames[k].Data()));
-  vector <TString> temp4;
-  for(uint l = 0; l < MainDetectorCombinationNames.size(); l++)
-    temp4.push_back(Form("asym_%s",MainDetectorCombinationNames[l].Data()));
+//   vector <TString> temp1;
+//   for(uint i = 0; i < MainDetectorPMTNames.size(); i++)
+//     temp1.push_back(Form("asym_%s",MainDetectorPMTNames[i].Data()));
+//   vector <TString> temp2;
+//   for(uint j = 0; j < MainDetectorMscNames.size(); j++)
+//     temp2.push_back(Form("asym_%s",MainDetectorMscNames[j].Data()));
+//   vector <TString> temp3;
+//   for(uint k = 0; k < MainDetectorNames.size(); k++)
+//     temp3.push_back(Form("asym_%s",MainDetectorNames[k].Data()));
+//   vector <TString> temp4;
+//   for(uint l = 0; l < MainDetectorCombinationNames.size(); l++)
+//     temp4.push_back(Form("asym_%s",MainDetectorCombinationNames[l].Data()));
 
   if(ReadTreeEvents()){
     
     
     dCurrentYields = new QwGUIMainDetectorDataType(1000); if(!dCurrentYields) return 0;
     dCurrentYields->SetType("PMT Yield");
-    dCurrentYields->SetTree(dROOTCont,MPSTree,MainDetectorPMTNames,GetRunNumber());
+    dCurrentYields->SetTree(dROOTCont,MPSTree,MainDetectorPMTYieldNames,GetRunNumber());
         
     dCurrentPMTAsyms = new QwGUIMainDetectorDataType(1100); if(!dCurrentPMTAsyms) return 0;
     dCurrentPMTAsyms->SetType("PMT Asym");
-    dCurrentPMTAsyms->SetTree(dROOTCont,HELTree,temp1,GetRunNumber());
+    dCurrentPMTAsyms->SetTree(dROOTCont,HELTree,MainDetectorPMTAsymNames,GetRunNumber());
+//     dCurrentPMTAsyms->SetTree(dROOTCont,HELTree,temp1,GetRunNumber());
     
     dCurrentDETAsyms = new QwGUIMainDetectorDataType(1200); if(!dCurrentDETAsyms) return 0;
     dCurrentDETAsyms->SetType("Det. Asym");
-    dCurrentDETAsyms->SetTree(dROOTCont,HELTree,temp3,GetRunNumber());
+    dCurrentDETAsyms->SetTree(dROOTCont,HELTree,MainDetectorAsymNames,GetRunNumber());
+//     dCurrentDETAsyms->SetTree(dROOTCont,HELTree,temp3,GetRunNumber());
     
     dCurrentCMBAsyms = new QwGUIMainDetectorDataType(1300); if(!dCurrentCMBAsyms) return 0;
     dCurrentCMBAsyms->SetType("Comb. Asym");
-    dCurrentCMBAsyms->SetTree(dROOTCont,HELTree,temp4,GetRunNumber());
+    dCurrentCMBAsyms->SetTree(dROOTCont,HELTree,MainDetectorCombinationNames,GetRunNumber());
+//     dCurrentCMBAsyms->SetTree(dROOTCont,HELTree,temp4,GetRunNumber());
     
     dCurrentMSCAsyms = new QwGUIMainDetectorDataType(1400); if(!dCurrentMSCAsyms) return 0;
     dCurrentMSCAsyms->SetType("Misc. Asym");
-    dCurrentMSCAsyms->SetTree(dROOTCont,HELTree,temp2,GetRunNumber());
+    dCurrentMSCAsyms->SetTree(dROOTCont,HELTree,MainDetectorMscAsymNames,GetRunNumber());
+//     dCurrentMSCAsyms->SetTree(dROOTCont,HELTree,temp2,GetRunNumber());
 
     dCurrentMSCYields = new QwGUIMainDetectorDataType(1500); if(!dCurrentMSCYields) return 0;
     dCurrentMSCYields->SetType("Misc. Yield");
-    dCurrentMSCYields->SetTree(dROOTCont,MPSTree,MainDetectorMscNames,GetRunNumber());
+    dCurrentMSCYields->SetTree(dROOTCont,MPSTree,MainDetectorMscYieldNames,GetRunNumber());
     
     dCurrentSummary = new QwGUIMainDetectorDataType(1600,kTrue); if(!dCurrentSummary) return 0;
     dCurrentSummary->SetType("Summary");
@@ -2134,30 +2179,58 @@ Int_t QwGUIMainDetector::SetupCurrentModeDataStructures(TTree *MPSTree,TTree *HE
   else{
 
     //setup for histogram showing only!    
-    
+
     dCurrentYields = new QwGUIMainDetectorDataType(1000); if(!dCurrentYields) return 0;
     dCurrentYields->SetType("PMT Yield");
-    dCurrentYields->SetHistograms(dROOTCont,MPSTree,MainDetectorPMTNames,GetRunNumber());
+    dCurrentYields->SetHistograms(dROOTCont,MPSTree,MainDetectorPMTYieldNames,GetRunNumber());
         
     dCurrentPMTAsyms = new QwGUIMainDetectorDataType(1100); if(!dCurrentPMTAsyms) return 0;
     dCurrentPMTAsyms->SetType("PMT Asym");
-    dCurrentPMTAsyms->SetHistograms(dROOTCont,HELTree,temp1,GetRunNumber());
+    dCurrentPMTAsyms->SetHistograms(dROOTCont,HELTree,MainDetectorPMTAsymNames,GetRunNumber());
+//     dCurrentPMTAsyms->SetHistograms(dROOTCont,HELTree,temp1,GetRunNumber());
     
     dCurrentDETAsyms = new QwGUIMainDetectorDataType(1200); if(!dCurrentDETAsyms) return 0;
     dCurrentDETAsyms->SetType("Det. Asym");
-    dCurrentDETAsyms->SetHistograms(dROOTCont,HELTree,temp3,GetRunNumber());
+    dCurrentDETAsyms->SetHistograms(dROOTCont,HELTree,MainDetectorAsymNames,GetRunNumber());
+//     dCurrentDETAsyms->SetHistograms(dROOTCont,HELTree,temp3,GetRunNumber());
     
     dCurrentCMBAsyms = new QwGUIMainDetectorDataType(1300); if(!dCurrentCMBAsyms) return 0;
     dCurrentCMBAsyms->SetType("Comb. Asym");
-    dCurrentCMBAsyms->SetHistograms(dROOTCont,HELTree,temp4,GetRunNumber());
+    dCurrentCMBAsyms->SetHistograms(dROOTCont,HELTree,MainDetectorCombinationNames,GetRunNumber());
+//     dCurrentCMBAsyms->SetHistograms(dROOTCont,HELTree,temp4,GetRunNumber());
     
     dCurrentMSCAsyms = new QwGUIMainDetectorDataType(1400); if(!dCurrentMSCAsyms) return 0;
     dCurrentMSCAsyms->SetType("Misc. Asym");
-    dCurrentMSCAsyms->SetHistograms(dROOTCont,HELTree,temp2,GetRunNumber());
+    dCurrentMSCAsyms->SetHistograms(dROOTCont,HELTree,MainDetectorMscAsymNames,GetRunNumber());
+//     dCurrentMSCAsyms->SetHistograms(dROOTCont,HELTree,temp2,GetRunNumber());
 
     dCurrentMSCYields = new QwGUIMainDetectorDataType(1500); if(!dCurrentMSCYields) return 0;
     dCurrentMSCYields->SetType("Misc. Yield");
-    dCurrentMSCYields->SetHistograms(dROOTCont,MPSTree,MainDetectorMscNames,GetRunNumber());
+    dCurrentMSCYields->SetHistograms(dROOTCont,MPSTree,MainDetectorMscYieldNames,GetRunNumber());
+    
+//     dCurrentYields = new QwGUIMainDetectorDataType(1000); if(!dCurrentYields) return 0;
+//     dCurrentYields->SetType("PMT Yield");
+//     dCurrentYields->SetHistograms(dROOTCont,MPSTree,MainDetectorPMTNames,GetRunNumber());
+        
+//     dCurrentPMTAsyms = new QwGUIMainDetectorDataType(1100); if(!dCurrentPMTAsyms) return 0;
+//     dCurrentPMTAsyms->SetType("PMT Asym");
+//     dCurrentPMTAsyms->SetHistograms(dROOTCont,HELTree,temp1,GetRunNumber());
+    
+//     dCurrentDETAsyms = new QwGUIMainDetectorDataType(1200); if(!dCurrentDETAsyms) return 0;
+//     dCurrentDETAsyms->SetType("Det. Asym");
+//     dCurrentDETAsyms->SetHistograms(dROOTCont,HELTree,temp3,GetRunNumber());
+    
+//     dCurrentCMBAsyms = new QwGUIMainDetectorDataType(1300); if(!dCurrentCMBAsyms) return 0;
+//     dCurrentCMBAsyms->SetType("Comb. Asym");
+//     dCurrentCMBAsyms->SetHistograms(dROOTCont,HELTree,temp4,GetRunNumber());
+    
+//     dCurrentMSCAsyms = new QwGUIMainDetectorDataType(1400); if(!dCurrentMSCAsyms) return 0;
+//     dCurrentMSCAsyms->SetType("Misc. Asym");
+//     dCurrentMSCAsyms->SetHistograms(dROOTCont,HELTree,temp2,GetRunNumber());
+
+//     dCurrentMSCYields = new QwGUIMainDetectorDataType(1500); if(!dCurrentMSCYields) return 0;
+//     dCurrentMSCYields->SetType("Misc. Yield");
+//     dCurrentMSCYields->SetHistograms(dROOTCont,MPSTree,MainDetectorMscNames,GetRunNumber());
     
     dCurrentSummary = new QwGUIMainDetectorDataType(1600,kTrue); if(!dCurrentSummary) return 0;
     dCurrentSummary->SetType("Summary");
@@ -2188,50 +2261,50 @@ Int_t QwGUIMainDetector::SetupCurrentModeDataStructures(TTree *MPSTree,TTree *HE
 
 void QwGUIMainDetector::AddDataHistograms(TTree *MPSTree,TTree *HELTree)
 {
-  vector <TString> temp1;
-  for(uint i = 0; i < MainDetectorPMTNames.size(); i++)
-    temp1.push_back(Form("asym_%s",MainDetectorPMTNames[i].Data()));
-  vector <TString> temp2;
-  for(uint j = 0; j < MainDetectorMscNames.size(); j++)
-    temp2.push_back(Form("asym_%s",MainDetectorMscNames[j].Data()));
-  vector <TString> temp3;
-  for(uint k = 0; k < MainDetectorNames.size(); k++)
-    temp3.push_back(Form("asym_%s",MainDetectorNames[k].Data()));
-  vector <TString> temp4;
-  for(uint l = 0; l < MainDetectorCombinationNames.size(); l++)
-    temp4.push_back(Form("asym_%s",MainDetectorCombinationNames[l].Data()));
+//   vector <TString> temp1;
+//   for(uint i = 0; i < MainDetectorPMTNames.size(); i++)
+//     temp1.push_back(Form("asym_%s",MainDetectorPMTNames[i].Data()));
+//   vector <TString> temp2;
+//   for(uint j = 0; j < MainDetectorMscNames.size(); j++)
+//     temp2.push_back(Form("asym_%s",MainDetectorMscNames[j].Data()));
+//   vector <TString> temp3;
+//   for(uint k = 0; k < MainDetectorNames.size(); k++)
+//     temp3.push_back(Form("asym_%s",MainDetectorNames[k].Data()));
+//   vector <TString> temp4;
+//   for(uint l = 0; l < MainDetectorCombinationNames.size(); l++)
+//     temp4.push_back(Form("asym_%s",MainDetectorCombinationNames[l].Data()));
 
-  dCurrentYields->AddHistograms(dROOTCont,MPSTree,MainDetectorPMTNames);
+  dCurrentYields->AddHistograms(dROOTCont,MPSTree,MainDetectorPMTYieldNames);
   dCurrentYields->ProcessData("(md1- -> md8+)",kTrue);
   printf("dCurrentYields->ProcessData Done\n");
 
   gSystem->ProcessEvents();
 
-  dCurrentPMTAsyms->AddHistograms(dROOTCont,HELTree,temp1);
+  dCurrentPMTAsyms->AddHistograms(dROOTCont,HELTree,MainDetectorPMTAsymNames);
   dCurrentPMTAsyms->ProcessData("(md1- -> md8+)",kTrue);
   printf("dCurrentPMTAsyms->ProcessData Done\n");
   
   gSystem->ProcessEvents();
 
-  dCurrentDETAsyms->AddHistograms(dROOTCont,HELTree,temp3);
+  dCurrentDETAsyms->AddHistograms(dROOTCont,HELTree,MainDetectorAsymNames);
   dCurrentDETAsyms->ProcessData("(md1barsum -> md8barsum)",kTrue);
   printf("dCurrentDETAsyms->ProcessData Done\n");  
   
   gSystem->ProcessEvents();
 
-  dCurrentCMBAsyms->AddHistograms(dROOTCont,HELTree,temp4);
+  dCurrentCMBAsyms->AddHistograms(dROOTCont,HELTree,MainDetectorCombinationNames);
   dCurrentCMBAsyms->ProcessData("(1+5,2+6,3+7,4+8,odd,even,all)",kTrue);
   printf("dCurrentCMBAsyms->ProcessData Done\n");
 
   gSystem->ProcessEvents();
 
-  dCurrentMSCAsyms->AddHistograms(dROOTCont,HELTree,temp2);
+  dCurrentMSCAsyms->AddHistograms(dROOTCont,HELTree,MainDetectorMscAsymNames);
   dCurrentMSCAsyms->ProcessData("(PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)",kTrue);
   printf("dCurrentMSCAsyms->ProcessData Done\n");
 
   gSystem->ProcessEvents();
 
-  dCurrentMSCYields->AddHistograms(dROOTCont,MPSTree,MainDetectorMscNames);
+  dCurrentMSCYields->AddHistograms(dROOTCont,MPSTree,MainDetectorMscYieldNames);
   dCurrentMSCYields->ProcessData("(PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)",kTrue);    
   printf("dCurrentMSCYields->ProcessData Done\n");
   
@@ -2438,7 +2511,7 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
 
       if(!AddMultipleFiles()){
 	NewDataInit();
-	if(LoadCurrentModeChannelMap()){
+	if(LoadCurrentModeChannelMap(MPSTree,HELTree)){
 	  if(SetupCurrentModeDataStructures(MPSTree,HELTree)){
 	    if(GetCurrentModeData(MPSTree,HELTree)){
 	      if(MakeCurrentModeTabs()){
