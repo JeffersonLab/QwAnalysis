@@ -11,8 +11,9 @@
 
  */
 
-SELECT @data_table := "md_data"
-AS table_to_search ;
+-- WHY DOESN'T THIS WORK?? It works in is_slug_done.sql ... argh.
+# set @data_table := if(@data_table, @data_table, "md_data");
+select @data_table ;
 
 -- The first temporary table, multianalyzed, contains all the runs
 -- that have been analyzed more than once.
@@ -20,9 +21,9 @@ DROP TEMPORARY TABLE IF EXISTS multianalyzed;
 CREATE TEMPORARY TABLE multianalyzed AS
         SELECT 
                 count(analysis_id) as analyses
-        ,       runlet_id 
+        ,       analysis.runlet_id as runlet_id
         FROM analysis 
-        GROUP BY runlet_id 
+        GROUP BY analysis.runlet_id
         HAVING analyses > 1
 ;
 
@@ -37,7 +38,7 @@ DROP TEMPORARY TABLE IF EXISTS possibly_ambiguous;
 set @ambiguous := CONCAT("
 CREATE TEMPORARY TABLE possibly_ambiguous AS
         SELECT 
-        runlet_id
+	analysis.runlet_id as runlet_id
         , analysis_id
         , time
         FROM multianalyzed 
@@ -46,7 +47,7 @@ CREATE TEMPORARY TABLE possibly_ambiguous AS
                   , @data_table , 
                                 " USING (analysis_id)
         GROUP BY analysis_id
-        ORDER BY runlet_id
+        ORDER BY analysis.runlet_id
 ") ;
 prepare list_ambiguous from @ambiguous; 
 execute list_ambiguous;
