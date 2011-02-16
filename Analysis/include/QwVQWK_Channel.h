@@ -191,7 +191,12 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t GetBlockErrorValue(size_t blocknum) const { return fBlockError[blocknum]; };
   Double_t GetHardwareSum() const       { return fHardwareBlockSum; };
   Double_t GetHardwareSumM2() const     { return fHardwareBlockSumM2; };
-  Double_t GetHardwareSumWidth() const  { return fHardwareBlockSumWidth; };
+  Double_t GetHardwareSumWidth() const  { 
+    if (fNumberOfSamples>0){
+      return (fHardwareBlockSumError*sqrt(fNumberOfSamples)); 
+    }
+    return 0.0;
+  };
   Double_t GetHardwareSumError() const  { return fHardwareBlockSumError; };
   Double_t GetStabilityLimit() const { return fStability;};
   Double_t GetAverageVolts() const;
@@ -284,7 +289,6 @@ class QwVQWK_Channel: public VQwDataElement {
   // Moments of the hardware sum
   Double_t fHardwareBlockSumM2;    ///< Second moment of the hardware sum
   Double_t fHardwareBlockSumError; ///< Uncertainty on the hardware sum
-  Double_t fHardwareBlockSumWidth; ///< standard deviation  on the hardware sum
   // @}
 
 

@@ -259,7 +259,6 @@ void QwVQWK_Channel::ClearEventData()
   fHardwareBlockSum   = 0.0;
   fHardwareBlockSumM2 = 0.0;
   fHardwareBlockSumError = 0.0;
-  fHardwareBlockSumWidth = 0.0;
   fSequenceNumber   = 0;
   fNumberOfSamples  = 0;
   fGoodEventCount   = 0;
@@ -818,7 +817,6 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
       this->fHardwareBlockSum = value.fHardwareBlockSum;
       this->fHardwareBlockSumM2 = value.fHardwareBlockSumM2;
       this->fHardwareBlockSumError = value.fHardwareBlockSumError;
-      this->fHardwareBlockSumWidth = value.fHardwareBlockSumWidth;
       this->fGoodEventCount=value.fGoodEventCount;
       this->fNumberOfSamples = value.fNumberOfSamples;
       this->fSequenceNumber  = value.fSequenceNumber;
@@ -1188,7 +1186,6 @@ void QwVQWK_Channel::CalculateRunningAverage()
         fBlockError[i] = 0.0;
       }
       fHardwareBlockSumError = 0.0;
-      fHardwareBlockSumWidth = 0.0;
     }
   else
     {
@@ -1201,7 +1198,6 @@ void QwVQWK_Channel::CalculateRunningAverage()
       for (Int_t i = 0; i < fBlocksPerEvent; i++)
         fBlockError[i] = sqrt(fBlockM2[i]) / fGoodEventCount;
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
-      fHardwareBlockSumWidth = sqrt(fHardwareBlockSumM2/fGoodEventCount);
     }
 };
 
