@@ -937,13 +937,34 @@ void  QwScanner::ProcessEvent()
         {
 
           // TODO replace the position determination with interplation table
-          fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetAverageVolts();
+          const double volts_per_bit = 0.00007629;
+          double num_samples;
+          fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetRawHardwareSum();
+	  //std::cout<<"fPowSupply_VQWK_HardSum = "<<fPowSupply_VQWK;
+	  num_samples = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetNumberOfSamples();
+	  //std::cout<<", num_samples = "<<num_samples;
+	  fPowSupply_VQWK = fPowSupply_VQWK * volts_per_bit / num_samples;
+	  //std::cout<<" fPowSupply_VQWK = "<<fPowSupply_VQWK<<std::endl<<std::endl;
+	  
 
-          fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetAverageVolts();
+          fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetRawHardwareSum();
+	  //std::cout<<"fPositionX_VQWK_HardSum = "<<fPositionX_VQWK;
+	  num_samples = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetNumberOfSamples();
+	  //std::cout<<", num_samples = "<<num_samples;
+	  fPositionX_VQWK = fPositionX_VQWK * volts_per_bit / num_samples;
+	  //std::cout<<"  fPositionX = "<<fPositionX_VQWK<<"  [V]";
           fPositionX_VQWK = (fPositionX_VQWK-fVoltage_Offset_X)*fCal_Factor_VQWK_X + fHomePositionX;
-
-          fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetAverageVolts();
+          //std::cout<<"  fPositionX = "<<fPositionX_VQWK<<std::endl<<std::endl;
+	  
+	  //fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetAverageVolts();
+	  fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetRawHardwareSum();
+	  //std::cout<<"fPositionY_VQWK_HardSum = "<<fPositionY_VQWK;
+	  num_samples = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetNumberOfSamples();
+	  //std::cout<<", num_samples = "<<num_samples;
+	  fPositionY_VQWK = fPositionY_VQWK * volts_per_bit / num_samples;
+	  //std::cout<<"  fPositionY = "<<fPositionY_VQWK<<"  [V]";
           fPositionY_VQWK = (fPositionY_VQWK-fVoltage_Offset_Y)*fCal_Factor_VQWK_Y + fHomePositionY;
+	  //std::cout<<"  fPositionY = "<<fPositionY_VQWK<<std::endl<<std::endl;
         }
     }
 
