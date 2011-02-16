@@ -2,12 +2,12 @@
 
 #No.of good patterns to accumulate before triggering the feedback algorithm.
 
-patterns = 10000
+patterns = 20000
 
 #The precision of the charge asymmetry in ppm
 
 #deltaAq = 62
-deltaAq = 7500
+deltaAq = 6
 #optimal IA values in volts
 optimalIA = 5.5
 
@@ -66,11 +66,12 @@ PITASLOPE_IN = +0.8588
 
 ###  PITANEG = 200
 
-#PITA starting setpoints
-#PC_pos_t0 = 43749
-#PC_neg_t0 = 40650
-PC_pos_t0 = 0
-PC_neg_t0 = 0
+#PITA starting setpoints when IHWP is flipped from the last OUT-IN
+# flip done on 02-02-2011 at ~3.00pm- Rakitha 02/03/2011
+PC_pos_t0_IN  = 43600
+PC_neg_t0_IN  = 40600
+PC_pos_t0_OUT = 42900
+PC_neg_t0_OUT = 41300
 
 
 #PC hardware count set-point limits
@@ -81,5 +82,5 @@ PC_up  = 48016
 
 #Minimum charge asymmetry at which feedback correction is applied. see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
 
-MIN_CHARGE_ASYM = 1
-
+MIN_CHARGE_ASYM = 0.005
+DAMPING = 0

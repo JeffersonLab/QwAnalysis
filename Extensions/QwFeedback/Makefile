@@ -65,7 +65,7 @@ QWEAKCPPFLAGS := $(shell ${QWANALYSIS}/bin/qweak-config --cppflags | sed 's/I\./
 ifeq ($(ARCH),Linux)
   CXX        =  g++
   LINKER     =  g++
-  CFLAGS     =  -Wall -fPIC -O2
+  CFLAGS     =  -Wall -fPIC -O3
 endif
 
 ifeq ($(ARCH),SunOS)

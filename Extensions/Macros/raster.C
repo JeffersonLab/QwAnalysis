@@ -40,7 +40,12 @@
 //          0.0.10 : Monday, December 20 18:47:57 EST 2010, jhlee
 //                 - added the default "tag" and "body"
 //
-// 
+//          0.1.0  : Saturday, January 29 00:48:20 EST 2011, jhlee
+//                 - disabled the submit button after submit to hclog
+//                   can be enabled by click the enable submit button
+//                   to prevent double post in hclog
+//                 - 2D png is the first one than 1D.png  
+//
 // TO LIST
 //   * BPM offsets      -> fixed by Buddhini (0.0.7) QwAnalysis Rev 2272
 //   * BPMs X/Y along z -> done jhlee (0.0.7)
@@ -85,6 +90,7 @@
 enum RasterMapIndentificator {
   RM_EXIT,
   RM_SUBMIT,
+  RM_ENSUBMIT,
   RM_DEFAULT,
   RM_CLEAR,
   RM_USERNAME,
@@ -99,6 +105,7 @@ private:
   TCanvas           *fRasterMap1D;
 
   TGTextButton      *fSubmitButton;
+  TGTextButton      *fEnableSButton;
   TGTextButton      *fDefaultButton;
   TGTextButton      *fClearButton;
   TGTextButton      *fExitButton;
@@ -125,6 +132,7 @@ public:
 
   void Exit();
   void SubmitHClog();
+  void EnableSubmitButton();
   void ClearComment();
   void DefaultComment();
   
@@ -147,11 +155,13 @@ RasterMap::RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name)
   AddFrame(main_button_frame, new TGLayoutHints(kLHintsBottom | kLHintsExpandX, 1,1,1,1));
    
   fSubmitButton  = new TGTextButton(main_button_frame, "Submit to HClog", RM_SUBMIT);
+  fEnableSButton = new TGTextButton(main_button_frame, "Enable Submit",   RM_ENSUBMIT);
   fDefaultButton = new TGTextButton(main_button_frame, "Default",         RM_DEFAULT);
   fClearButton   = new TGTextButton(main_button_frame, "Clear",           RM_CLEAR);
   fExitButton    = new TGTextButton(main_button_frame, "Exit",            RM_EXIT);
    
   fSubmitButton  -> Connect("Clicked()", "RasterMap", this, "SubmitHClog()");
+  fEnableSButton -> Connect("Clicked()", "RasterMap", this, "EnableSubmitButton()");
   fDefaultButton -> Connect("Clicked()", "RasterMap", this, "DefaultComment()");
   fClearButton   -> Connect("Clicked()", "RasterMap", this, "ClearComment()");
   fExitButton    -> Connect("Clicked()", "RasterMap", this, "Exit()");
@@ -160,16 +170,19 @@ RasterMap::RasterMap(const TGWindow *p, UInt_t w, UInt_t h, TString name)
   // only cdaqlx, don't support old root version 5.18
   //
   fSubmitButton  -> SetToolTipText("Submit the plots to HClog");
+  fEnableSButton -> SetToolTipText("Enable Submit Button");
   fDefaultButton -> SetToolTipText("Use default");
   fClearButton   -> SetToolTipText("Clear all");
   fExitButton    -> SetToolTipText("Bye!");
 
   main_button_frame -> AddFrame(fSubmitButton,  new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
+  main_button_frame -> AddFrame(fEnableSButton, new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
   main_button_frame -> AddFrame(fDefaultButton, new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
   main_button_frame -> AddFrame(fClearButton,   new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
   main_button_frame -> AddFrame(fExitButton,    new TGLayoutHints(kLHintsExpandX, 2,2,1,1));
    
- 
+  fEnableSButton -> SetEnabled(false);
+
   TGHorizontalFrame  *h_frame = new TGHorizontalFrame(this);
   AddFrame(h_frame, new TGLayoutHints(kLHintsExpandX, 0,10,10,0));
    
@@ -331,23 +344,35 @@ RasterMap::SubmitHClog()
   hclog_post_string += "\" ";
   if(file_output_flag) {
     hclog_post_string += "--attachment=\"";
-    hclog_post_string += path_1D_png;
+    hclog_post_string += path_2D_png;
     hclog_post_string += "\" ";
     hclog_post_string += "--attachment=\"";
-    hclog_post_string += path_2D_png;
+    hclog_post_string += path_1D_png;
     hclog_post_string += "\" ";
   }
 
-  hclog_post_string += "--tag=\"powered by plot_raster\"";
+  hclog_post_string += "--tag=\"powered by hclog_post and plot_raster\"";
   //  hclog_post_string += "  --test";
 
   std::cout << hclog_post_string << std::endl;
 
   gSystem->Exec(hclog_post_string.Data());
-
+  
+  fSubmitButton -> SetEnabled(false);
+  fEnableSButton -> SetEnabled(true);
+  fSubmitButton  -> SetToolTipText("Please, be patient. Your submit is going to HClog :-)");
   //  hclog_post --subject="test" --author="cdaq" --body="test" --attachment=/home/cdaq/qweak/QwScratch/plots/qwick_825000-845000_7338.root.2D.png --attachment=/home/cdaq/qweak/QwScratch/plots/qwick_825000-845000_7338.root.1D.png --test
 };
 
+
+void 
+RasterMap::EnableSubmitButton()
+{
+  // printf("clicked EnableSButton()\n");
+  fSubmitButton  -> SetEnabled(true);
+  fEnableSButton -> SetEnabled(false);
+  fSubmitButton  -> SetToolTipText("Submit the plots to HClog");
+};
 
 void 
 RasterMap::ClearComment()
@@ -793,6 +818,10 @@ RasterMap::raster()
 				run_number.Data(), ev_range0.Data(), ev_range1.Data() 
 			 );
   fSubjectEntry -> SetText(default_subject);
+
+  //  this->MapRaised();
+  // this->Pop();
+  //  this-> RaiseWindow();
 
 };
 

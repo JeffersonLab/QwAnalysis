@@ -60,7 +60,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-
 #include <TGTab.h>
 
 #include <TROOT.h>
@@ -135,6 +134,9 @@ class QwGUIMain : public TGMainFrame {
 
   //!Current run number
   Int_t                   dCurRun;
+
+  //!Current run type
+  RUNTYPE                 dCurRunType;
 
   //!Menu ID counter
   Int_t                   MCnt;
@@ -305,13 +307,29 @@ class QwGUIMain : public TGMainFrame {
   //!entry for this function.
   //!
   //!Parameters:
-  //! - 1) File status: Only used if parameter 2 is NULL. In that case the file status is passed on
+  //! - 1) Event Mode: If this is set to kTrue, then the individual tree events are read, from the  
+  //!                  outset. Otherwise only histograms are read. 
+  //! - 2) File status: Only used if parameter 3 is NULL. In that case the file status is passed on
   //!                   to the function GetFilenameFromDialog(...).
-  //! - 2) Filename container: If this is NULL, then the filename is obtained from a dialog box
+  //! - 3) Filename container: If this is NULL, then the filename is obtained from a dialog box
   //!                          entry by calling the function GetFilenameFromDialog(...).
   //!
   //!Return value: Error value;
-  Int_t                   OpenRootFile(ERFileStatus status = FS_OLD, const char* file = NULL);
+  Int_t                   OpenRootFile(Bool_t EventMode = kFalse, ERFileStatus status = FS_OLD, const char* file = NULL);
+
+  //!This function is called when a run number is entered in the menu, for fast run access.
+  //!It opens the root file that has the name with the entered run number, if it can be found. 
+  //!The function only opens the ROOT file in histogram mode. The function instantiates
+  //!a new generic data container from the class RDataContainer. This container is passed to all
+  //!instantiated susbsystems and allows each of them to read the data specific to the subsystem.
+  //!Currently only one root file can be open at a time, and the function also disables the menu
+  //!entry for this function.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: Error value;
+  Int_t                   OpenRun();
 
   //!This function establishes a single connection to the database.
   //!

@@ -32,7 +32,7 @@
 ///
 /// \ingroup QwGUIMain
 
-#define MAIN_DET_BLOCKIND   5
+/* #define MAIN_DET_BLOCKIND   5 */
 
 enum ENPlotType {
   PLOT_TYPE_HISTO,           
@@ -43,77 +43,10 @@ enum ENPlotType {
 
 
 enum MDMenuIdentifiers {
-  M_PLOT_HISTO_YIELD,
-  M_PLOT_GRAPH_YIELD,
-  M_PLOT_DFT_YIELD,
-  M_PLOT_DFTPROF_YIELD,
-
-  M_PLOT_HISTO_PMT_ASYM,
-  M_PLOT_GRAPH_PMT_ASYM,
-  M_PLOT_DFT_PMT_ASYM,
-  M_PLOT_DFTPROF_PMT_ASYM,
-
-  M_PLOT_HISTO_DET_ASYM,
-  M_PLOT_GRAPH_DET_ASYM,
-  M_PLOT_DFT_DET_ASYM,
-  M_PLOT_DFTPROF_DET_ASYM,
-
-  M_PLOT_HISTO_CMB_ASYM,
-  M_PLOT_GRAPH_CMB_ASYM,
-  M_PLOT_DFT_CMB_ASYM,
-  M_PLOT_DFTPROF_CMB_ASYM,
-
-  M_PLOT_HISTO_MSC_ASYM,
-  M_PLOT_GRAPH_MSC_ASYM,
-  M_PLOT_DFT_MSC_ASYM,
-  M_PLOT_DFTPROF_MSC_ASYM,
-
-  M_PLOT_HISTO_MSC_YIELD,
-  M_PLOT_GRAPH_MSC_YIELD,
-  M_PLOT_DFT_MSC_YIELD,
-  M_PLOT_DFTPROF_MSC_YIELD,
-
-  M_DATA_PMT_YIELD_B1,
-  M_DATA_PMT_YIELD_B2,
-  M_DATA_PMT_YIELD_B3,
-  M_DATA_PMT_YIELD_B4,
-  M_DATA_PMT_YIELD_SUM,
-
-  M_DATA_PMT_ASYM_B1,
-  M_DATA_PMT_ASYM_B2,
-  M_DATA_PMT_ASYM_B3,
-  M_DATA_PMT_ASYM_B4,
-  M_DATA_PMT_ASYM_SUM,
-
-  M_DATA_DET_ASYM_B1,
-  M_DATA_DET_ASYM_B2,
-  M_DATA_DET_ASYM_B3,
-  M_DATA_DET_ASYM_B4,
-  M_DATA_DET_ASYM_SUM,
-
-  M_DATA_CMB_ASYM_B1,
-  M_DATA_CMB_ASYM_B2,
-  M_DATA_CMB_ASYM_B3,
-  M_DATA_CMB_ASYM_B4,
-  M_DATA_CMB_ASYM_SUM,
-
-  M_DATA_MSC_ASYM_B1,
-  M_DATA_MSC_ASYM_B2,
-  M_DATA_MSC_ASYM_B3,
-  M_DATA_MSC_ASYM_B4,
-  M_DATA_MSC_ASYM_SUM,
-
-  M_DATA_MSC_YIELD_B1,
-  M_DATA_MSC_YIELD_B2,
-  M_DATA_MSC_YIELD_B3,
-  M_DATA_MSC_YIELD_B4,
-  M_DATA_MSC_YIELD_SUM,
-
-  M_DATA_SUM_B1,
-  M_DATA_SUM_B2,
-  M_DATA_SUM_B3,
-  M_DATA_SUM_B4,
-  M_DATA_SUM_SUM,
+  M_PLOT_HISTO,
+  M_PLOT_GRAPH,
+  M_PLOT_FFT,
+  M_PLOT_FFTPROF,
 
   PMT_ASYM,
   DET_ASYM,
@@ -128,6 +61,7 @@ enum MDMenuIdentifiers {
 #define QWGUIMAINDETECTOR_H
 
 
+/* #include <sys/resource.h> */
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -145,117 +79,224 @@ using std::vector;
 #include "RNumberEntryDialog.h"
 #include "RMsgBox.h"
 #include "QwGUIEventWindowSelectionDialog.h"
+#include "TFrame.h"
+#include "TPaveText.h"
+#include "TLeaf.h"
 
+//This class defines the basic data structure for
+//each detector and detector combination.
+//It containes all data structures and plotypes. 
 class QwGUIMainDetectorDataStructure{
 
  private:
-  
-  TString Name;
 
-  vector <Double_t>    Data;
-  vector <Double_t>    FFT;
-  vector <Double_t>    EnsambleMean;
-  vector <Double_t>    EnsambleError;
-  Double_t    DataSum;
-  Double_t    DataSumSq;
+  TString   DetectorName;      //Filled in from parameter file input  
+  TString   DataType;          //Passed to class in constructor 
 
-  Double_t    EnsambleSum;
-  Double_t    EnsambleSumSq;
+  UInt_t     DetectorID;        //Assigned at instantiation
 
-  Double_t    DataMean;
-  Double_t    DataEnMean;
-  Double_t    DataMin;
-  Double_t    DataMax;
-  Double_t    DataRMS;
-  Double_t    DataError;
-  Double_t    DataEnError;
-  Int_t       EnsambleSize;
-  Int_t       EnsambleCounter;
+  UInt_t     RunNumber;         //Assigned on file open
+  UInt_t     NumTreeLeafs;      //As obtained from the tree
+  UInt_t     ActiveTreeLeaf;    //Set by menu option
+  UInt_t     EventCounter;      //Incremented during filling process
+  UInt_t     NumTreeEvents;     //Number of events in tree: read from tree
+
+  //This is the address to the data buffer that is passed
+  //to TBranch::SetAddress, in order to read the data from the tree
+  //Not sure if this needs to be public ... need to test.  //This gets replaced everytime a new entry is obtained from
+  //the tree.
+  Double_t *TreeLeafData;    //One for each leaf in the tree
+
+  Double_t MPSCounter;
+
+  //All of these are pointers to arrays of size "NumTreeLeafes"
+  vector <TString> DataName;          //Combination of the leaf name and the detector name
+  vector <TString> TreeLeafName;      //As obtained from the tree
+  vector <TString> TreeLeafYUnits;    //Determined according to leaf name
+  vector <TString> TreeLeafXUnits;    //Determined accoding to DetectorName (e.g. branch name)
+  vector <Double_t> TreeLeafMean;      //Calculated during filling process
+  vector <Double_t> TreeLeafSum;       //Calculated during filling process 
+  vector <Double_t> TreeLeafSumSq;     //Calculated during filling process
+  vector <Double_t> TreeLeafMin;       //Calculated during filling process
+  vector <Double_t> TreeLeafMax;       //Calculated during filling process
+  vector <Double_t> TreeLeafRMS;       //Calculated during filling process
+  vector <Double_t> TreeLeafError;     //Calculated during filling process
+  vector <Double_t> TreeLeafRMSError;  //Calculated during filling process
+  vector <UInt_t>   StatEventCounter;  //Zero amplitude suppressed. Incremented during filling process.
+  vector <Bool_t> TreeLeafFFTCalc;   //Assigned when FFT is calculated
+  vector <EventOptions*> TreeLeafFFTOpts;
+  RDataContainer *CurrentFile;
+  TTree    *CurrentTree;
+  TBranch  *ThisDetectorBranch;
+  TLeaf    *MPSCntLeaf;
+
+  //arrays of size "NumTreeLeafes" of pointers to plots 
+  vector <TGraph*>   DataGraph;        //Filled during the reading process
+  vector <TH1D*>     DataHisto;        //Filled after the reading process
+  vector <TH1D*>     FFTHisto;         //Filled after the reading process
+  vector <TProfile*> FFTProfile;       //Filled after the reading process
+
+  Bool_t HistoMode;
 
  public:
 
-  QwGUIMainDetectorDataStructure() { Clean(); };
-  ~QwGUIMainDetectorDataStructure() { Clean(); };
+  QwGUIMainDetectorDataStructure(Int_t ID, Int_t Run, TString Type);
+  ~QwGUIMainDetectorDataStructure() {};
 
   void Clean();
-  
-  void EnsambleReset(){
-    EnsambleSum = 0;
-    EnsambleSumSq = 0;
-    EnsambleCounter = 0;
-    EnsambleSize = 1000;
-  }
+ 
+  Int_t SetTree(TTree *tree);
+  Int_t SetHistograms(RDataContainer *cont, TTree *tree);
 
-  void PushData(Double_t item);
+  void FillData(Double_t sample);
+  void FillHistograms();
   void CalculateStats();
+  int CalculateFFTs(EventOptions* evntopts = NULL, UInt_t leaf = -1);
+  void SetDetectorName(const char *name) {DetectorName = name;};
 
-  void SetEnsambleSize(Int_t size) {EnsambleSize = size;};       
-  void SetName(const char *name) {Name = name;};
+  const char* GetDetectorName(){ return DetectorName.Data();};
+  const char* GetTreeLeafName(UInt_t n);
+  Double_t GetTreeLeafMin(UInt_t n);
+  Double_t GetTreeLeafMax(UInt_t n);
+  Double_t GetTreeLeafMean(UInt_t n);
+  Double_t GetTreeLeafRMS(UInt_t n);
+  Double_t GetTreeLeafError(UInt_t n);
+  Double_t GetTreeLeafRMSError(UInt_t n);
+  UInt_t GetID(){return DetectorID;};
+  UInt_t GetRunNumber() {return RunNumber;};
+  void  SetRunNumber(UInt_t run) {RunNumber = run;};
+  UInt_t GetNumberOfTreeLeafs() {return NumTreeLeafs;};
+  UInt_t ProcessedEvents() { return EventCounter;}; 
+  UInt_t ProcessedStatEvents(UInt_t n) { if(n<StatEventCounter.size()) return StatEventCounter[n]; return -1;}; 
+  Bool_t IsFFTCalculated(int leaf); 
 
-  Double_t GetData(Int_t ind) {if(ind < 0 || ind >= Length()) return 0; return Data.at(ind);};
-  Double_t GetEnsambleMean(Int_t ind) {if(ind < 0 || ind >= GetNumEnsambles()) return 0; return EnsambleMean.at(ind);};
-  Double_t GetDataRMS() {return DataRMS;};
-  Double_t GetDataError() {return DataError;};
-  Double_t GetDataEnError() {return DataEnError;};
-  Double_t GetDataMean() {return DataMean;};
-  Double_t GetDataEnMean() {return DataEnMean;};
-  Double_t GetDataMin() {return DataMin;};
-  Double_t GetDataMax() {return DataMax;};
-  Int_t    GetNumEnsambles(){return EnsambleMean.size();};
-  Int_t    Length() {return Data.size();};
-  Int_t    GetEnsambleSize() {return EnsambleSize;};
-  const char* GetName(){ return Name.Data();};
+  void DrawHistogram(UInt_t i);
+  void DrawGraph(UInt_t i);
+  void DrawFFTHistogram(UInt_t i);
+  void DrawFFTProfile(UInt_t i);
+
+  TObject* GetHistogram(UInt_t i);
+  TObject* GetGraph(UInt_t i);
+  TObject* GetFFTHistogram(UInt_t i);
+  TObject* GetFFTProfile(UInt_t i);
+  
   
 };
 
-class QwGUIMainDetectorData {
+
+class QwGUIMainDetectorDataType{
 
  private:
 
-  TString Name;
+  TString Type;
+  TTree *CurrentTree;
+  RDataContainer *CurrentFile;
 
-  Int_t dSize;
+  vector <QwGUIMainDetectorDataStructure*> dDetDataStr;
+  vector <TGraphErrors*> dMeanGraph;
+  vector <TGraphErrors*> dRMSGraph;
+  vector <QwGUIMainDetectorDataType*> dLinkedTypes;
 
-  QwGUIMainDetectorDataStructure *dData;
+  UInt_t NumberOfLeafs; 
 
-  FFTOptions fftopts;
+  TGMenuBar              *dMenuBar;
+  TGPopupMenu            *dMenuPlot;
+  TGPopupMenu            *dMenuBlock;
+  TGLayoutHints          *dMenuPlotLayout;
+  TGLayoutHints          *dMenuBlockLayout;
+  TGLayoutHints          *dMenuBarLayout;
+  TGLayoutHints          *dCanvasLayout;
+  TRootEmbeddedCanvas    *dCanvas;
+  TGVerticalFrame        *dFrame;
+  TGCompositeFrame       *dTab;
+
+
+  UInt_t          MenuBaseID;
+  UInt_t          HistoMenuID;
+  UInt_t          GraphMenuID;
+  UInt_t          FFTMenuID;
+  UInt_t          ProfMenuID; 
+  ENPlotType      PlotType;
+  vector <UInt_t> dLeafMenuID;
+  UInt_t          ID;
+  Bool_t          dSummary;
+  Bool_t          HistoMode;
+  UInt_t          dLinkedInd; 
+  
+  UInt_t          CurrentPlotMenuItemID;
+  UInt_t          CurrentLeafMenuItemID;
+  UInt_t          dNumberOfPads;
   
  public:
 
-  QwGUIMainDetectorData(Int_t size);
-  ~QwGUIMainDetectorData() { Clean(); delete[] dData; };
+  QwGUIMainDetectorDataType(UInt_t ID, Bool_t Summary = kFalse);
+  ~QwGUIMainDetectorDataType() {};
 
   void Clean();
 
-  void   SetFFTCalculated(Bool_t flag) {fftopts.calcFlag = flag;};
-  Bool_t IsFFTCalculated()      {return fftopts.calcFlag;};
+/*   void   SetFFTCalculated(Bool_t flag) {fftopts.calcFlag = flag;}; */
+/*   Bool_t IsFFTCalculated()      {return FFTOpts.calcFlag;}; */
 
-  void   SetFFTCancelFlag(Bool_t flag) {fftopts.cancelFlag = flag;};
-  void   SetFFTChangeFlag(Bool_t flag) {fftopts.changeFlag = flag;};
-  void   SetFFTStart(Int_t start)      {fftopts.Start = start;};
-  void   SetFFTLength(Int_t length)    {fftopts.Length = length;};
-  void   SetFFTTotalLength(Int_t totallength) {fftopts.TotalLength = totallength;};
-  void   SetFFTOptions(FFTOptions opts){
+/*   void   SetFFTCancelFlag(Bool_t flag) {fftopts.cancelFlag = flag;}; */
+/*   void   SetFFTChangeFlag(Bool_t flag) {fftopts.changeFlag = flag;}; */
+/*   void   SetFFTStart(Int_t start)      {fftopts.Start = start;}; */
+/*   void   SetFFTLength(Int_t length)    {fftopts.Length = length;}; */
+/*   void   SetFFTTotalLength(Int_t totallength) {fftopts.TotalLength = totallength;}; */
+/*   void   SetEventOptions(EventOptions opts){ */
   
-    fftopts.calcFlag    = opts.calcFlag;
-    fftopts.cancelFlag  = opts.cancelFlag;
-    fftopts.changeFlag  = opts.changeFlag;
-    fftopts.Start       = opts.Start;
-    fftopts.Length      = opts.Length; 
-    fftopts.TotalLength = opts.TotalLength;
+/*     fftopts.calcFlag    = opts.calcFlag; */
+/*     fftopts.cancelFlag  = opts.cancelFlag; */
+/*     fftopts.changeFlag  = opts.changeFlag; */
+/*     fftopts.Start       = opts.Start; */
+/*     fftopts.Length      = opts.Length; */
+/*     fftopts.TotalLength = opts.TotalLength; */
 
-  };
-  void   SetName(const char *name) {Name = name;};
+/*   }; */
+  void   SetType(const char *name) {Type = name;};
 
-  Bool_t GetFFTCancelFlag() {return fftopts.cancelFlag;};
-  Bool_t GetFFTChangeFlag() {return fftopts.changeFlag;};
-  Int_t  GetFFTStart(Int_t start) {return fftopts.Start;};
-  Int_t  GetFFTLength(Int_t length) {return fftopts.Length;};
-  FFTOptions *GetFFTOptions(){ return &fftopts; };
-  QwGUIMainDetectorDataStructure *GetElements() { return dData; };
-  Int_t GetNumElements() {return dSize;};
-  const char *GetName() { return Name.Data();}; 
+/*   void   SetIDArray(vector <Int_t> *array) { IDArray = array;}; */
+/*   Bool_t GetFFTCancelFlag() {return fftopts.cancelFlag;}; */
+/*   Bool_t GetFFTChangeFlag() {return fftopts.changeFlag;}; */
+/*   Int_t  GetFFTStart(Int_t start) {return fftopts.Start;}; */
+/*   Int_t  GetFFTLength(Int_t length) {return fftopts.Length;}; */
+/*   EventOptions *GetEventOptions(){ return &fftopts; }; */
+  QwGUIMainDetectorDataStructure *GetDetector(UInt_t n) { if(n < dDetDataStr.size()) return dDetDataStr[n]; return NULL; };
+  QwGUIMainDetectorDataStructure *GetSelectedDetector();
+  UInt_t GetNumDetectors() {return dDetDataStr.size();};
+  const char *GetType() { return Type.Data();};
+  UInt_t GetID(){return ID;};
+  UInt_t SetTree(RDataContainer *cont, TTree *tree, vector <TString> DetNames, UInt_t run);
+  UInt_t SetHistograms(RDataContainer *cont, TTree *tree, vector <TString> DetNames, UInt_t run);
 
+  void FillData(Double_t sample);
+  void ProcessData(const char* SummaryTitles);
+  void PlotData();
+  TObject *GetSelectedPlot();
+  void CalculateFFTs(EventOptions*);
+  TRootEmbeddedCanvas *MakeDataTab(TGTab *dMDTab, const TGWindow *parent, const TGWindow *client, Int_t w, Int_t h);
+  TRootEmbeddedCanvas *GetCanvas(){return dCanvas;};
+  void LinkData(vector <QwGUIMainDetectorDataType*> types) {dLinkedTypes = types;};
+
+  UInt_t GetHistoMenuID() {return  HistoMenuID;};
+  UInt_t GetGraphMenuID() {return  GraphMenuID;};
+  UInt_t GetFFTMenuID()   {return  FFTMenuID;};
+  UInt_t GetProfMenuID()  {return  ProfMenuID;};
+  UInt_t GetNumberOfLeafs() {return NumberOfLeafs;};
+  UInt_t GetNumberOfPads() {return dNumberOfPads;};
+
+  UInt_t GetCurrentPlotMenuItemID() {return CurrentPlotMenuItemID;};
+  UInt_t GetCurrentLeafMenuItemID() {return CurrentLeafMenuItemID;};
+  UInt_t GetCurrentLeafIndex();
+  void  SetCurrentMenuItemID(UInt_t id);
+  ENPlotType GetCurrentPlotType() {return PlotType;};
+
+  void DrawMeanGraph(UInt_t i);
+  void DrawRMSGraph(UInt_t i);
+  TObject *GetMeanGraph(UInt_t i);
+  TObject *GetRMSGraph(UInt_t i);
+
+  
+  Bool_t IsSummary() {return dSummary;};
 };
 
 
@@ -263,14 +304,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
 
 
   TGTab                  *dMDTab;
-  TGVerticalFrame        *dYieldFrame;
-  TGVerticalFrame        *dPMTAsymFrame;
-  TGVerticalFrame        *dDETAsymFrame;
-  TGVerticalFrame        *dCMBAsymFrame;
-  TGVerticalFrame        *dMSCAsymFrame;
-  TGVerticalFrame        *dMSCYieldFrame;
   TGVerticalFrame        *dSUMFrame;
-
   TGHorizontalFrame      *dTabFrame;
   
   TRootEmbeddedCanvas    *dYieldCanvas;  
@@ -281,8 +315,6 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TRootEmbeddedCanvas    *dMSCYieldCanvas;  
   TRootEmbeddedCanvas    *dSUMCanvas;  
 
-  TGLayoutHints          *dTabLayout; 
-  TGLayoutHints          *dCnvLayout; 
 
   TGComboBox             *dTBinEntry;
   TGLayoutHints          *dTBinEntryLayout;
@@ -293,230 +325,89 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TGHorizontalFrame      *dUtilityFrame;  
   TGLayoutHints          *dUtilityLayout;
 
-  TGMenuBar              *dMenuBar1;
-  TGMenuBar              *dMenuBar2;
-  TGMenuBar              *dMenuBar3;
-  TGMenuBar              *dMenuBar4;
-  TGMenuBar              *dMenuBar5;
-  TGMenuBar              *dMenuBar6;
-  TGMenuBar              *dMenuBar7;
 
-/*   TGPopupMenu            *dMenuData; */
+  TGMenuBar              *dMenuBar;
+  TGPopupMenu            *dMenuBlock;
 
-  TGPopupMenu            *dMenuPlot1;
-  TGPopupMenu            *dMenuPlot2;
-  TGPopupMenu            *dMenuPlot3;
-  TGPopupMenu            *dMenuPlot4;
-  TGPopupMenu            *dMenuPlot5;
-  TGPopupMenu            *dMenuPlot6;
-  TGPopupMenu            *dMenuPlot7;
-
-
-  TGPopupMenu            *dMenuBlock1;
-  TGPopupMenu            *dMenuBlock2;
-  TGPopupMenu            *dMenuBlock3;
-  TGPopupMenu            *dMenuBlock4;
-  TGPopupMenu            *dMenuBlock5;
-  TGPopupMenu            *dMenuBlock6;
-  TGPopupMenu            *dMenuBlock7;
-
-  TGLayoutHints          *dMenuBarLayout; 
-  TGLayoutHints          *dMenuBarItemLayout;
-
-  //!An object array to store histogram pointers -- good for use in cleanup.
-  TObjArray            YieldHistArray[MAIN_DET_BLOCKIND];
-  TObjArray            PMTAsymHistArray[MAIN_DET_BLOCKIND];
-  TObjArray            DetAsymHistArray[MAIN_DET_BLOCKIND];
-  TObjArray            CMBAsymHistArray[MAIN_DET_BLOCKIND];
-  TObjArray            MSCAsymHistArray[MAIN_DET_BLOCKIND];
-  TObjArray            MSCYieldHistArray[MAIN_DET_BLOCKIND];
-
-  //!An object array to store graph pointers.
-  TObjArray            YieldGraphArray[MAIN_DET_BLOCKIND];
-  TObjArray            PMTAsymGraphArray[MAIN_DET_BLOCKIND];
-  TObjArray            DetAsymGraphArray[MAIN_DET_BLOCKIND];
-  TObjArray            CMBAsymGraphArray[MAIN_DET_BLOCKIND];
-  TObjArray            MSCAsymGraphArray[MAIN_DET_BLOCKIND];
-  TObjArray            MSCYieldGraphArray[MAIN_DET_BLOCKIND];
-
-  //!An object array to store profile histogram pointers.
-  TObjArray            YieldProfileArray[MAIN_DET_BLOCKIND];
-  TObjArray            PMTAsymProfileArray[MAIN_DET_BLOCKIND];
-  TObjArray            DetAsymProfileArray[MAIN_DET_BLOCKIND];
-  TObjArray            CMBAsymProfileArray[MAIN_DET_BLOCKIND];
-  TObjArray            MSCAsymProfileArray[MAIN_DET_BLOCKIND];
-  TObjArray            MSCYieldProfileArray[MAIN_DET_BLOCKIND];
-
-  //!An object array to store histogram pointers for the DFT.
-  TObjArray            YieldDFTArray[MAIN_DET_BLOCKIND];
-  TObjArray            PMTAsymDFTArray[MAIN_DET_BLOCKIND];
-  TObjArray            DetAsymDFTArray[MAIN_DET_BLOCKIND];
-  TObjArray            CMBAsymDFTArray[MAIN_DET_BLOCKIND];
-  TObjArray            MSCAsymDFTArray[MAIN_DET_BLOCKIND];
-  TObjArray            MSCYieldDFTArray[MAIN_DET_BLOCKIND];
-
-  TObjArray            SummaryGraphArray[MAIN_DET_BLOCKIND];
-  
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
 
   //!A dioalog for number entry ...  
   RNumberEntryDialog   *dNumberEntryDlg;
 
-  //!This function plots histograms of the data in the current file, in the main canvas.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  Bool_t                 PlotHistograms();
 
-  //!This function plots time graphs of the data in the current file, in the main canvas.
+  //!This function initiate the plotting of all histograms and graphs 
+  //!relevant canvas.
   //!
-  //!Parameters:
-  //! - none
+  //!Parameters: 
+  //! - tab number to plot data into
   //!
-  //!Return value: none
-  Bool_t                 PlotGraphs();
-
-  //!This function plots histograms of the data discrete fourier transform.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  Bool_t                 PlotDFT();
-
-  //!This function plots the event window used to calculate the discrete fourier transform.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  Bool_t                 PlotDFTProfile();
-
-  //!This function clears the histograms/plots in the plot container (for root files). This is done  
-  //!everytime a new file is opened. If the displayed plots are not saved prior to opening a new file
-  //!any changes on the plots are lost.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
-  void                 ClearRootData();
-
-  //!This function clears the histograms in the plot container that are generated in the processes of 
-  //!calculating the discrete fast fourier transform. This is done everytime the FFT is (re)calculated. 
-  //!
-  //!Parameters:
-  //! - ALL: A boolean that specifies if all DFT arrays are to be cleared or only the one that is currently
-  //!        active in the display.
-  //!
-  //!Return value: none  
-  void                 ClearDFTData(Bool_t ALL = kTrue);
-
-  //!This function clears the histograms/plots in the plot container (for database files). This is done  
-  //!everytime a new database is opened. If the displayed plots are not saved prior to opening a new file
-  //!any changes on the plots are lost.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
-  void                 ClearDBData();
-
+  //!Return value: kTrue on success, kFalse otherwise
+  Bool_t PlotCurrentModeData(UInt_t tab);
 
   void                 NewDataInit();
 
-/*   Int_t                GetCurrentDataLength(Int_t det) {return det >= 0 && det < MAIN_DET_INDEX ? dCurrentData[det].size() : -1;}; */
-
-  void                 SetPlotType(ENPlotType type, Int_t tab) {dPlotType[tab] = type;};
-  ENPlotType           GetPlotType(Int_t tab) {return dPlotType[tab];};
-
   Int_t                GetActiveTab() {return dMDTab->GetCurrent();};
-
-  void                 SetDataType(MDMenuIdentifiers type) {dDataType = type;};
-  MDMenuIdentifiers    GetDataType() {return dDataType;};
-
-  void                 FillYieldPlots(Int_t det, Int_t dTInd);
-  void                 FillPMTAsymPlots(Int_t det, Int_t dTInd);
-  void                 FillDETAsymPlots(Int_t det, Int_t dTInd);
-  void                 FillCMBAsymPlots(Int_t det, Int_t dTInd);
-  void                 FillMSCAsymPlots(Int_t det, Int_t dTInd);
-  void                 FillMSCYieldPlots(Int_t det, Int_t dTInd);
-  void                 FillSummaryPlots(Int_t dTInd);
-
-
-  //!An array that stores the ROOT names of the histograms that I chose to display for now.
-  //!These are the names by which the histograms are identified within the root file.
 
   UInt_t MAIN_PMT_INDEX;
   UInt_t MAIN_DET_INDEX;
   UInt_t MAIN_DET_COMBIND;
   UInt_t MAIN_MSC_INDEX;
 
-  vector <TString> MainDetectorPMTNames;//[MAIN_DET_INDEX];
+  vector <TString> MainDetectorPMTNames;
   vector <TString> MainDetectorNames;
   vector <TString> MainDetectorCombinationNames;    
   vector <TString> MainDetectorMscNames;    
-
-  static const char   *MainDetectorBlockTypes[MAIN_DET_BLOCKIND];
-  static const char   *MainDetectorBlockTypesRaw[MAIN_DET_BLOCKIND];
-
-  //!Stores the data items (events) from the tree for all detectors
-
-  QwGUIMainDetectorData *dCurrentYields[MAIN_DET_BLOCKIND];   //yields for block 1 - 4 and the hw sum 
-  QwGUIMainDetectorData *dCurrentPMTAsyms[MAIN_DET_BLOCKIND]; //asyms  for block 1 - 4 and the hw sum
-  QwGUIMainDetectorData *dCurrentDETAsyms[MAIN_DET_BLOCKIND]; //asyms  for block 1 - 4 and the hw sum
-  QwGUIMainDetectorData *dCurrentCMBAsyms[MAIN_DET_BLOCKIND]; //asyms  for block 1 - 4 and the hw sum
-  QwGUIMainDetectorData *dCurrentMSCYields[MAIN_DET_BLOCKIND]; //asyms  for block 1 - 4 and the hw sum
-  QwGUIMainDetectorData *dCurrentMSCAsyms[MAIN_DET_BLOCKIND]; //asyms  for block 1 - 4 and the hw sum
-
-  Bool_t               CalculateDFT();
-  void                 SetYieldDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dYieldDataInd = 0;     else dYieldDataInd   = ind;};
-  Int_t                GetYieldDataIndex(){return dYieldDataInd;};
-
-  void                 SetPMTAsymDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dPMTAsymDataInd = 0; else dPMTAsymDataInd = ind;};
-  Int_t                GetPMTAsymDataIndex(){return dPMTAsymDataInd;};
-
-  void                 SetDETAsymDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dDETAsymDataInd = 0; else dDETAsymDataInd = ind;};
-  Int_t                GetDETAsymDataIndex(){return dDETAsymDataInd;};
-
-  void                 SetCMBAsymDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dCMBAsymDataInd = 0; else dCMBAsymDataInd = ind;};
-  Int_t                GetCMBAsymDataIndex(){return dCMBAsymDataInd;};
-
-  void                 SetMSCAsymDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dMSCAsymDataInd = 0; else dMSCAsymDataInd = ind;};
-  Int_t                GetMSCAsymDataIndex(){return dMSCAsymDataInd;};
-
-  void                 SetMSCYieldDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dMSCYieldDataInd = 0; else dMSCYieldDataInd = ind;};
-  Int_t                GetMSCYieldDataIndex(){return dMSCYieldDataInd;};
-
-  void                 SetSummaryDataIndex(Int_t ind) {if(ind < 0 || ind > 4) dSummaryDataInd = 0; else dSummaryDataInd = ind;};
-  Int_t                GetSummaryDataIndex(){return dSummaryDataInd;};
+  
+  vector <QwGUIMainDetectorDataType*> dCurrentModeData;  
+  QwGUIMainDetectorDataType *dCurrentYields;    //yields for block 1 - 4 and the hw sum
+  QwGUIMainDetectorDataType *dCurrentPMTAsyms;  //asyms  for block 1 - 4 and the hw sum
+  QwGUIMainDetectorDataType *dCurrentDETAsyms;  //asyms  for block 1 - 4 and the hw sum
+  QwGUIMainDetectorDataType *dCurrentCMBAsyms;  //asyms  for block 1 - 4 and the hw sum
+  QwGUIMainDetectorDataType *dCurrentMSCYields; //yields for block 1 - 4 and the hw sum
+  QwGUIMainDetectorDataType *dCurrentMSCAsyms;  //asyms  for block 1 - 4 and the hw sum
+  QwGUIMainDetectorDataType *dCurrentSummary;   //summary
 
   void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
   void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
   QwGUIDataWindow     *GetSelectedDataWindow();  
 
-  void                 MakeCurrentModeTabs();
+  Int_t                MakeCurrentModeTabs();
   Int_t                LoadCurrentModeChannelMap();
-  void                 GetCurrentModeData(TTree *mps, TTree *hel);
+  Int_t                GetCurrentModeData(TTree *mps, TTree *hel);
 
-  void                 MakeTrackingModeTabs();
+  Int_t                MakeTrackingModeTabs();
   Int_t                LoadTrackingModeChannelMap();
-  void                 GetTrackingModeData(TTree *tree);
+  Int_t                GetTrackingModeData(TTree *tree);
 
-  MDMenuIdentifiers    dDataType;
-  ENPlotType           dPlotType[20];
-  Int_t                dYieldDataInd;  
-  Int_t                dPMTAsymDataInd;
-  Int_t                dDETAsymDataInd;
-  Int_t                dCMBAsymDataInd;
-  Int_t                dMSCAsymDataInd;
-  Int_t                dMSCYieldDataInd;
-  Int_t                dSummaryDataInd;
-  Int_t                dSelectedDataWindow;
+  void                 SetCurrentModeOpen(Bool_t flag){dCurrentModeOpen = flag;};
+  void                 SetTrackingModeOpen(Bool_t flag) {dTrackingModeOpen = flag;};
+
+  Bool_t               IsCurrentModeOpen(){return dCurrentModeOpen;};
+  Bool_t               IsTrackingModeOpen() {return dTrackingModeOpen;};
   
+  void                 MapTrackingModeTabs();
+  void                 MapCurrentModeTabs();
+  void                 UnMapTrackingModeTabs();
+  void                 UnMapCurrentModeTabs();
+
+  Int_t                dActiveTab;
+
+  Int_t                dSelectedDataWindow;
+
+  Bool_t               dCurrentModeOpen;
+  Bool_t               dTrackingModeOpen;
+
+  Int_t                CurrentMenuItemID;
+  
+  Int_t                SetupCurrentModeDataStructures(TTree *MPSTree,TTree *HELTree);
+  Int_t                SetupTrackingModeDataStructures();
+  
+  Int_t                GetCurrentMenuItemID() {return CurrentMenuItemID;};
+  void                 SetCurrentMenuItemID(Int_t id) {CurrentMenuItemID = id;};
+
+  void                 CleanUp();
+
  protected:
 
   //!Overwritten virtual function from QwGUISubSystem::MakeLayout(). This function simply adds an

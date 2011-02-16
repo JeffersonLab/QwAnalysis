@@ -124,6 +124,8 @@ void RDataContainer::CloseFile(Bool_t kWrite)
       {
 	if(kWrite) fRfile->Write();
 	fRfile->Close();
+	delete fRfile;
+	fRfile = NULL;
 	dOpen = kFalse;
 	if(fRootBrowser != NULL){
 	  delete fRootBrowser;
@@ -367,7 +369,16 @@ TObject* RDataContainer::GetObjFromMapFile(const Char_t* name){
   return obj; 
 };
 
-
+TObject* RDataContainer::GetObjFromFile(const Char_t* name){
+  //Get a TObject from the map file
+  if(fRfile->IsOpen()){
+    TObject* obj = NULL;
+    obj = fRfile->FindObjectAny(name);
+    if(obj) return obj;
+    return NULL; 
+  }
+  return NULL;
+};
 
 int RDataContainer::OpenFile(const char *filename)
 {

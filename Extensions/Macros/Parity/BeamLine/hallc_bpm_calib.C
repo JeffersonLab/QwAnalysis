@@ -921,48 +921,76 @@ main(int argc, char **argv)
   
   /*If a bcm calibration file is specified, open the bcm calibration results file*/
   if (bcm_ped_file_flag) {
-    //    bcm_ped_filename = Form("hallc_bcm_pedestal_%d.txt", bcm_ped_runnumber);
-    bcm_ped_filename = Form("hallc_bcm_pedestal_%d_events_%d_%d.txt", bcm_ped_runnumber,event_range[0], event_range[1]);
+    bcm_ped_filename = Form("hallc_bcm_pedestal_%d.txt", bcm_ped_runnumber);
+    //bcm_ped_filename = Form("hallc_bcm_pedestal_%d_events_%d_%d.txt", bcm_ped_runnumber,event_range[0], event_range[1]);
+
+    TString name;
+    Double_t offset[2] = {0.0};
+    Double_t slope[2]  = {0.0};    
+    Double_t gain[2] = {0.0};    
+    // gain can also be calculated using slope automatically in the hallc_bcm class
 
     ifstream in;
     in.open(bcm_ped_filename.Data());
-    if(not in.is_open() ) {
+    if(in.is_open()) {
+      while (in.good()) 
+	{
+	  in >> name >> offset[0] >> offset[1] >> slope[0] >> slope[1] >> gain[0] >> gain[1];
+	  printf("%s %e %e %e %e %e %e\n", name.Data(), offset[0], offset[1], slope[0], slope[1], gain[0], gain[1]);
+	  if(name.Contains(ref_bcm_name)){
+	    hallc_bcm.SetName(name);
+	    hallc_bcm.SetPed(offset[0]);
+	    hallc_bcm.SetPedErr(offset[1]);
+	    hallc_bcm.SetSlop(slope[0]);
+	    hallc_bcm.SetSlopErr(slope[1]);
+	    in.close();
+	    break;
+	  }
+	  else {
+	    std::cout << "We cannot find any reference bcm data in "
+		      << bcm_ped_filename 
+		      << ". Please check them again."
+		      << std::endl;
+	    in.close();
+	  }
+	}
+    }
+    else {
       std::cout << "There is no BCMs calibration file with the name "
 		<< bcm_ped_filename 
 		<< ". Please check or run BCM calibration first."
 		<< std::endl;
       return EXIT_FAILURE;
-    };
-    
-    TString name;
-    Double_t offset[2] = {0.0};
-    Double_t slope[2]  = {0.0};    
-    // Double_t gain[2] = {0.0};    
-    // gain can also be calculated using slope automatically in the hallc_bcm class
-  
-    /*Load the calibration information for the bcm from the bcm calibration file*/
-    while(in.good()) {
-
-      in >> name >> offset[0] >> offset[1] >> slope[0] >> slope[1];
-      if(not in.good()) {
-	std::cout << "We cannot read the " 
-		  << bcm_ped_filename
-		  << ". Please check it agiain." 
-		  << std::endl;
-	break;
-      }
-      else {
-	if(name.Contains(ref_bcm_name)){
-	  hallc_bcm.SetName(name);
-	  hallc_bcm.SetPed(offset[0]);
-	  hallc_bcm.SetPedErr(offset[1]);
-	  hallc_bcm.SetSlop(slope[0]);
-	  hallc_bcm.SetSlopErr(slope[1]);
-	}
-      }
     }
+
     
-    in.close();
+  
+    // /*Load the calibration information for the bcm from the bcm calibration file*/
+    // while(not in.eof()) {
+
+    //   in >> name >> offset[0] >> offset[1] >> slope[0] >> slope[1] >> gain[0] >> gain[1];
+    //   printf("%s %e %e %e %e %e %e\n", name.Data(), offset[0], offset[1], slope[0], slope[1], gain[0], gain[1]);
+    //   // if(not in.good()) {
+    //   // 	std::cout << "We cannot read the " 
+    //   // 		  << bcm_ped_filename
+    //   // 		  << ". Please check it agiain." 
+    //   // 		  << std::endl;
+    //   // 	//	break;
+    //   // 	in.close();
+    //   // 	return EXIT_FAILURE;
+    //   // }
+    //   // else {
+    //   if(name.Contains(ref_bcm_name)){
+    // 	hallc_bcm.SetName(name);
+    // 	hallc_bcm.SetPed(offset[0]);
+    // 	hallc_bcm.SetPedErr(offset[1]);
+    // 	hallc_bcm.SetSlop(slope[0]);
+    // 	hallc_bcm.SetSlopErr(slope[1]);
+    //   }
+    //   //      }
+    // }
+    
+    // in.close();
   }
   else {
     /*When there is no bcm calibration run specified we use the bcm value of the current run directly.*/

@@ -39,20 +39,21 @@ void  QwCombinedPMT::InitializeChannel(TString subsystemname, TString name, TStr
     if (datatosave=="derived") fDataToSave=kDerived;
 
   fSumADC.InitializeChannel(subsystemname, "QwCombinedPMT", name, datatosave);
+  SetBlindability(kTRUE);
 
   return;
 };
 
 void  QwCombinedPMT::LinkChannel(TString name)
 {
+  Bool_t local_debug = false;
   SetElementName(name);
 //  TString sumstr = name+TString("_sum");
   TString sumstr = name+TString("");
   fSumADC.SetElementName(sumstr);
 //   TString avgstr = name+TString("_avg");
 //   fAvgADC.SetElementName(avgstr);
-
-  std::cout<<"linked combined PMT channel "<< GetElementName()<<std::endl;
+  if(local_debug) std::cout<<"linked combined PMT channel "<< GetElementName()<<std::endl;
 }
 
 void QwCombinedPMT::ClearEventData()

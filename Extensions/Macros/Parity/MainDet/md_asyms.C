@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-void mdAsym(int runNum){
+void md_asyms(int runNum){
 gROOT->Reset();
 gROOT->SetStyle("Plain");
 
