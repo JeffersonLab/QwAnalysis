@@ -5,7 +5,7 @@
  map = injtest_beamline.map
  #### geom = qweak_beamline_geometry.map
  eventcut = injtest_beamline_eventcuts.in
- param = injtest_pedestal.in
+ param = injtest_pedestal.map
 
 [QwHelicity]
  name = Helicity info

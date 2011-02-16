@@ -116,6 +116,7 @@ void QwGUIScanner::OnObjClose(char *obj)
 
 void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
 {
+  RunMode = 0;
 
   if (!cont) return;
 
@@ -126,6 +127,7 @@ void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
   TProfile *prf;
   TProfile2D *prf2d;
 
+
   if (!strcmp(cont->GetDataName(),"ROOT") && dROOTCont)
     {
 
@@ -133,7 +135,7 @@ void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
       if (obj)
         {
           printf("Reading data from 'tree'\n");
-          RunMode = EVENT_MODE;
+          RunMode = 2;//EVENT_MODE;
         }
       else
         {
@@ -141,7 +143,7 @@ void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
           if (obj)
             {
               printf("Reading data from 'Mps_Tree'\n");
-              RunMode = CURRENT_MODE;
+              RunMode = 1;//CURRENT_MODE;
             }
         }
 
@@ -228,7 +230,7 @@ void QwGUIScanner::OnNewDataContainer(RDataContainer *cont)
                            PositionX = tree->FindLeaf("scanner.PositionX_QDC")->GetValue(0);
                            PositionY = tree->FindLeaf("scanner.PositionY_QDC")->GetValue(0);
                         }
-                      else
+                      else if (RunMode == 0)
                         {
                            printf("Warning: Unknown position data type.\n");
                            continue;

@@ -3,23 +3,23 @@
 
 QwGUIEventWindowSelectionDialog::QwGUIEventWindowSelectionDialog(const TGWindow * p, const TGWindow * main,
 							   const char* objname, const char *mainname,
-							   FFTOptions *opts, UInt_t w, UInt_t h, 
+							   EventOptions *opts, UInt_t w, UInt_t h, 
 							   UInt_t options)
   : TGTransientFrame(p, main, w, h, options)
 {
 
   char temp[50];
   memset(temp,'\0',sizeof(temp));
-  dOptions = opts;
-  dChangeFlag = &dOptions->changeFlag;
-  dCancelFlag = &dOptions->cancelFlag;
+  dEventOptions = opts;
+  dChangeFlag = &dEventOptions->changeFlag;
+  dCancelFlag = &dEventOptions->cancelFlag;
   *dChangeFlag = kFalse;
   *dCancelFlag = kFalse;
   dMain = main;
 
-  defaultVals[0] = dOptions->Start;
-  defaultVals[1] = dOptions->Length;
-  defaultVals[2] = dOptions->TotalLength;
+  defaultVals[0] = dEventOptions->Start;
+  defaultVals[1] = dEventOptions->Length;
+  defaultVals[2] = dEventOptions->TotalLength;
 
   strcpy(dObjName,objname);
   strcpy(dMainName,mainname);
@@ -49,7 +49,7 @@ QwGUIEventWindowSelectionDialog::QwGUIEventWindowSelectionDialog(const TGWindow 
   fEntrframe1->AddFrame(fLabel1,fHint);
 
   fNumEntry1 = new TGNumberEntry(fEntrframe1,1.0,8,30,TGNumberFormat::kNESInteger); 
-  fNumEntry1->SetNumber(dOptions->Start);
+  fNumEntry1->SetNumber(dEventOptions->Start);
   fNumEntry1->SetState(1);
   fNumEntry1->Associate(this);
 
@@ -58,11 +58,11 @@ QwGUIEventWindowSelectionDialog::QwGUIEventWindowSelectionDialog(const TGWindow 
 
   fEntrframe2 = new TGHorizontalFrame(frame,500, 30);
 
-  fLabel2 = new TGLabel(fEntrframe2,Form("Events to Process (<= %d)",dOptions->TotalLength));
+  fLabel2 = new TGLabel(fEntrframe2,Form("Events to Process (<= %d)",dEventOptions->TotalLength));
   fEntrframe2->AddFrame(fLabel2,fHint);
 
   fNumEntry2 = new TGNumberEntry(fEntrframe2,1.0,8,30,TGNumberFormat::kNESInteger); 
-  fNumEntry2->SetNumber(dOptions->Length);
+  fNumEntry2->SetNumber(dEventOptions->Length);
   fNumEntry2->SetState(1);
   fNumEntry2->Associate(this);
 
@@ -73,7 +73,7 @@ QwGUIEventWindowSelectionDialog::QwGUIEventWindowSelectionDialog(const TGWindow 
   AddFrame(frame, fHint4);
 
   
-  SetWindowName("FFT Window Selection");
+  SetWindowName("Event Window Selection");
    TGDimension size = GetDefaultSize();
   Resize(size);
   
@@ -140,9 +140,9 @@ void QwGUIEventWindowSelectionDialog::SetOptions(Bool_t all)
   char buffer[200];
   memset(buffer,'\0',sizeof(buffer));
 
-  if(fNumEntry1->GetNumber() >= dOptions->TotalLength ||
-     fNumEntry2->GetNumber() > dOptions->TotalLength ||
-     fNumEntry1->GetNumber() + fNumEntry2->GetNumber() > dOptions->TotalLength ||
+  if(fNumEntry1->GetNumber() >= dEventOptions->TotalLength ||
+     fNumEntry2->GetNumber() > dEventOptions->TotalLength ||
+     fNumEntry1->GetNumber() + fNumEntry2->GetNumber() > dEventOptions->TotalLength ||
      fNumEntry1->GetNumber() < 0 ||
      fNumEntry2->GetNumber() < 0){
     
@@ -157,30 +157,31 @@ void QwGUIEventWindowSelectionDialog::SetOptions(Bool_t all)
 
   if(!all){
     
-    if(fNumEntry1->GetNumber() != dOptions->Start){
-      dOptions->Start  = fNumEntry1->GetNumber();
+    if(fNumEntry1->GetNumber() != dEventOptions->Start){
+      dEventOptions->Start  = fNumEntry1->GetNumber();
       *dChangeFlag = kTrue;
     }
     
-    if(fNumEntry2->GetNumber() != dOptions->Length){
-      dOptions->Length  = fNumEntry2->GetNumber();
+    if(fNumEntry2->GetNumber() != dEventOptions->Length){
+      dEventOptions->Length  = fNumEntry2->GetNumber();
       *dChangeFlag = kTrue;
     }
   }
   else{
-    dOptions->Start  = 0;
-    dOptions->Length = dOptions->TotalLength;    
+    dEventOptions->Start  = 0;
+    dEventOptions->Length = dEventOptions->TotalLength;    
     *dChangeFlag = kTrue;
   }  
 
-  if(*dChangeFlag && dOptions->Length > 50000){
+  if(*dChangeFlag && dEventOptions->Length > 50000){
 
     sprintf(buffer,
 	    "You selected %d events to process!\nThis may take a while!\nAre you sure you want to continue?",
-	    dOptions->Length);
+	    dEventOptions->Length);
     
-    new TGMsgBox(fClient->GetRoot(), dMain,"File Open Operation",
+    new TGMsgBox(fClient->GetRoot(), this,"File Open Operation",
 		 buffer,kMBIconQuestion, kMBOk | kMBCancel, &retval);
+    
     if(retval == kMBCancel){ 
       return;
     }

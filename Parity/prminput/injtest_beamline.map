@@ -2,7 +2,7 @@
 ROC=31
 Bank=0x3102
 !same sample size for ADCs in a given bank
-sample_size=4000
+sample_size=464
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
@@ -155,3 +155,6 @@ sample_size=4000
  !QWK_0I02,  1.0,  0.1,  0.5
  !QWK_0I05,  1.0,  0.1,  0.5
 !endCOMBO=combinedbpm
+
+[PUBLISH]
+ q_targ, bcm, qwk_bcm0l02, c

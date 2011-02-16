@@ -51,14 +51,15 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  The "scratch" directory should be first.
   //QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Extensions/QwFeedback/prminput");
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
 
   // Then set the command line arguments and the configuration filename, 
   // and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.AddConfigFile("qwfeedback.conf");
+  //gQwOptions.ListConfigFiles();
   //gQwOptions.AddConfigFile("qweak_mysql.conf");
     // Define the command line options
   DefineOptionsParity(gQwOptions);
