@@ -12,10 +12,18 @@
 #include <string>
 #include <limits>
 
+#include "TMath.h"
+
 // Qweak headers
 #include "QwLog.h"
 #include "QwDatabase.h"
 #include "QwVQWK_Channel.h"
+
+//  String names of the blinding and Wien status values
+const TString QwBlinder::fStatusName[4] = {"Indeterminate", "NotBlindable",
+					   "Blindable", "BlindableFail"};
+const TString QwBlinder::fWienName[5] = {"Indeterminate", "Forward", "Backward"
+					 "Vertical", "Horizontal"};
 
 // Maximum blinding asymmetry for additive blinding
 const Double_t QwBlinder::kMaximumBlindingAsymmetry = 0.06; // ppm
@@ -41,13 +49,13 @@ void QwBlinder::DefineOptions(QwOptions &options){
  */
 QwBlinder::QwBlinder(const EQwBlindingStrategy blinding_strategy):
   fTargetBlindability_firstread(kIndeterminate),
-  //  fTargetBlindability(kIndeterminate),
-  //  fTargetPositionForced(kFALSE),
   fTargetBlindability(kIndeterminate),
   fTargetPositionForced(kFALSE),
   //
+  fWienMode_firstread(kWienIndeterminate),
+  fWienMode(kWienIndeterminate),
+  fIHWPPolarity_firstread(0),
   fIHWPPolarity(0),
-  fWienPolarity(0),
   //
   fBeamCurrentThreshold(1.0),
   fBeamIsPresent(kFALSE),
@@ -64,6 +72,7 @@ QwBlinder::QwBlinder(const EQwBlindingStrategy blinding_strategy):
 
   // Calculate set of test values
   InitTestValues(10);
+  fPatternCounters.resize(15);
 };
 
 
@@ -114,7 +123,8 @@ void QwBlinder::Update(QwDatabase* db)
   UInt_t old_seed_id = fSeedID;
   ReadSeed(db);
   // If the blinding seed has changed, re-initialize the blinder
-  if (fSeedID != old_seed_id) {
+  if (fSeedID != old_seed_id ||
+      (fSeedID==0 && fSeed!=kDefaultSeed) ) {
     QwWarning << "Changing blinder seed to " << fSeedID
               << " from " << old_seed_id << "." << QwLog::endl;
     InitBlinders(fSeedID);
@@ -180,28 +190,60 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
   // Check for the beam polarity information
   //     IGL1I00DI24_24M         Beam Half-wave plate Read(off=out)
   //
-  if (fBlindingStrategy != kDisabled) {
-    Int_t localIHWPPolarity = fIHWPPolarity;
+  if (fBlindingStrategy != kDisabled &&
+      (fTargetBlindability == QwBlinder::kBlindable) ) {
+    Int_t ihwppolarity;
     if (epics.GetDataString("IGL1I00DI24_24M")=="OUT"){
-      fIHWPPolarity = 1;
+      ihwppolarity = 1;
     } else if (epics.GetDataString("IGL1I00DI24_24M")=="IN"){
-      fIHWPPolarity = -1;
+      ihwppolarity = -1;
     } else {
-      fIHWPPolarity = 0;
+      ihwppolarity = 0;
     }
     //  Check for Wien polarity should go here.
+    Double_t vwienangle = epics.GetDataValue("VWienAngle");
+    Double_t phiangle   = epics.GetDataValue("Phi_FG");
+    Double_t hwienangle = epics.GetDataValue("HWienAngle");
 
-    if (localIHWPPolarity!=fIHWPPolarity){
-      //  Report old test values.
-      PrintFinalValues();
+    const Double_t nominal_launch = 30.0;
+
+    Double_t launchangle = 0.0;
+    EQwBlinderWienMode wienmode = kWienIndeterminate;
+
+    Double_t hoffset = 0.0;
+    if (fabs(vwienangle)<10.0 && fabs(phiangle)<10.0){
+      hoffset = 0.0;
+    } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
+	       && fabs(vwienangle+phiangle)<10. ){
+      hoffset = -90.0;
+    } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
+	       && fabs(vwienangle+phiangle)>170. ){
+      hoffset = +90.0;
+    } else if (fabs(vwienangle)>80.0 && fabs(phiangle)<10.0) {
+      wienmode = kWienVertTrans;
+    } 
+    if (wienmode == kWienIndeterminate){
+      launchangle = hoffset+hwienangle;
+      Double_t long_proj = 
+	cos((launchangle-nominal_launch)*TMath::DegToRad());
+      if (long_proj > 0.5){
+	wienmode = kWienForward;
+      } else if (long_proj < -0.5){
+	wienmode = kWienBackward;
+      } else if (fabs(long_proj)<0.25){
+	wienmode = kWienHorizTrans;
+      }
     }
-    fBlindingOffset = fBlindingOffset_Base * fIHWPPolarity;
-    if (localIHWPPolarity!=fIHWPPolarity){
-      //  Regenerate the test values.
-      InitTestValues(10);
+
+    SetWienState(wienmode);
+    SetIHWPPolarity(ihwppolarity);
+    
+    if (fWienMode == kWienForward){
+      fBlindingOffset = fBlindingOffset_Base * fIHWPPolarity;
+    } else if (fWienMode == kWienBackward){
+      fBlindingOffset = -1 * fBlindingOffset_Base * fIHWPPolarity;
     }
   }
-  
 }
 
 /*!-----------------------------------------------------------
@@ -220,7 +262,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db)
   if (! db) {
     QwWarning << "QwBlinder::ReadSeed(): No database specified" << QwLog::endl;
     fSeedID = 0;
-    fSeed   = "default seed";
+    fSeed   = "Default seed, No database specified";
     return 0;
   }
 
@@ -307,7 +349,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
   if (! db) {
     QwWarning << "QwBlinder::ReadSeed(): No database specified" << QwLog::endl;
     fSeedID = 0;
-    fSeed   = "default seed";
+    fSeed   = "Default seed, No database specified";
     return 0;
   }
 
@@ -475,6 +517,8 @@ void QwBlinder::InitTestValues(const int n)
   fBlindTestValues.clear();
   fUnBlindTestValues.clear();
 
+  Double_t tmp_offset = fBlindingOffset;
+  fBlindingOffset = fBlindingOffset_Base;
   // For each test case
   for (int i = 0; i < n; i++) {
 
@@ -488,9 +532,11 @@ void QwBlinder::InitTestValues(const int n)
       }
     }
 
-    // Using end 3 digits (0x1 through 0xFFF) of the finalseed (1 - 4095)
-    // This produces a value from 0.47 ppb to 953.4 ppb
-    Double_t tempval = -1.0 * (finalseed & 0xFFF) / (1024.0 * 4096.0 * 1024.0);
+    // Mask out the low digits of the finalseed, multiply by two,
+    // divide by the mask value, subtract from 1, and divide result by
+    // 1.0e6 to get a range of about -1000 to +1000 ppb.
+    Int_t mask = 0xFFFFFF;
+    Double_t tempval = (1.0 - 2.0*(finalseed&mask)/mask) / (1.0e6);
 
     // Store the test values
     fTestValues.push_back(tempval);
@@ -499,7 +545,7 @@ void QwBlinder::InitTestValues(const int n)
     UnBlindValue(tempval);
     fUnBlindTestValues.push_back(tempval);
   }
-
+  fBlindingOffset = tmp_offset;
   QwMessage << "QwBlinder::InitTestValues(): A total of " << fTestValues.size()
             << " test values have been calculated successfully." << QwLog::endl;
 };
@@ -748,6 +794,8 @@ Bool_t QwBlinder::CheckTestValues()
 {
   Bool_t status = kTRUE;
 
+  Double_t tmp_offset = fBlindingOffset;
+  fBlindingOffset = fBlindingOffset_Base;
   double epsilon = std::numeric_limits<double>::epsilon();
   for (size_t i = 0; i < fTestValues.size(); i++) {
 
@@ -780,6 +828,7 @@ Bool_t QwBlinder::CheckTestValues()
       status = kFALSE;
     }
   }
+  fBlindingOffset = tmp_offset;
   return status;
 };
 
@@ -816,29 +865,50 @@ std::vector<UChar_t> QwBlinder::GenerateDigest(const TString& input) const
  */
 void QwBlinder::PrintFinalValues()
 {
-  QwMessage << "QwBlinder::PrintCheckValues():  Begin summary"    << QwLog::endl;
+  QwMessage << "QwBlinder::PrintFinalValues():  Begin summary"    << QwLog::endl;
+  QwMessage << "================================================" << QwLog::endl;
+  QwMessage << "Blinder Passed Patterns"  << QwLog::endl;
+  QwMessage << "\tPatterns with blinding disabled: " << fPatternCounters.at(0) << QwLog::endl;
+  QwMessage << "\tPatterns on a non-blindable target: " << fPatternCounters.at(3) << QwLog::endl;
+  QwMessage << "\tPatterns with transverse beam: " << fPatternCounters.at(5) << QwLog::endl;
+  QwMessage << "\tPatterns on blindable target with beam present: " << fPatternCounters.at(6) << QwLog::endl;
+  QwMessage << "Blinder Failed Patterns"  << QwLog::endl;
+  QwMessage << "\tPatterns with unknown target position: " << fPatternCounters.at(1) << QwLog::endl;
+  QwMessage << "\tPatterns with changed target position: " << fPatternCounters.at(2) << QwLog::endl;
+  QwMessage << "\tPatterns with an undefined Wien setting: " << fPatternCounters.at(4) << QwLog::endl;
+  QwMessage << "\tPatterns with a changed Wien setting: " << fPatternCounters.at(10) << QwLog::endl;
+  QwMessage << "\tPatterns with an undefined IHWP setting: " << fPatternCounters.at(12) << QwLog::endl;
+  QwMessage << "\tPatterns with a changed IHWP setting: " << fPatternCounters.at(11) << QwLog::endl;
+  QwMessage << "\tPatterns on blindable target with no beam: " << fPatternCounters.at(7) << QwLog::endl;
+  QwMessage << "\tPatterns with other blinding failure: " << fPatternCounters.at(8) << QwLog::endl;
   QwMessage << "================================================" << QwLog::endl;
   QwMessage << "The blinding parameters checksum for seed ID "
             << fSeedID << " is:" << QwLog::endl;
   QwMessage << fChecksum << QwLog::endl;
   QwMessage << "================================================" << QwLog::endl;
   CheckTestValues();
+  double epsilon = std::numeric_limits<double>::epsilon();
+  TString diff;
   QwMessage << "The test results are:" << QwLog::endl;
   QwMessage << std::setw(8)  << "Index"
             << std::setw(16) << "Original value"
             << std::setw(16) << "Blinded value"
-            << std::setw(16) << "Unblinded value"
+            << std::setw(22) << "Orig.-Unblind value"
             << QwLog::endl;
   for (size_t i = 0; i < fTestValues.size(); i++) {
+    if ((fTestValues[i]-fUnBlindTestValues[i]) < -epsilon 
+	|| (fTestValues[i]-fUnBlindTestValues[i]) > epsilon )
+      diff = Form("% 9g ppb", fTestValues[i]-fUnBlindTestValues[i]*1e9);
+    else
+      diff = "epsilon";
     QwMessage << std::setw(8)  << i
-              << std::setw(16) << Form("% 9g ppb",fTestValues[i]*1e9)
               << std::setw(16) << Form(" [CENSORED]")
-            //<< std::setw(16) << Form("% 9g ppb",fBlindTestValues[i]*1e9)
-              << std::setw(16) << Form("% 9g ppb",fUnBlindTestValues[i]*1e9)
+	      << std::setw(16) << Form("% 9.3f ppb",fBlindTestValues[i]*1e9)
+              << std::setw(22) << diff
               << QwLog::endl;
   }
   QwMessage << "================================================" << QwLog::endl;
-  QwMessage << "QwBlinder::PrintCheckValues():  End of summary"   << QwLog::endl;
+  QwMessage << "QwBlinder::PrintFinalValues():  End of summary"   << QwLog::endl;
 };
 
 
@@ -914,41 +984,100 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
 
 }
 
-void QwBlinder::SetTargetBlindability(QwBlinder::EQwBlinderStatus status){
+void QwBlinder::SetTargetBlindability(QwBlinder::EQwBlinderStatus status)
+{
   fTargetBlindability = status;
   if (fTargetBlindability_firstread == QwBlinder::kIndeterminate
-      && fTargetBlindability != QwBlinder::kIndeterminate)
+      && fTargetBlindability != QwBlinder::kIndeterminate){
     fTargetBlindability_firstread = fTargetBlindability;
+    QwMessage << "QwBlinder:  First set target blindability to " 
+	      << fStatusName[fTargetBlindability] << QwLog::endl;
+  }
 };
 
-QwBlinder::EQwBlinderStatus QwBlinder::CheckBlindability(){
+void QwBlinder::SetWienState(QwBlinder::EQwBlinderWienMode wienmode)
+{
+  fWienMode = wienmode;
+  if (fWienMode_firstread == QwBlinder::kWienIndeterminate
+      && fWienMode != QwBlinder::kWienIndeterminate){
+    fWienMode_firstread = fWienMode;
+    QwMessage << "QwBlinder:  First set Wien state to " 
+	      << fWienName[fWienMode] << QwLog::endl;
+  }
+};
+
+void QwBlinder::SetIHWPPolarity(Int_t ihwppolarity)
+{
+  fIHWPPolarity = ihwppolarity;
+  if (fIHWPPolarity_firstread == 0 && fIHWPPolarity != 0){
+    fIHWPPolarity_firstread = fIHWPPolarity;
+    QwMessage << "QwBlinder:  First set IHWP state to " 
+	      << fIHWPPolarity << QwLog::endl;
+  }
+};
+
+
+QwBlinder::EQwBlinderStatus QwBlinder::CheckBlindability()
+{
   EQwBlinderStatus status = QwBlinder::kBlindableFail;
   if (fBlindingStrategy == kDisabled) {
     status = QwBlinder::kNotBlindable;
+    fPatternCounters.at(0)++;
   } else if (fTargetBlindability == QwBlinder::kIndeterminate) {
-    QwError  << "QwBlinder::CheckBlindability:  The target blindability is not determined.  "
-	     << "Fail this event." << QwLog::endl;
+    QwDebug  << "QwBlinder::CheckBlindability:  The target blindability is not determined.  "
+	     << "Fail this pattern." << QwLog::endl;
     status = QwBlinder::kBlindableFail;
+    fPatternCounters.at(1)++;    
   } else if (fTargetBlindability!=fTargetBlindability_firstread
 	     && !fTargetPositionForced) {
-    QwError << "QwBlinder::CheckBlindability:  The target blindability has changed.  "
-	    << "Fail this event." << QwLog::endl;
+    QwDebug << "QwBlinder::CheckBlindability:  The target blindability has changed.  "
+	    << "Fail this pattern." << QwLog::endl;
     status = QwBlinder::kBlindableFail;
+    fPatternCounters.at(2)++;
   } else if (fTargetBlindability==kNotBlindable) {
     //  This isn't a blindable target, so don't do anything.
     status = QwBlinder::kNotBlindable;
+    fPatternCounters.at(3)++;
+  } else if (fTargetBlindability==kBlindable &&
+	     fWienMode != fWienMode_firstread) {
+    //  Wien status changed.  Fail
+    status = QwBlinder::kBlindableFail;
+    fPatternCounters.at(10)++;
+  } else if (fTargetBlindability==kBlindable &&
+	     fIHWPPolarity != fIHWPPolarity_firstread) {
+    //  IHWP status changed.  Fail
+    status = QwBlinder::kBlindableFail;
+    fPatternCounters.at(11)++;
+  } else if (fTargetBlindability==kBlindable &&
+	     fWienMode == kWienIndeterminate) {
+    //  Wien status isn't determined.  Fail.
+    status = QwBlinder::kBlindableFail;
+    fPatternCounters.at(4)++;
+  } else if (fTargetBlindability==kBlindable &&
+	     fIHWPPolarity==0) {
+    //  IHWP status isn't determined.  Fail.
+    status = QwBlinder::kBlindableFail;
+    fPatternCounters.at(12)++;
+  } else if (fTargetBlindability==kBlindable &&
+	     fWienMode == kWienVertTrans || fWienMode == kWienHorizTrans ) {
+    //  We don't have longitudinal beam, so don't blind.
+    status = QwBlinder::kNotBlindable;
+    fPatternCounters.at(5)++;
   } else if (fTargetBlindability==kBlindable 
-	     && fBeamIsPresent && fIHWPPolarity!=0) {
+	     && fBeamIsPresent) {
     //  This is a blindable target and the beam is sufficent.
     status = QwBlinder::kBlindable;
+    fPatternCounters.at(6)++;
   } else if (fTargetBlindability==kBlindable 
-	     && (! fBeamIsPresent || fIHWPPolarity==0) ) {
+	     && (! fBeamIsPresent) ) {
     //  This is a blindable target but there is insufficent beam present
     status = QwBlinder::kBlindableFail;
+    fPatternCounters.at(7)++;
   } else {
-    QwError << "QwBlinder::CheckBlindability:  The event blindability is unclear.  "
-	     << "Fail this event." << QwLog::endl;
+    QwError << "QwBlinder::CheckBlindability:  The pattern blindability is unclear.  "
+	     << "Fail this pattern." << QwLog::endl;
     status = QwBlinder::kBlindableFail;
+    fPatternCounters.at(8)++;
   }
   //
   fBlinderIsOkay = (status != QwBlinder::kBlindableFail);
