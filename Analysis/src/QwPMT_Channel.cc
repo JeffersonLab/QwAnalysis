@@ -16,10 +16,11 @@ const Bool_t QwPMT_Channel::kDEBUG = kFALSE;
 
 /*!  Conversion factor to translate the average bit count in an ADC
  *   channel into average voltage.
- *   The base factor is 0.07929 mV per count, and zero counts corresponds
+ *   The base factor is roughly 76 uV per count, and zero counts corresponds
  *   to zero voltage.
+ *   Store as the exact value for 20 V range, 18 bit ADC.
  */
-const Double_t QwPMT_Channel::kPMT_VoltsPerBit = 76.29e-6;
+const Double_t QwPMT_Channel::kPMT_VoltsPerBit = (20./(1<<18));
 
 
 void QwPMT_Channel::ClearEventData(){

@@ -937,7 +937,7 @@ void  QwScanner::ProcessEvent()
         {
 
           // TODO replace the position determination with interplation table
-          const double volts_per_bit = 0.00007629;
+          const double volts_per_bit = (20./(1<<18));
           double num_samples;
           fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetRawHardwareSum();
 	  //std::cout<<"fPowSupply_VQWK_HardSum = "<<fPowSupply_VQWK;

@@ -33,10 +33,11 @@ boost::variate_generator < boost::mt19937, boost::normal_distribution<double> >
 
 /*!  Conversion factor to translate the average bit count in an ADC
  *   channel into average voltage.
- *   The base factor is 0.07629 mV per count, and zero counts corresponds
+ *   The base factor is roughly 76 uV per count, and zero counts corresponds
  *   to zero voltage.
+ *   Store as the exact value for 20 V range, 18 bit ADC.
  */
-const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = 76.29e-6;
+const Double_t QwVQWK_Channel::kVQWK_VoltsPerBit = (20./(1<<18));
 
 /*!  Static member function to return the word offset within a data buffer
  *   given the module number index and the channel number index.
