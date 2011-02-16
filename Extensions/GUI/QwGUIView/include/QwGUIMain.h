@@ -60,7 +60,6 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
-
 #include <TGTab.h>
 
 #include <TROOT.h>
@@ -68,7 +67,8 @@
 #include <TApplication.h>
 #include <TGClient.h>
 #include <TRandom.h>
-#include <TGComboBox.h>
+//#include <TGComboBox.h>
+#include "QwGUIComboBox.h"
 #include <TGNumberEntry.h>
 #include <TString.h>
 #include <TGSplitter.h>
@@ -136,8 +136,13 @@ class QwGUIMain : public TGMainFrame {
   //!Current run number
   Int_t                   dCurRun;
 
+  //!Current run type
+  RUNTYPE                 dCurRunType;
+
   //!Menu ID counter
   Int_t                   MCnt;
+
+  Int_t                   dCurrentSegment;
 
   //!The following two flags are used in process increment dialog boxes
   Bool_t                  dProcessing;
@@ -148,6 +153,10 @@ class QwGUIMain : public TGMainFrame {
   Bool_t                  dDatabaseOpen;
   Bool_t                  dLogFileOpen;
   Bool_t                  dRunOpen;
+/*   Bool_t                  dAllSegments; */
+  Bool_t                  dAddSegments;
+  Bool_t                  dEventMode;
+  Bool_t                  dMainPlots;
 
   Char_t                  dLogfilename[NAME_STR_MAX];//Name for Current log file
   Char_t                  dRootfilename[NAME_STR_MAX];//Name for Current root file
@@ -166,11 +175,17 @@ class QwGUIMain : public TGMainFrame {
   RDataContainer         *dROOTFile;
 
   //!Standard GUI widgets and layouts for the main window
-  TGComboBox             *dTBinEntry;
-  TGLayoutHints          *dTBinEntryLayout;
+  QwGUIComboBox          *dSegmentEntry;
+  QwGUIComboBox          *dPrefixEntry;
+  TGCheckButton          *dAddSegmentCheckButton;
   TGNumberEntry          *dRunEntry;
   TGLayoutHints          *dRunEntryLayout;
+  TGLayoutHints          *dSegmentEntryLayout;
+  TGLayoutHints          *dPrefixEntryLayout;
+  TGLayoutHints          *dAddSegmentLayout;
   TGLabel                *dRunEntryLabel;
+  TGLabel                *dAddSegmentLabel;  
+  TGLabel                *dPrefixEntryLabel;  
   TGHorizontal3DLine     *dHorizontal3DLine;
   TGHorizontalFrame      *dUtilityFrame;
   TGLayoutHints          *dUtilityLayout;
@@ -211,6 +226,16 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dMenuBarLayout;
   TGLayoutHints          *dMenuBarItemLayout;
   TGLayoutHints          *dMenuBarHelpLayout;
+
+  TString                 fPrefix;
+  TString                 fDirectory;
+
+  vector <int>            dRunSegments;
+  vector <TString>        dFilePrefix;
+  vector <TH1F*>          dMainHistos;
+  vector <TGraph*>        dMainGraphs;
+
+  EventOptions            dCurrentRunEventOptions;
 
   //!This function is used to append new messages to the log book. It cannot
   //!be used from other classes. Instead, the QwGUISubSystem class implements the
@@ -305,13 +330,29 @@ class QwGUIMain : public TGMainFrame {
   //!entry for this function.
   //!
   //!Parameters:
-  //! - 1) File status: Only used if parameter 2 is NULL. In that case the file status is passed on
+  //! - 1) Event Mode: If this is set to kTrue, then the individual tree events are read, from the  
+  //!                  outset. Otherwise only histograms are read. 
+  //! - 2) File status: Only used if parameter 3 is NULL. In that case the file status is passed on
   //!                   to the function GetFilenameFromDialog(...).
-  //! - 2) Filename container: If this is NULL, then the filename is obtained from a dialog box
+  //! - 3) Filename container: If this is NULL, then the filename is obtained from a dialog box
   //!                          entry by calling the function GetFilenameFromDialog(...).
   //!
   //!Return value: Error value;
-  Int_t                   OpenRootFile(ERFileStatus status = FS_OLD, const char* file = NULL);
+  Int_t                   OpenRootFile(Bool_t EventMode = kFalse, ERFileStatus status = FS_OLD, const char* file = NULL);
+
+  //!This function is called when a run number is entered in the menu, for fast run access.
+  //!It opens the root file that has the name with the entered run number, if it can be found. 
+  //!The function only opens the ROOT file in histogram mode. The function instantiates
+  //!a new generic data container from the class RDataContainer. This container is passed to all
+  //!instantiated susbsystems and allows each of them to read the data specific to the subsystem.
+  //!Currently only one root file can be open at a time, and the function also disables the menu
+  //!entry for this function.
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: Error value;
+  Int_t                   OpenRun();
 
   //!This function establishes a single connection to the database.
   //!
@@ -387,6 +428,37 @@ class QwGUIMain : public TGMainFrame {
   void                    SleepWithEvents(int seconds);
   TCanvas                *SplitCanvas(TRootEmbeddedCanvas *,int,int,const char*);
 
+  void                    SetSubSystemSegmentAdd(Bool_t add);
+/*   void                    SetReadAllRunSegments(Bool_t all) {dAllSegments = all;}; */
+/*   Bool_t                  ReadAllRunSegments(){return dAllSegments;}; */
+
+  void                    SetAddSegments(Bool_t add) {dAddSegments = add;};
+  Bool_t                  AddSegments() {return dAddSegments;};
+
+  void                    SetCurrentRunSegment(Int_t seg){dCurrentSegment = seg;};
+  Int_t                   GetCurrentRunSegment() {return dCurrentSegment;};
+  Int_t                   GetRunSegment(UInt_t n) {if(n >= 0 && n < dRunSegments.size()) return dRunSegments[n]; 
+                                                   return -1;};
+
+  void                    SetCurrentRunNumber(Int_t run) {dCurRun = run;};
+  const char             *GetCurrentFilePrefix(){return fPrefix.Data();};
+  const char             *GetCurrentFileDirectory(){return fDirectory.Data();};
+
+  void                    SetCurrentFilePrefix(const char* prefix){ fPrefix = prefix;};
+  void                    SetCurrentFileDirectory(const char* dir){fDirectory = dir;};
+
+  UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;};
+  UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;};
+  UInt_t                  GetCurrentRunEventStop(){return dCurrentRunEventOptions.Start+dCurrentRunEventOptions.Length-1;};
+
+  void                    SetEventMode(Bool_t evM){dEventMode = evM;};
+  Bool_t                  EventMode() {return dEventMode;};
+
+  Int_t                   FindFileAndSegments();
+  void                    LoopOverRunSegments();
+
+  void                    PlotMainData();
+  
 
   //!This function checks to see if a tab with a certain name is already active.
   //!

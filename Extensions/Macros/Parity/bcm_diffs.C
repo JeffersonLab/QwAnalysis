@@ -9,13 +9,13 @@ bcm_diffs(const int run = 8100,
 
   char* file;
   int posrun;
-  if (run < 0) {
+  //if (run < 0) {
     file = "$QW_ROOTFILES/first100k_%i.root";
-    posrun=-1*run;
-  } else {
-    file = "$QW_ROOTFILES/QwPass1_%i.000.root";
+    //posrun=-1*run;
+    //} else {
+    //file = "$QW_ROOTFILES/QwPass1_%i.000.root";
     posrun=run;
-  }
+    //}
 
  TChain chain("Hel_Tree");
 

@@ -18,13 +18,14 @@
 #include "QwGUIMainDef.h"
 #include "RSDataWindow.h"
 
-struct FFTOptions {
+
+struct EventOptions {
   Bool_t       calcFlag;
   Bool_t       cancelFlag;
   Bool_t       changeFlag;
-  Int_t        Start;
-  Int_t        Length;
-  Int_t        TotalLength;
+  UInt_t        Start;
+  UInt_t        Length;
+  UInt_t        TotalLength;
 };
 
 class QwGUIEventWindowSelectionDialog : public TGTransientFrame {
@@ -37,7 +38,7 @@ private:
   Bool_t              *dCancelFlag;
   char                 dObjName[NAME_STR_MAX];
   char                 dMainName[NAME_STR_MAX]; 
-  FFTOptions          *dOptions;
+  EventOptions          *dEventOptions;
 
 /*   TGTextEntry       *fFuncEntry[4]; */
 /*   TGTextBuffer      *fFuncBuffer[4]; */
@@ -62,7 +63,7 @@ private:
 public:
    QwGUIEventWindowSelectionDialog(const TGWindow *p, const TGWindow *main, 
 		      const char* objname, const char *mainname,
-		      FFTOptions *opts, UInt_t w = 400, UInt_t h = 500, 
+		      EventOptions *opts, UInt_t w = 400, UInt_t h = 500, 
 		      UInt_t options = kVerticalFrame | kHorizontalFrame);
    virtual ~QwGUIEventWindowSelectionDialog();
    virtual void CloseWindow();

@@ -2,12 +2,12 @@
 
 #No.of good patterns to accumulate before triggering the feedback algorithm.
 
-patterns = 10000
+patterns = 20000
 
 #The precision of the charge asymmetry in ppm
-
 #deltaAq = 62
-deltaAq = 7500
+deltaAq = 10
+
 #optimal IA values in volts
 optimalIA = 5.5
 
@@ -55,8 +55,13 @@ IA_up  = 50000
 #PITA slopes
 #  From M.Dalton, as of ,06Jan2011, https://cebaf.jlab.org/elog/entry/1560667
 #  units are ppm/dac-tick
-PITASLOPE_OUT = -0.8588
-PITASLOPE_IN = +0.8588
+#PITASLOPE_OUT = -0.8588
+#PITASLOPE_IN = +0.8588
+###  Changed to slope of 1.145ppm/DAC based on 4Feb2011 large charge asym measurement
+###  See HCLog 218348.
+PITASLOPE_OUT = -1.145
+PITASLOPE_IN  = +1.145
+
 
 #PITA slopes
 #  From John Leacock, as of ,19Dec2010, 
@@ -66,11 +71,12 @@ PITASLOPE_IN = +0.8588
 
 ###  PITANEG = 200
 
-#PITA starting setpoints
-#PC_pos_t0 = 43749
-#PC_neg_t0 = 40650
-PC_pos_t0 = 0
-PC_neg_t0 = 0
+#PITA starting setpoints when IHWP is flipped from the last OUT-IN
+# flip done on 02-02-2011 at ~3.00pm- Rakitha 02/03/2011
+PC_pos_t0_IN  = 43600
+PC_neg_t0_IN  = 40600
+PC_pos_t0_OUT = 42900
+PC_neg_t0_OUT = 41300
 
 
 #PC hardware count set-point limits
@@ -80,6 +86,8 @@ PC_low = 38018
 PC_up  = 48016
 
 #Minimum charge asymmetry at which feedback correction is applied. see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
+MIN_CHARGE_ASYM = 0.005
 
-MIN_CHARGE_ASYM = 1
+#To enable correction damping see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
+DAMPING = 0
 

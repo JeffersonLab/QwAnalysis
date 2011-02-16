@@ -15,6 +15,7 @@ PRG_SOURCE    = ./src
 OBJECTS	      =
 OBJECTS       += QwGUIMain.o
 OBJECTS       += QwGUIHelpBrowser.o
+OBJECTS       += QwGUIComboBox.o
 OBJECTS       += QwGUIProgressDialog.o
 OBJECTS       += QwGUIPlotOptionsDialog.o
 OBJECTS       += QwGUIDataWindow.o

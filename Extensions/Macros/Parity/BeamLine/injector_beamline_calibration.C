@@ -1,5 +1,5 @@
 //********************************************************************//
-// Author : P. King, J. Roche, B. Waidyawansa
+// Author : P. King, J. Roche, B. Waidyawansa (buddhini@jlab.org)
 // Date   : March 10, 2009
 //********************************************************************//
 //
@@ -50,7 +50,6 @@
 #include "TBox.h"
 
 
-
 Bool_t pol2BCM=kFALSE;
 Bool_t pol2=kFALSE;
 Double_t currentstep=0.5e-3;// this is a pretty important parameter 
@@ -59,7 +58,7 @@ Double_t currentstep=0.5e-3;// this is a pretty important parameter
 // get pretty wrong results. The best way to make sure that this step is small enough
 // is to check the stability of the results for an even smaller step...
 Int_t nbin;
-TString directory="~/scratch/rootfiles/"; // the location of the rootfile used for calibration
+TString directory="$QW_ROOTFILES/"; // the location of the rootfile used for calibration
 
 TString  SAMPLE_SIZE = "468";  //Default. all results are "normalized" to the adc sample size
 TString  SCANDATA = "scandata1/1000";
@@ -104,8 +103,6 @@ void initial_bcm_calibration(TString bcm_titlSSyme);
 
 int main(Int_t argc,Char_t* argv[])
 {
-
-
   Char_t  filename[200];
   Char_t  textfile[100];
   TString device="";
@@ -115,15 +112,14 @@ int main(Int_t argc,Char_t* argv[])
  if(argc<2 || argc>5)
     {
       std::cerr<<"!!  Not enough arguments to run this code, the correct syntax is \n";
-      std::cerr<<" ./pedestal_extractor  runnumber mincurrent maxcurrent samplesize \n";
+      std::cerr<<" ./pedestal_extractor  runnumber mincurrent maxcurrent scandata_normalization\n";
       std::cerr<<" mincurrent and maxcurrent define the range over which you want to perform the calibration.\n";
-      std::cerr<<" the samplesize is the adc triumf sample size, the extracted pedestals are normalized by this value \n so they can be used correctely in QwAnalysis\n";
-
+      std::cerr<<"scandata_normalization is the value you want to normalize scandata with to get the correct magnitued of current."<<"\n";
       std::cerr<<" You NEED to give a run number but all other values are pre-defined by default. You can change by using the full prompt \n";
       std::cerr<<" The default values are:\n";
       std::cerr<<" mincurrent ="<<min_current<<"\n";
       std::cerr<<" maxcurrent"<<max_current<<"\n";
-
+      std::cerr<<" scandata_normalization = 1000"<<"\n";
       exit(1);
     }
   else if (argc == 2)
@@ -144,28 +140,49 @@ int main(Int_t argc,Char_t* argv[])
       runnum=argv[1];
       min_current=atof(argv[2]);
       max_current=atof(argv[3]);
-      SCANDATA=argv[4];
+      SCANDATA=Form("scandata/%s",argv[4]);
     }
 
   TApplication theApp("App",&argc,argv);
 
   // Fit and stat parameters
+  gDirectory->Delete("*") ;
+  gStyle->Reset();
+  gStyle->SetOptTitle(1);
   gStyle->SetOptFit(1111);
-  gStyle->SetOptStat(0000000);
+  gStyle->SetStatColor(10);  
+  gStyle->SetStatH(0.2);
+  gStyle->SetStatW(0.35);
+  gStyle->SetStatY(0.5);
+  gStyle->SetStatX(0.9);     
+  gStyle->SetOptStat(0); 
+ 
+  // canvas parameters
+  gStyle->SetFrameBorderMode(0);
+  gStyle->SetFrameBorderSize(0);
+  gStyle->SetFrameFillColor(0);
 
   //Pad parameters
   gStyle->SetPadColor(0); 
   gStyle->SetPadBorderMode(0);
   gStyle->SetPadBorderSize(0);
-  gStyle->SetPadBottomMargin(0.18);
-  gStyle->SetPadRightMargin(0.05);
-  gStyle->SetPadLeftMargin(0.15);
 
   // histo parameters
-  gStyle->SetTitleYOffset(1.8);
-  gStyle->SetTitleYOffset(2.1);
+  gStyle->SetTitleYOffset(1.2);
+  gStyle->SetTitleXOffset(1.8);
+  //gStyle->SetTitleX(0.1);
+  //tyle->SetTitleW(0.9);
+  //tyle->SetTitleSize(0.5);
+  gStyle->SetTitleBorderSize(0);
+  gStyle->SetTitleFillColor(0);
+  gStyle->SetTitleFontSize(0.08);
+  gStyle->SetLabelSize(0.05,"x");
+  gStyle->SetLabelSize(0.05,"y");
+  gStyle->SetTitleSize(0.05,"x");
+  gStyle->SetTitleSize(0.05,"y");
+  gROOT->ForceStyle();
 
-
+  
   //Get the root file
   sprintf(filename,"%sQweak_%d.000.root",directory.Data(),atoi(runnum));
   f = new TFile(filename);
@@ -180,11 +197,11 @@ int main(Int_t argc,Char_t* argv[])
 
   //Open a text file to store results
   if(pol2)
-    sprintf(textfile,"BeamlineCalibration%d_%2.0f_%2.0f_quadratic.txt",atoi(runnum),min_current,max_current); 
+    sprintf(textfile,"InjectorBPMCalibration_%d_%2.0f_%2.0f_quadratic.txt",atoi(runnum),min_current,max_current); 
   else
-    sprintf(textfile,"BeamlineCalibration%d_%2.0f_%2.0f_linear.txt",atoi(runnum),min_current,max_current); 
+    sprintf(textfile,"InjectorBPMCalibration_%d_%2.0f_%2.0f_linear.txt",atoi(runnum),min_current,max_current); 
   if(pol2&&pol2BCM)
-    sprintf(textfile,"BeamlineCalibration%d_%2.0f_%2.0f_quadquad.txt",atoi(runnum),min_current,max_current);    
+    sprintf(textfile,"InjectorBPMCalibration_%d_%2.0f_%2.0f_quadquad.txt",atoi(runnum),min_current,max_current);    
  
 
   Myfile.open(textfile);
@@ -217,7 +234,8 @@ int main(Int_t argc,Char_t* argv[])
     CanvasTitle="calibration_"+runnum+Form("_%2.0f_%2.0f",min_current,max_current)+"quadquad";
 
 
-  Canvas= new TCanvas(CanvasTitle, CanvasTitle,0,0,1200,800);  
+  Canvas= new TCanvas(CanvasTitle, CanvasTitle,0,0,1000,600);  
+  Canvas->SetFillColor(10);
 
   // Calibrate the bcm: 
   // This is needed because the current that we set via scandata and the current that we read in via the bcm are not fixed.
@@ -263,7 +281,16 @@ int main(Int_t argc,Char_t* argv[])
 void initial_bcm_calibration(TString bcm_title)
 {	  
   TString plotcommand;
-  
+  TString device_cut;
+
+  gStyle->SetTitleYOffset(0.8);
+  gStyle->SetTitleXOffset(1.8);
+  gStyle->SetStatH(0.2);
+  gStyle->SetStatW(0.1);
+  gStyle->SetPadBottomMargin(0.18);
+  gStyle->SetPadRightMargin(0.08);
+  gStyle->SetPadLeftMargin(0.1);
+
   // Read the sample size from the tree.
   // If we are using the 4-wire sum of a bpm as a reference bcm then
   if(bcm_title != "qwk_bcm0l02")
@@ -280,7 +307,8 @@ void initial_bcm_calibration(TString bcm_title)
 
  
   // Draw the current we set using scandata
-  nt->Draw("scandata","cleandata==1");
+  scut = Form("scandata>%d && scandata < %d && cleandata == 1",min_current,max_current);
+  nt->Draw("scandata",scut);
 
   TH1 *set_current=(TH1*)gROOT->FindObject("htemp");
 
@@ -290,65 +318,66 @@ void initial_bcm_calibration(TString bcm_title)
       exit(1);
     }
 
-  // Get the number of total bins in the histogram
-  //  Int_t bins = set_current->GetNbinsX();
+  //Find the minmum and maximum current cut from the scandata plot 
+  Double_t content=0.0;
+  Int_t i;
+  for(i=1;i<set_current->GetNbinsX();i++){
+    content = set_current-> GetBinLowEdge(i);
+    if(content!=0){
+      scutmin = content;
+      break;  
+    }
+  };
   
- //  //
-//   for(int i=1;i<bins+1;i++)
-//     if(set_current->GetBinContent(i)!=0)
-//       {
-//  min_current = set_current-> GetBinLowEdge(set_current->GetMinimumBin());
-  scutmin = min_current - set_current-> GetBinWidth(set_current->GetMinimumBin());
-// 	i=150;
-//       }
-
-  // Obtain the maximum current cut according to whats given by scandata
-//   for(int i = bins;i>2;i--)
-//     if(scandata->GetBinContent(i)!=0)
-//       {
-  scutmax = max_current + set_current-> GetBinWidth(set_current->GetMaximumBin());
-  // 	i=0;
-//       }
-
-  std::cout<<"minimum scandata ="<<min_current<<"\n";
-  std::cout<<"maximum scandata ="<<max_current<<"\n";
+  for(i=set_current->GetNbinsX();i>0;i--){
+    content = set_current->GetBinLowEdge(i);
+    if(content!=0){
+      scutmax = content + set_current->GetBinWidth(i);
+      break;  
+    }
+  };
+      
+  std::cout<<"minimum current from scandata = "<<scutmin<<" uA \n";
+  std::cout<<"maximum current from scandata = "<<scutmax<<" uA \n";
   
   
-  // to get rid of beam trip
-  nbin = (Int_t)( (max_current + 0.5)/currentstep);
+  // to get a fine bin size
+  nbin = (Int_t)( (scutmax + 0.5)/currentstep);
 
   TString histname=Form("prof_%s",bcm_title.Data());
-  TProfile *hprofinit= new TProfile(histname, histname, nbin,(min_current/1.1), (max_current*1.1));
+  TProfile *hprofinit= new TProfile(histname, histname, nbin,(scutmin/1.1), (scutmax*1.1));
 
   // If we are using the 4-wire sum of a bpm as a reference bcm then
-  if(bcm_title != "qwk_bcm0l02")
-    plotcommand = Form("%s_EffectiveCharge.hw_sum/%s:scandata>>%s ",
-		       bcm_title.Data(),SAMPLE_SIZE.Data(),histname.Data());   
-  else
+  if(bcm_title != "qwk_bcm0l02"){
+    plotcommand = Form("%s_EffectiveCharge.hw_sum_raw/%s:scandata>>%s ",
+		       bcm_title.Data(),SAMPLE_SIZE.Data(),histname.Data());
+    device_cut = Form("%s_EffectiveCharge.Device_Error_Code == 0",bcm_title.Data());
+  }
+    else{
     plotcommand = Form("%s.hw_sum_raw/%s:scandata>>%s ",
-		       bcm_title.Data(),SAMPLE_SIZE.Data(),histname.Data());   
+		       bcm_title.Data(),SAMPLE_SIZE.Data(),histname.Data()); 
+    device_cut = Form("%s.Device_Error_Code == 0",bcm_title.Data());
+    }
   
- // Apply an event cut to remove bad events
-  scut = Form("cleandata==1 && scandata>%f && scandata<%f", scutmin, scutmax);
+  // Apply the event cuts
+  scut = Form("cleandata==1 && scandata>%f && scandata<%f && ErrorFlag == 0 && %s", scutmin, scutmax,device_cut.Data());
+  
+  // Draw the bcm current
+  nt->Draw(plotcommand,scut,"profs");
 
-  nt->Draw(plotcommand,scut,"hprof");
-
-  //Prevents the program from crashing when trying to access NULL histograms
+  //If the histogram in null, exit program. WE can't do a calibration if bcm data is empty!
   if(((TH1*)gROOT->FindObject(histname)) == NULL)
     {
       std::cout<<" Attempt to plot NULL histogram "<<plotcommand<<"\n Exiting program."<<std::endl;
       exit(1);
     }
 
-
   TString xtitle = Form("scandata>>%s",histname.Data()); 
   TString ytitle;
   if(bcm_title != "qwk_bcm0l02")
-    ytitle = Form("%s_EffectiveCharge.hw_sum/sample size",bcm_title.Data()); 
-
+    ytitle = Form("%s_EffectiveCharge.hw_sum_raw/sample size",bcm_title.Data()); 
   else
     ytitle = Form("%s.hw_sum_raw/%s",bcm_title.Data(),SAMPLE_SIZE.Data()); 
-
       
   hprofinit->SetXTitle(xtitle);
   hprofinit->SetYTitle(ytitle);
@@ -366,6 +395,7 @@ void initial_bcm_calibration(TString bcm_title)
       // Fit with a polynomial fo order 2 (curve).
       hprofinit->Fit("pol2","Q");
       f1 = hprofinit->GetFunction("pol2");
+      if(f1 == NULL) exit(1);
       Double_t a=f1->GetParameter(2);
       Double_t b=f1->GetParameter(1);
       Double_t c=f1->GetParameter(0);
@@ -375,7 +405,7 @@ void initial_bcm_calibration(TString bcm_title)
      
       // If we are using the 4-wire sum of a bpm as a reference bcm then
       if(bcm_title != "qwk_bcm0l02")
-	varname = Form("%s_EffectiveCharge.hw_sum/%s ", bcm_title.Data(),SAMPLE_SIZE.Data());
+	varname = Form("%s_EffectiveCharge.hw_sum_raw/%s ", bcm_title.Data(),SAMPLE_SIZE.Data());
       else
 	varname=Form("%s.hw_sum_raw/%s ", bcm_title.Data(),SAMPLE_SIZE.Data());
 
@@ -393,13 +423,14 @@ void initial_bcm_calibration(TString bcm_title)
       // Fit with a polynomial of order 1 (line). 
       hprofinit->Fit("pol1","Q");
       f1 = hprofinit->GetFunction("pol1");
-      
+      if(f1 == NULL) exit(1);
+
       offset = (f1->GetParameter(0));
-      gain   = 1./(f1->GetParameter(1));
+      gain   = 1.0/(f1->GetParameter(1));
 
       // If we are using the 4-wire sum of a bpm as a reference bcm then
       if(bcm_title != "qwk_bcm0l02")
-	setalias=Form("((%s_EffectiveCharge.hw_sum/%s - %f)*%f)", bcm_title.Data(),SAMPLE_SIZE.Data(), offset, gain);
+	setalias=Form("((%s_EffectiveCharge.hw_sum_raw/%s - %f)*%f)", bcm_title.Data(),SAMPLE_SIZE.Data(), offset, gain);
 
       else
 	setalias=Form("((%s.hw_sum_raw/%s - %f)*%f)", bcm_title.Data(),SAMPLE_SIZE.Data(), offset, gain);
@@ -408,35 +439,33 @@ void initial_bcm_calibration(TString bcm_title)
   hprofinit->GetXaxis()->SetTitle(SCANDATA);
   hprofinit->GetYaxis()->SetTitle(bcm_title);
 
-  nt->SetAlias("current",setalias); 
-  //std::cout<<" alias current is defined as:"<<setalias<<"\n";
-  
+  nt->SetAlias("current",setalias); // current from the fit to bcm data
   f1->SetLineWidth(1);
   f1->SetLineColor(1);
+
+  // Moving on to plot residuals between scandata and current from bcm
   Canvas->cd(2);
+  plotcommand = "current - scandata:scandata"; 
 
-
-  plotcommand = "current-scandata:scandata"; 
-
-  // The difference between scut and scut_residual is scut_residual uses current as projected by the fit to bcm data
-  // and scut uses just scandata.
-  scut_residual= Form("cleandata==1 && current>%10.1f && current<%10.1f",scutmin,scutmax);
+  // The difference between scut and scut_residual is scut_residual is a cut on current projected by the fit to bcm data and scut is a cut on scandata.
+  scut_residual= Form("current>%10.1f && current<%10.1f && %s",scutmin,scutmax, scut.Data());
       
   nt->Draw(plotcommand,scut_residual,"box");
-  nt->SetMarkerColor(kRed);
-  nt->SetLineColor(kRed);
-  nt->Draw(plotcommand,scut,"boxsame");
-  nt->SetMarkerColor(kBlack);
-
+ 
   TH1 *g2=nt->GetHistogram();
   g2->GetXaxis()->SetTitle(SCANDATA);
+  g2->SetTitle("Residual plot (current - scandata)");
+  g2->SetLineColor(kRed);
+  g2->SetMarkerColor(kRed);
+ 
+
   std::cout << "BCM\t" << bcm_title.Data() << "\t offset=" 
  	    << offset << "\t Gain=" 
  	    << gain<<"\t red chi2 = "<<(f1->GetChisquare())/(f1->GetNDF())
  	    <<" residual (mean,rms) = ("<<Form("%5.2f",g2->GetMean(2))
  	    <<" , "<<Form("%5.2f",g2->GetRMS(2))<<") \n";
 
-  zeroline=new TLine(scutmin/1.1,0,scutmax*1.05,0);
+  zeroline=new TLine(scutmin,0,scutmax,0);
   zeroline->Draw("same");
     
   Canvas->Update();  
@@ -467,6 +496,16 @@ void calibrate(TString devname)
   TF1 *f[4];
   TProfile *hprof[4];
 
+  gStyle->SetStatH(0.2);
+  gStyle->SetStatW(0.35);
+  gStyle->SetTitleYOffset(2.0);
+  gStyle->SetTitleXOffset(1.2);
+  gStyle->SetPadBottomMargin(0.2);
+  gStyle->SetPadRightMargin(0.02);
+  gStyle->SetPadLeftMargin(0.2);
+  gStyle->SetLabelSize(0.04,"x");
+  gStyle->SetLabelSize(0.04,"y");
+ 
   Canvas->Clear();
   Canvas->Divide(4,2);
 
@@ -484,18 +523,15 @@ void calibrate(TString devname)
 	  
 	  Canvas->cd(i*2+1);
 	  TString histname=Form("prof_%s%s",devname.Data(),antenna[i].Data());
-	  hprof[i]= new TProfile(histname, histname, nbin,0, max_current*1.1);
+	  hprof[i]= new TProfile(histname, histname, nbin,scutmin/1.1,scutmax*1.1);
 	  
 	  SAMPLE_SIZE = Form("%s%s.num_samples",devname.Data(),antenna[i].Data());
 	  
 	  plotcommand[i] = Form("%s%s.hw_sum_raw/%s:current>>%s",
 				devname.Data(),antenna[i].Data(),SAMPLE_SIZE.Data(),histname.Data()); 
 	  
-	  scut = Form("cleandata==1 && current>%f && current<%f",scutmin, scutmax);
-	  
-	  
+	  scut = Form("cleandata==1 && current>%f && current<%f && ErrorFlag == 0 && %s%s.Device_Error_Code == 0",scutmin, scutmax, devname.Data(),antenna[i].Data());	    
 	  nt->Draw(plotcommand[i],scut);
-	  
 	  if( hprof[i] == NULL)
 	    {
 	      std::cout<<" Attempt to plot NULL histogram - "<<plotcommand<<"\n Skipping device."<< devname<<std::endl;
@@ -531,11 +567,14 @@ void calibrate(TString devname)
 	      
 	    }
 	  
-	  TString ytitle0 =  Form("%s%s.hw_sum_raw",devname.Data(),antenna[i].Data());  
-	  TString xtitle0  = Form(" I>%f && I<%f (#mumA)",scutmin, scutmax);
+	  TString ytitle0 =  Form("%s%s_raw/samples",devname.Data(),antenna[i].Data());  
+	  TString xtitle0  = Form(" I >%10.1f && I <%10.1f (#muA)",scutmin, scutmax);
 	  
 	  hprof[i]->SetYTitle(ytitle0);
 	  hprof[i]->SetXTitle(xtitle0);
+	  hprof[i]->GetXaxis()->CenterTitle();
+	  hprof[i]->GetYaxis()->CenterTitle();
+
 	  
 	  Myfile <<devname <<antenna[i]<< " , " << par[0][i] <<" , " << "1.0" <<std::endl;    
 	}
@@ -566,7 +605,8 @@ void calibrate(TString devname)
 	  plotcommand[i] +=")";
 	  
 	  // To draw these plots we will use the current projected by the bcms in the initial bcm calibration.
-	  nt->Draw(plotcommand[i],scut_residual);	 
+	  TString cut = Form("%s && %s%s.Device_Error_Code == 0",scut_residual.Data(),devname.Data(),antenna[i].Data());
+	  nt->Draw(plotcommand[i],cut);	 
 	  h1 = (TH1*) gROOT->FindObject("htemp");
 	  
 	  if(h1 == NULL)
@@ -597,8 +637,8 @@ void calibrate(TString devname)
 	  h2[i][0]->Draw("box");
 	  
 	  // Draw the restricted responce of the bpms due to variation in beam current
-	  histname=Form("Res_%s%s_restricted",devname.Data(),antenna[i].Data());
-	  h2[i][1]=new TH2F(histname,histname,reducednbin,0, max_current*1.1,reducednbin,Yminres,Ymaxres); 
+	  histname=Form("Residual_%s%s",devname.Data(),antenna[i].Data());
+	  h2[i][1]=new TH2F(histname,histname,reducednbin,scutmin/1.1, scutmax*1.1,reducednbin,Yminres,Ymaxres); 
 	  nt->Draw(plotcommand[i]+":current>>"+histname,scut);
       
 	  h2[i][1]->SetLineColor(kRed);
@@ -608,9 +648,10 @@ void calibrate(TString devname)
 	  
 	  h2[i][1]->SetYTitle(Form("residual (fit - actual )"));
 	  h2[i][1]->SetXTitle(xtitle1);
-	  
-	  zeroline->Draw("same");
-	  
+	  h2[i][1]->GetXaxis()->CenterTitle();
+	  h2[i][1]->GetYaxis()->CenterTitle();
+
+	  zeroline->Draw("same");	  
 	  std::cout << devname <<antenna[i]<< 
 	    " par[0]="<< Form("%5.0f",par[0][i])<<
 	    " par[1]="<<Form("%5.0f",par[1][i])<< 

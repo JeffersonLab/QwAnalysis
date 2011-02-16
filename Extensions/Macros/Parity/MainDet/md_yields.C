@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 
-void mdYield(int runNum){
+void md_yields(int runNum){
 gROOT->Reset();
 gROOT->SetStyle("Plain");
 

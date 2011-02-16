@@ -48,6 +48,8 @@
 #define N_POS_MEAS_TYPES 5
 #define N_BPM_READ       5
 #define N_CMB_READ       7
+#define N_TGTS          15
+
 
 
 ///
@@ -73,7 +75,7 @@ using std::vector;
 #include "QwGUISubSystem.h"
 #include "TStyle.h"
 #include "RSDataWindow.h"
-#ifndef ROOTCINTMODE
+#ifndef  ROOTCINTMODE
 #include "QwSSQLS_summary.h"
 #endif
 #include <TVectorT.h>
@@ -101,10 +103,14 @@ using std::vector;
   TGComboBox          *dCmbProperty;
   TGComboBox          *dCmbSubblock;
   TGComboBox          *dCmbMeasurementType;
+  TGComboBox          *dCmbTargetType;
+  TGComboBox          *dCmbPlotType;
   TGTextButton        *dBtnSubmit;
   TGLabel             *dLabStartRun;
   TGLabel             *dLabStopRun;
-  
+  TGLabel             *dLabTarget;
+  TGLabel             *dLabPlot;
+
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            GraphArray;
@@ -171,6 +177,10 @@ using std::vector;
   static const char   *BPMReadings[N_BPM_READ];
   static const char   *ComboBPMReadings[N_CMB_READ];
 
+  // target types
+  static const char   *Targets[N_TGTS];
+  static const char   *Plots[2];
+
   // static array for temporary measurement type storing. This makes things easier when trying to
   // retrieave data.
   std::vector<TString> measurements;
@@ -216,12 +226,11 @@ using std::vector;
   virtual void        OnObjClose(char *);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
-
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
   void                PopulateDetectorComboBox();
   void                PopulateMeasurementComboBox();
-
+  void                PopulateXDetComboBox();
   
   ClassDef(QwGUIDatabase,0); 
 

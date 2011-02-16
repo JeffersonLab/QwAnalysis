@@ -44,6 +44,7 @@ void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString name, TStri
   SetCalibrationFactor(1.);
   fTriumf_ADC.InitializeChannel(subsystem,"QwIntegrationPMT", name, datatosave);
   SetElementName(name);
+  SetBlindability(kTRUE);
   return;
 };
 /********************************************************/
@@ -53,6 +54,7 @@ void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString module, TSt
   SetCalibrationFactor(1.);
   fTriumf_ADC.InitializeChannel(subsystem,module, name, datatosave);
   SetElementName(name);
+  SetBlindability(kTRUE);
   return;
 };
 /********************************************************/

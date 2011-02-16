@@ -1,7 +1,19 @@
-void mdlumi_ped(string run, int run_num, int mps_start, int mps_stop, bool get_md, bool get_lumi)
+void mdlumi_ped(int run_num)
 {
+
+  const int mps_start = 0;
+  const int mps_stop = 10000;
+  const bool get_md = kTRUE;
+  const bool get_lumi = kTRUE;
+  const bool save_file = kTRUE;
+
+  float mean = 0.0;
+  float scale = 0.00007692;
+  gStyle->SetStatW(0.4); 
+  gStyle->SetStatH(0.4);
+
   TChain chain("Mps_Tree");
-  chain.Add(Form("$QW_ROOTFILES/%s",run));
+  chain.Add(Form("$QW_ROOTFILES/first100k_%i.root",run_num));
 
   const string lumi[16] = {
   "qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4",
@@ -19,7 +31,6 @@ void mdlumi_ped(string run, int run_num, int mps_start, int mps_stop, bool get_m
   "qwk_pmtled","qwk_pmtonl","qwk_pmtltg","qwk_md9neg",
   "qwk_md9pos","qwk_isourc","qwk_preamp","qwk_cagesr"};
   
-  Bool_t save_file = kTRUE;
 
   char * pPath = "";
   if (save_file == kTRUE) pPath = getenv("QWANALYSIS");
@@ -27,7 +38,7 @@ void mdlumi_ped(string run, int run_num, int mps_start, int mps_stop, bool get_m
   if (get_md == kTRUE)
     {      
       ofstream md_pedestal_file;
-      md_pedestal_file.open(Form("%s/Parity/prminput/qweak_maindet_pedestal.%i-.map",pPath,run_num));
+      md_pedestal_file.open(Form("%s/Extensions/Macros/Parity/MainDet/qweak_maindet_pedestal.%i-.map",pPath,run_num));
       md_pedestal_file<<endl;
       md_pedestal_file<<Form("!The following pedestals were recorded from RUN %i",run_num)<<endl;
       md_pedestal_file<<"!channel name , Mps channelname.hw_sum_raw/num_samples , gain"<<endl;
@@ -41,9 +52,9 @@ void mdlumi_ped(string run, int run_num, int mps_start, int mps_stop, bool get_m
           c_md->cd(i+1);      
           mdhst[i] = new TH1F(Form("%h_%s",md[i]),"",100,0,0);
           mdhst[i]->SetDirectory(0);   
-          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples>>h_%s",md[i],md[i],md[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",md[i],mps_start,mps_stop),"");
+          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",md[i],md[i],scale,md[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",md[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",md[i]));
-          md_pedestal_file<<Form("%s  ,  ",md[i])<<htemp->GetMean()<<"  ,  0.00007692"<<endl;  
+          md_pedestal_file<<Form("%s  ,  ",md[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;  
           cout<<md[i]<<"  "<<htemp->GetMean()<<endl;
         }
       TCanvas *c_bg = new TCanvas("bg","bg",1500,1100);
@@ -54,9 +65,9 @@ void mdlumi_ped(string run, int run_num, int mps_start, int mps_stop, bool get_m
           c_bg->cd(i+1);      
           bghst[i] = new TH1F(Form("%h_%s",bg[i]),"",100,0,0);
           bghst[i]->SetDirectory(0);   
-          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples>>h_%s",bg[i],bg[i],bg[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",bg[i],mps_start,mps_stop),"");
+          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",bg[i],bg[i],scale,bg[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",bg[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",bg[i]));
-          md_pedestal_file<<Form("%s  ,  ",bg[i])<<htemp->GetMean()<<"  ,  0.00007692"<<endl;  
+          md_pedestal_file<<Form("%s  ,  ",bg[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;  
           cout<<bg[i]<<"  "<<htemp->GetMean()<<endl;
         }  
       md_pedestal_file.close();
@@ -65,7 +76,7 @@ void mdlumi_ped(string run, int run_num, int mps_start, int mps_stop, bool get_m
   if (get_lumi == kTRUE)
     { 
       ofstream lumi_pedestal_file;
-      lumi_pedestal_file.open(Form("%s/Parity/prminput/qweak_lumi_pedestal.%i-.map",pPath,run_num));
+      lumi_pedestal_file.open(Form("%s/Extensions/Macros/Parity/MainDet/qweak_lumi_pedestal.%i-.map",pPath,run_num));
       lumi_pedestal_file<<endl;
       lumi_pedestal_file<<Form("!The following pedestals were recorded from RUN %i",run_num)<<endl;
       lumi_pedestal_file<<"!channel name , Mps channelname.hw_sum_raw/num_samples , gain"<<endl;
@@ -77,14 +88,17 @@ void mdlumi_ped(string run, int run_num, int mps_start, int mps_stop, bool get_m
           c_lumi->cd(i+1);      
           lumihst[i] = new TH1F(Form("%h_%s",lumi[i]),"",100,0,0);
           lumihst[i]->SetDirectory(0);   
-          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples>>h_%s",lumi[i],lumi[i],lumi[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",lumi[i],mps_start,mps_stop),"");
+          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",lumi[i],lumi[i],scale,lumi[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",lumi[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",lumi[i]));
-          lumi_pedestal_file<<Form("%s  ,  ",lumi[i])<<htemp->GetMean()<<"  ,  0.00007692"<<endl;  
+          lumi_pedestal_file<<Form("%s  ,  ",lumi[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;  
           cout<<lumi[i]<<"  "<<htemp->GetMean()<<endl;
         }
      lumi_pedestal_file.close();
      }; // end get lumi  
 
+cout<<Form("moving files to %s/Parity/prminput",pPath)<<endl;
+gSystem->Exec(Form("mv %s/Extensions/Macros/Parity/MainDet/qweak_maindet_pedestal.%i-.map %s/Parity/prminput/.",pPath,run_num,pPath));
+gSystem->Exec(Form("mv %s/Extensions/Macros/Parity/MainDet/qweak_lumi_pedestal.%i-.map %s/Parity/prminput/.",pPath,run_num,pPath));
 }
 
 

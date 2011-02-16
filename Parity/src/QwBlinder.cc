@@ -18,7 +18,7 @@
 #include "QwVQWK_Channel.h"
 
 // Maximum blinding asymmetry for additive blinding
-const Double_t QwBlinder::kMaximumBlindingAsymmetry = 0.6; // ppm
+const Double_t QwBlinder::kMaximumBlindingAsymmetry = 0.06; // ppm
 const Double_t QwBlinder::kMaximumBlindingFactor = 0.1; // [fraction]
 
 // Default seed, associated with seed_id 0
@@ -235,6 +235,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db)
     s_sql += Form("%d",db->GetRunNumber());
     s_sql += " AND rl.run_number >= ";
     s_sql += Form("%d",db->GetRunNumber());
+    s_sql += " AND seed_id>2";
 
     QwError << "QwBlinder::ReadSeed s_sql contains \'"
 	    << s_sql  << "\'" << QwLog::endl;
@@ -429,6 +430,7 @@ void QwBlinder::InitBlinders(const UInt_t seed_id)
     /// by an oscillating but uniformly distributed sawtooth function.
     fBlindingFactor = 1.0;
     if (kMaximumBlindingAsymmetry > 0.0) {
+      /// TODO:  This section of InitBlinders doesn't calculate a reasonable fBlindingFactor but we don't use it for anything.
       fBlindingFactor  = 1.0 + fmod(30.0 * fBlindingOffset, kMaximumBlindingAsymmetry);
       fBlindingFactor /= (kMaximumBlindingAsymmetry > 0.0 ? kMaximumBlindingAsymmetry : 1.0);
     }
@@ -878,7 +880,8 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
     // Get the rows of the QwParityDB::analysis table
     mysqlpp::Query query = db->Query();
     query.execute(
-      Form("select * from analysis where analysis_id = ",analysis_id));
+		  Form("select * from analysis where analysis_id = %d",analysis_id))
+      ;
     mysqlpp::StoreQueryResult analysis_res = query.store();
     QwParityDB::analysis analysis_row_orig = analysis_res[0];
     QwParityDB::analysis analysis_row_new  = analysis_res[0];

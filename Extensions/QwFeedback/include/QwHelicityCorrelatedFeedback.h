@@ -13,6 +13,7 @@
 #include "GreenMonster.h"
 #include "QwVQWK_Channel.h"
 #include "QwParameterFile.h"
+#include <time.h>
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -35,6 +36,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fEnableBurstSum=kFALSE;
     fGoodPatternCounter=0;
+    fPatternCounter=0;
 
 
 /*     fFeedbackStatus=kTRUE; */
@@ -57,6 +59,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPITA_MIN_Charge_asym=1;//default value is 1ppm
 
     fTargetCharge.InitializeChannel("q_targ","derived");
+    fRunningCharge.InitializeChannel("q_targ","derived");
     fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop
     fPreviousChargeAsymmetry.InitializeChannel("q_targ","derived");//charge asymmetry at the previous feedback loop
     fCurrentChargeAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry 
@@ -65,15 +68,25 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPreviousIAAsymmetry.InitializeChannel("q_targ","derived");//this is the charge asymmetry of the IA at the previous feedback loop
     fCurrentIAAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry of the IA
 
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+
     //    out_file_IA = fopen("Feedback_IA_log.txt", "wt");
-    out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "wt");
+    out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
     //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
-    fprintf(out_file_IA,"Pat num. \t\t  A_q[mode]\t\t\t\t\t\t\t\t\t  IA Setpoint \t\t  IA Previous Setpoint \t\t\n");
+    fprintf(out_file_IA,"%22s \n",asctime (timeinfo));
+    fprintf(out_file_IA,"Pat num. \t  A_q[mode]\t  IA Setpoint \t  IA Previous Setpoint \n");
     fclose(out_file_IA);
     //    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
-    out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "wt");
-    //out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a");     
-    fprintf(out_file_PITA,"Pat num. \t\t  A_q\t\t\t\t\t\t\t\t\t  PITA Setpoint[+] \t\t  PITA Previous Setpoint \t\tPITA Setpoint[-] \t\t  PITA Previous Setpoint \n");
+    out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
+    //out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a"); 
+
+    fprintf(out_file_PITA,"%22s \n",asctime (timeinfo));
+    fprintf(out_file_PITA,
+	    "%10s %22s +- %16s %16s %26s %26s %26s %26s\n",
+	    "Pat num.", "Charge Asym [ppm]", "Asym Error", "Correction",
+	    "New PITA Setpoint[+]", "Old PITA Setpoint[+]",
+    	    "New PITA Setpoint[-]", "Old PITA Setpoint[-]");
     fclose(out_file_PITA);
   
   };
@@ -173,14 +186,6 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
       return fChargeAsymmetryWidth;
     };
 
-    Bool_t SetInitialCondition(){
-      if (fPITASetpointPOS_t0>0 && fPITASetpointNEG_t0>0)//apply the t_0 correction if it is available
-	fInitialCorrection=kTRUE;
-      else
-	fInitialCorrection=kFALSE;
-      return fInitialCorrection;
-    }
-
     //Define separate running sums for differents helicity pattern modes
     /// \brief The types of helicity patterns based on following pattern history
     ///1. +--+ +--+
@@ -240,8 +245,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     //PITA setpoints for pos hel and neg hel
     Double_t fPITASetpointPOS;
     Double_t fPITASetpointNEG;
-    Double_t fPITASetpointPOS_t0;//Initial PC positive HW setpoint
-    Double_t fPITASetpointNEG_t0;//Initial PC negative HW setpoint
+    Double_t fPITASetpointPOS_t0_IN;//Initial PC positive HW setpoint
+    Double_t fPITASetpointNEG_t0_IN;//Initial PC negative HW setpoint
+    Double_t fPITASetpointPOS_t0_OUT;//Initial PC positive HW setpoint
+    Double_t fPITASetpointNEG_t0_OUT;//Initial PC negative HW setpoint
     Bool_t fInitialCorrection;//Is true at the beginning so that t_0 correction is appiled before doing any correction
     
     
@@ -259,6 +266,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     //Pattern counter
     Int_t fGoodPatternCounter;//increment the quartet number - reset after each feedback operation
+    Int_t fPatternCounter;//increment the quartet number - reset after each feedback operation
+    
     Int_t fHelModeGoodPatternCounter[kHelModes];//count patterns for each mode seperately - reset after each feedback operation
 
     // Keep four VQWK channels, one each for pattern history 1, 2, 3, and 4
@@ -266,6 +275,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     // into the proper pattern history runnign sum.
 
     QwBeamCharge   fTargetCharge;
+    QwBeamCharge   fRunningCharge;
     QwBeamCharge   fChargeAsymmetry0;//this is the charge asym at the beginning of the feedback loop
     QwBeamCharge   fPreviousChargeAsymmetry;//charge asymmetry at the previous feedback loop
     QwBeamCharge   fCurrentChargeAsymmetry;//current charge asymmetry 
@@ -282,14 +292,22 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     Bool_t fHalfWaveIN;
     Bool_t fHalfWaveOUT;
+    Int_t fIHWP;
 
     Bool_t fHalfWaveRevert;
+    Bool_t fAutoIHWP;
 
     TString fHalfWavePlateStatus;
 
     Bool_t fPITAFB;
     Bool_t fIAFB;
     Bool_t fFeedbackStatus;
+    Bool_t fFeedbackDamping;
+
+
+    time_t rawtime;
+    struct tm * timeinfo;
+
   
 };
 

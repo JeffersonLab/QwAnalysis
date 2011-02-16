@@ -113,7 +113,7 @@ class QwBlinder {
     /// Modifies the device error code variable passed to it, if the blinder is
     /// not okay.
     void ModifyThisErrorCode(UInt_t &errorcode) const {
-      if (!fBlinderIsOkay) errorcode |= kErrorFlag_BlinderFail;
+      errorcode |= kErrorFlag_BlinderFail;
     };
 
     /// Asymmetry blinding
@@ -196,7 +196,7 @@ class QwBlinder {
       diff.UnBlind(this, yield);
     };
 
-    Bool_t IsBlinderOkay() const {return fBlinderIsOkay;};
+    const Bool_t& IsBlinderOkay() const {return fBlinderIsOkay;};
 
  private:
     ///  Indicates the first value recieved of the blindability of the target 
