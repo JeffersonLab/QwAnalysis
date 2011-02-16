@@ -8,8 +8,8 @@ void ShowSamples(int entry)
   Mps_Tree->GetEntry(entry);
 
   if (sampled_events->size() > 0) {
-    TGraph& graph = sampled_events->at(0).GetGraph();
-    graph.Draw("AL");
+    const TGraph* graph = sampled_events->at(0).GetGraph();
+    graph->Draw("AL");
   } else {
     std::cout << "No samples in this event" << std::endl;
   }

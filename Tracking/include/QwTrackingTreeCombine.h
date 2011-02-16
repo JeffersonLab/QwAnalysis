@@ -119,7 +119,8 @@ class QwTrackingTreeCombine {
 		QwTrackingTreeLine *wu,
 		QwTrackingTreeLine *wv,
 		QwTrackingTreeLine *wx,
-		int tlayer);
+		int tlayer,
+                double* parameter);
     QwPartialTrack* TcTreeLineCombine (
 		QwTrackingTreeLine *wu,
 		QwTrackingTreeLine *wv,
@@ -136,6 +137,7 @@ class QwTrackingTreeCombine {
     void ResidualWrite (QwEvent *event);
 
     int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi);
+    int r2_TrackFit2  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double* parameter );
     int r3_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi, double uv2xy[2][2]);
     int r3_TrackFit2 (const int num, QwHit **hits, double *fit, double *cov, double &chi);
     int r3_TrackFit3 (const int num, QwHit **hhits,double *fit,double *cov,double&chi,double *parameter);

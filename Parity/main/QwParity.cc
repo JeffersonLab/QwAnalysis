@@ -25,6 +25,7 @@
 #include "QwRootFile.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
+#include "QwDatabase.h"
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwHelicityPattern.h"
@@ -85,6 +86,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
+    epicsevent.ProcessOptions(gQwOptions);
     epicsevent.LoadChannelMap("EpicsTable.map");
 
     ///  Load the detectors from file
@@ -277,6 +279,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       helicitypattern.FillDB(&database);
       epicsevent.FillDB(&database);
     }
+
+    //epicsevent.WriteEPICSStringValues();
 
     //  Close event buffer stream
     eventbuffer.CloseStream();

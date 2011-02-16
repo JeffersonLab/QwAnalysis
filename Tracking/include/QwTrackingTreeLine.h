@@ -137,11 +137,11 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     // @{
     //! Returns position at the first detector plane
     double GetPositionFirst (const double binwidth) {
-      return 0.5 * (a_beg + a_end) * binwidth;
+      return 0.5 * (a_beg + a_end) * binwidth + 0.5*binwidth;
     };
     //! Returns position at the last detector plane
     double GetPositionLast (const double binwidth) {
-      return 0.5 * (b_beg + b_end) * binwidth;
+      return 0.5 * (b_beg + b_end) * binwidth + 0.5*binwidth;
     };
     //! Returns resolution at the first detector plane
     double GetResolutionFirst (const double binwidth) {

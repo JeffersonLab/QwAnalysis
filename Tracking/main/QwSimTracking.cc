@@ -23,6 +23,7 @@
 // Qweak headers
 #include "QwOptionsTracking.h"
 #include "QwLog.h"
+#include "QwParameterFile.h"
 
 // Deprecated Qweak headers
 #include "Det.h"

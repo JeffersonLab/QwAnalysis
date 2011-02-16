@@ -135,9 +135,36 @@
 //  6846 - 7756      BCM gain setting 2  >> BCM calibration RUN 6846 / 20uA - 150uA
 //                   https://hallcweb.jlab.org/hclog/1011_archive/101110223106.html
 //
-//  7757 -           BCM gain setting 2 >> BCM calibration RUN 7757/ 0uA - 140uA
+//  7757 - 8350      BCM gain setting 2 >> BCM calibration RUN 7757/ 0uA - 140uA
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101202051245.html
 //                   https://hallcweb.jlab.org/hclog/1012_archive/101202063008.html
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101204145444.html
+
+
+//                   BCM gain setting 2 
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101211001641.html
+
+
+//  8351-8394        https://hallcweb.jlab.org/hclog/1012_archive/101221062621.html
+//
+//  8351-8369        BCM calibration RUN 8351 (*)
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101219234658.html
+//
+//  8370-8394        BCM calibration RUN 8370 (*)
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101220200033.html
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101221120541.html
+// 
+//  8395-8396        BCM gain setting 3
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101221042257.html
+//                   only 8395, 8396 is junk
+//
+//
+//  8397-            BCM gain setting 2 
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101221061819.html
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062342.html
+//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062621.html  
+
+
 
 #define ITMAX 100
 #define MAXN  1000 
@@ -484,7 +511,7 @@ GetTree(TString filename, TChain* chain)
   }
   else {
     std::cout << "There is (are) no "
-	      << filename 
+      << filename 
 	      << "."
 	      << std::endl;
   }
@@ -600,7 +627,7 @@ main(int argc, char **argv)
 	    if (*optarg != '\0') {
 	      fit_range[0] = atof(optarg);
 	    }
-	    if ((fit_range[0] > fit_range[1]) || (fit_range[0] < 0) || (fit_range[1] > 160.0) ) 
+	    if ((fit_range[0] > fit_range[1]) || (fit_range[0] < 0) || (fit_range[1] > 180.0) ) 
 	      {
 		print_usage(stdout,0);
 	      }
@@ -983,8 +1010,17 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
     unser_peak_xpos = (Double_t) xpeaks[unser_peak_idx];
     unser_peak_bin  = unser_hist->GetXaxis()->FindBin(unser_peak_xpos);
     unser_peak_ypos = unser_hist->GetBinContent(unser_peak_bin);
-    unser_raw_sigma = 0.34*TMath::Abs(unser_peak_xpos-unser_min); // 0.5 sigma I selected
+
+    // 
+    // Run 8351 has the strange Unser signal when beam is off. 
+    // Thus I use the sigma valus of 1% of  xpos as the initial fitting parameter
+    //
     
+    unser_raw_sigma = 0.34*TMath::Abs(0.01*unser_peak_xpos); 
+    //    unser_raw_sigma = 0.34*TMath::Abs(unser_peak_xpos-unser_min); // 0.5 sigma I selected
+    // With Run 8370, the above two methods return the same result. Thus, I want to use
+    // the first one. 
+        
     printf("Unser Peak %d : peak_xpos %4.2lf peak_bin %4d peak_ypos %4.2lf raw_sigma %4.2lf\n",
 	   unser_peak_idx, unser_peak_xpos, unser_peak_bin, unser_peak_ypos, unser_raw_sigma);
 

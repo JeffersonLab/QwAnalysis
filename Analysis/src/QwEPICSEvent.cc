@@ -1,18 +1,22 @@
 #include "QwEPICSEvent.h"
 
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
-
-
-#include <TStyle.h>
-#include <TFile.h>
-
+// System headers
 #include <iostream>
 #include <fstream>
 
+// ROOT headers
+#include "TObject.h"
+#include "TList.h"
+#include "TString.h"
+#include "TObjString.h"
+#include "TFile.h"
+#include "TROOT.h"
+
+// Qweak headers
 #include "QwLog.h"
 #include "QwParameterFile.h"
+#include "QwDatabase.h"
+
 
 /*************************************
  *  Static definitions
@@ -35,18 +39,44 @@ std::vector<std::string> QwEPICSEvent::fDefaultAutogainList;
  *************************************/
 QwEPICSEvent::QwEPICSEvent()
 {
+  SetDataLoaded(kFALSE);
   QwEPICSEvent::InitDefaultAutogainList();
   if (kDebug == 1) PrintVariableList();
 };
 
 
-QwEPICSEvent::~QwEPICSEvent(){};
+QwEPICSEvent::~QwEPICSEvent()
+{
+};
 
 
 /*************************************
  *  Member functions.
  *************************************/
 
+/**
+ * Defines configuration options using QwOptions functionality.
+ * @param options Options object
+ */
+void QwEPICSEvent::DefineOptions(QwOptions &options)
+{
+  // Option to disable EPICS database accesses
+  options.AddOptions("Default options")
+    ("disable-db-epics", 
+     po::value<bool>()->default_value(false)->zero_tokens(),
+     "disable EPICS database access");
+}
+
+
+/**
+ * Parse the configuration options and store in class fields
+ * @param options Options object
+ */
+void QwEPICSEvent::ProcessOptions(QwOptions &options)
+{
+  // Option to disable EPICS database accesses
+  fDisableDatabase = options.GetValue<bool>("disable-db-epics");
+}
 
 
 Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
@@ -110,6 +140,10 @@ void QwEPICSEvent::ConstructBranchAndVector(TTree *tree, TString& prefix, std::v
     	// Create branch
     	tree->Branch(name, &(values[treeindex]), name_type);
     }
+    // else {
+    //   TString name = fEPICSVariableList[tagindex];
+    //   std::cout << "QwEPICSEvent::ConstructBranchAndVector" << name << std::endl;
+    // }
   }
   fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
 }
@@ -117,7 +151,7 @@ void QwEPICSEvent::ConstructBranchAndVector(TTree *tree, TString& prefix, std::v
 /// \brief Fill the tree vector
 void QwEPICSEvent::FillTreeVector(std::vector<Double_t>& values) const
 {
-	Int_t treeindex = fTreeArrayIndex;
+  Int_t treeindex = fTreeArrayIndex;
   for (size_t tagindex = 0; tagindex < fEPICSVariableType.size(); tagindex++) {
     if (fEPICSVariableType[tagindex] == kEPICSFloat ||
         fEPICSVariableType[tagindex] == kEPICSInt) {
@@ -245,6 +279,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
       Int_t tagindex = FindIndex(varname);
       if (tagindex != kEPICS_Error) {
         SetDataValue(tagindex, varvalue, event);
+        SetDataLoaded(kTRUE);
       }
     }
   }
@@ -609,9 +644,15 @@ void  QwEPICSEvent::ResetCounters()
 
 void QwEPICSEvent::FillDB(QwDatabase *db)
 {
-  FillSlowControlsData(db);
-  FillSlowControlsStrigs(db);
-  FillSlowControlsSettings(db);
+  // Sunday, January 16 22:09:16 EST 2011, jhlee
+  // don't change disbale database flag
+  // just disable FillSlowControlsSettings(db) when fDisableDatabase is off
+  
+  if (! fDisableDatabase) {
+    FillSlowControlsData(db);
+    FillSlowControlsStrigs(db);
+    //FillSlowControlsSettings(db);
+  }
 };
 
 
@@ -688,23 +729,24 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() ) {
-    QwMessage << "Writing to database now" << QwLog::endl;
+    QwMessage << "QwEPICSEvent::FillSlowControlsData::Writing to database now" << QwLog::endl;
     mysqlpp::Query query= db->Query();
-    query.insert(entrylist.begin(), entrylist.end());
+
+    //    query.insert(entrylist.begin(), entrylist.end());
 
     //QwMessage << "\n\nQuery: " << query.str() << "\n\n";
 
-    query.execute();
+    //    query.execute();
 
     ///////////////////////////////
-    //     try {
-    //       query.insert(entrylist.begin(), entrylist.end());
-    //       QwMessage << "Query: " << query.str() << QwLog::endl;
-    //       query.execute();
-    //       QwMessage << "Done executing MySQL query" << QwLog::endl;
-    //     } catch (const mysqlpp::Exception &er) {
-    //       QwError << "MySQL exception: " << er.what() << QwLog::endl;
-    //     }
+    try {
+      query.insert(entrylist.begin(), entrylist.end());
+      QwMessage << "Query: " << query.str() << QwLog::endl;
+      query.execute();
+      QwMessage << "Done executing MySQL query" << QwLog::endl;
+    } catch (const mysqlpp::Exception &er) {
+      QwError << "MySQL exception: " << er.what() << QwLog::endl;
+    }
     ///////////////////////////////
 
   } else {
@@ -758,24 +800,24 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query.
   if( entrylist.size() ) {
-    QwMessage << "Writing to database now" << QwLog::endl;
+    QwMessage << "QwEPICSEvent::FillSlowControlsStrigs Writing to database now" << QwLog::endl;
     mysqlpp::Query query= db->Query();
-    query.insert(entrylist.begin(), entrylist.end());
+//     query.insert(entrylist.begin(), entrylist.end());
 
-    QwMessage << "\n\nQuery: " << query.str() << "\n\n";
+//     QwMessage << "\n\nQuery: " << query.str() << "\n\n";
 
-    query.execute();
+//     query.execute();
 
 
     ///////////////////////////////
-//         try {
-//           query.insert(entrylist.begin(), entrylist.end());
-//           QwMessage << "Query: " << query.str() << QwLog::endl;
-//           query.execute();
-//           QwMessage << "\n\nDone executing MySQL query for FillSlowControlsStrigs \n\n";
-//         } catch (const mysqlpp::Exception &er) {
-//           QwError << "MySQL exception: " << er.what() << QwLog::endl;
-//         }
+        try {
+          query.insert(entrylist.begin(), entrylist.end());
+          QwMessage << "Query: " << query.str() << QwLog::endl;
+          query.execute();
+          QwMessage << "\n\nDone executing MySQL query for FillSlowControlsStrigs \n\n";
+        } catch (const mysqlpp::Exception &er) {
+          QwError << "MySQL exception: " << er.what() << QwLog::endl;
+        }
     ///////////////////////////////
 
   } else {
@@ -794,6 +836,29 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   Int_t tagindex;
 
   // Add as many blocks as needed in the following for all slow_controls_settings.
+
+  ////////////////////////////////////////////////////////////
+
+  // For target position
+  tagindex = FindIndex("QWtgt_name");
+  if (kDebug) std::cout << "\n\ntagindex for  = QWtgt_name" << tagindex << std::endl;
+  if (! fEPICSCumulativeData[tagindex].Filled) {
+    //  No data for this run.
+    tmp_row.target_position = "";
+  } else if (fEPICSCumulativeData[tagindex].NumberRecords
+	     != fNumberEPICSEvents) {
+    // Target position changed
+    tmp_row.target_position = "";
+  }
+  if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
+    QwError<<"fEPICSDataEvent[tagindex].StringValue.Data() is not defined, tmp_row.value is set to an empty string."<<QwLog::endl;
+    tmp_row.target_position ="";
+  }  else {
+    // Target position did not change.
+    // Store the position as a text string.
+    QwError<<"\n\nfEPICSDataEvent[tagindex].StringValue.Data() = "<<fEPICSDataEvent[tagindex].StringValue.Data()<<"\n\n";
+    tmp_row.target_position = fEPICSDataEvent[tagindex].StringValue.Data();
+  }
 
   ////////////////////////////////////////////////////////////
 
@@ -864,23 +929,23 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   db->Connect();
   // Check the entrylist size, if it isn't zero, start to query..
   if( entrylist.size() ) {
-    QwMessage << "Writing to database now" << QwLog::endl;
+    QwMessage << "QwEPICSEvent::FillSlowControlsSettings Writing to database now" << QwLog::endl;
     mysqlpp::Query query= db->Query();
-    query.insert(entrylist.begin(), entrylist.end());
+  //   query.insert(entrylist.begin(), entrylist.end());
 
-    QwMessage << "\n\nQuery: " << query.str() << "\n\n";
+//     QwMessage << "\n\nQuery: " << query.str() << "\n\n";
 
-    query.execute();
+//     query.execute();
 
     ///////////////////////////////
-    //     try {
-    //       query.insert(entrylist.begin(), entrylist.end());
-    //       QwMessage << "Query: " << query.str() << QwLog::endl;
-    //       query.execute();
-    //       QwMessage << "Done executing MySQL query" << QwLog::endl;
-    //     } catch (const mysqlpp::Exception &er) {
-    //       QwError << "MySQL exception: " << er.what() << QwLog::endl;
-    //     }
+        try {
+          query.insert(entrylist.begin(), entrylist.end());
+          QwMessage << "Query: " << query.str() << QwLog::endl;
+          query.execute();
+          QwMessage << "Done executing MySQL query" << QwLog::endl;
+        } catch (const mysqlpp::Exception &er) {
+          QwError << "MySQL exception: " << er.what() << QwLog::endl;
+        }
     ///////////////////////////////
 
 
@@ -888,4 +953,100 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
     QwMessage << "QwEPICSEvent::FillSlowControlsSettings :: This is the case when the entrylist contains nothing " << QwLog::endl;
   }
   db->Disconnect();
+};
+
+TList *QwEPICSEvent::GetEPICSStringValues()
+{
+  Bool_t local_debug = false;
+
+  TList *string_list = new TList;
+  string_list->SetOwner(true);
+
+  std::size_t tagindex = 0;
+  
+  for (tagindex=0; tagindex<fEPICSVariableList.size(); tagindex++) 
+    {
+      if (fEPICSVariableType[tagindex] == kEPICSString) {
+
+	TString epics_string = fEPICSVariableList[tagindex];
+	epics_string += "---";
+
+	if (fEPICSDataEvent[tagindex].Filled) {
+	  epics_string += fEPICSDataEvent[tagindex].StringValue;
+	} 
+	else {
+	  epics_string += "empty";
+	}
+	if(local_debug) {
+	  std::cout << "QwEPICSEvent::GetEPICSStringValues() "
+		    << epics_string
+		    << std::endl;
+	}
+	string_list -> Add(new TObjString(epics_string));
+      }
+    }
+    
+  return string_list;
+};
+
+void QwEPICSEvent::WriteEPICSStringValues()
+{
+  Bool_t local_debug = false;
+
+  TSeqCollection *file_list = gROOT->GetListOfFiles();
+
+  if (file_list) {
+    
+    Int_t size = file_list->GetSize();
+    for (Int_t i=0; i<size; i++) 
+      {
+	TFile *file = (TFile*) file_list->At(i);
+
+	if(local_debug) {
+	  std::cout << "QwEPICSEvent::WriteEPICSStringValue()"
+		    << file->GetName()
+		    << std::endl;
+	}
+	
+	TTree *slow_tree = (TTree*) file->Get("Slow_Tree");
+	
+	for (std::size_t tagindex=0; tagindex<fEPICSVariableList.size(); tagindex++) 
+	  {
+	    // only String 
+	    if (fEPICSVariableType[tagindex] == kEPICSString) {
+	      
+	      TString name = fEPICSVariableList[tagindex];
+	      name.ReplaceAll(':','_'); // remove colons before creating branch
+	      TString name_type = name + "/C";\
+
+	      Char_t epics_char[128];
+	      TString epics_string;
+
+	      TBranch *new_branch = slow_tree->Branch(name, epics_char, name_type);
+	      
+	      if (fEPICSDataEvent[tagindex].Filled) {
+		epics_string = fEPICSDataEvent[tagindex].StringValue;
+	      } 
+	      else {
+		epics_string = "empty";
+	      }
+
+	      if(local_debug) {
+		std::cout << "QwEPICSEvent::WriteEPICSStringValue()\n";
+		std::cout << name << " " << epics_string << std::endl;
+		std::cout <<"\n";
+	      }
+
+	      sprintf(epics_char, "%s", epics_string.Data());
+	      new_branch->Fill();
+	    }
+	    
+	  }
+
+	file -> Write("", TObject::kOverwrite);
+      }
+  }
+
+  return;
+  
 };

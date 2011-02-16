@@ -38,6 +38,7 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     /// subsystems might not need to write anything to a tree.
     // @{
     /// \brief Construct the branch and tree vector
+    using VQwSubsystem::ConstructBranchAndVector;
     virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values) { };
     /// \brief Construct the branch and tree vector
     virtual void ConstructBranch(TTree *tree, TString& prefix) { };
@@ -45,7 +46,6 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     virtual void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     /// \brief Fill the tree vector
     virtual void FillTreeVector(std::vector<Double_t>& values) const { };
-    // @}
     // @}
 
 
@@ -67,8 +67,8 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
 
   private:
 
-    /// Private default constructor
-    VQwSubsystemTracking() { };
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemTracking();
 
 }; // class VQwSubsystemTracking
 

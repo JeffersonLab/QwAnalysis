@@ -51,7 +51,9 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
 };
 
 QwDriftChamber::QwDriftChamber(TString region_tmp)
-  :VQwSubsystemTracking(region_tmp),fWireHits(fTDCHits)
+  :VQwSubsystem(region_tmp),
+   VQwSubsystemTracking(region_tmp),
+   fWireHits(fTDCHits)
 {
   OK            = 0;
   fDEBUG        = kFALSE;

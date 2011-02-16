@@ -62,6 +62,7 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking{
 
   void  FillListOfHits(QwHitContainer& hitlist);
 
+  using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();

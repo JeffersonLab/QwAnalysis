@@ -2,7 +2,7 @@
 
 #No.of good patterns to accumulate before triggering the feedback algorithm.
 
-patterns = 4000
+patterns = 10000
 
 #The precision of the charge asymmetry in ppm
 
@@ -43,8 +43,26 @@ IA_up  = 50000
 #PITA slopes
 #  From M.Dalton, as of 00:10,23oct2010, use a slope of:  -0.73 ppm/dac-tick
 # 
-PITASLOPE_OUT = +0.73
-PITASLOPE_IN = -0.73
+#PITASLOPE_OUT = +0.73
+#PITASLOPE_IN = -0.73
+
+#PITA slopes
+#  From M.Dalton, as of ,03Dec2010, 
+#  units are ppm/dac-tick
+#PITASLOPE_OUT = +0.554
+#PITASLOPE_IN = -0.557
+
+#PITA slopes
+#  From M.Dalton, as of ,06Jan2011, https://cebaf.jlab.org/elog/entry/1560667
+#  units are ppm/dac-tick
+PITASLOPE_OUT = -0.8588
+PITASLOPE_IN = +0.8588
+
+#PITA slopes
+#  From John Leacock, as of ,19Dec2010, 
+#  units are ppm/dac-tick
+#PITASLOPE_OUT = -0.996422
+#PITASLOPE_IN = +0.996422
 
 ###  PITANEG = 200
 
@@ -60,3 +78,8 @@ PC_neg_t0 = 0
 #  referenced by Riad in OPS Elog 1549310.
 PC_low = 38018
 PC_up  = 48016
+
+#Minimum charge asymmetry at which feedback correction is applied. see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
+
+MIN_CHARGE_ASYM = 1
+

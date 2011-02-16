@@ -16,6 +16,9 @@ using std::string;
 #include "TString.h"
 #include "TTree.h"
 
+// Qweak headers
+#include "QwOptions.h"
+
 // Forward declarations
 class QwDatabase;
 
@@ -33,6 +36,11 @@ class QwEPICSEvent
   /// Virtual destructor
   virtual ~QwEPICSEvent();
 
+
+  /// \brief Define the configuration options
+  static void DefineOptions(QwOptions &options);
+  /// \brief Process the configuration options
+  void ProcessOptions(QwOptions &options);
 
 
   // Add a tag to the list
@@ -57,6 +65,8 @@ class QwEPICSEvent
   int SetDataValue(const Int_t index,  const Double_t value, const int event);
   int SetDataValue(const Int_t index,  const string& value, const int event);
 
+  Bool_t HasDataLoaded() const { return fIsDataLoaded; };
+
   void  CalculateRunningValues();
 
   void  PrintAverages() const;
@@ -78,6 +88,10 @@ class QwEPICSEvent
   size_t fTreeArrayIndex;
   size_t fTreeArrayNumEntries;
 
+  // Flag to indicate that the event contains data
+  Bool_t fIsDataLoaded;
+  void SetDataLoaded(Bool_t flag) { fIsDataLoaded = flag; };
+
  public:
 
   /// \brief Construct the branch and tree vector
@@ -90,7 +104,8 @@ class QwEPICSEvent
 
   static std::vector<std::string> GetDefaultAutogainList() { return fDefaultAutogainList; };
   static void SetDefaultAutogainList(std::vector<std::string>& input_list);
-
+  void WriteEPICSStringValues();
+  
  private:
 
   /// Default autogain list
@@ -107,6 +122,8 @@ class QwEPICSEvent
   static const Double_t kInvalidEPICSData;
   // Int_t maxsize = 300;
 
+  // Flag to disable database accesses for EPICS events
+  bool fDisableDatabase;
 
   // Test whether the string is a number string or not
   Bool_t IsNumber(const string& word) {
@@ -146,6 +163,8 @@ class QwEPICSEvent
   std::vector<EQwEPICSDataType> fEPICSVariableType;
 
   std::map<std::string,Int_t> fEPICSVariableMap;
+
+  TList *GetEPICSStringValues();
 
 }; // class QwEPICSEvent
 

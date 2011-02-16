@@ -20,10 +20,7 @@ class QwDriftChamberHDC: public QwDriftChamber {
    ******************************************************************/
  public:
   QwDriftChamberHDC(TString region_tmp);
-  ~QwDriftChamberHDC()
-    {
-      // DeleteHistograms();
-    };
+  ~QwDriftChamberHDC() { };
   
   /* Unique virtual member functions from QwDrifChamber base class */
 
@@ -44,9 +41,11 @@ class QwDriftChamberHDC: public QwDriftChamber {
   Int_t AddChannelDefinition();
   Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire);
   Double_t  CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+
+  using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix) ;
   void  FillHistograms();
-  //  void  DeleteHistograms();
+
   Int_t LoadTimeWireOffset(TString t0_map) {return 0;}; 
   void SubtractWireTimeOffset();
   void ApplyTimeCalibration();

@@ -15,6 +15,7 @@
 #include "QwRootFile.h"
 #include "QwOptionsTracking.h"
 #include "QwEventBuffer.h"
+#include "QwDatabase.h"
 #include "QwHistogramHelper.h"
 #include "QwEPICSEvent.h"
 #include "QwTrackingWorker.h"
@@ -161,7 +162,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Create the subsystem branches
       rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
-      rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", parity_detectors);
+      rootfile->ConstructTreeBranches("Mps_Tree", "QwTracking Event-based Tree", parity_detectors);
+      rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epics);
     }
 
     // Delete dummy event again

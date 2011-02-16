@@ -139,8 +139,10 @@ void QwTrackingTreeLine::Copy(const QwTrackingTreeLine* treeline)
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     if (treeline->fHits[i])
       this->fHits[i] = new QwHit(treeline->fHits[i]);
-    if (treeline->fUsedHits[i])
+    if (treeline->fUsedHits[i]){
       this->fUsedHits[i] = new QwHit(treeline->fUsedHits[i]);
+//       std::cout << "drift distance: " << this->fUsedHits[i]->GetDriftDistance() << std::endl;
+      }
   }
 
   // Copy hits
@@ -261,6 +263,8 @@ const double QwTrackingTreeLine::CalculateAverageResidual()
   for (int layer = 0; layer < 2 * MAX_LAYERS; layer++) {
     for (QwHit* hit = fHits[layer]; hit; hit = hit->next) {
       if (hit->IsUsed()) {
+//         std::cout << "in calculate residual: " << hit->GetTrackPosition() << " " << hit->GetDriftPosition() <<  std::endl;
+        
         double residual = hit->GetResidual();
         sumResiduals += residual;
         numHits++;

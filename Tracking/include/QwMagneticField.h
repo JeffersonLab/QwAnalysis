@@ -91,29 +91,32 @@ class QwMagneticField {
     void GetCartesianFieldValue(const double point_xyz[3], double field_xyz[3]) const {
       double field[N_FIELD_COMPONENTS];
       GetFieldValue(point_xyz, field);
-      if (N_FIELD_COMPONENTS == 3) {
+      #if N_FIELD_COMPONENTS >= 3
         field_xyz[0] = field[0]; // x
         field_xyz[1] = field[1]; // y
         field_xyz[2] = field[2]; // z
-      }
+      #else
+        #warning "N_FIELD_COMPONENTS should be 3 or larger."
+      #endif
     };
     /// Get the cylindrical components of the field value
     void GetCylindricalFieldValue(const double point_xyz[3], double field_rfz[3]) const {
       double field[N_FIELD_COMPONENTS];
       GetFieldValue(point_xyz, field);
-      if (N_FIELD_COMPONENTS == 3) {
+      #if N_FIELD_COMPONENTS == 3
         double r = sqrt(field[0] * field[0] + field[1] * field[1]) ;
         double phi = atan2(field[1],field[0]);
         if (phi < 0) phi += 2.0 * Qw::pi;
         field_rfz[0] = r; // r
         field_rfz[1] = phi; // phi
         field_rfz[2] = field[2]; // z
-      }
-      if (N_FIELD_COMPONENTS == 5) {
+      #elif N_FIELD_COMPONENTS == 5
         field_rfz[0] = field[3]; // r
         field_rfz[1] = field[4]; // phi
         field_rfz[2] = field[2]; // z
-      }
+      #else
+        #warning "N_FIELD_COMPONENTS should be 3 or 5."
+      #endif
     };
 
     /// \brief Read a field map input file
