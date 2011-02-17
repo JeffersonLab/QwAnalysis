@@ -875,8 +875,8 @@ VQwSubsystem&  QwBeamMod::operator=  (VQwSubsystem *value)
       
       for(size_t i=0;i<input->fModChannel.size();i++)
 	this->fModChannel[i]=input->fModChannel[i];
-      // for(size_t i=0;i<input->fWord.size();i++)
-//  	this->fWord[i].fValue=input->fWord[i].fValue;
+        for(size_t i=0;i<input->fWord.size();i++)
+  	this->fWord[i].fValue=input->fWord[i].fValue;
     }
   return *this;
 };
@@ -890,8 +890,8 @@ VQwSubsystem&  QwBeamMod::operator+=  (VQwSubsystem *value)
 
       for(size_t i=0;i<input->fModChannel.size();i++)
 	this->fModChannel[i]+=input->fModChannel[i];
-//       for(size_t i=0;i<input->fWord.size();i++)
-// 	this->fWord[i]+=input->fWord[i];
+//         for(size_t i=0;i<input->fWord.size();i++)
+//    	this->fWord[i]+=input->fWord[i];
 
     }
   return *this;
@@ -908,7 +908,7 @@ VQwSubsystem&  QwBeamMod::operator-=  (VQwSubsystem *value)
       for(size_t i=0;i<input->fModChannel.size();i++)
 	this->fModChannel[i]-=input->fModChannel[i];
 //       for(size_t i=0;i<input->fWord.size();i++)
-// 	this->fWord[i]-=input->fWord[i];
+//         this->fWord[i]-=input->fWord[i];
 
     }
   return *this;
@@ -943,6 +943,8 @@ void QwBeamMod::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 
       for(size_t i=0;i<innumer->fModChannel.size();i++)
 	this->fModChannel[i].Ratio(innumer->fModChannel[i],indenom->fModChannel[i]);
+      for(size_t i=0;i<innumer->fWord.size();i++)
+	this->fWord[i].fValue=innumer->fWord[i].fValue;
 
     }
   return;
@@ -1169,7 +1171,8 @@ void QwBeamMod::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vec
   fTreeArrayIndex  = values.size();
   for (size_t i=0; i<fWord.size(); i++)
 	{
-	  basename = fWord[i].fWordName;
+// 	  basename = fWord[i].fWordName;
+ 	  basename = prefix+fWord[i].fWordName;
 	  values.push_back(0.0);
 	  tree->Branch(basename, &(values.back()), basename+"/D");
 	}
@@ -1262,9 +1265,17 @@ void  QwBeamMod::Copy(VQwSubsystem *source)
 	  for(size_t i=0;i<this->fModChannel.size();i++)
 	    this->fModChannel[i].Copy(&(input->fModChannel[i]));
 
-// 	  this->fWord.resize(input->fWord.size());
-// 	  for(size_t i=0;i<this->fWord.size();i++)
-// 	    this->fWord[i].Copy(&(input->fWord[i]));
+//  	  this->fWord.resize(input->fWord.size());
+//  	  for(size_t i=0;i<this->fWord.size();i++)
+//  	    this->fWord[i].Copy(&(input->fWord[i]));
+
+	  this->fWord.resize(input->fWord.size());
+          for(size_t i=0;i<this->fWord.size();i++)
+            {
+              this->fWord[i].fWordName=input->fWord[i].fWordName;
+              this->fWord[i].fModuleType=input->fWord[i].fModuleType;
+              this->fWord[i].fWordType=input->fWord[i].fWordType;
+            } 
 
          }
 
