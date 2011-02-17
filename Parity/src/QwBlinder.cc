@@ -22,7 +22,7 @@
 //  String names of the blinding and Wien status values
 const TString QwBlinder::fStatusName[4] = {"Indeterminate", "NotBlindable",
 					   "Blindable", "BlindableFail"};
-const TString QwBlinder::fWienName[5] = {"Indeterminate", "Forward", "Backward"
+const TString QwBlinder::fWienName[5] = {"Indeterminate", "Forward", "Backward",
 					 "Vertical", "Horizontal"};
 
 // Maximum blinding asymmetry for additive blinding
