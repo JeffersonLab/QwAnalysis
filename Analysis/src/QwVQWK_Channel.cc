@@ -259,7 +259,6 @@ void QwVQWK_Channel::ClearEventData()
   fHardwareBlockSum   = 0.0;
   fHardwareBlockSumM2 = 0.0;
   fHardwareBlockSumError = 0.0;
-  fHardwareBlockSumWidth = 0.0;
   fSequenceNumber   = 0;
   fNumberOfSamples  = 0;
   fGoodEventCount   = 0;
@@ -818,6 +817,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
       this->fHardwareBlockSum = value.fHardwareBlockSum;
       this->fHardwareBlockSumM2 = value.fHardwareBlockSumM2;
       this->fHardwareBlockSumError = value.fHardwareBlockSumError;
+      this->fGoodEventCount=value.fGoodEventCount;
       this->fNumberOfSamples = value.fNumberOfSamples;
       this->fSequenceNumber  = value.fSequenceNumber;
       this->fErrorFlag       = (value.fErrorFlag);
@@ -1186,7 +1186,6 @@ void QwVQWK_Channel::CalculateRunningAverage()
         fBlockError[i] = 0.0;
       }
       fHardwareBlockSumError = 0.0;
-      fHardwareBlockSumWidth = 0.0;
     }
   else
     {
@@ -1199,7 +1198,6 @@ void QwVQWK_Channel::CalculateRunningAverage()
       for (Int_t i = 0; i < fBlocksPerEvent; i++)
         fBlockError[i] = sqrt(fBlockM2[i]) / fGoodEventCount;
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
-      fHardwareBlockSumWidth = sqrt(fHardwareBlockSumM2/fGoodEventCount);
     }
 };
 
@@ -1350,6 +1348,12 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
 	fDeviceErrorCode|=kErrorFlag_EventCut_L;
       status=kFALSE;
     }
+    //QwError << GetRawHardwareSum()<< QwLog::endl;
+    if (GetRawHardwareSum()>547384979) // 547384979 = 9V 
+    {
+    QwWarning << "Event cut for saturating PMT invoked!" << QwLog::endl;
+    fDeviceErrorCode|=kErrorFlag_EventCut_Sat;
+    }
     UpdateErrorCounters(fDeviceErrorCode);//update the event cut/HW  error count
     if (bEVENTCUTMODE==3){
       status=kTRUE; //Update the event cut fail flag but pass the event.
@@ -1392,6 +1396,7 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
 	 this->fNumberOfSamples       = input->fNumberOfSamples;
 	 this->fHardwareBlockSum      = input->fHardwareBlockSum;
 	 this->fHardwareBlockSumError = input->fHardwareBlockSumError;
+	 this->fGoodEventCount=input->fGoodEventCount;
 
 	 for(Int_t i=0; i<4; i++ ) {
 	   this->fBlock[i] = input->fBlock[i];

@@ -782,6 +782,8 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
 
 void QwHelicityPattern::FillDB(QwDatabase *db)
 {
+  fBlinder.FillDB(db,"");
+
   fRunningYield.FillDB(db, "yield");
   fRunningAsymmetry.FillDB(db, "asymmetry");
   if (fEnableDifference) {
