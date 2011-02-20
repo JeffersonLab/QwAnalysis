@@ -218,20 +218,19 @@ JbCorrelator::exportAlphas(TString outName, std::vector < TString > ivName, std:
 //________________________________________________
 //________________________________________________
 void
-JbCorrelator::exportAlias(char * outName, int runId,std::vector < TString > Pname, std::vector < TString > Yname){
+JbCorrelator::exportAlias(TString outPath, TString macroName,std::vector < TString > Pname, std::vector < TString > Yname){
 
-  printf("::::::::::::::::JbCorrelator::exportAlias(%s) :::::::::::\n",outName);
-  char *preDV="asym_";
-  char *preIV="diff_qwk_bpm";
+  printf("::::::::::::::::JbCorrelator::exportAlias(%s) :::::::::::\n",macroName.Data());
 
-  FILE *fd=fopen(outName,"w");
-  fprintf(fd,"regalias_r%d() {\n",runId);
+ 
+  FILE *fd=fopen(outPath+macroName+".C","w");
+  fprintf(fd,"%s() {\n",macroName.Data());
   for (int iy = 0; iy <nY; iy++) {
-    fprintf(fd,"  Hel_Tree->SetAlias(\"reg_%s%s\",\n         \"%s%s",preDV,Yname[iy].Data(),preDV,Yname[iy].Data());
+    fprintf(fd,"  Hel_Tree->SetAlias(\"reg_%s\",\n         \"%s",Yname[iy].Data(),Yname[iy].Data());
     for (int j = 0; j < nP; j++) {
       double val= -linReg.mA(j,iy);
       if(val>0)  fprintf(fd,"+");
-      fprintf(fd,"%.4e*%s%s",val,preIV,Pname[j].Data());
+      fprintf(fd,"%.4e*%s",val,Pname[j].Data());
     }
     fprintf(fd,"\");\n");
 
@@ -249,5 +248,5 @@ regalias_r5848() {
 #endif 
   fprintf(fd,"}\n");
   fclose(fd);
-  printf("saved %s\n",outName);
+  printf("saved %s\n",macroName.Data());
 }

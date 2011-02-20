@@ -29,11 +29,11 @@ def  Db2UnixTime_r_s(run,seg):
 def  HClog_r(run):
     #print "HClog_r: run=",run
     badAnswer=1,"HClogURL_NotFound2_R"+run,0,0,0,0
-    if run < "7717" :
+    if int(run) < 7717 :
         yymm="1011"
-    elif run < "8540" :
+    elif int(run) < 8540 :
         yymm="1012"
-    elif run < "9595" :
+    elif int(run) < 9595 :
         yymm="1101"
     else:
         yymm="1102"

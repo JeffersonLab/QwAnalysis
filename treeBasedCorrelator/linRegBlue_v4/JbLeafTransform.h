@@ -24,7 +24,6 @@ class JbLeafTransform {
   int niv(){return (int)ivName.size();}
   void readConfig(const char * configFName);
   void presetMyStat(double x1,double x2, double thr, double x3);
-  TString humanizeLeafName(TString longName);
   TString setLeafName2Yield(TString longName);
   
  private:

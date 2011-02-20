@@ -96,16 +96,17 @@ JbLeafTransform::findInputLeafs(TChain *chain){
   assert(strstr(dvName[14].Data(),"qwk_mdallbars")>0);
 
 
-  //...... now you can shorten names so they are easier to read & print
+  //...... print variables in order
   for(unsigned int i=0; i<dvName.size(); i++) {
-    printf("dv=%d : ",i);
-    dvName[i]=humanizeLeafName(dvName[i]);
+    printf("dv=%d : %s,    ",i,dvName[i].Data());
+    if(i%2) printf("\n");
   }
+  printf("\n");
   for(unsigned int i=0; i<ivName.size(); i++) {
-    printf("iv=%d : ",i);
-    ivName[i]=humanizeLeafName(ivName[i]);
+    printf("iv=%d : %s,    ",i,ivName[i].Data());
+    if(i%2) printf("\n");
   }
-
+  printf("\n");
 
 }
 
@@ -270,7 +271,7 @@ JbLeafTransform::initHistos(){
   //.....  yield  dv
   hydv=new TH1 *[ndv()];
   for(int i=0;i<ndv();i++) {   
-    TString name=setLeafName2Yield(humanizeLeafName(dvName[i])) ;
+    TString name=setLeafName2Yield(dvName[i]) ;
     hydv[i]=h=new TH1D(Form("yieldDV%d",i),Form("%s, DV%d ;%s",name.Data(),i,name.Data()),128,-0.,0.);
     h->GetXaxis()->SetNdivisions(4);  h->SetBit(TH1::kCanRebin);
     h->GetXaxis()->SetTitleColor(kBlue);
@@ -279,7 +280,7 @@ JbLeafTransform::initHistos(){
   //.....  yield  iv
   hyiv=new TH1 *[niv()];
   for(int i=0;i<niv();i++) {   
-    TString name=setLeafName2Yield(humanizeLeafName(ivName[i])) ;
+    TString name=setLeafName2Yield(ivName[i]) ;
     hyiv[i]=h=new TH1D(Form("yieldIV%d",i),Form("%s, IV%d ;%s",name.Data(),i,name.Data()),128,0.,0.);
     h->GetXaxis()->SetNdivisions(4);    h->SetBit(TH1::kCanRebin);
     h->GetXaxis()->SetTitleColor(kBlue);
@@ -384,27 +385,6 @@ JbLeafTransform::harvestNames(FILE *fp) {
 }
 
 
-
-//=====================
-TString 
-JbLeafTransform::humanizeLeafName(TString longName) {
-  TString name=longName;
-  name.ReplaceAll("_qwk","");
-  name.ReplaceAll("_md","_MD");
-  name.ReplaceAll("barsum","");
-  name.ReplaceAll("bars","");
-  // added for lumi
-  name.ReplaceAll("asym_uslumi","asym_USLum");
-  name.ReplaceAll("asym_dslumi","asym_DSLum");
-  name.ReplaceAll("_uslumi","_");
-  name.ReplaceAll("_dslumi","_");
-  name.ReplaceAll("_sum","");
-  name.ReplaceAll("_EffectiveCharge","EfCh");
-
-
-  printf("Humanize '%s' --> '%s'\n", longName.Data(),name.Data());
-  return name;
-}
 
 //=====================
 TString 

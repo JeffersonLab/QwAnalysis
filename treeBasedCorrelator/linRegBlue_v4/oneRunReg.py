@@ -83,7 +83,7 @@ def  exportHtml(inpFile,outFile,pdfURL) :
     print "ioPath=",ioPath
 
     print "..... generate DB record" 
-    cmd_string12a = "root -b -q prCsvRecordTwo.C'(2,"+RUNiSEG+',"%s","'%miscVal+ioPath+'","'+ioPath+"\")'"
+    cmd_string12a = "nice root -b -q prCsvRecordTwo.C'(2,"+RUNiSEG+',"%s","'%miscVal+ioPath+'","'+ioPath+"\")'"
     print "exec12a:%s" % cmd_string12a
     fin,fout=os.popen4(cmd_string12a)
     fullLog=fout.readlines()
@@ -140,7 +140,7 @@ def  doubleRegress():
     cutsStr=" blueReg.conf"
     if CUTS:
         cutsStr=" blueRegR%d"%RUN_NO +".conf"
-    cmdSort = "(./linRegBlue %d" % RUN_NO + " %03d " % RUN_SEG + " %d" %  TOT_EVE + cutsStr+ " )"
+    cmdSort = "(nice ./linRegBlue %d" % RUN_NO + " %03d " % RUN_SEG + " %d" %  TOT_EVE + cutsStr+ " )"
     print "exec1:%s" % cmdSort
     os.system(cmdSort+">& out/logS1")
 
@@ -157,7 +157,7 @@ def  doubleRegress():
     print "exec2:%s" % cmd_string2
     os.system(cmd_string2+">& out/log2")
 
-    cmdSort2 = "(./linRegBlue %d" % RUN_NO + " %03d " % RUN_SEG + " %d" %  TOT_EVE + cutsStr+ " blueR"+ RUNiSEG + ".slope.root )"
+    cmdSort2 = "(nice ./linRegBlue %d" % RUN_NO + " %03d " % RUN_SEG + " %d" %  TOT_EVE + cutsStr+ " blueR"+ RUNiSEG + ".slope.root )"
     print "exec3:%s" % cmdSort2
     os.system(cmdSort2+">& out/logS2")
     # verify job did not aborted

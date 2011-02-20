@@ -116,7 +116,7 @@ void printDBrecord(FILE *fd){
     fprintf(fd,"operator comment:%s:X\n",item);   item=strtok(0,",");
  
     for(int j=0;j<mxBB;j++){
-      TString  name=deHumanizeLeafName(bbName[j]);
+      TString  name=bbName[j];
       fprintf(fd,"%s:%g:%g:%g\n", name.Data(),pattSum,bcmMean[j]*ppm,bcmRms[j]*ppm/sqN);
     }
   }
@@ -124,7 +124,6 @@ void printDBrecord(FILE *fd){
   if(mask&0x2) {    fprintf(fd,"#section:0x2:yields for %d DVs:X----------------\n",dvName.size());
     for(int dv=0;dv<dvName.size(); dv++) {
       TString name=dvName[dv];
-      name=deHumanizeLeafName(name);
       name.ReplaceAll("asym_","yield_");
       fprintf(fd,"%s:%g:%g:%g\n",name.Data(),pattSum,dvYield[dv],dvYieldRms[dv]/sqN);
     }
@@ -133,7 +132,6 @@ void printDBrecord(FILE *fd){
   if(mask&0x4) {    fprintf(fd,"#section:0x4:regressed %d asym DVs:X---------------\n",dvName.size());
     for(int dv=0;dv<dvName.size(); dv++) {
       TString name=dvName[dv];
-      name=deHumanizeLeafName(name);
       fprintf(fd,"%s:%g:%g:%g\n",name.Data(),pattSum,MDVmeanReg(dv,0)*ppm,MDVsigReg(dv,0)*ppm/sqN);
     }
   }
@@ -141,16 +139,15 @@ void printDBrecord(FILE *fd){
   if(mask&0x8) {    fprintf(fd,"#section:0x8:unregressed %d asym DVs:X--------------\n",dvName.size());
     for(int dv=0;dv<dvName.size(); dv++) {
       TString name=dvName[dv];
-      name=deHumanizeLeafName(name);
       fprintf(fd,"%s:%g:%g:%g\n",name.Data(),pattSum,MDVmeanUnreg(dv,0)*ppm,MDVsigUnreg(dv,0)*ppm/sqN);
     }
   }
 
   if(mask&0x10) {    fprintf(fd,"#section:0x10:slopes for %d asym DVs vs. %d IVs:X-----------------\n",dvName.size(),ivName.size());
     for(int dv=0;dv<dvName.size(); dv++) {
-      TString nameDV=deHumanizeLeafName(dvName[dv]);
+      TString nameDV=dvName[dv];
       for(int iv=0;iv<ivName.size(); iv++) {
-	TString nameIV=deHumanizeLeafName(ivName[iv]);
+	TString nameIV=ivName[iv];
 	fprintf(fd,"%s/%s:%g:%g:%g\n",nameDV.Data(),nameIV.Data(),pattSum,Mslopes(iv,dv),MsigSlopes(iv,dv));
       }
     }
@@ -159,16 +156,16 @@ void printDBrecord(FILE *fd){
 
   if(mask&0x20) {    fprintf(fd,"#section:0x20: %d diff  IVs:X---------------\n",ivName.size());
     for(int iv=0;iv<ivName.size(); iv++) {
-      TString nameIV=deHumanizeLeafName(ivName[iv]);
+      TString nameIV=ivName[iv];
       fprintf(fd,"%s:%g:%g:%g\n",nameIV.Data(),pattSum,MIVmean(iv,0)*ppm,MIVsig(iv,0)*ppm/sqN);
     }
   }
   
   if(mask&0x40) {    fprintf(fd,"#section:0x40: correlations for %d diff  IVs:X---------------\n",ivName.size());
     for(int iv=0;iv<ivName.size(); iv++) {
-      TString nameIV1=deHumanizeLeafName(ivName[iv]);
+      TString nameIV1=ivName[iv];
       for(int jv=iv+1;jv<ivName.size(); jv++) {
-	TString nameIV2=deHumanizeLeafName(ivName[jv]);
+	TString nameIV2=ivName[jv];
 	fprintf(fd,"%s:%s:%g:%g:X\n",nameIV1.Data(),nameIV2.Data(),pattSum,MIVcov(iv,jv));
       }
     }
@@ -177,7 +174,6 @@ void printDBrecord(FILE *fd){
   if(mask&0x80) {    fprintf(fd,"#section:0x80:yields for %d IVs:X----------------\n",ivName.size());
     for(int iv=0;iv<ivName.size(); iv++) {
       TString name=ivName[iv];
-      name=deHumanizeLeafName(name);
       name.ReplaceAll("asym_","yield_");
       fprintf(fd,"%s:%g:%g:%g\n",name.Data(),pattSum,ivYield[iv],ivYieldRms[iv]/sqN);
     }
@@ -454,74 +450,4 @@ void fetchNamesAnd() {
   }
 
   hFile->Close();
-}
-
-
-//=====================
-TString deHumanizeLeafName(TString shortName) {
-  TString name=shortName;
-  //MDs .......
-  name.ReplaceAll("asym_MDodd","asym_qwk_mdoddbars");
-  name.ReplaceAll("asym_MDeven","asym_qwk_mdevenbars");
-  name.ReplaceAll("asym_MDall","asym_qwk_mdallbars");
-
-  name.ReplaceAll("asym_MD1_MD5","asym_qwk_md1_qwk_md5");
-  name.ReplaceAll("asym_MD2_MD6","asym_qwk_md2_qwk_md6");
-  name.ReplaceAll("asym_MD3_MD7","asym_qwk_md3_qwk_md7");
-  name.ReplaceAll("asym_MD4_MD8","asym_qwk_md4_qwk_md8");
-
-  name.ReplaceAll("asym_MD1","asym_qwk_md1barsum");
-  name.ReplaceAll("asym_MD2","asym_qwk_md2barsum");
-  name.ReplaceAll("asym_MD3","asym_qwk_md3barsum");
-  name.ReplaceAll("asym_MD4","asym_qwk_md4barsum");
-  name.ReplaceAll("asym_MD5","asym_qwk_md5barsum");
-  name.ReplaceAll("asym_MD6","asym_qwk_md6barsum");
-  name.ReplaceAll("asym_MD7","asym_qwk_md7barsum");
-  name.ReplaceAll("asym_MD8","asym_qwk_md8barsum");
-
-  // DS LUMIs
-  name.ReplaceAll("asym_DSLum1_5","asym_dslumi1_dslumi5_sum");
-  name.ReplaceAll("asym_DSLum2_6","asym_dslumi2_dslumi6_sum");
-  name.ReplaceAll("asym_DSLum3_7","asym_dslumi3_dslumi7_sum");
-  name.ReplaceAll("asym_DSLum4_8","asym_dslumi4_dslumi8_sum");
-
-  name.ReplaceAll("asym_DSLum1","asym_qwk_dslumi1");
-  name.ReplaceAll("asym_DSLum2","asym_qwk_dslumi2");
-  name.ReplaceAll("asym_DSLum3","asym_qwk_dslumi3");
-  name.ReplaceAll("asym_DSLum4","asym_qwk_dslumi4");
-  name.ReplaceAll("asym_DSLum5","asym_qwk_dslumi5");
-  name.ReplaceAll("asym_DSLum6","asym_qwk_dslumi6");
-  name.ReplaceAll("asym_DSLum7","asym_qwk_dslumi7");
-  name.ReplaceAll("asym_DSLum8","asym_qwk_dslumi8");
-
-  name.ReplaceAll("asym_DSLum_even","asym_dslumi_even");
-  name.ReplaceAll("asym_DSLum_odd", "asym_dslumi_odd");
-  name.ReplaceAll("asym_DSLum",     "asym_dslumi_sum");
-  
-  // US LUMIs
-  name.ReplaceAll("asym_USLum1_5","asym_uslumi1_uslumi5_sum");
-  name.ReplaceAll("asym_USLum3_7","asym_uslumi3_uslumi7_sum");
-
-  name.ReplaceAll("asym_USLum1neg","asym_qwk_uslumi1neg");
-  name.ReplaceAll("asym_USLum1pos","asym_qwk_uslumi1pos");
-  name.ReplaceAll("asym_USLum3neg","asym_qwk_uslumi3neg");
-  name.ReplaceAll("asym_USLum3pos","asym_qwk_uslumi3pos");
-  name.ReplaceAll("asym_USLum5neg","asym_qwk_uslumi5neg");
-  name.ReplaceAll("asym_USLum5pos","asym_qwk_uslumi5pos");
-  name.ReplaceAll("asym_USLum7neg","asym_qwk_uslumi7neg");
-  name.ReplaceAll("asym_USLum7pos","asym_qwk_uslumi7pos");
-
-  name.ReplaceAll("asym_USLum1","asym_uslumi1_sum");
-  name.ReplaceAll("asym_USLum3","asym_uslumi3_sum");
-  name.ReplaceAll("asym_USLum5","asym_uslumi5_sum");
-  name.ReplaceAll("asym_USLum7","asym_uslumi7_sum");
-
-  name.ReplaceAll("asym_USLum",     "asym_uslumi_sum");
-
-  // DIFF BPM
-  name.ReplaceAll("diff_b",     "diff_qwk_b");
-
-  // ASYM BCM for Juliette
-  name.ReplaceAll("asym_bcm", "asym_qwk_bcm");
-  return name;
 }

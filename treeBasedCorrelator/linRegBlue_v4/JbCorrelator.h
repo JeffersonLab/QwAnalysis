@@ -37,7 +37,7 @@ class JbCorrelator  {
   void finish();
   void addEvent(double *Pvec, double *Yvec);
   void exportAlphas(TString outPath, std::vector < TString > ivName, std::vector < TString > dvName);
-  void exportAlias(char* outPath, int runId, std::vector < TString > ivName, std::vector < TString > dvName);
+  void exportAlias(TString outPath, TString macroName, std::vector < TString > ivName, std::vector < TString > dvName);
 
 };
 

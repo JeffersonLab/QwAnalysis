@@ -107,10 +107,10 @@ int main(int argc, char *argv[]) {
 
 
   // filter events with custom cut.
-  TString cutFormula="1==1"; // alwasy true
+  TString cutFormula="ErrorFlag==0"; // alwasy true
   if(eve.cutFormula.Sizeof()>1) {
     printf("Main: filter events with custom cut: name=%s  formula='%s'\n",eve.cutName.Data(), eve.cutFormula.Data());
-    cutFormula=eve.cutFormula;
+    cutFormula+="&&"+eve.cutFormula;
   }
   chain->Draw(">>listA",cutFormula); // custom cleanup cut
   TEventList *list = (TEventList*)gDirectory->Get("listA"); 
@@ -188,8 +188,7 @@ int main(int argc, char *argv[]) {
   }
 
 
-  TString outAlias=Form("%sregalias_r%s.C",outPath,runName.Data());
-  corA.exportAlias((char*)outAlias.Data(), runNo, eve.ivName, eve.dvName); 
+  corA.exportAlias(outPath, "regalias_"+runName, eve.ivName, eve.dvName); 
 
   printf("#success JB1 nEve=%d  for %s\n",nEve,runName.Data());
 }

@@ -8,7 +8,7 @@ Executing shell commande depending on params
 import os
 import time
 
-lastRunSeg="9243.000"
+lastRunSeg="10000.000"
 sleepSec=300
 fileSize=900000000
 webPath="web/"
