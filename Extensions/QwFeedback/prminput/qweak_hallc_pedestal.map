@@ -1,6 +1,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 
-! Filename : qweak_hallc_pedestal.8397-.map 
+! Filename : qweak_hallc_pedestal.9695-.map 
 !
 ! ** HallC BPM pedestals (per sample) obtained using Run 5900 
 !           qwk_bcm1 (is calibrated with Run 5807 Gain Setting 2)
@@ -24,6 +24,15 @@
 !    8966 -
 !         
 !   Thursday, January 20 13:12:51 EST 2011, jhlee
+!
+!  For BCM1/2/5/6   https://hallcweb.jlab.org/hclog/1101_archive/110125222318.html
+!  		    Wednesday, January 26 09:00:19 EST 2011, jhlee
+!                   Ramesh confirmed the results is the better than run 8966,
+!                   thus, I simply use run 9723 
+!                   Wednesday, January 26 18:33:21 EST 2011, jhlee
+!
+!  For BCM5/6       Friday, February  4 16:10:37 EST 2011,jhlee
+!                   https://hallcweb.jlab.org/hclog/1102_archive/110204144852.html
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
@@ -120,9 +129,9 @@
   qwk_bpm3h09bXM   , 2998.2   , 1.0
   qwk_bpm3h09bYP   , 4482.01  , 1.0
   qwk_bpm3h09bYM   , 2208.63  , 1.0
-  qwk_bcm6         ,7372, 0.0027353
-  qwk_bcm5         ,7417, 0.0027041
-  qwk_bcm2         ,  6.2557766875e+00, 4.9115079912e-03
-  qwk_bcm1         ,  4.9944151007e+02, 4.1119305153e-03
+  qwk_bcm1,          +198.639970,            +0.004152
+  qwk_bcm2,          -216.485074,            +0.004421
+  qwk_bcm5        ,5863.41,       0.00147343
+  qwk_bcm6        ,6830.93,       0.00161937
   qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0

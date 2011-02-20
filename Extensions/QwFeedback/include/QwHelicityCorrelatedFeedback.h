@@ -71,7 +71,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     time ( &rawtime );
     timeinfo = localtime ( &rawtime );
 
-    //    out_file_IA = fopen("Feedback_IA_log.txt", "wt");
+    IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "r");//Open in read mode
+    
     out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
     //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
     fprintf(out_file_IA,"%22s \n",asctime (timeinfo));
@@ -289,6 +290,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     //log file
     FILE *out_file_PITA;
     FILE *out_file_IA;
+    FILE *IHWP_State;
 
     Bool_t fHalfWaveIN;
     Bool_t fHalfWaveOUT;

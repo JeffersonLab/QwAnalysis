@@ -70,8 +70,8 @@ PITASLOPE_IN = +0.8588
 # flip done on 02-02-2011 at ~3.00pm- Rakitha 02/03/2011
 PC_pos_t0_IN  = 43600
 PC_neg_t0_IN  = 40600
-PC_pos_t0_OUT = 42900
-PC_neg_t0_OUT = 41300
+PC_pos_t0_OUT = 42990
+PC_neg_t0_OUT = 41210
 
 
 #PC hardware count set-point limits
