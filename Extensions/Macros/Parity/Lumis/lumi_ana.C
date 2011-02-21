@@ -23,7 +23,7 @@ Bool_t term_output = kTRUE;
 Bool_t view_volt = kFALSE;
 Float_t scale_val;
 if (ana_type == "asym") scale_val = 1e6;
-if (ana_type == "yield") scale_val = 7.692e-5; 
+ if (ana_type == "yield") scale_val = (20./(1<<18));
 if (ana_type == "yield") view_volt = kTRUE;
 
 /*

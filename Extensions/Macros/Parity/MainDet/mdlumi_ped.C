@@ -8,7 +8,7 @@ void mdlumi_ped(int run_num)
   const bool save_file = kTRUE;
 
   float mean = 0.0;
-  float scale = 0.00007692;
+  float scale = (20./(1<<18));
   gStyle->SetStatW(0.4); 
   gStyle->SetStatH(0.4);
 
@@ -96,9 +96,14 @@ void mdlumi_ped(int run_num)
      lumi_pedestal_file.close();
      }; // end get lumi  
 
+bool save_peds=kTRUE;
+if (save_peds==kTRUE)
+{
 cout<<Form("moving files to %s/Parity/prminput",pPath)<<endl;
 gSystem->Exec(Form("mv %s/Extensions/Macros/Parity/MainDet/qweak_maindet_pedestal.%i-.map %s/Parity/prminput/.",pPath,run_num,pPath));
 gSystem->Exec(Form("mv %s/Extensions/Macros/Parity/MainDet/qweak_lumi_pedestal.%i-.map %s/Parity/prminput/.",pPath,run_num,pPath));
+}
+
 }
 
 

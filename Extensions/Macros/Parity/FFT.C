@@ -41,7 +41,6 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   canvas = new TCanvas("canvas","Fast Fourier Transform",10,10,1000,680);
   
   //******* ADC settings
-//   const Double_t count_to_voltage = 0.00007629; //conversion factor
   const Double_t time_per_sample = 2e-06;//s
   const Double_t t_settle = 50e-06;//s
   

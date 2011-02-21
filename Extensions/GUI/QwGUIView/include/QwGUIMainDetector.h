@@ -100,6 +100,7 @@ class QwGUIMainDetectorDataStructure{
   UInt_t     ActiveTreeLeaf;    //Set by menu option
   UInt_t     EventCounter;      //Incremented during filling process
   UInt_t     NumTreeEvents;     //Number of events in tree: read from tree
+  UInt_t     ErrorIndex;
 
   //This is the address to the data buffer that is passed
   //to TBranch::SetAddress, in order to read the data from the tree
@@ -134,7 +135,8 @@ class QwGUIMainDetectorDataStructure{
   vector <TGraph*>   DataGraph;        //Filled during the reading process
   vector <TH1D*>     DataHisto;        //Filled after the reading process
   vector <TH1D*>     FFTHisto;         //Filled after the reading process
-  vector <TProfile*> FFTProfile;       //Filled after the reading process
+  vector <TProfile*> LinProfile;       //Filled after the reading process
+  vector <TH1D*>     LinHist;          //Filled after the reading process
 
   Bool_t HistoMode;
 
@@ -151,18 +153,21 @@ class QwGUIMainDetectorDataStructure{
 
   void FillData(Double_t sample);
   void FillHistograms();
+  void FillCorrelation(QwGUIMainDetectorDataStructure* XdataStr, const char* title);
   void CalculateStats();
   int CalculateFFTs(EventOptions* evntopts = NULL, UInt_t leaf = -1);
   void SetDetectorName(const char *name) {DetectorName = name;};
 
   const char* GetDetectorName(){ return DetectorName.Data();};
   const char* GetTreeLeafName(UInt_t n);
+  Int_t GetLeafIndex(const char* leaf);
   Double_t GetTreeLeafMin(UInt_t n);
   Double_t GetTreeLeafMax(UInt_t n);
   Double_t GetTreeLeafMean(UInt_t n);
   Double_t GetTreeLeafRMS(UInt_t n);
   Double_t GetTreeLeafError(UInt_t n);
   Double_t GetTreeLeafRMSError(UInt_t n);
+  Double_t GetErrorCode(UInt_t event);
   UInt_t GetID(){return DetectorID;};
   UInt_t GetRunNumber() {return RunNumber;};
   void  SetRunNumber(UInt_t run) {RunNumber = run;};
@@ -174,12 +179,14 @@ class QwGUIMainDetectorDataStructure{
   void DrawHistogram(UInt_t i);
   void DrawGraph(UInt_t i);
   void DrawFFTHistogram(UInt_t i);
-  void DrawFFTProfile(UInt_t i);
+  void DrawCorrelationProfile(UInt_t i);
+  void DrawCorrelationProjection(UInt_t i);
 
-  TObject* GetHistogram(UInt_t i);
-  TObject* GetGraph(UInt_t i);
-  TObject* GetFFTHistogram(UInt_t i);
-  TObject* GetFFTProfile(UInt_t i);
+  TH1D* GetHistogram(UInt_t i);
+  TGraph* GetGraph(UInt_t i);
+  TH1D* GetFFTHistogram(UInt_t i);
+  TProfile* GetCorrelationProfile(UInt_t i);
+  TH1D* GetCorrelationProjection(UInt_t i);
   
   
 };
@@ -196,6 +203,7 @@ class QwGUIMainDetectorDataType{
   vector <QwGUIMainDetectorDataStructure*> dDetDataStr;
   vector <TGraphErrors*> dMeanGraph;
   vector <TGraphErrors*> dRMSGraph;
+
   vector <QwGUIMainDetectorDataType*> dLinkedTypes;
 
   UInt_t NumberOfLeafs; 
@@ -217,6 +225,7 @@ class QwGUIMainDetectorDataType{
   UInt_t          GraphMenuID;
   UInt_t          FFTMenuID;
   UInt_t          ProfMenuID; 
+  UInt_t          ProjectionMenuID; 
   ENPlotType      PlotType;
   vector <UInt_t> dLeafMenuID;
   UInt_t          ID;
@@ -227,7 +236,8 @@ class QwGUIMainDetectorDataType{
   UInt_t          CurrentPlotMenuItemID;
   UInt_t          CurrentLeafMenuItemID;
   UInt_t          dNumberOfPads;
-  
+
+  UInt_t          dRunNumber;
  public:
 
   QwGUIMainDetectorDataType(UInt_t ID, Bool_t Summary = kFalse);
@@ -250,11 +260,15 @@ class QwGUIMainDetectorDataType{
   void ProcessData(const char* SummaryTitles, Bool_t Add = kFalse);
   void PlotData();
   TObject *GetSelectedPlot();
-  TObject *FindPlot(const char* detector, const char* datatype);
+  TH1D *FindHistogram(const char* detector, const char* leaf);
+  TGraph *FindGraph(const char* detector, const char* leaf);
+  TProfile *FindProfile(const char* detector, const char* leaf);
+  Int_t GetDetectorIndex(const char* detector);
+  Int_t GetLeafIndex(const char* detector, const char* leaf);
   void CalculateFFTs(EventOptions*);
   TRootEmbeddedCanvas *MakeDataTab(TGTab *dMDTab, const TGWindow *parent, const TGWindow *client, Int_t w, Int_t h);
   TRootEmbeddedCanvas *GetCanvas(){return dCanvas;};
-  void LinkData(vector <QwGUIMainDetectorDataType*> types) {dLinkedTypes = types;};
+  void LinkData(vector <QwGUIMainDetectorDataType*> types);
 
   UInt_t GetHistoMenuID() {return  HistoMenuID;};
   UInt_t GetGraphMenuID() {return  GraphMenuID;};
@@ -333,10 +347,13 @@ class QwGUIMainDetector : public QwGUISubSystem {
   UInt_t MAIN_DET_COMBIND;
   UInt_t MAIN_MSC_INDEX;
 
-  vector <TString> MainDetectorPMTNames;
-  vector <TString> MainDetectorNames;
+  vector <TString> MainDetectorPMTYieldNames;
+  vector <TString> MainDetectorPMTAsymNames;
+  vector <TString> MainDetectorYieldNames;
+  vector <TString> MainDetectorAsymNames;
   vector <TString> MainDetectorCombinationNames;    
-  vector <TString> MainDetectorMscNames;    
+  vector <TString> MainDetectorMscYieldNames;    
+  vector <TString> MainDetectorMscAsymNames;    
   
   vector <QwGUIMainDetectorDataType*> dCurrentModeData;  
   QwGUIMainDetectorDataType *dCurrentYields;    //yields for block 1 - 4 and the hw sum
@@ -352,7 +369,7 @@ class QwGUIMainDetector : public QwGUISubSystem {
   QwGUIDataWindow     *GetSelectedDataWindow();  
 
   Int_t                MakeCurrentModeTabs();
-  Int_t                LoadCurrentModeChannelMap();
+  Int_t                LoadCurrentModeChannelMap(TTree *mps, TTree *hel);
   Int_t                GetCurrentModeData(TTree *mps, TTree *hel);
 
   Int_t                MakeTrackingModeTabs();

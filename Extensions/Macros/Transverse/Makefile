@@ -19,8 +19,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-
-EXE := injector_pedestals position_differnces hallc_beam_motion hallc_bcm_calib hallc_bpm_calib get_bpm_weights project_to_Wplug 
+EXE := md_correlation_plots TransverseFit slug_average
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -40,29 +39,14 @@ EXE := injector_pedestals position_differnces hallc_beam_motion hallc_bcm_calib 
 all:  $(EXE)
 	@echo "---------------------> $(EXE) done <---------------------- "
 
-injector_pedestals : injector_beamline_calibration.o 
+md_correlation_plots : md_correlations.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-position_differnces : PositionDifferences.o 
+TransverseFit : TransverseFit.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-hallc_beam_motion : hallc_beam_motion.o 
+slug_average : slug_average_fits.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-IA_Scan : ia_scan.o 
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
-hallc_bcm_calib : hallc_bcm_calib.o 
-	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
-
-hallc_bpm_calib : hallc_bpm_calib.o 
-	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
-
-get_bpm_weights : GetBPMWeights.o
-	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
-
-project_to_Wplug : w_plug_projection.o
-	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
 
 %: %.C
 	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
