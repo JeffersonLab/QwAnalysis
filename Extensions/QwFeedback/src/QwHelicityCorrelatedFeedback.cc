@@ -29,8 +29,6 @@ void QwHelicityCorrelatedFeedback::DefineOptions(QwOptions &options)
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
 {
-  char buffer [10];
-  TString prev_IHWP_State;
   QwHelicityPattern::ProcessOptions(options);
 
   fHalfWaveRevert      = options.GetValue<bool>("Half-wave-plate-revert");
@@ -57,47 +55,7 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
   else
     printf("NOTICE \n Half-wave-plate-OUT\n");
 
-  if (fAutoIHWP){
-    if (IHWP_State!=NULL){
-      fgets(buffer , 10 ,IHWP_State);//read the previous IHWP mode
-      //printf("NOTICE \n %s \n",buffer);
-      prev_IHWP_State=buffer;
-    }
-    else
-      prev_IHWP_State="";
-    if (!prev_IHWP_State.Contains("IN") && !prev_IHWP_State.Contains("OUT") ){//first time the file created
-      if (IHWP_State!=NULL)
-	fclose(IHWP_State); 
-      IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "w");
-      printf("NOTICE \n previous half-wave plate status not found. Writing current IHWP state %s \n",fHalfWavePlateStatus.Data());
-      if (IHWP_State!=NULL){
-	fprintf(IHWP_State,"%s",fHalfWavePlateStatus.Data());
-	fclose(IHWP_State);
-      }
-    }
-    else{
-      if (prev_IHWP_State!=fHalfWavePlateStatus){
-	printf("NOTICE \n Half-wave plate status has changed from %s to %s \n",prev_IHWP_State.Data(),fHalfWavePlateStatus.Data());
-	if (fHalfWaveIN){
-	  fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_IN);
-	  fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_IN);
-	} else{
-	  fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_OUT);
-	  fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_OUT);
-	}
-      }
-      printf("NOTICE \n previous half-wave plate status %s\n",prev_IHWP_State.Data());
-      if (IHWP_State!=NULL)
-	fclose(IHWP_State); 
-      IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "w");
-      printf("NOTICE \n previous half-wave plate status found. Updating new IHWP %s \n",fHalfWavePlateStatus.Data());
-      if (IHWP_State!=NULL){
-	fprintf(IHWP_State,"%s",fHalfWavePlateStatus.Data());   
-	fclose(IHWP_State);
-      }
- 
-    }  
-  }
+
  
 
 
@@ -130,6 +88,8 @@ void QwHelicityCorrelatedFeedback::ProcessOptions(QwOptions &options)
 
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
+  char buffer [10];
+  TString prev_IHWP_State;
 
   QwParameterFile mapstr(filename.Data());  //Open the file
   TString varname, varvalue;
@@ -271,6 +231,52 @@ void QwHelicityCorrelatedFeedback::LoadParameterFile(TString filename){
   fInitialCorrection=kFALSE;
   QwMessage<<"t_0 corrections for IN  +["<<fPITASetpointPOS_t0_IN<<"] -["<<fPITASetpointNEG_t0_IN<<"]"<<QwLog::endl;
   QwMessage<<"t_0 corrections for OUT +["<<fPITASetpointPOS_t0_OUT<<"] -["<<fPITASetpointNEG_t0_OUT<<"]"<<QwLog::endl;
+
+  if (fAutoIHWP){
+    if (IHWP_State!=NULL){
+      fgets(buffer , 10 ,IHWP_State);//read the previous IHWP mode
+      //printf("NOTICE \n %s \n",buffer);
+      prev_IHWP_State=buffer;
+    }
+    else
+      prev_IHWP_State="";
+    if (!prev_IHWP_State.Contains("IN") && !prev_IHWP_State.Contains("OUT") ){//first time the file created
+      if (IHWP_State!=NULL)
+	fclose(IHWP_State); 
+      IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "w");
+      printf("NOTICE \n previous half-wave plate status not found. Writing current IHWP state %s \n",fHalfWavePlateStatus.Data());
+      if (IHWP_State!=NULL){
+	fprintf(IHWP_State,"%s",fHalfWavePlateStatus.Data());
+	fclose(IHWP_State);
+      }
+    }
+    else{
+      if (prev_IHWP_State!=fHalfWavePlateStatus){
+	printf("NOTICE \n Half-wave plate status has changed from %s to %s \n",prev_IHWP_State.Data(),fHalfWavePlateStatus.Data());
+	if (fHalfWaveIN){
+	  if (fPITASetpointPOS_t0_IN && fPITASetpointNEG){
+	    fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_IN);
+	    fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_IN);
+	  }
+	} else{
+	  if (fPITASetpointPOS_t0_OUT && fPITASetpointNEG_t0_OUT){
+	    fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS_t0_OUT);
+	    fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG_t0_OUT);
+	  }
+	}
+      }
+      printf("NOTICE \n previous half-wave plate status %s\n",prev_IHWP_State.Data());
+      if (IHWP_State!=NULL)
+	fclose(IHWP_State); 
+      IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "w");
+      printf("NOTICE \n previous half-wave plate status found. Updating new IHWP %s \n",fHalfWavePlateStatus.Data());
+      if (IHWP_State!=NULL){
+	fprintf(IHWP_State,"%s",fHalfWavePlateStatus.Data());   
+	fclose(IHWP_State);
+      }
+ 
+    }  
+  }
 
 };
 
