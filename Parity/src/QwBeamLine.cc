@@ -468,6 +468,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   }
   ldebug=kFALSE;
 
+  
   return 0;
 };
 
@@ -1403,6 +1404,8 @@ Bool_t QwBeamLine::PublishInternalValues() const
       tmp_channel = GetCombinedBCM(device_name)->GetCharge();
     } else if (device_type == "comboenergy") {
       tmp_channel = GetEnergyCalculator(device_name)->GetEnergy();
+    } else if (device_type == "scaler") {
+      tmp_channel = GetScalerChannel(device_name)->GetScaler();  
     } else
       QwError << "QwBeamLine::PublishInternalValues() error "<< QwLog::endl;
     
@@ -1567,6 +1570,21 @@ QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name){
 };
 
 //*****************************************************************
+QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name){
+   if (! fHaloMonitor.empty()) {
+    
+    for (std::vector<QwHaloMonitor>::iterator halo = fHaloMonitor.begin(); halo != fHaloMonitor.end(); ++halo) {
+      if (halo->GetElementName() == name) {
+	return &(*halo);
+      }
+    }
+    
+
+  }
+  return 0;
+};
+
+//*****************************************************************
 const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
@@ -1598,6 +1616,12 @@ const QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name) const{
 const QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name) const{
   return const_cast<QwBeamLine*>(this)->GetEnergyCalculator(name);
 };
+
+//*****************************************************************
+const QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name)const {
+  return const_cast<QwBeamLine*>(this)->GetScalerChannel(name);
+};
+
 
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)

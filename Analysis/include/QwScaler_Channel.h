@@ -93,9 +93,18 @@ class VQwScaler_Channel: public VQwDataElement {
   void  ProcessEvent();
 
   Double_t GetValue() const { return fValue; };
+  Double_t GetValueM2() const     { return fValueM2; };
+  Double_t GetValueWidth() const  { 
+    if (fGoodEventCount>0){
+      return (fValueError*sqrt(fGoodEventCount)); 
+    }
+    return 0.0;
+  };
+  Double_t GetValueError() const  { return fValueError; };
 
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
+  VQwDataElement& operator=  (const VQwDataElement &data_value);
   VQwScaler_Channel& operator+= (const VQwScaler_Channel &value);
   VQwScaler_Channel& operator-= (const VQwScaler_Channel &value);
   void Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
@@ -160,9 +169,10 @@ class QwScaler_Channel: public VQwScaler_Channel
 
   public:
 
-    // Implement the templated methods
-    void  EncodeEventData(std::vector<UInt_t> &buffer);
-    Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0);
+  // Implement the templated methods
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
+  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0);
+
 
 };
 

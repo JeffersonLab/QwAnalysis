@@ -114,6 +114,8 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
+  VQwDataElement& operator=  (const VQwDataElement &value);
+
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator*= (const QwVQWK_Channel &value);

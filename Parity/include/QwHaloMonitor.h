@@ -76,6 +76,14 @@ class  QwHaloMonitor : public VQwDataElement{
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
+  VQwDataElement* GetScaler(){
+    return &fHalo_Counter;
+  };
+
+  const VQwDataElement* GetScaler() const{
+    return const_cast<QwHaloMonitor*>(this)->GetScaler();
+  };
+
   void  Copy(VQwDataElement *source);
 
   void  PrintValue() const;

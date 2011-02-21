@@ -108,13 +108,14 @@ class QwBeamLine : public VQwSubsystemParity{
   QwCombinedBCM* GetCombinedBCM(const TString name);
   QwCombinedBPM* GetCombinedBPM(const TString name);
   QwEnergyCalculator* GetEnergyCalculator(const TString name);
+  QwHaloMonitor* GetScalerChannel(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
   const QwBPMStripline* GetBPMStripline(const TString name) const;
   const QwBCM* GetBCM(const TString name) const;
   const QwCombinedBCM* GetCombinedBCM(const TString name) const;
   const QwCombinedBPM* GetCombinedBPM(const TString name) const;
   const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
-
+  const QwHaloMonitor* GetScalerChannel(const TString name) const;
 
 
 /////

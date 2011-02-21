@@ -129,9 +129,9 @@ void VQwScaler_Channel::ProcessEvent()
 void VQwScaler_Channel::PrintValue() const
 {
   //  printf("Name %s %23.4lf +/- %15.4lf", GetElementName().Data(), fValue, fValueError);
-  QwMessage << std::setw(23) << std::left << GetElementName() << ","
+  QwMessage << std::setw(5) << std::left << GetElementName() << " , "
 	    << std::setprecision(4)
-	    << std::setw(15) << std::right << GetValue() << " +/- " << fValueError
+	    << std::setw(5) << std::right << GetValue() << "  +/-  " << GetValueError() << " sigma "<<GetValueWidth()
 	    << QwLog::endl;
 }
 
@@ -222,17 +222,33 @@ void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
   }
 };
 
+VQwDataElement& VQwScaler_Channel::operator= (const  VQwDataElement &data_value)
+{
+  VQwScaler_Channel * value;
+  value=(VQwScaler_Channel *)&data_value;
+  if (!IsNameEmpty()) {
+    this->fValue  = value->fValue;
+    this->fValueError = value->fValueError;
+    this->fValueM2 = value->fValueM2;
+    this->fDeviceErrorCode = value->fDeviceErrorCode;//error code is updated.
+    this->fGoodEventCount = value->fGoodEventCount;
+  }
+  return *this;
+};
+
 
 VQwScaler_Channel& VQwScaler_Channel::operator= (const VQwScaler_Channel &value)
 {
   if (!IsNameEmpty()) {
     this->fValue  = value.fValue;
+    this->fValueError = value.fValueError;
     this->fValueM2 = value.fValueM2;
     this->fDeviceErrorCode = value.fDeviceErrorCode;//error code is updated.
     this->fGoodEventCount = value.fGoodEventCount;
   }
   return *this;
 };
+
 
 
 VQwScaler_Channel& VQwScaler_Channel::operator+= (const VQwScaler_Channel &value)
@@ -384,6 +400,7 @@ void VQwScaler_Channel::Copy(VQwDataElement *source)
          this->fElementName       = input->fElementName;
          this->fValue_Raw         = input->fValue_Raw;
          this->fValue             = input->fValue;
+	 this->fValueError        = input->fValueError;
          this->fValueM2           = input->fValueM2;
          this->fPedestal          = input->fPedestal;
          this->fCalibrationFactor = input->fCalibrationFactor;
