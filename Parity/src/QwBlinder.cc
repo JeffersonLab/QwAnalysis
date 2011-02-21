@@ -172,19 +172,35 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
   // Pressure:
   //     QW_PT3 in [20,35] && QW_PT4 in [20,35]
   if (fBlindingStrategy != kDisabled && !(fTargetPositionForced) ) {
+    TString  position  = epics.GetDataString("QWtgt_name");
     Double_t tgt_pos   = epics.GetDataValue("QWTGTPOS");
-    Double_t tgt_temperture = epics.GetDataValue("QWT_miA");
-    Double_t tgt_pressure   = epics.GetDataValue("QW_PT3");
-    if (tgt_pos > 350. 
+    Double_t tgt_temperture  = epics.GetDataValue("QWT_miB");
+    Double_t tgt_temperture2 = epics.GetDataValue("QWT_moA");
+    Double_t tgt_pressure    = epics.GetDataValue("QW_PT3");
+    Double_t tgt_pressure2   = epics.GetDataValue("QW_PT4");
+    if (position == "HYDROGEN-CELL"
+	&& tgt_pos > 350. 
 	&& (tgt_temperture>18.0 && tgt_temperture<22.0)
-	&& (tgt_pressure>20.0 && tgt_pressure < 35.0)){
+	&& (tgt_temperture2>18.0 && tgt_temperture2<22.0)
+	&& (tgt_pressure>20.0 && tgt_pressure < 35.0)
+	&& (tgt_pressure2>20.0 && tgt_pressure2 < 35.0)){
       SetTargetBlindability(QwBlinder::kBlindable);
-    } else if ((tgt_pos==-999999.0)
-	       || (tgt_temperture==0.0 || tgt_temperture==-999999.0)
-	       || (tgt_pressure==0.0 || tgt_pressure==-999999.0)){
-      SetTargetBlindability(QwBlinder::kIndeterminate);
-    } else {
+    } else if ((position == "HYDROGEN-CELL"
+		&& tgt_pos > 350.)
+	       && (tgt_temperture > 22.0)
+	       && (tgt_temperture2 > 22.0)
+	       && (tgt_pressure > 35.0)
+	       && (tgt_pressure2 > 35.0)){
+      //  Hydrogen cell is in, but temperature and pressures
+      //  are all higher than they should be for LH2.
       SetTargetBlindability(QwBlinder::kNotBlindable);
+    } else if ((position != "HYDROGEN-CELL"
+		&& tgt_pos < 350.)){
+      //  Name and position agree that this isn't the hydrogen
+      //  cell.
+      SetTargetBlindability(QwBlinder::kNotBlindable);
+    } else {
+      SetTargetBlindability(QwBlinder::kIndeterminate);
     }
   }
   // Check for the beam polarity information
