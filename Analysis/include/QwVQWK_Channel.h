@@ -192,8 +192,8 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t GetHardwareSum() const       { return fHardwareBlockSum; };
   Double_t GetHardwareSumM2() const     { return fHardwareBlockSumM2; };
   Double_t GetHardwareSumWidth() const  { 
-    if (fNumberOfSamples>0){
-      return (fHardwareBlockSumError*sqrt(fNumberOfSamples)); 
+    if (fGoodEventCount>0){
+      return (fHardwareBlockSumError*sqrt(fGoodEventCount)); 
     }
     return 0.0;
   };
