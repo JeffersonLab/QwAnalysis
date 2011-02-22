@@ -175,6 +175,7 @@ Bank=0x6103
    SCALER, 0, 19, halomonitor, sca_unser	
    SCALER, 0, 20, halomonitor, sca_bcm5
    SCALER, 0, 21, halomonitor, sca_bcm6
+   SCALER, 0, 22, halomonitor, sca_habcm
 
    SCALER, 0, 29, halomonitor, sca_31MHz
    SCALER, 0, 30, halomonitor, sca_4MHz
