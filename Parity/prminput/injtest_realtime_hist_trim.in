@@ -26,8 +26,8 @@ DefaultBufferSize=1000
 #BPM
 qwk_....X_hw			TH1F	1001	0	0	mps pos
 qwk_....Y_hw			TH1F	1001	0	0	mps pos
-qwk_.....X_hw		TH1F	1001	0	0	mps pos
-qwk_.....Y_hw		TH1F	1001	0	0	mps pos
+qwk_.....X_hw			TH1F	1001	0	0	mps pos
+qwk_.....Y_hw			TH1F	1001	0	0	mps pos
 
 diff_qwk_....X_hw		TH1F	1001	0	0	pos diff
 diff_qwk_....Y_hw		TH1F	1001	0	0	pos diff
