@@ -105,16 +105,16 @@ sample_size=464
     VQWK, 9, 1,  bpmstripline,  QWK_0L10XM
     VQWK, 9, 2,  bpmstripline,  QWK_0L10YP
     VQWK, 9, 3,  bpmstripline,  QWK_0L10YM
-    VQWK, 9, 4,  bpmstripline,  QWK_0R01XP
-    VQWK, 9, 5,  bpmstripline,  QWK_0R01XM
-    VQWK, 9, 6,  bpmstripline,  QWK_0R01YP
-    VQWK, 9, 7,  bpmstripline,  QWK_0R01YM
+    VQWK, 9, 4,  bpmstripline,  QWK_0R03XP
+    VQWK, 9, 5,  bpmstripline,  QWK_0R03XM
+    VQWK, 9, 6,  bpmstripline,  QWK_0R03YP
+    VQWK, 9, 7,  bpmstripline,  QWK_0R03YM
 
 !ADC10
-    VQWK, 10, 0,  bpmstripline,  QWK_0R02XP
-    VQWK, 10, 1,  bpmstripline,  QWK_0R02XM
-    VQWK, 10, 2,  bpmstripline,  QWK_0R02YP
-    VQWK, 10, 3,  bpmstripline,  QWK_0R02YM
+    VQWK, 10, 0,  bpmstripline,  QWK_0R04XP
+    VQWK, 10, 1,  bpmstripline,  QWK_0R04XM
+    VQWK, 10, 2,  bpmstripline,  QWK_0R04YP
+    VQWK, 10, 3,  bpmstripline,  QWK_0R04YM
     VQWK, 10, 4,  bpmstripline,  QWK_0R05XP
     VQWK, 10, 5,  bpmstripline,  QWK_0R05XM
     VQWK, 10, 6,  bpmstripline,  QWK_0R05YP
