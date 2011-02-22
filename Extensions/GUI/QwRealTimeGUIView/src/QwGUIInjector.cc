@@ -277,7 +277,7 @@ void QwGUIInjector::OnReceiveMessage(char *obj)
 
 
 
-
+/*This function plots the mean and rms of the bpm effective charge/four wire sum*/
 
 void QwGUIInjector::BPM_EffectiveCharge()
 {
@@ -287,7 +287,7 @@ void QwGUIInjector::BPM_EffectiveCharge()
   char histo[128];
   
   Int_t xcount = 0;
-  Int_t ycount = 0;
+  //Int_t ycount = 0;
   
   Double_t offset = 0.5;
   Double_t min_range = - offset;
@@ -328,6 +328,8 @@ void QwGUIInjector::BPM_EffectiveCharge()
 	 PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	 PosVariation[1] -> SetBinContent(xcount, histo1->GetRMS()*1e6);
 	 PosVariation[1] -> SetBinError  (xcount, 0);
+	 PosVariation[1] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+
 	 if(ldebug) SummaryHist(histo1);
 	 delete histo1; histo1= NULL;
        }
@@ -351,7 +353,7 @@ void QwGUIInjector::BPM_EffectiveCharge()
 	  
     }
     xcount = 0;
-    ycount = 0;
+    //ycount = 0;
     mc->Clear();
     mc->Divide(1,2);
 
@@ -380,7 +382,7 @@ void QwGUIInjector::BPM_EffectiveCharge()
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Int_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <2 ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -391,6 +393,9 @@ void QwGUIInjector::BPM_EffectiveCharge()
 
   return;
 }
+
+
+/* This function plots the bcm charge asymmetry and yield */
 
 void QwGUIInjector::PlotChargeAsym()
 {
@@ -413,8 +418,8 @@ void QwGUIInjector::PlotChargeAsym()
      if (GetHistoPause()==0){
        sprintf (histo, "asym_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
        histo1= (TH1F *)dMapFile->Get(histo);
-       // sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
-       // histo2= (TH1F *)dMapFile->Get(histo);
+       sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+       histo2= (TH1F *)dMapFile->Get(histo);
      }
     
     if (histo1!=NULL && histo2!=NULL ) {
@@ -457,6 +462,8 @@ void QwGUIInjector::PlotChargeAsym()
    return;
 }
 
+
+/* This function plots the position differences mean and rms  in X and Y.*/
 
 void QwGUIInjector::PositionDifferences(){
   TH1F *histo1=NULL;
@@ -606,7 +613,7 @@ void QwGUIInjector::PositionDifferences(){
 
 }
   
-  
+/* This function plots the mean bpm positions in X and Y */
 
 void QwGUIInjector::PlotBPMPositions(){
   TH1F *histo1=NULL;
