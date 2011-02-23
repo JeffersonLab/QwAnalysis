@@ -19,7 +19,7 @@ optimalPCN = 5.2
 
 
 
-#IA Slopes for 4 modes
+#Hall C IA Slopes for 4 modes
 
 #source POLOG entry 1543984 (M_Dalton) 
 
@@ -33,7 +33,13 @@ A2 = -4.586e-2
 DeltaA2 = 3.482e-4
 
 A3 = -4.553e-2
-DeltaA3 = 3.431e-4
+
+#Hall A IA Slopes for 4 modes
+
+HAA0 = -4.482e-2
+HAA1 = -4.525e-2
+HAA2 = -4.586e-2
+HAA3 = -4.553e-2
 
 #IA hardware counts set-point limits
 

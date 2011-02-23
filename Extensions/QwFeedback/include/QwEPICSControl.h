@@ -106,6 +106,42 @@ public:
  
   };
 
+  void Set_HallAIA(Int_t mode, Double_t &value){
+    Int_t status;
+    switch(mode){
+    case 0:
+      status = ca_put(DBR_DOUBLE, fIDHall_A_IA_A0, &value);
+      status = ca_pend_io(10);
+      status = ca_get(DBR_DOUBLE, fIDHall_A_IA_A0, &value);
+      status = ca_pend_io(10);
+      std::cout << "Hall A IA value A0: " << value << std::endl; 
+      break;
+    case 1:
+      status = ca_put(DBR_DOUBLE, fIDHall_A_IA_A1, &value);
+      status = ca_pend_io(10);
+      status = ca_get(DBR_DOUBLE, fIDHall_A_IA_A1, &value);
+      status = ca_pend_io(10);
+      std::cout << "Hall A IA value A1: " << value << std::endl;      
+      break;
+    case 2:
+      status = ca_put(DBR_DOUBLE, fIDHall_A_IA_A2, &value);
+      status = ca_pend_io(10);
+      status = ca_get(DBR_DOUBLE, fIDHall_A_IA_A2, &value);
+      status = ca_pend_io(10);
+      std::cout << "Hall A IA value A2: " << value << std::endl;
+      break;
+    case 3:
+      status = ca_put(DBR_DOUBLE, fIDHall_A_IA_A3, &value);
+      status = ca_pend_io(10);
+      status = ca_get(DBR_DOUBLE, fIDHall_A_IA_A3, &value);
+      status = ca_pend_io(10);
+      std::cout << "Hall A IA value A3: " << value << std::endl;
+      break;
+    }
+ 
+  };
+
+
   void Get_HallCIA(Int_t mode, Double_t &value){
     Int_t status;
     switch(mode){
@@ -128,6 +164,34 @@ public:
       status = ca_get(DBR_DOUBLE, fIDHall_C_IA_A3, &value);
       status = ca_pend_io(10);
       std::cout << "Hall C IA value A3: " << value << std::endl;
+      break;
+    }
+ 
+    
+  }
+
+  void Get_HallAIA(Int_t mode, Double_t &value){
+    Int_t status;
+    switch(mode){
+    case 0:
+      status = ca_get(DBR_DOUBLE, fIDHall_A_IA_A0, &value);
+      status = ca_pend_io(10);
+      std::cout << "Hall A IA value A0: " << value << std::endl; 
+      break;
+    case 1:
+      status = ca_get(DBR_DOUBLE, fIDHall_A_IA_A1, &value);
+      status = ca_pend_io(10);
+      std::cout << "Hall A IA value A1: " << value << std::endl;      
+      break;
+    case 2:
+      status = ca_get(DBR_DOUBLE, fIDHall_A_IA_A2, &value);
+      status = ca_pend_io(10);
+      std::cout << "Hall A IA value A2: " << value << std::endl;
+      break;
+    case 3:
+      status = ca_get(DBR_DOUBLE, fIDHall_A_IA_A3, &value);
+      status = ca_pend_io(10);
+      std::cout << "Hall A IA value A3: " << value << std::endl;
       break;
     }
  
@@ -311,6 +375,11 @@ public:
   chid fIDHall_C_IA_A1;//hallc IA A1
   chid fIDHall_C_IA_A2;//hallc IA A2
   chid fIDHall_C_IA_A3;//hallc IA A3
+
+  chid fIDHall_A_IA_A0;//hallA IA A0
+  chid fIDHall_A_IA_A1;//hallA IA A1
+  chid fIDHall_A_IA_A2;//hallA IA A2
+  chid fIDHall_A_IA_A3;//hallA IA A3
 
   
 

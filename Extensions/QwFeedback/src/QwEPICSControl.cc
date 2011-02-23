@@ -23,6 +23,17 @@ QwEPICSControl::QwEPICSControl()
   status = ca_search("C1068_QDAC14", &fIDHall_C_IA_A3);//IA Cell Setpoint  Hall C
   status = ca_pend_io(10);
 
+  //new Hall A IA variables
+  status = ca_search("C1068_QDAC03", &fIDHall_A_IA_A0);//IA Cell Setpoint  Hall A
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC04", &fIDHall_A_IA_A1);//IA Cell Setpoint  Hall A
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC05", &fIDHall_A_IA_A2);//IA Cell Setpoint  Hall A
+  status = ca_pend_io(10);
+  status = ca_search("C1068_QDAC06", &fIDHall_A_IA_A3);//IA Cell Setpoint  Hall A
+  status = ca_pend_io(10);
+
+
   //Feedback status EPICS variables
   status = ca_search("qw:ChargeFeedback", &fFeedbackStatus);//
   status = ca_pend_io(10);
@@ -34,6 +45,7 @@ QwEPICSControl::QwEPICSControl()
   status = ca_pend_io(10);
   
   ca_search("IGL1I00DI24_24M", &fHalfWavePlateStatus);
+  status = ca_pend_io(10);
 
 };
 
