@@ -3,7 +3,7 @@
 
 #include "TG3DLine.h"
 #include "TGaxis.h"
-
+#include "TStyle.h"
 
 
 
@@ -11,6 +11,7 @@ ClassImp(QwGUIInjector);
 
 enum QwGUIInjectorIndentificator {
   BA_POS_DIFF,
+  BA_POS_DIFF_RMS,
   BA_CHARGE,
   BA_POS_VAR,
   BA_HCSCALER,
@@ -51,10 +52,11 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
   dCnvLayout              = NULL;
   dSubLayout              = NULL;
   dBtnLayout              = NULL;
-  dButtonPos              = NULL;
+  dButtonPosDiffMean      = NULL;
   dButtonMeanPos          = NULL;
   dButtonCharge           = NULL;
   dButtonPosVariation     = NULL;
+  dButtonPosDiffRms       = NULL;
   dButtonInjectorSCALER   = NULL;
   dComboBoxInjectorBCM    = NULL;
   dComboBoxInjectorSCALER = NULL;
@@ -84,7 +86,8 @@ QwGUIInjector::~QwGUIInjector()
   if(dCnvLayout)            delete dCnvLayout;
   if(dSubLayout)            delete dSubLayout;
   if(dBtnLayout)            delete dBtnLayout;
-  if(dButtonPos)            delete dButtonPos;
+  if(dButtonPosDiffMean)    delete dButtonPosDiffMean;
+  if(dButtonPosDiffRms)     delete dButtonPosDiffRms;
   if(dButtonCharge)         delete dButtonCharge;
   if(dButtonPosVariation)   delete dButtonPosVariation;
   if(dButtonInjectorSCALER) delete dButtonInjectorSCALER;
@@ -190,9 +193,10 @@ void QwGUIInjector::MakeLayout()
   dInjectorSCALERFrame= new TGVerticalFrame(dControlsFrame,50,100);
 
  
-  dButtonPos = new TGTextButton(dControlsFrame, "&Beam Position Asymmetries", BA_POS_DIFF);
-  dButtonMeanPos = new TGTextButton(dControlsFrame, "&Mean Beam Positions", BA_MEAN_POS);
-  dButtonPosVariation = new TGTextButton(dControlsFrame, "BPM Eff_Charge Variation", BA_POS_VAR);
+  dButtonPosDiffMean = new TGTextButton(dControlsFrame, "Position Differences", BA_POS_DIFF);
+  // dButtonPosDiffRms = new TGTextButton(dControlsFrame, "Position Differences RMS", BA_POS_DIFF_RMS);
+  dButtonMeanPos = new TGTextButton(dControlsFrame, "Mean Beam Positions", BA_MEAN_POS);
+  dButtonPosVariation = new TGTextButton(dControlsFrame, "BPM Effective Charge", BA_POS_VAR);
   dButtonCharge = new TGTextButton(dInjectorBCMFrame, "&BCM Yield/Asymmetry", BA_CHARGE);
   dButtonCharge->SetEnabled(kFALSE);
   
@@ -202,7 +206,8 @@ void QwGUIInjector::MakeLayout()
 
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
 
-  dControlsFrame->AddFrame(dButtonPos,dBtnLayout );
+  dControlsFrame->AddFrame(dButtonPosDiffMean,dBtnLayout );
+  //  dControlsFrame->AddFrame(dButtonPosDiffRms,dBtnLayout );
   dControlsFrame->AddFrame(dButtonPosVariation, dBtnLayout);
   dControlsFrame->AddFrame(dButtonMeanPos, dBtnLayout);
   dControlsFrame->AddFrame(dInjectorBCMFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
@@ -226,7 +231,8 @@ void QwGUIInjector::MakeLayout()
 
   
 
-  dButtonPos -> Associate(this);
+  dButtonPosDiffMean -> Associate(this);
+  //  dButtonPosDiffRms -> Associate(this);
   dButtonMeanPos -> Associate(this);
   dButtonCharge -> Associate(this);
   dButtonPosVariation -> Associate(this);
@@ -271,34 +277,42 @@ void QwGUIInjector::OnReceiveMessage(char *obj)
 
 
 
+/*This function plots the mean and rms of the bpm effective charge/four wire sum*/
 
-
-void QwGUIInjector::PositionDifferences()
+void QwGUIInjector::BPM_EffectiveCharge()
 {
   TH1F *histo1=NULL;
   TH1F *histo2=NULL;
 
   char histo[128];
-  
   Int_t xcount = 0;
-  Int_t ycount = 0;
+  //Int_t ycount = 0;
   
   Double_t offset = 0.5;
   Double_t min_range = - offset;
-  Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPMSTRIPLINE).size();
+  //const Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPMSTRIPLINE).size();
+  const Int_t BPMSTriplinesCount = 6;
+
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
-  TString dummyname;
+  TString dummyname; 
+  TH1F* histo_buff[BPMSTriplinesCount];
 
   Bool_t ldebug = kFALSE;
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
  
+  gStyle->SetLabelSize(0.06,"x");
+  gStyle->SetLabelSize(0.06,"y");
+  gStyle->SetTitleSize(0.08,"y");
+  gStyle->SetTitleSize(0.08,"x");
+  gStyle->SetTitleOffset(1.0,"x");
+  gStyle->SetTitleOffset(0.5,"y");
 
    while (1){ 
-     PosVariation[0] = new TH1F("Eff_Asym", "Eff_Charge Asym Variation",BPMSTriplinesCount , min_range, max_range);
-     PosVariation[1] = new TH1F("Eff_Yield", "Eff_Charge Yield Variation",BPMSTriplinesCount , min_range, max_range); 
+     PosVariation[0] = new TH1F("Eff_Asym_yield", "Eff_Charge Asym Mean Variation",BPMSTriplinesCount , min_range, max_range);
+     PosVariation[1] = new TH1F("Eff_Asym_rms", "Eff_Charge Asym RMS Variation",BPMSTriplinesCount , min_range, max_range); 
      for(Int_t p = 0; p <BPMSTriplinesCount ; p++) {
        sprintf (histo, "asym_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
        histo1= (TH1F *)dMapFile->Get(histo); 
@@ -311,33 +325,37 @@ void QwGUIInjector::PositionDifferences()
 	 
 	 dummyname.Replace(0,9," ");
 	 dummyname.ReplaceAll("_EffectiveCharge_hw", "");
-	 PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	 PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
+	 PosVariation[0] -> SetBinContent(xcount, histo1->GetMean()*1e6);
+	 PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError()*1e6);
 	 PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	 PosVariation[1] -> SetBinContent(xcount, histo1->GetRMS()*1e6);
+	 PosVariation[1] -> SetBinError  (xcount, 0);
+	 PosVariation[1] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+
 	 if(ldebug) SummaryHist(histo1);
 	 delete histo1; histo1= NULL;
        }
       
-       sprintf (histo, "yield_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-       histo2= (TH1F *)dMapFile->Get(histo); 
-       if(histo2!=NULL){		
-	 ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	 if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
-	 histo2->SetName(histo);
-	 dummyname = histo2->GetName();
-	 dummyname.Replace(0,9," ");
-	 dummyname.ReplaceAll("_EffectiveCharge_hw", "");
-	 PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	 PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
-	 PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	 if(ldebug) SummaryHist(histo2);
-	 delete histo2; histo2= NULL; 
-       }
+//        sprintf (histo, "yield_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+//        histo2= (TH1F *)dMapFile->Get(histo); 
+//        if(histo2!=NULL){		
+// 	 ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+// 	 if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
+// 	 histo2->SetName(histo);
+// 	 dummyname = histo2->GetName();
+// 	 dummyname.Replace(0,9," ");
+// 	 dummyname.ReplaceAll("_EffectiveCharge_hw", "");
+// 	 PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
+// 	 PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
+// 	 PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+// 	 if(ldebug) SummaryHist(histo2);
+// 	 delete histo2; histo2= NULL; 
+//        }
       
 	  
     }
     xcount = 0;
-    ycount = 0;
+    //ycount = 0;
     mc->Clear();
     mc->Divide(1,2);
 
@@ -347,8 +365,8 @@ void QwGUIInjector::PositionDifferences()
     mc->cd(1);
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE); 
-    PosVariation[0] -> SetTitle("Eff_Charge Asymmetry");
-    PosVariation[0] -> GetYaxis() -> SetTitle("#No Units");
+    PosVariation[0] -> SetTitle("Eff_Charge Asymmetry Mean");
+    PosVariation[0] -> GetYaxis() -> SetTitle("ppm");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM ");
     PosVariation[0] -> Draw("E1");
     //gPad->Update();
@@ -358,15 +376,15 @@ void QwGUIInjector::PositionDifferences()
     mc->cd(2);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
-    PosVariation[1] -> SetTitle("Eff_Charge Yield");
-    PosVariation[1] -> GetYaxis()-> SetTitle ("Coulomb");
+    PosVariation[1] -> SetTitle("Eff_Charge Asymmetry RMS");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("ppm");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM ");
     PosVariation[1] -> Draw("E1");
 
     gPad->Update();
     mc->Modified();
     mc->Update();
-    for (Int_t p = 0; p <NUM_POS ; p++){
+    for (Int_t p = 0; p <2 ; p++){
       delete PosVariation[p];
     }
     gSystem->Sleep(100);
@@ -377,6 +395,9 @@ void QwGUIInjector::PositionDifferences()
 
   return;
 }
+
+
+/* This function plots the bcm charge asymmetry and yield */
 
 void QwGUIInjector::PlotChargeAsym()
 {
@@ -444,7 +465,10 @@ void QwGUIInjector::PlotChargeAsym()
 }
 
 
-void QwGUIInjector::PlotBPMAsym(){
+
+/* This function plots the position differences mean and rms  in X and Y.*/
+
+void QwGUIInjector::PositionDifferences(){
   TH1F *histo1=NULL;
   TH1F *histo2=NULL;
 
@@ -456,7 +480,9 @@ void QwGUIInjector::PlotBPMAsym(){
   Double_t offset = 0.5;
   Double_t min_range = - offset;
 
-  Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPMSTRIPLINE).size();
+  //  Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPMSTRIPLINE).size();
+  Int_t BPMSTriplinesCount = 6;
+
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
   
@@ -467,11 +493,21 @@ void QwGUIInjector::PlotBPMAsym(){
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
  
+  gStyle->SetLabelSize(0.1,"x");
+  gStyle->SetLabelSize(0.08,"y");
+  gStyle->SetTitleSize(0.08,"y");
+  gStyle->SetTitleSize(0.08,"x");
+  gStyle->SetTitleOffset(1.0,"x");
+  gStyle->SetTitleOffset(0.5,"y");
+    
 
    while (1){ 
-     PosVariation[0] = new TH1F("INDiffX", "X Difference Variation", BPMSTriplinesCount, min_range, max_range);
-     PosVariation[1] = new TH1F("INDiffY", "Y Difference variation", BPMSTriplinesCount, min_range, max_range); 
-    for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
+     PosVariation[0] = new TH1F("INDiffX", "X Difference Mean Variation", BPMSTriplinesCount, min_range, max_range);
+     PosVariation[1] = new TH1F("INDiffY", "Y Difference Mean variation", BPMSTriplinesCount, min_range, max_range); 
+     PosVariationRms[0] = new TH1F("INDiffRmsX", "X Difference Rms Variation", BPMSTriplinesCount, min_range, max_range);
+     PosVariationRms[1] = new TH1F("INDiffRmsY", "Y Difference Rms variation", BPMSTriplinesCount, min_range, max_range); 
+  
+   for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
       //sprintf (histo, "asym_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
       sprintf (histo, "diff_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() ); 
@@ -486,8 +522,11 @@ void QwGUIInjector::PlotBPMAsym(){
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+	PosVariationRms[0] -> SetBinContent(xcount, histo1->GetRMS());
+	PosVariationRms[0] -> SetBinError  (xcount, 0.0);
+	PosVariationRms[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
       }
@@ -503,8 +542,11 @@ void QwGUIInjector::PlotBPMAsym(){
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
+	PosVariationRms[1] -> SetBinContent(ycount, histo2->GetRMS());
+	PosVariationRms[1] -> SetBinError  (ycount, 0.0);
+	PosVariationRms[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
       }
@@ -514,35 +556,54 @@ void QwGUIInjector::PlotBPMAsym(){
     xcount = 0;
     ycount = 0;
     mc->Clear();
-    mc->Divide(1,2);
+    mc->Divide(1,4);
 
 
-
-    
     mc->cd(1);
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE);
-    PosVariation[0] -> SetTitle("X Difference Variation");
-    PosVariation[0] -> GetYaxis() -> SetTitle("mm");
-    PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
+    PosVariation[0] -> SetTitle("");
+    PosVariation[0] -> GetYaxis() -> SetTitle("BPM #DeltaX (mm)");
+    //PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
     PosVariation[0] -> Draw("E1");
     //gPad->Update();
     //mc->Modified();
     //mc->Update();
     
+
     mc->cd(2);
+    PosVariationRms[0] -> SetMarkerStyle(20);
+    PosVariationRms[0] -> SetStats(kFALSE);
+    PosVariationRms[0] -> SetTitle("");
+    PosVariationRms[0] -> GetYaxis() -> SetTitle("BPM #DeltaX RMS (mm)");
+    //PosVariationRms[0] -> GetXaxis() -> SetTitle("BPM X RMS");
+    PosVariationRms[0] -> Draw("E1");
+
+
+    mc->cd(3);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
-    PosVariation[1] -> SetTitle("Y Difference Variation");
-    PosVariation[1] -> GetYaxis()-> SetTitle ("mm");
-    PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
+    PosVariation[1] -> SetTitle("");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("BPM #DeltaY (mm)");
+    // PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
     PosVariation[1] -> Draw("E1");
     
+
+    mc->cd(4);
+    PosVariationRms[1] -> SetMarkerStyle(20);
+    PosVariationRms[1] -> SetStats(kFALSE);
+    PosVariationRms[1] -> SetTitle("");
+    PosVariationRms[1] -> GetYaxis() -> SetTitle("BPM #DeltaY RMS (mm)");
+    // PosVariationRms[1] -> GetXaxis() -> SetTitle("BPM Y RMS");
+    PosVariationRms[1] -> Draw("E1");
+
+
     gPad->Update();
     mc->Modified();
     mc->Update();
     for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
+      delete PosVariationRms[p];
     }
     gSystem->Sleep(100);
     if (gSystem->ProcessEvents()){
@@ -557,7 +618,7 @@ void QwGUIInjector::PlotBPMAsym(){
 
 }
   
-  
+/* This function plots the mean bpm positions in X and Y */
 
 void QwGUIInjector::PlotBPMPositions(){
   TH1F *histo1=NULL;
@@ -602,7 +663,7 @@ void QwGUIInjector::PlotBPMPositions(){
 	dummyname.Replace(0,4," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());
+	PosVariation[0] -> SetBinError  (xcount, histo1->GetMeanError());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	if(ldebug) SummaryHist(histo1);
 	delete histo1; histo1= NULL;
@@ -618,7 +679,7 @@ void QwGUIInjector::PlotBPMPositions(){
 	dummyname.Replace(0,4," ");
 	dummyname.ReplaceAll("_hw", "");
 	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());
+	PosVariation[1] -> SetBinError  (ycount, histo2->GetMeanError());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
 	if(ldebug) SummaryHist(histo2);
 	delete histo2; histo2= NULL; 
@@ -743,20 +804,19 @@ Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	    {
 	      switch(parm1)
 		{
-		case   BA_POS_DIFF:
-		  //printf("text button id %ld pressed\n", parm1);		  
-		  PlotBPMAsym();
+		case BA_POS_DIFF:
+		  //printf("text button id %ld pressed\n", parm1);
+		  PositionDifferences();
 		  break;
 		  
 		case BA_CHARGE:
-		  
 		  //printf("text button id %ld pressed\n", parm1);
 		  PlotChargeAsym();//PlotPositionDiff(); 
 		  break;
 
 		case BA_POS_VAR:
-		  printf("PlotPosData() button id %ld pressed\n", parm1);
-		  PositionDifferences();
+		  //printf("PlotPosData() button id %ld pressed\n", parm1);
+		  BPM_EffectiveCharge();
 		  break;
 		case BA_HCSCALER:
 		  //printf("PlotPosData() button id %ld pressed\n", parm1);

@@ -354,12 +354,14 @@ TString get_query(TString detector, TString measurement, TString target, TString
   if(detector_type == "LUMI")
     datatable = "lumi_data_view";
 
-  TString output = "slow_controls_settings.slow_helicity_plate, target_position, sum("+datatable+".value/(POWER("+datatable+".error,2)*"+datatable+".n))/sum(1/(POWER("+datatable+".error,2)*"+datatable+".n)), 1/SUM(1/(POWER("+datatable+".error,2)*"+datatable+".n))";
+  //  TString output = "slow_controls_settings.slow_helicity_plate, target_position, sum("+datatable+".value/(POWER("+datatable+".error,2)*"+datatable+".n))/sum(1/(POWER("+datatable+".error,2)*"+datatable+".n)), 1/SUM(1/(POWER("+datatable+".error,2)*"+datatable+".n))";
+ TString output = "slow_controls_settings.slow_helicity_plate, target_position, sum("+datatable+".value/(POWER("+datatable+".error,2)))/sum(1/(POWER("+datatable+".error,2))), SQRT(1/SUM(1/(POWER("+datatable+".error,2))))";
 
  
   //TString good_for_cut = "run.run_type ='parity' AND md_data_view.good_for_id = NULL || ((md_data_view.good_for_id = 'parity' || md_data_view.good_for_id = 'production') && md_data_view.good_for_id != 'commissioning'))";
 
-  //TString run_quality_cut = "(md_data_view.run_quality_id = NULL || md_data_view.run_quality_id != 'bad')";
+ //  TString run_quality_cut = "(md_data_view.run_quality_id = NULL || md_data_view.run_quality_id != 'bad')";
+  TString run_quality_cut = "( "+datatable+".run_quality_id != 'bad')";
 
 
   TString query =" SELECT " + output
@@ -373,7 +375,11 @@ TString get_query(TString detector, TString measurement, TString target, TString
     +datatable+".subblock = 0 AND "
     +datatable+".measurement_type = '"+measurement+"' AND "
     //  + good_for_cut+" AND "+run_quality_cut+ " AND "
-    + " error !=0  AND "+datatable+".slug != 0 AND"
+    +run_quality_cut+ " AND "
+    //    + " error !=0  AND "+datatable+".slug != 0 AND"
+       + " error !=0  AND ("+datatable+".slug >= 100001 AND "+datatable+".slug <= 100006) AND"
+    //+ " error !=0  AND "+datatable+".slug = 1000041 AND"
+    //    + " error !=0  AND run.run_number=9770 AND"
     + " slow_controls_settings.slow_helicity_plate = '"+ihwp+"'"
     + " AND target_position = '"+target+"';"; 
 

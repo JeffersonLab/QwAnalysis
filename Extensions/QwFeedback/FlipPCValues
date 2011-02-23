@@ -10,8 +10,9 @@
 
 #PITA starting setpoints when IHWP is flipped from the last OUT-IN
 # flip done on 02-02-2011 at ~3.00pm- Rakitha 02/03/2011
-PC_pos_t0_IN=43600
-PC_neg_t0_IN=40600
+# Updates on 02-20-2011 based on PC values when A-q ~ 0
+PC_pos_t0_IN=43640
+PC_neg_t0_IN=40560
 # Updates on 02-20-2011 based on PC values when A-q ~ 0
 PC_pos_t0_OUT=42990
 PC_neg_t0_OUT=41210

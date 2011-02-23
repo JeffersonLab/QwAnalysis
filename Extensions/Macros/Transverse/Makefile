@@ -19,7 +19,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := md_correlation_plots TransverseFit slug_average
+EXE := md_correlation_plots TransverseFit slug_average long_slug_average reg_long_slug_average
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -46,6 +46,12 @@ TransverseFit : TransverseFit.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 slug_average : slug_average_fits.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+long_slug_average : long_slug_average_fits.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+reg_long_slug_average : reg_long_slug_average_fits.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 %: %.C

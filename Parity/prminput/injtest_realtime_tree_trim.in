@@ -39,11 +39,10 @@
 
 CodaEventNumber
 
-#####################
+#########
 ## BPMS
-#####################
-qwk_bpm0i02X
-qwk_bpm0i02Y
+qwk_0i02X
+qwk_0i02Y
 qwk_qpdX
 qwk_qpdY
 qwk_qpdRelX
@@ -62,25 +61,12 @@ qwk_linap7
 qwk_linap8
 
 
-#####################
+#########
 ## BCMS
-#####################
 qwk_bcm0l02
 
-#####################
+##########
 ## Scalers
-#####################
-#sca_bcm1
-#sca_bcm2
-#sca_bcm17
-#sca_unser
-#sca_bcm5
-#sca_bcm6
-#sca_31mhz
-#sca_4mhz
-#sca_31mhzreturn
-
-#pattern_phase
 pattern_number
 mps_counter
 pat_counter
@@ -96,9 +82,8 @@ cleandata
 scandata1
 scandata2
 
-##########################
+#########
 ## bpms
-##########################
 yield_qwk_qpdX
 yield_qwk_qpdY
 diff_qwk_qpdX
@@ -113,15 +98,14 @@ diff_qwk_linap7
 diff_qwk_linap8
 
 
-yield_qwk_bpm0i02X
-yield_qwk_bpm0i02Y
+yield_qwk_0i02X
+yield_qwk_0i02Y
 
-diff_qwk_bpm0i02X
-diff_qwk_bpm0i02Y
+diff_qwk_0i02X
+diff_qwk_0i02Y
 
-##########################
+#########
 ##bcms
-##########################
 yield_qwk_bcm0l02
 
 asym_qwk_bcm0l02

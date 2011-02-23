@@ -55,7 +55,7 @@ SCA_Bank=0x0403
 !
 !The following channel map is defined for using current mode electronics
 !
-!ROC=0
+ROC=0
 !
 !SCA_Bank=0x6103
 !

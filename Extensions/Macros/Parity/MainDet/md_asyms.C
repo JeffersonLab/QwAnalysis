@@ -50,7 +50,7 @@ mc_md->Divide(4,4);
       mdHist[p] = new TH1F(Form("%i_h_%s",runNum,md[p]),"",100,0,0);
       mc_md->cd(p+1);
       mdHist[p]->SetDirectory(0);     
-      hel_tree->Draw(Form("asym_%s>>run%i_h_%s",md[p],runNum,md[p]),Form("%s && %s",cut1,cut2));
+      hel_tree->Draw(Form("asym_%s>>run%i_h_%s",md[p],runNum,md[p]),Form("asym_%s.Device_Error_Code==0",md[p]));
       TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("run%i_h_%s",runNum,md[p]));
       std::cout<<htemp->GetMean()<<" "<<htemp->GetRMS()<<std::endl;
 

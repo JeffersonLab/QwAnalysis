@@ -89,17 +89,17 @@ std::ofstream Myfile;
 Char_t textfile[100];
 
 
-Double_t p0[8];
-Double_t ep0[8];
-Double_t p1[8];
+Double_t p0[8]={0};
+Double_t ep0[8]={0};
+Double_t p1[8]={0};
 Int_t i = -1;
-Double_t ep1[8];
-Double_t value1[8];
-Double_t err1[8];
-Double_t value2[8];
-Double_t err2[8];
-Double_t value3[8];
-Double_t err3[8];
+Double_t ep1[8]={0};
+Double_t value1[8]={0};
+Double_t err1[8]={0};
+Double_t value2[8]={0};
+Double_t err2[8]={0};
+Double_t value3[8]={0};
+Double_t err3[8]={0};
 
 TString xunit, yunit, slopeunit;
 void get_octant_data(TTree *heltree, Int_t run_number, TString devicelist[], Int_t opt,Double_t value[], Double_t error[]);

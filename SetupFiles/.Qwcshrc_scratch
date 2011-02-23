@@ -48,3 +48,9 @@ setenv QW_FIELDMAP   ${QWSCRATCH}/calib
 setenv QW_SEARCHTREE ${QWSCRATCH}/tree
 setenv QW_LOOKUP     ${QWSCRATCH}/calib
 
+#setenv QW_ROOTFILES  /net/cdaq/cdaql5data/qweak/rootfiles
+
+#echo "QWANALYSIS   is defined : " $QWANALYSIS
+echo "QWSCRATCH    is defined : " $QWSCRATCH
+echo "QW_ROOTFILES is defined : " $QW_ROOTFILES
+
