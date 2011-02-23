@@ -8,14 +8,12 @@
 # and then run ./FlipPCValues
 # EPICS names PC [+] C1068_QDAC01PC [-] C1068_QDAC02
 
-#PITA starting setpoints when IHWP is flipped from the last OUT-IN
-# flip done on 02-02-2011 at ~3.00pm- Rakitha 02/03/2011
-PC_pos_t0_IN=43600
-PC_neg_t0_IN=40600
-# Updates on 02-20-2011 based on PC values when A-q ~ 0
-PC_pos_t0_OUT=42990
-PC_neg_t0_OUT=41210
-
+#PITA starting setpoints when IHWP is flipped from the IN-OUT in 8:18am 02/23/2011
+# Runs checked OUT - 10207 IN - 10198 - Rakitha 02/23/2011
+PC_pos_t0_IN  = 43570
+PC_neg_t0_IN  = 40650
+PC_pos_t0_OUT = 42970
+PC_neg_t0_OUT = 41230
 PC_pos_current="`caget -t C1068_QDAC01`"
 PC_neg_current="`caget -t C1068_QDAC02`"
 

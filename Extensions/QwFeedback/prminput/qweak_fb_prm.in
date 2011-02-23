@@ -72,12 +72,12 @@ PITASLOPE_IN = +0.8588
 
 ###  PITANEG = 200
 
-#PITA starting setpoints when IHWP is flipped from the last OUT-IN
-# flip done on 02-02-2011 at ~3.00pm- Rakitha 02/03/2011
-PC_pos_t0_IN  = 43600
-PC_neg_t0_IN  = 40600
-PC_pos_t0_OUT = 42990
-PC_neg_t0_OUT = 41210
+#PITA starting setpoints when IHWP is flipped from the IN-OUT in 8:18am 02/23/2011
+# Runs checked OUT - 10207 IN - 10198 - Rakitha 02/23/2011
+PC_pos_t0_IN  = 43570
+PC_neg_t0_IN  = 40650
+PC_pos_t0_OUT = 42970
+PC_neg_t0_OUT = 41230
 
 
 #PC hardware count set-point limits
