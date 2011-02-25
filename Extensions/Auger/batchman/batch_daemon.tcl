@@ -407,13 +407,12 @@ proc get_filelist4run {i} {
 	global runno istatus filecount filelist us_file_list runtime starttime 
 	global endtime filespresent preabortstate jobid  selected 
 	global current_state stagedcount
-	global  iteration_delay  status_file  param_file
-	global  raw_file_source  staged_files_dir  batchscript
-	global  raw_file_prefix  raw_file_suffix  logfiledir
-	global  output_dir  tempfile_dir
+	global iteration_delay  status_file  param_file
+	global raw_file_source  staged_files_dir  batchscript
+	global raw_file_prefix  raw_file_suffix  logfiledir
+	global output_dir  tempfile_dir
 	global thistime  nonewstarts
-    # Jianglai 03-24-2003. Added the default replay flag
-    global replay_flags
+	global replay_flags  cache_flags
 
     #	set filenm "$raw_file_prefix$runno($i)$raw_file_suffix*"
     # Jianglai 03-23-2003. Use wild card "*runno*" for filenames on the silo
@@ -830,14 +829,12 @@ proc do_new {i} {
 	global runno istatus filecount filelist us_file_list runtime starttime 
 	global endtime filespresent preabortstate jobid  selected 
 	global current_state stagedcount
-	global  iteration_delay  status_file  param_file
-	global  raw_file_source  staged_files_dir  batchscript
-	global  raw_file_prefix  raw_file_suffix  logfiledir
-	global  output_dir  tempfile_dir
+	global iteration_delay  status_file  param_file
+	global raw_file_source  staged_files_dir  batchscript
+	global raw_file_prefix  raw_file_suffix  logfiledir
+	global output_dir  tempfile_dir
 	global thistime  nonewstarts
-
-    # Jianglai 03-24-2003. Added the default replay flag
-    global replay_flags
+	global replay_flags  cache_flags
 
 	get_filelist4run $i
 
@@ -1019,15 +1016,14 @@ proc do_staged {i} {
 	global runno istatus filecount filelist us_file_list runtime starttime 
 	global endtime filespresent preabortstate jobid  selected 
 	global current_state stagedcount
-	global  iteration_delay  status_file  param_file
-	global  raw_file_source  staged_files_dir  batchscript
-	global  raw_file_prefix  raw_file_suffix  logfiledir
-	global  output_dir  tempfile_dir
+	global iteration_delay  status_file  param_file
+	global raw_file_source  staged_files_dir  batchscript
+	global raw_file_prefix  raw_file_suffix  logfiledir
+	global output_dir  tempfile_dir
 	global thistime rundir  batch_home_dir
-	global  max_items_per_iteration  submits_this_iteration
-	global  experiment_label  nonewstarts
-    # Jianglai 03-24-2003. Added the default replay flag
-    global replay_flags
+	global max_items_per_iteration  submits_this_iteration
+	global experiment_label  nonewstarts
+	global replay_flags  cache_flags
 
     puts " in Do Staged\n";
 
@@ -1087,13 +1083,13 @@ proc do_staged {i} {
 
 	    #Jianglai's modification
 	    set myexec "$batch_home_dir/qwbatchsub.pl"
-	    set flags "-O \"$replay_flags\""
+	    set my_replay_flags "-O \"$replay_flags\""
+	    set my_cache_flags "-C \"$cache_flags\""
 	    set myerrorlog "$batch_home_dir/batch_daemon.log"
-	    # remove the "&". need to finish the submission before
-	    # moving on
-	    puts "$myexec -r $runno($i) $flags\n";
-	    set ierr [catch {exec $myexec -r $runno($i) $flags >> $myerrorlog} answer]
-	    puts "Done with $myexec -r $runno($i) $flags\n";
+	    # remove the "&". need to finish the submission before moving on
+	    puts "$myexec -r $runno($i) $my_replay_flags $my_cache_flags\n";
+	    set ierr [catch {exec $myexec -r $runno($i) $my_replay_flags $my_cache_flags >> $myerrorlog} answer]
+	    puts "Done with $myexec -r $runno($i) $my_replay_flags $my_cache_flags\n";
 		set istatus($i) "submitted"
 		set starttime($i) $thistime
 	    # Jianglai 05-25-2003. get the jobid for $i

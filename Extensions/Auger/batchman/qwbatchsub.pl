@@ -30,11 +30,11 @@ use strict 'vars';
 use vars qw($original_cwd $executable $script_dir $mss_dir
 	    $analysis_directory $real_path_to_analysis $scratch_directory
 	    $Default_Analysis_Options $option_list
-	    $opt_h $opt_E $opt_n $opt_r $opt_O $opt_F $opt_Q $opt_M
+	    $opt_h $opt_E $opt_n $opt_r $opt_O $opt_F $opt_Q $opt_M $opt_C $opt_R
 	    $batch_queue
 	    @run_list @discards $first_run $last_run
 	    @good_runs $goodrunfile 
-	    $runnumber @input_files $command_file
+	    $runnumber $input_file @input_files $command_file
 	    );
 
 
@@ -83,7 +83,7 @@ crashout("The QW_TMP directory, $ENV{QW_TMP}, does not exist.  Exiting")
 ###  Get the option flags.
 # added -F option to check the runs against good runs in the input file
 # jianglai 03-02-2003
-getopts('hnr:E:M:O:F:Q:');
+getopts('hnr:E:M:O:F:Q:C:R:');
 
 $Default_Analysis_Options = "";
 
@@ -124,6 +124,13 @@ if ($opt_Q ne ""){
     $batch_queue = $opt_Q;
 } else {
     $batch_queue = "one_pass";
+}
+
+my $rootfile_stem = undef;
+if ($opt_R ne ""){
+    $rootfile_stem = $opt_R;
+} else {
+    $rootfile_stem = "Qweak_";
 }
 
 if ($opt_r eq ""){
@@ -240,14 +247,7 @@ foreach $runnumber (@good_runs){
         # first test whether outputstem is in a option or not
 	my @flags = split /\s+/, $option_list;
 	my $where = 0;
-	my $rootfile_stem=undef;
-	foreach (@flags){
-	    $where++;
-	    if(/--rootfile-stem/) {# if "stem" is specified
-		$rootfile_stem = $flags[$where];
-		last;
-	    }
-	}
+
         # if stem is not defined. rename all files associated with this name
 	if(!defined($rootfile_stem)){
 	    foreach $fileout (glob "$ENV{QW_ROOTFILES}/*$runnumber.root"){
@@ -277,14 +277,13 @@ foreach $runnumber (@good_runs){
 	    }
 	}	
         
-	# now compose the command file
+	# Old job file format
 	$command_file = "$scratch_directory/work/$runnumber.command";
-
-	if (-f "$command_file") { #remove the command file if existed
-	    unlink $command_file or die "Can not remove the old $command_file: $!";;
+	# remove the command file if it exists
+	if (-f "$command_file") {
+	    unlink $command_file or die "Can not remove the old $command_file: $!";
 	}
 	open(JOBFILE, ">$command_file") or die "$command_file: $!";
-
 	print JOBFILE  "PROJECT: qweak\n";
 	print JOBFILE  "JOBNAME: Qw_$runnumber\n";
 	print JOBFILE  "COMMAND: $script_dir/qwbatch.csh\n";
@@ -321,8 +320,48 @@ foreach $runnumber (@good_runs){
 
 	print JOBFILE  "MAIL: $ENV{USER}\@jlab.org\n";
 	print JOBFILE  "OS: linux64\n";
-	
 	close JOBFILE;
+
+
+	# New job file format
+	$command_file = "$scratch_directory/work/$runnumber.xml";
+	# remove the command file if it exists
+	if (-f "$command_file") {
+	    unlink $command_file or die "Can not remove the old $command_file: $!";
+	}
+	open(JOBFILE, ">$command_file") or die "$command_file: $!";
+	print JOBFILE
+	    "<Request>\n",
+	    " <Email email=\"$ENV{USER}\@jlab.org\" request=\"false\" job=\"true\"/>\n",
+	    " <Project name=\"qweak\"/>\n",
+	    " <Track name=\"$batch_queue\"/>\n",
+	    " <Name name=\"Qw_$runnumber\"/>\n";
+	my $diskspace=($#input_files+1)*1600+3000;
+	my $memory=2048;
+	print JOBFILE
+ 	    " <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
+	    " <Memory space=\"$memory\" unit=\"MB\"/>\n";
+        print JOBFILE
+	    " <Command><![CDATA[\n",
+	    "  $script_dir/qwbatch.csh $analysis_directory $scratch_directory $runnumber $executable $option_list\n",
+	    "]]></Command>\n";
+	print JOBFILE " <Job>\n";
+	foreach $input_file (@input_files) {
+	    print JOBFILE "  <Input src=\"mss:$input_file\" dest=\"",basename($input_file),"\"/>\n";
+	}
+	foreach $input_file (@input_files) {
+	    my $segment = undef;
+	    if ($input_file =~ m/.*\.([0-9]+)$/) {
+		$segment = sprintf "%03d",$1;
+	    }
+	    my $root_file = "$rootfile_stem.$runnumber.$segment.root";
+	    print JOBFILE "  <Output src=\"$ENV{QW_ROOTFILES}/$root_file\" dest=\"mss:$mss_dir/rootfiles/$root_file\"/>\n";
+	}
+	print JOBFILE "  <Output src=\"run_$runnumber.log\" dest=\"$ENV{QWSCRATCH}/work/run_$runnumber.log\"/>\n";
+	print JOBFILE " </Job>\n";
+	print JOBFILE "</Request>\n";
+	close JOBFILE;
+
 
 	if ($opt_n){
 	    print "Ready to submit $command_file\n";
