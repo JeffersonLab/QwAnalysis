@@ -413,7 +413,7 @@ void QwGUIHallCBeamline::FastRaster()
 void QwGUIHallCBeamline::PositionDifferences()
 {
 
-  Bool_t ldebug = kFALSE;
+  Bool_t ldebug = kTRUE;
 
   gStyle->SetLabelSize(0.05,"x");
   gStyle->SetLabelSize(0.06,"y");
@@ -432,9 +432,9 @@ void QwGUIHallCBeamline::PositionDifferences()
 
 
   // check to see if the TH1s used for the calculation are empty.
-  for(Short_t i=0;i<2;i++) {
-    if(PosDiffVar[i]) delete PosDiffVar[i]; PosDiffVar[i] = NULL;
-  }
+//   for(Short_t i=0;i<2;i++) {
+//     if(PosDiffVar[i]) delete PosDiffVar[i]; PosDiffVar[i] = NULL;
+//   }
 
  
   mc = dCanvas->GetCanvas();
@@ -452,49 +452,48 @@ void QwGUIHallCBeamline::PositionDifferences()
 
   
   for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
-    sprintf (histo, "diff_qwk_%sX.hw_sum", HallC_BPMS[p]);
+    sprintf (histo, "diff_qwk_%sX_hw", HallC_BPMS[p]);
+    obj = dROOTCont->ReadData(Form("hel_histo/diff_qwk_%sX_hw",HallC_BPMS[p]));
 
-    if( ((TTree*) obj)->FindLeaf(histo) ){
+    if(obj){
       x_devices.push_back(p);
       if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-      obj -> Draw(histo);
-      dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-      dummyhist -> SetName(histo);
-      x_mean.push_back(dummyhist->GetMean()*1000);
-      x_err.push_back(dummyhist->GetMeanError()*1000);
+      dummyhist = (TH1D*)obj;
+      x_mean.push_back(dummyhist->GetMean()*1e6);
+      x_err.push_back(dummyhist->GetMeanError()*1e6);
 
       SummaryHist(dummyhist);
       delete dummyhist; dummyhist= NULL;
     }
-    
+    obj = dROOTCont->ReadData(Form("hel_histo/diff_qwk_%sY_hw",HallC_BPMS[p]));
 
-    sprintf (histo, "diff_qwk_%sY.hw_sum", HallC_BPMS[p]);
-    if( ((TTree*) obj)->FindLeaf(histo) ){   
+    sprintf (histo, "diff_qwk_%sY_hw", HallC_BPMS[p]);
+    if(obj){   
       y_devices.push_back(p);
       if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-      obj -> Draw(histo);
-      dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-      dummyhist -> SetName(histo);
-      y_mean.push_back(dummyhist->GetMean()*1000);
-      y_err.push_back(dummyhist->GetMeanError()*1000);
+      dummyhist = (TH1D*)obj;
+      y_mean.push_back(dummyhist->GetMean()*1e6);
+      y_err.push_back(dummyhist->GetMeanError()*1e6);
 
       SummaryHist(dummyhist);
       delete dummyhist; dummyhist= NULL;
     }
   }
 
+  delete obj;
+
   PosDiffVar[0] = new TH1D("dxvar", "#Delta X Variation", x_devices.size(), 0.5, x_devices.size()+0.5);
   PosDiffVar[1] = new TH1D("dyvar", "#Delta Y variation", y_devices.size(), 0.5, y_devices.size()+0.5);
   
   for(size_t p = 0; p <x_devices.size() ; p++) {
-    PosDiffVar[0] -> SetBinContent(p+1, x_mean[p]); // mm = 1000um
+    PosDiffVar[0] -> SetBinContent(p+1, x_mean[p]); // mm = 1e6nm
     PosDiffVar[0] -> SetBinError  (p+1, x_err[p]);
     PosDiffVar[0] -> GetXaxis()->SetBinLabel(p+1,HallC_BPMS[x_devices[p]]);
     PosDiffVar[0] -> SetStats(0);
   }
   
   for(size_t p = 0; p <y_devices.size() ; p++) {
-    PosDiffVar[1] -> SetBinContent(p+1, y_mean[p]); //mm -> um
+    PosDiffVar[1] -> SetBinContent(p+1, y_mean[p]); //mm -> nm
     PosDiffVar[1] -> SetBinError  (p+1, y_err[p]);
     PosDiffVar[1] -> GetXaxis()->SetBinLabel(p+1, HallC_BPMS[y_devices[p]]);
     PosDiffVar[1] -> SetStats(0);
@@ -509,7 +508,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     PosDiffVar[0] -> SetMarkerColor(2);
     PosDiffVar[0] -> SetTitle("#Delta X Variation");
     PosDiffVar[0] -> GetYaxis()->CenterTitle();
-    PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (#mum)");
+    PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (nm)");
     PosDiffVar[0] -> Draw("E1");
     gPad->Update();
   
@@ -520,7 +519,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     PosDiffVar[1] -> SetMarkerColor(4);
     PosDiffVar[1] -> GetYaxis()->CenterTitle();
     PosDiffVar[1] -> SetTitle("#Delta Y Variation");
-    PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (#mum)");
+    PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (nm)");
     PosDiffVar[1] -> Draw("E1");
     gPad->Update();
     
