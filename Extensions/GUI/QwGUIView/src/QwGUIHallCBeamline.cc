@@ -480,8 +480,6 @@ void QwGUIHallCBeamline::PositionDifferences()
     }
   }
 
-  delete obj;
-
   PosDiffVar[0] = new TH1D("dxvar", "#Delta X Variation", x_devices.size(), 0.5, x_devices.size()+0.5);
   PosDiffVar[1] = new TH1D("dyvar", "#Delta Y variation", y_devices.size(), 0.5, y_devices.size()+0.5);
   
