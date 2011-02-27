@@ -182,11 +182,11 @@ void LinRegBevPeb::printSummaryP(){
 
   size_t dim=par_nP;
   if(fGoodEventNumber>2) { // print full matrix
-    cout << Form("\n     name:                                       ");
+    cout << Form("\n  name:                                       ");
     for (size_t i = 1; i <dim; i++) {
-      cout << Form(" %10sP%d "," ",i);
+      cout << Form(" %7sP%d "," ",i);
     }
-    cout << Form("\n                  mean     sig(distrib)          nSig(mean)   corelation-matrix ....\n");
+    cout << Form("\n               mean     sig(distrib)   nSig(mean)   corelation-matrix ....\n");
     for (size_t i = 0; i <dim; i++) {
       double meanI,sigI;
       assert( getMeanP(i,meanI)==0);

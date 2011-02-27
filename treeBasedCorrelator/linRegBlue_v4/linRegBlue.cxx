@@ -20,16 +20,17 @@ using namespace std;
 
 #include "JbLeafTransform.h"
 #include "JbCorrelator.h"
+#include "JbBlueTree.h"
 // use only double
 
 int parMinEve=5000;
 
 int main(int argc, char *argv[]) {
-  int mxEve=500, skipEve=0;
+  int mxEve=500;
   int runSeg=0;
-  const char * inpPath="/home/cdaq/qweak/QwScratch/rootfiles/QwPass1_"; //cdaq:Pass1
+  //const char * inpPath="/home/cdaq/qweak/QwScratch/rootfiles/QwPass1_"; //cdaq:Pass1
   //const char * inpPath="/group/qweak/QwAnalysis/common/QwScratch/rootfiles/QwPass1.1_";//*QwPass1.1* from Paul
-  //const char * inpPath="/cache/mss/hallc/qweak/rootfiles/pass0/QwPass1_";// from the silo
+  const char * inpPath="/cache/mss/hallc/qweak/rootfiles/pass0/QwPass1_";// from the silo
 
   const char * outPath="./out/";
   const char * configFName="blueReg.conf";
@@ -48,8 +49,11 @@ int main(int argc, char *argv[]) {
 
   TString runName=Form("%d.%03d",runNo,runSeg);
 
-  printf("Selected run=%s  mxEve=%d  skipEve=%d config=%s  slope=%s\n", runName.Data(),mxEve,skipEve,configFName,slopeFName);
-
+  printf("Selected run=%s  mxEve=%d   config=%s  slope=%s\n", runName.Data(),mxEve,configFName,slopeFName);
+  TString treeInpFile=Form("%s%s.root",inpPath,runName.Data());
+  TString xxx=treeInpFile;
+  char *xx2=strstr(xxx,"/QwPass")+1;
+  TString treeOutName=Form("%sreg_%s",outPath,xx2);
 
   //...... access to inpute leafs
   JbLeafTransform eve("filter"); // filter content of run, unpacks event
@@ -60,6 +64,9 @@ int main(int argc, char *argv[]) {
   JbCorrelator *corB=0;
   double *YvecNew=0;
   TMatrixD *alphasM=0; // indicator that coef's exist
+  JbBlueTree *blueTree=0;
+  TFile*  mBlueFile=0;  
+
   if( slopeFName) {
     TString corFileName=Form("%s%s",outPath,slopeFName);
     TFile*  corFile=new TFile(corFileName);
@@ -69,6 +76,7 @@ int main(int argc, char *argv[]) {
     }
     //    alphasM=(TMatrixD *) corFile->Get("IV_covariance");assert(alphasM);
     //  printf("opened %s,  IVcorel found, dump:\n",corFile->GetName());  alphasM->Print();
+
     alphasM=(TMatrixD *) corFile->Get("slopes");
     assert(alphasM);
     corB=new JbCorrelator("regres"); //   2nd correlator after regression
@@ -77,14 +85,17 @@ int main(int argc, char *argv[]) {
     printf("opened %s, slopes found, dump:\n",corFile->GetName());
     alphasM->Print();
     corFile->Close();
-  }
 
+    mBlueFile=new TFile(treeOutName,"RECREATE"," regressed  Qweak tree");
+    printf("Open to write  =%s=\n",treeOutName.Data());
+    blueTree=new JbBlueTree(eve.dvName);
+  }
+  
   // .........   input  event file   .........
   TChain *chain = new TChain("Hel_Tree");  
-  TString treeFile=Form("%s%s.root",inpPath,runName.Data());
-  printf("add =%s=\n",treeFile.Data());
-  chain->Add(treeFile);
-
+  printf("Open to read  =%s=\n",treeInpFile.Data());
+  chain->Add(treeInpFile);
+  
   int nEve=(int)chain->GetEntries();
   printf("tot nEve=%d expected in the chain \nscan leafs for iv & dv ...\n",nEve);
   printf("#totEve %d\n",nEve);
@@ -107,7 +118,9 @@ int main(int argc, char *argv[]) {
 
 
   // filter events with custom cut.
-  TString cutFormula="ErrorFlag==0"; // alwasy true
+  TString cutFormula="ErrorFlag==0"; // apply general pattern QA cut
+  //TString cutFormula="1==1"; // tmp
+
   if(eve.cutFormula.Sizeof()>1) {
     printf("Main: filter events with custom cut: name=%s  formula='%s'\n",eve.cutName.Data(), eve.cutFormula.Data());
     cutFormula+="&&"+eve.cutFormula;
@@ -140,12 +153,20 @@ int main(int argc, char *argv[]) {
   int ie;
   int seenEve=0;
   if(nEve>mxEve) nEve=mxEve;
-  for( ie=skipEve;ie<nEve;ie++) { 
+  for( ie=0;ie<nEve;ie++) { 
     chain->GetEntry(ie);
+    //printf("ee=%d pat=%.1f\n",ie,eve.pattern());
     if(ie%5000==0) printf(" ieve=%d of %d , seen=%d ...\n",ie,nEve,seenEve);
-    if(!list->Contains(ie)) continue;
+    if(!list->Contains(ie)) { 
+      if(blueTree) blueTree->FillEmpty(eve.pattern());
+      continue;
+   }
     //printf("xx %d \n",ie);
-    if(!eve.unpackEvent()) continue;
+    if(!eve.unpackEvent()) {
+      if(blueTree)blueTree->FillEmpty(eve.pattern());
+      continue;
+    }
+
     seenEve++;
     corA.addEvent(eve.Pvec, eve.Yvec);
     if(alphasM) {// regress dv's
@@ -156,6 +177,8 @@ int main(int argc, char *argv[]) {
 	}
       }
       corB->addEvent(eve.Pvec, YvecNew);
+      blueTree->Fill(eve.pattern(),YvecNew);
+      
     }
   }// end of event loop
 
@@ -177,7 +200,14 @@ int main(int argc, char *argv[]) {
   corA.finish();
   eve.finish();
 
-  if(alphasM) corB->finish();
+  if(alphasM) {
+    corB->finish();
+    blueTree->finish();
+    mBlueFile->Write();
+    mBlueFile->Close();
+    printf("\n Histo saved -->%s<\n",treeOutName.Data());
+  }
+
   mHfile->Write(); 
   mHfile->Close();
   TString outAlphas=Form("%sblueR%snew.slope.root",outPath,runName.Data());

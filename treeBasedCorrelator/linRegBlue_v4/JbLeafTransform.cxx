@@ -307,6 +307,7 @@ JbLeafTransform::print() {
 
   printf("JbLeafTransform: myName='%s' , inpTree='%s'  regVarName=%s, len: dv=%d iv=%d  nLeafErr=%d, afix=%s\nDV: ",myName.Data(),inpTree.Data(),regVarName.Data(),(int)dvName.size(),(int)ivName.size(), nLeafError,afixName.Data());
   printf("  custom cut: name=%s  formula='%s'\n",cutName.Data(), cutFormula.Data());
+  return; // below is too criptic
   for(unsigned int i=0; i<dvName.size(); i++) printf("%s, ",dvName[i].Data());
   printf("\nIV: ");
   for(unsigned int i=0; i<ivName.size(); i++) printf("%s, ",ivName[i].Data());
@@ -319,6 +320,7 @@ void
 JbLeafTransform::readConfig(const char * configFName){
   
   FILE *fp=fopen(configFName,"r");
+  printf(" reads in =%s=\n",configFName);
   assert(fp);
   int ret=harvestNames(fp);
   assert(ret==2);

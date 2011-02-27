@@ -1,6 +1,6 @@
 
-HDRS     =  LinReg_Bevington_Pebay.h JbCorrelator.h JbLeafTransform.h
-SRCS     =  LinReg_Bevington_Pebay.cxx JbCorrelator.cxx JbLeafTransform.cxx
+HDRS     =  LinReg_Bevington_Pebay.h JbCorrelator.h JbLeafTransform.h JbBlueTree.h
+SRCS     =  LinReg_Bevington_Pebay.cxx JbCorrelator.cxx JbLeafTransform.cxx JbBlueTree.cxx
 
 # 
 
@@ -15,8 +15,8 @@ DEFINES=
 OBJS   = $(notdir $(patsubst %.cxx,%.o,$(SRCS)))
 
 # -shared
-LDFLAGS  = -m32
-CFLAGS   = -m32 -Wall $(DEBUG) $(DEFINES)  $(INCL)
+LDFLAGS  = 
+CFLAGS   =  -Wall $(DEBUG) $(DEFINES)  $(INCL)
 ROOT_LIB  = `root-config --libs`
 ROOT_INC  = -I `root-config --incdir`
 

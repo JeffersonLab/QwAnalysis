@@ -25,7 +25,8 @@ class JbLeafTransform {
   void readConfig(const char * configFName);
   void presetMyStat(double x1,double x2, double thr, double x3);
   TString setLeafName2Yield(TString longName);
-  
+  double pattern(){return  *pLeafAux[0];}
+
  private:
   TString myName;
   enum{ mxAux=3+4+1};// auxiliary variables: pattern, bcm1, bcm2
