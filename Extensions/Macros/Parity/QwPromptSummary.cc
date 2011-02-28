@@ -16,9 +16,13 @@
 // - fixed halo rate unit
 
 // Thursday, February 17 16:52:09 EST 2011, jhlee
-// - added cvs output for easy data exchange
+// - added csv output for easy data exchange
 // - initialized variables before they are used
 
+// Monday, February 28 13:52:13 EST 2011, jhlee
+// - added bcm2-bcm5 in csv output
+// - added check routine whether QWANALYSIS is not defined or not
+//         if not, use $HOME directory for the path of output
 
 // TODO
 //    -- check all units which we try to print out again.
@@ -405,13 +409,13 @@ int main(Int_t argc,Char_t* argv[])
   results.push_back(Form("based on this number the run lasted    = %5.1f minutes \n\n",run_period_mins));
   results.push_back(Form("based on this total charge accumulated = %3.1f mC \n\n", total_charge_mC));//charge in mC
 
-  prompt_summary_csv_stream << "! This csv file is desinged for plots and has no unit, see summary_"+ runnum + ".text file for unit\n" ;
-  prompt_summary_csv_stream << "! or See http://qweak/textsummaries/summary_" + runnum + ".txt file for unit\n";
-  prompt_summary_csv_stream << "! contact jhlee@jlab.org if one has comments or questions.\n";
+  prompt_summary_csv_stream << "! This csv file is desinged for making plots easily.\n";
+  prompt_summary_csv_stream << "! See summary_"+ runnum + ".text file or http://qweak/textsummaries/summary_" + runnum + ".txt file for units\n";
+  prompt_summary_csv_stream << "! Please contact Jeong Han Lee via jhlee@jlab.org if one has comments or questions.\n";
 
-  csv_stream("run_number", "", runnum.Atof());
-  csv_stream("quartets",   "",  num_of_good_quartets);
-  csv_stream("run_mins",   "", run_period_mins);
+  csv_stream("run_number",   "",   runnum.Atof());
+  csv_stream("quartets",     "",   num_of_good_quartets);
+  csv_stream("run_mins",     "",   run_period_mins);
   csv_stream("total_charge", "mC", total_charge_mC);
 
   h=NULL;
@@ -428,7 +432,16 @@ int main(Int_t argc,Char_t* argv[])
   
  if(outputformat==1)
     {
-      TString filename = TString(getenv("QWANALYSIS"))+"/Extensions/Macros/Parity/summary_"+runnum; 
+      TString path = TString(getenv("QWANALYSIS"));
+      if (path.IsNull()) {
+	path = TString(getenv("HOME"));
+	printf("%s\n", path.Data());
+      }
+      else {
+	path += "/Extensions/Macros/Parity/";
+      }
+      
+      TString filename = path + "/summary_"+runnum; 
       TString outputfilename  = filename + ".text";
       std::cout<<" name of the ouputfile "<<outputfilename<<std::endl;
       ofstream output(outputfilename);
@@ -445,6 +458,7 @@ int main(Int_t argc,Char_t* argv[])
       prompt_summary_csv_output.open(csv_output_name);
       prompt_summary_csv_output << prompt_summary_csv_stream.str();
       prompt_summary_csv_output.close();
+      printf("%s is created\n", csv_output_name.Data());
 
     }
   else if(outputformat==0)
@@ -915,6 +929,7 @@ void FillBeamParameters(){
      util.push_back(MidRule_3("bcm2-bcm5", intensity, val));
      compare_to_golden_value("double_diff_charge_asymmetry", val[0], val[2]);
      compare_to_golden_value("double_diff_charge_asymmetry_width", val[1], val[3]);
+     csv_stream_all("bcm2-bcm5", intensity, val);
 
      intensity = 0.0;
      for(i=0;i<4;i++) { val[i]=0.0;};
