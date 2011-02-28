@@ -635,7 +635,7 @@ void FillBeamParameters(){
 
   util.push_back(HorSingleLine());
   util.push_back(TopRule("quantity", "value", "Asym/Diff", "Asym/Diff width"));
-  util.push_back(TopRule("........", "(uA,mm,mrad)", "(ppm,nm,mrad)", "(ppm,nm,mrad)"));
+  util.push_back(TopRule("........", "(uA,mm,mrad)", "(ppm,nm,murad)", "(ppm,nm,murad)"));
 
   Double_t mean = 0.0;
   Double_t val[4] = {0.0};
@@ -677,8 +677,8 @@ void FillBeamParameters(){
  
   mean = 0.0;
   for(i=0;i<4;i++) { val[i]=0.0;};
-  Get_Mean("hel_histo/yield_qwk_targetXSlope_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetXSlope_hw",val,1.e+3);// unit is mrad
+  Get_Mean("hel_histo/yield_qwk_targetXSlope_hw",mean,1.e+3);// unit is mrad
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetXSlope_hw",val,1.e+6);// unit is urad
   util.push_back(MidRule_3("angle x", mean, val));
   compare_to_golden_value("x_beam_angle", mean,0);
   compare_to_golden_value("x_angle_difference", val[0], val[2]);
@@ -689,8 +689,8 @@ void FillBeamParameters(){
   // csv_stream_4("target XPD", val); // unit is unclear...
   mean = 0.0;
   for(i=0;i<4;i++) { val[i]=0.0;};
-  Get_Mean("hel_histo/yield_qwk_targetYSlope_hw",mean,1.);
-  Fit_with_a_gaussian("hel_histo/diff_qwk_targetYSlope_hw",val,1.e+3);// unit is mrad
+  Get_Mean("hel_histo/yield_qwk_targetYSlope_hw",mean,1.e+3);// unit is mrad
+  Fit_with_a_gaussian("hel_histo/diff_qwk_targetYSlope_hw",val,1.e+6);// unit is urad
   util.push_back(MidRule_3("angle y", mean, val));
   compare_to_golden_value("y_beam_angle", mean,0);
   compare_to_golden_value("y_angle_difference", val[0], val[2]);
