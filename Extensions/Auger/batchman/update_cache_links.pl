@@ -66,7 +66,7 @@ foreach $linkfile (`find $link_directory -type l`){
 
 
 ###  Make links for the files in the source directory.
-foreach $sourcefile (`find $source_directory -maxdepth 1 -regex $regex`){
+foreach $sourcefile (`find $source_directory -maxdepth 1 -regex "$regex"`){
     chomp $sourcefile;
     next if (! -f $sourcefile);
     #  Extract the run number and sgment number.
