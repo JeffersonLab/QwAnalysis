@@ -208,7 +208,7 @@ bool QwDatabase::Connect()
 void QwDatabase::DefineOptions(QwOptions& options)
 {
   // Specify command line options for use by QwDatabase
-  options.AddOptions("Database options")("QwDatabase.accesslevel", po::value<string>(), "database access level (OFF,RW)");
+  options.AddOptions("Database options")("QwDatabase.accesslevel", po::value<string>(), "database access level (OFF,RO,RW)");
   options.AddOptions("Database options")("QwDatabase.dbname", po::value<string>(), "database name");
   options.AddOptions("Database options")("QwDatabase.dbserver", po::value<string>(), "database server name");
   options.AddOptions("Database options")("QwDatabase.dbusername", po::value<string>(), "database username");
