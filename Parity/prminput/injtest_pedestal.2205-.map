@@ -1,8 +1,8 @@
-! Pedestal file of run  1960
+! Pedestal file of run  2205
 ! adc sample size  468
-! curent range in calibration  140 to 170
+! curent range in calibration  90 to 155
 ! fit is linear 
-! date of analysis =Sat Jan 29 10:05:16 2011
+! date of analysis =Tue Feb 22 19:02:59 2011
 ! The pedestal run was taken with F2 cup inserted.
 ! Therefore only bpms up to 0i05 have the correct pedestals
 ! for this high current calibration.
@@ -30,30 +30,30 @@ SEAmpCh1  ,   0 ,  1
 SEAmpCh2  ,   0 ,  1
 SESpareE  ,   0 ,  1
 SETermDn  ,   0 ,  1
-QWK_1i02XP ,      -805.78 ,1.0   
-QWK_1i02XM ,      -777.11 , 1.0
-QWK_1i02YP ,     -1020.45 , 1.0
-QWK_1i02YM ,      -845.41 , 1.0
-QWK_1i04XP ,       623.65 , 1.0
-QWK_1i04XM ,      -331.5  , 1.0
-QWK_1i04YP ,      -278.54 , 1.0
-QWK_1i04YM ,       142.01 , 1.0
-QWK_1i06XP ,      1568.08 , 1.0
-QWK_1i06XM ,       -85.42 , 1.0
-QWK_1i06YP ,       450.52 , 1.0
-QWK_1i06YM ,       235.5  , 1.0
-QWK_0i02XP ,        69.1  , 1.0
-QWK_0i02XM ,     -1086.62 , 1.0
-QWK_0i02YP ,       133.08 , 1.0
-QWK_0i02YM ,       836.34 , 1.0
-QWK_0i02aXP ,     3208.51 , 1.0
-QWK_0i02aXM ,     1406.19 , 1.0
-QWK_0i02aYP ,     1277.17 , 1.0
-QWK_0i02aYM ,     2134.05 , 1.0
-QWK_0i05XP ,      7381.89 , 1.0
-QWK_0i05XM ,      5517.32 , 1.0
-QWK_0i05YP ,      6600.05 , 1.0
-QWK_0i05YM ,      5672.97 , 1.0
+qwk_1i02XP ,	  -774.661 , 1.0
+qwk_1i02XM , 	 -1035.85  , 1.0
+qwk_1i02YP , 	 -1443.38  , 1.0
+qwk_1i02YM , 	  -703.05  , 1.0
+qwk_1i04XP , 	   220.67  , 1.0
+qwk_1i04XM , 	  -657.077 , 1.0
+qwk_1i04YP , 	   244.012 , 1.0
+qwk_1i04YM , 	  -720.22  , 1.0
+qwk_1i06XP , 	   706.33  , 1.0
+qwk_1i06XM , 	  -352.979 , 1.0
+qwk_1i06YP , 	  -287.743 , 1.0
+qwk_1i06YM , 	  -895.45  , 1.0
+qwk_0i02XP , 	   955.68  , 1.0
+qwk_0i02XM , 	  -250.553 , 1.0
+qwk_0i02YP , 	  1597.61  , 1.0
+qwk_0i02YM , 	  1332.19  , 1.0
+qwk_0i02aXP , 	  2841.64  , 1.0
+qwk_0i02aXM , 	  2212.1   , 1.0
+qwk_0i02aYP , 	  994.971  , 1.0
+qwk_0i02aYM , 	  2094.86  , 1.0
+qwk_0i05XP , 	  5807.91  , 1.0
+qwk_0i05XM , 	  4105.59  , 1.0
+qwk_0i05YP , 	  4876.86  , 1.0
+qwk_0i05YM , 	  4823.85  , 1.0
 QWK_0i07XP ,      1176  , 1.0 
 QWK_0i07XM ,      1300  , 1.0 
 QWK_0i07YP ,      885.9 , 1.0 
@@ -98,6 +98,14 @@ QWK_0l10XP ,      23.71 , 1.0
 QWK_0l10XM ,      80.63 , 1.0 
 QWK_0l10YP ,     -156.9 , 1.0 
 QWK_0l10YM ,     -84.82 , 1.0 
+QWK_0r01XP ,      -1 , 1.0 
+QWK_0r01XM ,      -1 , 1.0 
+QWK_0r01YP ,      -1 , 1.0 
+QWK_0r01YM ,      -1 , 1.0 
+QWK_0r01aXP ,     -1 , 1.0 
+QWK_0r01aXM ,     -1 , 1.0 
+QWK_0r01aYP ,     -1 , 1.0 
+QWK_0r01aYM ,     -1 , 1.0 
 QWK_0r03XP ,      503.1 , 1.0 
 QWK_0r03XM ,      583.6 , 1.0 
 QWK_0r03YP ,      654.2 , 1.0 
