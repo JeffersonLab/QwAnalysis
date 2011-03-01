@@ -473,6 +473,8 @@ void  QwCombinedBPM::ProcessEvent()
    tmp1.ClearEventData();
    // Absolute position of the combined bpm is not a physical position but a derived one.
 
+
+   zpos = this->fPositionCenter[2];
    //UInt_t err_flag=fAbsPos[n].GetEventcutErrorFlag();   
    fAbsPos[n]= fIntercept[n]; // X =  b
    //fAbsPos[n].ResetErrorFlag(err_flag);
