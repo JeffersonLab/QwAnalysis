@@ -13,6 +13,7 @@
 
 // ROOT headers
 #include "TTree.h"
+#include "TString.h"
 
 // Qweak headers
 #include "VQwSubsystemParity.h"

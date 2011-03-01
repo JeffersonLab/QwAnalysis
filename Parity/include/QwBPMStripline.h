@@ -34,21 +34,25 @@ class QwBPMStripline : public VQwBPM {
 
  public:
   QwBPMStripline() { };
-  QwBPMStripline(TString name, Bool_t ROTATED):VQwBPM(name){
+
+  QwBPMStripline(TString name):VQwBPM(name){
     InitializeChannel(name);
-    bRotated=ROTATED;
-  };
+    fRotationAngle = 45.0;
+    SetRotation(fRotationAngle);
+    bRotated=kTRUE;
+  };   
     
-    
-    QwBPMStripline(TString subsystemname, TString name, Bool_t ROTATED):VQwBPM(name){
+    QwBPMStripline(TString subsystemname, TString name):VQwBPM(name){
       SetSubsystemName(subsystemname);
       InitializeChannel(subsystemname, name);
-      bRotated=ROTATED;
+      fRotationAngle = 45.0;
+      SetRotation(fRotationAngle);
+      bRotated=kTRUE;
     };    
 
-    ~QwBPMStripline() {
-      DeleteHistograms();
-    };
+      ~QwBPMStripline() {
+	DeleteHistograms();
+      };
 
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
@@ -118,7 +122,6 @@ class QwBPMStripline : public VQwBPM {
 
 
  protected:
-  Bool_t   bRotated;
   QwVQWK_Channel fWire[4];
   QwVQWK_Channel fRelPos[2];
 

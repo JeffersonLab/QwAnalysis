@@ -14,8 +14,8 @@
 #include "QwDBInterface.h"
 
 /* Position calibration factor, transform ADC counts in mm*/
-//const Double_t QwBPMStripline::kQwStriplineCalibration = 18.77;
-const Double_t QwBPMStripline::kRotationCorrection = 1./1.414;
+//const Double_t QwBPStripline::kQwStriplineCalibration = 18.77;
+//const Double_t QwBPMStripline::kRotationCorrection = 1./1.414;
 const TString QwBPMStripline::subelement[4]={"XP","XM","YP","YM"};
 
 void  QwBPMStripline::InitializeChannel(TString name)
@@ -268,9 +268,13 @@ void QwBPMStripline::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double
 void  QwBPMStripline::ProcessEvent()
 {
   Bool_t localdebug = kFALSE;
-  static QwVQWK_Channel numer("numerator"), denom("denominator");
-  Short_t i = 0;
+  static QwVQWK_Channel numer("numerator"), denom("denominator"), tmp1("tmp1"),tmp2("tmp2");
+  static QwVQWK_Channel tmppos[2];
+ 
+  tmppos[0].InitializeChannel("tmppos_0","derived");
+  tmppos[1].InitializeChannel("tmppos_1","derived");
 
+  Short_t i = 0;
 
   ApplyHWChecks();
   /**First apply HW checks and update HW  error flags. 
@@ -298,11 +302,11 @@ void  QwBPMStripline::ProcessEvent()
      RelY (bpm coordinates) = fQwStriplineCalibration x ----------------
                                                         (YP + AlphaY.YM)
 
-     To get back to accelerator coordinates, rotate clockwise around Z by 45 degrees.							
+     To get back to accelerator coordinates, rotate anti-clockwise around +Z by phi degrees (angle w.r.t X axis).							
      
-     RelX (accelarator coordinates) =  1/sqrt(2)( RelX - RelY)
+     RelX (accelarator coordinates) =  cos(phi) RelX - sin(phi)RelY
     
-     RelY (accelarator coordinates) =  1/sqrt(2)( RelX + RelY) 
+     RelY (accelarator coordinates) =  sin(phi) RelX + cos(Phi)RelY 
  
   */
 
@@ -317,27 +321,37 @@ void  QwBPMStripline::ProcessEvent()
 
     if(localdebug)
       {
-	  std::cout<<" stripline name="<<fElementName<<axis[i];
-	  std::cout<<" event number= "<<fWire[i*2].GetSequenceNumber()<<" \n";
+	std::cout<<" stripline name="<<fElementName<<std::endl;
+	  std::cout<<" event number= "<<fWire[i*2].GetSequenceNumber()<<std::endl;
 	  std::cout<<" hw  Wire["<<i*2<<"]="<<fWire[i*2].GetHardwareSum()<<"  ";
 	  std::cout<<" hw relative gain *  Wire["<<i*2+1<<"]="<<fWire[i*2+1].GetHardwareSum()<<"\n";
 	  std::cout<<" Relative gain["<<i<<"]="<<fRelativeGains[i]<<"\n";
 	  std::cout<<" hw numerator= "<<numer.GetHardwareSum()<<"  ";
 	  std::cout<<" hw denominator= "<<denom.GetHardwareSum()<<"\n";
+	  std::cout<<" Rotation = "<<fRotationAngle<<std::endl;
 	}
     }
-  if(bRotated)
-    {
-      /* for this one the direction [1] is vertical and up,
-	 direction[3] is the beam line direction toward the beamdump
-	 if rotated then the frame is rotated by 45 deg clockwise around direction[3] axis*/
-      numer=fRelPos[0]; 
-      denom=fRelPos[1]; 
-      fRelPos[0].Difference(numer,denom); 
-      fRelPos[1].Sum(numer,denom); 
-      fRelPos[0].Scale(kRotationCorrection); // RealX = 1/sqrt(2)( RelX - RelY)
-      fRelPos[1].Scale(kRotationCorrection);// Real Y =(RelX +RelY )
-    }
+//   std::cout<<" \nstripline name="<<fElementName<<std::endl;
+//   std::cout<<" Rotation = "<<fRotationAngle<<std::endl;
+
+  for(i=0;i<2;i++){ 
+    //std::cout<<" hw  before RelPos["<<i<<"]="<<fRelPos[i].GetHardwareSum()<<"  ";
+    tmp1.ClearEventData();
+    tmp2.ClearEventData();
+    tmppos[i].ClearEventData();
+    tmp1 =  fRelPos[i];
+    tmp2 =  fRelPos[1-i];
+    tmp1.Scale(fCosRotation);
+    tmp2.Scale(fSinRotation);
+    if (i==0) 
+      tmppos[i].Difference(tmp1,tmp2);
+      else tmppos[i].Sum(tmp1,tmp2);
+  }
+
+
+  fRelPos[0]=tmppos[0];
+  fRelPos[1]=tmppos[1];
+
 
   for(i=0;i<2;i++){
     fAbsPos[i]= fRelPos[i];
@@ -856,8 +870,8 @@ void  QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, 
 
   // Rotate the requested position if necessary (this is not tested yet)
   if (bRotated) {
-    Double_t rotated_meanX = (meanX + meanY) / kRotationCorrection;
-    Double_t rotated_meanY = (meanX - meanY) / kRotationCorrection;
+    Double_t rotated_meanX = (meanX*fCosRotation - meanY*fSinRotation);// / fRotationCorrection;
+    Double_t rotated_meanY = (meanX*fSinRotation + meanY*fCosRotation);// / fRotationCorrection;
     meanX = rotated_meanX;
     meanY = rotated_meanY;
   }

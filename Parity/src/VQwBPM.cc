@@ -17,6 +17,7 @@
 /* With X being vertical up and Z being the beam direction toward the beamdump */
 const TString  VQwBPM::axis[3]={"X","Y","Z"};
 
+
 void  VQwBPM::InitializeChannel(TString name)
 {
 
@@ -57,12 +58,14 @@ void VQwBPM::GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffs
   return;
 };
 
+
 void VQwBPM::GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY)
 {
   // Read in the electronic factors from the file
   Bool_t ldebug = kFALSE;
 
   fQwStriplineCalibration = BSENfactor*18.81;
+
   fRelativeGains[0]=AlphaX;
   fRelativeGains[1]=AlphaY;
 
@@ -76,6 +79,31 @@ void VQwBPM::GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t
   }
   return;
 };
+
+void VQwBPM::SetRotation(Double_t rotation_angle){
+  // Read the rotation angle in degrees (to beam right)
+  Bool_t ldebug = kFALSE;
+  fSinRotation = 0;
+  fSinRotation = 0;
+  fRotationAngle = rotation_angle;
+  fSinRotation = TMath::Sin(fRotationAngle*(TMath::DegToRad()));
+  fCosRotation = TMath::Cos(fRotationAngle*(TMath::DegToRad()));
+
+  if(ldebug){
+    std::cout<<"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    std::cout<<this->GetElementName();
+    std::cout<<" is rotated by angle = "<<rotation_angle<<std::endl;
+    
+  }
+}
+
+void VQwBPM::SetRotationOff(){
+  // Turn off rotation. This object is already in accelerator coordinates.
+  fRotationAngle = 0.0;
+  SetRotation(fRotationAngle);
+  bRotated=kFALSE;
+}
+
 
 Int_t VQwBPM::GetEventcutErrorCounters()
 {

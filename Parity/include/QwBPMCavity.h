@@ -34,15 +34,15 @@ class QwBPMCavity : public VQwBPM {
 
  public:
   QwBPMCavity() { };
-  QwBPMCavity(TString name, Bool_t ROTATED):VQwBPM(name){
+  QwBPMCavity(TString name):VQwBPM(name){
     InitializeChannel(name);
-    bRotated=ROTATED;
+    bRotated=kTRUE;
 
   };
-    QwBPMCavity(TString subsystemname, TString name, Bool_t ROTATED):VQwBPM(name){
+    QwBPMCavity(TString subsystemname, TString name):VQwBPM(name){
       SetSubsystemName(subsystemname);
       InitializeChannel(subsystemname, name);
-      bRotated=ROTATED;
+      bRotated=kTRUE;
 
     };
 

@@ -41,7 +41,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   Int_t   index = 0;
   Bool_t  combolistdecoded;
   Bool_t  deviceok;
-  Bool_t  unrotated(keyword=="unrotated");
+  // Bool_t  unrotated(keyword=="unrotated");
 
   std::vector<TString>  fDeviceName;
   std::vector<TString>  fProperty;
@@ -235,8 +235,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       dettype.ToLower();
       namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
       namech.ToLower();
-      keyword = mapstr.GetNextToken(", ").c_str();
-      keyword.ToLower();
 
       if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread)){
 	currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
@@ -297,14 +295,14 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	}
 
 	if(localBeamDetectorID.fTypeID==kQwBPMCavity){
-	    QwBPMCavity localcavity(GetSubsystemName(), localBeamDetectorID.fdetectorname,!unrotated);
-	    fCavity.push_back(localcavity);
-	    fCavity[fCavity.size()-1].SetDefaultSampleSize(fSample_size);
-	    localBeamDetectorID.fIndex=fCavity.size()-1;
+	  QwBPMCavity localcavity(GetSubsystemName(), localBeamDetectorID.fdetectorname);
+	  fCavity.push_back(localcavity);
+	  fCavity[fCavity.size()-1].SetDefaultSampleSize(fSample_size);
+	  localBeamDetectorID.fIndex=fCavity.size()-1;
 	}
 
 	if(localBeamDetectorID.fTypeID== kQwBPMStripline){
-	  QwBPMStripline localstripline(GetSubsystemName(), localBeamDetectorID.fdetectorname,!unrotated);
+	  QwBPMStripline localstripline(GetSubsystemName(), localBeamDetectorID.fdetectorname);
 	  fStripline.push_back(localstripline);
 	  fStripline[fStripline.size()-1].SetDefaultSampleSize(fSample_size);
 	  localBeamDetectorID.fIndex=fStripline.size()-1;
@@ -468,7 +466,6 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   }
   ldebug=kFALSE;
 
-  
   return 0;
 };
 
@@ -674,8 +671,10 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   TString  melement;
   Double_t devOffsetX = 0,devOffsetY = 0, devOffsetZ = 0;
   Double_t devSENfactor = 0, devAlphaX = 0, devAlphaY = 0;
-  TString localname;
-
+  TString  localname;
+  TString   rotation_stat;
+  TString   angle;
+  Double_t  rotation_angle = 0;
 
   if(ldebug)std::cout<<"QwBeamLine::LoadGeometryParameters("<< mapfile<<")\n";
 
@@ -704,10 +703,12 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
     devSENfactor = (atof(mapstr.GetNextToken(", \t").c_str())); // sensivity scaling factor
     devAlphaX    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha X
     devAlphaY    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha Y
+    rotation_stat= mapstr.GetNextToken(", \t").c_str(); // rotation info
 
+ 
     index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
 
-    if(ldebug){
+    if(ldebug==1){
       std::cout<<"####################\n";
       std::cout<<"! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY\n"<<std::endl;
       std::cout<<GetQwBeamInstrumentType(devtype)<<" / "
@@ -717,8 +718,10 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 	       <<devSENfactor <<" / "
 	       <<devAlphaX <<" / "
 	       <<devAlphaY <<" / "
+	       <<rotation_stat<<" / "
 	       <<std::endl;
     }
+
 
     while(notfound){
       if(GetQwBeamInstrumentType(devtype)==kQwBPMStripline){
@@ -741,6 +744,27 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 	  VQwBPM * bpm = &fStripline[index];
 	  bpm->GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
 	  bpm->GetElectronicFactors(devSENfactor,devAlphaX, devAlphaY);
+
+	  // If the rotation status is 'unrotated' 
+	  if(rotation_stat.Contains("unrotated")){
+	    if(ldebug) std::cout<<" unrotated "<<std::endl;
+	    bpm->SetRotationOff();	    
+	  }
+	  else if(rotation_stat.Contains("rotation")){
+	    // If the status is 'rotated'
+	    rotation_stat.Remove(TString::kBoth,'\0');
+
+	    // If a specific rotation angle is given read that
+	    if(rotation_stat.Contains("=")){
+	      angle = rotation_stat.Remove(0,9);
+	      rotation_angle = atof(angle);
+	      if(ldebug) std::cout<<"Rotation angle = "<<rotation_angle<<std::endl;
+	      bpm->SetRotation(rotation_angle);	    
+ 	    }
+	  }
+
+	  // If nothing is specified, a default rotation of 45 degrees is implied.
+
 	  notfound=kFALSE;
 	}
       }
@@ -1404,8 +1428,6 @@ Bool_t QwBeamLine::PublishInternalValues() const
       tmp_channel = GetCombinedBCM(device_name)->GetCharge();
     } else if (device_type == "comboenergy") {
       tmp_channel = GetEnergyCalculator(device_name)->GetEnergy();
-    } else if (device_type == "scaler") {
-      tmp_channel = GetScalerChannel(device_name)->GetScaler();  
     } else
       QwError << "QwBeamLine::PublishInternalValues() error "<< QwLog::endl;
     
@@ -1570,21 +1592,6 @@ QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name){
 };
 
 //*****************************************************************
-QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name){
-   if (! fHaloMonitor.empty()) {
-    
-    for (std::vector<QwHaloMonitor>::iterator halo = fHaloMonitor.begin(); halo != fHaloMonitor.end(); ++halo) {
-      if (halo->GetElementName() == name) {
-	return &(*halo);
-      }
-    }
-    
-
-  }
-  return 0;
-};
-
-//*****************************************************************
 const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
@@ -1616,12 +1623,6 @@ const QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name) const{
 const QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name) const{
   return const_cast<QwBeamLine*>(this)->GetEnergyCalculator(name);
 };
-
-//*****************************************************************
-const QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name)const {
-  return const_cast<QwBeamLine*>(this)->GetScalerChannel(name);
-};
-
 
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
