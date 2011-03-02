@@ -56,6 +56,7 @@ void mdlumi_ped(int run_num)
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",md[i]));
           md_pedestal_file<<Form("%s  ,  ",md[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;  
           cout<<md[i]<<"  "<<htemp->GetMean()<<endl;
+          c_md->Update();
         }
       TCanvas *c_bg = new TCanvas("bg","bg",1500,1100);
       c_bg->Divide(3,3);
@@ -69,6 +70,7 @@ void mdlumi_ped(int run_num)
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",bg[i]));
           md_pedestal_file<<Form("%s  ,  ",bg[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;  
           cout<<bg[i]<<"  "<<htemp->GetMean()<<endl;
+          c_bg->Update();
         }  
       md_pedestal_file.close();
      }; //end get md
@@ -92,12 +94,25 @@ void mdlumi_ped(int run_num)
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",lumi[i]));
           lumi_pedestal_file<<Form("%s  ,  ",lumi[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;  
           cout<<lumi[i]<<"  "<<htemp->GetMean()<<endl;
+          c_lumi->Update();
         }
      lumi_pedestal_file.close();
      }; // end get lumi  
+     
+//gSystem->Exec(Form("gedit %s/Extensions/Macros/Parity/MainDet/qweak_maindet_pedestal.%i-.map",pPath,run_num));
+//gSystem->Exec(Form("gedit %s/Extensions/Macros/Parity/MainDet/qweak_lumi_pedestal.%i-.map",pPath,run_num));
 
-bool save_peds=kTRUE;
-if (save_peds==kTRUE)
+c_md->SaveAs(Form("%s/Extensions/Macros/Parity/MainDet/%i_md.png",pPath,run_num));
+c_bg->SaveAs(Form("%s/Extensions/Macros/Parity/MainDet/%i_bg.png",pPath,run_num));
+c_lumi->SaveAs(Form("%s/Extensions/Macros/Parity/MainDet/%i_lumi.png",pPath,run_num));
+
+string save_peds;
+
+cout<<"If the pedestals look OK, type 'y' to make them available to the analyzer"<<endl;
+cin>>save_peds;
+
+
+if (save_peds=="y")
 {
 cout<<Form("moving files to %s/Parity/prminput",pPath)<<endl;
 gSystem->Exec(Form("mv %s/Extensions/Macros/Parity/MainDet/qweak_maindet_pedestal.%i-.map %s/Parity/prminput/.",pPath,run_num,pPath));
