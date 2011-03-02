@@ -1,8 +1,8 @@
 void mdlumi_ped(int run_num)
 {
 
-  const int mps_start = 0;
-  const int mps_stop = 10000;
+  const int mps_start = 20;
+  const int mps_stop = 10020;
   const bool get_md = kTRUE;
   const bool get_lumi = kTRUE;
   const bool save_file = kTRUE;
