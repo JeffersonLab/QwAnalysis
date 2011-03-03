@@ -126,7 +126,7 @@ class QwVQWK_Channel: public VQwDataElement {
   void Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
   void Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
-
+  void DivideBy(QwVQWK_Channel& denom);
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
 

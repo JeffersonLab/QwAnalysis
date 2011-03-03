@@ -1070,6 +1070,20 @@ void QwVQWK_Channel::Scale(Double_t scale)
 };
 
 
+void QwVQWK_Channel::DivideBy(QwVQWK_Channel &denom)
+{
+  QwVQWK_Channel numer = *this;
+  denom.fErrorFlag=0;
+  denom.fDeviceErrorCode=0;
+  
+  Ratio(numer,denom);
+}
+
+
+
+
+
+
 /** Moments and uncertainty calculation on the running sums and averages
  * The calculation of the first and second moments of the running sum is not
  * completely straightforward due to numerical instabilities associated with
