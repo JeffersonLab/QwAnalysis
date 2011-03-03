@@ -42,12 +42,11 @@ class QwHelicity: public VQwSubsystemParity{
 
  QwHelicity(TString region_tmp): VQwSubsystem(region_tmp),
     VQwSubsystemParity(region_tmp),
-    fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE)
+   fHelicityBitPattern(kDefaultHelicityBitPattern),
+   fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE)
   {
     // Default helicity delay to two patterns.
     fHelicityDelay = 2;
-    // Default helicity bit pattern
-    fHelicityPattern = 0x69; // this is +--+-++-
     // Default the EventType flags to HelPlus=1 and HelMinus=4
     // These are only used in Moller decoding mode.
     kEventTypeHelPlus  = 4;
@@ -109,7 +108,7 @@ class QwHelicity: public VQwSubsystemParity{
   void   PredictHelicity();
   void   RunPredictor();
   void   SetHelicityDelay(Int_t delay);
-  void   SetHelicityPattern(UInt_t bits);
+  void   SetHelicityBitPattern(UInt_t bits);
 
   Int_t  GetHelicityReported();
   Int_t  GetHelicityActual();
@@ -181,6 +180,10 @@ class QwHelicity: public VQwSubsystemParity{
 			 kInputReg_PatternSync = 0x4,
 			 kInputReg_FakeMPS     = 0x8000};
 
+  static const UInt_t kDefaultHelicityBitPattern;
+
+  UInt_t fHelicityBitPattern;
+
   std::vector <QwWord> fWord;
   std::vector < std::pair<Int_t, Int_t> > fWordsPerSubbank;  // The indices of the first & last word in each subbank
 
@@ -220,8 +223,6 @@ class QwHelicity: public VQwSubsystemParity{
   Bool_t fHelicityBitMinus;
   Bool_t fGoodHelicity;
   Bool_t fGoodPattern;
-
-  UInt_t fHelicityPattern;
 
   std::vector<TH1*> fHistograms;
   Int_t fHistoType;
@@ -281,6 +282,8 @@ class QwHelicity: public VQwSubsystemParity{
 
 
  private:
+
+  UInt_t BuildHelicityBitPattern(Int_t patternsize);
 
   unsigned int parity(unsigned int v) {
     // http://graphics.stanford.edu/~seander/bithacks.html#ParityParallel

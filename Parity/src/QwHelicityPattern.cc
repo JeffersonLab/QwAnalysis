@@ -29,7 +29,7 @@ void QwHelicityPattern::DefineOptions(QwOptions &options)
     ("enable-burstsum", po::value<bool>()->default_value(false)->zero_tokens(),
      "enable burst sum calculation");
   options.AddOptions("Helicity pattern")
-    ("enable-runningsum", po::value<bool>()->default_value(true)->zero_tokens(),
+    ("enable-runningsum", po::value<bool>()->default_value(true),
      "enable running sum calculation");
   options.AddOptions("Helicity pattern")
     ("enable-differences", po::value<bool>()->default_value(false)->zero_tokens(),
@@ -49,15 +49,23 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
   fEnableDifference = options.GetValue<bool>("enable-differences");
   fEnableAlternateAsym = options.GetValue<bool>("enable-alternateasym");
 
+  if (fEnableAlternateAsym && fPatternSize <= 2){
+    QwWarning << "QwHelicityPattern::ProcessOptions: "
+	      << "The 'enable-alternateasym' flag is disabled for pair analysis."
+	      << QwLog::endl;
+    fEnableAlternateAsym = kFALSE;
+  }
+
   fBlinder.ProcessOptions(options);
 }
 
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   : fBlinder(),
-    fHelicityIsMissing(kFALSE), fIgnoreHelicity(kFALSE),
+    fHelicityIsMissing(kFALSE),   fIgnoreHelicity(kFALSE),
+    fEnableAlternateAsym(kFALSE), fEnableBurstSum(kFALSE),
+    fEnableRunningSum(kTRUE),     fEnableDifference(kFALSE), 
     fLastWindowNumber(0),fLastPatternNumber(0),fLastPhaseNumber(0)
- 
 {
   // Retrieve the helicity subsystem to query for
   std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");
@@ -85,17 +93,6 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
     fPatternSize = 4; // default to quartets
   }
   QwMessage << "QwHelicity::MaxPatternPhase = " << fPatternSize << QwLog::endl;
-
-  // Disable burst analysis
-  fEnableBurstSum = kFALSE;
-  // Enable running sum
-  fEnableRunningSum = kTRUE;
-  // Disable alternate asymmetry
-  fEnableAlternateAsym = kFALSE;
-
-  // Currently the alternate asym works with quartets only
-  if (fPatternSize != 4)
-    fEnableAlternateAsym = kFALSE;
 
   try
     {
@@ -367,9 +364,10 @@ void  QwHelicityPattern::CalculateAsymmetry()
 	}
 	checkhel -= 1;
       } else {
-	QwWarning<< "QwHelicityPattern::CalculateAsymmetry:  "
-	       << "Helicity should be "<<plushel<<" or "<<minushel<<" but is "<< fHelicity[i]
-	       << "; Asymmetry computation aborted!"<<QwLog::endl;
+	QwDebug << "QwHelicityPattern::CalculateAsymmetry:  "
+		<< "Helicity should be "<<plushel<<" or "<<minushel
+		<<" but is "<< fHelicity[i]
+		<< "; Asymmetry computation aborted!"<<QwLog::endl;
 	ClearEventData();
 	i = fPatternSize;
 	checkhel = -9999;

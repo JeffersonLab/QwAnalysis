@@ -18,12 +18,17 @@
 #include "QwDatabase.h"
 #include "QwLog.h"
 
+extern QwHistogramHelper gQwHists;
+//**************************************************//
+
 // Register this subsystem with the factory
 QwSubsystemFactory<QwHelicity> theHelicityFactory("QwHelicity");
 
 
-extern QwHistogramHelper gQwHists;
-//**************************************************//
+/// Default helicity bit pattern of 0x69 represents a -++-+--+ octet
+/// (event polarity listed in reverse time order), where the LSB
+/// of the bit pattern is the first event of the pattern.
+const UInt_t QwHelicity::kDefaultHelicityBitPattern = 0x69;
 
 //**************************************************//
 void QwHelicity::DefineOptions(QwOptions &options)
@@ -73,10 +78,14 @@ void QwHelicity::ProcessOptions(QwOptions &options){
     SetHelicityDelay(gQwOptions.GetValue<int>("helicity.delay"));
   }
   if (gQwOptions.HasValue("helicity.bitpattern")) {
-    QwMessage << " Helicity Pattern =" << gQwOptions.GetValue<std::string>("helicity.bitpattern") << QwLog::endl;
+    QwMessage << " Helicity Pattern =" 
+	      << gQwOptions.GetValue<std::string>("helicity.bitpattern") 
+	      << QwLog::endl;
     std::string hex = gQwOptions.GetValue<std::string>("helicity.bitpattern");
     UInt_t bits = QwParameterFile::GetUInt(hex);
-    SetHelicityPattern(bits);
+    SetHelicityBitPattern(bits);
+  } else {
+    BuildHelicityBitPattern(fMaxPatternPhase);
   }
 };
 
@@ -646,8 +655,8 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	}
       else if (varname=="patternbits")
         {
-          SetHelicityPattern(value);
-          QwMessage << " fPatternBits " << fHelicityPattern << QwLog::endl;
+          SetHelicityBitPattern(value);
+          QwMessage << " fPatternBits " << fHelicityBitPattern << QwLog::endl;
         }
       else if (varname=="numberpatternsdelayed")
 	{
@@ -801,6 +810,13 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
     QwMessage << " Helicity Delay =" << gQwOptions.GetValue<int>("helicity.delay") << QwLog::endl;
     SetHelicityDelay(gQwOptions.GetValue<int>("helicity.delay"));
   }
+
+  //  If we have the default Helicity Bit Pattern & a large fMaxPatternPhase,
+  //  try to recompute the Helicity Bit Pattern.
+  if (fMaxPatternPhase>8 && fHelicityBitPattern==kDefaultHelicityBitPattern){
+    BuildHelicityBitPattern(fMaxPatternPhase);
+  }
+
 
   if (fHelicityDecodingMode==kHelInputMollerMode){
     // Check to be sure kEventTypeHelPlus and kEventTypeHelMinus are both defined and not equal
@@ -1472,7 +1488,7 @@ void QwHelicity::RunPredictor()
 
 
   // Use the stored helicity bit pattern to calculate the helicity of this window
-  if (((fHelicityPattern >> localphase) & 0x1) == (fHelicityPattern & 0x1)) {
+  if (((fHelicityBitPattern >> localphase) & 0x1) == (fHelicityBitPattern & 0x1)) {
     fHelicityActual  = fActualPatternPolarity;
     fHelicityDelayed = fDelayedPatternPolarity;
   } else {
@@ -1730,11 +1746,11 @@ void QwHelicity::SetHelicityDelay(Int_t delay)
 };
 
 
-void QwHelicity::SetHelicityPattern(UInt_t bits)
+void QwHelicity::SetHelicityBitPattern(UInt_t bits)
 {
   // Set the helicity pattern bits
   if (parity(bits) == 0)
-    fHelicityPattern = bits;
+    fHelicityBitPattern = bits;
   else QwError << "What, exactly, are you trying to do ?!?!?" << QwLog::endl;
 }
 
@@ -1894,3 +1910,34 @@ Bool_t QwHelicity::Compare(VQwSubsystem *value)
   return res;
 };
 
+
+UInt_t QwHelicity::BuildHelicityBitPattern(Int_t patternsize){
+  UInt_t bitpattern = 0;
+  //  Standard helicity board patterns (last to first):
+  //  Pair, quad, octet: -++-+--+ : 0x69
+  //  Hexo-quad:         -++--++--++-+--++--++--+ : 0x666999
+  //  Octo-quad:         -++--++--++--++-+--++--++--++--+ : 0x66669999
+  //
+  if (patternsize<8){
+    bitpattern = kDefaultHelicityBitPattern;
+  } else if (patternsize%8==0){
+    Int_t halfshift = patternsize/2;
+    for (Int_t i=0; i<(patternsize/8); i++){
+      bitpattern += (0x9<<(i*4));
+      bitpattern += (0x6<<(halfshift+i*4));
+    }
+  } else {
+    QwError << "QwHelicity::BuildHelicityBitPattern: "
+	    << "Unable to build standard bit pattern for pattern size of "
+	    << patternsize << ".  Try a pattern of 0x69."
+	    << QwLog::endl;
+    bitpattern = kDefaultHelicityBitPattern;
+  }
+  QwDebug << "QwHelicity::BuildHelicityBitPattern: "
+	  << "Built pattern 0x" << std::hex << bitpattern
+	  << std::dec << " for pattern size "
+	  << patternsize << "." << QwLog::endl;
+  //  Now set the bit pattern.
+  SetHelicityBitPattern(bitpattern);
+  return bitpattern;
+};
