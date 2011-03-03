@@ -118,7 +118,7 @@ class QwIntegrationPMT : public VQwDataElement{
   void Difference(QwIntegrationPMT &value1, QwIntegrationPMT &value2);
   void Ratio(QwIntegrationPMT &numer, QwIntegrationPMT &denom);
   void Scale(Double_t factor);
-
+  void Normalize(VQwDataElement* denom);
   void AccumulateRunningSum(const QwIntegrationPMT& value);
   void CalculateRunningAverage();
 

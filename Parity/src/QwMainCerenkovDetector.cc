@@ -869,8 +869,6 @@ void  QwMainCerenkovDetector::ProcessEvent_2()
           std::cout<<"pedestal, calfactor, average volts = "<<pedestal<<", "<<calfactor<<", "<<volts<<std::endl;
         }
 
-      // assume fTargetCharge.fHardwareSum is a calibrated value,
-      // detector signals will be normalized to it
       if (bNormalization) this->DoNormalization();
     }
   else
@@ -1152,6 +1150,16 @@ void QwMainCerenkovDetector::Scale(Double_t factor)
   return;
 };
 
+//*****************************************************************
+void QwMainCerenkovDetector::Normalize(VQwDataElement* denom)
+{
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].Normalize(denom);
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].Normalize(denom);
+};
+
+
 
 void QwMainCerenkovDetector::CalculateRunningAverage()
 {
@@ -1283,22 +1291,11 @@ const QwCombinedPMT* QwMainCerenkovDetector::GetCombinedPMT(const TString name) 
 
 void QwMainCerenkovDetector::DoNormalization(Double_t factor)
 {
-  static Bool_t notwarned = kTRUE;
-
   if (bIsExchangedDataValid)
     {
       try
         {
-          Double_t  norm = fTargetCharge.GetHardwareSum()*factor;
-	  if (norm >1e-9){
-	    this->Scale(1.0/norm);
-	    notwarned = kTRUE;
-	  } else if (notwarned) {
-	    notwarned = kFALSE;
-	    QwWarning << "QwMainCerenkovDetector::DoNormalization:  Charge is too small to do the "
-		      << "normalization (fTargetCharge==" << fTargetCharge.GetHardwareSum()
-		      << ")" << QwLog::endl;
-	  }
+	  this->Normalize(&fTargetCharge);
         }
       catch (std::exception& e)
         {

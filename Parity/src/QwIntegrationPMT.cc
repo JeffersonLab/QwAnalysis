@@ -286,6 +286,13 @@ void QwIntegrationPMT::Scale(Double_t factor)
   return;
 }
 
+void QwIntegrationPMT::Normalize(VQwDataElement* denom)
+{
+  QwVQWK_Channel vqwk_denom;
+  vqwk_denom.Copy(denom);
+  fTriumf_ADC.DivideBy(vqwk_denom);
+  return;
+}
 
 void QwIntegrationPMT::PrintValue() const
 {

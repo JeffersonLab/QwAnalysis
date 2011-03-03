@@ -119,6 +119,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void Difference(VQwSubsystem* value1, VQwSubsystem* value2);
   void Ratio(VQwSubsystem* numer, VQwSubsystem* denom);
   void Scale(Double_t factor);
+  void Normalize(VQwDataElement* denom);
 
   void AccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();

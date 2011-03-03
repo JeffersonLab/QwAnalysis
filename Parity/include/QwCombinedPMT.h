@@ -88,7 +88,7 @@ class QwCombinedPMT : public VQwDataElement {
   void Difference(QwCombinedPMT &value1, QwCombinedPMT &value2);
   void Ratio(QwCombinedPMT &numer, QwCombinedPMT &denom);
   void Scale(Double_t factor);
-
+  void Normalize(VQwDataElement* denom);
   void AccumulateRunningSum(const QwCombinedPMT& value);
   void CalculateRunningAverage();
 

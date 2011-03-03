@@ -287,6 +287,13 @@ void QwCombinedPMT::Scale(Double_t factor)
 //  fAvgADC.Scale(factor);
   return;
 }
+void QwCombinedPMT::Normalize(VQwDataElement* denom)
+{
+  fSumADC.Normalize(denom);
+
+  return;
+}
+
 
 void QwCombinedPMT::CalculateRunningAverage()
 {

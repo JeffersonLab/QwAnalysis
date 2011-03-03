@@ -659,35 +659,13 @@ void  QwLumi::ExchangeProcessedData()
 
   bIsExchangedDataValid = kTRUE;
   if (bNormalization){
-    // Create a list of all variables that we need
-    // TODO This could be a static list to avoid repeated vector initializations
-    std::vector<VQwDataElement*> variable_list;
-    variable_list.push_back(&fTargetCharge);
-    //variable_list.push_back(&fTargetX);
-    //variable_list.push_back(&fTargetY);
-    //variable_list.push_back(&fTargetXprime);
-    //variable_list.push_back(&fTargetYprime);
-    //variable_list.push_back(&fTargetEnergy);
-
-
-    // Loop over all variables in the list
-    std::vector<VQwDataElement*>::iterator variable_iter;
-    for (variable_iter  = variable_list.begin();
-	 variable_iter != variable_list.end(); variable_iter++)
-      {
-	VQwDataElement* variable = *variable_iter;
-	if (RequestExternalValue(variable->GetElementName(), variable))
-	  {
-	    if (bDEBUG)
-	      dynamic_cast<QwVQWK_Channel*>(variable)->PrintInfo();
-	  }
-	else
-	  {
-	    bIsExchangedDataValid = kFALSE;
-	    QwError << GetSubsystemName() << " could not get external value for "
-		    << variable->GetElementName() << QwLog::endl;
-	  }
-      } // end of loop over variables
+    if(RequestExternalValue("q_targ", &fTargetCharge)){
+      if (bDEBUG){
+	QwWarning << "QwLumi::ExchangeProcessedData Found "<<fTargetCharge.GetElementName()<< QwLog::endl;
+	//QwWarning <<"****QwMainCerenkovDetector****"<< QwLog::endl;
+	(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))->PrintInfo();
+      }
+    }
   }
 };
 
@@ -926,6 +904,18 @@ void QwLumi::Scale(Double_t factor)
   for (size_t i = 0; i < fScalerPMT.size(); i++)
     fScalerPMT[i].Scale(factor);
 };
+
+//*****************************************************************
+void QwLumi::Normalize(VQwDataElement* denom)
+{
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+    fIntegrationPMT[i].Normalize(denom);
+  for (size_t i = 0; i < fCombinedPMT.size(); i++)
+    fCombinedPMT[i].Normalize(denom);
+  //for (size_t i = 0; i < fScalerPMT.size(); i++)
+    //fScalerPMT[i].Normalize(denom);
+};
+
 
 //*****************************************************************
 Bool_t QwLumi::Compare(VQwSubsystem *value)
@@ -1187,22 +1177,19 @@ void QwLumi::AccumulateRunningSum(VQwSubsystem* value1)
 
 void QwLumi::DoNormalization(Double_t factor)
 {
-  static Bool_t notwarned = kTRUE;
-
   if (bIsExchangedDataValid)
     {
+      if (bDEBUG)
+        {
+          Double_t  pedestal = fTargetCharge.GetPedestal();
+          Double_t  calfactor = fTargetCharge.GetCalibrationFactor();
+          Double_t  volts = fTargetCharge.GetAverageVolts();
+          std::cout<<"QwLumi::ProcessEvent_2(): processing with exchanged data"<<std::endl;
+          std::cout<<"pedestal, calfactor, average volts = "<<pedestal<<", "<<calfactor<<", "<<volts<<std::endl;
+        }
       try
         {
-          Double_t  norm = fTargetCharge.GetHardwareSum()*factor;
-	  if (norm >1e-9){
-	    this->Scale(1.0/norm);
-	    notwarned = kTRUE;
-	  } else if (notwarned) {
-	    notwarned = kFALSE;
-	    QwWarning << "QwLumi::DoNormalization:  Charge is too small to do the "
-		      << "normalization (fTargetCharge==" << fTargetCharge.GetHardwareSum()
-		      << ")" << QwLog::endl;
-	  }
+	  this->Normalize(&fTargetCharge);
         }
       catch (std::exception& e)
         {
