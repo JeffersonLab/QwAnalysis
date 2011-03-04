@@ -22,7 +22,7 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
 
 	// Open file 1
 	char filename[255];
-	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnum1);
+	sprintf(filename,"~/users/buddhini/rootfiles/Qweak_%i.000.root",runnum1);
 	TFile *_file1 = TFile::Open(filename);
 	TTree *p1 = (TTree*)gROOT->FindObject("Hel_Tree");
 
@@ -107,7 +107,7 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
     t1->Draw();
 
 	
-	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnum2);
+	sprintf(filename,"~/users/buddhini/rootfiles/Qweak_%i.000.root",runnum2);
 	TFile *_file2 = TFile::Open(filename);
 	TTree *p2 = (TTree*)gROOT->FindObject("Hel_Tree");
 

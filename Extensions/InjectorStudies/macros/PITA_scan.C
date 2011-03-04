@@ -12,7 +12,7 @@ void PITA_scan(Int_t runnumber=1, Int_t ihwp=-1, TString device="1i02", TString 
 		printf("defaults:\n\t[device] = \"1i02\"\n\t[cut]    = \"1\"\n\t[title]  = \"PITA\"\n\n");
 		return;
 	}
-	TString infilename = Form("$QW_ROOTFILES/Qweak_%i.000.root",runnumber);
+	TString infilename = Form("~/users/buddhini/rootfiles/Qweak_%i.000.root",runnumber);
 	PITA_scan(infilename, ihwp, device, usercut, intitle, runnumber);
 }
 
@@ -109,9 +109,9 @@ void PITA_scan(TString infilename = "1", Int_t ihwp=-1, TString device="1i02",
 
 	plot_element(a1_p[0],a1_p[1],"qwk_"+device+"_EffectiveCharge.hw_sum",usercut,infilename);
 	
-	plot_element(a1_p[2],a1_p[3],"qwk_"+device+"RelX.hw_sum",usercut,infilename);
+	plot_element(a1_p[2],a1_p[3],"qwk_"+device+"X.hw_sum",usercut,infilename);
 	
-	plot_element(a1_p[4],a1_p[5],"qwk_"+device+"RelY.hw_sum",usercut,infilename);
+	plot_element(a1_p[4],a1_p[5],"qwk_"+device+"Y.hw_sum",usercut,infilename);
 
 	a1->cd();
 	a1->Update();

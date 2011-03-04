@@ -32,9 +32,9 @@ void transmission_2D_compare(Int_t runnum1=1, Int_t runnum2=1,
     TCanvas *Trans2DCompCanvas = new TCanvas("Trans2DCompCanvas","Transmission",40,0,1200,600);
     Trans2DCompCanvas->Clear();
     Trans2DCompCanvas->Divide(4,2,0.0001,0.0001);
-	TString bpmlist[] = {"1i02", "1i04","1i06","0i02","0i02a","0i05","0i07","0l02"};
+	TString bpmlist[] = {"1i02", "1i04","1i06","1i01","1i01a","0i02","0i02a","0i05"};//,"0i07","0l01"};
 	const Int_t numbpms=8;
-	Double_t maxx=0.2;
+	Double_t maxx=0.08;
 
 //    TString bpmlist[] = {"bpm1i02", "bpm1i04","bpm1i06","bpm0i01","bpm0i01A","bpm0i02","bpm0i02A","bpm0i05"};
 //    const Int_t numplots=8;

@@ -15,15 +15,17 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
     gROOT->SetStyle("Plain");
     gStyle->SetOptStat(kFALSE);
     gStyle->SetTitleBorderSize(0);
-
+	char fileprefix[255];
+//	sprintf(fileprefix,"~/users/buddhini/rootfiles/Qweak");
+	sprintf(fileprefix,"/net/cdaq/cdaql5data/qweak/rootfiles/qwinjector");
 
 	// Open file 1
 	char filename[255];
-	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnum1);
+	sprintf(filename,"%s_%i.000.root",fileprefix,runnum1);
 	printf("Opening %s\n",filename);
 	TFile *_file1 = TFile::Open(filename);
 	TTree *tree1 = (TTree*)gROOT->FindObject("Hel_Tree");
-	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnum2);
+	sprintf(filename,"%s_%i.000.root",fileprefix,runnum2);
 	printf("Opening %s\n",filename);
 	TFile *_file2 = TFile::Open(filename);
 	TTree *tree2 = (TTree*)gROOT->FindObject("Hel_Tree");
