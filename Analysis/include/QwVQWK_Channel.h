@@ -43,6 +43,8 @@ class QwVQWK_Channel: public VQwDataElement {
  ******************************************************************/
  public:
   static Int_t GetBufferOffset(Int_t moduleindex, Int_t channelindex);
+  static void  PrintErrorCounterHead();
+  static void  PrintErrorCounterTail();
 
  public:
   QwVQWK_Channel() {
@@ -204,9 +206,9 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t GetAverageVolts() const;
   //  Double_t GetSoftwareSum() const {return fSoftwareBlockSum;};
 
-  Double_t GetRawBlockValue(size_t blocknum) const {return fBlock_raw[blocknum];};
-  Double_t GetRawHardwareSum() const {return fHardwareBlockSum_raw;};
-  Double_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
+  Int_t GetRawBlockValue(size_t blocknum) const {return fBlock_raw[blocknum];};
+  Int_t GetRawHardwareSum() const {return fHardwareBlockSum_raw;};
+  Int_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
 
   size_t GetSequenceNumber() const {return (fSequenceNumber);};
   size_t GetNumberOfSamples() const {return (fNumberOfSamples);};
@@ -235,6 +237,7 @@ class QwVQWK_Channel: public VQwDataElement {
   
 
  protected:
+  QwVQWK_Channel& operator/= (const QwVQWK_Channel &value);
 
 
  private:
@@ -272,9 +275,9 @@ class QwVQWK_Channel: public VQwDataElement {
 
   /*! \name Event data members---Raw values */
   // @{
-  Double_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
-  Double_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
-  Double_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
+  Int_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
+  Int_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
+  Int_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
   /*! \name Event data members---Potentially calibrated values*/
   // @{
   // The following values potentially have pedestal removed  and calibration applied

@@ -608,7 +608,7 @@ Int_t QwLumi::GetEventcutErrorCounters()
 {
   //inherited from the VQwSubsystemParity; this will display the error summary
   QwMessage<<"*********QwLumi Error Summary****************"<<QwLog::endl;
-  std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || EventCut\n";
+  QwVQWK_Channel::PrintErrorCounterHead();
   for(size_t i=0;i<fIntegrationPMT.size();i++){
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
     fIntegrationPMT[i].GetEventcutErrorCounters();
@@ -617,8 +617,7 @@ Int_t QwLumi::GetEventcutErrorCounters()
     //std::cout<<"  CombinedPMT ["<<i<<"] "<<std::endl;
     fCombinedPMT[i].GetEventcutErrorCounters();
   }
-  QwMessage<<"---------------------------------------------------"<<QwLog::endl;
-  QwMessage<<QwLog::endl;
+  QwVQWK_Channel::PrintErrorCounterTail();
   return 1;
 };
 

@@ -250,7 +250,7 @@ Int_t QwVQWK_Channel::GetEventcutErrorCounters()
 void QwVQWK_Channel::ClearEventData()
 {
   for (Int_t i = 0; i < fBlocksPerEvent; i++) {
-    fBlock_raw[i] = 0.0;
+    fBlock_raw[i] = 0;
     fBlock[i] = 0.0;
     fBlockM2[i] = 0.0;
     fBlockError[i] = 0.0;
@@ -364,12 +364,13 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
   Double_t thispedestal = 0.0;
   thispedestal = fPedestal * fNumberOfSamples;
 
+  fHardwareBlockSum_raw = 0;
   for (Int_t i = 0; i < fBlocksPerEvent; i++)
     {
-      fBlock_raw[i] = fBlock[i] / fCalibrationFactor +	thispedestal / (fBlocksPerEvent * 1.);
+      fBlock_raw[i] = Int_t(fBlock[i] / fCalibrationFactor +	thispedestal / (fBlocksPerEvent * 1.));
+      fHardwareBlockSum_raw += fBlock_raw[i];
     }
-
-  fHardwareBlockSum_raw = fHardwareBlockSum / fCalibrationFactor + thispedestal;
+  //  fHardwareBlockSum_raw = fHardwareBlockSum / fCalibrationFactor + thispedestal;
   fSoftwareBlockSum_raw = fHardwareBlockSum_raw;
 
   return;
@@ -383,14 +384,14 @@ void QwVQWK_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
     //  This channel is not used, but is present in the data stream.
     //  Skip over this data.
   } else {
-    localbuf[4] = 0;
+    //    localbuf[4] = 0;
     for (Int_t i = 0; i < 4; i++) {
-        localbuf[i] = Long_t(fBlock_raw[i]);
-        localbuf[4] += localbuf[i]; // fHardwareBlockSum_raw
+      localbuf[i] = fBlock_raw[i];
+      //        localbuf[4] += localbuf[i]; // fHardwareBlockSum_raw
     }
     // The following causes many rounding errors and skips due to the check
     // that fHardwareBlockSum_raw == fSoftwareBlockSum_raw in IsGoodEvent().
-    //localbuf[4] = Long_t(fHardwareBlockSum_raw);
+    localbuf[4] = fHardwareBlockSum_raw;
     localbuf[5] = (fNumberOfSamples << 16 & 0xFFFF0000)
                 | (fSequenceNumber  << 8  & 0x0000FF00);
 
@@ -957,52 +958,13 @@ void QwVQWK_Channel::Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
 void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
 {
   if (!IsNameEmpty()) {
+    *this  = numer;
+    *this /= denom;
 
-    // Take the ratio of the individual blocks
-    for (Int_t i = 0; i < fBlocksPerEvent; i++) {
-      if (denom.fBlock[i] != 0.0)
-        fBlock[i] = (numer.fBlock[i]) / (denom.fBlock[i]);
-      else {
-        QwVerbose << "Attempting to divide by zero block in " << GetElementName() << QwLog::endl;
-        fBlock[i] = 0.0;
-      }
-      // raw is always zero on derived quantities
-      fBlock_raw[i] = 0.0;
-    }
-    // Take the ratio of the hardware sum
-    if (denom.fHardwareBlockSum != 0.0)
-      fHardwareBlockSum = (numer.fHardwareBlockSum) / (denom.fHardwareBlockSum);
-    else {
-      QwVerbose << "Attempting to divide by zero sum in " << GetElementName() << QwLog::endl;
-      fHardwareBlockSum = 0.0;
-    }
-    fHardwareBlockSum_raw = 0.0;
-    fSoftwareBlockSum_raw = 0.0;
-
-    // The variances are calculated using the following formula:
-    //   Var[ratio] = ratio^2 (Var[numer] / numer^2 + Var[denom] / denom^2)
-    //
-    // This requires that both the numerator and denominator are non-zero!
-    //
-    for (Int_t i = 0; i < 4; i++) {
-      if (numer.fBlock[i] != 0.0 && denom.fBlock[i] != 0.0)
-        fBlockM2[i] = fBlock[i] * fBlock[i] *
-           (numer.fBlockM2[i] / numer.fBlock[i] / numer.fBlock[i]
-          + denom.fBlockM2[i] / denom.fBlock[i] / denom.fBlock[i]);
-      else {
-        QwVerbose << "Attempting to divide by zero block in " << GetElementName() << QwLog::endl;
-        fBlockM2[i] = 0.0;
-      }
-    }
-    if (numer.fHardwareBlockSum != 0.0 && denom.fHardwareBlockSum != 0.0)
-      fHardwareBlockSumM2 = fHardwareBlockSum * fHardwareBlockSum *
-         (numer.fHardwareBlockSumM2 / numer.fHardwareBlockSum / numer.fHardwareBlockSum
-        + denom.fHardwareBlockSumM2 / denom.fHardwareBlockSum / denom.fHardwareBlockSum);
-    else {
-      QwVerbose << "Attempting to divide by zero sum in " << GetElementName() << QwLog::endl;
-      fHardwareBlockSumM2 = 0.0;
-    }
-
+    //  Set the raw values to zero.
+    for (Int_t i = 0; i < fBlocksPerEvent; i++) fBlock_raw[i] = 0;
+    fHardwareBlockSum_raw = 0;
+    fSoftwareBlockSum_raw = 0;
     // Remaining variables
     fNumberOfSamples = denom.fNumberOfSamples;
     fSequenceNumber  = 0;
@@ -1010,12 +972,66 @@ void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
     fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
     fErrorFlag       = (numer.fErrorFlag|denom.fErrorFlag);
   }
+  return;
+};
+
+QwVQWK_Channel& QwVQWK_Channel::operator/= (const QwVQWK_Channel &denom)
+{
+  //  In this function, leave the "raw" variables untouched.
+  //  
+  Double_t ratio;
+  Double_t variance;
+  if (!IsNameEmpty()) {
+    // The variances are calculated using the following formula:
+    //   Var[ratio] = ratio^2 (Var[numer] / numer^2 + Var[denom] / denom^2)
+    //
+    // This requires that both the numerator and denominator are non-zero!
+    //
+    for (Int_t i = 0; i < 4; i++) {
+      if (this->fBlock[i] != 0.0 && denom.fBlock[i] != 0.0){
+	ratio    = (this->fBlock[i]) / (denom.fBlock[i]);
+        variance =  ratio * ratio *
+           (this->fBlockM2[i] / this->fBlock[i] / this->fBlock[i]
+          + denom.fBlockM2[i] / denom.fBlock[i] / denom.fBlock[i]);
+	fBlock[i]   = ratio;
+	fBlockM2[i] = variance;
+      } else if (this->fBlock[i] == 0.0) {
+	this->fBlock[i]   = 0.0;
+        this->fBlockM2[i] = 0.0;
+      } else {
+        QwVerbose << "Attempting to divide by zero block in " 
+		  << GetElementName() << QwLog::endl;
+	fBlock[i]   = 0.0;
+        fBlockM2[i] = 0.0;
+      }
+    }
+    if (this->fHardwareBlockSum != 0.0 && denom.fHardwareBlockSum != 0.0){
+      ratio    =  (this->fHardwareBlockSum) / (denom.fHardwareBlockSum);
+      variance =  ratio * ratio *
+	(this->fHardwareBlockSumM2 / this->fHardwareBlockSum / this->fHardwareBlockSum
+	 + denom.fHardwareBlockSumM2 / denom.fHardwareBlockSum / denom.fHardwareBlockSum);
+      fHardwareBlockSum   = ratio;
+      fHardwareBlockSumM2 = variance;
+    } else if (this->fHardwareBlockSum == 0.0) {
+      fHardwareBlockSum   = 0.0;
+      fHardwareBlockSumM2 = 0.0;
+    } else {
+      QwVerbose << "Attempting to divide by zero sum in " 
+		<< GetElementName() << QwLog::endl;
+      fHardwareBlockSumM2 = 0.0;
+    }
+    // Remaining variables
+    //  Don't change fNumberOfSamples, fSequenceNumber, fGoodEventCount,
+    //  or fErrorFlag.
+    //  'OR' the device error codes together.
+    fDeviceErrorCode |= denom.fDeviceErrorCode;
+  }
 
   // Nanny
   if (fHardwareBlockSum != fHardwareBlockSum)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
 
-  return;
+  return *this;
 };
 
 void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
@@ -1072,11 +1088,7 @@ void QwVQWK_Channel::Scale(Double_t scale)
 
 void QwVQWK_Channel::DivideBy(QwVQWK_Channel &denom)
 {
-  QwVQWK_Channel numer = *this;
-  denom.fErrorFlag=0;
-  denom.fDeviceErrorCode=0;
-  
-  Ratio(numer,denom);
+  *this /= denom;
 }
 
 
@@ -1463,27 +1475,42 @@ void QwVQWK_Channel::Copy(VQwDataElement *source)
     return;
 }
 
+void  QwVQWK_Channel::PrintErrorCounterHead(){
+  TString message;
+  message  = Form("%-20s\t","Device name");
+  message += "   Sample";
+  message += "    SW_HW";
+  message += " Sequence";
+  message += "   SameHW";
+  message += "   ZeroHW";
+  message += " EventCut";
+  QwMessage << message << QwLog::endl; 
+}
+
+void  QwVQWK_Channel::PrintErrorCounterTail(){
+  QwMessage << "---------------------------------------------------"
+	    << QwLog::endl;
+}
+
 void  QwVQWK_Channel::ReportErrorCounters()
 {
-  if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW || fErrorCount_ZeroHW || fNumEvtsWithEventCutsRejected){
-     std::cout<<GetElementName();
-     //if (fErrorCount_sample)
-       std::cout <<"\t"<<fErrorCount_sample;
-       //if (fErrorCount_SW_HW)
-      std::cout <<"\t"<<fErrorCount_SW_HW;
-      //if (fErrorCount_Sequence )
-      std::cout <<" \t "<<fErrorCount_Sequence;
-      //if (fErrorCount_SameHW)
-      std::cout <<" \t "<<fErrorCount_SameHW ;
-      std::cout <<" \t "<<fErrorCount_ZeroHW ;
-      //if (fNumEvtsWithEventCutsRejected)
-      std::cout<< " \t " << fNumEvtsWithEventCutsRejected;
-      if((fDataToSave == kRaw) && (!kFoundPedestal||!kFoundGain))
-	std::cout << " \t " <<  "~Warning~ No Pedestal or Gain entered in map file for this channel" << "\n";
-      else
-	std::cout << "\n";
-      //if (fErrorCount_sample || fErrorCount_SW_HW || fErrorCount_Sequence || fErrorCount_SameHW)
-      //std::cout <<"*************End of Error summary*****************"<<std::endl;
+  TString message;
+  if (fErrorCount_sample || fErrorCount_SW_HW 
+      || fErrorCount_Sequence || fErrorCount_SameHW 
+      || fErrorCount_ZeroHW || fNumEvtsWithEventCutsRejected){
+    message  = Form("%-20s\t",GetElementName().Data());
+    message += Form(" %8d", fErrorCount_sample);
+    message += Form(" %8d", fErrorCount_SW_HW);
+    message += Form(" %8d", fErrorCount_Sequence);
+    message += Form(" %8d", fErrorCount_SameHW);
+    message += Form(" %8d", fErrorCount_ZeroHW);
+    message += Form(" %8d", fNumEvtsWithEventCutsRejected);
+    
+    if((fDataToSave == kRaw) && (!kFoundPedestal||!kFoundGain)){
+      message += " ~Warning~ No Pedestal or Gain entered in map file for this channel";
+    }
+
+    QwMessage << message << QwLog::endl;
   }
   return;
 };

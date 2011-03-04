@@ -700,10 +700,9 @@ UInt_t QwMainCerenkovDetector::GetEventcutErrorFlag() //return the error flag
 //inherited from the VQwSubsystemParity; this will display the error summary
 Int_t QwMainCerenkovDetector::GetEventcutErrorCounters()
 {
-
   QwMessage<<"*********QwMainCerenkovDetector Error Summary****************"<<QwLog::endl;
-  QwMessage<<"Device name ||  Sample || SW_HW || Sequence || SameHW || EventCut\n";
-    for(size_t i=0;i<fIntegrationPMT.size();i++){
+  QwVQWK_Channel::PrintErrorCounterHead();
+  for(size_t i=0;i<fIntegrationPMT.size();i++){
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
     fIntegrationPMT[i].GetEventcutErrorCounters();
   }
@@ -711,11 +710,7 @@ Int_t QwMainCerenkovDetector::GetEventcutErrorCounters()
     //std::cout<<"  CombinedPMT ["<<i<<"] "<<std::endl;
     fCombinedPMT[i].GetEventcutErrorCounters();
   }
-  QwMessage<<"---------------------------------------------------"<<QwLog::endl;
-  QwMessage<<QwLog::endl;
-
-
-
+  QwVQWK_Channel::PrintErrorCounterTail();
   return 1;
 }
 

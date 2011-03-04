@@ -647,13 +647,11 @@ Bool_t QwBeamMod::ApplySingleEventCuts(){
 Int_t QwBeamMod::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
 
   std::cout<<"*********QwBeamMod Error Summary****************"<<std::endl;
-  std::cout<<"Device name ||  Sample || SW_HW || Sequence || SameHW || ZeroHW || EventCut\n";
+  QwVQWK_Channel::PrintErrorCounterHead();
   for(size_t i=0;i<fModChannel.size();i++){
     fModChannel[i].GetEventcutErrorCounters();
   }
-
-   std::cout<<"---------------------------------------------------"<<std::endl;
-   std::cout<<std::endl;
+  QwVQWK_Channel::PrintErrorCounterTail();
   return 1;
 }
 

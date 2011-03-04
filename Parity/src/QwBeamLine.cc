@@ -1248,7 +1248,7 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
 Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
 
   QwMessage<<"*********QwBeamLine Error Summary****************"<<QwLog::endl;
-  QwMessage<<"Device name ||  Sample || SW_HW || Sequence || SameHW || ZeroHW || EventCut\n";
+  QwVQWK_Channel::PrintErrorCounterHead();
   for(size_t i=0;i<fBCM.size();i++){
     fBCM[i].GetEventcutErrorCounters();
   }
@@ -1284,8 +1284,7 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
   for(size_t i=0;i<fECalculator.size();i++){
     fECalculator[i].GetEventcutErrorCounters();
   }
-   QwMessage<<"---------------------------------------------------"<<QwLog::endl;
-   QwMessage<<std::endl;
+  QwVQWK_Channel::PrintErrorCounterTail();
   return 1;
 };
 
