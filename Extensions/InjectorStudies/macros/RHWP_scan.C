@@ -9,8 +9,7 @@ void RHWP_scan(Int_t runnumber=1, TString device="1i02", TString ucut ="1") {
 	gROOT->Reset();
 
 	char fileprefix[255];
-//	sprintf(fileprefix,"~/users/buddhini/rootfiles/Qweak");
-	sprintf(fileprefix,"/net/cdaq/cdaql5data/qweak/rootfiles/qwinjector");
+	sprintf(fileprefix,"$QW_ROOTFILES/qwinjector");
 
 	Int_t dof;
 	TString ihwpstate;
@@ -126,7 +125,7 @@ void RHWP_scan(Int_t runnumber=1, TString device="1i02", TString ucut ="1") {
 	plot_element(a1_p[0],a1_p[1],a1_p[2],a1_p[3],a1_p[4],a1_p[5],dettype,sendcut,runnumber,fileprefix);
 
 	a1->cd();
-	TString psnam = "plots/";
+	TString psnam = "output/";
 	psnam += pstit.Data();
 	psnam += ".png";
 	a1->Print(psnam.Data());
@@ -160,8 +159,7 @@ void plot_element(TPad *p1, TPad *p2, TPad *p3, TPad *p4, TPad *p5, TPad *p6,
 	TTree *p = (TTree*)gROOT->FindObject("Hel_Tree");
 	TTree *r = (TTree*)gROOT->FindObject("Mps_Tree");
 
-	// make cut
-	TString scut = lcut;
+	if(!p || !r) exit(1);
 
     // plot A_Q
     tmpname = bpmNam->Data();
@@ -170,16 +168,21 @@ void plot_element(TPad *p1, TPad *p2, TPad *p3, TPad *p4, TPad *p5, TPad *p6,
 	plotcommand += "_EffectiveCharge.hw_sum";
 	plotcommand += "*1000000";
     plotcommand += ":scandata1/50.0>>hAq";
+
+	// make cut
+	TString scut = Form("ErrorFlag == 0 && asym_%s_EffectiveCharge.Device_Error_Code == 0",tmpname.Data());
+
     p1->cd();
     p1->SetLeftMargin(0.06);
     p1->SetRightMargin(0.04);
-    p->SetMarkerStyle(7);
-    p->SetMarkerColor(kBlue);
-    p->SetLineColor(kBlue);
+  
 
 	printf("Hel_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 
     p->Draw(plotcommand.Data(),scut.Data(),"prof");
+	hAq->(TH1*)gDirectory->Get("htemp");
+	if(!hAq) exit(1);
+
     // fit Aq vs theta
     TF1 *f1 = new TF1("f1","[0] + [1]*sin(2*3.14159*x/180.+[2]) + [3]*sin(4*3.14159*x/180.+[4])",0,180.0);
     f1->SetLineColor(2);
@@ -196,6 +199,9 @@ void plot_element(TPad *p1, TPad *p2, TPad *p3, TPad *p4, TPad *p5, TPad *p6,
     f4->SetLineWidth(1);
     f4->SetLineStyle(2);
     //    cout << "I'm trying to fit the charge asymmetry" << endl;
+
+
+
 
     hAq->Fit("f1");
     Double_t rectphs = f1->GetParameter(2);
@@ -225,9 +231,11 @@ void plot_element(TPad *p1, TPad *p2, TPad *p3, TPad *p4, TPad *p5, TPad *p6,
     hAq->GetXaxis()->SetTitleOffset(1.2);
     hAq->GetXaxis()->SetTitleSize(0.06);
     TString tit = bpmNam->Data();
-    tit += ", Asymmetry vs.  #theta";
+    tit += ", Asymmetry (ppm) vs.  #theta";
     hAq->GetXaxis()->SetTitle(tit.Data());
-
+	hAq->SetMarkerStyle(7);
+    hAq->SetMarkerColor(kBlue);
+    hAq->SetLineColor(kBlue);
 
     Double_t padmaxx,padmaxy, padminx,padminy;
     //gPad->GetRange(padminx,padminy,padmaxx,padmaxy);
@@ -293,6 +301,8 @@ void plot_element(TPad *p1, TPad *p2, TPad *p3, TPad *p4, TPad *p5, TPad *p6,
     p3->SetLeftMargin(0.06);
     p3->SetRightMargin(0.04);
 
+	scut = Form("ErrorFlag == 0 && diff_%sX.Device_Error_Code == 0",tmpname.Data());
+
 	printf("Hel_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 
     p->Draw(plotcommand.Data(),scut.Data(),"prof");
@@ -329,7 +339,7 @@ void plot_element(TPad *p1, TPad *p2, TPad *p3, TPad *p4, TPad *p5, TPad *p6,
     hDx->GetXaxis()->SetTitleOffset(1.2);
     hDx->GetXaxis()->SetTitleSize(0.06);
     TString tit = bpmNam->Data();
-    tit += ",  diff_x vs. #theta";
+    tit += ",  diff_x (#mum) vs. #theta";
     hDx->GetXaxis()->SetTitle(tit.Data());
     
     xmin = f1->GetXaxis()->GetXmin();
@@ -366,6 +376,8 @@ void plot_element(TPad *p1, TPad *p2, TPad *p3, TPad *p4, TPad *p5, TPad *p6,
     p5->cd();
     p5->SetLeftMargin(0.06);
     p5->SetRightMargin(0.04);
+
+	scut = Form("ErrorFlag == 0 && diff_%sY.Device_Error_Code == 0",tmpname.Data());
 
 	printf("Hel_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 
@@ -406,7 +418,7 @@ void plot_element(TPad *p1, TPad *p2, TPad *p3, TPad *p4, TPad *p5, TPad *p6,
     hDy->GetXaxis()->SetTitleSize(0.06);
     TString tit = bpmNam->Data();
     if(tmpname.Contains("lina1"))    tit += ",  diff_rms vs. #theta";
-    else tit += ",  diff_y vs. #theta";
+    else tit += ",  diff_y (#mum) vs. #theta";
     hDy->GetXaxis()->SetTitle(tit.Data());
     
     xmin = f1->GetXaxis()->GetXmin();
@@ -436,27 +448,32 @@ void plot_element(TPad *p1, TPad *p2, TPad *p3, TPad *p4, TPad *p5, TPad *p6,
 		dypar[i]=f1->GetParameter(i);
     }
 
+	char outfilename[255];
+	sprintf(outfilename,"%s/RHWP_scan_%d_%s.txt",outputdir.Data(),runnumber,bpmNam->Data());
+
+	printf("Writing output to %s\n",outfilename);
+	FILE *outfile = fopen(outfilename, "w"); 
 
     printf(" %7.1f  %7.1f  %5.1f  %7.1f  %5.1f \n",aqpar[0],
 		   aqpar[1],aqpar[2]*180.0/3.14159,aqpar[3],
-		   aqpar[4]*180.0/3.14159);
+		   (aqpar[4]*180.0/3.14159));
+	
+    fprintf(outfile," %7.1f  %7.1f  %5.1f  %7.1f  %5.1f \n",aqpar[0],
+			aqpar[1],aqpar[2]*180.0/3.14159,aqpar[3],
+			(aqpar[4]*180.0/3.14159));
+
     printf(" %7.1f  %7.1f  %5.1f  %7.1f  %5.1f \n",1e3*dxpar[0],
 		   1e3*dxpar[1],dxpar[2]*180.0/3.14159,1e3*dxpar[3],
 		   dxpar[4]*180.0/3.14159);
+
+    fprintf(outfile," %7.1f  %7.1f  %5.1f  %7.1f  %5.1f \n",1e3*dxpar[0],
+			1e3*dxpar[1],dxpar[2]*180.0/3.14159,1e3*dxpar[3],
+			dxpar[4]*180.0/3.14159);
+
     printf(" %7.1f  %7.1f  %5.1f  %7.1f  %5.1f \n",1e3*dypar[0],
 		   1e3*dypar[1],dypar[2]*180.0/3.14159,1e3*dypar[3],
 		   dypar[4]*180.0/3.14159);
 
-	char outfilename[255];
-	sprintf(outfilename,"%s/RHWP_scan_%d_%s.txt",outputdir.Data(),runnumber,bpmNam->Data());
-	printf("Writing output to %s\n",outfilename);
-	FILE *outfile = fopen(outfilename, "w"); 
-    fprintf(outfile," %7.1f  %7.1f  %5.1f  %7.1f  %5.1f \n",aqpar[0],
-			aqpar[1],aqpar[2]*180.0/3.14159,aqpar[3],
-			aqpar[4]*180.0/3.14159);
-    fprintf(outfile," %7.1f  %7.1f  %5.1f  %7.1f  %5.1f \n",1e3*dxpar[0],
-			1e3*dxpar[1],dxpar[2]*180.0/3.14159,1e3*dxpar[3],
-			dxpar[4]*180.0/3.14159);
     fprintf(outfile," %7.1f  %7.1f  %5.1f  %7.1f  %5.1f \n",1e3*dypar[0],
 			1e3*dypar[1],dypar[2]*180.0/3.14159,1e3*dypar[3],
 			dypar[4]*180.0/3.14159);
