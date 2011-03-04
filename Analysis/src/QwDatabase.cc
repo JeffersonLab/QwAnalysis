@@ -292,7 +292,8 @@ void QwDatabase::SetupOneRun(QwEventBuffer& qwevt)
 	      << " Run Number "  << QwColor(Qw::kBoldMagenta) << qwevt.GetRunNumber() << QwColor(Qw::kNormal)
 	      << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id << QwColor(Qw::kNormal)
 	      << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id << QwColor(Qw::kNormal)
-	      << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
+	      << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id 
+	      << QwColor(Qw::kNormal)
 	      << QwLog::endl;
   }
 }
