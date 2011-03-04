@@ -52,10 +52,18 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief Virtual destructor
   virtual ~QwSubsystemArray() { };
 
+  /// \brief Set the internal record of the CODA run number
+  void SetCodaRunNumber(UInt_t runnum) { fCodaRunNumber = runnum; };
+  /// \brief Set the internal record of the CODA segment number
+  void SetCodaSegmentNumber(UInt_t segnum) { fCodaSegmentNumber = segnum; };
   /// \brief Set the internal record of the CODA event number
   void SetCodaEventNumber(UInt_t evtnum) { fCodaEventNumber = evtnum; };
   /// \brief Set the internal record of the CODA event type
   void SetCodaEventType(UInt_t evttype) { fCodaEventType = evttype; };
+  /// \brief Get the internal record of the CODA run number
+  UInt_t GetCodaRunNumber() const { return fCodaRunNumber; };
+  /// \brief Get the internal record of the CODA segment number
+  UInt_t GetCodaSegmentNumber() const { return fCodaSegmentNumber; };
   /// \brief Get the internal record of the CODA event number
   UInt_t GetCodaEventNumber() const { return fCodaEventNumber; };
   /// \brief Get the internal record of the CODA event type
@@ -236,8 +244,10 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   size_t fTreeArrayIndex;  //! Index of this data element in root tree
 
  protected:
-  UInt_t fCodaEventNumber; ///< CODA event number as provided by QwEventBuffer
-  UInt_t fCodaEventType;   ///< CODA event type as provided by QwEventBuffer
+  UInt_t fCodaRunNumber;     ///< CODA run number as provided by QwEventBuffer
+  UInt_t fCodaSegmentNumber; ///< CODA segment number as provided by QwEventBuffer
+  UInt_t fCodaEventNumber;   ///< CODA event number as provided by QwEventBuffer
+  UInt_t fCodaEventType;     ///< CODA event type as provided by QwEventBuffer
 
   Double_t fCleanParameter[3];
   UInt_t fEventTypeMask;   ///< Mask of event types

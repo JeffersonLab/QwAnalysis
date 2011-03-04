@@ -13,7 +13,8 @@
 Bool_t globalEXIT;
 void sigint_handler(int sig)
 {
-        std::cout << "handling signal no. " << sig << "\n";
+        std::cout << "handling signal no. " << sig << " ";
+        std::cout << "(press ctrl-\\ to abort now)\n";
         globalEXIT=1;
 }
 
@@ -652,7 +653,9 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
 
-  //  Pass CODA event number and type to the subsystem array.
+  //  Pass CODA run, segment, event number and type to the subsystem array.
+  subsystems.SetCodaRunNumber(fCurrentRun);
+  subsystems.SetCodaSegmentNumber(*fRunSegmentIterator);
   subsystems.SetCodaEventNumber(fEvtNumber);
   subsystems.SetCodaEventType(fEvtType);
 
