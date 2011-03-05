@@ -442,18 +442,23 @@ void  QwSubsystemArray::ConstructBranchAndVector(
         std::vector<Double_t>& values)
 {
   fTreeArrayIndex = values.size();
-  values.push_back(0.0);
-  tree->Branch("CodaEventNumber",&(values[fTreeArrayIndex]),"CodaEventNumber/D");
-  values.push_back(0.0);
-  tree->Branch("CodaEventType",&(values[fTreeArrayIndex+1]),"CodaEventType/D");
-  values.push_back(0.0);
-  tree->Branch("Coda_CleanData",&(values[fTreeArrayIndex+2]),"Coda_CleanData/D");
-  values.push_back(0.0);
-  tree->Branch("Coda_ScanData1",&(values[fTreeArrayIndex+3]),"Coda_ScanData1/D");
-  values.push_back(0.0);
-  tree->Branch("Coda_ScanData2",&(values[fTreeArrayIndex+4]),"Coda_ScanData2/D");
-  
 
+  // Each tree should only contain event number and type once, but will
+  // still reserve space in the values vector, so we don't need to modify
+  // FillTreeVector().
+  values.push_back(0.0);
+  values.push_back(0.0);
+  values.push_back(0.0);
+  values.push_back(0.0);
+  values.push_back(0.0);
+  if (prefix == "" || prefix == "yield_") {
+    tree->Branch("CodaEventNumber",&(values[fTreeArrayIndex]),"CodaEventNumber/D");
+    tree->Branch("CodaEventType",&(values[fTreeArrayIndex+1]),"CodaEventType/D");
+    tree->Branch("Coda_CleanData",&(values[fTreeArrayIndex+2]),"Coda_CleanData/D");
+    tree->Branch("Coda_ScanData1",&(values[fTreeArrayIndex+3]),"Coda_ScanData1/D");
+    tree->Branch("Coda_ScanData2",&(values[fTreeArrayIndex+4]),"Coda_ScanData2/D");
+  }
+  
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystem* subsys_ptr = dynamic_cast<VQwSubsystem*>(subsys->get());
     subsys_ptr->ConstructBranchAndVector(tree, prefix, values);
@@ -469,8 +474,11 @@ void  QwSubsystemArray::ConstructBranchAndVector(
  */
 void QwSubsystemArray::ConstructBranch(TTree *tree, TString& prefix)
 {
-  tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
-  tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
+  // Only MPS tree should contain event number and type
+  if (prefix == "" || prefix == "yield_") {
+    tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
+    tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
+  }
 
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystem* subsys_ptr = dynamic_cast<VQwSubsystem*>(subsys->get());
@@ -500,7 +508,7 @@ void QwSubsystemArray::ConstructBranch(
   QwVerbose << "QwSubsystemArrayTracking::ConstructBranch  Preamble:" << QwLog::endl;
   QwVerbose << *preamble << QwLog::endl;
 
-  if (prefix=="") {
+  if (prefix == "" || prefix == "yield_") {
     tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
     tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
   }
