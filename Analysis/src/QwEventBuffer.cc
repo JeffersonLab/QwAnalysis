@@ -655,7 +655,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 
   //  Pass CODA run, segment, event number and type to the subsystem array.
   subsystems.SetCodaRunNumber(fCurrentRun);
-  subsystems.SetCodaSegmentNumber(*fRunSegmentIterator);
+  subsystems.SetCodaSegmentNumber(fRunIsSegmented? *fRunSegmentIterator: 0);
   subsystems.SetCodaEventNumber(fEvtNumber);
   subsystems.SetCodaEventType(fEvtType);
 
