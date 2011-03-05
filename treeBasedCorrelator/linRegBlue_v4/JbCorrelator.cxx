@@ -168,7 +168,7 @@ JbCorrelator::exportAlphas(TString outName, std::vector < TString > ivName, std:
 
   linReg.mA.Write("slopes");
   linReg.mAsig.Write("sigSlopes");
-  linReg.mRjk.Write("IV_covariance");
+  linReg.mRjk.Write("IV_correlation");
   linReg.mMP.Write("IV_mean");
   linReg.mMY.Write("DV_mean");
  
