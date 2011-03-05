@@ -287,15 +287,15 @@ std::ostream& QwLog::endl(std::ostream& strm)
 
 /*! Flush the streams
  */
-QwLog& QwLog::flush()
+std::ostream& QwLog::flush(std::ostream& strm)
 {
-  if (fScreen) {
-    *(fScreen) << std::flush;
+  if (gQwLog.fScreen) {
+    *(gQwLog.fScreen) << std::flush;
   }
-  if (fFile) {
-    *(fFile) << std::flush;
+  if (gQwLog.fFile) {
+    *(gQwLog.fFile) << std::flush;
   }
-  return *this;
+  return strm;
 }
 
 /*! Get the local time

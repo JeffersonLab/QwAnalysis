@@ -157,7 +157,7 @@ class QwLog : public std::ostream {
 
     /*! \brief Flush the streams
      */
-    QwLog&                      flush();
+    static std::ostream&        flush(std::ostream&);
 
   private:
 
