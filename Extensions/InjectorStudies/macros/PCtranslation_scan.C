@@ -7,7 +7,7 @@
 
 
 void plot_element(TTree *p, char *devnam, Int_t scale, TString localcut, Int_t runnum);
-void plot_element(TTree *p, TPad *p1, char *devnam, Double_t scale, TString localcut, Int_t runnum);
+void plot_element(TTree *p, TPad *p1, char *devnam, Double_t scale, TString localcut, Int_t runnum, TString scandata);
 
 
 
@@ -31,6 +31,9 @@ void PCtranslation_scan(Int_t runnum=1, TString direction="0", Int_t scaleby=1, 
 	}
 	gROOT->Reset();
 
+	TString scandata;
+	if (direction.Contains("X")) scandata = "scandata1";
+	if (direction.Contains("Y")) scandata = "scandata2";
 
 
 	TString plotdir = "output";
@@ -105,7 +108,7 @@ void PCtranslation_scan(Int_t runnum=1, TString direction="0", Int_t scaleby=1, 
 		TString device = bpmlist[bpmcount-1];
 
 // Draw X positions
-		plotcommand = Form("diff_qwk_%sX.hw_sum*1000:scandata1*%f>>histo",device.Data(),scale);
+		plotcommand = Form("diff_qwk_%sX.hw_sum*1000:%s*%f>>histo",device.Data(),scandata.Data(),scale);
 		cut = Form("ErrorFlag == 0 && diff_qwk_%sX.Device_Error_Code == 0 && cleandata && %s",device.Data(),usercut.Data());
 		std::cout << "command : "<<plotcommand << std::endl;
 		std::cout << "cut : "<<cut << std::endl;
@@ -126,7 +129,7 @@ void PCtranslation_scan(Int_t runnum=1, TString direction="0", Int_t scaleby=1, 
 		}
 
 // Draw Y positions
-		plotcommand = Form("diff_qwk_%sY.hw_sum*1000:scandata1*%f>>histo",device.Data(),scale);
+		plotcommand = Form("diff_qwk_%sY.hw_sum*1000:%s*%f>>histo",device.Data(),scandata.Data(),scale);
 		cut = Form("ErrorFlag == 0 && diff_qwk_%sY.Device_Error_Code == 0 && cleandata && %s",device.Data(),usercut.Data());
 
 		std::cout << "command : "<<plotcommand << std::endl;
@@ -176,21 +179,21 @@ void PCtranslation_scan(Int_t runnum=1, TString direction="0", Int_t scaleby=1, 
 		std::cout<<"On to plotting "<<device<<std::endl;
 		std::cout<<"#####################"<<std::endl;
 
-		plot_element(p,(TPad*)a3->cd(bpmcount),"qwk_"+device+"_EffectiveCharge",scale,usercut,runnum);
+		plot_element(p,(TPad*)a3->cd(bpmcount),"qwk_"+device+"_EffectiveCharge",scale,usercut,runnum,scandata);
 		a3->Modified();		
 		a3->Update();	
-		plot_element(p,(TPad*)a1->cd(bpmcount),"qwk_"+device+"X",scale,usercut,runnum);
+		plot_element(p,(TPad*)a1->cd(bpmcount),"qwk_"+device+"X",scale,usercut,runnum,scandata);
 		a1->Modified();		
 		a1->Update();
-		plot_element(p,(TPad*)a2->cd(bpmcount),"qwk_"+device+"Y",scale,usercut,runnum);
+		plot_element(p,(TPad*)a2->cd(bpmcount),"qwk_"+device+"Y",scale,usercut,runnum,scandata);
 		a2->Modified();		
 		a2->Update();
 
 	}
 
-	a1->Print(Form("output/pc_trans_scan_%i_%sX.png",runnum,device.Data()));
-	a2->Print(Form("output/pc_trans_scan_%i_%sY.png",runnum,device.Data()));
-	a3->Print(Form("output/pc_trans_scan_%i_%sAq.png",runnum,device.Data()));
+	a1->Print(Form("output/pc_trans_scan_%i_X.png",runnum));
+	a2->Print(Form("output/pc_trans_scan_%i_Y.png",runnum));
+	a3->Print(Form("output/pc_trans_scan_%i_Aq.png",runnum));
 
 	
 
@@ -204,7 +207,7 @@ void PCtranslation_scan(Int_t runnum=1, TString direction="0", Int_t scaleby=1, 
 	
 }
 
-void plot_element(TTree *p, TPad *p1, char *devnam, Double_t scale, TString localcut, Int_t runnum) {
+void plot_element(TTree *p, TPad *p1, char *devnam, Double_t scale, TString localcut, Int_t runnum, TString scandata) {
 
 	TString *bpmNam = new TString(devnam);
 
@@ -224,12 +227,12 @@ void plot_element(TTree *p, TPad *p1, char *devnam, Double_t scale, TString loca
     tmpname = bpmNam->Data();
  
     if (tmpname.Contains("X") || tmpname.Contains("Y")) {
-		plotcommand = Form("diff_%s.hw_sum*1e3:scandata1*%f>>hAq",tmpname.Data(),scale);
+		plotcommand = Form("diff_%s.hw_sum*1e3:%s*%f>>hAq",tmpname.Data(),scandata.Data(),scale);
 		tit = Form("diff_%s (#mum)",tmpname.Data());
 		cut = Form("ErrorFlag == 0 && diff_%s.Device_Error_Code == 0 && cleandata && %s",tmpname.Data(),localcut.Data());
     } else {
 		if (tmpname.Contains("EffectiveCharge")) {
-			plotcommand = Form("asym_%s.hw_sum*1e6:scandata1*%f>>hAq",tmpname.Data(),scale);
+			plotcommand = Form("asym_%s.hw_sum*1e6:%s*%f>>hAq",tmpname.Data(),scandata.Data(),scale);
 			cut = Form("ErrorFlag == 0 && asym_%s.Device_Error_Code == 0 && cleandata && %s",tmpname.Data(),localcut.Data());			
 			tit = Form("asym_%s (ppm)",tmpname.Data());		
 	} else 
@@ -269,7 +272,7 @@ void plot_element(TTree *p, TPad *p1, char *devnam, Double_t scale, TString loca
 
 
 	hAq->GetYaxis()->SetTitle(tit);
-	hAq->GetXaxis()->SetTitle(Form("run %i : scandata*%2.3f",runnum,scale));
+	hAq->GetXaxis()->SetTitle(Form("run %i : scandata*%2.3f (mils)",runnum,scale));
 
 	hAq->DrawCopy();
 
