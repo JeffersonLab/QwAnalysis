@@ -857,7 +857,7 @@ Bool_t QwBlinder::CheckTestValues()
 std::vector<UChar_t> QwBlinder::GenerateDigest(const TString& input) const
 {
   // Initialize MD5 checksum array
-  const UInt_t length = 64;
+  const UInt_t length = 16;
   UChar_t value[length];
   for (UInt_t i = 0; i < length; i++)
     value[i] = 0;
@@ -938,15 +938,21 @@ void QwBlinder::PrintFinalValues()
  */
 void QwBlinder::FillDB(QwDatabase *db, TString datatype)
 {
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
-  QwMessage << "                         QwBlinder::FillDB                       " << QwLog::endl;
-  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  QwDebug << " --------------------------------------------------------------- " << QwLog::endl;
+  QwDebug << "                         QwBlinder::FillDB                       " << QwLog::endl;
+  QwDebug << " --------------------------------------------------------------- " << QwLog::endl;
 
   // Get the analysis ID
   UInt_t analysis_id = db->GetAnalysisID();
 
-
   // Fill the rows of the QwParityDB::bf_test table
+  if (! CheckTestValues()) {
+    QwError << "QwBlinder::FillDB():  "
+            << "Blinded test values have changed; "
+	    << "may be a problem in the analysis!!!"
+            << QwLog::endl;
+  }
+
   QwParityDB::bf_test bf_test_row(0);
   std::vector<QwParityDB::bf_test> bf_test_list;
   for (size_t i = 0; i < fTestValues.size(); i++) {
@@ -965,21 +971,24 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
   try {
     // Get the rows of the QwParityDB::analysis table
     mysqlpp::Query query = db->Query();
-    query.execute(
-		  Form("select * from analysis where analysis_id = %d",analysis_id))
-      ;
-    mysqlpp::StoreQueryResult analysis_res = query.store();
-    QwParityDB::analysis analysis_row_orig = analysis_res[0];
-    QwParityDB::analysis analysis_row_new  = analysis_res[0];
-
-    // Modify the seed_id and bf_checksum
-    analysis_row_new.seed_id = fSeedID;
-    analysis_row_new.bf_checksum = fChecksum;
-
-    // Update the analysis table
-    query = db->Query();
-    query.update(analysis_row_orig, analysis_row_new);
-    query.execute();
+    query << "select * from analysis where analysis_id = " 
+	  << analysis_id;
+    std::vector<QwParityDB::analysis> analysis_res;
+    QwDebug << "Query: " << query.str() << QwLog::endl;
+    query.storein(analysis_res);
+    if (analysis_res.size() == 1) {
+      QwParityDB::analysis analysis_row_new  = analysis_res[0];
+      // Modify the seed_id and bf_checksum
+      analysis_row_new.seed_id = fSeedID;
+      analysis_row_new.bf_checksum = fChecksum;
+      // Update the analysis table
+      query.update(analysis_res[0], analysis_row_new);
+      QwDebug << "Query: " << query.str() << QwLog::endl;
+      query.execute();
+    } else {
+      QwError << "Unable to update analysis table with blinder information. "
+	      << QwLog::endl;
+    }
   } catch (const mysqlpp::Exception& err) {
     QwError << err.what() << QwLog::endl;
   }
@@ -989,8 +998,12 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
     if (bf_test_list.size()) {
       mysqlpp::Query query = db->Query();
       query.insert(bf_test_list.begin(), bf_test_list.end());
+      QwDebug << "Query: " << query.str() << QwLog::endl;
       query.execute();
-    } else QwMessage << "QwBlinder::FillDB(): No bf_test entries to write." << QwLog::endl;
+    } else {
+      QwMessage << "QwBlinder::FillDB(): No bf_test entries to write." 
+		<< QwLog::endl;
+    }
   } catch (const mysqlpp::Exception& err) {
     QwError << err.what() << QwLog::endl;
   }
