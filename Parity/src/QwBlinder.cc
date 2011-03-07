@@ -1075,7 +1075,7 @@ QwBlinder::EQwBlinderStatus QwBlinder::CheckBlindability()
     status = QwBlinder::kBlindableFail;
     fPatternCounters.at(12)++;
   } else if (fTargetBlindability==kBlindable &&
-	     fWienMode == kWienVertTrans || fWienMode == kWienHorizTrans ) {
+	    (fWienMode == kWienVertTrans || fWienMode == kWienHorizTrans)) {
     //  We don't have longitudinal beam, so don't blind.
     status = QwBlinder::kNotBlindable;
     fPatternCounters.at(5)++;
