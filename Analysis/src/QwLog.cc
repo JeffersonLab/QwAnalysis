@@ -84,10 +84,10 @@ void QwLog::DefineOptions(QwOptions* options)
                 po::value<int>()->default_value(kMessage),
                 "log level for screen output");
   options->AddOptions("Logging options")("QwLog.print-function",
-                po::value<bool>()->default_value(false)->zero_tokens(),
+                po::value<bool>()->default_bool_value(false),
                 "print function on error or warning");
   options->AddOptions("Logging options")("QwLog.print-signature",
-                po::value<bool>()->default_value(false)->zero_tokens(),
+                po::value<bool>()->default_bool_value(false),
                 "print signature on error or warning");
 }
 

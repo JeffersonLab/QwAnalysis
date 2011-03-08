@@ -75,7 +75,7 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
 {
   // Define the execution options
   options.AddDefaultOptions()
-    ("online", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("online", po::value<bool>()->default_bool_value(false),
      "use online data stream");
   options.AddDefaultOptions()
     ("run,r", po::value<string>()->default_value("0:0"),
@@ -90,7 +90,7 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("burstlength", po::value<int>()->default_value(0),
      "number of events in a burst\n\t(0 to disable burst analysis)");
   options.AddDefaultOptions()
-    ("chainfiles", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("chainfiles", po::value<bool>()->default_bool_value(false),
      "chain file segments together, do not analyze them separately");
   options.AddDefaultOptions()
     ("codafile-stem", po::value<string>()->default_value(fDefaultDataFileStem),

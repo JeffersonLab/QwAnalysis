@@ -124,26 +124,26 @@ void QwRootFile::DefineOptions(QwOptions &options)
 
   // Define the memory map option
   options.AddOptions()
-    ("enable-mapfile", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("enable-mapfile", po::value<bool>()->default_bool_value(false),
      "enable output to memory-mapped file");
 
   // Define the histogram and tree options
   options.AddOptions()
-    ("disable-trees", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("disable-trees", po::value<bool>()->default_bool_value(false),
      "disable output to trees");
   options.AddOptions()
-    ("disable-histos", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("disable-histos", po::value<bool>()->default_bool_value(false),
      "disable output to histograms");
 
   // Define the helicity window versus helicity pattern options
   options.AddOptions()
-    ("disable-mps", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("disable-mps", po::value<bool>()->default_bool_value(false),
      "disable helicity window output (block, hwsum)");
   options.AddOptions()
-    ("disable-hel", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("disable-hel", po::value<bool>()->default_bool_value(false),
      "disable helicity pattern output (yield, asymmetry)");
   options.AddOptions()
-    ("disable-slow", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("disable-slow", po::value<bool>()->default_bool_value(false),
      "disable slow control output");
 
   // Define the tree output prescaling options

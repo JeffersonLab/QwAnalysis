@@ -26,17 +26,23 @@
 void QwHelicityPattern::DefineOptions(QwOptions &options)
 {
   options.AddOptions("Helicity pattern")
-    ("enable-burstsum", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("enable-burstsum", po::value<bool>()->default_bool_value(false),
      "enable burst sum calculation");
   options.AddOptions("Helicity pattern")
-    ("enable-runningsum", po::value<bool>()->default_value(true),
+    ("enable-runningsum", po::value<bool>()->default_bool_value(true),
      "enable running sum calculation");
   options.AddOptions("Helicity pattern")
-    ("enable-differences", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("enable-differences", po::value<bool>()->default_bool_value(false),
      "store pattern differences in tree");
   options.AddOptions("Helicity pattern")
-    ("enable-alternateasym", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("enable-alternateasym", po::value<bool>()->default_bool_value(false),
      "enable alternate asymmetries");
+  options.AddOptions("Helicity pattern")
+    ("print-burstsum", po::value<bool>()->default_bool_value(false),
+     "print burst sum of subsystems");
+  options.AddOptions("Helicity pattern")
+    ("print-runningsum", po::value<bool>()->default_bool_value(false),
+     "print running sum of subsystems");
 
   QwBlinder::DefineOptions(options);
 }
@@ -46,7 +52,10 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 {
   fEnableBurstSum   = options.GetValue<bool>("enable-burstsum");
   fEnableRunningSum = options.GetValue<bool>("enable-runningsum");
-  fEnableDifference = options.GetValue<bool>("enable-differences");
+  fPrintBurstSum    = options.GetValue<bool>("print-burstsum");
+  fPrintRunningSum  = options.GetValue<bool>("print-runningsum");
+
+  fEnableDifference   = options.GetValue<bool>("enable-differences");
   fEnableAlternateAsym = options.GetValue<bool>("enable-alternateasym");
 
   if (fEnableAlternateAsym && fPatternSize <= 2){
@@ -63,8 +72,9 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   : fBlinder(),
     fHelicityIsMissing(kFALSE),   fIgnoreHelicity(kFALSE),
-    fEnableAlternateAsym(kFALSE), fEnableBurstSum(kFALSE),
-    fEnableRunningSum(kTRUE),     fEnableDifference(kFALSE), 
+    fEnableAlternateAsym(kFALSE), fEnableDifference(kFALSE),
+    fEnableBurstSum(kFALSE),      fEnableRunningSum(kTRUE),
+    fPrintBurstSum(kFALSE),       fPrintRunningSum(kFALSE),
     fLastWindowNumber(0),fLastPatternNumber(0),fLastPhaseNumber(0)
 {
   // Retrieve the helicity subsystem to query for
@@ -614,6 +624,8 @@ void  QwHelicityPattern::CalculateRunningBurstAverage()
   fRunningBurstAsymmetry.CalculateRunningAverage();
   fRunningBurstDifference.CalculateRunningAverage();
   fRunningBurstYield.CalculateRunningAverage();
+
+  if (fPrintBurstSum) PrintRunningBurstAverage();
 }
 
 //*****************************************************************
@@ -622,6 +634,8 @@ void  QwHelicityPattern::CalculateRunningAverage()
   fRunningAsymmetry.CalculateRunningAverage();
   fRunningDifference.CalculateRunningAverage();
   fRunningYield.CalculateRunningAverage();
+
+  if (fPrintRunningSum) PrintRunningAverage();
 }
 
 //*****************************************************************

@@ -63,7 +63,7 @@ void QwEPICSEvent::DefineOptions(QwOptions &options)
   // Option to disable EPICS database accesses
   options.AddOptions("Default options")
     ("disable-db-epics", 
-     po::value<bool>()->default_value(false)->zero_tokens(),
+     po::value<bool>()->default_bool_value(false),
      "disable EPICS database access");
 }
 

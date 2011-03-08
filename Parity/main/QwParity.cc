@@ -82,8 +82,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Create the database connection
   QwDatabase database(gQwOptions);
 
-  Bool_t print_runningsum_flag = gQwOptions.GetValue<bool>("enable-print-runningsum");
-
   ///  Start loop over all runs
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
@@ -248,16 +246,14 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Calculate running averages over helicity patterns
     if (helicitypattern.IsRunningSumEnabled()) {
       helicitypattern.CalculateRunningAverage();
-      if (print_runningsum_flag) helicitypattern.PrintRunningAverage();
       if (helicitypattern.IsBurstSumEnabled()) {
         helicitypattern.CalculateRunningBurstAverage();
-	if (print_runningsum_flag) helicitypattern.PrintRunningBurstAverage();
       }
     }
 
     // This will calculate running averages over single helicity events
     runningsum.CalculateRunningAverage();
-    if (print_runningsum_flag) {
+    if (gQwOptions.GetValue<bool>("print-runningsum")) {
       QwMessage << " Running average of events" << QwLog::endl;
       QwMessage << " =========================" << QwLog::endl;
       runningsum.PrintValue();
@@ -280,6 +276,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Print the event cut error summary for each subsystem
+    QwMessage << " Event cut error counters" << QwLog::endl;
+    QwMessage << " ========================" << QwLog::endl;
     detectors.GetEventcutErrorCounters();
 
 

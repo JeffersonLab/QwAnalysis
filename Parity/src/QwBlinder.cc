@@ -34,9 +34,9 @@ const TString QwBlinder::kDefaultSeed = "Default seed, should not be used!";
 
 //**************************************************//
 void QwBlinder::DefineOptions(QwOptions &options){
-  options.AddOptions("Blinder")("blinder.force-target-lh2", po::value<bool>()->default_value(false)->zero_tokens(),
+  options.AddOptions("Blinder")("blinder.force-target-lh2", po::value<bool>()->default_bool_value(false),
 		       "Forces the blinder to interpret the target position as LH2");
-  options.AddOptions("Blinder")("blinder.force-target-out", po::value<bool>()->default_value(false)->zero_tokens(),
+  options.AddOptions("Blinder")("blinder.force-target-out", po::value<bool>()->default_bool_value(false),
 		       "Forces the blinder to interpret the target position as target-out");
   options.AddOptions("Blinder")("blinder.beam-current-threshold", po::value<double>()->default_value(1.0),
 		       "Beam current in microamps below which data will not be blinded");

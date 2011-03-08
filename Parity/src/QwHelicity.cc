@@ -34,10 +34,10 @@ const UInt_t QwHelicity::kDefaultHelicityBitPattern = 0x69;
 void QwHelicity::DefineOptions(QwOptions &options)
 {
   options.AddOptions("Helicity options")
-      ("helicity.30bitseed", po::value<bool>()->zero_tokens(),
+      ("helicity.30bitseed", po::value<bool>()->default_bool_value(false),
           "Use 30-bit random seed");
   options.AddOptions("Helicity options")
-      ("helicity.24bitseed", po::value<bool>()->zero_tokens(),
+      ("helicity.24bitseed", po::value<bool>()->default_bool_value(false),
           "Use 24-bit random seed");
   options.AddOptions("Helicity options")
       ("helicity.bitpattern", po::value<std::string>(),

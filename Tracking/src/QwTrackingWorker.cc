@@ -232,16 +232,16 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
                           po::value<int>()->default_value(0),
                           "track reconstruction debug level");
   options.AddOptions("Tracking options")("QwTracking.regenerate",
-                          po::value<bool>()->zero_tokens()->default_value(false),
+                          po::value<bool>()->default_bool_value(false),
                           "regenerate search trees");
   options.AddOptions("Tracking options")("QwTracking.disable-tracking",
-                          po::value<bool>()->zero_tokens()->default_value(false),
+                          po::value<bool>()->default_bool_value(false),
                           "disable all tracking analysis");
   options.AddOptions("Tracking options")("QwTracking.showeventpattern",
-                          po::value<bool>()->zero_tokens()->default_value(false),
+                          po::value<bool>()->default_bool_value(false),
                           "show bit pattern for all events");
   options.AddOptions("Tracking options")("QwTracking.showmatchingpattern",
-                          po::value<bool>()->zero_tokens()->default_value(false),
+                          po::value<bool>()->default_bool_value(false),
                           "show bit pattern for matching tracks");
 
   // Region 2
@@ -271,13 +271,13 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
 
   // Momentum reconstruction
   options.AddOptions("Tracking options")("QwTracking.disable-momentum",
-                          po::value<bool>()->zero_tokens()->default_value(false),
+                          po::value<bool>()->default_bool_value(false),
                           "disable the momentum reconstruction");
   options.AddOptions("Tracking options")("QwTracking.disable-matrixlookup",
-                          po::value<bool>()->zero_tokens()->default_value(false),
+                          po::value<bool>()->default_bool_value(false),
                           "disable the use of the momentum lookup table");
   options.AddOptions("Tracking options")("QwTracking.disable-raytracer",
-                          po::value<bool>()->zero_tokens()->default_value(false),
+                          po::value<bool>()->default_bool_value(false),
                           "disable the magnetic field map tracking");
   options.AddOptions("Tracking options")("QwTracking.fieldmap",
                           po::value<std::string>()->default_value("peiqing_2007.dat"),

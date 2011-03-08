@@ -150,6 +150,7 @@ class QwHelicityPattern{
 
   // Burst sum/difference of the yield and asymmetry
   Bool_t fEnableBurstSum;
+  Bool_t fPrintBurstSum;
   QwSubsystemArrayParity fBurstYield;
   QwSubsystemArrayParity fBurstDifference;
   QwSubsystemArrayParity fBurstAsymmetry;
@@ -159,6 +160,7 @@ class QwHelicityPattern{
 
   // Running sum/average of the yield and asymmetry
   Bool_t fEnableRunningSum;
+  Bool_t fPrintRunningSum;
   QwSubsystemArrayParity fRunningYield;
   QwSubsystemArrayParity fRunningDifference;
   QwSubsystemArrayParity fRunningAsymmetry;

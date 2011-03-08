@@ -998,10 +998,10 @@ void QwDriftChamberVDC::ClearEventData()
 void QwDriftChamberVDC::DefineOptions ( QwOptions& options )
 {
 	options.AddOptions() ( "use-tdchit",
-	                       po::value<bool>()->zero_tokens()->default_value ( false ),
+	                       po::value<bool>()->default_bool_value(false),
 	                       "creat tdc based tree" );
 	options.AddOptions() ( "disable-wireoffset",
-	                       po::value<bool>()->zero_tokens()->default_value ( false ),
+	                       po::value<bool>()->default_bool_value(false),
 	                       "disable the ablitity of subtracting t0 for every wire" );
 }
 
