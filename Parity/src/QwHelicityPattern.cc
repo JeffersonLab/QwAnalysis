@@ -72,9 +72,10 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   : fBlinder(),
     fHelicityIsMissing(kFALSE),   fIgnoreHelicity(kFALSE),
-    fEnableAlternateAsym(kFALSE), fEnableDifference(kFALSE),
-    fEnableBurstSum(kFALSE),      fEnableRunningSum(kTRUE),
-    fPrintBurstSum(kFALSE),       fPrintRunningSum(kFALSE),
+    fEnableAlternateAsym(kFALSE),
+    fEnableBurstSum(kFALSE),      fPrintBurstSum(kFALSE),
+    fEnableRunningSum(kTRUE),     fPrintRunningSum(kFALSE),
+    fEnableDifference(kFALSE),
     fLastWindowNumber(0),fLastPatternNumber(0),fLastPhaseNumber(0)
 {
   // Retrieve the helicity subsystem to query for
