@@ -151,7 +151,7 @@ void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, TString in
 		plotcommand += tmpname.Data();
 		plotcommand += ".hw_sum*1000";
 		titpre = "diff_";
-		titsum = " (nm) vs Scandata1";
+		titsum = " (#mum) vs Scandata1";
 
 		// make cut
 		cut =Form("ErrorFlag==0 && cleandata && diff_%s.Device_Error_Code == 0",tmpname.Data());
