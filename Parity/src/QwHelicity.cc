@@ -34,11 +34,8 @@ const UInt_t QwHelicity::kDefaultHelicityBitPattern = 0x69;
 void QwHelicity::DefineOptions(QwOptions &options)
 {
   options.AddOptions("Helicity options")
-      ("helicity.30bitseed", po::value<bool>()->default_bool_value(false),
-          "Use 30-bit random seed");
-  options.AddOptions("Helicity options")
-      ("helicity.24bitseed", po::value<bool>()->default_bool_value(false),
-          "Use 24-bit random seed");
+      ("helicity.seed", po::value<int>(),
+          "Number of bits in random seed");
   options.AddOptions("Helicity options")
       ("helicity.bitpattern", po::value<std::string>(),
           "Helicity bit pattern");
@@ -55,36 +52,52 @@ void QwHelicity::DefineOptions(QwOptions &options)
 
 //**************************************************//
 
-void QwHelicity::ProcessOptions(QwOptions &options){
+void QwHelicity::ProcessOptions(QwOptions &options)
+{
   // Read the cmd options and override channel map settings
   QwMessage << "QwHelicity::ProcessOptions" << QwLog::endl;
-  if (gQwOptions.HasValue("helicity.patternoffset"))
-    if (gQwOptions.GetValue<int>("helicity.patternoffset")==1 || gQwOptions.GetValue<int>("helicity.patternoffset")==0)
-      fPATTERNPHASEOFFSET=gQwOptions.GetValue<int>("helicity.patternoffset");
-
-  if (gQwOptions.HasValue("helicity.patternphase"))
-    if (gQwOptions.GetValue<int>("helicity.patternphase") % 2 == 0)
-      fMaxPatternPhase=gQwOptions.GetValue<int>("helicity.patternphase");
-
-  if (gQwOptions.HasValue("helicity.30bitseed")){
-    BIT30=gQwOptions.GetValue<bool>("helicity.30bitseed");
-    BIT24=kFALSE;
-  }else if (gQwOptions.HasValue("helicity.24bitseed")){
-    BIT24=gQwOptions.GetValue<bool>("helicity.24bitseed");
-    BIT30=kFALSE;
+  if (options.HasValue("helicity.patternoffset")) {
+    if (options.GetValue<int>("helicity.patternoffset") == 1
+     || options.GetValue<int>("helicity.patternoffset") == 0) {
+      fPatternPhaseOffset = options.GetValue<int>("helicity.patternoffset");
+      QwMessage << " Pattern Phase Offset = " << fPatternPhaseOffset << QwLog::endl;
+    } else QwError << "Pattern phase offset should be 0 or 1!" << QwLog::endl;
   }
-  if (gQwOptions.HasValue("helicity.delay")) {
-    QwMessage << " Helicity Delay =" << gQwOptions.GetValue<int>("helicity.delay") << QwLog::endl;
-    SetHelicityDelay(gQwOptions.GetValue<int>("helicity.delay"));
+
+  if (options.HasValue("helicity.patternphase")) {
+    if (options.GetValue<int>("helicity.patternphase") % 2 == 0) {
+      fMaxPatternPhase = options.GetValue<int>("helicity.patternphase");
+      QwMessage << " Maximum Pattern Phase = " << fMaxPatternPhase << QwLog::endl;
+    } else QwError << "Pattern phase should be an even integer!" << QwLog::endl;
   }
-  if (gQwOptions.HasValue("helicity.bitpattern")) {
+
+  if (options.HasValue("helicity.seed")) {
+    if (options.GetValue<int>("helicity.seed") == 24
+     || options.GetValue<int>("helicity.seed") == 30) {
+      QwMessage << " Random Bits = " << options.GetValue<int>("helicity.seed") << QwLog::endl;
+      fRandBits = options.GetValue<int>("helicity.seed");
+    } else QwError << "Number of random seed bits should be 24 or 30!" << QwLog::endl;
+  }
+
+  if (options.HasValue("helicity.delay")) {
+    QwMessage << " Helicity Delay = " << options.GetValue<int>("helicity.delay") << QwLog::endl;
+    SetHelicityDelay(options.GetValue<int>("helicity.delay"));
+  }
+
+  if (options.HasValue("helicity.bitpattern")) {
     QwMessage << " Helicity Pattern =" 
-	      << gQwOptions.GetValue<std::string>("helicity.bitpattern") 
+	      << options.GetValue<std::string>("helicity.bitpattern") 
 	      << QwLog::endl;
-    std::string hex = gQwOptions.GetValue<std::string>("helicity.bitpattern");
+    std::string hex = options.GetValue<std::string>("helicity.bitpattern");
     UInt_t bits = QwParameterFile::GetUInt(hex);
     SetHelicityBitPattern(bits);
   } else {
+    BuildHelicityBitPattern(fMaxPatternPhase);
+  }
+
+  //  If we have the default Helicity Bit Pattern & a large fMaxPatternPhase,
+  //  try to recompute the Helicity Bit Pattern.
+  if (fMaxPatternPhase > 8 && fHelicityBitPattern == kDefaultHelicityBitPattern) {
     BuildHelicityBitPattern(fMaxPatternPhase);
   }
 };
@@ -356,7 +369,7 @@ void QwHelicity::ProcessEventInputRegisterMode()
   // When we have the minimum phase from the pattern phase word
   // and the input register minimum phase bit is set
   // we can select the second pattern as below.
-  if(fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET == 0)
+  if(fWord[kPatternPhase].fValue - fPatternPhaseOffset == 0)
     if (firstpattern && CheckIORegisterMask(thisinputregister,kInputReg_PatternSync)){
       firstpattern   = kFALSE;
     }
@@ -367,7 +380,7 @@ void QwHelicity::ProcessEventInputRegisterMode()
     fPatternNumber      = 0;
   else {
     fPatternNumber      = fWord[kPatternCounter].fValue;
-    fPatternPhaseNumber = fWord[kPatternPhase].fValue - fPATTERNPHASEOFFSET + fMinPatternPhase;
+    fPatternPhaseNumber = fWord[kPatternPhase].fValue - fPatternPhaseOffset + fMinPatternPhase;
   }
 
   /** Tf we get junk for the mps and pattern information from the run
@@ -392,7 +405,7 @@ void QwHelicity::ProcessEventInputRegisterMode()
     //  Quartet bit is set.
     QwError << "QwHelicity::ProcessEvent:  The Multiplet Sync bit is set, but the Pattern Phase is (" 
 	    << fPatternPhaseNumber << ") not "
-	    << fMinPatternPhase << "!.\n Please check the fPATTERNPHASEOFFSET in the helicity map file." << QwLog::endl;
+	    << fMinPatternPhase << "!.\n Please check the fPatternPhaseOffset in the helicity map file." << QwLog::endl;
   }
 
   fHelicityReported=0;
@@ -550,7 +563,7 @@ void QwHelicity::EncodeEventData(std::vector<UInt_t> &buffer)
     localbuffer.push_back(0x0); // output_register
     localbuffer.push_back(fEventNumber); // mps_counter
     localbuffer.push_back(fPatternNumber); // pat_counter
-    localbuffer.push_back(fPatternPhaseNumber - fMinPatternPhase + fPATTERNPHASEOFFSET); // pat_phase
+    localbuffer.push_back(fPatternPhaseNumber - fMinPatternPhase + fPatternPhaseOffset); // pat_phase
 
     for (int i = 0; i < 17; i++) localbuffer.push_back(0x0); // (not used)
     break;
@@ -617,12 +630,11 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
   Int_t wordsofar=0;
   Int_t currentsubbankindex=-1;
 
-  fPATTERNPHASEOFFSET=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
+  fPatternPhaseOffset=1;//Phase number offset is set to 1 by default and will be set to 0 if phase number starts from 0
 
 
-  //Default value for random seed is 30 bits
-  BIT24=kFALSE;
-  BIT30=kTRUE;
+  // Default value for random seed is 30 bits
+  fRandBits = 30;
 
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
@@ -664,14 +676,12 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 	}
       else if (varname=="randseedbits")
 	{
-	  if (value==24){
-	    BIT24=kTRUE;
-	    BIT30=kFALSE;
-	  }
+	  if (value==24 || value==30)
+	    fRandBits = value;
 	}
       else if (varname=="patternphaseoffset")
 	{
-	  fPATTERNPHASEOFFSET=value;
+	  fPatternPhaseOffset=value;
 
 	}
       else if(varname=="helpluseventtype")
@@ -789,33 +799,6 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
 
     }
   ldebug=kFALSE;
-
-  //Read the cmd options and override channel map settings
-  if (gQwOptions.HasValue("helicity.patternoffset"))
-    if (gQwOptions.GetValue<int>("helicity.patternoffset")==1 || gQwOptions.GetValue<int>("helicity.patternoffset")==0)
-      fPATTERNPHASEOFFSET=gQwOptions.GetValue<int>("helicity.patternoffset");
-
-  if (gQwOptions.HasValue("helicity.patternphase"))
-    if (gQwOptions.GetValue<int>("helicity.patternphase")==2 || gQwOptions.GetValue<int>("helicity.patternphase")==4 || gQwOptions.GetValue<int>("helicity.patternphase")==8)
-      fMaxPatternPhase=gQwOptions.GetValue<int>("helicity.patternphase");
-
-  if (gQwOptions.HasValue("helicity.30bitseed")){
-    BIT30=gQwOptions.GetValue<bool>("helicity.30bitseed");
-    BIT24=kFALSE;
-  }else if (gQwOptions.HasValue("helicity.24bitseed")){
-    BIT24=gQwOptions.GetValue<bool>("helicity.24bitseed");
-    BIT30=kFALSE;
-  }
-  if (gQwOptions.HasValue("helicity.delay")){
-    QwMessage << " Helicity Delay =" << gQwOptions.GetValue<int>("helicity.delay") << QwLog::endl;
-    SetHelicityDelay(gQwOptions.GetValue<int>("helicity.delay"));
-  }
-
-  //  If we have the default Helicity Bit Pattern & a large fMaxPatternPhase,
-  //  try to recompute the Helicity Bit Pattern.
-  if (fMaxPatternPhase>8 && fHelicityBitPattern==kDefaultHelicityBitPattern){
-    BuildHelicityBitPattern(fMaxPatternPhase);
-  }
 
 
   if (fHelicityDecodingMode==kHelInputMollerMode){
@@ -1319,10 +1302,10 @@ void  QwHelicity::FillDB(QwDatabase *db, TString type)
 UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
   Bool_t status = false;
 
-  if (BIT24)
-    status=GetRandbit24(ranseed);
-  if (BIT30)
-    status=GetRandbit30(ranseed);
+  if (fRandBits == 24)
+    status = GetRandbit24(ranseed);
+  if (fRandBits == 30)
+    status = GetRandbit30(ranseed);
 
   return status;
 };
@@ -1517,10 +1500,11 @@ Bool_t QwHelicity::CollectRandBits()
 {
   Bool_t status = false;
 
-  if (BIT24)
-    status=CollectRandBits24();
-  if (BIT30)
-    status=CollectRandBits30();
+  if (fRandBits == 24)
+    status = CollectRandBits24();
+  if (fRandBits == 30)
+    status = CollectRandBits30();
+
   return status;
 };
 

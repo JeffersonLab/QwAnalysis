@@ -55,7 +55,7 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
   fPrintBurstSum    = options.GetValue<bool>("print-burstsum");
   fPrintRunningSum  = options.GetValue<bool>("print-runningsum");
 
-  fEnableDifference   = options.GetValue<bool>("enable-differences");
+  fEnableDifference    = options.GetValue<bool>("enable-differences");
   fEnableAlternateAsym = options.GetValue<bool>("enable-alternateasym");
 
   if (fEnableAlternateAsym && fPatternSize <= 2){
