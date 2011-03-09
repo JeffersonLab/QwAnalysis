@@ -204,6 +204,6 @@ class QwDetectorInfo: public TObject {
 // Detectors could be sorted by region, package, z position
 inline bool operator< (const QwDetectorInfo& lhs, const QwDetectorInfo& rhs) {
   return (lhs.GetZPosition() < rhs.GetZPosition());
-};
+}
 
 #endif

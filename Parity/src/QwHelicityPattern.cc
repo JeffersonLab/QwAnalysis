@@ -172,7 +172,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
       std::cerr << e.what() << std::endl;
     }
 
-};
+}
 
 
 //*****************************************************************
@@ -277,7 +277,7 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     Print();
   }
   return;
-};
+}
 
 //*****************************************************************
 /**
@@ -473,7 +473,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
   }
 
   return;
-};
+}
 
 //*****************************************************************
 /**
@@ -507,7 +507,7 @@ void QwHelicityPattern::ClearEventData()
 
   fPatternIsGood = kFALSE;
   SetDataLoaded(kFALSE);
-};
+}
 
 //*****************************************************************
 /**
@@ -790,7 +790,7 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
       fAsymmetry2.FillTreeVector(values);
     }
   }
-};
+}
 
 
 void QwHelicityPattern::FillDB(QwDatabase *db)
@@ -806,7 +806,7 @@ void QwHelicityPattern::FillDB(QwDatabase *db)
     fAsymmetry1.FillDB(db, "asymmetry1");
     fAsymmetry2.FillDB(db, "asymmetry2");
   }
-};
+}
 
 //*****************************************************************
 

@@ -15,7 +15,7 @@
  */
 
 #include "MQwSIS3320_Samples.h"
-ClassImp(MQwSIS3320_Samples);
+ClassImp(MQwSIS3320_Samples)
 
 // System headers
 #include <numeric>
@@ -55,32 +55,32 @@ Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
   }
 
   return words_read;
-};
+}
 
 
 std::pair<size_t,MQwSIS3320_Type> MQwSIS3320_Samples::GetMax() const
 {
   std::vector<MQwSIS3320_Type>::const_iterator max = std::max_element(fSamples.begin(), fSamples.end());
   return std::pair<size_t,MQwSIS3320_Type>(max - fSamples.begin(),*max);
-};
+}
 
 std::pair<size_t,MQwSIS3320_Type> MQwSIS3320_Samples::GetMin() const
 {
   std::vector<MQwSIS3320_Type>::const_iterator min = std::min_element(fSamples.begin(), fSamples.end());
   return std::pair<size_t,MQwSIS3320_Type>(min - fSamples.begin(),*min);
-};
+}
 
-const MQwSIS3320_Type MQwSIS3320_Samples::GetSum() const
+MQwSIS3320_Type MQwSIS3320_Samples::GetSum() const
 {
   return std::accumulate(fSamples.begin(), fSamples.end(), 0.0);
-};
+}
 
 
-const MQwSIS3320_Type MQwSIS3320_Samples::GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const
+MQwSIS3320_Type MQwSIS3320_Samples::GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const
 {
   if (start >= fSamples.size() || stop >= fSamples.size()) return 0;
   return std::accumulate(&fSamples.at(start), &fSamples.at(stop), 0.0);
-};
+}
 
 
 void MQwSIS3320_Samples::UpdateGraph()
@@ -102,7 +102,7 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator+ (const Double_t &value) c
   MQwSIS3320_Samples result = *this;
   result += value;
   return result;
-};
+}
 
 /**
  * Subtraction of offset from sampled data
@@ -114,7 +114,7 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator- (const Double_t &value) c
   MQwSIS3320_Samples result = *this;
   result -= value;
   return result;
-};
+}
 
 /**
  * Multiplication of factor to sampled data
@@ -126,7 +126,7 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator* (const Double_t &value) c
   MQwSIS3320_Samples result = *this;
   result *= value;
   return result;
-};
+}
 
 /**
  * Division of factor from sampled data (not division-by-zero safe)
@@ -138,7 +138,7 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator/ (const Double_t &value) c
   MQwSIS3320_Samples result = *this;
   result /= value;
   return result;
-};
+}
 
 /**
  * Multiplication assignment of factor to sampled data
@@ -150,7 +150,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator*= (const Double_t &value)
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) *= value;
   return *this;
-};
+}
 
 /**
  * Division assignment of factor from sampled data (not division-by-zero safe)
@@ -165,7 +165,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator/= (const Double_t &value)
     else
       this->fSamples.at(i) = 0.0;
   return *this;
-};
+}
 
 /**
  * Addition assignment of offset to sampled data
@@ -177,7 +177,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const Double_t &value)
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) += value;
   return *this;
-};
+}
 
 /**
  * Subtraction assignment of offset from sampled data
@@ -189,7 +189,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator-= (const Double_t &value)
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) -= value;
   return *this;
-};
+}
 
 /**
  * Addition of sampled data
@@ -201,7 +201,7 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator+ (const MQwSIS3320_Samples
   MQwSIS3320_Samples result = *this;
   result += value;
   return result;
-};
+}
 
 /**
  * Subtraction of sampled data
@@ -213,7 +213,7 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator- (const MQwSIS3320_Samples
   MQwSIS3320_Samples result = *this;
   result -= value;
   return result;
-};
+}
 
 /**
  * Assignment of sampled data
@@ -226,7 +226,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator= (const MQwSIS3320_Samples &val
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) = value.fSamples.at(i);
   return *this;
-};
+}
 
 /**
  * Addition assignment of sampled data
@@ -238,7 +238,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const MQwSIS3320_Samples &va
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) += value.fSamples.at(i);
   return *this;
-};
+}
 
 /**
  * Subtraction assignment of sampled data
@@ -250,4 +250,4 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator-= (const MQwSIS3320_Samples &va
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) -= value.fSamples.at(i);
   return *this;
-};
+}

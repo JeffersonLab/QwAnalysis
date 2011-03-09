@@ -248,7 +248,7 @@ void QwDatabase::ProcessOptions(QwOptions &options)
   }
 
   return;
-};
+}
 
 void QwDatabase::ProcessOptions(const TString& dbname, const TString& username, const TString& passwd, const TString& dbhost, const Int_t dbport, const TString& accesslevel)
 {
@@ -274,7 +274,7 @@ void QwDatabase::SetAccessLevel(string accesslevel)
     fAccessLevel = kQwDatabaseOff;
   }
   return;
-};
+}
 
 /*!
  * Sets run number for subsequent database interactions.  Makes sure correct
@@ -708,7 +708,7 @@ void QwDatabase::StoreMonitorIDs()
     exit(1);
   }
   return;
-};
+}
 
 /*
  * This function retrieves the main_detector table key 'main_detector_id' for a given beam main_detector.
@@ -728,7 +728,7 @@ UInt_t QwDatabase::GetMainDetectorID(const string& name)
 
   return main_detector_id;
 
-};
+}
 
 
 /*
@@ -752,7 +752,7 @@ void QwDatabase::StoreMainDetectorIDs()
     exit(1);
   }
   return;
-};
+}
 
 
 /*
@@ -772,7 +772,7 @@ UInt_t QwDatabase::GetSlowControlDetectorID(const string& name)
 
   return sc_detector_id;
 
-};
+}
 
 /*
  * Stores slow control detector table keys in an associative array indexed by slow_controls_data name.
@@ -795,7 +795,7 @@ void QwDatabase::StoreSlowControlDetectorIDs()
     exit(1);
   }
   return;
-};
+}
 
 /*
  * This function retrieves the lumi_detector table key 'lumi_detector_id' for a given beam lumi_detector.
@@ -813,7 +813,7 @@ UInt_t QwDatabase::GetLumiDetectorID(const string& name)
   }
 
   return lumi_detector_id;
-};
+}
 
 /*
  * Stores lumi_detector table keys in an associative array indexed by lumi_detector name.
@@ -838,7 +838,7 @@ void QwDatabase::StoreLumiDetectorIDs()
     exit(1);
   }
   return;
-};
+}
 
 
 
@@ -856,7 +856,7 @@ const string QwDatabase::GetMeasurementID(const Int_t index)
   }
 
   return measurement_type;
-};
+}
 
 void QwDatabase::StoreMeasurementIDs()
 {
@@ -878,7 +878,7 @@ void QwDatabase::StoreMeasurementIDs()
     exit(1);
   }
   return;
-};
+}
 
 const string QwDatabase::GetVersion(){
   string version = fVersionMajor + "." + fVersionMinor + "." + fVersionPoint;
@@ -935,4 +935,4 @@ bool QwDatabase::StoreDBVersion()
 
   return true;
 
-};
+}

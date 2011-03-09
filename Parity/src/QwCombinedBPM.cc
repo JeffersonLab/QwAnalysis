@@ -48,7 +48,7 @@ void  QwCombinedBPM::InitializeChannel(TString name)
   }
 
   return;
-};
+}
 
 void  QwCombinedBPM::InitializeChannel(TString subsystem, TString name)
 {
@@ -84,7 +84,7 @@ void  QwCombinedBPM::InitializeChannel(TString subsystem, TString name)
   }
 
   return;
-};
+}
 
 
 void QwCombinedBPM::ClearEventData()
@@ -98,7 +98,7 @@ void QwCombinedBPM::ClearEventData()
   }
 
   return;
-};
+}
 
 
 void QwCombinedBPM::Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,
@@ -112,7 +112,7 @@ void QwCombinedBPM::Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x
 
   return;
 
-};
+}
 
 
 Bool_t QwCombinedBPM::ApplyHWChecks()
@@ -120,7 +120,7 @@ Bool_t QwCombinedBPM::ApplyHWChecks()
   Bool_t fEventIsGood=kTRUE;
 
   return fEventIsGood;
-};
+}
 
 
 Int_t QwCombinedBPM::GetEventcutErrorCounters()
@@ -134,7 +134,7 @@ Int_t QwCombinedBPM::GetEventcutErrorCounters()
   fEffectiveCharge.GetEventcutErrorCounters();
 
   return 1;
-};
+}
 
 
 Bool_t QwCombinedBPM::ApplySingleEventCuts()
@@ -194,7 +194,7 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
   fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
 
   return status;
-};
+}
 
 
 
@@ -230,7 +230,7 @@ void QwCombinedBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t 
     QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fEffectiveCharge.SetSingleEventCuts(minX,maxX);
   }
-};
+}
 
 void QwCombinedBPM::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
   errorflag|=kBPMErrorFlag;//update the device flag
@@ -265,7 +265,7 @@ void QwCombinedBPM::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_
     QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<" kGlobalCut  "<< (errorflag&kGlobalCut)<< QwLog::endl;
     fEffectiveCharge.SetSingleEventCuts(errorflag, minX,maxX, stability);
   }
-};
+}
 
 
 
@@ -343,7 +343,7 @@ void  QwCombinedBPM::ProcessEvent()
 
   return;
 
- };
+ }
 
 
 
@@ -376,7 +376,7 @@ void  QwCombinedBPM::ProcessEvent()
    }
 
    return;
- };
+ }
 
 
  Double_t QwCombinedBPM::SumOver(std::vector<Double_t> weight,std::vector <QwVQWK_Channel> val)
@@ -395,7 +395,7 @@ void  QwCombinedBPM::ProcessEvent()
      }
    }
    return sum;
- };
+ }
 
  void QwCombinedBPM::LeastSquareFit(Int_t n, std::vector<Double_t> fWeights)
  {
@@ -503,7 +503,7 @@ void  QwCombinedBPM::ProcessEvent()
  Int_t QwCombinedBPM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
  {
    return word_position_in_buffer;
- };
+ }
 
 
 
@@ -519,7 +519,7 @@ void  QwCombinedBPM::ProcessEvent()
    fEffectiveCharge.PrintValue();
 
    return;
- };
+ }
 
 
  void QwCombinedBPM::PrintInfo() const
@@ -549,7 +549,7 @@ QwCombinedBPM& QwCombinedBPM::operator= (const QwCombinedBPM &value)
     }
   }
   return *this;
-};
+}
 
 
 QwCombinedBPM& QwCombinedBPM::operator+= (const QwCombinedBPM &value)
@@ -565,7 +565,7 @@ QwCombinedBPM& QwCombinedBPM::operator+= (const QwCombinedBPM &value)
        }
      }
      return *this;
-};
+}
 
 QwCombinedBPM& QwCombinedBPM::operator-= (const QwCombinedBPM &value)
 {
@@ -579,7 +579,7 @@ QwCombinedBPM& QwCombinedBPM::operator-= (const QwCombinedBPM &value)
     }
   }
   return *this;
-};
+}
 
 void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
 {
@@ -598,7 +598,7 @@ void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
   }
 
   return;
-};
+}
 
 
 void QwCombinedBPM::Scale(Double_t factor)
@@ -621,7 +621,7 @@ void QwCombinedBPM::CalculateRunningAverage()
     fIntercept[i].CalculateRunningAverage();
     fAbsPos[i].CalculateRunningAverage();
   }
-};
+}
 
 void QwCombinedBPM::AccumulateRunningSum(const QwCombinedBPM& value)
 {
@@ -633,7 +633,7 @@ void QwCombinedBPM::AccumulateRunningSum(const QwCombinedBPM& value)
     fIntercept[i].AccumulateRunningSum(value.fIntercept[i]);
     fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
   }
-};
+}
 
 
 void  QwCombinedBPM::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -658,7 +658,7 @@ void  QwCombinedBPM::ConstructHistograms(TDirectory *folder, TString &prefix)
 
   }
   return;
-};
+}
 
 void  QwCombinedBPM::FillHistograms()
 {
@@ -674,7 +674,7 @@ void  QwCombinedBPM::FillHistograms()
     }
   }
   return;
-};
+}
 
 void  QwCombinedBPM::DeleteHistograms()
 {
@@ -691,7 +691,7 @@ void  QwCombinedBPM::DeleteHistograms()
 
   }
   return;
-};
+}
 
 
 void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -717,7 +717,7 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
     }
 
   return;
-};
+}
 
 void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -740,7 +740,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix)
 
     }
   return;
-};
+}
 
 void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
@@ -770,7 +770,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 
     }
   return;
-};
+}
 
 
 void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values) const
@@ -788,7 +788,7 @@ void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values) const
     }
   }
   return;
-};
+}
 
 
 void QwCombinedBPM::Copy(VQwDataElement *source)
@@ -823,7 +823,7 @@ void QwCombinedBPM::Copy(VQwDataElement *source)
   }
 
   return;
-};
+}
 
 void QwCombinedBPM::SetEventCutMode(Int_t bcuts)
 {
@@ -837,7 +837,7 @@ void QwCombinedBPM::SetEventCutMode(Int_t bcuts)
   fEffectiveCharge.SetEventCutMode(bcuts);
 
   return;
-};
+}
 
 
 void QwCombinedBPM::MakeBPMComboList()
@@ -864,7 +864,7 @@ void QwCombinedBPM::MakeBPMComboList()
 
 
   return;
-};
+}
 
 
 
@@ -932,4 +932,4 @@ std::vector<QwDBInterface> QwCombinedBPM::GetDBEntry()
 
   return row_list;
 
-};
+}

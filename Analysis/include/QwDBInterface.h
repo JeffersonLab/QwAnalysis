@@ -139,13 +139,13 @@ inline void QwDBInterface::AddThisEntryToList(std::vector<T> &list)
   if (okay == kFALSE) {
     PrintStatus(kTRUE);
   };
-};
+}
 
 template <class T>
 inline T QwDBInterface::TypedDBClone()
 {
   T row(0);
   return row;
-};
+}
 
 #endif /* QWDBINTERFACE_H_ */

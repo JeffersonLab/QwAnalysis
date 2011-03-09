@@ -49,7 +49,7 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
     bool IsUsed() { return isused; };
 
-    void Print() {
+    void Print(const Option_t* option = 0) const {
       if (!this) return;
       std::cout << "Track: " << ZVx << ", " << TVx;
       std::cout << std::endl;

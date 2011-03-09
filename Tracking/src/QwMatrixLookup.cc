@@ -82,14 +82,14 @@ QwMatrixLookup::QwMatrixLookup()
 QwMatrixLookup::~QwMatrixLookup()
 {
   delete fMatrix;
-};
+}
 
 /**
  * Load the trajectory matrix
  * @param filename Filename
  * @return True if successful
  */
-const bool QwMatrixLookup::LoadTrajMatrix(const std::string filename)
+bool QwMatrixLookup::LoadTrajMatrix(const std::string filename)
 {
 
 #if ! defined __ROOT_HAS_MATHMORE || ROOT_VERSION_CODE < ROOT_VERSION(5,18,0)
@@ -196,7 +196,7 @@ const bool QwMatrixLookup::LoadTrajMatrix(const std::string filename)
 
   // Return successfully
   return true;
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -209,7 +209,7 @@ const bool QwMatrixLookup::LoadTrajMatrix(const std::string filename)
 ///  Z0: start plane = -250 cm, Z1: endplane = +250 cm, Z2: focalplane = +570 cm
 ///  B field values are available from z=-250 cm to z=250 cm
 
-const bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
+bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
 {
   Double_t  position_r,position_phi;   //z=570 cm plane
   Double_t  direction_theta,direction_phi;
@@ -317,7 +317,7 @@ const bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
   delete raytracer;
 
   return true;
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -327,7 +327,7 @@ const bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
  * @param back Back partial tracks
  * @return Zero if successful, non-zero error code if failed
  */
-const int QwMatrixLookup::Bridge(
+int QwMatrixLookup::Bridge(
 	const QwPartialTrack* front,
 	const QwPartialTrack* back)
 {
@@ -502,4 +502,4 @@ const int QwMatrixLookup::Bridge(
                       // MatchFlag = 2; : potential track is forced to match
 
     return 0;
-};
+}

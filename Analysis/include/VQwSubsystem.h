@@ -260,11 +260,11 @@ class VQwSubsystem: virtual public VQwCloneable {
   virtual void  PrintInfo() const;
 
   /// \brief Copy method
-  /// Note: Must be called at the beginning of all subsystems routine 
+  /// Note: Must be called at the beginning of all subsystems routine
   /// call to Copy(VQwSubsystem *source) by using VQwSubsystem::Copy(source)
   virtual void Copy(VQwSubsystem *source);
   /// \brief Assignment
-  /// Note: Must be called at the beginning of all subsystems routine 
+  /// Note: Must be called at the beginning of all subsystems routine
   /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)
   virtual VQwSubsystem& operator=(VQwSubsystem *value);
 

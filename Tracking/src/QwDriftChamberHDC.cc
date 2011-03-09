@@ -18,7 +18,7 @@ QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp):VQwSubsystem(region_tmp
                                                          QwDriftChamber(region_tmp,fTDCHits)
 {
   OK=0;
-};
+}
 
 
 
@@ -157,7 +157,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 
   return OK;
 
-};
+}
 
 
 
@@ -305,7 +305,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   //   }
   // }
   return;
-};
+}
 
 
 Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)
@@ -338,7 +338,7 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
   // expects a number in [cm].  Since the geometry definitions are in [cm],
   // we should stick to [cm] as unit of distance. (wdconinc)
   return dd_ / 10.0;
-};
+}
 
 
 void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data)
@@ -410,7 +410,7 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
   }
   
   return;
-};
+}
 
 
 
@@ -446,7 +446,7 @@ Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan,
     }
   }
   return OK;
-};
+}
 
 Int_t QwDriftChamberHDC::AddChannelDefinition()
 {
@@ -532,7 +532,7 @@ void  QwDriftChamberHDC::ProcessEvent()
   FillDriftDistanceToHits();
 
   return;
-};
+}
 
 
 Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
@@ -621,7 +621,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
     // /   ReportConfiguration();
 
     return OK;
-};
+}
 
 
 
@@ -651,7 +651,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 //   }
   
 //   return OK;
-// };
+// }
 
 
 
@@ -765,7 +765,7 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TOFW_raw[iplane]->GetYaxis()->SetTitle("Time of Flight");
   }
   return;
-};
+}
 
 
 
@@ -834,7 +834,7 @@ void  QwDriftChamberHDC::FillHistograms()
     WiresHit[iplane]->Fill(wireshitperplane[iplane]);
   }
   return;
-};
+}
 
 
 
@@ -849,7 +849,7 @@ void  QwDriftChamberHDC::FillHistograms()
 //   }
 
 //   return;
-// };
+// }
 
 
 void  QwDriftChamberHDC::ClearEventData()
@@ -867,7 +867,7 @@ void  QwDriftChamberHDC::ClearEventData()
     fReferenceData.at(i).clear();
   }
   return;
-};
+}
 
 
 
@@ -878,7 +878,7 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
   f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
   if (f1tdc_resolution_ns==0.0) {
     f1tdc_resolution_ns = 0.116312881651642913;
-    //  printf("WARNING : QwDriftChamberHDC::ApplyTimeCalibration() the predefined resolution %8.6lf (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
+    //  printf("WARNING : QwDriftChamberHDC::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
   }
 
   size_t nhits=fTDCHits.size();
@@ -895,7 +895,7 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
       fTDCHits.at(i).SetTime( time );
     }
   return;
-};
+}
 
 void QwDriftChamberHDC::SubtractWireTimeOffset()
 {
@@ -925,4 +925,4 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
                     }
                 }
         return;
-};
+}

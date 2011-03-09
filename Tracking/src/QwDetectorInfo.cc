@@ -11,7 +11,7 @@
 //
 
 #include "QwDetectorInfo.h"
-ClassImp(QwDetectorInfo);
+ClassImp(QwDetectorInfo)
 
 void QwDetectorInfo::SetDetectorInfo (
 	TString sdType,
@@ -100,7 +100,7 @@ void QwDetectorInfo::SetDetectorInfo (
     fDirection = kDirectionR;
   else if (planeDir == "f")
     fDirection = kDirectionPhi;
-};
+}
 
 
 /// Get position of the detector

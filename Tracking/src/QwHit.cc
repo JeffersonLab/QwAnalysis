@@ -6,7 +6,7 @@
  */
 
 #include "QwHit.h"
-ClassImp(QwHit);
+ClassImp(QwHit)
 
 // Qweak headers
 #include "QwDetectorInfo.h"
@@ -32,7 +32,7 @@ QwHit::QwHit(const QwHit &hit)
 
   // Copy
   *this = hit;
-};
+}
 
 
 /**
@@ -46,7 +46,7 @@ QwHit::QwHit(const QwHit* hit)
 
   // Copy
   *this = *hit;
-};
+}
 
 
 /**
@@ -89,7 +89,7 @@ QwHit::QwHit(Int_t bank_index,
   fElement           = wire;
 
   fRawTime           = rawdata;
-};
+}
 
 
 /**
@@ -98,7 +98,7 @@ QwHit::QwHit(Int_t bank_index,
 QwHit::~QwHit()
 {
   // Delete object
-};
+}
 
 
 void QwHit::Initialize()
@@ -184,7 +184,7 @@ QwHit& QwHit::operator=(const QwHit& hit)
   rPos2              = hit.rPos2;
 
   return *this;
-};
+}
 
 
 /**
@@ -260,7 +260,7 @@ Bool_t QwHit::operator<(const QwHit& obj)
 
   return bCompare;
 
-};
+}
 
 
 /**
@@ -285,7 +285,7 @@ ostream& operator<< (ostream& stream, const QwHit& hit)
   if (hit.fAmbiguousElement) stream << " (?)";
 
   return stream;
-};
+}
 
 
 /**
@@ -293,54 +293,54 @@ ostream& operator<< (ostream& stream, const QwHit& hit)
  *
  * \note The use of the output stream operator is preferred.
  */
-void QwHit::Print()
+void QwHit::Print(const Option_t* options) const
 {
   if (! this) return; // do nothing if this is a null object
   std::cout << *this << std::endl;
-};
+}
 
 
 const QwDetectorID QwHit::GetDetectorID() const
 {
   return QwDetectorID(fRegion,fPackage,fPlane,fDirection,fElement);
-};
+}
 
 
 const QwElectronicsID QwHit::GetElectronicsID() const
 {
   return QwElectronicsID(fModule,fChannel);
-};
+}
 
 // this function might be modified later
 void QwHit::SetAmbiguityID (const Bool_t amelement, const Bool_t amlr)
 {
   SetAmbiguousElement(amelement);
   SetLRAmbiguity(amlr);
-};
+}
 
 // below two metods retrieve subsets of QwHitContainer vector
 // - rakitha (08/2008)
-const Bool_t QwHit::PlaneMatches(EQwRegionID region,
-				 EQwDetectorPackage package,
-				 Int_t plane)
+Bool_t QwHit::PlaneMatches(EQwRegionID region,
+			   EQwDetectorPackage package,
+			   Int_t plane)
 {
   return (fRegion == region && fPackage == package && fPlane == plane);
-};
+}
 
-const Bool_t QwHit::DirMatches(EQwRegionID region,
-			       EQwDetectorPackage package,
-			       EQwDirectionID dir)
+Bool_t QwHit::DirMatches(EQwRegionID region,
+			 EQwDetectorPackage package,
+			 EQwDirectionID dir)
 {
   return (fRegion == region && fPackage == package && fDirection == dir);
-};
+}
 
 // main use of this method is to count no.of hits for a given wire
 // and update the fHitNumber - rakitha (08/2008)
-const Bool_t QwHit::WireMatches(EQwRegionID region,
-				EQwDetectorPackage package,
-				Int_t plane,
-				Int_t wire)
+Bool_t QwHit::WireMatches(EQwRegionID region,
+			  EQwDetectorPackage package,
+			  Int_t plane,
+			  Int_t wire)
 {
   return (fRegion == region && fPackage == package && fPlane == plane && fElement == wire);
-};
+}
 

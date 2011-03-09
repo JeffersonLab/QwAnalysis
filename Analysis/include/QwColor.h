@@ -18,46 +18,47 @@
 // see http://www.faqs.org/docs/abs/HTML/colorizing.html
 //     http://linuxgazette.net/issue65/padala.html
 
-//  Also see a listing of the full ANSI escape sequences at:
+// Also see a listing of the full ANSI escape sequences at:
 //     http://en.wikipedia.org/wiki/ANSI_escape_code
 
-//  Note that you may replace "\E" with "\033" as the
-//  escape character
+// Note that you should replace "\E" with "\033" as the
+// escape character because only "\033" conforms to the ISO
+// standard, while "\E" is a GNU extension.
 
-#define BLACK       "\E[30m"
-#define RED         "\E[31m"
-#define GREEN       "\E[32m"
-#define BROWN       "\E[33m"
-#define BLUE        "\E[34m"
-#define MAGENTA     "\E[35m"
-#define CYAN        "\E[36m"
-#define WHITE       "\E[37m"
+#define BLACK       "\033[30m"
+#define RED         "\033[31m"
+#define GREEN       "\033[32m"
+#define BROWN       "\033[33m"
+#define BLUE        "\033[34m"
+#define MAGENTA     "\033[35m"
+#define CYAN        "\033[36m"
+#define WHITE       "\033[37m"
 
-#define BOLD        "\E[1m"
-/*  Code "\E[2m" sets the intensity to faint, but it is not
+#define BOLD        "\033[1m"
+/*  Code "\033[2m" sets the intensity to faint, but it is not
  *  universally supported.
- *  Code "\E[22m" sets the intensity to normal (not bold or faint).
+ *  Code "\033[22m" sets the intensity to normal (not bold or faint).
  */
 
 /*  The bolded codes below could alternately be achieved by
  *  two codes;  i.e. BOLDRED could be done by the concatenation
  *  of BOLD and RED.
  */
-#define BOLDRED     "\E[31;1m"
-#define BOLDGREEN   "\E[32;1m"
-#define BOLDBROWN   "\E[33;1m"
-#define BOLDBLUE    "\E[34;1m"
-#define BOLDMAGENTA "\E[35;1m"
-#define BOLDCYAN    "\E[36;1m"
-#define BOLDWHITE   "\E[37;1m"
+#define BOLDRED     "\033[31;1m"
+#define BOLDGREEN   "\033[32;1m"
+#define BOLDBROWN   "\033[33;1m"
+#define BOLDBLUE    "\033[34;1m"
+#define BOLDMAGENTA "\033[35;1m"
+#define BOLDCYAN    "\033[36;1m"
+#define BOLDWHITE   "\033[37;1m"
 
-#define BACKRED     "\E[41m"
-#define BACKGREEN   "\E[42m"
-#define BACKBLUE    "\E[44m"
+#define BACKRED     "\033[41m"
+#define BACKGREEN   "\033[42m"
+#define BACKBLUE    "\033[44m"
 
-/*  Code "\E[0m" clears all formatting codes.
+/*  Code "\033[0m" clears all formatting codes.
  */
-#define NORMAL      "\E[0m"
+#define NORMAL      "\033[0m"
 
 // How to use the Color Code with printf
 // printf("%sName%s", BOLD, NORMAL);
@@ -76,7 +77,7 @@ namespace Qw {
     kNormal
   };
 
-}; // namespace Qw
+} // namespace Qw
 
 // Map of the enum to the defined strings
 typedef std::map<Qw::EQwColor, std::string> QwColorMap;
@@ -133,8 +134,8 @@ class QwColor
       map[Qw::kBackGreen] = BACKGREEN;
       map[Qw::kBackBlue]  = BACKBLUE;
       //
-      map[Qw::kDefaultForeground]   = "\E[39m";
-      map[Qw::kDefaultBackground]   = "\E[49m";
+      map[Qw::kDefaultForeground]   = "\033[39m";
+      map[Qw::kDefaultBackground]   = "\033[49m";
       //
       map[Qw::kNormal] = NORMAL;
       return map;

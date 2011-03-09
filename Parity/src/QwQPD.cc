@@ -39,7 +39,7 @@ void  QwQPD::InitializeChannel(TString name)
   bFullSave=kTRUE;
 
   return;
-};
+}
 
 void  QwQPD::InitializeChannel(TString subsystem, TString name)
 {
@@ -61,7 +61,7 @@ void  QwQPD::InitializeChannel(TString subsystem, TString name)
   bFullSave=kTRUE;
 
   return;
-};
+}
 
 void QwQPD::GetCalibrationFactors(Double_t AlphaX, Double_t AlphaY)
 {
@@ -82,7 +82,7 @@ void QwQPD::GetCalibrationFactors(Double_t AlphaX, Double_t AlphaY)
     std::cout<<"AlphaY = "<<fRelativeGains[1]<<std::endl;    
   }
   return;
-};
+}
 
 void QwQPD::ClearEventData()
 {
@@ -95,7 +95,7 @@ void QwQPD::ClearEventData()
   for(i=0;i<2;i++) fRelPos[i].ClearEventData();
 
  return;
-};
+}
 
 
 Bool_t QwQPD::ApplyHWChecks()
@@ -113,7 +113,7 @@ Bool_t QwQPD::ApplyHWChecks()
     }
 
   return fEventIsGood;
-};
+}
 
 
 Int_t QwQPD::GetEventcutErrorCounters()
@@ -126,7 +126,7 @@ Int_t QwQPD::GetEventcutErrorCounters()
   VQwBPM::GetEventcutErrorCounters();
 
   return 1;
-};
+}
 
 
 Bool_t QwQPD::ApplySingleEventCuts()
@@ -151,7 +151,7 @@ Bool_t QwQPD::ApplySingleEventCuts()
 
   return status;
 
-};
+}
 
 
 void QwQPD::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
@@ -186,7 +186,7 @@ void QwQPD::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
     VQwBPM::SetSingleEventCuts(ch_name, minX, maxX);
   }
 
-};
+}
 
 void QwQPD::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
   errorflag|=kBPMErrorFlag;//update the device flag
@@ -228,7 +228,7 @@ void QwQPD::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, 
 
   }
 
-};
+}
 
 
 void  QwQPD::ProcessEvent()
@@ -324,7 +324,7 @@ void  QwQPD::ProcessEvent()
   }
   
   return;
-};
+}
 
 
 Int_t QwQPD::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
@@ -339,7 +339,7 @@ Int_t QwQPD::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt
       "QwQPD::ProcessEvBuffer(): attemp to fill in raw date for a wire that doesn't exist \n";
     }
   return word_position_in_buffer;
-};
+}
 
 
 TString QwQPD::GetSubElementName(Int_t subindex)
@@ -365,7 +365,7 @@ UInt_t QwQPD::GetSubElementIndex(TString subname)
 	      <<subname<<"- to any index"<<std::endl;
 
   return localindex;
-};
+}
 
 
 QwQPD& QwQPD::operator= (const QwQPD &value)
@@ -379,7 +379,7 @@ QwQPD& QwQPD::operator= (const QwQPD &value)
     
   }
   return *this;
-};
+}
 
 
 QwQPD& QwQPD::operator+= (const QwQPD &value)
@@ -392,7 +392,7 @@ QwQPD& QwQPD::operator+= (const QwQPD &value)
 
   }
   return *this;
-};
+}
 
 QwQPD& QwQPD::operator-= (const QwQPD &value)
 {
@@ -404,7 +404,7 @@ QwQPD& QwQPD::operator-= (const QwQPD &value)
 
   }
   return *this;
-};
+}
 
 
 void QwQPD::Ratio(QwQPD &numer, QwQPD &denom)
@@ -415,7 +415,7 @@ void QwQPD::Ratio(QwQPD &numer, QwQPD &denom)
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   return;
-};
+}
 
 
 
@@ -428,13 +428,13 @@ void QwQPD::Scale(Double_t factor)
   for(i=0;i<2;i++) fRelPos[i].Scale(factor);
 
   return;
-};
+}
 
 void QwQPD::Copy(QwQPD *source)
 {
   VQwBPM::Copy(source);
   return;
-};
+}
 
 
 
@@ -460,7 +460,7 @@ void  QwQPD::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
   }
   return;
-};
+}
 
 void  QwQPD::FillHistograms()
 {
@@ -479,7 +479,7 @@ void  QwQPD::FillHistograms()
     }
   }
   return;
-};
+}
 
 void  QwQPD::DeleteHistograms()
 {
@@ -497,7 +497,7 @@ void  QwQPD::DeleteHistograms()
     }
   }
   return;
-};
+}
 
 
 void  QwQPD::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -524,7 +524,7 @@ void  QwQPD::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<
 
   }
   return;
-};
+}
 
 void  QwQPD::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -550,7 +550,7 @@ void  QwQPD::ConstructBranch(TTree *tree, TString &prefix)
 
   }
   return;
-};
+}
 
 void  QwQPD::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
@@ -589,7 +589,7 @@ void  QwQPD::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modu
 
 
   return;
-};
+}
 
 void  QwQPD::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -609,7 +609,7 @@ void  QwQPD::FillTreeVector(std::vector<Double_t> &values) const
     }
   }
   return;
-};
+}
 
 
 
@@ -709,7 +709,7 @@ std::vector<QwDBInterface> QwQPD::GetDBEntry()
 
   return row_list;
 
-};
+}
 
 /**********************************
  * Mock data generation routines
@@ -740,7 +740,7 @@ void  QwQPD::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t 
   fPhotodiode[1].SetRandomEventParameters(meanXM, sigmaXM);
   fPhotodiode[2].SetRandomEventParameters(meanYP, sigmaYP);
   fPhotodiode[3].SetRandomEventParameters(meanYM, sigmaYM);
-};
+}
 
 
 void QwQPD::RandomizeEventData(int helicity, double time)
@@ -748,7 +748,7 @@ void QwQPD::RandomizeEventData(int helicity, double time)
   for (Short_t i=0; i<4; i++) fPhotodiode[i].RandomizeEventData(helicity, time);
 
   return;
-};
+}
 
 
 void QwQPD::SetEventData(Double_t* relpos, UInt_t sequencenumber)
@@ -759,20 +759,20 @@ void QwQPD::SetEventData(Double_t* relpos, UInt_t sequencenumber)
     }
 
   return;
-};
+}
 
 
 void QwQPD::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   for (Short_t i=0; i<4; i++) fPhotodiode[i].EncodeEventData(buffer);
-};
+}
 
 
 void QwQPD::SetDefaultSampleSize(Int_t sample_size)
 {
   for(Short_t i=0;i<4;i++) fPhotodiode[i].SetDefaultSampleSize((size_t)sample_size);
   return;
-};
+}
 
 
 void QwQPD::SetSubElementPedestal(Int_t j, Double_t value)

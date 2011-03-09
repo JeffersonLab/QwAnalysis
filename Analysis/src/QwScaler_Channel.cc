@@ -32,7 +32,7 @@ void VQwScaler_Channel::ClearEventData()
 
   fGoodEventCount  = 0;
   fDeviceErrorCode = 0;
-};
+}
 
 void VQwScaler_Channel::RandomizeEventData(int helicity)
 {
@@ -45,7 +45,7 @@ void VQwScaler_Channel::RandomizeEventData(int helicity)
   //How many bits will be configured for data, which bits will be configured for user info?
   //std::cout<<"word = "<<std::hex<<word<<std::dec<<std::endl;
   fValue_Raw = Dataword;
-};
+}
 
 
 /*!  Static member function to return the word offset within a data buffer
@@ -97,7 +97,7 @@ void QwScaler_Channel<data_mask,data_shift>::EncodeEventData(std::vector<UInt_t>
     buffer.push_back( ((this->fValue_Raw<<data_shift)&data_mask) );
     //std::cout<<"this->fValue="<<this->fValue<<std::endl;
   }
-};
+}
 
 
 template<unsigned int data_mask, unsigned int data_shift>
@@ -117,18 +117,18 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
     //QwError << "QwScaler_Channel::ProcessEvBuffer: Not enough words!"<< QwLog::endl;
   }
   return words_read;
-};
+}
 
 
 void VQwScaler_Channel::ProcessEvent()
 {
   fValue = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
-};
+}
 
 
 void VQwScaler_Channel::PrintValue() const
 {
-  //  printf("Name %s %23.4lf +/- %15.4lf", GetElementName().Data(), fValue, fValueError);
+  //  printf("Name %s %23.4f +/- %15.4f", GetElementName().Data(), fValue, fValueError);
   QwMessage << std::setw(5) << std::left << GetElementName() << " , "
 	    << std::setprecision(4)
 	    << std::setw(5) << std::right << GetValue() << "  +/-  " << GetValueError() << " sigma "<<GetValueWidth()
@@ -158,7 +158,7 @@ void VQwScaler_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
     fHistograms[index]   = gQwHists.Construct1DHist(basename);
     index += 1;
   }
-};
+}
 
 void  VQwScaler_Channel::FillHistograms()
 {
@@ -171,7 +171,7 @@ void  VQwScaler_Channel::FillHistograms()
       fHistograms[index]->Fill(this->fValue);
     index += 1;
   }
-};
+}
 
 
 void  VQwScaler_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -189,7 +189,7 @@ void  VQwScaler_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, 
     if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
       tree->Branch(basename, &(values[fTreeArrayIndex]), list);
   }
-};
+}
 
 void  VQwScaler_Channel::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -200,7 +200,7 @@ void  VQwScaler_Channel::ConstructBranch(TTree *tree, TString &prefix)
 
     tree->Branch(basename, &fValue, basename+"/D");
   }
-};
+}
 
 void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -220,7 +220,7 @@ void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
     size_t index = fTreeArrayIndex;
     values[index++] = this->fValue;
   }
-};
+}
 
 VQwDataElement& VQwScaler_Channel::operator= (const  VQwDataElement &data_value)
 {
@@ -234,7 +234,7 @@ VQwDataElement& VQwScaler_Channel::operator= (const  VQwDataElement &data_value)
     this->fGoodEventCount = value->fGoodEventCount;
   }
   return *this;
-};
+}
 
 
 VQwScaler_Channel& VQwScaler_Channel::operator= (const VQwScaler_Channel &value)
@@ -247,7 +247,7 @@ VQwScaler_Channel& VQwScaler_Channel::operator= (const VQwScaler_Channel &value)
     this->fGoodEventCount = value.fGoodEventCount;
   }
   return *this;
-};
+}
 
 
 
@@ -260,7 +260,7 @@ VQwScaler_Channel& VQwScaler_Channel::operator+= (const VQwScaler_Channel &value
 
   }
   return *this;
-};
+}
 
 VQwScaler_Channel& VQwScaler_Channel::operator-= (const VQwScaler_Channel &value)
 {
@@ -270,18 +270,18 @@ VQwScaler_Channel& VQwScaler_Channel::operator-= (const VQwScaler_Channel &value
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
   }
   return *this;
-};
+}
 
 void VQwScaler_Channel::Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2)
 {
   *this =  value1;
   *this += value2;
-};
+}
 
 void VQwScaler_Channel::Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2){
   *this =  value1;
   *this -= value2;
-};
+}
 
 void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom){
   if (!IsNameEmpty()){
@@ -312,7 +312,7 @@ void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom
     fGoodEventCount  = denom.fGoodEventCount;
     fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
   }
-};
+}
 
 void VQwScaler_Channel::Offset(Double_t offset)
 {
@@ -320,7 +320,7 @@ void VQwScaler_Channel::Offset(Double_t offset)
     {
 
     }
-};
+}
 
 
 void VQwScaler_Channel::Scale(Double_t scale)
@@ -329,14 +329,14 @@ void VQwScaler_Channel::Scale(Double_t scale)
     {
       this->fValue *= scale;
     }
-};
+}
 
 
 
 Bool_t VQwScaler_Channel::ApplySingleEventCuts()
 {
   return kTRUE;
-};
+}
 
 void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value)
 {
@@ -374,7 +374,7 @@ void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
 
   return;
-};
+}
 
 void VQwScaler_Channel::CalculateRunningAverage(){
   //  See notes in QwVQWK_Channel;  we are using:
@@ -435,7 +435,7 @@ void  VQwScaler_Channel::ReportErrorCounters(){
 		<< " had " << fNumEvtsWithEventCutsRejected
 		<< " events rejected by Event Cuts."
 		<< QwLog::endl;
-  };
+  }
 
 
 //  These explicit class template instantiations should be the

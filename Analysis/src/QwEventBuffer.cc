@@ -63,7 +63,7 @@ QwEventBuffer::QwEventBuffer()
       fDataDirectory.Append("/");
   }
 
-};
+}
 
 /**
  * Defines configuration options for QwEventBuffer class using QwOptions
@@ -161,7 +161,7 @@ void QwEventBuffer::PrintRunTimes()
 	    << "Real time used: " << fRunTimer.RealTime() << " s "
 	    << "(" << 1000.0 * fRunTimer.RealTime() / nevents << " ms per event)" << QwLog::endl
 	    << QwLog::endl;
-};
+}
 
 
 
@@ -234,7 +234,7 @@ TString QwEventBuffer::GetRunLabel() const
     runlabel += Form(".%03d",*fRunSegmentIterator);
   }
   return runlabel;
-};
+}
 
 Int_t QwEventBuffer::OpenNextStream()
 {
@@ -301,7 +301,7 @@ Int_t QwEventBuffer::CloseStream()
     status = CloseETStream();
   }
   return status;
-};
+}
 
 
 
@@ -346,7 +346,7 @@ Int_t QwEventBuffer::GetNextEvent()
   }
 
   return status;
-};
+}
 
 
 Int_t QwEventBuffer::GetEvent()
@@ -380,7 +380,7 @@ Int_t QwEventBuffer::GetFileEvent(){
     }
   } while (fChainDataFiles && status == EOF);
   return status;
-};
+}
 
 Int_t QwEventBuffer::GetEtEvent(){
   Int_t status = CODA_OK;
@@ -388,7 +388,7 @@ Int_t QwEventBuffer::GetEtEvent(){
   //  read to be cleared?
   status = fEvStream->codaRead();
   return status;
-};
+}
 
 
 Int_t QwEventBuffer::WriteEvent(int* buffer)
@@ -411,7 +411,7 @@ Int_t QwEventBuffer::WriteFileEvent(int* buffer)
   //  but codaWrite is only defined for THaCodaFile.
   status = ((THaCodaFile*)fEvStream)->codaWrite(buffer);
   return status;
-};
+}
 
 
 Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
@@ -448,7 +448,7 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
   Int_t status = WriteEvent(codabuffer);
   // and report success or fail
   return status;
-};
+}
 
 
 Int_t QwEventBuffer::EncodePrestartEvent(int runnumber, int runtype)
@@ -505,7 +505,7 @@ Int_t QwEventBuffer::EncodeEndEvent()
 
 
 void QwEventBuffer::ResetFlags(){
-};
+}
 
 
 void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
@@ -546,7 +546,8 @@ void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
       SetEventType(local_eventtype);
       fBankDataType = local_datatype;
 
-      if (local_eventtype>=0 && local_eventtype<=15) {
+      // local_eventtype is unsigned int and always positive
+      if (/* local_eventtype >= 0 && */ local_eventtype <= 15) {
         //  This is a physics event; record the event number, event
         //  classification, and status summary.
         fEvtNumber = buffer[4];
@@ -585,7 +586,7 @@ void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
   // 	  << Form("Status Summary: 0x%.8x; Words so far %d",
   // 		  fStatSum, fWordsSoFar)
   // 	   << std::endl;
-};
+}
 
 
 Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystems)
@@ -638,7 +639,7 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
 	    <<QwLog::endl;
   }
   return okay;
-};
+}
 
 Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 {
@@ -715,7 +716,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 // 	    <<QwLog::endl;
   }
   return okay;
-};
+}
 
 
 // added all this method for QwEPICSEvent class
@@ -790,7 +791,7 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
   //std::cout<<"\nEpics data coming!! "<<fWordsSoFar<<std::endl;
 
   return okay;
-};
+}
 
 
 Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
@@ -827,12 +828,12 @@ Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
     fWordsSoFar   += 2;
   }
   return okay;
-};
+}
 
 
 const TString&  QwEventBuffer::DataFile(const UInt_t run, const Short_t seg = -1)
 {
-  TString basename = fDataFileStem + Form("%ld.",run) + fDataFileExtension;
+  TString basename = fDataFileStem + Form("%u.",run) + fDataFileExtension;
   if(seg == -1){
     fDataFile = fDataDirectory + basename;
   } else {
@@ -995,7 +996,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
   fRunSegments.push_back(seg);
   fRunSegmentIterator = fRunSegments.begin();
   return OpenNextSegment();
-};
+}
 
 //------------------------------------------------------------
 //call this routine if the run is not segmented
@@ -1010,7 +1011,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, const TString rw)
     status = OpenDataFile(DataFile(fCurrentRun),rw);
   }
   return status;
-};
+}
 
 
 
@@ -1065,7 +1066,7 @@ Int_t QwEventBuffer::OpenDataFile(const TString filename, const TString rw)
     globfree(&globbuf);
   }
   return fEvStream->codaOpen(fDataFile, rw);
-};
+}
 
 
 //------------------------------------------------------------

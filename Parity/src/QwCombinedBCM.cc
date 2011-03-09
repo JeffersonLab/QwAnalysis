@@ -24,13 +24,13 @@ void QwCombinedBCM::SetPedestal(Double_t pedestal)
 {
 	fCombined_bcm.SetPedestal(0);
 	return;
-};
+}
 
 void QwCombinedBCM::SetCalibrationFactor(Double_t calib)
 {
 	fCombined_bcm.SetCalibrationFactor(1);
 	return;
-};
+}
 
 void QwCombinedBCM::Set(QwBCM* bcm, Double_t weight, Double_t sumqw ){
 
@@ -46,7 +46,7 @@ void  QwCombinedBCM::InitializeChannel(TString name, TString datatosave)
   fCombined_bcm.InitializeChannel(name,"derived");
 
   return;
-};
+}
 
 void  QwCombinedBCM::InitializeChannel(TString subsystem, TString name, TString datatosave)
 {
@@ -54,7 +54,7 @@ void  QwCombinedBCM::InitializeChannel(TString subsystem, TString name, TString 
   fCombined_bcm.InitializeChannel(subsystem, "QwCombinedBCM", name,"derived");
 
   return;
-};
+}
 
 
 void QwCombinedBCM::ClearEventData()
@@ -67,45 +67,45 @@ void QwCombinedBCM::ClearEventData()
 void QwCombinedBCM::ReportErrorCounters()
 {
   //fCombined_bcm.ReportErrorCounters();
-};
+}
 
 /********************************************************/
 void QwCombinedBCM::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
   fCombined_bcm.SetRandomEventParameters(mean, sigma);
   return;
-};
+}
 
 
 // void QwCombinedBCM::SetRandomEventAsymmetry(Double_t asymmetry)
 // {
 //   fCombined_bcm.SetRandomEventAsymmetry(asymmetry);
 //   return;
-// };
+// }
 
 void QwCombinedBCM::RandomizeEventData(int helicity)
 {
   fCombined_bcm.RandomizeEventData(helicity);
   return;
-};
+}
 /********************************************************/
 void QwCombinedBCM::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
   fCombined_bcm.SetHardwareSum(hwsum, sequencenumber);
   return;
-};
+}
 
 
 void QwCombinedBCM::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fCombined_bcm.SetEventData(block, sequencenumber);
   return;
-};
+}
 /********************************************************/
 void QwCombinedBCM::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   fCombined_bcm.EncodeEventData(buffer);
-};
+}
 
 
 
@@ -139,7 +139,7 @@ void  QwCombinedBCM::ProcessEvent()
     std::cout<<"***************** \n";
   }
   return;
-};
+}
 
 
 void QwCombinedBCM::SetDefaultSampleSize(Int_t sample_size){
@@ -162,7 +162,7 @@ Bool_t QwCombinedBCM::ApplySingleEventCuts(){
 
   return status;
 
-};
+}
 
 /********************************************************/
 
@@ -176,13 +176,13 @@ Int_t QwCombinedBCM::GetEventcutErrorCounters(){// report number of events falie
 
 void QwCombinedBCM::CalculateRunningAverage(){
   fCombined_bcm.CalculateRunningAverage();
-};
+}
 
 /********************************************************/
 
 void QwCombinedBCM::AccumulateRunningSum(const QwCombinedBCM& value){
   fCombined_bcm.AccumulateRunningSum(value.fCombined_bcm);
-};
+}
 
 /********************************************************/
 
@@ -193,7 +193,7 @@ Int_t QwCombinedBCM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buf
 
 //   return word_position_in_buffer;
   return 0;
-};
+}
 /********************************************************/
 QwCombinedBCM& QwCombinedBCM::operator= (const QwCombinedBCM &value)
 {
@@ -201,14 +201,14 @@ QwCombinedBCM& QwCombinedBCM::operator= (const QwCombinedBCM &value)
     this->fCombined_bcm=value.fCombined_bcm;
 
   return *this;
-};
+}
 
 QwCombinedBCM& QwCombinedBCM::operator+= (const QwCombinedBCM &value)
 {
   if (GetElementName()!="")
     this->fCombined_bcm+=value.fCombined_bcm;
   return *this;
-};
+}
 
 QwCombinedBCM& QwCombinedBCM::operator-= (const QwCombinedBCM &value)
 {
@@ -216,18 +216,18 @@ QwCombinedBCM& QwCombinedBCM::operator-= (const QwCombinedBCM &value)
     this->fCombined_bcm-=value.fCombined_bcm;
 
   return *this;
-};
+}
 
 
 void QwCombinedBCM::Sum(QwCombinedBCM &value1, QwCombinedBCM &value2){
   *this =  value1;
   *this += value2;
-};
+}
 
 void QwCombinedBCM::Difference(QwCombinedBCM &value1, QwCombinedBCM &value2){
   *this =  value1;
   *this -= value2;
-};
+}
 
 void QwCombinedBCM::Ratio(QwCombinedBCM &numer, QwCombinedBCM &denom)
 {
@@ -235,7 +235,7 @@ void QwCombinedBCM::Ratio(QwCombinedBCM &numer, QwCombinedBCM &denom)
     this->fCombined_bcm.Ratio(numer.fCombined_bcm,denom.fCombined_bcm);
 
   return;
-};
+}
 
 void QwCombinedBCM::Scale(Double_t factor)
 {
@@ -265,12 +265,12 @@ Bool_t QwCombinedBCM::ApplyHWChecks()
   Bool_t fEventIsGood=kTRUE;
 
   return fEventIsGood;
-};
+}
 
 Int_t QwCombinedBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
   fCombined_bcm.SetSingleEventCuts(LL,UL);
   return 1;
-};
+}
 
 /********************************************************/
 void QwCombinedBCM::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
@@ -279,7 +279,7 @@ void QwCombinedBCM::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t
   QwMessage<<"QwCombinedBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
   fCombined_bcm.SetSingleEventCuts(errorflag,LL,UL,stability);
 
-};
+}
 
 /********************************************************/
 void  QwCombinedBCM::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -294,7 +294,7 @@ void  QwCombinedBCM::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
   return;
 
-};
+}
 
 void  QwCombinedBCM::FillHistograms()
 {
@@ -309,7 +309,7 @@ void  QwCombinedBCM::FillHistograms()
 
 
   return;
-};
+}
 
 void  QwCombinedBCM::DeleteHistograms()
 {
@@ -320,7 +320,7 @@ void  QwCombinedBCM::DeleteHistograms()
       fCombined_bcm.DeleteHistograms();
     }
   return;
-};
+}
 
 void  QwCombinedBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
@@ -331,7 +331,7 @@ void  QwCombinedBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
       fCombined_bcm.ConstructBranchAndVector(tree,prefix,values);
     }
   return;
-};
+}
 
 void  QwCombinedBCM::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -342,7 +342,7 @@ void  QwCombinedBCM::ConstructBranch(TTree *tree, TString &prefix)
       fCombined_bcm.ConstructBranch(tree,prefix);
     }
   return;
-};
+}
 
 void  QwCombinedBCM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
@@ -360,7 +360,7 @@ void  QwCombinedBCM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
       }
     }
   return;
-};
+}
 
 
 void  QwCombinedBCM::FillTreeVector(std::vector<Double_t> &values) const
@@ -372,7 +372,7 @@ void  QwCombinedBCM::FillTreeVector(std::vector<Double_t> &values) const
       fCombined_bcm.FillTreeVector(values);
     }
   return;
-};
+}
 
 
 /********************************************************/
@@ -465,6 +465,6 @@ std::vector<QwDBInterface> QwCombinedBCM::GetDBEntry()
 
   return row_list;
 
-};
+}
 
 

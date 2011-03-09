@@ -7,7 +7,7 @@
  */
 
 #include "QwHitPattern.h"
-ClassImp(QwHitPattern);
+ClassImp(QwHitPattern)
 
 // Qweak headers
 #include "QwHit.h"

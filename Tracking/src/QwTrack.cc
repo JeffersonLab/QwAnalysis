@@ -1,5 +1,5 @@
 #include "QwTrack.h"
-ClassImp(QwTrack);
+ClassImp(QwTrack)
 
 /**
  * Default constructor
@@ -58,4 +58,4 @@ ostream& operator<< (ostream& stream, const QwTrack& t)
   if (t.GetRegion() != kRegionIDNull)
     stream << "(" << t.GetRegion() << "/" << "?UD"[t.GetPackage()] << ") ";
   return stream;
-};
+}

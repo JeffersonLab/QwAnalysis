@@ -48,7 +48,7 @@ void QwHelicity::DefineOptions(QwOptions &options)
   options.AddOptions("Helicity options")
       ("helicity.delay", po::value<int>(),
           "Default delay is 2 patterns, set at the helicity map file.");
-};
+}
 
 //**************************************************//
 
@@ -109,7 +109,7 @@ Bool_t QwHelicity::IsContinuous()
   if(IsGoodPatternNumber()&&IsGoodEventNumber()&&IsGoodPhaseNumber())
     results=kTRUE;
   return results;
-};
+}
 
 
 Bool_t QwHelicity::IsGoodPatternNumber()
@@ -128,7 +128,7 @@ Bool_t QwHelicity::IsGoodPatternNumber()
   }
 
   return results;
-};
+}
 
 
 Bool_t QwHelicity::IsGoodEventNumber()
@@ -144,7 +144,7 @@ Bool_t QwHelicity::IsGoodEventNumber()
     Print();
   }
   return results;
-};
+}
 
 
 Bool_t QwHelicity::IsGoodPhaseNumber()
@@ -175,7 +175,7 @@ Bool_t QwHelicity::IsGoodPhaseNumber()
   }
 
   return results;
-};
+}
 
 
 Bool_t QwHelicity::IsGoodHelicity()
@@ -207,7 +207,7 @@ Bool_t QwHelicity::IsGoodHelicity()
   }
   
   return fGoodHelicity;
-};
+}
 
 
 void QwHelicity::ClearEventData()
@@ -237,38 +237,38 @@ void QwHelicity::ClearEventData()
   fEventNumber = -1;
   fPatternPhaseNumber = -1;
   return;
-};
+}
 
 Int_t QwHelicity::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   //stub function
   // QwError << " this function QwHelicity::ProcessConfigurationBuffer does nothing yet " << QwLog::endl;
   return 0;
-};
+}
 
 Int_t QwHelicity::LoadInputParameters(TString pedestalfile)
 {
   return 0;
-};
+}
 
 
 Bool_t QwHelicity::ApplySingleEventCuts(){
   //impose single event cuts //Paul's modifications
 
   return kTRUE;
-};
+}
 
 Int_t QwHelicity::GetEventcutErrorCounters(){
   // report number of events falied due to HW and event cut faliure
 
   return 1;
-};
+}
 
 UInt_t QwHelicity::GetEventcutErrorFlag(){//return the error flag
 
   return 0;
 
-};
+}
 
 void QwHelicity::ProcessEventUserbitMode()
 {
@@ -344,7 +344,7 @@ void QwHelicity::ProcessEventUserbitMode()
     }
   }
   return;
-};
+}
 
 
 void QwHelicity::ProcessEventInputRegisterMode()
@@ -433,7 +433,7 @@ void QwHelicity::ProcessEventInputRegisterMode()
   }
   
   return;
-};
+}
 
 void QwHelicity::ProcessEventInputMollerMode()
 {
@@ -472,7 +472,7 @@ void QwHelicity::ProcessEventInputMollerMode()
     fHelicityBitMinus=kTRUE;
   }
   return;
-};
+}
 
 
 void  QwHelicity::ProcessEvent()
@@ -526,7 +526,7 @@ void  QwHelicity::ProcessEvent()
   }
 
   return;
-};
+}
 
 
 void QwHelicity::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -594,7 +594,7 @@ void QwHelicity::EncodeEventData(std::vector<UInt_t> &buffer)
     buffer.insert(buffer.end(), subbankheader.begin(), subbankheader.end());
     buffer.insert(buffer.end(), localbuffer.begin(), localbuffer.end());
   }
-};
+}
 
 void QwHelicity::Print() const
 {
@@ -615,7 +615,7 @@ void QwHelicity::Print() const
 	<< fHelicityActual << QwLog::endl;
   QwOut << "===" << QwLog::endl;
   return;
-};
+}
 
 
 Int_t QwHelicity::LoadChannelMap(TString mapfile)
@@ -823,12 +823,12 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
     }
   }
   return 0;
-};
+}
 
 
 Int_t QwHelicity::LoadEventCuts(TString filename){
   return 0;
-};
+}
 
 Int_t QwHelicity::ProcessEvBuffer(UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
@@ -872,39 +872,39 @@ Int_t QwHelicity::ProcessEvBuffer(UInt_t ev_type, const UInt_t roc_id, const UIn
 Int_t QwHelicity::GetHelicityReported()
 {
   return fHelicityReported;
-};
+}
 
 Int_t QwHelicity::GetHelicityActual()
 {
   return fHelicityActual;
-};
+}
 
 Int_t QwHelicity::GetHelicityDelayed()
 {
   return fHelicityDelayed;
-};
+}
 
 Long_t QwHelicity::GetPatternNumber()
 {
   return  fPatternNumber;
-};
+}
 
 Long_t QwHelicity::GetEventNumber()
 {
   return fEventNumber;
-};
+}
 
 Int_t QwHelicity::GetPhaseNumber()
 {
   return fPatternPhaseNumber;
-};
+}
 
 void QwHelicity::SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase)
 {
   fEventNumber = event;
   fPatternNumber = pattern;
   fPatternPhaseNumber = phase;
-};
+}
 
 void QwHelicity::SetFirstBits(UInt_t nbits, UInt_t seed)
 {
@@ -928,7 +928,7 @@ void QwHelicity::SetHistoTreeSave(const TString &prefix)
     fHistoType = kHelSavePattern;
   else
     fHistoType = kHelSaveMPS;
-};
+}
 
 void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
@@ -979,7 +979,7 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
     QwError << "QwHelicity::ConstructHistograms this prefix--" << prefix << "-- is not unknown:: no histo created" << QwLog::endl;
 
   return;
-};
+}
 
 void  QwHelicity::DeleteHistograms()
 {
@@ -1045,7 +1045,7 @@ void  QwHelicity::FillHistograms()
     }
 
   return;
-};
+}
 
 
 void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -1127,7 +1127,7 @@ void  QwHelicity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::ve
     }
 
   return;
-};
+}
 
 void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -1186,7 +1186,7 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix)
     }
 
   return;
-};
+}
 
 void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file)
 {
@@ -1247,7 +1247,7 @@ void  QwHelicity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile&
 
 
   return;
-};
+}
 
 void  QwHelicity::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -1278,7 +1278,7 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values) const
     }
 
   return;
-};
+}
 
 void  QwHelicity::FillDB(QwDatabase *db, TString type)
 {
@@ -1296,7 +1296,7 @@ void  QwHelicity::FillDB(QwDatabase *db, TString type)
   query  << s_sql;
   query.execute();
   db->Disconnect();
-};
+}
 
 
 UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
@@ -1308,7 +1308,7 @@ UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
     status = GetRandbit30(ranseed);
 
   return status;
-};
+}
 
 UInt_t QwHelicity::GetRandbit24(UInt_t& ranseed)
 {
@@ -1364,7 +1364,7 @@ UInt_t QwHelicity::GetRandbit24(UInt_t& ranseed)
     }
   return(result);
 
-};
+}
 
 
 UInt_t QwHelicity::GetRandbit30(UInt_t& ranseed)
@@ -1385,7 +1385,7 @@ UInt_t QwHelicity::GetRandbit30(UInt_t& ranseed)
   ranseed =  ( (ranseed << 1) | result ) & 0x3FFFFFFF;
 
   return(result);
-};
+}
 
 
 UInt_t QwHelicity::GetRandomSeed(UShort_t* first24randbits)
@@ -1431,7 +1431,7 @@ UInt_t QwHelicity::GetRandomSeed(UShort_t* first24randbits)
 
   return ranseed;
 
-};
+}
 
 
 void QwHelicity::RunPredictor()
@@ -1493,7 +1493,7 @@ void QwHelicity::RunPredictor()
   }
 
   return;
-};
+}
 
 
 Bool_t QwHelicity::CollectRandBits()
@@ -1506,7 +1506,7 @@ Bool_t QwHelicity::CollectRandBits()
     status = CollectRandBits30();
 
   return status;
-};
+}
 
 
 
@@ -1596,7 +1596,7 @@ Bool_t QwHelicity::CollectRandBits24()
 
   return kFALSE;
 
-};
+}
 
 
 Bool_t QwHelicity::CollectRandBits30()
@@ -1672,7 +1672,7 @@ Bool_t QwHelicity::CollectRandBits30()
     QwDebug   << " event number=" << fEventNumber << ", fPatternNumber="<< fPatternNumber << ",  fPatternPhaseNumber=" << fPatternPhaseNumber << QwLog::endl;
   }
   return kFALSE;
-};
+}
 
 
 void QwHelicity::PredictHelicity()
@@ -1703,7 +1703,7 @@ void QwHelicity::PredictHelicity()
    if(ldebug)  std::cout << "n_ranbit exiting the function = " << n_ranbits << "\n";
 
    return;
-};
+}
 
 
 
@@ -1727,7 +1727,7 @@ void QwHelicity::SetHelicityDelay(Int_t delay)
     QwError << "QwHelicity::SetHelicityDelay We cannot handle negative delay in the prediction of delayed helicity. Exiting.." << QwLog::endl;
 
   return;
-};
+}
 
 
 void QwHelicity::SetHelicityBitPattern(UInt_t bits)
@@ -1747,7 +1747,7 @@ void QwHelicity::ResetPredictor()
   fGoodHelicity = kFALSE;
   fGoodPattern = kFALSE;
   return;
-};
+}
 
 
 
@@ -1785,14 +1785,14 @@ void QwHelicity::Copy(VQwSubsystem *source)
     }
 
   return;
-};
+}
 
 VQwSubsystem*  QwHelicity::Copy()
 {
   QwHelicity* TheCopy=new QwHelicity("Helicity Copy");
   TheCopy->Copy(this);
   return TheCopy;
-};
+}
 
 VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
 {
@@ -1830,7 +1830,7 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
     }
 
   return *this;
-};
+}
 
 VQwSubsystem&  QwHelicity::operator+=  (VQwSubsystem *value)
 {
@@ -1853,7 +1853,7 @@ VQwSubsystem&  QwHelicity::operator+=  (VQwSubsystem *value)
 	this->fPatternNumber=-999999;
     }
   return *this;
-};
+}
 
 void QwHelicity::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
@@ -1865,19 +1865,19 @@ void QwHelicity::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
     *this =  value1;
     //*this += value2;
   }
-};
+}
 
 void QwHelicity::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   // this is stub function defined here out of completion and uniformity between each subsystem
   *this =  value1;
-};
+}
 
 void QwHelicity::Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
   // this is stub function defined here out of completion and uniformity between each subsystem
   *this =  value1;
-};
+}
 
 
 Bool_t QwHelicity::Compare(VQwSubsystem *value)
@@ -1892,7 +1892,7 @@ Bool_t QwHelicity::Compare(VQwSubsystem *value)
     }
   }
   return res;
-};
+}
 
 
 UInt_t QwHelicity::BuildHelicityBitPattern(Int_t patternsize){
@@ -1924,4 +1924,4 @@ UInt_t QwHelicity::BuildHelicityBitPattern(Int_t patternsize){
   //  Now set the bit pattern.
   SetHelicityBitPattern(bitpattern);
   return bitpattern;
-};
+}

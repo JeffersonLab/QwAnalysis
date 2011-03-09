@@ -33,7 +33,7 @@ QwHitContainer::iterator QwHitContainer::GetEndOfHits (
 				boost::ref(region),
 				boost::ref(package),
 				boost::ref(direction))));
-};
+}
 
 
 QwHitContainer::iterator QwHitContainer::GetStartOfHits1 (
@@ -46,7 +46,7 @@ QwHitContainer::iterator QwHitContainer::GetStartOfHits1 (
 			boost::ref(region),
 			boost::ref(package),
 			boost::ref(plane)));
-};
+}
 
 QwHitContainer::iterator QwHitContainer::GetEndOfHits1 (
 	EQwRegionID region,
@@ -60,7 +60,7 @@ QwHitContainer::iterator QwHitContainer::GetEndOfHits1 (
 				boost::ref(region),
 				boost::ref(package),
 				boost::ref(plane))));
-};
+}
 
 
 void QwHitContainer::GetSubList_Dir(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID direction, std::vector<QwHit> &  sublist) {
@@ -97,7 +97,7 @@ QwHitContainer* QwHitContainer::GetSubList_Dir (EQwRegionID region, EQwDetectorP
 }
 
 
-void QwHitContainer::Print ()
+void QwHitContainer::Print (const Option_t* option) const
 {
   if (! this) return;
   std::cout << *this << std::endl;

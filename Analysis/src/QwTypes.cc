@@ -23,7 +23,7 @@ EQwPMTInstrumentType GetQwPMTInstrumentType(TString name){
     result = kQwCombinedPMT;
   }
   return result;
-};
+}
 
 
 EQwBeamInstrumentType GetQwBeamInstrumentType(TString name){
@@ -60,7 +60,7 @@ EQwBeamInstrumentType GetQwBeamInstrumentType(TString name){
     result = kQwLinearArray;
   }
   return result;
-};
+}
 
 
 /**
@@ -86,7 +86,7 @@ TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type){
     result.ToLower();
   }
   return result;
-};
+}
 
 
 TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type){
@@ -119,7 +119,7 @@ TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type){
   else if (type==kQwBPMCavity)
     result = "bpmcavity";
   return result;
-};
+}
 
 UInt_t GetGlobalErrorFlag(TString evtype,Int_t evMode,Double_t stabilitycut){
   UInt_t evntMode;
@@ -136,4 +136,4 @@ UInt_t GetGlobalErrorFlag(TString evtype,Int_t evMode,Double_t stabilitycut){
     return (kLocalCut|evntMode);
 
   return 0;
-};
+}

@@ -47,7 +47,7 @@ void QwMainCerenkovDetector::ProcessOptions(QwOptions &options){
 	      << "Detector yields WILL NOT be normalized."
 	      << QwLog::endl;
   }
-};
+}
 
 
 //*****************************************************************
@@ -113,7 +113,7 @@ Bool_t QwMainCerenkovDetector::PublishInternalValues() const
   }
 
   return status;
-};
+}
 
 
 //*****************************************************************
@@ -364,7 +364,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
   ldebug=kFALSE;
 
   return 0;
-};
+}
 
 
 Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
@@ -460,7 +460,7 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
   fMainDetErrorCount=0; //set the error counter to zero
 
   return 0;
-};
+}
 
 
 
@@ -530,7 +530,7 @@ void QwMainCerenkovDetector::ClearEventData()
     fCombinedPMT[i].ClearEventData();
 
   return;
-};
+}
 
 
 /********************************************************/
@@ -543,7 +543,7 @@ void QwMainCerenkovDetector::SetRandomEventParameters(Double_t mean, Double_t si
         fIntegrationPMT[fMainDetID.at(i).fIndex].SetRandomEventParameters(mean, sigma);
     }
 
-};
+}
 
 void QwMainCerenkovDetector::SetRandomEventAsymmetry(Double_t asymmetry)
 {
@@ -554,7 +554,7 @@ void QwMainCerenkovDetector::SetRandomEventAsymmetry(Double_t asymmetry)
         fIntegrationPMT[fMainDetID.at(i).fIndex].SetRandomEventAsymmetry(asymmetry);
     }
 
-};
+}
 
 void QwMainCerenkovDetector::RandomizeEventData(int helicity, double time)
 {
@@ -620,7 +620,7 @@ Int_t QwMainCerenkovDetector::ProcessConfigurationBuffer(const UInt_t roc_id, co
       }
     }*/
   return 0;
-};
+}
 
 
 Int_t QwMainCerenkovDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
@@ -658,7 +658,7 @@ Int_t QwMainCerenkovDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t 
     }
 
   return 0;
-};
+}
 
 
 
@@ -681,7 +681,7 @@ Bool_t QwMainCerenkovDetector::ApplySingleEventCuts()
   return status;
 
 
-};
+}
 
 
 UInt_t QwMainCerenkovDetector::GetEventcutErrorFlag() //return the error flag
@@ -729,7 +729,7 @@ void  QwMainCerenkovDetector::ProcessEvent()
     }
 
   return;
-};
+}
 
 /**
  * Exchange data between subsystems
@@ -847,7 +847,7 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
 
     
   }
-};
+}
 
 
 void  QwMainCerenkovDetector::ProcessEvent_2()
@@ -870,7 +870,7 @@ void  QwMainCerenkovDetector::ProcessEvent_2()
     {
       QwWarning<<"QwMainCerenkovDetector::ProcessEvent_2(): could not get all external values."<<QwLog::endl;
     }
-};
+}
 
 
 
@@ -883,7 +883,7 @@ void  QwMainCerenkovDetector::ConstructHistograms(TDirectory *folder, TString &p
   for (size_t i=0;i<fCombinedPMT.size();i++)
     fCombinedPMT[i].ConstructHistograms(folder,prefix);
   return;
-};
+}
 
 
 void  QwMainCerenkovDetector::FillHistograms()
@@ -895,7 +895,7 @@ void  QwMainCerenkovDetector::FillHistograms()
     fCombinedPMT[i].FillHistograms();
 
   return;
-};
+}
 
 
 void  QwMainCerenkovDetector::DeleteHistograms()
@@ -907,7 +907,7 @@ void  QwMainCerenkovDetector::DeleteHistograms()
     fCombinedPMT[i].DeleteHistograms();
 
   return;
-};
+}
 
 
 void QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
@@ -919,7 +919,7 @@ void QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & pre
     fCombinedPMT[i].ConstructBranchAndVector(tree, prefix, values);
 
   return;
-};
+}
 
 void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix)
 {
@@ -930,7 +930,7 @@ void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix)
     fCombinedPMT[i].ConstructBranch(tree, prefix);
 
   return;
-};
+}
 
 void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
 {
@@ -955,7 +955,7 @@ void QwMainCerenkovDetector::ConstructBranch(TTree *tree, TString & prefix, QwPa
    }
 
   return;
-};
+}
 
 void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -966,13 +966,13 @@ void QwMainCerenkovDetector::FillTreeVector(std::vector<Double_t> &values) const
     fCombinedPMT[i].FillTreeVector(values);
 
   return;
-};
+}
 
 
 const QwIntegrationPMT* QwMainCerenkovDetector::GetChannel(const TString name) const
 {
   return GetIntegrationPMT(name);
-};
+}
 
 
 void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
@@ -1059,7 +1059,7 @@ VQwSubsystem&  QwMainCerenkovDetector::operator=  (VQwSubsystem *value)
         (this->fCombinedPMT[i])=(input->fCombinedPMT[i]);
     }
   return *this;
-};
+}
 
 
 VQwSubsystem&  QwMainCerenkovDetector::operator+=  (VQwSubsystem *value)
@@ -1076,7 +1076,7 @@ VQwSubsystem&  QwMainCerenkovDetector::operator+=  (VQwSubsystem *value)
 
     }
   return *this;
-};
+}
 
 
 VQwSubsystem&  QwMainCerenkovDetector::operator-=  (VQwSubsystem *value)
@@ -1094,7 +1094,7 @@ VQwSubsystem&  QwMainCerenkovDetector::operator-=  (VQwSubsystem *value)
 
     }
   return *this;
-};
+}
 
 
 
@@ -1105,7 +1105,7 @@ void QwMainCerenkovDetector::Sum(VQwSubsystem *value1,VQwSubsystem *value2)
       *this =  value1;
       *this += value2;
     }
-};
+}
 
 void QwMainCerenkovDetector::Difference(VQwSubsystem *value1,VQwSubsystem *value2)
 {
@@ -1114,7 +1114,7 @@ void QwMainCerenkovDetector::Difference(VQwSubsystem *value1,VQwSubsystem *value
       *this =  value1;
       *this -= value2;
     }
-};
+}
 
 void QwMainCerenkovDetector::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 {
@@ -1131,7 +1131,7 @@ void QwMainCerenkovDetector::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 
     }
   return;
-};
+}
 
 
 void QwMainCerenkovDetector::Scale(Double_t factor)
@@ -1143,7 +1143,7 @@ void QwMainCerenkovDetector::Scale(Double_t factor)
     fCombinedPMT[i].Scale(factor);
 
   return;
-};
+}
 
 //*****************************************************************
 void QwMainCerenkovDetector::Normalize(VQwDataElement* denom)
@@ -1152,7 +1152,7 @@ void QwMainCerenkovDetector::Normalize(VQwDataElement* denom)
     fIntegrationPMT[i].Normalize(denom);
   for (size_t i = 0; i < fCombinedPMT.size(); i++)
     fCombinedPMT[i].Normalize(denom);
-};
+}
 
 
 
@@ -1165,7 +1165,7 @@ void QwMainCerenkovDetector::CalculateRunningAverage()
     fCombinedPMT[i].CalculateRunningAverage();
 
   return;
-};
+}
 
 void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
 {
@@ -1177,7 +1177,7 @@ void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
     for (size_t i = 0; i < fCombinedPMT.size(); i++)
       fCombinedPMT[i].AccumulateRunningSum(value->fCombinedPMT[i]);
   }
-};
+}
 
 
 /**
@@ -1217,7 +1217,7 @@ void QwMainCerenkovDetector::Blind(const QwBlinder *blinder, const VQwSubsystemP
 EQwPMTInstrumentType QwMainCerenkovDetector::GetDetectorTypeID(TString name)
 {
   return GetQwPMTInstrumentType(name);
-};
+}
 
 //*****************************************************************
 Int_t QwMainCerenkovDetector::GetDetectorIndex(EQwPMTInstrumentType type_id, TString name)
@@ -1244,7 +1244,7 @@ Int_t QwMainCerenkovDetector::GetDetectorIndex(EQwPMTInstrumentType type_id, TSt
     }
 
   return result;
-};
+}
 
 const QwIntegrationPMT* QwMainCerenkovDetector::GetIntegrationPMT(const TString name) const
 {
@@ -1263,7 +1263,7 @@ const QwIntegrationPMT* QwMainCerenkovDetector::GetIntegrationPMT(const TString 
     }
   QwMessage << "QwMainCerenkovDetector::GetIntegrationPMT: cannot find channel " << tmpname << QwLog::endl;
   return NULL;
-};
+}
 
 const QwCombinedPMT* QwMainCerenkovDetector::GetCombinedPMT(const TString name) const
 {
@@ -1282,7 +1282,7 @@ const QwCombinedPMT* QwMainCerenkovDetector::GetCombinedPMT(const TString name) 
     }
   QwMessage << "QwMainCerenkovDetector::GetCombinedPMT: cannot find channel " << tmpname << QwLog::endl;
   return NULL;
-};
+}
 
 void QwMainCerenkovDetector::DoNormalization(Double_t factor)
 {
@@ -1374,7 +1374,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   }
   db->Disconnect();
   return;
-};
+}
 
 void  QwMainCerenkovDetector::PrintValue() const
 {

@@ -18,7 +18,7 @@
 VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystemByName(const TString& name)
 {
   return dynamic_cast<VQwSubsystemTracking*>(QwSubsystemArray::GetSubsystemByName(name));
-};
+}
 
 /**
  * Get the hit list from the subsystems in this array
@@ -41,4 +41,4 @@ void QwSubsystemArrayTracking::GetHitList(QwHitContainer& hitlist)
       }
     }
   }
-};
+}

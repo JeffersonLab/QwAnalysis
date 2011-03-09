@@ -28,7 +28,7 @@ QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ) :
 	fDelayLineArray.resize ( kBackPlaneNum, temp );
 	fDelayLinePtrs.resize ( 21 );
 	OK=0;
-};
+}
 
 Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 {
@@ -219,7 +219,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 	    i--;
 	  }
 	  else{
-	  };
+	  }
 	  ref_data_size = fReferenceData.at ( bank ).size();
 	}
     }
@@ -358,7 +358,7 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 //       {
 //         distance_mm = fTtoDNumbers.at(13)+fTtoDNumbers.at(14)*dt;
 //       }
-//     else { distance_mm = -50;};
+//     else { distance_mm = -50;}
 
 //     Double_t p[12]={0.0};
 //     Double_t cut_time[3]={60,236,300};
@@ -396,7 +396,7 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 //       {
 //         distance_mm = p[10]+p[11]*dt;
 //       }
-//     else {};
+//     else {}
 
 
 	//Double_t p[11]={0.0};
@@ -450,7 +450,7 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 
 	distance_cm = 0.1*distance_mm;
 	return distance_cm;
-};
+}
 
 
 void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data )
@@ -511,8 +511,8 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 
 		}
 
-	};
-};
+	}
+}
 
 
 
@@ -553,7 +553,7 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan,
 		fWiresPerPlane.at ( real_size ) = r3_wire_number_per_plane;
 	}
 	return OK;
-};
+}
 
 
 Int_t QwDriftChamberVDC::AddChannelDefinition()
@@ -911,12 +911,12 @@ void QwDriftChamberVDC::ProcessEvent()
 
 	if ( fDisableWireTimeOffset==false )
 		SubtractWireTimeOffset();
-	else {};
+	else {}
         
         
 //    std::cout << "leaving.." << std::endl;
 	FillDriftDistanceToHits();
-};
+}
 
 
 
@@ -991,7 +991,7 @@ void QwDriftChamberVDC::ClearEventData()
 //   }
 
 //   return OK;
-// };
+// }
 
 
 
@@ -1122,7 +1122,7 @@ void  QwDriftChamberVDC::ConstructHistograms ( TDirectory *folder, TString& pref
 		TOFW_raw[iplane]->GetYaxis()->SetTitle ( "Time of Flight" );
 	}
 	return;
-};
+}
 
 
 
@@ -1239,14 +1239,14 @@ void  QwDriftChamberVDC::FillHistograms()
 		WiresHit[iplane]->Fill ( wireshitperplane[iplane] );
 	}
 	return;
-};
+}
 
 
 
 // void  QwDriftChamberVDC::DeleteHistograms()
 // {
 //   return;
-// };
+// }
 
 
 
@@ -1338,7 +1338,7 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
                     }
            	}
 	return;
-};
+}
 
 
 
@@ -1348,7 +1348,7 @@ void QwDriftChamberVDC::ApplyTimeCalibration()
   f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
   if (f1tdc_resolution_ns==0.0) {
     f1tdc_resolution_ns = 0.116312881651642913;
-    printf("WARNING : QwDriftChamberVDC::ApplyTimeCalibration() the predefined resolution %8.6lf (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
+    printf("WARNING : QwDriftChamberVDC::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
   }
 
   for(std::vector<QwHit>::iterator iter=fWireHits.begin(); iter!=fWireHits.end(); iter++)
@@ -1357,7 +1357,7 @@ void QwDriftChamberVDC::ApplyTimeCalibration()
     }
   
   return;
-};
+}
 
 
 
@@ -1380,4 +1380,4 @@ void QwDriftChamberVDC::LoadTtoDParameters ( TString ttod_map )
 		fTtoDNumbers.push_back ( d );
 	}
 	return;
-};
+}

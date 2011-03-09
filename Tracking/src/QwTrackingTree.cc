@@ -996,7 +996,7 @@ void QwTrackingTree::marklin (
 
   } // end of other region
 
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 

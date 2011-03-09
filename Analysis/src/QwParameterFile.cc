@@ -38,7 +38,7 @@ void QwParameterFile::AppendToSearchPath(const TString& searchdir)
   } else {
     std::cout<<tmppath.string()<<" doesn't exist.\n";
   }
-};
+}
 
 /**
  * Convert a string number value to an unsigned integer
@@ -76,7 +76,7 @@ UInt_t QwParameterFile::GetUInt(const TString& varvalue)
     stream1 >> std::hex >> value;
   }
   return value;
-};
+}
 
 
 /**
@@ -148,7 +148,7 @@ QwParameterFile::QwParameterFile(const std::string& name)
       return;
     }
   }
-};
+}
 
 
 /**
@@ -278,7 +278,7 @@ int QwParameterFile::FindFile(
     }
   }
   return best_score;
-};
+}
 
 
 void QwParameterFile::TrimWhitespace(TString::EStripType head_tail)
@@ -383,7 +383,7 @@ Bool_t QwParameterFile::HasVariablePair(
     varvalue = tmpval.c_str();
   }
   return status;
-};
+}
 
 Bool_t QwParameterFile::HasVariablePair(
     const std::string& separatorchars,
@@ -403,7 +403,7 @@ Bool_t QwParameterFile::HasVariablePair(
     }
   }
   return status;
-};
+}
 
 Bool_t QwParameterFile::FileHasVariablePair(
   const std::string& separatorchars,
@@ -414,7 +414,7 @@ Bool_t QwParameterFile::FileHasVariablePair(
   Bool_t status = FileHasVariablePair(separatorchars, varname.Data(), tmpval);
   if (status) varvalue = tmpval.c_str();
   return status;
-};
+}
 
 Bool_t QwParameterFile::FileHasVariablePair(
   const std::string& separatorchars,
@@ -429,14 +429,14 @@ Bool_t QwParameterFile::FileHasVariablePair(
     }
   }
   return false;
-};
+}
 
 
 Bool_t QwParameterFile::LineHasSectionHeader()
 {
   std::string secname;
   return LineHasSectionHeader(secname);
-};
+}
 
 Bool_t QwParameterFile::LineHasSectionHeader(TString& secname)
 {
@@ -444,7 +444,7 @@ Bool_t QwParameterFile::LineHasSectionHeader(TString& secname)
   Bool_t status = LineHasSectionHeader(secname_tmp);
   secname = secname_tmp;
   return status;
-};
+}
 
 Bool_t QwParameterFile::LineHasSectionHeader(std::string& secname)
 {
@@ -460,13 +460,13 @@ Bool_t QwParameterFile::LineHasSectionHeader(std::string& secname)
     }
   }
   return status;
-};
+}
 
 Bool_t QwParameterFile::LineHasModuleHeader()
 {
   std::string secname;
   return LineHasModuleHeader(secname);
-};
+}
 
 Bool_t QwParameterFile::LineHasModuleHeader(TString& secname)
 {
@@ -474,7 +474,7 @@ Bool_t QwParameterFile::LineHasModuleHeader(TString& secname)
   Bool_t status = LineHasModuleHeader(secname_tmp);
   secname = secname_tmp;
   return status;
-};
+}
 
 Bool_t QwParameterFile::LineHasModuleHeader(std::string& secname)
 {
@@ -490,7 +490,7 @@ Bool_t QwParameterFile::LineHasModuleHeader(std::string& secname)
     }
   }
   return status;
-};
+}
 
 
 Bool_t QwParameterFile::FileHasSectionHeader(const TString& secname)
@@ -503,7 +503,7 @@ Bool_t QwParameterFile::FileHasSectionHeader(const TString& secname)
     }
   }
   return false;
-};
+}
 
 Bool_t QwParameterFile::FileHasSectionHeader(const std::string& secname)
 {
@@ -515,7 +515,7 @@ Bool_t QwParameterFile::FileHasSectionHeader(const std::string& secname)
     }
   }
   return false;
-};
+}
 
 Bool_t QwParameterFile::FileHasModuleHeader(const TString& secname)
 {
@@ -527,7 +527,7 @@ Bool_t QwParameterFile::FileHasModuleHeader(const TString& secname)
     }
   }
   return false;
-};
+}
 
 Bool_t QwParameterFile::FileHasModuleHeader(const std::string& secname)
 {
@@ -539,7 +539,7 @@ Bool_t QwParameterFile::FileHasModuleHeader(const std::string& secname)
     }
   }
   return false;
-};
+}
 
 /**
  * Read from current position until next section header
@@ -636,7 +636,7 @@ std::string QwParameterFile::GetNextToken(const std::string& separatorchars)
   }
   TrimWhitespace(tmpstring,TString::kBoth);
   return tmpstring;
-};
+}
 
 ostream& operator<< (ostream& stream, const QwParameterFile& file)
 {
@@ -699,6 +699,6 @@ std::pair<int,int> QwParameterFile::ParseIntRange(const std::string& separatorch
             << " to " << mypair.second << QwLog::endl;
 
   return mypair;
-};
+}
 
 

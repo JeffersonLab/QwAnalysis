@@ -48,7 +48,7 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
 
-};
+}
 
 QwDriftChamber::QwDriftChamber(TString region_tmp)
   :VQwSubsystem(region_tmp),
@@ -65,13 +65,13 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
 
-};
+}
 
 
 QwDriftChamber::~QwDriftChamber()
 {
   delete fF1TDContainer;
-};
+}
 
 void  QwDriftChamber::FillDriftDistanceToHits()
 { //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
@@ -82,7 +82,7 @@ void  QwDriftChamber::FillDriftDistanceToHits()
     
   }
   return;
-};
+}
 
 
 Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, 
@@ -195,7 +195,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 
   // fF1TDContainer-> PrintErrorSummary();
   return OK;
-};
+}
 
 
 // Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, 
@@ -310,7 +310,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 //   }
 
 //   return OK;
-// };
+// }
 
 
 
@@ -338,14 +338,13 @@ Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_i
   std::cout<<"Registering ROC "<<roc_id<<std::endl;
 
   return status;
-};
+}
 
 
 Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
 {
   Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
   fCurrentBankIndex = GetSubbankIndex(VQwSubsystem::fCurrentROC_ID, bank_id);//subbank id is directly related to the ROC
-  
   if (fReferenceChannels.size()<=fCurrentBankIndex) {
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
@@ -358,13 +357,14 @@ Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
 	   <<" Subbank "<<bank_id
 	   <<" with BankIndex "<<fCurrentBankIndex<<std::endl;
   return stat;
-};
+}
 
 
 Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
 {
   if (slot_id<kMaxNumberOfSlotsPerROC) {
-    if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fTDC_Index.size()) {
+    // fCurrentBankIndex is unsigned int and always positive
+    if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex <= fTDC_Index.size()) {
       fTDCPtrs.resize(fNumberOfTDCs+1);
       fTDCPtrs.at(fNumberOfTDCs).resize(kMaxNumberOfChannelsPerTDC);
       fNumberOfTDCs = fTDCPtrs.size();
@@ -380,18 +380,19 @@ Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
   }
   return fCurrentTDCIndex;
     
-};
+}
 
 Int_t QwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const 
 {
   Int_t tdcindex = -1;
-  if (bank_index>=0 && bank_index<fTDC_Index.size()) {
-    if (slot_num>=0 && slot_num<fTDC_Index.at(bank_index).size()) {
+  // bank_index and slot_num are unsigned int and always positive
+  if (/* bank_index >= 0 && */ bank_index < fTDC_Index.size()) {
+    if (/* slot_num >= 0 && */ slot_num < fTDC_Index.at(bank_index).size()) {
       tdcindex = fTDC_Index.at(bank_index).at(slot_num);
     }
   }
   return tdcindex;
-};
+}
 
 
 Int_t QwDriftChamber::LinkReferenceChannel (const UInt_t chan,const Int_t plane, const Int_t wire )
@@ -403,7 +404,7 @@ Int_t QwDriftChamber::LinkReferenceChannel (const UInt_t chan,const Int_t plane,
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
   return OK;
-};
+}
 
 
 
@@ -486,7 +487,7 @@ void  QwDriftChamber::ReportConfiguration()
     }
     
   return;
-};
+}
 
 
 
@@ -647,7 +648,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     ///    local_f1tdc = 0;
     return -1;
   }
-};
+}
 
 
 
@@ -656,6 +657,6 @@ void QwDriftChamber::DeleteHistograms()
   fF1TDContainer->PrintErrorSummary();
   fF1TDContainer->WriteErrorSummary();
   return;
-};
+}
 
 

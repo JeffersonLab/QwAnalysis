@@ -202,7 +202,7 @@ csv_stream_all(TString quantity, Double_t mean, Double_t val[])
 //////////////////////////////////////////////////////// 
 // the following values are needed for the comparison of the extracted
 // values with the golden values
-typedef struct REFDATA
+struct REFDATA
 {
   TString name;
   Double_t value;

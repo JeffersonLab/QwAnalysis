@@ -38,7 +38,7 @@ QwSubsystemFactory<QwComptonPhotonDetector>
 void QwComptonPhotonDetector::ProcessOptions(QwOptions &options)
 {
   // Handle command line options
-};
+}
 
 Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 {
@@ -193,7 +193,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
   } // end of while over parameter file
 
   return 0;
-};
+}
 
 /**
  * Load the event cuts
@@ -203,7 +203,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 Int_t QwComptonPhotonDetector::LoadEventCuts(TString & filename)
 {
   return 0;
-};
+}
 
 /**
  * Load the input parameters
@@ -453,7 +453,7 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
   }
 
   return words_read;
-};
+}
 
 
 /**
@@ -464,7 +464,7 @@ Bool_t QwComptonPhotonDetector::SingleEventCuts()
 {
   QwDebug << "QwComptonPhotonDetector::SingleEventCuts()" << QwLog::endl;
   return IsGoodEvent();
-};
+}
 
 
 /**
@@ -478,7 +478,7 @@ void  QwComptonPhotonDetector::ProcessEvent()
     fMultiTDC_Channel[i].ProcessEvent();
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].ProcessEvent();
-};
+}
 
 
 /**
@@ -492,7 +492,7 @@ void  QwComptonPhotonDetector::ProcessEvent()
 Int_t QwComptonPhotonDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   return 0;
-};
+}
 
 
 /**
@@ -533,7 +533,7 @@ void QwComptonPhotonDetector::ClearEventData()
   // Clear all scaler channels
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i]->ClearEventData();
-};
+}
 
 /**
  * Assignment operator
@@ -567,7 +567,7 @@ VQwSubsystem&  QwComptonPhotonDetector::operator=  (VQwSubsystem *value)
   }
 
   return *this;
-};
+}
 
 /**
  * Addition-assignment operator
@@ -588,7 +588,7 @@ VQwSubsystem&  QwComptonPhotonDetector::operator+=  (VQwSubsystem *value)
       *(this->fScaler[i]) += *(input->fScaler[i]);
   }
   return *this;
-};
+}
 
 /**
  * Subtraction-assignment operator
@@ -609,7 +609,7 @@ VQwSubsystem&  QwComptonPhotonDetector::operator-=  (VQwSubsystem *value)
       *(this->fScaler[i]) -= *(input->fScaler[i]);
   }
   return *this;
-};
+}
 
 /**
  * Summation
@@ -622,7 +622,7 @@ void  QwComptonPhotonDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
     *this  = value1;
     *this += value2;
   }
-};
+}
 
 /**
  * Difference
@@ -635,7 +635,7 @@ void  QwComptonPhotonDetector::Difference(VQwSubsystem  *value1, VQwSubsystem  *
     *this  = value1;
     *this -= value2;
   }
-};
+}
 
 /**
  * Determine the ratio of two photon detectors
@@ -656,7 +656,7 @@ void QwComptonPhotonDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
     for (size_t i = 0; i < fScaler.size(); i++)
       this->fScaler[i]->Ratio(*(innumer->fScaler[i]),*(indenom->fScaler[i]));
   }
-};
+}
 
 /**
  * Scale the photon detector
@@ -672,7 +672,7 @@ void QwComptonPhotonDetector::Scale(Double_t factor)
   //  fMultiQDC_Channel[i].Scale(factor);
   for (size_t i = 0; i < fScaler.size(); i++)
     this->fScaler[i]->Scale(factor);
-};
+}
 
 /**
  * Compare two QwComptonPhotonDetector objects
@@ -818,7 +818,7 @@ void  QwComptonPhotonDetector::ConstructHistograms(TDirectory *folder, TString &
     fMultiQDC_Channel[i].ConstructHistograms(folder,prefix);
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i]->ConstructHistograms(folder,prefix);
-};
+}
 
 /**
  * Fill the histograms with data
@@ -833,7 +833,7 @@ void  QwComptonPhotonDetector::FillHistograms()
     fMultiQDC_Channel[i].FillHistograms();
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i]->FillHistograms();
-};
+}
 
 /**
  * Delete the histograms
@@ -848,7 +848,7 @@ void  QwComptonPhotonDetector::DeleteHistograms()
     fMultiQDC_Channel[i].DeleteHistograms();
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i]->DeleteHistograms();
-};
+}
 
 /**
  * Construct the tree
@@ -860,7 +860,7 @@ void  QwComptonPhotonDetector::ConstructTree(TDirectory *folder, TString &prefix
   folder->cd();
   fTree = new TTree("ComptonPhoton", "Compton Photon Detector");
   fTree->Branch("nevents",&fTree_fNEvents,"nevents/I");
-};
+}
 
 /**
  * Delete the tree
@@ -868,7 +868,7 @@ void  QwComptonPhotonDetector::ConstructTree(TDirectory *folder, TString &prefix
 void  QwComptonPhotonDetector::DeleteTree()
 {
   delete fTree;
-};
+}
 
 /**
  * Fill the tree with data
@@ -879,7 +879,7 @@ void  QwComptonPhotonDetector::FillTree()
     fTree_fNEvents = fSamplingADC[i].GetNumberOfEvents();
     fTree->Fill();
   }
-};
+}
 
 /**
  * Construct the tree
@@ -897,7 +897,7 @@ void QwComptonPhotonDetector::ConstructBranchAndVector(TTree *tree, TString & pr
     fMultiQDC_Channel[i].ConstructBranchAndVector(tree, prefix, values);
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i]->ConstructBranchAndVector(tree, prefix, values);
-};
+}
 
 /**
  * Fill the tree with data
@@ -913,7 +913,7 @@ void QwComptonPhotonDetector::FillTreeVector(std::vector<Double_t> &values) cons
     fMultiQDC_Channel[i].FillTreeVector(values);
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i]->FillTreeVector(values);
-};
+}
 
 /**
  * Print the value for the subcomponents
@@ -1026,4 +1026,4 @@ MQwSIS3320_Channel* QwComptonPhotonDetector::GetSIS3320Channel(const TString nam
     }
   }
   return 0;
-};
+}

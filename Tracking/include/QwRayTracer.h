@@ -59,18 +59,18 @@ class QwRayTracer: public VQwBridgingMethod {
     /// Destructor
     virtual ~QwRayTracer();
 
-    static const bool LoadMagneticFieldMap(const std::string filename);
+    static bool LoadMagneticFieldMap(const std::string filename);
 
     void GenerateLookUpTable();
 
-    const int Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
+    int Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
     int DoForcedBridging() {
         return -1;
     };
 
     /// \brief Integrate using the Runge-Kutta 4th order algorithm
-    const bool IntegrateRK4(TVector3& r0, TVector3& v0, const double p0, double z_end, double step);
+    bool IntegrateRK4(TVector3& r0, TVector3& v0, const double p0, double z_end, double step);
 
     QwBridge* GetBridgingInfo();
 

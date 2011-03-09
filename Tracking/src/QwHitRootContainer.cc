@@ -1,6 +1,5 @@
 #include "QwHitRootContainer.h"
-
-ClassImp(QwHitRootContainer);
+ClassImp(QwHitRootContainer)
 
 // Initialize the static list of QwHits
 TClonesArray *QwHitRootContainer::gQwHits = 0;
@@ -13,7 +12,7 @@ QwHitRootContainer::QwHitRootContainer()
   // Set local TClonesArray to static TClonesArray and zero hits
   fQwHits = gQwHits;
   fQwHits->Clear();
-};
+}
 
 // Destructor
 QwHitRootContainer::~QwHitRootContainer()
@@ -22,27 +21,27 @@ QwHitRootContainer::~QwHitRootContainer()
   Reset();
   // Set local TClonesArray to null
   fQwHits = 0;
-};
+}
 
 // Clear the local TClonesArray
 void QwHitRootContainer::Clear(Option_t *option)
 {
   fQwHits->Clear(option);
   fNQwHits = 0;
-};
+}
 
 void QwHitRootContainer::Delete(Option_t *option)
 {
   fQwHits->Delete(option);
   fNQwHits = 0;
-};
+}
 
 // Delete the static TClonesArray
 void QwHitRootContainer::Reset(Option_t *option)
 {
   delete gQwHits;
   gQwHits = 0;
-};
+}
 
 // Add an existing QwHit
 void QwHitRootContainer::AddHit(QwHit *hit)
@@ -50,14 +49,14 @@ void QwHitRootContainer::AddHit(QwHit *hit)
   TClonesArray &hits = *fQwHits;
   QwHit *newhit = new (hits[fNQwHits++]) QwHit();
   *newhit = *hit;
-};
+}
 
 void QwHitRootContainer::AddQwHit(QwHit &in)
 {
   TClonesArray &hits = *fQwHits;
   new (hits[fNQwHits++]) QwHit(in);
   return;
-};
+}
 
 // Convert from a QwHitContainer hitlist to the TOrdCollection
 void QwHitRootContainer::Convert(QwHitContainer *hitlist)

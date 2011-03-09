@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
 
     // Open new output file
     // (giving run number as argument to OpenDataFile confuses the segment search)
-    TString filename = Form("QwMock_%ld.log", run);
+    TString filename = Form("QwMock_%u.log", run);
     if (eventbuffer.OpenDataFile(filename,"W") != CODA_OK) {
       std::cout << "Error: could not open file!" << std::endl;
       return 0;

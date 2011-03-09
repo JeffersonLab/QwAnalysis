@@ -69,12 +69,12 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
   public:
 
     // Valid and used flags
-    const bool IsVoid() const { return fIsVoid; };
-    const bool IsValid() const { return ! fIsVoid; };
-    const bool IsGood() const { return fIsGood; };
-    const bool IsNotValid() const { return ! fIsVoid; };
-    const bool IsUsed() const { return fIsUsed; };
-    const bool IsNotUsed() const { return ! fIsUsed; };
+    bool IsVoid() const { return fIsVoid; };
+    bool IsValid() const { return ! fIsVoid; };
+    bool IsGood() const { return fIsGood; };
+    bool IsNotValid() const { return ! fIsVoid; };
+    bool IsUsed() const { return fIsUsed; };
+    bool IsNotUsed() const { return ! fIsUsed; };
 
     // Housekeeping methods for lists
     void Clear(Option_t *option = "");
@@ -94,7 +94,7 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     // Get the weighted chi squared
     double GetChiWeight () const;
 
-    void Print();
+    void Print(const Option_t* options = 0) const;
     void PrintValid();
     friend ostream& operator<< (ostream& stream, const QwPartialTrack& pt);
 
@@ -103,11 +103,11 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     /// \brief Return the direction
     const TVector3 GetMomentumDirection() const;
     /// \brief Return the phi angle
-    const Double_t GetMomentumDirectionPhi() const {
+    Double_t GetMomentumDirectionPhi() const {
       return GetMomentumDirection().Phi();
     };
     /// \brief Return the theta angle
-    const Double_t GetMomentumDirectionTheta() const {
+    Double_t GetMomentumDirectionTheta() const {
       return GetMomentumDirection().Theta();
     };
 
@@ -130,15 +130,15 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     int DeterminePositionInHDC (EQwDetectorPackage package);
 
     // Average residuals
-    const double GetAverageResidual() const { return fAverageResidual; };
-    void SetAverageResidual(const double residual) { fAverageResidual = residual; };
-    const double CalculateAverageResidual();
-    void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); };
+    double GetAverageResidual() const { return fAverageResidual; };
+    void SetAverageResidual(const double residual) { fAverageResidual = residual; }
+    double CalculateAverageResidual();
+    void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); }
 
     // Tree lines
     QwTrackingTreeLine* GetTreeLine(const EQwDirectionID dir) {
       return tline[dir];
-    };
+    }
 
   public: // members
 

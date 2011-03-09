@@ -36,7 +36,7 @@ void  VQwBPM::InitializeChannel(TString name)
   SetElementName(name);
 
   return;
-};
+}
 
 void VQwBPM::ClearEventData()
 {
@@ -46,7 +46,7 @@ void VQwBPM::ClearEventData()
   fEffectiveCharge.ClearEventData();
   
   return;
-};
+}
 
 void VQwBPM::GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset)
 {
@@ -56,7 +56,7 @@ void VQwBPM::GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffs
   fPositionCenter[1]=Yoffset;
   fPositionCenter[2]=Zoffset;
   return;
-};
+}
 
 
 void VQwBPM::GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY)
@@ -78,7 +78,7 @@ void VQwBPM::GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t
     
   }
   return;
-};
+}
 
 void VQwBPM::SetRotation(Double_t rotation_angle){
   // Read the rotation angle in degrees (to beam right)
@@ -112,7 +112,7 @@ Int_t VQwBPM::GetEventcutErrorCounters()
   fEffectiveCharge.GetEventcutErrorCounters();
 
   return 1;
-};
+}
 
 
 Bool_t VQwBPM::ApplySingleEventCuts()
@@ -148,7 +148,7 @@ Bool_t VQwBPM::ApplySingleEventCuts()
 
   return status;
   
-};
+}
 
 void VQwBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
@@ -166,7 +166,7 @@ void VQwBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
     fEffectiveCharge.SetSingleEventCuts(minX,maxX);
 
   }
-};
+}
 
 
 VQwBPM& VQwBPM::operator= (const VQwBPM &value)
@@ -179,7 +179,7 @@ VQwBPM& VQwBPM::operator= (const VQwBPM &value)
   }
 
   return *this;
-};
+}
 
 VQwBPM& VQwBPM::operator+= (const VQwBPM &value)
 {
@@ -188,7 +188,7 @@ VQwBPM& VQwBPM::operator+= (const VQwBPM &value)
     for(Short_t i=0;i<2;i++) this->fAbsPos[i]+=value.fAbsPos[i];
   }
   return *this;
-};
+}
 
 VQwBPM& VQwBPM::operator-= (const VQwBPM &value)
 {
@@ -197,20 +197,20 @@ VQwBPM& VQwBPM::operator-= (const VQwBPM &value)
     for(Short_t i=0;i<2;i++) this->fAbsPos[i]-=value.fAbsPos[i];
   }
   return *this;
-};
+}
 
 
 void VQwBPM::Sum(VQwBPM &value1, VQwBPM &value2)
 {
   *this =  value1;
   *this += value2;
-};
+}
 
 void VQwBPM::Difference(VQwBPM &value1, VQwBPM &value2)
 {
   *this =  value1;
   *this -= value2;
-};
+}
 
 
 void VQwBPM::Scale(Double_t factor)
@@ -218,7 +218,7 @@ void VQwBPM::Scale(Double_t factor)
   fEffectiveCharge.Scale(factor);
   for(Short_t i = 0;i<2;i++)fAbsPos[i].Scale(factor);
   return;
-};
+}
 
 
 
@@ -238,14 +238,14 @@ void VQwBPM::PrintValue() const
   fEffectiveCharge.PrintValue();
     
   return;
-};
+}
 
 void VQwBPM::PrintInfo() const
 {
   Short_t i = 0;
   for (i = 0; i < 4; i++)  fAbsPos[i].PrintInfo();
   fEffectiveCharge.PrintInfo();
-};
+}
 
 
 void VQwBPM::CalculateRunningAverage()
@@ -255,7 +255,7 @@ void VQwBPM::CalculateRunningAverage()
   fEffectiveCharge.CalculateRunningAverage();
 
   return;
-};
+}
 
 
 void VQwBPM::AccumulateRunningSum(const VQwBPM& value)
@@ -265,7 +265,7 @@ void VQwBPM::AccumulateRunningSum(const VQwBPM& value)
   for (i = 0; i < 2; i++) fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
   fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
   return;
-};
+}
 
 
 /********************************************************/
@@ -297,4 +297,4 @@ void  VQwBPM::Copy(VQwBPM *source)
     }
 
   return;
-};
+}

@@ -40,7 +40,7 @@ void QwBlinder::DefineOptions(QwOptions &options){
 		       "Forces the blinder to interpret the target position as target-out");
   options.AddOptions("Blinder")("blinder.beam-current-threshold", po::value<double>()->default_value(1.0),
 		       "Beam current in microamps below which data will not be blinded");
-};
+}
 
 
 /**
@@ -73,7 +73,7 @@ QwBlinder::QwBlinder(const EQwBlindingStrategy blinding_strategy):
   // Calculate set of test values
   InitTestValues(10);
   fPatternCounters.resize(15);
-};
+}
 
 
 /**
@@ -504,7 +504,7 @@ void QwBlinder::InitBlinders(const UInt_t seed_id)
   fChecksum = "";
   for (size_t i = 0; i < fDigest.size(); i++)
     fChecksum += string(Form("%.2x",fDigest[i]));
-};
+}
 
 
 void  QwBlinder::WriteFinalValuesToDB(QwDatabase* db)
@@ -516,7 +516,7 @@ void  QwBlinder::WriteFinalValuesToDB(QwDatabase* db)
             << QwLog::endl;
   }
   WriteTestValues(db);
-};
+}
 
 
 
@@ -564,7 +564,7 @@ void QwBlinder::InitTestValues(const int n)
   fBlindingOffset = tmp_offset;
   QwMessage << "QwBlinder::InitTestValues(): A total of " << fTestValues.size()
             << " test values have been calculated successfully." << QwLog::endl;
-};
+}
 
 /**
  * Use string manipulation to get a number from the seed string
@@ -608,7 +608,7 @@ Int_t QwBlinder::UseStringManip(const TString& barestring)
       finalseed = (finalseed&0x7FFFFFFF);
     }
   return finalseed;
-};
+}
 
 
 /**
@@ -673,7 +673,7 @@ Int_t QwBlinder::UsePseudorandom(const TString& barestring)
       tempout =  1 * (tempout&0x7FFFFFFF);
     }
   return tempout;
-};
+}
 
 
 /**
@@ -708,7 +708,7 @@ Int_t QwBlinder::UseMD5(const TString& barestring)
   }
 
   return tempout;
-};
+}
 
 
 
@@ -846,7 +846,7 @@ Bool_t QwBlinder::CheckTestValues()
   }
   fBlindingOffset = tmp_offset;
   return status;
-};
+}
 
 
 /**
@@ -873,7 +873,7 @@ std::vector<UChar_t> QwBlinder::GenerateDigest(const TString& input) const
     output.push_back(value[i]);
 
   return output;
-};
+}
 
 
 /**
@@ -925,7 +925,7 @@ void QwBlinder::PrintFinalValues()
   }
   QwMessage << "================================================" << QwLog::endl;
   QwMessage << "QwBlinder::PrintFinalValues():  End of summary"   << QwLog::endl;
-};
+}
 
 
 /**
@@ -1022,7 +1022,7 @@ void QwBlinder::SetTargetBlindability(QwBlinder::EQwBlinderStatus status)
     QwMessage << "QwBlinder:  First set target blindability to " 
 	      << fStatusName[fTargetBlindability] << QwLog::endl;
   }
-};
+}
 
 void QwBlinder::SetWienState(QwBlinder::EQwBlinderWienMode wienmode)
 {
@@ -1033,7 +1033,7 @@ void QwBlinder::SetWienState(QwBlinder::EQwBlinderWienMode wienmode)
     QwMessage << "QwBlinder:  First set Wien state to " 
 	      << fWienName[fWienMode] << QwLog::endl;
   }
-};
+}
 
 void QwBlinder::SetIHWPPolarity(Int_t ihwppolarity)
 {
@@ -1043,7 +1043,7 @@ void QwBlinder::SetIHWPPolarity(Int_t ihwppolarity)
     QwMessage << "QwBlinder:  First set IHWP state to " 
 	      << fIHWPPolarity << QwLog::endl;
   }
-};
+}
 
 
 QwBlinder::EQwBlinderStatus QwBlinder::CheckBlindability()

@@ -42,12 +42,12 @@ QwEPICSEvent::QwEPICSEvent()
   SetDataLoaded(kFALSE);
   QwEPICSEvent::InitDefaultAutogainList();
   if (kDebug == 1) PrintVariableList();
-};
+}
 
 
 QwEPICSEvent::~QwEPICSEvent()
 {
-};
+}
 
 
 /*************************************
@@ -117,7 +117,7 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
   ResetCounters();
 
   return 0;
-};
+}
 
 
 /// \brief Construct the branch and tree vector
@@ -175,7 +175,7 @@ Int_t QwEPICSEvent::AddEPICSTag(
   fEPICSVariableType.push_back(datatype);
   fNumberEPICSVariables++;
   return 0;
-};
+}
 
 
 void QwEPICSEvent::CalculateRunningValues()
@@ -254,7 +254,7 @@ void QwEPICSEvent::CalculateRunningValues()
   //////////////////////
 
   if (kDebug == 1) std::cout << "fNumberEPICSEvents = " << fNumberEPICSEvents << std::endl;
-};
+}
 
 
 void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
@@ -283,7 +283,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
       }
     }
   }
-};
+}
 
 
 Int_t QwEPICSEvent::FindIndex(const string& tag) const
@@ -298,7 +298,7 @@ Int_t QwEPICSEvent::FindIndex(const string& tag) const
   else
     // Otherwise return error
     return kEPICS_Error;
-};
+}
 
 
 Double_t QwEPICSEvent::GetDataValue(const string& tag) const
@@ -311,7 +311,7 @@ Double_t QwEPICSEvent::GetDataValue(const string& tag) const
     }
   }
   return data_value;
-};
+}
 
 TString QwEPICSEvent::GetDataString(const string& tag) const
 {
@@ -323,7 +323,7 @@ TString QwEPICSEvent::GetDataString(const string& tag) const
     }
   }
   return TString("");
-};
+}
 
 void QwEPICSEvent::InitDefaultAutogainList()
 {
@@ -366,26 +366,26 @@ void QwEPICSEvent::InitDefaultAutogainList()
   fDefaultAutogainList.push_back("IPM3H09.YIFG");
   fDefaultAutogainList.push_back("IPM3H09B.XIFG");
   fDefaultAutogainList.push_back("IPM3H09B.YIFG");
-};
+}
 
 void QwEPICSEvent::SetDefaultAutogainList(std::vector<std::string>& input_list)
 {
   fDefaultAutogainList.clear();  //clear the vector first
   fDefaultAutogainList = input_list;
-};
+}
 
 
 int QwEPICSEvent::SetDataValue(const string& tag, const Double_t value, int event)
 {
   Int_t tagindex = FindIndex(tag);
   return (SetDataValue(tagindex, value, event));
-};
+}
 
 int QwEPICSEvent::SetDataValue(const string& tag, const string& value, int event)
 {
   Int_t tagindex = FindIndex(tag);
   return (SetDataValue(tagindex, value, event));
-};
+}
 
 int QwEPICSEvent::SetDataValue(Int_t tagindex, const Double_t value, int event)
 {
@@ -400,7 +400,7 @@ int QwEPICSEvent::SetDataValue(Int_t tagindex, const Double_t value, int event)
     return 0;
   }
   return kEPICS_Error;
-};
+}
 
 int QwEPICSEvent::SetDataValue(Int_t tagindex, const string& value, int event)
 {
@@ -430,7 +430,7 @@ int QwEPICSEvent::SetDataValue(Int_t tagindex, const string& value, int event)
   }
 
   return kEPICS_Error;
-};
+}
 
 void QwEPICSEvent::PrintAverages() const
 {
@@ -504,7 +504,7 @@ void QwEPICSEvent::PrintAverages() const
       }
     }
   }
-};
+}
 
 
 void QwEPICSEvent::PrintVariableList() const
@@ -514,7 +514,7 @@ void QwEPICSEvent::PrintVariableList() const
     QwMessage << "fEPICSVariableList[" << tagindex << "] == "
               << fEPICSVariableList[tagindex] << QwLog::endl;
   }
-};
+}
 
 
 std::vector<Double_t> QwEPICSEvent::ReportAutogains(std::vector<std::string> tag_list)
@@ -533,7 +533,7 @@ std::vector<Double_t> QwEPICSEvent::ReportAutogains(std::vector<std::string> tag
   }
 
   return autogain_values;
-};
+}
 
 
 
@@ -609,7 +609,7 @@ void QwEPICSEvent::ReportEPICSData() const
     }
 
   } output.close();
-};
+}
 
 void  QwEPICSEvent::ResetCounters()
 {
@@ -639,7 +639,7 @@ void  QwEPICSEvent::ResetCounters()
     fEPICSCumulativeData[tagindex].Maximum       = 0.0;
   }
   fNumberEPICSEvents = 0;
-};
+}
 
 
 void QwEPICSEvent::FillDB(QwDatabase *db)
@@ -653,7 +653,7 @@ void QwEPICSEvent::FillDB(QwDatabase *db)
     FillSlowControlsStrigs(db);
     FillSlowControlsSettings(db);
   }
-};
+}
 
 
 void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
@@ -753,7 +753,7 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
     QwMessage << "QwEPICSEvent::FillSlowControlsData :: This is the case when the entrylist contains nothing " << QwLog::endl;
   }
   db->Disconnect();
-};
+}
 
 
 void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
@@ -824,7 +824,7 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
     QwMessage << "QwEPICSEvent::FillSlowControlsData :: This is the case when the entrylist contains nothing " << QwLog::endl;
   }
   db->Disconnect();
-};
+}
 
 void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
 {
@@ -968,7 +968,7 @@ void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
   }
   db->Disconnect();
   QwMessage << "Leaving QwEPICSEvent::FillSlowControlsStrings()" << QwLog::endl;
-};
+}
 
 TList *QwEPICSEvent::GetEPICSStringValues()
 {
@@ -1002,7 +1002,7 @@ TList *QwEPICSEvent::GetEPICSStringValues()
     }
     
   return string_list;
-};
+}
 
 void QwEPICSEvent::WriteEPICSStringValues()
 {
@@ -1068,4 +1068,4 @@ void QwEPICSEvent::WriteEPICSStringValues()
 
   return;
   
-};
+}

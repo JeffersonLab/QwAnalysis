@@ -94,7 +94,7 @@ void VQwSubsystem::SetParent(QwSubsystemArray* parent)
 
   // Add array to the list
   fArrays.push_back(parent);
-};
+}
 
 /**
  * Get the parent of this subsystem, and print an error if no parent is defined.
@@ -111,7 +111,7 @@ QwSubsystemArray* VQwSubsystem::GetParent(const unsigned int parent) const
     QwError << "Subsystem " << GetSubsystemName() << " has no parent!" << QwLog::endl;
     return 0;
   }
-};
+}
 
 /**
  * Get the sibling of this subsystem with the specified name.  If no parents is
@@ -130,7 +130,7 @@ VQwSubsystem* VQwSubsystem::GetSibling(const std::string& name) const
     return parent->GetSubsystemByName(name);
   else
     return 0; // GetParent() prints error already
-};
+}
 
 /**
  * Get the value corresponding to some variable name from a different
@@ -149,7 +149,7 @@ Bool_t VQwSubsystem::RequestExternalValue(
     return parent->RequestExternalValue(name, value);
   }
   return kFALSE; // Error: could not find variable in parent
-};
+}
 
 
 /**
@@ -177,7 +177,7 @@ Bool_t VQwSubsystem::PublishInternalValue(
     return kFALSE; // Error: no parent defined
   }
   return kTRUE; // Success
-};
+}
 
 void VQwSubsystem::ClearAllBankRegistrations()
 {
@@ -185,7 +185,7 @@ void VQwSubsystem::ClearAllBankRegistrations()
   fROC_IDs.clear();
   fCurrentROC_ID    = -1;
   fCurrentBank_ID   = -1;
-};
+}
 
 Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t value) const
 {
@@ -197,7 +197,7 @@ Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t val
     }
   }
   return index;
-};
+}
 
 Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const
 {
@@ -223,7 +223,7 @@ Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) c
   }
   // std::cout << "return:index " << index << std::endl;
   return index;
-};
+}
 
 Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id)
 {
@@ -257,7 +257,7 @@ Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id)
     fCurrentBank_ID   = -1;
   }
   return stat;
-};
+}
 
 Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id)
 {
@@ -275,7 +275,7 @@ Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id)
     fCurrentBank_ID = -1;
   }
   return stat;
-};
+}
 
 void VQwSubsystem::PrintInfo() const
 {
@@ -288,7 +288,7 @@ void VQwSubsystem::PrintInfo() const
   }
   for (size_t array = 0; array < fArrays.size(); array++)
     std::cout << "in array " << std::hex << fArrays.at(array) << std::dec << std::endl;
-};
+}
 
 
 void VQwSubsystem::Copy(VQwSubsystem *source)
@@ -322,13 +322,12 @@ void VQwSubsystem::Copy(VQwSubsystem *source)
       std::cerr << e.what() << std::endl;
     }
   return;
-};
+}
 
 VQwSubsystem& VQwSubsystem::operator=(VQwSubsystem *value)
 {
   this->fIsDataLoaded = value->fIsDataLoaded;
   return *this;
-};
-
+}
 
 

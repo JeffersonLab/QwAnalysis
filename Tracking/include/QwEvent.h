@@ -59,7 +59,8 @@ class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
       fEventNumber = event;
     };
     /// Copy constructor
-    QwEventHeader(const QwEventHeader& header) {
+    QwEventHeader(const QwEventHeader& header)
+    : TObject(header),QwObjectCounter<QwEventHeader>(header) {
       fRunNumber = header.fRunNumber;
       //
       fEventNumber = header.fEventNumber;
@@ -75,32 +76,32 @@ class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
     /// Set the run number
     void SetRunNumber(const UInt_t runnumber) { fRunNumber = runnumber; };
     /// Get the run number
-    const UInt_t GetRunNumber() const { return fRunNumber; };
+    UInt_t GetRunNumber() const { return fRunNumber; };
 
     /// Set the event number
     void SetEventNumber(const ULong_t eventnumber) { fEventNumber = eventnumber; };
     /// Get the event number
-    const ULong_t GetEventNumber() const { return fEventNumber; };
+    ULong_t GetEventNumber() const { return fEventNumber; };
 
     /// Set the event time
     void SetEventTime(const ULong_t eventtime) { fEventTime = eventtime; };
     /// Get the event time
-    const ULong_t GetEventTime() const { return fEventTime; };
+    ULong_t GetEventTime() const { return fEventTime; };
 
     /// Set the event type
     void SetEventType(const UInt_t eventtype) { fEventType = eventtype; };
     /// Get the event type
-    const UInt_t GetEventType() const { return fEventType; };
+    UInt_t GetEventType() const { return fEventType; };
 
     /// Set the event trigger
     void SetEventTrigger(const UInt_t eventtrigger) { fEventTrigger = eventtrigger; };
     /// Get the event trigger
-    const UInt_t GetEventTrigger() const { return fEventTrigger; };
+    UInt_t GetEventTrigger() const { return fEventTrigger; };
 
     /// Set the beam helicity
     void SetBeamHelicity(const EQwHelicity helicity) { fBeamHelicity = helicity; };
     /// Get the beam helicity
-    const EQwHelicity GetBeamHelicity() const { return fBeamHelicity; };
+    EQwHelicity GetBeamHelicity() const { return fBeamHelicity; };
 
     /// \brief Output stream operator
     friend ostream& operator<< (ostream& stream, const QwEventHeader& h);

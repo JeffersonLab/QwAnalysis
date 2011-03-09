@@ -14,8 +14,8 @@
  *  \date   Tuesday, September 14 23:04:36 EDT 2010
  */
 
-ClassImp(QwF1TDC);
-ClassImp(QwF1TDContainer);
+ClassImp(QwF1TDC)
+ClassImp(QwF1TDContainer)
 
 
 //
@@ -358,7 +358,7 @@ QwF1TDC::PrintF1TDCBuffer()
   printf("\n");
 
   return;
-};
+}
 
 
 void
@@ -373,14 +373,14 @@ QwF1TDC::PrintF1TDCConfigure()
 
   if(IsSyncMode())       {
     printf("Synchronous mode ");
-    printf(" with the rollover counter data %8.2f and trigger time %6.2lf \n", fF1TDC_t_offset, fF1TDC_trig_t_offset);
+    printf(" with the rollover counter data %8.2f and trigger time %6.2f \n", fF1TDC_t_offset, fF1TDC_trig_t_offset);
   }
   else {
     printf("Non Synchronouse mode \n");
     printf(" with the full range %8.1f\n", fF1TDC_t_offset);
   }
   
-  printf("refcnt    = %5d, tframe(ns) = %5.4lf\n", fF1TDC_refcnt, fF1TDC_tframe_ns);
+  printf("refcnt    = %5d, tframe(ns) = %5.4f\n", fF1TDC_refcnt, fF1TDC_tframe_ns);
   printf("refclkdiv = %5d, hsdiv   = %6d, bin_size(ns) = %10.5f, full_range(ns) = %8.2f\n",
 	 fF1TDC_refclkdiv, fF1TDC_hsdiv, fF1TDC_resolution_ns, fF1TDC_full_range_ns);
   printf("trigwin   = %5d, triglat = %6d, window  (ns) = %10.5f, latency   (ns) = %8.2f\n",
@@ -390,7 +390,7 @@ QwF1TDC::PrintF1TDCConfigure()
   printf("\n");
 
   return;
-};
+}
 
 
 
@@ -414,7 +414,7 @@ QwF1TDC::ResetCounters()
       fF1TDC_S30_counter[i] = 0;
     }
   return;
-};
+}
 
 
 UInt_t
@@ -428,61 +428,61 @@ QwF1TDC::GetTotal(UInt_t *error_counter)
       error += error_counter[i];
     }
   return error;
-};
+}
 
 UInt_t
 QwF1TDC::GetTotalSEU()
 {
   return GetTotal(fF1TDC_SEU_counter);
-};
+}
 
 UInt_t
 QwF1TDC::GetTotalSYN()
 {
   return GetTotal(fF1TDC_SYN_counter);
-};
+}
 
 UInt_t 
 QwF1TDC::GetTotalEMM()
 {
   return GetTotal(fF1TDC_EMM_counter);
-};
+}
 
 UInt_t 
 QwF1TDC::GetTotalTFO()
 {
   return GetTotal(fF1TDC_TFO_counter);
-};
+}
 
 UInt_t 
 QwF1TDC::GetTotalRLF()
 {
   return GetTotal(fF1TDC_RLF_counter);
-};
+}
 
 UInt_t 
 QwF1TDC::GetTotalHFO()
 {
   return GetTotal(fF1TDC_HFO_counter);
-};
+}
 
 UInt_t 
 QwF1TDC::GetTotalOFO()
 {
   return GetTotal(fF1TDC_OFO_counter);
-};
+}
 
 UInt_t 
 QwF1TDC::GetTotalFDF()
 {
   return GetTotal(fF1TDC_FDF_counter);
-};
+}
 
 UInt_t
 QwF1TDC::GetTotalS30()
 {
   return GetTotal(fF1TDC_S30_counter);
-};
+}
 
 
 void
@@ -525,7 +525,7 @@ QwF1TDC::PrintErrorCounter()
       PrintChannelErrorCounter(i);
     }
   return;
-};
+}
 
 
 
@@ -547,7 +547,7 @@ QwF1TDC::PrintTotalErrorCounter()
     //  	    << " S30 " << this->GetTotalS30()
 	    << std::endl;
   return;
-};
+}
 
 
 
@@ -578,7 +578,7 @@ QwF1TDC::GetChannelErrorCounter(Int_t channel)
   // error_counter += this->GetS30(channel);
 
   return error_counter;
-};
+}
 
 
 
@@ -597,7 +597,7 @@ QwF1TDC::GetErrorCounter()
       error_counter += GetChannelErrorCounter(i);
     }
   return error_counter;
-};
+}
 
 
 TString
@@ -627,7 +627,7 @@ QwF1TDC::GetTotalErrorCounter()
   //  error_counter += " S30 : ";
   // error_counter += this->GetTotalS30();
   return error_counter;
-};
+}
 
 
 void
@@ -638,7 +638,7 @@ QwF1TDC::PrintContact()
 	 GetF1SystemName().Data(), GetROCNumber(), GetSlotNumber());
   printf("-------------------------------------------------------------------------------- \n");
   return;
-};
+}
 
 // void 
 // SetRefernceSignals(Int_t chan, Double_t val)
@@ -663,7 +663,7 @@ std::ostream& operator<< (std::ostream& os, const QwF1TDC &f1tdc)
   os << std::setw(2) << f1tdc.fF1BankIndex;
 
   return os;
-};
+}
 
 
 
@@ -700,7 +700,7 @@ std::ostream& operator<< (std::ostream& os, const QwF1TDC &f1tdc)
 //   fLocalDebug = false; // level 1 // not well defined...
 //   fLocalDebug2 = false;// level 2// not well defined...
   
-// };
+// }
 
 
 QwF1TDContainer::QwF1TDContainer()
@@ -728,14 +728,14 @@ QwF1TDContainer::QwF1TDContainer()
   fLocalDebug        = false; // level 1 // not well defined...
   fLocalF1ErrorDebug = false; // Error logs
   
-};
+}
 
 
 QwF1TDContainer::~QwF1TDContainer()
 {
   if(fQwF1TDCList) delete fQwF1TDCList; fQwF1TDCList = NULL;
   if(fError2DHist) delete fError2DHist; fError2DHist = NULL;
-};
+}
 
 
 
@@ -751,7 +751,7 @@ QwF1TDContainer::AddQwF1TDC(QwF1TDC *in)
 
   fNQwF1TDCs++;
   return;
-};
+}
 
 
 QwF1TDC *
@@ -786,7 +786,7 @@ QwF1TDContainer::GetF1TDC(Int_t roc, Int_t slot)
     }
 
   return NULL;
-};
+}
 
 
 QwF1TDC *
@@ -812,7 +812,7 @@ QwF1TDContainer::GetF1TDCwithIndex(Int_t tdc_index)
     }
 
   return NULL;
-};
+}
 
 QwF1TDC *
 QwF1TDContainer::GetF1TDCwithBankIndexSLOT(Int_t bank_index, Int_t slot)
@@ -839,7 +839,7 @@ QwF1TDContainer::GetF1TDCwithBankIndexSLOT(Int_t bank_index, Int_t slot)
     }
 
   return NULL;
-};
+}
 
 
 void
@@ -856,7 +856,7 @@ QwF1TDContainer::AddSYN(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddSYN : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-};
+}
 
 void
 QwF1TDContainer::AddEMM(Int_t roc, Int_t slot, Int_t channel)
@@ -872,7 +872,7 @@ QwF1TDContainer::AddEMM(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddEMM : " << PrintNoF1TDC(roc,slot)  << std::endl;
   }
   return;
-};
+}
 
 
 void
@@ -889,7 +889,7 @@ QwF1TDContainer::AddSEU(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddSEU : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-};
+}
 
 
 void
@@ -907,7 +907,6 @@ QwF1TDContainer::AddTFO(Int_t roc, Int_t slot, Int_t channel)
   }
   return;
 }
-;
 
 
 void
@@ -924,7 +923,7 @@ QwF1TDContainer::AddRLF(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddRLF : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-};
+}
 
 
 void
@@ -941,7 +940,7 @@ QwF1TDContainer::AddHFO(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddHFO : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-};
+}
 
 void
 QwF1TDContainer::AddOFO(Int_t roc, Int_t slot, Int_t channel)
@@ -957,7 +956,7 @@ QwF1TDContainer::AddOFO(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddOFO : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-};
+}
 
 
 void
@@ -974,7 +973,7 @@ QwF1TDContainer::AddFDF(Int_t roc, Int_t slot, Int_t channel)
     if(fLocalF1ErrorDebug) std::cout << "QwF1TDContainer::AddFDF : " << PrintNoF1TDC(roc,slot) << std::endl;
   }
   return;
-};
+}
 
 
 
@@ -1013,7 +1012,7 @@ QwF1TDContainer::ReferenceSignalCorrection(
     //   printf("There is no F1TDC with Bank index %2d slot %2d\n", bank_index, slot_num);
     return -1.0;
   }
-};
+}
 
 
 void 
@@ -1059,10 +1058,10 @@ QwF1TDContainer::SetSystemName(const TString name)
 			       Form("%s F1TDC Board Error Status Histogram", fSystemName.Data())
 			       );
   return;
-};
+}
 
 void
-QwF1TDContainer::Print()
+QwF1TDContainer::Print(const Option_t* options) const
 {
 
   Int_t size = 0; 
@@ -1090,7 +1089,7 @@ QwF1TDContainer::Print()
     }
 
   return;
-};
+}
 
 
 TString
@@ -1100,7 +1099,7 @@ QwF1TDContainer::PrintNoF1TDC(Int_t roc, Int_t slot)
 		     roc, slot, GetSystemName().Data());
   return tmp;
 
-};
+}
 
 TString
 QwF1TDContainer::PrintNoF1TDC(Int_t tdc_index)
@@ -1109,10 +1108,10 @@ QwF1TDContainer::PrintNoF1TDC(Int_t tdc_index)
 		     tdc_index, GetSystemName().Data());
 
   return tmp;
-};
+}
 
 
-const Double_t
+Double_t
 QwF1TDContainer::GetF1TDCResolution()
 {
 
@@ -1149,10 +1148,10 @@ QwF1TDContainer::GetF1TDCResolution()
     }
 
   return old_r;
-};
+}
 
 
-const Double_t
+Double_t
 QwF1TDContainer::GetF1TDCTriggerRollover()
 {
 
@@ -1169,7 +1168,7 @@ QwF1TDContainer::GetF1TDCTriggerRollover()
     {
       QwF1TDC* F1 = (QwF1TDC*) obj;
       new_r = F1->GetF1TDC_trig_t_offset();
-      //      printf("QwF1TDContainer::GetF1TDCTriggerRollover():: cnt %d, new %lf , old %lf\n", cnt, new_r, old_r);
+      //      printf("QwF1TDContainer::GetF1TDCTriggerRollover():: cnt %d, new %f , old %f\n", cnt, new_r, old_r);
       if(cnt not_eq 0) {
        	if(old_r not_eq new_r) {
 	  F1->PrintContact();
@@ -1185,12 +1184,12 @@ QwF1TDContainer::GetF1TDCTriggerRollover()
     }
 
   return old_r;
-};
+}
 
 
 
 
-const Int_t
+Int_t
 QwF1TDContainer::GetF1TDCChannelNumber()
 {
 
@@ -1227,7 +1226,7 @@ QwF1TDContainer::GetF1TDCChannelNumber()
     }
   
   return old_c;
-};
+}
 
 
 
@@ -1245,7 +1244,7 @@ QwF1TDContainer::PrintErrorSummary()
     }
   printf("-----------------------\n");
   return;
-};
+}
 
 
 TList *
@@ -1266,7 +1265,7 @@ QwF1TDContainer::GetErrorSummary()
     }
 
   return error_list;
-};
+}
 
 
 // Check Trigger Time Mismatch
@@ -1328,7 +1327,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   rounded_trigger_rollover = (Int_t) trigger_rollover;
 
   //  fLocalDebug = true;
-  if(fLocalDebug) printf("roc_id %d trigger rollover %lf, %d\n", roc_id, trigger_rollover, rounded_trigger_rollover);
+  if(fLocalDebug) printf("roc_id %d trigger rollover %f, %d\n", roc_id, trigger_rollover, rounded_trigger_rollover);
 
   
   const Int_t valid_trigger_time_offset[3] = {0, 1, rounded_trigger_rollover};
@@ -1348,7 +1347,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   if(fLocalF1RawDecodeDebug) {
     printf("%s at %s nwrds %d\n", 
 	   __PRETTY_FUNCTION__, GetSystemName().Data(), num_words);
-  };
+  }
 
   for (UInt_t i=0; i<num_words ; i++) 
     {
@@ -1673,7 +1672,7 @@ QwF1TDContainer::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t 
   
   if(fLocalF1RawDecodeDebug) printf("\n");
   return (data_integrity_flag); 
-};
+}
 
 
 void
@@ -1687,7 +1686,7 @@ QwF1TDContainer::SetErrorHistOptions()
   fError2DHist->LabelsOption("a", "X");
   fError2DHist->LabelsOption("a", "Y");
   return;
-};
+}
 
 
 // send the historgram to a subsystem, then
@@ -1697,7 +1696,7 @@ QwF1TDContainer::GetF1TDCErrorHist()
 {
   this->SetErrorHistOptions();
   return fError2DHist;
-};
+}
 
 
 
@@ -1743,7 +1742,7 @@ QwF1TDContainer::WriteErrorSummary(Bool_t hist_flag)
     }
   }
   return;
-};
+}
 
 
 Bool_t 
@@ -1754,11 +1753,11 @@ QwF1TDContainer::CheckRegisteredF1(Int_t roc, Int_t slot)
   
   if(F1) return true;
   else   return false;
-};
+}
 
 
 Bool_t 
 QwF1TDContainer::CheckSlot20Chan30(Int_t slot, Int_t chan)
 {
   return ( (slot==20) and (chan==30) );
-};
+}

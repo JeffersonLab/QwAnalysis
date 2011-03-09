@@ -83,7 +83,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
   Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
-  const QwTriggerScintillator::EModuleType RegisterModuleType(TString moduletype);
+  QwTriggerScintillator::EModuleType RegisterModuleType(TString moduletype);
 
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
 

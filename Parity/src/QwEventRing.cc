@@ -25,7 +25,7 @@ QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t e
   if (bDEBUG_Write)
     out_file = fopen("Ring_log.txt", "wt");
   
-};
+}
 
 
 
@@ -88,7 +88,7 @@ void QwEventRing::ProcessOptions(QwOptions &options){
   else
     bStability=kFALSE;
 
-};
+}
 void QwEventRing::push(QwSubsystemArrayParity &event){
   if (CheckEvent(event.GetEventcutErrorFlag())){
     fFailedEventCount=0;//reset the failed event counter if event is good
@@ -166,7 +166,7 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
   }
   
   
-};
+}
 
 void QwEventRing::FailedEvent(UInt_t error_flag){
   if (((error_flag & kBCMErrorFlag)==kBCMErrorFlag) && ((error_flag & kEventCutMode3)== 0)){//check to see the single event cut is related to a beam current error and not in event cut mode 3
@@ -193,7 +193,7 @@ void QwEventRing::FailedEvent(UInt_t error_flag){
   
   if (bDEBUG) QwMessage<<" Failed count \n"<<fFailedEventCount;
   if (bDEBUG_Write) fprintf(out_file," Failed count %d error_flag %x\n",fFailedEventCount,error_flag);
-};
+}
 
 Bool_t QwEventRing::CheckEvent(UInt_t error_flag){
 
@@ -237,10 +237,10 @@ QwSubsystemArrayParity& QwEventRing::pop(){
   //fChargeRunningSum.PrintValue();
   fNextToBeRead=(fNextToBeRead+1)%fRING_SIZE;  
   return fEvent_Ring[tempIndex];  
-};
+}
 
 
 Bool_t QwEventRing::IsReady(){ //Check for readyness to read data from the ring using the pop() routine   
   return bRING_READY;
-};
+}
 

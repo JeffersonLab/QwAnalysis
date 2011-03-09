@@ -91,7 +91,7 @@ class QwRaster: public VQwSubsystemTracking
 
   // Tells this object that it will decode data from the current bank
   Int_t RegisterSlotNumber(const UInt_t slot_id);
-  const QwRaster::EModuleType RegisterModuleType(TString moduletype);
+  QwRaster::EModuleType RegisterModuleType(TString moduletype);
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
   Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const {
     return (GetModuleIndex(bank_index,slot_num) != -1);

@@ -1,5 +1,5 @@
 #include "QwPartialTrack.h"
-ClassImp(QwPartialTrack);
+ClassImp(QwPartialTrack)
 
 // ROOT headers
 #include "TMath.h"
@@ -105,7 +105,7 @@ double QwPartialTrack::GetChiWeight () const
 /**
  * Calculate the average residual of this partial track over all treelines
  */
-const double QwPartialTrack::CalculateAverageResidual()
+double QwPartialTrack::CalculateAverageResidual()
 {
   int numTreeLines = 0;
   double sumResiduals = 0.0;
@@ -127,13 +127,13 @@ const double QwPartialTrack::CalculateAverageResidual()
 void QwPartialTrack::Clear(Option_t *option)
 {
   ClearTreeLines(option);
-};
+}
 
 // Delete the static TClonesArrays
 void QwPartialTrack::Reset(Option_t *option)
 {
   ResetTreeLines(option);
-};
+}
 
 /**
  * Initialize the list of tree lines
@@ -156,7 +156,7 @@ QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
   TClonesArray &treelines = *fQwTreeLines;
   QwTrackingTreeLine *treeline = new (treelines[fNQwTreeLines++]) QwTrackingTreeLine();
   return treeline;
-};
+}
 
 // Add an existing QwTreeLine
 void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
@@ -164,14 +164,14 @@ void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
   QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
   *newtreeline = *treeline;
   newtreeline->next = 0;
-};
+}
 
 // Clear the local TClonesArray of tree lines
 void QwPartialTrack::ClearTreeLines(Option_t *option)
 {
   fQwTreeLines->Clear(option); // Clear the local TClonesArray
   fNQwTreeLines = 0; // No tree lines in local TClonesArray
-};
+}
 
 // Delete the static TClonesArray of tree lines
 void QwPartialTrack::ResetTreeLines(Option_t *option)
@@ -193,7 +193,7 @@ void QwPartialTrack::PrintTreeLines(Option_t *option) const
 /**
  * Print some debugging information
  */
-void QwPartialTrack::Print()
+void QwPartialTrack::Print(const Option_t* options) const
 {
   if (!this) return;
   QwVerbose << *this << QwLog::endl;
@@ -225,7 +225,7 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
   }
   if (pt.IsVoid()) stream << " (void)";
   return stream;
-};
+}
 
 
 /**

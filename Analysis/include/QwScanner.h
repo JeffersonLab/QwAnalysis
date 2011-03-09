@@ -197,7 +197,7 @@ class QwScanner: public VQwSubsystemParity,
 
     // Tells this object that it will decode data from the current bank
     Int_t RegisterSlotNumber(const UInt_t slot_id);
-    const QwScanner::EModuleType RegisterModuleType(TString moduletype);
+    EModuleType RegisterModuleType(TString moduletype);
     Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
     Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const
       {

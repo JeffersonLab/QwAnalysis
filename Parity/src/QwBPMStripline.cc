@@ -41,7 +41,7 @@ void  QwBPMStripline::InitializeChannel(TString name)
   bFullSave=kTRUE;
 
   return;
-};
+}
 
 void  QwBPMStripline::InitializeChannel(TString subsystem, TString name)
 {
@@ -66,7 +66,7 @@ void  QwBPMStripline::InitializeChannel(TString subsystem, TString name)
   bFullSave=kTRUE;
 
   return;
-};
+}
 
 void QwBPMStripline::ClearEventData()
 {
@@ -81,7 +81,7 @@ void QwBPMStripline::ClearEventData()
   fEffectiveCharge.ClearEventData();
 
  return;
-};
+}
 
 
 Bool_t QwBPMStripline::ApplyHWChecks()
@@ -99,7 +99,7 @@ Bool_t QwBPMStripline::ApplyHWChecks()
     }
 
   return fEventIsGood;
-};
+}
 
 
 Int_t QwBPMStripline::GetEventcutErrorCounters()
@@ -114,7 +114,7 @@ Int_t QwBPMStripline::GetEventcutErrorCounters()
   fEffectiveCharge.GetEventcutErrorCounters();
 
   return 1;
-};
+}
 
 
 Bool_t QwBPMStripline::ApplySingleEventCuts()
@@ -175,7 +175,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
 
   return status;
 
-};
+}
 
 
 void QwBPMStripline::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
@@ -220,7 +220,7 @@ void QwBPMStripline::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t
 
   }
 
-};
+}
 
 
 void QwBPMStripline::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
@@ -263,7 +263,7 @@ void QwBPMStripline::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double
     fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
 
   }
-};
+}
 
 void  QwBPMStripline::ProcessEvent()
 {
@@ -367,7 +367,7 @@ void  QwBPMStripline::ProcessEvent()
   }
   
   return;
-};
+}
 
 
 Int_t QwBPMStripline::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
@@ -382,7 +382,7 @@ Int_t QwBPMStripline::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_bu
       "QwBPMStripline::ProcessEvBuffer(): attemp to fill in raw date for a wire that doesn't exist \n";
     }
   return word_position_in_buffer;
-};
+}
 
 
 
@@ -393,7 +393,7 @@ void QwBPMStripline::PrintValue() const
     fRelPos[i].PrintValue();
   }
   return;
-};
+}
 
 void QwBPMStripline::PrintInfo() const
 {
@@ -404,7 +404,7 @@ void QwBPMStripline::PrintInfo() const
     fAbsPos[i].PrintInfo();
   }
   fEffectiveCharge.PrintInfo();
-};
+}
 
 
 TString QwBPMStripline::GetSubElementName(Int_t subindex)
@@ -430,7 +430,7 @@ UInt_t QwBPMStripline::GetSubElementIndex(TString subname)
 	      <<subname<<"- to any index"<<std::endl;
 
   return localindex;
-};
+}
 
 void  QwBPMStripline::GetAbsolutePosition()
 {
@@ -441,7 +441,7 @@ void  QwBPMStripline::GetAbsolutePosition()
   // For Z, the absolute position will be the offset we are reading from the
   // geometry map file. Since we are not putting that to the tree it is not
   // treated as a vqwk channel.
-};
+}
 
 QwBPMStripline& QwBPMStripline::operator= (const QwBPMStripline &value)
 {
@@ -458,7 +458,7 @@ QwBPMStripline& QwBPMStripline::operator= (const QwBPMStripline &value)
     }
   }
   return *this;
-};
+}
 
 
 QwBPMStripline& QwBPMStripline::operator+= (const QwBPMStripline &value)
@@ -474,7 +474,7 @@ QwBPMStripline& QwBPMStripline::operator+= (const QwBPMStripline &value)
     }
   }
   return *this;
-};
+}
 
 QwBPMStripline& QwBPMStripline::operator-= (const QwBPMStripline &value)
 {
@@ -489,7 +489,7 @@ QwBPMStripline& QwBPMStripline::operator-= (const QwBPMStripline &value)
     }
   }
   return *this;
-};
+}
 
 
 void QwBPMStripline::Ratio(QwBPMStripline &numer, QwBPMStripline &denom)
@@ -500,7 +500,7 @@ void QwBPMStripline::Ratio(QwBPMStripline &numer, QwBPMStripline &denom)
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   return;
-};
+}
 
 
 
@@ -515,7 +515,7 @@ void QwBPMStripline::Scale(Double_t factor)
     fAbsPos[i].Scale(factor);
   }
   return;
-};
+}
 
 
 void QwBPMStripline::CalculateRunningAverage()
@@ -525,7 +525,7 @@ void QwBPMStripline::CalculateRunningAverage()
   for (i = 0; i < 3; i++) fAbsPos[i].CalculateRunningAverage();
   // No data for z position
   return;
-};
+}
 
 void QwBPMStripline::AccumulateRunningSum(const QwBPMStripline& value)
 {
@@ -535,7 +535,7 @@ void QwBPMStripline::AccumulateRunningSum(const QwBPMStripline& value)
   for (i = 0; i < 3; i++) fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
   // No data for z position
   return;
-};
+}
 
 
 void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -560,7 +560,7 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
   }
   return;
-};
+}
 
 void  QwBPMStripline::FillHistograms()
 {
@@ -580,7 +580,7 @@ void  QwBPMStripline::FillHistograms()
     //No data for z position
   }
   return;
-};
+}
 
 void  QwBPMStripline::DeleteHistograms()
 {
@@ -598,7 +598,7 @@ void  QwBPMStripline::DeleteHistograms()
     }
   }
   return;
-};
+}
 
 
 void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -625,7 +625,7 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 
   }
   return;
-};
+}
 
 void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -651,7 +651,7 @@ void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix)
 
   }
   return;
-};
+}
 
 void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
@@ -699,7 +699,7 @@ void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix, QwParameterF
 
 
   return;
-};
+}
 
 void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -718,7 +718,7 @@ void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values) const
     }
   }
   return;
-};
+}
 
 void QwBPMStripline::Copy(VQwDataElement *source)
 {
@@ -856,7 +856,7 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
 
   return row_list;
 
-};
+}
 
 /**********************************
  * Mock data generation routines
@@ -894,7 +894,7 @@ void  QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, 
   fWire[1].SetRandomEventParameters(meanXM, sigmaXM);
   fWire[2].SetRandomEventParameters(meanYP, sigmaYP);
   fWire[3].SetRandomEventParameters(meanYM, sigmaYM);
-};
+}
 
 
 void QwBPMStripline::RandomizeEventData(int helicity, double time)
@@ -902,7 +902,7 @@ void QwBPMStripline::RandomizeEventData(int helicity, double time)
   for (Short_t i=0; i<4; i++) fWire[i].RandomizeEventData(helicity, time);
 
   return;
-};
+}
 
 
 void QwBPMStripline::SetEventData(Double_t* relpos, UInt_t sequencenumber)
@@ -913,20 +913,20 @@ void QwBPMStripline::SetEventData(Double_t* relpos, UInt_t sequencenumber)
     }
 
   return;
-};
+}
 
 
 void QwBPMStripline::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   for (Short_t i=0; i<4; i++) fWire[i].EncodeEventData(buffer);
-};
+}
 
 
 void QwBPMStripline::SetDefaultSampleSize(Int_t sample_size)
 {
   for(Short_t i=0;i<4;i++) fWire[i].SetDefaultSampleSize((size_t)sample_size);
   return;
-};
+}
 
 
 void QwBPMStripline::SetSubElementPedestal(Int_t j, Double_t value)

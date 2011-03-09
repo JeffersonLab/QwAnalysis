@@ -80,7 +80,7 @@ QwRayTracer::QwRayTracer()
 
     fSimFlag = 0;
 
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -91,7 +91,7 @@ QwRayTracer::~QwRayTracer()
 {
   // TODO Someone needs to delete the magnetic field!!!
   QwMessage << "Don't forget to delete the magnetic field!" << QwLog::endl;
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -100,7 +100,7 @@ QwRayTracer::~QwRayTracer()
  * @param filename Filename
  * @return True if the field map was successfully loaded
  */
-const bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
+bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
 {
     // If the field has already been loaded, return successfully
     if (fBfield) return true;
@@ -114,7 +114,7 @@ const bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
     if (filename.find(".bin") != std::string::npos)
       status = fBfield->ReadBinaryFile(filename);
     return status;
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -124,7 +124,7 @@ const bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
  * @param back Back partial track
  * @return Zero if successful, non-zero error code if failed
  */
-const int QwRayTracer::Bridge(
+int QwRayTracer::Bridge(
 	const QwPartialTrack* front,
 	const QwPartialTrack* back)
 {
@@ -263,7 +263,7 @@ const int QwRayTracer::Bridge(
         //          << " GeV and direction " << fHitDirection << QwLog::endl;
         return -1;
     }
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -293,7 +293,7 @@ const int QwRayTracer::Bridge(
  * @param step Step size
  * @return True if the integration was successful
  */
-const bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, double z_end, double step)
+bool QwRayTracer::IntegrateRK4(TVector3& r0, TVector3& uv0, const double p0, double z_end, double step)
 {
 
     r0[0]/=Qw::m;
@@ -490,7 +490,7 @@ QwBridge* QwRayTracer::GetBridgingInfo() {
 
     return bridgeinfo;
 
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -514,7 +514,7 @@ void QwRayTracer::PrintInfo() {
 
     std::cout<<"                          momentum : "<<fMomentum / Qw::GeV << " GeV" << std::endl;
     std::cout<<"====================================================================="<<std::endl<<std::endl;
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -578,6 +578,6 @@ void QwRayTracer::GetBridgingResult(Double_t *buffer) {
 //     buffer[40] = Q2_Off;
 //     buffer[41] = fPrimary_CrossSectionWeight;
 
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

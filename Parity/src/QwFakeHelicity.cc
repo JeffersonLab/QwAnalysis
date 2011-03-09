@@ -17,7 +17,7 @@ QwSubsystemFactory<QwFakeHelicity> theQwFakeHelicityFactory("QwFakeHelicity");
   fGoodHelicity = kTRUE;  
   return fGoodHelicity;
 
-};
+}
 
  void  QwFakeHelicity::ProcessEvent()
 {
@@ -57,7 +57,7 @@ QwSubsystemFactory<QwFakeHelicity> theQwFakeHelicityFactory("QwFakeHelicity");
   PredictHelicity();
 
   return;
-};
+}
 
  void QwFakeHelicity::ClearEventData()
  {
@@ -113,7 +113,7 @@ QwSubsystemFactory<QwFakeHelicity> theQwFakeHelicityFactory("QwFakeHelicity");
    if(ldebug) std::cout<<"QwFakeHelicity::CollectRandBits24 => Done collecting ...\n";
    return kTRUE;
   
-};
+}
 
 
 VQwSubsystem*  QwFakeHelicity::Copy()

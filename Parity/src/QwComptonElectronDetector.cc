@@ -165,13 +165,13 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
     } // end of if for token line
   } // end of while over parameter file
   return 0;
-};
+}
 
 //*****************************************************************
 Int_t QwComptonElectronDetector::LoadEventCuts(TString & filename)
 {
   return 0;
-};
+}
 
 //*****************************************************************
 Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
@@ -331,7 +331,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
   }
 
   return words_read;
-};
+}
 
 /**
  * Process the single event cuts
@@ -341,7 +341,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 Bool_t QwComptonElectronDetector::SingleEventCuts()
 {
   return IsGoodEvent();
-};
+}
 
 /**
  * Process this event
@@ -544,7 +544,7 @@ if(trig==3) {
    }
     
    return;
-};
+}
 
 /**
  * Process the configuration buffer for this subsystem
@@ -558,7 +558,7 @@ if(trig==3) {
 Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   return 0;
-};
+}
 
 /**
  * Check whether this is a good event
@@ -573,7 +573,7 @@ Bool_t QwComptonElectronDetector::IsGoodEvent()
     nchan += fStripsRaw[i].size();
   fEventIsGood &= (nchan == 384);
   return fEventIsGood;
-};
+}
 
 
 
@@ -604,7 +604,7 @@ void QwComptonElectronDetector::ClearEventData()
     fScaler[i].ClearEventData();
 
   return;
-};
+}
 
 //*****************************************************************
 VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
@@ -621,7 +621,7 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
       this->fScaler[i] = input->fScaler[i];
   }
   return *this;
-};
+}
 
 VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
 {
@@ -637,7 +637,7 @@ VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
       this->fScaler[i] += input->fScaler[i];
   }
   return *this;
-};
+}
 
 VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
 {
@@ -653,7 +653,7 @@ VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
       this->fScaler[i] -= input->fScaler[i];
   }
   return *this;
-};
+}
 
 VQwSubsystem&  QwComptonElectronDetector::operator*=  (VQwSubsystem *value)
 {
@@ -666,7 +666,7 @@ VQwSubsystem&  QwComptonElectronDetector::operator*=  (VQwSubsystem *value)
     }
   }
   return *this;
-};
+}
 
 
 void  QwComptonElectronDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
@@ -675,7 +675,7 @@ void  QwComptonElectronDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value
     *this  = value1;
     *this += value2;
   }
-};
+}
 
 void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {
@@ -683,7 +683,7 @@ void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem 
     *this  = value1;
     *this -= value2;
   }
-};
+}
 
 
 void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
@@ -702,7 +702,7 @@ void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
       this->fScaler[i].Ratio(innumer->fScaler[i],indenom->fScaler[i]);
 
   }
-};
+}
 
 void QwComptonElectronDetector::Scale(Double_t factor)
 {
@@ -714,7 +714,7 @@ void QwComptonElectronDetector::Scale(Double_t factor)
 
   for (size_t i = 0; i < fScaler.size(); i++)
     this->fScaler[i].Scale(factor);
-};
+}
 
 Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
 {
@@ -784,7 +784,7 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
     fScaler[i].ConstructHistograms(folder,prefix);
 
   return;
-};
+}
 
 void  QwComptonElectronDetector::DeleteHistograms()
 {
@@ -797,7 +797,7 @@ void  QwComptonElectronDetector::DeleteHistograms()
 
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i].DeleteHistograms();
-};
+}
 
 void  QwComptonElectronDetector::FillHistograms()
 {
@@ -842,7 +842,7 @@ void  QwComptonElectronDetector::FillHistograms()
     fScaler[i].FillHistograms();
   
   return;
-};
+}
 
 void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
@@ -880,7 +880,7 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
     fScaler[i].ConstructBranchAndVector(tree, prefix, values);
 
   return;
-};
+}
 void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
   Int_t i, j;
@@ -903,7 +903,7 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
     fScaler[i].FillTreeVector(values);
 
   return;
-};
+}
 
 /**
  * Construct the tree
@@ -925,7 +925,7 @@ void  QwComptonElectronDetector::ConstructTree(TDirectory *folder, TString &pref
    fTree->Branch(vnameh,&(fComptonElectronVector[i]),vnamet);
   }
   return;
-};
+}
 
 /**
  * Delete the tree
@@ -934,7 +934,7 @@ void  QwComptonElectronDetector::DeleteTree()
 {
   delete fTree;
   return;
-};
+}
 
 /**
  * Fill the tree with data
@@ -954,7 +954,7 @@ void  QwComptonElectronDetector::FillTree()
   fTree->Fill();
 
   return;
-};
+}
 
 
 

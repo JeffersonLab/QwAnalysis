@@ -25,14 +25,14 @@ QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(re
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
-};
+}
 
 QwTriggerScintillator::~QwTriggerScintillator(){
   //  DeleteHistograms();
   fPMTs.clear();
   fSCAs.clear();
   delete fF1TDContainer;
-};
+}
 
 
 Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
@@ -198,7 +198,7 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
       }
   }
   return 0;
-};
+}
 
 
 void  QwTriggerScintillator::ClearEventData(){
@@ -214,7 +214,7 @@ void  QwTriggerScintillator::ClearEventData(){
       fSCAs.at(i)->ClearEventData();
     }
   }
-};
+}
 
 Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
@@ -360,7 +360,7 @@ Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, con
   }
 
   return 0;
-};
+}
 
 
 
@@ -589,7 +589,7 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
     // }
   }
   return 0;
-};
+}
 
 
 void  QwTriggerScintillator::ProcessEvent()
@@ -626,7 +626,7 @@ void  QwTriggerScintillator::ProcessEvent()
       fSCAs.at(i)->ProcessEvent();
     }
   }
-};
+}
 
 
 void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &prefix){
@@ -643,7 +643,7 @@ void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &pr
     }
   }
 
-};
+}
 
 void  QwTriggerScintillator::FillHistograms(){
   if (! HasDataLoaded()) return;
@@ -659,7 +659,7 @@ void  QwTriggerScintillator::FillHistograms(){
     }
   }
 
-};
+}
 
 void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values)
 {
@@ -701,7 +701,7 @@ void QwTriggerScintillator::ConstructBranchAndVector(TTree *tree, TString& prefi
   fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
   tree->Branch(basename, &values[fTreeArrayIndex], list);
   return;
-};
+}
 
 void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -730,7 +730,7 @@ void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values) const
     }
   }
 
-};
+}
 
 
 void  QwTriggerScintillator::DeleteHistograms()
@@ -752,7 +752,7 @@ void  QwTriggerScintillator::DeleteHistograms()
     }
   }
   return;
-};
+}
 
 
 QwTriggerScintillator& QwTriggerScintillator::operator=  (const QwTriggerScintillator &value){
@@ -767,7 +767,7 @@ QwTriggerScintillator& QwTriggerScintillator::operator=  (const QwTriggerScintil
 	      << std::endl;
   }
   return *this;
-};
+}
 
 
 
@@ -786,7 +786,7 @@ Int_t QwTriggerScintillator::RegisterROCNumber(const UInt_t roc_id){
   std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
   fModuleIndex.push_back(tmpvec);
   return fCurrentBankIndex;
-};
+}
 
 Int_t QwTriggerScintillator::RegisterSubbank(const UInt_t bank_id){
   Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
@@ -795,14 +795,15 @@ Int_t QwTriggerScintillator::RegisterSubbank(const UInt_t bank_id){
   fModuleIndex.push_back(tmpvec);
   //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
   return stat;
-};
+}
 
 Int_t QwTriggerScintillator::RegisterSlotNumber(UInt_t slot_id){
   std::pair<Int_t, Int_t> tmppair;
   tmppair.first  = -1;
   tmppair.second = -1;
   if (slot_id<kMaxNumberOfModulesPerROC){
-    if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size()){
+    // fCurrentBankIndex is unsigned int and always positive
+    if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex <= fModuleIndex.size()) {
       fModuleTypes.resize(fNumberOfModules+1);
       fModulePtrs.resize(fNumberOfModules+1);
       fModulePtrs.at(fNumberOfModules).resize(fF1TDCDecoder.GetTDCMaxChannels(),
@@ -818,9 +819,9 @@ Int_t QwTriggerScintillator::RegisterSlotNumber(UInt_t slot_id){
 	      << kMaxNumberOfModulesPerROC << std::endl;
   }
   return fCurrentIndex;
-};
+}
 
-const QwTriggerScintillator::EModuleType QwTriggerScintillator::RegisterModuleType(TString moduletype){
+QwTriggerScintillator::EModuleType QwTriggerScintillator::RegisterModuleType(TString moduletype){
   moduletype.ToUpper();
 
   //  Check to see if we've already registered a type for the current slot,
@@ -840,7 +841,7 @@ const QwTriggerScintillator::EModuleType QwTriggerScintillator::RegisterModuleTy
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
-};
+}
 
 
 Int_t QwTriggerScintillator::LinkChannelToSignal(const UInt_t chan, const TString &name){
@@ -852,7 +853,7 @@ Int_t QwTriggerScintillator::LinkChannelToSignal(const UInt_t chan, const TStrin
 
   return 0;
 
-};
+}
 
 void QwTriggerScintillator::FillRawWord(Int_t bank_index,
 				 Int_t slot_num,
@@ -869,19 +870,20 @@ void QwTriggerScintillator::FillRawWord(Int_t bank_index,
       fPMTs.at(modtype).at(chanindex).SetSubbankID(bank_index);
       fPMTs.at(modtype).at(chanindex).SetModule(slot_num);
     }
-  };
-};
+  }
+}
 
 
 Int_t QwTriggerScintillator::GetModuleIndex(size_t bank_index, size_t slot_num) const {
   Int_t modindex = -1;
-  if (bank_index>=0 && bank_index<fModuleIndex.size()){
-    if (slot_num>=0 && slot_num<fModuleIndex.at(bank_index).size()){
+  // bank_index and slot_num are unsigned int and always positive
+  if (/* bank_index >= 0 && */ bank_index < fModuleIndex.size()){
+    if (/* slot_num >= 0 && */ slot_num < fModuleIndex.at(bank_index).size()){
       modindex = fModuleIndex.at(bank_index).at(slot_num);
     }
   }
   return modindex;
-};
+}
 
 
 Int_t QwTriggerScintillator::FindSignalIndex(const QwTriggerScintillator::EModuleType modtype, const TString &name) const{
@@ -894,4 +896,4 @@ Int_t QwTriggerScintillator::FindSignalIndex(const QwTriggerScintillator::EModul
     }
   }
   return chanindex;
-};
+}

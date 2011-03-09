@@ -99,7 +99,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     void  FillTreeVector(std::vector<Double_t> &values) const;
     void  FillDB(QwDatabase *db, TString datatype){};
 
-    const size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
+    size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
     void SetNumberOfEvents(UInt_t nevents) {
      fNumberOfEvents = nevents;
     };
@@ -109,7 +109,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     void Print() const;
 
     void SetCalibrationFactor(const Double_t factor) { fCalibrationFactor = factor; };
-    const Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
+    Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
 
 
 

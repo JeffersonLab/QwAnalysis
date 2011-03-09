@@ -36,7 +36,7 @@ QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
-};
+}
 
 QwMainDetector::~QwMainDetector()
 {
@@ -44,7 +44,7 @@ QwMainDetector::~QwMainDetector()
   fPMTs.clear();
   fSCAs.clear();
   delete fF1TDContainer;
-};
+}
 
 
 Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
@@ -248,7 +248,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
     }
   //ReportConfiguration();
   return 0;
-};
+}
 
 
 void  QwMainDetector::ClearEventData()
@@ -269,7 +269,7 @@ void  QwMainDetector::ClearEventData()
           fSCAs.at(i)->ClearEventData();
         }
     }
-};
+}
 
 Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
@@ -417,7 +417,7 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
     }
   }
   return 0;
-};
+}
 
 
 
@@ -680,7 +680,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
     }
 
   return 0;
-};
+}
 
 
 void  QwMainDetector::ProcessEvent()
@@ -711,7 +711,7 @@ void  QwMainDetector::ProcessEvent()
       fSCAs.at(i)->ProcessEvent();
     }
   }
-};
+}
 
 
 void  QwMainDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -732,7 +732,7 @@ void  QwMainDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
         }
     }
 
-};
+}
 
 void  QwMainDetector::FillHistograms()
 {
@@ -752,7 +752,7 @@ void  QwMainDetector::FillHistograms()
           fSCAs.at(i)->FillHistograms();
         }
     }
-};
+}
 
 
 void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values)
@@ -806,7 +806,7 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString& prefix, std
   tree->Branch(basename, &values[fTreeArrayIndex], list);
   // std::cout<<list<<"\n";
   return;
-};
+}
 
 
 void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values) const
@@ -866,7 +866,7 @@ void  QwMainDetector::FillTreeVector(std::vector<Double_t> &values) const
         }
     }
 
-};
+}
 
 
 void  QwMainDetector::DeleteHistograms()
@@ -893,7 +893,7 @@ void  QwMainDetector::DeleteHistograms()
     }
 
 
-};
+}
 
 
 QwMainDetector& QwMainDetector::operator=  (const QwMainDetector &value)
@@ -914,7 +914,7 @@ QwMainDetector& QwMainDetector::operator=  (const QwMainDetector &value)
       << std::endl;
     }
   return *this;
-};
+}
 
 
 
@@ -935,7 +935,7 @@ Int_t QwMainDetector::RegisterROCNumber(const UInt_t roc_id)
   std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
   fModuleIndex.push_back(tmpvec);
   return fCurrentBankIndex;
-};
+}
 
 Int_t QwMainDetector::RegisterSubbank(const UInt_t bank_id)
 {
@@ -945,7 +945,7 @@ Int_t QwMainDetector::RegisterSubbank(const UInt_t bank_id)
   fModuleIndex.push_back(tmpvec);
   //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
   return stat;
-};
+}
 
 
 Int_t QwMainDetector::RegisterSlotNumber(UInt_t slot_id)
@@ -955,7 +955,8 @@ Int_t QwMainDetector::RegisterSlotNumber(UInt_t slot_id)
   tmppair.second = -1;
   if (slot_id<kMaxNumberOfModulesPerROC)
     {
-      if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size())
+      // fCurrentBankIndex is unsigned int and always positive
+      if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex <= fModuleIndex.size())
         {
           fModuleTypes.resize(fNumberOfModules+1);
           fModulePtrs.resize(fNumberOfModules+1);
@@ -974,9 +975,9 @@ Int_t QwMainDetector::RegisterSlotNumber(UInt_t slot_id)
       << kMaxNumberOfModulesPerROC << std::endl;
     }
   return fCurrentIndex;
-};
+}
 
-const QwMainDetector::EModuleType QwMainDetector::RegisterModuleType(TString moduletype)
+QwMainDetector::EModuleType QwMainDetector::RegisterModuleType(TString moduletype)
 {
   moduletype.ToUpper();
 
@@ -998,7 +999,7 @@ const QwMainDetector::EModuleType QwMainDetector::RegisterModuleType(TString mod
       fPMTs.resize(fCurrentType+1);
     }
   return fCurrentType;
-};
+}
 
 
 Int_t QwMainDetector::LinkChannelToSignal(const UInt_t chan, const TString &name)
@@ -1016,7 +1017,7 @@ Int_t QwMainDetector::LinkChannelToSignal(const UInt_t chan, const TString &name
     }
   std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
   return 0;
-};
+}
 
 void QwMainDetector::FillRawWord(Int_t bank_index,
                                  Int_t slot_num,
@@ -1040,8 +1041,8 @@ void QwMainDetector::FillRawWord(Int_t bank_index,
 	  fPMTs.at(modtype).at(chanindex).SetSubbankID(bank_index);
 	  fPMTs.at(modtype).at(chanindex).SetModule(slot_num);
         }
-    };
-};
+    }
+}
 
 
 Int_t QwMainDetector::GetModuleIndex(size_t bank_index, size_t slot_num) const
@@ -1049,15 +1050,16 @@ Int_t QwMainDetector::GetModuleIndex(size_t bank_index, size_t slot_num) const
     Int_t modindex = -1;
     //std::cout<<"bank_index="<<bank_index<<" fModuleIndex.size()="<<fModuleIndex.size()<<"\n";
 
-    if (bank_index>=0 && bank_index<fModuleIndex.size())
+    // bank_index and slot_num are unsigned int and always positive
+    if (/* bank_index >= 0 && */ bank_index < fModuleIndex.size())
       {
-        if (slot_num>=0 && slot_num<fModuleIndex.at(bank_index).size())
+        if (/* slot_num >= 0 && */ slot_num < fModuleIndex.at(bank_index).size())
           {
             modindex = fModuleIndex.at(bank_index).at(slot_num);
           }
       }
     return modindex;
-  };
+  }
 
 
 Int_t QwMainDetector::FindSignalIndex(const QwMainDetector::EModuleType modtype, const TString &name) const
@@ -1073,7 +1075,7 @@ Int_t QwMainDetector::FindSignalIndex(const QwMainDetector::EModuleType modtype,
           }
       }
     return chanindex;
-  };
+  }
 
 void  QwMainDetector::ReportConfiguration()
 {

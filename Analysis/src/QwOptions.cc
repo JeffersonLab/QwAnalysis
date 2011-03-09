@@ -137,7 +137,7 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
       AddConfigFile(path + ".conf");
   }
   if(local_debug) printf("**** END %s\n", __PRETTY_FUNCTION__);
-};
+}
 
 
 
@@ -157,7 +157,7 @@ void QwOptions::CombineOptions()
     fEnvironmentOptions.add(*fOptionBlock.at(i));
     fConfigFileOptions.add(*fOptionBlock.at(i));
   }
-};
+}
 
 /**
  * Parse the command line arguments for options and warn when encountering

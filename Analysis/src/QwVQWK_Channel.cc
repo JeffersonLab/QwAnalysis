@@ -137,7 +137,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 
 
  return fDeviceErrorCode;
-};
+}
 
 
 /********************************************************/
@@ -155,7 +155,7 @@ void QwVQWK_Channel::UpdateErrorCounters(UInt_t error_flag){
   if ( ((kErrorFlag_EventCut_L &  error_flag)==kErrorFlag_EventCut_L) || ((kErrorFlag_EventCut_U &  error_flag)==kErrorFlag_EventCut_U))
     fNumEvtsWithEventCutsRejected++; //increment the event cut error counter
   
-};
+}
 /********************************************************/
 
 void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
@@ -238,14 +238,14 @@ void QwVQWK_Channel::InitializeChannel(TString subsystem, TString instrumenttype
   SetSubsystemName(subsystem);
   SetModuleType(instrumenttype);
   //PrintInfo();
-};
+}
 
 /********************************************************/
 Int_t QwVQWK_Channel::GetEventcutErrorCounters()
 {// report number of events failed due to HW and event cut failure
   ReportErrorCounters();//print the summary
   return 1;
-};
+}
 
 void QwVQWK_Channel::ClearEventData()
 {
@@ -266,7 +266,7 @@ void QwVQWK_Channel::ClearEventData()
   fDeviceErrorCode  = 0; // set to zero. Important for derrived devices.
   fErrorFlag=fDefErrorFlag;
   return;
-};
+}
 
 void QwVQWK_Channel::RandomizeEventData(int helicity, double time)
 {
@@ -299,7 +299,7 @@ void QwVQWK_Channel::RandomizeEventData(int helicity, double time)
 
   SetEventData(block);
   return;
-};
+}
 
 void QwVQWK_Channel::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
@@ -308,7 +308,7 @@ void QwVQWK_Channel::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
     block[i] = hwsum / fBlocksPerEvent;
   SetEventData(block);
   return;
-};
+}
 
 void QwVQWK_Channel::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
@@ -321,7 +321,7 @@ void QwVQWK_Channel::SetRandomEventDriftParameters(Double_t amplitude, Double_t 
   fMockDriftFrequency.push_back(frequency);
   fMockDriftPhase.push_back(phase);
   return;
-};
+}
 
 void QwVQWK_Channel::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
@@ -330,20 +330,20 @@ void QwVQWK_Channel::AddRandomEventDriftParameters(Double_t amplitude, Double_t 
   fMockDriftFrequency.push_back(frequency);
   fMockDriftPhase.push_back(phase);
   return;
-};
+}
 
 void QwVQWK_Channel::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
   fMockGaussianMean = mean;
   fMockGaussianSigma = sigma;
   return;
-};
+}
 
 void QwVQWK_Channel::SetRandomEventAsymmetry(Double_t asymmetry)
 {
   fMockAsymmetry = asymmetry;
   return;
-};
+}
 
 // SetEventData() is used by the mock data generator to turn "model"
 // data values into their equivalent raw data.  It should be used
@@ -374,7 +374,7 @@ void QwVQWK_Channel::SetEventData(Double_t* block, UInt_t sequencenumber)
   fSoftwareBlockSum_raw = fHardwareBlockSum_raw;
 
   return;
-};
+}
 
 void QwVQWK_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
@@ -399,7 +399,7 @@ void QwVQWK_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
         buffer.push_back(localbuf[i]);
     }
   }
-};
+}
 
 
 
@@ -446,7 +446,7 @@ Int_t QwVQWK_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UIn
 		  << std::endl;
       }
   return words_read;
-};
+}
 
 
 
@@ -487,7 +487,7 @@ void QwVQWK_Channel::ProcessEvent()
     //     printf("Detector %s signal =  %1.4e\n",this->GetElementName().Data(),fHardwareBlockSum);
   }
   return;
-};
+}
 
 Double_t QwVQWK_Channel::GetAverageVolts() const
 {
@@ -496,7 +496,7 @@ Double_t QwVQWK_Channel::GetAverageVolts() const
   //std::cout<<"QwVQWK_Channel::GetAverageVolts() = "<<avgVolts<<std::endl;
   return avgVolts;
 
-};
+}
 
 void QwVQWK_Channel::PrintInfo() const
 {
@@ -526,7 +526,7 @@ void QwVQWK_Channel::PrintInfo() const
   std::cout << "fHardwareBlockSumError = "<<fHardwareBlockSumError << std::endl;
 
   return;
-};
+}
 
 void  QwVQWK_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
@@ -575,7 +575,7 @@ void  QwVQWK_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
       }
 
   }
-};
+}
 
 void  QwVQWK_Channel::FillHistograms()
 {
@@ -619,7 +619,7 @@ void  QwVQWK_Channel::FillHistograms()
 	    // this is not defined
 	  }
       }
-};
+}
 
 void  QwVQWK_Channel::DeleteHistograms()
 {
@@ -728,7 +728,7 @@ void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std
   }
   //exit(1);
   return;
-};
+}
 
 void  QwVQWK_Channel::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -744,7 +744,7 @@ void  QwVQWK_Channel::ConstructBranch(TTree *tree, TString &prefix)
     }
   }
   return;
-};
+}
 
 
 void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values) const
@@ -799,7 +799,7 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values) const
 	  values[index++]=this->fSequenceNumber;
       }
   }
-};
+}
 
 VQwDataElement& QwVQWK_Channel::operator= (const  VQwDataElement& data_value)
 {
@@ -827,7 +827,7 @@ VQwDataElement& QwVQWK_Channel::operator= (const  VQwDataElement& data_value)
     }
 
   return *this;
-};
+}
 
 
 
@@ -855,7 +855,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
     }
 
   return *this;
-};
+}
 
 const QwVQWK_Channel QwVQWK_Channel::operator+ (const QwVQWK_Channel &value) const
 {
@@ -883,7 +883,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
   }
 
   return *this;
-};
+}
 
 const QwVQWK_Channel QwVQWK_Channel::operator- (const QwVQWK_Channel &value) const
 {
@@ -911,7 +911,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
   }
 
   return *this;
-};
+}
 
 const QwVQWK_Channel QwVQWK_Channel::operator* (const QwVQWK_Channel &value) const
 {
@@ -939,21 +939,21 @@ QwVQWK_Channel& QwVQWK_Channel::operator*= (const QwVQWK_Channel &value)
   }
 
   return *this;
-};
+}
 
 void QwVQWK_Channel::Sum(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
 {
   *this  = value1;
   *this += value2;
   return;
-};
+}
 
 void QwVQWK_Channel::Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
 {
   *this  = value1;
   *this -= value2;
   return;
-};
+}
 
 void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
 {
@@ -973,7 +973,7 @@ void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
     fErrorFlag       = (numer.fErrorFlag|denom.fErrorFlag);
   }
   return;
-};
+}
 
 QwVQWK_Channel& QwVQWK_Channel::operator/= (const QwVQWK_Channel &denom)
 {
@@ -1032,7 +1032,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator/= (const QwVQWK_Channel &denom)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
 
   return *this;
-};
+}
 
 void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
 {
@@ -1056,7 +1056,7 @@ void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
     this->fErrorFlag       = (value1.fErrorFlag|value2.fErrorFlag);
   }
   return;
-};
+}
 
 /**
 This function will add a offset to the hw_sum and add offset/fBlocksPerEvent for blocks.
@@ -1070,7 +1070,7 @@ void QwVQWK_Channel::AddChannelOffset(Double_t offset)
       for (Int_t i=0; i<fBlocksPerEvent; i++) fBlock[i] += blockoffset;
   }
   return;
-};
+}
 
 void QwVQWK_Channel::Scale(Double_t scale)
 {
@@ -1083,7 +1083,7 @@ void QwVQWK_Channel::Scale(Double_t scale)
       fHardwareBlockSum *= scale;
       fHardwareBlockSumM2 *= scale * scale;
     }
-};
+}
 
 
 void QwVQWK_Channel::DivideBy(QwVQWK_Channel &denom)
@@ -1230,7 +1230,7 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   // Nanny
   if (fHardwareBlockSum != fHardwareBlockSum)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
-};
+}
 
 
 void QwVQWK_Channel::CalculateRunningAverage()
@@ -1254,7 +1254,7 @@ void QwVQWK_Channel::CalculateRunningAverage()
         fBlockError[i] = sqrt(fBlockM2[i]) / fGoodEventCount;
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
     }
-};
+}
 
 
 void QwVQWK_Channel::PrintValue() const
@@ -1282,7 +1282,7 @@ std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel)
 {
   stream << channel.GetHardwareSum();
   return stream;
-};
+}
 
 /**
  * Blind this channel as an asymmetry
@@ -1302,7 +1302,7 @@ void QwVQWK_Channel::Blind(const QwBlinder *blinder)
     }
   }
   return;
-};
+}
 
 /**
  * Blind this channel as a difference with specified yield
@@ -1323,7 +1323,7 @@ void QwVQWK_Channel::Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield
     }
   }
   return;
-};
+}
 
 Bool_t QwVQWK_Channel::MatchSequenceNumber(size_t seqnum)
 {
@@ -1333,7 +1333,7 @@ Bool_t QwVQWK_Channel::MatchSequenceNumber(size_t seqnum)
     status = (fSequenceNumber==seqnum);
     }
   return status;
-};
+}
 
 Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
 {
@@ -1351,7 +1351,7 @@ Bool_t QwVQWK_Channel::MatchNumberOfSamples(size_t numsamp)
     }
   }
   return status;
-};
+}
 
 Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0)//only check to see HW_Sum is within these given limits
 {
@@ -1367,12 +1367,12 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0)//only c
   }
   std::cout<<this->fDeviceErrorCode<<std::endl;
   return status;
-};
+}
 
 void QwVQWK_Channel::SetSingleEventCuts(Double_t min, Double_t max){
   fULimit=max;
   fLLimit=min;
-};
+}
 
 void QwVQWK_Channel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
   fErrorFlag=errorflag;
@@ -1380,7 +1380,7 @@ void QwVQWK_Channel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t 
   QwMessage<<"QwVQWK_Ch before setting device error code "<<errorflag<<" Global ? "<<(fErrorFlag & kGlobalCut)<<QwLog::endl;
   fStability=stability;
   SetSingleEventCuts(min,max);
-};
+}
 
 Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and update event_flags and error counters
 {
@@ -1426,7 +1426,7 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
 
 
   return status;
-};
+}
 
 
 
@@ -1513,4 +1513,4 @@ void  QwVQWK_Channel::ReportErrorCounters()
     QwMessage << message << QwLog::endl;
   }
   return;
-};
+}

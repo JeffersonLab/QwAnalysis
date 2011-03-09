@@ -29,7 +29,7 @@ QwRaster::QwRaster(TString region_tmp)
 
     fDEBUG = 0;
     ClearAllBankRegistrations();
-};
+}
 
 
 QwRaster::~QwRaster()
@@ -37,13 +37,13 @@ QwRaster::~QwRaster()
 
     fPMTs.clear();
     //DeleteHistograms();
-};
+}
 
 
 void QwRaster::ProcessOptions(QwOptions &options)
 {
     //Handle command line options
-};
+}
 
 Int_t QwRaster::LoadChannelMap(TString mapfile)
 {
@@ -120,7 +120,7 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
     //
     ReportConfiguration();
     return 0;
-};
+}
 
 Int_t QwRaster::LoadInputParameters(TString parameterfile)
 {
@@ -205,7 +205,7 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
 
     ldebug=kFALSE;
     return 0;
-};
+}
 
 
 void  QwRaster::ClearEventData()
@@ -227,7 +227,7 @@ void  QwRaster::ClearEventData()
         }
     }
 
-};
+}
 
 
 Int_t QwRaster::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
@@ -252,7 +252,7 @@ Int_t QwRaster::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ban
 
     }
     return 0;
-};
+}
 
 
 Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
@@ -328,7 +328,7 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
     }
 
     return 0;
-};
+}
 
 
 void  QwRaster::ProcessEvent()
@@ -411,7 +411,7 @@ void  QwRaster::ProcessEvent()
                         (fbpm_3h09b_xp+fbpm_3h09b_xm)+fbpm_3h09b_intercept;
      fbpm_3h09b_pos_y = fbpm_3h09b_slope*(fbpm_3h09b_yp-fbpm_3h09b_ym)/
                         (fbpm_3h09b_yp+fbpm_3h09b_ym)+fbpm_3h09b_intercept;
-};
+}
 
 
 void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -449,7 +449,7 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_x")));
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_y")));
 
-};
+}
 
 void  QwRaster::FillHistograms()
 {
@@ -512,7 +512,7 @@ void  QwRaster::FillHistograms()
     }
     
     fRateMap->Fill(raster_x_mm, raster_y_mm);
-};
+}
 
 
 void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -556,7 +556,7 @@ void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vect
       tree->Branch(basename, &values[fTreeArrayIndex], list);
     }
     return;
-};
+}
 
 
 void  QwRaster::FillTreeVector(std::vector<Double_t> &values) const
@@ -587,7 +587,7 @@ void  QwRaster::FillTreeVector(std::vector<Double_t> &values) const
       }
     }
     return;
-};
+}
 
 
 void  QwRaster::DeleteHistograms()
@@ -625,7 +625,7 @@ void  QwRaster::DeleteHistograms()
     // Then clear the list
     fHistograms2D.clear();
 
-};
+}
 
 void  QwRaster::ReportConfiguration()
 {
@@ -652,7 +652,7 @@ void  QwRaster::ReportConfiguration()
     }
 
 }
-; //ReportConfiguration()
+//ReportConfiguration()
 
 void QwRaster::ClearAllBankRegistrations()
 {
@@ -670,7 +670,7 @@ Int_t QwRaster::RegisterROCNumber(const UInt_t roc_id)
     std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
     fModuleIndex.push_back(tmpvec);
     return fCurrentBankIndex;
-};
+}
 
 Int_t QwRaster::RegisterSubbank(const UInt_t bank_id)
 {
@@ -680,7 +680,7 @@ Int_t QwRaster::RegisterSubbank(const UInt_t bank_id)
     fModuleIndex.push_back(tmpvec);
     //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
     return stat;
-};
+}
 
 
 Int_t QwRaster::RegisterSlotNumber(UInt_t slot_id)
@@ -691,7 +691,8 @@ Int_t QwRaster::RegisterSlotNumber(UInt_t slot_id)
     tmppair.second = -1;
     if (slot_id<kMaxNumberOfModulesPerROC)
     {
-        if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size())
+        // fCurrentBankIndex is unsigned int and always positive
+        if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex <= fModuleIndex.size())
         {
             fModuleTypes.resize(fNumberOfModules+1);
             fModulePtrs.resize(fNumberOfModules+1);
@@ -710,9 +711,9 @@ Int_t QwRaster::RegisterSlotNumber(UInt_t slot_id)
         << kMaxNumberOfModulesPerROC << std::endl;
     }
     return fCurrentIndex;
-};
+}
 
-const QwRaster::EModuleType QwRaster::RegisterModuleType(TString moduletype)
+QwRaster::EModuleType QwRaster::RegisterModuleType(TString moduletype)
 {
     moduletype.ToUpper();
 
@@ -730,7 +731,7 @@ const QwRaster::EModuleType QwRaster::RegisterModuleType(TString moduletype)
     }
 
     return fCurrentType;
-};
+}
 
 
 Int_t QwRaster::LinkChannelToSignal(const UInt_t chan, const TString &name)
@@ -744,7 +745,7 @@ Int_t QwRaster::LinkChannelToSignal(const UInt_t chan, const TString &name)
     }
     std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
     return 0;
-};
+}
 
 void QwRaster::FillRawWord(Int_t bank_index,
                             Int_t slot_num,
@@ -769,22 +770,23 @@ void QwRaster::FillRawWord(Int_t bank_index,
         {
             fPMTs.at(modtype).at(chanindex).SetValue(data);
         }
-    };
-};
+    }
+}
 
 
 Int_t QwRaster::GetModuleIndex(size_t bank_index, size_t slot_num) const
 {
     Int_t modindex = -1;
-    if (bank_index>=0 && bank_index<fModuleIndex.size())
+    // bank_index and slot_num are unsigned int and always positive
+    if (/* bank_index >= 0 && */ bank_index < fModuleIndex.size())
     {
-        if (slot_num>=0 && slot_num<fModuleIndex.at(bank_index).size())
+        if (/* slot_num >= 0 && */ slot_num < fModuleIndex.at(bank_index).size())
         {
             modindex = fModuleIndex.at(bank_index).at(slot_num);
         }
     }
     return modindex;
-};
+}
 
 
 Int_t QwRaster::FindSignalIndex(const QwRaster::EModuleType modtype, const TString &name) const
@@ -800,7 +802,7 @@ Int_t QwRaster::FindSignalIndex(const QwRaster::EModuleType modtype, const TStri
         }
     }
     return chanindex;
-};
+}
 
 void QwRaster::PrintInfo()
 {

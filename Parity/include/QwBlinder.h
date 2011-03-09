@@ -223,11 +223,11 @@ class QwBlinder {
 
 
  private:
-    
+
     /// Private copy constructor
-    QwBlinder (const QwBlinder& blinder): fBlindingStrategy(kDisabled) { };
+    QwBlinder (const QwBlinder& __attribute__((unused)) blinder): fBlindingStrategy(kDisabled) { };
     /// Private assignment operator
-    const QwBlinder& operator= (const QwBlinder& blinder) { return *this; };
+    const QwBlinder& operator= (const QwBlinder& __attribute__((unused)) blinder) { return *this; };
 
     //  Variables and functions used in blinding the detector asymmetries
     const EQwBlindingStrategy fBlindingStrategy; /// Blinding strategy

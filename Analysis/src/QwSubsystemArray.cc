@@ -174,7 +174,7 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
               << " could be published!" << QwLog::endl;
     }
   }
-};
+}
 
 
 
@@ -257,7 +257,7 @@ VQwSubsystem* QwSubsystemArray::GetSubsystemByName(const TString& name)
     }
   }
   return tmp;
-};
+}
 
 
 /**
@@ -286,7 +286,7 @@ std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const std::strin
   } // end of if !empty()
 
   return subsys_list;
-};
+}
 
 
 void  QwSubsystemArray::ClearEventData()
@@ -298,7 +298,7 @@ void  QwSubsystemArray::ClearEventData()
     std::for_each(begin(), end(),
 		  boost::mem_fn(&VQwSubsystem::ClearEventData));
   }
-};
+}
 
 Int_t QwSubsystemArray::ProcessConfigurationBuffer(
   const UInt_t roc_id,
@@ -311,7 +311,7 @@ Int_t QwSubsystemArray::ProcessConfigurationBuffer(
       (*subsys)->ProcessConfigurationBuffer(roc_id, bank_id, buffer, num_words);
     }
   return 0;
-};
+}
 
 Int_t QwSubsystemArray::ProcessEvBuffer(
   const UInt_t event_type,
@@ -326,7 +326,7 @@ Int_t QwSubsystemArray::ProcessEvBuffer(
       (*subsys)->ProcessEvBuffer(event_type, roc_id, bank_id, buffer, num_words);
     }
   return 0;
-};
+}
 
 
 void  QwSubsystemArray::ProcessEvent()
@@ -336,7 +336,7 @@ void  QwSubsystemArray::ProcessEvent()
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ExchangeProcessedData));
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ProcessEvent_2));
   }
-};
+}
 
 
 //*****************************************************************
@@ -346,7 +346,7 @@ void  QwSubsystemArray::RandomizeEventData(int helicity, double time)
     for (iterator subsys = begin(); subsys != end(); ++subsys) {
       (*subsys)->RandomizeEventData(helicity, time);
     }
-};
+}
 
 //*****************************************************************
 void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -355,7 +355,7 @@ void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
     for (iterator subsys = begin(); subsys != end(); ++subsys) {
       (*subsys)->EncodeEventData(buffer);
     }
-};
+}
 
 
 //*****************************************************************
@@ -369,19 +369,19 @@ void  QwSubsystemArray::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
   }
   //std::cout<<"\n";
-};
+}
 
 void  QwSubsystemArray::FillHistograms()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillHistograms));
-};
+}
 
 void  QwSubsystemArray::DeleteHistograms()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteHistograms));
-};
+}
 
 //*****************************************************************
 
@@ -397,7 +397,7 @@ void  QwSubsystemArray::ConstructTree(TDirectory *folder, TString &prefix)
       (*subsys)->ConstructTree(folder, prefix);
     }
   }
-};
+}
 
 /**
  * Fill the tree for this subsystem
@@ -406,7 +406,7 @@ void  QwSubsystemArray::FillTree()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillTree));
-};
+}
 
 /**
  * Delete the tree for this subsystem
@@ -415,7 +415,7 @@ void  QwSubsystemArray::DeleteTree()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteTree));
-};
+}
 
 //*****************************************************************
 
@@ -426,7 +426,7 @@ void  QwSubsystemArray::PrintInfo() const
       (*subsys)->PrintInfo();
     }
   }
-};
+}
 
 //*****************************************************************
 
@@ -464,7 +464,7 @@ void  QwSubsystemArray::ConstructBranchAndVector(
     subsys_ptr->ConstructBranchAndVector(tree, prefix, values);
   }
 
-};
+}
 
 
 /**
@@ -484,7 +484,7 @@ void QwSubsystemArray::ConstructBranch(TTree *tree, TString& prefix)
     VQwSubsystem* subsys_ptr = dynamic_cast<VQwSubsystem*>(subsys->get());
     subsys_ptr->ConstructBranch(tree, prefix);
   }
-};
+}
 
 
 /**
@@ -527,7 +527,7 @@ void QwSubsystemArray::ConstructBranch(
     } else
       QwMessage << "No tree leaves created for " << subsysname << QwLog::endl;
   }
-};
+}
 
 
 /**
@@ -648,7 +648,7 @@ Bool_t QwSubsystemArray::PublishInternalValue(
   fPublishedValuesDescription[name] = desc;
   fPublishedValuesDataElement[name] = element;
   return kTRUE;
-};
+}
 
 /**
  * List the published values and description in this subsystem array
@@ -661,7 +661,7 @@ void QwSubsystemArray::ListPublishedValues() const
        iter != fPublishedValuesDescription.end(); iter++) {
     QwOut << iter->first << ": " << iter->second << QwLog::endl;
   }
-};
+}
 
 /**
  * Retrieve the variable name from subsystems in this subsystem array
@@ -678,4 +678,4 @@ VQwDataElement* QwSubsystemArray::ReturnInternalValueForFriends(const TString& n
   }
   //  Not found
   return 0;
-};
+}

@@ -27,7 +27,7 @@ void QwSIS3801_Module::SetChannel(size_t channel, TString &name)
     if(local_debug) std::cout << "SIS3801: Set channel" << channel << " to " << name << std::endl;
     fChannels.at(channel).InitializeChannel(name);
   }
-};
+}
 
 Int_t QwSIS3801_Module::ProcessConfigBuffer(UInt_t* buffer, UInt_t num_words_left)
 {
@@ -61,7 +61,7 @@ Int_t QwSIS3801_Module::ProcessConfigBuffer(UInt_t* buffer, UInt_t num_words_lef
     words_read = 32;
   }
   return words_read;
-};
+}
 
 void QwSIS3801_Module::ClearEventData()
 {
@@ -69,7 +69,7 @@ void QwSIS3801_Module::ClearEventData()
     fChannels.at(i).ClearEventData();
   }
   fEventIsGood = kTRUE;
-};
+}
 
 
 void QwSIS3801_Module::RandomizeEventData(int helicity)
@@ -88,7 +88,7 @@ void QwSIS3801_Module::SetEventData(Double_t* buffer)
     fChannels.at(i).SetEventData(buffer[i]);
   }
   fEventIsGood = kTRUE;
-};
+}
 
 //jpan: encode data for each channel
 void QwSIS3801_Module::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -96,7 +96,7 @@ void QwSIS3801_Module::EncodeEventData(std::vector<UInt_t> &buffer)
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).EncodeEventData(buffer);
   }
-};
+}
 
 Int_t QwSIS3801_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
 {
@@ -112,14 +112,14 @@ Int_t QwSIS3801_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
 	      << std::endl;
   }
   return words_read;
-};
+}
 
 void  QwSIS3801_Module::ProcessEvent()
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).ProcessEvent();
   }
-};
+}
 
 void  QwSIS3801_Module::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
@@ -131,34 +131,34 @@ void  QwSIS3801_Module::ConstructHistograms(TDirectory *folder, TString &prefix)
     if (fChannels.at(i).GetElementName()=="") {}
     else  fChannels.at(i).ConstructHistograms(folder, prefix);
   }
-};
+}
 
 void  QwSIS3801_Module::FillHistograms()
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).FillHistograms();
   }
-};
+}
 
 void  QwSIS3801_Module::DeleteHistograms()
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).DeleteHistograms();
-  }};
+  }}
 
 void  QwSIS3801_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).ConstructBranchAndVector(tree, prefix, values);
   }
-};
+}
 
 void  QwSIS3801_Module::FillTreeVector(std::vector<Double_t> &values) const
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).FillTreeVector(values);
   }
-};
+}
 
 QwSIS3801D24_Channel* QwSIS3801_Module::GetChannel(const TString name)
 {
@@ -171,7 +171,7 @@ QwSIS3801D24_Channel* QwSIS3801_Module::GetChannel(const TString name)
     }
   }
   return tmp;
-};
+}
 
 
 QwSIS3801_Module& QwSIS3801_Module::operator= (const QwSIS3801_Module &value)
@@ -181,7 +181,7 @@ QwSIS3801_Module& QwSIS3801_Module::operator= (const QwSIS3801_Module &value)
   }
   fEventIsGood = value.fEventIsGood;
   return *this;
-};
+}
 
 QwSIS3801_Module& QwSIS3801_Module::operator+= (const QwSIS3801_Module &value)
 {
@@ -193,7 +193,7 @@ QwSIS3801_Module& QwSIS3801_Module::operator+= (const QwSIS3801_Module &value)
 
 
   return *this;
-};
+}
 
 QwSIS3801_Module& QwSIS3801_Module::operator-= (const QwSIS3801_Module &value)
 {
@@ -202,19 +202,19 @@ QwSIS3801_Module& QwSIS3801_Module::operator-= (const QwSIS3801_Module &value)
   }
   fEventIsGood = value.fEventIsGood;
   return *this;
-};
+}
 
 void QwSIS3801_Module::Sum(QwSIS3801_Module &value1, QwSIS3801_Module &value2)
 {
   *this =  value1;
   *this += value2;
-};
+}
 
 void QwSIS3801_Module::Difference(QwSIS3801_Module &value1, QwSIS3801_Module &value2)
 {
   *this =  value1;
   *this -= value2;
-};
+}
 
 void QwSIS3801_Module::Ratio(QwSIS3801_Module &numer, QwSIS3801_Module &denom)
 {
@@ -222,7 +222,7 @@ void QwSIS3801_Module::Ratio(QwSIS3801_Module &numer, QwSIS3801_Module &denom)
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).Ratio(numer.fChannels.at(i), denom.fChannels.at(i));
   }
-};
+}
 
 
 
@@ -231,7 +231,7 @@ void QwSIS3801_Module::InitializeChannel(TString name)
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).InitializeChannel(name);
   }
-};
+}
 
 void QwSIS3801_Module::Copy(QwSIS3801_Module *source)
 {
@@ -249,14 +249,14 @@ void QwSIS3801_Module::Copy(QwSIS3801_Module *source)
   catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-};
+}
 
 void  QwSIS3801_Module::PrintInfo() const
 {
   for (size_t i = 0; i < fChannels.size(); i++) {
     fChannels.at(i).PrintInfo();
   }
-};
+}
 
 
 

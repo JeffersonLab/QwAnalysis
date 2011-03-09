@@ -259,7 +259,11 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
 
   /// Test whether this subsystem array can contain a particular subsystem
   static Bool_t CanContain(VQwSubsystem* subsys) {
-    return kFALSE; // should never occur
+    if (subsys == 0) {
+      QwError << "Zero pointer passed!" << QwLog::endl;
+    }
+    // should never occur
+    return kFALSE;
   };
 
  private:

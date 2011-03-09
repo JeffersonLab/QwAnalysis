@@ -51,17 +51,17 @@ class MQwSIS3320_Samples: public TObject {
     MQwSIS3320_Type GetMinSample() const { return GetMin().second; };
     MQwSIS3320_Type GetMaxSample() const { return GetMax().second; };
 
-    const MQwSIS3320_Type GetSum() const;
-    const MQwSIS3320_Type GetSample(size_t i) const { return fSamples.at(i); };
-    const MQwSIS3320_Type GetPedestal() const { return GetSample(0); };
-    const MQwSIS3320_Type GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const;
+    MQwSIS3320_Type GetSum() const;
+    MQwSIS3320_Type GetSample(size_t i) const { return fSamples.at(i); };
+    MQwSIS3320_Type GetPedestal() const { return GetSample(0); };
+    MQwSIS3320_Type GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const;
 
-    const UInt_t GetNumberOfDataWords() const { return fNumberOfDataWords; };
+    UInt_t GetNumberOfDataWords() const { return fNumberOfDataWords; };
     void SetNumberOfDataWords(const UInt_t &numwords) {
       fNumberOfDataWords = numwords;
     };
 
-    const UInt_t GetNumberOfSamples() const { return fSamples.size(); };
+    UInt_t GetNumberOfSamples() const { return fSamples.size(); };
     void SetNumberOfSamples(const UInt_t nsamples) {
       // Initialize index vector
       fIndex.resize(nsamples);
@@ -71,7 +71,7 @@ class MQwSIS3320_Samples: public TObject {
       SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
     };
 
-    const UInt_t GetSamplesPerWord() const { return fSamplesPerWord; };
+    UInt_t GetSamplesPerWord() const { return fSamplesPerWord; };
     void SetSamplesPerWord(const UInt_t nsamples) {
       fSamplesPerWord = nsamples;
       SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
@@ -137,6 +137,6 @@ inline std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples&
   for (size_t i = 0; i < s.GetNumberOfSamples(); i++)
     stream << s.GetSample(i) << " ";
   return stream;
-};
+}
 
 #endif // __MQwSIS3320_Samples__

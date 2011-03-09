@@ -199,7 +199,7 @@ QwDBInterface::TypedDBClone<QwParityDB::md_data>() {
   row.value               = fValue;
   row.error               = fError;
   return row;
-};
+}
 template<> inline QwParityDB::lumi_data
 QwDBInterface::TypedDBClone<QwParityDB::lumi_data>() {
   QwParityDB::lumi_data row(0);
@@ -211,7 +211,7 @@ QwDBInterface::TypedDBClone<QwParityDB::lumi_data>() {
   row.value               = fValue;
   row.error               = fError;
   return row;
-};
+}
 template<> inline QwParityDB::beam
 QwDBInterface::TypedDBClone<QwParityDB::beam>() {
   QwParityDB::beam row(0);
@@ -223,6 +223,6 @@ QwDBInterface::TypedDBClone<QwParityDB::beam>() {
   row.value               = fValue;
   row.error               = fError;
   return row;
-};
+}
 
 #endif

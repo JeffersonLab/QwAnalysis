@@ -1,6 +1,6 @@
 #include "QwEvent.h"
-ClassImp(QwEvent);
-ClassImp(QwEventHeader);
+ClassImp(QwEvent)
+ClassImp(QwEventHeader)
 
 // Qweak headers
 #include "QwLog.h"
@@ -144,7 +144,7 @@ void QwEvent::Clear(Option_t *option)
   ClearTreeLines(option);
   ClearPartialTracks(option);
   ClearTracks(option);
-};
+}
 
 // Delete the static TClonesArrays
 void QwEvent::Reset(Option_t *option)
@@ -153,7 +153,7 @@ void QwEvent::Reset(Option_t *option)
   ResetTreeLines(option);
   ResetPartialTracks(option);
   ResetTracks(option);
-};
+}
 
 void QwEvent::AddBridgingResult(double* buffer)
 {
@@ -200,7 +200,7 @@ QwHit* QwEvent::CreateNewHit()
     QwWarning << "you shouldn't be here" << QwLog::endl;
   #endif
   return hit;
-};
+}
 
 // Add an existing QwHit
 void QwEvent::AddHit(QwHit* hit)
@@ -213,7 +213,7 @@ void QwEvent::AddHit(QwHit* hit)
     else QwError << "trying to add null hit" << QwLog::endl;
   #endif
   fNQwHits++;
-};
+}
 
 // Clear the local TClonesArray of hits
 void QwEvent::ClearHits(Option_t *option)
@@ -226,7 +226,7 @@ void QwEvent::ClearHits(Option_t *option)
     fQwHits.clear();
   #endif
   fNQwHits = 0;
-};
+}
 
 // Delete the static TClonesArray of hits
 void QwEvent::ResetHits(Option_t *option)
@@ -306,7 +306,7 @@ QwTrackingTreeLine* QwEvent::CreateNewTreeLine()
     AddTreeLine(treeline);
   #endif
   return treeline;
-};
+}
 
 // Add an existing QwTreeLine
 void QwEvent::AddTreeLine(QwTrackingTreeLine* treeline)
@@ -320,7 +320,7 @@ void QwEvent::AddTreeLine(QwTrackingTreeLine* treeline)
     fQwTreeLines.Add(treeline);
   #endif
   fNQwTreeLines++;
-};
+}
 
 // Add a linked list of QwTreeLine's
 void QwEvent::AddTreeLineList(QwTrackingTreeLine* treelinelist)
@@ -331,7 +331,7 @@ void QwEvent::AddTreeLineList(QwTrackingTreeLine* treelinelist)
        AddTreeLine(treeline);
     }
   }	
-};
+}
 
 // Clear the local TClonesArray of tree lines
 void QwEvent::ClearTreeLines(Option_t *option)
@@ -353,7 +353,7 @@ void QwEvent::ClearTreeLines(Option_t *option)
     fQwTreeLines.Clear(option);
   #endif
   fNQwTreeLines = 0;
-};
+}
 
 // Delete the static TClonesArray of tree lines
 void QwEvent::ResetTreeLines(Option_t *option)
@@ -410,7 +410,7 @@ QwPartialTrack* QwEvent::CreateNewPartialTrack()
     AddPartialTrack(partialtrack);
   #endif
   return partialtrack;
-};
+}
 
 // Add an existing QwPartialTrack
 void QwEvent::AddPartialTrack(QwPartialTrack* partialtrack)
@@ -424,7 +424,7 @@ void QwEvent::AddPartialTrack(QwPartialTrack* partialtrack)
     fQwPartialTracks.Add(partialtrack);
   #endif
   fNQwPartialTracks++;
-};
+}
 
 // Add a linked list of QwPartialTrack's
 void QwEvent::AddPartialTrackList(QwPartialTrack* partialtracklist)
@@ -434,7 +434,7 @@ void QwEvent::AddPartialTrackList(QwPartialTrack* partialtracklist)
     if (partialtrack->IsValid())
       AddPartialTrack(partialtrack);
 	}
-};
+}
 
 // Add a vector of QwPartialTracks
 void QwEvent::AddPartialTrackList(const std::vector<QwPartialTrack*>& partialtracklist)
@@ -442,7 +442,7 @@ void QwEvent::AddPartialTrackList(const std::vector<QwPartialTrack*>& partialtra
   for (size_t i = 0; i < partialtracklist.size(); i++)
     if (partialtracklist[i]->IsValid())
       AddPartialTrack(partialtracklist[i]);
-};
+}
 
 // Clear the local TClonesArray of hits
 void QwEvent::ClearPartialTracks(Option_t *option)
@@ -457,7 +457,7 @@ void QwEvent::ClearPartialTracks(Option_t *option)
     fQwPartialTracks.Clear(option);
   #endif
   fNQwPartialTracks = 0;
-};
+}
 
 // Delete the static TClonesArray of partial tracks
 void QwEvent::ResetPartialTracks(Option_t *option)
@@ -507,7 +507,7 @@ QwTrack* QwEvent::CreateNewTrack()
     AddTrack(track);
   #endif
   return track;
-};
+}
 
 // Add an existing QwTrack
 void QwEvent::AddTrack(QwTrack* track)
@@ -519,7 +519,7 @@ void QwEvent::AddTrack(QwTrack* track)
     fQwTracks.push_back(new QwTrack(track));
   #endif
   fNQwTracks++;
-};
+}
 
 // Add a linked list of QwTrack's
 void QwEvent::AddTrackList(QwTrack* tracklist)
@@ -528,7 +528,7 @@ void QwEvent::AddTrackList(QwTrack* tracklist)
          track; track =  track->next)
     //if (track->IsValid()) // TODO
       AddTrack(track);
-};
+}
 
 // Add a vector of QwTracks
 void QwEvent::AddTrackList(const std::vector<QwTrack*>& tracklist)
@@ -536,7 +536,7 @@ void QwEvent::AddTrackList(const std::vector<QwTrack*>& tracklist)
   for (size_t i = 0; i < tracklist.size(); i++)
     //if (tracklist[i]->IsValid()) // TODO
       AddTrack(tracklist[i]);
-};
+}
 
 // Clear the local TClonesArray of hits
 void QwEvent::ClearTracks(Option_t *option)
@@ -549,7 +549,7 @@ void QwEvent::ClearTracks(Option_t *option)
     fQwTracks.clear();
   #endif
   fNQwTracks = 0;
-};
+}
 
 // Delete the static TClonesArray of tracks
 void QwEvent::ResetTracks(Option_t *option)

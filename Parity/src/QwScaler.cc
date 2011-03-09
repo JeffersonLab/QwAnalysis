@@ -17,7 +17,7 @@ QwSubsystemFactory<QwScaler> theScalerFactory("QwScaler");
 
 Int_t QwScaler::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
 	return 0;
-};
+}
 
 
 Int_t QwScaler::LoadChannelMap(TString mapfile)
@@ -139,11 +139,11 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
 //   }
 
   return 0;
-};
+}
 
-void QwScaler::ProcessOptions(QwOptions &){};
-Int_t QwScaler::LoadInputParameters(TString){ return 0;};
-void QwScaler::ClearEventData(){};
+void QwScaler::ProcessOptions(QwOptions &){}
+Int_t QwScaler::LoadInputParameters(TString){ return 0;}
+void QwScaler::ClearEventData(){}
 
 void  QwScaler::Copy(VQwSubsystem *source)
 {
@@ -173,7 +173,7 @@ Int_t QwScaler::ProcessEvBuffer(UInt_t ev_type, UInt_t roc_id, UInt_t bank_id, U
 
 void QwScaler::ProcessEvent(){
   return;
-};
+}
 
 
 void QwScaler::ConstructHistograms(TDirectory* folder, TString& prefix){
@@ -182,7 +182,7 @@ void QwScaler::ConstructHistograms(TDirectory* folder, TString& prefix){
 //       fSCAs.at(i).at(j).ConstructHistograms(folder, prefix);
 //     }
 //   }
-};
+}
 
 void QwScaler::FillHistograms(){
 //   for(size_t i = 0; i < fSCAs.size(); i++){
@@ -190,7 +190,7 @@ void QwScaler::FillHistograms(){
 //       fSCAs.at(i).at(j).FillHistograms();
 //     }
 //   }
-};
+}
 
 void QwScaler::DeleteHistograms(){
   for(size_t i = 0; i < fSCAs.size(); i++){
@@ -198,7 +198,7 @@ void QwScaler::DeleteHistograms(){
       fSCAs.at(i).at(j).DeleteHistograms();
     }
   }
-};
+}
 
 void QwScaler::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values){
   fTreeArrayIndex = values.size();
@@ -223,7 +223,7 @@ void QwScaler::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vect
 	    list = list(1,list.Length()-1);
   }
 	tree->Branch(basename,&values[fTreeArrayIndex],list);
-};
+}
 
 void QwScaler::FillTreeVector(std::vector<Double_t> &values) const {
   Int_t index = fTreeArrayIndex;
@@ -238,16 +238,16 @@ void QwScaler::FillTreeVector(std::vector<Double_t> &values) const {
 	}
      }
   }
-};
+}
 
 void QwScaler::ConstructBranch(TTree *tree, TString& prefix){
 
-};
+}
   		
 void QwScaler::ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file){
 
 
-};
+}
 
 
 
@@ -263,7 +263,7 @@ VQwSubsystem&  QwScaler::operator=(VQwSubsystem *value){
     }
   }
   return *this; 
-};
+}
 
 VQwSubsystem&  QwScaler::operator+=(VQwSubsystem *value){
   //std::cout << "QwScaler addition assignment (operator+=)" << std::endl;
@@ -277,7 +277,7 @@ VQwSubsystem&  QwScaler::operator+=(VQwSubsystem *value){
     }
   }
   return *this;
-};
+}
 
 VQwSubsystem&  QwScaler::operator-=(VQwSubsystem *value){
   //std::cout << "QwScaler subtraction assignment (operator-=)" << std::endl;
@@ -290,58 +290,58 @@ VQwSubsystem&  QwScaler::operator-=(VQwSubsystem *value){
     }
   }
   return *this;
-};
+}
 
 void QwScaler::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2){
   if (Compare(value1) && Compare(value2)) {
     *this  = value1;
     *this += value2;
   }
-};
+}
 
 void QwScaler::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2){
   if (Compare(value1) && Compare(value2)) {
     *this  = value1;
     *this -= value2;
   }
-};
+}
 
 void QwScaler::Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2){
   return;
-};
+}
 
 void QwScaler::Scale(Double_t factor){
  return;
-};
+}
 
 void QwScaler::AccumulateRunningSum(VQwSubsystem* value){
   return;
-};
+}
 
 void QwScaler::CalculateRunningAverage(){
  return;
-};
+}
 
-Int_t QwScaler::LoadEventCuts(TString filename){return 0;};
+Int_t QwScaler::LoadEventCuts(TString filename){return 0;}
 
 Bool_t QwScaler::ApplySingleEventCuts(){
   return true;
-};
+}
 
 Int_t QwScaler::GetEventcutErrorCounters(){
   return 0;
-};
+}
 
 UInt_t QwScaler::GetEventcutErrorFlag(){
   return 0;
-};
+}
 
 float* QwScaler::GetRawChannelArray(){
   size_t len = 0;
   float *result = new float[len];
  
   return result;
-};
+}
 
 Int_t QwScaler::GetChannelIndex(TString channelName, UInt_t module_number)
 {
@@ -351,7 +351,7 @@ Int_t QwScaler::GetChannelIndex(TString channelName, UInt_t module_number)
 
 Bool_t QwScaler::Compare(VQwSubsystem *source){
   	return true;
-};
+}
 
 void QwScaler::print(){
   std::cout << " " << fSCAs.size() << std::endl;

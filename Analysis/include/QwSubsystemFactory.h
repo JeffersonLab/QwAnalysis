@@ -13,7 +13,7 @@ class VQwSubsystem;
 
 // Exceptions
 struct QwException_SubsystemUnknown {
-  QwException_SubsystemUnknown() { };
+  QwException_SubsystemUnknown() { }
 };
 
 /**
@@ -31,7 +31,7 @@ class VQwSubsystemFactory {
   public:
 
     /// Default virtual destructor
-    virtual ~VQwSubsystemFactory() { };
+    virtual ~VQwSubsystemFactory() { }
 
     /// Create a subsystem of type with name
     static VQwSubsystem* Create(const std::string& type, const std::string& name) {
@@ -71,7 +71,7 @@ VQwSubsystemFactory::GetRegisteredSubsystems()
 {
   static std::map<std::string,VQwSubsystemFactory*> theSubsystemMap;
   return theSubsystemMap;
-};
+}
 
 /// List available subsystem factories
 inline void VQwSubsystemFactory::ListRegisteredSubsystems()
@@ -80,7 +80,7 @@ inline void VQwSubsystemFactory::ListRegisteredSubsystems()
   for (subsys = GetRegisteredSubsystems().begin();
        subsys != GetRegisteredSubsystems().end(); subsys++ )
     QwMessage << subsys->first << QwLog::endl;
-};
+}
 
 /// Get a concrete subsystem factory by std::string
 inline VQwSubsystemFactory*
@@ -101,7 +101,7 @@ VQwSubsystemFactory::GetSubsystemFactory(const std::string& type)
               << QwLog::endl;
     throw QwException_SubsystemUnknown();
   }
-};
+}
 
 
 /**
@@ -121,7 +121,7 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
     /// Constructor which stores type name in list of registered subsystems
     QwSubsystemFactory(const std::string& type) {
       VQwSubsystemFactory::GetRegisteredSubsystems()[type] = this;
-    };
+    }
 
     /// Concrete subsystem creation
     VQwSubsystem* Create(const std::string& name) const {
@@ -140,7 +140,7 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
 class VQwCloneable {
   public:
     /// Virtual destructor
-    virtual ~VQwCloneable() { };
+    virtual ~VQwCloneable() { }
 
     /// Abstract clone method when no derived method is defined
     virtual VQwSubsystem* Clone() const {
@@ -156,7 +156,7 @@ class VQwCloneable {
     }
 
     /// Virtual subsystem factory getter
-    virtual const VQwSubsystemFactory* Factory() const { return 0; };
+    virtual const VQwSubsystemFactory* Factory() const { return 0; }
 
 }; // class VQwCloneable
 
@@ -172,7 +172,7 @@ class MQwCloneable: virtual public VQwCloneable {
     }
 
     /// Subsystem factory getter
-    const VQwSubsystemFactory* Factory() const { return fFactory; };
+    const VQwSubsystemFactory* Factory() const { return fFactory; }
 
     /// Subsystem creation
     static VQwSubsystem* Create(const std::string& name) {

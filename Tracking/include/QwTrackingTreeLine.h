@@ -86,20 +86,20 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
   public:
 
     //! Is this tree line void?
-    const bool IsVoid() const { return fIsVoid; };
-    void SetVoid(const bool isvoid = true) { fIsVoid = isvoid; };
+    bool IsVoid() const { return fIsVoid; }
+    void SetVoid(const bool isvoid = true) { fIsVoid = isvoid; }
     //! Is this tree line valid?
-    const bool IsValid() const { return ! fIsVoid; };
-    void SetValid(const bool isvoid = false) { fIsVoid = isvoid; };
+    bool IsValid() const { return ! fIsVoid; }
+    void SetValid(const bool isvoid = false) { fIsVoid = isvoid; }
     //! Is this tree line not void?
-    const bool IsNotVoid() const { return ! fIsVoid; };
-    void SetNotVoid(const bool isvoid = false) { fIsVoid = isvoid; };
+    bool IsNotVoid() const { return ! fIsVoid; }
+    void SetNotVoid(const bool isvoid = false) { fIsVoid = isvoid; }
     //! Is this tree line used?
-    const bool IsUsed() const { return fIsUsed; };
-    void SetUsed(const bool isused = true) { fIsUsed = isused; };
+    bool IsUsed() const { return fIsUsed; }
+    void SetUsed(const bool isused = true) { fIsUsed = isused; }
     //! Is this tree line not used?
-    const bool IsNotUsed() const { return ! fIsUsed; };
-    void SetNotUsed(const bool isused = false) { fIsUsed = isused; };
+    bool IsNotUsed() const { return ! fIsUsed; }
+    void SetNotUsed(const bool isused = false) { fIsUsed = isused; }
 
     //! \name Creating, adding, and getting hits and hit containers
     // @{
@@ -110,7 +110,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     //! \brief Add an existing hit container
     void AddHitContainer(QwHitContainer* hitlist);
     //! \brief Get the number of hits
-    Int_t GetNumberOfHits() const { return fNQwHits; };
+    Int_t GetNumberOfHits() const { return fNQwHits; }
     //! \brief Get a specific hit
     QwHit* GetHit(int i = 0);
     //! \brief Get the hits as a hit container
@@ -127,7 +127,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     //! \brief Get the hit with the smallest drift distance
     QwHit* GetBestWireHit (double offset = 0.0);
 
-    void Print();
+    void Print(const Option_t* options = 0) const;
     void PrintValid();
 
     //! \brief Output stream operator
@@ -138,49 +138,49 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     //! Returns position at the first detector plane
     double GetPositionFirst (const double binwidth) {
       return 0.5 * (a_beg + a_end) * binwidth + 0.5*binwidth;
-    };
+    }
     //! Returns position at the last detector plane
     double GetPositionLast (const double binwidth) {
       return 0.5 * (b_beg + b_end) * binwidth + 0.5*binwidth;
-    };
+    }
     //! Returns resolution at the first detector plane
     double GetResolutionFirst (const double binwidth) {
       return (a_end - a_beg) * binwidth;
-    };
+    }
     //! Returns resolution at the last detector plane
     double GetResolutionLast (const double binwidth) {
       return (b_end - b_beg) * binwidth;
-    };
+    }
     // @}
 
     //! \name Calculate the residuals
     // @{
     //! Get the average residuals
-    const double GetAverageResidual() const { return fAverageResidual; };
+    double GetAverageResidual() const { return fAverageResidual; }
     //! Set the average residuals
-    void SetAverageResidual(const double residual) { fAverageResidual = residual; };
+    void SetAverageResidual(const double residual) { fAverageResidual = residual; }
     //! Calculate the average residuals
-    const double CalculateAverageResidual();
+    double CalculateAverageResidual();
     //! Calculate and set the average residuals
-    void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); };
+    void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); }
     // @}
 
     //! Set the offset
-    void SetOffset(const double offset) { fOffset = offset; };
+    void SetOffset(const double offset) { fOffset = offset; }
     //! Get the offset
-    const double GetOffset() const { return fOffset; };
+    double GetOffset() const { return fOffset; }
     //! Set the slope
-    void SetSlope(const double slope) { fSlope = slope; };
+    void SetSlope(const double slope) { fSlope = slope; }
     //! Get the slope
-    const double GetSlope() const { return fSlope; };
+    double GetSlope() const { return fSlope; }
     //! Set the chi^2
-    void SetChi(const double chi) { fChi = chi; };
+    void SetChi(const double chi) { fChi = chi; }
     //! Get the chi^2
-    const double GetChi() const { return fChi; };
+    double GetChi() const { return fChi; }
     //! Set the covariance
-    void SetCov(const double* cov) { fCov[0] = cov[0]; fCov[1] = cov[1]; fCov[2] = cov[2]; };
+    void SetCov(const double* cov) { fCov[0] = cov[0]; fCov[1] = cov[1]; fCov[2] = cov[2]; }
     //! Get the covariance
-    const double* GetCov() const { return fCov; };
+    const double* GetCov() const { return fCov; }
     /// newly added
     void SetMatchingPattern(std::vector<int>& box);
     /// calculate the upper and lower bound of the drift distance give the row number

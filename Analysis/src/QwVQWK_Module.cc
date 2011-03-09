@@ -20,7 +20,7 @@ void QwVQWK_Module::SetChannel(size_t channel, TString &name)
     if(local_debug) std::cout << "VQWK: Set channel" << channel << " to " << name << std::endl;
     fChannels.at(channel).InitializeChannel(name,"raw");
   }
-};
+}
 
 Int_t QwVQWK_Module::ProcessConfigBuffer(UInt_t* buffer, UInt_t num_words_left)
 {
@@ -53,7 +53,7 @@ Int_t QwVQWK_Module::ProcessConfigBuffer(UInt_t* buffer, UInt_t num_words_left)
     words_read = 32;
   }
   return words_read;
-};
+}
 
 void QwVQWK_Module::ClearEventData()
 {
@@ -61,7 +61,7 @@ void QwVQWK_Module::ClearEventData()
     fChannels.at(i).ClearEventData();
   }
   fEventIsGood = kTRUE;
-};
+}
 
 void QwVQWK_Module::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
@@ -69,7 +69,7 @@ void QwVQWK_Module::SetRandomEventParameters(Double_t mean, Double_t sigma)
   for (size_t i = 0; i < fChannels.size(); i++)
     fChannels.at(i).SetRandomEventParameters(mean, sigma);
   return;
-};
+}
 
 void QwVQWK_Module::SetRandomEventAsymmetry(Double_t asymmetry)
 {
@@ -77,7 +77,7 @@ void QwVQWK_Module::SetRandomEventAsymmetry(Double_t asymmetry)
   for (size_t i = 0; i < fChannels.size(); i++)
     fChannels.at(i).SetRandomEventAsymmetry(asymmetry);
   return;
-};
+}
 
 void QwVQWK_Module::RandomizeEventData(int helicity)
 {
@@ -95,7 +95,7 @@ void QwVQWK_Module::SetEventData(Double_t* buffer, UInt_t sequencenumber)
     fChannels.at(i).SetEventData(buffer,sequencenumber);
   }
   fEventIsGood = kTRUE;
-};
+}
 
 //jpan: encode data for each channel
 void QwVQWK_Module::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -103,7 +103,7 @@ void QwVQWK_Module::EncodeEventData(std::vector<UInt_t> &buffer)
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).EncodeEventData(buffer);
   }
-};
+}
 
 Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
 {
@@ -127,14 +127,14 @@ Int_t QwVQWK_Module::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left)
 	      << std::endl;
   }
   return words_read;
-};
+}
 
 void  QwVQWK_Module::ProcessEvent()
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).ProcessEvent();
   }
-};
+}
 
 void  QwVQWK_Module::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
@@ -144,34 +144,35 @@ void  QwVQWK_Module::ConstructHistograms(TDirectory *folder, TString &prefix)
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).ConstructHistograms(folder, prefix);
   }
-};
+}
 
 void  QwVQWK_Module::FillHistograms()
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).FillHistograms();
   }
-};
+}
 
 void  QwVQWK_Module::DeleteHistograms()
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).DeleteHistograms();
-  }};
+  }
+}
 
 void  QwVQWK_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).ConstructBranchAndVector(tree, prefix, values);
   }
-};
+}
 
 void  QwVQWK_Module::FillTreeVector(std::vector<Double_t> &values) const
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).FillTreeVector(values);
   }
-};
+}
 
 QwVQWK_Channel* QwVQWK_Module::GetChannel(const TString name)
 {
@@ -184,7 +185,7 @@ QwVQWK_Channel* QwVQWK_Module::GetChannel(const TString name)
     }
   }
   return tmp;
-};
+}
 
 
 QwVQWK_Module& QwVQWK_Module::operator= (const QwVQWK_Module &value)
@@ -194,7 +195,7 @@ QwVQWK_Module& QwVQWK_Module::operator= (const QwVQWK_Module &value)
   }
   fEventIsGood = value.fEventIsGood;
   return *this;
-};
+}
 
 QwVQWK_Module& QwVQWK_Module::operator+= (const QwVQWK_Module &value)
 {
@@ -206,7 +207,7 @@ QwVQWK_Module& QwVQWK_Module::operator+= (const QwVQWK_Module &value)
 
 
   return *this;
-};
+}
 
 QwVQWK_Module& QwVQWK_Module::operator-= (const QwVQWK_Module &value)
 {
@@ -215,19 +216,19 @@ QwVQWK_Module& QwVQWK_Module::operator-= (const QwVQWK_Module &value)
   }
   fEventIsGood = value.fEventIsGood;
   return *this;
-};
+}
 
 void QwVQWK_Module::Sum(QwVQWK_Module &value1, QwVQWK_Module &value2)
 {
   *this =  value1;
   *this += value2;
-};
+}
 
 void QwVQWK_Module::Difference(QwVQWK_Module &value1, QwVQWK_Module &value2)
 {
   *this =  value1;
   *this -= value2;
-};
+}
 
 void QwVQWK_Module::Ratio(QwVQWK_Module &numer, QwVQWK_Module &denom)
 {
@@ -235,21 +236,21 @@ void QwVQWK_Module::Ratio(QwVQWK_Module &numer, QwVQWK_Module &denom)
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).Ratio(numer.fChannels.at(i), denom.fChannels.at(i));
   }
-};
+}
 
 void QwVQWK_Module::SetPedestal(Double_t pedestal)
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).SetPedestal(pedestal);
   }
-};
+}
 
 void QwVQWK_Module::SetCalibrationFactor(Double_t factor)
 {
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).SetCalibrationFactor(factor);
   }
-};
+}
 
 
 void QwVQWK_Module::InitializeChannel(TString name, TString datatosave)
@@ -257,7 +258,7 @@ void QwVQWK_Module::InitializeChannel(TString name, TString datatosave)
   for (size_t i=0; i<fChannels.size(); i++){
     fChannels.at(i).InitializeChannel(name,datatosave);
   }
-};
+}
 
 void QwVQWK_Module::Copy(QwVQWK_Module *source)
 {
@@ -275,21 +276,21 @@ void QwVQWK_Module::Copy(QwVQWK_Module *source)
   catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-};
+}
 
 void  QwVQWK_Module::PrintValue() const
 {
   for (size_t i = 0; i < fChannels.size(); i++) {
     fChannels.at(i).PrintValue();
   }
-};
+}
 
 void  QwVQWK_Module::PrintInfo() const
 {
   for (size_t i = 0; i < fChannels.size(); i++) {
     fChannels.at(i).PrintInfo();
   }
-};
+}
 
 
 

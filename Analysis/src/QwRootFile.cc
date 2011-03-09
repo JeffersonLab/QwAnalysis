@@ -22,10 +22,10 @@ QwRootFile::QwRootFile(const TString& run_label)
     // // get hostname and user name
     // char host_string[127];
     // char user_string[127];
-    
+
     // gethostname(host_string, 127);
     // getlogin_r (user_string, 127);
-    
+
     // TString host_name = host_string;
     // TString user_name = user_string;
     TString mapfilename = "/dev/shm/";
@@ -38,7 +38,7 @@ QwRootFile::QwRootFile(const TString& run_label)
     // }
 
     mapfilename += "/QwMemMapFile.map";
- 
+
     fMapFile = TMapFile::Create(mapfilename,"RECREATE", kMaxMapFileSize, "RealTime Producer File");
 
     if (not fMapFile) {
@@ -79,7 +79,7 @@ QwRootFile::QwRootFile(const TString& run_label)
           gQwOptions.GetArgv(),
           run_condition_name
       );
-	
+
       fRootFile -> WriteObject(
           run_condition.Get(),
           run_condition.GetName()
@@ -88,7 +88,7 @@ QwRootFile::QwRootFile(const TString& run_label)
 
     fRootFile->SetCompressionLevel(fCompressionLevel);
   }
-};
+}
 
 
 /**
@@ -203,7 +203,7 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   // helicity window and helicity pattern output
   if (options.GetValue<bool>("disable-mps"))  DisableTree("Mps_Tree");
   if (options.GetValue<bool>("disable-hel"))  DisableTree("Hel_Tree");
-  if (options.GetValue<bool>("disable-slow"))  DisableTree("Slow_Tree");
+  if (options.GetValue<bool>("disable-slow")) DisableTree("Slow_Tree");
 
   // Options 'num-accepted-events' and 'num-discarded-events' for
   // prescaling of the tree output
@@ -229,6 +229,6 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   }
   fAutoSave  = options.GetValue<int>("autosave");
   return;
-};
+}
 
 

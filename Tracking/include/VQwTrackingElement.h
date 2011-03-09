@@ -51,27 +51,27 @@ class VQwTrackingElement: public TObject {
     void SetDetectorInfo(QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
 
     /// \brief Get the region
-    const EQwRegionID GetRegion() const { return fRegion; };
+    EQwRegionID GetRegion() const { return fRegion; };
     /// \brief Set the region
     void SetRegion(EQwRegionID region) { fRegion = region; };
 
     /// \brief Get the package
-    const EQwDetectorPackage GetPackage() const { return fPackage; };
+    EQwDetectorPackage GetPackage() const { return fPackage; };
     /// \brief Set the package
     void SetPackage(EQwDetectorPackage package) { fPackage = package; };
 
     /// \brief Get the direction
-    const EQwDirectionID GetDirection() const { return fDirection; };
+    EQwDirectionID GetDirection() const { return fDirection; };
     /// \brief Set the direction
     void SetDirection(EQwDirectionID direction) { fDirection = direction; };
 
     /// \brief Get the plane number
-    const int GetPlane() const { return fPlane; };
+    int GetPlane() const { return fPlane; };
     /// \brief Set the plane number
     void SetPlane(int plane) { fPlane = plane; };
 
     /// \brief Get the element number
-    const int GetElement() const { return fElement; };
+    int GetElement() const { return fElement; };
     /// \brief Set the element number
     void SetElement(int element) { fElement = element; };
 

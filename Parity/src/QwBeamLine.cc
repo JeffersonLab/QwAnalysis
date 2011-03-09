@@ -1,4 +1,3 @@
-
 /**********************************************************\
 * File: QwBeamLine.C                                      *
 *                                                         *
@@ -22,7 +21,7 @@ QwSubsystemFactory<QwBeamLine> theBeamLineFactory("QwBeamLine");
 //*****************************************************************
 void QwBeamLine::ProcessOptions(QwOptions &options){
       //Handle command line options
-};
+}
 
 //*****************************************************************
 Int_t QwBeamLine::LoadChannelMap(TString mapfile)
@@ -467,7 +466,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   ldebug=kFALSE;
 
   return 0;
-};
+}
 
   //*****************************************************************
 QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t offset,
@@ -477,7 +476,7 @@ QwBeamDetectorID::QwBeamDetectorID(Int_t subbankid, Int_t offset,
   fmoduletype(modtype),fdetectorname(name),fdetectortype(dettype)
 {
   fTypeID = GetQwBeamInstrumentType(dettype);
-};
+}
 
 
 //*****************************************************************
@@ -658,7 +657,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   fQwBeamLineErrorCount=0; //set the error counter to zero
 
   return 0;
-};
+}
 
 
 //*****************************************************************
@@ -842,7 +841,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   ldebug=kFALSE;
   return 0;
 
-};
+}
 
 
 //*****************************************************************
@@ -996,7 +995,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 
   ldebug=kFALSE;
   return 0;
-};
+}
 
 
 //*****************************************************************
@@ -1016,7 +1015,7 @@ void QwBeamLine::RandomizeEventData(int helicity, double time)
   // Randomize all QwHaloMonitor buffers
   //for (size_t i = 0; i < fHaloMonitor.size(); i++)
     //fHaloMonitor[i].RandomizeEventData(helicity, time);
-};
+}
 
 
 //*****************************************************************
@@ -1058,7 +1057,7 @@ void QwBeamLine::EncodeEventData(std::vector<UInt_t> &buffer)
     buffer.insert(buffer.end(), subbankheader.begin(), subbankheader.end());
     buffer.insert(buffer.end(), elements.begin(), elements.end());
   }
-};
+}
 
 
 //*****************************************************************
@@ -1169,7 +1168,7 @@ Int_t QwBeamLine::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UIn
   }
 
   return 0;
-};
+}
 
 
 
@@ -1241,7 +1240,7 @@ Bool_t QwBeamLine::ApplySingleEventCuts(){
 
   return status;
 
-};
+}
 
 
 //*****************************************************************
@@ -1286,7 +1285,7 @@ Int_t QwBeamLine::GetEventcutErrorCounters(){//inherited from the VQwSubsystemPa
   }
   QwVQWK_Channel::PrintErrorCounterTail();
   return 1;
-};
+}
 
 //*****************************************************************
 UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
@@ -1336,7 +1335,7 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   
   return ErrorFlag;
 
-};
+}
 
 
 //*****************************************************************
@@ -1370,7 +1369,7 @@ void  QwBeamLine::ProcessEvent()
     fECalculator[i].ProcessEvent();
 
   return;
-};
+}
 
 
 //*****************************************************************
@@ -1378,7 +1377,7 @@ Int_t QwBeamLine::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t b
 {
 
   return 0;
-};
+}
 
 //*****************************************************************
 Bool_t QwBeamLine::PublishInternalValues() const
@@ -1440,7 +1439,7 @@ Bool_t QwBeamLine::PublishInternalValues() const
   }
   
   return status;
-};
+}
 
 //*****************************************************************
 void QwBeamLine::ClearEventData()
@@ -1465,7 +1464,7 @@ void QwBeamLine::ClearEventData()
   for(size_t i=0;i<fECalculator.size();i++)
     fECalculator[i].ClearEventData();
   return;
-};
+}
 
 //*****************************************************************
 Int_t QwBeamLine::GetDetectorIndex( EQwBeamInstrumentType type_id, TString name)
@@ -1492,7 +1491,7 @@ Int_t QwBeamLine::GetDetectorIndex( EQwBeamInstrumentType type_id, TString name)
     }
 
   return result;
-};
+}
 
 //*****************************************************************
 QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name)
@@ -1505,7 +1504,7 @@ QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name)
     }
   }
   return 0;
-};
+}
 
 //*****************************************************************
 
@@ -1519,7 +1518,7 @@ QwBPMCavity* QwBeamLine::GetBPMCavity(const TString name)
     }
   }
   return 0;
-};
+}
 
 
 //*****************************************************************
@@ -1538,7 +1537,7 @@ QwBCM* QwBeamLine::GetBCM(const TString name)
     return 0;
   }
   return 0;
-};
+}
 
 
 //*****************************************************************
@@ -1556,7 +1555,7 @@ QwCombinedBCM* QwBeamLine::GetCombinedBCM(const TString name)
 
   }
   return 0;
-};
+}
 
 //*****************************************************************
 QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name)
@@ -1573,7 +1572,7 @@ QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name)
 
   }
   return 0;
-};
+}
 
 //*****************************************************************
 QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name){
@@ -1588,40 +1587,40 @@ QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name){
 
   }
   return 0;
-};
+}
 
 //*****************************************************************
 const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
-};
+}
 
 //*****************************************************************
 const QwBPMCavity* QwBeamLine::GetBPMCavity(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBPMCavity(name);
-};
+}
 
 //*****************************************************************
 const QwBCM* QwBeamLine::GetBCM(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBCM(name);
-};
+}
 
 //*****************************************************************
 const QwCombinedBCM* QwBeamLine::GetCombinedBCM(const TString name) const{
   return const_cast<QwBeamLine*>(this)->GetCombinedBCM(name);
-};
+}
 
 //*****************************************************************
 const QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name) const{
   return const_cast<QwBeamLine*>(this)->GetCombinedBPM(name);
-};
+}
 
 //*****************************************************************
 const QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name) const{
   return const_cast<QwBeamLine*>(this)->GetEnergyCalculator(name);
-};
+}
 
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
@@ -1663,7 +1662,7 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
 
     }
   return *this;
-};
+}
 
 
 //*****************************************************************
@@ -1705,7 +1704,7 @@ VQwSubsystem&  QwBeamLine::operator+=  (VQwSubsystem *value)
 
     }
   return *this;
-};
+}
 
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator-=  (VQwSubsystem *value)
@@ -1746,7 +1745,7 @@ VQwSubsystem&  QwBeamLine::operator-=  (VQwSubsystem *value)
 
     }
   return *this;
-};
+}
 
 
 //*****************************************************************
@@ -1757,7 +1756,7 @@ void  QwBeamLine::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
       *this =  value1;
       *this += value2;
     }
-};
+}
 
 
 //*****************************************************************
@@ -1768,7 +1767,7 @@ void  QwBeamLine::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
       *this =  value1;
       *this -= value2;
     }
-};
+}
 
 
 //*****************************************************************
@@ -1804,7 +1803,7 @@ void QwBeamLine::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
       // option.
     }
   return;
-};
+}
 
 //*****************************************************************
 void QwBeamLine::Scale(Double_t factor)
@@ -1819,7 +1818,7 @@ void QwBeamLine::Scale(Double_t factor)
   for(size_t i=0;i<fBPMCombo.size();i++)    fBPMCombo[i].Scale(factor);
   for(size_t i=0;i<fECalculator.size();i++) fECalculator[i].Scale(factor);
   return;
-};
+}
 
 //*****************************************************************
 void QwBeamLine::CalculateRunningAverage()
@@ -1833,7 +1832,7 @@ void QwBeamLine::CalculateRunningAverage()
   for (size_t i = 0; i < fBCMCombo.size();     i++) fBCMCombo[i].CalculateRunningAverage();
   for (size_t i = 0; i < fBPMCombo.size();     i++) fBPMCombo[i].CalculateRunningAverage();
   for (size_t i = 0; i < fECalculator.size();  i++) fECalculator[i].CalculateRunningAverage();
-};
+}
 
 //*****************************************************************
 void QwBeamLine::PrintValue() const
@@ -1858,7 +1857,7 @@ void QwBeamLine::PrintValue() const
   QwMessage << "Energy " << QwLog::endl;
   for (size_t i = 0; i < fECalculator.size();  i++) fECalculator[i].PrintValue();
 
-};
+}
 
 //*****************************************************************
 void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
@@ -1881,7 +1880,7 @@ void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
     for (size_t i = 0; i < fQPD.size();  i++)
       fQPD[i].AccumulateRunningSum(value->fQPD[i]);
   }
-};
+}
 
 //*****************************************************************
 Bool_t QwBeamLine::Compare(VQwSubsystem *value)
@@ -1916,7 +1915,7 @@ Bool_t QwBeamLine::Compare(VQwSubsystem *value)
 	  }
     }
   return res;
-};
+}
 
 
 //*****************************************************************
@@ -1951,7 +1950,7 @@ void  QwBeamLine::ConstructHistograms(TDirectory *folder, TString &prefix)
   for(size_t i=0;i<fECalculator.size();i++)
       fECalculator[i].ConstructHistograms(folder,prefix);
   return;
-};
+}
 
 //*****************************************************************
 void  QwBeamLine::DeleteHistograms()
@@ -1983,7 +1982,7 @@ void  QwBeamLine::DeleteHistograms()
   for(size_t i=0;i<fECalculator.size();i++)
     fECalculator[i].DeleteHistograms();
   return;
-};
+}
 
 //*****************************************************************
 void  QwBeamLine::FillHistograms()
@@ -2008,7 +2007,7 @@ void  QwBeamLine::FillHistograms()
     fECalculator[i].FillHistograms();
 
   return;
-};
+}
 
 
 //*****************************************************************
@@ -2035,7 +2034,7 @@ void QwBeamLine::ConstructBranchAndVector(TTree *tree, TString & prefix, std::ve
     fECalculator[i].ConstructBranchAndVector(tree, prefix, values);
 
   return;
-};
+}
 
 //*****************************************************************
 void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix)
@@ -2061,7 +2060,7 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix)
 
 
   return;
-};
+}
 
 //*****************************************************************
 void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile& trim_file)
@@ -2150,7 +2149,7 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile&
   }
 
   return;
-};
+}
 
 //*****************************************************************
 void QwBeamLine::FillTreeVector(std::vector<Double_t> &values) const
@@ -2174,7 +2173,7 @@ void QwBeamLine::FillTreeVector(std::vector<Double_t> &values) const
   for(size_t i = 0; i < fECalculator.size(); i++){
     fECalculator[i].FillTreeVector(values);}
   return;
-};
+}
 
 
 //*****************************************************************
@@ -2196,7 +2195,7 @@ void  QwBeamLine::PrintInfo() const
   for(size_t i=0;i<fHaloMonitor.size();i++)
     fHaloMonitor[i].PrintInfo();
   return;
-};
+}
 
 
 //*****************************************************************
@@ -2209,7 +2208,7 @@ void  QwBeamLine::PrintDetectorID() const
       fBeamDetectorID[i].Print();
     }
   return;
-};
+}
 
 //*****************************************************************
 void  QwBeamDetectorID::Print() const
@@ -2229,7 +2228,7 @@ void  QwBeamDetectorID::Print() const
 
 
   return;
-};
+}
 
 
 //*****************************************************************
@@ -2310,7 +2309,7 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 
 
   return;
-};
+}
 
 //*****************************************************************
 VQwSubsystem*  QwBeamLine::Copy()
@@ -2319,7 +2318,7 @@ VQwSubsystem*  QwBeamLine::Copy()
   QwBeamLine* TheCopy=new QwBeamLine("Injector Beamline Copy");
   TheCopy->Copy(this);
   return TheCopy;
-};
+}
 
 
 
@@ -2549,4 +2548,4 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   db->Disconnect();
 
   return;
-};
+}

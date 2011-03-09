@@ -8,7 +8,7 @@
  */
 
 #include "QwTrackingTreeLine.h"
-ClassImp(QwTrackingTreeLine);
+ClassImp(QwTrackingTreeLine)
 
 // System headers
 #include <cmath>
@@ -156,7 +156,7 @@ void QwTrackingTreeLine::ClearHits()
 {
   fQwHits.clear();
   fNQwHits = 0;
-};
+}
 
 // Delete the hits in the list
 void QwTrackingTreeLine::DeleteHits()
@@ -164,14 +164,14 @@ void QwTrackingTreeLine::DeleteHits()
   for (size_t i = 0; i < fQwHits.size(); i++)
     delete fQwHits.at(i);
   ClearHits();
-};
+}
 
 // Add a single hit
 void QwTrackingTreeLine::AddHit(const QwHit* hit)
 {
   if (hit) fQwHits.push_back(new QwHit(hit));
   fNQwHits++;
-};
+}
 
 // Add a list of hits
 void QwTrackingTreeLine::AddHitList(const std::vector<QwHit*> &hitlist)
@@ -256,7 +256,7 @@ QwHit* QwTrackingTreeLine::GetBestWireHit (double offset)
  * Calculate average residual of this partial track over all treelines
  * @return Average residual
  */
-const double QwTrackingTreeLine::CalculateAverageResidual()
+double QwTrackingTreeLine::CalculateAverageResidual()
 {
   int numHits = 0;
   double sumResiduals = 0.0;
@@ -280,7 +280,7 @@ const double QwTrackingTreeLine::CalculateAverageResidual()
 /**
  * Print the tree line in a linked list
  */
-void QwTrackingTreeLine::Print() {
+void QwTrackingTreeLine::Print(const Option_t* options) const {
   if (!this) return;
   std::cout << *this << std::endl;
   next->Print();
@@ -328,14 +328,14 @@ std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl) {
   }
   if (tl.IsVoid()) stream << " (void)";
   return stream;
-};
+}
 
 void QwTrackingTreeLine::SetMatchingPattern(std::vector<int>& box)
 {
 	std::vector<int>::iterator iter = box.begin();
 	while (iter != box.end())
 		MatchingPattern.push_back(*iter++);
-};
+}
 
 std::pair<double,double> QwTrackingTreeLine::CalculateDistance(int row,double width,unsigned int bins,double resolution)
 {

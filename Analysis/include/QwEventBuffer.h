@@ -105,7 +105,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t CloseETStream();
 
   Bool_t IsPhysicsEvent() {
-    return ((fIDBankNum == 0xCC) && (fEvtType>=0 && fEvtType<=15));
+    // fEvtType is an unsigned integer, hence always positive
+    return ((fIDBankNum == 0xCC) && ( /* fEvtType >= 0 && */ fEvtType <= 15));
   };
 
   Int_t GetEventNumber() { return fEvtNumber; };
@@ -302,7 +303,7 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
     }
   }
   return okay;
-};
+}
 
 
 

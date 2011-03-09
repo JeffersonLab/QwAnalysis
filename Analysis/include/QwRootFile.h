@@ -306,8 +306,7 @@ class QwRootFile {
       if (! HasDirByType(detectors)) return;
       // Fill histograms
       detectors.FillHistograms();
-
-    };
+    }
     /// Delete histograms of the subsystem array
     template < class T >
     void DeleteHistograms(T& detectors) {

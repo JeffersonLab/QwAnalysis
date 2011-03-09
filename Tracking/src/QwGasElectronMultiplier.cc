@@ -19,7 +19,7 @@ QwSubsystemFactory<QwGasElectronMultiplier>
 QwGasElectronMultiplier::QwGasElectronMultiplier(TString region_tmp):VQwSubsystem(region_tmp),
 								     VQwSubsystemTracking(region_tmp){
   ClearAllBankRegistrations();
-};
+}
 
 QwGasElectronMultiplier::~QwGasElectronMultiplier()
 {
@@ -56,12 +56,12 @@ Int_t QwGasElectronMultiplier::LoadChannelMap(TString mapfile ){
   std::cout<<"Region 1 GEM Map loaded "<<std::endl;
   return 0;
 
-};
+}
 
 Int_t QwGasElectronMultiplier::LoadInputParameters(TString mapfile)
 {
   return 0;
-};
+}
 
 Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
 {
@@ -154,7 +154,7 @@ Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
   std::cout<<"Qweak Region 1 GEM Geometry Loaded "<<std::endl;
 
   return 0;
-};
+}
 
 void  QwGasElectronMultiplier::ClearEventData()
 {
@@ -165,13 +165,13 @@ void  QwGasElectronMultiplier::ClearEventData()
   */
   fGEMHits.clear();
   return;
-};
+}
 
 Int_t QwGasElectronMultiplier::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
 
   return 0;
-};
+}
 
 Int_t QwGasElectronMultiplier::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
@@ -210,7 +210,7 @@ Int_t QwGasElectronMultiplier::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
   }
 
   return 0;
-};
+}
 
 void QwGasElectronMultiplier::FillVFATWord(Int_t VFAT_index)
 {
@@ -292,7 +292,7 @@ void QwGasElectronMultiplier::FillVFATWord(Int_t VFAT_index)
   }
 
   return;
-};
+}
 
 void QwGasElectronMultiplier::GetBC(Int_t bean_count[], Int_t VFAT_index)
 {//return the VFAT Bean Count
@@ -300,14 +300,14 @@ void QwGasElectronMultiplier::GetBC(Int_t bean_count[], Int_t VFAT_index)
   for(Short_t i=4;i<16;i++)  bean_count[i-4]=fBuffer_VFAT[VFAT_index][i];
   return;
 
-};
+}
 void QwGasElectronMultiplier::GetEC(Int_t error_check[], Int_t VFAT_index)
 {//return the VFAT Event Count
 
   for(Short_t i=20;i<28;i++) error_check[i-20]=fBuffer_VFAT[VFAT_index][i];
   return;
 
-};
+}
 
 void QwGasElectronMultiplier::GetFlags(Int_t flags[], Int_t VFAT_index)
 {//return the VFAT Flags
@@ -315,7 +315,7 @@ void QwGasElectronMultiplier::GetFlags(Int_t flags[], Int_t VFAT_index)
   for(Short_t i=28;i<32;i++) flags[i-28]=fBuffer_VFAT[VFAT_index][i];
   return;
 
-};
+}
 
 void QwGasElectronMultiplier::GetChipId(Int_t chip_id[], Int_t VFAT_index)
 {//return the VFAT ID
@@ -323,7 +323,7 @@ void QwGasElectronMultiplier::GetChipId(Int_t chip_id[], Int_t VFAT_index)
   for(Short_t i=36;i<48;i++) chip_id[i-36]=fBuffer_VFAT[VFAT_index][i];
   return;
 
-};
+}
 void QwGasElectronMultiplier::GetChannelData(Int_t channel_data[], Int_t VFAT_index)
 {//return the VFAT Channel Data
 
@@ -337,7 +337,7 @@ void QwGasElectronMultiplier::GetChannelData(Int_t channel_data[], Int_t VFAT_in
     }
   }
   return;
-};
+}
 
 void QwGasElectronMultiplier::AddHit(Int_t VFAT_index, Int_t channel)
 {//Add a new hit to the fGEMHits
@@ -400,7 +400,7 @@ void QwGasElectronMultiplier::AddHit(Int_t VFAT_index, Int_t channel)
 
   return;
 
-};
+}
 
 
 void  QwGasElectronMultiplier::ProcessEvent()
@@ -426,11 +426,11 @@ void  QwGasElectronMultiplier::ProcessEvent()
     }
   }
   return;
-};
+}
 
 void  QwGasElectronMultiplier::FillListOfHits(QwHitContainer& hitlist)
 {
-};
+}
 
 void  QwGasElectronMultiplier::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
@@ -469,7 +469,7 @@ void  QwGasElectronMultiplier::ConstructHistograms(TDirectory *folder, TString &
 		      GEM_TRANSVERSESTRIPS, 0, GEM_TRANSVERSESTRIPS,
 		      GEM_RADIALSTRIPS,     0, GEM_RADIALSTRIPS);//2D plot with x is transverse; y is radial
   }
-};
+}
 
 
 
@@ -523,7 +523,7 @@ void  QwGasElectronMultiplier::FillHistograms()
     }
   */
 
-};
+}
 
 
 void  QwGasElectronMultiplier::DeleteHistograms()
@@ -580,7 +580,7 @@ void  QwGasElectronMultiplier::DeleteHistograms()
   }
   */
 
-};
+}
 
 
 /*
