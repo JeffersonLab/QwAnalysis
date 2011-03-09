@@ -10,10 +10,10 @@
 
 #PITA starting setpoints when IHWP is flipped from the IN-OUT in 8:18am 02/23/2011
 # Runs checked OUT - 10207 IN - 10198 - Rakitha 02/23/2011
-PC_pos_t0_IN  = 43570
-PC_neg_t0_IN  = 40650
-PC_pos_t0_OUT = 42970
-PC_neg_t0_OUT = 41230
+PC_pos_t0_IN=43570
+PC_neg_t0_IN=40650
+PC_pos_t0_OUT=42970
+PC_neg_t0_OUT=41230
 PC_pos_current="`caget -t C1068_QDAC01`"
 PC_neg_current="`caget -t C1068_QDAC02`"
 
@@ -27,7 +27,7 @@ if [ "$IHWP_State" == "OUT " ];then
 	echo "Norminal PC_pos = $PC_pos_t0_OUT"
 	echo "Current PC_pos = $PC_pos_current"
 	echo "Norminal PC_neg = $PC_neg_t0_OUT"
-	echo "Current PC_pos = $PC_neg_current"
+	echo "Current PC_neg = $PC_neg_current"
 	echo "Setting norminal values"
 	caput C1068_QDAC01 $PC_pos_t0_OUT
 	caput C1068_QDAC02 $PC_neg_t0_OUT
@@ -36,7 +36,7 @@ else
 	echo "Norminal PC_pos = $PC_pos_t0_IN"
 	echo "Current PC_pos = $PC_pos_current"
 	echo "Norminal PC_neg = $PC_neg_t0_IN"
-	echo "Current PC_pos = $PC_neg_current"
+	echo "Current PC_neg = $PC_neg_current"
 	echo "Setting norminal values"
 	caput C1068_QDAC01 $PC_pos_t0_IN
 	caput C1068_QDAC02 $PC_neg_t0_IN
