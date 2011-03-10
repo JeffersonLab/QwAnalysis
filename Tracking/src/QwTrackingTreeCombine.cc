@@ -502,7 +502,6 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
 	// Initialize the matrices and vectors
 	for ( int i = 0; i < n; i++ )
 		A[i][0] = -1.0;
-
 	//###########
 	// Set Hits #
 	//###########
@@ -531,7 +530,6 @@ void QwTrackingTreeCombine::weight_lsq_r3 (
 			sum += ( A[i][k] ) * G[i][i] * y[i];
 		AtGy[k] = sum;
 	}
-
 	// Calculate the left hand side: A^T * G * A
 	for ( int j = 0; j < 2; j++ )
 	{
@@ -1650,11 +1648,14 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	// TASK: transfer partial track in u/v to xy(local coordination)
 	double perp;
 	// NOTE: contains some magic number from geometry file
-	double uvshift=2.5424;
+	// Hard coded values to be updated
+	double uvshift=2.54;
+	
 	if(hits[0]->GetDetectorInfo()->fPackage==kPackageUp)
-		perp=39.2037;
+	  	perp=39.3679;
 	else
-		perp=39.3509;
+	  	perp=39.2835;
+	  
 	double ufront=-parameter[0]/parameter[1];
 	double uback=ufront+perp/parameter[1];
 
