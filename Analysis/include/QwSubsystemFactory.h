@@ -192,7 +192,7 @@ class MQwCloneable: virtual public VQwCloneable {
 
 // Macro to create and register the subsystem factory of type A
 // Note: a call to this macro should be followed by a semi-colon.
-#define RegisterSubsystemFactory(A) template<> const VQwSubsystemFactory* A::MQwCloneable<A>::fFactory = new QwSubsystemFactory<A>(#A)
+#define RegisterSubsystemFactory(A) template<> const VQwSubsystemFactory* MQwCloneable<A>::fFactory = new QwSubsystemFactory<A>(#A)
 
 
 #endif // __QWSUBSYSTEMFACTORY__
