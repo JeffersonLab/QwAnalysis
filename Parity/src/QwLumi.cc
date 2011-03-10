@@ -16,7 +16,7 @@
 #include "QwDatabase.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwLumi> theLumiFactory("QwLumi");
+RegisterSubsystemFactory(QwLumi);
 
 void QwLumi::DefineOptions(QwOptions &options)
 {

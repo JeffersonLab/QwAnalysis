@@ -30,7 +30,7 @@ class QwHitContainer;
 
 ///
 /// \ingroup QwTracking
-class QwGasElectronMultiplier: public VQwSubsystemTracking{
+class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwCloneable<QwGasElectronMultiplier> {
   /******************************************************************
    *  Class: QwGasElectronMultiplier
    *

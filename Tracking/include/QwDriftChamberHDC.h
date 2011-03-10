@@ -12,7 +12,7 @@
 #include "QwDriftChamber.h"
 ///
 /// \ingroup QwTracking
-class QwDriftChamberHDC: public QwDriftChamber {
+class QwDriftChamberHDC: public QwDriftChamber, public MQwCloneable<QwDriftChamberHDC> {
   /******************************************************************
    *  Class: QwDriftChamberHDC
    *

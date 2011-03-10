@@ -16,7 +16,7 @@
 #include "QwParameterFile.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwBeamMod> theBeamModFactory("QwBeamMod");
+RegisterSubsystemFactory(QwBeamMod);
 
 
 //*****************************************************************

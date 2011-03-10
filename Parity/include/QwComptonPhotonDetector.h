@@ -30,7 +30,7 @@
 #include "QwPMT_Channel.h"
 #include "MQwV775TDC.h"
 
-class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
+class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, public MQwCloneable<QwComptonPhotonDetector> {
 
   public:
 

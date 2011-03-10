@@ -16,8 +16,7 @@
 #include "QwDatabase.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwMainCerenkovDetector>
-  theMainCerenkovDetectorFactory("QwMainCerenkovDetector");
+RegisterSubsystemFactory(QwMainCerenkovDetector);
 
 /**
  * Defines configuration options for QwEventBuffer class using QwOptions

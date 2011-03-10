@@ -22,7 +22,7 @@ extern QwHistogramHelper gQwHists;
 //**************************************************//
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwHelicity> theHelicityFactory("QwHelicity");
+RegisterSubsystemFactory(QwHelicity);
 
 
 /// Default helicity bit pattern of 0x69 represents a -++-+--+ octet
@@ -100,7 +100,7 @@ void QwHelicity::ProcessOptions(QwOptions &options)
   if (fMaxPatternPhase > 8 && fHelicityBitPattern == kDefaultHelicityBitPattern) {
     BuildHelicityBitPattern(fMaxPatternPhase);
   }
-};
+}
 
 
 Bool_t QwHelicity::IsContinuous()

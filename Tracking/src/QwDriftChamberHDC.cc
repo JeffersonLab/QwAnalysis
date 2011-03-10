@@ -11,7 +11,7 @@
 #include<boost/bind.hpp>
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwDriftChamberHDC> theDriftChamberHDCFactory("QwDriftChamberHDC");
+RegisterSubsystemFactory(QwDriftChamberHDC);
 
 
 QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp):VQwSubsystem(region_tmp),

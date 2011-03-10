@@ -14,8 +14,7 @@ const UInt_t QwTriggerScintillator::kMaxNumberOfModulesPerROC     = 21;
 
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwTriggerScintillator>
-  theTriggerScintillatorFactory("QwTriggerScintillator");
+RegisterSubsystemFactory(QwTriggerScintillator);
 
 
 QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(region_tmp),

@@ -9,7 +9,8 @@
 
 #include "QwFakeHelicity.h"
 
-QwSubsystemFactory<QwFakeHelicity> theQwFakeHelicityFactory("QwFakeHelicity");
+// Register this subsystem with the factory
+RegisterSubsystemFactory(QwFakeHelicity);
 
 
  Bool_t QwFakeHelicity::IsGoodHelicity()

@@ -10,7 +10,7 @@
 #include "QwScaler_Channel.h"
 
 
-class QwScaler: public VQwSubsystemParity
+class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
 {
 
 	public:

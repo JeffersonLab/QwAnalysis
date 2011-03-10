@@ -16,7 +16,7 @@
 #include "QwDatabase.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwBeamLine> theBeamLineFactory("QwBeamLine");
+RegisterSubsystemFactory(QwBeamLine);
 
 //*****************************************************************
 void QwBeamLine::ProcessOptions(QwOptions &options){

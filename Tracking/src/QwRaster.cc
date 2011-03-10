@@ -16,7 +16,7 @@
 #include "QwHistogramHelper.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwRaster> theRasterFactory("QwRaster");
+RegisterSubsystemFactory(QwRaster);
 
 const Bool_t QwRaster::bStoreRawData = kTRUE;
 const UInt_t QwRaster::kMaxNumberOfModulesPerROC     = 21;

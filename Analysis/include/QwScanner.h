@@ -34,8 +34,8 @@
 #include "QwPMT_Channel.h"
 #include "QwF1TDContainer.h"
 
-class QwScanner: public VQwSubsystemParity,
-      public VQwSubsystemTracking
+class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
+    public MQwCloneable<QwScanner>
   {
 
   public:

@@ -39,8 +39,7 @@ using namespace std;
 
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwComptonElectronDetector>
-  theComptonElectronDetectorFactory("QwComptonElectronDetector");
+RegisterSubsystemFactory(QwComptonElectronDetector);
 
 // Assign static const member fields
 const Int_t QwComptonElectronDetector::NModules = 3;

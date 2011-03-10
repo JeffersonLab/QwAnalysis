@@ -14,7 +14,7 @@
 #include "QwHistogramHelper.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwScanner> theScannerFactory("QwScanner");
+RegisterSubsystemFactory(QwScanner);
 
 const Bool_t QwScanner::bStoreRawData = kTRUE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;

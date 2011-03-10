@@ -60,7 +60,7 @@ class QwMollerChannelID
 
 };
 
-class QwMollerDetector: public VQwSubsystemParity {
+class QwMollerDetector: public VQwSubsystemParity, public MQwCloneable<QwMollerDetector> {
   public:
 
     /// \brief Constructor

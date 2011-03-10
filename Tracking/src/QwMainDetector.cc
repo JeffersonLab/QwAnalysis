@@ -25,7 +25,7 @@ const UInt_t QwMainDetector::kMaxNumberOfModulesPerROC     = 21;
 
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwMainDetector> theMainDetectorFactory("QwMainDetector");
+RegisterSubsystemFactory(QwMainDetector);
 
 QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
     VQwSubsystemTracking(region_tmp)
@@ -1116,6 +1116,4 @@ void  QwMainDetector::ReportConfiguration()
             }
         }
     }
-
 }
-; //ReportConfiguration()

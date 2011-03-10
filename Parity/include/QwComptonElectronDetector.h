@@ -35,7 +35,7 @@
 #include "QwVQWK_Channel.h"
 
 
-class QwComptonElectronDetector: public VQwSubsystemParity {
+class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<QwComptonElectronDetector> {
 
   public:
 

@@ -25,8 +25,7 @@
 
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwComptonPhotonDetector>
-  theComptonPhotonDetectorFactory("QwComptonPhotonDetector");
+RegisterSubsystemFactory(QwComptonPhotonDetector);
 
 
 /**

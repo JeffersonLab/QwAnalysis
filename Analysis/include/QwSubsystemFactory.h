@@ -94,9 +94,7 @@ VQwSubsystemFactory::GetSubsystemFactory(const std::string& type)
     ListRegisteredSubsystems();
     QwWarning << "To register this subsystem, add the following line to the top "
               << "of the source file:" << QwLog::endl;
-    QwWarning << "  template <> const VQwSubsystemFactory*" << QwLog::endl;
-    QwWarning << "  MQwCloneable<" << type << ">::fFactory" << type
-              << "    = new QwSubsystemFactory<" << type << ">(\"" << type << "\");" << QwLog::endl;
+    QwWarning << "  RegisterSubsystemFactor(" << type << ");" << QwLog::endl;
     QwWarning << "Ensure that the dynamic library contains the factory object."
               << QwLog::endl;
     throw QwException_SubsystemUnknown();
@@ -191,6 +189,10 @@ class MQwCloneable: virtual public VQwCloneable {
     static const VQwSubsystemFactory* fFactory;
 
 }; // class MQwCloneable
+
+// Macro to create and register the subsystem factory of type A
+// Note: a call to this macro should be followed by a semi-colon.
+#define RegisterSubsystemFactory(A) template<> const VQwSubsystemFactory* A::MQwCloneable<A>::fFactory = new QwSubsystemFactory<A>(#A)
 
 
 #endif // __QWSUBSYSTEMFACTORY__

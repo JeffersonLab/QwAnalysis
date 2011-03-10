@@ -22,7 +22,7 @@
 #include "QwScaler_Channel.h"
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwMollerDetector> theMollerDetectorFactory("QwMollerDetector");
+RegisterSubsystemFactory(QwMollerDetector);
 
 /**
  * Load the channel map

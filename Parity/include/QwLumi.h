@@ -54,7 +54,7 @@ class QwLumiDetectorID{
 /*****************************************************************
 *  Class:
 ******************************************************************/
-class QwLumi : public VQwSubsystemParity{
+class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   /////  
   friend class QwCombinedPMT;
  public:

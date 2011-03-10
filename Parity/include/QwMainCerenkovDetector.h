@@ -24,7 +24,9 @@ class QwBlinder;
 class QwMainCerenkovDetectorID;
 
 
-class QwMainCerenkovDetector: public VQwSubsystemParity {
+class QwMainCerenkovDetector:
+    public VQwSubsystemParity,
+    public MQwCloneable<QwMainCerenkovDetector> {
 
   friend class QwCombinedPMT;
   /******************************************************************

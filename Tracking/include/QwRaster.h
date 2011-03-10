@@ -1,10 +1,10 @@
 /**********************************************************\
-* File: QwRaster.h                                        *
+* File: QwRaster.h                                         *
 *                                                          *
 * Author: J. Pan                                           *
 * jpan@jlab.org                                            *
 *                                                          *
-* Tue Jun 29 00:16:14 CDT 2010                             *                                                   *
+* Tue Jun 29 00:16:14 CDT 2010                             *
 \**********************************************************/
 
 #ifndef __QWRASTER__
@@ -28,7 +28,7 @@
 // Forward declarations
 class QwDatabase;
 
-class QwRaster: public VQwSubsystemTracking
+class QwRaster: public VQwSubsystemTracking, public MQwCloneable<QwRaster>
 {
 
  public:
