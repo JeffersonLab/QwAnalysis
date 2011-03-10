@@ -1,10 +1,11 @@
 //*****************************************************************************************************//
 // Author : B. Waidyawansa
-// Date   : February 5th, 2011
+// Date   : March 9th, 2011
 //*****************************************************************************************************//
 //
 //
-//  This macro will connect to the qw_fall2010_20101204 data base and get the slug averages and plot
+//  This macro will connect to theqw_linreg_20110125 data base and get the slug averages from the 
+//  regressed data and plot 
 //  them in to three plots for pmt+, pmt- and bar sum, us lumi and ds lumi asymmetries. 
 //   e.g. use
 //   ./slug_averages
@@ -57,18 +58,17 @@ using namespace std;
 #include <TSQLRow.h>
 #include <TSQLStatement.h>
 
-TString directory = "$QW_ROOTFILES";
 
 //  For now instead of the main detector PMTs I will use 8 bpm wires.
 //  Later these should be replaced by the actual ones.
 
 // Left PMTs
-TString quartz_bar_POS[8]=
-  {"qwk_md1pos","qwk_md2pos","qwk_md3pos","qwk_md4pos","qwk_md5pos","qwk_md6pos","qwk_md7pos","qwk_md8pos"};
+// TString quartz_bar_POS[8]=
+//   {"qwk_md1pos","qwk_md2pos","qwk_md3pos","qwk_md4pos","qwk_md5pos","qwk_md6pos","qwk_md7pos","qwk_md8pos"};
 
-// Right PMTs
-TString quartz_bar_NEG[8]=
-  {"qwk_md1neg","qwk_md2neg","qwk_md3neg","qwk_md4neg","qwk_md5neg","qwk_md6neg","qwk_md7neg","qwk_md8neg"};
+// // Right PMTs
+// TString quartz_bar_NEG[8]=
+//   {"qwk_md1neg","qwk_md2neg","qwk_md3neg","qwk_md4neg","qwk_md5neg","qwk_md6neg","qwk_md7neg","qwk_md8neg"};
 
 // barsum
 TString quartz_bar_SUM[8]=
@@ -80,11 +80,10 @@ TString us_lumi[4]=
   {"uslumi1_sum","uslumi3_sum","uslumi5_sum","uslumi7_sum"};
 
 // ds lumi sum
-// TString DS_lumi[8]=
-//   {"qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4","qwk_dslumi5","qwk_dslumi6","qwk_dslumi7","qwk_dslumi8"};
-
 TString DS_lumi[5]=
   {"qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4","qwk_dslumi5"};
+
+//  {"qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4","qwk_dslumi5","qwk_dslumi6","qwk_dslumi7","qwk_dslumi8"};
 
 TSQLServer *db;
 
@@ -150,14 +149,16 @@ int main(Int_t argc,Char_t* argv[])
   std::cin>>opt;
 
 
-  if(opt == 1) target = "HYDROGEN-CELL";
+  if(opt == 1){
+    target = "HYDROGEN-CELL";
+  }
   else if(opt == 2) target = "DS-4%-Aluminum";
   else{
     std::cout<<"Unknown target type!"<<std::endl;
     exit(1);
   }
   
-  std::cout<<"GEtting slug averages of octants in MD PMT-, PMT+, barsum, us lumi and ds lumi"<<std::endl;
+  std::cout<<"Getting slug averages of octants in MD PMT-, PMT+, barsum, us lumi and ds lumi"<<std::endl;
   TApplication theApp("App",&argc,argv);
 
  
@@ -199,7 +200,7 @@ int main(Int_t argc,Char_t* argv[])
   gDirectory->Delete("*");
 
 
-  TString title1 = target+": Slug averages of Main detector asymmetries. FIT = p0*cos(phi + p1) + p2";
+  TString title1 = Form("%s: Slug averages of Lumi asymmetries. FIT = p0*cos(phi + p1) + p2",target.Data());
   TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,800);
   Canvas1->Draw();
 
@@ -217,13 +218,12 @@ int main(Int_t argc,Char_t* argv[])
   t1->Draw();
 
   pad2->cd();
-  pad2->Divide(1,3);
-  pad2->SetFillColor(20);
+  //pad2->SetFillColor(20);
 
 
 
 //connect to the data base
-  db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
+  db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_linreg_20110125","qweak", "QweakQweak");
   if(db)
     printf("Server info: %s\n", db->ServerInfo());
   else
@@ -261,7 +261,7 @@ int main(Int_t argc,Char_t* argv[])
   
   }
 
-  // plot MD asymmetries
+  //plot MD asymmetries
 
 //   pad2->cd(1);
 //   get_octant_data(8, quartz_bar_POS, "MD", target, "out", value1,  err1);
@@ -275,18 +275,17 @@ int main(Int_t argc,Char_t* argv[])
 //   plot_octant(8,"MD NEG",value22,err22,value2,err2);
 //   gPad->Update();
 
-//   pad2->cd(3);
-//   get_octant_data(8,quartz_bar_SUM, "MD", target, "out", value3,  err3);
-//   get_octant_data(8,quartz_bar_SUM, "MD", target, "in",  value33, err33);
-//   plot_octant(8,"MD BAR SUM", value33,err33,value3,err3);
-//   gPad->Update();
+  get_octant_data(8,quartz_bar_SUM, "MD", target, "out", value3,  err3);
+  get_octant_data(8,quartz_bar_SUM, "MD", target, "in",  value33, err33);
+  plot_octant(8,"MD BAR SUM", value33,err33,value3,err3);
+  gPad->Update();
 
 
-//   Canvas1->Update();
-//   Canvas1->Print("md_slug_summary_plots.gif");
+  Canvas1->Update();
+  Canvas1->Print("md_regressed_slug_summary_plots.gif");
 
   // plot LUMI asymmetries
-  TString title2 = target+": Slug averages of Lumi asymmetries. FIT = p0*cos(phi + p1) + p2";
+  TString title2 = Form("%s: Slug averages of Lumi asymmetries. FIT = p0*cos(phi + p1) + p2",target.Data());
   TCanvas * Canvas2 = new TCanvas("canvas2", title2,0,0,1000,800);   
   Canvas2->Draw();
   Canvas2->cd();
@@ -309,7 +308,6 @@ int main(Int_t argc,Char_t* argv[])
   pad22->SetFillColor(20);
 
 
-  //  TGraphErrors * mg1;
 
   pad22->cd(1);
   get_octant_data(4,us_lumi,"LUMI", target,"in", value111,err111);
@@ -325,7 +323,7 @@ int main(Int_t argc,Char_t* argv[])
   gPad->Update();
 
   Canvas2-> Update();
-  Canvas2->Print("lumi_slug_summary_plots.gif");
+  Canvas2->Print("lumi_regressed_slug_summary_plots.gif");
 
 
 
@@ -349,13 +347,16 @@ TString get_query(TString detector, TString measurement, TString target, TString
 
   Bool_t ldebug = kFALSE;
   TString datatable;
+  TString run_cut;
+  TString plate_cut;
 
+ 
   if(detector_type == "MD")
     datatable = "md_data_view";
   if(detector_type == "LUMI")
     datatable = "lumi_data_view";
 
-  TString output = "slow_controls_settings.slow_helicity_plate, target_position, sum("+datatable+".value/(POWER("+datatable+".error,2)*"+datatable+".n))/sum(1/(POWER("+datatable+".error,2)*"+datatable+".n)), 1/SUM(1/(POWER("+datatable+".error,2)*"+datatable+".n))";
+  TString output = " sum("+datatable+".value/(POWER("+datatable+".error,2)*"+datatable+".n))/sum(1/(POWER("+datatable+".error,2)*"+datatable+".n)), 1/SUM(1/(POWER("+datatable+".error,2)*"+datatable+".n))";
 
  
   //TString good_for_cut = "run.run_type ='parity' AND md_data_view.good_for_id = NULL || ((md_data_view.good_for_id = 'parity' || md_data_view.good_for_id = 'production') && md_data_view.good_for_id != 'commissioning'))";
@@ -364,29 +365,42 @@ TString get_query(TString detector, TString measurement, TString target, TString
 
   //  TString good_for_cut = Form("%s.good_for_id = '1,8' OR %s.good_for_id = 8",datatable.Data(),datatable.Data());
   TString good_for_cut = Form("%s.good_for_id = '1,8'",datatable.Data());
-
-
   TString run_quality_cut = Form("%s.run_quality_id = 1",datatable.Data());
+
+  if(target == "HYDROGEN-CELL"){
+    run_cut = "("+datatable+".run_number > 9824 AND "+datatable+".run_number < 9844)";// OR ("+datatable+".run_number > 9863 AND "+datatable+".run_number < 9888)";
+    if(ihwp == "out")
+      plate_cut = "("+datatable+".run_number > 9831 AND "+datatable+".run_number < 9837)";// OR ("+datatable+".run_number > 9853 AND "+datatable+".run_number < 9888)";
+    if(ihwp == "in")
+      plate_cut = "("+datatable+".run_number > 9824 AND "+datatable+".run_number < 9831)";// OR ("+datatable+".run_number > 9837 AND "+datatable+".run_number < 9853)";
+
+  }
+  
+  if(target == "DS-4%-Aluminum"){
+    run_cut = datatable+".run_number > 9847 AND "+datatable+".run_number < 9859 ";
+    if(ihwp == "out")
+      plate_cut = "("+datatable+".run_number > 9853 AND "+datatable+".run_number < 9888)";
+    if(ihwp == "in")
+      plate_cut = "("+datatable+".run_number > 9837 AND "+datatable+".run_number < 9853)";
+
+  }
+
 
 
   TString query =" SELECT " + output
-    + " FROM "+datatable+", analysis, run, runlet, slow_controls_settings "
-    + " WHERE "
-    + " "+datatable+".analysis_id = analysis.analysis_id AND"
-    + " analysis.runlet_id = runlet.runlet_id AND"
-    + " runlet.runlet_id = slow_controls_settings.runlet_id AND "
+    + " FROM "+datatable+", analysis, run, runlet "
+    + " WHERE "+datatable+".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id AND"
     + " run.run_number = "+datatable+".run_number AND "
     +datatable+".detector = '"+detector+"' AND "
     +datatable+".subblock = 0 AND "
     +datatable+".measurement_type = '"+measurement+"' AND "
-    +good_for_cut+" AND "
-    +run_quality_cut+ " AND "
-    + " error !=0  AND "+datatable+".value != 0 AND "+datatable+".run_number != 9831 AND "+datatable+".run_number != 9878 AND"
-    + " slow_controls_settings.slow_helicity_plate = '"+ihwp+"'"
-    + " AND target_position = '"+target+"' and "+datatable+".slug > 100000  and "+datatable+".slug < 101004;"; 
+    //+good_for_cut+" AND "
+    //+run_quality_cut+ " AND "
+    +run_cut+" AND "+plate_cut+" AND error !=0  AND "+datatable+".value != 0 AND "+datatable+".run_number != 9831 AND "+datatable+".run_number != 9878;"; 
+  //   +run_cut+" AND "+plate_cut+" AND error !=0  AND "+datatable+".value != 0 AND "+datatable+".run_number != 9831 AND "+datatable+".run_number != 9878;"; 
 
 			 
-  if(ldebug) std::cout<<query<<std::endl;
+  if(ldebug)  std::cout<<query<<std::endl;
 
   return query;
 }
@@ -409,14 +423,17 @@ void get_octant_data(Int_t size, TString devicelist[], TString detector_type, TS
     }
     TString query = get_query(Form("%s",devicelist[i].Data()),"a",target,ihwp,detector_type);
     TSQLStatement* stmt = db->Statement(query,100);
-    if(!stmt) exit(1);
+    if(!stmt)  {
+      db->Close();
+      exit(1);
+    }
     // process statement
     if (stmt->Process()) {
       // store result of statement in buffer
       stmt->StoreResult();
       while (stmt->NextResultRow()) {
-	value[i] = (Double_t)(stmt->GetDouble(2))*1e6; // convert to  ppm
-	error[i] = (Double_t)(stmt->GetDouble(3))*1e6; // ppm
+	value[i] = (Double_t)(stmt->GetDouble(0))*1e6; // convert to  ppm
+	error[i] = (Double_t)(stmt->GetDouble(1))*1e6; // ppm
 	if(ldebug) printf(" value = %16.8lf +- %10.8lf [ppm]\n", value[i], error[i]);
       }
     }
@@ -442,8 +459,10 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   for(Int_t i =0;i<k;i++){
     if(device.Contains("US"))
        x[i] = 2*i+1;
-    if(device.Contains("DS"))
-       x[i] = i+1;
+    else if(device.Contains("DS"))
+      x[i] = i+1;
+    else
+      x[i] = i+1;
 
     errx[i] = 0.0;
   }
