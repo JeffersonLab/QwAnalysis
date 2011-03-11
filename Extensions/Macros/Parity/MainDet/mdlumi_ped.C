@@ -13,7 +13,7 @@ void mdlumi_ped(int run_num)
   gStyle->SetStatH(0.4);
 
   TChain chain("Mps_Tree");
-  chain.Add(Form("$QW_ROOTFILES/first100k_%i.root",run_num));
+  chain.Add(Form("$QW_ROOTFILES/qwick_mdlumiped_%i.root",run_num));
 
   const string lumi[16] = {
   "qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4",
@@ -33,12 +33,12 @@ void mdlumi_ped(int run_num)
   
 
   char * pPath = "";
-  if (save_file == kTRUE) pPath = getenv("QWANALYSIS");
+  if (save_file == kTRUE) pPath = getenv("QWSCRATCH");
 
   if (get_md == kTRUE)
     {      
       ofstream md_pedestal_file;
-      md_pedestal_file.open(Form("%s/Extensions/Macros/Parity/MainDet/qweak_maindet_pedestal.%i-.map",pPath,run_num));
+      md_pedestal_file.open(Form("%s/calib/qweak_maindet_pedestal.%i-.map",pPath,run_num));
       md_pedestal_file<<endl;
       md_pedestal_file<<Form("!The following pedestals were recorded from RUN %i",run_num)<<endl;
       md_pedestal_file<<"!channel name , Mps channelname.hw_sum_raw/num_samples , gain"<<endl;
@@ -78,7 +78,7 @@ void mdlumi_ped(int run_num)
   if (get_lumi == kTRUE)
     { 
       ofstream lumi_pedestal_file;
-      lumi_pedestal_file.open(Form("%s/Extensions/Macros/Parity/MainDet/qweak_lumi_pedestal.%i-.map",pPath,run_num));
+      lumi_pedestal_file.open(Form("%s/calib/qweak_lumi_pedestal.%i-.map",pPath,run_num));
       lumi_pedestal_file<<endl;
       lumi_pedestal_file<<Form("!The following pedestals were recorded from RUN %i",run_num)<<endl;
       lumi_pedestal_file<<"!channel name , Mps channelname.hw_sum_raw/num_samples , gain"<<endl;
@@ -99,27 +99,15 @@ void mdlumi_ped(int run_num)
      lumi_pedestal_file.close();
      }; // end get lumi  
      
-//gSystem->Exec(Form("gedit %s/Extensions/Macros/Parity/MainDet/qweak_maindet_pedestal.%i-.map",pPath,run_num));
-//gSystem->Exec(Form("gedit %s/Extensions/Macros/Parity/MainDet/qweak_lumi_pedestal.%i-.map",pPath,run_num));
 
-c_md->SaveAs(Form("%s/Extensions/Macros/Parity/MainDet/%i_md.png",pPath,run_num));
-c_bg->SaveAs(Form("%s/Extensions/Macros/Parity/MainDet/%i_bg.png",pPath,run_num));
-c_lumi->SaveAs(Form("%s/Extensions/Macros/Parity/MainDet/%i_lumi.png",pPath,run_num));
-
-string save_peds;
-
-cout<<"If the pedestals look OK, type 'y' to make them available to the analyzer"<<endl;
-cin>>save_peds;
+c_md->SaveAs(Form("%s/calib/pedPlots/%i_md.png",pPath,run_num));
+c_bg->SaveAs(Form("%s/calib/pedPlots/%i_bg.png",pPath,run_num));
+c_lumi->SaveAs(Form("%s/calib/pedPlots/%i_lumi.png",pPath,run_num));
 
 
-if (save_peds=="y")
-{
-cout<<Form("moving files to %s/Parity/prminput",pPath)<<endl;
-gSystem->Exec(Form("mv %s/Extensions/Macros/Parity/MainDet/qweak_maindet_pedestal.%i-.map %s/Parity/prminput/.",pPath,run_num,pPath));
-gSystem->Exec(Form("mv %s/Extensions/Macros/Parity/MainDet/qweak_lumi_pedestal.%i-.map %s/Parity/prminput/.",pPath,run_num,pPath));
 }
 
-}
+
 
 
 
