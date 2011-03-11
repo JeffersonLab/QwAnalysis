@@ -1,0 +1,303 @@
+!
+! Map file for wire chambers used with Qweak (Mark Pitt's map file)
+
+!
+! standard id numbers
+!                       signals
+!HKS:
+! HDC_ID  =1             TDC
+! HSCIN_ID=2             ADC+,ADC-,TDC+,TDC-
+! HAER_ID =3             TDC,ADC
+! HWAT_ID =4             TDC,ADC
+! HMISC_ID=5             TDC,(ADC)
+!GEN:
+! GMISC_ID=6             (TDC),ADC
+!ENGE:
+! EDC_ID   = 11            EDC
+! EHODO_ID = 12            EHODO
+! EMISC_ID = 13            misc
+! FIS1_ID  = 14           fission chamber timing
+! FIS2_ID  = 15           fission chamber position
+!
+!
+!
+!   consider subadd equiv. to channel
+!
+!  specify: subadd, plane, element, signal
+!            a,      p,     e,       s
+!            0-      1-     1-       0-3
+![if there is only signal 0 (DC,CER,CAL) it may be ommitted]
+!
+!
+!   HKS upstairs (HSCIN) map     M.Sumihama 20-May-2005
+!
+!
+!!!!!!!2 (!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!     HDC map
+!     for E01011     22/05/05 L. Yuan  Initial Version by Tom Seva.
+!     Modified 6-8-05 L. Cole
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!
+! plane number=0 and counter number=0 means empty chanels
+! chanels of time reference signal: 1st crate,  slot 18, chanel 63
+!                                   2nd crate,  slot 16, chanel 31
+ROC=9        ! First F1TDC crate for HDC. number need to be changed.
+BANK=0x0901
+!               Number changed. AM 22/05/05
+!
+!         TDC modules are F1TDC
+       Nsubadd= 64      ! normal resolution mode
+       MASK= FFFFx      ! hex mask - F1TDC masking (16 bits)
+       BSUB= 16         ! begin channel info with bit#16
+!
+
+!package 1
+!below format is wire plane, direction
+pkg=1  
+!plane u and up = 3
+ 5, 3 
+ 2, 3 
+ 8, 3
+ 11, 3
+!plane x and xp = 1
+ 1, 1 
+ 4, 1 
+ 7, 1
+ 10, 1	  
+!plane v and vp = 4
+ 3, 4 
+ 6, 4
+ 9, 4 
+ 12, 4
+ 
+
+
+detector= 1 ! HDC
+slot=20
+!time reference signal
+0, 99, 0
+!This is trig signal
+  1, 7, 1
+!This is delayed trig signal
+  2, 8, 1
+!This is big scint signal
+  3, 9, 1
+!This is little top scint signal
+  4, 10, 1
+!This is little bottom scint signal
+  5, 11, 1
+!This is big bottom scint signal
+  6, 12, 1
+!This is VLO
+  32, 3, 16
+  34, 3, 15
+  36, 3, 14
+  38, 3, 13
+  40, 3, 12
+  42, 3, 11
+  44, 3, 10
+  46, 3, 9
+  48, 3, 8
+  50, 3, 7
+  52, 3, 6
+  54, 3, 5
+  56, 3, 4
+  58, 3, 3
+  60, 3, 2
+  62, 3, 1
+slot=8
+!This is UHI
+  32, 2, 17
+  34, 2, 18
+  36, 2, 19
+  38, 2, 20
+  40, 2, 21
+  42, 2, 22
+  44, 2, 23
+  46, 2, 24
+  48, 2, 25
+  50, 2, 26
+  52, 2, 27
+  54, 2, 28
+  56, 2, 29
+  58, 2, 30
+  60, 2, 31
+  62, 2, 32
+!This is VpLO
+  33, 6, 16
+  35, 6, 15
+  37, 6, 14
+  39, 6, 13
+  41, 6, 12
+  43, 6, 11
+  45, 6, 10
+  47, 6, 9
+  49, 6, 8
+  51, 6, 7
+  53, 6, 6
+  55, 6, 5
+  57, 6, 4
+  59, 6, 3
+  61, 6, 2
+  63, 6, 1
+Slot=10
+!This is UpHI
+  32, 5, 17
+  34, 5, 18
+  36, 5, 19
+  38, 5, 20
+  40, 5, 21
+  42, 5, 22
+  44, 5, 23
+  46, 5, 24
+  48, 5, 25
+  50, 5, 26
+  52, 5, 27
+  54, 5, 28
+  56, 5, 29
+  58, 5, 30
+  60, 5, 31
+  62, 5, 32
+!This is VHI
+  33, 3, 32
+  35, 3, 31
+  37, 3, 30
+  39, 3, 29
+  41, 3, 28
+  43, 3, 27
+  45, 3, 26
+  47, 3, 25
+  49, 3, 24
+  51, 3, 23
+  53, 3, 22
+  55, 3, 21
+  57, 3, 20
+  59, 3, 19
+  61, 3, 18
+  63, 3, 17
+slot=12
+ ! XHI
+  0, 1, 17
+  2, 1, 18
+  4, 1, 19
+  6, 1, 20
+  8, 1, 21
+  10, 1, 22
+  12, 1, 23
+  14, 1, 24
+  16, 1, 25
+  18, 1, 26
+  20, 1, 27
+  22, 1, 28
+  24, 1, 29
+  26, 1, 30
+  28, 1, 31
+  30, 1, 32
+!This is VpHI
+  32, 6, 32
+  34, 6, 31
+  36, 6, 30
+  38, 6, 29
+  40, 6, 28
+  42, 6, 27
+  44, 6, 26
+  46, 6, 25
+  48, 6, 24
+  50, 6, 23
+  52, 6, 22
+  54, 6, 21
+  56, 6, 20
+  58, 6, 19
+  60, 6, 18
+  62, 6, 17
+slot=14
+!This is ULO
+  32, 2, 1
+  34, 2, 2
+  36, 2, 3
+  38, 2, 4
+  40, 2, 5
+  42, 2, 6
+  44, 2, 7
+  46, 2, 8
+  48, 2, 9
+  50, 2, 10
+  52, 2, 11
+  54, 2, 12
+  56, 2, 13
+  58, 2, 14
+  60, 2, 15
+  62, 2, 16
+! XLO
+  33, 1, 1
+  35, 1, 2
+  37, 1, 3
+  39, 1, 4
+  41, 1, 5
+  43, 1, 6
+  45, 1, 7
+  47, 1, 8
+  49, 1, 9
+  51, 1, 10
+  53, 1, 11
+  55, 1, 12
+  57, 1, 13
+  59, 1, 14
+  61, 1, 15
+  63, 1, 16
+slot=16
+!This is XpHI
+  1, 4, 17
+  3, 4, 18
+  5, 4, 19
+  7, 4, 20
+  9, 4, 21
+  11, 4, 22
+  13, 4, 23
+  15, 4, 24
+  17, 4, 25
+  19, 4, 26
+  21, 4, 27
+  23, 4, 28
+  25, 4, 29
+  27, 4, 30
+  29, 4, 31
+  31, 4, 32
+slot=18
+!This is UpLO
+  32, 5, 1
+  34, 5, 2
+  36, 5, 3
+  38, 5, 4
+  40, 5, 5
+  42, 5, 6
+  44, 5, 7
+  46, 5, 8
+  48, 5, 9
+  50, 5, 10
+  52, 5, 11
+  54, 5, 12
+  56, 5, 13
+  58, 5, 14
+  60, 5, 15
+  62, 5, 16
+!This is XpLO
+  33, 4, 1
+  35, 4, 2
+  37, 4, 3
+  39, 4, 4
+  41, 4, 5
+  43, 4, 6
+  45, 4, 7
+  47, 4, 8
+  49, 4, 9
+  51, 4, 10
+  53, 4, 11
+  55, 4, 12
+  57, 4, 13
+  59, 4, 14
+  61, 4, 15
+  63, 4, 16
+
+
+!END

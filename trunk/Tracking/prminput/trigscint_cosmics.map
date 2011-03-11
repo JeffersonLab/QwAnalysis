@@ -1,0 +1,21 @@
+! From trigger scintillator test setup in the EEL
+ROC=2
+!
+!  The 775N and 792N have channels numbers upshifted by one bit
+!  compared to the ECL counterparts.  Multiply front panel
+!  channel number by two to get the effective channel number.
+!
+!
+slot=1
+module=V792
+! module.type  module.num  chan.num, det.type, det.name
+  V792, 1, 0, R3trigscint, TS_left_adc
+  V792, 1, 2, R3trigscint, TS_right_adc
+
+slot=2
+module=V775
+! module.type  module.num  chan.num, det.type, det.name
+  V775, 2, 0, R3trigscint, TS_left_tdc
+  V775, 2, 2, R3trigscint, TS_right_tdc
+  V775, 2, 4, R3trigscint, TS_meantimer_tdc
+!END

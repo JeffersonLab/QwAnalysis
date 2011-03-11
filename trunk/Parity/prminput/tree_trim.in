@@ -1,0 +1,860 @@
+# Tree trim file of run  596
+
+[HallCBeamLine]
+  <QwBCM>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+  <QwBPMStripline>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+  <QwBPMCavity>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+  <QwCombinedBPM>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+  <QwCombinedBCM>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+   <QwEnergyCalculator>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+[Main Detector]
+   <QwIntegrationPMT>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+   <QwCombinedPMT>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+[Lumi Detector]
+  <QwIntegrationPMT>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+[BeamMod]
+   <QwBeamMod>
+	hw_sum
+	hw_sum_raw
+	block
+	block_raw
+	num_samples
+	Device_Error_Code
+	sequence_number
+
+
+
+# below the [DEVICELIST] include all the devices that needs to be in the tree
+
+[DEVICELIST]
+
+
+# Mps Tree  
+# No. of branches  289
+sca_unser
+sca_4mhz
+sca_bcm1
+sca_bcm2
+qwk_bcm1
+qwk_bcm2
+qwk_bcm5
+qwk_bcm6
+event_number
+
+
+#qwk_bpm3c07XP
+#qwk_bpm3c07XM
+#qwk_bpm3c07YP
+#qwk_bpm3c07YM
+
+#qwk_bpm3c07aXP
+#qwk_bpm3c07aXM
+#qwk_bpm3c07aYP
+#qwk_bpm3c07aYM
+
+#qwk_bpm3c08XP
+#qwk_bpm3c08XM
+#qwk_bpm3c08YP
+#qwk_bpm3c08YM
+
+qwk_bpm3c11XP 
+qwk_bpm3c11XM 
+qwk_bpm3c11YP
+qwk_bpm3c11YM
+
+qwk_bpm3c12XP
+qwk_bpm3c12XM
+qwk_bpm3c12YP
+qwk_bpm3c12YM
+
+qwk_bpm3c14XP
+qwk_bpm3c14XM
+qwk_bpm3c14YP
+qwk_bpm3c14YM
+
+qwk_bpm3c16XP
+qwk_bpm3c16XM
+qwk_bpm3c16YP
+qwk_bpm3c16YM
+
+#qwk_bpm3c17XP
+#qwk_bpm3c17XM
+#qwk_bpm3c17YP
+#qwk_bpm3c17YM
+
+#qwk_bpm3c18XP
+#qwk_bpm3c18XM
+#qwk_bpm3c18YP
+#qwk_bpm3c18YM
+
+#qwk_bpm3c19XP
+#qwk_bpm3c19XM
+#qwk_bpm3c19YP
+#qwk_bpm3c19YM
+
+#qwk_bpm3p02aXP
+#qwk_bpm3p02aXM
+#qwk_bpm3p02aYP
+#qwk_bpm3p02aYM
+
+#qwk_bpm3p02bXP
+#qwk_bpm3p02bXM
+#qwk_bpm3p02bYP
+#qwk_bpm3p02bYM
+
+#qwk_bpm3p03aXP
+#qwk_bpm3p03aXM
+#qwk_bpm3p03aYP
+#qwk_bpm3p03aYM
+
+#qwk_bpm3c20XP
+#qwk_bpm3c20XM
+#qwk_bpm3c20YP
+#qwk_bpm3c20YM
+
+#qwk_bpm3c21XP
+#qwk_bpm3c21XM
+#qwk_bpm3c21YP
+#qwk_bpm3c21YM
+
+#qwk_bpm3h02XP
+#qwk_bpm3h02XM
+#qwk_bpm3h02YP
+#qwk_bpm3h02YM
+
+qwk_bpm3h04XP
+qwk_bpm3h04XM
+qwk_bpm3h04YP
+qwk_bpm3h04YM
+
+qwk_bpm3h07aXP
+qwk_bpm3h07aXM
+qwk_bpm3h07aYP
+qwk_bpm3h07aYM
+
+qwk_bpm3h07bXP
+qwk_bpm3h07bXM
+qwk_bpm3h07bYP
+qwk_bpm3h07bYM
+
+qwk_bpm3h07cXP
+qwk_bpm3h07cXM
+qwk_bpm3h07cYP
+qwk_bpm3h07cYM
+
+qwk_bpm3h08XP
+qwk_bpm3h08XM
+qwk_bpm3h08YP
+qwk_bpm3h08YM
+
+qwk_bpm3h09XP
+qwk_bpm3h09XM
+qwk_bpm3h09YP
+qwk_bpm3h09YM
+
+qwk_bpm3h09bXP
+qwk_bpm3h09bXM
+qwk_bpm3h09bYP
+qwk_bpm3h09bYM
+
+CodaEventNumber
+CodaEventType
+qwk_qpd_EffectiveCharge
+#qwk_qpdXP
+#qwk_qpdXM
+#qwk_qpdYP
+#qwk_qpdYM
+#qwk_qpdRelX
+qwk_qpdX
+#qwk_qpdRelY
+qwk_qpdY
+qwk_1i02_EffectiveCharge
+#qwk_1i02XP
+#qwk_1i02XM
+#qwk_1i02YP
+#qwk_1i02YM
+#qwk_1i02RelX
+qwk_1i02X
+#qwk_1i02RelY
+qwk_1i02Y
+qwk_1i04_EffectiveCharge
+#qwk_1i04XP
+#qwk_1i04XM
+#qwk_1i04YP
+#qwk_1i04YM
+#qwk_1i04RelX
+qwk_1i04X
+#qwk_1i04RelY
+qwk_1i04Y
+qwk_1i06_EffectiveCharge
+#qwk_1i06XP
+#qwk_1i06XM
+#qwk_1i06YP
+#qwk_1i06YM
+#qwk_1i06RelX
+qwk_1i06X
+#qwk_1i06RelY
+qwk_1i06Y
+qwk_0i02_EffectiveCharge
+#qwk_0i02XP
+#qwk_0i02XM
+#qwk_0i02YP
+#qwk_0i02YM
+#qwk_0i02RelX
+qwk_0i02X
+#qwk_0i02RelY
+qwk_0i02Y
+qwk_0i02a_EffectiveCharge
+#qwk_0i02aXP
+#qwk_0i02aXM
+#qwk_0i02aYP
+#qwk_0i02aYM
+#qwk_0i02aRelX
+qwk_0i02aX
+#qwk_0i02aRelY
+qwk_0i02aY
+qwk_0i05_EffectiveCharge
+#qwk_0i05XP
+#qwk_0i05XM
+#qwk_0i05YP
+#qwk_0i05YM
+#qwk_0i05RelX
+qwk_0i05X
+#qwk_0i05RelY
+qwk_0i05Y
+qwk_0i07_EffectiveCharge
+#qwk_0i07XP
+#qwk_0i07XM
+#qwk_0i07YP
+#qwk_0i07YM
+#qwk_0i07RelX
+qwk_0i07X
+#qwk_0i07RelY
+qwk_0i07Y
+qwk_0l01_EffectiveCharge
+#qwk_0l01XP
+#qwk_0l01XM
+#qwk_0l01YP
+#qwk_0l01YM
+#qwk_0l01RelX
+qwk_0l01X
+#qwk_0l01RelY
+qwk_0l01Y
+qwk_0l02_EffectiveCharge
+#qwk_0l02XP
+#qwk_0l02XM
+#qwk_0l02YP
+#qwk_0l02YM
+#qwk_0l02RelX
+qwk_0l02X
+#qwk_0l02RelY
+qwk_0l02Y
+qwk_0l03_EffectiveCharge
+#qwk_0l03XP
+#qwk_0l03XM
+#qwk_0l03YP
+#qwk_0l03YM
+#qwk_0l03RelX
+qwk_0l03X
+#qwk_0l03RelY
+qwk_0l03Y
+qwk_0l04_EffectiveCharge
+#qwk_0l04XP
+#qwk_0l04XM
+#qwk_0l04YP
+#qwk_0l04YM
+#qwk_0l04RelX
+qwk_0l04X
+#qwk_0l04RelY
+qwk_0l04Y
+qwk_0l05_EffectiveCharge
+#qwk_0l05XP
+#qwk_0l05XM
+#qwk_0l05YP
+#qwk_0l05YM
+#qwk_0l05RelX
+qwk_0l05X
+#qwk_0l05RelY
+qwk_0l05Y
+qwk_0l06_EffectiveCharge
+#qwk_0l06XP
+#qwk_0l06XM
+#qwk_0l06YP
+#qwk_0l06YM
+#qwk_0l06RelX
+qwk_0l06X
+#qwk_0l06RelY
+qwk_0l06Y
+qwk_0l07_EffectiveCharge
+#qwk_0l07XP
+#qwk_0l07XM
+#qwk_0l07YP
+#qwk_0l07YM
+#qwk_0l07RelX
+qwk_0l07X
+#qwk_0l07RelY
+qwk_0l07Y
+qwk_0l08_EffectiveCharge
+#qwk_0l08XP
+#qwk_0l08XM
+#qwk_0l08YP
+#qwk_0l08YM
+#qwk_0l08RelX
+qwk_0l08X
+#qwk_0l08RelY
+qwk_0l08Y
+qwk_0l09_EffectiveCharge
+#qwk_0l09XP
+#qwk_0l09XM
+#qwk_0l09YP
+#qwk_0l09YM
+#qwk_0l09RelX
+qwk_0l09X
+#qwk_0l09RelY
+qwk_0l09Y
+qwk_0l10_EffectiveCharge
+#qwk_0l10XP
+#qwk_0l10XM
+#qwk_0l10YP
+#qwk_0l10YM
+#qwk_0l10RelX
+qwk_0l10X
+#qwk_0l10RelY
+qwk_0l10Y
+qwk_0r01_EffectiveCharge
+#qwk_0r01XP
+#qwk_0r01XM
+#qwk_0r01YP
+#qwk_0r01YM
+#qwk_0r01RelX
+qwk_0r01X
+#qwk_0r01RelY
+qwk_0r01Y
+qwk_0r02_EffectiveCharge
+#qwk_0r02XP
+#qwk_0r02XM
+#qwk_0r02YP
+#qwk_0r02YM
+#qwk_0r02RelX
+qwk_0r02X
+#qwk_0r02RelY
+qwk_0r02Y
+qwk_0r05_EffectiveCharge
+#qwk_0r05XP
+#qwk_0r05XM
+#qwk_0r05YP
+#qwk_0r05YM
+#qwk_0r05RelX
+qwk_0r05X
+#qwk_0r05RelY
+qwk_0r05Y
+qwk_0r06_EffectiveCharge
+#qwk_0r06XP
+#qwk_0r06XM
+#qwk_0r06YP
+#qwk_0r06YM
+#qwk_0r06RelX
+qwk_0r06X
+#qwk_0r06RelY
+qwk_0r06Y
+empty1
+empty2
+#qwk_batext1
+#qwk_batext2
+qwk_bcm0l02
+qwk_batery6
+qwk_batery7
+phasemonitor
+md1neg
+md2neg
+md3neg
+md4neg
+#md5neg
+#md6neg
+#md7neg
+#md8neg
+#md1pos
+#md2pos
+#md3pos
+#md4pos
+#md5pos
+#md6pos
+#md7pos
+#md8pos
+#pmtled
+#pmtonl
+#pmtltg
+#md9neg
+#md9pos
+#isourc
+#preamp
+#cagesr
+md1neg_md5neg
+md2neg_md6neg
+md3neg_md7neg
+#md4neg_md8neg
+#md1pos_md5pos
+#md2pos_md6pos
+#md3pos_md7pos
+#md4pos_md8pos
+combinationallmd
+#qwk_uslumi1neg
+#qwk_uslumi1pos
+#qwk_uslumi3neg
+#qwk_uslumi3pos
+#qwk_uslumi5neg
+#qwk_uslumi5pos
+#qwk_uslumi7neg
+qwk_uslumi7pos
+qwk_dslumi1
+#qwk_dslumi2
+#qwk_dslumi3
+#qwk_dslumi4
+#qwk_dslumi5
+#qwk_dslumi6
+#qwk_dslumi7
+#qwk_dslumi8
+#qwk_dslumi1_sc
+#qwk_dslumi2_sc
+#qwk_dslumi3_sc
+#qwk_bad_s2ch3
+sca_dslumi1
+sca_dslumi2
+#actual_helicity
+#delayed_helicity
+reported_helicity
+pattern_phase
+pattern_number
+event_number
+#input_register
+#output_register
+mps_counter
+pat_counter
+pat_phase
+cleandata
+scandata1
+scandata2
+#scanner
+## Hel Tree  
+## No. of branches  383
+CodaEventNumber
+CodaEventType
+#yield_qwk_qpd_EffectiveCharge
+#yield_qwk_qpdRelX
+#yield_qwk_qpdX
+#yield_qwk_qpdRelY
+#yield_qwk_qpdY
+#yield_qwk_1i02_EffectiveCharge
+#yield_qwk_1i02RelX
+#yield_qwk_1i02X
+#yield_qwk_1i02RelY
+#yield_qwk_1i02Y
+#yield_qwk_1i04_EffectiveCharge
+#yield_qwk_1i04RelX
+#yield_qwk_1i04X
+#yield_qwk_1i04RelY
+#yield_qwk_1i04Y
+#yield_qwk_1i06_EffectiveCharge
+#yield_qwk_1i06RelX
+#yield_qwk_1i06X
+#yield_qwk_1i06RelY
+#yield_qwk_1i06Y
+#yield_qwk_0i02_EffectiveCharge
+#yield_qwk_0i02RelX
+#yield_qwk_0i02X
+#yield_qwk_0i02RelY
+#yield_qwk_0i02Y
+#yield_qwk_0i02a_EffectiveCharge
+#yield_qwk_0i02aRelX
+#yield_qwk_0i02aX
+#yield_qwk_0i02aRelY
+#yield_qwk_0i02aY
+#yield_qwk_0i05_EffectiveCharge
+#yield_qwk_0i05RelX
+#yield_qwk_0i05X
+#yield_qwk_0i05RelY
+#yield_qwk_0i05Y
+#yield_qwk_0i07_EffectiveCharge
+#yield_qwk_0i07RelX
+#yield_qwk_0i07X
+#yield_qwk_0i07RelY
+#yield_qwk_0i07Y
+#yield_qwk_0l01_EffectiveCharge
+#yield_qwk_0l01RelX
+#yield_qwk_0l01X
+#yield_qwk_0l01RelY
+#yield_qwk_0l01Y
+#yield_qwk_0l02_EffectiveCharge
+#yield_qwk_0l02RelX
+#yield_qwk_0l02X
+#yield_qwk_0l02RelY
+#yield_qwk_0l02Y
+#yield_qwk_0l03_EffectiveCharge
+#yield_qwk_0l03RelX
+#yield_qwk_0l03X
+#yield_qwk_0l03RelY
+#yield_qwk_0l03Y
+#yield_qwk_0l04_EffectiveCharge
+#yield_qwk_0l04RelX
+#yield_qwk_0l04X
+#yield_qwk_0l04RelY
+#yield_qwk_0l04Y
+#yield_qwk_0l05_EffectiveCharge
+#yield_qwk_0l05RelX
+#yield_qwk_0l05X
+#yield_qwk_0l05RelY
+#yield_qwk_0l05Y
+#yield_qwk_0l06_EffectiveCharge
+#yield_qwk_0l06RelX
+#yield_qwk_0l06X
+#yield_qwk_0l06RelY
+#yield_qwk_0l06Y
+#yield_qwk_0l07_EffectiveCharge
+#yield_qwk_0l07RelX
+#yield_qwk_0l07X
+#yield_qwk_0l07RelY
+#yield_qwk_0l07Y
+#yield_qwk_0l08_EffectiveCharge
+#yield_qwk_0l08RelX
+#yield_qwk_0l08X
+#yield_qwk_0l08RelY
+#yield_qwk_0l08Y
+#yield_qwk_0l09_EffectiveCharge
+#yield_qwk_0l09RelX
+#yield_qwk_0l09X
+#yield_qwk_0l09RelY
+#yield_qwk_0l09Y
+#yield_qwk_0l10_EffectiveCharge
+#yield_qwk_0l10RelX
+#yield_qwk_0l10X
+#yield_qwk_0l10RelY
+#yield_qwk_0l10Y
+#yield_qwk_0r01_EffectiveCharge
+#yield_qwk_0r01RelX
+#yield_qwk_0r01X
+#yield_qwk_0r01RelY
+#yield_qwk_0r01Y
+#yield_qwk_0r02_EffectiveCharge
+#yield_qwk_0r02RelX
+#yield_qwk_0r02X
+#yield_qwk_0r02RelY
+#yield_qwk_0r02Y
+#yield_qwk_0r05_EffectiveCharge
+#yield_qwk_0r05RelX
+#yield_qwk_0r05X
+#yield_qwk_0r05RelY
+#yield_qwk_0r05Y
+#yield_qwk_0r06_EffectiveCharge
+#yield_qwk_0r06RelX
+#yield_qwk_0r06X
+#yield_qwk_0r06RelY
+#yield_qwk_0r06Y
+#yield_empty1
+#yield_empty2
+#yield_qwk_batext1
+#yield_qwk_batext2
+#yield_qwk_bcm0l02
+#yield_qwk_batery6
+#yield_qwk_batery7
+#yield_phasemonitor
+yield_md1neg
+yield_md2neg
+yield_md3neg
+yield_md4neg
+yield_md5neg
+yield_md6neg
+yield_md7neg
+yield_md8neg
+yield_md1pos
+yield_md2pos
+yield_md3pos
+yield_md4pos
+yield_md5pos
+yield_md6pos
+yield_md7pos
+yield_md8pos
+yield_pmtled
+yield_pmtonl
+yield_pmtltg
+yield_md9neg
+yield_md9pos
+yield_isourc
+yield_preamp
+yield_cagesr
+yield_md1neg_md5neg
+yield_md2neg_md6neg
+yield_md3neg_md7neg
+yield_md4neg_md8neg
+yield_md1pos_md5pos
+yield_md2pos_md6pos
+yield_md3pos_md7pos
+yield_md4pos_md8pos
+yield_combinationallmd
+yield_qwk_uslumi1neg
+yield_qwk_uslumi1pos
+yield_qwk_uslumi3neg
+yield_qwk_uslumi3pos
+yield_qwk_uslumi5neg
+yield_qwk_uslumi5pos
+yield_qwk_uslumi7neg
+yield_qwk_uslumi7pos
+yield_qwk_dslumi1
+yield_qwk_dslumi2
+yield_qwk_dslumi3
+yield_qwk_dslumi4
+yield_qwk_dslumi5
+yield_qwk_dslumi6
+yield_qwk_dslumi7
+yield_qwk_dslumi8
+
+actual_pattern_polarity
+delayed_pattern_polarity
+pattern_number
+input_register
+output_register
+ps_counter
+pat_counter
+pat_phase
+cleandata
+scandata1
+scandata2
+CodaEventNumber
+CodaEventType
+asym_qwk_qpd_EffectiveCharge
+diff_qwk_qpdRelX
+diff_qwk_qpdX
+diff_qwk_qpdRelY
+diff_qwk_qpdY
+asym_qwk_1i02_EffectiveCharge
+diff_qwk_1i02RelX
+diff_qwk_1i02X
+#diff_qwk_1i02RelY
+diff_qwk_1i02Y
+asym_qwk_1i04_EffectiveCharge
+#diff_qwk_1i04RelX
+diff_qwk_1i04X
+#diff_qwk_1i04RelY
+diff_qwk_1i04Y
+asym_qwk_1i06_EffectiveCharge
+#diff_qwk_1i06RelX
+diff_qwk_1i06X
+#diff_qwk_1i06RelY
+diff_qwk_1i06Y
+asym_qwk_0i02_EffectiveCharge
+#diff_qwk_0i02RelX
+diff_qwk_0i02X
+#diff_qwk_0i02RelY
+diff_qwk_0i02Y
+asym_qwk_0i02a_EffectiveCharge
+#diff_qwk_0i02aRelX
+diff_qwk_0i02aX
+#diff_qwk_0i02aRelY
+diff_qwk_0i02aY
+asym_qwk_0i05_EffectiveCharge
+#diff_qwk_0i05RelX
+diff_qwk_0i05X
+#diff_qwk_0i05RelY
+diff_qwk_0i05Y
+asym_qwk_0i07_EffectiveCharge
+#diff_qwk_0i07RelX
+diff_qwk_0i07X
+#diff_qwk_0i07RelY
+diff_qwk_0i07Y
+asym_qwk_0l01_EffectiveCharge
+#diff_qwk_0l01RelX
+diff_qwk_0l01X
+#diff_qwk_0l01RelY
+diff_qwk_0l01Y
+asym_qwk_0l02_EffectiveCharge
+#diff_qwk_0l02RelX
+diff_qwk_0l02X
+#diff_qwk_0l02RelY
+diff_qwk_0l02Y
+asym_qwk_0l03_EffectiveCharge
+#diff_qwk_0l03RelX
+diff_qwk_0l03X
+#diff_qwk_0l03RelY
+diff_qwk_0l03Y
+asym_qwk_0l04_EffectiveCharge
+#diff_qwk_0l04RelX
+diff_qwk_0l04X
+#diff_qwk_0l04RelY
+diff_qwk_0l04Y
+asym_qwk_0l05_EffectiveCharge
+#diff_qwk_0l05RelX
+diff_qwk_0l05X
+#diff_qwk_0l05RelY
+diff_qwk_0l05Y
+asym_qwk_0l06_EffectiveCharge
+#diff_qwk_0l06RelX
+diff_qwk_0l06X
+#diff_qwk_0l06RelY
+diff_qwk_0l06Y
+asym_qwk_0l07_EffectiveCharge
+#diff_qwk_0l07RelX
+diff_qwk_0l07X
+#diff_qwk_0l07RelY
+diff_qwk_0l07Y
+asym_qwk_0l08_EffectiveCharge
+#diff_qwk_0l08RelX
+diff_qwk_0l08X
+#diff_qwk_0l08RelY
+diff_qwk_0l08Y
+asym_qwk_0l09_EffectiveCharge
+#diff_qwk_0l09RelX
+diff_qwk_0l09X
+#diff_qwk_0l09RelY
+diff_qwk_0l09Y
+asym_qwk_0l10_EffectiveCharge
+#diff_qwk_0l10RelX
+diff_qwk_0l10X
+#diff_qwk_0l10RelY
+diff_qwk_0l10Y
+asym_qwk_0r01_EffectiveCharge
+#diff_qwk_0r01RelX
+diff_qwk_0r01X
+#diff_qwk_0r01RelY
+diff_qwk_0r01Y
+asym_qwk_0r02_EffectiveCharge
+#diff_qwk_0r02RelX
+diff_qwk_0r02X
+#diff_qwk_0r02RelY
+diff_qwk_0r02Y
+asym_qwk_0r05_EffectiveCharge
+#diff_qwk_0r05RelX
+diff_qwk_0r05X
+#diff_qwk_0r05RelY
+diff_qwk_0r05Y
+asym_qwk_0r06_EffectiveCharge
+#diff_qwk_0r06RelX
+diff_qwk_0r06X
+#diff_qwk_0r06RelY
+diff_qwk_0r06Y
+#asym_empty1
+#asym_empty2
+#asym_qwk_batext1
+#asym_qwk_batext2
+asym_qwk_bcm0l02
+asym_qwk_batery6
+asym_qwk_batery7
+asym_phasemonitor
+#asym_md1neg
+#asym_md2neg
+#asym_md3neg
+#asym_md4neg
+#asym_md5neg
+#asym_md6neg
+#asym_md7neg
+#asym_md8neg
+#asym_md1pos
+#asym_md2pos
+#asym_md3pos
+#asym_md4pos
+#asym_md5pos
+#asym_md6pos
+#asym_md7pos
+#asym_md8pos
+#asym_pmtled
+#asym_pmtonl
+#asym_pmtltg
+#asym_md9neg
+#asym_md9pos
+#asym_isourc
+#asym_preamp
+#asym_cagesr
+#asym_md1neg_md5neg
+#asym_md2neg_md6neg
+#asym_md3neg_md7neg
+#asym_md4neg_md8neg
+#asym_md1pos_md5pos
+#asym_md2pos_md6pos
+#asym_md3pos_md7pos
+#asym_md4pos_md8pos
+#asym_combinationallmd
+#asym_qwk_uslumi1neg
+#asym_qwk_uslumi1pos
+#asym_qwk_uslumi3neg
+#asym_qwk_uslumi3pos
+#asym_qwk_uslumi5neg
+#asym_qwk_uslumi5pos
+#asym_qwk_uslumi7neg
+#asym_qwk_uslumi7pos
+#asym_qwk_dslumi1
+#asym_qwk_dslumi2
+#asym_qwk_dslumi3
+#asym_qwk_dslumi4
+#asym_qwk_dslumi5
+#asym_qwk_dslumi6
+#asym_qwk_dslumi7
+#asym_qwk_dslumi8

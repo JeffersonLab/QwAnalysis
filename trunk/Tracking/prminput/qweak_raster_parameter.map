@@ -1,0 +1,22 @@
+!
+! this file contains configuration parameters for the fast raster
+! values need to be calibrated
+!
+! Raster position offset w.r.t beam center, units: mm
+Position_Offset_X = -2.0
+Position_Offset_Y = -2.0
+!
+! units: um/channel, assume linear
+Cal_Factor_QDC_X = 0.002
+Cal_Factor_QDC_Y = 0.002
+!
+! These are the averaged channel numbers (pedestal) for position measured by V792
+! units: channel
+Channel_Offset_X = 40
+Channel_Offset_Y = 40
+!
+! Slope and intercept for converting the bpm x,y measured to x,y true
+bpm_3h07a_slope = 1.0
+bpm_3h07a_intercept = 0.0
+bpm_3h09b_slope = 1.0
+bpm_3h09b_intercept = 0.0

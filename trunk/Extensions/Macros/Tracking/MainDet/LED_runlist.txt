@@ -1,0 +1,24 @@
+runnum/I:channel/C
+## Good LED runs and the PMTs illuminated during the weekend of 2010-10-05
+#### $ perl -wlane 'next unless /^\d/; push @list, grep {-e} glob "*$F[0]*"; END{ print "@list" }' LED_runlist.txt
+#### $ perl -wlane 'next unless /^\d/; push @list, grep {-e} glob "*$F[0]*"; END{ exec "root", "-l", @list }' LED_runlist.txt
+## or in ROOT, TTree *t = new TTree; t->ReadFile("LED_runlist.txt");
+5634	md8p
+5635	md1p
+5638 	md2p
+5639	md3p
+5640	md4p
+5641	md5p
+5642	md6p
+5643	md7p
+5644	md3m
+5560	md6m
+5561	md6m
+5562	md6m
+5565	md7m
+5566	md7m
+5567	md1m
+5569	md1m
+5570	md2m
+5571	md4m
+5572	md5m

@@ -1,0 +1,15 @@
+HelicityDecodingMode=UserbitMode
+PatternPhase=4
+RandSeedBits=30
+NumberPatternsDelayed=2
+PatternPhaseOffset=0
+
+ROC=2
+Bank=0x0210
+
+! module.type, module.num  chan.num, det.type, det.name
+!
+!WORD, 0,  0, helicitydata,  scalerheader
+WORD, 0,  0, helicitydata,  scalercounter
+WORD, 0,  0, helicitydata,  userbit
+END

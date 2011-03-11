@@ -1,0 +1,2966 @@
+#!/usr/bin/wish -f
+#
+#
+#          batchman
+#
+#           by frw
+#
+#       Version 3.7.0
+#
+#
+set my_version "3.7.0"
+
+# new in v3.7.0
+# - changed environment variables for Qweak
+#
+# This is the first release of the modified batchman for the Qweak experiment.
+# Some Qweak specific modifications were made in various routines in
+# batchman, batch_daemon.tcl and batchman.lib. Also some perl scripts written
+# by P. King will be launched by batchman to handle the FARM job submission.
+# All the Qweak related changes were marked with "jianglai" in the comments.
+# wdconinc 08-16-2010
+#
+# status before v3.7.0 
+#
+# This is the first release of the modified batchman for the G0 experiment.
+# Some G0 specific modifications were made in various routines in 
+# batchman, batch_daemon.tcl and batchman.lib. Also some perl scripts written 
+# by P. King will be launched by batchman to handle the FARM job submission. 
+# All the G0 related changes were marked with "jianglai" in the comments.
+# jianglai 05-25-2003
+#
+# new in v3.4.23
+#
+# fixed entry count for purged entries
+# bypassed daemon dialog if no entries remain
+# made multiple daemon invocations more user friendly
+# added command line help to daemon
+# fixed bug bypassing staging check (NOT file verification)
+# ensured job killing does not kill ALL jobs due to bad run no
+# improved handling of batch job ID (in library file)
+# added exception to file count limit: files already on chache disk will be analyzed
+#
+#
+# new in v3.2.26
+#
+# moved code common to batchman and batch_daemon into separate library file which is then
+# included by each; ensures consistent implementation of shared routines
+#
+# minor changes to some routines to facilitate library (checkrunning, read_paramfile)
+#
+# status file output now (optionally) keeps previous version as backup (renamed, not copied)
+#
+# total number of entries is remembered between iterations in daemon, if more than 10% decrease,
+# optional SAFETY copy of status file (renamed, not copied) is kept 
+#
+# new entry in status file header for total number of items
+# if observed item count is different, batchman and batch_daemon abort (FATAL) without changing the
+# status file (or its backup), fixed counting of UNKNOWN in this context
+#
+# if "firsttime" is determined but the default status file already exists, user is queried for
+# action to take
+#
+# when reading param file, lines starting with ; or # are now skipped
+#
+# auto-start of daemon by GUI has been changed: new dialog queries user whether to start daemon,
+# and also gives option of log file for background daemon (just using "interactive" and a hardcoded
+# log file batch_daemon.log)
+#
+# parameter dialog no longer offers keeping of staged files for failed runs; instead, it is set
+# automatically to match auto-rerun whenever parameters are saved;  still permits manual change in
+# parameter file but saving of params will overwrite!
+#
+# batchman GUI transient windows are now flagged as such, more robust implementation (multiple calls are handled better)
+#
+# status file header now has links to in-page sub-headers
+#
+# added command line option "nonewstarts" to daemon to safely bring system to a halt without loss of results
+#
+# added command line option "recover" to daemon to attempt recovery of corrupt status file;  requires
+# new status file with all interesting runs as "new"; runs are checked for staging and completion status
+# and set to highest found progression level (staged or complete) or otherwise kept as new
+#
+# optionally verify existance of staged files (identifies link errors, hangs if disk not mounted)
+#
+# optionally check job name of batch jobs against template and only consider those that match
+# uses short version of job listing due to difficulty in parsing of long listing
+# only the last few letters will be visible but allows simultaneous replay of the same run
+# in different setups without causing confusion
+#
+# added waiting time before absent results of system interaction are flagged
+# allows for porcessing overhead and precludes hasty ERRoring of jobs
+#
+# optionally skip verification of staging tasks; lost stage requests will not be detected
+# but if jstat system is down jobs can still proceed
+#
+#
+#
+#
+# new in v2.10.14
+#
+# added experiment ID and cache group selection to parameter
+# management system
+#
+# BatchMan version ID is now stored in parameter file as well
+# and will produce upgrade propmpt if change is detected
+#
+# added custom routine for comparison of multi-segmented version IDs
+#
+# parameter window now has 3 tabs which can be extended
+#
+# parameter "runtime_setup_dir" was removed since it is not used
+#
+# minor change to identifier of empty file list and associated
+# status input/output code as well as initializations;  fixes
+# inconsistent usage of "none" for empty file list and the
+# resultant miscount of files already staged
+#
+# fixed call to jkill for runs that are killed right after 
+# having been submitted
+#
+# added command line options:
+#  - "passive" is meant for GUI debugging only; does not process
+#    status file at all
+#  - "nodaemon" does not start a background daemon at all
+#
+#
+# new in v2.8.20
+#
+# changed info contained in status file for completed runs
+# that used syncfilter: used to say "syncfilter" now uses
+# same output as non-syncfilter runs  (all)
+#
+# fixed bug in processing completed runs: batch job ID used
+# to be overwritten with "n/a" since completed jobs are not
+# in list of active batch jobs -- fixed  (all)
+#
+# added option "info" to command line parameters of daemon;
+# will NOT alter status file or interface with system, instead
+# it extracts the list of run numbers matching the indicated
+# status (e.g. "batch_daemon.tcl info completed") also
+# allows for status "any" to get complete list of runs  (daemon)
+#
+#
+# new in v2.8.16
+#
+# fixed status output of completed runs that used syncfilter
+# (VERY minor bug of no actual significance)
+#
+#
+# new in v2.8.14
+#
+# minor change to the output of verbose mode in batch_daemon
+#
+# fixed file size checking in batch_job and monitor_segments
+# (which are really NOT batchman files) to not use blocks as
+# measure but bytes from the less portable "ls -l" command
+# beacuse different file systems apparently have different
+# blocks
+#
+#
+# new in v2.8.8
+#
+# fixed parsing of "ps x" output to find running version of
+# batch_daemon.tcl even if the full path of the shell is echo'd
+#
+#
+# new in v2.7.22
+#
+# added new param to limit number of system calls of each type per
+# any one iteration;  since these CAN be rather slow having too 
+# many executed at once can cause real or apparent hangs and in
+# almost any case result in long delays between iterations;
+# limit is applied to: stage requests, job sumissions, job kills
+# PROBABLY should change code to accumulate list of kills and issue
+# corresponding commands AFTER status file is released... (all)
+#
+# added new param separating the automatic restart of runs with
+# AWOL files from the automatic rerun of bad jobs
+#
+# replaced the test for file presence with a plain shell "ls" to
+# bypass hangs due to NFS problems;  runs will likely crash if the
+# data file is not accessible -- but at least other jobs will keep
+# progressing;  needs further examination (daemon)
+#
+# list of files that are presently staged is now acquired all at once
+# in the beginning -- results in much speed improvement (daemon)
+#
+# lockfile now also contains name of program and host (all)
+#
+# release status of lock file now echo'd in verbose mode (added due 
+# to sporadically occuring failure to delete file?!) (daemon)
+#
+# fixed release of files that terminate improperly (daemon)
+#
+# fixed not releasing files if AWOL auto restart (daemon)
+#
+# fixed handling of 0 active staging requests in getting such list (daemon)
+#
+# fixed jobstat request to handle system problems (GUI)
+#
+#
+# new in v2.6.24
+#
+# changed the decoding of the "jobstat" output to be
+# more robust and less presumtious; specifically, low
+# job ID values had less characters and were causing
+# a shift in the other datas' character position; now
+# uses list item sequence no instead -- only new blanks
+# or new items can cause issues here...
+#
+# added name of program and host ID to lockfile
+#
+#
+# changes since v2.3.18 (i.e. included in v2.4.16):
+#
+# fixed the behavior of batchman GUI if lockfile is
+# initially taken but becomes available while BatchMan
+# is running;  user now gets prompted to either reload
+# the status file or to continue in read-only mode with
+# the old (now possibly incorrect) file
+#
+# changed names and labels to be more consistent and
+# more comprehensible
+#
+# Changed or of: display GUI  and  read/decode status 
+# file -- the result is a much speedier startup
+#
+# added hidden option to select ALL entries of a subset,
+# not just those currently displayed (shift-control-click)
+#
+# Details on the raw data files are now passed to the
+# subordinate scripts, so any change made in the BatchMan
+# parameter window will be relected in the other scripts,
+# too, without having to edit those.
+#
+# the daemon now (optionally) checks for outstanding 
+# staging requests and checks those against what it 
+# thinks is outstanding;  missing requests will result 
+# in a failed status -- after a few minutes to be safe
+#
+# Added a few switches, set in the parameter file and 
+# dialog:
+# - release of failed runs' source files on cache disk
+# - automatic rerunning of failed jobs
+# - checking for status of staging requests
+#
+# Changed some of the *default* parameter values (used
+# if parameter file is NOT found)
+#
+# Added a few more error handling traps in the daemon 
+# script to reduce the number of hangs/crashes
+#
+# Made some error conditions more verbose in status file
+#
+#
+#
+# Procedures in this code (don't forget about libarary file batchman.lib)
+#
+#    primary_window {timenow}
+#
+#    set_choice {choice}
+#    nextset {}
+#    prevset {}
+#    nextset2 {}
+#    prevset2 {}
+#    firstset {}
+#    lastset {}
+#    showsubset {}
+#    init_subset {}
+#    changeentry {seqno entry run status statecol flbl short1 slist long1 long2 short2}
+#    showentry {thisentry seqno}
+#
+#    clearflags {}
+#    processflags {todo}
+#    actionflags {which}
+#
+#    write_paramfile {}
+#    param_show_subset {setno}
+#    param_window {}
+#    params_show {}
+#    params_cancel {}
+#    params_keep {}
+#
+#    check_version {}
+#    compare_a_to_b {test_val ref_val}
+#    focus_on {topwindow}
+#    checklock {}
+#    lockstatuschange {choice}
+#    explain_lock {}
+#    make_help {}
+#    first_time {selector}
+#    makeexitdialog {}
+#    doexit {dowrite}
+#    makedaemondialog {}
+#    start_daemon {use_daemon_log}
+#
+#    sortentries {}
+#
+#    addruns {}
+#    addentries_fromfile {}
+#    get_entriesfile {}
+#    bad_filename {fnm}
+#
+#    runentrymade {}
+#    add_entries {}
+#    add_one_entry {newrunno}
+#    resubentry {seqno}
+#    killentry {seqno}
+#    restartentry {seqno}
+#    purgeentry {seqno}
+#    mergeentry {seqno}
+#    short_time {comptime}
+#
+#
+#
+# The following states are defined:
+#
+# Active states:
+#   unstaged   staging   staged   submitted
+#   queued   running  aborting
+#
+# Completed states:
+#   incomplete   aborted   completed   unknown    ERR
+#
+# Pending states:
+#   new   kill   restart 
+#
+#
+# The following subsets are defined and include the indicated states: 
+#
+# Completed   
+#   completed
+#
+# Purgable    
+#   incomplete  aborted  ERR
+#
+# Killable    
+#   new  unstaged  staging  staged
+#   submitted  queued  running
+#
+# reStartable 
+#   staging  staged  submitted  queued  running
+#
+# Re-Runable  
+#   incomplete  aborted  ERR
+#
+# Run Again   
+#   completed
+#
+# Unknown     
+#   unknown
+#
+# All Entries 
+#   new  unstaged  staging  staged  submitted
+#   incomplete  aborted  completed  unknown   ERR
+#   kill  restart  aborting  queued  running
+#
+#
+# List of conditions marked as ERRor
+#
+#  "no raw data found!"		the run number does not match any raw data files (do_new)
+#  "files_lost_staging=N"	N files were not found on the cache disk but their stage requests are not
+#				in the "jtstat" list either (do_staging)
+#  "bad_cache_links=N"		the directory entries matching N files exist on the cache disk, but
+#				they are links pointing to non-existing files (do_staging)
+#  "job_vanished"		a batch job has been submitted to the batch farm but it never
+#				was seen in the queue via jobstat (do_submitted)
+#  "CRASH? xxxxx"		a batch job was submitted and subsequently seen in the queue but
+#				now it's not there anymore -- and it's not "done" by our standards
+#				"xxxx" indicates the last known queue state (do_queued, do_running)
+#  "STATS= -1"			stats report could not be properly parsed for segment no (check_if_done)
+#  "SyncStat: -1"		syncfilter report could not be properly parsed for segment no (check_if_done)
+#
+
+
+
+
+
+
+
+
+
+
+
+################################## preliminaries ####################################
+
+
+
+######### load library file #########
+set ierr [source "batchman.lib"]
+if {$ierr} {
+	puts stderr "\n\n\n  ERROR:  could not load library file 'batchman.lib'\n\n"
+	exit 77
+}
+
+set myname "batchman"
+
+set tmp_iteration_delay      0
+set tmp_status_file          ""
+set tmp_raw_file_source      ""
+set tmp_staged_files_dir     ""
+set tmp_raw_file_prefix      ""
+set tmp_raw_file_suffix      ""
+set tmp_output_dir           ""
+set tmp_tempfile_dir         ""
+set tmp_batchscript          ""
+set tmp_logfiledir           ""
+set tmp_stage_limit          0
+set tmp_batch_home_dir       ""
+set tmp_check_staging        0
+set tmp_auto_restart_failed  0
+set tmp_release_failed_data  0
+set tmp_restart_bad_stages   0
+set tmp_max_items_per_iteration 0
+set tmp_experiment_label     ""
+set tmp_cachegroup           ""
+set tmp_mychachegroup        ""
+
+
+
+
+
+
+
+
+
+
+
+################### main window definition ############################
+
+
+proc primary_window {timenow} {
+    global chosenset firstentry boldfont
+    global runno istatus filecount filelist runtime entrycount
+    global statestrings statebcol statebtxt stagedcount maxentries
+    global starttime endtime filespresent preabortstate jobid
+
+    set firstentry 1
+    
+    frame .buttons -borderwidth 4 -relief ridge -bg Palevioletred
+    frame .entries -borderwidth 1 -relief ridge -bg lightblue
+    frame .bottom -borderwidth 4 -relief ridge -bg Palevioletred
+    pack .buttons .entries .bottom -side top -fill x -expand 1
+    
+    frame .buttons.left -width 44 -bg Palevioletred
+    frame .buttons.right -width 44 -bg Palevioletred
+    label .buttons.date -text $timenow -bg Palevioletred -fg Black  \
+                        -font $boldfont -relief flat -width 35 -pady 2m
+    pack .buttons.left -side left
+    pack .buttons.right -side right
+    pack .buttons.date 
+    
+    button .buttons.right.ok -font $boldfont -text "Exit" -bg LightGrey -fg darkred \
+                       -width 5 -command {focus_on .exitdialog}
+    button .buttons.right.param -font $boldfont -text "Params" -bg LightGrey -fg darkblue \
+                       -width 5 -command {params_show}
+    button .buttons.right.help -font $boldfont -text "?" -fg green -bg darkblue \
+                       -width 1 -command {focus_on .help}
+    pack .buttons.right.ok .buttons.right.param .buttons.right.help -side right
+    
+    button .buttons.left.action -text "undefined" -bg LightGrey -fg black -width 12 -pady 1.5m
+    button .buttons.left.all    -text "Select All" -default disabled -bg LightGrey -fg darkgray -width 10 -pady 1.5m
+    button .buttons.left.none   -text "Clear All"  -default disabled -bg LightGrey -fg darkgray -width 10 -pady 1.5m
+    menubutton .buttons.left.choice -relief raised -width 12 -pady 2m \
+                               -font $boldfont -text "All Entries" \
+                               -bg LightBlue -fg Black -menu .buttons.left.choice.menu
+    menu .buttons.left.choice.menu
+    .buttons.left.choice.menu add command -label "All Entries"   -command {set_choice "All Entries"}
+    .buttons.left.choice.menu add command -label "Purge OK"      -command {set_choice "Completed"}
+    .buttons.left.choice.menu add command -label "Purge BAD"     -command {set_choice "Purgable"}
+    .buttons.left.choice.menu add command -label "Killable"      -command {set_choice "Killable"}
+    .buttons.left.choice.menu add command -label "ReStartable"   -command {set_choice "reStartable"}
+    .buttons.left.choice.menu add command -label "ReRun OK"      -command {set_choice "Run Again"}
+    .buttons.left.choice.menu add command -label "ReRun BAD"     -command {set_choice "Re-Runable"}
+    .buttons.left.choice.menu add command -label "Unknown"       -command {set_choice "Unknown"}
+    button .buttons.left.txt -text "Status File in Use!   READ Access Only" \
+	  -relief raised -fg darkred -pady 1.5m -padx 2m \
+	  -command "focus_on .explainlock"
+    label .buttons.left.processing -text "Initializing BatchMan  --  Please Wait..." \
+	  -relief raised -fg blue -pady 1.5m -padx 2m
+    pack .buttons.left.processing -side right
+    
+
+    button .bottom.next -font $boldfont -text "Next $maxentries   >>" \
+                        -bg LightGrey -fg Black -command {nextset} 
+    button .bottom.prev -font $boldfont -text "<<   Previous $maxentries" \
+                        -bg LightGrey -fg Black -width 15 -command {prevset} 
+    label .bottom.range -bg LightGrey -fg darkblue -text "undefined range" \
+                                      -relief groove -width 40 -pady 1m
+    button .bottom.next2 -font $boldfont -text ">>>" \
+                        -bg LightGrey -fg Black -command {nextset2} 
+    button .bottom.prev2 -font $boldfont -text "<<<" \
+                        -bg LightGrey -fg Black -command {prevset2} 
+    button .bottom.last -font $boldfont -text ">|" \
+                        -bg LightGrey -fg Black -command {lastset} 
+    button .bottom.first -font $boldfont -text "|<" \
+                        -bg LightGrey -fg Black -command {firstset} 
+    pack .bottom.last  .bottom.next2 .bottom.next -side right
+    pack .bottom.first .bottom.prev2 .bottom.prev -side left
+    pack .bottom.range
+
+    explain_lock
+    make_help
+    
+    init_subset
+    update idletasks
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+################### parameter settings and processing ############################
+
+
+proc write_paramfile {} {
+	global  iteration_delay  status_file  param_file
+	global  raw_file_source  staged_files_dir  batch_home_dir
+	global  raw_file_prefix  raw_file_suffix
+	global  output_dir  tempfile_dir  batchmanversion
+	global  batchscript  logfiledir  stage_limit
+	global  bypass_staging_check  auto_restart_failed  release_failed_data
+	global  restart_bad_stages  max_items_per_iteration
+	global  experiment_label  cachegroup  mychachegroup
+	global  check_job_names  bypass_exists
+	global  gracetime_AWOL gracetime_submit gracetime_queue gracetime_killed
+	global  make_backups  backup_addy  make_safeties
+	global  replay_flags  cache_flags
+	
+	set f [open $param_file w]
+	
+	puts $f ";  BATCHMAN parameter file\n;\n;  do NOT edit!!!\n;\n"
+
+	puts $f "batchmanversion = \"$batchmanversion\""
+	
+	puts $f "experiment_label = \"$experiment_label\""
+	puts $f "cachegroup = $cachegroup"
+	puts $f "mychachegroup = \"$mychachegroup\""
+	
+	puts $f "status_file = \"$status_file\""
+	puts $f "batch_home_dir = \"$batch_home_dir\""
+	puts $f "output_dir = \"$output_dir\""
+	puts $f "tempfile_dir = \"$tempfile_dir\""
+	puts $f "logfiledir = \"$logfiledir\""
+	puts $f "batchscript = \"$batchscript\""
+	puts $f "raw_file_source = \"$raw_file_source\""
+	puts $f "staged_files_dir = \"$staged_files_dir\""
+	puts $f "raw_file_prefix = \"$raw_file_prefix\""
+	puts $f "raw_file_suffix = \"$raw_file_suffix\""
+	
+	puts $f "iteration_delay = $iteration_delay"
+	puts $f "stage_limit = $stage_limit"
+	puts $f "max_items_per_iteration = $max_items_per_iteration"
+	
+        puts $f "bypass_staging_check = $bypass_staging_check"
+        puts $f "auto_restart_failed = $auto_restart_failed"
+        puts $f "release_failed_data = $release_failed_data"
+	puts $f "restart_bad_stages = $restart_bad_stages"
+	puts $f "check_job_names = $check_job_names"
+	puts $f "bypass_exists = $bypass_exists"
+	
+	puts $f "make_backups = $make_backups"
+	puts $f "make_safeties = $make_safeties"
+	puts $f "backup_addy = \"$backup_addy\""
+	
+	puts $f "gracetime_AWOL = \"$gracetime_AWOL\""
+	puts $f "gracetime_submit = \"$gracetime_submit\""
+	puts $f "gracetime_queue = \"$gracetime_queue\""
+	puts $f "gracetime_killed = \"$gracetime_killed\""
+
+	puts $f "replay_flags = \"$replay_flags\""
+	puts $f "cache_flags = \"$cache_flags\""
+
+	close $f
+}
+
+
+proc param_show_subset {setno} {
+	pack forget [pack slaves .params.mid.items]
+	foreach xx [pack slaves .params.mid.menu] {$xx configure -relief raised}
+	pack .params.mid.items.$setno -side top -fill both -expand 1 
+	.params.mid.menu.$setno configure -relief sunken
+}
+
+
+proc param_window {} {
+	global screencenterx screencentery  my_version
+	global  tmp_iteration_delay  tmp_status_file tmp_batch_home_dir
+	global  tmp_raw_file_source  tmp_staged_files_dir
+	global  tmp_raw_file_prefix  tmp_raw_file_suffix
+	global  tmp_output_dir  tmp_tempfile_dir
+	global  tmp_batchscript  tmp_logfiledir  tmp_stage_limit
+	global  tmp_check_staging  tmp_auto_restart_failed  tmp_release_failed_data
+	global  tmp_restart_bad_stages  tmp_max_items_per_iteration
+	global  tmp_experiment_label  tmp_cachegroup  tmp_mychachegroup
+	global  tmp_check_job_names  tmp_verify_stages
+	global  tmp_gracetime_AWOL tmp_gracetime_submit tmp_gracetime_queue tmp_gracetime_killed
+	global  tmp_make_backups  tmp_backup_addy  tmp_make_safeties
+
+	# Jianglai 03-24-2003. Added the default replay flag
+	# Wdconinc 02-24-2011. Added the cache links flag
+	global tmp_replay_flags  tmp_cache_flags
+	
+        set posx [expr int($screencenterx * 0.4)]
+	set posy [expr int($screencentery * 0.05)]
+    
+	toplevel .params -class Dialog
+	wm title .params "Parameter Settings"
+	wm transient .params .
+
+	label .params.top -text "P a r a m e t e r   S e t t i n g s" -fg lightgray -bg darkred -relief raised
+	frame .params.mid -relief raised -bd 1
+	frame .params.bot -relief raised -bd 1
+	pack .params.top -side top -fill x  -expand 1 -ipady 2m
+	pack .params.mid .params.bot -side top -fill both
+    
+	button .params.bot.ok -text "Save" -fg blue -command "params_keep"
+	button .params.bot.xx -text "Cancel" -fg red -command "params_cancel"
+	pack .params.bot.ok .params.bot.xx -side left -padx 3m -pady 3m -ipadx 2m -ipady 1m -expand 1
+	
+	frame .params.mid.menu -relief raised -bd 1
+	frame .params.mid.items
+	pack .params.mid.menu -side top -fill x
+	pack .params.mid.items -side top -fill both
+	
+	button .params.mid.menu.1 -text "Basic"    -command "param_show_subset 1"
+	button .params.mid.menu.2 -text "Advanced" -command "param_show_subset 2"
+	button .params.mid.menu.3 -text "Directories" -command "param_show_subset 3"
+	button .params.mid.menu.4 -text "Limits" -command "param_show_subset 4"
+	frame .params.mid.menu.filler -bd 1
+	label .params.mid.menu.filler.core -relief flat -bd 2 -text "BatchMan Version $my_version" -fg darkred
+	pack .params.mid.menu.1 .params.mid.menu.2 .params.mid.menu.3 .params.mid.menu.4 -side left 
+	pack .params.mid.menu.filler -side left -expand 1 -fill both
+	pack .params.mid.menu.filler.core -side left -expand 1 -fill y
+	
+	set w1 43   ;# width of entry boxes
+	set w2 33   ;# width of labels
+
+	frame .params.mid.items.1
+	frame .params.mid.items.2
+	frame .params.mid.items.3
+	frame .params.mid.items.4
+
+
+
+	### now building param set 1 -- basic
+	set pset 1
+	set i 0
+
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "BatchMan & daemon Settings:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+	
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Delay between daemon Iterations:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 \
+	                   -textvariable tmp_iteration_delay -width [expr $w1/2]
+	 label .params.mid.items.$pset.$i.l -text "minutes" -width [expr $w1/2] -anchor w
+	 pack .params.mid.items.$pset.$i.l -side right
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Experiment ID:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_experiment_label -width [expr $w1/2]
+    #jianglai removed 3-5 chars
+	 #label .params.mid.items.$pset.$i.l -text "(3-5 chars)" -width [expr $w1/2] -anchor w
+	 #pack .params.mid.items.$pset.$i.l -side right
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+	
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text " " -width $w2 -anchor e
+	 checkbutton .params.mid.items.$pset.$i.c -anchor w -variable tmp_check_job_names \
+	 			                  -text "Verify Experiment ID of Batch Jobs" 
+	 pack .params.mid.items.$pset.$i.t .params.mid.items.$pset.$i.c -side left -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Status File:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_status_file -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "(Recommendation: somewhere WWW accessible)" -fg darkgreen -anchor e
+	 pack .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Automation Option:" -width $w2 -anchor e
+	 checkbutton .params.mid.items.$pset.$i.c -anchor w -variable tmp_auto_restart_failed \
+	 					  -text "Auto-Restart FAILED Runs"
+	 pack .params.mid.items.$pset.$i.t .params.mid.items.$pset.$i.c -side left -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "Tape Staging System Options:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Monitoring of Staging Queue:" -width $w2 -anchor e
+	 checkbutton .params.mid.items.$pset.$i.c -anchor w -variable tmp_check_staging \
+	 					  -text "Check for Lost Requests (AWOL)"
+	 pack .params.mid.items.$pset.$i.t .params.mid.items.$pset.$i.c -side left -padx 1m
+	 incr i 1
+	
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text " " -width $w2 -anchor e
+	 checkbutton .params.mid.items.$pset.$i.c -anchor w -variable tmp_restart_bad_stages \
+	 			                  -text "Auto Re-Issue Lost Stage Requests" 
+	 pack .params.mid.items.$pset.$i.t .params.mid.items.$pset.$i.c -side left -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Additional Staging Checks:" -width $w2 -anchor e
+	 checkbutton .params.mid.items.$pset.$i.c -anchor w -variable tmp_verify_stages \
+	 					  -text "Verify Successful Stages"
+	 pack .params.mid.items.$pset.$i.t .params.mid.items.$pset.$i.c -side left -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+
+	for {set j 0} {$j < $i} {incr j 1} {
+		pack .params.mid.items.$pset.$j -side top -fill x -expand 1 -padx 3m -pady 1m
+	}
+
+
+
+	### now making param set 2 -- advanced
+	set pset 2
+	set i 0
+
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "The following combine to make the raw data file name:" -anchor w -fg blue
+	label .params.mid.items.$pset.$i.a -text "{prefix}" -fg darkred
+	label .params.mid.items.$pset.$i.b -text "{RunNo}" -fg black
+	label .params.mid.items.$pset.$i.c -text "{suffix}" -fg darkred
+	label .params.mid.items.$pset.$i.d -text "*" -fg black
+	pack .params.mid.items.$pset.$i.t .params.mid.items.$pset.$i.a .params.mid.items.$pset.$i.b \
+	     .params.mid.items.$pset.$i.c .params.mid.items.$pset.$i.d -side left 
+	incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Raw File Prefix:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_raw_file_prefix -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Raw File Suffix:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_raw_file_suffix -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "Batch Job Details:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Command to Run on BatchComputer:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_batchscript -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Cache flags:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_cache_flags -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Replay flags:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_replay_flags -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "Cache Disk Group:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	 frame .params.mid.items.$pset.$i  -relief raised
+	 radiobutton .params.mid.items.$pset.$i.lb -text "Default"  -anchor w \
+	                               -variable tmp_cachegroup -value "default"
+	 radiobutton .params.mid.items.$pset.$i.rb -text "this one:"  -anchor w \
+	                               -variable tmp_cachegroup -value "mine"
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 \
+	                   -textvariable tmp_mychachegroup -width [expr int($w1*0.8)]
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.rb -side right -padx 1m
+	 pack .params.mid.items.$pset.$i.lb -side right -expand 1 -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "Status File Backup:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 checkbutton .params.mid.items.$pset.$i.c -anchor w -variable tmp_make_backups \
+	 					  -text "Backup Status File as:" -width [expr int($w2*0.7)] -anchor w
+	 label .params.mid.items.$pset.$i.x -fg darkgreen -text "{Status File}" -width [expr int($w1*0.3)] -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_backup_addy -width [expr int($w1*0.7)]
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.x .params.mid.items.$pset.$i.c -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 checkbutton .params.mid.items.$pset.$i.c -anchor w -variable tmp_make_safeties \
+	 					  -text "Make Safety Copies with" -width [expr int($w2*0.7)] -anchor w
+	 label .params.mid.items.$pset.$i.x1 -fg darkgreen -text "{Status File}" -width [expr int($w1*0.3)] -anchor e
+	 label .params.mid.items.$pset.$i.x2 -fg blue -text "{Date}" -width [expr int($w1*0.7)] -anchor w
+	 pack .params.mid.items.$pset.$i.x2 .params.mid.items.$pset.$i.x1 .params.mid.items.$pset.$i.c -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m -pady 2p
+	incr i 1
+
+
+	for {set j 0} {$j < $i} {incr j 1} {
+		pack .params.mid.items.$pset.$j -side top -fill x -expand 1 -padx 3m -pady 1m
+	}
+
+
+
+	### now making param set 3 -- directories
+	set pset 3
+	set i 0
+
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "BatchMan & daemon Settings:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Directory for Temporary Files:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_tempfile_dir -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "Tape Staging System Information:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Stub File Directory:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_raw_file_source -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Staged Files Directory:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_staged_files_dir -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "Interfacing with Batch Job:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Batch Replay Home Directory:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_batch_home_dir -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Output Directory (STATS report):" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_output_dir -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Batch Job's logs Directory:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_logfiledir -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m -pady 2p
+	incr i 1
+
+
+	for {set j 0} {$j < $i} {incr j 1} {
+		pack .params.mid.items.$pset.$j -side top -fill x -expand 1 -padx 3m -pady 1m
+	}
+
+
+
+	### now making param set 4 -- timeouts
+	set pset 4
+	set i 0
+
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 93m
+	incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "BatchMan & daemon System Interactions (slow!):" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+	
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "For Each Type, Max."
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 \
+	                   -textvariable tmp_max_items_per_iteration -width [expr $w1/2]
+	 label .params.mid.items.$pset.$i.l -text "Items per Iteration" -width [expr $w1/2] -anchor w
+	 pack .params.mid.items.$pset.$i.l -side right
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "Staging System Fair-Share Limits:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+	
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Max Count of Staged Files:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_stage_limit -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "Staging System Time-Out Values:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+	
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Consider Stages AWOL after:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 \
+	                   -textvariable tmp_gracetime_AWOL -width [expr $w1/2]
+	 label .params.mid.items.$pset.$i.l -text "minutes" -width [expr $w1/2] -anchor w
+	 pack .params.mid.items.$pset.$i.l -side right
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text "Batch System Time-Out Values:" -anchor w -fg blue
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m
+	incr i 1
+	
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Consider Job Submissions Lost after:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 \
+	                   -textvariable tmp_gracetime_submit -width [expr $w1/2]
+	 label .params.mid.items.$pset.$i.l -text "minutes" -width [expr $w1/2] -anchor w
+	 pack .params.mid.items.$pset.$i.l -side right
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+	
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Call Missing Job Crashed after:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 \
+	                   -textvariable tmp_gracetime_queue -width [expr $w1/2]
+	 label .params.mid.items.$pset.$i.l -text "minutes" -width [expr $w1/2] -anchor w
+	 pack .params.mid.items.$pset.$i.l -side right
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+	
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Mark Resistant Jobs UnKillable after:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 \
+	                   -textvariable tmp_gracetime_killed -width [expr $w1/2]
+	 label .params.mid.items.$pset.$i.l -text "minutes" -width [expr $w1/2] -anchor w
+	 pack .params.mid.items.$pset.$i.l -side right
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	frame .params.mid.items.$pset.$i
+	label .params.mid.items.$pset.$i.t -text " "      ;# pad for whitespace
+	pack .params.mid.items.$pset.$i.t -side left -padx 1m -pady 2p
+	incr i 1
+
+
+	for {set j 0} {$j < $i} {incr j 1} {
+		pack .params.mid.items.$pset.$j -side top -fill x -expand 1 -padx 3m -pady 1m
+	}
+
+
+
+	# for starters, display parameter set 1
+	param_show_subset 1
+
+	wm geometry .params +$posx+$posy
+	wm withdraw .params
+}
+
+
+proc params_show {} {
+	# pop-up the parameter window
+	# first we copy the current parameter settings to temp variables
+	# so that no damage is done if CANCEL is later selected
+	global  tmp_iteration_delay  tmp_status_file  tmp_batch_home_dir
+	global  tmp_raw_file_source  tmp_staged_files_dir
+	global  tmp_raw_file_prefix  tmp_raw_file_suffix
+	global  tmp_output_dir  tmp_tempfile_dir
+	global  tmp_batchscript  tmp_logfiledir  tmp_stage_limit
+	global  tmp_check_staging  tmp_auto_restart_failed  tmp_release_failed_data
+	global  tmp_restart_bad_stages  tmp_max_items_per_iteration
+	global  iteration_delay  status_file
+	global  raw_file_source  staged_files_dir
+	global  raw_file_prefix  raw_file_suffix  batch_home_dir
+	global  output_dir  tempfile_dir
+	global  batchscript  logfiledir  stage_limit
+	global  bypass_staging_check  auto_restart_failed  release_failed_data
+	global  restart_bad_stages  max_items_per_iteration
+	global  experiment_label  cachegroup  mychachegroup
+	global  tmp_experiment_label  tmp_cachegroup  tmp_mychachegroup
+	global  check_job_names  bypass_exists
+	global  gracetime_AWOL gracetime_submit gracetime_queue gracetime_killed
+	global  tmp_check_job_names  tmp_verify_stages
+	global  tmp_gracetime_AWOL tmp_gracetime_submit tmp_gracetime_queue tmp_gracetime_killed
+	global  make_backups  backup_addy  make_safeties
+	global  tmp_make_backups  tmp_backup_addy  tmp_make_safeties
+	global paramwindow_active
+    
+	# Jianglai 03-24-2003. Added the default replay flag
+	# Wdconnic 02-24-2011. Added the cache links flag
+	global replay_flags  cache_flags
+	global tmp_replay_flags  tmp_cache_flags
+
+	set paramwindow_active 0
+
+	set tmp_iteration_delay      $iteration_delay
+	set tmp_status_file          $status_file
+	set tmp_raw_file_source      $raw_file_source
+	set tmp_staged_files_dir     $staged_files_dir
+	set tmp_raw_file_prefix      $raw_file_prefix
+	set tmp_raw_file_suffix      $raw_file_suffix
+	set tmp_output_dir           $output_dir
+	set tmp_tempfile_dir         $tempfile_dir
+	set tmp_batchscript          $batchscript
+	set tmp_logfiledir           $logfiledir
+	set tmp_stage_limit          $stage_limit
+	set tmp_batch_home_dir       $batch_home_dir
+	set tmp_check_staging        [expr ! $bypass_staging_check]
+	set tmp_auto_restart_failed  $auto_restart_failed
+	set tmp_release_failed_data  [expr ! $auto_restart_failed]
+	set tmp_restart_bad_stages   $restart_bad_stages
+	set tmp_max_items_per_iteration $max_items_per_iteration
+	set tmp_experiment_label     $experiment_label
+	set tmp_cachegroup           $cachegroup
+	set tmp_mychachegroup        $mychachegroup
+	set tmp_check_job_names      $check_job_names
+	set tmp_verify_stages        [expr ! $bypass_exists]
+	set tmp_gracetime_AWOL       $gracetime_AWOL
+	set tmp_gracetime_submit     $gracetime_submit
+	set tmp_gracetime_queue      $gracetime_queue
+	set tmp_gracetime_killed     $gracetime_killed
+	set tmp_make_backups         $make_backups
+	set tmp_backup_addy          $backup_addy
+	set tmp_make_safeties        $make_safeties
+	set tmp_replay_flags         $replay_flags
+	set tmp_cache_flags          $cache_flags
+	focus_on .params
+	tkwait visibility .params
+	set paramwindow_active 1
+}
+
+proc params_cancel {} {
+	# discard any changes to params, remove window
+	global paramwindow_active
+	wm withdraw .params
+	set paramwindow_active 0
+}
+
+proc params_keep {} {
+	# make param changes permanent by copying temp values to permamnent
+	# variables, write updated parameter file, remove window
+	global  tmp_iteration_delay  tmp_status_file  tmp_batch_home_dir
+	global  tmp_raw_file_source  tmp_staged_files_dir
+	global  tmp_raw_file_prefix  tmp_raw_file_suffix
+	global  tmp_output_dir  tmp_tempfile_dir
+	global  tmp_batchscript  tmp_logfiledir  tmp_stage_limit
+	global  tmp_check_staging  tmp_auto_restart_failed  tmp_release_failed_data
+	global  tmp_restart_bad_stages  tmp_max_items_per_iteration
+	global  iteration_delay  status_file
+	global  raw_file_source  staged_files_dir
+	global  raw_file_prefix  raw_file_suffix  batch_home_dir
+	global  output_dir  tempfile_dir  my_version  batchmanversion
+	global  batchscript  logfiledir  stage_limit
+	global  bypass_staging_check  auto_restart_failed  release_failed_data
+	global  restart_bad_stages  max_items_per_iteration
+	global  experiment_label  cachegroup  mychachegroup
+	global  tmp_experiment_label  tmp_cachegroup  tmp_mychachegroup
+	global  check_job_names  bypass_exists
+	global  gracetime_AWOL gracetime_submit gracetime_queue gracetime_killed
+	global  tmp_check_job_names  tmp_verify_stages
+	global  tmp_gracetime_AWOL tmp_gracetime_submit tmp_gracetime_queue tmp_gracetime_killed
+	global  make_backups  backup_addy  make_safeties
+	global  tmp_make_backups  tmp_backup_addy  tmp_make_safeties
+	global paramwindow_active
+
+	# Jianglai 03-24-2003. Added the default replay flag
+	global replay_flags  cache_flags
+	global tmp_replay_flags  tmp_cache_flags
+
+
+	set iteration_delay      $tmp_iteration_delay
+	set status_file          $tmp_status_file
+	set raw_file_source      $tmp_raw_file_source
+	set staged_files_dir     $tmp_staged_files_dir
+	set raw_file_prefix      $tmp_raw_file_prefix
+	set raw_file_suffix      $tmp_raw_file_suffix
+	set output_dir           $tmp_output_dir
+	set tempfile_dir         $tmp_tempfile_dir
+	set batchscript          $tmp_batchscript
+	set logfiledir           $tmp_logfiledir
+	set stage_limit          $tmp_stage_limit
+	set batch_home_dir       $tmp_batch_home_dir
+	set bypass_staging_check [expr ! $tmp_check_staging]
+	set auto_restart_failed  $tmp_auto_restart_failed
+	set release_failed_data  [expr ! $tmp_auto_restart_failed]
+	set restart_bad_stages   $tmp_restart_bad_stages
+	set max_items_per_iteration $tmp_max_items_per_iteration
+	set experiment_label     $tmp_experiment_label
+	set cachegroup           $tmp_cachegroup
+	set mychachegroup        $tmp_mychachegroup
+	set batchmanversion      $my_version
+	set check_job_names	 $tmp_check_job_names
+	set bypass_exists	 [expr ! $tmp_verify_stages]
+	set gracetime_AWOL	 $tmp_gracetime_AWOL
+	set gracetime_submit	 $tmp_gracetime_submit
+	set gracetime_queue	 $tmp_gracetime_queue
+	set gracetime_killed	 $tmp_gracetime_killed
+	set make_backups	 $tmp_make_backups
+	set backup_addy 	 $tmp_backup_addy
+	set make_safeties	 $tmp_make_safeties
+	set replay_flags         $tmp_replay_flags	
+	set cache_flags          $tmp_cache_flags
+	write_paramfile
+	wm withdraw .params
+	set paramwindow_active 0
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#########################
+
+proc check_version {} {
+	global  my_version  batchmanversion  firsttime
+
+	if {$firsttime != 1} {
+		set testval [compare_a_to_b $my_version $batchmanversion]
+		if {$testval > 0} {
+			set firsttime -1
+			puts "\n    Version Ugrade:  I am version ${my_version}"
+			puts "                parameter file is $batchmanversion \n"
+		} elseif {$testval < 0} {
+			set firsttime -99
+			puts "\n  !!!  Version Mismatch:  I am version ${my_version}"
+			puts "      !!!         parameter file is $batchmanversion \n"
+		}
+	}
+}
+
+
+proc compare_a_to_b {test_val ref_val} {
+	# short routine to compare multi-segmented numerical values
+	# such as often used in version numbers
+	# default comparison is biased by length of string etc
+	#  basic assumptions:   4     > 3
+	#                       3.4   > 3.3
+	#                       3.39  > 3.4
+	#                       3.4.1 > 3.3.22
+	#                       3.4.1 > 3.4
+	#            3.04 = 3.4 = 3,4 = 3:4 = 3.4.0.0.0.0.0
+	# return value:  0 if same, +1 if test is larger, -1 if test is less
+	
+	set segment_seperators ".,:"
+	set result 0
+	
+	set reflist  [split $ref_val  $segment_seperators]
+	set testlist [split $test_val $segment_seperators]
+	
+	if {[llength $testlist] > [llength $reflist]} {
+		set maxlength [llength $testlist]
+	} else {
+		set maxlength [llength $reflist]
+	}
+	
+	for {set i 0} {$i < $maxlength} {incr i 1} {
+		if {$i < [llength $reflist]} {
+			set iref [lindex $reflist $i]
+		} else {
+			set iref 0
+		}
+		if {$i < [llength $testlist]} {
+			set itest [lindex $testlist $i]
+		} else {
+			set itest 0
+		}
+		
+		if {$itest > $iref} {
+			set result 1
+			break
+		} elseif {$itest < $iref} {
+			set result -1
+			break
+		}
+	}
+	
+	return $result
+}
+
+
+
+proc focus_on {topwindow} {
+	wm deiconify $topwindow
+	raise $topwindow
+}
+
+proc checklock {} {
+	global screencenterx screencentery
+	global gotlock waitforlock
+	
+	# if we have the lock, show the buttons to allow changes
+	# if not, try to get it
+	# if that fails, wait and try again
+	# if it succeeds, ask the user if they want to re-load
+	# the status file or continue in passive mode (-99)
+	
+	if {$gotlock != -99} {
+		foreach slv [pack slaves .buttons.left] {pack forget $slv}
+		if {$gotlock == 1} {
+			pack .buttons.left.choice .buttons.left.action \
+			    .buttons.left.all .buttons.left.none -side left
+		} else {
+			pack .buttons.left.txt -side right
+			setlock
+			if {$gotlock != 1} {
+				after $waitforlock {checklock}
+			} else {
+				if {[winfo exists .reloaddialog]} {
+					focus_on .reloaddialog
+				} else {
+					toplevel .reloaddialog -class Dialog
+					wm title .reloaddialog "Reload Status File?"
+					wm transient .reloaddialog .
+					frame .reloaddialog.f -relief raised -bd 1
+					pack .reloaddialog.f -side top -fill both
+
+					message .reloaddialog.f.t1 -width 3i -text "We now have exclusive access to the status file."
+					message .reloaddialog.f.t2 -width 3i -text "Would you like to:"
+					button .reloaddialog.f.active -fg blue -text "Re-Read Status File so you can make Changes" -command "lockstatuschange 1"
+					button .reloaddialog.f.passive -fg darkgreen -text "Continue as Observer" -command "lockstatuschange 0"
+
+        				pack .reloaddialog.f.t1 -side top -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+        				pack .reloaddialog.f.t2 -side top -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+					pack .reloaddialog.f.active -side top -expand 1 -fill both -padx 3m
+					pack .reloaddialog.f.passive -side top -expand 1 -fill both -padx 3m -pady 3m
+
+					set posx [expr int($screencenterx * 0.4)]
+					set posy [expr int($screencentery * 0.4)]
+					wm geometry .reloaddialog +$posx+$posy
+				}
+			}
+		}
+	}
+}
+
+proc lockstatuschange {choice} {
+	global gotlock  thistime
+	
+	wm withdraw .reloaddialog
+	if {$choice == 0} {
+		set xerr [clearlock]
+		set gotlock -99
+	} elseif {$choice == 1} {
+		set thistime [exec date]
+		readstatusfile
+		sortentries
+		checkrunning -1
+		update_runtime $thistime
+    		.buttons.date configure -text $thistime
+		set_choice "All Entries"
+		checklock
+	} else {
+		puts " ERROR lockstatuschange: bad choice ($choice)"
+	}
+}
+
+
+proc set_choice {choice} {
+	global chosenset firstentry
+	
+	switch $choice {
+		"All Entries"  {set labeltxt "All Entries"}
+		"Completed"    {set labeltxt "Purge OK"}
+		"Purgable"     {set labeltxt "Purge BAD"}
+		"Killable"     {set labeltxt "Killable"}
+		"reStartable"  {set labeltxt "ReStartable"}
+		"Re-Runable"   {set labeltxt "ReRun BAD"}
+		"Run Again"    {set labeltxt "ReRun OK"}
+		"Unknown"      {set labeltxt "Unknown"}
+		default        {set labeltxt "(error)"}
+	}
+	
+	.buttons.left.choice configure -text $labeltxt
+	set chosenset  $choice
+	set firstentry 0
+	clearflags
+	showsubset
+}
+
+proc nextset {} {
+	global firstentry maxentries choicecount
+	set firstentry [expr $firstentry + $maxentries]
+	if {$firstentry > $choicecount} {set firstentry [expr $firstentry - $maxentries]}
+	showsubset 
+}
+
+proc prevset {} {
+	global firstentry maxentries choicecount
+	set firstentry [expr $firstentry - $maxentries]
+	if {$firstentry < 1} {set firstentry 1}
+	showsubset 
+}
+
+proc nextset2 {} {
+	global firstentry maxentries choicecount
+	set firstentry [expr $firstentry + 5*$maxentries]
+	if {$firstentry > $choicecount} {set firstentry [expr $choicecount - $maxentries +1]}
+	if {$firstentry < 1} {set firstentry 1}
+	showsubset 
+}
+
+proc prevset2 {} {
+	global firstentry maxentries choicecount
+	set firstentry [expr $firstentry - 5*$maxentries]
+	if {$firstentry < 1} {set firstentry 1}
+	showsubset 
+}
+
+proc firstset {} {
+	global firstentry maxentries choicecount
+	set firstentry 1
+	showsubset 
+}
+
+proc lastset {} {
+	global firstentry maxentries choicecount
+	set firstentry [expr $choicecount - $maxentries +1]
+	if {$firstentry < 1} {set firstentry 1}
+	showsubset 
+}
+
+
+
+
+
+
+
+
+
+
+
+proc explain_lock {} {
+    global screencenterx screencentery waitforlock lockfile
+		  
+    set posx [expr int($screencenterx * 0.4)]
+    set posy [expr int($screencentery * 0.4)]
+    
+    set wtm [expr int($waitforlock/1000)]
+    set tlname "explainlock"
+    set tlabel "Lock File Found"
+    set mytext "The current status of all your jobs is stored in a file. \
+                This status file is used by BATCHMAN and by the automatic\
+		background process to communicate. \n\n\
+		Right now, it appears that the background process is\
+		updating your status file.  To ensure that you do not overwrite\
+		these updates, you are given only read\
+		access to the status file until the automatic process\
+		is done.  Usually, this only takes a few moments --\
+		another check will be done every $wtm\
+		seconds. \n\n  However, it is possible that the \"lock file\"\
+		is actually a remnant from an aborted or crashed old\
+		process.  You can exit BATCHMAN and check the contents of\
+		the lock file for the PID of the process that created it. \
+		If that process is no longer running, you can delete the\
+		lock file and restart BATCHMAN.  Your lock file is"
+    
+    toplevel .$tlname -class Dialog
+    wm title .$tlname $tlabel
+    wm transient .$tlname .
+
+    frame .$tlname.f -relief raised -bd 1
+    frame .$tlname.f2 -relief raised -bd 1
+    pack .$tlname.f .$tlname.f2 -side top -fill both
+    
+    message .$tlname.f.t -text $tlabel -justify center -fg darkred -width 200p
+    message .$tlname.f.l -text $mytext -aspect 300 -justify center
+    message .$tlname.f.b -text $lockfile -fg blue -width 15c
+    pack .$tlname.f.t -side top -expand 1 -fill x -padx 3m -pady 4m
+    pack .$tlname.f.l -side top -padx 3m
+    pack .$tlname.f.b -side top -expand 1 -fill x -padx 3m -pady 4m
+
+    button .$tlname.f2.x -text "OK" -command "wm withdraw .$tlname"
+    pack .$tlname.f2.x -side left -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+    wm geometry .$tlname +$posx+$posy
+    wm withdraw .$tlname
+}
+
+set t "Bat"
+set t "${t}chMa"
+set t "${t}n:  Bat"
+set t "${t}ch Ma"
+set t "${t}nagement  by (f"
+set t "${t}rw)"
+wm title . $t
+
+proc make_help {} {
+    global screencenterx screencentery
+		  
+    set posx [expr int($screencenterx * 0.3)]
+    set posy [expr int($screencentery * 0.1)]
+    set xsize $screencenterx
+    
+    set tlname "help"
+    set tlabel "BatchMan Overview"
+    set mytext1 "To ease the handling of the large number of batch jobs involved in the\
+                 analysis of the Gen01 data, <frw> has developed the BatchMan system.\
+		 It consists of the interface GUI (batchman) and the job handling code\
+		 (batch_daemon) which runs as a background process.\n\nThese two scripts\
+		 communicate via a shared status file, which is in HTML format, so it\
+		 can be viewed with any web browser.  To insure only one of the two\
+		 scripts accesses the status file at a time, a \"lock file\" is created\
+		 prior to the script reading the status file.  This lock file will\
+		 contain the PID of the process that created it and it will be deleted\
+		 once the script is done accessing the status file."
+    set mytext2 "NOTE: if either\
+		 script exits abnormally, the lock file may be left behind and preclude\
+		 further access to the status file.  In that case, it must be deleted\
+		 manually.  Also, keep in mind that the BatchMan GUI will claim a lock\
+		 for as long as it is running, keeping the daemon from progressing!"
+    set mytext3 "The daemon script\
+		 will track the analysis of each run from initial tape staging request\
+		 through the batch farm submission until done.  As each step is\
+		 completed, the next one is initiated and the run's state is\
+		 updated in the status file.\n\nThe BatchMan GUI relays your wishes to\
+		 the daemon and also allows you to monitor each run's progress.  The\
+		 script groups the analysis jobs by their current state and your options\
+		 are determined by the subset you are currently displaying.\n\nTo ADD a\
+		 new run for analysis, you must be displaying \"All Entries\" -- selected\
+		 with the button in the upper left of the display.  Clicking \"Add\
+		 Entries\" will then allow you to enter (or read in) a list of run numbers.\
+		 If you enter them manually, be sure to hit \"Enter\"!\n\nThe other choices\
+		 you have, depending on subset displayed, are: purging entries from the\
+		 status file, re-submitting completed or aborted jobs, and killing\
+		 active jobs.  If you happen to start a batch job manually, outside of\
+		 the BatchMan system, you can include it for monitoring.\n\nOne last note:\
+		 the buttons \"Select ALL\" and \"Clear All\" only apply to the currently\
+		 displayed entries; selections ARE saved from one set of entries to the\
+		 next, allowing you to select on more than one screen full at a time, but\
+		 are NOT saved from one subset to another."
+    
+    toplevel .$tlname -class Dialog
+    wm title .$tlname $tlabel
+    wm transient .$tlname .
+
+    frame .$tlname.t -relief raised -bd 1
+    frame .$tlname.b -relief raised -bd 1
+    pack .$tlname.t .$tlname.b -side top -expand 1 -fill x
+    
+    message .$tlname.t.h -text $tlabel -justify center -fg darkred -width $xsize
+    message .$tlname.t.l1 -text $mytext1 -width $xsize -justify left
+    message .$tlname.t.l2 -text $mytext2 -width $xsize -justify center -fg blue
+    message .$tlname.t.l3 -text $mytext3 -width $xsize -justify left
+    
+    pack .$tlname.t.h  -side top -expand 1 -fill x -padx 3m -pady 4m
+    pack .$tlname.t.l1 .$tlname.t.l2 .$tlname.t.l3 -side top -expand 1 -fill x -padx 3m -pady 1m
+
+    button .$tlname.b.x -text "OK" -command "wm withdraw .$tlname"
+    pack .$tlname.b.x -side left -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+    
+    wm geometry .$tlname +$posx+$posy
+    wm withdraw .$tlname
+}
+
+proc first_time {selector} {
+	global screencenterx screencentery
+	global my_version  batchmanversion
+	global use_statusfile
+	global paramwindow_active
+
+	set complexwindow 0
+	if {$selector == -1} {
+            set tlname "versionupgrade"
+	    set tlabel "Welcome Back!"
+	    set mytext "It seems this is not the first time you are using BatchMan,\
+        		so: Welcome Back!\nApparently you have upgraded to a newer\
+	   		version since you last used BatchMan.  To avoid problems,\
+	   		please click on the button marked \"Params\" at the upper \
+	   		right of the main window before you make any changes\
+	   		elsewhere.  There is a good chance that some options have\
+	   		been changed or added, so you might want to take a closer\
+	   		look.  Happy analyzing!"
+	} elseif {$selector == -99} {
+            set tlname "versionmismatch"
+	    set tlabel "Version Decay Problem!"
+	    set mytext "It seems this is not the first time you are using BatchMan,\
+        		so: Welcome Back!\nThere is a bit of a problem, though: it\
+	   		seems that you previously ran a newer version of BatchMan\
+	   		than this: I am version $my_version but your parameter file\
+	   		tells me that you last ran version ${batchmanversion}. \
+	   		While things may work just fine anyway, please either quit\
+	   		now and switch back to the newer version, or at the very\
+	   		least click on the button marked \"Params\" at the upper\
+	   		right of the main window and save my parameter settings\
+	   		before you make any changes elsewhere."
+	} elseif {$use_statusfile} {
+	    set complexwindow 1
+            set tlname "firsttimeplus"
+    	    set tlabel "Welcome!"
+	    set mytext "Is this the first time you are using BatchMan?\nIf so,\
+           		please note the help button, denoted by \"?\" just to the\
+        		right of the date/time.\n\nEven if you are already\
+        		familiar with the BatchMan system, you need to set the\
+        		operation parameter.  Most are good as-is, but some may\
+        		require an adjustment.  You can access them via the button\
+        		marked \"Params\" at the upper right of the main window.\n\n\
+			Apparently, the default status file already exists.  You can\
+			either read and use this existing file, ignore it and replace\
+			its contents with the entries you add here, or you can change\
+			the name of the status file to use in the Parameter window.\
+			Please note that this latter choice will NOT preclude you\
+			from overwriting an(other) existing file..."
+	} else {
+            set tlname "firsttime"
+    	    set tlabel "Welcome!"
+	    set mytext "Is this the first time you are using BatchMan?\nIf so,\
+           		please note the help button, denoted by \"?\" just to the\
+        		right of the date/time.\n\nEven if you are already\
+        		familiar with the BatchMan system, you need to set the\
+        		operation parameter.  Most are good as-is, but some may\
+        		require an adjustment.\n\nPlease click on the button\
+        		marked \"Params\" at the upper right of the main window\
+	   		and save my parameter settings\
+        		before you make any changes elsewhere."
+	}
+	
+	if {[winfo exists .$tlname]} {
+		focus_on .$tlname
+	} elseif {$complexwindow} {
+	    # complex multi-choice window
+	    set posx [expr int($screencenterx * 0.4)]
+	    set posy [expr int($screencentery * 0.4)]
+
+	    toplevel .$tlname -class Dialog
+	    wm title .$tlname $tlabel
+	    wm transient .$tlname .
+
+	    frame .$tlname.f -relief raised -bd 1
+	    frame .$tlname.f2 -relief raised -bd 1
+	    pack .$tlname.f .$tlname.f2 -side top -fill both
+
+	    message .$tlname.f.t -text $tlabel -justify center -fg darkred -width 200p
+	    message .$tlname.f.l -text $mytext -aspect 300 -justify center
+	    pack .$tlname.f.t -side top -expand 1 -fill x -padx 3m -pady 3m
+	    pack .$tlname.f.l -side top -padx 3m -pady 1m
+
+	    button .$tlname.f2.x1 -fg blue -text "Read Existing" -command "set use_statusfile 1; destroy .$tlname"
+	    button .$tlname.f2.x2 -fg red  -text "Replace"       -command "set use_statusfile 0; destroy .$tlname"
+	    button .$tlname.f2.x3 -fg darkgreen -text "Change Name" \
+	    			  -command "params_show; tkwait variable paramwindow_active; destroy .$tlname"
+	    pack .$tlname.f2.x1 .$tlname.f2.x2 .$tlname.f2.x3 \
+	               -side left -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+	    wm geometry .$tlname +$posx+$posy
+	    raise .$tlname
+	    tkwait window .$tlname
+	} else {
+	    # simple click-to-dismiss window
+	    set posx [expr int($screencenterx * 0.4)]
+	    set posy [expr int($screencentery * 0.4)]
+
+	    toplevel .$tlname -class Dialog
+	    wm title .$tlname $tlabel
+	    wm transient .$tlname .
+
+	    frame .$tlname.f -relief raised -bd 1
+	    frame .$tlname.f2 -relief raised -bd 1
+	    pack .$tlname.f .$tlname.f2 -side top -fill both
+
+	    message .$tlname.f.t -text $tlabel -justify center -fg darkred -width 200p
+	    message .$tlname.f.l -text $mytext -aspect 300 -justify center
+	    pack .$tlname.f.t -side top -expand 1 -fill x -padx 3m -pady 3m
+	    pack .$tlname.f.l -side top -padx 3m -pady 1m
+
+	    button .$tlname.f2.x -text "OK" -command "destroy .$tlname"
+	    pack .$tlname.f2.x -side left -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+	    wm geometry .$tlname +$posx+$posy
+	    raise .$tlname
+	}
+}
+
+
+
+
+
+proc makeexitdialog {} {
+	global screencenterx screencentery
+	
+	toplevel .exitdialog -class Dialog
+	wm title .exitdialog "Exit Confirmation"
+	wm transient .exitdialog .
+
+	frame .exitdialog.f -relief raised -bd 1
+	pack .exitdialog.f -side top -fill both
+	
+	message .exitdialog.f.t -width 3i -text "Would you like to:"
+	button .exitdialog.f.save -fg blue -text "Save Changes and Quit" -command "doexit 1"
+	button .exitdialog.f.abort -fg red -text "Exit NOW" -command "doexit 0"
+	button .exitdialog.f.cancel -fg darkgreen -text "Cancel EXIT Request" -command "wm withdraw .exitdialog"
+	
+        pack .exitdialog.f.t -side top -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+	pack .exitdialog.f.save -side top -expand 1 -fill both -padx 3m -pady 3m
+	pack .exitdialog.f.abort -side top -expand 1 -fill both -padx 3m
+	pack .exitdialog.f.cancel -side top -expand 1 -fill both -padx 3m -pady 3m
+		  
+	set posx [expr int($screencenterx * 1.1)]
+	set posy [expr int($screencentery * 0.4)]
+	wm geometry .exitdialog +$posx+$posy
+	wm withdraw .exitdialog
+}
+
+wm title . "BatchMan:  Batch Management  by (frw)"
+
+proc doexit {dowrite} {
+	global gotlock new_entrycount
+	
+	if {[winfo exists .daemondialog]} {
+		focus_on .daemondialog
+	} else {
+		if {$gotlock == 1} {
+			if {$dowrite == 1} {writestatusfile 0}
+			set xerr [clearlock]
+			if {($new_entrycount > 0) && ($dowrite == 1)} {makedaemondialog}
+		} elseif {$dowrite == 1} {
+			puts "\n  NOTE: you did not have exclusive access to the"
+			puts "    status file.  Therefore, no changes were made."
+		}
+		exit
+	}
+}
+
+
+proc makedaemondialog {} {
+	global screencenterx screencentery
+	
+	if {![winfo exists .daemondialog]} {
+		toplevel .daemondialog -class Dialog
+		wm title .daemondialog "Background daemon"
+		wm transient .daemondialog .
+
+		frame .daemondialog.f -relief raised -bd 1
+		pack .daemondialog.f -side top -fill both
+
+		message .daemondialog.f.t -width 3i -text "Would you like to start a background daemon?\n\n\
+							You need at least one for your jobs to progress, \
+							but you can have several..."
+		button .daemondialog.f.daemonlog -fg blue -text "Start daemon, Use Log File" -command "start_daemon 1"
+		button .daemondialog.f.daemon    -fg darkgreen -text "Start daemon, No Log File"   -command "start_daemon 0"
+		button .daemondialog.f.nodaemon  -fg red -text "No daemon" -command "destroy .daemondialog"
+
+        	pack .daemondialog.f.t -side top -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+		pack .daemondialog.f.daemonlog -side top -expand 1 -fill both -padx 3m -pady 3m
+		pack .daemondialog.f.daemon -side top -expand 1 -fill both -padx 3m
+		pack .daemondialog.f.nodaemon -side top -expand 1 -fill both -padx 3m -pady 3m
+
+		set posx [expr int($screencenterx * 1.1)]
+		set posy [expr int($screencentery * 0.4)]
+		wm geometry .daemondialog +$posx+$posy
+		
+	}
+	focus_on .daemondialog
+	tkwait window .daemondialog
+}
+
+
+proc start_daemon {use_daemon_log} {
+	global entrycount
+	
+	set isrunning 0
+	set proclist [exec ps x]
+	set ii [llength $proclist]
+	set i 0
+	while {$i < $ii} {
+		if {[string match *tclsh [lindex $proclist $i]]} {
+			set a [lindex $proclist [expr $i +1]]
+			set x [string first "batch_daemon.tcl" $a]
+			if {$x > -1} {
+				set isrunning 1
+				break
+			}
+		}
+		incr i 1
+	}
+	if {$isrunning == 1} {
+		set isrunning [expr ! [daemon_confirm_dialog]]
+	}
+	if {$isrunning == 0} {
+		if {$use_daemon_log} {
+			puts "\n\n  Starting  Batch_daemon  background process with log...\n"
+			exec batch_daemon.tcl interactive > batch_daemon.log 2>batch_daemon.error_log &
+		} else {
+			puts "\n\n  Starting  Batch_daemon  background process, no log...\n"
+			exec batch_daemon.tcl 2>batch_daemon.error_log &
+		}
+	}
+	destroy .daemondialog
+}
+
+
+proc daemon_confirm_dialog {} {
+	global screencenterx screencentery
+	global daemon_answer
+	
+	set daemon_answer 0
+	
+	if {![winfo exists .daemonconfirm]} {
+		toplevel .daemonconfirm -class Dialog
+		wm title .daemonconfirm "Background daemon Exists"
+		wm transient .daemonconfirm .
+
+		frame .daemonconfirm.f -relief raised -bd 1
+		pack .daemonconfirm.f -side top -fill both
+
+		message .daemonconfirm.f.t -width 3i -text "You already have a daemon running on this CPU.\n\
+							Would you like to start another one?"
+		button .daemonconfirm.f.daemon    -fg darkgreen -text "Yes"   -command "set daemon_answer 1;destroy .daemonconfirm"
+		button .daemonconfirm.f.nodaemon  -fg red -text "No" -command "set daemon_answer 0;destroy .daemonconfirm"
+
+        	pack .daemonconfirm.f.t -side top -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+		pack .daemonconfirm.f.daemon   -side left -expand 1 -fill both -padx 2m -pady 2m
+		pack .daemonconfirm.f.nodaemon -side left -expand 1 -fill both -padx 2m -pady 2m
+
+		set posx [expr int($screencenterx * 1.15)]
+		set posy [expr int($screencentery * 0.45)]
+		wm geometry .daemonconfirm +$posx+$posy
+		
+	}
+	focus_on .daemonconfirm
+	tkwait window .daemonconfirm
+	
+	return $daemon_answer
+}
+
+
+
+
+
+
+proc sortentries {} {
+	global runno istatus filecount filelist runtime starttime 
+	global endtime filespresent preabortstate jobid  selected 
+	global current_state stagedcount  
+	global entrycount
+    
+	for {set i 1} {$i <= $entrycount} {incr i 1} {
+	  if {$istatus($i) == "completed"} {
+		for {set j [expr $i +1]} {$j <= $entrycount} {incr j 1} {
+		  if {$istatus($j) == "completed"} {
+			if {$runno($i) > $runno($j)} {
+			     set tmpa $runno($i) 
+			     set tmpb $istatus($i) 
+			     set tmpc $filecount($i) 
+			     set tmpd $filelist($i) 
+			     set tmpe $runtime($i)
+			     set tmpf $starttime($i) 
+			     set tmpg $endtime($i) 
+			     set tmph $filespresent($i) 
+			     set tmpi $preabortstate($i)
+			     set tmpj $jobid($i)
+			     set tmpk $selected($i) 
+			     set tmpl $current_state($i) 
+			     set tmpm $stagedcount($i)
+
+			     set runno($i)	   $runno($j)
+			     set istatus($i) 	   $istatus($j)
+			     set filecount($i)     $filecount($j)
+			     set filelist($i) 	   $filelist($j)
+			     set runtime($i)	   $runtime($j)
+			     set starttime($i)     $starttime($j)
+			     set endtime($i) 	   $endtime($j)
+			     set filespresent($i)  $filespresent($j)
+			     set preabortstate($i) $preabortstate($j)
+			     set jobid($i)	   $jobid($j)
+			     set selected($i) 	   $selected($j)
+			     set current_state($i) $current_state($j)
+			     set stagedcount($i)   $stagedcount($j)
+
+			     set runno($j)	   $tmpa
+			     set istatus($j)	   $tmpb
+			     set filecount($j)     $tmpc
+			     set filelist($j)	   $tmpd
+			     set runtime($j)	   $tmpe
+			     set starttime($j)     $tmpf
+			     set endtime($j)	   $tmpg
+			     set filespresent($j)  $tmph
+			     set preabortstate($j) $tmpi
+			     set jobid($j)	   $tmpj
+			     set selected($j)	   $tmpk
+			     set current_state($j) $tmpl
+			     set stagedcount($j)   $tmpm
+			}
+		  }
+		}
+	  }
+	}
+}
+
+
+
+
+
+
+
+proc clearflags {} {
+	global entrycount selected
+	for {set i 1} {$i <= $entrycount} {incr i 1} {set selected($i) 0}
+}
+
+
+proc processflags {todo} {
+	global firstentry choicecount selected
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid
+	global screencenterx screencentery
+	global chosenflag displayedflag
+	
+	if {$todo == "start"} {
+		set maintxt "Runs to ReSubmit:"
+		set bttntxt "ReSubmit"
+		set bttncmnd "run"
+	} elseif {$todo == "purge"} {
+		set maintxt "Entries to Purge:"
+		set bttntxt "Purge"
+		set bttncmnd "purge"
+	} elseif {$todo == "kill"} {
+		set maintxt "Runs to Kill:"
+		set bttntxt "Kill"
+		set bttncmnd "kill"
+	} elseif {$todo == "restart"} {
+		set maintxt "Runs to Restart:"
+		set bttntxt "Restart"
+		set bttncmnd "restart"
+	} elseif {$todo == "merge"} {
+		set maintxt "Runs to Include:"
+		set bttntxt "Merge"
+		set bttncmnd "merge"
+	}
+	
+	
+	if {$todo == "setall"} {
+		for {set i 1} {$i <= $entrycount} {incr i 1} {
+			if {$chosenflag($i) == 1} {
+				if {$displayedflag($i) == 1} {set selected($i) 1}
+			}
+		}
+		
+	} elseif {$todo == "clearall"} {
+		for {set i 1} {$i <= $entrycount} {incr i 1} {
+			if {$chosenflag($i) == 1} {
+				if {$displayedflag($i) == 1} {set selected($i) 0}
+			}
+		}
+	} elseif {$todo == "setallall"} {
+		for {set i 1} {$i <= $entrycount} {incr i 1} {
+			if {$chosenflag($i) == 1} {
+				set selected($i) 1
+			}
+		}
+		
+	} elseif {$todo == "clearallall"} {
+		for {set i 1} {$i <= $entrycount} {incr i 1} {
+			if {$chosenflag($i) == 1} {
+				set selected($i) 0
+			}
+		}
+
+	} else {
+	
+		if {[winfo exists .confirmdialog]} {
+			focus_on .confirmdialog
+		} else {
+			set posx [expr int($screencenterx * 0.6)]
+			set posy [expr int($screencentery * 0.6)]
+
+			toplevel .confirmdialog -class Dialog
+			wm title .confirmdialog "Confirmation"
+			wm geometry .confirmdialog +$posx+$posy
+			wm transient .confirmdialog .
+
+			frame .confirmdialog.f -relief raised -bd 1
+			pack .confirmdialog.f -side top -fill both
+
+			label .confirmdialog.f.t -text $maintxt -relief flat -pady 1
+			frame .confirmdialog.f.m   -bd 3
+			frame .confirmdialog.f.bf -relief ridge -bd 1
+       			pack .confirmdialog.f.t .confirmdialog.f.m .confirmdialog.f.bf \
+	        	   -side top -fill x -pady 1m -expand 1
+
+			listbox .confirmdialog.f.m.lb  -borderwidth 2 \
+	        	   -yscrollcommand ".confirmdialog.f.m.scroll set"
+			scrollbar .confirmdialog.f.m.scroll -command ".confirmdialog.f.m.lb yview"
+			pack .confirmdialog.f.m.lb  -side left -fill x -expand 1
+			pack .confirmdialog.f.m.scroll -side right -fill y
+
+			button .confirmdialog.f.bf.do -width 10 -text $bttntxt -command "actionflags $bttncmnd"
+			button .confirmdialog.f.bf.cancel -width 10 -text "Cancel" -command "destroy .confirmdialog"
+			pack .confirmdialog.f.bf.do .confirmdialog.f.bf.cancel \
+	        	   -side left -expand 1 -fill x -padx 1m -pady 1m
+
+			for {set i 1} {$i <= $entrycount} {incr i 1} {
+				if {$selected($i) == 1} {.confirmdialog.f.m.lb insert end "Run $runno($i)"}
+			}
+		}
+	}
+}
+
+
+
+
+proc actionflags {which} {
+	global firstentry choicecount selected
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid
+
+        puts "$which"	
+	if {$which == "run"} {
+		set callto "resubentry"
+	} elseif {$which == "kill"} {
+		set callto "killentry"
+	} elseif {$which == "restart"} {
+		set callto "restartentry"
+	} elseif {$which == "purge"} {
+		set callto "purgeentry"
+	} elseif {$which == "merge"} {
+		set callto "mergeentry"
+	}
+	
+	destroy .confirmdialog
+	for {set i 1} {$i <= $entrycount} {incr i 1} {
+		if {$selected($i) == 1} {$callto $i}
+	}
+	set firstentry 0
+	clearflags
+	showsubset
+}
+
+
+
+
+
+
+proc addruns {} {
+	global screencenterx screencentery
+	
+	if {[winfo exists .addrundialog]} {
+		focus_on .addrundialog
+	} else {
+	
+		set posx [expr int($screencenterx * 0.6)]
+		set posy [expr int($screencentery * 0.6)]
+	
+		toplevel .addrundialog -class Dialog
+		wm title .addrundialog "Add Entries"
+		wm geometry .addrundialog +$posx+$posy
+		wm transient .addrundialog .
+
+		frame .addrundialog.f -relief raised -bd 1
+		pack .addrundialog.f -side top -fill both
+
+		label .addrundialog.f.t -text "Add Runs to be Analyzed" -relief flat -pady 1
+		frame .addrundialog.f.t2   -relief ridge
+		frame .addrundialog.f.m   -bd 3
+		frame .addrundialog.f.bf -relief flat -bd 1
+        	pack .addrundialog.f.t .addrundialog.f.t2 -side top -fill x -pady 1m -expand 1
+        	pack .addrundialog.f.m .addrundialog.f.bf \
+	        	   -side left -fill y -padx 1m -expand 1
+
+		label .addrundialog.f.t2.t -text "Entries to Add:" -relief flat
+		entry .addrundialog.f.t2.e -width 20 -relief sunken -bd 2 \
+	                        	 -textvariable addrundialog_input 
+        	pack .addrundialog.f.t2.t .addrundialog.f.t2.e \
+	        	   -side left -fill x -pady 1m -padx 2m -expand 1
+		bind .addrundialog.f.t2.e <KeyPress-Return> {runentrymade}
+
+
+		listbox .addrundialog.f.m.lb  -borderwidth 2 \
+	        	   -yscrollcommand ".addrundialog.f.m.scroll set"
+		scrollbar .addrundialog.f.m.scroll -command ".addrundialog.f.m.lb yview"
+		pack .addrundialog.f.m.lb  -side left -fill x -expand 1
+		pack .addrundialog.f.m.scroll -side right -fill y
+
+		button .addrundialog.f.bf.file -width 15 -text "Read from File" -command "get_entriesfile"
+		button .addrundialog.f.bf.delete -width 15 -fg red -text "Remove Selected" \
+	                        	    -command ".addrundialog.f.m.lb delete active"
+		button .addrundialog.f.bf.done -width 15 -fg blue -text "Done" -command "add_entries"
+		button .addrundialog.f.bf.cancel -width 15 -fg darkgreen -text "Cancel" \
+	                        	    -command "destroy .addrundialog"
+		pack .addrundialog.f.bf.file .addrundialog.f.bf.delete .addrundialog.f.bf.done \
+	        	  .addrundialog.f.bf.cancel  -side top -expand 1 -fill x -padx 1m -pady 1m
+	}
+}
+
+proc addentries_fromfile {} {
+	global newentriesfile
+    
+	destroy .entriesfromfile
+	if {[file exists $newentriesfile] == 0} {
+		bad_filename $newentriesfile
+		set newentriesfile ""
+	} else {
+		set f [open $newentriesfile r]
+		while {[gets $f line] >= 0} {
+			set tline [string trim $line]
+			foreach addstring $tline {
+				set addlist [split $addstring "/,.;: "]
+				foreach additem $addlist {
+					.addrundialog.f.m.lb insert end "Run $additem"
+				}
+			}
+		}
+		update idletasks
+	}
+}
+
+proc get_entriesfile {} {
+	global screencenterx screencentery
+	global newentriesfile
+
+	set tlname "entriesfromfile"
+	
+	if {[winfo exists .$tlname]} {
+		focus_on .$tlname
+	} else {
+		  
+	    set posx [expr int($screencenterx * 0.4)]
+	    set posy [expr int($screencentery * 0.4)]
+	    set tlabel "Enter Name of File to Read:"
+
+	    toplevel .$tlname -class Dialog
+	    wm title .$tlname $tlabel
+	    wm transient .$tlname .
+	    
+	    frame .$tlname.f -relief raised -bd 1
+	    frame .$tlname.f2 -relief raised -bd 1
+	    pack .$tlname.f .$tlname.f2 -side top -fill both
+
+	    label .$tlname.f.t -text $tlabel -fg darkred 
+	    entry .$tlname.f.e -relief sunken -bd 2 -textvariable newentriesfile -width 30
+	    pack .$tlname.f.t .$tlname.f.e -side top -expand 1 -fill x -padx 3m -pady 3m
+
+	    button .$tlname.f2.d -text "Read" -fg blue -command "addentries_fromfile"
+	    button .$tlname.f2.x -text "Cancel" -fg red -command "destroy .$tlname"
+	    pack .$tlname.f2.d .$tlname.f2.x -side left -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+	    wm geometry .$tlname +$posx+$posy
+	    raise .$tlname
+	}
+}
+
+proc bad_filename {fnm} {
+	global screencenterx screencentery
+    
+	set tlname "badfilename"
+	
+	if {[winfo exists .$tlname]} {
+		focus_on .$tlname
+	} else {
+		  
+	    set posx [expr int($screencenterx * 0.4)]
+	    set posy [expr int($screencentery * 0.4)]
+	    set tlabel "Bad Filename!"
+
+	    toplevel .$tlname -class Dialog
+	    wm title .$tlname $tlabel
+	    wm transient .$tlname .
+
+	    frame .$tlname.f -relief raised -bd 1
+	    frame .$tlname.f2 -relief raised -bd 1
+	    pack .$tlname.f .$tlname.f2 -side top -fill both
+
+	    label .$tlname.f.t -text $tlabel -fg darkred 
+	    label .$tlname.f.m -text $fnm -fg blue 
+	    label .$tlname.f.b -text "does not exist!" -fg black 
+	    pack .$tlname.f.t .$tlname.f.m .$tlname.f.b -side top -expand 1 -fill x -padx 3m -pady 3m
+
+	    button .$tlname.f2.x -text "OK" -fg red -command "destroy .$tlname"
+	    pack .$tlname.f2.x -side left -expand 1 -padx 3m -pady 3m -ipadx 2m -ipady 1m
+	    wm geometry .$tlname +$posx+$posy
+	    raise .$tlname
+	}
+}
+
+
+proc runentrymade {} {
+	global addrundialog_input
+	
+	set addlist [split $addrundialog_input "/,.;: \n"]
+	foreach additem $addlist {
+	    if {[string length [string trim $additem]] > 0} {
+		.addrundialog.f.m.lb insert end "Run $additem"
+	    }
+	}
+	set addrundialog_input " "
+	.addrundialog.f.t2.e delete 0 end
+}
+
+proc add_entries {} {
+	.addrundialog.f.m.lb selection set 0 end
+	set errval [catch {set runlist [selection get]} errchars]
+	destroy .addrundialog
+	if {$errval == 0} {
+		set i 0
+		while {$i < [llength $runlist]} {
+			set a [lindex $runlist $i]
+			incr i 1
+			if {$a == "Run"} {
+				set b [lindex $runlist $i]
+				incr i 1
+				add_one_entry $b
+			}
+		}
+	}
+	set_choice "All Entries"
+}
+
+proc add_one_entry {newrunno} {
+	global runno istatus filecount filelist runtime entrycount
+	global starttime endtime filespresent preabortstate jobid selected
+	
+	set isthere 0
+	for {set j 1} {$j <= $entrycount} {incr j 1} {
+		if {$newrunno == $runno($j)} {set isthere $j}
+	}
+	if {$isthere > 0} {
+	    puts "  WARNING:  Run $newrunno is already in my list!  Entry $isthere"
+	    if { $istatus($isthere) == "unknown"} {
+		puts "  Please try launch jkill to kill the job first"
+	    }
+	} else {
+		incr entrycount 1
+		initentry $entrycount
+		set runno($entrycount) $newrunno
+		set istatus($entrycount) "new"
+	}
+}
+
+
+
+
+
+
+proc resubentry {seqno} {
+	global firstentry choicecount selected
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid
+	
+	set thisrun $runno($seqno)
+	initentry $seqno
+	set runno($seqno) $thisrun
+	set istatus($seqno) "new"
+}
+
+proc killentry {seqno} {
+	global firstentry choicecount selected  deletedcount
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid
+	
+	if {$istatus($seqno) == "new"} {
+		set istatus($seqno) "2bremoved"
+		incr deletedcount 1
+	} else {
+		set preabortstate($seqno) $istatus($seqno)
+		set istatus($seqno) "kill"
+	}
+}
+
+proc restartentry {seqno} {
+	global firstentry choicecount selected  deletedcount
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid
+	
+	if {$istatus($seqno) != "new"} {
+		set preabortstate($seqno) $istatus($seqno)
+		set istatus($seqno) "restart"
+	}
+}
+
+proc purgeentry {seqno} {
+	global firstentry choicecount selected  deletedcount
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid
+	
+	set istatus($seqno) "2bremoved"
+	incr deletedcount 1
+}
+
+proc mergeentry {seqno} {
+	global firstentry choicecount selected
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid
+	global current_state
+	global  iteration_delay  status_file  param_file
+	global  raw_file_source  staged_files_dir  batchscript
+	global  raw_file_prefix  raw_file_suffix  logfiledir
+	global  output_dir  tempfile_dir
+	
+	if {$current_state($seqno) == "Queue State: RUN"} {
+		set istatus($seqno) "running"
+	} elseif {$current_state($seqno) == "Queue State: PEND"} {
+		set istatus($seqno) "queued"
+	}
+	set filenm "$raw_file_prefix$runno($seqno)$raw_file_suffix*"
+	set thisdir [pwd]
+	cd $raw_file_source
+	set allfiles [glob -nocomplain $filenm]
+	set filecount($seqno) [llength $allfiles]
+	if {$filecount($seqno) > 0} {
+		set sorted [lsort $allfiles]
+	} else {
+		set sorted "(no files)"
+	}
+	cd $thisdir
+	set filelist($seqno) $sorted
+}
+
+
+
+
+
+
+
+
+
+proc showsubset {} {
+	global chosenset
+	global firstentry choicecount chosenflag displayedflag
+	global runno istatus filecount filelist runtime entrycount
+	global stagedcount maxentries  deletedcount
+	global starttime endtime filespresent preabortstate jobid
+
+	update idletasks
+    
+	if {($entrycount - $deletedcount) <= 0} {
+		set chosenset "All Entries"
+		.buttons.left.choice configure -text "All Entries"
+		}
+	
+	switch $chosenset {
+		"Completed"    {set statelist "completed"}
+		"Purgable"     {set statelist "incomplete aborted ERR"}
+		"Killable"     {set statelist "new unstaged staging staged submitted queued running"}
+		"reStartable"  {set statelist "staging staged submitted queued running"}
+		"Re-Runable"   {set statelist "incomplete aborted ERR"}
+		"Run Again"    {set statelist "completed"}
+		"Unknown"      {set statelist "unknown"}
+		"All Entries"  -
+		default        {set statelist "new unstaged staging staged submitted \
+		                               incomplete aborted completed unknown \
+					       kill restart aborting queued running ERR"}
+	}
+	
+	switch $chosenset {
+		"Completed"    {set buttontxt "Purge Selected"}
+		"Purgable"     {set buttontxt "Purge Selected"}
+		"Killable"     {set buttontxt "Kill Selected"}
+		"reStartable"  {set buttontxt "ReStart Selected"}
+		"Re-Runable"   {set buttontxt "ReRun Selected"}
+		"Run Again"    {set buttontxt "ReRun Selected"}
+		"Unknown"      {set buttontxt "Add Selected"}
+		"All Entries"  -
+		default        {set buttontxt "Add Entries"}
+	}
+	
+	switch $chosenset {
+		"Completed"    {set buttoncol "purple"}
+		"Purgable"     {set buttoncol "purple"}
+		"Killable"     {set buttoncol "red"}
+		"reStartable"  {set buttoncol "red"}
+		"Re-Runable"   {set buttoncol "blue"}
+		"Run Again"    {set buttoncol "blue"}
+		"Unknown"      {set buttoncol "darkgreen"}
+		"All Entries"  {set buttoncol "darkgreen"}
+		default        {set buttoncol "red"}
+	}
+	
+	switch $chosenset {
+		"Completed"    {set labeltxt "Completed OK Entries"}
+		"Purgable"     {set labeltxt "Completed BAD Entries"}
+		"Killable"     {set labeltxt "Killable Entries"}
+		"reStartable"  {set labeltxt "ReStartable Entries"}
+		"Re-Runable"   {set labeltxt "Completed BAD Entries"}
+		"Run Again"    {set labeltxt "Completed OK Entries"}
+		"Unknown"      {set labeltxt "Unknown Entries"}
+		"All Entries"  {set labeltxt "Entries"}
+		default        {set labeltxt "(error)"}
+	}
+	
+	switch $chosenset {
+		"Completed"    {set flagcol "brown"}
+		"Purgable"     {set flagcol "brown"}
+		"Killable"     {set flagcol "brown"}
+		"reStartable"  {set flagcol "brown"}
+		"Re-Runable"   {set flagcol "brown"}
+		"Run Again"    {set flagcol "brown"}
+		"Unknown"      {set flagcol "brown"}
+		"All Entries"  -
+		default        {set flagcol "darkgray"}
+	}
+
+	if {$firstentry == 0} {
+		clearflags
+		set firstentry 1
+		set choicecount 0
+		for {set i $entrycount} {$i > 0} {incr i -1} {
+			if {[lsearch $statelist $istatus($i)] >= 0} {
+				incr choicecount 1
+				set chosenflag($i) 1
+			} else {
+				set chosenflag($i) 0
+			}
+		}
+	}
+	
+    	set thisentry $firstentry
+	set lastentry [expr $firstentry + $maxentries -1]
+	if {$lastentry > $choicecount} {
+		set lastentry $choicecount
+	}
+	
+	
+	if {($choicecount > 0) || ($chosenset == "All Entries")} {
+		.bottom.range configure -text "$labeltxt  $firstentry -\
+		                            $lastentry   of   $choicecount"
+		.buttons.left.action configure -text $buttontxt -fg $buttoncol
+		.buttons.left.all  configure -fg $flagcol
+		.buttons.left.none configure -fg $flagcol
+		bind .buttons.left.all  <ButtonRelease-1>   {}
+		bind .buttons.left.none <ButtonRelease-1>   {}
+		bind .buttons.left.all  <Shift-Control-ButtonRelease-1> {}
+		bind .buttons.left.none <Shift-Control-ButtonRelease-1> {}
+		switch $chosenset {
+			"Completed"   {
+				bind .buttons.left.action <ButtonRelease-1> {processflags purge}
+				bind .buttons.left.all  <ButtonRelease-1>   {processflags setall}
+				bind .buttons.left.none <ButtonRelease-1>   {processflags clearall}
+				bind .buttons.left.all  <Shift-Control-ButtonRelease-1> {processflags setallall}
+				bind .buttons.left.none <Shift-Control-ButtonRelease-1> {processflags clearallall}
+					}
+			"Purgable"    {
+				bind .buttons.left.action <ButtonRelease-1> {processflags purge}
+				bind .buttons.left.all  <ButtonRelease-1>   {processflags setall}
+				bind .buttons.left.none <ButtonRelease-1>   {processflags clearall}
+				bind .buttons.left.all  <Shift-Control-ButtonRelease-1> {processflags setallall}
+				bind .buttons.left.none <Shift-Control-ButtonRelease-1> {processflags clearallall}
+					}
+			"Killable"    {
+				bind .buttons.left.action <ButtonRelease-1> {processflags kill}
+				bind .buttons.left.all  <ButtonRelease-1>   {processflags setall}
+				bind .buttons.left.none <ButtonRelease-1>   {processflags clearall}
+				bind .buttons.left.all  <Shift-Control-ButtonRelease-1> {processflags setallall}
+				bind .buttons.left.none <Shift-Control-ButtonRelease-1> {processflags clearallall}
+					}
+			"reStartable"    {
+				bind .buttons.left.action <ButtonRelease-1> {processflags restart}
+				bind .buttons.left.all  <ButtonRelease-1>   {processflags setall}
+				bind .buttons.left.none <ButtonRelease-1>   {processflags clearall}
+				bind .buttons.left.all  <Shift-Control-ButtonRelease-1> {processflags setallall}
+				bind .buttons.left.none <Shift-Control-ButtonRelease-1> {processflags clearallall}
+					}
+			"Re-Runable"   {
+				bind .buttons.left.action <ButtonRelease-1> {processflags start}
+				bind .buttons.left.all  <ButtonRelease-1>   {processflags setall}
+				bind .buttons.left.none <ButtonRelease-1>   {processflags clearall}
+				bind .buttons.left.all  <Shift-Control-ButtonRelease-1> {processflags setallall}
+				bind .buttons.left.none <Shift-Control-ButtonRelease-1> {processflags clearallall}
+					}
+			"Run Again"   {
+				bind .buttons.left.action <ButtonRelease-1> {processflags start}
+				bind .buttons.left.all  <ButtonRelease-1>   {processflags setall}
+				bind .buttons.left.none <ButtonRelease-1>   {processflags clearall}
+				bind .buttons.left.all  <Shift-Control-ButtonRelease-1> {processflags setallall}
+				bind .buttons.left.none <Shift-Control-ButtonRelease-1> {processflags clearallall}
+					}
+			"Unknown"     {
+				bind .buttons.left.action <ButtonRelease-1> {processflags merge}
+				bind .buttons.left.all  <ButtonRelease-1>   {processflags setall}
+				bind .buttons.left.none <ButtonRelease-1>   {processflags clearall}
+				bind .buttons.left.all  <Shift-Control-ButtonRelease-1> {processflags setallall}
+				bind .buttons.left.none <Shift-Control-ButtonRelease-1> {processflags clearallall}
+					}
+			"All Entries" {
+				bind .buttons.left.action <ButtonRelease-1> {addruns}
+					}
+		}
+	
+		set goodentries 0
+		set j 0
+		for {set i 1} {$i <= $entrycount} {incr i 1} {
+		    set displayedflag($i) 0
+		    if {[lsearch $statelist $istatus($i)] >= 0} {
+			incr goodentries 1
+			if {($goodentries >= $firstentry) && ($goodentries <= $lastentry)} {
+				incr j 1
+				showentry $i $j
+				set displayedflag($i) 1
+			}
+		   }
+		}
+	} else {
+		set j 0
+		.bottom.range configure -text "No $labeltxt."
+		.buttons.left.all  configure -fg darkgray
+		.buttons.left.none configure -fg darkgray
+		bind .buttons.left.all  <ButtonRelease-1> {}
+		bind .buttons.left.none <ButtonRelease-1> {}
+		if {$entrycount > 0} {
+			.buttons.left.action configure -text $buttontxt -fg darkgray
+			bind .buttons.left.action <ButtonRelease-1> {}
+		} else {
+			.buttons.left.action configure -text "Add Entries" -fg darkgreen
+			bind .buttons.left.action <ButtonRelease-1> {addruns}
+		}
+	}
+	
+	while {$j < $maxentries} {
+		incr j 1
+		changeentry  $j  0  "  "   " "  black  " "   " "   " "  " "   " "   " "
+	}
+}
+
+
+
+proc init_subset {} {
+	global chosenset
+	global firstentry choicecount chosenflag displayedflag
+	global runno istatus filecount filelist runtime entrycount
+	global stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid
+
+	update idletasks
+    
+	destroy .entries.a
+	frame .entries.a 
+	pack .entries.a -fill x -expand 1
+	
+	set widroot "entries.a"
+        .bottom.range configure -text "No Entries."
+        .buttons.left.all  configure -fg darkgray
+        .buttons.left.none configure -fg darkgray
+        bind .buttons.left.all  <ButtonRelease-1> {}
+        bind .buttons.left.none <ButtonRelease-1> {}
+        .buttons.left.action configure -text "Add Entries" -fg darkgray
+        bind .buttons.left.action <ButtonRelease-1> {}
+	
+	set thisentry 0
+	
+	set which 0
+	
+	while {$thisentry < $maxentries} {
+		incr thisentry 1
+		set winroot "$widroot.entry$thisentry"
+
+		frame .$winroot -borderwidth 4 -relief ridge
+		pack .$winroot -side top -fill x -expand 1
+	
+		checkbutton .$winroot.run -width 10 -relief groove -pady 3.5p -selectcolor darkred 
+		label .$winroot.state -width 15 -relief groove -bg LightGrey -pady 3.5p -fg black 
+		menubutton .$winroot.files -relief raised -width 10 -menu .$winroot.files.af
+		frame .$winroot.s1 -width 15  -bg white
+		label .$winroot.l1 -relief groove -padx 2m -pady 3.5p -width 29
+		label .$winroot.l2 -relief groove -padx 2m -pady 3.5p -width 29
+		label .$winroot.s2 -width 12 -relief groove -pady 3.5p
+	
+		pack .$winroot.s2 .$winroot.l2 .$winroot.l1 -side right
+		pack .$winroot.run .$winroot.state .$winroot.files -side left
+		pack .$winroot.s1  -side left -fill x
+		
+		if {$which == 0} {
+		  set which 1
+		  changeentry  $thisentry  0  "  Run No"   "Status"  black\
+		                         "Files Total"   " "   " " \
+					 "start time"   "end time"   "runtime"
+		} else {
+		  set which 0
+		  changeentry  $thisentry  0  "  Run No"   "Status"  black \
+		                         "Files Total"   "Files Staged"   " " \
+					 "start time"   "end time"   "runtime"
+		}
+	
+	}
+}
+
+
+
+proc changeentry {seqno entry run status statecol flbl short1 slist long1 long2 short2} {
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid selected
+	global current_state
+
+	set rentr "entries.a.entry$seqno"
+
+	if {$entry == 0} {
+	
+		.$rentr.run configure -text  "" -variable unselected($entry)
+		.$rentr.state configure -text  ""
+		.$rentr.files configure -text  ""
+		.$rentr.l1 configure -text ""
+		.$rentr.l2 configure -text ""
+		.$rentr.s2 configure -text ""
+
+		destroy .$rentr.files.af 
+		destroy .$rentr.s1.x
+		destroy .$rentr.s1.x.sf
+
+		menu .$rentr.files.af 
+		label .$rentr.s1.x -relief groove -pady 3.5p -width 15 -text ""
+		pack .$rentr.s1.x -side left -fill x -expand 1
+		
+	} else {
+	        .$rentr.run configure -text $run -variable selected($entry) 
+		.$rentr.state configure -text $status -fg $statecol
+		.$rentr.files configure -text $flbl
+		.$rentr.l1 configure -text $long1
+		.$rentr.l2 configure -text $long2
+		.$rentr.s2 configure -text $short2
+
+		destroy .$rentr.files.af 
+		destroy .$rentr.s1.x
+		destroy .$rentr.s1.x.sf
+
+		menu .$rentr.files.af 
+		.$rentr.files.af add command -label "Raw Data Files for Run $runno($entry)"
+		.$rentr.files.af add separator
+		if {[llength $filelist($entry)] > 0} {
+			set i 0
+			while {$i < [llength $filelist($entry)]} {
+				.$rentr.files.af add command -label [lindex $filelist($entry) $i]
+				incr i 1
+			}
+		} else {
+			.$rentr.files.af add command -label "(no files)"
+		}
+
+		if {$slist == " "} {
+		  label .$rentr.s1.x -relief groove -pady 3.5p -width 15 -text $short1
+		  pack .$rentr.s1.x -side left -fill x -expand 1
+		} else {
+		  menubutton .$rentr.s1.x -relief raised -width 13 -text $short1 -menu .$rentr.s1.x.sf
+		  pack .$rentr.s1.x -side left -fill x -expand 1
+		  menu .$rentr.s1.x.sf 
+		  .$rentr.s1.x.sf add command -label "Staged Files for Run $runno($entry)"
+		  .$rentr.s1.x.sf add separator
+		  if {[llength $slist] > 0} {
+	  		  set i 0
+	  		  while {$i < [llength $slist]} {
+	  			  .$rentr.s1.x.sf add command -label [lindex $slist $i]
+	  			  incr i 1
+	  		  }
+		  } else {
+	  		  .$rentr.s1.x.sf add command -label "(no files)"
+		  }
+		}
+	}
+}
+
+
+
+
+proc short_time {comptime} {
+	global thistime
+	
+	# Wed Mar 27 19:49:21 EST 2002
+	# eliminate common elements but only if above format
+	# also remove hours/minutes if days ago
+	
+	set lr [llength $thistime]
+	set lc [llength $comptime]
+	
+	set outtime $comptime
+	
+	if {($lr == 6) && ($lc == 6)} {
+	    if {[lindex $thistime 4] == [lindex $comptime 4]} {
+	    	if {[lindex $thistime 5] == [lindex $comptime 5]} {
+		    # use the "scan" function to avoid string like 03, 04 ...
+		    set dd [expr abs([scan [lindex $comptime 2] "%d"] - [scan [lindex $thistime 2] "%d"])]
+	    	    if {[lrange $thistime 0 2] == [lrange $comptime 0 2]} {
+		    	set outtime "[lrange $comptime 3 3]"
+		    } elseif {($dd < 2) && ([lindex $thistime 1] == [lindex $comptime 1])} {
+		    	set outtime "[lrange $comptime 0 3]"
+		    } else {
+		    	set outtime "[lrange $comptime 0 2]"
+		    }
+	    	} else {
+	    	    set outtime "[lrange $comptime 1 2] [lindex $comptime 5]"
+	    	}
+	    } else {
+	    	set outtime "[lrange $comptime 1 2] [lindex $comptime 5]"
+	    }
+	} else {
+	   puts " ERR short_time: $comptime ($lc) $thistime ($lr)"
+	}
+	return $outtime
+}
+
+
+
+
+
+proc showentry {thisentry seqno} {
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid selected
+	global current_state
+    
+
+	set run "  $runno($thisentry)"
+	set state $statebtxt($istatus($thisentry))
+	set statecol $statebcol($istatus($thisentry))
+	
+	if {$starttime($thisentry) != " "} {
+		set ststart [short_time $starttime($thisentry)]
+	} else {
+		set ststart " "
+	}
+	
+	if {$endtime($thisentry) != " "} {
+		set stend [short_time $endtime($thisentry)]
+	} else {
+		set stend " "
+	}
+
+	if {$istatus($thisentry) == "new"} {
+		set Nfiles " "
+		set short1 " "
+		set gotfiles " "
+		set long1 " "
+		set long2 " "
+		set short " "
+
+	} elseif {$istatus($thisentry) == "unknown"} {
+		set Nfiles "???"
+		set short1 "Job $jobid($thisentry)"
+		set gotfiles " "
+		set long1 $ststart
+		set long2 $current_state($thisentry)
+		set short $runtime($thisentry)
+		
+	} elseif {$istatus($thisentry) == "completed"} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		set short1 "Job $jobid($thisentry)"
+		set gotfiles " "
+		if {$starttime($thisentry) == " "} {
+		  set long1 "$preabortstate($thisentry)"
+		} else {
+		  set long1 "Start  $ststart"
+		}
+		set long2 "end  $stend"
+		set short $runtime($thisentry)
+	
+	} elseif {$istatus($thisentry) == "incomplete"} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		set short1 " "
+		set gotfiles " "
+		set long1 "Ran up to seg $preabortstate($thisentry)"
+		set long2 "Ran  $ststart  to  $stend"
+		set short $runtime($thisentry)
+	
+	} elseif {$istatus($thisentry) == "ERR"} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		set short1 " "
+		set gotfiles " "
+		set long1 $preabortstate($thisentry)
+		set long2 {}
+		if {$starttime($thisentry) != " "} {
+			set long2 "$long2 from  $ststart"
+		}
+		if {$endtime($thisentry) != " "} {
+			set long2 "$long2  to  $stend"
+		}
+		set short $runtime($thisentry)
+	
+	} elseif {$istatus($thisentry) == "aborted"} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		set short1 " "
+		set gotfiles " "
+		set long1 "Was at: $preabortstate($thisentry)"
+		set long2 " "
+		set short $runtime($thisentry)
+	
+	} elseif {$istatus($thisentry) == "kill"} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		
+		if {($preabortstate($thisentry) == "staging") ||  \
+		    ($preabortstate($thisentry) == "staged") } {
+			set short1 "$stagedcount($thisentry) Files Staged"
+			set gotfiles $filespresent($thisentry)
+			set long1 "Last known 2B: $preabortstate($thisentry)"
+			set long2 " "
+			set short " "
+			
+		} elseif  {($preabortstate($thisentry) == "submitted") ||  \
+		    ($preabortstate($thisentry) == "queued") ||  \
+		    ($preabortstate($thisentry) == "running")} {
+			set short1 "Job $jobid($thisentry)"
+			set gotfiles " "
+			set long1 "Last known 2B: $preabortstate($thisentry)"
+			set long2 " "
+			set short $runtime($thisentry)
+		
+		} else {
+			set short1 " "
+			set gotfiles " "
+			set long1 "Last known 2B: $preabortstate($thisentry)"
+			set long2 " "
+			set short " "
+		}
+	
+	} elseif {$istatus($thisentry) == "restart"} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		
+		if {($preabortstate($thisentry) == "staging") ||  \
+		    ($preabortstate($thisentry) == "staged") } {
+			set short1 "$stagedcount($thisentry) Files Staged"
+			set gotfiles $filespresent($thisentry)
+			set long1 "Last known 2B: $preabortstate($thisentry)"
+			set long2 " "
+			set short " "
+			
+		} elseif  {($preabortstate($thisentry) == "submitted") ||  \
+		    ($preabortstate($thisentry) == "queued") ||  \
+		    ($preabortstate($thisentry) == "running")} {
+			set short1 "Job $jobid($thisentry)"
+			set gotfiles " "
+			set long1 "Last known 2B: $preabortstate($thisentry)"
+			set long2 " "
+			set short $runtime($thisentry)
+		
+		} else {
+			set short1 " "
+			set gotfiles " "
+			set long1 "Last known 2B: $preabortstate($thisentry)"
+			set long2 " "
+			set short " "
+		}
+	
+	} elseif {$istatus($thisentry) == "aborting"} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		set short1 "$stagedcount($thisentry) Files Staged"
+		set gotfiles  $filespresent($thisentry)
+		set long1 "currently: $preabortstate($thisentry)"
+		set long2 " "
+		set short " "
+
+	} elseif {($istatus($thisentry) == "unstaged") ||  \
+	          ($istatus($thisentry) == "staged")} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		set short1 " "
+		set gotfiles " "
+		set long1 " "
+		set long2 " "
+		set short $runtime($thisentry)
+	
+	} elseif {$istatus($thisentry) == "staging"} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		set short1 "$stagedcount($thisentry) Files Staged"
+		set gotfiles  $filespresent($thisentry)
+		set long1 " "
+		set long2 "since  $ststart"
+		set short $runtime($thisentry)
+
+	} elseif {$istatus($thisentry) == "running"} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		set short1 "Job $jobid($thisentry)"
+		set gotfiles " "
+		set long1 "start  $ststart"
+		set long2 " "
+		set short $runtime($thisentry)
+
+	} elseif {($istatus($thisentry) == "submitted") ||  \
+	          ($istatus($thisentry) == "queued")} {
+		set Nfiles "$filecount($thisentry) Files Total"
+		set short1 "Job $jobid($thisentry)"
+		set gotfiles " "
+		set long1 " "
+		set long2 "since  $ststart"
+		set short $runtime($thisentry)
+	}
+
+
+	changeentry $seqno $thisentry  $run  $state  $statecol \
+		    $Nfiles  $short1  $gotfiles  $long1  $long2  $short
+}
+
+
+
+
+
+
+
+# start of main program ############################################
+
+puts "\n  Starting BATCHMAN"
+
+# some fundamental inits
+set gotlock 0
+set firsttime 0
+set deletedcount 0
+set productionmode 1
+set entrycount 0
+set paramwindow_active 0
+
+if {$argc > 0} {
+	if {[lindex $argv 0] == "passive"} {
+		set productionmode 0
+		puts "       in PASSIVE mode  --  for debugging only!\n"
+	} else {
+		puts "   WARNING:  I do not understand your commandline"
+		puts "             request >$argv<\n"
+		exit 72
+	}
+}
+
+set rundir [pwd]
+set lockfile "$rundir/.batchman.LOCK"
+set maxentries 10
+set boldfont "*-helvetica-bold-r-normal--12-120-*-*-*-*-*-*"
+
+set screencenterx [expr int([winfo screenwidth .] /2)]
+set screencentery [expr int([winfo screenheight .] /2)]
+    
+set posx [expr ($screencenterx - 480)]
+set posy [expr abs($screencentery /2 - 100)]
+if {$posx < 0} {set posx 0}
+if {$posy < 0} {set posy 0}
+
+wm geometry . +$posx+$posy
+
+set waitforlock 60000
+if {$productionmode} {setlock}
+
+set thistime [exec date]
+
+init_params $rundir
+set firsttime [read_paramfile]
+check_version
+param_window
+
+makeexitdialog
+init_stateIDs
+
+primary_window $thistime
+update idletasks
+
+
+set use_statusfile [file exists $status_file]
+
+.buttons.left.processing configure -text "Waiting..."
+if {$firsttime != 0} {first_time $firsttime}
+	
+if {$productionmode} {
+	if {$use_statusfile} {
+		.buttons.left.processing configure -text "Reading Status File  --  Please Wait..."
+		update idletasks
+		readstatusfile
+
+		.buttons.left.processing configure -text "Processing Entries   --  Please Wait..."
+		update idletasks
+		sortentries
+	}
+
+	.buttons.left.processing configure -text "Getting Active Jobs  --  Please Wait..."
+	update idletasks
+	checkrunning -1
+ 
+	update_runtime $thistime
+	checklock
+}
+
+# prompt for action on window close
+wm protocol . WM_DELETE_WINDOW {focus_on .exitdialog}
+	
+set_choice "All Entries"
+update idletasks
+
+# now in GUI mode

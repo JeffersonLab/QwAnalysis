@@ -1,0 +1,15 @@
+AUTHOR : Burnham Stokes (bestokes@jlab.org)
+DATE : 11/4/2008
+PROGRAMS : track2hits.pl combine.pl
+DESCRIPTION : 
+   track2hits.pl parses two files containing coordinates of the particle track at two arbitrary planes, and outputs four files which represent the hit wires and hit positions in the four planes of the VDC in the 12 o' clock position.  These tracks were simulated by Katherine Myers using Geant 3 (kamyers@gwu.edu), and represent the portion of the tracks that lie in Region 3.  The role of track2hits.pl is to determine which wires in the VDC would generate hits due to a given track, and calculate the DOCA values for those wires.  This simulation remains incomplete, in that it does not reach the level of simulating TDC information, nor does it simulate the VDC multiplexing scheme.  
+   combine.pl parses the output files of track2hits.pl into a single file which may be used as the input events file for QTR.  It adheres to some rules for the data reading of the Qevent class, and builds the proper structure for each event and each hit within the event.
+
+
+USAGE :  >./track2hits.pl -p1<upstream plane file> -p2<downstream plane file> -uu<upstream u output file> -ud<downstream u output file> -vu<upstream v output file> -vd<downstream v output file>
+
+	 >./combine.pl -uu<upstream u input file> -ud<downstream u input file> -vu<upstream v input file> -vd<downstream v input file> -o<output file name>
+
+NOTES :
+  - The Geant 3 Qweak simulation uses a different coordinate system than the standard Qweak lab frame.
+  - The '-R' option for combine.pl was implemented for debugging purposes, to sort out the ordering of the wire numbers.

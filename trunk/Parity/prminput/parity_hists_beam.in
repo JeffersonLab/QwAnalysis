@@ -1,0 +1,223 @@
+#Beamline
+#   This is the histogram parameter input file for the QwHistogramHelper class
+#   "." is the wildcard here!!!! Please use "." only (no "*") since we 
+#   require the exact same length for two strings to match!!!!
+#   The values after the axis titles, if exist, are the min and max of
+#   the histogram filled weight.
+
+#name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
+##############################################################################################
+###  Single event histograms
+empty._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+empty._block.    	TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+empty._.w_raw	        TH1F	1000	-5.0e9	5.0e9				Counts	Events
+emty._.w		TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+empty._sw-hw_raw	TH1F	1000	-5.0e2	5.0e2				Counts Events
+qwk_....._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+qwk_....._block.    	TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+qwk_....._.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+qwk_....._.w		TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+qwk_....._sw-hw_raw	TH1F	1000	-5.0e2	5.0e2				Counts Events
+qwk_...Rel._block._raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+qwk_...Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
+qwk_...Rel._.w_raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+qwk_...Rel._.w		TH1F	2000	-5.0e1	5.0e1				mm	Events
+qwk_......_block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+qwk_......_block.    	TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+qwk_......_.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+qwk_......_.w		TH1F	1000	-5.0e9	5.0e9				CountsCalibrated  Events
+qwk_......_sw-hw_raw	TH1F	1000	-5.0e2	5.0e2				Counts  Events
+qwk_....Rel._block._raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+qwk_....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
+qwk_....Rel._.w_raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+qwk_....Rel._.w		TH1F	2000	-5.0e1	5.0e1				mm	Events
+qwk_......._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+qwk_......._block.    	TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+qwk_......._.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+qwk_......._.w		TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+qwk_......._sw-hw_raw	TH1F	1000	-5.0e2	5.0e2				Counts  Events
+qwk_.....Rel._block._raw TH1F	1000	-5.0e1	5.0e1				mm	Events
+qwk_.....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
+qwk_.....Rel._.w_raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+qwk_.....Rel._.w	TH1F	2000	-5.0e1	5.0e1				mm	Events
+
+yield_empty._block.             TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+yield_empty._.w                 TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+yield_qwk_....._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+yield_qwk_....._block.    	TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+yield_qwk_....._.w_raw  	TH1F	1000	-5.0e9	5.0e9			        Counts	Events
+yield_qwk_....._.w		TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+yield_qwk_....._sw-hw_raw	TH1F	1000	-5.0e2	5.0e2				CountsCalibrated Events
+yield_qwk_...Rel._block._raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+yield_qwk_...Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
+yield_qwk_...Rel._.w_raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+yield_qwk_...Rel._.w		TH1F	2000	-5.0e1	5.0e1				mm	Events
+yield_qwk_......_block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+yield_qwk_......_block.    	TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+yield_qwk_......_.w_raw	        TH1F	1000	-5.0e9	5.0e9		        	Counts	Events
+yield_qwk_......_.w		TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+yield_qwk_......_sw-hw_raw	TH1F	1000	-5.0e2	5.0e2				CountsCalibrated Events
+yield_qwk_....Rel._block._raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+yield_qwk_....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
+yield_qwk_....Rel._.w_raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+yield_qwk_....Rel._.w		TH1F	2000	-5.0e1	5.0e1				mm	Events
+yield_qwk_....Rel._sw-hw_raw	TH1F	2000	-5.0e2	5.0e2				mm	Events
+yield_qwk_......._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+yield_qwk_......._block.    	TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+yield_qwk_......._.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+yield_qwk_......._.w		TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+yield_qwk_......._sw-hw_raw	TH1F	1000	-5.0e2	5.0e2				CountsCalibrated Events
+yield_qwk_.....Rel._block._raw  TH1F	1000	-5.0e1	5.0e1				mm	Events
+yield_qwk_.....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
+yield_qwk_.....Rel._.w_raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+yield_qwk_.....Rel._.w  	TH1F	2000	-5.0e1	5.0e1			        mm	Events
+
+
+asym_empty._block.              TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_empty._hw                  TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_qwk_....._block.    	TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_qwk_....._hw		TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_qwk_......_block.    	TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_qwk_......_hw		TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_qwk_......._block.    	TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+asym_qwk_......._hw		TH1F	1000	-5.0e-2	5.0e-2				NoUnits Events
+
+
+diff_qwk_...Rel._block.  	TH1F	2000	-2.0	2.0				mm	Events
+diff_qwk_...Rel._hw		TH1F	2000	-2.0	2.0				mm	Events
+diff_qwk_....Rel._block.  	TH1F	2000	-2.0	2.0				mm	Events
+diff_qwk_....Rel._hw		TH1F	2000	-2.0	2.0				mm	Events
+diff_qwk_.....Rel._block.  	TH1F	2000	-2.0	2.0				mm	Events
+diff_qwk_.....Rel._hw	        TH1F	2000	-2.0	2.0				mm	Events
+
+
+
+....Rel._block._raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
+....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
+....Rel._.w_raw		TH1F	1000	-5.0e1	5.0e1				mm	Events
+....Rel._.w		TH1F	2000	-5.0e1	5.0e1				mm	Events
+....Rel._seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+....Rel._numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+........_block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+........_block.    	TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+........_.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
+........_.w		TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+........_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+........_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+......_block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+......_block.    	TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+......_.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
+......_.w		TH1F	1000	-5.0e9	5.0e9				CountsCalibrated Events
+......_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+......_numsamples	TH1F	1001	-2.5	5002.5	
+MD.Neg_block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+MD.Neg_block._volt	TH1F	2000	-0.4	-0.01				Voltage	Events
+MD.Neg_.w_raw		TH1F	1000	-5.0e9	5.0e9				Counts	Events
+MD.Neg_.w_volt	TH1F	2000	-0.4	-0.01				Voltage	Events
+MD.Neg_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+MD.Neg_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+MD.Pos_block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+MD.Pos_block._volt	TH1F	2000	-0.04	-0.01				Voltage	Events
+MD.Pos_.w_raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
+MD.Pos_.w_volt	TH1F	2000	-0.04	-0.01				Voltage	Events
+MD.Pos_seqnum	TH1F	301	-0.5	300.5				SequenceNumber	Events
+MD.Pos_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+
+### Quartet yield histograms
+yield......_block._raw		TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yield......_block._volt		TH1F	2000	-0.05	0.01				Voltage	Events
+yield......_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
+yield......_.w_volt		TH1F	2000	-0.05	0.01				Voltage	Events
+yield......_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+yield......_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+yieldMD.Neg_block._raw	TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yieldMD.Neg_block._volt	TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Neg_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
+yieldMD.Neg_.w_volt		TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Neg_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+yieldMD.Neg_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+yieldMD.Pos_block._raw	TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yieldMD.Pos_block._volt	TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Pos_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
+yieldMD.Pos_.w_volt		TH1F	2000	-1.25	-1.05				Voltage	Events
+yieldMD.Pos_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+yieldMD.Pos_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+### Quartet asym histograms
+asym......_block._raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
+asym......_block._volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
+asym......_.w_raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
+asym......_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
+asym......_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
+asym......_numsamples		TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
+asymMD.Neg_block._raw		TH1F	1001	-1.001e-3	1.001e-3				Asym(raw)	Events
+asymMD.Neg_block._volt	TH1F	1001	-5.005e-9	5.005e-9				Asym(volts)	Events
+asymMD.Neg_.w_raw		TH1F	1001	-1.001e-3	1.001e-3				Asym(raw)	Events
+asymMD.Neg_.w_volt		TH1F	1001	-5.005e-9	5.005e-9				Asym(volts)	Events
+asymMD.Neg_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+asymMD.Neg_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+asymMD.Pos_block._raw	TH1F	1001	-1.001e-3	1.001e-3				Asym(raw)	Events
+asymMD.Pos_block._volt	TH1F	1001	-5.005e-9	5.005e-9				Asym(volts)	Events
+asymMD.Pos_.w_raw		TH1F	1001	-1.001e-3	1.001e-3				Asym(raw)	Events
+asymMD.Pos_.w_volt		TH1F	1001	-5.005e-9	5.005e-9				Asym(volts)	Events
+asymMD.Pos_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+asymMD.Pos_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+###
+###  
+###  Single Ended adc histograms
+###  Single event histograms
+SE......_block._raw	TH1F	1000	-5.0e7	5.0e7				Counts	Events
+SE......_block._volt	TH1F	2000	-0.4	-0.01				Voltage	Events
+SE......_.w_raw		TH1F	1000	-5.0e7	5.0e7				Counts	Events
+SE......_.w_volt		TH1F	2000	-0.4	-0.01				Voltage	Events
+SE......_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+SE......_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+MD.Neg_block._raw	TH1F	1000	-5.0e7	5.0e7				Counts	Events
+MD.Neg_block._volt	TH1F	2000	-0.4	-0.01				Voltage	Events
+MD.Neg_.w_raw		TH1F	1000	-5.0e7	5.0e7				Counts	Events
+MD.Neg_.w_volt	TH1F	2000	-0.4	-0.01				Voltage	Events
+MD.Neg_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+MD.Neg_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+MD.Pos_block._raw	TH1F	1000	-5.0e7	5.0e7				Counts	Events
+MD.Pos_block._volt	TH1F	2000	-0.04	-0.01				Voltage	Events
+MD.Pos_.w_raw	TH1F	1000	-5.0e7	5.0e7				Counts	Events
+MD.Pos_.w_volt	TH1F	2000	-0.04	-0.01				Voltage	Events
+MD.Pos_seqnum	TH1F	301	-0.5	300.5				SequenceNumber	Events
+MD.Pos_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+### Quartet yield histograms
+yieldSE......_block._raw	TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yieldSE......_block._volt	TH1F	2000	-0.05	0.01				Voltage	Events
+yieldSE......_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
+yieldSE......_.w_volt		TH1F	2000	-0.05	0.01				Voltage	Events
+yieldSE......_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+yieldSE......_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+yieldMD.Neg_block._raw	TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yieldMD.Neg_block._volt	TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Neg_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
+yieldMD.Neg_.w_volt		TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Neg_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+yieldMD.Neg_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+yieldMD.Pos_block._raw	TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yieldMD.Pos_block._volt	TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Pos_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
+yieldMD.Pos_.w_volt		TH1F	2000	-1.25	-1.05				Voltage	Events
+yieldMD.Pos_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+yieldMD.Pos_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+### Quartet asym histograms
+asymSE......_block._raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
+asymSE......_block._volt	TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
+asymSE......_.w_raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
+asymSE......_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
+asymSE......_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
+asymSE......_numsamples		TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
+asymMD.Neg_block._raw		TH1F	1001	-1.001e-3	1.001e-3				Asym(raw)	Events
+asymMD.Neg_block._volt	TH1F	1001	-5.005e-9	5.005e-9				Asym(volts)	Events
+asymMD.Neg_.w_raw		TH1F	1001	-1.001e-3	1.001e-3				Asym(raw)	Events
+asymMD.Neg_.w_volt		TH1F	1001	-5.005e-9	5.005e-9				Asym(volts)	Events
+asymMD.Neg_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+asymMD.Neg_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+asymMD.Pos_block._raw	TH1F	1001	-1.001e-3	1.001e-3				Asym(raw)	Events
+asymMD.Pos_block._volt	TH1F	1001	-5.005e-9	5.005e-9				Asym(volts)	Events
+asymMD.Pos_.w_raw		TH1F	1001	-1.001e-3	1.001e-3				Asym(raw)	Events
+asymMD.Pos_.w_volt		TH1F	1001	-5.005e-9	5.005e-9				Asym(volts)	Events
+asymMD.Pos_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
+asymMD.Pos_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events

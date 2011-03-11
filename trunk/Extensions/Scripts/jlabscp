@@ -1,0 +1,84 @@
+#!/bin/bash
+
+login=login.jlab.org
+port=8022
+
+# Usage instructions
+if [ $# -lt 1 ] ; then
+	echo "Usage: `basename $0` [options] [[user@]host:]file [[user@]host:]file"
+	exit 0
+fi
+
+# Get options for scp
+opts=""
+while [ ! "${1/-*/}" ] ; do
+	opts="${opts} $1"
+	shift
+done
+orig=$1
+
+# Destination defaults to same filename in current directory
+if [ $# -lt 2 ] ; then
+	dest=`basename ${orig}`
+else
+	dest=$2
+fi
+
+# Local to local copy
+if [ "${orig/*:*/}" -a "${dest/*:*/}" ] ; then
+	cp ${orig} ${dest}
+	exit 0
+fi
+
+
+# Remote to remote copy
+if [ ! "${orig/*:*/}" -a ! "${dest/*:*/}" ] ; then
+	echo "Error: No support for remote to remote copies!"
+	exit -1
+fi
+
+
+# Remote origin
+if [ ! "${orig/*:*/}" ] ; then
+
+	# Setup tunnel
+	userhost=${orig/:*/}
+	if [ ! "${userhost/*@*/}" ] ; then
+		user=${userhost/@*/}
+		host=${userhost/*@/}
+	else
+		user=`whoami`
+		host=${userhost}
+	fi
+	file=${orig/*:/}
+	tmp=/tmp/ssh-${port}-${host}-${login}
+	if [ -e "${tmp}" ] ; then ssh -S ${tmp} -O exit ${login} ; fi
+	ssh -S ${tmp} -M -N -f -L ${port}:${host}:22 ${user}@${login}
+
+	# Copy files (disable host key checking)
+	scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P ${port} ${opts} "${user}@localhost:${file}" "${dest}"
+	ssh -S ${tmp} -O exit ${login}
+fi
+
+
+# Remote destination
+if [ ! "${dest/*:*/}" ] ; then
+
+	# Setup tunnel
+	userhost=${dest/:*/}
+	if [ ! "${userhost/*@*/}" ] ; then
+		user=${userhost/@*/}
+		host=${userhost/*@/}
+	else
+		user=`whoami`
+		host=${userhost}
+	fi
+	file=${dest/*:/}
+	tmp=/tmp/ssh-${port}-${host}-${login}
+	if [ -e "${tmp}" ] ; then ssh -S ${tmp} -O exit ${user}@${login} ; fi
+	ssh -S ${tmp} -M -N -f -L ${port}:${host}:22 ${login}
+
+	# Copy files (disable host key checking)
+	scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -P ${port} ${opts} "${orig}" "${user}@localhost:${file}"
+	ssh -S ${tmp} -O exit ${login}
+fi

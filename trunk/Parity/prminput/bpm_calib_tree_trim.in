@@ -1,0 +1,241 @@
+# Tree trim file for Hall C BPM Calibration
+# Tuesday, October 26 10:37:47 EDT 2010, jhlee
+#
+# hw_sum      : activated for hw_sum_raw, if not noname_0.. one can see
+# hw_sum_raw  :
+# num_samples :
+# Device_Error_code
+
+[HallCBeamLine]
+  <QwBCM>
+	hw_sum
+	hw_sum_raw
+#	block
+#	block_raw
+	num_samples
+	Device_Error_Code
+#	sequence_number
+
+  <QwBPMStripline>
+	hw_sum
+	hw_sum_raw
+#	block
+#	block_raw
+	num_samples
+	Device_Error_Code
+#	sequence_number
+
+  <QwBPMCavity>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+  <QwCombinedBPM>
+#	hw_sum
+#	hw_sum_raw
+##	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+  <QwCombinedBCM>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+   <QwEnergyCalculator>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+[Main Detector]
+   <QwIntegrationPMT>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+   <QwCombinedPMT>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+[Lumi Detector]
+  <QwIntegrationPMT>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+[BeamMod]
+   <QwBeamMod>
+#	hw_sum
+#	hw_sum_raw
+#	block
+#	block_raw
+#	num_samples
+#	Device_Error_Code
+#	sequence_number
+
+
+
+# below the [DEVICELIST] include all the devices that needs to be in the tree
+
+[DEVICELIST]
+
+# Mps Tree  
+# No. of branches  289
+#sca_unser
+#sca_4mhz
+sca_bcm1
+sca_bcm2
+qwk_bcm1
+qwk_bcm2
+qwk_bcm5
+qwk_bcm6
+#event_number
+
+
+#
+# only qweak_beamline_geometry_map
+# 
+# the following BPM names must be matched to
+# "qweak_beamline_geometry.map" file, because hallc_bpm_calib.C
+# read the map file in order to check a ROOT file's validity.
+# 
+qwk_bpm3c07XP
+qwk_bpm3c07XM
+qwk_bpm3c07YP
+qwk_bpm3c07YM
+
+qwk_bpm3c08XP
+qwk_bpm3c08XM
+qwk_bpm3c08YP
+qwk_bpm3c08YM
+
+qwk_bpm3c11XP 
+qwk_bpm3c11XM 
+qwk_bpm3c11YP
+qwk_bpm3c11YM
+
+qwk_bpm3c12XP
+qwk_bpm3c12XM
+qwk_bpm3c12YP
+qwk_bpm3c12YM
+
+qwk_bpm3c14XP
+qwk_bpm3c14XM
+qwk_bpm3c14YP
+qwk_bpm3c14YM
+
+qwk_bpm3c16XP
+qwk_bpm3c16XM
+qwk_bpm3c16YP
+qwk_bpm3c16YM
+
+qwk_bpm3c17XP
+qwk_bpm3c17XM
+qwk_bpm3c17YP
+qwk_bpm3c17YM
+
+qwk_bpm3c18XP
+qwk_bpm3c18XM
+qwk_bpm3c18YP
+qwk_bpm3c18YM
+
+qwk_bpm3c19XP
+qwk_bpm3c19XM
+qwk_bpm3c19YP
+qwk_bpm3c19YM
+
+qwk_bpm3p01XP
+qwk_bpm3p01XM
+qwk_bpm3p01YP
+qwk_bpm3p01YM
+
+qwk_bpm3p02aXP
+qwk_bpm3p02aXM
+qwk_bpm3p02aYP
+qwk_bpm3p02aYM
+
+qwk_bpm3p02bXP
+qwk_bpm3p02bXM
+qwk_bpm3p02bYP
+qwk_bpm3p02bYM
+
+qwk_bpm3p03aXP
+qwk_bpm3p03aXM
+qwk_bpm3p03aYP
+qwk_bpm3p03aYM
+
+qwk_bpm3c20XP
+qwk_bpm3c20XM
+qwk_bpm3c20YP
+qwk_bpm3c20YM
+
+qwk_bpm3c21XP
+qwk_bpm3c21XM
+qwk_bpm3c21YP
+qwk_bpm3c21YM
+
+qwk_bpm3h02XP
+qwk_bpm3h02XM
+qwk_bpm3h02YP
+qwk_bpm3h02YM
+
+qwk_bpm3h04XP
+qwk_bpm3h04XM
+qwk_bpm3h04YP
+qwk_bpm3h04YM
+
+qwk_bpm3h07aXP
+qwk_bpm3h07aXM
+qwk_bpm3h07aYP
+qwk_bpm3h07aYM
+
+qwk_bpm3h07bXP
+qwk_bpm3h07bXM
+qwk_bpm3h07bYP
+qwk_bpm3h07bYM
+
+qwk_bpm3h07cXP
+qwk_bpm3h07cXM
+qwk_bpm3h07cYP
+qwk_bpm3h07cYM
+
+qwk_bpm3h08XP
+qwk_bpm3h08XM
+qwk_bpm3h08YP
+qwk_bpm3h08YM
+
+qwk_bpm3h09XP
+qwk_bpm3h09XM
+qwk_bpm3h09YP
+qwk_bpm3h09YM
+
+qwk_bpm3h09bXP
+qwk_bpm3h09bXM
+qwk_bpm3h09bYP
+qwk_bpm3h09bYM

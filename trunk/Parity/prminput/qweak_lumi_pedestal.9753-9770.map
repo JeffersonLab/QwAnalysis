@@ -1,0 +1,19 @@
+
+!The following pedestals were recorded from RUN 9753
+!channel name , Mps channelname.hw_sum_raw/num_samples , gain
+qwk_dslumi1  ,  1136.55  ,  0.00007629
+qwk_dslumi2  ,  1143.49  ,  0.00007629
+qwk_dslumi3  ,  423.683  ,  0.00007629
+qwk_dslumi4  ,  1341.44  ,  0.00007629
+qwk_dslumi5  ,  1301.18  ,  0.00007629
+qwk_dslumi6  ,  1074.88  ,  0.00007629
+qwk_dslumi7  ,  675.341  ,  0.00007629
+qwk_dslumi8  ,  1237.12  ,  0.00007629
+qwk_uslumi1neg  ,  11558.9  ,  0.00007629
+qwk_uslumi1pos  ,  8136.62  ,  0.00007629
+qwk_uslumi3neg  ,  9690.1  ,  0.00007629
+qwk_uslumi3pos  ,  9821.35  ,  0.00007629
+qwk_uslumi5neg  ,  9381.75  ,  0.00007629
+qwk_uslumi5pos  ,  10010.2  ,  0.00007629
+qwk_uslumi7neg  ,  9582.82  ,  0.00007629
+qwk_uslumi7pos  ,  15061.6  ,  0.00007629

@@ -1,0 +1,86 @@
+! Created by J. Pan, for the focal plane scanner
+!
+! Scanner needs 2 channels of V792 QADCs for monitoring the PMT gain
+! 2 channels of V775 TDCs and
+! 3 channels of TRIUMF integration ADC's for measuring the X, Y position
+! of the scanner, 3 channels of SIS3801 scaler for the rate. In addition,
+! the scanner could use 3 channels of V792 QADC's to monitor the X, Y 
+! position as supplementary to the TRIUMF ADC's. In such case, 1/50 - 1/100
+! attenuators and a polarity converter would be required since the position
+! signals are positive DC signals with a range of about 3 - 6V.
+!
+! jpan@jlab.org, Sat Oct  3 12:54:09 CDT 2009
+!
+!
+ROC=4
+!
+!
+! QADC/TDC bank
+QDC_Bank=0x0402
+!
+!slot=0
+! module.type  module.num  chan.num, det.type, det.name
+! V775, 0, 0, scanner_tdc, front_tdc
+! V775, 0, 1, scanner_tdc, back__tdc
+!
+slot=1
+! module.type  module.num  chan.num, det.type, det.name
+  V792, 1, 25, scanner_qadc, front_adc
+  V792, 1, 27, scanner_qadc, back__adc
+  V792, 1, 29, scanner_qadc, pos_x_adc
+  V792, 1, 31, scanner_qadc, pos_y_adc
+!
+!
+F1TDC_Bank=0x0401
+!
+slot=6
+! module.type  module.num  chan.num, det.type, det.name
+  F1TDC, 6, 17, scanner_tdc, front_f1
+  F1TDC, 6, 19, scanner_tdc, back__f1
+  F1TDC, 6, 21, scanner_tdc, coinc_f1
+  F1TDC, 6, 23, scanner_tdc, ref_t_f1
+!
+! module.num counting from 0
+SCA_Bank=0x0403
+!
+! module.type  module.num  chan.num, det.type, det.name
+  SIS3801, 1, 24, scanner_sca, front_sca
+  SIS3801, 1, 25, scanner_sca, back__sca
+  SIS3801, 1, 26, scanner_sca, coinc_sca
+  SIS3801, 1, 29, scanner_sca, randm_sca
+  SIS3801, 1, 30, scanner_sca, bg_chrlt_sca
+  SIS3801, 1, 31, scanner_sca, bg_wilbr_sca
+!
+!
+!
+!The following channel map is defined for using current mode electronics
+!
+ROC=0
+!
+!SCA_Bank=0x6103
+!
+! module.type  module.num  chan.num, det.type, det.name
+!  SIS3801, 1, 17, scanner_sca, coinc_sca
+!  SIS3801, 1, 18, scanner_sca, back__sca
+!  SIS3801, 1, 19, scanner_sca, front_sca
+!  SIS3801, 1, 20, scanner_sca, randm_sca
+!  SIS3801, 1, 23, scanner_sca, bg_wilbr_sca
+!  SIS3801, 1, 24, scanner_sca, bg_chrlt_sca
+!
+VQWK_Bank=0x6110
+!
+! module.num counting from 0, scanner using the 1st TRIUMF ADC board on ROC0
+!
+! module.type  module.num  chan.num, det.type, det.name
+!
+!  VQWK, 0, 0, scanner_motion, phase_monitor
+!  VQWK, 0, 5, scanner_motion, pos_x_vqwk
+!  VQWK, 0, 6, scanner_motion, pos_y_vqwk
+!  VQWK, 0, 7, scanner_motion, power_vqwk
+!
+  VQWK, 0, 0, scanner_motion, phase_monitor
+  VQWK, 0, 4, scanner_motion, power_vqwk
+  VQWK, 0, 6, scanner_motion, pos_y_vqwk
+  VQWK, 0, 7, scanner_motion, pos_x_vqwk
+!
+!END

@@ -1,0 +1,19 @@
+
+!The following pedestals were recorded from RUN 8808
+!channel name , Mps channelname.hw_sum_raw/num_samples , gain
+qwk_dslumi1  ,  0  ,  0.00007629
+qwk_dslumi2  ,  911.334  ,  0.00007629
+qwk_dslumi3  ,  3446.21  ,  0.00007629
+qwk_dslumi4  ,  1078.56  ,  0.00007629
+qwk_dslumi5  ,  4730.08  ,  0.00007629
+qwk_dslumi6  ,  867.247  ,  0.00007629
+qwk_dslumi7  ,  8047.9  ,  0.00007629
+qwk_dslumi8  ,  1163.51  ,  0.00007629
+qwk_uslumi1neg  ,  10895.3  ,  0.00007629
+qwk_uslumi1pos  ,  7716.92  ,  0.00007629
+qwk_uslumi3neg  ,  7003.6  ,  0.00007629
+qwk_uslumi3pos  ,  5142.8  ,  0.00007629
+qwk_uslumi5neg  ,  4721.01  ,  0.00007629
+qwk_uslumi5pos  ,  9229.51  ,  0.00007629
+qwk_uslumi7neg  ,  5276.23  ,  0.00007629
+qwk_uslumi7pos  ,  10816.4  ,  0.00007629

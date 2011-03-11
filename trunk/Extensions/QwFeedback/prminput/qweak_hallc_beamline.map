@@ -1,0 +1,72 @@
+
+!**************************************************************************
+!  HALL C  BEAMLINE
+!**************************************************************************
+!
+!
+ROC=1
+Bank=0x102
+!same sample size for ADCs in a given bank
+!sample_size=480
+!for 960Hz
+sample_size=464  
+!
+!
+! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+
+
+!ADC3, Slot 7, Address 37, 0x7F
+   VQWK, 3, 6,  bcm,  QWK_BCM2              
+   VQWK, 3, 7,  bcm,  QWK_BCM1    
+
+!**************************************************************************
+! HALL C BEAMLINE SCALERS
+!**************************************************************************
+Bank=0x6103
+!
+!! scaler.type, scaler.num  word.num, det.type, det.name
+
+   SCALER, 0, 22, halomonitor, sca_habcm
+
+
+
+! Enter the device names in order they appear in the beamline.
+!
+begin=combinedbcm
+name=qwk_charge
+!name	   type	 wieght
+ qwk_bcm1,  bcm, 1.0
+end=combinedbcm
+
+
+!END
+
+!set of published variables
+!publish name,device_type, device name, property (x-pos,xp-angle,y-pos,yp-angle,c-charge,e-energy change, ef - effective charge)
+
+!Each line must contain,
+!1. publish name
+!2. device type
+!	bcm
+!	bpmstrpline
+!	bpmcavity
+!	combobpm
+!	combobcm
+!	comboenergy
+!       scaler
+!3. device name 
+!4. property to publish
+!	x-pos
+!	xp-angle
+!	y-pos
+!	yp-angle
+!	c-charge
+!	e-energy change
+!	ef-effective charge
+!       sc - scaler channel
+
+[PUBLISH]
+ q_targ, combobcm, qwk_charge, c
+ sca_bcm, scaler, sca_habcm, sc
+
+

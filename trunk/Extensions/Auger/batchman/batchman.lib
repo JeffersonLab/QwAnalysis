@@ -1,0 +1,1186 @@
+#
+#
+#        batchman library
+#
+#           by frw
+#
+#       Version 3.7.0
+#
+#  	jianglai modified for G0 7-12-2003	
+#  	wdconinc modified for Qweak 8-16-2010	
+#
+#  See header of BatchMan script for change log
+#
+#
+#
+#
+# Procedures in this code
+#
+#    init_stateIDs {}
+#    init_params {thisdir}
+#    read_paramfile {}
+#    initentry {i}
+#    decodeminorstring {entrycount thistext}
+#    readstatusfile {}
+#    writestatusfile {verbose}
+#    writestatusheader {f verbose}
+#    writestatustail {f verbose}
+#    writestatussummary {f verbose statelist counts}
+#    getmytarget {thisstate}
+#    writestatusentries {jstat f}
+#    setlock {}
+#    clearlock {}
+#    update_runtime {nowtime}
+#    checkrunning {verbose}
+#
+
+
+
+
+# the following initializations are just that, they are NOT parameters!
+# they are here because they are used by the procedures in this library
+# do NOT change these and do NOT move them to the params file!!!
+set lastentrycount 0
+set new_entrycount 0
+set expected_count 0
+set deletedcount 0
+
+
+# initialize the various state labels and properties
+proc init_stateIDs {} {
+	global statestrings statebcol statebtxt
+	
+	set statestrings(incomplete) "<b><font color=\"#FF3366\">incomplete!</font></b>"
+	set statestrings(aborted)    "<b><font color=\"#BB8800\">aborted!</font></b>"
+	set statestrings(kill)       "<b><font color=\"#BB8800\">Kill!</font></b>"
+	set statestrings(restart)    "<b><font color=\"#BB8800\">Restart!</font></b>"
+	set statestrings(new)        "<b><font color=\"#AA3366\">new</font></b>"
+	set statestrings(aborting)   "<b><font color=\"#BB8800\">aborting...</font></b>"
+	set statestrings(unstaged)   "<b><font color=\"#339933\">unstaged</font></b>"
+	set statestrings(staging)    "<b><font color=\"#339933\">staging...</font></b>"
+	set statestrings(staged)     "<b><font color=\"#663399\">staged</font></b>"
+	set statestrings(submitted)  "<b><font color=\"#663399\">submitted</font></b>"
+	set statestrings(completed)  "<b><font color=\"#6633CC\">completed</font></b>"
+	set statestrings(queued)     "<b><font color=\"#663399\">queued</font></b>"
+	set statestrings(running)    "<b><font color=\"#663399\">running</font></b>"
+	set statestrings(ERR)        "<b><font color=\"#AA2222\">ERROR</font></b>"
+        
+	set statebcol(incomplete) "Red"
+	set statebcol(aborted)    "DarkRed"
+	set statebcol(kill)       "HotPink"     
+	set statebcol(restart)    "HotPink"     
+	set statebcol(new)        "cyan"      
+	set statebcol(aborting)   "DeepPink" 
+	set statebcol(unstaged)   "sienna" 
+	set statebcol(staging)    "ForestGreen"  
+	set statebcol(staged)     "OliveDrab"    
+	set statebcol(submitted)  "blue"
+	set statebcol(completed)  "darkblue"
+	set statebcol(queued)     "blue"
+	set statebcol(running)    "blue"
+	set statebcol(ERR)        "white"
+        
+	set statebtxt(incomplete) "Incomplete."
+	set statebtxt(aborted)    "Aborted."
+	set statebtxt(kill)       "Kill!"     
+	set statebtxt(restart)    "RESTART"     
+	set statebtxt(new)        "New"	   
+	set statebtxt(aborting)   "aborting..." 
+	set statebtxt(unstaged)   "unstaged" 
+	set statebtxt(staging)    "staging..."  
+	set statebtxt(staged)     "staged"    
+	set statebtxt(submitted)  "submitted"
+	set statebtxt(completed)  "Completed."
+	set statebtxt(queued)     "queued"
+	set statebtxt(running)    "running"
+	set statebtxt(ERR)        "ERROR"
+	
+	set statebcol(unknown)  "orange"
+	set statebtxt(unknown)  "Unknown!"
+}
+
+
+
+# initialize parameter settings -- overwritten with PARAM file contents (if it exists)
+proc init_params {thisdir} {
+	# jianglai added env declaration
+	global  env
+	global  my_version
+	global  iteration_delay  status_file  param_file
+	global  raw_file_source  staged_files_dir  batch_home_dir
+	global  raw_file_prefix  raw_file_suffix  logfiledir
+	global  output_dir  tempfile_dir  batchmanversion
+	global  batchscript  logfiledir  logfiledir  stage_limit
+	global  bypass_staging_check  auto_restart_failed  release_failed_data
+	global  restart_bad_stages  max_items_per_iteration
+	global  experiment_label  cachegroup  mychachegroup
+	global  check_job_names  bypass_exists
+	global  gracetime_AWOL gracetime_submit gracetime_queue gracetime_killed
+	global  make_backups  backup_addy  make_safeties
+    	global  replay_flags  cache_flags
+
+	cd ~
+	set userdir [pwd]
+	cd $thisdir
+
+	set batchmanversion	  0
+	set iteration_delay       15
+	set status_file           "$userdir/public_html/qweak/batchman.html"
+	set raw_file_source       "/mss/hallc/qweak/raw"
+	set staged_files_dir      "/cache/mss/hallc/qweak/raw"
+	
+	# Jianglai 03-23-2003. We are not using the prefix and suffix below    
+	
+	set raw_file_prefix       "QwRun"
+	set raw_file_suffix       ".out."
+	set batch_home_dir        "$thisdir"
+	set output_dir            "$env(QWSCRATCH)/tmp"
+	set tempfile_dir          "$env(QWSCRATCH)/tmp"
+	set param_file            "$thisdir/batchman.PARAMS"
+	set batchscript           "$thisdir/qwbatch.csh"
+	set logfiledir            "$env(QWSCRATCH)/work"
+	set stage_limit           100
+	set bypass_staging_check  0
+	set auto_restart_failed   0
+	set release_failed_data   1
+	set restart_bad_stages    0
+	set check_job_names 	  1
+	set bypass_exists 	  0
+	set max_items_per_iteration  25
+	set experiment_label      "Qw"
+	set cachegroup            "mine"
+	set mychachegroup         "hallc"
+	set make_backups 	  1
+	set make_safeties 	  1
+	set backup_addy 	  ".last"
+	set gracetime_AWOL 	  5 
+	set gracetime_submit 	  5
+	set gracetime_queue 	  5
+	set gracetime_killed 	  10
+	set replay_flags          "--config qweak_batchman.conf"
+	set cache_flags           ""
+}
+
+
+# read contents of PARAM file and replace default values
+proc read_paramfile {} {
+	global  iteration_delay  status_file  param_file
+	global  raw_file_source  staged_files_dir  batch_home_dir
+	global  raw_file_prefix  raw_file_suffix
+	global  output_dir  tempfile_dir  batchmanversion
+	global  batchscript  logfiledir  stage_limit
+	global  bypass_staging_check  auto_restart_failed  release_failed_data
+	global  restart_bad_stages  max_items_per_iteration
+	global  experiment_label  cachegroup  mychachegroup
+	global  check_job_names  bypass_exists
+	global  gracetime_AWOL gracetime_submit gracetime_queue gracetime_killed
+	global  make_backups  backup_addy  make_safeties
+    	global  replay_flags  cache_flags
+	
+	if {[file exists $param_file] == 1} {
+		set f [open $param_file r]
+		while {[gets $f line] >= 0} {
+			set tline [string trim $line]
+			if {[string index $tline 0] == ";"} {
+			} elseif {[string index $tline 0] == "#"} {
+				#skip comment lines
+			} elseif {[llength $tline] == 3} {
+				set e [string trim [lindex $tline 1]]
+				if {$e == "="} {
+					set a [string trim [lindex $tline 0]]
+					set b [string trim [lindex $tline 2]]
+					set $a $b
+				}
+			}
+		}
+		close $f
+		return 0
+	} else {
+		return 1
+	}
+}
+
+
+
+# initialize the status and property variables of an individual task (entry)
+proc initentry {i} {
+	global runno istatus filecount filelist runtime starttime 
+	global endtime filespresent preabortstate jobid  selected 
+	global current_state stagedcount
+    
+	set runno($i) 0
+	set istatus($i) "ERR"
+	set filecount($i) 0
+	set filelist($i)  "(none)"
+	
+	#jianglai added us_file_list 04-27-2003
+	set us_file_list($i) "(none)"
+
+	set runtime($i) 0
+	set starttime($i)  " "
+	set endtime($i)  " "
+	set filespresent($i)  "(none)"
+	set preabortstate($i) "not an entry"
+	set jobid($i) 0
+	set selected($i) 0
+	set current_state($i) " "
+	set stagedcount($i) 0
+}
+
+
+
+# parse descriptive strings from HTML status file
+# the string is the complete content of ONE cell of an HTML table
+# interprets the various pieces of data and fills corresponding variables
+proc decodeminorstring {entrycount thistext} {
+	global starttime endtime filespresent preabortstate jobid stagedcount
+	global istatus
+	
+	set idx -1
+	set thistext [string trim $thistext]
+	while {$idx < [llength $thistext]} {
+		incr idx 1
+		set idx1 [expr ($idx) +1]
+		if {[lrange $thistext $idx $idx] == "<b>sub</b>"} {
+			set a [expr $idx + 1]
+			set b [expr $idx + 6]
+			set starttime($entrycount) [lrange $thistext $a $b]
+			set idx $b
+		} elseif {[lrange $thistext $idx $idx] == "<b>start</b>"} {
+			set a [expr $idx + 1]
+			set b [expr $idx + 6]
+			set starttime($entrycount) [lrange $thistext $a $b]
+			set idx $b
+		} elseif {[lrange $thistext $idx $idx] == "<b>req</b>"} {
+			set a [expr $idx + 1]
+			set b [expr $idx + 6]
+			set starttime($entrycount) [lrange $thistext $a $b]
+			set idx $b
+		} elseif {[lrange $thistext $idx $idx] == "<b>inQ</b>"} {
+			set a [expr $idx + 1]
+			set b [expr $idx + 6]
+			set starttime($entrycount) [lrange $thistext $a $b]
+			set idx $b
+		} elseif {[lrange $thistext $idx $idx1] == "<br> <b>done</b>"} {
+			set a [expr $idx + 2]
+			set b [expr $idx + 7]
+			set endtime($entrycount) [lrange $thistext $a $b]
+			set idx $b
+		} elseif {[lrange $thistext $idx $idx] == "<b>done</b>"} {
+			set a [expr $idx + 1]
+			set b [expr $idx + 7]
+			set endtime($entrycount) [lrange $thistext $a $b]
+			set idx $b
+		} elseif {[lrange $thistext $idx $idx1] == "<b>files present:</b>"} {
+			incr idx 2
+			set filespresent($entrycount) " "
+			set stagedcount($entrycount) 0
+			set maxi [expr [llength $thistext] -1]
+			while {$idx < $maxi} {
+			       incr idx 1
+			       set ll [lrange $thistext $idx $idx]
+			       if {($ll != "<br>") && ($ll != "(none)")} {
+				       set filespresent($entrycount) "$filespresent($entrycount) $ll"
+				       set stagedcount($entrycount) [expr $stagedcount($entrycount) +1]
+			       }
+			}
+		       
+		} elseif {[lrange $thistext $idx $idx] == "Job"} {
+			incr idx 1
+			set jobid($entrycount) [lrange $thistext $idx $idx]
+		} elseif {[lrange $thistext $idx $idx] == "<b>analyzed"} {
+			incr idx 4
+			set preabortstate($entrycount) [lrange $thistext $idx $idx]
+		} elseif {[lrange $thistext $idx $idx] == "<b>was"} {
+			incr idx 2
+			set preabortstate($entrycount) [lrange $thistext $idx $idx]
+		} elseif {[lrange $thistext $idx $idx] == "<b>currently</b>"} {
+			incr idx 1
+			set preabortstate($entrycount) [lrange $thistext $idx $idx]
+		} elseif {[lrange $thistext $idx $idx] == "<b>last"} {
+			incr idx 3
+			set preabortstate($entrycount) [lrange $thistext $idx $idx]
+		} elseif {[lrange $thistext $idx $idx] == "<b>syncfilter</b>"} {
+			set preabortstate($entrycount) "syncfilter"
+		} elseif {$istatus($entrycount) == "ERR"} {
+			if {[lrange $thistext $idx $idx] == "<b>"} {
+				incr idx 1
+				set edx [lsearch -exact $thistext "</b>"]
+				if {$edx >= $idx} {
+					set edx2 [expr $edx - 1]
+					set preabortstate($entrycount) [lrange $thistext $idx $edx2]
+					set idx [expr $edx + 1]
+				}
+			} else {
+				set bdx [lsearch -exact $thistext "<br>"]
+				if {$bdx > $idx} {
+					set b [expr $bdx - 1]
+					set starttime($entrycount) [lrange $thistext $idx $b]
+				}
+				set a [expr $bdx + 1]
+				set b [expr [llength $thistext] - 1]
+				if {$a <= $b} {
+					set endtime($entrycount) [lrange $thistext $a $b]
+				}
+				set idx [expr $b + 1]
+			}
+		}
+	}
+}
+
+
+# reads the HTML status file
+# identifies and seperately processes document headers and table headers
+# loops over rows in status table and processes each row as one entry
+proc readstatusfile {} {
+    global status_file current_state  expected_count
+    global runno istatus filecount filelist runtime entrycount
+    global statestrings statebcol statebtxt
+    global starttime endtime filespresent preabortstate jobid selected
+    
+    set entrycount 0
+    if {[file exists $status_file] == 0} {return}
+
+    set f [open $status_file r]
+    set state 0
+    set inentry 0
+    while {[gets $f line] >= 0} {
+	
+	set tline [string trim $line]
+	
+	if {$state == 0} {
+	  if {$tline == "<table border=1 cellpadding=3>"} {set state 1}
+	  # done with header
+	  
+	} elseif {$state == 1} {
+	
+	  if {$tline == "</table>"} {
+	     set state 2
+	     
+	  } elseif {$tline == "<tr>"} {
+	     set inentry 1
+	     set itemcount 0
+	     incr entrycount 1
+	     initentry $entrycount
+	     
+	  } elseif {$tline == "<tr bgcolor='#d0d0a0'>"} {
+	  } elseif {$tline == "<tr bgcolor='#d0d0a0'><td colspan=\"7\"><i>Summary:</i>"} {
+	     # this is the summary at top of page
+	     # we don't want to do anything with it -- this entry just makes sure we ignore it
+	     
+	  } elseif {[lrange $tline 2 3] == "entries total"} {
+	     # this line should be right after the above header line if at all (feature as of v3.2.26)
+	     set expected_count [lrange $tline 1 1]
+	     
+	  } elseif {$tline == "<tr bgcolor='#e088b7'>"} {
+	     set inentry 1
+	     set itemcount 0
+	     incr entrycount 1
+	     initentry $entrycount
+	     	     
+	  } elseif {$tline == "</tr>"} {
+	     set inentry 0
+	     
+	  } elseif {$inentry == 1} {
+	  
+	    set indf [string last "<td>" $tline]
+	    if {$indf != -1} {
+	       set indl [string last "</td>" $tline]
+	       while {$indl == -1} {
+		  if {[gets $f line] >= 0} {
+		    set xline [string trim $line]
+		    set tline "$tline $xline"
+		    set indl [string last "</td>" $tline]
+		  } else {
+		    error "File ended before table cell complete!"
+		    exit
+		  }
+	       }
+               set tline [string range $tline [expr $indf+4] [expr $indl-1]]
+	       set tvar [string trim [lrange $tline 0 0]]
+	       if {$tvar == "Run"} {
+	          set itemcount 1
+	          set runno($entrycount) [lrange $tline 1 1]
+		  
+	       } elseif {$itemcount == 1} {    # status
+	          set itemcount 2
+	          set tline [string trim $tline]
+
+		  #		  puts stderr "Run status == $tline\n"
+
+		  foreach si [array names statestrings] {
+		  	if {$tline == $statestrings($si)} {set istatus($entrycount) $si}
+		  }
+
+	       } elseif {$itemcount == 2} {    # no of files
+	          set itemcount 3
+		  set filecount($entrycount)  [lrange [string trim $tline] 1 1]
+		 
+	       } elseif {$itemcount == 3} {    # file names
+	          set itemcount 4
+	          set tmpfilelist [string trim $tline]
+		  set point -1
+		  set mytext " "
+		  while {$point < [llength $tmpfilelist]} {
+			incr point 1
+			set item [lindex $tmpfilelist $point]
+			if {($item != "<br>") && ($item != "(none)")} {
+				set mytext "$mytext $item "
+			}
+		  }
+	          set filelist($entrycount) [string trim $mytext]
+		 
+	       } elseif {$itemcount == 4} {
+	          set itemcount 5
+	          set tmptxt [string trim $tline]
+		  decodeminorstring $entrycount $tmptxt
+		 
+	       } elseif {$itemcount == 5} {
+	          set itemcount 6
+	          set tmptxt [string trim $tline]
+		  decodeminorstring $entrycount $tmptxt
+		 
+	       } elseif {$itemcount == 6} {
+	          set itemcount 7
+	          set runtime($entrycount) [string trim $tline]
+	       
+	       } else {
+		    error "Status File Entry did not start with 'Run'\n $tvar!"
+		    exit
+	       }
+	    }
+	  }
+       }
+   }
+   close $f
+   
+   if {$expected_count > 0} {
+   	if {$entrycount != $expected_count} {
+		puts stderr "\n\n  FATAL ERROR:  corrupted status file"
+		puts stderr "                expected $expected_count entries, found $entrycount"
+		puts stderr "\n\n  Aborting, NOT releasing lockfile...\n\n"
+		exit 77
+	}
+   }
+}
+
+
+
+# writes status info for all entries/tasks/runs to HTML formatted status file
+# writes document header & tail, table header & tail, and one table row per entry/task/run
+proc writestatusfile {verbose} {
+	global status_file  thistime  batchmanversion
+	global runno istatus filecount filelist runtime entrycount
+	global new_entrycount deletedcount
+	global statestrings statebcol statebtxt
+	global starttime endtime filespresent preabortstate jobid selected
+	global make_backups  backup_addy  lastentrycount  make_safeties thistime
+	
+	# now that all entries have been processed, output the current status to file
+	# if requested, keep the previous status file as a backup -- each new backup
+	# overwrites the previous backup
+	# also, if there is more than a 5% decrease in the number of entries, we make
+	# a unique backup of the status file as it was at the beginning of this
+	# iteration -- we call these "safeties"
+	
+	set statelist "new unstaged staging staged \
+		       submitted queued running completed \
+		       kill restart incomplete aborted aborting ERR unknown"
+	
+	foreach x $statelist {set statecount($x) 0}
+	for {set i 1} {$i <= $entrycount} {incr i 1} {
+		if {[lsearch $statelist $istatus($i)] > -1} {
+			incr statecount($istatus($i)) 1
+		}
+	}
+	set new_entrycount [expr $entrycount - $deletedcount - $statecount(unknown)]
+	
+	if {$make_backups} {
+		set backupfile "${status_file}${backup_addy}"
+		set safetyfile "${status_file}.[join [lrange $thistime 1 3] .]"
+		set ijerr 0
+		if {$make_safeties} {
+		  if {([file exists $status_file]) && ($lastentrycount > 0)} {
+			if {[expr 1.*$new_entrycount/$lastentrycount] < 0.95} {
+				# there is a significant decrease in the number of entries
+				set ijerr [catch {exec cp -f $status_file $safetyfile} answer]
+				set ERRstring "Problem copying status file ($status_file) for safety."
+			}
+		  }
+		}
+		if {[file writable $status_file]} {
+			#move it to backup
+			set ierr [catch {exec mv -f $status_file $backupfile} answer]
+			set ERRstring "Problem renaming status file ($status_file) for backup."
+		} elseif {[file exists $status_file]} {
+			#exists but we cannot control it -- BAD!
+			set ierr 1
+			set ERRstring "Unable to rename status file ($status_file) for backup."
+		} elseif {$ijerr != 0} {
+			# problem making safety
+			set ierr $ijerr
+		} else {
+			#doesn't exist so no backup -- that's ok
+			set ierr 0
+		}
+	} else {
+		set ierr 0
+	}
+	
+	if {$ierr == 0} {
+		set ierr [catch {open $status_file w} f]
+		set ERRstring "Unable to open status file ($status_file) for output."
+		if {$ierr != 0} {
+			#we couldn't open the status file for writing, this is bad!
+			puts stderr "\n\n ERROR: Could not write status file!\n        Aborting..."
+			puts stderr "\n Final status:\n"
+		}
+	}
+	
+	if {$ierr != 0} {
+		#in case of this or other error
+		set f stderr
+	}
+	
+	writestatusheader $f $verbose
+	
+	writestatussummary $f $verbose $statelist statecount
+	
+	if {[expr $statecount(new) + $statecount(restart) + $statecount(kill)] > 0} {
+		puts $f "<tr bgcolor='#a0a0a0'><td colspan=\"7\"><a name=\"new\"><i>Not Yet Processed:</i></a></td></tr>"
+		writestatusentries "kill" $f
+		writestatusentries "restart" $f
+		writestatusentries "new" $f
+	}
+
+	if {$statecount(unstaged) > 0} {
+		puts $f "<tr bgcolor='#ffffff'><td colspan=\"7\"><a name=\"waiting\"><i>Holding:</i></a></td></tr>"
+		writestatusentries "unstaged" $f
+	}
+
+	if {[expr $statecount(aborting) + \
+	          $statecount(staging) + $statecount(staged) + \
+	          $statecount(queued) + $statecount(running) + \
+	          $statecount(submitted)] > 0} {
+		puts $f "<tr bgcolor='#a0d0a0'><td colspan=\"7\"><a name=\"active\"><i>In Progress:</i></a></td></tr>"
+		writestatusentries "aborting" $f
+		writestatusentries "staging" $f
+		writestatusentries "staged" $f
+		writestatusentries "submitted" $f
+		writestatusentries "queued" $f
+		writestatusentries "running" $f
+	}
+
+	if {[expr $statecount(aborted) + $statecount(ERR) + \
+	          $statecount(incomplete)] > 0} {
+		puts $f "<tr bgcolor='#d0a0a0'><td colspan=\"7\"><a name=\"bad\"><i>Non-standard Exit:</i></a></td></tr>"
+		writestatusentries "ERR" $f
+		writestatusentries "incomplete" $f
+		writestatusentries "aborted" $f
+	}
+
+	if {$statecount(completed) > 0} {
+		puts $f "<tr bgcolor='#a0a0d0'><td colspan=\"7\"><a name=\"done\"><i>Done:</i></a></td></tr>"
+		writestatusentries "completed" $f
+	}
+	
+	writestatustail $f $verbose
+
+	if {$f != "stderr"} {
+		close $f
+		set lastentrycount $entrycount
+	} else {
+		error $ERRstring
+	}
+}
+
+
+# actually writes the header of the HTML status file -- document header and table header
+proc writestatusheader {f verbose} {
+	global status_file  thistime  batchmanversion
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt
+	global starttime endtime filespresent preabortstate jobid selected
+	
+	set saveversionok [regsub -all <|> $batchmanversion _ saveversion]
+    
+	puts $f "<!doctype html public \"-//w3c//dtd html 4.0 transitional//en\">"
+	puts $f "<html>\n<head>"
+	puts $f "<meta http-equiv=\"Content-Type\" content=\"text/html; charset=iso-8859-1\">"
+	puts $f "<meta http-equiv=\"refresh\" content=\"300\" />"
+	puts $f "<title>BatchMan Job Status</title>\n</head>\n\n<body>"
+	puts $f "<h1 align=\"center\">QwBatchMan<sup><font size=-2>frw</font></sup> v$saveversion &nbsp;  Job Status -- updated $thistime </h1>"
+	puts $f "<hr>\n\n<table border=1 cellpadding=3>"
+	
+	return 0
+}
+
+
+
+# actually writes the tail of the HTML status file -- table tail and document tail
+proc writestatustail {f verbose} {
+	global status_file  thistime  batchmanversion
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt
+	global starttime endtime filespresent preabortstate jobid selected
+	
+	puts $f "</table>\n\n</body>\n</html>\n"
+
+	return 0
+}
+
+
+# writes the summary part of the HTML status file -- part of table header (at least conceptually)
+proc writestatussummary {f verbose statelist counts} {
+	global status_file  thistime  batchmanversion
+	global runno istatus filecount filelist runtime entrycount new_entrycount
+	global statestrings statebcol statebtxt
+	global starttime endtime filespresent preabortstate jobid selected
+	
+	upvar $counts statecount
+	
+	set headercols 6
+	puts $f "<tr bgcolor='#d0d0a0'><td colspan=\"7\"><i>Summary:</i>"
+	puts $f "&nbsp;&nbsp;&nbsp; $new_entrycount entries total"
+	puts $f "<table border=0 WIDTH=\"100%\"><tr>"
+	set ii 0
+	foreach x $statelist {
+		if {$x == "unknown"} {
+			# just skip these
+		} elseif {$statecount($x) > 0} {
+			set htmltarget [getmytarget $x]
+			incr ii 1
+			if {$ii > $headercols} {
+				puts $f "</tr><tr>"
+				set ii 1
+			}
+			puts $f "<td><a href=\"$htmltarget\">$statecount($x) $statestrings($x)</a></td>"
+			if {$verbose} {
+			  puts "  : $statecount($x) runs are $statebtxt($x)"
+			}
+		}
+	}
+	for {set i $ii} {$i < $headercols} {incr i 1} {puts $f "<td> </td>"}
+	
+	puts $f "</tr></table> </td></tr> <tr><td> </td></tr>"
+	
+	return 0
+}
+
+
+
+# look-up function for the HTML tags identifying the internally linked subsets of tasks
+proc getmytarget {thisstate} {
+	switch $thisstate {
+		new 		{set target "#new"}
+		unstaged 	{set target "#waiting"}
+		staging 	{set target "#active"}
+		staged		{set target "#active"}
+		submitted 	{set target "#active"}
+		queued 		{set target "#active"}
+		running 	{set target "#active"}
+		completed	{set target "#done"}
+		kill 		{set target "#new"}
+		restart 	{set target "#new"}
+		incomplete 	{set target "#bad"}
+		aborted 	{set target "#bad"}
+		aborting 	{set target "#active"}
+		ERR		{set target "#bad"}
+		default		{set target ""}
+	}
+	return $target
+}
+	
+
+
+# actually writes out the HTML formatted task entries for all tasks with specified status (one table row per entry)
+proc writestatusentries {jstat f} {
+	global status_file  thistime
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt
+	global starttime endtime filespresent preabortstate jobid selected
+	
+	for {set i 1} {$i <= $entrycount} {incr i 1} {
+		if {$istatus($i) == $jstat} {
+
+			# highlight tasks that have been ongoing for a long time
+			if {[lindex $runtime($i) 1] == "days"} {
+				puts $f "<tr bgcolor='#e088b7'>"
+			} else {
+				puts $f "<tr>"
+			}
+
+			puts $f " <td>Run $runno($i)</td>"
+			puts $f " <td>$statestrings($istatus($i))</td>"
+
+			if {(($istatus($i) == "kill") && ($preabortstate($i) == "new")) \
+			    || ($istatus($i) == "new")} {
+				puts $f " <td> </td>"
+				puts $f " <td> </td>"
+			} else {
+				set flst "(none)"
+				if {$filecount($i) > 0} {
+					set flst $filelist($i)
+					for {set j [llength $filelist($i)]} {$j > 1} {incr j -1} {
+						set jj [expr $j-1]
+						set flst [linsert $flst $jj "<br>"]
+					}
+				}
+				puts $f " <td>files $filecount($i)</td>"
+				puts $f " <td> $flst </td>"
+			}
+
+			set flprs "(none)"
+			if {($istatus($i) == "aborting") || ($istatus($i) == "staging") \
+			                                 || ($istatus($i) == "staged")} {
+				if {[llength $filespresent($i)] > 0} {
+					set flprs $filespresent($i)
+					for {set j [llength $filespresent($i)]} {$j > 1} {incr j -1} {
+						set jj [expr $j-1]
+						set flprs [linsert $flprs $jj "<br>"]
+					}
+				}
+			}
+
+			set outstr5 " "
+			set outstr6 " "
+			set outstr7 " "
+
+			if {[lsearch "submitted queued running" $istatus($i)] > -1} {
+				set outstr5 "<a href=\"http://scicomp.jlab.org/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
+			} elseif {$istatus($i) == "completed"} {
+			        # if {$preabortstate($i) == "syncfilter"} {
+				#    set outstr5 "<b>syncfilter</b>"
+				# }
+				set outstr5 "<a href=\"http://scicomp.jlab.org/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
+				
+			} elseif {[lsearch "staged staging" $istatus($i)] > -1} {
+				set outstr5 "<b>files present:</b> <br> $flprs"
+				
+			} elseif {$istatus($i) == "ERR"} {
+				set outstr5 "<b> $preabortstate($i) </b>"
+				
+			} elseif {$istatus($i) == "incomplete"} {
+				set outstr5 "<b>analyzed up to segment $preabortstate($i) </b>"
+				
+			} elseif {$istatus($i) == "aborted"} {
+				set outstr5 "<b>was at</b> $preabortstate($i)"
+				
+			} elseif {$istatus($i) == "aborting"} {
+				set outstr5 "<b>currently</b> $preabortstate($i)"
+				
+			} elseif {[lsearch "new unstaged" $istatus($i)] > -1} {
+				set outstr5 " "
+			} elseif {[lsearch "kill restart" $istatus($i)] > -1} {
+				if {[lsearch "queued running" $preabortstate($i)] > -1} {
+					set outstr5 "<a href=\"http://scicomp.jlab.org/scicomp/auger-job-description.jsp?jobid=$jobid($i)\">Job $jobid($i)</a>"
+				} else {
+					set outstr5 " "
+				}
+			}
+
+			if {$istatus($i) == "aborting"} {
+				set outstr6 "<b>files present:</b> <br> $flprs"
+				
+			} elseif {$istatus($i) == "submitted"} {
+				set outstr6 "<b>sub</b> $starttime($i)"
+				
+			} elseif {$istatus($i) == "queued"} {
+				set outstr6 "<b>inQ</b> $starttime($i)"
+				
+			} elseif {$istatus($i) == "running"} {
+				set outstr6 "<b>start</b> $starttime($i)"
+				
+			} elseif {$istatus($i) == "staging"} {
+				set outstr6 "<b>req</b> $starttime($i)"
+				
+			} elseif {$istatus($i) == "ERR"} {
+				set outstr6 " $starttime($i) <br> $endtime($i)"
+				
+			} elseif {$istatus($i) == "incomplete"} {
+				set outstr6 "<b>start</b> $starttime($i) <br> <b>done</b> $endtime($i)"
+				
+			} elseif {$istatus($i) == "completed"} {
+				set outstr6 "<b>start</b> $starttime($i) <br> <b>done</b> $endtime($i)"
+				
+			} elseif {[lsearch "kill restart" $istatus($i)] > -1} {
+				set outstr6 "<b>last known 2B</b> $preabortstate($i)"
+				
+			} elseif {[lsearch "new unstaged staged aborted" $istatus($i)] > -1} {
+				set outstr6 " "
+			}
+
+			if {[lsearch "staging submitted queued running\
+			              completed incomplete ERR" $istatus($i)] > -1} {
+				set outstr7 $runtime($i)
+				
+			} elseif {[lsearch "new unstaged staged restart kill aborted aborting" $istatus($i)] > -1} {
+				set outstr7 " "
+			}
+			
+			puts $f " <td> $outstr5 </td>"
+			puts $f " <td> $outstr6 </td>"
+			puts $f " <td> $outstr7 </td>"
+			puts $f "</tr>"
+		}
+	}
+}
+
+
+# attempt to claim the lock for the status file (i.e. create lock file)
+proc setlock {} {
+	global lockfile gotlock rundir
+	global env  myname
+	
+	if {$gotlock != 1} {
+		set file $lockfile
+		set mypid [pid]
+		if {[file exists $file] == 0} {
+			if {[file writable $rundir] == 1} {
+				set f [open $file w]
+					puts $f "$mypid  $myname  $env(HOST)\n\n"
+				close $f
+				set gotlock 1
+			} else {
+				set gotlock -2
+			}
+		} else {
+			set gotlock -1
+		}
+	}
+}
+
+
+# release the lock on the status file (i.e. delete lock file)
+proc clearlock {} {
+	global lockfile gotlock rundir
+	set ierr 0
+	set answer ""
+	if {$gotlock == 1} {
+		if {[file exists $lockfile] == 1} {
+			set ierr [catch {exec rm -f $lockfile} answer]
+		}
+		set gotlock 0
+	}
+	return "$ierr $answer"
+}
+
+
+# calculates the time elapsed between start time of tasks' current state and the current time
+# only done for active tasks -- string is formatted to be short and only contain relevant data
+# i.e. short times are in minutes, longer times in hours or days
+proc update_runtime {nowtime} {
+	global status_file current_state
+	global runno istatus filecount filelist runtime entrycount
+	global starttime endtime filespresent preabortstate jobid selected
+
+	set ierr [catch {exec date -d $nowtime +%s} now_sec]
+	
+	if {$ierr == 0} {
+	   for {set j 1} {$j <= $entrycount} {incr j 1} {
+		if {($istatus($j) == "submitted") \
+		   || ($istatus($j) == "running") || ($istatus($j) == "queued") \
+		   || ($istatus($j) == "staging") } {
+			set ierr [catch {exec date -d $starttime($j) +%s} start_sec]
+			if {$ierr == 0} {
+				set tdiff [expr ($now_sec - $start_sec)/60]
+				if {$tdiff < 120} {
+					set tdiff [expr int($tdiff)]
+					set dt "$tdiff minutes"
+				} elseif {$tdiff < 3000} {
+					set tdiff [expr int($tdiff/60. + 0.5)]
+					set dt "$tdiff hours"
+				} else {
+					set tdiff [expr int($tdiff/60./24. + 0.5)]
+					set dt "$tdiff days"
+				}
+				set runtime($j) $dt
+			} else {
+	   			set runtime($j) "=err-start="
+			}
+		}
+	   }
+	} else {
+	   set runtime($j) "=err-now="
+	}
+}
+
+
+# obtains current job list from batch system and matches it against status file
+# first parses it to get each batch job's run no and label, status
+# then updates tasks' state as appropriate, notes foreign jobs
+# finally identifies tasks that hsad no match
+proc checkrunning {verbose} {
+	# jianglai added env declaration
+	global  env
+	global runno istatus filecount filelist runtime entrycount
+	global statestrings statebcol statebtxt stagedcount maxentries
+	global starttime endtime filespresent preabortstate jobid selected
+	global current_state  experiment_label  check_job_names
+
+	# wdconinc 2010-08-18: disabled older long jobstat states
+	#set known_states "PEND PSUSP RUN DONE EXIT UNKWN"
+
+	# wdconinc 2010-08-18: new short states in jobstat
+	set known_states "HOLD_AUGER HOLD_PBS PEND RUN DONE EXIT UNKWN"
+	set known_states_short "A H Q R E ? ?"
+
+	# If the jobs returned from jobstat -a are different from those in the status 
+	# file, we excluded these two states from incrementing entrycount so they 
+	# will not show up in the batchman window "UNKNOWN" entries. 
+	# All finished job of THIS session be tagged into the html file at the end 
+	# of this iteration within check_if_done via jobstat -d, and all finished 
+	# jobs from some other "older" sessions will be ignored and could be added
+	# into the active list through the GUI if desired.
+	# jianglai 11/18/2004
+	
+	set known_states_ended "DONE EXIT"
+	
+	foreach sx $known_states {set scount($sx) 0}
+	set scount(other) 0
+	set scount(strange) 0
+
+	#Updated on 5-29-2003. Oops, computer center changed the output of 
+	#jobstat. What a pain ... Use -w to get the wide format instead
+
+	#Updated on 7-12-2003. After another jasmine upgrade on july 4, 
+	# jobstat format changed again. It puts one more extra empty line
+	# at the end. Why the hell are those guys paid for ... So use a  
+	# grep to remove the the shitty empty line and title line. jianglai
+	#
+	#  2004aug23; pking.  Added STDERR redirection because the jobstat
+	#                     now returns an error if there are no runs.
+	#                     Also, use the "-a" flag to show all jobs.
+	#
+	set ierr [catch {exec jobstat -u $env(USER) > .tmp 2> .tmperr}]
+	if {($ierr != 0) && ($verbose != 0)} {
+		#  If the error code is not exactly "No job found", then
+		#  report it as a problem.
+		#      P.King, 2006sep26
+		set ierrtmp [catch {exec cat .tmperr } outstr]
+		if {$outstr != "No job found"} {
+			puts stderr "\n\n   #####  Problem interfacing with batch farm!  ####\n"
+			puts stderr "   Response to my 'jobstat' command was error code $ierr"
+			puts stderr "   and output was >>>$outstr<<<\n\n"
+			set outstr ""
+		}
+	}
+
+	set ierr [catch {exec cat .tmp | grep $env(USER) } outstr]
+
+	
+	#           1         2         3         4         5         6         7
+	# 01234567890123456789012345678901234567890123456789012345678901234567890123456789
+	# No unfinished job found 
+	# JOBID USER     STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
+	# 660310 frw      RUN   production farms0      farml61     *n01_41560 Nov 21 17:51
+	# 128244  frw     RUN   production farms0-old. farml112.jl RSS_43366  Aug 21 15:10
+	# 128281  frw     PEND  production farms0-old.             RSS_43243  Aug 21 15:14
+	# JOBID   USER    STAT  QUEUE      FROM_HOST   EXEC_HOST   JOB_NAME   SUBMIT_TIME
+
+	# Updated 2010-08-17 wdconinc:
+	#           1         2         3         4         5         6         7
+	# 01234567890123456789012345678901234567890123456789012345678901234567890123456789
+	# JOB_ID    USER      STAT    QUEUE      EXEC_HOST   JOB_NAME         SUBMIT_TIME   CPU_TIME  WALLTIME  ACCOUNT
+	# 6120609   wdconinc    R    prod64      farm08001  Qw_584            Aug 17 11:02  06:04:30   06:05:53   hallc
+	# 6137022   wdconinc    H    prod64      --         Qw_583            Aug 17 17:14  --         --         hallc
+
+
+	if { $ierr != 0 } {
+	  set new_N 0
+	} else {
+	  set lines [split $outstr \n]
+	  set new_N [expr [llength $lines]]
+        }
+
+	if {$new_N > 0} {
+	
+		#first, compile a list of existing batch jobs from query output
+		for {set i 1} {$i <= $new_N} {incr i 1} {
+		    set is_in_list($i) 0
+		    set oneline [lindex $lines [expr ($i) -1]]
+		    set test [string trim [string range $oneline 0 0]]
+		    if {[lsearch {0 1 2 3 4 5 6 7 8 9} $test] > -1} {
+			set new_id($i)    [lindex $oneline  0]
+			set new_state($i) [lindex $oneline  2]
+			set new_state_ind [lsearch $known_states_short $new_state($i)]
+			if {$new_state_ind > -1} {
+				set new_state($i) [lindex $known_states $new_state_ind]
+				incr scount($new_state($i)) 1
+			} else {
+				incr scount(other) 1
+			}
+			if {[llength $oneline] == 10} {
+			   set new_host($i)  [lindex $oneline  5]
+			
+			# jianglai 03-24-2003
+			# this new run is given by the job_name entry
+			# need to provide this when submitting the job!!!
+		    	# so modified pking's qwbatchsub.pl to assign
+			# "Qw_runnumber" to each job. Hard-coded
+			#Updated on 5-29-2003. Oops, computer center 
+			#changed the output format of jobstat.
+			# "Qw_runnumber-process.no"
+
+			# computer center seemed to revert back to the 
+			# jobstat output as before. I have to revert
+			# back ... "Qw_XXXX" is now the job name
+			set new_name   [string trim [lindex $oneline 6]]
+			
+			#so first find the index of the underscore
+			set sl [expr [string first "_" [lindex $oneline 6]] +1]
+			# next find the index of the "-"
+			#set sr [expr [string first "-" [lindex $oneline 6]] -1]
+			#set new_run($i)   [string trim [string range [lindex $oneline 6] $sl $sr]]
+			set new_run($i)   [string trim [string range [lindex $oneline 6] $sl end]]
+			set new_time($i)  [string trim [lrange $oneline 7 9]]
+			
+			#below is commented
+			#set sl [expr [string length $new_name] -5]
+			#set new_run($i)   [string trim [string range $new_name $sl end]]
+			#set new_time($i)  [string trim [lrange $oneline 7 9]]
+			
+			} elseif {[llength $oneline] == 12} {
+			   set new_host($i)  "n/a"
+			   set new_name   [string trim [lindex $oneline 5]]
+			   
+			   #so first find the index of the underscore
+			   set sl [expr [string first "_" [lindex $oneline 5]] +1]
+			   # next find the index of the "-"
+			   #set sr [expr [string first "-" [lindex $oneline 6]] -1]
+			   #set new_run($i)   [string trim [string range [lindex $oneline 5] $sl $sr]]
+			   set new_run($i)   [string trim [string range [lindex $oneline 5] $sl end]]
+			   set new_time($i)  [string trim [lrange $oneline 6 8]]
+
+			   #below is commented			   
+			   #set sl [expr [string length $new_name] -5]
+			   #set new_run($i)   [string trim [string range $new_name $sl end]]
+			   #set new_time($i)  [string trim [lrange $oneline 6 8]]
+			} else {
+			   set new_name      "???"
+			   set new_host($i)  "???"
+			   set new_run($i)   "???"
+			   set new_time($i)  0
+			}
+			
+			# now check the job expected label against the part of the
+			# label actually shown (and meaningful)
+			# if they don't match, change run no to differ
+			if {$check_job_names} {
+				if {[string range $new_name 0 0] == "*"} {
+					set new_name [string range $new_name 1 end]
+				}
+				set expected_name [string trim "${experiment_label}_$new_run($i)"]
+				#jianglai 05-29-2003
+				# actually in the updated jobstat output,
+				# the job name is "Qw_runno-xxxx". So
+				# put a fix here
+				set l1 [expr [string length $expected_name]]
+				set l2 [expr [string length $new_name]]
+				#puts "$new_name vs $expected_name"
+				if { $l1 > $l2 } {
+				  set sl [expr $l1 - $l2]
+				  set expected_name [string range $expected_name $sl end]
+				} else {
+				  set new_name [string range $new_name 0 [expr $l1-1]]
+				}
+				if {$expected_name != $new_name} {
+					set new_run($i)   "#$new_run($i)"
+				}
+			}
+			
+		    } else {
+			set new_id($i)    0
+			set new_state($i) 0
+			set new_host($i)  0
+			set new_run($i)   0
+			set new_time($i)  0
+		    }
+		}
+		
+		# now check jobs and match them against queue list
+		# I though the matching below is rather confusing. If were me I 
+		# would try to find exact match between jobstat and what's in the
+		# status file, and tag everything else "unknown" ... but I am too lazy to
+		# change it. jianglai 11/18/04
+		for {set j 1} {$j <= $entrycount} {incr j 1} {
+			if {[lsearch "aborted completed ERR incomplete" $istatus($j)] == -1} {
+				#set jobid($j) "n/a"
+				set current_state($j) "Not in Queue!!!"
+				set mismatched_job 0
+				for {set i 1} {$i <= $new_N} {incr i 1} {
+					if {($runno($j) == $new_run($i)) \
+					    && ([lsearch "submitted queued running" $istatus($j)] > -1)} {
+						if {$jobid($j) == 0} {
+							set jobid($j) $new_id($i)
+						}
+						if {$jobid($j) == $new_id($i)} {
+							set is_in_list($i) 1
+							set current_state($j) "Queue State: $new_state($i)"
+							break
+						} elseif {[expr int($jobid($j))] == $new_id($i)} {
+							# this run has previously changed job IDs -- preserve marker!
+							set is_in_list($i) 1
+							set current_state($j) "Queue State: $new_state($i)"
+							break
+						} else {
+							# somehow the job id has changed!
+							set mismatched_job $i
+						}
+					}
+				}
+				# there was a run with matching label but different job ID!
+				# if that run is not otherwise matched up and  the entry is still available too, match them
+				if {($current_state($j) == "Not in Queue!!!") && ($mismatched_job > 0)} {
+					if {$is_in_list($mismatched_job) == 0} {
+						set is_in_list($mismatched_job) 1
+						set current_state($j) "Queue State: $new_state($mismatched_job)"
+						if {$verbose > 0} {
+							puts "     WARNING: run $runno($j) (now $current_state($j)) has changed job ID \
+						        	  from $new_id($mismatched_job) to $jobid($j)"
+						}
+						set jobid($j) "$new_id($mismatched_job).$jobid($j)"
+						break
+					}
+				}
+			}
+		}
+		
+		# now flag those jobs that wouldn't find a match
+		for {set i 1} {$i <= $new_N} {incr i 1} {
+			# jianglai 11/18/2004, skipped finished jobs
+			if {($is_in_list($i) == 0) && ([lsearch $known_states_ended $new_state($i)] < 0)} {
+				incr entrycount 1
+				initentry $entrycount
+				set istatus($entrycount) "unknown"
+				set runno($entrycount) $new_run($i)
+				set current_state($entrycount) "Queue State: $new_state($i)"
+				set ierr [catch {exec date -d $new_time($i)} starttime($entrycount)]
+				set jobid($entrycount) $new_id($i)
+				set filecount($entrycount) "?"
+				incr scount(strange) 1
+			}
+		}
+		if {$verbose > 0} {
+			foreach sx $known_states {
+				if {$scount($sx) > 0} {
+					puts -nonewline "   $sx: $scount($sx)"
+				}
+			}
+			if {$scount(other) > 0} {
+				puts -nonewline "   other: $scount(other)"
+			}
+			puts "   non-BatchMan: $scount(strange)"
+		}
+	} else {
+		if {$verbose > 0} {
+			puts "   0 active batch jobs"
+		}
+	}
+}
+
+
+
+
+
+return 0

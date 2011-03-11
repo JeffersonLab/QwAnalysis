@@ -1,0 +1,29 @@
+
+ROC=31
+Bank=0x3102
+!
+!
+! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
+
+sample_size=16680
+!ADC11
+  VQWK, 11, 0,  bpmstripline,  QWK_0R06XP
+  VQWK, 11, 1,  bpmstripline,  QWK_0R06XM
+  VQWK, 11, 2,  bpmstripline,  QWK_0R06YP
+  VQWK, 11, 3,  bpmstripline,  QWK_0R06YM
+  VQWK, 11, 4,  bpmstripline,  QWK_0L06XP
+  VQWK, 11, 5,  bpmstripline,  QWK_0L06XM
+  VQWK, 11, 6,  bpmstripline,  QWK_0L06YP
+  VQWK, 11, 7,  bpmstripline,  QWK_0L06YM
+
+!ADC12
+  VQWK, 12, 0,  bcm,  QWK_BCM0L00
+  VQWK, 12, 1,  bcm,  QWK_BCM0L01
+  VQWK, 12, 2,  bcm,  QWK_BCM0L02
+  VQWK, 12, 3,  bcm,  QWK_BCM0L03
+  VQWK, 12, 4,  bcm,  QWK_BCM0L04
+  VQWK, 12, 5,  bcm,  QWK_BCM0L05
+  VQWK, 12, 6,  bcm,  QWK_BCM0L06
+  VQWK, 12, 7,  bcm,  QWK_BCM0L07
+
+!END
