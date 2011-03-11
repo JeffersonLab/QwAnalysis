@@ -71,7 +71,7 @@ class QwTrackingWorker {
     void SetDebugLevel (int debug) { fDebug = debug; };
 
     /// \brief Process the hit list and construct the event
-    QwEvent* ProcessHits (QwSubsystemArrayTracking *detectors, QwHitContainer *hitlist);
+    void ProcessEvent (const QwSubsystemArrayTracking *detectors, QwEvent *event);
 
   private:
 

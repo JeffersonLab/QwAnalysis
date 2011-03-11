@@ -36,7 +36,7 @@ QwBridgingTrackFilter::QwBridgingTrackFilter()
  * @param back Back partial track
  * @return Failure code (zero when accepted)
  */
-const QwBridgingTrackFilter::EStatus
+QwBridgingTrackFilter::EStatus
 QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
                               const QwPartialTrack* back) const
 {

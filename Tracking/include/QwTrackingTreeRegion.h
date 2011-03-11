@@ -68,7 +68,7 @@ class QwTrackingTreeRegion:
     void SetWidth(double width) { fWidth = width; };
 
     /// Print the lists of trees and nodes
-    void Print() const { PrintTrees(); PrintNodes(); };
+    void Print(const Option_t* options = 0) const { PrintTrees(); PrintNodes(); };
     /// \brief Print the list of trees
     void PrintTrees() const;
     /// \brief Print the list of nodes

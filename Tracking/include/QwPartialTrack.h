@@ -13,7 +13,6 @@
 #include <math.h>
 
 // ROOT headers
-#include "TObject.h"
 #include "TClonesArray.h"
 #include "TVector3.h"
 
@@ -57,7 +56,7 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     /// \brief Copy constructor
     QwPartialTrack(const QwPartialTrack* partialtrack);
     /// \brief Constructor with track position and direction
-    QwPartialTrack(const TVector3 position, const TVector3 momentum);
+    QwPartialTrack(const TVector3& position, const TVector3& momentum);
     /// Destructor
     virtual ~QwPartialTrack() { };
 
@@ -137,7 +136,7 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
     // Tree lines
     QwTrackingTreeLine* GetTreeLine(const EQwDirectionID dir) {
-      return tline[dir];
+      return fTreeLine[dir];
     }
 
   public: // members
@@ -151,23 +150,22 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     Double_t fChi;		///< combined chi square
     double fCov[4][4];		///< covariance matrix
 
-    QwTrackingTreeLine *tline[kNumDirections];	//!	///< tree line in u v and x
-    double  clProb;		///< prob. that this cluster belongs to track
-    double  pathlenoff;		///< pathlength offset
-    double  pathlenslo;		///< pathlength slope
+    QwTrackingTreeLine *fTreeLine[kNumDirections];	//!	///< tree line in u v and x
+
     QwBridge *bridge;	//!	///< magnetic field bridging
-    bool fIsUsed;		///< used (part of a track)
-    Int_t  nummiss;		///< missing hits
-    Int_t  numhits;		///< used hits
-    Bool_t fIsVoid;		///< marked as being void
+
+    Bool_t fIsUsed;		///< used (part of a track)
+    Bool_t fIsVoid;     ///< marked as being void
+    Bool_t fIsGood;
+
+    Int_t  fNumMiss;		///< missing hits
+    Int_t  fNumHits;		///< used hits
 
     int triggerhit;		///< Did this track pass through the trigger?
     double trig[3];		///< x-y-z position at trigger face
 
     int cerenkovhit;		///< Did this track pass through the cerenkov bar?
     double cerenkov[3];		///< x-y-z position at Cerenkov bar face
-
-    bool fIsGood;
 
     double pR2hit[3];           ///< x-y-z position at R2
     double uvR2hit[3];          ///< direction at R2

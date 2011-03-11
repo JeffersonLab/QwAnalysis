@@ -460,18 +460,17 @@ void QwTrackingWorker::InitTree()
 *//*-------------------------------------------------------------------------*/
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-// TODO Should QwHitContainer be passed as const? (wdc)
-QwEvent* QwTrackingWorker::ProcessHits (
-    QwSubsystemArrayTracking *detectors,
-    QwHitContainer *hitlist)
+void QwTrackingWorker::ProcessEvent (
+    const QwSubsystemArrayTracking *detectors, QwEvent *event)
 {
-    /// Create a new event structure
-    QwEvent *event = new QwEvent();
-    // and fill it with the original hitlist
-    event->AddHitContainer(hitlist);
+    // Get hit list from event
+    QwHitContainer* hitlist = event->GetHitContainer();
+
+    // Print hitlist
+    if (fDebug) hitlist->Print();
 
     /// If tracking is disabled, stop here
-    if (fDisableTracking) return event;
+    if (fDisableTracking) return;
 
 
     /// Loop through all detector packages
@@ -641,8 +640,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
 
                             // Copy the new hit patterns into the old array structure
                             // TODO This is temporary
-                            char* channel[patterns.size()];
-                            int*  hashchannel[patterns.size()];
+                            char** channel = new char*[patterns.size()];
+                            int**  hashchannel = new int*[patterns.size()];
                             for (size_t wire = 0; wire < patterns.size(); wire++) {
                               channel[wire] = new char[patterns.at(wire).GetNumberOfBins()];
                               hashchannel[wire] = new int[patterns.at(wire).GetFinestBinWidth()];
@@ -792,8 +791,8 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         // Copy the new hit patterns into the old array structure
                         // TODO This is temporary
                         int levels = patterns.at(0).GetNumberOfLevels();
-                        char* channel[patterns.size()];
-                        int*  hashchannel[patterns.size()];
+                        char** channel = new char*[patterns.size()];
+                        int**  hashchannel = new int*[patterns.size()];
                         for (size_t layer = 0; layer < patterns.size(); layer++) {
                           channel[layer] = new char[patterns.at(layer).GetNumberOfBins()];
                           hashchannel[layer] = new int[patterns.at(layer).GetFinestBinWidth()];
@@ -859,7 +858,7 @@ QwEvent* QwTrackingWorker::ProcessHits (
                         /* Any other region */
                     } else {
                         QwWarning << "[QwTrackingWorker::ProcessHits] Warning: no support for this detector." << QwLog::endl;
-                        return event;
+                        return;
                     }
 
 
@@ -985,12 +984,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
                   status = fRayTracer->Bridge(front, back);
                   QwMessage << "Ray tracer: " << status << QwLog::endl;
                   if (status == 0) {
-                     event->AddTrackList(fRayTracer->GetListOfTracks());
-		     //fRayTracer->PrintInfo();
-		     double buff[14];
-		     fRayTracer->GetBridgingResult(buff);
-		     event->AddBridgingResult(buff);
-		     //event->Print();
+                    event->AddTrackList(fRayTracer->GetListOfTracks());
+                    //fRayTracer->PrintInfo();
+                    double buff[14];
+                    fRayTracer->GetBridgingResult(buff);
+                    event->AddBridgingResult(buff);
+                    //event->Print();
                     back = back->next;
                     continue;
                   }
@@ -1016,8 +1015,12 @@ QwEvent* QwTrackingWorker::ProcessHits (
 //     cout<<"Efficiency:     region 2  "<<float(R2Good)/(R2Good+R2Bad)*100.0
 //         <<"%,     region 3  "<<float(R3Good)/(R3Good+R3Bad)*100.0<<"%"<<endl;
 
-    // Return the event structure
-    return event;
+
+    // Delete local objects
+    delete hitlist;
+
+    // Print the result
+    if (fDebug) event->Print();
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....

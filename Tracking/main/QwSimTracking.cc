@@ -157,25 +157,28 @@ int main (int argc, char* argv[])
     Int_t nevents = 0;
     while (treebuffer->GetNextEvent() == 0) {
 
+      /// Create a new event structure
+      QwEvent* event = new QwEvent();
+
+      // Create the event header with the run and event number
+      QwEventHeader* header =
+          new QwEventHeader(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
+
+      // Assign the event header
+      event->SetEventHeader(header);
+
+
       /// Read the hit list from the event buffer
       QwHitContainer* hitlist = treebuffer->GetHitContainer();
       roothitlist->Convert(hitlist);
 
-      // Print hit list
-      if (kDebug) {
-        std::cout << "Printing hitlist..." << std::endl;
-        hitlist->Print();
-      }
+      // and fill into the event
+      event->AddHitContainer(hitlist);
+
 
       /// We process the hit list through the tracking worker and get a new
       /// QwEvent object back.
-      event = trackingworker->ProcessHits(detectors, hitlist);
-
-
-      // Do something with this event
-      QwEventHeader header(treebuffer->GetRunNumber(),treebuffer->GetEventNumber());
-      event->SetEventHeader(header);
-      if (kDebug) event->Print();
+      trackingworker->ProcessEvent(detectors, event);
 
 
       // Fill the tree

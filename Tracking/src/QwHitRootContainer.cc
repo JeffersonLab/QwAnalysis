@@ -89,9 +89,8 @@ QwHitContainer* QwHitRootContainer::Convert() const
   QwHitContainer* hitlist = new QwHitContainer();
   TIterator* iterator = fQwHits->MakeIterator();
   QwHit* hit = 0;
-  while ((hit = (QwHit*) iterator->Next())) {
+  while ((hit = dynamic_cast<QwHit*>(iterator->Next())))
     hitlist->push_back(*hit);
-  }
   return hitlist;
 }
 
@@ -100,11 +99,11 @@ void QwHitRootContainer::Print(Option_t* option) const
 {
   TIterator* iterator = fQwHits->MakeIterator();
   QwHit* hit = 0;
-  while ((hit = (QwHit*) iterator->Next()))
+  while ((hit = dynamic_cast<QwHit*>(iterator->Next())))
     std::cout << *hit << std::endl;
 }
 
-QwHit *QwHitRootContainer::GetHit (Int_t hitID) const
+QwHit* QwHitRootContainer::GetHit (Int_t hit) const
 {
-  return (QwHit*) fQwHits->At(hitID);
+  return dynamic_cast<QwHit*>(fQwHits->At(hit));
 }

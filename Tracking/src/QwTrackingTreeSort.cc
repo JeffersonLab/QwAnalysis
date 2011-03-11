@@ -221,9 +221,9 @@ int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack 
 {
   int common = 0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    if (! track1->tline[dir]) continue;
-    if (! track2->tline[dir]) continue;
-    common += rcCommonWires (track1->tline[dir], track2->tline[dir]);
+    if (! track1->fTreeLine[dir]) continue;
+    if (! track2->fTreeLine[dir]) continue;
+    common += rcCommonWires (track1->fTreeLine[dir], track2->fTreeLine[dir]);
   }
   common /= 3;
   return common;

@@ -232,9 +232,7 @@ int QwRayTracer::Bridge(
             return -1;
         }
 
-        QwTrack* track = new QwTrack();
-        track->front = const_cast<QwPartialTrack*>(front);
-        track->back = const_cast<QwPartialTrack*>(back);
+        QwTrack* track = new QwTrack(front,back);
         track->fMomentum = fMomentum;
 
         QwBridge* bridge = new QwBridge();

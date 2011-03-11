@@ -130,7 +130,7 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
   public:
 
-    // Event header
+    // Event header (owned by QwEvent)
     QwEventHeader* fEventHeader;
 
     #define QWHITS_IN_STL_VECTOR

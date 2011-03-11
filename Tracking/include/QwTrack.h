@@ -9,9 +9,6 @@
 #ifndef QWTRACK_H
 #define QWTRACK_H
 
-// ROOT headers
-#include <TObject.h>
-
 // Qweak headers
 #include "VQwTrackingElement.h"
 #include "QwPartialTrack.h"
@@ -37,6 +34,8 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
     /// Default constructor
     QwTrack();
+    /// Constructor with front and back partial track
+    QwTrack(const QwPartialTrack* front, const QwPartialTrack* back);
     /// Copy constructor by reference
     QwTrack(const QwTrack& orig);
     /// Copy constructor from pointer

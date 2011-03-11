@@ -30,7 +30,7 @@ QwPartialTrack::QwPartialTrack()
  * @param position Position of the partial track
  * @param direction Direction of the partial track
  */
-QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction)
+QwPartialTrack::QwPartialTrack(const TVector3& position, const TVector3& direction)
 {
   // Initialize
   Initialize();
@@ -75,7 +75,7 @@ void QwPartialTrack::Initialize()
   next = 0;
   bridge = 0;
   for (int i = 0; i < kNumDirections; i++)
-    tline[i] = 0;
+    fTreeLine[i] = 0;
 }
 
 
@@ -86,17 +86,17 @@ void QwPartialTrack::Initialize()
  */
 double QwPartialTrack::GetChiWeight () const
 {
-  // Determine the weight if there enough hits
-  if (numhits >= nummiss) {
-    // NOTE Added +1 to get this to work if numhits == nummiss (wdc)
-    double weight = (double) (numhits + nummiss + 1)
-                           / (numhits - nummiss + 1);
+  // Determine the weight if there are enough hits
+  if (fNumHits >= fNumMiss) {
+    // NOTE Added +1 to get this to work if fNumHits == fNumMiss (wdc)
+    double weight = (double) (fNumHits + fNumMiss + 1)
+                           / (fNumHits - fNumMiss + 1);
     return weight * weight * fChi;
     // TODO Why is the weight squared here, but not in the weighted chi^2 for treelines?
 
   } else {
 
-    QwDebug << "miss = " << nummiss << ", hit = " << numhits << QwLog::endl;
+    QwDebug << "miss = " << fNumMiss << ", hit = " << fNumHits << QwLog::endl;
     return 100.0; // This is bad...
   }
 }
@@ -110,7 +110,7 @@ double QwPartialTrack::CalculateAverageResidual()
   int numTreeLines = 0;
   double sumResiduals = 0.0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    for (QwTrackingTreeLine* treeline = tline[dir]; treeline;
+    for (QwTrackingTreeLine* treeline = fTreeLine[dir]; treeline;
          treeline = treeline->next) {
       if (treeline->IsUsed()) {
         numTreeLines++;
@@ -185,7 +185,7 @@ void QwPartialTrack::PrintTreeLines(Option_t *option) const
 {
   TIterator* iterator = fQwTreeLines->MakeIterator();
   QwTrackingTreeLine* treeline = 0;
-  while ((treeline = (QwTrackingTreeLine*) iterator->Next()))
+  while ((treeline = dynamic_cast<QwTrackingTreeLine*>(iterator->Next())))
     QwVerbose << *treeline << QwLog::endl;
 }
 
@@ -222,6 +222,9 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
   stream << "d(x,y)/dz = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
   if (pt.fChi > 0.0) { // parttrack has been fitted
     stream << ", chi = " << pt.fChi;
+  }
+  if (pt.fAverageResidual > 0.0) {
+    stream << ", res = " << pt.fAverageResidual;
   }
   if (pt.IsVoid()) stream << " (void)";
   return stream;

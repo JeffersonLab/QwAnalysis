@@ -12,9 +12,6 @@
 // System headers
 #include <iostream>
 
-// ROOT headers
-#include "TObject.h"
-
 // Qweak headers
 #include "QwTypes.h"
 #include "QwObjectCounter.h"

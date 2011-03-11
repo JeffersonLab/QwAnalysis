@@ -15,7 +15,6 @@
 #include <utility>
 
 // ROOT headers
-#include <TObject.h>
 #include <TClonesArray.h>
 #include <TObjArray.h>
 #include <TRefArray.h>

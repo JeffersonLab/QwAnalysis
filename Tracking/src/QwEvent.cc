@@ -85,6 +85,9 @@ QwEvent::QwEvent()
 
   // Loop over all pointer objects
   for (int i = 0; i < kNumPackages; i++) {
+    // Null the track pointers
+    track[i] = 0;
+
     for (int j = 0; j < kNumRegions; j++) {
       for (int k = 0; k < kNumTypes; k++) {
         // Null the partial track pointers
@@ -109,14 +112,22 @@ QwEvent::~QwEvent()
 
   // Loop over all allocated objects
   for (int i = 0; i < kNumPackages; i++) {
+    // Delete all those tracks
+    QwTrack* t = track[i];
+    while (t) {
+      QwTrack* t_next = t->next;
+      delete t;
+      t = t_next;
+    }
+
     for (int j = 0; j < kNumRegions; j++) {
       for (int k = 0; k < kNumTypes; k++) {
         // Delete all those partial tracks
          QwPartialTrack* pt = parttrack[i][j][k];
          while (pt) {
            QwPartialTrack* pt_next = pt->next;
-           //delete pt;    //jpan: not sure why crashing here, comment it out temporarily
-           pt = pt_next;	   
+           delete pt;
+           pt = pt_next;
          }
 
         // Delete all those treelines
@@ -433,7 +444,7 @@ void QwEvent::AddPartialTrackList(QwPartialTrack* partialtracklist)
          partialtrack; partialtrack =  partialtrack->next){
     if (partialtrack->IsValid())
       AddPartialTrack(partialtrack);
-	}
+  }
 }
 
 // Add a vector of QwPartialTracks
@@ -543,10 +554,12 @@ void QwEvent::ClearTracks(Option_t *option)
 {
   #if defined QWTRACKS_IN_STATIC_TCLONESARRAY || defined QWTRACKS_IN_LOCAL_TCLONESARRAY
     fQwTracks->Clear(option); // Clear the local TClonesArray
-  #else // QWTRACKS_IN_STL_VECTOR
+  #elif defined QWTRACKS_IN_STL_VECTOR
     for (size_t i = 0; i < fQwTracks.size(); i++)
       delete fQwTracks.at(i);
     fQwTracks.clear();
+  #else
+    // not implemented
   #endif
   fNQwTracks = 0;
 }

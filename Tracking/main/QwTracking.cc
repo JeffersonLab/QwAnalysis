@@ -47,9 +47,6 @@
 #include "Qset.h"
 
 
-// Debug level
-static const bool kDebug = false;
-
 // Main function
 Int_t main(Int_t argc, Char_t* argv[])
 {
@@ -183,26 +180,23 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->PrintDirs();
 
 
-    QwHitContainer* hitlist = 0;
+    //  Loop over events in this CODA file
     Int_t nevents           = 0;
     while (eventbuffer.GetNextEvent() == CODA_OK) {
-      //  Loop over events in this CODA file
-      //  First, do processing of non-physics events...
 
+      //  First, do processing of non-physics events...
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epics);
         epics.CalculateRunningValues();
       }
 
-
+      //  Send ROC configuration event data to the subsystem objects.
       if (eventbuffer.IsROCConfigurationEvent()) {
-         //  Send ROC configuration event data to the subsystem objects.
          eventbuffer.FillSubsystemConfigurationData(tracking_detectors);
          eventbuffer.FillSubsystemConfigurationData(parity_detectors);
       }
 
-      //  Now, if this is not a physics event, go back and get
-      //  a new event.
+      //  Now, if this is not a physics event, go back and get a new event.
       if (! eventbuffer.IsPhysicsEvent()) {
          continue;
       }
@@ -219,42 +213,42 @@ Int_t main(Int_t argc, Char_t* argv[])
       rootfile->FillTreeBranches(tracking_detectors);
       rootfile->FillTreeBranches(parity_detectors);
 
+
       // Fill the histograms for the subsystem objects.
       rootfile->FillHistograms(tracking_detectors);
       rootfile->FillHistograms(parity_detectors);
 
 
+      /// Create a new event structure
+      QwEvent* event = new QwEvent();
 
       // Create the event header with the run and event number
       QwEventHeader header(eventbuffer.GetRunNumber(),eventbuffer.GetEventNumber());
+      // Assign the event header to the event
+      event->SetEventHeader(header);
+
 
       // Create and fill hit list
-      hitlist = new QwHitContainer();
-
+      QwHitContainer* hitlist = new QwHitContainer();
       tracking_detectors.GetHitList(hitlist);
 
-      // Sorting the grand hit list
+      // Sorting the hit list
       hitlist->sort();
 
-      // Print hit list
-      if (hitlist->size() > 0 && kDebug) {
-        QwMessage << "Event " << eventbuffer.GetEventNumber() << QwLog::endl;
-        hitlist->Print();
-      }
+      // and fill into the event
+      event->AddHitContainer(hitlist);
+
 
       // Track reconstruction
       if (hitlist->size() > 0) {
+
         // Process the hits
-        event = trackingworker->ProcessHits(&tracking_detectors, hitlist);
+        trackingworker->ProcessEvent(&tracking_detectors, event);
 
-        // Assign the event header
-        event->SetEventHeader(header);
-
-        // Print the reconstructed event
-        if (kDebug) event->Print();
       }
 
-      // Save the hitlist to the tree
+
+      // Fill the event tree
       rootfile->FillTrees();
 
       // Delete objects
@@ -262,7 +256,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (event)   delete event;   event = 0;
 
       nevents++;
-
 
     } // end of loop over events
 
@@ -295,7 +288,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Delete objects (this is confusing: the if only applies to the delete)
     if (rootfile)       delete rootfile;       rootfile = 0;
-    if (hitlist)        delete hitlist;        hitlist = 0;
 
     // Print run summary information
     eventbuffer.ReportRunSummary();

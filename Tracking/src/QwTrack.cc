@@ -8,6 +8,23 @@ QwTrack::QwTrack()
 {
   // Initialize
   Initialize();
+
+  QwMessage << "QwTrack created " << this << QwLog::endl;
+}
+
+/**
+ * Constructor with front and back partial track
+ */
+QwTrack::QwTrack(const QwPartialTrack* front, const QwPartialTrack* back)
+{
+  // Initialize
+  Initialize();
+
+  // Copy tracks
+  front = new QwPartialTrack(front);
+  back  = new QwPartialTrack(back);
+
+  QwMessage << "QwTrack created " << this << QwLog::endl;
 }
 
 /**
@@ -22,6 +39,8 @@ QwTrack::QwTrack(const QwTrack& track)
   // Copy tracks
   front = new QwPartialTrack(track.front);
   back  = new QwPartialTrack(track.back);
+
+  QwMessage << "QwTrack created " << this << QwLog::endl;
 }
 
 /**
@@ -30,8 +49,10 @@ QwTrack::QwTrack(const QwTrack& track)
 QwTrack::~QwTrack()
 {
   // Delete objects
-  //if (front) delete front;  //jpan: not sure why the program crash here, temporarily comment it out
-  //if (back)  delete back;
+  if (front) delete front;
+  if (back)  delete back;
+
+  QwMessage << "QwTrack deleted " << this << QwLog::endl;
 }
 
 /**
