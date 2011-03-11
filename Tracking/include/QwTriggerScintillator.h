@@ -67,7 +67,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<Qw
   QwTriggerScintillator& operator=  (const QwTriggerScintillator &value);
 
  protected:
-  enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC, F1TDC, SIS3801} fCurrentType;
+  EQwModuleType fCurrentType;
 
   Bool_t fDEBUG;
 
@@ -83,7 +83,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<Qw
   Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
-  QwTriggerScintillator::EModuleType RegisterModuleType(TString moduletype);
+  EQwModuleType RegisterModuleType(TString moduletype);
 
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
 
@@ -94,7 +94,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<Qw
 
   Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
 
-  Int_t FindSignalIndex(const QwTriggerScintillator::EModuleType modtype, const TString &name) const;
+  Int_t FindSignalIndex(const EQwModuleType modtype, const TString &name) const;
 
 
  protected:
@@ -120,8 +120,8 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<Qw
 
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
 
-  std::vector< enum EModuleType > fModuleTypes;
-  std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
+  std::vector< EQwModuleType > fModuleTypes;
+  std::vector< std::vector< std::pair< EQwModuleType, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;

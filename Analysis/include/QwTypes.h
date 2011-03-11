@@ -12,56 +12,57 @@ class TString;
 #include "QwUnits.h"
 
 // Enumerator types for regions and directions
-static const Int_t kNumRegions = 7;
 enum EQwRegionID {
-  kRegionIDNull,
+  kRegionIDNull = 0,
   kRegionID1,    kRegionID2,   kRegionID3,
-  kRegionIDTrig, kRegionIDCer, kRegionIDScanner};
+  kRegionIDTrig, kRegionIDCer, kRegionIDScanner,
+  kNumRegions
+};
 
-static const Int_t kNumDirections = 9;
 enum EQwDirectionID {
-  kDirectionNull,
+  kDirectionNull = 0,
   kDirectionX, kDirectionY,
   kDirectionU, kDirectionV,
   kDirectionR, kDirectionPhi,
-  kDirectionLeft, kDirectionRight
+  kDirectionLeft, kDirectionRight,
+  kNumDirections
 };
 
 // Currently up and down are considered two packages.
-static const Int_t kNumPackages = 3;
 enum EQwDetectorPackage {
-  kPackageNull,
+  kPackageNull = 0,
   kPackageUp,
-  kPackageDown
+  kPackageDown,
+  kNumPackages
 };
 // NOTE: Packages will be defined with respect to the *fixed magnet octants*.
 // This means that after a rotation of 45 deg from the vertical position,
 // one package will be identified as kPackageUpLeft (name?), and the other
 // package as kPackageDownRight. (wdc, based on discussion with pking)
 
-static const Int_t kNumTypes = 7;
 enum EQwDetectorType {
-  kTypeNull,
+  kTypeNull = 0,
   kTypeGem,	        // GEM detector
   kTypeDriftHDC,	// HDC Drift chamber
   kTypeDriftVDC,	// VDC Drift chamber
   kTypeTrigscint,	// Trigger scintillator
   kTypeCerenkov,	// Cerenkov detector
-  kTypeScanner		// Focal plane scanner
+  kTypeScanner,		// Focal plane scanner
+  kNumTypes
 };
 
 // Enumerator type for the instrument type, used in subsystems that have to
 // distinguish between various detector types.
 enum EQwPMTInstrumentType {
-  kQwUnknownPMT,	// Unknown PMT type
+  kQwUnknownPMT = 0,	// Unknown PMT type
   kQwIntegrationPMT,	// Integration PMT
   kQwScalerPMT,	        // Scaler PMT
-  kQwCombinedPMT	// Combined PMT
+  kQwCombinedPMT,	// Combined PMT
+  kNumInstrumentTypes
 };
 
-static const Int_t kBeamDevTypes = 8;
-enum EQwBeamInstrumentType{
-  kQwUnknownDeviceType,
+enum EQwBeamInstrumentType {
+  kQwUnknownDeviceType = 0,
   kQwBPMStripline,
   kQwQPD,
   kQwLinearArray,
@@ -70,7 +71,18 @@ enum EQwBeamInstrumentType{
   kQwCombinedBPM,
   kQwEnergyCalculator,
   kQwHaloMonitor,
-  kQwBPMCavity
+  kQwBPMCavity,
+  kBeamDevTypes
+};
+
+// Enumerator type for the electronics module type
+enum EQwModuleType {
+  kUnknownModuleType = 0,
+  kV775_TDC,
+  kV792_ADC,
+  kF1TDC,
+  kSIS3801,
+  kNumModuleTypes
 };
 
 //Beamline device errorflags

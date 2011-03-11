@@ -179,7 +179,7 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
 
   protected:
 
-    enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC, F1TDC} fCurrentType;
+    EQwModuleType fCurrentType;
     Bool_t fDEBUG;
 
     MQwV775TDC fQDCTDC;
@@ -197,7 +197,7 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
 
     // Tells this object that it will decode data from the current bank
     Int_t RegisterSlotNumber(const UInt_t slot_id);
-    EModuleType RegisterModuleType(TString moduletype);
+    EQwModuleType RegisterModuleType(TString moduletype);
     Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
     Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const
       {
@@ -205,7 +205,7 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
       };
 
     Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
-    Int_t FindSignalIndex(const QwScanner::EModuleType modtype, const TString &name) const;
+    Int_t FindSignalIndex(const EQwModuleType modtype, const TString &name) const;
     TString fRegion;  ///  Name of this subsystem (the region).
     size_t fCurrentBankIndex;
     Int_t fCurrentSlot;
@@ -216,8 +216,8 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
 
     Int_t fNumberOfModules;
     std::vector< std::vector<Int_t> > fModuleIndex;  /// Module index, indexed by bank_index and slot_number
-    std::vector< enum EModuleType > fModuleTypes;
-    std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel
+    std::vector< EQwModuleType > fModuleTypes;
+    std::vector< std::vector< std::pair< EQwModuleType, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel
 
     UInt_t GetEventcutErrorFlag()
     {

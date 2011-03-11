@@ -140,11 +140,11 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
             {
               RegisterModuleType(modtype);
               //  Check to see if we've encountered this channel or name yet
-              if (fModulePtrs.at(fCurrentIndex).at(channum).first>=0)
+              if (fModulePtrs.at(fCurrentIndex).at(channum).first != kUnknownModuleType)
                 {
                   //  We've seen this channel
                 }
-              else if (FindSignalIndex(fCurrentType, name)>=0)
+              else if (FindSignalIndex(fCurrentType, name) >= 0)
                 {
                   //  We've seen this signal
                 }
@@ -1579,13 +1579,13 @@ Int_t QwScanner::RegisterSubbank(const UInt_t bank_id)
 Int_t QwScanner::RegisterSlotNumber(UInt_t slot_id)
 {
 
-  std::pair<Int_t, Int_t> tmppair;
-  tmppair.first  = -1;
+  std::pair<EQwModuleType, Int_t> tmppair;
+  tmppair.first  = kUnknownModuleType;
   tmppair.second = -1;
   if (slot_id<kMaxNumberOfModulesPerROC)
     {
       // fCurrentBankIndex is unsigned int and always positive
-      if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex<=fModuleIndex.size())
+      if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex <= fModuleIndex.size())
         {
           fModuleTypes.resize(fNumberOfModules+1);
           fModulePtrs.resize(fNumberOfModules+1);
@@ -1606,7 +1606,7 @@ Int_t QwScanner::RegisterSlotNumber(UInt_t slot_id)
   return fCurrentIndex;
 }
 
-QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
+EQwModuleType QwScanner::RegisterModuleType(TString moduletype)
 {
   moduletype.ToUpper();
 
@@ -1615,9 +1615,9 @@ QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
 
   if (moduletype=="V792")
     {
-      fCurrentType = V792_ADC;
+      fCurrentType = kV792_ADC;
       fModuleTypes.at(fCurrentIndex) = fCurrentType;
-      if ((Int_t) fPMTs.size()<=fCurrentType)
+      if (fPMTs.size() <= fCurrentType)
         {
           fPMTs.resize(fCurrentType+1);
         }
@@ -1625,13 +1625,22 @@ QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
 
   else if (moduletype=="V775")
     {
-      fCurrentType = V775_TDC;
+      fCurrentType = kV775_TDC;
       fModuleTypes.at(fCurrentIndex) = fCurrentType;
-      if ((Int_t) fPMTs.size()<=fCurrentType)
+      if (fPMTs.size() <= fCurrentType)
         {
           fPMTs.resize(fCurrentType+1);
         }
+    }
 
+  else if (moduletype=="F1TDC")
+    {
+      fCurrentType = kF1TDC;
+      fModuleTypes.at(fCurrentIndex) = fCurrentType;
+      if (fPMTs.size() <= fCurrentType)
+        {
+          fPMTs.resize(fCurrentType+1);
+        }
     }
 
   else if (moduletype=="SIS3801")
@@ -1646,14 +1655,13 @@ QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
 Int_t QwScanner::LinkChannelToSignal(const UInt_t chan, const TString &name)
 {
   Bool_t local_debug = false;
-  size_t index = fCurrentType;
-  if (index == 0 || index == 1)
+  if (fCurrentType == kV775_TDC || fCurrentType == kV792_ADC || fCurrentType == kF1TDC)
     {
-      fPMTs.at(index).push_back(QwPMT_Channel(name));
-      fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
-      fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(index).size() -1;
+      fPMTs.at(fCurrentType).push_back(QwPMT_Channel(name));
+      fModulePtrs.at(fCurrentIndex).at(chan).first  = fCurrentType;
+      fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(fCurrentType).size() -1;
     }
-  else if (index ==2)
+  else if (fCurrentType == kSIS3801)
     {
       if(local_debug) std::cout<<"scaler module has not been implemented yet."<<std::endl;
     }
@@ -1668,15 +1676,15 @@ void QwScanner::FillRawWord(Int_t bank_index,
 {
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
 
-  // std::cout<<"modtype="<<EModuleType(fModulePtrs.at(modindex).at(chan).first)
+  // std::cout<<"modtype="<< fModulePtrs.at(modindex).at(chan).first
   // <<"  chanindex="<<fModulePtrs.at(modindex).at(chan).second<<"  data="<<data<<"\n";
 
   if (modindex != -1)
     {
-      EModuleType modtype = EModuleType(fModulePtrs.at(modindex).at(chan).first);
-      Int_t chanindex     = fModulePtrs.at(modindex).at(chan).second;
+      EQwModuleType modtype = fModulePtrs.at(modindex).at(chan).first;
+      Int_t chanindex       = fModulePtrs.at(modindex).at(chan).second;
 
-      if (modtype == EMPTY || chanindex == -1)
+      if (modtype == kUnknownModuleType || chanindex == -1)
         {
           //  This channel is not connected to anything.
           //  Do nothing.
@@ -1706,20 +1714,22 @@ Int_t QwScanner::GetModuleIndex(size_t bank_index, size_t slot_num) const
   }
 
 
-Int_t QwScanner::FindSignalIndex(const QwScanner::EModuleType modtype, const TString &name) const
-  {
-    size_t index = modtype;
+Int_t QwScanner::FindSignalIndex(const EQwModuleType modtype, const TString &name) const
+{
     Int_t chanindex = -1;
-    for (size_t chan=0; chan<fPMTs.at(index).size(); chan++)
+    if (modtype < fPMTs.size())
+    {
+      for (size_t chan = 0; chan < fPMTs.at(modtype).size(); chan++)
       {
-        if (name == fPMTs.at(index).at(chan).GetElementName())
-          {
-            chanindex = chan;
-            break;
-          }
+        if (name == fPMTs.at(modtype).at(chan).GetElementName())
+        {
+          chanindex = chan;
+          break;
+        }
       }
+    }
     return chanindex;
-  }
+}
 
 
 void QwScanner::SetPedestal(Double_t pedestal)

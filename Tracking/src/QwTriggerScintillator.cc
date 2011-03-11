@@ -183,7 +183,7 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
         } else if (modtype=="V792" || modtype=="V775" || modtype=="F1TDC") {
             RegisterModuleType(modtype);
             //  Check to see if we've encountered this channel or name yet
-            if (fModulePtrs.at(fCurrentIndex).at(channum).first>=0) {
+            if (fModulePtrs.at(fCurrentIndex).at(channum).first != kUnknownModuleType) {
               //  We've seen this channel
             } else if (FindSignalIndex(fCurrentType, name)>=0) {
                 //  We've seen this signal
@@ -796,11 +796,12 @@ Int_t QwTriggerScintillator::RegisterSubbank(const UInt_t bank_id){
   return stat;
 }
 
-Int_t QwTriggerScintillator::RegisterSlotNumber(UInt_t slot_id){
-  std::pair<Int_t, Int_t> tmppair;
-  tmppair.first  = -1;
+Int_t QwTriggerScintillator::RegisterSlotNumber(UInt_t slot_id)
+{
+  std::pair<EQwModuleType, Int_t> tmppair;
+  tmppair.first  = kUnknownModuleType;
   tmppair.second = -1;
-  if (slot_id<kMaxNumberOfModulesPerROC){
+  if (slot_id < kMaxNumberOfModulesPerROC){
     // fCurrentBankIndex is unsigned int and always positive
     if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex <= fModuleIndex.size()) {
       fModuleTypes.resize(fNumberOfModules+1);
@@ -820,35 +821,36 @@ Int_t QwTriggerScintillator::RegisterSlotNumber(UInt_t slot_id){
   return fCurrentIndex;
 }
 
-QwTriggerScintillator::EModuleType QwTriggerScintillator::RegisterModuleType(TString moduletype){
+EQwModuleType QwTriggerScintillator::RegisterModuleType(TString moduletype)
+{
   moduletype.ToUpper();
 
   //  Check to see if we've already registered a type for the current slot,
   //  if so, throw an error...
 
   if (moduletype=="V792"){
-    fCurrentType = V792_ADC;
+    fCurrentType = kV792_ADC;
   } else if (moduletype=="V775"){
-    fCurrentType = V775_TDC;
+    fCurrentType = kV775_TDC;
   } else if (moduletype=="F1TDC") {
-    fCurrentType = F1TDC;
+    fCurrentType = kF1TDC;
   } else if (moduletype=="SIS3801") {
-    fCurrentType = SIS3801;
+    fCurrentType = kSIS3801;
   }
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if ((Int_t)fPMTs.size()<=fCurrentType){
+  if (fPMTs.size() <= fCurrentType){
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
 }
 
 
-Int_t QwTriggerScintillator::LinkChannelToSignal(const UInt_t chan, const TString &name){
-  size_t index = fCurrentType;
-  fPMTs.at(index).push_back(QwPMT_Channel(name));
-  fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
+Int_t QwTriggerScintillator::LinkChannelToSignal(const UInt_t chan, const TString &name)
+{
+  fPMTs.at(fCurrentType).push_back(QwPMT_Channel(name));
+  fModulePtrs.at(fCurrentIndex).at(chan).first  = fCurrentType;
   fModulePtrs.at(fCurrentIndex).at(chan).second =
-    fPMTs.at(index).size() -1;
+    fPMTs.at(fCurrentType).size() -1;
 
   return 0;
 
@@ -859,9 +861,9 @@ void QwTriggerScintillator::FillRawWord(Int_t bank_index,
 				 Int_t chan, UInt_t data){
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
   if (modindex != -1){
-    EModuleType modtype = EModuleType(fModulePtrs.at(modindex).at(chan).first);
-    Int_t chanindex     = fModulePtrs.at(modindex).at(chan).second;
-    if (modtype == EMPTY || chanindex == -1){
+    EQwModuleType modtype = fModulePtrs.at(modindex).at(chan).first;
+    Int_t chanindex       = fModulePtrs.at(modindex).at(chan).second;
+    if (modtype == kUnknownModuleType || chanindex == -1){
       //  This channel is not connected to anything.
       //  Do nothing.
     } else {
@@ -885,13 +887,15 @@ Int_t QwTriggerScintillator::GetModuleIndex(size_t bank_index, size_t slot_num) 
 }
 
 
-Int_t QwTriggerScintillator::FindSignalIndex(const QwTriggerScintillator::EModuleType modtype, const TString &name) const{
-  size_t index = modtype;
+Int_t QwTriggerScintillator::FindSignalIndex(const EQwModuleType modtype, const TString &name) const
+{
   Int_t chanindex = -1;
-  for (size_t chan=0; chan<fPMTs.at(index).size(); chan++) {
-    if (name == fPMTs.at(index).at(chan).GetElementName()) {
-      chanindex = chan;
-      break;
+  if (modtype < fPMTs.size()) {
+    for (size_t chan = 0; chan < fPMTs.at(modtype).size(); chan++) {
+      if (name == fPMTs.at(modtype).at(chan).GetElementName()) {
+        chanindex = chan;
+        break;
+      }
     }
   }
   return chanindex;
