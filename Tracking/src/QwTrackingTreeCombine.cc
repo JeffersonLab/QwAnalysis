@@ -1422,7 +1422,7 @@ void QwTrackingTreeCombine::TlTreeLineSort (
 	if ( fDebug )
 	{
 		cout << "List of treelines:" << endl;
-		treelinelist->Print();
+		if (treelinelist) treelinelist->Print();
 	}
 }
 

@@ -283,7 +283,7 @@ double QwTrackingTreeLine::CalculateAverageResidual()
 void QwTrackingTreeLine::Print(const Option_t* options) const {
   if (!this) return;
   std::cout << *this << std::endl;
-  next->Print();
+  if (next) next->Print(options);
 }
 
 

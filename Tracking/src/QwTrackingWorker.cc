@@ -469,7 +469,10 @@ void QwTrackingWorker::ProcessEvent (
     // Print hitlist
     if (fDebug) hitlist->Print();
 
-    /// If tracking is disabled, stop here
+    /// If no hits, return
+    if (hitlist->size() == 0) return;
+
+    /// If tracking is disabled, return
     if (fDisableTracking) return;
 
 
@@ -678,7 +681,7 @@ void QwTrackingWorker::ProcessEvent (
                             // Print list of tree lines
                             if (fDebug) {
                                 cout << "List of treelines:" << endl;
-                                treelinelist->Print();
+                                if (treelinelist) treelinelist->Print();
                             }
 
                             QwDebug << "Calculate chi^2" << QwLog::endl;
@@ -714,13 +717,13 @@ void QwTrackingWorker::ProcessEvent (
 
                             if (fDebug) {
                                 cout << "VDC1:" << endl;
-                                treelinelist1->Print();
+                                if (treelinelist1) treelinelist1->Print();
                                 cout << "VDC2:" << endl;
-                                treelinelist2->Print();
+                                if (treelinelist2) treelinelist2->Print();
                             }
                             if (fDebug) {
                                 cout << "VDC1+2:" << endl;
-                                treelinelist->Print();
+                                if (treelinelist) treelinelist->Print();
                             }
 
                         }
@@ -825,7 +828,7 @@ void QwTrackingWorker::ProcessEvent (
                         // Print the list of tree lines
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
-                            treelinelist->Print();
+                            if (treelinelist) treelinelist->Print();
                         }
 
                         // Get the hit list for this package/region/direction
@@ -847,7 +850,7 @@ void QwTrackingWorker::ProcessEvent (
 
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
-                            treelinelist->Print();
+                            if (treelinelist) treelinelist->Print();
                         }
                         event->treeline[package][region][type][dir] = treelinelist;
                         event->AddTreeLineList(treelinelist);
