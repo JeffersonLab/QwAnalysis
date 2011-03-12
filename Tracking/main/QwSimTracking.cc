@@ -130,11 +130,13 @@ int main (int argc, char* argv[])
   ///  Start loop over all runs
   while (treebuffer->OpenNextFile() == 0) {
 
+    // Create dummy event for branch creation (memory leak when using null)
+    QwEvent* event = new QwEvent();
+
     // Open ROOT file
     TFile* file = 0;
     TTree* hit_tree = 0;
     TTree* event_tree = 0;
-    QwEvent* event = new QwEvent();
     QwHitRootContainer* roothitlist = new QwHitRootContainer();
     if (kHisto || kTree) {
       file = new TFile(Form(getenv_safe_TString("QW_ROOTFILES") + "/QwSim_%d.root",
@@ -149,6 +151,9 @@ int main (int argc, char* argv[])
       event_tree->Branch("events", "QwEvent", &event);
     }
 
+    // Delete dummy event again
+    delete event; event = 0;
+
     /// Start timer
     timer.Reset();
     timer.Start();
@@ -158,7 +163,7 @@ int main (int argc, char* argv[])
     while (treebuffer->GetNextEvent() == 0) {
 
       /// Create a new event structure
-      QwEvent* event = new QwEvent();
+      event = new QwEvent();
 
       // Create the event header with the run and event number
       QwEventHeader* header =

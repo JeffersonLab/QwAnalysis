@@ -220,7 +220,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
       /// Create a new event structure
-      QwEvent* event = new QwEvent();
+      event = new QwEvent();
 
       // Create the event header with the run and event number
       QwEventHeader header(eventbuffer.GetRunNumber(),eventbuffer.GetEventNumber());
@@ -240,12 +240,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
       // Track reconstruction
-      if (hitlist->size() > 0) {
-
-        // Process the hits
-        trackingworker->ProcessEvent(&tracking_detectors, event);
-
-      }
+      trackingworker->ProcessEvent(&tracking_detectors, event);
 
 
       // Fill the event tree
