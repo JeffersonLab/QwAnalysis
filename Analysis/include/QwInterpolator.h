@@ -189,7 +189,7 @@ class QwInterpolator {
     };
     /// Set a set of values at a coordinate (false if not possible)
     bool Set(const coord_t* coord, const value_t* value) {
-      unsigned int cell_index[fNDim];
+      unsigned int* cell_index = new unsigned int[fNDim];
       Nearest(coord, cell_index); // nearest cell
       if (! Check(cell_index)) return false; // out of bounds
       unsigned int linear_index = Index(cell_index);
@@ -310,7 +310,7 @@ class QwInterpolator {
     // @{
     /// Return the linearized index based on the point coordinates (unchecked)
     unsigned int Index(const coord_t* coord) const {
-      unsigned int cell_index[fNDim];
+      unsigned int* cell_index = new unsigned int[fNDim];
       Cell(coord, cell_index);
       return Index(cell_index);
     };
@@ -339,7 +339,7 @@ class QwInterpolator {
 
     /// Return the cell index closest to the coordinate (could be above) (unchecked)
     void Nearest(const coord_t* coord, unsigned int* cell_index) const {
-      double cell_local[fNDim];
+      double* cell_local = new double[fNDim];
       Cell(coord, cell_index, cell_local);
       // Loop over all dimensions and add one if larger than 0.5
       for (unsigned int dim = 0; dim < fNDim; dim++)
@@ -390,8 +390,8 @@ inline bool QwInterpolator<value_t,value_n>::Linear(
 	value_t* value) const
 {
   // Get cell and local normalized coordinates
-  unsigned int cell_index[fNDim];
-  double cell_local[fNDim];
+  unsigned int* cell_index = new unsigned int[fNDim];
+  double* cell_local = new double[fNDim];
   Cell(coord, cell_index, cell_local);
   // Initialize to zero
   for (unsigned int i = 0; i < value_n; i++) value[i] = 0.0;
@@ -422,7 +422,7 @@ inline bool QwInterpolator<value_t,value_n>::NearestNeighbor(
 	value_t* value) const
 {
   // Get nearest cell
-  unsigned int cell_index[fNDim];
+  unsigned int* cell_index = new unsigned int[fNDim];
   Nearest(coord, cell_index);
   return Get(Index(cell_index), value);
 }
@@ -560,7 +560,7 @@ inline void QwInterpolator<value_t,value_n>::Cell(
 	unsigned int* cell_index) const
 {
   // Get cell index and ignore local coordinates
-  double cell_local[fNDim];
+  double* cell_local = new double[fNDim];
   Cell(coord, cell_index, cell_local);
 }
 
@@ -605,7 +605,7 @@ inline void QwInterpolator<value_t,value_n>::Coord(
 	const unsigned int linear_index,
 	coord_t* coord) const
 {
-  unsigned int cell_index[fNDim];
+  unsigned int* cell_index = new unsigned int[fNDim];
   Cell(linear_index,cell_index);
   Coord(cell_index,coord);
 }

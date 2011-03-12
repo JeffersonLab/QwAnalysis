@@ -271,7 +271,7 @@ void QwVQWK_Channel::ClearEventData()
 void QwVQWK_Channel::RandomizeEventData(int helicity, double time)
 {
   // The blocks are assumed to be independent measurements
-  Double_t block[fBlocksPerEvent];
+  Double_t* block = new Double_t[fBlocksPerEvent];
   Double_t sqrt_fBlocksPerEvent = 0.0;
   sqrt_fBlocksPerEvent = sqrt(fBlocksPerEvent);
 
@@ -303,7 +303,7 @@ void QwVQWK_Channel::RandomizeEventData(int helicity, double time)
 
 void QwVQWK_Channel::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
-  Double_t block[fBlocksPerEvent];
+  Double_t* block = new Double_t[fBlocksPerEvent];
   for (Int_t i = 0; i < fBlocksPerEvent; i++)
     block[i] = hwsum / fBlocksPerEvent;
   SetEventData(block);
