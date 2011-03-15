@@ -152,6 +152,11 @@ QwTrackingTreeLine& QwTrackingTreeLine::operator=(const QwTrackingTreeLine& that
   fR3FirstWire = that.fR3FirstWire;
   fR3LastWire  = that.fR3LastWire;
 
+  SetPackage(that.GetPackage());
+  SetRegion(that.GetRegion());
+  SetPlane(that.GetPlane());
+  SetDirection(that.GetDirection());
+
   next = 0;
 
   // Copy the hits
