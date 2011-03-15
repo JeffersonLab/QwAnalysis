@@ -45,6 +45,7 @@ QwPartialTrack::QwPartialTrack(const TVector3& position, const TVector3& directi
  * Copy constructor by reference
  */
 QwPartialTrack::QwPartialTrack(const QwPartialTrack& that)
+: VQwTrackingElement(that)
 {
   // Initialize
   Initialize();
@@ -57,6 +58,7 @@ QwPartialTrack::QwPartialTrack(const QwPartialTrack& that)
  * Copy constructor with pointer
  */
 QwPartialTrack::QwPartialTrack(const QwPartialTrack* that)
+: VQwTrackingElement(*that)
 {
   // Initialize
   Initialize();
@@ -83,6 +85,8 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
 {
   if (this == &that) return *this;
 
+  VQwTrackingElement::operator=(that);
+
   fOffsetX = that.fOffsetX;
   fOffsetY = that.fOffsetY;
   fSlopeX = that.fSlopeX;
@@ -90,7 +94,7 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
 
   fChi = that.fChi;
   fAverageResidual=that.fAverageResidual;
-  SetGeometryTo(that);
+
   for (size_t i = 0; i < 4; i++)
     for (size_t j = 0; j < 4; j++)
       fCov[i][j] = that.fCov[i][j];

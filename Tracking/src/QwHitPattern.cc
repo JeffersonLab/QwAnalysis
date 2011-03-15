@@ -33,21 +33,23 @@ static int hashgen()
 
 /**
  * Assignment operator for hit patterns.
- * @param rhs Right hand side
+ * @param that Right hand side
  * @return Left hand side
  */
-QwHitPattern& QwHitPattern::operator= (const QwHitPattern& rhs)
+QwHitPattern& QwHitPattern::operator= (const QwHitPattern& that)
 {
-  // Check whether this is ourselves
-  if (this == &rhs) return *this;
-  SetNumberOfLevels(rhs.fLevels);
-  // If lhs is zero we assign rhs and return
+  if (this == &that) return *this;
+
+  VQwTrackingElement::operator=(that);
+
+  SetNumberOfLevels(that.fLevels);
+  // If lhs is zero we assign that and return
   if (fLevels == 0) return *this;
   // Copy the levels and pattern data
   for (unsigned int bin = 0; bin < fBins; bin++)
-    fPattern[bin] = rhs.fPattern[bin];
+    fPattern[bin] = that.fPattern[bin];
   for (unsigned int hash = 0; hash < fBinWidth; hash++)
-    fPatternHash[hash] = rhs.fPatternHash[hash];
+    fPatternHash[hash] = that.fPatternHash[hash];
   return *this;
 }
 
@@ -66,17 +68,17 @@ QwHitPattern& QwHitPattern::operator= (const QwHitPattern& rhs)
  *
  * The hash pattern is not so important, but the hit pattern has to match!
  *
- * @param rhs Right hand side
+ * @param that Right hand side
  * @return Left hand side
  */
-QwHitPattern& QwHitPattern::operator+= (const QwHitPattern& rhs)
+QwHitPattern& QwHitPattern::operator+= (const QwHitPattern& that)
 {
-  // If lhs is zero we assign rhs and return
-  if (fLevels == 0) return *this = rhs;
+  // If lhs is zero we assign that and return
+  if (fLevels == 0) return *this = that;
   // Check whether levels is equal
-  if (fLevels == rhs.fLevels) {
+  if (fLevels == that.fLevels) {
     for (unsigned int bin = 0; bin < fBins; bin++)
-      fPattern[bin] |= rhs.fPattern[bin];
+      fPattern[bin] |= that.fPattern[bin];
   }
   return *this;
 }

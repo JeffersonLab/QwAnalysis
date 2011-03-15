@@ -26,6 +26,7 @@ QwHit::QwHit()
  * @param hit Hit object
  */
 QwHit::QwHit(const QwHit &that)
+: VQwTrackingElement(that)
 {
   // Initialize
   Initialize();
@@ -40,6 +41,7 @@ QwHit::QwHit(const QwHit &that)
  * @param hit Pointer to a hit
  */
 QwHit::QwHit(const QwHit* that)
+: VQwTrackingElement(*that)
 {
   // Initialize
   Initialize();

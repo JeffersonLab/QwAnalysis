@@ -43,6 +43,7 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 
 /// Copy constructor
 QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine& that)
+: VQwTrackingElement(that)
 {
   // Initialize
   Initialize();
@@ -53,6 +54,7 @@ QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine& that)
 
 /// Copy constructor
 QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* that)
+: VQwTrackingElement(*that)
 {
   // Initialize
   Initialize();
@@ -132,6 +134,8 @@ QwTrackingTreeLine& QwTrackingTreeLine::operator=(const QwTrackingTreeLine& that
 {
   if (this == &that) return *this;
 
+  VQwTrackingElement::operator=(that);
+
   fMatchingPattern = that.fMatchingPattern;
 
   fOffset = that.fOffset;
@@ -158,8 +162,6 @@ QwTrackingTreeLine& QwTrackingTreeLine::operator=(const QwTrackingTreeLine& that
   SetPlane(that.GetPlane());
   SetDirection(that.GetDirection());
 
-  SetGeometryTo(that);
-
   next = 0;
 
   // Copy the hits
@@ -178,6 +180,8 @@ QwTrackingTreeLine& QwTrackingTreeLine::operator=(const QwTrackingTreeLine& that
   // Copy hits
   ClearHits();
   AddHitList(that.fQwHits);
+
+  return *this;
 }
 
 

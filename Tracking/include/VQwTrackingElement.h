@@ -42,8 +42,17 @@ class VQwTrackingElement: public TObject {
     VQwTrackingElement(): pDetectorInfo(0),
       fRegion(kRegionIDNull), fPackage(kPackageNull),
       fDirection(kDirectionNull), fPlane(0), fElement(0) { };
+    VQwTrackingElement(const VQwTrackingElement& that):
+      fRegion(that.fRegion), fPackage(that.fPackage),
+      fDirection(that.fDirection), fPlane(that.fPlane), fElement(that.fElement) { };
     /// \brief Virtual destructor
     virtual ~VQwTrackingElement() {};
+
+    /// \brief Assignment operator
+    VQwTrackingElement& operator=(const VQwTrackingElement& that) {
+      SetGeometryTo(that);
+      return *this;
+    };
 
     /// \brief Get the detector info pointer
     QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };

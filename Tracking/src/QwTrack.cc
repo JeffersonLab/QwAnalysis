@@ -34,6 +34,7 @@ QwTrack::QwTrack(const QwPartialTrack* front, const QwPartialTrack* back)
  * @param track Original track
  */
 QwTrack::QwTrack(const QwTrack& that)
+: VQwTrackingElement(that)
 {
   // Initialize
   Initialize();
@@ -49,6 +50,7 @@ QwTrack::QwTrack(const QwTrack& that)
  * @param track Original track
  */
 QwTrack::QwTrack(const QwTrack* that)
+: VQwTrackingElement(*that)
 {
   // Initialize
   Initialize();
@@ -81,6 +83,8 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
 {
   if (this == &that) return *this;
 
+  VQwTrackingElement::operator=(that);
+
   fVertexZ = that.fVertexZ;
   fVertexR = that.fVertexR;
   fTheta = that.fTheta;
@@ -94,8 +98,6 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
 
   fChi = that.fChi;
   fMomentum = that.fMomentum;
-
-  SetGeometryTo(that);
 
   return *this;
 }
