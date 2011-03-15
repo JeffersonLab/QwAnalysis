@@ -21,6 +21,9 @@ QwTrack::QwTrack(const QwPartialTrack* front, const QwPartialTrack* back)
   // Null pointer
   if (front == 0 || back == 0) return;
 
+  if(front->GetPackage()==back->GetPackage())
+    SetPackage(front->GetPackage());
+
   // Copy tracks
   fFront = new QwPartialTrack(front);
   fBack  = new QwPartialTrack(back);
@@ -35,6 +38,7 @@ QwTrack::QwTrack(const QwTrack& that)
   // Initialize
   Initialize();
 
+  *this=that;
   // Copy tracks
   fFront = new QwPartialTrack(that.fFront);
   fBack  = new QwPartialTrack(that.fBack);
@@ -52,6 +56,7 @@ QwTrack::QwTrack(const QwTrack* that)
   // Null pointer
   if (that == 0) return;
 
+  *this=*that;
   // Copy tracks
   if (that->fFront) fFront = new QwPartialTrack(that->fFront);
   if (that->fBack)  fBack  = new QwPartialTrack(that->fBack);
@@ -89,6 +94,8 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
 
   fChi = that.fChi;
   fMomentum = that.fMomentum;
+
+  SetGeometryTo(that);
 
   return *this;
 }

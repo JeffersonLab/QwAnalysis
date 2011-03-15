@@ -137,6 +137,7 @@ QwTrackingTreeLine& QwTrackingTreeLine::operator=(const QwTrackingTreeLine& that
   fOffset = that.fOffset;
   fSlope = that.fSlope;
   fChi = that.fChi;
+  fAverageResidual=that.fAverageResidual;
   for (size_t i = 0; i < 3; i++)
     fCov[i] = that.fCov[i];
 
@@ -156,6 +157,8 @@ QwTrackingTreeLine& QwTrackingTreeLine::operator=(const QwTrackingTreeLine& that
   SetRegion(that.GetRegion());
   SetPlane(that.GetPlane());
   SetDirection(that.GetDirection());
+
+  SetGeometryTo(that);
 
   next = 0;
 

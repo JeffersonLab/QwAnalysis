@@ -89,6 +89,8 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
   fSlopeY = that.fSlopeY;
 
   fChi = that.fChi;
+  fAverageResidual=that.fAverageResidual;
+  SetGeometryTo(that);
   for (size_t i = 0; i < 4; i++)
     for (size_t j = 0; j < 4; j++)
       fCov[i][j] = that.fCov[i][j];
