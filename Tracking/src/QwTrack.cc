@@ -76,7 +76,16 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
 {
   if (this == &that) return *this;
 
-  #warning "QwTrack::operator= horribly incomplete!"
+  fVertexZ = that.fVertexZ;
+  fVertexR = that.fVertexR;
+  fTheta = that.fTheta;
+  fPhi   = that.fPhi;
+
+  fXBj = that.fXBj;
+  fY = that.fY;
+  fQ2 = that.fQ2;
+  fW2 = that.fW2;
+  fNu = that.fNu;
 
   fChi = that.fChi;
   fMomentum = that.fMomentum;
@@ -91,12 +100,10 @@ void QwTrack::Initialize()
 {
   // Initialize all pointers
   fBridge = 0;
-  next = 0;
-  ynext = 0;
-  usednext = 0;
   fFront = 0;
   fBack = 0;
   beamvertex = 0;
+  next = 0;
 }
 
 /**
