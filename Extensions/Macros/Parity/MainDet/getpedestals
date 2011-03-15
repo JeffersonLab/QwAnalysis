@@ -26,7 +26,6 @@ my $updated = 0;
 my $runNum = $ARGV[0];
 my $saveMDPed = "n";
 my $saveLumiPed = "n";
-#my $refDirectory = "/home/smacewan/Desktop/"; 
 my $refDirectory = "/net/cdaqfs/home/cdaq/Desktop/reference_plots/";
 
 my $eSubject = "Run $runNum Pedestal Data";
@@ -44,8 +43,8 @@ else{
 }
 
 #perform qwick analysis
-#iprint "Running qwick_pedestals...\n";
-#!system ("/home/cdaq/bin/qwick_pedestals") or die $!;
+print "Running qwick_pedestals...\n";
+!system ("/home/cdaq/bin/qwick_pedestals") or die $!;
 
 #run pedestal ROOT script
 print "Running ROOT script mdlumi_ped.C ...\n";
