@@ -298,6 +298,8 @@ void QwVQWK_Channel::RandomizeEventData(int helicity, double time)
   }
 
   SetEventData(block);
+
+  delete block;
   return;
 }
 
@@ -307,6 +309,8 @@ void QwVQWK_Channel::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
   for (Int_t i = 0; i < fBlocksPerEvent; i++)
     block[i] = hwsum / fBlocksPerEvent;
   SetEventData(block);
+
+  delete block;
   return;
 }
 

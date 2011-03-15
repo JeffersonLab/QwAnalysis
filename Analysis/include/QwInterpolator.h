@@ -197,6 +197,7 @@ class QwInterpolator {
       for (unsigned int i = 0; i < value_n; i++)
         fValues[i][linear_index] = value[i];
       fEntries++;
+      delete cell_index;
       return true;
     };
 
@@ -312,7 +313,9 @@ class QwInterpolator {
     unsigned int Index(const coord_t* coord) const {
       unsigned int* cell_index = new unsigned int[fNDim];
       Cell(coord, cell_index);
-      return Index(cell_index);
+      unsigned int index = Index(cell_index);
+      delete cell_index;
+      return index;
     };
 
     /// \brief Return the linearized index based on the cell indices (unchecked)
@@ -344,6 +347,7 @@ class QwInterpolator {
       // Loop over all dimensions and add one if larger than 0.5
       for (unsigned int dim = 0; dim < fNDim; dim++)
         if (cell_local[dim] > 0.5) cell_index[dim]++;
+      delete cell_local;
     };
 
     /// \brief Linear interpolation (unchecked)
@@ -408,6 +412,8 @@ inline bool QwInterpolator<value_t,value_n>::Linear(
     for (unsigned int i = 0; i < value_n; i++)
       value[i] += fac * neighbor[i];
   }
+  delete cell_index;
+  delete cell_local;
   return true;
 }
 
@@ -424,7 +430,9 @@ inline bool QwInterpolator<value_t,value_n>::NearestNeighbor(
   // Get nearest cell
   unsigned int* cell_index = new unsigned int[fNDim];
   Nearest(coord, cell_index);
-  return Get(Index(cell_index), value);
+  bool status = Get(Index(cell_index), value);
+  delete cell_index;
+  return status;
 }
 
 /**
@@ -562,6 +570,7 @@ inline void QwInterpolator<value_t,value_n>::Cell(
   // Get cell index and ignore local coordinates
   double* cell_local = new double[fNDim];
   Cell(coord, cell_index, cell_local);
+  delete cell_local;
 }
 
 /**
@@ -608,6 +617,7 @@ inline void QwInterpolator<value_t,value_n>::Coord(
   unsigned int* cell_index = new unsigned int[fNDim];
   Cell(linear_index,cell_index);
   Coord(cell_index,coord);
+  delete cell_index;
 }
 
 /**

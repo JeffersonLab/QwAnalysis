@@ -470,10 +470,16 @@ void QwTrackingWorker::ProcessEvent (
     if (fDebug) hitlist->Print();
 
     /// If no hits, return
-    if (hitlist->size() == 0) return;
+    if (hitlist->size() == 0) {
+        delete hitlist;
+        return;
+    }
 
     /// If tracking is disabled, return
-    if (fDisableTracking) return;
+    if (fDisableTracking) {
+        delete hitlist;
+        return;
+    }
 
 
     /// Loop through all detector packages
@@ -665,6 +671,8 @@ void QwTrackingWorker::ProcessEvent (
                               delete[] channel[wire];
                               delete[] hashchannel[wire];
                             }
+                            delete channel;
+                            delete hashchannel;
 
                             // TODO These treelines should contain the region id etc
                             // We should set the QwDetectorInfo link here already,
@@ -812,6 +820,8 @@ void QwTrackingWorker::ProcessEvent (
                           delete[] channel[layer];
                           delete[] hashchannel[layer];
                         }
+                        delete channel;
+                        delete hashchannel;
 
                         // TODO These treelines should contain the region id etc
                         // We should set the QwDetectorInfo link here already,
