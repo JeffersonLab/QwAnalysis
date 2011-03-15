@@ -39,26 +39,26 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
   private:
 
-    // Tree lines
-    #define QWPARTIALTRACK_MAX_NUM_TREELINES 1000
-    TClonesArray        *fQwTreeLines; //! ///< Array of QwTreeLines
-    static TClonesArray *gQwTreeLines; //! ///< Static array of QwTreeLines
-
     //! Number of tree lines in this partial track
     Int_t fNQwTreeLines;
     //! List of tree lines in this partial track
-    //std::vector<QwTrackingTreeLine*> fQwTreeLines;
+    std::vector<QwTrackingTreeLine*> fQwTreeLines;
 
   public: // methods
 
     /// \brief Default constructor
     QwPartialTrack();
-    /// \brief Copy constructor
-    QwPartialTrack(const QwPartialTrack* partialtrack);
+    /// \brief Copy constructor by reference
+    QwPartialTrack(const QwPartialTrack& that);
+    /// \brief Copy constructor from pointer
+    QwPartialTrack(const QwPartialTrack* that);
     /// \brief Constructor with track position and direction
     QwPartialTrack(const TVector3& position, const TVector3& momentum);
     /// Destructor
-    virtual ~QwPartialTrack() { };
+    virtual ~QwPartialTrack();
+
+    /// Assignment operator
+    QwPartialTrack& operator=(const QwPartialTrack& that);
 
   private:
 
@@ -80,9 +80,10 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     void Reset(Option_t *option = "");
 
     // Creating and adding tree lines
-    void InitializeTreeLines();
     QwTrackingTreeLine* CreateNewTreeLine();
     void AddTreeLine(QwTrackingTreeLine* treeline);
+    void AddTreeLineList(QwTrackingTreeLine* treelinelist);
+    void AddTreeLineList(const std::vector<QwTrackingTreeLine*> &treelinelist);
     void ClearTreeLines(Option_t *option = "");
     void ResetTreeLines(Option_t *option = "");
     // Get the number of partial tracks
@@ -152,10 +153,8 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
     QwTrackingTreeLine *fTreeLine[kNumDirections];	//!	///< tree line in u v and x
 
-    QwBridge *bridge;	//!	///< magnetic field bridging
-
     Bool_t fIsUsed;		///< used (part of a track)
-    Bool_t fIsVoid;     ///< marked as being void
+    Bool_t fIsVoid;		///< marked as being void
     Bool_t fIsGood;
 
     Int_t  fNumMiss;		///< missing hits

@@ -25,13 +25,13 @@ QwHit::QwHit()
  * Copy-constructor with object argument
  * @param hit Hit object
  */
-QwHit::QwHit(const QwHit &hit)
+QwHit::QwHit(const QwHit &that)
 {
   // Initialize
   Initialize();
 
   // Copy
-  *this = hit;
+  *this = that;
 }
 
 
@@ -39,13 +39,16 @@ QwHit::QwHit(const QwHit &hit)
  * Copy-constructor with pointer argument
  * @param hit Pointer to a hit
  */
-QwHit::QwHit(const QwHit* hit)
+QwHit::QwHit(const QwHit* that)
 {
   // Initialize
   Initialize();
 
+  // Null pointer          
+  if (that == 0) return;
+
   // Copy
-  *this = *hit;
+  *this = *that;
 }
 
 

@@ -2562,7 +2562,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 					pt->SetPackage(package);
 
 					pt->next   = pt_next;
-					pt->bridge = 0;
 					pt_next = pt;
 
 					// Check whether this track went through the trigger and/or
@@ -2773,7 +2772,6 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 					  wu->SetUsed();
 
 					  pt->next = pt_next;
-					  pt->bridge = 0;
 					  pt_next = pt;
 
 					  // TODO use generic detector info object

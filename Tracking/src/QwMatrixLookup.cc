@@ -342,7 +342,7 @@ int QwMatrixLookup::Bridge(
     if (! fMatrix) return -1;
 
     // Clear the list of tracks
-    fListOfTracks.clear();
+    ClearListOfTracks();
 
 
     // Front track position and direction at the front reference plane

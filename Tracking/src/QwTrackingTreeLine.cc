@@ -42,23 +42,26 @@ QwTrackingTreeLine::QwTrackingTreeLine(int _a_beg, int _a_end, int _b_beg, int _
 
 
 /// Copy constructor
-QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine& treeline)
-{
-	// Initialize
-	Initialize();
-
-  // Copy object
-  Copy(&treeline);
-}
-
-/// Copy constructor
-QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* treeline)
+QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine& that)
 {
   // Initialize
   Initialize();
 
   // Copy object
-  Copy(treeline);
+  *this = that;
+}
+
+/// Copy constructor
+QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* that)
+{
+  // Initialize
+  Initialize();
+
+  // Null pointer
+  if (that == 0) return;
+
+  // Copy object
+  *this = *that;
 }
 
 
@@ -69,10 +72,10 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
 {
   // Delete the hits in this treeline
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
+
     if (fHits[i]) delete fHits[i];
     fHits[i] = 0;
-  }
-  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
+
     if (fUsedHits[i]) delete fUsedHits[i];
     fUsedHits[i] = 0;
   }
@@ -115,39 +118,58 @@ void QwTrackingTreeLine::Initialize()
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
     fHits[i] = 0;
     fUsedHits[i] = 0;
-    hasharray[i] = 0;
+    fHashArray[i] = 0;
   }
 
-  ID = 0;
   fR3Offset = fR3FirstWire = fR3LastWire = 0;
 }
 
 
 /**
- * Copy object
+ * Assignment operator
  */
-void QwTrackingTreeLine::Copy(const QwTrackingTreeLine* treeline)
+QwTrackingTreeLine& QwTrackingTreeLine::operator=(const QwTrackingTreeLine& that)
 {
-	// Null pointer
-	if (treeline == 0) return;
+  if (this == &that) return *this;
 
-  // Naive copy
-  *this = *treeline;
-  this->next = 0;
+  fMatchingPattern = that.fMatchingPattern;
+
+  fOffset = that.fOffset;
+  fSlope = that.fSlope;
+  fChi = that.fChi;
+  for (size_t i = 0; i < 3; i++)
+    fCov[i] = that.fCov[i];
+
+  a_beg = that.a_beg;
+  a_end = that.a_end;
+  b_beg = that.b_beg;
+  b_end = that.b_end;
+
+  fNumHits = that.fNumHits;
+  fNumMiss = that.fNumMiss;
+
+  fR3Offset = that.fR3Offset;
+  fR3FirstWire = that.fR3FirstWire;
+  fR3LastWire  = that.fR3LastWire;
+
+  next = 0;
 
   // Copy the hits
   for (int i = 0; i < 2 * MAX_LAYERS; i++) {
-    if (treeline->fHits[i])
-      this->fHits[i] = new QwHit(treeline->fHits[i]);
-    if (treeline->fUsedHits[i]){
-      this->fUsedHits[i] = new QwHit(treeline->fUsedHits[i]);
-//       std::cout << "drift distance: " << this->fUsedHits[i]->GetDriftDistance() << std::endl;
-      }
+
+    fHashArray[i] = that.fHashArray[i];
+
+    if (that.fHits[i]) {
+      this->fHits[i] = new QwHit(that.fHits[i]);
+    }
+    if (that.fUsedHits[i]) {
+      this->fUsedHits[i] = new QwHit(that.fUsedHits[i]);
+    }
   }
 
   // Copy hits
   ClearHits();
-  AddHitList(treeline->fQwHits);
+  AddHitList(that.fQwHits);
 }
 
 
@@ -332,24 +354,24 @@ std::ostream& operator<< (std::ostream& stream, const QwTrackingTreeLine& tl) {
 
 void QwTrackingTreeLine::SetMatchingPattern(std::vector<int>& box)
 {
-	std::vector<int>::iterator iter = box.begin();
-	while (iter != box.end())
-		MatchingPattern.push_back(*iter++);
+  std::vector<int>::iterator iter = box.begin();
+  while (iter != box.end())
+    fMatchingPattern.push_back(*iter++);
 }
 
 std::pair<double,double> QwTrackingTreeLine::CalculateDistance(int row,double width,unsigned int bins,double resolution)
 {
-   std::pair<double,double> boundary(0,0);
-   int bin = MatchingPattern.at(row);
-	
-   double dx=width/bins,lower=0,upper=0;
-   bin+=1;
-   if(bin<=bins/2) bin=bins-bin+1;
-	lower=(bin-1)*dx-width/2-resolution;
-	upper=bin*dx-width/2+resolution;
-   boundary.first=lower;
-   boundary.second=upper;
-   	
-   return boundary;
+  std::pair<double,double> boundary(0,0);
+  int bin = fMatchingPattern.at(row);
+
+  double dx = width / bins, lower = 0, upper = 0;
+  bin += 1;
+  if (bin <= bins/2) bin = bins - bin + 1;
+    lower = (bin - 1) * dx - width / 2 - resolution;
+    upper = bin * dx - width / 2 + resolution;
+  boundary.first = lower;
+  boundary.second = upper;
+
+  return boundary;
 }
 

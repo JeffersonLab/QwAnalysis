@@ -374,10 +374,10 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     std::vector<QwGEMCluster*> fGEMClusters; //!
 
     /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
-    QwTrackingTreeLine* treeline[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
+    QwTrackingTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
 
     /*! list of partial tracks [package][region][type] */
-    QwPartialTrack* parttrack[kNumPackages][kNumRegions][kNumTypes]; //!
+    QwPartialTrack* fPartialTrack[kNumPackages][kNumRegions][kNumTypes]; //!
 
     /*! list of complete tracks [package] */
     QwTrack* track[kNumPackages]; //!

@@ -37,11 +37,14 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     /// Constructor with front and back partial track
     QwTrack(const QwPartialTrack* front, const QwPartialTrack* back);
     /// Copy constructor by reference
-    QwTrack(const QwTrack& orig);
+    QwTrack(const QwTrack& that);
     /// Copy constructor from pointer
-    QwTrack(const QwTrack* orig) { *this = *orig; };
+    QwTrack(const QwTrack* that);
     /// Virtual destructor
     virtual ~QwTrack();
+
+    /// Assignment operator
+    QwTrack& operator=(const QwTrack& that);
 
     /// Initialization
     void Initialize();
@@ -79,8 +82,8 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     QwTrack *ynext;		//! link for y tracks (do not store)
     QwTrack *usednext;		//! link of used tracks (do not store)
 
-    QwPartialTrack *front;	//! front partial track (do not store)
-    QwPartialTrack *back;	//! back partial track (do not store)
+    QwPartialTrack *fFront;	//! front partial track (do not store)
+    QwPartialTrack *fBack;	//! back partial track (do not store)
 
     QwVertex *beamvertex;	//! beam vertex (do not store)
 

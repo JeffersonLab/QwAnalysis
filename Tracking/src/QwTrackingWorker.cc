@@ -563,7 +563,7 @@ void QwTrackingWorker::ProcessEvent (
 
                     // Check whether the search tree is searchable
                     if (! searchtree->IsSearchable()) {
-                        event->treeline[package][region][type][dir] = 0;
+                        event->fTreeLine[package][region][type][dir] = 0;
                         QwDebug << "[QwTrackingWorker::ProcessHits]     Search tree not searchable!" << QwLog::endl;
                         continue;
                     }
@@ -707,12 +707,11 @@ void QwTrackingWorker::ProcessEvent (
                         event->AddTreeLineList(treelinelist1);
                         event->AddTreeLineList(treelinelist2);
                         treelinelist = 0;
-
-			                  // treelinelist 1 and treelinelist 2 are in the same dir
+                        // treelinelist 1 and treelinelist 2 are in the same dir
                         QwDebug << "Matching region 3 segments" << QwLog::endl;
                         if (treelinelist1 && treelinelist2) {
                             treelinelist = fTreeMatch->MatchRegion3 (treelinelist1, treelinelist2);
-                            event->treeline[package][region][type][dir] = treelinelist;
+                            event->fTreeLine[package][region][type][dir] = treelinelist;
                             event->AddTreeLineList(treelinelist);
 
                             if (fDebug) {
@@ -852,7 +851,7 @@ void QwTrackingWorker::ProcessEvent (
                             cout << "List of treelines:" << endl;
                             if (treelinelist) treelinelist->Print();
                         }
-                        event->treeline[package][region][type][dir] = treelinelist;
+                        event->fTreeLine[package][region][type][dir] = treelinelist;
                         event->AddTreeLineList(treelinelist);
 
                         // Delete subhitlist
@@ -877,31 +876,33 @@ void QwTrackingWorker::ProcessEvent (
                 // This if statement may be done wrong
                 // TODO (wdc) why does this have last index dir instead of something in scope?
                 if (region == kRegionID3) {
-                    if (event->treeline[package][region][type][kDirectionU]
-                     && event->treeline[package][region][type][kDirectionV]
-                     && tlayers)
-                    parttrack = fTreeCombine->TlTreeCombine(
-                                    event->treeline[package][region][type],
+
+                    if (event->fTreeLine[package][region][type][kDirectionU]
+                     && event->fTreeLine[package][region][type][kDirectionV]
+                     && tlayers) {
+                        parttrack = fTreeCombine->TlTreeCombine(
+                                    event->fTreeLine[package][region][type],
                                     package, region,
                                     tlayers,
                                     dlayer,
                                     fSearchTree);
+                    }
 
-                }
-                else if(region==kRegionID2){
+                } else if(region == kRegionID2){
 
-                        if (event->treeline[package][region][type][kDirectionU]
-                         && event->treeline[package][region][type][kDirectionV]
-                         && event->treeline[package][region][type][kDirectionX]
-                         && tlayers) {
-                parttrack = fTreeCombine->TlTreeCombine(
-                                    event->treeline[package][region][type],
+                    if (event->fTreeLine[package][region][type][kDirectionU]
+                     && event->fTreeLine[package][region][type][kDirectionV]
+                     && event->fTreeLine[package][region][type][kDirectionX]
+                     && tlayers) {
+                        parttrack = fTreeCombine->TlTreeCombine(
+                                    event->fTreeLine[package][region][type],
                                     package, region,
                                     tlayers,
                                     dlayer,
-                                    fSearchTree);}
-                }
-                else continue;
+                                    fSearchTree);
+                    }
+
+                } else continue;
 
 
 
@@ -915,7 +916,7 @@ void QwTrackingWorker::ProcessEvent (
 
 
                 if (parttrack) {
-                        event->parttrack[package][region][type] = parttrack;
+                        event->fPartialTrack[package][region][type] = parttrack;
                         event->AddPartialTrackList(parttrack);
                 }
 
@@ -947,14 +948,14 @@ void QwTrackingWorker::ProcessEvent (
         // If there were partial tracks in the HDC and VDC regions
 
         if (! fDisableMomentum
-         && event->parttrack[package][kRegionID2][kTypeDriftHDC]
-         && event->parttrack[package][kRegionID3][kTypeDriftVDC]) {
+         && event->fPartialTrack[package][kRegionID2][kTypeDriftHDC]
+         && event->fPartialTrack[package][kRegionID3][kTypeDriftVDC]) {
 
-            QwDebug << "Bridging front and back partial tracks..." << QwLog::endl;
+            QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
 
             // Local copies of front and back track
-            QwPartialTrack* front = event->parttrack[package][kRegionID2][kTypeDriftHDC];
-            QwPartialTrack* back  = event->parttrack[package][kRegionID3][kTypeDriftVDC];
+            QwPartialTrack* front = event->fPartialTrack[package][kRegionID2][kTypeDriftHDC];
+            QwPartialTrack* back  = event->fPartialTrack[package][kRegionID3][kTypeDriftVDC];
 
             // Loop over all good front and back partial tracks
             while (front) {

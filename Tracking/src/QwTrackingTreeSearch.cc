@@ -815,7 +815,7 @@ int QwTrackingTreeSearch::exists (
     if (over == 0)
       continue;
 
-    olda = tl->hasharray;
+    olda = tl->fHashArray;
     oldmiss = 0;
     diff    = 0;
 
@@ -1148,7 +1148,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             fNTreeLines++;
 
             /* Copy hash pattern */
-            memcpy(treeline->hasharray, hashpat, sizeof(int) * fNumWires);
+            memcpy(treeline->fHashArray, hashpat, sizeof(int) * fNumWires);
 
             /* Missed front or back planes (?) */
             /* (only used until TreeLineSort) */
@@ -1316,7 +1316,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             fNTreeLines++;
 
             /* Copy hash pattern */
-            memcpy(treeline->hasharray, hashpat, sizeof(int) * fNumPlanes);
+            memcpy(treeline->fHashArray, hashpat, sizeof(int) * fNumPlanes);
             
             /* Missed front or back planes (?) */
             /* (only used until TreeLineSort) */

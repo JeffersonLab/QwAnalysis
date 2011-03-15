@@ -8,8 +8,6 @@ QwTrack::QwTrack()
 {
   // Initialize
   Initialize();
-
-  QwMessage << "QwTrack created " << this << QwLog::endl;
 }
 
 /**
@@ -20,27 +18,43 @@ QwTrack::QwTrack(const QwPartialTrack* front, const QwPartialTrack* back)
   // Initialize
   Initialize();
 
-  // Copy tracks
-  front = new QwPartialTrack(front);
-  back  = new QwPartialTrack(back);
+  // Null pointer
+  if (front == 0 || back == 0) return;
 
-  QwMessage << "QwTrack created " << this << QwLog::endl;
+  // Copy tracks
+  fFront = new QwPartialTrack(front);
+  fBack  = new QwPartialTrack(back);
 }
 
 /**
  * Copy constructor by reference
  * @param track Original track
  */
-QwTrack::QwTrack(const QwTrack& track)
+QwTrack::QwTrack(const QwTrack& that)
 {
   // Initialize
   Initialize();
 
   // Copy tracks
-  front = new QwPartialTrack(track.front);
-  back  = new QwPartialTrack(track.back);
+  fFront = new QwPartialTrack(that.fFront);
+  fBack  = new QwPartialTrack(that.fBack);
+}
 
-  QwMessage << "QwTrack created " << this << QwLog::endl;
+/**
+ * Copy constructor from pointer
+ * @param track Original track
+ */
+QwTrack::QwTrack(const QwTrack* that)
+{
+  // Initialize
+  Initialize();
+
+  // Null pointer
+  if (that == 0) return;
+
+  // Copy tracks
+  if (that->fFront) fFront = new QwPartialTrack(that->fFront);
+  if (that->fBack)  fBack  = new QwPartialTrack(that->fBack);
 }
 
 /**
@@ -49,10 +63,25 @@ QwTrack::QwTrack(const QwTrack& track)
 QwTrack::~QwTrack()
 {
   // Delete objects
-  if (front) delete front;
-  if (back)  delete back;
+  if (fFront) delete fFront;
+  if (fBack)  delete fBack;
 
-  QwMessage << "QwTrack deleted " << this << QwLog::endl;
+  if (fBridge) delete fBridge;
+}
+
+/**
+ * Assignment operator
+ */
+QwTrack& QwTrack::operator=(const QwTrack& that)
+{
+  if (this == &that) return *this;
+
+  #warning "QwTrack::operator= horribly incomplete!"
+
+  fChi = that.fChi;
+  fMomentum = that.fMomentum;
+
+  return *this;
 }
 
 /**
@@ -65,8 +94,8 @@ void QwTrack::Initialize()
   next = 0;
   ynext = 0;
   usednext = 0;
-  front = 0;
-  back = 0;
+  fFront = 0;
+  fBack = 0;
   beamvertex = 0;
 }
 

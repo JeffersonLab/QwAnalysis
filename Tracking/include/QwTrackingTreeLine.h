@@ -69,18 +69,19 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     /// Constructor with tree search results
     QwTrackingTreeLine(int _a_beg, int _a_end , int _b_beg, int _b_end);
     /// Copy constructor
-    QwTrackingTreeLine(const QwTrackingTreeLine& orig);
+    QwTrackingTreeLine(const QwTrackingTreeLine& that);
     /// Copy constructor
-    QwTrackingTreeLine(const QwTrackingTreeLine* orig);
+    QwTrackingTreeLine(const QwTrackingTreeLine* that);
     /// Destructor
     virtual ~QwTrackingTreeLine();
+
+    /// Assignment operator
+    QwTrackingTreeLine& operator=(const QwTrackingTreeLine& treeline);
 
   private:
 
     /// Initialization
     void Initialize();
-    /// Copy method
-    void Copy(const QwTrackingTreeLine* treeline);
 
   public:
 
@@ -180,7 +181,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     void SetCov(const double* cov) { fCov[0] = cov[0]; fCov[1] = cov[1]; fCov[2] = cov[2]; }
     //! Get the covariance
     const double* GetCov() const { return fCov; }
-    /// newly added
+    /// Set the matching pattern
     void SetMatchingPattern(std::vector<int>& box);
     /// calculate the upper and lower bound of the drift distance give the row number
     std::pair<double,double> CalculateDistance(int row,double width,unsigned int bins,double error);
@@ -193,7 +194,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
   public:
 
 //   QwHitPattern* fMatchingPattern; //!	///< matching hit pattern
-    std::vector<int> MatchingPattern;
+    std::vector<int> fMatchingPattern;
     double fOffset;			///< track offset
     double fSlope;			///< track slope
     double fChi;			///< chi squared(?)
@@ -208,8 +209,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     QwHit* fHits[2*MAX_LAYERS];	//!	///< all hits that satisfy road requirement
     QwHit* fUsedHits[2*MAX_LAYERS];//!	///< hits that correspond to optimal chi^2
 
-    int   hasharray[2*MAX_LAYERS];	//!
-    int   ID;				///< adamo ID
+    int fHashArray[2*MAX_LAYERS];	//!
 
     int fR3Offset;			///< offset of demultiplexed group of 8
     int fR3FirstWire, fR3LastWire;	///< first and last wire in group of 8

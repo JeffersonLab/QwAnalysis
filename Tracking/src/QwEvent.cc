@@ -91,10 +91,10 @@ QwEvent::QwEvent()
     for (int j = 0; j < kNumRegions; j++) {
       for (int k = 0; k < kNumTypes; k++) {
         // Null the partial track pointers
-         parttrack[i][j][k] = 0;
+        fPartialTrack[i][j][k] = 0;
         // Null the treeline pointers
         for (int l = 0; l < kNumDirections; l++) {
-          treeline[i][j][k][l] = 0;
+          fTreeLine[i][j][k][l] = 0;
         } // end of loop over directions
       } // end of loop over types
     } // end of loop over regions
@@ -123,7 +123,7 @@ QwEvent::~QwEvent()
     for (int j = 0; j < kNumRegions; j++) {
       for (int k = 0; k < kNumTypes; k++) {
         // Delete all those partial tracks
-         QwPartialTrack* pt = parttrack[i][j][k];
+         QwPartialTrack* pt = fPartialTrack[i][j][k];
          while (pt) {
            QwPartialTrack* pt_next = pt->next;
            delete pt;
@@ -132,7 +132,7 @@ QwEvent::~QwEvent()
 
         // Delete all those treelines
          for (int l = 0; l < kNumDirections; l++) {
-        	 QwTrackingTreeLine* tl = treeline[i][j][k][l];
+           QwTrackingTreeLine* tl = fTreeLine[i][j][k][l];
            while (tl) {
              QwTrackingTreeLine* tl_next = tl->next;
              delete tl;

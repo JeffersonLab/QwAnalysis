@@ -48,8 +48,8 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   // (documented in QwHit.cc)
   // @{
   QwHit();
-  QwHit(const QwHit& hit);
-  QwHit(const QwHit* hit);
+  QwHit(const QwHit& that);
+  QwHit(const QwHit* that);
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	EQwRegionID region, EQwDetectorPackage package, Int_t plane,
 	EQwDirectionID direction, Int_t wire, UInt_t rawdata = 0);

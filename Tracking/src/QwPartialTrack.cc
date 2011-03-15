@@ -13,9 +13,6 @@ ClassImp(QwPartialTrack)
 // Qweak headers (deprecated)
 #include "Det.h"
 
-// Initialize the static lists
-TClonesArray* QwPartialTrack::gQwTreeLines = 0;
-
 /**
  * Default constructor
  */
@@ -45,16 +42,87 @@ QwPartialTrack::QwPartialTrack(const TVector3& position, const TVector3& directi
 }
 
 /**
- * Copy constructor
- * \todo TODO (wdc) this copy constructor is horribly incomplete!
+ * Copy constructor by reference
  */
-QwPartialTrack::QwPartialTrack(const QwPartialTrack* partialtrack)
+QwPartialTrack::QwPartialTrack(const QwPartialTrack& that)
 {
   // Initialize
   Initialize();
 
-  // Naive copy
-  *this = *partialtrack;
+  // Assignment
+  *this = that;
+}
+
+/**
+ * Copy constructor with pointer
+ */
+QwPartialTrack::QwPartialTrack(const QwPartialTrack* that)
+{
+  // Initialize
+  Initialize();
+
+  // Null pointer          
+  if (that == 0) return;
+
+  // Assignment
+  *this = *that;
+}
+
+/**
+ * Destructor
+ */
+QwPartialTrack::~QwPartialTrack()
+{
+  // nothing  
+}
+
+/**
+ * Assignment operator
+ */
+QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
+{
+  if (this == &that) return *this;
+
+  fOffsetX = that.fOffsetX;
+  fOffsetY = that.fOffsetY;
+  fSlopeX = that.fSlopeX;
+  fSlopeY = that.fSlopeY;
+
+  fChi = that.fChi;
+  for (size_t i = 0; i < 4; i++)
+    for (size_t j = 0; j < 4; j++)
+      fCov[i][j] = that.fCov[i][j];
+
+  for (size_t i = 0; i < kNumDirections; i++)
+    fTreeLine[i] = that.fTreeLine[i];
+
+  fIsUsed = that.fIsUsed;
+  fIsVoid = that.fIsVoid;
+  fIsGood = that.fIsGood;
+
+  fNumMiss = that.fNumMiss;
+  fNumHits = that.fNumHits;
+
+  triggerhit = that.triggerhit;
+  for (size_t i = 0; i < 3; i++)
+    trig[i] = that.trig[i];
+
+  cerenkovhit = that.cerenkovhit;
+  for (size_t i = 0; i < 3; i++)
+    cerenkov[i] = that.cerenkov[i];
+
+  for (size_t i = 0; i < 3; i++) {
+    pR2hit[i] = that.pR2hit[i];
+    uvR2hit[i] = that.uvR2hit[i];
+    pR3hit[i] = that.pR3hit[i];
+    uvR3hit[i] = that.uvR3hit[i];
+  }
+
+  // Copy tree lines
+  ClearTreeLines();
+  AddTreeLineList(that.fQwTreeLines);
+
+  return *this;
 }
 
 
@@ -63,9 +131,6 @@ QwPartialTrack::QwPartialTrack(const QwPartialTrack* partialtrack)
  */
 void QwPartialTrack::Initialize()
 {
-  // Initialize the tree line storage structure
-  InitializeTreeLines();
-
   // Initialize the member fields
   fOffsetX = 0.0; fOffsetY = 0.0;
   fSlopeX = 0.0;  fSlopeY = 0.0;
@@ -73,7 +138,6 @@ void QwPartialTrack::Initialize()
 
   // Initialize pointers
   next = 0;
-  bridge = 0;
   for (int i = 0; i < kNumDirections; i++)
     fTreeLine[i] = 0;
 }
@@ -135,58 +199,69 @@ void QwPartialTrack::Reset(Option_t *option)
   ResetTreeLines(option);
 }
 
-/**
- * Initialize the list of tree lines
- */
-void QwPartialTrack::InitializeTreeLines()
-{
-  // Create the static TClonesArray for the tree lines if not existing yet
-  if (! gQwTreeLines)
-    gQwTreeLines = new TClonesArray("QwTrackingTreeLine", QWPARTIALTRACK_MAX_NUM_TREELINES);
-  // Set local TClonesArray to static TClonesArray and zero hits
-  fQwTreeLines = gQwTreeLines;
-  fNQwTreeLines = 0;
-}
-
-/**
- * Create a new QwTreeLine
- */
+// Create a new QwTreeLine
 QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
 {
-  TClonesArray &treelines = *fQwTreeLines;
-  QwTrackingTreeLine *treeline = new (treelines[fNQwTreeLines++]) QwTrackingTreeLine();
+  QwTrackingTreeLine* treeline = new QwTrackingTreeLine();
+  AddTreeLine(treeline);
   return treeline;
 }
 
 // Add an existing QwTreeLine
 void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
 {
-  QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
-  *newtreeline = *treeline;
-  newtreeline->next = 0;
+  fQwTreeLines.push_back(new QwTrackingTreeLine(treeline));
+  fNQwTreeLines++;
+}
+
+// Add a linked list of QwTreeLine's
+void QwPartialTrack::AddTreeLineList(QwTrackingTreeLine* treelinelist)
+{
+  for (QwTrackingTreeLine *treeline = treelinelist;
+         treeline; treeline = treeline->next){
+    if (treeline->IsValid()){
+       AddTreeLine(treeline);
+    }
+  }
+}
+
+// Add a list of tree lines
+void QwPartialTrack::AddTreeLineList(const std::vector<QwTrackingTreeLine*> &treelinelist)
+{ 
+  for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = treelinelist.begin();
+       treeline != treelinelist.end(); treeline++)
+    AddTreeLine(*treeline);
 }
 
 // Clear the local TClonesArray of tree lines
 void QwPartialTrack::ClearTreeLines(Option_t *option)
 {
-  fQwTreeLines->Clear(option); // Clear the local TClonesArray
-  fNQwTreeLines = 0; // No tree lines in local TClonesArray
+  for (size_t i = 0; i < fQwTreeLines.size(); i++) {
+    QwTrackingTreeLine* tl = fQwTreeLines.at(i);
+    delete tl;
+  }
+  fQwTreeLines.clear();
+  fNQwTreeLines = 0;
 }
 
 // Delete the static TClonesArray of tree lines
 void QwPartialTrack::ResetTreeLines(Option_t *option)
 {
-  delete gQwTreeLines;
-  gQwTreeLines = 0;
+  ClearTreeLines();
 }
 
 // Print the tree lines
 void QwPartialTrack::PrintTreeLines(Option_t *option) const
 {
-  TIterator* iterator = fQwTreeLines->MakeIterator();
-  QwTrackingTreeLine* treeline = 0;
-  while ((treeline = dynamic_cast<QwTrackingTreeLine*>(iterator->Next())))
-    QwVerbose << *treeline << QwLog::endl;
+  for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
+       treeline != fQwTreeLines.end(); treeline++) {
+    std::cout << **treeline << std::endl;
+    QwTrackingTreeLine* tl = (*treeline)->next;
+    while (tl) {
+      std::cout << *tl << std::endl;
+      tl = tl->next;
+    }
+  }
 }
 
 

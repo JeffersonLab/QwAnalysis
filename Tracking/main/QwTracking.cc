@@ -295,13 +295,22 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   QwMessage << QwLog::endl;
   QwMessage << "Number of tracking objects still alive:" << QwLog::endl;
-  QwMessage << "  QwEvent: "        << QwEvent::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwEventHeader: "  << QwEventHeader::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwHit: "          << QwHit::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwTrack: "        << QwTrack::GetObjectsAlive() << QwLog::endl;
+  QwMessage << "  QwEvent: "        << QwEvent::GetObjectsAlive()
+            << " (of " << QwEvent::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwEventHeader: "  << QwEventHeader::GetObjectsAlive()
+            << " (of " << QwEventHeader::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwHit: "          << QwHit::GetObjectsAlive()
+            << " (of " << QwHit::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive()
+            << " (of " << QwHitPattern::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive()
+            << " (of " << QwTrackingTreeLine::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive()
+            << " (of " << QwPartialTrack::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwTrack: "        << QwTrack::GetObjectsAlive()
+            << " (of " << QwTrack::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwBridge: "        << QwBridge::GetObjectsAlive()
+            << " (of " << QwBridge::GetObjectsCreated() << ")" << QwLog::endl;
   QwMessage << QwLog::endl;
 
   QwMessage << "I have done everything I can do..." << QwLog::endl;

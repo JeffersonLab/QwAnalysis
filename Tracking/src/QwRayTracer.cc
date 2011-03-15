@@ -129,7 +129,7 @@ int QwRayTracer::Bridge(
 	const QwPartialTrack* back)
 {
     // Clear the list of tracks
-    fListOfTracks.clear();
+    ClearListOfTracks();
 
     // Ray-tracing parameters
     double res = 0.2 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
