@@ -1,11 +1,18 @@
 #ifndef QWSSQLS_HH
 #define QWSSQLS_HH
 
+#define GCC_VERSION (__GNUC__ * 10000 \
+                     + __GNUC_MINOR__ * 100 \
+                     + __GNUC_PATCHLEVEL__)
+
 #if (__GNUC__ == 4) && (__GNUC_MINOR__ > 5)
 #  pragma GCC diagnostic push
 #endif
+
+#if GCC_VERSION > 40200
 #pragma GCC diagnostic ignored "-Wignored-qualifiers"
 #pragma GCC diagnostic ignored "-Wvariadic-macros"
+#endif
 
 // Need to include define EXPAND_MY_SSQLS_STATICS in owner module
 //
@@ -13,8 +20,8 @@
 #define MYSQLPP_SSQLS_NO_STATICS
 #endif
 
-#include <mysql++.h>
-#include <ssqls.h>
+#include "mysql++.h"
+#include "ssqls.h"
 
 namespace QwParityDB {
 

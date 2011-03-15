@@ -51,10 +51,6 @@ double mean[16],rms[16];
       mean[p]=htemp->GetMean(); rms[p]=htemp->GetRMS();
       std::cout<<md[p]<<": "<<htemp->GetMean()<<" "<<htemp->GetRMS()<<std::endl;
    }
- for(Int_t i=0; i<16; i++) std::cout<<mean[i]<<" ";
- std::cout<<"\n"<<std::endl;
- for(Int_t i=0; i<16; i++) std::cout<<rms[i]<<" ";
- std::cout<<"\n"<<std::endl;
   
 } // end of macro
 
