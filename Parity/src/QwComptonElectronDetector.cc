@@ -22,14 +22,18 @@
 #include "QwComptonElectronDetector.h"
 
 #include "QwSubsystemArrayParity.h"
-
-
+#include "MQwCodaControlEvent.h"
 
 // System headers
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
+#include <stdio.h>
+#include <stdlib.h>
+#include <cstdlib>
+#include <sstream>
 
 using namespace std;
 
@@ -46,6 +50,11 @@ const Int_t QwComptonElectronDetector::NModules = 3;
 const Int_t QwComptonElectronDetector::NPlanes = 4;
 const Int_t QwComptonElectronDetector::StripsPerModule = 32;
 const Int_t QwComptonElectronDetector::StripsPerPlane = 96;
+
+
+// Ugly, should go inside functions, seems undefined for running sum
+Int_t myrun;
+
 
 //*****************************************************************
 /**
@@ -209,6 +218,13 @@ void QwComptonElectronDetector::EncodeEventData(std::vector<UInt_t> &buffer)
 {
 }
 
+//Boot CheckForEndOfBurst()
+//{
+//  Test the value of the laser power thing and retun true if it has changed
+//  return false otherwise.
+//};
+
+
 /**
  * Process the event buffer for this subsystem
  * @param roc_id ROC ID
@@ -348,6 +364,7 @@ Bool_t QwComptonElectronDetector::SingleEventCuts()
 //*****************************************************************
 void  QwComptonElectronDetector::ProcessEvent()
 {
+  
   fCalibrationFactor = 1.0;
   fOffset = 0.0;
   int pas1 =0;
@@ -358,6 +375,7 @@ void  QwComptonElectronDetector::ProcessEvent()
   int track=0;
   ofstream gui;
   vector<int> det0, det1, det2, det3;
+  vector<int> det0eff, det1eff, det2eff, det3eff;
   double bestfita=1000000;
   int besttrack;
   int bestplane1=1000000;
@@ -371,9 +389,19 @@ void  QwComptonElectronDetector::ProcessEvent()
   int use_gui=0;
   int test_print=0;
   int print_fit=0;
-  
-   
+
+// EVENT MODE = 0
+// ACUMM MODE = 1
+   int runmode = 1;
+    
+//    QwOut << "Scalers = " << fScaler[3] << QwLog::endl;
+    
+//    QwOut << "Scalers = " << QwSIS3801D24_Channel() << QwLog::endl;
+    
+   myrun = this->GetParent()->GetCodaRunNumber();
    eve=this->GetParent()->GetCodaEventNumber();
+//   QwOut << "Run End Time: = " << GetEndTime() << QwLog::endl;
+
  
    if(use_gui==1) { 
     gui.open ("data.detector");    
@@ -388,15 +416,21 @@ void  QwComptonElectronDetector::ProcessEvent()
      fStrips[i][j] = (fStripsRaw[i][j] - fOffset)*fCalibrationFactor;
      fStripsEv[i][j] = (fStripsRawEv[i][j] - fOffset)*fCalibrationFactor;
   
-     if(test_print==1) {
-     if(fStripsEv[i][j]>0) {
-      QwOut << i << " " << j << QwLog::endl;
-     }
-     }
-      
-//     if(use_gui==1) { 
+      if(test_print==1) {
+       if(fStripsEv[i][j]>0) {
+        QwOut << i << " " << j << QwLog::endl;
+       }
+      }
 
 //no 0 Detector , YET
+
+
+// for efficiency study only start
+//      if(i==1 && fStripsEv[1][j] > 0) det1eff.push_back(j); 
+//      if(i==2 && fStripsEv[2][j] > 0) det2eff.push_back(j); 
+//      if(i==3 && fStripsEv[3][j] > 0) det3eff.push_back(j); 
+// for efficiency study only stop
+
 
 //////////////////
 // 1st Detector //
@@ -405,8 +439,9 @@ void  QwComptonElectronDetector::ProcessEvent()
        if(i==1 && fStripsEv[1][j] > 0) {
         if(use_gui==1 && pas1==0) gui << i+1 ;
         if(pas1==0) trig++;
+//	det1.push_back(j-2);
 	det1.push_back(j);
-        if(use_gui==1) gui << " " << j+1 ;
+        if(use_gui==1) gui << " " << j+1-(0) ;
         pas1=1;
        } 
          
@@ -418,8 +453,9 @@ void  QwComptonElectronDetector::ProcessEvent()
         if(use_gui==1 && pas2==0) gui << " " << endl;
         if(use_gui==1 && pas2==0) gui << i+1 ;
         if(pas2==0) trig++;
+//	det2.push_back(j-2);
 	det2.push_back(j);
-        if(use_gui==1) gui << " " << j+1 ;
+        if(use_gui==1) gui << " " << j+1-(0) ;
          pas2=1;
        }	 
 
@@ -436,17 +472,23 @@ void  QwComptonElectronDetector::ProcessEvent()
          pas3=1;
        }	 
        
-//     }   
-  
     }
    }
 
 ////////////////////////////////////////
 // Creating Tracks and X2 Calculation //
 ////////////////////////////////////////
+
+if(trig != 3 && runmode == 0) {
+ QwOut << "Event = " << eve << " Does not Have 3/3 Hits " << QwLog::endl;
+ QwOut << det1.size() << " " << det2.size() << " " << det3.size() << QwLog::endl;
+ if(det1.size() > 0) QwOut << det1[0] << QwLog::endl;
+ if(det2.size() > 0) QwOut << det2[0] << QwLog::endl;
+ if(det3.size() > 0) QwOut << det3[0] << QwLog::endl;
+}
  
-if(trig==3) {
- 
+if(trig==3 && runmode == 0) {
+  
    for(size_t i=0; i<det1.size(); i++)
    {
       for(size_t j=0; j<det2.size(); j++)
@@ -475,6 +517,9 @@ if(trig==3) {
 	       sy += (60+4*d[t])/pow(error,2);
 	       sxy += x[t]*(60+4*d[t])/pow(error,2);
 	       syy += pow((60+4*d[t])/error,2);
+//->	       sy += (d[t])/pow(error,2);
+//->	       sxy += x[t]*d[t]/pow(error,2);
+//->	       syy += pow((d[t])/error,2);
 	     }
 
 	       double ddd = s1*sxx - sx*sx;
@@ -485,6 +530,7 @@ if(trig==3) {
 	        for(Int_t t=0; t<3; t++)
 	         {
 		  double y = 60+4*d[t];
+//->		  double y = d[t];
 		  double fitaCorrd = a + x[t]*b;
 		  fita += pow((y - fitaCorrd)/error, 2);		
 	         }
@@ -511,7 +557,7 @@ if(trig==3) {
        
        edet_TotalNumberTracks=track;
        edet_x2=bestfita;
-
+     
        if(print_fit==1) {
 	QwOut << " Best Chi2 = " << bestfita << " and Best Track is = " << besttrack << QwLog::endl;  
 	QwOut << " Best Hit in Plane1 = " << bestplane1 << " with Coord = " << besty1 << QwLog::endl; 
@@ -519,13 +565,178 @@ if(trig==3) {
 	QwOut << " Best Hit in Plane3 = " << bestplane3 << " with Coord = " << besty3 << QwLog::endl; 
 	QwOut << " Track Angle is     = " << edet_angle << QwLog::endl; 
        }
-              
+	 
        fStripsEvBest1=bestplane1;
        fStripsEvBest2=bestplane2;
        fStripsEvBest3=bestplane3;
-   	
 
+
+//////////////////////////
+/// Offset Corrections ///
+//////////////////////////
+
+       if(edet_angle > 1) {
+	bestplane2=bestplane2-2;
+	bestplane1=bestplane1-2;      
+       }
+
+       if(edet_angle < 1) {
+	bestplane2=bestplane2-2;
+	bestplane1=bestplane1-1;      
+       }
+      
+
+//       if(bestplane2 != bestplane3) bestplane2=bestplane2+1;
+
+////////////////////////////////
+/// Re-Calculation of the X2 ///
+////////////////////////////////
+
+	  double s1 = 0;
+	  double sx = 0;
+	  double sxx = 0;
+	  double sy = 0;
+	  double sxy = 0;
+	  double syy = 0;
+          double x[3] = {690,710,730};
+ 	  double error = 2;          
+          int dc[3] = {bestplane1,bestplane2,bestplane3};
+
+	   for(Int_t t=0; t<3; t++)
+	     {
+	       s1 += 1/(error*error);
+	       sx += x[t]/(error*error);
+	       sxx += pow(x[t]/error, 2);
+	       sy += (60+4*dc[t])/pow(error,2);
+	       sxy += x[t]*(60+4*dc[t])/pow(error,2);
+	       syy += pow((60+4*dc[t])/error,2);
+	     }
+
+	       double ddd = s1*sxx - sx*sx;
+	       double a = (1/ddd)*(sxx*sy - sx*sxy);
+	       double b = (1/ddd)*(s1*sxy - sx*sy);
+
+        double fita = 0;
+         for(Int_t t=0; t<3; t++)
+          {
+	   double y = 60+4*dc[t];
+	   double fitaCorrd = a + x[t]*b;
+	   fita += pow((y - fitaCorrd)/error, 2);		 
+          }
+ 
+          edet_x2=fita;
+         
+///////////////////////////////////
+/// Re-Calculation of the Angle ///
+///////////////////////////////////
+
+       fStripsEvBest1=bestplane1;
+       fStripsEvBest2=bestplane2;
+       fStripsEvBest3=bestplane3;
+       
+       edet_angle=atan((bestplane1-bestplane3)*200*0.0001/2);
+       edet_angle=edet_angle*180/3.141592; 
+       
+       
+ 
+       if(bestfita < 10 && edet_TotalNumberTracks < 5) {
+//         QwOut << eve << " " << fStripsEvBest1 << " " << fStripsEvBest2 << "  " << fStripsEvBest3 << " " << edet_x2 << " " << edet_angle << QwLog::endl;
+       }
+ 
 }
+
+//////////////////
+///  eff start ///
+//////////////////
+
+///////////////////////
+// * PLANE 1 START * //
+///////////////////////
+// 
+//      if(det2eff.size()==1 && det3eff.size() ==1 && det1eff.size() < 2 ) {
+//       det2eff[0]=det2eff[0]-2;
+// 	
+// 	if(det1eff.size() == 0) { 
+//       QwOut << eve << " 1 " << " 100 " << det2eff[0] << " " << det3eff[0] << QwLog::endl;
+// 	} 
+// 	
+// 	if(det1eff.size() == 1 ) {
+// 	 edet_angle=atan((det1eff[0]-det3eff[0])*200*0.0001/2);
+// 	 edet_angle=edet_angle*180/3.141592; 
+// 	   
+// 	 if(edet_angle > 1) {
+// 	  det1eff[0]=det1eff[0]-2;	
+// 	   }
+//
+// 	   if(edet_angle < 1) {
+// 	  det1eff[0]=det1eff[0]-1;     
+// 	   }
+//       QwOut << eve << " 1 " << det1eff[0] << " " << det2eff[0] << " " << det3eff[0] << QwLog::endl;
+// 	}	
+//      }
+//
+///////////////////////
+// * PLANE 2 START * //
+///////////////////////
+// 
+// 	if(det1eff.size()==1 && det3eff.size() ==1 && det2eff.size() < 2 ) {
+// 	
+//       edet_angle=atan((det1eff[0]-det3eff[0])*200*0.0001/2);
+//       edet_angle=edet_angle*180/3.141592; 
+// 	 
+// 	if(edet_angle > 1) {
+// 	 det1eff[0]=det1eff[0]-2;     
+// 	}
+//
+// 	if(edet_angle < 1) {
+// 	 det1eff[0]=det1eff[0]-1;     
+// 	}      
+//	
+// 	if(det2eff.size() == 0) { 
+// 	   QwOut << eve << " 2 " << det1eff[0] << " 100 " << det3eff[0] << QwLog::endl;
+// 	} 
+// 	
+// 	if(det2eff.size() == 1 ) { 
+// 	 det2eff[0]=det2eff[0]-2;	
+// 	   QwOut << eve << " 2 " << det1eff[0] << " " << det2eff[0] << " " << det3eff[0] << QwLog::endl;
+// 	}	
+// 	}
+//
+///////////////////////
+// * PLANE 3 START * //
+///////////////////////
+//  
+//       if(det1eff.size()==1 && det2eff.size()==1 && det3eff.size() < 2 ) {
+//       
+// 	det2eff[0]=det2eff[0]-2;
+//       
+// 	edet_angle=atan((det1eff[0]-det2eff[0])*200*0.0001/2);
+// 	edet_angle=edet_angle*180/3.141592; 
+//
+//       if(edet_angle > 1) {
+// 	det1eff[0]=det1eff[0]-2;     
+//       }
+//
+//       if(edet_angle < 1) {
+// 	det1eff[0]=det1eff[0]-1;     
+//       }      
+//
+//       
+//       if(det3eff.size() == 0) { 
+// 	QwOut << eve << " 3 " << det1eff[0] << " " << det2eff[0] << " 100 " << QwLog::endl;
+//       } 
+//       
+//       
+//       if(det3eff.size() == 1 ) { 
+// 	QwOut << eve << " 3 " << det1eff[0] << " " << det2eff[0] << " " << det3eff[0] << QwLog::endl;
+//       }       
+//
+//       }
+//
+//
+////////////////
+/// eff stop ///
+////////////////
 
 /////////////   
 // For GUI //
@@ -598,6 +809,8 @@ void QwComptonElectronDetector::ClearEventData()
    edet_TotalNumberTracks = 1000000;
    edet_angle = 1000000;
    
+   fGoodEventCount = 0;
+   
   // Clear all scaler channels
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i].ClearEventData();
@@ -628,7 +841,16 @@ VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     for (Int_t i = 0; i < NPlanes; i++){
       for (Int_t j = 0; j < StripsPerPlane; j++){
-        this->fStripsRaw[i][j] += input->fStripsRaw[i][j];
+
+// static double edet_acum_sum[4][96];
+//	    edet_acum_sum[i][j]=fStripsRaw[i][j]+edet_acum_sum[i][j];
+//	    QwOut << " TEST2 =  "  << " i = " << i << " j = " << j << " " << fStripsRaw[i][j] << " " << edet_acum_sum[i][j] << QwLog::endl;	  
+//            fStripsRaw[i][j]=0;
+	    
+	    
+	    
+        this->fStripsRaw[i][j] += input->fStripsRaw[i][j];     
+      
       }
     }
 
@@ -691,16 +913,22 @@ void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
     QwComptonElectronDetector* innumer = dynamic_cast<QwComptonElectronDetector*> (numer);
     QwComptonElectronDetector* indenom = dynamic_cast<QwComptonElectronDetector*> (denom);
 
-  // for (Int_t i = 0; i < NPlanes; i++){
-  //  for (Int_t j = 0; j < StripsPerPlane; j++){
-      //      this->fStripsRaw.Ratio(innumer->fStripsRaw[i][j], indenom->fStripsRaw[i][j]);
-  //  }
-  // }
+   for (Int_t i = 0; i < NPlanes; i++){
+    for (Int_t j = 0; j < StripsPerPlane; j++){        
+	if(indenom->fStripsRaw[i][j] > 0) {
+          fStripsRaw[i][j] =(innumer->fStripsRaw[i][j]/indenom->fStripsRaw[i][j]);
+	 }	  
+	   else {
+	    this->fStripsRaw[i][j]=0;
+	   }	     
+    }
+   }
 
     for (size_t i = 0; i < fScaler.size(); i++)
       this->fScaler[i].Ratio(innumer->fScaler[i],indenom->fScaler[i]);
-
-  }
+//   PrintValue();
+  }  
+  
 }
 
 void QwComptonElectronDetector::Scale(Double_t factor)
@@ -735,6 +963,29 @@ Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
   }
   return result;
 }
+
+void  QwComptonElectronDetector::AccumulateRunningSum(VQwSubsystem* value)
+{
+  if (Compare(value)) {
+    // Optional event selection...
+    fGoodEventCount++;
+    *this  += value;
+//    QwOut << " 1 "  << QwLog::endl;
+  }
+}
+
+void  QwComptonElectronDetector::CalculateRunningAverage()
+{
+  if (fGoodEventCount <= 0) {
+    Scale(0);
+    QwOut << " Scale = 0" << QwLog::endl;
+  } else {
+    Scale(1.0/fGoodEventCount);
+    QwOut << " Good Events =  "  << " " << fGoodEventCount << QwLog::endl;
+
+  }
+}
+
 
 //*****************************************************************
 /**
@@ -801,7 +1052,11 @@ void  QwComptonElectronDetector::DeleteHistograms()
 void  QwComptonElectronDetector::FillHistograms()
 {
   Int_t i, j, k;
-  edet_cut_on_x2=10;
+
+//  edet_cut_on_x2=7;
+//  edet_cut_on_ntracks=2;
+
+  edet_cut_on_x2=7;
   edet_cut_on_ntracks=5;
     
   for (i=0; i<NPlanes; i++) {
@@ -827,7 +1082,8 @@ void  QwComptonElectronDetector::FillHistograms()
     }
   }
 
-  if(edet_x2 < edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {
+  if(edet_x2 < edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {    
+//  if(edet_x2 == edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {    
    fHistograms1D[16]->Fill(fStripsEvBest1); 
    fHistograms1D[17]->Fill(fStripsEvBest2); 
    fHistograms1D[18]->Fill(fStripsEvBest3);
@@ -959,19 +1215,44 @@ void  QwComptonElectronDetector::FillTree()
 
 
 //*****************************************************************
-void  QwComptonElectronDetector::Print() const
+void  QwComptonElectronDetector::PrintValue() const
 {
-  //  VQwSubsystemParity::Print();
-  Int_t nchan =0;
-  for (Int_t i=0; i<NPlanes; i++)
-    nchan += fStripsRaw[i].size();
-  QwOut << " there were " << nchan << " strips registered" << QwLog::endl;
-    for (Int_t i=0; i<NPlanes; i++) {
-   for (Int_t j=0; j<StripsPerPlane; j++) {
+  string path = getenv_safe_string("QW_TMP") + "/" + "edet_asym";
+  stringstream ss; ss << myrun;
+  string str = ss.str();
+  path += "_" + str + ".txt";
 
-     QwOut << " plane #," << i << "strip #, " << j << "has " << fStrips[i][j] << QwLog::endl;
-   }
+  static Int_t edet_count = 0;
+  edet_count++;
+  
+  ofstream myfile;
+  if(edet_count == 1) {
+    QwOut << " " << QwLog::endl;
+    QwOut << " Address =  " << path << QwLog::endl;
+    QwOut << "Run Number = " << myrun << " Good Events = " << fGoodEventCount << QwLog::endl;    
+    QwOut << " " << QwLog::endl;
+   myfile.open (path.c_str());
+  } 
+   else { 
+   myfile.open (path.c_str(),ios::app);
   }
+
+  
+  Int_t nchan =0;
+    for (Int_t i=0; i<NPlanes; i++)
+    nchan += fStripsRaw[i].size();
+    QwOut << " there were " << nchan << " strips registered" << QwLog::endl;
+
+   for (Int_t j=0; j<StripsPerPlane; j++) {
+      myfile <<  j << " " << fGoodEventCount*fStripsRaw[0][j] << " " << fGoodEventCount*fStripsRaw[1][j] << " " <<  
+      fGoodEventCount*fStripsRaw[2][j] << " " << fGoodEventCount*fStripsRaw[3][j] << endl;
+      
+//      QwOut << " " << 3 << " " << j << " " << edet_acum_sum[3][j] << QwLog::endl; 
+   }
+
+//   myfile << endl;
+
+   myfile.close();  
   return;
 }
 

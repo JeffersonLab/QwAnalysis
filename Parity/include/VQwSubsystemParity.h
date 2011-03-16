@@ -81,6 +81,11 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// \brief Print values of all channels
     virtual void PrintValue() const { };
 
+
+    virtual Bool_t CheckForEndOfBurst() const {return kFALSE;};
+	
+
+
   private:
 
     /// Private default constructor (not implemented, will throw linker error on use)

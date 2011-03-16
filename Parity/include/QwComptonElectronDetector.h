@@ -79,8 +79,8 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     UInt_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void AccumulateRunningSum(VQwSubsystem* value) { };
-    void CalculateRunningAverage() { };
+    void AccumulateRunningSum(VQwSubsystem* value);
+    void CalculateRunningAverage();
 
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -106,7 +106,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
     Bool_t Compare(VQwSubsystem *source);
-    void Print() const;
+    void PrintValue() const;
 
     void SetCalibrationFactor(const Double_t factor) { fCalibrationFactor = factor; };
     Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
@@ -165,6 +165,15 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Int_t fTreeArrayNumEntries;
     Int_t fTreeArrayIndex;
     UInt_t fNumberOfEvents; //! Number of triggered events
+    Int_t eff23;
+    Int_t effall;
+    Double_t effedet;
+//    Double_t edet_acum_sum[4][96];
+//    Int_t edet_count;
+
+
+    
+    Int_t fGoodEventCount;
 
     /// Mapping from ROC/subbank to channel type
     enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single, kScaler };

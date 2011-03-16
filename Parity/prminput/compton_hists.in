@@ -60,9 +60,9 @@ hel_output_register   TH1F    12      -1.5  10.5        inputregister Events
 Compton_eDet_Evt_Best_Plane1    TH1F    96   -0.5	95.5	Strips  Hits
 Compton_eDet_Evt_Best_Plane2    TH1F    96   -0.5	95.5	Strips  Hits
 Compton_eDet_Evt_Best_Plane3    TH1F    96   -0.5	95.5	Strips  Hits
-Compton_eDet_Evt_Best_x2        TH1F    40	0	100	x2      Tracks
-Compton_eDet_Evt_NTracks        TH1F    40	0	50	Tracks  NTracks
-Compton_eDet_Evt_Track_Angle    TH1F    40     -25	25	Tracks  Angle
+Compton_eDet_Evt_Best_x2        TH1F    20	0	50	x2      Tracks
+Compton_eDet_Evt_NTracks        TH1F    20	0	25	Tracks  NTracks
+Compton_eDet_Evt_Track_Angle    TH1F    12   -5.5	5.5	Tracks  Angle
  
 .*sca_edet.*			TH1F	100	0	4e3	Counts	Events
 

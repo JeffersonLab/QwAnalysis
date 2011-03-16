@@ -229,6 +229,18 @@ void QwSubsystemArrayParity::PrintValue() const
 
 //*****************************************************************
 
+Bool_t QwSubsystemArrayParity::CheckForEndOfBurst() const
+{
+  Bool_t status = kFALSE;
+  for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    status |= subsys_parity->CheckForEndOfBurst();
+  }
+  return status;
+};
+
+//*****************************************************************
+
 void QwSubsystemArrayParity::CalculateRunningAverage()
 {
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
