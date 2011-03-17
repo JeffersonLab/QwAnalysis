@@ -165,14 +165,18 @@ int main(int argc, char* argv[])
     //  Construct tree branches
     rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+    rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern);
+    rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
 
     // Summarize the ROOT file structure
     rootfile->PrintTrees();
     rootfile->PrintDirs();
 
-    // ROOT file output (expert tree)
-    //  rootfile.cd();
-    //  detectors.ConstructTree(rootfile.mkdir("expert_tree"));
+
+    //  Clear the running sums
+    helicitypattern.ClearRunningSum();
+    helicitypattern.ClearBurstSum();
+
 
     ///  Start loop over events
     while (eventbuffer.GetNextEvent() == CODA_OK) {
@@ -187,6 +191,9 @@ int main(int argc, char* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
+
+        rootfile->FillTreeBranches(epicsevent);
+        rootfile->FillTree("Slow_Tree");
       }
 
       // Now, if this is not a physics event, go back and get a new event.
@@ -232,10 +239,26 @@ int main(int argc, char* argv[])
         }
       }
 
+      // Burst mode
+      if (eventbuffer.IsEndOfBurst()) {
+        helicitypattern.AccumulateRunningBurstSum();
+        helicitypattern.CalculateBurstAverage();
+        helicitypattern.ClearBurstSum();
+      }
+
     } // end of loop over events
 
     QwMessage << "Last event processed: "
               << eventbuffer.GetEventNumber() << QwLog::endl;
+
+    // Calculate running averages over helicity patterns
+    if (helicitypattern.IsRunningSumEnabled()) {
+      helicitypattern.CalculateRunningAverage();
+      if (helicitypattern.IsBurstSumEnabled()) {
+        helicitypattern.CalculateRunningBurstAverage();
+      }
+    }
+
 
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *

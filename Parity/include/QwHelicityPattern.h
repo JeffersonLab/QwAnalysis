@@ -99,6 +99,7 @@ class QwHelicityPattern{
 
   void  PrintRunningBurstAverage() const;
   void  PrintRunningAverage() const;
+  void  PrintBurstAverage() const;
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);

@@ -614,6 +614,8 @@ void  QwHelicityPattern::CalculateBurstAverage()
   fBurstAsymmetry.CalculateRunningAverage();
   fBurstDifference.CalculateRunningAverage();
   fBurstYield.CalculateRunningAverage();
+
+  if (fPrintBurstSum) PrintBurstAverage();
 }
 
 //*****************************************************************
@@ -669,6 +671,22 @@ void  QwHelicityPattern::PrintRunningAverage() const
   QwMessage << " Running average of yields     " << QwLog::endl;
   QwMessage << " ==============================" << QwLog::endl;
   fRunningYield.PrintValue();
+}
+
+//*****************************************************************
+void  QwHelicityPattern::PrintBurstAverage() const
+{
+  QwMessage << " Burst average of asymmetry  " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fBurstAsymmetry.PrintValue();
+
+  QwMessage << " Burst average of difference " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fBurstDifference.PrintValue();
+
+  QwMessage << " Burst average of yields     " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fBurstYield.PrintValue();
 }
 
 //*****************************************************************
