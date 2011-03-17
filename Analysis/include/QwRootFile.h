@@ -77,9 +77,7 @@ class QwRootTree {
     }
 
     /// Destructor
-    virtual ~QwRootTree() {
-      delete fTree;
-    }
+    virtual ~QwRootTree() { }
 
     /// Construct the tree
     void ConstructNewTree(const std::string& name, const std::string& desc) {

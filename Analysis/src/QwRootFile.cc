@@ -109,6 +109,15 @@ QwRootFile::~QwRootFile()
     delete fRootFile;
     fRootFile = 0;
   }
+
+  // Delete Qweak ROOT trees
+  std::map< const std::string, std::vector<QwRootTree*> >::iterator map_iter;
+  for (map_iter = fTreeByName.begin(); map_iter != fTreeByName.end(); map_iter++) {
+    std::vector<QwRootTree*>::iterator vec_iter;
+    for (vec_iter = map_iter->second.begin(); vec_iter != map_iter->second.end(); vec_iter++) {
+      delete *vec_iter;
+    }
+  }
 }
 
 /**

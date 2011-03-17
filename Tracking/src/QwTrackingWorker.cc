@@ -213,6 +213,7 @@ QwTrackingWorker::~QwTrackingWorker ()
   for (int i = 0; i < kNumPackages * kNumRegions * kNumTypes * kNumDirections; i++)
     if (fSearchTree[i]) delete fSearchTree[i];
 
+  if (fBridgingTrackFilter) delete fBridgingTrackFilter;
   if (fMatrixLookup) delete fMatrixLookup;
   if (fRayTracer)    delete fRayTracer;
 
