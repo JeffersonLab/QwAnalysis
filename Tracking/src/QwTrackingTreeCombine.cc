@@ -1632,7 +1632,11 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
     double *fit,
     double *cov,
     double &chi,
-    double * parameter ){
+    double * parameter )
+{
+	// Initialize variables
+	chi = 0.0;
+	for (size_t i = 0; i < 3; i++) cov[i] = 0.0;
 
 	//NOTE: first get angle information to transfer xy to uv
 	double angle = hits[0]->GetDetectorInfo()->GetElementAngle();

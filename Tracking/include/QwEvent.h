@@ -52,12 +52,15 @@ class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
   public:
 
     /// Default constructor
-    QwEventHeader(){};
+    QwEventHeader()
+    : fRunNumber(0),fEventNumber(0),fEventTime(0),
+      fEventType(0),fEventTrigger(0),
+      fBeamHelicity(kHelicityUndefined) { };
     /// Constructor with run and event number
-    QwEventHeader(const UInt_t run, const ULong_t event) {
-      fRunNumber = run;
-      fEventNumber = event;
-    };
+    QwEventHeader(const UInt_t run, const ULong_t event)
+    : fRunNumber(run),fEventNumber(event),fEventTime(0),
+      fEventType(0),fEventTrigger(0),
+      fBeamHelicity(kHelicityUndefined) { };
     /// Copy constructor
     QwEventHeader(const QwEventHeader& header)
     : TObject(header),QwObjectCounter<QwEventHeader>(header) {

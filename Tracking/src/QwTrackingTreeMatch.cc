@@ -204,6 +204,9 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   for (QwTrackingTreeLine* frontline = frontlist; frontline;
        frontline = frontline->next, ifront++) {
 
+    // Initialization of fmatches
+    fmatches[ifront] = -1;
+
     // Skip void tree lines
     if (frontline->IsVoid()) continue;
 
@@ -211,7 +214,6 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
     QwHit* fronthit = frontline->GetBestWireHit();
 
     // No match found yet
-    fmatches[ifront] = -1;
     double bestmatch = 99;
 
     // Loop over the tree lines in the back VDC plane
