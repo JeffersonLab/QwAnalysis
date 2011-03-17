@@ -40,9 +40,12 @@ QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
 
 QwMainDetector::~QwMainDetector()
 {
-  //  DeleteHistograms();
   fPMTs.clear();
+
+  for (size_t i = 0; i < fSCAs.size(); i++)
+    delete fSCAs.at(i);
   fSCAs.clear();
+
   delete fF1TDContainer;
 }
 

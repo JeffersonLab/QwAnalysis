@@ -74,6 +74,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     std::string subsys_name;
     if (! section->FileHasVariablePair("=","name",subsys_name)) {
       QwError << "No name defined in section for subsystem " << subsys_type << "." << QwLog::endl;
+      delete section; section = 0;
       continue;
     }
 
@@ -84,6 +85,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
         disabled_by_type = true;
     if (disabled_by_type) {
       QwWarning << "Subsystem of type " << subsys_type << " disabled." << QwLog::endl;
+      delete section; section = 0;
       continue;
     }
 
@@ -94,6 +96,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
         disabled_by_name = true;
     if (disabled_by_name) {
       QwWarning << "Subsystem with name " << subsys_name << " disabled." << QwLog::endl;
+      delete section; section = 0;
       continue;
     }
 
@@ -110,6 +113,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     }
     if (! subsys) {
       QwError << "Could not create subsystem " << subsys_type << "." << QwLog::endl;
+      delete section; section = 0;
       continue;
     }
 
@@ -118,6 +122,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
       QwMessage << "Subsystem " << subsys_name << " cannot be stored in this "
                 << "subsystem array." << QwLog::endl;
       QwMessage << "Deleting subsystem " << subsys_name << " again" << QwLog::endl;
+      delete section; section = 0;
       delete subsys; subsys = 0;
       continue;
     }

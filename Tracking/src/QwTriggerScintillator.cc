@@ -26,9 +26,11 @@ QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(re
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
 }
 
-QwTriggerScintillator::~QwTriggerScintillator(){
-  //  DeleteHistograms();
+QwTriggerScintillator::~QwTriggerScintillator()
+{
   fPMTs.clear();
+  for (size_t i = 0; i < fSCAs.size(); i++)
+    delete fSCAs.at(i);
   fSCAs.clear();
   delete fF1TDContainer;
 }
