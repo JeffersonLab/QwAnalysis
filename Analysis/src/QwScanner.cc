@@ -33,7 +33,7 @@ QwScanner::QwScanner(TString name)
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
-}
+};
 
 
 QwScanner::~QwScanner()
@@ -54,7 +54,7 @@ QwScanner::~QwScanner()
   fADC_Data.clear();
   //DeleteHistograms();
   delete fF1TDContainer;
-}
+};
 
 
 void QwScanner::ProcessOptions(QwOptions &options)
@@ -70,6 +70,9 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
   Int_t modnum, channum;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+
+  std::cout << "QwScanner::LoadChannelMap(TString mapfile)" << mapstr.GetParamFilename() << std::endl;
+
   while (mapstr.ReadNextLine())
     {
       mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -185,6 +188,8 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
   Int_t lineread=0;
 
   QwParameterFile mapstr(parameterfile.Data());  //Open the file
+  std::cout << "QwScanner::LoadInputParameters()" << mapstr.GetParamFilename() << std::endl;
+
   if (ldebug) std::cout<<"\nReading scanner parameter file: "<<parameterfile<<"\n";
 
   while (mapstr.ReadNextLine())
@@ -1052,6 +1057,7 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
       fRateMapEM->GetYaxis()->SetTitle("PositionY [cm]");
       fRateMapEM->SetOption("colz");
 
+    
     }
 }
 
@@ -1141,7 +1147,9 @@ void  QwScanner::FillHistograms()
     {
       //std::cout<<"Fill histo: "<<fMeanPositionX_ADC<<", "<<fMeanPositionY_ADC<<", "<<fCoincidenceSCA<<"\n";
       fRateMapEM->Fill(fMeanPositionX_ADC,fMeanPositionY_ADC,fCoincidenceSCA,1);
-    }
+    } 
+
+  
 }
 
 
@@ -1415,6 +1423,7 @@ void  QwScanner::DeleteHistograms()
   // Then clear the list
   fHistograms2D.clear();
 
+
 }
 
 void  QwScanner::ReportConfiguration()
@@ -1618,7 +1627,7 @@ EQwModuleType QwScanner::RegisterModuleType(TString moduletype)
     {
       fCurrentType = kV792_ADC;
       fModuleTypes.at(fCurrentIndex) = fCurrentType;
-      if (fPMTs.size() <= fCurrentType)
+      if ( (Int_t) fPMTs.size() <= fCurrentType)
         {
           fPMTs.resize(fCurrentType+1);
         }
@@ -1628,7 +1637,7 @@ EQwModuleType QwScanner::RegisterModuleType(TString moduletype)
     {
       fCurrentType = kV775_TDC;
       fModuleTypes.at(fCurrentIndex) = fCurrentType;
-      if (fPMTs.size() <= fCurrentType)
+      if ( (Int_t) fPMTs.size() <= fCurrentType)
         {
           fPMTs.resize(fCurrentType+1);
         }
@@ -1638,7 +1647,7 @@ EQwModuleType QwScanner::RegisterModuleType(TString moduletype)
     {
       fCurrentType = kF1TDC;
       fModuleTypes.at(fCurrentIndex) = fCurrentType;
-      if (fPMTs.size() <= fCurrentType)
+      if ( (Int_t) fPMTs.size() <= fCurrentType)
         {
           fPMTs.resize(fCurrentType+1);
         }
@@ -1718,7 +1727,7 @@ Int_t QwScanner::GetModuleIndex(size_t bank_index, size_t slot_num) const
 Int_t QwScanner::FindSignalIndex(const EQwModuleType modtype, const TString &name) const
 {
     Int_t chanindex = -1;
-    if (modtype < fPMTs.size())
+    if (modtype < (Int_t) fPMTs.size())
     {
       for (size_t chan = 0; chan < fPMTs.at(modtype).size(); chan++)
       {

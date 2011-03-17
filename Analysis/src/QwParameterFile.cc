@@ -87,6 +87,7 @@ UInt_t QwParameterFile::GetUInt(const TString& varvalue)
  */
 QwParameterFile::QwParameterFile(const std::string& name)
 {
+
   // Create a file from the name
   bfs::path file(name);
 
@@ -99,7 +100,7 @@ QwParameterFile::QwParameterFile(const std::string& name)
       return;
     }
 
-  // Else, loop through search path and files
+    // Else, loop through search path and files
   } else {
 
 #if BOOST_VERSION >= 103600
@@ -113,12 +114,12 @@ QwParameterFile::QwParameterFile(const std::string& name)
 #endif
 
     // Find the best match
-    int best_score = 0;
+    Int_t best_score = 0;
     bfs::path best_path;
     for (size_t i = 0; i < fSearchPaths.size(); i++) {
 
       bfs::path path;
-      int score = FindFile(fSearchPaths[i], file_stem, file_ext, path);
+      Int_t score = FindFile(fSearchPaths[i], file_stem, file_ext, path);
       if (score > best_score) {
         // Found file with better score
         best_score = score;
@@ -158,7 +159,9 @@ QwParameterFile::QwParameterFile(const std::string& name)
  */
 bool QwParameterFile::OpenFile(const bfs::path& file)
 {
-  bool status = false;
+  Bool_t local_debug = false;
+
+  Bool_t status = false;
 
   // Check whether path exists and is a regular file
 #if BOOST_VERSION >= 103400
@@ -167,8 +170,12 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
   if (bfs::exists(file) /* pray */ ) {
 #endif
     QwMessage << "QwParameterFile::OpenFile Opening parameter file: "
-              << file.string() << QwLog::endl;
-    // Open file
+	      << file.string() << QwLog::endl;
+
+
+    fParamFilename = file.string();
+
+    // Connect stream (fFile) to file
     fFile.open(file.string().c_str());
     if (! fFile.good())
       QwError << "QwParameterFile::OpenFile Unable to read parameter file "
@@ -176,8 +183,14 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
     // Load into stream
     fStream << fFile.rdbuf();
     status = true;
-    // std::cout << fStream << std::endl;
-    // fFile.close();
+    if(local_debug) {
+      std::cout << "------before close------------" << std::endl;
+      std::cout << fStream.str() << std::endl;
+    }
+
+    // fFile.clear();
+    // fFile.close(); // disconnet file
+    
 
   } else {
 
@@ -186,7 +199,10 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
             << file.string() << QwLog::endl;
     status = false;
   }
- 
+  if(local_debug) {
+    std::cout << "-------after close ----------" << std::endl;
+    std::cout << fStream.str() << std::endl;
+  }
 
   return status;
 }

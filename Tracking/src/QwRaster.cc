@@ -724,7 +724,7 @@ EQwModuleType QwRaster::RegisterModuleType(TString moduletype)
     {
         fCurrentType = kV792_ADC;
         fModuleTypes.at(fCurrentIndex) = fCurrentType;
-        if (fPMTs.size() <= fCurrentType)
+        if ((Int_t) fPMTs.size() <= fCurrentType)
         {
             fPMTs.resize(fCurrentType+1);
         }
@@ -791,7 +791,7 @@ Int_t QwRaster::GetModuleIndex(size_t bank_index, size_t slot_num) const
 Int_t QwRaster::FindSignalIndex(const EQwModuleType modtype, const TString &name) const
 {
     Int_t chanindex = -1;
-    if (modtype < fPMTs.size())
+    if (modtype < (Int_t) fPMTs.size())
     {
       for (size_t chan = 0; chan < fPMTs.at(modtype).size(); chan++)
       {

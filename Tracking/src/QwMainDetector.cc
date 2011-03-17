@@ -1002,7 +1002,7 @@ EQwModuleType QwMainDetector::RegisterModuleType(TString moduletype)
    }
 
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if (fPMTs.size()<=fCurrentType)
+  if ((Int_t) fPMTs.size()<=fCurrentType)
     {
       fPMTs.resize(fCurrentType+1);
     }
@@ -1072,7 +1072,7 @@ Int_t QwMainDetector::GetModuleIndex(size_t bank_index, size_t slot_num) const
 Int_t QwMainDetector::FindSignalIndex(const EQwModuleType modtype, const TString &name) const
   {
     Int_t chanindex = -1;
-    if (modtype < fPMTs.size())
+    if (modtype < (Int_t) fPMTs.size())
     {
       for (size_t chan = 0; chan < fPMTs.at(modtype).size(); chan++)
       {

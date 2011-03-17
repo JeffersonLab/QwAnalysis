@@ -145,6 +145,8 @@ class QwParameterFile {
     friend ostream& operator<< (ostream& stream, const QwParameterFile& file);
 
 
+    const TString GetParamFilename() const {return fParamFilename;};
+
   protected:
     void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);
     void TrimWhitespace(std::string &token, TString::EStripType head_tail);
@@ -162,6 +164,8 @@ class QwParameterFile {
     bool OpenFile(const bfs::path& path_found);
   //  TString fCurrentSecName;     // Stores the name of the current section  read
   //  TString fCurrentModuleName;  // Stores the name of the current module  read
+
+    TString fParamFilename;
 
   public:
 

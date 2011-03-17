@@ -840,7 +840,8 @@ EQwModuleType QwTriggerScintillator::RegisterModuleType(TString moduletype)
     fCurrentType = kSIS3801;
   }
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
-  if (fPMTs.size() <= fCurrentType){
+
+  if ((Int_t) fPMTs.size() <= fCurrentType){
     fPMTs.resize(fCurrentType+1);
   }
   return fCurrentType;
@@ -892,7 +893,7 @@ Int_t QwTriggerScintillator::GetModuleIndex(size_t bank_index, size_t slot_num) 
 Int_t QwTriggerScintillator::FindSignalIndex(const EQwModuleType modtype, const TString &name) const
 {
   Int_t chanindex = -1;
-  if (modtype < fPMTs.size()) {
+  if (modtype < (Int_t) fPMTs.size()) {
     for (size_t chan = 0; chan < fPMTs.at(modtype).size(); chan++) {
       if (name == fPMTs.at(modtype).at(chan).GetElementName()) {
         chanindex = chan;
