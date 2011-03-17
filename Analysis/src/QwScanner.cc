@@ -12,6 +12,7 @@
 // Qweak headers
 #include "QwParameterFile.h"
 #include "QwHistogramHelper.h"
+#include "TString.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwScanner);
@@ -33,6 +34,7 @@ QwScanner::QwScanner(TString name)
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
+
 };
 
 
@@ -71,8 +73,14 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
 
+  TString test = mapstr.GetParamFilename();
+  // char a[80];
+  // sprintf(a, "prminput/");
+  // std::cout << "index " << test.Index("prminput/") << std::endl;
   std::cout << "QwScanner::LoadChannelMap(TString mapfile)" << mapstr.GetParamFilename() << std::endl;
 
+  
+  fParameterFileNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine())
     {
       mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -189,6 +197,7 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
 
   QwParameterFile mapstr(parameterfile.Data());  //Open the file
   std::cout << "QwScanner::LoadInputParameters()" << mapstr.GetParamFilename() << std::endl;
+  fParameterFileNames.push_back(mapstr.GetParamFilename());
 
   if (ldebug) std::cout<<"\nReading scanner parameter file: "<<parameterfile<<"\n";
 
@@ -1057,7 +1066,17 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
       fRateMapEM->GetYaxis()->SetTitle("PositionY [cm]");
       fRateMapEM->SetOption("colz");
 
-    
+      fParameterFileNamesHist = new TH1F("scanner_parameter_files", "scanner_parameter_files", 10,0,10);
+      fParameterFileNamesHist -> SetBit(TH1::kCanRebin);
+      fParameterFileNamesHist -> SetStats(0);
+      for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
+	fParameterFileNamesHist -> Fill(fParameterFileNames[i].Data(), 1);
+      }
+      const char* opt = "TEXT";
+      fParameterFileNamesHist->SetMarkerSize(1.4);
+      fParameterFileNamesHist->SetOption(opt);
+      fParameterFileNamesHist->LabelsDeflate("X");
+      fParameterFileNamesHist->LabelsOption("avu", "X");
     }
 }
 
@@ -1370,6 +1389,10 @@ void  QwScanner::DeleteHistograms()
   // std::cout << GetParent(0).fEventTypeMask << std::endl;
   fF1TDContainer->PrintErrorSummary();
   fF1TDContainer->WriteErrorSummary();
+
+  // for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
+  //   printf("Delete historgram %s\n", fParameterFileNames[i].Data());
+  // }
   /// printf("f1tdcontainer\n");
   if (bStoreRawData)
     {

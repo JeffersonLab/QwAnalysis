@@ -17,6 +17,7 @@
 #include "TTree.h"
 #include "TFile.h"
 #include "TProfile2D.h"
+
 //#include "TRandom3.h"
 
 // Qweak headers
@@ -24,7 +25,6 @@
 #include "VQwSubsystemParity.h"
 
 #include "MQwV775TDC.h"
-//#include "MQwF1TDC.h"
 #include "QwVQWK_Module.h"
 #include "QwSIS3801_Module.h"
 
@@ -229,6 +229,9 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     std::vector<TH2*> fHistograms2D;
     TProfile2D* fRateMapCM;
     TProfile2D* fRateMapEM;
+
+    std::vector<TString> fParameterFileNames;
+    TH1F*       fParameterFileNamesHist;
 
   private:
     // Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);
