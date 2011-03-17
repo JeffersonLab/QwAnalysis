@@ -429,6 +429,11 @@ class QwRootFile {
     /// Default ROOT file stem
     static std::string fDefaultRootFileStem;
 
+    /// While the file is open, give it a temporary filename.  Perhaps
+    /// change to a permanent name when closing the file.
+    TString fPermanentName;
+    Bool_t fMakePermanent;
+
     /// Map file
     TMapFile* fMapFile;
     Bool_t fEnableMapFile;

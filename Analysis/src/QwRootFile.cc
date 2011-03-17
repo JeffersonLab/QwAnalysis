@@ -1,6 +1,9 @@
 #include "QwRootFile.h"
 #include "QwRunCondition.h"
 
+#include "unistd.h"
+#include <cstdio>
+
 std::string QwRootFile::fDefaultRootFileStem = "Qweak_";
 
 const Long64_t QwRootFile::kMaxTreeSize = 10000000000LL;
@@ -11,7 +14,7 @@ const Int_t QwRootFile::kMaxMapFileSize = 0x10000000; // 256 MiB
  * Constructor with relative filename
  */
 QwRootFile::QwRootFile(const TString& run_label)
-: fEnableMapFile(kFALSE),fUpdateInterval(400)
+  : fMakePermanent(1),fEnableMapFile(kFALSE),fUpdateInterval(400)
 {
   // Process the configuration options
   ProcessOptions(gQwOptions);
@@ -63,7 +66,14 @@ QwRootFile::QwRootFile(const TString& run_label)
       rootfilename = getenv_safe_TString("QW_ROOTFILES");
     }
 
-    rootfilename += Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
+    // Use a probably-unique temporary file name.
+    pid_t pid = getpid();
+
+    fPermanentName = rootfilename
+      + Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
+    rootfilename += Form("/%s%s.%s.%d.root",
+			 fRootFileStem.Data(), run_label.Data(),
+			 hostname.Data(), pid);
     fRootFile = new TFile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (! fRootFile) {
       QwError << "ROOT file " << rootfilename
@@ -105,9 +115,25 @@ QwRootFile::~QwRootFile()
 
   // Close the ROOT file
   if (fRootFile) {
+    TString rootfilename = fRootFile->GetName();
+
     fRootFile->Close();
     delete fRootFile;
     fRootFile = 0;
+
+    int err;
+    const char* action;
+    if (fMakePermanent) {
+      action = " rename ";
+      err = rename( rootfilename.Data(), fPermanentName.Data() );
+    } else {
+      action = " remove ";
+      err = remove( rootfilename.Data() );
+    }
+    // It'd be proper to "extern int errno" and strerror() here,
+    // but that doesn't seem very C++-ish.
+    if (err)
+      QwWarning << "Couldn't" << action << rootfilename.Data() << QwLog::endl;
   }
 
   // Delete Qweak ROOT trees
