@@ -89,6 +89,11 @@ class QwHelicityPattern{
     fBlinder.Update(epics);
   };
 
+  // wish these could be const references, but ConstructBranchAndVector messes with object
+  QwSubsystemArrayParity& GetBurstYield()      { return fBurstYield; };
+  QwSubsystemArrayParity& GetBurstDifference() { return fBurstDifference; };
+  QwSubsystemArrayParity& GetBurstAsymmetry()  { return fBurstAsymmetry; };
+
   void  AccumulateBurstSum();
   void  AccumulateRunningBurstSum();
   void  AccumulateRunningSum();

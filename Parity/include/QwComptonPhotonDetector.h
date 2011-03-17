@@ -73,8 +73,8 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     UInt_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void AccumulateRunningSum(VQwSubsystem* value) { };
-    void CalculateRunningAverage() { };
+    void AccumulateRunningSum(VQwSubsystem* value);
+    void CalculateRunningAverage();
 
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
@@ -139,6 +139,9 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     std::vector< VQwScaler_Channel* > fScaler;
 
   private:
+
+    // Number of good events
+    Int_t fGoodEventCount;
 
     static const Bool_t kDebug = kTRUE;
 

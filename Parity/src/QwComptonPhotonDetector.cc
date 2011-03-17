@@ -532,6 +532,8 @@ void QwComptonPhotonDetector::ClearEventData()
   // Clear all scaler channels
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i]->ClearEventData();
+
+  fGoodEventCount = 0;
 }
 
 /**
@@ -671,6 +673,29 @@ void QwComptonPhotonDetector::Scale(Double_t factor)
   //  fMultiQDC_Channel[i].Scale(factor);
   for (size_t i = 0; i < fScaler.size(); i++)
     this->fScaler[i]->Scale(factor);
+}
+
+/**
+ * Accumulate the running sum
+ */
+void QwComptonPhotonDetector::AccumulateRunningSum(VQwSubsystem* value)
+{
+  if (Compare(value)) {
+    fGoodEventCount++;
+    *this  += value;
+  }
+}
+
+/**
+ * Normalize the running sum
+ */
+void QwComptonPhotonDetector::CalculateRunningAverage()
+{
+  if (fGoodEventCount <= 0) {
+    Scale(0);
+  } else {
+    Scale(1.0/fGoodEventCount);
+  }
 }
 
 /**
@@ -925,6 +950,8 @@ void  QwComptonPhotonDetector::PrintValue() const
     fMultiTDC_Channel[i].PrintValue();
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].PrintValue();
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i]->PrintValue();
 }
 
 /**

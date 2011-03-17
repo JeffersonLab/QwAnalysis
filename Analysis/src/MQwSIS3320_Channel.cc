@@ -711,8 +711,10 @@ void MQwSIS3320_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
             << std::setw(18) << std::left << GetElementName() << ", "
-            << std::setw(15) << std::left << GetNumberOfEvents() << ", "
-            << QwLog::endl;
+            << std::setw(15) << std::left << GetNumberOfEvents();
+  for (size_t i = 0; i < fAccumulators.size(); i++)
+    QwMessage << ", " << i << ":" << fAccumulators[i].GetAccumulatorSum();
+  QwMessage << QwLog::endl;
 }
 
 

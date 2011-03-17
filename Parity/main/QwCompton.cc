@@ -165,7 +165,7 @@ int main(int argc, char* argv[])
     //  Construct tree branches
     rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
-    rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern);
+    rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstYield());
     rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
 
     // Summarize the ROOT file structure
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
       rootfile->FillHistograms(detectors);
 
       // Fill the tree
-      rootfile->FillTreeBranches(detectors);
+      rootfile->FillTreeBranches("Mps_Tree",detectors);
       rootfile->FillTree("Mps_Tree");
 
 
@@ -231,7 +231,7 @@ int main(int argc, char* argv[])
           rootfile->FillHistograms(helicitypattern);
 
           // Fill tree branches
-          rootfile->FillTreeBranches(helicitypattern);
+          rootfile->FillTreeBranches("Hel_Tree",helicitypattern);
           rootfile->FillTree("Hel_Tree");
 
           // Clear the data
@@ -241,8 +241,14 @@ int main(int argc, char* argv[])
 
       // Burst mode
       if (eventbuffer.IsEndOfBurst()) {
-        helicitypattern.AccumulateRunningBurstSum();
         helicitypattern.CalculateBurstAverage();
+        helicitypattern.AccumulateRunningBurstSum();
+
+        // Fill tree branches
+        rootfile->FillTreeBranches("Burst_Tree",helicitypattern.GetBurstYield());
+        rootfile->FillTree("Burst_Tree");
+
+        // Clear the data
         helicitypattern.ClearBurstSum();
       }
 
@@ -274,6 +280,10 @@ int main(int argc, char* argv[])
     //  Delete histograms
     rootfile->DeleteHistograms(detectors);
     rootfile->DeleteHistograms(helicitypattern);
+
+    // Close ROOT file
+    rootfile->Close();
+    delete rootfile; rootfile = 0;
 
     // Close data file and print run summary
     eventbuffer.CloseStream();
