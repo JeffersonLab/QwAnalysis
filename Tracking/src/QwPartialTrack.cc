@@ -86,7 +86,9 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
   if (this == &that) return *this;
 
   VQwTrackingElement::operator=(that);
-
+  
+  fAlone = that.fAlone;
+  
   fOffsetX = that.fOffsetX;
   fOffsetY = that.fOffsetY;
   fSlopeX = that.fSlopeX;
@@ -146,6 +148,9 @@ void QwPartialTrack::Initialize()
   next = 0;
   for (int i = 0; i < kNumDirections; i++)
     fTreeLine[i] = 0;
+
+  //Only 2 Plane 0 treelines
+  fAlone=0;
 }
 
 
@@ -301,6 +306,7 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
     stream << "(" << pt.GetRegion() << "/" << "?UD"[pt.GetPackage()] << "); ";
   stream << "x,y(z=0) = (" << pt.fOffsetX/Qw::cm << " cm, " << pt.fOffsetY/Qw::cm << " cm), ";
   stream << "d(x,y)/dz = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
+
   if (pt.fChi > 0.0) { // parttrack has been fitted
     stream << ", chi = " << pt.fChi;
   }

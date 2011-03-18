@@ -135,9 +135,15 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     double CalculateAverageResidual();
     void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); }
 
+    // Only 2 Treelines in Plane 0
+    void SetAlone(const int alone) { fAlone = alone; }
+    //! Only 2 Treelines in Plane 0
+    int GetAlone() const { return fAlone; }
+    
     // Tree lines
     QwTrackingTreeLine* GetTreeLine(const EQwDirectionID dir) {
       return fTreeLine[dir];
+
     }
 
   public: // members
@@ -173,6 +179,9 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     double uvR3hit[3];          ///< direction at R3
 
     QwPartialTrack *next; //!	///< linked list (not saved)
+
+    int fAlone;                /// number of Plane 0 Treelines
+    
 
   private:
 
