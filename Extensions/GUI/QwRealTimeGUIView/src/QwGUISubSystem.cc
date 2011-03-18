@@ -9,15 +9,26 @@ QwRTGUISubSystem(const TGWindow *main, TGCompositeFrame *parent, UInt_t w, UInt_
   dHistoPause = 0;
   dMapFile    = NULL;
 
-  dMapFileFlag = false;
+LIBINCLUDE    = 
+PRG_INCLUDE   = ./include
+PRG_SOURCE    = ./src
 
-  CreateFrame(parent,w, h);
- 
+# Here we list the object files that require a CINT dictionary.
+OBJECTS	      =
+OBJECTS       += QwRTGUIMain.o
+OBJECTS       += QwRTGUIShutter.o
+#OBJECTS       += QwRTGUISubSystem.o
+#OBJECTS       += QwGUIMainDetector.o
+#OBJECTS       += QwGUILumiDetector.o
+#OBJECTS       += QwGUIInjector.o
+#OBJECTS       += QwGUICorrelationPlots.o
+#OBJECTS       += QwRTGUIHallCBeamline.o
 
 }
 
-QwRTGUISubSystem::~QwRTGUISubSystem()
-{
+# Have this after all the object files are listed so that dictionaries
+# will be made automatically.
+DICTS		= #$(OBJECTS:.o=Dict.o)
 
 }
 
@@ -48,24 +59,32 @@ QwRTGUISubSystem::SummaryHist(TH1 *in)
   Double_t out[4] = {0.0};
   Double_t test   = 0.0;
 
-         
-  out[0] = in -> GetMean();
-  out[1] = in -> GetMeanError();
-  out[2] = in -> GetRMS();
-  out[3] = in -> GetRMSError();
 
-  Int_t entries = 0;
-  entries = in->GetEntries();
-  if(entries == 0) test = 0.0;
-  else             test = out[2]/TMath::Sqrt(entries);
+#------------------------------------------------------------------------------------
 
-  printf("%sName%s", BOLD, NORMAL);
-  printf("%22s", in->GetName());
-  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
-  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
-  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
-  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
-  
-  return;
-};
+
+all: $(APPLIC)
+$(QWOBJECT)
+$(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS)
+	$(CXX) -o $@ $(LDFLAGS) $(QWEAKLDFLAGS) $(LIBS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
+	ln -sf QwRealTimeGUIView/$@ ../$(APPLIC)
+	@echo "$@ done"
+
+%.o : $(PRG_SOURCE)/%.cc
+	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)   $(QWTRINCLUDE) $(QWANINCLUDE) $(QWPRINCLUDE)
+
+%.o : $(QWTRSOURCE)/%.cc
+	$(CXX) -c $(CXXFLAGS) $<  $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) -I$(PRG_INCLUDE) -I$(LIBINCLUDE)
+
+#%Dict.o : %Dict.cc
+#	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)  $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE)
+
+#%Dict.cc : $(PRG_INCLUDE)/%.h
+#	@echo "Generating dictionary $@..."
+#	rootcint -f $@ -c -I$(LIBINCLUDE) $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) $^
+
+clean:
+	rm -f ./*.o ./core ./*~ ./*Dict.cc ./*Dict.h ./~* ./G__*.* source/*~ \
+	include/*~ $(APPLIC)
+
+QwRTGUIMain.o : ../VERSION
