@@ -47,6 +47,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment();      // Remove everything after a comment character
     mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace

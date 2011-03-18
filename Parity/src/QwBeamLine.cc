@@ -50,7 +50,8 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
   std::vector<Double_t> fYWeight;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  
   while (mapstr.ReadNextLine()){
 
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -492,7 +493,8 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
   
 
   QwParameterFile mapstr(filename.Data());  //Open the file
-
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  
   samplesize = 0;
   check_flag = 0;
 
@@ -678,7 +680,8 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   if(ldebug)std::cout<<"QwBeamLine::LoadGeometryParameters("<< mapfile<<")\n";
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  
   while (mapstr.ReadNextLine()){
     lineread+=1;
     if(ldebug)std::cout<<" line read so far ="<<lineread<<"\n";
@@ -859,6 +862,7 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
   if(ldebug)std::cout<<"QwBeamLine::LoadInputParameters("<< pedestalfile<<")\n";
 
   QwParameterFile mapstr(pedestalfile.Data());  //Open the file
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine())
     {
       lineread+=1;

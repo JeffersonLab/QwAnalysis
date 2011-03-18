@@ -41,6 +41,7 @@ Int_t QwMollerDetector::LoadChannelMap(TString mapfile)
   Int_t currentsubbankindex = -1;
   
   QwParameterFile mapstr(mapfile.Data());  // Open the file
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace (spaces or tabs).

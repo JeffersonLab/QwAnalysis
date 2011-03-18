@@ -17,6 +17,8 @@
 #include "Rtypes.h"
 #include "TString.h"
 #include "TRegexp.h"
+#include "TObjArray.h"
+#include "TObjString.h"
 
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/convenience.hpp"
@@ -90,6 +92,8 @@ class QwParameterFile {
     void TrimSectionHeader();
     void TrimModuleHeader();
 
+    TString TokenString(TString in, char* delim, Int_t interesting_token_num, Int_t interesting_token_id);
+
     Bool_t LineIsEmpty(){return fLine.empty();};
     Bool_t IsEOF(){ return fStream.eof();};
 
@@ -145,7 +149,8 @@ class QwParameterFile {
     friend ostream& operator<< (ostream& stream, const QwParameterFile& file);
 
 
-    const TString GetParamFilename() const {return fParamFilename;};
+    const TString GetParamFilename();// {return fBestParamFileName;};
+    const TString GetParamFilenameAndPath() {return fBestParamFileNameAndPath;};
 
   protected:
     void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);
@@ -164,8 +169,8 @@ class QwParameterFile {
     bool OpenFile(const bfs::path& path_found);
   //  TString fCurrentSecName;     // Stores the name of the current section  read
   //  TString fCurrentModuleName;  // Stores the name of the current module  read
-
-    TString fParamFilename;
+    TString fBestParamFileName;
+    TString fBestParamFileNameAndPath;
 
   public:
 

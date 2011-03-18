@@ -1,16 +1,16 @@
 /*------------------------------------------------------------------------*//*!
 
- \file QwMainDetector.cc
+  \file QwMainDetector.cc
 
- \author P. King
- \author P. Wang
+  \author P. King
+  \author P. Wang
 
- \date  2007-05-08 15:40
+  \date  2007-05-08 15:40
 
- \brief This is the main executable for the tracking analysis.
+  \brief This is the main executable for the tracking analysis.
 
- \ingroup QwTracking
-*//*-------------------------------------------------------------------------*/
+  \ingroup QwTracking
+									    *//*-------------------------------------------------------------------------*/
 
 
 #include "QwMainDetector.h"
@@ -28,7 +28,7 @@ const UInt_t QwMainDetector::kMaxNumberOfModulesPerROC     = 21;
 RegisterSubsystemFactory(QwMainDetector);
 
 QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
-    VQwSubsystemTracking(region_tmp)
+						   VQwSubsystemTracking(region_tmp)
 {
   fDEBUG = false;
   ClearAllBankRegistrations();
@@ -70,7 +70,7 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
   DIRMODE=0;
 
   QwParameterFile mapstr ( mapfile.Data() );  //Open the file
-
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   while ( mapstr.ReadNextLine() )
     {
       mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
@@ -162,6 +162,7 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
   Int_t modnum=0, channum=0, slotnum=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine())
     {
       mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -289,7 +290,7 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
               if (fSCAs.at(i) != NULL)
                 {
                   words_read += fSCAs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
-                                num_words-words_read);
+								 num_words-words_read);
                 }
             }
         }
@@ -435,9 +436,9 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
       Bool_t fDEBUG = false;
       if (fDEBUG)
         std::cout << "QwMainDetector::QwMainDetector:  "
-        << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
-        <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
-        << ", num_words "<<num_words<<", index "<<index<<std::endl;
+		  << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
+		  <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
+		  << ", num_words "<<num_words<<", index "<<index<<std::endl;
 
       if (index>=0 && num_words>0)
         {
@@ -458,8 +459,8 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
                     if (fDEBUG)
                       {
                         std::cout<<"This is a valid QDC/TDC data word. Index="<<index
-                        <<" slot="<<fQDCTDC.GetTDCSlotNumber()<<" Ch="<<fQDCTDC.GetTDCChannelNumber()
-                        <<" Data="<<fQDCTDC.GetTDCData()<<"\n";
+				 <<" slot="<<fQDCTDC.GetTDCSlotNumber()<<" Ch="<<fQDCTDC.GetTDCChannelNumber()
+				 <<" Data="<<fQDCTDC.GetTDCData()<<"\n";
                       }
                     try
                       {
@@ -469,22 +470,22 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
                     catch (std::exception& e)
                       {
                         std::cerr << "Standard exception from QwMainDetector::FillRawTDCWord: "
-                        << e.what() << std::endl;
+				  << e.what() << std::endl;
                         Int_t chan = fQDCTDC.GetTDCChannelNumber();
                         std::cerr << "   Parameters:  index=="<<index
-                        << "; GetV775SlotNumber()=="<<fQDCTDC.GetTDCSlotNumber()
-                        << "; GetV775ChannelNumber()=="<<chan
-                        << "; GetV775Data()=="<<fQDCTDC.GetTDCData()
-                        << std::endl;
+				  << "; GetV775SlotNumber()=="<<fQDCTDC.GetTDCSlotNumber()
+				  << "; GetV775ChannelNumber()=="<<chan
+				  << "; GetV775Data()=="<<fQDCTDC.GetTDCData()
+				  << std::endl;
                         Int_t modindex = GetModuleIndex(index, fQDCTDC.GetTDCSlotNumber());
                         std::cerr << "   GetModuleIndex()=="<<modindex
-                        << "; fModulePtrs.at(modindex).size()=="
-                        << fModulePtrs.at(modindex).size()
-                        << "; fModulePtrs.at(modindex).at(chan).first {module type}=="
-                        << fModulePtrs.at(modindex).at(chan).first
-                        << "; fModulePtrs.at(modindex).at(chan).second {signal index}=="
-                        << fModulePtrs.at(modindex).at(chan).second
-                        << std::endl;
+				  << "; fModulePtrs.at(modindex).size()=="
+				  << fModulePtrs.at(modindex).size()
+				  << "; fModulePtrs.at(modindex).at(chan).first {module type}=="
+				  << fModulePtrs.at(modindex).at(chan).first
+				  << "; fModulePtrs.at(modindex).at(chan).second {signal index}=="
+				  << fModulePtrs.at(modindex).at(chan).second
+				  << std::endl;
                       }
                   }
             }
@@ -573,7 +574,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
 		    if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
 		      reftime = fF1TDCDecoder.GetTDCData();
 		    tmp_last_chan = tdc_chan_number;
-		}
+		  }
 	      }
 	      catch (std::exception& e) {
 		std::cerr << "Standard exception from QwMainDetector::FillRawWord: "
@@ -672,7 +673,7 @@ Int_t QwMainDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id,
               if (fSCAs.at(i) != NULL)
                 {
                   words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),
-                                num_words-words_read);
+							     num_words-words_read);
                 }
               else
                 {
@@ -744,7 +745,7 @@ void  QwMainDetector::FillHistograms()
     {
       for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
-           fPMTs.at(i).at(j).FillHistograms();
+	  fPMTs.at(i).at(j).FillHistograms();
         }
     }
 
@@ -779,8 +780,8 @@ void  QwMainDetector::ConstructBranchAndVector(TTree *tree, TString& prefix, std
           else
             {
               values.push_back(0.0);
-	          list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
-	          //std::cout<<"Added to list: "<<fPMTs.at(i).at(j).GetElementName()<<"\n"<<std::endl;
+	      list += ":"+fPMTs.at(i).at(j).GetElementName()+"/D";
+	      //std::cout<<"Added to list: "<<fPMTs.at(i).at(j).GetElementName()<<"\n"<<std::endl;
             }
         }
     }
@@ -914,7 +915,7 @@ QwMainDetector& QwMainDetector::operator=  (const QwMainDetector &value)
   else
     {
       std::cerr << "QwMainDetector::operator=:  Problems!!!"
-      << std::endl;
+		<< std::endl;
     }
   return *this;
 }
@@ -974,8 +975,8 @@ Int_t QwMainDetector::RegisterSlotNumber(UInt_t slot_id)
   else
     {
       std::cerr << "QwMainDetector::RegisterSlotNumber:  Slot number "
-      << slot_id << " is larger than the number of slots per ROC, "
-      << kMaxNumberOfModulesPerROC << std::endl;
+		<< slot_id << " is larger than the number of slots per ROC, "
+		<< kMaxNumberOfModulesPerROC << std::endl;
     }
   return fCurrentIndex;
 }
@@ -997,9 +998,9 @@ EQwModuleType QwMainDetector::RegisterModuleType(TString moduletype)
       fCurrentType = kV775_TDC;
     }
   else if (moduletype=="F1TDC")
-   {
+    {
       fCurrentType = kF1TDC;
-   }
+    }
 
   fModuleTypes.at(fCurrentIndex) = fCurrentType;
   if ((Int_t) fPMTs.size()<=fCurrentType)
@@ -1053,38 +1054,38 @@ void QwMainDetector::FillRawWord(Int_t bank_index,
 
 
 Int_t QwMainDetector::GetModuleIndex(size_t bank_index, size_t slot_num) const
-  {
-    Int_t modindex = -1;
-    //std::cout<<"bank_index="<<bank_index<<" fModuleIndex.size()="<<fModuleIndex.size()<<"\n";
+{
+  Int_t modindex = -1;
+  //std::cout<<"bank_index="<<bank_index<<" fModuleIndex.size()="<<fModuleIndex.size()<<"\n";
 
-    // bank_index and slot_num are unsigned int and always positive
-    if (/* bank_index >= 0 && */ bank_index < fModuleIndex.size())
-      {
-        if (/* slot_num >= 0 && */ slot_num < fModuleIndex.at(bank_index).size())
-          {
-            modindex = fModuleIndex.at(bank_index).at(slot_num);
-          }
-      }
-    return modindex;
-  }
+  // bank_index and slot_num are unsigned int and always positive
+  if (/* bank_index >= 0 && */ bank_index < fModuleIndex.size())
+    {
+      if (/* slot_num >= 0 && */ slot_num < fModuleIndex.at(bank_index).size())
+	{
+	  modindex = fModuleIndex.at(bank_index).at(slot_num);
+	}
+    }
+  return modindex;
+}
 
 
 Int_t QwMainDetector::FindSignalIndex(const EQwModuleType modtype, const TString &name) const
-  {
-    Int_t chanindex = -1;
-    if (modtype < (Int_t) fPMTs.size())
+{
+  Int_t chanindex = -1;
+  if (modtype < (Int_t) fPMTs.size())
     {
       for (size_t chan = 0; chan < fPMTs.at(modtype).size(); chan++)
-      {
-        if (name == fPMTs.at(modtype).at(chan).GetElementName())
-        {
-          chanindex = chan;
-          break;
-        }
-      }
+	{
+	  if (name == fPMTs.at(modtype).at(chan).GetElementName())
+	    {
+	      chanindex = chan;
+	      break;
+	    }
+	}
     }
-    return chanindex;
-  }
+  return chanindex;
+}
 
 void  QwMainDetector::ReportConfiguration()
 {
@@ -1096,8 +1097,8 @@ void  QwMainDetector::ReportConfiguration()
 
           Int_t ind = GetSubbankIndex(fROC_IDs.at(i),fBank_IDs.at(i).at(j));
           std::cout << "ROC " << fROC_IDs.at(i)
-          << ", subbank 0x"<<std::hex << fBank_IDs.at(i).at(j)<<std::dec
-          << ":  subbank index==" << ind << std::endl;
+		    << ", subbank 0x"<<std::hex << fBank_IDs.at(i).at(j)<<std::dec
+		    << ":  subbank index==" << ind << std::endl;
 
           if (fBank_IDs.at(i).at(j)==fBankID[0])
             {

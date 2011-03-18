@@ -49,7 +49,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	DIRMODE=0;
 
 	QwParameterFile mapstr ( mapfile.Data() );  //Open the file
-
+	fDetectorMapsNames.push_back(mapstr.GetParamFilename());
 	while ( mapstr.ReadNextLine() )
 	{
 		mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
@@ -640,6 +640,7 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 
 	std::vector<Double_t> tmpWindows;
 	QwParameterFile mapstr ( mapfile.Data() );
+	fDetectorMapsNames.push_back(mapstr.GetParamFilename());
 
 	EQwDetectorPackage package = kPackageNull;
 	EQwDirectionID   direction = kDirectionNull;
@@ -755,33 +756,36 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 
 void QwDriftChamberVDC::ReadEvent ( TString& eventfile )
 {
-	TString varname,varvalue;
-	UInt_t slotnum,channum;            //store temporary channel number
-	//  UInt_t pknum,plnum;         //store temp package,plane,firstwire and left or right information
-	UInt_t value = 0;
-	Double_t signal = 0.0; // Double_t? unsigned Int_t ? by jhlee
-	EQwDetectorPackage package = kPackageNull;
-	EQwDirectionID direction = kDirectionNull;
-
-	QwParameterFile mapstr ( eventfile.Data() );
-	while ( mapstr.ReadNextLine() )
+  TString varname,varvalue;
+  UInt_t slotnum = 0;
+  UInt_t channum = 0;            //store temporary channel number
+  //  UInt_t pknum,plnum;         //store temp package,plane,firstwire and left or right information
+  UInt_t value = 0;
+  Double_t signal = 0.0; // Double_t? unsigned Int_t ? by jhlee
+  EQwDetectorPackage package = kPackageNull;
+  EQwDirectionID direction = kDirectionNull;
+  
+  QwParameterFile mapstr ( eventfile.Data() );
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );
+      mapstr.TrimWhitespace();
+      if ( mapstr.LineIsEmpty() ) continue;
+      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) )   //to judge whether we find a new crate
 	{
-		mapstr.TrimComment ( '!' );
-		mapstr.TrimWhitespace();
-		if ( mapstr.LineIsEmpty() ) continue;
-		if ( mapstr.HasVariablePair ( "=",varname,varvalue ) )   //to judge whether we find a new crate
-		{
-			varname.ToLower();
-			value = atol ( varvalue.Data() );
-			continue;
-		}
-
-		slotnum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		channum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		signal  = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		//std::cout << "signal is: " << signal << endl;
-		fTDCHits.push_back ( QwHit ( value,slotnum,channum,0, kRegionID3,package,0,direction,0, ( UInt_t ) signal ) );
-	}        //only know TDC information and time value
+	  varname.ToLower();
+	  value = atol ( varvalue.Data() );
+	  continue;
+	}
+      
+      slotnum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      channum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      signal  = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      //std::cout << "signal is: " << signal << endl;
+      fTDCHits.push_back ( QwHit ( value,slotnum,channum,0, kRegionID3,package,0,direction,0, ( UInt_t ) signal ) );
+    }        //only know TDC information and time value
+  return;
 }
 
 
@@ -1255,6 +1259,7 @@ Int_t QwDriftChamberVDC::LoadTimeWireOffset ( TString t0_map )
 	//std::cout << "beginning to load t0 file... " << std::endl;
 	//
 	QwParameterFile mapstr ( t0_map.Data() );
+	fDetectorMapsNames.push_back(mapstr.GetParamFilename());
 
 	TString varname,varvalue;
 	Int_t plane=0,wire=0;
@@ -1364,20 +1369,21 @@ void QwDriftChamberVDC::ApplyTimeCalibration()
 void QwDriftChamberVDC::LoadTtoDParameters ( TString ttod_map )
 {
 
-	QwParameterFile mapstr ( ttod_map.Data() );
-
-	Double_t t=0.0;
-	Double_t d =0.0;
-
-	while ( mapstr.ReadNextLine() )
-	{
-		mapstr.TrimComment ( '!' );
-		mapstr.TrimWhitespace();
-		if ( mapstr.LineIsEmpty() ) continue;
-
-		t= ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		d = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		fTtoDNumbers.push_back ( d );
+  QwParameterFile mapstr ( ttod_map.Data() );
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  
+  Double_t t = 0.0;
+  Double_t d = 0.0;
+  
+  while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );
+      mapstr.TrimWhitespace();
+      if ( mapstr.LineIsEmpty() ) continue;
+      
+      t= ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      d = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      fTtoDNumbers.push_back ( d );
 	}
-	return;
+  return;
 }

@@ -72,15 +72,15 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
   Int_t modnum, channum;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-
-  TString test = mapstr.GetParamFilename();
-  // char a[80];
-  // sprintf(a, "prminput/");
-  // std::cout << "index " << test.Index("prminput/") << std::endl;
-  std::cout << "QwScanner::LoadChannelMap(TString mapfile)" << mapstr.GetParamFilename() << std::endl;
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  // TString test = mapstr.GetParamFilename();
+  // // char a[80];
+  // // sprintf(a, "prminput/");
+  // // std::cout << "index " << test.Index("prminput/") << std::endl;
+  //std::cout << "QwScanner::LoadChannelMap(TString mapfile)" << mapstr.GetParamFilename() << std::endl;
 
   
-  fParameterFileNames.push_back(mapstr.GetParamFilename());
+  // fParameterFileNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine())
     {
       mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -196,10 +196,11 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
   Int_t lineread=0;
 
   QwParameterFile mapstr(parameterfile.Data());  //Open the file
-  std::cout << "QwScanner::LoadInputParameters()" << mapstr.GetParamFilename() << std::endl;
-  fParameterFileNames.push_back(mapstr.GetParamFilename());
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  //  std::cout << "QwScanner::LoadInputParameters()" << mapstr.GetParamFilename() << std::endl;
+  // fParameterFileNames.push_back(mapstr.GetParamFilename());
 
-  if (ldebug) std::cout<<"\nReading scanner parameter file: "<<parameterfile<<"\n";
+  // if (ldebug) std::cout<<"\nReading scanner parameter file: "<<parameterfile<<"\n";
 
   while (mapstr.ReadNextLine())
     {
@@ -1066,17 +1067,17 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
       fRateMapEM->GetYaxis()->SetTitle("PositionY [cm]");
       fRateMapEM->SetOption("colz");
 
-      fParameterFileNamesHist = new TH1F("scanner_parameter_files", "scanner_parameter_files", 10,0,10);
-      fParameterFileNamesHist -> SetBit(TH1::kCanRebin);
-      fParameterFileNamesHist -> SetStats(0);
-      for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
-	fParameterFileNamesHist -> Fill(fParameterFileNames[i].Data(), 1);
-      }
-      const char* opt = "TEXT";
-      fParameterFileNamesHist->SetMarkerSize(1.4);
-      fParameterFileNamesHist->SetOption(opt);
-      fParameterFileNamesHist->LabelsDeflate("X");
-      fParameterFileNamesHist->LabelsOption("avu", "X");
+      // fParameterFileNamesHist = new TH1F("scanner_parameter_files", "scanner_parameter_files", 10,0,10);
+      // fParameterFileNamesHist -> SetBit(TH1::kCanRebin);
+      // fParameterFileNamesHist -> SetStats(0);
+      // for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
+      // 	fParameterFileNamesHist -> Fill(fParameterFileNames[i].Data(), 1);
+      // }
+      // const char* opt = "TEXT";
+      // fParameterFileNamesHist->SetMarkerSize(1.4);
+      // fParameterFileNamesHist->SetOption(opt);
+      // fParameterFileNamesHist->LabelsDeflate("X");
+      // fParameterFileNamesHist->LabelsOption("avu", "X");
     }
 }
 

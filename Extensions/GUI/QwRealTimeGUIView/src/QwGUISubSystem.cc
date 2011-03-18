@@ -1,24 +1,9 @@
-#include "QwGUISubSystem.h"
+#include "QwRTGUISubSystem.h"
 
 
-ClassImp(QwGUISubSystem);
-
-QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
-			       const TGTab *tab, const char *objName, 
-			       const char *mainname, UInt_t w, UInt_t h)
-  : TGCompositeFrame(tab,w,h)
+QwRTGUISubSystem(const TGWindow *main, TGCompositeFrame *parent, UInt_t w, UInt_t h)
 { 
-  dWidth             = w;
-  dHeight            = h;
-  dParent            = (TGWindow*)p;
-  dMain              = (TGWindow*)main;
-  dWinCnt            = 0;
 
-  dMainName = mainname;
-  dThisName = objName;
-
-  dTabMenuID          = 0;
- 
   dHistoReset = 0;
   dHistoAccum = 0;
   dHistoPause = 0;
@@ -26,25 +11,20 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
 
   dMapFileFlag = false;
 
-
-  Connect("AddThisTab(QwGUISubSystem*)",dMainName,(void*)main,"AddATab(QwGUISubSystem*)");  
-
-  Connect("SendMessageSignal(const char*)",dMainName,(void*)main,"OnReceiveMessage(const char*)");
+  CreateFrame(parent,w, h);
+ 
 
 }
 
-QwGUISubSystem::~QwGUISubSystem()
+QwRTGUISubSystem::~QwRTGUISubSystem()
 {
 
 }
 
-const char* QwGUISubSystem::GetNewWindowName()
-{
-  return Form("dMiscWindow_%02d",GetNewWindowCount());
-}
 
 
-void QwGUISubSystem::SetMapFile(TMapFile *file)
+void 
+QwRTGUISubSystem::SetMapFile(TMapFile *file)
 {
   if(file) {
     dMapFile = file;
@@ -56,36 +36,13 @@ void QwGUISubSystem::SetMapFile(TMapFile *file)
   else {
     dMapFileFlag = false;
   }
-  
+  return;
 };
 
 
-// void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
-// {
 
-// }
-
-
-
-void QwGUISubSystem::AddThisTab(QwGUISubSystem* sbSystem)
-{
-  Emit("AddThisTab(QwGUISubSystem*)",(long)sbSystem);
-}
-
-void QwGUISubSystem::SendMessageSignal(const char*objname)
-{
-
-  Emit("SendMessageSignal(const char*)",(long)objname);
-}
-
-Bool_t QwGUISubSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
-{
-  return kTRUE;
-}
-
-
-
-void QwGUISubSystem::SummaryHist(TH1 *in)
+void 
+QwRTGUISubSystem::SummaryHist(TH1 *in)
 {
 
   Double_t out[4] = {0.0};
@@ -109,5 +66,6 @@ void QwGUISubSystem::SummaryHist(TH1 *in)
   printf("  %sSD%s%s", BOLD, NORMAL, " : ");
   printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
   printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+  
   return;
 };

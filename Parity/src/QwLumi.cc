@@ -57,6 +57,8 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
   Int_t fSample_size=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+
   while (mapstr.ReadNextLine())
     {
       mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -321,8 +323,9 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
 
   TString varname, varvalue, vartypeID;
   TString device_type,device_name;
-  std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl;
+  //  std::cout<<" QwLumi::LoadEventCuts  "<<filename<<std::endl;
   QwParameterFile mapstr(filename.Data());  //Open the file
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   Int_t det_index= -1; 
   Double_t stabilitycut;
   samplesize = 0;
@@ -415,6 +418,7 @@ Int_t QwLumi::LoadInputParameters(TString pedestalfile)
   if(ldebug)std::cout<<"QwLumi::LoadInputParameters("<< pedestalfile<<")\n";
 
   QwParameterFile mapstr(pedestalfile.Data());  //Open the file
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine())
     {
       lineread+=1;

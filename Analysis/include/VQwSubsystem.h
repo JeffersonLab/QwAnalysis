@@ -14,10 +14,10 @@
 #include <vector>
 
 // ROOT headers
-#include <Rtypes.h>
-#include <TString.h>
-#include <TDirectory.h>
-#include <TTree.h>
+#include "Rtypes.h"
+#include "TString.h"
+#include "TDirectory.h"
+#include "TTree.h"
 
 // Qweak headers
 // Note: the subsystem factory header is included here because every subsystem
@@ -299,6 +299,8 @@ class VQwSubsystem: virtual public VQwCloneable {
   UInt_t   fEventTypeMask; ///< Mask of event types
 
   Bool_t   fIsDataLoaded; ///< Has this subsystem gotten data to be processed?
+
+  std::vector<TString> fDetectorMapsNames;
 
  protected:
 

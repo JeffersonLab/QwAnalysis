@@ -53,7 +53,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
   DIRMODE=0;
 
   QwParameterFile mapstr ( mapfile.Data() );  //Open the file
-
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   while ( mapstr.ReadNextLine() ) {
     mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -137,6 +137,7 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
   Int_t modnum=0, channum=0, slotnum=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.

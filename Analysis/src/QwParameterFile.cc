@@ -72,7 +72,7 @@ UInt_t QwParameterFile::GetUInt(const TString& varvalue)
       end = varvalue.Length();
       tmp += varvalue(start, end-start);
       stream1.str(tmp.Data());
-      }
+    }
     stream1 >> std::hex >> value;
   }
   return value;
@@ -163,23 +163,28 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
 
   Bool_t status = false;
 
+  Bool_t check_whether_path_exists_and_is_a_regular_file = false;
+  
   // Check whether path exists and is a regular file
 #if BOOST_VERSION >= 103400
-  if (bfs::exists(file) && bfs::is_regular_file(file)) {
+  check_whether_path_exists_and_is_a_regular_file = bfs::exists(file) && bfs::is_regular_file(file);
 #else
-  if (bfs::exists(file) /* pray */ ) {
+  check_whether_path_exists_and_is_a_regular_file = bfs::exists(file); /* pray */
 #endif
-    QwMessage << "QwParameterFile::OpenFile Opening parameter file: "
-	      << file.string() << QwLog::endl;
+
+  if (check_whether_path_exists_and_is_a_regular_file) {
+
+    // QwMessage << "QwParameterFile::OpenFile Opening parameter file: "
+    // 		<< file.string() << QwLog::endl;
 
 
-    fParamFilename = file.string();
+    fBestParamFileNameAndPath = file.string();
 
     // Connect stream (fFile) to file
     fFile.open(file.string().c_str());
     if (! fFile.good())
       QwError << "QwParameterFile::OpenFile Unable to read parameter file "
-              << file.string() << QwLog::endl;
+	      << file.string() << QwLog::endl;
     // Load into stream
     fStream << fFile.rdbuf();
     status = true;
@@ -190,20 +195,18 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
 
     // fFile.clear();
     // fFile.close(); // disconnet file
-    
-
   } else {
 
     // File does not exist or is not a regular file
     QwError << "QwParameterFile::OpenFile Unable to open parameter file "
-            << file.string() << QwLog::endl;
+	    << file.string() << QwLog::endl;
     status = false;
   }
   if(local_debug) {
     std::cout << "-------after close ----------" << std::endl;
     std::cout << fStream.str() << std::endl;
   }
-
+  
   return status;
 }
 
@@ -217,10 +220,10 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
  * @return Score of file
  */
 int QwParameterFile::FindFile(
-        const bfs::path&   directory,
-        const std::string& file_stem,
-        const std::string& file_ext,
-        bfs::path&         best_path)
+			      const bfs::path&   directory,
+			      const std::string& file_stem,
+			      const std::string& file_ext,
+			      bfs::path&         best_path)
 {
   // Return false if the directory does not exist
   if (! bfs::exists(directory)) return false;
@@ -261,30 +264,30 @@ int QwParameterFile::FindFile(
     } else {
       // run label starts after dot ('.') and that dot is included in the label length
       if (file_name.at(pos_stem + file_stem.length()) == '.') {
-        std::string label = file_name.substr(pos_stem + file_stem.length() + 1, label_length - 1);
-        std::pair<int,int> range = ParseIntRange("-",label);
-        int run = fCurrentRunNumber;
-        if ((range.first <= run) && (run <= range.second)) {
-          // run is in single-value range
-          if (range.first == range.second) score = 1000;
-          // run is in double-value range
-          else if (range.second < INT_MAX) score = 100;
-          // run is in open-ended range
-          else if (range.second == INT_MAX) {
-            // each matching open-ended range
-            if (range.first > open_ended_latest_start) {
-              open_ended_latest_start = range.first;
-              open_ended_range_score++;
-              score = 10 + open_ended_range_score;
-              // 90 open-ended range files should be enough for anyone ;-)
-            } else score = 10;
-          }
-        } else
-          // run not in range
-          score = -1;
+	std::string label = file_name.substr(pos_stem + file_stem.length() + 1, label_length - 1);
+	std::pair<int,int> range = ParseIntRange("-",label);
+	int run = fCurrentRunNumber;
+	if ((range.first <= run) && (run <= range.second)) {
+	  // run is in single-value range
+	  if (range.first == range.second) score = 1000;
+	  // run is in double-value range
+	  else if (range.second < INT_MAX) score = 100;
+	  // run is in open-ended range
+	  else if (range.second == INT_MAX) {
+	    // each matching open-ended range
+	    if (range.first > open_ended_latest_start) {
+	      open_ended_latest_start = range.first;
+	      open_ended_range_score++;
+	      score = 10 + open_ended_range_score;
+	      // 90 open-ended range files should be enough for anyone ;-)
+	    } else score = 10;
+	  }
+	} else
+	  // run not in range
+	  score = -1;
       } else
-        // run label does not start with a dot (i.e. partial match of stem)
-        score = -1;
+	// run label does not start with a dot (i.e. partial match of stem)
+	score = -1;
     }
 
     // Look for the match with highest score
@@ -306,9 +309,9 @@ void QwParameterFile::TrimWhitespace(TString::EStripType head_tail)
 }
 
 void QwParameterFile::Trim(
-    const std::string& chars,
-    std::string& token,
-    TString::EStripType head_tail)
+			   const std::string& chars,
+			   std::string& token,
+			   TString::EStripType head_tail)
 {
   //  If the first bit is set, this routine removes leading chars from the
   //  line.  If the second bit is set, this routine removes trailing chars
@@ -388,9 +391,9 @@ Bool_t QwParameterFile::HasValue(TString& vname)
 
 
 Bool_t QwParameterFile::HasVariablePair(
-    const std::string& separatorchars,
-    TString &varname,
-    TString &varvalue)
+					const std::string& separatorchars,
+					TString &varname,
+					TString &varvalue)
 {
   std::string tmpvar, tmpval;
   Bool_t status = HasVariablePair(separatorchars, tmpvar, tmpval);
@@ -402,9 +405,9 @@ Bool_t QwParameterFile::HasVariablePair(
 }
 
 Bool_t QwParameterFile::HasVariablePair(
-    const std::string& separatorchars,
-    std::string &varname,
-    std::string &varvalue)
+					const std::string& separatorchars,
+					std::string &varname,
+					std::string &varvalue)
 {
   Bool_t status = kFALSE;
   size_t equiv_pos1 = fLine.find_first_of(separatorchars);
@@ -422,9 +425,9 @@ Bool_t QwParameterFile::HasVariablePair(
 }
 
 Bool_t QwParameterFile::FileHasVariablePair(
-  const std::string& separatorchars,
-  const TString& varname,
-  TString& varvalue)
+					    const std::string& separatorchars,
+					    const TString& varname,
+					    TString& varvalue)
 {
   std::string tmpval;
   Bool_t status = FileHasVariablePair(separatorchars, varname.Data(), tmpval);
@@ -433,9 +436,9 @@ Bool_t QwParameterFile::FileHasVariablePair(
 }
 
 Bool_t QwParameterFile::FileHasVariablePair(
-  const std::string& separatorchars,
-  const std::string& varname,
-  std::string& varvalue)
+					    const std::string& separatorchars,
+					    const std::string& varname,
+					    std::string& varvalue)
 {
   RewindToFileStart();
   while (ReadNextLine()) {
@@ -706,15 +709,69 @@ std::pair<int,int> QwParameterFile::ParseIntRange(const std::string& separatorch
     return std::pair<int,int>(INT_MAX,INT_MAX);
   } else if (mypair.first > mypair.second){
     QwError << "The first value must not be larger than the second value"
-            << QwLog::endl;
+	    << QwLog::endl;
     return std::pair<int,int>(INT_MAX,INT_MAX);
   }
 
   //  Print the contents of the pair for debugging.
   QwVerbose << "The range goes from " << mypair.first
-            << " to " << mypair.second << QwLog::endl;
+	    << " to " << mypair.second << QwLog::endl;
 
   return mypair;
 }
 
 
+
+  TString QwParameterFile::TokenString(TString in, char* delim, Int_t interesting_token_num, Int_t interesting_token_id)
+  {	
+   
+    Bool_t local_debug = true;
+    TString name;  
+  
+    TObjArray* Strings = in.Tokenize(delim); // break line into tokens
+    Int_t token_numbers = Strings->GetEntriesFast();
+  
+    if(token_numbers == interesting_token_num) {
+      TIter iString(Strings);
+      TObjString* os= NULL;
+      Int_t token_ids = 0;
+      while ((os=(TObjString*)iString())) {
+	if(token_ids == interesting_token_id) {
+	  name = os->GetString();
+	  break;
+	}
+	token_ids++;
+      }
+      delete Strings;
+    
+      if(local_debug) {
+	std::cout << " tokens #"
+		  << token_numbers
+		  << " " << in
+		  << " " << name
+		  << std::endl;
+      }
+    }
+    else {   
+      name.Clear(); // return empty string
+      if(local_debug) {
+	std::cout << "Token number is not in the possible token numbers" << std::endl;
+      }
+    }
+    return name;
+  
+  };
+ 
+  const TString  QwParameterFile::GetParamFilename() 
+  {
+  
+    // char delimiters[] = "/";
+    // TString only_filename; only_filename.Clear();
+    // only_filename = TokenString(fBestParamFileNameAndPath, delimiters, 7, 6);  
+
+    // std::cout << "test " << only_filename << std::endl;
+
+ 
+    return fBestParamFileNameAndPath;
+  }
+ 
