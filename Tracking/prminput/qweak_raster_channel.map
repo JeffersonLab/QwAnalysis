@@ -8,11 +8,9 @@
 !
 ROC=4
 !
-! QADC/TDC bank
-Bank=0x0402
-!
-!
+qdc_bank=0x0402
 slot=2
+module=V792
 ! module.type  module.num  chan.num, det.type, det.name
   V792, 1, 0, raster, raster_posx_adc
   V792, 1, 1, raster, raster_posy_adc
@@ -24,4 +22,12 @@ slot=2
   V792, 1, 7, beamline, bpm_3h09b_xm_adc
   V792, 1, 8, beamline, bpm_3h09b_yp_adc
   V792, 1, 9, beamline, bpm_3h09b_ym_adc
+!
+ROC=0
+sca_bank=0x6103
+! SIS3801.type, SIS3801.num  word.num, det.type, det.name
+   SIS3801, 0, 16, beamline, sca_bcm1
+   SIS3801, 0, 17, beamline, sca_bcm2
+   SIS3801, 0, 18, beamline, sca_bcm17
+   SIS3801, 0, 30, beamline, sca_4MHz
 

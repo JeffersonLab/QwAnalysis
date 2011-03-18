@@ -18,7 +18,6 @@
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwRaster);
 
-const Bool_t QwRaster::bStoreRawData = kTRUE;
 const UInt_t QwRaster::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwRaster::kMaxNumberOfChannelsPerModule = 32;
 
@@ -27,14 +26,13 @@ QwRaster::QwRaster(TString region_tmp)
         VQwSubsystemTracking(region_tmp)
 {
 
-    fDEBUG = 0;
     ClearAllBankRegistrations();
 }
 
 
 QwRaster::~QwRaster()
 {
-
+    fSCAs.clear();
     fPMTs.clear();
     //DeleteHistograms();
 }
@@ -49,7 +47,7 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
 {
     TString varname, varvalue;
     TString modtype, dettype, name;
-    Int_t modnum, channum;
+    Int_t modnum = 0, channum = 0;
 
     QwParameterFile mapstr(mapfile.Data());  //Open the file
     while (mapstr.ReadNextLine())
@@ -58,27 +56,24 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
         mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
         if (mapstr.LineIsEmpty())  continue;
 
-        if (mapstr.HasVariablePair("=",varname,varvalue))
-        {
-            //  This is a declaration line.  Decode it.
-            varname.ToLower();
-            //UInt_t value = atol(varvalue.Data());
-            UInt_t value = QwParameterFile::GetUInt(varvalue);
-            if (varname=="roc")
-            {
-                RegisterROCNumber(value);
-            }
-            else if (varname=="bank")
-            {
-                RegisterSubbank(value);
-            }
-            else if (varname=="slot")
-            {
-                RegisterSlotNumber(value);
-            }
-        }
-        else
-        {
+        if (mapstr.HasVariablePair("=",varname,varvalue)){
+          //  This is a declaration line.  Decode it.
+          varname.ToLower();
+          UInt_t value = QwParameterFile::GetUInt(varvalue);
+          if (varname=="roc") {
+	    RegisterROCNumber(value);
+          } else if (varname=="qdc_bank") {
+	      RegisterSubbank(value);
+              fBankID[0] = value;
+          } else if (varname=="sca_bank") {
+              fBankID[1] = value;
+              RegisterSubbank(value);
+          } else if (varname=="slot") {
+              RegisterSlotNumber(value);
+          } else if (varname=="module") {
+	      RegisterModuleType(varvalue);
+          }
+        } else {
             //  Break this line into tokens to process it.
             modtype   = mapstr.GetNextToken(", ").c_str();
             modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
@@ -87,44 +82,33 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
             name      = mapstr.GetNextToken(", ").c_str();
 
             //  Push a new record into the element array
-
-            if (modtype=="V792")
-            {
+            if (modtype=="SIS3801") {
+              if (modnum >= (Int_t) fSCAs.size())  fSCAs.resize(modnum+1);
+              if (! fSCAs.at(modnum)) fSCAs.at(modnum) = new QwSIS3801_Module();
+              fSCAs.at(modnum)->SetChannel(channum, name);
+            } else if (modtype=="V792" || modtype=="V775") {
                 RegisterModuleType(modtype);
-                fBankID[0] = fCurrentBank_ID;
-
                 //  Check to see if we've encountered this channel or name yet
-                if (fModulePtrs.at(fCurrentIndex).at(channum).first != kUnknownModuleType)
-                {
-                    //  We've seen this channel
-                }
-                else if (FindSignalIndex(fCurrentType, name)>=0)
-                {
+                if (fModulePtrs.at(fCurrentIndex).at(channum).first != kUnknownModuleType) {
+                 //  We've seen this channel
+                } else if (FindSignalIndex(fCurrentType, name)>=0) {
                     //  We've seen this signal
+                } else {
+                  //  If not, push a new record into the element array
+                  LinkChannelToSignal(channum, name);
                 }
-                else
-                {
-                    //  If not, push a new record into the element array
-                    if (modtype=="V792") std::cout<<"V792: ";
-                    LinkChannelToSignal(channum, name);
-                }
-            }
-
-            else
-            {
-                std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
-                << std::endl;
-            }
-        }
-    }
-    //
-    ReportConfiguration();
-    return 0;
+            } else {
+                std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str() << std::endl;
+           }
+       }
+  }
+  //ReportConfiguration();
+  return 0;
 }
 
 Int_t QwRaster::LoadInputParameters(TString parameterfile)
 {
-    Bool_t ldebug=kTRUE;
+    Bool_t ldebug=kFALSE;
     TString varname, varvalue;
     Double_t varped;
     Double_t varcal;
@@ -211,6 +195,7 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
 void  QwRaster::ClearEventData()
 {
     SetDataLoaded(kFALSE);
+
     for (size_t i=0; i<fPMTs.size(); i++)
     {
         for (size_t j=0; j<fPMTs.at(i).size(); j++)
@@ -219,12 +204,18 @@ void  QwRaster::ClearEventData()
         }
     }
 
-    for (size_t i=0; i<fADC_Data.size(); i++)
+    /*for (size_t i=0; i<fADC_Data.size(); i++)
     {
         if (fADC_Data.at(i) != NULL)
         {
             fADC_Data.at(i)->ClearEventData();
         }
+    }*/
+
+    for (size_t i=0; i<fSCAs.size(); i++) {
+      if (fSCAs.at(i) != NULL) {
+        fSCAs.at(i)->ClearEventData();
+      }
     }
 
 }
@@ -233,37 +224,32 @@ void  QwRaster::ClearEventData()
 Int_t QwRaster::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
     Int_t index = GetSubbankIndex(roc_id,bank_id);
+    
     if (index>=0 && num_words>0)
     {
         //  We want to process the configuration data for this ROC.
         UInt_t words_read = 0;
 
-        if (fBankID[1]==bank_id)
-        {
-            for (size_t i=0; i<fADC_Data.size(); i++)
-            {
-                if (fADC_Data.at(i) != NULL)
-                {
-                    words_read += fADC_Data.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
-                                  num_words-words_read);
-                }
+        if (fBankID[1]==bank_id){
+          for (size_t i=0; i<fSCAs.size(); i++){
+            if (fSCAs.at(i) != NULL){
+              words_read += fSCAs.at(i)->ProcessConfigBuffer(&(buffer[words_read]),
+                        num_words-words_read);
             }
+          }
         }
 
     }
+
     return 0;
 }
 
 
 Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-    Int_t index = GetSubbankIndex(roc_id,bank_id);
+    Int_t index = 0;
 
-    SetDataLoaded(kTRUE);
-    if (fDEBUG) std::cout << "Raster::ProcessEvBuffer:  "
-        << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
-        <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"
-        << ", num_words "<<num_words<<", index "<<index<<std::endl;
+    index = GetSubbankIndex(roc_id,bank_id);
 
     //  This is a QADC/TDC bank
     if (bank_id==fBankID[0])
@@ -271,13 +257,7 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
         if (index>=0 && num_words>0)
         {
             //  We want to process this ROC.  Begin looping through the data.
-            if (fDEBUG) std::cout << "Raster::ProcessEvBuffer:  "
-                << "Begin processing ROC" << roc_id <<", Bank "<<bank_id
-                <<"(hex: "<<std::hex<<bank_id<<std::dec<<")"<< std::endl;
-
-            if (fDEBUG)
-                std::cout<<"QwRaster::ProcessEvBuffer (trig) Data: \n";
-
+            SetDataLoaded(kTRUE);
             for (size_t i=0; i<num_words ; i++)
             {
                 //  Decode this word as a V775TDC word.
@@ -288,17 +268,8 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
                 if (fQDCTDC.IsValidDataword())
                 {
                     // This is a V775 TDC data word
-                    if (fDEBUG)
-                    {
-                        std::cout<<"This is a valid QDC/TDC data word. Index="<<index
-                        <<" slot="<<fQDCTDC.GetTDCSlotNumber()<<" Ch="<<fQDCTDC.GetTDCChannelNumber()
-                        <<" Data="<<fQDCTDC.GetTDCData()<<"\n";
-                    }
-
                     try
                     {
-                        //TODO The slot number should be set properly in DAQ
-                        // using 0 for now
                         FillRawWord(index,fQDCTDC.GetTDCSlotNumber(),fQDCTDC.GetTDCChannelNumber(),
                                           fQDCTDC.GetTDCData());
                     }
@@ -327,6 +298,25 @@ Int_t QwRaster::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
         }
     }
 
+    else if (bank_id==fBankID[1]) { // SIS Scalar
+
+      // Check if scaler buffer contains more than one event
+      if (buffer[0]/32!=1) return 0;
+
+      if (index>=0 && num_words>0) {
+        SetDataLoaded(kTRUE);
+        UInt_t words_read = 0;
+        for (size_t i=0; i<fSCAs.size(); i++) {
+          words_read++; // skip header word
+          if (fSCAs.at(i) != NULL) {
+            words_read += fSCAs.at(i)->ProcessEvBuffer(&(buffer[words_read]),num_words-words_read);
+          } else {
+	    words_read += 32; // skip a block of data for a single module
+	  }
+        }
+      }
+    }
+
     return 0;
 }
 
@@ -335,20 +325,24 @@ void  QwRaster::ProcessEvent()
 {
     if (! HasDataLoaded()) return;
 
-    for (size_t i=0; i<fPMTs.size(); i++)
-    {
-        for (size_t j=0; j<fPMTs.at(i).size(); j++)
-        {
-            fPMTs.at(i).at(j).ProcessEvent();
-        }
+    for (size_t i=0; i<fPMTs.size(); i++) {
+      for (size_t j=0; j<fPMTs.at(i).size(); j++) {
+        fPMTs.at(i).at(j).ProcessEvent();
+      }
     }
 
-    for (size_t i=0; i<fADC_Data.size(); i++)
+    /*for (size_t i=0; i<fADC_Data.size(); i++)
     {
         if (fADC_Data.at(i) != NULL)
         {
             fADC_Data.at(i)->ProcessEvent();
         }
+    }*/
+
+    for (size_t i=0; i<fSCAs.size(); i++) {
+      if (fSCAs.at(i) != NULL){
+        fSCAs.at(i)->ProcessEvent();
+      }
     }
 
     //Fill trigger data
@@ -403,6 +397,7 @@ void  QwRaster::ProcessEvent()
             }
         }
      }
+     
      fbpm_3h07a_pos_x = fbpm_3h07a_slope*(fbpm_3h07a_xp-fbpm_3h07a_xm)/
                         (fbpm_3h07a_xp+fbpm_3h07a_xm)+fbpm_3h07a_intercept;
      fbpm_3h07a_pos_y = fbpm_3h07a_slope*(fbpm_3h07a_yp-fbpm_3h07a_ym)/
@@ -411,6 +406,7 @@ void  QwRaster::ProcessEvent()
                         (fbpm_3h09b_xp+fbpm_3h09b_xm)+fbpm_3h09b_intercept;
      fbpm_3h09b_pos_y = fbpm_3h09b_slope*(fbpm_3h09b_yp-fbpm_3h09b_ym)/
                         (fbpm_3h09b_yp+fbpm_3h09b_ym)+fbpm_3h09b_intercept;
+
 }
 
 
@@ -424,13 +420,16 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
 
     if (folder != NULL) folder->cd();
 
-    if (bStoreRawData)
+    for (size_t i=0; i<fPMTs.size(); i++)
     {
-        for (size_t i=0; i<fPMTs.size(); i++)
-        {
-            for (size_t j=0; j<fPMTs.at(i).size(); j++)
-                fPMTs.at(i).at(j).ConstructHistograms(folder, basename);
-        }
+        for (size_t j=0; j<fPMTs.at(i).size(); j++)
+            fPMTs.at(i).at(j).ConstructHistograms(folder, basename);
+    }
+    
+    for (size_t i=0; i<fSCAs.size(); i++) {
+      if (fSCAs.at(i) != NULL) {
+        fSCAs.at(i)->ConstructHistograms(folder, prefix);
+      }
     }
 
     fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
@@ -456,18 +455,19 @@ void  QwRaster::FillHistograms()
 
     if (! HasDataLoaded()) return;
 
-    if (bStoreRawData)
+    for (size_t i=0; i<fPMTs.size(); i++)
     {
-        //Fill trigger data
-        for (size_t i=0; i<fPMTs.size(); i++)
+        for (size_t j=0; j<fPMTs.at(i).size(); j++)
         {
-            for (size_t j=0; j<fPMTs.at(i).size(); j++)
-            {
-                fPMTs.at(i).at(j).FillHistograms();
-            }
+            fPMTs.at(i).at(j).FillHistograms();
         }
     }
 
+    for (size_t i=0; i<fSCAs.size(); i++) {
+      if (fSCAs.at(i) != NULL) {
+        fSCAs.at(i)->FillHistograms();
+      }
+   }
    
     // FR fudge factor is 3.2, by Dave Mack
     // See hclog ttps://hallcweb.jlab.org/hclog/1010_archive/101012134143.html
@@ -512,6 +512,7 @@ void  QwRaster::FillHistograms()
     }
     
     fRateMap->Fill(raster_x_mm, raster_y_mm);
+
 }
 
 
@@ -532,29 +533,37 @@ void  QwRaster::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vect
     list += ":bpm_3h09b_pos_x/D";
     list += ":bpm_3h09b_pos_y/D";
 
-    if (bStoreRawData)
-    {
-
-      for (size_t i=0; i<fPMTs.size(); i++)
-      {
-        for (size_t j=0; j<fPMTs.at(i).size(); j++)
-        {
-          //fPMTs.at(i).at(j).ConstructBranchAndVector(tree, prefix, values);
-          if (fPMTs.at(i).at(j).GetElementName()=="")
-          {
-            //  This channel is not used, so skip setting up the tree.
-          }
-          else
-          {
+    for (size_t i=0; i<fPMTs.size(); i++) {
+      for (size_t j=0; j<fPMTs.at(i).size(); j++) {
+        TString element_name = fPMTs.at(i).at(j).GetElementName();
+        if (element_name=="") {
+          //  This channel is not used, so skip setting up the tree.
+        } else {
             values.push_back(0.0);
-            list += ":"+fPMTs.at(i).at(j).GetElementName()+"_raw/D";
+            list += ":"+element_name+"_raw/D";
+        }
+      }
+    }
+
+    for (size_t i=0; i<fSCAs.size(); i++){
+      if (fSCAs.at(i) != NULL){
+        for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++){
+          if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+          else {
+            values.push_back(0.0);
+            list += ":"+fSCAs.at(i)->fChannels.at(j).GetElementName()+"/D";
           }
         }
       }
-
-      fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
-      tree->Branch(basename, &values[fTreeArrayIndex], list);
     }
+
+    if (list[0]==':') {
+      list = list(1,list.Length()-1);
+    }
+
+    fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
+    tree->Branch(basename, &values[fTreeArrayIndex], list);
+
     return;
 }
 
@@ -571,38 +580,51 @@ void  QwRaster::FillTreeVector(std::vector<Double_t> &values) const
     values[index++] = fbpm_3h09b_pos_x;
     values[index++] = fbpm_3h09b_pos_y;
 
-    if (bStoreRawData)
+    //fill trigvalues
+    for (size_t i=0; i<fPMTs.size(); i++)
     {
-      //fill trigvalues
-      for (size_t i=0; i<fPMTs.size(); i++)
+      for (size_t j=0; j<fPMTs.at(i).size(); j++)
       {
-        for (size_t j=0; j<fPMTs.at(i).size(); j++)
+        if (fPMTs.at(i).at(j).GetElementName()=="") {}
+        else
         {
-          if (fPMTs.at(i).at(j).GetElementName()=="") {}
-          else
-          {
-            values[index++] = fPMTs.at(i).at(j).GetValue();
-          }
+          values[index++] = fPMTs.at(i).at(j).GetValue();
         }
       }
     }
+
+    for (size_t i=0; i<fSCAs.size(); i++) {
+      if (fSCAs.at(i) != NULL) {
+        for (size_t j=0; j<fSCAs.at(i)->fChannels.size(); j++) {
+          if (fSCAs.at(i)->fChannels.at(j).GetElementName()=="") {}
+          else {
+            values[index] = fSCAs.at(i)->fChannels.at(j).GetValue();
+            index++;
+         }
+       }
+      }
+    }
+
     return;
 }
 
 
 void  QwRaster::DeleteHistograms()
 {
-    if (bStoreRawData)
-    {
-        for (size_t i=0; i<fPMTs.size(); i++)
-        {
-            for (size_t j=0; j<fPMTs.at(i).size(); j++)
-            {
-                if (fPMTs.at(i).at(j).GetElementName()=="") {}
-                else  fPMTs.at(i).at(j).DeleteHistograms();
-            }
-        }
 
+    for (size_t i=0; i<fPMTs.size(); i++)
+    {
+       for (size_t j=0; j<fPMTs.at(i).size(); j++)
+       {
+         if (fPMTs.at(i).at(j).GetElementName()=="") {}
+         else  fPMTs.at(i).at(j).DeleteHistograms();
+       }
+    }
+
+    for (size_t i=0; i<fSCAs.size(); i++){
+      if (fSCAs.at(i) != NULL){
+        fSCAs.at(i)->DeleteHistograms();
+      }
     }
 
     // Delete all histograms in the list
@@ -629,7 +651,7 @@ void  QwRaster::DeleteHistograms()
 
 void  QwRaster::ReportConfiguration()
 {
-    std::cout << "Configuration of raster:"<< std::endl;
+    /*std::cout << "Configuration of raster:"<< std::endl;
     for (size_t i = 0; i<fROC_IDs.size(); i++)
     {
         for (size_t j=0; j<fBank_IDs.at(i).size(); j++)
@@ -649,7 +671,7 @@ void  QwRaster::ReportConfiguration()
                     }
                 }
         }
-    }
+    }*/
 
 }
 //ReportConfiguration()
@@ -678,7 +700,7 @@ Int_t QwRaster::RegisterSubbank(const UInt_t bank_id)
     fCurrentBankIndex++;
     std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
     fModuleIndex.push_back(tmpvec);
-    //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
+    //std::cout<<"RASTER Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
     return stat;
 }
 
@@ -720,29 +742,25 @@ EQwModuleType QwRaster::RegisterModuleType(TString moduletype)
     //  Check to see if we've already registered a type for the current slot,
     //  if so, throw an error...
 
-    if (moduletype == "V792")
-    {
-        fCurrentType = kV792_ADC;
-        fModuleTypes.at(fCurrentIndex) = fCurrentType;
-        if ((Int_t) fPMTs.size() <= fCurrentType)
-        {
-            fPMTs.resize(fCurrentType+1);
-        }
+    if (moduletype=="V792"){
+      fCurrentType = kV792_ADC;
+    } else if (moduletype=="SIS3801") {
+      fCurrentType = kSIS3801;
     }
-
+    fModuleTypes.at(fCurrentIndex) = fCurrentType;
+    if ((Int_t) fPMTs.size() <= fCurrentType){
+      fPMTs.resize(fCurrentType+1);
+    }
     return fCurrentType;
 }
 
 
 Int_t QwRaster::LinkChannelToSignal(const UInt_t chan, const TString &name)
 {
-    if (fCurrentType == kV775_TDC || fCurrentType == kV792_ADC)
-    {
-        fPMTs.at(fCurrentType).push_back(QwPMT_Channel(name));
-        fModulePtrs.at(fCurrentIndex).at(chan).first  = fCurrentType;
-        fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(fCurrentType).size() -1;
-    }
-    std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
+    fPMTs.at(fCurrentType).push_back(QwPMT_Channel(name));
+    fModulePtrs.at(fCurrentIndex).at(chan).first  = fCurrentType;
+    fModulePtrs.at(fCurrentIndex).at(chan).second =
+    fPMTs.at(fCurrentType).size() -1;
     return 0;
 }
 
