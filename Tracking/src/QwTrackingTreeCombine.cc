@@ -3,7 +3,7 @@
 
  \class QwTrackingTreeCombine
 
- \brief Combines track segments and performs line fitting.
+ \briefCombines track segments and performs line fitting.
 
  \author Burnham Stokes
  \date   7/30/08
@@ -2535,10 +2535,41 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 			uvl[kDirectionV]->Print();
 		}
 
+		// For 2 plane 0  counters only counters
+		int nump0 = 0;
+		int count = 0;
 		// Get the u track
 		QwTrackingTreeLine *wu = uvl[kDirectionU];
+		QwTrackingTreeLine *wv = uvl[kDirectionV];
+				while ( wu )
+		  {
+		    if ( wu->IsVoid() ) // skip this treeline if it was no good
+			{
+				wu = wu->next;
+				continue;
+			}
+		  count++;
+		  wu = wu->next;
+		}
+		if (count<2){
+		  count=0;
+		  while ( wv )
+		  {
+		    if ( wv->IsVoid() ) // skip this treeline if it was no good
+			{
+				wv = wv->next;
+				continue;
+			}
+		  count++;
+		  wv = wv->next;
+		}
+		}
+		if (count<2) nump0=1;
+	
+	        wu = uvl[kDirectionU];
+				
 		while ( wu )
-		{
+		{   
 			if ( wu->IsVoid() ) // skip this treeline if it was no good
 			{
 				wu = wu->next;
@@ -2549,7 +2580,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 			//    double xu = wu->cx; // constant
 
 			// Get the v track
-			QwTrackingTreeLine *wv = uvl[kDirectionV];
+					wv = uvl[kDirectionV];
 			while ( wv )
 			{
 				if ( wv->IsVoid() )
@@ -2564,7 +2595,9 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 					// Set geometry identification
 					pt->SetRegion(region);
 					pt->SetPackage(package);
-
+                                        //Set 2 plane 0 treelines only
+					pt->SetAlone(nump0);
+					//	std:: cout << pt->GetAlone() << std::endl;
 					pt->next   = pt_next;
 					pt_next = pt;
 
@@ -2573,6 +2606,7 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
 					// TODO use generic detector info object
 // 					pt->DeterminePositionInTriggerScintillators ( package );
 // 					pt->DeterminePositionInCerenkovBars ( package );
+
 
 					parttracklist.push_back ( pt );
 				}
