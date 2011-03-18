@@ -1,41 +1,50 @@
-#include "QwRTGUISubSystem.h"
+#include "QwGUISubSystem.h"
 
 
-QwRTGUISubSystem(const TGWindow *main, TGCompositeFrame *parent, UInt_t w, UInt_t h)
+ClassImp(QwGUISubSystem);
+
+QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
+			       const TGTab *tab, const char *objName, 
+			       const char *mainname, UInt_t w, UInt_t h)
+  : TGCompositeFrame(tab,w,h)
 { 
+  dWidth             = w;
+  dHeight            = h;
+  dParent            = (TGWindow*)p;
+  dMain              = (TGWindow*)main;
+  dWinCnt            = 0;
 
+  dMainName = mainname;
+  dThisName = objName;
+
+  dTabMenuID          = 0;
+ 
   dHistoReset = 0;
   dHistoAccum = 0;
   dHistoPause = 0;
   dMapFile    = NULL;
 
-LIBINCLUDE    = 
-PRG_INCLUDE   = ./include
-PRG_SOURCE    = ./src
+  dMapFileFlag = false;
 
-# Here we list the object files that require a CINT dictionary.
-OBJECTS	      =
-OBJECTS       += QwRTGUIMain.o
-OBJECTS       += QwRTGUIShutter.o
-#OBJECTS       += QwRTGUISubSystem.o
-#OBJECTS       += QwGUIMainDetector.o
-#OBJECTS       += QwGUILumiDetector.o
-#OBJECTS       += QwGUIInjector.o
-#OBJECTS       += QwGUICorrelationPlots.o
-#OBJECTS       += QwRTGUIHallCBeamline.o
+
+  Connect("AddThisTab(QwGUISubSystem*)",dMainName,(void*)main,"AddATab(QwGUISubSystem*)");  
+
+  Connect("SendMessageSignal(const char*)",dMainName,(void*)main,"OnReceiveMessage(const char*)");
 
 }
 
-# Have this after all the object files are listed so that dictionaries
-# will be made automatically.
-DICTS		= #$(OBJECTS:.o=Dict.o)
+QwGUISubSystem::~QwGUISubSystem()
+{
 
 }
 
+const char* QwGUISubSystem::GetNewWindowName()
+{
+  return Form("dMiscWindow_%02d",GetNewWindowCount());
+}
 
 
-void 
-QwRTGUISubSystem::SetMapFile(TMapFile *file)
+void QwGUISubSystem::SetMapFile(TMapFile *file)
 {
   if(file) {
     dMapFile = file;
@@ -47,44 +56,58 @@ QwRTGUISubSystem::SetMapFile(TMapFile *file)
   else {
     dMapFileFlag = false;
   }
-  return;
+  
 };
 
 
+// void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
+// {
 
-void 
-QwRTGUISubSystem::SummaryHist(TH1 *in)
+// }
+
+
+
+void QwGUISubSystem::AddThisTab(QwGUISubSystem* sbSystem)
+{
+  Emit("AddThisTab(QwGUISubSystem*)",(long)sbSystem);
+}
+
+void QwGUISubSystem::SendMessageSignal(const char*objname)
+{
+
+  Emit("SendMessageSignal(const char*)",(long)objname);
+}
+
+Bool_t QwGUISubSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
+{
+  return kTRUE;
+}
+
+
+
+void QwGUISubSystem::SummaryHist(TH1 *in)
 {
 
   Double_t out[4] = {0.0};
   Double_t test   = 0.0;
 
+         
+  out[0] = in -> GetMean();
+  out[1] = in -> GetMeanError();
+  out[2] = in -> GetRMS();
+  out[3] = in -> GetRMSError();
 
-#------------------------------------------------------------------------------------
+  Int_t entries = 0;
+  entries = in->GetEntries();
+  if(entries == 0) test = 0.0;
+  else             test = out[2]/TMath::Sqrt(entries);
 
-
-all: $(APPLIC)
-$(QWOBJECT)
-$(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS)
-	$(CXX) -o $@ $(LDFLAGS) $(QWEAKLDFLAGS) $(LIBS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
-	ln -sf QwRealTimeGUIView/$@ ../$(APPLIC)
-	@echo "$@ done"
-
-%.o : $(PRG_SOURCE)/%.cc
-	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)   $(QWTRINCLUDE) $(QWANINCLUDE) $(QWPRINCLUDE)
-
-%.o : $(QWTRSOURCE)/%.cc
-	$(CXX) -c $(CXXFLAGS) $<  $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) -I$(PRG_INCLUDE) -I$(LIBINCLUDE)
-
-#%Dict.o : %Dict.cc
-#	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)  $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE)
-
-#%Dict.cc : $(PRG_INCLUDE)/%.h
-#	@echo "Generating dictionary $@..."
-#	rootcint -f $@ -c -I$(LIBINCLUDE) $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) $^
-
-clean:
-	rm -f ./*.o ./core ./*~ ./*Dict.cc ./*Dict.h ./~* ./G__*.* source/*~ \
-	include/*~ $(APPLIC)
-
-QwRTGUIMain.o : ../VERSION
+  printf("%sName%s", BOLD, NORMAL);
+  printf("%22s", in->GetName());
+  printf("  %sMean%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[0], NORMAL, BLUE, out[1], NORMAL);
+  printf("  %sSD%s%s", BOLD, NORMAL, " : ");
+  printf("[%s%+4.2e%s +- %s%+4.2e%s]", RED, out[2], NORMAL, GREEN, out[3], NORMAL);
+  printf(" %sRMS/Sqrt(N)%s %s%+4.2e%s \n", BOLD, NORMAL, BLUE, test, NORMAL);
+  return;
+};

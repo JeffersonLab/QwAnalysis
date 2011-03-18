@@ -10,26 +10,28 @@ LIBDIR        =
 
 
 LIBINCLUDE    = 
+#$(LIBDIR)/include
+RDATALIB      = 
+#$(LIBDIR)/QwGUIRootLib-$(VERS).a
 PRG_INCLUDE   = ./include
 PRG_SOURCE    = ./src
 
 # Here we list the object files that require a CINT dictionary.
 OBJECTS	      =
-OBJECTS       += QwRTGUIMain.o
-OBJECTS       += QwRTGUIShutter.o
-#OBJECTS       += QwRTGUISubSystem.o
-#OBJECTS       += QwGUIMainDetector.o
-#OBJECTS       += QwGUILumiDetector.o
-#OBJECTS       += QwGUIInjector.o
-#OBJECTS       += QwGUICorrelationPlots.o
-#OBJECTS       += QwRTGUIHallCBeamline.o
+OBJECTS       += QwGUIMain.o
+OBJECTS       += QwGUISubSystem.o
+OBJECTS       += QwGUIMainDetector.o
+OBJECTS       += QwGUILumiDetector.o
+OBJECTS       += QwGUIInjector.o
+OBJECTS       += QwGUICorrelationPlots.o
+OBJECTS       += QwGUIHallCBeamline.o
 
 QWTRSOURCE = $(QWANALYSIS)/Tracking/src
 QWANSOURCE = $(QWANALYSIS)/Analysis/src
 
 # Have this after all the object files are listed so that dictionaries
 # will be made automatically.
-DICTS		= #$(OBJECTS:.o=Dict.o)
+DICTS		= $(OBJECTS:.o=Dict.o)
 
 APPLIC        = QwRealTimeGUI
 MFILE         = Makefile
@@ -67,15 +69,18 @@ CXXFLAGS     += $(DEBUGFLAGS) $(QWEAKCPPFLAGS) -Wno-deprecated
 LIBS          = -lNew $(QWEAKLIBS) $(SYSLIBS) $(QWLIBS)
 GLIBS         = -lNew $(ROOTGLIBS) $(SYSLIBS) $(QWLIBS) 
 
+ENSCRIPT      = @enscript -2Gjr -o
+
+
 
 #------------------------------------------------------------------------------------
 
 
 all: $(APPLIC)
 $(QWOBJECT)
-$(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS)
+$(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS) $(RDATALIB)
 	$(CXX) -o $@ $(LDFLAGS) $(QWEAKLDFLAGS) $(LIBS) $(GLIBS) $(GEOMLIB) $(GUILIB) $^
-	ln -sf QwRealTimeGUIView/$@ ../$(APPLIC)
+	ln -sf QwRealTimeGUIView/$@ ../QwRealTimeGUI
 	@echo "$@ done"
 
 %.o : $(PRG_SOURCE)/%.cc
@@ -84,15 +89,15 @@ $(APPLIC): $(OBJECTS) $(NODICTOBJECTS) $(DICTS) $(QWDICTOBJECTS)
 %.o : $(QWTRSOURCE)/%.cc
 	$(CXX) -c $(CXXFLAGS) $<  $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) -I$(PRG_INCLUDE) -I$(LIBINCLUDE)
 
-#%Dict.o : %Dict.cc
-#	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)  $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE)
+%Dict.o : %Dict.cc
+	$(CXX) -c $(CXXFLAGS) $< -I$(PRG_INCLUDE) -I$(LIBINCLUDE)  $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE)
 
-#%Dict.cc : $(PRG_INCLUDE)/%.h
-#	@echo "Generating dictionary $@..."
-#	rootcint -f $@ -c -I$(LIBINCLUDE) $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) $^
+%Dict.cc : $(PRG_INCLUDE)/%.h
+	@echo "Generating dictionary $@..."
+	rootcint -f $@ -c -I$(LIBINCLUDE) $(QWTRINCLUDE) $(QWPRINCLUDE) $(QWANINCLUDE) $^
 
 clean:
 	rm -f ./*.o ./core ./*~ ./*Dict.cc ./*Dict.h ./~* ./G__*.* source/*~ \
-	include/*~ $(APPLIC)
+	include/*~
 
-QwRTGUIMain.o : ../VERSION
+QwGUIMain.o : ../VERSION
