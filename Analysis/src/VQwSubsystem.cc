@@ -127,7 +127,7 @@ Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
     total_num = (Int_t) fDetectorMapsNames.size();
     if(total_num != 0) {
       for (index=0; index<total_num; index++) {
-  	printf("   ---> %4d/%d : %24s\n", index+1, total_num, fDetectorMapsNames[index].Data());
+  	printf("   ---> %4d/%d : %s\n", index+1, total_num, fDetectorMapsNames[index].Data());
       }
       printf("\n");
     }

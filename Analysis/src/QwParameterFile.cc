@@ -173,13 +173,10 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
 #endif
 
   if (check_whether_path_exists_and_is_a_regular_file) {
-
-    // QwMessage << "QwParameterFile::OpenFile Opening parameter file: "
-    // 		<< file.string() << QwLog::endl;
-
-
+    
     fBestParamFileNameAndPath = file.string();
-
+    this->SetParamFilename();
+    
     // Connect stream (fFile) to file
     fFile.open(file.string().c_str());
     if (! fFile.good())
@@ -722,56 +719,18 @@ std::pair<int,int> QwParameterFile::ParseIntRange(const std::string& separatorch
 
 
 
-  TString QwParameterFile::TokenString(TString in, char* delim, Int_t interesting_token_num, Int_t interesting_token_id)
-  {	
-   
-    Bool_t local_debug = true;
-    TString name;  
-  
-    TObjArray* Strings = in.Tokenize(delim); // break line into tokens
-    Int_t token_numbers = Strings->GetEntriesFast();
-  
-    if(token_numbers == interesting_token_num) {
-      TIter iString(Strings);
-      TObjString* os= NULL;
-      Int_t token_ids = 0;
-      while ((os=(TObjString*)iString())) {
-	if(token_ids == interesting_token_id) {
-	  name = os->GetString();
-	  break;
-	}
-	token_ids++;
-      }
-      delete Strings;
-    
-      if(local_debug) {
-	std::cout << " tokens #"
-		  << token_numbers
-		  << " " << in
-		  << " " << name
-		  << std::endl;
-      }
-    }
-    else {   
-      name.Clear(); // return empty string
-      if(local_debug) {
-	std::cout << "Token number is not in the possible token numbers" << std::endl;
-      }
-    }
-    return name;
-  
-  };
+void QwParameterFile::SetParamFilename() 
+{
+  char delimiters[] = "/";
+  fBestParamFileName = LastString(fBestParamFileNameAndPath, delimiters);  
+  return;
+};
  
-  const TString  QwParameterFile::GetParamFilename() 
-  {
-  
-    // char delimiters[] = "/";
-    // TString only_filename; only_filename.Clear();
-    // only_filename = TokenString(fBestParamFileNameAndPath, delimiters, 7, 6);  
 
-    // std::cout << "test " << only_filename << std::endl;
-
- 
-    return fBestParamFileNameAndPath;
-  }
+TString QwParameterFile::LastString(TString in, char* delim)
+{	
+  TObjArray*  all_strings = in.Tokenize(delim); 
+  TObjString* last_string = (TObjString*) all_strings->Last();
+  return last_string->GetString();
+};
  

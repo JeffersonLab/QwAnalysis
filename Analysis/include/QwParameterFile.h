@@ -92,7 +92,7 @@ class QwParameterFile {
     void TrimSectionHeader();
     void TrimModuleHeader();
 
-    TString TokenString(TString in, char* delim, Int_t interesting_token_num, Int_t interesting_token_id);
+    TString LastString(TString in, char* delim);
 
     Bool_t LineIsEmpty(){return fLine.empty();};
     Bool_t IsEOF(){ return fStream.eof();};
@@ -149,8 +149,10 @@ class QwParameterFile {
     friend ostream& operator<< (ostream& stream, const QwParameterFile& file);
 
 
-    const TString GetParamFilename();// {return fBestParamFileName;};
+    const TString GetParamFilename() {return fBestParamFileName;};
     const TString GetParamFilenameAndPath() {return fBestParamFileNameAndPath;};
+
+    void SetParamFilename();
 
   protected:
     void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);
