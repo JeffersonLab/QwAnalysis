@@ -35,8 +35,10 @@ def  HClog_r(run):
         yymm="1012"
     elif int(run) < 9595 :
         yymm="1101"
-    else:
+    elif int(run) < 10270 :
         yymm="1102"
+    else:
+        yymm="1103"
     hclogWeb="https://hallcweb.jlab.org/hclog/"+yymm+"_archive/"
 
     # .... get HClog URL  
