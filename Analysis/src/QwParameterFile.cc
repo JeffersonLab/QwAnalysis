@@ -261,27 +261,30 @@ int QwParameterFile::FindFile(
     } else {
       // run label starts after dot ('.') and that dot is included in the label length
       if (file_name.at(pos_stem + file_stem.length()) == '.') {
-	std::string label = file_name.substr(pos_stem + file_stem.length() + 1, label_length - 1);
-	std::pair<int,int> range = ParseIntRange("-",label);
-	int run = fCurrentRunNumber;
-	if ((range.first <= run) && (run <= range.second)) {
-	  // run is in single-value range
-	  if (range.first == range.second) score = 1000;
-	  // run is in double-value range
-	  else if (range.second < INT_MAX) score = 100;
-	  // run is in open-ended range
-	  else if (range.second == INT_MAX) {
-	    // each matching open-ended range
-	    if (range.first > open_ended_latest_start) {
-	      open_ended_latest_start = range.first;
-	      open_ended_range_score++;
-	      score = 10 + open_ended_range_score;
-	      // 90 open-ended range files should be enough for anyone ;-)
-	    } else score = 10;
-	  }
-	} else
-	  // run not in range
-	  score = -1;
+        std::string label = file_name.substr(pos_stem + file_stem.length() + 1, label_length - 1);
+        std::pair<int,int> range = ParseIntRange("-",label);
+        int run = fCurrentRunNumber;
+        if ((range.first <= run) && (run <= range.second)) {
+          // run is in single-value range
+          if (range.first == range.second) {
+            score = 1000;
+          // run is in double-value range
+          } else if (range.second < INT_MAX) {
+            int number_of_runs = range.second - range.first;
+            score = 1000 - ((number_of_runs < 900) ? number_of_runs : 900);
+          // run is in open-ended range
+          } else if (range.second == INT_MAX) {
+            // each matching open-ended range
+            if (range.first > open_ended_latest_start) {
+              open_ended_latest_start = range.first;
+              open_ended_range_score++;
+              score = 10 + open_ended_range_score;
+              // 90 open-ended range files should be enough for anyone ;-)
+            } else score = 10;
+          }
+        } else
+          // run not in range
+          score = -1;
       } else
 	// run label does not start with a dot (i.e. partial match of stem)
 	score = -1;
