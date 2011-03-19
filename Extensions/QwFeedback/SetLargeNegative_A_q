@@ -18,12 +18,24 @@
 #PC_pos_t0_OUT=42970
 #PC_neg_t0_OUT=41230
 
-
 #2. Runs checked OUT - 10810 IN - 10766 -Changed by Rakitha 03/17/2011 -Current
-PC_pos_t0_IN=43766
-PC_neg_t0_IN=40434
-PC_pos_t0_OUT=43000
-PC_neg_t0_OUT=41150
+#PC_pos_t0_IN=43766
+#PC_neg_t0_IN=40434
+#PC_pos_t0_OUT=43000
+#PC_neg_t0_OUT=41150
+
+
+#3. Runs checked OUT - 10909 IN - 10911 -Changed by Rakitha 03/19/2011
+PC_pos_t0_IN=42921
+PC_neg_t0_IN=41278
+PC_pos_t0_OUT=42912
+PC_neg_t0_OUT=41287
+
+
+
+
+
+
 
 PC_Delta_Counts=2500
 
