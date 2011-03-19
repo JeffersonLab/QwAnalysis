@@ -1,7 +1,8 @@
 #include "QwRootFile.h"
 #include "QwRunCondition.h"
+#include "TH1.h"
 
-#include "unistd.h"
+#include <unistd.h>
 #include <cstdio>
 
 std::string QwRootFile::fDefaultRootFileStem = "Qweak_";
@@ -14,7 +15,7 @@ const Int_t QwRootFile::kMaxMapFileSize = 0x10000000; // 256 MiB
  * Constructor with relative filename
  */
 QwRootFile::QwRootFile(const TString& run_label)
-  : fMakePermanent(1),fEnableMapFile(kFALSE),fUpdateInterval(400)
+  : fMakePermanent(0),fEnableMapFile(kFALSE),fUpdateInterval(400)
 {
   // Process the configuration options
   ProcessOptions(gQwOptions);
@@ -106,6 +107,10 @@ QwRootFile::QwRootFile(const TString& run_label)
  */
 QwRootFile::~QwRootFile()
 {
+  // Keep the file on disk if any trees or histograms have been filled.
+  // Also respect any other requests to keep the file around.
+  if (!fMakePermanent) fMakePermanent = HasAnyFilled();
+
   // Close the map file
   if (fMapFile) {
     fMapFile->Close();
@@ -113,7 +118,8 @@ QwRootFile::~QwRootFile()
     fMapFile = 0;
   }
 
-  // Close the ROOT file
+  // Close the ROOT file.
+  // Rename if permanence is requested, remove otherwise
   if (fRootFile) {
     TString rootfilename = fRootFile->GetName();
 
@@ -134,12 +140,14 @@ QwRootFile::~QwRootFile()
     // but that doesn't seem very C++-ish.
     if (err)
       QwWarning << "Couldn't" << action << rootfilename.Data() << QwLog::endl;
+    else
+      QwMessage << "Was able to" << action << rootfilename.Data() << QwLog::endl;
   }
 
   // Delete Qweak ROOT trees
   std::map< const std::string, std::vector<QwRootTree*> >::iterator map_iter;
+  std::vector<QwRootTree*>::iterator vec_iter;
   for (map_iter = fTreeByName.begin(); map_iter != fTreeByName.end(); map_iter++) {
-    std::vector<QwRootTree*>::iterator vec_iter;
     for (vec_iter = map_iter->second.begin(); vec_iter != map_iter->second.end(); vec_iter++) {
       delete *vec_iter;
     }
@@ -266,4 +274,37 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   return;
 }
 
+/**
+ * Determine whether the rootfile object has any non-empty trees or
+ * histograms.
+ */
+Bool_t QwRootFile::HasAnyFilled(void) {
+  return this->HasAnyFilled(fRootFile);
+}
+Bool_t QwRootFile::HasAnyFilled(TDirectory* d) {
+  if (!d) return false;
+  TList* l = d->GetListOfKeys();
 
+  for( int i=0; i < l->GetEntries(); ++i) {
+    const char* name = l->At(i)->GetName();
+    TObject* obj = d->FindObjectAny(name);
+
+    // Objects which can't be found don't count.
+    if (!obj) continue;
+
+    // Lists of parameter files don't count.
+    if ( TString(name).Contains("parameter_file") ) continue;
+
+    // Recursively check subdirectories.
+    if (obj->IsA()->InheritsFrom( "TDirectory" ))
+      if (this->HasAnyFilled( (TDirectory*)obj )) return true;
+
+    if (obj->IsA()->InheritsFrom( "TTree" ))
+      if ( ((TTree*) obj)->GetEntries() ) return true;
+
+    if (obj->IsA()->InheritsFrom( "TH1" ))
+      if ( ((TH1*) obj)->GetEntries() ) return true;
+  }
+
+  return false;
+}

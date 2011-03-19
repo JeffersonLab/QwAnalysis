@@ -386,10 +386,13 @@ class QwRootFile {
 
     // Wrapped functionality
     void Update() { if (fMapFile) fMapFile->Update(); } // not for TFile
-    void Close()  { if (fMapFile) fMapFile->Close();  if (fRootFile) fRootFile->Close(); }
     void Print()  { if (fMapFile) fMapFile->Print();  if (fRootFile) fRootFile->Print(); }
     void ls()     { if (fMapFile) fMapFile->ls();     if (fRootFile) fRootFile->ls(); }
     void Map()    { if (fRootFile) fRootFile->Map(); }
+    void Close()  {
+      if (!fMakePermanent) fMakePermanent = HasAnyFilled();
+      if (fMapFile) fMapFile->Close();  if (fRootFile) fRootFile->Close();
+    }
 
     // Wrapped functionality
     Bool_t cd(const char* path = 0) {
@@ -433,6 +436,10 @@ class QwRootFile {
     /// change to a permanent name when closing the file.
     TString fPermanentName;
     Bool_t fMakePermanent;
+
+    /// Search for non-empty trees or histograms in the file
+    Bool_t HasAnyFilled(void);
+    Bool_t HasAnyFilled(TDirectory* d);
 
     /// Map file
     TMapFile* fMapFile;
