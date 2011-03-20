@@ -43,7 +43,6 @@
 #include "QwScaler.h"
 
 // Qweak headers (deprecated)
-#include "Det.h"
 #include "Qset.h"
 
 
@@ -99,18 +98,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
   }
 
-  // Get vector with detector info (by region, plane number)
-  //std::vector< std::vector< QwDetectorInfo > > detector_info;
-  //tracking_detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
-  //tracking_detectors.GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
-  //tracking_detectors.GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
-  // TODO This is handled incorrectly, it just adds the three package after the
-  // existing three packages from region 2...  GetDetectorInfo should descend
-  // into the packages and add only the tracking_detectors in those packages.
-  // Alternatively, we could implement this with a singly indexed vector (with
-  // only an id as primary index) and write a couple of helper functions to
-  // select the right subvectors of tracking_detectors.
-
   // Create and fill old detector structures (deprecated)
   Qset qset;
   qset.FillDetectors((getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/qweak.geo").c_str());
@@ -144,6 +131,27 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     ///  Create the tracking worker
     QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
+
+
+    // Get vector with detector info (by region, plane number)
+    std::vector< std::vector< QwDetectorInfo > > detector_info;
+    tracking_detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
+    tracking_detectors.GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
+    tracking_detectors.GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
+    tracking_detectors.GetSubsystemByName("TS")->GetDetectorInfo(detector_info);
+    tracking_detectors.GetSubsystemByName("MD")->GetDetectorInfo(detector_info);
+    // TODO This is handled incorrectly, it just adds the three package after the
+    // existing three packages from region 2...  GetDetectorInfo should descend
+    // into the packages and add only the tracking_detectors in those packages.
+    // Alternatively, we could implement this with a singly indexed vector (with
+    // only an id as primary index) and write a couple of helper functions to
+    // select the right subvectors of tracking_detectors.
+
+    QwGeometry geometry;
+    for (size_t i = 0; i < detector_info.size(); i++)
+      geometry.push_back(detector_info.at(i));
+    QwMessage << "Geometry:" << QwLog::endl;
+    QwMessage << geometry << QwLog::endl;
 
 
     //  Initialize the database connection.

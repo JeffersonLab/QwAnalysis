@@ -601,8 +601,8 @@ void QwTrackingWorker::ProcessEvent (
                             Int_t plane = rd->plane;
 
                             // Print detector info
-                            if (fDebug) cout << "      ";
-                            if (fDebug) rd->print();
+                            //if (fDebug) cout << "      ";
+                            //if (fDebug) rd->print();
 
                             // If detector is inactive for tracking, skip it
                             if (rd->IsInactive()) continue;
@@ -765,7 +765,7 @@ void QwTrackingWorker::ProcessEvent (
                             Int_t plane = rd->plane;
 
                             // Print detector info
-                            if (fDebug) rd->print();
+                            //if (fDebug) rd->print();
 
                             // If detector is inactive for tracking, skip it
                             if (rd->IsInactive()) {

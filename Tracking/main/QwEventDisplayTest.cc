@@ -21,7 +21,6 @@
 #include "QwLog.h"
 
 // Deprecated Qweak headers
-#include "Det.h"
 #include "Qset.h"
 
 // Qweak subsystem headers

@@ -34,8 +34,7 @@ QwScanner::QwScanner(TString name)
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
-
-};
+}
 
 
 QwScanner::~QwScanner()
@@ -56,7 +55,7 @@ QwScanner::~QwScanner()
   fADC_Data.clear();
   //DeleteHistograms();
   delete fF1TDContainer;
-};
+}
 
 
 void QwScanner::ProcessOptions(QwOptions &options)

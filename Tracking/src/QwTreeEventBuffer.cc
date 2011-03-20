@@ -26,9 +26,6 @@
 #include "QwPartialTrack.h"
 #include "QwEvent.h"
 
-// Qweak headers (deprecated)
-#include "Det.h"
-
 // Helper headers
 #include "uv2xy.h"
 

@@ -9,7 +9,6 @@
 #include "TH1F.h"
 
 // Qweak support headers
-#include "Det.h"
 #include "Qset.h"
 
 // Qweak tracking worker

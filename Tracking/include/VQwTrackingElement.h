@@ -39,10 +39,12 @@ class VQwTrackingElement: public TObject {
   public:
 
     /// \brief Default constructor
-    VQwTrackingElement(): pDetectorInfo(0),
+    VQwTrackingElement()
+    : pDetectorInfo(0),
       fRegion(kRegionIDNull), fPackage(kPackageNull),
       fDirection(kDirectionNull), fPlane(0), fElement(0) { };
-    VQwTrackingElement(const VQwTrackingElement& that):
+    VQwTrackingElement(const VQwTrackingElement& that)
+    : TObject(that),
       fRegion(that.fRegion), fPackage(that.fPackage),
       fDirection(that.fDirection), fPlane(that.fPlane), fElement(that.fElement) { };
     /// \brief Virtual destructor

@@ -76,9 +76,6 @@ class Det {
     int index;		/*!< index of the detector in the global list */
 
 
-    // Print detector info
-    void print();
-
     // Set detectors active or inactive for tracking
     void SetActive()   { fActive = true;  };
     void SetInactive() { fActive = false; };

@@ -16,9 +16,6 @@
 // Qweak event
 #include "QwEvent.h"
 
-// Deprecated
-#include "Det.h"
-
 
 /**
  * Method to print vectors conveniently

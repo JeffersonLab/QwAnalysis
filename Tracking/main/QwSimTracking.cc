@@ -26,7 +26,6 @@
 #include "QwParameterFile.h"
 
 // Deprecated Qweak headers
-#include "Det.h"
 #include "Qset.h"
 
 // Qweak event buffer and tracking worker

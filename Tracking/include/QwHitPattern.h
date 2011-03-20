@@ -53,7 +53,8 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
       Reset();
     };
     /// \brief Copy constructor
-    QwHitPattern(const QwHitPattern& pattern) {
+    QwHitPattern(const QwHitPattern& pattern)
+    : VQwTrackingElement(pattern),QwObjectCounter<QwHitPattern>(pattern) {
       *this = pattern;
     };
 

@@ -8,10 +8,6 @@
 #include "TROOT.h"
 #include "TH1F.h"
 
-// Qweak support headers
-#include "Det.h"
-#include "Qset.h"
-
 // Qweak headers
 #include "QwEventBuffer.h"
 #include "QwTrackingWorker.h"

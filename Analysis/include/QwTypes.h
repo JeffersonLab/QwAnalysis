@@ -3,6 +3,7 @@
 
 // C and C++ headers
 #include <map>
+#include <iostream>
 
 // ROOT basic types
 #include <Rtypes.h>
@@ -18,6 +19,9 @@ enum EQwRegionID {
   kRegionIDTrig, kRegionIDCer, kRegionIDScanner,
   kNumRegions
 };
+inline std::ostream& operator<< (std::ostream& stream, const EQwRegionID& i) {
+  stream << "?123TCS#"[i]; return stream;
+}
 
 enum EQwDirectionID {
   kDirectionNull = 0,
@@ -27,6 +31,9 @@ enum EQwDirectionID {
   kDirectionLeft, kDirectionRight,
   kNumDirections
 };
+inline std::ostream& operator<< (std::ostream& stream, const EQwDirectionID& i) {
+  stream << "?xyuvrfLR#"[i]; return stream;
+}
 
 // Currently up and down are considered two packages.
 enum EQwDetectorPackage {
@@ -39,6 +46,9 @@ enum EQwDetectorPackage {
 // This means that after a rotation of 45 deg from the vertical position,
 // one package will be identified as kPackageUpLeft (name?), and the other
 // package as kPackageDownRight. (wdc, based on discussion with pking)
+inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorPackage& i) {
+  stream << "?ud#"[i]; return stream;
+}
 
 enum EQwDetectorType {
   kTypeNull = 0,
@@ -50,6 +60,9 @@ enum EQwDetectorType {
   kTypeScanner,		// Focal plane scanner
   kNumTypes
 };
+inline std::ostream& operator<< (std::ostream& stream, const EQwDetectorType& i) {
+  stream << "?ghvtcs#"[i]; return stream;
+}
 
 // Enumerator type for the instrument type, used in subsystems that have to
 // distinguish between various detector types.
