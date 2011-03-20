@@ -120,7 +120,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
     //  Open the ROOT file
-    QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
+    QwRootFile r(eventbuffer.GetRunLabel()); // close when scope ends.
+    QwRootFile* rootfile = &r;
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
     //  Construct histograms
