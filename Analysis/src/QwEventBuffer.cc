@@ -87,6 +87,9 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("event,e", po::value<string>()->default_value("0:"),
      "event range in format #[:#]");
   options.AddDefaultOptions()
+    ("segment,s", po::value<string>()->default_value("0:"),
+     "run segment range in format #[:#]");
+  options.AddDefaultOptions()
     ("burstlength", po::value<int>()->default_value(0),
      "number of events in a burst\n\t(0 to disable burst analysis)");
   options.AddDefaultOptions()
@@ -130,6 +133,7 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
   }
   fRunRange = options.GetIntValuePair("run");
   fEventRange = options.GetIntValuePair("event");
+  fSegmentRange = options.GetIntValuePair("segment");
   fRunListFileName = options.GetValue<string>("runlist");
   fBurstLength = options.GetValue<int>("burstlength");
   fChainDataFiles = options.GetValue<bool>("chainfiles");
@@ -325,6 +329,15 @@ Int_t QwEventBuffer::GetNextEvent()
         if (GetNextEventRange()) status = CODA_OK;
         else status = EOF;
       } while (fEvtNumber < fEventRange.first);
+    }
+    //  While we're in a run segment which was not requested (which
+    //  should happen only when reading the zeroth segment for startup
+    //  information), pretend that there's an event cut causing us to
+    //  ignore events.  Read configuration events only from the first
+    //  part of the file.
+    if (GetSegmentNumber() < fSegmentRange.first) {
+      fEventRange.first = fEvtNumber + 1;
+      if (fEvtNumber > 1000) status = EOF;
     }
   } while (status == CODA_OK  &&
            IsPhysicsEvent()   &&
@@ -906,22 +919,36 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
        *  increasing order.                                     */
       TMath::Sort(static_cast<int>(tmp_segments.size()),&(tmp_segments[0]),&(local_index[0]),
                   kFALSE);
-      /*  Put the segments into numerical order in              *
-       *  fRunSegments.                                         */
+      /*  Put the segments into numerical order in fRunSegments.  Add  *
+       *  only those segments requested (though always add segment 0). */
       QwMessage << "      Found the segment(s): ";
+      size_t printed = 0;
       for (size_t iloop=0; iloop<tmp_segments.size(); ++iloop){
         local_segment = tmp_segments[local_index[iloop]];
-        fRunSegments.push_back(local_segment);
-        if (iloop==0){
-          QwMessage << local_segment ;
-        } else {
-          QwMessage << ", " << local_segment ;
-        }
+        if (printed++) QwMessage << ", ";
+	QwMessage << local_segment ;
+	if (local_segment == 0 ||
+	    ( fSegmentRange.first <= local_segment &&
+	      local_segment <= fSegmentRange.second ) ) {
+	  fRunSegments.push_back(local_segment);
+	} else {
+	  QwMessage << " (skipped)" ;
+	}
       }
       QwMessage << "." << QwLog::endl;
       fRunSegmentIterator = fRunSegments.begin();
 
       fRunIsSegmented = kTRUE;
+
+      /* If the first requested segment hasn't been found,
+	 forget everything. */
+      if ( local_segment < fSegmentRange.first ) {
+	QwError << "First requested run segment "
+		<< fSegmentRange.first << " not found.\n";
+	fRunSegments.pop_back();
+	fRunSegmentIterator = fRunSegments.begin();
+	fRunIsSegmented = kTRUE; // well, it is true.
+      }
     }
   }
   globfree(&globbuf);

@@ -175,6 +175,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   QwParameterFile* fEventListFile;
   std::vector<UInt_t> fEventList;
 
+  std::pair<Int_t, Int_t> fSegmentRange;
+
   Int_t fBurstLength;
 
  protected:
