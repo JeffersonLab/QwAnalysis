@@ -15,7 +15,9 @@ const Int_t QwRootFile::kMaxMapFileSize = 0x10000000; // 256 MiB
  * Constructor with relative filename
  */
 QwRootFile::QwRootFile(const TString& run_label)
-  : fMakePermanent(0),fEnableMapFile(kFALSE),fUpdateInterval(400)
+  : fRootFile(0), fMakePermanent(0),
+    fMapFile(0), fEnableMapFile(kFALSE),
+    fUpdateInterval(400)
 {
   // Process the configuration options
   ProcessOptions(gQwOptions);
