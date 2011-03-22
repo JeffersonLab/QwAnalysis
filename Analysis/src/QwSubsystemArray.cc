@@ -684,3 +684,37 @@ VQwDataElement* QwSubsystemArray::ReturnInternalValueForFriends(const TString& n
   //  Not found
   return 0;
 }
+
+
+
+TList* QwSubsystemArray::GetParamFileNameList(TString name) const
+{
+  if (not empty()) {
+
+    TList* return_maps_TList = new TList;
+    return_maps_TList->SetOwner(true);
+    return_maps_TList->SetName(name);
+    
+    std::vector<TString> mapfiles_vector_subsystem;
+
+    Int_t num_of_mapfiles_subsystem = 0;
+
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys) 
+      {
+	(*subsys)->PrintDetectorMaps(true);
+	mapfiles_vector_subsystem = (*subsys)->GetParamFileNameList();
+	num_of_mapfiles_subsystem = (Int_t) mapfiles_vector_subsystem.size();
+	
+	for (Int_t i=0; i<num_of_mapfiles_subsystem; i++) 
+	  {
+	    return_maps_TList -> AddLast(new TObjString(mapfiles_vector_subsystem[i]));
+	  }
+	
+	mapfiles_vector_subsystem.clear();
+      }
+    return return_maps_TList;
+  }
+  else {
+    return NULL;
+  }
+};

@@ -162,6 +162,11 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
+    //
+    //  Construct a Tree which contains map file names which are used to analyze data
+    //
+    rootfile->WriteParamFileList("mapfiles", tracking_detectors);
+
     // Create dummy event for branch creation (memory leak when using null)
     QwEvent* event = new QwEvent();
 

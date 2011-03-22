@@ -724,7 +724,7 @@ std::pair<int,int> QwParameterFile::ParseIntRange(const std::string& separatorch
 
 void QwParameterFile::SetParamFilename() 
 {
-  char delimiters[] = "/";
+  Char_t delimiters[] = "/";
   fBestParamFileName = LastString(fBestParamFileNameAndPath, delimiters);  
   return;
 };

@@ -123,6 +123,9 @@ class VQwSubsystem: virtual public VQwCloneable {
                                       VQwDataElement* value) const {
     return kFALSE;
   };
+  
+  virtual std::vector<TString> GetParamFileNameList();
+
 
  protected:
   /// Map of published internal values
@@ -229,6 +232,8 @@ class VQwSubsystem: virtual public VQwCloneable {
   // @}
 
 
+ 
+
   /// \name Expert tree construction and maintenance
   /// These functions are not purely virtual, since not every subsystem is
   /// expected to implement them.  They are intended for expert output to
@@ -268,6 +273,8 @@ class VQwSubsystem: virtual public VQwCloneable {
   /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)
   virtual VQwSubsystem& operator=(VQwSubsystem *value);
 
+
+  virtual void PrintDetectorMaps(Bool_t status);
 
  protected:
 

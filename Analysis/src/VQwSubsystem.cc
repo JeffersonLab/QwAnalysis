@@ -36,7 +36,7 @@ Int_t ERROR = -1;
 
 Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
 {
-  Bool_t local_debug = true;
+  Bool_t local_debug = false;
 
   file.RewindToFileStart();
 
@@ -120,22 +120,7 @@ Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
   //
   // Friday, March 18 15:32:09 EDT 2011, jhlee
 
-  if(local_debug) {
-    printf("\n >>> VQwSubsystem::LoadDetectorMaps Subsytem %s uses the following map files : \n", fSystemName.Data());
-    Int_t total_num = 0;
-    Int_t index = 0;
-    total_num = (Int_t) fDetectorMapsNames.size();
-    if(total_num != 0) {
-      for (index=0; index<total_num; index++) {
-  	printf("   ---> %4d/%d : %s\n", index+1, total_num, fDetectorMapsNames[index].Data());
-      }
-      printf("\n");
-    }
-    else {
-      printf("   ---> No map files\n");
-    }
-  }
-
+  PrintDetectorMaps(local_debug);
 
   return 0;
 }
@@ -397,3 +382,29 @@ VQwSubsystem& VQwSubsystem::operator=(VQwSubsystem *value)
 }
 
 
+
+std::vector<TString> VQwSubsystem::GetParamFileNameList()
+{
+  return fDetectorMapsNames;
+};
+
+void VQwSubsystem::PrintDetectorMaps(Bool_t status)
+{
+  if(status) {
+    printf("\n >>> VQwSubsystem::LoadDetectorMaps Subsytem %s uses the following map files : \n", fSystemName.Data());
+    Int_t total_num = 0;
+    Int_t index = 0;
+    total_num = (Int_t) fDetectorMapsNames.size();
+    if(total_num != 0) {
+      for (index=0; index<total_num; index++) {
+  	printf("   ---> %4d/%d : %s\n", index+1, total_num, fDetectorMapsNames[index].Data());
+      }
+      printf("\n");
+    }
+    else {
+      printf("   ---> No map files\n");
+    }
+  }
+
+  return;
+};

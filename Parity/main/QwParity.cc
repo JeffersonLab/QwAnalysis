@@ -124,6 +124,11 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwRootFile* rootfile = &r;
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
+    //
+    //  Construct a Tree which contains map file names which are used to analyze data
+    //
+    rootfile->WriteParamFileList("mapfiles", detectors);
+
     //  Construct histograms
     rootfile->ConstructHistograms("mps_histo", detectors);
     rootfile->ConstructHistograms("hel_histo", helicitypattern);

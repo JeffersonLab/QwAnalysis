@@ -107,6 +107,7 @@ class QwRootTree {
         exit(-1);
       }
     }
+   
 
     /// Fill the branches for generic objects
     template < class T >
@@ -289,6 +290,10 @@ class QwRootFile {
     /// \brief Fill the tree branches of a generic object by type only
     template < class T >
     void FillTreeBranches(const T& detectors);
+
+
+    template < class T >
+      Int_t WriteParamFileList(const TString& name, T& detectors);
 
 
     /// \brief Construct the histograms of a generic object
@@ -662,6 +667,20 @@ void QwRootFile::ConstructHistograms(const std::string& name, T& detectors)
     //detectors.ConstructHistograms(fDirsByName[name]);
     detectors.ConstructHistograms();
   }
+}
+
+
+template < class T >
+Int_t QwRootFile::WriteParamFileList(const TString &name, T& detectors)
+{
+  Int_t retval = 0;
+  if (fRootFile) {
+    TList *param_list = (TList*) fRootFile->FindObjectAny(name);
+    if (not param_list) {
+      retval = fRootFile->WriteObject(detectors.GetParamFileNameList(name), name);
+    }
+  }
+  return retval;
 }
 
 
