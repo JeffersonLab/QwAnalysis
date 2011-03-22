@@ -1,5 +1,5 @@
 #include "QwVQWK_Channel.h"
-
+ 
 // System headers
 #include <stdexcept>
 
@@ -75,7 +75,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
 
     if (bDEBUG)
-      std::cout<<" QwQWVK_Channel "<<GetElementName()<<"  "<<GetNumberOfSamples()<<std::endl;
+      QwWarning<<" QwQWVK_Channel "<<GetElementName()<<"  "<<GetNumberOfSamples()<<QwLog::endl;
 
     // Sample size check
     bStatus = MatchNumberOfSamples(fNumberOfSamples_map);//compare the default sample size with no.of samples read by the module
@@ -101,7 +101,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     if (!MatchSequenceNumber(fSequenceNo_Prev)){//we have a sequence number error
       fEventIsGood=kFALSE;
       fDeviceErrorCode|=kErrorFlag_Sequence;
-      if (bDEBUG)       std::cout<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number  previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<std::endl;
+      if (bDEBUG)       QwWarning<<" QwQWVK_Channel "<<GetElementName()<<" Sequence number  previous value = "<<fSequenceNo_Prev<<" Current value= "<< GetSequenceNumber()<<QwLog::endl;
     }
 
     fSequenceNo_Counter++;
@@ -116,7 +116,7 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
 
     //check for the hw_sum is giving the same value
     if (fADC_Same_NumEvt>0){//we have ADC stuck with same value
-      if (bDEBUG) std::cout<<" BCM hardware sum is same for more than  "<<fADC_Same_NumEvt<<" time consecutively  "<<std::endl;
+      if (bDEBUG) QwWarning<<" BCM hardware sum is same for more than  "<<fADC_Same_NumEvt<<" time consecutively  "<<QwLog::endl;
       fDeviceErrorCode|=kErrorFlag_SameHW;
     }
 
@@ -124,8 +124,14 @@ Int_t QwVQWK_Channel::ApplyHWChecks()
     if (GetRawHardwareSum()==0){
       fDeviceErrorCode|=kErrorFlag_ZeroHW;
     }
-    if (!fEventIsGood)
+    if (!fEventIsGood)    
       fSequenceNo_Counter=0;//resetting the counter after ApplyHWChecks() a failure
+
+    if ((TMath::Abs(GetRawHardwareSum())*kVQWK_VoltsPerBit/fNumberOfSamples) > GetVQWKSaturationLimt()){
+      if (bDEBUG) 
+	QwWarning << this->GetElementName()<<" "<<GetRawHardwareSum() << "Saturating VQWK invoked! " <<TMath::Abs(GetRawHardwareSum())*kVQWK_VoltsPerBit/fNumberOfSamples<<" Limit "<<GetVQWKSaturationLimt() << QwLog::endl;
+      fDeviceErrorCode|=kErrorFlag_VQWK_Sat; 
+    }
 
   }
   else {
@@ -152,6 +158,8 @@ void QwVQWK_Channel::UpdateErrorCounters(UInt_t error_flag){
     fErrorCount_SameHW++; //increment the hw error counter
   if ( (kErrorFlag_ZeroHW &  error_flag)==kErrorFlag_ZeroHW)
     fErrorCount_ZeroHW++; //increment the hw error counter
+  if ( (kErrorFlag_VQWK_Sat &  error_flag)==kErrorFlag_VQWK_Sat)
+    fErrorCount_HWSat++; //increment the hw saturation error counter
   if ( ((kErrorFlag_EventCut_L &  error_flag)==kErrorFlag_EventCut_L) || ((kErrorFlag_EventCut_U &  error_flag)==kErrorFlag_EventCut_U))
     fNumEvtsWithEventCutsRejected++; //increment the event cut error counter
   
@@ -214,6 +222,8 @@ void QwVQWK_Channel::InitializeChannel(TString name, TString datatosave)
   fErrorCount_Sequence   = 0;
   fErrorCount_SameHW     = 0;
   fErrorCount_ZeroHW     = 0;
+  fErrorCount_HWSat      = 0;
+
 
   fDeviceErrorCode       = 0;
   fDefErrorFlag          = 0;
@@ -1407,12 +1417,7 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
 	fDeviceErrorCode|=kErrorFlag_EventCut_L;
       status=kFALSE;
     }
-    //QwError << GetRawHardwareSum()<< QwLog::endl;
-    //if (GetRawHardwareSum()>117965) // 117965*76.29e-6 = 9V ((1<<18)*9/20)*76.29e-6 = 9V 
-    //{
-    //QwWarning << "Event cut for saturating PMT invoked!" << QwLog::endl;
-    //fDeviceErrorCode|=kErrorFlag_EventCut_Sat;
-    //}
+
     UpdateErrorCounters(fDeviceErrorCode);//update the event cut/HW  error count
     if (bEVENTCUTMODE==3){
       status=kTRUE; //Update the event cut fail flag but pass the event.
@@ -1487,6 +1492,7 @@ void  QwVQWK_Channel::PrintErrorCounterHead(){
   message += " Sequence";
   message += "   SameHW";
   message += "   ZeroHW";
+  message += "   HW Sat";
   message += " EventCut";
   QwMessage << message << QwLog::endl; 
 }
@@ -1501,13 +1507,14 @@ void  QwVQWK_Channel::ReportErrorCounters()
   TString message;
   if (fErrorCount_sample || fErrorCount_SW_HW 
       || fErrorCount_Sequence || fErrorCount_SameHW 
-      || fErrorCount_ZeroHW || fNumEvtsWithEventCutsRejected){
+      || fErrorCount_ZeroHW || fErrorCount_HWSat || fNumEvtsWithEventCutsRejected){
     message  = Form("%-20s\t",GetElementName().Data());
     message += Form(" %8d", fErrorCount_sample);
     message += Form(" %8d", fErrorCount_SW_HW);
     message += Form(" %8d", fErrorCount_Sequence);
     message += Form(" %8d", fErrorCount_SameHW);
     message += Form(" %8d", fErrorCount_ZeroHW);
+    message += Form(" %8d", fErrorCount_HWSat);
     message += Form(" %8d", fNumEvtsWithEventCutsRejected);
     
     if((fDataToSave == kRaw) && (!kFoundPedestal||!kFoundGain)){

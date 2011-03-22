@@ -49,10 +49,12 @@ class QwVQWK_Channel: public VQwDataElement {
  public:
   QwVQWK_Channel() {
     InitializeChannel("","");
+    SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
 
   QwVQWK_Channel(TString name, TString datatosave = "raw") {
     InitializeChannel(name, datatosave);
+    SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
   virtual ~QwVQWK_Channel() {
     //DeleteHistograms();
@@ -175,6 +177,15 @@ class QwVQWK_Channel: public VQwDataElement {
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
   }
+
+  void SetVQWKSaturationLimt(Double_t sat_volts=8.5){//Set the absolute staturation limit in volts.
+    fSaturationABSLimit=sat_volts;
+  }
+
+  Double_t GetVQWKSaturationLimt(){//Get the absolute staturation limit in volts.
+    return fSaturationABSLimit;
+  }
+
 
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
@@ -335,6 +346,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Int_t fErrorCount_Sequence; // sequence number check
   Int_t fErrorCount_SameHW;   // check to see ADC returning same HW value
   Int_t fErrorCount_ZeroHW;   // check to see ADC returning zero
+  Int_t fErrorCount_HWSat;   // check to see ADC channel is saturated
 
 
 
@@ -354,6 +366,8 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fULimit, fLLimit;//this sets the upper and lower limits on the VQWK_Channel::fHardwareBlockSum
   Double_t fStability;//how much deviaton from the stable reading is allowed
 
+  Double_t fSaturationABSLimit;//absolute value of the VQWK saturation volt
+
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
 
@@ -368,7 +382,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   UInt_t fDefErrorFlag;
   
-
+  
 
 
 };
