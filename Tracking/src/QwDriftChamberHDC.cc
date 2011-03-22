@@ -37,12 +37,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
 
-  QwDetectorInfo local_region2_detector;
-
   fDetectorInfo.clear();
-  fDetectorInfo.resize(kNumPackages);
-
-  //  Int_t pkg,pln;
 
 
   DIRMODE=0;
@@ -93,71 +88,54 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
               << " Region "      << region << QwLog::endl;
 
       if (region==2){
-	    local_region2_detector.SetDetectorInfo(
-						   dType, 
-						   Zpos, 
-						   rot, 
-						   sp_res, 
-						   track_res, 
-						   slope_match, 
-						   package, 
-						   region, 
-						   direction, 
-						   Det_originX, Det_originY, 
-						   ActiveWidthX, ActiveWidthY, ActiveWidthZ, 
-						   WireSpace, 
-						   FirstWire, 
-						   W_rcos, W_rsin, 
-						   TotalWires, 
-						   detectorId
-						   );
-
-	    if      (package == "u") fDetectorInfo.at(kPackageUp).push_back(local_region2_detector);
-	    else if (package == "d") fDetectorInfo.at(kPackageDown).push_back(local_region2_detector);
-      }
+            QwDetectorInfo* detector = new QwDetectorInfo();
+	    detector->SetDetectorInfo(dType, Zpos,
+	        rot, sp_res, track_res, slope_match,
+	        package, region, direction,
+	        Det_originX, Det_originY,
+	        ActiveWidthX, ActiveWidthY, ActiveWidthZ,
+	        WireSpace, FirstWire,
+	        W_rcos, W_rsin,
+	        TotalWires,
+	        detectorId);
+	    fDetectorInfo.push_back(detector);
+	}
     }
 
   }
 
-  QwMessage << "Loaded Qweak Geometry"<<" Total Detectors in kPackageUP "
-	    << fDetectorInfo.at ( kPackageUp ).size()
-	    << ", "
-	    << "kPackagDown "
-	    << fDetectorInfo.at ( kPackageDown ).size()
-	    << QwLog::endl;
+  QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
+      << fDetectorInfo.in(kPackageUp).size()
+      << ", "
+      << "kPackagDown "
+      << fDetectorInfo.in(kPackageDown).size()
+      << QwLog::endl;
 
   QwMessage << "Sorting detector info..." << QwLog::endl;
 
-  std::size_t i = 0;
-
-  std::sort(fDetectorInfo.at(kPackageUp).begin(), fDetectorInfo.at(kPackageUp).end());
   plane = 1;
-  for ( i=0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
-    fDetectorInfo.at(kPackageUp).at(i).fPlane = plane++;
-    QwMessage << " kPackageUp Region " << fDetectorInfo.at(kPackageUp).at(i).fRegion 
-	      << " Detector ID " << fDetectorInfo.at(kPackageUp).at(i).fDetectorID 
-	      << QwLog::endl;
+  QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
+  for (size_t i = 0; i < detector_info_up.size(); i++)
+  {
+    detector_info_up.at(i)->fPlane = plane++;
+    QwMessage << " kPackageUp Region " << detector_info_up.at(i)->fRegion
+        << " Detector ID " << detector_info_up.at(i)->fDetectorID
+        << QwLog::endl;
   }
 
   plane = 1;
-  std::sort(fDetectorInfo.at(kPackageDown).begin(), fDetectorInfo.at(kPackageDown).end());
-  for ( i=0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
-    fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
-    QwMessage << " kPackageDown Region " << fDetectorInfo.at(kPackageDown).at(i).fRegion 
-	      << " Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID 
-	      << QwLog::endl;
+  QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+  for (size_t i = 0; i < detector_info_down.size(); i++)
+  {
+    detector_info_down.at(i)->fPlane = plane++;
+    QwMessage << " kPackageDown Region " << detector_info_down.at(i)->fRegion
+        << " Detector ID " << detector_info_down.at(i)->fDetectorID
+        << QwLog::endl;
   }
 
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
 
-
-
-
-
-
-
   return OK;
-
 }
 
 
@@ -504,7 +482,7 @@ void  QwDriftChamberHDC::ProcessEvent()
 
   SubtractReferenceTimes();
 
-  Int_t package = 0;
+  EQwDetectorPackage package = kPackageNull;
   Int_t plane   = 0;
 
   QwDetectorID local_id;
@@ -521,7 +499,7 @@ void  QwDriftChamberHDC::ProcessEvent()
     package    = local_id.fPackage;
     plane      = local_id.fPlane - 1;
     // ahha, here is a hidden magic number 1.
-    local_info = & fDetectorInfo.at(package).at(plane);
+    local_info = fDetectorInfo.in(package).at(plane);
     hit->SetDetectorInfo(local_info);
 //     std::cout << "Plane: " << plane+1 << " " << hit->fDirection << std::endl;
     //     hit->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));

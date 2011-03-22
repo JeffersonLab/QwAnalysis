@@ -51,17 +51,7 @@ class QwDriftChamber: public VQwSubsystemTracking{
 
   /*  Member functions derived from VQwSubsystem. */
 
-
- 
- 
-  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info) //will update the detector_info from the fDetectorInfo data.
-  {
-    detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
-    return 1;
-  };
   virtual Int_t LoadInputParameters(TString mapfile){return 0;};
- 
-
  
 
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -224,7 +214,6 @@ class QwDriftChamber: public VQwSubsystemTracking{
   std::vector< std::vector< QwDetectorID   > > fTDCPtrs; 
   // Indexed by TDC_index and Channel; gives the package, plane and wire assignment.
   std::vector< std::vector< QwDetectorInfo > > fWireData;
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; 
   // Indexed by package, plane this contains detector geometry information for each region;
 
   std::vector< std::vector< UInt_t >         > fDirectionData; 

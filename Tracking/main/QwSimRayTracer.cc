@@ -51,30 +51,12 @@ int main (int argc, char* argv[])
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH") + "/setupfiles");
   QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
 
-  /// For the tracking analysis we create the QwSubsystemArrayTracking list
-  /// which contains the VQwSubsystemTracking objects.
-  QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking();
+  ///  Load the tracking detectors from file
+  QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking(gQwOptions);
+  detectors->ProcessOptions(gQwOptions);
 
-  // Region 1 GEM
-  detectors->push_back(new QwGasElectronMultiplier("R1"));
-  detectors->GetSubsystemByName("R1")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R1"))->LoadGeometryDefinition("qweak_new.geo");
-
-  // Region 2 HDC
-  detectors->push_back(new QwDriftChamberHDC("R2"));
-  detectors->GetSubsystemByName("R2")->LoadChannelMap("qweak_cosmics_hits.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R2"))->LoadGeometryDefinition("qweak_new.geo");
-
-  // Region 3 VDC
-  detectors->push_back(new QwDriftChamberVDC("R3"));
-  detectors->GetSubsystemByName("R3")->LoadChannelMap("TDCtoDL.map");
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R3"))->LoadGeometryDefinition("qweak_new.geo");
-
-  // Get vector with detector info (by region, plane number)
-  std::vector< std::vector< QwDetectorInfo > > detector_info;
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R2"))->GetDetectorInfo(detector_info);
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R3"))->GetDetectorInfo(detector_info);
-  ((VQwSubsystemTracking*) detectors->GetSubsystemByName("R1"))->GetDetectorInfo(detector_info);
+  // Get detector geometry
+  QwGeometry geometry = detectors->GetGeometry();
 
   /// Create a track filter
   QwBridgingTrackFilter* trackfilter = new QwBridgingTrackFilter();
@@ -105,7 +87,7 @@ int main (int argc, char* argv[])
 
 
   /// Load the simulated event file
-  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(detector_info);
+  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(geometry);
   treebuffer->ProcessOptions(gQwOptions);
 
   ///  Start loop over all runs

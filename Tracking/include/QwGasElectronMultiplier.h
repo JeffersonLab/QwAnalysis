@@ -46,12 +46,6 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwCloneable<
   Int_t LoadInputParameters(TString mapfile);
   Int_t LoadGeometryDefinition(TString mapfile);
 
-  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info)
-  {//will update the detector_info from the fDetectorInfo data.
-    detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
-    return 1;
-  };
-
   void  ClearEventData();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -102,8 +96,6 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwCloneable<
   Int_t  fCurrentSlot;
 
   std::vector< QwHit > fHits;
-
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
 
   Int_t fVFATChannel[N_VFAT][12];//stores VFAT data words during an event
   Int_t fBuffer_VFAT[N_VFAT][192];//Set VFAT channels to 1 or 0 based on VFAT data in the fVFATChannel[][] array

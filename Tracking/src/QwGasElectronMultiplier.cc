@@ -79,7 +79,6 @@ Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
   QwDetectorInfo temp_Detector;
 
   fDetectorInfo.clear();
-  fDetectorInfo.resize(kNumPackages);
 
   DIRMODE = 0;
 
@@ -124,32 +123,40 @@ Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
 
       if (region==1){
-	temp_Detector.SetDetectorInfo(dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId);
-	if (package == "u")       fDetectorInfo.at(kPackageUp).push_back(temp_Detector);
-	else if (package == "d")  fDetectorInfo.at(kPackageDown).push_back(temp_Detector);
+        QwDetectorInfo* detector = new QwDetectorInfo();
+        detector->SetDetectorInfo(dType, Zpos,
+            rot, sp_res, track_res, slope_match,
+            package, region, direction,
+            Det_originX, Det_originY,
+            ActiveWidthX, ActiveWidthY, ActiveWidthZ,
+            WireSpace, FirstWire,
+            W_rcos, W_rsin,
+            TotalWires,
+            detectorId);
+        fDetectorInfo.push_back(detector);
       }
     }
   }
 
-  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_u 1 "<<fDetectorInfo.at(kPackageUp).size()<< " pkg_d 2 "<<fDetectorInfo.at(kPackageDown).size()<<std::endl;
+  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_u 1 "<<fDetectorInfo.in(kPackageUp).size()<< " pkg_d 2 "<<fDetectorInfo.in(kPackageDown).size()<<std::endl;
 
   std::cout << "Sorting detector info..." << std::endl;
+  QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
   plane = 1;
-  std::sort(fDetectorInfo.at(kPackageUp).begin(),
-            fDetectorInfo.at(kPackageUp).end());//sort by Z position
-  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
-    fDetectorInfo.at(kPackageUp).at(i).fPlane = plane++;
-    std::cout<<" Region "<<fDetectorInfo.at(kPackageUp).at(i).fRegion<<" Detector ID "<<fDetectorInfo.at(kPackageUp).at(i).fDetectorID << std::endl;
+  for (size_t i = 0; i < detector_info_up.size(); i++) {
+    detector_info_up.at(i)->fPlane = plane++;
+    std::cout <<" Region "<< detector_info_up.at(i)->fRegion
+        <<" Detector ID "<< detector_info_up.at(i)->fDetectorID
+        << std::endl;
   }
 
   plane = 1;
-  std::sort(fDetectorInfo.at(kPackageDown).begin(),
-            fDetectorInfo.at(kPackageDown).end());
-  for (UInt_t i = 0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
-    fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
-    std::cout<<" Region " << fDetectorInfo.at(kPackageDown).at(i).fRegion
-	     <<" Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID
-	     << std::endl;
+  QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+  for (size_t i = 0; i < detector_info_down.size(); i++) {
+    detector_info_down.at(i)->fPlane = plane++;
+    std::cout <<" Region " << detector_info_down.at(i)->fRegion
+        <<" Detector ID " << detector_info_down.at(i)->fDetectorID
+        << std::endl;
   }
 
   std::cout<<"Qweak Region 1 GEM Geometry Loaded "<<std::endl;
@@ -411,12 +418,12 @@ void  QwGasElectronMultiplier::ProcessEvent()
   for(std::vector<QwHit>::iterator hit1=fGEMHits.begin(); hit1!=fGEMHits.end(); hit1++) {
 
     QwDetectorID local_id = hit1->GetDetectorID();
-    int package = local_id.fPackage;
+    EQwDetectorPackage package = local_id.fPackage;
     int plane = local_id.fPlane;
 
     //Detectors are ordered in Up, radial(R), up  transverse(Y), down radial(R) , down transverse(Y)
-    QwDetectorInfo* local_info0 = & fDetectorInfo.at(package).at(0);//each package has two planes (R and Y)
-    QwDetectorInfo* local_info1 = & fDetectorInfo.at(package).at(1);
+    QwDetectorInfo* local_info0 = fDetectorInfo.in(package).in(kDirectionR).at(0);//each package has two planes (R and Y)
+    QwDetectorInfo* local_info1 = fDetectorInfo.in(package).in(kDirectionY).at(0);
     if (local_info0->GetElementDirection()==local_id.fPlane){
       hit1->SetDetectorInfo(local_info0);
       if (bDEBUG_Hitlist) std::cout<<"Package "<<package<<" Det Plane "<<plane<<" Module  "<<hit1->fModule<<" Channel  "<<hit1->fChannel<<" Direction "<<hit1->GetDirection()<<" Strip "<<hit1->GetElement() <<std::endl;

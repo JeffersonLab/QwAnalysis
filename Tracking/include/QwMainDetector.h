@@ -43,11 +43,6 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDet
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadGeometryDefinition(TString mapfile);
-  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info)
-  {
-    detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
-    return 1;
-  };
   Int_t LoadInputParameters(TString mapfile){return 0;};
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -131,8 +126,6 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDet
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
   std::vector<QwSIS3801_Module*> fSCAs;
-
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
 
   // For reference time substraction
   Int_t reftime_slotnum;

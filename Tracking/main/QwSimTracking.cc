@@ -80,30 +80,18 @@ int main (int argc, char* argv[])
   ///  Setup screen and file logging
   gQwLog.ProcessOptions(&gQwOptions);
 
-  /// For the tracking analysis we create the QwSubsystemArrayTracking list
-  /// which contains the VQwSubsystemTracking objects.
+  ///  Load the tracking detectors from file
   QwSubsystemArrayTracking* detectors = new QwSubsystemArrayTracking(gQwOptions);
+  detectors->ProcessOptions(gQwOptions);
 
-  // Get vector with detector info (by region, plane number)
-  std::vector< std::vector< QwDetectorInfo > > detector_info;
-  detectors->GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("TS")->GetDetectorInfo(detector_info);
-  detectors->GetSubsystemByName("MD")->GetDetectorInfo(detector_info);
-  // TODO This is handled incorrectly, it just adds the three package after the
-  // existing three packages from region 2...  GetDetectorInfo should descend
-  // into the packages and add only the detectors in those packages.
-  // Alternatively, we could implement this with a singly indexed vector (with
-  // only an id as primary index) and write a couple of helper functions to
-  // select the right subvectors of detectors.
+  // Get detector geometry
+  QwGeometry geometry = detectors->GetGeometry();
 
   // Load the geometry
   Qset qset;
   qset.FillDetectors((getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/qweak.geo").c_str());
   qset.LinkDetectors();
   qset.DeterminePlanes();
-  std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
 
   /// Create a timer
   TStopwatch timer;
@@ -122,7 +110,7 @@ int main (int argc, char* argv[])
   PrintInfo(timer);
 
   /// Create the event buffer
-  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(detector_info);
+  QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(geometry);
   treebuffer->ProcessOptions(gQwOptions);
   treebuffer->SetEntriesPerEvent(1);
 

@@ -122,10 +122,7 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     {
       return 0;
     };
-    Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info)
-    {
-      return 0;
-    };
+
     Int_t LoadInputParameters(TString parameterfile);
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     void  InitializeChannel(TString name, TString datatosave);

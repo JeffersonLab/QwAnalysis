@@ -41,10 +41,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	Double_t ActiveWidthX, ActiveWidthY, ActiveWidthZ;
 	Double_t WireSpace, FirstWire, W_rcos, W_rsin;
 
-	QwDetectorInfo local_region3_detector;
-
 	fDetectorInfo.clear();
-	fDetectorInfo.resize ( kNumPackages );
 
 	DIRMODE=0;
 
@@ -99,59 +96,48 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 
 			if ( region==3 )
 			{
-				local_region3_detector.SetDetectorInfo (
-				    dType,
-				    Zpos,
-				    rot,
-				    sp_res,
-				    track_res,
-				    slope_match,
-				    package,
-				    region,
-				    direction,
-				    Det_originX, Det_originY,
-				    ActiveWidthX, ActiveWidthY, ActiveWidthZ,
-				    WireSpace,
-				    FirstWire,
-				    W_rcos, W_rsin,
-				    TotalWires,
-				    detectorId
-				);
-				if ( package == "u" ) fDetectorInfo.at ( kPackageUp ).push_back ( local_region3_detector );
-				else if ( package == "d" ) fDetectorInfo.at ( kPackageDown ).push_back ( local_region3_detector );
+		            QwDetectorInfo* detector = new QwDetectorInfo();
+		            detector->SetDetectorInfo(dType, Zpos,
+		                rot, sp_res, track_res, slope_match,
+		                package, region, direction,
+		                Det_originX, Det_originY,
+		                ActiveWidthX, ActiveWidthY, ActiveWidthZ,
+		                WireSpace, FirstWire,
+		                W_rcos, W_rsin,
+		                TotalWires,
+		                detectorId);
+		            fDetectorInfo.push_back(detector);
 			}
 		}
 	}
 
-	QwMessage << "Loaded Qweak Geometry"<<" Total Detectors in kPackageUP "
-	<< fDetectorInfo.at ( kPackageUp ).size()
-	<< ", "
-	<< "kPackagDown "
-	<< fDetectorInfo.at ( kPackageDown ).size()
-	<< QwLog::endl;
+	QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
+	    << fDetectorInfo.in(kPackageUp).size()
+	    << ", "
+	    << "kPackagDown "
+	    << fDetectorInfo.in(kPackageDown).size()
+	    << QwLog::endl;
 
 	QwMessage << "Sorting detector info..." << QwLog::endl;
 
-	std::size_t i = 0;
-
-	std::sort ( fDetectorInfo.at ( kPackageUp ).begin(), fDetectorInfo.at ( kPackageUp ).end() );
 	plane = 1;
-	for ( i=0; i < fDetectorInfo.at ( kPackageUp ).size(); i++ )
+	QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
+	for (size_t i = 0; i < detector_info_up.size(); i++)
 	{
-		fDetectorInfo.at ( kPackageUp ).at ( i ).fPlane = plane++;
-		QwMessage << " kPackageUp Region " << fDetectorInfo.at ( kPackageUp ).at ( i ).fRegion
-		<< " Detector ID " << fDetectorInfo.at ( kPackageUp ).at ( i ).fDetectorID
-		<< QwLog::endl;
+	  detector_info_up.at(i)->fPlane = plane++;
+	  QwMessage << " kPackageUp Region " << detector_info_up.at(i)->fRegion
+	      << " Detector ID " << detector_info_up.at(i)->fDetectorID
+	      << QwLog::endl;
 	}
 
 	plane = 1;
-	std::sort ( fDetectorInfo.at ( kPackageDown ).begin(), fDetectorInfo.at ( kPackageDown ).end() );
-	for ( i=0; i < fDetectorInfo.at ( kPackageDown ).size(); i++ )
+        QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+	for (size_t i = 0; i < detector_info_down.size(); i++)
 	{
-		fDetectorInfo.at ( kPackageDown ).at ( i ).fPlane = plane++;
-		QwMessage << " kPackageDown Region " << fDetectorInfo.at ( kPackageDown ).at ( i ).fRegion
-		<< " Detector ID " << fDetectorInfo.at ( kPackageDown ).at ( i ).fDetectorID
-		<< QwLog::endl;
+	  detector_info_down.at(i)->fPlane = plane++;
+	  QwMessage << " kPackageDown Region " << detector_info_down.at(i)->fRegion
+	      << " Detector ID " << detector_info_down.at(i)->fDetectorID
+	      << QwLog::endl;
 	}
 
 	QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
@@ -897,7 +883,7 @@ void QwDriftChamberVDC::ProcessEvent()
 					NewQwHit.SetTime ( real_time );
 
 
-					QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( plane -1 );
+					const QwDetectorInfo* local_info = fDetectorInfo.in(package).at(plane-1);
 					NewQwHit.SetDetectorInfo ( local_info );
 					fWireData.at ( 4* ( package-1 ) +plane ).at ( wire_hit-1 ).PushHit ( ( Int_t ) real_time );
 

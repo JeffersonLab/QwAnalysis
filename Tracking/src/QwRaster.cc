@@ -32,9 +32,11 @@ QwRaster::QwRaster(TString region_tmp)
 
 QwRaster::~QwRaster()
 {
-    fSCAs.clear();
-    fPMTs.clear();
-    //DeleteHistograms();
+  fPMTs.clear();
+  for (size_t i = 0; i < fSCAs.size(); i++)
+    delete fSCAs.at(i);
+  fSCAs.clear();
+  //DeleteHistograms();
 }
 
 

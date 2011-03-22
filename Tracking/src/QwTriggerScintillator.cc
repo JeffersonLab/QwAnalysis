@@ -45,10 +45,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
   Double_t Zpos,rot,sp_res,track_res,slope_match,Det_originX,Det_originY,
     ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
 
-  QwDetectorInfo temp_Detector;
-
   fDetectorInfo.clear();
-  fDetectorInfo.resize ( kNumPackages );
 
   DIRMODE=0;
 
@@ -93,38 +90,51 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
 
       if ( region==4 ) {
-        temp_Detector.SetDetectorInfo ( dType, Zpos, rot, sp_res, track_res, slope_match, package, region, direction, Det_originX, Det_originY, ActiveWidthX, ActiveWidthY, ActiveWidthZ, WireSpace, FirstWire, W_rcos, W_rsin, TotalWires, detectorId );
-
-      if ( package == "u" )
-        fDetectorInfo.at ( kPackageUp ).push_back ( temp_Detector );
-      else if ( package == "d" )
-        fDetectorInfo.at ( kPackageDown ).push_back ( temp_Detector );
+        QwDetectorInfo* detector = new QwDetectorInfo();
+        detector->SetDetectorInfo(dType, Zpos,
+            rot, sp_res, track_res, slope_match,
+            package, region, direction,
+            Det_originX, Det_originY,
+            ActiveWidthX, ActiveWidthY, ActiveWidthZ,
+            WireSpace, FirstWire,
+            W_rcos, W_rsin,
+            TotalWires,
+            detectorId);
+        fDetectorInfo.push_back(detector);
       }
     }
   }
 
-  std::cout<<"Loaded Qweak Geometry"<<" Total Detectors in pkg_d 1 "<<fDetectorInfo.at ( kPackageUp ).size() << " pkg_d 2 "<<fDetectorInfo.at ( kPackageDown ).size() <<std::endl;
+  QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
+      << fDetectorInfo.in(kPackageUp).size()
+      << ", "
+      << "kPackagDown "
+      << fDetectorInfo.in(kPackageDown).size()
+      << QwLog::endl;
 
-  std::cout << "Sorting detector info..." << std::endl;
+  QwMessage << "Sorting detector info..." << QwLog::endl;
+
   plane = 1;
-  std::sort ( fDetectorInfo.at ( kPackageUp ).begin(),
-	      fDetectorInfo.at ( kPackageUp ).end() );
-
-  UInt_t i = 0;
-  for ( i = 0; i < fDetectorInfo.at ( kPackageUp ).size(); i++ ) {
-    fDetectorInfo.at ( kPackageUp ).at ( i ).fPlane = plane++;
-    std::cout<<" Region "<<fDetectorInfo.at ( kPackageUp ).at ( i ).fRegion<<" Detector ID "<<fDetectorInfo.at ( kPackageUp ).at ( i ).fDetectorID << std::endl;
+  QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
+  for (size_t i = 0; i < detector_info_up.size(); i++)
+  {
+    detector_info_up.at(i)->fPlane = plane++;
+    QwMessage << " kPackageUp Region " << detector_info_up.at(i)->fRegion
+        << " Detector ID " << detector_info_up.at(i)->fDetectorID
+        << QwLog::endl;
   }
 
   plane = 1;
-  std::sort ( fDetectorInfo.at ( kPackageDown ).begin(),
-	      fDetectorInfo.at ( kPackageDown ).end() );
-  for ( i = 0; i < fDetectorInfo.at ( kPackageDown ).size(); i++ ) {
-    fDetectorInfo.at ( kPackageDown ).at ( i ).fPlane = plane++;
-    std::cout<<" Region "<<fDetectorInfo.at ( kPackageDown ).at ( i ).fRegion<<" Detector ID " << fDetectorInfo.at ( kPackageDown ).at ( i ).fDetectorID << std::endl;
+  QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+  for (size_t i = 0; i < detector_info_down.size(); i++)
+  {
+    detector_info_down.at(i)->fPlane = plane++;
+    QwMessage << " kPackageDown Region " << detector_info_down.at(i)->fRegion
+        << " Detector ID " << detector_info_down.at(i)->fDetectorID
+        << QwLog::endl;
   }
 
-  std::cout<<"Qweak Geometry Loaded "<<std::endl;
+  QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
 
   return 0;
 }

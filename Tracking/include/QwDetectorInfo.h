@@ -15,6 +15,7 @@
 
 // Qweak headers
 #include "QwTypes.h"
+#include "QwLog.h"
 
 ///
 /// \ingroup QwTracking
@@ -225,7 +226,7 @@ inline bool operator< (const QwDetectorInfo& lhs, const QwDetectorInfo& rhs) {
  *
  *  \brief Collection of QwDetectorInfo pointers that specifies an experimental geometry
  */
-class QwGeometry: public std::vector<const QwDetectorInfo*> {
+class QwGeometry: public std::vector<QwDetectorInfo*> {
 
   private:
 
@@ -237,22 +238,30 @@ class QwGeometry: public std::vector<const QwDetectorInfo*> {
   public:
 
     /// Default constructor
-    QwGeometry() { };
+    QwGeometry() { clear(); };
     /// Copy constructor
-    QwGeometry(const QwGeometry& that): std::vector<const QwDetectorInfo*>(that) { };
+    QwGeometry(const QwGeometry& that): std::vector<QwDetectorInfo*>(that) { };
     /// Virtual destructor
     virtual ~QwGeometry() { };
 
     /// Assignment operator
     QwGeometry& operator=(const QwGeometry& that) {
-      clear();
-      push_back(that);
+      if (this != &that) {
+        clear();
+        push_back(that);
+      }
       return *this;
     }
 
+    /// Add single detector object
+    void push_back(QwDetectorInfo& detector) {
+      std::vector<QwDetectorInfo*>::push_back(&detector);
+      std::sort(begin(),end(),compare());
+    }
+
     /// Add single detector pointer
-    void push_back(const QwDetectorInfo* detector) {
-      std::vector<const QwDetectorInfo*>::push_back(detector);
+    void push_back(QwDetectorInfo* detector) {
+      std::vector<QwDetectorInfo*>::push_back(detector);
       std::sort(begin(),end(),compare());
     }
 
@@ -260,20 +269,20 @@ class QwGeometry: public std::vector<const QwDetectorInfo*> {
     void push_back(const QwGeometry& detectors) {
       QwGeometry::const_iterator i;
       for (i = detectors.begin(); i != detectors.end(); i++)
-        std::vector<const QwDetectorInfo*>::push_back(*i);
+        std::vector<QwDetectorInfo*>::push_back(*i);
       std::sort(begin(),end(),compare());
     }
 
     /// Add vector of detectors
-    void push_back(const std::vector<QwDetectorInfo>& detectors) {
-      std::vector<QwDetectorInfo>::const_iterator i;
+    void push_back(std::vector<QwDetectorInfo>& detectors) {
+      std::vector<QwDetectorInfo>::iterator i;
       for (i = detectors.begin(); i != detectors.end(); i++)
-        std::vector<const QwDetectorInfo*>::push_back(&(*i));
+        std::vector<QwDetectorInfo*>::push_back(&(*i));
       std::sort(begin(),end(),compare());
     }
 
     /// Get detectors in given region
-    const QwGeometry In(const EQwRegionID& r) const {
+    const QwGeometry in(const EQwRegionID& r) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
         if ((*i)->fRegion == r)
@@ -282,7 +291,7 @@ class QwGeometry: public std::vector<const QwDetectorInfo*> {
     }
 
     /// Get detectors in given package
-    const QwGeometry In(const EQwDetectorPackage& p) const {
+    const QwGeometry in(const EQwDetectorPackage& p) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
         if ((*i)->fPackage == p)
@@ -291,7 +300,7 @@ class QwGeometry: public std::vector<const QwDetectorInfo*> {
     }
 
     /// Get detectors in given direction
-    const QwGeometry In(const EQwDirectionID& d) const {
+    const QwGeometry in(const EQwDirectionID& d) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
         if ((*i)->fDirection == d)
@@ -300,7 +309,7 @@ class QwGeometry: public std::vector<const QwDetectorInfo*> {
     }
 
     /// Get detectors of given type
-    const QwGeometry Of(const EQwDetectorType& t) const {
+    const QwGeometry of(const EQwDetectorType& t) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
         if ((*i)->fType == t)
@@ -309,7 +318,7 @@ class QwGeometry: public std::vector<const QwDetectorInfo*> {
     }
 
     /// Get detectors like specified detector (same region, same package, same type)
-    const QwGeometry Like(const QwDetectorInfo* d) const {
+    const QwGeometry as(const QwDetectorInfo* d) const {
       QwGeometry results;
       for (const_iterator i = begin(); i != end(); i++)
         if ((*i)->fPackage == d->fPackage
@@ -333,7 +342,10 @@ class QwGeometry: public std::vector<const QwDetectorInfo*> {
 inline std::ostream& operator<< (std::ostream& stream, const QwGeometry& detectors)
 {
   for (QwGeometry::const_iterator i = detectors.begin(); i != detectors.end(); i++)
-    stream << *(*i) << std::endl;
+    if (*i)
+      stream << *(*i) << std::endl;
+    else
+      stream << "(null)" << std::endl;
   return stream;
 }
 
