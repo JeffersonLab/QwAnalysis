@@ -6,13 +6,13 @@ Bank=0x0207
 ROC=2
 Bank=0x210
 ! module.type, module.num  chan.num, det.type, det.name
-SIS3801D24, 0, 0x0, scaler, sca_edet_rate0x210
+SIS3801D24, 0, 0x0, scaler, sca_edet_4MHzRefClk
 SIS3801D24, 0, 0x1, scaler, sca_edet_rate0x211
-SIS3801D24, 0, 0x2, scaler, sca_edet_rate0x212
+SIS3801D24, 0, 0x2, scaler, sca_edet_mps
 SIS3801D24, 0, 0x3, scaler, sca_edet_rate0x213
 SIS3801D24, 0, 0x4, scaler, sca_edet_bcm1
 SIS3801D24, 0, 0x5, scaler, sca_edet_rate0x215
-SIS3801D24, 0, 0x6, scaler, sca_edet_rate0x216
+SIS3801D24, 0, 0x6, scaler, sca_edet_quartet
 SIS3801D24, 0, 0x7, scaler, sca_edet_rate0x217
 SIS3801D24, 0, 0x8, scaler, sca_edet_rate0x218
 SIS3801D24, 0, 0x9, scaler, sca_edet_rate0x219
