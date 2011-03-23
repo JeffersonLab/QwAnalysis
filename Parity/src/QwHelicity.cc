@@ -273,7 +273,7 @@ UInt_t QwHelicity::GetEventcutErrorFlag(){//return the error flag
 void QwHelicity::ProcessEventUserbitMode()
 {
 
-  /** In this version of the code, the helicty is extracted for a userbit configuration.
+  /** In this version of the code, the helicity is extracted for a userbit configuration.
       This is not what we plan to have for Qweak but it was done for injector tests and 
       so is usefull to have as another option to get helicity information. */
   
@@ -477,8 +477,9 @@ void QwHelicity::ProcessEventInputMollerMode()
 
 void  QwHelicity::ProcessEvent()
 {
-
   Bool_t ldebug = kFALSE;
+
+  if (! HasDataLoaded()) return;
 
   switch (fHelicityDecodingMode)
     {
@@ -832,15 +833,16 @@ Int_t QwHelicity::LoadEventCuts(TString filename){
   return 0;
 }
 
-Int_t QwHelicity::ProcessEvBuffer(UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
+Int_t QwHelicity::ProcessEvBuffer(UInt_t event_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
-  Bool_t lkDEBUG=kFALSE;
+  Bool_t lkDEBUG = kFALSE;
 
-  fEventType = ev_type;
- 
+  if (((0x1 << (event_type - 1)) & this->GetEventTypeMask()) == 0)
+    return 0;
+  fEventType = event_type;
+
   Int_t index = GetSubbankIndex(roc_id,bank_id);
-
-  if (index>=0 && num_words>0) {
+  if (index >= 0 && num_words > 0) {
     SetDataLoaded(kTRUE);
     //  We want to process this ROC.  Begin loopilooping through the data.
     QwDebug << "QwHelicity::ProcessEvBuffer:  "

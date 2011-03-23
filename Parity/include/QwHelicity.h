@@ -81,14 +81,16 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   void ProcessOptions(QwOptions &options);
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadInputParameters(TString pedestalfile);
-  Int_t LoadEventCuts(TString  filename);//Loads event cuts applicabale to QwHelicity class, derived from VQwSubsystemParity
+  Int_t LoadEventCuts(TString  filename);//Loads event cuts applicable to QwHelicity class, derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//Apply event cuts in the QwHelicity class, derived from VQwSubsystemParity
-  Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure, derived from VQwSubsystemParity
+  Int_t  GetEventcutErrorCounters();// report number of events failed due to HW and event cut failure, derived from VQwSubsystemParity
   UInt_t  GetEventcutErrorFlag();//return the error flag
 
   Int_t  ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
 				   UInt_t* buffer, UInt_t num_words);
-  Int_t  ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){return ProcessEvBuffer(0,roc_id,bank_id,buffer,num_words);};
+  Int_t  ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words) {
+    return ProcessEvBuffer(0x1,roc_id,bank_id,buffer,num_words);
+  };
   Int_t  ProcessEvBuffer(UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   void   ProcessEventUserbitMode();//ProcessEvent has two modes Userbit and Inputregister modes
   void   ProcessEventInputRegisterMode();
@@ -131,7 +133,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   VQwSubsystem&  operator+=  (VQwSubsystem *value);
   void  Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
 
-  //the following functions do nothing really : adding and sutracting helicity doesn't mean anything
+  //the following functions do nothing really : adding and subtracting helicity doesn't mean anything
   VQwSubsystem& operator-= (VQwSubsystem *value) {return *this;};
   void  Scale(Double_t factor) {return;};
   void  Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
@@ -245,7 +247,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   UInt_t n_ranbits; //counts how many ranbits we have collected
   UInt_t iseed_Actual; //stores the random seed for the helicity predictor
   UInt_t iseed_Delayed;
-  //stores the random seed to predict the reported helcity
+  //stores the random seed to predict the reported helicity
   Int_t fHelicityDelay;
   //number of events the helicity is delayed by before being reported
   //static const Int_t MaxPatternPhase =4;
