@@ -4,14 +4,17 @@
 // Date:     Mar. 18, 2011
 //
 // Function: draw scanner rate map
-// Usage:    root scan_ratemap.C, then input run number, data segment number
-//           and module type for position measurement
+// Usage:    root scan_ratemap.C, then input rootfile prefix, run number,
+//           data segment number and module type for position measurement
 
 {
 
-  Int_t run_num, start_seg, end_seg, module, beam_current;
+  Int_t rootfile_prefix, run_num, start_seg, end_seg, module, beam_current;
   TString cut;
   cout<<"Draw scanner rate maps and profiles\n";
+  cout<<"Input root file prefix\n";
+  cout<<"(0 - Qweak, 1 - QwPass1): ";
+  cin>>rootfile_prefix;
   cout<<"Input run number, start/end data segment number\n";
   cout<<"run number: ";
   cin>>run_num;
@@ -25,6 +28,17 @@
   cout<<"Intput beam current (min. 1 uA) for data cut\n";
   cout<<"min. beam current: ";
   cin>>beam_current;
+
+  TString prefix;
+  if(rootfile_prefix==0)
+     prefix = "Qweak";
+  else if(rootfile_prefix==1)
+     prefix = "QwPass1";
+  else
+     {
+       cout<<"unmatched rootfile prefix - "<<rootfile_prefix<<endl;
+       return;
+     }
 
   if(start_seg>end_seg || end_seg>9)
      {
@@ -41,28 +55,30 @@
 
   cut = Form("scanner.CoincidenceSCA>0 && qwk_bcm1>=%i", beam_current);
 
-  cout<<"\nYou are using run#"<<run_num<<", segment "<<start_seg<<" - segment "<<end_seg<<", module type "<<module<<endl;
+  cout<<"\nYou are using "<<prefix<<"_, run#"<<run_num<<", segment "<<start_seg<<" - segment "<<end_seg<<", module type "<<module<<endl;
   cout<<"to draw beam current normalized rate distributions (qwk_bcm1>="<<beam_current<<")\n";
-  cout<<"Start processing data, please wait...\n";
-
-  gStyle->SetPalette(1);
-  TCanvas *c1 = new TCanvas("c1", "Rate distribution acquired by scanner", 1200,800);
-  c1->Divide(1,3);
-  TCanvas *c2 = new TCanvas("c2", "Rate distribution acquired by scanner", 1200,800);
-  c2->Divide(1,4);
 
   TChain files("Mps_Tree");
-
   for (Int_t ifile = start_seg; ifile <= end_seg; ifile++)
   {
-    files.Add(Form("$QW_ROOTFILES/Qweak_%i.00%i.root", run_num,ifile)); 
+    TString file_name = "$QW_ROOTFILES/"+prefix+Form("_%i.00%i.root", run_num,ifile);
+    files.Add(file_name);
+    cout<<"Chained root file: "<<file_name<<endl;
   }
+
+  cout<<"Start processing data, please wait...\n";
 
   TProfile2D ratemap("ratemap","scanner rate map",100,-100,100,40,-340.0,-315.0);
   TProfile2D randomap("randomap","scanner accidential rate map",100,-100,100,40,-340.0,-315.0);
   TProfile2D singlesmap_front("singlesmap_front","scanner singles (front) rate map",100,-100,100,40,-340.0,-315.0);
   TProfile2D singlesmap_back("singlesmap_back","scanner singles (back) rate map",100,-100,100,40,-340.0,-315.0);
   TProfile2D rawmap("rawmap","scanner raw rate map",100,-100,100,40,-340.0,-315.0);
+
+  gStyle->SetPalette(1);
+  TCanvas *c1 = new TCanvas("c1", "Rate distribution acquired by scanner", 1200,800);
+  c1->Divide(1,3);
+  TCanvas *c2 = new TCanvas("c2", "Rate distribution acquired by scanner", 1200,800);
+  c2->Divide(1,4);
 
   c1->cd(1);
   if(module==0)
