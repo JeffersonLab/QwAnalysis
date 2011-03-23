@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
 
   printf("BCM1 average=%.1f (uA)  MPV=%.1f (uA), nEntries=%.0f\n",xAvr,xMPV,histA->GetEntries());
   double bcmThres=xMPV-5.0;
-  // cutFormula="("+cutFormula+Form(")&&(yield_qwk_bcm1.hw_sum >%.1f)",bcmThres);
+  cutFormula="("+cutFormula+Form(")&&(yield_qwk_bcm1.hw_sum >%.1f)",bcmThres);
   cutFormula="("+cutFormula+Form(")");
   printf("new cutForm='%s'\n",cutFormula.Data());
   chain->Draw(">>listB",cutFormula); // cut includes BCM1 

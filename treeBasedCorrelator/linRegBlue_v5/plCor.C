@@ -2,9 +2,9 @@ TCanvas *can=0;
 int pl=2; //1=gif, 2=ps, 3=both
 
 TFile* fd=0;
-enum{ nP=5}; //,nY=15}; 
+//enum{ nP=5}; //,nY=15}; 
 TString cor1="input";
-TString runName="R10196.000";
+TString runName="R10840.000";
 
 
 TString inpPath="./out/";
@@ -63,6 +63,17 @@ plCor(int page=1, char *runName0="RfixMe.000") {
   }
 
 }
+
+//============================================
+//============================================
+int get_nP() {
+  h=(TH1 *)fd->Get("inputNamesIV"); assert(h);
+  TAxis *ax=h->GetXaxis();
+  int nb=ax->GetNbins();
+  printf(" found dim IV=%d \n",nb); 
+  return nb;
+}
+
 
 //============================================
 //============================================
@@ -189,10 +200,11 @@ void   IV_DV( TString text, int iy1, int iy2){
 void   IV_IV(TString text){
   gStyle->SetOptStat(1001110);
   gStyle->SetOptFit(1);
-  
-  can=new TCanvas("aa","aa",900,700);    TPad *c=makeTitle(can,text);
-
+  int nP=get_nP(); 
+  text+=", nP=";  text+=nP;
+  can=new TCanvas("aa","aa",900,850);    TPad *c=makeTitle(can,text);
   c->Divide(nP,nP);
+
 
   //...... diagonal
   for(int i=0;i<nP;i++) {    
@@ -207,9 +219,9 @@ void   IV_IV(TString text){
     double w1=h->GetRMS();
     double ym=h->GetMaximum()*0.45;
     TText *tx=new TText(xm,ym/2.,Form("RMS=%.0f",w1)); tx->Draw();
-    tx->SetTextSize(0.15);
+    tx->SetTextSize(0.1);
     tx=new TText(xm,ym,ax->GetTitle()+3); tx->Draw();
-    tx->SetTextSize(0.14);  tx->SetTextColor(kMagenta);
+    tx->SetTextSize(0.1);  tx->SetTextColor(kMagenta);
   }
   
   // .... correlations 
