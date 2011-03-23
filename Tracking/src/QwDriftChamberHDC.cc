@@ -295,13 +295,21 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
  
   Double_t dt_= drifttime;
   Double_t dd_ = 0.0;
-  dd_ = -0.0138896
-      + 0.00987685 * dt_
-      + 0.00100368 * dt_ * dt_
-      + (-1.79785E-06 * dt_ * dt_ * dt_)
-      + ( -8.96859E-08 * dt_ * dt_ * dt_ * dt_)
-      + (6.11736E-10 * dt_ * dt_ * dt_ * dt_ * dt_)
-      + ( -1.15889E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
+  //dd_ = -0.0138896
+  //    + 0.00987685 * dt_
+  //    + 0.00100368 * dt_ * dt_
+  //    + (-1.79785E-06 * dt_ * dt_ * dt_)
+  //    + ( -8.96859E-08 * dt_ * dt_ * dt_ * dt_)
+  //    + (6.11736E-10 * dt_ * dt_ * dt_ * dt_ * dt_)
+  //    + ( -1.15889E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
+
+  dd_ = 0.078067
+        + 0.0437269 * dt_
+        + 0.00117295 * dt_ * dt_
+        + (-2.25244E-05 * dt_ * dt_ * dt_ )
+        + (1.56369E-07 * dt_ * dt_ * dt_ * dt_  )
+        + (-4.93323E-10 * dt_ * dt_ * dt_ * dt_ * dt_ )
+    + (5.91555E-13 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
 
    //   dd_ = 0.00545449393
 //       + 0.0668865488 * dt_
@@ -865,7 +873,7 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
   for(size_t i=0;i<nhits;i++) 
     {
       double time=f1tdc_resolution_ns*fTDCHits.at(i).GetTime() ;
-      if(time<0 || time > 160){
+      if(time<0 || time > 250){
         fTDCHits.erase(fTDCHits.begin()+i);
         --nhits;
         --i;
@@ -881,7 +889,7 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
 {
         Int_t plane=0,wire=0;
         EQwDetectorPackage package = kPackageNull;
-        Double_t t0 = 0.0;
+        Double_t t0 = 25.0;
         Double_t real_time=0.0;       
         size_t nhits=fTDCHits.size();
         for(size_t i=0;i<nhits;i++)
@@ -894,7 +902,7 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
                               
                 real_time=fTDCHits.at(i).GetTime()-t0;
                                       
-                if(real_time<0 || real_time>160){
+                if(real_time<0 || real_time>250){
                        fTDCHits.erase(fTDCHits.begin()+i);
                        --nhits;
                        --i;
