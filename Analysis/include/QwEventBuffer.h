@@ -79,7 +79,9 @@ class QwEventBuffer: public MQwCodaControlEvent{
   /// \brief Return CODA file run number
   Int_t GetRunNumber() const {return fCurrentRun;};
   /// \brief Return CODA file segment number
-  Int_t GetSegmentNumber() const {return *fRunSegmentIterator;};
+  Int_t GetSegmentNumber() const {
+    return fRunSegments.size() ? *fRunSegmentIterator : 0;
+  };
 
   std::pair<UInt_t, UInt_t> GetEventRange() const {
     return fEventRange;

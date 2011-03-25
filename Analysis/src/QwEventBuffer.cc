@@ -335,7 +335,7 @@ Int_t QwEventBuffer::GetNextEvent()
     //  information), pretend that there's an event cut causing us to
     //  ignore events.  Read configuration events only from the first
     //  part of the file.
-    if (GetSegmentNumber() < fSegmentRange.first) {
+    if (fRunIsSegmented && GetSegmentNumber() < fSegmentRange.first) {
       fEventRange.first = fEvtNumber + 1;
       if (fEvtNumber > 1000) status = EOF;
     }
