@@ -661,7 +661,7 @@ myevio_lib:
 		| $(ADD_ANTISLASH) \
 		| $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends
 	@$(ECHO) >> .auxDepends
-	@$(ECHO) $(TAB)$(LIBTOOL) $(CXXFLAGS) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
+	@$(ECHO) $(TAB)$(LIBTOOL) $(if $(findstring $(CXX),$(LIBTOOL)),$(CXXFLAGS) $(SOFLAGS) $(LDFLAGS)) '$$^' -o $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
 	@$(ECHO) $(TAB)@$(ECHO) >> .auxDepends
 	@$(ECHO) >> .auxDepends
 	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
