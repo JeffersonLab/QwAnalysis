@@ -173,58 +173,58 @@ void QwRootFile::DefineOptions(QwOptions &options)
      "enable output to memory-mapped file");
 
   // Define the histogram and tree options
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("disable-trees", po::value<bool>()->default_bool_value(false),
-     "disable output to trees");
-  options.AddOptions()
+     "disable output to all trees");
+  options.AddOptions("ROOT output options")
     ("disable-histos", po::value<bool>()->default_bool_value(false),
-     "disable output to histograms");
+     "disable output to all histograms");
 
   // Define the helicity window versus helicity pattern options
-  options.AddOptions()
-    ("disable-mps", po::value<bool>()->default_bool_value(false),
-     "disable helicity window output (block, hwsum)");
-  options.AddOptions()
-    ("disable-hel", po::value<bool>()->default_bool_value(false),
-     "disable helicity pattern output (yield, asymmetry)");
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
+    ("disable-mps-tree", po::value<bool>()->default_bool_value(false),
+     "disable helicity window output");
+  options.AddOptions("ROOT output options")
+    ("disable-hel-tree", po::value<bool>()->default_bool_value(false),
+     "disable helicity pattern output");
+  options.AddOptions("ROOT output options")
     ("disable-burst-tree", po::value<bool>()->default_bool_value(false),
      "disable burst tree");
-  options.AddOptions()
-    ("disable-slow", po::value<bool>()->default_bool_value(false),
-     "disable slow control output");
+  options.AddOptions("ROOT output options")
+    ("disable-slow-tree", po::value<bool>()->default_bool_value(false),
+     "disable slow control tree");
 
   // Define the tree output prescaling options
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("num-mps-accepted-events", po::value<int>()->default_value(0),
      "number of accepted consecutive MPS events");
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("num-mps-discarded-events", po::value<int>()->default_value(0),
      "number of discarded consecutive MPS events");
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("num-hel-accepted-events", po::value<int>()->default_value(0),
      "number of accepted consecutive pattern events");
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("num-hel-discarded-events", po::value<int>()->default_value(0),
      "number of discarded consecutive pattern events");
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("mapfile-update-interval", po::value<int>()->default_value(400),
      "Events between a map file update");
 
   // Define the autoflush and autosave option (default values by ROOT)
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("autoflush", po::value<int>()->default_value(0),
      "TTree autoflush");
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("autosave", po::value<int>()->default_value(300000000),
      "TTree autosave");
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("basket-size", po::value<int>()->default_value(16000),
      "TTree basket size");
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("circular-buffer", po::value<int>()->default_value(0),
      "TTree circular buffer");
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("compression-level", po::value<int>()->default_value(1),
      "TFile compression level");
 }
@@ -249,10 +249,10 @@ void QwRootFile::ProcessOptions(QwOptions &options)
 
   // Options 'disable-mps' and 'disable-hel' for disabling
   // helicity window and helicity pattern output
-  if (options.GetValue<bool>("disable-mps"))  DisableTree("Mps_Tree");
-  if (options.GetValue<bool>("disable-hel"))  DisableTree("Hel_Tree");
+  if (options.GetValue<bool>("disable-mps-tree"))  DisableTree("Mps_Tree");
+  if (options.GetValue<bool>("disable-hel-tree"))  DisableTree("Hel_Tree");
   if (options.GetValue<bool>("disable-burst-tree"))  DisableTree("Burst_Tree");
-  if (options.GetValue<bool>("disable-slow")) DisableTree("Slow_Tree");
+  if (options.GetValue<bool>("disable-slow-tree")) DisableTree("Slow_Tree");
 
   // Options 'num-accepted-events' and 'num-discarded-events' for
   // prescaling of the tree output
