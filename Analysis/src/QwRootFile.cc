@@ -188,6 +188,9 @@ void QwRootFile::DefineOptions(QwOptions &options)
     ("disable-hel", po::value<bool>()->default_bool_value(false),
      "disable helicity pattern output (yield, asymmetry)");
   options.AddOptions()
+    ("disable-burst-tree", po::value<bool>()->default_bool_value(false),
+     "disable burst tree");
+  options.AddOptions()
     ("disable-slow", po::value<bool>()->default_bool_value(false),
      "disable slow control output");
 
@@ -248,6 +251,7 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   // helicity window and helicity pattern output
   if (options.GetValue<bool>("disable-mps"))  DisableTree("Mps_Tree");
   if (options.GetValue<bool>("disable-hel"))  DisableTree("Hel_Tree");
+  if (options.GetValue<bool>("disable-burst-tree"))  DisableTree("Burst_Tree");
   if (options.GetValue<bool>("disable-slow")) DisableTree("Slow_Tree");
 
   // Options 'num-accepted-events' and 'num-discarded-events' for
