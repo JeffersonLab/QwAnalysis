@@ -27,6 +27,8 @@ my $optstatus = GetOptions
   "no-daq-cut"	=> \$nodaqcut,
 ;
 
+@channels = qw[ibcm1] if $nodaqcut;
+
 my $then = ParseDate(shift @ARGV);
 my $now  = ParseDate(shift @ARGV);
 unless (defined $then) { $then = ParseDate("yesterday midnight"); }
