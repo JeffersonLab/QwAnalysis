@@ -624,11 +624,11 @@ void  QwTriggerScintillator::ProcessEvent()
 	Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
 	newdata = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
 	//        newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
-	std::cout << "element name " << elementname 
-	 	  << " rawdata " << rawtime
-	   	  << " reftime " << reftime
-	   	  << " newdata " << newdata
-	   	  << std::endl;
+	//std::cout << "element name " << elementname
+	// 	  << " rawdata " << rawtime
+	//   	  << " reftime " << reftime
+	//   	  << " newdata " << newdata
+	//   	  << std::endl;
         fPMTs.at(i).at(j).SetValue(newdata);
       }
     }
