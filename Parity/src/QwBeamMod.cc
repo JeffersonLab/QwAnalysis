@@ -58,7 +58,7 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
 
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
   while (mapstr.ReadNextLine())
   {

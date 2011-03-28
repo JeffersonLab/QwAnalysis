@@ -33,7 +33,8 @@ Int_t QwGasElectronMultiplier::LoadChannelMap(TString mapfile ){
   Int_t roc=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -83,7 +84,7 @@ Int_t QwGasElectronMultiplier::LoadGeometryDefinition(TString mapfile)
   DIRMODE = 0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.

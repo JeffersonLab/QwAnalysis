@@ -45,7 +45,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -539,7 +539,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
     fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
 
     QwParameterFile mapstr(mapfile.Data());  //Open the file
-    fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+    fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
     while (mapstr.ReadNextLine()) {
         mapstr.TrimComment('!');   // Remove everything after a '!' character.

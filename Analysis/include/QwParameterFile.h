@@ -19,6 +19,8 @@
 #include "TRegexp.h"
 #include "TObjArray.h"
 #include "TObjString.h"
+#include "TMacro.h"
+#include "TList.h"
 
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/convenience.hpp"
@@ -93,6 +95,7 @@ class QwParameterFile {
     void TrimModuleHeader();
 
     TString LastString(TString in, char* delim);
+    TString GetParemeters();
 
     Bool_t LineIsEmpty(){return fLine.empty();};
     Bool_t IsEOF(){ return fStream.eof();};
@@ -152,6 +155,8 @@ class QwParameterFile {
     const TString GetParamFilename() {return fBestParamFileName;};
     const TString GetParamFilenameAndPath() {return fBestParamFileNameAndPath;};
 
+    const std::pair<TString, TString> GetParamFileNameContents() {return std::pair<TString, TString>(GetParamFilename(), GetParemeters());};
+
     void SetParamFilename();
 
   protected:
@@ -203,6 +208,7 @@ class QwParameterFile {
     std::string fLine;      /// Internal line storage
     size_t fCurrentPos;     /// Current position in the line
 
+    TMacro *fParameterFile;
 
   private:
 

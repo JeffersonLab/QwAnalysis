@@ -50,7 +50,8 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
   DIRMODE=0;
 
   QwParameterFile mapstr ( mapfile.Data() );  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
   while ( mapstr.ReadNextLine() ) {
     mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -147,7 +148,7 @@ Int_t QwTriggerScintillator::LoadChannelMap(TString mapfile){
   Int_t modnum=0, channum=0, slotnum=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
@@ -623,11 +624,11 @@ void  QwTriggerScintillator::ProcessEvent()
 	Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
 	newdata = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
 	//        newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
-	// std::cout << "element name " << elementname 
-	// 	  << " rawdata " << rawtime
-	// 	  << " reftime " << reftime
-	// 	  << " newdata " << newdata
-	// 	  << std::endl;
+	std::cout << "element name " << elementname 
+	 	  << " rawdata " << rawtime
+	   	  << " reftime " << reftime
+	   	  << " newdata " << newdata
+	   	  << std::endl;
         fPMTs.at(i).at(j).SetValue(newdata);
       }
     }

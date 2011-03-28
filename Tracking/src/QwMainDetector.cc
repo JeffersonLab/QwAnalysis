@@ -66,7 +66,8 @@ Int_t QwMainDetector::LoadGeometryDefinition ( TString mapfile )
   DIRMODE=0;
 
   QwParameterFile mapstr ( mapfile.Data() );  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
   while ( mapstr.ReadNextLine() )
     {
       mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
@@ -168,7 +169,8 @@ Int_t QwMainDetector::LoadChannelMap(TString mapfile)
   Int_t modnum=0, channum=0, slotnum=0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
   while (mapstr.ReadNextLine())
     {
       mapstr.TrimComment('!');   // Remove everything after a '!' character.

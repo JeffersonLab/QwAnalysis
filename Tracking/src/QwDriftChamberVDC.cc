@@ -626,8 +626,7 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 
 	std::vector<Double_t> tmpWindows;
 	QwParameterFile mapstr ( mapfile.Data() );
-	fDetectorMapsNames.push_back(mapstr.GetParamFilename());
-
+	fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 	EQwDetectorPackage package = kPackageNull;
 	EQwDirectionID   direction = kDirectionNull;
 
@@ -752,7 +751,8 @@ void QwDriftChamberVDC::ReadEvent ( TString& eventfile )
   EQwDirectionID direction = kDirectionNull;
   
   QwParameterFile mapstr ( eventfile.Data() );
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
   while ( mapstr.ReadNextLine() )
     {
       mapstr.TrimComment ( '!' );
@@ -1245,7 +1245,7 @@ Int_t QwDriftChamberVDC::LoadTimeWireOffset ( TString t0_map )
 	//std::cout << "beginning to load t0 file... " << std::endl;
 	//
 	QwParameterFile mapstr ( t0_map.Data() );
-	fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+	fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
 	TString varname,varvalue;
 	Int_t plane=0,wire=0;
@@ -1356,7 +1356,7 @@ void QwDriftChamberVDC::LoadTtoDParameters ( TString ttod_map )
 {
 
   QwParameterFile mapstr ( ttod_map.Data() );
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   
   Double_t t = 0.0;
   Double_t d = 0.0;
@@ -1370,6 +1370,6 @@ void QwDriftChamberVDC::LoadTtoDParameters ( TString ttod_map )
       t= ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
       d = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
       fTtoDNumbers.push_back ( d );
-	}
+    }
   return;
 }

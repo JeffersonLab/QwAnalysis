@@ -52,7 +52,8 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
     Int_t modnum = 0, channum = 0;
 
     QwParameterFile mapstr(mapfile.Data());  //Open the file
-    fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+    fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
     while (mapstr.ReadNextLine())
     {
         mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -120,7 +121,8 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
     Int_t lineread=0;
 
     QwParameterFile mapstr(parameterfile.Data());  //Open the file
-    fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+    fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
     if (ldebug) std::cout<<"\nReading raster parameter file: "<<parameterfile<<"\n";
 
     while (mapstr.ReadNextLine())

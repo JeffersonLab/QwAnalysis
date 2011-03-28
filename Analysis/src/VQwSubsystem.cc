@@ -388,17 +388,37 @@ std::vector<TString> VQwSubsystem::GetParamFileNameList()
   return fDetectorMapsNames;
 };
 
+
+
+std::map<TString, TString> VQwSubsystem::GetDetectorMaps()
+{
+  return fDetectorMaps;
+};
+
+
+
 void VQwSubsystem::PrintDetectorMaps(Bool_t status)
 {
+  Bool_t local_debug = false;
   if(status) {
     printf("\n >>> VQwSubsystem::LoadDetectorMaps Subsytem %s uses the following map files : \n", fSystemName.Data());
     Int_t total_num = 0;
     Int_t index = 0;
-    total_num = (Int_t) fDetectorMapsNames.size();
+    total_num = (Int_t) fDetectorMaps.size();
+
     if(total_num != 0) {
-      for (index=0; index<total_num; index++) {
-  	printf("   ---> %4d/%d : %s\n", index+1, total_num, fDetectorMapsNames[index].Data());
-      }
+
+      for( std::map<TString, TString>::iterator ii=fDetectorMaps.begin(); ii!=fDetectorMaps.end(); ++ii)
+	{	
+	  TString name = (*ii).first;
+	  TString all  = (*ii).second;
+	  printf("   ---> %4d/%d : %s\n", index+1, total_num, name.Data());
+	  if(local_debug) {
+	    printf("   %s", all.Data());
+	    printf("\n");
+	  }
+	  //	  std::cout << (*ii).first << ": " << (*ii).second << st:;endl;
+	}
       printf("\n");
     }
     else {

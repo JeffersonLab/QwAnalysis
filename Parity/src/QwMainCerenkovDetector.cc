@@ -138,9 +138,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
   combinedchans = 0;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-
-  //  std::cout << "QwMainCerenkovDetector::LoadChannelMap()" << mapstr.GetParamFilename() << std::endl;
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
 
   while (mapstr.ReadNextLine())
@@ -383,9 +381,8 @@ Int_t QwMainCerenkovDetector::LoadEventCuts(TString  filename)
   TString varname, varvalue, vartypeID;
   TString device_type,device_name;
   QwParameterFile mapstr(filename.Data());  //Open the file
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
-  // std::cout << "QwMainCerenkovDetector::LoadEventCuts()" << mapstr.GetParamFilename() << std::endl;
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   Int_t det_index= -1; 
   Double_t stabilitycut;
 
@@ -481,9 +478,7 @@ Int_t QwMainCerenkovDetector::LoadInputParameters(TString pedestalfile)
   Int_t lineread=0;
 
   QwParameterFile mapstr(pedestalfile.Data());  //Open the file
-
-  //  std::cout << "QwMainCerenkovDetector::LoadInputParameters" << mapstr.GetParamFilename() << std::endl;
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
   while (mapstr.ReadNextLine())
     {

@@ -192,6 +192,7 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
 
     // fFile.clear();
     // fFile.close(); // disconnet file
+    //    this->Test();
   } else {
 
     // File does not exist or is not a regular file
@@ -737,3 +738,17 @@ TString QwParameterFile::LastString(TString in, char* delim)
   return last_string->GetString();
 };
  
+
+TString QwParameterFile::GetParemeters()
+{
+  fParameterFile = new TMacro(fBestParamFileNameAndPath);
+  TString ms;
+  TList *list = fParameterFile->GetListOfLines();
+  for(Int_t i=0; i < list->GetSize(); i++) {
+    ms += list->At(i)->GetName();
+    ms += "\n";
+  }
+  delete fParameterFile;fParameterFile = NULL;
+  return ms;
+  
+}

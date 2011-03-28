@@ -125,7 +125,7 @@ class VQwSubsystem: virtual public VQwCloneable {
   };
   
   virtual std::vector<TString> GetParamFileNameList();
-
+  virtual std::map<TString, TString> GetDetectorMaps();
 
  protected:
   /// Map of published internal values
@@ -308,7 +308,7 @@ class VQwSubsystem: virtual public VQwCloneable {
   Bool_t   fIsDataLoaded; ///< Has this subsystem gotten data to be processed?
 
   std::vector<TString> fDetectorMapsNames;
-
+  std::map<TString, TString> fDetectorMaps;
  protected:
 
   Int_t fCurrentROC_ID; ///< ROC ID that is currently being processed

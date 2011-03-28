@@ -71,7 +71,8 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
   Int_t modnum, channum;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
   // TString test = mapstr.GetParamFilename();
   // // char a[80];
   // // sprintf(a, "prminput/");
@@ -195,11 +196,7 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
   Int_t lineread=0;
 
   QwParameterFile mapstr(parameterfile.Data());  //Open the file
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
-  //  std::cout << "QwScanner::LoadInputParameters()" << mapstr.GetParamFilename() << std::endl;
-  // fParameterFileNames.push_back(mapstr.GetParamFilename());
-
-  // if (ldebug) std::cout<<"\nReading scanner parameter file: "<<parameterfile<<"\n";
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
   while (mapstr.ReadNextLine())
     {
