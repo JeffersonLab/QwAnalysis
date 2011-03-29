@@ -1,3 +1,4 @@
+
 #ifndef QWSSQLS_HH
 #define QWSSQLS_HH
 
@@ -45,10 +46,11 @@ namespace QwParityDB {
 			, mysqlpp::Null<mysqlpp::sql_text> , type
 		) 
   
-    sql_create_9(run, 1, 2 
+    sql_create_10(run, 1, 2 
 			, mysqlpp::sql_int_unsigned , run_id
 			, mysqlpp::sql_int_unsigned , run_number 	
       , mysqlpp::sql_int_unsigned , slug
+      , mysqlpp::sql_int_unsigned , injector_slug
 			, mysqlpp::Null<mysqlpp::sql_text> , run_type
 //			, mysqlpp::Null<mysqlpp::sql_set> , good_for_id
 //			, mysqlpp::Null<mysqlpp::sql_set> , run_quality_id
@@ -75,6 +77,7 @@ namespace QwParityDB {
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::sql_int_unsigned , runlet_id
 			, mysqlpp::sql_int_unsigned , seed_id
+			, mysqlpp::Null<mysqlpp::sql_text> , analyzer_version
 			, mysqlpp::sql_int_unsigned , monitor_calibration_id
 			, mysqlpp::sql_int_unsigned , cut_id
 			, mysqlpp::Null<mysqlpp::sql_datetime> , time
@@ -87,25 +90,28 @@ namespace QwParityDB {
 			, mysqlpp::Null<mysqlpp::sql_int> , segment
 			, mysqlpp::Null<mysqlpp::sql_enum> , slope_calculation
 			, mysqlpp::Null<mysqlpp::sql_enum> , slope_correction
-      , mysqlpp::Null<mysqlpp::sql_enum> , root_based_regression
 		) 
   
-    sql_create_7(md_slope, 1, 2 
+    sql_create_9(md_slope, 1, 2 
 			, mysqlpp::sql_int_unsigned , md_slope_id
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::sql_int_unsigned , slope_type_id
 			, mysqlpp::sql_char , measurement_type_id
 			, mysqlpp::sql_int_unsigned , main_detector_id
+      , mysqlpp::sql_tinyint_unsigned , subblock
+			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
 		) 
   
-    sql_create_7(lumi_slope, 1, 2 
+    sql_create_9(lumi_slope, 1, 2 
 			, mysqlpp::sql_int_unsigned , lumi_slope_id
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::sql_int_unsigned , slope_type_id
 			, mysqlpp::sql_char , measurement_type_id
 			, mysqlpp::sql_int_unsigned , lumi_detector_id
+      , mysqlpp::sql_tinyint_unsigned , subblock
+			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error
 		) 
@@ -309,7 +315,6 @@ namespace QwParityDB {
 		) 
   
     }
-
 
 #if (__GNUC__ == 4) && (__GNUC_MINOR__ > 5)
 #  pragma GCC diagnostic pop
