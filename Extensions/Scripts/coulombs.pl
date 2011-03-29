@@ -109,6 +109,12 @@ unless ($.) { warn "warning: fetched no data.  url was\n\t$url\n" }
 
 ### Parse this block after reaching the end of the input file
 # print "Read $. lines from archiver\n";
+
+if (!keys %coulombs){
+print "No coulombs acquired during this interval\n";
+die;
+}
+
 foreach my $day (sort keys %coulombs) {
   foreach my $s (grep { ($coulombs{$day}[$_] += 0) > 0.01} 0..2) {
     printf "$day %-5s: %0.2f C\n", $shift[$s], $coulombs{$day}[$s];
