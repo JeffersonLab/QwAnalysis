@@ -11,8 +11,11 @@
 
 #include "QwEPICSControl.h"
 #include "GreenMonster.h"
+#include "QwVQWK_Channel.h"
+#include "QwScaler_Channel.h"
 
-
+#include "QwParameterFile.h"
+#include <time.h>
 ///
 /// \ingroup QwAnalysis_ADC
 ///
@@ -35,13 +38,30 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fEnableBurstSum=kFALSE;
     fGoodPatternCounter=0;
-    
+    fPatternCounter=0;
+
+
+/*     fFeedbackStatus=kTRUE; */
+/*     if (fEPICSCtrl.Get_FeedbackStatus()>0) */
+/*       fEPICSCtrl.Set_FeedbackStatus(0); */
+/*     if (fFeedbackStatus){ */
+/*       fFeedbackStatus=kFALSE; */
+/*       fEPICSCtrl.Set_FeedbackStatus(1.0); */
+/*     } */
+
+    CheckFeedbackStatus();
 
     fPreviousHelPat=0;//at the beginning of the run this is non existing
     fCurrentHelPatMode=-1;//at the beginning of the run this is non existing
 
+    fPITASetpointPOS=0;
+    fPrevPITASetpointPOS=0;
+    fPITASetpointNEG=0;
+    fPrevPITASetpointNEG=0;
+    fPITA_MIN_Charge_asym=1;//default value is 1ppm
 
     fTargetCharge.InitializeChannel("q_targ","derived");
+    fRunningCharge.InitializeChannel("q_targ","derived");
     fChargeAsymmetry0.InitializeChannel("q_targ","derived");//this is the charge asym at the beginning of the feedback loop
     fPreviousChargeAsymmetry.InitializeChannel("q_targ","derived");//charge asymmetry at the previous feedback loop
     fCurrentChargeAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry 
@@ -50,19 +70,49 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     fPreviousIAAsymmetry.InitializeChannel("q_targ","derived");//this is the charge asymmetry of the IA at the previous feedback loop
     fCurrentIAAsymmetry.InitializeChannel("q_targ","derived");//current charge asymmetry of the IA
 
-    //    out_file_IA = fopen("Feedback_IA_log.txt", "wt");
+    fScalerChargeRunningSum.InitializeChannel("sca_bcm");
+    fScalerCharge.InitializeChannel("sca_bcm");
+
+
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+
+    IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "r");//Open in read mode
+    
     out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
-    fprintf(out_file_IA,"Pat num. \t\t  A_q[mode]\t\t\t\t\t\t\t\t\t  IA Setpoint \t\t  IA Previous Setpoint \t\t\n");
+    //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
+    fprintf(out_file_IA,"%22s \n",asctime (timeinfo));
+    fprintf(out_file_IA,"Pat num. \t  A_q[mode]\t  IA Setpoint \t  IA Previous Setpoint \n");
     fclose(out_file_IA);
     //    out_file_PITA = fopen("Feedback_PITA_log.txt", "wt");
     out_file_PITA = fopen("/local/scratch/qweak/Feedback_PITA_log.txt", "a");
-    fprintf(out_file_PITA,"Pat num. \t\t  A_q\t\t\t\t\t\t\t\t\t  PITA Setpoint[+] \t\t  PITA Previous Setpoint \t\tPITA Setpoint[-] \t\t  PITA Previous Setpoint \n");
+    out_file_HA_IA = fopen("/local/scratch/qweak/Feedback_HA_IA_log.txt", "a"); 
+
+    fprintf(out_file_PITA,"%22s \n",asctime (timeinfo));
+    fprintf(out_file_PITA,
+	    "%10s %22s +- %16s %16s %26s %26s %26s %26s\n",
+	    "Pat num.", "Charge Asym [ppm]", "Asym Error", "Correction",
+	    "New PITA Setpoint[+]", "Old PITA Setpoint[+]",
+    	    "New PITA Setpoint[-]", "Old PITA Setpoint[-]");
     fclose(out_file_PITA);
+
+    fprintf(out_file_HA_IA,"%22s \n",asctime (timeinfo));
+    fprintf(out_file_HA_IA,
+	    "%10s %22s +- %16s %16s %26s %26s \n",
+	    "Pat num.", "Charge Asym[mode] (ppm)", "Asym Error", "Correction",
+	    "New IA Setpoint", "Old IA Setpoint");
+    fclose(out_file_HA_IA);
   
   };
     
     
-    ~QwHelicityCorrelatedFeedback() { };  
+    ~QwHelicityCorrelatedFeedback() { 
+      //        if (!fFeedbackStatus){
+      //	  fFeedbackStatus=kFALSE;
+      fEPICSCtrl.Set_FeedbackStatus(0);
+	  //	}
+
+    };  
     ///inherited from QwHelicityPattern
     void CalculateAsymmetry();
     void ClearRunningSum();
@@ -84,15 +134,21 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     /// \brief retrieves the target charge asymmetry,asymmetry error ,asymmetry width for given mode
     void GetTargetChargeStat(Int_t mode);
 
+    /// \brief retrieves the Hall A charge asymmetry,asymmetry error ,asymmetry width for given mode
+    void GetHAChargeStat(Int_t mode);
 
  
 
     /// \brief Feed the Hall C IA set point based on the charge asymmetry 
     void FeedIASetPoint(Int_t mode);
 
+    /// \brief Feed the Hall A IA set point based on the charge asymmetry 
+    void FeedHAIASetPoint(Int_t mode);
+
     /// \brief Feed the Hall C PITA set point based on the charge asymmetry 
     void FeedPITASetPoints();
 
+ 
     /// \brief Feed the IA set point based on the charge asymmetry 
     void FeedPCPos();
     /// \brief Feed the IA set point based on the charge asymmetry 
@@ -103,6 +159,9 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     /// \brief Log the last PITA feedback information
     void LogParameters();
+
+    /// \brief Log the last Hall A IA feedback information
+    void LogHAParameters(Int_t mode);
 
     /// \brief Set Clean=0 or 1 in the GreenMonster
     void UpdateGMClean(Int_t state);
@@ -150,14 +209,6 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
       return fChargeAsymmetryWidth;
     };
 
-    Bool_t SetInitialCondition(){
-      if (fPITASetpointPOS_t0>0 && fPITASetpointNEG_t0>0)//apply the t_0 correction if it is available
-	fInitialCorrection=kTRUE;
-      else
-	fInitialCorrection=kFALSE;
-      return fInitialCorrection;
-    }
-
     //Define separate running sums for differents helicity pattern modes
     /// \brief The types of helicity patterns based on following pattern history
     ///1. +--+ +--+
@@ -166,6 +217,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     ///4. -++- -++-
  
     
+    TString GetHalfWavePlateState();
+    void    CheckFeedbackStatus();
 
     static const Int_t kHelPat1=1001;//to compare with current or previous helpat
     static const Int_t kHelPat2=110;
@@ -185,6 +238,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fChargeAsymError[kHelModes];//current charge asym precision
     Double_t fChargeAsymWidth[kHelModes];//current charge asym width
 
+    Double_t fHAChargeAsym[kHelModes];//Hall A current charge asym
+    Double_t fHAChargeAsymError[kHelModes];//Hall A current charge asym precision
+    Double_t fHAChargeAsymWidth[kHelModes];//Hall A current charge asym width
+
     Int_t fAccumulatePatternMax; //upper limit to the patterns before the feedback triiger;
     Double_t  fChargeAsymPrecision; //Charge asymmetry precision in ppm
 
@@ -197,13 +254,22 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fCurrentPCP;
     Double_t fCurrentPCN;
 
-    //IA Slopes for 4 modes and their errors
+    //Hall C IA Slopes for 4 modes and their errors
     Double_t fIASlopeA[kHelModes];
     Double_t fDelta_IASlopeA[kHelModes];
 
-    //IA setpoints for 4 modes 
+   //Hall A IA Slopes for 4 modes and their errors
+    Double_t fHAIASlopeA[kHelModes];
+    Double_t fHADelta_IASlopeA[kHelModes];
+
+    //Hall C IA setpoints for 4 modes 
     Double_t fIASetpoint[kHelModes];//New setpont calculated based on the charge asymmetry
     Double_t fPrevIASetpoint[kHelModes];//previous setpoint
+
+    //Hall A IA setpoints for 4 modes 
+    Double_t fHAIASetpoint[kHelModes];//New setpont calculated based on the charge asymmetry
+    Double_t fPrevHAIASetpoint[kHelModes];//previous setpoint
+
     Double_t fIASetpointlow;//lower and upper limits for IA dac hardware counts
     Double_t fIASetpointup;
 
@@ -215,8 +281,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     //PITA setpoints for pos hel and neg hel
     Double_t fPITASetpointPOS;
     Double_t fPITASetpointNEG;
-    Double_t fPITASetpointPOS_t0;//Initial PC positive HW setpoint
-    Double_t fPITASetpointNEG_t0;//Initial PC negative HW setpoint
+    Double_t fPITASetpointPOS_t0_IN;//Initial PC positive HW setpoint
+    Double_t fPITASetpointNEG_t0_IN;//Initial PC negative HW setpoint
+    Double_t fPITASetpointPOS_t0_OUT;//Initial PC positive HW setpoint
+    Double_t fPITASetpointNEG_t0_OUT;//Initial PC negative HW setpoint
     Bool_t fInitialCorrection;//Is true at the beginning so that t_0 correction is appiled before doing any correction
     
     
@@ -224,6 +292,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fPrevPITASetpointNEG;//previous setpoint
     Double_t fPITASetpointlow;//lower and upper limits for PITA dac hardware counts
     Double_t fPITASetpointup;
+    Double_t fPITA_MIN_Charge_asym;//Minimum charge asymmetry at which feedback correction is applied. see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
 
     
     
@@ -233,6 +302,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     //Pattern counter
     Int_t fGoodPatternCounter;//increment the quartet number - reset after each feedback operation
+    Int_t fPatternCounter;//increment the quartet number - reset after each feedback operation
+    
     Int_t fHelModeGoodPatternCounter[kHelModes];//count patterns for each mode seperately - reset after each feedback operation
 
     // Keep four VQWK channels, one each for pattern history 1, 2, 3, and 4
@@ -240,6 +311,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     // into the proper pattern history runnign sum.
 
     QwBeamCharge   fTargetCharge;
+    QwBeamCharge   fRunningCharge;
     QwBeamCharge   fChargeAsymmetry0;//this is the charge asym at the beginning of the feedback loop
     QwBeamCharge   fPreviousChargeAsymmetry;//charge asymmetry at the previous feedback loop
     QwBeamCharge   fCurrentChargeAsymmetry;//current charge asymmetry 
@@ -248,14 +320,35 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     QwBeamCharge   fPreviousIAAsymmetry;//this is the charge asymmetry of the IA at the previous feedback loop
     QwBeamCharge   fCurrentIAAsymmetry;//current charge asymmetry of the IA
 
-    
+    QwSIS3801D24_Channel   fScalerCharge;//for Hall A feedback
+    QwSIS3801D24_Channel   fScalerChargeRunningSum;//for Hall A feedback
+
 
     //log file
     FILE *out_file_PITA;
     FILE *out_file_IA;
+    FILE *IHWP_State;
+    FILE *out_file_HA_IA;
 
     Bool_t fHalfWaveIN;
     Bool_t fHalfWaveOUT;
+    Int_t fIHWP;
+
+    Bool_t fHalfWaveRevert;
+    Bool_t fAutoIHWP;
+
+    TString fHalfWavePlateStatus;
+
+    Bool_t fPITAFB;
+    Bool_t fHAIAFB;
+    Bool_t fIAFB;
+    Bool_t fFeedbackStatus;
+    Bool_t fFeedbackDamping;
+
+
+    time_t rawtime;
+    struct tm * timeinfo;
+
   
 };
 

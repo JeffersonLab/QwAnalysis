@@ -8,7 +8,7 @@
 #include "QwRunCondition.h"
 #include "QwSVNVersion.h"
 
-// ClassImp(QwRunCondition);
+// ClassImp(QwRunCondition)
 
 const Int_t QwRunCondition::fCharLength = 127;
 
@@ -22,13 +22,13 @@ QwRunCondition::QwRunCondition(Int_t argc, Char_t* argv[], TString name)
   this->SetArgs(argc, argv);
   this->SetName(name);
 
-};
+}
 
 
 QwRunCondition::~QwRunCondition()
 {
   if(fRunConditionList) delete fRunConditionList;
-};
+}
 
 
 void
@@ -112,7 +112,7 @@ QwRunCondition::SetArgs(Int_t argc, Char_t* argv[])
   this -> Add(roc_flags);
 
   return;
-};
+}
 
 
 void
@@ -120,14 +120,14 @@ QwRunCondition::Add(TString in)
 {
   fRunConditionList -> AddLast(new TObjString(in));
   return;
-};
+}
 
 
 TList *
 QwRunCondition::Get()
 {
   return fRunConditionList;
-};
+}
 
 
 
@@ -136,7 +136,7 @@ QwRunCondition::GetName()
 {
   TString name = fRunConditionList->GetName();
   return name;
-};
+}
 
 
 void
@@ -144,7 +144,7 @@ QwRunCondition::SetName(TString name)
 {
   fRunConditionList->SetName(name);
   return;
-};
+}
 
 
 
@@ -189,4 +189,4 @@ QwRunCondition::GetROCFlags()
 
   return flags;
 
-};
+}

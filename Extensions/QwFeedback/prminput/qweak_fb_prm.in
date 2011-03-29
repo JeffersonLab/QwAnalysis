@@ -2,12 +2,12 @@
 
 #No.of good patterns to accumulate before triggering the feedback algorithm.
 
-patterns = 4000
+patterns = 20000
 
 #The precision of the charge asymmetry in ppm
-
 #deltaAq = 62
-deltaAq = 7500
+deltaAq = 10
+
 #optimal IA values in volts
 optimalIA = 5.5
 
@@ -19,7 +19,7 @@ optimalPCN = 5.2
 
 
 
-#IA Slopes for 4 modes
+#Hall C IA Slopes for 4 modes
 
 #source POLOG entry 1543984 (M_Dalton) 
 
@@ -33,7 +33,13 @@ A2 = -4.586e-2
 DeltaA2 = 3.482e-4
 
 A3 = -4.553e-2
-DeltaA3 = 3.431e-4
+
+#Hall A IA Slopes for 4 modes
+
+HAA0 = -4.482e-2
+HAA1 = -4.525e-2
+HAA2 = -4.586e-2
+HAA3 = -4.553e-2
 
 #IA hardware counts set-point limits
 
@@ -43,15 +49,44 @@ IA_up  = 50000
 #PITA slopes
 #  From M.Dalton, as of 00:10,23oct2010, use a slope of:  -0.73 ppm/dac-tick
 # 
-PITASLOPE_OUT = +0.73
-PITASLOPE_IN = -0.73
+#PITASLOPE_OUT = +0.73
+#PITASLOPE_IN = -0.73
+
+#PITA slopes
+#  From M.Dalton, as of ,03Dec2010, 
+#  units are ppm/dac-tick
+#PITASLOPE_OUT = +0.554
+#PITASLOPE_IN = -0.557
+
+#PITA slopes
+#  From M.Dalton, as of ,06Jan2011, https://cebaf.jlab.org/elog/entry/1560667
+#  units are ppm/dac-tick
+#PITASLOPE_OUT = -0.8588
+#PITASLOPE_IN = +0.8588
+###  Changed to slope of 1.145ppm/DAC based on 4Feb2011 large charge asym measurement
+###  See HCLog 218348.
+#PITASLOPE_OUT = +1.145
+#PITASLOPE_IN  = +1.145
+
+###  See HCLog 224296 07:35:22 on March 17, 2011 - rakithab
+PITASLOPE_OUT = +0.7749
+###  See HCLog 224663 10:12:08 on March 18, 2011 -  rakithab
+PITASLOPE_IN = +0.7192
+
+#PITA slopes
+#  From John Leacock, as of ,19Dec2010, 
+#  units are ppm/dac-tick
+#PITASLOPE_OUT = -0.996422
+#PITASLOPE_IN = +0.996422
 
 ###  PITANEG = 200
 
-#PITA starting setpoints
-PC_pos_t0 = 42500
-PC_neg_t0 = 41900
-
+#PITA starting setpoints when IHWP is flipped from the IN-OUT in 8:18am 02/23/2011
+# Runs checked OUT - 10207 IN - 10198 - Rakitha 02/23/2011
+PC_pos_t0_IN  = 43570
+PC_neg_t0_IN  = 40650
+PC_pos_t0_OUT = 42970
+PC_neg_t0_OUT = 41230
 
 
 #PC hardware count set-point limits
@@ -59,3 +94,10 @@ PC_neg_t0 = 41900
 #  referenced by Riad in OPS Elog 1549310.
 PC_low = 38018
 PC_up  = 48016
+
+#Minimum charge asymmetry at which feedback correction is applied. see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
+MIN_CHARGE_ASYM = 0.005
+
+#To enable correction damping see QwHelicityCorrelatedFeedback::FeedPITASetPoints()
+DAMPING = 0
+

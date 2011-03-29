@@ -88,7 +88,7 @@ class QwASCIIEventBuffer : public QwEventBuffer
   QwHit * currentHit;
 
   std::vector< QwHit > fASCIIHits;
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo;//detector geometires
+  QwGeometry fDetectorInfo;//detector geometries
   Int_t DetectorCounter; //counts total detectors added to the rcDET 
 
 

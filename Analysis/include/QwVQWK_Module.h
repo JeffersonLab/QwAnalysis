@@ -15,8 +15,6 @@
 
 #include "QwVQWK_Channel.h"
 
-#include "QwHistogramHelper.h"
-
 ///
 /// \ingroup QwAnalysis_ADC
 ///

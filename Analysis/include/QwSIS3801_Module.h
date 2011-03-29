@@ -8,13 +8,17 @@
 #ifndef __QwSIS3801_MODULE__
 #define __QwSIS3801_MODULE__
 
+// System headers
 #include <vector>
-#include "TTree.h"
+
+// Boost headers
 #include "boost/array.hpp"
 
-#include "QwScaler_Channel.h"
+// ROOT headers
+#include "TTree.h"
 
-#include "QwHistogramHelper.h"
+// Qweak headers
+#include "QwScaler_Channel.h"
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -24,7 +28,6 @@ class QwSIS3801_Module {
 
  public:
   QwSIS3801_Module() {
-
     for (size_t i=0; i<fChannels.size(); i++){
       fChannels.at(i).InitializeChannel("");
       fNumberOfDataWords = fChannels.at(i).GetNumberOfDataWords();
@@ -76,7 +79,7 @@ class QwSIS3801_Module {
 
   QwSIS3801D24_Channel* GetChannel(const TString name);
 
-//  If we change the number of channels in the module this needs to change.
+  // If we change the number of channels in the module this needs to change.
   boost::array<QwSIS3801D24_Channel, 32> fChannels;
 
  protected:

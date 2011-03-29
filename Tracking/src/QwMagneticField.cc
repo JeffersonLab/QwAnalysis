@@ -25,7 +25,6 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwUnits.h"
-#include "QwInterpolator.h"
 
 /**
  * Method to print arrays conveniently
@@ -44,7 +43,7 @@ inline ostream& operator<< (ostream& stream, const double v[3])
 QwMagneticField::QwMagneticField()
 {
   // Initialize pointers
-  fField = 0;
+  fField = this;
 
   // Initialize parameters
   SetFieldScalingFactor(1.0);
@@ -134,11 +133,12 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
   min.push_back(phiMinFromMap); max.push_back(phiMaxFromMap); step.push_back(gridstepsize_phi);
 
   // Create the field map interpolator
-  fField = new QwInterpolator<float,N_FIELD_COMPONENTS>(min,max,step);
+  fField->SetDimensions(min.size());
+  fField->SetMinimumMaximumStep(min,max,step);
   fField->SetInterpolationMethod(kMultiLinear);
 
   // Scale factor
-  SetFieldScalingFactor(1.04); // BFIL
+  SetFieldScalingFactor(1.035519443); // BFIL 8921/8615=1.035519443
   // Translation
   SetTranslation(0.0 * Qw::cm);
   // Rotation in degrees, half an octant offset
@@ -151,7 +151,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
 
   // Declare variables
   double r, z, phi;
-  field_t bx, by, bz, br, bphi, bx_new, by_new;
+  field_t bx, by, bz, bx_new, by_new;
 
   // Check for stream
   if (!input.good()) {
@@ -168,7 +168,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
     input >> r >> z >> phi >> bx >> by >> bz;
     if (! input.good()) continue;
     // Fix the units
-    r *= Qw::cm; z *= Qw::cm; phi *= Qw::deg;
+    r *= Qw::cm; z *= Qw::cm; phi *= Qw::deg; 
     bx *= Qw::kG; by *= Qw::kG; bz *= Qw::kG;
 
     // Correct for translation along z
@@ -190,15 +190,15 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
     field[1] = by * fFieldScalingFactor;
     field[2] = bz * fFieldScalingFactor;
 
-    if (N_FIELD_COMPONENTS == 5) {
+    #if N_FIELD_COMPONENTS == 5
       // Calculate the radial and azimuthal field components
-      br =    bx * cos(phi) + by * sin(phi);
-      bphi = -bx * sin(phi) + by * cos(phi);
+      double br =    bx * cos(phi) + by * sin(phi);
+      double bphi = -bx * sin(phi) + by * cos(phi);
 
       // Construct the field vector
       field[3] = br * fFieldScalingFactor;
       field[4] = bphi * fFieldScalingFactor;
-    }
+    #endif
 
     bool status = fField->Set(coord, field);
     if (! status) {
@@ -229,7 +229,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
  */
 QwMagneticField::~QwMagneticField()
 {
-  delete fField;
+  //delete fField;
 }
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

@@ -20,6 +20,9 @@
 #include "QwCombinedBPM.h"
 #include "VQwBPM.h"
 
+// Forward declarations
+class QwDBInterface;
+
 class QwEnergyCalculator : public VQwDataElement{
   /******************************************************************
    *  Class:QwEnergyCalculator

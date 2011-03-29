@@ -777,10 +777,12 @@ int QwTrackingTreeSearch::TsSetPoint (
  * @param treelinelist Pointer to the linked list of treelines
  * @return 0 if no such tree line exists, 1 otherwise
  */
+ //NOTE:what's this function's purpose?
 int QwTrackingTreeSearch::exists (
 	int *newa,
 	int front,
 	int back,
+	int offset,
 	QwTrackingTreeLine *treelinelist)
 {
   int *olda;
@@ -794,24 +796,38 @@ int QwTrackingTreeSearch::exists (
   // Loop over the treelines
   for (QwTrackingTreeLine* tl = treelinelist; tl; tl = tl->next) {
 
+
     // If the treeline has been voided, go onto next one
     if (tl->IsVoid())
       continue;
 
     int over = 0;
-    if (tl->a_beg <= front && front <= tl->a_end)
+
+    int wire_diff=0;
+    wire_diff=abs(offset-tl->fR3Offset);
+    
+    if(wire_diff<5){
+      if (tl->a_beg == front && front == tl->a_end )
       over++;
-    if (tl->b_beg <= back  && back  <= tl->b_end)
+    if (tl->b_beg == back  && back  == tl->b_end )
       over++;
+    }
+    
+    
+    /*if(tl->a_beg == front && front == tl->a_end )
+      over++;
+    if(tl->b_beg == back && back == tl->b_end )
+      over++;
+    */
 
     if (over == 2) {
-      //std::cerr << "over = 2" << std::endl;
+//       std::cerr << "over = 2" << std::endl;
       return 1;
     }
     if (over == 0)
       continue;
 
-    olda = tl->hasharray;
+    olda = tl->fHashArray;
     oldmiss = 0;
     diff    = 0;
 
@@ -841,7 +857,7 @@ int QwTrackingTreeSearch::exists (
           tl->b_beg = back;
         if (tl->b_end < back)
           tl->b_end = back;
-        //std::cerr << "!diff" << std::endl;
+//         std::cerr << "!diff" << std::endl;
         return 1;
       }
     }
@@ -880,6 +896,8 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 	int reverse,
 	int numwires)
 {
+  
+  
   // Next level in the recursive search
   bool search_debug_level=0;
   if(search_debug_level)
@@ -938,13 +956,28 @@ void QwTrackingTreeSearch::_SearchTreeLines (
   if (fDebug)
     QwDebug << "pattern start = " << pattern_start << QwLog::endl;
 
+//   std::cout << "level: " <<  level << " pattern_start: " << pattern_start << "offset: " << offset << std::endl;
+
+ // NOTE: this procedure is used in region2, and number 4 is hard-coded(might be removed later)
+  static int has_planes[4];
+  unsigned int missed_planes =0 ;
+  if(level == 0 && numwires==0){
+        for(unsigned int plane=0;plane< fNumPlanes;plane++){
+         if(static_pattern[plane][pattern_start])
+            has_planes[plane]=1;
+         else{
+            has_planes[plane]=0;
+            missed_planes++;
+             }
+         }
+   }
   /** Determine the rows which have hits first.  This is used to determine how
    *  many wires in a region 3 group have been hit.  If there are fewer than a
    *  preset number of wire hits, then the search is not even started.
    */
   static int has_hits[MAX_LAYERS];
   unsigned int missed_rows = 0;
-  if (level == 0) {
+  if (level == 0 && numwires>0 ) {
     for (unsigned int row = 0; row < fNumPlanes; row++) {
       // Bounds checking
       assert(row_offset + row < fPattern_fMaxRows);
@@ -959,7 +992,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
     }
   }
 
-
+ 
   /* Region 3 */
   if (numwires > 0) {
     while (node) {
@@ -1023,7 +1056,6 @@ void QwTrackingTreeSearch::_SearchTreeLines (
           assert(row_offset + row     < fPattern_fMaxRows);
           assert(pattern_offset + bin < fPattern_fMaxBins);
           // If the bin is set
-	  
           if (static_pattern[row_offset + row][pattern_offset + bin]) {
             matched_wires++; /* number of matched tree-planes */
             if ((int) row < firstwire) firstwire = row;
@@ -1038,9 +1070,10 @@ void QwTrackingTreeSearch::_SearchTreeLines (
         } // end of loop over wires
       } // end of if reversed
 	
-	// chcke if there's any missing wires in the middle.
+	// chcke if there's any missing wires in the middle or allow only 1 goofy wires
 
 	if(matched_wires < fNumWires ){
+           int goofy=0;       
 	   int* tree_pattern_copy = tree->fBit;
            if(reverse){
               // needs to do something?
@@ -1050,10 +1083,11 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 			int bin = (*tree_pattern_copy++);
 			assert( row_offset + row < fPattern_fMaxRows);
                         assert(pattern_offset + bin < fPattern_fMaxBins);
-			if ((int)row > firstwire && (int)row < lastwire){
+			if ((int)row > firstwire && (int)row <= lastwire){
                             if (static_pattern[row_offset + row][pattern_offset + bin])
-				continue;
+				continue;                            
                             else if (has_hits[row] == 0) matched_wires++;
+                            else if(goofy<1) {matched_wires++;goofy++;}
 			}
 		}
 	    }
@@ -1063,6 +1097,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
       std::cout << "matched_wires: " << matched_wires << std::endl;
       std::cout << "missed rows: " << missed_rows << std::endl;
 	}
+
 	
       /// Check if there was a treenode match now that the matching has been
       /// completely tested, but allow for some missing wires.
@@ -1074,7 +1109,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
         if (level == fMaxLevel - 1) {
 
           /// If so, then we have found a valid treeline.
-
+          
           // Calculate the bin in the last layer
 // 	 std::cout << "level: " << level << " offset: " << offset << std::endl;
           int backbin = reverse ? offset - tree->fBit[fNumPlanes-1]
@@ -1113,9 +1148,10 @@ void QwTrackingTreeSearch::_SearchTreeLines (
           else if (static_pattern[fNumPlanes-1+row_offset][backbin] == 0)
             miss = 1;
 
+	  
           /* Check whether this treeline already exists */
-          if (! exists(hashpat, frontbin, backbin, fTreeLineList)) {
-
+          if (! exists(hashpat, frontbin, backbin, row_offset,fTreeLineList)) {
+	     
             /* Print tree */
             if (fShowMatchingPatterns) tree->Print();
 
@@ -1126,7 +1162,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             fNTreeLines++;
 
             /* Copy hash pattern */
-            memcpy(treeline->hasharray, hashpat, sizeof(int) * fNumWires);
+            memcpy(treeline->fHashArray, hashpat, sizeof(int) * fNumWires);
 
             /* Missed front or back planes (?) */
             /* (only used until TreeLineSort) */
@@ -1189,10 +1225,26 @@ void QwTrackingTreeSearch::_SearchTreeLines (
 
   } else { /* Region 2 */
 
+//     if(level==0){
+//     std::cout << "print out the static pattern: " << std::endl;
+//     for (unsigned int plane = 0; plane < fNumPlanes; plane++) {
+//           for(int bin=0;bin<4;bin++){
+//           if (static_pattern[plane][bin]) {
+//             std::cout << "plane: " << plane << " bin: " << bin << std::endl;
+//           }
+//         }
+//     }
+//     }
+    
+    
     while (node) { /* search in all nodes */
 
+      
       shorttree* tree = node->GetTree();
-
+//       std::cout << "print the node pattern: reverse? " << reverse << std::endl;
+//       for(int plane=0;plane<4;plane++)
+//         std::cout << tree->fBit[plane];
+//       std::cout << std::endl;
 
       /* ---- Is the hit pattern in this treenode valid for this level
               of the treesearch?                                         ---- */
@@ -1207,37 +1259,46 @@ void QwTrackingTreeSearch::_SearchTreeLines (
               hit pattern for each tree-plane to see if the bits
               specified in the treenode are on                           ---- */
 
+      //NOTE:to print out the final binoffset value
+      int final[4]={0};
       unsigned long pattern_offset = pattern_start + offset;
       int* tree_pattern = tree->fBit;
       unsigned int matched_planes = 0;
       if (reverse) {
         /* loop over tree-planes */
         for (unsigned int plane = 0; plane < fNumPlanes; plane++) {
-          if (static_pattern[plane][pattern_offset - *tree_pattern++]) {
+          int bin=(*tree_pattern++);
+          if (static_pattern[plane][pattern_offset - bin]) {
             matched_planes++; /* number of matched tree-planes */
           }
         }
       } else {
         /* loop over tree-planes */
         for (unsigned int plane = 0; plane < fNumPlanes; plane++) {
-          if (static_pattern[plane][pattern_offset + *tree_pattern++]) {
+          int bin=(*tree_pattern++);
+          
+          if (static_pattern[plane][pattern_offset + bin]) {
             matched_planes++; /* number of matched tree-planes */
+            final[plane]=pattern_offset+bin;
+          }
+          else if(has_planes[plane]==0){
+            matched_planes++;
+            final[plane]=pattern_offset+bin;
           }
         }
       }
 
-
+        
       /* ---- Check if there was a treenode match now that the
               matching has been completely tested.                      ---- */
-
-      if (matched_planes >= fNumPlanes - fMaxMissedPlanes) {
-
+//       if (matched_planes >= fNumPlanes - fMaxMissedPlanes) {
+         if (matched_planes == fNumPlanes && missed_planes <= fMaxMissedPlanes ){
         /* ---- Yes, there is a match, so now check if all the levels
                 of the treesearch have been done.  If so, then we have
                 found a valid treeline.                                 ---- */
 
+      
         if (level == fMaxLevel - 1) {
-
           /* all levels done -> now insert treeline */
           int hashpat[fNumPlanes];
           int frontbin = reverse ? offset - tree->fBit[0]
@@ -1256,29 +1317,28 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             miss = 1;
           else if (static_pattern[fNumPlanes-1][backbin] == 0)
             miss = 1;
-
           /* Check whether this treeline already exists */
-          if (! exists(hashpat, frontbin, backbin, fTreeLineList)) {
-
+          if (! exists(hashpat, frontbin, backbin, row_offset,fTreeLineList)) {
+                
             /* Print tree */
             if (fShowMatchingPatterns) tree->Print();
 
             /* Create new treeline */
+                                
             QwTrackingTreeLine* treeline = new QwTrackingTreeLine (frontbin, frontbin, backbin, backbin);
-
             /* Number of treelines found */
             fNTreeLines++;
 
             /* Copy hash pattern */
-            memcpy(treeline->hasharray, hashpat, sizeof(int) * fNumPlanes);
-
+            memcpy(treeline->fHashArray, hashpat, sizeof(int) * fNumPlanes);
+            
             /* Missed front or back planes (?) */
             /* (only used until TreeLineSort) */
             treeline->fNumMiss = miss;
-
             /* Add this treeline to the linked-list */
             treeline->next = fTreeLineList;
             fTreeLineList = treeline;
+            
           }
 
         } else {                        /* check son patterns */
@@ -1287,8 +1347,9 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             shortnode** cnode = tree->son + rev;
             if (rev ^ reverse) {
               int off2 = (offset << 1) + 1;
-              for (int off = 0; off < 2; off++)
+              for (int off = 0; off < 2; off++){
                 _SearchTreeLines (*cnode++, nextlevel, off2 - off, 0, 2, 0);
+                }
             } else {
               int off2 = offset << 1;
               for (int off = 0; off < 2; off++) {
@@ -1391,7 +1452,6 @@ QwTrackingTreeLine* QwTrackingTreeSearch::SearchTreeLines (
 
     // Store the maximum number of rows
     fPattern_fMaxRows = numlayers;
-
     // The region 2 version of SearchTreeLines
     _SearchTreeLines (topnode, 0, 0, 0, 0, 0);
 

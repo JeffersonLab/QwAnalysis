@@ -22,11 +22,12 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
 
 	// Open file 1
 	char filename[255];
-	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnum1);
+	sprintf(filename,"$QW_ROOTFILES/qwinjector_%i.000.root",runnum1);
 	TFile *_file1 = TFile::Open(filename);
 	TTree *p1 = (TTree*)gROOT->FindObject("Hel_Tree");
 
-    TString cut = "cleandata&&" + usercut;
+	if(!_file1) exit(1);
+
 
     TCanvas *RHWPcanvas = new TCanvas("RHWPcanvas","Optimisation",40,0,1200,940);
     RHWPcanvas->Divide(4,3,0.0001,0.0001);   
@@ -41,6 +42,8 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
 	plotcommand += "_EffectiveCharge.hw_sum";
 	plotcommand += "*1000000";
     plotcommand += ":scandata1/50.0>>hAq1";
+
+    TString cut = Form("ErrorFlag == 0 && asym_%s_EffectiveCharge.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
 
     p1->Draw(plotcommand.Data(),cut.Data(),"prof");
     hAq1= (TH1F*)gPad->GetPrimitive("hAq1");
@@ -71,6 +74,8 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
     plotcommand += "X.hw_sum";
     plotcommand += "*1000:scandata1/50.0>>hDx1";
 
+	cut = Form("ErrorFlag == 0 && diff_%sX.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
+
     p1->Draw(plotcommand.Data(),cut.Data(),"prof");
     hDx1= (TH1F*)gPad->GetPrimitive("hDx1");
     sprintf(title,"X Pos Difference, PITA=0, run %i",runnum1);
@@ -91,6 +96,9 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
     plotcommand += dettype;
     plotcommand += "Y.hw_sum";
     plotcommand += "*1000:scandata1/50.0>>hDy1";
+
+	cut = Form("ErrorFlag == 0 && diff_%sY.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
+
     p1->Draw(plotcommand.Data(),cut.Data(),"prof");
     hDy1= (TH1F*)gPad->GetPrimitive("hDy1");
     sprintf(title,"Y Pos Difference, PITA=0, run %i",runnum1);
@@ -107,7 +115,7 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
     t1->Draw();
 
 	
-	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnum2);
+	sprintf(filename,"$QW_ROOTFILES/qwinjector_%i.000.root",runnum2);
 	TFile *_file2 = TFile::Open(filename);
 	TTree *p2 = (TTree*)gROOT->FindObject("Hel_Tree");
 
@@ -117,6 +125,8 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
 	plotcommand += "_EffectiveCharge.hw_sum";
 	plotcommand += "*1000000";
     plotcommand += ":scandata1/50.0>>hAq2";
+
+	cut = Form("ErrorFlag == 0 && asym_%s_EffectiveCharge.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
     //cout << plotcommand << endl;
     p2->Draw(plotcommand.Data(),cut.Data(),"prof");
     hAq2= (TH1F*)gPad->GetPrimitive("hAq2");
@@ -138,6 +148,7 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
     plotcommand += dettype;
     plotcommand += "X.hw_sum";
     plotcommand += "*1000:scandata1/50.0>>hDx2";
+	cut = Form("ErrorFlag == 0 && diff_%sX.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
     p2->Draw(plotcommand.Data(),cut.Data(),"prof");
     hDx2= (TH1F*)gPad->GetPrimitive("hDx2");
     sprintf(title,"X Pos Diff, PITA=%i, run %i",PITA,runnum2);
@@ -158,6 +169,8 @@ void RHWP_optimise(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TString devic
     plotcommand += dettype;
     plotcommand += "Y.hw_sum";
     plotcommand += "*1000:scandata1/50.0>>hDy2";
+	cut = Form("ErrorFlag == 0 && diff_%sY.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
+	
     p2->Draw(plotcommand.Data(),cut.Data(),"prof");
     hDy2= (TH1F*)gPad->GetPrimitive("hDy2");
     sprintf(title,"Y Pos Diff, PITA=%i, run %i",PITA,runnum2);

@@ -20,7 +20,7 @@
 
 //Qweak Event Display Header
 #include "QwEventDisplay.h"  // Includes ROOT headers and common classes and variables for the event display
-ClassImp(QwEventDisplay);    // Imports the new class object from the header
+ClassImp(QwEventDisplay)     // Imports the new class object from the header
 
 //Qweak Header Files
 #include "QwTreeEventBuffer.h"        // Create hit list from G4 Monte Carlo
@@ -1022,7 +1022,7 @@ void QwEventDisplay::GotoEvent(){  // Goes to desired event number written in "g
   fEventNumber = fCurrentEventEntry->GetNumberEntry()->GetIntNumber(); // fEventNumber takes value from number entry
   
   if (fEventNumber > 0){
-    fCurrentEventLabel->SetText(Form("%d",fCurrentEventEntry->GetNumberEntry()->GetIntNumber())); // Set current event label to value from number entry
+    fCurrentEventLabel->SetText(Form("%ld",fCurrentEventEntry->GetNumberEntry()->GetIntNumber())); // Set current event label to value from number entry
     DrawEvent();                                                                                  // Update display information
   }
   
@@ -1105,10 +1105,10 @@ void QwEventDisplay::DrawEvent(){  // Draws event data into display
 	sprintf(fHitBuffer, "Region %i:  Trace %i, Plane %i", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane()); // Print single hit for Region 1
       }
       else if (fHit->GetRegion() == 2){
-	sprintf(fHitBuffer, "Region %i:  Wire %i, Plane %i      Drift Distance: %lf", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane(), fHit->GetDriftDistance()); // Print single hit for Region 2
+	sprintf(fHitBuffer, "Region %i:  Wire %i, Plane %i      Drift Distance: %f", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane(), fHit->GetDriftDistance()); // Print single hit for Region 2
       }
       else if (fHit->GetRegion() == 3){
-	sprintf(fHitBuffer, "Region %i:  Wire %i, Plane %i      Drift Distance: %lf", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane(), fHit->GetDriftDistance()); // Print single hit for Region 3
+	sprintf(fHitBuffer, "Region %i:  Wire %i, Plane %i      Drift Distance: %f", fHit->GetRegion(), fHit->GetElement(), fHit->GetPlane(), fHit->GetDriftDistance()); // Print single hit for Region 3
       }
       else{}
       fWireInfoListBox->AddEntry(fHitBuffer, fEventNumber); // Add entry to list box

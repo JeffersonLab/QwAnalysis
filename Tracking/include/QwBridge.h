@@ -24,7 +24,7 @@ class QwMagneticField;
 /// \ingroup QwTracking
 
 
-class QwBridge: public VQwTrackingElement {
+class QwBridge: public VQwTrackingElement, public QwObjectCounter<QwBridge> {
 
   public:
 

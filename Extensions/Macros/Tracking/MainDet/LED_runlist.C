@@ -3,6 +3,7 @@
  */
 {
   // gROOT->Reset();
+  gStyle->SetOptFit(2222);
 
   const char* runlist_fname = "LED_runlist.txt";
   const char* pedestal_fname = "LED_pedestals.txt"; 
@@ -60,7 +61,11 @@
 
   TFile *f = 0;
   TH1F *fitter = 0;
+  TH1F *triggered = 0;
+  TH1F *ratio = 0;
   TF1 *func =  0;
+
+  TMultiGraph* mg = new TMultiGraph("efficiency","n-photon trigger efficiency");
 
   int waste=0;
   while ( t->GetEntry(waste++) ) {
@@ -69,10 +74,13 @@
     // currently open, it has to be cleaned up before the file is
     // closed.
     if (fitter) fitter->Delete();
+    if (triggered) triggered->Delete();
+    if (ratio) ratio->Delete();
     if (func) func->Delete();
     if (f) f->Close(); 
 
-    f = new TFile(Form("Qweak_%d.000.root",runnum));
+    //    f = new TFile(Form("Qweak_%d.000.root",runnum));
+    f = new TFile(Form("first100k_tracking_%d.root",runnum));
 
     if (!f || !f->IsOpen()) {
       cerr << "couldn't open " << f->GetName() << "\n"; 
@@ -87,13 +95,16 @@
       continue;
     }
     // There has to be a new fitter histogram etc. since we have changed to a new directory
-    fitter = new TH1F("fitter","",4096,0-.5,4096-.5);
+    fitter    = new TH1F("fitter"   ,"",4096,0,4096);
+    triggered = new TH1F("triggered","",4096,0,4096);
+    ratio     = new TH1F("ratio"    ,"",4096,0,4096);
 
     for (int det = 1; det <= 8; ++det) {
       const char *sign[2] = { "m", "p" }; 
       // const char *sign[2] = { "neg", "pos" };
       for (int s = 0; s <= 1; ++s) {
 	char *adc = StrDup(Form("md%d%s_adc", det, sign[s]));
+	char *f1  = StrDup(Form("md%d%s_f1" , det, sign[s]));
 
 	if (compute_pedestals) {
 	  if (signal.Match(adc)) continue;
@@ -160,10 +171,16 @@
 	  func = new TF1("func", 
 			 "[0]*TMath::Gaus(x,[1],[2]) + " 
 			 "[3]*TMath::Poisson( (x-[1])/[4], [5] )", 0,4096);
-          func->SetParameters( fitter->GetBinContent( fitter->FindBin( mean ) ) *sigma/0.4 ,
-                               mean, sigma, 
-                               fitter->GetMaximum() * 10 ,
-                               5, 5 );
+	  double ch_pe_guess = 5;
+	  func->SetParNames("ped_events","ped_mean","ped_sig",
+			    "poiss_events","ch_per_pe","pe_per_event");
+          func->SetParameters
+	    ( fitter->GetBinContent( fitter->FindBin( mean ) ) *sigma/0.4 ,
+	      mean, sigma,
+	      fitter->GetMaximum() / TMath::Poisson(ch_pe_guess,ch_pe_guess),
+	      ch_pe_guess,
+	      (fitter->GetMean() - mean)/ch_pe_guess
+	      );
 	  // we think we've measured the pedestal
 	  func->FixParameter( 1, mean );
 	  func->FixParameter( 2, sigma );
@@ -181,8 +198,35 @@
 
 	  fitter->SetAxisRange( mean - 5*sigma, 
 				mean + 5*r.Parameters()[5]*r.Parameters()[4] );
+
+	  char* f1diff = StrDup( Form("(%s-MD_reftime_f1)", f1) );
+	  TCut f1cut = Form( "-1800 < %s && %s < 0 || 62500 < %s", 
+			  f1diff, f1diff, f1diff );
+	  // f1cut = Form("%s != 0", f1),
+	  delete f1diff;
+
+	  event_tree->Draw( Form(" %s >> triggered", adc),
+			    f1cut,
+			    "same" );
+	  triggered->SetLineColor(2);
 	  c->Update();
 	  c->SaveAs( Form( "%s.%d.png", adc, runnum ) );
+
+	  TGraphErrors* g = new TGraphErrors(triggered->GetNbinsX());
+	  for(int ig=0, ih=1; ig < g->GetN(); ++ig, ++ih) {
+	    if ( triggered->GetBinContent(ih) < 30) {
+	      g->RemovePoint(ig--);
+	      continue;
+	    }
+	    g->GetX()[ig] = 
+	      (triggered->GetBinCenter(ih) - r.Parameters()[1])
+	      /r.Parameters()[4];
+	    g->GetY()[ig] = 
+	      triggered->GetBinContent(ih) / fitter->GetBinContent(ih);
+	    g->GetEX()[ig] = 0.5/r.Parameters()[4];
+	    g->GetEY()[ig] = 1./sqrt( triggered->GetBinContent(ih) );
+	  }
+	  mg->Add(g);
 	}
 
 	// Clean up
@@ -195,4 +239,12 @@
   }
   pedestal_output.close();
   signal_output.close();
+
+  for(int i=0; i < mg->GetListOfGraphs()->GetEntries(); ++i) {
+    TGraph* gg = (TGraph*)mg->GetListOfGraphs()->At(i);
+    gg->SetLineColor(i);
+    gg->SetFillColor(i);
+  }
+  new TCanvas;
+  mg->Draw("az");
 }

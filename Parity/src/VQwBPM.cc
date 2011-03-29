@@ -6,12 +6,17 @@
 \**********************************************************/
 
 #include "VQwBPM.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwLog.h"
 
 
 /* With X being vertical up and Z being the beam direction toward the beamdump */
 const TString  VQwBPM::axis[3]={"X","Y","Z"};
+
 
 void  VQwBPM::InitializeChannel(TString name)
 {
@@ -23,7 +28,7 @@ void  VQwBPM::InitializeChannel(TString name)
 
   for(i=0;i<2;i++)
     fAbsPos[i].InitializeChannel(name+axis[i],"derived");
-
+  
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
   
   for(i=0;i<3;i++) fPositionCenter[i] = 0.0;
@@ -31,7 +36,7 @@ void  VQwBPM::InitializeChannel(TString name)
   SetElementName(name);
 
   return;
-};
+}
 
 void VQwBPM::ClearEventData()
 {
@@ -41,7 +46,7 @@ void VQwBPM::ClearEventData()
   fEffectiveCharge.ClearEventData();
   
   return;
-};
+}
 
 void VQwBPM::GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset)
 {
@@ -51,7 +56,8 @@ void VQwBPM::GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffs
   fPositionCenter[1]=Yoffset;
   fPositionCenter[2]=Zoffset;
   return;
-};
+}
+
 
 void VQwBPM::GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY)
 {
@@ -59,19 +65,45 @@ void VQwBPM::GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t
   Bool_t ldebug = kFALSE;
 
   fQwStriplineCalibration = BSENfactor*18.81;
-   fRelativeGains[0]=AlphaX;
-   fRelativeGains[1]=AlphaY;
 
-   if(ldebug){
-     std::cout<<"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
-     std::cout<<this->GetElementName();
-     std::cout<<"\nfQwStriplineCalibration = "<<fQwStriplineCalibration<<std::endl;
-     std::cout<<"AlphaX = "<<fRelativeGains[0]<<std::endl;
-     std::cout<<"AlphaY = "<<fRelativeGains[1]<<std::endl;
+  fRelativeGains[0]=AlphaX;
+  fRelativeGains[1]=AlphaY;
 
-   }
+  if(ldebug){
+    std::cout<<"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    std::cout<<this->GetElementName();
+    std::cout<<"\nfQwStriplineCalibration = "<<fQwStriplineCalibration<<std::endl;
+    std::cout<<"AlphaX = "<<fRelativeGains[0]<<std::endl;
+    std::cout<<"AlphaY = "<<fRelativeGains[1]<<std::endl;
+    
+  }
   return;
-};
+}
+
+void VQwBPM::SetRotation(Double_t rotation_angle){
+  // Read the rotation angle in degrees (to beam right)
+  Bool_t ldebug = kFALSE;
+  fSinRotation = 0;
+  fSinRotation = 0;
+  fRotationAngle = rotation_angle;
+  fSinRotation = TMath::Sin(fRotationAngle*(TMath::DegToRad()));
+  fCosRotation = TMath::Cos(fRotationAngle*(TMath::DegToRad()));
+
+  if(ldebug){
+    std::cout<<"\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%\n";
+    std::cout<<this->GetElementName();
+    std::cout<<" is rotated by angle = "<<rotation_angle<<std::endl;
+    
+  }
+}
+
+void VQwBPM::SetRotationOff(){
+  // Turn off rotation. This object is already in accelerator coordinates.
+  fRotationAngle = 0.0;
+  SetRotation(fRotationAngle);
+  bRotated=kFALSE;
+}
+
 
 Int_t VQwBPM::GetEventcutErrorCounters()
 {
@@ -80,7 +112,7 @@ Int_t VQwBPM::GetEventcutErrorCounters()
   fEffectiveCharge.GetEventcutErrorCounters();
 
   return 1;
-};
+}
 
 
 Bool_t VQwBPM::ApplySingleEventCuts()
@@ -116,7 +148,7 @@ Bool_t VQwBPM::ApplySingleEventCuts()
 
   return status;
   
-};
+}
 
 void VQwBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
@@ -134,7 +166,7 @@ void VQwBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
     fEffectiveCharge.SetSingleEventCuts(minX,maxX);
 
   }
-};
+}
 
 
 VQwBPM& VQwBPM::operator= (const VQwBPM &value)
@@ -147,16 +179,16 @@ VQwBPM& VQwBPM::operator= (const VQwBPM &value)
   }
 
   return *this;
-};
+}
 
 VQwBPM& VQwBPM::operator+= (const VQwBPM &value)
 {
   if (GetElementName()!=""){
     this->fEffectiveCharge+=value.fEffectiveCharge;
-    for(Short_t i=0;i<3;i++) this->fAbsPos[i]+=value.fAbsPos[i];
+    for(Short_t i=0;i<2;i++) this->fAbsPos[i]+=value.fAbsPos[i];
   }
   return *this;
-};
+}
 
 VQwBPM& VQwBPM::operator-= (const VQwBPM &value)
 {
@@ -165,20 +197,20 @@ VQwBPM& VQwBPM::operator-= (const VQwBPM &value)
     for(Short_t i=0;i<2;i++) this->fAbsPos[i]-=value.fAbsPos[i];
   }
   return *this;
-};
+}
 
 
 void VQwBPM::Sum(VQwBPM &value1, VQwBPM &value2)
 {
   *this =  value1;
   *this += value2;
-};
+}
 
 void VQwBPM::Difference(VQwBPM &value1, VQwBPM &value2)
 {
   *this =  value1;
   *this -= value2;
-};
+}
 
 
 void VQwBPM::Scale(Double_t factor)
@@ -186,7 +218,8 @@ void VQwBPM::Scale(Double_t factor)
   fEffectiveCharge.Scale(factor);
   for(Short_t i = 0;i<2;i++)fAbsPos[i].Scale(factor);
   return;
-};
+}
+
 
 
 
@@ -198,4 +231,70 @@ void VQwBPM::SetRootSaveStatus(TString &prefix)
   return;
 }
 
+void VQwBPM::PrintValue() const
+{
+  Short_t i;
+  for (i = 0; i < 2; i++) fAbsPos[i].PrintValue();
+  fEffectiveCharge.PrintValue();
+    
+  return;
+}
 
+void VQwBPM::PrintInfo() const
+{
+  Short_t i = 0;
+  for (i = 0; i < 4; i++)  fAbsPos[i].PrintInfo();
+  fEffectiveCharge.PrintInfo();
+}
+
+
+void VQwBPM::CalculateRunningAverage()
+{
+  Short_t i = 0;
+  for (i = 0; i < 2; i++) fAbsPos[i].CalculateRunningAverage();
+  fEffectiveCharge.CalculateRunningAverage();
+
+  return;
+}
+
+
+void VQwBPM::AccumulateRunningSum(const VQwBPM& value)
+{
+  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
+  Short_t i = 0;
+  for (i = 0; i < 2; i++) fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
+  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
+  return;
+}
+
+
+/********************************************************/
+void  VQwBPM::Copy(VQwBPM *source)
+{
+  try
+    {
+      if(typeid(*source)==typeid(*this))
+	{
+	  VQwBPM* input=((VQwBPM*)source);
+	  this->fElementName = input->fElementName;
+	  this->bFullSave = input->bFullSave;
+	  this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+	  for(size_t i =0;i<2;i++)
+	    this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
+
+	}
+      else
+	{
+	  TString loc="Standard exception from VQwBPM::Copy = "
+	    +source->GetElementName()+" "
+	    +this->GetElementName()+" are not of the same type";
+	  throw std::invalid_argument(loc.Data());
+	}
+    }
+  catch (std::exception& e)
+    {
+      std::cerr << e.what() << std::endl;
+    }
+
+  return;
+}

@@ -30,7 +30,7 @@
 #include "QwPMT_Channel.h"
 #include "MQwV775TDC.h"
 
-class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
+class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, public MQwCloneable<QwComptonPhotonDetector> {
 
   public:
 
@@ -73,17 +73,20 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     UInt_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void AccumulateRunningSum(VQwSubsystem* value) { };
-    void CalculateRunningAverage() { };
+    void AccumulateRunningSum(VQwSubsystem* value);
+    void CalculateRunningAverage();
 
+    using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
     void  DeleteHistograms();
 
+    using VQwSubsystem::ConstructTree;
     void  ConstructTree(TDirectory *folder, TString &prefix);
     void  FillTree();
     void  DeleteTree();
 
+    using VQwSubsystem::ConstructBranchAndVector;
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  ConstructBranch(TTree *tree, TString& prefix) { };
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
@@ -133,9 +136,12 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     /// List of scaler channels
     typedef std::map< Int_t, std::vector< std::vector< Int_t > > > Scaler_Mapping_t;
     Scaler_Mapping_t fScaler_Mapping;
-    std::vector< QwSIS3801D24_Channel > fScaler;
+    std::vector< VQwScaler_Channel* > fScaler;
 
   private:
+
+    // Number of good events
+    Int_t fGoodEventCount;
 
     static const Bool_t kDebug = kTRUE;
 

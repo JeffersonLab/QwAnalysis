@@ -6,14 +6,22 @@
 
 // Qweak headers
 #include "VQwSubsystem.h"
-
-///
-/// \ingroup QwTracking
+#include "QwDetectorInfo.h"
 
 // Forward declarations
 class QwHitContainer;
-class QwDetectorInfo;
 
+
+/**
+ *  \class VQwsubsystemTracking
+ *  \ingroup QwTracking
+ *
+ *  \brief Base class for tracking subsystems
+ *
+ *  This base class for tracking subsystems provides functionality for
+ *  constructing tree branches, loading and manipuliting geometry info,
+ *  and retrieval of hit lists from the tracking subsystem.
+ */
 class VQwSubsystemTracking: virtual public VQwSubsystem {
   /******************************************************************
    *  Class: VQwSubsystemTracking
@@ -28,9 +36,17 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     /// Constructor with name
     VQwSubsystemTracking(TString name): VQwSubsystem(name) {
       SetEventTypeMask(0xfffe); // do not accept 0x1
+      fDetectorInfo.clear(); // clear detector info
     };
     /// Default destructor
-    virtual ~VQwSubsystemTracking() { };
+    virtual ~VQwSubsystemTracking() {
+      // Clear detector info objects
+      QwGeometry::iterator i;
+      for (i = fDetectorInfo.begin(); i != fDetectorInfo.end(); i++) {
+        delete *i;
+      }
+      fDetectorInfo.clear();
+    };
 
 
     /// \name Tree and branch construction and maintenance
@@ -38,6 +54,7 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     /// subsystems might not need to write anything to a tree.
     // @{
     /// \brief Construct the branch and tree vector
+    using VQwSubsystem::ConstructBranchAndVector;
     virtual void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values) { };
     /// \brief Construct the branch and tree vector
     virtual void ConstructBranch(TTree *tree, TString& prefix) { };
@@ -46,20 +63,22 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     /// \brief Fill the tree vector
     virtual void FillTreeVector(std::vector<Double_t>& values) const { };
     // @}
-    // @}
 
 
     /// Load geometry definition for tracking subsystems (required)
     virtual Int_t LoadGeometryDefinition(TString mapfile) = 0;
 
-    /// Get the detector geometry information
-    virtual Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detect_info) = 0;
-
-
     /// Get the hit list
     virtual void  GetHitList(QwHitContainer & grandHitContainer) = 0;
 
+
+    /// Get the detector geometry information
+    const QwGeometry& GetDetectorInfo() const { return fDetectorInfo; };
+
   protected:
+
+    /// Geometry information of this subsystem
+    QwGeometry fDetectorInfo;
 
     /// Tree indices
     size_t fTreeArrayIndex;
@@ -67,8 +86,8 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
 
   private:
 
-    /// Private default constructor
-    VQwSubsystemTracking() { };
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemTracking();
 
 }; // class VQwSubsystemTracking
 

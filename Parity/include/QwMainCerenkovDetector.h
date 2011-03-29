@@ -11,24 +11,22 @@
 #ifndef __QWMAINCERENKOVDETECTOR__
 #define __QWMAINCERENKOVDETECTOR__
 
+// System headers
 #include <vector>
-#include <TTree.h>
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
-
 #include "QwIntegrationPMT.h"
 #include "QwCombinedPMT.h"
-
-#include "QwTypes.h"
-
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
 
 // Forward declarations
 class QwBlinder;
 class QwMainCerenkovDetectorID;
 
-class QwMainCerenkovDetector: public VQwSubsystemParity {
+
+class QwMainCerenkovDetector:
+    public VQwSubsystemParity,
+    public MQwCloneable<QwMainCerenkovDetector> {
 
   friend class QwCombinedPMT;
   /******************************************************************
@@ -88,10 +86,12 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
     ConstructHistograms(folder,tmpstr);
   };
 
+  using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
 
+  using VQwSubsystem::ConstructBranchAndVector;
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void ConstructBranch(TTree *tree, TString &prefix);
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
@@ -121,6 +121,7 @@ class QwMainCerenkovDetector: public VQwSubsystemParity {
   void Difference(VQwSubsystem* value1, VQwSubsystem* value2);
   void Ratio(VQwSubsystem* numer, VQwSubsystem* denom);
   void Scale(Double_t factor);
+  void Normalize(VQwDataElement* denom);
 
   void AccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();

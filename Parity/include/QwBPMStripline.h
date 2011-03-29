@@ -8,16 +8,20 @@
 #ifndef __QwVQWK_STRIPLINE__
 #define __QwVQWK_STRIPLINE__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-
+// Qweak headers
 #include "QwVQWK_Channel.h"
-#include "QwDatabase.h"
 #include "VQwBPM.h"
 #include "QwParameterFile.h"
+
+// Forward declarations
+class QwDBInterface;
+
 /*****************************************************************
 *  Class:
 ******************************************************************/
@@ -30,21 +34,25 @@ class QwBPMStripline : public VQwBPM {
 
  public:
   QwBPMStripline() { };
-  QwBPMStripline(TString name, Bool_t ROTATED):VQwBPM(name){
+
+  QwBPMStripline(TString name):VQwBPM(name){
     InitializeChannel(name);
-    bRotated=ROTATED;
-  };
+    fRotationAngle = 45.0;
+    SetRotation(fRotationAngle);
+    bRotated=kTRUE;
+  };   
     
-    
-    QwBPMStripline(TString subsystemname, TString name, Bool_t ROTATED):VQwBPM(name){
+    QwBPMStripline(TString subsystemname, TString name):VQwBPM(name){
       SetSubsystemName(subsystemname);
       InitializeChannel(subsystemname, name);
-      bRotated=ROTATED;
+      fRotationAngle = 45.0;
+      SetRotation(fRotationAngle);
+      bRotated=kTRUE;
     };    
 
-    ~QwBPMStripline() {
-      DeleteHistograms();
-    };
+      ~QwBPMStripline() {
+	DeleteHistograms();
+      };
 
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
@@ -114,7 +122,6 @@ class QwBPMStripline : public VQwBPM {
 
 
  protected:
-  Bool_t   bRotated;
   QwVQWK_Channel fWire[4];
   QwVQWK_Channel fRelPos[2];
 

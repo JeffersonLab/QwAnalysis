@@ -14,21 +14,21 @@
 #include <vector>
 
 // ROOT headers
-#include <Rtypes.h>
-#include <TString.h>
-#include <TDirectory.h>
-#include <TTree.h>
+#include "Rtypes.h"
+#include "TString.h"
+#include "TDirectory.h"
+#include "TTree.h"
 
 // Qweak headers
 // Note: the subsystem factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
 #include "QwSubsystemFactory.h"
-// Note: the parameter file is included for
-#include "QwParameterFile.h"
 
 // Forward declarations
-class QwSubsystemArray;
 class VQwDataElement;
+class QwSubsystemArray;
+class QwParameterFile;
+
 
 /**
  *  \class   VQwSubsystem
@@ -55,18 +55,27 @@ class VQwDataElement;
  * This will define the interfaces used in communicating with the
  * CODA routines.
  */
-class VQwSubsystem {
+class VQwSubsystem: virtual public VQwCloneable {
 
  public:
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-    : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE), fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
+    : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
+      fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
     ClearAllBankRegistrations();
-  };
+  }
+  /// Copy constructor by object
+  VQwSubsystem(const VQwSubsystem& orig) {
+    *this = orig;
+  }
+  /// Copy constructor by pointer
+  VQwSubsystem(const VQwSubsystem* orig) {
+    *this = *orig;
+  }
 
   /// Default destructor
-  virtual ~VQwSubsystem() { };
+  virtual ~VQwSubsystem() { }
 
 
   /// \brief Define options function (note: no virtual static functions in C++)
@@ -114,6 +123,9 @@ class VQwSubsystem {
                                       VQwDataElement* value) const {
     return kFALSE;
   };
+  
+  virtual std::vector<TString> GetParamFileNameList();
+  virtual std::map<TString, TString> GetDetectorMaps();
 
  protected:
   /// Map of published internal values
@@ -150,7 +162,7 @@ class VQwSubsystem {
 
   virtual Int_t ProcessEvBuffer(const UInt_t event_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words){
     /// TODO:  Subsystems should be changing their ProcessEvBuffer routines to take the event_type as the first
-    ///  arguement.  But in the meantime, default to just calling the non-event-type-aware ProcessEvBuffer routine.
+    ///  argument.  But in the meantime, default to just calling the non-event-type-aware ProcessEvBuffer routine.
     if (((0x1 << (event_type - 1)) & this->GetEventTypeMask()) == 0) return 0;
     else return this->ProcessEvBuffer(roc_id, bank_id, buffer, num_words);
   };
@@ -220,6 +232,8 @@ class VQwSubsystem {
   // @}
 
 
+ 
+
   /// \name Expert tree construction and maintenance
   /// These functions are not purely virtual, since not every subsystem is
   /// expected to implement them.  They are intended for expert output to
@@ -250,9 +264,17 @@ class VQwSubsystem {
   /// \brief Print some information about the subsystem
   virtual void  PrintInfo() const;
 
-  virtual void Copy(VQwSubsystem *source);//Must call at the beginning of all subsystems rotuine call to Copy(VQwSubsystem *source)  by  using VQwSubsystem::Copy(source)
-  virtual VQwSubsystem&  operator=  (VQwSubsystem *value);//Must call at the beginning of all subsystems rotuine call to operator=  (VQwSubsystem *value)  by VQwSubsystem::operator=(value)
+  /// \brief Copy method
+  /// Note: Must be called at the beginning of all subsystems routine
+  /// call to Copy(VQwSubsystem *source) by using VQwSubsystem::Copy(source)
+  virtual void Copy(VQwSubsystem *source);
+  /// \brief Assignment
+  /// Note: Must be called at the beginning of all subsystems routine
+  /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)
+  virtual VQwSubsystem& operator=(VQwSubsystem *value);
 
+
+  virtual void PrintDetectorMaps(Bool_t status);
 
  protected:
 
@@ -262,7 +284,7 @@ class VQwSubsystem {
 
   /*! \brief Tell the object that it will decode data from this ROC and sub-bank
    */
-  virtual Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id);
+  virtual Int_t RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0);
 
   /*! \brief Tell the object that it will decode data from this sub-bank in the ROC currently open for registration
    */
@@ -285,6 +307,8 @@ class VQwSubsystem {
 
   Bool_t   fIsDataLoaded; ///< Has this subsystem gotten data to be processed?
 
+  std::vector<TString> fDetectorMapsNames;
+  std::map<TString, TString> fDetectorMaps;
  protected:
 
   Int_t fCurrentROC_ID; ///< ROC ID that is currently being processed
@@ -300,12 +324,18 @@ class VQwSubsystem {
 
 
  protected:
-  VQwSubsystem(){};  //  Private constructor.
-  VQwSubsystem&  operator=  (const VQwSubsystem &value){
-    return *this;
-  };
 
+  // Comparison of type
+  Bool_t Compare(VQwSubsystem* source) {
+    return (typeid(*this) == typeid(*source));
+  }
+
+ private:
+
+  // Private constructor (not implemented, will throw linker error on use)
+  VQwSubsystem();
 
 }; // class VQwSubsystem
+
 
 #endif // __VQWSUBSYSTEM__

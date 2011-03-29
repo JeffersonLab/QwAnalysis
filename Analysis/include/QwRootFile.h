@@ -6,9 +6,10 @@
 #include <unistd.h>
 
 // ROOT headers
-#include <TFile.h>
-#include <TTree.h>
-#include <TPRegexp.h>
+#include "TFile.h"
+#include "TTree.h"
+#include "TPRegexp.h"
+#include "TSystem.h"
 
 // Qweak headers
 #include "QwOptions.h"
@@ -17,7 +18,7 @@
 
 // If one defines more than this number of words in the full ntuple,
 // the results are going to get very very crazy.
-#define BRANCH_VECTOR_MAX_SIZE 6000
+#define BRANCH_VECTOR_MAX_SIZE 9000
 
 
 /**
@@ -76,9 +77,7 @@ class QwRootTree {
     }
 
     /// Destructor
-    virtual ~QwRootTree() {
-      delete fTree;
-    }
+    virtual ~QwRootTree() { }
 
     /// Construct the tree
     void ConstructNewTree(const std::string& name, const std::string& desc) {
@@ -108,6 +107,7 @@ class QwRootTree {
         exit(-1);
       }
     }
+   
 
     /// Fill the branches for generic objects
     template < class T >
@@ -292,6 +292,10 @@ class QwRootFile {
     void FillTreeBranches(const T& detectors);
 
 
+    template < class T >
+      Int_t WriteParamFileList(const TString& name, T& detectors);
+
+
     /// \brief Construct the histograms of a generic object
     template < class T >
     void ConstructHistograms(const std::string& name, T& detectors);
@@ -305,8 +309,7 @@ class QwRootFile {
       if (! HasDirByType(detectors)) return;
       // Fill histograms
       detectors.FillHistograms();
-
-    };
+    }
     /// Delete histograms of the subsystem array
     template < class T >
     void DeleteHistograms(T& detectors) {
@@ -388,10 +391,13 @@ class QwRootFile {
 
     // Wrapped functionality
     void Update() { if (fMapFile) fMapFile->Update(); } // not for TFile
-    void Close()  { if (fMapFile) fMapFile->Close();  if (fRootFile) fRootFile->Close(); }
     void Print()  { if (fMapFile) fMapFile->Print();  if (fRootFile) fRootFile->Print(); }
     void ls()     { if (fMapFile) fMapFile->ls();     if (fRootFile) fRootFile->ls(); }
     void Map()    { if (fRootFile) fRootFile->Map(); }
+    void Close()  {
+      if (!fMakePermanent) fMakePermanent = HasAnyFilled();
+      if (fMapFile) fMapFile->Close();  if (fRootFile) fRootFile->Close();
+    }
 
     // Wrapped functionality
     Bool_t cd(const char* path = 0) {
@@ -430,6 +436,15 @@ class QwRootFile {
     TString fRootFileStem;
     /// Default ROOT file stem
     static std::string fDefaultRootFileStem;
+
+    /// While the file is open, give it a temporary filename.  Perhaps
+    /// change to a permanent name when closing the file.
+    TString fPermanentName;
+    Bool_t fMakePermanent;
+
+    /// Search for non-empty trees or histograms in the file
+    Bool_t HasAnyFilled(void);
+    Bool_t HasAnyFilled(TDirectory* d);
 
     /// Map file
     TMapFile* fMapFile;
@@ -652,6 +667,20 @@ void QwRootFile::ConstructHistograms(const std::string& name, T& detectors)
     //detectors.ConstructHistograms(fDirsByName[name]);
     detectors.ConstructHistograms();
   }
+}
+
+
+template < class T >
+Int_t QwRootFile::WriteParamFileList(const TString &name, T& detectors)
+{
+  Int_t retval = 0;
+  if (fRootFile) {
+    TList *param_list = (TList*) fRootFile->FindObjectAny(name);
+    if (not param_list) {
+      retval = fRootFile->WriteObject(detectors.GetParamFileNameList(name), name);
+    }
+  }
+  return retval;
 }
 
 

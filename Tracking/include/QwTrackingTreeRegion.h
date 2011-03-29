@@ -55,7 +55,7 @@ class QwTrackingTreeRegion:
     ~QwTrackingTreeRegion();
 
     /// \brief Is this region searchable?
-    const bool IsSearchable() const { return fSearchable; };
+    bool IsSearchable() const { return fSearchable; };
     /// \brief Set this tree region to searchable
     void SetSearchable(bool searchable = true) { fSearchable = searchable; };
 
@@ -63,12 +63,12 @@ class QwTrackingTreeRegion:
     shortnode* GetNode() { return &fNode; };
 
     /// \brief Get the width
-    const double GetWidth() const { return fWidth; };
+    double GetWidth() const { return fWidth; };
     /// \brief Set the width
     void SetWidth(double width) { fWidth = width; };
 
     /// Print the lists of trees and nodes
-    void Print() const { PrintTrees(); PrintNodes(); };
+    void Print(const Option_t* options = 0) const { PrintTrees(); PrintNodes(); };
     /// \brief Print the list of trees
     void PrintTrees() const;
     /// \brief Print the list of nodes

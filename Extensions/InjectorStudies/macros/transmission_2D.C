@@ -4,14 +4,14 @@
 void transmission_2D(Int_t runnumber=1) 
 {
 	if (runnumber==1) {
-		printf("Usage:\n\t.x transmission_2D.C(runnum)\n\n");
+		printf("Usage:\n\t.x transmission_2D.C(runnum, listfilename)\n\n");
 		return;
 	}
 	gROOT->Reset();
 	gROOT->SetStyle("Plain");
 	Bool_t debug=0;
 	Bool_t setsize=1;
-	Double_t maxx=1;
+	Double_t maxx=0.05;
 
 	Double_t maxy, maxxplot, maxyplot;
 	maxy=maxx;
@@ -33,9 +33,10 @@ void transmission_2D(Int_t runnumber=1)
 // 						"0l09","0l10"};
 // 	const Int_t numplots=16;
 	TString bpmlist[] = {"1i02", "1i04","1i06","0i02","0i02a","0i05",
-						"0i07","0l02 ","0l03","0l04","0l05","0l06","0l07","0l08",
-						"0l09","0l10"};
-	const Int_t numplots=16;
+						 "0i07","0l02 "};
+// 	,"0l03","0l04","0l05","0l06","0l07","0l08",
+// 						"0l09","0l10"};
+	const Int_t numplots=8;
 
 	char filename[255];
 	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnumber);

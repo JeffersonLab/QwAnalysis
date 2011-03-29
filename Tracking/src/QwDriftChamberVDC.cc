@@ -17,7 +17,7 @@ const UInt_t QwDriftChamberVDC::kBackPlaneNum=16;
 const UInt_t QwDriftChamberVDC::kLineNum=8;
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwDriftChamberVDC> theDriftChamberVDCFactory ( "QwDriftChamberVDC" );
+RegisterSubsystemFactory(QwDriftChamberVDC);
 
 QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ) :
 		VQwSubsystem ( region_tmp ), QwDriftChamber ( region_tmp,fWireHitsVDC )
@@ -28,7 +28,7 @@ QwDriftChamberVDC::QwDriftChamberVDC ( TString region_tmp ) :
 	fDelayLineArray.resize ( kBackPlaneNum, temp );
 	fDelayLinePtrs.resize ( 21 );
 	OK=0;
-};
+}
 
 Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 {
@@ -41,15 +41,12 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	Double_t ActiveWidthX, ActiveWidthY, ActiveWidthZ;
 	Double_t WireSpace, FirstWire, W_rcos, W_rsin;
 
-	QwDetectorInfo local_region3_detector;
-
 	fDetectorInfo.clear();
-	fDetectorInfo.resize ( kNumPackages );
 
 	DIRMODE=0;
 
 	QwParameterFile mapstr ( mapfile.Data() );  //Open the file
-
+	fDetectorMapsNames.push_back(mapstr.GetParamFilename());
 	while ( mapstr.ReadNextLine() )
 	{
 		mapstr.TrimComment ( '!' );   // Remove everything after a '!' character.
@@ -99,59 +96,48 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 
 			if ( region==3 )
 			{
-				local_region3_detector.SetDetectorInfo (
-				    dType,
-				    Zpos,
-				    rot,
-				    sp_res,
-				    track_res,
-				    slope_match,
-				    package,
-				    region,
-				    direction,
-				    Det_originX, Det_originY,
-				    ActiveWidthX, ActiveWidthY, ActiveWidthZ,
-				    WireSpace,
-				    FirstWire,
-				    W_rcos, W_rsin,
-				    TotalWires,
-				    detectorId
-				);
-				if ( package == "u" ) fDetectorInfo.at ( kPackageUp ).push_back ( local_region3_detector );
-				else if ( package == "d" ) fDetectorInfo.at ( kPackageDown ).push_back ( local_region3_detector );
+		            QwDetectorInfo* detector = new QwDetectorInfo();
+		            detector->SetDetectorInfo(dType, Zpos,
+		                rot, sp_res, track_res, slope_match,
+		                package, region, direction,
+		                Det_originX, Det_originY,
+		                ActiveWidthX, ActiveWidthY, ActiveWidthZ,
+		                WireSpace, FirstWire,
+		                W_rcos, W_rsin,
+		                TotalWires,
+		                detectorId);
+		            fDetectorInfo.push_back(detector);
 			}
 		}
 	}
 
-	QwMessage << "Loaded Qweak Geometry"<<" Total Detectors in kPackageUP "
-	<< fDetectorInfo.at ( kPackageUp ).size()
-	<< ", "
-	<< "kPackagDown "
-	<< fDetectorInfo.at ( kPackageDown ).size()
-	<< QwLog::endl;
+	QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
+	    << fDetectorInfo.in(kPackageUp).size()
+	    << ", "
+	    << "kPackagDown "
+	    << fDetectorInfo.in(kPackageDown).size()
+	    << QwLog::endl;
 
 	QwMessage << "Sorting detector info..." << QwLog::endl;
 
-	std::size_t i = 0;
-
-	std::sort ( fDetectorInfo.at ( kPackageUp ).begin(), fDetectorInfo.at ( kPackageUp ).end() );
 	plane = 1;
-	for ( i=0; i < fDetectorInfo.at ( kPackageUp ).size(); i++ )
+	QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
+	for (size_t i = 0; i < detector_info_up.size(); i++)
 	{
-		fDetectorInfo.at ( kPackageUp ).at ( i ).fPlane = plane++;
-		QwMessage << " kPackageUp Region " << fDetectorInfo.at ( kPackageUp ).at ( i ).fRegion
-		<< " Detector ID " << fDetectorInfo.at ( kPackageUp ).at ( i ).fDetectorID
-		<< QwLog::endl;
+	  detector_info_up.at(i)->fPlane = plane++;
+	  QwMessage << " kPackageUp Region " << detector_info_up.at(i)->fRegion
+	      << " Detector ID " << detector_info_up.at(i)->fDetectorID
+	      << QwLog::endl;
 	}
 
 	plane = 1;
-	std::sort ( fDetectorInfo.at ( kPackageDown ).begin(), fDetectorInfo.at ( kPackageDown ).end() );
-	for ( i=0; i < fDetectorInfo.at ( kPackageDown ).size(); i++ )
+        QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+	for (size_t i = 0; i < detector_info_down.size(); i++)
 	{
-		fDetectorInfo.at ( kPackageDown ).at ( i ).fPlane = plane++;
-		QwMessage << " kPackageDown Region " << fDetectorInfo.at ( kPackageDown ).at ( i ).fRegion
-		<< " Detector ID " << fDetectorInfo.at ( kPackageDown ).at ( i ).fDetectorID
-		<< QwLog::endl;
+	  detector_info_down.at(i)->fPlane = plane++;
+	  QwMessage << " kPackageDown Region " << detector_info_down.at(i)->fRegion
+	      << " Detector ID " << detector_info_down.at(i)->fDetectorID
+	      << QwLog::endl;
 	}
 
 	QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
@@ -219,7 +205,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
 	    i--;
 	  }
 	  else{
-	  };
+	  }
 	  ref_data_size = fReferenceData.at ( bank ).size();
 	}
     }
@@ -322,11 +308,11 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 	Double_t resolution=0.5;     //resolution is 0.5ns
 //     Double_t cut0=0,cut1=0,cut2=0;
 
-	if ( fTtoDNumbers.size() <15 )
-	{
-		std::cerr << "the size of parameters is not correct, please check! " << std::endl;
-		return -1;
-	}
+// 	if ( fTtoDNumbers.size() <15 )
+// 	{
+// 		std::cerr << "the size of parameters is not correct, please check! " << std::endl;
+// 		return -1;
+// 	}
 
 //     cut0=fTtoDNumbers.at(0);
 //     cut1=fTtoDNumbers.at(1);
@@ -335,12 +321,13 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 
 	Int_t index = (Int_t) (dt/resolution);
 
-	if ( index>=800 || index < 0 ) {
-	  distance_mm = -50.0;
-	}
-	else {
+// 	if ( index>=800 || index < 0 ) {
+// 	  distance_mm = -50.0;
+// 	}
+// 	else {
+        if(dt>400) std::cout << "error!" << dt << std::endl;
 	  distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );
-	}
+// 	}
 //     if ( dt < cut0 )
 //       {
 //         distance_mm = fTtoDNumbers.at(3)+fTtoDNumbers.at(4)*dt+fTtoDNumbers.at(5)*dt*dt+fTtoDNumbers.at(6)*dt*dt*dt/1000000;
@@ -357,7 +344,7 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 //       {
 //         distance_mm = fTtoDNumbers.at(13)+fTtoDNumbers.at(14)*dt;
 //       }
-//     else { distance_mm = -50;};
+//     else { distance_mm = -50;}
 
 //     Double_t p[12]={0.0};
 //     Double_t cut_time[3]={60,236,300};
@@ -395,7 +382,7 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 //       {
 //         distance_mm = p[10]+p[11]*dt;
 //       }
-//     else {};
+//     else {}
 
 
 	//Double_t p[11]={0.0};
@@ -449,7 +436,7 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 
 	distance_cm = 0.1*distance_mm;
 	return distance_cm;
-};
+}
 
 
 void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data )
@@ -510,8 +497,8 @@ void  QwDriftChamberVDC::FillRawTDCWord ( Int_t bank_index, Int_t slot_num, Int_
 
 		}
 
-	};
-};
+	}
+}
 
 
 
@@ -552,7 +539,7 @@ Int_t QwDriftChamberVDC::BuildWireDataStructure ( const UInt_t chan,
 		fWiresPerPlane.at ( real_size ) = r3_wire_number_per_plane;
 	}
 	return OK;
-};
+}
 
 
 Int_t QwDriftChamberVDC::AddChannelDefinition()
@@ -639,7 +626,7 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 
 	std::vector<Double_t> tmpWindows;
 	QwParameterFile mapstr ( mapfile.Data() );
-
+	fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 	EQwDetectorPackage package = kPackageNull;
 	EQwDirectionID   direction = kDirectionNull;
 
@@ -754,33 +741,37 @@ Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 
 void QwDriftChamberVDC::ReadEvent ( TString& eventfile )
 {
-	TString varname,varvalue;
-	UInt_t slotnum,channum;            //store temporary channel number
-	//  UInt_t pknum,plnum;         //store temp package,plane,firstwire and left or right information
-	UInt_t value = 0;
-	Double_t signal = 0.0; // Double_t? unsigned Int_t ? by jhlee
-	EQwDetectorPackage package = kPackageNull;
-	EQwDirectionID direction = kDirectionNull;
+  TString varname,varvalue;
+  UInt_t slotnum = 0;
+  UInt_t channum = 0;            //store temporary channel number
+  //  UInt_t pknum,plnum;         //store temp package,plane,firstwire and left or right information
+  UInt_t value = 0;
+  Double_t signal = 0.0; // Double_t? unsigned Int_t ? by jhlee
+  EQwDetectorPackage package = kPackageNull;
+  EQwDirectionID direction = kDirectionNull;
+  
+  QwParameterFile mapstr ( eventfile.Data() );
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
-	QwParameterFile mapstr ( eventfile.Data() );
-	while ( mapstr.ReadNextLine() )
+  while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );
+      mapstr.TrimWhitespace();
+      if ( mapstr.LineIsEmpty() ) continue;
+      if ( mapstr.HasVariablePair ( "=",varname,varvalue ) )   //to judge whether we find a new crate
 	{
-		mapstr.TrimComment ( '!' );
-		mapstr.TrimWhitespace();
-		if ( mapstr.LineIsEmpty() ) continue;
-		if ( mapstr.HasVariablePair ( "=",varname,varvalue ) )   //to judge whether we find a new crate
-		{
-			varname.ToLower();
-			value = atol ( varvalue.Data() );
-			continue;
-		}
-
-		slotnum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		channum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		signal  = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		//std::cout << "signal is: " << signal << endl;
-		fTDCHits.push_back ( QwHit ( value,slotnum,channum,0, kRegionID3,package,0,direction,0, ( UInt_t ) signal ) );
-	}        //only know TDC information and time value
+	  varname.ToLower();
+	  value = atol ( varvalue.Data() );
+	  continue;
+	}
+      
+      slotnum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      channum = ( atol ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      signal  = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      //std::cout << "signal is: " << signal << endl;
+      fTDCHits.push_back ( QwHit ( value,slotnum,channum,0, kRegionID3,package,0,direction,0, ( UInt_t ) signal ) );
+    }        //only know TDC information and time value
+  return;
 }
 
 
@@ -892,7 +883,7 @@ void QwDriftChamberVDC::ProcessEvent()
 					NewQwHit.SetTime ( real_time );
 
 
-					QwDetectorInfo* local_info = & fDetectorInfo.at ( package ).at ( plane -1 );
+					const QwDetectorInfo* local_info = fDetectorInfo.in(package).at(plane-1);
 					NewQwHit.SetDetectorInfo ( local_info );
 					fWireData.at ( 4* ( package-1 ) +plane ).at ( wire_hit-1 ).PushHit ( ( Int_t ) real_time );
 
@@ -905,15 +896,17 @@ void QwDriftChamberVDC::ProcessEvent()
 	}
 
 
-	ApplyTimeCalibration();
-
+	
+        ApplyTimeCalibration();
 
 	if ( fDisableWireTimeOffset==false )
 		SubtractWireTimeOffset();
-	else {};
+	else {}
+        
+        
 //    std::cout << "leaving.." << std::endl;
 	FillDriftDistanceToHits();
-};
+}
 
 
 
@@ -988,17 +981,17 @@ void QwDriftChamberVDC::ClearEventData()
 //   }
 
 //   return OK;
-// };
+// }
 
 
 
 void QwDriftChamberVDC::DefineOptions ( QwOptions& options )
 {
 	options.AddOptions() ( "use-tdchit",
-	                       po::value<bool>()->zero_tokens()->default_value ( false ),
+	                       po::value<bool>()->default_bool_value(false),
 	                       "creat tdc based tree" );
 	options.AddOptions() ( "disable-wireoffset",
-	                       po::value<bool>()->zero_tokens()->default_value ( false ),
+	                       po::value<bool>()->default_bool_value(false),
 	                       "disable the ablitity of subtracting t0 for every wire" );
 }
 
@@ -1032,16 +1025,16 @@ void  QwDriftChamberVDC::ConstructHistograms ( TDirectory *folder, TString& pref
 	HitsWire.resize ( total_plane_number );
 
 	std::size_t iplane = 0;
-	std::cout <<  "QwDriftChamberVDC::ConstructHistograms, "
-	<<  "we are contructing histograms with index from 0 to " <<total_plane_number
-	<< "\n"
-	<<  "Thus, fWiresPerPlane.size() returns "
-	<< total_plane_number
-	<< " and its array definition is ["
-	<< total_plane_number
-	<< "]."
-	<<  " And hist[i] <-> hist.at(i) <-> fWiresPerplane[i] <-> fWiresPerPlane.at(i)"
-	<< std::endl;
+	// std::cout <<  "QwDriftChamberVDC::ConstructHistograms, "
+	// <<  "we are contructing histograms with index from 0 to " <<total_plane_number
+	// << "\n"
+	// <<  "Thus, fWiresPerPlane.size() returns "
+	// << total_plane_number
+	// << " and its array definition is ["
+	// << total_plane_number
+	// << "]."
+	// <<  " And hist[i] <-> hist.at(i) <-> fWiresPerplane[i] <-> fWiresPerPlane.at(i)"
+	// << std::endl;
 
 	// wire_per_plane is the number of wire per plane?
 	//
@@ -1119,7 +1112,7 @@ void  QwDriftChamberVDC::ConstructHistograms ( TDirectory *folder, TString& pref
 		TOFW_raw[iplane]->GetYaxis()->SetTitle ( "Time of Flight" );
 	}
 	return;
-};
+}
 
 
 
@@ -1236,14 +1229,14 @@ void  QwDriftChamberVDC::FillHistograms()
 		WiresHit[iplane]->Fill ( wireshitperplane[iplane] );
 	}
 	return;
-};
+}
 
 
 
 // void  QwDriftChamberVDC::DeleteHistograms()
 // {
 //   return;
-// };
+// }
 
 
 
@@ -1252,6 +1245,7 @@ Int_t QwDriftChamberVDC::LoadTimeWireOffset ( TString t0_map )
 	//std::cout << "beginning to load t0 file... " << std::endl;
 	//
 	QwParameterFile mapstr ( t0_map.Data() );
+	fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
 	TString varname,varvalue;
 	Int_t plane=0,wire=0;
@@ -1307,78 +1301,75 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
 	Int_t plane=0,wire=0;
 	EQwDetectorPackage package = kPackageNull;
 	Double_t t0 = 0.0;
+        Double_t real_time=0.0;       
 
-	for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
+// 	for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
+        size_t nhits=fWireHits.size();
+        for(size_t i=0;i<nhits;i++)
 	{
 
-		package = iter->GetPackage();
-		plane   = iter->GetPlane();
-		wire    = iter->GetElement();
+		package = fWireHits.at(i).GetPackage();
+		plane   = fWireHits.at(i).GetPlane();
+		wire    = fWireHits.at(i).GetElement();
 		t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
+                              
 		if(package==1)
-		iter->SetTime ( iter->GetTime()-t0);
-		else if(package==2)
-		iter->SetTime ( iter->GetTime()-t0);
-	}
+                        real_time=fWireHits.at(i).GetTime()-t0-91;
+                else if(package==2)
+                        real_time=fWireHits.at(i).GetTime()-t0-91;
+                                      
+                if(real_time<0 || real_time>400){
+                       fWireHits.erase(fWireHits.begin()+i);
+                       --nhits;
+                       --i;
+                       continue;
+                }
+                else{
+                       fWireHits.at(i).SetTime(real_time);
+                    }
+           	}
 	return;
-};
+}
+
 
 
 void QwDriftChamberVDC::ApplyTimeCalibration()
 {
+  Double_t f1tdc_resolution_ns = 0.0;
+  f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
+  if (f1tdc_resolution_ns==0.0) {
+    f1tdc_resolution_ns = 0.116312881651642913;
+    printf("WARNING : QwDriftChamberVDC::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
+  }
 
-	//  Double_t region3_f1tdc_resolution = 0.113186191284663271;
-	// Double_t f1tdc_resolution_ns = 0.116312881651642913;
-	Double_t f1tdc_resolution_ns = 0.0;
+  for(std::vector<QwHit>::iterator iter=fWireHits.begin(); iter!=fWireHits.end(); iter++)
+    {
+      iter->SetTime(f1tdc_resolution_ns*iter->GetTime());
+    }
+  
+  return;
+}
 
-
-
-	f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
-
-	if ( f1tdc_resolution_ns == 0.0 )
-	{
-		f1tdc_resolution_ns = 0.116312881651642913;
-		std::cout << "NEVER to see this message."
-		<< "If one see this, F1TDC configurations are corrupted!\n";
-		std::cout << "Tempoarary, the predefined resolution "
-		<< f1tdc_resolution_ns
-		<< " (ns) is used to do further, but it must be checked.\n";
-	}
-
-	//  printf("test %18.8lf\n", f1tdc_resolution_ns);
-	// 0.1132 ns is for the first CODA setup,  it was replaced as 0.1163ns after March 13 2010
-	// need to check them with Siyuan (jhlee)
-	//
-	// 0.1163 ns is the magic number we want to setup during the Qweak experiment
-	// because of the DAQ team suggestion. That guarantees the stable resolution during
-	// temperature fluctuation.
-
-	for ( std::vector<QwHit>::iterator iter=fWireHits.begin();iter!=fWireHits.end();iter++ )
-	{
-		iter->SetTime ( f1tdc_resolution_ns*iter->GetTime() );
-	}
-
-	return;
-};
 
 
 void QwDriftChamberVDC::LoadTtoDParameters ( TString ttod_map )
 {
 
-	QwParameterFile mapstr ( ttod_map.Data() );
-
-	Double_t t=0.0;
-	Double_t d =0.0;
-
-	while ( mapstr.ReadNextLine() )
-	{
-		mapstr.TrimComment ( '!' );
-		mapstr.TrimWhitespace();
-		if ( mapstr.LineIsEmpty() ) continue;
-
-		t= ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		d = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-		fTtoDNumbers.push_back ( d );
-	}
-	return;
-};
+  QwParameterFile mapstr ( ttod_map.Data() );
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+  
+  Double_t t = 0.0;
+  Double_t d = 0.0;
+  
+  while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );
+      mapstr.TrimWhitespace();
+      if ( mapstr.LineIsEmpty() ) continue;
+      
+      t= ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      d = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      fTtoDNumbers.push_back ( d );
+    }
+  return;
+}

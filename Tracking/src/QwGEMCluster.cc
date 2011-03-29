@@ -1,5 +1,5 @@
 #include "QwGEMCluster.h"
-ClassImp(QwGEMCluster);
+ClassImp(QwGEMCluster)
 
 /**
  * Output stream operator
@@ -22,4 +22,4 @@ ostream& operator<< (ostream& stream, const QwGEMCluster& cluster)
   stream << "position " << cluster.fPosition << " +/- " << cluster.fUncertainty;
 
   return stream;
-};
+}

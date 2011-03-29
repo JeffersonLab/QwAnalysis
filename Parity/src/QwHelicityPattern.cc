@@ -15,6 +15,7 @@
 #include "QwHistogramHelper.h"
 #include "QwHelicity.h"
 #include "QwBlinder.h"
+#include "VQwDataElement.h"
 
 
 /*****************************************************************/
@@ -25,14 +26,23 @@
 void QwHelicityPattern::DefineOptions(QwOptions &options)
 {
   options.AddOptions("Helicity pattern")
-    ("enable-alternateasym", po::value<bool>()->default_value(false)->zero_tokens(),
-     "enable alternate asymmetries");
-  options.AddOptions("Helicity pattern")
-    ("enable-burstsum", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("enable-burstsum", po::value<bool>()->default_bool_value(false),
      "enable burst sum calculation");
   options.AddOptions("Helicity pattern")
-    ("enable-runningsum", po::value<bool>()->default_value(true)->zero_tokens(),
+    ("enable-runningsum", po::value<bool>()->default_bool_value(true),
      "enable running sum calculation");
+  options.AddOptions("Helicity pattern")
+    ("enable-differences", po::value<bool>()->default_bool_value(false),
+     "store pattern differences in tree");
+  options.AddOptions("Helicity pattern")
+    ("enable-alternateasym", po::value<bool>()->default_bool_value(false),
+     "enable alternate asymmetries");
+  options.AddOptions("Helicity pattern")
+    ("print-burstsum", po::value<bool>()->default_bool_value(false),
+     "print burst sum of subsystems");
+  options.AddOptions("Helicity pattern")
+    ("print-runningsum", po::value<bool>()->default_bool_value(false),
+     "print running sum of subsystems");
 
   QwBlinder::DefineOptions(options);
 }
@@ -42,17 +52,31 @@ void QwHelicityPattern::ProcessOptions(QwOptions &options)
 {
   fEnableBurstSum   = options.GetValue<bool>("enable-burstsum");
   fEnableRunningSum = options.GetValue<bool>("enable-runningsum");
+  fPrintBurstSum    = options.GetValue<bool>("print-burstsum");
+  fPrintRunningSum  = options.GetValue<bool>("print-runningsum");
 
+  fEnableDifference    = options.GetValue<bool>("enable-differences");
   fEnableAlternateAsym = options.GetValue<bool>("enable-alternateasym");
+
+  if (fEnableAlternateAsym && fPatternSize <= 2){
+    QwWarning << "QwHelicityPattern::ProcessOptions: "
+	      << "The 'enable-alternateasym' flag is disabled for pair analysis."
+	      << QwLog::endl;
+    fEnableAlternateAsym = kFALSE;
+  }
+
   fBlinder.ProcessOptions(options);
 }
 
 /*****************************************************************/
 QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
   : fBlinder(),
-    fHelicityIsMissing(kFALSE), fIgnoreHelicity(kFALSE),
+    fHelicityIsMissing(kFALSE),   fIgnoreHelicity(kFALSE),
+    fEnableAlternateAsym(kFALSE),
+    fEnableBurstSum(kFALSE),      fPrintBurstSum(kFALSE),
+    fEnableRunningSum(kTRUE),     fPrintRunningSum(kFALSE),
+    fEnableDifference(kFALSE),
     fLastWindowNumber(0),fLastPatternNumber(0),fLastPhaseNumber(0)
- 
 {
   // Retrieve the helicity subsystem to query for
   std::vector<VQwSubsystem*> subsys_helicity = event.GetSubsystemByType("QwHelicity");
@@ -80,17 +104,6 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
     fPatternSize = 4; // default to quartets
   }
   QwMessage << "QwHelicity::MaxPatternPhase = " << fPatternSize << QwLog::endl;
-
-  // Disable burst analysis
-  fEnableBurstSum = kFALSE;
-  // Enable running sum
-  fEnableRunningSum = kTRUE;
-  // Disable alternate asymmetry
-  fEnableAlternateAsym = kFALSE;
-
-  // Currently the alternate asym works with quartets only
-  if (fPatternSize != 4)
-    fEnableAlternateAsym = kFALSE;
 
   try
     {
@@ -159,7 +172,7 @@ QwHelicityPattern::QwHelicityPattern(QwSubsystemArrayParity &event)
       std::cerr << e.what() << std::endl;
     }
 
-};
+}
 
 
 //*****************************************************************
@@ -237,12 +250,12 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     fCurrentPatternNumber=localPatternNumber;
   }
   if(localPhaseNumber<0){
-    QwError << "QwHelicityPattern::LoadEventData:  "
+    QwWarning << "QwHelicityPattern::LoadEventData:  "
 	    << "Reduced event phase number is less than zero; ignore this event."
 	    << QwLog::endl;
     ClearEventData();
   } else if(localPhaseNumber>=fPatternSize){
-    QwError<<" In QwHelicityPattern::LoadEventData trying upload an event with a phase larger than expected \n"
+    QwWarning<<" In QwHelicityPattern::LoadEventData trying upload an event with a phase larger than expected \n"
 	   <<" phase ="<<localPhaseNumber+1<<" maximum expected phase="<<fPatternSize<<"\n"
 	   <<" operation impossible, pattern reset to 0: no asymmetries will be computed "<<QwLog::endl;
     ClearEventData();
@@ -258,12 +271,13 @@ void QwHelicityPattern::LoadEventData(QwSubsystemArrayParity &event)
     // Check to see if we should ignore the helicity; this is
     // reset to false in ClearEventData.
     fIgnoreHelicity |= localIgnoreHelicity;
+    SetDataLoaded(kTRUE);
   }
   if(localdebug){
     Print();
   }
   return;
-};
+}
 
 //*****************************************************************
 /**
@@ -339,31 +353,32 @@ void  QwHelicityPattern::CalculateAsymmetry()
     //  
     for (size_t i = 0; i < (size_t) fPatternSize; i++) {
       if (fHelicity[i] == plushel) {
-	if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: here filling fPositiveHelicitySum \n";
+	if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  here filling fPositiveHelicitySum \n";
 	if (firstplushel) {
-	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with = \n";
+	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  with = \n";
 	  fPositiveHelicitySum = fEvents.at(i);
 	  firstplushel = kFALSE;
 	} else {
-	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with += \n";
+	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  with += \n";
 	  fPositiveHelicitySum += fEvents.at(i);
 	}
 	checkhel += 1;
       } else if (fHelicity[i] == minushel) {
-	if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: here filling fNegativeHelicitySum \n";
+	if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  here filling fNegativeHelicitySum \n";
 	if (firstminushel) {
-	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with = \n";
+	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  with = \n";
 	  fNegativeHelicitySum = fEvents.at(i);
 	  firstminushel = kFALSE;
 	} else {
-	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:: with += \n";
+	  if (localdebug) std::cout<<"QwHelicityPattern::CalculateAsymmetry:  with += \n";
 	  fNegativeHelicitySum += fEvents.at(i);
 	}
 	checkhel -= 1;
       } else {
-	QwError<< "QwHelicityPattern::CalculateAsymmetry =="
-	       << "Helicity should be "<<plushel<<" or "<<minushel<<" but is"<< fHelicity[i]
-	       << "; Asymmetry computation aborted!"<<QwLog::endl;
+	QwDebug << "QwHelicityPattern::CalculateAsymmetry:  "
+		<< "Helicity should be "<<plushel<<" or "<<minushel
+		<<" but is "<< fHelicity[i]
+		<< "; Asymmetry computation aborted!"<<QwLog::endl;
 	ClearEventData();
 	i = fPatternSize;
 	checkhel = -9999;
@@ -458,42 +473,7 @@ void  QwHelicityPattern::CalculateAsymmetry()
   }
 
   return;
-};
-
-//*****************************************************************
-/**
- *Access published variables to obtain the charge asymmetry mean, error and width
- *
- */
-void QwHelicityPattern::GetTargetChargeStat(Double_t & asym, Double_t & error, Double_t & width){
-  fTargetCharge.InitializeChannel("q_targ","derived");
-  VQwDataElement *data_channel;
-  TString name="q_targ";
-  fRunningAsymmetry.CalculateRunningAverage();
-  data_channel=const_cast<VQwDataElement*>(fRunningAsymmetry.ReturnInternalValue(name));
-  //fRunningAsymmetry.ReturnInternalValue(name,&fTargetCharge);
-  if(fRunningAsymmetry.RequestExternalValue("q_targ", &fTargetCharge)){
-    fTargetCharge.PrintInfo();
-    QwError <<fTargetCharge.GetHardwareSum()<<"+-"<<(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))->GetHardwareSumError()<<QwLog::endl;
-  }
-  if (!data_channel){
-    QwError << " Could not get external value setting parameters to  " <<name <<QwLog::endl;
-    asym=-1;
-    error=-1;
-    width=-1;
-    return ;
-  }
-
-  //*(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))=*(dynamic_cast<QwVQWK_Channel*>(data_channel));
-  //fTargetCharge.PrintInfo();
-  
-  (dynamic_cast<QwVQWK_Channel*>(data_channel))->PrintInfo();
-  asym=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSum();
-  error=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumError();
-  width=(dynamic_cast<QwVQWK_Channel*>(data_channel))->GetHardwareSumM2();
-  
-  return;
-};
+}
 
 //*****************************************************************
 /**
@@ -526,8 +506,8 @@ void QwHelicityPattern::ClearEventData()
   fAlternateDiff.ClearEventData();
 
   fPatternIsGood = kFALSE;
-  return;
-};
+  SetDataLoaded(kFALSE);
+}
 
 //*****************************************************************
 /**
@@ -540,7 +520,7 @@ void  QwHelicityPattern::ClearRunningSum()
     fRunningYield.ClearEventData();
     fRunningDifference.ClearEventData();
     fRunningAsymmetry.ClearEventData();
-    // Running altnerate asymmetries
+    // Running alternate asymmetries
     if (fEnableAlternateAsym) {
       fRunningAsymmetry1.ClearEventData();
       fRunningAsymmetry2.ClearEventData();
@@ -634,6 +614,8 @@ void  QwHelicityPattern::CalculateBurstAverage()
   fBurstAsymmetry.CalculateRunningAverage();
   fBurstDifference.CalculateRunningAverage();
   fBurstYield.CalculateRunningAverage();
+
+  if (fPrintBurstSum) PrintBurstAverage();
 }
 
 //*****************************************************************
@@ -645,6 +627,8 @@ void  QwHelicityPattern::CalculateRunningBurstAverage()
   fRunningBurstAsymmetry.CalculateRunningAverage();
   fRunningBurstDifference.CalculateRunningAverage();
   fRunningBurstYield.CalculateRunningAverage();
+
+  if (fPrintBurstSum) PrintRunningBurstAverage();
 }
 
 //*****************************************************************
@@ -653,6 +637,8 @@ void  QwHelicityPattern::CalculateRunningAverage()
   fRunningAsymmetry.CalculateRunningAverage();
   fRunningDifference.CalculateRunningAverage();
   fRunningYield.CalculateRunningAverage();
+
+  if (fPrintRunningSum) PrintRunningAverage();
 }
 
 //*****************************************************************
@@ -688,51 +674,68 @@ void  QwHelicityPattern::PrintRunningAverage() const
 }
 
 //*****************************************************************
+void  QwHelicityPattern::PrintBurstAverage() const
+{
+  QwMessage << " Burst average of asymmetry  " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fBurstAsymmetry.PrintValue();
+
+  QwMessage << " Burst average of difference " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fBurstDifference.PrintValue();
+
+  QwMessage << " Burst average of yields     " << QwLog::endl;
+  QwMessage << " ==============================" << QwLog::endl;
+  fBurstYield.PrintValue();
+}
+
+//*****************************************************************
 void  QwHelicityPattern::ConstructHistograms(TDirectory *folder)
 {
-  TString prefix="yield_";
+  TString prefix = "yield_";
   fYield.ConstructHistograms(folder,prefix);
-
-  prefix="asym_";
+  prefix = "asym_";
   fAsymmetry.ConstructHistograms(folder,prefix);
-  
+
+  if (fEnableDifference) {
+    prefix = "diff_";
+    fDifference.ConstructHistograms(folder,prefix);
+  }
   if (fEnableAlternateAsym) {
-    prefix="asym1_";
+    prefix = "asym1_";
     fAsymmetry1.ConstructHistograms(folder,prefix);
-    prefix="asym2_";
+    prefix = "asym2_";
     fAsymmetry2.ConstructHistograms(folder,prefix);
   }
-  return;
 }
 
 void  QwHelicityPattern::FillHistograms()
 {
-  if(fPatternIsGood)
-    {
-      fYield.FillHistograms();
-      fAsymmetry.FillHistograms();
-      if (fEnableAlternateAsym){
-        fAsymmetry1.FillHistograms();
-        fAsymmetry2.FillHistograms();
-      }
+  if (fPatternIsGood) {
+    fYield.FillHistograms();
+    fAsymmetry.FillHistograms();
+    if (fEnableDifference) {
+      fDifference.FillHistograms();
     }
-
-  return;
+    if (fEnableAlternateAsym){
+      fAsymmetry1.FillHistograms();
+      fAsymmetry2.FillHistograms();
+    }
+  }
 }
 
 void  QwHelicityPattern::DeleteHistograms()
 {
-  //std::cout<<"fYield.DeleteHistograms() "<<std::endl;
   fYield.DeleteHistograms();
-  //std::cout<<"fAsymmetry.DeleteHistograms()"<<std::endl;
   fAsymmetry.DeleteHistograms();
-  if (fEnableAlternateAsym){
-    //std::cout<<"fAsymmetry1.DeleteHistograms()"<<std::endl;
+
+  if (fEnableDifference) {
+    fDifference.DeleteHistograms();
+  }
+  if (fEnableAlternateAsym) {
     fAsymmetry1.DeleteHistograms();
-    //std::cout<<"fAsymmetry2.DeleteHistograms()"<<std::endl;
     fAsymmetry2.DeleteHistograms();
   }
-  return;
 }
 
 void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
@@ -741,47 +744,55 @@ void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, 
   fYield.ConstructBranchAndVector(tree, newprefix, values);
   newprefix = "asym_" + prefix;
   fAsymmetry.ConstructBranchAndVector(tree, newprefix, values);
-  if (fEnableAlternateAsym){
+
+  if (fEnableDifference) {
+    newprefix = "diff_" + prefix;
+    fDifference.ConstructBranchAndVector(tree, newprefix, values);
+  }
+  if (fEnableAlternateAsym) {
     newprefix = "asym1_" + prefix;
     fAsymmetry1.ConstructBranchAndVector(tree, newprefix, values);
     newprefix = "asym2_" + prefix;
     fAsymmetry2.ConstructBranchAndVector(tree, newprefix, values);
   }
-  return;
 }
 
 void QwHelicityPattern::ConstructBranch(TTree *tree, TString & prefix)
 {
-  TString yieldprefix = "yield_" + prefix;
-  fYield.ConstructBranch(tree, yieldprefix);
+  TString newprefix = "yield_" + prefix;
+  fYield.ConstructBranch(tree, newprefix);
+  newprefix = "asym_" + prefix;
+  fAsymmetry.ConstructBranch(tree, newprefix);
 
-  TString asymprefix = "asym_" + prefix;
-  fAsymmetry.ConstructBranch(tree, asymprefix);
-
-  if (fEnableAlternateAsym){
-    asymprefix = "asym1_" + prefix;
-    fAsymmetry1.ConstructBranch(tree, asymprefix);
-    asymprefix = "asym2_" + prefix;
-    fAsymmetry2.ConstructBranch(tree, asymprefix);
+  if (fEnableDifference) {
+    newprefix = "diff_" + prefix;
+    fDifference.ConstructBranch(tree, newprefix);
   }
-  return;
+  if (fEnableAlternateAsym) {
+    newprefix = "asym1_" + prefix;
+    fAsymmetry1.ConstructBranch(tree, newprefix);
+    newprefix = "asym2_" + prefix;
+    fAsymmetry2.ConstructBranch(tree, newprefix);
+  }
 }
 
 void QwHelicityPattern::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile &trim_tree)
 {
-  TString yieldprefix = "yield_" + prefix;
-  fYield.ConstructBranch(tree, yieldprefix, trim_tree);
+  TString newprefix = "yield_" + prefix;
+  fYield.ConstructBranch(tree, newprefix, trim_tree);
+  newprefix = "asym_" + prefix;
+  fAsymmetry.ConstructBranch(tree, newprefix, trim_tree);
 
-  TString asymprefix = "asym_" + prefix;
-  fAsymmetry.ConstructBranch(tree, asymprefix, trim_tree);
-
-  if (fEnableAlternateAsym){
-    asymprefix = "asym1_" + prefix;
-    fAsymmetry1.ConstructBranch(tree, asymprefix, trim_tree);
-    asymprefix = "asym2_" + prefix;
-    fAsymmetry2.ConstructBranch(tree, asymprefix, trim_tree);
+  if (fEnableDifference) {
+    newprefix = "diff_" + prefix;
+    fDifference.ConstructBranch(tree, newprefix);
   }
-  return;
+  if (fEnableAlternateAsym) {
+    newprefix = "asym1_" + prefix;
+    fAsymmetry1.ConstructBranch(tree, newprefix, trim_tree);
+    newprefix = "asym2_" + prefix;
+    fAsymmetry2.ConstructBranch(tree, newprefix, trim_tree);
+  }
 }
 
 void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
@@ -789,33 +800,39 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
   if (fPatternIsGood) {
     fYield.FillTreeVector(values);
     fAsymmetry.FillTreeVector(values);
-    if (fEnableAlternateAsym){
+    if (fEnableDifference) {
+      fDifference.FillTreeVector(values);
+    }
+    if (fEnableAlternateAsym) {
       fAsymmetry1.FillTreeVector(values);
       fAsymmetry2.FillTreeVector(values);
     }
   }
-  return;
-};
+}
 
 
 void QwHelicityPattern::FillDB(QwDatabase *db)
 {
+  fBlinder.FillDB(db,"");
+
   fRunningYield.FillDB(db, "yield");
   fRunningAsymmetry.FillDB(db, "asymmetry");
+  if (fEnableDifference) {
+    fDifference.FillDB(db, "difference");
+  }
   if (fEnableAlternateAsym) {
     fAsymmetry1.FillDB(db, "asymmetry1");
     fAsymmetry2.FillDB(db, "asymmetry2");
   }
-  return;
-};
+}
 
 //*****************************************************************
 
 void QwHelicityPattern::Print() const
 {
-   std::cout<<"\n Pattern number ="<<fCurrentPatternNumber<<"\n";
-  for(size_t i=0; i< (size_t) fPatternSize; i++)
-    std::cout<<"event "<<fEventNumber[i]<<":"<<fEventLoaded[i]<<", "<<fHelicity[i]<<"\n";
-  std::cout<<"Is a complete pattern ?(n/y:0/1) "<<IsCompletePattern()<<"\n";
-
+  QwOut << "Pattern number = " << fCurrentPatternNumber << QwLog::endl;
+  for (Int_t i = 0; i < fPatternSize; i++)
+    QwOut << "Event " << fEventNumber[i] << ": "
+          << fEventLoaded[i] << ", " << fHelicity[i] << QwLog::endl;
+  QwOut << "Is a complete pattern? (n/y:0/1) " << IsCompletePattern() << QwLog::endl;
 }

@@ -22,6 +22,7 @@
 #include "QwBeamLine.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
+#include "QwDatabase.h"
 #include "QwHelicity.h"
 #include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
@@ -103,7 +104,7 @@ int main(int argc, char* argv[])
               run++) {
 
     // Data file (input)
-    TString datafilename = TString("QwMock_") + Form("%ld.log",run);
+    TString datafilename = TString("QwMock_") + Form("%d.log",run);
     if (eventbuffer.OpenDataFile(datafilename,"R") != CODA_OK) {
       std::cout << "Error: could not open file!" << std::endl;
       return 0;
@@ -111,7 +112,7 @@ int main(int argc, char* argv[])
 
 
     // ROOT file output (histograms)
-    TString rootfilename = getenv_safe_TString("QW_ROOTFILES") + TString("/QwMock_") + Form("%ld.root",run);
+    TString rootfilename = getenv_safe_TString("QW_ROOTFILES") + TString("/QwMock_") + Form("%d.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (bHisto) {
       rootfile.cd();

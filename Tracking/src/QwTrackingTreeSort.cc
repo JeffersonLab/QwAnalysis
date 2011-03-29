@@ -221,9 +221,9 @@ int QwTrackingTreeSort::rcPTCommonWires (QwPartialTrack *track1, QwPartialTrack 
 {
   int common = 0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    if (! track1->tline[dir]) continue;
-    if (! track2->tline[dir]) continue;
-    common += rcCommonWires (track1->tline[dir], track2->tline[dir]);
+    if (! track1->fTreeLine[dir]) continue;
+    if (! track2->fTreeLine[dir]) continue;
+    common += rcCommonWires (track1->fTreeLine[dir], track2->fTreeLine[dir]);
   }
   common /= 3;
   return common;
@@ -614,7 +614,9 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
    * find the number of used QwPartialTracks
    * ------------------------------------------------------------------ */
 
+  int rep = 0;
   do {        /* filter out high chi2 if needed */
+    rep++;
     nmaxch = 0.0;
     nminch = maxch;
     for (idx = 0, parttrack = parttracklist;
@@ -639,7 +641,7 @@ int QwTrackingTreeSort::rcPartConnSort (QwPartialTrack *parttracklist)
       }
     }
     maxch = nminch + (nmaxch - nminch) * 0.66;
-  } while( idx > 30 );
+  } while( idx > 30 && rep < 10);
 
 
   num = idx;

@@ -78,7 +78,7 @@ class shorttree: public QwObjectCounter<shorttree> {
   public:
 
     /// Get size of the bit array
-    const unsigned int size() const { return fSize; };
+    unsigned int size() const { return fSize; };
 
   private:
 

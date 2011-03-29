@@ -12,29 +12,29 @@
 #include <QwLog.h>
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-const Bool_t QwScaler_Channel<data_mask,data_shift>::kDEBUG = kFALSE;
+const Bool_t VQwScaler_Channel::kDEBUG = kFALSE;
 
 
 /********************************************************/
-template<unsigned int data_mask, unsigned int data_shift>
-Int_t QwScaler_Channel<data_mask,data_shift>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
 
   return 1;
 }
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::ClearEventData()
+void VQwScaler_Channel::ClearEventData()
 {
-  fValue_Raw = 0;
-  fValue     = 0.0;
-  fValueM2   = 0.0;
-  fGoodEventCount = 0;
-  fDeviceErrorCode = 0;
-};
+  fValue_Raw   = 0;
+  fValue       = 0.0;
+  fValueM2     = 0.0;
+  fValueError  = 0.0;
+  fPedestal    = 0.0;
+  fCalibrationFactor = 1.0;
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::RandomizeEventData(int helicity)
+  fGoodEventCount  = 0;
+  fDeviceErrorCode = 0;
+}
+
+void VQwScaler_Channel::RandomizeEventData(int helicity)
 {
 
   Double_t mean = 300.0;
@@ -45,7 +45,7 @@ void QwScaler_Channel<data_mask,data_shift>::RandomizeEventData(int helicity)
   //How many bits will be configured for data, which bits will be configured for user info?
   //std::cout<<"word = "<<std::hex<<word<<std::dec<<std::endl;
   fValue_Raw = Dataword;
-};
+}
 
 
 /*!  Static member function to return the word offset within a data buffer
@@ -55,8 +55,8 @@ void QwScaler_Channel<data_mask,data_shift>::RandomizeEventData(int helicity)
  *   @return   The number of words offset to the beginning of this
  *             scaler word from the beginning of the buffer.
  */
-template<unsigned int data_mask, unsigned int data_shift>
-Int_t QwScaler_Channel<data_mask,data_shift>::GetBufferOffset(Int_t scalerindex, Int_t wordindex){
+Int_t VQwScaler_Channel::GetBufferOffset(Int_t scalerindex, Int_t wordindex)
+{
   Int_t offset = -1;
   Int_t kMaxWords = 32; // usually the scalers have 32 data words starting from 0
   Int_t header = 1;
@@ -78,34 +78,14 @@ Int_t QwScaler_Channel<data_mask,data_shift>::GetBufferOffset(Int_t scalerindex,
 }
 
 
-
-template<unsigned int data_mask, unsigned int data_shift>
-Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
-							      UInt_t index)
-{
-  UInt_t words_read = 0;
-  if (IsNameEmpty()){
-    //  This channel is not used, but is present in the data stream.
-    //  Skip over this data.
-      words_read = fNumberOfDataWords;
-  } else if (num_words_left >= fNumberOfDataWords) {
-    this->fValue_Raw = ((buffer[0] & data_mask) >> data_shift);
-    this->fValue     = 0.0 + this->fValue_Raw;
-    words_read = fNumberOfDataWords;
-  } else {
-    //QwError << "QwScaler_Channel::ProcessEvBuffer: Not enough words!"<< QwLog::endl;
-  }
-  return words_read;
-};
-
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::SetEventData(Double_t value){
+void VQwScaler_Channel::SetEventData(Double_t value){
 
   this->fValue     = value;
   this->fValue_Raw = (UInt_t)value;
   //std::cout<<"fValue is set to: value = "<<value<<std::endl;
 
 }
+
 
 template<unsigned int data_mask, unsigned int data_shift>
 void QwScaler_Channel<data_mask,data_shift>::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -117,36 +97,52 @@ void QwScaler_Channel<data_mask,data_shift>::EncodeEventData(std::vector<UInt_t>
     buffer.push_back( ((this->fValue_Raw<<data_shift)&data_mask) );
     //std::cout<<"this->fValue="<<this->fValue<<std::endl;
   }
-};
-
-
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::ProcessEvent()
-{
-  //scaler events processed here.
-  return;
-};
-
-
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::PrintValue() const
-{
-  QwMessage << std::setprecision(4)
-            << std::setw(23) << std::left << GetElementName() << ","
-            << std::setw(15) << std::right << GetValue() << " +/- " << fValueError
-            << QwLog::endl;
 }
 
+
 template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::PrintInfo() const
+Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
+							      UInt_t index)
+{
+  UInt_t words_read = 0;
+  if (IsNameEmpty()){
+    //  This channel is not used, but is present in the data stream.
+    //  Skip over this data.
+      words_read = fNumberOfDataWords;
+  } else if (num_words_left >= fNumberOfDataWords) {
+    fValue_Raw = ((buffer[0] & data_mask) >> data_shift);
+    fValue     = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
+    words_read = fNumberOfDataWords;
+  } else {
+    //QwError << "QwScaler_Channel::ProcessEvBuffer: Not enough words!"<< QwLog::endl;
+  }
+  return words_read;
+}
+
+
+void VQwScaler_Channel::ProcessEvent()
+{
+  fValue = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
+}
+
+
+void VQwScaler_Channel::PrintValue() const
+{
+  //  printf("Name %s %23.4f +/- %15.4f", GetElementName().Data(), fValue, fValueError);
+  QwMessage << std::setw(5) << std::left << GetElementName() << " , "
+	    << std::setprecision(4)
+	    << std::setw(5) << std::right << GetValue() << "  +/-  " << GetValueError() << " sigma "<<GetValueWidth()
+	    << QwLog::endl;
+}
+
+void VQwScaler_Channel::PrintInfo() const
 {
   QwMessage << "***************************************" << QwLog::endl;
   QwMessage << "QwScaler channel: " << GetElementName()
             << QwLog::endl;
 }
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::ConstructHistograms(TDirectory *folder, TString &prefix){
+void VQwScaler_Channel::ConstructHistograms(TDirectory *folder, TString &prefix){
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
 
@@ -162,13 +158,12 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructHistograms(TDirectory *fo
     fHistograms[index]   = gQwHists.Construct1DHist(basename);
     index += 1;
   }
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::FillHistograms(){
-
-  size_t index=0;
-  if (IsNameEmpty()){
+void  VQwScaler_Channel::FillHistograms()
+{
+  size_t index = 0;
+  if (IsNameEmpty()) {
     //  This channel is not used, so skip creating the histograms.
   } else {
     if (fHistograms[index] != NULL)
@@ -176,11 +171,10 @@ void  QwScaler_Channel<data_mask,data_shift>::FillHistograms(){
       fHistograms[index]->Fill(this->fValue);
     index += 1;
   }
-};
+}
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+void  VQwScaler_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
@@ -195,10 +189,9 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructBranchAndVector(TTree *tr
     if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
       tree->Branch(basename, &(values[fTreeArrayIndex]), list);
   }
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::ConstructBranch(TTree *tree, TString &prefix)
+void  VQwScaler_Channel::ConstructBranch(TTree *tree, TString &prefix)
 {
   if (IsNameEmpty()){
     //  This channel is not used, so skip setting up the tree.
@@ -207,44 +200,59 @@ void  QwScaler_Channel<data_mask,data_shift>::ConstructBranch(TTree *tree, TStri
 
     tree->Branch(basename, &fValue, basename+"/D");
   }
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::FillTreeVector(std::vector<Double_t> &values) const
+void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
-  if (IsNameEmpty()){
+  if (IsNameEmpty()) {
     //  This channel is not used, so skip setting up the tree.
-  } else if (fTreeArrayNumEntries<=0){
-    QwError << "QwScaler_Channel::FillTreeVector:  fTreeArrayNumEntries=="
+  } else if (fTreeArrayNumEntries <= 0) {
+    QwError << "VQwScaler_Channel::FillTreeVector:  fTreeArrayNumEntries=="
 	    << fTreeArrayNumEntries << QwLog::endl;
-  } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries){
-    QwError << "QwScaler_Channel::FillTreeVector:  values.size()=="
+  } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries) {
+    QwError << "VQwScaler_Channel::FillTreeVector:  values.size()=="
 	    << values.size() << " name: " << fElementName
 	    << "; fTreeArrayIndex+fTreeArrayNumEntries=="
-      << fTreeArrayIndex << '+' << fTreeArrayNumEntries << '='
+            << fTreeArrayIndex << '+' << fTreeArrayNumEntries << '='
 	    << fTreeArrayIndex+fTreeArrayNumEntries
 	    << QwLog::endl;
   } else {
-    size_t index=fTreeArrayIndex;
+    size_t index = fTreeArrayIndex;
     values[index++] = this->fValue;
   }
-};
+}
+
+VQwDataElement& VQwScaler_Channel::operator= (const  VQwDataElement &data_value)
+{
+  VQwScaler_Channel * value;
+  value=(VQwScaler_Channel *)&data_value;
+  if (!IsNameEmpty()) {
+    this->fValue  = value->fValue;
+    this->fValueError = value->fValueError;
+    this->fValueM2 = value->fValueM2;
+    this->fDeviceErrorCode = value->fDeviceErrorCode;//error code is updated.
+    this->fGoodEventCount = value->fGoodEventCount;
+  }
+  return *this;
+}
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::operator= (const QwScaler_Channel<data_mask,data_shift> &value){
+VQwScaler_Channel& VQwScaler_Channel::operator= (const VQwScaler_Channel &value)
+{
   if (!IsNameEmpty()) {
     this->fValue  = value.fValue;
+    this->fValueError = value.fValueError;
     this->fValueM2 = value.fValueM2;
     this->fDeviceErrorCode = value.fDeviceErrorCode;//error code is updated.
     this->fGoodEventCount = value.fGoodEventCount;
   }
   return *this;
-};
+}
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::operator+= (const QwScaler_Channel<data_mask,data_shift> &value){
+
+VQwScaler_Channel& VQwScaler_Channel::operator+= (const VQwScaler_Channel &value)
+{
   if (!IsNameEmpty()){
     this->fValue  += value.fValue;
     this->fValueM2 = 0.0;
@@ -252,32 +260,30 @@ QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::
 
   }
   return *this;
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-QwScaler_Channel<data_mask,data_shift>& QwScaler_Channel<data_mask,data_shift>::operator-= (const QwScaler_Channel<data_mask,data_shift> &value){
+VQwScaler_Channel& VQwScaler_Channel::operator-= (const VQwScaler_Channel &value)
+{
   if (!IsNameEmpty()){
     this->fValue  -= value.fValue;
     this->fValueM2 = 0.0;
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
   }
   return *this;
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Sum(QwScaler_Channel<data_mask,data_shift> &value1, QwScaler_Channel<data_mask,data_shift> &value2){
+void VQwScaler_Channel::Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2)
+{
   *this =  value1;
   *this += value2;
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Difference(QwScaler_Channel<data_mask,data_shift> &value1, QwScaler_Channel<data_mask,data_shift> &value2){
+void VQwScaler_Channel::Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2){
   *this =  value1;
   *this -= value2;
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Ratio(QwScaler_Channel<data_mask,data_shift> &numer, QwScaler_Channel<data_mask,data_shift> &denom){
+void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom){
   if (!IsNameEmpty()){
 
     // Take the ratio of the hardware sum
@@ -306,39 +312,33 @@ void QwScaler_Channel<data_mask,data_shift>::Ratio(QwScaler_Channel<data_mask,da
     fGoodEventCount  = denom.fGoodEventCount;
     fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
   }
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Offset(Double_t offset)
+void VQwScaler_Channel::Offset(Double_t offset)
 {
   if (!IsNameEmpty())
     {
 
     }
-};
+}
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Scale(Double_t scale)
+void VQwScaler_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty())
     {
-      this->fValue  = (UInt_t)( this->fValue*scale);
+      this->fValue *= scale;
     }
-};
+}
 
 
 
-template<unsigned int data_mask, unsigned int data_shift>
-Bool_t QwScaler_Channel<data_mask,data_shift>::ApplySingleEventCuts(){
-
-
+Bool_t VQwScaler_Channel::ApplySingleEventCuts()
+{
   return kTRUE;
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::AccumulateRunningSum(const 
-QwScaler_Channel<data_mask,data_shift>& value)
+void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value)
 {
   // Moment calculations
   Int_t n1 = fGoodEventCount;
@@ -374,10 +374,9 @@ QwScaler_Channel<data_mask,data_shift>& value)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
 
   return;
-};
+}
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::CalculateRunningAverage(){
+void VQwScaler_Channel::CalculateRunningAverage(){
   //  See notes in QwVQWK_Channel;  we are using:
   //         error = sqrt(M2)/n,
   //  or alternately we could use the unbiased estimator for both
@@ -391,24 +390,26 @@ void QwScaler_Channel<data_mask,data_shift>::CalculateRunningAverage(){
 
 }
 
-template<unsigned int data_mask, unsigned int data_shift>
-void QwScaler_Channel<data_mask,data_shift>::Copy(VQwDataElement *source)
+void VQwScaler_Channel::Copy(VQwDataElement *source)
 {
     try
     {
      if(typeid(*source)==typeid(*this))
        {
-	 QwScaler_Channel<data_mask,data_shift>* input=((QwScaler_Channel<data_mask,data_shift>*)source);
-	    this->fElementName      = input->fElementName;
-      this->fValue_Raw        = input->fValue_Raw;
-      this->fValue            = input->fValue;
-      this->fValueM2          = input->fValueM2;
-      this->fGoodEventCount   = input->fGoodEventCount;
-      this->fDeviceErrorCode = input->fDeviceErrorCode;
+	 VQwScaler_Channel* input = dynamic_cast<VQwScaler_Channel*>(source);
+         this->fElementName       = input->fElementName;
+         this->fValue_Raw         = input->fValue_Raw;
+         this->fValue             = input->fValue;
+	 this->fValueError        = input->fValueError;
+         this->fValueM2           = input->fValueM2;
+         this->fPedestal          = input->fPedestal;
+         this->fCalibrationFactor = input->fCalibrationFactor;
+         this->fGoodEventCount    = input->fGoodEventCount;
+         this->fDeviceErrorCode   = input->fDeviceErrorCode;
        }
      else
        {
-	 TString loc="Standard exception from QwScaler_Channel::Copy = "
+	 TString loc="Standard exception from VQwScaler_Channel::Copy = "
 	   +source->GetElementName()+" "
 	   +this->GetElementName()+" are not of the same type";
 	 throw std::invalid_argument(loc.Data());
@@ -422,8 +423,7 @@ void QwScaler_Channel<data_mask,data_shift>::Copy(VQwDataElement *source)
     return;
 }
 
-template<unsigned int data_mask, unsigned int data_shift>
-void  QwScaler_Channel<data_mask,data_shift>::ReportErrorCounters(){
+void  VQwScaler_Channel::ReportErrorCounters(){
     if (fNumEvtsWithHWErrors>0)
       QwMessage << "QwScaler_Channel " << GetElementName()
 		<< " had " << fNumEvtsWithHWErrors
@@ -435,7 +435,7 @@ void  QwScaler_Channel<data_mask,data_shift>::ReportErrorCounters(){
 		<< " had " << fNumEvtsWithEventCutsRejected
 		<< " events rejected by Event Cuts."
 		<< QwLog::endl;
-  };
+  }
 
 
 //  These explicit class template instantiations should be the

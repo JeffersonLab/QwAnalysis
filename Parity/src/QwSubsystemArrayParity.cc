@@ -6,9 +6,11 @@
 \**********************************************************/
 
 #include "QwSubsystemArrayParity.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// Qweak headers
 #include "VQwSubsystemParity.h"
 
 
@@ -17,7 +19,7 @@
 VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystemByName(const TString& name)
 {
   return dynamic_cast<VQwSubsystemParity*>(QwSubsystemArray::GetSubsystemByName(name));
-};
+}
 
 //*****************************************************************
 
@@ -27,7 +29,7 @@ void  QwSubsystemArrayParity::FillDB(QwDatabase *db, TString type)
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
     subsys_parity->FillDB(db, type);
   }
-};
+}
 
 //*****************************************************************
 
@@ -50,7 +52,7 @@ void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
       }
     }
   }
-};
+}
 
 
 /**
@@ -91,7 +93,7 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
     //  The source is empty
   }
   return *this;
-};
+}
 
 
 /**
@@ -131,7 +133,7 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator+= (const QwSubsystemArr
     //  The vsource is empty
   }
   return *this;
-};
+}
 
 /**
  * Subtraction-assignment operator
@@ -165,7 +167,7 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator-= (const QwSubsystemArr
     //  The vsource is empty
   }
   return *this;
-};
+}
 
 /**
  * Sum of two subsystem arrays
@@ -183,7 +185,7 @@ void QwSubsystemArrayParity::Sum(
   } else {
     //  The source is empty
   }
-};
+}
 
 /**
  * Difference of two subsystem arrays
@@ -201,7 +203,7 @@ void QwSubsystemArrayParity::Difference(
   } else {
     //  The source is empty
   }
-};
+}
 
 /**
  * Scale this subsystem array
@@ -213,7 +215,7 @@ void QwSubsystemArrayParity::Scale(Double_t factor)
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
     subsys_parity->Scale(factor);
   }
-};
+}
 
 //*****************************************************************
 
@@ -223,6 +225,18 @@ void QwSubsystemArrayParity::PrintValue() const
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
     subsys_parity->PrintValue();
   }
+}
+
+//*****************************************************************
+
+Bool_t QwSubsystemArrayParity::CheckForEndOfBurst() const
+{
+  Bool_t status = kFALSE;
+  for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+    VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
+    status |= subsys_parity->CheckForEndOfBurst();
+  }
+  return status;
 };
 
 //*****************************************************************
@@ -267,7 +281,7 @@ void QwSubsystemArrayParity::AccumulateRunningSum(const QwSubsystemArrayParity& 
   } else {
     //  The value is empty
   }
-};
+}
 
 void QwSubsystemArrayParity::Blind(const QwBlinder *blinder)
 {
@@ -286,7 +300,7 @@ void QwSubsystemArrayParity::Blind(const QwBlinder *blinder)
     // Apply blinding
     subsys->Blind(blinder);
   }
-};
+}
 
 void QwSubsystemArrayParity::Blind(const QwBlinder *blinder, const QwSubsystemArrayParity& yield)
 {
@@ -313,7 +327,7 @@ void QwSubsystemArrayParity::Blind(const QwBlinder *blinder, const QwSubsystemAr
     // Apply blinding
     subsys_diff->Blind(blinder, subsys_yield);
   }
-};
+}
 
 void QwSubsystemArrayParity::Ratio(
   const QwSubsystemArrayParity &numer,
@@ -353,7 +367,7 @@ void QwSubsystemArrayParity::Ratio(
   }
   if(localdebug) std::cout<<"I am out of it \n";
 
-};
+}
 
 Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
   Int_t CountFalse;
@@ -414,7 +428,7 @@ Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
 
 UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() const{// report number of events falied due to HW and event cut faliure
   return fErrorFlag;
-};
+}
 
 void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values){
   QwSubsystemArray::ConstructBranchAndVector(tree, prefix, values);
@@ -424,10 +438,18 @@ void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString& pre
 
   //tree->Branch(Form("%sErrorFlag",prefix.Data()),&(values[values.size()-1]),Form("%sErrorFlag/D",prefix.Data()));
 
-};
+}
 void QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t>& values) const
 {
   QwSubsystemArray::FillTreeVector(values);
   size_t index = values.size()-1;
   values[index] = fErrorFlag;
-};
+}
+
+
+//*****************************************************************
+void  QwSubsystemArrayParity::FillHistograms()
+{
+  if (GetEventcutErrorFlag()==0)
+    QwSubsystemArray::FillHistograms();
+}

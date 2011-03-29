@@ -7,6 +7,8 @@
 
 ClassImp(QwGUIHallCBeamline);
 
+const Int_t QwGUIHallCBeamline::fSleepTimeMS = 2000;
+
 enum QwGUIHallCBeamlineIndentificator {
   BA_POS_DIFF,
   BA_CHARGE,
@@ -290,24 +292,29 @@ void QwGUIHallCBeamline::OnReceiveMessage(char *obj)
 
 void QwGUIHallCBeamline::PositionDifferences()
 {
-  TH1F *histo1=NULL;
-  TH1F *histo2=NULL;
-
-  char histo[128];
-  
   Int_t xcount = 0;
   Int_t ycount = 0;
   
   Double_t offset = 0.5;
   Double_t min_range = - offset;
 
-  Int_t BPMSTriplinesCount = 0;
-  BPMSTriplinesCount = (Int_t) fHallCDevices.at(VQWK_BPMSTRIPLINE).size();
+  //Int_t BPMSTriplinesCount = 0;
+  Int_t BPMSTriplinesCount = (Int_t) fHallCDevices.at(VQWK_BPMSTRIPLINE).size();
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
   TString dummyname;
 
   Bool_t ldebug = false;
+
+  std::vector<TH1F *> histo1;//_array;
+  histo1.resize(BPMSTriplinesCount);
+
+
+  std::vector<TH1F *> histo1_buff;//_array;
+  histo1_buff.resize(BPMSTriplinesCount);
+
+  char histo[128];
+  
   
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
@@ -316,45 +323,42 @@ void QwGUIHallCBeamline::PositionDifferences()
 
    while (1){ 
      PosVariation[0] = new TH1F("Eff_Asym", "Eff_Charge Asym Variation",BPMSTriplinesCount , min_range, max_range);
-     PosVariation[1] = new TH1F("Eff_Yield", "Eff_Charge Yield Variation",BPMSTriplinesCount , min_range, max_range); 
+     PosVariation[1] = new TH1F("Eff_Asym_RMS", "Eff_Charge Asym RMS Variation",BPMSTriplinesCount , min_range, max_range); 
     for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
-      sprintf (histo, "asym_%s_EffectiveCharge_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo1= (TH1F *)dMapFile->Get(histo); 
-      if (histo1!=NULL)
+      if (GetHistoPause()==0){
+	sprintf (histo, "asym_%s_EffectiveCharge_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+	histo1[p]= (TH1F *)dMapFile->Get(histo); 
+      }
+      if (histo1[p]!=NULL)
 	{
+	  if (GetHistoReset()){
+	    histo1_buff[p]=(TH1F*)histo1[p]->Clone(Form("%s_buff",histo1[p]->GetName()));
+	    *histo1[p]=*histo1[p]-*histo1_buff[p];
+	    if (p==BPMSTriplinesCount-1)//once all histo are buffered set the reser state
+	      SetHistoReset(0);
+	  }else if (GetHistoAccumulate()==0){
+	    *histo1[p]=*histo1[p]-*histo1_buff[p];
+	  }	    
+	
 	  xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
 	  if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
-	  histo1->SetName(histo);
+	  histo1[p]->SetName(histo);
 	      
-	  dummyname = histo1->GetName();
+	  dummyname = histo1[p]->GetName();
 	       
 	  dummyname.Replace(0,9," ");
 	  dummyname.ReplaceAll("_EffectiveCharge_hw", "");
-	  PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	  PosVariation[0] -> SetBinError  (xcount, histo1->GetRMS());//this gives std deviation not RMS
+	  PosVariation[0] -> SetBinContent(xcount, histo1[p]->GetMean()*1e6);
+	  PosVariation[0] -> SetBinError  (xcount, histo1[p]->GetMeanError()*1e6);//this gives std deviation not RMS
 	  PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	  if(ldebug) SummaryHist(histo1);
-	  delete histo1; histo1= NULL;
-	}
-      
-      sprintf (histo, "yield_%s_EffectiveCharge_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dMapFile->Get(histo); 
-      if(histo2!=NULL){		
-	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
-	histo2->SetName(histo);
-	dummyname = histo2->GetName();
-	dummyname.Replace(0,10," ");
-	dummyname.ReplaceAll("_EffectiveCharge_hw", "");
-	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError  (ycount, histo2->GetRMS());//this gives std deviation not RMS
-	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	if(ldebug) SummaryHist(histo2);
-	delete histo2; histo2= NULL; 
-      }
-      
+	  PosVariation[1] -> SetBinContent(xcount, histo1[p]->GetRMS()*1e6);
+	  PosVariation[1] -> SetBinError  (xcount, 0);
+	  PosVariation[1] -> GetXaxis()->SetBinLabel(xcount, dummyname);
 	  
+	  if(ldebug) SummaryHist(histo1[p]);
+
+	}	  
     }
     xcount = 0;
     ycount = 0;
@@ -368,7 +372,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("Eff_Charge Asymmetry");
-    PosVariation[0] -> GetYaxis() -> SetTitle("#No Units");
+    PosVariation[0] -> GetYaxis() -> SetTitle("ppm");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM ");
     PosVariation[0] -> Draw("E1");
     //gPad->Update();
@@ -378,8 +382,8 @@ void QwGUIHallCBeamline::PositionDifferences()
     mc->cd(2);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
-    PosVariation[1] -> SetTitle("Eff_Charge Yield");
-    PosVariation[1] -> GetYaxis()-> SetTitle ("Coulomb");
+    PosVariation[1] -> SetTitle("Eff_Charge Asymmetry Width");
+    PosVariation[1] -> GetYaxis()-> SetTitle ("ppm");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM ");
     PosVariation[1] -> Draw("E1");
     
@@ -389,7 +393,7 @@ void QwGUIHallCBeamline::PositionDifferences()
     for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -438,10 +442,8 @@ void QwGUIHallCBeamline::PlotChargeAsym()
 
       mc->cd(1);
       histo1->Draw();
-      //      if(ldebug) SummaryHist(histo1);
       mc->cd(2);
       histo2->Draw();
-      //      if(ldebug) SummaryHist(histo2);
       gPad->Update();
       gPad->Update();
 
@@ -449,7 +451,7 @@ void QwGUIHallCBeamline::PlotChargeAsym()
       mc->Update();
     }
 
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -467,11 +469,8 @@ void QwGUIHallCBeamline::PlotChargeAsym()
 
 void QwGUIHallCBeamline::PlotBPMAsym(){
 
-  TH1F *histo1=NULL;
-  TH1F *histo2=NULL;
-
-  char histo[150];
-  
+  char chisto1[150];
+  char chisto2[150]; 
   Int_t xcount = 0;
   Int_t ycount = 0;
   
@@ -482,7 +481,15 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
   
+  std::vector<TH1F *> histo1;//_array;
+  histo1.resize(BPMSTriplinesCount);
+  std::vector<TH1F *> histo2;//_array;
+  histo2.resize(BPMSTriplinesCount);
 
+  std::vector<TH1F *> histo1_buff;//_array;
+  histo1_buff.resize(BPMSTriplinesCount);
+  std::vector<TH1F *> histo2_buff;//_array;
+  histo2_buff.resize(BPMSTriplinesCount);
 
   TString dummyname;
 
@@ -498,40 +505,47 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
      PosVariation[1] = new TH1F("HCDiffY", "Y Difference variation", BPMSTriplinesCount, min_range, max_range); 
     for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
-      //sprintf (histo, "asym_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-      sprintf (histo, "diff_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-      histo1= (TH1F *)dMapFile->Get(histo); 
-      if (histo1!=NULL) {
-	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
-	histo1->SetName(histo);
-	    
-	dummyname = histo1->GetName();
-	    
-	dummyname.Replace(0,9," ");
-	dummyname.ReplaceAll("_hw", "");
-	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError(xcount, histo1->GetRMS());//this gives std deviation not RMS	
-	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	//	if(ldebug) SummaryHist(histo1);
-	delete histo1; histo1= NULL;
+      if (GetHistoPause()==0){
+	sprintf (chisto1, "diff_%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+	histo1[p] = (TH1F *)dMapFile->Get(chisto1); 
+	sprintf (chisto2, "diff_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data()); 
+	histo2[p] = (TH1F *)dMapFile->Get(chisto2); 
       }
-	  
-      //sprintf (histo, "asym_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      sprintf (histo, "diff_%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data()); 
-      histo2= (TH1F *)dMapFile->Get(histo); 
-      if(histo2!=NULL){		
-	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
-	histo2->SetName(histo);
-	dummyname = histo2->GetName();
+
+      if (histo1[p]!=NULL && histo2[p]!=NULL) {
+	if (GetHistoReset()){
+	  histo1_buff[p]=(TH1F*)histo1[p]->Clone(Form("%s_buff",histo1[p]->GetName()));
+	  *histo1[p]=*histo1[p]-*histo1_buff[p];
+	  histo2_buff[p]=(TH1F*)histo2[p]->Clone(Form("%s_buff",histo2[p]->GetName()));
+	  *histo2[p]=*histo2[p]-*histo2_buff[p];
+	  if (p==BPMSTriplinesCount-1)//once all histo are buffered set the reser state
+	    SetHistoReset(0);
+	}else if (GetHistoAccumulate()==0){
+	  *histo1[p]=*histo1[p]-*histo1_buff[p];
+	  *histo2[p]=*histo2[p]-*histo2_buff[p];
+	}	    
+	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, chisto1);
+	histo1[p]->SetName(chisto1);
+	    
+	dummyname = histo1[p]->GetName();
+	    
 	dummyname.Replace(0,9," ");
 	dummyname.ReplaceAll("_hw", "");
-	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError(ycount, histo2->GetRMS());//this gives std deviation not RMS
+	PosVariation[0] -> SetBinContent(xcount, histo1[p]->GetMean());
+	PosVariation[0] -> SetBinError(xcount, histo1[p]->GetMeanError());
+	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
+
+	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, chisto2);
+	histo2[p]->SetName(chisto2);
+	dummyname = histo2[p]->GetName();
+	dummyname.Replace(0,9," ");
+	dummyname.ReplaceAll("_hw", "");
+	PosVariation[1] -> SetBinContent(ycount, histo2[p]->GetMean());
+	PosVariation[1] -> SetBinError(ycount, histo2[p]->GetMeanError());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	//	if(ldebug) SummaryHist(histo2);
-	delete histo2; histo2= NULL; 
+
       }
 	  
 	  
@@ -569,7 +583,7 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
     for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -582,10 +596,9 @@ void QwGUIHallCBeamline::PlotBPMAsym(){
 }
 
 void QwGUIHallCBeamline::PlotBPMPositions(){
-  TH1F *histo1=NULL;
-  TH1F *histo2=NULL;
 
-  char histo[128];
+  char chisto1[128];
+  char chisto2[128];
   
   Int_t xcount = 0;
   Int_t ycount = 0;
@@ -596,6 +609,15 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
   Int_t BPMSTriplinesCount = fHallCDevices.at(VQWK_BPMSTRIPLINE).size();
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
+  std::vector<TH1F *> histo1;//_array;
+  histo1.resize(BPMSTriplinesCount);
+  std::vector<TH1F *> histo2;//_array;
+  histo2.resize(BPMSTriplinesCount);
+
+  std::vector<TH1F *> histo1_buff;//_array;
+  histo1_buff.resize(BPMSTriplinesCount);
+  std::vector<TH1F *> histo2_buff;//_array;
+  histo2_buff.resize(BPMSTriplinesCount);
   
 
 
@@ -612,45 +634,49 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
      PosVariation[0] = new TH1F("PosX", "Mean X Variation", BPMSTriplinesCount, min_range, max_range);
      PosVariation[1] = new TH1F("PosY", "Mean Y variation", BPMSTriplinesCount, min_range, max_range); 
      for(Int_t p = 0; p <BPMSTriplinesCount ; p++) {
-       sprintf (histo, "%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
-       histo1= (TH1F *)dMapFile->Get(histo); 
 
-      if (histo1!=NULL) {
+       if (GetHistoPause()==0){
+	 sprintf (chisto1, "%sX_hw",fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+	 histo1[p]= (TH1F *)dMapFile->Get(chisto1); 
+	 sprintf (chisto2, "%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+	 histo2[p]= (TH1F *)dMapFile->Get(chisto2);
+       }
+
+      if (histo1[p]!=NULL && histo2[p]!=NULL) {
+	if (GetHistoReset()){
+	  histo1_buff[p]=(TH1F*)histo1[p]->Clone(Form("%s_buff",histo1[p]->GetName()));
+	  *histo1[p]=*histo1[p]-*histo1_buff[p];
+	  histo2_buff[p]=(TH1F*)histo2[p]->Clone(Form("%s_buff",histo2[p]->GetName()));
+	  *histo2[p]=*histo2[p]-*histo2_buff[p];
+	  if (p==BPMSTriplinesCount-1)//once all histo are buffered set the reser state
+	    SetHistoReset(0);
+	}else if (GetHistoAccumulate()==0){
+	  *histo1[p]=*histo1[p]-*histo1_buff[p];
+	  *histo2[p]=*histo2[p]-*histo2_buff[p];
+	}	    
 	xcount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, histo);
-	histo1->SetName(histo);
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", xcount, chisto1);
+	histo1[p]->SetName(chisto1);
 	    
-	dummyname = histo1->GetName();
+	dummyname = histo1[p]->GetName();
 	    
 	dummyname.Replace(0,4," ");
 	dummyname.ReplaceAll("_hw", "");
-	PosVariation[0] -> SetBinContent(xcount, histo1->GetMean());
-	PosVariation[0] -> SetBinError(xcount, histo1->GetRMS());//this gives std deviation not RMS
+	PosVariation[0] -> SetBinContent(xcount, histo1[p]->GetMean());
+	PosVariation[0] -> SetBinError(xcount, histo1[p]->GetMeanError());
 	PosVariation[0] -> GetXaxis()->SetBinLabel(xcount, dummyname);
-	//	if(ldebug) SummaryHist(histo1);
-	delete histo1; 
-	histo1= NULL;
-      }
 
-      sprintf (histo, "%sY_hw", fHallCDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
-      histo2= (TH1F *)dMapFile->Get(histo);
-
-      if(histo2!=NULL){		
 	ycount++; // see http://root.cern.ch/root/html/TH1.html#TH1:GetBin
-	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, histo);
-	histo2->SetName(histo);
-	dummyname = histo2->GetName();
+	if(ldebug) printf("Found %2d : a histogram name %22s\n", ycount, chisto2);
+	histo2[p]->SetName(chisto2);
+	dummyname = histo2[p]->GetName();
 	dummyname.Replace(0,4," ");
 	dummyname.ReplaceAll("_hw", "");
-	PosVariation[1] -> SetBinContent(ycount, histo2->GetMean());
-	PosVariation[1] -> SetBinError(ycount, histo2->GetRMS());//this gives std deviation not RMS
+	PosVariation[1] -> SetBinContent(ycount, histo2[p]->GetMean());
+	PosVariation[1] -> SetBinError(ycount, histo2[p]->GetMeanError());
 	PosVariation[1] -> GetXaxis()->SetBinLabel(ycount, dummyname);
-	//	if(ldebug) SummaryHist(histo2);
-	delete histo2; 
-	histo2= NULL; 
-	
       }
-	  
+
 	  
     }
     xcount = 0;
@@ -686,7 +712,7 @@ void QwGUIHallCBeamline::PlotBPMPositions(){
     for (Int_t p = 0; p <NUM_POS ; p++){
       delete PosVariation[p];
     }
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -747,7 +773,7 @@ void QwGUIHallCBeamline::PlotSCALER(){
       mc->Update();
     }
 
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -830,7 +856,7 @@ void QwGUIHallCBeamline::PlotTargetPos(Int_t tgtcoord){
       mc->Update();
     }
 
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -894,7 +920,7 @@ void QwGUIHallCBeamline::PlotTargetCharge(){
       mc->Update();
     }
 
-    gSystem->Sleep(100);
+    gSystem->Sleep(fSleepTimeMS);
     if (gSystem->ProcessEvents()){
       break;
     }
@@ -948,7 +974,7 @@ void QwGUIHallCBeamline::PlotFastRaster()
       }
       mc->Modified();
       mc->Update();
-      gSystem->Sleep(100);
+      gSystem->Sleep(fSleepTimeMS);
       if (gSystem->ProcessEvents()){
 	break;
       }

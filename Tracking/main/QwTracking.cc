@@ -15,6 +15,7 @@
 #include "QwRootFile.h"
 #include "QwOptionsTracking.h"
 #include "QwEventBuffer.h"
+#include "QwDatabase.h"
 #include "QwHistogramHelper.h"
 #include "QwEPICSEvent.h"
 #include "QwTrackingWorker.h"
@@ -42,16 +43,17 @@
 #include "QwScaler.h"
 
 // Qweak headers (deprecated)
-#include "Det.h"
 #include "Qset.h"
 
-
-// Debug level
-static const bool kDebug = false;
 
 // Main function
 Int_t main(Int_t argc, Char_t* argv[])
 {
+  /// without anything, print usage
+  if(argc == 1){
+    gQwOptions.Usage();
+    exit(0);
+  }
   ///  First, fill the search paths for the parameter files; this sets a static
   ///  variable within the QwParameterFile class which will be used by
   ///  all instances.
@@ -96,18 +98,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
   }
 
-  // Get vector with detector info (by region, plane number)
-  //std::vector< std::vector< QwDetectorInfo > > detector_info;
-  //tracking_detectors.GetSubsystemByName("R1")->GetDetectorInfo(detector_info);
-  //tracking_detectors.GetSubsystemByName("R2")->GetDetectorInfo(detector_info);
-  //tracking_detectors.GetSubsystemByName("R3")->GetDetectorInfo(detector_info);
-  // TODO This is handled incorrectly, it just adds the three package after the
-  // existing three packages from region 2...  GetDetectorInfo should descend
-  // into the packages and add only the tracking_detectors in those packages.
-  // Alternatively, we could implement this with a singly indexed vector (with
-  // only an id as primary index) and write a couple of helper functions to
-  // select the right subvectors of tracking_detectors.
-
   // Create and fill old detector structures (deprecated)
   Qset qset;
   qset.FillDetectors((getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/qweak.geo").c_str());
@@ -128,12 +118,14 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epics;
-    epics.LoadEpicsVariableMap("EpicsTable.map");
+    epics.LoadChannelMap("EpicsTable.map");
 
 
     ///  Load the tracking detectors from file
     QwSubsystemArrayTracking tracking_detectors(gQwOptions);
     tracking_detectors.ProcessOptions(gQwOptions);
+    ///  Get detector geometry
+    QwGeometry geometry = tracking_detectors.GetGeometry();
 
     ///  Load the parity detectors from file
     QwSubsystemArrayParity parity_detectors(gQwOptions);
@@ -151,6 +143,11 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
 
+    //
+    //  Construct a Tree which contains map file names which are used to analyze data
+    //
+    rootfile->WriteParamFileList("mapfiles", tracking_detectors);
+
     // Create dummy event for branch creation (memory leak when using null)
     QwEvent* event = new QwEvent();
 
@@ -161,7 +158,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Create the subsystem branches
       rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", tracking_detectors);
-      rootfile->ConstructTreeBranches("event_tree", "QwTracking Event-based Tree", parity_detectors);
+      rootfile->ConstructTreeBranches("Mps_Tree", "QwTracking Event-based Tree", parity_detectors);
+      rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epics);
     }
 
     // Delete dummy event again
@@ -176,26 +174,23 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->PrintDirs();
 
 
-    QwHitContainer* hitlist = 0;
+    //  Loop over events in this CODA file
     Int_t nevents           = 0;
     while (eventbuffer.GetNextEvent() == CODA_OK) {
-      //  Loop over events in this CODA file
-      //  First, do processing of non-physics events...
 
+      //  First, do processing of non-physics events...
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epics);
         epics.CalculateRunningValues();
       }
 
-
+      //  Send ROC configuration event data to the subsystem objects.
       if (eventbuffer.IsROCConfigurationEvent()) {
-         //  Send ROC configuration event data to the subsystem objects.
          eventbuffer.FillSubsystemConfigurationData(tracking_detectors);
          eventbuffer.FillSubsystemConfigurationData(parity_detectors);
       }
 
-      //  Now, if this is not a physics event, go back and get
-      //  a new event.
+      //  Now, if this is not a physics event, go back and get a new event.
       if (! eventbuffer.IsPhysicsEvent()) {
          continue;
       }
@@ -212,42 +207,37 @@ Int_t main(Int_t argc, Char_t* argv[])
       rootfile->FillTreeBranches(tracking_detectors);
       rootfile->FillTreeBranches(parity_detectors);
 
+
       // Fill the histograms for the subsystem objects.
       rootfile->FillHistograms(tracking_detectors);
       rootfile->FillHistograms(parity_detectors);
 
 
+      /// Create a new event structure
+      event = new QwEvent();
 
       // Create the event header with the run and event number
       QwEventHeader header(eventbuffer.GetRunNumber(),eventbuffer.GetEventNumber());
+      // Assign the event header to the event
+      event->SetEventHeader(header);
+
 
       // Create and fill hit list
-      hitlist = new QwHitContainer();
-
+      QwHitContainer* hitlist = new QwHitContainer();
       tracking_detectors.GetHitList(hitlist);
 
-      // Sorting the grand hit list
+      // Sorting the hit list
       hitlist->sort();
 
-      // Print hit list
-      if (hitlist->size() > 0 && kDebug) {
-        QwMessage << "Event " << eventbuffer.GetEventNumber() << QwLog::endl;
-        hitlist->Print();
-      }
+      // and fill into the event
+      event->AddHitContainer(hitlist);
+
 
       // Track reconstruction
-      if (hitlist->size() > 0) {
-        // Process the hits
-        event = trackingworker->ProcessHits(&tracking_detectors, hitlist);
+      trackingworker->ProcessEvent(&tracking_detectors, event);
 
-        // Assign the event header
-        event->SetEventHeader(header);
 
-        // Print the reconstructed event
-        if (kDebug) event->Print();
-      }
-
-      // Save the hitlist to the tree
+      // Fill the event tree
       rootfile->FillTrees();
 
       // Delete objects
@@ -255,7 +245,6 @@ Int_t main(Int_t argc, Char_t* argv[])
       if (event)   delete event;   event = 0;
 
       nevents++;
-
 
     } // end of loop over events
 
@@ -288,7 +277,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     // Delete objects (this is confusing: the if only applies to the delete)
     if (rootfile)       delete rootfile;       rootfile = 0;
-    if (hitlist)        delete hitlist;        hitlist = 0;
 
     // Print run summary information
     eventbuffer.ReportRunSummary();
@@ -301,13 +289,22 @@ Int_t main(Int_t argc, Char_t* argv[])
 
   QwMessage << QwLog::endl;
   QwMessage << "Number of tracking objects still alive:" << QwLog::endl;
-  QwMessage << "  QwEvent: "        << QwEvent::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwEventHeader: "  << QwEventHeader::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwHit: "          << QwHit::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive() << QwLog::endl;
-  QwMessage << "  QwTrack: "        << QwTrack::GetObjectsAlive() << QwLog::endl;
+  QwMessage << "  QwEvent: "        << QwEvent::GetObjectsAlive()
+            << " (of " << QwEvent::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwEventHeader: "  << QwEventHeader::GetObjectsAlive()
+            << " (of " << QwEventHeader::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwHit: "          << QwHit::GetObjectsAlive()
+            << " (of " << QwHit::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive()
+            << " (of " << QwHitPattern::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwTreeLine: "     << QwTrackingTreeLine::GetObjectsAlive()
+            << " (of " << QwTrackingTreeLine::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwPartialTrack: " << QwPartialTrack::GetObjectsAlive()
+            << " (of " << QwPartialTrack::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwTrack: "        << QwTrack::GetObjectsAlive()
+            << " (of " << QwTrack::GetObjectsCreated() << ")" << QwLog::endl;
+  QwMessage << "  QwBridge: "        << QwBridge::GetObjectsAlive()
+            << " (of " << QwBridge::GetObjectsCreated() << ")" << QwLog::endl;
   QwMessage << QwLog::endl;
 
   QwMessage << "I have done everything I can do..." << QwLog::endl;

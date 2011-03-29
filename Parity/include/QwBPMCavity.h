@@ -8,16 +8,20 @@
 #ifndef __QwVQWK_CAVITY__
 #define __QwVQWK_CAVITY__
 
+// System headers
 #include <vector>
+
+// ROOT headres
 #include <TTree.h>
 
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-
+// Qweak headers
 #include "QwVQWK_Channel.h"
-#include "QwDatabase.h"
 #include "VQwBPM.h"
 #include "QwParameterFile.h"
+
+// Forward declarations
+class QwDBInterface;
+
 /*****************************************************************
 *  Class:
 ******************************************************************/
@@ -30,15 +34,15 @@ class QwBPMCavity : public VQwBPM {
 
  public:
   QwBPMCavity() { };
-  QwBPMCavity(TString name, Bool_t ROTATED):VQwBPM(name){
+  QwBPMCavity(TString name):VQwBPM(name){
     InitializeChannel(name);
-    bRotated=ROTATED;
+    bRotated=kTRUE;
 
   };
-    QwBPMCavity(TString subsystemname, TString name, Bool_t ROTATED):VQwBPM(name){
+    QwBPMCavity(TString subsystemname, TString name):VQwBPM(name){
       SetSubsystemName(subsystemname);
       InitializeChannel(subsystemname, name);
-      bRotated=ROTATED;
+      bRotated=kTRUE;
 
     };
 

@@ -5,6 +5,7 @@
 
 ClassImp(QwGUILumiDetector);
 
+const Int_t QwGUILumiDetector::fSleepTimeMS = 2000;
 
 enum QwGUILumiDetectorIndentificator {
   BA_DS_LUMI,

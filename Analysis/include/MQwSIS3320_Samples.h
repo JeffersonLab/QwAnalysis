@@ -26,9 +26,6 @@
 #include <TGraph.h>
 #include <TTree.h>
 
-// Qweak headers
-#include "VQwDataElement.h"
-
 /// At this point the samples are hard-coded to be of Float_t data type.
 /// Ideally, this should be templated out, so that the channel can have
 /// UInt_t raw samples, Float_t processed samples, and Double_t average
@@ -36,7 +33,7 @@
 /// thinking.
 typedef Double_t MQwSIS3320_Type;
 
-class MQwSIS3320_Samples: public TObject, public VQwDataElement {
+class MQwSIS3320_Samples: public TObject {
 
   public:
 
@@ -54,12 +51,17 @@ class MQwSIS3320_Samples: public TObject, public VQwDataElement {
     MQwSIS3320_Type GetMinSample() const { return GetMin().second; };
     MQwSIS3320_Type GetMaxSample() const { return GetMax().second; };
 
-    const MQwSIS3320_Type GetSum() const;
-    const MQwSIS3320_Type GetSample(size_t i) const { return fSamples.at(i); };
-    const MQwSIS3320_Type GetPedestal() const { return GetSample(0); };
-    const MQwSIS3320_Type GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const;
+    MQwSIS3320_Type GetSum() const;
+    MQwSIS3320_Type GetSample(size_t i) const { return fSamples.at(i); };
+    MQwSIS3320_Type GetPedestal() const { return GetSample(0); };
+    MQwSIS3320_Type GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const;
 
-    const UInt_t GetNumberOfSamples() const { return fSamples.size(); };
+    UInt_t GetNumberOfDataWords() const { return fNumberOfDataWords; };
+    void SetNumberOfDataWords(const UInt_t &numwords) {
+      fNumberOfDataWords = numwords;
+    };
+
+    UInt_t GetNumberOfSamples() const { return fSamples.size(); };
     void SetNumberOfSamples(const UInt_t nsamples) {
       // Initialize index vector
       fIndex.resize(nsamples);
@@ -69,7 +71,7 @@ class MQwSIS3320_Samples: public TObject, public VQwDataElement {
       SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
     };
 
-    const UInt_t GetSamplesPerWord() const { return fSamplesPerWord; };
+    UInt_t GetSamplesPerWord() const { return fSamplesPerWord; };
     void SetSamplesPerWord(const UInt_t nsamples) {
       fSamplesPerWord = nsamples;
       SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
@@ -77,32 +79,27 @@ class MQwSIS3320_Samples: public TObject, public VQwDataElement {
 
     const TGraph* GetGraph() const { return fGraph; };
 
+    // Update the graph from the index and value vectors
+    void UpdateGraph();
+
 
     void  ClearEventData() { fSamples.clear(); };
     Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0);
 
-    const MQwSIS3320_Samples operator/ (const Double_t &value) const;
-    const MQwSIS3320_Samples operator* (const Double_t &value) const;
-    const MQwSIS3320_Samples operator+ (const Double_t &value) const;
-    const MQwSIS3320_Samples operator- (const Double_t &value) const;
     MQwSIS3320_Samples& operator/= (const Double_t &value);
     MQwSIS3320_Samples& operator*= (const Double_t &value);
     MQwSIS3320_Samples& operator+= (const Double_t &value);
     MQwSIS3320_Samples& operator-= (const Double_t &value);
-    const MQwSIS3320_Samples operator+ (const MQwSIS3320_Samples &value) const;
-    const MQwSIS3320_Samples operator- (const MQwSIS3320_Samples &value) const;
+    const MQwSIS3320_Samples operator/ (const Double_t &value) const;
+    const MQwSIS3320_Samples operator* (const Double_t &value) const;
+    const MQwSIS3320_Samples operator+ (const Double_t &value) const;
+    const MQwSIS3320_Samples operator- (const Double_t &value) const;
+
     MQwSIS3320_Samples& operator=  (const MQwSIS3320_Samples &value);
     MQwSIS3320_Samples& operator+= (const MQwSIS3320_Samples &value);
     MQwSIS3320_Samples& operator-= (const MQwSIS3320_Samples &value);
-    void Sum(const MQwSIS3320_Samples &value1, const MQwSIS3320_Samples &value2);
-    void Difference(const MQwSIS3320_Samples &value1, const MQwSIS3320_Samples &value2);
-    void Ratio(const MQwSIS3320_Samples &numer, const MQwSIS3320_Samples &denom);
-
-    void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
-    void  FillHistograms() { };
-
-    // Update the graph from the index and value vectors
-    void UpdateGraph();
+    const MQwSIS3320_Samples operator+ (const MQwSIS3320_Samples &value) const;
+    const MQwSIS3320_Samples operator- (const MQwSIS3320_Samples &value) const;
 
     // Output stream operator<< for an accumulator
     friend std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples& s);
@@ -117,6 +114,9 @@ class MQwSIS3320_Samples: public TObject, public VQwDataElement {
 
     //! Number of 12-bit sample values per data word
     UInt_t fSamplesPerWord;
+    ///< Number of data words in this data element
+    UInt_t  fNumberOfDataWords;
+
     //! Samples index
     static std::vector<MQwSIS3320_Type> fIndex; //!
     //! Samples values
@@ -137,6 +137,6 @@ inline std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples&
   for (size_t i = 0; i < s.GetNumberOfSamples(); i++)
     stream << s.GetSample(i) << " ";
   return stream;
-};
+}
 
 #endif // __MQwSIS3320_Samples__

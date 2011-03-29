@@ -10,7 +10,7 @@
 #include "QwScaler_Channel.h"
 
 
-class QwScaler: public VQwSubsystemParity
+class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
 {
 
 	public:
@@ -25,7 +25,6 @@ class QwScaler: public VQwSubsystemParity
 		void ProcessOptions ( QwOptions &options ); //Handle command line options
 		Int_t LoadChannelMap ( TString mapfile );
 		Int_t LoadInputParameters ( TString pedestalfile );
-		Int_t LoadEventCuts ( TString & filename );
 		Bool_t SingleEventCuts();
 		Int_t ProcessConfigurationBuffer ( const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words );
 		Int_t ProcessConfigurationBuffer ( UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words );
@@ -34,15 +33,18 @@ class QwScaler: public VQwSubsystemParity
 		void  PrintDetectorID();
 		void  ClearEventData();
 		void  ProcessEvent();
+
+		using VQwSubsystem::ConstructHistograms;
 		void  ConstructHistograms ( TDirectory *folder, TString &prefix );
 		void  FillHistograms();
 		void  DeleteHistograms();
 
-
+		using VQwSubsystem::ConstructBranchAndVector;
 		void ConstructBranchAndVector ( TTree *tree, TString &prefix, std::vector<Double_t> &values );
 		void ConstructBranch(TTree *tree, TString& prefix);
   		void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file);
 		void FillTreeVector ( std::vector<Double_t> &values ) const;
+
 		VQwSubsystem& operator= ( VQwSubsystem *value );
 		VQwSubsystem& operator+= ( VQwSubsystem *value );
 		VQwSubsystem& operator-= ( VQwSubsystem *value );

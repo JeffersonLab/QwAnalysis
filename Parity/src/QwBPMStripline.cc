@@ -6,12 +6,16 @@
 \**********************************************************/
 
 #include "QwBPMStripline.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// Qweak headers
+#include "QwDBInterface.h"
+
 /* Position calibration factor, transform ADC counts in mm*/
-//const Double_t QwBPMStripline::kQwStriplineCalibration = 18.77;
-const Double_t QwBPMStripline::kRotationCorrection = 1./1.414;
+//const Double_t QwBPStripline::kQwStriplineCalibration = 18.77;
+//const Double_t QwBPMStripline::kRotationCorrection = 1./1.414;
 const TString QwBPMStripline::subelement[4]={"XP","XM","YP","YM"};
 
 void  QwBPMStripline::InitializeChannel(TString name)
@@ -37,7 +41,7 @@ void  QwBPMStripline::InitializeChannel(TString name)
   bFullSave=kTRUE;
 
   return;
-};
+}
 
 void  QwBPMStripline::InitializeChannel(TString subsystem, TString name)
 {
@@ -62,7 +66,7 @@ void  QwBPMStripline::InitializeChannel(TString subsystem, TString name)
   bFullSave=kTRUE;
 
   return;
-};
+}
 
 void QwBPMStripline::ClearEventData()
 {
@@ -77,7 +81,7 @@ void QwBPMStripline::ClearEventData()
   fEffectiveCharge.ClearEventData();
 
  return;
-};
+}
 
 
 Bool_t QwBPMStripline::ApplyHWChecks()
@@ -95,7 +99,7 @@ Bool_t QwBPMStripline::ApplyHWChecks()
     }
 
   return fEventIsGood;
-};
+}
 
 
 Int_t QwBPMStripline::GetEventcutErrorCounters()
@@ -110,7 +114,7 @@ Int_t QwBPMStripline::GetEventcutErrorCounters()
   fEffectiveCharge.GetEventcutErrorCounters();
 
   return 1;
-};
+}
 
 
 Bool_t QwBPMStripline::ApplySingleEventCuts()
@@ -171,7 +175,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
 
   return status;
 
-};
+}
 
 
 void QwBPMStripline::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
@@ -216,7 +220,7 @@ void QwBPMStripline::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t
 
   }
 
-};
+}
 
 
 void QwBPMStripline::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
@@ -259,14 +263,18 @@ void QwBPMStripline::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double
     fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
 
   }
-};
+}
 
 void  QwBPMStripline::ProcessEvent()
 {
   Bool_t localdebug = kFALSE;
-  static QwVQWK_Channel numer("numerator"), denom("denominator");
-  Short_t i = 0;
+  static QwVQWK_Channel numer("numerator"), denom("denominator"), tmp1("tmp1"),tmp2("tmp2");
+  static QwVQWK_Channel tmppos[2];
+ 
+  tmppos[0].InitializeChannel("tmppos_0","derived");
+  tmppos[1].InitializeChannel("tmppos_1","derived");
 
+  Short_t i = 0;
 
   ApplyHWChecks();
   /**First apply HW checks and update HW  error flags. 
@@ -294,11 +302,11 @@ void  QwBPMStripline::ProcessEvent()
      RelY (bpm coordinates) = fQwStriplineCalibration x ----------------
                                                         (YP + AlphaY.YM)
 
-     To get back to accelerator coordinates, rotate clockwise around Z by 45 degrees.							
+     To get back to accelerator coordinates, rotate anti-clockwise around +Z by phi degrees (angle w.r.t X axis).							
      
-     RelX (accelarator coordinates) =  1/sqrt(2)( RelX - RelY)
+     RelX (accelarator coordinates) =  cos(phi) RelX - sin(phi)RelY
     
-     RelY (accelarator coordinates) =  1/sqrt(2)( RelX + RelY) 
+     RelY (accelarator coordinates) =  sin(phi) RelX + cos(Phi)RelY 
  
   */
 
@@ -313,27 +321,37 @@ void  QwBPMStripline::ProcessEvent()
 
     if(localdebug)
       {
-	  std::cout<<" stripline name="<<fElementName<<axis[i];
-	  std::cout<<" event number= "<<fWire[i*2].GetSequenceNumber()<<" \n";
+	std::cout<<" stripline name="<<fElementName<<std::endl;
+	  std::cout<<" event number= "<<fWire[i*2].GetSequenceNumber()<<std::endl;
 	  std::cout<<" hw  Wire["<<i*2<<"]="<<fWire[i*2].GetHardwareSum()<<"  ";
 	  std::cout<<" hw relative gain *  Wire["<<i*2+1<<"]="<<fWire[i*2+1].GetHardwareSum()<<"\n";
 	  std::cout<<" Relative gain["<<i<<"]="<<fRelativeGains[i]<<"\n";
 	  std::cout<<" hw numerator= "<<numer.GetHardwareSum()<<"  ";
 	  std::cout<<" hw denominator= "<<denom.GetHardwareSum()<<"\n";
+	  std::cout<<" Rotation = "<<fRotationAngle<<std::endl;
 	}
     }
-  if(bRotated)
-    {
-      /* for this one the direction [1] is vertical and up,
-	 direction[3] is the beam line direction toward the beamdump
-	 if rotated then the frame is rotated by 45 deg clockwise around direction[3] axis*/
-      numer=fRelPos[0]; 
-      denom=fRelPos[1]; 
-      fRelPos[0].Difference(numer,denom); 
-      fRelPos[1].Sum(numer,denom); 
-      fRelPos[0].Scale(kRotationCorrection); // RealX = 1/sqrt(2)( RelX - RelY)
-      fRelPos[1].Scale(kRotationCorrection);// Real Y =(RelX +RelY )
-    }
+//   std::cout<<" \nstripline name="<<fElementName<<std::endl;
+//   std::cout<<" Rotation = "<<fRotationAngle<<std::endl;
+
+  for(i=0;i<2;i++){ 
+    //std::cout<<" hw  before RelPos["<<i<<"]="<<fRelPos[i].GetHardwareSum()<<"  ";
+    tmp1.ClearEventData();
+    tmp2.ClearEventData();
+    tmppos[i].ClearEventData();
+    tmp1 =  fRelPos[i];
+    tmp2 =  fRelPos[1-i];
+    tmp1.Scale(fCosRotation);
+    tmp2.Scale(fSinRotation);
+    if (i==0) 
+      tmppos[i].Difference(tmp1,tmp2);
+      else tmppos[i].Sum(tmp1,tmp2);
+  }
+
+
+  fRelPos[0]=tmppos[0];
+  fRelPos[1]=tmppos[1];
+
 
   for(i=0;i<2;i++){
     fAbsPos[i]= fRelPos[i];
@@ -349,7 +367,7 @@ void  QwBPMStripline::ProcessEvent()
   }
   
   return;
-};
+}
 
 
 Int_t QwBPMStripline::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
@@ -364,7 +382,7 @@ Int_t QwBPMStripline::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_bu
       "QwBPMStripline::ProcessEvBuffer(): attemp to fill in raw date for a wire that doesn't exist \n";
     }
   return word_position_in_buffer;
-};
+}
 
 
 
@@ -375,7 +393,7 @@ void QwBPMStripline::PrintValue() const
     fRelPos[i].PrintValue();
   }
   return;
-};
+}
 
 void QwBPMStripline::PrintInfo() const
 {
@@ -386,7 +404,7 @@ void QwBPMStripline::PrintInfo() const
     fAbsPos[i].PrintInfo();
   }
   fEffectiveCharge.PrintInfo();
-};
+}
 
 
 TString QwBPMStripline::GetSubElementName(Int_t subindex)
@@ -412,7 +430,7 @@ UInt_t QwBPMStripline::GetSubElementIndex(TString subname)
 	      <<subname<<"- to any index"<<std::endl;
 
   return localindex;
-};
+}
 
 void  QwBPMStripline::GetAbsolutePosition()
 {
@@ -423,7 +441,7 @@ void  QwBPMStripline::GetAbsolutePosition()
   // For Z, the absolute position will be the offset we are reading from the
   // geometry map file. Since we are not putting that to the tree it is not
   // treated as a vqwk channel.
-};
+}
 
 QwBPMStripline& QwBPMStripline::operator= (const QwBPMStripline &value)
 {
@@ -440,7 +458,7 @@ QwBPMStripline& QwBPMStripline::operator= (const QwBPMStripline &value)
     }
   }
   return *this;
-};
+}
 
 
 QwBPMStripline& QwBPMStripline::operator+= (const QwBPMStripline &value)
@@ -456,7 +474,7 @@ QwBPMStripline& QwBPMStripline::operator+= (const QwBPMStripline &value)
     }
   }
   return *this;
-};
+}
 
 QwBPMStripline& QwBPMStripline::operator-= (const QwBPMStripline &value)
 {
@@ -471,7 +489,7 @@ QwBPMStripline& QwBPMStripline::operator-= (const QwBPMStripline &value)
     }
   }
   return *this;
-};
+}
 
 
 void QwBPMStripline::Ratio(QwBPMStripline &numer, QwBPMStripline &denom)
@@ -482,7 +500,7 @@ void QwBPMStripline::Ratio(QwBPMStripline &numer, QwBPMStripline &denom)
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   return;
-};
+}
 
 
 
@@ -497,7 +515,7 @@ void QwBPMStripline::Scale(Double_t factor)
     fAbsPos[i].Scale(factor);
   }
   return;
-};
+}
 
 
 void QwBPMStripline::CalculateRunningAverage()
@@ -507,7 +525,7 @@ void QwBPMStripline::CalculateRunningAverage()
   for (i = 0; i < 3; i++) fAbsPos[i].CalculateRunningAverage();
   // No data for z position
   return;
-};
+}
 
 void QwBPMStripline::AccumulateRunningSum(const QwBPMStripline& value)
 {
@@ -517,7 +535,7 @@ void QwBPMStripline::AccumulateRunningSum(const QwBPMStripline& value)
   for (i = 0; i < 3; i++) fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
   // No data for z position
   return;
-};
+}
 
 
 void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -542,7 +560,7 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
   }
   return;
-};
+}
 
 void  QwBPMStripline::FillHistograms()
 {
@@ -562,7 +580,7 @@ void  QwBPMStripline::FillHistograms()
     //No data for z position
   }
   return;
-};
+}
 
 void  QwBPMStripline::DeleteHistograms()
 {
@@ -580,7 +598,7 @@ void  QwBPMStripline::DeleteHistograms()
     }
   }
   return;
-};
+}
 
 
 void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -607,7 +625,7 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
 
   }
   return;
-};
+}
 
 void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -633,7 +651,7 @@ void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix)
 
   }
   return;
-};
+}
 
 void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
@@ -681,7 +699,7 @@ void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix, QwParameterF
 
 
   return;
-};
+}
 
 void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -700,7 +718,7 @@ void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values) const
     }
   }
   return;
-};
+}
 
 void QwBPMStripline::Copy(VQwDataElement *source)
 {
@@ -838,7 +856,7 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
 
   return row_list;
 
-};
+}
 
 /**********************************
  * Mock data generation routines
@@ -852,8 +870,8 @@ void  QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, 
 
   // Rotate the requested position if necessary (this is not tested yet)
   if (bRotated) {
-    Double_t rotated_meanX = (meanX + meanY) / kRotationCorrection;
-    Double_t rotated_meanY = (meanX - meanY) / kRotationCorrection;
+    Double_t rotated_meanX = (meanX*fCosRotation - meanY*fSinRotation);// / fRotationCorrection;
+    Double_t rotated_meanY = (meanX*fSinRotation + meanY*fCosRotation);// / fRotationCorrection;
     meanX = rotated_meanX;
     meanY = rotated_meanY;
   }
@@ -876,7 +894,7 @@ void  QwBPMStripline::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, 
   fWire[1].SetRandomEventParameters(meanXM, sigmaXM);
   fWire[2].SetRandomEventParameters(meanYP, sigmaYP);
   fWire[3].SetRandomEventParameters(meanYM, sigmaYM);
-};
+}
 
 
 void QwBPMStripline::RandomizeEventData(int helicity, double time)
@@ -884,7 +902,7 @@ void QwBPMStripline::RandomizeEventData(int helicity, double time)
   for (Short_t i=0; i<4; i++) fWire[i].RandomizeEventData(helicity, time);
 
   return;
-};
+}
 
 
 void QwBPMStripline::SetEventData(Double_t* relpos, UInt_t sequencenumber)
@@ -895,20 +913,20 @@ void QwBPMStripline::SetEventData(Double_t* relpos, UInt_t sequencenumber)
     }
 
   return;
-};
+}
 
 
 void QwBPMStripline::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   for (Short_t i=0; i<4; i++) fWire[i].EncodeEventData(buffer);
-};
+}
 
 
 void QwBPMStripline::SetDefaultSampleSize(Int_t sample_size)
 {
   for(Short_t i=0;i<4;i++) fWire[i].SetDefaultSampleSize((size_t)sample_size);
   return;
-};
+}
 
 
 void QwBPMStripline::SetSubElementPedestal(Int_t j, Double_t value)

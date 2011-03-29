@@ -57,10 +57,13 @@ class QwRunCondition
 // TFile *file = TFile::Open("Qweak_5150.root")
 // TList *list = (TList*) file->FindObjectAny("5150_condition");
 // if(list)  {
-//    cout << list->Print() << endl;
-//    cout << list->GetEntries() << endl;
-//    cout << list->GetSize() << endl;
-//    cout << list->GetName() << endl;
+//    std::cout << list->Print() << std::endl;
+//    std::cout << list->GetEntries() << std::endl;
+//    std::cout << list->GetSize() << std::endl;
+//    std::cout << list->GetName() << std::endl;
+//    for(Int_t i=0; i < list->GetSize(); i++) {
+//         std::cout << list->At(i)->GetName() << std::endl;
+//    }
 //  }
 
 #endif

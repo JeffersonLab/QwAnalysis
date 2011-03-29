@@ -38,20 +38,20 @@ class MQwF1TDC{
 
   void DecodeTDCWord(UInt_t &word, const UInt_t roc_id);
 
-  const Bool_t IsValidDataword() const;
-  const Bool_t IsHeaderword()        const {return fF1HeaderFlag;};
+  Bool_t IsValidDataword() const;
+  const Bool_t& IsHeaderword()        const {return fF1HeaderFlag;};
  
-  const UInt_t GetTDCSlotNumber()    const {return fF1SlotNumber;};
-  const UInt_t GetTDCChannelNumber() const {return fF1ChannelNumber;};
-  const UInt_t GetTDCChipAddress()   const {return fF1ChipAddress;};
-  const UInt_t GetTDCChannelAddress()const {return fF1ChannelAddress;};
+  const UInt_t& GetTDCSlotNumber()    const {return fF1SlotNumber;};
+  const UInt_t& GetTDCChannelNumber() const {return fF1ChannelNumber;};
+  const UInt_t& GetTDCChipAddress()   const {return fF1ChipAddress;};
+  const UInt_t& GetTDCChannelAddress()const {return fF1ChannelAddress;};
 
-  const UInt_t GetTDCData()          const {return fF1Dataword;};
-  const UInt_t GetTDCMaxChannels()   const {return fF1MaxChannelsPerModule;};
+  const UInt_t& GetTDCData()          const {return fF1Dataword;};
+  const UInt_t& GetTDCMaxChannels()   const {return fF1MaxChannelsPerModule;};
   
  
-  UInt_t GetTDCEventNumber()       {return GetTDCHeaderEventNumber();};
-  UInt_t GetTDCTriggerTime()       {return GetTDCHeaderTriggerTime();};
+  UInt_t GetTDCEventNumber()       const {return GetTDCHeaderEventNumber();};
+  UInt_t GetTDCTriggerTime()       const {return GetTDCHeaderTriggerTime();};
 
 
   void SetTDCMaxChannels(const UInt_t in) {fF1MaxChannelsPerModule = in;};
@@ -70,21 +70,21 @@ class MQwF1TDC{
   
 
 
-  UInt_t GetTDCHeaderEventNumber() {return fF1HeaderEventNumber;};
-  UInt_t GetTDCHeaderTriggerTime() {return fF1HeaderTriggerTime;};
+  UInt_t GetTDCHeaderEventNumber() const {return fF1HeaderEventNumber;};
+  UInt_t GetTDCHeaderTriggerTime() const {return fF1HeaderTriggerTime;};
 
 
-  Bool_t IsValidDataSlot()         {return fF1ValidDataSlotFlag;};
+  Bool_t IsValidDataSlot()         const {return fF1ValidDataSlotFlag;};
  
-  Bool_t IsHeaderXorSetup()        {return fF1HeaderXorSetupFlag;};
-  Bool_t IsNotHeaderTrigFIFO()     {return !fF1HeaderTrigFIFOFlag;};
-  Bool_t IsOverFlowEntry()         {return fF1OverFlowEntryFlag;};
+  Bool_t IsHeaderXorSetup()        const {return fF1HeaderXorSetupFlag;};
+  Bool_t IsNotHeaderTrigFIFO()     const {return !fF1HeaderTrigFIFOFlag;};
+  Bool_t IsOverFlowEntry()         const {return fF1OverFlowEntryFlag;};
 
-  Bool_t IsHitFIFOOverFlow()       {return fF1HitFIFOFlag;};
-  Bool_t IsOutputFIFOOverFlow()    {return fF1OutputFIFOFlag;};
-  Bool_t IsResolutionLock()        {return fF1ResolutionLockFlag;};
+  Bool_t IsHitFIFOOverFlow()       const {return fF1HitFIFOFlag;};
+  Bool_t IsOutputFIFOOverFlow()    const {return fF1OutputFIFOFlag;};
+  Bool_t IsResolutionLock()        const {return fF1ResolutionLockFlag;};
 
-  Bool_t IsFakeData()              {return fF1FakeDataFlag;};
+  Bool_t IsFakeData()              const {return fF1FakeDataFlag;};
 
  private:
 

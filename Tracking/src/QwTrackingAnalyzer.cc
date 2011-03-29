@@ -4,7 +4,6 @@
 
 // Qweak Tracking headers
 #include "QwTypes.h"
-#include "Det.h"
 #include "QwTrackingTreeRegion.h"
 
 // Qweak tracking worker

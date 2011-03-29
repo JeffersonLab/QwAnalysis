@@ -2,11 +2,11 @@
 // Author:   David Armstrong
 // email :   armd@jlab.org
 // Date:     Fri July 16 19:41:04 EDT 2010
-// Version:  0.2
+// Version:  0.3
 //
 
 //  Utility macros for looking at rootfiles from Tracking analysis for VDC information
-//    - all of these are "hi-based", not "event-based"
+//    - all of these are "hit-based", not "event-based"
 //    - written rather primitively, with lots of hard-coded specifics, for simplicity
 //     (yes, I know, there are more elegant ways of doing much of this)
 //
@@ -17,7 +17,7 @@
 //         root [4] plot_hitnumber()
 //         root [5] plot_all()        
   
-
+//   updated Oct 29 2010: changed "tree" to "event_tree" and also, need to us qwroot, not just root tio run this now
 void plot_planes(){
 
 gROOT->Reset();
@@ -31,10 +31,10 @@ gROOT->Reset();
   h_wires_hit_2= new TH1F("h_wires_hit_2", "Vader wire hits  U-Plane ", 280, 0.5, 280.5);
   h_wires_hit_3= new TH1F("h_wires_hit_3", "Leia wire hits  V-Plane ", 280, 0.5, 280.5);
   h_wires_hit_4= new TH1F("h_wires_hit_4", "Leia wire hits U-Plane ", 280, 0.5, 280.5);
-  tree->Draw("fElement>>h_wires_hit_1","fRegion==3&&fPackage==1&&fPlane==1","Q");
-  tree->Draw("fElement>>h_wires_hit_2","fRegion==3&&fPackage==1&&fPlane==2","Q");
-  tree->Draw("fElement>>h_wires_hit_3","fRegion==3&&fPackage==1&&fPlane==3","Q");
-  tree->Draw("fElement>>h_wires_hit_4","fRegion==3&&fPackage==1&&fPlane==4","Q");
+  event_tree->Draw("fElement>>h_wires_hit_1","fRegion==3&&fPackage==1&&fPlane==1","Q");
+  event_tree->Draw("fElement>>h_wires_hit_2","fRegion==3&&fPackage==1&&fPlane==2","Q");
+  event_tree->Draw("fElement>>h_wires_hit_3","fRegion==3&&fPackage==1&&fPlane==3","Q");
+  event_tree->Draw("fElement>>h_wires_hit_4","fRegion==3&&fPackage==1&&fPlane==4","Q");
   h_wires_hit_1 -> SetLineColor(2);
   h_wires_hit_1 -> GetXaxis()-> SetTitle("Wire #    Plane 1");
   h_wires_hit_2 -> SetLineColor(2);
@@ -69,10 +69,10 @@ gROOT->Reset();
   h_wires_hit_6= new TH1F("h_wires_hit_6", "Yoda wire hits  U-Plane ", 280, 0.5, 280.5);
   h_wires_hit_7= new TH1F("h_wires_hit_7", "Han wire hits  V-Plane ", 280, 0.5, 280.5);
   h_wires_hit_8= new TH1F("h_wires_hit_8", "Han wire hits U-Plane ", 280, 0.5, 280.5);
-  tree->Draw("fElement>>h_wires_hit_5","fRegion==3&&fPackage==2&&fPlane==1","Q");
-  tree->Draw("fElement>>h_wires_hit_6","fRegion==3&&fPackage==2&&fPlane==2","Q");
-  tree->Draw("fElement>>h_wires_hit_7","fRegion==3&&fPackage==2&&fPlane==3","Q");
-  tree->Draw("fElement>>h_wires_hit_8","fRegion==3&&fPackage==2&&fPlane==4","Q");
+  event_tree->Draw("fElement>>h_wires_hit_5","fRegion==3&&fPackage==2&&fPlane==1","Q");
+  event_tree->Draw("fElement>>h_wires_hit_6","fRegion==3&&fPackage==2&&fPlane==2","Q");
+  event_tree->Draw("fElement>>h_wires_hit_7","fRegion==3&&fPackage==2&&fPlane==3","Q");
+  event_tree->Draw("fElement>>h_wires_hit_8","fRegion==3&&fPackage==2&&fPlane==4","Q");
   h_wires_hit_5 -> SetLineColor(3);
   h_wires_hit_5 -> GetXaxis()-> SetTitle("Wire #    Plane 1");
   h_wires_hit_6 -> SetLineColor(3);
@@ -106,10 +106,10 @@ gROOT->Reset();
   h_wires_amb_2= new TH1F("h_wires_amb_2", "Vader ambiguous hits  U-Plane", 280, 0.5, 280.5);
   h_wires_amb_3= new TH1F("h_wires_amb_3", "Leia ambiguous hits  V-Plane", 280, 0.5, 280.5);
   h_wires_amb_4= new TH1F("h_wires_amb_4", "Leia ambiguous hits  U-Plane", 280, 0.5, 280.5);
-  tree->Draw("fElement>>h_wires_amb_1","fRegion==3&&fPackage==1&&fPlane==1&&fAmbiguousElement==1","Q");
-  tree->Draw("fElement>>h_wires_amb_2","fRegion==3&&fPackage==1&&fPlane==2&&fAmbiguousElement==1","Q");
-  tree->Draw("fElement>>h_wires_amb_3","fRegion==3&&fPackage==1&&fPlane==3&&fAmbiguousElement==1","Q");
-  tree->Draw("fElement>>h_wires_amb_4","fRegion==3&&fPackage==1&&fPlane==4&&fAmbiguousElement==1","Q");
+  event_tree->Draw("fElement>>h_wires_amb_1","fRegion==3&&fPackage==1&&fPlane==1&&fAmbiguousElement==1","Q");
+  event_tree->Draw("fElement>>h_wires_amb_2","fRegion==3&&fPackage==1&&fPlane==2&&fAmbiguousElement==1","Q");
+  event_tree->Draw("fElement>>h_wires_amb_3","fRegion==3&&fPackage==1&&fPlane==3&&fAmbiguousElement==1","Q");
+  event_tree->Draw("fElement>>h_wires_amb_4","fRegion==3&&fPackage==1&&fPlane==4&&fAmbiguousElement==1","Q");
   h_wires_amb_1 -> SetLineColor(3);
   h_wires_amb_1 -> GetXaxis()-> SetTitle("Wire #    Plane 1");
   h_wires_amb_2 -> SetLineColor(3);
@@ -143,10 +143,10 @@ gROOT->Reset();
   h_wires_amb_6= new TH1F("h_wires_amb_6", "Yoda ambiguous hits  U-Plane", 280, 0.5, 280.5);
   h_wires_amb_7= new TH1F("h_wires_amb_7", "Han ambiguous hits  V-Plane", 280, 0.5, 280.5);
   h_wires_amb_8= new TH1F("h_wires_amb_8", "Han ambiguous hits  U-Plane", 280, 0.5, 280.5);
-  tree->Draw("fElement>>h_wires_amb_5","fRegion==3&&fPackage==2&&fPlane==1&&fAmbiguousElement==1","Q");
-  tree->Draw("fElement>>h_wires_amb_6","fRegion==3&&fPackage==2&&fPlane==2&&fAmbiguousElement==1","Q");
-  tree->Draw("fElement>>h_wires_amb_7","fRegion==3&&fPackage==2&&fPlane==3&&fAmbiguousElement==1","Q");
-  tree->Draw("fElement>>h_wires_amb_8","fRegion==3&&fPackage==2&&fPlane==4&&fAmbiguousElement==1","Q");
+  event_tree->Draw("fElement>>h_wires_amb_5","fRegion==3&&fPackage==2&&fPlane==1&&fAmbiguousElement==1","Q");
+  event_tree->Draw("fElement>>h_wires_amb_6","fRegion==3&&fPackage==2&&fPlane==2&&fAmbiguousElement==1","Q");
+  event_tree->Draw("fElement>>h_wires_amb_7","fRegion==3&&fPackage==2&&fPlane==3&&fAmbiguousElement==1","Q");
+  event_tree->Draw("fElement>>h_wires_amb_8","fRegion==3&&fPackage==2&&fPlane==4&&fAmbiguousElement==1","Q");
   h_wires_amb_5 -> SetLineColor(3);
   h_wires_amb_5 -> GetXaxis()-> SetTitle("Wire #    Plane 1");
   h_wires_amb_6 -> SetLineColor(3);
@@ -175,8 +175,8 @@ gROOT->Reset();
  TH1F* h_planes_hit_2=NULL;
  h_planes_hit_1= new TH1F("h_planes_hit_1", "VDC Planes Hit  Package 1", 6, 0, 6);
  h_planes_hit_2= new TH1F("h_planes_hit_2", "VDC Planes Hit  Package 2", 6, 0, 6);
- tree->Draw("fPlane>>h_planes_hit_1","fRegion==3&&fPackage==1","Q");
- tree->Draw("fPlane>>h_planes_hit_2","fRegion==3&&fPackage==2","Q");
+ event_tree->Draw("fPlane>>h_planes_hit_1","fRegion==3&&fPackage==1","Q");
+ event_tree->Draw("fPlane>>h_planes_hit_2","fRegion==3&&fPackage==2","Q");
  h_planes_hit_1 -> SetLineColor(7);
  h_planes_hit_1 -> SetFillColor(7);
  h_planes_hit_1 -> GetXaxis()-> SetTitle("Plane");
@@ -199,8 +199,8 @@ gROOT->Reset();
  TH1F* h_planes_am_hit_2=NULL;
  h_planes_am_hit_1= new TH1F("h_planes_am_hit_1", "VDC Planes Ambiguous Hits  Package 1", 6, 0, 6);
  h_planes_am_hit_2= new TH1F("h_planes_am_hit_2", "VDC Planes Ambiguous Hits  Package 2", 6, 0, 6);
- tree->Draw("fPlane>>h_planes_am_hit_1","fRegion==3&&fPackage==1&&fAmbiguousElement==1","Q");
- tree->Draw("fPlane>>h_planes_am_hit_2","fRegion==3&&fPackage==2&&fAmbiguousElement==1","Q");
+ event_tree->Draw("fPlane>>h_planes_am_hit_1","fRegion==3&&fPackage==1&&fAmbiguousElement==1","Q");
+ event_tree->Draw("fPlane>>h_planes_am_hit_2","fRegion==3&&fPackage==2&&fAmbiguousElement==1","Q");
  h_planes_am_hit_1 -> SetLineColor(7);
  h_planes_am_hit_1 -> SetFillColor(7);
  h_planes_am_hit_1 -> GetXaxis()-> SetTitle("Plane");
@@ -234,10 +234,10 @@ void plot_delaylines(){
   h_delay_line_2= new TH1F("h_delay_line_2", "MUX crate 2 (Leia) delay lines", 33,  0, 66);
   h_delay_line_3= new TH1F("h_delay_line_3", "MUX crate 3 (Yoda) delay lines", 33, 0, 66);
   h_delay_line_4= new TH1F("h_delay_line_4", "MUX crate 4 (Han) delay lines", 33, 0, 66);
-  tree->Draw("fChannel>>h_delay_line_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  tree->Draw("fChannel>>h_delay_line_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  tree->Draw("fChannel>>h_delay_line_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  tree->Draw("fChannel>>h_delay_line_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fChannel>>h_delay_line_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fChannel>>h_delay_line_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fChannel>>h_delay_line_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fChannel>>h_delay_line_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
   h_delay_line_1 -> SetLineColor(2);
   h_delay_line_1 -> SetFillColor(2);
   h_delay_line_1 -> GetXaxis()-> SetTitle("TDC Channel");
@@ -293,14 +293,14 @@ void plot_times(){
   h_time_7= new TH1F("h_time_7", "Yoda Drift Time", 250, -300, 1300);
   h_time_8= new TH1F("h_time_8", "Han Drift Time", 250, -300, 1300);
 
-  tree->Draw("fTime>>h_time_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  tree->Draw("fTime>>h_time_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  tree->Draw("fTime>>h_time_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  tree->Draw("fTime>>h_time_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
-  tree->Draw("fTime>>h_time_5","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  tree->Draw("fTime>>h_time_6","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  tree->Draw("fTime>>h_time_7","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  tree->Draw("fTime>>h_time_8","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fTime>>h_time_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fTime>>h_time_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fTime>>h_time_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fTime>>h_time_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fTime>>h_time_5","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fTime>>h_time_6","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fTime>>h_time_7","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fTime>>h_time_8","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
   h_time_1 -> SetLineColor(2);
   h_time_1 -> GetXaxis()-> SetTitle("Drift Time   (ns)  Vader");
   h_time_2 -> SetLineColor(4);
@@ -359,10 +359,10 @@ void plot_hitnumber(){
   h_nhits_2= new TH1F("h_nhits_2", "Hit Multiplicity (Leia) ", 12,  0, 12);
   h_nhits_3= new TH1F("h_nhits_3", "Hit Multiplicity (Yoda) ", 12, 0, 12);
   h_nhits_4= new TH1F("h_nhits_4", "Hit Multiplicity (Han) ", 12, 0, 12);
-  tree->Draw("fHitNumber>>h_nhits_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
-  tree->Draw("fHitNumber>>h_nhits_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
-  tree->Draw("fHitNumber>>h_nhits_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
-  tree->Draw("fHitNumber>>h_nhits_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fHitNumber>>h_nhits_1","fRegion==3&&fPackage==1&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fHitNumber>>h_nhits_2","fRegion==3&&fPackage==1&&(fPlane==3||fPlane==4)","Q");
+  event_tree->Draw("fHitNumber>>h_nhits_3","fRegion==3&&fPackage==2&&(fPlane==1||fPlane==2)","Q");
+  event_tree->Draw("fHitNumber>>h_nhits_4","fRegion==3&&fPackage==2&&(fPlane==3||fPlane==4)","Q");
   h_nhits_1 -> SetLineColor(2);
   h_nhits_1 -> SetFillColor(2);
   h_nhits_1 -> GetXaxis()-> SetTitle("Number of Hits");

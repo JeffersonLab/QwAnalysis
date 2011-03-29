@@ -103,13 +103,11 @@ qwk_targetXAngle_hw 		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_targetYAngle_block		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 qwk_targetYAngle_hw		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 
-
-
 yield_empty._block.             TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_empty._.w                 TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_phasemonitor_block.       TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
-yield_phasemonitor_.w 
-yield_qwk_.....			TH1F	1000	-5.0e9	5.0e9				Counts	Events          TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_phasemonitor_.w 		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_.....			TH1F	1000	-5.0e9	5.0e9				Counts	Events          
 yield_qwk_....._block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_....._block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_....._.w_raw  	TH1F	1000	-5.0e9	5.0e9			        Counts	Events
@@ -122,7 +120,7 @@ yield_qwk_...Rel._.w		TH1F	2000	-5.0e1	5.0e1				mm	Events
 yield_qwk_......_block._raw	TH1F	1000	-5.0e9	5.0e9				Counts	Events
 yield_qwk_......_block.    	TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_......_.w_raw	        TH1F	1000	-5.0e9	5.0e9		        	Counts	Events
-yield_qwk_......_.w		TH1F	1000	-5.0e9	5.0e9				CalibratedCounts Events
+yield_qwk_......_.w		TH1F	10000	-5.0e9	5.0e9				CalibratedCounts Events
 yield_qwk_......_sw-hw_raw	TH1F	1000	-5.0e2	5.0e2				CalibratedCounts Events
 yield_qwk_....Rel._block._raw	TH1F	1000	-5.0e1	5.0e1				mm	Events
 yield_qwk_....Rel._block.  	TH1F	2000	-5.0e1	5.0e1				mm	Events
@@ -347,18 +345,18 @@ yield......_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
 yield......_.w_volt		TH1F	2000	-0.05	0.01				Voltage	Events
 yield......_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
 yield......_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
-yieldMD.Neg_block._raw	TH1F	1000	-2.0e8	0.5e8				Counts	Events
-yieldMD.Neg_block._volt	TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Neg_block._raw		TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yieldMD.Neg_block._volt		TH1F	2000	-0.05	0.01				Voltage	Events
 yieldMD.Neg_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
 yieldMD.Neg_.w_volt		TH1F	2000	-0.05	0.01				Voltage	Events
 yieldMD.Neg_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
-yieldMD.Neg_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
-yieldMD.Pos_block._raw	TH1F	1000	-2.0e8	0.5e8				Counts	Events
-yieldMD.Pos_block._volt	TH1F	2000	-0.05	0.01				Voltage	Events
+yieldMD.Neg_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+yieldMD.Pos_block._raw		TH1F	1000	-2.0e8	0.5e8				Counts	Events
+yieldMD.Pos_block._volt		TH1F	2000	-0.05	0.01				Voltage	Events
 yieldMD.Pos_.w_raw		TH1F	1000	-3.0e8	0.5e8				Counts	Events
 yieldMD.Pos_.w_volt		TH1F	2000	-1.25	-1.05				Voltage	Events
 yieldMD.Pos_seqnum		TH1F	301	-0.5	300.5				SequenceNumber	Events
-yieldMD.Pos_numsamples	TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
+yieldMD.Pos_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
 ### Quartet asym histograms
 asym......_block._raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
 asym......_block._volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
@@ -367,17 +365,17 @@ asym......_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asym......_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
 asym......_numsamples		TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
 asymMD.Neg_block._raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
-asymMD.Neg_block._volt	TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
+asymMD.Neg_block._volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymMD.Neg_.w_raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
 asymMD.Neg_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymMD.Neg_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
 asymMD.Neg_numsamples		TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
-asymMD.Pos_block._raw	TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
-asymMD.Pos_block._volt	TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
+asymMD.Pos_block._raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
+asymMD.Pos_block._volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymMD.Pos_.w_raw		TH1F	1001	-1.001e-3	1.001e-3		Asym(raw)	Events
 asymMD.Pos_.w_volt		TH1F	1001	-5.005e-9	5.005e-9		Asym(volts)	Events
 asymMD.Pos_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
-asymMD.Pos_numsamples	TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
+asymMD.Pos_numsamples		TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
 ###
 ###  
 ###  Single Ended adc histograms 
@@ -393,11 +391,11 @@ SE......_numsamples		TH1F	1001	-2.5	5002.5				NumberOfSamples	Events
 SETermDn_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
 SESpareE_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
 SEAmpCh2_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SEAmpCh1_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SESpareB_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SESpareA_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SETermUp_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
-  SEBattDn_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SEAmpCh1_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SESpareB_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SESpareA_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SETermUp_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
+SEBattDn_sw-hw_raw		TH1F	1001	-2.5	5002.5				CountsEvents
 
 
 MD.Neg_block._raw		TH1F	1000	-5.0e7	5.0e7				Counts	Events
@@ -452,6 +450,84 @@ asymMD.Pos_seqnum		TH1F	301	-0.5		300.5			SequenceNumber	Events
 asymMD.Pos_numsamples	TH1F	1001	-2.5		5002.5			NumberOfSamples	Events
 
 
+###  New MD yield histograms (the above MD setings are all junk!)
+
+qwk_md...._hw			TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md...._hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_md...._block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md...._block._raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_md......._hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md......._hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_md......._block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md......._block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_md._qwk_md._hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md._qwk_md._hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_md._qwk_md._block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_md._qwk_md._block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_mdallbars_hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdallbars_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_mdallbars_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdallbars_block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_mdevenbars_hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdevenbars_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_mdevenbars_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdevenbars_block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_mdoddbars_hw		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdoddbars_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_mdoddbars_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_mdoddbars_block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+qwk_......_hw			TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_......_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+qwk_......_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_......_block._raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+
+asym_qwk_md...._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_md...._block.		TH1F	1000	-0.01	0.01				Asymmetry	Events
+
+asym_qwk_md......._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_md......._block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+
+asym_qwk_md._qwk_md._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_md._qwk_md._block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+
+asym_qwk_mdallbars_hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_mdallbars_block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+
+asym_qwk_mdevenbars_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
+asym_qwk_mdevenbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
+											                      
+asym_qwk_mdoddbars_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
+asym_qwk_mdoddbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
+
+asym_qwk_......_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
+asym_qwk_......_block.		TH1F	1000	-0.01	0.01				Asymmetry       Events
+
+
+### New beam-line histograms
+
+yield_qwk_charge_hw		TH1F	1000	0.0	200				Yield Events
+diff_qwk_bpm3h09X_hw		TH1F	5000	-5	5				Difference Events
+diff_qwk_bpm3h09Y_hw		TH1F	5000	-5	5    				Difference Events
+
+
+###  New Lumi histograms 
+
+qwk_dslumi._hw			TH1F	10000	0.01	0.03				V/#muA	Events
+qwk_dslumi._hw_raw		TH1F	10000	0		3.1e7				Samples	Events
+qwk_uslumi...._hw		TH1F	10000	0.00	0.05				V/#muA	Events
+qwk_uslumi...._hw_raw	TH1F	10000	0		3.0e7				Samples Events
+
+asym_qwk_dslumi._hw		TH1F	10000	-0.2	0.2				Asymmetry	Events
+asym_qwk_uslumi...._hw	TH1F	10000	-0.2	0.2				Asymmetry	Events
+
+
+
 ###  Scanner histograms
 
 scanner_vqwk_power              TH1F    4096    0.5             4096.5                  front_adc       Events
@@ -491,22 +567,22 @@ scanner_rate_map 		TH2F 	220 	-55.0 	55.0 	400	-350.0	-310.0	X[cm] 	Y[cm]
 
 ###  Compton Electron histograms
 
-Compton_eDet_Accum_Raw_Plane0	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Accum_Plane0	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Evt_Raw_Plane0	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Evt_Plane0		TH1F	96	0	95	Strips	Hits
-Compton_eDet_Accum_Raw_Plane1	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Accum_Plane1	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Evt_Raw_Plane1	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Evt_Plane1		TH1F	96	0	95	Strips	Hits
-Compton_eDet_Accum_Raw_Plane2	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Accum_Plane2	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Evt_Raw_Plane2	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Evt_Plane2		TH1F	96	0	95	Strips	Hits
-Compton_eDet_Accum_Raw_Plane3	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Accum_Plane3	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Evt_Raw_Plane3	TH1F	96	0	95	Strips	Hits
-Compton_eDet_Evt_Plane3		TH1F	96	0	95	Strips	Hits
+Compton_eDet_Accum_Raw_Plane0	TH1F	96    -0.5	95.5	Strips	Hits
+Compton_eDet_Accum_Plane0	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Evt_Raw_Plane0	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Evt_Plane0		TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Accum_Raw_Plane1	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Accum_Plane1	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Evt_Raw_Plane1	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Evt_Plane1		TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Accum_Raw_Plane2	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Accum_Plane2	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Evt_Raw_Plane2	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Evt_Plane2		TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Accum_Raw_Plane3	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Accum_Plane3	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Evt_Raw_Plane3	TH1F	96    -0.5  	95.5	Strips	Hits
+Compton_eDet_Evt_Plane3		TH1F	96    -0.5  	95.5	Strips	Hits
 
 ### Halo monitor histograms
 sca_halo3			TH1F
@@ -537,14 +613,14 @@ asym_sca_halo9			TH1F
 asym_sca_halo10			TH1F
 
 ### downstream lumi scaler histograms
-sca_dslumi1			TH1F
-sca_dslumi2			TH1F
-sca_dslumi3			TH1F
-sca_dslumi4			TH1F
-sca_dslumi5			TH1F
-sca_dslumi6			TH1F
-sca_dslumi7			TH1F
-sca_dslumi8			TH1F
+sca_dslumi1			TH1F	100	0	1e6	Rate	Events
+sca_dslumi2			TH1F	100	0	1e6	Rate	Events
+sca_dslumi3			TH1F	100	0	1e6	Rate	Events
+sca_dslumi4			TH1F	100	0	1e6	Rate	Events
+sca_dslumi5			TH1F	100	0	1e6	Rate	Events
+sca_dslumi6			TH1F	100	0	1e6	Rate	Events
+sca_dslumi7			TH1F	100	0	1e6	Rate	Events
+sca_dslumi8			TH1F	100	0	1e6	Rate	Events
 
 yield_sca_dslumi1		TH1F
 yield_sca_dslumi2		TH1F
@@ -598,11 +674,11 @@ asym_sca_uslumi7pos		TH1F
 ###########################################
 qwk_.*			TH1F	1000	-5.0e2	5.0e2		Counts Events
 yield_qwk_.*		TH1F	1000	-5.0e2	5.0e2		Counts Events
-asym_qwk_.*		TH1F	1000	-5.0e2	5.0e2		Counts Events
+asym.*_qwk_.*		TH1F	1000	-5.0e2	5.0e2		Counts Events
 
 sca_.*			TH1F	1001	-1.0e1	1000.0e1	Counts Events
 yield_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
-asym_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
+asym.*_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
 
 ###########################################
 #  Adding some fully wildcarded histogram names.

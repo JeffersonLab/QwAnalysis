@@ -21,12 +21,11 @@
 
 // Qweak headers
 #include "QwLog.h"
-#include "QwHistogramHelper.h"
+#include "QwParameterFile.h"
 
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwComptonPhotonDetector>
-  theComptonPhotonDetectorFactory("QwComptonPhotonDetector");
+RegisterSubsystemFactory(QwComptonPhotonDetector);
 
 
 /**
@@ -38,7 +37,7 @@ QwSubsystemFactory<QwComptonPhotonDetector>
 void QwComptonPhotonDetector::ProcessOptions(QwOptions &options)
 {
   // Handle command line options
-};
+}
 
 Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 {
@@ -48,6 +47,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
+  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment();      // Remove everything after a comment character
     mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace
@@ -162,7 +162,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fMultiTDC_Channel.at(index).SetSubbankID(current_bank_id);
         }
 
-      } else if (modtype == "SIS3801D24") {
+      } else if (modtype == "SIS3801D24" || modtype == "SIS3801D32") {
         // Register data channel type
         fMapping[subbank] = kScaler;
         // Add to mapping
@@ -172,7 +172,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fScaler_Mapping[subbank].at(modnum).resize(channum+1,-1);
         // Add scaler channel
         if (fScaler_Mapping[subbank].at(modnum).at(channum) < 0) {
-          QwMessage << "Registering SIS3801D24 " << name
+          QwMessage << "Registering " << modtype << " " << name
                     << std::hex
                     << " in ROC 0x" << current_roc_id << ", bank 0x" << current_bank_id
                     << std::dec
@@ -180,7 +180,11 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
                     << QwLog::endl;
           UInt_t index = fScaler.size();
           fScaler_Mapping[subbank].at(modnum).at(channum) = index;
-          fScaler.push_back(QwSIS3801D24_Channel(name));
+          if (modtype == "SIS3801D24")
+            fScaler.push_back(new QwSIS3801D24_Channel(name));
+          else if (modtype == "SIS3801D32")
+            fScaler.push_back(new QwSIS3801D32_Channel(name));
+
         }
 
       } // end of switch by modtype
@@ -189,7 +193,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
   } // end of while over parameter file
 
   return 0;
-};
+}
 
 /**
  * Load the event cuts
@@ -199,7 +203,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 Int_t QwComptonPhotonDetector::LoadEventCuts(TString & filename)
 {
   return 0;
-};
+}
 
 /**
  * Load the input parameters
@@ -208,16 +212,17 @@ Int_t QwComptonPhotonDetector::LoadEventCuts(TString & filename)
  */
 Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
 {
-  TString varname;
-  Double_t varped;
-  Double_t varcal;
-  Bool_t notfound = kTRUE;
-
   // Open the file
   QwParameterFile mapstr(pedestalfile.Data());
+  Bool_t found = kFALSE;
   while (mapstr.ReadNextLine()) {
-    mapstr.TrimComment('!');   // Remove everything after a '!' character.
-    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    mapstr.TrimComment();    // Remove everything after a comment character
+    mapstr.TrimWhitespace(); // Get rid of leading and trailing spaces
+
+    TString varname = "";
+    Double_t varped = 0.0;
+    Double_t varcal = 1.0;
+
     if (mapstr.LineIsEmpty())  continue;
     else {
       varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
@@ -227,16 +232,26 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
       varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
     }
 
-    for (size_t i = 0; i < fSamplingADC.size() && notfound; i++) {
+    for (size_t i = 0; i < fSamplingADC.size() && !found; i++) {
       TString localname = fSamplingADC[i].GetElementName();
       localname.ToLower();
       if (localname == varname) {
         fSamplingADC[i].SetPedestal(varped);
         fSamplingADC[i].SetCalibrationFactor(varcal);
-        notfound = kFALSE;
+        found = kTRUE;
       }
-
     } // end of loop over all sampling ADC channels
+
+
+    for (size_t i = 0; i < fScaler.size() && !found; i++) {
+      TString localname = fScaler[i]->GetElementName();
+      localname.ToLower();
+      if (localname == varname) {
+        fScaler[i]->SetPedestal(varped);
+        fScaler[i]->SetCalibrationFactor(varcal);
+        found = kTRUE;
+      }
+    } // end of loop over all scaler channels
 
   } // end of loop reading all lines of the pedestal file
 
@@ -341,7 +356,7 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
       case kScaler:
       {
         // Read header word
-        UInt_t num_events = buffer[words_read];
+        //UInt_t num_events = buffer[words_read];
         words_read++;
         // TODO Multiscaler functionality
 
@@ -350,7 +365,7 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
           for (size_t channum = 0; channum < fScaler_Mapping[subbank].at(modnum).size(); channum++) {
             Int_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
             if (index >= 0) {
-              words_read += fScaler[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
+              words_read += fScaler[index]->ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
             }
           }
         }
@@ -438,7 +453,7 @@ Int_t QwComptonPhotonDetector::ProcessEvBuffer(const UInt_t roc_id, const UInt_t
   }
 
   return words_read;
-};
+}
 
 
 /**
@@ -449,7 +464,7 @@ Bool_t QwComptonPhotonDetector::SingleEventCuts()
 {
   QwDebug << "QwComptonPhotonDetector::SingleEventCuts()" << QwLog::endl;
   return IsGoodEvent();
-};
+}
 
 
 /**
@@ -463,7 +478,7 @@ void  QwComptonPhotonDetector::ProcessEvent()
     fMultiTDC_Channel[i].ProcessEvent();
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].ProcessEvent();
-};
+}
 
 
 /**
@@ -477,7 +492,7 @@ void  QwComptonPhotonDetector::ProcessEvent()
 Int_t QwComptonPhotonDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   return 0;
-};
+}
 
 
 /**
@@ -517,8 +532,10 @@ void QwComptonPhotonDetector::ClearEventData()
 
   // Clear all scaler channels
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].ClearEventData();
-};
+    fScaler[i]->ClearEventData();
+
+  fGoodEventCount = 0;
+}
 
 /**
  * Assignment operator
@@ -548,11 +565,11 @@ VQwSubsystem&  QwComptonPhotonDetector::operator=  (VQwSubsystem *value)
   if (CompareScaler(value)) {
     QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(value);
     for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i] = input->fScaler[i];
+      *(this->fScaler[i]) = *(input->fScaler[i]);
   }
 
   return *this;
-};
+}
 
 /**
  * Addition-assignment operator
@@ -570,10 +587,10 @@ VQwSubsystem&  QwComptonPhotonDetector::operator+=  (VQwSubsystem *value)
     for (size_t i = 0; i < input->fMultiQDC_Channel.size(); i++)
       this->fMultiQDC_Channel[i] += input->fMultiQDC_Channel[i];
     for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i] += input->fScaler[i];
+      *(this->fScaler[i]) += *(input->fScaler[i]);
   }
   return *this;
-};
+}
 
 /**
  * Subtraction-assignment operator
@@ -591,10 +608,10 @@ VQwSubsystem&  QwComptonPhotonDetector::operator-=  (VQwSubsystem *value)
     for (size_t i = 0; i < input->fMultiQDC_Channel.size(); i++)
       this->fMultiQDC_Channel[i] -= input->fMultiQDC_Channel[i];
     for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i] -= input->fScaler[i];
+      *(this->fScaler[i]) -= *(input->fScaler[i]);
   }
   return *this;
-};
+}
 
 /**
  * Summation
@@ -607,7 +624,7 @@ void  QwComptonPhotonDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
     *this  = value1;
     *this += value2;
   }
-};
+}
 
 /**
  * Difference
@@ -620,7 +637,7 @@ void  QwComptonPhotonDetector::Difference(VQwSubsystem  *value1, VQwSubsystem  *
     *this  = value1;
     *this -= value2;
   }
-};
+}
 
 /**
  * Determine the ratio of two photon detectors
@@ -639,9 +656,9 @@ void QwComptonPhotonDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
     for (size_t i = 0; i < innumer->fMultiQDC_Channel.size(); i++)
       this->fMultiQDC_Channel[i].Ratio(innumer->fMultiQDC_Channel[i], indenom->fMultiQDC_Channel[i]);
     for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i].Ratio(innumer->fScaler[i],indenom->fScaler[i]);
+      this->fScaler[i]->Ratio(*(innumer->fScaler[i]),*(indenom->fScaler[i]));
   }
-};
+}
 
 /**
  * Scale the photon detector
@@ -656,8 +673,31 @@ void QwComptonPhotonDetector::Scale(Double_t factor)
   //for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
   //  fMultiQDC_Channel[i].Scale(factor);
   for (size_t i = 0; i < fScaler.size(); i++)
-    this->fScaler[i].Scale(factor);
-};
+    this->fScaler[i]->Scale(factor);
+}
+
+/**
+ * Accumulate the running sum
+ */
+void QwComptonPhotonDetector::AccumulateRunningSum(VQwSubsystem* value)
+{
+  if (Compare(value)) {
+    fGoodEventCount++;
+    *this  += value;
+  }
+}
+
+/**
+ * Normalize the running sum
+ */
+void QwComptonPhotonDetector::CalculateRunningAverage()
+{
+  if (fGoodEventCount <= 0) {
+    Scale(0);
+  } else {
+    Scale(1.0/fGoodEventCount);
+  }
+}
 
 /**
  * Compare two QwComptonPhotonDetector objects
@@ -802,8 +842,8 @@ void  QwComptonPhotonDetector::ConstructHistograms(TDirectory *folder, TString &
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].ConstructHistograms(folder,prefix);
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].ConstructHistograms(folder,prefix);
-};
+    fScaler[i]->ConstructHistograms(folder,prefix);
+}
 
 /**
  * Fill the histograms with data
@@ -817,8 +857,8 @@ void  QwComptonPhotonDetector::FillHistograms()
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].FillHistograms();
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].FillHistograms();
-};
+    fScaler[i]->FillHistograms();
+}
 
 /**
  * Delete the histograms
@@ -832,8 +872,8 @@ void  QwComptonPhotonDetector::DeleteHistograms()
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].DeleteHistograms();
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].DeleteHistograms();
-};
+    fScaler[i]->DeleteHistograms();
+}
 
 /**
  * Construct the tree
@@ -845,7 +885,7 @@ void  QwComptonPhotonDetector::ConstructTree(TDirectory *folder, TString &prefix
   folder->cd();
   fTree = new TTree("ComptonPhoton", "Compton Photon Detector");
   fTree->Branch("nevents",&fTree_fNEvents,"nevents/I");
-};
+}
 
 /**
  * Delete the tree
@@ -853,7 +893,7 @@ void  QwComptonPhotonDetector::ConstructTree(TDirectory *folder, TString &prefix
 void  QwComptonPhotonDetector::DeleteTree()
 {
   delete fTree;
-};
+}
 
 /**
  * Fill the tree with data
@@ -864,7 +904,7 @@ void  QwComptonPhotonDetector::FillTree()
     fTree_fNEvents = fSamplingADC[i].GetNumberOfEvents();
     fTree->Fill();
   }
-};
+}
 
 /**
  * Construct the tree
@@ -881,8 +921,8 @@ void QwComptonPhotonDetector::ConstructBranchAndVector(TTree *tree, TString & pr
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].ConstructBranchAndVector(tree, prefix, values);
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].ConstructBranchAndVector(tree, prefix, values);
-};
+    fScaler[i]->ConstructBranchAndVector(tree, prefix, values);
+}
 
 /**
  * Fill the tree with data
@@ -897,8 +937,8 @@ void QwComptonPhotonDetector::FillTreeVector(std::vector<Double_t> &values) cons
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].FillTreeVector(values);
   for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].FillTreeVector(values);
-};
+    fScaler[i]->FillTreeVector(values);
+}
 
 /**
  * Print the value for the subcomponents
@@ -911,6 +951,8 @@ void  QwComptonPhotonDetector::PrintValue() const
     fMultiTDC_Channel[i].PrintValue();
   for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
     fMultiQDC_Channel[i].PrintValue();
+  for (size_t i = 0; i < fScaler.size(); i++)
+    fScaler[i]->PrintValue();
 }
 
 /**
@@ -962,8 +1004,15 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
       //  this->fMultiQDC_Channel[i].Copy(&(input->fMultiQDC_Channel[i]));
 
       this->fScaler.resize(input->fScaler.size());
-      for (size_t i = 0; i < this->fScaler.size(); i++)
-        this->fScaler[i].Copy(&(input->fScaler[i]));
+      for (size_t i = 0; i < this->fScaler.size(); i++) {
+        VQwScaler_Channel* scaler = 0;
+        if ((scaler = dynamic_cast<QwSIS3801D24_Channel*>(input->fScaler[i]))) {
+          this->fScaler[i] = new QwSIS3801D24_Channel();
+        } else if ((scaler = dynamic_cast<QwSIS3801D32_Channel*>(input->fScaler[i]))) {
+          this->fScaler[i] = new QwSIS3801D32_Channel();
+        }
+        this->fScaler[i]->Copy(scaler);
+      }
 
     } else {
       TString loc = "Standard exception from QwComptonPhotonDetector::Copy = "
@@ -1004,4 +1053,4 @@ MQwSIS3320_Channel* QwComptonPhotonDetector::GetSIS3320Channel(const TString nam
     }
   }
   return 0;
-};
+}

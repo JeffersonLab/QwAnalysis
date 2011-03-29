@@ -27,14 +27,14 @@ use File::Basename;
 use Getopt::Std;
 
 use strict 'vars';
-use vars qw($original_cwd $executable $script_dir
+use vars qw($original_cwd $executable $script_dir $mss_dir
 	    $analysis_directory $real_path_to_analysis $scratch_directory
-	    $Default_Analysis_Options $option_list
-	    $opt_h  $opt_E $opt_n $opt_r $opt_O $opt_F $opt_Q
+	    $Default_Analysis_Options $analysis_option_list $cache_option_list
+	    $opt_h $opt_E $opt_n $opt_r $opt_O $opt_F $opt_Q $opt_M $opt_C $opt_R
 	    $batch_queue
 	    @run_list @discards $first_run $last_run
 	    @good_runs $goodrunfile 
-	    $runnumber @input_files $command_file
+	    $runnumber $input_file @input_files $command_file
 	    );
 
 
@@ -83,7 +83,7 @@ crashout("The QW_TMP directory, $ENV{QW_TMP}, does not exist.  Exiting")
 ###  Get the option flags.
 # added -F option to check the runs against good runs in the input file
 # jianglai 03-02-2003
-getopts('hE:nr:O:F:Q:');
+getopts('hnr:E:M:O:F:Q:C:R:');
 
 $Default_Analysis_Options = "";
 
@@ -113,10 +113,30 @@ if ($opt_E ne ""){
     $executable = "$ENV{QW_BIN}/qwparity";
 }
 
+
+if ($opt_M ne ""){
+    $mss_dir = $opt_M;
+} else {
+    $mss_dir = "/mss/hallc/qweak";
+}
+
+if ($opt_C ne ""){
+    $cache_option_list = $opt_C;
+} else {
+    $cache_option_list = "";
+}
+
 if ($opt_Q ne ""){
     $batch_queue = $opt_Q;
 } else {
     $batch_queue = "one_pass";
+}
+
+my $rootfile_stem = undef;
+if ($opt_R ne ""){
+    $rootfile_stem = $opt_R;
+} else {
+    $rootfile_stem = "Qweak_";
 }
 
 if ($opt_r eq ""){
@@ -185,14 +205,16 @@ if ($opt_F ne ""){
 
 
 if ($opt_O ne ""){
-    $option_list = $opt_O;
+    $analysis_option_list = $opt_O;
 } else {
-    $option_list = $Default_Analysis_Options;
+    $analysis_option_list = $Default_Analysis_Options;
 }
 
-print STDOUT "\nRuns to be analyzed:\t@good_runs\n",
-    "Executable:   \t$executable\n\n",
-    "Analysis options:   \t$option_list\n\n";
+print STDOUT "\nRuns to be analyzed:\t@good_runs\n\n",
+    "MSS directory:    \t$mss_dir\n\n",
+    "MSS cache options:   \t$cache_option_list\n\n",
+    "Analysis executable: \t$executable\n\n",
+    "Analysis options:    \t$analysis_option_list\n\n";
 
 
 
@@ -230,16 +252,9 @@ foreach $runnumber (@good_runs){
 	my $fileout;
 	
         # first test whether outputstem is in a option or not
-	my @flags = split /\s+/, $option_list;
+	my @flags = split /\s+/, $analysis_option_list;
 	my $where = 0;
-	my $rootfile_stem=undef;
-	foreach (@flags){
-	    $where++;
-	    if(/--rootfile-stem/) {# if "stem" is specified
-		$rootfile_stem = $flags[$where];
-		last;
-	    }
-	}
+
         # if stem is not defined. rename all files associated with this name
 	if(!defined($rootfile_stem)){
 	    foreach $fileout (glob "$ENV{QW_ROOTFILES}/*$runnumber.root"){
@@ -250,10 +265,10 @@ foreach $runnumber (@good_runs){
 		}
 	    }
 	} else {
-	    if (-f "$ENV{QW_ROOTFILES}/$rootfile_stem.$runnumber.root"){
+	    if (-f "$ENV{QW_ROOTFILES}/$rootfile_stem$runnumber.root"){
 		rename 
-		    "$ENV{QW_ROOTFILES}/$rootfile_stem.$runnumber.root",
-		    "$ENV{QW_ROOTFILES}/$rootfile_stem.$runnumber.old.root";
+		    "$ENV{QW_ROOTFILES}/$rootfile_stem$runnumber.root",
+		    "$ENV{QW_ROOTFILES}/$rootfile_stem$runnumber.old.root";
 	    }
 	}
 
@@ -269,21 +284,20 @@ foreach $runnumber (@good_runs){
 	    }
 	}	
         
-	# now compose the command file
+	# Old job file format
 	$command_file = "$scratch_directory/work/$runnumber.command";
-
-	if (-f "$command_file") { #remove the command file if existed
-	    unlink $command_file or die "Can not remove the old $command_file: $!";;
+	# remove the command file if it exists
+	if (-f "$command_file") {
+	    unlink $command_file or die "Can not remove the old $command_file: $!";
 	}
 	open(JOBFILE, ">$command_file") or die "$command_file: $!";
-
 	print JOBFILE  "PROJECT: qweak\n";
 	print JOBFILE  "JOBNAME: Qw_$runnumber\n";
 	print JOBFILE  "COMMAND: $script_dir/qwbatch.csh\n";
 	print JOBFILE  "TRACK:   $batch_queue\n";
 	print JOBFILE  
 	    "OPTIONS: $analysis_directory $scratch_directory ",
-	    "$runnumber $executable $option_list\n";
+	    "$runnumber $executable $analysis_option_list\n";
 	print JOBFILE  
 	    "SINGLE_JOB\n",
 	    "INPUT_FILES: @input_files\n",
@@ -313,8 +327,71 @@ foreach $runnumber (@good_runs){
 
 	print JOBFILE  "MAIL: $ENV{USER}\@jlab.org\n";
 	print JOBFILE  "OS: linux64\n";
-	
 	close JOBFILE;
+
+
+	# New job file format
+	$command_file = "$scratch_directory/work/run_$runnumber.xml";
+	# remove the command file if it exists
+	if (-f "$command_file") {
+	    unlink $command_file or die "Can not remove the old $command_file: $!";
+	}
+	open(JOBFILE, ">$command_file") or die "$command_file: $!";
+	print JOBFILE
+	    "<Request>\n",
+	    " <Email email=\"$ENV{USER}\@jlab.org\" request=\"false\" job=\"true\"/>\n",
+	    " <Project name=\"qweak\"/>\n",
+	    " <Track name=\"$batch_queue\"/>\n",
+	    " <Name name=\"$rootfile_stem$runnumber\"/>\n";
+	my $diskspace=($#input_files+1)*1600+3000;
+	my $memory=2048;
+	print JOBFILE
+	    " <OS name=\"linux64\"/>\n",
+ 	    " <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
+	    " <Memory space=\"$memory\" unit=\"MB\"/>\n";
+        print JOBFILE
+	    " <Command><![CDATA[\n",
+	    "  echo \"User:         \" `whoami`\n",
+	    "  echo \"Groups:       \" `groups`\n",
+	    "  echo \"WORKDIR:      \" \$WORKDIR\n",
+	    "  echo \"PWD:          \" \$PWD\n";
+	print JOBFILE
+	    "  setenv QWSCRATCH  $scratch_directory\n",
+	    "  setenv QWANALYSIS $analysis_directory\n",
+	    "  echo \"QWSCRATCH:    \" \$QWSCRATCH\n",
+	    "  echo \"QWANALYSIS:   \" \$QWANALYSIS\n",
+	    "  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n",
+	    "  $script_dir/update_cache_links.pl $cache_option_list\n";
+	$cache_option_list =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
+	print JOBFILE
+	    "  setenv QW_DATA      \$WORKDIR\n",
+	    "  setenv QW_ROOTFILES \$WORKDIR\n",
+	    "  echo \"QW_DATA:      \" \$QW_DATA\n",
+	    "  echo \"QW_ROOTFILES: \" \$QW_ROOTFILES\n",
+	    "  $script_dir/update_cache_links.pl $cache_option_list\n";
+	print JOBFILE
+	    "  echo \"Started at `date`\"\n",
+	    "  $executable -r $runnumber $analysis_option_list\n",
+	    "  echo \"Finished at `date`\"\n",
+	    "]]></Command>\n";
+	print JOBFILE " <Job>\n";
+	foreach $input_file (@input_files) {
+	    print JOBFILE "  <Input src=\"mss:$input_file\" dest=\"",basename($input_file),"\"/>\n";
+	}
+	foreach $input_file (@input_files) {
+	    my $segment = undef;
+	    if ($input_file =~ m/.*\.([0-9]+)$/) {
+		$segment = sprintf "%03d",$1;
+	    }
+	    my $root_file = "$rootfile_stem$runnumber.$segment.root";
+	    print JOBFILE "  <Output src=\"$root_file\" dest=\"mss:$mss_dir/rootfiles/$root_file\"/>\n";
+	}
+	print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber.out\"/>\n";
+	print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber.err\"/>\n";
+	print JOBFILE " </Job>\n";
+	print JOBFILE "</Request>\n";
+	close JOBFILE;
+
 
 	if ($opt_n){
 	    print "Ready to submit $command_file\n";
@@ -360,7 +437,7 @@ sub get_files_for_one_run_from_mss ($$) {
 
     @filelist = ();
     #  Get the file names from the MSS file listings.
-    $list = `ls /mss/hallc/qweak/$cachedir/\*_$runnumber.dat\*`;
+    $list = `ls $mss_dir/$cachedir/\*_$runnumber.dat\*`;
     if ($list ne "") {
 	chomp $list;
 	push @filelist, split /[\s+,\n]/, $list;
@@ -426,7 +503,8 @@ sub displayusage {
 	"the JLab batch farm computer cluster.\n\n",
 	"Usage:\n\tqwbatchsub.pl -h\n",
 	"\tqwbatchsub.pl [-n] [-F <goodruns file>] [-Q <batch queue>]\n",
-	"\t              [-O <option list>] -r <run range>\n\n",
+	"\t              [-O <analysis options>] [-C <cache options>]\n",
+	"\t              [-R <rootfile stem>] -r <run range>\n\n",
 	"Options:\n",
 	"\t-h\n",
 	"\t\tPrint usage information\n",
@@ -439,6 +517,16 @@ sub displayusage {
 	"\t\t  A single run number:      15789\n",
 	"\t\t  A comma separated list:   15775,15781,15789\n",
 	"\t\t  A colon separated range:  15775:15793\n",
+	"\t-E <executable>\n",
+	"\t\tThis specifies the  name of the analysis executable\n",
+	"\t\tused;  it defaults to be  \"qwparity\".   Check the\n",
+	"\t\tanalyzer documentation for other possible analyzers.\n",
+	"\t-R <rootfile stem>\n",
+	"\t\tThis specifies the stem of  ROOT files  to be copied\n",
+	"\t\tto the MSS directory; defaults to \"Qweak\".\n",
+	"\t-M <MSS directory>\n",
+	"\t\tThis specifies the MSS directory  where data files\n",
+	"\t\tare stored;  it defaults to \"\/mss\/hallc\/qweak\".\n",
 	"\t-Q <batch queue>\n",
 	"\t\tThis  specifies the  name of the batch  queue to be\n",
 	"\t\tused;  it defaults to be  \"one_pass\".   Check the\n",
@@ -452,7 +540,11 @@ sub displayusage {
 	"\t\tis located at:\n",
 	"\t\t  /group/qweak/QwAnalysis/common/bin/good_runs.dat.\n",
 	"\t\tBy default, all runs within the run range are used.\n",
-	"\t-O <option list>\n",
+	"\t-C <cache option>\n",
+	"\t\tThis flag specifies  the update_cache_links options\n",
+	"\t\tto pass to the analysis jobs.   The list of options\n",
+	"\t\tmust be enclosed in double quotes.\n",
+	"\t-O <analysis option>\n",
 	"\t\tThis flag specifies the  qwanalysis options to pass\n",
 	"\t\tto the analysis jobs.   The list of options must be\n",
 	"\t\tenclosed in double quotes, such as:\n",

@@ -1,5 +1,5 @@
 #include "QwPartialTrack.h"
-ClassImp(QwPartialTrack);
+ClassImp(QwPartialTrack)
 
 // ROOT headers
 #include "TMath.h"
@@ -12,9 +12,6 @@ ClassImp(QwPartialTrack);
 
 // Qweak headers (deprecated)
 #include "Det.h"
-
-// Initialize the static lists
-TClonesArray* QwPartialTrack::gQwTreeLines = 0;
 
 /**
  * Default constructor
@@ -30,7 +27,7 @@ QwPartialTrack::QwPartialTrack()
  * @param position Position of the partial track
  * @param direction Direction of the partial track
  */
-QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction)
+QwPartialTrack::QwPartialTrack(const TVector3& position, const TVector3& direction)
 {
   // Initialize
   Initialize();
@@ -45,16 +42,95 @@ QwPartialTrack::QwPartialTrack(const TVector3 position, const TVector3 direction
 }
 
 /**
- * Copy constructor
- * \todo TODO (wdc) this copy constructor is horribly incomplete!
+ * Copy constructor by reference
  */
-QwPartialTrack::QwPartialTrack(const QwPartialTrack* partialtrack)
+QwPartialTrack::QwPartialTrack(const QwPartialTrack& that)
+: VQwTrackingElement(that)
 {
   // Initialize
   Initialize();
 
-  // Naive copy
-  *this = *partialtrack;
+  // Assignment
+  *this = that;
+}
+
+/**
+ * Copy constructor with pointer
+ */
+QwPartialTrack::QwPartialTrack(const QwPartialTrack* that)
+: VQwTrackingElement(*that)
+{
+  // Initialize
+  Initialize();
+
+  // Null pointer          
+  if (that == 0) return;
+
+  // Assignment
+  *this = *that;
+}
+
+/**
+ * Destructor
+ */
+QwPartialTrack::~QwPartialTrack()
+{
+  // nothing  
+}
+
+/**
+ * Assignment operator
+ */
+QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
+{
+  if (this == &that) return *this;
+
+  VQwTrackingElement::operator=(that);
+  
+  fAlone = that.fAlone;
+  
+  fOffsetX = that.fOffsetX;
+  fOffsetY = that.fOffsetY;
+  fSlopeX = that.fSlopeX;
+  fSlopeY = that.fSlopeY;
+
+  fChi = that.fChi;
+  fAverageResidual=that.fAverageResidual;
+
+  for (size_t i = 0; i < 4; i++)
+    for (size_t j = 0; j < 4; j++)
+      fCov[i][j] = that.fCov[i][j];
+
+  for (size_t i = 0; i < kNumDirections; i++)
+    fTreeLine[i] = that.fTreeLine[i];
+
+  fIsUsed = that.fIsUsed;
+  fIsVoid = that.fIsVoid;
+  fIsGood = that.fIsGood;
+
+  fNumMiss = that.fNumMiss;
+  fNumHits = that.fNumHits;
+
+  triggerhit = that.triggerhit;
+  for (size_t i = 0; i < 3; i++)
+    trig[i] = that.trig[i];
+
+  cerenkovhit = that.cerenkovhit;
+  for (size_t i = 0; i < 3; i++)
+    cerenkov[i] = that.cerenkov[i];
+
+  for (size_t i = 0; i < 3; i++) {
+    pR2hit[i] = that.pR2hit[i];
+    uvR2hit[i] = that.uvR2hit[i];
+    pR3hit[i] = that.pR3hit[i];
+    uvR3hit[i] = that.uvR3hit[i];
+  }
+
+  // Copy tree lines
+  ClearTreeLines();
+  AddTreeLineList(that.fQwTreeLines);
+
+  return *this;
 }
 
 
@@ -63,9 +139,6 @@ QwPartialTrack::QwPartialTrack(const QwPartialTrack* partialtrack)
  */
 void QwPartialTrack::Initialize()
 {
-  // Initialize the tree line storage structure
-  InitializeTreeLines();
-
   // Initialize the member fields
   fOffsetX = 0.0; fOffsetY = 0.0;
   fSlopeX = 0.0;  fSlopeY = 0.0;
@@ -73,9 +146,11 @@ void QwPartialTrack::Initialize()
 
   // Initialize pointers
   next = 0;
-  bridge = 0;
   for (int i = 0; i < kNumDirections; i++)
-    tline[i] = 0;
+    fTreeLine[i] = 0;
+
+  //Only 2 Plane 0 treelines
+  fAlone=0;
 }
 
 
@@ -86,17 +161,17 @@ void QwPartialTrack::Initialize()
  */
 double QwPartialTrack::GetChiWeight () const
 {
-  // Determine the weight if there enough hits
-  if (numhits >= nummiss) {
-    // NOTE Added +1 to get this to work if numhits == nummiss (wdc)
-    double weight = (double) (numhits + nummiss + 1)
-                           / (numhits - nummiss + 1);
+  // Determine the weight if there are enough hits
+  if (fNumHits >= fNumMiss) {
+    // NOTE Added +1 to get this to work if fNumHits == fNumMiss (wdc)
+    double weight = (double) (fNumHits + fNumMiss + 1)
+                           / (fNumHits - fNumMiss + 1);
     return weight * weight * fChi;
     // TODO Why is the weight squared here, but not in the weighted chi^2 for treelines?
 
   } else {
 
-    QwDebug << "miss = " << nummiss << ", hit = " << numhits << QwLog::endl;
+    QwDebug << "miss = " << fNumMiss << ", hit = " << fNumHits << QwLog::endl;
     return 100.0; // This is bad...
   }
 }
@@ -105,12 +180,12 @@ double QwPartialTrack::GetChiWeight () const
 /**
  * Calculate the average residual of this partial track over all treelines
  */
-const double QwPartialTrack::CalculateAverageResidual()
+double QwPartialTrack::CalculateAverageResidual()
 {
   int numTreeLines = 0;
   double sumResiduals = 0.0;
   for (EQwDirectionID dir = kDirectionX; dir <= kDirectionV; dir++) {
-    for (QwTrackingTreeLine* treeline = tline[dir]; treeline;
+    for (QwTrackingTreeLine* treeline = fTreeLine[dir]; treeline;
          treeline = treeline->next) {
       if (treeline->IsUsed()) {
         numTreeLines++;
@@ -127,73 +202,84 @@ const double QwPartialTrack::CalculateAverageResidual()
 void QwPartialTrack::Clear(Option_t *option)
 {
   ClearTreeLines(option);
-};
+}
 
 // Delete the static TClonesArrays
 void QwPartialTrack::Reset(Option_t *option)
 {
   ResetTreeLines(option);
-};
-
-/**
- * Initialize the list of tree lines
- */
-void QwPartialTrack::InitializeTreeLines()
-{
-  // Create the static TClonesArray for the tree lines if not existing yet
-  if (! gQwTreeLines)
-    gQwTreeLines = new TClonesArray("QwTrackingTreeLine", QWPARTIALTRACK_MAX_NUM_TREELINES);
-  // Set local TClonesArray to static TClonesArray and zero hits
-  fQwTreeLines = gQwTreeLines;
-  fNQwTreeLines = 0;
 }
 
-/**
- * Create a new QwTreeLine
- */
+// Create a new QwTreeLine
 QwTrackingTreeLine* QwPartialTrack::CreateNewTreeLine()
 {
-  TClonesArray &treelines = *fQwTreeLines;
-  QwTrackingTreeLine *treeline = new (treelines[fNQwTreeLines++]) QwTrackingTreeLine();
+  QwTrackingTreeLine* treeline = new QwTrackingTreeLine();
+  AddTreeLine(treeline);
   return treeline;
-};
+}
 
 // Add an existing QwTreeLine
 void QwPartialTrack::AddTreeLine(QwTrackingTreeLine* treeline)
 {
-  QwTrackingTreeLine* newtreeline = CreateNewTreeLine();
-  *newtreeline = *treeline;
-  newtreeline->next = 0;
-};
+  fQwTreeLines.push_back(new QwTrackingTreeLine(treeline));
+  fNQwTreeLines++;
+}
+
+// Add a linked list of QwTreeLine's
+void QwPartialTrack::AddTreeLineList(QwTrackingTreeLine* treelinelist)
+{
+  for (QwTrackingTreeLine *treeline = treelinelist;
+         treeline; treeline = treeline->next){
+    if (treeline->IsValid()){
+       AddTreeLine(treeline);
+    }
+  }
+}
+
+// Add a list of tree lines
+void QwPartialTrack::AddTreeLineList(const std::vector<QwTrackingTreeLine*> &treelinelist)
+{ 
+  for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = treelinelist.begin();
+       treeline != treelinelist.end(); treeline++)
+    AddTreeLine(*treeline);
+}
 
 // Clear the local TClonesArray of tree lines
 void QwPartialTrack::ClearTreeLines(Option_t *option)
 {
-  fQwTreeLines->Clear(option); // Clear the local TClonesArray
-  fNQwTreeLines = 0; // No tree lines in local TClonesArray
-};
+  for (size_t i = 0; i < fQwTreeLines.size(); i++) {
+    QwTrackingTreeLine* tl = fQwTreeLines.at(i);
+    delete tl;
+  }
+  fQwTreeLines.clear();
+  fNQwTreeLines = 0;
+}
 
 // Delete the static TClonesArray of tree lines
 void QwPartialTrack::ResetTreeLines(Option_t *option)
 {
-  delete gQwTreeLines;
-  gQwTreeLines = 0;
+  ClearTreeLines();
 }
 
 // Print the tree lines
 void QwPartialTrack::PrintTreeLines(Option_t *option) const
 {
-  TIterator* iterator = fQwTreeLines->MakeIterator();
-  QwTrackingTreeLine* treeline = 0;
-  while ((treeline = (QwTrackingTreeLine*) iterator->Next()))
-    QwVerbose << *treeline << QwLog::endl;
+  for (std::vector<QwTrackingTreeLine*>::const_iterator treeline = fQwTreeLines.begin();
+       treeline != fQwTreeLines.end(); treeline++) {
+    std::cout << **treeline << std::endl;
+    QwTrackingTreeLine* tl = (*treeline)->next;
+    while (tl) {
+      std::cout << *tl << std::endl;
+      tl = tl->next;
+    }
+  }
 }
 
 
 /**
  * Print some debugging information
  */
-void QwPartialTrack::Print()
+void QwPartialTrack::Print(const Option_t* options) const
 {
   if (!this) return;
   QwVerbose << *this << QwLog::endl;
@@ -220,12 +306,16 @@ ostream& operator<< (ostream& stream, const QwPartialTrack& pt)
     stream << "(" << pt.GetRegion() << "/" << "?UD"[pt.GetPackage()] << "); ";
   stream << "x,y(z=0) = (" << pt.fOffsetX/Qw::cm << " cm, " << pt.fOffsetY/Qw::cm << " cm), ";
   stream << "d(x,y)/dz = (" << pt.fSlopeX << ", " << pt.fSlopeY << ")";
+
   if (pt.fChi > 0.0) { // parttrack has been fitted
     stream << ", chi = " << pt.fChi;
   }
+  if (pt.fAverageResidual > 0.0) {
+    stream << ", res = " << pt.fAverageResidual;
+  }
   if (pt.IsVoid()) stream << " (void)";
   return stream;
-};
+}
 
 
 /**

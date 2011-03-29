@@ -13,6 +13,10 @@
    qwk_bpm3c07XM    ,  3729.72  , 1.0
    qwk_bpm3c07YP    ,  3741.22  , 1.0
    qwk_bpm3c07YM    ,  4549.48  , 1.0
+   qwk_bpm3c07aXP   ,  47571.9  , 1.0
+   qwk_bpm3c07aXM   ,  47590.9  , 1.0
+   qwk_bpm3c07aYP   ,  46842.8  , 1.0
+   qwk_bpm3c07aYM   ,  50656.9  , 1.0
    qwk_bpm3c08XP    ,  3479.64  , 1.0
    qwk_bpm3c08XM    ,  2978.21  , 1.0
    qwk_bpm3c08YP    ,  4269.11  , 1.0
@@ -45,10 +49,6 @@
    qwk_bpm3c19XM    ,  16128.9  , 1.0
    qwk_bpm3c19YP    ,  20420.5  , 1.0
    qwk_bpm3c19YM    ,  13035.1  , 1.0
-   qwk_bpm3p01XP    ,  47571.9  , 1.0
-   qwk_bpm3p01XM    ,  47590.9  , 1.0
-   qwk_bpm3p01YP    ,  46842.8  , 1.0
-   qwk_bpm3p01YM    ,  50656.9  , 1.0
   qwk_bpm3p02aXP    ,  11329.5  , 1.0
   qwk_bpm3p02aXM    ,    10554  , 1.0
   qwk_bpm3p02aYP    ,  8911.82  , 1.0

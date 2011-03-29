@@ -92,16 +92,16 @@ class MQwSIS3320_Channel: public VQwDataElement {
     MQwSIS3320_Samples& GetSamples(size_t i) { return fSamples.at(i); };
     MQwSIS3320_Samples& GetSamplesRaw(size_t i) { return fSamplesRaw.at(i); };
 
-    const size_t GetSequenceNumber() const { return (fSequenceNumber); };
+    size_t GetSequenceNumber() const { return (fSequenceNumber); };
 
-    const size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
+    size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
     void SetNumberOfEvents(UInt_t nevents) {
       fNumberOfEvents = nevents;
       fSamplesRaw.resize(nevents);
       fSamples.resize(nevents);
     };
 
-    const size_t GetNumberOfAccumulators() const { return (fNumberOfAccumulators); };
+    size_t GetNumberOfAccumulators() const { return (fNumberOfAccumulators); };
     void SetNumberOfAccumulators(UInt_t naccumulators) {
       fNumberOfAccumulators = naccumulators;
       fAccumulatorsRaw.resize(naccumulators);
@@ -109,9 +109,9 @@ class MQwSIS3320_Channel: public VQwDataElement {
     };
 
     void SetPedestal(const Double_t ped) { fPedestal = ped; };
-    const Double_t GetPedestal() const { return fPedestal; };
+    Double_t GetPedestal() const { return fPedestal; };
     void SetCalibrationFactor(const Double_t factor) { fCalibrationFactor = factor; };
-    const Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
+    Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
 
     Bool_t IsGoodEvent();
 

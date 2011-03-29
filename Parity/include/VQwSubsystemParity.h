@@ -14,10 +14,10 @@
 
 // Qweak headers
 #include "VQwSubsystem.h"
-#include "QwDatabase.h"
 
 // Forward declarations
 class QwBlinder;
+class QwDatabase;
 
 
 /**
@@ -52,12 +52,12 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual VQwSubsystem& operator=  (VQwSubsystem *value) = 0;
     virtual VQwSubsystem& operator+= (VQwSubsystem *value) = 0;
     virtual VQwSubsystem& operator-= (VQwSubsystem *value) = 0;
-    virtual VQwSubsystem* Copy() = 0;
     virtual void Sum(VQwSubsystem *value1, VQwSubsystem *value2) = 0;
     virtual void Difference(VQwSubsystem *value1, VQwSubsystem *value2) = 0;
     virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) = 0;
     virtual void Scale(Double_t factor) = 0;
 
+    virtual VQwSubsystem* Copy() = 0;
 
     /// \brief Update the running sums for devices
     virtual void AccumulateRunningSum(VQwSubsystem* value) = 0;
@@ -81,10 +81,15 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     /// \brief Print values of all channels
     virtual void PrintValue() const { };
 
+
+    virtual Bool_t CheckForEndOfBurst() const {return kFALSE;};
+	
+
+
   private:
 
-    /// Private default constructor
-    VQwSubsystemParity() { };
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemParity();
 
 }; // class VQwSubsystemParity
 

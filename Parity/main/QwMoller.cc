@@ -148,7 +148,7 @@ int main(int argc, char* argv[])
     if (gQwOptions.HasValue("input_file")){
       fileName = gQwOptions.GetValue<std::string>("input_file");
     } else { // if (eventbuffer.OpenDataFile(TString("moller-moller_") + Form("%ld.log.0",run),"R")) {
-      fileName = TString("moller-moller_") + Form("%ld.log.0",run);
+      fileName = TString("moller-moller_") + Form("%u.log.0",run);
       //     } else {
       //       QwError << "No Input File Specified!" << std::endl;
       //       return 1;
@@ -162,7 +162,7 @@ int main(int argc, char* argv[])
 
     // ROOT file output (histograms)
     TString rootfilename = getenv_safe("QW_ROOTFILES")
-                         + TString("/Moller_") + Form("%ld.root",run);
+                         + TString("/Moller_") + Form("%u.root",run);
     TFile rootfile(rootfilename, "RECREATE", "QWeak ROOT file");
  
     if (bHisto) {

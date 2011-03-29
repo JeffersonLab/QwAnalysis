@@ -17,45 +17,10 @@
 #include "QwSSQLS.h"
 using namespace QwParityDB;
 
-//
-//  Template definitions for the QwDBInterface class.
-//
-//
-
-template <class T>
-void QwDBInterface::AddThisEntryToList(std::vector<T> &list){
-  Bool_t okay = kTRUE;
-  if (fAnalysisId == 0){
-    QwError << "AddDBEntryToList:  Analysis ID invalid; entry dropped"
-	    << QwLog::endl;
-    okay = kFALSE;
-  }
-  if (fDeviceId == 0){
-    QwError << "AddDBEntryToList:  Device ID invalid; entry dropped"
-	    << QwLog::endl;
-    okay = kFALSE;
-  }
-  if (okay){
-    T row = TypedDBClone<T>();
-    if (row.analysis_id == 0){
-      QwError << "AddDBEntryToList:  Unknown list type; entry dropped"
-	      << QwLog::endl;
-      okay = kFALSE;
-    } else {
-      list.push_back(row);
-    }
-  }
-  if (okay == kFALSE){
-    PrintStatus(kTRUE);
-  };
-};
-
-template void QwDBInterface::AddThisEntryToList<QwParityDB::md_data>(std::vector<QwParityDB::md_data> &list);
-template void QwDBInterface::AddThisEntryToList<QwParityDB::lumi_data>(std::vector<QwParityDB::lumi_data> &list);
-template void QwDBInterface::AddThisEntryToList<QwParityDB::beam>(std::vector<QwParityDB::beam> &list);
-
-
-
+// Specific template instantiations
+template inline void QwDBInterface::AddThisEntryToList<QwParityDB::md_data>(std::vector<QwParityDB::md_data> &list);
+template inline void QwDBInterface::AddThisEntryToList<QwParityDB::lumi_data>(std::vector<QwParityDB::lumi_data> &list);
+template inline void QwDBInterface::AddThisEntryToList<QwParityDB::beam>(std::vector<QwParityDB::beam> &list);
 
 // Definition of static class members in QwDatabase
 std::map<string, unsigned int> QwDatabase::fMonitorIDs;
@@ -69,7 +34,7 @@ std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;// for epics
  * mysqlpp::Connection() object that has exception throwing disabled.
  */
 //QwDatabase::QwDatabase() : Connection(false)
-QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0004")
+QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("01"), kValidVersionPoint("0000")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -90,7 +55,7 @@ QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersion
  *  the QwOptions object.
  * @param options  The QwOptions object.
  */
-QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("00"), kValidVersionPoint("0004")
+QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("01"), kValidVersionPoint("0000")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -243,7 +208,7 @@ bool QwDatabase::Connect()
 void QwDatabase::DefineOptions(QwOptions& options)
 {
   // Specify command line options for use by QwDatabase
-  options.AddOptions("Database options")("QwDatabase.accesslevel", po::value<string>(), "database access level (OFF,RW)");
+  options.AddOptions("Database options")("QwDatabase.accesslevel", po::value<string>(), "database access level (OFF,RO,RW)");
   options.AddOptions("Database options")("QwDatabase.dbname", po::value<string>(), "database name");
   options.AddOptions("Database options")("QwDatabase.dbserver", po::value<string>(), "database server name");
   options.AddOptions("Database options")("QwDatabase.dbusername", po::value<string>(), "database username");
@@ -283,7 +248,7 @@ void QwDatabase::ProcessOptions(QwOptions &options)
   }
 
   return;
-};
+}
 
 void QwDatabase::ProcessOptions(const TString& dbname, const TString& username, const TString& passwd, const TString& dbhost, const Int_t dbport, const TString& accesslevel)
 {
@@ -309,7 +274,7 @@ void QwDatabase::SetAccessLevel(string accesslevel)
     fAccessLevel = kQwDatabaseOff;
   }
   return;
-};
+}
 
 /*!
  * Sets run number for subsequent database interactions.  Makes sure correct
@@ -327,7 +292,8 @@ void QwDatabase::SetupOneRun(QwEventBuffer& qwevt)
 	      << " Run Number "  << QwColor(Qw::kBoldMagenta) << qwevt.GetRunNumber() << QwColor(Qw::kNormal)
 	      << " Run ID "      << QwColor(Qw::kBoldMagenta) << run_id << QwColor(Qw::kNormal)
 	      << " Runlet ID "   << QwColor(Qw::kBoldMagenta) << runlet_id << QwColor(Qw::kNormal)
-	      << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id
+	      << " Analysis ID " << QwColor(Qw::kBoldMagenta) << analysis_id 
+	      << QwColor(Qw::kNormal)
 	      << QwLog::endl;
   }
 }
@@ -378,7 +344,7 @@ bool QwDatabase::SetRunNumber(const UInt_t runnum)
 /*!
  * This function sets the fRunID for the run being replayed as determined by the QwEventBuffer class.
  */
-const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
+UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
 {
 
   // Check to see if run is already in database.  If so retrieve run ID and exit.
@@ -464,7 +430,7 @@ const UInt_t QwDatabase::SetRunID(QwEventBuffer& qwevt)
 /*!
  * This is a getter for run_id in the run table.  Should be used in subsequent queries to retain key relationships between tables.
  */
-const UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
+UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
 {
   // If the stored run number does not agree with the CODA run number
   // or if fRunID is not set, then retrieve data from database and update if necessary.
@@ -487,7 +453,7 @@ const UInt_t QwDatabase::GetRunID(QwEventBuffer& qwevt)
  *
  * Runlets are differentiated by file segment number at the moment, not by event range or start/stop time.  This function will need to be altered if we opt to differentiate between runlets in a different way.
  */
-const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
+UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
 {
 
   // Make sure 'run' table has been populated and retrieve run_id
@@ -586,7 +552,7 @@ const UInt_t QwDatabase::SetRunletID(QwEventBuffer& qwevt)
 /*!
  * This is a getter for runlet_id in the runlet table.  Should be used in subsequent queries to retain key relationships between tables.
  */
-const UInt_t QwDatabase::GetRunletID(QwEventBuffer& qwevt)
+UInt_t QwDatabase::GetRunletID(QwEventBuffer& qwevt)
 {
   // If the stored run number does not agree with the CODA run number
   // or if fRunID is not set, then retrieve data from database and update if necessary.
@@ -603,7 +569,7 @@ const UInt_t QwDatabase::GetRunletID(QwEventBuffer& qwevt)
 /*!
  * This is used to set the appropriate analysis_id for this run.  Must be a valid runlet_id in the runlet table before proceeding.  Will insert an entry into the analysis table if necessary.
  */
-const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
+UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
 {
   try {
 
@@ -657,7 +623,7 @@ const UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
 /*!
  * This is a getter for analysis_id in the analysis table.  Required by all queries on cerenkov, beam, etc. tables.  Will return 0 if fRunID has not been successfully set.  If fAnalysisID is not set, then calls code to insert into analysis table and retrieve analysis_id.
  */
-const UInt_t QwDatabase::GetAnalysisID(QwEventBuffer& qwevt)
+UInt_t QwDatabase::GetAnalysisID(QwEventBuffer& qwevt)
 {
   // Sanity check to make sure not calling this before runlet_id has been retrieved.
   if (fRunletID == 0) {
@@ -704,7 +670,7 @@ void QwDatabase::PrintServerInfo()
 /*
  * This function retrieves the monitor table key 'monitor_id' for a given beam monitor.
  */
-const UInt_t QwDatabase::GetMonitorID(const string& name)
+UInt_t QwDatabase::GetMonitorID(const string& name)
 {
   if (fMonitorIDs.size() == 0) {
     StoreMonitorIDs();
@@ -742,12 +708,12 @@ void QwDatabase::StoreMonitorIDs()
     exit(1);
   }
   return;
-};
+}
 
 /*
  * This function retrieves the main_detector table key 'main_detector_id' for a given beam main_detector.
  */
-const UInt_t QwDatabase::GetMainDetectorID(const string& name)
+UInt_t QwDatabase::GetMainDetectorID(const string& name)
 {
   if (fMainDetectorIDs.size() == 0) {
     StoreMainDetectorIDs();
@@ -762,7 +728,7 @@ const UInt_t QwDatabase::GetMainDetectorID(const string& name)
 
   return main_detector_id;
 
-};
+}
 
 
 /*
@@ -786,13 +752,13 @@ void QwDatabase::StoreMainDetectorIDs()
     exit(1);
   }
   return;
-};
+}
 
 
 /*
  * This function retrieves the slow control detector table key 'sc_detector_id' for a given epics variable.
  */
-const UInt_t QwDatabase::GetSlowControlDetectorID(const string& name)
+UInt_t QwDatabase::GetSlowControlDetectorID(const string& name)
 {
   if (fSlowControlDetectorIDs.size() == 0) {
     StoreSlowControlDetectorIDs();
@@ -806,7 +772,7 @@ const UInt_t QwDatabase::GetSlowControlDetectorID(const string& name)
 
   return sc_detector_id;
 
-};
+}
 
 /*
  * Stores slow control detector table keys in an associative array indexed by slow_controls_data name.
@@ -829,12 +795,12 @@ void QwDatabase::StoreSlowControlDetectorIDs()
     exit(1);
   }
   return;
-};
+}
 
 /*
  * This function retrieves the lumi_detector table key 'lumi_detector_id' for a given beam lumi_detector.
  */
-const UInt_t QwDatabase::GetLumiDetectorID(const string& name)
+UInt_t QwDatabase::GetLumiDetectorID(const string& name)
 {
   if (fLumiDetectorIDs.size() == 0) {
     StoreLumiDetectorIDs();
@@ -847,7 +813,7 @@ const UInt_t QwDatabase::GetLumiDetectorID(const string& name)
   }
 
   return lumi_detector_id;
-};
+}
 
 /*
  * Stores lumi_detector table keys in an associative array indexed by lumi_detector name.
@@ -872,12 +838,12 @@ void QwDatabase::StoreLumiDetectorIDs()
     exit(1);
   }
   return;
-};
+}
 
 
 
 
-const  string QwDatabase::GetMeasurementID(const Int_t index)
+const string QwDatabase::GetMeasurementID(const Int_t index)
 {
   if (fMeasurementIDs.size() == 0) {
     StoreMeasurementIDs();
@@ -890,7 +856,7 @@ const  string QwDatabase::GetMeasurementID(const Int_t index)
   }
 
   return measurement_type;
-};
+}
 
 void QwDatabase::StoreMeasurementIDs()
 {
@@ -912,7 +878,7 @@ void QwDatabase::StoreMeasurementIDs()
     exit(1);
   }
   return;
-};
+}
 
 const string QwDatabase::GetVersion(){
   string version = fVersionMajor + "." + fVersionMinor + "." + fVersionPoint;
@@ -928,7 +894,7 @@ const string QwDatabase::GetValidVersion(){
  * Retrieves database schema version information from database.
  * Returns true if successful, false otherwise.
  */
-const bool QwDatabase::StoreDBVersion()
+bool QwDatabase::StoreDBVersion()
 {
   try
     {
@@ -969,4 +935,4 @@ const bool QwDatabase::StoreDBVersion()
 
   return true;
 
-};
+}

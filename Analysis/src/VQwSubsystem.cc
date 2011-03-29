@@ -28,6 +28,7 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwSubsystemArray.h"
+#include "QwParameterFile.h"
 
 
 Int_t ERROR = -1;
@@ -35,7 +36,10 @@ Int_t ERROR = -1;
 
 Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
 {
+  Bool_t local_debug = false;
+
   file.RewindToFileStart();
+
   while (file.ReadNextLine()) {
     // Trim comments and whitespace
     file.TrimComment('!');
@@ -45,31 +49,79 @@ Int_t VQwSubsystem::LoadDetectorMaps(QwParameterFile& file)
     // Find key-value pairs
     std::string key, value;
     if (file.HasVariablePair("=", key, value)) {
+      if ( value.size() > 0) {
 
-      // Map file definition
-      if (key == "map" && value.size() > 0)
-        LoadChannelMap(value);
-
-      // Geometry file definition
-      if (key == "geom" && value.size() > 0)
-        LoadGeometryDefinition(value);
-
-      // Parameter file definition
-      if (key == "param" && value.size() > 0)
-        LoadInputParameters(value);
-
-      // Event cut file definition
-      if (key == "eventcut" && value.size() > 0)
-        LoadEventCuts(value);
-
-      // Event type mask
-      if (key == "mask" && value.size() > 0)
-        SetEventTypeMask(file.GetUInt(value));
-
-
+	// If-Ordering Optimization for parity
+	// Beamline     1423
+	// MainDetector 123
+	// Lumi         123
+	// Helicity     1
+	// Scanner      12
+	// Beammod      1
+	//              1(6),2(4),3(3),4(1)
+	//              map, param, eventcut, geom
+	// Map file definition
+	if (key == "map" ) {
+	  LoadChannelMap(value);
+	  //	  fDetectorMapsNames.push_back(value);
+	  //	  printf("1\n");
+	}
+	// Parameter file definition
+	else if (key == "param" ) {
+	  LoadInputParameters(value); 
+	  // fDetectorMapsNames.push_back(value);
+	  //	  printf("2\n");
+	}
+	// Event cut file definition
+	else if (key == "eventcut") {
+	  LoadEventCuts(value);
+	  // fDetectorMapsNames.push_back(value);
+	  //	  printf("3\n");
+	}
+	// Geometry file definition
+	else if (key == "geom" ) {
+	  LoadGeometryDefinition(value);
+	  // fDetectorMapsNames.push_back(value);
+	  //	  printf("4\n");
+	}
+ 	//Event type mask
+	else if (key == "mask") {
+	  SetEventTypeMask(file.GetUInt(value));
+	  //	  printf("5\n");
+	}
+	// else {
+	//   printf("whatelse?\n"); // one per subsystem.
+	// }
+      }
+      // else {
+      // 	printf("something???\n"); // never...
+      // }
+      
     } // end of HasVariablePair
+  } // end of while 
+  
+  
+  //
+  // The above approach that fDetectorMapsNames.push_back(value) in VQwSubsystem doesn't work, because it reads the following...
+  //
+  // >>> VQwSubsystem::LoadDetectorMaps Subsytem Main Detector uses the following map files : 
+  //   --->    1/3 :        qweak_maindet.map
+  //   --->    2/3 : qweak_maindet_pedestal.map
+  //   --->    3/3 : qweak_maindet_eventcuts.in
 
-  } // end of while
+  //
+  // So, fDetectorMapsNams.push_back will be called LoadChannelMap(), LoadInputParameter(), LoadEventCuts(),
+  // and  LoadGeometryDefinition() in each subsystem.
+  //
+  // >>> VQwSubsystem::LoadDetectorMaps Subsytem Main Detector uses the following map files : 
+  //   --->    1/3 : /home/jhlee/QwAnalysis/trunk/Parity/prminput/qweak_maindet.10213-.map
+  //   --->    2/3 : /home/jhlee/QwAnalysis/trunk/Parity/prminput/qweak_maindet_pedestal.10229-.map
+  //   --->    3/3 : /home/jhlee/QwAnalysis/trunk/Parity/prminput/qweak_maindet_eventcuts.in
+  //
+  // Friday, March 18 15:32:09 EDT 2011, jhlee
+
+  PrintDetectorMaps(local_debug);
+
   return 0;
 }
 
@@ -93,7 +145,7 @@ void VQwSubsystem::SetParent(QwSubsystemArray* parent)
 
   // Add array to the list
   fArrays.push_back(parent);
-};
+}
 
 /**
  * Get the parent of this subsystem, and print an error if no parent is defined.
@@ -110,7 +162,7 @@ QwSubsystemArray* VQwSubsystem::GetParent(const unsigned int parent) const
     QwError << "Subsystem " << GetSubsystemName() << " has no parent!" << QwLog::endl;
     return 0;
   }
-};
+}
 
 /**
  * Get the sibling of this subsystem with the specified name.  If no parents is
@@ -129,7 +181,7 @@ VQwSubsystem* VQwSubsystem::GetSibling(const std::string& name) const
     return parent->GetSubsystemByName(name);
   else
     return 0; // GetParent() prints error already
-};
+}
 
 /**
  * Get the value corresponding to some variable name from a different
@@ -148,7 +200,7 @@ Bool_t VQwSubsystem::RequestExternalValue(
     return parent->RequestExternalValue(name, value);
   }
   return kFALSE; // Error: could not find variable in parent
-};
+}
 
 
 /**
@@ -176,7 +228,7 @@ Bool_t VQwSubsystem::PublishInternalValue(
     return kFALSE; // Error: no parent defined
   }
   return kTRUE; // Success
-};
+}
 
 void VQwSubsystem::ClearAllBankRegistrations()
 {
@@ -184,7 +236,7 @@ void VQwSubsystem::ClearAllBankRegistrations()
   fROC_IDs.clear();
   fCurrentROC_ID    = -1;
   fCurrentBank_ID   = -1;
-};
+}
 
 Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t value) const
 {
@@ -196,7 +248,7 @@ Int_t VQwSubsystem::FindIndex(const std::vector<UInt_t> &myvec, const UInt_t val
     }
   }
   return index;
-};
+}
 
 Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const
 {
@@ -222,9 +274,9 @@ Int_t VQwSubsystem::GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) c
   }
   // std::cout << "return:index " << index << std::endl;
   return index;
-};
+}
 
-Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id = 0)
+Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id)
 {
   Int_t stat      = 0;
   Int_t roc_index = 0;
@@ -256,7 +308,7 @@ Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id 
     fCurrentBank_ID   = -1;
   }
   return stat;
-};
+}
 
 Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id)
 {
@@ -274,7 +326,7 @@ Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id)
     fCurrentBank_ID = -1;
   }
   return stat;
-};
+}
 
 void VQwSubsystem::PrintInfo() const
 {
@@ -287,10 +339,11 @@ void VQwSubsystem::PrintInfo() const
   }
   for (size_t array = 0; array < fArrays.size(); array++)
     std::cout << "in array " << std::hex << fArrays.at(array) << std::dec << std::endl;
-};
+}
 
 
-void VQwSubsystem::Copy(VQwSubsystem *source){
+void VQwSubsystem::Copy(VQwSubsystem *source)
+{
   try
     {
 
@@ -320,12 +373,58 @@ void VQwSubsystem::Copy(VQwSubsystem *source){
       std::cerr << e.what() << std::endl;
     }
   return;
-};
+}
 
-VQwSubsystem&  VQwSubsystem::operator=  (VQwSubsystem *value){
-  this->fIsDataLoaded= value->fIsDataLoaded;
+VQwSubsystem& VQwSubsystem::operator=(VQwSubsystem *value)
+{
+  this->fIsDataLoaded = value->fIsDataLoaded;
   return *this;
+}
+
+
+
+std::vector<TString> VQwSubsystem::GetParamFileNameList()
+{
+  return fDetectorMapsNames;
 };
 
 
 
+std::map<TString, TString> VQwSubsystem::GetDetectorMaps()
+{
+  return fDetectorMaps;
+};
+
+
+
+void VQwSubsystem::PrintDetectorMaps(Bool_t status)
+{
+  Bool_t local_debug = false;
+  if(status) {
+    printf("\n >>> VQwSubsystem::LoadDetectorMaps Subsytem %s uses the following map files : \n", fSystemName.Data());
+    Int_t total_num = 0;
+    Int_t index = 0;
+    total_num = (Int_t) fDetectorMaps.size();
+
+    if(total_num != 0) {
+
+      for( std::map<TString, TString>::iterator ii=fDetectorMaps.begin(); ii!=fDetectorMaps.end(); ++ii)
+	{	
+	  TString name = (*ii).first;
+	  TString all  = (*ii).second;
+	  printf("   ---> %4d/%d : %s\n", index+1, total_num, name.Data());
+	  if(local_debug) {
+	    printf("   %s", all.Data());
+	    printf("\n");
+	  }
+	  //	  std::cout << (*ii).first << ": " << (*ii).second << st:;endl;
+	}
+      printf("\n");
+    }
+    else {
+      printf("   ---> No map files\n");
+    }
+  }
+
+  return;
+};

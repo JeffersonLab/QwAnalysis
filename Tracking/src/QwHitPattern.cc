@@ -7,7 +7,7 @@
  */
 
 #include "QwHitPattern.h"
-ClassImp(QwHitPattern);
+ClassImp(QwHitPattern)
 
 // Qweak headers
 #include "QwHit.h"
@@ -33,21 +33,23 @@ static int hashgen()
 
 /**
  * Assignment operator for hit patterns.
- * @param rhs Right hand side
+ * @param that Right hand side
  * @return Left hand side
  */
-QwHitPattern& QwHitPattern::operator= (const QwHitPattern& rhs)
+QwHitPattern& QwHitPattern::operator= (const QwHitPattern& that)
 {
-  // Check whether this is ourselves
-  if (this == &rhs) return *this;
-  SetNumberOfLevels(rhs.fLevels);
-  // If lhs is zero we assign rhs and return
+  if (this == &that) return *this;
+
+  VQwTrackingElement::operator=(that);
+
+  SetNumberOfLevels(that.fLevels);
+  // If lhs is zero we assign that and return
   if (fLevels == 0) return *this;
   // Copy the levels and pattern data
   for (unsigned int bin = 0; bin < fBins; bin++)
-    fPattern[bin] = rhs.fPattern[bin];
+    fPattern[bin] = that.fPattern[bin];
   for (unsigned int hash = 0; hash < fBinWidth; hash++)
-    fPatternHash[hash] = rhs.fPatternHash[hash];
+    fPatternHash[hash] = that.fPatternHash[hash];
   return *this;
 }
 
@@ -66,17 +68,17 @@ QwHitPattern& QwHitPattern::operator= (const QwHitPattern& rhs)
  *
  * The hash pattern is not so important, but the hit pattern has to match!
  *
- * @param rhs Right hand side
+ * @param that Right hand side
  * @return Left hand side
  */
-QwHitPattern& QwHitPattern::operator+= (const QwHitPattern& rhs)
+QwHitPattern& QwHitPattern::operator+= (const QwHitPattern& that)
 {
-  // If lhs is zero we assign rhs and return
-  if (fLevels == 0) return *this = rhs;
+  // If lhs is zero we assign that and return
+  if (fLevels == 0) return *this = that;
   // Check whether levels is equal
-  if (fLevels == rhs.fLevels) {
+  if (fLevels == that.fLevels) {
     for (unsigned int bin = 0; bin < fBins; bin++)
-      fPattern[bin] |= rhs.fPattern[bin];
+      fPattern[bin] |= that.fPattern[bin];
   }
   return *this;
 }
@@ -93,11 +95,22 @@ void QwHitPattern::SetHDCHitList(
 	const double detectorwidth,
 	QwHitContainer* hitlist)
 {
+  std::vector<int> check_dup;
+  std::vector<int>::iterator it;
   for (QwHitContainer::iterator hit  = hitlist->begin();
-                                hit != hitlist->end(); hit++)
-    SetHDCHit(detectorwidth, &(*hit));
+                                hit != hitlist->end(); hit++){
+//     std::cout << "r2 wire: " << hit->GetElement() << " " << hit->GetHitNumber() << std::endl;
+    int index=32*hit->GetPlane()+hit->GetElement();
+    if(check_dup.size()==0){
+       check_dup.push_back(index);
+       SetHDCHit(detectorwidth, &(*hit));
+     }
+    else if(find(check_dup.begin(),check_dup.end(),index)==check_dup.end()){
+       check_dup.push_back(index);
+       SetHDCHit(detectorwidth, &(*hit));
+       }
+   }
 }
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /**
@@ -137,16 +150,21 @@ void QwHitPattern::SetHDCHit (
   double drift_distance = hit->GetDriftDistance();
   double wire_spacing = hit->GetDetectorInfo()->GetElementSpacing();
   double track_resolution = hit->GetDetectorInfo()->GetTrackResolution();
+  
 
-  // Set the points on the front/top side of the wire (R3/R2)
-  _SetPoints(wire_spacing * (wire+1) - drift_distance - track_resolution,
-             wire_spacing * (wire+1) - drift_distance + track_resolution,
+  // Set the points on the front/bottom side of the wire (R3/R2)
+  //NOTE:why wire+1,not wire?
+//   std::cout << "r2 bottom: " << hit->GetDirection() << " " << hit->GetPlane() << std::endl;
+  _SetPoints(wire_spacing * (wire-0.5) - drift_distance - track_resolution,
+             wire_spacing * (wire-0.5) - drift_distance + track_resolution,
              detectorwidth);
 
-  // Set the points on the back/bottom side of the wire (R3/R2)
-  _SetPoints(wire_spacing * (wire+1) + drift_distance - track_resolution,
-             wire_spacing * (wire+1) + drift_distance + track_resolution,
+//   std::cout << "r2 up: " << hit->GetDirection() << " " << hit->GetPlane() << std::endl;  
+  // Set the points on the back/top side of the wire (R3/R2)
+  _SetPoints(wire_spacing * (wire-0.5) + drift_distance - track_resolution,
+             wire_spacing * (wire-0.5) + drift_distance + track_resolution,
              detectorwidth);
+
 
   return;
 }
@@ -223,10 +241,12 @@ void QwHitPattern::_SetPoints (
   unsigned int binwidth = fBinWidth;
   unsigned char* pattern = fPattern;
 
+  
 /* ---- compute the first bin in the deepest tree level to turn on     ---- */
 
   ia = (int) floor (pos_start / detectorwidth * fBinWidth);
 
+  
 /* ---- compute the last bin in the deepest tree level to turn on      ---- */
 
   ie = (int) floor (pos_end   / detectorwidth * fBinWidth);
@@ -250,12 +270,14 @@ void QwHitPattern::_SetPoints (
       continue;
 
 /* ---- compute the hash value                                        ---- */
+    //NOTE:why like this?
     fPatternHash[i] = ((fPatternHash[i] << 1) + hashint) | 1;
-
+//     std::cout << "fPatternHash[" << i << "]=" << fPatternHash[i] << std::endl; 
 /* ---- set the bits in the bit pattern at all depths of bin-division ---- */
     if (pattern) {
       while (binwidth) {         /* starting at maximum depth, loop over
                                     each depth of the treesearch           */
+//         if(binwidth==1) std::cout << "set i" << i << " " << pos_start << std::endl;
         pattern[i] = 1;          /* turn on the bit in this bin            */
         pattern   += binwidth;   /* set ahead to the part of the bit
                                     pattern in which the bits for the

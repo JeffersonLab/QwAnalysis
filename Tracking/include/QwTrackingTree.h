@@ -68,7 +68,7 @@ class QwTrackingTree: public VQwTrackingElement {
     void SetMaxSlope (const double maxslope) { fMaxSlope = maxslope; };
 
     /// Print the full tree and hash table
-    void Print() const { PrintTree(); PrintHashTable(); };
+    void Print(const Option_t* options = 0) const { PrintTree(); PrintHashTable(); };
     /// \brief Print the full tree
     void PrintTree() const;
     /// \brief Print the hash table

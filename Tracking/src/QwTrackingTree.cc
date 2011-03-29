@@ -264,6 +264,7 @@ int QwTrackingTree::consistent(
     // Find the z position of each tree-detector relative to the first tree-detector
 
     // Loop through each plane
+    // TODO (wdc) remove dependence on rcDETRegion
     Det* rd = 0;
     for (rd = rcDETRegion[package][region][dir], layer = 0;
          rd && layer < templayers;
@@ -275,18 +276,18 @@ int QwTrackingTree::consistent(
       // Compute the relative position to the upstream plane
       if (layer > 0) {
         z[layer] = zv - z[0];
-	if (z[layer] < z[0]) {
-	  QwError << "Region 2 planes are out of order" << QwLog::endl;
-	  exit(1);
-	}
-	// the offset distance between the first and last planes of this wire direction
-	if (layer == templayers-1) dy = off = fabs((rd->center[1] - y0)*rd->rCos);
+        if (z[layer] < z[0]) {
+          QwError << "Region 2 planes are out of order" << QwLog::endl;
+          exit(1);
+        }
+        // the offset distance between the first and last planes of this wire direction
+        if (layer == templayers-1) dy = off = fabs((rd->center[1] - y0)*rd->rCos);
 
       } else {
 
         z[0] = zv;
         binwidth = rd->NumOfWires * rd->WireSpacing / (1 << level); // the binwidth at this level
-	y0 = fabs(rd->center[1]); // the first plane's radial distance
+        y0 = fabs(rd->center[1]); // the first plane's radial distance
       }
     }
     // Set the first plane's z position to zero
@@ -996,7 +997,7 @@ void QwTrackingTree::marklin (
 
   } // end of other region
 
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 

@@ -13,6 +13,7 @@
 
 // ROOT headers
 #include "TTree.h"
+#include "TString.h"
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
@@ -27,14 +28,14 @@
 #include "QwQPD.h"
 #include "QwLinearDiodeArray.h"
 
-
+// Forward declarations
 class QwBeamDetectorID;
 
 
 /*****************************************************************
 *  Class:
 ******************************************************************/
-class QwBeamLine : public VQwSubsystemParity{
+class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  public:
 
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
@@ -82,10 +83,12 @@ class QwBeamLine : public VQwSubsystemParity{
   void AccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();
 
+  using VQwSubsystem::ConstructHistograms;
   void ConstructHistograms(TDirectory *folder, TString &prefix);
   void FillHistograms();
   void DeleteHistograms();
 
+  using VQwSubsystem::ConstructBranchAndVector;
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void ConstructBranch(TTree *tree, TString &prefix);
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
@@ -106,13 +109,14 @@ class QwBeamLine : public VQwSubsystemParity{
   QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name);
   QwCombinedBPM* GetCombinedBPM(const TString name);
   QwEnergyCalculator* GetEnergyCalculator(const TString name);
+  QwHaloMonitor* GetScalerChannel(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
   const QwBPMStripline* GetBPMStripline(const TString name) const;
   const QwBCM<QwVQWK_Channel>* GetBCM(const TString name) const;
   const QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name) const;
   const QwCombinedBPM* GetCombinedBPM(const TString name) const;
   const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
-
+  const QwHaloMonitor* GetScalerChannel(const TString name) const;
 
 
 /////

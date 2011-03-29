@@ -65,9 +65,10 @@ class QwGUIInjector : public QwGUISubSystem {
   TGLayoutHints       *dCnvLayout; 
   TGLayoutHints       *dSubLayout;
   TGLayoutHints       *dBtnLayout;
-  TGTextButton        *dButtonPos;
+  TGTextButton        *dButtonPosDiffMean;
   TGTextButton        *dButtonCharge;
   TGTextButton        *dButtonPosVariation;
+  TGTextButton        *dButtonPosDiffRms;
   TGTextButton        *dButtonInjectorSCALER;
   TGTextButton        *dButtonMeanPos;
 
@@ -82,8 +83,7 @@ class QwGUIInjector : public QwGUISubSystem {
 
 
   TH1F *PosVariation[2] ;
-
-
+  TH1F *PosVariationRms[2];
   
 
   //!This function Draws a sample  histograms/plots from the Memory map file. 
@@ -93,6 +93,14 @@ class QwGUIInjector : public QwGUISubSystem {
   //!
   //!Return value: none 
   void PositionDifferences();
+
+  //!This function Draws the variation of the bpm effective charge along the injector beam line.. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void BPM_EffectiveCharge();
 
   //!This function Draws a sample  histograms/plots from the Memory map file. 
   //!

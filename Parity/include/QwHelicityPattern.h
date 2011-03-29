@@ -41,7 +41,10 @@ class QwHelicityPattern{
   void ProcessOptions(QwOptions &options);
 
   void  LoadEventData(QwSubsystemArrayParity &event);
+  Bool_t HasDataLoaded() const { return fIsDataLoaded; };
+
   Bool_t IsCompletePattern() const;
+
   void  CalculateAsymmetry();
   void GetTargetChargeStat(Double_t & asym, Double_t & error, Double_t & width);//retrieves the target charge asymmetry,asymmetry error ,asymmetry width
 
@@ -66,6 +69,13 @@ class QwHelicityPattern{
   /// Status of running sum calculation flag
   Bool_t IsRunningSumEnabled() { return fEnableRunningSum; };
 
+  /// Enable/disable storing pattern differences
+  void  EnableDifference(const Bool_t flag = kTRUE) { fEnableDifference = flag; };
+  /// Disable storing pattern differences
+  void  DisableDifference() { fEnableDifference = kFALSE; };
+  /// Status of storing pattern differences flag
+  Bool_t IsDifferenceEnabled() { return fEnableDifference; };
+
   /// Update the blinder status with new external information
   void UpdateBlinder(QwDatabase* db){
     fBlinder.Update(db);
@@ -79,6 +89,11 @@ class QwHelicityPattern{
     fBlinder.Update(epics);
   };
 
+  // wish these could be const references, but ConstructBranchAndVector messes with object
+  QwSubsystemArrayParity& GetBurstYield()      { return fBurstYield; };
+  QwSubsystemArrayParity& GetBurstDifference() { return fBurstDifference; };
+  QwSubsystemArrayParity& GetBurstAsymmetry()  { return fBurstAsymmetry; };
+
   void  AccumulateBurstSum();
   void  AccumulateRunningBurstSum();
   void  AccumulateRunningSum();
@@ -89,6 +104,7 @@ class QwHelicityPattern{
 
   void  PrintRunningBurstAverage() const;
   void  PrintRunningAverage() const;
+  void  PrintBurstAverage() const;
 
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);
@@ -140,6 +156,7 @@ class QwHelicityPattern{
 
   // Burst sum/difference of the yield and asymmetry
   Bool_t fEnableBurstSum;
+  Bool_t fPrintBurstSum;
   QwSubsystemArrayParity fBurstYield;
   QwSubsystemArrayParity fBurstDifference;
   QwSubsystemArrayParity fBurstAsymmetry;
@@ -149,12 +166,14 @@ class QwHelicityPattern{
 
   // Running sum/average of the yield and asymmetry
   Bool_t fEnableRunningSum;
+  Bool_t fPrintRunningSum;
   QwSubsystemArrayParity fRunningYield;
   QwSubsystemArrayParity fRunningDifference;
   QwSubsystemArrayParity fRunningAsymmetry;
   QwSubsystemArrayParity fRunningAsymmetry1;
   QwSubsystemArrayParity fRunningAsymmetry2;
 
+  Bool_t fEnableDifference;
   QwSubsystemArrayParity fDifference;
   QwSubsystemArrayParity fAlternateDiff;
   QwSubsystemArrayParity fPositiveHelicitySum;
@@ -166,9 +185,9 @@ class QwHelicityPattern{
 
   Bool_t fPatternIsGood;
 
-  QwBeamCharge   fTargetCharge;
-
-
+  // Flag to indicate that the pattern contains data
+  Bool_t fIsDataLoaded;
+  void SetDataLoaded(Bool_t flag) { fIsDataLoaded = flag; };
 
 };
 

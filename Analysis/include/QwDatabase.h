@@ -10,11 +10,10 @@
 #define QWDATABASE_HH
 
 // System headers
-//#include <iostream>
-//#include <iomanip>
 #include <map>
 #include <vector>
 #include <string>
+#include <typeinfo>
 
 // Third Party Headers
 #include <mysql++.h>
@@ -28,8 +27,9 @@
 #include "QwColor.h"
 #include "QwOptions.h"
 #include "QwSSQLS.h"
+#include "QwDBInterface.h"
 
-
+// Forward declarations
 class QwEventBuffer;
 
 /**
@@ -68,22 +68,22 @@ class QwDatabase: private mysqlpp::Connection {
     mysqlpp::Query Query(const char *qstr=0     ) {return query(qstr);} //<! Generate a query to the database.
     mysqlpp::Query Query(const std::string &qstr) {return query(qstr);} //<! Generate a query to the database.
 
-    const UInt_t GetMonitorID(const string& name);         //<! Get monitor_id for beam monitor name
-    const UInt_t GetMainDetectorID(const string& name);    //<! Get main_detector_id for main detector name
-    const UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
+    UInt_t GetMonitorID(const string& name);         //<! Get monitor_id for beam monitor name
+    UInt_t GetMainDetectorID(const string& name);    //<! Get main_detector_id for main detector name
+    UInt_t GetLumiDetectorID(const string& name);    //<! Get lumi_detector_id for lumi detector name
     const string GetMeasurementID(const Int_t index);
-    const UInt_t GetSlowControlDetectorID(const string& name);         //<! Get slow_controls_data_id for epics name
+    UInt_t GetSlowControlDetectorID(const string& name);         //<! Get slow_controls_data_id for epics name
     
-    const UInt_t GetRunNumber() {return fRunNumber;}       //<! Run number getter
-    const UInt_t GetSegmentNumber() {return fSegmentNumber;}       //<! CODA File segment number getter
-    const UInt_t GetRunID()     {return fRunID;}           //<! Run ID getter
-    const UInt_t GetRunletID()     {return fRunletID;}           //<! Runlet ID getter
-    const UInt_t GetAnalysisID() {return fAnalysisID;};    //<! Get analysis ID
+    UInt_t GetRunNumber() {return fRunNumber;}       //<! Run number getter
+    UInt_t GetSegmentNumber() {return fSegmentNumber;}       //<! CODA File segment number getter
+    UInt_t GetRunID()     {return fRunID;}           //<! Run ID getter
+    UInt_t GetRunletID()     {return fRunletID;}           //<! Runlet ID getter
+    UInt_t GetAnalysisID() {return fAnalysisID;};    //<! Get analysis ID
 
 
-    const UInt_t GetRunID(QwEventBuffer& qwevt);           //<! Get run ID using data from CODA event buffer
-    const UInt_t GetRunletID(QwEventBuffer& qwevt);      //<! Get runlet ID using data from CODA event buffer
-    const UInt_t GetAnalysisID(QwEventBuffer& qwevt);      //<! Get analysis ID using data from CODA event buffer
+    UInt_t GetRunID(QwEventBuffer& qwevt);           //<! Get run ID using data from CODA event buffer
+    UInt_t GetRunletID(QwEventBuffer& qwevt);      //<! Get runlet ID using data from CODA event buffer
+    UInt_t GetAnalysisID(QwEventBuffer& qwevt);      //<! Get analysis ID using data from CODA event buffer
     Bool_t       SetRunNumber(const UInt_t runnum);        //<! Run number setter
     Bool_t       SetSegmentNumber(const UInt_t segment);        //<! CODA file segment number setter
     const string GetVersion();                             //! Return a full version string for the DB schema
@@ -99,15 +99,15 @@ class QwDatabase: private mysqlpp::Connection {
  private:
 
     Bool_t       ValidateConnection();                  //!< Checks that given connection parameters result in a valid connection
-    const UInt_t SetRunID(QwEventBuffer& qwevt);        //<! Set fRunID using data from CODA event buffer
-    const UInt_t SetRunletID(QwEventBuffer& qwevt);        //<! Set fRunletID using data from CODA event buffer
-    const UInt_t SetAnalysisID(QwEventBuffer& qwevt);   //<! Set fAnalysisID using data from CODA event buffer
+    UInt_t SetRunID(QwEventBuffer& qwevt);        //<! Set fRunID using data from CODA event buffer
+    UInt_t SetRunletID(QwEventBuffer& qwevt);        //<! Set fRunletID using data from CODA event buffer
+    UInt_t SetAnalysisID(QwEventBuffer& qwevt);   //<! Set fAnalysisID using data from CODA event buffer
     void StoreMonitorIDs();                             //<! Retrieve monitor IDs from database and populate fMonitorIDs
     void StoreMainDetectorIDs();                        //<! Retrieve main detector IDs from database and populate fMainDetectorIDs
     void StoreLumiDetectorIDs();                        //<! Retrieve LUMI monitor IDs from database and populate fLumiDetectorIDs
     void StoreMeasurementIDs();
     void StoreSlowControlDetectorIDs();                  //<! Retrieve slow controls data IDs from database and populate fSlow_Controls_DataIDs
-    const bool StoreDBVersion();  //!< Retrieve database schema version information from database
+    bool StoreDBVersion();  //!< Retrieve database schema version information from database
 
     EQwDBAccessLevel fAccessLevel;  //!< Access level of the database instance
 
@@ -186,102 +186,8 @@ class StoreSlowControlDetectorID {
 
 
 
-// QwDBInterface  GetDBEntry(TString subname);
-
-// I extend a DB interface for QwIntegrationPMT to all subsystem,
-// because the table structure are the same in the lumi_data table,
-// the md_data table, and the beam table of MySQL database.
-// Now every device-specified action will be done in
-// the FillDB(QwDatabase *db, TString datatype) of QwBeamLine,
-// QwMainCerenkovDetector, and QwLumi class.
-
-
-class QwDBInterface
-{
-
- private:
-
-  UInt_t fAnalysisId;
-  UInt_t fDeviceId;
-  UInt_t fSubblock;
-  UInt_t fN;
-  Double_t fValue;
-  Double_t fError;
-  Char_t fMeasurementTypeId[4];
-
-  TString fDeviceName;
-
- private:
-  template <class T> inline T TypedDBClone();
-
-
- public:
-
-  QwDBInterface():fAnalysisId(0),fDeviceId(0),fSubblock(0),fN(0),fValue(0.0),fError(0.0)
-    {std::strcpy(fMeasurementTypeId, "");fDeviceName ="";} ;
-    ~QwDBInterface(){};
-
-    void SetAnalysisID(UInt_t id) {fAnalysisId = id;};
-    void SetDetectorName(TString &in) {fDeviceName = in;};
-    void SetDeviceID(UInt_t id) {fDeviceId = id;};
-    void SetMonitorID(QwDatabase *db) {
-      fDeviceId = db->GetMonitorID(fDeviceName.Data());
-      return;
-    }
-    void SetMainDetectorID(QwDatabase *db) {
-      fDeviceId = db->GetMainDetectorID(fDeviceName.Data());
-      return;
-    }
-    void SetLumiDetectorID(QwDatabase *db) {
-      fDeviceId = db->GetLumiDetectorID(fDeviceName.Data());
-      return;
-    }
-    void SetMeasurementTypeID(const char* in) {std::strncpy(fMeasurementTypeId, in, 3);};
-    void SetSubblock(UInt_t in) {fSubblock = in;};
-    void SetN(UInt_t in)        {fN = in;};
-    void SetValue(Double_t in)  {fValue = in;};
-    void SetError(Double_t in)  {fError = in;};
-
-    TString GetDeviceName() {return fDeviceName;};
-
-    void Reset() {
-      fAnalysisId = 0;
-      fDeviceId = 0;
-      fSubblock = 0;
-      fN = 0;
-      fValue = 0.0;
-      fError = 0.0;
-      std::strcpy(fMeasurementTypeId,"");
-      fDeviceName = "";
-    };
-
-    template <class T> void AddThisEntryToList(std::vector<T> &list);
-
-
-    void PrintStatus(Bool_t print_flag) {
-      if(print_flag) {
-	QwMessage << std::setw(12)
-		  << " AnalysisID " << fAnalysisId
-		  << " Device :"    << std::setw(18) << fDeviceName
-		  << ":" << std::setw(4) << fDeviceId
-		  << " Subblock "   << fSubblock
-		  << " n "          << fN
-		  << " Type "       << fMeasurementTypeId
-		  << " [ave, err] "
-		  << " [" << std::setw(14) << fValue
-		  << ","  << std::setw(14) << fError
-		  << "]"
-		  << QwLog::endl;
-      }
-      return;
-    };
-};
-
-
-template <class T> inline T QwDBInterface::TypedDBClone(){
-  T row(0);
-  return row;
-};
+/// Specifications of the templated function
+/// template <class T> inline T QwDBInterface::TypedDBClone();
 template<> inline QwParityDB::md_data
 QwDBInterface::TypedDBClone<QwParityDB::md_data>() {
   QwParityDB::md_data row(0);
@@ -293,7 +199,7 @@ QwDBInterface::TypedDBClone<QwParityDB::md_data>() {
   row.value               = fValue;
   row.error               = fError;
   return row;
-};
+}
 template<> inline QwParityDB::lumi_data
 QwDBInterface::TypedDBClone<QwParityDB::lumi_data>() {
   QwParityDB::lumi_data row(0);
@@ -305,7 +211,7 @@ QwDBInterface::TypedDBClone<QwParityDB::lumi_data>() {
   row.value               = fValue;
   row.error               = fError;
   return row;
-};
+}
 template<> inline QwParityDB::beam
 QwDBInterface::TypedDBClone<QwParityDB::beam>() {
   QwParityDB::beam row(0);
@@ -317,6 +223,6 @@ QwDBInterface::TypedDBClone<QwParityDB::beam>() {
   row.value               = fValue;
   row.error               = fError;
   return row;
-};
+}
 
 #endif

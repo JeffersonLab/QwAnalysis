@@ -34,24 +34,21 @@ Int_t QwASCIIEventBuffer::LoadChannelMap(const char *geomname) {
 
 
 
-Int_t QwASCIIEventBuffer::InitrcDETRegion( std::vector< std::vector< QwDetectorInfo > > & tmp_detector_info) {
+Int_t QwASCIIEventBuffer::InitrcDETRegion(QwGeometry& tmp_detector_info) {
 
     if (DEBUG1) std::cout<<"Starting InitrcDETRegion "<<std::endl;
-    fDetectorInfo=tmp_detector_info;
-    DetectorCounter=0;
+    fDetectorInfo = tmp_detector_info;
+    DetectorCounter = 0;
 
-    for (UInt_t j=0;j<fDetectorInfo.size();j++) {
         for (UInt_t i=0;i<fDetectorInfo.at(j).size();i++) {
 	  if (DEBUG1){
 	    //InitrcDETRegion is called for each region to add detectors
-	    std::cout<<" Region "<<fDetectorInfo.at(j).at(i).fRegion<<" ID "<<fDetectorInfo.at(j).at(i).fDetectorID<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(j).at(i).fPackage << " Plane " << i+1 << " Dir  " << fDetectorInfo.at(j).at(i).fDirection <<std::endl;
+	    std::cout<<" Region "<<fDetectorInfo.at(i)->fRegion<<" ID "<<fDetectorInfo.at(i)->fDetectorID<<" Detector counter "<<DetectorCounter<<" Package "<<fDetectorInfo.at(i)->fPackage << " Plane " << i+1 << " Dir  " << fDetectorInfo.at(i)->fDirection <<std::endl;
 
 	  }
-            AddDetector(fDetectorInfo.at(j).at(i),DetectorCounter);
+            AddDetector(fDetectorInfo.at(i),DetectorCounter);
             DetectorCounter++;
         }
-
-    }
 
 
  // now rcDET is ready.
@@ -105,7 +102,7 @@ void  QwASCIIEventBuffer::GetrcDETRegion(QwHitContainer &HitList, Int_t event_no
     region   = (EQwRegionID)        local_id.fRegion;
     dir      = (EQwDirectionID)     local_id.fDirection;
 
-    detectorId1 = fDetectorInfo.at(local_id.fPackage).at(local_id.fPlane-1).fDetectorID;
+    detectorId1 = fDetectorInfo.at(local_id.fPlane-1)->fDetectorID;
 
 
     // when this is the first detector of the event

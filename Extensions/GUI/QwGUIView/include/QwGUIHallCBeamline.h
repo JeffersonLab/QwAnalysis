@@ -32,8 +32,8 @@ Added by Buddhini to display the hall c Beamline data.
  */
 //=============================================================================
 
-#define HCLINE_BPMS   23 // There are 23 BPMs in the hallC beamline  
-#define HCLINE_BCMS   5     
+#define HCLINE_BPMS   24 // There are 23 BPMs in the hallC beamline+the virtual target bpm
+#define HCLINE_BCMS   4     
 #define NUM_TREE      3
 ///
 /// \ingroup QwGUIHallCBeamline
@@ -76,6 +76,7 @@ Added by Buddhini to display the hall c Beamline data.
   TGTextButton        *dBtnCorrelations;
   TGTextButton        *dBtnPlotHistos;
   TGTextButton        *dBtnRaster;
+  TGTextButton        *dBtnAqDiff;
   TGComboBox          *dCmbHistos;
   TGLayoutHints       *dCmbLayout;
 
@@ -111,6 +112,7 @@ Added by Buddhini to display the hall c Beamline data.
   void PlotHistograms();
   void FastRaster();
   void Correlations(TString axis1, TString axis2);
+  void BCMDoubleDifference();
 
   //!This function clear the histograms/plots in the plot container. This is done everytime a new 
   //!file is opened. If the displayed plots are not saved prior to opening a new file, any changes

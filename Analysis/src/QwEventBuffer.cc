@@ -13,7 +13,8 @@
 Bool_t globalEXIT;
 void sigint_handler(int sig)
 {
-        std::cout << "handling signal no. " << sig << "\n";
+        std::cout << "handling signal no. " << sig << " ";
+        std::cout << "(press ctrl-\\ to abort now)\n";
         globalEXIT=1;
 }
 
@@ -62,7 +63,7 @@ QwEventBuffer::QwEventBuffer()
       fDataDirectory.Append("/");
   }
 
-};
+}
 
 /**
  * Defines configuration options for QwEventBuffer class using QwOptions
@@ -74,7 +75,7 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
 {
   // Define the execution options
   options.AddDefaultOptions()
-    ("online", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("online", po::value<bool>()->default_bool_value(false),
      "use online data stream");
   options.AddDefaultOptions()
     ("run,r", po::value<string>()->default_value("0:0"),
@@ -86,10 +87,13 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
     ("event,e", po::value<string>()->default_value("0:"),
      "event range in format #[:#]");
   options.AddDefaultOptions()
+    ("segment,s", po::value<string>()->default_value("0:"),
+     "run segment range in format #[:#]");
+  options.AddDefaultOptions()
     ("burstlength", po::value<int>()->default_value(0),
      "number of events in a burst\n\t(0 to disable burst analysis)");
   options.AddDefaultOptions()
-    ("chainfiles", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("chainfiles", po::value<bool>()->default_bool_value(false),
      "chain file segments together, do not analyze them separately");
   options.AddDefaultOptions()
     ("codafile-stem", po::value<string>()->default_value(fDefaultDataFileStem),
@@ -129,6 +133,7 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
   }
   fRunRange = options.GetIntValuePair("run");
   fEventRange = options.GetIntValuePair("event");
+  fSegmentRange = options.GetIntValuePair("segment");
   fRunListFileName = options.GetValue<string>("runlist");
   fBurstLength = options.GetValue<int>("burstlength");
   fChainDataFiles = options.GetValue<bool>("chainfiles");
@@ -160,7 +165,7 @@ void QwEventBuffer::PrintRunTimes()
 	    << "Real time used: " << fRunTimer.RealTime() << " s "
 	    << "(" << 1000.0 * fRunTimer.RealTime() / nevents << " ms per event)" << QwLog::endl
 	    << QwLog::endl;
-};
+}
 
 
 
@@ -233,7 +238,7 @@ TString QwEventBuffer::GetRunLabel() const
     runlabel += Form(".%03d",*fRunSegmentIterator);
   }
   return runlabel;
-};
+}
 
 Int_t QwEventBuffer::OpenNextStream()
 {
@@ -255,8 +260,10 @@ Int_t QwEventBuffer::OpenNextStream()
     status = OpenETStream(fETHostname, fETSession, 0);
 
   } else {
-    //  Try to open the next data file for the current run.
-    if (fCurrentRun != -1 && !fChainDataFiles) {
+    //  Try to open the next data file for the current run,
+    //  but only if we haven't hit the event limit.
+    if (fCurrentRun != -1 && !fChainDataFiles
+	&& fEvtNumber <= fEventRange.second) {
       status = OpenNextSegment();
     }
     while (status != CODA_OK && GetNextRunNumber()) {
@@ -298,7 +305,7 @@ Int_t QwEventBuffer::CloseStream()
     status = CloseETStream();
   }
   return status;
-};
+}
 
 
 
@@ -323,6 +330,15 @@ Int_t QwEventBuffer::GetNextEvent()
         else status = EOF;
       } while (fEvtNumber < fEventRange.first);
     }
+    //  While we're in a run segment which was not requested (which
+    //  should happen only when reading the zeroth segment for startup
+    //  information), pretend that there's an event cut causing us to
+    //  ignore events.  Read configuration events only from the first
+    //  part of the file.
+    if (fRunIsSegmented && GetSegmentNumber() < fSegmentRange.first) {
+      fEventRange.first = fEvtNumber + 1;
+      if (fEvtNumber > 1000) status = EOF;
+    }
   } while (status == CODA_OK  &&
            IsPhysicsEvent()   &&
            (fEvtNumber < fEventRange.first
@@ -343,7 +359,7 @@ Int_t QwEventBuffer::GetNextEvent()
   }
 
   return status;
-};
+}
 
 
 Int_t QwEventBuffer::GetEvent()
@@ -377,7 +393,7 @@ Int_t QwEventBuffer::GetFileEvent(){
     }
   } while (fChainDataFiles && status == EOF);
   return status;
-};
+}
 
 Int_t QwEventBuffer::GetEtEvent(){
   Int_t status = CODA_OK;
@@ -385,7 +401,7 @@ Int_t QwEventBuffer::GetEtEvent(){
   //  read to be cleared?
   status = fEvStream->codaRead();
   return status;
-};
+}
 
 
 Int_t QwEventBuffer::WriteEvent(int* buffer)
@@ -408,7 +424,7 @@ Int_t QwEventBuffer::WriteFileEvent(int* buffer)
   //  but codaWrite is only defined for THaCodaFile.
   status = ((THaCodaFile*)fEvStream)->codaWrite(buffer);
   return status;
-};
+}
 
 
 Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
@@ -445,7 +461,7 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
   Int_t status = WriteEvent(codabuffer);
   // and report success or fail
   return status;
-};
+}
 
 
 Int_t QwEventBuffer::EncodePrestartEvent(int runnumber, int runtype)
@@ -502,7 +518,7 @@ Int_t QwEventBuffer::EncodeEndEvent()
 
 
 void QwEventBuffer::ResetFlags(){
-};
+}
 
 
 void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
@@ -543,7 +559,8 @@ void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
       SetEventType(local_eventtype);
       fBankDataType = local_datatype;
 
-      if (local_eventtype>=0 && local_eventtype<=15) {
+      // local_eventtype is unsigned int and always positive
+      if (/* local_eventtype >= 0 && */ local_eventtype <= 15) {
         //  This is a physics event; record the event number, event
         //  classification, and status summary.
         fEvtNumber = buffer[4];
@@ -582,7 +599,7 @@ void QwEventBuffer::DecodeEventIDBank(UInt_t *buffer)
   // 	  << Form("Status Summary: 0x%.8x; Words so far %d",
   // 		  fStatSum, fWordsSoFar)
   // 	   << std::endl;
-};
+}
 
 
 Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystems)
@@ -635,19 +652,28 @@ Bool_t QwEventBuffer::FillSubsystemConfigurationData(QwSubsystemArray &subsystem
 	    <<QwLog::endl;
   }
   return okay;
-};
+}
 
 Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 {
-  // Initialize local flag
+  //  Initialize local flag
   Bool_t okay = kTRUE;
+
+  //  Reload the data buffer and decode the header again, this allows
+  //  multiple calls to this function for different subsystem arrays.
+  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
+  DecodeEventIDBank(localbuff);
 
   //  Clear the old event information from the subsystems.
   subsystems.ClearEventData();
 
-  //  Pass CODA event number and type to the subsystem array.
+  //  Pass CODA run, segment, event number and type to the subsystem array.
+  subsystems.SetCodaRunNumber(fCurrentRun);
+  subsystems.SetCodaSegmentNumber(fRunIsSegmented? *fRunSegmentIterator: 0);
   subsystems.SetCodaEventNumber(fEvtNumber);
   subsystems.SetCodaEventType(fEvtType);
+
+
 
   // If this event type is masked for the subsystem array, return right away
   if (((0x1 << (fEvtType - 1)) & subsystems.GetEventTypeMask()) == 0) {
@@ -655,7 +681,6 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
   }
 
   //  Loop through the data buffer in this event.
-  UInt_t *localbuff = (UInt_t*)(fEvStream->getEvBuffer());
   while ((okay = DecodeSubbankHeader(&localbuff[fWordsSoFar]))){
 
     //  If this bank has further subbanks, restart the loop.
@@ -683,8 +708,17 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
     //  After trying the data in each subsystem, bump the
     //  fWordsSoFar to move to the next bank.
 
-//     QwDebug << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
-// 	    <<", FragLength="<<fFragLength <<QwLog::endl;
+    if( fROC == 0 && fSubbankTag==0x6101) {
+      //std::cout << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag<<", FragLength="<<fFragLength <<std::endl;
+      fCleanParameter[0]=localbuff[fWordsSoFar+fFragLength-4];//clean data
+      fCleanParameter[1]=localbuff[fWordsSoFar+fFragLength-3];//scan data 1
+      fCleanParameter[2]=localbuff[fWordsSoFar+fFragLength-2];//scan data 2
+      //std::cout << "ProcessEventBuffer: ROC="<<fROC<<", SubbankTag="<< fSubbankTag
+      //		<<", FragLength="<<fFragLength << " " <<fCleanParameter[0]<< " " <<fCleanParameter[1]<< " " <<fCleanParameter[2]<<std::endl;
+
+    }
+    
+    subsystems.SetCleanParameters(fCleanParameter); // fCleanParameter[3]
 
     subsystems.ProcessEvBuffer(fEvtType, fROC, fSubbankTag,
 			       &localbuff[fWordsSoFar],
@@ -695,7 +729,7 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
 // 	    <<QwLog::endl;
   }
   return okay;
-};
+}
 
 
 // added all this method for QwEPICSEvent class
@@ -770,7 +804,7 @@ Bool_t QwEventBuffer::FillEPICSData(QwEPICSEvent &epics)
   //std::cout<<"\nEpics data coming!! "<<fWordsSoFar<<std::endl;
 
   return okay;
-};
+}
 
 
 Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
@@ -807,12 +841,12 @@ Bool_t QwEventBuffer::DecodeSubbankHeader(UInt_t *buffer){
     fWordsSoFar   += 2;
   }
   return okay;
-};
+}
 
 
 const TString&  QwEventBuffer::DataFile(const UInt_t run, const Short_t seg = -1)
 {
-  TString basename = fDataFileStem + Form("%ld.",run) + fDataFileExtension;
+  TString basename = fDataFileStem + Form("%u.",run) + fDataFileExtension;
   if(seg == -1){
     fDataFile = fDataDirectory + basename;
   } else {
@@ -885,22 +919,36 @@ Bool_t QwEventBuffer::DataFileIsSegmented()
        *  increasing order.                                     */
       TMath::Sort(static_cast<int>(tmp_segments.size()),&(tmp_segments[0]),&(local_index[0]),
                   kFALSE);
-      /*  Put the segments into numerical order in              *
-       *  fRunSegments.                                         */
+      /*  Put the segments into numerical order in fRunSegments.  Add  *
+       *  only those segments requested (though always add segment 0). */
       QwMessage << "      Found the segment(s): ";
+      size_t printed = 0;
       for (size_t iloop=0; iloop<tmp_segments.size(); ++iloop){
         local_segment = tmp_segments[local_index[iloop]];
-        fRunSegments.push_back(local_segment);
-        if (iloop==0){
-          QwMessage << local_segment ;
-        } else {
-          QwMessage << ", " << local_segment ;
-        }
+        if (printed++) QwMessage << ", ";
+	QwMessage << local_segment ;
+	if (local_segment == 0 ||
+	    ( fSegmentRange.first <= local_segment &&
+	      local_segment <= fSegmentRange.second ) ) {
+	  fRunSegments.push_back(local_segment);
+	} else {
+	  QwMessage << " (skipped)" ;
+	}
       }
       QwMessage << "." << QwLog::endl;
       fRunSegmentIterator = fRunSegments.begin();
 
       fRunIsSegmented = kTRUE;
+
+      /* If the first requested segment hasn't been found,
+	 forget everything. */
+      if ( local_segment < fSegmentRange.first ) {
+	QwError << "First requested run segment "
+		<< fSegmentRange.first << " not found.\n";
+	fRunSegments.pop_back();
+	fRunSegmentIterator = fRunSegments.begin();
+	fRunIsSegmented = kTRUE; // well, it is true.
+      }
     }
   }
   globfree(&globbuf);
@@ -975,7 +1023,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, Short_t seg)
   fRunSegments.push_back(seg);
   fRunSegmentIterator = fRunSegments.begin();
   return OpenNextSegment();
-};
+}
 
 //------------------------------------------------------------
 //call this routine if the run is not segmented
@@ -990,7 +1038,7 @@ Int_t QwEventBuffer::OpenDataFile(UInt_t current_run, const TString rw)
     status = OpenDataFile(DataFile(fCurrentRun),rw);
   }
   return status;
-};
+}
 
 
 
@@ -1045,7 +1093,7 @@ Int_t QwEventBuffer::OpenDataFile(const TString filename, const TString rw)
     globfree(&globbuf);
   }
   return fEvStream->codaOpen(fDataFile, rw);
-};
+}
 
 
 //------------------------------------------------------------

@@ -18,7 +18,28 @@
 VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystemByName(const TString& name)
 {
   return dynamic_cast<VQwSubsystemTracking*>(QwSubsystemArray::GetSubsystemByName(name));
-};
+}
+
+
+/**
+ * Get the detector info for all subsystems
+ * @return Detector info container
+ */
+const QwGeometry QwSubsystemArrayTracking::GetGeometry()
+{
+  QwGeometry geometry;
+  if (!empty()) {
+    for (iterator subsys = begin(); subsys != end(); ++subsys) {
+      VQwSubsystemTracking* subsys_tracking =
+        dynamic_cast<VQwSubsystemTracking*>(subsys->get());
+      if (subsys_tracking != 0) {
+        geometry.push_back(subsys_tracking->GetDetectorInfo());
+      }
+    }
+  }
+  return geometry;
+}
+
 
 /**
  * Get the hit list from the subsystems in this array
@@ -26,14 +47,13 @@ VQwSubsystemTracking* QwSubsystemArrayTracking::GetSubsystemByName(const TString
  */
 void QwSubsystemArrayTracking::GetHitList(QwHitContainer& hitlist)
 {
-  if (!empty()){
+  if (!empty()) {
     hitlist.clear();
-
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      VQwSubsystemTracking* tsubsys =
-        dynamic_cast<VQwSubsystemTracking*>((subsys)->get());
-      if (tsubsys != NULL){
-        tsubsys->GetHitList(hitlist);
+    for (iterator subsys = begin(); subsys != end(); ++subsys) {
+      VQwSubsystemTracking* subsys_tracking =
+        dynamic_cast<VQwSubsystemTracking*>(subsys->get());
+      if (subsys_tracking != 0) {
+        subsys_tracking->GetHitList(hitlist);
       } else {
         std::cerr << "QwSubsystemArrayTracking::GetHitList: Subsystem \""
                   << ((subsys)->get())->GetSubsystemName()
@@ -41,4 +61,4 @@ void QwSubsystemArrayTracking::GetHitList(QwHitContainer& hitlist)
       }
     }
   }
-};
+}

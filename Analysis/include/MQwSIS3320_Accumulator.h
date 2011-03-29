@@ -43,14 +43,14 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     };
     ~MQwSIS3320_Accumulator() { };
 
-    const Int_t GetMinValue() const { return fMinValue; };
-    const Int_t GetMaxValue() const { return fMaxValue; };
-    const Int_t GetMinTime() const { return fMinTime; };
-    const Int_t GetMaxTime() const { return fMaxTime; };
+    Int_t GetMinValue() const { return fMinValue; };
+    Int_t GetMaxValue() const { return fMaxValue; };
+    Int_t GetMinTime() const { return fMinTime; };
+    Int_t GetMaxTime() const { return fMaxTime; };
 
-    const Double_t GetNumberOfSamples() const { return fNumberOfSamples; };
-    const Double_t GetAccumulatorSum() const { return fAccumulatorSum; };
-    const Double_t GetAccumulatorAvg() const {
+    Double_t GetNumberOfSamples() const { return fNumberOfSamples; };
+    Double_t GetAccumulatorSum() const { return fAccumulatorSum; };
+    Double_t GetAccumulatorAvg() const {
       if (fAccumulatorSum > 0)
         return fAccumulatorSum / fNumberOfSamples;
       else return 0.0;
@@ -112,6 +112,6 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
 inline std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Accumulator& a) {
   stream << a.GetAccumulatorSum() << " (" << a.GetNumberOfSamples() << ")";
   return stream;
-};
+}
 
 #endif // __MQwSIS3320_Accumulator__

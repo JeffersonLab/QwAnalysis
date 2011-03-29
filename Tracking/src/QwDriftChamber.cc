@@ -48,10 +48,12 @@ QwDriftChamber::QwDriftChamber(TString region_tmp,std::vector< QwHit > &fWireHit
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
 
-};
+}
 
 QwDriftChamber::QwDriftChamber(TString region_tmp)
-  :VQwSubsystemTracking(region_tmp),fWireHits(fTDCHits)
+  :VQwSubsystem(region_tmp),
+   VQwSubsystemTracking(region_tmp),
+   fWireHits(fTDCHits)
 {
   OK            = 0;
   fDEBUG        = kFALSE;
@@ -63,24 +65,24 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerTDC = fF1TDCDecoder.GetTDCMaxChannels(); 
 
-};
+}
 
 
 QwDriftChamber::~QwDriftChamber()
 {
   delete fF1TDContainer;
-};
+}
 
 void  QwDriftChamber::FillDriftDistanceToHits()
 { //Currently This routine is not in use the drift distance calculation is done at ProcessEvent() on each sub-class
+//   std::cout << "size: " << fWireHits.size() << std::endl;
   for (std::vector<QwHit>::iterator hit1=fWireHits.begin(); hit1!=fWireHits.end(); hit1++) {
     
-    if (hit1->GetTime()<0) continue;
     hit1->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
     
   }
   return;
-};
+}
 
 
 Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, 
@@ -193,7 +195,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 
   // fF1TDContainer-> PrintErrorSummary();
   return OK;
-};
+}
 
 
 // Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id, 
@@ -308,7 +310,7 @@ Int_t QwDriftChamber::ProcessEvBuffer(const UInt_t roc_id,
 //   }
 
 //   return OK;
-// };
+// }
 
 
 
@@ -336,14 +338,13 @@ Int_t QwDriftChamber::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_i
   std::cout<<"Registering ROC "<<roc_id<<std::endl;
 
   return status;
-};
+}
 
 
 Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
 {
   Int_t stat = VQwSubsystem::RegisterSubbank(bank_id);
   fCurrentBankIndex = GetSubbankIndex(VQwSubsystem::fCurrentROC_ID, bank_id);//subbank id is directly related to the ROC
-  
   if (fReferenceChannels.size()<=fCurrentBankIndex) {
     fReferenceChannels.resize(fCurrentBankIndex+1);
     fReferenceData.resize(fCurrentBankIndex+1);
@@ -356,13 +357,14 @@ Int_t QwDriftChamber::RegisterSubbank(const UInt_t bank_id)
 	   <<" Subbank "<<bank_id
 	   <<" with BankIndex "<<fCurrentBankIndex<<std::endl;
   return stat;
-};
+}
 
 
 Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
 {
   if (slot_id<kMaxNumberOfSlotsPerROC) {
-    if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fTDC_Index.size()) {
+    // fCurrentBankIndex is unsigned int and always positive
+    if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex <= fTDC_Index.size()) {
       fTDCPtrs.resize(fNumberOfTDCs+1);
       fTDCPtrs.at(fNumberOfTDCs).resize(kMaxNumberOfChannelsPerTDC);
       fNumberOfTDCs = fTDCPtrs.size();
@@ -378,18 +380,19 @@ Int_t QwDriftChamber::RegisterSlotNumber(UInt_t slot_id)
   }
   return fCurrentTDCIndex;
     
-};
+}
 
 Int_t QwDriftChamber::GetTDCIndex(size_t bank_index, size_t slot_num) const 
 {
   Int_t tdcindex = -1;
-  if (bank_index>=0 && bank_index<fTDC_Index.size()) {
-    if (slot_num>=0 && slot_num<fTDC_Index.at(bank_index).size()) {
+  // bank_index and slot_num are unsigned int and always positive
+  if (/* bank_index >= 0 && */ bank_index < fTDC_Index.size()) {
+    if (/* slot_num >= 0 && */ slot_num < fTDC_Index.at(bank_index).size()) {
       tdcindex = fTDC_Index.at(bank_index).at(slot_num);
     }
   }
   return tdcindex;
-};
+}
 
 
 Int_t QwDriftChamber::LinkReferenceChannel (const UInt_t chan,const Int_t plane, const Int_t wire )
@@ -401,7 +404,7 @@ Int_t QwDriftChamber::LinkReferenceChannel (const UInt_t chan,const Int_t plane,
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fPlane   = plane;
   fTDCPtrs.at ( fCurrentTDCIndex ).at ( chan ).fElement = fCurrentBankIndex;
   return OK;
-};
+}
 
 
 
@@ -484,7 +487,7 @@ void  QwDriftChamber::ReportConfiguration()
     }
     
   return;
-};
+}
 
 
 
@@ -535,7 +538,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
   UInt_t slot_id      = 0;
   UInt_t vme_slot_num = 0;
 
-  Bool_t local_debug  = true;
+  Bool_t local_debug  = false;
 
   QwF1TDC *local_f1tdc = NULL;
    
@@ -549,22 +552,23 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     subsystem_name = this->GetSubsystemName();
     fF1TDContainer -> SetSystemName(subsystem_name);
 
-    if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
+    if(local_debug) {
+      std::cout << "-----------------------------------------------------" << std::endl;
   
-    std::cout << "QwDriftChamber : " 
-	      << subsystem_name
-	      << ", "
-	      << "ProcessConfigurationBuffer"
-	      << std::endl;
-    std::cout << "ROC " 
-	      << std::setw(2) << roc_id
-	      << " Bank [index,id]["
-	      <<  bank_index
-	      << ","
-	      << bank_id
-	      << "]"
-	      << std::endl;
-  
+      std::cout << "\nQwDriftChamber : " 
+		<< subsystem_name
+		<< ", "
+		<< "ProcessConfigurationBuffer"
+		<< std::endl;
+      std::cout << "ROC " 
+		<< std::setw(2) << roc_id
+		<< " Bank [index,id]["
+		<<  bank_index
+		<< ","
+		<< bank_id
+		<< "]"
+		<< std::endl;
+    }
     for ( slot_id=0; slot_id<kMaxNumberOfSlotsPerROC; slot_id++ ) 
       { 
 	// slot id starts from 2, because 0 is one offset (1) difference between QwAnalyzer and VME definition, 
@@ -572,7 +576,6 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	
 	tdc_index    = GetTDCIndex(bank_index, slot_id);
 	vme_slot_num = slot_id;
-      
 	if(local_debug) {
 	  std::cout << "    "
 		    << "Slot [id, VME num] [" 
@@ -582,8 +585,6 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 		    << "]";
 	  std::cout << "    ";
 	}
-
-      
 	local_f1tdc = NULL;
 
 	if(slot_id > 2) { // save time
@@ -600,8 +601,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 	    local_f1tdc->SetF1SystemName(subsystem_name);
 
 	    fF1TDContainer->AddQwF1TDC(local_f1tdc);
-	  
-	    if(local_debug) {
+	    if(local_debug) { 
 	      std::cout << "F1TDC index " 
 			<< std::setw(2) 
 			<< tdc_index
@@ -611,11 +611,9 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 			<< " at " 
 			<< local_f1tdc;
 	    }
-
 	  }
 	  else {
-
-	    if(local_debug) {
+	    if(local_debug){
 	      std::cout << "Unused in "  
 			<< std::setw(4) 
 			<< subsystem_name	
@@ -623,27 +621,23 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
 			<< " local_f1tdc  at " 
 			<< local_f1tdc;
 	    }
-	  
 	  }
 		
 	}
 	else { // slot_id == only 0, 1, & 2
-	
 	  if(local_debug) {
 	    if      (slot_id == 0) std::cout << "         ";
 	    else if (slot_id == 1) std::cout << "MVME CPU ";
 	    else                   std::cout << "Trigger Interface"; // slot_id == 2;
-
 	  }
 	}
-   
-	if(local_debug) std::cout << std::endl;
+	if(local_debug) {
+	  std::cout << std::endl;
+	}
       }
   
-    if(local_debug) {
-      fF1TDContainer->Print();
-      std::cout << "-----------------------------------------------------" << std::endl;
-    }
+    if(local_debug) fF1TDContainer->Print();
+    std::cout << "-----------------------------------------------------" << std::endl;
 
     
     // kMaxNumberOfChannelsPerTDC = fF1TDContainer->GetF1TDCChannelNumber();
@@ -654,7 +648,7 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     ///    local_f1tdc = 0;
     return -1;
   }
-};
+}
 
 
 
@@ -663,6 +657,6 @@ void QwDriftChamber::DeleteHistograms()
   fF1TDContainer->PrintErrorSummary();
   fF1TDContainer->WriteErrorSummary();
   return;
-};
+}
 
 

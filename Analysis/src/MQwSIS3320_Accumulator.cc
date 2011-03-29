@@ -48,7 +48,7 @@ Int_t MQwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_l
   }
 
   return words_read;
-};
+}
 
 
 /**
@@ -61,7 +61,7 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator+ (const Double_t &
   MQwSIS3320_Accumulator result = *this;
   result += value;
   return result;
-};
+}
 
 /**
  * Subtraction of offset from accumulated data
@@ -73,7 +73,7 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator- (const Double_t &
   MQwSIS3320_Accumulator result = *this;
   result -= value;
   return result;
-};
+}
 
 /**
  * Multiplication of factor to accumulated data
@@ -85,7 +85,7 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator* (const Double_t &
   MQwSIS3320_Accumulator result = *this;
   result *= value;
   return result;
-};
+}
 
 /**
  * Division of factor from accumulated data (not division-by-zero safe)
@@ -98,7 +98,7 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator/ (const Double_t &
   if (value != 0)
     result /= value;
   return result;
-};
+}
 
 /**
  * Multiplication assignment of factor to accumulated data
@@ -111,7 +111,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator*= (const Double_t &valu
     this->fAccumulatorSum *= value;
   }
   return *this;
-};
+}
 
 /**
  * Division assignment of factor from accumulated data (not division-by-zero safe)
@@ -125,7 +125,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator/= (const Double_t &valu
       this->fAccumulatorSum /= value;
   }
   return *this;
-};
+}
 
 /**
  * Addition assignment of offset to accumulated data
@@ -138,7 +138,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator+= (const Double_t &valu
     this->fAccumulatorSum += value;
   }
   return *this;
-};
+}
 
 /**
  * Subtraction assignment of offset from accumulated data
@@ -151,7 +151,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const Double_t &valu
     this->fAccumulatorSum -= value;
   }
   return *this;
-};
+}
 
 /**
  * Addition of accumulated data
@@ -163,7 +163,7 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator+ (const MQwSIS3320
   MQwSIS3320_Accumulator result = *this;
   result += value;
   return result;
-};
+}
 
 /**
  * Subtraction of accumulated data
@@ -175,7 +175,7 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator- (const MQwSIS3320
   MQwSIS3320_Accumulator result = *this;
   result -= value;
   return result;
-};
+}
 
 /**
  * Assignment of accumulated data
@@ -189,7 +189,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator= (const MQwSIS3320_Accu
     this->fNumberOfSamples = value.fNumberOfSamples;
   }
   return *this;
-};
+}
 
 /**
  * Addition assignment of accumulated data
@@ -203,7 +203,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator+= (const MQwSIS3320_Acc
     this->fNumberOfSamples += value.fNumberOfSamples;
   }
   return *this;
-};
+}
 
 /**
  * Subtraction assignment of accumulated data
@@ -217,7 +217,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const MQwSIS3320_Acc
     this->fNumberOfSamples -= value.fNumberOfSamples;
   }
   return *this;
-};
+}
 
 
 void MQwSIS3320_Accumulator::Sum(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2)
@@ -260,7 +260,7 @@ void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &pre
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     tree->Branch(basename, &(values[fTreeArrayIndex]), list);
   }
-};
+}
 
 void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -280,7 +280,7 @@ void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values) const
     values[index++] = GetAccumulatorSum();
     values[index++] = GetNumberOfSamples();
   }
-};
+}
 
 
 void MQwSIS3320_Accumulator::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -303,7 +303,7 @@ void MQwSIS3320_Accumulator::ConstructHistograms(TDirectory *folder, TString &pr
     fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_avg"));
 
   }
-};
+}
 
 void MQwSIS3320_Accumulator::FillHistograms()
 {
@@ -322,7 +322,7 @@ void MQwSIS3320_Accumulator::FillHistograms()
       fHistograms[index+1]->Fill(GetAccumulatorAvg());
 
   }
-};
+}
 
 void  MQwSIS3320_Accumulator::DeleteHistograms()
 {
@@ -332,4 +332,4 @@ void  MQwSIS3320_Accumulator::DeleteHistograms()
     fHistograms[i] = NULL;
   }
   fHistograms.clear();
-};
+}

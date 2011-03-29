@@ -8,16 +8,20 @@
 #ifndef __QwQPD__
 #define __QwQPD__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-
+// Qweak headers
 #include "QwVQWK_Channel.h"
-#include "QwDatabase.h"
 #include "VQwBPM.h"
 #include "QwParameterFile.h"
+
+// Forward declarations
+class QwDBInterface;
+
 /*****************************************************************
 *  Class:
 ******************************************************************/
@@ -36,6 +40,9 @@ class QwQPD : public VQwBPM {
  QwQPD(TString subsystemname, TString name):VQwBPM(name){
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name);
+    fQwQPDCalibration[0] = 1.0;
+    fQwQPDCalibration[1] = 1.0;
+
   };    
   
   ~QwQPD() {
@@ -45,12 +52,12 @@ class QwQPD : public VQwBPM {
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
   void    InitializeChannel(TString subsystem, TString name);
+  void    GetCalibrationFactors(Double_t AlphaX, Double_t AlphaY);
+  
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
   void    ProcessEvent();
-  void    PrintValue() const;
-  void    PrintInfo() const;
 
   UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
@@ -72,7 +79,7 @@ class QwQPD : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(VQwDataElement *source);
+  void    Copy(QwQPD *source);
   void    Ratio(QwQPD &numer, QwQPD &denom);
   void    Scale(Double_t factor);
 
@@ -80,8 +87,8 @@ class QwQPD : public VQwBPM {
   virtual QwQPD& operator+= (const QwQPD &value);
   virtual QwQPD& operator-= (const QwQPD &value);
 
-  void    AccumulateRunningSum(const QwQPD& value);
-  void    CalculateRunningAverage();
+ /*  void    AccumulateRunningSum(const QwQPD& value); */
+/*   void    CalculateRunningAverage(); */
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
   void    FillHistograms();
@@ -100,16 +107,14 @@ class QwQPD : public VQwBPM {
 
   /////
  private:
-  /*  Position calibration factor, transform ADC counts in mm */
-  static const Double_t kQwQPDCalibration;
   static const TString subelement[4]; 
-
+  /*  Position calibration factor, transform ADC counts in mm */
+  Double_t fQwQPDCalibration[2];
 
 
  protected:
   QwVQWK_Channel fPhotodiode[4];
   QwVQWK_Channel fRelPos[2];
-  QwVQWK_Channel fEffectiveCharge;
 
   std::vector<QwVQWK_Channel> fQPDElementList;
 

@@ -39,7 +39,7 @@ OutPutOpt     = -o
 # the correct flag settings for root are: 
 
 CXX           = g++
-CXXFLAGS      = -O -Wall -fPIC # -g
+CXXFLAGS      = -O2 -Wall -fPIC # -g
 AR            = ar
 ARFLAGS       = -r
 LD            = g++

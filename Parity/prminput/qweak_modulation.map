@@ -1,7 +1,10 @@
 
 ROC=2
 Bank=0x0202
-num_samples=480
+!num_samples=480
+!for 960Hz
+num_samples=464  
+
 
 !
 ! module.type, module.num  chan.num, det.type, det.name<not added yet>
@@ -14,7 +17,7 @@ num_samples=480
   VQWK, 0, 3,  FGY2
   VQWK, 0, 4,  FGE
   VQWK, 0, 5,  RAMP
-  VQWK, 0, 6,  empty1
+  VQWK, 0, 6,  HWTRIG
   VQWK, 0, 7,  empty2
 
 !ADC1

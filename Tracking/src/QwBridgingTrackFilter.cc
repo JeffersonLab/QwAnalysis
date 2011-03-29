@@ -36,7 +36,7 @@ QwBridgingTrackFilter::QwBridgingTrackFilter()
  * @param back Back partial track
  * @return Failure code (zero when accepted)
  */
-const QwBridgingTrackFilter::EStatus
+QwBridgingTrackFilter::EStatus
 QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
                               const QwPartialTrack* back) const
 {
@@ -87,6 +87,17 @@ QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
         QwMessage << "QwBridgingTrackFilter: vertex z = " << vertex_z/Qw::cm << " cm, "
                   << "allowed range [" << fMinVertexZ/Qw::cm << ","
                                        << fMaxVertexZ/Qw::cm << "] cm" << QwLog::endl;
+        return kFailVertexZ;
+    }
+    
+    // scattering angle phi and the position_phi at Region 2 should have very small difference
+    // this will post a limit on the phi difference
+    double direction_phi = 0.0;
+    direction_phi = front->GetMomentumDirectionPhi();
+    double delta_front_phi = fabs(direction_phi - position_phi);
+    if (delta_front_phi> 5.0*Qw::deg) {
+        QwMessage << "QwBridgingTrackFilter: delta_front_phi = " << delta_front_phi/Qw::deg << " deg, "
+                  << "allowed range [-5, 5] cm" << QwLog::endl;
         return kFailVertexZ;
     }
 

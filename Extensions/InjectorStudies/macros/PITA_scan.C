@@ -12,7 +12,7 @@ void PITA_scan(Int_t runnumber=1, Int_t ihwp=-1, TString device="1i02", TString 
 		printf("defaults:\n\t[device] = \"1i02\"\n\t[cut]    = \"1\"\n\t[title]  = \"PITA\"\n\n");
 		return;
 	}
-	TString infilename = Form("$QW_ROOTFILES/Qweak_%i.000.root",runnumber);
+	TString infilename = Form("$QW_ROOTFILES/qwinjector_%i.000.root",runnumber);
 	PITA_scan(infilename, ihwp, device, usercut, intitle, runnumber);
 }
 
@@ -107,15 +107,15 @@ void PITA_scan(TString infilename = "1", Int_t ihwp=-1, TString device="1i02",
 	pt2->Draw();
 	pt2->SetTextAlign(22);
 
-	plot_element(a1_p[0],a1_p[1],"qwk_"+device+"_EffectiveCharge.hw_sum",usercut,infilename);
+	plot_element(a1_p[0],a1_p[1],"qwk_"+device+"_EffectiveCharge",usercut,infilename);
 	
-	plot_element(a1_p[2],a1_p[3],"qwk_"+device+"RelX.hw_sum",usercut,infilename);
+	plot_element(a1_p[2],a1_p[3],"qwk_"+device+"X",usercut,infilename);
 	
-	plot_element(a1_p[4],a1_p[5],"qwk_"+device+"RelY.hw_sum",usercut,infilename);
+	plot_element(a1_p[4],a1_p[5],"qwk_"+device+"Y",usercut,infilename);
 
 	a1->cd();
 	a1->Update();
-	TString psnam = "plots/";
+	TString psnam = "output/";
 	psnam += plotname.Data();
 	psnam += ".png";
 	a1->Print(psnam.Data());
@@ -138,8 +138,8 @@ void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, TString in
 	TTree *p = (TTree*)gROOT->FindObject("Hel_Tree");
 	TTree *r = (TTree*)gROOT->FindObject("Mps_Tree");
 
-    // make cut
-    TString cut = "cleandata&&" + localcut;
+
+	TString cut;
 
     // plot desired  Aq
     tmpname = bpmNam->Data();
@@ -149,20 +149,30 @@ void plot_element(TPad *p1, TPad* p2, char *devnam, TString localcut, TString in
     if (tmpname.Contains("X") || tmpname.Contains("Y")) {
 		plotcommand = "diff_";
 		plotcommand += tmpname.Data();
-		plotcommand += "*1000";
+		plotcommand += ".hw_sum*1000";
 		titpre = "diff_";
-		titsum = " (nm) vs Scandata1";
+		titsum = " (#mum) vs Scandata1";
+
+		// make cut
+		cut =Form("ErrorFlag==0 && cleandata && diff_%s.Device_Error_Code == 0",tmpname.Data());
+
     } else {
 		if (tmpname.Contains("EffectiveCharge")) {
 			plotcommand = "asym_";
 			plotcommand += tmpname.Data();
-			plotcommand += "*1000000";
+			plotcommand += ".hw_sum*1000000";
+
+			// make cut
+			cut = "ErrorFlag==0 && cleandata && asym_"+tmpname+".Device_Error_Code == 0 &&"+ localcut;
+
 		} else {
 			printf("problems\n");
 		}
 	}
 
 	plotcommand += ":scandata1>>hAq";
+
+
 	printf("%s\n%s\n",plotcommand.Data(),cut.Data());
 	p1->cd();
 	

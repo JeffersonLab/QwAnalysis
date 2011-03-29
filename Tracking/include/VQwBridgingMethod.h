@@ -17,9 +17,9 @@
 
 // Qweak headers
 #include "QwUnits.h"
+#include "QwTrack.h"
 
 // Forward declarations
-class QwTrack;
 class QwPartialTrack;
 
 /**
@@ -34,13 +34,19 @@ class VQwBridgingMethod {
     /// Default constructor
     VQwBridgingMethod() { };
     /// Destructor
-    virtual ~VQwBridgingMethod() { };
+    virtual ~VQwBridgingMethod() {
+      ClearListOfTracks();
+    };
 
     /// \brief Bridge from the front to back partial track (pure virtual)
-    virtual const int Bridge(const QwPartialTrack* front, const QwPartialTrack* back) = 0;
+    virtual int Bridge(const QwPartialTrack* front, const QwPartialTrack* back) = 0;
 
     /// Clear the list of tracks
-    virtual void ClearListOfTracks() { fListOfTracks.clear(); };
+    virtual void ClearListOfTracks() {
+      for (size_t i = 0; i < fListOfTracks.size(); i++)
+        delete fListOfTracks.at(i);
+      fListOfTracks.clear();
+    };
     /// Get the list of tracks that was found
     virtual std::vector<QwTrack*> GetListOfTracks() const { return fListOfTracks; };
 
@@ -51,7 +57,7 @@ class VQwBridgingMethod {
 
 
     /// Estimate the momentum based only on the direction
-    virtual const double EstimateInitialMomentum(const TVector3& direction) const;
+    virtual double EstimateInitialMomentum(const TVector3& direction) const;
 
 }; // class VQwBridgingMethod
 
@@ -66,7 +72,7 @@ class VQwBridgingMethod {
  * @param direction Momentum direction (not necessarily normalized)
  * @return Initial momentum
  */
-inline const double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& direction) const
+inline double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& direction) const
 {
     double cth = direction.CosTheta(); // cos(theta) = uz/r, where ux,uy,uz form a unit vector
     double wp = 0.93828 * Qw::GeV;     // proton mass [GeV]
@@ -75,7 +81,7 @@ inline const double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& d
 
     // Kinematics for elastic e+p scattering
     return e0 / (1.0 + e0 / wp * (1.0 - cth)) - e_loss;
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 

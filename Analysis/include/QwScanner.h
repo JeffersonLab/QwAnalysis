@@ -10,18 +10,21 @@
 #ifndef __QWSCANNER__
 #define __QWSCANNER__
 
+// System headers
 #include <vector>
 
+// ROOT headers
 #include "TTree.h"
 #include "TFile.h"
 #include "TProfile2D.h"
+
 //#include "TRandom3.h"
 
+// Qweak headers
 #include "VQwSubsystemTracking.h"
 #include "VQwSubsystemParity.h"
 
 #include "MQwV775TDC.h"
-//#include "MQwF1TDC.h"
 #include "QwVQWK_Module.h"
 #include "QwSIS3801_Module.h"
 
@@ -31,8 +34,8 @@
 #include "QwPMT_Channel.h"
 #include "QwF1TDContainer.h"
 
-class QwScanner: public VQwSubsystemParity,
-      public VQwSubsystemTracking
+class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
+    public MQwCloneable<QwScanner>
   {
 
   public:
@@ -119,10 +122,7 @@ class QwScanner: public VQwSubsystemParity,
     {
       return 0;
     };
-    Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info)
-    {
-      return 0;
-    };
+
     Int_t LoadInputParameters(TString parameterfile);
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     void  InitializeChannel(TString name, TString datatosave);
@@ -135,10 +135,13 @@ class QwScanner: public VQwSubsystemParity,
 
     Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     void  ProcessEvent();
+
+    using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
     void  DeleteHistograms();
 
+    using VQwSubsystem::ConstructBranchAndVector;
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
@@ -168,12 +171,12 @@ class QwScanner: public VQwSubsystemParity,
       return status;
     };
 
-    void PrintValue() { };
-    void PrintInfo();
+    void PrintValue() const { };
+    void PrintInfo() const;
 
   protected:
 
-    enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC, F1TDC} fCurrentType;
+    EQwModuleType fCurrentType;
     Bool_t fDEBUG;
 
     MQwV775TDC fQDCTDC;
@@ -191,7 +194,7 @@ class QwScanner: public VQwSubsystemParity,
 
     // Tells this object that it will decode data from the current bank
     Int_t RegisterSlotNumber(const UInt_t slot_id);
-    const QwScanner::EModuleType RegisterModuleType(TString moduletype);
+    EQwModuleType RegisterModuleType(TString moduletype);
     Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
     Bool_t IsSlotRegistered(Int_t bank_index, Int_t slot_num) const
       {
@@ -199,7 +202,7 @@ class QwScanner: public VQwSubsystemParity,
       };
 
     Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
-    Int_t FindSignalIndex(const QwScanner::EModuleType modtype, const TString &name) const;
+    Int_t FindSignalIndex(const EQwModuleType modtype, const TString &name) const;
     TString fRegion;  ///  Name of this subsystem (the region).
     size_t fCurrentBankIndex;
     Int_t fCurrentSlot;
@@ -210,8 +213,8 @@ class QwScanner: public VQwSubsystemParity,
 
     Int_t fNumberOfModules;
     std::vector< std::vector<Int_t> > fModuleIndex;  /// Module index, indexed by bank_index and slot_number
-    std::vector< enum EModuleType > fModuleTypes;
-    std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel
+    std::vector< EQwModuleType > fModuleTypes;
+    std::vector< std::vector< std::pair< EQwModuleType, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel
 
     UInt_t GetEventcutErrorFlag()
     {
@@ -223,6 +226,9 @@ class QwScanner: public VQwSubsystemParity,
     std::vector<TH2*> fHistograms2D;
     TProfile2D* fRateMapCM;
     TProfile2D* fRateMapEM;
+
+    std::vector<TString> fParameterFileNames;
+    TH1F*       fParameterFileNamesHist;
 
   private:
     // Double_t get_value( TH2* h, Double_t x, Double_t y, Int_t& checkvalidity);

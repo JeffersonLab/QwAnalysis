@@ -12,9 +12,6 @@
 // System headers
 #include <iostream>
 
-// ROOT headers
-#include "TObject.h"
-
 // Qweak headers
 #include "QwTypes.h"
 #include "QwObjectCounter.h"
@@ -51,8 +48,8 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   // (documented in QwHit.cc)
   // @{
   QwHit();
-  QwHit(const QwHit& hit);
-  QwHit(const QwHit* hit);
+  QwHit(const QwHit& that);
+  QwHit(const QwHit* that);
   QwHit(Int_t bank_index, Int_t slot_num, Int_t chan, Int_t hitcount,
 	EQwRegionID region, EQwDetectorPackage package, Int_t plane,
 	EQwDirectionID direction, Int_t wire, UInt_t rawdata = 0);
@@ -74,38 +71,38 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   friend ostream& operator<< (ostream& stream, const QwHit& hit);
 
   //! \brief Print debugging information
-  void Print();
+  void Print(const Option_t* options = 0) const;
 
   //! \name Getter functions
   // @{
-  const Int_t           GetSubbankID()     const { return fCrate; };
-  const Int_t           GetModule()        const { return fModule; };
-  const Int_t           GetChannel()       const { return fChannel; };
-  const Int_t           GetHitNumber()     const { return fHitNumber; };
-  const Int_t           GetHitNumberR()    const { return fHitNumber_R; };
-  const EQwRegionID     GetRegion()        const { return fRegion; };
-  const EQwDetectorPackage GetPackage()    const { return fPackage; };
-  const EQwDirectionID  GetDirection()     const { return fDirection; };
-  const Int_t           GetPlane()         const { return fPlane; };
-  const Int_t           GetElement()       const { return fElement; };
+  const Int_t&          GetSubbankID()     const { return fCrate; };
+  const Int_t&          GetModule()        const { return fModule; };
+  const Int_t&          GetChannel()       const { return fChannel; };
+  const Int_t&          GetHitNumber()     const { return fHitNumber; };
+  const Int_t&          GetHitNumberR()    const { return fHitNumber_R; };
+  const EQwRegionID&    GetRegion()        const { return fRegion; };
+  const EQwDetectorPackage& GetPackage()   const { return fPackage; };
+  const EQwDirectionID& GetDirection()     const { return fDirection; };
+  const Int_t&          GetPlane()         const { return fPlane; };
+  const Int_t&          GetElement()       const { return fElement; };
 
   QwDetectorInfo*       GetDetectorInfo()  const { return pDetectorInfo; };
 
-  const Bool_t          AmbiguousElement() const { return fAmbiguousElement; };
-  const Bool_t          LRAmbiguity()      const { return fLRAmbiguity; };
+  const Bool_t&         AmbiguousElement() const { return fAmbiguousElement; };
+  const Bool_t&         LRAmbiguity()      const { return fLRAmbiguity; };
 
   const UInt_t&         GetRawTime()       const { return fRawTime; };
   const Double_t&       GetTime()          const { return fTime; };
-  const Double_t        GetTimeRes()       const { return fTimeRes; };
+  const Double_t&       GetTimeRes()       const { return fTimeRes; };
   const Double_t&       GetDriftDistance() const { return fDistance; };
-  const Double_t        GetDriftPosition() const { return fDriftPosition; };
-  const Double_t        GetWirePosition()  const { return fWirePosition; };
-  const Double_t        GetTrackPosition() const { return fTrackPosition; };
-  const Double_t        GetResidual()      const { return fResidual; };
-  const Double_t        GetZPos()          const { return fZPosition; };
-  const Double_t        GetZPosition()     const { return fZPosition; };
+  const Double_t&       GetDriftPosition() const { return fDriftPosition; };
+  const Double_t&       GetWirePosition()  const { return fWirePosition; };
+  const Double_t&       GetTrackPosition() const { return fTrackPosition; };
+  const Double_t&       GetResidual()      const { return fResidual; };
+  const Double_t&       GetZPos()          const { return fZPosition; };
+  const Double_t&       GetZPosition()     const { return fZPosition; };
 
-  const Bool_t          IsUsed()           const { return fIsUsed; };
+  const Bool_t&         IsUsed()           const { return fIsUsed; };
 
   const QwDetectorID    GetDetectorID()    const;      // QwHit.cc
   const QwElectronicsID GetElectronicsID() const;      // QwHit.cc
@@ -153,9 +150,9 @@ class QwHit : public VQwTrackingElement, public QwObjectCounter<QwHit> {
   void SubtractTimeOffset(Double_t timeoffset) { fTime = fTime - timeoffset; };
 
   // three functions and their comments can be found in QwHit.cc,
-  const Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane);
-  const Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
-  const Bool_t WireMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane, Int_t wire);
+  Bool_t PlaneMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane);
+  Bool_t DirMatches(EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
+  Bool_t WireMatches(EQwRegionID region, EQwDetectorPackage package, Int_t plane, Int_t wire);
 
   void CalculateResidual() { fResidual = fabs(fDriftPosition - fTrackPosition); };
 

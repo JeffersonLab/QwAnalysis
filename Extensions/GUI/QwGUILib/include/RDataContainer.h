@@ -147,6 +147,7 @@ class RDataContainer : public TQObject {
   Bool_t        cd();
   Bool_t        cd(char *dir);  
   Bool_t        mkdir(char *dir);
+  TObject* GetObjFromFile(const Char_t* name);//return an object from the root file
   TObject* GetObjFromMapFile(const Char_t* name);//return an object from the map file
   TObject* GetFromMapFile(const Char_t* name, TObject* retObj = 0) {return fMapFile->Get(name, retObj);};
   ClassDef(RDataContainer,0);

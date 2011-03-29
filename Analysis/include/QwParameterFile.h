@@ -17,6 +17,10 @@
 #include "Rtypes.h"
 #include "TString.h"
 #include "TRegexp.h"
+#include "TObjArray.h"
+#include "TObjString.h"
+#include "TMacro.h"
+#include "TList.h"
 
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/convenience.hpp"
@@ -90,6 +94,9 @@ class QwParameterFile {
     void TrimSectionHeader();
     void TrimModuleHeader();
 
+    TString LastString(TString in, char* delim);
+    TString GetParemeters();
+
     Bool_t LineIsEmpty(){return fLine.empty();};
     Bool_t IsEOF(){ return fStream.eof();};
 
@@ -145,6 +152,13 @@ class QwParameterFile {
     friend ostream& operator<< (ostream& stream, const QwParameterFile& file);
 
 
+    const TString GetParamFilename() {return fBestParamFileName;};
+    const TString GetParamFilenameAndPath() {return fBestParamFileNameAndPath;};
+
+    const std::pair<TString, TString> GetParamFileNameContents() {return std::pair<TString, TString>(GetParamFilename(), GetParemeters());};
+
+    void SetParamFilename();
+
   protected:
     void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);
     void TrimWhitespace(std::string &token, TString::EStripType head_tail);
@@ -162,6 +176,8 @@ class QwParameterFile {
     bool OpenFile(const bfs::path& path_found);
   //  TString fCurrentSecName;     // Stores the name of the current section  read
   //  TString fCurrentModuleName;  // Stores the name of the current module  read
+    TString fBestParamFileName;
+    TString fBestParamFileNameAndPath;
 
   public:
 
@@ -192,6 +208,7 @@ class QwParameterFile {
     std::string fLine;      /// Internal line storage
     size_t fCurrentPos;     /// Current position in the line
 
+    TMacro *fParameterFile;
 
   private:
 

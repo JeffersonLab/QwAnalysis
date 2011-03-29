@@ -11,7 +11,7 @@
 //
 
 #include "QwDetectorInfo.h"
-ClassImp(QwDetectorInfo);
+ClassImp(QwDetectorInfo)
 
 void QwDetectorInfo::SetDetectorInfo (
 	TString sdType,
@@ -100,7 +100,7 @@ void QwDetectorInfo::SetDetectorInfo (
     fDirection = kDirectionR;
   else if (planeDir == "f")
     fDirection = kDirectionPhi;
-};
+}
 
 
 /// Get position of the detector
@@ -124,7 +124,7 @@ void QwDetectorInfo::SetPosition(const TVector3& position)
  * @param element Element number
  * @return Coordinate of the element
  */
-const double QwDetectorInfo::GetElementCoordinate(const int element) const
+double QwDetectorInfo::GetElementCoordinate(const int element) const
 {
   return GetElementOffset() + (element - 1) * GetElementSpacing();
 }

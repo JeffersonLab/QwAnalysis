@@ -1,10 +1,25 @@
 !**************************************************************************
 ! Geometry information for the BPMs in Hall C beamline.
 !**************************************************************************
-! [Last updated by buddhini on 11-12-2010]
+! [Last updated by buddhini on 12-03-2010]
+!
+! 12-02-2010  B.Waidyawansa  Added the correct offset in Z to the target (+11mm->moved downstream). 
+!                            Removed the wrong offser of 14mm in X. It was meant to be the offset for Z not X.
+!                            I got confused. Greg said 14mm offset to Z. Survey doc (http://www.jlab.org/accel/survalign/documents/dthallc/C1340.pdf)
+!                            shows it was 11mm offset to z compared to the old value from the last survey (http://www.jlab.org/accel/survalign/documents/dthallc/C1307.pdf).
+!                            So I used that value instead.
 !
 ! 11-12-2010  B.Waidyawansa  Added the new surveyed offsets for the 3 bpms in front of the target from 
 !                            Jays hclog https://hallcweb.jlab.org/hclog/1011_archive/101112150143.html
+!
+! 02-28-2011  B.Waidyawansa  Added rotation status. There are three options:
+!			   	'rotation=xx' where xx is some angle in degrees
+!				'unrotated' this will se the rotation angle to zero.
+!				 no keyword in the column indicates using the default rotation angle of 45 degrees.
+!			     By default, all the bpms are assumed to be rotated clockwise around Z+ (beam direction) by 45 degrees w.r.t. X axis.
+!  
+!! Description of variables:
+!-----------------------------
 ! X/Yoffset - The difference in the ideal position and the surveyed position of a BPM in X/Y axis.
 !
 ! Z offset  - The location of the BPM in the hallC beamline (alog Z axis) from the begining of the arc
@@ -28,41 +43,43 @@
 !   default BSEN scaling factor = 18.81
 !   default AlphaX/AlphaY = 1.0
 !
-! device type, device_name,   Xoffset,Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY
+! device type, device_name,    Xoffset,  Yoffset, Zoffset, BSEN factor, AlpaX, 	   AlpaY,   rotation
 !	
- bpmstripline,   QWK_BPM3C07,   0.127, -1.160   49025.3,  	1.0,  	1.033450,  0.901159
- bpmstripline,   QWK_BPM3C07A, -0.030, -0.795   53031.9,  	1.0,  	1.032580,  0.969186 
- bpmstripline,   QWK_BPM3C08,   0.166, -0.366,  55125.3,  	1.0,  	1.127040,  1.008810
- bpmstripline,   QWK_BPM3C11,   0.387,  0.397,  70725.3,  	1.0,  	0.984608,  1.102810
- bpmstripline,   QWK_BPM3C12,   0.736, -0.202,  75926.1,  	1.0,  	0.982274,  0.950626
- bpmstripline,   QWK_BPM3C14,   0.526,  0.099,  86325.3,  	1.0,  	0.955249,  0.972192
- bpmstripline,   QWK_BPM3C16,   -0.662, 0.02,   96726.1,  	1.0,  	0.980290,  0.988578
- bpmstripline,   QWK_BPM3C17,   0.223, -0.356,  99815.6,  	1.0,  	0.947455,  0.877913
- bpmstripline,   QWK_BPM3C18,   0.2,    0.684, 101611.0,  	1.0,  	0.741194,  1.041640
- bpmstripline,   QWK_BPM3C19,   0.003,  0.015, 102922.0,  	1.0,  	1.026000,  1.011010
- bpmstripline,   QWK_BPM3P02A, -1.0,   -0.7,   109212.0,  	1.0,  	0.982250,  0.986716
- bpmstripline,   QWK_BPM3P02B,  0.2,   -0.1,   110602.0,  	1.0,    1.000000,  1.000000
- bpmstripline,   QWK_BPM3P03A,  0.6,   -0.7,   113292.0,  	1.0,  	0.909295,  1.006700
- bpmstripline,   QWK_BPM3C20,   0.2,    0.1,   116858.0,  	1.0,    0.904796,  0.995870
- bpmstripline,   QWK_BPM3C21,   0.2,   -0.2,   118216.0,  	1.0,    1.113200,  0.945974 
- bpmstripline,   QWK_BPM3H02,   0.2,    0.7,   127153.0,  	1.0,    0.973625,  1.052130
- bpmstripline,   QWK_BPM3H04,  -0.6,   -0.4,   129632.0,  	1.0,    1.082250,  1.032040
- bpmstripline,   QWK_BPM3H07A,  0.4,    0.2,   138406.0,  	1.0,    0.960181,  1.071930
- bpmstripline,   QWK_BPM3H07B,  0.2,   -0.2,   139363.0,  	1.0,    1.022240,  1.015710
- bpmstripline,   QWK_BPM3H07C,  0.6,    0.0,   140329.0, 	1.0,    1.013110,  0.985986
- bpmstripline,   QWK_BPM3H08,   0.6,    1.6,   143576.0,  	1.0,    1.039360,  1.055470
- bpmstripline,   QWK_BPM3H09,  -0.1,    0.6,   144803.0,  	1.0,    1.025930,  0.993640
- bpmstripline,   QWK_BPM3H09B, -0.6,    0.3,   147351.0,  	1.0,  	0.948778,  1.264910
+ bpmstripline,   QWK_BPM3C07,   0.127,   -1.160,  49025.3,     1.0,    1.033450,  0.901159,  
+ bpmstripline,   QWK_BPM3C07A, -0.030,   -0.795,  53031.9,     1.0,    1.032580,  0.969186,  
+ bpmstripline,   QWK_BPM3C08,   0.166,   -0.366,  55125.3,     1.0,    1.127040,  1.008810,  
+ bpmstripline,   QWK_BPM3C11,   0.387,    0.397,  70725.3,     1.0,    0.984608,  1.102810,  
+ bpmstripline,   QWK_BPM3C12,   0.736,   -0.202,  75926.1,     1.0,    0.982274,  0.950626,  
+ bpmstripline,   QWK_BPM3C14,   0.526,    0.099,  86325.3,     1.0,    0.955249,  0.972192,  
+ bpmstripline,   QWK_BPM3C16,  -0.662,    0.02,   96726.1,     1.0,    0.980290,  0.988578,  
+ bpmstripline,   QWK_BPM3C17,   0.223,   -0.356,  99815.6,     1.0,    0.947455,  0.877913,  
+ bpmstripline,   QWK_BPM3C18,   0.2,	  0.684, 101611.0,     1.0,    0.741194,  1.041640,  
+ bpmstripline,   QWK_BPM3C19,   0.003,    0.015, 102922.0,     1.0,    1.026000,  1.011010,  
+ bpmstripline,   QWK_BPM3P02A, -1.0,	 -0.7,   109212.0,     1.0,    0.982250,  0.986716,  rotation=0 
+ bpmstripline,   QWK_BPM3P02B,  0.2,	 -0.1,   110602.0,     1.0,    1.000000,  1.000000,  rotation=0
+ bpmstripline,   QWK_BPM3P03A,  0.6,	 -0.7,   113292.0,     1.0,    0.909295,  1.006700,     
+ bpmstripline,   QWK_BPM3C20,   0.2,	  0.1,   116858.0,     1.0,    0.904796,  0.995870,  
+ bpmstripline,   QWK_BPM3C21,   0.2,	 -0.2,   118216.0,     1.0,    1.113200,  0.945974,  
+ bpmstripline,   QWK_BPM3H02,   0.2,	  0.7,   127153.0,     1.0,    0.973625,  1.052130,  
+ bpmstripline,   QWK_BPM3H04,  -0.6,	 -0.4,   129632.0,     1.0,    1.082250,  1.032040,  
+ bpmstripline,   QWK_BPM3H07A,  0.4,	  0.2,   138406.0,     1.0,    0.960181,  1.071930,  
+ bpmstripline,   QWK_BPM3H07B,  0.2,	 -0.2,   139363.0,     1.0,    1.022240,  1.015710,  
+ bpmstripline,   QWK_BPM3H07C,  0.6,	  0.0,   140329.0,     1.0,    1.013110,  0.985986,  
+ bpmstripline,   QWK_BPM3H08,   0.6,	  1.6,   143576.0,     1.0,    1.039360,  1.055470,  
+ bpmstripline,   QWK_BPM3H09,  -0.1,	  0.6,   144803.0,     1.0,    1.025930,  0.993640,  
+ bpmstripline,   QWK_BPM3H09B, -0.6,	  0.3,   147351.0,     1.0,    0.948778,  1.264910,  
 
 ! The representative bpm for qweak hydrogen target.
-! The dx offset for the target from the survey was 0.1 mm but since then the taget group have moved the target
-! downstream by 1.4 cm. Therefore we added an extra 14 mm to the surveyed offset to get the correct center of the
+! From the latest survey information on target (http://www.jlab.org/accel/survalign/documents/dthallc/C1340.pdf),
+! the dz offset for the target was reduced 11 mm by moving the target by 11 mm downstream.
+! Therefore I added the new z offset ,11 mm to the ideal z position of the target ( 148739 mm ) to get the correct center of the
 ! target w.r.t  bpm coordinates. 	
- combinedbpm,    QWK_TARGET    14.1,    0.1,   148739.0, 	1.0,  	1.0,  	   1.0  
+
+ combinedbpm,    QWK_TARGET    0.1,    1.2,    148750.0, 	1.0,  	1.0,  	   1.0  
 
 ! The representative bpm for the w plug
 ! The location of the w-plug is based from an setimated distance from target center to US face of W-plug
-! given by Greg Smith to be 65.8cm.	
- combinedbpm,    QWK_WPLUG     14.1,    0.1,   149397.0, 	1.0,  	1.0,  	   1.0     	
+! from Greg Smith.This distance is 658 mm.	
+! combinedbpm,    QWK_WPLUG     0.1,    0.1,    149408.0, 	1.0,  	1.0,  	   1.0     	
 
 !END

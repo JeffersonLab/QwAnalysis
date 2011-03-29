@@ -6,14 +6,16 @@
 \**********************************************************/
 
 #include "QwBCM.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// Qweak database headers
+#include "QwDBInterface.h"
 
+//  Qweak types that we want to use in this template
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
-
-
 
 /********************************************************/
 template<typename T>
@@ -22,7 +24,7 @@ void QwBCM<T>::SetPedestal(Double_t pedestal)
 	fPedestal=pedestal;
 	fBeamCurrent.SetPedestal(fPedestal);
 	return;
-};
+}
 
 template<typename T>
 void QwBCM<T>::SetCalibrationFactor(Double_t calib)
@@ -30,7 +32,7 @@ void QwBCM<T>::SetCalibrationFactor(Double_t calib)
 	fCalibration=calib;
 	fBeamCurrent.SetCalibrationFactor(fCalibration);
 	return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::InitializeChannel(TString name, TString datatosave)
@@ -43,7 +45,7 @@ void QwBCM<T>::InitializeChannel(TString name, TString datatosave)
   fLLimit=0;//init two timits
   fULimit=0;//init two timits
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void  QwBCM<T>::InitializeChannel(TString subsystem, TString name, TString datatosave){
@@ -55,14 +57,14 @@ void  QwBCM<T>::InitializeChannel(TString subsystem, TString name, TString datat
   fLLimit=0;//init two timits
   fULimit=0;//init two timits
   return;  
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::ClearEventData()
 {
   fBeamCurrent.ClearEventData();
   return;
-};
+}
 
 
 /********************************************************/
@@ -71,63 +73,63 @@ void QwBCM<T>::UseExternalRandomVariable()
 {
   fBeamCurrent.UseExternalRandomVariable();
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetExternalRandomVariable(double random_variable)
 {
   fBeamCurrent.SetExternalRandomVariable(random_variable);
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fBeamCurrent.SetRandomEventDriftParameters(amplitude, phase, frequency);
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fBeamCurrent.AddRandomEventDriftParameters(amplitude, phase, frequency);
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
   fBeamCurrent.SetRandomEventParameters(mean, sigma);
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetRandomEventAsymmetry(Double_t asymmetry)
 {
   fBeamCurrent.SetRandomEventAsymmetry(asymmetry);
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::RandomizeEventData(int helicity, double time)
 {
   fBeamCurrent.RandomizeEventData(helicity, time);
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
   fBeamCurrent.SetHardwareSum(hwsum, sequencenumber);
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fBeamCurrent.SetEventData(block, sequencenumber);
   return;
-};
+}
 /********************************************************/
 // template<typename T>
 // void QwBCM<T>::SetEventNumber(int event)
@@ -140,7 +142,7 @@ template<typename T>
 void QwBCM<T>::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   fBeamCurrent.EncodeEventData(buffer);
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::ProcessEvent()
@@ -148,7 +150,7 @@ void QwBCM<T>::ProcessEvent()
   this->ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fBeamCurrent.ProcessEvent();
   return;
-};
+}
 /********************************************************/
 template<typename T>
 Bool_t QwBCM<T>::ApplyHWChecks()
@@ -160,14 +162,14 @@ Bool_t QwBCM<T>::ApplyHWChecks()
 
 
   return fEventIsGood;
-};
+}
 /********************************************************/
 
 template<typename T>
 Int_t QwBCM<T>::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){//std::vector<Double_t> & dEventCuts){//two limts and sample size
   fBeamCurrent.SetSingleEventCuts(LL,UL);
   return 1;
-};
+}
 
 template<typename T>
 void QwBCM<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
@@ -176,7 +178,7 @@ void QwBCM<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0
   QwMessage<<"QwBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
   fBeamCurrent.SetSingleEventCuts(errorflag,LL,UL,stability);
 
-};
+}
 
 template<typename T>
 void QwBCM<T>::SetDefaultSampleSize(Int_t sample_size){
@@ -203,7 +205,7 @@ Bool_t QwBCM<T>::ApplySingleEventCuts(){
 
   return status;
 
-};
+}
 
 /********************************************************/
 
@@ -221,7 +223,7 @@ Int_t QwBCM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, 
   fBeamCurrent.ProcessEvBuffer(buffer,word_position_in_buffer);
 
   return word_position_in_buffer;
-};
+}
 /********************************************************/
 template<typename T>
 QwBCM<T>& QwBCM<T>::operator= (const QwBCM<T> &value)
@@ -239,7 +241,7 @@ QwBCM<T>& QwBCM<T>::operator= (const QwBCM<T> &value)
 //   this->Print();
 
   return *this;
-};
+}
 
 template<typename T>
 QwBCM<T>& QwBCM<T>::operator+= (const QwBCM<T> &value)
@@ -251,7 +253,7 @@ QwBCM<T>& QwBCM<T>::operator+= (const QwBCM<T> &value)
       this->fCalibration=0;
     }
   return *this;
-};
+}
 
 template<typename T>
 QwBCM<T>& QwBCM<T>::operator-= (const QwBCM<T> &value)
@@ -263,20 +265,20 @@ QwBCM<T>& QwBCM<T>::operator-= (const QwBCM<T> &value)
       this->fCalibration=0;
     }
   return *this;
-};
+}
 
 
 template<typename T>
 void QwBCM<T>::Sum(QwBCM<T> &value1, QwBCM<T> &value2){
   *this =  value1;
   *this += value2;
-};
+}
 
 template<typename T>
 void QwBCM<T>::Difference(QwBCM<T> &value1, QwBCM<T> &value2){
   *this =  value1;
   *this -= value2;
-};
+}
 
 template<typename T>
 void QwBCM<T>::Ratio(QwBCM<T> &numer, QwBCM<T> &denom)
@@ -290,7 +292,7 @@ void QwBCM<T>::Ratio(QwBCM<T> &numer, QwBCM<T> &denom)
       this->fCalibration=0;
     }
   return;
-};
+}
 
 template<typename T>
 void QwBCM<T>::Scale(Double_t factor)
@@ -302,12 +304,12 @@ void QwBCM<T>::Scale(Double_t factor)
 template<typename T>
 void QwBCM<T>::CalculateRunningAverage(){
   fBeamCurrent.CalculateRunningAverage();
-};
+}
 
 template<typename T>
 void QwBCM<T>::AccumulateRunningSum(const QwBCM<T>& value) {
   fBeamCurrent.AccumulateRunningSum(value.fBeamCurrent);
-};
+}
 
 template<typename T>
 void QwBCM<T>::PrintValue() const
@@ -335,7 +337,7 @@ void QwBCM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
       fBeamCurrent.ConstructHistograms(folder, prefix);
     }
   return;
-};
+}
 
 template<typename T>
 void QwBCM<T>::FillHistograms()
@@ -351,7 +353,7 @@ void QwBCM<T>::FillHistograms()
 
 
   return;
-};
+}
 
 template<typename T>
 void QwBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -363,7 +365,7 @@ void QwBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vecto
       fBeamCurrent.ConstructBranchAndVector(tree, prefix,values);
     }
   return;
-};
+}
 
 template<typename T>
 void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix)
@@ -376,7 +378,7 @@ void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix)
       // this functions doesn't do anything yet
     }
   return;
-};
+}
 
 template<typename T>
 void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
@@ -398,7 +400,7 @@ void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& m
       // this functions doesn't do anything yet
     }
   return;
-};
+}
 
 template<typename T>
 void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
@@ -411,7 +413,7 @@ void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
       // this functions doesn't do anything yet
     }
   return;
-};
+}
 
 template<typename T>
 void QwBCM<T>::DeleteHistograms()
@@ -423,7 +425,7 @@ void QwBCM<T>::DeleteHistograms()
       fBeamCurrent.DeleteHistograms();
     }
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::Copy(VQwDataElement *source)
@@ -452,7 +454,7 @@ void QwBCM<T>::Copy(VQwDataElement *source)
     }
 
   return;
-};
+}
 
 
 
@@ -516,7 +518,7 @@ std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
 
   return row_list;
 
-};
+}
 
 
 template class QwBCM<QwVQWK_Channel>; 

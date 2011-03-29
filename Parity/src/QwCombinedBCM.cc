@@ -6,13 +6,16 @@
 \**********************************************************/
 
 #include "QwCombinedBCM.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
 
+// Qweak headers
+#include "QwDBInterface.h"
+
+//  Qweak types that we want to use in this template
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
-
-
 
 /********************************************************/
 
@@ -25,14 +28,14 @@ void QwCombinedBCM<T>::SetPedestal(Double_t pedestal)
 {
 	fCombined_bcm.SetPedestal(0);
 	return;
-};
+}
 
 template<typename T>
 void QwCombinedBCM<T>::SetCalibrationFactor(Double_t calib)
 {
 	fCombined_bcm.SetCalibrationFactor(1);
 	return;
-};
+}
 
 template<typename T>
 void QwCombinedBCM<T>::Set(QwBCM<T>* bcm, Double_t weight, Double_t sumqw ){
@@ -50,7 +53,7 @@ void  QwCombinedBCM<T>::InitializeChannel(TString name, TString datatosave)
   fCombined_bcm.InitializeChannel(name,"derived");
 
   return;
-};
+}
 
 template<typename T>
 void  QwCombinedBCM<T>::InitializeChannel(TString subsystem, TString name, TString datatosave)
@@ -59,7 +62,7 @@ void  QwCombinedBCM<T>::InitializeChannel(TString subsystem, TString name, TStri
   fCombined_bcm.InitializeChannel(subsystem, "QwCombinedBCM", name,"derived");
 
   return;
-};
+}
 
 
 template<typename T>
@@ -74,7 +77,7 @@ template<typename T>
 void QwCombinedBCM<T>::ReportErrorCounters()
 {
   //fCombined_bcm.ReportErrorCounters();
-};
+}
 
 /********************************************************/
 template<typename T>
@@ -82,28 +85,28 @@ void QwCombinedBCM<T>::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
   fCombined_bcm.SetRandomEventParameters(mean, sigma);
   return;
-};
+}
 
 
 // void QwCombinedBCM::SetRandomEventAsymmetry(Double_t asymmetry)
 // {
 //   fCombined_bcm.SetRandomEventAsymmetry(asymmetry);
 //   return;
-// };
+// }
 
 template<typename T>
 void QwCombinedBCM<T>::RandomizeEventData(int helicity)
 {
   fCombined_bcm.RandomizeEventData(helicity);
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwCombinedBCM<T>::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
   fCombined_bcm.SetHardwareSum(hwsum, sequencenumber);
   return;
-};
+}
 
 
 template<typename T>
@@ -111,13 +114,13 @@ void QwCombinedBCM<T>::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fCombined_bcm.SetEventData(block, sequencenumber);
   return;
-};
+}
 /********************************************************/
 template<typename T>
 void QwCombinedBCM<T>::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   fCombined_bcm.EncodeEventData(buffer);
-};
+}
 
 
 
@@ -152,7 +155,7 @@ void  QwCombinedBCM<T>::ProcessEvent()
     std::cout<<"***************** \n";
   }
   return;
-};
+}
 
 
 template<typename T>
@@ -176,7 +179,7 @@ Bool_t QwCombinedBCM<T>::ApplySingleEventCuts(){
 
   return status;
 
-};
+}
 
 /********************************************************/
 
@@ -191,14 +194,14 @@ Int_t QwCombinedBCM<T>::GetEventcutErrorCounters(){// report number of events fa
 template<typename T>
 void QwCombinedBCM<T>::CalculateRunningAverage(){
   fCombined_bcm.CalculateRunningAverage();
-};
+}
 
 /********************************************************/
 
 template<typename T>
 void QwCombinedBCM<T>::AccumulateRunningSum(const QwCombinedBCM<T>& value){
   fCombined_bcm.AccumulateRunningSum(value.fCombined_bcm);
-};
+}
 
 /********************************************************/
 
@@ -210,7 +213,7 @@ Int_t QwCombinedBCM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_
 
 //   return word_position_in_buffer;
   return 0;
-};
+}
 /********************************************************/
 template<typename T>
 QwCombinedBCM<T>& QwCombinedBCM<T>::operator= (const QwCombinedBCM<T> &value)
@@ -219,7 +222,7 @@ QwCombinedBCM<T>& QwCombinedBCM<T>::operator= (const QwCombinedBCM<T> &value)
     this->fCombined_bcm=value.fCombined_bcm;
 
   return *this;
-};
+}
 
 template<typename T>
 QwCombinedBCM<T>& QwCombinedBCM<T>::operator+= (const QwCombinedBCM<T> &value)
@@ -227,7 +230,7 @@ QwCombinedBCM<T>& QwCombinedBCM<T>::operator+= (const QwCombinedBCM<T> &value)
   if (GetElementName()!="")
     this->fCombined_bcm+=value.fCombined_bcm;
   return *this;
-};
+}
 
 template<typename T>
 QwCombinedBCM<T>& QwCombinedBCM<T>::operator-= (const QwCombinedBCM<T> &value)
@@ -236,20 +239,20 @@ QwCombinedBCM<T>& QwCombinedBCM<T>::operator-= (const QwCombinedBCM<T> &value)
     this->fCombined_bcm-=value.fCombined_bcm;
 
   return *this;
-};
+}
 
 
 template<typename T>
 void QwCombinedBCM<T>::Sum(QwCombinedBCM<T> &value1, QwCombinedBCM<T> &value2){
   *this =  value1;
   *this += value2;
-};
+}
 
 template<typename T>
 void QwCombinedBCM<T>::Difference(QwCombinedBCM<T> &value1, QwCombinedBCM<T> &value2){
   *this =  value1;
   *this -= value2;
-};
+}
 
 template<typename T>
 void QwCombinedBCM<T>::Ratio(QwCombinedBCM<T> &numer, QwCombinedBCM<T> &denom)
@@ -258,7 +261,7 @@ void QwCombinedBCM<T>::Ratio(QwCombinedBCM<T> &numer, QwCombinedBCM<T> &denom)
     this->fCombined_bcm.Ratio(numer.fCombined_bcm,denom.fCombined_bcm);
 
   return;
-};
+}
 
 template<typename T>
 void QwCombinedBCM<T>::Scale(Double_t factor)
@@ -292,13 +295,13 @@ Bool_t QwCombinedBCM<T>::ApplyHWChecks()
   Bool_t fEventIsGood=kTRUE;
 
   return fEventIsGood;
-};
+}
 
 template<typename T>
 Int_t QwCombinedBCM<T>::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
   fCombined_bcm.SetSingleEventCuts(LL,UL);
   return 1;
-};
+}
 
 /********************************************************/
 template<typename T>
@@ -308,7 +311,7 @@ void QwCombinedBCM<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Doubl
   QwMessage<<"QwCombinedBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
   fCombined_bcm.SetSingleEventCuts(errorflag,LL,UL,stability);
 
-};
+}
 
 /********************************************************/
 template<typename T>
@@ -324,7 +327,7 @@ void  QwCombinedBCM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
   return;
 
-};
+}
 
 template<typename T>
 void  QwCombinedBCM<T>::FillHistograms()
@@ -340,7 +343,7 @@ void  QwCombinedBCM<T>::FillHistograms()
 
 
   return;
-};
+}
 
 template<typename T>
 void  QwCombinedBCM<T>::DeleteHistograms()
@@ -352,7 +355,7 @@ void  QwCombinedBCM<T>::DeleteHistograms()
       fCombined_bcm.DeleteHistograms();
     }
   return;
-};
+}
 
 template<typename T>
 void  QwCombinedBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -364,7 +367,7 @@ void  QwCombinedBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, s
       fCombined_bcm.ConstructBranchAndVector(tree,prefix,values);
     }
   return;
-};
+}
 
 template<typename T>
 void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix)
@@ -376,7 +379,7 @@ void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix)
       fCombined_bcm.ConstructBranch(tree,prefix);
     }
   return;
-};
+}
 
 template<typename T>
 void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
@@ -395,7 +398,7 @@ void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParamete
       }
     }
   return;
-};
+}
 
 
 template<typename T>
@@ -408,7 +411,7 @@ void  QwCombinedBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
       fCombined_bcm.FillTreeVector(values);
     }
   return;
-};
+}
 
 
 /********************************************************/
@@ -502,7 +505,7 @@ std::vector<QwDBInterface> QwCombinedBCM<T>::GetDBEntry()
 
   return row_list;
 
-};
+}
 
 
 template class QwCombinedBCM<QwVQWK_Channel>; 

@@ -100,7 +100,7 @@ void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
   fMockGaussianSigma = 0.0;
 
   return;
-};
+}
 
 /**
  * Check whether the event is a good event from the number of read samples
@@ -112,7 +112,7 @@ Bool_t MQwSIS3320_Channel::IsGoodEvent()
   for (size_t i = 0; i < fSamples.size(); i++)
     fEventIsGood &= (fSamples[i].GetNumberOfSamples() > 0);
   return fEventIsGood;
-};
+}
 
 /**
  * Clear the event data in sampling buffer and accumulators
@@ -136,7 +136,7 @@ void MQwSIS3320_Channel::ClearEventData()
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++)
     fAccumulatorsRaw.at(i).ClearEventData();
   // (the number of accumulators is constant, don't clear them)
-};
+}
 
 /**
  * Extract the sampling and accumulator data from the CODA buffer
@@ -330,7 +330,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
   }
 
   return words_read;
-};
+}
 
 void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
@@ -360,7 +360,7 @@ void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
     for (size_t i = 0; i < samples.size(); i++)
       buffer.push_back(samples.at(i));
   }
-};
+}
 
 /**
  * Process the event by removing pedestals and applying calibration
@@ -403,7 +403,7 @@ void MQwSIS3320_Channel::ProcessEvent()
       fTimeWindowAverages[timewindow] += fSamples[i].GetSumInTimeWindow(start, stop);
     }
   }
-};
+}
 
 /**
  * Addition of offset
@@ -415,7 +415,7 @@ const MQwSIS3320_Channel MQwSIS3320_Channel::operator+ (const Double_t &value) c
   MQwSIS3320_Channel result = *this;
   result += value;
   return result;
-};
+}
 
 /**
  * Subtraction of offset
@@ -427,7 +427,7 @@ const MQwSIS3320_Channel MQwSIS3320_Channel::operator- (const Double_t &value) c
   MQwSIS3320_Channel result = *this;
   result -= value;
   return result;
-};
+}
 
 /**
  * Addition
@@ -439,7 +439,7 @@ const MQwSIS3320_Channel MQwSIS3320_Channel::operator+ (const MQwSIS3320_Channel
   MQwSIS3320_Channel result = *this;
   result += value;
   return result;
-};
+}
 
 /**
  * Subtraction
@@ -451,7 +451,7 @@ const MQwSIS3320_Channel MQwSIS3320_Channel::operator- (const MQwSIS3320_Channel
   MQwSIS3320_Channel result = *this;
   result -= value;
   return result;
-};
+}
 
 /**
  * Assignment
@@ -468,7 +468,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator= (const MQwSIS3320_Channel &val
     }
   }
   return *this;
-};
+}
 
 /**
  * Addition assignment of offset
@@ -484,7 +484,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const Double_t &value)
       fAccumulators[i] += value;
   }
   return *this;
-};
+}
 
 /**
  * Subtraction assignment of offset
@@ -500,7 +500,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const Double_t &value)
       fAccumulators[i] -= value;
   }
   return *this;
-};
+}
 
 /**
  * Addition assignment
@@ -516,7 +516,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const MQwSIS3320_Channel &va
       fAccumulators[i] += value.fAccumulators.at(i);
   }
   return *this;
-};
+}
 
 /**
  * Subtraction assignment
@@ -532,7 +532,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &va
       fAccumulators[i] -= value.fAccumulators.at(i);
   }
   return *this;
-};
+}
 
 /**
  * Sum of two channels
@@ -543,7 +543,7 @@ void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &val
 {
   *this  =  value1;
   *this += value2;
-};
+}
 
 /**
  * Difference of two channels
@@ -576,7 +576,7 @@ void MQwSIS3320_Channel::Offset(Double_t offset)
     for (size_t i = 0; i < fAccumulators.size(); i++)
       fAccumulators[i] += offset;
   }
-};
+}
 
 /**
  * Scaling by a scale factor
@@ -590,7 +590,7 @@ void MQwSIS3320_Channel::Scale(Double_t scale)
     for (size_t i = 0; i < fAccumulators.size(); i++)
       fAccumulators[i] *= scale;
   }
-};
+}
 
 /**
  * Check whether the sequence number matches
@@ -604,7 +604,7 @@ Bool_t MQwSIS3320_Channel::MatchSequenceNumber(UInt_t seqnumber)
     status = (fSequenceNumber == seqnumber);
   }
   return status;
-};
+}
 
 /**
  * Check whether the number of samples matches
@@ -619,7 +619,7 @@ Bool_t MQwSIS3320_Channel::MatchNumberOfSamples(UInt_t numsamples)
 //    status = (fNumberOfSamples == numsamples);
 //  }
   return status;
-};
+}
 
 void MQwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
@@ -644,7 +644,7 @@ void MQwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix
     fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_ped"));
     fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_ped_raw"));
   }
-};
+}
 
 void MQwSIS3320_Channel::FillHistograms()
 {
@@ -668,7 +668,7 @@ void MQwSIS3320_Channel::FillHistograms()
     if (fHistograms[++index] != NULL)
       fHistograms[index]->Fill(fAverageSamplesRaw.GetSample(0));
   }
-};
+}
 
 void  MQwSIS3320_Channel::DeleteHistograms()
 {
@@ -678,7 +678,7 @@ void  MQwSIS3320_Channel::DeleteHistograms()
     fHistograms[i] = NULL;
   }
   fHistograms.clear();
-};
+}
 
 
 void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -693,7 +693,7 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   TString basename = prefix + GetElementName() + "_samples";
   tree->Branch(basename, &fSamples);
   //tree->Branch(basename + "_avg", &fAverageSamples);
-};
+}
 
 void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -702,7 +702,7 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
     fAccumulators[i].FillTreeVector(values);
     fAccumulatorsRaw[i].FillTreeVector(values);
   }
-};
+}
 
 /**
  * Print value of the MQwSIS3320_Channel
@@ -711,8 +711,10 @@ void MQwSIS3320_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
             << std::setw(18) << std::left << GetElementName() << ", "
-            << std::setw(15) << std::left << GetNumberOfEvents() << ", "
-            << QwLog::endl;
+            << std::setw(15) << std::left << GetNumberOfEvents();
+  for (size_t i = 0; i < fAccumulators.size(); i++)
+    QwMessage << ", " << i << ":" << fAccumulators[i].GetAccumulatorSum();
+  QwMessage << QwLog::endl;
 }
 
 

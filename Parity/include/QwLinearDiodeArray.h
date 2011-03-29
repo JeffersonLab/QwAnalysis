@@ -8,16 +8,20 @@
 #ifndef __QwLinearDiodeArray__
 #define __QwLinearDiodeArray__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-
+// Qweak headers
 #include "QwVQWK_Channel.h"
-#include "QwDatabase.h"
 #include "VQwBPM.h"
 #include "QwParameterFile.h"
+
+// Forward declarations
+class QwDBInterface;
+
 /*****************************************************************
 *  Class:
 ******************************************************************/
@@ -72,7 +76,7 @@ class QwLinearDiodeArray : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(VQwDataElement *source);
+  void    Copy(QwLinearDiodeArray *source);
   void    Ratio(QwLinearDiodeArray &numer, QwLinearDiodeArray &denom);
   void    Scale(Double_t factor);
 
@@ -103,12 +107,13 @@ class QwLinearDiodeArray : public VQwBPM {
   static const size_t kMaxElements;
 
   /*  Position calibration factor, transform ADC counts in mm */
-  static const Double_t kQwLinearDiodeArrayCalibration;
+  static const Double_t kQwLinearDiodeArrayPadSize;
 
 
 
  protected:
   std::vector<QwVQWK_Channel> fPhotodiode;
+  // QwVQWK_Channel fPhotodiode[8];
   QwVQWK_Channel fRelPos[2];
   QwVQWK_Channel fEffectiveCharge;
 

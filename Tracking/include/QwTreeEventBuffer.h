@@ -25,6 +25,7 @@ using std::vector;
 // Qweak headers
 #include "QwTypes.h"
 #include "QwOptions.h"
+#include "QwDetectorInfo.h"
 
 // Definition of the reference detectors (## is concatenation)
 #define REGION1_DETECTOR(var) fRegion1_ChamberFront_WirePlane_ ## var
@@ -56,7 +57,7 @@ class QwTreeEventBuffer
   public:
 
     /// \brief Constructor with file name and spectrometer geometry
-    QwTreeEventBuffer(vector <vector <QwDetectorInfo> > & detector_info);
+    QwTreeEventBuffer(const QwGeometry& detector_info);
     /// \brief Destructor
     virtual ~QwTreeEventBuffer();
 
@@ -105,12 +106,6 @@ class QwTreeEventBuffer
     std::vector<QwPartialTrack*> GetPartialTracks(EQwRegionID region) const;
 
 
-
-    /// Set the spectrometer geometry
-    void SetDetectorInfo (vector <vector <QwDetectorInfo> > & detector_info) {
-      fDetectorInfo = detector_info;
-    };
-
   private:
 
     // Randomness provider and distribution for resolution effects
@@ -148,7 +143,7 @@ class QwTreeEventBuffer
 
 
     /// List of detector info objects (geometry information)
-    vector <vector <QwDetectorInfo> > fDetectorInfo;
+    const QwGeometry fDetectorInfo;
 
 
     /// \name Branch management functions

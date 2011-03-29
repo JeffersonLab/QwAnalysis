@@ -2,6 +2,8 @@
 
 ClassImp(QwGUIMainDetector);
 
+const Int_t QwGUIMainDetector::fSleepTimeMS = 2000;
+
 //MD_DET_TYPES is the size of the enum
 enum QwGUIMainDetectorDeviceTypes {
   UNKNOWN_TYPE,

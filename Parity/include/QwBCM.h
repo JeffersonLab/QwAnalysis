@@ -15,13 +15,10 @@
 #include <TTree.h>
 
 #include "QwParameterFile.h"
-// Qweak database headers
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
-
 #include "VQwDataElement.h"
 
+// Forward declarations
+class QwDBInterface;
 template<typename T> class QwCombinedBCM;
 
 /*****************************************************************
