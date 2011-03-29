@@ -240,7 +240,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
   UInt_t words_read = 0;
   Int_t ports_read;
   UInt_t bitwise_mask = 0;
-  UInt_t accum_count = 0;
+  //  UInt_t accum_count = 0;
 
   ports_read = 0;
   // Get the subbank index (or -1 when no match)
@@ -1065,34 +1065,46 @@ void  QwComptonElectronDetector::DeleteHistograms()
 void  QwComptonElectronDetector::FillHistograms()
 {
   Int_t i, j, k;
-
+  Int_t nstrip = 0;
+  Int_t ii  = 0;
 //  edet_cut_on_x2=7;
 //  edet_cut_on_ntracks=2;
 
   edet_cut_on_x2=7;
   edet_cut_on_ntracks=5;
-    
   for (i=0; i<NPlanes; i++) {
     for (j=0; j<StripsPerPlane; j++) {
-     
-     if (fHistograms1D[4*i] != NULL)
-       //      for (k=0; k<fStripsRaw[i][j]; k++)
-       //       fHistograms1D[4*i]->Fill(j);
-       fHistograms1D[4*i]->Fill(j,fStripsRaw[i][j]);
+      ii = 4*i;    
+      nstrip = j+1; 
+      if (fHistograms1D[ii] != NULL) {
+  	for (k=0; k<fStripsRaw[i][j]; k++)
+	  fHistograms1D[ii]->Fill(nstrip);
+	//      fHistograms1D[4*i]->Fill(j+1,fStripsRaw[i][j]);
+	//      fHistograms1D[4*i]->SetBinContent(j+1,fStripsRaw[i][j]);
+      }
 
-     if (fHistograms1D[4*i+1] != NULL)
-      for (k=0; k<fStrips[i][j]; k++)
-       fHistograms1D[4*i+1]->Fill(j);
+      if (fHistograms1D[ii+1] != NULL) {
+	for (k=0; k<fStrips[i][j]; k++)
+	  fHistograms1D[ii+1]->Fill(nstrip);
+	//       fHistograms1D[4*i+1]->Fill(j+1,fStrips[i][j]);
+	//       fHistograms1D[4*i+1]->SetBinContent(j+1,fStrips[i][j]);
+      }
 
-     if (fHistograms1D[4*i+2] != NULL)
-      for (k=0; k<fStripsRawEv[i][j]; k++)
-       fHistograms1D[4*i+2]->Fill(j);
-
-     if (fHistograms1D[4*i+3] != NULL)
-      for (k=0; k<fStripsEv[i][j]; k++)
-       fHistograms1D[4*i+3]->Fill(j);
-
+      if (fHistograms1D[ii+2] != NULL) {
+	for (k=0; k<fStripsRawEv[i][j]; k++)
+	  fHistograms1D[ii+2]->Fill(nstrip);
+	//       fHistograms1D[4*i+2]->Fill(j+1,fStripsRawEv[i][j]);
+	//	 fHistograms1D[4*i+2]->SetBinContent(j+1,fStripsRawEv[i][j]);
+	}
+      
+      if (fHistograms1D[ii+3] != NULL) {
+	for (k=0; k<fStripsEv[i][j]; k++)
+	  fHistograms1D[ii+3]->Fill(nstrip);
+	//       fHistograms1D[4*i+3]->Fill(j+1,fStripsEv[i][j]);
+	//       fHistograms1D[4*i+3]->SetBinContent(j+1,fStripsEv[i][j]);
+      }
     }
+
   }
 
   if(edet_x2 < edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {    

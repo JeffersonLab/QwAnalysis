@@ -347,10 +347,11 @@ Int_t QwEventBuffer::GetNextEvent()
   if (status == CODA_OK  && IsPhysicsEvent()) fNumPhysicsEvents++;
 
   //  Progress meter (this should probably produce less output in production)
-  if (IsPhysicsEvent() && fEvtNumber > 0 && fEvtNumber % 1000 == 0) {
+  int nevents = 10000;
+  if (IsPhysicsEvent() && fEvtNumber > 0 && fEvtNumber % nevents == 0) {
     QwMessage << "Processing event " << fEvtNumber << " ";
     fStopwatch.Stop();
-    QwMessage << "(" << fStopwatch.CpuTime() << " ms per event)";
+    QwMessage << "(" << fStopwatch.CpuTime()*1e3/nevents << " ms per event)";
     fStopwatch.Reset();
     fStopwatch.Start();
     QwMessage << QwLog::endl;

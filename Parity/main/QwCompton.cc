@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
     //  Open the ROOT file
     QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
-
+    rootfile->WriteParamFileList("mapfiles", detectors);
     //  Construct histograms
     rootfile->ConstructHistograms("mps_histo", detectors);
     rootfile->ConstructHistograms("hel_histo", helicitypattern);
