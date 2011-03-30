@@ -1130,7 +1130,7 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
 
 
   fTreeArrayIndex  = values.size();
-  TString basename;
+  TString basename,accumbase;
 //   if(fHistoType==kHelNoSave)
 //     {
 //       //do nothing
@@ -1142,18 +1142,19 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
       //       tree->Branch(basename, &(values.back()), basename+"/D");
       
       for (int i=1; i<NPlanes; i++) {
-	for (int j=0; j<96; j++) {
+	for (int j=0; j<StripsPerPlane; j++) {
 	  basename = Form("p%ds%dRawEv",i,j);
 	  values.push_back(0.0);
 	  tree->Branch(basename, &(values.back()), basename+"/D");
+
+	  accumbase = Form("p%ds%dRawAc",i,j);
+	  values.push_back(0.0);
+	  tree->Branch(accumbase, &(values.back()), accumbase+"/D");
 	}
       }
-      //  And so on...
-
 //     }
 //   else if(fHistoType==kHelSavePattern)
 //     {
-
 //     }
 
   for (size_t i = 0; i < fScaler.size(); i++)
@@ -1169,8 +1170,10 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
 //     {
       
       for (i=1; i<NPlanes; i++) {
-	for (j=0; j<96; j++) {
+	for (j=0; j<StripsPerPlane; j++) {
 	  values[index++] = fStripsRawEv[i][j];
+	  values[index++] = fStripsRaw[i][j];
+	  //	  valuesAccum[index++] = fStripsRaw[i][j];
 	}
       }
       //    }
