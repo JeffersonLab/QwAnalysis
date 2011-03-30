@@ -132,9 +132,15 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDet
   Int_t reftime_channum;
   Double_t reftime;
 
+  Bool_t IsF1ReferenceChannel (Int_t slot, Int_t chan) { 
+    return ( slot == reftime_slotnum &&  chan == reftime_channum) ;
+  };
+
   Int_t tdc_slot_number;
   Int_t tdc_chan_number;
   Int_t tmp_last_chan;
+
+  
 
 };
 

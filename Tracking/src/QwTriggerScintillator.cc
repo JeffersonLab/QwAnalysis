@@ -443,7 +443,10 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
   }
 
   else if (bank_id==fBankID[2]) { // F1TDC
+   // reset the refrence time 
+    reftime = 0.0;
 
+    Bool_t local_debug_f1 = false;
 
     Int_t  bank_index      = 0;
     Int_t  tdc_slot_number = 0;
@@ -520,8 +523,14 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 		  tdc_data = fF1TDCDecoder.GetTDCData();
 		  FillRawWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
 		  //		  Check if this is reference time data
-		  if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
-		    reftime = fF1TDCDecoder.GetTDCData();
+		  if ( IsF1ReferenceChannel(tdc_slot_number,tdc_chan_number) ) {
+		    reftime = (Double_t) tdc_data;
+		  }
+		  if(local_debug_f1) {
+		    printf("TS::ProcessEvBuffer: bank_index %2d slot_number [%2d,%2d] chan [%2d,%2d] data %10d %10.2f\n",
+			   bank_index, tdc_slot_number, reftime_slotnum, tdc_chan_number, reftime_channum,tdc_data, reftime);
+		  }
+
 		  tmp_last_chan = tdc_chan_number;
 		}
 	    }
