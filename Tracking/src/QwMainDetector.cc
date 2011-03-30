@@ -710,20 +710,20 @@ void  QwMainDetector::ProcessEvent()
 
   TString elementname = "";
   Double_t rawtime = 0.0;
-  Double_t newdata = 0.0;
+  Double_t corrected_time = 0.0;
 
   for (size_t i=0; i<fPMTs.size(); i++){
     for (size_t j=0; j<fPMTs.at(i).size(); j++){
       fPMTs.at(i).at(j).ProcessEvent();
       elementname = fPMTs.at(i).at(j).GetElementName();
       rawtime = fPMTs.at(i).at(j).GetValue();
-      if (elementname.EndsWith("f1") && rawtime!=0) {
+      if ( elementname.EndsWith("f1") ) {
 	Int_t bank_index = fPMTs.at(i).at(j).GetSubbankID();
 	Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
 	//	if (IsF1ReferenceChannel(tdc_slot_number,tdc_chan_number))
-	newdata = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
+	corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
 	//	Double_t newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
-	fPMTs.at(i).at(j).SetValue(newdata);
+	fPMTs.at(i).at(j).SetValue(corrected_time);
       }
     }
   }
