@@ -16,6 +16,42 @@ const Bool_t VQwScaler_Channel::kDEBUG = kFALSE;
 
 
 /********************************************************/
+void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave) {
+  SetElementName(name);
+  SetDataToSave(datatosave);
+  SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
+  SetNumberOfSubElements(1);
+
+  //  Default mockdata parameters
+  SetRandomEventParameters(300.0, 50.0);
+
+  fValue_Raw  = 0;
+  fValue      = 0.0;
+  fValueM2    = 0.0;
+  fValueError = 0.0;
+  fPedestal   = 0.0;
+  fCalibrationFactor = 1.0;
+
+  fTreeArrayIndex = 0;
+  fTreeArrayNumEntries =0;
+
+  fNumEvtsWithHWErrors=0;//init error counters
+  fNumEvtsWithEventCutsRejected=0;//init error counters
+
+  fDeviceErrorCode = 0;
+  fGoodEventCount = 0;
+  return;
+};
+
+/********************************************************/
+
+void VQwScaler_Channel::InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave){
+  InitializeChannel(name,datatosave);
+  SetSubsystemName(subsystem);
+  SetModuleType(instrumenttype);
+}
+
+/********************************************************/
 Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
 
   return 1;
@@ -34,18 +70,23 @@ void VQwScaler_Channel::ClearEventData()
   fDeviceErrorCode = 0;
 }
 
-void VQwScaler_Channel::RandomizeEventData(int helicity)
+void VQwScaler_Channel::RandomizeEventData(int helicity, double time)
 {
+  // Calculate drift (if time is not specified, it stays constant at zero)
+  Double_t drift = 0.0;
+  for (UInt_t i = 0; i < fMockDriftFrequency.size(); i++) {
+    drift += fMockDriftAmplitude[i] * sin(2.0 * Qw::pi * fMockDriftFrequency[i] * time + fMockDriftPhase[i]);
+  }
 
-  Double_t mean = 300.0;
-  Double_t sigma = 50.0;
-  UInt_t Dataword = abs((Int_t)gRandom->Gaus(mean,sigma));
+  Double_t value = fMockGaussianMean * (1 + helicity * fMockAsymmetry)
+    + fMockGaussianSigma * GetRandomValue()
+    + drift;
 
-  //At this point, I am not clear about the sigle word structure yet.
-  //How many bits will be configured for data, which bits will be configured for user info?
-  //std::cout<<"word = "<<std::hex<<word<<std::dec<<std::endl;
-  fValue_Raw = Dataword;
+  fValue     = value;
+  fValue_Raw = Int_t(value / fCalibrationFactor + fPedestal);
 }
+
+
 
 
 /*!  Static member function to return the word offset within a data buffer
@@ -332,6 +373,31 @@ void VQwScaler_Channel::Scale(Double_t scale)
 }
 
 
+/********************************************************/
+Int_t VQwScaler_Channel::ApplyHWChecks() {
+  //  fDeviceErrorCode=0;
+  if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
+    //check for the hw_sum is zero
+    if (GetRawValue()==0){
+      fDeviceErrorCode|=kErrorFlag_ZeroHW;
+    }
+  }
+  return fDeviceErrorCode;
+}
+
+
+void VQwScaler_Channel::SetSingleEventCuts(Double_t min, Double_t max){
+  fULimit=max;
+  fLLimit=min;
+}
+
+void VQwScaler_Channel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
+  fErrorFlag=errorflag;
+  fDefErrorFlag=errorflag;
+  QwMessage<<"QwScaler_Ch before setting device error code "<<errorflag<<" Global ? "<<(fErrorFlag & kGlobalCut)<<QwLog::endl;
+  fStability=stability;
+  SetSingleEventCuts(min,max);
+}
 
 Bool_t VQwScaler_Channel::ApplySingleEventCuts()
 {

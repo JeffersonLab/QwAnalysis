@@ -12,6 +12,7 @@
 #include <iostream>
 #include <vector>
 #include <stdexcept>
+#include <cmath>
 
 #include "Rtypes.h"
 #include "TString.h"
@@ -42,15 +43,18 @@
  * \enddot
  */
 class VQwDataElement {
+ public:
+  /// Flag to be used to decide which data needs to be histogrammed and
+  /// entered in the tree
+  enum EDataToSave {kRaw = 0, kDerived};
+
+  
+   
+
 
  public:
 
-  VQwDataElement(){
-    fNumberOfDataWords = 0;
-    fErrorFlag = 0;
-    fHistograms.clear();
-  }
-  //  VQwDataElement(UInt_t numwords):fNumberOfDataWords(numwords) {}
+  VQwDataElement();
   virtual ~VQwDataElement();
 
   /*! \brief Is the name of this element empty? */
@@ -65,6 +69,9 @@ class VQwDataElement {
   /*! \brief Process the CODA event buffer for this element */
   virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0) = 0;
 
+  /*! \brief Get the number of data words in this data element */
+  size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
+
   /*! \brief Get the number of subelements in this data element */
   size_t GetNumberOfSubelements() {return fNumberOfSubElements;};
   
@@ -72,11 +79,21 @@ class VQwDataElement {
   Double_t GetValue() const       {return this->GetValue(0);};
   Double_t GetValueM2() const     {return this->GetValueM2(0);};
   Double_t GetValueError() const  {return this->GetValueError(0);};
+  Double_t GetValueWidth() const  {return this->GetValueWidth(0);};
   virtual Int_t GetRawValue(size_t element) const      {return 0;};
   virtual Double_t GetValue(size_t element) const      {return 0.0;};
   virtual Double_t GetValueM2(size_t element) const    {return 0.0;};
   virtual Double_t GetValueError(size_t element) const {return 0.0;};
-
+  Double_t GetValueWidth(size_t element) const {
+    Double_t width;
+    if (fGoodEventCount>0){
+      width = (GetValueError(element)*std::sqrt(Double_t(fGoodEventCount))); 
+    } else {
+      width = 0.0;
+    } 
+    return width;
+  };
+  UInt_t GetGoodEventCount() const { return fGoodEventCount; };
 
   /*! \brief Assignment operator */
   virtual VQwDataElement& operator= (const VQwDataElement &value);
@@ -108,13 +125,15 @@ class VQwDataElement {
   /*! \brief Print multiple lines of information about this data element */
   virtual void PrintInfo() const { std::cout << GetElementName() << std::endl; }
 
-  /*! \brief Get the number of data words in this data element */
-  size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
 
   /*! \brief set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  virtual void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){std::cerr << "SetSingleEventCuts not defined!" << std::endl; };
   /*! \brief report number of events falied due to HW and event cut faliure */
   Int_t GetEventcutErrorCounters();
+
+  /*! \brief return the error flag on this channel/device*/
+  UInt_t GetEventcutErrorFlag();
+
   void ResetErrorFlag(UInt_t flag){
     fErrorFlag=flag;
   }
@@ -147,8 +166,20 @@ class VQwDataElement {
   /*! \brief Set the number of data words in this data element */
   void SetNumberOfSubElements(const size_t elements) {fNumberOfSubElements = elements;};
 
-  /*! \brief Checks that the requested element is in range, to be used in accesses 
-   *         to subelements similar to std::vector::at(). */
+  /*! \brief Set the flag indicating if raw or derived values are
+   *         in this data element */
+  void SetDataToSave(TString datatosave) {
+    if      (datatosave == "raw")
+      fDataToSave = kRaw;
+    else if (datatosave == "derived")
+      fDataToSave = kDerived;
+    else
+      fDataToSave = kRaw; // wdc, added default fall-through
+  }
+
+  /*! \brief Checks that the requested element is in range, to be
+   *         used in accesses to subelements similar to
+   *         std::vector::at(). */
   void RangeCheck(size_t element) const {
     if (element<0 || element >= fNumberOfSubElements){
       TString loc="VQwDataElement::RangeCheck for "
@@ -157,10 +188,16 @@ class VQwDataElement {
     }
   };
 
+
  protected:
   TString fElementName; ///< Name of this data element
   UInt_t  fNumberOfDataWords; ///< Number of raw data words in this data element
   UInt_t  fNumberOfSubElements; ///< Number of subelements in this data element
+
+  EDataToSave fDataToSave;
+
+  UInt_t fGoodEventCount;  ///< Number of good events accumulated in this element
+
 
   /// Histograms associated with this data element
   std::vector<TH1*> fHistograms;
@@ -170,11 +207,23 @@ class VQwDataElement {
   //Data module Type 
   TString  fModuleType;
 
+  /// Unique error code for HW failures
+  UInt_t fDeviceErrorCode; 
   //Error flag
   UInt_t fErrorFlag;
+  UInt_t fDefErrorFlag;
 
 }; // class VQwDataElement
 
+inline VQwDataElement::VQwDataElement():
+  fElementName(""), fNumberOfDataWords(0),
+  fNumberOfSubElements(0), fDataToSave(kRaw),
+  fGoodEventCount(0),
+  fSubsystemName(""), fModuleType(""),
+  fErrorFlag(0), fDefErrorFlag(0)
+{
+  fHistograms.clear();
+}
 
 inline VQwDataElement::~VQwDataElement(){
 }
@@ -203,6 +252,14 @@ inline void VQwDataElement::DeleteHistograms()
   }
   fHistograms.clear();
 }
+
+inline UInt_t VQwDataElement::GetEventcutErrorFlag(){//return the error flag
+  if (((fErrorFlag & kGlobalCut) == kGlobalCut) && fDeviceErrorCode>0){
+    //we care only about global cuts
+    return fErrorFlag;
+  }
+  return 0;
+};
 
 
 

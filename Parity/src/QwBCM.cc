@@ -120,16 +120,16 @@ void QwBCM<T>::RandomizeEventData(int helicity, double time)
 template<typename T>
 void QwBCM<T>::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
-  fBeamCurrent.SetHardwareSum(hwsum, sequencenumber);
+  //  fBeamCurrent.SetHardwareSum(hwsum, sequencenumber);
   return;
 }
 /********************************************************/
-template<typename T>
-void QwBCM<T>::SetEventData(Double_t* block, UInt_t sequencenumber)
-{
-  fBeamCurrent.SetEventData(block, sequencenumber);
-  return;
-}
+//template<typename T>
+// void QwBCM<T>::SetEventData(Double_t* block, UInt_t sequencenumber)
+// {
+//   fBeamCurrent.SetEventData(block, sequencenumber);
+//   return;
+// }
 /********************************************************/
 // template<typename T>
 // void QwBCM<T>::SetEventNumber(int event)
@@ -197,7 +197,7 @@ Bool_t QwBCM<T>::ApplySingleEventCuts(){
   }
   else{
 
-    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fBeamCurrent.GetHardwareSum();
+    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fBeamCurrent.GetValue();
     status&=kFALSE;
   }
   fDeviceErrorCode|=fBeamCurrent.GetEventcutErrorFlag();//retrun the error flag for event cuts
@@ -461,16 +461,13 @@ void QwBCM<T>::Copy(VQwDataElement *source)
 template<typename T>
 std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
 {
-  UShort_t i = 0;
-
   std::vector <QwDBInterface> row_list;
   QwDBInterface row;
 
   TString name;
+  UInt_t beam_n        = 0;
   Double_t avg         = 0.0;
   Double_t err         = 0.0;
-  UInt_t beam_subblock = 0;
-  UInt_t beam_n        = 0;
 
   row.Reset();
 
@@ -480,39 +477,18 @@ std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
   name          = fBeamCurrent.GetElementName();
   beam_n        = fBeamCurrent.GetGoodEventCount();
 
-  // Get HardwareSum average and its error
-  avg           = fBeamCurrent.GetHardwareSum();
-  err           = fBeamCurrent.GetHardwareSumError();
-  // ADC subblock sum : 0 in MySQL database
-  beam_subblock = 0;
-
-  row.SetDetectorName(name);
-  row.SetSubblock(beam_subblock);
-  row.SetN(beam_n);
-  row.SetValue(avg);
-  row.SetError(err);
-
-  row_list.push_back(row);
-
-
-  // Get four Block averages and thier errors
-
-  for(i=0; i<4; i++) {
+  //  Loop over subelements and build the list.
+  for(UInt_t beam_subblock=0; 
+      beam_subblock<fBeamCurrent.GetNumberOfSubelements();
+      beam_subblock++) {
     row.Reset();
-    avg           = fBeamCurrent.GetBlockValue(i);
-    err           = fBeamCurrent.GetBlockErrorValue(i);
-    beam_subblock = (UInt_t) (i+1);
-    // QwVQWK_Channel  | MySQL
-    // fBlock[0]       | subblock 1
-    // fBlock[1]       | subblock 2
-    // fBlock[2]       | subblock 3
-    // fBlock[3]       | subblock 4
+    avg           =  fBeamCurrent.GetValue(beam_subblock);
+    err           =  fBeamCurrent.GetValueError(beam_subblock);
     row.SetDetectorName(name);
     row.SetSubblock(beam_subblock);
     row.SetN(beam_n);
     row.SetValue(avg);
     row.SetError(err);
-
     row_list.push_back(row);
   }
 
@@ -522,4 +498,4 @@ std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
 
 
 template class QwBCM<QwVQWK_Channel>; 
-//template class QwBCM<QwSIS3801_Channel>; 
+template class QwBCM<QwSIS3801_Channel>; 

@@ -8,67 +8,54 @@
 #ifndef __QWSCALER_CHANNEL__
 #define __QWSCALER_CHANNEL__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include "TTree.h"
 
-// Boost math library for random number generation
-#include "boost/random.hpp"
-
-//jpan: Mersenne Twistor: A 623-diminsionally equidistributed
-//uniform pseudorandom number generator
-#include "TRandom3.h"
-
-
+// Qweak headers
 #include "VQwDataElement.h"
-
-
-
-// this data is used to decided which data need to be histogrammed or ttree-ed
-
+#include "MQwMockable.h"
 
 ///
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class VQwScaler_Channel: public VQwDataElement {
+class VQwScaler_Channel: public VQwDataElement, public MQwMockable {
 
-  public:
+public:
   static Int_t GetBufferOffset(Int_t scalerindex, Int_t wordindex);
+  static void  PrintErrorCounterHead();
+  static void  PrintErrorCounterTail();
+
+  using VQwDataElement::GetRawValue;
+  using VQwDataElement::GetValue;
+  using VQwDataElement::GetValueM2;
+  using VQwDataElement::GetValueError;
 
 
-  public:
-  VQwScaler_Channel() {
-    InitializeChannel("");
-  };
-
-  VQwScaler_Channel(TString name) {
-    InitializeChannel(name);
+public:
+  VQwScaler_Channel(): MQwMockable() {
+    InitializeChannel("","");
+  }
+    
+  VQwScaler_Channel(TString name): MQwMockable() {
+    InitializeChannel(name,"");
   };
   virtual ~VQwScaler_Channel() { DeleteHistograms(); };
 
-  void  InitializeChannel(TString name) {
-    SetElementName(name);
-    SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
-    SetNumberOfSubElements(1);
+  /// \brief Initialize the fields in this object
+  void  InitializeChannel(TString name){InitializeChannel(name, "raw");};
+  void  InitializeChannel(TString name, TString datatosave);
 
-    fValue_Raw  = 0;
-    fValue      = 0.0;
-    fValueM2    = 0.0;
-    fValueError = 0.0;
-    fPedestal   = 0.0;
-    fCalibrationFactor = 1.0;
+  /// \brief Initialize the fields in this object
+  void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
 
-    fTreeArrayIndex = 0;
-    fTreeArrayNumEntries =0;
-
-
-    fNumEvtsWithHWErrors=0;//init error counters
-    fNumEvtsWithEventCutsRejected=0;//init error counters
-
-    fDeviceErrorCode = 0;
-    fGoodEventCount = 0;
-    return;
-  };
+  void SetDefaultSampleSize(size_t NumberOfSamples_map) {
+    std::cerr << "QwScaler_Channel SetDefaultSampleSize does nothing!"
+	      << std::endl;
+  }
 
   void     SetPedestal(Double_t ped) { fPedestal = ped; };
   Double_t GetPedestal() const       { return fPedestal; };
@@ -86,7 +73,7 @@ class VQwScaler_Channel: public VQwDataElement {
     fNumEvtsWithEventCutsRejected++;
   };
 
-  void  RandomizeEventData(int helicity);
+  void  RandomizeEventData(int helicity = 0, double time = 0.0);
   void  SetEventData(Double_t value);
 
   virtual void  EncodeEventData(std::vector<UInt_t> &buffer) = 0;
@@ -94,15 +81,10 @@ class VQwScaler_Channel: public VQwDataElement {
 
   void  ProcessEvent();
 
-  Double_t GetValue() const { return fValue; };
-  Double_t GetValueM2() const     { return fValueM2; };
-  Double_t GetValueWidth() const  { 
-    if (fGoodEventCount>0){
-      return (fValueError*sqrt(fGoodEventCount)); 
-    }
-    return 0.0;
-  };
-  Double_t GetValueError() const  { return fValueError; };
+  Int_t GetRawValue(size_t element) const      { return fValue_Raw; };
+  Double_t GetValue(size_t element) const      { return fValue; };
+  Double_t GetValueM2(size_t element) const    { return fValueM2; };
+  Double_t GetValueError(size_t element) const { return fValueError; };
 
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
@@ -115,8 +97,19 @@ class VQwScaler_Channel: public VQwDataElement {
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
 
+  Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
+
+  void SetEventCutMode(Int_t bcuts){
+    bEVENTCUTMODE=bcuts;
+  }
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  //set the upper and lower limits (fULimit and fLLimit) set on this channel
+  void SetSingleEventCuts(Double_t min, Double_t max);
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits
+   *  (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  // report number of events falied due to HW and event cut failure
+  Int_t GetEventcutErrorCounters();
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -153,8 +146,12 @@ protected:
   Int_t fNumEvtsWithHWErrors;//counts the HW falied events
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
 
-  UInt_t fGoodEventCount;
   Int_t fDeviceErrorCode;
+
+  Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
+  Double_t fULimit, fLLimit;//this sets the upper and lower limits
+  Double_t fStability;//how much deviaton from the stable reading is allowed
+
 
 };
 

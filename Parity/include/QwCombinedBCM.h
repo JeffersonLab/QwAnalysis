@@ -58,8 +58,6 @@ class QwCombinedBCM : public VQwDataElement{
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity);
-  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
-  void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  ProcessEvent();
@@ -145,6 +143,13 @@ class QwCombinedBCM : public VQwDataElement{
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
 
   std::vector<QwVQWK_Channel> fBCMComboElementList;
+
+ private:
+  //  Functions to be removed
+  
+/*   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0); */
+/*   void  SetEventData(Double_t* block, UInt_t sequencenumber); */
+
 
 };
 

@@ -56,9 +56,6 @@ class QwBCM : public VQwDataElement{
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
   void  RandomizeEventData(int helicity = 0, double time = 0);
-  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
-  void  SetEventData(Double_t* block, UInt_t sequencenumber);
-/*   void  SetEventNumber(int event); */
   void  EncodeEventData(std::vector<UInt_t> &buffer);
 
   void  UseExternalRandomVariable();
@@ -113,8 +110,6 @@ class QwBCM : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  DeleteHistograms();
 
-  Double_t GetAverage()        {return fBeamCurrent.GetAverage();};
-  Double_t GetAverageError()   {return fBeamCurrent.GetAverageError();};
   UInt_t   GetGoodEventCount() {return fBeamCurrent.GetGoodEventCount();};
 
   void Copy(VQwDataElement *source);
@@ -142,6 +137,16 @@ class QwBCM : public VQwDataElement{
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
+
+ private:
+  //  Functions to be removed
+  
+  //  void  SetEventData(Double_t* block, UInt_t sequencenumber);
+  /*   void  SetEventNumber(int event); */
+
+  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
+  Double_t GetAverage()        {return fBeamCurrent.GetValue();};
+  Double_t GetAverageError()   {return fBeamCurrent.GetValueError();};
 
 
 };
