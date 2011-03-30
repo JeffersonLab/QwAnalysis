@@ -622,33 +622,40 @@ void  QwTriggerScintillator::ProcessEvent()
   Double_t rawtime = 0.0;
   Double_t corrected_time = 0.0;
 
-  for (size_t i=0; i<fPMTs.size(); i++) {
-    for (size_t j=0; j<fPMTs.at(i).size(); j++) {
-      fPMTs.at(i).at(j).ProcessEvent();
-      elementname = fPMTs.at(i).at(j).GetElementName();
-      rawtime = fPMTs.at(i).at(j).GetValue();
-      //      // Check if this is an f1 channel and only subtract reftime if channel value is nonzero
-      if (elementname.EndsWith("f1") ) {
-	Int_t bank_index = fPMTs.at(i).at(j).GetSubbankID();
-	Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
-	corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
-	//        newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
-	//std::cout << "element name " << elementname
-	// 	  << " rawdata " << rawtime
-	//   	  << " reftime " << reftime
-	//   	  << " newdata " << newdata
-	//   	  << std::endl;
-        fPMTs.at(i).at(j).SetValue(corrected_time);
+  for (size_t i=0; i<fPMTs.size(); i++) 
+    {
+      for (size_t j=0; j<fPMTs.at(i).size(); j++) 
+	{
+	  fPMTs.at(i).at(j).ProcessEvent();
+	  elementname = fPMTs.at(i).at(j).GetElementName();
+	  rawtime = fPMTs.at(i).at(j).GetValue();
+	  // Check if this is an f1 channel and only subtract reftime if channel value is nonzero
+	  if (elementname.EndsWith("f1") && rawtime!=0) {
+	    if( not elementname.Contains("reftime") ) {
+	      Int_t bank_index = fPMTs.at(i).at(j).GetSubbankID();
+	      Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
+	      corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
+	      //        newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
+	      // std::cout << "element name " << elementname
+	      //  	  << " rawdata " << rawtime
+	      //      	  << " reftime " << reftime
+	      //      	  << " newdata " << corrected_timea
+	      //      	  << std::endl;
+	      fPMTs.at(i).at(j).SetValue(corrected_time);
+	    }
+	  }
+	}
+    }
+  
+  
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL){
+	fSCAs.at(i)->ProcessEvent();
       }
     }
-  }
-
-  for (size_t i=0; i<fSCAs.size(); i++){
-    if (fSCAs.at(i) != NULL){
-      fSCAs.at(i)->ProcessEvent();
-    }
-  }
-}
+  return;
+};
 
 
 void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &prefix){

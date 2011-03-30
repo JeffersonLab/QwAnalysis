@@ -712,28 +712,34 @@ void  QwMainDetector::ProcessEvent()
   Double_t rawtime = 0.0;
   Double_t corrected_time = 0.0;
 
-  for (size_t i=0; i<fPMTs.size(); i++){
-    for (size_t j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).ProcessEvent();
-      elementname = fPMTs.at(i).at(j).GetElementName();
-      rawtime = fPMTs.at(i).at(j).GetValue();
-      if ( elementname.EndsWith("f1") ) {
-	Int_t bank_index = fPMTs.at(i).at(j).GetSubbankID();
-	Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
-	//	if (IsF1ReferenceChannel(tdc_slot_number,tdc_chan_number))
-	corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
-	//	Double_t newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
-	fPMTs.at(i).at(j).SetValue(corrected_time);
+  for (size_t i=0; i<fPMTs.size(); i++) 
+    {
+      for (size_t j=0; j<fPMTs.at(i).size(); j++)
+	{
+	  fPMTs.at(i).at(j).ProcessEvent();
+	  elementname = fPMTs.at(i).at(j).GetElementName();
+	  rawtime = fPMTs.at(i).at(j).GetValue();
+	  if (elementname.EndsWith("f1") && rawtime!=0) {
+	    if( not elementname.Contains("reftime") ) {
+	      Int_t bank_index = fPMTs.at(i).at(j).GetSubbankID();
+	      Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
+	      //	if (IsF1ReferenceChannel(tdc_slot_number,tdc_chan_number))
+	      corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
+	      //	Double_t newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
+	      fPMTs.at(i).at(j).SetValue(corrected_time);
+	    }
+	  }
+	}
+    }
+
+  for (size_t i=0; i<fSCAs.size(); i++) 
+    {
+      if (fSCAs.at(i) != NULL){
+	fSCAs.at(i)->ProcessEvent();
       }
     }
-  }
-
-  for (size_t i=0; i<fSCAs.size(); i++){
-    if (fSCAs.at(i) != NULL){
-      fSCAs.at(i)->ProcessEvent();
-    }
-  }
-}
+  return;
+};
 
 
 void  QwMainDetector::ConstructHistograms(TDirectory *folder, TString &prefix)
