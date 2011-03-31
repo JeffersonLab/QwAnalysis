@@ -630,17 +630,18 @@ void  QwTriggerScintillator::ProcessEvent()
 	  elementname = fPMTs.at(i).at(j).GetElementName();
 	  rawtime = fPMTs.at(i).at(j).GetValue();
 	  // Check if this is an f1 channel and only subtract reftime if channel value is nonzero
-	  if (elementname.EndsWith("f1") && rawtime!=0) {
+	  if (elementname.EndsWith("f1") && rawtime!=0.0) {
 	    if( not elementname.Contains("reftime") ) {
 	      Int_t bank_index = fPMTs.at(i).at(j).GetSubbankID();
 	      Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
-	      corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
-	      //        newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
-	      // std::cout << "element name " << elementname
-	      //  	  << " rawdata " << rawtime
-	      //      	  << " reftime " << reftime
-	      //      	  << " newdata " << corrected_timea
-	      //      	  << std::endl;
+	      // if   there is a reftime, then correct a raw time.
+	      // if not, remove this raw time from data (set to zero)
+	      if ( reftime != 0.0) {
+		corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
+	      }
+	      else {
+		corrected_time = 0.0;
+	      }
 	      fPMTs.at(i).at(j).SetValue(corrected_time);
 	    }
 	  }

@@ -694,6 +694,10 @@ Bool_t QwEventBuffer::FillSubsystemData(QwSubsystemArray &subsystems)
       continue;
     }
 
+    // if (fSubbankType == 0x85) {
+    //   std::cout << "ProcessEventBuffer: , SubbankTag= "<< fSubbankTag<<" FragLength="<<fFragLength <<std::endl;
+    // }
+
 //     QwDebug << "QwEventBuffer::FillSubsystemData:  "
 // 	    << "Beginning loop: fWordsSoFar=="<<fWordsSoFar
 // 	    <<QwLog::endl;
