@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  if( slopeFName) {
+  /*if( slopeFName) {
     TString xxx=treeInpFile;
     printf("xxx=%s=\n",xxx.Data());
     char *xx2=strstr(xxx,"/Qw")+1;
@@ -120,8 +120,22 @@ int main(int argc, char *argv[]) {
     mBlueFile=new TFile(treeOutName,"RECREATE"," regressed  Qweak tree");
     printf("Open to write  =%s=\n",treeOutName.Data());
     blueTree=new QwkRegBlueTree(eve.dvName);
-  }
+    }*/
 
+  if( slopeFName) {
+    TString xxx=treeInpFile;
+    printf("xxx=%s=\n",xxx.Data());
+    char *xx2=strstr(xxx,"/Qw")+1;
+    assert(xx2); // if input tree name does not start with 'Qw' change the line above
+    printf("xx2=%s=\n",xx2);
+    char *xx3=strstr(xx2+1,"/Qw")+1;
+    if(xx3 == 0) xx3 = xx2;
+    TString treeOutName=Form("%sreg_%s",outPath,xx3);
+    mBlueFile=new TFile(treeOutName,"RECREATE"," regressed  Qweak tree");
+    printf("Open to write  =%s=\n",treeOutName.Data());
+    assert(mBlueFile->IsOpen());
+    blueTree=new QwkRegBlueTree(eve.dvName);
+  }
 
   TString hfileName=Form("%sblueR%s.hist.root",outPath,runName.Data());
   TFile*  mHfile=new TFile(hfileName,"RECREATE"," histograms w/ regressed Qweak data");
