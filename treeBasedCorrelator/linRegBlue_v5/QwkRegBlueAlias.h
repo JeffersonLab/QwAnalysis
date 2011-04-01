@@ -17,7 +17,7 @@ struct  QwkChanJan{
 class QwkRegBlueAlias{
 
  private:
-  enum typeOper {kOperBad=-1,kOperMinus=0, kOperTimes=1};
+  enum typeOper {kOperBad=-1,kOperMinus=0, kOperTimes=1, kOperPlus=2};
   TString rawText;
   typeOper oper;
   int kout,kin1,kin2;

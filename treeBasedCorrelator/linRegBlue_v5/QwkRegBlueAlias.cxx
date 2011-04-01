@@ -27,10 +27,13 @@ QwkRegBlueAlias::QwkRegBlueAlias( TString full){
 
   char *p2=strstr(p1,"-");
   if(p2) oper=kOperMinus;
-  else {
-    p2=strstr(p1,"*");
-    if(p2) oper=kOperTimes;
-  }
+  else  p2=strstr(p1,"*");
+  if(p2) oper=kOperTimes;
+  else  p2=strstr(p1,"+");
+  if(p2) oper=kOperPlus;
+  else printf("unsupported alias operation, abort ,string='%s'\n",full.Data());
+
+  assert(p2);
   p2++;
   p2[-1]=0;
   inpName1=p1;
@@ -62,7 +65,14 @@ QwkRegBlueAlias::compute_hw_sum(QwkChanJan  *qwkChan){
 
   // self consistency test
   assert(in1->num_samples==in2->num_samples);
-  out->Device_Error_Code=in1->Device_Error_Code+in2->Device_Error_Code;
+
+  // do OR of device error as suggested by Wouter
+  unsigned int err1 = static_cast<unsigned int>(in1->Device_Error_Code);
+  unsigned int err2 = static_cast<unsigned int>(in2->Device_Error_Code);
+  unsigned int errOut=err1 | err2;
+  out->Device_Error_Code = static_cast<double>(errOut);
+  // equivalent to:   out->Device_Error_Code=*((double *)(&errOut));
+
   out->num_samples=in2->num_samples;
 
   if(oper==kOperMinus) 
@@ -70,6 +80,9 @@ QwkRegBlueAlias::compute_hw_sum(QwkChanJan  *qwkChan){
 
   if(oper==kOperTimes) 
     out->hw_sum=in1->hw_sum * in2->hw_sum;
+
+  if(oper==kOperPlus) 
+    out->hw_sum=in1->hw_sum + in2->hw_sum;
 
   //printf("QwkRegBlueAlias::compute() oper=%d  3*val %f %f %f\n", oper,out->hw_sum ,in1->hw_sum,in2->hw_sum);
 

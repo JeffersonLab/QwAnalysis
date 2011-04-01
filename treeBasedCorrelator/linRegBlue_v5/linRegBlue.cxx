@@ -110,26 +110,19 @@ int main(int argc, char *argv[]) {
     exit(1);
   }
 
-  /*if( slopeFName) {
-    TString xxx=treeInpFile;
-    printf("xxx=%s=\n",xxx.Data());
-    char *xx2=strstr(xxx,"/Qw")+1;
-    assert(xx2); // if input tree name does not start with 'Qw' change the line above
-    printf("xx2=%s=\n",xx2);
-    TString treeOutName=Form("%sreg_%s",outPath,xx2);
-    mBlueFile=new TFile(treeOutName,"RECREATE"," regressed  Qweak tree");
-    printf("Open to write  =%s=\n",treeOutName.Data());
-    blueTree=new QwkRegBlueTree(eve.dvName);
-    }*/
-
   if( slopeFName) {
     TString xxx=treeInpFile;
     printf("xxx=%s=\n",xxx.Data());
-    char *xx2=strstr(xxx,"/Qw")+1;
+    char *xx2=strstr(xxx,"/Qw");
     assert(xx2); // if input tree name does not start with 'Qw' change the line above
+    xx2++;
     printf("xx2=%s=\n",xx2);
-    char *xx3=strstr(xx2+1,"/Qw")+1;
-    if(xx3 == 0) xx3 = xx2;
+    char *xx3=strstr(xx2,"/Qw");
+    if(xx3 == 0) 
+      xx3 = xx2;
+    else 
+      xx3++;
+
     TString treeOutName=Form("%sreg_%s",outPath,xx3);
     mBlueFile=new TFile(treeOutName,"RECREATE"," regressed  Qweak tree");
     printf("Open to write  =%s=\n",treeOutName.Data());

@@ -83,13 +83,13 @@ QwkRegBlueTransform::findInputLeafs(TChain *chain){
 
   printf("\n---DVs n=%d:\n",ndv());
   for(int i=0; i<ndv(); i++) {
-    printf("dv=%d : %s=%d,    ",i,dvName[i].Data(),dv2chan[i]);
+    printf("dv=%d : %s (ich=%d),    ",i,dvName[i].Data(),dv2chan[i]);
     if(i%2) printf("\n");
   }
 
   printf("\n---IVs n=%d:\n",niv()); 
   for(int i=0; i<niv(); i++) {
-    printf("iv=%d : %s=%d,    ",i,ivName[i].Data(),iv2chan[i]);
+    printf("iv=%d : %s (ich=%d),    ",i,ivName[i].Data(),iv2chan[i]);
     if(i%2) printf("\n");
   }
 
@@ -125,6 +125,11 @@ QwkRegBlueTransform::unpackEvent(){
   hA[0]->Fill("inp", 1.);
   //printf("\n-----------QwkRegBlueTransform_%s unpackEvent\n",myName.Data());
 
+  //  compute aliases
+  for(int i=0;i<nals();i++) {
+    aliasVec[i].compute_hw_sum(qwkChan);
+  }
+
   // check dev-error on all leaves
   bool eveBad=false;
   for(int i=0;i<nchan();i++){
@@ -136,11 +141,6 @@ QwkRegBlueTransform::unpackEvent(){
 
   if(eveBad) return false;
   hA[0]->Fill("noDevErr", 1.);
-
-  //  compute aliases
-  for(int i=0;i<nals();i++) {
-    aliasVec[i].compute_hw_sum(qwkChan);
-  }
 
   
   // Access DV leafs
@@ -307,7 +307,9 @@ QwkRegBlueTransform::harvestNames(FILE *fp) {
   enum {mx=1000};
   char buf[mx];
   int nl=0;
-  int state=0; 
+  int state=0;
+  char name[1000];
+
   while(  fgets( buf, mx, fp)) {
     nl++;
     if (strstr(buf,"#")>0) continue;
@@ -315,7 +317,7 @@ QwkRegBlueTransform::harvestNames(FILE *fp) {
     //printf("line=%d  state=%d buf=%s=\n",nl,state,buf);
     if(state==0) { // before  block of IV-DV is found
       if (strstr(buf, "customcut")){
-	char name[1000], formula[10000];
+	char  formula[10000];
 	int ret=sscanf(buf+9,"%s %s",name,formula);
 	printf("CUSTOM CUT line: ret=%d  name=%s= formula=%s=\n",ret,name,formula);
 	cutName=name;
@@ -324,15 +326,13 @@ QwkRegBlueTransform::harvestNames(FILE *fp) {
 	continue;
       }
       if (strstr(buf, "inpPath")){
-	char name[1000];
-	int ret=sscanf(buf+7,"%s ",name);
+	int ret=sscanf(buf+7,"%s ",name); 
 	inpPath=name;
 	printf("input tree path=%s\n",inpPath.Data());
 	assert(ret==1);
 	continue;
       }
       if (strstr(buf, "alias")){
-	char name[1000];
 	int ret=sscanf(buf+6,"%s ",name);
 	alsName.push_back(name);
 	printf("define %d alias => %s\n",nals(),name);
@@ -345,8 +345,9 @@ QwkRegBlueTransform::harvestNames(FILE *fp) {
       continue;
     } 
     if(state==1){ // increment iv & dv name lists
-      if (strstr(buf, "iv")) ivName.push_back(buf+3);
-      if (strstr(buf, "dv")) dvName.push_back(buf+3);
+      int ret=sscanf(buf+3,"%s ",name); assert(ret==1);
+      if (strstr(buf, "iv")) ivName.push_back(name);
+      if (strstr(buf, "dv")) dvName.push_back(name);
       if (strstr(buf, "treetype")==0) continue;
       // end this DV-IV block
       state=2;
