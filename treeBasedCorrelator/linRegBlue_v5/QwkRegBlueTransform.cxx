@@ -133,8 +133,9 @@ QwkRegBlueTransform::unpackEvent(){
   // check dev-error on all leaves
   bool eveBad=false;
   for(int i=0;i<nchan();i++){
-    //if(i==0) printf("i%d p=%p  val=%f\n",i,&qwkChan[i],qwkChan[i].hw_sum);
-    if(qwkChan[i].Device_Error_Code==0.) continue;
+    int devErr=static_cast<int> (qwkChan[i].Device_Error_Code);
+    //if(i==46 && devErr) printf("ich=%d %s  val=%f  devErr=%d  eve=%.0f\n",i,chanName[i].Data(),qwkChan[i].hw_sum,devErr, hA[0]->GetBinContent(4));
+    if(devErr==0) continue;
     eveBad=true;
     hA[3]->Fill(i);
   }
