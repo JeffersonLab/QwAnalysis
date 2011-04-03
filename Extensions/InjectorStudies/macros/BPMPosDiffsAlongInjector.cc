@@ -2,29 +2,34 @@
 // Author : B. Waidyawansa (buddhini@jlab.org)
 // Date   : December 15th, 2010
 //********************************************************************//
+/*
+ This macro plots the bpm position differences along the injector vs bpm
+ using the full root file, ie combining the run segments up to rseg.
+ It has 5 inputs.
+ 1. run number
+ 2. run segment. Default = 0.
+ 3. Lower limit to difference in nm. Default = 0 (no limit).
+ 4. Upper limit to difference in nm. Default =0 (no limit).
+
+To use this macro,  load it in to root and do (e.g)
+root [11] PlotBPM_X_pos_diffs(8231,1,-200,200)
+
+*/
 
 //*******************************************************************//
 // Modified by : Emmanouil Kargiantoulakis
 // Date        : 03/04/2011
+// Notes       : Designed to run from ~/users/manos directory.
+//               This program needs the openchain macro
+//               loaded on your ROOT session. 
 //******************************************************************//
 
-/*
- This macro plots the BPM position differences along the injector vs BPM
- using the full root file, ie combining the run segments up to rseg.
- You can choose the direction, X or Y, along which to get 
- position difference data from the BPMs.
- It has 5 optional inputs.
- 1. Run number
- 2. Run segment up to which to combine the root files. Default = 0.
- 3. Direction. Default = "X" . Enter "Y" for Y-position differences.
- 4. Lower limit to difference in nm. Default = 0 (no limit).
- 5. Upper limit to difference in nm. Default =0 (no limit).
+//*******************************************************************//
+// Modified by : Jean-Francois Rajotte
+// Date        : 03/14/2011
+// Notes       : Now also produces a text output in a csv format
+//******************************************************************//
 
-To use this macro,  load it in ROOT and do (e.g)
-root [10] .L BPMPosDiffsAlongInjector.cc
-root [11] PlotBPM_PosDiffs(8231,1,"Y",-200,200)
-
-*/
 
 //********************************************
 // Main function
@@ -67,15 +72,10 @@ root [11] PlotBPM_PosDiffs(8231,1,"Y",-200,200)
 #include <cstdlib>
 
 
-void PlotBPM_PosDiffs(Int_t runnum, Int_t rseg=0, TString direction="X",
-		      Int_t llimit=0, Int_t ulimit=0)
+void PlotBPM_PosDiffs(Int_t runnum, char DeviceAxis='X', Int_t rseg=0, Int_t llimit=0, Int_t ulimit=0)
 {
     
-  // Combine the Hel_Tree of the run segments into a chain.
-  // The rootfiles will be looked for at $QW_ROOTFILES.
-  // You can change the path as an argument to openchain.
-  // Look at the openchain function after the main function.
-  // Make sure you are using the correct stem for the rootfile.
+  // Combine the Hel_Tree of the run segments into a chain
   openchain(runnum, rseg, "qwinjector"); 
 
 
@@ -84,17 +84,29 @@ void PlotBPM_PosDiffs(Int_t runnum, Int_t rseg=0, TString direction="X",
     exit(1);
   }
 
-
-  const Int_t ndevices = 21;
+  //These values define the output units (mm are the units of the trees)
+  Double_t ScaleFactor = 1.0e6;//Tree queries will be scaled by this factor
+  TString units("nm");//Units associated to the ScaleFactor
   
-  TString devicelist[ndevices]=
-  {
-    "1i02","1i04","1i06","0i02","0i02a","0i05","0i07","0l01","0l02",
-    "0l03","0l04","0l05","0l06","0l07","0l08","0l09","0l10","0r03",
-    "0r04","0r05","0r06"
-  };
-
-  for (Int_t i=0;i<ndevices;i++)  devicelist[i] += direction;
+  
+//   const Int_t ndevices = 3;
+//   TString devicelist[ndevices]=
+//   {
+//     "1i02","1i04","1i06"
+//   };
+ const Int_t ndevices = 21;
+ TString devicelist[ndevices]=
+ {
+   "1i02","1i04","1i06","0i02","0i02a","0i05","0i07","0l01","0l02",
+   "0l03","0l04","0l05","0l06","0l07","0l08","0l09","0l10","0r03",
+   "0r04","0r05","0r06"
+ };
+  //////////////////////////////////////////////////////////////
+  // Sometimes the program crashes when the position difference 
+  // from the last BPM is outside the set limits.
+  // If that happens, try commenting out the last BPM(s)
+  // and adjust ndevices.
+  /////////////////////////////////////////////////////////////
 
 
   gStyle->Reset();
@@ -125,8 +137,8 @@ void PlotBPM_PosDiffs(Int_t runnum, Int_t rseg=0, TString direction="X",
   gStyle->SetPadGridY(kTRUE);
 
   
-  TString ctitle = Form("X Position Differences Variation (%i < Dx < %i nm) Across Injector in run %i",
-			llimit,ulimit,runnum);
+  TString ctitle = Form("%c Position Differences Variation (%i < D%c < %i %s) Across Injector in run %i",
+			DeviceAxis,llimit, DeviceAxis,ulimit,units.Data(),runnum);
   TCanvas *c = new TCanvas("c",ctitle,1200,600);
 
 
@@ -157,11 +169,29 @@ void PlotBPM_PosDiffs(Int_t runnum, Int_t rseg=0, TString direction="X",
 
   Int_t k = 0;
   Int_t j=0;
-
-  for(Int_t i=0; i<ndevices; i++) {  
-      command = Form("diff_qwk_%s.hw_sum*1e6>>htemp", devicelist[i].Data());
-      cut =  Form("diff_qwk_%s.Device_Error_Code<1 && ErrorFlag == 0",
-		   devicelist[i].Data());
+  
+  TString parameterName;
+  
+  //Defining the text file with the results
+  ofstream ftext;
+  TString ftextname;
+  ftextname.Form("texts/text%cposDiffs_%i.txt",DeviceAxis, runnum); 
+  ftext.open (ftextname.Data());
+  TString txt_separator(", ");
+  
+  //Header of the text file
+  ftext << Form("parameter, mean(%s), error, rms\n",units.Data());
+  TString txt_separator = ", ";//Every entry will be seperated with this
+  
+  for(Int_t i=0; i<ndevices; i++) {
+      parameterName.Form("diff_qwk_%s%c",devicelist[i].Data(),DeviceAxis);
+	  //command = Form("diff_qwk_%s.hw_sum*1e6>>htemp", devicelist[i].Data());
+      ftext << parameterName.Data();
+	  ftext << txt_separator;
+      
+	  command = Form("%s.hw_sum*%f>>htemp", parameterName.Data(), ScaleFactor);
+	  cut =  Form("%s.Device_Error_Code<1 && ErrorFlag == 0",
+		   parameterName.Data());
       Hel_Tree->Draw(command, cut, "goff");
 
       TH1 * h1 = (TH1D*)gDirectory->Get("htemp");
@@ -179,14 +209,14 @@ void PlotBPM_PosDiffs(Int_t runnum, Int_t rseg=0, TString direction="X",
 	
       if((TMath::Abs(ulimit)>0) && (TMath::Abs(llimit)>0)){
 	if((meanl > llimit) && (meanl < ulimit) ){
-	  std::cout<<"Getting data from : "<<devicelist[i]<<std::endl;
+	  std::cout<<"Getting data from : "<<devicelist[i]<<DeviceAxis<<std::endl;
 	  mean.operator()(k) = meanl;
           width.operator()(k) = h1->GetRMS();
 	  meanerr.operator()(k) = (h1->GetMeanError());
 	  fakeerr.operator()(k) = (0.0);
 	}
 	else {
-	  std::cout<<devicelist[i]<<" has X position diff out of the given limits"<<std::endl;
+	  std::cout<<devicelist[i]<<" has" <<DeviceAxis <<"position diff out of the given limits"<<std::endl;
 	  std::cout<<"Ingored this device. "<<std::endl;
 	  badname.ResizeTo(j+1);
 	  badname.operator()(j) =(k);
@@ -194,13 +224,19 @@ void PlotBPM_PosDiffs(Int_t runnum, Int_t rseg=0, TString direction="X",
 	}
       }
       if(ulimit == 0 && llimit == 0){
-	std::cout<<"Getting data from : "<<devicelist[i]<<std::endl;
+	std::cout<<"Getting data from : "<<devicelist[i]<<DeviceAxis<<std::endl;
 	mean.operator()(i) = (h1->GetMean());
 	width.operator() (i) = (h1->GetRMS());
 	meanerr.operator()(i) = (h1->GetMeanError());
 	fakeerr.operator()(i) = (0.0);
       }
 
+	ftext << mean.operator()(i);
+	ftext << txt_separator;
+	ftext << meanerr.operator()(i);
+	ftext << txt_separator;
+	ftext << width.operator()(i);
+	ftext << "\n";
       k++;
 
       delete h1;
@@ -219,7 +255,7 @@ void PlotBPM_PosDiffs(Int_t runnum, Int_t rseg=0, TString direction="X",
   grp->SetMarkerStyle(21);
   grp->SetMarkerSize(1);
   grp->SetTitle("");
-  grp->GetYaxis()->SetTitle("X Position Difference (nm)");
+  grp->GetYaxis()->SetTitle(Form("%c Position Difference (%s)",DeviceAxis, units.Data()));
   grp->GetYaxis()->SetTitleOffset(0.9);
 
   TGraph* grw = new TGraph(fakename, width);
@@ -227,7 +263,7 @@ void PlotBPM_PosDiffs(Int_t runnum, Int_t rseg=0, TString direction="X",
   grw->SetMarkerStyle(21);
   grw->SetMarkerSize(1);
   grw->SetTitle("");
-  grw->GetYaxis()->SetTitle("Width (nm)");
+  grw->GetYaxis()->SetTitle(Form("Width (%s)", units.Data()));
   grw->GetYaxis()->SetTitleOffset(0.9);
 
   pad2->cd(1);
@@ -277,7 +313,7 @@ void PlotBPM_PosDiffs(Int_t runnum, Int_t rseg=0, TString direction="X",
   c->Update();
   
   // Save the canvas on to a .gif file
-  // c->Print(Form("plots/%i_bpm_x_posdiffs_%i_to_%i.gif",runnum,llimit,ulimit));
+  c->Print(Form("plots/%i_bpm_%c_posdiffs_%i_to_%i.gif",runnum, DeviceAxis,llimit,ulimit));
   std::cout<<"Done plotting!\n";
 }
 

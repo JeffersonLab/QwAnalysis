@@ -78,15 +78,22 @@ void PlotBPM_effectiveq_asyms(Int_t runnum, Int_t rseg=0, Int_t llimit=0, Int_t 
     exit(1);
   }
 
+  //These values define the output units (mm are the units of the trees)
+  Double_t ScaleFactor = 1.0e6;//Tree queries will be scaled by this factor
+  TString units("ppm");//Units associated to the ScaleFactor
     
   const Int_t ndevices = 21;
-  
   TString devicelist[ndevices]=
   {
     "1i02","1i04","1i06","0i02","0i02a","0i05","0i07","0l01","0l02","0l03",
     "0l04","0l05","0l06","0l07","0l08","0l09","0l10","0r03","0r04",
     "0r05","0r06"
   };
+//   const Int_t ndevices = 3;
+//   TString devicelist[ndevices]=
+//   {
+//     "1i02","1i04","1i06"
+//   };
 
 
   gStyle->Reset();
@@ -118,7 +125,7 @@ void PlotBPM_effectiveq_asyms(Int_t runnum, Int_t rseg=0, Int_t llimit=0, Int_t 
 
 
   
-  TString ctitle = Form("Effective Charge Variation (%i < Aq < %i ppm) Across Injector in run %i",llimit,ulimit,runnum);
+  TString ctitle = Form("Effective Charge Variation (%i < Aq < %i %s) Across Injector in run %i",llimit,ulimit,units.Data(),runnum);
   TCanvas *c = new TCanvas("c",ctitle,1200,600);
 
 
@@ -149,12 +156,29 @@ void PlotBPM_effectiveq_asyms(Int_t runnum, Int_t rseg=0, Int_t llimit=0, Int_t 
 
   Int_t k = 0;
   Int_t j = 0;
+  
+  TString parameterName;
+  
+  //Defining the text file with the results
+  ofstream ftext;
+  TString ftextname;
+  ftextname.Form("texts/textBPMeffQasym_%i.txt", runnum); 
+  ftext.open (ftextname.Data());
+  TString txt_separator(", ");
+  
+  //Header of the text file
+  ftext << Form("parameter, mean(%s), error, rms\n",units.Data());
+  TString txt_separator = ", ";//Every entry will be seperated with this
 
   for(Int_t i=0; i<ndevices; i++) {  
-      command = Form("asym_qwk_%s_EffectiveCharge.hw_sum*1e6>>htemp",
-		     devicelist[i].Data());
-      cut =  Form("asym_qwk_%s_EffectiveCharge.Device_Error_Code == 0 && ErrorFlag == 0",
-		   devicelist[i].Data());
+      parameterName.Form("asym_qwk_%s_EffectiveCharge",devicelist[i].Data());
+      //command = Form("asym_qwk_%s_EffectiveCharge.hw_sum*1e6>>htemp",
+	  //	     devicelist[i].Data());
+      ftext << parameterName.Data();
+	  ftext << txt_separator;
+      
+	  command = Form("%s.hw_sum*%f>>htemp",parameterName.Data(), ScaleFactor);
+      cut =  Form("%s.Device_Error_Code == 0 && ErrorFlag == 0",parameterName.Data());
       Hel_Tree->Draw(command, cut, "goff");
 
       TH1 * h1 = (TH1D*)gDirectory->Get("htemp");
@@ -193,6 +217,12 @@ void PlotBPM_effectiveq_asyms(Int_t runnum, Int_t rseg=0, Int_t llimit=0, Int_t 
 	fakeerr.operator()(i) = (0.0);
       }
 
+	ftext << mean.operator()(i);
+	ftext << txt_separator;
+	ftext << meanerr.operator()(i);
+	ftext << txt_separator;
+	ftext << width.operator()(i);
+	ftext << "\n";
       k++;
       delete h1;
   }
@@ -209,7 +239,7 @@ void PlotBPM_effectiveq_asyms(Int_t runnum, Int_t rseg=0, Int_t llimit=0, Int_t 
   grp->SetMarkerStyle(21);
   grp->SetMarkerSize(1);
   grp->SetTitle("");
-  grp->GetYaxis()->SetTitle("Asymmetry (ppm)");
+  grp->GetYaxis()->SetTitle(Form("Asymmetry (%s)", units.Data()));
   grp->GetYaxis()->SetTitleOffset(0.9);
 
   TGraph* grw = new TGraph(fakename, width);
@@ -217,7 +247,7 @@ void PlotBPM_effectiveq_asyms(Int_t runnum, Int_t rseg=0, Int_t llimit=0, Int_t 
   grw->SetMarkerStyle(21);
   grw->SetMarkerSize(1);
   grw->SetTitle("");
-  grw->GetYaxis()->SetTitle("Width (ppm)");
+  grw->GetYaxis()->SetTitle(Form("Width (%s)", units.Data()));
   grw->GetYaxis()->SetTitleOffset(0.9);
 
   pad2->cd(1);
@@ -266,7 +296,7 @@ void PlotBPM_effectiveq_asyms(Int_t runnum, Int_t rseg=0, Int_t llimit=0, Int_t 
   c->Update();
   
   // Save the canvas on to a .gif file
-  //  c->Print(Form("plots/%i_bpm_eff_q_unweighted_%i_to_%i.gif",runnum,llimit,ulimit));
+  c->Print(Form("plots/%i_bpm_eff_q_unweighted_%i_to_%i.gif",runnum,llimit,ulimit));
   std::cout<<"Done plotting!\n";
 };
 
