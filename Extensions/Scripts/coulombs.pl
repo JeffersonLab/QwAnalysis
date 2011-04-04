@@ -115,8 +115,15 @@ print "No coulombs acquired during this interval\n";
 die;
 }
 
+my $Total = 0;
+
 foreach my $day (sort keys %coulombs) {
+  my $day_total = 0;
   foreach my $s (grep { ($coulombs{$day}[$_] += 0) > 0.01} 0..2) {
+    $day_total += $coulombs{$day}[$s];
     printf "$day %-5s: %0.2f C\n", $shift[$s], $coulombs{$day}[$s];
   }
+  printf "$day total : %0.2f C\n\n", $day_total;
+  $Total += $day_total;
 }
+  printf "Total calculated : %0.2f C\n", $Total;
