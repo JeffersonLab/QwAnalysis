@@ -1,6 +1,6 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 
-! Filename : qweak_hallc_pedestal.9496-9589.map 
+! Filename : qweak_hallc_pedestal.9197-9222.map 
 !
 ! ** HallC BPM pedestals (per sample) obtained using Run 5900 
 !           qwk_bcm1 (is calibrated with Run 5807 Gain Setting 2)
@@ -11,6 +11,7 @@
 !               https://qweak.jlab.org/elog/Analysis+%26+Simulation/313
 !    No effort has been made to refit gain values for optimized pedestals
 !    4-April-2011 K.E. Myers
+!
 !  
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain

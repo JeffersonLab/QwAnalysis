@@ -1,17 +1,39 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 
-! Filename : qweak_hallc_pedestal.9496-9589.map 
+! Filename : qweak_hallc_pedestal.10770-10820.map 
 !
 ! ** HallC BPM pedestals (per sample) obtained using Run 5900 
 !           qwk_bcm1 (is calibrated with Run 5807 Gain Setting 2)
 !
-! ** HallC BCM pedestals optimized for 15-30 uA Aluminum Production Running
-!    Original fit from Run 9571/9573: https://qweak.jlab.org/elog/Beam/59
-!    Pedestals for BCM1/2 optimized to remove nonlinearities: 
-!               https://qweak.jlab.org/elog/Analysis+%26+Simulation/313
-!    No effort has been made to refit gain values for optimized pedestals
-!    4-April-2011 K.E. Myers
-!  
+! ** HallC BCM pedestals and their gains obtained using Run 8370
+!//  8370-8394        BCM calibration RUN 8370 (*)
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101220200033.html
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221120541.html
+!//  8395-8396        BCM gain setting 3
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221042257.html
+!//                   only 8395, 8396 is junk
+!//
+!//
+!//  8397-            BCM gain setting 2 
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221061819.html
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062342.html
+!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062621.html  
+
+
+!  For BCM5/6         https://hallcweb.jlab.org/hclog/1101_archive/110120122054.html
+!    8966 -
+!         
+!   Thursday, January 20 13:12:51 EST 2011, jhlee
+!
+!  For BCM1/2/5/6   https://hallcweb.jlab.org/hclog/1101_archive/110125222318.html
+!  		    Wednesday, January 26 09:00:19 EST 2011, jhlee
+!                   Ramesh confirmed the results is the better than run 8966,
+!                   thus, I simply use run 9723 
+!                   Wednesday, January 26 18:33:21 EST 2011, jhlee
+!
+!  For BCM5/6       Friday, February  4 16:10:37 EST 2011,jhlee
+!                   https://hallcweb.jlab.org/hclog/1102_archive/110204144852.html
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -107,9 +129,9 @@
   qwk_bpm3h09bXM   , 2998.2   , 1.0
   qwk_bpm3h09bYP   , 4482.01  , 1.0
   qwk_bpm3h09bYM   , 2208.63  , 1.0
-  qwk_bcm1,         -161.348   , 0.00416061
-  qwk_bcm2,         -513.778   , 0.00444233
-  qwk_bcm5,          6331.1   , 0.00263075
-  qwk_bcm6,          6059.1   , 0.00448862
+  qwk_bcm1         , 253.3   , 0.00418347
+  qwk_bcm2         , 420.338  , 0.00448045
+  qwk_bcm5        ,5863.41,       0.00147343
+  qwk_bcm6        ,6830.93,       0.00161937
   qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
