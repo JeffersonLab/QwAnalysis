@@ -607,14 +607,6 @@ void QwTrackingWorker::ProcessEvent (
                             // If detector is inactive for tracking, skip it
                             if (rd->IsInactive()) continue;
 
-                            // Create a vector of hit patterns
-                            std::vector<QwHitPattern> patterns;
-                            patterns.resize(NUMWIRESR3+1); // wires are counted from 1
-                            if (patterns.at(0).GetNumberOfBins() == 0)
-                              for (size_t wire = 0; wire < patterns.size(); wire++)
-                                patterns.at(wire).SetNumberOfLevels(fLevelsR3);
-
-
                             /// Get the subhitlist of hits in this detector
                             QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, plane);
                             // If no hits in this detector, skip to the next detector.
@@ -627,6 +619,14 @@ void QwTrackingWorker::ProcessEvent (
                             	std::cout << "region: " << region << " package: " << package << " plane: " << plane << std::endl;
                             	subhitlist->Print();
                             }
+
+                            // Create a vector of hit patterns
+                            std::vector<QwHitPattern> patterns;
+                            patterns.resize(NUMWIRESR3+1); // wires are counted from 1
+                            if (patterns.at(0).GetNumberOfBins() == 0)
+                              for (size_t wire = 0; wire < patterns.size(); wire++)
+                                patterns.at(wire).SetNumberOfLevels(fLevelsR3);
+
                             // Loop over the hits in the subhitlist
                             for (QwHitContainer::iterator hit = subhitlist->begin();
                                     hit != subhitlist->end(); hit++) {

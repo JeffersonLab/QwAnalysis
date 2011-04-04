@@ -86,8 +86,6 @@ treenode::treenode(treenode* node)
  */
 treenode::~treenode()
 {
-  QwDebug << "Deleting treenode: " << this << QwLog::endl;
-
   // Delete the sons
   for (int i = 0; i < 4; i++)
     if (fSon[i]) delete fSon[i];
