@@ -9,7 +9,7 @@ seg=00$iseg
 if [ $iseg -ge 10 ]; then seg=0$iseg; fi
 
 echo doubleRegPass  run.seg=$run.$seg
-destDir=tree/regR$run.$seg
+destDir=treeQuad/regR$run.$seg
 
 if [ $# -ne 2 ] ; then
    echo provide run +segemnt 

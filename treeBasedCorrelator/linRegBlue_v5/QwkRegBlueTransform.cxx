@@ -17,6 +17,7 @@ using namespace std;
 #include <TFile.h> 
 #include <TTree.h> 
 #include <TChain.h> 
+#include <TH2.h> 
 
 
 #include <math.h>
@@ -40,17 +41,17 @@ void
 QwkRegBlueTransform::getOneBranch(TChain *chain,TString name,QwkChanJan *qwkChan){
 
   // try first if it is not aliased name
-  //printf("getOneBranch chan: %s ...\n",name.Data());
+  //printf(" getOneBranch chan=%s=  nals=%d...\n",name.Data(),nals());
 
   for(int k=0; k<nals(); k++) {
     //printf(" zz %s k=%d %s  %d\n",name.Data(),k,alsName[k].Data(),alsName[k].Contains(name+"="));
     if (!alsName[k].Contains(name+"=")) continue;
-    //printf("  chan=%s is computed by alias k=%d\n",name.Data(),k);
+    printf("  chan=%s= is computed by alias k=%d\n",name.Data(),k);
     return ;
   }
 
   int ierr=chain->SetBranchAddress(name,qwkChan);
-  if(ierr) printf("failed to map chan=%s=\n",name.Data());
+  if(ierr) printf(" failed to map chan=%s=\n",name.Data());
   assert(ierr==0);  
   //printf("  mapped chan: %s to Tree\n",name.Data());
 }
@@ -67,18 +68,21 @@ QwkRegBlueTransform::findInputLeafs(TChain *chain){
   assert(ierr==0);  
 
   for(int i=0;i<nchan();i++){
+    //printf("findInputLeafs: ich=%d of %d name=%s=\n",i,nchan(),chanName[i].Data());
     getOneBranch(chain,chanName[i],&qwkChan[i]);
   }
-
+ 
  
   hA[3]=new TH1F("inpDevErr",Form("device error code  !=0;channels: see log file "),nchan(),-0.5,nchan()-0.5);
   hA[3]->SetFillColor(kGreen);
+
 
 
   //...... print variables in order
   printf("\n---Aliases N=%d:\n",nals());
   for(int i=0; i<nals(); i++) {
     printf("ial=%d : %s\n",i,alsName[i].Data());
+    aliasVec[i].print();
   }
 
   printf("\n---DVs n=%d:\n",ndv());
@@ -138,6 +142,9 @@ QwkRegBlueTransform::unpackEvent(){
     if(devErr==0) continue;
     eveBad=true;
     hA[3]->Fill(i);
+
+    ((TH2F*)hA[4])->Fill(Form("0x%x",devErr),chanName[i],1.);
+    
   }
 
   if(eveBad) return false;
@@ -202,7 +209,18 @@ QwkRegBlueTransform::initHistos(){
   h->SetFillColor(kYellow);  h->SetBit(TH1::kCanRebin); // rescalled in finish
   
   // hA[3] is set in findInputLeafs()
-  // 4...7 free
+
+  hA[4]=h=new TH2F("devErrType","No.of patterns w/ device error code (independent incrementation); DeviceError value (hex)",1,0,0,nchan(),-0.5,nchan()-0.5);
+  h->GetXaxis()->SetTitleOffset(0.4);  h->GetXaxis()->SetLabelSize(0.04);  h->GetXaxis()->SetTitleSize(0.05); h->SetMinimum(0.8);
+  h->SetMarkerSize(2);//<-- large text
+
+  for(int i=0;i<ndv();i++)
+    ((TH2F*)hA[4])->Fill(0.,dvName[i],0.);
+
+  for(int i=0;i<niv();i++)
+    ((TH2F*)hA[4])->Fill(0.,ivName[i],0.);
+
+  // 5...7 free
   
   assert(chanName[0].CompareTo("yield_qwk_bcm1")==0); // needed by hA[1,2]
 }
@@ -370,4 +388,5 @@ QwkRegBlueTransform::setLeafName2Yield(TString longName){
   name.ReplaceAll("diff_","yield_");
   //printf("  leaf2yield: '%s'-> '%s' \n\n",longName.Data(),name.Data());
   return name;
+  assert(2==3);
 }

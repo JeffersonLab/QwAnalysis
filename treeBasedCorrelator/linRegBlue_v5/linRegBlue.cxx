@@ -91,12 +91,12 @@ int main(int argc, char *argv[]) {
     char *item=strtok(runSegList,"."); // init 'strtok'
     int i=1;
     do {
-      //printf("i=%d, item=%s=\n",i++,item);
+      //printf("i=%d, item=%s=\n",i,item);
       runName=Form("%d.%03d",runNo,atoi(item));
       treeInpFile=eve.inpPath+runName+".root";
-      printf("Open i=%d =%s=\n",i,treeInpFile.Data());
+      printf("Open i=%d =%s=\n",i++,treeInpFile.Data());
       chain->Add(treeInpFile);
-    } while ((item=strtok(0,",")));  // advance by one name
+    } while ((item=strtok(0,".")));  // advance by one name
     runName=Form("%d.all",runNo);
     treeInpFile=eve.inpPath+runName+".root";
   }

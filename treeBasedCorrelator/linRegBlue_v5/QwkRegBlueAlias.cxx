@@ -25,13 +25,22 @@ QwkRegBlueAlias::QwkRegBlueAlias( TString full){
   p1[-1]=0;
   outName=p0;
 
-  char *p2=strstr(p1,"-");
-  if(p2) oper=kOperMinus;
-  else  p2=strstr(p1,"*");
-  if(p2) oper=kOperTimes;
-  else  p2=strstr(p1,"+");
-  if(p2) oper=kOperPlus;
-  else printf("unsupported alias operation, abort ,string='%s'\n",full.Data());
+  char *p2=0;
+  // identify operator between 2 inut leafes
+  if(p2==0 &&oper==kOperBad ) {
+    p2=strstr(p1,"-");
+    if(p2 ) oper=kOperMinus;
+  }
+  if(p2==0 &&oper==kOperBad ) {
+    p2=strstr(p1,"*");
+    if(p2 ) oper=kOperTimes;
+  }
+  if(p2==0 &&oper==kOperBad ) {
+    p2=strstr(p1,"+");
+    if(p2 ) oper=kOperPlus;
+  }
+
+  if(oper==kOperBad) printf("unsupported alias operation, abort ,string='%s'\n",full.Data());
 
   assert(p2);
   p2++;
@@ -50,7 +59,7 @@ QwkRegBlueAlias::QwkRegBlueAlias( TString full){
 void
 QwkRegBlueAlias::print(){
   printf("QwkRegBlueAlias::print()  rawText: %s \n   oper=%d, outName=%s, inp1=%s, inp2=%s\n",rawText.Data(),oper, outName.Data(), inpName1.Data(), inpName2.Data());
-  printf("   alias indexes for chan-array %d %d %d\n",kout,kin1,kin2);
+  printf("   alias indexes for chan-array %d=f(%d, %d) oper=%d\n",kout,kin1,kin2,oper);
 }
 
 //========================
@@ -84,6 +93,6 @@ QwkRegBlueAlias::compute_hw_sum(QwkChanJan  *qwkChan){
   if(oper==kOperPlus) 
     out->hw_sum=in1->hw_sum + in2->hw_sum;
 
-  //printf("QwkRegBlueAlias::compute() oper=%d  3*val %f %f %f\n", oper,out->hw_sum ,in1->hw_sum,in2->hw_sum);
+  //printf("QwkRegBlueAlias::compute() oper=%d  %f=f(%f, %f)\n", oper,out->hw_sum ,in1->hw_sum,in2->hw_sum);
 
 }

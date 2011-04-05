@@ -4,10 +4,10 @@ int pl=2; //1=gif, 2=ps, 3=both
 TFile* fd=0;
 //enum{ nP=5}; //,nY=15}; 
 TString cor1="input";
-TString runName="R10840.000";
+TString runName="R11126.000";
 
 
-TString inpPath="./out/";
+TString inpPath="./out/"; 
 char *oPath="./out/";
 
 plCor(int page=1, char *runName0="RfixMe.000") {
@@ -22,9 +22,10 @@ plCor(int page=1, char *runName0="RfixMe.000") {
   printf("Opened  histo=%s=\n",fd->GetName());
 
   if(page==1) mySum("summary ,"+runName); 
-  if(page==2) IV_IV("Independent variables, (ppm), "+runName);
-  if(page==3) yield_1D("Yield of IVs, "+runName,"yieldIV",0,4);
-  if(page==4) asym_BCM("Asym for BCMs, "+runName);
+  if(page==2) devErr_2D("DeviceError after cut ErrorFlag==0 , "+runName);
+  if(page==3) IV_IV("Independent variables, (ppm), "+runName);
+  if(page==4) yield_1D("Yield of IVs, "+runName,"yieldIV",0,4);
+  if(page==5) asym_BCM("Asym for BCMs, "+runName);
 
   if(page==10) DV_1D("Regressed DV: MD, "+runName,"regres",0,15);
   if(page==11) DV_1D("Regressed DV: Lumi coinc, "+runName,"regres",16,28);
@@ -72,8 +73,32 @@ int get_nP() {
   int nb=ax->GetNbins();
   printf(" found dim IV=%d \n",nb); 
   return nb;
-}
+}gPad->SetLogz();
 
+
+//============================================
+//============================================
+void   devErr_2D( TString text){
+
+  gStyle->SetOptFit(1); gStyle->SetOptStat(0);
+  
+  can=new TCanvas("aa","aa",800,600);    TPad *c=makeTitle(can,text);
+  c->cd();
+  gPad->SetLeftMargin(0.20);
+  gPad->SetRightMargin(0.15);
+  h=devErrType;
+  h->Draw("colz");
+  gPad->SetLogz();
+  gPad->SetGrid();
+
+  h->GetXaxis()->SetTitleSize(0.05);
+  h->GetXaxis()->SetTitleOffset(0.7); 
+  h->GetXaxis()->SetLabelSize(0.05);
+
+  h->GetYaxis()->SetLabelSize(0.03);
+
+  h->SetTitle("No. of patterns w/ device error code (only channels w/ errors); dev err value (hex)");
+}
 
 //============================================
 //============================================
