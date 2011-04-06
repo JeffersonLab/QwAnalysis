@@ -603,8 +603,6 @@ void QwTrackingWorker::ProcessEvent (
                                 patterns.at(wire) += hitpattern;
 
                             } // end of loop over hits in this event
-                            QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive()
-                                      << " (of " << QwHitPattern::GetObjectsCreated() << ")" << QwLog::endl;
 
                             // Print hit pattern, if requested
                             if (fShowEventPattern) {
@@ -760,8 +758,6 @@ void QwTrackingWorker::ProcessEvent (
                             delete subhitlist;
 
                         } // end of loop over like-pitched planes in a region
-                        QwMessage << "  QwHitPattern: "   << QwHitPattern::GetObjectsAlive()
-                                  << " (of " << QwHitPattern::GetObjectsCreated() << ")" << QwLog::endl;
 
                         // Print hit pattern, if requested
                         if (fShowEventPattern)
