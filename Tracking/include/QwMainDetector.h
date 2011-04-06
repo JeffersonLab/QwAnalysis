@@ -18,7 +18,6 @@
 #include "TTree.h"
 
 #include "VQwSubsystemTracking.h"
-#include "QwDetectorInfo.h"
 #include "QwColor.h"
 
 #include "MQwV775TDC.h"

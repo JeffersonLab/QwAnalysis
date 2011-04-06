@@ -25,9 +25,6 @@
 #include "QwLog.h"
 #include "QwParameterFile.h"
 
-// Deprecated Qweak headers
-#include "Qset.h"
-
 // Qweak event buffer and tracking worker
 #include "QwTreeEventBuffer.h"
 #include "QwHitRootContainer.h"
@@ -87,12 +84,6 @@ int main (int argc, char* argv[])
   // Get detector geometry
   QwGeometry geometry = detectors->GetGeometry();
 
-  // Load the geometry
-  Qset qset;
-  qset.FillDetectors((getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/qweak.geo").c_str());
-  qset.LinkDetectors();
-  qset.DeterminePlanes();
-
   /// Create a timer
   TStopwatch timer;
 
@@ -101,7 +92,7 @@ int main (int argc, char* argv[])
   timer.Start();
 
   /// Next, we create the tracking worker that will pull coordinate the tracking.
-  QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
+  QwTrackingWorker *trackingworker = new QwTrackingWorker(geometry);
   if (kDebug) trackingworker->SetDebugLevel(1);
 
   /// Stop timer

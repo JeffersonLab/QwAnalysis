@@ -6,7 +6,6 @@
 
 // Qweak hit container
 #include "QwHitContainer.h"
-#include "QwASCIIEventBuffer.h"
 
 //ClassImp(QwTrackingDataserver)
 

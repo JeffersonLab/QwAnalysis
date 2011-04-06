@@ -10,9 +10,6 @@ ClassImp(QwPartialTrack)
 #include "QwUnits.h"
 #include "QwVertex.h"
 
-// Qweak headers (deprecated)
-#include "Det.h"
-
 /**
  * Default constructor
  */
@@ -388,16 +385,16 @@ QwPartialTrack& QwPartialTrack::SmearAnglePhi(double sigma)
  * This method checks determines the intersection of the partial track
  * with a planar detector.
  */
-const QwVertex* QwPartialTrack::DeterminePositionInDetector(const QwDetectorInfo& detector)
+const QwVertex* QwPartialTrack::DeterminePositionInDetector(const QwDetectorInfo* detector)
 {
   QwVertex* vertex = 0;
-  if (detector.GetDetectorRotation() != 0) {
+  if (detector->GetDetectorRotation() != 0) {
     // Get intersection with z-plane
-    double z = detector.GetZPosition();
+    double z = detector->GetZPosition();
     TVector3 position = GetPosition(z);
     // Check acceptance with active width
-    if (fabs(position.X() - detector.GetPosition().X()) < detector.GetActiveWidthX()
-     && fabs(position.Y() - detector.GetPosition().Y()) < detector.GetActiveWidthY()) {
+    if (fabs(position.X() - detector->GetPosition().X()) < detector->GetActiveWidthX()/2
+     && fabs(position.Y() - detector->GetPosition().Y()) < detector->GetActiveWidthY()/2) {
       vertex = new QwVertex(position);
     } else {
       QwMessage << "No support for intersections of partial tracks "
@@ -416,7 +413,7 @@ const QwVertex* QwPartialTrack::DeterminePositionInDetector(const QwDetectorInfo
  * determination of the primary vertex will be implemented using the general
  * QwVertex class, e.g. QwVertex* primary_vertex = QwVertex (partial_track, beam)
  */
-int QwPartialTrack::DeterminePositionInTarget ()
+const QwVertex* QwPartialTrack::DeterminePositionInTarget (const QwGeometry& geometry)
 {
   // TODO target should be put in in the geometry file
   TVector3 primary = GetPosition(0.0);
@@ -429,43 +426,19 @@ int QwPartialTrack::DeterminePositionInTarget ()
  * with the trigger scintillators in a detector package.
  *
  * The trigger scintillators are assumed to be the only (or at least the first)
- * detectors in region 3 that are oriented in direction X.
- *
- * Geometric acceptance is calculated from the centers and widths in the
- * geometry definition.  Tracks are drawn straight from region 3.
- *
- * @return 1 if a hit in the trigger scintillators was found
+ * detectors in region 3.
  */
-int QwPartialTrack::DeterminePositionInTriggerScintillators (EQwDetectorPackage package)
+const QwVertex* QwPartialTrack::DeterminePositionInTriggerScintillators (const QwGeometry& geometry)
 {
-  double trig[3];
-  double lim_trig[2][2];
+  // Get the trigger scintillator detectors in this package
+  QwGeometry trigscint(geometry.in(kRegionIDTrig).in(GetPackage()));
 
-  // Get the trigger scintillator
-  // TODO use generic detector intersection routine
-  Det* rd = rcDETRegion[package][kRegionIDTrig][kDirectionX];
-
-  // Get the point where the track intersects the detector planes
-  trig[2] = rd->Zpos;
-  trig[0] = fSlopeX * trig[2] + fOffsetX;
-  trig[1] = fSlopeY * trig[2] + fOffsetY;
-  // Get the detector boundaries
-  lim_trig[0][0] = rd->center[0] + rd->width[0]/2;
-  lim_trig[0][1] = rd->center[0] - rd->width[0]/2;
-  lim_trig[1][0] = rd->center[1] + rd->width[1]/2;
-  lim_trig[1][1] = rd->center[1] - rd->width[1]/2;
-
-  if (trig[0] < lim_trig[0][0]
-   && trig[0] > lim_trig[0][1]
-   && trig[1] < lim_trig[1][0]
-   && trig[1] > lim_trig[1][1]) {
-    triggerhit = 1;
-    trig[0]    = trig[0];
-    trig[1]    = trig[1];
-    QwMessage << "Trigger scintillator hit at : (" << trig[0] << "," << trig[1] << "," << trig[2] << ")" << QwLog::endl;
-  } else triggerhit = 0;
-
-  return triggerhit;
+  // Find the first hit
+  for (size_t i = 0; i < trigscint.size(); i++) {
+    const QwVertex* vertex = DeterminePositionInDetector(trigscint.at(i));
+    if (vertex) return vertex;
+  }
+  return 0;
 }
 
 /**
@@ -473,121 +446,36 @@ int QwPartialTrack::DeterminePositionInTriggerScintillators (EQwDetectorPackage 
  * with the trigger scintillators in a detector package.
  *
  * The cerenkov bars are assumed to be the only (or at least the first)
- * detectors in region 3 that are oriented in direction Y.
- *
- * Geometric acceptance is calculated from the centers and widths in the
- * geometry definition.  Tracks are drawn straight from region 3.
- *
- * @return 1 if a hit in the cerenkov bars was found
+ * detectors in region 3.
  */
-int QwPartialTrack::DeterminePositionInCerenkovBars (EQwDetectorPackage package)
+const QwVertex* QwPartialTrack::DeterminePositionInCerenkovBars (const QwGeometry& geometry)
 {
-  double cc[3];
-  double lim_cc[2][2];
+  // Get the Cherenkov detectors in this package
+  QwGeometry cerenkov(geometry.in(kRegionIDCer).in(GetPackage()));
 
-  //QwVerbose<<"r3: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<QwLog::endl;
-
-  // Get the Cherenkov detector
-  // TODO use generic detector intersection routine
-  Det* rd = rcDETRegion[package][kRegionIDCer][kDirectionY];
-
-  // Get the point where the track intersects the detector planes
-  cc[2] = rd->Zpos;
-  cc[0] = fSlopeX * cc[2] + fOffsetX;
-  cc[1] = fSlopeY * cc[2] + fOffsetY;
-  // Get the detector boundaries
-  lim_cc[0][0] = rd->center[0] + rd->width[0]/2;
-  lim_cc[0][1] = rd->center[0] - rd->width[0]/2;
-  lim_cc[1][0] = rd->center[1] + rd->width[1]/2;
-  lim_cc[1][1] = rd->center[1] - rd->width[1]/2;
-
-  if (cc[0] < lim_cc[0][0]
-   && cc[0] > lim_cc[0][1]
-   && cc[1] < lim_cc[1][0]
-   && cc[1] > lim_cc[1][1]) {
-
-    fIsGood = true;
-    cerenkovhit = 1;
-
-    cerenkov[0] = cc[0];
-    cerenkov[1] = cc[1];
-    cerenkov[2] = cc[2];
-
-    pR3hit[0] = cerenkov[0];
-    pR3hit[1] = cerenkov[1];
-    pR3hit[2] = cerenkov[2];
-
-    double kz = sqrt(fSlopeX * fSlopeX + fSlopeY * fSlopeY + 1);
-    uvR3hit[0] = fSlopeX / kz;
-    uvR3hit[1] = fSlopeY / kz;
-    uvR3hit[2] = 1 / kz;
-
-    QwMessage << "Cerenkov bar hit at : (" << cc[0] << "," << cc[1] << "," << cc[2] << ")   "
-              << "direction ("<<uvR3hit[0]<<","<<uvR3hit[1]<<","<<uvR3hit[2] << QwLog::endl;
-  } else {
-    cerenkovhit = 0;
-    fIsGood = false;
+  // Find the first hit
+  for (size_t i = 0; i < cerenkov.size(); i++) {
+    const QwVertex* vertex = DeterminePositionInDetector(cerenkov.at(i));
+    if (vertex) return vertex;
   }
-
-  return cerenkovhit;
+  return 0;
 }
 
-int QwPartialTrack::DeterminePositionInHDC (EQwDetectorPackage package)
+/**
+ * This method checks whether the region 2 partial track has an intersection
+ * with the horizontal drift chambers in a detector package.
+ *
+ * The drift chambers are assumed to be the only (or at least the first)
+ * detectors in region 2.
+ */
+const QwVertex* QwPartialTrack::DeterminePositionInHDC (const QwGeometry& geometry)
 {
-  double lim_hdc[2][2];
-
-  //QwVerbose<<"r2: x, y, mx, my: "<<x<<", "<<y<<", "<<mx<<", "<<my<<QwLog::endl;
-
-  // Get the HDC detector
-  // TODO use generic detector intersection routine
-  Det* rd = rcDETRegion[package][kRegionID2][kDirectionX];
-  // Get the point where the track intersects the detector planes
-  TVector3 hdc_front = GetPosition(rd->Zpos);
-
-  // Get the HDC detector
-  // TODO use generic detector intersection routine
-  rd = rcDETRegion[package][kRegionID2][kDirectionV];
-  // Get the point where the track intersects the detector planes
-  TVector3 hdc_back = GetPosition(rd->Zpos);
-
-  // Get the detector boundaries
-  lim_hdc[0][0] = rd->center[0] + rd->width[0]/2;
-  lim_hdc[0][1] = rd->center[0] - rd->width[0]/2;
-  lim_hdc[1][0] = rd->center[1] + rd->width[1]/2;
-  lim_hdc[1][1] = rd->center[1] - rd->width[1]/2;
-
-  if (hdc_front.X() < lim_hdc[0][0]
-   && hdc_front.X() > lim_hdc[0][1]
-   && hdc_front.Y() < lim_hdc[1][0]
-   && hdc_front.Y() > lim_hdc[1][1]
-   && hdc_back.X() < lim_hdc[0][0]
-   && hdc_back.X() > lim_hdc[0][1]
-   && hdc_back.Y() < lim_hdc[1][0]
-   && hdc_back.Y() > lim_hdc[1][1]) {
-
-    fIsGood = true;
-
-    pR2hit[0] = hdc_back.X();
-    pR2hit[1] = hdc_back.Y();
-    pR2hit[2] = hdc_back.Z();
-
-    QwVerbose << "HDC front hit at : ("
-              << hdc_front.X() << "," << hdc_front.Y() << "," << hdc_front.Z() << ")" << QwLog::endl;
-    QwVerbose << "HDC back  hit at : ("
-              << hdc_back.X() << "," << hdc_back.Y() << "," << hdc_back.Z() << ")" << QwLog::endl;
-
-    TVector3 partial_track = GetMomentumDirection();
-    QwVerbose << "Partial track direction vector: ("
-              << partial_track.X() << "," << partial_track.Y() << "," << partial_track.Z() << ")" << QwLog::endl;
-
-    QwVerbose << "Partial track direction angle: "
-              << "theta = " << GetMomentumDirectionTheta() * Qw::deg << " deg,"
-              << "phi = " << GetMomentumDirectionPhi() * Qw::deg << " deg" << QwLog::endl;
-
-
-  } else {
-    fIsGood = false;
+  // Get the HDC detectors in this package
+  QwGeometry hdc(geometry.in(kRegionID2).in(GetPackage()));
+  // Find the first hit
+  for (size_t i = 0; i < hdc.size(); i++) {
+    const QwVertex* vertex = DeterminePositionInDetector(hdc.at(i));
+    if (vertex) return vertex;
   }
-
   return 0;
 }

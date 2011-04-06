@@ -8,9 +8,6 @@
 #include "TROOT.h"
 #include "TH1F.h"
 
-// Qweak support headers
-#include "Qset.h"
-
 // Qweak tracking worker
 #include "QwTrackingWorker.h"
 

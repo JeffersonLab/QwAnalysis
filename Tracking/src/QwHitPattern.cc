@@ -12,7 +12,6 @@ ClassImp(QwHitPattern)
 // Qweak headers
 #include "QwHit.h"
 #include "QwHitContainer.h"
-#include "QwDetectorInfo.h"
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 

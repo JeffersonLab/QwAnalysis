@@ -111,22 +111,22 @@ QwOptions::~QwOptions()
  */
 void QwOptions::SetCommandLine(int argc, char* argv[])
 {
-  Bool_t local_debug = false;
   // Copy command line options
   fArgc = argc;
   if (fArgv) delete[] fArgv;
   fArgv = new char*[fArgc];
-  if(local_debug) printf("****BEGIN %s\n", __PRETTY_FUNCTION__);
+  QwDebug << "Arguments:";
   for (int i = 0; i < argc; i++) {
     fArgv[i] = argv[i];
-    if(local_debug)  printf("%s\n", fArgv[i]);
+    QwDebug << " " << fArgv[i];
   }
+  QwDebug << QwLog::endl;
   fParsed = false;
 
   // Add default config file based on file name
   if (fArgc > 0) {
     std::string path = fArgv[0];
-    if(local_debug) std::cout << "path " << path << std::endl;
+    QwDebug << "Invocation name: " << path << QwLog::endl;
     // Find file name from full path
     size_t pos = path.find_last_of('/');
     if (pos != std::string::npos)
@@ -136,7 +136,6 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
       // Called without path
       AddConfigFile(path + ".conf");
   }
-  if(local_debug) printf("**** END %s\n", __PRETTY_FUNCTION__);
 }
 
 

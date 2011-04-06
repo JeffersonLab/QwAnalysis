@@ -25,7 +25,7 @@ using std::vector;
 // Qweak headers
 #include "QwTypes.h"
 #include "QwOptions.h"
-#include "QwDetectorInfo.h"
+#include "QwGeometry.h"
 
 // Definition of the reference detectors (## is concatenation)
 #define REGION1_DETECTOR(var) fRegion1_ChamberFront_WirePlane_ ## var

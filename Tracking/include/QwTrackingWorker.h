@@ -14,6 +14,7 @@
 // Qweak headers
 #include "QwTypes.h"
 #include "QwOptions.h"
+#include "QwGeometry.h"
 
 // Forward declarations
 class QwSubsystemArrayTracking;
@@ -56,7 +57,7 @@ class QwTrackingWorker {
     int R3Bad;
 
     /// \brief Default constructor with name
-    QwTrackingWorker(const char* name);
+    QwTrackingWorker(const QwGeometry& geometry);
     /// \brief Destructor
     ~QwTrackingWorker();
 
@@ -66,9 +67,14 @@ class QwTrackingWorker {
     void ProcessOptions(QwOptions& options);
 
     /// \brief Get the debug level
-    int GetDebugLevel () { return fDebug; };
+    int GetDebugLevel() const { return fDebug; };
     /// \brief Set the debug level
-    void SetDebugLevel (int debug) { fDebug = debug; };
+    void SetDebugLevel(const int debug) { fDebug = debug; };
+
+    /// \brief Get the geometry
+    const QwGeometry GetGeometry() const { return fGeometry; };
+    /// \brief Set the geometry
+    void SetGeometry(const QwGeometry& geometry) { fGeometry = geometry; };
 
     /// \brief Process the hit list and construct the event
     void ProcessEvent (const QwSubsystemArrayTracking *detectors, QwEvent *event);
@@ -76,7 +82,10 @@ class QwTrackingWorker {
   private:
 
     /// \brief Pattern search tree for all configurations
-    QwTrackingTreeRegion* fSearchTree[kNumPackages * kNumRegions * kNumTypes * kNumDirections];
+    QwTrackingTreeRegion* fSearchTree[kNumPackages * kNumRegions * kNumDirections];
+
+    /// \brief Detector geometry
+    QwGeometry fGeometry;
 
     /// \brief Debug level
     int fDebug;
@@ -90,7 +99,7 @@ class QwTrackingWorker {
     int fLevelsR3;
 
     /// \brief Initialize the pattern search tree
-    void InitTree();
+    void InitTree(const QwGeometry& geometry);
 
     /// \name Momentum determination bridging methods
     //@{
@@ -124,6 +133,11 @@ class QwTrackingWorker {
     QwTrackingTreeSort*    fTreeSort;    ///< Module that sorts lists of treelines and partial tracks
     QwTrackingTreeMatch*   fTreeMatch;   ///< Module that matches up VDC front and back treelines
     //@}
+
+  private:
+
+    // Disabled default constructor
+    QwTrackingWorker();
 
 }; // class QwTrackingWorker
 

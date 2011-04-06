@@ -42,9 +42,6 @@
 #include "QwBeamLine.h"
 #include "QwScaler.h"
 
-// Qweak headers (deprecated)
-#include "Qset.h"
-
 
 // Main function
 Int_t main(Int_t argc, Char_t* argv[])
@@ -85,24 +82,8 @@ Int_t main(Int_t argc, Char_t* argv[])
 
 
   Bool_t enablemapfile = gQwOptions.GetValue<bool>("enable-mapfile");
-  if(enablemapfile) {
-    //std::cout << ">>>>>>>>>>> map file " << std::endl;
-    gQwHists.LoadHistParamsFromFile("parity_hist.in");
-    gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
-
-  }
-  else {
-    //     std::cout << ">>>>>>>>>>> root file " << std::endl;
-    ///  Load the histogram parameter definitions
-    gQwHists.LoadHistParamsFromFile("parity_hist.in");
-    gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
-  }
-
-  // Create and fill old detector structures (deprecated)
-  Qset qset;
-  qset.FillDetectors((getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/qweak.geo").c_str());
-  qset.LinkDetectors();
-  qset.DeterminePlanes();
+  gQwHists.LoadHistParamsFromFile("parity_hist.in");
+  gQwHists.LoadHistParamsFromFile("qweak_tracking_hists.in");
 
 
   ///  Start loop over all runs
@@ -126,13 +107,14 @@ Int_t main(Int_t argc, Char_t* argv[])
     tracking_detectors.ProcessOptions(gQwOptions);
     ///  Get detector geometry
     QwGeometry geometry = tracking_detectors.GetGeometry();
+    QwVerbose << geometry << QwLog::endl;
 
     ///  Load the parity detectors from file
     QwSubsystemArrayParity parity_detectors(gQwOptions);
     parity_detectors.ProcessOptions(gQwOptions);
 
     ///  Create the tracking worker
-    QwTrackingWorker *trackingworker = new QwTrackingWorker("qwtrackingworker");
+    QwTrackingWorker *trackingworker = new QwTrackingWorker(geometry);
 
 
     //  Initialize the database connection.

@@ -7,10 +7,12 @@
 
 // Standard C and C++ headers
 #include <iostream>
-#include  <utility>
+#include <utility>
 using std::cout; using std::cerr; using std::endl;
 
 #include "QwTypes.h"
+#include "QwDetectorInfo.h"
+#include "QwGeometry.h"
 
 #include "globals.h"
 #include "matrix.h"
@@ -82,6 +84,9 @@ class QwTrackingTreeCombine {
     /// Set the maximum X road width (?)
     void SetMaxXRoad (const double maxxroad) { fMaxXRoad = maxxroad; };
 
+    /// Set the geometry
+    void SetGeometry(const QwGeometry& geometry) { fGeometry = geometry; };
+
     /// \brief Select the left or right hit assignment for HDC hits
     int SelectLeftRightHit (double *xresult, double dist_cut,
 		QwHitContainer *hitlist, QwHit **ha, double Dx = 0);
@@ -131,8 +136,7 @@ class QwTrackingTreeCombine {
 
     QwPartialTrack* TlTreeCombine (
 		QwTrackingTreeLine *uvl[kNumDirections], EQwDetectorPackage package,
-		EQwRegionID region, int tlayer, int dlayer,
-		QwTrackingTreeRegion **myTreeRegion);
+		EQwRegionID region, int tlayer, int dlayer);
 
     void ResidualWrite (QwEvent *event);
 
@@ -148,6 +152,8 @@ class QwTrackingTreeCombine {
 
     double fMaxRoad;
     double fMaxXRoad;
+
+    QwGeometry fGeometry;
 
     /// Maximum number of missed planes in region 2
     int fMaxMissedPlanes;

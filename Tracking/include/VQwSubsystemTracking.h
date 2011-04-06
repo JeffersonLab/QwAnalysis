@@ -6,7 +6,7 @@
 
 // Qweak headers
 #include "VQwSubsystem.h"
-#include "QwDetectorInfo.h"
+#include "QwGeometry.h"
 
 // Forward declarations
 class QwHitContainer;

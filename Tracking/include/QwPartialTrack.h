@@ -21,6 +21,7 @@
 #include "QwObjectCounter.h"
 #include "QwTrackingTreeLine.h"
 #include "QwDetectorInfo.h"
+#include "QwGeometry.h"
 #include "QwBridge.h"
 
 // Forward declarations
@@ -119,15 +120,15 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     QwPartialTrack& SmearAnglePhi(const double sigma);
 
     /// \brief Determine vertex in detector
-    const QwVertex* DeterminePositionInDetector(const QwDetectorInfo& detector);
+    const QwVertex* DeterminePositionInDetector(const QwDetectorInfo* geometry);
     /// \brief Determine vertex in the target
-    int DeterminePositionInTarget ();
+    const QwVertex* DeterminePositionInTarget (const QwGeometry& geometry);
     /// \brief Determine intersection with trigger scintillators
-    int DeterminePositionInTriggerScintillators (EQwDetectorPackage package);
+    const QwVertex* DeterminePositionInTriggerScintillators (const QwGeometry& geometry);
     /// \brief Determine intersection with cerenkov bars
-    int DeterminePositionInCerenkovBars (EQwDetectorPackage package);
+    const QwVertex* DeterminePositionInCerenkovBars (const QwGeometry& geometry);
     /// \brief Determine position in first horizontal drift chamber
-    int DeterminePositionInHDC (EQwDetectorPackage package);
+    const QwVertex* DeterminePositionInHDC (const QwGeometry& geometry);
 
     // Average residuals
     double GetAverageResidual() const { return fAverageResidual; };
