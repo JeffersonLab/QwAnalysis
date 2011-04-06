@@ -47,7 +47,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment();      // Remove everything after a comment character
     mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace
@@ -214,7 +214,7 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
 {
   // Open the file
   QwParameterFile mapstr(pedestalfile.Data());
-  Bool_t found = kFALSE;
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment();    // Remove everything after a comment character
     mapstr.TrimWhitespace(); // Get rid of leading and trailing spaces
@@ -230,8 +230,10 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
       varname.Remove(TString::kBoth,' ');
       varped = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
       varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+      QwVerbose << varname << ": " << QwLog::endl;
     }
 
+    Bool_t found = kFALSE;
     for (size_t i = 0; i < fSamplingADC.size() && !found; i++) {
       TString localname = fSamplingADC[i].GetElementName();
       localname.ToLower();
@@ -242,7 +244,7 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
       }
     } // end of loop over all sampling ADC channels
 
-
+    found = kFALSE;
     for (size_t i = 0; i < fScaler.size() && !found; i++) {
       TString localname = fScaler[i]->GetElementName();
       localname.ToLower();
