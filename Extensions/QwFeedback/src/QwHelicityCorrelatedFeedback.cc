@@ -436,7 +436,7 @@ void QwHelicityCorrelatedFeedback::FeedPCPos(){
 }; 
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedPCNeg(){
-};
+}; 
 
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
@@ -470,6 +470,7 @@ void QwHelicityCorrelatedFeedback::LogHAParameters(Int_t mode){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::UpdateGMClean(Int_t state){
   //fScanCtrl.Open();
+  
   if (state==0)
     fScanCtrl.SCNSetStatus(SCN_INT_NOT);
   if (state)
@@ -477,6 +478,7 @@ void QwHelicityCorrelatedFeedback::UpdateGMClean(Int_t state){
   fScanCtrl.CheckScan();
   fScanCtrl.PrintScanInfo();
   fScanCtrl.Close();  
+  
 };
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::UpdateGMScanParameters(){

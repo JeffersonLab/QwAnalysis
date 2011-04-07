@@ -24,7 +24,9 @@
 #ifndef Crate_Injector 
 #define Crate_Injector  (3)
 #endif
-
+#ifndef Crate_Qwvmets
+#define Crate_Qwvmets  (4)
+#endif 
 struct greenRequest
 { 
    long  command_type;
