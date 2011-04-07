@@ -59,6 +59,12 @@ IA_up  = 50000
 #PITASLOPE_IN = -0.557
 
 #PITA slopes
+#  From John Leacock, as of ,19Dec2010, 
+#  units are ppm/dac-tick
+#PITASLOPE_OUT = -0.996422
+#PITASLOPE_IN = +0.996422
+
+#PITA slopes
 #  From M.Dalton, as of ,06Jan2011, https://cebaf.jlab.org/elog/entry/1560667
 #  units are ppm/dac-tick
 #PITASLOPE_OUT = -0.8588
@@ -69,15 +75,15 @@ IA_up  = 50000
 #PITASLOPE_IN  = +1.145
 
 ###  See HCLog 224296 07:35:22 on March 17, 2011 - rakithab
-PITASLOPE_OUT = +0.7749
+#PITASLOPE_OUT = +0.7749
 ###  See HCLog 224663 10:12:08 on March 18, 2011 -  rakithab
-PITASLOPE_IN = +0.7192
+#PITASLOPE_IN = +0.7192
 
-#PITA slopes
-#  From John Leacock, as of ,19Dec2010, 
-#  units are ppm/dac-tick
-#PITASLOPE_OUT = -0.996422
-#PITASLOPE_IN = +0.996422
+###  See HCLog 227091 on Apr 07, 2011 - rakithab
+PITASLOPE_OUT = 0.9562
+PITASLOPE_IN = 0.9790
+
+
 
 ###  PITANEG = 200
 
