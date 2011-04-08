@@ -1668,7 +1668,7 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	fit[3]=P_dir[1]/P_dir[2];
 
 	// TASK 3: rotate xy local to the global coordination(partially because of y axis)
-	double ztrans,ytrans,xtrans,costheta,sintheta;
+	double ztrans,ytrans,xtrans,costheta,sintheta,cosphi,sinphi;
 	double P1[3],P2[3],Pp1[3],Pp2[3];
 	//get some detector information
 	// NOTE: since the first plane is in v direction and hits[0] is in u, so here 1 should be changed to 2
@@ -1680,6 +1680,8 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 		QwVerbose << "TODO (wdc) needs checking" << QwLog::endl;
 		costheta = hits[0]->GetDetectorInfo()->GetDetectorRotationCos();
 		sintheta = hits[0]->GetDetectorInfo()->GetDetectorRotationSin();
+		cosphi = hits[0]->GetDetectorInfo()->GetDetectorTiltCos();
+		sinphi = hits[0]->GetDetectorInfo()->GetDetectorTiltSin();
 		/// xtrans,ytrans,ztrans are first plane's information
 		xtrans = hits[0]->GetDetectorInfo()->GetXPosition();
 		ytrans = hits[0]->GetDetectorInfo()->GetYPosition();
@@ -1703,13 +1705,14 @@ int QwTrackingTreeCombine::r3_TrackFit3 (
 	// rotate the points into the lab orientation
 	// translate the points into the lab frame
 
-	Pp1[0] = ytrans + P1[0] * costheta + P1[2] * sintheta;
-	Pp1[1] = xtrans + P1[1];
+	Pp1[0] = (ytrans + P1[0] * costheta + P1[2] * sintheta) * cosphi + (xtrans + P1[1]) * sinphi;
+	Pp1[1] = -1*(ytrans + P1[0] * costheta + P1[2] * sintheta) * sinphi + (xtrans + P1[1]) * cosphi;
 	Pp1[2] = ztrans - P1[0] * sintheta + P1[2] * costheta;
 
-	Pp2[0] = ytrans + P2[0] * costheta + P2[2] * sintheta;
-	Pp2[1] = xtrans + P2[1];
+	Pp2[0] = (ytrans + P2[0] * costheta + P2[2] * sintheta) * cosphi + (xtrans + P2[1]) * sinphi;
+	Pp2[1] = -1*(ytrans + P2[0] * costheta + P2[2] * sintheta) * sinphi + (xtrans + P2[1]) * cosphi;
 	Pp2[2] = ztrans - P2[0] * sintheta + P2[2] * costheta;
+
 	// calculate the new line
 	fit[1] = ( Pp2[0] - Pp1[0] ) / ( Pp2[2] - Pp1[2] );
 	fit[3] = ( Pp2[1] - Pp1[1] ) / ( Pp2[2] - Pp1[2] );

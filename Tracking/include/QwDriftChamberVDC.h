@@ -82,6 +82,7 @@ class QwDriftChamberVDC: public QwDriftChamber, public MQwCloneable<QwDriftChamb
   
   Bool_t fUseTDCHits;
   Bool_t fDisableWireTimeOffset;
+  Int_t fR3Octant;
   static const UInt_t kBackPlaneNum;
   static const UInt_t kLineNum;
   std::vector< std::vector<QwDelayLine> > fDelayLineArray;   //indexed by backplane and line number

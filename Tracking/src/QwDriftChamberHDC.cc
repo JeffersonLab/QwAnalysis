@@ -33,7 +33,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   TString varname, varvalue,package, direction,dType;
   //  Int_t  chan;
   Int_t  plane, TotalWires,detectorId,region, DIRMODE;
-  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
+  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
 
@@ -80,6 +80,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       FirstWire    = (atof(mapstr.GetNextToken(", ").c_str()));
       W_rcos       = (atof(mapstr.GetNextToken(", ").c_str()));
       W_rsin       = (atof(mapstr.GetNextToken(", ").c_str()));
+      tilt         = (atof(mapstr.GetNextToken(", ").c_str()));
       TotalWires   = (atol(mapstr.GetNextToken(", ").c_str()));
       detectorId   = (atol(mapstr.GetNextToken(", ").c_str()));
 
@@ -95,7 +96,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 	        Det_originX, Det_originY,
 	        ActiveWidthX, ActiveWidthY, ActiveWidthZ,
 	        WireSpace, FirstWire,
-	        W_rcos, W_rsin,
+		W_rcos, W_rsin, tilt,
 	        TotalWires,
 	        detectorId);
 	    fDetectorInfo.push_back(detector);

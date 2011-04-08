@@ -33,7 +33,7 @@ class QwDetectorInfo: public TObject {
     /// Default constructor
     QwDetectorInfo(): fIsActive(true),fTree(0) { };
 
-    void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, int totalwires, int detId);
+  void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, double tilt, int totalwires, int detId);
 
     // Get/set spatial resolution
     double GetSpatialResolution() const { return fSpatialResolution; };
@@ -133,6 +133,17 @@ class QwDetectorInfo: public TObject {
       fDetectorRotationCos = std::cos(fDetectorRotation);
       fDetectorRotationSin = std::sin(fDetectorRotation);
     };
+    // Get/set detector tilt (in degrees)
+    double GetDetectorTilt() const { return fDetectorTilt; };
+    double GetDetectorTiltInRad() const { return fDetectorTilt; };
+    double GetDetectorTiltInDeg() const { return fDetectorTilt * TMath::RadToDeg(); };
+    double GetDetectorTiltCos() const { return fDetectorTiltCos; };
+    double GetDetectorTiltSin() const { return fDetectorTiltSin; };
+    void SetDetectorTilt(const double tilting) {
+      fDetectorTilt = tilting; // in degrees
+      fDetectorTiltCos = std::cos(fDetectorTilt);
+      fDetectorTiltSin = std::sin(fDetectorTilt);
+    };
 
     // Get/set tracking search tree
     const QwTrackingTreeRegion* GetTrackingSearchTree() const { return fTree; };
@@ -168,6 +179,10 @@ class QwDetectorInfo: public TObject {
       /// \todo This is an inconsistent definition of coordinate frames.
     double fDetectorRotationCos;	///< Cos of detector orientation
     double fDetectorRotationSin;	///< Sin of detector orientation
+    double fDetectorTilt;               ///Tilt in XY of Detector
+    double fDetectorTiltCos;    	///< Cos of detector tilt
+    double fDetectorTiltSin;	        ///< Sin of detector tilt
+
 
     bool   fIsActive;		///< Is this detector activated in tracking
 

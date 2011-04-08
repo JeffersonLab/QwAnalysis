@@ -43,7 +43,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
   TString varname, varvalue,package, direction, dType;
   Int_t  plane, TotalWires, detectorId, region, DIRMODE;
   Double_t Zpos,rot,sp_res,track_res,slope_match,Det_originX,Det_originY,
-    ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
+    ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
 
   fDetectorInfo.clear();
 
@@ -86,6 +86,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
       FirstWire = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       W_rcos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       W_rsin = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      tilt = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       TotalWires = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
       detectorId = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
@@ -98,7 +99,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
             Det_originX, Det_originY,
             ActiveWidthX, ActiveWidthY, ActiveWidthZ,
             WireSpace, FirstWire,
-            W_rcos, W_rsin,
+	    W_rcos, W_rsin, tilt,
             TotalWires,
             detectorId);
         fDetectorInfo.push_back(detector);

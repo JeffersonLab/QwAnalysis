@@ -39,7 +39,8 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	Double_t Zpos, rot, sp_res, track_res, slope_match;
 	Double_t Det_originX, Det_originY;
 	Double_t ActiveWidthX, ActiveWidthY, ActiveWidthZ;
-	Double_t WireSpace, FirstWire, W_rcos, W_rsin;
+	Double_t WireSpace, FirstWire, W_rcos, W_rsin, tilt;
+	Double_t ZPOS [5],XPOS [5],YPOS [5], TILT [5], ROT [5];
 
 	fDetectorInfo.clear();
 
@@ -67,8 +68,10 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 		{
 			//  Break this line Int_to tokens to process it.
 			varvalue     = ( mapstr.GetNextToken ( ", " ).c_str() );//this is the sType
-			Zpos         = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-			rot          = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) * Qw::deg );
+		       	for (int i=0;i<5;i++)
+			ZPOS[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );			
+		       	for (int i=0;i<5;i++)
+			ROT[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) * Qw::deg );
 			sp_res       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
 			track_res    = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
 			slope_match  = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
@@ -76,8 +79,10 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 			region       = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
 			dType        = mapstr.GetNextToken ( ", " ).c_str();
 			direction    = mapstr.GetNextToken ( ", " ).c_str();
-			Det_originX  = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
-			Det_originY  = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+		       	for (int i=0;i<5;i++)
+			XPOS[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+		       	for (int i=0;i<5;i++)
+			YPOS[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
 			ActiveWidthX = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
 			ActiveWidthY = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
 			ActiveWidthZ = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
@@ -85,14 +90,26 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 			FirstWire    = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
 			W_rcos       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
 			W_rsin       = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+			for (int i=0;i<5;i++)
+			TILT[i]      = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) * Qw::deg );
 			TotalWires   = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
 			detectorId   = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
 
 			QwDebug << " VDC : Detector ID " << detectorId << " " << varvalue
 			<< " Package "     << package << " Plane " << Zpos
 			<< " Region "      << region << QwLog::endl;
-
-
+			
+			// Octant R3 is in front of, is the only value used
+			int oct = gQwOptions.GetValue<int> ("R3-octant");
+			if (oct == 8) oct=4;
+			if (oct == 7) oct=5;
+		        Zpos = ZPOS[oct-1];
+			Det_originX = XPOS[oct-1];
+			Det_originY = YPOS[oct-1];
+			rot = ROT[oct-1];
+			tilt = TILT[oct-1];
+			
+			//std::cout << oct << "------------- " << " oct " << Zpos << " zpos " << Det_originX << " x " << Det_originY << " y " << rot << " rot " << tilt << " tilt " << detectorId <<  "----------" << std::endl; 
 
 			if ( region==3 )
 			{
@@ -103,7 +120,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 		                Det_originX, Det_originY,
 		                ActiveWidthX, ActiveWidthY, ActiveWidthZ,
 		                WireSpace, FirstWire,
-		                W_rcos, W_rsin,
+			        W_rcos, W_rsin, tilt,
 		                TotalWires,
 		                detectorId);
 		            fDetectorInfo.push_back(detector);
@@ -993,12 +1010,16 @@ void QwDriftChamberVDC::DefineOptions ( QwOptions& options )
 	options.AddOptions() ( "disable-wireoffset",
 	                       po::value<bool>()->default_bool_value(false),
 	                       "disable the ablitity of subtracting t0 for every wire" );
+	options.AddOptions() ("R3-octant",
+	                      po::value<int>()->default_value(1),
+                              "MD Package 2 of R3 is in front of" );
 }
 
 void QwDriftChamberVDC::ProcessOptions ( QwOptions& options )
 {
 	fUseTDCHits=options.GetValue<bool> ( "use-tdchit" );
 	fDisableWireTimeOffset=options.GetValue<bool> ( "disable-wireoffset" );
+       	fR3Octant=options.GetValue<int> ( "R3-octant" );
 }
 
 
