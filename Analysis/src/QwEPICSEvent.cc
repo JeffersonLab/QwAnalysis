@@ -126,24 +126,28 @@ void QwEPICSEvent::ConstructBranchAndVector(TTree *tree, TString& prefix, std::v
   fTreeArrayIndex = values.size();
   Int_t treeindex = fTreeArrayIndex;
   for (size_t tagindex = 0; tagindex < fEPICSVariableType.size(); tagindex++) {
-    if (fEPICSVariableType[tagindex] == kEPICSFloat ||
+    if (fEPICSVariableType[tagindex] == kEPICSString ||
+        fEPICSVariableType[tagindex] == kEPICSFloat ||
         fEPICSVariableType[tagindex] == kEPICSInt) {
 
     	// Add element to vector
     	values.push_back(0.0);
-    	treeindex++;
 
+    	// Determine branch name
     	TString name = fEPICSVariableList[tagindex];
     	name.ReplaceAll(':','_'); // remove colons before creating branch
-    	TString name_type = name + "/D";\
+    	TString name_type = name + "/D";
 
     	// Create branch
     	tree->Branch(name, &(values[treeindex]), name_type);
+        treeindex++;
+
+    } else {
+
+        TString name = fEPICSVariableList[tagindex];
+        QwError << "Unrecognized type for EPICS variable " << name << QwLog::endl;
+
     }
-    // else {
-    //   TString name = fEPICSVariableList[tagindex];
-    //   std::cout << "QwEPICSEvent::ConstructBranchAndVector" << name << std::endl;
-    // }
   }
   fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
 }
@@ -153,12 +157,29 @@ void QwEPICSEvent::FillTreeVector(std::vector<Double_t>& values) const
 {
   Int_t treeindex = fTreeArrayIndex;
   for (size_t tagindex = 0; tagindex < fEPICSVariableType.size(); tagindex++) {
-    if (fEPICSVariableType[tagindex] == kEPICSFloat ||
-        fEPICSVariableType[tagindex] == kEPICSInt) {
+    switch (fEPICSVariableType[tagindex]) {
+      case kEPICSFloat:
+      case kEPICSInt: {
+        // Add value to vector
+        values[treeindex] = fEPICSDataEvent[tagindex].Value;
+        treeindex++;
+        break;
+      }
 
-    	// Add value to vector
-    	values[treeindex] = fEPICSDataEvent[tagindex].Value;
-    	treeindex++;
+      case kEPICSString: {
+        // Add value to vector
+        QwOut << fEPICSDataEvent[tagindex].StringValue << ": "
+              << fEPICSDataEvent[tagindex].StringValue.Hash() << QwLog::endl;
+        values[treeindex] = static_cast<Double_t>(fEPICSDataEvent[tagindex].StringValue.Hash());
+        treeindex++;
+        break;
+      }
+
+      default: {
+        TString name = fEPICSVariableList[tagindex];
+        QwError << "Unrecognized type for EPICS variable " << name << QwLog::endl;
+        break;
+      }
     }
   }
 }
