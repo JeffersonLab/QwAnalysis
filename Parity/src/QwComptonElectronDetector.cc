@@ -1128,34 +1128,32 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
 {
   //  SetHistoTreeSave(prefix);
 
+  fTreeArrayIndex = values.size();
 
-  fTreeArrayIndex  = values.size();
-  TString basename,accumbase;
-//   if(fHistoType==kHelNoSave)
-//     {
-//       //do nothing
-//     }
-//   else if(fHistoType==kHelSaveMPS)
-//     {
-      //       basename = "plane1";    //predicted actual helicity before being delayed.
-      //       values.push_back(0.0);
-      //       tree->Branch(basename, &(values.back()), basename+"/D");
-      
-      for (int i=1; i<NPlanes; i++) {
-	for (int j=0; j<StripsPerPlane; j++) {
-	  basename = Form("p%ds%dRawEv",i,j);
-	  values.push_back(0.0);
-	  tree->Branch(basename, &(values.back()), basename+"/D");
+  for (Int_t i = 1; i < NPlanes; i++) {
 
-	  accumbase = Form("p%ds%dRawAc",i,j);
-	  values.push_back(0.0);
-	  tree->Branch(accumbase, &(values.back()), accumbase+"/D");
-	}
-      }
-//     }
-//   else if(fHistoType==kHelSavePattern)
-//     {
-//     }
+    // Event branch for this plane
+    TString basename = prefix + Form("p%dRawEv",i);
+    TString valnames = "";
+    Double_t* valstart = &(values.back());
+    for (Int_t j = 0; j < StripsPerPlane; j++) {
+      valnames += TString(":") + prefix + Form("p%ds%dRawEv",i,j) + "/D";
+      values.push_back(0.0);
+    }
+    valnames.Remove(0,1); // remove first ':' character
+    tree->Branch(basename, valstart+1, valnames);
+
+    // Accumulator branch for this plane
+    basename = prefix + Form("p%dRawAc",i);
+    valnames = "";
+    valstart = &(values.back());
+    for (Int_t j = 0; j < StripsPerPlane; j++) {
+      valnames += TString(":") + prefix + Form("p%ds%dRawAc",i,j) + "/D";
+      values.push_back(0.0);
+    }
+    valnames.Remove(0,1); // remove first ':' character
+    tree->Branch(basename, valstart+1, valnames);
+  }
 
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i].ConstructBranchAndVector(tree, prefix, values);
@@ -1164,23 +1162,14 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
 }
 void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) const
 {
-  Int_t i, j;
-  size_t index=fTreeArrayIndex;
-//   if(fHistoType==kHelSaveMPS)
-//     {
-      
-      for (i=1; i<NPlanes; i++) {
-	for (j=0; j<StripsPerPlane; j++) {
-	  values[index++] = fStripsRawEv[i][j];
-	  values[index++] = fStripsRaw[i][j];
-	  //	  valuesAccum[index++] = fStripsRaw[i][j];
-	}
-      }
-      //    }
-//   else if(fHistoType==kHelSavePattern)
-//     {
- 
-//     }
+  size_t index = fTreeArrayIndex;
+
+  for (Int_t i = 1; i < NPlanes; i++) {
+    for (Int_t j = 0; j < StripsPerPlane; j++)
+      values[index++] = fStripsRawEv[i][j];
+    for (Int_t j = 0; j < StripsPerPlane; j++)
+      values[index++] = fStripsRaw[i][j];
+  }
 
   for (size_t i = 0; i < fScaler.size(); i++)
     fScaler[i].FillTreeVector(values);

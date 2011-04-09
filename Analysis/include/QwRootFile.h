@@ -37,67 +37,64 @@ class QwRootTree {
   public:
 
     /// Constructor with name, and description
-    QwRootTree(const std::string& name, const std::string& desc)
-    : fName(""),fDesc(""),fType("type undefined"),fCurrentEvent(0) {
+    QwRootTree(const std::string& name, const std::string& desc, const std::string& prefix = "")
+    : fName(name),fDesc(desc),fPrefix(prefix),fType("type undefined"),fCurrentEvent(0) {
       // Construct tree
-      ConstructNewTree(name, desc);
+      ConstructNewTree();
     }
 
     /// Constructor with existing tree
-    QwRootTree(const QwRootTree* tree)
-    : fName(""),fDesc(""),fType("type undefined"),fCurrentEvent(0) {
+    QwRootTree(const QwRootTree* tree, const std::string& prefix = "")
+    : fName(tree->GetName()),fDesc(tree->GetDesc()),fPrefix(prefix),fType("type undefined"),fCurrentEvent(0) {
       QwMessage << "Existing tree: " << tree->GetName() << ", " << tree->GetDesc() << QwLog::endl;
-      fName = tree->GetName();
-      fDesc = tree->GetDesc();
       fTree = tree->fTree;
     }
 
     /// Constructor with name, description, and object
     template < class T >
-    QwRootTree(const std::string& name, const std::string& desc, T& detectors)
-    : fName(""),fDesc(""),fType("type undefined"),fCurrentEvent(0) {
+    QwRootTree(const std::string& name, const std::string& desc, T& object, const std::string& prefix = "")
+    : fName(name),fDesc(desc),fPrefix(prefix),fType("type undefined"),fCurrentEvent(0) {
       // Construct tree
-      ConstructNewTree(name, desc);
+      ConstructNewTree();
 
       // Construct branches and vector
-      ConstructBranchAndVector(detectors);
+      ConstructBranchAndVector(object);
     }
 
     /// Constructor with existing tree, and object
     template < class T >
-    QwRootTree(const QwRootTree* tree, T& detectors)
-    : fName(""),fDesc(""),fType("type undefined"),fCurrentEvent(0) {
+    QwRootTree(const QwRootTree* tree, T& object, const std::string& prefix = "")
+    : fName(tree->GetName()),fDesc(tree->GetDesc()),fPrefix(prefix),fType("type undefined"),fCurrentEvent(0) {
       QwMessage << "Existing tree: " << tree->GetName() << ", " << tree->GetDesc() << QwLog::endl;
-      fName = tree->GetName();
-      fDesc = tree->GetDesc();
       fTree = tree->fTree;
 
       // Construct branches and vector
-      ConstructBranchAndVector(detectors);
+      ConstructBranchAndVector(object);
     }
 
     /// Destructor
     virtual ~QwRootTree() { }
 
+
+  private:
+
     /// Construct the tree
-    void ConstructNewTree(const std::string& name, const std::string& desc) {
-      QwMessage << "New tree: " << name << ", " << desc << QwLog::endl;
-      fName = name;
-      fDesc = desc;
-      fTree = new TTree(name.c_str(), desc.c_str());
+    void ConstructNewTree() {
+      QwMessage << "New tree: " << fName << ", " << fDesc << QwLog::endl;
+      fTree = new TTree(fName.c_str(), fDesc.c_str());
     }
 
     /// Construct the branches and vector for generic objects
     template < class T >
-    void ConstructBranchAndVector(T& detectors) {
+    void ConstructBranchAndVector(T& object) {
       // Reserve space for the branch vector
       fVector.reserve(BRANCH_VECTOR_MAX_SIZE);
       // Associate branches with vector
-      TString dummystr = "";
-      detectors.ConstructBranchAndVector(fTree, dummystr, fVector);
+      TString prefix = Form("%s",fPrefix.c_str());
+      object.ConstructBranchAndVector(fTree, prefix, fVector);
 
-      // Store type of object
-      fType = typeid(detectors).name();
+      // Store the type of object
+      fType = typeid(object).name();
 
       // Check memory reservation
       if (fVector.size() > BRANCH_VECTOR_MAX_SIZE) {
@@ -109,15 +106,17 @@ class QwRootTree {
     }
    
 
+  public:
+
     /// Fill the branches for generic objects
     template < class T >
-    void FillTreeBranches(const T& detectors) {
-      if (typeid(detectors).name() == fType) {
+    void FillTreeBranches(const T& object) {
+      if (typeid(object).name() == fType) {
         // Fill the branch vector
-        detectors.FillTreeVector(fVector);
+        object.FillTreeVector(fVector);
       } else {
         QwError << "Attempting to fill tree vector for type " << fType << " with "
-                << "object of type " << typeid(detectors).name() << QwLog::endl;
+                << "object of type " << typeid(object).name() << QwLog::endl;
         exit(-1);
       }
     }
@@ -144,7 +143,10 @@ class QwRootTree {
 
     /// Print the tree name and description
     void Print() const {
-      QwMessage << GetName() << ", " << GetType() << QwLog::endl;
+      QwMessage << GetName() << ", " << GetType();
+      if (fPrefix != "")
+        QwMessage << " (prefix " << GetPrefix() << ")";
+      QwMessage << QwLog::endl;
     }
 
     /// Get the tree pointer for low level operations
@@ -160,17 +162,25 @@ class QwRootTree {
     /// Vector of leaves
     std::vector<Double_t> fVector;
 
-    /// Name, description, and type
-    std::string fName;
-    std::string fDesc;
+
+    /// Name, description
+    const std::string fName;
+    const std::string fDesc;
+    const std::string fPrefix;
+
+    /// Get the name of the tree
+    const std::string& GetName() const { return fName; };
+    /// Get the description of the tree
+    const std::string& GetDesc() const { return fDesc; };
+    /// Get the description of the tree
+    const std::string& GetPrefix() const { return fPrefix; };
+
+
+    /// Object type
     std::string fType;
 
     /// Get the object type
     std::string GetType() const { return fType; };
-    /// Get the name of the tree
-    std::string GetName() const { return fName; };
-    /// Get the description of the tree
-    std::string GetDesc() const { return fDesc; };
 
 
     /// Tree prescaling parameters
@@ -283,51 +293,52 @@ class QwRootFile {
 
     /// \brief Construct the tree branches of a generic object
     template < class T >
-    void ConstructTreeBranches(const std::string& name, const std::string& desc, T& detectors);
+    void ConstructTreeBranches(const std::string& name, const std::string& desc, T& object, const std::string& prefix = "");
     /// \brief Fill the tree branches of a generic object by tree name
     template < class T >
-    void FillTreeBranches(const std::string& name, const T& detectors);
+    void FillTreeBranches(const std::string& name, const T& object);
     /// \brief Fill the tree branches of a generic object by type only
     template < class T >
-    void FillTreeBranches(const T& detectors);
+    void FillTreeBranches(const T& object);
 
 
     template < class T >
-      Int_t WriteParamFileList(const TString& name, T& detectors);
+      Int_t WriteParamFileList(const TString& name, T& object);
 
 
     /// \brief Construct the histograms of a generic object
     template < class T >
-    void ConstructHistograms(const std::string& name, T& detectors);
+    void ConstructHistograms(const std::string& name, T& object);
     /// Fill histograms of the subsystem array
     template < class T >
-    void FillHistograms(T& detectors) {
+    void FillHistograms(T& object) {
       // Update regularly
       static Int_t update_count = 0;
       update_count++;
       if (update_count % fUpdateInterval == 0) Update();
-      if (! HasDirByType(detectors)) return;
+      if (! HasDirByType(object)) return;
       // Fill histograms
-      detectors.FillHistograms();
+      object.FillHistograms();
     }
     /// Delete histograms of the subsystem array
     template < class T >
-    void DeleteHistograms(T& detectors) {
-      if (! HasDirByType(detectors)) return;
+    void DeleteHistograms(T& object) {
+      if (! HasDirByType(object)) return;
       // Delete histograms
-      detectors.DeleteHistograms();
+      object.DeleteHistograms();
     }
 
 
     /// Create a new tree with name and description
     void NewTree(const std::string& name, const std::string& desc) {
       this->cd();
+      QwRootTree *tree = 0;
       if (! HasTreeByName(name)) {
-        fTreeByName[name].push_back(new QwRootTree(name,desc));
+        tree = new QwRootTree(name,desc);
       } else {
-        fTreeByName[name].push_back(new QwRootTree(fTreeByName[name].front()));
+        tree = new QwRootTree(fTreeByName[name].front());
       }
-      fTreeByType["type undefined"].push_back(name);
+      fTreeByName[name].push_back(tree);
     }
 
     /// Get the tree with name
@@ -487,20 +498,29 @@ class QwRootFile {
 
   private:
 
-    /// Tree names and types
+    /// Tree names, addresses, and types
     std::map< const std::string, std::vector<QwRootTree*> > fTreeByName;
-    std::map< const std::string, std::vector<std::string> > fTreeByType;
+    std::map< const void*      , std::vector<QwRootTree*> > fTreeByAddr;
+    std::map< const type_info* , std::vector<QwRootTree*> > fTreeByType;
+    // ... Are type_info objects really unique? Let's hope so.
 
     /// Is a tree registered for this name
     bool HasTreeByName(const std::string& name) {
       if (fTreeByName.count(name) == 0) return false;
       else return true;
     }
-     /// Is a tree registered for this type
+    /// Is a tree registered for this type
     template < class T >
     bool HasTreeByType(const T& object) {
-      std::string type = typeid(object).name();
+      const type_info* type = &typeid(object);
       if (fTreeByType.count(type) == 0) return false;
+      else return true;
+    }
+    /// Is a tree registered for this object
+    template < class T >
+    bool HasTreeByAddr(const T& object) {
+      const void* addr = static_cast<const void*>(&object);
+      if (fTreeByAddr.count(addr) == 0) return false;
       else return true;
     }
 
@@ -541,16 +561,20 @@ class QwRootFile {
 
 /**
  * Construct the tree branches of a generic object
- * @param detectors Subsystem array
+ * @param @param object Subsystem array
  */
 template < class T >
 void QwRootFile::ConstructTreeBranches(
         const std::string& name,
         const std::string& desc,
-        T& detectors)
+        T& object,
+        const std::string& prefix)
 {
   // Return if we do not want this tree information
   if (IsTreeDisabled(name)) return;
+
+  // Pointer to new tree
+  QwRootTree* tree = 0;
 
   // If the tree does not exist yet, create it
   if (fTreeByName.count(name) == 0) {
@@ -558,58 +582,61 @@ void QwRootFile::ConstructTreeBranches(
     // Go to top level directory
     this->cd();
 
-    // Add the branches to the list of trees by name
-    fTreeByName[name].push_back(new QwRootTree(name, desc, detectors));
+    // New tree with name, description, object, prefix
+    tree = new QwRootTree(name, desc, object, prefix);
 
     // Settings only relevant for new trees
     if (name == "Mps_Tree")
-      fTreeByName[name].back()->SetPrescaling(fNumMpsEventsToSave, fNumMpsEventsToSkip);
+      tree->SetPrescaling(fNumMpsEventsToSave, fNumMpsEventsToSkip);
     else if (name == "Hel_Tree")
-      fTreeByName[name].back()->SetPrescaling(fNumHelEventsToSave, fNumHelEventsToSkip);
+      tree->SetPrescaling(fNumHelEventsToSave, fNumHelEventsToSkip);
 
     #if ROOT_VERSION_CODE >= ROOT_VERSION(5,26,00)
-    fTreeByName[name].back()->SetAutoFlush(fAutoFlush);
+    tree->SetAutoFlush(fAutoFlush);
     #endif
-    fTreeByName[name].back()->SetAutoSave(fAutoSave);
-    fTreeByName[name].back()->SetBasketSize(fBasketSize);
-    fTreeByName[name].back()->SetMaxTreeSize(kMaxTreeSize);
+    tree->SetAutoSave(fAutoSave);
+    tree->SetBasketSize(fBasketSize);
+    tree->SetMaxTreeSize(kMaxTreeSize);
 
     if (fEnableMapFile && fCircularBufferSize > 0)
       fTreeByName[name].back()->SetCircular(fCircularBufferSize);
 
   } else {
 
-    // Add the branches to the list of trees by name
-    fTreeByName[name].push_back(new QwRootTree(fTreeByName[name].front(), detectors));
+    // New tree based on existing tree
+    tree = new QwRootTree(fTreeByName[name].front(), object, prefix);
   }
 
-  // Add to the list of trees by type
-  std::string type = typeid(detectors).name();
-  fTreeByType[type].push_back(name);
+   // Add the branches to the list of trees by name, object, type
+  const void* addr = static_cast<const void*>(&object);
+  const type_info* type = &typeid(object);
+  fTreeByName[name].push_back(tree);
+  fTreeByAddr[addr].push_back(tree);
+  fTreeByType[type].push_back(tree);
 }
 
 
 /**
  * Fill the tree branches of a generic object by name
- * @param detectors Subsystem array
+ * @param object Subsystem array
  */
 template < class T >
 void QwRootFile::FillTreeBranches(
         const std::string& name,
-        const T& detectors)
+        const T& object)
 {
   // If this name has no registered trees
   if (! HasTreeByName(name)) return;
   // If this type has no registered trees
-  if (! HasTreeByType(detectors)) return;
+  if (! HasTreeByType(object)) return;
 
-  // Get the type of the object
-  std::string type = typeid(detectors).name();
+  // Get the address of the object
+  const void* addr = static_cast<const void*>(&object);
 
-  // Fill the tree with the correct type
-  for (size_t tree = 0; tree < fTreeByName[name].size(); tree++) {
-    if (fTreeByName[name].at(tree)->GetType() == type) {
-      fTreeByName[name].at(tree)->FillTreeBranches(detectors);
+  // Fill the trees with the correct address
+  for (size_t tree = 0; tree < fTreeByAddr[addr].size(); tree++) {
+    if (fTreeByAddr[addr].at(tree)->GetName() == name) {
+      fTreeByAddr[addr].at(tree)->FillTreeBranches(object);
     }
   }
 }
@@ -617,67 +644,67 @@ void QwRootFile::FillTreeBranches(
 
 /**
  * Fill the tree branches of a generic object by type only
- * @param detectors Subsystem array
+ * @param object Subsystem array
  */
 template < class T >
 void QwRootFile::FillTreeBranches(
-        const T& detectors)
+        const T& object)
 {
-  // If this type has no registered trees
-  if (! HasTreeByType(detectors)) return;
+  // If this address has no registered trees
+  if (! HasTreeByAddr(object)) return;
 
-  // Get the type of the object
-  std::string type = typeid(detectors).name();
+  // Get the address of the object
+  const void* addr = static_cast<const void*>(&object);
 
-  // Fill the tree with the correct type
-  for (size_t name = 0; name < fTreeByType[type].size(); name++) {
-    FillTreeBranches(fTreeByType[type].at(name), detectors);
+  // Fill the trees with the correct address
+  for (size_t tree = 0; tree < fTreeByAddr[addr].size(); tree++) {
+    fTreeByAddr[addr].at(tree)->FillTreeBranches(object);
   }
 }
 
 
 /**
  * Construct the histogram of a generic object
- * @param detectors Subsystem array
+ * @param object Subsystem array
  */
 template < class T >
-void QwRootFile::ConstructHistograms(const std::string& name, T& detectors)
+void QwRootFile::ConstructHistograms(const std::string& name, T& object)
 {
   // Return if we do not want this histogram information
   if (IsHistoDisabled(name)) return;
 
   // Create the histograms in a directory
   if (fRootFile) {
-    std::string type = typeid(detectors).name();
+    std::string type = typeid(object).name();
     fDirsByName[name] = fRootFile->GetDirectory("/")->mkdir(name.c_str());
     fDirsByType[type].push_back(name);
-    detectors.ConstructHistograms(fDirsByName[name]);
+    object.ConstructHistograms(fDirsByName[name]);
   }
 
   // No support for directories in a map file
   if (fMapFile) {
     QwMessage << "QwRootFile::ConstructHistograms::detectors address "
-	      << &detectors  
+	      << &object  
 	      << " and its name " << name 
 	      << QwLog::endl;
     
-    std::string type = typeid(detectors).name();
+    std::string type = typeid(object).name();
     fDirsByName[name] = fMapFile->GetDirectory()->mkdir(name.c_str());
     fDirsByType[type].push_back(name);
-    //detectors.ConstructHistograms(fDirsByName[name]);
-    detectors.ConstructHistograms();
+    //object.ConstructHistograms(fDirsByName[name]);
+    object.ConstructHistograms();
   }
 }
 
 
 template < class T >
-Int_t QwRootFile::WriteParamFileList(const TString &name, T& detectors)
+Int_t QwRootFile::WriteParamFileList(const TString &name, T& object)
 {
   Int_t retval = 0;
   if (fRootFile) {
     TList *param_list = (TList*) fRootFile->FindObjectAny(name);
     if (not param_list) {
-      retval = fRootFile->WriteObject(detectors.GetParamFileNameList(name), name);
+      retval = fRootFile->WriteObject(object.GetParamFileNameList(name), name);
     }
   }
   return retval;
