@@ -168,8 +168,6 @@ void QwEPICSEvent::FillTreeVector(std::vector<Double_t>& values) const
 
       case kEPICSString: {
         // Add value to vector
-        QwOut << fEPICSDataEvent[tagindex].StringValue << ": "
-              << fEPICSDataEvent[tagindex].StringValue.Hash() << QwLog::endl;
         values[treeindex] = static_cast<Double_t>(fEPICSDataEvent[tagindex].StringValue.Hash());
         treeindex++;
         break;

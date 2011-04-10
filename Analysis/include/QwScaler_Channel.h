@@ -93,7 +93,7 @@ class VQwScaler_Channel: public VQwDataElement {
   void  ProcessEvent();
 
   Double_t GetValue() const { return fValue; };
-  Double_t GetValueM2() const     { return fValueM2; };
+  Double_t GetValueM2() const { return fValueM2; };
   Double_t GetValueWidth() const  { 
     if (fGoodEventCount>0){
       return (fValueError*sqrt(fGoodEventCount)); 
@@ -112,6 +112,7 @@ class VQwScaler_Channel: public VQwDataElement {
   void Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
+  void Normalize(const VQwScaler_Channel &norm);
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure

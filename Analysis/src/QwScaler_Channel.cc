@@ -331,6 +331,13 @@ void VQwScaler_Channel::Scale(Double_t scale)
     }
 }
 
+void VQwScaler_Channel::Normalize(const VQwScaler_Channel &norm)
+{
+  if (!IsNameEmpty())
+    {
+      this->fValue /= norm.fValue;
+    }
+}
 
 
 Bool_t VQwScaler_Channel::ApplySingleEventCuts()

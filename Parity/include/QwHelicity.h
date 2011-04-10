@@ -99,8 +99,6 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
 
   void   EncodeEventData(std::vector<UInt_t> &buffer);
 
-  void  PrintDetectorID() const;
-
 
   virtual void  ClearEventData();
   virtual void  ProcessEvent();
