@@ -26,10 +26,16 @@
 #PC_neg_t0_OUT=41150
 
 #3. Runs checked OUT - 10978 IN - 10969&10981 -Changed by Rakitha 03/30/2011 - rakithab@jlab.org
-PC_pos_t0_IN=42990
-PC_neg_t0_IN=41210
-PC_pos_t0_OUT=43238
-PC_neg_t0_OUT=40962
+#PC_pos_t0_IN=42990
+#PC_neg_t0_IN=41210
+#PC_pos_t0_OUT=43238
+#PC_neg_t0_OUT=40962
+
+#4. Runs checked OUT - 11283 IN - 11286 -Changed by Rakitha 04/11/2011 - rakithab@jlab.org
+PC_pos_t0_IN=43300
+PC_neg_t0_IN=40899
+PC_pos_t0_OUT=42864 
+PC_neg_t0_OUT=41335
 
 PC_Delta_Counts=2500
 
