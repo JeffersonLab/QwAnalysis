@@ -1,25 +1,27 @@
-qwk_md1neg     ,	 1266.162029 , 1.0 
- qwk_md2neg     ,	 1392.672602 , 1.0 
- qwk_md3neg     ,	 981.325018 , 1.0 
- qwk_md4neg     ,	 1033.419730 , 1.0 
- qwk_md5neg     ,	 852.528410 , 1.0 
- qwk_md6neg     ,	 1358.657163 , 1.0 
- qwk_md7neg     ,	 757.717609 , 1.0 
- qwk_md8neg     ,	 940.566653 , 1.0 
- qwk_md1pos     ,	 732.726573 , 1.0 
- qwk_md2pos     ,	 697.514288 , 1.0 
- qwk_md3pos     ,	 1025.204379 , 1.0 
- qwk_md4pos     ,	 1028.283966 , 1.0 
- qwk_md5pos     ,	 1091.939747 , 1.0 
- qwk_md6pos     ,	 1410.938641 , 1.0 
- qwk_md7pos     ,	 1243.148697 , 1.0 
- qwk_md8pos     ,	 1177.776031 , 1.0 
- qwk_pmtled     ,	 -13382.496537 , 1.0 
- qwk_pmtonl     ,	 -16469.419794 , 1.0 
- qwk_pmtltg     ,	 -16244.977880 , 1.0 
- qwk_md9neg     ,	 -492.618575 , 1.0 
- qwk_md9pos     ,	 -591.915221 , 1.0 
- qwk_isourc     ,	 14703.016663 , 1.0 
- qwk_preamp     ,	 74799.706099 , 1.0 
- qwk_cagesr     ,	 78619.096006 , 1.0 
- 
+
+!The following pedestals were recorded from RUN 11304
+!channel name , Mps channelname.hw_sum_raw/num_samples , gain
+qwk_md1neg  ,  865.33  ,  0.00007629
+qwk_md2neg  ,  1199.76  ,  0.00007629
+qwk_md3neg  ,  971.934  ,  0.00007629
+qwk_md4neg  ,  1075.58  ,  0.00007629
+qwk_md5neg  ,  833.666  ,  0.00007629
+qwk_md6neg  ,  1119.51  ,  0.00007629
+qwk_md7neg  ,  1118.36  ,  0.00007629
+qwk_md8neg  ,  1037.47  ,  0.00007629
+qwk_md1pos  ,  773.023  ,  0.00007629
+qwk_md2pos  ,  714.566  ,  0.00007629
+qwk_md3pos  ,  1347.24  ,  0.00007629
+qwk_md4pos  ,  966.768  ,  0.00007629
+qwk_md5pos  ,  1076.85  ,  0.00007629
+qwk_md6pos  ,  1385.63  ,  0.00007629
+qwk_md7pos  ,  1233.24  ,  0.00007629
+qwk_md8pos  ,  1127.16  ,  0.00007629
+qwk_pmtled  ,  67269  ,  0.00007629
+qwk_pmtonl  ,  946.407  ,  0.00007629
+qwk_pmtltg  ,  1250.51  ,  0.00007629
+qwk_md9neg  ,  505.431  ,  0.00007629
+qwk_md9pos  ,  396.376  ,  0.00007629
+qwk_isourc  ,  110436  ,  0.00007629
+qwk_preamp  ,  77528.7  ,  0.00007629
+qwk_cagesr  ,  75524.4  ,  0.00007629
