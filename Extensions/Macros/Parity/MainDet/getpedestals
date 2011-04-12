@@ -71,7 +71,6 @@ print "\n";
 #if so, move files to prminput
 if (lc $saveMDPed eq 'y'){
 	copy ("$QWSCRATCH/calib/qweak_maindet_pedestal.$runNum-.map","$PRMINPUT/qweak_maindet_pedestal.$runNum-.map");
-	copy ("$QWSCRATCH/calib/qweak_maindet_pedestal.$runNum-.map","$PRMINPUT/qweak_maindet_pedestal.map");
 	!system ("/usr/bin/svn add $PRMINPUT/qweak_maindet_pedestal.$runNum-.map") or warn ("Cannot add file to svn: $!\n");
 	print "Moved main detector pedestal file to prminput and performed an svn add. \n";
 	closeRange("maindet");
@@ -99,7 +98,6 @@ print "\n";
 #if so, move files to prminput
 if (lc $saveLumiPed eq 'y'){
 	copy ("$QWSCRATCH/calib/qweak_lumi_pedestal.$runNum-.map","$PRMINPUT/qweak_lumi_pedestal.$runNum-.map");
-	copy ("$QWSCRATCH/calib/qweak_lumi_pedestal.$runNum-.map","$PRMINPUT/qweak_lumi_pedestal.map");
 	!system ("/usr/bin/svn add $PRMINPUT/qweak_lumi_pedestal.$runNum-.map") or warn ("Cannot add file to svn: $!\n");
 	print "Moved lumi detector pedestal file to prminput and performed an svn add. \n";
 	closeRange("lumi");
