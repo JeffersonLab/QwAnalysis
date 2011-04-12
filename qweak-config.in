@@ -10,6 +10,8 @@ if [ $# -eq 0 ] ; then
 	usage
 fi
 
+cpflags="-I$QWANALYSIS/Analysis/include/ -I$QWANALYSIS/Parity/include/ -I$QWANALYSIS/Tracking/dictionary/ -I$QWANALYSIS/Tracking/include/"
+
 # Loop over the arguments
 while [ $# -ne 0 ] ; do
 
@@ -22,6 +24,7 @@ while [ $# -ne 0 ] ; do
 		(--libs)	echo -n %LIBS% ;;
 		(--ldflags)	echo -n %LDFLAGS% ;;
 		(--cppflags)	echo -n %CPPFLAGS% ;;
+	        (--cpflags)     echo -n "$cpflags" ;;
 		(--help)	usage ;;
 		(-h)		usage ;;
 		(*)		usage ;;
