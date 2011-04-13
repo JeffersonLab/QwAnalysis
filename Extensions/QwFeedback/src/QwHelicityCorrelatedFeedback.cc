@@ -453,6 +453,25 @@ void QwHelicityCorrelatedFeedback::LogParameters(){
   // out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a"); 
   fprintf(out_file_PITA,"%10.0d %+22.2f %16.2f %16.2f %26.2f %26.2f %26.2f %26.2f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,TMath::Abs(fPITASetpointPOS-fPrevPITASetpointPOS),fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
   fclose(out_file_PITA);
+
+  if(TMath::Abs(fChargeAsymmetry)<5){
+    //These files save the last good PC hw count value for IHWP IN and OUT
+    if (fHalfWaveIN){
+      out_file_PC_IN_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_IN", "w");//Open in write mode
+      out_file_PC_IN_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_IN", "w");//Open in write mode      
+      fprintf(out_file_PC_IN_pos,"%f \n",fPrevPITASetpointPOS);
+      fprintf(out_file_PC_IN_neg,"%f \n",fPrevPITASetpointNEG);
+      fclose(out_file_PC_IN_pos);
+      fclose(out_file_PC_IN_neg);      
+    }else{
+      out_file_PC_OUT_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_OUT", "w");//Open in write mode
+      out_file_PC_OUT_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_OUT", "w");//Open in write mode
+      fprintf(out_file_PC_OUT_pos,"%f \n",fPrevPITASetpointPOS);
+      fprintf(out_file_PC_OUT_neg,"%f \n",fPrevPITASetpointNEG);      
+      fclose(out_file_PC_OUT_pos);
+      fclose(out_file_PC_OUT_neg);    
+    }
+  }
 };
 
 /*****************************************************************/
