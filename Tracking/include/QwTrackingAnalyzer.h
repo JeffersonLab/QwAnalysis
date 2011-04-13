@@ -14,8 +14,6 @@
 class QwTrackingAnalyzer : public VQwAnalyzer {
 
   private:
-    Qset fGeometry;
-
     QwHitContainer* fHitList;
     QwTrackingWorker* fTrackingWorker;
 
