@@ -43,7 +43,8 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
  QwHelicity(TString region_tmp): VQwSubsystem(region_tmp),
     VQwSubsystemParity(region_tmp),
    fHelicityBitPattern(kDefaultHelicityBitPattern),
-   fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE)
+   fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
+   fEventNumberFirst(-1),fPatternNumberFirst(-1)
   {
     ClearErrorCounters();
     // Default helicity delay to two patterns.
@@ -279,6 +280,10 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   Bool_t fIgnoreHelicity;
 
   UInt_t fEventType;
+
+
+  Int_t fEventNumberFirst;
+  Int_t fPatternNumberFirst;
 
   void ClearErrorCounters(){
     fNumMissedGates       = 0;

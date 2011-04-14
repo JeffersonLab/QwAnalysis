@@ -219,6 +219,14 @@ void QwHelicity::ClearEventData()
 
   /**Reset data by setting the old event number, pattern number and pattern phase 
      to the values of the previous event.*/
+  if (fEventNumberFirst==-1 && fEventNumberOld!= -1){
+    fEventNumberFirst = fEventNumberOld;
+  }
+  if (fPatternNumberFirst==-1 && fPatternNumberOld!=-1 
+      && fPatternNumber==fPatternNumberOld+1){
+    fPatternNumberFirst = fPatternNumberOld;
+  }
+
   fEventNumberOld = fEventNumber;
   fPatternNumberOld = fPatternNumber;
   fPatternPhaseNumberOld = fPatternPhaseNumber;
@@ -262,6 +270,16 @@ Bool_t QwHelicity::ApplySingleEventCuts(){
 Int_t QwHelicity::GetEventcutErrorCounters(){
   // report number of events falied due to HW and event cut faliure
   QwMessage << "\n*********QwHelicity Error Summary****************"
+	    << QwLog::endl;
+  QwMessage << "First helicity gate counter:  "
+	    << fEventNumberFirst
+	    << "; last helicity gate counter:  "
+	    << fEventNumber
+	    << QwLog::endl;
+  QwMessage << "First pattern counter:  "
+	    << fPatternNumberFirst
+	    << "; last pattern counter:  "
+	    << fPatternNumber
 	    << QwLog::endl;
   QwMessage << "Missed " << fNumMissedGates << " helicity gates in "
 	    << fNumMissedEventBlocks << " blocks of missed events."
@@ -390,7 +408,7 @@ void QwHelicity::ProcessEventInputRegisterMode()
   // If firstpattern is still TRUE, we are still searching for the first
   // pattern of the data stream. So set the pattern number = 0
   if (firstpattern)
-    fPatternNumber      = 0;
+    fPatternNumber      = -1;
   else {
     fPatternNumber      = fWord[kPatternCounter].fValue;
     fPatternPhaseNumber = fWord[kPatternPhase].fValue - fPatternPhaseOffset + fMinPatternPhase;
@@ -411,8 +429,8 @@ void QwHelicity::ProcessEventInputRegisterMode()
   }
 
 
-  if(fEventNumber!=fEventNumberOld+1){
-    Int_t nummissed(fEventNumber - fEventNumberOld+1);
+  if(fEventNumber!=(fEventNumberOld+1)){
+    Int_t nummissed(fEventNumber - (fEventNumberOld+1));
     QwError << "QwHelicity::ProcessEvent read event# ("
 	    << fEventNumber << ") is not  old_event#+1; missed "
 	    << nummissed << " gates" << QwLog::endl;
@@ -464,8 +482,8 @@ void QwHelicity::ProcessEventInputMollerMode()
   }
   
   fEventNumber=fWord[kMpsCounter].fValue;
-  if(fEventNumber!=fEventNumberOld+1){
-    Int_t nummissed(fEventNumber - fEventNumberOld+1);
+  if(fEventNumber!=(fEventNumberOld+1)){
+    Int_t nummissed(fEventNumber - (fEventNumberOld+1));
     QwError << "QwHelicity::ProcessEvent read event# ("
 	    << fEventNumber << ") is not  old_event#+1; missed "
 	    << nummissed << " gates" << QwLog::endl;
@@ -473,7 +491,7 @@ void QwHelicity::ProcessEventInputMollerMode()
     fNumMissedEventBlocks++;
   }
   if (firstpattern){
-    fPatternNumber      = 0;
+    fPatternNumber      = -1;
     fPatternPhaseNumber = fMinPatternPhase;
   } else {
     fPatternNumber = fWord[kPatternCounter].fValue;
