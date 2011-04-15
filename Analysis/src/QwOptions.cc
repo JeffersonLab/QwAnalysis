@@ -33,6 +33,7 @@ QwOptions gQwOptions;
 // Qweak headers
 #include "QwLog.h"
 #include "QwParameterFile.h"
+#include "QwSVNVersion.h"
 
 // Qweak objects with default options
 #include "QwSubsystemArray.h"
@@ -60,6 +61,7 @@ QwOptions::QwOptions()
   // Declare the default options
   AddDefaultOptions()("usage",  "print this help message");
   AddDefaultOptions()("help,h", "print this help message");
+  AddDefaultOptions()("version","print the version string");
   AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read");
 }
 
@@ -192,9 +194,15 @@ void QwOptions::ParseCommandLine()
   // Notify of new options
   po::notify(fVariablesMap);
 
-  // If option help/usage, print help text.
+  // If option help/usage, print help text
   if (fVariablesMap.count("help") || fVariablesMap.count("usage")) {
     Usage();
+    exit(0);
+  }
+
+  // If option version, print version string
+  if (fVariablesMap.count("version")) {
+    Version();
     exit(0);
   }
 
@@ -265,6 +273,16 @@ void QwOptions::Usage()
   QwMessage << QwLog::endl;
   for (size_t i = 0; i < fOptionBlock.size(); i++)
     QwMessage << *(fOptionBlock.at(i)) << QwLog::endl;
+}
+
+
+/**
+ * Print version string
+ */
+void QwOptions::Version()
+{
+  QwMessage << "QwAnalysis revision " << QWANA_SVN_REVISION << QwLog::endl;
+  QwMessage << QWANA_SVN_URL << QwLog::endl;
 }
 
 

@@ -178,6 +178,9 @@ class QwOptions {
     /// \brief Print usage information
     void Usage();
 
+    /// \brief Print version string
+    void Version();
+
     /// \brief Define the options
     static void DefineOptions(QwOptions& options);
 
