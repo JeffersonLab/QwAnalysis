@@ -615,6 +615,23 @@ void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
   //PITA feedback
   if (fPITAFB){
     if (IsPatternsAccumulated()){
+      fHalfWavePlateStatus = GetHalfWavePlateState();
+      if(fHalfWavePlateStatus.Contains("IN")) {
+	if(fHalfWaveRevert) fHalfWaveIN = false;
+	else                fHalfWaveIN = true;
+      }
+      else {
+	if(fHalfWaveRevert) fHalfWaveIN = true;
+	else                fHalfWaveIN = false;
+      }
+      
+      fHalfWaveOUT = !fHalfWaveIN;
+
+      if (fHalfWaveIN)
+	printf("NOTICE \n Half-wave-plate-IN\n");
+      else
+	printf("NOTICE \n Half-wave-plate-OUT\n");
+
       IsAqPrecisionGood();//PITA corrections initiate here
     }
   }
