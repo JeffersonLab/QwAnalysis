@@ -38,11 +38,6 @@
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-// scale factor of the magnetic field
-#define BSCALE 1.04
-
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
-
 // Forward declarations
 class QwMagneticField;
 class QwPartialTrackParameter;
