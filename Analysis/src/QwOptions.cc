@@ -59,9 +59,9 @@ QwOptions::QwOptions()
   fConfigFiles.clear();
 
   // Declare the default options
-  AddDefaultOptions()("usage",  "print this help message");
+  AddDefaultOptions()("usage", "print this help message");
   AddDefaultOptions()("help,h", "print this help message");
-  AddDefaultOptions()("version","print the version string");
+  AddDefaultOptions()("version,V", "print the version string");
   AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read");
 }
 
