@@ -839,7 +839,7 @@ std::vector<QwDBInterface> QwBPMStripline::GetDBEntry()
       avg           = fBPMElementList.at(n_bpm_element).GetBlockValue(i);
       err           = fBPMElementList.at(n_bpm_element).GetBlockErrorValue(i);
       beam_subblock = (UInt_t) (i+1);
-      // QwVQWK_Channel  | MySQL
+      // QwVQWK_Channel  | MySQLif(loc
       // fBlock[0]       | subblock 1
       // fBlock[1]       | subblock 2
       // fBlock[2]       | subblock 3
