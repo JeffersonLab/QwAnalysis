@@ -54,6 +54,7 @@ class QwEnergyCalculator : public VQwDataElement{
     void    ProcessEvent();
     void    PrintValue() const;
     void    PrintInfo() const;
+    void    SetRootSaveStatus(TString &prefix);
 
     Bool_t  ApplyHWChecks();//Check for harware errors in the devices
     Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
@@ -110,6 +111,7 @@ class QwEnergyCalculator : public VQwDataElement{
     std::vector <TString>  fType;
     Int_t    fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
     Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
+    Bool_t   bFullSave; // used to restrict the amount of data histogramed
 
 
 
