@@ -146,6 +146,7 @@ class QwDetectorInfo: public TObject {
     };
 
     // Get/set tracking search tree
+    QwTrackingTreeRegion* GetTrackingSearchTree() { return fTree; };
     const QwTrackingTreeRegion* GetTrackingSearchTree() const { return fTree; };
     void SetTrackingSearchTree(QwTrackingTreeRegion* tree) { fTree = tree; };
 

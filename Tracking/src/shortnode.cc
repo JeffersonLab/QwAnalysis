@@ -70,16 +70,16 @@ void shortnode::Print(bool recursive, int indent)
   for (int i = 0; i < indent; i++) indentation += " ";
   QwOut << this << ": " << *this << QwLog::endl;
 
-  // Print next node
-  if (recursive && fNext) {
-    QwOut << indentation << "next: ";
-    fNext->Print(recursive,indent+1);
-  }
-
   // Print tree
   if (recursive && fTree) {
     QwOut << indentation << "tree: ";
     fTree->Print(recursive,indent+1);
+  }
+
+  // Print next node
+  if (recursive && fNext) {
+    QwOut << indentation << "next: ";
+    fNext->Print(recursive,indent);
   }
 }
 

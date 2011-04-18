@@ -81,9 +81,6 @@ class QwTrackingWorker {
 
   private:
 
-    /// \brief Pattern search tree for all configurations
-    QwTrackingTreeRegion* fSearchTree[kNumPackages * kNumRegions * kNumDirections];
-
     /// \brief Detector geometry
     QwGeometry fGeometry;
 
@@ -115,6 +112,7 @@ class QwTrackingWorker {
     /// \name Parsed configuration options
     //@{
     bool fDisableTracking;	///< Disable all tracking
+    bool fPrintPatternDatabase; ///< Print the pattern database
     bool fShowEventPattern;	///< Show all event patterns
     bool fShowMatchingPattern;	///< Show matching event patterns
     bool fDisableMomentum;	///< Disable momentum reconstruction
