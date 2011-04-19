@@ -236,9 +236,9 @@ end=combinedbpm
 begin=energycalculator
 name=qwk_energy
 ! name      type 	  ratios property  
-  qwk_target, combinedbpm,  1.5, beamposition 	  
-  qwk_target, combinedbpm, -2.4, targetbeamangle
-  qwk_target, combinedbpm, -0.6, targetbeamposition
+ qwk_bpm3c12, bpmstripline,  0.00024, beamposition 
+ qwk_target,  combinedbpm,  -0.00017, targetbeamposition	  
+ qwk_target,  combinedbpm,   2.6, targetbeamangle
 end=energycalculator
 
 ! CHECK THE SIGNS OF THE MATRIX ELEMENT RATIOS!. Since M11 and M12 are
