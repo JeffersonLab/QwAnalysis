@@ -108,7 +108,7 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
       modtype.ToUpper();
       dettype.ToUpper();
 
-      if (modtype == "SIS3801D24" || modtype == "SIS3801D32") {
+      if (modtype == "SIS3801" || modtype == "SIS3801D24" || modtype == "SIS3801D32") {
         wordsofar += 1;
       } else if (modtype == "SIS7200") {
         wordsofar += 1;
@@ -133,7 +133,7 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
                   << QwLog::endl;
         size_t index = fScaler.size();
         VQwScaler_Channel* scaler = 0;
-        if (modtype == "SIS3801D24")
+        if (modtype == "SIS3801" || modtype == "SIS3801D24")
           scaler = new QwSIS3801D24_Channel(keyword);
         else if (modtype == "SIS3801D32")
           scaler = new QwSIS3801D32_Channel(keyword);
