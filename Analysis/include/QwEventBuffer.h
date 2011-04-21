@@ -101,7 +101,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t OpenDataFile(const TString filename, const TString rw = "R");
   Int_t CloseDataFile();
 
-  Int_t OpenETStream(TString computer, TString session, int mode);
+  Int_t OpenETStream(TString computer, TString session, int mode, const TString stationname="");
   Int_t CloseETStream();
 
   Bool_t IsPhysicsEvent() {
@@ -163,6 +163,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t fOnline;
   TString fETHostname;
   TString fETSession;
+  TString fETStationName;
 
   Bool_t fChainDataFiles;
   std::pair<Int_t, Int_t> fRunRange;

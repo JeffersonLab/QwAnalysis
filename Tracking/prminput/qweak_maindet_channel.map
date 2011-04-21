@@ -16,7 +16,7 @@ slot=6
   F1TDC, 6, 18, maindet, md2p_f1
   F1TDC, 6, 20, maindet, md3p_f1
   F1TDC, 6, 22, maindet, md4p_f1
-  F1TDC, 6, 23, maindet, MD_reftime_f1
+  F1TDC, 6, 23, maindet, md_reftime_f1
   F1TDC, 6, 24, maindet, md5p_f1
   F1TDC, 6, 26, maindet, md6p_f1
   F1TDC, 6, 28, maindet, md7p_f1

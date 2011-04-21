@@ -43,8 +43,8 @@ else{
 }
 
 #perform qwick analysis
-print "Running qwick_pedestals...\n";
-!system ("/home/cdaq/bin/qwick_pedestals") or die $!;
+#print "Running qwick_pedestals...\n";
+# !system ("/home/cdaq/bin/qwick_pedestals") or die $!;
 
 #run pedestal ROOT script
 print "Running ROOT script mdlumi_ped.C ...\n";

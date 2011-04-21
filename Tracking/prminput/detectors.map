@@ -47,6 +47,7 @@
  name = FR
  map = qweak_raster_channel.map
  param = qweak_raster_parameter.map
+ mask = 0xffff
 
 [QwScaler]
  name = Scaler

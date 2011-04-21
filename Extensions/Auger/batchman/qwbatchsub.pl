@@ -384,7 +384,7 @@ foreach $runnumber (@good_runs){
 		$segment = sprintf "%03d",$1;
 	    }
 	    my $root_file = "$rootfile_stem$runnumber.$segment.root";
-	    print JOBFILE "  <Output src=\"$root_file\" dest=\"mss:$mss_dir/rootfiles/$root_file\"/>\n";
+	    print JOBFILE "  <Output src=\"$root_file\" dest=\"mss:$mss_dir/rootfiles/pass0/$root_file\"/>\n";
 	}
 	print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber.out\"/>\n";
 	print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber.err\"/>\n";
@@ -397,7 +397,7 @@ foreach $runnumber (@good_runs){
 	    print "Ready to submit $command_file\n";
 	} else {
 	    print "Submitting $command_file\n";
-	    my $rc=system("jsub","$command_file");
+	    my $rc=system("jsub","-xml","$command_file");
 	}
     } else {
 	print STDERR  "There are no data files for run $runnumber\!\n\n";

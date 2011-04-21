@@ -106,6 +106,10 @@ int cfSockCliOpen (int crate_number, int keepopen) {
   case Crate_Injector:
     servername = ServerName_Injector;
     break; 
+  case Crate_Qwvmets:
+    servername = ServerName_QwTSCrate;
+    break; 
+
   default:
     return (SOCK_ERROR);
   }  
@@ -117,11 +121,13 @@ int cfSockCliOpen (int crate_number, int keepopen) {
     }
   
   optval = 1;
-  setsockopt ( gSocketFd, IPPROTO_TCP, TCP_NODELAY, 
+  int test = 0;
+  test = setsockopt ( gSocketFd, IPPROTO_TCP, TCP_NODELAY, 
 	       (char *) &optval,
 	       4 ); /* black magic from Chowdhary's code */
 
-  setsockopt(gSocketFd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
+  test = setsockopt(gSocketFd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 
   /* bind not required - port number is dynamic */
     /* build server socket address */

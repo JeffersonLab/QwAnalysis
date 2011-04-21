@@ -8,10 +8,11 @@
 
 [QwComptonElectronDetector]
  name = ElectronDetector
- mask = 0xffff
+ mask = 0x0005
  map  = compton_electron_channels.map
  param = compton_electron_pedestal.map
 
 [QwHelicity]
  name = Helicity
+ mask = 0x0001
  map  = compton_helicity.map

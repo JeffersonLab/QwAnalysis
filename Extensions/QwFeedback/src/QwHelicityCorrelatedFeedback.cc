@@ -436,7 +436,7 @@ void QwHelicityCorrelatedFeedback::FeedPCPos(){
 }; 
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::FeedPCNeg(){
-};
+}; 
 
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::LogParameters(Int_t mode){
@@ -453,6 +453,25 @@ void QwHelicityCorrelatedFeedback::LogParameters(){
   // out_file_PITA = fopen("/dev/shm/Feedback_PITA_log.txt", "a"); 
   fprintf(out_file_PITA,"%10.0d %+22.2f %16.2f %16.2f %26.2f %26.2f %26.2f %26.2f \n",fQuartetNumber,fChargeAsymmetry,fChargeAsymmetryError,TMath::Abs(fPITASetpointPOS-fPrevPITASetpointPOS),fPITASetpointPOS,fPrevPITASetpointPOS,fPITASetpointNEG,fPrevPITASetpointNEG);
   fclose(out_file_PITA);
+
+  if(TMath::Abs(fChargeAsymmetry)<5){
+    //These files save the last good PC hw count value for IHWP IN and OUT
+    if (fHalfWaveIN){
+      out_file_PC_IN_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_IN", "w");//Open in write mode
+      out_file_PC_IN_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_IN", "w");//Open in write mode      
+      fprintf(out_file_PC_IN_pos,"%f \n",fPrevPITASetpointPOS);
+      fprintf(out_file_PC_IN_neg,"%f \n",fPrevPITASetpointNEG);
+      fclose(out_file_PC_IN_pos);
+      fclose(out_file_PC_IN_neg);      
+    }else{
+      out_file_PC_OUT_pos = fopen("/local/scratch/qweak/Last_good_PC_pos_OUT", "w");//Open in write mode
+      out_file_PC_OUT_neg = fopen("/local/scratch/qweak/Last_good_PC_neg_OUT", "w");//Open in write mode
+      fprintf(out_file_PC_OUT_pos,"%f \n",fPrevPITASetpointPOS);
+      fprintf(out_file_PC_OUT_neg,"%f \n",fPrevPITASetpointNEG);      
+      fclose(out_file_PC_OUT_pos);
+      fclose(out_file_PC_OUT_neg);    
+    }
+  }
 };
 
 /*****************************************************************/
@@ -470,6 +489,7 @@ void QwHelicityCorrelatedFeedback::LogHAParameters(Int_t mode){
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::UpdateGMClean(Int_t state){
   //fScanCtrl.Open();
+  
   if (state==0)
     fScanCtrl.SCNSetStatus(SCN_INT_NOT);
   if (state)
@@ -477,6 +497,7 @@ void QwHelicityCorrelatedFeedback::UpdateGMClean(Int_t state){
   fScanCtrl.CheckScan();
   fScanCtrl.PrintScanInfo();
   fScanCtrl.Close();  
+  
 };
 /*****************************************************************/
 void QwHelicityCorrelatedFeedback::UpdateGMScanParameters(){
@@ -594,6 +615,23 @@ void QwHelicityCorrelatedFeedback::ApplyFeedbackCorrections(){
   //PITA feedback
   if (fPITAFB){
     if (IsPatternsAccumulated()){
+      fHalfWavePlateStatus = GetHalfWavePlateState();
+      if(fHalfWavePlateStatus.Contains("IN")) {
+	if(fHalfWaveRevert) fHalfWaveIN = false;
+	else                fHalfWaveIN = true;
+      }
+      else {
+	if(fHalfWaveRevert) fHalfWaveIN = true;
+	else                fHalfWaveIN = false;
+      }
+      
+      fHalfWaveOUT = !fHalfWaveIN;
+
+      if (fHalfWaveIN)
+	printf("NOTICE \n Half-wave-plate-IN\n");
+      else
+	printf("NOTICE \n Half-wave-plate-OUT\n");
+
       IsAqPrecisionGood();//PITA corrections initiate here
     }
   }

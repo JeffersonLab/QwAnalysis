@@ -67,6 +67,6 @@ end=combinedbcm
 
 [PUBLISH]
  q_targ, combobcm, qwk_charge, c
- sca_bcm, scaler, sca_habcm, sc
+ #sca_bcm, scaler, sca_habcm, sc
 
 
