@@ -101,6 +101,10 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
   options.AddDefaultOptions()
     ("codafile-ext", po::value<string>()->default_value(fDefaultDataFileExtension),
      "extension of the input CODA filename");
+  //  Options specific to the ET clients
+  options.AddOptions("ET system options")
+    ("ET.station", po::value<string>(),
+     "ET station name --- Only used in online mode"); 
 }
 
 void QwEventBuffer::ProcessOptions(QwOptions &options)
@@ -112,6 +116,11 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
 	    << QwLog::endl;
     exit(EXIT_FAILURE);
 #else
+    if (options.HasValue("ET.station")) {
+      fETStationName = options.GetValue<string>("ET.station");
+    } else {
+      fETStationName = "";
+    }
     fETHostname = getenv("HOSTNAME");
     fETSession  = getenv("SESSION");
     if (fETHostname.Length() == 0 || fETSession.Length() == 0) {
@@ -257,7 +266,7 @@ Int_t QwEventBuffer::OpenNextStream()
 	      << fETHostname
 	      << ", SESSION==" << fETSession << "."
 	      << QwLog::endl;
-    status = OpenETStream(fETHostname, fETSession, 0);
+    status = OpenETStream(fETHostname, fETSession, 0, fETStationName);
 
   } else {
     //  Try to open the next data file for the current run,
@@ -401,6 +410,8 @@ Int_t QwEventBuffer::GetEtEvent(){
   //  Do we want to have any loop here to wait for a bad
   //  read to be cleared?
   status = fEvStream->codaRead();
+  if (status == CODA_EXIT)
+    globalEXIT = 1;
   return status;
 }
 
@@ -1112,15 +1123,21 @@ Int_t QwEventBuffer::CloseDataFile()
 }
 
 //------------------------------------------------------------
-Int_t QwEventBuffer::OpenETStream(TString computer, TString session, int mode)
+Int_t QwEventBuffer::OpenETStream(TString computer, TString session, int mode,
+				  const TString stationname)
 {
+  Int_t status = CODA_OK;
   if (fEvStreamMode==fEvStreamNull){
 #ifdef __CODA_ET
-    fEvStream = new THaEtClient(computer, session, mode);
+    if (stationname != ""){
+      fEvStream = new THaEtClient(computer, session, mode, stationname);
+    } else {
+      fEvStream = new THaEtClient(computer, session, mode);
+    }
     fEvStreamMode = fEvStreamET;
 #endif
   }
-  return 0;
+  return status;
 }
 
 //------------------------------------------------------------
