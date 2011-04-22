@@ -212,16 +212,17 @@ end=combinedbcm
 
 
 begin=combinedbpm
-name=qwk_target
-!name		type 	      q      x         y    
- QWK_BPM3H07A,  bpmstripline, 1.0,  420.43,   324.53 
- QWK_BPM3H07B,  bpmstripline, 1.0,  532.87,   408.29
- QWK_BPM3H07C,  bpmstripline, 1.0,  371.82,   308.33
- QWK_BPM3H09,   bpmstripline, 1.0,  313.04,   278.71
- QWK_BPM3H09B,  bpmstripline, 1.0,  337.29,   330.10
+name=qwk_target	
+!name           type          q      x          y    
+ QWK_BPM3H07A,  bpmstripline, 1.0,    5950.0,   15229.1 
+ QWK_BPM3H07B,  bpmstripline, 1.0,   23573.2,   60420.0 
+ QWK_BPM3H07C,  bpmstripline, 1.0,   28870.6,   64319.1 
+ QWK_BPM3H09,   bpmstripline, 1.0,  192874.1,   47125.7
+ QWK_BPM3H09B,  bpmstripline, 1.0,   78246.1,   19127.7
 end=combinedbpm
 
-! The X and Y weights were obtained using run 5842 taken with 48-43uA on LH2.
+
+! The X and Y weights were obtained using run 10220 at 150uA.
 
 
 !**************************************************************************
