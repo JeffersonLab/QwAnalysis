@@ -90,7 +90,7 @@ void qwanalysis(UInt_t run_number=0)
   Double_t fit_range[2] = { -0.02, 0.02};
   TF1* fitfunx = new TF1("fitfunx","pol1",fit_range[0],fit_range[1]);
   TF1* fitfuny = new TF1("fitfuny","pol1",fit_range[0],fit_range[1]);
-  Double_t current,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen,cal_emdxsen,cal_emdysen,mean_charge,cut_charge,yield_charge;
+  Double_t current,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen,cal_emdxsen,cal_emdysen,mean_charge,charge_scale,cut_charge;
   TCanvas *c0 = new TCanvas("c0","c0",340,340,100,100);
   c0->cd();
   //   ts->Draw("ibcm1>>bcm1","","goff");bcm1->Draw("goff");
@@ -101,8 +101,10 @@ void qwanalysis(UInt_t run_number=0)
   th->Draw("asym_qwk_mdallbars*1e6>>mdalla",Form("%s && asym_qwk_mdallbars.%s",s1,s2),"goff");mdalla->Draw("goff");
   th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bX>>mdxsen",Form("%s && asym_qwk_mdallbars.%s && diff_qwk_bpm3h09bX.%s",s1,s2,s2),"prof");mdxsen->Draw("");mdxsen->Fit("fitfunx","E M R F Q","",-0.02,0.02);
   th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bY>>mdysen",Form("%s && asym_qwk_mdallbars.%s && diff_qwk_bpm3h09bY.%s",s1,s2,s2),"prof");mdysen->Draw("");mdysen->Fit("fitfuny","E M R F Q","",-0.02,0.02);
-//   tm->Draw("qwk_charge:event_number>>histocrg", "ErrorFlag == 0 && qwk_charge.Device_Error_Code==0");
-//   mean_charge = histocrg->GetMean(2);
+  tm->Draw("qwk_charge:event_number>>histocrg", "ErrorFlag == 0 && qwk_charge.Device_Error_Code==0");
+  mean_charge = histocrg->GetMean(2);
+  charge_scale = 0.98*mean_charge;
+  cut_charge = Form("%f > %f",mean_charge,charge_scale);
 //   cut_charge = Form("qwk_charge > %f", 0.99*mean_charge);
 //   yield_charge = Form("qwk_charge >= %f", 0.98*mean_charge);
 
@@ -191,6 +193,11 @@ void qwanalysis(UInt_t run_number=0)
   char tarbitrary[255],txdetvar[255];
   sprintf(tarbitrary,"Counts [Arbitrary Units]");
   sprintf(txdetvar,"TIME [s]");
+
+//   TString in;
+//   cout <<"Insert q to exit"<<endl;
+//   cin >> in;
+//   if(in == "q") exit(-1);
   /************************************************************************/
   gStyle->Reset();
   gStyle->SetTitleYOffset(1.3);
@@ -272,11 +279,6 @@ void qwanalysis(UInt_t run_number=0)
     gPad->Update();
   }
   c15->Update(); c15->SaveAs(pmdyield);}
-
-//   TString in;
-//   cout <<"Insert q to exit"<<endl;
-//   cin >> in;
-//   if(in == "q") exit(-1);
 
   /****************************************************************************/
   gStyle->SetStatFontSize(0.060);
@@ -1082,7 +1084,7 @@ void qwanalysis(UInt_t run_number=0)
     TF1* fitbmode = new TF1("fitbmode","pol1",0.7,1.1);
     TF1* fitbmody = new TF1("fitbmody","pol1",0.7,1.1);
     TF1* fitbmodyp = new TF1("fitbmodyp","pol1",0.7,1.1);
-    char *s3 = "ErrorFlag==0 && ramp>0 && abs((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1))<50 && event_number>4500";
+    char *s3 = Form("ErrorFlag==0 && ramp>0 && abs((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1))<50 && event_number>4500 && %f",cut_charge);
 
     Double_t amplitudex = 0.092,amplitudexp = 0.092, amplitudey = 0.130,amplitudeyp = 0.130, amplitudee = 0.400;
     Double_t xbmodslope1,xbmodslope2,exbmodslope1,exbmodslope2,xbmodslope,exbmodslope,xpbmodslope1,xpbmodslope2,expbmodslope1,expbmodslope2,xpbmodslope,expbmodslope,ybmodslope1,ybmodslope2,eybmodslope1,eybmodslope2,ybmodslope,eybmodslope,ypbmodslope1,ypbmodslope2,eypbmodslope1,eypbmodslope2,ypbmodslope,eypbmodslope,ebmodslope1,ebmodslope2,eebmodslope1,eebmodslope2,ebmodslope,eebmodslope,exbmodslope11,exbmodslope12,expbmodslope11,expbmodslope12,eebmodslope11,eebmodslope12,eybmodslope11,eybmodslope12,eypbmodslope11,eypbmodslope12,exbmodslope13,expbmodslope13,eebmodslope13,eybmodslope13,eypbmodslope13;
