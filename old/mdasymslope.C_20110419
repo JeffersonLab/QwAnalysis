@@ -1,0 +1,100 @@
+#include "beammod.hh"
+
+
+Int_t mdasymslopes(Int_t run_number)
+{
+  TString directory = "$QW_ROOTFILES/";
+  TString filename;
+  TString cut;
+  TString cut0;
+  TString cut1;
+  TString cut2;
+
+  Double_t amplitudex = 0.092;
+  Double_t amplitudey = 0.130;
+  Double_t amplitudee = 0.400;
+  Double_t slopex;
+  Double_t slopey;
+  Double_t slopee;
+  Double_t slopex_error;
+  Double_t slopey_error;
+  Double_t slopee_error;
+
+  TH2F *hist0 = new TH2F("hist0", "hist0", 500, -2.0, 2.0, 1000, -5000, 5000 );
+  TH2F *hist1 = new TH2F("hist1", "hist1", 500, -2.0, 2.0, 1000, -5000, 5000 );
+  TH2F *hist2 = new TH2F("hist2", "hist2", 500, -2.0, 2.0, 1000, -5000, 5000 );
+
+  TCanvas *canvas = new TCanvas("canvas", "Main Detector Asymmetry", 800, 800);
+
+  TF1 *linear = new TF1("linear", "[0]+[1]*x", 0.7, 1.1);
+
+  linear->SetLineColor(2);
+  gStyle->SetOptFit(0001);
+  filename = Form("first100k_%d*.root", run_number);
+  LoadRootFile(filename, mps_tree, run_number);
+  std::cout << "# Entries: " << mps_tree->GetEntries() << std::endl;
+
+  cut = Form("%s && %s && %s ", ramp.Data(), stderror.Data(), starterror.Data());
+
+  canvas->Divide(1,3);
+  canvas->SetFillColor(46);
+
+  cut0 = SetPatternCut(pattern_x, cut);  
+  cut1 = SetPatternCut(pattern_y, cut);
+  cut2 = SetPatternCut(pattern_e, cut);
+
+  canvas->cd(1);
+  gPad->SetGridx();
+  gPad->SetGridy();
+  mps_tree->Draw("1e6*qwk_mdallbars:qwk_targetX>>hist0", cut0, "prof");
+  hist0 = (TH2F *)gDirectory->Get("hist0");
+  AutoAxis(hist0);
+  linear->SetRange(hist0->GetMean(1) - amplitudex, hist0->GetMean(1) + amplitudex );
+  linear->SetParameters(hist0->GetMean(2), 6000);
+  hist0->Fit("linear","R");
+  slopex = (linear->GetParameter(1))/(linear->GetParameter(0));
+  slopex_error = CalcSlopeError(linear, slopex);
+  hist0->SetTitle(Form("Main Detector MDALL X-Sensitivity: targetX: %.2f +/- %.2f (ppm/mm)", slopex*1e6, slopex_error*1e6));
+  hist0->GetYaxis()->SetTitle("MDALL Yield[V/A]");
+  hist0->GetXaxis()->SetTitle("Target X position[mm]");
+  hist0->Draw("SAME");
+
+  canvas->cd(2);
+  gPad->SetGridx();
+  gPad->SetGridy();
+  mps_tree->Draw("1e6*qwk_mdallbars:qwk_targetY>>hist1", cut1, "prof");
+  hist1 = (TH2F *)gDirectory->Get("hist1");
+  AutoAxis(hist1);
+  linear->SetRange(hist1->GetMean(1) - amplitudey, hist1->GetMean(1) + amplitudey );
+  linear->SetParameters(hist1->GetMean(2), 6000);
+  hist1->Fit("linear","R");
+  slopey = (linear->GetParameter(1))/(linear->GetParameter(0));
+  slopey_error = CalcSlopeError(linear, slopey);
+  hist1->SetTitle(Form("Main Detector MDALL Y-Sensitivity: targetY: %.2f +/- %.2f (ppm/mm)", slopey*1e6, slopey_error*1e6));
+  hist1->GetYaxis()->SetTitle("MDALL Yield[V/A]");
+  hist1->GetXaxis()->SetTitle("Target Y position[mm]");
+  hist1->Draw("SAME");
+
+  canvas->cd(3);
+  gPad->SetGridx();
+  gPad->SetGridy();
+  mps_tree->Draw("1e6*qwk_mdallbars:qwk_bpm3c12X>>hist2", cut2, "prof");
+  hist2 = (TH2F *)gDirectory->Get("hist2");
+  AutoAxis(hist2);
+  linear->SetRange(hist2->GetMean(1) - amplitudee, hist2->GetMean(1) + amplitudee );
+  linear->SetParameters(hist2->GetMean(2), 6000);
+  hist2->Fit("linear","R");
+  slopee = (linear->GetParameter(1))/(linear->GetParameter(0));
+  slopee_error = CalcSlopeError(linear, slopee);
+  hist2->SetTitle(Form("Main Detector MDALL E-Sensitivity: 3c12X: %.2f +/- %2.f (ppm/mm)", slopee*1e6, slopee_error*1e6));
+  hist2->GetYaxis()->SetTitle("MDALL Yield[V/A]");
+  hist2->GetXaxis()->SetTitle("3c12 X position[mm]");
+  hist2->Draw("SAME");
+
+  std::cout << "-------------------  END  -------------------" << std::endl;
+  canvas->Print(Form("./modulation_xye_sensitivity_slope_%d.png", run_number));
+
+  return 0;
+} 
+
+

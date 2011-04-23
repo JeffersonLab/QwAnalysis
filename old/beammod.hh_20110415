@@ -1,0 +1,172 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <stdio.h>
+#include "TROOT.h"
+#include "TFile.h"
+#include "TTree.h"
+#include "TBrowser.h"
+#include "TH2F.h"
+#include "TH1F.h"
+#include "TMath.h"
+#include "TCut.h"
+#include "TCanvas.h"
+#include "TString.h"
+#include "TApplication.h"
+#include "TChain.h"
+#include "TSystem.h"
+#include "TChainElement.h"
+#include "TGraph.h"
+#include "TF1.h"
+#include "TMath.h"
+#include "TPaveText.h"
+#include "TStyle.h"
+#include "TPaveText.h"
+
+TString subblock0 = "((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1)) <  0.5e2";
+TString subblock1 = "((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1)) > -0.5e2";
+TString subblock = Form("%s && %s", subblock0.Data(), subblock1.Data());
+TString ramp = "ramp > 0";
+TString stderror =  "Device_Error_Code == 0 && ErrorFlag == 0";
+TString charge = "qwk_charge > 150";
+TString pattern_x = "bm_pattern_number == 11";
+TString pattern_y = "bm_pattern_number == 12";
+TString pattern_e = "bm_pattern_number == 13";
+TString pattern_xp = "bm_pattern_number == 14";
+TString pattern_yp = "bm_pattern_number == 15";
+TString starterror = "event_number > 4500";
+TString yield_subblock0 = "((yield_ramp.block3+yield_ramp.block0)-(yield_ramp.block2+yield_ramp.block1)) <  0.5e2";
+TString yield_subblock1 = "((yield_ramp.block3+yield_ramp.block0)-(yield_ramp.block2+yield_ramp.block1)) > -0.5e2";
+TString yield_subblock = Form("%s && %s", yield_subblock0.Data(), yield_subblock1.Data());
+TString yield_charge = "yield_qwk_charge > 150";
+TString yield_ramp = "yield_ramp > 0";
+TString yield_pattern_x = "yield_bm_pattern_number == 11";
+TString yield_pattern_y = "yield_bm_pattern_number == 12";
+TString yield_pattern_e = "yield_bm_pattern_number == 13";
+TString yield_pattern_xp = "yield_bm_pattern_number == 14";
+TString yield_pattern_yp = "yield_bm_pattern_number == 15";
+
+Bool_t found;
+
+TChain *mps_tree = new TChain("Mps_Tree");
+TChain *hel_tree = new TChain("Hel_Tree");
+
+Bool_t FileSearch(TString filename, TChain *chain)
+{
+
+  TString file_directory;
+  Bool_t c_status = kFALSE;
+
+  file_directory = gSystem->Getenv("QW_ROOTFILES");
+  c_status = chain->Add(Form("%s/%s",file_directory.Data(), filename.Data()));
+  std::cout << "Trying to open :: "
+            << Form("%s/%s",file_directory.Data(), filename.Data())
+            << std::endl;
+
+  if(c_status){
+     TString chain_name = chain->GetName();
+     TObjArray *fileElements = chain->GetListOfFiles();
+     TIter next(fileElements);
+     TChainElement *chain_element = NULL;
+
+     while((chain_element = (TChainElement*)next())){
+        std::cout << "Adding :: "
+                  << filename
+                  << " to data chain"
+                  << std::endl;
+       }
+    } 
+    return c_status;
+}
+
+void LoadRootFile(TString filename, TChain *tree, Int_t run_number){
+  found = FileSearch(filename, tree);
+
+  if(!found){
+      filename = Form("Qweak_%d*.root", run_number);
+      found = FileSearch(filename, tree);
+      std::cerr << "Couldn't find QwPass1_*.root trying "
+		<< filename
+		<< std::endl;
+    }
+  else if(!found){
+      filename = Form("first100k_%d*.root", run_number);
+      found = FileSearch(filename, tree);
+      std::cerr << "Couldn't find Qweak*.root trying "
+		<< filename
+		<< std::endl;
+    }
+  else if(!found){
+      std::cerr << "Unable to locate requested file :: "
+		<< filename
+		<< std::endl;
+      exit(1);
+    }
+}
+
+TString SetPatternCut(TString pattern, TString cut)
+{
+  TString custom_cut;
+  custom_cut = Form("%s && %s", cut.Data(), pattern.Data());
+
+  return(custom_cut);
+
+}
+
+Int_t AutoAxis(TH2F *h)
+{
+  Double_t mean;
+
+   mean = h->GetMean(2);
+   std::cout << "Mean: " << mean << std::endl;
+   std::cout << "Resizing axes to ::" 
+	     << 0.9*mean 
+	     << " " 
+	     << 1.1*mean 
+	     << std::endl; 
+   h->GetYaxis()->SetRangeUser(0.995*mean, 1.005*mean);
+   
+   return 0; 
+}
+
+Double_t GetAmplitude(TString device, TString slice, TChain *chain)
+{
+
+  TH2F *hist = new TH2F("hist", "hist", 1000, 0, 350, 1000, -3, 3);
+  TF1 *f2 = new TF1("f2", "[0]+[1]*sin(0.01795*x + [2])", 0, 350);
+  TCanvas *c = new TCanvas("c","c",5);
+  Double_t amplitude = 1.0;
+
+  c->cd();
+  chain->Draw(Form("%s:(ramp/11.1)>>hist", device.Data()), slice, "prof");
+
+   hist = (TH2F *)gDirectory->Get("hist");   
+   f2->SetParameters(hist->GetMean(),0.15, 0);
+   f2->SetLineColor(4);
+   hist->Fit("f2","R");
+   hist->Draw("SAME");
+   amplitude = TMath::Abs(f2->GetParameter(1));
+
+  std::cout <<" ~~~~~~~~~~~~~~~~~~~~~~~~~~" 
+	    << std::endl;
+  std::cout <<" Modulation Amplitude = " 
+	    << amplitude
+	    << std::endl;
+  std::cout <<" ~~~~~~~~~~~~~~~~~~~~~~~~~~" 
+	    << std::endl;
+  c->Close();
+  hist->Delete();
+
+  return(amplitude);
+}
+
+Double_t CalcSlopeError(TF1* fit, Double_t slope)
+{
+  Double_t ErrorSum;
+  Double_t fS_0 = TMath::Power( (fit->GetParError(0)/fit->GetParameter(0)), 2 );
+  Double_t fS_1 = TMath::Power( (fit->GetParError(1)/fit->GetParameter(1)), 2 );;
+
+  ErrorSum = TMath::Sqrt(fS_0 + fS_1)*slope;
+  return(ErrorSum);
+
+}

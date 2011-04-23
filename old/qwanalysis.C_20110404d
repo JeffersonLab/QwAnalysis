@@ -1,0 +1,1177 @@
+/**************************************************************************/
+/*                              Nuruzzaman                                */
+/*                              03/10/2011                                */
+/*                                                                        */
+/*                        Last Edited:04/04/2011                          */
+/*                                                                        */
+/* This macro create all the necessary plots using first 100k rootfiles   */
+/* for the user. Manual at the bottom of this macro for its use           */
+/*                                                                        */
+/*                                                                        */
+/*   Josh Hoskins  --  Fixed Beam Modulation Plotting section.  It isn't  */
+/*   04/04/2011        cleaver but it works which is a step above before. */ 
+/*   Nuruzzaman  --  Fixed Beam Modulation Plotting section. Changed      */
+/*   04/04/2011      labels. I also added color for different variables.  */ 
+/*                                                                        */
+/*                                                                        */
+/**************************************************************************/
+
+gROOT->Reset();
+#include <NurClass.h>
+
+void qwanalysis()
+{
+
+  UInt_t run_number = 0;
+  char run0[255],run[255],run100k[255],sline[255],dline[255],ssline[255],sslinen[255];
+  char red[] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
+  char green[] = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
+  char blue[] = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
+  char magenta[] = { 0x1b, '[', '1', ';', '3', '5', 'm', 0 };
+  char normal[] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
+
+  sprintf(sline,"%s#-------------------------------------------------------------------------#%s\n",magenta,normal);
+  sprintf(dline,"%s#*************************************************************************#%s\n",red,normal);
+  sprintf(ssline,"%s---------------------------------------------%s\n",green,normal);
+  sprintf(sslinen,"---------------------------------------------\n",green,normal);
+
+  /* Ask to input the run condition to user */
+  printf(sline); printf("%sEnter Run Number%s\n",blue,normal); printf(sline);
+  cin >> run_number;
+
+  //  TFile f(Form("/home/nur/scratch/rootfiles/first100k_%d.root",run_number));
+  TFile *f = new TFile(Form("$QW_ROOTFILES/first100k_%d.root",run_number));
+  if (!f->IsOpen()) {
+    cout << "File not found!" << endl;
+    exit(1);
+  }
+
+  /* Directory */
+  Char_t *dir[1];
+//   dir[0] = "/home/nur/Desktop/beamModulation/plots";
+  dir[0] = "/net/cdaqfs/home/cdaq/users/qwanalysis/plots";
+//  dir[0] = "/net/cdaqfs/home/cdaq/users/jhoskins/scripts/qwanalysis/";
+
+  printf(sline); printf("%sPlease Insert target Information. 1= LH2, 2= 4% US Al, 3= 2% US Al, 4= 1% US Al,\n5= 4% DS Al, 6= 2% DS Al, 7= 1% DS Al, 8= US Pure Al and hit ENTER\n %s",blue,normal);
+  printf(sline);
+ 
+  UInt_t target = 0;
+  cin >> target;
+  if (target> 8) {printf("%sPlease insert a correct No. Exiting the program!%s\n",blue,normal); exit(1);}
+
+  char *tar[8];
+  tar[1] = "Qweak Target: LH2";
+  tar[2] = "Qweak Target: 4% US Al";
+  tar[3] = "Qweak Target: 2% US Al";
+  tar[4] = "Qweak Target: 1% US Al";
+  tar[5] = "Qweak Target: 4% DS Al";
+  tar[6] = "Qweak Target: 2% DS Al";
+  tar[7] = "Qweak Target: 1% DS Al";
+  tar[8] = "Qweak Target: US Pure Al";
+
+  /* load the different Trees. */
+  tm = (TTree*)f->Get("Mps_Tree");
+  if(tm == NULL) {
+    std::cout<<"Unable to find Mps_Tree. Exiting the program! "<<std::endl;
+    exit(1);
+  }
+  th = (TTree*)f->Get("Hel_Tree");
+  if(th == NULL) {
+    std::cout<<"Unable to find Hel_Tree. Exiting the program! "<<std::endl;
+    exit(1);
+  }
+  ts = (TTree*)f->Get("Slow_Tree");
+  if(ts == NULL) {
+    std::cout<<"Unable to find Slow_Tree. Exiting the program! "<<std::endl;
+    exit(1);
+  }
+
+  fitfunx = new TF1("fitfunx","pol1",-0.01,0.01);
+  fitfuny = new TF1("fitfuny","pol1",-0.01,0.01);
+  Double_t current,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_mdxsen,cal_mdysen;
+  TCanvas *c0 = new TCanvas("c0","c0",240,240,200,200);
+  c0->cd();
+  //   ts->Draw("ibcm1>>bcm1","","goff");bcm1->Draw("goff");
+  ts->Draw("EHCFR_LIXWidth>>rasterx","","goff");rasterx->Draw("goff");
+  th->Draw("yield_qwk_charge>>cur","ErrorFlag==0 && yield_qwk_charge.Device_Error_Code==0","goff");cur->Draw("goff");
+  th->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6>>bcmdd","ErrorFlag==0 && asym_qwk_bcm1.Device_Error_Code==0 && asym_qwk_bcm2.Device_Error_Code==0","goff");bcmdd->Draw("goff");
+  th->Draw("asym_qwk_charge*1e6>>abcm","ErrorFlag==0 && asym_qwk_bcm1.Device_Error_Code==0","goff");abcm->Draw("goff");
+  th->Draw("asym_qwk_mdallbars*1e6>>mdalla","ErrorFlag==0 && asym_qwk_mdallbars.Device_Error_Code==0","goff");mdalla->Draw("goff");
+  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bX>>mdxsen","ErrorFlag==0 && asym_qwk_mdallbars.Device_Error_Code==0 && diff_qwk_bpm3h09bX.Device_Error_Code==0 && diff_qwk_bpm3h09bX>-0.01 && diff_qwk_bpm3h09bX<0.01","prof");
+  
+  mdxsen->Draw("goff");mdxsen->Fit("fitfunx","0 Q");
+  
+  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bY>>mdysen","ErrorFlag==0 && asym_qwk_mdallbars.Device_Error_Code==0 && diff_qwk_bpm3h09bY.Device_Error_Code==0 && diff_qwk_bpm3h09bY>-0.01 && diff_qwk_bpm3h09bY<0.01","prof");
+  
+  mdysen->Draw("goff");
+  mdysen->Fit("fitfuny","0 Q");
+  
+  current=cur->GetMean();
+  raster=rasterx->GetMean();
+  cal_mdalla=mdalla->GetRMS();
+  cal_bcmdd=bcmdd->GetRMS();cal_abcm=abcm->GetRMS();
+  cal_mdxsen=fitfunx->GetParameter(1);
+  cal_mdysen=fitfuny->GetParameter(1);
+  c0->Update();
+
+  char *s1 = "ErrorFlag==0 && mps_counter<99000 && yield_ramp<0";
+  char *s2 = "Device_Error_Code==0";
+
+  const Int_t NUM = 8, NUM1 = 5,NUM2 = 6, NUM3 = 3;
+
+  TString bcms[NUM1] = {"charge","bcm1","bcm2","bcm5","bcm6"};
+  TString bcms2[NUM2] = {"bcm1","bcm1","bcm1","bcm2","bcm2","bcm5"};
+  TString bcms3[NUM2] = {"bcm2","bcm5","bcm6","bcm5","bcm6","bcm6"};
+  TString bpms[NUM3] = {"3h07c","3h09b","3c12"};
+  TString mdasym[NUM] = {"md1barsum","md2barsum","md3barsum","md4barsum","md5barsum","md6barsum","md7barsum","md8barsum"};
+  TString allmd[NUM3] = {"all","even","odd"};
+  TString lumi[NUM3] = {"sum","even","odd"};
+  TString uslumi[NUM1] = {"uslumi1","uslumi3","uslumi5","uslumi7","uslumi"};
+  TString bmod[NUM2] = {"ramp","fgx1","fgx2","fge","fgy1","fgy2"};
+
+  char pcharge[255],pchargeasym[255],pchargeddasym[255],pbpmd[255],pmdyield[255],pmdasym[255],pmdallasym[255],pmdallsenx[255],pmdallseny[255],pdslumiyield[255],pdslumiasym[255],plumisenx[255],plumiseny[255],pmodulation[255],puslumi[255],puslumisen[255];
+  sprintf(pcharge,"%s/%dCharge.png",dir[0],run_number);
+  sprintf(pchargeasym,"%s/%dChargeAsym.png",dir[0],run_number);
+  sprintf(pchargeddasym,"%s/%dChargeDDAsym.png",dir[0],run_number);
+  sprintf(pbpmd,"%s/%dBPMDiff.png",dir[0],run_number);
+  sprintf(pmdyield,"%s/%dMDPMTYield.png",dir[0],run_number);
+  sprintf(pmdasym,"%s/%dMDAsym.png",dir[0],run_number);
+  sprintf(pmdallasym,"%s/%dMDAllbarsumAsym.png",dir[0],run_number);
+  sprintf(pmodulation,"%s/%dModulationCycle.png",dir[0],run_number);
+  sprintf(pmdallsenx,"%s/%dMDXSensitivity.png",dir[0],run_number);
+  sprintf(pmdallseny,"%s/%dMDYSensitivity.png",dir[0],run_number);
+  sprintf(pdslumiyield,"%s/%dDSLumiYield.png",dir[0],run_number);
+  sprintf(pdslumiasym,"%s/%dDSLumiAsym.png",dir[0],run_number);
+  sprintf(plumisenx,"%s/%dLumiXSensitivity.png",dir[0],run_number);
+  sprintf(plumiseny,"%s/%dLumiYSensitivity.png",dir[0],run_number);
+  sprintf(puslumi,"%s/%dUSLumiYieldAsym.png",dir[0],run_number);
+  sprintf(puslumisen,"%s/%dUSLumiSensitivity.png",dir[0],run_number);
+
+  char txtcharge[255],txtchargeasym[255];
+  char comontext[255],txtcharge1[255],txtchargeasym1[255];
+  sprintf(txtcharge,"Run %d: Charge (uA)",run_number);
+  sprintf(txtchargeasym,"Run %d: Charge Asymmetry (ppm)",run_number);
+  //   sprintf(txtchargeddasym,"Run %d: Charge Double Difference Asymmetry (ppm)",run_number);
+  //   sprintf(txtbpmd,"Run %d: BPM Difference (mm)",run_number);
+  //   sprintf(txtmdyield,"%s/%dMDPMTYield",run_number);
+  //   sprintf(txtmdasym,"Run %d: Main Detector Barsum Asymmetries (ppm)",run_number);
+  //   sprintf(txtmdallasym,"%dMDAllbarsumAsym",run_number);
+  //   sprintf(txtmdallsen,"%dMDAllbarsumSensitivity",run_number);
+  //   sprintf(txtdslumiyield,"Run %d: Downstream Lumi Yields (Volts/uA)",run_number);
+  //   sprintf(txtdslumiasym,"Run %d: Downstream Lumi Asymmetries (ppm)",run_number);
+
+  sprintf(comontext,"for %s, %2.1f uA, %2.1fx%2.1f mm",tar[target],current,raster,raster);
+  sprintf(txtcharge1,"%s %s",txtcharge,comontext);
+  sprintf(txtchargeasym1,"%s %s",txtchargeasym,comontext);
+  /************************************************************************/
+  Double_t csizx,csizy,csiz3x,csiz3y,cx1,cy1,cx2,cx3,tsiz,tsiz3,tll,tlr,ps1,ps2,ps3,ps4;
+  csizx=1200;csizy=1000;csiz3x=1100;csiz3y=780;tsiz=0.40;tsiz3=0.45;tll=0.012;tlr=0.4;cx1=0;cy1=0;cx2=300;cx3=600;
+  ps1=0.01;ps2=0.93;ps3=0.94;ps4=0.99;
+  /************************************************************************/
+  int position1[5] = { 1, 3, 4, 5, 6 };
+  int position2[6] = { 1, 2, 3, 4, 5, 6 };
+  int position3[3] = { 1, 3, 5 };
+  int position4[3] = { 2, 4, 6 };
+  int position5[9] = { 0, 4, 1, 2, 3, 6, 9, 8, 7 };
+  int position6[9] = { 0, 5, 1, 2, 3, 7, 11, 10, 9 };
+  int position7[3] = { 4, 8, 12 };
+  int position8[9] = { 0, 7, 1, 2, 3, 9, 15, 14, 13 };
+  int position9[9] = { 0, 10, 4, 5, 6, 12, 18, 17, 16 };
+  int position10[5] = { 7, 2, 9, 14, 8 };
+  int position11[5] = { 10, 5, 12, 17, 11 };
+  int position12[5] = { 4, 2, 6, 8, 5 };
+  /****************************************************************************/
+  char ycharge[255],cutycharge[255],acharge[255],cutacharge[255],ddcharge[255],cutddcharge[255],bpmx[255],cutbpmx[255],bpmy[255],cutbpmy[255],adet[255],cutadet[255],ylumi[255],cutylumi[255],ylumis[255],cutylumis[255],alumi[255],cutalumi[255],alumis[255],cutalumis[255],ypmtpos[255],ypmtneg[255],cutypmtpos[255],cutypmtneg[255],adetsenx[255],adetseny[255],cutadetsenx[255],cutadetseny[255],alldetsenx[255],alldetseny[255],adetsenxp[255],adetsenyp[255],cutalldetsenx[255],cutalldetseny[255],cutadetsenxp[255],cutadetsenyp[255],histox[255],histoy[255],histoxp[255],histoyp[255],hyaxis[255],modulation[255],cutmodulation[255],hbmod[255],ybmod[255],xbmod[255],tbmod[255],yuslumis[255],cutyuslumis[255],auslumis[255],cutauslumis[255];  
+  /****************************************************************************/
+  char adetsenxf[255],adetsenx[255],histoxf[255],histox[255],cutadetsenxf[255],cutadetsenx[255],yaxis[255],xaxis[255],adetasenxf[255],adetasenx[255],histoxfa[255],histoxa[255],cutadetasenxf[255],cutadetasenx[255],yaxisa[255],xaxisa[255],adetsenyf[255],adetseny[255],histoyf[255],histoy[255],cutadetsenyf[255],cutadetseny[255],yaxis1[255],xaxis1[255],adetasenyf[255],adetaseny[255],histoyfa[255],histoya[255],cutadetasenyf[255],cutadetaseny[255],yaxisa1[255],xaxisa1[255];
+  char alumisenxf[255],alumisenx[255],histolxf[255],histolx[255],cutalumisenxf[255],cutalumisenx[255],yaxisl[255],xaxisl[255],alumiasenxf[255],alumiasenx[255],histolxfa[255],histolxa[255],cutalumiasenxf[255],cutalumiasenx[255],yaxisla[255],xaxisla[255],alumisenyf[255],alumiseny[255],histolyf[255],histoly[255],cutalumisenyf[255],cutalumiseny[255],yaxisl1[255],xaxisl1[255],alumiasenyf[255],alumiaseny[255],histolyfa[255],histolya[255],cutalumiasenyf[255],cutalumiaseny[255],yaxisla1[255],xaxisla1[255],auslumisenx[255],cutauslumisenx[255],histouslx[255],auslumiseny[255],cutauslumiseny[255],histously[255],yaxisusl[255];
+  /************************************************************************/
+  gStyle->Reset();
+  gStyle->SetTitleYOffset(1.3);
+  gStyle->SetTitleXOffset(1.1);
+  gStyle->SetCanvasColor(kWhite);
+  gStyle->SetStatFontSize(0.12);
+  gStyle->SetCanvasColor(kWhite);
+  gStyle->SetPadColor(kWhite);
+  gPad->SetFillColor(kWhite);
+  //   gStyle->SetOptStat(1);
+  //   gStyle->SetOptFit(1111);
+  //    gStyle->SetOptStat(1);
+  gStyle->SetStatY(1.0);
+  gStyle->SetStatX(0.99);
+  gStyle->SetStatW(0.42);
+  gStyle->SetStatH(0.36); 
+  /************************************************************************/
+  TCanvas *c15 = new TCanvas("c15","Main Detector PMT Yields (Volts/uA)",0,0,1580,1000);
+  pad150 = new TPad("pad150","pad150",ps1,ps2,ps4,ps4);
+  pad151 = new TPad("pad151","pad151",ps1,ps1,ps4,ps3);
+  pad150->Draw();
+  pad151->Draw();
+  pad150->cd();
+  TString text = Form("Run %d: Main Detector PMT Yields (Volts/uA) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct150 = new TText(0.012,0.4,text);
+  ct150->SetTextSize(0.3);
+  TString mdpos = "MD POS";
+  TString mdneg = "MD NEG";
+  ctp = new TText(0.45,0.45,mdpos);
+  ctn = new TText(0.45,0.45,mdneg);
+  ct150->Draw();
+  pad151->cd();
+  pad151->Divide(6,3);
+  printf("%sPlotting %sMain Detector PMT Yields (Volts/uA)%s\n",blue,red,normal);
+  /************************************************************************/
+
+  int pd = 0;
+  for ( int pt=0; pt<9; pt++) {
+    pd = pt+1;
+
+    sprintf(ypmtpos,"yield_qwk_md%dpos",pd);
+    sprintf(ypmtneg,"yield_qwk_md%dneg",pd);
+    sprintf(cutypmtpos,"%s && yield_qwk_md%dpos.%s",s1,pd,s2);
+    sprintf(cutypmtneg,"%s && yield_qwk_md%dneg.%s",s1,pd,s2);
+
+    pad151->cd(8);
+    ctp->Draw();
+    pad151->cd(11);
+    ctn->Draw();
+
+    pad151->cd(position8[pd]);
+    pad151->cd(position8[pd])->SetGrid();
+    th->Draw(ypmtpos,cutypmtpos);
+
+    pad151->cd(position9[pd]);
+    pad151->cd(position9[pd])->SetGrid();
+    pad151->cd(position9[pd])->SetFillColor(kGreen-10);
+    th->Draw(ypmtneg,cutypmtneg);
+    gPad->Update();
+  }
+  c15->Update();
+  /****************************************************************************/
+  gStyle->SetStatFontSize(0.060);
+  gStyle->SetStatY(1.0);
+  gStyle->SetStatX(0.99);
+  gStyle->SetStatW(0.25);
+  gStyle->SetStatH(0.25); 
+  /****************************************************************************/
+  TCanvas *c1 = new TCanvas("c1",txtcharge,0,0,csizx,1000);
+  pad10 = new TPad("pad10","pad10",ps1,ps2,ps4,ps4);
+  pad11 = new TPad("pad11","pad11",ps1,ps1,ps4,ps3);
+  pad10->Draw();
+  pad11->Draw();
+  pad10->cd();
+  TString text = (txtcharge1);
+  ct10 = new TText(0.012,0.4,text);
+  ct10->SetTextSize(0.3);
+  ct10->Draw();
+  pad11->cd();
+  pad11->Divide(2,3);
+  printf("%sPlotting %sCharge (uA)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  TCanvas *c2 = new TCanvas("c2",txtchargeasym,20,20,csizx,1000);
+  pad20 = new TPad("pad20","pad20",ps1,ps2,ps4,ps4);
+  pad21 = new TPad("pad21","pad21",ps1,ps1,ps4,ps3);
+  pad20->Draw();
+  pad21->Draw();
+  pad20->cd();
+  TString text = (txtchargeasym1);
+  ct20 = new TText(0.012,0.4,text);
+  ct20->SetTextSize(0.3);
+  ct20->Draw();
+  pad21->cd();
+  pad21->Divide(2,3);
+  printf("%sPlotting %sCharge Asymmetry (ppm)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+
+  for ( int i=0; i<5; i++) {
+
+    sprintf(ycharge,"yield_qwk_%s",bcms[i].Data());
+    sprintf(acharge,"asym_qwk_%s*1e6",bcms[i].Data());
+    sprintf(cutycharge,"%s && yield_qwk_%s.%s",s1,bcms[i].Data(),s2);
+    sprintf(cutacharge,"%s && asym_qwk_%s.%s",s1,bcms[i].Data(),s2);
+   
+    pad11->cd(position1[i]);
+    pad11->cd(position1[i])->SetGrid();
+    th->Draw(ycharge,cutycharge);
+    pad11->cd(2);
+    th->Draw("yield_qwk_charge:mps_counter","ErrorFlag==0 && yield_qwk_charge.Device_Error_Code==0");
+    gPad->Update();
+   
+    pad21->cd(position1[i]);
+    pad21->cd(position1[i])->SetGrid();
+    th->Draw(acharge,cutacharge);
+    pad21->cd(2);
+    th->Draw("asym_qwk_charge*1e6:pat_counter","ErrorFlag==0 && asym_qwk_charge.Device_Error_Code==0");
+    gPad->Update();   
+  }
+  c1->Update();
+  c2->Update();
+
+  /****************************************************************************/
+  TCanvas *c3 = new TCanvas("c3","Charge Double Difference (ppm)",40,40,csizx,1000);
+  pad30 = new TPad("pad30","pad30",ps1,ps2,ps4,ps4);
+  pad31 = new TPad("pad31","pad31",ps1,ps1,ps4,ps3);
+  pad30->Draw();
+  pad31->Draw();
+  pad30->cd();
+  TString text = Form("Run %d: Charge Double Difference Asymmetry (ppm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct30 = new TText(0.012,0.4,text);
+  ct30->SetTextSize(0.3);
+  ct30->Draw();
+  pad31->cd();
+  pad31->Divide(2,3);
+  printf("%sPlotting %sCharge Double Difference (ppm)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  gStyle->SetOptStat(1);
+  gStyle->SetOptStat("emr");
+
+  for ( int j=0; j<6; j++) {
+
+    sprintf(ddcharge,"asym_qwk_%s*1e6-asym_qwk_%s*1e6",bcms2[j].Data(),bcms3[j].Data());
+    sprintf(cutddcharge,"%s && asym_qwk_%s.%s  && asym_qwk_%s.%s",s1,bcms2[j].Data(),s2,bcms3[j].Data(),s2);
+    pad31->cd(position2[j]);
+    pad31->cd(position2[j])->SetGrid();
+    th->Draw(ddcharge,cutddcharge);
+    gPad->Update();
+  }
+  c3->Update();
+
+    gStyle->SetTitleSize(0.09);
+    gStyle->SetTitleYSize(0.09);
+    gStyle->SetTitleXSize(0.075);
+    gStyle->SetTitleYOffset(0.3);
+    gStyle->SetTitleXOffset(0.6);
+    gStyle->SetLabelSize(0.085);
+    gStyle->SetLabelSize(0.085,"y");
+    gStyle->SetLabelSize(0.085,"x");
+    gStyle->SetOptStat(0);
+  /****************************************************************************/
+//   TCanvas *c13 = new TCanvas("c13","Modulation Cycle",120,120,csizx,1000);
+//   pad130 = new TPad("pad130","pad130",ps1,ps2,ps4,ps4);
+//   pad131 = new TPad("pad131","pad131",ps1,ps1,ps4,ps3);
+//   pad130->Draw();
+//   pad131->Draw();
+//   pad130->cd();
+//   TString text = Form("Run %d: Modulation Cycle for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+//   ct130 = new TText(0.012,0.4,text);
+//   ct130->SetTextSize(0.3);
+//   ct130->Draw();
+//   pad131->cd();
+//   pad131->Divide(1,6);
+//   printf("%sPlotting %sModulation Cycle%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+
+    //
+    // This could be done much more cleverly, but since I am just doing a quick fix 
+    // I am not going for efficiency...
+    //
+    // --Josh H.
+    //
+
+    TCanvas *canvas = new TCanvas("canvas", "Modulation Cycle", 1200, 1000);
+    canvas->SetTitle("Modulation Cycle");
+
+    TString subblock0 = "((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1)) <  0.5e2";
+    TString subblock1 = "((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1)) > -0.5e2";
+    TString error = "ErrorFlag == 0 && Device_Error_Code == 0";
+    TString cut = Form("%s && %s && %s", subblock0.Data(), subblock1.Data(), error.Data());
+
+    TH2F * histe  = new TH2F("histe", "histe", 1000, 0, 110, 1000, -0.4, 0.4);
+    TH2F * histx1 = new TH2F("histx1", "histx1", 1000, 0, 110, 1000, -0.4, 0.4);
+    TH2F * histx2 = new TH2F("histx2", "histx2", 1000, 0, 110, 1000, -0.4, 0.4);
+    TH2F * histy1 = new TH2F("histy1", "histy1", 1000, 0, 110, 1000, -0.4, 0.4);
+    TH2F * histy2 = new TH2F("histy2", "histy2", 1000, 0, 110, 1000, -0.4, 0.4);
+    TH2F * histramp = new TH2F("histramp", "histramp", 1000, 0, 110, 1000, -0.4, 0.4);
+    printf("%sPlotting %sModulation Cycle%s\n",blue,red,normal);
+    canvas->Divide(1,6);
+
+    canvas->cd(1);
+    tm->Draw("(76.29e-6)*ramp:event_number*0.001>>histramp", cut);
+    histramp = (TH2F *)gDirectory->Get("histramp");
+    histramp->SetXTitle("Event# [sec]");
+    histramp->SetYTitle("Ramp [V]");
+    histramp->GetYaxis()->SetRangeUser(-0.4, 0.4);
+//     histramp->GetXaxis()->SetTitleColor(2);
+//     histramp->GetYaxis()->SetTitleColor(2);
+    histramp->Draw("SAME");
+
+    canvas->cd(2);
+    tm->Draw("(76.29e-6)*fgx1:event_number*0.001>>histx1", cut);
+    histx1 = (TH2F *)gDirectory->Get("histx1");
+    histx1->SetXTitle("Event# [sec]");
+    histx1->SetYTitle("FGX1 [V]");
+    histx1->GetYaxis()->SetRangeUser(-0.4, 0.4);
+//     histx1->GetXaxis()->SetTitleColor(2);
+//     histx1->GetYaxis()->SetTitleColor(2);
+    histx1->SetMarkerColor(kRed-4);
+    histx1->Draw("SAME");
+
+    canvas->cd(3);
+    tm->Draw("(76.29e-6)*fgx2:event_number*0.001>>histx2", cut);
+    histx2 = (TH2F *)gDirectory->Get("histx2");
+    histx2->SetXTitle("Event# [sec]");
+    histx2->SetYTitle("FGX2 [V]");
+    histx2->GetYaxis()->SetRangeUser(-0.4, 0.4);
+//     histx2->GetXaxis()->SetTitleColor(2);
+//     histx2->GetYaxis()->SetTitleColor(2);
+    histx2->SetMarkerColor(kRed-4);
+    histx2->Draw("SAME");
+
+    canvas->cd(4);
+    tm->Draw("(76.29e-6)*fge:event_number*0.001>>histe", cut);
+    histe = (TH2F *)gDirectory->Get("histe");
+    histe->SetXTitle("Event# [sec]");
+    histe->SetYTitle("FGE [V]");
+    histe->GetYaxis()->SetRangeUser(-0.4, 0.4);
+//     histe->GetXaxis()->SetTitleColor(2);
+//     histe->GetYaxis()->SetTitleColor(2);
+    histe->SetMarkerColor(kBlue);
+    histe->Draw("SAME");
+
+    canvas->cd(5);
+    tm->Draw("(76.29e-6)*fgy1:event_number*0.001>>histy1", cut);
+    histy1 = (TH2F *)gDirectory->Get("histy1");
+    histy1->SetXTitle("Event# [sec]");
+    histy1->SetYTitle("FGY1 [V]");
+    histy1->GetYaxis()->SetRangeUser(-0.4, 0.4);
+//     histy1->GetXaxis()->SetTitleColor(2);
+//     histy1->GetYaxis()->SetTitleColor(2);
+    histy1->SetMarkerColor(kGreen-3);
+    histy1->Draw("SAME");
+
+    canvas->cd(6);
+    tm->Draw("(76.29e-6)*fgy2:event_number*0.001>>histy2", cut);
+    histy2 = (TH2F *)gDirectory->Get("histy2");
+    histy2->SetXTitle("Event# [sec]");
+    histy2->SetYTitle("FGY2 [V]");
+    histy2->GetYaxis()->SetRangeUser(-0.4, 0.4);
+//     histy2->GetXaxis()->SetTitleColor(2);
+//     histy2->GetYaxis()->SetTitleColor(2);
+    histy2->SetMarkerColor(kGreen-3);
+    histy2->Draw("SAME");
+
+    canvas->Update();  
+    //  for ( Int_t w = 0; w < 6; w++) {
+
+
+
+//     sprintf(modulation,"%s*76.29e-6:event_number>>hbmod%d",bmod[w].Data(),w);
+//     sprintf(cutmodulation,"ErrorFlag==0 && %s.%s && ramp>0 && abs(((ramp.block0+ramp.block3)-(ramp.block1+ramp.block2))*4)<20",bmod[w].Data(),s2);
+//     sprintf(hbmod,"hbmod%d",w);
+//     sprintf(xbmod,"Event Number");
+//     sprintf(ybmod,"%s [V]",bmod[w].Data());
+//     sprintf(tbmod,"%s",bmod[w].Data());
+
+//     pad131->cd(position2[w]);
+//     pad131->cd(position2[w])->SetGrid();
+//     tm->Draw(modulation,cutmodulation,"bar goff");
+//     TH1D *hmod = (TH1D*)gDirectory->Get(hbmod);
+//     hmod->Clone();
+//     hmod->SetYTitle(ybmod);
+//     hmod->SetXTitle(xbmod);
+//     hmod->SetTitle(tbmod);
+//     TAxis *axis= hmod->GetYaxis();
+//     axis->SetLimits(-0.31,0.31);
+//     TAxis *axisx= hmod->GetXaxis();
+//     axisx->SetLimits(0,99000);
+//     hmod->DrawCopy();
+//     gPad->Update();
+
+//  }
+//  c13->Update();
+
+    gStyle->SetOptStat(1);
+    gStyle->SetOptStat("emr");
+    gStyle->SetTitleSize(0.04);
+    gStyle->SetTitleYSize(0.04);
+    gStyle->SetTitleXSize(0.04);
+    gStyle->SetTitleYOffset(1.1);
+    gStyle->SetTitleXOffset(1.1);
+    gStyle->SetLabelSize(0.050);
+    gStyle->SetLabelSize(0.050,"y");
+    gStyle->SetLabelSize(0.050,"x");
+  /****************************************************************************/
+  TCanvas *c4 = new TCanvas("c4","BPM Difference (mm)",60,60,csizx,1000);
+  pad40 = new TPad("pad40","pad40",ps1,ps2,ps4,ps4);
+  pad41 = new TPad("pad41","pad41",ps1,ps1,ps4,ps3);
+  pad40->Draw();
+  pad41->Draw();
+  pad40->cd();
+  TString text = Form("Run %d: BPM Difference (mm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct40 = new TText(0.012,0.4,text);
+  ct40->SetTextSize(0.3);
+  ct40->Draw();
+  pad41->cd();
+  pad41->Divide(2,3);
+  printf("%sPlotting %sBPM Difference (mm)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  for ( int k=0; k<3; k++) {
+
+    sprintf(bpmx,"diff_qwk_bpm%sX",bpms[k].Data());
+    sprintf(bpmy,"diff_qwk_bpm%sY",bpms[k].Data());
+    sprintf(cutbpmx,"%s && diff_qwk_bpm%sX.%s",s1,bpms[k].Data(),s2);
+    sprintf(cutbpmy,"%s && diff_qwk_bpm%sY.%s",s1,bpms[k].Data(),s2);
+
+    pad41->cd(position3[k]);
+    pad41->cd(position3[k])->SetGrid();
+    th->Draw(bpmx,cutbpmx);
+    pad41->cd(position4[k]);
+    pad41->cd(position4[k])->SetGrid();
+    th->Draw(bpmy,cutbpmy);
+    gPad->Update();
+  }
+  c4->Update();
+
+  /****************************************************************************/
+  TCanvas *c5 = new TCanvas("c5","Main Detector Barsum Asymmetries (ppm)",80,80,csizx,1000);
+  pad50 = new TPad("pad50","pad50",ps1,ps2,ps4,ps4);
+  pad51 = new TPad("pad51","pad51",ps1,ps1,ps4,ps3);
+  pad50->Draw();
+  pad51->Draw();
+  pad50->cd();
+  TString text = Form("Run %d: Main Detector Barsum Asymmetries (ppm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct50 = new TText(0.012,0.4,text);
+  ct50->SetTextSize(0.3);
+  ct50->Draw();
+  pad51->cd();
+  pad51->Divide(3,3);
+  printf("%sPlotting %sMain Detector Barsum Asymmetries (ppm)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  int ld=0;
+  for ( int l=0; l<8; l++) {
+    ld = l+1;
+
+    sprintf(adet,"asym_qwk_md%dbarsum*1e6",ld);
+    sprintf(cutadet,"%s && asym_qwk_md%dbarsum.%s",s1,ld,s2);
+
+    pad51->cd(position5[ld]);
+    pad51->cd(position5[ld])->SetGrid();
+    th->Draw(adet,cutadet);
+    gPad->Update();
+  }
+  c5->Update();
+
+  /****************************************************************************/
+  TCanvas *c6 = new TCanvas("c6","Main Detector All Barsum Asymmetry (ppm)",100,100,csizx,1000);
+  pad60 = new TPad("pad60","pad60",ps1,ps2,ps4,ps4);
+  pad61 = new TPad("pad61","pad61",ps1,ps1,ps4,ps3);
+  pad60->Draw();
+  pad61->Draw();
+  pad60->cd();
+  TString text = Form("Run %d: Main Detector All Barsum Asymmetry (ppm) Normalized to Different BCMs for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct60 = new TText(0.012,0.4,text);
+  ct60->SetTextSize(0.3);
+  ct60->Draw();
+  pad61->cd();
+  pad61->Divide(2,3);
+  printf("%sPlotting %sMain Detector All Barsum Asymmetries (ppm)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+
+  pad61->cd(1);
+  gPad->SetLogy();
+  th->Draw("asym_qwk_mdallbars*1e6","ErrorFlag==0 && asym_qwk_mdallbars.Device_Error_Code==0 && yield_ramp<0");
+  pad61->cd(2);
+  gPad->SetLogy();
+  th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-asym_qwk_bcm2)*1e6","ErrorFlag==0 && asym_qwk_mdallbars.Device_Error_Code==0 && asym_qwk_bcm1.Device_Error_Code==0 && asym_qwk_bcm2.Device_Error_Code==0 && yield_ramp<0");
+  pad61->cd(3);
+  gPad->SetLogy();
+  th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-asym_qwk_bcm5)*1e6","ErrorFlag==0 && asym_qwk_mdallbars.Device_Error_Code==0 && asym_qwk_bcm1.Device_Error_Code==0 && asym_qwk_bcm5.Device_Error_Code==0 && yield_ramp<0");
+  pad61->cd(4);
+  gPad->SetLogy();
+  th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-asym_qwk_bcm6)*1e6","ErrorFlag==0 && asym_qwk_mdallbars.Device_Error_Code==0 && asym_qwk_bcm1.Device_Error_Code==0 && asym_qwk_bcm6.Device_Error_Code==0 && yield_ramp<0");
+  pad61->cd(5);
+  gPad->SetLogy();
+  th->Draw("asym_qwk_mdevenbars*1e6","ErrorFlag==0 && asym_qwk_mdevenbars.Device_Error_Code==0 && yield_ramp<0");
+  pad61->cd(6);
+  gPad->SetLogy();
+  th->Draw("asym_qwk_mdoddbars*1e6","ErrorFlag==0 && asym_qwk_mdoddbars.Device_Error_Code==0 && yield_ramp<0");
+  gPad->Update();
+  c6->Update();
+
+  /************************************************************************/
+  gStyle->SetStatFontSize(0.070);
+  gStyle->SetStatY(1.0);
+  gStyle->SetStatX(0.99);
+  gStyle->SetStatW(0.30);
+  gStyle->SetStatH(0.30); 
+  /************************************************************************/
+  TCanvas *c7 = new TCanvas("c7","Main Detector All Barsum X-Sensitivities (mm^-1)",120,120,1400,1000);
+  pad70 = new TPad("pad70","pad70",ps1,ps2,ps4,ps4);
+  pad71 = new TPad("pad71","pad71",ps1,ps1,ps4,ps3);
+  pad70->Draw();
+  pad71->Draw();
+  pad70->cd();
+  TString text = Form("Run %d: Main Detector Barsum X-Sensitivities (mm^-1) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct70 = new TText(0.012,0.4,text);
+  ct70->SetTextSize(0.3);
+  ct70->Draw();
+  pad71->cd();
+  pad71->Divide(4,3);
+  printf("%sPlotting %sMain Detector Barsum X-Sensitivities (mm^-1)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  TCanvas *c8 = new TCanvas("c8","Main Detector All Barsum Y-Sensitivities (mm^-1)",140,140,1400,1000);
+  pad80 = new TPad("pad80","pad80",ps1,ps2,ps4,ps4);
+  pad81 = new TPad("pad81","pad81",ps1,ps1,ps4,ps3);
+  pad80->Draw();
+  pad81->Draw();
+  pad80->cd();
+  TString text = Form("Run %d: Main Detector Barsum Y-Sensitivities (mm^-1) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct80 = new TText(0.012,0.4,text);
+  ct80->SetTextSize(0.3);
+  ct80->Draw();
+  pad81->cd();
+  pad81->Divide(4,3);
+  printf("%sPlotting %sMain Detector Barsum Y-Sensitivities (mm^-1)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  TCanvas *c11 = new TCanvas("c11","Downstream Lumi X-Sensitivities (mm^-1)",200,200,1400,1000);
+  pad110 = new TPad("pad110","pad110",ps1,ps2,ps4,ps4);
+  pad111 = new TPad("pad111","pad111",ps1,ps1,ps4,ps3);
+  pad110->Draw();
+  pad111->Draw();
+  pad110->cd();
+  TString text = Form("Run %d: Downstream Lumi X-Sensitivities (mm^-1) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct110 = new TText(0.012,0.4,text);
+  ct110->SetTextSize(0.3);
+  ct110->Draw();
+  pad111->cd();
+  pad111->Divide(4,3);
+  printf("%sPlotting %sDownstream Lumi X-Sensitivities (mm^-1)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  TCanvas *c12 = new TCanvas("c12","Downstream Lumi Y-Sensitivities (mm^-1)",220,220,1400,1000);
+  pad120 = new TPad("pad120","pad120",ps1,ps2,ps4,ps4);
+  pad121 = new TPad("pad121","pad121",ps1,ps1,ps4,ps3);
+  pad120->Draw();
+  pad121->Draw();
+  pad120->cd();
+  TString text = Form("Run %d: Downstream Lumi Y-Sensitivities (mm^-1) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct120 = new TText(0.012,0.4,text);
+  ct120->SetTextSize(0.3);
+  ct120->Draw();
+  pad121->cd();
+  pad121->Divide(4,3);
+  printf("%sPlotting %sDownstream Lumi Y-Sensitivities (mm^-1)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  gStyle -> SetOptFit(1111);
+  gStyle -> SetOptStat("e");
+  Double_t fit_range[2] = { -0.01, 0.01};
+
+  int dt=0;
+  for ( int t=0; t<8; t++) {
+    dt = t+1;
+
+    sprintf(adetsenx,"asym_qwk_md%dbarsum*1e6:diff_qwk_bpm3h09bX>>htx%d",dt,dt);
+    sprintf(cutadetsenx,"%s && asym_qwk_md%dbarsum.%s && diff_qwk_bpm3h09bX.%s",s1,dt,s2,s2);
+    sprintf(histox,"htx%d",dt);
+    sprintf(yaxis,"MD%d ASYM [ppm]",dt);
+    sprintf(xaxis,"BPM 3H09BX [mm]");
+
+    pad71->cd(position6[dt]);
+    pad71->cd(position6[dt])->SetGrid();
+
+    th->Draw(adetsenx,cutadetsenx,"prof");
+    TH1D *htxf = (TH1D*)gDirectory->Get(histox);
+    htxf->GetXaxis()->SetTitle(yaxis);
+    htxf->GetXaxis()->SetTitle(xaxis);
+    htxf->SetTitle(yaxis);
+    htxf->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    htxf->Draw("");
+    gPad->Update();
+
+    TPaveStats *st = (TPaveStats*)htxf->FindObject("stats");
+    st->SetX1NDC(0.52); //new x start position
+    st->SetX2NDC(0.99);    //new x end position
+    st->SetY1NDC(0.72); //new y start position
+    st->SetY2NDC(1);    //new y end position
+    st->SetBorderSize(2);
+    st->SetFillColor(19);
+    st->SetTextAlign(12);
+    st->Draw("same");
+ 
+    gPad->Modified();
+    gPad->Update();
+
+    sprintf(adetseny,"asym_qwk_md%dbarsum*1e6:diff_qwk_bpm3h09bY>>hty%d",dt,dt);
+    sprintf(cutadetseny,"%s && asym_qwk_md%dbarsum.%s && diff_qwk_bpm3h09bY.%s",s1,dt,s2,s2);
+    sprintf(histoy,"hty%d",dt);
+    sprintf(xaxis1,"BPM 3H09BY [mm]");
+
+    pad81->cd(position6[dt]);
+    pad81->cd(position6[dt])->SetGrid();
+
+    th->Draw(adetseny,cutadetseny,"prof");
+    TH1D *htyf = (TH1D*)gDirectory->Get(histoy);
+    htyf->GetYaxis()->SetTitle(yaxis);
+    htyf->GetXaxis()->SetTitle(xaxis1);
+    htyf->SetTitle(yaxis);
+    htyf->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    htyf->Draw("");
+
+    gPad->Modified();
+    gPad->Update();
+
+    pad111->cd(position6[dt]);
+    pad111->cd(position6[dt])->SetGrid();
+
+    sprintf(alumisenx,"asym_qwk_dslumi%d*1e6:diff_qwk_bpm3h09bX>>hlx%d",dt,dt);
+    sprintf(cutalumisenx,"%s && asym_qwk_dslumi%d.%s && diff_qwk_bpm3h09bX.%s",s1,dt,s2,s2);
+    sprintf(histolx,"hlx%d",dt);
+    sprintf(yaxisl,"DSLUMI%d ASYM [ppm]",dt);
+
+    th->Draw(alumisenx,cutalumisenx,"prof");
+    TH1D *hlxf = (TH1D*)gDirectory->Get(histolx);
+    hlxf->GetYaxis()->SetTitle(yaxisl);
+    hlxf->GetXaxis()->SetTitle(xaxis);
+    hlxf->SetTitle(yaxisl);
+    hlxf->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    hlxf->Draw("");
+
+    gPad->Modified();
+    gPad->Update();
+
+    pad121->cd(position6[dt]);
+    pad121->cd(position6[dt])->SetGrid();
+
+    sprintf(alumiseny,"asym_qwk_dslumi%d*1e6:diff_qwk_bpm3h09bY>>hly%d",dt,dt);
+    sprintf(cutalumiseny,"%s && asym_qwk_dslumi%d.%s && diff_qwk_bpm3h09bY.%s",s1,dt,s2,s2);
+    sprintf(histoly,"hly%d",dt);
+
+    th->Draw(alumiseny,cutalumiseny,"prof");
+    TH1D *hlyf = (TH1D*)gDirectory->Get(histoly);
+    hlyf->GetYaxis()->SetTitle(yaxisl);
+    hlyf->GetXaxis()->SetTitle(xaxis1);
+    hlyf->SetTitle(yaxisl);
+    hlyf->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    hlyf->Draw("");
+
+    gPad->Modified();
+    gPad->Update();
+
+  }
+  /* ----------------------------------------------------------------------- */
+  int dv=0;
+  for ( int v=0; v<3; v++) {
+    dv = v+1;
+
+    pad71->cd(position7[v]);
+    pad71->cd(position7[v])->SetGrid();
+    pad71->cd(position7[v])->SetFillColor(kGreen-10);
+
+    sprintf(adetasenx,"asym_qwk_md%sbars*1e6:diff_qwk_bpm3h09bX>>h1x%d",allmd[v].Data(),v);
+    sprintf(cutadetasenx,"%s && asym_qwk_md%sbars.%s && diff_qwk_bpm3h09bX.%s",s1,allmd[v].Data(),s2,s2);
+    sprintf(histoxa,"h1x%d",v);
+    sprintf(yaxisa,"MD %s BARS ASYM [ppm]",allmd[v].Data());
+    sprintf(xaxisa,"BPM 3H09BX [mm]");
+
+    th->Draw(adetasenx,cutadetasenx,"prof");
+    TH1D *hxf = (TH1D*)gDirectory->Get(histoxa);
+    hxf->GetYaxis()->SetTitle(yaxisa);
+    hxf->GetXaxis()->SetTitle(xaxisa);
+    hxf->SetTitle(yaxisa);
+    hxf->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    hxf->Draw("");
+
+    gPad->Modified();
+    gPad->Update();
+
+    pad81->cd(position7[v]);
+    pad81->cd(position7[v])->SetGrid();
+    pad81->cd(position7[v])->SetFillColor(kGreen-10);
+
+    sprintf(adetaseny,"asym_qwk_md%sbars*1e6:diff_qwk_bpm3h09bY>>h1y%d",allmd[v].Data(),v);
+    sprintf(cutadetaseny,"%s && asym_qwk_md%sbars.%s && diff_qwk_bpm3h09bY.%s",s1,allmd[v].Data(),s2,s2);
+    sprintf(histoya,"h1y%d",v);
+    sprintf(xaxisa1,"BPM 3H09BY [mm]");
+
+    th->Draw(adetaseny,cutadetaseny,"prof");
+    TH1D *hyf = (TH1D*)gDirectory->Get(histoya);
+    hyf->GetXaxis()->SetTitle(yaxisa);
+    hyf->GetXaxis()->SetTitle(xaxisa1);
+    hyf->SetTitle(yaxisa);
+    hyf->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    hyf->Draw("");
+
+    pad111->cd(position7[v]);
+    pad111->cd(position7[v])->SetGrid();
+    pad111->cd(position7[v])->SetFillColor(kGreen-10);
+
+    sprintf(alumiasenx,"asym_dslumi_%s*1e6:diff_qwk_bpm3h09bX>>hl1x%d",lumi[v].Data(),v);
+    sprintf(cutalumiasenx,"%s && asym_dslumi_%s.%s && diff_qwk_bpm3h09bX.%s",s1,lumi[v].Data(),s2,s2);
+    sprintf(histolxa,"hl1x%d",v);
+    sprintf(yaxisla,"DSLUMI %s ASYM [ppm]",lumi[v].Data());
+
+    th->Draw(alumiasenx,cutalumiasenx,"prof");
+    TH1D *hxl = (TH1D*)gDirectory->Get(histolxa);
+    hxl->GetXaxis()->SetTitle(yaxisla);
+    hxl->GetXaxis()->SetTitle(xaxisa);
+    hxl->SetTitle(yaxisla);
+    hxl->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    hxl->Draw("");
+
+    gPad->Modified();
+    gPad->Update();
+
+    pad121->cd(position7[v]);
+    pad121->cd(position7[v])->SetGrid();
+    pad121->cd(position7[v])->SetFillColor(kGreen-10);
+
+    sprintf(alumiaseny,"asym_dslumi_%s*1e6:diff_qwk_bpm3h09bY>>hl1y%d",lumi[v].Data(),v);
+    sprintf(cutalumiaseny,"%s && asym_dslumi_%s.%s && diff_qwk_bpm3h09bY.%s",s1,lumi[v].Data(),s2,s2);
+    sprintf(histolya,"hl1y%d",v);
+
+    th->Draw(alumiaseny,cutalumiaseny,"prof");
+    TH1D *hyl = (TH1D*)gDirectory->Get(histolya);
+    hyl->GetXaxis()->SetTitle(yaxisla);
+    hyl->GetXaxis()->SetTitle(xaxisa1);
+    hyl->SetTitle(yaxisla);
+    hyl->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    hyl->Draw("");
+
+    gPad->Modified();
+    gPad->Update();
+
+  }
+  c7->Update();
+  c8->Update();
+  c11->Update();
+  c12->Update();
+
+  gStyle->SetOptStat("emr");
+  /****************************************************************************/
+  TCanvas *c9 = new TCanvas("c9","Downstream Lumi Yields (Volts/uA)",160,160,1400,1000);
+  pad90 = new TPad("pad90","pad90",ps1,ps2,ps4,ps4);
+  pad91 = new TPad("pad91","pad91",ps1,ps1,ps4,ps3);
+  pad90->Draw();
+  pad91->Draw();
+  pad90->cd();
+  TString text = Form("Run %d: Downstream Lumi Yields (Volts/uA) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct90 = new TText(0.012,0.4,text);
+  ct90->SetTextSize(0.3);
+  ct90->Draw();
+  pad91->cd();
+  pad91->Divide(4,3);
+  printf("%sPlotting %sDownstream Lumi Yields (Volts/uA)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  TCanvas *c10 = new TCanvas("c10","Downstream Lumi Asymmetries (ppm)",180,180,1400,1000);
+  pad100 = new TPad("pad100","pad100",ps1,ps2,ps4,ps4);
+  pad101 = new TPad("pad101","pad101",ps1,ps1,ps4,ps3);
+  pad100->Draw();
+  pad101->Draw();
+  pad100->cd();
+  TString text = Form("Run %d: Downstream Lumi Asymmetries (ppm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct100 = new TText(0.012,0.4,text);
+  ct100->SetTextSize(0.3);
+  ct100->Draw();
+  pad101->cd();
+  pad101->Divide(4,3);
+  printf("%sPlotting %sDownstream Lumi Asymmetries (ppm)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+
+  int dm=0;
+  for ( int m=0; m<8; m++) {
+    dm = m+1;
+
+    sprintf(ylumi,"yield_qwk_dslumi%d",dm);
+    sprintf(alumi,"asym_qwk_dslumi%d*1e6",dm);
+    sprintf(cutylumi,"%s && yield_qwk_dslumi%d.%s",s1,dm,s2);
+    sprintf(cutalumi,"%s && asym_qwk_dslumi%d.%s",s1,dm,s2);
+
+    pad91->cd(position6[dm]);
+    pad91->cd(position6[dm])->SetGrid();
+    th->Draw(ylumi,cutylumi);
+    gPad->Update();
+
+    pad101->cd(position6[dm]);
+    pad101->cd(position6[dm])->SetGrid();
+    th->Draw(alumi,cutalumi);
+    gPad->Update();
+  }
+  int dn=0;
+  for ( int n=0; n<3; n++) {
+    dn = n+1;
+
+    sprintf(ylumis,"yield_dslumi_%s",lumi[n].Data());
+    sprintf(alumis,"asym_dslumi_%s*1e6",lumi[n].Data());
+    sprintf(cutylumis,"%s && yield_dslumi_%s.%s",s1,lumi[n].Data(),s2);
+    sprintf(cutalumis,"%s && asym_dslumi_%s.%s",s1,lumi[n].Data(),s2);
+
+    pad91->cd(position7[n]);
+    pad91->cd(position7[n])->SetGrid();
+    pad91->cd(position7[n])->SetFillColor(kGreen-10);
+    th->Draw(ylumis,cutylumis);
+    gPad->Update();
+
+    pad101->cd(position7[n]);
+    pad101->cd(position7[n])->SetGrid();
+    pad101->cd(position7[n])->SetFillColor(kGreen-10);
+    th->Draw(alumis,cutalumis);
+    gPad->Update();
+  }
+  c9->Update();
+  c10->Update();
+
+  /****************************************************************************/
+  TCanvas *c16 = new TCanvas("c16","Upstream Lumi Yields (Volts/uA) & Asymmetry (ppm)",200,200,1580,1000);
+  pad160 = new TPad("pad160","pad160",ps1,ps2,ps4,ps4);
+  pad161 = new TPad("pad161","pad161",ps1,ps1,ps4,ps3);
+  pad160->Draw();
+  pad161->Draw();
+  pad160->cd();
+  TString text = Form("Run %d: Upstream Lumi Yields (Volts/uA) & Asymmetry (ppm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct160 = new TText(0.012,0.4,text);
+  ct160->SetTextSize(0.3);
+  ct160->Draw();
+  pad161->cd();
+  pad161->Divide(6,3);
+  printf("%sPlotting %sUpstream Lumi Yields (Volts/uA) & Asymmetry (ppm)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+
+  for ( int q=0; q<5; q++) {
+
+    sprintf(yuslumis,"yield_%s_sum",uslumi[q].Data());
+    sprintf(auslumis,"asym_%s_sum*1e6",uslumi[q].Data());
+    sprintf(cutyuslumis,"%s && yield_%s_sum.%s",s1,uslumi[q].Data(),s2);
+    sprintf(cutauslumis,"%s && asym_%s_sum.%s",s1,uslumi[q].Data(),s2);
+
+    pad161->cd(position10[q]);
+    pad161->cd(position10[q])->SetGrid();
+    th->Draw(yuslumis,cutyuslumis);
+    gPad->Update();
+
+    pad161->cd(position11[q]);
+    pad161->cd(position11[q])->SetGrid();
+    pad161->cd(position11[q])->SetFillColor(kGreen-10);
+    th->Draw(auslumis,cutauslumis);
+    gPad->Update();
+
+  }
+  c16->Update();
+
+  gStyle -> SetOptFit(1111);
+  gStyle -> SetOptStat("e");
+  /****************************************************************************/
+  TCanvas *c17 = new TCanvas("c17","Upstream Lumi Sensitivity (ppm/mm)",220,220,1580,1000);
+  pad170 = new TPad("pad170","pad170",ps1,ps2,ps4,ps4);
+  pad171 = new TPad("pad171","pad171",ps1,ps1,ps4,ps3);
+  pad170->Draw();
+  pad171->Draw();
+  pad170->cd();
+  TString text = Form("Run %d: Upstream Lumi Sensitivity (ppm/mm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[target],current,raster,raster);
+  ct170 = new TText(0.012,0.4,text);
+  ct170->SetTextSize(0.3);
+  ct170->Draw();
+  pad171->cd();
+  pad171->Divide(6,3);
+  printf("%sPlotting %sUpstream Lumi Sensitivity (ppm/mm)%s\n",blue,red,normal);
+  /* ----------------------------------------------------------------------- */
+  int xn=0;
+  for ( int x=0; x<5; x++) {
+    xn = x +1;
+
+    sprintf(auslumisenx,"asym_%s_sum*1e6:diff_qwk_bpm3h09bX>>huslx%d",uslumi[x].Data(),x);
+    sprintf(cutauslumisenx,"%s && asym_%s_sum.%s && diff_qwk_bpm3h09bX.%s",s1,uslumi[x].Data(),s2,s2);
+    sprintf(histouslx,"huslx%d",x);
+    sprintf(yaxisusl,"%s ASYM [ppm]",uslumi[x].Data());
+    sprintf(auslumiseny,"asym_%s_sum*1e6:diff_qwk_bpm3h09bY>>husly%d",uslumi[x].Data(),x);
+    sprintf(cutauslumiseny,"%s && asym_%s_sum.%s && diff_qwk_bpm3h09bY.%s",s1,uslumi[x].Data(),s2,s2);
+    sprintf(histously,"husly%d",x);
+
+    pad171->cd(position10[x]);
+    pad171->cd(position10[x])->SetGrid();
+
+    th->Draw(auslumisenx,cutauslumisenx,"prof");
+    TH1D *huslxf = (TH1D*)gDirectory->Get(histouslx);
+    huslxf->GetYaxis()->SetTitle(yaxisusl);
+    huslxf->GetXaxis()->SetTitle(xaxis);
+    huslxf->SetTitle(yaxisusl);
+    huslxf->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    huslxf->Draw("");
+    gPad->Modified();
+    gPad->Update();
+
+    pad171->cd(position11[x]);
+    pad171->cd(position11[x])->SetGrid();
+    pad171->cd(position11[x])->SetFillColor(kGreen-10);
+
+    th->Draw(auslumiseny,cutauslumiseny,"prof");
+    TH1D *huslyf = (TH1D*)gDirectory->Get(histously);
+    huslyf->GetYaxis()->SetTitle(yaxisusl);
+    huslyf->GetXaxis()->SetTitle(xaxis1);
+    huslyf->SetTitle(yaxisusl);
+    huslyf->Fit("pol1","E M R F Q","",fit_range[0], fit_range[1]);
+    huslyf->Draw("");
+    gPad->Modified();
+    gPad->Update();
+  }
+  c17->Update();
+
+  /****************************************************************************/
+  printf("%sSummary Table.%s\n",blue,normal);  
+  printf(ssline);printf("%s|             %sRun Number: %d%s             |%s\n",green,blue,run_number,green,normal);
+  printf("%s|  %s%s, %2.1f uA, %2.1fx%2.1f mm%s  |%s\n",green,blue,tar[target],current,raster,raster,green,normal);
+  printf(ssline);
+  printf("%s|%sI                         %s|%suA    %s|%s%2.1f%s    |%s\n",green,blue,green,blue,green,red,current,green,normal);
+  printf("%s|%sMDALLBARS width           %s|%sppm   %s|%s%2.1f%s    |%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
+  printf("%s|%sBCM12-ddif width          %s|%sppm   %s|%s%2.1f%s    |%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
+  printf("%s|%sA_q width                 %s|%sppm   %s|%s%2.1f%s    |%s\n",green,blue,green,blue,green,red,cal_abcm,green,normal);
+  printf("%s|%sMDALLBARS X-sensitivity   %s|%sppm/mm%s|%s%2.1f%s    |%s\n",green,blue,green,blue,green,red,cal_mdxsen,green,normal);
+  printf("%s|%sMDALLBARS Y-sensitivity   %s|%sppm/mm%s|%s%2.1f%s    |%s\n",green,blue,green,blue,green,red,cal_mdysen,green,normal);
+  printf(ssline);
+  /****************************************************************************/
+  c1->SaveAs(pcharge);
+  c2->SaveAs(pchargeasym);
+  c3->SaveAs(pchargeddasym);
+  c4->SaveAs(pbpmd);
+  c5->SaveAs(pmdasym);
+  c6->SaveAs(pmdallasym);
+  c7->SaveAs(pmdallsenx);
+  c8->SaveAs(pmdallseny);
+  c9->SaveAs(pdslumiyield);
+  c10->SaveAs(pdslumiasym);
+  c11->SaveAs(plumisenx);
+  c12->SaveAs(plumiseny);
+  canvas->SaveAs(pmodulation);
+  //  c13->SaveAs(pmodulation);
+  c15->SaveAs(pmdyield);
+  c16->SaveAs(puslumi);
+  c17->SaveAs(puslumisen);
+
+  printf("%sDone with all the plots.%s\n",blue,normal);
+  /****************************************************************************/
+  UInt_t hclog_switch = 0;
+  printf(sline);printf("%sPlease Insert %s1%s for submiting to HCLOG, otherwise %s0%s and hit ENTER\n%s",blue,red,blue,red,blue,normal);printf(sline);
+  cin >> hclog_switch;
+  if (hclog_switch> 1) {printf("%sPlease insert a correct No. Exiting the program!%s\n",blue,normal); exit(1);}
+
+  //   cout<<__LINE__<<endl;
+  char textfile[255],info[255],line2[255],line3[255],line4[255],line5[255],line6[255],line7[255],contact[255];
+  sprintf(textfile,"%s/%druninfo.txt",dir[0],run_number);
+  sprintf(info,"<pre>\n%s|             Run Number: %d             |\n|  %s, %2.1f uA, %2.1fx%2.1f mm  |\n%s",sslinen,run_number,tar[target],current,raster,raster,sslinen);
+  sprintf(line2,"|I                         |uA    |%2.1f    |\n",current);
+  sprintf(line3,"|MDALLBARS width           |ppm   |%2.1f    |\n",cal_mdalla);
+  sprintf(line4,"|BCM12-ddif width          |ppm   |%2.1f    |\n",cal_bcmdd);
+  sprintf(line5,"|A_q width                 |ppm   |%2.1f    |\n",cal_abcm);
+  sprintf(line6,"|MDALLBARS X-sensitivity   |ppm/mm|%2.1f    |\n",cal_mdxsen);
+  sprintf(line7,"|MDALLBARS Y-sensitivity   |ppm/mm|%2.1f    |\n%s</pre>",cal_mdysen,sslinen);
+  sprintf(contact,"%sPlease contact %sNuruzzaman (nur@jlab.org)%s for problems and comments%s\n",blue,red,blue,normal);
+  /****************************************************************************/
+
+  if (hclog_switch==0) {ofstream outfile(textfile);outfile <<info<<line2<<line3<<line4<<line5<<line6<<line7<<endl;
+    printf("%s%s#%s          Plots are not submitted to HCLOG and saved in directory        %s#\n#               %s              #\n%s\n",dline,red,blue,red,dir[0],dline);}
+
+  if (hclog_switch==1) {
+  
+    char user_name_hclog[255],subject_hclog[255],comments_text[255];
+    TString hclog_post_string;
+    //     TString comments_hclog;
+    char comments_hclog[255];
+
+    printf("%s\nPlease insert comments for the run to post in HCLOG%s\n",blue,normal);
+    cin.getline(comments_hclog,255,'\n');
+    gets(comments_hclog);
+
+    sprintf(user_name_hclog,"qwanalysis");
+    sprintf(subject_hclog,"Analysis: Run %d - Plots and Summary Table for 100k Events.",run_number);
+    sprintf(comments_text,"%s\n\n",comments_hclog);
+    ofstream outfile(textfile); outfile<<comments_text<<info<<line2<<line3<<line4<<line5<<line6<<line7<<endl;
+
+    printf("\nUser Name : %s\n", user_name_hclog);
+    printf("Subject : %s\n", subject_hclog);
+    printf("Comments : %s\n", comments_hclog);
+    
+    hclog_post_string = "hclog_post";
+    hclog_post_string += " ";
+    hclog_post_string += "--subject=\"";
+    hclog_post_string += subject_hclog;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--author=\"";
+    hclog_post_string += user_name_hclog;
+    hclog_post_string += "\" ";
+    //     hclog_post_string += "--body=\"";
+    //     hclog_post_string += comments_text;
+    //     hclog_post_string += "\" ";
+    hclog_post_string += "--textfile=\"";
+    hclog_post_string += textfile;
+    hclog_post_string += "\" ";    
+    //    if(file_output_flag) {
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pcharge;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pchargeasym;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pchargeddasym;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pbpmd;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pmdasym;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pmdallasym;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pmodulation;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pmdallsenx;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pmdallseny;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pdslumiyield;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pdslumiasym;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += plumisenx;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += plumiseny;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += pmdyield;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += puslumi;
+    hclog_post_string += "\" ";
+    hclog_post_string += "--attachment=\"";
+    hclog_post_string += puslumisen;
+    hclog_post_string += "\" ";
+    //     }
+    hclog_post_string += "--tag=\"This is loged by hclog_post and qwanalysis\"";
+    //    hclog_post_string += "  --test";
+    hclog_post_string += "  --cleanup";
+
+    //       printf("%s",hclog_post_string.Data());
+    gSystem->Exec(hclog_post_string.Data());
+
+    printf("%s%s#%s    Congratulation !!!!!   All plots are sucessfully posted to HCLOG     %s#\n%s",dline,red,blue,red,dline);
+
+  }
+  
+  /****************************************************************************/
+  printf(contact);
+  //  gDirectory->Delete("*");
+  // return(0);
+  /****************************************************************************/
+}
+/******************************************************************************************************/
+/*                                User Manual                                                         */
+/*                                                                                                    */
+/*Step1: Open a terminal and run 'qwanalysis'                                                         */
+/*Step2: It will ask for a 'run #'. Type 'run '# and press 'ENTER'.                                   */
+/*Step3: Next it will ask for 'target' information. Type 1=LH2, 2=4% US Al, 3=2% US Al, 4=1% US Al,   */
+/*       5=4% DS Al, 6=2% DS Al, 7=1% DS Al, 8=US Pure Al and hit ENTER.                              */
+/*Step4: If all the plots are done, it will ask wheather you want to submit the plots to HCLOG or not.*/
+/*       Insert '1' for to submit the plots to HCLOG otherwise '0' and press 'ENTER'                  */
+/*Step5: If you choose to submit all the plots to HCLOG, it will ask for comments                     */
+/*       Please insert comments and hit 'ENTER'.                                                      */
+/*       e.g; Beam currents was ramping up during the run.                                            */
+/*                                                                                                    */
+/*       If you didn't submitted plots in HCLOG (otherwise deleted), will be saved in the directory:  */
+/*       'users/qwanalysis/plots/'                                                                    */
+/*       Type 'display filename.png' & 'emacs filename.txt' to view the figures & run information.    */
+/******************************************************************************************************/
