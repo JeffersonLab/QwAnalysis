@@ -104,7 +104,7 @@ void qwanalysis(UInt_t run_number=0)
   tm->Draw("qwk_charge:event_number>>histocrg", "ErrorFlag == 0 && qwk_charge.Device_Error_Code==0");
   mean_charge = histocrg->GetMean(2);
   charge_scale = 0.98*mean_charge;
-  cut_charge = Form("%f > %f",mean_charge,charge_scale);
+  cut_charge = Form("qwk_charge > %f",charge_scale);
 //   cut_charge = Form("qwk_charge > %f", 0.99*mean_charge);
 //   yield_charge = Form("qwk_charge >= %f", 0.98*mean_charge);
 
