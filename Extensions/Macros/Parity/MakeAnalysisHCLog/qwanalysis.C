@@ -90,7 +90,7 @@ void qwanalysis(UInt_t run_number=0)
   Double_t fit_range[2] = { -0.02, 0.02};
   TF1* fitfunx = new TF1("fitfunx","pol1",fit_range[0],fit_range[1]);
   TF1* fitfuny = new TF1("fitfuny","pol1",fit_range[0],fit_range[1]);
-  Double_t current,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen,cal_emdxsen,cal_emdysen,mean_charge;
+  Double_t current,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen,cal_emdxsen,cal_emdysen,mean_charge,cut_charge,yield_charge;
   TCanvas *c0 = new TCanvas("c0","c0",340,340,100,100);
   c0->cd();
   //   ts->Draw("ibcm1>>bcm1","","goff");bcm1->Draw("goff");
@@ -103,7 +103,7 @@ void qwanalysis(UInt_t run_number=0)
   th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bY>>mdysen",Form("%s && asym_qwk_mdallbars.%s && diff_qwk_bpm3h09bY.%s",s1,s2,s2),"prof");mdysen->Draw("");mdysen->Fit("fitfuny","E M R F Q","",-0.02,0.02);
 //   tm->Draw("qwk_charge:event_number>>histocrg", "ErrorFlag == 0 && qwk_charge.Device_Error_Code==0");
 //   mean_charge = histocrg->GetMean(2);
-//   charge = Form("qwk_charge > %f", 0.99*mean_charge);
+//   cut_charge = Form("qwk_charge > %f", 0.99*mean_charge);
 //   yield_charge = Form("qwk_charge >= %f", 0.98*mean_charge);
 
   current=cur->GetMean();raster=rasterx->GetMean();cal_mdalla=mdalla->GetRMS();cal_bcmdd=bcmdd->GetRMS();cal_abcm=abcm->GetRMS();cal_abcmm=abcm->GetMean();cal_mdxsen=fitfunx->GetParameter(1);cal_mdysen=fitfuny->GetParameter(1);cal_emdxsen=fitfunx->GetParError(1);cal_emdysen=fitfuny->GetParError(1);
