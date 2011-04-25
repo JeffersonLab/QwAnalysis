@@ -62,7 +62,7 @@ QwOptions::QwOptions()
   AddDefaultOptions()("usage", "print this help message");
   AddDefaultOptions()("help,h", "print this help message");
   AddDefaultOptions()("version,V", "print the version string");
-  AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read");
+  AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read\nNB:  This will override the default configuration files.");
 }
 
 /**
@@ -208,7 +208,8 @@ void QwOptions::ParseCommandLine()
 
   // If a configuration file is specified, load it.
   if (fVariablesMap.count("config") > 0) {
-    QwWarning << "Using user-defined configuration file "
+    QwWarning << "Overriding the default configuration files with "
+	      << "user-defined configuration file "
               << fVariablesMap["config"].as<std::string>() << QwLog::endl;
     SetConfigFile(fVariablesMap["config"].as<std::string>());
   }
@@ -223,6 +224,7 @@ void QwOptions::ParseEnvironment()
     po::store(po::parse_environment(fEnvironmentOptions, "Qw"), fVariablesMap);
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing environment variables" << QwLog::endl;
+    exit(10);
   }
   po::notify(fVariablesMap);
 }
@@ -256,6 +258,7 @@ void QwOptions::ParseConfigFile()
 #if BOOST_VERSION < 103500
       QwWarning << "The entire configuration file was ignored!" << QwLog::endl;
 #endif
+      exit(10);
     }
     po::notify(fVariablesMap);
   }

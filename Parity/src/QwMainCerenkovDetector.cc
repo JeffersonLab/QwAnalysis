@@ -28,7 +28,7 @@ void QwMainCerenkovDetector::DefineOptions(QwOptions &options){
   // Define the execution options
   options.AddOptions()
     ("QwMainCerenkovDetector.normalize",
-     po::value<bool>()->default_bool_value(false),
+     po::value<bool>()->default_bool_value(true),
      "Normalize the detectors by beam current");
 }
 

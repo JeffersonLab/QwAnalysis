@@ -22,7 +22,7 @@ void QwLumi::DefineOptions(QwOptions &options)
 {
   options.AddOptions()
     ("QwLumi.normalize",
-     po::value<bool>()->default_bool_value(false),
+     po::value<bool>()->default_bool_value(true),
      "Normalize the detectors by beam current");
 }
 
