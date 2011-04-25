@@ -149,6 +149,12 @@ void QwCombinedBCM::SetDefaultSampleSize(Int_t sample_size){
 /********************************************************/
 Bool_t QwCombinedBCM::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
+  //  First update the error code based on the codes
+  //  of the elements.  This requires that the BCMs
+  //  have had ApplySingleEventCuts run on them already.
+  for (size_t i=0;i<fElement.size();i++){
+    fCombined_bcm.UpdateErrorCode(fElement.at(i)->fTriumf_ADC.GetErrorCode());
+  }
 
   if (fCombined_bcm.ApplySingleEventCuts()){
     status=kTRUE;

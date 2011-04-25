@@ -72,7 +72,8 @@ class QwVQWK_Channel: public VQwDataElement {
     fNumberOfSamples_map = NumberOfSamples_map;
   };
   
-
+  UInt_t GetErrorCode() const {return fDeviceErrorCode;};
+  void UpdateErrorCode(const UInt_t& errorcode){fDeviceErrorCode |= errorcode;};
 
   void  ClearEventData();
 

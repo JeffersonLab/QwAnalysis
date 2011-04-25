@@ -59,6 +59,10 @@ class QwIntegrationPMT : public VQwDataElement{
     else return 0;
   };
 
+  UInt_t GetErrorCode() const {return fTriumf_ADC.GetErrorCode();};
+  void UpdateErrorCode(const UInt_t& errorcode){fTriumf_ADC.UpdateErrorCode(errorcode);};
+
+
   void  ClearEventData();
   void ReportErrorCounters();
 /********************************************************/

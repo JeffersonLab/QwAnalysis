@@ -96,6 +96,16 @@ void  QwEnergyCalculator::ProcessEvent(){
 Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
 
+  UInt_t error_code = 0;
+  for(UInt_t i = 0; i<fProperty.size(); i++){
+    if(fProperty[i].Contains("targetbeamangle")){
+      error_code |= ((QwCombinedBPM*)fDevice[i])->fSlope[0].GetErrorCode();
+    } else {
+      error_code |= ((QwVQWK_Channel*)fDevice[i]->GetPositionX())->GetErrorCode();
+    }
+  }
+  fEnergyChange.UpdateErrorCode(error_code);
+
   if (fEnergyChange.ApplySingleEventCuts()){
     status=kTRUE;
   }

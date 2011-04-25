@@ -142,8 +142,20 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
   Bool_t status=kTRUE;
   Int_t i=0;
   fErrorFlag=0;
+  UInt_t charge_error;
+  UInt_t pos_error[2];
+  charge_error = 0;
+  pos_error[0]=0;
+  pos_error[1]=0;
+  for(size_t i=0;i<fElement.size();i++){
+    charge_error |= fElement[i]->fEffectiveCharge.GetErrorCode();
+    pos_error[0] |= fElement[i]->fAbsPos[0].GetErrorCode();
+    pos_error[1] |= fElement[i]->fAbsPos[1].GetErrorCode();
+  }
+
   //Event cuts for  X & Y slopes
   for(i=0;i<2;i++){
+    fSlope[i].UpdateErrorCode(pos_error[i]);
     if (fSlope[i].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
@@ -157,6 +169,7 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
 
   //Event cuts for  X & Y intercepts
   for(i=0;i<2;i++){
+    fIntercept[i].UpdateErrorCode(pos_error[i]);
     if (fIntercept[i].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
@@ -169,6 +182,7 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
   }
 
   for(i=0;i<2;i++){
+    fAbsPos[i].UpdateErrorCode(pos_error[i]);
     if (fAbsPos[i].ApplySingleEventCuts()){ 
       status&=kTRUE;
     }
@@ -183,6 +197,7 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
+  fEffectiveCharge.UpdateErrorCode(charge_error);
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }

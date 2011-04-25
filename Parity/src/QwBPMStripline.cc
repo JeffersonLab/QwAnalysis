@@ -122,6 +122,8 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
   Bool_t status=kTRUE;
   Int_t i=0;
   fErrorFlag=0;
+
+  UInt_t error_code = 0;
   //Event cuts for four wires
   for(i=0;i<4;i++){
     if (fWire[i].ApplySingleEventCuts()){ //for RelX
@@ -133,11 +135,14 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
     }
     //Get the Event cut error flag for wires
     fErrorFlag|=fWire[i].GetEventcutErrorFlag();
+
+    error_code |= fWire[i].GetErrorCode();
   }
+  
 
    //Event cuts for Relative X & Y
   for(i=0;i<2;i++){
-
+    fRelPos[i].UpdateErrorCode(error_code);
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -151,6 +156,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
   }
 
   for(i=0;i<2;i++){
+    fAbsPos[i].UpdateErrorCode(error_code);
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -162,7 +168,8 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
     fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
 
- //Event cuts for four wire sum (EffectiveCharge)
+  //Event cuts for four wire sum (EffectiveCharge)
+  fEffectiveCharge.UpdateErrorCode(error_code);
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
