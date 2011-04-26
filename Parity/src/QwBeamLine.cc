@@ -289,6 +289,9 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 	if(localBeamDetectorID.fTypeID == kQwHaloMonitor){
 	  QwHaloMonitor localhalo(GetSubsystemName(), localBeamDetectorID.fdetectorname);
+	  if(localBeamDetectorID.fdetectorname=="sca_4mhz"){
+	    index_4mhz=fHaloMonitor.size();
+	  }
 	  fHaloMonitor.push_back(localhalo);
 	  localBeamDetectorID.fIndex=fHaloMonitor.size()-1;
 	}
@@ -541,7 +544,11 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       else if (device_type == GetQwBeamInstrumentTypeName(kQwHaloMonitor)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for HaloMonitor value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for HaloMonitor value
-	//fHaloMonitor[det_index].SetSingleEventCuts(LLX,ULX);//(fHaloMonitorEventCuts);
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwBeamLine Error Code passing to QwHaloMonitor "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	fHaloMonitor[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);//(fBCMEventCuts);
       }
 	else if (device_type ==GetQwBeamInstrumentTypeName(kQwEnergyCalculator)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for energy
@@ -643,7 +650,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
     fBCM[i].SetEventCutMode(eventcut_flag);
 
   for (size_t i=0;i<fHaloMonitor.size();i++){
-    //fHaloMonitor[i].SetEventCutMode(eventcut_flag);
+    fHaloMonitor[i].SetEventCutMode(eventcut_flag);
   }
     
   for (size_t i=0;i<fBCMCombo.size();i++)
@@ -978,8 +985,9 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 	    for(size_t i=0;i<fHaloMonitor.size();i++) {
 	      if(fHaloMonitor[i].GetElementName()==varname)
 		{
-		  //fHaloMonitor[i].SetPedestal(varped);
-		  //fHaloMonitor[i].SetCalibrationFactor(varcal);
+		  std::cout<<varname<<" I found it ! "<<varcal<<" ped. "<<varped<<"\n";
+		  fHaloMonitor[i].SetPedestal(varped);
+		  fHaloMonitor[i].SetCalibrationFactor(varcal);
 		  i=fHaloMonitor.size()+1;
 		  notfound=kFALSE;
 		  i=fHaloMonitor.size()+1;
@@ -1359,8 +1367,12 @@ void  QwBeamLine::ProcessEvent()
   for(size_t i=0;i<fLinearArray.size();i++)
     fLinearArray[i].ProcessEvent();
 
-  for(size_t i=0;i<fHaloMonitor.size();i++)
+  fHaloMonitor[index_4mhz].ProcessEvent();//call the ProcessEvent() for the 4MHz scaler
+  //QwError << "QwBeamLine::ProcessEvent() "<<fHaloMonitor[index_4mhz].GetElementName()<<" "<<fHaloMonitor[index_4mhz].GetValue()<<QwLog::endl;
+  for(size_t i=0;i<fHaloMonitor.size();i++){
+    fHaloMonitor[i].ScaleRawRate(4.0e6/fHaloMonitor[index_4mhz].GetValue());//convert raw rates to Hz
     fHaloMonitor[i].ProcessEvent();
+  }
 
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].ProcessEvent();
@@ -1429,7 +1441,9 @@ Bool_t QwBeamLine::PublishInternalValues() const
       tmp_channel = GetCombinedBCM(device_name)->GetCharge();
     } else if (device_type == "comboenergy") {
       tmp_channel = GetEnergyCalculator(device_name)->GetEnergy();
-    } else
+    }  else if (device_type == "scaler") {
+      tmp_channel = GetScalerChannel(device_name)->GetScaler();  
+    }else
       QwError << "QwBeamLine::PublishInternalValues() error "<< QwLog::endl;
     
      if (tmp_channel == NULL) {
@@ -1593,6 +1607,22 @@ QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name){
 }
 
 //*****************************************************************
+QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name){
+   if (! fHaloMonitor.empty()) {
+    
+    for (std::vector<QwHaloMonitor>::iterator halo = fHaloMonitor.begin(); halo != fHaloMonitor.end(); ++halo) {
+      if (halo->GetElementName() == name) {
+       return &(*halo);
+      }
+    }
+    
+
+  }
+  return 0;
+};
+
+
+//*****************************************************************
 const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
@@ -1624,6 +1654,12 @@ const QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name) const{
 const QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name) const{
   return const_cast<QwBeamLine*>(this)->GetEnergyCalculator(name);
 }
+
+ //*****************************************************************
+const QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name)const {
+  return const_cast<QwBeamLine*>(this)->GetScalerChannel(name);
+};
+
 
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
@@ -1882,6 +1918,9 @@ void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
       fECalculator[i].AccumulateRunningSum(value->fECalculator[i]);
     for (size_t i = 0; i < fQPD.size();  i++)
       fQPD[i].AccumulateRunningSum(value->fQPD[i]);
+    for (size_t i = 0; i <fHaloMonitor.size();  i++)
+      fHaloMonitor[i].AccumulateRunningSum(value->fHaloMonitor[i]);
+    
   }
 }
 

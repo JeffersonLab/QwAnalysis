@@ -36,6 +36,7 @@ void QwHaloMonitor::ClearEventData()
 void QwHaloMonitor::ProcessEvent()
 {
   // no processing required for the halos as they are just counters(?).
+  fHalo_Counter.ProcessEvent();
   return;
 }
 
@@ -54,7 +55,7 @@ Bool_t QwHaloMonitor::ApplyHWChecks()
 
 Bool_t QwHaloMonitor::ApplySingleEventCuts()
 {
-  return kTRUE ;
+  return fHalo_Counter.ApplySingleEventCuts();
 }
 
 

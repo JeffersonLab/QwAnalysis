@@ -68,7 +68,10 @@ class VQwScaler_Channel: public VQwDataElement {
     return;
   };
 
-  void     SetPedestal(Double_t ped) { fPedestal = ped; };
+  void     SetPedestal(Double_t ped) { 
+    fPedestal = ped; 
+    //std::cout<<" I found it !  ped. "<<GetElementName()<<" "<<fPedestal<<"\n";
+  };
   Double_t GetPedestal() const       { return fPedestal; };
   void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; };
   Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
@@ -112,10 +115,23 @@ class VQwScaler_Channel: public VQwDataElement {
   void Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
+  void ScaleRawRate(Double_t Offset);
   void Normalize(const VQwScaler_Channel &norm);
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
+    fULimit=max;
+    fLLimit=min;
+  };
+  void SetEventCutMode(Int_t bcuts){
+    bEVENTCUTMODE=bcuts;
+  }
+
+  UInt_t GetDeviceErrorCode(){//return the device error code
+    return fDeviceErrorCode;
+  };
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -153,7 +169,13 @@ protected:
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
 
   UInt_t fGoodEventCount;
-  Int_t fDeviceErrorCode;
+
+  Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
+  Double_t fULimit, fLLimit;//this sets the upper and lower limits on the VQWK_Channel::fHardwareBlockSum
+  Double_t fStability;//how much deviaton from the stable reading is allowed
+
+  UInt_t fDeviceErrorCode; ///< Unique error code for HW failed beam line devices
+  
 
 };
 
