@@ -43,7 +43,7 @@ bcm, qwk_bcm1,		1,	1000000,	g,	0
 !bcm, qwk_batery7, 		95.57778e+9, 95.5788e+9, l, 0 
 !bcm, phasemonitor, 		0, 0, l, 0
 
-
+halomonitor , sca_habcm, 5, 	1000000,	l,	0
 !****************************************************		
 !For bpmstrpline devices 
 !channel_name can be relx, rely, absx, absy, effective charge, xp, xm, yp, ym
