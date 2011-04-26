@@ -137,3 +137,4 @@
   qwk_bcm6        ,6846.81,       0.00184725 
   qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
+  sca_habcm       , 260  , 0.0003132
