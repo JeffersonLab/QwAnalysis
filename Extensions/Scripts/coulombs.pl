@@ -21,10 +21,11 @@ my $baseurl = "https://hallcweb.jlab.org/~cvxwrks/cgi/CGIExport.cgi";
 my $interval = 10; # interpolation time in seconds
 my @channels = qw[ibcm1 g0rate14];
 
-my ($help,$nodaqcut);
+my ($help,$nodaqcut,$outfile);
 my $optstatus = GetOptions
   "help|h|?"	=> \$help,
   "no-daq-cut"	=> \$nodaqcut,
+  "outfile=s"	=> \$outfile,
 ;
 
 @channels = qw[ibcm1] if $nodaqcut;
@@ -57,6 +58,7 @@ For example:
 Options:
 	--help		print this text
 	--no-daq-cut	integrate /all/ the time, ignore g0rate14
+	--outfile=blah	save the downloaded data to a file named "blah"
 EOF
 die $helpstring if $help;
 
@@ -85,9 +87,15 @@ my %args = (
 
 my $url = $baseurl . "?" . join "&", map { "$_=$args{$_}" } sort keys %args;
 
+my $ofh;
+if ($outfile) {
+  open $ofh, ">", $outfile
+    or die "couldn't open '$outfile' for writing: $!"
+}
 open DATA, "-|", @wget, $url
   or die "couldn't open wget: $!\n";
 while (<DATA>) {
+  print $ofh $_ if $ofh;
   my($day, $time, $ibcm1, $daqrate) = split ' ';
 
   $daqrate = 960 if $nodaqcut;
