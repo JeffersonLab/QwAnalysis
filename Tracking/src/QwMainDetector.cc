@@ -320,7 +320,7 @@ Int_t QwMainDetector::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt
     UInt_t slot_id      = 0;
     UInt_t vme_slot_num = 0;
 
-    Bool_t local_debug  = false;
+    Bool_t local_debug  = true;
 
     QwF1TDC *local_f1tdc = NULL;
    
