@@ -64,6 +64,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
 
   public:
 
+
     /// Default constructor
     QwTrackingTreeLine();
     /// Constructor with tree search results

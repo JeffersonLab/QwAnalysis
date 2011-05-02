@@ -71,7 +71,6 @@
 *//*-------------------------------------------------------------------------*/
 
 #include "QwTrackingWorker.h"
-
 // Standard C and C++ headers
 #include <cstdio>
 #include <cstdlib>
@@ -136,7 +135,6 @@ QwTrackingWorker::QwTrackingWorker(const QwGeometry& geometry)
 
   // Initialize the pattern database
   InitTree(geometry);
-
   // Initialize a bridging filter
   fBridgingTrackFilter = new QwBridgingTrackFilter();
 
@@ -923,7 +921,7 @@ void QwTrackingWorker::ProcessEvent (
          && event->fPartialTrack[package][kRegionID2][kTypeDriftHDC]
          && event->fPartialTrack[package][kRegionID3][kTypeDriftVDC]) {
 
-            QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
+	  // QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
 
             // Local copies of front and back track
             QwPartialTrack* front = event->fPartialTrack[package][kRegionID2][kTypeDriftHDC];
@@ -937,7 +935,8 @@ void QwTrackingWorker::ProcessEvent (
 
                 // Filter reasonable pairs
                 status = fBridgingTrackFilter->Filter(front, back);
-                QwMessage << "Filter: " << status << QwLog::endl;
+		status = 0;
+                //QwMessage << "Filter: " << status << QwLog::endl;
                 if (status != 0) {
                   QwMessage << "Tracks did not pass filter." << QwLog::endl;
                   back = back->next;
@@ -958,14 +957,15 @@ void QwTrackingWorker::ProcessEvent (
                 // Attempt to bridge tracks using ray-tracing
                 if (! fDisableRayTracer) {
                   status = fRayTracer->Bridge(front, back);
-                  QwMessage << "Ray tracer: " << status << QwLog::endl;
+                  //QwMessage << "Ray tracer: " << status << QwLog::endl;
                   if (status == 0) {
                     event->AddTrackList(fRayTracer->GetListOfTracks());
                     //fRayTracer->PrintInfo();
-                    double buff[14];
-                    fRayTracer->GetBridgingResult(buff);
-                    event->AddBridgingResult(buff);
+                    //double buff[14];
+                    //fRayTracer->GetBridgingResult(buff);
+                    //event->AddBridgingResult(buff);
                     //event->Print();
+		    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
                     back = back->next;
                     continue;
                   }

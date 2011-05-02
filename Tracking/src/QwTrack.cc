@@ -91,6 +91,7 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
   fVertexR = that.fVertexR;
   fTheta = that.fTheta;
   fPhi   = that.fPhi;
+  fScatteringAngle = that.fScatteringAngle;
 
   fXBj = that.fXBj;
   fY = that.fY;
@@ -100,6 +101,12 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
 
   fChi = that.fChi;
   fMomentum = that.fMomentum;
+   fTotalEnergy = that.fTotalEnergy;
+
+  fPositionRoff = that.fPositionRoff;
+  fPositionPhioff = that.fPositionPhioff;
+  fDirectionThetaoff = that.fDirectionThetaoff;
+  fDirectionPhioff = that.fDirectionPhioff;
 
   return *this;
 }
@@ -109,6 +116,19 @@ QwTrack& QwTrack::operator=(const QwTrack& that)
  */
 void QwTrack::Initialize()
 {
+
+  // Initialize the memebers;
+  
+  fQ2=0.0,fW2=0.0,fNu=0.0;
+  fVertexZ=0.0,fVertexR=0.0;
+  fTheta=0.0,fPhi=0.0;
+  fScatteringAngle=0.0;
+  fChi=0.0;
+  fMomentum=0.0;
+  fTotalEnergy=0.0;
+  fXBj=0.0;
+  fY=0.0;
+
   // Initialize all pointers
   fBridge = 0;
   fFront = 0;

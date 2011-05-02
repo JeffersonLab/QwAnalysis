@@ -72,6 +72,12 @@ QwPartialTrack::QwPartialTrack(const QwPartialTrack* that)
  */
 QwPartialTrack::~QwPartialTrack()
 {
+
+  /* for (int i = 0; i < kNumDirections; i++){
+    if(fTreeLine[i])
+      delete fTreeLine[i];
+  }
+  */
   // nothing  
 }
 
@@ -98,9 +104,16 @@ QwPartialTrack& QwPartialTrack::operator=(const QwPartialTrack& that)
     for (size_t j = 0; j < 4; j++)
       fCov[i][j] = that.fCov[i][j];
 
-  for (size_t i = 0; i < kNumDirections; i++)
-    fTreeLine[i] = that.fTreeLine[i];
-
+  // this is a pointer
+  for (size_t i = 0; i < kNumDirections; i++){
+    TSlope[i]=that.TSlope[i];
+    TOffset[i]=that.TOffset[i];
+    if(that.fTreeLine[i])
+      fTreeLine[i] = that.fTreeLine[i];
+      // fTreeLine[i] = new QwTrackingTreeLine(that.fTreeLine[i]);
+  }
+    // fTreeLine[i] = that.fTreeLine[i];
+    
   fIsUsed = that.fIsUsed;
   fIsVoid = that.fIsVoid;
   fIsGood = that.fIsGood;
@@ -143,8 +156,11 @@ void QwPartialTrack::Initialize()
 
   // Initialize pointers
   next = 0;
-  for (int i = 0; i < kNumDirections; i++)
+  for (int i = 0; i < kNumDirections; i++){
+    TSlope[i]=0.0;
+    TOffset[i]=0.0;
     fTreeLine[i] = 0;
+  }
 
   //Only 2 Plane 0 treelines
   fAlone=0;

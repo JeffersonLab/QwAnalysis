@@ -315,6 +315,77 @@ int QwTrackingTreeCombine::SelectLeftRightHit (
 	return ngood;
 }
 
+int QwTrackingTreeCombine::SelectLeftRightHit (
+    QwHitContainer *hitlist,
+    QwHit **ha,
+    int bin,
+    double width,
+    double Dx)
+{
+
+  int ngood=0;
+
+  std::pair<double,double> block;
+  block.first=bin*width+Dx;
+  block.second=(bin+1)*width+Dx;
+  
+  double track_resolution=hitlist->begin()->GetDetectorInfo()->GetTrackResolution();
+  double wirespacing=hitlist->begin()->GetDetectorInfo()->GetElementSpacing();
+  int element=0,old_element=0;
+  
+  for ( QwHitContainer::iterator hit = hitlist->begin();
+	        hit != hitlist->end(); hit++ )
+	{
+	  element=hit->GetPlane()*32+hit->GetElement();
+	  if(element==old_element) continue;
+	  else old_element=element;
+		// Consider the two options due to the left/right ambiguity
+		for ( int j = 0; j < 2; j++ )
+		{
+                        double hit_position = 
+                            j ? ( hit->GetElement()-0.5) * wirespacing + 
+                            hit->GetDriftDistance() + Dx
+                            : (hit->GetElement()-0.5)* wirespacing-hit->GetDriftDistance()+Dx;
+		   
+			if ( hit_position > (block.first-track_resolution) && hit_position < (block.second+track_resolution) )
+			{
+
+				// Save only a maximum number of hits per track crossing through the plane
+				if ( ngood < MAXHITPERLINE )
+				{
+
+					// Duplicate this hit for calibration changes
+					ha[ngood] = new QwHit;
+					// Copy the hit, but reset the pointers
+					*ha[ngood] = *hit;
+					ha[ngood]->next = 0;
+					// Store this position
+					ha[ngood]->fDriftPosition = hit_position;
+					
+					ngood++;
+
+
+					// If we have already the maximum allowed number of hits,
+					// then save this hit only if it is better than the others
+				}
+			      
+			} // end of distance condition
+
+                        
+			//if ( hit_position == hit->rPos2 )
+			//	break;
+
+		} // end of left/right ambiguity
+
+		// ? don't know what this cuts out
+		//if (distance < -breakcut)
+		//  break;
+
+	} // end of loop over hit list       
+	return ngood;
+}
+
+
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 /* --------------------------------------------------------------------------
@@ -756,6 +827,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 	//################
 	double startZ = 0.0;
 	double endZ = 0.0;
+	std::vector<int> patterns_copy;
 
 	if ( DLAYERS < 4 ) cerr << "Error: DLAYERS must be >= 4 for region 2!" << endl;
 
@@ -775,6 +847,7 @@ bool QwTrackingTreeCombine::TlCheckForX (
 		{
 			goodHits[i][j] = 0;
 		}
+		patterns_copy.push_back(treeline->fMatchingPattern.at(i));
 		usedHits[i] = 0;
 	}
 
@@ -862,7 +935,26 @@ bool QwTrackingTreeCombine::TlCheckForX (
           // nHitsInPlane is the number of good hits at each detector layer
           if (! iteration) { /* first track finding process */
 
-            if (plane < 2) {
+
+	    double DX_pass=0.0;
+	    if(plane<2)
+		    DX_pass=0.0;
+		  else 
+		    DX_pass=Dx;
+
+	    //  nHitsInPlane[nPlanesWithHits]=SelectLeftRightHit ( hitsInPlane, goodHits[nPlanesWithHits], patterns_copy.at(plane),resolution,DX_pass );
+	    nHitsInPlane[nPlanesWithHits] =
+                  SelectLeftRightHit(&thisX, resnow, hitsInPlane, goodHits[nPlanesWithHits], DX_pass);
+	  }
+
+	  else { /* in iteration process (not used by TlTreeLineSort)*/
+            nHitsInPlane[nPlanesWithHits] =
+                selectx(&thisX, resnow, treeline->fHits, goodHits[nPlanesWithHits]);
+	  }
+
+	    
+
+	  /*   if (plane < 2) {
               // thisX is the calculated x position of the track at the detector plane
               // (thisX is changed by the routine)
               // resnow is the resolution at this position
@@ -880,11 +972,12 @@ bool QwTrackingTreeCombine::TlCheckForX (
             }
 
           } else
-
+	  */
             /* in iteration process (not used by TlTreeLineSort)*/
-            nHitsInPlane[nPlanesWithHits] =
+          /*  nHitsInPlane[nPlanesWithHits] =
                 selectx(&thisX, resnow, treeline->fHits, goodHits[nPlanesWithHits]);
-
+	  */
+	    
           /* If there are hits in this detector plane */
           if ( nHitsInPlane[nPlanesWithHits] ) {
             nPermutations *= nHitsInPlane[nPlanesWithHits];
@@ -2376,11 +2469,11 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 
 	// Perform the fit.
 	double chi = 0.0;
-// 	if ( r2_TrackFit ( hitc, hits, fit, covp, chi )  == -1 )
-// 	{
-// 		cerr << "QwPartialTrack Fit Failed" << endl;
-// 		return 0;
-// 	}
+ 	//if ( r2_TrackFit ( hitc, hits, fit, covp, chi )  == -1 )
+ 	//{
+ 	//	cerr << "QwPartialTrack Fit Failed" << endl;
+ 	//	return 0;
+ 	//}
         
         //NOTE:here, I use a different method called r2_TrackFit2 to calculate the 3-D track
         if(r2_TrackFit2(hitc,hits,fit,covp,chi,parameter) == -1)
@@ -2388,6 +2481,8 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
              cerr << "QwPartialTrack Fit Failed" << endl;
         }
 
+	fit[1]=wx->fSlope;
+	fit[0]=wx->fOffset+wx->GetDetectorInfo()->GetElementOffset()-0.5*wx->GetDetectorInfo()->GetElementSpacing()+wx->GetDetectorInfo()->GetYPosition();
 	// Put the fit parameters into the particle track using the lab frame now
 
 	QwDebug << "Ntotal = " << ntotal << QwLog::endl;
@@ -2400,6 +2495,7 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	pt->fSlopeY  = fit[1];
 	pt->fIsVoid  = false;
 	pt->fChi = sqrt ( chi );     
+	pt->SetAverageResidual(wx->GetAverageResidual()+wu->GetAverageResidual()+wv->GetAverageResidual());
 
 	for ( int i = 0; i < 4; i++ )
 		for ( int j = 0; j < 4; j++ )
@@ -2408,11 +2504,17 @@ QwPartialTrack* QwTrackingTreeCombine::TcTreeLineCombine (
 	pt->fNumMiss = wu->fNumMiss + wv->fNumMiss + wx->fNumMiss;
 	pt->fNumHits = wu->fNumHits + wv->fNumHits + wx->fNumHits;
 
-	// Store tree lines
+	// Store tree lines info
+	pt->TSlope[kDirectionX]=wx->fSlope;
+	pt->TSlope[kDirectionU]=wu->fSlope;
+	pt->TSlope[kDirectionV]=wv->fSlope;
+	pt->TOffset[kDirectionX]=wx->fOffset;
+	pt->TOffset[kDirectionU]=wu->fOffset;
+	pt->TOffset[kDirectionV]=wv->fOffset;
 	pt->fTreeLine[kDirectionX] = wx;
 	pt->fTreeLine[kDirectionU] = wu;
 	pt->fTreeLine[kDirectionV] = wv;
-
+       
 	return pt;
 }
 
@@ -2619,10 +2721,10 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             double slope_v = wv->fSlope; // slope
             double offset_v = wv->fOffset; // constant
 
-            // Determine u,v at the x detectors
-            double u1 = offset_u + zx1 * slope_u;
+            // Determine u,v at the x detectors,there are some hard-coded numbers, will be removed shortly
+            double u1 = offset_u + zx1 * slope_u+0.1812;
             double u2 = offset_u + zx2 * slope_u;
-            double v1 = offset_v + zx1 * slope_v;
+            double v1 = offset_v + zx1 * slope_v+0.0348;
             double v2 = offset_v + zx2 * slope_v;
 
             // Transformation from [u,v] to [x,y]
@@ -2654,12 +2756,17 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             // 0.75x+y+c'z+d'=0;
             // c=us/sqrt(1+us*us),c'=-vs/sqrt(1+vs*vs)
             // TASK: remove the hard coded number here
-            double a=1/tan(angleu);
-            double a_prime=1/tan(anglev);
-            double
-            c=1.25*slope_u/sqrt(1+slope_u*slope_u);
-            double c_prime=-1.25*slope_v/sqrt(1+slope_v*slope_v);
+            double a=-0.75;
+            double a_prime=0.75;
+            //double
+	    //c=1.25*slope_u/sqrt(1+slope_u*slope_u);
+            //double c_prime=-1.25*slope_v/sqrt(1+slope_v*slope_v);
 
+	    double b=1,b_prime=1;
+
+	    double c=fabs(slope_u*a);
+	    double c_prime=-fabs(slope_v*a_prime);
+	    
             u1-=0.5*spacing;
             u1+=offsetu;
             double ux=cos(angleu)*u1;
@@ -2674,13 +2781,21 @@ QwPartialTrack* QwTrackingTreeCombine::TlTreeCombine (
             double d_prime=-a_prime*vx-vy-c_prime*zx1;
 
             //NOTE:set two points in space with subscript 3 and 4
-            double z3=0,z4=-429;
+
+	    double z3=0,z4=-429;
+	    double x3=0,x4=0,y3=0,y4=0;
+	    y3=((a*c_prime-c*a_prime)*z3+(a*d_prime-d*a_prime))/(b*a_prime-a*b_prime);
+            x3=-(b*y3+c*z3+d)/a;
+
+            y4=((a*c_prime-c*a_prime)*z4+(a*d_prime-d*a_prime))/(b*a_prime-a*b_prime);
+            x4=-(b*y4+c*z4+d)/a;
+            /*double z3=0,z4=-429;
             double x3=2*(c*z3+d-c_prime*z3-d_prime)/3;
             double y3=-(c*z3+d)-a*x3;
 
             double x4=2*(c*z4+d-c_prime*z4-d_prime)/3;
             double y4=-(c*z4+d)-a*x4;
-
+	    */
             double Fit[4]={0};
             Fit[0]=x3;
             Fit[1]=(x4-x3)/(z4-z3);

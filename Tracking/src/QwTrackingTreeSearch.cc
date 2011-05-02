@@ -806,7 +806,7 @@ int QwTrackingTreeSearch::exists (
     int wire_diff=0;
     wire_diff=abs(offset-tl->fR3Offset);
     
-    if(wire_diff<5){
+    if(wire_diff<5 && offset!=-1){
       if (tl->a_beg == front && front == tl->a_end )
       over++;
     if (tl->b_beg == back  && back  == tl->b_end )
@@ -1264,6 +1264,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
       unsigned long pattern_offset = pattern_start + offset;
       int* tree_pattern = tree->fBit;
       unsigned int matched_planes = 0;
+      int goofy_r2=0;
       if (reverse) {
         /* loop over tree-planes */
         for (unsigned int plane = 0; plane < fNumPlanes; plane++) {
@@ -1276,7 +1277,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
         /* loop over tree-planes */
         for (unsigned int plane = 0; plane < fNumPlanes; plane++) {
           int bin=(*tree_pattern++);
-          
+          patterns.at(plane)=pattern_offset + bin;
           if (static_pattern[plane][pattern_offset + bin]) {
             matched_planes++; /* number of matched tree-planes */
             final[plane]=pattern_offset+bin;
@@ -1285,6 +1286,10 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             matched_planes++;
             final[plane]=pattern_offset+bin;
           }
+	  else if(goofy_r2==0 && missed_planes==0 && level==fMaxLevel-1){
+	    matched_planes++;
+	    goofy_r2++;
+	  }
         }
       }
 
@@ -1292,6 +1297,8 @@ void QwTrackingTreeSearch::_SearchTreeLines (
       /* ---- Check if there was a treenode match now that the
               matching has been completely tested.                      ---- */
 //       if (matched_planes >= fNumPlanes - fMaxMissedPlanes) {
+
+      
          if (matched_planes == fNumPlanes && missed_planes <= fMaxMissedPlanes ){
         /* ---- Yes, there is a match, so now check if all the levels
                 of the treesearch have been done.  If so, then we have
@@ -1318,7 +1325,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
           else if (static_pattern[fNumPlanes-1][backbin] == 0)
             miss = 1;
           /* Check whether this treeline already exists */
-          if (! exists(hashpat, frontbin, backbin, row_offset,fTreeLineList)) {
+          if (! exists(hashpat, frontbin, backbin, -1,fTreeLineList)) {
                 
             /* Print tree */
             if (fShowMatchingPatterns) tree->Print();
@@ -1335,6 +1342,7 @@ void QwTrackingTreeSearch::_SearchTreeLines (
             /* Missed front or back planes (?) */
             /* (only used until TreeLineSort) */
             treeline->fNumMiss = miss;
+	    treeline->SetMatchingPattern(patterns);
             /* Add this treeline to the linked-list */
             treeline->next = fTreeLineList;
             fTreeLineList = treeline;

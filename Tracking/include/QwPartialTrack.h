@@ -156,7 +156,11 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
     // Results of the fit to the hits
     Double_t fChi;		///< combined chi square
-    double fCov[4][4];		///< covariance matrix
+    Double_t fCov[4][4];		///< covariance matrix
+
+    // record the slope and offset from each treeline,modified 4/26/11
+    Double_t TSlope[kNumDirections];
+    Double_t TOffset[kNumDirections];
 
     QwTrackingTreeLine *fTreeLine[kNumDirections];	//!	///< tree line in u v and x
 

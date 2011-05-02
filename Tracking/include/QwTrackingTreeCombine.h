@@ -90,6 +90,8 @@ class QwTrackingTreeCombine {
     /// \brief Select the left or right hit assignment for HDC hits
     int SelectLeftRightHit (double *xresult, double dist_cut,
 		QwHitContainer *hitlist, QwHit **ha, double Dx = 0);
+
+    int SelectLeftRightHit (QwHitContainer *hitlist, QwHit **ha, int bin, double width,double Dx = 0);
     /// \brief Select the left or right hit assignment for VDC hits
     QwHit* SelectLeftRightHit (double track_position, QwHit* hit);
 
