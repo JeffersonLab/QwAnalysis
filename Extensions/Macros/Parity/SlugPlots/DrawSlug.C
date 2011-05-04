@@ -257,26 +257,43 @@ void DrawSlug::DoDraw()
 	// The main Drawing Routine.
 
 	gStyle->SetOptStat(1110);
-	gStyle->SetStatFontSize(0.1);
-	if (fConfig->IsLogy(current_page)) {
-		gStyle->SetOptLogy(1);
-	} else {
-		gStyle->SetOptLogy(0);
-	}
+	gStyle->SetStatFontSize(0.08);
+// 	if (fConfig->IsLogy(current_page)) {
+// 		gStyle->SetOptLogy(1);
+// 	} else {
+// 		gStyle->SetOptLogy(0);
+// 	}
 	gStyle->SetPadGridX(1);
 	gStyle->SetPadGridY(1);
 //   gStyle->SetTitleH(0.10);
 //   gStyle->SetTitleW(0.40);
-	gStyle->SetTitleH(0.10);
-	gStyle->SetTitleW(0.60);
-	gStyle->SetStatH(0.70);
+// 	gStyle->SetTitleH(0.10);
+// 	gStyle->SetTitleW(0.60);
+	gStyle->SetStatH(0.65);
 	gStyle->SetStatW(0.35);
-//   gStyle->SetLabelSize(0.10,"X");
-//   gStyle->SetLabelSize(0.10,"Y");
-	gStyle->SetLabelSize(0.05,"X");
-	gStyle->SetLabelSize(0.05,"Y");
-	gStyle->SetPadLeftMargin(0.14);
-	gStyle->SetPadRightMargin(0.10);
+	gStyle->SetStatX(0.95);
+	gStyle->SetStatY(0.8);
+	gStyle->SetPadLeftMargin(0.15);
+	gStyle->SetPadRightMargin(0.15);
+	gStyle->SetPadTopMargin(0.25);
+	gStyle->SetPadBottomMargin(0.13);
+
+
+	// histo parameters
+	gStyle->SetTitleYOffset(1.8);
+	gStyle->SetTitleXOffset(1.0);
+	gStyle->SetTitleYSize(0.04);
+	gStyle->SetTitleXSize(0.05);
+
+// 	gStyle->SetTitleX(0.3);
+// 	gStyle->SetTitleW(0.4);
+// 	gStyle->SetTitleSize(0.06);
+// 	gStyle->SetTitleBorderSize(0);
+// 	gStyle->SetTitleFillColor(0);
+// 	gStyle->SetTitleFontSize(0.08);
+	gStyle->SetLabelSize(0.05,"x");
+	gStyle->SetLabelSize(0.05,"y");
+	
 	gStyle->SetNdivisions(505,"X");
 	gStyle->SetNdivisions(404,"Y");
 	gROOT->ForceStyle();
@@ -286,6 +303,8 @@ void DrawSlug::DoDraw()
 	if(draw_count>=8) {
 		gStyle->SetLabelSize(0.08,"X");
 		gStyle->SetLabelSize(0.08,"Y");
+		gStyle->SetTitleXSize(0.08);
+		gStyle->SetTitleXOffset(1.2);
 	}
 //   Int_t dim = Int_t(round(sqrt(double(draw_count))));
 	pair <UInt_t,UInt_t> dim = fConfig->GetPageDim(current_page);
@@ -779,6 +798,7 @@ void DrawSlug::HistDraw(vector <TString> command) {
 			showGolden = kFALSE;
 		}
 	cout<<"showGolden= "<<showGolden<<endl;
+	gPad->SetLogy();
 
 	// Determine dimensionality of histogram
 	for(UInt_t i=0; i<fileObjects.size(); i++) {
@@ -794,6 +814,7 @@ void DrawSlug::HistDraw(vector <TString> command) {
 						mytemp1d_golden = (TH1D*)gDirectory->Get(command[0]);
 						mytemp1d_golden->SetLineColor(30);
 						mytemp1d_golden->SetFillColor(30);
+						mytemp1d_golden->GetYaxis()->CenterTitle();
 						Int_t fillstyle=3027;
 						if(fPrintOnly) fillstyle=3010;
 						mytemp1d_golden->SetFillStyle(fillstyle);
@@ -881,9 +902,17 @@ void DrawSlug::TreeDraw(vector <TString> command) {
 	TString drawopt = command[2];
 	Int_t errcode=0;
 	if(drawopt.IsNull() && var.Contains(":")) drawopt = "box";
-	if(drawopt=="scat") drawopt = "";
+	if(drawopt=="scat") {
+		drawopt = "";
+	}
+	if(drawopt=="logy") {
+		drawopt = "";
+		gPad->SetLogy();
+	}
+	
 	if (iTree <= fRootTree.size() ) {
 		//var += ">>" + histname;
+		//cout <<"\n\n\ndraw option: " <<drawopt.Data() <<"\n\n\n";
 		errcode = fRootTree[iTree]->Draw(var.Data(),cut,drawopt.Data(),
 										 1000000000,fTreeEntries[iTree]);
 		TObject *hobj = (TObject*)gROOT->FindObject("htemp");
@@ -894,7 +923,13 @@ void DrawSlug::TreeDraw(vector <TString> command) {
 		} else if (errcode!=0) {
 			if(!command[3].IsNull()) {
 				TH1* thathist = (TH1*)hobj;
+				gPad->SetLogy(1);
 				thathist->SetTitle(command[3].Data());
+				if(drawopt=="scat"){
+					thathist->SetMarkerStyle(7);
+					thathist->SetMarkerSize(2);
+					gPad->Update();
+				}
 				//TH1F *hist = (TH1F*)gDirectory->Get(histname.Data());
 				//hist->SetTitle(command[3].Data());
 				//printf("debug: setting title %s\n",command[3].Data());
