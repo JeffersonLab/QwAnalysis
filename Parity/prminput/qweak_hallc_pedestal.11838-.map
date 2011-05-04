@@ -1,7 +1,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! 
-! Filename : qweak_hallc_pedestal.11411-.map 
+! Filename : qweak_hallc_pedestal.11838-.map 
 !
 ! ** HallC BPM pedestals (per sample) obtained using Run 5900 
 !           qwk_bcm1 (is calibrated with Run 5807 Gain Setting 2)
@@ -19,28 +19,9 @@
 !//                   https://hallcweb.jlab.org/hclog/1012_archive/101221061819.html
 !//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062342.html
 !//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062621.html  
-
-
-!  For BCM5/6         https://hallcweb.jlab.org/hclog/1101_archive/110120122054.html
-!    8966 -
-!         
-!   Thursday, January 20 13:12:51 EST 2011, jhlee
 !
-!  For BCM1/2/5/6   https://hallcweb.jlab.org/hclog/1101_archive/110125222318.html
-!  		    Wednesday, January 26 09:00:19 EST 2011, jhlee
-!                   Ramesh confirmed the results is the better than run 8966,
-!                   thus, I simply use run 9723 
-!                   Wednesday, January 26 18:33:21 EST 2011, jhlee
-!
-!  For BCM5/6       Friday, February  4 16:10:37 EST 2011,jhlee
-!                   https://hallcweb.jlab.org/hclog/1102_archive/110204144852.html
-!  For BCM5/6       Thursday, April  7 22:03:50 EDT 2011, jhlee
-!                   https://hallcweb.jlab.org/hclog/1104_archive/110407204802.html 
-!  For BCM/5/6      https://hallcweb.jlab.org/hclog/1104_archive/110415113711.html
-!
-!
-!  For BCM5/6       https://hallcweb.jlab.org/hclog/1104_archive/110426094058.html
-!			Tuesday, April 26 10:07:09 EDT 2011
+!   BCM5/6            Wednesday, May  4 14:46:26 EDT 2011
+!                     https://hallcweb.jlab.org/hclog/1105_archive/110504104024.html 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !  device        ,  pedestal ,   gain
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -138,9 +119,9 @@
   qwk_bpm3h09bYM   , 2208.63  , 1.0
   qwk_bcm1         , 253.3   , 0.00418347
   qwk_bcm2         , 420.338  , 0.00448045
-! constants obtained from run 11609
-qwk_bcm5        ,5307.49,       0.00146108
-qwk_bcm6        ,6860.88,       0.00180335 
+! constants obtained from run 11840 
+  qwk_bcm5        ,6134.74,       0.0033388
+  qwk_bcm6        ,6283.38,       0.00397632 
   qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
  sca_habcm       , 260  , 0.0003132
