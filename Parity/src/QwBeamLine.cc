@@ -1352,6 +1352,8 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
 //*****************************************************************
 void  QwBeamLine::ProcessEvent()
 {
+  Double_t clock_counts;
+
   for(size_t i=0;i<fStripline.size();i++)
     fStripline[i].ProcessEvent();
 
@@ -1367,10 +1369,15 @@ void  QwBeamLine::ProcessEvent()
   for(size_t i=0;i<fLinearArray.size();i++)
     fLinearArray[i].ProcessEvent();
 
-  fHaloMonitor[index_4mhz].ProcessEvent();//call the ProcessEvent() for the 4MHz scaler
-  //QwError << "QwBeamLine::ProcessEvent() "<<fHaloMonitor[index_4mhz].GetElementName()<<" "<<fHaloMonitor[index_4mhz].GetValue()<<QwLog::endl;
+  if (index_4mhz != -1){
+    fHaloMonitor.at(index_4mhz).ProcessEvent();//call the ProcessEvent() for the 4MHz scaler
+    clock_counts = fHaloMonitor.at(index_4mhz).GetValue();
+    //QwError << "QwBeamLine::ProcessEvent() "<<fHaloMonitor[index_4mhz].GetElementName()<<" "<<fHaloMonitor[index_4mhz].GetValue()<<QwLog::endl;
+  } 
   for(size_t i=0;i<fHaloMonitor.size();i++){
-    fHaloMonitor[i].ScaleRawRate(4.0e6/fHaloMonitor[index_4mhz].GetValue());//convert raw rates to Hz
+    if (index_4mhz != -1 && clock_counts>0.0 ){
+      fHaloMonitor[i].ScaleRawRate(4.0e6/clock_counts);//convert raw rates to Hz
+    }
     fHaloMonitor[i].ProcessEvent();
   }
 
@@ -1669,6 +1676,8 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
     {
 
       QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
+
+      index_4mhz = input->index_4mhz;
 
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]=input->fStripline[i];
@@ -2284,6 +2293,8 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 	  VQwSubsystem::Copy(source);
 
           QwBeamLine* input = dynamic_cast<QwBeamLine*>(source);
+
+	  index_4mhz = input->index_4mhz;
 
 	  this->fStripline.resize(input->fStripline.size());
 	  for(size_t i=0;i<this->fStripline.size();i++)
