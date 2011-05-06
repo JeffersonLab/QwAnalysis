@@ -809,6 +809,19 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
   return *this;
 }
 
+void QwVQWK_Channel::AssignValueFrom(const  VQwDataElement* valueptr)
+{
+  const QwVQWK_Channel* tmpptr;
+  tmpptr = dynamic_cast<const QwVQWK_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this = *tmpptr;
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::AssignValueFrom = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
+  }
+}
+
 const QwVQWK_Channel QwVQWK_Channel::operator+ (const QwVQWK_Channel &value) const
 {
   QwVQWK_Channel result = *this;
@@ -893,21 +906,21 @@ QwVQWK_Channel& QwVQWK_Channel::operator*= (const QwVQWK_Channel &value)
   return *this;
 }
 
-void QwVQWK_Channel::Sum(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
+void QwVQWK_Channel::Sum(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2)
 {
   *this  = value1;
   *this += value2;
   return;
 }
 
-void QwVQWK_Channel::Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
+void QwVQWK_Channel::Difference(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2)
 {
   *this  = value1;
   *this -= value2;
   return;
 }
 
-void QwVQWK_Channel::Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom)
+void QwVQWK_Channel::Ratio(const QwVQWK_Channel &numer, const QwVQWK_Channel &denom)
 {
   if (!IsNameEmpty()) {
     *this  = numer;
@@ -986,7 +999,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator/= (const QwVQWK_Channel &denom)
   return *this;
 }
 
-void QwVQWK_Channel::Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2)
+void QwVQWK_Channel::Product(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2)
 {
   if (!IsNameEmpty()){
     for (Int_t i = 0; i < fBlocksPerEvent; i++) {
@@ -1038,7 +1051,7 @@ void QwVQWK_Channel::Scale(Double_t scale)
 }
 
 
-void QwVQWK_Channel::DivideBy(QwVQWK_Channel &denom)
+void QwVQWK_Channel::DivideBy(const QwVQWK_Channel &denom)
 {
   *this /= denom;
 }

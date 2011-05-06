@@ -34,7 +34,7 @@ void QwEnergyCalculator::InitializeChannel(TString subsystem, TString name,TStri
   return;
 }
 
-void QwEnergyCalculator::Set(VQwBPM* device, TString type, TString property,Double_t tmatrix_ratio)
+void QwEnergyCalculator::Set(const VQwBPM* device, TString type, TString property,Double_t tmatrix_ratio)
 {
   Bool_t ldebug = kFALSE;
 
@@ -68,15 +68,12 @@ void  QwEnergyCalculator::ProcessEvent(){
 
   for(UInt_t i = 0; i<fProperty.size(); i++){
     if(fProperty[i].Contains("targetbeamangle")){
-      targetbeamangle = atan((((QwCombinedBPM*)fDevice[i])->fSlope[0]).GetHardwareSum());
+      targetbeamangle = atan((((QwCombinedBPM*)fDevice[i])->fSlope[VQwBPM::kXAxis]).GetHardwareSum());
       targetbeamangle *= fTMatrixRatio[i];
       fEnergyChange.AddChannelOffset(targetbeamangle);
     }
     else {
-      if(fType[i].Contains("bpmstripline"))
-	tmp = ((QwBPMStripline*)fDevice[i])->fAbsPos[0];
-      if(fType[i].Contains("combinedbpm"))
-	tmp = ((QwCombinedBPM*)fDevice[i])->fAbsPos[0];
+      tmp.AssignValueFrom(fDevice[i]->GetPosition(VQwBPM::kXAxis));
       tmp.Scale(fTMatrixRatio[i]);
       fEnergyChange += tmp;
     }

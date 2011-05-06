@@ -21,10 +21,10 @@ void  QwCombinedBPM::InitializeChannel(TString name)
 
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
 
-  for( Short_t i=0;i<2;i++){
-    fAbsPos[i].InitializeChannel(name+axis[i],"derived");
-    fSlope[i].InitializeChannel(name+axis[i]+"Slope","derived");
-    fIntercept[i].InitializeChannel(name+axis[i]+"Intercept","derived");
+  for( Short_t i=kXAxis;i<kNumAxes;i++){
+    fAbsPos[i].InitializeChannel(name+kAxisLabel[i],"derived");
+    fSlope[i].InitializeChannel(name+kAxisLabel[i]+"Slope","derived");
+    fIntercept[i].InitializeChannel(name+kAxisLabel[i]+"Intercept","derived");
   }
 
   fixedParamCalculated = false;
@@ -36,7 +36,7 @@ void  QwCombinedBPM::InitializeChannel(TString name)
 
   fSumQweights = 0.0;
 
-  for(Short_t i=0;i<2;i++){
+  for(Short_t i=kXAxis;i<kNumAxes;i++){
     erra[i]       = 0.0;
     errb[i]       = 0.0;
     covab[i]      = 0.0;
@@ -57,10 +57,10 @@ void  QwCombinedBPM::InitializeChannel(TString subsystem, TString name)
 
   fEffectiveCharge.InitializeChannel(subsystem, "QwCombinedBPM", name+"_EffectiveCharge","derived");
 
-  for( Short_t i=0;i<2;i++){
-    fAbsPos[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i],"derived");
-    fSlope[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i]+"Slope","derived");
-    fIntercept[i].InitializeChannel(subsystem, "QwCombinedBPM", name+axis[i]+"Intercept","derived");
+  for( Short_t i=kXAxis;i<kNumAxes;i++){
+    fAbsPos[i].InitializeChannel(subsystem, "QwCombinedBPM", name+kAxisLabel[i],"derived");
+    fSlope[i].InitializeChannel(subsystem, "QwCombinedBPM", name+kAxisLabel[i]+"Slope","derived");
+    fIntercept[i].InitializeChannel(subsystem, "QwCombinedBPM", name+kAxisLabel[i]+"Intercept","derived");
   }
 
   fixedParamCalculated = false;
@@ -72,7 +72,7 @@ void  QwCombinedBPM::InitializeChannel(TString subsystem, TString name)
 
   fSumQweights = 0.0;
 
-  for(Short_t i=0;i<2;i++){
+  for(Short_t i=kXAxis;i<kNumAxes;i++){
     erra[i]       = 0.0;
     errb[i]       = 0.0;
     covab[i]      = 0.0;
@@ -91,7 +91,7 @@ void QwCombinedBPM::ClearEventData()
 {
   fEffectiveCharge.ClearEventData();
 
-  for(Short_t i=0;i<2;i++){
+  for(Short_t i=kXAxis;i<kNumAxes;i++){
     fAbsPos[i].ClearEventData();
     fSlope[i].ClearEventData();
     fIntercept[i].ClearEventData();
@@ -101,7 +101,7 @@ void QwCombinedBPM::ClearEventData()
 }
 
 
-void QwCombinedBPM::Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,
+void QwCombinedBPM::Set(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,
 			Double_t sumqw)
 {
   fElement.push_back(bpm);
@@ -125,7 +125,7 @@ Bool_t QwCombinedBPM::ApplyHWChecks()
 
 Int_t QwCombinedBPM::GetEventcutErrorCounters()
 {
-  for(Short_t i=0;i<2;i++){
+  for(Short_t i=kXAxis;i<kNumAxes;i++){
     fAbsPos[i].GetEventcutErrorCounters();
     fSlope[i].GetEventcutErrorCounters();
     fIntercept[i].GetEventcutErrorCounters();
@@ -143,7 +143,7 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
   Int_t i=0;
   fErrorFlag=0;
   //Event cuts for  X & Y slopes
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     if (fSlope[i].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
@@ -156,7 +156,7 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
   }
 
   //Event cuts for  X & Y intercepts
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     if (fIntercept[i].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
@@ -168,7 +168,7 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
     fErrorFlag|=fIntercept[i].GetEventcutErrorFlag();
   }
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     if (fAbsPos[i].ApplySingleEventCuts()){ 
       status&=kTRUE;
     }
@@ -273,9 +273,7 @@ void  QwCombinedBPM::ProcessEvent()
 {
   Bool_t ldebug = kFALSE;
 
-
   static QwVQWK_Channel  tmpQADC("tmpQADC"), tmpADC("tmpADC");
-
 
   //check to see if the fixed parameters are calculated
   if(!fixedParamCalculated){
@@ -293,16 +291,15 @@ void  QwCombinedBPM::ProcessEvent()
 	       <<" and  y weight ="<<fYWeights[i]<<"\n";
 
     }
-
-    tmpQADC=fElement[i]->fEffectiveCharge;
+    tmpQADC.AssignValueFrom(fElement[i]->GetEffectiveCharge());
     tmpQADC.Scale(fQWeights[i]);
     fEffectiveCharge+=tmpQADC;
 
 
     if(ldebug) {
-      std::cout<<"got 4-wire.hw_sum = "<<fEffectiveCharge.GetHardwareSum()<<" vs     actual "<<(fElement[i]-> fEffectiveCharge).GetHardwareSum()<<std::endl;
-      std::cout<<"copied absolute X position hw_sum from device "<<(fElement[i]-> fAbsPos[0]).GetHardwareSum()<<std::endl;
-      std::cout<<"copied absolute Y position hw_sum from device "<<(fElement[i]-> fAbsPos[1]).GetHardwareSum()<<std::endl;
+      std::cout<<"got 4-wire.hw_sum = "<<fEffectiveCharge.GetValue()<<" vs     actual "<<(fElement[i]->GetEffectiveCharge())->GetValue()<<std::endl;
+      std::cout<<"copied absolute X position hw_sum from device "<<(fElement[i]->GetPosition(0))->GetValue()<<std::endl;
+      std::cout<<"copied absolute Y position hw_sum from device "<<(fElement[i]->GetPosition(1))->GetValue()<<std::endl;
     }
 
   }
@@ -317,12 +314,12 @@ void  QwCombinedBPM::ProcessEvent()
 
 
   if(ldebug){
-    std::cout<<" QwCombinedBPM:: Projected target X position = "<<fAbsPos[0].GetHardwareSum()
-	     <<" and target X slope = "<<fSlope[0].GetHardwareSum()
-	     <<" and target X intercept = "<<fIntercept[0].GetHardwareSum()
-	     <<" \nProjected target Y position = "<<fAbsPos[1].GetHardwareSum()
-	     <<" and target Y slope = "<<fSlope[1].GetHardwareSum()
-	     <<" and target Y intercept = "<<fIntercept[1].GetHardwareSum()<<std::endl;
+    std::cout<<" QwCombinedBPM:: Projected target X position = "<<fAbsPos[0].GetValue()
+	     <<" and target X slope = "<<fSlope[0].GetValue()
+	     <<" and target X intercept = "<<fIntercept[0].GetValue()
+	     <<" \nProjected target Y position = "<<fAbsPos[1].GetValue()
+	     <<" and target Y slope = "<<fSlope[1].GetValue()
+	     <<" and target Y intercept = "<<fIntercept[1].GetValue()<<std::endl;
   }
 
   if(ldebug){
@@ -354,7 +351,7 @@ void  QwCombinedBPM::ProcessEvent()
    static Double_t zpos = 0.0;
 
    for(size_t i=0;i<fElement.size();i++){
-     zpos = fElement[i]->fPositionCenter[2];
+     zpos = fElement[i]->GetPositionInZ();
      A[pos] += zpos*fWeights[i]; //zw
      B[pos] += fWeights[i]; //w
      D[pos] += zpos*zpos*fWeights[i]; //z^2w
@@ -391,7 +388,7 @@ void  QwCombinedBPM::ProcessEvent()
    else{
      for(size_t i=0;i<weight.size();i++){
        val[i].Scale(weight[i]);
-       sum+=val[i].GetHardwareSum();
+       sum+=val[i].GetValue();
      }
    }
    return sum;
@@ -411,7 +408,6 @@ void  QwCombinedBPM::ProcessEvent()
       a = (EB-CA)/(DB-AA)      b =(DC-EA)/(DB-AA)   
    **/
 
-
    Bool_t ldebug = kFALSE;
    static Double_t zpos = 0;
    static QwVQWK_Channel tmp1;
@@ -430,8 +426,8 @@ void  QwCombinedBPM::ProcessEvent()
    for(size_t i=0;i<fElement.size();i++){
      tmp1.ClearEventData();
      tmp2.ClearEventData();
-     tmp1 = fElement[i]->fAbsPos[n];
-     zpos = fElement[i]->fPositionCenter[2];
+     tmp1.AssignValueFrom(fElement[i]->GetPosition(n));
+     zpos = fElement[i]->GetPositionInZ();
      tmp1.Scale(fWeights[i]);
      C[n]+= tmp1; //xw or yw
      tmp1.Scale(zpos);//xzw or yzw
@@ -440,9 +436,9 @@ void  QwCombinedBPM::ProcessEvent()
 
    if(ldebug) std::cout<<"\n A ="<<A[n]
 		       <<" -- B ="<<B[n]
-		       <<" --C ="<<C[n].GetHardwareSum()
+		       <<" --C ="<<C[n].GetValue()
 		       <<" --D ="<<D[n]
-		       <<" --E ="<<E[n].GetHardwareSum()<<"\n";
+		       <<" --E ="<<E[n].GetValue()<<"\n";
 
    // calculate the slope  a = E*erra + C*covab
    tmp1.ClearEventData();
@@ -465,8 +461,8 @@ void  QwCombinedBPM::ProcessEvent()
    fIntercept[n]+= tmp2;
 
    if(ldebug)    std::cout<<" Least Squares Fit Parameters for "<<n
-			  <<" are: \n slope = "<< fSlope[n].GetHardwareSum()
-			  <<" \n intercept = " << fIntercept[n].GetHardwareSum()<<"\n\n";
+			  <<" are: \n slope = "<< fSlope[n].GetValue()
+			  <<" \n intercept = " << fIntercept[n].GetValue()<<"\n\n";
 
 
    // absolute positions at target  using X = Za + b
@@ -474,7 +470,7 @@ void  QwCombinedBPM::ProcessEvent()
    // Absolute position of the combined bpm is not a physical position but a derived one.
 
 
-   zpos = this->fPositionCenter[2];
+   zpos = this->GetPositionInZ();
    //UInt_t err_flag=fAbsPos[n].GetEventcutErrorFlag();   
    fAbsPos[n]= fIntercept[n]; // X =  b
    //fAbsPos[n].ResetErrorFlag(err_flag);
@@ -487,13 +483,14 @@ void  QwCombinedBPM::ProcessEvent()
    chi_square[n]=0;
    for(size_t i=0;i<fElement.size();i++){
      tmp1.ClearEventData();
-     tmp1.Difference(fElement[i]->fAbsPos[n],fAbsPos[n]); // = X-Za-b
+     tmp1.AssignValueFrom(fElement[i]->GetPosition(n)); // = X
+     tmp1 -= fAbsPos[n];      // = X-Za-b
      tmp1.Product(tmp1,tmp1); // = (X-Za-b)^2
      tmp1.Scale(fWeights[i]); // = [(X-Za-b)^2]W
      tmp2+=tmp1; //sum over
    }
 
-   chi_square[n]=tmp2.GetHardwareSum()/(fElement.size()-2); //minimul chi-square
+   chi_square[n]=tmp2.GetValue()/(fElement.size()-2); //minimul chi-square
 
 
    return;
@@ -542,7 +539,7 @@ QwCombinedBPM& QwCombinedBPM::operator= (const QwCombinedBPM &value)
   VQwBPM::operator= (value);
   if (GetElementName()!=""){
     this->fEffectiveCharge=value.fEffectiveCharge;
-    for(Short_t i=0;i<2;i++){
+    for(Short_t i=kXAxis;i<kNumAxes;i++){
       this->fSlope[i]=value.fSlope[i];
       this->fIntercept[i] = value.fIntercept[i];
       this->fAbsPos[i]=value.fAbsPos[i];
@@ -557,7 +554,7 @@ QwCombinedBPM& QwCombinedBPM::operator+= (const QwCombinedBPM &value)
 
      if (GetElementName()!=""){
        this->fEffectiveCharge+=value.fEffectiveCharge;
-       for(Short_t i=0;i<2;i++) 	{
+       for(Short_t i=kXAxis;i<kNumAxes;i++) 	{
 	 this->fSlope[i]+=value.fSlope[i];
 	 this->fIntercept[i]+=value.fIntercept[i];
 	 this->fAbsPos[i]+=value.fAbsPos[i];
@@ -572,7 +569,7 @@ QwCombinedBPM& QwCombinedBPM::operator-= (const QwCombinedBPM &value)
 
   if (GetElementName()!=""){
     this->fEffectiveCharge-=value.fEffectiveCharge;
-    for(Short_t i=0;i<2;i++){
+    for(Short_t i=kXAxis;i<kNumAxes;i++){
       this->fSlope[i]-=value.fSlope[i];
       this->fIntercept[i]-=value.fIntercept[i];
       this->fAbsPos[i]-=value.fAbsPos[i];
@@ -590,7 +587,7 @@ void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   if (GetElementName()!=""){
     //    The slope, intercept and absolute positions should all be differences, not asymmetries.
-    for(Short_t i=0;i<2;i++) {
+    for(Short_t i=kXAxis;i<kNumAxes;i++) {
       this->fSlope[i]     = numer.fSlope[i];
       this->fIntercept[i] = numer.fIntercept[i];
       this->fAbsPos[i]    = numer.fAbsPos[i];
@@ -604,7 +601,7 @@ void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
 void QwCombinedBPM::Scale(Double_t factor)
 {
   fEffectiveCharge.Scale(factor);
-  for(Short_t i=0;i<2;i++){
+  for(Short_t i=kXAxis;i<kNumAxes;i++){
     fSlope[i].Scale(factor);
     fIntercept[i].Scale(factor);
     fAbsPos[i].Scale(factor);
@@ -650,7 +647,7 @@ void  QwCombinedBPM::ConstructHistograms(TDirectory *folder, TString &prefix)
       thisprefix="diff_";
     SetRootSaveStatus(prefix);
 
-    for(Short_t i=0;i<2;i++) {
+    for(Short_t i=kXAxis;i<kNumAxes;i++) {
 	fSlope[i].ConstructHistograms(folder, thisprefix);
 	fIntercept[i].ConstructHistograms(folder, thisprefix);
 	fAbsPos[i].ConstructHistograms(folder, thisprefix);
@@ -667,7 +664,7 @@ void  QwCombinedBPM::FillHistograms()
   }
   else{
     fEffectiveCharge.FillHistograms();
-    for(Short_t i=0;i<2;i++) {
+    for(Short_t i=kXAxis;i<kNumAxes;i++) {
       fSlope[i].FillHistograms();
       fIntercept[i].FillHistograms();
       fAbsPos[i].FillHistograms();
@@ -683,7 +680,7 @@ void  QwCombinedBPM::DeleteHistograms()
   }
   else{
     fEffectiveCharge.DeleteHistograms();
-    for(Short_t i=0;i<2;i++) {
+    for(Short_t i=kXAxis;i<kNumAxes;i++) {
       fSlope[i].DeleteHistograms();
       fIntercept[i].DeleteHistograms();
       fAbsPos[i].DeleteHistograms();
@@ -708,7 +705,7 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
       SetRootSaveStatus(prefix);
 
       fEffectiveCharge.ConstructBranchAndVector(tree,prefix,values);
-      for(Short_t i=0;i<2;i++){
+      for(Short_t i=kXAxis;i<kNumAxes;i++){
 	fSlope[i].ConstructBranchAndVector(tree,thisprefix,values);
 	fIntercept[i].ConstructBranchAndVector(tree,thisprefix,values);
 	fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
@@ -732,7 +729,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix)
 
       fEffectiveCharge.ConstructBranch(tree,prefix);
 
-      for(Short_t i=0;i<2;i++){
+      for(Short_t i=kXAxis;i<kNumAxes;i++){
 	fSlope[i].ConstructBranch(tree,thisprefix);
 	fIntercept[i].ConstructBranch(tree,thisprefix);
 	fAbsPos[i].ConstructBranch(tree,thisprefix);
@@ -760,7 +757,7 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 
 	fEffectiveCharge.ConstructBranch(tree,prefix);
 
-	for(Short_t i=0;i<2;i++){
+	for(Short_t i=kXAxis;i<kNumAxes;i++){
 	  fSlope[i].ConstructBranch(tree,thisprefix);
 	  fIntercept[i].ConstructBranch(tree,thisprefix);
 	  fAbsPos[i].ConstructBranch(tree,thisprefix);
@@ -781,7 +778,7 @@ void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values) const
   else{
     fEffectiveCharge.FillTreeVector(values);
 
-    for(Short_t i=0;i<2;i++){
+    for(Short_t i=kXAxis;i<kNumAxes;i++){
       fSlope[i].FillTreeVector(values);
       fIntercept[i].FillTreeVector(values);
       fAbsPos[i].FillTreeVector(values);
@@ -829,7 +826,7 @@ void QwCombinedBPM::SetEventCutMode(Int_t bcuts)
 {
 
   bEVENTCUTMODE=bcuts;
-  for (Short_t i=0;i<2;i++){
+  for (Short_t i=kXAxis;i<kNumAxes;i++){
     fSlope[i].SetEventCutMode(bcuts);
     fIntercept[i].SetEventCutMode(bcuts);
     fAbsPos[i].SetEventCutMode(bcuts);
@@ -846,7 +843,7 @@ void QwCombinedBPM::MakeBPMComboList()
 
   QwVQWK_Channel combo_bpm_sub_element;
   
-  for(i=0;i<2;i++) {
+  for(i=kXAxis;i<kNumAxes;i++) {
     combo_bpm_sub_element.ClearEventData();
     combo_bpm_sub_element.Copy(&fAbsPos[i]);
     combo_bpm_sub_element = fAbsPos[i];
@@ -895,8 +892,8 @@ std::vector<QwDBInterface> QwCombinedBPM::GetDBEntry()
     beam_n        = fBPMComboElementList.at(n_element).GetGoodEventCount();
 
     // Get HardwareSum average and its error
-    avg           = fBPMComboElementList.at(n_element).GetHardwareSum();
-    err           = fBPMComboElementList.at(n_element).GetHardwareSumError();
+    avg           = fBPMComboElementList.at(n_element).GetValue();
+    err           = fBPMComboElementList.at(n_element).GetValueError();
     // ADC subblock sum : 0 in MySQL database
     beam_subblock = 0;
 

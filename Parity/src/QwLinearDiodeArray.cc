@@ -57,7 +57,7 @@ void QwLinearDiodeArray::ClearEventData()
 
   for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].ClearEventData();
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     fRelPos[i].ClearEventData();
   }
   fEffectiveCharge.ClearEventData();
@@ -89,7 +89,7 @@ Int_t QwLinearDiodeArray::GetEventcutErrorCounters()
   size_t i=0;
 
   for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].GetEventcutErrorCounters();
-  for(i=0;i<2;i++) {
+  for(i=kXAxis;i<kNumAxes;i++) {
     fRelPos[i].GetEventcutErrorCounters();
   }
   fEffectiveCharge.GetEventcutErrorCounters();
@@ -117,7 +117,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
   }
 
    //Event cuts for Relative X & Y
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
 
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
@@ -319,7 +319,7 @@ UInt_t QwLinearDiodeArray::GetSubElementIndex(TString subname)
 
 void  QwLinearDiodeArray::GetAbsolutePosition()
 {
-  for(size_t i=0;i<2;i++){
+  for(size_t i=kXAxis;i<kNumAxes;i++){
     fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
   }
 
@@ -333,7 +333,7 @@ QwLinearDiodeArray& QwLinearDiodeArray::operator= (const QwLinearDiodeArray &val
     size_t i = 0;
     this->fEffectiveCharge=value.fEffectiveCharge;
     for(i=0;i<fPhotodiode.size();i++) this->fPhotodiode[i]=value.fPhotodiode[i];
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       this->fRelPos[i]=value.fRelPos[i];
     }
   }
@@ -348,7 +348,7 @@ QwLinearDiodeArray& QwLinearDiodeArray::operator+= (const QwLinearDiodeArray &va
     size_t i = 0;
     this->fEffectiveCharge+=value.fEffectiveCharge;
     for(i=0;i<fPhotodiode.size();i++) this->fPhotodiode[i]+=value.fPhotodiode[i];
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       this->fRelPos[i]+=value.fRelPos[i];
     }
   }
@@ -362,7 +362,7 @@ QwLinearDiodeArray& QwLinearDiodeArray::operator-= (const QwLinearDiodeArray &va
     size_t i = 0;
     this->fEffectiveCharge-=value.fEffectiveCharge;
     for(i=0;i<fPhotodiode.size();i++) this->fPhotodiode[i]-=value.fPhotodiode[i];
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       this->fRelPos[i]-=value.fRelPos[i];
     }
   }
@@ -388,7 +388,7 @@ void QwLinearDiodeArray::Scale(Double_t factor)
   fEffectiveCharge.Scale(factor);
 
   for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].Scale(factor);
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     fRelPos[i].Scale(factor);
   }
   return;
@@ -427,7 +427,7 @@ void  QwLinearDiodeArray::ConstructHistograms(TDirectory *folder, TString &prefi
     if(bFullSave) {
       for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].ConstructHistograms(folder, thisprefix);
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fRelPos[i].ConstructHistograms(folder, thisprefix);
     }
   }
@@ -445,7 +445,7 @@ void  QwLinearDiodeArray::FillHistograms()
     if(bFullSave) {
       for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].FillHistograms();
     }
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       fRelPos[i].FillHistograms();
     }
   }
@@ -462,7 +462,7 @@ void  QwLinearDiodeArray::DeleteHistograms()
     if(bFullSave) {
       for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].DeleteHistograms();
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fRelPos[i].DeleteHistograms();
     }
   }
@@ -487,7 +487,7 @@ void  QwLinearDiodeArray::ConstructBranchAndVector(TTree *tree, TString &prefix,
     if(bFullSave) {
       for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
 
@@ -512,7 +512,7 @@ void  QwLinearDiodeArray::ConstructBranch(TTree *tree, TString &prefix)
     if(bFullSave) {
       for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].ConstructBranch(tree,thisprefix);
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fRelPos[i].ConstructBranch(tree,thisprefix);
     }
 
@@ -542,7 +542,7 @@ void  QwLinearDiodeArray::ConstructBranch(TTree *tree, TString &prefix, QwParame
 	if(bFullSave) {
 	  for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].ConstructBranch(tree,thisprefix);
 	}
-	for(i=0;i<2;i++) {
+	for(i=kXAxis;i<kNumAxes;i++) {
 	  fRelPos[i].ConstructBranch(tree,thisprefix);
 	}
 
@@ -569,7 +569,7 @@ void  QwLinearDiodeArray::FillTreeVector(std::vector<Double_t> &values) const
     if(bFullSave) {
       for(i=0;i<fPhotodiode.size();i++) fPhotodiode[i].FillTreeVector(values);
     }
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       fRelPos[i].FillTreeVector(values);
     }
   }
@@ -612,7 +612,7 @@ void QwLinearDiodeArray::SetEventCutMode(Int_t bcuts)
   size_t i = 0;
   bEVENTCUTMODE=bcuts;
   for (i=0;i<fPhotodiode.size();i++) fPhotodiode[i].SetEventCutMode(bcuts);
-  for (i=0;i<2;i++) {
+  for (i=kXAxis;i<kNumAxes;i++) {
     fRelPos[i].SetEventCutMode(bcuts);
     fAbsPos[i].SetEventCutMode(bcuts);
   }
@@ -626,7 +626,7 @@ void QwLinearDiodeArray::MakeLinearArrayList()
 
   QwVQWK_Channel qpd_sub_element;
 
-  for(i=0;i<2;i++) {
+  for(i=kXAxis;i<kNumAxes;i++) {
     qpd_sub_element.ClearEventData();
     qpd_sub_element.Copy(&fRelPos[i]);
     qpd_sub_element = fRelPos[i];

@@ -31,8 +31,8 @@ void  QwQPD::InitializeChannel(TString name)
       std::cout<<" photodiode ["<<i<<"]="<<fPhotodiode[i].GetElementName()<<"\n";
   }
   
-  for(i=0;i<2;i++) 
-    fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++) 
+    fRelPos[i].InitializeChannel(name+"Rel"+kAxisLabel[i],"derived");
 
   VQwBPM::InitializeChannel(name);
   
@@ -55,8 +55,8 @@ void  QwQPD::InitializeChannel(TString subsystem, TString name)
     if(localdebug)
       std::cout<<" photodiode ["<<i<<"]="<<fPhotodiode[i].GetElementName()<<"\n";
   }
-  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(subsystem, "QwQPD", name+"Rel"+axis[i],"derived");
-  for(i=0;i<2;i++) fAbsPos[i].InitializeChannel(subsystem, "QwQPD", name+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].InitializeChannel(subsystem, "QwQPD", name+"Rel"+kAxisLabel[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++) fAbsPos[i].InitializeChannel(subsystem, "QwQPD", name+kAxisLabel[i],"derived");
 
   bFullSave=kTRUE;
 
@@ -92,7 +92,7 @@ void QwQPD::ClearEventData()
 
   for(i=0;i<4;i++) fPhotodiode[i].ClearEventData();
 
-  for(i=0;i<2;i++) fRelPos[i].ClearEventData();
+  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].ClearEventData();
 
  return;
 }
@@ -300,7 +300,7 @@ void  QwQPD::ProcessEvent()
   tmp.ClearEventData();
   numer[1].Sum(tmp1,tmp2);
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     tmp.ClearEventData();
     tmp.Sum(fPhotodiode[0],fPhotodiode[1]);
     tmp1.ClearEventData();
@@ -318,8 +318,8 @@ void  QwQPD::ProcessEvent()
       std::cout<<" hw  numerator= "<<numer[i].GetHardwareSum()<<"  ";
       std::cout<<" hw  denominator (== Effective_Charge)= "<<fEffectiveCharge.GetHardwareSum()<<"\n";
       std::cout<<" hw  clibration factors= "<<fQwQPDCalibration[i]<<"\n";
-      std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
-      std::cout<<" hw  fAbsPos["<<axis[i]<<"]="<<fAbsPos[i].GetHardwareSum()<<"\n \n";
+      std::cout<<" hw  fRelPos["<<kAxisLabel[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
+      std::cout<<" hw  fAbsPos["<<kAxisLabel[i]<<"]="<<fAbsPos[i].GetHardwareSum()<<"\n \n";
     }
   }
   
@@ -375,7 +375,7 @@ QwQPD& QwQPD::operator= (const QwQPD &value)
     Short_t i = 0;
     // this->fEffectiveCharge=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]=value.fPhotodiode[i];
-    for(i=0;i<2;i++) this->fRelPos[i]=value.fRelPos[i];
+    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]=value.fRelPos[i];
     
   }
   return *this;
@@ -388,7 +388,7 @@ QwQPD& QwQPD::operator+= (const QwQPD &value)
   if (GetElementName()!=""){
     Short_t i = 0;
     for(i=0;i<4;i++) this->fPhotodiode[i]+=value.fPhotodiode[i];
-    for(i=0;i<2;i++) this->fRelPos[i]+=value.fRelPos[i];
+    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]+=value.fRelPos[i];
 
   }
   return *this;
@@ -400,7 +400,7 @@ QwQPD& QwQPD::operator-= (const QwQPD &value)
   if (GetElementName()!=""){
     Short_t i = 0;
     for(i=0;i<4;i++) this->fPhotodiode[i]-=value.fPhotodiode[i];
-    for(i=0;i<2;i++) this->fRelPos[i]-=value.fRelPos[i];
+    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]-=value.fRelPos[i];
 
   }
   return *this;
@@ -425,7 +425,7 @@ void QwQPD::Scale(Double_t factor)
   VQwBPM::Scale(factor);
 
   for(i=0;i<4;i++) fPhotodiode[i].Scale(factor);
-  for(i=0;i<2;i++) fRelPos[i].Scale(factor);
+  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].Scale(factor);
 
   return;
 }
@@ -454,7 +454,7 @@ void  QwQPD::ConstructHistograms(TDirectory *folder, TString &prefix)
     if(bFullSave) {
       for(i=0;i<4;i++) fPhotodiode[i].ConstructHistograms(folder, thisprefix);
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fAbsPos[i].ConstructHistograms(folder, thisprefix);
       fRelPos[i].ConstructHistograms(folder, thisprefix);
     }
@@ -473,7 +473,7 @@ void  QwQPD::FillHistograms()
     if(bFullSave) {
       for(i=0;i<4;i++) fPhotodiode[i].FillHistograms();
     }
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       fAbsPos[i].FillHistograms();
       fRelPos[i].FillHistograms();
     }
@@ -491,7 +491,7 @@ void  QwQPD::DeleteHistograms()
     if(bFullSave) {
       for(i=0;i<4;i++) fPhotodiode[i].DeleteHistograms();
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fAbsPos[i].DeleteHistograms();
       fRelPos[i].DeleteHistograms();
     }
@@ -517,7 +517,7 @@ void  QwQPD::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<
     if(bFullSave) {
       for(i=0;i<4;i++) fPhotodiode[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
       fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
@@ -543,7 +543,7 @@ void  QwQPD::ConstructBranch(TTree *tree, TString &prefix)
     if(bFullSave) {
       for(i=0;i<4;i++) fPhotodiode[i].ConstructBranch(tree,thisprefix);
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fAbsPos[i].ConstructBranch(tree,thisprefix);
       fRelPos[i].ConstructBranch(tree,thisprefix);
     }
@@ -574,7 +574,7 @@ void  QwQPD::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modu
 	if(bFullSave) {
 	  for(i=0;i<4;i++) fPhotodiode[i].ConstructBranch(tree,thisprefix);
 	}
-	for(i=0;i<2;i++) {
+	for(i=kXAxis;i<kNumAxes;i++) {
 	  fAbsPos[i].ConstructBranch(tree,thisprefix);
 	  fRelPos[i].ConstructBranch(tree,thisprefix);
 	}
@@ -603,7 +603,7 @@ void  QwQPD::FillTreeVector(std::vector<Double_t> &values) const
       for(i=0;i<4;i++) fPhotodiode[i].FillTreeVector(values);
     }
 
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       fAbsPos[i].FillTreeVector(values);
       fRelPos[i].FillTreeVector(values);
     }
@@ -618,7 +618,7 @@ void QwQPD::SetEventCutMode(Int_t bcuts)
   Short_t i = 0;
   bEVENTCUTMODE=bcuts;
   for (i=0;i<4;i++) fPhotodiode[i].SetEventCutMode(bcuts);
-  for (i=0;i<2;i++) {
+  for (i=kXAxis;i<kNumAxes;i++) {
     fAbsPos[i].SetEventCutMode(bcuts);
     fRelPos[i].SetEventCutMode(bcuts);
   }
@@ -632,7 +632,7 @@ void QwQPD::MakeQPDList()
 
   QwVQWK_Channel qpd_sub_element;
 
-  for(i=0;i<2;i++) {
+  for(i=kXAxis;i<kNumAxes;i++) {
     qpd_sub_element.ClearEventData();
     qpd_sub_element.Copy(&fAbsPos[i]);
     qpd_sub_element = fAbsPos[i];

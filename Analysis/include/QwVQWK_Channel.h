@@ -102,6 +102,7 @@ class QwVQWK_Channel: public VQwDataElement, public MQwMockable {
 
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
   VQwDataElement& operator=  (const VQwDataElement &value);
+  void AssignValueFrom(const VQwDataElement* valueptr);
 
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);
@@ -109,11 +110,11 @@ class QwVQWK_Channel: public VQwDataElement, public MQwMockable {
   const QwVQWK_Channel operator+ (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator- (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator* (const QwVQWK_Channel &value) const;
-  void Sum(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
-  void Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
-  void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
-  void Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
-  void DivideBy(QwVQWK_Channel& denom);
+  void Sum(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2);
+  void Difference(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2);
+  void Ratio(const QwVQWK_Channel &numer, const QwVQWK_Channel &denom);
+  void Product(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2);
+  void DivideBy(const QwVQWK_Channel& denom);
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
 

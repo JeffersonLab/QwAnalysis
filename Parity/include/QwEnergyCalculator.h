@@ -68,7 +68,7 @@ class QwEnergyCalculator : public VQwDataElement{
     Int_t   GetEventcutErrorFlag(){//return the error flag
       return fEnergyChange.GetEventcutErrorFlag();
     }
-    void    Set(VQwBPM* device,TString type, TString property ,Double_t tmatrix_ratio);
+    void    Set(const VQwBPM* device,TString type, TString property ,Double_t tmatrix_ratio);
     void    Copy(VQwDataElement *source);
     void    Ratio(QwEnergyCalculator &numer,QwEnergyCalculator &denom);
     void    Scale(Double_t factor);
@@ -104,7 +104,7 @@ class QwEnergyCalculator : public VQwDataElement{
 
 
  private:
-    std::vector <VQwBPM*> fDevice;
+    std::vector <const VQwBPM*> fDevice;
     std::vector <Double_t> fTMatrixRatio;
     std::vector <TString>  fProperty;
     std::vector <TString>  fType;

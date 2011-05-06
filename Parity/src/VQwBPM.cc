@@ -15,7 +15,7 @@
 
 
 /* With X being vertical up and Z being the beam direction toward the beamdump */
-const TString  VQwBPM::axis[3]={"X","Y","Z"};
+const TString  VQwBPM::kAxisLabel[2]={"X","Y"};
 
 
 void  VQwBPM::InitializeChannel(TString name)
@@ -26,8 +26,8 @@ void  VQwBPM::InitializeChannel(TString name)
   fErrorFlag=0;
   Short_t i = 0; 
 
-  for(i=0;i<2;i++)
-    fAbsPos[i].InitializeChannel(name+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++)
+    fAbsPos[i].InitializeChannel(name+kAxisLabel[i],"derived");
   
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
   
@@ -40,7 +40,7 @@ void  VQwBPM::InitializeChannel(TString name)
 
 void VQwBPM::ClearEventData()
 {
-  for(Short_t i=0;i<2;i++)
+  for(Short_t i=kXAxis;i<kNumAxes;i++)
     fAbsPos[i].ClearEventData();
 
   fEffectiveCharge.ClearEventData();
@@ -107,7 +107,7 @@ void VQwBPM::SetRotationOff(){
 
 Int_t VQwBPM::GetEventcutErrorCounters()
 {
-  for(Short_t i=0;i<2;i++) 
+  for(Short_t i=kXAxis;i<kNumAxes;i++) 
     fAbsPos[i].GetEventcutErrorCounters();
   fEffectiveCharge.GetEventcutErrorCounters();
 
@@ -122,7 +122,7 @@ Bool_t VQwBPM::ApplySingleEventCuts()
   fErrorFlag=0;
  
   //Event cuts for Absolute X & Y
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -174,7 +174,7 @@ VQwBPM& VQwBPM::operator= (const VQwBPM &value)
   if (GetElementName()!=""){
     this->fEffectiveCharge=value.fEffectiveCharge;
     Short_t i = 0;
-    for(i=0;i<2;i++) this->fAbsPos[i]=value.fAbsPos[i];
+    for(i=kXAxis;i<kNumAxes;i++) this->fAbsPos[i]=value.fAbsPos[i];
     for(i=0;i<3;i++) this->fPositionCenter[i]=value.fPositionCenter[i];
   }
 
@@ -185,7 +185,7 @@ VQwBPM& VQwBPM::operator+= (const VQwBPM &value)
 {
   if (GetElementName()!=""){
     this->fEffectiveCharge+=value.fEffectiveCharge;
-    for(Short_t i=0;i<2;i++) this->fAbsPos[i]+=value.fAbsPos[i];
+    for(Short_t i=kXAxis;i<kNumAxes;i++) this->fAbsPos[i]+=value.fAbsPos[i];
   }
   return *this;
 }
@@ -194,7 +194,7 @@ VQwBPM& VQwBPM::operator-= (const VQwBPM &value)
 {
   if (GetElementName()!=""){
     this->fEffectiveCharge-=value.fEffectiveCharge;
-    for(Short_t i=0;i<2;i++) this->fAbsPos[i]-=value.fAbsPos[i];
+    for(Short_t i=kXAxis;i<kNumAxes;i++) this->fAbsPos[i]-=value.fAbsPos[i];
   }
   return *this;
 }

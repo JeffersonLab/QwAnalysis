@@ -38,12 +38,17 @@ class VQwBPM : public VQwDataElement {
   //  friend class QwEnergyCalculator;  
 
  public:
+  ///  Axis enumerator for the BPMs; 
+  ///  Z will never be an instrumented axis.
+  enum EBPMAxes{kXAxis=0, kYAxis, kNumAxes};
+
+ public:
   // Default constructor
   VQwBPM() { };
   VQwBPM(TString name):VQwDataElement(){
     InitializeChannel(name);
     fQwStriplineCalibration = 18.81; // adc counts/mm default value
-    for(Short_t i=0;i<2;i++)  fRelativeGains[i]=1.0;
+    for(Short_t i=kXAxis;i<kNumAxes;i++)  fRelativeGains[i]=1.0;
   };
 
   virtual ~VQwBPM(){DeleteHistograms(); };
@@ -93,12 +98,20 @@ class VQwBPM : public VQwDataElement {
     return const_cast<VQwBPM*>(this)->GetPositionY();
   };
 
+
   
-  VQwDataElement* GetEffectiveCharge(){
-    return &fEffectiveCharge;
-  }
+/*   VQwDataElement* GetEffectiveCharge(){ */
+/*     return &fEffectiveCharge; */
+/*   } */
   const VQwDataElement* GetEffectiveCharge() const{
-    return const_cast<VQwBPM*>(this)->GetEffectiveCharge();
+    return &fEffectiveCharge;
+  };
+  const VQwDataElement* GetPosition(size_t index) const{
+    return &fAbsPos[index];
+  };
+  
+  Double_t GetPositionInZ() const{
+    return fPositionCenter[2];
   };
 
   void PrintValue() const;
@@ -111,12 +124,14 @@ class VQwBPM : public VQwDataElement {
 
 
   protected:
+  ///  Axis labels for the instrumented directions;
+  ///  Z will never be an instrumented axis.
+  static const TString kAxisLabel[2];
 
   // Position calculation related paramters
   Double_t fPositionCenter[3];
   Double_t fQwStriplineCalibration;
   Double_t fRelativeGains[2];
-  static const TString axis[3];
 
   // Rotation related paramters
   Bool_t   bRotated;

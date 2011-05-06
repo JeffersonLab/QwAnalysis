@@ -62,7 +62,7 @@ class QwCombinedBPM : public VQwBPM{
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
-  void    Set(QwBPMStripline* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
+  void    Set(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
 
   void    Copy(VQwDataElement *source);
   void    Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom);
@@ -126,7 +126,7 @@ class QwCombinedBPM : public VQwBPM{
   Double_t chi_square[2];
   Double_t fSumQweights;
 
-  std::vector <QwBPMStripline*> fElement;
+  std::vector <const VQwBPM*> fElement;
   std::vector <Double_t> fQWeights;
   std::vector <Double_t> fXWeights;
   std::vector <Double_t> fYWeights;

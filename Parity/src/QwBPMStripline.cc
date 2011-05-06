@@ -25,8 +25,8 @@ void  QwBPMStripline::InitializeChannel(TString name)
 
   VQwBPM::InitializeChannel(name);
 
-  for(i=0;i<2;i++)
-    fAbsPos[i].InitializeChannel(name+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++)
+    fAbsPos[i].InitializeChannel(name+kAxisLabel[i],"derived");
 
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
 
@@ -36,7 +36,7 @@ void  QwBPMStripline::InitializeChannel(TString name)
       std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
   }
 
-  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].InitializeChannel(name+"Rel"+kAxisLabel[i],"derived");
 
   bFullSave=kTRUE;
 
@@ -50,8 +50,8 @@ void  QwBPMStripline::InitializeChannel(TString subsystem, TString name)
 
   VQwBPM::InitializeChannel(name);
 
-  for(i=0;i<2;i++)
-    fAbsPos[i].InitializeChannel(subsystem, "QwBPMStripline", name+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++)
+    fAbsPos[i].InitializeChannel(subsystem, "QwBPMStripline", name+kAxisLabel[i],"derived");
 
   fEffectiveCharge.InitializeChannel(subsystem, "QwBPMStripline", name+"_EffectiveCharge","derived");
 
@@ -61,7 +61,7 @@ void  QwBPMStripline::InitializeChannel(TString subsystem, TString name)
       std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
   }
 
-  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(subsystem, "QwBPMStripline", name+"Rel"+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].InitializeChannel(subsystem, "QwBPMStripline", name+"Rel"+kAxisLabel[i],"derived");
 
   bFullSave=kTRUE;
 
@@ -74,7 +74,7 @@ void QwBPMStripline::ClearEventData()
 
   for(i=0;i<4;i++) fWire[i].ClearEventData();
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     fAbsPos[i].ClearEventData();
     fRelPos[i].ClearEventData();
   }
@@ -107,7 +107,7 @@ Int_t QwBPMStripline::GetEventcutErrorCounters()
   Short_t i=0;
 
   for(i=0;i<4;i++) fWire[i].GetEventcutErrorCounters();
-  for(i=0;i<2;i++) {
+  for(i=kXAxis;i<kNumAxes;i++) {
     fRelPos[i].GetEventcutErrorCounters();
     fAbsPos[i].GetEventcutErrorCounters();
   }
@@ -136,7 +136,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
   }
 
    //Event cuts for Relative X & Y
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
 
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
@@ -150,7 +150,7 @@ Bool_t QwBPMStripline::ApplySingleEventCuts()
     fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
   }
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -310,7 +310,7 @@ void  QwBPMStripline::ProcessEvent()
  
   */
 
-  for(i=0;i<2;i++)
+  for(i=kXAxis;i<kNumAxes;i++)
     {
       fWire[i*2+1].Scale(fRelativeGains[i]);
       numer.Difference(fWire[i*2],fWire[i*2+1]);
@@ -334,7 +334,7 @@ void  QwBPMStripline::ProcessEvent()
 //   std::cout<<" \nstripline name="<<fElementName<<std::endl;
 //   std::cout<<" Rotation = "<<fRotationAngle<<std::endl;
 
-  for(i=0;i<2;i++){ 
+  for(i=kXAxis;i<kNumAxes;i++){ 
     //std::cout<<" hw  before RelPos["<<i<<"]="<<fRelPos[i].GetHardwareSum()<<"  ";
     tmp1.ClearEventData();
     tmp2.ClearEventData();
@@ -353,15 +353,15 @@ void  QwBPMStripline::ProcessEvent()
   fRelPos[1]=tmppos[1];
 
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     fAbsPos[i]= fRelPos[i];
     fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
 
     if(localdebug)
       {
-	std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n";
-	std::cout<<" hw  fOffset["<<axis[i]<<"]="<<fPositionCenter[i]<<"\n";
-	std::cout<<" hw  fAbsPos["<<axis[i]<<"]="<<fAbsPos[i].GetHardwareSum()<<"\n \n";
+	std::cout<<" hw  fRelPos["<<kAxisLabel[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n";
+	std::cout<<" hw  fOffset["<<kAxisLabel[i]<<"]="<<fPositionCenter[i]<<"\n";
+	std::cout<<" hw  fAbsPos["<<kAxisLabel[i]<<"]="<<fAbsPos[i].GetHardwareSum()<<"\n \n";
       }
     
   }
@@ -434,7 +434,7 @@ UInt_t QwBPMStripline::GetSubElementIndex(TString subname)
 
 void  QwBPMStripline::GetAbsolutePosition()
 {
-  for(Short_t i=0;i<2;i++){
+  for(Short_t i=kXAxis;i<kNumAxes;i++){
     fAbsPos[i]= fRelPos[i];
     fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
   }
@@ -452,7 +452,7 @@ QwBPMStripline& QwBPMStripline::operator= (const QwBPMStripline &value)
     Short_t i = 0;
     this->fEffectiveCharge=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fWire[i]=value.fWire[i];
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       this->fRelPos[i]=value.fRelPos[i];
       this->fAbsPos[i]=value.fAbsPos[i];
     }
@@ -468,7 +468,7 @@ QwBPMStripline& QwBPMStripline::operator+= (const QwBPMStripline &value)
     Short_t i = 0;
     this->fEffectiveCharge+=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fWire[i]+=value.fWire[i];
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       this->fRelPos[i]+=value.fRelPos[i];
       this->fAbsPos[i]+=value.fAbsPos[i];
     }
@@ -483,7 +483,7 @@ QwBPMStripline& QwBPMStripline::operator-= (const QwBPMStripline &value)
     Short_t i = 0;
     this->fEffectiveCharge-=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fWire[i]-=value.fWire[i];
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       this->fRelPos[i]-=value.fRelPos[i];
       this->fAbsPos[i]-=value.fAbsPos[i];
     }
@@ -510,7 +510,7 @@ void QwBPMStripline::Scale(Double_t factor)
   fEffectiveCharge.Scale(factor);
 
   for(i=0;i<4;i++) fWire[i].Scale(factor);
-  for(Short_t i=0;i<2;i++){
+  for(Short_t i=kXAxis;i<kNumAxes;i++){
     fRelPos[i].Scale(factor);
     fAbsPos[i].Scale(factor);
   }
@@ -554,7 +554,7 @@ void  QwBPMStripline::ConstructHistograms(TDirectory *folder, TString &prefix)
     if(bFullSave) {
       for(i=0;i<4;i++) fWire[i].ConstructHistograms(folder, thisprefix);
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fRelPos[i].ConstructHistograms(folder, thisprefix);
       fAbsPos[i].ConstructHistograms(folder, thisprefix);
     }
@@ -573,7 +573,7 @@ void  QwBPMStripline::FillHistograms()
     if(bFullSave) {
       for(i=0;i<4;i++) fWire[i].FillHistograms();
     }
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       fRelPos[i].FillHistograms();
       fAbsPos[i].FillHistograms();
     }
@@ -592,7 +592,7 @@ void  QwBPMStripline::DeleteHistograms()
     if(bFullSave) {
       for(i=0;i<4;i++) fWire[i].DeleteHistograms();
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fRelPos[i].DeleteHistograms();
       fAbsPos[i].DeleteHistograms();
     }
@@ -618,7 +618,7 @@ void  QwBPMStripline::ConstructBranchAndVector(TTree *tree, TString &prefix, std
     if(bFullSave) {
       for(i=0;i<4;i++) fWire[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
       fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
     }
@@ -644,7 +644,7 @@ void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix)
     if(bFullSave) {
       for(i=0;i<4;i++) fWire[i].ConstructBranch(tree,thisprefix);
     }
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       fRelPos[i].ConstructBranch(tree,thisprefix);
       fAbsPos[i].ConstructBranch(tree,thisprefix);
     }
@@ -684,7 +684,7 @@ void  QwBPMStripline::ConstructBranch(TTree *tree, TString &prefix, QwParameterF
 	if(bFullSave) {
 	  for(i=0;i<4;i++) fWire[i].ConstructBranch(tree,thisprefix);
 	}
-	for(i=0;i<2;i++) {
+	for(i=kXAxis;i<kNumAxes;i++) {
 	  fRelPos[i].ConstructBranch(tree,thisprefix);
 	  fAbsPos[i].ConstructBranch(tree,thisprefix);
 	}
@@ -712,7 +712,7 @@ void  QwBPMStripline::FillTreeVector(std::vector<Double_t> &values) const
     if(bFullSave) {
       for(i=0;i<4;i++) fWire[i].FillTreeVector(values);
     }
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       fRelPos[i].FillTreeVector(values);
       fAbsPos[i].FillTreeVector(values);
     }
@@ -759,7 +759,7 @@ void QwBPMStripline::SetEventCutMode(Int_t bcuts)
   Short_t i = 0;
   bEVENTCUTMODE=bcuts;
   for (i=0;i<4;i++) fWire[i].SetEventCutMode(bcuts);
-  for (i=0;i<2;i++) {
+  for (i=kXAxis;i<kNumAxes;i++) {
     fRelPos[i].SetEventCutMode(bcuts);
     fAbsPos[i].SetEventCutMode(bcuts);
   }
@@ -773,7 +773,7 @@ void QwBPMStripline::MakeBPMList()
 
   QwVQWK_Channel bpm_sub_element;
 
-  for(i=0;i<2;i++) {
+  for(i=kXAxis;i<kNumAxes;i++) {
     bpm_sub_element.ClearEventData();
     bpm_sub_element.Copy(&fRelPos[i]);
     bpm_sub_element = fRelPos[i];

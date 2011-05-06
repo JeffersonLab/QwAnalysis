@@ -28,8 +28,8 @@ void  QwBPMCavity::InitializeChannel(TString name)
 
   VQwBPM::InitializeChannel(name);
 
-  for(i=0;i<2;i++)
-    fAbsPos[i].InitializeChannel(name+"Abs"+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++)
+    fAbsPos[i].InitializeChannel(name+"Abs"+kAxisLabel[i],"derived");
 
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","raw");
 
@@ -39,7 +39,7 @@ void  QwBPMCavity::InitializeChannel(TString name)
       std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
   }
 
-  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+subelement[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].InitializeChannel(name+"Rel"+subelement[i],"derived");
 
   bFullSave=kTRUE;
 
@@ -53,8 +53,8 @@ void  QwBPMCavity::InitializeChannel(TString subsystem, TString name)
   
   VQwBPM::InitializeChannel(name);
   
-  for(i=0;i<2;i++)
-    fAbsPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Abs"+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++)
+    fAbsPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Abs"+kAxisLabel[i],"derived");
   
   fEffectiveCharge.InitializeChannel(subsystem, "QwBPMCavity", name+"_EffectiveCharge","raw");
   
@@ -64,7 +64,7 @@ void  QwBPMCavity::InitializeChannel(TString subsystem, TString name)
       std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
   }
   
-  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Rel"+subelement[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Rel"+subelement[i],"derived");
   
   bFullSave=kTRUE;
   
@@ -139,7 +139,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
     //Get the Event cut error flag for RelX/Y
     fErrorFlag |=fWire[i].GetEventcutErrorFlag();
   }
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -152,7 +152,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
     fErrorFlag |=fRelPos[i].GetEventcutErrorFlag();
   }
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -259,7 +259,7 @@ void  QwBPMCavity::ProcessEvent()
     fWire[i].PrintInfo();
   }
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     fRelPos[i]= fWire[i];
     fRelPos[i].Scale(kQwCavityCalibration);
     fAbsPos[i]= fRelPos[i];
@@ -458,7 +458,7 @@ void  QwBPMCavity::ConstructHistograms(TDirectory *folder, TString &prefix)
       thisprefix="diff_";
     SetRootSaveStatus(prefix);
     Short_t i = 0;
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       if(bFullSave) fWire[i].ConstructHistograms(folder, thisprefix);
       fRelPos[i].ConstructHistograms(folder, thisprefix);
       fAbsPos[i].ConstructHistograms(folder, thisprefix);
@@ -475,7 +475,7 @@ void  QwBPMCavity::FillHistograms()
   else {
     fEffectiveCharge.FillHistograms();
     Short_t i = 0;
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       if (bFullSave) fWire[i].FillHistograms();
       fRelPos[i].FillHistograms();
       fAbsPos[i].FillHistograms();
@@ -492,7 +492,7 @@ void  QwBPMCavity::DeleteHistograms()
   else {
     fEffectiveCharge.DeleteHistograms();
     Short_t i = 0;
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       if (bFullSave)  fWire[i].DeleteHistograms();
       fRelPos[i].DeleteHistograms();
       fAbsPos[i].DeleteHistograms();
@@ -516,7 +516,7 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 
     fEffectiveCharge.ConstructBranchAndVector(tree,prefix,values);
     Short_t i = 0;
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       if (bFullSave) fWire[i].ConstructBranchAndVector(tree,thisprefix,values);
       fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
       fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
@@ -540,7 +540,7 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 
      fEffectiveCharge.ConstructBranch(tree,prefix);
      Short_t i = 0;
-     for(i=0;i<2;i++) {
+     for(i=kXAxis;i<kNumAxes;i++) {
        if (bFullSave) fWire[i].ConstructBranch(tree,thisprefix);
        fRelPos[i].ConstructBranch(tree,thisprefix);
        fAbsPos[i].ConstructBranch(tree,thisprefix);
@@ -578,7 +578,7 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 
        fEffectiveCharge.ConstructBranch(tree,prefix);
        Short_t i = 0;
-       for(i=0;i<2;i++) {
+       for(i=kXAxis;i<kNumAxes;i++) {
 	 if (bFullSave) fWire[i].ConstructBranch(tree,thisprefix);
 	 fRelPos[i].ConstructBranch(tree,thisprefix);
          fAbsPos[i].ConstructBranch(tree,thisprefix);
@@ -605,7 +605,7 @@ void  QwBPMCavity::FillTreeVector(std::vector<Double_t> &values) const
   else {
     fEffectiveCharge.FillTreeVector(values);
     Short_t i = 0;
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       if (bFullSave) fWire[i].FillTreeVector(values);
       fRelPos[i].FillTreeVector(values);
       fAbsPos[i].FillTreeVector(values);
@@ -667,7 +667,7 @@ void QwBPMCavity::MakeBPMCavityList()
 
   QwVQWK_Channel bpm_sub_element;
 
-  for(i=0;i<2;i++) {
+  for(i=kXAxis;i<kNumAxes;i++) {
     bpm_sub_element.ClearEventData();
     bpm_sub_element.Copy(&fRelPos[i]);
     bpm_sub_element = fRelPos[i];
