@@ -844,8 +844,8 @@ myevio_lib:
 
 .auxExeFiles:
 	@$(ECHO) Generating $@
-	$(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;\@/\.svn/@d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'
-	$(ECHO) $(filter $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;\@/\.svn/@d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'),$(EXES)) > $@
+#	$(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;\@/\.svn/@d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'
+	@$(ECHO) $(filter $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;\@/\.svn/@d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'),$(EXES)) > $@
 
 
 .ADD:
@@ -869,9 +869,9 @@ QwSVNVersion:
 	@if [ "$(QWANA_SVN_REVISION)" != "$(QWANA_SVN_REVISION_OLD)" ] ; \
 	then \
 		$(ECHO) "Generating $(QWANA_VERSION_H) with revision string, $(QWANA_SVN_REVISION)" ; \
-		$(ECHO) 'const char *QWANA_SVN_REVISION = "'$(QWANA_SVN_REVISION)'";' > $(QWANA_VERSION_H); \
-		$(ECHO) 'const char *QWANA_SVN_URL = "'$(QWANA_SVN_URL)'";' >> $(QWANA_VERSION_H); \
-		$(ECHO) 'const char *QWANA_SVN_LASTCHANGEDREVISION = "'$(QWANA_SVN_LASTREVISION)'";' >> $(QWANA_VERSION_H); \
+		$(ECHO) '#define QWANA_SVN_REVISION "'$(QWANA_SVN_REVISION)'"' > $(QWANA_VERSION_H); \
+		$(ECHO) '#define QWANA_SVN_URL "'$(QWANA_SVN_URL)'"' >> $(QWANA_VERSION_H); \
+		$(ECHO) '#define QWANA_SVN_LASTCHANGEDREVISION "'$(QWANA_SVN_LASTREVISION)'"' >> $(QWANA_VERSION_H); \
 	else \
 		$(ECHO) "\`$(QWANA_VERSION_H)' is up to date"; \
 	fi;

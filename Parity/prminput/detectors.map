@@ -31,3 +31,5 @@
 [QwBeamMod]
  name = BeamMod
  map  = qweak_modulation.map
+ eventcut = qweak_bmod_eventcuts.in
+

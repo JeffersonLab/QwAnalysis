@@ -22,12 +22,13 @@ sample_size=464
 !**************************************************************************
 ! HALL C BEAMLINE SCALERS
 !**************************************************************************
+ROC=0
 Bank=0x6103
 !
 !! scaler.type, scaler.num  word.num, det.type, det.name
 
    SCALER, 0, 22, halomonitor, sca_habcm
-
+   SCALER, 0, 30, halomonitor, sca_4MHz
 
 
 ! Enter the device names in order they appear in the beamline.
@@ -55,7 +56,7 @@ end=combinedbcm
 !	comboenergy
 !       scaler
 !3. device name 
-!4. property to publish
+!4. property to publish 
 !	x-pos
 !	xp-angle
 !	y-pos

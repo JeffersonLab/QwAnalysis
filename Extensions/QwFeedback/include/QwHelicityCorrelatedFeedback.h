@@ -78,7 +78,7 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     timeinfo = localtime ( &rawtime );
 
     IHWP_State = fopen("/local/scratch/qweak/Feedback_IHWP.txt", "r");//Open in read mode
-    
+
     out_file_IA = fopen("/local/scratch/qweak/Feedback_IA_log.txt", "a");
     //out_file_IA = fopen("/dev/shm/Feedback_IA_log.txt", "a");    
     fprintf(out_file_IA,"%22s \n",asctime (timeinfo));
@@ -98,8 +98,8 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
 
     fprintf(out_file_HA_IA,"%22s \n",asctime (timeinfo));
     fprintf(out_file_HA_IA,
-	    "%10s %22s +- %16s %16s %26s %26s \n",
-	    "Pat num.", "Charge Asym[mode] (ppm)", "Asym Error", "Correction",
+	    "%10s %22s  %16s %16s %26s %23s \n",
+	    "Pat num.", "Charge Asym(ppm)", "Asym Error", "Correction",
 	    "New IA Setpoint", "Old IA Setpoint");
     fclose(out_file_HA_IA);
   
@@ -243,7 +243,9 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     Double_t fHAChargeAsymWidth[kHelModes];//Hall A current charge asym width
 
     Int_t fAccumulatePatternMax; //upper limit to the patterns before the feedback triiger;
+    Int_t fHAAccumulatePatternMax; //upper limit to the patterns before the HA IA feedback triiger;
     Double_t  fChargeAsymPrecision; //Charge asymmetry precision in ppm
+
 
     //Keep a record of optimal values for IA, PC POS and NEG
     Double_t fOptimalIA;
@@ -329,6 +331,10 @@ class QwHelicityCorrelatedFeedback : public QwHelicityPattern {
     FILE *out_file_IA;
     FILE *IHWP_State;
     FILE *out_file_HA_IA;
+    FILE *out_file_PC_IN_pos;
+    FILE *out_file_PC_IN_neg;
+    FILE *out_file_PC_OUT_pos;
+    FILE *out_file_PC_OUT_neg;
 
     Bool_t fHalfWaveIN;
     Bool_t fHalfWaveOUT;

@@ -34,7 +34,7 @@ std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;// for epics
  * mysqlpp::Connection() object that has exception throwing disabled.
  */
 //QwDatabase::QwDatabase() : Connection(false)
-QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("01"), kValidVersionPoint("0000")
+QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("02"), kValidVersionPoint("0000")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -55,7 +55,7 @@ QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersion
  *  the QwOptions object.
  * @param options  The QwOptions object.
  */
-QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("01"), kValidVersionPoint("0000")
+QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("02"), kValidVersionPoint("0000")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -154,9 +154,10 @@ Bool_t QwDatabase::ValidateConnection()
   }
 
   // Check to make sure database and QwDatabase schema versions match up.
-  if (fVersionMajor != kValidVersionMajor ||
+  if (fAccessLevel==kQwDatabaseReadWrite && 
+      (fVersionMajor != kValidVersionMajor ||
       fVersionMinor != kValidVersionMinor ||
-      fVersionPoint < kValidVersionPoint) {
+      fVersionPoint < kValidVersionPoint)) {
     fValidConnection = false;
     QwError << "QwDatabase::ValidConnection() : Connected database schema inconsistent with current version of analyzer." << QwLog::endl;
     QwError << "  Database version is " << this->GetVersion() << QwLog::endl;

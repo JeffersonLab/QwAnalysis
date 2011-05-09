@@ -28,17 +28,21 @@
 RegisterSubsystemFactory(QwComptonPhotonDetector);
 
 
-/**
- * Load the channel map
- * @param mapfile Map file
- * @return Zero if successful
- */
+void QwComptonPhotonDetector::DefineOptions(QwOptions &options)
+{
+  // Define command line options
+}
 
 void QwComptonPhotonDetector::ProcessOptions(QwOptions &options)
 {
   // Handle command line options
 }
 
+/**
+ * Load the channel map
+ * @param mapfile Map file
+ * @return Zero if successful
+ */
 Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 {
   Int_t subbank = -1; // subbank index
@@ -47,7 +51,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment();      // Remove everything after a comment character
     mapstr.TrimWhitespace();   // Get rid of leading and trailing whitespace
@@ -74,6 +78,8 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
       UInt_t channum  = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
       TString dettype = mapstr.GetNextToken().c_str();
       TString name    = mapstr.GetNextToken().c_str();
+      modtype.ToUpper();
+      dettype.ToUpper();
 
       //  Push a new record into the element array
       if (modtype == "SIS3320") {
@@ -214,7 +220,7 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
 {
   // Open the file
   QwParameterFile mapstr(pedestalfile.Data());
-  Bool_t found = kFALSE;
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment();    // Remove everything after a comment character
     mapstr.TrimWhitespace(); // Get rid of leading and trailing spaces
@@ -230,8 +236,10 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
       varname.Remove(TString::kBoth,' ');
       varped = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
       varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+      QwVerbose << varname << ": " << QwLog::endl;
     }
 
+    Bool_t found = kFALSE;
     for (size_t i = 0; i < fSamplingADC.size() && !found; i++) {
       TString localname = fSamplingADC[i].GetElementName();
       localname.ToLower();
@@ -242,7 +250,7 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
       }
     } // end of loop over all sampling ADC channels
 
-
+    found = kFALSE;
     for (size_t i = 0; i < fScaler.size() && !found; i++) {
       TString localname = fScaler[i]->GetElementName();
       localname.ToLower();
@@ -981,7 +989,7 @@ void  QwComptonPhotonDetector::PrintInfo() const
 }
 
 /**
- * Make a copy of this photon detector, including all its subcomponents
+ * Make a copy of this subsystem, including all its subcomponents
  * @param source Original version
  */
 void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
@@ -1003,7 +1011,7 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
       //for (size_t i = 0; i < this->fMultiQDC_Channel.size(); i++)
       //  this->fMultiQDC_Channel[i].Copy(&(input->fMultiQDC_Channel[i]));
 
-      this->fScaler.resize(input->fScaler.size());
+      this->fScaler.resize(input->fScaler.size()); // TODO potential leak of pointers
       for (size_t i = 0; i < this->fScaler.size(); i++) {
         VQwScaler_Channel* scaler = 0;
         if ((scaler = dynamic_cast<QwSIS3801D24_Channel*>(input->fScaler[i]))) {
@@ -1028,8 +1036,8 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
 
 
 /**
- * Make a copy of this photon detector
- * @return Copy of this photon detector
+ * Make a copy of this subsystem
+ * @return Copy of this subsystem
  */
 VQwSubsystem*  QwComptonPhotonDetector::Copy()
 {

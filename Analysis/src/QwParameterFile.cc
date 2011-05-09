@@ -138,6 +138,7 @@ QwParameterFile::QwParameterFile(const std::string& name)
       QwError << "Could not find any parameter file with name " << name << ". "
               << "Parameter file will remain empty." << QwLog::endl;
       SetEOF();
+      exit(-1);
       return;
     }
 
@@ -146,6 +147,7 @@ QwParameterFile::QwParameterFile(const std::string& name)
       QwError << "Could not open parameter file " << best_path.string() << ". "
               << "Parameter file will remain empty." << QwLog::endl;
       SetEOF();
+      exit(-1);
       return;
     }
   }
@@ -254,11 +256,26 @@ int QwParameterFile::FindFile(
     size_t pos_ext = file_name.rfind(file_ext);
     if (pos_ext != file_name.length() - file_ext.length()) continue;
 
+    // Scores (from low to high)
+    const int score_no_run_label = 1;
+    // Open run range:
+    // score increments each time a higher-starting range is found
+    // difference between min and max gives maximum number of open ranges
+    const int score_open_ended_run_range_min = 1000;
+    const int score_open_ended_run_range_max = 9000;
+    // Close run range:
+    // score decremented from max by size of run range, small range -> high score
+    // difference between min and max gives maximum number of runs in closed range
+    const int score_closed_run_range_min = 10000;
+    const int score_closed_run_range_max = 90000;
+    // Single run label will always have maximum score
+    const int score_single_run_label = INT_MAX;
+
     // Determine run label length
     size_t label_length = pos_ext - file_stem.length();
     // no run label
     if (label_length == 0) {
-      score = 10;
+      score = score_no_run_label;
     } else {
       // run label starts after dot ('.') and that dot is included in the label length
       if (file_name.at(pos_stem + file_stem.length()) == '.') {
@@ -266,22 +283,34 @@ int QwParameterFile::FindFile(
         std::pair<int,int> range = ParseIntRange("-",label);
         int run = fCurrentRunNumber;
         if ((range.first <= run) && (run <= range.second)) {
+
           // run is in single-value range
           if (range.first == range.second) {
-            score = 1000;
+            score = score_single_run_label;
+
           // run is in double-value range
           } else if (range.second < INT_MAX) {
-            int number_of_runs = range.second - range.first;
-            score = 1000 - ((number_of_runs < 900) ? number_of_runs : 900);
+            int number_of_runs = abs(range.second - range.first);
+            score = score_closed_run_range_max - number_of_runs;
+            if (score < score_closed_run_range_min) {
+              score = score_closed_run_range_min;
+              QwError << "Too many runs in closed run range for " << file_stem << QwLog::endl;
+              QwWarning << "Range is from " << range.first << " to " << range.second << QwLog::endl;
+            }
+
           // run is in open-ended range
           } else if (range.second == INT_MAX) {
             // each matching open-ended range
             if (range.first > open_ended_latest_start) {
               open_ended_latest_start = range.first;
               open_ended_range_score++;
-              score = 10 + open_ended_range_score;
-              // 90 open-ended range files should be enough for anyone ;-)
-            } else score = 10;
+              score = score_open_ended_run_range_min + open_ended_range_score;
+              if (score > score_open_ended_run_range_max) {
+                score = score_open_ended_run_range_max;
+                QwError << "Too many open ended run ranges for " << file_stem << QwLog::endl;
+              }
+
+            } else score = score_open_ended_run_range_min;
           }
         } else
           // run not in range

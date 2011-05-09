@@ -355,6 +355,8 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     // @}
 
     void AddBridgingResult(double*);
+
+    void AddBridgingResult(QwTrack*);
     
     //! \brief Print the event
     void Print(Option_t* option = "") const;

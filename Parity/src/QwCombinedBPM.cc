@@ -140,11 +140,27 @@ Int_t QwCombinedBPM::GetEventcutErrorCounters()
 Bool_t QwCombinedBPM::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
-  Int_t i=0;
+  Int_t axis=0;
   fErrorFlag=0;
+  UInt_t charge_error;
+  UInt_t pos_error[2];
+  charge_error = 0;
+  pos_error[kXAxis]=0;
+  pos_error[kYAxis]=0;
+  for(size_t i=0;i<fElement.size();i++){
+    ///  TODO:  The returned base class should be changed so
+    ///         these casts aren't needed, but "GetErrorCode"
+    ///         is not meaningful for every VQwDataElement.
+    ///         Maybe the return should be a VQwHardwareChannel?
+    charge_error      |= static_cast<const QwVQWK_Channel*>(fElement[i]->GetEffectiveCharge())->GetErrorCode();
+    pos_error[kXAxis] |= static_cast<const QwVQWK_Channel*>(fElement[i]->GetPosition(kXAxis))->GetErrorCode();
+    pos_error[kYAxis] |= static_cast<const QwVQWK_Channel*>(fElement[i]->GetPosition(kYAxis))->GetErrorCode();
+  }
+
   //Event cuts for  X & Y slopes
-  for(i=kXAxis;i<kNumAxes;i++){
-    if (fSlope[i].ApplySingleEventCuts()){ //for X slope
+  for(axis=kXAxis;axis<kNumAxes;axis++){
+    fSlope[axis].UpdateErrorCode(pos_error[axis]);
+    if (fSlope[axis].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
     else{
@@ -152,12 +168,13 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
       if (bDEBUG) std::cout<<" X Slope event cut failed ";
     }
     //Get the Event cut error flag for SlopeX/Y
-    fErrorFlag|=fSlope[i].GetEventcutErrorFlag();
+    fErrorFlag|=fSlope[axis].GetEventcutErrorFlag();
   }
 
   //Event cuts for  X & Y intercepts
-  for(i=kXAxis;i<kNumAxes;i++){
-    if (fIntercept[i].ApplySingleEventCuts()){ //for X slope
+  for(axis=kXAxis;axis<kNumAxes;axis++){
+    fIntercept[axis].UpdateErrorCode(pos_error[axis]);
+    if (fIntercept[axis].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
     else{
@@ -165,11 +182,12 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
       if (bDEBUG) std::cout<<" X Intercept event cut failed ";
     }
     //Get the Event cut error flag for SlopeX/Y
-    fErrorFlag|=fIntercept[i].GetEventcutErrorFlag();
+    fErrorFlag|=fIntercept[axis].GetEventcutErrorFlag();
   }
 
-  for(i=kXAxis;i<kNumAxes;i++){
-    if (fAbsPos[i].ApplySingleEventCuts()){ 
+  for(axis=kXAxis;axis<kNumAxes;axis++){
+    fAbsPos[axis].UpdateErrorCode(pos_error[axis]);
+    if (fAbsPos[axis].ApplySingleEventCuts()){ 
       status&=kTRUE;
     }
     else{
@@ -177,12 +195,13 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
       if (bDEBUG) std::cout<<" Abs X event cut failed ";
     }
     //Get the Event cut error flag for AbsX/Y
-    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
+    fErrorFlag|=fAbsPos[axis].GetEventcutErrorFlag();
     //if (fAbsPos[i].GetElementName()=="qwk_targetX")
     //std::cout<<" Abs X event cut "<<fAbsPos[i].GetEventcutErrorFlag()<<std::endl;
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
+  fEffectiveCharge.UpdateErrorCode(charge_error);
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }

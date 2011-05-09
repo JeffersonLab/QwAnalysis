@@ -38,7 +38,7 @@ class QwBeamDetectorID;
 class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  public:
 
-  QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
+  QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),index_4mhz(-1)
     { };
 
   ~QwBeamLine() {
@@ -149,6 +149,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  Double_t fSumQweights;
 
 
+ Int_t index_4mhz;//index of the 4mhz scaler in the QwHaloMonitor vector
  static const Bool_t bDEBUG=kFALSE;
 
 };

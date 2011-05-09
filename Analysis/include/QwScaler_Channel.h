@@ -33,6 +33,7 @@ public:
   using VQwDataElement::GetValue;
   using VQwDataElement::GetValueM2;
   using VQwDataElement::GetValueError;
+  using VQwDataElement::GetValueWidth;
 
 
 public:
@@ -57,7 +58,13 @@ public:
 	      << std::endl;
   }
 
-  void     SetPedestal(Double_t ped) { fPedestal = ped; };
+  UInt_t GetErrorCode() const {return fDeviceErrorCode;};
+  void UpdateErrorCode(const UInt_t& errorcode){fDeviceErrorCode |= errorcode;};
+
+  void     SetPedestal(Double_t ped) { 
+    fPedestal = ped; 
+    //std::cout<<" I found it !  ped. "<<GetElementName()<<" "<<fPedestal<<"\n";
+  };
   Double_t GetPedestal() const       { return fPedestal; };
   void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; };
   Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
@@ -85,7 +92,12 @@ public:
   Double_t GetValue(size_t element) const      { return fValue; };
   Double_t GetValueM2(size_t element) const    { return fValueM2; };
   Double_t GetValueError(size_t element) const { return fValueError; };
-
+  Double_t GetValueWidth(size_t element) const { 
+    if (fGoodEventCount>0){
+      return (fValueError*sqrt(fGoodEventCount)); 
+    }
+    return 0.0;
+  };
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
   VQwDataElement& operator=  (const VQwDataElement &data_value);
@@ -96,6 +108,8 @@ public:
   void Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
+  void ScaleRawRate(Double_t Offset);
+  void Normalize(const VQwScaler_Channel &norm);
 
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
@@ -103,13 +117,20 @@ public:
     bEVENTCUTMODE=bcuts;
   }
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
+
   //set the upper and lower limits (fULimit and fLLimit) set on this channel
   void SetSingleEventCuts(Double_t min, Double_t max);
+
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits
    *  (fULimit and fLLimit), stability % and the error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
-  // report number of events falied due to HW and event cut failure
+
+  /// report number of events falied due to HW and event cut failure
   Int_t GetEventcutErrorCounters();
+
+  UInt_t GetDeviceErrorCode(){//return the device error code
+    return fDeviceErrorCode;
+  };
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -146,13 +167,11 @@ protected:
   Int_t fNumEvtsWithHWErrors;//counts the HW falied events
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
 
-  Int_t fDeviceErrorCode;
+  UInt_t fDeviceErrorCode; ///< Unique error code for HW failed beam line devices
 
   Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
   Double_t fULimit, fLLimit;//this sets the upper and lower limits
   Double_t fStability;//how much deviaton from the stable reading is allowed
-
-
 };
 
 

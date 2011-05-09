@@ -284,19 +284,21 @@ Int_t VQwSubsystem::RegisterROCNumber(const UInt_t roc_id, const UInt_t bank_id)
 
   //will return the vector index for this roc_id on the vector fROC_IDs
   if (roc_index==-1){
-    fROC_IDs.push_back(roc_id);//new ROC number is added.
+    fROC_IDs.push_back(roc_id); // new ROC number is added.
     roc_index = (fROC_IDs.size() - 1);
     std::vector<UInt_t> tmpvec(1,bank_id);
     fBank_IDs.push_back(tmpvec);
   } else {
     Int_t bank_index = FindIndex(fBank_IDs[roc_index],bank_id);
-    if (bank_index==-1){//if the bank_id is not registered then register it.
+    if (bank_index==-1) { // if the bank_id is not registered then register it.
       fBank_IDs[roc_index].push_back(bank_id);
     } else {
       //  This subbank in this ROC has already been registered!
-      std::cerr << "VQwSubsystem::RegisterROCNumber:  This subbank ("
-		<< bank_id << ") in this ROC (" << roc_id
-		<< ") has already been registered!\n";
+      QwError << std::hex << "VQwSubsystem::RegisterROCNumber:  "
+              << "This subbank (0x" << bank_id << ") "
+              << "in this ROC (0x" << roc_id << ") "
+              << "has already been registered!"
+              << std::dec << QwLog::endl;
       stat = ERROR;
     }
   }
@@ -318,9 +320,11 @@ Int_t VQwSubsystem::RegisterSubbank(const UInt_t bank_id)
     fCurrentBank_ID   = bank_id;
   } else {
     //  There is not a ROC registered yet!
-    std::cerr << "VQwSubsystem::RegisterSubbank:  This subbank ("
-	      << bank_id << ") does not have an associated ROC!  "
-	      << "Add a 'ROC=#' line to the map file.\n";
+    QwError << std::hex << "VQwSubsystem::RegisterSubbank:  "
+            << "This subbank (" << bank_id << ") "
+            << "does not have an associated ROC!  "
+            << "Add a 'ROC=#' line to the map file."
+            << std::dec << QwLog::endl;
     stat = ERROR;
     fCurrentROC_ID  = -1;
     fCurrentBank_ID = -1;

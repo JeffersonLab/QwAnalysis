@@ -146,7 +146,7 @@ Bank=0x6110
    VQWK, 0, 1,  bcm,  QWK_INVERT_TStable
    VQWK, 0, 2,  bcm,  QWK_RASTER_X
    VQWK, 0, 3,  bcm,  QWK_RASTER_Y
-   VQWK, 0, 5,  bcm,  QWK_RASTER_XYSUM
+   VQWK, 0, 5,  bcm,  QWK_RASTER_SUMXY
 	
 !These are cavity BPM1 signals (IPM3H04)
    VQWK, 1, 0,  bcm,  QWK_BCM5_Ix
@@ -235,9 +235,9 @@ end=combinedbpm
 begin=energycalculator
 name=qwk_energy
 ! name      type 	  ratios property  
-  qwk_target, combinedbpm,  1.5, beamposition 	  
-  qwk_target, combinedbpm, -2.4, targetbeamangle
-  qwk_target, combinedbpm, -0.6, targetbeamposition
+ qwk_bpm3c12, bpmstripline,  0.00024, beamposition 
+ qwk_target,  combinedbpm,  -0.00017, targetbeamposition	  
+ qwk_target,  combinedbpm,   2.6, targetbeamangle
 end=energycalculator
 
 ! CHECK THE SIGNS OF THE MATRIX ELEMENT RATIOS!. Since M11 and M12 are

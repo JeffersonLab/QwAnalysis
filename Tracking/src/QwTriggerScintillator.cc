@@ -43,7 +43,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
   TString varname, varvalue,package, direction, dType;
   Int_t  plane, TotalWires, detectorId, region, DIRMODE;
   Double_t Zpos,rot,sp_res,track_res,slope_match,Det_originX,Det_originY,
-    ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
+    ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
 
   fDetectorInfo.clear();
 
@@ -86,6 +86,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
       FirstWire = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       W_rcos = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       W_rsin = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
+      tilt = ( atof ( mapstr.GetNextToken ( ", " ).c_str() ) );
       TotalWires = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
       detectorId = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
       //std::cout<<"Detector ID "<<detectorId<<" "<<varvalue<<" Package "<<package<<" Plane "<<Zpos<<" Region "<<region<<std::endl;
@@ -98,7 +99,7 @@ Int_t QwTriggerScintillator::LoadGeometryDefinition ( TString mapfile )
             Det_originX, Det_originY,
             ActiveWidthX, ActiveWidthY, ActiveWidthZ,
             WireSpace, FirstWire,
-            W_rcos, W_rsin,
+	    W_rcos, W_rsin, tilt,
             TotalWires,
             detectorId);
         fDetectorInfo.push_back(detector);
@@ -262,7 +263,7 @@ Int_t QwTriggerScintillator::ProcessConfigurationBuffer(const UInt_t roc_id, con
     UInt_t slot_id      = 0;
     UInt_t vme_slot_num = 0;
 
-    Bool_t local_debug  = false;
+    Bool_t local_debug  = true;
 
     QwF1TDC *local_f1tdc = NULL;
    
@@ -443,7 +444,10 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
   }
 
   else if (bank_id==fBankID[2]) { // F1TDC
+   // reset the refrence time 
+    reftime = 0.0;
 
+    Bool_t local_debug_f1 = false;
 
     Int_t  bank_index      = 0;
     Int_t  tdc_slot_number = 0;
@@ -520,8 +524,14 @@ Int_t QwTriggerScintillator::ProcessEvBuffer(const UInt_t roc_id, const UInt_t b
 		  tdc_data = fF1TDCDecoder.GetTDCData();
 		  FillRawWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
 		  //		  Check if this is reference time data
-		  if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
-		    reftime = fF1TDCDecoder.GetTDCData();
+		  if ( IsF1ReferenceChannel(tdc_slot_number,tdc_chan_number) ) {
+		    reftime = (Double_t) tdc_data;
+		  }
+		  if(local_debug_f1) {
+		    printf("TS::ProcessEvBuffer: bank_index %2d slot_number [%2d,%2d] chan [%2d,%2d] data %10d %10.2f\n",
+			   bank_index, tdc_slot_number, reftime_slotnum, tdc_chan_number, reftime_channum,tdc_data, reftime);
+		  }
+
 		  tmp_last_chan = tdc_chan_number;
 		}
 	    }
@@ -611,35 +621,43 @@ void  QwTriggerScintillator::ProcessEvent()
 
   TString elementname = "";
   Double_t rawtime = 0.0;
-  Double_t newdata = 0.0;
+  Double_t corrected_time = 0.0;
 
-  for (size_t i=0; i<fPMTs.size(); i++) {
-    for (size_t j=0; j<fPMTs.at(i).size(); j++) {
-      fPMTs.at(i).at(j).ProcessEvent();
-      elementname = fPMTs.at(i).at(j).GetElementName();
-      rawtime = fPMTs.at(i).at(j).GetValue();
-      // Check if this is an f1 channel and only subtract reftime if channel value is nonzero
-      if (elementname.EndsWith("f1") && rawtime!=0) {
-	Int_t bank_index = fPMTs.at(i).at(j).GetSubbankID();
-	Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
-	newdata = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
-	//        newdata = fF1TDCDecoder.ActualTimeDifference(rawtime, reftime);
-	//std::cout << "element name " << elementname
-	// 	  << " rawdata " << rawtime
-	//   	  << " reftime " << reftime
-	//   	  << " newdata " << newdata
-	//   	  << std::endl;
-        fPMTs.at(i).at(j).SetValue(newdata);
+  for (size_t i=0; i<fPMTs.size(); i++) 
+    {
+      for (size_t j=0; j<fPMTs.at(i).size(); j++) 
+	{
+	  fPMTs.at(i).at(j).ProcessEvent();
+	  elementname = fPMTs.at(i).at(j).GetElementName();
+	  rawtime = fPMTs.at(i).at(j).GetValue();
+	  // Check if this is an f1 channel and only subtract reftime if channel value is nonzero
+	  if (elementname.EndsWith("f1") && rawtime!=0.0) {
+	    if( not elementname.Contains("reftime") ) {
+	      Int_t bank_index = fPMTs.at(i).at(j).GetSubbankID();
+	      Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
+	      // if   there is a reftime, then correct a raw time.
+	      // if not, remove this raw time from data (set to zero)
+	      if ( reftime != 0.0) {
+		corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
+	      }
+	      else {
+		corrected_time = 0.0;
+	      }
+	      fPMTs.at(i).at(j).SetValue(corrected_time);
+	    }
+	  }
+	}
+    }
+  
+  
+  for (size_t i=0; i<fSCAs.size(); i++)
+    {
+      if (fSCAs.at(i) != NULL){
+	fSCAs.at(i)->ProcessEvent();
       }
     }
-  }
-
-  for (size_t i=0; i<fSCAs.size(); i++){
-    if (fSCAs.at(i) != NULL){
-      fSCAs.at(i)->ProcessEvent();
-    }
-  }
-}
+  return;
+};
 
 
 void  QwTriggerScintillator::ConstructHistograms(TDirectory *folder, TString &prefix){

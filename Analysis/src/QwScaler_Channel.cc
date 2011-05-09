@@ -63,8 +63,6 @@ void VQwScaler_Channel::ClearEventData()
   fValue       = 0.0;
   fValueM2     = 0.0;
   fValueError  = 0.0;
-  fPedestal    = 0.0;
-  fCalibrationFactor = 1.0;
 
   fGoodEventCount  = 0;
   fDeviceErrorCode = 0;
@@ -163,6 +161,7 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
 
 void VQwScaler_Channel::ProcessEvent()
 {
+  //QwError << "VQwScaler_Channel::ProcessEvent() "<<GetElementName()<<" "<< fValue_Raw<< " "<< fValue<<" "<<fCalibrationFactor<<" "<< fPedestal<<QwLog::endl;
   fValue = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
 }
 
@@ -372,6 +371,21 @@ void VQwScaler_Channel::Scale(Double_t scale)
     }
 }
 
+void VQwScaler_Channel::ScaleRawRate(Double_t scale)
+{
+  if (!IsNameEmpty())
+    {
+      this->fValue_Raw *= scale;
+    }
+}
+
+void VQwScaler_Channel::Normalize(const VQwScaler_Channel &norm)
+{
+  if (!IsNameEmpty())
+    {
+      this->fValue /= norm.fValue;
+    }
+}
 
 /********************************************************/
 Int_t VQwScaler_Channel::ApplyHWChecks() {
@@ -384,7 +398,6 @@ Int_t VQwScaler_Channel::ApplyHWChecks() {
   }
   return fDeviceErrorCode;
 }
-
 
 void VQwScaler_Channel::SetSingleEventCuts(Double_t min, Double_t max){
   fULimit=max;
@@ -401,7 +414,37 @@ void VQwScaler_Channel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double
 
 Bool_t VQwScaler_Channel::ApplySingleEventCuts()
 {
-  return kTRUE;
+  Bool_t status;
+  //QwError<<" Single Event Check ! "<<QwLog::endl;
+  if (bEVENTCUTMODE>=2){//Global switch to ON/OFF event cuts set at the event cut file
+
+    if (fULimit==0 && fLLimit==0){
+      status=kTRUE;
+    } else  if (GetValue()<=fULimit && GetValue()>=fLLimit){
+      //QwError<<" Single Event Cut passed "<<GetElementName()<<" "<<GetValue()<<QwLog::endl;
+      status=kTRUE;
+    }
+    else{
+      //QwError<<" Single Event Cut Failed "<<GetElementName()<<" "<<GetValue()<<QwLog::endl;
+      if (GetValue()> fULimit)
+	fDeviceErrorCode|=kErrorFlag_EventCut_U;
+      else
+	fDeviceErrorCode|=kErrorFlag_EventCut_L;
+      status=kFALSE;
+    }
+
+    if (bEVENTCUTMODE==3){
+      status=kTRUE; //Update the event cut fail flag but pass the event.
+    }
+
+  }
+  else{
+    status=kTRUE;
+    fErrorFlag=0;
+  }
+
+
+  return status;  
 }
 
 void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value)

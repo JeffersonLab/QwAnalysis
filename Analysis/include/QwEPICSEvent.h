@@ -27,7 +27,7 @@ class QwEPICSEvent
 {
  public:
 
-	/// EPICS data types
+  /// EPICS data types
   enum EQwEPICSDataType {kEPICSString, kEPICSFloat, kEPICSInt};
 
 
@@ -104,6 +104,7 @@ class QwEPICSEvent
 
   static std::vector<std::string> GetDefaultAutogainList() { return fDefaultAutogainList; };
   static void SetDefaultAutogainList(std::vector<std::string>& input_list);
+
   void WriteEPICSStringValues();
   
  private:

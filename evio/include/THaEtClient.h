@@ -58,6 +58,7 @@ public:
 // find data on 'computer'.  e.g. computer="129.57.164.44"
     THaEtClient(TString computer, int mode);  
     THaEtClient(TString computer, TString session, int mode);  
+    THaEtClient(TString computer, TString session, int mode, const TString stationname);  
     int codaOpen(TString computer);
     int codaOpen(TString computer, int mode);
     int codaOpen(TString computer, TString session, int mode);
@@ -88,6 +89,8 @@ private:
     int init();
     TString uniqueStation();
     int init(TString computer);
+
+    TString fStationName;
 
 // use ClassDef if using rootcint
 #ifndef STANDALONE     

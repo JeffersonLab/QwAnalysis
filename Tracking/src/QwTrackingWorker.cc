@@ -71,7 +71,6 @@
 *//*-------------------------------------------------------------------------*/
 
 #include "QwTrackingWorker.h"
-
 // Standard C and C++ headers
 #include <cstdio>
 #include <cstdlib>
@@ -91,7 +90,6 @@ using std::endl;
 #include "QwOptions.h"
 #include "QwLog.h"
 #include "globals.h"
-#include "Det.h"
 
 // Qweak GEM cluster finding
 #include "QwGEMClusterFinder.h"
@@ -119,7 +117,7 @@ using std::endl;
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-QwTrackingWorker::QwTrackingWorker (const char* name)
+QwTrackingWorker::QwTrackingWorker(const QwGeometry& geometry)
 {
   QwDebug << "###### Calling QwTrackingWorker::QwTrackingWorker ()" << QwLog::endl;
 
@@ -129,12 +127,14 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   // Process options
   ProcessOptions(gQwOptions);
 
+  // Store geometry
+  SetGeometry(geometry);
+
   // If tracking is disabled, stop here
   if (fDisableTracking) return;
 
   // Initialize the pattern database
-  InitTree();
-
+  InitTree(geometry);
   // Initialize a bridging filter
   fBridgingTrackFilter = new QwBridgingTrackFilter();
 
@@ -197,6 +197,9 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
   fTreeSort->SetDebugLevel(fDebug);
   fTreeMatch->SetDebugLevel(fDebug);
 
+  // Pass the geometry
+  fTreeCombine->SetGeometry(geometry);
+
   // Process the options and set the respective flags in the modules
   fTreeSearch->SetShowMatchingPatterns(fShowMatchingPattern);
   fTreeCombine->SetMaxRoad(gQwOptions.GetValue<float>("QwTracking.R2.maxroad"));
@@ -209,10 +212,7 @@ QwTrackingWorker::QwTrackingWorker (const char* name)
 
 QwTrackingWorker::~QwTrackingWorker ()
 {
-  // TODO This causes a segmentation fault in ROOT's memory management
-  for (int i = 0; i < kNumPackages * kNumRegions * kNumTypes * kNumDirections; i++)
-    if (fSearchTree[i]) delete fSearchTree[i];
-
+  // Delete helper objects
   if (fBridgingTrackFilter) delete fBridgingTrackFilter;
   if (fMatrixLookup) delete fMatrixLookup;
   if (fRayTracer)    delete fRayTracer;
@@ -238,6 +238,9 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
   options.AddOptions("Tracking options")("QwTracking.disable-tracking",
                           po::value<bool>()->default_bool_value(false),
                           "disable all tracking analysis");
+  options.AddOptions("Tracking options")("QwTracking.print-pattern-db",
+                          po::value<bool>()->default_bool_value(false),
+                          "print pattern database");
   options.AddOptions("Tracking options")("QwTracking.showeventpattern",
                           po::value<bool>()->default_bool_value(false),
                           "show bit pattern for all events");
@@ -300,6 +303,9 @@ void QwTrackingWorker::ProcessOptions(QwOptions& options)
   fDisableTracking = options.GetValue<bool>("QwTracking.disable-tracking");
   fDisableMomentum = options.GetValue<bool>("QwTracking.disable-momentum");
 
+  // Set the flags for printing the pattern database
+  fPrintPatternDatabase = options.GetValue<bool>("QwTracking.print-pattern-db");
+
   // Set the flags for showing the matching event patterns
   fShowEventPattern    = options.GetValue<bool>("QwTracking.showeventpattern");
   fShowMatchingPattern = options.GetValue<bool>("QwTracking.showmatchingpattern");
@@ -320,130 +326,90 @@ void QwTrackingWorker::ProcessOptions(QwOptions& options)
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
-void QwTrackingWorker::InitTree()
+void QwTrackingWorker::InitTree(const QwGeometry& geometry)
 {
-  /// For each region (1, 2, 3, trigger, cerenkov, scanner)
-  for (EQwRegionID region  = kRegionID1;
-                   region <= kRegionID3; region++) {
+  // Loop over packages
+  for (EQwDetectorPackage package = kPackageUp;
+      package <= kPackageDown; package++) {
+    // Loop over regions
+    for (EQwRegionID region = kRegionID2;
+        region <= kRegionID3; region++) {
+      // Loop over directions
+      for (EQwDirectionID direction = kDirectionX;
+          direction <= kDirectionV; direction++) {
 
-    // TODO Skip region 1 for now
-    if (region < kRegionID2) continue;
+        // Get the detectors, and skip if none are active
+        QwGeometry detectors(geometry.in(region).in(package).in(direction));
+        if (detectors.size() == 0) continue;
 
-    /// ... and for each package
-    for (EQwDetectorPackage package  = kPackageUp;
-                            package <= kPackageDown; package++) {
+        // Get the first plane
+        QwDetectorInfo* det = detectors.front();
 
-      // TODO fDebug Skip everything except up and down for now...
-      if (package != kPackageUp && package != kPackageDown) continue;
+        int levels = 0;
+        int numlayers = 0;
+        double width = 0.0;
 
-      /// ... and for each detector type
-      for (EQwDetectorType type  = kTypeDriftHDC;
-                           type <= kTypeDriftVDC; type++) {
+        /// Region 2 contains 4 layers
+        if (det->fRegion == kRegionID2) {
+          numlayers = 4; // TODO replace this with info from the geometry file
+          width = det->GetElementSpacing() * det->GetNumberOfElements();
+          levels = fLevelsR2;
+        }
 
-        /// In region 2 there are only HDCs
-        if (region == kRegionID2 && type != kTypeDriftHDC) continue;
+        /// Region 3 contains 8 layers
+        if (det->fRegion == kRegionID3) {
+          numlayers = 8; // TODO replace this with info from the geometry file
+          width = det->GetActiveWidthZ();
+          levels = fLevelsR3;
+        }
 
-        /// In region 3 there are only VDCs
-        if (region == kRegionID3 && type != kTypeDriftVDC) continue;
+        /// Create a new search tree
+        QwTrackingTree thetree(numlayers);
 
+        /// Set the maximum slope
+        thetree.SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
 
-        /// ... and for each wire direction (X, Y, U, V, R, theta)
-        for (EQwDirectionID direction  = kDirectionX;
-                            direction <= kDirectionV; direction++) {
+        /// Set the geometry
+        thetree.SetGeometry(detectors);
 
-          int levels = 0;
-          int numlayers = 0;
-          double width = 0.0;
+        /// Set up the filename with the following format
+        ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[n|u|v|x|y].tre
+        std::stringstream filename;
+        filename << getenv_safe_string("QW_SEARCHTREE")
+                 << "/tree" << numlayers << "-" << levels
+                 << "-" << package << "-" << region << "-" << direction << ".tre";
+        QwDebug << "Tree filename: " << filename.str() << QwLog::endl;
 
-          // Skip wire direction Y
-          if (direction == kDirectionY) continue;
+        /// Each element of search tree will point to a pattern database
+        // TODO leaking trees here
+        QwTrackingTreeRegion* searchtree = thetree.inittree(filename.str(),
+                                               levels,
+                                               numlayers,
+                                               width,
+                                               det,
+                                               fRegenerate);
+        if (fPrintPatternDatabase && region == kRegionID2) searchtree->PrintNodes();
+        if (fPrintPatternDatabase && region == kRegionID3) searchtree->PrintTrees();
 
-          // Skip wire direction X for region 3
-          if (direction == kDirectionX && region == kRegionID3) continue;
+        // Set the detector identification
+        searchtree->SetRegion(region);
+        searchtree->SetPackage(package);
+        searchtree->SetDirection(direction);
 
-          ///  Skip the NULL rcDETRegion pointers.
-          //   pking:  This is probably a configuration error,
-          //           which the user may want to be warned about.
-          //   wdc:   If those pointers would be initialized to null,
-          //          this test would be a lot more useful --> another TODO
-          if (rcDETRegion[package][region][direction] == NULL) {
-            QwWarning << "rcDETRegion["<< package
-                      << "]["          << region
-                      << "]["          << direction
-                      << "] is NULL.  Should it be?"
-                      << QwLog::endl;
-            continue;
-          }
+        // Store pointer to tree in detector objects
+        for (size_t i = 0; i < detectors.size(); i++) {
+          detectors.at(i)->SetTrackingSearchTree(searchtree);
+        }
 
-          /// Region 2 contains 4 layers
-          if (region == kRegionID2) {
-              numlayers = 4; // TODO replace this with info from the geometry file
-              width = rcDETRegion[package][region][direction]->WireSpacing *
-                      rcDETRegion[package][region][direction]->NumOfWires;
-              levels = fLevelsR2;
-          }
-
-          /// Region 3 contains 8 layers
-          if (region == kRegionID3) {
-              numlayers = 8; // TODO replace this with info from the geometry file
-              width = rcDETRegion[package][region][direction]->width[2];
-              levels = fLevelsR3;
-          }
-
-          /// Create a new search tree
-          QwTrackingTree *thetree = new QwTrackingTree(numlayers);
-          thetree->SetMaxSlope(gQwOptions.GetValue<float>("QwTracking.R2.maxslope"));
-
-          /// Set up the filename with the following format
-          ///   tree[numlayers]-[levels]-[u|l]-[1|2|3]-[d|g|t|c]-[n|u|v|x|y].tre
-          std::stringstream filename;
-          filename << getenv_safe_string("QW_SEARCHTREE")
-                       << "/tree" << numlayers
-                       << "-" << levels
-                       << "-" << "0ud"[package]
-                       << "-" << "0123TCS"[region]
-                       << "-" << "0hvgtc"[type]
-                       << "-" << "0xyuvrq"[direction] << ".tre";
-
-          QwDebug << "Tree filename: " << filename.str() << QwLog::endl;
-
-          /// Each element of fSearchTree will point to a pattern database
-          int index = package*kNumRegions*kNumTypes*kNumDirections
-                      +region*kNumTypes*kNumDirections
-                      +type*kNumDirections+direction;
-          fSearchTree[index] = thetree->inittree(filename.str(),
-                                                 levels,
-                                                 numlayers,
-                                                 width,
-                                                 package,
-                                                 type,
-                                                 region,
-                                                 direction,
-                                                 fRegenerate);
-
-          // Set the detector identification
-          fSearchTree[index]->SetRegion(region);
-          fSearchTree[index]->SetPackage(package);
-          fSearchTree[index]->SetDirection(direction);
-          // Plane unknown, element not applicable: keep them at null values
-
-          // Delete the tree object
-          delete thetree;
-
-        } // end of loop over wire directions
-
-      } // end of loop over detector types
-
-    } // end of loop over packages
-
-  } // end of loop over regions
-
+      } // end of loop over directions
+    } // end of loop over regions
+  } // end of loop over packages
 }
 
 /*------------------------------------------------------------------------*//*!
 
   ProcessHits() - this function is the main tracking function. It
-               performes tracking in projections (u/v/x) to form treelines,
+               performs tracking in projections (u/v/x) to form treelines,
                it combines projection tracks to tracks in space and bridges
                tracks in space before and after the magnet to form recon-
                structed particle tracks. The function calculates the momentum
@@ -547,20 +513,14 @@ void QwTrackingWorker::ProcessEvent (
                     if (region == kRegionID3
                             && (dir == kDirectionX || dir == kDirectionY)) continue;
 
-                    // Check whether there are any detectors defined in that geometry
-                    if (! rcDETRegion[package][region][dir]) {
-                        QwDebug << "[QwTrackingWorker::ProcessHits]     No such detector!" << QwLog::endl;
-                        continue;
-                    }
+                    // Find these detectors
+                    QwGeometry detectors(fGeometry.in(region).in(package).in(dir).of(type));
+                    if (detectors.size() == 0) continue;
 
                     /*! ---- 1st: check that the direction is tree-searchable               ---- */
 
                     // The search tree for this detector will be stored in searchtree
-                    QwTrackingTreeRegion* searchtree
-                    = fSearchTree[package*kNumRegions*kNumTypes*kNumDirections
-                                  + region*kNumTypes*kNumDirections
-                                  + type*kNumDirections
-                                  + dir];
+                    QwTrackingTreeRegion* searchtree = detectors.at(0)->GetTrackingSearchTree();
 
                     // Check whether the search tree exists
                     if (! searchtree) {
@@ -594,26 +554,20 @@ void QwTrackingWorker::ProcessEvent (
                         QwDebug << "Setting hit pattern (region 3)" << QwLog::endl;
 
                         /* Loop over the like-pitched planes in a region */
-                        for (Det* rd = rcDETRegion[package][region][dir];
-                                rd; rd = rd->nextsame) {
+                        for (std::vector<QwDetectorInfo*>::iterator iter = detectors.begin();
+                                iter != detectors.end(); iter++) {
+                            QwDetectorInfo* det = (*iter);
 
                             // Get plane number
-                            Int_t plane = rd->plane;
+                            int plane = det->fPlane;
+                            // Get number of wires
+                            int numwires = det->GetNumberOfElements();
 
                             // Print detector info
-                            //if (fDebug) cout << "      ";
-                            //if (fDebug) rd->print();
+                            if (fDebug) QwOut << *det << QwLog::endl;
 
                             // If detector is inactive for tracking, skip it
-                            if (rd->IsInactive()) continue;
-
-                            // Create a vector of hit patterns
-                            std::vector<QwHitPattern> patterns;
-                            patterns.resize(NUMWIRESR3+1); // wires are counted from 1
-                            if (patterns.at(0).GetNumberOfBins() == 0)
-                              for (size_t wire = 0; wire < patterns.size(); wire++)
-                                patterns.at(wire).SetNumberOfLevels(fLevelsR3);
-
+                            if (det->IsInactive()) continue;
 
                             /// Get the subhitlist of hits in this detector
                             QwHitContainer *subhitlist = hitlist->GetSubList_Plane(region, package, plane);
@@ -627,6 +581,14 @@ void QwTrackingWorker::ProcessEvent (
                             	std::cout << "region: " << region << " package: " << package << " plane: " << plane << std::endl;
                             	subhitlist->Print();
                             }
+
+                            // Create a vector of hit patterns
+                            std::vector<QwHitPattern> patterns;
+                            patterns.resize(numwires+1); // wires are counted from 1
+                            if (patterns.at(0).GetNumberOfBins() == 0)
+                              for (size_t wire = 0; wire < patterns.size(); wire++)
+                                patterns.at(wire).SetNumberOfLevels(fLevelsR3);
+
                             // Loop over the hits in the subhitlist
                             for (QwHitContainer::iterator hit = subhitlist->begin();
                                     hit != subhitlist->end(); hit++) {
@@ -665,7 +627,7 @@ void QwTrackingWorker::ProcessEvent (
                             QwDebug << "Searching for matching patterns (direction " << dir << ")" << QwLog::endl;
                             treelinelist = fTreeSearch->SearchTreeLines(searchtree,
                                                  channel, hashchannel, fLevelsR3,
-                                                 NUMWIRESR3, MAX_LAYERS);
+                                                 numwires, MAX_LAYERS);
 
                             // Delete the old array structures
                             for (size_t wire = 0; wire < patterns.size(); wire++) {
@@ -758,17 +720,18 @@ void QwTrackingWorker::ProcessEvent (
 
                         /* Loop over the like-pitched planes in a region */
                         tlayers = 0;
-                        for (Det* rd = rcDETRegion[package][region][dir];
-                                rd; rd = rd->nextsame, tlayers++) {
+                        for (std::vector<QwDetectorInfo*>::iterator iter = detectors.begin();
+                                iter != detectors.end(); iter++, tlayers++) {
+                            QwDetectorInfo* det = (*iter);
 
                             // Get plane number
-                            Int_t plane = rd->plane;
+                            Int_t plane = det->fPlane;
 
                             // Print detector info
-                            //if (fDebug) rd->print();
+                            if (fDebug) QwOut << plane << ": " << *det << QwLog::endl;
 
                             // If detector is inactive for tracking, skip it
-                            if (rd->IsInactive()) {
+                            if (det->IsInactive()) {
                               patterns.push_back(QwHitPattern(fLevelsR2));
                               continue;
                             }
@@ -894,9 +857,7 @@ void QwTrackingWorker::ProcessEvent (
                         parttrack = fTreeCombine->TlTreeCombine(
                                     event->fTreeLine[package][region][type],
                                     package, region,
-                                    tlayers,
-                                    dlayer,
-                                    fSearchTree);
+                                    tlayers, dlayer);
                     }
 
                 } else if(region == kRegionID2){
@@ -908,9 +869,7 @@ void QwTrackingWorker::ProcessEvent (
                         parttrack = fTreeCombine->TlTreeCombine(
                                     event->fTreeLine[package][region][type],
                                     package, region,
-                                    tlayers,
-                                    dlayer,
-                                    fSearchTree);
+                                    tlayers, dlayer);
                     }
 
                 } else continue;
@@ -962,7 +921,7 @@ void QwTrackingWorker::ProcessEvent (
          && event->fPartialTrack[package][kRegionID2][kTypeDriftHDC]
          && event->fPartialTrack[package][kRegionID3][kTypeDriftVDC]) {
 
-            QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
+	  // QwMessage << "Bridging front and back partial tracks..." << QwLog::endl;
 
             // Local copies of front and back track
             QwPartialTrack* front = event->fPartialTrack[package][kRegionID2][kTypeDriftHDC];
@@ -976,7 +935,8 @@ void QwTrackingWorker::ProcessEvent (
 
                 // Filter reasonable pairs
                 status = fBridgingTrackFilter->Filter(front, back);
-                QwMessage << "Filter: " << status << QwLog::endl;
+		status = 0;
+                //QwMessage << "Filter: " << status << QwLog::endl;
                 if (status != 0) {
                   QwMessage << "Tracks did not pass filter." << QwLog::endl;
                   back = back->next;
@@ -997,14 +957,15 @@ void QwTrackingWorker::ProcessEvent (
                 // Attempt to bridge tracks using ray-tracing
                 if (! fDisableRayTracer) {
                   status = fRayTracer->Bridge(front, back);
-                  QwMessage << "Ray tracer: " << status << QwLog::endl;
+                  //QwMessage << "Ray tracer: " << status << QwLog::endl;
                   if (status == 0) {
                     event->AddTrackList(fRayTracer->GetListOfTracks());
                     //fRayTracer->PrintInfo();
-                    double buff[14];
-                    fRayTracer->GetBridgingResult(buff);
-                    event->AddBridgingResult(buff);
+                    //double buff[14];
+                    //fRayTracer->GetBridgingResult(buff);
+                    //event->AddBridgingResult(buff);
                     //event->Print();
+		    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
                     back = back->next;
                     continue;
                   }

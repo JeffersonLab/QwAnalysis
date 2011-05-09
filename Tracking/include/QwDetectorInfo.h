@@ -17,6 +17,9 @@
 #include "QwTypes.h"
 #include "QwLog.h"
 
+// Forward declarations
+class QwTrackingTreeRegion;
+
 ///
 /// \ingroup QwTracking
 class QwDetectorInfo: public TObject {
@@ -27,7 +30,10 @@ class QwDetectorInfo: public TObject {
 
   public:
 
-    void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, int totalwires, int detId);
+    /// Default constructor
+    QwDetectorInfo(): fIsActive(true),fTree(0) { };
+
+  void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, double tilt, int totalwires, int detId);
 
     // Get/set spatial resolution
     double GetSpatialResolution() const { return fSpatialResolution; };
@@ -59,8 +65,8 @@ class QwDetectorInfo: public TObject {
 
     // Get/set active flag
     bool IsActive() const { return fIsActive; };
+    bool IsInactive() const { return !IsActive(); };
     void SetActive(const bool active = true) { fIsActive = active; };
-    void SetNotActive(const bool active = false) { fIsActive = active; };
 
     // Get/set x and y active width
     double GetActiveWidthX() const { return fActiveWidthX; };
@@ -73,9 +79,16 @@ class QwDetectorInfo: public TObject {
     double GetActiveWidthZ() const { return fActiveWidthZ; };
     void SetActiveWidthZ(const double z) { fActiveWidthZ = z; };
 
+    bool InAcceptance(const double x, const double y) const {
+      if (fabs(x - fDetectorOriginX) < fActiveWidthX / 2.0 &&
+          fabs(y - fDetectorOriginY) < fActiveWidthY / 2.0)
+        return true;
+      else return false;
+    };
+
     // Get/set element direction
     EQwDirectionID GetElementDirection() const { return fDirection; };
-    void SetElementSpacing(const EQwDirectionID dir) { fDirection = dir; };
+    void SetElementDirection(const EQwDirectionID dir) { fDirection = dir; };
 
     // Get/set element spacing
     double GetElementSpacing() const { return fElementSpacing; };
@@ -120,6 +133,22 @@ class QwDetectorInfo: public TObject {
       fDetectorRotationCos = std::cos(fDetectorRotation);
       fDetectorRotationSin = std::sin(fDetectorRotation);
     };
+    // Get/set detector tilt (in degrees)
+    double GetDetectorTilt() const { return fDetectorTilt; };
+    double GetDetectorTiltInRad() const { return fDetectorTilt; };
+    double GetDetectorTiltInDeg() const { return fDetectorTilt * TMath::RadToDeg(); };
+    double GetDetectorTiltCos() const { return fDetectorTiltCos; };
+    double GetDetectorTiltSin() const { return fDetectorTiltSin; };
+    void SetDetectorTilt(const double tilting) {
+      fDetectorTilt = tilting; // in degrees
+      fDetectorTiltCos = std::cos(fDetectorTilt);
+      fDetectorTiltSin = std::sin(fDetectorTilt);
+    };
+
+    // Get/set tracking search tree
+    QwTrackingTreeRegion* GetTrackingSearchTree() { return fTree; };
+    const QwTrackingTreeRegion* GetTrackingSearchTree() const { return fTree; };
+    void SetTrackingSearchTree(QwTrackingTreeRegion* tree) { fTree = tree; };
 
     // Get unique detector ID
     int GetID() const { return fDetectorID; };
@@ -151,10 +180,14 @@ class QwDetectorInfo: public TObject {
       /// \todo This is an inconsistent definition of coordinate frames.
     double fDetectorRotationCos;	///< Cos of detector orientation
     double fDetectorRotationSin;	///< Sin of detector orientation
+    double fDetectorTilt;               ///Tilt in XY of Detector
+    double fDetectorTiltCos;    	///< Cos of detector tilt
+    double fDetectorTiltSin;	        ///< Sin of detector tilt
+
 
     bool   fIsActive;		///< Is this detector activated in tracking
 
-    double fSpatialResolution;///< Spatial resolution (how accurate is the timing info)
+    double fSpatialResolution;  ///< Spatial resolution (how accurate is the timing info)
     double fTrackResolution;	///< Track resolution (how accurate are the tracks through the hits)
     double fSlopeMatching;	///< Slope matching resolution (how accurate do the tracks line up)
 
@@ -169,6 +202,8 @@ class QwDetectorInfo: public TObject {
     double fElementOffset;	///< Position of the first element (it is not
                                 ///  exactly clear to me what that exactly means)
     int fNumberOfElements;	///< Total number of elements in this detector
+
+    QwTrackingTreeRegion* fTree;        ///< Search tree for this detector
 
   public:
     // Unique detector identifier
@@ -218,135 +253,6 @@ inline bool operator< (const QwDetectorInfo& lhs, const QwDetectorInfo& rhs) {
       } else return false;
     } else return false;
   } else return false;
-}
-
-/**
- *  \class QwGeometry
- *  \ingroup QwTracking
- *
- *  \brief Collection of QwDetectorInfo pointers that specifies an experimental geometry
- */
-class QwGeometry: public std::vector<QwDetectorInfo*> {
-
-  private:
-
-    /// Functor for sorting QwDetectorInfo pointers
-    struct compare {
-      bool operator()(const QwDetectorInfo *lhs, const QwDetectorInfo *rhs) { return *lhs < *rhs; }
-    };
-
-  public:
-
-    /// Default constructor
-    QwGeometry() { clear(); };
-    /// Copy constructor
-    QwGeometry(const QwGeometry& that): std::vector<QwDetectorInfo*>(that) { };
-    /// Virtual destructor
-    virtual ~QwGeometry() { };
-
-    /// Assignment operator
-    QwGeometry& operator=(const QwGeometry& that) {
-      if (this != &that) {
-        clear();
-        push_back(that);
-      }
-      return *this;
-    }
-
-    /// Add single detector object
-    void push_back(QwDetectorInfo& detector) {
-      std::vector<QwDetectorInfo*>::push_back(&detector);
-      std::sort(begin(),end(),compare());
-    }
-
-    /// Add single detector pointer
-    void push_back(QwDetectorInfo* detector) {
-      std::vector<QwDetectorInfo*>::push_back(detector);
-      std::sort(begin(),end(),compare());
-    }
-
-    /// Add another geometry
-    void push_back(const QwGeometry& detectors) {
-      QwGeometry::const_iterator i;
-      for (i = detectors.begin(); i != detectors.end(); i++)
-        std::vector<QwDetectorInfo*>::push_back(*i);
-      std::sort(begin(),end(),compare());
-    }
-
-    /// Add vector of detectors
-    void push_back(std::vector<QwDetectorInfo>& detectors) {
-      std::vector<QwDetectorInfo>::iterator i;
-      for (i = detectors.begin(); i != detectors.end(); i++)
-        std::vector<QwDetectorInfo*>::push_back(&(*i));
-      std::sort(begin(),end(),compare());
-    }
-
-    /// Get detectors in given region
-    const QwGeometry in(const EQwRegionID& r) const {
-      QwGeometry results;
-      for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fRegion == r)
-          results.push_back(*i);
-      return results;
-    }
-
-    /// Get detectors in given package
-    const QwGeometry in(const EQwDetectorPackage& p) const {
-      QwGeometry results;
-      for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fPackage == p)
-          results.push_back(*i);
-      return results;
-    }
-
-    /// Get detectors in given direction
-    const QwGeometry in(const EQwDirectionID& d) const {
-      QwGeometry results;
-      for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fDirection == d)
-          results.push_back(*i);
-      return results;
-    }
-
-    /// Get detectors of given type
-    const QwGeometry of(const EQwDetectorType& t) const {
-      QwGeometry results;
-      for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fType == t)
-          results.push_back(*i);
-      return results;
-    }
-
-    /// Get detectors like specified detector (same region, same package, same type)
-    const QwGeometry as(const QwDetectorInfo* d) const {
-      QwGeometry results;
-      for (const_iterator i = begin(); i != end(); i++)
-        if ((*i)->fPackage == d->fPackage
-         && (*i)->fRegion == d->fRegion
-         && (*i)->fType == d->fType)
-          results.push_back(*i);
-      return results;
-    }
-
-    // Output stream operator
-    friend std::ostream& operator<< (std::ostream& stream, const QwGeometry& det);
-
-};
-
-/**
- * Output stream operator
- * @param stream Output stream
- * @param det Detector geometry object
- * @return Output stream
- */
-inline std::ostream& operator<< (std::ostream& stream, const QwGeometry& detectors)
-{
-  for (QwGeometry::const_iterator i = detectors.begin(); i != detectors.end(); i++)
-    if (*i)
-      stream << *(*i) << std::endl;
-    else
-      stream << "(null)" << std::endl;
-  return stream;
 }
 
 #endif

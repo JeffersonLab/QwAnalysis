@@ -32,6 +32,7 @@ void QwDetectorInfo::SetDetectorInfo (
 	double firstWire,
 	double w_rcos,
 	double w_rsin,
+	double tilt,
 	int totalwires,
 	int detId)
 {
@@ -42,7 +43,9 @@ void QwDetectorInfo::SetDetectorInfo (
   SetSlopeMatching(slope_match);
 
   SetXYZPosition(det_originX, det_originY, det_originZ);
-  SetDetectorRotation(rot);
+  SetDetectorRotation(rot); 
+  SetDetectorTilt(tilt);
+  
 
   fActiveWidthX = activewidthX;
   fActiveWidthY = activewidthY;

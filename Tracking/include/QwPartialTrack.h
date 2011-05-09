@@ -21,6 +21,7 @@
 #include "QwObjectCounter.h"
 #include "QwTrackingTreeLine.h"
 #include "QwDetectorInfo.h"
+#include "QwGeometry.h"
 #include "QwBridge.h"
 
 // Forward declarations
@@ -119,15 +120,15 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     QwPartialTrack& SmearAnglePhi(const double sigma);
 
     /// \brief Determine vertex in detector
-    const QwVertex* DeterminePositionInDetector(const QwDetectorInfo& detector);
+    const QwVertex* DeterminePositionInDetector(const QwDetectorInfo* geometry);
     /// \brief Determine vertex in the target
-    int DeterminePositionInTarget ();
+    const QwVertex* DeterminePositionInTarget (const QwGeometry& geometry);
     /// \brief Determine intersection with trigger scintillators
-    int DeterminePositionInTriggerScintillators (EQwDetectorPackage package);
+    const QwVertex* DeterminePositionInTriggerScintillators (const QwGeometry& geometry);
     /// \brief Determine intersection with cerenkov bars
-    int DeterminePositionInCerenkovBars (EQwDetectorPackage package);
+    const QwVertex* DeterminePositionInCerenkovBars (const QwGeometry& geometry);
     /// \brief Determine position in first horizontal drift chamber
-    int DeterminePositionInHDC (EQwDetectorPackage package);
+    const QwVertex* DeterminePositionInHDC (const QwGeometry& geometry);
 
     // Average residuals
     double GetAverageResidual() const { return fAverageResidual; };
@@ -155,7 +156,11 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
     // Results of the fit to the hits
     Double_t fChi;		///< combined chi square
-    double fCov[4][4];		///< covariance matrix
+    Double_t fCov[4][4];		///< covariance matrix
+
+    // record the slope and offset from each treeline,modified 4/26/11
+    Double_t TSlope[kNumDirections];
+    Double_t TOffset[kNumDirections];
 
     QwTrackingTreeLine *fTreeLine[kNumDirections];	//!	///< tree line in u v and x
 

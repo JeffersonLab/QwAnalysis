@@ -20,9 +20,6 @@
 #include "QwOptionsTracking.h"
 #include "QwLog.h"
 
-// Deprecated Qweak headers
-#include "Qset.h"
-
 // Qweak subsystem headers
 #include "QwSubsystemFactory.h"
 #include "QwSubsystemArrayTracking.h"
@@ -77,13 +74,6 @@ int main (int argc, char* argv[])
   QwEventDisplay* display = new QwEventDisplay(gClient->GetRoot(),1200,800);
   display->SetEventBuffer(treebuffer);
   display->SetSubsystemArray(detectors);
-
-  // Load the geometry
-  Qset qset;
-  qset.FillDetectors((getenv_safe_string("QWANALYSIS")+"/Tracking/prminput/qweak.geo").c_str());
-  qset.LinkDetectors();
-  qset.DeterminePlanes();
-  std::cout << "[QwTracking::main] Geometry loaded" << std::endl; // R3,R2
 
   // Now run this application
   theApp.Run();

@@ -35,7 +35,7 @@
 // Maximum number of iterations for Newton's method and Runge-Kutta method
 #define MAX_ITERATIONS_NEWTON 10
 #define MAX_ITERATIONS_RUNGEKUTTA 5000
-
+#define PI 3.1415926
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 QwMagneticField* QwRayTracer::fBfield = 0;
@@ -107,7 +107,6 @@ bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
 
     // Otherwise reload the field map
     fBfield = new QwMagneticField();
-    fBfield->SetFieldScalingFactor(BSCALE);
     bool status = false;
     if (filename.find(".dat") != std::string::npos)
       status = fBfield->ReadFieldMapFile(filename);
@@ -132,7 +131,7 @@ int QwRayTracer::Bridge(
     ClearListOfTracks();
 
     // Ray-tracing parameters
-    double res = 0.2 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
+    double res = 0.5 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
     double step = 1.0 * Qw::cm; // integration step size
     double dp = 10.0 / Qw::GeV; // 10.0 * Qw::MeV; // momentum variation
 
@@ -212,7 +211,7 @@ int QwRayTracer::Bridge(
     if (iterations < MAX_ITERATIONS_NEWTON) {
 
         fMomentum = p[1]*Qw::GeV;
-        QwMessage << "Converged after " << iterations << " iterations." << QwLog::endl;
+	    QwMessage << "Converged after " << iterations << " iterations." << QwLog::endl;
 
         if (fMomentum < 0.980 * Qw::GeV || fMomentum > 1.165 * Qw::GeV) {
             QwMessage << "Out of momentum range: determined momentum by shooting: "
@@ -231,9 +230,25 @@ int QwRayTracer::Bridge(
                       << fDirectionPhiOff / Qw::deg << " deg" << std::endl;
             return -1;
         }
-
+	
+       double kinetics[3]={0};
+	double vertexz=0;
+	vertexz=CalculateVertex(fStartPosition,fScatteringAngle);
+	CalculateKinetics(vertexz,fScatteringAngle,fMomentum,kinetics);
         QwTrack* track = new QwTrack(front,back);
-        track->fMomentum = fMomentum;
+        //track->fMomentum = fMomentum;
+
+	track->fMomentum = kinetics[0]/1E3;
+	track->fTotalEnergy = kinetics[1]/1E3;
+	track->fQ2 = kinetics[2]/1E6;
+	track->fScatteringAngle = fScatteringAngle * 180 /PI;
+	track->fVertexZ=vertexz;
+	track->fPositionRoff = fPositionROff;
+	track->fPositionPhioff = fPositionPhiOff;
+	track->fDirectionThetaoff = fDirectionThetaOff;
+	track->fDirectionPhioff = fDirectionPhiOff;
+	track->SetPackage(front->GetPackage());
+
 
         QwBridge* bridge = new QwBridge();
         track->fBridge = bridge;

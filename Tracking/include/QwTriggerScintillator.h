@@ -12,7 +12,6 @@
 #include "TTree.h"
 
 #include "VQwSubsystemTracking.h"
-#include "QwDetectorInfo.h"
 
 #include "MQwV775TDC.h"
 //#include "MQwF1TDC.h"
@@ -127,6 +126,10 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<Qw
   Int_t reftime_slotnum;
   Int_t reftime_channum;
   Double_t reftime;
+
+  Bool_t IsF1ReferenceChannel (Int_t slot, Int_t chan) { 
+    return ( slot == reftime_slotnum &&  chan == reftime_channum) ;
+  };
 
   Int_t tdc_slot_number;
   Int_t tdc_chan_number;

@@ -42,15 +42,17 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     };
 
 
+    // Handle command line options
+    static void DefineOptions(QwOptions &options);
+    void ProcessOptions(QwOptions &options);
+
     /* derived from VQwSubsystem */
-    void ProcessOptions(QwOptions &options); //Handle command line options
     Int_t LoadChannelMap(TString mapfile);
     Int_t LoadInputParameters(TString pedestalfile);
     Int_t LoadEventCuts(TString & filename);
     Bool_t SingleEventCuts();
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    void  PrintDetectorID() const;
 
     void  ClearEventData();
     void  ProcessEvent();
@@ -127,6 +129,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     IntegratingADC_Mapping_t fMultiQDC_Mapping;
     std::vector< QwPMT_Channel > fMultiQDC_Channel;
     std::vector< std::vector< QwPMT_Channel > > fMultiQDC_Events;
+
     /// List of integrating TDC channels
     typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingTDC_Mapping_t;
     IntegratingTDC_Mapping_t fMultiTDC_Mapping;

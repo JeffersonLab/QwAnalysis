@@ -63,9 +63,9 @@ QwTrackingTreeRegion::~QwTrackingTreeRegion()
 void QwTrackingTreeRegion::PrintTrees() const
 {
   QwOut << "Trees:" << QwLog::endl;
-  for (int i = 0; i < fNode.GetNumberOfTrees(); i++) {
+  for (int i = 0; i < 1 /* fNode.GetNumberOfTrees() */; i++) {
     QwOut << "tree " << i << ": ";
-    fNode.GetTree(i)->Print(1);
+    fNode.GetTree(i)->Print(true,1);
   }
 }
 
@@ -78,11 +78,13 @@ void QwTrackingTreeRegion::PrintNodes() const
   QwOut << "Nodes:" << QwLog::endl;
   for (int i = 0; i < fNode.GetNumberOfTrees(); i++) {
     QwOut << "tree " << i << ":" << QwLog::endl;
+    fNode.GetTree(i)->Print(false,1);
     for (int j = 0; j < 4; j++) {
       shortnode* node = fNode.GetTree(i)->son[j];
       if (node) QwOut << " son " << j << ":" << QwLog::endl;
       while (node) {
-        QwOut << "  " << node << ": " << *node << QwLog::endl;
+        QwOut << "  tree ";
+        node->GetTree(0)->Print(false,2);
         node = node->GetNext();
       } // loop over linked list of nodes
     } // loop over the four sons

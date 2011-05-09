@@ -54,7 +54,6 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Bool_t SingleEventCuts();
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    void  PrintDetectorID() const;
 
     void  ClearEventData();
     void  ProcessEvent();

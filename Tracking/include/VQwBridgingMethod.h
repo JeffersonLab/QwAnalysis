@@ -59,6 +59,12 @@ class VQwBridgingMethod {
     /// Estimate the momentum based only on the direction
     virtual double EstimateInitialMomentum(const TVector3& direction) const;
 
+     virtual double CalculateVertex(const TVector3& point,const double angle) const;
+
+    /// Calculate Kinetics
+    virtual void CalculateKinetics(const double vertex_z,const double angle,const double momentum,double* results);
+
+
 }; // class VQwBridgingMethod
 
 
@@ -82,6 +88,41 @@ inline double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& directi
     // Kinematics for elastic e+p scattering
     return e0 / (1.0 + e0 / wp * (1.0 - cth)) - e_loss;
 }
+
+
+// vertex might be wrong
+inline double VQwBridgingMethod::CalculateVertex(const TVector3& point,const double angle) const
+{
+  double vertex_z=0.0;
+  vertex_z=point.Z()-sqrt(point.X()*point.X()+point.Y()*point.Y())/tan(angle);
+  return vertex_z;
+}
+
+inline void VQwBridgingMethod::CalculateKinetics(const double vertex_z, double angle,const double momentum,double* results){
+
+ 
+    double length = 0.0;
+    if(vertex_z<(-650.0+35.0/2))
+        length = ((-650.0+35.0/2)-vertex_z)/cos(angle); //path length in target after scattering
+    double momentum_correction = (length/35.0)*48.0;  //assume 48 MeV total energy loss through the full target length
+    
+    momentum_correction = 0.0; // 32.0 * Qw::MeV;  // assume 32 MeV with multi-scattering, etc.
+    
+    double PP = momentum + momentum_correction;
+
+    double Mp = 938.272013;    // Mass of the Proton in MeV
+    
+    double P0 = Mp*PP/(Mp-PP*(1-cos(angle))); //pre-scattering energy
+    double Q2 = 2.0*Mp*(P0-PP);
+
+    results[0]=PP;
+    results[1]=P0;
+    results[2]=Q2;
+    
+    return;
+
+}
+
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 

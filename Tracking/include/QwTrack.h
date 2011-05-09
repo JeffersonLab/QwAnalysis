@@ -65,6 +65,11 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
 
     double fChi;		/// combined chi square
     double fMomentum;		/// spectrometer and calorimeter Energy
+    double fTotalEnergy;
+    double fScatteringAngle;
+
+     double fPositionRoff,fPositionPhioff;    
+    double fDirectionThetaoff,fDirectionPhioff;
 
     double fXBj, fY, fQ2, fW2, fNu;	/// kinematics
 

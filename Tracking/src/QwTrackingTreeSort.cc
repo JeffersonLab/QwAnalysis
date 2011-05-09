@@ -550,7 +550,7 @@ int QwTrackingTreeSort::rcTreeConnSort (
       array[i * nTreeLines + i] = false;
       for (int j = i+1; j < nTreeLines; j++) {
         int common = rcCommonWires (tlarr[i], tlarr[j]);
-        array[i * nTreeLines + j] = array[j * nTreeLines + i] = (common > 25);
+        array[i * nTreeLines + j] = array[j * nTreeLines + i] = (common > 50);
       }
     }
   }

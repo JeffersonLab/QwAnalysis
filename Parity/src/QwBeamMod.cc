@@ -229,14 +229,14 @@ QwModChannelID::QwModChannelID(Int_t subbankid, Int_t wordssofar,
   fSubbankIndex(subbankid),fWordInSubbank(wordssofar),
   fmoduletype(modtype),fmodulename(name),kUnknownDeviceType(-1)
 {
-  fTypeID = kUnknownDeviceType;
-  for(size_t i=0;i<obj->fgModTypeNames.size();i++){
+  fTypeID = kQwUnknownDeviceType;
+  //  for(size_t i=0;i<obj->fgModTypeNames.size();i++){
  //   if(dettype == obj->fgModTypeNames[i]){
  //     fTypeID = EBeamInstrumentType(i);
   //   std::cout << "Detector type not recognized" << std::endl;
    //   break;
    // }
-  }
+  //  }
 //   if (fTypeID == kUnknownDeviceType) {
 //     std::cerr << "QwModChannelID::QwModChannelID:  Unknown detector type: "
 //   	      << dettype <<", the detector "<<name<<" will not be decoded "
@@ -247,7 +247,7 @@ QwModChannelID::QwModChannelID(Int_t subbankid, Int_t wordssofar,
 
 //*****************************************************************
 
-Int_t QwBeamMod::LoadEventCuts(TString  filename){/*
+Int_t QwBeamMod::LoadEventCuts(TString  filename){
   Double_t ULX, LLX, ULY, LLY;
   Int_t samplesize;
 
@@ -255,9 +255,10 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename){/*
   Int_t eventcut_flag;
   TString varname, varvalue, vartypeID,varname2, varvalue2;
   TString device_type,device_name,channel_name;
+  Double_t stabilitycut;
   std::cout<<" QwBeamMod::LoadEventCuts  "<<filename<<std::endl;
   QwParameterFile mapstr(filename.Data());  //Open the file
-
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   samplesize = 0;
   check_flag = 0;
 
@@ -289,59 +290,32 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename){/*
       ULY=0;
       LLY=0;
 
-      if (device_type == "bcm"){
+      if (device_type == "vqwk"){
 
 	//std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
-
-	//samplesize = (atoi(mapstr.GetNextToken(", ").c_str()));	//sample size
-	//	std::cout<<" sample size "<<samplesize<<std::endl;
-	//retrieve the detector from the vector.
-	//device_name="empty2";
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
-	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
-
-	//fModChannel[det_index].Print();
-	fModChannel[det_index].SetSingleEventCuts(LLX,ULX);//(fModChannelEventCuts);
-	//std::cout<<"*****************************"<<std::endl;
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwBeamLine Error Code passing to QwBCM "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(kQwUnknownDeviceType),device_name);
+	std::cout<<"*****************************"<<std::endl;
+	std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
+	fModChannel[det_index].PrintInfo();
+	fModChannel[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);//(fBCMEventCuts);
+	std::cout<<"*****************************"<<std::endl;
 
       }
-      else if (device_type == "bpmstripline"){
-	channel_name= mapstr.GetNextToken(", ").c_str();
-	channel_name.ToLower();
 
-
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline X
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline X
-	//LLY = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BPMStripline Y
-	//ULY = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BPMStripline Y
-
-	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
-
-	//std::cout<<"*****************************"<<std::endl;
-	//std::cout<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
-	//fStripline[det_index].SetSingleEventCuts(LLX, ULX, LLY,ULY);
-	fStripline[det_index].SetSingleEventCuts(channel_name, LLX, ULX);
-	//fStripline[det_index].Print();
-	//std::cout<<"*****************************"<<std::endl;
-      }
     }
 
   }
   //update the event cut ON/OFF for all the devices
   //std::cout<<"EVENT CUT FLAG"<<eventcut_flag<<std::endl;
-  for (size_t i=0;i<fStripline.size();i++){
-    fStripline[i].SetEventCutMode(eventcut_flag);
-  }
-
   for (size_t i=0;i<fModChannel.size();i++)
     fModChannel[i].SetEventCutMode(eventcut_flag);
 
-
-  fQwBeamModErrorCount=0; //set the error counter to zero
-*/
   return 0;
 }
 
@@ -625,8 +599,6 @@ Int_t QwBeamMod::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 }
 
 Bool_t QwBeamMod::ApplySingleEventCuts(){
-  //currently this will check the IsGoodEvent() only!
-  //std::cout<<" QwBeamMod::SingleEventCuts() ";
 
   Bool_t test_Mod=kTRUE;
   Bool_t test_BCM1=kTRUE;
@@ -673,8 +645,10 @@ UInt_t QwBeamMod::GetEventcutErrorFlag(){//return the error flag
 void  QwBeamMod::ProcessEvent()
 {
 
-  for(size_t i=0;i<fModChannel.size();i++)
+  for(size_t i=0;i<fModChannel.size();i++){
+    fModChannel[i].ApplyHWChecks();//first apply HW checks and update HW  error flags. 
     fModChannel[i].ProcessEvent();
+  }
   
   return;
 }

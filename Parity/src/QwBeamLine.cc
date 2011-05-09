@@ -289,6 +289,9 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 	if(localBeamDetectorID.fTypeID == kQwHaloMonitor){
 	  QwHaloMonitor localhalo(GetSubsystemName(), localBeamDetectorID.fdetectorname);
+	  if(localBeamDetectorID.fdetectorname=="sca_4mhz"){
+	    index_4mhz=fHaloMonitor.size();
+	  }
 	  fHaloMonitor.push_back(localhalo);
 	  localBeamDetectorID.fIndex=fHaloMonitor.size()-1;
 	}
@@ -541,7 +544,11 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
       else if (device_type == GetQwBeamInstrumentTypeName(kQwHaloMonitor)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for HaloMonitor value
 	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for HaloMonitor value
-	//fHaloMonitor[det_index].SetSingleEventCuts(LLX,ULX);//(fHaloMonitorEventCuts);
+	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
+	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	varvalue.ToLower();
+	QwMessage<<"QwBeamLine Error Code passing to QwHaloMonitor "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	fHaloMonitor[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);//(fBCMEventCuts);
       }
 	else if (device_type ==GetQwBeamInstrumentTypeName(kQwEnergyCalculator)){
 	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for energy
@@ -643,7 +650,7 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
     fBCM[i].SetEventCutMode(eventcut_flag);
 
   for (size_t i=0;i<fHaloMonitor.size();i++){
-    //fHaloMonitor[i].SetEventCutMode(eventcut_flag);
+    fHaloMonitor[i].SetEventCutMode(eventcut_flag);
   }
     
   for (size_t i=0;i<fBCMCombo.size();i++)
@@ -978,8 +985,9 @@ Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
 	    for(size_t i=0;i<fHaloMonitor.size();i++) {
 	      if(fHaloMonitor[i].GetElementName()==varname)
 		{
-		  //fHaloMonitor[i].SetPedestal(varped);
-		  //fHaloMonitor[i].SetCalibrationFactor(varcal);
+		  std::cout<<varname<<" I found it ! "<<varcal<<" ped. "<<varped<<"\n";
+		  fHaloMonitor[i].SetPedestal(varped);
+		  fHaloMonitor[i].SetCalibrationFactor(varcal);
 		  i=fHaloMonitor.size()+1;
 		  notfound=kFALSE;
 		  i=fHaloMonitor.size()+1;
@@ -1344,6 +1352,8 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
 //*****************************************************************
 void  QwBeamLine::ProcessEvent()
 {
+  Double_t clock_counts;
+
   for(size_t i=0;i<fStripline.size();i++)
     fStripline[i].ProcessEvent();
 
@@ -1359,8 +1369,17 @@ void  QwBeamLine::ProcessEvent()
   for(size_t i=0;i<fLinearArray.size();i++)
     fLinearArray[i].ProcessEvent();
 
-  for(size_t i=0;i<fHaloMonitor.size();i++)
+  if (index_4mhz != -1){
+    fHaloMonitor.at(index_4mhz).ProcessEvent();//call the ProcessEvent() for the 4MHz scaler
+    clock_counts = fHaloMonitor.at(index_4mhz).GetValue();
+    //QwError << "QwBeamLine::ProcessEvent() "<<fHaloMonitor[index_4mhz].GetElementName()<<" "<<fHaloMonitor[index_4mhz].GetValue()<<QwLog::endl;
+  } 
+  for(size_t i=0;i<fHaloMonitor.size();i++){
+    if (index_4mhz != -1 && clock_counts>0.0 ){
+      fHaloMonitor[i].ScaleRawRate(4.0e6/clock_counts);//convert raw rates to Hz
+    }
     fHaloMonitor[i].ProcessEvent();
+  }
 
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].ProcessEvent();
@@ -1429,7 +1448,9 @@ Bool_t QwBeamLine::PublishInternalValues() const
       tmp_channel = GetCombinedBCM(device_name)->GetCharge();
     } else if (device_type == "comboenergy") {
       tmp_channel = GetEnergyCalculator(device_name)->GetEnergy();
-    } else
+    }  else if (device_type == "scaler") {
+      tmp_channel = GetScalerChannel(device_name)->GetScaler();  
+    }else
       QwError << "QwBeamLine::PublishInternalValues() error "<< QwLog::endl;
     
      if (tmp_channel == NULL) {
@@ -1592,6 +1613,22 @@ QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name){
 }
 
 //*****************************************************************
+QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name){
+   if (! fHaloMonitor.empty()) {
+    
+    for (std::vector<QwHaloMonitor>::iterator halo = fHaloMonitor.begin(); halo != fHaloMonitor.end(); ++halo) {
+      if (halo->GetElementName() == name) {
+       return &(*halo);
+      }
+    }
+    
+
+  }
+  return 0;
+};
+
+
+//*****************************************************************
 const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
 {
   return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
@@ -1624,6 +1661,12 @@ const QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name) co
   return const_cast<QwBeamLine*>(this)->GetEnergyCalculator(name);
 }
 
+ //*****************************************************************
+const QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name)const {
+  return const_cast<QwBeamLine*>(this)->GetScalerChannel(name);
+};
+
+
 //*****************************************************************
 VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
 {
@@ -1632,6 +1675,8 @@ VQwSubsystem&  QwBeamLine::operator=  (VQwSubsystem *value)
     {
 
       QwBeamLine* input = dynamic_cast<QwBeamLine*>(value);
+
+      index_4mhz = input->index_4mhz;
 
       for(size_t i=0;i<input->fStripline.size();i++)
 	this->fStripline[i]=input->fStripline[i];
@@ -1881,6 +1926,9 @@ void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
       fECalculator[i].AccumulateRunningSum(value->fECalculator[i]);
     for (size_t i = 0; i < fQPD.size();  i++)
       fQPD[i].AccumulateRunningSum(value->fQPD[i]);
+    for (size_t i = 0; i <fHaloMonitor.size();  i++)
+      fHaloMonitor[i].AccumulateRunningSum(value->fHaloMonitor[i]);
+    
   }
 }
 
@@ -2245,6 +2293,8 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 
           QwBeamLine* input = dynamic_cast<QwBeamLine*>(source);
 
+	  index_4mhz = input->index_4mhz;
+
 	  this->fStripline.resize(input->fStripline.size());
 	  for(size_t i=0;i<this->fStripline.size();i++)
 	    this->fStripline[i].Copy(&(input->fStripline[i]));
@@ -2323,7 +2373,6 @@ VQwSubsystem*  QwBeamLine::Copy()
 }
 
 
-
 //*****************************************************************
 void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 {
@@ -2377,42 +2426,27 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     }
   }
 
-/*
-  if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Halo Monitors" <<QwLog::endl;
-
-  for(i=0; i< fHaloMonitor.size(); i++) {
-    interface.clear();
-    interface = fHaloMonitor[i].GetDBEntry();
-    for (j=0; j<interface.size(); j++){
-      interface.at(j).SetAnalysisID( analysis_id );
-      interface.at(j).SetMonitorID( db );
-      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
-      interface.at(j).PrintStatus( local_print_flag );
-      interface.at(j).AddThisEntryToList( entrylist );
-    }
-  }
-*/
-
   ///   try to access BPM mean and its error
   if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Beam Position Monitors" <<QwLog::endl;
   for(i=0; i< fStripline.size(); i++) {
     fStripline[i].MakeBPMList();
     interface.clear();
     interface = fStripline[i].GetDBEntry();
-    for (j=0; j<interface.size()-1; j++){
+    for (j=0; j<interface.size()-5; j++){
       interface.at(j).SetAnalysisID( analysis_id ) ;
       interface.at(j).SetMonitorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type_bpm );
       interface.at(j).PrintStatus( local_print_flag);
       interface.at(j).AddThisEntryToList( entrylist );
     }
-    // effective charge (last element)  need to be saved as measurement_type_bcm
-    interface.at(interface.size()-1).SetAnalysisID( analysis_id ) ;
-    std::cout<<analysis_id<<std::endl;
-    interface.at(interface.size()-1).SetMonitorID( db );
-    interface.at(interface.size()-1).SetMeasurementTypeID( measurement_type_bcm );
-    interface.at(interface.size()-1).PrintStatus( local_print_flag);
-    interface.at(interface.size()-1).AddThisEntryToList( entrylist );
+    // effective charge (last 4 elements)  need to be saved as measurement_type_bcm
+    for (j=interface.size()-5; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
   }
 
 
@@ -2422,7 +2456,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     fBPMCombo[i].MakeBPMComboList();
     interface.clear();
     interface = fBPMCombo[i].GetDBEntry();
-    for (j=0; j<interface.size()-1; j++){
+    for (j=0; j<interface.size()-5; j++){
       interface.at(j).SetAnalysisID( analysis_id ) ;
       interface.at(j).SetMonitorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type_bpm );
@@ -2430,11 +2464,13 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       interface.at(j).AddThisEntryToList( entrylist );
     }
     // effective charge (last element) need to be saved as measurement_type_bcm
-    interface.at(interface.size()-1).SetAnalysisID( analysis_id ) ;
-    interface.at(interface.size()-1).SetMonitorID( db );
-    interface.at(interface.size()-1).SetMeasurementTypeID( measurement_type_bcm );
-    interface.at(interface.size()-1).PrintStatus( local_print_flag);
-    interface.at(interface.size()-1).AddThisEntryToList( entrylist );
+    for (j=interface.size()-5; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
   }
 
   ///   try to access CombinedBCM means and errors
@@ -2461,7 +2497,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     for (j=0; j<interface.size(); j++){
       interface.at(j).SetAnalysisID( analysis_id );
       interface.at(j).SetMonitorID( db );
-      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bpm );
       interface.at(j).PrintStatus( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );
     }
@@ -2474,7 +2510,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     fQPD[i].MakeQPDList();
     interface.clear();
     interface = fQPD[i].GetDBEntry();
-    for (j=0; j<interface.size()-1; j++){
+    for (j=0; j<interface.size()-5; j++){
       interface.at(j).SetAnalysisID( analysis_id ) ;
       interface.at(j).SetMonitorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type_bpm );
@@ -2482,11 +2518,13 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       interface.at(j).AddThisEntryToList( entrylist );
     }
     // effective charge need (last element) to be saved as measurement_type_bcm
-    interface.at(interface.size()-1).SetAnalysisID( analysis_id ) ;
-    interface.at(interface.size()-1).SetMonitorID( db );
-    interface.at(interface.size()-1).SetMeasurementTypeID( measurement_type_bcm );
-    interface.at(interface.size()-1).PrintStatus( local_print_flag);
-    interface.at(interface.size()-1).AddThisEntryToList( entrylist );
+    for (j=interface.size()-5; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
   }
 
   ///   try to access LinearArray mean and its error
@@ -2495,19 +2533,20 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     fLinearArray[i].MakeLinearArrayList();
     interface.clear();
     interface = fLinearArray[i].GetDBEntry();
-    for (j=0; j<interface.size()-1; j++){
+    for (j=0; j<interface.size()-5; j++){
       interface.at(j).SetAnalysisID( analysis_id ) ;
       interface.at(j).SetMonitorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type_bpm );
       interface.at(j).PrintStatus( local_print_flag);
       interface.at(j).AddThisEntryToList( entrylist );
     }
-    // effective charge (last element) need to be saved as measurement_type_bcm
-    interface.at(interface.size()-1).SetAnalysisID( analysis_id ) ;
-    interface.at(interface.size()-1).SetMonitorID( db );
-    interface.at(interface.size()-1).SetMeasurementTypeID( measurement_type_bcm );
-    interface.at(interface.size()-1).PrintStatus( local_print_flag);
-    interface.at(interface.size()-1).AddThisEntryToList( entrylist );
+    for (j=interface.size()-5; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
   }
 
   ///   try to access cavity bpm mean and its error
@@ -2516,19 +2555,20 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
     fCavity[i].MakeBPMCavityList();
     interface.clear();
     interface = fCavity[i].GetDBEntry();
-    for (j=0; j<interface.size()-1; j++){
+    for (j=0; j<interface.size()-5; j++){
       interface.at(j).SetAnalysisID( analysis_id ) ;
       interface.at(j).SetMonitorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type_bpm );
       interface.at(j).PrintStatus( local_print_flag);
       interface.at(j).AddThisEntryToList( entrylist );
     }
-    // effective charge (last element) need to be saved as measurement_type_bcm
-    interface.at(interface.size()-1).SetAnalysisID( analysis_id ) ;
-    interface.at(interface.size()-1).SetMonitorID( db );
-    interface.at(interface.size()-1).SetMeasurementTypeID( measurement_type_bcm );
-    interface.at(interface.size()-1).PrintStatus( local_print_flag);
-    interface.at(interface.size()-1).AddThisEntryToList( entrylist );
+    for (j=interface.size()-5; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id ) ;
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
   }
 
   if(local_print_flag){

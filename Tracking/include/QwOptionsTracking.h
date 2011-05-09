@@ -20,15 +20,17 @@
 // Qweak tracking subsystems that provide options
 #include "QwTrackingWorker.h"
 #include "QwDriftChamberVDC.h"
+#include "QwMagneticField.h"
 
 void DefineOptionsTracking(QwOptions& options)
 {
   /* Define general options */
   QwOptions::DefineOptions(options);
 
-  QwDriftChamberVDC::DefineOptions(options);
   /* Define tracking options */
   QwTrackingWorker::DefineOptions(options);
+  QwDriftChamberVDC::DefineOptions(options);
+  QwMagneticField::DefineOptions(options);
 }
 
 #endif // QWOPTIONSTRACKING_H

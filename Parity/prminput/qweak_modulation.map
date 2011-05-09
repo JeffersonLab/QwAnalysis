@@ -1,10 +1,9 @@
 
 ROC=2
 Bank=0x0202
-!num_samples=480
+!samples_size=480
 !for 960Hz
-num_samples=464  
-
+sample_size=464
 
 !
 ! module.type, module.num  chan.num, det.type, det.name<not added yet>

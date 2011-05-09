@@ -37,6 +37,7 @@ using QwTracking::shortnode; using QwTracking::shorttree;
 
 // Qweak headers
 #include "QwTypes.h"
+#include "QwGeometry.h"
 #include "VQwTrackingElement.h"
 
 // Definitions
@@ -74,13 +75,12 @@ class QwTrackingTree: public VQwTrackingElement {
     /// \brief Print the hash table
     void PrintHashTable() const;
 
+    void SetGeometry(const QwGeometry& geometry) { fGeometry = geometry; };
+
     int consistent (
 	treenode *tst,
 	int level,
-	EQwDetectorPackage package,
-	EQwDetectorType type,
-	EQwRegionID region,
-	EQwDirectionID dir);
+	QwDetectorInfo* detector);
     treenode* existent (treenode *tst, int hash);
     treenode* nodeexists (nodenode *nd, treenode *tr);
 
@@ -88,10 +88,7 @@ class QwTrackingTree: public VQwTrackingElement {
     void marklin (
 	treenode *node,
 	int level,
-	EQwDetectorPackage package,
-	EQwDetectorType type,
-	EQwRegionID region,
-	EQwDirectionID dir);
+	QwDetectorInfo* detector);
 
     long writetree (
 	const string& filename,
@@ -112,16 +109,16 @@ class QwTrackingTree: public VQwTrackingElement {
 	int levels,
 	int tlayer,
 	double width,
-	EQwDetectorPackage package,
-	EQwDetectorType type,
-	EQwRegionID region,
-	EQwDirectionID dir,
+	QwDetectorInfo* detector,
 	bool regenerate);
 
   private:
 
     /// Name of the tree directory (in $QWSCRATCH), as static member field
     static const std::string fgTreeDir;
+
+    /// Detector (or set of detectors) represented by this search tree
+    QwGeometry fGeometry;
 
     int fDebug;		///< Debug level
 
@@ -152,6 +149,8 @@ class QwTrackingTree: public VQwTrackingElement {
     //treenode* fHashTable[HSHSIZ];
     treenode** fHashTable;
 
+  private:
+
     /// \brief Recursive method for pulling in the concise treesearch search database
     int _writetree (treenode *tn, FILE *fp, int32_t tlayers);
     /// \brief Recursive method to read the concise treesearch database from disk
@@ -159,10 +158,7 @@ class QwTrackingTree: public VQwTrackingElement {
     /// \brief Recursive method to initialize and generate the treesearch database
     treenode* _inittree (
 	int32_t tlayer,
-	EQwDetectorPackage package,
-	EQwDetectorType type,
-	EQwRegionID region,
-	EQwDirectionID dir);
+	QwDetectorInfo* detector);
 
 }; // class QwTrackingTree
 

@@ -21,10 +21,11 @@ my $baseurl = "https://hallcweb.jlab.org/~cvxwrks/cgi/CGIExport.cgi";
 my $interval = 10; # interpolation time in seconds
 my @channels = qw[ibcm1 g0rate14];
 
-my ($help,$nodaqcut);
+my ($help,$nodaqcut,$outfile);
 my $optstatus = GetOptions
   "help|h|?"	=> \$help,
   "no-daq-cut"	=> \$nodaqcut,
+  "outfile=s"	=> \$outfile,
 ;
 
 @channels = qw[ibcm1] if $nodaqcut;
@@ -57,6 +58,7 @@ For example:
 Options:
 	--help		print this text
 	--no-daq-cut	integrate /all/ the time, ignore g0rate14
+	--outfile=blah	save the downloaded data to a file named "blah"
 EOF
 die $helpstring if $help;
 
@@ -85,9 +87,15 @@ my %args = (
 
 my $url = $baseurl . "?" . join "&", map { "$_=$args{$_}" } sort keys %args;
 
+my $ofh;
+if ($outfile) {
+  open $ofh, ">", $outfile
+    or die "couldn't open '$outfile' for writing: $!"
+}
 open DATA, "-|", @wget, $url
   or die "couldn't open wget: $!\n";
 while (<DATA>) {
+  print $ofh $_ if $ofh;
   my($day, $time, $ibcm1, $daqrate) = split ' ';
 
   $daqrate = 960 if $nodaqcut;
@@ -109,8 +117,21 @@ unless ($.) { warn "warning: fetched no data.  url was\n\t$url\n" }
 
 ### Parse this block after reaching the end of the input file
 # print "Read $. lines from archiver\n";
-foreach my $day (sort keys %coulombs) {
-  foreach my $s (grep { ($coulombs{$day}[$_] += 0) > 0.01} 0..2) {
-    printf "$day %-5s: %0.2f C\n", $shift[$s], $coulombs{$day}[$s];
-  }
+
+if (!keys %coulombs){
+print "No coulombs acquired during this interval\n";
+die;
 }
+
+my $Total = 0;
+
+foreach my $day (sort keys %coulombs) {
+  my $day_total = 0;
+  foreach my $s (grep { ($coulombs{$day}[$_] += 0) > 0.01} 0..2) {
+    $day_total += $coulombs{$day}[$s];
+    printf "$day %-5s %6.2f C\n", $shift[$s], $coulombs{$day}[$s];
+  }
+  printf "$day total %6.2f C\n\n", $day_total;
+  $Total += $day_total;
+}
+printf "Total calculated %6.2f C\n", $Total;

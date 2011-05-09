@@ -49,6 +49,13 @@ void QwEnergyCalculator::Set(const VQwBPM* device, TString type, TString propert
   return;
 }
 
+void QwEnergyCalculator::SetRootSaveStatus(TString &prefix)
+{
+  if(prefix=="diff_"||prefix=="yield_"|| prefix=="asym_")
+    bFullSave=kFALSE;
+  
+  return;
+}
 
 void QwEnergyCalculator::ClearEventData(){
   fEnergyChange.ClearEventData();
@@ -85,6 +92,16 @@ void  QwEnergyCalculator::ProcessEvent(){
 
 Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
+
+  UInt_t error_code = 0;
+  for(UInt_t i = 0; i<fProperty.size(); i++){
+    if(fProperty[i].Contains("targetbeamangle")){
+      error_code |= ((QwCombinedBPM*)fDevice[i])->fSlope[0].GetErrorCode();
+    } else {
+      error_code |= ((QwVQWK_Channel*)fDevice[i]->GetPositionX())->GetErrorCode();
+    }
+  }
+  fEnergyChange.UpdateErrorCode(error_code);
 
   if (fEnergyChange.ApplySingleEventCuts()){
     status=kTRUE;
@@ -197,9 +214,13 @@ void  QwEnergyCalculator::ConstructHistograms(TDirectory *folder, TString &prefi
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   }
-  else
-    fEnergyChange.ConstructHistograms(folder, prefix);
-
+  else{
+    TString thisprefix=prefix;
+    if(prefix=="asym_")
+      thisprefix="diff_";
+    SetRootSaveStatus(thisprefix);
+    fEnergyChange.ConstructHistograms(folder, thisprefix);
+  }
   return;
 }
 
@@ -209,6 +230,7 @@ void  QwEnergyCalculator::FillHistograms(){
   }
   else
     fEnergyChange.FillHistograms();
+  
   return;
 }
 
@@ -227,9 +249,16 @@ void  QwEnergyCalculator::ConstructBranchAndVector(TTree *tree, TString &prefix,
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   }
-  else
-    fEnergyChange.ConstructBranchAndVector(tree,prefix,values);
-  return;
+  else{
+    TString thisprefix=prefix;
+    if(prefix=="asym_")
+      thisprefix="diff_";
+    
+    SetRootSaveStatus(thisprefix);
+    
+    fEnergyChange.ConstructBranchAndVector(tree,thisprefix,values);
+  }
+    return;
 }
 
 
@@ -238,8 +267,14 @@ void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix){
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   }
-  else
-    fEnergyChange.ConstructBranch(tree,prefix);
+  else{
+    TString thisprefix=prefix;
+    if(prefix=="asym_")
+      thisprefix="diff_";
+
+    SetRootSaveStatus(thisprefix);
+    fEnergyChange.ConstructBranch(tree,thisprefix);
+  }
   return;
 }
 
@@ -253,7 +288,11 @@ void  QwEnergyCalculator::ConstructBranch(TTree *tree, TString &prefix, QwParame
   }
   else
     if (modulelist.HasValue(devicename)){
-      fEnergyChange.ConstructBranch(tree,prefix);
+      TString thisprefix=prefix;
+      if(prefix=="asym_")
+	thisprefix="diff_";
+      SetRootSaveStatus(thisprefix);   
+      fEnergyChange.ConstructBranch(tree,thisprefix);
       QwMessage <<" Tree leave added to "<<devicename<<QwLog::endl;
       }
   return;

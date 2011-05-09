@@ -62,11 +62,11 @@ QwRootFile::QwRootFile(const TString& run_label)
     //TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
     TString hostname = gSystem -> HostName();
     TString rootfilename;
-    if( hostname.Contains("cdaql") ) {
-      rootfilename = "/local/qweak/rootfiles";
-    }
-    else {
-      rootfilename = getenv_safe_TString("QW_ROOTFILES");
+    TString localRootFileName = getenv("QW_ROOTFILES_LOCAL");
+    if( localRootFileName.CompareTo("") == 0 ) {
+        rootfilename = getenv_safe_TString("QW_ROOTFILES");
+    } else {
+        rootfilename = localRootFileName;
     }
 
     // Use a probably-unique temporary file name.

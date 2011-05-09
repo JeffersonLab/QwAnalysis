@@ -2,11 +2,14 @@
 
 #No.of good patterns to accumulate before triggering the feedback algorithm.
 
+#for Hall C PITA
 patterns = 20000
+#for Hall A IA
+HA_patterns = 20000
 
 #The precision of the charge asymmetry in ppm
 #deltaAq = 62
-deltaAq = 10
+deltaAq = 20
 
 #optimal IA values in volts
 optimalIA = 5.5
@@ -34,12 +37,14 @@ DeltaA2 = 3.482e-4
 
 A3 = -4.553e-2
 
-#Hall A IA Slopes for 4 modes
+#Hall A IA Slopes for 4 modes from hclog - 228845
+#for IHWP IN
+HAA0 = 0.0283573 
+#for IHWP OUT
+HAA1 = 0.0283573
 
-HAA0 = -4.482e-2
-HAA1 = -4.525e-2
-HAA2 = -4.586e-2
-HAA3 = -4.553e-2
+HAA2 = 0.0283573
+HAA3 = 0.0283573
 
 #IA hardware counts set-point limits
 
@@ -59,6 +64,12 @@ IA_up  = 50000
 #PITASLOPE_IN = -0.557
 
 #PITA slopes
+#  From John Leacock, as of ,19Dec2010, 
+#  units are ppm/dac-tick
+#PITASLOPE_OUT = -0.996422
+#PITASLOPE_IN = +0.996422
+
+#PITA slopes
 #  From M.Dalton, as of ,06Jan2011, https://cebaf.jlab.org/elog/entry/1560667
 #  units are ppm/dac-tick
 #PITASLOPE_OUT = -0.8588
@@ -69,15 +80,22 @@ IA_up  = 50000
 #PITASLOPE_IN  = +1.145
 
 ###  See HCLog 224296 07:35:22 on March 17, 2011 - rakithab
-PITASLOPE_OUT = +0.7749
+#PITASLOPE_OUT = +0.7749
 ###  See HCLog 224663 10:12:08 on March 18, 2011 -  rakithab
-PITASLOPE_IN = +0.7192
+#PITASLOPE_IN = +0.7192
 
-#PITA slopes
-#  From John Leacock, as of ,19Dec2010, 
-#  units are ppm/dac-tick
-#PITASLOPE_OUT = -0.996422
-#PITASLOPE_IN = +0.996422
+###  See HCLog 227091 on Apr 07, 2011 - rakithab
+#PITASLOPE_OUT = 0.9562
+#PITASLOPE_IN = 0.9790
+
+###  See HCLog 227952 on Apr 12, 2011 - rakithab
+#PITASLOPE_OUT = 0.8698
+#PITASLOPE_IN = 1.0792
+
+
+###  See HCLog 229730 on Apr 23, 2011 - rakithab
+PITASLOPE_OUT = 0.772325
+PITASLOPE_IN = 0.833674
 
 ###  PITANEG = 200
 

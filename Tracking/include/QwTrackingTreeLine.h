@@ -64,6 +64,7 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
 
   public:
 
+
     /// Default constructor
     QwTrackingTreeLine();
     /// Constructor with tree search results
@@ -206,19 +207,21 @@ class QwTrackingTreeLine: public VQwTrackingElement, public QwObjectCounter<QwTr
     int   fNumHits;			///< number of hits on this treeline
     int   fNumMiss;			///< number of planes without hits
 
-    QwHit* fHits[2*MAX_LAYERS];	//!	///< all hits that satisfy road requirement
-    QwHit* fUsedHits[2*MAX_LAYERS];//!	///< hits that correspond to optimal chi^2
+    QwHit* fHits[2*MAX_LAYERS];	//!     ///< all hits that satisfy road requirement
+    QwHit* fUsedHits[2*MAX_LAYERS]; //! ///< hits that correspond to optimal chi^2
 
-    int fHashArray[2*MAX_LAYERS];	//!
+    int fHashArray[2*MAX_LAYERS]; //!
 
     int fR3Offset;			///< offset of demultiplexed group of 8
     int fR3FirstWire, fR3LastWire;	///< first and last wire in group of 8
 
-    QwTrackingTreeLine *next;	//!	///< link to next list element
+    QwTrackingTreeLine *next; //!       ///< link to next list element
+
+    QwTrackingTreeRegion* fTree; //!    ///< search tree used to find this tree line
 
   private:
 
-    double fAverageResidual;	/// average residual over all used hits
+    double fAverageResidual;	        ///< average residual over all used hits
 
   ClassDef(QwTrackingTreeLine,1);
 

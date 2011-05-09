@@ -21,6 +21,7 @@
 
 // Qweak headers
 #include "QwUnits.h"
+#include "QwOptions.h"
 #include "QwInterpolator.h"
 
 // Forward declarations
@@ -59,14 +60,12 @@ class QwMagneticField: public QwInterpolator<field_t,N_FIELD_COMPONENTS> {
     /// \brief Default constructor
     QwMagneticField();
     /// \brief Virtual destructor
-    virtual ~QwMagneticField();
+    virtual ~QwMagneticField() { };
 
-    /// Set the field scaling factor
-    void SetFieldScalingFactor(const double fieldscalingfactor)
-      { fFieldScalingFactor = fieldscalingfactor; };
-    /// Get the field scaling factor
-    double GetFieldScalingFactor() const
-      { return fFieldScalingFactor; };
+    /// \brief Define command line and config file options
+    static void DefineOptions(QwOptions& options);
+    /// \brief Process command line and config file options
+    void ProcessOptions(QwOptions& options);
 
     /// Set the field rotation around z (with QwUnits)
     void SetRotation(const double rotation) {
@@ -87,17 +86,6 @@ class QwMagneticField: public QwInterpolator<field_t,N_FIELD_COMPONENTS> {
     /// Get the field translation along z
     double GetTranslation() const
       { return fTranslation; };
-
-    /// Set the interpolation method
-    void SetInterpolationMethod(const EQwInterpolationMethod method) {
-      if (fField) fField->SetInterpolationMethod(method);
-      else QwWarning << "Trying to set interpolation method on null object." << QwLog::endl;
-    }
-    /// Get the interpolation method
-    EQwInterpolationMethod GetInterpolationMethod() {
-      if (fField) return fField->GetInterpolationMethod();
-      else return kInterpolationMethodUnknown;
-    }
 
     /// Get the cartesian components of the field value
     void GetCartesianFieldValue(const double point_xyz[3], double field_xyz[3]) const {
@@ -142,13 +130,6 @@ class QwMagneticField: public QwInterpolator<field_t,N_FIELD_COMPONENTS> {
 
     /// \brief Get the field value
     void GetFieldValue(const double point[3], double field[N_FIELD_COMPONENTS]) const;
-
-
-    /// Field interpolator object
-    QwInterpolator<field_t,N_FIELD_COMPONENTS> *fField;
-
-    /// Field scaling factor (BFIL)
-    double fFieldScalingFactor;
 
     /// Field rotation and translation with respect to the z axis
     // Defined as rotation/translation of the map in the standard coordinate

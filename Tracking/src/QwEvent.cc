@@ -175,6 +175,14 @@ void QwEvent::AddBridgingResult(double* buffer)
 
 }
 
+void QwEvent::AddBridgingResult(QwTrack* qwtrack){
+  fPrimaryQ2 = qwtrack->fQ2;
+  fKineticEnergy = qwtrack->fMomentum;
+  fTotalEnergy = qwtrack->fTotalEnergy;
+  fScatteringAngle=qwtrack->fScatteringAngle;
+  fScatteringVertexZ = qwtrack->fVertexZ;
+}
+
 // Print the event
 void QwEvent::Print(Option_t* option) const
 {

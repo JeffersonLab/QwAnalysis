@@ -18,10 +18,6 @@
 #include "QwLog.h"
 #include "QwOptions.h"
 
-// Deprecated Qweak headers
-#include "Det.h"
-#include "Qset.h"
-
 // Qweak subsystem headers
 #include "QwSubsystemArrayTracking.h"
 #include "QwGasElectronMultiplier.h"

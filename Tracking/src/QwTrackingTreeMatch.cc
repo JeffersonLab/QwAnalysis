@@ -133,21 +133,15 @@ QwTrackingTreeLine *QwTrackingTreeMatch::MatchRegion3 (
   double delta_perp =   delta_z * cos_theta + delta_y * sin_theta;
 	
   // Distance between the chamber centers parallel to the wire planes
-  double delta_para = - delta_z * sin_theta + delta_y * cos_theta;
- 
+  // 0.5 is tangent of wire angle, now includes x offset as well
+  double delta_para = - delta_z * sin_theta + delta_y * cos_theta + 0.5 * delta_x;
+
   // Parallel distance between the chamber centers in u or v coordinates
   // NOTE: fabs because cos < 0 for v planes in one octant !@#$%
   double delta_u = delta_para * fabs(frontdetector->GetElementAngleCos());
 
   // NOTE:pkg1 and pkg2 need different solution
  
-  // TODO A difference in x coordinate between the two chambers is ignored.
-  // This might become relevant if misalignment needs to be included.  The
-  // helper class uv2xy could be used here.
-  if (delta_x > 0.1)
-    QwWarning << "[TreeMatch::MatchR3] Horizontal shifts between VDC planes are ignored"
-              << QwLog::endl;
-
   // For the good tree lines in the front and back VDC planes, we first need
   // to set the 'z' coordinate in the wire direction.  The 'z' position for
   // VDC planes is the coordinate in the wire plane.  By definition, the

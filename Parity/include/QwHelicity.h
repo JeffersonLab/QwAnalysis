@@ -43,8 +43,10 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
  QwHelicity(TString region_tmp): VQwSubsystem(region_tmp),
     VQwSubsystemParity(region_tmp),
    fHelicityBitPattern(kDefaultHelicityBitPattern),
-   fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE)
+   fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
+   fEventNumberFirst(-1),fPatternNumberFirst(-1)
   {
+    ClearErrorCounters();
     // Default helicity delay to two patterns.
     fHelicityDelay = 2;
     // Default the EventType flags to HelPlus=1 and HelMinus=4
@@ -97,8 +99,6 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   void   ProcessEventInputMollerMode();
 
   void   EncodeEventData(std::vector<UInt_t> &buffer);
-
-  void  PrintDetectorID() const;
 
 
   virtual void  ClearEventData();
@@ -281,6 +281,21 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
 
   UInt_t fEventType;
 
+
+  Int_t fEventNumberFirst;
+  Int_t fPatternNumberFirst;
+
+  void ClearErrorCounters(){
+    fNumMissedGates       = 0;
+    fNumMissedEventBlocks = 0;
+    fNumMultSyncErrors    = 0;
+    fNumHelicityErrors    = 0;
+  };
+  //  Error counters
+  Int_t  fNumMissedGates;      // Total number of missed events
+  Int_t  fNumMissedEventBlocks; // Number of groups of missed events
+  Int_t  fNumMultSyncErrors;    // Number of errors reading the multiplet sync
+  Int_t  fNumHelicityErrors;    // Number of errors predicting the helicity
 
  private:
 

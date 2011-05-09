@@ -171,6 +171,12 @@ Int_t QwCombinedPMT::GetEventcutErrorCounters()
 
 /********************************************************/
 Bool_t QwCombinedPMT::ApplySingleEventCuts(){
+  //  First update the error code based on the codes
+  //  of the elements.  This requires that the single
+  //  PMTs have had ApplySingleEventCuts run on them already.
+  for (size_t i=0;i<fElement.size();i++){
+    fSumADC.UpdateErrorCode(fElement.at(i)->GetErrorCode());
+  }
   return fSumADC.ApplySingleEventCuts();
 }
 

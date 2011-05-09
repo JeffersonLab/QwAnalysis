@@ -33,7 +33,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   TString varname, varvalue,package, direction,dType;
   //  Int_t  chan;
   Int_t  plane, TotalWires,detectorId,region, DIRMODE;
-  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
+  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
 
@@ -80,6 +80,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       FirstWire    = (atof(mapstr.GetNextToken(", ").c_str()));
       W_rcos       = (atof(mapstr.GetNextToken(", ").c_str()));
       W_rsin       = (atof(mapstr.GetNextToken(", ").c_str()));
+      tilt         = (atof(mapstr.GetNextToken(", ").c_str()));
       TotalWires   = (atol(mapstr.GetNextToken(", ").c_str()));
       detectorId   = (atol(mapstr.GetNextToken(", ").c_str()));
 
@@ -95,7 +96,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
 	        Det_originX, Det_originY,
 	        ActiveWidthX, ActiveWidthY, ActiveWidthZ,
 	        WireSpace, FirstWire,
-	        W_rcos, W_rsin,
+		W_rcos, W_rsin, tilt,
 	        TotalWires,
 	        detectorId);
 	    fDetectorInfo.push_back(detector);
@@ -302,7 +303,7 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
   //    + ( -8.96859E-08 * dt_ * dt_ * dt_ * dt_)
   //    + (6.11736E-10 * dt_ * dt_ * dt_ * dt_ * dt_)
   //    + ( -1.15889E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
-
+  /*
   dd_ = 0.078067
         + 0.0437269 * dt_
         + 0.00117295 * dt_ * dt_
@@ -310,7 +311,31 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
         + (1.56369E-07 * dt_ * dt_ * dt_ * dt_  )
         + (-4.93323E-10 * dt_ * dt_ * dt_ * dt_ * dt_ )
     + (5.91555E-13 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
-
+  */
+  /*  modified on 418
+    dd_ = 0.134955
+        + 0.0173593 * dt_
+        + 0.00254912 * dt_ * dt_
+        + (-4.26414E-05 * dt_ * dt_ * dt_ )
+        + (2.86094E-07 * dt_ * dt_ * dt_ * dt_  )
+        + (-8.85512E-10 * dt_ * dt_ * dt_ * dt_ * dt_ )
+     + (1.04669E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
+  */
+  /*dd_ = -0.0382463
+        + 0.0704644 * dt_
+        - 0.00089724454912 * dt_ * dt_
+        + (4.8703E-05 * dt_ * dt_ * dt_ )
+        + (-8.40592E-07 * dt_ * dt_ * dt_ * dt_  )
+        + (5.61285E-09 * dt_ * dt_ * dt_ * dt_ * dt_ )
+     + (-1.31489E-11 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
+  */
+  dd_ = 0.015993
+        + 0.0466621 * dt_
+        + 0.00180132 * dt_ * dt_
+        + (-5.96573E-05 * dt_ * dt_ * dt_ )
+        + (1.18497E-06 * dt_ * dt_ * dt_ * dt_  )
+        + (-1.2071E-08 * dt_ * dt_ * dt_ * dt_ * dt_ )
+     + (4.50584E-11 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
    //   dd_ = 0.00545449393
 //       + 0.0668865488 * dt_
 //       + 0.000352462179 * dt_ * dt_
@@ -873,7 +898,7 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
   for(size_t i=0;i<nhits;i++) 
     {
       double time=f1tdc_resolution_ns*fTDCHits.at(i).GetTime() ;
-      if(time<0 || time > 250){
+      if(time<0 || time > 125){
         fTDCHits.erase(fTDCHits.begin()+i);
         --nhits;
         --i;
@@ -902,7 +927,7 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
                               
                 real_time=fTDCHits.at(i).GetTime()-t0;
                                       
-                if(real_time<0 || real_time>250){
+                if(real_time<0 || real_time>100){
                        fTDCHits.erase(fTDCHits.begin()+i);
                        --nhits;
                        --i;

@@ -11,8 +11,6 @@
 #include "TH1D.h"
 #include "TH2D.h"
 
-#include "QwDetectorInfo.h"
-
 #include "QwHit.h"
 #include "QwHitContainer.h"
 

@@ -8,17 +8,12 @@
 #include "TROOT.h"
 #include "TH1F.h"
 
-// Qweak support headers
-#include "Qset.h"
-
 // Qweak tracking worker
 #include "QwTrackingWorker.h"
 
 class QwTrackingAnalyzer : public VQwAnalyzer {
 
   private:
-    Qset fGeometry;
-
     QwHitContainer* fHitList;
     QwTrackingWorker* fTrackingWorker;
 

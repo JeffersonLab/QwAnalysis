@@ -1,0 +1,89 @@
+roc = 31
+bank = 0x1f02
+
+! module.type, module.num  chan.num, det.type, det.name
+!!! WARNING: these BPM and BCM channel assignments are pure guesses !!!
+norm = 1
+SIS3801D24, 0, 0x00, scalerbpm, bpm_3p01_xm
+SIS3801D24, 0, 0x01, scalerbpm, bpm_3p01_xp
+SIS3801D24, 0, 0x02, scalerbpm, bpm_3p01_ym
+SIS3801D24, 0, 0x03, scalerbpm, bpm_3p01_yp
+SIS3801D24, 0, 0x04, scalerbpm, bpm_3p02a_xm
+SIS3801D24, 0, 0x05, scalerbpm, bpm_3p02a_xp
+SIS3801D24, 0, 0x06, scalerbpm, bpm_3p02a_ym
+SIS3801D24, 0, 0x07, scalerbpm, bpm_3p02a_yp
+SIS3801D24, 0, 0x08, scalerbpm, bpm_3p02b_xm
+SIS3801D24, 0, 0x09, scalerbpm, bpm_3p02b_xp
+SIS3801D24, 0, 0x0a, scalerbpm, bpm_3p02b_ym
+SIS3801D24, 0, 0x0b, scalerbpm, bpm_3p02b_yp
+SIS3801D24, 0, 0x0c, scalerbpm, bpm_3p03_xm
+SIS3801D24, 0, 0x0d, scalerbpm, bpm_3p03_xp
+SIS3801D24, 0, 0x0e, scalerbpm, bpm_3p03_ym
+SIS3801D24, 0, 0x0f, scalerbpm, bpm_3p03_yp
+! module.type, module.num  chan.num, det.type, det.name
+SIS3801D24, 0, 0x1b, scalerbcm, bcm1_3h05
+SIS3801D24, 0, 0x1c, scalerbcm, bcm2_3h05a
+SIS3801D24, 0, 0x1d, scalerbcm, bcm6_3c17
+SIS3801D24, 0, 0x1e, scalerbcm, unser_3h05
+
+! module.type, module.num  chan.num, det.type, det.name
+norm = sca_ref_4MHz
+SIS3801D24, 0, 0x10, laser, sca_laser_PowM6
+SIS3801D24, 0, 0x11, laser, sca_laser_PowAtt
+SIS3801D24, 0, 0x12, laser, sca_laser_PowT
+SIS3801D24, 0, 0x13, laser, sca_laser_Scint2
+SIS3801D24, 0, 0x14, laser, sca_laser_C13
+SIS3801D24, 0, 0x15, laser, sca_laser_photon
+SIS3801D24, 0, 0x16, scaler, rate0x116
+SIS3801D24, 0, 0x17, scaler, rate0x117
+SIS3801D24, 0, 0x18, scaler, rate0x118
+SIS3801D24, 0, 0x19, scaler, rate0x119
+SIS3801D24, 0, 0x1a, scaler, rate0x11a
+! bcm: see above
+SIS3801D24, 0, 0x1f, scaler, sca_ref_4MHz
+
+bank = 0x1f03
+! module.type, module.num  chan.num, det.type, det.name
+norm = 1
+SIS3801D32, 0, 0x01, scaler, time_unix
+SIS3801D32, 0, 0x02, scaler, time_nano
+
+
+roc = 1
+bank = 0x0100
+! module.type, module.num  chan.num, det.type, det.name
+norm = sca_ref_4MHz
+SIS3801D24, 0, 0x00, scaler, sca_photon_rate_gen
+SIS3801D24, 0, 0x01, scaler, sca_photon_rate_acc
+SIS3801D24, 0, 0x02, scaler, sca_photon_rate_foo1
+SIS3801D24, 0, 0x03, scaler, sca_photon_rate_foo2
+SIS3801D24, 0, 0x04, scaler, rate0x204
+SIS3801D24, 0, 0x05, scaler, rate0x205
+SIS3801D24, 0, 0x06, scaler, rate0x206
+SIS3801D24, 0, 0x07, scaler, rate0x207
+SIS3801D24, 0, 0x08, scaler, rate0x208
+SIS3801D24, 0, 0x09, scaler, rate0x209
+SIS3801D24, 0, 0x0a, scaler, rate0x20a
+SIS3801D24, 0, 0x0b, scaler, rate0x20b
+SIS3801D24, 0, 0x0c, scaler, rate0x20c
+SIS3801D24, 0, 0x0d, scaler, rate0x20d
+SIS3801D24, 0, 0x0e, scaler, sca_fadc_clock1
+SIS3801D24, 0, 0x0f, scaler, sca_fadc_clock2
+! module.type, module.num  chan.num, det.type, det.name
+norm = sca_ref_4MHz
+SIS3801D24, 0, 0x10, scaler, rate0x210
+SIS3801D24, 0, 0x11, scaler, rate0x211
+SIS3801D24, 0, 0x12, scaler, rate0x212
+SIS3801D24, 0, 0x13, scaler, rate0x213
+SIS3801D24, 0, 0x14, scaler, rate0x214
+SIS3801D24, 0, 0x15, scaler, rate0x215
+SIS3801D24, 0, 0x16, scaler, rate0x216
+SIS3801D24, 0, 0x17, scaler, rate0x217
+SIS3801D24, 0, 0x18, scaler, rate0x218
+SIS3801D24, 0, 0x19, scaler, rate0x219
+SIS3801D24, 0, 0x1a, scaler, rate0x21a
+SIS3801D24, 0, 0x1b, scaler, rate0x21b
+SIS3801D24, 0, 0x1c, scaler, rate0x21c
+SIS3801D24, 0, 0x1d, scaler, rate0x21d
+SIS3801D24, 0, 0x1e, scaler, rate0x21e
+SIS3801D24, 0, 0x1f, scaler, rate0x21f

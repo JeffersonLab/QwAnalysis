@@ -44,6 +44,13 @@ THaEtClient::THaEtClient(TString computer, TString mysession, int smode) {
    codaOpen(computer, mysession, smode);
 }
 
+THaEtClient::THaEtClient(TString computer, TString mysession, int smode,
+			 const TString stationname) {
+   initflags();
+   fStationName = stationname;
+   codaOpen(computer, mysession, smode);
+}
+
 THaEtClient::~THaEtClient() {
    fStatus = codaClose();
    if (fStatus == CODA_ERROR) cout << "ERROR: closing THaEtClient"<<endl<<flush;
@@ -62,12 +69,16 @@ void THaEtClient::initflags()
    nread = 0;
    nused = 0;
    timeout = BIG_TIMEOUT;
+   fStationName = "";
 };
 
 int THaEtClient::init() {
 // initialize with a unique station name; therefore each client gets
 // 100% of data - if possible - it still is not allowed to cause deadtime.
-   return init(uniqueStation());
+  if (fStationName != ""){
+    return init(fStationName);
+  }
+  return init(uniqueStation());
 };
 
 int THaEtClient::init(TString mystation) 
@@ -232,7 +243,7 @@ int THaEtClient::codaRead() {
     status = init();
     if (status == CODA_ERROR) {
       cout << "THaEtClient: ERROR: codaRead, cannot connect to CODA"<<endl<<flush;
-      fStatus = CODA_ERROR;
+      fStatus = CODA_EXIT;
       return fStatus;
     }
   }
@@ -255,7 +266,7 @@ int THaEtClient::codaRead() {
 	 printf("et_netclient: error calling et_events_get, %d\n", err);
       }
       nread = nused = 0;
-      fStatus = CODA_ERROR;
+      fStatus = CODA_EXIT;
       return fStatus;
     }
     

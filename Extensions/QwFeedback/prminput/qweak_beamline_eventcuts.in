@@ -1,5 +1,5 @@
 !
-!This file contains beamline event cut properties last updated 10/27/2009 based on run 752/755
+!This file contains beamline event cut properties last updated 10/27/2009 based on run 752/755 
 !
 !*********************************************************************************************
 !Global switch to turn ON and OFF eventcut check
@@ -40,7 +40,7 @@ bcm, qwk_bcm1,			1,		1000000,  	g,  	0
 ! bcm, qwk_bcm1,			63,		1000000, 	g, 	0  
 ! for 80 uA, lower limit 56 uA
 ! bcm, qwk_bcm1,			56,		1000000,  	g,  	0  
-
+halomonitor , sca_habcm, 5, 	1000000,	l,	0
 ! for 1 uA, lower limit 98 uA
 !bcm, qwk_bcm1,			0.2,		1000000,  	g,  	0  
 
