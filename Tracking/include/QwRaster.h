@@ -123,7 +123,7 @@ class QwRaster: public VQwSubsystemTracking, public MQwCloneable<QwRaster>
   Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
   Int_t FindSignalIndex(const EQwModuleType modtype, const TString &name) const;
 
-  //Int_t GetEventcutErrorFlag() { return 0; };//return the error flag to the main routine
+  //UInt_t GetEventcutErrorFlag() { return 0; };//return the error flag to the main routine
 
   // raster specified histograms
   std::vector<TH1*> fHistograms1D;

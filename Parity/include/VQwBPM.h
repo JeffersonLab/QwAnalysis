@@ -60,7 +60,7 @@ class VQwBPM : public VQwDataElement {
   void   GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY);
   void   SetRotation(Double_t);
   void   SetRotationOff();
-  Int_t  GetEventcutErrorFlag(){//return the error flag
+  UInt_t  GetEventcutErrorFlag(){//return the error flag
     return fErrorFlag;
     //return fDeviceErrorCode;
   };

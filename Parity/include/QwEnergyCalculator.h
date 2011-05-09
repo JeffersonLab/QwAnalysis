@@ -66,7 +66,7 @@ class QwEnergyCalculator : public VQwDataElement{
       fEnergyChange.SetEventCutMode(bcuts);
     }
     Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-    Int_t   GetEventcutErrorFlag(){//return the error flag
+    UInt_t   GetEventcutErrorFlag(){//return the error flag
       return fEnergyChange.GetEventcutErrorFlag();
     }
     void    Set(const VQwBPM* device,TString type, TString property ,Double_t tmatrix_ratio);
