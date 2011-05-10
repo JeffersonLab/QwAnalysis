@@ -16,6 +16,7 @@
 // Qweak headers
 #include "QwVQWK_Channel.h"
 #include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
 
 ///
 /// \ingroup QwAnalysis_BeamLine
@@ -82,31 +83,31 @@ class VQwBPM : public VQwDataElement {
   void          SetRootSaveStatus(TString &prefix);
 
 
-  VQwDataElement* GetPositionX(){
+  VQwHardwareChannel* GetPositionX(){
     return &fAbsPos[0];
   };
 
-  const VQwDataElement* GetPositionX() const{
+  const VQwHardwareChannel* GetPositionX() const{
     return const_cast<VQwBPM*>(this)->GetPositionX();
   };
 
-  VQwDataElement* GetPositionY(){
+  VQwHardwareChannel* GetPositionY(){
     return &fAbsPos[1];
   };
 
-  const VQwDataElement* GetPositionY() const{
+  const VQwHardwareChannel* GetPositionY() const{
     return const_cast<VQwBPM*>(this)->GetPositionY();
   };
 
 
   
-/*   VQwDataElement* GetEffectiveCharge(){ */
-/*     return &fEffectiveCharge; */
-/*   } */
-  const VQwDataElement* GetEffectiveCharge() const{
+  /*   VQwHardwareChannel* GetEffectiveCharge(){ */
+  /*     return &fEffectiveCharge; */
+  /*   } */
+  const VQwHardwareChannel* GetEffectiveCharge() const{
     return &fEffectiveCharge;
   };
-  const VQwDataElement* GetPosition(size_t index) const{
+  const VQwHardwareChannel* GetPosition(size_t index) const{
     return &fAbsPos[index];
   };
   

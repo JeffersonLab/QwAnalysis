@@ -16,6 +16,7 @@
 
 // Qweak headers
 #include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
 #include "QwBCM.h"
 
 // Forward declarations
@@ -107,11 +108,11 @@ class QwCombinedBCM : public VQwDataElement{
 
   void Copy(VQwDataElement *source);
 
-  VQwDataElement* GetCharge(){
+  VQwHardwareChannel* GetCharge(){
     return &fCombined_bcm;
   };
 
-  const VQwDataElement* GetCharge() const {
+  const VQwHardwareChannel* GetCharge() const {
     return const_cast<QwCombinedBCM*>(this)->GetCharge();
   };
 

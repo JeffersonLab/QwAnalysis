@@ -753,33 +753,33 @@ void  QwVQWK_Channel::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-VQwDataElement& QwVQWK_Channel::operator= (const  VQwDataElement& data_value)
-{
-  QwVQWK_Channel * value;
-  value=(QwVQWK_Channel *)&data_value;
-  if(this ==value) return *this;
+// VQwDataElement& QwVQWK_Channel::operator= (const  VQwDataElement& data_value)
+// {
+//   QwVQWK_Channel * value;
+//   value=(QwVQWK_Channel *)&data_value;
+//   if(this ==value) return *this;
 
-  if (!IsNameEmpty())
-    {
-      for (Int_t i=0; i<fBlocksPerEvent; i++){
-        this->fBlock_raw[i] = value->fBlock_raw[i];
-        this->fBlock[i] = value->fBlock[i];
-        this->fBlockM2[i] = value->fBlockM2[i];
-      }
-      this->fHardwareBlockSum_raw = value->fHardwareBlockSum_raw;
-      this->fSoftwareBlockSum_raw = value->fSoftwareBlockSum_raw;
-      this->fHardwareBlockSum = value->fHardwareBlockSum;
-      this->fHardwareBlockSumM2 = value->fHardwareBlockSumM2;
-      this->fHardwareBlockSumError = value->fHardwareBlockSumError;
-      this->fGoodEventCount=value->fGoodEventCount;
-      this->fNumberOfSamples = value->fNumberOfSamples;
-      this->fSequenceNumber  = value->fSequenceNumber;
-      this->fErrorFlag       = (value->fErrorFlag);
-      this->fDeviceErrorCode = (value->fDeviceErrorCode);
-    }
+//   if (!IsNameEmpty())
+//     {
+//       for (Int_t i=0; i<fBlocksPerEvent; i++){
+//         this->fBlock_raw[i] = value->fBlock_raw[i];
+//         this->fBlock[i] = value->fBlock[i];
+//         this->fBlockM2[i] = value->fBlockM2[i];
+//       }
+//       this->fHardwareBlockSum_raw = value->fHardwareBlockSum_raw;
+//       this->fSoftwareBlockSum_raw = value->fSoftwareBlockSum_raw;
+//       this->fHardwareBlockSum = value->fHardwareBlockSum;
+//       this->fHardwareBlockSumM2 = value->fHardwareBlockSumM2;
+//       this->fHardwareBlockSumError = value->fHardwareBlockSumError;
+//       this->fGoodEventCount=value->fGoodEventCount;
+//       this->fNumberOfSamples = value->fNumberOfSamples;
+//       this->fSequenceNumber  = value->fSequenceNumber;
+//       this->fErrorFlag       = (value->fErrorFlag);
+//       this->fDeviceErrorCode = (value->fDeviceErrorCode);
+//     }
 
-  return *this;
-}
+//   return *this;
+// }
 
 
 

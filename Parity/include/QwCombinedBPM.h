@@ -15,9 +15,11 @@
 #include <TTree.h>
 
 // Qweak headers
-#include "QwVQWK_Channel.h"
-#include "QwBPMStripline.h"
 #include "VQwBPM.h"
+#include "VQwHardwareChannel.h"
+#include "QwBPMStripline.h"
+#include "QwVQWK_Channel.h"
+
 
 // Forward declarations
 class QwDBInterface;
@@ -92,19 +94,19 @@ class QwCombinedBPM : public VQwBPM{
 
 
 
-  VQwDataElement* GetAngleX(){ //At present this returns the slope not the angle
+  VQwHardwareChannel* GetAngleX(){ //At present this returns the slope not the angle
     return &fSlope[0];
   };
 
-  const VQwDataElement* GetAngleX() const { //At present this returns the slope not the angle
+  const VQwHardwareChannel* GetAngleX() const { //At present this returns the slope not the angle
     return const_cast<QwCombinedBPM*>(this)->GetAngleX();
   };
 
-  VQwDataElement* GetAngleY(){//At present this returns the slope not the angle
+  VQwHardwareChannel* GetAngleY(){//At present this returns the slope not the angle
     return &fSlope[1];
   };
 
-  const VQwDataElement* GetAngleY() const { //At present this returns the slope not the angle
+  const VQwHardwareChannel* GetAngleY() const { //At present this returns the slope not the angle
     return const_cast<QwCombinedBPM*>(this)->GetAngleY();
   };
 

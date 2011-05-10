@@ -16,9 +16,11 @@
 
 #include "QwParameterFile.h"
 #include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
 
 // Forward declarations
 class QwDBInterface;
+
 template<typename T> class QwCombinedBCM;
 
 /*****************************************************************
@@ -82,7 +84,7 @@ class QwBCM : public VQwDataElement{
   void PrintValue() const;
   void PrintInfo() const;
 
-  const VQwDataElement* GetCharge() const {
+  const VQwHardwareChannel* GetCharge() const {
     return &fBeamCurrent;
   };
 

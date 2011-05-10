@@ -15,25 +15,25 @@
 #include "TTree.h"
 
 // Qweak headers
-#include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
 #include "MQwMockable.h"
 
 ///
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class VQwScaler_Channel: public VQwDataElement, public MQwMockable {
+class VQwScaler_Channel: public VQwHardwareChannel, public MQwMockable {
 
 public:
   static Int_t GetBufferOffset(Int_t scalerindex, Int_t wordindex);
   static void  PrintErrorCounterHead();
   static void  PrintErrorCounterTail();
 
-  using VQwDataElement::GetRawValue;
-  using VQwDataElement::GetValue;
-  using VQwDataElement::GetValueM2;
-  using VQwDataElement::GetValueError;
-  using VQwDataElement::GetValueWidth;
+  using VQwHardwareChannel::GetRawValue;
+  using VQwHardwareChannel::GetValue;
+  using VQwHardwareChannel::GetValueM2;
+  using VQwHardwareChannel::GetValueError;
+  using VQwHardwareChannel::GetValueWidth;
 
 
 public:
@@ -100,7 +100,8 @@ public:
   };
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
-  VQwDataElement& operator=  (const VQwDataElement &data_value);
+  void AssignValueFrom(const VQwDataElement* valueptr);
+  //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &data_value);
   VQwScaler_Channel& operator+= (const VQwScaler_Channel &value);
   VQwScaler_Channel& operator-= (const VQwScaler_Channel &value);
   void Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2);

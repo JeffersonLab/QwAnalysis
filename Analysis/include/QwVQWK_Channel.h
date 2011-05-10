@@ -15,7 +15,7 @@
 #include "TTree.h"
 
 // Qweak headers
-#include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
 #include "MQwMockable.h"
 
 // Forward declarations
@@ -25,7 +25,7 @@ class QwBlinder;
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class QwVQWK_Channel: public VQwDataElement, public MQwMockable {
+class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 /****************************************************************//**
  *  Class: QwVQWK_Channel
  *         Base class containing decoding functions for the VQWK_Channel
@@ -39,10 +39,10 @@ class QwVQWK_Channel: public VQwDataElement, public MQwMockable {
   static void  PrintErrorCounterHead();
   static void  PrintErrorCounterTail();
 
-  using VQwDataElement::GetRawValue;
-  using VQwDataElement::GetValue;
-  using VQwDataElement::GetValueM2;
-  using VQwDataElement::GetValueError;
+  using VQwHardwareChannel::GetRawValue;
+  using VQwHardwareChannel::GetValue;
+  using VQwHardwareChannel::GetValueM2;
+  using VQwHardwareChannel::GetValueError;
 
 
  public:
@@ -102,7 +102,7 @@ class QwVQWK_Channel: public VQwDataElement, public MQwMockable {
 
 
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
-  VQwDataElement& operator=  (const VQwDataElement &value);
+  //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &value);
   void AssignValueFrom(const VQwDataElement* valueptr);
 
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);

@@ -262,18 +262,17 @@ void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-VQwDataElement& VQwScaler_Channel::operator= (const  VQwDataElement &data_value)
-{
-  VQwScaler_Channel * value;
-  value=(VQwScaler_Channel *)&data_value;
-  if (!IsNameEmpty()) {
-    this->fValue  = value->fValue;
-    this->fValueError = value->fValueError;
-    this->fValueM2 = value->fValueM2;
-    this->fDeviceErrorCode = value->fDeviceErrorCode;//error code is updated.
-    this->fGoodEventCount = value->fGoodEventCount;
+
+void VQwScaler_Channel::AssignValueFrom(const VQwDataElement* valueptr){
+  const VQwScaler_Channel* tmpptr;
+  tmpptr = dynamic_cast<const VQwScaler_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this = *tmpptr;
+  } else {
+    TString loc="Standard exception from VQwScaler_Channel::AssignValueFrom = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
   }
-  return *this;
 }
 
 

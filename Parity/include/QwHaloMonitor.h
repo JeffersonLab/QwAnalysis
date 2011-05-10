@@ -17,6 +17,7 @@
 // Qweak headers
 #include "QwParameterFile.h"
 #include "QwScaler_Channel.h"
+#include "VQwHardwareChannel.h"
 
 // Forward declarations
 class QwDBInterface;
@@ -88,11 +89,11 @@ class  QwHaloMonitor : public VQwDataElement{
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  VQwDataElement* GetScaler(){
+  VQwHardwareChannel* GetScaler(){
     return &fHalo_Counter;
   };
 
-  const VQwDataElement* GetScaler() const{
+  const VQwHardwareChannel* GetScaler() const{
     return const_cast<QwHaloMonitor*>(this)->GetScaler();
   };
 

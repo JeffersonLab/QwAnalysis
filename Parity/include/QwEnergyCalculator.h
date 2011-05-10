@@ -19,6 +19,7 @@
 #include "QwBPMStripline.h"
 #include "QwCombinedBPM.h"
 #include "VQwBPM.h"
+#include "VQwHardwareChannel.h"
 
 // Forward declarations
 class QwDBInterface;
@@ -90,11 +91,11 @@ class QwEnergyCalculator : public VQwDataElement{
     void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
     void    FillTreeVector(std::vector<Double_t> &values) const;
 
-    VQwDataElement* GetEnergy(){
+    VQwHardwareChannel* GetEnergy(){
       return &fEnergyChange;
     };
 
-    const VQwDataElement* GetEnergy() const{
+    const VQwHardwareChannel* GetEnergy() const{
       return const_cast<QwEnergyCalculator*>(this)->GetEnergy();
     };
 
