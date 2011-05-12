@@ -3,7 +3,7 @@ ROC=2
 Bank=0x0202
 !samples_size=480
 !for 960Hz
-samples_size=464  
+sample_size=976  
 
 
 !
