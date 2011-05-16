@@ -14,15 +14,15 @@
 #include "QwDBInterface.h"
 
 
-static QwVQWK_Channel  targetbeamangle;
-static QwVQWK_Channel  targetbeamx;
-static QwVQWK_Channel  beamx;
+// static QwVQWK_Channel  targetbeamangle;
+// static QwVQWK_Channel  targetbeamx;
+// static QwVQWK_Channel  beamx;
 
 void QwEnergyCalculator::InitializeChannel(TString name,TString datatosave )
 {
   SetElementName(name);
   fEnergyChange.InitializeChannel(name,datatosave);
-  beamx.InitializeChannel("beamx","derived");
+  //  beamx.InitializeChannel("beamx","derived");
   return;
 }
 
@@ -30,7 +30,7 @@ void QwEnergyCalculator::InitializeChannel(TString subsystem, TString name,TStri
 {
   SetElementName(name);
   fEnergyChange.InitializeChannel(subsystem, "QwEnergyCalculator", name,datatosave);
-  beamx.InitializeChannel("beamx","derived");
+  //  beamx.InitializeChannel("beamx","derived");
   return;
 }
 
@@ -75,7 +75,7 @@ void  QwEnergyCalculator::ProcessEvent(){
 
   for(UInt_t i = 0; i<fProperty.size(); i++){
     if(fProperty[i].Contains("targetbeamangle")){
-      targetbeamangle = atan((((QwCombinedBPM*)fDevice[i])->fSlope[VQwBPM::kXAxis]).GetHardwareSum());
+      targetbeamangle = atan((((QwCombinedBPM*)fDevice[i])->fSlope[VQwBPM::kXAxis]).GetValue());
       targetbeamangle *= fTMatrixRatio[i];
       fEnergyChange.AddChannelOffset(targetbeamangle);
     }
@@ -98,7 +98,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
     if(fProperty[i].Contains("targetbeamangle")){
       error_code |= ((QwCombinedBPM*)fDevice[i])->fSlope[0].GetErrorCode();
     } else {
-      error_code |= ((QwVQWK_Channel*)fDevice[i]->GetPositionX())->GetErrorCode();
+      error_code |= fDevice[i]->GetPosition(VQwBPM::kXAxis)->GetErrorCode();
     }
   }
   fEnergyChange.UpdateErrorCode(error_code);
@@ -109,7 +109,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
   else{
     status&=kFALSE;
   }
-  fDeviceErrorCode|=fEnergyChange.GetEventcutErrorFlag();//retrun the error flag for event cuts
+  fErrorFlag|=fEnergyChange.GetEventcutErrorFlag();//retrun the error flag for event cuts
 
   return status;
 
@@ -192,8 +192,8 @@ Bool_t QwEnergyCalculator::ApplyHWChecks(){
   // derived from combinations of physical channels. Therefore, this is not exactly a "HW Check"
   // but just a check of the HW checks of the used channels.
 
-  Bool_t fEventIsGood=kTRUE;
-  return fEventIsGood;
+  Bool_t eventokay=kTRUE;
+  return eventokay;
 }
 
 
@@ -334,61 +334,9 @@ void  QwEnergyCalculator::Copy(VQwDataElement *source){
 
 std::vector<QwDBInterface> QwEnergyCalculator::GetDBEntry()
 {
-  UShort_t i = 0;
-
   std::vector <QwDBInterface> row_list;
-  QwDBInterface row;
-
-  TString name;
-  Double_t avg         = 0.0;
-  Double_t err         = 0.0;
-  UInt_t beam_subblock = 0;
-  UInt_t beam_n        = 0;
-
-  row.Reset();
-
-  // the element name and the n (number of measurements in average)
-  // is the same in each block and hardwaresum.
-
-  name          = fEnergyChange.GetElementName();
-  beam_n        = fEnergyChange.GetGoodEventCount();
-
-  // Get HardwareSum average and its error
-  avg           = fEnergyChange.GetHardwareSum();
-  err           = fEnergyChange.GetHardwareSumError();
-  // ADC subblock sum : 0 in MySQL database
-  beam_subblock = 0;
-
-  row.SetDetectorName(name);
-  row.SetSubblock(beam_subblock);
-  row.SetN(beam_n);
-  row.SetValue(avg);
-  row.SetError(err);
-
-  row_list.push_back(row);
-
-
-  // Get four Block averages and thier errors
-
-  for(i=0; i<4; i++) {
-    row.Reset();
-    avg           = fEnergyChange.GetBlockValue(i);
-    err           = fEnergyChange.GetBlockErrorValue(i);
-    beam_subblock = (UInt_t) (i+1);
-    // QwVQWK_Channel  | MySQL
-    // fBlock[0]       | subblock 1
-    // fBlock[1]       | subblock 2
-    // fBlock[2]       | subblock 3
-    // fBlock[3]       | subblock 4
-    row.SetDetectorName(name);
-    row.SetSubblock(beam_subblock);
-    row.SetN(beam_n);
-    row.SetValue(avg);
-    row.SetError(err);
-
-    row_list.push_back(row);
-  }
-
+  row_list.clear();
+  fEnergyChange.AddEntriesToList(row_list);
   return row_list;
 
 }

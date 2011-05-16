@@ -48,8 +48,8 @@ Int_t QwHaloMonitor::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_
 
 Bool_t QwHaloMonitor::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;
-  return fEventIsGood ;
+  Bool_t eventokay=kTRUE;
+  return eventokay ;
 }
 
 

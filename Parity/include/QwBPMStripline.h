@@ -15,7 +15,6 @@
 #include <TTree.h>
 
 // Qweak headers
-#include "QwVQWK_Channel.h"
 #include "VQwBPM.h"
 #include "QwParameterFile.h"
 
@@ -28,31 +27,33 @@ class QwDBInterface;
 ///
 /// \ingroup QwAnalysis_BL
 
+template<typename T>
 class QwBPMStripline : public VQwBPM {
   friend class QwCombinedBPM;
   friend class QwEnergyCalculator;
 
  public:
-  QwBPMStripline() { };
+  QwBPMStripline(){
+  };
 
-  QwBPMStripline(TString name):VQwBPM(name){
+  QwBPMStripline(TString name){
     InitializeChannel(name);
     fRotationAngle = 45.0;
     SetRotation(fRotationAngle);
     bRotated=kTRUE;
   };   
     
-    QwBPMStripline(TString subsystemname, TString name):VQwBPM(name){
-      SetSubsystemName(subsystemname);
-      InitializeChannel(subsystemname, name);
-      fRotationAngle = 45.0;
-      SetRotation(fRotationAngle);
-      bRotated=kTRUE;
-    };    
+  QwBPMStripline(TString subsystemname, TString name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name);
+    fRotationAngle = 45.0;
+    SetRotation(fRotationAngle);
+    bRotated=kTRUE;
+  };    
 
-      ~QwBPMStripline() {
-	DeleteHistograms();
-      };
+  ~QwBPMStripline() {
+    DeleteHistograms();
+  };
 
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
@@ -64,22 +65,31 @@ class QwBPMStripline : public VQwBPM {
   void    PrintValue() const;
   void    PrintInfo() const;
 
+  const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {
+    if (axis<0 || axis>2){
+      TString loc="QwBPMStripline::GetPosition for "
+        +this->GetElementName()+" failed for axis value "+Form("%d",axis);
+      throw std::out_of_range(loc.Data());
+    }
+    return &fAbsPos[axis];
+  }
+  const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
+
   UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
   void    GetAbsolutePosition();
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
-  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  /*   void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX); */
+  /*   /\*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel *\/ */
+  /*   void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability); */
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
   void    SetDefaultSampleSize(Int_t sample_size);
   void    SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
   void    RandomizeEventData(int helicity = 0, double time = 0.0);
-  void    SetEventData(Double_t* block, UInt_t sequencenumber);
   void    EncodeEventData(std::vector<UInt_t> &buffer);
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
@@ -107,7 +117,9 @@ class QwBPMStripline : public VQwBPM {
 
 
   std::vector<QwDBInterface> GetDBEntry();
-  void    MakeBPMList();
+
+ protected:
+  VQwHardwareChannel* GetSubelementByName(TString ch_name);
 
 
   /////
@@ -122,10 +134,22 @@ class QwBPMStripline : public VQwBPM {
 
 
  protected:
-  QwVQWK_Channel fWire[4];
-  QwVQWK_Channel fRelPos[2];
+  T fWire[4];
+  T fRelPos[2];
 
-  std::vector<QwVQWK_Channel> fBPMElementList;
+  //  These are the "real" data elements, to which the base class
+  //  fAbsPos_base and fEffectiveCharge_base are pointers.
+  T fAbsPos[2];
+  T fEffectiveCharge;
+
+private: 
+  // Functions to be removed
+  void    SetEventData(Double_t* block, UInt_t sequencenumber);
+  std::vector<T> fBPMElementList;
+  void    MakeBPMList();
+
+
+
 
 };
 

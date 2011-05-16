@@ -42,10 +42,10 @@ public:
   Double_t GetValueM2() const     {return this->GetValueM2(0);};
   Double_t GetValueError() const  {return this->GetValueError(0);};
   Double_t GetValueWidth() const  {return this->GetValueWidth(0);};
-  virtual Int_t GetRawValue(size_t element) const      {return 0;};
-  virtual Double_t GetValue(size_t element) const      {return 0.0;};
-  virtual Double_t GetValueM2(size_t element) const    {return 0.0;};
-  virtual Double_t GetValueError(size_t element) const {return 0.0;};
+  virtual Int_t GetRawValue(size_t element) const = 0;
+  virtual Double_t GetValue(size_t element) const = 0;
+  virtual Double_t GetValueM2(size_t element) const = 0;
+  virtual Double_t GetValueError(size_t element) const = 0;
   Double_t GetValueWidth(size_t element) const {
     RangeCheck(element);
     Double_t width;
@@ -55,6 +55,15 @@ public:
       width = 0.0;
     } 
     return width;
+  };
+
+  UInt_t GetErrorCode() const {return fDeviceErrorCode;};
+  void UpdateErrorCode(const UInt_t& error){fDeviceErrorCode |= error;};
+
+  virtual void  ClearEventData(){
+    VQwDataElement::ClearEventData();
+    fDeviceErrorCode = 0;
+    fErrorFlag = fDefErrorFlag;
   };
 
   /*   virtual void AddChannelOffset(Double_t Offset) = 0; */
@@ -80,7 +89,12 @@ public:
    *         limits (fULimit and fLLimit), stability % and the 
    *         error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+
+  Double_t GetEventCutUpperLimit() const { return fULimit; };
+  Double_t GetEventCutLowerLimit() const { return fLLimit; };
+
   Double_t GetStabilityLimit() const { return fStability;};
+
 
  
   /*! \brief return the error flag on this channel/device*/
@@ -154,6 +168,9 @@ protected:
   Double_t fULimit, fLLimit;//this sets the upper and lower limits
   Double_t fStability;//how much deviaton from the stable reading is allowed
   
+  /// Unique error code for HW failures
+  UInt_t fDeviceErrorCode; 
+
   //Error flag
   UInt_t fErrorFlag;
   UInt_t fDefErrorFlag;

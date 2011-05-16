@@ -304,7 +304,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	}
 
 	if(localBeamDetectorID.fTypeID== kQwBPMStripline){
-	  QwBPMStripline localstripline(GetSubsystemName(), localBeamDetectorID.fdetectorname);
+	  QwBPMStripline<QwVQWK_Channel> localstripline(GetSubsystemName(), localBeamDetectorID.fdetectorname);
 	  fStripline.push_back(localstripline);
 	  fStripline[fStripline.size()-1].SetDefaultSampleSize(fSample_size);
 	  localBeamDetectorID.fIndex=fStripline.size()-1;
@@ -1423,23 +1423,23 @@ Bool_t QwBeamLine::PublishInternalValues() const
       tmp_channel = GetBCM(device_name)->GetCharge();
     } else if (device_type == "bpmstripline") {
       if (device_prop == "x")
-	tmp_channel = GetBPMStripline(device_name)->GetPositionX();
+	tmp_channel = GetBPMStripline(device_name)->GetPosition(VQwBPM::kXAxis);
       else if (device_prop == "y")
-	tmp_channel = GetBPMStripline(device_name)->GetPositionY();
+	tmp_channel = GetBPMStripline(device_name)->GetPosition(VQwBPM::kYAxis);
       else if (device_prop == "ef")
 	tmp_channel = GetBPMStripline(device_name)->GetEffectiveCharge();
     } else if (device_type == "bpmcavity") {
       if (device_prop == "x")
-	tmp_channel = GetBPMCavity(device_name)->GetPositionX();
+	tmp_channel = GetBPMCavity(device_name)->GetPosition(VQwBPM::kXAxis);
       else if (device_prop == "y")
-	tmp_channel = GetBPMCavity(device_name)->GetPositionY();
+	tmp_channel = GetBPMCavity(device_name)->GetPosition(VQwBPM::kYAxis);
       else if (device_prop == "ef")
 	tmp_channel = GetBPMCavity(device_name)->GetEffectiveCharge();
     } else if (device_type == "combobpm") {
       if (device_prop == "x")
-	tmp_channel = GetCombinedBPM(device_name)->GetPositionX();
+	tmp_channel = GetCombinedBPM(device_name)->GetPosition(VQwBPM::kXAxis);
       else if (device_prop == "y")
-	tmp_channel = GetCombinedBPM(device_name)->GetPositionY();
+	tmp_channel = GetCombinedBPM(device_name)->GetPosition(VQwBPM::kYAxis);
       else if (device_prop == "xp")
 	tmp_channel = GetCombinedBPM(device_name)->GetAngleX();
       else if (device_prop == "yp")
@@ -1518,10 +1518,10 @@ Int_t QwBeamLine::GetDetectorIndex( EQwBeamInstrumentType type_id, TString name)
 }
 
 //*****************************************************************
-QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name)
+QwBPMStripline<QwVQWK_Channel>* QwBeamLine::GetBPMStripline(const TString name)
 {
   if (! fStripline.empty()) {
-    for (std::vector<QwBPMStripline>::iterator stripline = fStripline.begin(); stripline != fStripline.end(); ++stripline) {
+    for (std::vector<QwBPMStripline<QwVQWK_Channel> >::iterator stripline = fStripline.begin(); stripline != fStripline.end(); ++stripline) {
       if (stripline->GetElementName() == name) {
 	return &(*stripline);
       }
@@ -1613,6 +1613,11 @@ QwEnergyCalculator* QwBeamLine::GetEnergyCalculator(const TString name){
 }
 
 //*****************************************************************
+const QwBPMStripline<QwVQWK_Channel>* QwBeamLine::GetBPMStripline(const TString name) const
+{
+  return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
+}
+
 QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name){
    if (! fHaloMonitor.empty()) {
     
@@ -1626,13 +1631,6 @@ QwHaloMonitor* QwBeamLine::GetScalerChannel(const TString name){
   }
   return 0;
 };
-
-
-//*****************************************************************
-const QwBPMStripline* QwBeamLine::GetBPMStripline(const TString name) const
-{
-  return const_cast<QwBeamLine*>(this)->GetBPMStripline(name);
-}
 
 //*****************************************************************
 const QwBPMCavity* QwBeamLine::GetBPMCavity(const TString name) const
@@ -2429,7 +2427,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   ///   try to access BPM mean and its error
   if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Beam Position Monitors" <<QwLog::endl;
   for(i=0; i< fStripline.size(); i++) {
-    fStripline[i].MakeBPMList();
+    //    fStripline[i].MakeBPMList();
     interface.clear();
     interface = fStripline[i].GetDBEntry();
     for (j=0; j<interface.size()-5; j++){
@@ -2453,7 +2451,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   ///   try to access CombinedBPM means and errors
   if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Combined Beam Position Monitors" <<QwLog::endl;
   for(i=0; i< fBPMCombo.size(); i++) {
-    fBPMCombo[i].MakeBPMComboList();
+    //    fBPMCombo[i].MakeBPMComboList();
     interface.clear();
     interface = fBPMCombo[i].GetDBEntry();
     for (j=0; j<interface.size()-5; j++){
@@ -2507,7 +2505,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   ///   try to access QPD mean and its error
   if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Quadrant PhotoDiodes" <<QwLog::endl;
   for(i=0; i< fQPD.size(); i++) {
-    fQPD[i].MakeQPDList();
+    //    fQPD[i].MakeQPDList();
     interface.clear();
     interface = fQPD[i].GetDBEntry();
     for (j=0; j<interface.size()-5; j++){
@@ -2530,7 +2528,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   ///   try to access LinearArray mean and its error
   if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Linear PhotoDiode Array" <<QwLog::endl;
   for(i=0; i< fLinearArray.size(); i++) {
-    fLinearArray[i].MakeLinearArrayList();
+    //    fLinearArray[i].MakeLinearArrayList();
     interface.clear();
     interface = fLinearArray[i].GetDBEntry();
     for (j=0; j<interface.size()-5; j++){
@@ -2552,7 +2550,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   ///   try to access cavity bpm mean and its error
   if(local_print_flag) QwMessage <<  QwColor(Qw::kGreen) << "Cavity Monitors" <<QwLog::endl;
   for(i=0; i< fCavity.size(); i++) {
-    fCavity[i].MakeBPMCavityList();
+    //    fCavity[i].MakeBPMCavityList();
     interface.clear();
     interface = fCavity[i].GetDBEntry();
     for (j=0; j<interface.size()-5; j++){

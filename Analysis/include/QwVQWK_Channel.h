@@ -43,7 +43,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   using VQwHardwareChannel::GetValue;
   using VQwHardwareChannel::GetValueM2;
   using VQwHardwareChannel::GetValueError;
-
+  using VQwHardwareChannel::GetValueWidth;
 
  public:
   QwVQWK_Channel(): MQwMockable() {
@@ -71,9 +71,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     fNumberOfSamples_map = NumberOfSamples_map;
   };
   
-  UInt_t GetErrorCode() const {return fDeviceErrorCode;};
-  void UpdateErrorCode(const UInt_t& errorcode){fDeviceErrorCode |= errorcode;};
-
   void  ClearEventData();
 
   void ReportErrorCounters();//This will display the error summary for each device
@@ -120,12 +117,21 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   void Scale(Double_t Offset);
 
   void AccumulateRunningSum(const QwVQWK_Channel& value);
+  void AccumulateRunningSum(const VQwHardwareChannel *value){
+    const QwVQWK_Channel *tmp_ptr = dynamic_cast<const QwVQWK_Channel*>(value);
+    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr);
+  };
   ////deaccumulate one value from the running sum
   void DeaccumulateRunningSum(QwVQWK_Channel& value){
     value.fGoodEventCount=-1;
     AccumulateRunningSum(value);
     value.fGoodEventCount=0;
   };
+  void DeaccumulateRunningSum(VQwHardwareChannel *value){
+    QwVQWK_Channel *tmp_ptr = dynamic_cast<QwVQWK_Channel*>(value);
+    if (tmp_ptr != NULL) DeaccumulateRunningSum(*tmp_ptr);
+  };
+
   void CalculateRunningAverage();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
@@ -134,34 +140,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /*Event cut related routines*/
   Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level by comparing upper and lower limits (fULimit and fLLimit) set on this channel
-  void SetSingleEventCuts(Double_t min, Double_t max);//set the upper and lower limits (fULimit and fLLimit) set on this channel
-  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
-  /*! \brief return the error flag on this channel/device*/
-  UInt_t GetEventcutErrorFlag(){//return the error flag
-    //if (GetElementName()=="qwk_bcm1" && fDeviceErrorCode)
-    //if ((fDeviceErrorCode&kErrorFlag_EventCut_L)==kErrorFlag_EventCut_L )
-    //std::cout<<"QwVQWK_Channel Failed eflag "<<fErrorFlag<<" D E "<<fDeviceErrorCode<<" "<<((fErrorFlag & kGlobalCut) == kGlobalCut)<<" kGlobalCut  "<<kGlobalCut<<std::endl;
-
-    if (((fErrorFlag & kGlobalCut) == kGlobalCut) && fDeviceErrorCode>0){//we care only about global cuts
-      //std::cout<<" Failed "<<std::endl;
-      //if (GetElementName()=="qwk_bcm1" )
-      //std::cout<<"QwVQWK_Channel Failed eflag "<<fErrorFlag<<" D E "<<fDeviceErrorCode<<" "<<((fErrorFlag & kGlobalCut) == kGlobalCut)<<" kGlobalCut  "<<kGlobalCut<<std::endl;
-      return fErrorFlag;
-    }
-    return 0;
-  };
-  Double_t GetEventCutUpperLimit(){
-    return fULimit;
-  }
-  Double_t GetEventCutLowerLimit(){
-    return fLLimit;
-  }
-
-  void SetEventCutMode(Int_t bcuts){
-    bEVENTCUTMODE=bcuts;
-  }
 
   void SetVQWKSaturationLimt(Double_t sat_volts=8.5){//Set the absolute staturation limit in volts.
     fSaturationABSLimit=sat_volts;
@@ -190,49 +169,31 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   Int_t GetRawValue(size_t element) const {
     RangeCheck(element);
     if (element==0) return fHardwareBlockSum_raw;
-    return fBlock_raw[element];
+    return fBlock_raw[element-1];
   }
   Double_t GetValue(size_t element) const {
     RangeCheck(element);
     if (element==0) return fHardwareBlockSum;
-    return fBlock[element];
+    return fBlock[element-1];
   }
   Double_t GetValueM2(size_t element) const {
     RangeCheck(element);
     if (element==0) return fHardwareBlockSumM2;
-    return fBlockM2[element];
+    return fBlockM2[element-1];
   }
   Double_t GetValueError(size_t element) const {
     RangeCheck(element);
     if (element==0) return fHardwareBlockSumError;
-    return fBlockError[element];
+    return fBlockError[element-1];
   }
 
 
-  Double_t GetBlockValue(size_t blocknum) const { return GetValue(blocknum+1);};
-  Double_t GetBlockErrorValue(size_t blocknum) const { return GetValueError(blocknum+1);};
-
-  Double_t GetHardwareSum() const       { return GetValue(0);};
-  Double_t GetHardwareSumM2() const     { return GetValueM2(0); };
-  Double_t GetHardwareSumWidth() const  { return GetValueWidth(0); };
-  Double_t GetHardwareSumError() const  { return GetValueError(0); };
-
-  Double_t GetStabilityLimit() const { return fStability;};
   Double_t GetAverageVolts() const;
-  //  Double_t GetSoftwareSum() const {return fSoftwareBlockSum;};
-
-  Int_t GetRawBlockValue(size_t blocknum) const { return GetRawValue(blocknum+1);};
-  Int_t GetRawHardwareSum() const       { return GetRawValue(0);};
-  Int_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
 
   size_t GetSequenceNumber() const {return (fSequenceNumber);};
   size_t GetNumberOfSamples() const {return (fNumberOfSamples);};
 
-  void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };
-  Double_t GetPedestal() const       { return fPedestal; };
-  void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; kFoundGain = 1; };
-  void     SetCalibrationToVolts()               { fCalibrationFactor = kVQWK_VoltsPerBit; kFoundGain = 1; };
-  Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
+  void   SetCalibrationToVolts(){SetCalibrationFactor(kVQWK_VoltsPerBit);};
 
   void Copy(VQwDataElement *source);
 
@@ -254,6 +215,22 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
  protected:
   QwVQWK_Channel& operator/= (const QwVQWK_Channel &value);
 
+private:
+  //  The following specific access methods should only be used internally,
+  //  if at all.
+  Double_t GetBlockValue(size_t blocknum) const { return GetValue(blocknum+1);};
+  Double_t GetBlockErrorValue(size_t blocknum) const { return GetValueError(blocknum+1);};
+
+  Double_t GetHardwareSum() const       { return GetValue(0);};
+  Double_t GetHardwareSumM2() const     { return GetValueM2(0); };
+  Double_t GetHardwareSumWidth() const  { return GetValueWidth(0); };
+  Double_t GetHardwareSumError() const  { return GetValueError(0); };
+  //  Double_t GetSoftwareSum() const {return fSoftwareBlockSum;};
+
+  Int_t GetRawBlockValue(size_t blocknum) const {return GetRawValue(blocknum+1);};
+  Int_t GetRawHardwareSum() const       { return GetRawValue(0);};
+  Int_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
+
 
  private:
   static const Bool_t kDEBUG;
@@ -264,13 +241,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /*! \name ADC Calibration                    */
   // @{
   static const Double_t kVQWK_VoltsPerBit;
-  Double_t fPedestal; /*!< Pedestal of the hardware sum signal,
-			   we assume the pedestal level is constant over time
-			   and can be divided by four for use with each block,
-			   units: [counts / number of samples] */
-  Double_t fCalibrationFactor;
-  Bool_t kFoundPedestal;
-  Bool_t kFoundGain;
   //@}
 
 
@@ -330,8 +300,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
 
 
-  UInt_t fDeviceErrorCode; ///< Unique error code for HW failed beam line devices
-
 
   Int_t fADC_Same_NumEvt; ///< Keep track of how many events with same ADC value returned
   Int_t fSequenceNo_Prev; ///< Keep the sequence number of the last event
@@ -339,9 +307,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   Double_t fPrev_HardwareBlockSum; ///< Previous Module-based sum of the four sub-blocks
 
 
-  Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
-  Double_t fULimit, fLLimit;//this sets the upper and lower limits on the VQWK_Channel::fHardwareBlockSum
-  Double_t fStability;//how much deviaton from the stable reading is allowed
 
   Double_t fSaturationABSLimit;//absolute value of the VQWK saturation volt
 

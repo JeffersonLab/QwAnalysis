@@ -34,7 +34,8 @@ class QwCombinedBPM : public VQwBPM{
 
   /////
  public:
-  QwCombinedBPM(){};
+  QwCombinedBPM(){
+  };
   QwCombinedBPM(TString name):VQwBPM(name){
     InitializeChannel(name);
   };
@@ -55,6 +56,17 @@ class QwCombinedBPM : public VQwBPM{
   void    ProcessEvent();
   void    PrintValue() const;
   void    PrintInfo() const;
+
+  const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {
+    if (axis<0 || axis>2){
+      TString loc="QwLinearDiodeArray::GetPosition for "
+        +this->GetElementName()+" failed for axis value "+Form("%d",axis);
+      throw std::out_of_range(loc.Data());
+    }
+    return &fAbsPos[axis];
+  }
+  const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
+
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
@@ -87,10 +99,6 @@ class QwCombinedBPM : public VQwBPM{
   void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void    FillTreeVector(std::vector<Double_t> &values) const;
 
-  /* Functions for least square fit */
-  void     CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos);
-  Double_t SumOver( std::vector <Double_t> weight , std::vector <QwVQWK_Channel> val);
-  void     LeastSquareFit( Int_t pos, std::vector<Double_t> fWeights) ; //bbbbb
 
 
 
@@ -113,9 +121,15 @@ class QwCombinedBPM : public VQwBPM{
 
 
   std::vector<QwDBInterface> GetDBEntry();
-  void    MakeBPMComboList();
 
- 
+ protected:
+  VQwHardwareChannel* GetSubelementByName(TString ch_name);
+
+  /* Functions for least square fit */
+  void     CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos);
+  Double_t SumOver( std::vector <Double_t> weight , std::vector <QwVQWK_Channel> val);
+  void     LeastSquareFit(VQwBPM::EBeamPositionMonitorAxis axis, std::vector<Double_t> fWeights) ; //bbbbb
+
   
 
   /////
@@ -141,6 +155,14 @@ class QwCombinedBPM : public VQwBPM{
   /* This channel contains the beam intercept w.r.t the X & Y axis at the target */
   QwVQWK_Channel fIntercept[2];
 
+  //  These are the "real" data elements, to which the base class
+  //  fAbsPos_base and fEffectiveCharge_base are pointers.
+  QwVQWK_Channel fAbsPos[2];
+  QwVQWK_Channel fEffectiveCharge;
+
+private: 
+  // Functions to be removed
+  void    MakeBPMComboList();
   std::vector<QwVQWK_Channel> fBPMComboElementList;
 
 };

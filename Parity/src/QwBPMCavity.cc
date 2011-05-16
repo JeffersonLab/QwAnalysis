@@ -88,20 +88,20 @@ void QwBPMCavity::ClearEventData()
 
 Bool_t QwBPMCavity::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;
+  Bool_t eventokay=kTRUE;
 
-  fDeviceErrorCode=0;
+  UInt_t deviceerror=0;
   for(Short_t i=0;i<2;i++)
     {
-      fDeviceErrorCode|= fWire[i].ApplyHWChecks();  //OR the error code from each wire
-      fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.
+      deviceerror|= fWire[i].ApplyHWChecks();  //OR the error code from each wire
+      eventokay &= (deviceerror & 0x0);//AND with 0 since zero means HW is good.
 
       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;
       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
     }
-  fDeviceErrorCode = fEffectiveCharge.ApplyHWChecks();
-  fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 
-  return fEventIsGood;
+  deviceerror = fEffectiveCharge.ApplyHWChecks();
+  eventokay &= (deviceerror & 0x0);//AND with 0 
+  return eventokay;
 }
 
 
@@ -180,6 +180,30 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   return status;
 
 }
+
+VQwHardwareChannel* QwBPMCavity::GetSubelementByName(TString ch_name)
+{
+  VQwHardwareChannel* tmpptr = NULL;
+  ch_name.ToLower();
+  if (ch_name=="relx"){
+    tmpptr = &fRelPos[0];
+  }else if (ch_name=="rely"){
+    tmpptr = &fRelPos[1];
+  }else if (ch_name=="absx" || ch_name=="x" ){
+    tmpptr = &fAbsPos[0];
+  }else if (ch_name=="absy" || ch_name=="y"){
+    tmpptr = &fAbsPos[1];
+  }else if (ch_name=="effectivecharge" || ch_name=="charge"){
+    tmpptr = &fEffectiveCharge;
+  } else {
+    TString loc="QwLinearDiodeArray::GetSubelementByName for"
+      + this->GetElementName() + " was passed "
+      + ch_name + ", which is an unrecognized subelement name.";
+    throw std::invalid_argument(loc.Data());
+  }
+  return tmpptr;
+}
+
 
 
 void QwBPMCavity::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
@@ -651,7 +675,7 @@ void QwBPMCavity::Copy(VQwDataElement *source)
 void QwBPMCavity::SetEventCutMode(Int_t bcuts)
 {
   Short_t i = 0;
-  bEVENTCUTMODE=bcuts;
+  //  bEVENTCUTMODE=bcuts;
   for (i=0;i<2;i++) {
     fWire[i].SetEventCutMode(bcuts);
     fRelPos[i].SetEventCutMode(bcuts);
@@ -683,68 +707,14 @@ void QwBPMCavity::MakeBPMCavityList()
 
 std::vector<QwDBInterface> QwBPMCavity::GetDBEntry()
 {
-
-  UShort_t i = 0;
-  UShort_t n_bpm_element = 0;
-
   std::vector <QwDBInterface> row_list;
   row_list.clear();
-
-  QwDBInterface row;
-
-  TString name;
-  Double_t avg         = 0.0;
-  Double_t err         = 0.0;
-  UInt_t beam_subblock = 0;
-  UInt_t beam_n        = 0;
-
-  for(n_bpm_element=0; n_bpm_element<fBPMElementList.size(); n_bpm_element++) {
-
-    row.Reset();
-    // the element name and the n (number of measurements in average)
-    // is the same in each block and hardwaresum.
-
-    name          = fBPMElementList.at(n_bpm_element).GetElementName();
-    beam_n        = fBPMElementList.at(n_bpm_element).GetGoodEventCount();
-
-    // Get HardwareSum average and its error
-    avg           = fBPMElementList.at(n_bpm_element).GetHardwareSum();
-    err           = fBPMElementList.at(n_bpm_element).GetHardwareSumError();
-    // ADC subblock sum : 0 in MySQL database
-    beam_subblock = 0;
-
-    row.SetDetectorName(name);
-    row.SetSubblock(beam_subblock);
-    row.SetN(beam_n);
-    row.SetValue(avg);
-    row.SetError(err);
-
-    row_list.push_back(row);
-
-    // Get four Block averages and thier errors
-
-    for(i=0; i<4; i++) {
-      row.Reset();
-      avg           = fBPMElementList.at(n_bpm_element).GetBlockValue(i);
-      err           = fBPMElementList.at(n_bpm_element).GetBlockErrorValue(i);
-      beam_subblock = (UInt_t) (i+1);
-      // QwVQWK_Channel  | MySQL
-      // fBlock[0]       | subblock 1
-      // fBlock[1]       | subblock 2
-      // fBlock[2]       | subblock 3
-      // fBlock[3]       | subblock 4
-      row.SetDetectorName(name);
-      row.SetSubblock(beam_subblock);
-      row.SetN(beam_n);
-      row.SetValue(avg);
-      row.SetError(err);
-
-      row_list.push_back(row);
-    }
+  for(size_t i=0;i<2;i++) {
+    fRelPos[i].AddEntriesToList(row_list);
+    fAbsPos[i].AddEntriesToList(row_list);
   }
-
+  fEffectiveCharge.AddEntriesToList(row_list);
   return row_list;
-
 }
 
 /**********************************

@@ -103,7 +103,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   void PrintInfo() const;
 
 
-  QwBPMStripline* GetBPMStripline(const TString name);
+  QwBPMStripline<QwVQWK_Channel>* GetBPMStripline(const TString name);
   QwBCM<QwVQWK_Channel>* GetBCM(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
   QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name);
@@ -111,7 +111,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   QwEnergyCalculator* GetEnergyCalculator(const TString name);
   QwHaloMonitor* GetScalerChannel(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
-  const QwBPMStripline* GetBPMStripline(const TString name) const;
+  const QwBPMStripline<QwVQWK_Channel>* GetBPMStripline(const TString name) const;
   const QwBCM<QwVQWK_Channel>* GetBCM(const TString name) const;
   const QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name) const;
   const QwCombinedBPM* GetCombinedBPM(const TString name) const;
@@ -124,7 +124,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  Int_t GetDetectorIndex(EQwBeamInstrumentType TypeID, TString name);
  //when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
- std::vector <QwBPMStripline> fStripline;
+ std::vector <QwBPMStripline<QwVQWK_Channel> > fStripline;
 
  std::vector <QwBCM<QwVQWK_Channel> > fBCM;
  std::vector <QwCombinedBCM<QwVQWK_Channel> > fBCMCombo;

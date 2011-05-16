@@ -1334,19 +1334,6 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts(Double_t LL=0,Double_t UL=0)//only c
   return status;
 }
 
-void QwVQWK_Channel::SetSingleEventCuts(Double_t min, Double_t max){
-  fULimit=max;
-  fLLimit=min;
-}
-
-void QwVQWK_Channel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
-  fErrorFlag=errorflag;
-  fDefErrorFlag=errorflag;
-  QwMessage<<"QwVQWK_Ch before setting device error code "<<errorflag<<" Global ? "<<(fErrorFlag & kGlobalCut)<<QwLog::endl;
-  fStability=stability;
-  SetSingleEventCuts(min,max);
-}
-
 Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and update event_flags and error counters
 {
   Bool_t status;

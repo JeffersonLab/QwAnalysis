@@ -131,7 +131,8 @@ void QwScaler_Channel<data_mask,data_shift>::EncodeEventData(std::vector<UInt_t>
 {
   if (IsNameEmpty()) {
     //  This channel is not used, but is present in the data stream.
-    //  Skip over this data.
+    //  Fill in with zero.
+    buffer.push_back( 0 );
   } else {
     buffer.push_back( ((this->fValue_Raw<<data_shift)&data_mask) );
     //std::cout<<"this->fValue="<<this->fValue<<std::endl;
@@ -353,11 +354,11 @@ void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom
   }
 }
 
-void VQwScaler_Channel::Offset(Double_t offset)
+void VQwScaler_Channel::AddChannelOffset(Double_t offset)
 {
   if (!IsNameEmpty())
     {
-
+      this->fValue += offset;
     }
 }
 
@@ -367,6 +368,7 @@ void VQwScaler_Channel::Scale(Double_t scale)
   if (!IsNameEmpty())
     {
       this->fValue *= scale;
+      fValue       *= scale * scale;
     }
 }
 
@@ -398,18 +400,7 @@ Int_t VQwScaler_Channel::ApplyHWChecks() {
   return fDeviceErrorCode;
 }
 
-void VQwScaler_Channel::SetSingleEventCuts(Double_t min, Double_t max){
-  fULimit=max;
-  fLLimit=min;
-}
 
-void VQwScaler_Channel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
-  fErrorFlag=errorflag;
-  fDefErrorFlag=errorflag;
-  QwMessage<<"QwScaler_Ch before setting device error code "<<errorflag<<" Global ? "<<(fErrorFlag & kGlobalCut)<<QwLog::endl;
-  fStability=stability;
-  SetSingleEventCuts(min,max);
-}
 
 Bool_t VQwScaler_Channel::ApplySingleEventCuts()
 {

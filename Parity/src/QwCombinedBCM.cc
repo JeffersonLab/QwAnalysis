@@ -180,7 +180,7 @@ Bool_t QwCombinedBCM<T>::ApplySingleEventCuts(){
     if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fCombined_bcm.GetValue();
     status&=kFALSE;
   }
-  fDeviceErrorCode|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
+  fErrorFlag|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
   //std::cout<<"combined bcm "<<GetElementName()<<" error flag "<<fCombined_bcm.GetEventcutErrorFlag()<<std::endl;
 
   return status;
@@ -298,9 +298,9 @@ Bool_t QwCombinedBCM<T>::ApplyHWChecks()
   // derived from combinations of physical channels. Therefore, this is not exactly a "HW Check"
   // but just a check of the HW checks of the combined channels.
 
-  Bool_t fEventIsGood=kTRUE;
+  Bool_t eventokay=kTRUE;
 
-  return fEventIsGood;
+  return eventokay;
 }
 
 template<typename T>

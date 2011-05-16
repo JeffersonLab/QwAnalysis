@@ -19,32 +19,16 @@ const TString  VQwBPM::kAxisLabel[2]={"X","Y"};
 
 
 void  VQwBPM::InitializeChannel(TString name)
-{
-
-  bEVENTCUTMODE    = false;
-  fDeviceErrorCode = 0;
+{ 
+  //  bEVENTCUTMODE    = false;
+  //  fDeviceErrorCode = 0;
   fErrorFlag=0;
   Short_t i = 0; 
 
-  for(i=kXAxis;i<kNumAxes;i++)
-    fAbsPos[i].InitializeChannel(name+kAxisLabel[i],"derived");
-  
-  fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
-  
   for(i=0;i<3;i++) fPositionCenter[i] = 0.0;
 
   SetElementName(name);
 
-  return;
-}
-
-void VQwBPM::ClearEventData()
-{
-  for(Short_t i=kXAxis;i<kNumAxes;i++)
-    fAbsPos[i].ClearEventData();
-
-  fEffectiveCharge.ClearEventData();
-  
   return;
 }
 
@@ -105,120 +89,117 @@ void VQwBPM::SetRotationOff(){
 }
 
 
-Int_t VQwBPM::GetEventcutErrorCounters()
-{
-  for(Short_t i=kXAxis;i<kNumAxes;i++) 
-    fAbsPos[i].GetEventcutErrorCounters();
-  fEffectiveCharge.GetEventcutErrorCounters();
-
-  return 1;
-}
 
 
-Bool_t VQwBPM::ApplySingleEventCuts()
-{
-  Bool_t status=kTRUE;
-  Short_t i=0;
-  fErrorFlag=0;
- 
-  //Event cuts for Absolute X & Y
-  for(i=kXAxis;i<kNumAxes;i++){
-    if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
-      status&=kTRUE;
-    }
-    else{
-      status&=kFALSE;
-      if (bDEBUG) std::cout<<" Abs X event cut failed ";
-    }
-    //Get the Event cut error flag for AbsX/Y
-    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
-  }
-
- //Event cuts for four wire sum (EffectiveCharge)
-  if (fEffectiveCharge.ApplySingleEventCuts()){ 
-      status&=kTRUE;
-  }
-  else{
-    status&=kFALSE;
-    if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
-  }
-  //Get the Event cut error flag for EffectiveCharge
-  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
+// Bool_t VQwBPM::ApplySingleEventCuts()
+// {
+//   Bool_t status=kTRUE;
+//   Short_t i=0;
+//   fErrorFlag=0;
+ //   //Event cuts for Absolute X & Y
+//   for(i=kXAxis;i<kNumAxes;i++){
+//     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
+//       status&=kTRUE;
+//     }
+//     else{
+//       status&=kFALSE;
+//       if (bDEBUG) std::cout<<" Abs X event cut failed ";
+//     }
+//     //Get the Event cut error flag for AbsX/Y
+//     fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
+//   }
+//  //Event cuts for four wire sum (EffectiveCharge)
+//   if (fEffectiveCharge_base->ApplySingleEventCuts()){ 
+//       status&=kTRUE;
+//   }
+//   else{
+//     status&=kFALSE;
+//     if (bDEBUG) std::cout<<"EffectiveCharge event cut failed ";
+//   }
+//   //Get the Event cut error flag for EffectiveCharge
+//   fErrorFlag|=fEffectiveCharge_base->GetEventcutErrorFlag();
 
 
-  return status;
+//   return status;
   
-}
+// }
 
 void VQwBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
-  //cuts for the absolute x and y
-  if (ch_name=="absx"){
-    QwMessage<<"AbsX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-    fAbsPos[0].SetSingleEventCuts(minX,maxX);
-
-  }else if (ch_name=="absy"){
-    QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-    fAbsPos[1].SetSingleEventCuts(minX,maxX);
-
-  }else if (ch_name=="effectivecharge"){
-    QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-    fEffectiveCharge.SetSingleEventCuts(minX,maxX);
-
-  }
+  VQwHardwareChannel* tmpptr = GetSubelementByName(ch_name);
+  QwMessage << GetElementName() << " " << ch_name 
+	    << " LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+  tmpptr->SetSingleEventCuts(minX,maxX);
+}
+void VQwBPM::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability)
+{
+  VQwHardwareChannel* tmpptr = GetSubelementByName(ch_name);
+  errorflag|=kBPMErrorFlag;//update the device flag
+  QwMessage << GetElementName() << " " << ch_name 
+	    << " LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+  tmpptr->SetSingleEventCuts(errorflag,minX,maxX,stability);
 }
 
 
 VQwBPM& VQwBPM::operator= (const VQwBPM &value)
 {
   if (GetElementName()!=""){
-    this->fEffectiveCharge=value.fEffectiveCharge;
-    Short_t i = 0;
-    for(i=kXAxis;i<kNumAxes;i++) this->fAbsPos[i]=value.fAbsPos[i];
-    for(i=0;i<3;i++) this->fPositionCenter[i]=value.fPositionCenter[i];
-  }
-
-  return *this;
-}
-
-VQwBPM& VQwBPM::operator+= (const VQwBPM &value)
-{
-  if (GetElementName()!=""){
-    this->fEffectiveCharge+=value.fEffectiveCharge;
-    for(Short_t i=kXAxis;i<kNumAxes;i++) this->fAbsPos[i]+=value.fAbsPos[i];
-  }
-  return *this;
-}
-
-VQwBPM& VQwBPM::operator-= (const VQwBPM &value)
-{
-  if (GetElementName()!=""){
-    this->fEffectiveCharge-=value.fEffectiveCharge;
-    for(Short_t i=kXAxis;i<kNumAxes;i++) this->fAbsPos[i]-=value.fAbsPos[i];
+    fQwStriplineCalibration = value.fQwStriplineCalibration;
+    bRotated = value.bRotated;
+    fRotationAngle = value.fRotationAngle;
+    fCosRotation = value.fCosRotation;
+    fSinRotation = value.fSinRotation;
+    fGoodEvent = value.fGoodEvent;
+    //    fDeviceErrorCode = value.fDeviceErrorCode;
+    //    bFullSave = value.bFullSave;
+    for(size_t axis=kXAxis;axis<kNumAxes;axis++){
+      fRelativeGains[axis]=value.fRelativeGains[axis];
+      this->fPositionCenter[axis]=value.fPositionCenter[axis];
+    }
+    // Copy Z center position
+    this->fPositionCenter[2]=value.fPositionCenter[2];
   }
   return *this;
 }
 
+// VQwBPM& VQwBPM::operator+= (const VQwBPM &value)
+// {
+//   if (GetElementName()!=""){
+//     this->fEffectiveCharge+=value.fEffectiveCharge;
+//     for(Short_t i=kXAxis;i<kNumAxes;i++) this->fAbsPos[i]+=value.fAbsPos[i];
+//   }
+//   return *this;
+// }
 
-void VQwBPM::Sum(VQwBPM &value1, VQwBPM &value2)
-{
-  *this =  value1;
-  *this += value2;
-}
-
-void VQwBPM::Difference(VQwBPM &value1, VQwBPM &value2)
-{
-  *this =  value1;
-  *this -= value2;
-}
+// VQwBPM& VQwBPM::operator-= (const VQwBPM &value)
+// {
+//   if (GetElementName()!=""){
+//     this->fEffectiveCharge-=value.fEffectiveCharge;
+//     for(Short_t i=kXAxis;i<kNumAxes;i++) this->fAbsPos[i]-=value.fAbsPos[i];
+//   }
+//   return *this;
+// }
 
 
-void VQwBPM::Scale(Double_t factor)
-{
-  fEffectiveCharge.Scale(factor);
-  for(Short_t i = 0;i<2;i++)fAbsPos[i].Scale(factor);
-  return;
-}
+// void VQwBPM::Sum(VQwBPM &value1, VQwBPM &value2)
+// {
+//   *this =  value1;
+//   *this += value2;
+// }
+
+// void VQwBPM::Difference(VQwBPM &value1, VQwBPM &value2)
+// {
+//   *this =  value1;
+//   *this -= value2;
+// }
+
+
+// void VQwBPM::Scale(Double_t factor)
+// {
+//   fEffectiveCharge_base->Scale(factor);
+//   for(Short_t i = 0;i<2;i++)fAbsPos_base[i]->Scale(factor);
+//   return;
+// }
 
 
 
@@ -231,41 +212,41 @@ void VQwBPM::SetRootSaveStatus(TString &prefix)
   return;
 }
 
-void VQwBPM::PrintValue() const
-{
-  Short_t i;
-  for (i = 0; i < 2; i++) fAbsPos[i].PrintValue();
-  fEffectiveCharge.PrintValue();
+// void VQwBPM::PrintValue() const
+// {
+//   Short_t i;
+//   for (i = 0; i < 2; i++) fAbsPos_base[i]->PrintValue();
+//   fEffectiveCharge_base->PrintValue();
     
-  return;
-}
+//   return;
+// }
 
-void VQwBPM::PrintInfo() const
-{
-  Short_t i = 0;
-  for (i = 0; i < 4; i++)  fAbsPos[i].PrintInfo();
-  fEffectiveCharge.PrintInfo();
-}
-
-
-void VQwBPM::CalculateRunningAverage()
-{
-  Short_t i = 0;
-  for (i = 0; i < 2; i++) fAbsPos[i].CalculateRunningAverage();
-  fEffectiveCharge.CalculateRunningAverage();
-
-  return;
-}
+// void VQwBPM::PrintInfo() const
+// {
+//   Short_t i = 0;
+//   for (i = 0; i < 4; i++)  fAbsPos_base[i]->PrintInfo();
+//   fEffectiveCharge_base->PrintInfo();
+// }
 
 
-void VQwBPM::AccumulateRunningSum(const VQwBPM& value)
-{
-  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
-  Short_t i = 0;
-  for (i = 0; i < 2; i++) fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
-  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
-  return;
-}
+// void VQwBPM::CalculateRunningAverage()
+// {
+//   Short_t i = 0;
+//   for (i = 0; i < 2; i++) fAbsPos_base[i]->CalculateRunningAverage();
+//   fEffectiveCharge_base->CalculateRunningAverage();
+
+//   return;
+// }
+
+
+// void VQwBPM::AccumulateRunningSum(const VQwBPM& value)
+// {
+//   // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
+//   Short_t i = 0;
+//   for (i = 0; i < 2; i++) fAbsPos_base[i]->AccumulateRunningSum(value.fAbsPos_base[i]);
+//   fEffectiveCharge_base->AccumulateRunningSum(value.fEffectiveCharge_base);
+//   return;
+// }
 
 
 /********************************************************/
@@ -278,9 +259,9 @@ void  VQwBPM::Copy(VQwBPM *source)
 	  VQwBPM* input=((VQwBPM*)source);
 	  this->fElementName = input->fElementName;
 	  this->bFullSave = input->bFullSave;
-	  this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-	  for(size_t i =0;i<2;i++)
-	    this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
+	  // 	  this->fEffectiveCharge_base->Copy(input->fEffectiveCharge_base);
+	  // 	  for(size_t i =0;i<2;i++)
+	  // 	    this->fAbsPos_base[i]->Copy(input->fAbsPos_base[i]);
 
 	}
       else

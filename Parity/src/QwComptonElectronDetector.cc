@@ -790,12 +790,12 @@ Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
 //*****************************************************************
 Bool_t QwComptonElectronDetector::IsGoodEvent()
 {
-  Bool_t fEventIsGood = kTRUE;
+  Bool_t eventokay = kTRUE;
   Int_t nchan=0;
   for (Int_t i=0; i<NPlanes; i++)
     nchan += fStripsRaw[i].size();
-  fEventIsGood &= (nchan == 384);
-  return fEventIsGood;
+  eventokay &= (nchan == 384);
+  return eventokay;
 }
 
 

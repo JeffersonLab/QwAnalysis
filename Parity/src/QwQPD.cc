@@ -16,6 +16,7 @@
 /* Position calibration factor, transform ADC counts in mm*/
 const TString  QwQPD::subelement[4]={"BR","TR","BL","TL"};
 
+
 void  QwQPD::InitializeChannel(TString name)
 {
   Short_t i=0;
@@ -100,19 +101,19 @@ void QwQPD::ClearEventData()
 
 Bool_t QwQPD::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;
+  Bool_t eventokay=kTRUE;
 
-  fDeviceErrorCode=0;
+  UInt_t deviceerror=0;
   for(Short_t i=0;i<4;i++)
     {
-      fDeviceErrorCode|= fPhotodiode[i].ApplyHWChecks();  //OR the error code from each wire
-      fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.
+      deviceerror|= fPhotodiode[i].ApplyHWChecks();  //OR the error code from each wire
+      eventokay &= (deviceerror & 0x0);//AND with 0 since zero means HW is good.
 
       if (bDEBUG) std::cout<<" Inconsistent within QPD terminals photodiode[ "<<i<<" ] "<<std::endl;
       if (bDEBUG) std::cout<<" photodiode[ "<<i<<" ] sequence num "<<fPhotodiode[i].GetSequenceNumber()<<" sample size "<<fPhotodiode[i].GetNumberOfSamples()<<std::endl;
     }
 
-  return fEventIsGood;
+  return eventokay;
 }
 
 
@@ -147,10 +148,49 @@ Bool_t QwQPD::ApplySingleEventCuts()
     fErrorFlag|=fPhotodiode[i].GetEventcutErrorFlag();
   }
 
-  status&=VQwBPM::ApplySingleEventCuts();
+  for(i=0;i<2;i++){
+    status &= fRelPos[i].ApplySingleEventCuts();
+    fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
 
+    status &= fAbsPos[i].ApplySingleEventCuts();
+    fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
+  }
+  status &= fEffectiveCharge.ApplySingleEventCuts();
+  fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
+  
   return status;
 
+}
+
+VQwHardwareChannel* QwQPD::GetSubelementByName(TString ch_name)
+{
+  VQwHardwareChannel* tmpptr = NULL;
+  ch_name.ToLower();
+  if (ch_name=="tl"){
+    tmpptr = &fPhotodiode[0];
+  }else if (ch_name=="tr"){
+    tmpptr = &fPhotodiode[1];
+  }else if (ch_name=="br"){
+    tmpptr = &fPhotodiode[2];
+  }else if (ch_name=="bl"){
+    tmpptr = &fPhotodiode[3];
+  }else if (ch_name=="relx"){
+    tmpptr = &fRelPos[0];    
+  }else if (ch_name=="rely"){
+    tmpptr = &fRelPos[1];
+  }else  if (ch_name=="absx" || ch_name=="x" ){
+    tmpptr = &fAbsPos[0];
+  }else if (ch_name=="absy" || ch_name=="y"){
+    tmpptr = &fAbsPos[1];
+  }else if (ch_name=="effectivecharge" || ch_name=="charge"){
+    tmpptr = &fEffectiveCharge;
+  } else {
+    TString loc="QwQPD::GetSubelementByName for"
+      + this->GetElementName() + " was passed "
+      + ch_name + ", which is an unrecognized subelement name.";
+    throw std::invalid_argument(loc.Data());
+  }
+  return tmpptr;
 }
 
 
@@ -278,10 +318,10 @@ void  QwQPD::ProcessEvent()
     std::cout<<"#############################\n";
     std::cout<<" QPD name = "<<fElementName<<std::endl;
     std::cout<<" event number = "<<fPhotodiode[0].GetSequenceNumber()<<"\n";
-    std::cout<<" hw  BR ="<<fPhotodiode[0].GetHardwareSum()<<"\n";
-    std::cout<<" hw  TR ="<<fPhotodiode[1].GetHardwareSum()<<"\n";
-    std::cout<<" hw  BL ="<<fPhotodiode[2].GetHardwareSum()<<"\n";
-    std::cout<<" hw  TL ="<<fPhotodiode[3].GetHardwareSum()<<"\n\n";
+    std::cout<<" hw  BR ="<<fPhotodiode[0].GetValue()<<"\n";
+    std::cout<<" hw  TR ="<<fPhotodiode[1].GetValue()<<"\n";
+    std::cout<<" hw  BL ="<<fPhotodiode[2].GetValue()<<"\n";
+    std::cout<<" hw  TL ="<<fPhotodiode[3].GetValue()<<"\n\n";
   }
 
   // X numerator
@@ -315,11 +355,11 @@ void  QwQPD::ProcessEvent()
     fAbsPos[i].Scale(fQwQPDCalibration[i]);
 
     if(localdebug){
-      std::cout<<" hw  numerator= "<<numer[i].GetHardwareSum()<<"  ";
-      std::cout<<" hw  denominator (== Effective_Charge)= "<<fEffectiveCharge.GetHardwareSum()<<"\n";
+      std::cout<<" hw  numerator= "<<numer[i].GetValue()<<"  ";
+      std::cout<<" hw  denominator (== Effective_Charge)= "<<fEffectiveCharge.GetValue()<<"\n";
       std::cout<<" hw  clibration factors= "<<fQwQPDCalibration[i]<<"\n";
-      std::cout<<" hw  fRelPos["<<kAxisLabel[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
-      std::cout<<" hw  fAbsPos["<<kAxisLabel[i]<<"]="<<fAbsPos[i].GetHardwareSum()<<"\n \n";
+      std::cout<<" hw  fRelPos["<<kAxisLabel[i]<<"]="<<fRelPos[i].GetValue()<<"\n \n";
+      std::cout<<" hw  fAbsPos["<<kAxisLabel[i]<<"]="<<fAbsPos[i].GetValue()<<"\n \n";
     }
   }
   
@@ -422,11 +462,13 @@ void QwQPD::Ratio(QwQPD &numer, QwQPD &denom)
 void QwQPD::Scale(Double_t factor)
 {
   Short_t i = 0;
-  VQwBPM::Scale(factor);
 
   for(i=0;i<4;i++) fPhotodiode[i].Scale(factor);
-  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].Scale(factor);
-
+  for(i=kXAxis;i<kNumAxes;i++){
+    fRelPos[i].Scale(factor);
+    fAbsPos[i].Scale(factor);
+  }
+  fEffectiveCharge.Scale(factor);
   return;
 }
 
@@ -436,6 +478,28 @@ void QwQPD::Copy(QwQPD *source)
   return;
 }
 
+void QwQPD::CalculateRunningAverage()
+{
+  Short_t i = 0;
+  for (i = 0; i < 2; i++){
+    fRelPos[i].CalculateRunningAverage();
+    fAbsPos[i].CalculateRunningAverage();
+  }
+  fEffectiveCharge.CalculateRunningAverage();
+  return;
+}
+
+void QwQPD::AccumulateRunningSum(const QwQPD& value)
+{
+  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
+  Short_t i = 0;
+  for (i = 0; i < 2; i++){
+    fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
+    fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
+  }
+  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
+  return;
+}
 
 
 void  QwQPD::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -616,7 +680,7 @@ void  QwQPD::FillTreeVector(std::vector<Double_t> &values) const
 void QwQPD::SetEventCutMode(Int_t bcuts)
 {
   Short_t i = 0;
-  bEVENTCUTMODE=bcuts;
+  // bEVENTCUTMODE=bcuts;
   for (i=0;i<4;i++) fPhotodiode[i].SetEventCutMode(bcuts);
   for (i=kXAxis;i<kNumAxes;i++) {
     fAbsPos[i].SetEventCutMode(bcuts);
@@ -647,65 +711,72 @@ void QwQPD::MakeQPDList()
 
 std::vector<QwDBInterface> QwQPD::GetDBEntry()
 {
-
-  UShort_t i = 0;
-  UShort_t n_qpd_element = 0;
-
   std::vector <QwDBInterface> row_list;
   row_list.clear();
-
-  QwDBInterface row;
-
-  TString name;
-  Double_t avg         = 0.0;
-  Double_t err         = 0.0;
-  UInt_t beam_subblock = 0;
-  UInt_t beam_n        = 0;
-
-  for(n_qpd_element=0; n_qpd_element<fQPDElementList.size(); n_qpd_element++) {
-
-    row.Reset();
-    // the element name and the n (number of measurements in average)
-    // is the same in each block and hardwaresum.
-
-    name          = fQPDElementList.at(n_qpd_element).GetElementName();
-    beam_n        = fQPDElementList.at(n_qpd_element).GetGoodEventCount();
-
-    // Get HardwareSum average and its error
-    avg           = fQPDElementList.at(n_qpd_element).GetHardwareSum();
-    err           = fQPDElementList.at(n_qpd_element).GetHardwareSumError();
-    // ADC subblock sum : 0 in MySQL database
-    beam_subblock = 0;
-
-    row.SetDetectorName(name);
-    row.SetSubblock(beam_subblock);
-    row.SetN(beam_n);
-    row.SetValue(avg);
-    row.SetError(err);
-
-    row_list.push_back(row);
-
-    // Get four Block averages and thier errors
-
-    for(i=0; i<4; i++) {
-      row.Reset();
-      avg           = fQPDElementList.at(n_qpd_element).GetBlockValue(i);
-      err           = fQPDElementList.at(n_qpd_element).GetBlockErrorValue(i);
-      beam_subblock = (UInt_t) (i+1);
-      // QwVQWK_Channel  | MySQL
-      // fBlock[0]       | subblock 1
-      // fBlock[1]       | subblock 2
-      // fBlock[2]       | subblock 3
-      // fBlock[3]       | subblock 4
-      row.SetDetectorName(name);
-      row.SetSubblock(beam_subblock);
-      row.SetN(beam_n);
-      row.SetValue(avg);
-      row.SetError(err);
-
-      row_list.push_back(row);
-    }
+  for(size_t i=kXAxis;i<kNumAxes;i++) {
+    fAbsPos[i].AddEntriesToList(row_list);
   }
+  fEffectiveCharge.AddEntriesToList(row_list);
+  return row_list;
+
+  //   UShort_t i = 0;
+  //   UShort_t n_qpd_element = 0;
+  
+  //   std::vector <QwDBInterface> row_list;
+  //   row_list.clear();
+  
+  //   QwDBInterface row;
+  
+  //   TString name;
+  //   Double_t avg         = 0.0;
+  //   Double_t err         = 0.0;
+  //   UInt_t beam_subblock = 0;
+  //   UInt_t beam_n        = 0;
+  
+  //   for(n_qpd_element=0; n_qpd_element<fQPDElementList.size(); n_qpd_element++) {
+  
+  //     row.Reset();
+  //     // the element name and the n (number of measurements in average)
+  //     // is the same in each block and hardwaresum.
+  
+  //     name          = fQPDElementList.at(n_qpd_element).GetElementName();
+  //     beam_n        = fQPDElementList.at(n_qpd_element).GetGoodEventCount();
+  
+  //     // Get HardwareSum average and its error
+  //     avg           = fQPDElementList.at(n_qpd_element).GetHardwareSum();
+  //     err           = fQPDElementList.at(n_qpd_element).GetHardwareSumError();
+  //     // ADC subblock sum : 0 in MySQL database
+  //     beam_subblock = 0;
+  
+  //     row.SetDetectorName(name);
+  //     row.SetSubblock(beam_subblock);
+  //     row.SetN(beam_n);
+  //     row.SetValue(avg);
+  //     row.SetError(err);
+  
+  //     row_list.push_back(row);
+  
+  //     // Get four Block averages and thier errors
+  
+  //     for(i=0; i<4; i++) {
+  //       row.Reset();
+  //       avg           = fQPDElementList.at(n_qpd_element).GetBlockValue(i);
+  //       err           = fQPDElementList.at(n_qpd_element).GetBlockErrorValue(i);
+  //       beam_subblock = (UInt_t) (i+1);
+  //       // QwVQWK_Channel  | MySQL
+  //       // fBlock[0]       | subblock 1
+  //       // fBlock[1]       | subblock 2
+  //       // fBlock[2]       | subblock 3
+  //       // fBlock[3]       | subblock 4
+  //       row.SetDetectorName(name);
+  //       row.SetSubblock(beam_subblock);
+  //       row.SetN(beam_n);
+  //       row.SetValue(avg);
+  //       row.SetError(err);
+  
+  //       row_list.push_back(row);
+  //     }
+  //   }
 
   return row_list;
 

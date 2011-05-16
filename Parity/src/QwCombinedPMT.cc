@@ -116,13 +116,13 @@ void QwCombinedPMT::CalculateSumAndAverage()
       fSumADC.PrintInfo();
 
 //      std::cout<<"QwCombinedPMT: "<<GetElementName()
-//      <<"\nweighted average of hardware sums = "<<fAvgADC.GetHardwareSum()<<"\n";
+//      <<"\nweighted average of hardware sums = "<<fAvgADC.GetValue()<<"\n";
       std::cout<<"QwCombinedPMT: "<<GetElementName()
-      <<"\nweighted average of hardware sums = "<<fSumADC.GetHardwareSum()<<"\n";
+      <<"\nweighted average of hardware sums = "<<fSumADC.GetValue()<<"\n";
 
       for (size_t i=0;i<4;i++)
         {
-          std::cout<<"weighted average of block["<<i<<"] = "<<fSumADC.GetBlockValue(i)<<"\n";
+          std::cout<<"weighted average of block["<<i<<"] = "<<fSumADC.GetValue(i+1)<<"\n";
         }
     }
 
@@ -131,10 +131,10 @@ void QwCombinedPMT::CalculateSumAndAverage()
 /********************************************************/
 Bool_t QwCombinedPMT::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;
+  Bool_t eventokay=kTRUE;
 
  
-  return fEventIsGood;
+  return eventokay;
 }
 /********************************************************/
 

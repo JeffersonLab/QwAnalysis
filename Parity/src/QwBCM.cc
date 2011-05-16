@@ -155,13 +155,12 @@ void QwBCM<T>::ProcessEvent()
 template<typename T>
 Bool_t QwBCM<T>::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;
+  Bool_t eventokay=kTRUE;
 
-  fDeviceErrorCode=fBeamCurrent.ApplyHWChecks();//will check for HW consistancy and return the error code (=0 is HW good)
-  fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true
+  UInt_t deviceerror=fBeamCurrent.ApplyHWChecks();//will check for HW consistancy and return the error code (=0 is HW good)
+  eventokay=(deviceerror & 0x0);//if no HW error return true
 
-
-  return fEventIsGood;
+  return eventokay;
 }
 /********************************************************/
 
@@ -200,7 +199,7 @@ Bool_t QwBCM<T>::ApplySingleEventCuts(){
     if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fBeamCurrent.GetValue();
     status&=kFALSE;
   }
-  fDeviceErrorCode|=fBeamCurrent.GetEventcutErrorFlag();//retrun the error flag for event cuts
+  fErrorFlag |=fBeamCurrent.GetEventcutErrorFlag();//retrun the error flag for event cuts
 
 
   return status;
@@ -462,38 +461,8 @@ template<typename T>
 std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
 {
   std::vector <QwDBInterface> row_list;
-  QwDBInterface row;
-
-  TString name;
-  UInt_t beam_n        = 0;
-  Double_t avg         = 0.0;
-  Double_t err         = 0.0;
-
-  row.Reset();
-
-  // the element name and the n (number of measurements in average)
-  // is the same in each block and hardwaresum.
-
-  name          = fBeamCurrent.GetElementName();
-  beam_n        = fBeamCurrent.GetGoodEventCount();
-
-  //  Loop over subelements and build the list.
-  for(UInt_t beam_subblock=0; 
-      beam_subblock<fBeamCurrent.GetNumberOfSubelements();
-      beam_subblock++) {
-    row.Reset();
-    avg           =  fBeamCurrent.GetValue(beam_subblock);
-    err           =  fBeamCurrent.GetValueError(beam_subblock);
-    row.SetDetectorName(name);
-    row.SetSubblock(beam_subblock);
-    row.SetN(beam_n);
-    row.SetValue(avg);
-    row.SetError(err);
-    row_list.push_back(row);
-  }
-
+  fBeamCurrent.AddEntriesToList(row_list);
   return row_list;
-
 }
 
 

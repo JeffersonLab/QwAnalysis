@@ -65,7 +65,8 @@ class VQwDataElement {
   virtual const TString& GetElementName() const { return fElementName; }
 
   /*! \brief Clear the event data in this element */
-  virtual void  ClearEventData() = 0;
+  virtual void  ClearEventData(){
+  };
   /*! \brief Process the CODA event buffer for this element */
   virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0) = 0;
 
@@ -161,8 +162,6 @@ class VQwDataElement {
   //Data module Type 
   TString  fModuleType;
 
-  /// Unique error code for HW failures
-  UInt_t fDeviceErrorCode; 
   //Error flag
   UInt_t fErrorFlag;
 

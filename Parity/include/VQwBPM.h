@@ -14,7 +14,6 @@
 #include <TMath.h>
 
 // Qweak headers
-#include "QwVQWK_Channel.h"
 #include "VQwDataElement.h"
 #include "VQwHardwareChannel.h"
 
@@ -35,28 +34,24 @@ class VQwBPM : public VQwDataElement {
    *           Cavityy monitors have 3 wires: X, Y and I
    *           CombinedBPM use absolute X and Y derived from BPM X and Ys.
    ******************************************************************/
-
-  //  friend class QwEnergyCalculator;  
+  friend class QwCombinedBPM;
+  friend class QwEnergyCalculator;  
 
  public:
   ///  Axis enumerator for the BPMs; 
   ///  Z will never be an instrumented axis.
-  enum EBPMAxes{kXAxis=0, kYAxis, kNumAxes};
+  enum EBeamPositionMonitorAxis{kXAxis=0, kYAxis, kNumAxes};
 
  public:
   // Default constructor
-  VQwBPM() { };
-  VQwBPM(TString name):VQwDataElement(){
-    InitializeChannel(name);
-    fQwStriplineCalibration = 18.81; // adc counts/mm default value
-    for(Short_t i=kXAxis;i<kNumAxes;i++)  fRelativeGains[i]=1.0;
-  };
+  VQwBPM() {InitializeChannel_base();};
+  VQwBPM(TString& name) {InitializeChannel_base();};
 
   virtual ~VQwBPM(){DeleteHistograms(); };
 
 
   void   InitializeChannel(TString name);
-  void   ClearEventData();
+  //  virtual void   ClearEventData() = 0;
   void   GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
   void   GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY);
   void   SetRotation(Double_t);
@@ -65,17 +60,18 @@ class VQwBPM : public VQwDataElement {
     return fErrorFlag;
     //return fDeviceErrorCode;
   };
-  Int_t   GetEventcutErrorCounters();
+  //  virtual Int_t   GetEventcutErrorCounters() = 0;
 
-  Bool_t  ApplySingleEventCuts();
+/*   Bool_t  ApplySingleEventCuts(); */
   void    SetSingleEventCuts(TString, Double_t, Double_t);
+  void    SetSingleEventCuts(TString, UInt_t, Double_t, Double_t, Double_t);
 
-  VQwBPM& operator+=(const VQwBPM&);
-  VQwBPM& operator-=(const VQwBPM&);
+/*   VQwBPM& operator+=(const VQwBPM&); */
+/*   VQwBPM& operator-=(const VQwBPM&); */
 
-  void Sum(VQwBPM &value1, VQwBPM &value2);
-  void Difference(VQwBPM &value1, VQwBPM &value2);
-  void Scale(Double_t factor);
+/*   void Sum(VQwBPM &value1, VQwBPM &value2); */
+/*   void Difference(VQwBPM &value1, VQwBPM &value2); */
+/*   void Scale(Double_t factor); */
   void Copy(VQwBPM *source);
 
   virtual VQwBPM& operator=  (const VQwBPM &value);
@@ -83,51 +79,71 @@ class VQwBPM : public VQwDataElement {
   void          SetRootSaveStatus(TString &prefix);
 
 
-  VQwHardwareChannel* GetPositionX(){
-    return &fAbsPos[0];
-  };
+/*   VQwDataElement* GetPositionX(){ */
+/*     return fAbsPos_base[0]; */
+/*   }; */
+/*   const VQwDataElement* GetPositionX() const{ */
+/*     return const_cast<VQwBPM*>(this)->GetPositionX(); */
+/*   }; */
+/*   VQwDataElement* GetPositionY(){ */
+/*     return fAbsPos_base[1]; */
+/*   }; */
+/*   const VQwDataElement* GetPositionY() const{ */
+/*     return const_cast<VQwBPM*>(this)->GetPositionY(); */
+/*   }; */
 
-  const VQwHardwareChannel* GetPositionX() const{
-    return const_cast<VQwBPM*>(this)->GetPositionX();
-  };
+/*   VQwHardwareChannel* GetPosition(size_t axis){ */
+/*     if (axis<0 || axis>2){ */
+/*       TString loc="VQwBPM::GetPosition for " */
+/*         +this->GetElementName()+" failed for axis value "+Form("%d",axis); */
+/*       throw std::out_of_range(loc.Data()); */
+/*     } */
+/*     return fAbsPos_base[axis]; */
+/*   } */
+/*   const VQwHardwareChannel* GetPosition(size_t axis) const{ */
+/*     return const_cast<VQwBPM*>(this)->GetPosition(axis); */
+/*   } */
 
-  VQwHardwareChannel* GetPositionY(){
-    return &fAbsPos[1];
-  };
-
-  const VQwHardwareChannel* GetPositionY() const{
-    return const_cast<VQwBPM*>(this)->GetPositionY();
-  };
-
-
+  virtual const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const = 0;
   
-  /*   VQwHardwareChannel* GetEffectiveCharge(){ */
-  /*     return &fEffectiveCharge; */
-  /*   } */
-  const VQwHardwareChannel* GetEffectiveCharge() const{
-    return &fEffectiveCharge;
-  };
-  const VQwHardwareChannel* GetPosition(size_t index) const{
-    return &fAbsPos[index];
-  };
-  
+
+/*   VQwHardwareChannel* GetEffectiveCharge(){ */
+/*     return fEffectiveCharge_base; */
+/*   } */
+  virtual const VQwHardwareChannel* GetEffectiveCharge() const = 0;
+
   Double_t GetPositionInZ() const{
     return fPositionCenter[2];
   };
 
-  void PrintValue() const;
-  void PrintInfo() const;
-  void CalculateRunningAverage();
-  void AccumulateRunningSum(const VQwBPM& value);
+/*   void PrintValue() const; */
+/*   void PrintInfo() const; */
+/*   void CalculateRunningAverage(); */
+/*   void AccumulateRunningSum(const VQwBPM& value); */
 
 
   private:
 
+  void InitializeChannel_base() {
+/*     fAbsPos_base[0] = NULL; */
+/*     fAbsPos_base[1] = NULL; */
+/*     fEffectiveCharge_base = NULL; */
+    fQwStriplineCalibration = 18.81; // adc counts/mm default value
+    for(Short_t i=0;i<2;i++)  fRelativeGains[i]=1.0;
+  };
 
   protected:
   ///  Axis labels for the instrumented directions;
   ///  Z will never be an instrumented axis.
   static const TString kAxisLabel[2];
+
+  virtual VQwHardwareChannel* GetSubelementByName(TString ch_name) = 0;
+  VQwHardwareChannel* GetSubelementByIndex(size_t index){
+    return GetSubelementByName(fSubelementNames.at(index));
+  };
+
+  protected:
+  std::vector<TString> fSubelementNames;
 
   // Position calculation related paramters
   Double_t fPositionCenter[3];
@@ -140,14 +156,11 @@ class VQwBPM : public VQwDataElement {
   Double_t fCosRotation;
   Double_t fSinRotation;
 
-  // Device outputs
-  QwVQWK_Channel fAbsPos[2]; // Z will not be considered as a vqwk_channel
-  QwVQWK_Channel fEffectiveCharge;
 
   // Data quality checks related flags
   Bool_t   fGoodEvent;
-  Bool_t   bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
-  Int_t    fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
+  //  Bool_t   bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
+  //  Int_t    fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
   Bool_t   bFullSave; // used to restrict the amount of data histogramed
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes

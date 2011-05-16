@@ -79,8 +79,8 @@ class QwIntegrationPMT : public VQwDataElement{
   void  UseExternalRandomVariable();
   void  SetExternalRandomVariable(Double_t random_variable);
 
-  Double_t GetHardwareSum();
-  Double_t GetBlockValue(Int_t blocknum);
+  Double_t GetValue();
+  Double_t GetValue(Int_t blocknum);
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
@@ -110,8 +110,8 @@ class QwIntegrationPMT : public VQwDataElement{
   void PrintValue() const;
   void PrintInfo() const;
 
-  Double_t GetRawBlockValue(size_t blocknum)
-           {return fTriumf_ADC.GetRawBlockValue(blocknum);};
+/*   Double_t GetRawBlockValue(size_t blocknum) */
+/*            {return fTriumf_ADC.GetRawBlockValue(blocknum);}; */
 
 
 
