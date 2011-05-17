@@ -29,7 +29,7 @@ class QwDBInterface;
 
 template<typename T>
 class QwBPMStripline : public VQwBPM {
-  friend class QwCombinedBPM;
+  template <typename TT> friend class QwCombinedBPM;
   friend class QwEnergyCalculator;
 
  public:

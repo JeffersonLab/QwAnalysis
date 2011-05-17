@@ -75,7 +75,7 @@ void  QwEnergyCalculator::ProcessEvent(){
 
   for(UInt_t i = 0; i<fProperty.size(); i++){
     if(fProperty[i].Contains("targetbeamangle")){
-      targetbeamangle = atan((((QwCombinedBPM*)fDevice[i])->fSlope[VQwBPM::kXAxis]).GetValue());
+      targetbeamangle = atan((((QwCombinedBPM<QwVQWK_Channel>*)fDevice[i])->fSlope[VQwBPM::kXAxis]).GetValue());
       targetbeamangle *= fTMatrixRatio[i];
       fEnergyChange.AddChannelOffset(targetbeamangle);
     }
@@ -96,7 +96,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
   UInt_t error_code = 0;
   for(UInt_t i = 0; i<fProperty.size(); i++){
     if(fProperty[i].Contains("targetbeamangle")){
-      error_code |= ((QwCombinedBPM*)fDevice[i])->fSlope[0].GetErrorCode();
+      error_code |= ((QwCombinedBPM<QwVQWK_Channel>*)fDevice[i])->fSlope[0].GetErrorCode();
     } else {
       error_code |= fDevice[i]->GetPosition(VQwBPM::kXAxis)->GetErrorCode();
     }

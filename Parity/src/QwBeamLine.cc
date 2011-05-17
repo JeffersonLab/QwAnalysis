@@ -174,7 +174,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  // Decoding combined BPM array.
 	  if(localComboID.fTypeID== kQwCombinedBPM){
 
-	    QwCombinedBPM localbpmcombo(GetSubsystemName(), localComboID.fdetectorname );
+	    QwCombinedBPM<QwVQWK_Channel> localbpmcombo(GetSubsystemName(), localComboID.fdetectorname );
 	    fBPMCombo.push_back(localbpmcombo);
 
 	    for(size_t i=0;i<fDeviceName.size();i++){
@@ -1581,12 +1581,12 @@ QwCombinedBCM<QwVQWK_Channel>* QwBeamLine::GetCombinedBCM(const TString name)
 }
 
 //*****************************************************************
-QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name)
+QwCombinedBPM<QwVQWK_Channel>* QwBeamLine::GetCombinedBPM(const TString name)
 {
   //QwWarning << "QwBeamLine::GetCombinedBCM" << QwLog::endl;
   if (! fBPMCombo.empty()) {
     
-    for (std::vector<QwCombinedBPM>::iterator cbpm = fBPMCombo.begin(); cbpm != fBPMCombo.end(); ++cbpm) {
+    for (std::vector<QwCombinedBPM<QwVQWK_Channel> >::iterator cbpm = fBPMCombo.begin(); cbpm != fBPMCombo.end(); ++cbpm) {
       if (cbpm->GetElementName() == name) {
 	return &(*cbpm);
       }
@@ -1650,7 +1650,7 @@ const QwCombinedBCM<QwVQWK_Channel>* QwBeamLine::GetCombinedBCM(const TString na
 }
 
 //*****************************************************************
-const QwCombinedBPM* QwBeamLine::GetCombinedBPM(const TString name) const{
+const QwCombinedBPM<QwVQWK_Channel>* QwBeamLine::GetCombinedBPM(const TString name) const{
   return const_cast<QwBeamLine*>(this)->GetCombinedBPM(name);
 }
 

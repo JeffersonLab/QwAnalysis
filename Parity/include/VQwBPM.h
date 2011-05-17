@@ -34,7 +34,7 @@ class VQwBPM : public VQwDataElement {
    *           Cavityy monitors have 3 wires: X, Y and I
    *           CombinedBPM use absolute X and Y derived from BPM X and Ys.
    ******************************************************************/
-  friend class QwCombinedBPM;
+  template <typename TT> friend class QwCombinedBPM;
   friend class QwEnergyCalculator;  
 
  public:

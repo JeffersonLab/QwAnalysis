@@ -18,7 +18,7 @@
 #include "VQwBPM.h"
 #include "VQwHardwareChannel.h"
 #include "QwBPMStripline.h"
-#include "QwVQWK_Channel.h"
+
 
 
 // Forward declarations
@@ -29,6 +29,7 @@ class QwDBInterface;
 ******************************************************************/
 ///
 /// \ingroup QwAnalysis_BL
+template<typename T>
 class QwCombinedBPM : public VQwBPM{
   friend class QwEnergyCalculator;
 
@@ -65,7 +66,17 @@ class QwCombinedBPM : public VQwBPM{
     }
     return &fAbsPos[axis];
   }
-  const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
+  const VQwHardwareChannel* GetSlope(EBeamPositionMonitorAxis axis) const{
+    if (axis<0 || axis>2){
+      TString loc="QwLinearDiodeArray::GetPosition for "
+        +this->GetElementName()+" failed for axis value "+Form("%d",axis);
+      throw std::out_of_range(loc.Data());
+    }
+    return &fSlope[axis];
+  }
+  const VQwHardwareChannel* GetEffectiveCharge() const {
+    return &fEffectiveCharge;
+  }
 
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
@@ -127,7 +138,7 @@ class QwCombinedBPM : public VQwBPM{
 
   /* Functions for least square fit */
   void     CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos);
-  Double_t SumOver( std::vector <Double_t> weight , std::vector <QwVQWK_Channel> val);
+  Double_t SumOver( std::vector <Double_t> weight , std::vector <T> val);
   void     LeastSquareFit(VQwBPM::EBeamPositionMonitorAxis axis, std::vector<Double_t> fWeights) ; //bbbbb
 
   
@@ -150,20 +161,20 @@ class QwCombinedBPM : public VQwBPM{
 
  protected:
   /* This channel contains the beam slope w.r.t the X & Y axis at the target */
-  QwVQWK_Channel fSlope[2];
+  T fSlope[2];
 
   /* This channel contains the beam intercept w.r.t the X & Y axis at the target */
-  QwVQWK_Channel fIntercept[2];
+  T fIntercept[2];
 
   //  These are the "real" data elements, to which the base class
   //  fAbsPos_base and fEffectiveCharge_base are pointers.
-  QwVQWK_Channel fAbsPos[2];
-  QwVQWK_Channel fEffectiveCharge;
+  T fAbsPos[2];
+  T fEffectiveCharge;
 
 private: 
   // Functions to be removed
   void    MakeBPMComboList();
-  std::vector<QwVQWK_Channel> fBPMComboElementList;
+  std::vector<T> fBPMComboElementList;
 
 };
 

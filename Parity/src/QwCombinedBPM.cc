@@ -12,9 +12,12 @@
 
 // Qweak headers
 #include "QwDBInterface.h"
+#include "QwVQWK_Channel.h"
+#include "QwScaler_Channel.h"
 
 
-void  QwCombinedBPM::InitializeChannel(TString name)
+template<typename T>
+void  QwCombinedBPM<T>::InitializeChannel(TString name)
 {
 
   VQwBPM::InitializeChannel(name);
@@ -50,7 +53,8 @@ void  QwCombinedBPM::InitializeChannel(TString name)
   return;
 }
 
-void  QwCombinedBPM::InitializeChannel(TString subsystem, TString name)
+template<typename T>
+void  QwCombinedBPM<T>::InitializeChannel(TString subsystem, TString name)
 {
 
   VQwBPM::InitializeChannel(name);
@@ -87,7 +91,8 @@ void  QwCombinedBPM::InitializeChannel(TString subsystem, TString name)
 }
 
 
-void QwCombinedBPM::ClearEventData()
+template<typename T>
+void QwCombinedBPM<T>::ClearEventData()
 {
   fEffectiveCharge.ClearEventData();
 
@@ -101,7 +106,8 @@ void QwCombinedBPM::ClearEventData()
 }
 
 
-void QwCombinedBPM::Set(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,
+template<typename T>
+void QwCombinedBPM<T>::Set(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,
 			Double_t sumqw)
 {
   fElement.push_back(bpm);
@@ -129,7 +135,8 @@ void QwCombinedBPM::Set(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_w
 }
 
 
-Bool_t QwCombinedBPM::ApplyHWChecks()
+template<typename T>
+Bool_t QwCombinedBPM<T>::ApplyHWChecks()
 {
   Bool_t eventokay=kTRUE;
 
@@ -137,7 +144,8 @@ Bool_t QwCombinedBPM::ApplyHWChecks()
 }
 
 
-Int_t QwCombinedBPM::GetEventcutErrorCounters()
+template<typename T>
+Int_t QwCombinedBPM<T>::GetEventcutErrorCounters()
 {
   for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
     fAbsPos[axis].GetEventcutErrorCounters();
@@ -151,7 +159,8 @@ Int_t QwCombinedBPM::GetEventcutErrorCounters()
 }
 
 
-Bool_t QwCombinedBPM::ApplySingleEventCuts()
+template<typename T>
+Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t axis=0;
@@ -166,9 +175,9 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
     ///         these casts aren't needed, but "GetErrorCode"
     ///         is not meaningful for every VQwDataElement.
     ///         Maybe the return should be a VQwHardwareChannel?
-    charge_error      |= static_cast<const QwVQWK_Channel*>(fElement[i]->GetEffectiveCharge())->GetErrorCode();
-    pos_error[kXAxis] |= static_cast<const QwVQWK_Channel*>(fElement[i]->GetPosition(kXAxis))->GetErrorCode();
-    pos_error[kYAxis] |= static_cast<const QwVQWK_Channel*>(fElement[i]->GetPosition(kYAxis))->GetErrorCode();
+    charge_error      |= fElement[i]->GetEffectiveCharge()->GetErrorCode();
+    pos_error[kXAxis] |= fElement[i]->GetPosition(kXAxis)->GetErrorCode();
+    pos_error[kYAxis] |= fElement[i]->GetPosition(kYAxis)->GetErrorCode();
   }
 
   //Event cuts for  X & Y slopes
@@ -229,7 +238,8 @@ Bool_t QwCombinedBPM::ApplySingleEventCuts()
   return status;
 }
 
-VQwHardwareChannel* QwCombinedBPM::GetSubelementByName(TString ch_name)
+template<typename T>
+VQwHardwareChannel* QwCombinedBPM<T>::GetSubelementByName(TString ch_name)
 {
   VQwHardwareChannel* tmpptr = NULL;
   ch_name.ToLower();
@@ -257,7 +267,8 @@ VQwHardwareChannel* QwCombinedBPM::GetSubelementByName(TString ch_name)
 }
 
 
-void QwCombinedBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
+template<typename T>
+void QwCombinedBPM<T>::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
 
   if (ch_name=="xslope"){//cuts for the x slope
@@ -291,7 +302,8 @@ void QwCombinedBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t 
   }
 }
 
-void QwCombinedBPM::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
+template<typename T>
+void QwCombinedBPM<T>::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
   errorflag|=kBPMErrorFlag;//update the device flag
   if (ch_name=="xslope"){//cuts for the x slope
     QwMessage<<"XSlope LL " <<  minX <<" UL " << maxX << " kGlobalCut  "<< (errorflag&kGlobalCut)<< QwLog::endl;
@@ -328,11 +340,12 @@ void QwCombinedBPM::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_
 
 
 
-void  QwCombinedBPM::ProcessEvent()
+template<typename T>
+void  QwCombinedBPM<T>::ProcessEvent()
 {
   Bool_t ldebug = kFALSE;
 
-  static QwVQWK_Channel  tmpQADC("tmpQADC"), tmpADC("tmpADC");
+  static T  tmpQADC("tmpQADC"), tmpADC("tmpADC");
 
   //check to see if the fixed parameters are calculated
   if(!fixedParamCalculated){
@@ -425,7 +438,8 @@ void  QwCombinedBPM::ProcessEvent()
 
 
 
- void QwCombinedBPM::CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos)
+template<typename T>
+ void QwCombinedBPM<T>::CalculateFixedParameter(std::vector<Double_t> fWeights, Int_t pos)
  {
 
    Bool_t ldebug = kFALSE;
@@ -457,7 +471,8 @@ void  QwCombinedBPM::ProcessEvent()
  }
 
 
- Double_t QwCombinedBPM::SumOver(std::vector<Double_t> weight,std::vector <QwVQWK_Channel> val)
+template<typename T>
+ Double_t QwCombinedBPM<T>::SumOver(std::vector<Double_t> weight,std::vector <T> val)
  {
    Double_t sum = 0.0;
    if(weight.size()!=fElement.size()){
@@ -475,7 +490,8 @@ void  QwCombinedBPM::ProcessEvent()
    return sum;
  }
 
- void QwCombinedBPM::LeastSquareFit(VQwBPM::EBeamPositionMonitorAxis axis, std::vector<Double_t> fWeights)
+template<typename T>
+ void QwCombinedBPM<T>::LeastSquareFit(VQwBPM::EBeamPositionMonitorAxis axis, std::vector<Double_t> fWeights)
  {
 
    /**
@@ -491,10 +507,10 @@ void  QwCombinedBPM::ProcessEvent()
 
    Bool_t ldebug = kFALSE;
    static Double_t zpos = 0;
-   static QwVQWK_Channel tmp1;
-   static QwVQWK_Channel tmp2;
-   static QwVQWK_Channel C[kNumAxes];
-   static QwVQWK_Channel E[kNumAxes];
+   static T tmp1;
+   static T tmp2;
+   static T C[kNumAxes];
+   static T E[kNumAxes];
 
    // initialize the VQWK_Channel arrays
    tmp1.InitializeChannel("tmp1","derived");
@@ -577,14 +593,16 @@ void  QwCombinedBPM::ProcessEvent()
  }
 
 
- Int_t QwCombinedBPM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
+template<typename T>
+ Int_t QwCombinedBPM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
  {
    return word_position_in_buffer;
  }
 
 
 
-void QwCombinedBPM::PrintValue() const
+template<typename T>
+void QwCombinedBPM<T>::PrintValue() const
 {
    Short_t axis;
 
@@ -602,7 +620,8 @@ void QwCombinedBPM::PrintValue() const
  }
 
 
-void QwCombinedBPM::PrintInfo() const
+template<typename T>
+void QwCombinedBPM<T>::PrintInfo() const
 {
 
   Short_t axis;
@@ -620,7 +639,8 @@ void QwCombinedBPM::PrintInfo() const
   return;
 }
 
-QwCombinedBPM& QwCombinedBPM::operator= (const QwCombinedBPM &value)
+template<typename T>
+QwCombinedBPM<T>& QwCombinedBPM<T>::operator= (const QwCombinedBPM<T> &value)
 {
   VQwBPM::operator= (value);
   if (GetElementName()!=""){
@@ -635,7 +655,8 @@ QwCombinedBPM& QwCombinedBPM::operator= (const QwCombinedBPM &value)
 }
 
 
-QwCombinedBPM& QwCombinedBPM::operator+= (const QwCombinedBPM &value)
+template<typename T>
+QwCombinedBPM<T>& QwCombinedBPM<T>::operator+= (const QwCombinedBPM<T> &value)
 {
 
      if (GetElementName()!=""){
@@ -650,7 +671,8 @@ QwCombinedBPM& QwCombinedBPM::operator+= (const QwCombinedBPM &value)
      return *this;
 }
 
-QwCombinedBPM& QwCombinedBPM::operator-= (const QwCombinedBPM &value)
+template<typename T>
+QwCombinedBPM<T>& QwCombinedBPM<T>::operator-= (const QwCombinedBPM<T> &value)
 {
 
   if (GetElementName()!=""){
@@ -664,7 +686,8 @@ QwCombinedBPM& QwCombinedBPM::operator-= (const QwCombinedBPM &value)
   return *this;
 }
 
-void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
+template<typename T>
+void QwCombinedBPM<T>::Ratio(QwCombinedBPM<T> &numer, QwCombinedBPM<T> &denom)
 {
   // this function is called when forming asymmetries. In this case waht we actually want for the
   // combined bpm is the difference only not the asymmetries
@@ -684,7 +707,8 @@ void QwCombinedBPM::Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom)
 }
 
 
-void QwCombinedBPM::Scale(Double_t factor)
+template<typename T>
+void QwCombinedBPM<T>::Scale(Double_t factor)
 {
   fEffectiveCharge.Scale(factor);
   for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
@@ -695,7 +719,8 @@ void QwCombinedBPM::Scale(Double_t factor)
   return;
 }
 
-void QwCombinedBPM::CalculateRunningAverage()
+template<typename T>
+void QwCombinedBPM<T>::CalculateRunningAverage()
 {
   fEffectiveCharge.CalculateRunningAverage();
 
@@ -706,7 +731,8 @@ void QwCombinedBPM::CalculateRunningAverage()
   }
 }
 
-void QwCombinedBPM::AccumulateRunningSum(const QwCombinedBPM& value)
+template<typename T>
+void QwCombinedBPM<T>::AccumulateRunningSum(const QwCombinedBPM<T>& value)
 {
   fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
 
@@ -719,7 +745,8 @@ void QwCombinedBPM::AccumulateRunningSum(const QwCombinedBPM& value)
 }
 
 
-void  QwCombinedBPM::ConstructHistograms(TDirectory *folder, TString &prefix)
+template<typename T>
+void  QwCombinedBPM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
 
   if (GetElementName()==""){
@@ -743,7 +770,8 @@ void  QwCombinedBPM::ConstructHistograms(TDirectory *folder, TString &prefix)
   return;
 }
 
-void  QwCombinedBPM::FillHistograms()
+template<typename T>
+void  QwCombinedBPM<T>::FillHistograms()
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
@@ -759,7 +787,8 @@ void  QwCombinedBPM::FillHistograms()
   return;
 }
 
-void  QwCombinedBPM::DeleteHistograms()
+template<typename T>
+void  QwCombinedBPM<T>::DeleteHistograms()
 {
   if (GetElementName()=="") {
     //  This channel is not used, so skip filling the histograms.
@@ -777,7 +806,8 @@ void  QwCombinedBPM::DeleteHistograms()
 }
 
 
-void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+template<typename T>
+void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip constructing trees.
@@ -802,7 +832,8 @@ void  QwCombinedBPM::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
   return;
 }
 
-void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix)
+template<typename T>
+void  QwCombinedBPM<T>::ConstructBranch(TTree *tree, TString &prefix)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip constructing trees.
@@ -825,7 +856,8 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix)
   return;
 }
 
-void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+template<typename T>
+void  QwCombinedBPM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
   TString devicename;
   devicename=GetElementName();
@@ -856,7 +888,8 @@ void  QwCombinedBPM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
 }
 
 
-void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values) const
+template<typename T>
+void  QwCombinedBPM<T>::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the tree.
@@ -874,13 +907,14 @@ void  QwCombinedBPM::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void QwCombinedBPM::Copy(VQwDataElement *source)
+template<typename T>
+void QwCombinedBPM<T>::Copy(VQwDataElement *source)
 {
   try
     {
       if(typeid(*source)==typeid(*this))
 	{
-	  QwCombinedBPM* input = ((QwCombinedBPM*)source);
+	  QwCombinedBPM<T>* input = ((QwCombinedBPM<T>*)source);
 	  this->fElementName = input->fElementName;
 	  this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
 	  this->bFullSave = input->bFullSave;
@@ -909,7 +943,8 @@ void QwCombinedBPM::Copy(VQwDataElement *source)
   return;
 }
 
-void QwCombinedBPM::SetEventCutMode(Int_t bcuts)
+template<typename T>
+void QwCombinedBPM<T>::SetEventCutMode(Int_t bcuts)
 {
 
   //  bEVENTCUTMODE=bcuts;
@@ -924,11 +959,12 @@ void QwCombinedBPM::SetEventCutMode(Int_t bcuts)
 }
 
 
-void QwCombinedBPM::MakeBPMComboList()
+template<typename T>
+void QwCombinedBPM<T>::MakeBPMComboList()
 {
   UShort_t axis = 0;
 
-  QwVQWK_Channel combo_bpm_sub_element;
+  T combo_bpm_sub_element;
   
   for(axis=kXAxis;axis<kNumAxes;axis++) {
     combo_bpm_sub_element.ClearEventData();
@@ -952,7 +988,8 @@ void QwCombinedBPM::MakeBPMComboList()
 
 
 
-std::vector<QwDBInterface> QwCombinedBPM::GetDBEntry()
+template<typename T>
+std::vector<QwDBInterface> QwCombinedBPM<T>::GetDBEntry()
 {
   std::vector <QwDBInterface> row_list;
   row_list.clear();
@@ -964,3 +1001,6 @@ std::vector<QwDBInterface> QwCombinedBPM::GetDBEntry()
   fEffectiveCharge.AddEntriesToList(row_list);
   return row_list;
 }
+
+template class QwCombinedBPM<QwVQWK_Channel>; 
+template class QwCombinedBPM<QwSIS3801_Channel>; 

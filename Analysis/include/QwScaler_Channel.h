@@ -89,10 +89,16 @@ public:
   void Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
   void Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
   void Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
+  void Product(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
   void ScaleRawRate(Double_t Offset);
-  void Normalize(const VQwScaler_Channel &norm);
+  void DivideBy(const VQwScaler_Channel &denom);
+
+  /// TODO The Normalize function should be replaced by DivideBy,
+  ///      for consistency with the QwVQWK_Channel.
+  void Normalize(const VQwScaler_Channel &norm){DivideBy(norm);};
+  
 
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
@@ -126,7 +132,9 @@ public:
   void CalculateRunningAverage();
 
 protected:
-
+  VQwScaler_Channel& operator/=(const VQwScaler_Channel&);
+  
+protected:
   static const Bool_t kDEBUG;
 
   UInt_t   fValue_Raw;

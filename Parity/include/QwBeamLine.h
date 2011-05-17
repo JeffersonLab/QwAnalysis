@@ -107,14 +107,14 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   QwBCM<QwVQWK_Channel>* GetBCM(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
   QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name);
-  QwCombinedBPM* GetCombinedBPM(const TString name);
+  QwCombinedBPM<QwVQWK_Channel>* GetCombinedBPM(const TString name);
   QwEnergyCalculator* GetEnergyCalculator(const TString name);
   QwHaloMonitor* GetScalerChannel(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
   const QwBPMStripline<QwVQWK_Channel>* GetBPMStripline(const TString name) const;
   const QwBCM<QwVQWK_Channel>* GetBCM(const TString name) const;
   const QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name) const;
-  const QwCombinedBPM* GetCombinedBPM(const TString name) const;
+  const QwCombinedBPM<QwVQWK_Channel>* GetCombinedBPM(const TString name) const;
   const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
   const QwHaloMonitor* GetScalerChannel(const TString name) const;
 
@@ -134,7 +134,8 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  std::vector <QwBPMCavity> fCavity;
  std::vector <QwHaloMonitor> fHaloMonitor;
 
- std::vector <QwCombinedBPM> fBPMCombo;
+ std::vector <QwCombinedBPM<QwVQWK_Channel> > fBPMCombo;
+
  std::vector <QwEnergyCalculator> fECalculator;
  std::vector <QwBeamDetectorID> fBeamDetectorID;
 

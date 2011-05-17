@@ -323,42 +323,80 @@ void VQwScaler_Channel::Difference(VQwScaler_Channel &value1, VQwScaler_Channel 
   *this -= value2;
 }
 
-void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom){
+void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom)
+{
   if (!IsNameEmpty()){
-
-    // Take the ratio of the hardware sum
-    if (denom.fValue != 0.0)
-      fValue = (numer.fValue) / (denom.fValue);
-    else
-      fValue = 0.0;
-
+    *this  = numer;
+    *this /= denom;
+    
+    //  Set the raw values to zero.
     fValue_Raw = 0;
     
+    // Remaining variables
+    fGoodEventCount  = denom.fGoodEventCount;
+    fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
 
+  }
+}
+
+VQwScaler_Channel& VQwScaler_Channel::operator/= (const VQwScaler_Channel &denom)
+{
+  //  In this function, leave the "raw" variables untouched.
+  Double_t ratio;
+  Double_t variance;
+  if (!IsNameEmpty()){
     // The variances are calculated using the following formula:
     //   Var[ratio] = ratio^2 (Var[numer] / numer^2 + Var[denom] / denom^2)
     //
     // This requires that both the numerator and denominator are non-zero!
     //
-
-    if (numer.fValue != 0.0 && denom.fValue != 0.0)
-      fValueM2 = fValue * fValue *
-         (numer.fValueM2 / numer.fValue / numer.fValue
-        + denom.fValueM2 / denom.fValue / denom.fValue);
-    else
+    if (this->fValue != 0.0 && denom.fValue != 0.0){
+      ratio = (this->fValue) / (denom.fValue);
+      variance =  ratio * ratio *
+	(this->fValueM2 / this->fValue / this->fValue
+	 + denom.fValueM2 / denom.fValue / denom.fValue);
+      fValue   = ratio;
+      fValueM2 = variance;
+    } else if (this->fValue == 0.0) {
+      fValue   = 0.0;
       fValueM2 = 0.0;
+    } else {
+      QwVerbose << "Attempting to divide by zero in " 
+		<< GetElementName() << QwLog::endl;
+      fValue   = 0.0;
+      fValueM2 = 0.0;
+    }
 
+    // Remaining variables
+    //  Don't change fGoodEventCount, or fErrorFlag.
+    //  'OR' the device error codes together.
+    fDeviceErrorCode |= denom.fDeviceErrorCode;
+  }
+
+  // Nanny
+  if (fValue != fValue)
+    QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
+  return *this;
+}
+
+void VQwScaler_Channel::Product(VQwScaler_Channel &numer, VQwScaler_Channel &denom)
+{
+  if (!IsNameEmpty()){
+    fValue = numer.fValue * denom.fValue;
+    fValue_Raw = 0;
+    
     // Remaining variables
     fGoodEventCount  = denom.fGoodEventCount;
     fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
   }
 }
 
+
 void VQwScaler_Channel::AddChannelOffset(Double_t offset)
 {
   if (!IsNameEmpty())
     {
-      this->fValue += offset;
+      fValue += offset;
     }
 }
 
@@ -367,8 +405,8 @@ void VQwScaler_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty())
     {
-      this->fValue *= scale;
-      fValue       *= scale * scale;
+      fValue   *= scale;
+      fValueM2 *= scale * scale;
     }
 }
 
@@ -380,12 +418,9 @@ void VQwScaler_Channel::ScaleRawRate(Double_t scale)
     }
 }
 
-void VQwScaler_Channel::Normalize(const VQwScaler_Channel &norm)
+void VQwScaler_Channel::DivideBy(const VQwScaler_Channel &denom)
 {
-  if (!IsNameEmpty())
-    {
-      this->fValue /= norm.fValue;
-    }
+  *this /= denom;
 }
 
 /********************************************************/

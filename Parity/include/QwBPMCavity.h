@@ -29,7 +29,7 @@ class QwDBInterface;
 /// \ingroup QwAnalysis_BL
 
 class QwBPMCavity : public VQwBPM {
-  friend class QwCombinedBPM;
+  template <typename TT> friend class QwCombinedBPM;
   friend class QwEnergyCalculator;
 
  public:
