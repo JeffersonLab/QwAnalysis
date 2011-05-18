@@ -1,0 +1,21 @@
+roc = 2
+bank = 0x210
+! module.type, module.num  chan.num, det.type, det.name
+norm = sca_edet_4MHzRefClk / 4000000
+SIS3801D24, 0, 0x0, scaler, sca_edet_4MHzRefClk
+SIS3801D24, 0, 0x1, scaler, sca_edet_rate0x211
+SIS3801D24, 0, 0x2, scaler, sca_edet_mps
+SIS3801D24, 0, 0x3, scaler, sca_edet_rate0x213
+SIS3801D24, 0, 0x4, scaler, sca_edet_bcm1
+SIS3801D24, 0, 0x5, scaler, sca_edet_rate0x215
+SIS3801D24, 0, 0x6, scaler, sca_edet_quartet
+SIS3801D24, 0, 0x7, scaler, sca_edet_rate0x217
+SIS3801D24, 0, 0x8, scaler, sca_edet_rate0x218
+SIS3801D24, 0, 0x9, scaler, sca_edet_rate0x219
+SIS3801D24, 0, 0xa, scaler, sca_edet_rate0x21a
+SIS3801D24, 0, 0xb, scaler, sca_edet_rate0x21b
+SIS3801D24, 0, 0xc, scaler, sca_edet_rate0x21c
+SIS3801D24, 0, 0xd, scaler, sca_edet_cavpower
+SIS3801D24, 0, 0xe, scaler, sca_edet_rate0x21e
+SIS3801D24, 0, 0xf, scaler, sca_edet_rate0x21f
+

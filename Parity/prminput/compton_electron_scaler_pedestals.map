@@ -1,0 +1,9 @@
+! This file contains the pedestals for the scalers.
+! Respect the format of the file:
+
+! channel name,	pedestal,	gain
+!bcm1_3h05,	254700,		1728.0
+!bcm2_3h05a,	254700,		1728.0
+!bcm6_3c17,	249860,		1319.92
+
+!END
