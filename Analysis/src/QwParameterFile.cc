@@ -445,9 +445,9 @@ Bool_t QwParameterFile::HasValue(TString& vname)
 
 
 Bool_t QwParameterFile::HasVariablePair(
-					const std::string& separatorchars,
-					TString &varname,
-					TString &varvalue)
+	const std::string& separatorchars,
+	TString &varname,
+	TString &varvalue)
 {
   std::string tmpvar, tmpval;
   Bool_t status = HasVariablePair(separatorchars, tmpvar, tmpval);
@@ -459,9 +459,9 @@ Bool_t QwParameterFile::HasVariablePair(
 }
 
 Bool_t QwParameterFile::HasVariablePair(
-					const std::string& separatorchars,
-					std::string &varname,
-					std::string &varvalue)
+	const std::string& separatorchars,
+	std::string &varname,
+	std::string &varvalue)
 {
   Bool_t status = kFALSE;
   size_t equiv_pos1 = fLine.find_first_of(separatorchars);
@@ -479,9 +479,9 @@ Bool_t QwParameterFile::HasVariablePair(
 }
 
 Bool_t QwParameterFile::FileHasVariablePair(
-					    const std::string& separatorchars,
-					    const TString& varname,
-					    TString& varvalue)
+	const std::string& separatorchars,
+	const TString& varname,
+	TString& varvalue)
 {
   std::string tmpval;
   Bool_t status = FileHasVariablePair(separatorchars, varname.Data(), tmpval);
@@ -490,9 +490,9 @@ Bool_t QwParameterFile::FileHasVariablePair(
 }
 
 Bool_t QwParameterFile::FileHasVariablePair(
-					    const std::string& separatorchars,
-					    const std::string& varname,
-					    std::string& varvalue)
+	const std::string& separatorchars,
+	const std::string& varname,
+	std::string& varvalue)
 {
   RewindToFileStart();
   while (ReadNextLine()) {
