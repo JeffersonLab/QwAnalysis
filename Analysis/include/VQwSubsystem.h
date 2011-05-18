@@ -290,6 +290,7 @@ class VQwSubsystem: virtual public VQwCloneable {
    */
   Int_t RegisterSubbank(const UInt_t bank_id);
 
+  Int_t GetSubbankIndex() const { return GetSubbankIndex(fCurrentROC_ID, fCurrentBank_ID); }
   Int_t GetSubbankIndex(const UInt_t roc_id, const UInt_t bank_id) const;
   void  SetDataLoaded(Bool_t flag){fIsDataLoaded = flag;};
 

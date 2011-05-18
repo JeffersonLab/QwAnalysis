@@ -5,6 +5,8 @@
 // System headers
 #include <sstream>
 #include <climits>
+#include <algorithm>
+#include <cctype>
 
 // Qweak headers
 #include "QwLog.h"
@@ -81,13 +83,34 @@ UInt_t QwParameterFile::GetUInt(const TString& varvalue)
 
 /**
  * Constructor
+ * @param stream String stream for reading
+ */
+QwParameterFile::QwParameterFile(const std::stringstream& stream)
+: fCommentChars(kDefaultCommentChars),
+  fWhitespaceChars(kDefaultWhitespaceChars),
+  fTokenSepChars(kDefaultTokenSepChars),
+  fSectionChars(kDefaultSectionChars),
+  fModuleChars(kDefaultModuleChars),
+  fFilename("stream")
+{
+  fStream << stream.rdbuf();
+}
+
+
+/**
+ * Constructor
  * @param name Name of the file to be opened
  *
  * If file starts with an explicit slash ('/'), it is assumed to be a full path.
  */
 QwParameterFile::QwParameterFile(const std::string& name)
+: fCommentChars(kDefaultCommentChars),
+  fWhitespaceChars(kDefaultWhitespaceChars),
+  fTokenSepChars(kDefaultTokenSepChars),
+  fSectionChars(kDefaultSectionChars),
+  fModuleChars(kDefaultModuleChars),
+  fFilename(name)
 {
-
   // Create a file from the name
   bfs::path file(name);
 
@@ -220,10 +243,10 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
  * @return Score of file
  */
 int QwParameterFile::FindFile(
-			      const bfs::path&   directory,
-			      const std::string& file_stem,
-			      const std::string& file_ext,
-			      bfs::path&         best_path)
+	const bfs::path&   directory,
+	const std::string& file_stem,
+	const std::string& file_ext,
+	bfs::path&         best_path)
 {
   // Return false if the directory does not exist
   if (! bfs::exists(directory)) return false;
@@ -339,9 +362,9 @@ void QwParameterFile::TrimWhitespace(TString::EStripType head_tail)
 }
 
 void QwParameterFile::Trim(
-			   const std::string& chars,
-			   std::string& token,
-			   TString::EStripType head_tail)
+	const std::string& chars,
+	std::string& token,
+	TString::EStripType head_tail)
 {
   //  If the first bit is set, this routine removes leading chars from the
   //  line.  If the second bit is set, this routine removes trailing chars
@@ -361,10 +384,11 @@ void QwParameterFile::Trim(
   }
 }
 
-void QwParameterFile::TrimWhitespace(std::string &token,
-				     TString::EStripType head_tail)
+void QwParameterFile::TrimWhitespace(
+	std::string &token,
+	TString::EStripType head_tail)
 {
-  Trim(kDefaultWhitespaceChars,token,head_tail);
+  Trim(fWhitespaceChars,token,head_tail);
 }
 
 void QwParameterFile::TrimComment(const char commentchar)
@@ -386,13 +410,13 @@ void QwParameterFile::TrimComment(const std::string& commentchars)
 void QwParameterFile::TrimSectionHeader()
 {
   // Trim section delimiter character on both sides
-  Trim(kDefaultSectionChars,fLine,TString::kBoth);
+  Trim(fSectionChars,fLine,TString::kBoth);
 }
 
 void QwParameterFile::TrimModuleHeader()
 {
   // Trim module delimiter character on both sides
-  Trim(kDefaultModuleChars,fLine,TString::kBoth);
+  Trim(fModuleChars,fLine,TString::kBoth);
 }
 
 
@@ -529,9 +553,9 @@ Bool_t QwParameterFile::LineHasModuleHeader(std::string& secname)
 {
   TrimComment();
   Bool_t status = kFALSE;
-  size_t equiv_pos1 = fLine.find_first_of(kDefaultModuleChars[0]);
+  size_t equiv_pos1 = fLine.find_first_of(fModuleChars[0]);
   if (equiv_pos1 != std::string::npos) {
-    size_t equiv_pos2 = fLine.find_first_of(kDefaultModuleChars[1],equiv_pos1);
+    size_t equiv_pos2 = fLine.find_first_of(fModuleChars[1],equiv_pos1);
     if (equiv_pos2 != std::string::npos && equiv_pos2 - equiv_pos1 > 1) {
       secname = fLine.substr(equiv_pos1 + 1, equiv_pos2 - equiv_pos1 - 1);
       TrimWhitespace(secname, TString::kBoth);
