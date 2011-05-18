@@ -120,6 +120,11 @@ class QwParameterFile {
     std::string GetNextToken(const std::string& separatorchars);
     std::string GetNextToken() { return GetNextToken(fTokenSepChars); };
 
+    /// Get next token into specific type
+    template <typename T>
+    T GetTypedNextToken() {
+      return ConvertValue<T>(GetNextToken());
+    }
 
     std::string GetLine() { return fLine; };
     void AddLine(const std::string& line) { fStream << line << std::endl; };
@@ -183,6 +188,15 @@ class QwParameterFile {
     void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);
     void TrimWhitespace(std::string &token, TString::EStripType head_tail);
 
+    /// Convert string value into specific type
+    template <typename T>
+    T ConvertValue(const std::string& value) {
+      T retvalue;
+      std::istringstream stream1;
+      stream1.str(value);
+      stream1 >> retvalue;
+      return retvalue;
+    }
 
   private:
 
@@ -267,5 +281,25 @@ class QwParameterFile {
 
 }; // class QwParameterFile
 
+
+template <>
+inline std::string QwParameterFile::GetTypedNextToken<std::string>(){
+  return GetNextToken();
+};
+
+template <>
+inline UInt_t QwParameterFile::ConvertValue<UInt_t>(const std::string& value) {
+  return GetUInt(value);
+};
+
+template <>
+inline std::string QwParameterFile::ConvertValue<std::string>(const std::string& value) {
+  return value;
+};
+
+template <>
+inline TString QwParameterFile::ConvertValue<TString>(const std::string& value) {
+  return TString(value.c_str());
+};
 
 #endif // __QWPARAMETERFILE__
