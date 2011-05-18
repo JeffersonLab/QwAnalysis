@@ -76,7 +76,7 @@ class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
     Double_t* GetRawChannelArray();
 
     Double_t GetDataForChannelInModule(Int_t modnum, Int_t channum) {
-      Int_t index = fModuleChannel_Mapping[std::pair<Int_t,Int_t>(modnum,channum)];
+      Int_t index = fModuleChannel_Map[std::pair<Int_t,Int_t>(modnum,channum)];
       return fScaler.at(index)->GetValue();
     }
 
@@ -89,17 +89,20 @@ class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
 
     // Mapping from subbank to scaler channels
     typedef std::map< Int_t, std::vector< std::vector<Int_t> > > Subbank_to_Scaler_Map_t;
-    Subbank_to_Scaler_Map_t fSubbank_Mapping;
+    Subbank_to_Scaler_Map_t fSubbank_Map;
+
     // Mapping from module and channel number to scaler channel
     typedef std::map< std::pair<Int_t,Int_t>, Int_t > Module_Channel_to_Scaler_Map_t;
-    Module_Channel_to_Scaler_Map_t fModuleChannel_Mapping;
+    Module_Channel_to_Scaler_Map_t fModuleChannel_Map;
+
     // Mapping from name to scaler channel
     typedef std::map< TString, Int_t> Name_to_Scaler_Map_t;
-    Name_to_Scaler_Map_t fNames;
+    Name_to_Scaler_Map_t fName_Map;
 
     // Vector of scaler channels
-    std::vector< VQwScaler_Channel* > fScaler;  // Raw channels
-    std::vector< VQwScaler_Channel* > fNorm;    // Normalization
+    std::vector< VQwScaler_Channel* > fScaler; // Raw channels
+    std::vector< UInt_t > fBufferOffset; // Offset in scaler buffer
+    std::vector< std::pair< VQwScaler_Channel*, double > > fNorm;
 };
 
 #endif
