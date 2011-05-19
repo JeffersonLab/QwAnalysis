@@ -247,7 +247,7 @@ void QwBCM::Difference(QwBCM &value1, QwBCM &value2){
 void QwBCM::Ratio(QwBCM &numer, QwBCM &denom)
 {
   //  std::cout<<"QwBCM::Ratio element name ="<<GetElementName()<<" \n";
-  if (GetElementName()!="")
+  if (GetElementName()!=""||GetElementName()!="qwk_raster_x"||GetElementName()!="qwk_raster_y"||GetElementName()!="qwk_raster_sumxy")
     {
       //  std::cout<<"here in \n";
       this->fTriumf_ADC.Ratio(numer.fTriumf_ADC,denom.fTriumf_ADC);
@@ -317,8 +317,12 @@ void  QwBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<
   if (GetElementName()==""){
     //  This channel is not used, so skip
   } else
-    {
-      fTriumf_ADC.ConstructBranchAndVector(tree, prefix,values);
+    {    
+    TString thisprefix=prefix;
+    if(prefix=="asym_"){
+      if (GetElementName()=="qwk_raster_x"||GetElementName()=="qwk_raster_y"||GetElementName()=="qwk_raster_sumxy") thisprefix="diff_";
+    }
+      fTriumf_ADC.ConstructBranchAndVector(tree, thisprefix,values);
     }
   return;
 }
