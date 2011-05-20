@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <cstring>
 #include <vector>
+#include <map>
 
 // ROOT headers
 #include "Rtypes.h"
@@ -36,6 +37,7 @@ class QwDatabase;
 class QwDBInterface {
 
  private:
+  static std::map<TString, TString> fPrefix;
 
   UInt_t fAnalysisId;
   UInt_t fDeviceId;
@@ -51,6 +53,9 @@ class QwDBInterface {
   template <class T>
   inline T TypedDBClone();
 
+ public:
+  static TString DetermineMeasurementTypeID(TString type, TString suffix = "",
+					    Bool_t forcediffs = kFALSE);
 
  public:
 
