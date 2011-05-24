@@ -1,14 +1,14 @@
 //*****************************************************************************************************//
 // Author : B. Waidyawansa
-// Date   : March 9th, 2011
+// Date   : May 10th, 2011
 //*****************************************************************************************************//
 //
 //
-//  This macro will connect to theqw_linreg_20110125 data base and get the slug averages from the 
+//  This macro will connect to the qw_linreg_20110125 data base and get the slug averages from the given run range
 //  regressed data and plot 
 //  them in to three plots for pmt+, pmt- and bar sum, us lumi and ds lumi asymmetries. 
 //   e.g. use
-//   ./slug_average_regressed
+//   ./compare_regressed_unregressed run1 run2
 //
 //   To compile this code do a gmake.
 //    
@@ -82,76 +82,64 @@ TString DS_lumi[5]=
 
 //  {"qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4","qwk_dslumi5","qwk_dslumi6","qwk_dslumi7","qwk_dslumi8"};
 
-TSQLServer *db;
+TSQLServer *db1;
+TSQLServer *db2;
 
 TPad * pad1, *pad2;
 TText *t1;
 TTree *tree;
 TString CanvasTitle;
-TString bpm,bpmdata,var1, target, polar,targ, goodfor;
+TString target, polar,targ, goodfor, hwp;
 Int_t runnum;
 
 Int_t opt =1;
 Int_t datopt = 1;
+Int_t ihwpopt = 1;
+Int_t run1= 0;
+Int_t run2= 0;
+
 TTree * nt;
 
-std::ofstream Myfile;
 Char_t textfile[100];
-
-
-Double_t p0[8] ={0.0};
-Double_t ep0[8] ={0.0};
-Double_t p1[8] ={0.0};
-Int_t i = -1;
-Double_t ep1[8] ={0.0};
 
 Double_t value1[8] ={0.0};
 Double_t err1[8] ={0.0};
-Double_t value2[8] ={0.0};
-Double_t err2[8] ={0.0};
 Double_t value3[8] ={0.0};
 Double_t err3[8] ={0.0};
+
+Double_t value2[4] ={0.0};
+Double_t err2[4] ={0.0};
+
 Double_t value11[8] ={0.0};
 Double_t err11[8] ={0.0};
-Double_t value22[8] ={0.0};
-Double_t err22[8] ={0.0};
 Double_t value33[8] ={0.0};
 Double_t err33[8] ={0.0};
 
-Double_t value111[4] ={0.0};
-Double_t err111[4] ={0.0};
-Double_t value222[4] ={0.0};
-Double_t err222[4] ={0.0};
+Double_t value22[4] ={0.0};
+Double_t err22[4] ={0.0};
 
-Double_t valuein[8] ={0.0};
-Double_t errin[8] ={0.0};
-Double_t valueout[8] ={0.0};
-Double_t errout[8] ={0.0};
-
-Double_t valuesum[8] ={0.0};
-Double_t valueerror[8] ={0.0};
-Double_t valuesum1[8] ={0.0};
-Double_t valueerror1[8] ={0.0};
-Double_t valuesum11[8] ={0.0};
-Double_t valueerror11[8] ={0.0};
-
-TString xunit, yunit, slopeunit;
-
-void get_octant_data(Int_t size,TString devicelist[], TString detector_type, TString goodfor, TString target, TString ihwp, Double_t value[], Double_t error[]);
-TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type, TString goodfor, TString polar);
 void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Double_t errorsout[]);
-
-// void get_octant_data(Int_t size,TString devicelist[], TString detector_type, TString target, TString ihwp, Double_t value[], Double_t error[]);
-// TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type);
-// void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Double_t errorsout[]);
+void get_octant_data(TSQLServer*db, Int_t size, TString devicelist[], TString detector_type,TString goodfor,TString correct,Int_t run1, Int_t run2, Double_t value[], Double_t error[]);
+TString get_query(TString detector, TString measurement, TString detector_type, TString goodfor,TString correct, Int_t run1, Int_t run2);
 
 
 int main(Int_t argc,Char_t* argv[])
 {
 
 
+  if(argc<3 || argc> 3){
+    std::cout<<"The correct usage of this script is:"<<std::endl;
+    std::cout<<"./slug_average_regressed_run_range run1 run2"<<std::endl;
+    std::cout<<"run 1 = first run in range"<<std::endl;
+    std::cout<<"run 2 = last run in range run"<<std::endl;
+    exit(1);
+  } else {
+    run1 = atoi(argv[1]);
+    run2 = atoi(argv[2]);
+  }
+
   std::cout<<"###############################################"<<std::endl;
-  std::cout<<" \nSlug averages of MD and LUMI asymmetries\n"<<std::endl;
+  std::cout<<" \n Compare regressed vs run regressed\n"<<std::endl;
   std::cout<<"###############################################"<<std::endl;
   std::cout<<"Enter target type:"<<std::endl;
   std::cout<<"1. Liquid Hydrogen"<<std::endl;
@@ -161,8 +149,18 @@ int main(Int_t argc,Char_t* argv[])
   std::cout<<"1. Longitudinal"<<std::endl;
   std::cout<<"2. Transverse "<<std::endl;
   std::cin>>datopt;
+  std::cout<<"Enter IHWP state:"<<std::endl;
+  std::cout<<"1. IN"<<std::endl;
+  std::cout<<"2. OUT "<<std::endl;
+  std::cin>>ihwpopt;
 
-
+  if(ihwpopt == 1)
+    hwp = "in";
+  else if (ihwpopt == 2)  
+    hwp = "out";
+  else
+    hwp = "UNKNOWN";
+  
   if(opt == 1){
     target = "HYDROGEN-CELL";
     targ = "HYDROGEN-CELL";
@@ -231,47 +229,60 @@ int main(Int_t argc,Char_t* argv[])
   //Delete all the objects stored in the current directory memmory
   gDirectory->Delete("*");
 
-//connect to the data base
-  db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_linreg_20110125","qweak", "QweakQweak");
-  if(db)
-    printf("Server info: %s\n", db->ServerInfo());
-  else
-    exit(1);
 
   // clear arrays;
   for(Int_t i =0;i<8;i++){
     value1[i] = 0.0;
     err1[i] = 0.0;
-    value2[i] =0.0;
-    err2[i]=0.0;
     value3[i]=0.0;
     err3[i]=0.0;
-    value11[i]=0.0;
-    err11[i]=0.0;
-    value22[i]=0.0;
-    err22[i]=0.0;
+    value11[i] = 0.0;
+    err11[i] = 0.0;
     value33[i]=0.0;
     err33[i]=0.0;
-    valuein[i]= 0.0;
-    errin[i]=0.0;
-    valueout[i]=0.0;
-    errout[i]=0.0;
-
-  
-  }
+    }
 
   for(Int_t i =0;i<4;i++){
-
-    value111[i] = 0.0;
-    err111[i] = 0.0;
-    value222[i] =0.0;
-    err222[i]=0.0;
-
-  
+    value2[i] =0.0;
+    err2[i]=0.0;
+    value22[i] =0.0;
+    err22[i]=0.0;
   }
 
+
+
+  // Get data from regressed data base
+  //connect to the data bases
+  db1 = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_linreg_20110125","qweak", "QweakQweak");
+  if(db1)
+    printf("Server info: %s\n", db1->ServerInfo());
+  else
+    exit(1);
+
+  get_octant_data(db1,8,quartz_bar_SUM, "MD", goodfor,"on", run1,run2, value1,err1);
+  get_octant_data(db1,4,us_lumi,"LUMI", goodfor,"on", run1,run2,value2,err2);
+  get_octant_data(db1,5,DS_lumi,"LUMI", goodfor,"on", run1,run2,value3,err3);
+
+  db1->Close();
+  delete db1;
+
+  // Get data from unregressed data base
+  //connect to the data bases
+  db2 = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
+  if(db2)
+    printf("Server info: %s\n", db2->ServerInfo());
+  else
+    exit(1);
+
+  get_octant_data(db2,8,quartz_bar_SUM, "MD", goodfor,"off", run1,run2, value11,err11);
+  get_octant_data(db2,4,us_lumi,"LUMI", goodfor,"off",run1,run2,value22,err22);
+  get_octant_data(db2,5,DS_lumi,"LUMI", goodfor,"off",run1,run2,value33,err33);
+
+  db2->Close();
+  delete db2;
+
   //plot MD asymmetries
-  TString title1 = Form("%s (%s): Regressed slug averages of Main detector asymmetries. TOP FIT = p0*cos(phi + p1) + p2 and BOTTOM FIT = pol0",targ.Data(),polar.Data());
+  TString title1 = Form("%s (%s): %i - %i Regressed vs Unregressed averages of Main detector asymmetries. FIT = p0*cos(phi + p1) + p2",targ.Data(),polar.Data(),run1,run2);
   TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,500);
   Canvas1->Draw();
   Canvas1->cd();
@@ -282,7 +293,6 @@ int main(Int_t argc,Char_t* argv[])
   pad1->Draw();
   pad2->Draw();
 
-
   pad1->cd();
   TString text = Form(title1);
   TText*t1 = new TText(0.06,0.3,text);
@@ -290,17 +300,15 @@ int main(Int_t argc,Char_t* argv[])
   t1->Draw();
 
   pad2->cd();
-  get_octant_data(8,quartz_bar_SUM, "MD", goodfor, target, "out", value3,  err3);
-  get_octant_data(8,quartz_bar_SUM, "MD", goodfor, target, "in",  value33, err33);
-  plot_octant(8,"MD BAR SUM", value33,err33,value3,err3);
+  plot_octant(8,"MD BAR SUM",value1,err1,value11,err11);
   gPad->Update();
 
 
   Canvas1->Update();
-  Canvas1->Print(polar+"_"+target+"_md_regressed_slug_summary_plots.gif");
+  Canvas1->Print(Form("%i_%i_md_compare_plots.gif",run1,run2));
 
   // plot US LUMI asymmetries
-  TString title2 = targ+"("+polar+"): Regressed slug averages of US Lumi asymmetries. TOP FIT = p0*cos(phi + p1) + p2 and BOTTOM FIT = pol0";
+  TString title2 = Form("%s (%s): %i - %i Regressed vs Unregressed averages of US Lumi asymmetries. FIT = p0*cos(phi + p1) + p2",targ.Data(),polar.Data(),run1,run2);
   TCanvas * Canvas2 = new TCanvas("canvas2", title2,0,0,1000,500);   
   Canvas2->Draw();
   Canvas2->cd();
@@ -318,17 +326,15 @@ int main(Int_t argc,Char_t* argv[])
   t11->Draw();
 
   pad22->cd();
-  get_octant_data(4,us_lumi,"LUMI", goodfor, target, "in", value111,err111);
-  get_octant_data(4,us_lumi,"LUMI", goodfor, target, "out", value222,err222);
-  plot_octant(4,"US LUMI", value111,err111,value222,err222);
+  plot_octant(4,"US LUMI",value2,err2,value22,err22);
   gPad->Update();
 
   Canvas2-> Update();
-  Canvas2->Print(polar+"_"+target+"_uslumi_regressed_slug_summary_plots.gif");
+  Canvas2->Print(Form("%i_%i_uslumi_compare_plots.gif",run1,run2));
 
   // plot DS LUMI asymmetries
-  TString title3 = targ+"("+polar+"): Regressed slug averages of DS LUMI asymmetries. TOP FIT = p0*cos(phi + p1) + p2 and BOTTOM FIT = pol0";
-  TCanvas * Canvas3 = new TCanvas("canvas1", title1,0,0,1000,500);
+  TString title3 = Form("%s (%s): %i - %i Regressed vs Unregressed averages of DS Lumi asymmetries. FIT = p0*cos(phi + p1) + p2",targ.Data(),polar.Data(),run1,run2);
+  TCanvas * Canvas3 = new TCanvas("canvas1", title3,0,0,1000,500);
   Canvas3->Draw();
 
   TPad*pad111 = new TPad("pad111","pad111",0.005,0.935,0.995,0.995);
@@ -345,18 +351,14 @@ int main(Int_t argc,Char_t* argv[])
   t111->Draw();
 
   pad222->cd();
-  get_octant_data(5,DS_lumi,"LUMI", goodfor, target, "in", valuein,errin);
-  get_octant_data(5,DS_lumi,"LUMI", goodfor, target, "out", valueout,errout);
-  plot_octant(5,"DS_LUMI",valuein,errin,valueout,errout);
+  plot_octant(5,"DS_LUMI",value3,err3,value33,err33);
   gPad->Update();
 
   Canvas3-> Update();
-  Canvas3->Print(polar+"_"+target+"_dslumi_regressed_slug_summary_plots.gif");
+  Canvas3->Print(Form("%i_%i_dslumi_compare_plots.gif",run1,run2));
 
 
   std::cout<<"Done plotting fits \n";
-  db->Close();
-  delete db;
 
   theApp.Run();
   return(1);
@@ -368,7 +370,7 @@ int main(Int_t argc,Char_t* argv[])
 //         get query              
 //***************************************************
 //***************************************************
-TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type, TString goodfor, TString polar){
+TString get_query(TString detector, TString measurement, TString detector_type, TString goodfor,TString correct, Int_t run1, Int_t run2){
 
 
 
@@ -397,84 +399,11 @@ TString get_query(TString detector, TString measurement, TString target, TString
   TString run_quality_cut = Form("%s.run_quality_id = 1",datatable.Data()); // good
 
 // To get rid of runs that have large charge asymmetries
-  TString run_cut = Form("%s.run_number != 9831 AND %s.run_number != 9837 AND %s.run_number != 9853 AND %s.run_number != 9888  AND %s.run_number != 9885 AND %s.run_number != 9880 AND %s.run_number != 9851 AND  ",datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data()); 
+  TString bad_run_cut = Form("%s.run_number != 9831 AND %s.run_number != 9837 AND %s.run_number != 9853 AND %s.run_number != 9888  AND %s.run_number != 9885 AND %s.run_number != 9880 AND %s.run_number != 9851 AND  ",datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data()); 
+  TString run_cut = Form("%s.run_number >=%i AND %s.run_number <= %i AND "
+			 ,datatable.Data(),run1,datatable.Data(),run2); 
 
-
-  /*************************
-  longitudinal
-
-  **************************/
-  if(polar == "longitudinal"){
-    if(target == "HYDROGEN-CELL"){
-      run_cut = "";
-      if(ihwp == "out"){
-	//plate_cut = "("+datatable+".run_number > 9270 AND "+datatable+".run_number < 9276)"; // slug 25
-	//plate_cut = "("+datatable+".run_number > 9296 AND "+datatable+".run_number < 9344)"; // slug 27
-	plate_cut = "("+datatable+".run_number > 9803 AND "+datatable+".run_number < 9813)"; // slug 40
-	//plate_cut = "("+datatable+".run_number > 9749 AND "+datatable+".run_number < 9761)"; // slug 36
-	//plate_cut = "("+datatable+".run_number > 9773 AND "+datatable+".run_number < 9789)"; //slug 33
-	//plate_cut = "("+datatable+".run_number > 9590 AND "+datatable+".run_number < 9620)"; // slug 31
-	// plate_cut = "("+datatable+".run_number > 9083 AND "+datatable+".run_number < 9107)"; // slug 21 / 9083-9106 
-	//plate_cut = "("+datatable+".run_number > 9704 AND "+datatable+".run_number < 9735)"; // slug 34 / 9704 - 9734
-	//plate_cut = "("+datatable+".run_number > 9749 AND "+datatable+".run_number < 9762)"; // slug 36 / 9749 - 9761 
-	//plate_cut = "("+datatable+".run_number > 9773 AND "+datatable+".run_number < 9789)"; // slug 38/9773 - 9788 
-	//plate_cut = "("+datatable+".run_number > 9803 AND "+datatable+".run_number < 9813)"; // slug 40/9803 - 9812
-	// plate_cut = "("+datatable+".run_number > 9969 AND "+datatable+".run_number < 9982)"; // slug 43/	9969-9982
-	//plate_cut = "("+datatable+".run_number > 9991 AND "+datatable+".run_number < 10004)"; // slug 45/	9991-10003 
-	
-      }
-      if(ihwp == "in"){
-	//plate_cut = "("+datatable+".run_number > 9277 AND "+datatable+".run_number < 9295) "; //slug 26 part
-	//plate_cut = "("+datatable+".run_number > 9413 AND "+datatable+".run_number < 9421) "; //slug 29 part
-	plate_cut = "("+datatable+".run_number > 9789 AND "+datatable+".run_number < 9796) "; //slug 39 part
-	//plate_cut = "("+datatable+".run_number > 9735 AND "+datatable+".run_number < 9749) "; //slug 35 9060-9082
-	//plate_cut = "("+datatable+".run_number > 9060 AND "+datatable+".run_number < 9083) "; //slug 20/ 9060-9082
-	// plate_cut = "("+datatable+".run_number > 9735 AND "+datatable+".run_number < 9749) "; //slug 35/9735 - 9748
-	//plate_cut = "("+datatable+".run_number > 9762 AND "+datatable+".run_number < 9773) "; // slug-37/ 9762 - 9772
-	// plate_cut = "("+datatable+".run_number > 9789 AND "+datatable+".run_number < 9796) "; // slug-39/ 9789-9795
-	//plate_cut = "("+datatable+".run_number > 9890 AND "+datatable+".run_number < 9906) "; // slug-41/ 9890-9906
-	//plate_cut = "("+datatable+".run_number > 9983 AND "+datatable+".run_number < 9991) "; // slug-44/ 9983-9990
-	//plate_cut = "("+datatable+".run_number > 10005 AND "+datatable+".run_number < 10030) "; // slug-46/ 10005-10029
-	
-	
-      }
-    }
-    
-    if(target == "DS-4%-Aluminum"){
-      //run_cut = datatable+".run_number > 9847 AND "+datatable+".run_number < 9859 "; // since the db reads the range as lower to upper-1 to give the proper range I add 1 to the upper cut.
-      if(ihwp == "out"){
-	plate_cut = "("+datatable+".run_number > 9442 AND "+datatable+".run_number < 9448)"; // slug 1011
-      }
-      if(ihwp == "in"){
-	plate_cut = "("+datatable+".run_number > 9500 AND "+datatable+".run_number < 9503)"; // slug 1012
-
-      }
-    }
-  }
-  
-
-  /*************************
-   Transverse
-
-  **************************/
-
-  if(polar == "transverse"){
-    if(target == "HYDROGEN-CELL"){
-      if(ihwp == "out")
-	plate_cut = "("+datatable+".run_number > 9863 AND "+datatable+".run_number < 9879)";// OR ("+datatable+".run_number > 9853 AND "+datatable+".run_number < 9888)";
-      if(ihwp == "in")
-	plate_cut = "("+datatable+".run_number > 9881 AND "+datatable+".run_number < 9885)";// OR ("+datatable+".run_number > 9837 AND "+datatable+".run_number < 9853)";
-      
-    }
-    
-    if(target == "DS-4%-Aluminum"){
-      if(ihwp == "out")
-	plate_cut = "("+datatable+".run_number > 9853 AND "+datatable+".run_number < 9859)";
-      if(ihwp == "in")
-	plate_cut = "("+datatable+".run_number > 9847 AND "+datatable+".run_number < 9853)";
-    }
-  }
-  
+  TString slope_correction = Form("%s.slope_correction = '%s'",datatable.Data(),correct.Data());
 
   TString query =" SELECT " + output
     + " FROM "+datatable+", analysis, run, runlet "
@@ -482,14 +411,13 @@ TString get_query(TString detector, TString measurement, TString target, TString
     + " run.run_number = "+datatable+".run_number AND "
     +datatable+".detector = '"+detector+"' AND "
     +datatable+".subblock = 0 AND "
+    +bad_run_cut+
     +run_cut+
-    +datatable+".measurement_type = '"+measurement+"' AND "+datatable+".slope_correction = 'on' AND "+datatable+".slope_calculation = 'off' AND "
-    //+good_for_cut+" AND "
-    // +run_quality_cut+ " AND "
-    +plate_cut+" AND error !=0;";
+    +datatable+".measurement_type = '"+measurement+"' AND "+slope_correction+" AND "+datatable+".slope_calculation = 'off' AND "
+    +"error !=0;";
 
  			 
-  if(ldebug)  std::cout<<query<<std::endl;
+  if(ldebug)  std::cout<<"\n"<<query<<std::endl;
 
   return query;
 }
@@ -501,16 +429,16 @@ TString get_query(TString detector, TString measurement, TString target, TString
 //***************************************************
 //***************************************************
 
-void get_octant_data(Int_t size, TString devicelist[], TString detector_type,TString goodfor, TString target, TString ihwp, Double_t value[], Double_t error[])
+void get_octant_data(TSQLServer*db, Int_t size, TString devicelist[], TString detector_type,TString goodfor,TString correct,Int_t run1, Int_t run2, Double_t value[], Double_t error[])
 {
   Bool_t ldebug = false;
 
   if(ldebug) printf("\nDetector Type %s, size %2d\n", detector_type.Data(), size);
   for(Int_t i=0 ; i<size ;i++){
     if(ldebug) {
-      printf("Getting data for %20s ihwp %5s ", devicelist[i].Data(), ihwp.Data());
+      printf("Getting data for %20s ihwp %5s ", devicelist[i].Data(), hwp.Data());
     }
-    TString query = get_query(Form("%s",devicelist[i].Data()),"a",target,ihwp,detector_type,goodfor,polar);
+    TString query = get_query(Form("%s",devicelist[i].Data()),"a",detector_type,goodfor,correct,run1,run2);
     TSQLStatement* stmt = db->Statement(query,100);
     if(!stmt)  {
       db->Close();
@@ -571,47 +499,37 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   cosfit->SetParameter(2,0);
 
 
-  TGraphErrors* grp_in  = new TGraphErrors(k,x,valuesin,errx,errorsin);
-  grp_in ->SetMarkerSize(0.6);
-  grp_in ->SetMarkerStyle(21);
-  grp_in ->SetMarkerColor(kBlue);
-  grp_in->Fit("cosfit");
-  TF1* fit1 = grp_in->GetFunction("cosfit");
-  fit1->DrawCopy("same");
-  fit1->SetLineColor(kBlue);
-
   TGraphErrors* grp_out  = new TGraphErrors(k,x,valuesout,errx,errorsout);
-  grp_out ->SetMarkerSize(0.6);
+  grp_out ->SetMarkerSize(0.8);
   grp_out ->SetMarkerStyle(21);
-  grp_out ->SetMarkerColor(kRed);
+  grp_out ->SetMarkerColor(kBlack);
+  grp_out ->SetLineColor(kBlack);
+  grp_out ->SetLineWidth(2);
+
   grp_out->Fit("cosfit");
   TF1* fit2 = grp_out->GetFunction("cosfit");
   fit2->DrawCopy("same");
-  fit2->SetLineColor(kRed);
+  fit2->SetLineColor(kBlack);
+  fit2->SetLineStyle(9);
 
+  TGraphErrors* grp_in  = new TGraphErrors(k,x,valuesin,errx,errorsin);
+  grp_in ->SetMarkerSize(0.8);
+  grp_in ->SetMarkerStyle(21);
+  grp_in ->SetMarkerColor(kRed);
+  grp_in ->SetLineColor(kRed);
+  grp_in ->SetLineWidth(2);
 
- 
-  // Sum over the in and out half wave plate states
-  for(Int_t i =0;i<8;i++){
-    valuesum[i]=(valuesin[i]+valuesout[i])/2;
-    valueerror[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2))/2;
-  }
-
-
-  TGraphErrors* grp_sum  = new TGraphErrors(k,x,valuesum,errx,valueerror);
-  grp_sum ->SetMarkerSize(0.8);
-  grp_sum ->SetMarkerStyle(21);
-  grp_sum ->SetMarkerColor(kGreen-2);
-  grp_sum->Fit("pol0");
-  TF1* fit3 = grp_sum->GetFunction("pol0");
-  fit3->DrawCopy("same");
-  fit3->SetLineColor(kGreen-2);
+  grp_in->Fit("cosfit");
+  TF1* fit1 = grp_in->GetFunction("cosfit");
+  fit1->DrawCopy("same");
+  fit1->SetLineColor(kRed);
+  fit1->SetLineStyle(9);
+  fit1 ->SetLineWidth(2);
 
 
   TMultiGraph * grp = new TMultiGraph();
-  grp->Add(grp_in);
   grp->Add(grp_out);
-  grp->Add(grp_sum);
+  grp->Add(grp_in);
   grp->Draw("AP");
 
   grp->SetTitle("");
@@ -622,10 +540,9 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   grp->GetYaxis()->SetTitleOffset(0.7);
   grp->GetXaxis()->SetTitleOffset(0.8);
 
-  TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
-  legend->AddEntry(grp_in, "IHWP-IN", "p");
-  legend->AddEntry(grp_out, "IHWP-OUT", "p");
-  legend->AddEntry(grp_sum, "IN+OUT", "p");
+  TLegend *legend = new TLegend(0.1,0.83,0.3,0.99,"","brNDC");
+  legend->AddEntry(grp_in, "Regressed", "p");
+  legend->AddEntry(grp_out, "Unregressed", "p");
   legend->SetFillColor(0);
   legend->Draw("");
 
@@ -633,14 +550,11 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
 
   TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
   TPaveStats *stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
-  TPaveStats *stats3 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
 
-  stats1->SetTextColor(kBlue); 
-  stats2->SetTextColor(kRed); 
-  stats3->SetTextColor(kGreen-2);
+  stats1->SetTextColor(kRed); 
+  stats2->SetTextColor(kBlack); 
   stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
   stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
-  stats3->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats3->SetY1NDC(0.1);stats3->SetY2NDC(0.35);
 
   
   pad->Update();
@@ -648,6 +562,4 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
 
 
 }
-
-
 

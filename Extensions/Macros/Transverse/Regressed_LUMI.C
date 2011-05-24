@@ -68,10 +68,10 @@ TString us_lumi_reg[4]=
 TString ds_lumi[8]=
   {"qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4","qwk_dslumi5","qwk_dslumi6","qwk_dslumi7","qwk_dslumi8"};
 
-// TString ds_lumi_reg[8]=
-//   {"regresY29","regresY30","regresY31","regresY32","regresY33","regresY34","regresY35","regresY36"};
-TString ds_lumi_reg[5]=
-  {"regresY29","regresY30","regresY31","regresY32","regresY33"};
+TString ds_lumi_reg[8]=
+  {"regresY29","regresY30","regresY31","regresY32","regresY33","regresY34","regresY35","regresY36"};
+//TString ds_lumi_reg[5]=
+  //{"regresY29","regresY30","regresY31","regresY32","regresY33"};
 
 
 
@@ -95,14 +95,16 @@ Double_t p1[8] ={0.0};
 Int_t i = -1;
 Double_t ep1[8] ={0.0};
 
-Double_t value1[8] ={0.0};
-Double_t err1[8] ={0.0};
+Double_t value111[8] ={0.0};
+Double_t err111[8] ={0.0};
 
 Double_t value11[4] ={0.0};
 Double_t err11[4] ={0.0};
 
-Double_t value[8] ={0.0};
-Double_t err[8] ={0.0};
+Double_t value[4] ={0.0};
+Double_t err[4] ={0.0};
+Double_t value1[4] ={0.0};
+Double_t err1[4] ={0.0};
 
 TString xunit, yunit, slopeunit;
 
@@ -208,29 +210,31 @@ int main(Int_t argc,Char_t* argv[])
 
 
   // clear arrays;
-  for(Int_t i =0;i<8;i++){
+  for(Int_t i =0;i<4;i++){
     value[i] = 0.0;
     err[i] = 0.0;
     value1[i] = 0.0;
     err1[i] = 0.0;
   }
 
-  for(Int_t i =0;i<4;i++){
+  for(Int_t i =0;i<8;i++){
     value11[i] = 0.0;
-    err11[i] = 0.0;  
+    err11[i] = 0.0; 
+    value111[i] = 0.0;
+    err111[i] = 0.0;  
   }
 
 
 
   pad2->cd(1);
-  get_octant_data(f,4,us_lumi_reg,opt, value1,err1);
+  get_octant_data(f,4,us_lumi_reg,opt, value,err);
   plot_octant(4,"US LUMI", value1,err1);
   gPad->Update();
 
 
   pad2->cd(2);
-  get_octant_data(f,5,ds_lumi_reg,opt, value11,err11);
-  plot_octant(5,"DS LUMI", value11,err11);
+  get_octant_data(f,8,ds_lumi_reg,opt, value11,err11);
+  plot_octant(8,"DS LUMI", value111,err111);
   gPad->Update();
 
   Canvas2-> Update();
