@@ -573,8 +573,10 @@ void  QwHelicityPattern::AccumulateRunningSum()
 {
   if (fPatternIsGood){
     fRunningYield.AccumulateRunningSum(fYield);
-    fRunningDifference.AccumulateRunningSum(fDifference);
-    // The difference is blinded, so the running difference is also blinded.
+    if (fEnableDifference){
+      fRunningDifference.AccumulateRunningSum(fDifference);
+      // The difference is blinded, so the running difference is also blinded.
+    }
     fRunningAsymmetry.AccumulateRunningSum(fAsymmetry);
     if (fEnableAlternateAsym) {
       fRunningAsymmetry1.AccumulateRunningSum(fAsymmetry1);
@@ -635,9 +637,14 @@ void  QwHelicityPattern::CalculateRunningBurstAverage()
 void  QwHelicityPattern::CalculateRunningAverage()
 {
   fRunningAsymmetry.CalculateRunningAverage();
-  fRunningDifference.CalculateRunningAverage();
+  if (fEnableDifference){
+    fRunningDifference.CalculateRunningAverage();
+  }
   fRunningYield.CalculateRunningAverage();
-
+  if (fEnableAlternateAsym) {
+    fRunningAsymmetry1.CalculateRunningAverage();
+    fRunningAsymmetry2.CalculateRunningAverage();
+  }
   if (fPrintRunningSum) PrintRunningAverage();
 }
 
@@ -664,9 +671,21 @@ void  QwHelicityPattern::PrintRunningAverage() const
   QwMessage << " ==============================" << QwLog::endl;
   fRunningAsymmetry.PrintValue();
 
-  QwMessage << " Running average of difference " << QwLog::endl;
-  QwMessage << " ==============================" << QwLog::endl;
-  fRunningDifference.PrintValue();
+  if (fEnableAlternateAsym) {
+    QwMessage << " Running average of first half/second half asymmetry  "
+	      << QwLog::endl;
+    QwMessage << " ====================================================="
+	      << QwLog::endl;
+    fRunningAsymmetry1.PrintValue();
+    QwMessage << " Running average of even/odd asymmetry  " << QwLog::endl;
+    QwMessage << " =======================================" << QwLog::endl;
+    fRunningAsymmetry2.PrintValue();
+  }
+  if (fEnableDifference){
+    QwMessage << " Running average of difference " << QwLog::endl;
+    QwMessage << " ==============================" << QwLog::endl;
+    fRunningDifference.PrintValue();
+  }
 
   QwMessage << " Running average of yields     " << QwLog::endl;
   QwMessage << " ==============================" << QwLog::endl;
@@ -818,11 +837,11 @@ void QwHelicityPattern::FillDB(QwDatabase *db)
   fRunningYield.FillDB(db, "yield");
   fRunningAsymmetry.FillDB(db, "asymmetry");
   if (fEnableDifference) {
-    fDifference.FillDB(db, "difference");
+    fRunningDifference.FillDB(db, "difference");
   }
   if (fEnableAlternateAsym) {
-    fAsymmetry1.FillDB(db, "asymmetry1");
-    fAsymmetry2.FillDB(db, "asymmetry2");
+    fRunningAsymmetry1.FillDB(db, "asymmetry1");
+    fRunningAsymmetry2.FillDB(db, "asymmetry2");
   }
 }
 
