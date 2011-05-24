@@ -71,7 +71,14 @@ class QwDBInterface {
     void SetMonitorID(QwDatabase *db);
     void SetMainDetectorID(QwDatabase *db);
     void SetLumiDetectorID(QwDatabase *db);
-    void SetMeasurementTypeID(const char* in) {std::strncpy(fMeasurementTypeId, in, 3);};
+    void SetMeasurementTypeID(const TString& in) {
+      std::strncpy(fMeasurementTypeId, in.Data(), 3);
+      fMeasurementTypeId[3] = '\0';
+    };
+    void SetMeasurementTypeID(const char* in) {
+      std::strncpy(fMeasurementTypeId, in, 3);
+      fMeasurementTypeId[3] = '\0';
+    };
     void SetSubblock(UInt_t in) {fSubblock = in;};
     void SetN(UInt_t in)        {fN = in;};
     void SetValue(Double_t in)  {fValue = in;};

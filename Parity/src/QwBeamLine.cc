@@ -146,7 +146,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	localComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
 	localComboID.fIndex = GetDetectorIndex(localComboID.fTypeID,localComboID.fdetectorname);
 
-	if(localComboID.fTypeID==-1){
+	if(localComboID.fTypeID==kQwUnknownDeviceType){
 	  QwError << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
 		  << combotype <<", the detector "<<comboname<<" will not be decoded "
 		  << QwLog::endl;
@@ -257,7 +257,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       QwBeamDetectorID localBeamDetectorID(currentsubbankindex, offset,
 					   namech, dettype, modtype);
 
-      if(localBeamDetectorID.fTypeID==-1){
+      if(localBeamDetectorID.fTypeID==kQwUnknownDeviceType){
 	QwError << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
 		<< dettype <<", the detector "<<namech<<" will not be decoded "
 		<< QwLog::endl;
@@ -2391,22 +2391,13 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 
   UInt_t analysis_id = db->GetAnalysisID();
 
-  Char_t measurement_type_bcm[4];
-  Char_t measurement_type_bpm[4];
+  TString measurement_type_bcm;
+  TString measurement_type_bpm;
 
-  if(datatype.Contains("yield")) {
-    sprintf(measurement_type_bcm, "%s", "yq");
-    sprintf(measurement_type_bpm, "%s", "yp");
-  }
-  else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type_bcm, "%s", "a");
-    sprintf(measurement_type_bpm, "%s", "d");
-  }
-  else {
-    sprintf(measurement_type_bcm, "%s", "");
-    sprintf(measurement_type_bpm, "%s", "");
-  }
-
+  measurement_type_bcm = 
+    QwDBInterface::DetermineMeasurementTypeID(datatype,"q");
+  measurement_type_bpm = 
+    QwDBInterface::DetermineMeasurementTypeID(datatype,"p",kTRUE);
 
   UInt_t i,j;
   i = j = 0;
