@@ -1,3 +1,4 @@
+
 !**************************************************************************
 !  HALL C  BEAMLINE
 !**************************************************************************
@@ -26,6 +27,7 @@ sample_size=464
 
 !ADC1, Slot 5, Address 22, 0x7D
    VQWK, 1, 0,  bpmstripline,  QWK_BPM3H07BXP
+   VQWK, 1, 1,  bpmstripline,  QWK_BPM3H07BXM
    VQWK, 1, 2,  bpmstripline,  QWK_BPM3H07BYP
    VQWK, 1, 3,  bpmstripline,  QWK_BPM3H07BYM
    VQWK, 1, 4,  bpmstripline,  QWK_BPM3H07CXP
@@ -48,7 +50,6 @@ sample_size=464
    VQWK, 3, 1,  bpmstripline,  QWK_BPM3H09BXM
    VQWK, 3, 2,  bpmstripline,  QWK_BPM3H09BYP
    VQWK, 3, 3,  bpmstripline,  QWK_BPM3H09BYM
-   VQWK, 3, 4,  bpmstripline,  QWK_BPM3H07BXM
    VQWK, 3, 6,  bcm,  QWK_BCM2              
    VQWK, 3, 7,  bcm,  QWK_BCM1    
 
@@ -125,14 +126,14 @@ sample_size=464
    VQWK, 10, 7,  bpmstripline,  QWK_BPM3C20YM
 
 !ADC11, Slot 15, Address 5, 0x87
-   VQWK, 11, 0,  bpmstripline,  QWK_BPM3C21XP
-   VQWK, 11, 1,  bpmstripline,  QWK_BPM3C21XM
-   VQWK, 11, 2,  bpmstripline,  QWK_BPM3C21YP
-   VQWK, 11, 3,  bpmstripline,  QWK_BPM3C21YM
-   VQWK, 11, 4,  bpmstripline,  QWK_BPM3H02XP
-   VQWK, 11, 5,  bpmstripline,  QWK_BPM3H02XM
-   VQWK, 11, 6,  bpmstripline,  QWK_BPM3H02YP
-   VQWK, 11, 7,  bpmstripline,  QWK_BPM3H02YM
+!   VQWK, 11, 0,  bpmstripline,  QWK_BPM3C21XP
+!   VQWK, 11, 1,  bpmstripline,  QWK_BPM3C21XM
+!   VQWK, 11, 2,  bpmstripline,  QWK_BPM3C21YP
+!   VQWK, 11, 3,  bpmstripline,  QWK_BPM3C21YM
+!   VQWK, 11, 4,  bpmstripline,  QWK_BPM3H02XP
+!   VQWK, 11, 5,  bpmstripline,  QWK_BPM3H02XM
+!   VQWK, 11, 6,  bpmstripline,  QWK_BPM3H02YP
+!   VQWK, 11, 7,  bpmstripline,  QWK_BPM3H02YM
           
 
 !**************************************************************************
@@ -178,8 +179,6 @@ Bank=0x6103
    SCALER, 0, 19, halomonitor, sca_unser	
    SCALER, 0, 20, halomonitor, sca_bcm5
    SCALER, 0, 21, halomonitor, sca_bcm6
-   SCALER, 0, 22, halomonitor, sca_habcm
-
 
    SCALER, 0, 29, halomonitor, sca_31MHz
    SCALER, 0, 30, halomonitor, sca_4MHz
@@ -206,23 +205,21 @@ begin=combinedbcm
 name=qwk_charge
 !name	   type	 wieght
  qwk_bcm1,  bcm, 1.0
- qwk_bcm2,  bcm, 1.0
-
+! qwk_bcm2,  bcm, 1.0
 end=combinedbcm
 
 
 begin=combinedbpm
-name=qwk_target	
-!name           type          q      x          y    
- QWK_BPM3H07A,  bpmstripline, 1.0,    5950.0,   15229.1 
- QWK_BPM3H07B,  bpmstripline, 1.0,   23573.2,   60420.0 
- QWK_BPM3H07C,  bpmstripline, 1.0,   28870.6,   64319.1 
- QWK_BPM3H09,   bpmstripline, 1.0,  192874.1,   47125.7
- QWK_BPM3H09B,  bpmstripline, 1.0,   78246.1,   19127.7
+name=qwk_target
+!name		type 	      q      x         y    
+ QWK_BPM3H07A,  bpmstripline, 1.0,  420.43,   324.53 
+ QWK_BPM3H07B,  bpmstripline, 1.0,  532.87,   408.29
+ QWK_BPM3H07C,  bpmstripline, 1.0,  371.82,   308.33
+ QWK_BPM3H09,   bpmstripline, 1.0,  313.04,   278.71
+ QWK_BPM3H09B,  bpmstripline, 1.0,  337.29,   330.10
 end=combinedbpm
 
-
-! The X and Y weights were obtained using run 10220 at 150uA.
+! The X and Y weights were obtained using run 5842 taken with 48-43uA on LH2.
 
 
 !**************************************************************************

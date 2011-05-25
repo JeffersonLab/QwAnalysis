@@ -5,21 +5,12 @@
 ! ** HallC BPM pedestals (per sample) obtained using Run 5900 
 !           qwk_bcm1 (is calibrated with Run 5807 Gain Setting 2)
 !
-! ** HallC BCM pedestals and their gains obtained using Run 8370
-!//  8370-8394        BCM calibration RUN 8370 (*)
-!//                   https://hallcweb.jlab.org/hclog/1012_archive/101220200033.html
-!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221120541.html
-!//  8395-8396        BCM gain setting 3
-!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221042257.html
-!//                   only 8395, 8396 is junk
-!//
-!//
-!//  8397-            BCM gain setting 2 
-!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221061819.html
-!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062342.html
-!//                   https://hallcweb.jlab.org/hclog/1012_archive/101221062621.html  
-
-
+! ** HallC BCM1/2 pedestals optimized for 145-160 uA Production Running
+!    Pedestals for BCM1/2 optimized to remove nonlinearities at 150 uA: 
+!               https://qweak.jlab.org/elog/Analysis+%26+Simulation/316
+!    No effort has been made to refit gain values for optimized pedestals
+!    21-May-2011 K.E. Myers 
+!
 !  For BCM5/6         https://hallcweb.jlab.org/hclog/1101_archive/110120122054.html
 !    8966 -
 !         
@@ -126,8 +117,8 @@
   qwk_bpm3h09bXM   , 2998.2   , 1.0
   qwk_bpm3h09bYP   , 4482.01  , 1.0
   qwk_bpm3h09bYM   , 2208.63  , 1.0
-  qwk_bcm1,          +198.639970,            +0.004152
-  qwk_bcm2,          -216.485074,            +0.004421
+  qwk_bcm1         , 905.939   , 0.00418347
+  qwk_bcm2         , 420.338  , 0.00448045
   qwk_bcm5,         +7080.590243,            +0.002827
   qwk_bcm6,         +6980.234367,            +0.002840
 !  qwk_bcm5         ,7417, 0.0027041
