@@ -33,3 +33,13 @@
  map  = qweak_modulation.map
  eventcut = qweak_bmod_eventcuts.in
 
+[QwIntegratedRaster]
+#  The integrated raster uses the same maps as
+#  the beamline subsystem.
+#  This is deliberate; it will only pick up the
+#  detector_type=raster channels.
+ name = IntegratedRaster
+ map = qweak_hallc_beamline.map
+ geom = qweak_beamline_geometry.map
+ param = qweak_hallc_pedestal.map
+ eventcut = qweak_beamline_eventcuts.in

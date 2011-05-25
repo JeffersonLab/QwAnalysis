@@ -1,11 +1,11 @@
 /**********************************************************\
-* File: QwBCM.h                                  *
+* File: QwIntegratedRasterChannel.h                                  *
 *                                                         *
 * Author:                                                 *
 * Time-stamp:                                             *
 \**********************************************************/
 
-#include "QwBCM.h"
+#include "QwIntegratedRasterChannel.h"
 
 // System headers
 #include <stdexcept>
@@ -14,21 +14,21 @@
 #include "QwDBInterface.h"
 
 /********************************************************/
-void QwBCM::SetPedestal(Double_t pedestal)
+void QwIntegratedRasterChannel::SetPedestal(Double_t pedestal)
 {
 	fPedestal=pedestal;
 	fTriumf_ADC.SetPedestal(fPedestal);
 	return;
 }
 
-void QwBCM::SetCalibrationFactor(Double_t calib)
+void QwIntegratedRasterChannel::SetCalibrationFactor(Double_t calib)
 {
 	fCalibration=calib;
 	fTriumf_ADC.SetCalibrationFactor(fCalibration);
 	return;
 }
 /********************************************************/
-void  QwBCM::InitializeChannel(TString name, TString datatosave)
+void  QwIntegratedRasterChannel::InitializeChannel(TString name, TString datatosave)
 {
   SetPedestal(0.);
   SetCalibrationFactor(1.);
@@ -40,10 +40,10 @@ void  QwBCM::InitializeChannel(TString name, TString datatosave)
   return;
 }
 /********************************************************/
-void  QwBCM::InitializeChannel(TString subsystem, TString name, TString datatosave){
+void  QwIntegratedRasterChannel::InitializeChannel(TString subsystem, TString name, TString datatosave){
   SetPedestal(0.);
   SetCalibrationFactor(1.);
-  fTriumf_ADC.InitializeChannel(subsystem, "QwBCM", name, datatosave);
+  fTriumf_ADC.InitializeChannel(subsystem, "QwIntegratedRasterChannel", name, datatosave);
   SetElementName(name);
   //set default limits to event cuts
   fLLimit=0;//init two timits
@@ -51,7 +51,7 @@ void  QwBCM::InitializeChannel(TString subsystem, TString name, TString datatosa
   return;  
 }
 /********************************************************/
-void QwBCM::ClearEventData()
+void QwIntegratedRasterChannel::ClearEventData()
 {
   fTriumf_ADC.ClearEventData();
   return;
@@ -59,73 +59,73 @@ void QwBCM::ClearEventData()
 
 
 /********************************************************/
-void QwBCM::UseExternalRandomVariable()
+void QwIntegratedRasterChannel::UseExternalRandomVariable()
 {
   fTriumf_ADC.UseExternalRandomVariable();
   return;
 }
 /********************************************************/
-void QwBCM::SetExternalRandomVariable(double random_variable)
+void QwIntegratedRasterChannel::SetExternalRandomVariable(double random_variable)
 {
   fTriumf_ADC.SetExternalRandomVariable(random_variable);
   return;
 }
 /********************************************************/
-void QwBCM::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+void QwIntegratedRasterChannel::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fTriumf_ADC.SetRandomEventDriftParameters(amplitude, phase, frequency);
   return;
 }
 /********************************************************/
-void QwBCM::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
+void QwIntegratedRasterChannel::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fTriumf_ADC.AddRandomEventDriftParameters(amplitude, phase, frequency);
   return;
 }
 /********************************************************/
-void QwBCM::SetRandomEventParameters(Double_t mean, Double_t sigma)
+void QwIntegratedRasterChannel::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
   fTriumf_ADC.SetRandomEventParameters(mean, sigma);
   return;
 }
 /********************************************************/
-void QwBCM::SetRandomEventAsymmetry(Double_t asymmetry)
+void QwIntegratedRasterChannel::SetRandomEventAsymmetry(Double_t asymmetry)
 {
   fTriumf_ADC.SetRandomEventAsymmetry(asymmetry);
   return;
 }
 /********************************************************/
-void QwBCM::RandomizeEventData(int helicity, double time)
+void QwIntegratedRasterChannel::RandomizeEventData(int helicity, double time)
 {
   fTriumf_ADC.RandomizeEventData(helicity, time);
   return;
 }
 /********************************************************/
-void QwBCM::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
+void QwIntegratedRasterChannel::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
 {
   fTriumf_ADC.SetHardwareSum(hwsum, sequencenumber);
   return;
 }
 /********************************************************/
-void QwBCM::SetEventData(Double_t* block, UInt_t sequencenumber)
+void QwIntegratedRasterChannel::SetEventData(Double_t* block, UInt_t sequencenumber)
 {
   fTriumf_ADC.SetEventData(block, sequencenumber);
   return;
 }
 /********************************************************/
-void QwBCM::EncodeEventData(std::vector<UInt_t> &buffer)
+void QwIntegratedRasterChannel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   fTriumf_ADC.EncodeEventData(buffer);
 }
 /********************************************************/
-void  QwBCM::ProcessEvent()
+void  QwIntegratedRasterChannel::ProcessEvent()
 {
   ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fTriumf_ADC.ProcessEvent();
   return;
 }
 /********************************************************/
-Bool_t QwBCM::ApplyHWChecks()
+Bool_t QwIntegratedRasterChannel::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
 
@@ -137,29 +137,29 @@ Bool_t QwBCM::ApplyHWChecks()
 }
 /********************************************************/
 
-Int_t QwBCM::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
+Int_t QwIntegratedRasterChannel::SetSingleEventCuts(Double_t LL=0, Double_t UL=0){
   fTriumf_ADC.SetSingleEventCuts(LL,UL);
   return 1;
 }
 
 /********************************************************/
 
-void QwBCM::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
+void QwIntegratedRasterChannel::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
   //set the unique tag to identify device type (bcm,bpm & etc)
   errorflag|=kBCMErrorFlag;
-  QwMessage<<"QwBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  QwMessage<<"QwIntegratedRasterChannel Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
   fTriumf_ADC.SetSingleEventCuts(errorflag,LL,UL,stability);
 
 }
 
-void QwBCM::SetDefaultSampleSize(Int_t sample_size){
+void QwIntegratedRasterChannel::SetDefaultSampleSize(Int_t sample_size){
   fTriumf_ADC.SetDefaultSampleSize((size_t)sample_size);
 }
 
 
 /********************************************************/
-Bool_t QwBCM::ApplySingleEventCuts(){
-  //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
+Bool_t QwIntegratedRasterChannel::ApplySingleEventCuts(){
+  //std::cout<<" QwIntegratedRasterChannel::SingleEventCuts() "<<std::endl;
   Bool_t status=kTRUE;
 
 
@@ -180,23 +180,23 @@ Bool_t QwBCM::ApplySingleEventCuts(){
 
 /********************************************************/
 
-Int_t QwBCM::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+Int_t QwIntegratedRasterChannel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
   fTriumf_ADC.GetEventcutErrorCounters();
   return 1;
 }
 
 
 
-Int_t QwBCM::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
+Int_t QwIntegratedRasterChannel::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
 {
   fTriumf_ADC.ProcessEvBuffer(buffer,word_position_in_buffer);
 
   return word_position_in_buffer;
 }
 /********************************************************/
-QwBCM& QwBCM::operator= (const QwBCM &value)
+QwIntegratedRasterChannel& QwIntegratedRasterChannel::operator= (const QwIntegratedRasterChannel &value)
 {
-//   std::cout<<" Here in QwBCM::operator= \n";
+//   std::cout<<" Here in QwIntegratedRasterChannel::operator= \n";
   if (GetElementName()!="")
     {
       this->fTriumf_ADC=value.fTriumf_ADC;
@@ -211,7 +211,7 @@ QwBCM& QwBCM::operator= (const QwBCM &value)
   return *this;
 }
 
-QwBCM& QwBCM::operator+= (const QwBCM &value)
+QwIntegratedRasterChannel& QwIntegratedRasterChannel::operator+= (const QwIntegratedRasterChannel &value)
 {
   if (GetElementName()!="")
     {
@@ -222,7 +222,7 @@ QwBCM& QwBCM::operator+= (const QwBCM &value)
   return *this;
 }
 
-QwBCM& QwBCM::operator-= (const QwBCM &value)
+QwIntegratedRasterChannel& QwIntegratedRasterChannel::operator-= (const QwIntegratedRasterChannel &value)
 {
   if (GetElementName()!="")
     {
@@ -234,57 +234,50 @@ QwBCM& QwBCM::operator-= (const QwBCM &value)
 }
 
 
-void QwBCM::Sum(QwBCM &value1, QwBCM &value2){
+void QwIntegratedRasterChannel::Sum(QwIntegratedRasterChannel &value1, QwIntegratedRasterChannel &value2){
   *this =  value1;
   *this += value2;
 }
 
-void QwBCM::Difference(QwBCM &value1, QwBCM &value2){
+void QwIntegratedRasterChannel::Difference(QwIntegratedRasterChannel &value1, QwIntegratedRasterChannel &value2){
   *this =  value1;
   *this -= value2;
 }
 
-void QwBCM::Ratio(QwBCM &numer, QwBCM &denom)
+void QwIntegratedRasterChannel::Ratio(QwIntegratedRasterChannel &numer, QwIntegratedRasterChannel &denom)
 {
-  //  std::cout<<"QwBCM::Ratio element name ="<<GetElementName()<<" \n";
-  if (GetElementName()!="")
-    {
-      //  std::cout<<"here in \n";
-      this->fTriumf_ADC.Ratio(numer.fTriumf_ADC,denom.fTriumf_ADC);
-      this->fPedestal=0;
-      this->fCalibration=0;
-    }
+  *this =  numer;
   return;
 }
 
-void QwBCM::Scale(Double_t factor)
+void QwIntegratedRasterChannel::Scale(Double_t factor)
 {
   fTriumf_ADC.Scale(factor);
   return;
 }
 
-void QwBCM::CalculateRunningAverage() {
+void QwIntegratedRasterChannel::CalculateRunningAverage() {
   fTriumf_ADC.CalculateRunningAverage();
 }
 
-void QwBCM::AccumulateRunningSum(const QwBCM& value) {
+void QwIntegratedRasterChannel::AccumulateRunningSum(const QwIntegratedRasterChannel& value) {
   fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 }
 
 
-void QwBCM::PrintValue() const
+void QwIntegratedRasterChannel::PrintValue() const
 {
   fTriumf_ADC.PrintValue();
 }
 
-void QwBCM::PrintInfo() const
+void QwIntegratedRasterChannel::PrintInfo() const
 {
   std::cout << "QwVQWK_Channel Info " << std::endl;
   fTriumf_ADC.PrintInfo();
 }
 
 /********************************************************/
-void  QwBCM::ConstructHistograms(TDirectory *folder, TString &prefix)
+void  QwIntegratedRasterChannel::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   if (GetElementName()=="")
     {
@@ -297,7 +290,7 @@ void  QwBCM::ConstructHistograms(TDirectory *folder, TString &prefix)
   return;
 }
 
-void  QwBCM::FillHistograms()
+void  QwIntegratedRasterChannel::FillHistograms()
 {
   if (GetElementName()=="")
     {
@@ -312,18 +305,22 @@ void  QwBCM::FillHistograms()
   return;
 }
 
-void  QwBCM::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+void  QwIntegratedRasterChannel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip
   } else
-    {
-      fTriumf_ADC.ConstructBranchAndVector(tree, prefix,values);
+    {    
+    TString thisprefix=prefix;
+    if(prefix=="asym_"){
+      if (GetElementName()=="qwk_raster_x"||GetElementName()=="qwk_raster_y"||GetElementName()=="qwk_raster_sumxy") thisprefix="diff_";
+    }
+      fTriumf_ADC.ConstructBranchAndVector(tree, thisprefix,values);
     }
   return;
 }
 
-void  QwBCM::ConstructBranch(TTree *tree, TString &prefix)
+void  QwIntegratedRasterChannel::ConstructBranch(TTree *tree, TString &prefix)
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
@@ -335,7 +332,7 @@ void  QwBCM::ConstructBranch(TTree *tree, TString &prefix)
   return;
 }
 
-void  QwBCM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
+void  QwIntegratedRasterChannel::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
   TString devicename;
 
@@ -346,7 +343,7 @@ void  QwBCM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modu
   } else
     {
 
-      //QwMessage <<" QwBCM "<<devicename<<QwLog::endl;
+      //QwMessage <<" QwIntegratedRasterChannel "<<devicename<<QwLog::endl;
       if (modulelist.HasValue(devicename)){
 	fTriumf_ADC.ConstructBranch(tree, prefix);
 	QwMessage <<" Tree leave added to "<<devicename<<QwLog::endl;
@@ -356,7 +353,7 @@ void  QwBCM::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modu
   return;
 }
 
-void  QwBCM::FillTreeVector(std::vector<Double_t> &values) const
+void  QwIntegratedRasterChannel::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
@@ -368,7 +365,7 @@ void  QwBCM::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void  QwBCM::DeleteHistograms()
+void  QwIntegratedRasterChannel::DeleteHistograms()
 {
   if (GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
@@ -379,13 +376,13 @@ void  QwBCM::DeleteHistograms()
   return;
 }
 /********************************************************/
-void  QwBCM::Copy(VQwDataElement *source)
+void  QwIntegratedRasterChannel::Copy(VQwDataElement *source)
 {
   try
     {
       if(typeid(*source)==typeid(*this))
 	{
-	  QwBCM* input=((QwBCM*)source);
+	  QwIntegratedRasterChannel* input=((QwIntegratedRasterChannel*)source);
 	  this->fElementName=input->fElementName;
 	  this->fPedestal=input->fPedestal;
 	  this->fCalibration=input->fCalibration;
@@ -393,7 +390,7 @@ void  QwBCM::Copy(VQwDataElement *source)
 	}
       else
 	{
-	  TString loc="Standard exception from QwBCM::Copy = "
+	  TString loc="Standard exception from QwIntegratedRasterChannel::Copy = "
 	    +source->GetElementName()+" "
 	    +this->GetElementName()+" are not of the same type";
 	  throw std::invalid_argument(loc.Data());
@@ -409,7 +406,7 @@ void  QwBCM::Copy(VQwDataElement *source)
 
 
 
-std::vector<QwDBInterface> QwBCM::GetDBEntry()
+std::vector<QwDBInterface> QwIntegratedRasterChannel::GetDBEntry()
 {
   UShort_t i = 0;
 

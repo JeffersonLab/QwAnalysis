@@ -145,9 +145,9 @@ sample_size==480
 !ADC0
    VQWK, 0, 0,  bcm,  QWK_LINEPHASE
    VQWK, 0, 1,  bcm,  QWK_INVERT_TStable
-   VQWK, 0, 2,  bcm,  QWK_raster_X
-   VQWK, 0, 3,  bcm,  QWK_raster_Y
-   VQWK, 1, 6,  bcm,  QWK_raster_sumXY
+   VQWK, 0, 2,  raster,  QWK_raster_X
+   VQWK, 0, 3,  raster,  QWK_raster_Y
+   VQWK, 1, 6,  raster,  QWK_raster_sumXY
 !These are cavity BPM1 signals (IPM3H04)
    VQWK, 1, 0,  bcm,  QWK_BCM5_Ix
    VQWK, 1, 1,  bcm,  QWK_BCM5_Iy
