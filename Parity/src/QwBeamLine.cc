@@ -2393,11 +2393,14 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 
   TString measurement_type_bcm;
   TString measurement_type_bpm;
+  TString measurement_type_halo;
 
   measurement_type_bcm = 
     QwDBInterface::DetermineMeasurementTypeID(datatype,"q");
   measurement_type_bpm = 
     QwDBInterface::DetermineMeasurementTypeID(datatype,"p",kTRUE);
+  measurement_type_halo = 
+    QwDBInterface::DetermineMeasurementTypeID(datatype);
 
   UInt_t i,j;
   i = j = 0;
@@ -2559,6 +2562,21 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       interface.at(j).SetMonitorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
       interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+  
+  // try to access halo mean and its error
+  if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Halo Monitors" <<QwLog::endl;
+
+  for(i=0; i< fHaloMonitor.size(); i++) {
+    interface.clear();
+    interface = fHaloMonitor[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_halo );
+      interface.at(j).PrintStatus( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );
     }
   }
