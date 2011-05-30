@@ -1,0 +1,36 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use File::Copy;
+
+# closeRange
+#
+# closeRange closes the run range of all but the most recent mapfiles for $detType in $QWANALYSIS/Parity/prminput
+# where $detType is either maindet or lumi.
+#
+# i.e.
+# closeRange maindet
+# closeRange lumi
+
+#variable declarations:
+my $QWANALYSIS = $ENV{QWANALYSIS};
+my $PRMINPUT = "$QWANALYSIS/Parity/prminput";
+my $detType = $ARGV[0];
+
+#find all open-ended pedestal files for $detType
+my @openRanges;
+opendir (DIR, "$PRMINPUT") or die $!;
+while (my $file = readdir(DIR)){
+    if($file =~ /$detType\_pedestal\.(\d+)-.map$/){
+	push (@openRanges, $1);
+    }
+}
+
+#close the ranges
+@openRanges = sort {$a <=>$b} @openRanges;
+for (my $i=0; $i<($#openRanges); $i++) {
+	my $old = "$PRMINPUT/qweak_$detType\_pedestal.$openRanges[$i]-.map";
+	my $new = "$PRMINPUT/qweak_$detType\_pedestal.$openRanges[$i]-".($openRanges[$i+1]-1).".map";
+	#print "$old will be changed to $new \n";
+       !system ("/usr/bin/svn", "move", $old, $new) or warn ("Cannot update names: $!\n");
+}
