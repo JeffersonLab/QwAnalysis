@@ -622,33 +622,44 @@ void  QwTriggerScintillator::ProcessEvent()
   TString elementname = "";
   Double_t rawtime = 0.0;
   Double_t corrected_time = 0.0;
+  
+  Int_t bank_index = 0;
+  Int_t slot_num   = 0;
 
   for (size_t i=0; i<fPMTs.size(); i++) 
-    {
-      for (size_t j=0; j<fPMTs.at(i).size(); j++) 
-	{
+    {//;
+      for (size_t j=0; j<fPMTs.at(i).size(); j++)
+	{//;;
 	  fPMTs.at(i).at(j).ProcessEvent();
 	  elementname = fPMTs.at(i).at(j).GetElementName();
-	  rawtime = fPMTs.at(i).at(j).GetValue();
-	  // Check if this is an f1 channel and only subtract reftime if channel value is nonzero
-	  if (elementname.EndsWith("f1") && rawtime!=0.0) {
-	    if( not elementname.Contains("reftime") ) {
-	      Int_t bank_index = fPMTs.at(i).at(j).GetSubbankID();
-	      Int_t slot_num   = fPMTs.at(i).at(j).GetModule();
-	      // if   there is a reftime, then correct a raw time.
-	      // if not, remove this raw time from data (set to zero)
-	      if ( reftime != 0.0) {
+
+	  // Check whether the element is "reftime" 
+	  if ( not elementname.Contains("reftime") ) {
+	    rawtime = fPMTs.at(i).at(j).GetValue();
+
+	    if (elementname.EndsWith("f1") && rawtime!=0.0) {
+
+	      bank_index = fPMTs.at(i).at(j).GetSubbankID();
+	      slot_num   = fPMTs.at(i).at(j).GetModule();
+	      // if the reference time signal is recorded by (a) channel(s) of F1TDC(s),
+	      // we correct them. And if not, we set them to zero. (jhlee)
+
+	      if ( reftime!=0.0 ) {
 		corrected_time = fF1TDContainer->ReferenceSignalCorrection(rawtime, reftime, bank_index, slot_num);
 	      }
 	      else {
 		corrected_time = 0.0;
 	      }
 	      fPMTs.at(i).at(j).SetValue(corrected_time);
-	    }
-	  }
-	}
-    }
-  
+	    } // if (elementname.EndsWith("f1") && rawtime!=0.0) {
+	  } 
+	  // if ( not elementname.Contains("reftime") ) {
+	  //
+	  // we keep the raw reference time information in an output ROOT file. 
+	  //
+	}//;;
+    }//;
+
   
   for (size_t i=0; i<fSCAs.size(); i++)
     {
