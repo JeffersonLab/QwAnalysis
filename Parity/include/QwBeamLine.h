@@ -53,6 +53,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Int_t LoadGeometryDefinition(TString mapfile);
+  void  AssignGeometry(QwParameterFile* mapstr, VQwBPM * bpm);
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures

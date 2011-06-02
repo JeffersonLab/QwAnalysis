@@ -712,8 +712,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
 
     // push_back can "push" iplane = 1 into TotHits.at(0) ??
     TotHits[iplane] = new TH1F(
-			       Form("%s%sHitsOnEachWirePlane%d", prefix.Data(), region.Data(), iplane),
-			       Form("Total hits on all wires in plane %d", iplane),
+			       Form("%s%sHitsOnEachWirePlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+			       Form("Total hits on all wires in plane %d", (Int_t) iplane),
 			       fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset
 			       );
     
@@ -721,16 +721,16 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TotHits[iplane]->GetYaxis()->SetTitle("Events");
     
     WiresHit[iplane] = new TH1F(
-				Form("%s%sWiresHitPlane%d", prefix.Data(), region.Data(), iplane),
-				Form("Number of Wires Hit in plane %d",iplane),
+				Form("%s%sWiresHitPlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+				Form("Number of Wires Hit in plane %d",(Int_t) iplane),
 				20, bin_offset, 20+bin_offset
 				);
     WiresHit[iplane]->GetXaxis()->SetTitle("Wires Hit per Event");
     WiresHit[iplane]->GetYaxis()->SetTitle("Events");
     
     HitsWire[iplane] = new TH2F(
-				Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data(), region.Data(), iplane),
-				Form("hits on all wires per event in plane %d", iplane),
+				Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+				Form("hits on all wires per event in plane %d", (Int_t) iplane),
 				fWiresPerPlane[iplane],bin_offset,fWiresPerPlane[iplane]+bin_offset,
 				7, -bin_offset, 7-bin_offset
 				);
@@ -738,8 +738,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     HitsWire[iplane]->GetYaxis()->SetTitle("Hits");
     
     TOFP[iplane] = new TH1F(
-			    Form("%s%sTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
-			    Form("Subtracted time of flight for events in plane %d", iplane),
+			    Form("%s%sTimeofFlightPlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+			    Form("Subtracted time of flight for events in plane %d", (Int_t) iplane),
 			    400,0,0
 			    );
     TOFP[iplane] -> SetDefaultBufferSize(buffer_size);
@@ -748,8 +748,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     
     
     TOFP_raw[iplane] = new TH1F(
-				Form("%s%sRawTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
-				Form("Raw time of flight for events in plane %d", iplane),
+				Form("%s%sRawTimeofFlightPlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+				Form("Raw time of flight for events in plane %d", (Int_t) iplane),
 				//			     400,-65000,65000);
 				400, 0,0
 				);
@@ -758,8 +758,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TOFP_raw[iplane]->GetYaxis()->SetTitle("Hits");
     
     TOFW[iplane] = new TH2F(
-			    Form("%s%sTimeofFlightperWirePlane%d", prefix.Data(), region.Data(), iplane),
-			    Form("Subtracted time of flight for each wire in plane %d", iplane),
+			    Form("%s%sTimeofFlightperWirePlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+			    Form("Subtracted time of flight for each wire in plane %d",(Int_t) iplane),
 			    fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset,
 			    100,-40000,65000
 			    );
@@ -768,8 +768,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TOFW[iplane]->GetYaxis()->SetTitle("Time of Flight");
     
     TOFW_raw[iplane] = new TH2F(
-				Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),iplane),
-				Form("Raw time of flight for each wire in plane %d",iplane),
+				Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),(Int_t)iplane),
+				Form("Raw time of flight for each wire in plane %d",(Int_t)iplane),
 				fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset,
 				100,-40000,65000
 				);

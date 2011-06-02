@@ -301,13 +301,13 @@ void  QwBPMStripline::ProcessEvent()
   /**
      To obtain the beam position in X and Y in the CEBAF coordinates, we use the following equations
      
-                                                       (XP - AlphaX.XM)
-     RelX (bpm coordinates) = fQwStriplineCalibration x ----------------
-                                                       (XP + AlphaX.XM) 
+                                                                 (XP - AlphaX XM)
+     RelX (bpm coordinates) = fQwStriplineCalibration x GainX x ----------------
+                                                                 (XP + AlphaX XM) 
 
-                                                        (YP - AlphaY.YM)
-     RelY (bpm coordinates) = fQwStriplineCalibration x ----------------
-                                                        (YP + AlphaY.YM)
+                                                                  (YP - AplhaY YM)
+     RelY (bpm coordinates) = fQwStriplineCalibration x GainY x ----------------
+                                                                  (YP + AlphaY YM)
 
      To get back to accelerator coordinates, rotate anti-clockwise around +Z by phi degrees (angle w.r.t X axis).							
      
@@ -325,11 +325,10 @@ void  QwBPMStripline::ProcessEvent()
       fRelPos[i].Ratio(numer,denom);
       fRelPos[i].Scale(fQwStriplineCalibration);
 
-
     if(localdebug)
       {
 	std::cout<<" stripline name="<<fElementName<<std::endl;
-	  std::cout<<" event number= "<<fWire[i*2].GetSequenceNumber()<<std::endl;
+	std::cout<<" event number= "<<fWire[i*2].GetSequenceNumber()<<std::endl;
 	  std::cout<<" hw  Wire["<<i*2<<"]="<<fWire[i*2].GetHardwareSum()<<"  ";
 	  std::cout<<" hw relative gain *  Wire["<<i*2+1<<"]="<<fWire[i*2+1].GetHardwareSum()<<"\n";
 	  std::cout<<" Relative gain["<<i<<"]="<<fRelativeGains[i]<<"\n";
@@ -338,11 +337,9 @@ void  QwBPMStripline::ProcessEvent()
 	  std::cout<<" Rotation = "<<fRotationAngle<<std::endl;
 	}
     }
-//   std::cout<<" \nstripline name="<<fElementName<<std::endl;
-//   std::cout<<" Rotation = "<<fRotationAngle<<std::endl;
+
 
   for(i=0;i<2;i++){ 
-    //std::cout<<" hw  before RelPos["<<i<<"]="<<fRelPos[i].GetHardwareSum()<<"  ";
     tmp1.ClearEventData();
     tmp2.ClearEventData();
     tmppos[i].ClearEventData();
@@ -363,13 +360,14 @@ void  QwBPMStripline::ProcessEvent()
   for(i=0;i<2;i++){
     fAbsPos[i]= fRelPos[i];
     fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
+    fAbsPos[i].Scale(1.0/fGains[i]);
 
     if(localdebug)
-      {
+    {
 	std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n";
 	std::cout<<" hw  fOffset["<<axis[i]<<"]="<<fPositionCenter[i]<<"\n";
 	std::cout<<" hw  fAbsPos["<<axis[i]<<"]="<<fAbsPos[i].GetHardwareSum()<<"\n \n";
-      }
+    }
     
   }
   

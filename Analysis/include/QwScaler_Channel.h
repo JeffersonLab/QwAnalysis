@@ -104,6 +104,7 @@ class VQwScaler_Channel: public VQwDataElement {
     return 0.0;
   };
   Double_t GetValueError() const  { return fValueError; };
+  UInt_t GetGoodEventCount() const { return fGoodEventCount; };
 
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);

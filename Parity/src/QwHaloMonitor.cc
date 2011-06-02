@@ -266,7 +266,6 @@ void  QwHaloMonitor::Copy(VQwDataElement *source)
   return;
 }
 
-/*
 std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 {
 
@@ -291,8 +290,8 @@ std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
   beam_n        = fHalo_Counter.GetGoodEventCount();
 
   // Get HardwareSum average and its error
-  avg           = fHalo_Counter.GetHardwareSum();
-  err           = fHalo_Counter.GetHardwareSumError();
+  avg           = fHalo_Counter.GetValue();
+  err           = fHalo_Counter.GetValueError();
   // ADC subblock sum : 0 in MySQL database
   beam_subblock = 0;
 
@@ -304,6 +303,7 @@ std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 
   row_list.push_back(row);
 
+  /*
 
   // Get four Block averages and thier errors
 
@@ -325,8 +325,8 @@ std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 
     row_list.push_back(row);
   }
+  */
 
   return row_list;
 
 }
-*/
