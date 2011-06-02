@@ -26,6 +26,8 @@
 !				3p02a rotation = 0  (no rotation)
 !				3p02b rotation = 45-16 = 29 degrees to get back to accelerator coordinates.
 !				These values and rotation information were obtained by EPICS via communication with Jay Benesch.
+! 06-01-2011  B.Waidyawansa    Added relative gains for X and Y. Keywords will be used to set these values for the bpms when neccessary.
+!
 !  
 !! Description of variables:
 !-----------------------------
@@ -64,19 +66,19 @@
  bpmstripline,   QWK_BPM3C17,   0.223,   -0.356,  99815.6,     1.0,    0.947455,  0.877913,  
  bpmstripline,   QWK_BPM3C18,   0.2,	  0.684, 101611.0,     1.0,    0.741194,  1.041640,  
  bpmstripline,   QWK_BPM3C19,   0.003,    0.015, 102922.0,     1.0,    1.026000,  1.011010,  
- bpmstripline,   QWK_BPM3P02A, -1.0,	 -0.7,   109212.0,     1.0,    0.982250,  0.986716,  rotation=0 
+ bpmstripline,   QWK_BPM3P02A, -1.0,	 -0.7,   109212.0,     1.0,    0.982250,  0.986716,  rotation=0
  bpmstripline,   QWK_BPM3P02B,  0.2,	 -0.1,   110602.0,     1.0,    1.000000,  1.000000,  rotation=29
  bpmstripline,   QWK_BPM3P03A,  0.6,	 -0.7,   113292.0,     1.0,    0.909295,  1.006700,     
  bpmstripline,   QWK_BPM3C20,   0.2,	  0.1,   116858.0,     1.0,    0.904796,  0.995870,  
  bpmstripline,   QWK_BPM3C21,   0.2,	 -0.2,   118216.0,     1.0,    1.113200,  0.945974,  
  bpmstripline,   QWK_BPM3H02,   0.2,	  0.7,   127153.0,     1.0,    0.973625,  1.052130,  
  bpmstripline,   QWK_BPM3H04,  -0.6,	 -0.4,   129632.0,     1.0,    1.082250,  1.032040,  
- bpmstripline,   QWK_BPM3H07A,  0.4,	  0.2,   138406.0,     1.0,    0.960181,  1.071930,  
- bpmstripline,   QWK_BPM3H07B,  0.2,	 -0.2,   139363.0,     1.0,    1.022240,  1.015710,  
- bpmstripline,   QWK_BPM3H07C,  0.6,	  0.0,   140329.0,     1.0,    1.013110,  0.985986,  
- bpmstripline,   QWK_BPM3H08,   0.6,	  1.6,   143576.0,     1.0,    1.039360,  1.055470,  
- bpmstripline,   QWK_BPM3H09,  -0.1,	  0.6,   144803.0,     1.0,    1.025930,  0.993640,  
- bpmstripline,   QWK_BPM3H09B, -0.6,	  0.3,   147351.0,     1.0,    0.948778,  1.264910,  
+ bpmstripline,   QWK_BPM3H07A,  0.6823,   0.0892,   138406.0,     1.0,    0.960181,  1.071930, xgain=0.9844,ygain=1.0020
+ bpmstripline,   QWK_BPM3H07B,  0.5896,  -0.1550,   139363.0,     1.0,    1.022240,  1.015710, xgain=0.8410,ygain=0.8710
+ bpmstripline,   QWK_BPM3H07C,  0.6,	  0.0,      140329.0,     1.0,    1.013110,  0.985986,  
+ bpmstripline,   QWK_BPM3H08,  -0.3718,  -1.3940,   143576.0,     1.0,    1.039360,  1.055470, xgain=0.9844,ygain=0.8347
+ bpmstripline,   QWK_BPM3H09,   0.865,   -1.0160,   144803.0,     1.0,    1.025930,  0.993640, xgain=0.9762,ygain=0.8710
+ bpmstripline,   QWK_BPM3H09B, -0.6,	  0.3,      147351.0,     1.0,    0.948778,  1.264910,  
 
 ! The representative bpm for qweak hydrogen target.
 ! From the latest survey information on target (http://www.jlab.org/accel/survalign/documents/dthallc/C1340.pdf),
@@ -84,8 +86,9 @@
 ! Therefore I added the new z offset ,11 mm to the ideal z position of the target ( 148739 mm ) to get the correct center of the
 ! target w.r.t  bpm coordinates. 	
 
- combinedbpm,   QWK_TARGET       0.0,      0.0,   148750.0, 	1.0,  	1.0,  	   1.0  
+ combinedbpm,   QWK_TARGET       0.0,      0.0,   148750.0, 	1.0,  	1.0,  1.0, 
 
+  	
 ! The representative bpm for the w plug
 ! The location of the w-plug is based from an setimated distance from target center to US face of W-plug
 ! from Greg Smith.This distance is 658 mm.	

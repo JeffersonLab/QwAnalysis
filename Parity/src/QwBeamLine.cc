@@ -680,8 +680,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   Double_t devSENfactor = 0, devAlphaX = 0, devAlphaY = 0;
   TString  localname;
   TString   rotation_stat;
-  TString   angle;
-  Double_t  rotation_angle = 0;
+
 
   if(ldebug)std::cout<<"QwBeamLine::LoadGeometryParameters("<< mapfile<<")\n";
 
@@ -704,28 +703,29 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
     devname.ToLower();
     devname.Remove(TString::kBoth,' ');
 
+    index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
+    VQwBPM * bpm = &fStripline[index];
+
     devOffsetX   = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
     devOffsetY   = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
     devOffsetZ   = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
     devSENfactor = (atof(mapstr.GetNextToken(", \t").c_str())); // sensivity scaling factor
     devAlphaX    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha X
     devAlphaY    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha Y
-    rotation_stat= mapstr.GetNextToken(", \t").c_str(); // rotation info
+    AssignGeometry(&mapstr,bpm);
 
- 
-    index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
 
     if(ldebug==1){
       std::cout<<"####################\n";
       std::cout<<"! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY\n"<<std::endl;
       std::cout<<GetQwBeamInstrumentType(devtype)<<" / "
+	       <<devname    <<" / "
 	       <<devOffsetX <<" / "
 	       <<devOffsetY <<" / "
 	       <<devOffsetZ <<" / "
 	       <<devSENfactor <<" / "
 	       <<devAlphaX <<" / "
 	       <<devAlphaY <<" / "
-	       <<rotation_stat<<" / "
 	       <<std::endl;
     }
 
@@ -748,30 +748,10 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 
 	if(localname==devname){
 	  if(ldebug) std::cout<<" I found the bpm !\n";
-	  VQwBPM * bpm = &fStripline[index];
 	  bpm->GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
 	  bpm->GetElectronicFactors(devSENfactor,devAlphaX, devAlphaY);
 
-	  // If the rotation status is 'unrotated' 
-	  if(rotation_stat.Contains("unrotated")){
-	    if(ldebug) std::cout<<" unrotated "<<std::endl;
-	    bpm->SetRotationOff();	    
-	  }
-	  else if(rotation_stat.Contains("rotation")){
-	    // If the status is 'rotated'
-	    rotation_stat.Remove(TString::kBoth,'\0');
-
-	    // If a specific rotation angle is given read that
-	    if(rotation_stat.Contains("=")){
-	      angle = rotation_stat.Remove(0,9);
-	      rotation_angle = atof(angle);
-	      if(ldebug) std::cout<<"Rotation angle = "<<rotation_angle<<std::endl;
-	      bpm->SetRotation(rotation_angle);	    
- 	    }
-	  }
-
 	  // If nothing is specified, a default rotation of 45 degrees is implied.
-
 	  notfound=kFALSE;
 	}
       }
@@ -851,6 +831,50 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 
 }
 
+
+void QwBeamLine::AssignGeometry(QwParameterFile* mapstr, VQwBPM * bpm)
+{
+
+  Bool_t ldebug = kFALSE;
+
+  TString token = "0";
+  TString   angle,xgain,ygain;
+  Double_t  rotation_angle = 0;
+
+  while(token!=""){
+    token= mapstr->GetNextToken(", \t").c_str(); 
+    token.Remove(TString::kBoth,'\0');
+
+    if(token.Contains("unrotated")){
+      if(ldebug) std::cout<<" unrotated "<<std::endl;
+      bpm->SetRotationOff();	    
+    }
+    else if(token.Contains("rotation")){
+      // If the status is 'rotated'
+      
+      // If a specific rotation angle is given read that
+      if(token.Contains("=")){
+	angle = token.Remove(0,9);
+	rotation_angle = atof(angle);
+	if(ldebug) std::cout<<"Rotation angle = "<<rotation_angle<<std::endl;
+	bpm->SetRotation(rotation_angle);	    
+      }
+    }
+    // If nothing is specified for rotation, a default rotation of 45 degrees is implied.
+
+    if(token.Contains("xgain")){
+      xgain = token.Remove(0,6);
+      if(ldebug) std::cout<<" xgain ="<<xgain<<std::endl;
+      bpm->SetGains("X", atof(xgain));
+    }
+
+    if(token.Contains("ygain")){
+      ygain = token.Remove(0,6);
+      if(ldebug) std::cout<<" ygain ="<<ygain<<std::endl;
+      bpm->SetGains("Y", atof(ygain));
+    }
+  }
+}
 
 //*****************************************************************
 Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
@@ -1352,6 +1376,7 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
 //*****************************************************************
 void  QwBeamLine::ProcessEvent()
 {
+
   Double_t clock_counts;
 
   for(size_t i=0;i<fStripline.size();i++)
@@ -1369,6 +1394,7 @@ void  QwBeamLine::ProcessEvent()
   for(size_t i=0;i<fLinearArray.size();i++)
     fLinearArray[i].ProcessEvent();
 
+
   if (index_4mhz != -1){
     fHaloMonitor.at(index_4mhz).ProcessEvent();//call the ProcessEvent() for the 4MHz scaler
     clock_counts = fHaloMonitor.at(index_4mhz).GetValue();
@@ -1379,7 +1405,7 @@ void  QwBeamLine::ProcessEvent()
       fHaloMonitor[i].ScaleRawRate(4.0e6/clock_counts);//convert raw rates to Hz
     }
     fHaloMonitor[i].ProcessEvent();
-  }
+ }
 
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].ProcessEvent();

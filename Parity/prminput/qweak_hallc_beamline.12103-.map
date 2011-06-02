@@ -212,16 +212,16 @@ name=qwk_charge
 
 end=combinedbcm
 
-
 begin=combinedbpm
 name=qwk_target	
 !name           type          q      x          y    
- QWK_BPM3H07A,  bpmstripline, 1.0,    5950.0,   15229.1 
- QWK_BPM3H07B,  bpmstripline, 1.0,   23573.2,   60420.0 
- QWK_BPM3H07C,  bpmstripline, 1.0,   28870.6,   64319.1 
- QWK_BPM3H09,   bpmstripline, 1.0,  192874.1,   47125.7
- QWK_BPM3H09B,  bpmstripline, 1.0,   78246.1,   19127.7
+ QWK_BPM3H07A,  bpmstripline, 1.0,   1.0,   1.0 
+ QWK_BPM3H07B,  bpmstripline, 1.0,   1.0,   1.0
+ QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0
+ QWK_BPM3H09,   bpmstripline, 1.0,   1.0,   1.0
+ QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
 end=combinedbpm
+
 
 
 ! The X and Y weights were obtained using run 10220 at 150uA.
