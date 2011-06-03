@@ -41,6 +41,7 @@
 #include "QwScanner.h"
 #include "QwLumi.h"
 #include "QwBeamMod.h"
+#include "QwIntegratedRaster.h"
 
 
 

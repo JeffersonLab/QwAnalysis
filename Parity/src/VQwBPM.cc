@@ -28,7 +28,7 @@ void  VQwBPM::InitializeChannel(TString name)
   for(i=0;i<3;i++) fPositionCenter[i] = 0.0;
 
   SetElementName(name);
-
+  
   return;
 }
 
@@ -88,6 +88,10 @@ void VQwBPM::SetRotationOff(){
   bRotated=kFALSE;
 }
 
+void VQwBPM::SetGains(TString pos, Double_t value){
+  if(pos.Contains("X")) fGains[0] = value;
+  if(pos.Contains("Y")) fGains[1] = value;
+}
 
 
 

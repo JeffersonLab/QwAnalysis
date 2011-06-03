@@ -73,6 +73,7 @@ class VQwBPM : public VQwDataElement {
 /*   void Difference(VQwBPM &value1, VQwBPM &value2); */
 /*   void Scale(Double_t factor); */
   void Copy(VQwBPM *source);
+  void SetGains(TString pos, Double_t value);
 
   virtual VQwBPM& operator=  (const VQwBPM &value);
 
@@ -129,7 +130,10 @@ class VQwBPM : public VQwDataElement {
 /*     fAbsPos_base[1] = NULL; */
 /*     fEffectiveCharge_base = NULL; */
     fQwStriplineCalibration = 18.81; // adc counts/mm default value
-    for(Short_t i=0;i<2;i++)  fRelativeGains[i]=1.0;
+    for(Short_t i=0;i<2;i++) {
+      fRelativeGains[i]=1.0;
+      fGains[i]=1.0;
+    }
   };
 
   protected:
@@ -149,6 +153,8 @@ class VQwBPM : public VQwDataElement {
   Double_t fPositionCenter[3];
   Double_t fQwStriplineCalibration;
   Double_t fRelativeGains[2];
+  Double_t fGains[2];
+  static const TString axis[3];
 
   // Rotation related paramters
   Bool_t   bRotated;

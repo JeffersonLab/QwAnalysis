@@ -61,18 +61,17 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
   Int_t current_bank_id = -1;   // current bank id
 
   // Normalization channel (register default token "1")
-  const TString default_norm_chan = "1";
-  fNames[default_norm_chan] = -1;
-  Name_to_Scaler_Map_t::iterator current_norm_chan = fNames.find(default_norm_chan);
+  const TString default_norm_channel = "1";
+  fName_Map[default_norm_channel] = -1;
+  Name_to_Scaler_Map_t::iterator current_norm_channel = fName_Map.find(default_norm_channel);
+  double current_norm_factor = 1;
   // Map with normalizations
-  std::vector< Name_to_Scaler_Map_t::iterator > normalization;
+  std::vector<Name_to_Scaler_Map_t::iterator> norm_channel;
+  std::vector<double> norm_factor;
 
-  // Number of words accounted for
-  Int_t wordsofar = 0;
-  
   // Open the file
   QwParameterFile mapstr(mapfile.Data());
-  fDetectorMapsNames.push_back(mapstr.GetParamFilename());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
   while (mapstr.ReadNextLine()) {
     mapstr.TrimComment();       // Remove everything after a comment character.
     mapstr.TrimWhitespace();    // Get rid of leading and trailing whitespace
@@ -90,11 +89,22 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
         current_bank_id = value;
         RegisterSubbank(current_bank_id);
       } else if (varname == "norm") {
-        if (fNames.count(varvalue) == 0) {
+        // Normalization line of format: norm = [ 1 | channel / factor ]
+        string dummy = mapstr.GetNextToken("=");
+        string channame = mapstr.GetNextToken("/");
+        string channorm = mapstr.GetNextToken("/");
+        if (fName_Map.count(channame) == 0) {
           // assign a temporarily pointer
-          fNames[varvalue] = -1;
+          fName_Map[channame] = -1;
         }
-        current_norm_chan = fNames.find(varvalue);
+        current_norm_channel = fName_Map.find(channame);
+        try {
+          current_norm_factor = lexical_cast<double>(channorm);
+        } catch (boost::bad_lexical_cast&) {
+          current_norm_factor = 1;
+        }
+        QwMessage << "Normalization channel: " << channame << QwLog::endl;
+        QwMessage << "Normalization factor: " << current_norm_factor << QwLog::endl;
       }
 
     } else {
@@ -108,10 +118,11 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
       modtype.ToUpper();
       dettype.ToUpper();
 
+      UInt_t offset = 0;
       if (modtype == "SIS3801" || modtype == "SIS3801D24" || modtype == "SIS3801D32") {
-        wordsofar += 1;
+        offset = QwSIS3801D24_Channel::GetBufferOffset(modnum, channum);
       } else if (modtype == "SIS7200") {
-        wordsofar += 1;
+        offset = QwSIS3801D32_Channel::GetBufferOffset(modnum, channum);
       } else {
         QwError << "Unrecognized module type " << modtype << QwLog::endl;
         continue;
@@ -119,12 +130,12 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
 
       // Register data channel type
       Int_t subbank = GetSubbankIndex(current_roc_id,current_bank_id);
-      if (modnum >= fSubbank_Mapping[subbank].size())
-        fSubbank_Mapping[subbank].resize(modnum+1);
-      if (channum >= fSubbank_Mapping[subbank].at(modnum).size())
-        fSubbank_Mapping[subbank].at(modnum).resize(channum+1,-1);
+      if (modnum >= fSubbank_Map[subbank].size())
+        fSubbank_Map[subbank].resize(modnum+1);
+      if (channum >= fSubbank_Map[subbank].at(modnum).size())
+        fSubbank_Map[subbank].at(modnum).resize(channum+1,-1);
       // Add scaler channel
-      if (fSubbank_Mapping[subbank].at(modnum).at(channum) < 0) {
+      if (fSubbank_Map[subbank].at(modnum).at(channum) < 0) {
         QwMessage << "Registering " << modtype << " " << keyword
                   << std::hex
                   << " in ROC 0x" << current_roc_id << ", bank 0x" << current_bank_id
@@ -142,20 +153,23 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
           continue;
         }
         // Register keyword to scaler channel
-        fNames[keyword] = index;
+        fName_Map[keyword] = index;
+        fSubbank_Map[subbank].at(modnum).at(channum) = index;
+        fModuleChannel_Map[std::pair<Int_t,Int_t>(modnum,channum)] = index;
         // Store scaler
         fScaler.push_back(scaler);
-        fModuleChannel_Mapping[std::pair<Int_t,Int_t>(modnum,channum)] = index;
-        fSubbank_Mapping[subbank].at(modnum).at(channum) = index;
+        fNorm.push_back(std::pair<VQwScaler_Channel*,double>(0,1));
+        fBufferOffset.push_back(offset);
         // Store current normalization
-        normalization.push_back(current_norm_chan);
+        norm_channel.push_back(current_norm_channel);
+        norm_factor.push_back(current_norm_factor);
       }
     }
   }
 
-  // Check for names without channels after all channels were read
-  for (Name_to_Scaler_Map_t::iterator iter = fNames.begin(); iter != fNames.end(); iter++) {
-    if (iter->second == -1 && iter->first != default_norm_chan) {
+  // Check for normalization names without actual channels
+  for (Name_to_Scaler_Map_t::iterator iter = fName_Map.begin(); iter != fName_Map.end(); iter++) {
+    if (iter->second == -1 && iter->first != default_norm_channel) {
       QwError << "Normalization channel " << iter->first << " not found!" << QwLog::endl;
     }
   }
@@ -163,16 +177,54 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
   // Fill normalization structure
   fNorm.resize(fScaler.size());
   for (size_t i = 0; i < fScaler.size(); i++) {
-    Int_t index = normalization.at(i)->second;
-    if (index < 0) fNorm.at(i) = 0;
-    else fNorm.at(i) = fScaler.at(index);
+    Int_t norm_index = norm_channel.at(i)->second;
+    if (norm_index < 0) {
+      // No normalization
+      fNorm.at(i).first = 0;
+      fNorm.at(i).second = 1;
+    } else {
+      // Normalization
+      fNorm.at(i).first = fScaler.at(norm_index);
+      fNorm.at(i).second = norm_factor.at(i);
+      // Prevent corruption of normalization channel itself
+      fNorm.at(norm_index).first = 0;
+      fNorm.at(norm_index).second = 1;
+    }
   }
 
   return 0;
 }
 
-Int_t QwScaler::LoadInputParameters(TString)
+Int_t QwScaler::LoadInputParameters(TString mapfile)
 {
+  // Open the file
+  QwParameterFile mapstr(mapfile.Data());
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+  while (mapstr.ReadNextLine()) {
+    mapstr.TrimComment();    // Remove everything after a comment character
+    mapstr.TrimWhitespace(); // Get rid of leading and trailing spaces
+    if (mapstr.LineIsEmpty())  continue;
+
+    TString varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
+    varname.ToLower();
+    varname.Remove(TString::kBoth,' ');
+    Double_t varped = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
+    Double_t varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+    QwVerbose << varname << ": " << QwLog::endl;
+
+    Bool_t found = kFALSE;
+    if (fName_Map.count(varname) != 0) {
+      Int_t index = fName_Map[varname];
+      QwMessage << "Parameters scaler channel " << varname << ": "
+                << "ped = " << varped << ", "
+                << "cal = " << varcal << QwLog::endl;
+      fScaler[index]->SetPedestal(varped);
+      fScaler[index]->SetCalibrationFactor(varcal);
+      found = kTRUE;
+    }
+
+  } // end of loop reading all lines of the pedestal file
+
   return 0;
 }
 
@@ -274,26 +326,17 @@ Int_t QwScaler::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_
     // TODO Multiscaler functionality
 
     // Read scalers
-    for (size_t modnum = 0; modnum < fSubbank_Mapping[subbank].size(); modnum++) {
-      for (size_t channum = 0; channum < fSubbank_Mapping[subbank].at(modnum).size(); channum++) {
-        Int_t index = fSubbank_Mapping[subbank].at(modnum).at(channum);
+    for (size_t modnum = 0; modnum < fSubbank_Map[subbank].size(); modnum++) {
+      for (size_t channum = 0; channum < fSubbank_Map[subbank].at(modnum).size(); channum++) {
+        Int_t index = fSubbank_Map[subbank].at(modnum).at(channum);
         if (index >= 0) {
-          words_read += fScaler[index]->ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
+          UInt_t offset = fBufferOffset.at(index);
+          words_read += fScaler[index]->ProcessEvBuffer(&(buffer[offset]), num_words - offset);
         }
       }
     }
     words_read = num_words;
 
-    // Check for leftover words
-    if (num_words != words_read) {
-      QwError << "QwScaler: There were "
-              << num_words - words_read
-              << " leftover words after decoding everything we recognize"
-              << std::hex
-              << " in ROC " << roc_id << ", bank " << bank_id << "."
-              << std::dec
-              << QwLog::endl;
-    }
   }
 
   return words_read;
@@ -308,8 +351,9 @@ void QwScaler::ProcessEvent()
 
   // Normalization
   for (size_t i = 0; i < fScaler.size(); i++) {
-    if (fNorm.at(i)) {
-      fScaler.at(i)->Normalize(*(fNorm.at(i)));
+    if (fNorm.at(i).first) {
+      fScaler.at(i)->Scale(fNorm.at(i).second);
+      fScaler.at(i)->Normalize(*(fNorm.at(i).first));
     }
   }
 }

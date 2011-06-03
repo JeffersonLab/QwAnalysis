@@ -1,18 +1,30 @@
 # This is an example of a detector definition file.
 
-[QwComptonPhotonDetector]
- name = PhotonDetector
- mask = 0x0003
- map  = compton_photon_channels.map
- param = compton_photon_pedestal.map
-
-[QwComptonElectronDetector]
- name = ElectronDetector
- mask = 0x0005
- map  = compton_electron_channels.map
- param = compton_electron_pedestal.map
-
 [QwHelicity]
  name = Helicity
  mask = 0x0001
  map  = compton_helicity.map
+
+[QwScaler]
+ name = Compton Photon Scalers
+ mask = 0x0001
+ map  = compton_photon_scaler_channels.map
+ param = compton_photon_scaler_pedestals.map
+
+[QwScaler]
+ name = Compton Electron Scalers
+ mask = 0x0001
+ map  = compton_electron_scaler_channels.map
+ param = compton_electron_scaler_pedestals.map
+
+[QwComptonPhotonDetector]
+ name = Photon Detector
+ mask = 0x0003
+ map  = compton_photon_channels.map
+ param = compton_photon_pedestals.map
+
+[QwComptonElectronDetector]
+ name = Electron Detector
+ mask = 0x0005
+ map  = compton_electron_channels.map
+ param = compton_electron_pedestals.map

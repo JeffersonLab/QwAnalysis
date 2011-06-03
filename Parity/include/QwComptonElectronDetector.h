@@ -132,7 +132,9 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     /// List of V1495 single event mode strips
     std::vector< std::vector <Double_t> > fStripsEv;
     std::vector< std::vector <Double_t> > fStripsRawEv;
-
+    /// List of V1495 scaler counts
+    std::vector< std::vector <Double_t> > fStripsScal;
+    std::vector< std::vector <Double_t> > fStripsRawScal;
 
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);

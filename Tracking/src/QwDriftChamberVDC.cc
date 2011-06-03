@@ -342,7 +342,7 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
   // 	  distance_mm = -50.0;
   // 	}
   // 	else {
-  if(dt>400) std::cout << "error!" << dt << std::endl;
+  if(dt>310) std::cout << "error!" << dt << std::endl;
   distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );
   // 	}
   //     if ( dt < cut0 )
@@ -1095,7 +1095,7 @@ void  QwDriftChamberVDC::ConstructHistograms ( TDirectory *folder, TString& pref
       TOFP[iplane] = new TH1F (
 			       Form ( "%s%sTimePlane%d", prefix.Data(), region.Data(), iplane ),
 			       Form ( "Subtracted time of flight for events in plane %d", iplane ),
-			       400,0,0
+			       310,0,0
 			       );
       TOFP[iplane] -> SetDefaultBufferSize ( buffer_size );
       TOFP[iplane] -> GetXaxis()->SetTitle ( "Time of Flight" );
@@ -1106,7 +1106,7 @@ void  QwDriftChamberVDC::ConstructHistograms ( TDirectory *folder, TString& pref
 				   Form ( "%s%sRawTimePlane%d", prefix.Data(), region.Data(), iplane ),
 				   Form ( "Raw time of flight for events in plane %d", iplane ),
 				   //			     400,-65000,65000);
-				   400, 0,0
+				   310, 0,0
 				   );
       TOFP_raw[iplane] -> SetDefaultBufferSize ( buffer_size );
       TOFP_raw[iplane]->GetXaxis()->SetTitle ( "Time of Flight" );
@@ -1339,7 +1339,7 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
       else if(package==2)
 	real_time=fWireHits.at(i).GetTime()-t0-91;
                                       
-      if(real_time<0 || real_time>400){
+      if(real_time<0 || real_time>310){
 	fWireHits.erase(fWireHits.begin()+i);
 	--nhits;
 	--i;

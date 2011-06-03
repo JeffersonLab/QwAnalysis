@@ -2,27 +2,7 @@ ROC=0
 Bank=0x0207
 ! Master V1495 board
 
-
 ROC=2
-Bank=0x210
-! module.type, module.num  chan.num, det.type, det.name
-SIS3801D24, 0, 0x0, scaler, sca_edet_4MHzRefClk
-SIS3801D24, 0, 0x1, scaler, sca_edet_rate0x211
-SIS3801D24, 0, 0x2, scaler, sca_edet_mps
-SIS3801D24, 0, 0x3, scaler, sca_edet_rate0x213
-SIS3801D24, 0, 0x4, scaler, sca_edet_bcm1
-SIS3801D24, 0, 0x5, scaler, sca_edet_rate0x215
-SIS3801D24, 0, 0x6, scaler, sca_edet_quartet
-SIS3801D24, 0, 0x7, scaler, sca_edet_rate0x217
-SIS3801D24, 0, 0x8, scaler, sca_edet_rate0x218
-SIS3801D24, 0, 0x9, scaler, sca_edet_rate0x219
-SIS3801D24, 0, 0xa, scaler, sca_edet_rate0x21a
-SIS3801D24, 0, 0xb, scaler, sca_edet_rate0x21b
-SIS3801D24, 0, 0xc, scaler, sca_edet_rate0x21c
-SIS3801D24, 0, 0xd, scaler, sca_edet_cavpower
-SIS3801D24, 0, 0xe, scaler, sca_edet_rate0x21e
-SIS3801D24, 0, 0xf, scaler, sca_edet_rate0x21f
-
 Bank=0x0201
 !V1495 slave 1, electron single event mode
 ! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
@@ -820,5 +800,405 @@ V1495,	       	2,    381,	eaccum,	compton_e,   4,   92
 V1495,	       	2,    382,	eaccum,	compton_e,   4,   93
 V1495,	       	2,    383,	eaccum,	compton_e,   4,   94
 V1495,	       	2,    384,	eaccum,	compton_e,   4,   95
+
+! appending to the file for e-singles subbank
+
+Bank=0x020A
+! V1495 Slave 1, electron singles mode
+! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
+V1495,	       	0,	0,	escalers,	compton_e,   1,    0
+V1495,	       	0,	1,	escalers,	compton_e,   1,    1
+V1495,	       	0,	2,	escalers,	compton_e,   1,    2
+V1495,	       	0,	3,	escalers,	compton_e,   1,    3
+V1495,	       	0,	4,	escalers,	compton_e,   1,    4
+V1495,	       	0,	5,	escalers,	compton_e,   1,    5
+V1495,	       	0,	6,	escalers,	compton_e,   1,    6
+V1495,	       	0,	7,	escalers,	compton_e,   1,    7
+V1495,	       	0,	8,	escalers,	compton_e,   1,    8
+V1495,	       	0,	9,	escalers,	compton_e,   1,    9
+V1495,	       	0,     10,	escalers,	compton_e,   1,   10
+V1495,	       	0,     11,	escalers,	compton_e,   1,   11
+V1495,	       	0,     12,	escalers,	compton_e,   1,   12
+V1495,	       	0,     13,	escalers,	compton_e,   1,   13
+V1495,	       	0,     14,	escalers,	compton_e,   1,   14
+V1495,	       	0,     15,	escalers,	compton_e,   1,   15
+V1495,	       	0,     16,	escalers,	compton_e,   1,   16
+V1495,	       	0,     17,	escalers,	compton_e,   1,   17
+V1495,	       	0,     18,	escalers,	compton_e,   1,   18
+V1495,	       	0,     19,	escalers,	compton_e,   1,   19
+V1495,	       	0,     20,	escalers,	compton_e,   1,   20
+V1495,	       	0,     21,	escalers,	compton_e,   1,   21
+V1495,	       	0,     22,	escalers,	compton_e,   1,   22
+V1495,	       	0,     23,	escalers,	compton_e,   1,   23
+V1495,	       	0,     24,	escalers,	compton_e,   1,   24
+V1495,	       	0,     25,	escalers,	compton_e,   1,   25
+V1495,	       	0,     26,	escalers,	compton_e,   1,   26
+V1495,	       	0,     27,	escalers,	compton_e,   1,   27
+V1495,	       	0,     28,	escalers,	compton_e,   1,   28
+V1495,	       	0,     29,	escalers,	compton_e,   1,   29
+V1495,	       	0,     30,	escalers,	compton_e,   1,   30
+V1495,	       	0,     31,	escalers,	compton_e,   1,   31
+V1495,	       	0,     32,	escalers,	compton_e,   2,    0
+V1495,	       	0,     33,	escalers,	compton_e,   2,    1
+V1495,	       	0,     34,	escalers,	compton_e,   2,    2
+V1495,	       	0,     35,	escalers,	compton_e,   2,    3
+V1495,	       	0,     36,	escalers,	compton_e,   2,    4
+V1495,	       	0,     37,	escalers,	compton_e,   2,    5
+V1495,	       	0,     38,	escalers,	compton_e,   2,    6
+V1495,	       	0,     39,	escalers,	compton_e,   2,    7
+V1495,	       	0,     40,	escalers,	compton_e,   2,    8
+V1495,	       	0,     41,	escalers,	compton_e,   2,    9
+V1495,	       	0,     42,	escalers,	compton_e,   2,   10
+V1495,	       	0,     43,	escalers,	compton_e,   2,   11
+V1495,	       	0,     44,	escalers,	compton_e,   2,   12
+V1495,	       	0,     45,	escalers,	compton_e,   2,   13
+V1495,	       	0,     46,	escalers,	compton_e,   2,   14
+V1495,	       	0,     47,	escalers,	compton_e,   2,   15
+V1495,	       	0,     48,	escalers,	compton_e,   2,   16
+V1495,	       	0,     49,	escalers,	compton_e,   2,   17
+V1495,	       	0,     50,	escalers,	compton_e,   2,   18
+V1495,	       	0,     51,	escalers,	compton_e,   2,   19
+V1495,	       	0,     52,	escalers,	compton_e,   2,   20
+V1495,	       	0,     53,	escalers,	compton_e,   2,   21
+V1495,	       	0,     54,	escalers,	compton_e,   2,   22
+V1495,	       	0,     55,	escalers,	compton_e,   2,   23
+V1495,	       	0,     56,	escalers,	compton_e,   2,   24
+V1495,	       	0,     57,	escalers,	compton_e,   2,   25
+V1495,	       	0,     58,	escalers,	compton_e,   2,   26
+V1495,	       	0,     59,	escalers,	compton_e,   2,   27
+V1495,	       	0,     60,	escalers,	compton_e,   2,   28
+V1495,	       	0,     61,	escalers,	compton_e,   2,   29
+V1495,	       	0,     62,	escalers,	compton_e,   2,   30
+V1495,	       	0,     63,	escalers,	compton_e,   2,   31
+V1495,	       	0,     64,	escalers,	compton_e,   3,    0
+V1495,	       	0,     65,	escalers,	compton_e,   3,    1
+V1495,	       	0,     66,	escalers,	compton_e,   3,    2
+V1495,	       	0,     67,	escalers,	compton_e,   3,    3
+V1495,	       	0,     68,	escalers,	compton_e,   3,    4
+V1495,	       	0,     69,	escalers,	compton_e,   3,    5
+V1495,	       	0,     70,	escalers,	compton_e,   3,    6
+V1495,	       	0,     71,	escalers,	compton_e,   3,    7
+V1495,	       	0,     72,	escalers,	compton_e,   3,    8
+V1495,	       	0,     73,	escalers,	compton_e,   3,    9
+V1495,	       	0,     74,	escalers,	compton_e,   3,   10
+V1495,	       	0,     75,	escalers,	compton_e,   3,   11
+V1495,	       	0,     76,	escalers,	compton_e,   3,   12
+V1495,	       	0,     77,	escalers,	compton_e,   3,   13
+V1495,	       	0,     78,	escalers,	compton_e,   3,   14
+V1495,	       	0,     79,	escalers,	compton_e,   3,   15
+V1495,	       	0,     80,	escalers,	compton_e,   3,   16
+V1495,	       	0,     81,	escalers,	compton_e,   3,   17
+V1495,	       	0,     82,	escalers,	compton_e,   3,   18
+V1495,	       	0,     83,	escalers,	compton_e,   3,   19
+V1495,	       	0,     84,	escalers,	compton_e,   3,   20
+V1495,	       	0,     85,	escalers,	compton_e,   3,   21
+V1495,	       	0,     86,	escalers,	compton_e,   3,   22
+V1495,	       	0,     87,	escalers,	compton_e,   3,   23
+V1495,	       	0,     88,	escalers,	compton_e,   3,   24
+V1495,	       	0,     89,	escalers,	compton_e,   3,   25
+V1495,	       	0,     90,	escalers,	compton_e,   3,   26
+V1495,	       	0,     91,	escalers,	compton_e,   3,   27
+V1495,	       	0,     92,	escalers,	compton_e,   3,   28
+V1495,	       	0,     93,	escalers,	compton_e,   3,   29
+V1495,	       	0,     94,	escalers,	compton_e,   3,   30
+V1495,	       	0,     95,	escalers,	compton_e,   3,   31
+V1495,	       	0,     96,	escalers,	compton_e,   4,    0
+V1495,	       	0,     97,	escalers,	compton_e,   4,    1
+V1495,	       	0,     98,	escalers,	compton_e,   4,    2
+V1495,	       	0,     99,	escalers,	compton_e,   4,    3
+V1495,	       	0,    100,	escalers,	compton_e,   4,    4
+V1495,	       	0,    101,	escalers,	compton_e,   4,    5
+V1495,	       	0,    102,	escalers,	compton_e,   4,    6
+V1495,	       	0,    103,	escalers,	compton_e,   4,    7
+V1495,	       	0,    104,	escalers,	compton_e,   4,    8
+V1495,	       	0,    105,	escalers,	compton_e,   4,    9
+V1495,	       	0,    106,	escalers,	compton_e,   4,   10
+V1495,	       	0,    107,	escalers,	compton_e,   4,   11
+V1495,	       	0,    108,	escalers,	compton_e,   4,   12
+V1495,	       	0,    109,	escalers,	compton_e,   4,   13
+V1495,	       	0,    110,	escalers,	compton_e,   4,   14
+V1495,	       	0,    111,	escalers,	compton_e,   4,   15
+V1495,	       	0,    112,	escalers,	compton_e,   4,   16
+V1495,	       	0,    113,	escalers,	compton_e,   4,   17
+V1495,	       	0,    114,	escalers,	compton_e,   4,   18
+V1495,	       	0,    115,	escalers,	compton_e,   4,   19
+V1495,	       	0,    116,	escalers,	compton_e,   4,   20
+V1495,	       	0,    117,	escalers,	compton_e,   4,   21
+V1495,	       	0,    118,	escalers,	compton_e,   4,   22
+V1495,	       	0,    119,	escalers,	compton_e,   4,   23
+V1495,	       	0,    120,	escalers,	compton_e,   4,   24
+V1495,	       	0,    121,	escalers,	compton_e,   4,   25
+V1495,	       	0,    122,	escalers,	compton_e,   4,   26
+V1495,	       	0,    123,	escalers,	compton_e,   4,   27
+V1495,	       	0,    124,	escalers,	compton_e,   4,   28
+V1495,	       	0,    125,	escalers,	compton_e,   4,   29
+V1495,	       	0,    126,	escalers,	compton_e,   4,   30
+V1495,	       	0,    127,	escalers,	compton_e,   4,   31
+
+
+Bank=0x020B
+! V1495 Slave 2, electron singles mode
+! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
+V1495,	       	1,    128,	escalers,	compton_e,   1,   32
+V1495,	       	1,    129,	escalers,	compton_e,   1,   33
+V1495,	       	1,    130,	escalers,	compton_e,   1,   34
+V1495,	       	1,    131,	escalers,	compton_e,   1,   35
+V1495,	       	1,    132,	escalers,	compton_e,   1,   36
+V1495,	       	1,    133,	escalers,	compton_e,   1,   37
+V1495,	       	1,    134,	escalers,	compton_e,   1,   38
+V1495,	       	1,    135,	escalers,	compton_e,   1,   39
+V1495,	       	1,    136,	escalers,	compton_e,   1,   40
+V1495,	       	1,    137,	escalers,	compton_e,   1,   41
+V1495,	       	1,    138,	escalers,	compton_e,   1,   42
+V1495,	       	1,    138,	escalers,	compton_e,   1,   43
+V1495,	       	1,    140,	escalers,	compton_e,   1,   44
+V1495,	       	1,    141,	escalers,	compton_e,   1,   45
+V1495,	       	1,    142,	escalers,	compton_e,   1,   46
+V1495,	       	1,    143,	escalers,	compton_e,   1,   47
+V1495,	       	1,    144,	escalers,	compton_e,   1,   48
+V1495,	       	1,    145,	escalers,	compton_e,   1,   49
+V1495,	       	1,    146,	escalers,	compton_e,   1,   50
+V1495,	       	1,    147,	escalers,	compton_e,   1,   51
+V1495,	       	1,    148,	escalers,	compton_e,   1,   52
+V1495,	       	1,    149,	escalers,	compton_e,   1,   53
+V1495,	       	1,    150,	escalers,	compton_e,   1,   54
+V1495,	       	1,    151,	escalers,	compton_e,   1,   55
+V1495,	       	1,    152,	escalers,	compton_e,   1,   56
+V1495,	       	1,    153,	escalers,	compton_e,   1,   57
+V1495,	       	1,    154,	escalers,	compton_e,   1,   58
+V1495,	       	1,    155,	escalers,	compton_e,   1,   59
+V1495,	       	1,    156,	escalers,	compton_e,   1,   60
+V1495,	       	1,    157,	escalers,	compton_e,   1,   61
+V1495,	       	1,    158,	escalers,	compton_e,   1,   62
+V1495,	       	1,    159,	escalers,	compton_e,   1,   63
+V1495,	       	1,    160,	escalers,	compton_e,   2,   32
+V1495,	       	1,    161,	escalers,	compton_e,   2,   33
+V1495,	       	1,    162,	escalers,	compton_e,   2,   34
+V1495,	       	1,    163,	escalers,	compton_e,   2,   35
+V1495,	       	1,    164,	escalers,	compton_e,   2,   36
+V1495,	       	1,    165,	escalers,	compton_e,   2,   37
+V1495,	       	1,    166,	escalers,	compton_e,   2,   38
+V1495,	       	1,    167,	escalers,	compton_e,   2,   39
+V1495,	       	1,    168,	escalers,	compton_e,   2,   40
+V1495,	       	1,    169,	escalers,	compton_e,   2,   41
+V1495,	       	1,    170,	escalers,	compton_e,   2,   42
+V1495,	       	1,    171,	escalers,	compton_e,   2,   43
+V1495,	       	1,    172,	escalers,	compton_e,   2,   44
+V1495,	       	1,    173,	escalers,	compton_e,   2,   45
+V1495,	       	1,    174,	escalers,	compton_e,   2,   46
+V1495,	       	1,    175,	escalers,	compton_e,   2,   47
+V1495,	       	1,    176,	escalers,	compton_e,   2,   48
+V1495,	       	1,    177,	escalers,	compton_e,   2,   49
+V1495,	       	1,    178,	escalers,	compton_e,   2,   50
+V1495,	       	1,    179,	escalers,	compton_e,   2,   51
+V1495,	       	1,    180,	escalers,	compton_e,   2,   52
+V1495,	       	1,    181,	escalers,	compton_e,   2,   53
+V1495,	       	1,    182,	escalers,	compton_e,   2,   54
+V1495,	       	1,    183,	escalers,	compton_e,   2,   55
+V1495,	       	1,    184,	escalers,	compton_e,   2,   56
+V1495,	       	1,    185,	escalers,	compton_e,   2,   57
+V1495,	       	1,    186,	escalers,	compton_e,   2,   58
+V1495,	       	1,    187,	escalers,	compton_e,   2,   59
+V1495,	       	1,    188,	escalers,	compton_e,   2,   60
+V1495,	       	1,    189,	escalers,	compton_e,   2,   61
+V1495,	       	1,    190,	escalers,	compton_e,   2,   62
+V1495,	       	1,    191,	escalers,	compton_e,   2,   63
+V1495,	       	1,    192,	escalers,	compton_e,   3,   32
+V1495,	       	1,    193,	escalers,	compton_e,   3,   33
+V1495,	       	1,    194,	escalers,	compton_e,   3,   34
+V1495,	       	1,    195,	escalers,	compton_e,   3,   35
+V1495,	       	1,    196,	escalers,	compton_e,   3,   36
+V1495,	       	1,    197,	escalers,	compton_e,   3,   37
+V1495,	       	1,    198,	escalers,	compton_e,   3,   38
+V1495,	       	1,    199,	escalers,	compton_e,   3,   39
+V1495,	       	1,    200,	escalers,	compton_e,   3,   40
+V1495,	       	1,    201,	escalers,	compton_e,   3,   41
+V1495,	       	1,    202,	escalers,	compton_e,   3,   42
+V1495,	       	1,    203,	escalers,	compton_e,   3,   43
+V1495,	       	1,    204,	escalers,	compton_e,   3,   44
+V1495,	       	1,    205,	escalers,	compton_e,   3,   45
+V1495,	       	1,    206,	escalers,	compton_e,   3,   46
+V1495,	       	1,    207,	escalers,	compton_e,   3,   47
+V1495,	       	1,    208,	escalers,	compton_e,   3,   48
+V1495,	       	1,    209,	escalers,	compton_e,   3,   49
+V1495,	       	1,    210,	escalers,	compton_e,   3,   50
+V1495,	       	1,    211,	escalers,	compton_e,   3,   51
+V1495,	        1,    212,	escalers,	compton_e,   3,   52
+V1495,	       	1,    213,	escalers,	compton_e,   3,   53
+V1495,	       	1,    214,	escalers,	compton_e,   3,   54
+V1495,	       	1,    215,	escalers,	compton_e,   3,   55
+V1495,	       	1,    216,	escalers,	compton_e,   3,   56
+V1495,	       	1,    217,	escalers,	compton_e,   3,   57
+V1495,	       	1,    218,	escalers,	compton_e,   3,   58
+V1495,	       	1,    219,	escalers,	compton_e,   3,   59
+V1495,	       	1,    220,	escalers,	compton_e,   3,   60
+V1495,	       	1,    221,	escalers,	compton_e,   3,   61
+V1495,	       	1,    222,	escalers,	compton_e,   3,   62
+V1495,	       	1,    223,	escalers,	compton_e,   3,   63
+V1495,	       	1,    224,	escalers,	compton_e,   4,   32
+V1495,	       	1,    225,	escalers,	compton_e,   4,   33
+V1495,	       	1,    226,	escalers,	compton_e,   4,   34
+V1495,	       	1,    227,	escalers,	compton_e,   4,   35
+V1495,	       	1,    228,	escalers,	compton_e,   4,   36
+V1495,	       	1,    229,	escalers,	compton_e,   4,   37
+V1495,	       	1,    230,	escalers,	compton_e,   4,   38
+V1495,	       	1,    231,	escalers,	compton_e,   4,   39
+V1495,	       	1,    232,	escalers,	compton_e,   4,   40
+V1495,	       	1,    233,	escalers,	compton_e,   4,   41
+V1495,	       	1,    234,	escalers,	compton_e,   4,   42
+V1495,	       	1,    235,	escalers,	compton_e,   4,   43
+V1495,	       	1,    236,	escalers,	compton_e,   4,   44
+V1495,	       	1,    237,	escalers,	compton_e,   4,   45
+V1495,	       	1,    238,	escalers,	compton_e,   4,   46
+V1495,	       	1,    239,	escalers,	compton_e,   4,   47
+V1495,	       	1,    240,	escalers,	compton_e,   4,   48
+V1495,	       	1,    241,	escalers,	compton_e,   4,   49
+V1495,	       	1,    242,	escalers,	compton_e,   4,   50
+V1495,	       	1,    243	escalers,	compton_e,   4,   51
+V1495,	       	1,    244,	escalers,	compton_e,   4,   52
+V1495,	       	1,    245,	escalers,	compton_e,   4,   53
+V1495,	       	1,    246,	escalers,	compton_e,   4,   54
+V1495,	       	1,    247,	escalers,	compton_e,   4,   55
+V1495,	       	1,    248,	escalers,	compton_e,   4,   56
+V1495,	       	1,    249,	escalers,	compton_e,   4,   57
+V1495,	       	1,    250,	escalers,	compton_e,   4,   58
+V1495,	       	1,    251,	escalers,	compton_e,   4,   59
+V1495,	       	1,    252,	escalers,	compton_e,   4,   60
+V1495,	       	1,    253,	escalers,	compton_e,   4,   61
+V1495,	       	1,    254,	escalers,	compton_e,   4,   62
+V1495,	       	1,    255,	escalers,	compton_e,   4,   63
+
+
+Bank=0x020C
+!V1495 slave 3, electron singles mode
+! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
+V1495,	       	2,    256,	escalers,	compton_e,   1,   64
+V1495,	       	2,    257,	escalers,	compton_e,   1,   65
+V1495,	       	2,    258,	escalers,	compton_e,   1,   66
+V1495,	       	2,    259,	escalers,	compton_e,   1,   67
+V1495,	       	2,    260,	escalers,	compton_e,   1,   68
+V1495,	       	2,    261,	escalers,	compton_e,   1,   69
+V1495,	       	2,    262,	escalers,	compton_e,   1,   70
+V1495,	       	2,    263,	escalers,	compton_e,   1,   71
+V1495,	       	2,    264,	escalers,	compton_e,   1,   72
+V1495,	       	2,    265,	escalers,	compton_e,   1,   73
+V1495,	       	2,    266,	escalers,	compton_e,   1,   74
+V1495,	       	2,    267,	escalers,	compton_e,   1,   75
+V1495,	       	2,    268,	escalers,	compton_e,   1,   76
+V1495,	       	2,    269,	escalers,	compton_e,   1,   77
+V1495,	       	2,    270,	escalers,	compton_e,   1,   78
+V1495,	       	2,    271,	escalers,	compton_e,   1,   79
+V1495,	       	2,    272,	escalers,	compton_e,   1,   80
+V1495,	       	2,    273,	escalers,	compton_e,   1,   81
+V1495,	       	2,    274,	escalers,	compton_e,   1,   82
+V1495,	       	2,    275,	escalers,	compton_e,   1,   83
+V1495,	       	2,    276,	escalers,	compton_e,   1,   84
+V1495,	       	2,    277,	escalers,	compton_e,   1,   85
+V1495,	       	2,    278,	escalers,	compton_e,   1,   86
+V1495,	       	2,    279,	escalers,	compton_e,   1,   87
+V1495,	       	2,    280,	escalers,	compton_e,   1,   88
+V1495,	       	2,    281,	escalers,	compton_e,   1,   89
+V1495,	       	2,    282,	escalers,	compton_e,   1,   90
+V1495,	       	2,    283,	escalers,	compton_e,   1,   91
+V1495,	       	2,    284,	escalers,	compton_e,   1,   92
+V1495,	       	2,    285,	escalers,	compton_e,   1,   93
+V1495,	       	2,    286,	escalers,	compton_e,   1,   94
+V1495,	       	2,    287,	escalers,	compton_e,   1,   95
+V1495,	       	2,    288,	escalers,	compton_e,   2,   64
+V1495,	       	2,    289,	escalers,	compton_e,   2,   65
+V1495,	       	2,    290,	escalers,	compton_e,   2,   66
+V1495,	       	2,    291,	escalers,	compton_e,   2,   67
+V1495,	       	2,    292,	escalers,	compton_e,   2,   68
+V1495,	       	2,    293,	escalers,	compton_e,   2,   69
+V1495,	       	2,    294,	escalers,	compton_e,   2,   70
+V1495,	       	2,    295,	escalers,	compton_e,   2,   71
+V1495,	       	2,    296,	escalers,	compton_e,   2,   72
+V1495,	       	2,    297,	escalers,	compton_e,   2,   73
+V1495,	       	2,    298,	escalers,	compton_e,   2,   74
+V1495,	       	2,    299,	escalers,	compton_e,   2,   75
+V1495,	       	2,    301,	escalers,	compton_e,   2,   76
+V1495,	       	2,    302,	escalers,	compton_e,   2,   77
+V1495,	       	2,    303,	escalers,	compton_e,   2,   78
+V1495,	       	2,    304,	escalers,	compton_e,   2,   79
+V1495,	       	2,    305,	escalers,	compton_e,   2,   80
+V1495,	       	2,    306,	escalers,	compton_e,   2,   81
+V1495,	       	2,    307,	escalers,	compton_e,   2,   82
+V1495,	       	2,    308,	escalers,	compton_e,   2,   83
+V1495,	       	2,    309,	escalers,	compton_e,   2,   84
+V1495,	       	2,    310,	escalers,	compton_e,   2,   85
+V1495,	       	2,    311,	escalers,	compton_e,   2,   86
+V1495,	       	2,    312,	escalers,	compton_e,   2,   87
+V1495,	       	2,    313,	escalers,	compton_e,   2,   88
+V1495,	       	2,    314,	escalers,	compton_e,   2,   89
+V1495,	       	2,    315,	escalers,	compton_e,   2,   90
+V1495,	       	2,    316,	escalers,	compton_e,   2,   91
+V1495,	       	2,    317,	escalers,	compton_e,   2,   92
+V1495,	       	2,    318,	escalers,	compton_e,   2,   93
+V1495,	       	2,    319,	escalers,	compton_e,   2,   94
+V1495,	       	2,    320,	escalers,	compton_e,   2,   95
+V1495,	       	2,    321,	escalers,	compton_e,   3,   64
+V1495,	       	2,    322,	escalers,	compton_e,   3,   65
+V1495,	       	2,    323,	escalers,	compton_e,   3,   66
+V1495,	       	2,    324,	escalers,	compton_e,   3,   67
+V1495,	       	2,    325,	escalers,	compton_e,   3,   68
+V1495,	       	2,    326,	escalers,	compton_e,   3,   69
+V1495,	       	2,    327,	escalers,	compton_e,   3,   70
+V1495,	       	2,    328,	escalers,	compton_e,   3,   71
+V1495,	       	2,    329,	escalers,	compton_e,   3,   72
+V1495,	       	2,    330,	escalers,	compton_e,   3,   73
+V1495,	       	2,    331,	escalers,	compton_e,   3,   74
+V1495,	       	2,    332,	escalers,	compton_e,   3,   75
+V1495,	       	2,    333,	escalers,	compton_e,   3,   76
+V1495,	       	2,    334,	escalers,	compton_e,   3,   77
+V1495,	       	2,    335,	escalers,	compton_e,   3,   78
+V1495,	       	2,    336,	escalers,	compton_e,   3,   79
+V1495,	       	2,    337,	escalers,	compton_e,   3,   80
+V1495,	       	2,    338,	escalers,	compton_e,   3,   81
+V1495,	       	2,    339,	escalers,	compton_e,   3,   82
+V1495,	       	2,    340,	escalers,	compton_e,   3,   83
+V1495,	        2,    341,	escalers,	compton_e,   3,   84
+V1495,	       	2,    342,	escalers,	compton_e,   3,   85
+V1495,	       	2,    343,	escalers,	compton_e,   3,   86
+V1495,	       	2,    344,	escalers,	compton_e,   3,   87
+V1495,	       	2,    345,	escalers,	compton_e,   3,   88
+V1495,	       	2,    346,	escalers,	compton_e,   3,   89
+V1495,	       	2,    347,	escalers,	compton_e,   3,   90
+V1495,	       	2,    348,	escalers,	compton_e,   3,   91
+V1495,	       	2,    349,	escalers,	compton_e,   3,   92
+V1495,	       	2,    350,	escalers,	compton_e,   3,   93
+V1495,	       	2,    351,	escalers,	compton_e,   3,   94
+V1495,	       	2,    352,	escalers,	compton_e,   3,   95
+V1495,	       	2,    353,	escalers,	compton_e,   4,   64
+V1495,	       	2,    354,	escalers,	compton_e,   4,   65
+V1495,	       	2,    355,	escalers,	compton_e,   4,   66
+V1495,	       	2,    356,	escalers,	compton_e,   4,   67
+V1495,	       	2,    357,	escalers,	compton_e,   4,   68
+V1495,	       	2,    358,	escalers,	compton_e,   4,   69
+V1495,	       	2,    359,	escalers,	compton_e,   4,   70
+V1495,	       	2,    360,	escalers,	compton_e,   4,   71
+V1495,	       	2,    361,	escalers,	compton_e,   4,   72
+V1495,	       	2,    362,	escalers,	compton_e,   4,   73
+V1495,	       	2,    363,	escalers,	compton_e,   4,   74
+V1495,	       	2,    364,	escalers,	compton_e,   4,   75
+V1495,	       	2,    365,	escalers,	compton_e,   4,   76
+V1495,	       	2,    366,	escalers,	compton_e,   4,   77
+V1495,	       	2,    367,	escalers,	compton_e,   4,   78
+V1495,	       	2,    368,	escalers,	compton_e,   4,   79
+V1495,	       	2,    369,	escalers,	compton_e,   4,   80
+V1495,	       	2,    370,	escalers,	compton_e,   4,   81
+V1495,	       	2,    371,	escalers,	compton_e,   4,   82
+V1495,	       	2,    372	escalers,	compton_e,   4,   83
+V1495,	       	2,    373,	escalers,	compton_e,   4,   84
+V1495,	       	2,    374,	escalers,	compton_e,   4,   85
+V1495,	       	2,    375,	escalers,	compton_e,   4,   86
+V1495,	       	2,    376,	escalers,	compton_e,   4,   87
+V1495,	       	2,    377,	escalers,	compton_e,   4,   88
+V1495,	       	2,    378,	escalers,	compton_e,   4,   89
+V1495,	       	2,    379,	escalers,	compton_e,   4,   90
+V1495,	       	2,    380	escalers,	compton_e,   4,   91
+V1495,	       	2,    381,	escalers,	compton_e,   4,   92
+V1495,	       	2,    382,	escalers,	compton_e,   4,   93
+V1495,	       	2,    383,	escalers,	compton_e,   4,   94
+V1495,	       	2,    384,	escalers,	compton_e,   4,   95
 
 ! End of ROC2 map

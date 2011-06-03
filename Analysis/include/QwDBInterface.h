@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <cstring>
 #include <vector>
+#include <map>
 
 // ROOT headers
 #include "Rtypes.h"
@@ -36,6 +37,7 @@ class QwDatabase;
 class QwDBInterface {
 
  private:
+  static std::map<TString, TString> fPrefix;
 
   UInt_t fAnalysisId;
   UInt_t fDeviceId;
@@ -51,6 +53,9 @@ class QwDBInterface {
   template <class T>
   inline T TypedDBClone();
 
+ public:
+  static TString DetermineMeasurementTypeID(TString type, TString suffix = "",
+					    Bool_t forcediffs = kFALSE);
 
  public:
 
@@ -66,7 +71,14 @@ class QwDBInterface {
     void SetMonitorID(QwDatabase *db);
     void SetMainDetectorID(QwDatabase *db);
     void SetLumiDetectorID(QwDatabase *db);
-    void SetMeasurementTypeID(const char* in) {std::strncpy(fMeasurementTypeId, in, 3);};
+    void SetMeasurementTypeID(const TString& in) {
+      std::strncpy(fMeasurementTypeId, in.Data(), 3);
+      fMeasurementTypeId[3] = '\0';
+    };
+    void SetMeasurementTypeID(const char* in) {
+      std::strncpy(fMeasurementTypeId, in, 3);
+      fMeasurementTypeId[3] = '\0';
+    };
     void SetSubblock(UInt_t in) {fSubblock = in;};
     void SetN(UInt_t in)        {fN = in;};
     void SetValue(Double_t in)  {fValue = in;};

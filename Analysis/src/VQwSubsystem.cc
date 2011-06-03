@@ -390,45 +390,43 @@ VQwSubsystem& VQwSubsystem::operator=(VQwSubsystem *value)
 std::vector<TString> VQwSubsystem::GetParamFileNameList()
 {
   return fDetectorMapsNames;
-};
+}
 
 
 
 std::map<TString, TString> VQwSubsystem::GetDetectorMaps()
 {
   return fDetectorMaps;
-};
+}
 
 
 
 void VQwSubsystem::PrintDetectorMaps(Bool_t status)
 {
   Bool_t local_debug = false;
-  if(status) {
-    printf("\n >>> VQwSubsystem::LoadDetectorMaps Subsytem %s uses the following map files : \n", fSystemName.Data());
-    Int_t total_num = 0;
+  if (status) {
+    QwMessage << " >>> VQwSubsystem::LoadDetectorMaps Subsystem " << fSystemName
+              << " uses the following map files:" << QwLog::endl;
+
     Int_t index = 0;
-    total_num = (Int_t) fDetectorMaps.size();
+    size_t total = fDetectorMaps.size();
 
-    if(total_num != 0) {
+    if (total != 0) {
 
-      for( std::map<TString, TString>::iterator ii=fDetectorMaps.begin(); ii!=fDetectorMaps.end(); ++ii)
-	{	
-	  TString name = (*ii).first;
-	  TString all  = (*ii).second;
-	  printf("   ---> %4d/%d : %s\n", index+1, total_num, name.Data());
-	  if(local_debug) {
-	    printf("   %s", all.Data());
-	    printf("\n");
-	  }
-	  //	  std::cout << (*ii).first << ": " << (*ii).second << st:;endl;
-	}
-      printf("\n");
-    }
-    else {
-      printf("   ---> No map files\n");
+      for (std::map<TString,TString>::iterator ii = fDetectorMaps.begin();
+           ii != fDetectorMaps.end(); ++ii) {
+
+        index++;
+        TString name = (*ii).first;
+        TString all  = (*ii).second;
+        QwMessage << "   ---> " << index << "/" << total << ": " << name << QwLog::endl;
+        if (local_debug)
+          QwMessage << "   " << all << QwLog::endl;
+
+      }
+
+    } else {
+      QwMessage << "   ---> No map files" << QwLog::endl;
     }
   }
-
-  return;
-};
+}

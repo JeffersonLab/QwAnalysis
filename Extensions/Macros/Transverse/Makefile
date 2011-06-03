@@ -19,7 +19,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := md_correlation_plots TransverseFit slug_average plot_regressed_lumi slug_average_regressed
+EXE := md_correlation_plots TransverseFit slug_average_fits plot_regressed_lumi slug_summary slug_average_fits_regressed Add_opposite_bars unregressed_slug_plots slug_average_fits_regressed_run_range compare_regressed_unregressed fits_unregressed_run_range
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -45,13 +45,32 @@ md_correlation_plots : md_correlations.o
 TransverseFit : TransverseFit.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-slug_average : slug_average_fits.o 
+slug_average_fits : slug_average_fits.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-slug_average_regressed :slug_avrage_fits_regressed.o
+slug_average_fits_regressed :slug_avrage_fits_regressed.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-plot_regressed_lumi : Regressed_LUMI.o 
+slug_average_fits_regressed_run_range :slug_average_fits_regressed_run_range.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+Regressed_lumi : Regressed_LUMI.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+slug_summmary : slug_summary.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+
+Add_opposite_bars : Add_opposite_bars.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+unregressed_slug_plots : unregressed_slug_plots.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+compare_regressed_unregressed : compare_regressed_unregressed.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+fits_unregressed_run_range : fits_unregressed_run_range.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 %: %.C
@@ -59,7 +78,6 @@ plot_regressed_lumi : Regressed_LUMI.o
 
 %.o: %.C
 	$(CXX) -c  $(CXXFLAGS)   -o $@ $<
-
 
 
 #depend .depend : $(SRCS)

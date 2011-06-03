@@ -7,7 +7,7 @@
 //  This macro will connect to the qw_fall2010_20101204 data base and get the slug averages and plot
 //  them in to three plots for pmt+, pmt- and bar sum, us lumi and ds lumi asymmetries. 
 //   e.g. use
-//   ./slug_averages
+//   ./slug_averages 
 //
 //   To compile this code do a gmake.
 //
@@ -92,10 +92,12 @@ TPad * pad1, *pad2;
 TText *t1;
 TTree *tree;
 TString CanvasTitle;
-TString bpm,bpmdata,var1, target;
+TString bpm,bpmdata,var1, target, polar,goodfor;
 Int_t runnum;
 
 Int_t opt =1;
+Int_t datopt =1;
+
 TTree * nt;
 
 std::ofstream Myfile;
@@ -132,8 +134,8 @@ Double_t valueout[8] ={0.0};
 Double_t errout[8] ={0.0};
 
 TString xunit, yunit, slopeunit;
-void get_octant_data(Int_t size,TString devicelist[], TString detector_type, TString target, TString ihwp, Double_t value[], Double_t error[]);
-TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type);
+void get_octant_data(Int_t size,TString devicelist[], TString detector_type, TString goodfor, TString target, TString ihwp, Double_t value[], Double_t error[]);
+TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type, TString goodfor);
 void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Double_t errorsout[]);
 
 
@@ -148,7 +150,10 @@ int main(Int_t argc,Char_t* argv[])
   std::cout<<"1. Liquid Hydrogen"<<std::endl;
   std::cout<<"2. 4% DS Al "<<std::endl;
   std::cin>>opt;
-
+  std::cout<<"Enter data type:"<<std::endl;
+  std::cout<<"1. Longitudinal"<<std::endl;
+  std::cout<<"2. Transverse "<<std::endl;
+  std::cin>>datopt;
 
   if(opt == 1) target = "HYDROGEN-CELL";
   else if(opt == 2) target = "DS-4%-Aluminum";
@@ -157,7 +162,20 @@ int main(Int_t argc,Char_t* argv[])
     exit(1);
   }
   
-  std::cout<<"GEtting slug averages of octants in MD PMT-, PMT+, barsum, us lumi and ds lumi"<<std::endl;
+  if(datopt == 1){
+    polar = "longitudinal";
+    goodfor = "1,3";
+  }
+  else if(datopt == 2){
+    polar = "transverse";
+    goodfor = "1,8";
+  }
+  else{
+    std::cout<<"Unknown data type!"<<std::endl;
+    exit(1);
+  }
+
+  std::cout<<"Getting "<<polar<<" slug averages of octants in MD PMT-, PMT+, barsum, us lumi and ds lumi "<<std::endl;
   TApplication theApp("App",&argc,argv);
 
  
@@ -199,7 +217,7 @@ int main(Int_t argc,Char_t* argv[])
   gDirectory->Delete("*");
 
 
-  TString title1 = target+": Slug averages of Main detector asymmetries. FIT = p0*cos(phi + p1) + p2";
+  TString title1 = target+"("+polar+"): Slug averages of Main detector asymmetries. FIT = p0*cos(phi + p1) + p2";
   TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,800);
   Canvas1->Draw();
 
@@ -213,7 +231,7 @@ int main(Int_t argc,Char_t* argv[])
   pad1->cd();
   TString text = Form(title1);
   TText*t1 = new TText(0.06,0.3,text);
-  t1->SetTextSize(0.5);
+  t1->SetTextSize(0.4);
   t1->Draw();
 
   pad2->cd();
@@ -263,30 +281,30 @@ int main(Int_t argc,Char_t* argv[])
 
   // plot MD asymmetries
 
-//   pad2->cd(1);
-//   get_octant_data(8, quartz_bar_POS, "MD", target, "out", value1,  err1);
-//   get_octant_data(8, quartz_bar_POS, "MD", target, "in",  value11, err11);
-//   plot_octant(8,"MD POS", value11,err11,value1,err1);
-//   gPad->Update();
+  pad2->cd(1);
+  get_octant_data(8, quartz_bar_POS, "MD", goodfor,target, "out", value1,  err1);
+  get_octant_data(8, quartz_bar_POS, "MD", goodfor,target, "in",  value11, err11);
+  plot_octant(8,"MD POS", value11,err11,value1,err1);
+  gPad->Update();
 
-//   pad2->cd(2);
-//   get_octant_data(8,quartz_bar_NEG, "MD", target, "out", value2,  err2);
-//   get_octant_data(8,quartz_bar_NEG, "MD", target, "in",  value22, err22);
-//   plot_octant(8,"MD NEG",value22,err22,value2,err2);
-//   gPad->Update();
+  pad2->cd(2);
+  get_octant_data(8,quartz_bar_NEG, "MD", goodfor,target, "out", value2,  err2);
+  get_octant_data(8,quartz_bar_NEG, "MD", goodfor,target, "in",  value22, err22);
+  plot_octant(8,"MD NEG",value22,err22,value2,err2);
+  gPad->Update();
 
-//   pad2->cd(3);
-//   get_octant_data(8,quartz_bar_SUM, "MD", target, "out", value3,  err3);
-//   get_octant_data(8,quartz_bar_SUM, "MD", target, "in",  value33, err33);
-//   plot_octant(8,"MD BAR SUM", value33,err33,value3,err3);
-//   gPad->Update();
+  pad2->cd(3);
+  get_octant_data(8,quartz_bar_SUM, "MD", goodfor,target, "out", value3,  err3);
+  get_octant_data(8,quartz_bar_SUM, "MD", goodfor,target, "in",  value33, err33);
+  plot_octant(8,"MD BAR SUM", value33,err33,value3,err3);
+  gPad->Update();
 
 
-//   Canvas1->Update();
-//   Canvas1->Print("md_slug_summary_plots.gif");
+  Canvas1->Update();
+  Canvas1->Print(polar+"_"+target+"_md_slug_summary_plots.gif");
 
   // plot LUMI asymmetries
-  TString title2 = target+": Slug averages of Lumi asymmetries. FIT = p0*cos(phi + p1) + p2";
+  TString title2 = target+"("+polar+"): Slug averages of Lumi asymmetries. FIT = p0*cos(phi + p1) + p2";
   TCanvas * Canvas2 = new TCanvas("canvas2", title2,0,0,1000,800);   
   Canvas2->Draw();
   Canvas2->cd();
@@ -301,7 +319,7 @@ int main(Int_t argc,Char_t* argv[])
   pad11->cd();
   TString text2 = Form(title2);
   TText*t11 = new TText(0.06,0.3,text2);
-  t11->SetTextSize(0.5);
+  t11->SetTextSize(0.4);
   t11->Draw();
 
   pad22->cd();
@@ -312,20 +330,20 @@ int main(Int_t argc,Char_t* argv[])
   //  TGraphErrors * mg1;
 
   pad22->cd(1);
-  get_octant_data(4,us_lumi,"LUMI", target,"in", value111,err111);
-  get_octant_data(4,us_lumi,"LUMI", target,"out", value222,err222);
+  get_octant_data(4,us_lumi,"LUMI", goodfor,target,"in", value111,err111);
+  get_octant_data(4,us_lumi,"LUMI", goodfor,target,"out", value222,err222);
   plot_octant(4,"US LUMI", value111,err111,value222,err222);
   gPad->Update();
 
 
   pad22->cd(2);
-  get_octant_data(5,DS_lumi,"LUMI", target,"in", valuein,errin);
-  get_octant_data(5,DS_lumi,"LUMI", target,"out", valueout,errout);
+  get_octant_data(8,DS_lumi,"LUMI", goodfor,target,"in", valuein,errin);
+  get_octant_data(8,DS_lumi,"LUMI", goodfor,target,"out", valueout,errout);
   plot_octant(5,"DS_LUMI",valuein,errin,valueout,errout);
   gPad->Update();
 
   Canvas2-> Update();
-  Canvas2->Print("lumi_slug_summary_plots.gif");
+  Canvas2->Print(polar+"_"+target+"_lumi_slug_summary_plots.gif");
 
 
 
@@ -343,11 +361,11 @@ int main(Int_t argc,Char_t* argv[])
 //         get query              
 //***************************************************
 //***************************************************
-TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type){
+TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type, TString goodfor){
 
 
 
-  Bool_t ldebug = kFALSE;
+  Bool_t ldebug = false;
   TString datatable;
 
   if(detector_type == "MD")
@@ -355,19 +373,18 @@ TString get_query(TString detector, TString measurement, TString target, TString
   if(detector_type == "LUMI")
     datatable = "lumi_data_view";
 
-  TString output = "slow_controls_settings.slow_helicity_plate, target_position, sum("+datatable+".value/(POWER("+datatable+".error,2)*"+datatable+".n))/sum(1/(POWER("+datatable+".error,2)*"+datatable+".n)), 1/SUM(1/(POWER("+datatable+".error,2)*"+datatable+".n))";
+  TString output = " sum( "+datatable+".value/(POWER("+datatable+".error,2)))/sum(1/(POWER("+datatable+".error,2))), SQRT(1/SUM(1/(POWER("+datatable+".error,2))))";
 
  
   //TString good_for_cut = "run.run_type ='parity' AND md_data_view.good_for_id = NULL || ((md_data_view.good_for_id = 'parity' || md_data_view.good_for_id = 'production') && md_data_view.good_for_id != 'commissioning'))";
-
   //TString run_quality_cut = "(md_data_view.run_quality_id = NULL || md_data_view.run_quality_id != 'bad')";
-
   //  TString good_for_cut = Form("%s.good_for_id = '1,8' OR %s.good_for_id = 8",datatable.Data(),datatable.Data());
-  TString good_for_cut = Form("%s.good_for_id = '1,8'",datatable.Data());
+
+  TString good_for_cut = Form("%s.good_for_id = '%s'",datatable.Data(),goodfor.Data());
 
 
-  TString run_quality_cut = Form("%s.run_quality_id = 1",datatable.Data());
-
+  TString run_quality_cut = Form("%s.run_quality_id = 1",datatable.Data()); // good
+ 
 
   TString query =" SELECT " + output
     + " FROM "+datatable+", analysis, run, runlet, slow_controls_settings "
@@ -381,9 +398,9 @@ TString get_query(TString detector, TString measurement, TString target, TString
     +datatable+".measurement_type = '"+measurement+"' AND "
     +good_for_cut+" AND "
     +run_quality_cut+ " AND "
-    + " error !=0  AND "+datatable+".value != 0 AND "+datatable+".run_number != 9831 AND "+datatable+".run_number != 9878 AND"
+    + " error !=0  AND "+datatable+".value != 0 AND "+datatable+".n != 0 AND "+datatable+".run_number != 9831 AND "+datatable+".run_number != 9878 AND"
     + " slow_controls_settings.slow_helicity_plate = '"+ihwp+"'"
-    + " AND target_position = '"+target+"' and "+datatable+".slug > 100000  and "+datatable+".slug < 101004;"; 
+    + " AND target_position = '"+target+"';"; 
 
 			 
   if(ldebug) std::cout<<query<<std::endl;
@@ -398,16 +415,16 @@ TString get_query(TString detector, TString measurement, TString target, TString
 //***************************************************
 //***************************************************
 
-void get_octant_data(Int_t size, TString devicelist[], TString detector_type, TString target, TString ihwp, Double_t value[], Double_t error[])
+void get_octant_data(Int_t size, TString devicelist[], TString detector_type,TString goodfor, TString target, TString ihwp, Double_t value[], Double_t error[])
 {
-  Bool_t ldebug = true;
+  Bool_t ldebug = false;
 
   if(ldebug) printf("\nDetector Type %s, size %2d\n", detector_type.Data(), size);
   for(Int_t i=0 ; i<size ;i++){
     if(ldebug) {
       printf("Getting data for %20s ihwp %5s ", devicelist[i].Data(), ihwp.Data());
     }
-    TString query = get_query(Form("%s",devicelist[i].Data()),"a",target,ihwp,detector_type);
+    TString query = get_query(Form("%s",devicelist[i].Data()),"a",target,ihwp,detector_type,goodfor);
     TSQLStatement* stmt = db->Statement(query,100);
     if(!stmt) exit(1);
     // process statement
@@ -415,8 +432,8 @@ void get_octant_data(Int_t size, TString devicelist[], TString detector_type, TS
       // store result of statement in buffer
       stmt->StoreResult();
       while (stmt->NextResultRow()) {
-	value[i] = (Double_t)(stmt->GetDouble(2))*1e6; // convert to  ppm
-	error[i] = (Double_t)(stmt->GetDouble(3))*1e6; // ppm
+	value[i] = (Double_t)(stmt->GetDouble(0))*1e6; // convert to  ppm
+	error[i] = (Double_t)(stmt->GetDouble(1))*1e6; // ppm
 	if(ldebug) printf(" value = %16.8lf +- %10.8lf [ppm]\n", value[i], error[i]);
       }
     }
@@ -442,9 +459,8 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   for(Int_t i =0;i<k;i++){
     if(device.Contains("US"))
        x[i] = 2*i+1;
-    if(device.Contains("DS"))
-       x[i] = i+1;
-
+    else
+      x[i] = i+1;
     errx[i] = 0.0;
   }
   

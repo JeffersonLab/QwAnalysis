@@ -311,13 +311,13 @@ void  QwBPMStripline<T>::ProcessEvent()
   /**
      To obtain the beam position in X and Y in the CEBAF coordinates, we use the following equations
      
-                                                       (XP - AlphaX.XM)
-     RelX (bpm coordinates) = fQwStriplineCalibration x ----------------
-                                                       (XP + AlphaX.XM) 
+                                                                 (XP - AlphaX XM)
+     RelX (bpm coordinates) = fQwStriplineCalibration x GainX x ----------------
+                                                                 (XP + AlphaX XM) 
 
-                                                        (YP - AlphaY.YM)
-     RelY (bpm coordinates) = fQwStriplineCalibration x ----------------
-                                                        (YP + AlphaY.YM)
+                                                                  (YP - AplhaY YM)
+     RelY (bpm coordinates) = fQwStriplineCalibration x GainY x ----------------
+                                                                  (YP + AlphaY YM)
 
      To get back to accelerator coordinates, rotate anti-clockwise around +Z by phi degrees (angle w.r.t X axis).							
      
@@ -335,7 +335,6 @@ void  QwBPMStripline<T>::ProcessEvent()
       fRelPos[i].Ratio(numer,denom);
       fRelPos[i].Scale(fQwStriplineCalibration);
 
-
       if(localdebug)
 	{
 	  std::cout<<" stripline name="<<fElementName<<std::endl;
@@ -348,11 +347,8 @@ void  QwBPMStripline<T>::ProcessEvent()
 	  std::cout<<" Rotation = "<<fRotationAngle<<std::endl;
 	}
     }
-  //   std::cout<<" \nstripline name="<<fElementName<<std::endl;
-  //   std::cout<<" Rotation = "<<fRotationAngle<<std::endl;
 
   for(i=kXAxis;i<kNumAxes;i++){ 
-    //std::cout<<" hw  before RelPos["<<i<<"]="<<fRelPos[i].GetValue()<<"  ";
     tmp1.ClearEventData();
     tmp2.ClearEventData();
     tmppos[i].ClearEventData();
@@ -373,13 +369,14 @@ void  QwBPMStripline<T>::ProcessEvent()
   for(i=kXAxis;i<kNumAxes;i++){
     fAbsPos[i]= fRelPos[i];
     fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
+    fAbsPos[i].Scale(1.0/fGains[i]);
 
     if(localdebug)
-      {
+    {
 	std::cout<<" hw  fRelPos["<<kAxisLabel[i]<<"]="<<fRelPos[i].GetValue()<<"\n";
 	std::cout<<" hw  fOffset["<<kAxisLabel[i]<<"]="<<fPositionCenter[i]<<"\n";
 	std::cout<<" hw  fAbsPos["<<kAxisLabel[i]<<"]="<<fAbsPos[i].GetValue()<<"\n \n";
-      }
+    }
     
   }
   

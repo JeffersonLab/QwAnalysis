@@ -99,9 +99,9 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 	  }
 	  else {
-	    dev_name=mapstr.GetNextToken(", ").c_str();
+	    dev_name = mapstr.GetTypedNextToken<TString>();
 	    dev_name.ToLower();
-	    dettype   = mapstr.GetNextToken(", ").c_str();
+	    dettype  = mapstr.GetTypedNextToken<TString>();
 	    dettype.ToLower();
 
 	    // Check to see if the device being read is a valid physical device.
@@ -124,18 +124,18 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	      // Read in the weights.
 	      // For combined bpms and combined bcms these are charge weights.
 	      // For the energy calculator these are the ratios of the transport matrix elements.
-	      fQWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
+	      fQWeight.push_back(mapstr.GetTypedNextToken<Double_t>());
 
 	      // For combined BPMs,in addition, there are weights for the X & Y positions.
 	      if(combotype == "combinedbpm"){
-		fXWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
-		fYWeight.push_back( atof(mapstr.GetNextToken(", ").c_str()));
+		fXWeight.push_back(mapstr.GetTypedNextToken<Double_t>());
+		fYWeight.push_back(mapstr.GetTypedNextToken<Double_t>());
 	      }
 
 	      // For the enrgy calculator there are device type and the specified beam parameters.
 	      if(combotype == "energycalculator"){
 		fType.push_back(dettype);
-		fProperty.push_back( mapstr.GetNextToken(", ").c_str());
+		fProperty.push_back( mapstr.GetTypedNextToken<TString>());
 	      }
 	    }
 	  }
@@ -146,7 +146,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	localComboID.fdetectorname=comboname(0,comboname.Sizeof()-1);
 	localComboID.fIndex = GetDetectorIndex(localComboID.fTypeID,localComboID.fdetectorname);
 
-	if(localComboID.fTypeID==-1){
+	if(localComboID.fTypeID==kQwUnknownDeviceType){
 	  QwError << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
 		  << combotype <<", the detector "<<comboname<<" will not be decoded "
 		  << QwLog::endl;
@@ -227,12 +227,12 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       Bool_t lineok=kTRUE;
 
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
-      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-      channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-      dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+      modtype   = mapstr.GetTypedNextToken<TString>();	// module type
+      modnum    = mapstr.GetTypedNextToken<Int_t>();	// slot number
+      channum   = mapstr.GetTypedNextToken<Int_t>();	// channel number
+      dettype   = mapstr.GetTypedNextToken<TString>();	// type-purpose of the detector
       dettype.ToLower();
-      namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+      namech    = mapstr.GetTypedNextToken<TString>();  // name of the detector
       namech.ToLower();
 
       if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread)){
@@ -257,7 +257,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
       QwBeamDetectorID localBeamDetectorID(currentsubbankindex, offset,
 					   namech, dettype, modtype);
 
-      if(localBeamDetectorID.fTypeID==-1){
+      if(localBeamDetectorID.fTypeID==kQwUnknownDeviceType){
 	QwError << "QwBeamLine::LoadChannelMap:  Unknown detector type: "
 		<< dettype <<", the detector "<<namech<<" will not be decoded "
 		<< QwLog::endl;
@@ -443,7 +443,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
         section->TrimComment(); // Remove everything after a comment character
         section->TrimWhitespace(); // Get rid of leading and trailing spaces
         for (int ii = 0; ii < 4; ii++) {
-          varvalue = section->GetNextToken().c_str();
+          varvalue = section->GetTypedNextToken<TString>();
           if (varvalue.Length()) {
             publishinfo.push_back(varvalue);
           }
@@ -680,8 +680,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   Double_t devSENfactor = 0, devAlphaX = 0, devAlphaY = 0;
   TString  localname;
   TString   rotation_stat;
-  TString   angle;
-  Double_t  rotation_angle = 0;
+
 
   if(ldebug)std::cout<<"QwBeamLine::LoadGeometryParameters("<< mapfile<<")\n";
 
@@ -704,28 +703,29 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
     devname.ToLower();
     devname.Remove(TString::kBoth,' ');
 
+    index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
+    VQwBPM * bpm = &fStripline[index];
+
     devOffsetX   = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
     devOffsetY   = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
     devOffsetZ   = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
     devSENfactor = (atof(mapstr.GetNextToken(", \t").c_str())); // sensivity scaling factor
     devAlphaX    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha X
     devAlphaY    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha Y
-    rotation_stat= mapstr.GetNextToken(", \t").c_str(); // rotation info
+    AssignGeometry(&mapstr,bpm);
 
- 
-    index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
 
     if(ldebug==1){
       std::cout<<"####################\n";
       std::cout<<"! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY\n"<<std::endl;
       std::cout<<GetQwBeamInstrumentType(devtype)<<" / "
+	       <<devname    <<" / "
 	       <<devOffsetX <<" / "
 	       <<devOffsetY <<" / "
 	       <<devOffsetZ <<" / "
 	       <<devSENfactor <<" / "
 	       <<devAlphaX <<" / "
 	       <<devAlphaY <<" / "
-	       <<rotation_stat<<" / "
 	       <<std::endl;
     }
 
@@ -748,30 +748,10 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 
 	if(localname==devname){
 	  if(ldebug) std::cout<<" I found the bpm !\n";
-	  VQwBPM * bpm = &fStripline[index];
 	  bpm->GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
 	  bpm->GetElectronicFactors(devSENfactor,devAlphaX, devAlphaY);
 
-	  // If the rotation status is 'unrotated' 
-	  if(rotation_stat.Contains("unrotated")){
-	    if(ldebug) std::cout<<" unrotated "<<std::endl;
-	    bpm->SetRotationOff();	    
-	  }
-	  else if(rotation_stat.Contains("rotation")){
-	    // If the status is 'rotated'
-	    rotation_stat.Remove(TString::kBoth,'\0');
-
-	    // If a specific rotation angle is given read that
-	    if(rotation_stat.Contains("=")){
-	      angle = rotation_stat.Remove(0,9);
-	      rotation_angle = atof(angle);
-	      if(ldebug) std::cout<<"Rotation angle = "<<rotation_angle<<std::endl;
-	      bpm->SetRotation(rotation_angle);	    
- 	    }
-	  }
-
 	  // If nothing is specified, a default rotation of 45 degrees is implied.
-
 	  notfound=kFALSE;
 	}
       }
@@ -851,6 +831,50 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 
 }
 
+
+void QwBeamLine::AssignGeometry(QwParameterFile* mapstr, VQwBPM * bpm)
+{
+
+  Bool_t ldebug = kFALSE;
+
+  TString token = "0";
+  TString   angle,xgain,ygain;
+  Double_t  rotation_angle = 0;
+
+  while(token!=""){
+    token= mapstr->GetNextToken(", \t").c_str(); 
+    token.Remove(TString::kBoth,'\0');
+
+    if(token.Contains("unrotated")){
+      if(ldebug) std::cout<<" unrotated "<<std::endl;
+      bpm->SetRotationOff();	    
+    }
+    else if(token.Contains("rotation")){
+      // If the status is 'rotated'
+      
+      // If a specific rotation angle is given read that
+      if(token.Contains("=")){
+	angle = token.Remove(0,9);
+	rotation_angle = atof(angle);
+	if(ldebug) std::cout<<"Rotation angle = "<<rotation_angle<<std::endl;
+	bpm->SetRotation(rotation_angle);	    
+      }
+    }
+    // If nothing is specified for rotation, a default rotation of 45 degrees is implied.
+
+    if(token.Contains("xgain")){
+      xgain = token.Remove(0,6);
+      if(ldebug) std::cout<<" xgain ="<<xgain<<std::endl;
+      bpm->SetGains("X", atof(xgain));
+    }
+
+    if(token.Contains("ygain")){
+      ygain = token.Remove(0,6);
+      if(ldebug) std::cout<<" ygain ="<<ygain<<std::endl;
+      bpm->SetGains("Y", atof(ygain));
+    }
+  }
+}
 
 //*****************************************************************
 Int_t QwBeamLine::LoadInputParameters(TString pedestalfile)
@@ -1352,6 +1376,7 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
 //*****************************************************************
 void  QwBeamLine::ProcessEvent()
 {
+
   Double_t clock_counts;
 
   for(size_t i=0;i<fStripline.size();i++)
@@ -1369,6 +1394,7 @@ void  QwBeamLine::ProcessEvent()
   for(size_t i=0;i<fLinearArray.size();i++)
     fLinearArray[i].ProcessEvent();
 
+
   if (index_4mhz != -1){
     fHaloMonitor.at(index_4mhz).ProcessEvent();//call the ProcessEvent() for the 4MHz scaler
     clock_counts = fHaloMonitor.at(index_4mhz).GetValue();
@@ -1379,7 +1405,7 @@ void  QwBeamLine::ProcessEvent()
       fHaloMonitor[i].ScaleRawRate(4.0e6/clock_counts);//convert raw rates to Hz
     }
     fHaloMonitor[i].ProcessEvent();
-  }
+ }
 
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].ProcessEvent();
@@ -2388,22 +2414,16 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
 
   UInt_t analysis_id = db->GetAnalysisID();
 
-  Char_t measurement_type_bcm[4];
-  Char_t measurement_type_bpm[4];
+  TString measurement_type_bcm;
+  TString measurement_type_bpm;
+  TString measurement_type_halo;
 
-  if(datatype.Contains("yield")) {
-    sprintf(measurement_type_bcm, "%s", "yq");
-    sprintf(measurement_type_bpm, "%s", "yp");
-  }
-  else if (datatype.Contains("asymmetry")) {
-    sprintf(measurement_type_bcm, "%s", "a");
-    sprintf(measurement_type_bpm, "%s", "d");
-  }
-  else {
-    sprintf(measurement_type_bcm, "%s", "");
-    sprintf(measurement_type_bpm, "%s", "");
-  }
-
+  measurement_type_bcm = 
+    QwDBInterface::DetermineMeasurementTypeID(datatype,"q");
+  measurement_type_bpm = 
+    QwDBInterface::DetermineMeasurementTypeID(datatype,"p",kTRUE);
+  measurement_type_halo = 
+    QwDBInterface::DetermineMeasurementTypeID(datatype);
 
   UInt_t i,j;
   i = j = 0;
@@ -2565,6 +2585,21 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
       interface.at(j).SetMonitorID( db );
       interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
       interface.at(j).PrintStatus( local_print_flag);
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+  
+  // try to access halo mean and its error
+  if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Halo Monitors" <<QwLog::endl;
+
+  for(i=0; i< fHaloMonitor.size(); i++) {
+    interface.clear();
+    interface = fHaloMonitor[i].GetDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMonitorID( db );
+      interface.at(j).SetMeasurementTypeID( measurement_type_halo );
+      interface.at(j).PrintStatus( local_print_flag );
       interface.at(j).AddThisEntryToList( entrylist );
     }
   }

@@ -1335,13 +1335,6 @@ void  QwHelicity::FillDB(QwDatabase *db, TString type)
   db->Connect();
   mysqlpp::Query query = db->Query();
 
-  Char_t s_number[20];
-  string s_sql = "INSERT INTO seeds (seed, comment) VALUES (";
-  sprintf(s_number, "%d,", this->GetRandomSeedActual());
-  s_sql += string(s_number);
-  s_sql += " \'actual random seed\')";
-  query  << s_sql;
-  query.execute();
   db->Disconnect();
 }
 

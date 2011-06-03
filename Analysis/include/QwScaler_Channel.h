@@ -80,6 +80,7 @@ public:
   Double_t GetValue(size_t element) const      { return fValue; };
   Double_t GetValueM2(size_t element) const    { return fValueM2; };
   Double_t GetValueError(size_t element) const { return fValueError; };
+  UInt_t GetGoodEventCount() const { return fGoodEventCount; };
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
   void AssignValueFrom(const VQwDataElement* valueptr);
