@@ -1,11 +1,11 @@
 /**********************************************************\
-* File: QwBCM.h                                  *
+* File: VQwBCM.h                                          *
 *                                                         *
 * Author:                                                 *
 * Time-stamp:                                             *
 \**********************************************************/
 
-#include "QwBCM.h"
+#include "VQwBCM.h"
 
 // System headers
 #include <stdexcept>
@@ -58,6 +58,21 @@ void  QwBCM<T>::InitializeChannel(TString subsystem, TString name, TString datat
   fULimit=0;//init two timits
   return;  
 }
+/********************************************************/
+template<typename T>
+void  QwBCM<T>::InitializeChannel(TString subsystem, TString name, TString type,
+    TString datatosave){
+  SetPedestal(0.);
+  SetCalibrationFactor(1.);
+  SetModuleType(type);
+  fBeamCurrent.InitializeChannel(subsystem, "QwBCM", name, datatosave);
+  SetElementName(name);
+  //set default limits to event cuts
+  fLLimit=0;//init two timits
+  fULimit=0;//init two timits
+  return;  
+}
+
 /********************************************************/
 template<typename T>
 void QwBCM<T>::ClearEventData()
@@ -243,6 +258,37 @@ QwBCM<T>& QwBCM<T>::operator= (const QwBCM<T> &value)
 }
 
 template<typename T>
+VQwBCM& QwBCM<T>::operator= (const VQwBCM &value)
+{
+  try {
+    if(typeid(value)==typeid(*this)) {
+      // std::cout<<" Here in QwBCM::operator= \n";
+      if (this->GetElementName()!="") {
+        const QwBCM<T>* value_bcm = dynamic_cast<const QwBCM<T>* >(&value);
+        QwBCM<T>* this_cast = dynamic_cast<QwBCM<T>* >(this);
+        this_cast->fBeamCurrent= value_bcm->fBeamCurrent;
+        this_cast->fPedestal=value_bcm->fPedestal;
+        this_cast->fCalibration=value_bcm->fCalibration;
+      }
+    } else {
+      TString loc="Standard exception from QwBCM::operato= :"+
+        value.GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }
+//   std::cout<<" to be copied \n";
+//   value.Print();
+//   std::cout<<" copied \n";
+//   this->Print();
+
+  return *this;
+
+}
+
+template<typename T>
 QwBCM<T>& QwBCM<T>::operator+= (const QwBCM<T> &value)
 {
   if (this->GetElementName()!="")
@@ -255,14 +301,67 @@ QwBCM<T>& QwBCM<T>::operator+= (const QwBCM<T> &value)
 }
 
 template<typename T>
-QwBCM<T>& QwBCM<T>::operator-= (const QwBCM<T> &value)
+VQwBCM& QwBCM<T>::operator+= (const VQwBCM &value)
+{
+  try {
+    if(typeid(value)==typeid(*this)) {
+      // std::cout<<" Here in QwBCM::operator+= \n";
+      if (this->GetElementName()!="") {
+        const QwBCM<T>* value_bcm = dynamic_cast<const QwBCM<T>* >(&value);
+        QwBCM<T>* this_cast = dynamic_cast<QwBCM<T>* >(this);
+        this_cast->fBeamCurrent+=value_bcm->fBeamCurrent;
+        this_cast->fPedestal+=value_bcm->fPedestal;
+        this_cast->fCalibration=0;
+      }
+    } else {
+      TString loc="Standard exception from QwBCM::operator+= :"+
+        value.GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }
+
+ return *this;
+}
+
+template<typename T>
+VQwBCM& QwBCM<T>::operator-= (const VQwBCM &value)
 {
   if (this->GetElementName()!="")
     {
-      this->fBeamCurrent-=value.fBeamCurrent;
-      this->fPedestal-=value.fPedestal;
-      this->fCalibration=0;
+      const QwBCM<T>* value_bcm = dynamic_cast<const QwBCM<T>* >(&value);
+      QwBCM<T>* this_cast = dynamic_cast<QwBCM<T>* >(this);
+      this_cast->fBeamCurrent-=value_bcm->fBeamCurrent;
+      this_cast->fPedestal-=value_bcm->fPedestal;
+      this_cast->fCalibration=0;
     }
+  return *this;
+}
+
+template<typename T>
+QwBCM<T>& QwBCM<T>::operator-= (const QwBCM<T> &value)
+{
+  try {
+    if(typeid(value)==typeid(*this)) {
+      // std::cout<<" Here in QwBCM::operator-= \n";
+      if (this->GetElementName()!="") {
+        const QwBCM<T>* value_bcm = dynamic_cast<const QwBCM<T>* >(&value);
+        QwBCM<T>* this_cast = dynamic_cast<QwBCM<T>* >(this);
+        this_cast->fBeamCurrent-=value_bcm->fBeamCurrent;
+        this_cast->fPedestal-=value_bcm->fPedestal;
+        this_cast->fCalibration=0;
+      }
+    } else {
+      TString loc="Standard exception from QwBCM::operator-= :"+
+        value.GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }
   return *this;
 }
 
@@ -280,7 +379,14 @@ void QwBCM<T>::Difference(QwBCM<T> &value1, QwBCM<T> &value2){
 }
 
 template<typename T>
-void QwBCM<T>::Ratio(QwBCM<T> &numer, QwBCM<T> &denom)
+void QwBCM<T>::Ratio(const VQwBCM &numer, const VQwBCM &denom)
+{
+  Ratio(*dynamic_cast<const QwBCM<T>* >(&numer),
+      *dynamic_cast<const QwBCM<T>* >(&denom));
+}
+
+template<typename T>
+void QwBCM<T>::Ratio(const QwBCM<T> &numer, const QwBCM<T> &denom)
 {
   //  std::cout<<"QwBCM::Ratio element name ="<<GetElementName()<<" \n";
   if (this->GetElementName()!="")
@@ -306,8 +412,9 @@ void QwBCM<T>::CalculateRunningAverage(){
 }
 
 template<typename T>
-void QwBCM<T>::AccumulateRunningSum(const QwBCM<T>& value) {
-  fBeamCurrent.AccumulateRunningSum(value.fBeamCurrent);
+void QwBCM<T>::AccumulateRunningSum(const VQwBCM& value) {
+  fBeamCurrent.AccumulateRunningSum(
+      dynamic_cast<const QwBCM<T>* >(&value)->fBeamCurrent);
 }
 
 template<typename T>
@@ -465,6 +572,38 @@ std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()
   return row_list;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//    Start of VQwBCM functions
+///////////////////////////////////////////////////////////////////////////////
+
+/**
+ * \brief A fast way of creating a BCM of VQWK type with a generic name.
+ */
+VQwBCM* VQwBCM::Create(TString type)
+{
+  return Create("bcm","bcm_generic",type);
+}
+
+VQwBCM* VQwBCM::Create(TString subsystemname, TString name, TString type)
+{
+  Bool_t localDebug = kFALSE;
+  type.ToUpper();
+  if( localDebug ) QwMessage<<"Creating BCM of type: "<<type<<" with name: "<<
+    name<<". Subsystem Name: " <<subsystemname<<"\n";
+  // (jc2) As a first try, let's do this the ugly way (but rather very
+  // simple), just list out the types of BCM's supported by this code!!!
+  if( type == "VQWK") {
+    return new QwBCM<QwVQWK_Channel>(subsystemname,name,type);
+  } else if (type == "SCALER" || type == "SIS3801" ) {
+    return new QwBCM<QwSIS3801_Channel>(subsystemname,name,type);
+  } else if ( type == "SIS3801D24" ) {
+    return new QwBCM<QwSIS3801D24_Channel>(subsystemname,name,type);
+  } else { // Unsupported one!
+    QwWarning << "BCM of type="<<type<<" is UNSUPPORTED!!\n";
+    exit(-1);
+  }
+}
 
 template class QwBCM<QwVQWK_Channel>; 
 template class QwBCM<QwSIS3801_Channel>; 
+template class QwBCM<QwSIS3801D24_Channel>; 

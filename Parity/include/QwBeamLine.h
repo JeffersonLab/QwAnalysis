@@ -19,7 +19,7 @@
 #include "VQwSubsystemParity.h"
 #include "QwTypes.h"
 #include "QwBPMStripline.h"
-#include "QwBCM.h"
+#include "VQwBCM.h"
 #include "QwBPMCavity.h"
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"
@@ -105,16 +105,16 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
 
 
   QwBPMStripline<QwVQWK_Channel>* GetBPMStripline(const TString name);
-  QwBCM<QwVQWK_Channel>* GetBCM(const TString name);
+  VQwBCM* GetBCM(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
-  QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name);
+  VQwBCM* GetCombinedBCM(const TString name);
   QwCombinedBPM<QwVQWK_Channel>* GetCombinedBPM(const TString name);
   QwEnergyCalculator* GetEnergyCalculator(const TString name);
   QwHaloMonitor* GetScalerChannel(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
   const QwBPMStripline<QwVQWK_Channel>* GetBPMStripline(const TString name) const;
-  const QwBCM<QwVQWK_Channel>* GetBCM(const TString name) const;
-  const QwCombinedBCM<QwVQWK_Channel>* GetCombinedBCM(const TString name) const;
+  const VQwBCM* GetBCM(const TString name) const;
+  const VQwBCM* GetCombinedBCM(const TString name) const;
   const QwCombinedBPM<QwVQWK_Channel>* GetCombinedBPM(const TString name) const;
   const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
   const QwHaloMonitor* GetScalerChannel(const TString name) const;
@@ -127,8 +127,9 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
  std::vector <QwBPMStripline<QwVQWK_Channel> > fStripline;
 
- std::vector <QwBCM<QwVQWK_Channel> > fBCM;
- std::vector <QwCombinedBCM<QwVQWK_Channel> > fBCMCombo;
+ typedef boost::shared_ptr<VQwBCM> VQwBCM_ptr;
+ std::vector <VQwBCM_ptr> fBCM;
+ std::vector <VQwBCM_ptr> fBCMCombo;
 
  std::vector <QwQPD> fQPD;
  std::vector <QwLinearDiodeArray> fLinearArray;

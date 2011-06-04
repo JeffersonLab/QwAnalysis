@@ -323,7 +323,7 @@ void VQwScaler_Channel::Difference(VQwScaler_Channel &value1, VQwScaler_Channel 
   *this -= value2;
 }
 
-void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom)
+void VQwScaler_Channel::Ratio(const VQwScaler_Channel &numer, const VQwScaler_Channel &denom)
 {
   if (!IsNameEmpty()){
     *this  = numer;

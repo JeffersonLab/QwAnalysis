@@ -38,9 +38,9 @@ void QwCombinedBCM<T>::SetCalibrationFactor(Double_t calib)
 }
 
 template<typename T>
-void QwCombinedBCM<T>::Set(QwBCM<T>* bcm, Double_t weight, Double_t sumqw ){
-
-  fElement.push_back(bcm);
+void QwCombinedBCM<T>::SetBCMForCombo(VQwBCM* bcm, Double_t weight, Double_t sumqw ){
+  // Convert back to QWBCM<T>* from generic VQwBCM*
+  fElement.push_back(dynamic_cast<QwBCM<T>* >(bcm));
   fWeights.push_back(weight);
   fSumQweights=sumqw;
   //std::cout<<"QwCombinedBCM: Got "<<bcm->GetElementName()<<"  and weight ="<<weight<<"\n";
@@ -49,7 +49,7 @@ void QwCombinedBCM<T>::Set(QwBCM<T>* bcm, Double_t weight, Double_t sumqw ){
 template<typename T>
 void  QwCombinedBCM<T>::InitializeChannel(TString name, TString datatosave)
 {
-  SetElementName(name);
+  this->SetElementName(name);
   fCombined_bcm.InitializeChannel(name,"derived");
 
   return;
@@ -58,7 +58,18 @@ void  QwCombinedBCM<T>::InitializeChannel(TString name, TString datatosave)
 template<typename T>
 void  QwCombinedBCM<T>::InitializeChannel(TString subsystem, TString name, TString datatosave)
 {
-  SetElementName(name);
+  this->SetElementName(name);
+  fCombined_bcm.InitializeChannel(subsystem, "QwCombinedBCM", name,"derived");
+
+  return;
+}
+
+template<typename T>
+void  QwCombinedBCM<T>::InitializeChannel(TString subsystem, TString name,
+    TString type, TString datatosave)
+{
+  this->SetElementName(name);
+  this->SetModuleType(type);
   fCombined_bcm.InitializeChannel(subsystem, "QwCombinedBCM", name,"derived");
 
   return;
@@ -87,12 +98,12 @@ void QwCombinedBCM<T>::SetRandomEventParameters(Double_t mean, Double_t sigma)
   return;
 }
 
-
-// void QwCombinedBCM::SetRandomEventAsymmetry(Double_t asymmetry)
-// {
-//   fCombined_bcm.SetRandomEventAsymmetry(asymmetry);
-//   return;
-// }
+template<typename T>
+ void QwCombinedBCM<T>::SetRandomEventAsymmetry(Double_t asymmetry)
+{
+   fCombined_bcm.SetRandomEventAsymmetry(asymmetry);
+   return;
+}
 
 template<typename T>
 void QwCombinedBCM<T>::RandomizeEventData(int helicity)
@@ -145,7 +156,7 @@ void  QwCombinedBCM<T>::ProcessEvent()
 
   if(ldebug){
     std::cout<<"***************** \n";
-    std::cout<<"QwCombinedBCM: "<<GetElementName()
+    std::cout<<"QwCombinedBCM: "<<this->GetElementName()
 	     <<"\nweighted average of hardware sums = "<<fCombined_bcm.GetValue()<<"\n";
     if (fCombined_bcm.GetNumberOfSubelements()>1){
       for(size_t i=0;i<4;i++){
@@ -180,7 +191,7 @@ Bool_t QwCombinedBCM<T>::ApplySingleEventCuts(){
     if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fCombined_bcm.GetValue();
     status&=kFALSE;
   }
-  fErrorFlag|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
+  this->fErrorFlag|=fCombined_bcm.GetEventcutErrorFlag();//retrun the error flag for event cuts
   //std::cout<<"combined bcm "<<GetElementName()<<" error flag "<<fCombined_bcm.GetEventcutErrorFlag()<<std::endl;
 
   return status;
@@ -224,8 +235,18 @@ Int_t QwCombinedBCM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_
 template<typename T>
 QwCombinedBCM<T>& QwCombinedBCM<T>::operator= (const QwCombinedBCM<T> &value)
 {
-  if (GetElementName()!="")
+  if (this->GetElementName()!="")
     this->fCombined_bcm=value.fCombined_bcm;
+
+  return *this;
+}
+
+template<typename T>
+VQwBCM& QwCombinedBCM<T>::operator= (const VQwBCM &value)
+{
+  if (this->GetElementName()!="")
+    dynamic_cast<QwCombinedBCM<T>* >(this)->fCombined_bcm=
+      dynamic_cast<const QwCombinedBCM<T>* >(&value)->fCombined_bcm;
 
   return *this;
 }
@@ -233,20 +254,39 @@ QwCombinedBCM<T>& QwCombinedBCM<T>::operator= (const QwCombinedBCM<T> &value)
 template<typename T>
 QwCombinedBCM<T>& QwCombinedBCM<T>::operator+= (const QwCombinedBCM<T> &value)
 {
-  if (GetElementName()!="")
+  if (this->GetElementName()!="")
     this->fCombined_bcm+=value.fCombined_bcm;
+  return *this;
+}
+
+template<typename T>
+VQwBCM& QwCombinedBCM<T>::operator+= (const VQwBCM &value)
+{
+  if (this->GetElementName()!="")
+    dynamic_cast<QwCombinedBCM<T>* >(this)->fCombined_bcm+=
+      dynamic_cast<const QwCombinedBCM<T>* >(&value)->fCombined_bcm;
+
   return *this;
 }
 
 template<typename T>
 QwCombinedBCM<T>& QwCombinedBCM<T>::operator-= (const QwCombinedBCM<T> &value)
 {
-  if (GetElementName()!="")
+  if (this->GetElementName()!="")
     this->fCombined_bcm-=value.fCombined_bcm;
 
   return *this;
 }
 
+template<typename T>
+VQwBCM& QwCombinedBCM<T>::operator-= (const VQwBCM &value)
+{
+  if (this->GetElementName()!="")
+    dynamic_cast<QwCombinedBCM<T>* >(this)->fCombined_bcm-=
+      dynamic_cast<const QwCombinedBCM<T>* >(&value)->fCombined_bcm;
+
+  return *this;
+}
 
 template<typename T>
 void QwCombinedBCM<T>::Sum(QwCombinedBCM<T> &value1, QwCombinedBCM<T> &value2){
@@ -261,9 +301,17 @@ void QwCombinedBCM<T>::Difference(QwCombinedBCM<T> &value1, QwCombinedBCM<T> &va
 }
 
 template<typename T>
-void QwCombinedBCM<T>::Ratio(QwCombinedBCM<T> &numer, QwCombinedBCM<T> &denom)
+void QwCombinedBCM<T>::Ratio(const VQwBCM &numer, const VQwBCM &denom)
 {
-  if (GetElementName()!="")
+  Ratio(*dynamic_cast<const QwCombinedBCM<T>* >(&numer),
+      *dynamic_cast<const QwCombinedBCM<T>* >(&denom));
+}
+
+template<typename T>
+void QwCombinedBCM<T>::Ratio(const QwCombinedBCM<T> &numer,
+    const QwCombinedBCM<T> &denom)
+{
+  if (this->GetElementName()!="")
     this->fCombined_bcm.Ratio(numer.fCombined_bcm,denom.fCombined_bcm);
 
   return;
@@ -323,7 +371,7 @@ void QwCombinedBCM<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Doubl
 template<typename T>
 void  QwCombinedBCM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
-  if (GetElementName()=="")
+  if (this->GetElementName()=="")
     {
       //  This channel is not used, so skip filling the histograms.
     }
@@ -338,7 +386,7 @@ void  QwCombinedBCM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
 template<typename T>
 void  QwCombinedBCM<T>::FillHistograms()
 {
- if (GetElementName()=="")
+ if (this->GetElementName()=="")
     {
       //  This channel is not used, so skip filling the histograms.
     }
@@ -354,7 +402,7 @@ void  QwCombinedBCM<T>::FillHistograms()
 template<typename T>
 void  QwCombinedBCM<T>::DeleteHistograms()
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   } else
     {
@@ -366,7 +414,7 @@ void  QwCombinedBCM<T>::DeleteHistograms()
 template<typename T>
 void  QwCombinedBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   } else
     {
@@ -378,7 +426,7 @@ void  QwCombinedBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, s
 template<typename T>
 void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix)
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   } else
     {
@@ -391,10 +439,10 @@ template<typename T>
 void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
   TString devicename;
-  devicename=GetElementName();
+  devicename=this->GetElementName();
   devicename.ToLower();
 
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   } else
     {
@@ -410,7 +458,7 @@ void  QwCombinedBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParamete
 template<typename T>
 void  QwCombinedBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   } else
     {
@@ -487,6 +535,35 @@ std::vector<QwDBInterface> QwCombinedBCM<T>::GetDBEntry()
 
 }
 
+// QwCombinedBCM<T> Factory function
+template<typename T>
+VQwBCM* QwCombinedBCM<T>::CreateCombo(TString type)
+{
+  return CreateCombo("bcm","bcm_generic",type);
+}
+
+template<typename T>
+VQwBCM* QwCombinedBCM<T>::CreateCombo(TString subsystemname, TString name,
+    TString type)
+{
+  Bool_t localDebug = kFALSE;
+  type.ToUpper();
+  if( localDebug ) QwMessage<<"Creating CombinedBCM of type: "<<type<<" with name: "<<
+    name<<". Subsystem Name: " <<subsystemname<<"\n";
+  // (jc2) As a first try, let's do this the ugly way (but rather very
+  // simple), just list out the types of BCM's supported by this code!!!
+  if( type == "VQWK") {
+    return new QwCombinedBCM<QwVQWK_Channel>(subsystemname,name,type);
+  } else if (type == "SCALER" || type == "SIS3801" ) { // Default SCALER channel
+    return new QwCombinedBCM<QwSIS3801_Channel>(subsystemname,name,type);
+  } else if ( type == "SIS3801D24" ) {
+    return new QwCombinedBCM<QwSIS3801D24_Channel>(subsystemname,name,type);
+  } else { // Unsupported one!
+    QwWarning << "BCM of type="<<type<<" is UNSUPPORTED!!\n";
+    exit(-1);
+  }
+}
 
 template class QwCombinedBCM<QwVQWK_Channel>; 
 template class QwCombinedBCM<QwSIS3801_Channel>; 
+template class QwCombinedBCM<QwSIS3801D24_Channel>; 

@@ -89,7 +89,7 @@ public:
   VQwScaler_Channel& operator-= (const VQwScaler_Channel &value);
   void Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
   void Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
-  void Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
+  void Ratio(const VQwScaler_Channel &numer, const VQwScaler_Channel &denom);
   void Product(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);

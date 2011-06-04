@@ -5,8 +5,8 @@
 * Time-stamp:                                             *
 \**********************************************************/
 
-#ifndef __QwVQWK_COMBINEDBCM__
-#define __QwVQWK_COMBINEDBCM__
+#ifndef __Qw_COMBINEDBCM__
+#define __Qw_COMBINEDBCM__
 
 // System headers
 #include <vector>
@@ -17,7 +17,7 @@
 // Qweak headers
 #include "VQwDataElement.h"
 #include "VQwHardwareChannel.h"
-#include "QwBCM.h"
+#include "VQwBCM.h"
 
 // Forward declarations
 class QwDBInterface;
@@ -27,7 +27,7 @@ class QwDBInterface;
 ******************************************************************/
 
 template<typename T>
-class QwCombinedBCM : public VQwDataElement{
+class QwCombinedBCM : public QwBCM<T> {
 /////
  public:
   QwCombinedBCM() { };
@@ -37,14 +37,22 @@ class QwCombinedBCM : public VQwDataElement{
   QwCombinedBCM(TString subsystem, TString name){
     InitializeChannel(subsystem, name, "derived");
   };
+  QwCombinedBCM(TString subsystemname, TString name, TString type){
+    this->SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name,type,"raw");
+  };
   ~QwCombinedBCM() {
     DeleteHistograms();
   };
 
 
 
+  // Factory function to produce appropriate BCM
+  static VQwBCM* CreateCombo(TString subsystemname, TString type, TString name);
+  static VQwBCM* CreateCombo(TString type); // Create a generic BCM (define properties later)
 
-  void Set(QwBCM<T>* bcm, Double_t weight, Double_t sumqw ); ///added by me
+  // This is to setup one of the used BCM's in this combo
+  void SetBCMForCombo(VQwBCM* bcm, Double_t weight, Double_t sumqw );
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
   void  ClearEventData();
@@ -52,6 +60,8 @@ class QwCombinedBCM : public VQwDataElement{
   void  InitializeChannel(TString name, TString datatosave);
   // new routine added to update necessary information for tree trimming
   void  InitializeChannel(TString subsystem, TString name, TString datatosave);
+  void  InitializeChannel(TString subsystem, TString name, TString type,
+      TString datatosave);
 
   void ReportErrorCounters();
 
@@ -80,15 +90,18 @@ class QwCombinedBCM : public VQwDataElement{
   void PrintValue() const;
   void PrintInfo() const;
 
-
-
+  // Implementation of Parent class's virtual operators
+  VQwBCM& operator=  (const VQwBCM &value);
+  VQwBCM& operator+= (const VQwBCM &value);
+  VQwBCM& operator-= (const VQwBCM &value);
 
   QwCombinedBCM& operator=  (const QwCombinedBCM &value);
   QwCombinedBCM& operator+= (const QwCombinedBCM &value);
   QwCombinedBCM& operator-= (const QwCombinedBCM &value);
   void Sum(QwCombinedBCM &value1, QwCombinedBCM &value2);
   void Difference(QwCombinedBCM &value1, QwCombinedBCM &value2);
-  void Ratio(QwCombinedBCM &numer, QwCombinedBCM &denom);
+  void Ratio(const QwCombinedBCM &numer, const QwCombinedBCM &denom);
+  void Ratio(const VQwBCM &numer, const VQwBCM &denom);
   void Scale(Double_t factor);
 
   void AccumulateRunningSum(const QwCombinedBCM& value);
