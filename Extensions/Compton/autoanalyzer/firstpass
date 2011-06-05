@@ -1,0 +1,135 @@
+#!/bin/bash
+
+slots=4
+timeout_before=1800
+timeout_between=300
+preferred_host=cdaql3
+
+# Usage info
+if [ $# -eq 0 ] ; then
+	echo "Usage: $0 [--macros-only] [--here] [--now | --delay] runstart [runend]"
+	exit
+fi
+
+# Parse flags
+opts=$*
+run_now="false"
+run_here="false"
+while [ $# -gt 0 -a -z "${1/--*/}" ] ; do
+	case ${1} in
+		(--macros-only)	macros_only="true"; shift ;;
+		(--here)	run_here="true"; shift ;;
+		(--delay)	run_now="false"; shift ;;
+		(--now)		run_now="true"; shift ;;
+	esac
+done
+
+# Start at run
+if [ $# -gt 0 ] ; then
+	runnum_start=$1
+fi
+
+# End at run
+if [ $# -gt 1 ] ; then
+	runnum_end=$2
+else
+	runnum_end=${runnum_start}
+fi
+
+runnum=${runnum_start}
+
+host="`hostname -s`"
+if [ "${host}" != "${preferred_host}" -a "${run_here}" == "false" ] ; then
+	cmd="$(cd "${0%/*}" 2>/dev/null; echo "$PWD"/"${0##*/}") ${opts}"
+	echo "Running analyzer on ${preferred_host}..."
+	echo "  ${cmd}"
+	exec ssh ${preferred_host} "source ~/${EXPID}/env.sh; ${cmd}"
+	exit
+fi
+
+# Timeout before starting
+if [ "${run_now}" == "false" ] ; then
+	sleep ${timeout_before}
+fi
+
+cd ${HOME}/${EXPID}/autoanalyzer
+while [ ${runnum} -le ${runnum_end} ] ; do
+
+	# Find free analysis slot
+	lock=${HOME}/${EXPID}/autoanalyzer/firstpass.${host}
+	let slot=0
+	while [ ${slot} -lt ${slots} ] ; do
+
+		# Determine time and hostname (so we have this as soon as we get a slot)
+		host=`hostname -s`
+		date=`date`
+
+		# Check next slot
+		if [ ! -e ${lock}.${slot}.started ] ; then
+			# Found a new slot
+			echo "Slot ${slot} is available (new)."
+			break
+		fi
+
+		if [ ${lock}.${slot}.ended -nt ${lock}.${slot}.started ] ; then
+			# Found a slot
+			echo "Slot ${slot} is available."
+			break
+		else
+			echo "Slot ${slot} is not available (`cat ${lock}.${slot}.started`)."
+		fi
+
+		# Check next slot
+		let slot=${slot}+1
+
+		# Maximum slot reached
+		if [ ${slot} -ge ${slots} ] ; then
+			echo "Waiting for analyzer slot to open..."
+			echo "(all starting locks are newer than the ending locks)"
+			sleep ${timeout_between}
+			let slot=0
+		fi
+	done
+
+	# Claim slot
+	echo "Host ${host}, slot ${slot}: pid $$, run $runnum, ${date}" > ${lock}.${slot}.started
+
+	# Set the analyzer options
+	if [ "$runnum" -lt 20000 ] ; then
+		options="--enable-differences true --disable-by-type QwComptonPhotonDetector"
+	else
+		options="--enable-differences true"
+	fi
+
+	# Start the analyzer
+	if [ -z "${macros_only}" ] ; then
+		echo "Starting analyzer for run ${runnum} on $(hostname)... (go get some coffee)"
+		QWSCRATCH=${HOME}/${EXPID}/QwScratch
+		QWANALYSIS=${HOME}/${EXPID}/QwAnalysis
+		source ${QWANALYSIS}/SetupFiles/SET_ME_UP.bash 2>&1 > log/Compton_Pass1_${runnum}.out
+		nice qwcompton -r $runnum ${options} \
+			--QwLog.logfile log/Compton_Pass1_${runnum}.log \
+			--rootfile-stem Compton_Pass1_ 2>&1 > /dev/null
+		nice gzip -f log/Compton_Pass1_${runnum}.out
+		nice gzip -f log/Compton_Pass1_${runnum}.log
+		echo "Finished analyzing run ${runnum}."
+	fi
+
+	echo "Starting macros for run ${runnum} on $(hostname)..."
+	${HOME}/${EXPID}/macros/process_run.sh --run=${runnum} \
+            > log/firstpass_${runnum}_macros.log
+	nice gzip -f log/firstpass_${runnum}_macros.log
+	echo "Finished macros for run ${runnum}."
+
+	# Release slot
+	echo "End: pid $$, run $runnum, `date`" > ${lock}.${slot}.ended
+
+	# Wait until starting next job to give other jobs a chance
+	if [ ${runnum} -lt ${runnum_end} ] ; then
+		sleep ${timeout_between}
+	fi
+
+	# Next run
+	let runnum=${runnum}+1
+
+done

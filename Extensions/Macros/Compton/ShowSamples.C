@@ -10,6 +10,7 @@ void ShowSamples(int entry)
   if (sampled_events->size() > 0) {
     const TGraph* graph = sampled_events->at(0).GetGraph();
     graph->Draw("AL");
+    std::cout << "sum = " << sampled_events->at(0).GetSum() << std::endl;
   } else {
     std::cout << "No samples in this event" << std::endl;
   }
