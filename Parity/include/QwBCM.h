@@ -1,12 +1,12 @@
 /**********************************************************\
-* File: QwBCM.h                                  *
-*                                                         *
-* Author:                                                 *
-* Time-stamp:                                             *
+* File: QwBCM.h                                            *
+*                                                          *
+* Author:                                                  *
+* Time-stamp:                                              *
 \**********************************************************/
 
-#ifndef __Qw_COMBINEDBCM__
-#define __Qw_COMBINEDBCM__
+#ifndef __QWBCM__
+#define __QWBCM__
 
 // System headers
 #include <vector>
@@ -14,91 +14,111 @@
 // ROOT headers
 #include <TTree.h>
 
-// Qweak headers
+#include "QwParameterFile.h"
 #include "VQwDataElement.h"
 #include "VQwHardwareChannel.h"
-#include "QwBCM.h"
+#include "VQwBCM.h"
 
 // Forward declarations
 class QwDBInterface;
 
+template<typename T> class QwCombinedBCM;
+
 /*****************************************************************
 *  Class:
 ******************************************************************/
-
+///
+/// \ingroup QwAnalysis_BL
 template<typename T>
-class QwCombinedBCM : public QwBCM<T> {
+class QwBCM : public VQwBCM {
 /////
+  friend class QwCombinedBCM<T>;
  public:
-  QwCombinedBCM() { };
-  QwCombinedBCM(TString name){
-    InitializeChannel(name, "derived");
+  QwBCM() { };
+  QwBCM(TString name){
+    InitializeChannel(name,"raw");
   };
-  QwCombinedBCM(TString subsystem, TString name){
-    InitializeChannel(subsystem, name, "derived");
+  QwBCM(TString subsystemname, TString name){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name,"raw");
   };
-  QwCombinedBCM(TString subsystemname, TString name, TString type){
-    this->SetSubsystemName(subsystemname);
+  QwBCM(TString subsystemname, TString name, TString type){
+    SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,type,"raw");
   };
-  ~QwCombinedBCM() {
+  ~QwBCM() {
     DeleteHistograms();
   };
 
-  // This is to setup one of the used BCM's in this combo
-  void SetBCMForCombo(VQwBCM* bcm, Double_t weight, Double_t sumqw );
-
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
-  void  ClearEventData();
 
   void  InitializeChannel(TString name, TString datatosave);
   // new routine added to update necessary information for tree trimming
   void  InitializeChannel(TString subsystem, TString name, TString datatosave);
   void  InitializeChannel(TString subsystem, TString name, TString type,
       TString datatosave);
+  void  ClearEventData();
 
-  void ReportErrorCounters();
 
-
+  void  SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
+  void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  SetRandomEventParameters(Double_t mean, Double_t sigma);
   void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity);
+  void  RandomizeEventData(int helicity = 0, double time = 0);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
+
+  void  UseExternalRandomVariable();
+  void  SetExternalRandomVariable(Double_t random_variable);
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
-    return fCombined_bcm.GetEventcutErrorFlag();
+    return fBeamCurrent.GetEventcutErrorFlag();
   }
+
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
-    fCombined_bcm.SetEventCutMode(bcuts);
+    fBeamCurrent.SetEventCutMode(bcuts);
   }
 
   void PrintValue() const;
   void PrintInfo() const;
+
+  const VQwHardwareChannel* GetCharge() const {
+    return &fBeamCurrent;
+  };
+
 
   // Implementation of Parent class's virtual operators
   VQwBCM& operator=  (const VQwBCM &value);
   VQwBCM& operator+= (const VQwBCM &value);
   VQwBCM& operator-= (const VQwBCM &value);
 
-  QwCombinedBCM& operator=  (const QwCombinedBCM &value);
-  QwCombinedBCM& operator+= (const QwCombinedBCM &value);
-  QwCombinedBCM& operator-= (const QwCombinedBCM &value);
-  void Sum(QwCombinedBCM &value1, QwCombinedBCM &value2);
-  void Difference(QwCombinedBCM &value1, QwCombinedBCM &value2);
-  void Ratio(const QwCombinedBCM &numer, const QwCombinedBCM &denom);
+  // This is used only by a QwComboBCM. It is placed here since in QwBeamLine we do
+  // not readily have the appropriate template every time we want to use this
+  // function.
+  virtual void SetBCMForCombo(VQwBCM* bcm, Double_t weight, Double_t sumqw ) {
+    std::cerr<<"SetBCMForCombo for QwCombinedBCM<T> not defined!!\n";
+  };
+
+  // This class specific operators
+  QwBCM& operator=  (const QwBCM &value);
+  QwBCM& operator+= (const QwBCM &value);
+  QwBCM& operator-= (const QwBCM &value);
+  void Sum(QwBCM &value1, QwBCM &value2);
+  void Difference(QwBCM &value1, QwBCM &value2);
   void Ratio(const VQwBCM &numer, const VQwBCM &denom);
+  void Ratio(const QwBCM &numer, const QwBCM &denom);
   void Scale(Double_t factor);
 
-  void AccumulateRunningSum(const QwCombinedBCM& value);
+  void AccumulateRunningSum(const VQwBCM& value);
   void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);
@@ -113,15 +133,9 @@ class QwCombinedBCM : public QwBCM<T> {
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  DeleteHistograms();
 
+  UInt_t   GetGoodEventCount() {return fBeamCurrent.GetGoodEventCount();};
+
   void Copy(VQwDataElement *source);
-
-  VQwHardwareChannel* GetCharge(){
-    return &fCombined_bcm;
-  };
-
-  const VQwHardwareChannel* GetCharge() const {
-    return const_cast<QwCombinedBCM*>(this)->GetCharge();
-  };
 
   std::vector<QwDBInterface> GetDBEntry();
 
@@ -129,36 +143,35 @@ class QwCombinedBCM : public QwBCM<T> {
 /////
  protected:
 
-  T fCombined_bcm;
 /////
  private:
-
+  Double_t fPedestal;
   Double_t fCalibration;
   Double_t fULimit, fLLimit;
-  Double_t fSequenceNo_Prev;
-
-  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent() */
-
-  std::vector <QwBCM<T>*> fElement;
-  std::vector <Double_t> fWeights;
-  Double_t fSumQweights;
+  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
 
 
-  Int_t fDevice_flag;//sets the event cut level for the device fDevice_flag=1 Event cuts & HW check,fDevice_flag=0 HW check, fDevice_flag=-1 no check  */
+
+
+  T fBeamCurrent;
+
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
-  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes */
+  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
-
-  std::vector<QwVQWK_Channel> fBCMComboElementList;
 
  private:
   //  Functions to be removed
   
-/*   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0); */
-/*   void  SetEventData(Double_t* block, UInt_t sequencenumber); */
+  //  void  SetEventData(Double_t* block, UInt_t sequencenumber);
+  /*   void  SetEventNumber(int event); */
+
+  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
+  Double_t GetAverage()        {return fBeamCurrent.GetValue();};
+  Double_t GetAverageError()   {return fBeamCurrent.GetValueError();};
 
 
 };
 
-#endif
+
+#endif // __QWBCM__

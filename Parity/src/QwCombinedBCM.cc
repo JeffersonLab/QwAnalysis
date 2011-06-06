@@ -535,35 +535,6 @@ std::vector<QwDBInterface> QwCombinedBCM<T>::GetDBEntry()
 
 }
 
-// QwCombinedBCM<T> Factory function
-template<typename T>
-VQwBCM* QwCombinedBCM<T>::CreateCombo(TString type)
-{
-  return CreateCombo("bcm","bcm_generic",type);
-}
-
-template<typename T>
-VQwBCM* QwCombinedBCM<T>::CreateCombo(TString subsystemname, TString name,
-    TString type)
-{
-  Bool_t localDebug = kFALSE;
-  type.ToUpper();
-  if( localDebug ) QwMessage<<"Creating CombinedBCM of type: "<<type<<" with name: "<<
-    name<<". Subsystem Name: " <<subsystemname<<"\n";
-  // (jc2) As a first try, let's do this the ugly way (but rather very
-  // simple), just list out the types of BCM's supported by this code!!!
-  if( type == "VQWK") {
-    return new QwCombinedBCM<QwVQWK_Channel>(subsystemname,name,type);
-  } else if (type == "SCALER" || type == "SIS3801" ) { // Default SCALER channel
-    return new QwCombinedBCM<QwSIS3801_Channel>(subsystemname,name,type);
-  } else if ( type == "SIS3801D24" ) {
-    return new QwCombinedBCM<QwSIS3801D24_Channel>(subsystemname,name,type);
-  } else { // Unsupported one!
-    QwWarning << "BCM of type="<<type<<" is UNSUPPORTED!!\n";
-    exit(-1);
-  }
-}
-
 template class QwCombinedBCM<QwVQWK_Channel>; 
 template class QwCombinedBCM<QwSIS3801_Channel>; 
 template class QwCombinedBCM<QwSIS3801D24_Channel>; 

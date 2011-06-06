@@ -20,6 +20,7 @@
 #include "QwTypes.h"
 #include "QwBPMStripline.h"
 #include "VQwBCM.h"
+#include "QwBCM.h"
 #include "QwBPMCavity.h"
 #include "QwCombinedBCM.h"
 #include "QwCombinedBPM.h"

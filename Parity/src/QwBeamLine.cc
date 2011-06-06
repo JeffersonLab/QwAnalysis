@@ -161,7 +161,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 	  if (localComboID.fTypeID == kQwCombinedBCM){
 
       VQwBCM_ptr localbcmcombo(
-          QwCombinedBCM<QwVQWK_Channel>::CreateCombo(GetSubsystemName(),
+          VQwBCM::CreateCombo(GetSubsystemName(),
             localComboID.fdetectorname,localComboID.fmoduletype));
 	    fBCMCombo.push_back(localbcmcombo);
 
@@ -2358,7 +2358,7 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 	  this->fBCMCombo.reserve(input->fBCM.size());
 	  for(size_t i=0;i<input->fBCMCombo.size();i++) {
 	    this->fBCMCombo.push_back(VQwBCM_ptr(
-        QwCombinedBCM<QwVQWK_Channel>::CreateCombo((
+        VQwBCM::CreateCombo((
             input->fBCMCombo[i].get())->GetModuleType())));
       if((this->fBCMCombo[i].get()) )
         (this->fBCMCombo[i].get())->Copy((input->fBCMCombo[i].get()));
