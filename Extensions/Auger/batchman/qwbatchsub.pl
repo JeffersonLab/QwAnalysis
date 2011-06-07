@@ -19,6 +19,20 @@
 #
 ################################################
 
+#####  Function prototypes:
+
+sub get_filelist_from_mss ($\@);
+sub get_files_for_one_run_from_mss ($$);
+sub get_the_good_runs ($\@);
+sub crashout ($ );
+sub displayusage;
+
+################################################
+################################################
+################################################
+
+our $running_under_some_shell;
+
 use Cwd;
 use Cwd 'abs_path';
 use File::Find ();
@@ -114,7 +128,7 @@ if ($opt_h){
     exit;
 }
 
-if ($opt_E ne ""){
+if (defined($opt_E) && $opt_E ne ""){
     $executable = $opt_E;
     if (-e "$ENV{QW_BIN}/$opt_E") {
 	$executable = "$ENV{QW_BIN}/$opt_E";
@@ -130,32 +144,32 @@ if ($opt_E ne ""){
 }
 
 
-if ($opt_M ne ""){
+if (defined($opt_M) && $opt_M ne ""){
     $mss_dir = $opt_M;
 } else {
     $mss_dir = "/mss/hallc/qweak";
 }
 
-if ($opt_C ne ""){
+if (defined($opt_C) && $opt_C ne ""){
     $cache_option_list = $opt_C;
 } else {
     $cache_option_list = "";
 }
 
-if ($opt_Q ne ""){
+if (defined($opt_Q) && $opt_Q ne ""){
     $batch_queue = $opt_Q;
 } else {
     $batch_queue = "one_pass";
 }
 
 my $rootfile_stem = undef;
-if ($opt_R ne ""){
+if (defined($opt_R) && $opt_R ne ""){
     $rootfile_stem = $opt_R;
 } else {
     $rootfile_stem = "Qweak_";
 }
 
-if ($RunList eq ""){
+if (! defined($RunList) || $RunList eq ""){
     print STDERR "No runs specified.  Exiting\n";
     displayusage();
     exit;
@@ -200,7 +214,7 @@ if ($RunList eq ""){
 
 ###  Check the run list against the "good runs" list.
 @good_runs = ();
-if ($opt_F ne ""){
+if (defined($opt_F) && $opt_F ne ""){
     if ($opt_F =~ /^\//){
 	$goodrunfile = $opt_F;
     } else {
@@ -220,10 +234,14 @@ if ($opt_F ne ""){
 }
 
 
-if ($opt_O ne ""){
+if (defined($opt_O) && $opt_O ne ""){
     $analysis_option_list = $opt_O;
 } else {
     $analysis_option_list = $Default_Analysis_Options;
+}
+
+if (! defined($output_path)){
+    $output_path = "mss:$mss_dir/rootfiles/pass0"
 }
 
 print STDOUT "\nRuns to be analyzed:\t@good_runs\n\n",
@@ -235,18 +253,6 @@ print STDOUT "\nRuns to be analyzed:\t@good_runs\n\n",
 
 
 foreach $runnumber (@good_runs){
-    if ($ENV{QWDBPASSWD} ne "" || $ENV{QWANALYSIS_REFERENCEANALYZER} ne ""){
-	my $replay_setup = "$scratch_directory/work/.replay_setup.$runnumber";
-	open(SETUPFILE, ">$replay_setup") or die "$replay_setup: $!";
-	if ($ENV{QWDBPASSWD} ne ""){
-	    print SETUPFILE  "setenv QWDBPASSWD $ENV{QWDBPASSWD}\n";
-	}
-	if ($ENV{QWANALYSIS_REFERENCEANALYZER} ne ""){
-	    print SETUPFILE  "setenv QWANALYSIS $ENV{QWANALYSIS}\n";
-	    print SETUPFILE  "setenv QWANALYSIS_REFERENCEANALYZER $ENV{QWANALYSIS_REFERENCEANALYZER}\n";
-	}
-	close SETUPFILE;
-    }
 
     @input_files = get_files_for_one_run_from_mss("raw",$runnumber);
 
@@ -359,7 +365,7 @@ foreach $runnumber (@good_runs){
 	    " <Project name=\"qweak\"/>\n",
 	    " <Track name=\"$batch_queue\"/>\n",
 	    " <Name name=\"$rootfile_stem$runnumber\"/>\n";
-	my $diskspace=($#input_files+1)*1600+3000;
+	my $diskspace=($#input_files+1)*10000+3000;
 	my $memory=2048;
 	print JOBFILE
 	    " <OS name=\"linux64\"/>\n",
