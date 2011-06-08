@@ -4,9 +4,10 @@
 //*****************************************************************************************************//
 //
 //
-//  This macro will connect to the qw_linreg_20110125 data base and get the slug averages from the given run range
-//  regressed data and plot 
-//  them in to three plots for pmt+, pmt- and bar sum, us lumi and ds lumi asymmetries. 
+//  This macro will connect to the regression data base qw_linreg_20110125 and unregressed pass1 data base qw_fall2020_20101204
+//  and extract the weighted average of the asymettries from the main detectors, ds lumi and us lumi. The averages are them plotted
+//  to show thier variation over the octants.
+//  
 //   e.g. use
 //   ./compare_regressed_unregressed run1 run2
 //
