@@ -68,7 +68,7 @@ class QwTrack: public VQwTrackingElement, public QwObjectCounter<QwTrack> {
     double fTotalEnergy;
     double fScatteringAngle;
 
-     double fPositionRoff,fPositionPhioff;    
+    double fPositionRoff,fPositionPhioff;    
     double fDirectionThetaoff,fDirectionPhioff;
 
     double fXBj, fY, fQ2, fW2, fNu;	/// kinematics

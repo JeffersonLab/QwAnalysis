@@ -11,11 +11,10 @@
  *   Integrating the equations of motion for electrons in the QTOR.
  *   The 4'th order Runge-Kutta method is used.
  *
- *   The Newton-Raphson method is used to solve for the momentum of the track.
+ *   The Newton-Raphson method is used to solve for `the momentum of the track.
  *
  */
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #ifndef __QWRAYTRACER_H__
 #define __QWRAYTRACER_H__
@@ -36,14 +35,12 @@
 #include "VQwBridgingMethod.h"
 #include "QwPartialTrack.h"
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 // Forward declarations
 class QwMagneticField;
 class QwPartialTrackParameter;
 class QwBridge;
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 class QwRayTracer: public VQwBridgingMethod {
 
@@ -58,18 +55,18 @@ class QwRayTracer: public VQwBridgingMethod {
 
     void GenerateLookUpTable();
 
-    int Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
+    Int_t Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
-    int DoForcedBridging() {
+    Int_t DoForcedBridging() {
         return -1;
     };
 
     /// \brief Integrate using the Runge-Kutta 4th order algorithm
-    bool IntegrateRK4(TVector3& r0, TVector3& v0, const double p0, double z_end, double step);
+    bool IntegrateRK4(TVector3& r0, TVector3& v0, const Double_t p0, Double_t z_end, Double_t step);
 
     QwBridge* GetBridgingInfo();
 
-    double GetMomentum() {
+    Double_t GetMomentum() {
         return fMomentum;
     };
 
@@ -83,13 +80,13 @@ class QwRayTracer: public VQwBridgingMethod {
     TVector3 GetFieldIntegral() {
         return TVector3(fBdlx,fBdly,fBdlz);
     };
-    double GetFieldIntegralX() {
+    Double_t GetFieldIntegralX() {
         return fBdlx;
     };
-    double GetFieldIntegralY() {
+    Double_t GetFieldIntegralY() {
         return fBdly;
     };
-    double GetFieldIntegralZ() {
+    Double_t GetFieldIntegralZ() {
         return fBdlz;
     };
 
@@ -102,29 +99,30 @@ class QwRayTracer: public VQwBridgingMethod {
     /// Magnetic field (static)
     static QwMagneticField *fBfield;
 
-    double fBdlx; /// x component of the field integral
-    double fBdly; /// y component of the field integral
-    double fBdlz; /// z component of the field integral
+    Double_t fBdlx; /// x component of the field integral
+    Double_t fBdly; /// y component of the field integral
+    Double_t fBdlz; /// z component of the field integral
 
-    double fMomentum;  /// electron momentum
-    double fScatteringAngle;
+    Double_t fMomentum;  /// electron momentum
+    Double_t fScatteringAngle;
+
     TVector3 fStartPosition;
+    TVector3 fHitPosition;
+    TVector3 fHitDirection;
 
-    TVector3 fHitPosition, fHitDirection;
+    Double_t fPositionROff;
+    Double_t fPositionPhiOff;
+    Double_t fDirectionThetaOff;
+    Double_t fDirectionPhiOff;
 
-    double fPositionROff;
-    double fPositionPhiOff;
-    double fDirectionThetaOff;
-    double fDirectionPhiOff;
+    Double_t fPositionXOff;
+    Double_t fPositionYOff;
 
-    double fPositionXOff;
-    double fPositionYOff;
+    Double_t fDirectionXOff;
+    Double_t fDirectionYOff;
+    Double_t fDirectionZOff;
 
-    double fDirectionXOff;
-    double fDirectionYOff;
-    double fDirectionZOff;
-
-    int fSimFlag;
+    Int_t fSimFlag;
 
     Int_t fMatchFlag; // MatchFlag = -2 : cannot match
                       // MatchFlag = -1 : potential track cannot pass through the filter
@@ -134,6 +132,5 @@ class QwRayTracer: public VQwBridgingMethod {
 
 }; // class QwRayTracer
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 #endif // __QWRAYTRACER_H__
