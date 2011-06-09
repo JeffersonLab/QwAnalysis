@@ -285,21 +285,21 @@ class QwParameterFile {
 template <>
 inline std::string QwParameterFile::GetTypedNextToken<std::string>(){
   return GetNextToken();
-};
+}
 
 template <>
 inline UInt_t QwParameterFile::ConvertValue<UInt_t>(const std::string& value) {
   return GetUInt(value);
-};
+}
 
 template <>
 inline std::string QwParameterFile::ConvertValue<std::string>(const std::string& value) {
   return value;
-};
+}
 
 template <>
 inline TString QwParameterFile::ConvertValue<TString>(const std::string& value) {
   return TString(value.c_str());
-};
+}
 
 #endif // __QWPARAMETERFILE__

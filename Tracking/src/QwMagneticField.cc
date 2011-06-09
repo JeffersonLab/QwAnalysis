@@ -42,6 +42,14 @@ inline ostream& operator<< (ostream& stream, const double v[3])
  */
 QwMagneticField::QwMagneticField()
 {
+  // Check number of field components
+  if (value_n < 3) {
+    QwError << "Number of field components should be at least three!" << QwLog::endl;
+  }
+
+  // No field map yet
+  fField = 0;
+
   // Initialize parameters
   SetScaleFactor(1.0);
   SetTranslation(0.0);
@@ -51,7 +59,18 @@ QwMagneticField::QwMagneticField()
   ProcessOptions(gQwOptions);
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+/**
+ * Destructor
+ */
+QwMagneticField::~QwMagneticField()
+{
+  if (fField) delete fField;
+}
+
+/**
+ * Define the options for this subsystem
+ * @param options Options object
+ */
 void QwMagneticField::DefineOptions(QwOptions& options)
 {
   options.AddOptions("Magnetic field map")
@@ -92,13 +111,18 @@ void QwMagneticField::DefineOptions(QwOptions& options)
      "Step size of phi [deg]");
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
+/**
+ * Process the options for this subsystem
+ * @param options Options object
+ */
 void QwMagneticField::ProcessOptions(QwOptions& options)
 {
+  // Scaling, translation, rotation options
   double bfil  = options.GetValue<double>("QwMagneticField.bfil");
   double trans = Qw::cm  * options.GetValue<double>("QwMagneticField.trans");
   double rot   = Qw::deg * options.GetValue<double>("QwMagneticField.rot");
 
+  // Grid options
   double zmin    = Qw::cm  * options.GetValue<double>("QwMagneticField.zmin");
   double zmax    = Qw::cm  * options.GetValue<double>("QwMagneticField.zmax");
   double zstep   = Qw::cm  * options.GetValue<double>("QwMagneticField.zstep");
@@ -119,11 +143,11 @@ void QwMagneticField::ProcessOptions(QwOptions& options)
   SetScaleFactor(bfil);
   SetTranslation(trans);
   SetRotation(rot);
-  SetDimensions(min.size());
-  SetMinimumMaximumStep(min,max,step);
+
+  // Create new magnetic field
+  fField = new QwInterpolator<field_t,value_n>(min,max,step);
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 /**
  * Read the magnetic field from an ANSYS map file in text format
  * @param filename ANSYS map file name
@@ -145,7 +169,6 @@ bool QwMagneticField::ReadFieldMapFile(const std::string filename)
   return ReadFieldMap(inputfile);
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 /**
  * Read the magnetic field from an ANSYS map file in gzipped text format
  * @param filename ANSYS map file name
@@ -167,7 +190,6 @@ bool QwMagneticField::ReadFieldMapZip(const std::string filename)
 #endif
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 /**
  * Read the magnetic field from an ANSYS map text stream
  * @param input Input stream
@@ -176,6 +198,13 @@ bool QwMagneticField::ReadFieldMapZip(const std::string filename)
 bool QwMagneticField::ReadFieldMap(std::istream& input)
 {
   QwDebug << "###### Calling QwMagneticField::ReadFieldMap " << QwLog::endl;
+
+  // Check whether field map exists
+  if (fField == 0) {
+    QwWarning << "Trying to read field map without object to put values in."
+              << QwLog::endl;
+    return false;
+  }
 
   QwMessage << "------------------------------" << QwLog::endl;
   QwMessage << "  Reading magnetic field map  " << QwLog::endl;
@@ -193,7 +222,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
 
   // Loop over stream until end-of-file
   // Note: input.good() only says whether next operation *might* succeed
-  field_t field[N_FIELD_COMPONENTS];
+  field_t field[value_n];
   while (! input.fail()) {
 
     // Read a line with three position coordinates and three field components
@@ -222,7 +251,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
     field[1] = by;
     field[2] = bz;
 
-    #if N_FIELD_COMPONENTS == 5
+    if (value_n == 5) {
       // Calculate the radial and azimuthal field components
       double br =    bx * cos(phi) + by * sin(phi);
       double bphi = -bx * sin(phi) + by * cos(phi);
@@ -230,32 +259,35 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
       // Construct the field vector
       field[3] = br;
       field[4] = bphi;
-    #endif
+    }
 
-    bool status = Set(coord, field);
+    bool status = fField->Set(coord, field);
     if (! status) {
       QwError << "Problem assigning field to coordinate!" << QwLog::endl;
       QwError << coord[0] << "," << coord[1] << "," << coord[2] << QwLog::endl;
     }
 
     // Progress bar
-    if (GetCurrentEntries() % (GetMaximumEntries() / 10) == 0)
-      QwMessage << GetCurrentEntries() / (GetMaximumEntries() / 100) << "%" << QwLog::flush;
-    if (GetCurrentEntries() % (GetMaximumEntries() / 10) != 0
-     && GetCurrentEntries() % (GetMaximumEntries() / 40) == 0)
+    if (fField->GetCurrentEntries() % (fField->GetMaximumEntries() / 10) == 0) {
+      int pct = fField->GetCurrentEntries() / (fField->GetMaximumEntries() / 100);
+      QwMessage << pct << "%" << QwLog::flush;
+    }
+    if (fField->GetCurrentEntries() % (fField->GetMaximumEntries() / 10) != 0
+     && fField->GetCurrentEntries() % (fField->GetMaximumEntries() / 40) == 0) {
       QwMessage << "." << QwLog::flush;
+    }
   }
   QwMessage << QwLog::endl;
 
-  if (abs(GetCurrentEntries()/GetMaximumEntries() - 1) > 0.00001) {
-    QwWarning << "Expected " << GetMaximumEntries() << " entries, "
-              << "but only read " << GetCurrentEntries() << "." << QwLog::endl;
+  if (abs(fField->GetCurrentEntries() / fField->GetMaximumEntries() - 1) > 0.00001) {
+    QwWarning << "Expected " << fField->GetMaximumEntries() << " entries, "
+              << "but only read " << fField->GetCurrentEntries() << "." << QwLog::endl;
     QwMessage << "Coverage of the z bins:" << QwLog::endl;
-    PrintCoverage(0);
+    fField->PrintCoverage(0);
     QwMessage << "Coverage of the r bins:" << QwLog::endl;
-    PrintCoverage(1);
+    fField->PrintCoverage(1);
     QwMessage << "Coverage of the phi bins:" << QwLog::endl;
-    PrintCoverage(2);
+    fField->PrintCoverage(2);
   }
 
   QwDebug << "###### Leaving QwMagneticField::ReadFieldMap " << QwLog::endl;
@@ -263,7 +295,6 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
   return true;
 }
 
-//....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
 /**
  * Get a field value
  * @param coord_xyz[] Cartesian coordinates (x,y,z)
@@ -271,7 +302,7 @@ bool QwMagneticField::ReadFieldMap(std::istream& input)
  */
 void QwMagneticField::GetFieldValue(
 	const double coord_xyz[3],
-	double field[N_FIELD_COMPONENTS]) const
+	double field[value_n]) const
 {
   // Convert from cartesian to cylindrical coordinates
   double z   = coord_xyz[2];
@@ -288,16 +319,16 @@ void QwMagneticField::GetFieldValue(
   // The magnetic field object was not defined, return zero field and complain
   if (!this) {
     QwWarning << "No field map defined: assuming zero field!" << QwLog::endl;
-    for (unsigned int i = 0; i < N_FIELD_COMPONENTS; i++) field[i] = 0.0;
+    for (unsigned int i = 0; i < value_n; i++) field[i] = 0.0;
     return;
   }
 
   // Retrieve field value
-  bool status = GetValue(coord_zrf,field);
+  bool status = fField->GetValue(coord_zrf,field);
 
   // Warn if the coordinate was inside the field boundaries,
   // but we still encountered a problem.
-  if (status == false && InBounds(coord_zrf)) {
+  if (status == false && fField->InBounds(coord_zrf)) {
     QwWarning << "Could not get field value at (z,r,phi) = " << coord_zrf << QwLog::endl;
     QwWarning << "Will use field value (x,y,z) = " << field << QwLog::endl;
   }

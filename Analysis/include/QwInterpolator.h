@@ -20,11 +20,6 @@ enum EQwInterpolationMethod {
 
 // Type of grid coordinates
 typedef double coord_t;
-// NOTE This could trivially be made into a template argument, but that seems
-// hardly worth it considering the small gains in going to different types.
-
-// NOTE The normalized cell-local coordinates are always in double precision,
-// and the returned interpolated values are also in double.
 
 /**
  *  \class QwInterpolator
@@ -88,14 +83,11 @@ class QwInterpolator {
     /// of points in the first index, etc...)
     std::vector<size_t> fExtent;
 
-    /// Scale factor
-    value_t fScaleFactor;
-
     /// Table with pointers to arrays of values
     std::vector<value_t> fValues[value_n];
 
     /// Number of values read in
-    unsigned int fEntries;
+    unsigned int fCurrentEntries;
     /// Maximum number of values
     unsigned int fMaximumEntries;
 
@@ -133,7 +125,7 @@ class QwInterpolator {
         fExtent[i+1] = fExtent[i] * fSize[i];
       }
       // Try resizing to allocate memory and initialize with zeroes
-      fMaximumEntries = fExtent[fNDim]; fEntries = 0; // no entries read yet
+      fMaximumEntries = fExtent[fNDim]; fCurrentEntries = 0; // no entries read yet
       for (unsigned int i = 0; i < value_n; i++) {
         try {
           fValues[i].resize(fMaximumEntries,0);
@@ -151,7 +143,7 @@ class QwInterpolator {
     /// Get the maximum number of entries
     unsigned int GetMaximumEntries() const { return fMaximumEntries; };
     /// Get the current number of entries
-    unsigned int GetCurrentEntries() const { return fEntries; };
+    unsigned int GetCurrentEntries() const { return fCurrentEntries; };
 
 
     /// Set the interpolation method
@@ -160,14 +152,6 @@ class QwInterpolator {
     /// Get the interpolation method
     EQwInterpolationMethod GetInterpolationMethod() const
       { return fInterpolationMethod; };
-
-
-    /// Set the scale factor
-    void SetScaleFactor(const double scalefactor)
-      { fScaleFactor = scalefactor; };
-    /// Get the scale factor
-    double GetScaleFactor() const
-      { return fScaleFactor; };
 
 
     /// Print coverage map for all bins in one dimension
@@ -248,8 +232,8 @@ class QwInterpolator {
     bool Set(const unsigned int linear_index, const value_t* value) {
       if (! Check(linear_index)) return false; // out of bounds
       for (unsigned int i = 0; i < value_n; i++)
-        fValues[i][linear_index] = fScaleFactor * value[i];
-      fEntries++;
+        fValues[i][linear_index] = value[i];
+      fCurrentEntries++;
       return true;
     };
 
@@ -314,7 +298,7 @@ class QwInterpolator {
     /// \brief Write the grid as text
     bool WriteText(std::ostream& stream) const;
     /// Write the grid to text file
-    bool WriteTextFile(std::string filename) const {
+    bool WriteTextFile(const std::string& filename) const {
       std::ofstream file(filename.c_str());
       if (! file.is_open()) return false;
       WriteText(file);
@@ -329,7 +313,7 @@ class QwInterpolator {
     /// \brief Read the grid from text
     bool ReadText(std::istream& stream);
     /// Read the grid from text file
-    bool ReadTextFile(std::string filename) {
+    bool ReadTextFile(const std::string& filename) {
       std::ifstream file(filename.c_str());
       if (! file.is_open()) return false;
       if (! ReadText(file)) return false;
@@ -337,9 +321,9 @@ class QwInterpolator {
       return true;
     };
     /// \brief Write the grid values to binary file
-    bool WriteBinaryFile(std::string filename) const;
+    bool WriteBinaryFile(const std::string& filename) const;
     /// \brief Read the grid values from binary file
-    bool ReadBinaryFile(std::string filename);
+    bool ReadBinaryFile(const std::string& filename);
     // @}
 
 
@@ -676,7 +660,7 @@ inline bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& stream) con
   for (unsigned int index = 0; index < entries; index++) {
     // Write values
     for (unsigned int i = 0; i < value_n; i++) {
-      stream << fValues[i][index] / fScaleFactor << "\t";
+      stream << fValues[i][index] << "\t";
     }
     stream << std::endl;
     // Progress bar
@@ -717,7 +701,6 @@ inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
     // Read values
     for (unsigned int i = 0; i < value_n; i++) {
       stream >> fValues[i][index];
-      fValues[i][index] *= fScaleFactor;
     }
     // Progress bar
     if (index % (entries / 10) == 0)
@@ -747,7 +730,7 @@ inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
  * @return True if written successfully
  */
 template <class value_t, unsigned int value_n>
-inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string filename) const
+inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(const std::string& filename) const
 {
   std::ofstream file(filename.c_str(), std::ios::binary);
   if (! file.is_open()) return false;
@@ -771,7 +754,7 @@ inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string filenam
   for (unsigned int index = 0; index < entries; index++) {
     // Write values
     for (unsigned int i = 0; i < value_n; i++) {
-      value_t value = fValues[i][index] / fScaleFactor;
+      value_t value = fValues[i][index];
       file.write(reinterpret_cast<const char*>(&value),sizeof(value));
     }
     // Progress bar
@@ -792,7 +775,7 @@ inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string filenam
  * @return True if read successfully
  */
 template <class value_t, unsigned int value_n>
-inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string filename)
+inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(const std::string& filename)
 {
   std::ifstream file(filename.c_str(), std::ios::binary);
   if (! file.is_open()) return false;
@@ -828,7 +811,6 @@ inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string filename
     // Read values
     for (unsigned int i = 0; i < value_n; i++) {
       file.read((char*)(&fValues[i][index]),value_size);
-      fValues[i][index] *= fScaleFactor;
     }
     // Progress bar
     if (index % (entries / 10) == 0)
