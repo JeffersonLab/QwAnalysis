@@ -36,7 +36,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 
   TString varname, varvalue,package, direction, dType;
   Int_t    plane, TotalWires, detectorId, region, DIRMODE;
-  Double_t Zpos, rot, sp_res, track_res, slope_match;
+  Double_t Zpos=0.0, rot, sp_res, track_res, slope_match;
   Double_t Det_originX, Det_originY;
   Double_t ActiveWidthX, ActiveWidthY, ActiveWidthZ;
   Double_t WireSpace, FirstWire, W_rcos, W_rsin, tilt;
@@ -95,9 +95,7 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	  TotalWires   = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
 	  detectorId   = ( atol ( mapstr.GetNextToken ( ", " ).c_str() ) );
 
-	  QwDebug << " VDC : Detector ID " << detectorId << " " << varvalue
-		  << " Package "     << package << " Plane " << Zpos
-		  << " Region "      << region << QwLog::endl;
+
 			
 	  // Octant R3 is in front of, is the only value used
 	  Int_t oct = gQwOptions.GetValue<Int_t> ("R3-octant");
@@ -109,6 +107,9 @@ Int_t QwDriftChamberVDC::LoadGeometryDefinition ( TString mapfile )
 	  rot = ROT[oct-1];
 	  tilt = TILT[oct-1];
 			
+	  QwDebug << " VDC : Detector ID " << detectorId << " " << varvalue
+		  << " Package "     << package << " Plane " << Zpos
+		  << " Region "      << region << QwLog::endl;
 	  //std::cout << oct << "------------- " << " oct " << Zpos << " zpos " << Det_originX << " x " << Det_originY << " y " << rot << " rot " << tilt << " tilt " << detectorId <<  "----------" << std::endl; 
 
 	  if ( region==3 )
@@ -1062,13 +1063,13 @@ void  QwDriftChamberVDC::ConstructHistograms ( TDirectory *folder, TString& pref
   // we skip the first zero-th plane or wire histogram. thus
   // i starts with '1'. hist[0] is NULL
 
-  for ( iplane=1; iplane<total_plane_number; iplane++ )
+  for ( iplane=1; iplane< total_plane_number; iplane++ )
     {
       //   std::cout << "QwDriftChamberVDC iplane" << iplane << std::endl;
       // push_back can "push" iplane = 1 into TotHits.at(0) ??
       TotHits[iplane] = new TH1F (
-				  Form ( "%s%sWiresPlane%d", prefix.Data(), region.Data(), iplane ),
-				  Form ( "Total hits on all wires in plane %d", iplane ),
+				  Form ( "%s%sWiresPlane%zu", prefix.Data(), region.Data(), iplane ),
+				  Form ( "Total hits on all wires in plane %zu", iplane ),
 				  fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset
 				  );
 
