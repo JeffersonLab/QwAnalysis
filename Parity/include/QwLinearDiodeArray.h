@@ -93,6 +93,11 @@ class QwLinearDiodeArray : public VQwBPM {
   void    Ratio(QwLinearDiodeArray &numer, QwLinearDiodeArray &denom);
   void    Scale(Double_t factor);
 
+
+  VQwBPM& operator=  (const VQwBPM &value);
+  VQwBPM& operator+= (const VQwBPM &value);
+  VQwBPM& operator-= (const VQwBPM &value);
+
   virtual QwLinearDiodeArray& operator=  (const QwLinearDiodeArray &value);
   virtual QwLinearDiodeArray& operator+= (const QwLinearDiodeArray &value);
   virtual QwLinearDiodeArray& operator-= (const QwLinearDiodeArray &value);

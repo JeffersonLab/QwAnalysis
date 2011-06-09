@@ -105,18 +105,18 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   void PrintInfo() const;
 
 
-  QwBPMStripline<QwVQWK_Channel>* GetBPMStripline(const TString name);
+  VQwBPM* GetBPMStripline(const TString name);
   VQwBCM* GetBCM(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
   VQwBCM* GetCombinedBCM(const TString name);
-  QwCombinedBPM<QwVQWK_Channel>* GetCombinedBPM(const TString name);
+  VQwBPM* GetCombinedBPM(const TString name);
   QwEnergyCalculator* GetEnergyCalculator(const TString name);
   QwHaloMonitor* GetScalerChannel(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
-  const QwBPMStripline<QwVQWK_Channel>* GetBPMStripline(const TString name) const;
+  const VQwBPM* GetBPMStripline(const TString name) const;
   const VQwBCM* GetBCM(const TString name) const;
   const VQwBCM* GetCombinedBCM(const TString name) const;
-  const QwCombinedBPM<QwVQWK_Channel>* GetCombinedBPM(const TString name) const;
+  const VQwBPM* GetCombinedBPM(const TString name) const;
   const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
   const QwHaloMonitor* GetScalerChannel(const TString name) const;
 
@@ -126,7 +126,9 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  Int_t GetDetectorIndex(EQwBeamInstrumentType TypeID, TString name);
  //when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
- std::vector <QwBPMStripline<QwVQWK_Channel> > fStripline;
+ typedef boost::shared_ptr<VQwBPM> VQwBPM_ptr;
+ std::vector <VQwBPM_ptr> fStripline;
+ std::vector <VQwBPM_ptr> fBPMCombo;
 
  typedef boost::shared_ptr<VQwBCM> VQwBCM_ptr;
  std::vector <VQwBCM_ptr> fBCM;
@@ -137,7 +139,6 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  std::vector <QwBPMCavity> fCavity;
  std::vector <QwHaloMonitor> fHaloMonitor;
 
- std::vector <QwCombinedBPM<QwVQWK_Channel> > fBPMCombo;
 
  std::vector <QwEnergyCalculator> fECalculator;
  std::vector <QwBeamDetectorID> fBeamDetectorID;

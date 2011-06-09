@@ -348,6 +348,14 @@ void  QwLinearDiodeArray::GetAbsolutePosition()
 
 }
 
+
+VQwBPM& QwLinearDiodeArray::operator= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwLinearDiodeArray*>(this)) =
+      *(dynamic_cast<const QwLinearDiodeArray*>(&value));
+  return *this;
+}
+
 QwLinearDiodeArray& QwLinearDiodeArray::operator= (const QwLinearDiodeArray &value)
 {
   VQwBPM::operator= (value);
@@ -363,6 +371,12 @@ QwLinearDiodeArray& QwLinearDiodeArray::operator= (const QwLinearDiodeArray &val
   return *this;
 }
 
+VQwBPM& QwLinearDiodeArray::operator+= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwLinearDiodeArray*>(this)) +=
+      *(dynamic_cast<const QwLinearDiodeArray*>(&value));
+  return *this;
+}
 
 QwLinearDiodeArray& QwLinearDiodeArray::operator+= (const QwLinearDiodeArray &value)
 {
@@ -375,6 +389,13 @@ QwLinearDiodeArray& QwLinearDiodeArray::operator+= (const QwLinearDiodeArray &va
       this->fRelPos[i]+=value.fRelPos[i];
     }
   }
+  return *this;
+}
+
+VQwBPM& QwLinearDiodeArray::operator-= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwLinearDiodeArray*>(this)) -=
+      *(dynamic_cast<const QwLinearDiodeArray*>(&value));
   return *this;
 }
 
@@ -806,3 +827,4 @@ void QwLinearDiodeArray::SetSubElementCalibrationFactor(Int_t j, Double_t value)
   fPhotodiode.at(j).SetCalibrationFactor(value);
   return;
 }
+

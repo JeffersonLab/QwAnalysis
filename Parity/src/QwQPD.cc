@@ -407,6 +407,11 @@ UInt_t QwQPD::GetSubElementIndex(TString subname)
   return localindex;
 }
 
+VQwBPM& QwQPD::operator= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwQPD*>(this)) = *(dynamic_cast<const QwQPD*>(&value));
+  return *this;
+}
 
 QwQPD& QwQPD::operator= (const QwQPD &value)
 {
@@ -421,10 +426,15 @@ QwQPD& QwQPD::operator= (const QwQPD &value)
   return *this;
 }
 
+VQwBPM& QwQPD::operator+= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwQPD*>(this)) += *(dynamic_cast<const QwQPD*>(&value));
+  return *this;
+}
 
 QwQPD& QwQPD::operator+= (const QwQPD &value)
 {
-  VQwBPM::operator+= (value);
+//  VQwBPM::operator+= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
     for(i=0;i<4;i++) this->fPhotodiode[i]+=value.fPhotodiode[i];
@@ -434,9 +444,15 @@ QwQPD& QwQPD::operator+= (const QwQPD &value)
   return *this;
 }
 
+VQwBPM& QwQPD::operator-= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwQPD*>(this)) -= *(dynamic_cast<const QwQPD*>(&value));
+  return *this;
+}
+
 QwQPD& QwQPD::operator-= (const QwQPD &value)
 {
-  VQwBPM::operator-= (value);
+//  VQwBPM::operator-= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
     for(i=0;i<4;i++) this->fPhotodiode[i]-=value.fPhotodiode[i];
@@ -857,3 +873,4 @@ void QwQPD::SetSubElementCalibrationFactor(Int_t j, Double_t value)
   fPhotodiode[j].SetCalibrationFactor(value);
   return;
 }
+

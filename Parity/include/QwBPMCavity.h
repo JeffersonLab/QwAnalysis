@@ -93,6 +93,10 @@ class QwBPMCavity : public VQwBPM {
   void    Ratio(QwBPMCavity &numer, QwBPMCavity &denom);
   void    Scale(Double_t factor);
 
+  VQwBPM& operator=  (const VQwBPM &value);
+  VQwBPM& operator+= (const VQwBPM &value);
+  VQwBPM& operator-= (const VQwBPM &value);
+
   virtual QwBPMCavity& operator=  (const QwBPMCavity &value);
   virtual QwBPMCavity& operator+= (const QwBPMCavity &value);
   virtual QwBPMCavity& operator-= (const QwBPMCavity &value);

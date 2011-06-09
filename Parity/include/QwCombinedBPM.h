@@ -5,8 +5,8 @@
 * Time-stamp:                                             *
 \**********************************************************/
 
-#ifndef __QwVQWK_COMBINEDBPM__
-#define __QwVQWK_COMBINEDBPM__
+#ifndef __QwCOMBINEDBPM__
+#define __QwCOMBINEDBPM__
 
 // System headers
 #include <vector>
@@ -15,14 +15,12 @@
 #include <TTree.h>
 
 // Qweak headers
-#include "VQwBPM.h"
 #include "VQwHardwareChannel.h"
-#include "QwBPMStripline.h"
-
-
+#include "VQwBPM.h"
 
 // Forward declarations
 class QwDBInterface;
+class QwParameterFile;
 
 /*****************************************************************
 *  Class:
@@ -30,7 +28,7 @@ class QwDBInterface;
 ///
 /// \ingroup QwAnalysis_BL
 template<typename T>
-class QwCombinedBPM : public VQwBPM{
+class QwCombinedBPM : public VQwBPM {
   friend class QwEnergyCalculator;
 
   /////
@@ -40,17 +38,27 @@ class QwCombinedBPM : public VQwBPM{
   QwCombinedBPM(TString name):VQwBPM(name){
     InitializeChannel(name);
   };
-  QwCombinedBPM(TString subsystem, TString name):VQwBPM(name){
+  QwCombinedBPM(TString subsystem, TString name): VQwBPM(name){
     InitializeChannel(subsystem, name);
   };
 
-  ~QwCombinedBPM() {
-    DeleteHistograms();
+  QwCombinedBPM(TString subsystem, TString name, TString type): VQwBPM(name){
+    InitializeChannel(subsystem, name,type);
   };
+
+  ~QwCombinedBPM() {
+    this->DeleteHistograms();
+  };
+
+  using VQwBPM::EBeamPositionMonitorAxis;
 
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
   void  InitializeChannel(TString subsystem, TString name);
+  void  InitializeChannel(TString subsystem, TString name, TString type) {
+    SetModuleType(type);
+    InitializeChannel(subsystem, name);
+  }
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
@@ -66,6 +74,7 @@ class QwCombinedBPM : public VQwBPM{
     }
     return &fAbsPos[axis];
   }
+
   const VQwHardwareChannel* GetSlope(EBeamPositionMonitorAxis axis) const{
     if (axis<0 || axis>2){
       TString loc="QwLinearDiodeArray::GetPosition for "
@@ -87,16 +96,23 @@ class QwCombinedBPM : public VQwBPM{
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
-  void    Set(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
+  void    SetBPMForCombo(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
 
   void    Copy(VQwDataElement *source);
+  void Copy(VQwBPM *source);
   void    Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom);
+  void    Ratio(VQwBPM &numer, VQwBPM &denom);
   void    Scale(Double_t factor);
+
+  VQwBPM& operator=  (const VQwBPM &value);
+  VQwBPM& operator+= (const VQwBPM &value);
+  VQwBPM& operator-= (const VQwBPM &value);
 
   virtual QwCombinedBPM& operator=  (const QwCombinedBPM &value);
   virtual QwCombinedBPM& operator+= (const QwCombinedBPM &value);
   virtual QwCombinedBPM& operator-= (const QwCombinedBPM &value);
 
+  void    AccumulateRunningSum(const VQwBPM& value);
   void    AccumulateRunningSum(const QwCombinedBPM& value);
   void    CalculateRunningAverage();
 
@@ -181,3 +197,4 @@ private:
 
 
 #endif
+

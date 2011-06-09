@@ -373,6 +373,14 @@ void  QwBPMCavity::GetAbsolutePosition()
   // treated as a vqwk channel.
 }
 
+
+VQwBPM& QwBPMCavity::operator= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwBPMCavity*>(this)) =
+      *(dynamic_cast<const QwBPMCavity*>(&value));
+  return *this;
+}
+
 QwBPMCavity& QwBPMCavity::operator= (const QwBPMCavity &value)
 {
   VQwBPM::operator= (value);
@@ -406,6 +414,15 @@ QwBPMCavity& QwBPMCavity::operator+= (const QwBPMCavity &value)
   return *this;
 }
 
+VQwBPM& QwBPMCavity::operator+= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwBPMCavity*>(this)) +=
+      *(dynamic_cast<const QwBPMCavity*>(&value));
+  return *this;
+}
+
+
+
 QwBPMCavity& QwBPMCavity::operator-= (const QwBPMCavity &value)
 {
 
@@ -420,6 +437,14 @@ QwBPMCavity& QwBPMCavity::operator-= (const QwBPMCavity &value)
   }
   return *this;
 }
+
+VQwBPM& QwBPMCavity::operator-= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwBPMCavity*>(this)) -=
+      *(dynamic_cast<const QwBPMCavity*>(&value));
+  return *this;
+}
+
 
 
 void QwBPMCavity::Ratio(QwBPMCavity &numer, QwBPMCavity &denom)
@@ -798,3 +823,4 @@ void QwBPMCavity::SetSubElementCalibrationFactor(Int_t j, Double_t value)
   fWire[j].SetCalibrationFactor(value);
   return;
 }
+

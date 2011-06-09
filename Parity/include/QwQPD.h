@@ -72,7 +72,7 @@ class QwQPD : public VQwBPM {
 
   UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
-  void    GetAbsolutePosition();
+  void    GetAbsolutePosition(){};
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
@@ -93,6 +93,10 @@ class QwQPD : public VQwBPM {
   void    Copy(QwQPD *source);
   void    Ratio(QwQPD &numer, QwQPD &denom);
   void    Scale(Double_t factor);
+
+  VQwBPM& operator=  (const VQwBPM &value);
+  VQwBPM& operator+= (const VQwBPM &value);
+  VQwBPM& operator-= (const VQwBPM &value);
 
   virtual QwQPD& operator=  (const QwQPD &value);
   virtual QwQPD& operator+= (const QwQPD &value);

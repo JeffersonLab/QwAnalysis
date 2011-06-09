@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
   bpm_meanY.push_back(-1.5); bpm_sigmaY.push_back(4.0e-3);
   bpm_meanY.push_back(-1.5); bpm_sigmaY.push_back(4.0e-3);
   for (unsigned int i = 0; i < 2; i++) {
-    QwBPMStripline<QwVQWK_Channel>* bpm = beamline->GetBPMStripline(bpm_name[i]);;
+    VQwBPM* bpm = beamline->GetBPMStripline(bpm_name[i]);;
     if (! bpm) continue;
     // Set the mean and sigma
     bpm->SetRandomEventParameters(bpm_meanX[i], bpm_sigmaX[i], bpm_meanY[i], bpm_sigmaY[i]);

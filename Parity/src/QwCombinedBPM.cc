@@ -14,6 +14,7 @@
 #include "QwDBInterface.h"
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
+#include "QwParameterFile.h"
 
 
 template<typename T>
@@ -107,7 +108,7 @@ void QwCombinedBPM<T>::ClearEventData()
 
 
 template<typename T>
-void QwCombinedBPM<T>::Set(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,
+void QwCombinedBPM<T>::SetBPMForCombo(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,
 			Double_t sumqw)
 {
   fElement.push_back(bpm);
@@ -459,7 +460,7 @@ template<typename T>
 
   // Divvy
   if (m[pos] == 0)
-    QwWarning << "Angry Divvy: Division by zero in " << GetElementName() << QwLog::endl;
+    QwWarning << "Angry Divvy: Division by zero in " << this->GetElementName() << QwLog::endl;
 
    if(ldebug){
      std::cout<<" A = "<<A[pos]<<", B = "<<B[pos]<<", D = "<<D[pos]<<", m = "<<m[pos]<<std::endl;
@@ -592,7 +593,6 @@ template<typename T>
    return;
  }
 
-
 template<typename T>
  Int_t QwCombinedBPM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
  {
@@ -639,11 +639,20 @@ void QwCombinedBPM<T>::PrintInfo() const
   return;
 }
 
+
+template<typename T>
+VQwBPM& QwCombinedBPM<T>::operator= (const VQwBPM &value)
+{
+  *(dynamic_cast<const QwCombinedBPM<T>*>(this))=
+    *(dynamic_cast<const QwCombinedBPM<T>*>(&value));
+  return *this;
+}
+
 template<typename T>
 QwCombinedBPM<T>& QwCombinedBPM<T>::operator= (const QwCombinedBPM<T> &value)
 {
   VQwBPM::operator= (value);
-  if (GetElementName()!=""){
+  if (this->GetElementName()!=""){
     this->fEffectiveCharge=value.fEffectiveCharge;
     for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
       this->fSlope[axis]=value.fSlope[axis];
@@ -654,12 +663,19 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator= (const QwCombinedBPM<T> &value)
   return *this;
 }
 
+template<typename T>
+VQwBPM& QwCombinedBPM<T>::operator+= (const VQwBPM &value)
+{
+  *(dynamic_cast<const QwCombinedBPM<T>*>(this))+=
+    *(dynamic_cast<const QwCombinedBPM<T>*>(&value));
+  return *this;
+}
 
 template<typename T>
 QwCombinedBPM<T>& QwCombinedBPM<T>::operator+= (const QwCombinedBPM<T> &value)
 {
 
-     if (GetElementName()!=""){
+     if (this->GetElementName()!=""){
        this->fEffectiveCharge+=value.fEffectiveCharge;
        for(Short_t axis=kXAxis;axis<kNumAxes;axis++) 	{
 	 this->fSlope[axis]+=value.fSlope[axis];
@@ -672,10 +688,19 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator+= (const QwCombinedBPM<T> &value)
 }
 
 template<typename T>
+VQwBPM& QwCombinedBPM<T>::operator-= (const VQwBPM &value)
+{
+  *(dynamic_cast<const QwCombinedBPM<T>*>(this))-=
+    *(dynamic_cast<const QwCombinedBPM<T>*>(&value));
+  return *this;
+}
+
+
+template<typename T>
 QwCombinedBPM<T>& QwCombinedBPM<T>::operator-= (const QwCombinedBPM<T> &value)
 {
 
-  if (GetElementName()!=""){
+  if (this->GetElementName()!=""){
     this->fEffectiveCharge-=value.fEffectiveCharge;
     for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
       this->fSlope[axis]-=value.fSlope[axis];
@@ -686,15 +711,24 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator-= (const QwCombinedBPM<T> &value)
   return *this;
 }
 
+
 template<typename T>
-void QwCombinedBPM<T>::Ratio(QwCombinedBPM<T> &numer, QwCombinedBPM<T> &denom)
+void QwCombinedBPM<T>::Ratio(VQwBPM &numer, VQwBPM &denom)
+{
+  Ratio(*dynamic_cast<QwCombinedBPM<T>*>(&numer),
+      *dynamic_cast<QwCombinedBPM<T>*>(&denom));
+}
+
+template<typename T>
+void QwCombinedBPM<T>::Ratio(QwCombinedBPM<T> &numer,
+    QwCombinedBPM<T> &denom)
 {
   // this function is called when forming asymmetries. In this case waht we actually want for the
   // combined bpm is the difference only not the asymmetries
 
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
-  if (GetElementName()!=""){
+  if (this->GetElementName()!=""){
     //    The slope, intercept and absolute positions should all be differences, not asymmetries.
     for(Short_t axis=kXAxis;axis<kNumAxes;axis++) {
       this->fSlope[axis]     = numer.fSlope[axis];
@@ -731,6 +765,13 @@ void QwCombinedBPM<T>::CalculateRunningAverage()
   }
 }
 
+
+template<typename T>
+void QwCombinedBPM<T>::AccumulateRunningSum(const VQwBPM& value)
+{
+  AccumulateRunningSum(*dynamic_cast<const QwCombinedBPM<T>* >(&value));
+}
+
 template<typename T>
 void QwCombinedBPM<T>::AccumulateRunningSum(const QwCombinedBPM<T>& value)
 {
@@ -749,7 +790,7 @@ template<typename T>
 void  QwCombinedBPM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
 
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   }
   else{
@@ -758,7 +799,7 @@ void  QwCombinedBPM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
     TString thisprefix=prefix;
     if(prefix=="asym_")
       thisprefix="diff_";
-    SetRootSaveStatus(prefix);
+    this->SetRootSaveStatus(prefix);
 
     for(Short_t axis=kXAxis;axis<kNumAxes;axis++) {
 	fSlope[axis].ConstructHistograms(folder, thisprefix);
@@ -773,7 +814,7 @@ void  QwCombinedBPM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
 template<typename T>
 void  QwCombinedBPM<T>::FillHistograms()
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the histograms.
   }
   else{
@@ -790,7 +831,7 @@ void  QwCombinedBPM<T>::FillHistograms()
 template<typename T>
 void  QwCombinedBPM<T>::DeleteHistograms()
 {
-  if (GetElementName()=="") {
+  if (this->GetElementName()=="") {
     //  This channel is not used, so skip filling the histograms.
   }
   else{
@@ -809,7 +850,7 @@ void  QwCombinedBPM<T>::DeleteHistograms()
 template<typename T>
 void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip constructing trees.
   } else
     {
@@ -818,7 +859,7 @@ void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, s
       if(prefix=="asym_")
 	thisprefix="diff_";
 
-      SetRootSaveStatus(prefix);
+      this->SetRootSaveStatus(prefix);
 
       fEffectiveCharge.ConstructBranchAndVector(tree,prefix,values);
       for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
@@ -835,7 +876,7 @@ void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, s
 template<typename T>
 void  QwCombinedBPM<T>::ConstructBranch(TTree *tree, TString &prefix)
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip constructing trees.
   } else
     {
@@ -860,10 +901,10 @@ template<typename T>
 void  QwCombinedBPM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
   TString devicename;
-  devicename=GetElementName();
+  devicename=this->GetElementName();
   devicename.ToLower();
 
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip constructing trees.
   } else
     {
@@ -891,7 +932,7 @@ void  QwCombinedBPM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParamete
 template<typename T>
 void  QwCombinedBPM<T>::FillTreeVector(std::vector<Double_t> &values) const
 {
-  if (GetElementName()==""){
+  if (this->GetElementName()==""){
     //  This channel is not used, so skip filling the tree.
   }
   else{
@@ -906,9 +947,14 @@ void  QwCombinedBPM<T>::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-
 template<typename T>
 void QwCombinedBPM<T>::Copy(VQwDataElement *source)
+{
+  Copy(dynamic_cast<VQwBPM*>(source));
+}
+
+template<typename T>
+void QwCombinedBPM<T>::Copy(VQwBPM *source)
 {
   try
     {
@@ -1004,3 +1050,4 @@ std::vector<QwDBInterface> QwCombinedBPM<T>::GetDBEntry()
 
 template class QwCombinedBPM<QwVQWK_Channel>; 
 template class QwCombinedBPM<QwSIS3801_Channel>; 
+template class QwCombinedBPM<QwSIS3801D24_Channel>;

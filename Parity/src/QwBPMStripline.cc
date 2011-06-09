@@ -50,6 +50,14 @@ void  QwBPMStripline<T>::InitializeChannel(TString name)
 }
 
 template<typename T>
+void  QwBPMStripline<T>::InitializeChannel(TString subsystem, TString name,
+    TString type)
+{
+  SetModuleType(type);
+  InitializeChannel(subsystem, name);
+}
+
+template<typename T>
 void  QwBPMStripline<T>::InitializeChannel(TString subsystem, TString name)
 {
   Short_t i=0;
@@ -463,6 +471,15 @@ void  QwBPMStripline<T>::GetAbsolutePosition()
   // treated as a vqwk channel.
 }
 
+
+template<typename T>
+VQwBPM& QwBPMStripline<T>::operator= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwBPMStripline<T>*>(this)) =
+    *(dynamic_cast<const QwBPMStripline<T>*>(&value));
+  return *this;
+}
+
 template<typename T>
 QwBPMStripline<T>& QwBPMStripline<T>::operator= (const QwBPMStripline<T> &value)
 {
@@ -481,6 +498,13 @@ QwBPMStripline<T>& QwBPMStripline<T>::operator= (const QwBPMStripline<T> &value)
   return *this;
 }
 
+template<typename T>
+VQwBPM& QwBPMStripline<T>::operator+= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwBPMStripline<T>*>(this)) +=
+    *(dynamic_cast<const QwBPMStripline<T>*>(&value));
+  return *this;
+}
 
 template<typename T>
 QwBPMStripline<T>& QwBPMStripline<T>::operator+= (const QwBPMStripline<T> &value)
@@ -499,6 +523,13 @@ QwBPMStripline<T>& QwBPMStripline<T>::operator+= (const QwBPMStripline<T> &value
 }
 
 template<typename T>
+VQwBPM& QwBPMStripline<T>::operator-= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwBPMStripline<T>*>(this)) -=
+    *(dynamic_cast<const QwBPMStripline<T>*>(&value));
+  return *this;
+}
+template<typename T>
 QwBPMStripline<T>& QwBPMStripline<T>::operator-= (const QwBPMStripline<T> &value)
 {
 
@@ -514,9 +545,15 @@ QwBPMStripline<T>& QwBPMStripline<T>::operator-= (const QwBPMStripline<T> &value
   return *this;
 }
 
+template<typename T>
+void QwBPMStripline<T>::Ratio( VQwBPM &numer, VQwBPM &denom)
+{
+  Ratio(*dynamic_cast<QwBPMStripline<T>*>(&numer),
+      *dynamic_cast<QwBPMStripline<T>*>(&denom));
+}
 
 template<typename T>
-void QwBPMStripline<T>::Ratio(QwBPMStripline<T> &numer, QwBPMStripline<T> &denom)
+void QwBPMStripline<T>::Ratio( QwBPMStripline<T> &numer, QwBPMStripline<T> &denom)
 {
   // this function is called when forming asymmetries. In this case waht we actually want for the
   // stripline is the difference only not the asymmetries
@@ -553,6 +590,13 @@ void QwBPMStripline<T>::CalculateRunningAverage()
   }
   fEffectiveCharge.CalculateRunningAverage();
   return;
+}
+
+
+template<typename T>
+void QwBPMStripline<T>::AccumulateRunningSum(const VQwBPM& value)
+{
+  AccumulateRunningSum(*dynamic_cast<const QwBPMStripline<T>* >(&value));
 }
 
 template<typename T>
@@ -761,6 +805,12 @@ void  QwBPMStripline<T>::FillTreeVector(std::vector<Double_t> &values) const
 template<typename T>
 void QwBPMStripline<T>::Copy(VQwDataElement *source)
 {
+  Copy(dynamic_cast<VQwBPM*>(source));
+}
+
+template<typename T>
+void QwBPMStripline<T>::Copy(VQwBPM *source)
+{
   try
     {
       if( typeid(*source)==typeid(*this) ) {
@@ -940,3 +990,4 @@ void QwBPMStripline<T>::SetSubElementCalibrationFactor(Int_t j, Double_t value)
 
 template class QwBPMStripline<QwVQWK_Channel>; 
 template class QwBPMStripline<QwSIS3801_Channel>; 
+template class QwBPMStripline<QwSIS3801D24_Channel>;

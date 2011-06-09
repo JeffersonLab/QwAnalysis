@@ -12,6 +12,10 @@
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwBPMStripline.h"
+#include "QwCombinedBPM.h"
+#include "QwVQWK_Channel.h"
+#include "QwScaler_Channel.h"
 
 
 /* With X being vertical up and Z being the beam direction toward the beamdump */
@@ -283,3 +287,59 @@ void  VQwBPM::Copy(VQwBPM *source)
 
   return;
 }
+
+/**
+ * \brief A fast way of creating a BPM stripline of VQWK type with a generic name.
+ */
+VQwBPM* VQwBPM::CreateStripline(TString type)
+{
+  return CreateStripline("bpmstripline","bpm_generic",type);
+}
+
+VQwBPM* VQwBPM::CreateStripline(TString subsystemname, TString name, TString type)
+{
+  Bool_t localDebug = kFALSE;
+  type.ToUpper();
+  if( localDebug ) QwMessage<<"Creating BPM of type: "<<type<<" with name: "<<
+    name<<". Subsystem Name: " <<subsystemname<<"\n";
+  // (jc2) As a first try, let's do this the ugly way (but rather very
+  // simple), just list out the types of BPM's supported by this code!!!
+  if( type == "VQWK") {
+    return new QwBPMStripline<QwVQWK_Channel>(subsystemname,name,type);
+  } else if (type == "SCALER" || type == "SIS3801" ) {
+    return new QwBPMStripline<QwSIS3801_Channel>(subsystemname,name,type);
+  } else if ( type == "SIS3801D24" ) {
+    return new QwBPMStripline<QwSIS3801D24_Channel>(subsystemname,name,type);
+  } else { // Unsupported one!
+    QwWarning << "BPM of type="<<type<<" is UNSUPPORTED!!\n";
+    exit(-1);
+  }
+}
+
+// QwCombinedBPM<T> Factory function
+VQwBPM* VQwBPM::CreateCombo(TString type)
+{
+  return CreateCombo("bpm","bpm_generic",type);
+}
+
+VQwBPM* VQwBPM::CreateCombo(TString subsystemname, TString name,
+    TString type)
+{
+  Bool_t localDebug = kFALSE;
+  type.ToUpper();
+  if( localDebug ) QwMessage<<"Creating CombinedBPM of type: "<<type<<" with name: "<<
+    name<<". Subsystem Name: " <<subsystemname<<"\n";
+  // (jc2) As a first try, let's do this the ugly way (but rather very
+  // simple), just list out the types of BPM's supported by this code!!!
+  if( type == "VQWK") {
+    return new QwCombinedBPM<QwVQWK_Channel>(subsystemname,name,type);
+  } else if (type == "SCALER" || type == "SIS3801" ) { // Default SCALER channel
+    return new QwCombinedBPM<QwSIS3801_Channel>(subsystemname,name,type);
+  } else if ( type == "SIS3801D24" ) {
+    return new QwCombinedBPM<QwSIS3801D24_Channel>(subsystemname,name,type);
+  } else { // Unsupported one!
+    QwWarning << "BPM of type="<<type<<" is UNSUPPORTED!!\n";
+    exit(-1);
+  }
+}
+

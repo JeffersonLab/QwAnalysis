@@ -17,6 +17,10 @@
 #include "VQwDataElement.h"
 #include "VQwHardwareChannel.h"
 
+class QwParameterFile;
+template<typename T> class QwCombinedBPM;
+template<typename T> class QwBPMStripline;
+
 ///
 /// \ingroup QwAnalysis_BeamLine
 ///
@@ -34,6 +38,7 @@ class VQwBPM : public VQwDataElement {
    *           Cavityy monitors have 3 wires: X, Y and I
    *           CombinedBPM use absolute X and Y derived from BPM X and Ys.
    ******************************************************************/
+  template <typename TT> friend class QwBPMStripline;
   template <typename TT> friend class QwCombinedBPM;
   friend class QwEnergyCalculator;  
 
@@ -47,7 +52,9 @@ class VQwBPM : public VQwDataElement {
   VQwBPM() {InitializeChannel_base();};
   VQwBPM(TString& name) {InitializeChannel_base();};
 
-  virtual ~VQwBPM(){DeleteHistograms(); };
+  virtual ~VQwBPM(){
+    //DeleteHistograms();
+  };
 
 
   void   InitializeChannel(TString name);
@@ -66,16 +73,19 @@ class VQwBPM : public VQwDataElement {
   void    SetSingleEventCuts(TString, Double_t, Double_t);
   void    SetSingleEventCuts(TString, UInt_t, Double_t, Double_t, Double_t);
 
-/*   VQwBPM& operator+=(const VQwBPM&); */
-/*   VQwBPM& operator-=(const VQwBPM&); */
 
 /*   void Sum(VQwBPM &value1, VQwBPM &value2); */
 /*   void Difference(VQwBPM &value1, VQwBPM &value2); */
-/*   void Scale(Double_t factor); */
-  void Copy(VQwBPM *source);
+  virtual void Scale(Double_t factor) {
+    std::cerr << "Scale for VQwBPM not implemented!\n";
+  }
+  virtual void Copy(VQwBPM *source);
   void SetGains(TString pos, Double_t value);
 
-  virtual VQwBPM& operator=  (const VQwBPM &value);
+  // Operators subclasses MUST support!
+  virtual VQwBPM& operator=  (const VQwBPM &value) =0;
+  virtual VQwBPM& operator+= (const VQwBPM &value) =0;
+  virtual VQwBPM& operator-= (const VQwBPM &value) =0;
 
   void          SetRootSaveStatus(TString &prefix);
 
@@ -119,9 +129,93 @@ class VQwBPM : public VQwDataElement {
 
 /*   void PrintValue() const; */
 /*   void PrintInfo() const; */
-/*   void CalculateRunningAverage(); */
-/*   void AccumulateRunningSum(const VQwBPM& value); */
+  virtual void CalculateRunningAverage() = 0;
+  virtual void AccumulateRunningSum(const VQwBPM& value) {
+    std::cerr << "AccumulateRunningSum not implemented for BPM named="
+      <<GetElementName()<<"\n";
+  };
 
+  virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
+  virtual void FillHistograms() = 0;
+  virtual void DeleteHistograms() = 0;
+
+  virtual void ConstructBranchAndVector(TTree *tree, TString &prefix,
+      std::vector<Double_t> &values) = 0;
+  virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
+  virtual void ConstructBranch(TTree *tree, TString &prefix,
+      QwParameterFile& modulelist) = 0;
+  virtual void FillTreeVector(std::vector<Double_t> &values) const = 0;
+  virtual std::vector<QwDBInterface> GetDBEntry() = 0;
+
+  virtual void Ratio(VQwBPM &numer, VQwBPM &denom) {
+    std::cerr << "Ratio() is not defined for BPM named="<<GetElementName()<<"\n";
+  }
+
+  // Stuff required for QwBPMStripLine
+  virtual UInt_t  GetSubElementIndex(TString subname) {
+    std::cerr << "GetSubElementIndex() is not implemented for BPM named="
+      <<GetElementName()<< "!!\n";
+    return 0;
+  }
+  virtual TString GetSubElementName(Int_t subindex) {
+    std::cerr << "GetSubElementName()  is not implemented!!\n";
+    return TString("OBJECT_UNDEFINED"); // Return an erroneous TString
+  }
+  virtual void GetAbsolutePosition() {
+    std::cerr << "GetAbsolutePosition() is not implemented!!\n";
+  }
+  virtual void SetEventCutMode(Int_t bcuts) = 0;
+  virtual Int_t GetEventcutErrorCounters() {// report number of events falied due to HW and event cut faliure
+    std::cerr << "GetEventcutErrorCounters() is not implemented!!\n";
+    return 0;
+  }
+  virtual Bool_t ApplySingleEventCuts() = 0;//Check for good events by stting limits on the devices readings
+  virtual void ProcessEvent() = 0;
+
+  // These only applies to a combined BPM
+  virtual const VQwHardwareChannel* GetAngleX() const {
+    std::cerr << "GetAngleX() is not implemented for VQwBPM, must be"
+      "used in a CombinedBPM!\n";
+    return 0;
+  }
+  virtual const VQwHardwareChannel* GetAngleY() const {
+    std::cerr << "GetAngleY() is not implemented for VQwBPM, must be"
+      "used in a CombinedBPM!\n";
+    return 0;
+  }
+  virtual void SetBPMForCombo(const VQwBPM* bpm, Double_t charge_weight,
+      Double_t x_weight, Double_t y_weight,Double_t sumqw) {
+    std::cerr << "VQwBPM::SetBPMForCombo only defined for CombinedBPM's!!!\n";
+  }
+
+
+  virtual void SetDefaultSampleSize(Int_t sample_size) {
+    std::cerr << "SetDefaultSampleSize() is undefined!!!\n";
+  }
+  virtual void SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY) {
+    std::cerr<< "SetRandomEventParameters undefined!!\n";
+  }
+  virtual void RandomizeEventData(int helicity = 0, double time = 0.0) {
+    std::cerr << "RandomizeEventData is undefined!!!\n";
+  }
+  virtual void EncodeEventData(std::vector<UInt_t> &buffer) {
+    std::cerr << "EncodeEventData is undefined!!!\n";
+  }
+  virtual void SetSubElementPedestal(Int_t j, Double_t value) {
+    std::cerr << "SetSubElementPedestal is undefined!!!\n";
+  }
+  virtual void SetSubElementCalibrationFactor(Int_t j, Double_t value) {
+    std::cerr << "SetSubElementCalibrationFactor is undefined!!!\n";
+  }
+  virtual void PrintInfo() const { 
+    std::cout<<"PrintInfo() for VQwBPM not impletemented\n";
+  };
+
+  // Factory function to produce appropriate BCM
+  static VQwBPM* CreateStripline(TString subsystemname, TString type, TString name);
+  static VQwBPM* CreateStripline(TString type); // Create a generic BPM (define properties later)
+  static VQwBPM* CreateCombo(TString subsystemname, TString type, TString name);
+  static VQwBPM* CreateCombo(TString type); // Create a generic BPM (define properties later)
 
   private:
 
@@ -135,6 +229,7 @@ class VQwBPM : public VQwDataElement {
       fGains[i]=1.0;
     }
   };
+
 
   protected:
   ///  Axis labels for the instrumented directions;

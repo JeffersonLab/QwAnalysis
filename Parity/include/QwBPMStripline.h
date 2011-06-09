@@ -5,8 +5,8 @@
 * Time-stamp:                                             *
 \**********************************************************/
 
-#ifndef __QwVQWK_STRIPLINE__
-#define __QwVQWK_STRIPLINE__
+#ifndef __QwBPMSTRIPLINE__
+#define __QwBPMSTRIPLINE__
 
 // System headers
 #include <vector>
@@ -51,6 +51,14 @@ class QwBPMStripline : public VQwBPM {
     bRotated=kTRUE;
   };    
 
+  QwBPMStripline(TString subsystemname, TString name, TString type){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name, type);
+    fRotationAngle = 45.0;
+    SetRotation(fRotationAngle);
+    bRotated=kTRUE;
+  };    
+
   ~QwBPMStripline() {
     DeleteHistograms();
   };
@@ -58,6 +66,7 @@ class QwBPMStripline : public VQwBPM {
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
   void  InitializeChannel(TString subsystem, TString name);
+  void  InitializeChannel(TString subsystem, TString name, TString type);
   void    ClearEventData();
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
@@ -95,14 +104,21 @@ class QwBPMStripline : public VQwBPM {
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
   void    Copy(VQwDataElement *source);
+  void Copy(VQwBPM *source);
+  void    Ratio(VQwBPM &numer, VQwBPM &denom);
   void    Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
   void    Scale(Double_t factor);
+
+  VQwBPM& operator=  (const VQwBPM &value);
+  VQwBPM& operator+= (const VQwBPM &value);
+  VQwBPM& operator-= (const VQwBPM &value);
 
   virtual QwBPMStripline& operator=  (const QwBPMStripline &value);
   virtual QwBPMStripline& operator+= (const QwBPMStripline &value);
   virtual QwBPMStripline& operator-= (const QwBPMStripline &value);
 
   void    AccumulateRunningSum(const QwBPMStripline& value);
+  void    AccumulateRunningSum(const VQwBPM& value);
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
