@@ -98,7 +98,7 @@ void printHTML() {
 //================================
 void printDBrecord(FILE *fd){
   double ppm=1e-6; // to convert back to absolute units 
-  unsigned int mask=0xff;
+  unsigned int mask=0xff-0x2-0x80;
   const int csvVer=4;
   double sqN=sqrt(pattSum);
 
@@ -196,7 +196,7 @@ void printCsvRecord(FILE *fd,  int doLabel=0){
     fprintf(fd,"units:  %s yield (~V/uA);   %s asy RMS (ppm);  DV/IV slopes (1/mm);  RMS IV (nm) ;  mean IV (nm);  mean DV (ppm) ; raster (Xmm x Ymm);  asym BCMs RMS&Mean (ppm)\n",cDV,cDV);
     
     if(mask&0x1) fprintf(fd,"run.seg, tot charge (mC), avr current (uA) , tot pattern, target type, raster, Half Wave Plate, start time unix , start date, HClog URL, operator comment, ");
-    if(mask&0x2) { //......... yields for  DVs ........
+    if(mask&0x2 ) { //......... yields for  DVs ........
       fprintf(fd," %s yields: ,",cDV);
       for(int dv=idv1;dv<idv2; dv++) {
 	TString name=dvName[dv];
@@ -368,12 +368,12 @@ void readSlopes() { // unregressed values
     printf("Failed to open %s, slopes NOT found\n",corFile->GetName());
     return ;
   }
-
+  //corFile->ls();
   Mslopes=(TMatrixD *) corFile->Get("slopes");assert(Mslopes);
   MsigSlopes=(TMatrixD *) corFile->Get("sigSlopes");assert(MsigSlopes);
   MIVsig=(TMatrixD *) corFile->Get("IV_sigma");assert(MIVsig);
   MIVmean=(TMatrixD *) corFile->Get("IV_mean");assert(MIVmean);
-  MIVcov=(TMatrixD *) corFile->Get("IV_covariance");assert(MIVcov);
+  MIVcov=(TMatrixD *) corFile->Get("IV_correlation");assert(MIVcov);
 
   MDVsigUnreg=(TMatrixD *) corFile->Get("DV_sigma");assert(MDVsigUnreg);
   MDVmeanUnreg=(TMatrixD *) corFile->Get("DV_mean");assert(MDVmeanUnreg);
@@ -426,6 +426,8 @@ void fetchNamesAnd() {
   sumCharge_mC=avrCurr_uA*pattSum * 4e-6;
   printf(" run=%.3f tot charge=%.1f (mC) , avr curr=%.1f (uA), pattSum=%.2g \n",run_seg,sumCharge_mC,avrCurr_uA,pattSum);
 
+ 
+  if(0) {
   for(int dvm=0;dvm<dvName.size();dvm++) {
     TH1 *hDV=(TH1*) hFile->Get(Form("yieldDV%d",dvm)); assert(hDV);
     double yield=hDV->GetMean();
@@ -448,6 +450,6 @@ void fetchNamesAnd() {
     bcmMean[j]=h->GetMean();
     bcmRms[j]=h->GetRMS();
   }
-
+  }
   hFile->Close();
 }
