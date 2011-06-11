@@ -53,13 +53,15 @@ class QwInterpolator {
       SetInterpolationMethod(kMultiLinear);
     };
     /// Constructor with minimum, maximum, and step size
-    QwInterpolator(const std::vector<coord_t> min, const std::vector<coord_t> max, const std::vector<coord_t> step) {
+    QwInterpolator(const std::vector<coord_t>& min,
+        const std::vector<coord_t>& max,
+        const std::vector<coord_t>& step) {
       SetDimensions(min.size());
       SetInterpolationMethod(kMultiLinear);
       SetMinimumMaximumStep(min,max,step);
     };
     /// Constructor with file name
-    QwInterpolator(const std::string filename) {
+    QwInterpolator(const std::string& filename) {
       ReadBinaryFile(filename);
     };
     /// Destructor
@@ -78,6 +80,11 @@ class QwInterpolator {
     std::vector<coord_t> fStep;
     /// Number of points in each dimension
     std::vector<size_t> fSize;
+    /// Wrap around this coordinate
+    std::vector<size_t> fWrap;
+    /// Data reduction factor
+    std::vector<size_t> fRedux;
+
     /// Linear extent between neighbor points in each dimension (e.g. for the
     /// least significant index this will be 1, for the next index the number
     /// of points in the first index, etc...)
@@ -103,15 +110,19 @@ class QwInterpolator {
         return;
       }
       fNDim = ndim;
-      fMin.resize(fNDim); fMax.resize(fNDim); fStep.resize(fNDim);
+      fMin.resize(fNDim); fMax.resize(fNDim); fStep.resize(fNDim); fWrap.resize(fNDim);
       fSize.resize(fNDim); fExtent.resize(fNDim+1);
     };
     /// Set minimum, maximum, and step size to single values
     void SetMinimumMaximumStep(const coord_t min, const coord_t max, const coord_t step) {
-      SetMinimumMaximumStep(std::vector<coord_t>(fNDim,min), std::vector<coord_t>(fNDim,max), std::vector<coord_t>(fNDim,step));
+      SetMinimumMaximumStep(std::vector<coord_t>(fNDim,min),
+          std::vector<coord_t>(fNDim,max),
+          std::vector<coord_t>(fNDim,step));
     };
     /// Set minimum, maximum, and step size to different values
-    void SetMinimumMaximumStep(const std::vector<coord_t> min, const std::vector<coord_t> max, const std::vector<coord_t> step) {
+    void SetMinimumMaximumStep(const std::vector<coord_t>& min,
+        const std::vector<coord_t>& max,
+        const std::vector<coord_t>& step) {
       // Set the dimensionality
       if (min.size() != fNDim) SetDimensions(min.size());
       // Check the dimensionality and assign boundaries and step size vectors
@@ -145,6 +156,31 @@ class QwInterpolator {
     /// Get the current number of entries
     unsigned int GetCurrentEntries() const { return fCurrentEntries; };
 
+    /// Get wrapping coordinate
+    unsigned int GetWrapCoordinate(const unsigned int dim) const
+      { return fWrap.at(dim); }
+    /// Set wrapping coordinate
+    void SetWrapCoordinate(const unsigned int dim, const size_t wrap = 1)
+      { fWrap.at(dim) = wrap; }
+    void SetWrapCoordinate(const std::vector<size_t>& wrap) {
+      if (wrap.size() != fNDim) return;
+      fWrap = wrap;
+    }
+
+    /// Get data reduction factor
+    int GetDataReductionFactor(const unsigned int dim) const
+      { return fRedux.at(dim); }
+    /// Set data reduction factor
+    void SetDataReductionFactor(const unsigned int dim, const unsigned int redux)
+      { fRedux.at(dim) = redux; }
+    void SetDataReductionFactor(const unsigned int redux) {
+      for (unsigned int dim = 0; dim < fNDim; dim++)
+        SetDataReductionFactor(dim,redux);
+    }
+    void SetDataReductionFactor(const std::vector<unsigned int>& redux) {
+      if (redux.size() != fNDim) return;
+      fRedux = redux;
+    }
 
     /// Set the interpolation method
     void SetInterpolationMethod(const EQwInterpolationMethod method)
@@ -177,7 +213,8 @@ class QwInterpolator {
       for (size_t i = 0; i < fSize[dim]; i++) {
         cell_index[dim] = i;
         Coord(cell_index,coord);
-        QwMessage << i << ", " << coord[dim] << ": " << double(cover[i]) / double(total[i]) * 100 << "%"<< QwLog::endl;
+        QwMessage << "bin " << i << ", coord " << coord[dim] << ": "
+            << double(cover[i]) / double(total[i]) * 100 << "%"<< QwLog::endl;
       }
       delete[] cell_index;
       delete[] coord;
@@ -218,9 +255,37 @@ class QwInterpolator {
       unsigned int* cell_index = new unsigned int[fNDim];
       Nearest(coord, cell_index); // nearest cell
       if (! Check(cell_index)) return false; // out of bounds
-      unsigned int linear_index = Index(cell_index);
+      bool status = true;
+      bool written = false;
+      unsigned int linear_index;
+      for (unsigned int dim = 0; dim < fNDim; dim++) {
+        // skip dimensions that are not wrapped around
+        if (fWrap[dim] == 0) continue;
+        // FIXME only one wrapping coordinate correctly supported in Set()
+        if ((cell_index[dim] < fWrap[dim]) ||
+            (fSize[dim] - cell_index[dim] - 1 < fWrap[dim])) {
+          // there are equivalent grid points
+          for (size_t wrap = 0; wrap < fWrap[dim]; wrap++) {
+            // at the minimum
+            cell_index[dim] = wrap;
+            linear_index = Index(cell_index);
+            status &= Set(linear_index, value);
+            // at the maximum
+            cell_index[dim] = fSize[dim] - wrap - 1;
+            linear_index = Index(cell_index);
+            status &= Set(linear_index, value);
+            // set flag
+            written = true;
+          }
+        }
+      }
+      if (not written) {
+        // this is an unambiguous grid point
+        linear_index = Index(cell_index);
+        status &= Set(linear_index, value);
+      }
       delete[] cell_index;
-      return Set(linear_index, value);
+      return status;
     };
 
     /// Set a single value at a linearized index (false if not possible)
@@ -464,7 +529,7 @@ template <class value_t, unsigned int value_n>
 inline bool QwInterpolator<value_t,value_n>::Check(const coord_t* coord) const
 {
   for (unsigned int dim = 0; dim < fNDim; dim++)
-    if (coord[dim] < fMin[dim] || coord[dim] > fMax[dim])
+    if (fWrap[dim] == 0 && (coord[dim] < fMin[dim] || coord[dim] > fMax[dim]))
       return false;
   // Otherwise
   return true;
@@ -558,6 +623,8 @@ inline void QwInterpolator<value_t,value_n>::Cell(
   frac_part = modf(norm_coord, &int_part);
   cell_local = frac_part;
   cell_index = static_cast<int>(int_part); // cast to integer
+  // Wrap index
+  if (fWrap[dim] > 0) cell_index %= (fSize[dim] - fWrap[dim]);
 }
 
 /**
