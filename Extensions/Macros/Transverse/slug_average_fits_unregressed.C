@@ -283,7 +283,7 @@ int main(Int_t argc,Char_t* argv[])
   }
 
   //plot MD asymmetries
-  TString title1 = Form("%s (%s): Unregressed slug averages of Main detector asymmetries for slugs %i to %i",targ.Data(),polar.Data(),ucut,lcut);
+  TString title1 = Form("%s (%s): Unregressed slug averages of Main detector asymmetries for slugs %i to %i: Fit p0Sin(phi+P1)+p2",targ.Data(),polar.Data(),ucut,lcut);
   TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,500);
   Canvas1->Draw();
   Canvas1->cd();
@@ -308,10 +308,10 @@ int main(Int_t argc,Char_t* argv[])
 
 
   Canvas1->Update();
-  Canvas1->Print(polar+"_"+target+"_md_unregressed_slug_summary_plots.png");
+  Canvas1->Print(Form("slugs_%i_%i_%s_%s_md_unregressed_slug_summary_plots.png",ucut,lcut,polar.Data(),target.Data()));
 
   // plot US LUMI asymmetries
-  TString title2 = targ+"("+polar+"): Unregressed slug averages of US Lumi asymmetries";
+  TString title2 = Form("%s (%s): Unregressed slug averages of US Lumi asymmetries for slugs %i to %i : Fit p0Sin(phi+P1)+p2",targ.Data(),polar.Data(),ucut,lcut);
   TCanvas * Canvas2 = new TCanvas("canvas2", title2,0,0,1000,500);   
   Canvas2->Draw();
   Canvas2->cd();
@@ -335,10 +335,10 @@ int main(Int_t argc,Char_t* argv[])
   gPad->Update();
 
   Canvas2-> Update();
-  Canvas2->Print(polar+"_"+target+"_uslumi_unregressed_slug_summary_plots.png");
+  Canvas2->Print(Form("slugs_%i_%i_%s_%s_uslumi_unregressed_slug_summary_plots.png",ucut,lcut,polar.Data(),target.Data()));
 
   // plot DS LUMI asymmetries
-  TString title3 = targ+"("+polar+"): Unregressed slug averages of DS LUMI asymmetries";
+  TString title3 = Form("%s (%s): Unregressed slug averages of DS Lumi asymmetries for slugs %i to %i : Fit p0Sin(phi+P1)+p2",targ.Data(),polar.Data(),ucut,lcut);
   TCanvas * Canvas3 = new TCanvas("canvas1", title1,0,0,1000,500);
   Canvas3->Draw();
 
@@ -362,7 +362,7 @@ int main(Int_t argc,Char_t* argv[])
   gPad->Update();
 
   Canvas3-> Update();
-  Canvas3->Print(polar+"_"+target+"_dslumi_unregressed_slug_summary_plots.png");
+  Canvas3->Print(Form("slugs_%i_%i_%s_%s_dslumi_unregressed_slug_summary_plots.png",ucut,lcut,polar.Data(),target.Data()));
 
 
   std::cout<<"Done plotting fits \n";
@@ -401,7 +401,8 @@ TString get_query(TString detector, TString measurement, TString target, TString
   TString run_quality_cut = Form("(%s.run_quality_id = '1,3' or %s.run_quality_id = '1')",datatable.Data(),datatable.Data()); // good/suspect
   //TString run_quality_cut = Form("(%s.run_quality_id = '1')",datatable.Data(),datatable.Data()); // good/suspect
 
-  TString slug_cut = Form("(%s.slug >= %i and %s.slug <= %i)",datatable.Data(),low,datatable.Data(),up); // good/suspect
+  //TString slug_cut = Form("(%s.slug >= %i and %s.slug <= %i)",datatable.Data(),low,datatable.Data(),up); // good/suspect
+  TString slug_cut = Form("(%s.run_number >= %i and %s.run_number <= %i)",datatable.Data(),low,datatable.Data(),up); // good/suspect
 
 // To get rid of runs that have large charge asymmetries
   TString run_cut = Form("%s.run_number != 9831 AND %s.run_number != 9837 AND %s.run_number != 9853 AND %s.run_number != 9888  AND %s.run_number != 9885 AND %s.run_number != 9880 AND %s.run_number != 9851 AND  ",datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data()); 
@@ -523,10 +524,10 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
 
 
  
-  // Sum over the in and out half wave plate states
+  // Sum over the in and out half wave plate states and take the average
   for(Int_t i =0;i<size;i++){
-    valuesum[i]=(valuesin[i]+valuesout[i])/2;
-    valueerror[i]= (sqrt(pow(errorsin[i],2)+pow(errorsout[i],2)))/2;
+    valuesum[i]=((valuesin[i]/pow(errorsin[i],2)) + (valuesout[i]/pow(errorsout[i],2))) /((1/pow(errorsin[i],2)) + (1/pow(errorsout[i],2)));
+    valueerror[i]= sqrt(1/((1/(pow(errorsin[i],2)))+(1/pow(errorsout[i],2))));
   }
 
 
@@ -534,8 +535,8 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   grp_sum ->SetMarkerSize(0.6);
   grp_sum ->SetMarkerStyle(21);
   grp_sum ->SetMarkerColor(kGreen-2);
-  grp_sum->Fit("pol0");
-  TF1* fit3 = grp_sum->GetFunction("pol0");
+  grp_sum->Fit("cosfit");
+  TF1* fit3 = grp_sum->GetFunction("cosfit");
   fit3->DrawCopy("same");
   fit3->SetLineColor(kGreen-2);
 
