@@ -159,18 +159,6 @@ QwTrackingWorker::QwTrackingWorker(const QwGeometry& geometry)
   // Initialize a ray tracer bridging method
   if (! fDisableMomentum && ! fDisableRayTracer) {
     fRayTracer = new QwRayTracer();
-    // Determine magnetic field file from environment variables
-    std::string fieldmap = "";
-    if (getenv("QW_FIELDMAP"))
-      fieldmap = std::string(getenv("QW_FIELDMAP")) + "/" + fFilenameFieldmap;
-    else {
-      QwWarning << "Environment variable QW_FIELDMAP not defined." << QwLog::endl;
-      QwWarning << "It should point to the directory with the file"
-                << fFilenameFieldmap << QwLog::endl;
-    }
-    // Load magnetic field map
-    if (! fRayTracer->LoadMagneticFieldMap(fieldmap))
-      QwError << "Could not load magnetic field map!" << QwLog::endl;
   // or set to null if disabled
   } else fRayTracer = 0;
 
@@ -284,7 +272,7 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
                           po::value<bool>()->default_bool_value(false),
                           "disable the magnetic field map tracking");
   options.AddOptions("Tracking options")("QwTracking.fieldmap",
-                          po::value<std::string>()->default_value("peiqing_2007.dat"),
+                          po::value<std::string>()->default_value(""),
                           "filename of the fieldmap file in QW_FIELDMAP");
   options.AddOptions("Tracking options")("QwTracking.lookuptable",
                           po::value<std::string>()->default_value("QwTrajMatrix.root"),

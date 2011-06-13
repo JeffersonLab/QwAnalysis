@@ -84,6 +84,9 @@ QwRayTracer::QwRayTracer()
  
   fSimFlag = 0;
   fMatchFlag = 0;
+
+  // Load magnetic field
+  LoadMagneticFieldMap();
 };
 
 /**
@@ -100,19 +103,13 @@ QwRayTracer::~QwRayTracer()
  * @param filename Filename
  * @return True if the field map was successfully loaded
  */
-bool QwRayTracer::LoadMagneticFieldMap(const std::string filename)
+bool QwRayTracer::LoadMagneticFieldMap()
 {
   // If the field has already been loaded, return successfully
   if (fBfield) return true;
 
   // Otherwise reload the field map
   fBfield = new QwMagneticField();
-  bool status = false;
-  if (filename.find(".dat") != std::string::npos)
-    status = fBfield->ReadFieldMapFile(filename);
-  if (filename.find(".bin") != std::string::npos)
-    status = fBfield->ReadBinaryFile(filename);
-  return status;
 }
 
 

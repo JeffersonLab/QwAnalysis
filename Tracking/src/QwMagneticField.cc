@@ -40,7 +40,7 @@ inline ostream& operator<< (ostream& stream, const double v[3])
 /**
  * Default constructor with optional field map
  */
-QwMagneticField::QwMagneticField()
+QwMagneticField::QwMagneticField(const bool suppress_read_field_map)
 {
   // Check number of field components
   if (value_n < 3) {
@@ -57,6 +57,9 @@ QwMagneticField::QwMagneticField()
 
   // Process options
   ProcessOptions(gQwOptions);
+
+  // Read field map
+  if (! suppress_read_field_map) ReadFieldMap();
 }
 
 /**
@@ -74,8 +77,12 @@ QwMagneticField::~QwMagneticField()
 void QwMagneticField::DefineOptions(QwOptions& options)
 {
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.bfil",po::value<double>()->default_value(1),
+    ("QwMagneticField.map",po::value<std::string>()->default_value("peiqing_2007.dat"),
+     "Field map file");
+  options.AddOptions("Magnetic field map")
+    ("QwMagneticField.bfil",po::value<double>()->default_value(1.04),
      "Rescaling factor");
+
   options.AddOptions("Magnetic field map")
     ("QwMagneticField.trans",po::value<double>()->default_value(0),
      "Translation [cm]");
@@ -109,6 +116,9 @@ void QwMagneticField::DefineOptions(QwOptions& options)
   options.AddOptions("Magnetic field map")
     ("QwMagneticField.phistep",po::value<double>()->default_value(1.0),
      "Step size of phi [deg]");
+  options.AddOptions("Magnetic field map")
+    ("QwMagneticField.phiwrap",po::value<int>()->default_value(2),
+     "Wrap-around of phi (number of equivalent grid points)");
 }
 
 /**
@@ -117,10 +127,15 @@ void QwMagneticField::DefineOptions(QwOptions& options)
  */
 void QwMagneticField::ProcessOptions(QwOptions& options)
 {
-  // Scaling, translation, rotation options
+  // Scaling
   double bfil  = options.GetValue<double>("QwMagneticField.bfil");
+  SetScaleFactor(bfil);
+
+  // Translation and rotation
   double trans = Qw::cm  * options.GetValue<double>("QwMagneticField.trans");
   double rot   = Qw::deg * options.GetValue<double>("QwMagneticField.rot");
+  SetTranslation(trans);
+  SetRotation(rot);
 
   // Grid options
   double zmin    = Qw::cm  * options.GetValue<double>("QwMagneticField.zmin");
@@ -132,22 +147,57 @@ void QwMagneticField::ProcessOptions(QwOptions& options)
   double phimin  = Qw::deg * options.GetValue<double>("QwMagneticField.phimin");
   double phimax  = Qw::deg * options.GetValue<double>("QwMagneticField.phimax");
   double phistep = Qw::deg * options.GetValue<double>("QwMagneticField.phistep");
+  double phiwrap = options.GetValue<int>("QwMagneticField.phiwrap");
 
-  // Fill vector of grid min, max, and step size
-  std::vector<double> min, max, step;
-  std::vector<size_t> wrap;
-  min.push_back(zmin);   max.push_back(zmax);   step.push_back(zstep);   wrap.push_back(0);
-  min.push_back(rmin);   max.push_back(rmax);   step.push_back(rstep);   wrap.push_back(0);
-  min.push_back(phimin); max.push_back(phimax); step.push_back(phistep); wrap.push_back(2);
+  // The order is z, r, phi (no wrapping in r or z)
+  fMin.push_back(zmin);   fMax.push_back(zmax);   fStep.push_back(zstep);   fWrap.push_back(0);
+  fMin.push_back(rmin);   fMax.push_back(rmax);   fStep.push_back(rstep);   fWrap.push_back(0);
+  fMin.push_back(phimin); fMax.push_back(phimax); fStep.push_back(phistep); fWrap.push_back(phiwrap);
 
-  // Set options
-  SetScaleFactor(bfil);
-  SetTranslation(trans);
-  SetRotation(rot);
+  // Determine magnetic field file from environment variables
+  // TODO (wdc) Remove QwTracking.fieldmap from QwTrackingWorker
+  std::string fieldmap = options.GetValue<std::string>("QwTracking.fieldmap");
+  if (fieldmap.size() != 0) {
+    QwWarning << "Option \"QwTracking.fieldmap\" will disappear soon. "
+              << "Please use \"QwMagneticField.map\"." << QwLog::endl;
+  } else {
+    fieldmap = options.GetValue<std::string>("QwMagneticField.map");
+  }
+  fFilename = getenv_safe_string("QW_FIELDMAP") + "/" + fieldmap;
+}
+
+/**
+ * Read the magnetic field map
+ * @return True if read successfully
+ */
+bool QwMagneticField::ReadFieldMap()
+{
+  // Delete existing magnetic field
+  if (fField) delete fField;
 
   // Create new magnetic field
-  fField = new QwInterpolator<field_t,value_n>(min,max,step);
-  fField->SetWrapCoordinate(wrap);
+  fField = new QwInterpolator<field_t,value_n>(fMin,fMax,fStep);
+  fField->SetWrapCoordinate(fWrap);
+
+  // Depending on form of filename, read zipped/regular/binary field map
+  bool status = false;
+  if (fFilename.find(".dat.gz") != std::string::npos) {
+    status = ReadFieldMapZip(fFilename);
+  }
+  if (fFilename.find(".dat") != std::string::npos) {
+    status = ReadFieldMapFile(fFilename);
+  }
+  if (fFilename.find(".bin") != std::string::npos) {
+    status = fField->ReadBinaryFile(fFilename);
+  }
+
+  // Check status
+  if (status == false) {
+    QwError   << "Could not load magnetic field map!" << QwLog::endl;
+    QwWarning << "Filename: " << fFilename << QwLog::endl;
+  }
+
+  return status;
 }
 
 /**
@@ -155,20 +205,20 @@ void QwMagneticField::ProcessOptions(QwOptions& options)
  * @param filename ANSYS map file name
  * @return True if read successfully
  */
-bool QwMagneticField::ReadFieldMapFile(const std::string filename)
+bool QwMagneticField::ReadFieldMapFile(const std::string& filename)
 {
   // Open the field map file
-  std::ifstream inputfile;
-  inputfile.open(filename.c_str(), std::ios_base::in);
+  std::ifstream input;
+  input.open(filename.c_str(), std::ios_base::in);
   // Check for success
-  if (!inputfile.good()) {
+  if (!input.good()) {
     QwError << "Could not open field map file!" << QwLog::endl;
     QwError << "File name: " << filename << QwLog::endl;
     return false;
   }
 
   // Read the input field map stream
-  return ReadFieldMap(inputfile);
+  return ReadFieldMapStream(input);
 }
 
 /**
@@ -176,16 +226,16 @@ bool QwMagneticField::ReadFieldMapFile(const std::string filename)
  * @param filename ANSYS map file name
  * @return True if read successfully
  */
-bool QwMagneticField::ReadFieldMapZip(const std::string filename)
+bool QwMagneticField::ReadFieldMapZip(const std::string& filename)
 {
 #ifdef __USE_BOOST_IOSTREAMS
   // Create a gzip filter for the field map file
-  boost::iostreams::filtering_istream inputfile;
-  inputfile.push(boost::iostreams::gzip_decompressor());
-  inputfile.push(boost::iostreams::file_source(filename));
+  boost::iostreams::filtering_istream input;
+  input.push(boost::iostreams::gzip_decompressor());
+  input.push(boost::iostreams::file_source(filename));
 
   // Read the input field map stream
-  return ReadFieldMap(inputfile);
+  return ReadFieldMapStream(input);
 #else
   QwWarning << "Compressed input files not supported!" << QwLog::endl;
   return false;
@@ -197,7 +247,7 @@ bool QwMagneticField::ReadFieldMapZip(const std::string filename)
  * @param input Input stream
  * @return True if read successfully
  */
-bool QwMagneticField::ReadFieldMap(std::istream& input)
+bool QwMagneticField::ReadFieldMapStream(std::istream& input)
 {
   // Check whether field map exists
   if (fField == 0) {
@@ -322,6 +372,10 @@ void QwMagneticField::GetFieldValue(
 
   // Retrieve field value
   bool status = fField->GetValue(coord_zrf,field);
+
+  // Apply scale factor
+  for (unsigned int i = 0; i < value_n; i++)
+    field[i] *= fScaleFactor;
 
   // Warn if the coordinate was inside the field boundaries,
   // but we still encountered a problem.

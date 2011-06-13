@@ -51,7 +51,7 @@ class QwRayTracer: public VQwBridgingMethod {
     /// Destructor
     virtual ~QwRayTracer();
 
-    static bool LoadMagneticFieldMap(const std::string filename);
+    static bool LoadMagneticFieldMap();
 
     void GenerateLookUpTable();
 

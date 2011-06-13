@@ -29,9 +29,6 @@ int main (int argc, char* argv[])
     ("convert",po::value<bool>()->default_bool_value(false),
      "Convert field map from ASCII to binary");
   gQwOptions.AddOptions("Magnetic field map actions")
-    ("write-scaled",po::value<bool>()->default_bool_value(false),
-     "Write scaled field instead of original");
-  gQwOptions.AddOptions("Magnetic field map actions")
     ("timing",po::value<bool>()->default_bool_value(false),
      "Time magnetic field reading routines");
   gQwOptions.AddOptions("Magnetic field map actions")
@@ -44,17 +41,15 @@ int main (int argc, char* argv[])
   // Get options
   bool timing = gQwOptions.GetValue<bool>("timing");
   bool convert = gQwOptions.GetValue<bool>("convert");
-
-  // Name of field map file
-  string basename = gQwOptions.GetValue<string>("name");
-  std::string name = getenv_safe_string("QW_FIELDMAP") + "/" + basename;
+  std::string name = gQwOptions.GetValue<std::string>("name");
 
 
   timeval time_start, time_finish;
 
+
   // Initialize the field map
   gettimeofday(&time_start, 0);
-  QwMagneticField* magneticfield = new QwMagneticField();
+  QwMagneticField* magneticfield = new QwMagneticField(true);
   gettimeofday(&time_finish, 0);
   if (timing) {
     int time_initialize_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
@@ -131,7 +126,7 @@ int main (int argc, char* argv[])
 
     // Create new field map
     gettimeofday(&time_start, 0);
-    magneticfield = new QwMagneticField();
+    magneticfield = new QwMagneticField(true);
     gettimeofday(&time_finish, 0);
     if (timing) {
       int time_initialize2_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);

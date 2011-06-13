@@ -75,16 +75,6 @@ int main (int argc, char* argv[])
 
   /// Create a ray tracer bridging method
   QwRayTracer* raytracer = new QwRayTracer();
-  // Determine magnetic field file from environment variables
-  std::string fieldmap = "";
-  if (getenv("QW_FIELDMAP"))
-    fieldmap = std::string(getenv("QW_FIELDMAP")) + "/peiqing_2007.dat";
-  else
-    QwWarning << "Environment variable QW_FIELDMAP not defined." << QwLog::endl;
-  // Load magnetic field map
-  if (! QwRayTracer::LoadMagneticFieldMap(fieldmap))
-    QwError << "Could not load magnetic field map!" << QwLog::endl;
-
 
   /// Load the simulated event file
   QwTreeEventBuffer* treebuffer = new QwTreeEventBuffer(geometry);
