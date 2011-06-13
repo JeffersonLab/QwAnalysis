@@ -62,7 +62,8 @@ QwOptions::QwOptions()
   AddDefaultOptions()("usage", "print this help message");
   AddDefaultOptions()("help,h", "print this help message");
   AddDefaultOptions()("version,V", "print the version string");
-  AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read\nNB:  This will override the default configuration files.");
+  AddDefaultOptions()("config,c", po::value<std::string>(), "read ONLY this config file\n(will override default config files)");
+  AddDefaultOptions()("add-config,a", po::value<std::string>(), "read ALSO this config file\n(will keep the default config files)");
 }
 
 /**
@@ -212,6 +213,12 @@ void QwOptions::ParseCommandLine()
 	      << "user-defined configuration file "
               << fVariablesMap["config"].as<std::string>() << QwLog::endl;
     SetConfigFile(fVariablesMap["config"].as<std::string>());
+  }
+  // If a configuration file is specified, load it.
+  if (fVariablesMap.count("add-config") > 0) {
+    QwWarning << "Adding user-defined configuration file "
+              << fVariablesMap["add-config"].as<std::string>() << QwLog::endl;
+    AddConfigFile(fVariablesMap["add-config"].as<std::string>());
   }
 }
 
