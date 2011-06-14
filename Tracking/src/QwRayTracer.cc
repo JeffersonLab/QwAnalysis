@@ -87,7 +87,7 @@ QwRayTracer::QwRayTracer()
 
   // Load magnetic field
   LoadMagneticFieldMap();
-};
+}
 
 /**
  * Destructor
@@ -110,6 +110,9 @@ bool QwRayTracer::LoadMagneticFieldMap()
 
   // Otherwise reload the field map
   fBfield = new QwMagneticField();
+
+  // What could possibly go wrong?
+  return true;
 }
 
 

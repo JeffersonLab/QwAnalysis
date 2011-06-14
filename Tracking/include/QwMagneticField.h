@@ -70,6 +70,14 @@ class QwMagneticField  {
     void ProcessOptions(QwOptions& options);
 
 
+    /// Set the filename
+    void SetFilename(const std::string& filename)
+      { fFilename = filename; };
+    /// Get the filename
+    const std::string GetFilename() const
+      { return fFilename; };
+
+
     /// Set the scale factor
     void SetScaleFactor(const double scalefactor)
       { fScaleFactor = scalefactor; };
@@ -138,23 +146,15 @@ class QwMagneticField  {
 
     /// \name Expose some functionality of underlying field map
     // @{
-    /// Read a binary field map
-    bool ReadBinaryFile(const std::string& filename) {
-      if (fField) return fField->ReadBinaryFile(filename);
-      else return false;
-    }
-    /// Read a text field map
-    bool ReadTextFile(const std::string& filename) {
-      if (fField) return fField->ReadTextFile(filename);
-      else return false;
-    }
     /// Write a binary field map
-    bool WriteBinaryFile(const std::string& filename) const {
+    bool WriteBinaryFile(const std::string& fieldmap) const {
+      std::string filename = getenv_safe_string("QW_FIELDMAP") + "/" + fieldmap;
       if (fField) return fField->WriteBinaryFile(filename);
       else return false;
     }
     /// Write a text field map
-    bool WriteTextFile(const std::string& filename) const {
+    bool WriteTextFile(const std::string& fieldmap) const {
+      std::string filename = getenv_safe_string("QW_FIELDMAP") + "/" + fieldmap;
       if (fField) return fField->WriteTextFile(filename);
       else return false;
     }

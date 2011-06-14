@@ -26,6 +26,7 @@
 #include "QwLog.h"
 #include "QwUnits.h"
 
+
 /**
  * Method to print arrays conveniently
  * @param stream Output stream
@@ -76,12 +77,22 @@ QwMagneticField::~QwMagneticField()
  */
 void QwMagneticField::DefineOptions(QwOptions& options)
 {
+  // TODO (wdc) Remove QwTracking.fieldmap
+  options.AddOptions("Tracking options")
+    ("QwTracking.fieldmap",po::value<std::string>()->default_value(""),
+     "filename of the fieldmap file in QW_FIELDMAP");
+
+  // Options
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.map",po::value<std::string>()->default_value("peiqing_2007.dat"),
+    ("QwMagneticField.mapfile",po::value<std::string>()->default_value("peiqing_2007.dat"),
      "Field map file");
+
   options.AddOptions("Magnetic field map")
-    ("QwMagneticField.bfil",po::value<double>()->default_value(1.04),
-     "Rescaling factor");
+    ("QwMagneticField.current",po::value<double>()->default_value(8920.0),
+     "Actual current of run to analyze");
+  options.AddOptions("Magnetic field map")
+    ("QwMagneticField.reference",po::value<double>()->default_value(8615.0),
+     "Reference current of field map");
 
   options.AddOptions("Magnetic field map")
     ("QwMagneticField.trans",po::value<double>()->default_value(0),
@@ -128,7 +139,8 @@ void QwMagneticField::DefineOptions(QwOptions& options)
 void QwMagneticField::ProcessOptions(QwOptions& options)
 {
   // Scaling
-  double bfil  = options.GetValue<double>("QwMagneticField.bfil");
+  double bfil = options.GetValue<double>("QwMagneticField.current")
+              / options.GetValue<double>("QwMagneticField.reference");
   SetScaleFactor(bfil);
 
   // Translation and rotation
@@ -155,15 +167,15 @@ void QwMagneticField::ProcessOptions(QwOptions& options)
   fMin.push_back(phimin); fMax.push_back(phimax); fStep.push_back(phistep); fWrap.push_back(phiwrap);
 
   // Determine magnetic field file from environment variables
-  // TODO (wdc) Remove QwTracking.fieldmap from QwTrackingWorker
+  // TODO (wdc) Remove QwTracking.fieldmap support
   std::string fieldmap = options.GetValue<std::string>("QwTracking.fieldmap");
   if (fieldmap.size() != 0) {
     QwWarning << "Option \"QwTracking.fieldmap\" will disappear soon. "
-              << "Please use \"QwMagneticField.map\"." << QwLog::endl;
+              << "Please use \"QwMagneticField.mapfile\"." << QwLog::endl;
   } else {
-    fieldmap = options.GetValue<std::string>("QwMagneticField.map");
+    fieldmap = options.GetValue<std::string>("QwMagneticField.mapfile");
   }
-  fFilename = getenv_safe_string("QW_FIELDMAP") + "/" + fieldmap;
+  SetFilename(fieldmap);
 }
 
 /**
@@ -179,22 +191,30 @@ bool QwMagneticField::ReadFieldMap()
   fField = new QwInterpolator<field_t,value_n>(fMin,fMax,fStep);
   fField->SetWrapCoordinate(fWrap);
 
+  // Add path to filename
+  std::string filename = getenv_safe_string("QW_FIELDMAP") + "/" + fFilename;
+
   // Depending on form of filename, read zipped/regular/binary field map
   bool status = false;
-  if (fFilename.find(".dat.gz") != std::string::npos) {
-    status = ReadFieldMapZip(fFilename);
+  if (filename.find(".dat") != std::string::npos) {
+    status = ReadFieldMapFile(filename);
   }
-  if (fFilename.find(".dat") != std::string::npos) {
-    status = ReadFieldMapFile(fFilename);
+  if (filename.find(".dat.gz") != std::string::npos) {
+    status = ReadFieldMapZip(filename);
   }
-  if (fFilename.find(".bin") != std::string::npos) {
-    status = fField->ReadBinaryFile(fFilename);
+  if (filename.find(".bin") != std::string::npos) {
+    status = fField->ReadBinaryFile(filename);
+    // Try the regular map as a fallback option
+    if (status == false) {
+      filename.replace(filename.find("bin"),3,"dat");
+      status = ReadFieldMapFile(filename);
+    }
   }
 
   // Check status
   if (status == false) {
     QwError   << "Could not load magnetic field map!" << QwLog::endl;
-    QwWarning << "Filename: " << fFilename << QwLog::endl;
+    QwWarning << "Filename: " << filename << QwLog::endl;
   }
 
   return status;

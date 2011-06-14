@@ -271,9 +271,6 @@ void QwTrackingWorker::DefineOptions(QwOptions& options)
   options.AddOptions("Tracking options")("QwTracking.disable-raytracer",
                           po::value<bool>()->default_bool_value(false),
                           "disable the magnetic field map tracking");
-  options.AddOptions("Tracking options")("QwTracking.fieldmap",
-                          po::value<std::string>()->default_value(""),
-                          "filename of the fieldmap file in QW_FIELDMAP");
   options.AddOptions("Tracking options")("QwTracking.lookuptable",
                           po::value<std::string>()->default_value("QwTrajMatrix.root"),
                           "filename of the lookup table in QW_LOOKUP");
