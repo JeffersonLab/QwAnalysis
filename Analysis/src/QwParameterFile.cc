@@ -8,6 +8,10 @@
 #include <algorithm>
 #include <cctype>
 
+#ifndef BOOST_VERSION
+#include "boost/version.hpp"
+#endif
+
 // Qweak headers
 #include "QwLog.h"
 
@@ -126,7 +130,11 @@ QwParameterFile::QwParameterFile(const std::string& name)
     // Else, loop through search path and files
   } else {
 
-#if BOOST_VERSION >= 103600
+#if BOOST_VERSION >= 104600
+    // Separate file in stem and extension
+    std::string file_stem = file.stem().string();
+    std::string file_ext = file.extension().string();
+#elif BOOST_VERSION >= 103600
     // Separate file in stem and extension
     std::string file_stem = file.stem();
     std::string file_ext = file.extension();
@@ -267,7 +275,9 @@ int QwParameterFile::FindFile(
 
     // Match the stem and extension
     // note: filename() returns only the file name, not the path
-#if BOOST_VERSION >= 103600
+#if BOOST_VERSION >= 104600
+    std::string file_name = file_iterator->path().filename().string();
+#elif BOOST_VERSION >= 103600
     std::string file_name = file_iterator->filename();
 #else
     std::string file_name = file_iterator->leaf();
