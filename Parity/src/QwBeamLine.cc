@@ -233,12 +233,13 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
       //  Break this line into tokens to process it.
       modtype   = mapstr.GetTypedNextToken<TString>();	// module type
-      modnum    = mapstr.GetTypedNextToken<Int_t>();	// slot number
-      channum   = mapstr.GetTypedNextToken<Int_t>();	// channel number
+      modnum    = mapstr.GetTypedNextToken<UInt_t>();	// slot number
+      channum   = mapstr.GetTypedNextToken<UInt_t>();	// channel number
       dettype   = mapstr.GetTypedNextToken<TString>();	// type-purpose of the detector
       dettype.ToLower();
       namech    = mapstr.GetTypedNextToken<TString>();  // name of the detector
       namech.ToLower();
+      modtype.ToUpper();
 
       if(currentsubbankindex!=GetSubbankIndex(currentrocread,currentbankread)){
 	currentsubbankindex=GetSubbankIndex(currentrocread,currentbankread);
@@ -712,6 +713,9 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
     devname.Remove(TString::kBoth,' ');
 
     index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
+    if( index<0 ) {
+      std::cerr << "Error! "<<devtype<<" detector "<<devname<<" in Geometry file does not exist!"<<std::endl;
+    }
     VQwBPM * bpm = fStripline[index].get();
 
     devOffsetX   = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset

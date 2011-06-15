@@ -72,7 +72,7 @@ void VQwBPM::SetRotation(Double_t rotation_angle){
   // Read the rotation angle in degrees (to beam right)
   Bool_t ldebug = kFALSE;
   fSinRotation = 0;
-  fSinRotation = 0;
+  fCosRotation = 0;
   fRotationAngle = rotation_angle;
   fSinRotation = TMath::Sin(fRotationAngle*(TMath::DegToRad()));
   fCosRotation = TMath::Cos(fRotationAngle*(TMath::DegToRad()));
