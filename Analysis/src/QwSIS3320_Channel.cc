@@ -1,5 +1,5 @@
 /**
- * \file	MQwSIS3320_Channel.cc
+ * \file	QwSIS3320_Channel.cc
  *
  * \brief	Implementation of the decoding of SIS3320 sampling ADC data
  *
@@ -7,7 +7,7 @@
  * \date	2009-09-04 18:06:23
  * \ingroup	QwCompton
  *
- * The MQwSIS3320 set of classes is defined to read the integrated and sampled
+ * The QwSIS3320 set of classes is defined to read the integrated and sampled
  * data from the Compton photon detector.  Because the scope of this module is
  * similar the the VQWK ADC module (integration and asymmetries), parts of
  * this class are very similar to QwVQWK_Channel.
@@ -17,24 +17,24 @@
  *
  */
 
-#include "MQwSIS3320_Channel.h"
+#include "QwSIS3320_Channel.h"
 
 // Qweak headers
 #include "QwLog.h"
 #include "QwHistogramHelper.h"
 
 // Initialize data storage format flags
-const unsigned int MQwSIS3320_Channel::FORMAT_ACCUMULATOR = 0x0;
-const unsigned int MQwSIS3320_Channel::FORMAT_LONG_WORD_SAMPLING = 0x1;
-const unsigned int MQwSIS3320_Channel::FORMAT_SHORT_WORD_SAMPLING = 0x2;
+const unsigned int QwSIS3320_Channel::FORMAT_ACCUMULATOR = 0x0;
+const unsigned int QwSIS3320_Channel::FORMAT_LONG_WORD_SAMPLING = 0x1;
+const unsigned int QwSIS3320_Channel::FORMAT_SHORT_WORD_SAMPLING = 0x2;
 // Initialize sampling mode format flags
-const unsigned int MQwSIS3320_Channel::MODE_ACCUM_EVENT = 0x1;
-const unsigned int MQwSIS3320_Channel::MODE_MULTI_EVENT = 0x3;
-const unsigned int MQwSIS3320_Channel::MODE_SINGLE_EVENT = 0x4;
-const unsigned int MQwSIS3320_Channel::MODE_NOTREADY = 0xda00;
+const unsigned int QwSIS3320_Channel::MODE_ACCUM_EVENT = 0x1;
+const unsigned int QwSIS3320_Channel::MODE_MULTI_EVENT = 0x3;
+const unsigned int QwSIS3320_Channel::MODE_SINGLE_EVENT = 0x4;
+const unsigned int QwSIS3320_Channel::MODE_NOTREADY = 0xda00;
 
 // Compile-time debug level
-const Bool_t MQwSIS3320_Channel::kDEBUG = kFALSE;
+const Bool_t QwSIS3320_Channel::kDEBUG = kFALSE;
 
 
 /**
@@ -42,21 +42,21 @@ const Bool_t MQwSIS3320_Channel::kDEBUG = kFALSE;
  * channel of the SIS3320 into average voltage.
  * There are 2^12 possible states over the full 5 V range.
  */
-const Double_t MQwSIS3320_Channel::kVoltsPerBit = 5.0 / pow(2.0, 12);
+const Double_t QwSIS3320_Channel::kVoltsPerBit = 5.0 / pow(2.0, 12);
 
 /**
  * Conversion factor to translate the single sampling period to time.
  * The ADC will sample at 250 MHz, corresponding with 4 ns per sample.
  */
-const Double_t MQwSIS3320_Channel::kNanoSecondsPerSample = 4.0;
+const Double_t QwSIS3320_Channel::kNanoSecondsPerSample = 4.0;
 
 
 /**
- * Initialize the MQwSIS3320_Channel by assigning it a name
+ * Initialize the QwSIS3320_Channel by assigning it a name
  * @param channel Number of the channel
  * @param name Name for the channel
  */
-void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
+void  QwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
 {
   // Inherited from VQwDataElement
   SetElementName(name);
@@ -106,7 +106,7 @@ void  MQwSIS3320_Channel::InitializeChannel(UInt_t channel, TString name)
  * Check whether the event is a good event from the number of read samples
  * @return kTRUE if samples have been read
  */
-Bool_t MQwSIS3320_Channel::IsGoodEvent()
+Bool_t QwSIS3320_Channel::IsGoodEvent()
 {
   Bool_t fEventIsGood = kTRUE;
   for (size_t i = 0; i < fSamples.size(); i++)
@@ -117,7 +117,7 @@ Bool_t MQwSIS3320_Channel::IsGoodEvent()
 /**
  * Clear the event data in sampling buffer and accumulators
  */
-void MQwSIS3320_Channel::ClearEventData()
+void QwSIS3320_Channel::ClearEventData()
 {
   // Clear the sampled events
   for (size_t i = 0; i < fSamples.size(); i++)
@@ -145,7 +145,7 @@ void MQwSIS3320_Channel::ClearEventData()
  * @param index Starting position in the buffer
  * @return Number of words processed in this method
  */
-Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
+Int_t QwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index)
 {
   UInt_t words_read = 0;
 
@@ -188,7 +188,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
       // This is a sampling buffer using long words
       case FORMAT_LONG_WORD_SAMPLING:
-        QwWarning << "MQwSIS3320_Channel: Expanded word format not implemented"
+        QwWarning << "QwSIS3320_Channel: Expanded word format not implemented"
                   << QwLog::endl;
         break; // end of FORMAT_LONG_WORD_SAMPLING
 
@@ -222,7 +222,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
               if (kDEBUG) QwOut << "Samples " << event << ": " << fSamplesRaw[event] << QwLog::endl;
             }
             if (numberofevents_expected != numberofevents_actual) {
-              QwWarning << "MQwSIS3320_Channel: Expected " << numberofevents_expected << " events, "
+              QwWarning << "QwSIS3320_Channel: Expected " << numberofevents_expected << " events, "
                         << "but only read " << numberofevents_actual << "." << QwLog::endl;
               SetNumberOfEvents(numberofevents_actual);
             }
@@ -249,7 +249,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
           // Default
           default:
-            QwError << "MQwSIS3320_Channel: Received unknown sampling format: "
+            QwError << "QwSIS3320_Channel: Received unknown sampling format: "
                     << std::hex << local_setupmode << std::dec << "." << QwLog::endl;
             words_read = 0;
             return words_read;
@@ -302,7 +302,7 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
                                           << fAccumulatorTimingBefore6 << QwLog::endl;
         }
         if (kDEBUG) {
-          MQwSIS3320_Accumulator sum("sum");
+          QwSIS3320_Accumulator sum("sum");
           sum = fAccumulatorsRaw[1] + fAccumulatorsRaw[2] + fAccumulatorsRaw[3];
           QwOut << "Accum 1: " << fAccumulatorsRaw[0] << QwLog::endl;
           QwOut << "Accum 2 + 3 + 4: " << sum << QwLog::endl;
@@ -313,12 +313,12 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
 
       // This is an incomplete buffer
       case MODE_NOTREADY:
-        QwError << "MQwSIS3320_Channel: SIS3320 was not ready yet!" << QwLog::endl;
+        QwError << "QwSIS3320_Channel: SIS3320 was not ready yet!" << QwLog::endl;
         break; // end of FORMAT_NOTREADY
 
       // Default
       default:
-        QwError << "MQwSIS3320_Channel: Received unknown mode: "
+        QwError << "QwSIS3320_Channel: Received unknown mode: "
                 << std::hex << local_format << std::dec << "." << QwLog::endl;
         words_read = 0;
         return words_read;
@@ -326,13 +326,13 @@ Int_t MQwSIS3320_Channel::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
     } // end of switch (local_format)
 
   } else {
-    QwError << "MQwSIS3320_Channel: Not enough words while processing buffer!" << QwLog::endl;
+    QwError << "QwSIS3320_Channel: Not enough words while processing buffer!" << QwLog::endl;
   }
 
   return words_read;
 }
 
-void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
+void QwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   //  Long_t sample;
   std::vector<UInt_t> header;
@@ -365,7 +365,7 @@ void MQwSIS3320_Channel::EncodeEventData(std::vector<UInt_t> &buffer)
 /**
  * Process the event by removing pedestals and applying calibration
  */
-void MQwSIS3320_Channel::ProcessEvent()
+void QwSIS3320_Channel::ProcessEvent()
 {
   // Correct for pedestal and calibration factor
   if (fSamplesRaw.size() > 0) fSamples.resize(fSamplesRaw.size(), fSamplesRaw[0]);
@@ -410,9 +410,9 @@ void MQwSIS3320_Channel::ProcessEvent()
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Channel MQwSIS3320_Channel::operator+ (const Double_t &value) const
+const QwSIS3320_Channel QwSIS3320_Channel::operator+ (const Double_t &value) const
 {
-  MQwSIS3320_Channel result = *this;
+  QwSIS3320_Channel result = *this;
   result += value;
   return result;
 }
@@ -422,9 +422,9 @@ const MQwSIS3320_Channel MQwSIS3320_Channel::operator+ (const Double_t &value) c
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Channel MQwSIS3320_Channel::operator- (const Double_t &value) const
+const QwSIS3320_Channel QwSIS3320_Channel::operator- (const Double_t &value) const
 {
-  MQwSIS3320_Channel result = *this;
+  QwSIS3320_Channel result = *this;
   result -= value;
   return result;
 }
@@ -434,9 +434,9 @@ const MQwSIS3320_Channel MQwSIS3320_Channel::operator- (const Double_t &value) c
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Channel MQwSIS3320_Channel::operator+ (const MQwSIS3320_Channel &value) const
+const QwSIS3320_Channel QwSIS3320_Channel::operator+ (const QwSIS3320_Channel &value) const
 {
-  MQwSIS3320_Channel result = *this;
+  QwSIS3320_Channel result = *this;
   result += value;
   return result;
 }
@@ -446,9 +446,9 @@ const MQwSIS3320_Channel MQwSIS3320_Channel::operator+ (const MQwSIS3320_Channel
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Channel MQwSIS3320_Channel::operator- (const MQwSIS3320_Channel &value) const
+const QwSIS3320_Channel QwSIS3320_Channel::operator- (const QwSIS3320_Channel &value) const
 {
-  MQwSIS3320_Channel result = *this;
+  QwSIS3320_Channel result = *this;
   result -= value;
   return result;
 }
@@ -458,7 +458,7 @@ const MQwSIS3320_Channel MQwSIS3320_Channel::operator- (const MQwSIS3320_Channel
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Channel& MQwSIS3320_Channel::operator= (const MQwSIS3320_Channel &value)
+QwSIS3320_Channel& QwSIS3320_Channel::operator= (const QwSIS3320_Channel &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -475,7 +475,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator= (const MQwSIS3320_Channel &val
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const Double_t &value)
+QwSIS3320_Channel& QwSIS3320_Channel::operator+= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -491,7 +491,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const Double_t &value)
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const Double_t &value)
+QwSIS3320_Channel& QwSIS3320_Channel::operator-= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -507,7 +507,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const Double_t &value)
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const MQwSIS3320_Channel &value)
+QwSIS3320_Channel& QwSIS3320_Channel::operator+= (const QwSIS3320_Channel &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -523,7 +523,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator+= (const MQwSIS3320_Channel &va
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &value)
+QwSIS3320_Channel& QwSIS3320_Channel::operator-= (const QwSIS3320_Channel &value)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -539,7 +539,7 @@ MQwSIS3320_Channel& MQwSIS3320_Channel::operator-= (const MQwSIS3320_Channel &va
  * @param value1
  * @param value2
  */
-void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
+void QwSIS3320_Channel::Sum(QwSIS3320_Channel &value1, QwSIS3320_Channel &value2)
 {
   *this  =  value1;
   *this += value2;
@@ -550,13 +550,13 @@ void MQwSIS3320_Channel::Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &val
  * @param value1
  * @param value2
  */
-void MQwSIS3320_Channel::Difference(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2)
+void QwSIS3320_Channel::Difference(QwSIS3320_Channel &value1, QwSIS3320_Channel &value2)
 {
   *this  =  value1;
   *this -= value2;
 }
 
-void MQwSIS3320_Channel::Ratio(MQwSIS3320_Channel &numer, MQwSIS3320_Channel &denom)
+void QwSIS3320_Channel::Ratio(QwSIS3320_Channel &numer, QwSIS3320_Channel &denom)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fAccumulators.size(); i++)
@@ -568,7 +568,7 @@ void MQwSIS3320_Channel::Ratio(MQwSIS3320_Channel &numer, MQwSIS3320_Channel &de
  * Addition of a offset
  * @param offset
  */
-void MQwSIS3320_Channel::Offset(Double_t offset)
+void QwSIS3320_Channel::Offset(Double_t offset)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -582,7 +582,7 @@ void MQwSIS3320_Channel::Offset(Double_t offset)
  * Scaling by a scale factor
  * @param scale
  */
-void MQwSIS3320_Channel::Scale(Double_t scale)
+void QwSIS3320_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fSamples.size(); i++)
@@ -597,7 +597,7 @@ void MQwSIS3320_Channel::Scale(Double_t scale)
  * @param seqnumber Sequence number
  * @return kTRUE if the sequence number matches
  */
-Bool_t MQwSIS3320_Channel::MatchSequenceNumber(UInt_t seqnumber)
+Bool_t QwSIS3320_Channel::MatchSequenceNumber(UInt_t seqnumber)
 {
   Bool_t status = kTRUE;
   if (!IsNameEmpty()) {
@@ -611,7 +611,7 @@ Bool_t MQwSIS3320_Channel::MatchSequenceNumber(UInt_t seqnumber)
  * @param numsamples Number of samples
  * @return kTRUE if the number of samples matches
  */
-Bool_t MQwSIS3320_Channel::MatchNumberOfSamples(UInt_t numsamples)
+Bool_t QwSIS3320_Channel::MatchNumberOfSamples(UInt_t numsamples)
 {
   Bool_t status = kTRUE;
 // TOOO
@@ -621,7 +621,7 @@ Bool_t MQwSIS3320_Channel::MatchNumberOfSamples(UInt_t numsamples)
   return status;
 }
 
-void MQwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
+void QwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
@@ -646,7 +646,7 @@ void MQwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix
   }
 }
 
-void MQwSIS3320_Channel::FillHistograms()
+void QwSIS3320_Channel::FillHistograms()
 {
   size_t index = -1;
   if (fSamples.size() == 0) return;
@@ -670,7 +670,7 @@ void MQwSIS3320_Channel::FillHistograms()
   }
 }
 
-void  MQwSIS3320_Channel::DeleteHistograms()
+void  QwSIS3320_Channel::DeleteHistograms()
 {
   for (UInt_t i = 0; i < fHistograms.size(); i++) {
     if (fHistograms[i] != NULL)
@@ -681,7 +681,7 @@ void  MQwSIS3320_Channel::DeleteHistograms()
 }
 
 
-void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+void  QwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   // Accumulators
   for (size_t i = 0; i < fAccumulators.size(); i++) {
@@ -695,7 +695,7 @@ void  MQwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix,
   //tree->Branch(basename + "_avg", &fAverageSamples);
 }
 
-void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
+void  QwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   // Accumulators
   for (size_t i = 0; i < fAccumulators.size(); i++) {
@@ -705,9 +705,9 @@ void  MQwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 /**
- * Print value of the MQwSIS3320_Channel
+ * Print value of the QwSIS3320_Channel
  */
-void MQwSIS3320_Channel::PrintValue() const
+void QwSIS3320_Channel::PrintValue() const
 {
   QwMessage << std::setprecision(4)
             << std::setw(18) << std::left << GetElementName() << ", "
@@ -719,11 +719,11 @@ void MQwSIS3320_Channel::PrintValue() const
 
 
 /**
- * Print some debugging information about the MQwSIS3320_Channel
+ * Print some debugging information about the QwSIS3320_Channel
  */
-void MQwSIS3320_Channel::PrintInfo() const
+void QwSIS3320_Channel::PrintInfo() const
 {
-  QwOut << "MQwSIS3320_Channel \"" << GetElementName() << "\":" << QwLog::endl;
+  QwOut << "QwSIS3320_Channel \"" << GetElementName() << "\":" << QwLog::endl;
   QwOut << "Number of events: " << GetNumberOfEvents() << QwLog::endl;
   QwOut << "fSamplesRaw:" << QwLog::endl;
   for (size_t i = 0; i < fSamplesRaw.size(); i++) {
@@ -750,11 +750,11 @@ void MQwSIS3320_Channel::PrintInfo() const
 /*
  * Copy
  */
-void MQwSIS3320_Channel::Copy(MQwSIS3320_Channel *source)
+void QwSIS3320_Channel::Copy(QwSIS3320_Channel *source)
 {
    try {
       if( typeid(*source)==typeid(*this)) {
-         MQwSIS3320_Channel* input = ((MQwSIS3320_Channel*)source);
+         QwSIS3320_Channel* input = ((QwSIS3320_Channel*)source);
 
          // Now copy all the data
          this->fChannel                = source->fChannel;
@@ -790,7 +790,7 @@ void MQwSIS3320_Channel::Copy(MQwSIS3320_Channel *source)
          this->fMockGaussianSigma      = source->fMockGaussianSigma;
 
       } else {
-         TString message = "Standard exception from MQwSIS3320_Channel::Copy = "
+         TString message = "Standard exception from QwSIS3320_Channel::Copy = "
             + source->GetElementName() + " "
             + this->GetElementName() + " are not of the same type";
          throw std::invalid_argument(message.Data());

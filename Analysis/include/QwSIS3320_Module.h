@@ -1,5 +1,5 @@
 /**
- * \class	MQwSIS3320_Module	MQwSIS3320_Module.h
+ * \class	QwSIS3320_Module	QwSIS3320_Module.h
  *
  * \brief	Combination of 8 channels of SIS3320 sampling ADC data
  *
@@ -7,14 +7,14 @@
  * \date	2009-09-04 18:06:23
  * \ingroup	QwCompton
  *
- * The MQwSIS3320_Module class is defined as 8 MQwSIS3320_Channels.  This
+ * The QwSIS3320_Module class is defined as 8 QwSIS3320_Channels.  This
  * class helps keep track of which channels are combined together in one
  * module and therefore read out in the same subbank.
  *
  */
 
-#ifndef __MQwSIS3320_Module__
-#define __MQwSIS3320_Module__
+#ifndef __QwSIS3320_Module__
+#define __QwSIS3320_Module__
 
 /** \def SIS3320_CHANNELS Number of channels in a SIS3320 module */
 #define SIS3320_CHANNELS 8
@@ -32,27 +32,27 @@
 
 // Qweak headers
 #include "VQwDataElement.h"
-#include "MQwSIS3320_Channel.h"
+#include "QwSIS3320_Channel.h"
 
-class MQwSIS3320_Module: std::vector<MQwSIS3320_Channel> {
+class QwSIS3320_Module: std::vector<QwSIS3320_Channel> {
 
   public:
 
-    MQwSIS3320_Module() { resize(SIS3320_CHANNELS); }; // create the channels
+    QwSIS3320_Module() { resize(SIS3320_CHANNELS); }; // create the channels
 
     /**
-     * Print the value of the MQwSIS3320_Channels
+     * Print the value of the QwSIS3320_Channels
      */
     void PrintValue() {
-      for (std::vector<MQwSIS3320_Channel>::iterator c = begin(); c != end(); c++)
+      for (std::vector<QwSIS3320_Channel>::iterator c = begin(); c != end(); c++)
         c->PrintValue();
     };
 
     /**
-     * Print some debugging information about the MQwSIS3320_Channels
+     * Print some debugging information about the QwSIS3320_Channels
      */
     void PrintInfo() {
-      for (std::vector<MQwSIS3320_Channel>::iterator c = begin(); c != end(); c++)
+      for (std::vector<QwSIS3320_Channel>::iterator c = begin(); c != end(); c++)
         c->PrintInfo();
     };
 
@@ -62,4 +62,4 @@ class MQwSIS3320_Module: std::vector<MQwSIS3320_Channel> {
 
 };
 
-#endif // __MQwSIS3320_Module__
+#endif // __QwSIS3320_Module__

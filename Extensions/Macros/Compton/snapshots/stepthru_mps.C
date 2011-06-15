@@ -22,7 +22,7 @@
 #include <TF1.h>
 #include <TFile.h>
 #include <TProfile.h>
-// //#include <MQwSIS3320_Samples.h>
+// //#include <QwSIS3320_Samples.h>
 #include <TGraph.h>
 
 #include <stdio.h>

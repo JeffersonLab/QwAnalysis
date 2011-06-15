@@ -1,5 +1,5 @@
 /**
- * \class	MQwSIS3320_Channel	MQwSIS3320_Channel.h
+ * \class	QwSIS3320_Channel	QwSIS3320_Channel.h
  *
  * \brief	Class for the decoding of the SIS3320 sampling ADC data
  *
@@ -7,21 +7,21 @@
  * \date	2009-09-04 18:06:23
  * \ingroup	QwCompton
  *
- * The MQwSIS3320_Channel class is defined to read the integrated and sampled
+ * The QwSIS3320_Channel class is defined to read the integrated and sampled
  * data from the Compton photon detector.  Because the scope of this module is
  * similar the the VQWK ADC module (integration and asymmetries), parts of
  * this class are very similar to QwVQWK_Channel.
  *
- * The main data members of a MQwSIS3320_Channel are the vector fSamples of
- * MQwSIS3320_Samples where each entry stores a sample event, and the vector of
- * fAccumulators of MQwSIS3320_Accumulator where each entry stores an accumulator
+ * The main data members of a QwSIS3320_Channel are the vector fSamples of
+ * QwSIS3320_Samples where each entry stores a sample event, and the vector of
+ * fAccumulators of QwSIS3320_Accumulator where each entry stores an accumulator
  * block.  Both of these data members are derived from their --Raw counterparts
  * by subtraction of pedestals and multiplication with calibration constants.
  *
  */
 
-#ifndef __MQwSIS3320_Channel__
-#define __MQwSIS3320_Channel__
+#ifndef __QwSIS3320_Channel__
+#define __QwSIS3320_Channel__
 
 // System headers
 #include <iostream>
@@ -36,17 +36,17 @@
 
 // Qweak headers
 #include "VQwDataElement.h"
-#include "MQwSIS3320_Accumulator.h"
-#include "MQwSIS3320_Samples.h"
+#include "QwSIS3320_Accumulator.h"
+#include "QwSIS3320_Samples.h"
 
-class MQwSIS3320_Channel: public VQwDataElement {
+class QwSIS3320_Channel: public VQwDataElement {
 
   public:
 
-    MQwSIS3320_Channel(UInt_t channel = 0, TString name = "auto") {
+    QwSIS3320_Channel(UInt_t channel = 0, TString name = "auto") {
       InitializeChannel(channel, name);
     };
-    ~MQwSIS3320_Channel() {
+    ~QwSIS3320_Channel() {
       DeleteHistograms();
     };
 
@@ -64,18 +64,18 @@ class MQwSIS3320_Channel: public VQwDataElement {
     Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0);
     void  ProcessEvent();
 
-    const MQwSIS3320_Channel operator+ (const Double_t &value) const;
-    const MQwSIS3320_Channel operator- (const Double_t &value) const;
-    const MQwSIS3320_Channel operator+ (const MQwSIS3320_Channel &value) const;
-    const MQwSIS3320_Channel operator- (const MQwSIS3320_Channel &value) const;
-    MQwSIS3320_Channel& operator=  (const MQwSIS3320_Channel &value);
-    MQwSIS3320_Channel& operator+= (const Double_t &value);
-    MQwSIS3320_Channel& operator-= (const Double_t &value);
-    MQwSIS3320_Channel& operator+= (const MQwSIS3320_Channel &value);
-    MQwSIS3320_Channel& operator-= (const MQwSIS3320_Channel &value);
-    void Sum(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2);
-    void Difference(MQwSIS3320_Channel &value1, MQwSIS3320_Channel &value2);
-    void Ratio(MQwSIS3320_Channel &numer, MQwSIS3320_Channel &denom);
+    const QwSIS3320_Channel operator+ (const Double_t &value) const;
+    const QwSIS3320_Channel operator- (const Double_t &value) const;
+    const QwSIS3320_Channel operator+ (const QwSIS3320_Channel &value) const;
+    const QwSIS3320_Channel operator- (const QwSIS3320_Channel &value) const;
+    QwSIS3320_Channel& operator=  (const QwSIS3320_Channel &value);
+    QwSIS3320_Channel& operator+= (const Double_t &value);
+    QwSIS3320_Channel& operator-= (const Double_t &value);
+    QwSIS3320_Channel& operator+= (const QwSIS3320_Channel &value);
+    QwSIS3320_Channel& operator-= (const QwSIS3320_Channel &value);
+    void Sum(QwSIS3320_Channel &value1, QwSIS3320_Channel &value2);
+    void Difference(QwSIS3320_Channel &value1, QwSIS3320_Channel &value2);
+    void Ratio(QwSIS3320_Channel &numer, QwSIS3320_Channel &denom);
     void Offset(Double_t Offset);
     void Scale(Double_t Offset);
 
@@ -89,8 +89,8 @@ class MQwSIS3320_Channel: public VQwDataElement {
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
-    MQwSIS3320_Samples& GetSamples(size_t i) { return fSamples.at(i); };
-    MQwSIS3320_Samples& GetSamplesRaw(size_t i) { return fSamplesRaw.at(i); };
+    QwSIS3320_Samples& GetSamples(size_t i) { return fSamples.at(i); };
+    QwSIS3320_Samples& GetSamplesRaw(size_t i) { return fSamplesRaw.at(i); };
 
     size_t GetSequenceNumber() const { return (fSequenceNumber); };
 
@@ -115,7 +115,7 @@ class MQwSIS3320_Channel: public VQwDataElement {
 
     Bool_t IsGoodEvent();
 
-    void Copy(MQwSIS3320_Channel *source);
+    void Copy(QwSIS3320_Channel *source);
 
     void PrintValue() const;
     void PrintInfo() const;
@@ -150,11 +150,11 @@ class MQwSIS3320_Channel: public VQwDataElement {
     /* ADC sample data */
     UInt_t fSampleFormat;
     UInt_t fSamplePointer;
-    std::vector<MQwSIS3320_Samples> fSamples;
-    std::vector<MQwSIS3320_Samples> fSamplesRaw;
+    std::vector<QwSIS3320_Samples> fSamples;
+    std::vector<QwSIS3320_Samples> fSamplesRaw;
     //
-    MQwSIS3320_Samples fAverageSamples;
-    MQwSIS3320_Samples fAverageSamplesRaw;
+    QwSIS3320_Samples fAverageSamples;
+    QwSIS3320_Samples fAverageSamplesRaw;
     std::vector<Double_t> fTimeWindowAverages;
     std::vector<std::pair<UInt_t, UInt_t> > fTimeWindows;
     std::vector<Double_t> fSampleWindowAverages;
@@ -170,8 +170,8 @@ class MQwSIS3320_Channel: public VQwDataElement {
     Int_t fAccumulatorThreshold1, fAccumulatorThreshold2;
     Int_t fAccumulatorTimingBefore5, fAccumulatorTimingAfter5;
     Int_t fAccumulatorTimingBefore6, fAccumulatorTimingAfter6;
-    std::vector<MQwSIS3320_Accumulator> fAccumulators;
-    std::vector<MQwSIS3320_Accumulator> fAccumulatorsRaw;
+    std::vector<QwSIS3320_Accumulator> fAccumulators;
+    std::vector<QwSIS3320_Accumulator> fAccumulatorsRaw;
 
     /* Sequence number */
     UInt_t fSequenceNumber;
@@ -199,4 +199,4 @@ class MQwSIS3320_Channel: public VQwDataElement {
 
 };
 
-#endif // __MQwSIS3320_Channel__
+#endif // __QwSIS3320_Channel__

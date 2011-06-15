@@ -1,5 +1,5 @@
 /**
- * \file	MQwSIS3320_Samples.cc
+ * \file	QwSIS3320_Samples.cc
  *
  * \brief	Implementation of the SIS3320 sampling ADC samples
  *
@@ -7,15 +7,15 @@
  * \date	2009-09-04 18:06:23
  * \ingroup	QwCompton
  *
- * The MQwSIS3320_Samples should allow convenient access to the sampling data
+ * The QwSIS3320_Samples should allow convenient access to the sampling data
  * collected with the SIS3320 for the Compton photon detector.  This class
  * implements its own sum, difference, and ratio methods inherited from the
  * general VQwDataElement.
  *
  */
 
-#include "MQwSIS3320_Samples.h"
-ClassImp(MQwSIS3320_Samples)
+#include "QwSIS3320_Samples.h"
+ClassImp(QwSIS3320_Samples)
 
 // System headers
 #include <numeric>
@@ -24,9 +24,9 @@ ClassImp(MQwSIS3320_Samples)
 // Qweak headers
 #include "QwLog.h"
 
-std::vector<MQwSIS3320_Type> MQwSIS3320_Samples::fIndex;
+std::vector<QwSIS3320_Type> QwSIS3320_Samples::fIndex;
 
-Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement)
+Int_t QwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement)
 {
   UInt_t words_read = 0;
   UInt_t index = 0;
@@ -43,7 +43,7 @@ Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
           fSamples[index++] = (buffer[i] >> 16) & 0xFFFF; // highest 16 bits
           break;
         default:
-          QwError << "MQwSIS3320_Samples: Illegal number of samples per word!" << QwLog::endl;
+          QwError << "QwSIS3320_Samples: Illegal number of samples per word!" << QwLog::endl;
           words_read = 0;
           return words_read;
       }
@@ -51,43 +51,43 @@ Int_t MQwSIS3320_Samples::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,
     words_read = fNumberOfDataWords;
 
   } else {
-    QwError << "MQwSIS3320_Samples: Not enough words while processing buffer!" << QwLog::endl;
+    QwError << "QwSIS3320_Samples: Not enough words while processing buffer!" << QwLog::endl;
   }
 
   return words_read;
 }
 
 
-std::pair<size_t,MQwSIS3320_Type> MQwSIS3320_Samples::GetMax() const
+std::pair<size_t,QwSIS3320_Type> QwSIS3320_Samples::GetMax() const
 {
-  std::vector<MQwSIS3320_Type>::const_iterator max = std::max_element(fSamples.begin(), fSamples.end());
-  return std::pair<size_t,MQwSIS3320_Type>(max - fSamples.begin(),*max);
+  std::vector<QwSIS3320_Type>::const_iterator max = std::max_element(fSamples.begin(), fSamples.end());
+  return std::pair<size_t,QwSIS3320_Type>(max - fSamples.begin(),*max);
 }
 
-std::pair<size_t,MQwSIS3320_Type> MQwSIS3320_Samples::GetMin() const
+std::pair<size_t,QwSIS3320_Type> QwSIS3320_Samples::GetMin() const
 {
-  std::vector<MQwSIS3320_Type>::const_iterator min = std::min_element(fSamples.begin(), fSamples.end());
-  return std::pair<size_t,MQwSIS3320_Type>(min - fSamples.begin(),*min);
+  std::vector<QwSIS3320_Type>::const_iterator min = std::min_element(fSamples.begin(), fSamples.end());
+  return std::pair<size_t,QwSIS3320_Type>(min - fSamples.begin(),*min);
 }
 
-MQwSIS3320_Type MQwSIS3320_Samples::GetSum() const
+QwSIS3320_Type QwSIS3320_Samples::GetSum() const
 {
   return std::accumulate(fSamples.begin(), fSamples.end(), 0.0);
 }
 
 
-MQwSIS3320_Type MQwSIS3320_Samples::GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const
+QwSIS3320_Type QwSIS3320_Samples::GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const
 {
   if (start >= fSamples.size() || stop >= fSamples.size()) return 0;
   return std::accumulate(&fSamples.at(start), &fSamples.at(stop), 0.0);
 }
 
 
-void MQwSIS3320_Samples::UpdateGraph()
+void QwSIS3320_Samples::UpdateGraph()
 {
   const size_t n = fSamples.size();
-  const MQwSIS3320_Type* vx = &(*fIndex.begin());
-  const MQwSIS3320_Type* vy = &(*fSamples.begin());
+  const QwSIS3320_Type* vx = &(*fIndex.begin());
+  const QwSIS3320_Type* vy = &(*fSamples.begin());
   fGraph = new TGraph(n, vx, vy);
 }
 
@@ -97,9 +97,9 @@ void MQwSIS3320_Samples::UpdateGraph()
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Samples MQwSIS3320_Samples::operator+ (const Double_t &value) const
+const QwSIS3320_Samples QwSIS3320_Samples::operator+ (const Double_t &value) const
 {
-  MQwSIS3320_Samples result = *this;
+  QwSIS3320_Samples result = *this;
   result += value;
   return result;
 }
@@ -109,9 +109,9 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator+ (const Double_t &value) c
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Samples MQwSIS3320_Samples::operator- (const Double_t &value) const
+const QwSIS3320_Samples QwSIS3320_Samples::operator- (const Double_t &value) const
 {
-  MQwSIS3320_Samples result = *this;
+  QwSIS3320_Samples result = *this;
   result -= value;
   return result;
 }
@@ -121,9 +121,9 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator- (const Double_t &value) c
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Samples MQwSIS3320_Samples::operator* (const Double_t &value) const
+const QwSIS3320_Samples QwSIS3320_Samples::operator* (const Double_t &value) const
 {
-  MQwSIS3320_Samples result = *this;
+  QwSIS3320_Samples result = *this;
   result *= value;
   return result;
 }
@@ -133,9 +133,9 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator* (const Double_t &value) c
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Samples MQwSIS3320_Samples::operator/ (const Double_t &value) const
+const QwSIS3320_Samples QwSIS3320_Samples::operator/ (const Double_t &value) const
 {
-  MQwSIS3320_Samples result = *this;
+  QwSIS3320_Samples result = *this;
   result /= value;
   return result;
 }
@@ -145,7 +145,7 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator/ (const Double_t &value) c
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Samples& MQwSIS3320_Samples::operator*= (const Double_t &value)
+QwSIS3320_Samples& QwSIS3320_Samples::operator*= (const Double_t &value)
 {
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) *= value;
@@ -157,7 +157,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator*= (const Double_t &value)
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Samples& MQwSIS3320_Samples::operator/= (const Double_t &value)
+QwSIS3320_Samples& QwSIS3320_Samples::operator/= (const Double_t &value)
 {
   for (size_t i = 0; i < fSamples.size(); i++)
     if (value != 0.0)
@@ -172,7 +172,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator/= (const Double_t &value)
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const Double_t &value)
+QwSIS3320_Samples& QwSIS3320_Samples::operator+= (const Double_t &value)
 {
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) += value;
@@ -184,7 +184,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const Double_t &value)
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Samples& MQwSIS3320_Samples::operator-= (const Double_t &value)
+QwSIS3320_Samples& QwSIS3320_Samples::operator-= (const Double_t &value)
 {
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) -= value;
@@ -196,9 +196,9 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator-= (const Double_t &value)
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Samples MQwSIS3320_Samples::operator+ (const MQwSIS3320_Samples &value) const
+const QwSIS3320_Samples QwSIS3320_Samples::operator+ (const QwSIS3320_Samples &value) const
 {
-  MQwSIS3320_Samples result = *this;
+  QwSIS3320_Samples result = *this;
   result += value;
   return result;
 }
@@ -208,9 +208,9 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator+ (const MQwSIS3320_Samples
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Samples MQwSIS3320_Samples::operator- (const MQwSIS3320_Samples &value) const
+const QwSIS3320_Samples QwSIS3320_Samples::operator- (const QwSIS3320_Samples &value) const
 {
-  MQwSIS3320_Samples result = *this;
+  QwSIS3320_Samples result = *this;
   result -= value;
   return result;
 }
@@ -220,7 +220,7 @@ const MQwSIS3320_Samples MQwSIS3320_Samples::operator- (const MQwSIS3320_Samples
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Samples& MQwSIS3320_Samples::operator= (const MQwSIS3320_Samples &value)
+QwSIS3320_Samples& QwSIS3320_Samples::operator= (const QwSIS3320_Samples &value)
 {
   this->fSamples.resize(value.fSamples.size());
   for (size_t i = 0; i < fSamples.size(); i++)
@@ -233,7 +233,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator= (const MQwSIS3320_Samples &val
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const MQwSIS3320_Samples &value)
+QwSIS3320_Samples& QwSIS3320_Samples::operator+= (const QwSIS3320_Samples &value)
 {
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) += value.fSamples.at(i);
@@ -245,7 +245,7 @@ MQwSIS3320_Samples& MQwSIS3320_Samples::operator+= (const MQwSIS3320_Samples &va
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Samples& MQwSIS3320_Samples::operator-= (const MQwSIS3320_Samples &value)
+QwSIS3320_Samples& QwSIS3320_Samples::operator-= (const QwSIS3320_Samples &value)
 {
   for (size_t i = 0; i < fSamples.size(); i++)
     this->fSamples.at(i) -= value.fSamples.at(i);

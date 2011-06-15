@@ -4,7 +4,7 @@
 #pragma link off all classes;
 #pragma link off all functions;
 
-#pragma link C++ class MQwSIS3320_Samples+;
-#pragma link C++ class std::vector<MQwSIS3320_Samples>+;
+#pragma link C++ class QwSIS3320_Samples+;
+#pragma link C++ class std::vector<QwSIS3320_Samples>+;
 
 #endif

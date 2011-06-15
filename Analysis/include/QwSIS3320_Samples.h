@@ -1,5 +1,5 @@
 /**
- * \class	MQwSIS3320_Samples	MQwSIS3320_Samples.h
+ * \class	QwSIS3320_Samples	QwSIS3320_Samples.h
  *
  * \brief	SIS3320 sampling ADC samples
  *
@@ -7,15 +7,15 @@
  * \date	2009-09-04 18:06:23
  * \ingroup	QwCompton
  *
- * The MQwSIS3320_Samples should allow convenient access to the sampling data
+ * The QwSIS3320_Samples should allow convenient access to the sampling data
  * collected with the SIS3320 for the Compton photon detector.  This class
  * implements its own sum, difference, and ratio methods inherited from the
  * general VQwDataElement.
  *
  */
 
-#ifndef __MQwSIS3320_Samples__
-#define __MQwSIS3320_Samples__
+#ifndef __QwSIS3320_Samples__
+#define __QwSIS3320_Samples__
 
 // System headers
 #include <iostream>
@@ -31,30 +31,30 @@
 /// UInt_t raw samples, Float_t processed samples, and Double_t average
 /// samples.  Seems to cause too many problems right now and needs some
 /// thinking.
-typedef Double_t MQwSIS3320_Type;
+typedef Double_t QwSIS3320_Type;
 
-class MQwSIS3320_Samples: public TObject {
+class QwSIS3320_Samples: public TObject {
 
   public:
 
-    MQwSIS3320_Samples(UInt_t nsamples = 256) {
+    QwSIS3320_Samples(UInt_t nsamples = 256) {
       fGraph = 0;
       SetSamplesPerWord(2);
       SetNumberOfSamples(nsamples);
     };
-    virtual ~MQwSIS3320_Samples() {
+    virtual ~QwSIS3320_Samples() {
       if (fGraph) delete fGraph;
     };
 
     size_t GetMinIndex() const { return GetMin().first; };
     size_t GetMaxIndex() const { return GetMax().first; };
-    MQwSIS3320_Type GetMinSample() const { return GetMin().second; };
-    MQwSIS3320_Type GetMaxSample() const { return GetMax().second; };
+    QwSIS3320_Type GetMinSample() const { return GetMin().second; };
+    QwSIS3320_Type GetMaxSample() const { return GetMax().second; };
 
-    MQwSIS3320_Type GetSum() const;
-    MQwSIS3320_Type GetSample(size_t i) const { return fSamples.at(i); };
-    MQwSIS3320_Type GetPedestal() const { return GetSample(0); };
-    MQwSIS3320_Type GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const;
+    QwSIS3320_Type GetSum() const;
+    QwSIS3320_Type GetSample(size_t i) const { return fSamples.at(i); };
+    QwSIS3320_Type GetPedestal() const { return GetSample(0); };
+    QwSIS3320_Type GetSumInTimeWindow(const UInt_t start, const UInt_t stop) const;
 
     UInt_t GetNumberOfDataWords() const { return fNumberOfDataWords; };
     void SetNumberOfDataWords(const UInt_t &numwords) {
@@ -86,29 +86,29 @@ class MQwSIS3320_Samples: public TObject {
     void  ClearEventData() { fSamples.clear(); };
     Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0);
 
-    MQwSIS3320_Samples& operator/= (const Double_t &value);
-    MQwSIS3320_Samples& operator*= (const Double_t &value);
-    MQwSIS3320_Samples& operator+= (const Double_t &value);
-    MQwSIS3320_Samples& operator-= (const Double_t &value);
-    const MQwSIS3320_Samples operator/ (const Double_t &value) const;
-    const MQwSIS3320_Samples operator* (const Double_t &value) const;
-    const MQwSIS3320_Samples operator+ (const Double_t &value) const;
-    const MQwSIS3320_Samples operator- (const Double_t &value) const;
+    QwSIS3320_Samples& operator/= (const Double_t &value);
+    QwSIS3320_Samples& operator*= (const Double_t &value);
+    QwSIS3320_Samples& operator+= (const Double_t &value);
+    QwSIS3320_Samples& operator-= (const Double_t &value);
+    const QwSIS3320_Samples operator/ (const Double_t &value) const;
+    const QwSIS3320_Samples operator* (const Double_t &value) const;
+    const QwSIS3320_Samples operator+ (const Double_t &value) const;
+    const QwSIS3320_Samples operator- (const Double_t &value) const;
 
-    MQwSIS3320_Samples& operator=  (const MQwSIS3320_Samples &value);
-    MQwSIS3320_Samples& operator+= (const MQwSIS3320_Samples &value);
-    MQwSIS3320_Samples& operator-= (const MQwSIS3320_Samples &value);
-    const MQwSIS3320_Samples operator+ (const MQwSIS3320_Samples &value) const;
-    const MQwSIS3320_Samples operator- (const MQwSIS3320_Samples &value) const;
+    QwSIS3320_Samples& operator=  (const QwSIS3320_Samples &value);
+    QwSIS3320_Samples& operator+= (const QwSIS3320_Samples &value);
+    QwSIS3320_Samples& operator-= (const QwSIS3320_Samples &value);
+    const QwSIS3320_Samples operator+ (const QwSIS3320_Samples &value) const;
+    const QwSIS3320_Samples operator- (const QwSIS3320_Samples &value) const;
 
     // Output stream operator<< for an accumulator
-    friend std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples& s);
+    friend std::ostream& operator<< (std::ostream& stream, const QwSIS3320_Samples& s);
 
   private:
 
     // Private helper methods for getting minimum and maximum index and samples
-    std::pair<size_t,MQwSIS3320_Type> GetMin() const; //!
-    std::pair<size_t,MQwSIS3320_Type> GetMax() const; //!
+    std::pair<size_t,QwSIS3320_Type> GetMin() const; //!
+    std::pair<size_t,QwSIS3320_Type> GetMax() const; //!
 
   private:
 
@@ -118,9 +118,9 @@ class MQwSIS3320_Samples: public TObject {
     UInt_t  fNumberOfDataWords;
 
     //! Samples index
-    static std::vector<MQwSIS3320_Type> fIndex; //!
+    static std::vector<QwSIS3320_Type> fIndex; //!
     //! Samples values
-    std::vector<MQwSIS3320_Type> fSamples;
+    std::vector<QwSIS3320_Type> fSamples;
     //! Graph of samples
     TGraph* fGraph;
 
@@ -128,15 +128,15 @@ class MQwSIS3320_Samples: public TObject {
     size_t fTreeArrayIndex; //!< Index of this data element in tree
     size_t fTreeArrayNumEntries; //!< Number of entries from this data element
 
-  ClassDef(MQwSIS3320_Samples,1);
+  ClassDef(QwSIS3320_Samples,1);
 };
 
 // Output stream operator<< for the samples
-inline std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Samples& s)
+inline std::ostream& operator<< (std::ostream& stream, const QwSIS3320_Samples& s)
 {
   for (size_t i = 0; i < s.GetNumberOfSamples(); i++)
     stream << s.GetSample(i) << " ";
   return stream;
 }
 
-#endif // __MQwSIS3320_Samples__
+#endif // __QwSIS3320_Samples__

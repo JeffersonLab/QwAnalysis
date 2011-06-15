@@ -1,5 +1,5 @@
 /**
- * \class	MQwSIS3320_Accumulator	MQwSIS3320_Accumulator.h
+ * \class	QwSIS3320_Accumulator	QwSIS3320_Accumulator.h
  *
  * \brief	SIS3320 sampling ADC accumulator
  *
@@ -7,15 +7,15 @@
  * \date	2009-09-04 18:06:23
  * \ingroup	QwCompton
  *
- * The MQwSIS3320_Accumulator should allow convenient access to the accumulator
+ * The QwSIS3320_Accumulator should allow convenient access to the accumulator
  * data collected with the SIS3320 for the Compton photon detector.  This class
  * implements its own sum, difference, and ratio methods inherited from the
  * general VQwDataElement.
  *
  */
 
-#ifndef __MQwSIS3320_Accumulator__
-#define __MQwSIS3320_Accumulator__
+#ifndef __QwSIS3320_Accumulator__
+#define __QwSIS3320_Accumulator__
 
 // System headers
 #include <iostream>
@@ -31,17 +31,17 @@
 // Qweak headers
 #include "VQwDataElement.h"
 
-class MQwSIS3320_Accumulator: public VQwDataElement {
+class QwSIS3320_Accumulator: public VQwDataElement {
 
   public:
 
-    MQwSIS3320_Accumulator(TString name = "") {
+    QwSIS3320_Accumulator(TString name = "") {
       SetElementName(name);
       SetNumberOfDataWords(3);
       fMinValue = 0; fMaxValue = 0;
       fMinTime = 0; fMaxTime = 0;
     };
-    ~MQwSIS3320_Accumulator() { };
+    ~QwSIS3320_Accumulator() { };
 
     Int_t GetMinValue() const { return fMinValue; };
     Int_t GetMaxValue() const { return fMaxValue; };
@@ -59,22 +59,22 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     void  ClearEventData() { fAccumulatorSum = 0; fNumberOfSamples = 0; };
     Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0);
 
-    const MQwSIS3320_Accumulator operator/ (const Double_t &value) const;
-    const MQwSIS3320_Accumulator operator* (const Double_t &value) const;
-    const MQwSIS3320_Accumulator operator+ (const Double_t &value) const;
-    const MQwSIS3320_Accumulator operator- (const Double_t &value) const;
-    MQwSIS3320_Accumulator& operator/= (const Double_t &value);
-    MQwSIS3320_Accumulator& operator*= (const Double_t &value);
-    MQwSIS3320_Accumulator& operator+= (const Double_t &value);
-    MQwSIS3320_Accumulator& operator-= (const Double_t &value);
-    const MQwSIS3320_Accumulator operator+ (const MQwSIS3320_Accumulator &value) const;
-    const MQwSIS3320_Accumulator operator- (const MQwSIS3320_Accumulator &value) const;
-    MQwSIS3320_Accumulator& operator=  (const MQwSIS3320_Accumulator &value);
-    MQwSIS3320_Accumulator& operator+= (const MQwSIS3320_Accumulator &value);
-    MQwSIS3320_Accumulator& operator-= (const MQwSIS3320_Accumulator &value);
-    void Sum(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2);
-    void Difference(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2);
-    void Ratio(const MQwSIS3320_Accumulator &numer, const MQwSIS3320_Accumulator &denom);
+    const QwSIS3320_Accumulator operator/ (const Double_t &value) const;
+    const QwSIS3320_Accumulator operator* (const Double_t &value) const;
+    const QwSIS3320_Accumulator operator+ (const Double_t &value) const;
+    const QwSIS3320_Accumulator operator- (const Double_t &value) const;
+    QwSIS3320_Accumulator& operator/= (const Double_t &value);
+    QwSIS3320_Accumulator& operator*= (const Double_t &value);
+    QwSIS3320_Accumulator& operator+= (const Double_t &value);
+    QwSIS3320_Accumulator& operator-= (const Double_t &value);
+    const QwSIS3320_Accumulator operator+ (const QwSIS3320_Accumulator &value) const;
+    const QwSIS3320_Accumulator operator- (const QwSIS3320_Accumulator &value) const;
+    QwSIS3320_Accumulator& operator=  (const QwSIS3320_Accumulator &value);
+    QwSIS3320_Accumulator& operator+= (const QwSIS3320_Accumulator &value);
+    QwSIS3320_Accumulator& operator-= (const QwSIS3320_Accumulator &value);
+    void Sum(const QwSIS3320_Accumulator &value1, const QwSIS3320_Accumulator &value2);
+    void Difference(const QwSIS3320_Accumulator &value1, const QwSIS3320_Accumulator &value2);
+    void Ratio(const QwSIS3320_Accumulator &numer, const QwSIS3320_Accumulator &denom);
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
@@ -84,7 +84,7 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
     // Output stream operator<< for an accumulator
-    friend std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Accumulator& a);
+    friend std::ostream& operator<< (std::ostream& stream, const QwSIS3320_Accumulator& a);
 
     // Define operator+=, operator-=, etc, for accumulator asymmetries
 
@@ -109,9 +109,9 @@ class MQwSIS3320_Accumulator: public VQwDataElement {
 };
 
 // Output stream operator<< for the accumulators
-inline std::ostream& operator<< (std::ostream& stream, const MQwSIS3320_Accumulator& a) {
+inline std::ostream& operator<< (std::ostream& stream, const QwSIS3320_Accumulator& a) {
   stream << a.GetAccumulatorSum() << " (" << a.GetNumberOfSamples() << ")";
   return stream;
 }
 
-#endif // __MQwSIS3320_Accumulator__
+#endif // __QwSIS3320_Accumulator__

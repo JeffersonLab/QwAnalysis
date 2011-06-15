@@ -117,7 +117,7 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
                     << QwLog::endl;
           UInt_t index = fSamplingADC.size();
           fSamplingADC_Mapping[subbank].at(modnum).at(channum) = index;
-          fSamplingADC.push_back(MQwSIS3320_Channel(channum, name));
+          fSamplingADC.push_back(QwSIS3320_Channel(channum, name));
           fSamplingADC.at(index).SetNumberOfAccumulators(6);
           fSamplingADC.at(index).InitializeChannel(channum, name);
         }
@@ -273,7 +273,7 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
  */
 void QwComptonPhotonDetector::RandomizeEventData(int helicity)
 {
-  // Randomize all MQwSIS3320 buffers
+  // Randomize all gQwSIS3320 buffers
   for (size_t i = 0; i < fSamplingADC.size(); i++)
     fSamplingADC[i].RandomizeEventData(helicity);
 
@@ -1051,10 +1051,10 @@ VQwSubsystem*  QwComptonPhotonDetector::Copy()
  * @param name Name of the SIS3320 channel
  * @return Pointer to the SIS3320 channel
  */
-MQwSIS3320_Channel* QwComptonPhotonDetector::GetSIS3320Channel(const TString name)
+QwSIS3320_Channel* QwComptonPhotonDetector::GetSIS3320Channel(const TString name)
 {
   if (! fSamplingADC.empty()) {
-    for (std::vector<MQwSIS3320_Channel>::iterator adc = fSamplingADC.begin(); adc != fSamplingADC.end(); ++adc) {
+    for (std::vector<QwSIS3320_Channel>::iterator adc = fSamplingADC.begin(); adc != fSamplingADC.end(); ++adc) {
       if (adc->GetElementName() == name) {
         return &(*adc);
       }

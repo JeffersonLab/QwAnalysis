@@ -1,5 +1,5 @@
 /**
- * \file	MQwSIS3320_Accumulator.cc
+ * \file	QwSIS3320_Accumulator.cc
  *
  * \brief	Implementation of the SIS3320 sampling ADC accumulator
  *
@@ -7,24 +7,24 @@
  * \date	2009-09-04 18:06:23
  * \ingroup	QwCompton
  *
- * The MQwSIS3320_Accumulator should allow convenient access to the accumulator
+ * The QwSIS3320_Accumulator should allow convenient access to the accumulator
  * data collected with the SIS3320 for the Compton photon detector.  This class
  * implements its own sum, difference, and ratio methods inherited from the
  * general VQwDataElement.
  *
  */
 
-#include "MQwSIS3320_Accumulator.h"
+#include "QwSIS3320_Accumulator.h"
 
 // Qweak headers
 #include "QwLog.h"
 #include "QwHistogramHelper.h"
 
 // Fields in accumulator data buffer
-const unsigned int MQwSIS3320_Accumulator::INDEX_NUM = 0;
-const unsigned int MQwSIS3320_Accumulator::INDEX_SUM = 1;
+const unsigned int QwSIS3320_Accumulator::INDEX_NUM = 0;
+const unsigned int QwSIS3320_Accumulator::INDEX_SUM = 1;
 
-Int_t MQwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement)
+Int_t QwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement)
 {
   UInt_t words_read = 0;
   UInt_t index;
@@ -44,7 +44,7 @@ Int_t MQwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_l
     fAccumulatorSum = hw_sum;
 
   } else {
-    QwWarning << "MQwSIS3320_Accumulator::ProcessEvBuffer: Not enough words!" << QwLog::endl;
+    QwWarning << "QwSIS3320_Accumulator::ProcessEvBuffer: Not enough words!" << QwLog::endl;
   }
 
   return words_read;
@@ -56,9 +56,9 @@ Int_t MQwSIS3320_Accumulator::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_l
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator+ (const Double_t &value) const
+const QwSIS3320_Accumulator QwSIS3320_Accumulator::operator+ (const Double_t &value) const
 {
-  MQwSIS3320_Accumulator result = *this;
+  QwSIS3320_Accumulator result = *this;
   result += value;
   return result;
 }
@@ -68,9 +68,9 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator+ (const Double_t &
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator- (const Double_t &value) const
+const QwSIS3320_Accumulator QwSIS3320_Accumulator::operator- (const Double_t &value) const
 {
-  MQwSIS3320_Accumulator result = *this;
+  QwSIS3320_Accumulator result = *this;
   result -= value;
   return result;
 }
@@ -80,9 +80,9 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator- (const Double_t &
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator* (const Double_t &value) const
+const QwSIS3320_Accumulator QwSIS3320_Accumulator::operator* (const Double_t &value) const
 {
-  MQwSIS3320_Accumulator result = *this;
+  QwSIS3320_Accumulator result = *this;
   result *= value;
   return result;
 }
@@ -92,9 +92,9 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator* (const Double_t &
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator/ (const Double_t &value) const
+const QwSIS3320_Accumulator QwSIS3320_Accumulator::operator/ (const Double_t &value) const
 {
-  MQwSIS3320_Accumulator result = *this;
+  QwSIS3320_Accumulator result = *this;
   if (value != 0)
     result /= value;
   return result;
@@ -105,7 +105,7 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator/ (const Double_t &
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator*= (const Double_t &value)
+QwSIS3320_Accumulator& QwSIS3320_Accumulator::operator*= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     this->fAccumulatorSum *= value;
@@ -118,7 +118,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator*= (const Double_t &valu
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator/= (const Double_t &value)
+QwSIS3320_Accumulator& QwSIS3320_Accumulator::operator/= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     if (value != 0.0)
@@ -132,7 +132,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator/= (const Double_t &valu
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator+= (const Double_t &value)
+QwSIS3320_Accumulator& QwSIS3320_Accumulator::operator+= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     this->fAccumulatorSum += value;
@@ -145,7 +145,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator+= (const Double_t &valu
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const Double_t &value)
+QwSIS3320_Accumulator& QwSIS3320_Accumulator::operator-= (const Double_t &value)
 {
   if (!IsNameEmpty()) {
     this->fAccumulatorSum -= value;
@@ -158,9 +158,9 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const Double_t &valu
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator+ (const MQwSIS3320_Accumulator &value) const
+const QwSIS3320_Accumulator QwSIS3320_Accumulator::operator+ (const QwSIS3320_Accumulator &value) const
 {
-  MQwSIS3320_Accumulator result = *this;
+  QwSIS3320_Accumulator result = *this;
   result += value;
   return result;
 }
@@ -170,9 +170,9 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator+ (const MQwSIS3320
  * @param value Right-hand side
  * @return Left-hand side
  */
-const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator- (const MQwSIS3320_Accumulator &value) const
+const QwSIS3320_Accumulator QwSIS3320_Accumulator::operator- (const QwSIS3320_Accumulator &value) const
 {
-  MQwSIS3320_Accumulator result = *this;
+  QwSIS3320_Accumulator result = *this;
   result -= value;
   return result;
 }
@@ -182,7 +182,7 @@ const MQwSIS3320_Accumulator MQwSIS3320_Accumulator::operator- (const MQwSIS3320
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator= (const MQwSIS3320_Accumulator &value)
+QwSIS3320_Accumulator& QwSIS3320_Accumulator::operator= (const QwSIS3320_Accumulator &value)
 {
   if (!IsNameEmpty()) {
     this->fAccumulatorSum = value.fAccumulatorSum;
@@ -196,7 +196,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator= (const MQwSIS3320_Accu
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator+= (const MQwSIS3320_Accumulator &value)
+QwSIS3320_Accumulator& QwSIS3320_Accumulator::operator+= (const QwSIS3320_Accumulator &value)
 {
   if (!IsNameEmpty()) {
     this->fAccumulatorSum += value.fAccumulatorSum;
@@ -210,7 +210,7 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator+= (const MQwSIS3320_Acc
  * @param value Right-hand side
  * @return Left-hand side
  */
-MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const MQwSIS3320_Accumulator &value)
+QwSIS3320_Accumulator& QwSIS3320_Accumulator::operator-= (const QwSIS3320_Accumulator &value)
 {
   if (!IsNameEmpty()) {
     this->fAccumulatorSum -= value.fAccumulatorSum;
@@ -220,21 +220,21 @@ MQwSIS3320_Accumulator& MQwSIS3320_Accumulator::operator-= (const MQwSIS3320_Acc
 }
 
 
-void MQwSIS3320_Accumulator::Sum(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2)
+void QwSIS3320_Accumulator::Sum(const QwSIS3320_Accumulator &value1, const QwSIS3320_Accumulator &value2)
 {
   *this  = value1;
   *this += value2;
 }
 
 
-void MQwSIS3320_Accumulator::Difference(const MQwSIS3320_Accumulator &value1, const MQwSIS3320_Accumulator &value2)
+void QwSIS3320_Accumulator::Difference(const QwSIS3320_Accumulator &value1, const QwSIS3320_Accumulator &value2)
 {
   *this  = value1;
   *this -= value2;
 }
 
 
-void MQwSIS3320_Accumulator::Ratio(const MQwSIS3320_Accumulator &numer, const MQwSIS3320_Accumulator &denom)
+void QwSIS3320_Accumulator::Ratio(const QwSIS3320_Accumulator &numer, const QwSIS3320_Accumulator &denom)
 {
   if (!IsNameEmpty()) {
     if (denom.fAccumulatorSum != 0.0)
@@ -244,7 +244,7 @@ void MQwSIS3320_Accumulator::Ratio(const MQwSIS3320_Accumulator &numer, const MQ
 }
 
 
-void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
+void  QwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()) {
     //  This accumulator is not used, so skip setting up the tree.
@@ -262,15 +262,15 @@ void  MQwSIS3320_Accumulator::ConstructBranchAndVector(TTree *tree, TString &pre
   }
 }
 
-void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values) const
+void QwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (IsNameEmpty()) {
     //  This accumulator is not used, so skip filling the tree vector.
   } else if (fTreeArrayNumEntries <= 0) {
-    QwError << "MQwSIS3320_Accumulator::FillTreeVector:  fTreeArrayNumEntries == "
+    QwError << "QwSIS3320_Accumulator::FillTreeVector:  fTreeArrayNumEntries == "
             << fTreeArrayNumEntries << QwLog::endl;
   } else if (values.size() < fTreeArrayIndex + fTreeArrayNumEntries) {
-    QwError << "MQwSIS3320_Accumulator::FillTreeVector:  values.size() == "
+    QwError << "QwSIS3320_Accumulator::FillTreeVector:  values.size() == "
             << values.size()
             << "; fTreeArrayIndex + fTreeArrayNumEntries == "
             << fTreeArrayIndex + fTreeArrayNumEntries
@@ -283,7 +283,7 @@ void MQwSIS3320_Accumulator::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void MQwSIS3320_Accumulator::ConstructHistograms(TDirectory *folder, TString &prefix)
+void QwSIS3320_Accumulator::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   //  If we have defined a subdirectory in the ROOT file, then change into it.
   if (folder != NULL) folder->cd();
@@ -305,7 +305,7 @@ void MQwSIS3320_Accumulator::ConstructHistograms(TDirectory *folder, TString &pr
   }
 }
 
-void MQwSIS3320_Accumulator::FillHistograms()
+void QwSIS3320_Accumulator::FillHistograms()
 {
   Int_t index = 0;
   if (IsNameEmpty()) {
@@ -324,7 +324,7 @@ void MQwSIS3320_Accumulator::FillHistograms()
   }
 }
 
-void  MQwSIS3320_Accumulator::DeleteHistograms()
+void  QwSIS3320_Accumulator::DeleteHistograms()
 {
   for (UInt_t i = 0; i < fHistograms.size(); i++) {
     if (fHistograms[i] != NULL)
