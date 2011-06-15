@@ -19,7 +19,7 @@
 
 ///
 /// \ingroup QwTracking
-class QwDriftChamberVDC: public QwDriftChamber {
+class QwDriftChamberVDC: public QwDriftChamber, public MQwCloneable<QwDriftChamberVDC> {
   /******************************************************************
    *  Class: QwDriftChamberVDC
    *
@@ -27,10 +27,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
    ******************************************************************/
  public:
   QwDriftChamberVDC(TString region_tmp);
-  ~QwDriftChamberVDC()
-    {
-      // DeleteHistograms();
-    };
+  ~QwDriftChamberVDC() { };
   /* Unique virtual member functions from QwDrifChamber base class */
 
   
@@ -64,9 +61,11 @@ class QwDriftChamberVDC: public QwDriftChamber {
   Int_t AddChannelDefinition();
   Int_t BuildWireDataStructure(const UInt_t chan, const EQwDetectorPackage package, const Int_t plane, const Int_t wire);
   Double_t CalculateDriftDistance(Double_t drifttime, QwDetectorID detector);
+
+  using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  // void  DeleteHistograms();
+
   Int_t LoadTimeWireOffset(TString t0_map); 
   void LoadTtoDParameters(TString ttod_map); 
   void SubtractWireTimeOffset();
@@ -83,6 +82,7 @@ class QwDriftChamberVDC: public QwDriftChamber {
   
   Bool_t fUseTDCHits;
   Bool_t fDisableWireTimeOffset;
+  Int_t fR3Octant;
   static const UInt_t kBackPlaneNum;
   static const UInt_t kLineNum;
   std::vector< std::vector<QwDelayLine> > fDelayLineArray;   //indexed by backplane and line number

@@ -11,14 +11,14 @@
 #include<boost/bind.hpp>
 
 // Register this subsystem with the factory
-QwSubsystemFactory<QwDriftChamberHDC> theDriftChamberHDCFactory("QwDriftChamberHDC");
+RegisterSubsystemFactory(QwDriftChamberHDC);
 
 
 QwDriftChamberHDC::QwDriftChamberHDC(TString region_tmp):VQwSubsystem(region_tmp),
                                                          QwDriftChamber(region_tmp,fTDCHits)
 {
   OK=0;
-};
+}
 
 
 
@@ -33,16 +33,11 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   TString varname, varvalue,package, direction,dType;
   //  Int_t  chan;
   Int_t  plane, TotalWires,detectorId,region, DIRMODE;
-  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin;
+  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,W_rcos,W_rsin,tilt;
 
   //std::vector< QwDetectorInfo >  fDetectorGeom;
 
-  QwDetectorInfo local_region2_detector;
-
   fDetectorInfo.clear();
-  fDetectorInfo.resize(kNumPackages);
-
-  //  Int_t pkg,pln;
 
 
   DIRMODE=0;
@@ -50,6 +45,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
   
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -84,6 +80,7 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       FirstWire    = (atof(mapstr.GetNextToken(", ").c_str()));
       W_rcos       = (atof(mapstr.GetNextToken(", ").c_str()));
       W_rsin       = (atof(mapstr.GetNextToken(", ").c_str()));
+      tilt         = (atof(mapstr.GetNextToken(", ").c_str()));
       TotalWires   = (atol(mapstr.GetNextToken(", ").c_str()));
       detectorId   = (atol(mapstr.GetNextToken(", ").c_str()));
 
@@ -92,72 +89,55 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
               << " Region "      << region << QwLog::endl;
 
       if (region==2){
-	    local_region2_detector.SetDetectorInfo(
-						   dType, 
-						   Zpos, 
-						   rot, 
-						   sp_res, 
-						   track_res, 
-						   slope_match, 
-						   package, 
-						   region, 
-						   direction, 
-						   Det_originX, Det_originY, 
-						   ActiveWidthX, ActiveWidthY, ActiveWidthZ, 
-						   WireSpace, 
-						   FirstWire, 
-						   W_rcos, W_rsin, 
-						   TotalWires, 
-						   detectorId
-						   );
-
-	    if      (package == "u") fDetectorInfo.at(kPackageUp).push_back(local_region2_detector);
-	    else if (package == "d") fDetectorInfo.at(kPackageDown).push_back(local_region2_detector);
-      }
+            QwDetectorInfo* detector = new QwDetectorInfo();
+	    detector->SetDetectorInfo(dType, Zpos,
+	        rot, sp_res, track_res, slope_match,
+	        package, region, direction,
+	        Det_originX, Det_originY,
+	        ActiveWidthX, ActiveWidthY, ActiveWidthZ,
+	        WireSpace, FirstWire,
+		W_rcos, W_rsin, tilt,
+	        TotalWires,
+	        detectorId);
+	    fDetectorInfo.push_back(detector);
+	}
     }
 
   }
 
-  QwMessage << "Loaded Qweak Geometry"<<" Total Detectors in kPackageUP "
-	    << fDetectorInfo.at ( kPackageUp ).size()
-	    << ", "
-	    << "kPackagDown "
-	    << fDetectorInfo.at ( kPackageDown ).size()
-	    << QwLog::endl;
+  QwMessage << "Loaded Qweak Geometry" << " Total Detectors in kPackageUP "
+      << fDetectorInfo.in(kPackageUp).size()
+      << ", "
+      << "kPackagDown "
+      << fDetectorInfo.in(kPackageDown).size()
+      << QwLog::endl;
 
   QwMessage << "Sorting detector info..." << QwLog::endl;
 
-  std::size_t i = 0;
-
-  std::sort(fDetectorInfo.at(kPackageUp).begin(), fDetectorInfo.at(kPackageUp).end());
   plane = 1;
-  for ( i=0; i < fDetectorInfo.at(kPackageUp).size(); i++) {
-    fDetectorInfo.at(kPackageUp).at(i).fPlane = plane++;
-    QwMessage << " kPackageUp Region " << fDetectorInfo.at(kPackageUp).at(i).fRegion 
-	      << " Detector ID " << fDetectorInfo.at(kPackageUp).at(i).fDetectorID 
-	      << QwLog::endl;
+  QwGeometry detector_info_up = fDetectorInfo.in(kPackageUp);
+  for (size_t i = 0; i < detector_info_up.size(); i++)
+  {
+    detector_info_up.at(i)->fPlane = plane++;
+    QwMessage << " kPackageUp Region " << detector_info_up.at(i)->fRegion
+        << " Detector ID " << detector_info_up.at(i)->fDetectorID
+        << QwLog::endl;
   }
 
   plane = 1;
-  std::sort(fDetectorInfo.at(kPackageDown).begin(), fDetectorInfo.at(kPackageDown).end());
-  for ( i=0; i < fDetectorInfo.at(kPackageDown).size(); i++) {
-    fDetectorInfo.at(kPackageDown).at(i).fPlane = plane++;
-    QwMessage << " kPackageDown Region " << fDetectorInfo.at(kPackageDown).at(i).fRegion 
-	      << " Detector ID " << fDetectorInfo.at(kPackageDown).at(i).fDetectorID 
-	      << QwLog::endl;
+  QwGeometry detector_info_down = fDetectorInfo.in(kPackageDown);
+  for (size_t i = 0; i < detector_info_down.size(); i++)
+  {
+    detector_info_down.at(i)->fPlane = plane++;
+    QwMessage << " kPackageDown Region " << detector_info_down.at(i)->fRegion
+        << " Detector ID " << detector_info_down.at(i)->fDetectorID
+        << QwLog::endl;
   }
 
   QwMessage << "Qweak Geometry Loaded " << QwLog::endl;
 
-
-
-
-
-
-
   return OK;
-
-};
+}
 
 
 
@@ -305,7 +285,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   //   }
   // }
   return;
-};
+}
 
 
 Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetectorID detector)
@@ -316,14 +296,46 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
  
   Double_t dt_= drifttime;
   Double_t dd_ = 0.0;
-  dd_ = -0.0138896
-      + 0.00987685 * dt_
-      + 0.00100368 * dt_ * dt_
-      + (-1.79785E-06 * dt_ * dt_ * dt_)
-      + ( -8.96859E-08 * dt_ * dt_ * dt_ * dt_)
-      + (6.11736E-10 * dt_ * dt_ * dt_ * dt_ * dt_)
-      + ( -1.15889E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
-
+  //dd_ = -0.0138896
+  //    + 0.00987685 * dt_
+  //    + 0.00100368 * dt_ * dt_
+  //    + (-1.79785E-06 * dt_ * dt_ * dt_)
+  //    + ( -8.96859E-08 * dt_ * dt_ * dt_ * dt_)
+  //    + (6.11736E-10 * dt_ * dt_ * dt_ * dt_ * dt_)
+  //    + ( -1.15889E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
+  /*
+  dd_ = 0.078067
+        + 0.0437269 * dt_
+        + 0.00117295 * dt_ * dt_
+        + (-2.25244E-05 * dt_ * dt_ * dt_ )
+        + (1.56369E-07 * dt_ * dt_ * dt_ * dt_  )
+        + (-4.93323E-10 * dt_ * dt_ * dt_ * dt_ * dt_ )
+    + (5.91555E-13 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
+  */
+  /*  modified on 418
+    dd_ = 0.134955
+        + 0.0173593 * dt_
+        + 0.00254912 * dt_ * dt_
+        + (-4.26414E-05 * dt_ * dt_ * dt_ )
+        + (2.86094E-07 * dt_ * dt_ * dt_ * dt_  )
+        + (-8.85512E-10 * dt_ * dt_ * dt_ * dt_ * dt_ )
+     + (1.04669E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
+  */
+  /*dd_ = -0.0382463
+        + 0.0704644 * dt_
+        - 0.00089724454912 * dt_ * dt_
+        + (4.8703E-05 * dt_ * dt_ * dt_ )
+        + (-8.40592E-07 * dt_ * dt_ * dt_ * dt_  )
+        + (5.61285E-09 * dt_ * dt_ * dt_ * dt_ * dt_ )
+     + (-1.31489E-11 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
+  */
+  dd_ = 0.015993
+        + 0.0466621 * dt_
+        + 0.00180132 * dt_ * dt_
+        + (-5.96573E-05 * dt_ * dt_ * dt_ )
+        + (1.18497E-06 * dt_ * dt_ * dt_ * dt_  )
+        + (-1.2071E-08 * dt_ * dt_ * dt_ * dt_ * dt_ )
+     + (4.50584E-11 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
    //   dd_ = 0.00545449393
 //       + 0.0668865488 * dt_
 //       + 0.000352462179 * dt_ * dt_
@@ -338,7 +350,7 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
   // expects a number in [cm].  Since the geometry definitions are in [cm],
   // we should stick to [cm] as unit of distance. (wdconinc)
   return dd_ / 10.0;
-};
+}
 
 
 void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data)
@@ -410,7 +422,7 @@ void  QwDriftChamberHDC::FillRawTDCWord (Int_t bank_index, Int_t slot_num, Int_t
   }
   
   return;
-};
+}
 
 
 
@@ -446,7 +458,7 @@ Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan,
     }
   }
   return OK;
-};
+}
 
 Int_t QwDriftChamberHDC::AddChannelDefinition()
 {
@@ -503,7 +515,7 @@ void  QwDriftChamberHDC::ProcessEvent()
 
   SubtractReferenceTimes();
 
-  Int_t package = 0;
+  EQwDetectorPackage package = kPackageNull;
   Int_t plane   = 0;
 
   QwDetectorID local_id;
@@ -520,7 +532,7 @@ void  QwDriftChamberHDC::ProcessEvent()
     package    = local_id.fPackage;
     plane      = local_id.fPlane - 1;
     // ahha, here is a hidden magic number 1.
-    local_info = & fDetectorInfo.at(package).at(plane);
+    local_info = fDetectorInfo.in(package).at(plane);
     hit->SetDetectorInfo(local_info);
 //     std::cout << "Plane: " << plane+1 << " " << hit->fDirection << std::endl;
     //     hit->SetDriftDistance(CalculateDriftDistance(hit1->GetTime(),hit1->GetDetectorID()));
@@ -532,7 +544,7 @@ void  QwDriftChamberHDC::ProcessEvent()
   FillDriftDistanceToHits();
 
   return;
-};
+}
 
 
 Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
@@ -552,6 +564,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
     fDirectionData.at(1).resize(12); //currently we have 12 wire planes in each package - Rakitha (10/23/2008)
 
     QwParameterFile mapstr(mapfile.Data());  //Open the file
+    fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
     while (mapstr.ReadNextLine()) {
         mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -621,7 +634,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
     // /   ReportConfiguration();
 
     return OK;
-};
+}
 
 
 
@@ -651,7 +664,7 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 //   }
   
 //   return OK;
-// };
+// }
 
 
 
@@ -699,8 +712,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
 
     // push_back can "push" iplane = 1 into TotHits.at(0) ??
     TotHits[iplane] = new TH1F(
-			       Form("%s%sHitsOnEachWirePlane%d", prefix.Data(), region.Data(), iplane),
-			       Form("Total hits on all wires in plane %d", iplane),
+			       Form("%s%sHitsOnEachWirePlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+			       Form("Total hits on all wires in plane %d", (Int_t) iplane),
 			       fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset
 			       );
     
@@ -708,16 +721,16 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TotHits[iplane]->GetYaxis()->SetTitle("Events");
     
     WiresHit[iplane] = new TH1F(
-				Form("%s%sWiresHitPlane%d", prefix.Data(), region.Data(), iplane),
-				Form("Number of Wires Hit in plane %d",iplane),
+				Form("%s%sWiresHitPlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+				Form("Number of Wires Hit in plane %d",(Int_t) iplane),
 				20, bin_offset, 20+bin_offset
 				);
     WiresHit[iplane]->GetXaxis()->SetTitle("Wires Hit per Event");
     WiresHit[iplane]->GetYaxis()->SetTitle("Events");
     
     HitsWire[iplane] = new TH2F(
-				Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data(), region.Data(), iplane),
-				Form("hits on all wires per event in plane %d", iplane),
+				Form("%s%sHitsOnEachWirePerEventPlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+				Form("hits on all wires per event in plane %d", (Int_t) iplane),
 				fWiresPerPlane[iplane],bin_offset,fWiresPerPlane[iplane]+bin_offset,
 				7, -bin_offset, 7-bin_offset
 				);
@@ -725,8 +738,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     HitsWire[iplane]->GetYaxis()->SetTitle("Hits");
     
     TOFP[iplane] = new TH1F(
-			    Form("%s%sTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
-			    Form("Subtracted time of flight for events in plane %d", iplane),
+			    Form("%s%sTimeofFlightPlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+			    Form("Subtracted time of flight for events in plane %d", (Int_t) iplane),
 			    400,0,0
 			    );
     TOFP[iplane] -> SetDefaultBufferSize(buffer_size);
@@ -735,8 +748,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     
     
     TOFP_raw[iplane] = new TH1F(
-				Form("%s%sRawTimeofFlightPlane%d", prefix.Data(), region.Data(), iplane),
-				Form("Raw time of flight for events in plane %d", iplane),
+				Form("%s%sRawTimeofFlightPlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+				Form("Raw time of flight for events in plane %d", (Int_t) iplane),
 				//			     400,-65000,65000);
 				400, 0,0
 				);
@@ -745,8 +758,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TOFP_raw[iplane]->GetYaxis()->SetTitle("Hits");
     
     TOFW[iplane] = new TH2F(
-			    Form("%s%sTimeofFlightperWirePlane%d", prefix.Data(), region.Data(), iplane),
-			    Form("Subtracted time of flight for each wire in plane %d", iplane),
+			    Form("%s%sTimeofFlightperWirePlane%d", prefix.Data(), region.Data(), (Int_t) iplane),
+			    Form("Subtracted time of flight for each wire in plane %d",(Int_t) iplane),
 			    fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset,
 			    100,-40000,65000
 			    );
@@ -755,8 +768,8 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TOFW[iplane]->GetYaxis()->SetTitle("Time of Flight");
     
     TOFW_raw[iplane] = new TH2F(
-				Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),iplane),
-				Form("Raw time of flight for each wire in plane %d",iplane),
+				Form("%s%sRawTimeofFlightperWirePlane%d", prefix.Data() ,region.Data(),(Int_t)iplane),
+				Form("Raw time of flight for each wire in plane %d",(Int_t)iplane),
 				fWiresPerPlane[iplane], bin_offset, fWiresPerPlane[iplane]+bin_offset,
 				100,-40000,65000
 				);
@@ -765,7 +778,7 @@ void  QwDriftChamberHDC::ConstructHistograms(TDirectory *folder, TString& prefix
     TOFW_raw[iplane]->GetYaxis()->SetTitle("Time of Flight");
   }
   return;
-};
+}
 
 
 
@@ -834,7 +847,7 @@ void  QwDriftChamberHDC::FillHistograms()
     WiresHit[iplane]->Fill(wireshitperplane[iplane]);
   }
   return;
-};
+}
 
 
 
@@ -849,7 +862,7 @@ void  QwDriftChamberHDC::FillHistograms()
 //   }
 
 //   return;
-// };
+// }
 
 
 void  QwDriftChamberHDC::ClearEventData()
@@ -867,7 +880,7 @@ void  QwDriftChamberHDC::ClearEventData()
     fReferenceData.at(i).clear();
   }
   return;
-};
+}
 
 
 
@@ -878,14 +891,14 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
   f1tdc_resolution_ns = fF1TDContainer -> GetF1TDCResolution();
   if (f1tdc_resolution_ns==0.0) {
     f1tdc_resolution_ns = 0.116312881651642913;
-    //  printf("WARNING : QwDriftChamberHDC::ApplyTimeCalibration() the predefined resolution %8.6lf (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
+    //  printf("WARNING : QwDriftChamberHDC::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
   }
 
   size_t nhits=fTDCHits.size();
   for(size_t i=0;i<nhits;i++) 
     {
       double time=f1tdc_resolution_ns*fTDCHits.at(i).GetTime() ;
-      if(time<0 || time > 160){
+      if(time<0 || time > 125){
         fTDCHits.erase(fTDCHits.begin()+i);
         --nhits;
         --i;
@@ -895,13 +908,13 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
       fTDCHits.at(i).SetTime( time );
     }
   return;
-};
+}
 
 void QwDriftChamberHDC::SubtractWireTimeOffset()
 {
         Int_t plane=0,wire=0;
         EQwDetectorPackage package = kPackageNull;
-        Double_t t0 = 0.0;
+        Double_t t0 = 25.0;
         Double_t real_time=0.0;       
         size_t nhits=fTDCHits.size();
         for(size_t i=0;i<nhits;i++)
@@ -914,7 +927,7 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
                               
                 real_time=fTDCHits.at(i).GetTime()-t0;
                                       
-                if(real_time<0 || real_time>160){
+                if(real_time<0 || real_time>100){
                        fTDCHits.erase(fTDCHits.begin()+i);
                        --nhits;
                        --i;
@@ -925,4 +938,4 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
                     }
                 }
         return;
-};
+}

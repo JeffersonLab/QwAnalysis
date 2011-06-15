@@ -9,10 +9,14 @@
 
 #include "QwScanner.h"
 
-// Register this subsystem with the factory
-QwSubsystemFactory<QwScanner> theScannerFactory("QwScanner");
+// Qweak headers
+#include "QwParameterFile.h"
+#include "QwHistogramHelper.h"
+#include "TString.h"
 
-extern QwHistogramHelper gQwHists;
+// Register this subsystem with the factory
+RegisterSubsystemFactory(QwScanner);
+
 const Bool_t QwScanner::bStoreRawData = kTRUE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
@@ -30,13 +34,14 @@ QwScanner::QwScanner(TString name)
   fF1TDContainer = new QwF1TDContainer();
   fF1TDCDecoder  = fF1TDContainer->GetF1TDCDecoder();
   kMaxNumberOfChannelsPerF1TDC = fF1TDCDecoder.GetTDCMaxChannels();
-};
+}
 
 
 QwScanner::~QwScanner()
 {
-
   fPMTs.clear();
+  for (size_t i = 0; i < fSCAs.size(); i++)
+    delete fSCAs.at(i);
   fSCAs.clear();
 
   for (size_t i=0; i<fADC_Data.size(); i++)
@@ -50,21 +55,32 @@ QwScanner::~QwScanner()
   fADC_Data.clear();
   //DeleteHistograms();
   delete fF1TDContainer;
-};
+}
 
 
 void QwScanner::ProcessOptions(QwOptions &options)
 {
   //Handle command line options
-};
+}
 
 Int_t QwScanner::LoadChannelMap(TString mapfile)
 {
+  Bool_t local_debug = false;
   TString varname, varvalue;
   TString modtype, dettype, name;
   Int_t modnum, channum;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+
+  // TString test = mapstr.GetParamFilename();
+  // // char a[80];
+  // // sprintf(a, "prminput/");
+  // // std::cout << "index " << test.Index("prminput/") << std::endl;
+  //std::cout << "QwScanner::LoadChannelMap(TString mapfile)" << mapstr.GetParamFilename() << std::endl;
+
+  
+  // fParameterFileNames.push_back(mapstr.GetParamFilename());
   while (mapstr.ReadNextLine())
     {
       mapstr.TrimComment('!');   // Remove everything after a '!' character.
@@ -136,47 +152,51 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
             {
               RegisterModuleType(modtype);
               //  Check to see if we've encountered this channel or name yet
-              if (fModulePtrs.at(fCurrentIndex).at(channum).first>=0)
+              if (fModulePtrs.at(fCurrentIndex).at(channum).first != kUnknownModuleType)
                 {
                   //  We've seen this channel
                 }
-              else if (FindSignalIndex(fCurrentType, name)>=0)
+              else if (FindSignalIndex(fCurrentType, name) >= 0)
                 {
                   //  We've seen this signal
                 }
               else
                 {
-                  //  If not, push a new record into the element array
-                  if (modtype=="V792") std::cout<<"V792: ";
-                  else if (modtype=="V775") std::cout<<"V775: ";
-                  else if (modtype=="F1TDC") std::cout<<"F1TDC: ";
+		  if(local_debug) {
+		    //  If not, push a new record into the element array
+		    if (modtype=="V792") std::cout<<"V792: ";
+		    else if (modtype=="V775") std::cout<<"V775: ";
+		    else if (modtype=="F1TDC") std::cout<<"F1TDC: ";
+		  }
                   LinkChannelToSignal(channum, name);
                 }
             }
 
           else
             {
-              std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
-              << std::endl;
+	      if(local_debug) {
+		std::cerr << "LoadChannelMap:  Unknown line: " << mapstr.GetLine().c_str()
+			  << std::endl;
+	      }
             }
         }
     }
-  ReportConfiguration();
+  if(local_debug) ReportConfiguration();
   return 0;
-};
+}
 
 Int_t QwScanner::LoadInputParameters(TString parameterfile)
 {
   Bool_t ldebug=kFALSE;
   TString varname, varvalue;
-  Double_t varped;
-  Double_t varcal;
+  Double_t varped = 0.0;
+  Double_t varcal = 0.0;
   TString localname;
 
   Int_t lineread=0;
 
   QwParameterFile mapstr(parameterfile.Data());  //Open the file
-  if (ldebug) std::cout<<"\nReading scanner parameter file: "<<parameterfile<<"\n";
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
 
   while (mapstr.ReadNextLine())
     {
@@ -252,7 +272,7 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
 
   ldebug=kFALSE;
   return 0;
-};
+}
 
 
 void  QwScanner::ClearEventData()
@@ -282,7 +302,7 @@ void  QwScanner::ClearEventData()
         }
     }
 
-};
+}
 
 
 Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
@@ -342,21 +362,23 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
       subsystem_name = this->GetSubsystemName();
       fF1TDContainer -> SetSystemName(subsystem_name);
       
-      if(local_debug) std::cout << "-----------------------------------------------------" << std::endl;
-      
-      std::cout << "QwScanner : " 
-		<< subsystem_name
-		<< ", "
-		<< "ProcessConfigurationBuffer"
-		<< std::endl;
-      std::cout << "ROC " 
-		<< std::setw(2) << roc_id
-		<< " Bank [index,id]["
-		<<  bank_index
-		<< ","
-		<< bank_id
-		<< "]"
-		<< std::endl;
+      if(local_debug) {
+	std::cout << "-----------------------------------------------------" << std::endl;
+	
+	std::cout << "QwScanner : " 
+		  << subsystem_name
+		  << ", "
+		  << "ProcessConfigurationBuffer"
+		  << std::endl;
+	std::cout << "ROC " 
+		  << std::setw(2) << roc_id
+		  << " Bank [index,id]["
+		  <<  bank_index
+		  << ","
+		  << bank_id
+		  << "]"
+		  << std::endl;
+      }
       for ( slot_id=0; slot_id<kMaxNumberOfModulesPerROC; slot_id++ ) { 
 	// slot id starts from 2, because 0 is one offset (1) difference between QwAnalyzer and VME definition, 
 	// and 1 and 2 are used for CPU and TI. Tuesday, August 31 10:57:07 EDT 2010, jhlee
@@ -439,7 +461,7 @@ Int_t QwScanner::ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t ba
   }
 
   return 0;
-};
+}
 
 
 Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
@@ -796,7 +818,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
     }
 
   return 0;
-};
+}
 
 
 void  QwScanner::ProcessEvent()
@@ -927,13 +949,34 @@ void  QwScanner::ProcessEvent()
         {
 
           // TODO replace the position determination with interplation table
-          fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetAverageVolts();
+          const double volts_per_bit = (20./(1<<18));
+          double num_samples;
+          fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetRawHardwareSum();
+	  //std::cout<<"fPowSupply_VQWK_HardSum = "<<fPowSupply_VQWK;
+	  num_samples = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetNumberOfSamples();
+	  //std::cout<<", num_samples = "<<num_samples;
+	  fPowSupply_VQWK = fPowSupply_VQWK * volts_per_bit / num_samples;
+	  //std::cout<<" fPowSupply_VQWK = "<<fPowSupply_VQWK<<std::endl<<std::endl;
+	  
 
-          fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetAverageVolts();
+          fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetRawHardwareSum();
+	  //std::cout<<"fPositionX_VQWK_HardSum = "<<fPositionX_VQWK;
+	  num_samples = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetNumberOfSamples();
+	  //std::cout<<", num_samples = "<<num_samples;
+	  fPositionX_VQWK = fPositionX_VQWK * volts_per_bit / num_samples;
+	  //std::cout<<"  fPositionX = "<<fPositionX_VQWK<<"  [V]";
           fPositionX_VQWK = (fPositionX_VQWK-fVoltage_Offset_X)*fCal_Factor_VQWK_X + fHomePositionX;
-
-          fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetAverageVolts();
+          //std::cout<<"  fPositionX = "<<fPositionX_VQWK<<std::endl<<std::endl;
+	  
+	  //fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetAverageVolts();
+	  fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetRawHardwareSum();
+	  //std::cout<<"fPositionY_VQWK_HardSum = "<<fPositionY_VQWK;
+	  num_samples = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetNumberOfSamples();
+	  //std::cout<<", num_samples = "<<num_samples;
+	  fPositionY_VQWK = fPositionY_VQWK * volts_per_bit / num_samples;
+	  //std::cout<<"  fPositionY = "<<fPositionY_VQWK<<"  [V]";
           fPositionY_VQWK = (fPositionY_VQWK-fVoltage_Offset_Y)*fCal_Factor_VQWK_Y + fHomePositionY;
+	  //std::cout<<"  fPositionY = "<<fPositionY_VQWK<<std::endl<<std::endl;
         }
     }
 
@@ -948,7 +991,7 @@ void  QwScanner::ProcessEvent()
         }
     }
 
-};
+}
 
 
 void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -1020,8 +1063,19 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
       fRateMapEM->GetYaxis()->SetTitle("PositionY [cm]");
       fRateMapEM->SetOption("colz");
 
+      // fParameterFileNamesHist = new TH1F("scanner_parameter_files", "scanner_parameter_files", 10,0,10);
+      // fParameterFileNamesHist -> SetBit(TH1::kCanRebin);
+      // fParameterFileNamesHist -> SetStats(0);
+      // for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
+      // 	fParameterFileNamesHist -> Fill(fParameterFileNames[i].Data(), 1);
+      // }
+      // const char* opt = "TEXT";
+      // fParameterFileNamesHist->SetMarkerSize(1.4);
+      // fParameterFileNamesHist->SetOption(opt);
+      // fParameterFileNamesHist->LabelsDeflate("X");
+      // fParameterFileNamesHist->LabelsOption("avu", "X");
     }
-};
+}
 
 void  QwScanner::FillHistograms()
 {
@@ -1109,8 +1163,10 @@ void  QwScanner::FillHistograms()
     {
       //std::cout<<"Fill histo: "<<fMeanPositionX_ADC<<", "<<fMeanPositionY_ADC<<", "<<fCoincidenceSCA<<"\n";
       fRateMapEM->Fill(fMeanPositionX_ADC,fMeanPositionY_ADC,fCoincidenceSCA,1);
-    }
-};
+    } 
+
+  
+}
 
 
 void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -1229,7 +1285,7 @@ void  QwScanner::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vec
 
     }
   return;
-};
+}
 
 
 void  QwScanner::FillTreeVector(std::vector<Double_t> &values) const
@@ -1321,7 +1377,7 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values) const
 
     }
   return;
-};
+}
 
 
 void  QwScanner::DeleteHistograms()
@@ -1330,6 +1386,10 @@ void  QwScanner::DeleteHistograms()
   // std::cout << GetParent(0).fEventTypeMask << std::endl;
   fF1TDContainer->PrintErrorSummary();
   fF1TDContainer->WriteErrorSummary();
+
+  // for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
+  //   printf("Delete historgram %s\n", fParameterFileNames[i].Data());
+  // }
   /// printf("f1tdcontainer\n");
   if (bStoreRawData)
     {
@@ -1383,7 +1443,8 @@ void  QwScanner::DeleteHistograms()
   // Then clear the list
   fHistograms2D.clear();
 
-};
+
+}
 
 void  QwScanner::ReportConfiguration()
 {
@@ -1425,7 +1486,6 @@ void  QwScanner::ReportConfiguration()
     }
 
 }
-; //ReportConfiguration()
 
 Bool_t  QwScanner::Compare(QwScanner &value)
 {
@@ -1458,7 +1518,7 @@ QwScanner& QwScanner::operator=  (QwScanner &value)
       << std::endl;
     }
   return *this;
-};
+}
 
 
 QwScanner& QwScanner::operator+=  ( QwScanner &value)
@@ -1486,7 +1546,7 @@ QwScanner& QwScanner::operator+=  ( QwScanner &value)
       << std::endl;
     }
   return *this;
-};
+}
 
 
 QwScanner& QwScanner::operator-=  ( QwScanner &value)
@@ -1514,7 +1574,7 @@ QwScanner& QwScanner::operator-=  ( QwScanner &value)
       << std::endl;
     }
   return *this;
-};
+}
 
 
 void QwScanner::ClearAllBankRegistrations()
@@ -1533,7 +1593,7 @@ Int_t QwScanner::RegisterROCNumber(const UInt_t roc_id)
   std::vector<Int_t> tmpvec(kMaxNumberOfModulesPerROC,-1);
   fModuleIndex.push_back(tmpvec);
   return fCurrentBankIndex;
-};
+}
 
 Int_t QwScanner::RegisterSubbank(const UInt_t bank_id)
 {
@@ -1543,18 +1603,19 @@ Int_t QwScanner::RegisterSubbank(const UInt_t bank_id)
   fModuleIndex.push_back(tmpvec);
   //std::cout<<"Register Subbank "<<bank_id<<" with BankIndex "<<fCurrentBankIndex<<std::endl;
   return stat;
-};
+}
 
 
 Int_t QwScanner::RegisterSlotNumber(UInt_t slot_id)
 {
 
-  std::pair<Int_t, Int_t> tmppair;
-  tmppair.first  = -1;
+  std::pair<EQwModuleType, Int_t> tmppair;
+  tmppair.first  = kUnknownModuleType;
   tmppair.second = -1;
   if (slot_id<kMaxNumberOfModulesPerROC)
     {
-      if (fCurrentBankIndex>=0 && fCurrentBankIndex<=fModuleIndex.size())
+      // fCurrentBankIndex is unsigned int and always positive
+      if (/* fCurrentBankIndex >= 0 && */ fCurrentBankIndex <= fModuleIndex.size())
         {
           fModuleTypes.resize(fNumberOfModules+1);
           fModulePtrs.resize(fNumberOfModules+1);
@@ -1573,9 +1634,9 @@ Int_t QwScanner::RegisterSlotNumber(UInt_t slot_id)
       << kMaxNumberOfModulesPerROC << std::endl;
     }
   return fCurrentIndex;
-};
+}
 
-const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
+EQwModuleType QwScanner::RegisterModuleType(TString moduletype)
 {
   moduletype.ToUpper();
 
@@ -1584,9 +1645,9 @@ const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
 
   if (moduletype=="V792")
     {
-      fCurrentType = V792_ADC;
+      fCurrentType = kV792_ADC;
       fModuleTypes.at(fCurrentIndex) = fCurrentType;
-      if ((Int_t) fPMTs.size()<=fCurrentType)
+      if ( (Int_t) fPMTs.size() <= fCurrentType)
         {
           fPMTs.resize(fCurrentType+1);
         }
@@ -1594,13 +1655,22 @@ const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
 
   else if (moduletype=="V775")
     {
-      fCurrentType = V775_TDC;
+      fCurrentType = kV775_TDC;
       fModuleTypes.at(fCurrentIndex) = fCurrentType;
-      if ((Int_t) fPMTs.size()<=fCurrentType)
+      if ( (Int_t) fPMTs.size() <= fCurrentType)
         {
           fPMTs.resize(fCurrentType+1);
         }
+    }
 
+  else if (moduletype=="F1TDC")
+    {
+      fCurrentType = kF1TDC;
+      fModuleTypes.at(fCurrentIndex) = fCurrentType;
+      if ( (Int_t) fPMTs.size() <= fCurrentType)
+        {
+          fPMTs.resize(fCurrentType+1);
+        }
     }
 
   else if (moduletype=="SIS3801")
@@ -1609,25 +1679,26 @@ const QwScanner::EModuleType QwScanner::RegisterModuleType(TString moduletype)
     }
 
   return fCurrentType;
-};
+}
 
 
 Int_t QwScanner::LinkChannelToSignal(const UInt_t chan, const TString &name)
 {
-  size_t index = fCurrentType;
-  if (index == 0 || index == 1)
+  Bool_t local_debug = false;
+  if (fCurrentType == kV775_TDC || fCurrentType == kV792_ADC || fCurrentType == kF1TDC)
     {
-      fPMTs.at(index).push_back(QwPMT_Channel(name));
-      fModulePtrs.at(fCurrentIndex).at(chan).first  = index;
-      fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(index).size() -1;
+      fPMTs.at(fCurrentType).push_back(QwPMT_Channel(name));
+      fModulePtrs.at(fCurrentIndex).at(chan).first  = fCurrentType;
+      fModulePtrs.at(fCurrentIndex).at(chan).second = fPMTs.at(fCurrentType).size() -1;
     }
-  else if (index ==2)
+  else if (fCurrentType == kSIS3801)
     {
-      std::cout<<"scaler module has not been implemented yet."<<std::endl;
+      if(local_debug) std::cout<<"scaler module has not been implemented yet."<<std::endl;
     }
-  std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
+  if (local_debug) 
+    std::cout<<"Linked channel"<<chan<<" to signal "<<name<<std::endl;
   return 0;
-};
+}
 
 void QwScanner::FillRawWord(Int_t bank_index,
                             Int_t slot_num,
@@ -1635,15 +1706,15 @@ void QwScanner::FillRawWord(Int_t bank_index,
 {
   Int_t modindex = GetModuleIndex(bank_index,slot_num);
 
-  // std::cout<<"modtype="<<EModuleType(fModulePtrs.at(modindex).at(chan).first)
+  // std::cout<<"modtype="<< fModulePtrs.at(modindex).at(chan).first
   // <<"  chanindex="<<fModulePtrs.at(modindex).at(chan).second<<"  data="<<data<<"\n";
 
   if (modindex != -1)
     {
-      EModuleType modtype = EModuleType(fModulePtrs.at(modindex).at(chan).first);
-      Int_t chanindex     = fModulePtrs.at(modindex).at(chan).second;
+      EQwModuleType modtype = fModulePtrs.at(modindex).at(chan).first;
+      Int_t chanindex       = fModulePtrs.at(modindex).at(chan).second;
 
-      if (modtype == EMPTY || chanindex == -1)
+      if (modtype == kUnknownModuleType || chanindex == -1)
         {
           //  This channel is not connected to anything.
           //  Do nothing.
@@ -1654,38 +1725,41 @@ void QwScanner::FillRawWord(Int_t bank_index,
 	  fPMTs.at(modtype).at(chanindex).SetSubbankID(bank_index);
 	  fPMTs.at(modtype).at(chanindex).SetModule(slot_num);
         }
-    };
-};
+    }
+}
 
 
 Int_t QwScanner::GetModuleIndex(size_t bank_index, size_t slot_num) const
   {
     Int_t modindex = -1;
-    if (bank_index>=0 && bank_index<fModuleIndex.size())
+    // bank_index and slot_num are unsigned int and always positive
+    if (/* bank_index >= 0 && */ bank_index < fModuleIndex.size())
       {
-        if (slot_num>=0 && slot_num<fModuleIndex.at(bank_index).size())
+        if (/* slot_num >= 0 && */ slot_num < fModuleIndex.at(bank_index).size())
           {
             modindex = fModuleIndex.at(bank_index).at(slot_num);
           }
       }
     return modindex;
-  };
+  }
 
 
-Int_t QwScanner::FindSignalIndex(const QwScanner::EModuleType modtype, const TString &name) const
-  {
-    size_t index = modtype;
+Int_t QwScanner::FindSignalIndex(const EQwModuleType modtype, const TString &name) const
+{
     Int_t chanindex = -1;
-    for (size_t chan=0; chan<fPMTs.at(index).size(); chan++)
+    if (modtype < (Int_t) fPMTs.size())
+    {
+      for (size_t chan = 0; chan < fPMTs.at(modtype).size(); chan++)
       {
-        if (name == fPMTs.at(index).at(chan).GetElementName())
-          {
-            chanindex = chan;
-            break;
-          }
+        if (name == fPMTs.at(modtype).at(chan).GetElementName())
+        {
+          chanindex = chan;
+          break;
+        }
       }
+    }
     return chanindex;
-  };
+}
 
 
 void QwScanner::SetPedestal(Double_t pedestal)
@@ -1699,7 +1773,7 @@ void QwScanner::SetPedestal(Double_t pedestal)
     }
 
   return;
-};
+}
 
 void QwScanner::SetCalibrationFactor(Double_t calib)
 {
@@ -1712,7 +1786,7 @@ void QwScanner::SetCalibrationFactor(Double_t calib)
     }
 
   return;
-};
+}
 
 /********************************************************/
 void  QwScanner::InitializeChannel(TString name, TString datatosave)
@@ -1728,10 +1802,10 @@ void  QwScanner::InitializeChannel(TString name, TString datatosave)
     }
 
   return;
-};
+}
 
 
-void QwScanner::PrintInfo()
+void QwScanner::PrintInfo() const
 {
   std::cout << "QwScanner: " << fSystemName << std::endl;
 
@@ -1782,5 +1856,5 @@ void QwScanner::PrintInfo()
 //   const int ybin = h->GetYaxis()->FindBin( y );
 //
 //   return h->GetBinContent( h->GetBin( xbin, ybin ));
-// };
+// }
 

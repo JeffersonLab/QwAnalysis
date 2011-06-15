@@ -17,10 +17,9 @@
 // Qweak headers
 #include "QwVQWK_Channel.h"
 #include "QwParameterFile.h"
-// Qweak database headers
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
+
+// Forward declarations
+class QwDBInterface;
 
 /*****************************************************************
 *  Class:

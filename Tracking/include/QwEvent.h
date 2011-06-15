@@ -52,14 +52,18 @@ class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
   public:
 
     /// Default constructor
-    QwEventHeader(){};
+    QwEventHeader()
+    : fRunNumber(0),fEventNumber(0),fEventTime(0),
+      fEventType(0),fEventTrigger(0),
+      fBeamHelicity(kHelicityUndefined) { };
     /// Constructor with run and event number
-    QwEventHeader(const UInt_t run, const ULong_t event) {
-      fRunNumber = run;
-      fEventNumber = event;
-    };
+    QwEventHeader(const UInt_t run, const ULong_t event)
+    : fRunNumber(run),fEventNumber(event),fEventTime(0),
+      fEventType(0),fEventTrigger(0),
+      fBeamHelicity(kHelicityUndefined) { };
     /// Copy constructor
-    QwEventHeader(const QwEventHeader& header) {
+    QwEventHeader(const QwEventHeader& header)
+    : TObject(header),QwObjectCounter<QwEventHeader>(header) {
       fRunNumber = header.fRunNumber;
       //
       fEventNumber = header.fEventNumber;
@@ -75,32 +79,32 @@ class QwEventHeader: public TObject, public QwObjectCounter<QwEventHeader> {
     /// Set the run number
     void SetRunNumber(const UInt_t runnumber) { fRunNumber = runnumber; };
     /// Get the run number
-    const UInt_t GetRunNumber() const { return fRunNumber; };
+    UInt_t GetRunNumber() const { return fRunNumber; };
 
     /// Set the event number
     void SetEventNumber(const ULong_t eventnumber) { fEventNumber = eventnumber; };
     /// Get the event number
-    const ULong_t GetEventNumber() const { return fEventNumber; };
+    ULong_t GetEventNumber() const { return fEventNumber; };
 
     /// Set the event time
     void SetEventTime(const ULong_t eventtime) { fEventTime = eventtime; };
     /// Get the event time
-    const ULong_t GetEventTime() const { return fEventTime; };
+    ULong_t GetEventTime() const { return fEventTime; };
 
     /// Set the event type
     void SetEventType(const UInt_t eventtype) { fEventType = eventtype; };
     /// Get the event type
-    const UInt_t GetEventType() const { return fEventType; };
+    UInt_t GetEventType() const { return fEventType; };
 
     /// Set the event trigger
     void SetEventTrigger(const UInt_t eventtrigger) { fEventTrigger = eventtrigger; };
     /// Get the event trigger
-    const UInt_t GetEventTrigger() const { return fEventTrigger; };
+    UInt_t GetEventTrigger() const { return fEventTrigger; };
 
     /// Set the beam helicity
     void SetBeamHelicity(const EQwHelicity helicity) { fBeamHelicity = helicity; };
     /// Get the beam helicity
-    const EQwHelicity GetBeamHelicity() const { return fBeamHelicity; };
+    EQwHelicity GetBeamHelicity() const { return fBeamHelicity; };
 
     /// \brief Output stream operator
     friend ostream& operator<< (ostream& stream, const QwEventHeader& h);
@@ -129,7 +133,7 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
 
   public:
 
-    // Event header
+    // Event header (owned by QwEvent)
     QwEventHeader* fEventHeader;
 
     #define QWHITS_IN_STL_VECTOR
@@ -350,8 +354,21 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     void PrintTracks(Option_t* option = "") const;
     // @}
 
+    void AddBridgingResult(double*);
+
+    void AddBridgingResult(QwTrack*);
+    
     //! \brief Print the event
     void Print(Option_t* option = "") const;
+    
+    const Double_t GetPrimaryQ2()          const { return fPrimaryQ2;};
+    const Double_t GetCrossSectionWeight() const { return fCrossSectionWeight;};
+    const Double_t GetTotalEnergy()        const { return fTotalEnergy;};
+    const Double_t GetKineticEnergy()      const { return fKineticEnergy;};
+    const TVector3 GetVertexPosition()     const { return fVertexPosition;};
+    const TVector3 GetVertexMomentum()     const { return fVertexMomentum;};
+    const Double_t GetScatteringAngle()    const { return fScatteringAngle;};
+    const Double_t GetScatteringVertexZ()  const { return fScatteringVertexZ;};
 
   public:
 
@@ -363,16 +380,18 @@ class QwEvent: public TObject, public QwObjectCounter<QwEvent> {
     double fKineticEnergy;
     TVector3 fVertexPosition;
     TVector3 fVertexMomentum;
+    double fScatteringAngle;
+    double fScatteringVertexZ;
     // @}
 
     /*! List of QwGEMCluster objects */
     std::vector<QwGEMCluster*> fGEMClusters; //!
 
     /*! list of tree lines [upper/lower][region][type][u/v/x/y] */
-    QwTrackingTreeLine* treeline[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
+    QwTrackingTreeLine* fTreeLine[kNumPackages][kNumRegions][kNumTypes][kNumDirections]; //!
 
     /*! list of partial tracks [package][region][type] */
-    QwPartialTrack* parttrack[kNumPackages][kNumRegions][kNumTypes]; //!
+    QwPartialTrack* fPartialTrack[kNumPackages][kNumRegions][kNumTypes]; //!
 
     /*! list of complete tracks [package] */
     QwTrack* track[kNumPackages]; //!

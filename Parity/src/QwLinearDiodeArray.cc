@@ -6,15 +6,19 @@
 \**********************************************************/
 
 #include "QwLinearDiodeArray.h"
-#include "QwHistogramHelper.h"
-#include "QwParameterFile.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwParameterFile.h"
+#include "QwDBInterface.h"
 
 
 const size_t QwLinearDiodeArray::kMaxElements = 8;
 
-/* Position calibration factor, transform ADC counts in mm*/
-const Double_t QwLinearDiodeArray::kQwLinearDiodeArrayCalibration = 18.77;
+/* Pad size in mm*/
+const Double_t QwLinearDiodeArray::kQwLinearDiodeArrayPadSize = 1.57;
 
 void  QwLinearDiodeArray::InitializeChannel(TString name)
 {
@@ -23,14 +27,13 @@ void  QwLinearDiodeArray::InitializeChannel(TString name)
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
 
   //  We don't initialize the photodiode channels yet.
-  
   fRelPos[0].InitializeChannel(name+"RelMean","derived");
   fRelPos[1].InitializeChannel(name+"RelVariance","derived");
-  
+
   bFullSave=kTRUE;
 
   return;
-};
+}
 
 void  QwLinearDiodeArray::InitializeChannel(TString subsystem, TString name)
 {
@@ -46,7 +49,7 @@ void  QwLinearDiodeArray::InitializeChannel(TString subsystem, TString name)
   bFullSave=kTRUE;
 
   return;
-};
+}
 
 void QwLinearDiodeArray::ClearEventData()
 {
@@ -60,7 +63,7 @@ void QwLinearDiodeArray::ClearEventData()
   fEffectiveCharge.ClearEventData();
 
  return;
-};
+}
 
 
 Bool_t QwLinearDiodeArray::ApplyHWChecks()
@@ -78,7 +81,7 @@ Bool_t QwLinearDiodeArray::ApplyHWChecks()
     }
 
   return fEventIsGood;
-};
+}
 
 
 Int_t QwLinearDiodeArray::GetEventcutErrorCounters()
@@ -92,7 +95,7 @@ Int_t QwLinearDiodeArray::GetEventcutErrorCounters()
   fEffectiveCharge.GetEventcutErrorCounters();
 
   return 1;
-};
+}
 
 
 Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
@@ -142,14 +145,14 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 
   return status;
 
-};
+}
 
 
 void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
   QwWarning << "QwLinearDiodeArray::SetSingleEventCuts:  "
 	    << "Does not do anything yet." << QwLog::endl;
-};
+}
 
 void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
   errorflag|=kBPMErrorFlag;//update the device flag (Do not have a error flag yet)
@@ -166,7 +169,7 @@ void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Do
     QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
     fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
   }
-};
+}
 
 
 void  QwLinearDiodeArray::ProcessEvent()
@@ -189,20 +192,18 @@ void  QwLinearDiodeArray::ProcessEvent()
   //makes a difference for a LinearArrays because they have derrived devices.
 
   fEffectiveCharge.ClearEventData();
-
   for(i=0;i<fPhotodiode.size();i++){
     fPhotodiode[i].ProcessEvent();
     fEffectiveCharge+=fPhotodiode[i];
   }
   
-  if (localdebug) fEffectiveCharge.PrintInfo();
   
   //  First calculate the mean pad position and mean of squared pad position
   //  with respect to the center of the array, in units of pad spacing.
   mean.ClearEventData();
   meansqr.ClearEventData();
   for (i=0;i<fPhotodiode.size();i++){
-    Double_t pos = 0.5 + 1.0*i - 0.5*fPhotodiode.size();
+    Double_t pos = kQwLinearDiodeArrayPadSize*i*0.5;
     tmp = fPhotodiode[i];
     tmp.Scale(pos);  // Scale for S(i)*pos
     mean+=tmp;
@@ -217,21 +218,21 @@ void  QwLinearDiodeArray::ProcessEvent()
   //  Now calculate the variance
   fRelPos[1].Difference(meansqr,tmp2);
 
-  for(i=0;i<2;i++){
-    fRelPos[i].Scale(kQwLinearDiodeArrayCalibration);
-    if(localdebug){
-      std::cout<<" LinearArray name="<<fElementName<<axis[i];
-      std::cout<<" event number= "<<fPhotodiode[i*2].GetSequenceNumber()<<" \n";
-      std::cout<<" hw  photodiode["<<i*2<<"]="<<fPhotodiode[i*2].GetHardwareSum()<<"  ";
-      std::cout<<" hw  photodiode["<<i*2+1<<"]="<<fPhotodiode[i*2+1].GetHardwareSum()<<"\n";
-      std::cout<<" hw numerator= "<<mean.GetHardwareSum()<<"  ";
-      std::cout<<" hw denominator= "<<fEffectiveCharge.GetHardwareSum()<<"\n";
-      std::cout<<" hw  fRelPos["<<axis[i]<<"]="<<fRelPos[i].GetHardwareSum()<<"\n \n";
-    }
+  if(localdebug){
+    std::cout<<"\n#################"<<std::endl;
+    std::cout<<" LinearArray name="<<fElementName<<std::endl;
+    std::cout<<" Size of the linear array = "<<fPhotodiode.size()<<std::endl;
+    std::cout<<" event number= "<<fPhotodiode[0].GetSequenceNumber()<<std::endl;
+    for(Int_t i = 0; i<8; i++)
+      std::cout<<" pad"<<i<<" ="<<fPhotodiode[i].GetHardwareSum()<<std::endl;
+      std::cout<<" mean ="<<fRelPos[0].GetHardwareSum()<<std::endl;
+    std::cout<<" varaiance ="<<fRelPos[1].GetHardwareSum()<<std::endl;
+    std::cout<<" total charge ="<<fEffectiveCharge.GetHardwareSum()<<std::endl;
+
   }
   
   return;
-};
+}
 
 
 Int_t QwLinearDiodeArray::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
@@ -243,10 +244,10 @@ Int_t QwLinearDiodeArray::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_i
   else
     {
     std::cerr <<
-      "QwLinearDiodeArray::ProcessEvBuffer(): attemp to fill in raw date for a wire that doesn't exist \n";
+      "QwLinearDiodeArray::ProcessEvBuffer(): attemp to fill in raw data for a pad that doesn't exist \n";
     }
   return word_position_in_buffer;
-};
+}
 
 
 
@@ -256,7 +257,7 @@ void QwLinearDiodeArray::PrintValue() const
     fRelPos[i].PrintValue();
   }
   return;
-};
+}
 
 void QwLinearDiodeArray::PrintInfo() const
 {
@@ -266,7 +267,7 @@ void QwLinearDiodeArray::PrintInfo() const
     fAbsPos[i].PrintInfo();
   }
   fEffectiveCharge.PrintInfo();
-};
+}
 
 
 TString QwLinearDiodeArray::GetSubElementName(Int_t subindex)
@@ -288,16 +289,20 @@ TString QwLinearDiodeArray::GetSubElementName(Int_t subindex)
 UInt_t QwLinearDiodeArray::GetSubElementIndex(TString subname)
 {
   size_t localindex=999999;
+  TString padindex;
+  padindex = subname(subname.Sizeof()-2,1);
   //  Interpret the subname as the pad index.
-  if (subname.IsDigit()){
-    Int_t tmpval = subname.Atoi();
-    if (tmpval>-1) localindex = tmpval;
+  if (padindex.IsDigit()){
+    Int_t tmpval = padindex.Atoi();
+    if (tmpval>-1) localindex = tmpval-1;
   }
 
-  if (localindex >=0 && localindex <= kMaxElements){
+  // localindex is unsigned int and always positive
+  if (/* localindex >= 0 && */ localindex <= kMaxElements){
     //  Resize the array to include this subelement if it doesn't already.
     if (localindex >= fPhotodiode.size()){
-      TString name = GetSubsystemName();
+      //TString name = GetSubsystemName();
+      TString name = this->GetElementName();
       size_t oldsize = fPhotodiode.size();
       fPhotodiode.resize(localindex+1);
       for (size_t i=oldsize; i<fPhotodiode.size(); i++){
@@ -310,7 +315,7 @@ UInt_t QwLinearDiodeArray::GetSubElementIndex(TString subname)
     localindex=999999;
   }
   return localindex;
-};
+}
 
 void  QwLinearDiodeArray::GetAbsolutePosition()
 {
@@ -318,7 +323,7 @@ void  QwLinearDiodeArray::GetAbsolutePosition()
     fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
   }
 
-};
+}
 
 QwLinearDiodeArray& QwLinearDiodeArray::operator= (const QwLinearDiodeArray &value)
 {
@@ -333,7 +338,7 @@ QwLinearDiodeArray& QwLinearDiodeArray::operator= (const QwLinearDiodeArray &val
     }
   }
   return *this;
-};
+}
 
 
 QwLinearDiodeArray& QwLinearDiodeArray::operator+= (const QwLinearDiodeArray &value)
@@ -348,7 +353,7 @@ QwLinearDiodeArray& QwLinearDiodeArray::operator+= (const QwLinearDiodeArray &va
     }
   }
   return *this;
-};
+}
 
 QwLinearDiodeArray& QwLinearDiodeArray::operator-= (const QwLinearDiodeArray &value)
 {
@@ -362,7 +367,7 @@ QwLinearDiodeArray& QwLinearDiodeArray::operator-= (const QwLinearDiodeArray &va
     }
   }
   return *this;
-};
+}
 
 
 void QwLinearDiodeArray::Ratio(QwLinearDiodeArray &numer, QwLinearDiodeArray &denom)
@@ -373,7 +378,7 @@ void QwLinearDiodeArray::Ratio(QwLinearDiodeArray &numer, QwLinearDiodeArray &de
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   return;
-};
+}
 
 
 
@@ -387,7 +392,7 @@ void QwLinearDiodeArray::Scale(Double_t factor)
     fRelPos[i].Scale(factor);
   }
   return;
-};
+}
 
 
 void QwLinearDiodeArray::CalculateRunningAverage()
@@ -395,7 +400,7 @@ void QwLinearDiodeArray::CalculateRunningAverage()
   size_t i = 0;
   for (i = 0; i < 2; i++) fRelPos[i].CalculateRunningAverage();
   return;
-};
+}
 
 void QwLinearDiodeArray::AccumulateRunningSum(const QwLinearDiodeArray& value)
 {
@@ -403,7 +408,7 @@ void QwLinearDiodeArray::AccumulateRunningSum(const QwLinearDiodeArray& value)
   size_t i = 0;
   for (i = 0; i < 2; i++) fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
   return;
-};
+}
 
 
 void  QwLinearDiodeArray::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -427,7 +432,7 @@ void  QwLinearDiodeArray::ConstructHistograms(TDirectory *folder, TString &prefi
     }
   }
   return;
-};
+}
 
 void  QwLinearDiodeArray::FillHistograms()
 {
@@ -445,7 +450,7 @@ void  QwLinearDiodeArray::FillHistograms()
     }
   }
   return;
-};
+}
 
 void  QwLinearDiodeArray::DeleteHistograms()
 {
@@ -462,7 +467,7 @@ void  QwLinearDiodeArray::DeleteHistograms()
     }
   }
   return;
-};
+}
 
 
 void  QwLinearDiodeArray::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -488,7 +493,7 @@ void  QwLinearDiodeArray::ConstructBranchAndVector(TTree *tree, TString &prefix,
 
   }
   return;
-};
+}
 
 void  QwLinearDiodeArray::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -513,7 +518,7 @@ void  QwLinearDiodeArray::ConstructBranch(TTree *tree, TString &prefix)
 
   }
   return;
-};
+}
 
 void  QwLinearDiodeArray::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
 {
@@ -551,7 +556,7 @@ void  QwLinearDiodeArray::ConstructBranch(TTree *tree, TString &prefix, QwParame
 
 
   return;
-};
+}
 
 void  QwLinearDiodeArray::FillTreeVector(std::vector<Double_t> &values) const
 {
@@ -569,9 +574,9 @@ void  QwLinearDiodeArray::FillTreeVector(std::vector<Double_t> &values) const
     }
   }
   return;
-};
+}
 
-void QwLinearDiodeArray::Copy(VQwDataElement *source)
+void QwLinearDiodeArray::Copy(QwLinearDiodeArray *source)
 {
   try
     {
@@ -698,7 +703,7 @@ std::vector<QwDBInterface> QwLinearDiodeArray::GetDBEntry()
 
   return row_list;
 
-};
+}
 
 /**********************************
  * Mock data generation routines
@@ -712,10 +717,10 @@ void  QwLinearDiodeArray::SetRandomEventParameters(Double_t meanX, Double_t sigm
 
   
   // Determine the asymmetry from the position
-  Double_t meanXP = (1.0 + meanX / kQwLinearDiodeArrayCalibration) * sumX / 2.0;
-  Double_t meanXM = (1.0 - meanX / kQwLinearDiodeArrayCalibration) * sumX / 2.0; // = sumX - meanXP;
-  Double_t meanYP = (1.0 + meanY / kQwLinearDiodeArrayCalibration) * sumY / 2.0;
-  Double_t meanYM = (1.0 - meanY / kQwLinearDiodeArrayCalibration) * sumY / 2.0; // = sumY - meanYP;
+  Double_t meanXP = (1.0 + meanX) * sumX / 2.0;
+  Double_t meanXM = (1.0 - meanX) * sumX / 2.0; // = sumX - meanXP;
+  Double_t meanYP = (1.0 + meanY) * sumY / 2.0;
+  Double_t meanYM = (1.0 - meanY) * sumY / 2.0; // = sumY - meanYP;
 
   // Determine the spread of the asymmetry (this is not tested yet)
   // (negative sigma should work in the QwVQWK_Channel, but still using fabs)
@@ -729,7 +734,7 @@ void  QwLinearDiodeArray::SetRandomEventParameters(Double_t meanX, Double_t sigm
   fPhotodiode[1].SetRandomEventParameters(meanXM, sigmaXM);
   fPhotodiode[2].SetRandomEventParameters(meanYP, sigmaYP);
   fPhotodiode[3].SetRandomEventParameters(meanYM, sigmaYM);
-};
+}
 
 
 void QwLinearDiodeArray::RandomizeEventData(int helicity, double time)
@@ -737,7 +742,7 @@ void QwLinearDiodeArray::RandomizeEventData(int helicity, double time)
   for (size_t i=0; i<fPhotodiode.size(); i++) fPhotodiode[i].RandomizeEventData(helicity, time);
 
   return;
-};
+}
 
 
 void QwLinearDiodeArray::SetEventData(Double_t* relpos, UInt_t sequencenumber)
@@ -748,20 +753,20 @@ void QwLinearDiodeArray::SetEventData(Double_t* relpos, UInt_t sequencenumber)
     }
 
   return;
-};
+}
 
 
 void QwLinearDiodeArray::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   for (size_t i=0; i<fPhotodiode.size(); i++) fPhotodiode[i].EncodeEventData(buffer);
-};
+}
 
 
 void QwLinearDiodeArray::SetDefaultSampleSize(Int_t sample_size)
 {
   for(size_t i=0;i<fPhotodiode.size();i++) fPhotodiode[i].SetDefaultSampleSize((size_t)sample_size);
   return;
-};
+}
 
 
 void QwLinearDiodeArray::SetSubElementPedestal(Int_t j, Double_t value)

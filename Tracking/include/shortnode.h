@@ -78,7 +78,7 @@ class shortnode: public QwObjectCounter<shortnode> {
     /// Set the number of trees (if allocated as an array)
     void SetNumberOfTrees(int ntrees) { fNTrees = ntrees; };
     /// Get the number of trees
-    const int GetNumberOfTrees() const { return fNTrees; };
+    int GetNumberOfTrees() const { return fNTrees; };
 
   private:
 

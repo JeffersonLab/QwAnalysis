@@ -159,21 +159,20 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
 
 RSDataWindow::~RSDataWindow()
 {
-
-  delete fMenuFile;
-  delete fMenuBar;
-  delete fMenuBarItemLayout;
-  delete fMenuBarLayout;
-  delete fCancelButton;
-  delete fFrame1;
-  delete fDlgFrame;
-  delete fCnvFrame;
-  delete fDlgLayout;
-  delete fCnvLayout;
-  delete fL1;
-  delete fL2;
-  delete dPlotCont;
-  delete fPlotCanvas;
+  if(fMenuFile         ) delete fMenuFile;
+  if(fMenuBar          ) delete fMenuBar;
+  if(fMenuBarItemLayout) delete fMenuBarItemLayout;
+  if(fMenuBarLayout    ) delete fMenuBarLayout;
+  if(fCancelButton     ) delete fCancelButton;
+  if(fFrame1           ) delete fFrame1;
+  if(fDlgFrame         ) delete fDlgFrame;
+  if(fCnvFrame         ) delete fCnvFrame;
+  if(fDlgLayout        ) delete fDlgLayout;
+  if(fCnvLayout        ) delete fCnvLayout;
+  if(fL1               ) delete fL1;
+  if(fL2               ) delete fL2;
+  if(dPlotCont         ) delete dPlotCont;
+  if(fPlotCanvas       ) delete fPlotCanvas;       
 
   if(dFitOptions != NULL){
     delete dFitOptions;
@@ -788,9 +787,14 @@ void RSDataWindow::ViewMiscData()
   Double_t *ye = NULL;
   if(dMiscCont->ReadData(x,y,1,1,2,dMiscCont->GetNumOfRows()) != FILE_PROCESS_OK)
     {dMiscCont->Close(); return;}
-  if(cols > 2){
+  if(cols == 3){
     ye= new Double_t[range];
     if(dMiscCont->ReadData(x,ye,1,1,3,dMiscCont->GetNumOfRows()) != FILE_PROCESS_OK)
+      {dMiscCont->Close(); return;}
+  }
+  if(cols > 3){
+    ye= new Double_t[range];
+    if(dMiscCont->ReadData(x,ye,1,1,4,dMiscCont->GetNumOfRows()) != FILE_PROCESS_OK)
       {dMiscCont->Close(); return;}
   }
 
@@ -1019,11 +1023,27 @@ void RSDataWindow::PrintCanvas()
   flag = system(dMiscbuffer);  
 }
 
+void RSDataWindow::SleepWithEvents(int seconds)
+{
+  time_t start, now;
+  time(&start);
+  do {
+    time(&now);
+    gSystem->ProcessEvents();
+  } while (difftime(now,start) < seconds) ;
+}
+
+
 void RSDataWindow::CloseWindow()
 {
   FlushMessages();
   SetMessage(PLOTWIND_CLOSED_MSG,"",(int)dPtype,M_DTWIND_CLOSED);
+  
   IsClosing(dObjName);
+  
+//   SleepWithEvents(1);
+
+//   TGTransientFrame::CloseWindow();
 }
 
 Double_t RSDataWindow::minv(Double_t *x, Int_t size)
@@ -1324,6 +1344,15 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 
     if(!chst[0]) return DATA_PLOT_ERROR;
 
+    Double_t cmean = hist->GetMean();
+    Double_t crms = hist->GetRMS();
+
+    Double_t minmean = hist->GetMean();
+    Double_t maxmean = hist->GetMean();
+
+    Double_t minrms = hist->GetRMS();
+    Double_t maxrms = hist->GetRMS();
+
     Double_t cmin = chst[0]->GetXaxis()->GetXmin();
     Double_t cmax = chst[0]->GetXaxis()->GetXmax(); 
     Double_t hmin = hist->GetXaxis()->GetXmin();
@@ -1347,6 +1376,15 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 	cymin = chst[i]->GetMinimum();
 	cymax = chst[i]->GetMaximum();
 
+	cmean = chst[i]->GetMean();
+	crms = chst[i]->GetRMS();
+
+	if(cmean < minmean) minmean = cmean;
+	if(cmean >= maxmean) maxmean = cmean;
+
+	if(crms < minrms) minrms = crms;
+	if(crms >= maxrms) maxrms = crms;
+
 	if(cmin < dMin[0]) dMin[0] = cmin;
 	if(cmax > dMax[0]) dMax[0] = cmax;
 	if(cymin < dMin[1]) dMin[1] = cymin;
@@ -1365,6 +1403,7 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
     }    
 //     tmp->SetLineColor(dPlotCont->GetNewLineColor(kRed));
     tmp->GetYaxis()->SetRangeUser(dMin[1]+0.1,dMax[1]);
+    tmp->GetXaxis()->SetRangeUser(minmean-10*maxrms,maxmean+10*maxrms);
     tmp->Draw();
     delete chst[0];
 

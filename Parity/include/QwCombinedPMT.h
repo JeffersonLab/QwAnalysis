@@ -12,19 +12,15 @@
 #include "QwVQWK_Channel.h"
 #include "QwIntegrationPMT.h"
 
-// Qweak database headers
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
-
 // Forward declarations
 class QwBlinder;
+class QwDBInterface;
 
 class QwCombinedPMT : public VQwDataElement {
 /////
  public:
   QwCombinedPMT(){
-    QwCombinedPMT("");
+    InitializeChannel("", "derived");
   };
 
   QwCombinedPMT(TString name){
@@ -92,7 +88,7 @@ class QwCombinedPMT : public VQwDataElement {
   void Difference(QwCombinedPMT &value1, QwCombinedPMT &value2);
   void Ratio(QwCombinedPMT &numer, QwCombinedPMT &denom);
   void Scale(Double_t factor);
-
+  void Normalize(VQwDataElement* denom);
   void AccumulateRunningSum(const QwCombinedPMT& value);
   void CalculateRunningAverage();
 
@@ -122,7 +118,7 @@ class QwCombinedPMT : public VQwDataElement {
 
   void Copy(VQwDataElement *source);
 
-  std::vector<QwDBInterface>  GetDBEntry() {return fSumADC.GetDBEntry();};
+  std::vector<QwDBInterface>  GetDBEntry();
 
  protected:
 

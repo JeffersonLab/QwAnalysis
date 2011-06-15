@@ -19,9 +19,11 @@
 #include <TMD5.h>
 
 // Qweak headers
-#include "QwDatabase.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwEPICSEvent.h"
+
+// Forward declarations
+class QwDatabase;
 
 // Backup type definition for ULong64_t; needed with some older ROOT versions.
 #if !defined(ULong64_t)
@@ -71,11 +73,22 @@ class QwBlinder {
   };
   /// Status of the blinding process or intermediate steps of the process  
   enum EQwBlinderStatus {
-    kIndeterminate,
+    kIndeterminate = 0,
     kNotBlindable,
     kBlindable,
     kBlindableFail
   };
+  static const TString fStatusName[4];
+  ///  Double Wien configuration
+  enum EQwBlinderWienMode {
+    kWienIndeterminate = 0,
+    kWienForward,
+    kWienBackward, 
+    kWienVertTrans,
+    kWienHorizTrans
+  };
+  static const TString fWienName[5];
+  
   ///  Error flag value 
   static const UInt_t kErrorFlag_BlinderFail = 0x200;
 
@@ -111,16 +124,11 @@ class QwBlinder {
     /// Modifies the device error code variable passed to it, if the blinder is
     /// not okay.
     void ModifyThisErrorCode(UInt_t &errorcode) const {
-      if (!fBlinderIsOkay) errorcode |= kErrorFlag_BlinderFail;
+      errorcode |= kErrorFlag_BlinderFail;
     };
 
     /// Asymmetry blinding
     void  BlindValue(Double_t& value) const {
-      /*       std::cerr <<"blinding!!! Polarity==" */
-      /* 		<< fIHWPPolarity */
-      /* 		<< " fBlindingOffset/fBlindingOffset_Base==" */
-      /* 		<< fBlindingOffset/fBlindingOffset_Base */
-      /* 		<< std::endl; */
       switch (fBlindingStrategy) {
         case kAdditive:
           value += fBlindingOffset; break;
@@ -146,11 +154,6 @@ class QwBlinder {
 
     /// Difference blinding
     void  BlindValue(Double_t& value, const Double_t& yield) const {
-      /*       std::cerr <<"blinding!!! Polarity==" */
-      /* 		<< fIHWPPolarity */
-      /* 		<< " fBlindingOffset/fBlindingOffset_Base==" */
-      /* 		<< fBlindingOffset/fBlindingOffset_Base */
-      /* 		<< std::endl; */
       switch (fBlindingStrategy) {
       case kAdditive:
 	value += yield * fBlindingOffset; break;
@@ -194,17 +197,21 @@ class QwBlinder {
       diff.UnBlind(this, yield);
     };
 
-    Bool_t IsBlinderOkay() const {return fBlinderIsOkay;};
+    const Bool_t& IsBlinderOkay() const {return fBlinderIsOkay;};
 
  private:
     ///  Indicates the first value recieved of the blindability of the target 
     EQwBlinderStatus fTargetBlindability_firstread;
     EQwBlinderStatus fTargetBlindability;
     Bool_t fTargetPositionForced;
-    void SetTargetBlindability(EQwBlinderStatus status);
-
+    EQwBlinderWienMode fWienMode_firstread;
+    EQwBlinderWienMode fWienMode;
+    Int_t fIHWPPolarity_firstread;
     Int_t fIHWPPolarity;
-    Int_t fWienPolarity;
+    void SetTargetBlindability(EQwBlinderStatus status);
+    void SetWienState(EQwBlinderWienMode wienmode);
+    void SetIHWPPolarity(Int_t ihwppolarity);
+
 
     Double_t fBeamCurrentThreshold;
     Bool_t fBeamIsPresent;
@@ -216,11 +223,11 @@ class QwBlinder {
 
 
  private:
-    
+
     /// Private copy constructor
-    QwBlinder (const QwBlinder& blinder): fBlindingStrategy(kDisabled) { };
+    QwBlinder (const QwBlinder& __attribute__((unused)) blinder): fBlindingStrategy(kDisabled) { };
     /// Private assignment operator
-    const QwBlinder& operator= (const QwBlinder& blinder) { return *this; };
+    const QwBlinder& operator= (const QwBlinder& __attribute__((unused)) blinder) { return *this; };
 
     //  Variables and functions used in blinding the detector asymmetries
     const EQwBlindingStrategy fBlindingStrategy; /// Blinding strategy
@@ -269,6 +276,8 @@ class QwBlinder {
     void WriteTestValues(QwDatabase* db);   ///  Writes fTestNumber and fBlindTestValue to DB for this analysis ID
 
     std::vector<UChar_t> GenerateDigest(const TString& input) const;
+
+    std::vector<Int_t> fPatternCounters; ///< Counts the number of events in each failure mode
 
 };
 

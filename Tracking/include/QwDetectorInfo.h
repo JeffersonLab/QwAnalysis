@@ -1,16 +1,24 @@
 #ifndef QWDETECTORINFO_H
 #define QWDETECTORINFO_H
 
+// System headers
 #include <cmath>
-#include <iostream>
 #include <vector>
+#include <iostream>
+#include <algorithm>
 
-#include <TString.h>
-#include <TObject.h>
+// ROOT headers
+#include "TString.h"
+#include "TObject.h"
 #include "TMath.h"
 #include "TVector3.h"
 
+// Qweak headers
 #include "QwTypes.h"
+#include "QwLog.h"
+
+// Forward declarations
+class QwTrackingTreeRegion;
 
 ///
 /// \ingroup QwTracking
@@ -22,25 +30,28 @@ class QwDetectorInfo: public TObject {
 
   public:
 
-    void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, int totalwires, int detId);
+    /// Default constructor
+    QwDetectorInfo(): fIsActive(true),fTree(0) { };
+
+  void SetDetectorInfo(TString sdType, double Zpos1, double rot, double  sp_res, double  track_res, double slope_match, TString spackage, int region, TString planeDir, double Det_originX, double Det_originY, double ActivewidthX, double ActivewidthY, double ActivewidthZ, double WireSpace, double FirstWire, double W_rcos, double W_rsin, double tilt, int totalwires, int detId);
 
     // Get/set spatial resolution
-    const double GetSpatialResolution() const { return fSpatialResolution; };
+    double GetSpatialResolution() const { return fSpatialResolution; };
     void SetSpatialResolution(const double res) { fSpatialResolution = res; };
 
     // Get/set track resolution
-    const double GetTrackResolution() const { return fTrackResolution; };
+    double GetTrackResolution() const { return fTrackResolution; };
     void SetTrackResolution(const double res) { fTrackResolution = res; };
 
     // Get/set slope matching
-    const double GetSlopeMatching() const { return fSlopeMatching; };
+    double GetSlopeMatching() const { return fSlopeMatching; };
     void SetSlopeMatching(const double slope) { fSlopeMatching = slope; };
 
     // Get/set x and y position
     const TVector3 GetPosition() const;
-    const double GetXPosition() const { return fDetectorOriginX; };
-    const double GetYPosition() const { return fDetectorOriginY; };
-    const double GetZPosition() const { return fDetectorOriginZ; };
+    double GetXPosition() const { return fDetectorOriginX; };
+    double GetYPosition() const { return fDetectorOriginY; };
+    double GetZPosition() const { return fDetectorOriginZ; };
     void SetPosition(const TVector3& position);
     void SetZPosition(const double z) { fDetectorOriginZ = z; };
     void SetXYPosition(const double x, const double y) {
@@ -53,42 +64,49 @@ class QwDetectorInfo: public TObject {
     };
 
     // Get/set active flag
-    const bool IsActive() const { return fIsActive; };
+    bool IsActive() const { return fIsActive; };
+    bool IsInactive() const { return !IsActive(); };
     void SetActive(const bool active = true) { fIsActive = active; };
-    void SetNotActive(const bool active = false) { fIsActive = active; };
 
     // Get/set x and y active width
-    const double GetActiveWidthX() const { return fActiveWidthX; };
-    const double GetActiveWidthY() const { return fActiveWidthY; };
+    double GetActiveWidthX() const { return fActiveWidthX; };
+    double GetActiveWidthY() const { return fActiveWidthY; };
     void SetActiveWidthXY(const double x, const double y) {
       fActiveWidthX = x;
       fActiveWidthY = y;
     };
     // Get/set z active width
-    const double GetActiveWidthZ() const { return fActiveWidthZ; };
+    double GetActiveWidthZ() const { return fActiveWidthZ; };
     void SetActiveWidthZ(const double z) { fActiveWidthZ = z; };
 
+    bool InAcceptance(const double x, const double y) const {
+      if (fabs(x - fDetectorOriginX) < fActiveWidthX / 2.0 &&
+          fabs(y - fDetectorOriginY) < fActiveWidthY / 2.0)
+        return true;
+      else return false;
+    };
+
     // Get/set element direction
-    const EQwDirectionID GetElementDirection() const { return fDirection; };
-    void SetElementSpacing(const EQwDirectionID dir) { fDirection = dir; };
+    EQwDirectionID GetElementDirection() const { return fDirection; };
+    void SetElementDirection(const EQwDirectionID dir) { fDirection = dir; };
 
     // Get/set element spacing
-    const double GetElementSpacing() const { return fElementSpacing; };
+    double GetElementSpacing() const { return fElementSpacing; };
     void SetElementSpacing(const double spacing) { fElementSpacing = spacing; };
 
     // Get/set element offset
-    const double GetElementOffset() const { return fElementOffset; };
+    double GetElementOffset() const { return fElementOffset; };
     void SetElementOffset(const double offset) { fElementOffset = offset; };
 
     // Get element coordinate
-    const double GetElementCoordinate(const int element) const;
+    double GetElementCoordinate(const int element) const;
 
     // Get/set element orientation
-    const double GetElementAngle() const { return fElementAngle; };
-    const double GetElementAngleInRad() const { return fElementAngle; };
-    const double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
-    const double GetElementAngleCos() const { return fElementAngleCos; };
-    const double GetElementAngleSin() const { return fElementAngleSin; };
+    double GetElementAngle() const { return fElementAngle; };
+    double GetElementAngleInRad() const { return fElementAngle; };
+    double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
+    double GetElementAngleCos() const { return fElementAngleCos; };
+    double GetElementAngleSin() const { return fElementAngleSin; };
     void SetElementAngle(const double angle) {
       fElementAngle = angle;
       fElementAngleCos = std::cos(fElementAngle);
@@ -101,23 +119,39 @@ class QwDetectorInfo: public TObject {
     };
 
     // Get/set number of elements
-    const int GetNumberOfElements() const { return fNumberOfElements; };
+    int GetNumberOfElements() const { return fNumberOfElements; };
     void SetNumberOfElements(const int nelements) { fNumberOfElements = nelements; };
 
     // Get/set detector rotation (in degrees)
-    const double GetDetectorRotation() const { return fDetectorRotation; };
-    const double GetDetectorRotationInRad() const { return fDetectorRotation; };
-    const double GetDetectorRotationInDeg() const { return fDetectorRotation * TMath::RadToDeg(); };
-    const double GetDetectorRotationCos() const { return fDetectorRotationCos; };
-    const double GetDetectorRotationSin() const { return fDetectorRotationSin; };
+    double GetDetectorRotation() const { return fDetectorRotation; };
+    double GetDetectorRotationInRad() const { return fDetectorRotation; };
+    double GetDetectorRotationInDeg() const { return fDetectorRotation * TMath::RadToDeg(); };
+    double GetDetectorRotationCos() const { return fDetectorRotationCos; };
+    double GetDetectorRotationSin() const { return fDetectorRotationSin; };
     void SetDetectorRotation(const double rotation) {
       fDetectorRotation = rotation; // in degrees
       fDetectorRotationCos = std::cos(fDetectorRotation);
       fDetectorRotationSin = std::sin(fDetectorRotation);
     };
+    // Get/set detector tilt (in degrees)
+    double GetDetectorTilt() const { return fDetectorTilt; };
+    double GetDetectorTiltInRad() const { return fDetectorTilt; };
+    double GetDetectorTiltInDeg() const { return fDetectorTilt * TMath::RadToDeg(); };
+    double GetDetectorTiltCos() const { return fDetectorTiltCos; };
+    double GetDetectorTiltSin() const { return fDetectorTiltSin; };
+    void SetDetectorTilt(const double tilting) {
+      fDetectorTilt = tilting; // in degrees
+      fDetectorTiltCos = std::cos(fDetectorTilt);
+      fDetectorTiltSin = std::sin(fDetectorTilt);
+    };
+
+    // Get/set tracking search tree
+    QwTrackingTreeRegion* GetTrackingSearchTree() { return fTree; };
+    const QwTrackingTreeRegion* GetTrackingSearchTree() const { return fTree; };
+    void SetTrackingSearchTree(QwTrackingTreeRegion* tree) { fTree = tree; };
 
     // Get unique detector ID
-    const int GetID() const { return fDetectorID; };
+    int GetID() const { return fDetectorID; };
 
     // Output stream operator
     friend std::ostream& operator<< (std::ostream& stream, const QwDetectorInfo& det);
@@ -146,10 +180,14 @@ class QwDetectorInfo: public TObject {
       /// \todo This is an inconsistent definition of coordinate frames.
     double fDetectorRotationCos;	///< Cos of detector orientation
     double fDetectorRotationSin;	///< Sin of detector orientation
+    double fDetectorTilt;               ///Tilt in XY of Detector
+    double fDetectorTiltCos;    	///< Cos of detector tilt
+    double fDetectorTiltSin;	        ///< Sin of detector tilt
+
 
     bool   fIsActive;		///< Is this detector activated in tracking
 
-    double fSpatialResolution;///< Spatial resolution (how accurate is the timing info)
+    double fSpatialResolution;  ///< Spatial resolution (how accurate is the timing info)
     double fTrackResolution;	///< Track resolution (how accurate are the tracks through the hits)
     double fSlopeMatching;	///< Slope matching resolution (how accurate do the tracks line up)
 
@@ -164,6 +202,8 @@ class QwDetectorInfo: public TObject {
     double fElementOffset;	///< Position of the first element (it is not
                                 ///  exactly clear to me what that exactly means)
     int fNumberOfElements;	///< Total number of elements in this detector
+
+    QwTrackingTreeRegion* fTree;        ///< Search tree for this detector
 
   public:
     // Unique detector identifier
@@ -201,9 +241,18 @@ class QwDetectorInfo: public TObject {
 
 };
 
-// Detectors could be sorted by region, package, z position
+// Detectors could be sorted by package, region, z position
 inline bool operator< (const QwDetectorInfo& lhs, const QwDetectorInfo& rhs) {
-  return (lhs.GetZPosition() < rhs.GetZPosition());
-};
+  if (lhs.fPackage < rhs.fPackage) return true;
+  else if (lhs.fPackage == rhs.fPackage) {
+    if (lhs.fRegion < rhs.fRegion) return true;
+    else if (lhs.fRegion == rhs.fRegion) {
+      if (lhs.GetZPosition() < rhs.GetZPosition()) return true;
+      else if (lhs.GetZPosition() == rhs.GetZPosition()) {
+        return false;
+      } else return false;
+    } else return false;
+  } else return false;
+}
 
 #endif

@@ -17,6 +17,7 @@ using std::string;
 
 // Qweak headers
 #include "QwTypes.h"
+#include "QwColor.h"
 
 /*!
  * \note Because QwOptions depends on QwLog, and QwLog depends also on QwOptions,
@@ -156,7 +157,7 @@ class QwLog : public std::ostream {
 
     /*! \brief Flush the streams
      */
-    QwLog&                      flush();
+    static std::ostream&        flush(std::ostream&);
 
   private:
 

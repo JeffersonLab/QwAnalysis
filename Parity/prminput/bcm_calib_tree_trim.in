@@ -16,91 +16,6 @@
 	Device_Error_Code
 #	sequence_number
 
-  <QwBPMStripline>
-#	hw_sum
-#	hw_sum_raw
-#	block
-#	block_raw
-#	num_samples
-#	Device_Error_Code
-#	sequence_number
-
-  <QwBPMCavity>
-#	hw_sum
-#	hw_sum_raw
-#	block
-#	block_raw
-#	num_samples
-#	Device_Error_Code
-#	sequence_number
-
-  <QwCombinedBPM>
-#	hw_sum
-#	hw_sum_raw
-#	block
-#	block_raw
-#	num_samples
-#	Device_Error_Code
-#	sequence_number
-
-  <QwCombinedBCM>
-#	hw_sum
-#	hw_sum_raw
-#	block
-#	block_raw
-#	num_samples
-#	Device_Error_Code
-#	sequence_number
-
-   <QwEnergyCalculator>
-#	hw_sum
-#	hw_sum_raw
-#	block
-#	block_raw
-#	num_samples
-#	Device_Error_Code
-#	sequence_number
-
-[Main Detector]
-   <QwIntegrationPMT>
-#	hw_sum
-#	hw_sum_raw
-#	block
-#	block_raw
-#	num_samples
-#	Device_Error_Code
-#	sequence_number
-   <QwCombinedPMT>
-#	hw_sum
-#	hw_sum_raw
-#	block
-#	block_raw
-#	num_samples
-#	Device_Error_Code
-#	sequence_number
-
-[Lumi Detector]
-  <QwIntegrationPMT>
-#	hw_sum
-#	hw_sum_raw
-#	block
-#	block_raw
-#	num_samples
-#	Device_Error_Code
-#	sequence_number
-
-[BeamMod]
-   <QwBeamMod>
-#	hw_sum
-#	hw_sum_raw
-#	block
-#	block_raw
-#	num_samples
-#	Device_Error_Code
-#	sequence_number
-
-
-
 # below the [DEVICELIST] include all the devices that needs to be in the tree
 
 [DEVICELIST]
@@ -118,6 +33,11 @@ qwk_bcm1
 qwk_bcm2
 qwk_bcm5
 qwk_bcm6
+mps_counter
+pattern_number
+pat_counter
+pat_phase
+pattern_phase
 #event_number
 
 ## Hel Tree  

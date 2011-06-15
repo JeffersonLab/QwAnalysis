@@ -70,12 +70,6 @@ class QwTrackingTreeMatch {
 	double *bending,
 	double *ZVertex );
 
-    QwTrack* TgPartMatch (
-	QwPartialTrack* front,
-	QwPartialTrack* back,
-	QwTrack* tracklist,
-	EQwDetectorPackage package);
-
     //! Match the tree lines in two planes in region 3
     QwTrackingTreeLine* MatchRegion3 (
 	QwTrackingTreeLine* frontlist,

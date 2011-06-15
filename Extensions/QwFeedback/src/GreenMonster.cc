@@ -5,10 +5,9 @@
 
 GreenMonster::GreenMonster():fVerbose(kTRUE)
 {
-  fUseCrate[0]= kTRUE;
-  fCrateNames[0] = new TString("Counting House");
-  //  fCrateNames[0] = new TString("Laser Room");
-  fCrateNumbers[0] = Crate_CountingHouse;
+  fUseCrate[0]= kFALSE;
+  fCrateNames[0] = new TString("Qweak Injector");
+  fCrateNumbers[0] = Crate_CountingHouse;//injector crate
 
   fUseCrate[1]= kFALSE;
   fCrateNames[1] = new TString("Injector");
@@ -21,6 +20,12 @@ GreenMonster::GreenMonster():fVerbose(kTRUE)
   fUseCrate[3]= kFALSE;
   fCrateNames[3] = new TString("Right Spect");
   fCrateNumbers[3] = Crate_RightSpect;
+
+  
+  fUseCrate[4]= kTRUE;
+  fCrateNames[4] = new TString("Qw VME TS");
+  fCrateNumbers[4] = Crate_Qwvmets;
+
 
 }
 
@@ -80,7 +85,7 @@ Bool_t GreenMonster::SCNCheckStatus() {
   par1 = 0;                      gRequest.par1 = par1;
   par2 = 0;                      gRequest.par2 = par2;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     command = gRequest.command;
     par1 = gRequest.par1;
     par2 = gRequest.par2;
@@ -113,7 +118,8 @@ void GreenMonster::SCNSetStatus(Int_t status) {
 
   if (fVerbose) std::cout << "Setting SCN status: " << par1 << std::endl;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     if (fVerbose) printf("SCAN status change call is complete\n");
   } else {
     printf("ERROR accessing socket!");
@@ -144,8 +150,7 @@ void GreenMonster::SCNSetValue(Int_t which, Int_t value) {
   par1 = which;                  gRequest.par1 = par1;
   par2 = value;                  gRequest.par2 = par2;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     command = gRequest.command;
     par1 = gRequest.par1;
     par2 = gRequest.par2;
@@ -170,8 +175,7 @@ void GreenMonster::SCNCheckValues() {
   par1 = 1;                      gRequest.par1 = par1;
   par2 = 0;                      gRequest.par2 = par2;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     command = gRequest.command;
     par1 = gRequest.par1;
     par2 = gRequest.par2;
@@ -193,8 +197,7 @@ void GreenMonster::SCNCheckValues() {
   par1 = 2;                      gRequest.par1 = par1;
   par2 = 0;                      gRequest.par2 = par2;
   strcpy(gRequest.message,msgReq);   gRequest.reply = reply;
-
-  if (GreenSockCommand(Crate_CountingHouse,&gRequest) == SOCK_OK) {
+  if (GreenSockCommand(Crate_Qwvmets,&gRequest) == SOCK_OK) {
     command = gRequest.command;
     par1 = gRequest.par1;
     par2 = gRequest.par2;

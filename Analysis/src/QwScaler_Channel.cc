@@ -23,12 +23,14 @@ Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events f
 
 void VQwScaler_Channel::ClearEventData()
 {
-  fValue_Raw = 0;
-  fValue     = 0.0;
-  fValueM2   = 0.0;
-  fGoodEventCount = 0;
+  fValue_Raw   = 0;
+  fValue       = 0.0;
+  fValueM2     = 0.0;
+  fValueError  = 0.0;
+
+  fGoodEventCount  = 0;
   fDeviceErrorCode = 0;
-};
+}
 
 void VQwScaler_Channel::RandomizeEventData(int helicity)
 {
@@ -41,7 +43,7 @@ void VQwScaler_Channel::RandomizeEventData(int helicity)
   //How many bits will be configured for data, which bits will be configured for user info?
   //std::cout<<"word = "<<std::hex<<word<<std::dec<<std::endl;
   fValue_Raw = Dataword;
-};
+}
 
 
 /*!  Static member function to return the word offset within a data buffer
@@ -93,7 +95,7 @@ void QwScaler_Channel<data_mask,data_shift>::EncodeEventData(std::vector<UInt_t>
     buffer.push_back( ((this->fValue_Raw<<data_shift)&data_mask) );
     //std::cout<<"this->fValue="<<this->fValue<<std::endl;
   }
-};
+}
 
 
 template<unsigned int data_mask, unsigned int data_shift>
@@ -106,29 +108,30 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
     //  Skip over this data.
       words_read = fNumberOfDataWords;
   } else if (num_words_left >= fNumberOfDataWords) {
-    this->fValue_Raw = ((buffer[0] & data_mask) >> data_shift);
-    this->fValue     = 0.0 + this->fValue_Raw;
+    fValue_Raw = ((buffer[0] & data_mask) >> data_shift);
+    fValue     = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
     words_read = fNumberOfDataWords;
   } else {
     //QwError << "QwScaler_Channel::ProcessEvBuffer: Not enough words!"<< QwLog::endl;
   }
   return words_read;
-};
+}
 
 
 void VQwScaler_Channel::ProcessEvent()
 {
-  //scaler events processed here.
-  return;
-};
+  //QwError << "VQwScaler_Channel::ProcessEvent() "<<GetElementName()<<" "<< fValue_Raw<< " "<< fValue<<" "<<fCalibrationFactor<<" "<< fPedestal<<QwLog::endl;
+  fValue = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
+}
 
 
 void VQwScaler_Channel::PrintValue() const
 {
-  QwMessage << std::setprecision(4)
-            << std::setw(23) << std::left << GetElementName() << ","
-            << std::setw(15) << std::right << GetValue() << " +/- " << fValueError
-            << QwLog::endl;
+  //  printf("Name %s %23.4f +/- %15.4f", GetElementName().Data(), fValue, fValueError);
+  QwMessage << std::setw(5) << std::left << GetElementName() << " , "
+	    << std::setprecision(4)
+	    << std::setw(5) << std::right << GetValue() << "  +/-  " << GetValueError() << " sigma "<<GetValueWidth()
+	    << QwLog::endl;
 }
 
 void VQwScaler_Channel::PrintInfo() const
@@ -154,12 +157,12 @@ void VQwScaler_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
     fHistograms[index]   = gQwHists.Construct1DHist(basename);
     index += 1;
   }
-};
+}
 
-void  VQwScaler_Channel::FillHistograms(){
-
-  size_t index=0;
-  if (IsNameEmpty()){
+void  VQwScaler_Channel::FillHistograms()
+{
+  size_t index = 0;
+  if (IsNameEmpty()) {
     //  This channel is not used, so skip creating the histograms.
   } else {
     if (fHistograms[index] != NULL)
@@ -167,7 +170,7 @@ void  VQwScaler_Channel::FillHistograms(){
       fHistograms[index]->Fill(this->fValue);
     index += 1;
   }
-};
+}
 
 
 void  VQwScaler_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -185,7 +188,7 @@ void  VQwScaler_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, 
     if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
       tree->Branch(basename, &(values[fTreeArrayIndex]), list);
   }
-};
+}
 
 void  VQwScaler_Channel::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -196,39 +199,55 @@ void  VQwScaler_Channel::ConstructBranch(TTree *tree, TString &prefix)
 
     tree->Branch(basename, &fValue, basename+"/D");
   }
-};
+}
 
 void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
-  if (IsNameEmpty()){
+  if (IsNameEmpty()) {
     //  This channel is not used, so skip setting up the tree.
-  } else if (fTreeArrayNumEntries<=0){
+  } else if (fTreeArrayNumEntries <= 0) {
     QwError << "VQwScaler_Channel::FillTreeVector:  fTreeArrayNumEntries=="
 	    << fTreeArrayNumEntries << QwLog::endl;
-  } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries){
+  } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries) {
     QwError << "VQwScaler_Channel::FillTreeVector:  values.size()=="
 	    << values.size() << " name: " << fElementName
 	    << "; fTreeArrayIndex+fTreeArrayNumEntries=="
-      << fTreeArrayIndex << '+' << fTreeArrayNumEntries << '='
+            << fTreeArrayIndex << '+' << fTreeArrayNumEntries << '='
 	    << fTreeArrayIndex+fTreeArrayNumEntries
 	    << QwLog::endl;
   } else {
-    size_t index=fTreeArrayIndex;
+    size_t index = fTreeArrayIndex;
     values[index++] = this->fValue;
   }
-};
+}
+
+VQwDataElement& VQwScaler_Channel::operator= (const  VQwDataElement &data_value)
+{
+  VQwScaler_Channel * value;
+  value=(VQwScaler_Channel *)&data_value;
+  if (!IsNameEmpty()) {
+    this->fValue  = value->fValue;
+    this->fValueError = value->fValueError;
+    this->fValueM2 = value->fValueM2;
+    this->fDeviceErrorCode = value->fDeviceErrorCode;//error code is updated.
+    this->fGoodEventCount = value->fGoodEventCount;
+  }
+  return *this;
+}
 
 
 VQwScaler_Channel& VQwScaler_Channel::operator= (const VQwScaler_Channel &value)
 {
   if (!IsNameEmpty()) {
     this->fValue  = value.fValue;
+    this->fValueError = value.fValueError;
     this->fValueM2 = value.fValueM2;
     this->fDeviceErrorCode = value.fDeviceErrorCode;//error code is updated.
     this->fGoodEventCount = value.fGoodEventCount;
   }
   return *this;
-};
+}
+
 
 
 VQwScaler_Channel& VQwScaler_Channel::operator+= (const VQwScaler_Channel &value)
@@ -240,7 +259,7 @@ VQwScaler_Channel& VQwScaler_Channel::operator+= (const VQwScaler_Channel &value
 
   }
   return *this;
-};
+}
 
 VQwScaler_Channel& VQwScaler_Channel::operator-= (const VQwScaler_Channel &value)
 {
@@ -250,18 +269,18 @@ VQwScaler_Channel& VQwScaler_Channel::operator-= (const VQwScaler_Channel &value
     this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
   }
   return *this;
-};
+}
 
 void VQwScaler_Channel::Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2)
 {
   *this =  value1;
   *this += value2;
-};
+}
 
 void VQwScaler_Channel::Difference(VQwScaler_Channel &value1, VQwScaler_Channel &value2){
   *this =  value1;
   *this -= value2;
-};
+}
 
 void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom){
   if (!IsNameEmpty()){
@@ -292,7 +311,7 @@ void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom
     fGoodEventCount  = denom.fGoodEventCount;
     fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
   }
-};
+}
 
 void VQwScaler_Channel::Offset(Double_t offset)
 {
@@ -300,7 +319,7 @@ void VQwScaler_Channel::Offset(Double_t offset)
     {
 
     }
-};
+}
 
 
 void VQwScaler_Channel::Scale(Double_t scale)
@@ -309,14 +328,59 @@ void VQwScaler_Channel::Scale(Double_t scale)
     {
       this->fValue *= scale;
     }
-};
+}
 
+void VQwScaler_Channel::ScaleRawRate(Double_t scale)
+{
+  if (!IsNameEmpty())
+    {
+      this->fValue_Raw *= scale;
+    }
+}
+
+void VQwScaler_Channel::Normalize(const VQwScaler_Channel &norm)
+{
+  if (!IsNameEmpty())
+    {
+      this->fValue /= norm.fValue;
+    }
+}
 
 
 Bool_t VQwScaler_Channel::ApplySingleEventCuts()
 {
-  return kTRUE;
-};
+  Bool_t status;
+  //QwError<<" Single Event Check ! "<<QwLog::endl;
+  if (bEVENTCUTMODE>=2){//Global switch to ON/OFF event cuts set at the event cut file
+
+    if (fULimit==0 && fLLimit==0){
+      status=kTRUE;
+    } else  if (GetValue()<=fULimit && GetValue()>=fLLimit){
+      //QwError<<" Single Event Cut passed "<<GetElementName()<<" "<<GetValue()<<QwLog::endl;
+      status=kTRUE;
+    }
+    else{
+      //QwError<<" Single Event Cut Failed "<<GetElementName()<<" "<<GetValue()<<QwLog::endl;
+      if (GetValue()> fULimit)
+	fDeviceErrorCode|=kErrorFlag_EventCut_U;
+      else
+	fDeviceErrorCode|=kErrorFlag_EventCut_L;
+      status=kFALSE;
+    }
+
+    if (bEVENTCUTMODE==3){
+      status=kTRUE; //Update the event cut fail flag but pass the event.
+    }
+
+  }
+  else{
+    status=kTRUE;
+    fErrorFlag=0;
+  }
+
+
+  return status;  
+}
 
 void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value)
 {
@@ -354,7 +418,7 @@ void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
 
   return;
-};
+}
 
 void VQwScaler_Channel::CalculateRunningAverage(){
   //  See notes in QwVQWK_Channel;  we are using:
@@ -377,12 +441,15 @@ void VQwScaler_Channel::Copy(VQwDataElement *source)
      if(typeid(*source)==typeid(*this))
        {
 	 VQwScaler_Channel* input = dynamic_cast<VQwScaler_Channel*>(source);
-         this->fElementName     = input->fElementName;
-         this->fValue_Raw       = input->fValue_Raw;
-         this->fValue           = input->fValue;
-         this->fValueM2         = input->fValueM2;
-         this->fGoodEventCount  = input->fGoodEventCount;
-         this->fDeviceErrorCode = input->fDeviceErrorCode;
+         this->fElementName       = input->fElementName;
+         this->fValue_Raw         = input->fValue_Raw;
+         this->fValue             = input->fValue;
+	 this->fValueError        = input->fValueError;
+         this->fValueM2           = input->fValueM2;
+         this->fPedestal          = input->fPedestal;
+         this->fCalibrationFactor = input->fCalibrationFactor;
+         this->fGoodEventCount    = input->fGoodEventCount;
+         this->fDeviceErrorCode   = input->fDeviceErrorCode;
        }
      else
        {
@@ -412,7 +479,7 @@ void  VQwScaler_Channel::ReportErrorCounters(){
 		<< " had " << fNumEvtsWithEventCutsRejected
 		<< " events rejected by Event Cuts."
 		<< QwLog::endl;
-  };
+  }
 
 
 //  These explicit class template instantiations should be the

@@ -33,12 +33,12 @@ class QwMatrixLookup: public VQwBridgingMethod {
     virtual ~QwMatrixLookup();
 
     /// \brief Load the trajectory matrix from disk
-    const bool LoadTrajMatrix(const std::string filename);
+    bool LoadTrajMatrix(const std::string filename);
     /// \brief Write the trajectory matrix to disk
-    const bool WriteTrajMatrix(const std::string filename);
+    bool WriteTrajMatrix(const std::string filename);
 
     /// \brief Bridge from the front to back partial track
-    const int Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
+    int Bridge(const QwPartialTrack* front, const QwPartialTrack* back);
 
   private:
 

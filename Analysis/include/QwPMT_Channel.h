@@ -50,8 +50,8 @@ class QwPMT_Channel: public VQwDataElement {
   Double_t GetValue() const        { return fValue; };
   void SetSubbankID(const Int_t bank_index)         { fCrate = bank_index; };
   void SetModule(const Int_t slot_num)              { fModule = slot_num; };
-  const Int_t           GetSubbankID()     const { return fCrate; };
-  const Int_t           GetModule()        const { return fModule; };
+  Int_t           GetSubbankID()     const { return fCrate; };
+  Int_t           GetModule()        const { return fModule; };
 
   void  ProcessEvent();
 

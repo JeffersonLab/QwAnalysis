@@ -37,7 +37,7 @@ treenode::treenode(unsigned int size)
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;
-};
+}
 
 /**
  * Copy-constructor from object
@@ -58,7 +58,7 @@ treenode::treenode(treenode& node)
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;
-};
+}
 
 /**
  * Copy-constructor from pointer
@@ -79,15 +79,13 @@ treenode::treenode(treenode* node)
   // Initialize pointers
   fNext = 0;
   for (int i = 0; i < 4; i++) fSon[i] = 0;
-};
+}
 
 /**
  * Destructor
  */
 treenode::~treenode()
 {
-  QwDebug << "Deleting treenode: " << this << QwLog::endl;
-
   // Delete the sons
   for (int i = 0; i < 4; i++)
     if (fSon[i]) delete fSon[i];

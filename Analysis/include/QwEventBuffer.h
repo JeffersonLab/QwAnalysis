@@ -79,7 +79,9 @@ class QwEventBuffer: public MQwCodaControlEvent{
   /// \brief Return CODA file run number
   Int_t GetRunNumber() const {return fCurrentRun;};
   /// \brief Return CODA file segment number
-  Int_t GetSegmentNumber() const {return *fRunSegmentIterator;};
+  Int_t GetSegmentNumber() const {
+    return fRunSegments.size() ? *fRunSegmentIterator : 0;
+  };
 
   std::pair<UInt_t, UInt_t> GetEventRange() const {
     return fEventRange;
@@ -101,11 +103,12 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Int_t OpenDataFile(const TString filename, const TString rw = "R");
   Int_t CloseDataFile();
 
-  Int_t OpenETStream(TString computer, TString session, int mode);
+  Int_t OpenETStream(TString computer, TString session, int mode, const TString stationname="");
   Int_t CloseETStream();
 
   Bool_t IsPhysicsEvent() {
-    return ((fIDBankNum == 0xCC) && (fEvtType>=0 && fEvtType<=15));
+    // fEvtType is an unsigned integer, hence always positive
+    return ((fIDBankNum == 0xCC) && ( /* fEvtType >= 0 && */ fEvtType <= 15));
   };
 
   Int_t GetEventNumber() { return fEvtNumber; };
@@ -162,6 +165,7 @@ class QwEventBuffer: public MQwCodaControlEvent{
   Bool_t fOnline;
   TString fETHostname;
   TString fETSession;
+  TString fETStationName;
 
   Bool_t fChainDataFiles;
   std::pair<Int_t, Int_t> fRunRange;
@@ -173,6 +177,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   std::string fEventListFileName;
   QwParameterFile* fEventListFile;
   std::vector<UInt_t> fEventList;
+
+  std::pair<Int_t, Int_t> fSegmentRange;
 
   Int_t fBurstLength;
 
@@ -241,6 +247,8 @@ class QwEventBuffer: public MQwCodaControlEvent{
   UInt_t fEvtClass;
   UInt_t fStatSum;
 
+  Double_t fCleanParameter[3];///Scan data/clean data  from the green monster
+
   UInt_t fFragLength;
   UInt_t fSubbankTag;
   UInt_t fSubbankType;
@@ -300,7 +308,7 @@ template < class T > Bool_t QwEventBuffer::FillObjectWithEventData(T &object){
     }
   }
   return okay;
-};
+}
 
 
 

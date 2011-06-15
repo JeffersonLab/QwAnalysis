@@ -14,7 +14,7 @@
 //                                                                                                                                                //
 //                                                                                                                                                //
 //     run_number        : Number of the run containing the signal                                                                                //
-//     device            : The device signal which is to be FFT'd. eg, "qwk_bcm0l02".                                                             //
+//     device            : The device signal which is to be FFT'd. eg, "bcm0l02".                                                             //
 //     min               : The lower limit of the event cut.                                                                                      //
 //     max               : The upper limit of the event cut                                                                                       //
 //                                                                                                                                                //
@@ -41,13 +41,12 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   canvas = new TCanvas("canvas","Fast Fourier Transform",10,10,1000,680);
   
   //******* ADC settings
-//   const Double_t count_to_voltage = 0.00007629; //conversion factor
   const Double_t time_per_sample = 2e-06;//s
   const Double_t t_settle = 50e-06;//s
   
   //******* Signal Settings
   // get num samples from bcm1. 
-  TString time    = Form("mps_counter*((qwk_bcm1.num_samples*%f)+%f)",time_per_sample,t_settle);// units seconds.
+  TString time    = Form("mps_counter*((%s.num_samples*%f)+%f)",device.Data(),time_per_sample,t_settle);// units seconds.
   TString amplitude; 
 
 
@@ -55,7 +54,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   //******** get tree
   TChain *tree = new TChain("Mps_Tree");
 
-  TString filename = Form("Qw*_%i.*.root", run_number);
+  TString filename = Form("QwPass1_%i.000.root", run_number);
   Bool_t found = kFALSE;
 
   found = FindFiles(filename, tree);
@@ -108,10 +107,14 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   // get sampling rate/event rate
   // for this I am going to use the bcm1 num spales.
   TH1*h=NULL;
-  tree->Draw("qwk_bcm1.num_samples>>htemp","qwk_bcm1.Device_Error_Code == 0");
+  TString command = Form("%s.num_samples>>htemp",device.Data());
+  TString cut = Form("%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
+
+
+  tree->Draw(command,cut);
   h = (TH1*)gDirectory->Get("htemp");
   if(h==NULL){
-    std::cout<<"Unable to get num_samples using bcm1!"<<std::endl;
+    std::cout<<"Unable to get num_samples!"<<std::endl;
     exit(1);
   }
   std::cout<<h->GetMean()<<std::endl;
@@ -144,9 +147,9 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   TH1D *htemp3 = new TH1D("htemp3","htemp3",samples,low,up);
 
 
-  TString scut = Form("time>%f && time<%f && %s.Device_Error_Code == 0",low,up,device.Data());
+  TString scut = Form("time>%f && time<%f && %s.Device_Error_Code == 0 && ErrorFlag == 0",low,up,device.Data());
   
-  amplitude = Form("%s.bclock0",device.Data());
+  amplitude = Form("%s.hw_sum",device.Data());
   tree->SetAlias("amplitude",amplitude);
   tree->Draw("amplitude:time>>profile1",scut,"prof");
   profile1 = (TProfile*) gDirectory -> Get("profile1");
@@ -157,76 +160,77 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   profile1 -> Draw();
   Double_t m = profile1->GetMean(2);
   htemp0 = (TH1D*)profile1->ProjectionX("Signal block0");
-  //htemp0->DrawCopy();
+//   //htemp0->DrawCopy();
 
-  amplitude = Form("%s.bclock1",device.Data());
-  tree->SetAlias("amplitude",amplitude);
-  tree->Draw("amplitude:time>>profile2",scut,"");
-  profile2 = (TProfile*) gDirectory -> Get("profile2");
-  if(profile2 == NULL){
-    std::cout<<"Unable to plot "<<amplitude<<std::endl;
-    exit(1);
-  }
-  profile2 -> Draw();
-  m+=profile2->GetMean(2);
-  htemp1 = (TH1D*)profile2->ProjectionX("Signal block1");
-  //  htemp1->DrawCopy();
+//   amplitude = Form("qwk_%s.block1",device.Data());
+//   tree->SetAlias("amplitude",amplitude);
+//   tree->Draw("amplitude:time>>profile2",scut,"");
+//   profile2 = (TProfile*) gDirectory -> Get("profile2");
+//   if(profile2 == NULL){
+//     std::cout<<"Unable to plot "<<amplitude<<std::endl;
+//     exit(1);
+//   }
+//   profile2 -> Draw();
+//   m+=profile2->GetMean(2);
+//   htemp1 = (TH1D*)profile2->ProjectionX("Signal block1");
+//   //  htemp1->DrawCopy();
    
-  amplitude = Form("%s.bclock2",device.Data());
-  tree->SetAlias("amplitude",amplitude);
-  tree->Draw("amplitude:time>>profile3",scut,"");
-  profile3 = (TProfile*) gDirectory -> Get("profile3");
-  if(profile3 == NULL){
-    std::cout<<"Unable to plot "<<amplitude<<std::endl;
-    exit(1);
-  }
-  profile3 -> Draw();
-  m+=profile3->GetMean(2);
-  htemp2 = (TH1D*)profile3->ProjectionX("Signal block2");
-  //htemp2->DrawCopy();
+//   amplitude = Form("qwk_%s.block2",device.Data());
+//   tree->SetAlias("amplitude",amplitude);
+//   tree->Draw("amplitude:time>>profile3",scut,"");
+//   profile3 = (TProfile*) gDirectory -> Get("profile3");
+//   if(profile3 == NULL){
+//     std::cout<<"Unable to plot "<<amplitude<<std::endl;
+//     exit(1);
+//   }
+//   profile3 -> Draw();
+//   m+=profile3->GetMean(2);
+//   htemp2 = (TH1D*)profile3->ProjectionX("Signal block2");
+//   //htemp2->DrawCopy();
     
-  amplitude = Form("%s.bclock3",device.Data());
-  tree->SetAlias("amplitude",amplitude);
-  tree->Draw("amplitude:time>>profile4",scut,"");
-  profile4 = (TProfile*) gDirectory -> Get("profile4");
-  if(profile4 == NULL){
-    std::cout<<"Unable to plot "<<amplitude<<std::endl;
-    exit(1);
-  }
-  profile4 -> Draw();
-  m+=profile4->GetMean(2);
-  htemp3 = (TH1D*)profile4->ProjectionX("Signal block3");
-  //htemp3->DrawCopy();
+//   amplitude = Form("qwk_%s.block3",device.Data());
+//   tree->SetAlias("amplitude",amplitude);
+//   tree->Draw("amplitude:time>>profile4",scut,"");
+//   profile4 = (TProfile*) gDirectory -> Get("profile4");
+//   if(profile4 == NULL){
+//     std::cout<<"Unable to plot "<<amplitude<<std::endl;
+//     exit(1);
+//   }
+//   profile4 -> Draw();
+//   m+=profile4->GetMean(2);
+//   htemp3 = (TH1D*)profile4->ProjectionX("Signal block3");
+//   //htemp3->DrawCopy();
 
-  htemp0->Add(htemp1,1);
-  htemp0->Add(htemp2,1);
-  htemp0->Add(htemp3,1);
-  htemp0->Scale(1.0/4);
-  htemp0->Draw();
+//   htemp0->Add(htemp1,1);
+//   htemp0->Add(htemp2,1);
+//   htemp0->Add(htemp3,1);
+//   htemp0->Scale(1.0/4);
+//  htemp0->Draw();
 
-  std::cout<<" --- Average signal ="<<m/4<<"\n";
+  std::cout<<" --- Average signal ="<<m<<"\n";
   
-  
+  canvas->cd(1);
+
   //Remove the DC/zero frequency component 
   TH1D *h2 = new TH1D("h2","noise profile",samples,low,up);  
   TH1D *h2_1 = new TH1D("h2_1","noise profile",samples,low,up);  
 
   Double_t setvalue;
-  
   TAxis *xa = htemp0 -> GetXaxis();
   Double_t nbins =  xa->GetNbins();
   for(Int_t n = 0;n < nbins;n++){
-    setvalue = (htemp0->GetBinContent(n+1)-m/4);
+    setvalue = (htemp0->GetBinContent(n+1)-m);
     // to get rid of the dc component 
-    if(htemp0->GetBinContent(n+1) ! = 0)
+    if(htemp0->GetBinContent(n+1) ! = 0){
       h2_1->SetBinContent(n+1,setvalue);
+    }
     h2->SetBinContent(n+1,setvalue);
   }
   h2_1->SetLineColor(2);
   h2_1 -> SetTitle("Profile of the noise");
   h2_1 -> GetXaxis() -> SetTitle("Time (s)");
   h2_1 -> GetYaxis() -> SetTitle("Amplitude");
-  canvas->cd(1);
+
   h2_1->Draw();
   
   // //Get the magnitude of the fourier transform
@@ -234,7 +238,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   gPad->SetLogy();
   TH1 * fftmag = NULL;
   TVirtualFFT::SetTransform(0);
-  fftmag = ((TH1*)h2)->FFT(fftmag,"MAG");
+  fftmag = ((TH1*)h2_1)->FFT(fftmag,"MAG");
   fftmag -> SetTitle("Magnitude of the transform");
   fftmag -> Draw();
   
@@ -329,7 +333,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
     Double_t setvalue = scale * (hb->GetBinContent(n+1));
     //0.016 ~ 0 frequenzy component.	
     if(fabs(setvalue) > 0.016 && fabs(setvalue) != 0.0)
-      h4->SetBinContent(n+1,setvalue-m/4); 
+      h4->SetBinContent(n+1,setvalue-m); 
   }
   h4 -> GetXaxis() -> SetTitle("Time (s)");
   h4 -> GetYaxis() -> SetTitle("Amplitude");
@@ -351,10 +355,10 @@ Bool_t FindFiles(TString filename, TChain * chain)
   TString file_dir;
   Bool_t  chain_status = kFALSE;
 
-  file_dir = gSystem->Getenv("QWSCRATCH");
-  if (!file_dir) file_dir = "~/scratch/";
-  file_dir += "/rootfiles/";
- 
+  //file_dir = gSystem->Getenv("QW_ROOTFILES/");
+  //if (!file_dir) 
+  file_dir = "$QW_ROOTFILES/";
+  std::cout<<file_dir<<std::endl;
   chain_status = chain->Add(Form("%s%s", file_dir.Data(), filename.Data()));
   
   if(chain_status) {

@@ -109,6 +109,9 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// \brief Print value of all channels
     void PrintValue() const;
 
+    virtual Bool_t CheckForEndOfBurst() const;
+
+
   public:
 
     //Int_t fSubsystem_Error_Flag;

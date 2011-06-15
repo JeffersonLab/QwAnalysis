@@ -43,16 +43,20 @@ class VQwDataElement {
 
  public:
 
-  VQwDataElement(){};
-  //  VQwDataElement(UInt_t numwords):fNumberOfDataWords(numwords) {};
+  VQwDataElement(){
+    fNumberOfDataWords = 0;
+    fErrorFlag = 0;
+    fHistograms.clear();
+  }
+  //  VQwDataElement(UInt_t numwords):fNumberOfDataWords(numwords) {}
   virtual ~VQwDataElement();
 
   /*! \brief Is the name of this element empty? */
-  Bool_t IsNameEmpty() const { return fElementName.IsNull(); };
+  Bool_t IsNameEmpty() const { return fElementName.IsNull(); }
   /*! \brief Set the name of this element */
-  void SetElementName(const TString &name) { fElementName = name; };
+  void SetElementName(const TString &name) { fElementName = name; }
   /*! \brief Get the name of this element */
-  virtual const TString& GetElementName() const { return fElementName; };
+  virtual const TString& GetElementName() const { return fElementName; }
 
   /*! \brief Clear the event data in this element */
   virtual void  ClearEventData() = 0;
@@ -63,19 +67,19 @@ class VQwDataElement {
   virtual VQwDataElement& operator= (const VQwDataElement &value);
   /*! \brief Addition-assignment operator */
   virtual VQwDataElement& operator+= (const VQwDataElement &value)
-    { std::cerr << "Operation += not defined!" << std::endl; return *this; };
+    { std::cerr << "Operation += not defined!" << std::endl; return *this; }
   /*! \brief Subtraction-assignment operator */
   virtual VQwDataElement& operator-= (const VQwDataElement &value)
-    { std::cerr << "Operation -= not defined!" << std::endl; return *this; };
+    { std::cerr << "Operation -= not defined!" << std::endl; return *this; }
   /*! \brief Sum operator */
   virtual void Sum(const VQwDataElement &value1, const VQwDataElement &value2)
-    { std::cerr << "Sum not defined!" << std::endl; };
+    { std::cerr << "Sum not defined!" << std::endl; }
   /*! \brief Difference operator */
   virtual void Difference(const VQwDataElement &value1, const VQwDataElement &value2)
-    { std::cerr << "Difference not defined!" << std::endl; };
+    { std::cerr << "Difference not defined!" << std::endl; }
   /*! \brief Ratio operator */
   virtual void Ratio(const VQwDataElement &numer, const VQwDataElement &denom)
-    { std::cerr << "Ratio not defined!" << std::endl; };
+    { std::cerr << "Ratio not defined!" << std::endl; }
 
   /*! \brief Construct the histograms for this data element */
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
@@ -85,12 +89,12 @@ class VQwDataElement {
   void  DeleteHistograms();
 
   /*! \brief Print single line of value and error of this data element */
-  virtual void PrintValue() const { };
+  virtual void PrintValue() const { }
   /*! \brief Print multiple lines of information about this data element */
-  virtual void PrintInfo() const { std::cout << GetElementName() << std::endl; };
+  virtual void PrintInfo() const { std::cout << GetElementName() << std::endl; }
 
   /*! \brief Get the number of data words in this data element */
-  size_t GetNumberOfDataWords() {return fNumberOfDataWords;};
+  size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
 
   /*! \brief set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
@@ -105,26 +109,26 @@ class VQwDataElement {
   /*! \brief Return the name of the inheriting subsystem name*/
   TString GetSubsystemName() const {
     return fSubsystemName;
-  };
+  }
 
    /*! \brief Set the name of the inheriting subsystem name*/
   void SetSubsystemName(TString sysname){
     fSubsystemName=sysname;
-  };
+  }
   
    /*! \brief Return the type of the beam instrument*/
   TString GetModuleType() const {
     return fModuleType;
-  };
+  }
 
    /*! \brief set the type of the beam instrument*/
   void SetModuleType(TString ModuleType){
     fModuleType=ModuleType;
-  };
+  }
 
  protected:
   /*! \brief Set the number of data words in this data element */
-  void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;};
+  void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;}
 
  protected:
   TString fElementName; ///< Name of this data element
@@ -145,7 +149,7 @@ class VQwDataElement {
 
 
 inline VQwDataElement::~VQwDataElement(){
-};
+}
 
 /**
  * Assignment operator sets the name and number of data words
@@ -154,7 +158,7 @@ inline VQwDataElement& VQwDataElement::operator= (const VQwDataElement &value){
   fElementName       = value.fElementName;
   fNumberOfDataWords = value.fNumberOfDataWords;
   return *this;
-};
+}
 
 
 /**
@@ -169,7 +173,7 @@ inline void VQwDataElement::DeleteHistograms()
     }
   }
   fHistograms.clear();
-};
+}
 
 
 

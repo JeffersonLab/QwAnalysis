@@ -84,9 +84,6 @@
 #include "QwTypes.h"
 #include "QwTrackingTreeRegion.h"
 
-// Deprecated Qweak headers
-#include "Det.h"
-
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
 const std::string QwTrackingTree::fgTreeDir("tree");
@@ -223,10 +220,7 @@ QwTrackingTree::~QwTrackingTree ()
 int QwTrackingTree::consistent(
 	treenode *testnode,
 	int level,
-	EQwDetectorPackage package,
-	EQwDetectorType type,
-	EQwRegionID region,
-	EQwDirectionID dir)
+	QwDetectorInfo* detector)
 {
   //###############
   // DECLARATIONS #
@@ -245,7 +239,7 @@ int QwTrackingTree::consistent(
   //###########
   // REGION 2 #
   //###########
-  if (type == kTypeDriftHDC && region == kRegionID2) {
+  if (detector->fType == kTypeDriftHDC && detector->fRegion == kRegionID2) {
     int layer;
     int templayers = 4;
     int tlaym1 = templayers - 1;
@@ -264,29 +258,31 @@ int QwTrackingTree::consistent(
     // Find the z position of each tree-detector relative to the first tree-detector
 
     // Loop through each plane
-    Det* rd = 0;
-    for (rd = rcDETRegion[package][region][dir], layer = 0;
-         rd && layer < templayers;
-         rd = rd->nextsame, layer++) {
+    layer = 0;
+    for (std::vector<QwDetectorInfo*>::iterator iter = fGeometry.begin();
+         iter != fGeometry.end() && layer < templayers;
+         iter++, layer++) {
+      QwDetectorInfo* det = *iter;
 
       // Get z position of this plane
-      double zv = rd->Zpos;
+      double zv = det->GetZPosition();
 
       // Compute the relative position to the upstream plane
       if (layer > 0) {
         z[layer] = zv - z[0];
-	if (z[layer] < z[0]) {
-	  QwError << "Region 2 planes are out of order" << QwLog::endl;
-	  exit(1);
-	}
-	// the offset distance between the first and last planes of this wire direction
-	if (layer == templayers-1) dy = off = fabs((rd->center[1] - y0)*rd->rCos);
+        if (z[layer] < z[0]) {
+          QwError << "Region 2 planes are out of order" << QwLog::endl;
+          exit(1);
+        }
+        // the offset distance between the first and last planes of this wire direction
+        if (layer == templayers-1) dy = off = fabs((det->GetYPosition() - y0) * det->GetElementAngleCos());
 
       } else {
 
         z[0] = zv;
-        binwidth = rd->NumOfWires * rd->WireSpacing / (1 << level); // the binwidth at this level
-	y0 = fabs(rd->center[1]); // the first plane's radial distance
+        // the binwidth at this level
+        binwidth = det->GetNumberOfElements() * det->GetElementSpacing() / (1 << level);
+        y0 = fabs(det->GetYPosition()); // the first plane's radial distance
       }
     }
     // Set the first plane's z position to zero
@@ -339,7 +335,7 @@ int QwTrackingTree::consistent(
   //###########
   // REGION 3 #
   //###########
-  } else if (type == kTypeDriftVDC && region == kRegionID3) {
+  } else if (detector->fType == kTypeDriftVDC && detector->fRegion == kRegionID3) {
 
     int templayers = 8;
 
@@ -563,10 +559,7 @@ treenode* QwTrackingTree::nodeexists (nodenode* node, treenode* tr)
 void QwTrackingTree::marklin (
 	treenode* father,
 	int level,
-	EQwDetectorPackage package,
-	EQwDetectorType type,
-	EQwRegionID region,
-	EQwDirectionID dir)
+	QwDetectorInfo* detector)
 {
   // Local copy of the father node
   treenode son = *father;
@@ -577,7 +570,7 @@ void QwTrackingTree::marklin (
   //###########
   // REGION 2 #
   //###########
-  if (region == kRegionID2 && type == kTypeDriftHDC) {
+  if (detector->fRegion == kRegionID2 && detector->fType == kTypeDriftHDC) {
 
     // There are four u, v, or x wire planes.
     fNumPlanes = 4;
@@ -672,7 +665,7 @@ void QwTrackingTree::marklin (
            through the tree-detectors whose slope is within the
            window set by the QwOptions parameter fMaxSlope.             */
 
-        if (consistent (&son, level+1, package, type, region, dir)) {
+        if (consistent (&son, level+1, detector)) {
           /* the pattern is consistent, so now insert it into the
              treesearch database by:                              */
 	  /*  1st: Create space for this new treenode             */
@@ -701,7 +694,7 @@ void QwTrackingTree::marklin (
 
 	  /*  5th: Call marklin() recursively to generate the sons of
               this tree node                                      */
-	  marklin (sonptr, level+1, package, type, region, dir);
+	  marklin (sonptr, level+1, detector);
 
         } else {
 
@@ -726,7 +719,7 @@ void QwTrackingTree::marklin (
            needs to be updated so that it will be valid this level
            of bin division.                                         */
 
-      } else if ((sonptr->fMinLevel > level && consistent(&son, level+1, package, type, region, dir))
+      } else if ((sonptr->fMinLevel > level && consistent(&son, level+1, detector))
 	       || sonptr->fMaxLevel < level) {
 
 	/*  1st: Update the levels of the found treenode to
@@ -738,7 +731,7 @@ void QwTrackingTree::marklin (
 
 	/*  2nd: Update the levels of all the sons for this
             treenode                                      */
-	marklin (sonptr, level+1, package, type, region, dir);
+	marklin (sonptr, level+1, detector);
       }
 
       /* Since one of the recursive call to marklin()
@@ -766,7 +759,7 @@ void QwTrackingTree::marklin (
   //###########
   // REGION 3 #
   //###########
-  else if (region == kRegionID3 && type == kTypeDriftVDC) {
+  else if (detector->fRegion == kRegionID3 && detector->fType == kTypeDriftVDC) {
 
     // There are 8 wires in each demultiplexed VDC group
     fNumWires = 8;
@@ -853,7 +846,7 @@ void QwTrackingTree::marklin (
       cout << "bits : " << son.fWidth << endl;*/
       int insert_hitpattern = 1;
       if (! sonptr&& 0 == (sonptr = existent(&son, hash))) {
-        if (consistent (&son, level+1, package, type, region, dir)) {
+        if (consistent (&son, level+1, detector)) {
           //cout << "Adding treenode..." << endl;
 
           sonptr = new treenode(son);
@@ -867,7 +860,7 @@ void QwTrackingTree::marklin (
 
           fNumPatterns++;
 
-          marklin (sonptr, level+1, package, type, region, dir);
+          marklin (sonptr, level+1, detector);
 
         } else { /*
 
@@ -884,12 +877,12 @@ void QwTrackingTree::marklin (
         }
       }
       else if ( (sonptr->fMinLevel > level
-                 && consistent(&son, level+1, package, type, region, dir) )
+                 && consistent(&son, level+1, detector) )
               || sonptr->fMaxLevel < level) {
         sonptr->fMinLevel = (int) std::min (level,sonptr->fMinLevel);
         sonptr->fMaxLevel = (int) std::max (level,sonptr->fMaxLevel);
 
-        marklin (sonptr, level+1, package, type, region, dir);
+        marklin (sonptr, level+1, detector);
       }
 
       if (insert_hitpattern  /* "insert pattern" flag is set and    */
@@ -960,7 +953,7 @@ void QwTrackingTree::marklin (
         //cout << "-----------" << endl;
         //son.print();
         //cout << "-----------" << endl;
-        if (consistent(&son, level+1, package, type, region, dir)) {
+        if (consistent(&son, level+1, detector)) {
           //cout << "Adding treenode..." << endl;
           sonptr = new treenode(son);
           sonptr->fSon[0] = sonptr->fSon[1] =
@@ -971,16 +964,16 @@ void QwTrackingTree::marklin (
           sonptr->SetNext(fHashTable[hash]);
           fHashTable[hash] = sonptr;
 
-          marklin (sonptr, level+1, package, type, region, dir);
+          marklin (sonptr, level+1, detector);
         }
         else
           insert_hitpattern = 0;
       }
-      else if ( (sonptr->fMinLevel > level  && consistent( &son, level+1,package,type,region,dir) )
+      else if ( (sonptr->fMinLevel > level  && consistent( &son, level+1, detector) )
       || sonptr->fMaxLevel < level) {
         sonptr->fMinLevel = (int) std::min (level,sonptr->fMinLevel);
         sonptr->fMaxLevel = (int) std::max (level,sonptr->fMaxLevel);
-        marklin (sonptr, level+1, package, type, region, dir);
+        marklin (sonptr, level+1, detector);
       }
 
       if (insert_hitpattern &&                          /* "insert pattern"
@@ -996,7 +989,7 @@ void QwTrackingTree::marklin (
 
   } // end of other region
 
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -1104,10 +1097,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 	int levels,
 	int tlayer,
 	double width,
-	EQwDetectorPackage package,
-	EQwDetectorType type,
-	EQwRegionID region,
-	EQwDirectionID dir,
+	QwDetectorInfo* detector,
 	bool regenerate)
 {
 // TODO: This routine assumes that the directory 'trees' exists and doesn't create it itself. (wdconinc)
@@ -1133,7 +1123,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
   if (trr == 0) {
 
     /// Generate a new tree database
-    treenode* back = _inittree (tlayer, package, type, region, dir);
+    treenode* back = _inittree (tlayer, detector);
     if (! back) {
       QwError << "Search tree could not be built." << QwLog::endl;
       exit(1);
@@ -1168,10 +1158,7 @@ QwTrackingTreeRegion* QwTrackingTree::inittree (
 
 treenode* QwTrackingTree::_inittree (
 	int tlayer,
-	EQwDetectorPackage package,
-	EQwDetectorType type,
-	EQwRegionID region,
-	EQwDirectionID dir)
+	QwDetectorInfo* detector)
 {
   /// Generate a copy of the father node to start off this tree search database
   treenode *node = new treenode(fFather);
@@ -1182,7 +1169,7 @@ treenode* QwTrackingTree::_inittree (
   memset (fHashTable, 0, sizeof(fHashTable));
 
   /// Call the recursive tree generator
-  marklin (node, 0, package, type, region, dir);
+  marklin (node, 0, detector);
 
   /// Finally, add the father node to the hash table
   node->SetNext(fHashTable[0]);

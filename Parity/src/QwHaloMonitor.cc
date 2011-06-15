@@ -6,59 +6,64 @@
 \**********************************************************/
 
 #include "QwHaloMonitor.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwDBInterface.h"
 
 void  QwHaloMonitor::InitializeChannel(TString subsystem, TString name){
   fHalo_Counter.InitializeChannel(name);
   SetElementName(name);
 
   return;
-};
+}
 
 void  QwHaloMonitor::InitializeChannel(TString name){
   fHalo_Counter.InitializeChannel(name);
   SetElementName(name);
 
   return;
-};
+}
 
 void QwHaloMonitor::ClearEventData()
 {
   fHalo_Counter.ClearEventData();
   return;
-};
+}
 
 void QwHaloMonitor::ProcessEvent()
 {
   // no processing required for the halos as they are just counters(?).
+  fHalo_Counter.ProcessEvent();
   return;
-};
+}
 
 Int_t QwHaloMonitor::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_t index)
 {
   return fHalo_Counter.ProcessEvBuffer(buffer,num_words_left);
-};
+}
 
 
 Bool_t QwHaloMonitor::ApplyHWChecks()
 {
   Bool_t fEventIsGood=kTRUE;
   return fEventIsGood ;
-};
+}
 
 
 Bool_t QwHaloMonitor::ApplySingleEventCuts()
 {
-  return kTRUE ;
-};
+  return fHalo_Counter.ApplySingleEventCuts();
+}
 
 
 Int_t QwHaloMonitor::GetEventcutErrorCounters()
 {// report number of events falied due to HW and event cut faliure
 
   return 1;
-};
+}
 
 QwHaloMonitor& QwHaloMonitor::operator= (const QwHaloMonitor &value)
 {
@@ -66,7 +71,7 @@ QwHaloMonitor& QwHaloMonitor::operator= (const QwHaloMonitor &value)
     this->fHalo_Counter=value.fHalo_Counter;
   }
   return *this;
-};
+}
 
 QwHaloMonitor& QwHaloMonitor::operator+= (const QwHaloMonitor &value)
 {
@@ -74,7 +79,7 @@ QwHaloMonitor& QwHaloMonitor::operator+= (const QwHaloMonitor &value)
     this->fHalo_Counter+=value.fHalo_Counter;
   }
   return *this;
-};
+}
 
 QwHaloMonitor& QwHaloMonitor::operator-= (const QwHaloMonitor &value)
 {
@@ -82,18 +87,18 @@ QwHaloMonitor& QwHaloMonitor::operator-= (const QwHaloMonitor &value)
     this->fHalo_Counter-=value.fHalo_Counter;
   }
   return *this;
-};
+}
 
 
 void QwHaloMonitor::Sum(QwHaloMonitor &value1, QwHaloMonitor &value2){
   *this =  value1;
   *this += value2;
-};
+}
 
 void QwHaloMonitor::Difference(QwHaloMonitor &value1, QwHaloMonitor &value2){
   *this =  value1;
   *this -= value2;
-};
+}
 
 void QwHaloMonitor::Ratio(QwHaloMonitor &numer, QwHaloMonitor &denom)
 {
@@ -101,34 +106,34 @@ void QwHaloMonitor::Ratio(QwHaloMonitor &numer, QwHaloMonitor &denom)
       this->fHalo_Counter.Ratio(numer.fHalo_Counter,denom.fHalo_Counter);
   }
   return;
-};
+}
 
 void QwHaloMonitor::Scale(Double_t factor)
 {
   fHalo_Counter.Scale(factor);
   return;
-};
+}
 
 
 
 void QwHaloMonitor::AccumulateRunningSum(const QwHaloMonitor& value) {
   fHalo_Counter.AccumulateRunningSum(value.fHalo_Counter);
-};
+}
 void QwHaloMonitor::CalculateRunningAverage(){
   fHalo_Counter.CalculateRunningAverage();
-};
+}
 
 
 void QwHaloMonitor::PrintValue() const
 {
   fHalo_Counter.PrintValue();
-};
+}
 
 void QwHaloMonitor::PrintInfo() const
 {
   std::cout << "QwVQWK_Channel Info " << std::endl;
   fHalo_Counter.PrintInfo();
-};
+}
 
 void  QwHaloMonitor::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
@@ -139,7 +144,7 @@ void  QwHaloMonitor::ConstructHistograms(TDirectory *folder, TString &prefix)
       fHalo_Counter.ConstructHistograms(folder, prefix);
   }
   return;
-};
+}
 
 void  QwHaloMonitor::FillHistograms()
 {
@@ -152,7 +157,7 @@ void  QwHaloMonitor::FillHistograms()
 
 
   return;
-};
+}
 
 
 
@@ -172,7 +177,7 @@ void  QwHaloMonitor::DeleteHistograms()
     fHalo_Counter.DeleteHistograms();
   }
   return;
-};
+}
 
 
 void  QwHaloMonitor::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -185,7 +190,7 @@ void  QwHaloMonitor::ConstructBranchAndVector(TTree *tree, TString &prefix, std:
     // this functions doesn't do anything yet
   }
   return;
-};
+}
 
 void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix)
 {
@@ -197,7 +202,7 @@ void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix)
     // this functions doesn't do anything yet
   }
   return;
-};
+}
 
 
 
@@ -220,7 +225,7 @@ void  QwHaloMonitor::ConstructBranch(TTree *tree, TString &prefix, QwParameterFi
       // this functions doesn't do anything yet
     }
   return;
-};
+}
 
 
 
@@ -235,7 +240,7 @@ void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values) const
     // this functions doesn't do anything yet
   }
   return;
-};
+}
 
 
 void  QwHaloMonitor::Copy(VQwDataElement *source)
@@ -259,9 +264,8 @@ void  QwHaloMonitor::Copy(VQwDataElement *source)
   }
 
   return;
-};
+}
 
-/*
 std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 {
 
@@ -286,8 +290,8 @@ std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
   beam_n        = fHalo_Counter.GetGoodEventCount();
 
   // Get HardwareSum average and its error
-  avg           = fHalo_Counter.GetHardwareSum();
-  err           = fHalo_Counter.GetHardwareSumError();
+  avg           = fHalo_Counter.GetValue();
+  err           = fHalo_Counter.GetValueError();
   // ADC subblock sum : 0 in MySQL database
   beam_subblock = 0;
 
@@ -299,6 +303,7 @@ std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 
   row_list.push_back(row);
 
+  /*
 
   // Get four Block averages and thier errors
 
@@ -320,8 +325,8 @@ std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 
     row_list.push_back(row);
   }
+  */
 
   return row_list;
 
-};
-*/
+}

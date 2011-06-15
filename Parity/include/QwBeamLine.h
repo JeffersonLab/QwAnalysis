@@ -13,6 +13,7 @@
 
 // ROOT headers
 #include "TTree.h"
+#include "TString.h"
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
@@ -27,17 +28,17 @@
 #include "QwQPD.h"
 #include "QwLinearDiodeArray.h"
 
-
+// Forward declarations
 class QwBeamDetectorID;
 
 /*****************************************************************
 *  Class:
 ******************************************************************/
-class QwBeamLine : public VQwSubsystemParity{
+class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
 
  public:
 
-  QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
+  QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),index_4mhz(-1)
     { };
 
   ~QwBeamLine() {
@@ -52,6 +53,7 @@ class QwBeamLine : public VQwSubsystemParity{
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Int_t LoadGeometryDefinition(TString mapfile);
+  void  AssignGeometry(QwParameterFile* mapstr, VQwBPM * bpm);
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
@@ -82,10 +84,12 @@ class QwBeamLine : public VQwSubsystemParity{
   void AccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();
 
+  using VQwSubsystem::ConstructHistograms;
   void ConstructHistograms(TDirectory *folder, TString &prefix);
   void FillHistograms();
   void DeleteHistograms();
 
+  using VQwSubsystem::ConstructBranchAndVector;
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void ConstructBranch(TTree *tree, TString &prefix);
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
@@ -106,13 +110,14 @@ class QwBeamLine : public VQwSubsystemParity{
   QwCombinedBCM* GetCombinedBCM(const TString name);
   QwCombinedBPM* GetCombinedBPM(const TString name);
   QwEnergyCalculator* GetEnergyCalculator(const TString name);
+  QwHaloMonitor* GetScalerChannel(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
   const QwBPMStripline* GetBPMStripline(const TString name) const;
   const QwBCM* GetBCM(const TString name) const;
   const QwCombinedBCM* GetCombinedBCM(const TString name) const;
   const QwCombinedBPM* GetCombinedBPM(const TString name) const;
   const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
-
+  const QwHaloMonitor* GetScalerChannel(const TString name) const;
 
 
 /////
@@ -142,6 +147,7 @@ class QwBeamLine : public VQwSubsystemParity{
  Double_t fSumQweights;
 
 
+ Int_t index_4mhz;//index of the 4mhz scaler in the QwHaloMonitor vector
  static const Bool_t bDEBUG=kFALSE;
 
 };

@@ -25,12 +25,12 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
-#include "MQwSIS3320_Channel.h"
+#include "QwSIS3320_Channel.h"
 #include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
 #include "MQwV775TDC.h"
 
-class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
+class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, public MQwCloneable<QwComptonPhotonDetector> {
 
   public:
 
@@ -42,15 +42,17 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     };
 
 
+    // Handle command line options
+    static void DefineOptions(QwOptions &options);
+    void ProcessOptions(QwOptions &options);
+
     /* derived from VQwSubsystem */
-    void ProcessOptions(QwOptions &options); //Handle command line options
     Int_t LoadChannelMap(TString mapfile);
     Int_t LoadInputParameters(TString pedestalfile);
     Int_t LoadEventCuts(TString & filename);
     Bool_t SingleEventCuts();
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    void  PrintDetectorID() const;
 
     void  ClearEventData();
     void  ProcessEvent();
@@ -73,17 +75,20 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     UInt_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void AccumulateRunningSum(VQwSubsystem* value) { };
-    void CalculateRunningAverage() { };
+    void AccumulateRunningSum(VQwSubsystem* value);
+    void CalculateRunningAverage();
 
+    using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
     void  DeleteHistograms();
 
+    using VQwSubsystem::ConstructTree;
     void  ConstructTree(TDirectory *folder, TString &prefix);
     void  FillTree();
     void  DeleteTree();
 
+    using VQwSubsystem::ConstructBranchAndVector;
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  ConstructBranch(TTree *tree, TString& prefix) { };
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
@@ -101,7 +106,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     void PrintValue() const;
     void PrintInfo() const;
 
-    MQwSIS3320_Channel* GetSIS3320Channel(const TString name);
+    QwSIS3320_Channel* GetSIS3320Channel(const TString name);
 
   protected:
 
@@ -117,13 +122,14 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     /// List of sampling ADC channels
     typedef std::map< Int_t, std::vector <std::vector <Int_t> > > SamplingADC_Mapping_t;
     SamplingADC_Mapping_t fSamplingADC_Mapping;
-    std::vector< MQwSIS3320_Channel > fSamplingADC;
+    std::vector< QwSIS3320_Channel > fSamplingADC;
 
     /// List of integrating QDC channels
     typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingADC_Mapping_t;
     IntegratingADC_Mapping_t fMultiQDC_Mapping;
     std::vector< QwPMT_Channel > fMultiQDC_Channel;
     std::vector< std::vector< QwPMT_Channel > > fMultiQDC_Events;
+
     /// List of integrating TDC channels
     typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingTDC_Mapping_t;
     IntegratingTDC_Mapping_t fMultiTDC_Mapping;
@@ -136,6 +142,9 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC {
     std::vector< VQwScaler_Channel* > fScaler;
 
   private:
+
+    // Number of good events
+    Int_t fGoodEventCount;
 
     static const Bool_t kDebug = kTRUE;
 

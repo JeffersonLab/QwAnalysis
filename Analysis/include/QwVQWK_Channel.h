@@ -43,14 +43,18 @@ class QwVQWK_Channel: public VQwDataElement {
  ******************************************************************/
  public:
   static Int_t GetBufferOffset(Int_t moduleindex, Int_t channelindex);
+  static void  PrintErrorCounterHead();
+  static void  PrintErrorCounterTail();
 
  public:
   QwVQWK_Channel() {
     InitializeChannel("","");
+    SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
 
   QwVQWK_Channel(TString name, TString datatosave = "raw") {
     InitializeChannel(name, datatosave);
+    SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
   virtual ~QwVQWK_Channel() {
     //DeleteHistograms();
@@ -68,7 +72,8 @@ class QwVQWK_Channel: public VQwDataElement {
     fNumberOfSamples_map = NumberOfSamples_map;
   };
   
-
+  UInt_t GetErrorCode() const {return fDeviceErrorCode;};
+  void UpdateErrorCode(const UInt_t& errorcode){fDeviceErrorCode |= errorcode;};
 
   void  ClearEventData();
 
@@ -114,21 +119,29 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
-  QwVQWK_Channel& operator+= (const VQwDataElement &value);
+  VQwDataElement& operator=  (const VQwDataElement &value);
+
+  QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator*= (const QwVQWK_Channel &value);
-  const QwVQWK_Channel operator+ (const VQwDataElement &value) const;
+  const QwVQWK_Channel operator+ (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator- (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator* (const QwVQWK_Channel &value) const;
   void Sum(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
   void Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
   void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
   void Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
-
+  void DivideBy(QwVQWK_Channel& denom);
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
 
   void AccumulateRunningSum(const QwVQWK_Channel& value);
+  ////deaccumulate one value from the running sum
+  void DeaccumulateRunningSum(QwVQWK_Channel& value){
+    value.fGoodEventCount=-1;
+    AccumulateRunningSum(value);
+    value.fGoodEventCount=0;
+  };
   void CalculateRunningAverage();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
@@ -166,6 +179,15 @@ class QwVQWK_Channel: public VQwDataElement {
     bEVENTCUTMODE=bcuts;
   }
 
+  void SetVQWKSaturationLimt(Double_t sat_volts=8.5){//Set the absolute staturation limit in volts.
+    fSaturationABSLimit=sat_volts;
+  }
+
+  Double_t GetVQWKSaturationLimt(){//Get the absolute staturation limit in volts.
+    return fSaturationABSLimit;
+  }
+
+
   Int_t ApplyHWChecks(); //Check for harware errors in the devices. This will return the device error code.
 
   void UpdateErrorCounters(UInt_t error_flag);//update counters based on the flag passed to it
@@ -185,13 +207,20 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t GetBlockErrorValue(size_t blocknum) const { return fBlockError[blocknum]; };
   Double_t GetHardwareSum() const       { return fHardwareBlockSum; };
   Double_t GetHardwareSumM2() const     { return fHardwareBlockSumM2; };
+  Double_t GetHardwareSumWidth() const  { 
+    if (fGoodEventCount>0){
+      return (fHardwareBlockSumError*sqrt(fGoodEventCount)); 
+    }
+    return 0.0;
+  };
   Double_t GetHardwareSumError() const  { return fHardwareBlockSumError; };
+  Double_t GetStabilityLimit() const { return fStability;};
   Double_t GetAverageVolts() const;
   //  Double_t GetSoftwareSum() const {return fSoftwareBlockSum;};
 
-  Double_t GetRawBlockValue(size_t blocknum) const {return fBlock_raw[blocknum];};
-  Double_t GetRawHardwareSum() const {return fHardwareBlockSum_raw;};
-  Double_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
+  Int_t GetRawBlockValue(size_t blocknum) const {return fBlock_raw[blocknum];};
+  Int_t GetRawHardwareSum() const {return fHardwareBlockSum_raw;};
+  Int_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
 
   size_t GetSequenceNumber() const {return (fSequenceNumber);};
   size_t GetNumberOfSamples() const {return (fNumberOfSamples);};
@@ -220,6 +249,7 @@ class QwVQWK_Channel: public VQwDataElement {
   
 
  protected:
+  QwVQWK_Channel& operator/= (const QwVQWK_Channel &value);
 
 
  private:
@@ -257,9 +287,9 @@ class QwVQWK_Channel: public VQwDataElement {
 
   /*! \name Event data members---Raw values */
   // @{
-  Double_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
-  Double_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
-  Double_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
+  Int_t fBlock_raw[4];      ///< Array of the sub-block data as read from the module
+  Int_t fHardwareBlockSum_raw; ///< Module-based sum of the four sub-blocks as read from the module
+  Int_t fSoftwareBlockSum_raw; ///< Sum of the data in the four sub-blocks raw
   /*! \name Event data members---Potentially calibrated values*/
   // @{
   // The following values potentially have pedestal removed  and calibration applied
@@ -317,6 +347,7 @@ class QwVQWK_Channel: public VQwDataElement {
   Int_t fErrorCount_Sequence; // sequence number check
   Int_t fErrorCount_SameHW;   // check to see ADC returning same HW value
   Int_t fErrorCount_ZeroHW;   // check to see ADC returning zero
+  Int_t fErrorCount_HWSat;   // check to see ADC channel is saturated
 
 
 
@@ -336,6 +367,8 @@ class QwVQWK_Channel: public VQwDataElement {
   Double_t fULimit, fLLimit;//this sets the upper and lower limits on the VQWK_Channel::fHardwareBlockSum
   Double_t fStability;//how much deviaton from the stable reading is allowed
 
+  Double_t fSaturationABSLimit;//absolute value of the VQWK saturation volt
+
 
   const static Bool_t bDEBUG=kFALSE;//debugging display purposes
 
@@ -350,7 +383,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   UInt_t fDefErrorFlag;
   
-
+  
 
 
 };

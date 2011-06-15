@@ -11,7 +11,12 @@
 #include <stdexcept>
 
 // Qweak headers
+#include "VQwDataElement.h"
 #include "QwLog.h"
+#include "QwParameterFile.h"
+
+/// \todo TODO (wdc) QwVQWK_Channel necessary due to explicit cast in ReturnInternalValue (yuck)
+#include "QwVQWK_Channel.h"
 
 //*****************************************************************
 
@@ -69,6 +74,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     std::string subsys_name;
     if (! section->FileHasVariablePair("=","name",subsys_name)) {
       QwError << "No name defined in section for subsystem " << subsys_type << "." << QwLog::endl;
+      delete section; section = 0;
       continue;
     }
 
@@ -79,6 +85,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
         disabled_by_type = true;
     if (disabled_by_type) {
       QwWarning << "Subsystem of type " << subsys_type << " disabled." << QwLog::endl;
+      delete section; section = 0;
       continue;
     }
 
@@ -89,6 +96,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
         disabled_by_name = true;
     if (disabled_by_name) {
       QwWarning << "Subsystem with name " << subsys_name << " disabled." << QwLog::endl;
+      delete section; section = 0;
       continue;
     }
 
@@ -105,6 +113,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     }
     if (! subsys) {
       QwError << "Could not create subsystem " << subsys_type << "." << QwLog::endl;
+      delete section; section = 0;
       continue;
     }
 
@@ -113,6 +122,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
       QwMessage << "Subsystem " << subsys_name << " cannot be stored in this "
                 << "subsystem array." << QwLog::endl;
       QwMessage << "Deleting subsystem " << subsys_name << " again" << QwLog::endl;
+      delete section; section = 0;
       delete subsys; subsys = 0;
       continue;
     }
@@ -169,7 +179,7 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
               << " could be published!" << QwLog::endl;
     }
   }
-};
+}
 
 
 
@@ -252,7 +262,7 @@ VQwSubsystem* QwSubsystemArray::GetSubsystemByName(const TString& name)
     }
   }
   return tmp;
-};
+}
 
 
 /**
@@ -281,7 +291,7 @@ std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const std::strin
   } // end of if !empty()
 
   return subsys_list;
-};
+}
 
 
 void  QwSubsystemArray::ClearEventData()
@@ -293,7 +303,7 @@ void  QwSubsystemArray::ClearEventData()
     std::for_each(begin(), end(),
 		  boost::mem_fn(&VQwSubsystem::ClearEventData));
   }
-};
+}
 
 Int_t QwSubsystemArray::ProcessConfigurationBuffer(
   const UInt_t roc_id,
@@ -306,7 +316,7 @@ Int_t QwSubsystemArray::ProcessConfigurationBuffer(
       (*subsys)->ProcessConfigurationBuffer(roc_id, bank_id, buffer, num_words);
     }
   return 0;
-};
+}
 
 Int_t QwSubsystemArray::ProcessEvBuffer(
   const UInt_t event_type,
@@ -321,7 +331,7 @@ Int_t QwSubsystemArray::ProcessEvBuffer(
       (*subsys)->ProcessEvBuffer(event_type, roc_id, bank_id, buffer, num_words);
     }
   return 0;
-};
+}
 
 
 void  QwSubsystemArray::ProcessEvent()
@@ -331,7 +341,7 @@ void  QwSubsystemArray::ProcessEvent()
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ExchangeProcessedData));
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::ProcessEvent_2));
   }
-};
+}
 
 
 //*****************************************************************
@@ -341,7 +351,7 @@ void  QwSubsystemArray::RandomizeEventData(int helicity, double time)
     for (iterator subsys = begin(); subsys != end(); ++subsys) {
       (*subsys)->RandomizeEventData(helicity, time);
     }
-};
+}
 
 //*****************************************************************
 void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -350,7 +360,7 @@ void  QwSubsystemArray::EncodeEventData(std::vector<UInt_t> &buffer)
     for (iterator subsys = begin(); subsys != end(); ++subsys) {
       (*subsys)->EncodeEventData(buffer);
     }
-};
+}
 
 
 //*****************************************************************
@@ -364,19 +374,19 @@ void  QwSubsystemArray::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
   }
   //std::cout<<"\n";
-};
+}
 
 void  QwSubsystemArray::FillHistograms()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillHistograms));
-};
+}
 
 void  QwSubsystemArray::DeleteHistograms()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteHistograms));
-};
+}
 
 //*****************************************************************
 
@@ -392,7 +402,7 @@ void  QwSubsystemArray::ConstructTree(TDirectory *folder, TString &prefix)
       (*subsys)->ConstructTree(folder, prefix);
     }
   }
-};
+}
 
 /**
  * Fill the tree for this subsystem
@@ -401,7 +411,7 @@ void  QwSubsystemArray::FillTree()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillTree));
-};
+}
 
 /**
  * Delete the tree for this subsystem
@@ -410,7 +420,7 @@ void  QwSubsystemArray::DeleteTree()
 {
   if (!empty())
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteTree));
-};
+}
 
 //*****************************************************************
 
@@ -421,7 +431,7 @@ void  QwSubsystemArray::PrintInfo() const
       (*subsys)->PrintInfo();
     }
   }
-};
+}
 
 //*****************************************************************
 
@@ -437,18 +447,29 @@ void  QwSubsystemArray::ConstructBranchAndVector(
         std::vector<Double_t>& values)
 {
   fTreeArrayIndex = values.size();
-  values.push_back(0.0);
-  tree->Branch("CodaEventNumber",&(values[fTreeArrayIndex]),"CodaEventNumber/D");
-  values.push_back(0.0);
-  tree->Branch("CodaEventType",&(values[fTreeArrayIndex+1]),"CodaEventType/D");
-  
 
+  // Each tree should only contain event number and type once, but will
+  // still reserve space in the values vector, so we don't need to modify
+  // FillTreeVector().
+  values.push_back(0.0);
+  values.push_back(0.0);
+  values.push_back(0.0);
+  values.push_back(0.0);
+  values.push_back(0.0);
+  if (prefix == "" || prefix == "yield_") {
+    tree->Branch("CodaEventNumber",&(values[fTreeArrayIndex]),"CodaEventNumber/D");
+    tree->Branch("CodaEventType",&(values[fTreeArrayIndex+1]),"CodaEventType/D");
+    tree->Branch("Coda_CleanData",&(values[fTreeArrayIndex+2]),"Coda_CleanData/D");
+    tree->Branch("Coda_ScanData1",&(values[fTreeArrayIndex+3]),"Coda_ScanData1/D");
+    tree->Branch("Coda_ScanData2",&(values[fTreeArrayIndex+4]),"Coda_ScanData2/D");
+  }
+  
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystem* subsys_ptr = dynamic_cast<VQwSubsystem*>(subsys->get());
     subsys_ptr->ConstructBranchAndVector(tree, prefix, values);
   }
 
-};
+}
 
 
 /**
@@ -458,14 +479,17 @@ void  QwSubsystemArray::ConstructBranchAndVector(
  */
 void QwSubsystemArray::ConstructBranch(TTree *tree, TString& prefix)
 {
-  tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
-  tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
+  // Only MPS tree should contain event number and type
+  if (prefix == "" || prefix == "yield_") {
+    tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
+    tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
+  }
 
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystem* subsys_ptr = dynamic_cast<VQwSubsystem*>(subsys->get());
     subsys_ptr->ConstructBranch(tree, prefix);
   }
-};
+}
 
 
 /**
@@ -489,7 +513,7 @@ void QwSubsystemArray::ConstructBranch(
   QwVerbose << "QwSubsystemArrayTracking::ConstructBranch  Preamble:" << QwLog::endl;
   QwVerbose << *preamble << QwLog::endl;
 
-  if (prefix=="") {
+  if (prefix == "" || prefix == "yield_") {
     tree->Branch("CodaEventNumber",&fCodaEventNumber,"CodaEventNumber/I");
     tree->Branch("CodaEventType",&fCodaEventType,"CodaEventType/I");
   }
@@ -508,7 +532,7 @@ void QwSubsystemArray::ConstructBranch(
     } else
       QwMessage << "No tree leaves created for " << subsysname << QwLog::endl;
   }
-};
+}
 
 
 /**
@@ -521,11 +545,207 @@ void QwSubsystemArray::FillTreeVector(std::vector<Double_t>& values) const
   size_t index = fTreeArrayIndex;
   values[index++] = this->GetCodaEventNumber();
   values[index++] = this->GetCodaEventType();
+  values[index++] = this->fCleanParameter[0];
+  values[index++] = this->fCleanParameter[1];
+  values[index++] = this->fCleanParameter[2];
+
 
   // Fill the subsystem data
   for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystem* subsys_ptr = dynamic_cast<VQwSubsystem*>(subsys->get());
     subsys_ptr->FillTreeVector(values);
   }
-};
+}
 
+//*****************************************************************
+
+/**
+ * Retrieve the variable name from other subsystem arrays
+ * @param name Variable name to be retrieved
+ * @param value (return) Data element with the variable name
+ * @return True if the variable is found, false if not found
+ */
+Bool_t QwSubsystemArray::RequestExternalValue(const TString& name, VQwDataElement* value) const
+{
+  //  If this has a parent, we should escalate the call to that object,
+  //  but so far we don't have that capability.
+  return ReturnInternalValue(name, value);
+}
+
+/**
+ * Retrieve the variable name from subsystems in this subsystem array
+ * @param name Variable name to be retrieved
+ * @return Data element with the variable name, null if not found
+ */
+const VQwDataElement* QwSubsystemArray::ReturnInternalValue(const TString& name) const
+{
+  //  First try to find the value in the list of published values.
+  std::map<TString, const VQwDataElement*>::const_iterator iter1 =
+      fPublishedValuesDataElement.find(name);
+  if (iter1 != fPublishedValuesDataElement.end()) {
+    return iter1->second;
+  }
+  //  Second, ask the subsystem that has claimed the value
+  std::map<TString, const VQwSubsystem*>::const_iterator iter2 =
+      fPublishedValuesSubsystem.find(name);
+  if (iter2 != fPublishedValuesSubsystem.end()) {
+    return (iter2->second)->ReturnInternalValue(name);
+  }
+  //  If the value is not yet published, try asking all subsystems for it.
+  for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+    return (*subsys)->ReturnInternalValue(name);
+  }
+  //  Not found
+  return 0;
+}
+
+/**
+ * Retrieve the variable name from subsystems in this subsystem array
+ * @param name Variable name to be retrieved
+ * @param value (return) Data element with the variable name
+ * @return True if the variable was found, false if not found
+ */
+Bool_t QwSubsystemArray::ReturnInternalValue(const TString& name, VQwDataElement* value) const
+{
+  Bool_t foundit = kFALSE;
+
+  // Check for null pointer
+  if (! value)
+    QwWarning << "QwSubsystemArray::ReturnInternalValue requires that "
+              << "'value' be a non-null pointer to a VQwDataElement."
+              << QwLog::endl;
+
+  //  Get a const pointer to the internal value
+  VQwDataElement* internal_value = const_cast<VQwDataElement*>(ReturnInternalValue(name));
+  if (value && internal_value && typeid(value) == typeid(internal_value)) {
+    /// \todo TODO (wdc) Remove this ugly statement by redefining
+    ///       QwVQWK_Channel::operator= to accept any VQwDataElement.
+    //*(dynamic_cast<QwVQWK_Channel*>(value)) = *(dynamic_cast<QwVQWK_Channel*>(internal_value));
+    *(value)=*(internal_value);
+    foundit = kTRUE;
+  } else
+    QwWarning << "QwSubsystemArray::ReturnInternalValue: name \""
+              << name << "\" not found in array." << QwLog::endl;
+
+  return foundit;
+}
+
+/**
+ * Publish the value name with description from a subsystem in this array
+ * @param name Name of the variable
+ * @param desc Description of the variable
+ * @param subsys Subsystem that contains the variable
+ * @param element Data element that contains the variable
+ * @return True if the variable could be published, false if not published
+ */
+Bool_t QwSubsystemArray::PublishInternalValue(
+    const TString name,
+    const TString desc,
+    const VQwSubsystem* subsys,
+    const VQwDataElement* element)
+{
+  if (fPublishedValuesSubsystem.count(name) > 0) {
+    QwError << "Attempting to publish existing variable key!" << QwLog::endl;
+    ListPublishedValues();
+    return kFALSE;
+  }
+  fPublishedValuesSubsystem[name] = subsys;
+  fPublishedValuesDescription[name] = desc;
+  fPublishedValuesDataElement[name] = element;
+  return kTRUE;
+}
+
+/**
+ * List the published values and description in this subsystem array
+ */
+void QwSubsystemArray::ListPublishedValues() const
+{
+  QwOut << "List of published values:" << QwLog::endl;
+  std::map<TString,TString>::const_iterator iter;
+  for (iter  = fPublishedValuesDescription.begin();
+       iter != fPublishedValuesDescription.end(); iter++) {
+    QwOut << iter->first << ": " << iter->second << QwLog::endl;
+  }
+}
+
+/**
+ * Retrieve the variable name from subsystems in this subsystem array
+ * @param name Variable name to be retrieved
+ * @return Data element with the variable name
+ */
+VQwDataElement* QwSubsystemArray::ReturnInternalValueForFriends(const TString& name) const
+{
+  //  First try to find the value in the list of published values.
+  std::map<TString, const VQwDataElement*>::const_iterator iter =
+      fPublishedValuesDataElement.find(name);
+  if (iter != fPublishedValuesDataElement.end()) {
+    return const_cast<VQwDataElement*>(iter->second);
+  }
+  //  Not found
+  return 0;
+}
+
+
+
+// TList* QwSubsystemArray::GetParamFileNameList(TString name) const
+// {
+//   if (not empty()) {
+
+//     TList* return_maps_TList = new TList;
+//     return_maps_TList->SetOwner(true);
+//     return_maps_TList->SetName(name);
+    
+//     std::vector<TString> mapfiles_vector_subsystem;
+
+//     Int_t num_of_mapfiles_subsystem = 0;
+
+//     for (const_iterator subsys = begin(); subsys != end(); ++subsys) 
+//       {
+// 	(*subsys)->PrintDetectorMaps(true);
+// 	mapfiles_vector_subsystem = (*subsys)->GetParamFileNameList();
+// 	num_of_mapfiles_subsystem = (Int_t) mapfiles_vector_subsystem.size();
+	
+// 	for (Int_t i=0; i<num_of_mapfiles_subsystem; i++) 
+// 	  {
+// 	    return_maps_TList -> AddLast(new TObjString(mapfiles_vector_subsystem[i]));
+// 	  }
+	
+// 	mapfiles_vector_subsystem.clear();
+//       }
+//     return return_maps_TList;
+//   }
+//   else {
+//     return NULL;
+//   }
+// };
+
+
+
+TList* QwSubsystemArray::GetParamFileNameList(TString name) const
+{
+  if (not empty()) {
+
+    TList* return_maps_TList = new TList;
+    return_maps_TList->SetName(name);
+
+    std::map<TString, TString> mapfiles_subsystem;
+
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys) 
+      {
+	(*subsys)->PrintDetectorMaps(true);
+	mapfiles_subsystem = (*subsys)->GetDetectorMaps();
+	for( std::map<TString, TString>::iterator ii= mapfiles_subsystem.begin(); ii!= mapfiles_subsystem.end(); ++ii)
+	  {	
+	    TList *test = new TList;
+	    test->SetName((*ii).first);
+	    test->AddLast(new TObjString((*ii).second));
+	    return_maps_TList -> AddLast(test);
+	  }
+      }
+
+    return return_maps_TList;
+  }
+  else {
+    return NULL;
+  }
+};

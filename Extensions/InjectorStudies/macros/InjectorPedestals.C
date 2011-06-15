@@ -15,9 +15,9 @@ void InjectorPedestals(Int_t runnum=1, TString usercut="1", Int_t scandatanorm=1
 
 	TString plotdir = "plots";
 	TString outputdir = "output";
- 	Int_t listlength = 9;
+ 	Int_t listlength = 8;
  	TString detlist[] = {"1i02", "1i04", "1i06", "0i02", "0i05", "0i07", 
- 						 "0l01", "0l02", "bcm0l02"};
+ 						 "0l01", "0l02"}//, "bcm0l02"};
 
 //	Int_t listlength = 1;
 //	TString detlist[] = {"1i02"};
@@ -70,6 +70,7 @@ void InjectorPedestals(Int_t runnum=1, TString usercut="1", Int_t scandatanorm=1
 	sprintf(outfilename,"%s/pedscan_run%d.txt",outputdir.Data(),runnum);
 	printf("Writing output to %s\n",outfilename);
 
+	printf("Using cut %s\n",usercut.Data());
 
 	// vqwknum = #, start @ vqwk#
 	FILE *outfile = fopen(outfilename, "w"); 
@@ -139,7 +140,8 @@ void plot_element(char *devnam, Double_t *arr, TCanvas *canvas, TTree *mps,
 
 	// make cut
 //	TString scut = "cleandata&&scandata1<180000&&scandata1>1&&(" + localcut + ")"; // scandata1 should be reasonable
-	TString scut = "cleandata==1&&scandata1>" + localcut; // scandata1 should be reasonable
+//	TString scut = "cleandata==1&&scandata1>20" + localcut; // scandata1 should be reasonable
+	TString scut = "cleandata&&scandata1<180000&&scandata1>1&&(" + localcut + ")";
 
 	Double_t xpint,xmint,ypint,ymint;
 	Double_t xpslp,xmslp,ypslp,ymslp;
@@ -161,7 +163,7 @@ void plot_element(char *devnam, Double_t *arr, TCanvas *canvas, TTree *mps,
     	plotcommand += scandatanorm;
 
 		canvas->cd(1);
-		printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		printf("Mps_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 		mps->Draw(plotcommand.Data(),scut.Data(),"goff");
 		TGraph *hxp = new TGraph(mps->GetSelectedRows(),mps->GetV2(),mps->GetV1());    
 		hxp->Fit("pol1");
@@ -189,7 +191,8 @@ void plot_element(char *devnam, Double_t *arr, TCanvas *canvas, TTree *mps,
  		plotcommand += Form(":scandata1/%i", scandatanorm);
     
 		canvas->cd(2);
-		printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		//printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		printf("Mps_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 		mps->Draw(plotcommand.Data(),scut.Data(),"goff");
 		TGraph *Rxp = new TGraph(mps->GetSelectedRows(),mps->GetV2(),mps->GetV1());  
 		TString tit = Form("Residual;Current  (#muA);qwk_%sXP", bpmNam.Data());
@@ -208,7 +211,8 @@ void plot_element(char *devnam, Double_t *arr, TCanvas *canvas, TTree *mps,
 		plotcommand += "XM.hw_sum_raw / num_samples:scandata1/";
     	plotcommand +=  scandatanorm;
 
-		printf("%s\n%s\n",plotcommand.Data(),scut.Data());    
+		printf("Mps_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
+		//printf("%s\n%s\n",plotcommand.Data(),scut.Data());    
 		mps->Draw(plotcommand.Data(),scut.Data(),"goff");
 		TGraph *hxm = new TGraph(mps->GetSelectedRows(),mps->GetV2(),mps->GetV1());    
 		hxm->Fit("pol1");
@@ -236,7 +240,8 @@ void plot_element(char *devnam, Double_t *arr, TCanvas *canvas, TTree *mps,
 		plotcommand += Form(":scandata1/%i",scandatanorm);
       
 		canvas->cd(4);
-		printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		//printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		printf("Mps_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 		mps->Draw(plotcommand.Data(),scut.Data(),"goff");
 		TGraph *Rxm = new TGraph(mps->GetSelectedRows(),mps->GetV2(),mps->GetV1());	
 		TString tit = Form("Residual;Current  (#muA);qwk_%sXM", bpmNam.Data());
@@ -255,7 +260,8 @@ void plot_element(char *devnam, Double_t *arr, TCanvas *canvas, TTree *mps,
 		plotcommand += "YP.hw_sum_raw / num_samples:scandata1/";
     	plotcommand +=  scandatanorm;
 
-		printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		//printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		printf("Mps_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 		mps->Draw(plotcommand.Data(),scut.Data(),"goff");
 		TGraph *hyp = new TGraph(mps->GetSelectedRows(),mps->GetV2(),mps->GetV1());    
 		hyp->Fit("pol1");
@@ -283,7 +289,8 @@ void plot_element(char *devnam, Double_t *arr, TCanvas *canvas, TTree *mps,
 		plotcommand += Form(":scandata1/%i", scandatanorm);
      
 		canvas->cd(6);
-		printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		//printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		printf("Mps_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 		mps->Draw(plotcommand.Data(),scut.Data(),"goff");
 		TGraph *Ryp = new TGraph(mps->GetSelectedRows(),mps->GetV2(),mps->GetV1());
 		TString tit = Form("Residual;Current  (#muA);qwk_%sYP", bpmNam.Data());
@@ -301,7 +308,8 @@ void plot_element(char *devnam, Double_t *arr, TCanvas *canvas, TTree *mps,
 		plotcommand += "YM.hw_sum_raw / num_samples:scandata1/";
     	plotcommand +=  scandatanorm;
 
-    	printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+    	//printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		printf("Mps_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 		mps->Draw(plotcommand.Data(),scut.Data(),"goff");
 		TGraph *hym = new TGraph(mps->GetSelectedRows(),mps->GetV2(),mps->GetV1());    
 		hym->Fit("pol1");
@@ -329,7 +337,8 @@ void plot_element(char *devnam, Double_t *arr, TCanvas *canvas, TTree *mps,
 		plotcommand += Form(":scandata1/%i",scandatanorm);
       
 		canvas->cd(8);
-		printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		//printf("%s\n%s\n",plotcommand.Data(),scut.Data());
+		printf("Mps_Tree->Draw(\"%s\",\"%s\")\n",plotcommand.Data(),scut.Data());
 		mps->Draw(plotcommand.Data(),scut.Data(),"goff");
 		TGraph *Rym = new TGraph(mps->GetSelectedRows(),mps->GetV2(),mps->GetV1());
 		TString tit = Form("Residual;Current  (#muA);qwk_%sYM", bpmNam.Data());

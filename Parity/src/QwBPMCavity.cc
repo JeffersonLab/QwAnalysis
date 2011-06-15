@@ -6,8 +6,13 @@
 \**********************************************************/
 
 #include "QwBPMCavity.h"
-#include "QwHistogramHelper.h"
+
+// System headers
 #include <stdexcept>
+
+// Qweak headers
+#include "QwDBInterface.h"
+
 
 /* Position calibration factor, transform ADC counts in mm*/
 const Double_t QwBPMCavity::kQwCavityCalibration = 1e-8;
@@ -39,7 +44,7 @@ void  QwBPMCavity::InitializeChannel(TString name)
   bFullSave=kTRUE;
 
   return;
-};
+}
 
 void  QwBPMCavity::InitializeChannel(TString subsystem, TString name)
 {
@@ -64,7 +69,7 @@ void  QwBPMCavity::InitializeChannel(TString subsystem, TString name)
   bFullSave=kTRUE;
   
   return;
-};
+}
 
 void QwBPMCavity::ClearEventData()
 {
@@ -78,7 +83,7 @@ void QwBPMCavity::ClearEventData()
   fEffectiveCharge.ClearEventData();
 
   return;
-};
+}
 
 
 Bool_t QwBPMCavity::ApplyHWChecks()
@@ -97,7 +102,7 @@ Bool_t QwBPMCavity::ApplyHWChecks()
   fDeviceErrorCode = fEffectiveCharge.ApplyHWChecks();
   fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 
   return fEventIsGood;
-};
+}
 
 
 Int_t QwBPMCavity::GetEventcutErrorCounters()
@@ -112,7 +117,7 @@ Int_t QwBPMCavity::GetEventcutErrorCounters()
   fEffectiveCharge.GetEventcutErrorCounters();
 
   return 1;
-};
+}
 
 
 Bool_t QwBPMCavity::ApplySingleEventCuts()
@@ -174,7 +179,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
 
   return status;
 
-};
+}
 
 
 void QwBPMCavity::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
@@ -202,7 +207,7 @@ void QwBPMCavity::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t ma
 
   }
 
-};
+}
 
 void QwBPMCavity::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
   errorflag|=kBPMErrorFlag;//update the device flag
@@ -228,7 +233,7 @@ void QwBPMCavity::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t 
 
   }
 
-};
+}
 
 
 
@@ -262,7 +267,7 @@ void  QwBPMCavity::ProcessEvent()
   }
 
   return;
-};
+}
 
 
 Int_t QwBPMCavity::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer,UInt_t index)
@@ -281,7 +286,7 @@ Int_t QwBPMCavity::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffe
 	"QwBPMCavity::ProcessEvBuffer(): attempt to fill in raw date for a wire that doesn't exist \n";
     }
   return word_position_in_buffer;
-};
+}
 
 
 
@@ -293,7 +298,7 @@ void QwBPMCavity::PrintValue() const
     fRelPos[i].PrintValue();
   }
   return;
-};
+}
 
 void QwBPMCavity::PrintInfo() const
 {
@@ -304,7 +309,7 @@ void QwBPMCavity::PrintInfo() const
     fRelPos[i].PrintInfo();
   }
   fEffectiveCharge.PrintInfo();
-};
+}
 
 
 TString QwBPMCavity::GetSubElementName(Int_t subindex)
@@ -330,7 +335,7 @@ UInt_t QwBPMCavity::GetSubElementIndex(TString subname)
 	      <<subname<<"- to any index"<<std::endl;
 
   return localindex;
-};
+}
 
 void  QwBPMCavity::GetAbsolutePosition()
 {
@@ -342,7 +347,7 @@ void  QwBPMCavity::GetAbsolutePosition()
   // For Z, the absolute position will be the offset we are reading from the
   // geometry map file. Since we are not putting that to the tree it is not
   // treated as a vqwk channel.
-};
+}
 
 QwBPMCavity& QwBPMCavity::operator= (const QwBPMCavity &value)
 {
@@ -359,7 +364,7 @@ QwBPMCavity& QwBPMCavity::operator= (const QwBPMCavity &value)
     }
   }
   return *this;
-};
+}
 
 
 QwBPMCavity& QwBPMCavity::operator+= (const QwBPMCavity &value)
@@ -375,7 +380,7 @@ QwBPMCavity& QwBPMCavity::operator+= (const QwBPMCavity &value)
     }
   }
   return *this;
-};
+}
 
 QwBPMCavity& QwBPMCavity::operator-= (const QwBPMCavity &value)
 {
@@ -390,7 +395,7 @@ QwBPMCavity& QwBPMCavity::operator-= (const QwBPMCavity &value)
     }
   }
   return *this;
-};
+}
 
 
 void QwBPMCavity::Ratio(QwBPMCavity &numer, QwBPMCavity &denom)
@@ -401,7 +406,7 @@ void QwBPMCavity::Ratio(QwBPMCavity &numer, QwBPMCavity &denom)
   *this=numer;
   this->fEffectiveCharge.Ratio(numer.fEffectiveCharge,denom.fEffectiveCharge);
   return;
-};
+}
 
 
 
@@ -415,7 +420,7 @@ void QwBPMCavity::Scale(Double_t factor)
     fAbsPos[i].Scale(factor);
   }
   return;
-};
+}
 
 
 void QwBPMCavity::CalculateRunningAverage()
@@ -426,7 +431,7 @@ void QwBPMCavity::CalculateRunningAverage()
   for (i = 0; i < 2; i++) fAbsPos[i].CalculateRunningAverage();
   // No data for z position
   return;
-};
+}
 
 void QwBPMCavity::AccumulateRunningSum(const QwBPMCavity& value)
 {
@@ -437,7 +442,7 @@ void QwBPMCavity::AccumulateRunningSum(const QwBPMCavity& value)
   for (i = 0; i < 2; i++) fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
   // No data for z position
   return;
-};
+}
 
 
 void  QwBPMCavity::ConstructHistograms(TDirectory *folder, TString &prefix)
@@ -460,7 +465,7 @@ void  QwBPMCavity::ConstructHistograms(TDirectory *folder, TString &prefix)
     }
   }
   return;
-};
+}
 
 void  QwBPMCavity::FillHistograms()
 {
@@ -478,7 +483,7 @@ void  QwBPMCavity::FillHistograms()
     //No data for z position
   }
   return;
-};
+}
 
 void  QwBPMCavity::DeleteHistograms()
 {
@@ -494,7 +499,7 @@ void  QwBPMCavity::DeleteHistograms()
     }
   }
   return;
-};
+}
 
 
 void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -519,7 +524,7 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 
   }
   return;
-};
+}
 
  void  QwBPMCavity::ConstructBranch(TTree *tree, TString &prefix)
  {
@@ -543,7 +548,7 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 
    }
    return;
- };
+ }
 
  void  QwBPMCavity::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist)
  {
@@ -589,7 +594,7 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 
 
    return;
- };
+ }
 
 
 void  QwBPMCavity::FillTreeVector(std::vector<Double_t> &values) const
@@ -607,7 +612,7 @@ void  QwBPMCavity::FillTreeVector(std::vector<Double_t> &values) const
     }
   }
   return;
-};
+}
 
 void QwBPMCavity::Copy(VQwDataElement *source)
 {
@@ -740,7 +745,7 @@ std::vector<QwDBInterface> QwBPMCavity::GetDBEntry()
 
   return row_list;
 
-};
+}
 
 /**********************************
  * Mock data generation routines
@@ -777,7 +782,7 @@ void  QwBPMCavity::SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Dou
   //fWire[0].SetRandomEventParameters(meanXP, sigmaXM);
   //fWire[1].SetRandomEventParameters(meanXM, sigmaYM);
   //fWire[2].SetRandomEventParameters(meanYP, sigmaYP);
-};
+}
 
 
 void QwBPMCavity::RandomizeEventData(int helicity, double time)
@@ -785,7 +790,7 @@ void QwBPMCavity::RandomizeEventData(int helicity, double time)
   for (Short_t i=0; i<2; i++) fWire[i].RandomizeEventData(helicity, time);
 
   return;
-};
+}
 
 
 void QwBPMCavity::SetEventData(Double_t* relpos, UInt_t sequencenumber)
@@ -796,20 +801,20 @@ void QwBPMCavity::SetEventData(Double_t* relpos, UInt_t sequencenumber)
     }
 
   return;
-};
+}
 
 
 void QwBPMCavity::EncodeEventData(std::vector<UInt_t> &buffer)
 {
   for (Short_t i=0; i<2; i++) fWire[i].EncodeEventData(buffer);
-};
+}
 
 
 void QwBPMCavity::SetDefaultSampleSize(Int_t sample_size)
 {
   for(Short_t i=0;i<2;i++) fWire[i].SetDefaultSampleSize((size_t)sample_size);
   return;
-};
+}
 
 
 void QwBPMCavity::SetSubElementPedestal(Int_t j, Double_t value)

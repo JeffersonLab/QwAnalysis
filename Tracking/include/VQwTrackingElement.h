@@ -39,11 +39,22 @@ class VQwTrackingElement: public TObject {
   public:
 
     /// \brief Default constructor
-    VQwTrackingElement(): pDetectorInfo(0),
+    VQwTrackingElement()
+    : pDetectorInfo(0),
       fRegion(kRegionIDNull), fPackage(kPackageNull),
       fDirection(kDirectionNull), fPlane(0), fElement(0) { };
+    VQwTrackingElement(const VQwTrackingElement& that)
+    : TObject(that),
+      fRegion(that.fRegion), fPackage(that.fPackage),
+      fDirection(that.fDirection), fPlane(that.fPlane), fElement(that.fElement) { };
     /// \brief Virtual destructor
     virtual ~VQwTrackingElement() {};
+
+    /// \brief Assignment operator
+    VQwTrackingElement& operator=(const VQwTrackingElement& that) {
+      SetGeometryTo(that);
+      return *this;
+    };
 
     /// \brief Get the detector info pointer
     QwDetectorInfo* GetDetectorInfo () const { return pDetectorInfo; };
@@ -51,27 +62,27 @@ class VQwTrackingElement: public TObject {
     void SetDetectorInfo(QwDetectorInfo *detectorinfo) { pDetectorInfo = detectorinfo; };
 
     /// \brief Get the region
-    const EQwRegionID GetRegion() const { return fRegion; };
+    EQwRegionID GetRegion() const { return fRegion; };
     /// \brief Set the region
     void SetRegion(EQwRegionID region) { fRegion = region; };
 
     /// \brief Get the package
-    const EQwDetectorPackage GetPackage() const { return fPackage; };
+    EQwDetectorPackage GetPackage() const { return fPackage; };
     /// \brief Set the package
     void SetPackage(EQwDetectorPackage package) { fPackage = package; };
 
     /// \brief Get the direction
-    const EQwDirectionID GetDirection() const { return fDirection; };
+    EQwDirectionID GetDirection() const { return fDirection; };
     /// \brief Set the direction
     void SetDirection(EQwDirectionID direction) { fDirection = direction; };
 
     /// \brief Get the plane number
-    const int GetPlane() const { return fPlane; };
+    int GetPlane() const { return fPlane; };
     /// \brief Set the plane number
     void SetPlane(int plane) { fPlane = plane; };
 
     /// \brief Get the element number
-    const int GetElement() const { return fElement; };
+    int GetElement() const { return fElement; };
     /// \brief Set the element number
     void SetElement(int element) { fElement = element; };
 

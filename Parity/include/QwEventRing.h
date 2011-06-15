@@ -13,7 +13,7 @@
 #include <fstream>
 #include "QwSubsystemArrayParity.h"
 
-
+#include "QwVQWK_Channel.h"
 
 class QwEventRing {
 
@@ -84,6 +84,13 @@ class QwEventRing {
   FILE *out_file;   
   static const Bool_t bDEBUG=kFALSE;//kTRUE;
   static const Bool_t bDEBUG_Write=kFALSE;
+
+  //to accumulate the running avg
+  QwBeamCharge   fTargetCharge;
+  QwBeamCharge   fChargeRunningSum;
+  Double_t fStability;//Stability level in units of sigmafChargeRunningSum.
+  Bool_t bStability;
+  UInt_t fErrorCode;
 
 };
 

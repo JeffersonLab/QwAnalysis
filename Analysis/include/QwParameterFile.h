@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwParameterFile.h                              *
+* File: QwParameterFile.h                                  *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2007-05-08 15:40>                           *
@@ -9,20 +9,34 @@
 #define __QWPARAMETERFILE__
 
 
+// System headers
 #include <vector>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 #include <string>
+#include <map>
+#include <set>
+
+// ROOT headers
 #include "Rtypes.h"
 #include "TString.h"
 #include "TRegexp.h"
+#include "TObjArray.h"
+#include "TObjString.h"
+#include "TMacro.h"
+#include "TList.h"
 
+// Boost headers
+#include "boost/lexical_cast.hpp"
 #include "boost/filesystem/operations.hpp"
 #include "boost/filesystem/convenience.hpp"
 #include "boost/filesystem/path.hpp"
-
 namespace bfs = boost::filesystem;
+using boost::lexical_cast;
+
+// Qweak headers
+#include "QwLog.h"
 
 ///
 /// \ingroup QwAnalysis
@@ -36,9 +50,7 @@ class QwParameterFile {
   public:
 
     QwParameterFile(const std::string& filename);
-    QwParameterFile(const std::stringstream& stream) {
-      fStream << stream.rdbuf();
-    };
+    QwParameterFile(const std::stringstream& stream);
     virtual ~QwParameterFile() { };
 
     /// Access the streambuf pointer in the same way as on a std::ifstream
@@ -49,6 +61,13 @@ class QwParameterFile {
 
     /// Set the current run number for looking up the appropriate parameter file
     static void SetCurrentRunNumber(const UInt_t runnumber) { fCurrentRunNumber = runnumber; };
+
+    /// Set various sets of special characters
+    void SetCommentChars(const std::string value)    { fCommentChars = value; };
+    void SetWhitespaceChars(const std::string value) { fWhitespaceChars = value; };
+    void SetTokenSepChars(const std::string value)   { fTokenSepChars = value; };
+    void SetSectionChars(const std::string value)    { fSectionChars = value; };
+    void SetModuleChars(const std::string value)     { fModuleChars = value; };
 
     Bool_t ReadNextLine() {
       fCurrentPos = 0;
@@ -86,14 +105,27 @@ class QwParameterFile {
 
     void TrimWhitespace(TString::EStripType head_tail = TString::kBoth);
     void TrimComment(const char commentchar);
-    void TrimComment(const std::string& commentchars = kDefaultCommentChars);
+    void TrimComment(const std::string& commentchars);
+    void TrimComment() { TrimComment(fCommentChars); };
     void TrimSectionHeader();
     void TrimModuleHeader();
+
+    TString LastString(TString in, char* delim);
+    TString GetParemeters();
 
     Bool_t LineIsEmpty(){return fLine.empty();};
     Bool_t IsEOF(){ return fStream.eof();};
 
-    std::string GetNextToken(const std::string& separatorchars = kDefaultTokenSepChars);
+    /// \brief Get next token as a string
+    std::string GetNextToken(const std::string& separatorchars);
+    std::string GetNextToken() { return GetNextToken(fTokenSepChars); };
+
+    /// Get next token into specific type
+    template <typename T>
+    T GetTypedNextToken() {
+      return ConvertValue<T>(GetNextToken());
+    }
+
     std::string GetLine() { return fLine; };
     void AddLine(const std::string& line) { fStream << line << std::endl; };
 
@@ -145,10 +177,26 @@ class QwParameterFile {
     friend ostream& operator<< (ostream& stream, const QwParameterFile& file);
 
 
+    const TString GetParamFilename() {return fBestParamFileName;};
+    const TString GetParamFilenameAndPath() {return fBestParamFileNameAndPath;};
+
+    const std::pair<TString, TString> GetParamFileNameContents() {return std::pair<TString, TString>(GetParamFilename(), GetParemeters());};
+
+    void SetParamFilename();
+
   protected:
     void Trim(const std::string& chars, std::string& token, TString::EStripType head_tail = TString::kBoth);
     void TrimWhitespace(std::string &token, TString::EStripType head_tail);
 
+    /// Convert string value into specific type
+    template <typename T>
+    T ConvertValue(const std::string& value) {
+      T retvalue;
+      std::istringstream stream1;
+      stream1.str(value);
+      stream1 >> retvalue;
+      return retvalue;
+    }
 
   private:
 
@@ -162,6 +210,8 @@ class QwParameterFile {
     bool OpenFile(const bfs::path& path_found);
   //  TString fCurrentSecName;     // Stores the name of the current section  read
   //  TString fCurrentModuleName;  // Stores the name of the current module  read
+    TString fBestParamFileName;
+    TString fBestParamFileNameAndPath;
 
   public:
 
@@ -184,24 +234,72 @@ class QwParameterFile {
     static const std::string kDefaultSectionChars;
     static const std::string kDefaultModuleChars;
 
+    // Local comment, whitespace, section, module characters
+    std::string fCommentChars;
+    std::string fWhitespaceChars;
+    std::string fTokenSepChars;
+    std::string fSectionChars;
+    std::string fModuleChars;
+
+
     // File and stream
-    ifstream          fFile;
+    const std::string fFilename;
+    std::ifstream fFile;
     std::stringstream fStream;
 
     // Current line and position
     std::string fLine;      /// Internal line storage
     size_t fCurrentPos;     /// Current position in the line
 
+    TMacro *fParameterFile;
+
 
   private:
 
     // Private constructor
-    QwParameterFile() { };
+    QwParameterFile()
+    : fCommentChars(kDefaultCommentChars),
+      fWhitespaceChars(kDefaultWhitespaceChars),
+      fTokenSepChars(kDefaultTokenSepChars),
+      fSectionChars(kDefaultSectionChars),
+      fModuleChars(kDefaultModuleChars),
+      fFilename("empty")
+    { };
+
+    // Private copy constructor
+    QwParameterFile(const QwParameterFile& input)
+    : fCommentChars(input.fCommentChars),
+      fWhitespaceChars(input.fWhitespaceChars),
+      fTokenSepChars(input.fTokenSepChars),
+      fSectionChars(input.fSectionChars),
+      fModuleChars(input.fModuleChars),
+      fFilename(input.fFilename)
+    { };
 
     // Set to end of file
     void SetEOF() { fStream.setstate(std::ios::eofbit); };
 
 }; // class QwParameterFile
 
+
+template <>
+inline std::string QwParameterFile::GetTypedNextToken<std::string>(){
+  return GetNextToken();
+}
+
+template <>
+inline UInt_t QwParameterFile::ConvertValue<UInt_t>(const std::string& value) {
+  return GetUInt(value);
+}
+
+template <>
+inline std::string QwParameterFile::ConvertValue<std::string>(const std::string& value) {
+  return value;
+}
+
+template <>
+inline TString QwParameterFile::ConvertValue<TString>(const std::string& value) {
+  return TString(value.c_str());
+}
 
 #endif // __QWPARAMETERFILE__

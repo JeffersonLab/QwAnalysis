@@ -1,0 +1,13 @@
+! This file contains the pedestals for the ADCs.
+! Respect the format of the file:
+
+! channel name,	pedestal,	gain
+fadc_compton,	3818.86,	-1.0
+
+! channel name,	type of cut	low	high
+fadc_compton,	timewindow	10	50
+fadc_compton,	timewindow	100	140
+fadc_compton,	valuewindow	3000	4000
+fadc_compton,	valuewindow	4000	5000
+
+!END

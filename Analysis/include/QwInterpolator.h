@@ -13,17 +13,13 @@
 
 /// Allowed interpolation methods
 enum EQwInterpolationMethod {
+  kInterpolationMethodUnknown,
   kMultiLinear,
   kNearestNeighbor
 };
 
 // Type of grid coordinates
 typedef double coord_t;
-// NOTE This could trivially be made into a template argument, but that seems
-// hardly worth it considering the small gains in going to different types.
-
-// NOTE The normalized cell-local coordinates are always in double precision,
-// and the returned interpolated values are also in double.
 
 /**
  *  \class QwInterpolator
@@ -52,18 +48,20 @@ class QwInterpolator {
   public: // constructors and destructor
 
     /// Constructor with number of dimensions
-    QwInterpolator(const unsigned int ndim) {
+    QwInterpolator(const unsigned int ndim = 1) {
       SetDimensions(ndim);
       SetInterpolationMethod(kMultiLinear);
     };
     /// Constructor with minimum, maximum, and step size
-    QwInterpolator(const std::vector<coord_t> min, const std::vector<coord_t> max, const std::vector<coord_t> step) {
+    QwInterpolator(const std::vector<coord_t>& min,
+        const std::vector<coord_t>& max,
+        const std::vector<coord_t>& step) {
       SetDimensions(min.size());
       SetInterpolationMethod(kMultiLinear);
       SetMinimumMaximumStep(min,max,step);
     };
     /// Constructor with file name
-    QwInterpolator(const std::string filename) {
+    QwInterpolator(const std::string& filename) {
       ReadBinaryFile(filename);
     };
     /// Destructor
@@ -82,6 +80,11 @@ class QwInterpolator {
     std::vector<coord_t> fStep;
     /// Number of points in each dimension
     std::vector<size_t> fSize;
+    /// Wrap around this coordinate
+    std::vector<size_t> fWrap;
+    /// Data reduction factor
+    std::vector<size_t> fRedux;
+
     /// Linear extent between neighbor points in each dimension (e.g. for the
     /// least significant index this will be 1, for the next index the number
     /// of points in the first index, etc...)
@@ -91,7 +94,7 @@ class QwInterpolator {
     std::vector<value_t> fValues[value_n];
 
     /// Number of values read in
-    unsigned int fEntries;
+    unsigned int fCurrentEntries;
     /// Maximum number of values
     unsigned int fMaximumEntries;
 
@@ -107,15 +110,19 @@ class QwInterpolator {
         return;
       }
       fNDim = ndim;
-      fMin.resize(fNDim); fMax.resize(fNDim); fStep.resize(fNDim);
+      fMin.resize(fNDim); fMax.resize(fNDim); fStep.resize(fNDim); fWrap.resize(fNDim);
       fSize.resize(fNDim); fExtent.resize(fNDim+1);
     };
     /// Set minimum, maximum, and step size to single values
     void SetMinimumMaximumStep(const coord_t min, const coord_t max, const coord_t step) {
-      SetMinimumMaximumStep(std::vector<coord_t>(fNDim,min), std::vector<coord_t>(fNDim,max), std::vector<coord_t>(fNDim,step));
+      SetMinimumMaximumStep(std::vector<coord_t>(fNDim,min),
+          std::vector<coord_t>(fNDim,max),
+          std::vector<coord_t>(fNDim,step));
     };
     /// Set minimum, maximum, and step size to different values
-    void SetMinimumMaximumStep(const std::vector<coord_t> min, const std::vector<coord_t> max, const std::vector<coord_t> step) {
+    void SetMinimumMaximumStep(const std::vector<coord_t>& min,
+        const std::vector<coord_t>& max,
+        const std::vector<coord_t>& step) {
       // Set the dimensionality
       if (min.size() != fNDim) SetDimensions(min.size());
       // Check the dimensionality and assign boundaries and step size vectors
@@ -129,7 +136,7 @@ class QwInterpolator {
         fExtent[i+1] = fExtent[i] * fSize[i];
       }
       // Try resizing to allocate memory and initialize with zeroes
-      fMaximumEntries = fExtent[fNDim]; fEntries = 0; // no entries read yet
+      fMaximumEntries = fExtent[fNDim]; fCurrentEntries = 0; // no entries read yet
       for (unsigned int i = 0; i < value_n; i++) {
         try {
           fValues[i].resize(fMaximumEntries,0);
@@ -147,8 +154,33 @@ class QwInterpolator {
     /// Get the maximum number of entries
     unsigned int GetMaximumEntries() const { return fMaximumEntries; };
     /// Get the current number of entries
-    unsigned int GetCurrentEntries() const { return fEntries; };
+    unsigned int GetCurrentEntries() const { return fCurrentEntries; };
 
+    /// Get wrapping coordinate
+    unsigned int GetWrapCoordinate(const unsigned int dim) const
+      { return fWrap.at(dim); }
+    /// Set wrapping coordinate
+    void SetWrapCoordinate(const unsigned int dim, const size_t wrap = 1)
+      { fWrap.at(dim) = wrap; }
+    void SetWrapCoordinate(const std::vector<size_t>& wrap) {
+      if (wrap.size() != fNDim) return;
+      fWrap = wrap;
+    }
+
+    /// Get data reduction factor
+    int GetDataReductionFactor(const unsigned int dim) const
+      { return fRedux.at(dim); }
+    /// Set data reduction factor
+    void SetDataReductionFactor(const unsigned int dim, const unsigned int redux)
+      { fRedux.at(dim) = redux; }
+    void SetDataReductionFactor(const unsigned int redux) {
+      for (unsigned int dim = 0; dim < fNDim; dim++)
+        SetDataReductionFactor(dim,redux);
+    }
+    void SetDataReductionFactor(const std::vector<unsigned int>& redux) {
+      if (redux.size() != fNDim) return;
+      fRedux = redux;
+    }
 
     /// Set the interpolation method
     void SetInterpolationMethod(const EQwInterpolationMethod method)
@@ -157,6 +189,38 @@ class QwInterpolator {
     EQwInterpolationMethod GetInterpolationMethod() const
       { return fInterpolationMethod; };
 
+
+    /// Print coverage map for all bins in one dimension
+    void PrintCoverage(const unsigned int dim) {
+      // Initialize coverage
+      unsigned int* cover = new unsigned int[fSize[dim]];
+      unsigned int* total = new unsigned int[fSize[dim]];
+      for (unsigned int i = 0; i < fSize[dim]; i++) {
+        cover[i] = 0;
+        total[i] = 0;
+      }
+      // Loop over all entries
+      value_t value[value_n];
+      unsigned int* cell_index = new unsigned int[fNDim];
+      for (unsigned int linear_index = 0; linear_index < fMaximumEntries; linear_index++) {
+        Cell(linear_index,cell_index);
+        total[cell_index[dim]]++;
+        if (Get(linear_index,value) && value[0] != 0)
+          cover[cell_index[dim]]++; // non-zero field
+      }
+      // Print coverage
+      coord_t* coord = new coord_t[fNDim];
+      for (size_t i = 0; i < fSize[dim]; i++) {
+        cell_index[dim] = i;
+        Coord(cell_index,coord);
+        QwMessage << "bin " << i << ", coord " << coord[dim] << ": "
+            << double(cover[i]) / double(total[i]) * 100 << "%"<< QwLog::endl;
+      }
+      delete[] cell_index;
+      delete[] coord;
+      delete[] cover;
+      delete[] total;
+    }
 
     /// Return true if the coordinate is in bounds
     bool InBounds(const coord_t* coord) const {
@@ -188,15 +252,40 @@ class QwInterpolator {
     };
     /// Set a set of values at a coordinate (false if not possible)
     bool Set(const coord_t* coord, const value_t* value) {
-      unsigned int cell_index[fNDim];
+      unsigned int* cell_index = new unsigned int[fNDim];
       Nearest(coord, cell_index); // nearest cell
       if (! Check(cell_index)) return false; // out of bounds
-      unsigned int linear_index = Index(cell_index);
-      if (! Check(linear_index)) return false; // out of bounds
-      for (unsigned int i = 0; i < value_n; i++)
-        fValues[i][linear_index] = value[i];
-      fEntries++;
-      return true;
+      bool status = true;
+      bool written = false;
+      unsigned int linear_index;
+      for (unsigned int dim = 0; dim < fNDim; dim++) {
+        // skip dimensions that are not wrapped around
+        if (fWrap[dim] == 0) continue;
+        // FIXME only one wrapping coordinate correctly supported in Set()
+        if ((cell_index[dim] < fWrap[dim]) ||
+            (fSize[dim] - cell_index[dim] - 1 < fWrap[dim])) {
+          // there are equivalent grid points
+          for (size_t wrap = 0; wrap < fWrap[dim]; wrap++) {
+            // at the minimum
+            cell_index[dim] = wrap;
+            linear_index = Index(cell_index);
+            status &= Set(linear_index, value);
+            // at the maximum
+            cell_index[dim] = fSize[dim] - wrap - 1;
+            linear_index = Index(cell_index);
+            status &= Set(linear_index, value);
+            // set flag
+            written = true;
+          }
+        }
+      }
+      if (not written) {
+        // this is an unambiguous grid point
+        linear_index = Index(cell_index);
+        status &= Set(linear_index, value);
+      }
+      delete[] cell_index;
+      return status;
     };
 
     /// Set a single value at a linearized index (false if not possible)
@@ -209,7 +298,7 @@ class QwInterpolator {
       if (! Check(linear_index)) return false; // out of bounds
       for (unsigned int i = 0; i < value_n; i++)
         fValues[i][linear_index] = value[i];
-      fEntries++;
+      fCurrentEntries++;
       return true;
     };
 
@@ -221,9 +310,7 @@ class QwInterpolator {
     /// Set a set of values at a grid point (false if out of bounds)
     bool Set(const unsigned int* cell_index, const value_t* value) {
       if (! Check(cell_index)) return false; // out of bounds
-      for (unsigned int i = 0; i < value_n; i++)
-        fValues[i][Index(cell_index)] = value[i];
-      return true;
+      return Set(Index(cell_index),value);
     };
     // @}
 
@@ -276,7 +363,7 @@ class QwInterpolator {
     /// \brief Write the grid as text
     bool WriteText(std::ostream& stream) const;
     /// Write the grid to text file
-    bool WriteTextFile(std::string filename) const {
+    bool WriteTextFile(const std::string& filename) const {
       std::ofstream file(filename.c_str());
       if (! file.is_open()) return false;
       WriteText(file);
@@ -291,7 +378,7 @@ class QwInterpolator {
     /// \brief Read the grid from text
     bool ReadText(std::istream& stream);
     /// Read the grid from text file
-    bool ReadTextFile(std::string filename) {
+    bool ReadTextFile(const std::string& filename) {
       std::ifstream file(filename.c_str());
       if (! file.is_open()) return false;
       if (! ReadText(file)) return false;
@@ -299,9 +386,9 @@ class QwInterpolator {
       return true;
     };
     /// \brief Write the grid values to binary file
-    bool WriteBinaryFile(std::string filename) const;
+    bool WriteBinaryFile(const std::string& filename) const;
     /// \brief Read the grid values from binary file
-    bool ReadBinaryFile(std::string filename);
+    bool ReadBinaryFile(const std::string& filename);
     // @}
 
 
@@ -309,9 +396,11 @@ class QwInterpolator {
     // @{
     /// Return the linearized index based on the point coordinates (unchecked)
     unsigned int Index(const coord_t* coord) const {
-      unsigned int cell_index[fNDim];
+      unsigned int* cell_index = new unsigned int[fNDim];
       Cell(coord, cell_index);
-      return Index(cell_index);
+      unsigned int index = Index(cell_index);
+      delete[] cell_index;
+      return index;
     };
 
     /// \brief Return the linearized index based on the cell indices (unchecked)
@@ -338,11 +427,12 @@ class QwInterpolator {
 
     /// Return the cell index closest to the coordinate (could be above) (unchecked)
     void Nearest(const coord_t* coord, unsigned int* cell_index) const {
-      double cell_local[fNDim];
+      double* cell_local = new double[fNDim];
       Cell(coord, cell_index, cell_local);
       // Loop over all dimensions and add one if larger than 0.5
       for (unsigned int dim = 0; dim < fNDim; dim++)
         if (cell_local[dim] > 0.5) cell_index[dim]++;
+      delete[] cell_local;
     };
 
     /// \brief Linear interpolation (unchecked)
@@ -389,8 +479,8 @@ inline bool QwInterpolator<value_t,value_n>::Linear(
 	value_t* value) const
 {
   // Get cell and local normalized coordinates
-  unsigned int cell_index[fNDim];
-  double cell_local[fNDim];
+  unsigned int* cell_index = new unsigned int[fNDim];
+  double* cell_local = new double[fNDim];
   Cell(coord, cell_index, cell_local);
   // Initialize to zero
   for (unsigned int i = 0; i < value_n; i++) value[i] = 0.0;
@@ -407,6 +497,8 @@ inline bool QwInterpolator<value_t,value_n>::Linear(
     for (unsigned int i = 0; i < value_n; i++)
       value[i] += fac * neighbor[i];
   }
+  delete[] cell_index;
+  delete[] cell_local;
   return true;
 }
 
@@ -421,9 +513,11 @@ inline bool QwInterpolator<value_t,value_n>::NearestNeighbor(
 	value_t* value) const
 {
   // Get nearest cell
-  unsigned int cell_index[fNDim];
+  unsigned int* cell_index = new unsigned int[fNDim];
   Nearest(coord, cell_index);
-  return Get(Index(cell_index), value);
+  bool status = Get(Index(cell_index), value);
+  delete[] cell_index;
+  return status;
 }
 
 /**
@@ -435,7 +529,7 @@ template <class value_t, unsigned int value_n>
 inline bool QwInterpolator<value_t,value_n>::Check(const coord_t* coord) const
 {
   for (unsigned int dim = 0; dim < fNDim; dim++)
-    if (coord[dim] < fMin[dim] || coord[dim] > fMax[dim])
+    if (fWrap[dim] == 0 && (coord[dim] < fMin[dim] || coord[dim] > fMax[dim]))
       return false;
   // Otherwise
   return true;
@@ -529,6 +623,8 @@ inline void QwInterpolator<value_t,value_n>::Cell(
   frac_part = modf(norm_coord, &int_part);
   cell_local = frac_part;
   cell_index = static_cast<int>(int_part); // cast to integer
+  // Wrap index
+  if (fWrap[dim] > 0) cell_index %= (fSize[dim] - fWrap[dim]);
 }
 
 /**
@@ -559,8 +655,9 @@ inline void QwInterpolator<value_t,value_n>::Cell(
 	unsigned int* cell_index) const
 {
   // Get cell index and ignore local coordinates
-  double cell_local[fNDim];
+  double* cell_local = new double[fNDim];
   Cell(coord, cell_index, cell_local);
+  delete[] cell_local;
 }
 
 /**
@@ -604,9 +701,10 @@ inline void QwInterpolator<value_t,value_n>::Coord(
 	const unsigned int linear_index,
 	coord_t* coord) const
 {
-  unsigned int cell_index[fNDim];
+  unsigned int* cell_index = new unsigned int[fNDim];
   Cell(linear_index,cell_index);
   Coord(cell_index,coord);
+  delete[] cell_index;
 }
 
 /**
@@ -616,6 +714,8 @@ inline void QwInterpolator<value_t,value_n>::Coord(
 template <class value_t, unsigned int value_n>
 inline bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& stream) const
 {
+  // Informational message
+  QwMessage << "Writing text stream: ";
   // Write the dimensions
   stream << fNDim << "\t" << value_n << std::endl;
   // Write the grid parameters
@@ -623,12 +723,22 @@ inline bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& stream) con
     stream << dim << "\t" << fMin[dim] << "\t" << fMax[dim] << "\t" << fStep[dim] << std::endl;
   // Write the values
   stream << fValues[0].size() << std::endl;
-  for (unsigned int index = 0; index < fValues[0].size(); index++) {
-    for (unsigned int i = 0; i < value_n; i++)
+  unsigned int entries = fValues[0].size();
+  for (unsigned int index = 0; index < entries; index++) {
+    // Write values
+    for (unsigned int i = 0; i < value_n; i++) {
       stream << fValues[i][index] << "\t";
+    }
     stream << std::endl;
+    // Progress bar
+    if (index % (entries / 10) == 0)
+      QwMessage << index / (entries / 100) << "%" << QwLog::flush;
+    if (index % (entries / 10) != 0
+     && index % (entries / 40) == 0)
+      QwMessage << "." << QwLog::flush;
   }
   stream << "end" << std::endl;
+  QwMessage << QwLog::endl;
   return true;
 }
 
@@ -640,6 +750,8 @@ inline bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& stream) con
 template <class value_t, unsigned int value_n>
 inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
 {
+  // Informational message
+  QwMessage << "Reading text stream: ";
   // Read the dimensions
   unsigned int n;
   stream >> fNDim >> n;
@@ -652,13 +764,23 @@ inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
   // Read the grid values
   unsigned int entries;
   stream >> entries;
-  for (unsigned int index = 0; index < entries; index++)
-    for (unsigned int i = 0; i < value_n; i++)
+  for (unsigned int index = 0; index < entries; index++) {
+    // Read values
+    for (unsigned int i = 0; i < value_n; i++) {
       stream >> fValues[i][index];
-  QwMessage << QwLog::endl;
+    }
+    // Progress bar
+    if (index % (entries / 10) == 0)
+      QwMessage << index / (entries / 100) << "%" << QwLog::flush;
+    if (index % (entries / 10) != 0
+     && index % (entries / 40) == 0)
+      QwMessage << "." << QwLog::flush;
+  }
   // Check for end of file
   std::string end;
   stream >> end;
+  // Informational message
+  QwMessage << QwLog::endl;
   if (end == "end") return true;
   else return false;
 }
@@ -675,10 +797,12 @@ inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
  * @return True if written successfully
  */
 template <class value_t, unsigned int value_n>
-inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string filename) const
+inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(const std::string& filename) const
 {
   std::ofstream file(filename.c_str(), std::ios::binary);
   if (! file.is_open()) return false;
+  // Informational message
+  QwMessage << "Writing binary file: ";
   // Write template parameters
   uint32_t n = value_n; // uint32_t has length of 32 bits on any system
   uint32_t size = sizeof(value_t);
@@ -694,12 +818,20 @@ inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string filenam
   }
   uint32_t entries = fValues[0].size();
   file.write(reinterpret_cast<const char*>(&entries),sizeof(entries));
-  for (unsigned int index = 0; index < fValues[0].size(); index++) {
+  for (unsigned int index = 0; index < entries; index++) {
+    // Write values
     for (unsigned int i = 0; i < value_n; i++) {
       value_t value = fValues[i][index];
       file.write(reinterpret_cast<const char*>(&value),sizeof(value));
     }
+    // Progress bar
+    if (index % (entries / 10) == 0)
+      QwMessage << index / (entries / 100) << "%" << QwLog::flush;
+    if (index % (entries / 10) != 0
+     && index % (entries / 40) == 0)
+      QwMessage << "." << QwLog::flush;
   }
+  QwMessage << QwLog::endl;
   file.close();
   return true;
 }
@@ -710,12 +842,14 @@ inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(std::string filenam
  * @return True if read successfully
  */
 template <class value_t, unsigned int value_n>
-inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string filename)
+inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(const std::string& filename)
 {
   std::ifstream file(filename.c_str(), std::ios::binary);
   if (! file.is_open()) return false;
+  // Informational message
+  QwMessage << "Reading binary file: ";
   // Go to end and store length (could also use std::ios::ate)
-  file.seekg(0, std::ios::end); unsigned int length = file.tellg();
+  file.seekg(0, std::ios::end);
   // Go to begin and start reading template parameters
   file.seekg(0, std::ios::beg);
   uint32_t n, size;
@@ -739,9 +873,19 @@ inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(std::string filename
   file.read(reinterpret_cast<char*>(&maximum_entries),sizeof(maximum_entries));
   if (maximum_entries != fMaximumEntries) return false; // not expected number of entries
   int value_size = sizeof(value_t);
-  for (unsigned int index = 0; index < fValues[0].size(); index++)
-    for (unsigned int i = 0; i < value_n; i++)
+  unsigned int entries = fValues[0].size();
+  for (unsigned int index = 0; index < entries; index++) {
+    // Read values
+    for (unsigned int i = 0; i < value_n; i++) {
       file.read((char*)(&fValues[i][index]),value_size);
+    }
+    // Progress bar
+    if (index % (entries / 10) == 0)
+      QwMessage << index / (entries / 100) << "%" << QwLog::flush;
+    if (index % (entries / 10) != 0
+     && index % (entries / 40) == 0)
+      QwMessage << "." << QwLog::flush;
+  }
   QwMessage << QwLog::endl;
   file.close();
   return true;

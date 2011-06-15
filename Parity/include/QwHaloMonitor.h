@@ -18,10 +18,8 @@
 #include "QwParameterFile.h"
 #include "QwScaler_Channel.h"
 
-// Qweak database headers
-#define MYSQLPP_SSQLS_NO_STATICS
-#include "QwSSQLS.h"
-#include "QwDatabase.h"
+// Forward declarations
+class QwDBInterface;
 
 /*****************************************************************
 *  Class: QwHaloMonitor handles the halo counters. This use
@@ -61,22 +59,46 @@ class  QwHaloMonitor : public VQwDataElement{
   void Ratio(QwHaloMonitor &numer, QwHaloMonitor &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
+  void ScaleRawRate(Double_t Offset){
+    fHalo_Counter.ScaleRawRate(Offset);
+  };
 
+  void     SetPedestal(Double_t ped) { fHalo_Counter.SetPedestal(ped); };
+  void     SetCalibrationFactor(Double_t factor) { fHalo_Counter.SetCalibrationFactor(factor); };
   void AccumulateRunningSum(const QwHaloMonitor& value);
   void CalculateRunningAverage();
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
   Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Bool_t ApplyHWChecks();
-  void   ConstructHistograms(TDirectory *folder, TString &prefix);
-  void   FillHistograms();
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
+    fHalo_Counter.SetSingleEventCuts(errorflag,min,max,stability);
+  };
+  void SetEventCutMode(Int_t bcuts){
+    fHalo_Counter.SetEventCutMode(bcuts);
+  }
+
+
+  void  ConstructHistograms(TDirectory *folder, TString &prefix);
+  void  FillHistograms();
+  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
+  VQwDataElement* GetScaler(){
+    return &fHalo_Counter;
+  };
+
+  const VQwDataElement* GetScaler() const{
+    return const_cast<QwHaloMonitor*>(this)->GetScaler();
+  };
+
+  Double_t GetValue() {
+    return fHalo_Counter.GetValue();
+  }
   void  Copy(VQwDataElement *source);
 
   void  PrintValue() const;

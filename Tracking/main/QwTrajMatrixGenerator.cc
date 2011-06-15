@@ -10,15 +10,13 @@
 *//*-------------------------------------------------------------------------*/
 
 // Qweak Tracking headers
-#include "Det.h"
 #include "QwTrajMatrix.h"
 
-int main (int argc, char* argv[]) {
-
+int main (int argc, char* argv[])
+{
     QwTrajMatrix trajmatrix;
     trajmatrix.GenerateTrajMatrix();
 
     return 0;
-
 }
 

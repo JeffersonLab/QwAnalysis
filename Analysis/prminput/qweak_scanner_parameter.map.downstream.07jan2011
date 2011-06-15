@@ -1,0 +1,43 @@
+!
+! this file contains configuration parameters for the scanner
+!
+! units: kHz
+HelicityFrequency = 1.0
+!
+! Scanner detector home position in Qweak global coordinates, units: cm
+HomePositionX = 52.6041
+!HomePositionY = -319.1622
+HomePositionY = -326.7822
+
+! converting factor of 'position_sensor outputs to scanner location
+! X: 1611 ticks/cm, 8062 ticks/cm
+! This could be replaced by an interplation table
+!
+! units: cm/V, minus sign, assume linear
+Cal_Factor_VQWK_X = -40.355773
+Cal_Factor_VQWK_Y =  -6.960852
+!
+! units: cm/channel, minus sign, assume linear
+Cal_Factor_QDC_X = -0.07724393635
+Cal_Factor_QDC_Y = -0.01179202279
+!
+! These are the outputs of position sensor measured by VQWK when scanner is homed, units: Volts
+Voltage_Offset_X = 3.77563144
+Voltage_Offset_Y = 2.4375
+!
+! These are the averaged channel number (pedestal) for position measured by V792
+! when the scanner is homed, units: channel
+Channel_Offset_X = 1421
+Channel_Offset_Y = 1154
+!
+! name of chanel, pedestal, gain
+! if this is a Triumf ADC enter the hardware sum pedestal
+! the pedestal will be subtracted to the data
+power_adc     ,   0 ,  1
+pos_x_adc     ,   0 ,  1
+pos_y_adc     ,   0 ,  1
+power_vqwk    ,   0 ,  1
+pos_x_vqwk    ,   0 ,  1
+pos_y_vqwk    ,   0 ,  1
+!END
+ 

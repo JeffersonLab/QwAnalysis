@@ -43,13 +43,13 @@ class QwGEMCluster: public VQwTrackingElement, public QwObjectCounter<QwGEMClust
     };
 
     // Accessors for strip mean and sigma
-    const double GetStripMean() const { return fStripMean; };
-    const double GetStripSigma() const { return fStripSigma; };
-    const double GetStripVariance() const { return fStripVariance; };
+    double GetStripMean() const { return fStripMean; };
+    double GetStripSigma() const { return fStripSigma; };
+    double GetStripVariance() const { return fStripVariance; };
 
     // Accessors for cluster position and uncertainty
-    const double GetPosition() const { return fPosition; };
-    const double GetUncertainty() const { return fUncertainty; };
+    double GetPosition() const { return fPosition; };
+    double GetUncertainty() const { return fUncertainty; };
 
     //! \brief Output stream operator
     friend ostream& operator<< (ostream& stream, const QwGEMCluster& cluster);

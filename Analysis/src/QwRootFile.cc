@@ -1,6 +1,9 @@
 #include "QwRootFile.h"
-#include "QwHistogramHelper.h"
 #include "QwRunCondition.h"
+#include "TH1.h"
+
+#include <unistd.h>
+#include <cstdio>
 
 std::string QwRootFile::fDefaultRootFileStem = "Qweak_";
 
@@ -12,7 +15,9 @@ const Int_t QwRootFile::kMaxMapFileSize = 0x10000000; // 256 MiB
  * Constructor with relative filename
  */
 QwRootFile::QwRootFile(const TString& run_label)
-: fEnableMapFile(kFALSE),fUpdateInterval(400)
+  : fRootFile(0), fMakePermanent(0),
+    fMapFile(0), fEnableMapFile(kFALSE),
+    fUpdateInterval(400)
 {
   // Process the configuration options
   ProcessOptions(gQwOptions);
@@ -23,10 +28,10 @@ QwRootFile::QwRootFile(const TString& run_label)
     // // get hostname and user name
     // char host_string[127];
     // char user_string[127];
-    
+
     // gethostname(host_string, 127);
     // getlogin_r (user_string, 127);
-    
+
     // TString host_name = host_string;
     // TString user_name = user_string;
     TString mapfilename = "/dev/shm/";
@@ -39,7 +44,7 @@ QwRootFile::QwRootFile(const TString& run_label)
     // }
 
     mapfilename += "/QwMemMapFile.map";
- 
+
     fMapFile = TMapFile::Create(mapfilename,"RECREATE", kMaxMapFileSize, "RealTime Producer File");
 
     if (not fMapFile) {
@@ -54,8 +59,24 @@ QwRootFile::QwRootFile(const TString& run_label)
 
   } else {
 
-    TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
-    rootfilename += Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
+    //TString rootfilename = getenv_safe_TString("QW_ROOTFILES");
+    TString hostname = gSystem -> HostName();
+    TString rootfilename;
+    TString localRootFileName = getenv("QW_ROOTFILES_LOCAL");
+    if( localRootFileName.CompareTo("") == 0 ) {
+        rootfilename = getenv_safe_TString("QW_ROOTFILES");
+    } else {
+        rootfilename = localRootFileName;
+    }
+
+    // Use a probably-unique temporary file name.
+    pid_t pid = getpid();
+
+    fPermanentName = rootfilename
+      + Form("/%s%s.root", fRootFileStem.Data(), run_label.Data());
+    rootfilename += Form("/%s%s.%s.%d.root",
+			 fRootFileStem.Data(), run_label.Data(),
+			 hostname.Data(), pid);
     fRootFile = new TFile(rootfilename, "RECREATE", "QWeak ROOT file");
     if (! fRootFile) {
       QwError << "ROOT file " << rootfilename
@@ -71,7 +92,7 @@ QwRootFile::QwRootFile(const TString& run_label)
           gQwOptions.GetArgv(),
           run_condition_name
       );
-	
+
       fRootFile -> WriteObject(
           run_condition.Get(),
           run_condition.GetName()
@@ -80,7 +101,7 @@ QwRootFile::QwRootFile(const TString& run_label)
 
     fRootFile->SetCompressionLevel(fCompressionLevel);
   }
-};
+}
 
 
 /**
@@ -88,6 +109,10 @@ QwRootFile::QwRootFile(const TString& run_label)
  */
 QwRootFile::~QwRootFile()
 {
+  // Keep the file on disk if any trees or histograms have been filled.
+  // Also respect any other requests to keep the file around.
+  if (!fMakePermanent) fMakePermanent = HasAnyFilled();
+
   // Close the map file
   if (fMapFile) {
     fMapFile->Close();
@@ -95,11 +120,39 @@ QwRootFile::~QwRootFile()
     fMapFile = 0;
   }
 
-  // Close the ROOT file
+  // Close the ROOT file.
+  // Rename if permanence is requested, remove otherwise
   if (fRootFile) {
+    TString rootfilename = fRootFile->GetName();
+
     fRootFile->Close();
     delete fRootFile;
     fRootFile = 0;
+
+    int err;
+    const char* action;
+    if (fMakePermanent) {
+      action = " rename ";
+      err = rename( rootfilename.Data(), fPermanentName.Data() );
+    } else {
+      action = " remove ";
+      err = remove( rootfilename.Data() );
+    }
+    // It'd be proper to "extern int errno" and strerror() here,
+    // but that doesn't seem very C++-ish.
+    if (err)
+      QwWarning << "Couldn't" << action << rootfilename.Data() << QwLog::endl;
+    else
+      QwMessage << "Was able to" << action << rootfilename.Data() << QwLog::endl;
+  }
+
+  // Delete Qweak ROOT trees
+  std::map< const std::string, std::vector<QwRootTree*> >::iterator map_iter;
+  std::vector<QwRootTree*>::iterator vec_iter;
+  for (map_iter = fTreeByName.begin(); map_iter != fTreeByName.end(); map_iter++) {
+    for (vec_iter = map_iter->second.begin(); vec_iter != map_iter->second.end(); vec_iter++) {
+      delete *vec_iter;
+    }
   }
 }
 
@@ -116,56 +169,62 @@ void QwRootFile::DefineOptions(QwOptions &options)
 
   // Define the memory map option
   options.AddOptions()
-    ("enable-mapfile", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("enable-mapfile", po::value<bool>()->default_bool_value(false),
      "enable output to memory-mapped file");
 
   // Define the histogram and tree options
-  options.AddOptions()
-    ("disable-trees", po::value<bool>()->default_value(false)->zero_tokens(),
-     "disable output to trees");
-  options.AddOptions()
-    ("disable-histos", po::value<bool>()->default_value(false)->zero_tokens(),
-     "disable output to histograms");
+  options.AddOptions("ROOT output options")
+    ("disable-trees", po::value<bool>()->default_bool_value(false),
+     "disable output to all trees");
+  options.AddOptions("ROOT output options")
+    ("disable-histos", po::value<bool>()->default_bool_value(false),
+     "disable output to all histograms");
 
   // Define the helicity window versus helicity pattern options
-  options.AddOptions()
-    ("disable-mps", po::value<bool>()->default_value(false)->zero_tokens(),
-     "disable helicity window output (block, hwsum)");
-  options.AddOptions()
-    ("disable-hel", po::value<bool>()->default_value(false)->zero_tokens(),
-     "disable helicity pattern output (yield, asymmetry)");
+  options.AddOptions("ROOT output options")
+    ("disable-mps-tree", po::value<bool>()->default_bool_value(false),
+     "disable helicity window output");
+  options.AddOptions("ROOT output options")
+    ("disable-hel-tree", po::value<bool>()->default_bool_value(false),
+     "disable helicity pattern output");
+  options.AddOptions("ROOT output options")
+    ("disable-burst-tree", po::value<bool>()->default_bool_value(false),
+     "disable burst tree");
+  options.AddOptions("ROOT output options")
+    ("disable-slow-tree", po::value<bool>()->default_bool_value(false),
+     "disable slow control tree");
 
   // Define the tree output prescaling options
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("num-mps-accepted-events", po::value<int>()->default_value(0),
      "number of accepted consecutive MPS events");
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("num-mps-discarded-events", po::value<int>()->default_value(0),
      "number of discarded consecutive MPS events");
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("num-hel-accepted-events", po::value<int>()->default_value(0),
      "number of accepted consecutive pattern events");
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("num-hel-discarded-events", po::value<int>()->default_value(0),
      "number of discarded consecutive pattern events");
-  options.AddOptions()
+  options.AddOptions("ROOT output options")
     ("mapfile-update-interval", po::value<int>()->default_value(400),
      "Events between a map file update");
 
   // Define the autoflush and autosave option (default values by ROOT)
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("autoflush", po::value<int>()->default_value(0),
      "TTree autoflush");
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("autosave", po::value<int>()->default_value(300000000),
      "TTree autosave");
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("basket-size", po::value<int>()->default_value(16000),
      "TTree basket size");
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("circular-buffer", po::value<int>()->default_value(0),
      "TTree circular buffer");
-  options.AddOptions("ROOT performance")
+  options.AddOptions("ROOT performance options")
     ("compression-level", po::value<int>()->default_value(1),
      "TFile compression level");
 }
@@ -190,8 +249,10 @@ void QwRootFile::ProcessOptions(QwOptions &options)
 
   // Options 'disable-mps' and 'disable-hel' for disabling
   // helicity window and helicity pattern output
-  if (options.GetValue<bool>("disable-mps"))  DisableTree("Mps_Tree");
-  if (options.GetValue<bool>("disable-hel"))  DisableTree("Hel_Tree");
+  if (options.GetValue<bool>("disable-mps-tree"))  DisableTree("Mps_Tree");
+  if (options.GetValue<bool>("disable-hel-tree"))  DisableTree("Hel_Tree");
+  if (options.GetValue<bool>("disable-burst-tree"))  DisableTree("Burst_Tree");
+  if (options.GetValue<bool>("disable-slow-tree")) DisableTree("Slow_Tree");
 
   // Options 'num-accepted-events' and 'num-discarded-events' for
   // prescaling of the tree output
@@ -217,6 +278,39 @@ void QwRootFile::ProcessOptions(QwOptions &options)
   }
   fAutoSave  = options.GetValue<int>("autosave");
   return;
-};
+}
 
+/**
+ * Determine whether the rootfile object has any non-empty trees or
+ * histograms.
+ */
+Bool_t QwRootFile::HasAnyFilled(void) {
+  return this->HasAnyFilled(fRootFile);
+}
+Bool_t QwRootFile::HasAnyFilled(TDirectory* d) {
+  if (!d) return false;
+  TList* l = d->GetListOfKeys();
 
+  for( int i=0; i < l->GetEntries(); ++i) {
+    const char* name = l->At(i)->GetName();
+    TObject* obj = d->FindObjectAny(name);
+
+    // Objects which can't be found don't count.
+    if (!obj) continue;
+
+    // Lists of parameter files don't count.
+    if ( TString(name).Contains("parameter_file") ) continue;
+
+    // Recursively check subdirectories.
+    if (obj->IsA()->InheritsFrom( "TDirectory" ))
+      if (this->HasAnyFilled( (TDirectory*)obj )) return true;
+
+    if (obj->IsA()->InheritsFrom( "TTree" ))
+      if ( ((TTree*) obj)->GetEntries() ) return true;
+
+    if (obj->IsA()->InheritsFrom( "TH1" ))
+      if ( ((TH1*) obj)->GetEntries() ) return true;
+  }
+
+  return false;
+}

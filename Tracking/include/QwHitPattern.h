@@ -53,7 +53,8 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
       Reset();
     };
     /// \brief Copy constructor
-    QwHitPattern(const QwHitPattern& pattern) {
+    QwHitPattern(const QwHitPattern& pattern)
+    : VQwTrackingElement(pattern),QwObjectCounter<QwHitPattern>(pattern) {
       *this = pattern;
     };
 
@@ -74,11 +75,11 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
       fPatternHash =  new unsigned int[fBinWidth];
     };
     /// \brief Get the hit pattern depth
-    const unsigned int GetNumberOfLevels() const { return fLevels; };
+    unsigned int GetNumberOfLevels() const { return fLevels; };
     /// \brief Get the number of bins
-    const unsigned int GetNumberOfBins() const { return fBins; };
+    unsigned int GetNumberOfBins() const { return fBins; };
     /// \brief Get the finest bin width
-    const unsigned int GetFinestBinWidth() const { return fBinWidth; };
+    unsigned int GetFinestBinWidth() const { return fBinWidth; };
 
     /// \brief Reset the contents of the hit pattern
     void Reset() {
@@ -98,7 +99,7 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
     void SetVDCHitList(double detectorwidth, QwHitContainer* hitlist);
 
     /// \brief Has this pattern any hit?
-    const bool HasHits() const {
+    bool HasHits() const {
       if (fPattern == 0) return false;
       else return fPattern[fBins-2] == 1;
     };

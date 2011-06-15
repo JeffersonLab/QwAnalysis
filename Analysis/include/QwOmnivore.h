@@ -36,7 +36,7 @@ class QwOmnivore: public VQwSubsystem_t {
     /// Report the number of events failed due to HW and event cut failures
     Int_t GetEventcutErrorCounters() { return 0; };
     /// Return the error flag to the main routine
-    Int_t GetEventcutErrorFlag() { return 0; };
+    UInt_t GetEventcutErrorFlag() { return 0; };
 
     /// Get the hit list
     //void  GetHitList(QwHitContainer& grandHitContainer) { };
@@ -107,6 +107,10 @@ class QwOmnivore: public VQwSubsystem_t {
     void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values) { };
     /// Fill the tree vector
     void FillTreeVector(std::vector<Double_t> &values) const { };
+    /// Construct branch
+    void ConstructBranch(TTree*, TString&) { };
+    /// Construct branch
+    void ConstructBranch(TTree*, TString&, QwParameterFile&) { };
 
     /// \brief Update the running sums for devices
     void AccumulateRunningSum(VQwSubsystem* value) { };

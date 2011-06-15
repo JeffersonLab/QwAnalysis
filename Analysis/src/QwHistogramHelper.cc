@@ -25,13 +25,13 @@ void QwHistogramHelper::DefineOptions(QwOptions &options)
 {
   // Define the histogram and tree options
   options.AddOptions()
-    ("enable-tree-trim", po::value<bool>()->default_value(false)->zero_tokens(),
+    ("enable-tree-trim", po::value<bool>()->default_bool_value(false),
      "enable trimmed trees");
 
   options.AddOptions()(
 		       "tree-trim-file",  
 		       po::value<string>()->default_value("tree_trim.in"), 
-		       "trimmed tree file name, default of tree_trim.in"
+		       "trimmed tree file name"
 		       );
   
   // What about QwTracking ? 
@@ -39,10 +39,10 @@ void QwHistogramHelper::DefineOptions(QwOptions &options)
   options.AddOptions()(
 		       "histo-trim-file", 
 		       po::value<string>()->default_value("parity_hist.in"),
-		       "trimmed histo file name, default of parity_hist.in"
+		       "trimmed histo file name"
 		       );
 
-};
+}
 
 void QwHistogramHelper::ProcessOptions(QwOptions &options)
 {
@@ -65,7 +65,7 @@ void QwHistogramHelper::ProcessOptions(QwOptions &options)
     LoadTreeParamsFromFile(options.GetValue<string>("tree-trim-file"));
   if (options.HasValue("histo-trim-file"))
     LoadHistParamsFromFile(options.GetValue<string>("histo-trim-file"));
-};
+}
 
 
 const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromLine(QwParameterFile &mapstr)
@@ -119,7 +119,7 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromLine(QwP
     }
   }
   return tmpstruct;
-};
+}
 
 
 
@@ -153,7 +153,7 @@ void  QwHistogramHelper::LoadHistParamsFromFile(const std::string& filename)
 
   // Sort the histogram parameter definitions
   sort(fHistParams.begin(), fHistParams.end());
-};
+}
 
 
 void  QwHistogramHelper::PrintHistParams() const 
@@ -162,7 +162,7 @@ void  QwHistogramHelper::PrintHistParams() const
        h != fHistParams.end(); ++h) {
     QwMessage << *h << QwLog::endl;
   }
-};
+}
 
 
 void  QwHistogramHelper::LoadTreeParamsFromFile(const std::string& filename)
@@ -234,7 +234,7 @@ void  QwHistogramHelper::LoadTreeParamsFromFile(const std::string& filename)
 
   //exit(1);
 
-};
+}
 
 
 const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromList(const TString& histname)
@@ -286,10 +286,10 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromList(con
     exit(1);
   }
   return tmpstruct;
-};
+}
 
 
-const Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string& devicename)
+Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string& devicename)
 {
   Int_t matched;
   matched=0;
@@ -313,9 +313,9 @@ const Bool_t QwHistogramHelper::MatchDeviceParamsFromList(const std::string& dev
     return kTRUE;
   else
     return kFALSE;
-};
+}
 
-const Bool_t QwHistogramHelper::MatchVQWKElementFromList(
+Bool_t QwHistogramHelper::MatchVQWKElementFromList(
     const std::string& subsystemname,
     const std::string& moduletype,
     const std::string& elementname)
@@ -356,7 +356,7 @@ const Bool_t QwHistogramHelper::MatchVQWKElementFromList(
     return kTRUE;
   else
     return kFALSE;
-};
+}
 
 
 const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromFile(
@@ -404,7 +404,7 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromFile(
     exit(1);
   }
   return tmpstruct;
-};
+}
 
 Bool_t QwHistogramHelper::DoesMatch(const TString& s, const TRegexp& wildcard)
 {
@@ -419,7 +419,7 @@ Bool_t QwHistogramHelper::DoesMatch(const TString& s, const TRegexp& wildcard)
     return kTRUE;
   } else
     return kFALSE;
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -427,7 +427,7 @@ TH2F* QwHistogramHelper::Construct2DHist(const TString& name_title)
 {
   HistParams tmpstruct = GetHistParamsFromList(name_title);
   return Construct2DHist(tmpstruct);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -443,7 +443,7 @@ TH2F* QwHistogramHelper::Construct2DHist(const std::string& inputfile, const TSt
 {
   HistParams tmpstruct = GetHistParamsFromFile(inputfile, name_title);
   return Construct2DHist(tmpstruct);
-};
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -470,7 +470,7 @@ TH1F* QwHistogramHelper::Construct1DHist(const QwHistogramHelper::HistParams &pa
   //  if(params.min!=fInvalidNumber) h1->SetMinimum(params.min);
   //  if(params.max!=fInvalidNumber) h1->SetMinimum(params.max);
   return h1;
-};
+}
 
 TH2F* QwHistogramHelper::Construct2DHist(const QwHistogramHelper::HistParams &params)
 {
@@ -490,4 +490,4 @@ TH2F* QwHistogramHelper::Construct2DHist(const QwHistogramHelper::HistParams &pa
   //  if (params.min != fInvalidNumber) h2->SetMinimum(params.min);
   //  if (params.max != fInvalidNumber) h2->SetMinimum(params.max);
   return h2;
-};
+}

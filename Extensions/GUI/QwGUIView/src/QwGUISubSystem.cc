@@ -12,10 +12,18 @@ QwGUISubSystem::QwGUISubSystem(const TGWindow *p, const TGWindow *main,
   dParent            = (TGWindow*)p;
   dMain              = (TGWindow*)main;
   dWinCnt            = 0;
+  dEventMode         = kFalse;
+  dStartEvent        = 0; 
+  dNumEvents         = 0;
+
   strcpy(dMainName,mainname);
   strcpy(dThisName,objName);
   dROOTCont = NULL;
   dDatabaseCont = NULL;
+  dRunNumber = 0;
+  dRunType = Parity; //Default ... this parameter ought not to be changed anywhere
+                     //other than in the appropriate setter function, which should
+                     //only be called from the QwGUIMain::OpenRootFile ...
 
   TabMenuEntryChecked(kFalse);
 
@@ -115,12 +123,10 @@ void QwGUISubSystem::SetDataContainer(RDataContainer *cont)
 
       sprintf(dMiscbuffer2,"Sub system %s message: Received new database data\n",GetName());
     }
-  }
-
-  SetLogMessage(dMiscbuffer2, kTrue);
-  OnNewDataContainer(cont);
+    SetLogMessage(dMiscbuffer2, kTrue);
+    OnNewDataContainer(cont);
+  }  
 }
-
 
 void QwGUISubSystem::SetLogMessage(const char *buffer, Bool_t tStamp)
 {

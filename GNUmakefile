@@ -67,7 +67,7 @@ CD       := cd
 CHMOD    := chmod
 DIRNAME  := dirname
 ECHO     := echo
-FIND     := find
+FIND     := find -L
 GCC      := g++
       # This must be the GNU compiler collection : explicit use of
       # flag '-M' for automatic search for dependencies
@@ -543,7 +543,7 @@ SPACE = ' '# <--- Space character, for clarity
 ############################
 ############################
 
-FILTER_OUT_TRASH    = $(SED) '/~$$/d' | $(SED) '/\#/d' | $(SED) '/JUNK/d'
+FILTER_OUT_TRASH    = $(SED) '/~$$/d ; /\#/d ; /JUNK/d'
 # FILTER_OUT_TRASH pipes stream and filters out '~', '.#' and '#*#'
 # typical editor backup file names
 
@@ -661,7 +661,7 @@ myevio_lib:
 		| $(ADD_ANTISLASH) \
 		| $(FILTER_OUT_FOREIGN_DEPS) >> .auxDepends
 	@$(ECHO) >> .auxDepends
-	@$(ECHO) $(TAB)$(LIBTOOL) $(SOFLAGS) $(LDFLAGS) '$$^' -o $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
+	@$(ECHO) $(TAB)$(LIBTOOL) $(if $(findstring $(CXX),$(LIBTOOL)),$(CXXFLAGS) $(SOFLAGS) $(LDFLAGS)) '$$^' -o $(QW_LIB)/libQw$(DllSuf) | $(INTO_RELATIVE_PATH) >> .auxDepends
 	@$(ECHO) $(TAB)@$(ECHO) >> .auxDepends
 	@$(ECHO) >> .auxDepends
 	@for file in `$(CAT) 2>&1 .auxMainFiles`; \
@@ -696,8 +696,8 @@ myevio_lib:
 .auxLinkDefFiles : .auxDictFiles
 	@$(RM) .tmp1 .tmp2
 	@$(ECHO) Generating $@
-	@$(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(INTO_RELATIVE_PATH) | $(FILTER_OUT_LIBRARYDIR_DEPS) | $(FILTER_OUT_DOXYGEN) | $(SED) '/\.svn/d;/LinkDef/d;/Dict/d;s/\$(IncSuf)//' > .tmp1
-	@$(FIND) $(QWANALYSIS) | $(GREP) LinkDef | $(INTO_RELATIVE_PATH) | $(FILTER_OUT_LIBRARYDIR_DEPS) | $(FILTER_OUT_DOXYGEN) | $(SED) '/\.svn/d;s/LinkDef\$(IncSuf)//'> .tmp2
+	@$(FIND) $(QWANALYSIS) | $(GREP) '\$(IncSuf)' | $(INTO_RELATIVE_PATH) | $(FILTER_OUT_LIBRARYDIR_DEPS) | $(FILTER_OUT_DOXYGEN) | $(SED) '\@/\.svn/@d; /LinkDef/d;/Dict/d;s/\$(IncSuf)//' > .tmp1
+	@$(FIND) $(QWANALYSIS) | $(GREP) LinkDef | $(INTO_RELATIVE_PATH) | $(FILTER_OUT_LIBRARYDIR_DEPS) | $(FILTER_OUT_DOXYGEN) | $(SED) '\@/\.svn/@d;s/LinkDef\$(IncSuf)//'> .tmp2
 	@for file in `$(CAT) .tmp1`; \
 	do \
 	if [ "`$(GREP) $$file .tmp2`" != "" ]; \
@@ -834,7 +834,7 @@ myevio_lib:
 
 .auxSrcFiles: .auxExeFiles
 	@$(ECHO) Generating $@
-	@for file in $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;/\.svn/d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH)); \
+	@for file in $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;\@/\.svn/@d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH)); \
 	do \
 	case `$(ECHO) $$file | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'` in ${foreach exe,$(shell $(CAT) $<),$(exe) ${shell ${ECHO} ")"} $(ECHO) $$file | $(INTO_RELATIVE_PATH) >> $@;;} \
 	esac; \
@@ -844,7 +844,8 @@ myevio_lib:
 
 .auxExeFiles:
 	@$(ECHO) Generating $@
-	@$(ECHO) $(filter $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;/\.svn/d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'),$(EXES)) > $@
+#	$(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;\@/\.svn/@d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'
+	@$(ECHO) $(filter $(shell $(FIND) $(QWANALYSIS) | $(SED) '/\/main\//!d;\@/\.svn/@d;/CVS/d;/\$(SrcSuf)/!d' | $(FILTER_OUT_TRASH) | $(SED) 's/.*\/\([A-Za-z0-9_]*\)\$(SrcSuf)/\1/;y/ABCDEFGHIJKLMNOPQRSTUVWXYZ/abcdefghijklmnopqrstuvwxyz/'),$(EXES)) > $@
 
 
 .ADD:
@@ -868,9 +869,9 @@ QwSVNVersion:
 	@if [ "$(QWANA_SVN_REVISION)" != "$(QWANA_SVN_REVISION_OLD)" ] ; \
 	then \
 		$(ECHO) "Generating $(QWANA_VERSION_H) with revision string, $(QWANA_SVN_REVISION)" ; \
-		$(ECHO) 'const char *QWANA_SVN_REVISION = "'$(QWANA_SVN_REVISION)'";' > $(QWANA_VERSION_H); \
-		$(ECHO) 'const char *QWANA_SVN_URL = "'$(QWANA_SVN_URL)'";' >> $(QWANA_VERSION_H); \
-		$(ECHO) 'const char *QWANA_SVN_LASTCHANGEDREVISION = "'$(QWANA_SVN_LASTREVISION)'";' >> $(QWANA_VERSION_H); \
+		$(ECHO) '#define QWANA_SVN_REVISION "'$(QWANA_SVN_REVISION)'"' > $(QWANA_VERSION_H); \
+		$(ECHO) '#define QWANA_SVN_URL "'$(QWANA_SVN_URL)'"' >> $(QWANA_VERSION_H); \
+		$(ECHO) '#define QWANA_SVN_LASTCHANGEDREVISION "'$(QWANA_SVN_LASTREVISION)'"' >> $(QWANA_VERSION_H); \
 	else \
 		$(ECHO) "\`$(QWANA_VERSION_H)' is up to date"; \
 	fi;

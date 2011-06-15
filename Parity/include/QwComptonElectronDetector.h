@@ -19,7 +19,7 @@
 
 // System headers
 #include <vector>
-
+  
 // ROOT headers
 #include <TTree.h>
 #include "TFile.h"
@@ -35,7 +35,7 @@
 #include "QwVQWK_Channel.h"
 
 
-class QwComptonElectronDetector: public VQwSubsystemParity {
+class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<QwComptonElectronDetector> {
 
   public:
 
@@ -54,7 +54,6 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Bool_t SingleEventCuts();
     Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    void  PrintDetectorID() const;
 
     void  ClearEventData();
     void  ProcessEvent();
@@ -79,35 +78,37 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     UInt_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
-    void AccumulateRunningSum(VQwSubsystem* value) { };
-    void CalculateRunningAverage() { };
+    void AccumulateRunningSum(VQwSubsystem* value);
+    void CalculateRunningAverage();
 
+    using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
     void  DeleteHistograms();
 
+    using VQwSubsystem::ConstructTree;
     void  ConstructTree(TDirectory *folder, TString &prefix);
     void  FillTree();
     void  DeleteTree();
 
+    using VQwSubsystem::ConstructBranchAndVector;
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  ConstructBranch(TTree *tree, TString& prefix) { };
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     void  FillTreeVector(std::vector<Double_t> &values) const;
     void  FillDB(QwDatabase *db, TString datatype){};
 
-    const size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
+    size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
     void SetNumberOfEvents(UInt_t nevents) {
      fNumberOfEvents = nevents;
     };
     void Copy(VQwSubsystem *source);
     VQwSubsystem*  Copy();
     Bool_t Compare(VQwSubsystem *source);
-    void Print() const;
+    void PrintValue() const;
 
     void SetCalibrationFactor(const Double_t factor) { fCalibrationFactor = factor; };
-    const Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
-
+    Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
 
 
   protected:
@@ -116,21 +117,17 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     /// Expert tree fields
     Int_t fTree_fNEvents;
 
-    static const Int_t NModules;
-    static const Int_t NPlanes;
-    static const Int_t StripsPerModule;
-    static const Int_t StripsPerPlane;
-
     std::vector< std::vector <Int_t> > fSubbankIndex;
 
-
-    /// List of V1495 accumulation mode strips
-    std::vector< std::vector <Double_t> > fStrips;
-    std::vector< std::vector <Double_t> > fStripsRaw;
+    /// 1st dimension:NPlanes;2nd dimension: NStrips;
+    /// List of V1495 accumulation mode strips    
+    std::vector< std::vector <Int_t> > fStrips;
+    std::vector< std::vector <Int_t> > fStripsRaw;
     /// List of V1495 single event mode strips
-    std::vector< std::vector <Double_t> > fStripsEv;
-    std::vector< std::vector <Double_t> > fStripsRawEv;
-
+    std::vector< std::vector <Int_t> > fStripsEv;
+    std::vector< std::vector <Int_t> > fStripsRawEv; 
+    /// List of V1495 scaler counts
+    std::vector< std::vector <Int_t> > fStripsRawScal;
 
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
@@ -162,9 +159,15 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Int_t fTreeArrayNumEntries;
     Int_t fTreeArrayIndex;
     UInt_t fNumberOfEvents; //! Number of triggered events
+    Int_t eff23;
+    Int_t effall;
+    Double_t effedet;
+//    Double_t edet_acum_sum[4][96];
+    
+    Int_t fGoodEventCount;
 
     /// Mapping from ROC/subbank to channel type
-    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single, kScaler };
+    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single,  kScaler, kV1495Scaler};
     std::map< Int_t, ChannelType_t > fMapping;
 
     /// List of scaler channels
@@ -172,6 +175,11 @@ class QwComptonElectronDetector: public VQwSubsystemParity {
     Scaler_Mapping_t fScaler_Mapping;
     std::vector< QwSIS3801D24_Channel > fScaler;
 
+        // Assign static const member fields
+    static const Int_t NModules = 3;///number of slave modules(!!change to 2?)
+    static const Int_t NPlanes = 4;///number of diamond detector planes
+    static const Int_t StripsPerModule = 32;///number of strips in each v1495 slave module
+    static const Int_t StripsPerPlane = 96;///total number of strips in each detecor
 };
 
 #endif // __QwComptonElectronDetector__

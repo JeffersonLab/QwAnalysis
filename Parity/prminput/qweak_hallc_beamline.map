@@ -7,7 +7,7 @@
 ROC=1
 Bank=0x102
 !same sample size for ADCs in a given bank
-!sample_size==480
+!sample_size=480
 !for 960Hz
 sample_size=464  
 !
@@ -145,6 +145,9 @@ sample_size==480
 !ADC0
    VQWK, 0, 0,  bcm,  QWK_LINEPHASE
    VQWK, 0, 1,  bcm,  QWK_INVERT_TStable
+   VQWK, 0, 2,  raster,  QWK_raster_X
+   VQWK, 0, 3,  raster,  QWK_raster_Y
+   VQWK, 1, 6,  raster,  QWK_raster_sumXY
 !These are cavity BPM1 signals (IPM3H04)
    VQWK, 1, 0,  bcm,  QWK_BCM5_Ix
    VQWK, 1, 1,  bcm,  QWK_BCM5_Iy
@@ -153,6 +156,9 @@ sample_size==480
    VQWK, 1, 3,  bcm,  QWK_BCM6_Ix
    VQWK, 1, 4,  bcm,  QWK_BCM6_Iy
    VQWK, 1, 5,  bcm,  QWK_BCM6_Phase
+!Analog signal for BCM17, when used.
+   VQWK, 1, 7,  bcm,  QWK_BCM17
+
 !
 !
 !**************************************************************************
@@ -169,6 +175,7 @@ Bank=0x6103
    SCALER, 0, 19, halomonitor, sca_unser	
    SCALER, 0, 20, halomonitor, sca_bcm5
    SCALER, 0, 21, halomonitor, sca_bcm6
+   SCALER, 0, 22, halomonitor, sca_habcm
 
    SCALER, 0, 29, halomonitor, sca_31MHz
    SCALER, 0, 30, halomonitor, sca_4MHz
@@ -199,14 +206,59 @@ end=combinedbcm
 
 
 begin=combinedbpm
-name=qwk_target
-!name		type 	      q      x         y    
- QWK_BPM3H07A,  bpmstripline, 1.0,  420.43,   324.53 
- QWK_BPM3H07B,  bpmstripline, 1.0,  532.87,   408.29
- QWK_BPM3H07C,  bpmstripline, 1.0,  371.82,   308.33
- QWK_BPM3H09,   bpmstripline, 1.0,  313.04,   278.71
- QWK_BPM3H09B,  bpmstripline, 1.0,  337.29,   330.10
+name=qwk_target	
+!name           type          q      x          y    
+ QWK_BPM3H07A,  bpmstripline, 1.0,   1.0,   1.0 
+ QWK_BPM3H07B,  bpmstripline, 1.0,   1.0,   1.0
+ QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0
+ QWK_BPM3H09,   bpmstripline, 1.0,   1.0,   1.0
+ QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
 end=combinedbpm
+
+
+begin=combinedbpm
+name=qwk_combo7a
+!name           type          q      x          y  
+ QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0 
+ QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+end=combinedbpm
+
+begin=combinedbpm
+name=qwk_combo7b
+!name           type          q      x          y 
+ QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0 
+ QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+end=combinedbpm
+
+begin=combinedbpm
+name=qwk_combo7c
+!name           type          q      x          y  
+ QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0 
+ QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+end=combinedbpm
+
+begin=combinedbpm
+name=qwk_combo8
+!name           type          q      x          y 
+ QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0 
+ QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+end=combinedbpm
+
+
+begin=combinedbpm
+name=qwk_combo9
+!name           type          q      x          y   
+ QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0 
+ QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+end=combinedbpm
+
+begin=combinedbpm
+name=qwk_combo9b
+!name           type          q      x          y   
+ QWK_BPM3H07C,  bpmstripline, 1.0,   1.0,   1.0 
+ QWK_BPM3H09B,  bpmstripline, 1.0,   1.0,   1.0
+end=combinedbpm
+
 
 ! The X and Y weights were obtained using run 5842 taken with 48-43uA on LH2.
 

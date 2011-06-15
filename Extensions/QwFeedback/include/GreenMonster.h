@@ -102,9 +102,9 @@ public:
 private:
   Bool_t fVerbose;
 
-  Bool_t fUseCrate[4];
-  TString* fCrateNames[4];
-  Int_t fCrateNumbers[4];
+  Bool_t fUseCrate[5];
+  TString* fCrateNames[5];
+  Int_t fCrateNumbers[5];
 
   // objects for scan tabpage
   Int_t fSCN_TABID;

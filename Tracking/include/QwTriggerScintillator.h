@@ -12,7 +12,6 @@
 #include "TTree.h"
 
 #include "VQwSubsystemTracking.h"
-#include "QwDetectorInfo.h"
 
 #include "MQwV775TDC.h"
 //#include "MQwF1TDC.h"
@@ -25,7 +24,7 @@
 
 ///
 /// \ingroup QwTracking
-class QwTriggerScintillator: public VQwSubsystemTracking {
+class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<QwTriggerScintillator> {
   /******************************************************************
    *  Class: QwTriggerScintillator
    *
@@ -38,10 +37,6 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadGeometryDefinition(TString mapfile);
-  Int_t GetDetectorInfo(std::vector< std::vector< QwDetectorInfo > > & detector_info) {
-    detector_info.insert(detector_info.end(),fDetectorInfo.begin(),fDetectorInfo.end()) ;
-    return 1;
-  };
   Int_t LoadInputParameters(TString mapfile){return 0;};
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -51,10 +46,12 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
 
   void  ProcessEvent();
 
+  using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
   void  DeleteHistograms();
 
+  using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values)const;
 
@@ -65,7 +62,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
   QwTriggerScintillator& operator=  (const QwTriggerScintillator &value);
 
  protected:
-  enum EModuleType{EMPTY = -1, V775_TDC = 0, V792_ADC, F1TDC, SIS3801} fCurrentType;
+  EQwModuleType fCurrentType;
 
   Bool_t fDEBUG;
 
@@ -81,7 +78,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
   Int_t RegisterSubbank(const UInt_t bank_id);
   Int_t RegisterSlotNumber(const UInt_t slot_id); // Tells this object that it will decode data from the current bank
 
-  const QwTriggerScintillator::EModuleType RegisterModuleType(TString moduletype);
+  EQwModuleType RegisterModuleType(TString moduletype);
 
   Int_t GetModuleIndex(size_t bank_index, size_t slot_num) const;
 
@@ -92,7 +89,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
 
   Int_t LinkChannelToSignal(const UInt_t chan, const TString &name);
 
-  Int_t FindSignalIndex(const QwTriggerScintillator::EModuleType modtype, const TString &name) const;
+  Int_t FindSignalIndex(const EQwModuleType modtype, const TString &name) const;
 
 
  protected:
@@ -118,19 +115,21 @@ class QwTriggerScintillator: public VQwSubsystemTracking {
 
   std::vector< std::vector<Int_t> > fModuleIndex;  //  Module index, indexed by bank_index and slot_number
 
-  std::vector< enum EModuleType > fModuleTypes;
-  std::vector< std::vector< std::pair<Int_t, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
+  std::vector< EQwModuleType > fModuleTypes;
+  std::vector< std::vector< std::pair< EQwModuleType, Int_t> > > fModulePtrs; // Indexed by Module_index and Channel; gives the plane and wire assignment.
 
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;
   std::vector<QwSIS3801_Module*> fSCAs;
 
-  std::vector< std::vector< QwDetectorInfo > > fDetectorInfo; // Indexed by package, plane this contains detector geometry information for each region;
-
   // For reference time substraction
   Int_t reftime_slotnum;
   Int_t reftime_channum;
   Double_t reftime;
+
+  Bool_t IsF1ReferenceChannel (Int_t slot, Int_t chan) { 
+    return ( slot == reftime_slotnum &&  chan == reftime_channum) ;
+  };
 
   Int_t tdc_slot_number;
   Int_t tdc_chan_number;

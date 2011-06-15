@@ -32,6 +32,16 @@
  *  \brief one F1TDC configuration and reference signal(s) holder
  *
  */
+
+#if __STDC_VERSION__ < 199901L
+# if __GNUC__ >= 2
+#  define __func__ __FUNCTION__
+# else
+#  define __func__ "<unknown>"
+# endif
+#endif
+
+
 class QwF1TDC :  public TObject
 {
 
@@ -41,41 +51,39 @@ class QwF1TDC :  public TObject
   ~QwF1TDC();
   friend std::ostream& operator<<(std::ostream& os, const QwF1TDC &f1tdc);
 
-  const Int_t  GetROCNumber()          const {return fROC;};
-  const Int_t  GetSlotNumber()         const {return fSlot;};
-  const Int_t  GetChannelNumber()      const {return fChannelNumber;};
+  Int_t  GetROCNumber()          const {return fROC;};
+  Int_t  GetSlotNumber()         const {return fSlot;};
+  Int_t  GetChannelNumber()      const {return fChannelNumber;};
 
-  const Bool_t IsReferenceSlot()       const {return fReferenceSlotFlag;};
-  const Bool_t IsNormResolution()      const {return fF1TDCNormResFlag;};
-  const Bool_t IsSyncMode()            const {return fF1TDCSyncFlag;};
+  Bool_t IsReferenceSlot()       const {return fReferenceSlotFlag;};
+  Bool_t IsNormResolution()      const {return fF1TDCNormResFlag;};
+  Bool_t IsSyncMode()            const {return fF1TDCSyncFlag;};
 
-  const UInt_t GetF1TDC_refcnt()       const {return fF1TDC_refcnt;};
-  const UInt_t GetF1TDC_hsdiv()        const {return fF1TDC_hsdiv;};
-  const UInt_t GetF1TDC_refclkdiv()    const {return fF1TDC_refclkdiv;};
-  const UInt_t GetF1TDC_trigwin()      const {return fF1TDC_trigwin;};
-  const UInt_t GetF1TDC_triglat()      const {return fF1TDC_triglat;};
+  UInt_t GetF1TDC_refcnt()       const {return fF1TDC_refcnt;};
+  UInt_t GetF1TDC_hsdiv()        const {return fF1TDC_hsdiv;};
+  UInt_t GetF1TDC_refclkdiv()    const {return fF1TDC_refclkdiv;};
+  UInt_t GetF1TDC_trigwin()      const {return fF1TDC_trigwin;};
+  UInt_t GetF1TDC_triglat()      const {return fF1TDC_triglat;};
 
-  const Double_t GetF1TDC_tframe()     const {return fF1TDC_tframe_ns;};
-  const Double_t GetF1TDC_full_range() const {return fF1TDC_full_range_ns;};
-  const Double_t GetF1TDC_window()     const {return fF1TDC_window_ns;};
-  const Double_t GetF1TDC_latency()    const {return fF1TDC_latency_ns;}; 
-  const Double_t GetF1TDC_resolution() const {return fF1TDC_resolution_ns;};
-  const Double_t GetF1TDC_bin_size()   const {return fF1TDC_resolution_ns;};
+  Double_t GetF1TDC_tframe()     const {return fF1TDC_tframe_ns;};
+  Double_t GetF1TDC_full_range() const {return fF1TDC_full_range_ns;};
+  Double_t GetF1TDC_window()     const {return fF1TDC_window_ns;};
+  Double_t GetF1TDC_latency()    const {return fF1TDC_latency_ns;}; 
+  Double_t GetF1TDC_resolution() const {return fF1TDC_resolution_ns;};
+  Double_t GetF1TDC_bin_size()   const {return fF1TDC_resolution_ns;};
 
-  const Double_t GetF1TDC_t_offset()   const {return fF1TDC_t_offset;};
+  Double_t GetF1TDC_t_offset()   const {return fF1TDC_t_offset;};
 
-  const Double_t GetF1TDC_trig_t_offset()   const {return fF1TDC_trig_t_offset;};
-  const Double_t GetF1TDC_trig_resolution() const {return fF1TDC_trig_resolution_ns;};
+  Double_t GetF1TDC_trig_t_offset()   const {return fF1TDC_trig_t_offset;};
+  Double_t GetF1TDC_trig_resolution() const {return fF1TDC_trig_resolution_ns;};
 
-  const Int_t   GetF1TDCIndex()        const {return fF1TDCIndex;};
-  const Int_t   GetF1BankIndex()       const {return fF1BankIndex;};
+  Int_t   GetF1TDCIndex()        const {return fF1TDCIndex;};
+  Int_t   GetF1BankIndex()       const {return fF1BankIndex;};
   const TString GetF1SystemName()      const {return fSystemName;};
 
-  void SetROCNumber       (const Int_t roc)          {fROC = roc;};
-  
-
-  void SetSlotNumber      (const Int_t slot)         {fSlot = slot;};
-  void SetReferenceSlot   (const Bool_t reflag)      {fReferenceSlotFlag = reflag;};
+  void SetROCNumber       (const Int_t roc)     {fROC = roc;};
+  void SetSlotNumber      (const Int_t slot)    {fSlot = slot;};
+  void SetReferenceSlot   (const Bool_t reflag) {fReferenceSlotFlag = reflag;};
 
 
   void SetF1TDCIndex  (const Int_t tdc_index)   {fF1TDCIndex = tdc_index;};
@@ -87,34 +95,51 @@ class QwF1TDC :  public TObject
 
   void PrintF1TDCBuffer();
   void PrintF1TDCConfigure();
+
+  void PrintChannelErrorCounter(Int_t channel);
   void PrintErrorCounter();
+  void PrintTotalErrorCounter();
+
   void PrintContact();
 
-  TString GetErrorCounter ();
+  TString GetChannelErrorCounter(Int_t channel);
+  TString GetErrorCounter();
+  TString GetTotalErrorCounter();
+
+  void AddSEU(Int_t channel) {fF1TDC_SEU_counter[channel]++;};
+  void AddSYN(Int_t channel) {fF1TDC_SYN_counter[channel]++;};
+  void AddEMM(Int_t channel) {fF1TDC_EMM_counter[channel]++;};
+  void AddTFO(Int_t channel) {fF1TDC_TFO_counter[channel]++;};
+  void AddRLF(Int_t channel) {fF1TDC_RLF_counter[channel]++;};
+  void AddHFO(Int_t channel) {fF1TDC_HFO_counter[channel]++;};
+  void AddOFO(Int_t channel) {fF1TDC_OFO_counter[channel]++;};
+  void AddFDF(Int_t channel) {fF1TDC_FDF_counter[channel]++;};
+  void AddS30(Int_t channel) {fF1TDC_S30_counter[channel]++;};
 
 
-  void AddSEU() {fF1TDC_SEU_counter++;};
-  void AddSYN() {fF1TDC_SYN_counter++;};
-  void AddEMM() {fF1TDC_EMM_counter++;};
-  void AddTFO() {fF1TDC_TFO_counter++;};
-  void AddRLF() {fF1TDC_RLF_counter++;};
-  void AddHFO() {fF1TDC_HFO_counter++;};
-  void AddOFO() {fF1TDC_OFO_counter++;};
-  void AddFDF() {fF1TDC_FDF_counter++;};
-  void AddS30() {fF1TDC_S30_counter++;};
+  UInt_t GetSEU(Int_t channel) const {return fF1TDC_SEU_counter[channel];};
+  UInt_t GetSYN(Int_t channel) const {return fF1TDC_SYN_counter[channel];};
+  UInt_t GetEMM(Int_t channel) const {return fF1TDC_EMM_counter[channel];};
+  UInt_t GetTFO(Int_t channel) const {return fF1TDC_TFO_counter[channel];};
 
-  
-  const UInt_t GetSEU() const {return fF1TDC_SEU_counter;};
-  const UInt_t GetSYN() const {return fF1TDC_SYN_counter;};
-  const UInt_t GetEMM() const {return fF1TDC_EMM_counter;};
-  const UInt_t GetTFO() const {return fF1TDC_TFO_counter;};
+  UInt_t GetRLF(Int_t channel) const {return fF1TDC_RLF_counter[channel];};   // Resolution Lock Fail couter
+  UInt_t GetHFO(Int_t channel) const {return fF1TDC_HFO_counter[channel];};   // Hit    Fifo Overflow counter
+  UInt_t GetOFO(Int_t channel) const {return fF1TDC_OFO_counter[channel];};   // Output Fifo Overflow coutner;
 
-  const UInt_t GetRLF() const {return fF1TDC_RLF_counter;};   // Resolution Lock Fail couter
-  const UInt_t GetHFO() const {return fF1TDC_HFO_counter;};   // Hit    Fifo Overflow counter
-  const UInt_t GetOFO() const {return fF1TDC_OFO_counter;};   // Output Fifo Overflow coutner;
+  UInt_t GetFDF(Int_t channel) const {return fF1TDC_FDF_counter[channel];};
+  UInt_t GetS30(Int_t channel) const {return fF1TDC_S30_counter[channel];};
 
-  const UInt_t GetFDF() const {return fF1TDC_FDF_counter;};
-  const UInt_t GetS30() const {return fF1TDC_S30_counter;};
+  UInt_t GetTotalSEU();
+  UInt_t GetTotalSYN();
+  UInt_t GetTotalEMM();
+  UInt_t GetTotalTFO();
+
+  UInt_t GetTotalRLF();
+  UInt_t GetTotalHFO();
+  UInt_t GetTotalOFO();
+
+  UInt_t GetTotalFDF();
+  UInt_t GetTotalS30();
 
 
   void ResetCounters();
@@ -177,18 +202,17 @@ class QwF1TDC :  public TObject
   // Do we have?
   // Monday, September 13 14:55:10 EDT 2010, jhlee
 
-  UInt_t   fF1TDC_SEU_counter;  // Single Event Upset counter
-  UInt_t   fF1TDC_EMM_counter;  // Event number MisMatch counter
-  UInt_t   fF1TDC_SYN_counter;  // SYNc  issue counter
-  UInt_t   fF1TDC_TFO_counter;  // Trigger Fifo Overflow counter
+  UInt_t *fF1TDC_SEU_counter;  // Single Event Upset counter
+  UInt_t *fF1TDC_EMM_counter;  // Event number MisMatch counter
+  UInt_t *fF1TDC_SYN_counter;  // SYNc  issue counter
+  UInt_t *fF1TDC_TFO_counter;  // Trigger Fifo Overflow counter
 
 
-  UInt_t   fF1TDC_RLF_counter;   // Resolution Lock Fail couter
-  UInt_t   fF1TDC_HFO_counter;   // Hit    Fifo Overflow counter
-  UInt_t   fF1TDC_OFO_counter;   // Output Fifo Overflow coutner;
-
-  UInt_t   fF1TDC_FDF_counter;   // Fake Data Flag counter 
-  UInt_t   fF1TDC_S30_counter;   // Slot 30 counter
+  UInt_t *fF1TDC_RLF_counter;   // Resolution Lock Fail couter
+  UInt_t *fF1TDC_HFO_counter;   // Hit    Fifo Overflow counter
+  UInt_t *fF1TDC_OFO_counter;   // Output Fifo Overflow coutner;
+  UInt_t *fF1TDC_FDF_counter;   // Fake Data Flag counter 
+  UInt_t *fF1TDC_S30_counter;   // Slot 30 counter
 
   Bool_t   fReferenceSlotFlag; //! 
   TArrayD  *fReferenceSignals; //!
@@ -211,6 +235,7 @@ class QwF1TDC :  public TObject
   static const Int_t fMaxF1TDCChannelNumber;
   
 
+  UInt_t GetTotal(UInt_t* error_counter);
 
   ClassDef(QwF1TDC,1);
 
@@ -251,7 +276,7 @@ class QwF1TDContainer :  public TObject
   const TString GetSystemName() const {return fSystemName;};
 
   void AddQwF1TDC(QwF1TDC *in);
-  void Print();
+  void Print(const Option_t* options = 0) const;
 
   Int_t              GetSize()         const {return fNQwF1TDCs;};
   Int_t              Size()            const {return fNQwF1TDCs;};
@@ -263,23 +288,22 @@ class QwF1TDContainer :  public TObject
   QwF1TDC* GetF1TDCwithIndex(Int_t tdc_index);
   QwF1TDC* GetF1TDCwithBankIndexSLOT(Int_t bank_index, Int_t slot);
 
-  const Double_t GetF1TDCResolution();
-
-  const Int_t GetF1TDCChannelNumber();
+  Double_t GetF1TDCResolution();
+  Int_t GetF1TDCChannelNumber();
   const TH2F* GetF1TDCErrorHist();
 
   
-  void AddSYN(Int_t roc, Int_t slot);
-  void AddEMM(Int_t roc, Int_t slot);
-  void AddSEU(Int_t roc, Int_t slot);
-  void AddTFO(Int_t roc, Int_t slot);
+  void AddSYN(Int_t roc, Int_t slot, Int_t channel);
+  void AddEMM(Int_t roc, Int_t slot, Int_t channel);
+  void AddSEU(Int_t roc, Int_t slot, Int_t channel);
+  void AddTFO(Int_t roc, Int_t slot, Int_t channel);
 
-  void AddRLF(Int_t roc, Int_t slot);
-  void AddHFO(Int_t roc, Int_t slot);
-  void AddOFO(Int_t roc, Int_t slot);
+  void AddRLF(Int_t roc, Int_t slot, Int_t channel);
+  void AddHFO(Int_t roc, Int_t slot, Int_t channel);
+  void AddOFO(Int_t roc, Int_t slot, Int_t channel);
 
-  void AddFDF(Int_t roc, Int_t slot);
-  void AddS30(Int_t roc, Int_t slot);
+  void AddFDF(Int_t roc, Int_t slot, Int_t channel);
+  void AddS30(Int_t roc, Int_t slot, Int_t channel);
 
  
   Bool_t  CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words);
@@ -311,14 +335,14 @@ private:
   Bool_t fLocalF1DecodeDebug;
 
   Bool_t fLocalDebug;
-  Bool_t fLocalDebug2;
+  Bool_t fLocalF1ErrorDebug;
   
   TList* GetErrorSummary();
 
   TString PrintNoF1TDC(Int_t roc, Int_t slot);
   TString PrintNoF1TDC(Int_t tdc_index);
   Bool_t  CheckRegisteredF1(Int_t roc, Int_t slot);
-  const Double_t GetF1TDCTriggerRollover(); 
+  Double_t GetF1TDCTriggerRollover(); 
 
   Double_t fF1TDCTriggerRollover; 
 

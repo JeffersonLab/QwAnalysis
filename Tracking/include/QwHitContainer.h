@@ -37,7 +37,7 @@ class QwHitContainer: public std::list<QwHit>, public TObject {
   using QwHitArray::end;
 
 
-  void Clear() {
+  void Clear(const Option_t* __attribute__((unused)) option = 0) {
     this->QwHitArray::clear();
   };
 
@@ -70,7 +70,7 @@ class QwHitContainer: public std::list<QwHit>, public TObject {
   QwHitContainer* GetSubList_Dir (EQwRegionID region, EQwDetectorPackage package, EQwDirectionID dir);
 
 
-  void Print ();
+  void Print (const Option_t* option = 0) const;
   friend std::ostream& operator<< (std::ostream& stream, const QwHitContainer& hitlist);
 
 

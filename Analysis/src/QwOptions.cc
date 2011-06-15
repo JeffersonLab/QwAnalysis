@@ -6,10 +6,16 @@
  * \date   2009-12-01
  */
 
+#if __STDC_VERSION__ < 199901L
+# if __GNUC__ >= 2
+#  define __func__ __FUNCTION__
+# else
+#  define __func__ "<unknown>"
+# endif
+#endif
+
+
 #include "QwOptions.h"
-#include "QwRootFile.h"
-#include "QwParameterFile.h"
-#include "QwHistogramHelper.h"
 
 // System headers
 #include <iostream>
@@ -26,9 +32,16 @@ QwOptions gQwOptions;
 
 // Qweak headers
 #include "QwLog.h"
+#include "QwParameterFile.h"
+#include "QwSVNVersion.h"
+
+// Qweak objects with default options
 #include "QwSubsystemArray.h"
 #include "QwEventBuffer.h"
+#include "QwEPICSEvent.h"
 #include "QwDatabase.h"
+#include "QwRootFile.h"
+#include "QwHistogramHelper.h"
 
 // Initialize the static command line arguments to zero
 int QwOptions::fArgc = 0;
@@ -46,9 +59,11 @@ QwOptions::QwOptions()
   fConfigFiles.clear();
 
   // Declare the default options
-  AddDefaultOptions()("usage",  "print this help message");
+  AddDefaultOptions()("usage", "print this help message");
   AddDefaultOptions()("help,h", "print this help message");
-  AddDefaultOptions()("config,c", po::value<std::string>(), "configuration file to read");
+  AddDefaultOptions()("version,V", "print the version string");
+  AddDefaultOptions()("config,c", po::value<std::string>(), "read ONLY this config file\n(will override default config files)");
+  AddDefaultOptions()("add-config,a", po::value<std::string>(), "read ALSO this config file\n(will keep the default config files)");
 }
 
 /**
@@ -66,6 +81,8 @@ void QwOptions::DefineOptions(QwOptions& options)
   QwDatabase::DefineOptions(options);
   // Define ROOT file options
   QwRootFile::DefineOptions(options);
+  // Define EPICS event options
+  QwEPICSEvent::DefineOptions(options);
   // Define subsystem array options
   QwSubsystemArray::DefineOptions(options);
   // Define histogram helper options
@@ -101,14 +118,18 @@ void QwOptions::SetCommandLine(int argc, char* argv[])
   fArgc = argc;
   if (fArgv) delete[] fArgv;
   fArgv = new char*[fArgc];
+  QwDebug << "Arguments:";
   for (int i = 0; i < argc; i++) {
     fArgv[i] = argv[i];
+    QwDebug << " " << fArgv[i];
   }
+  QwDebug << QwLog::endl;
   fParsed = false;
 
   // Add default config file based on file name
   if (fArgc > 0) {
     std::string path = fArgv[0];
+    QwDebug << "Invocation name: " << path << QwLog::endl;
     // Find file name from full path
     size_t pos = path.find_last_of('/');
     if (pos != std::string::npos)
@@ -138,7 +159,7 @@ void QwOptions::CombineOptions()
     fEnvironmentOptions.add(*fOptionBlock.at(i));
     fConfigFileOptions.add(*fOptionBlock.at(i));
   }
-};
+}
 
 /**
  * Parse the command line arguments for options and warn when encountering
@@ -174,17 +195,30 @@ void QwOptions::ParseCommandLine()
   // Notify of new options
   po::notify(fVariablesMap);
 
-  // If option help/usage, print help text.
+  // If option help/usage, print help text
   if (fVariablesMap.count("help") || fVariablesMap.count("usage")) {
     Usage();
     exit(0);
   }
 
+  // If option version, print version string
+  if (fVariablesMap.count("version")) {
+    Version();
+    exit(0);
+  }
+
   // If a configuration file is specified, load it.
   if (fVariablesMap.count("config") > 0) {
-    QwWarning << "Using configuration file "
+    QwWarning << "Overriding the default configuration files with "
+	      << "user-defined configuration file "
               << fVariablesMap["config"].as<std::string>() << QwLog::endl;
     SetConfigFile(fVariablesMap["config"].as<std::string>());
+  }
+  // If a configuration file is specified, load it.
+  if (fVariablesMap.count("add-config") > 0) {
+    QwWarning << "Adding user-defined configuration file "
+              << fVariablesMap["add-config"].as<std::string>() << QwLog::endl;
+    AddConfigFile(fVariablesMap["add-config"].as<std::string>());
   }
 }
 
@@ -197,6 +231,7 @@ void QwOptions::ParseEnvironment()
     po::store(po::parse_environment(fEnvironmentOptions, "Qw"), fVariablesMap);
   } catch (std::exception const& e) {
     QwWarning << e.what() << " while parsing environment variables" << QwLog::endl;
+    exit(10);
   }
   po::notify(fVariablesMap);
 }
@@ -230,6 +265,7 @@ void QwOptions::ParseConfigFile()
 #if BOOST_VERSION < 103500
       QwWarning << "The entire configuration file was ignored!" << QwLog::endl;
 #endif
+      exit(10);
     }
     po::notify(fVariablesMap);
   }
@@ -247,6 +283,16 @@ void QwOptions::Usage()
   QwMessage << QwLog::endl;
   for (size_t i = 0; i < fOptionBlock.size(); i++)
     QwMessage << *(fOptionBlock.at(i)) << QwLog::endl;
+}
+
+
+/**
+ * Print version string
+ */
+void QwOptions::Version()
+{
+  QwMessage << "QwAnalysis revision " << QWANA_SVN_REVISION << QwLog::endl;
+  QwMessage << QWANA_SVN_URL << QwLog::endl;
 }
 
 

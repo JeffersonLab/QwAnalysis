@@ -18,6 +18,7 @@
 
 #include "Rtypes.h"
 #include "TString.h"
+#define CODA_EXIT  -2     // Bad error, we should probably exit.
 #define CODA_ERROR -1     // Generic error return code
 #define CODA_OK  0        // Means return is ok.
 #define MAXEVLEN 80000    // Maximum size of events
@@ -30,12 +31,12 @@ public:
 
    THaCodaData();
    virtual ~THaCodaData();
-   virtual int codaOpen(TString filename)=0;
-   virtual int codaOpen(TString filename, TString session) {return CODA_OK;};
-   virtual int codaOpen(TString filename, TString session, int mode) {return CODA_OK;};
-   virtual int codaClose()=0;
-   virtual int codaRead()=0; 
-   virtual int *getEvBuffer() { return evbuffer; };     
+   virtual int codaOpen(TString filename) = 0;
+   virtual int codaOpen(TString __attribute__((__unused__)) filename, TString __attribute__((__unused__)) session) {return CODA_OK;};
+   virtual int codaOpen(TString __attribute__((__unused__)) filename, TString __attribute__((__unused__)) session, int __attribute__((__unused__)) mode) {return CODA_OK;};
+   virtual int codaClose() = 0;
+   virtual int codaRead() = 0;
+   virtual int *getEvBuffer() { return evbuffer; };
    virtual int getBuffSize() const { return MAXEVLEN; };
    virtual int status() const { return fStatus; };
 
@@ -47,7 +48,7 @@ private:
 protected:
 
    TString filename;
-   int *evbuffer;                    // Raw data     
+   int *evbuffer;                    // Raw data
    int fStatus;                      // Status from CODA calls
 
 #ifndef STANDALONE

@@ -50,6 +50,7 @@ enum EQwGUIDatabaseHistogramIDs {
 // The list of BPMs in the  Hall C beamline including the virtual target bpm. Please don't change this. 
 const char *QwGUIHallCBeamline::HallC_BPMS[HCLINE_BPMS]=
   {
+
     "bpm3c07","bpm3c07a","bpm3c08","bpm3c11","bpm3c12","bpm3c14","bpm3c16","bpm3c17",
     "bpm3c18","bpm3c19","bpm3p02a","bpm3p02b","bpm3p03a","bpm3c20","bpm3c21","bpm3h02",
     "bpm3h04","bpm3h07a","bpm3h07b","bpm3h07c","bpm3h08","bpm3h09","bpm3h09b","target"
@@ -412,9 +413,10 @@ void QwGUIHallCBeamline::FastRaster()
 void QwGUIHallCBeamline::PositionDifferences()
 {
 
-  Bool_t ldebug = kFALSE;
+  Bool_t ldebug = kTRUE;
 
   gStyle->SetLabelSize(0.05,"x");
+  gStyle->SetLabelSize(0.06,"y");
 
   TObject *obj       = NULL;
   TCanvas *mc        = NULL;
@@ -430,9 +432,9 @@ void QwGUIHallCBeamline::PositionDifferences()
 
 
   // check to see if the TH1s used for the calculation are empty.
-  for(Short_t i=0;i<2;i++) {
-    if(PosDiffVar[i]) delete PosDiffVar[i];  PosDiffVar[i] = NULL;
-  }
+//   for(Short_t i=0;i<2;i++) {
+//     if(PosDiffVar[i]) delete PosDiffVar[i]; PosDiffVar[i] = NULL;
+//   }
 
  
   mc = dCanvas->GetCanvas();
@@ -450,31 +452,28 @@ void QwGUIHallCBeamline::PositionDifferences()
 
   
   for(Int_t p = 0; p <HCLINE_BPMS ; p++) {
-    sprintf (histo, "diff_qwk_%sX.hw_sum", HallC_BPMS[p]);
+    sprintf (histo, "diff_qwk_%sX_hw", HallC_BPMS[p]);
+    obj = dROOTCont->ReadData(Form("hel_histo/diff_qwk_%sX_hw",HallC_BPMS[p]));
 
-    if( ((TTree*) obj)->FindLeaf(histo) ){
+    if(obj){
       x_devices.push_back(p);
       if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-      obj -> Draw(histo);
-      dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-      dummyhist -> SetName(histo);
-      x_mean.push_back(dummyhist->GetMean()*1000);
-      x_err.push_back(dummyhist->GetMeanError()*1000);
+      dummyhist = (TH1D*)obj;
+      x_mean.push_back(dummyhist->GetMean()*1e6);
+      x_err.push_back(dummyhist->GetMeanError()*1e6);
 
       SummaryHist(dummyhist);
       delete dummyhist; dummyhist= NULL;
     }
-    
+    obj = dROOTCont->ReadData(Form("hel_histo/diff_qwk_%sY_hw",HallC_BPMS[p]));
 
-    sprintf (histo, "diff_qwk_%sY.hw_sum", HallC_BPMS[p]);
-    if( ((TTree*) obj)->FindLeaf(histo) ){   
+    sprintf (histo, "diff_qwk_%sY_hw", HallC_BPMS[p]);
+    if(obj){   
       y_devices.push_back(p);
       if(ldebug) printf("Found %2d : a histogram name %22s\n", p+1, histo);
-      obj -> Draw(histo);
-      dummyhist = (TH1D*)gPad->GetPrimitive("htemp"); 
-      dummyhist -> SetName(histo);
-      y_mean.push_back(dummyhist->GetMean()*1000);
-      y_err.push_back(dummyhist->GetMeanError()*1000);
+      dummyhist = (TH1D*)obj;
+      y_mean.push_back(dummyhist->GetMean()*1e6);
+      y_err.push_back(dummyhist->GetMeanError()*1e6);
 
       SummaryHist(dummyhist);
       delete dummyhist; dummyhist= NULL;
@@ -485,14 +484,14 @@ void QwGUIHallCBeamline::PositionDifferences()
   PosDiffVar[1] = new TH1D("dyvar", "#Delta Y variation", y_devices.size(), 0.5, y_devices.size()+0.5);
   
   for(size_t p = 0; p <x_devices.size() ; p++) {
-    PosDiffVar[0] -> SetBinContent(p+1, x_mean[p]); // mm = 1000um
+    PosDiffVar[0] -> SetBinContent(p+1, x_mean[p]); // mm = 1e6nm
     PosDiffVar[0] -> SetBinError  (p+1, x_err[p]);
     PosDiffVar[0] -> GetXaxis()->SetBinLabel(p+1,HallC_BPMS[x_devices[p]]);
     PosDiffVar[0] -> SetStats(0);
   }
   
   for(size_t p = 0; p <y_devices.size() ; p++) {
-    PosDiffVar[1] -> SetBinContent(p+1, y_mean[p]); //mm -> um
+    PosDiffVar[1] -> SetBinContent(p+1, y_mean[p]); //mm -> nm
     PosDiffVar[1] -> SetBinError  (p+1, y_err[p]);
     PosDiffVar[1] -> GetXaxis()->SetBinLabel(p+1, HallC_BPMS[y_devices[p]]);
     PosDiffVar[1] -> SetStats(0);
@@ -506,7 +505,8 @@ void QwGUIHallCBeamline::PositionDifferences()
     PosDiffVar[0] -> SetMarkerStyle(20);
     PosDiffVar[0] -> SetMarkerColor(2);
     PosDiffVar[0] -> SetTitle("#Delta X Variation");
-    PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (#mum)");
+    PosDiffVar[0] -> GetYaxis()->CenterTitle();
+    PosDiffVar[0] -> GetYaxis() -> SetTitle("#Delta X (nm)");
     PosDiffVar[0] -> Draw("E1");
     gPad->Update();
   
@@ -515,8 +515,9 @@ void QwGUIHallCBeamline::PositionDifferences()
     SummaryHist(PosDiffVar[1]);
     PosDiffVar[1] -> SetMarkerStyle(20);
     PosDiffVar[1] -> SetMarkerColor(4);
+    PosDiffVar[1] -> GetYaxis()->CenterTitle();
     PosDiffVar[1] -> SetTitle("#Delta Y Variation");
-    PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (#mum)");
+    PosDiffVar[1] -> GetYaxis()-> SetTitle ("#Delta Y (nm)");
     PosDiffVar[1] -> Draw("E1");
     gPad->Update();
     
@@ -1222,10 +1223,6 @@ Bool_t QwGUIHallCBeamline::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2
 	    }
 	  case kCM_COMBOBOX:
 	    {
-	      // switch (parm1) {
-	      // case M_TBIN_SELECT:
-	      // break;
-	      // }
 	      switch (dCmbHistos ->GetSelected()) {
 	      case ID_XP:
 		select="MPS_XP";

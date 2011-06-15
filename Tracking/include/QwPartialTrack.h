@@ -13,7 +13,6 @@
 #include <math.h>
 
 // ROOT headers
-#include "TObject.h"
 #include "TClonesArray.h"
 #include "TVector3.h"
 
@@ -22,6 +21,7 @@
 #include "QwObjectCounter.h"
 #include "QwTrackingTreeLine.h"
 #include "QwDetectorInfo.h"
+#include "QwGeometry.h"
 #include "QwBridge.h"
 
 // Forward declarations
@@ -40,26 +40,26 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
   private:
 
-    // Tree lines
-    #define QWPARTIALTRACK_MAX_NUM_TREELINES 1000
-    TClonesArray        *fQwTreeLines; //! ///< Array of QwTreeLines
-    static TClonesArray *gQwTreeLines; //! ///< Static array of QwTreeLines
-
     //! Number of tree lines in this partial track
     Int_t fNQwTreeLines;
     //! List of tree lines in this partial track
-    //std::vector<QwTrackingTreeLine*> fQwTreeLines;
+    std::vector<QwTrackingTreeLine*> fQwTreeLines;
 
   public: // methods
 
     /// \brief Default constructor
     QwPartialTrack();
-    /// \brief Copy constructor
-    QwPartialTrack(const QwPartialTrack* partialtrack);
+    /// \brief Copy constructor by reference
+    QwPartialTrack(const QwPartialTrack& that);
+    /// \brief Copy constructor from pointer
+    QwPartialTrack(const QwPartialTrack* that);
     /// \brief Constructor with track position and direction
-    QwPartialTrack(const TVector3 position, const TVector3 momentum);
+    QwPartialTrack(const TVector3& position, const TVector3& momentum);
     /// Destructor
-    virtual ~QwPartialTrack() { };
+    virtual ~QwPartialTrack();
+
+    /// Assignment operator
+    QwPartialTrack& operator=(const QwPartialTrack& that);
 
   private:
 
@@ -69,21 +69,22 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
   public:
 
     // Valid and used flags
-    const bool IsVoid() const { return fIsVoid; };
-    const bool IsValid() const { return ! fIsVoid; };
-    const bool IsGood() const { return fIsGood; };
-    const bool IsNotValid() const { return ! fIsVoid; };
-    const bool IsUsed() const { return fIsUsed; };
-    const bool IsNotUsed() const { return ! fIsUsed; };
+    bool IsVoid() const { return fIsVoid; };
+    bool IsValid() const { return ! fIsVoid; };
+    bool IsGood() const { return fIsGood; };
+    bool IsNotValid() const { return ! fIsVoid; };
+    bool IsUsed() const { return fIsUsed; };
+    bool IsNotUsed() const { return ! fIsUsed; };
 
     // Housekeeping methods for lists
     void Clear(Option_t *option = "");
     void Reset(Option_t *option = "");
 
     // Creating and adding tree lines
-    void InitializeTreeLines();
     QwTrackingTreeLine* CreateNewTreeLine();
     void AddTreeLine(QwTrackingTreeLine* treeline);
+    void AddTreeLineList(QwTrackingTreeLine* treelinelist);
+    void AddTreeLineList(const std::vector<QwTrackingTreeLine*> &treelinelist);
     void ClearTreeLines(Option_t *option = "");
     void ResetTreeLines(Option_t *option = "");
     // Get the number of partial tracks
@@ -94,7 +95,7 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     // Get the weighted chi squared
     double GetChiWeight () const;
 
-    void Print();
+    void Print(const Option_t* options = 0) const;
     void PrintValid();
     friend ostream& operator<< (ostream& stream, const QwPartialTrack& pt);
 
@@ -103,11 +104,11 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     /// \brief Return the direction
     const TVector3 GetMomentumDirection() const;
     /// \brief Return the phi angle
-    const Double_t GetMomentumDirectionPhi() const {
+    Double_t GetMomentumDirectionPhi() const {
       return GetMomentumDirection().Phi();
     };
     /// \brief Return the theta angle
-    const Double_t GetMomentumDirectionTheta() const {
+    Double_t GetMomentumDirectionTheta() const {
       return GetMomentumDirection().Theta();
     };
 
@@ -119,26 +120,32 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     QwPartialTrack& SmearAnglePhi(const double sigma);
 
     /// \brief Determine vertex in detector
-    const QwVertex* DeterminePositionInDetector(const QwDetectorInfo& detector);
+    const QwVertex* DeterminePositionInDetector(const QwDetectorInfo* geometry);
     /// \brief Determine vertex in the target
-    int DeterminePositionInTarget ();
+    const QwVertex* DeterminePositionInTarget (const QwGeometry& geometry);
     /// \brief Determine intersection with trigger scintillators
-    int DeterminePositionInTriggerScintillators (EQwDetectorPackage package);
+    const QwVertex* DeterminePositionInTriggerScintillators (const QwGeometry& geometry);
     /// \brief Determine intersection with cerenkov bars
-    int DeterminePositionInCerenkovBars (EQwDetectorPackage package);
+    const QwVertex* DeterminePositionInCerenkovBars (const QwGeometry& geometry);
     /// \brief Determine position in first horizontal drift chamber
-    int DeterminePositionInHDC (EQwDetectorPackage package);
+    const QwVertex* DeterminePositionInHDC (const QwGeometry& geometry);
 
     // Average residuals
-    const double GetAverageResidual() const { return fAverageResidual; };
-    void SetAverageResidual(const double residual) { fAverageResidual = residual; };
-    const double CalculateAverageResidual();
-    void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); };
+    double GetAverageResidual() const { return fAverageResidual; };
+    void SetAverageResidual(const double residual) { fAverageResidual = residual; }
+    double CalculateAverageResidual();
+    void SetAverageResidual() { fAverageResidual = CalculateAverageResidual(); }
 
+    // Only 2 Treelines in Plane 0
+    void SetAlone(const int alone) { fAlone = alone; }
+    //! Only 2 Treelines in Plane 0
+    int GetAlone() const { return fAlone; }
+    
     // Tree lines
     QwTrackingTreeLine* GetTreeLine(const EQwDirectionID dir) {
-      return tline[dir];
-    };
+      return fTreeLine[dir];
+
+    }
 
   public: // members
 
@@ -149,25 +156,26 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
 
     // Results of the fit to the hits
     Double_t fChi;		///< combined chi square
-    double fCov[4][4];		///< covariance matrix
+    Double_t fCov[4][4];		///< covariance matrix
 
-    QwTrackingTreeLine *tline[kNumDirections];	//!	///< tree line in u v and x
-    double  clProb;		///< prob. that this cluster belongs to track
-    double  pathlenoff;		///< pathlength offset
-    double  pathlenslo;		///< pathlength slope
-    QwBridge *bridge;	//!	///< magnetic field bridging
-    bool fIsUsed;		///< used (part of a track)
-    Int_t  nummiss;		///< missing hits
-    Int_t  numhits;		///< used hits
+    // record the slope and offset from each treeline,modified 4/26/11
+    Double_t TSlope[kNumDirections];
+    Double_t TOffset[kNumDirections];
+
+    QwTrackingTreeLine *fTreeLine[kNumDirections];	//!	///< tree line in u v and x
+
+    Bool_t fIsUsed;		///< used (part of a track)
     Bool_t fIsVoid;		///< marked as being void
+    Bool_t fIsGood;
+
+    Int_t  fNumMiss;		///< missing hits
+    Int_t  fNumHits;		///< used hits
 
     int triggerhit;		///< Did this track pass through the trigger?
     double trig[3];		///< x-y-z position at trigger face
 
     int cerenkovhit;		///< Did this track pass through the cerenkov bar?
     double cerenkov[3];		///< x-y-z position at Cerenkov bar face
-
-    bool fIsGood;
 
     double pR2hit[3];           ///< x-y-z position at R2
     double uvR2hit[3];          ///< direction at R2
@@ -176,6 +184,9 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     double uvR3hit[3];          ///< direction at R3
 
     QwPartialTrack *next; //!	///< linked list (not saved)
+
+    int fAlone;                /// number of Plane 0 Treelines
+    
 
   private:
 

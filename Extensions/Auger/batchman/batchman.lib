@@ -117,9 +117,7 @@ proc init_params {thisdir} {
 	global  check_job_names  bypass_exists
 	global  gracetime_AWOL gracetime_submit gracetime_queue gracetime_killed
 	global  make_backups  backup_addy  make_safeties
-
-    	# Jianglai 03-24-2003. Added the default replay flag
-    	global replay_flags	
+    	global  batchsub_flags  replay_flags  cache_flags
 
 	cd ~
 	set userdir [pwd]
@@ -159,7 +157,9 @@ proc init_params {thisdir} {
 	set gracetime_submit 	  5
 	set gracetime_queue 	  5
 	set gracetime_killed 	  10
+	set batchsub_flags        ""
 	set replay_flags          "--config qweak_batchman.conf"
+	set cache_flags           ""
 }
 
 
@@ -176,9 +176,7 @@ proc read_paramfile {} {
 	global  check_job_names  bypass_exists
 	global  gracetime_AWOL gracetime_submit gracetime_queue gracetime_killed
 	global  make_backups  backup_addy  make_safeties
-    	
-	# Jianglai 03-24-2003. Added the default replay flag
-    	global replay_flags
+    	global  batchsub_flags  replay_flags  cache_flags
 	
 	if {[file exists $param_file] == 1} {
 		set f [open $param_file r]

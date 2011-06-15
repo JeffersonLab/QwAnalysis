@@ -11,7 +11,6 @@ using std::cout; using std::endl;
 
 // Qweak headers
 #include "VQwSystem.h"
-#include "QwASCIIEventBuffer.h"
 
 // Qweak analyzers
 #include "VQwAnalyzer.h"

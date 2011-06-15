@@ -76,12 +76,9 @@ MQwF1TDC::MQwF1TDC()
 
   fF1OverFlowEntryFlag  = kFALSE;
   fF1ValidDataSlotFlag  = kFALSE;
-  
-  
+}
 
-};
-
-MQwF1TDC::~MQwF1TDC() { };
+MQwF1TDC::~MQwF1TDC() { }
 
 
 void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
@@ -132,7 +129,7 @@ void MQwF1TDC::DecodeTDCWord(UInt_t &word, const UInt_t roc_id)
     // 	      << std::endl;
   }
   return;
-};
+}
 
 std::ostream& operator<< (std::ostream& os, const MQwF1TDC &f1tdc)
 {
@@ -187,7 +184,7 @@ std::ostream& operator<< (std::ostream& os, const MQwF1TDC &f1tdc)
   
     //  os << std::endl;
   return os;
-};
+}
 
 
 
@@ -199,7 +196,7 @@ void MQwF1TDC::Print(Bool_t flag)
     std::cout << *this << std::endl;
   }
   return;
-};
+}
 
 
 void MQwF1TDC::PrintTDCHeader(Bool_t flag)
@@ -210,7 +207,7 @@ void MQwF1TDC::PrintTDCHeader(Bool_t flag)
     std::cout << *this << std::endl;
   }
   return;
-};
+}
 
 
 void MQwF1TDC::PrintTDCData(Bool_t flag)
@@ -221,7 +218,7 @@ void MQwF1TDC::PrintTDCData(Bool_t flag)
     std::cout << *this << std::endl;
   }
   return;
-};
+}
 
 
 // Double_t MQwF1TDC::SubtractReference(Double_t rawtime, Double_t reftime)
@@ -301,7 +298,7 @@ void MQwF1TDC::PrintResolutionLockStatus(const UInt_t roc_id)
 	      << " Slot " << GetTDCSlotNumber() << QwLog::endl;
   }
   return;
-};
+}
 
 
 
@@ -313,7 +310,7 @@ void MQwF1TDC::PrintHitFIFOStatus(const UInt_t roc_id)
               << " Slot " << GetTDCSlotNumber() << QwLog::endl;
   }
   return;
-};
+}
 
 
 
@@ -325,10 +322,10 @@ void MQwF1TDC::PrintOutputFIFOStatus(const UInt_t roc_id)
               << " Slot " << GetTDCSlotNumber() << QwLog::endl;
   }
   return;
-};
+}
 
 
-const Bool_t MQwF1TDC::IsValidDataword() const
+Bool_t MQwF1TDC::IsValidDataword() const
 {
   // fF1ValidDataSlotFlag = TRUE,
   // fF1ResolutionFlag    = TRUE,  
@@ -340,7 +337,7 @@ const Bool_t MQwF1TDC::IsValidDataword() const
     return kTRUE;
   else                                             
     return kFALSE; 
-};
+}
 
 
 // Bool_t MQwF1TDC::CheckDataIntegrity(const UInt_t roc_id, UInt_t *buffer, UInt_t num_words)

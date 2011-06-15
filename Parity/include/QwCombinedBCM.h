@@ -8,11 +8,18 @@
 #ifndef __QwVQWK_COMBINEDBCM__
 #define __QwVQWK_COMBINEDBCM__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
+// Qweak headers
 #include "QwVQWK_Channel.h"
 #include "QwBCM.h"
+
+// Forward declarations
+class QwDBInterface;
 
 /*****************************************************************
 *  Class:

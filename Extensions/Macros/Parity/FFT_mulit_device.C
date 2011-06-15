@@ -60,7 +60,6 @@
 #include "TLine.h"
 #include "TBox.h"
 #include "TChain.h"
-
 #include "TVirtualFFT.h"
 
 void get_fft(Int_t runnumber, TChain* tree, TString device, Int_t events,  Double_t up, Double_t low, 
@@ -96,7 +95,6 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
 
 
   //******* ADC settings
-  //   const Double_t count_to_voltage = 0.00007629; //conversion factor
   const Double_t time_per_sample = 2e-06;//s
   const Double_t t_settle = 70e-06;//s
   
@@ -117,7 +115,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
     "qwk_1i02","qwk_1i04","qwk_1i06","qwk_0i02","qwk_0i02a",
     "qwk_0i05" ,"qwk_0i07","qwk_0l01","qwk_0l02","qwk_0l03",
     "qwk_0l04","qwk_0l05","qwk_0l06","qwk_0l07","qwk_0l08",
-    "qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02","qwk_0r05",
+    "qwk_0l09","qwk_0l10","qwk_0r03","qwk_0r04","qwk_0r05",
     "qwk_0r06"
   };
   
@@ -140,7 +138,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
     file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
     if (file->IsZombie()) {
       std::cout << "Error opening root file chain " << filename << std::endl;
-      filename = Form("Qweak_%i.000.root", run_number);
+      filename = Form("qwinjector_%i.000.root", run_number);
       std::cout << "Try to open chain " << filename << std::endl;
       file = new TFile(Form("$QW_ROOTFILES/%s", filename.Data()));
       if(file->IsZombie()){
@@ -148,7 +146,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
 	exit(-1);
       }
       else
-	tree->Add(Form("$QW_ROOTFILES/Qweak_%i.*.root", run_number));	
+	tree->Add(Form("$QW_ROOTFILES/qwinjector_%i.*.root", run_number));	
     }
     else 
     tree->Add(Form("$QW_ROOTFILES/first100k_%i.root", run_number));
@@ -172,7 +170,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
     if(devicelist.Contains("injbpmy")) useaxis = axis[1];
     if(devicelist.Contains("injbpmx")) useaxis = axis[0];
     command = "qwk_1i02XP.num_samples>>htemp";
-    cut  =  "qwk_1i02XP.Device_Error_Code == 0";
+    cut  =  "qwk_1i02XP.Device_Error_Code == 0 &&  ErrorFlag == 0";
     time = Form("mps_counter*((qwk_1i02XP.num_samples*%f)+%f)",time_per_sample,t_settle);// units seconds.
 
   }
@@ -180,7 +178,7 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
     if(devicelist.Contains("hcbpmy")) useaxis = axis[1];
     if(devicelist.Contains("hcbpmx")) useaxis = axis[0];
     command = "qwk_bpm3h09bXP.num_samples>>htemp";
-    cut  =  "qwk_bpm3h09bXP.Device_Error_Code == 0";
+    cut  =  "qwk_bpm3h09bXP.Device_Error_Code == 0 && ErrorFlag == 0";
     time = Form("mps_counter*((qwk_bpm3h09bXP.num_samples*%f)+%f)",time_per_sample,t_settle);// units seconds.
 
   }
@@ -215,11 +213,12 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
   Double_t up  = (1.0*max)/event_rate;
   Double_t low = (1.0*min)/event_rate;
 
-  TH1D *h2_1   = new TH1D("h2_1","Distributions",events+1,min-0.5,max+0.5);    
+  TH2D *h2_2;
 
   
   Int_t k =1;
   Int_t j= 0;
+
   canvas -> Divide(4,4);
 
   //************************************* Do FFT on hallC bpms
@@ -238,23 +237,23 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
       gPad->SetLogy();
       gStyle->SetOptStat(1);
       // Get the base signal distribution.
-      tree->Draw(Form("%s.hw_sum>>htemp",device.Data()),
-		 Form("mps_counter>%d && mps_counter<%d && %s.Device_Error_Code == 0",
+      tree->Draw(Form("%s.hw_sum:mps_counter>>htemp",device.Data()),
+		 Form("mps_counter>%d && mps_counter<%d && %s.Device_Error_Code == 0 && ErrorFlag == 0",
 		      min,max,device.Data()));
-      h2_1 = (TH1D*) gDirectory -> Get("htemp");
-      if(h2_1 == NULL){
+      h2_2 = (TH2D*) gDirectory -> Get("htemp");
+      if(h2_2 == NULL){
 	std::cout<<"Unable to plot "<<Form("%s.hw_sum>>htemp",device.Data())<<std::endl;
 	exit(1);
       }
       
-      h2_1 -> SetTitle(Form("Distribution of %s in %i",device.Data(), run_number));
-      h2_1 -> GetXaxis() -> SetTitle("Position (mm)");
-      h2_1 -> GetXaxis() -> SetTitleSize(0.05);
-      h2_1 -> GetYaxis() -> SetTitle("Events");
-      h2_1 -> SetName(device);
-      h2_1 -> SetTitle("");
-      h2_1->DrawCopy();
-      delete h2_1;
+      h2_2 -> SetTitle(Form("Distribution of %s in %i",device.Data(), run_number));
+      h2_2 -> GetYaxis() -> SetTitle("Position (mm)");
+      h2_2 -> GetYaxis() -> SetTitleSize(0.05);
+      h2_2 -> GetXaxis() -> SetTitle("Events");
+      h2_2 -> SetName(device);
+      h2_2 -> SetTitle("");
+      h2_2->DrawCopy();
+      delete h2_2;
 
       canvas -> Modified();
       canvas -> Update();
@@ -273,25 +272,42 @@ FFT_mutli(Int_t run_number, TString devicelist, Int_t min, Int_t max)
      }
   }
 
+  TH2D *h2_1;
 
   //***********************************  Do FFT on injector bpms
    if(devicelist.Contains("inj")){
      for(Int_t i=0;i<injbpms;i++){
 
        canvas -> cd(2*k);
+       gStyle->SetOptStat(0);
        gPad->SetLogy();
-       gPad->SetLogx();
+       //gPad->SetLogx();
        TString device = Form("%s%s",injbpm[i].Data(),useaxis.Data());
        std::cout<<"Get FFT of "<<device<<std::endl;
        get_fft(run_number, tree, device, events, up, low, cut, event_rate); 
 
        canvas ->cd(2*k-1);
-       gPad->SetLogy();
+       //gPad->SetLogy();
+       gStyle->SetOptStat(1);
+       // Get the base signal distribution.
+       tree->Draw(Form("%s.hw_sum:mps_counter>>htemp",device.Data()),
+		  Form("mps_counter>%d && mps_counter<%d && %s.Device_Error_Code == 0 && ErrorFlag == 0",min,max,device.Data()));
+       h2_1 = (TH2D*) gDirectory -> Get("htemp");
+
        if(h2_1 != NULL) h2_1 ->DrawCopy();
        else {
 	 std::cout<<"Unable to plot signal "<<device<<std::endl;
 	 exit(1);
-       }       
+       }      
+       h2_1 -> SetTitle(Form("Distribution of %s in %i",device.Data(), run_number));
+       h2_1 -> GetYaxis() -> SetTitle("Position (mm)");
+       h2_1 -> GetYaxis() -> SetTitleSize(0.05);
+       h2_1 -> GetXaxis() -> SetTitle("Events");
+       h2_1 -> SetName(device);
+       h2_1 -> SetTitle("");
+       h2_1->DrawCopy();
+       delete h2_1;
+
        canvas -> Modified();
        canvas -> Update();
        k++;

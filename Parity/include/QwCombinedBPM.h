@@ -8,12 +8,19 @@
 #ifndef __QwVQWK_COMBINEDBPM__
 #define __QwVQWK_COMBINEDBPM__
 
+// System headers
 #include <vector>
+
+// ROOT headers
 #include <TTree.h>
 
+// Qweak headers
 #include "QwVQWK_Channel.h"
 #include "QwBPMStripline.h"
 #include "VQwBPM.h"
+
+// Forward declarations
+class QwDBInterface;
 
 /*****************************************************************
 *  Class:

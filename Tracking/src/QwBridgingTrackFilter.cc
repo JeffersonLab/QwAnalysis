@@ -36,7 +36,7 @@ QwBridgingTrackFilter::QwBridgingTrackFilter()
  * @param back Back partial track
  * @return Failure code (zero when accepted)
  */
-const QwBridgingTrackFilter::EStatus
+QwBridgingTrackFilter::EStatus
 QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
                               const QwPartialTrack* back) const
 {
@@ -54,16 +54,16 @@ QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
     // Bending angle limits in the magnetic field
     double dtheta = (back->GetMomentumDirectionTheta() - front->GetMomentumDirectionTheta());
     if ((dtheta < fMinDiffTheta) || (dtheta > fMaxDiffTheta)) {
-        QwMessage << "QwBridgingTrackFilter: dtheta = " << dtheta/Qw::deg << " deg, "
-                  << "allowed range [" << fMinDiffTheta/Qw::deg << ","
-                                       << fMaxDiffTheta/Qw::deg << "] deg" << QwLog::endl;
+      // QwMessage << "QwBridgingTrackFilter: dtheta = " << dtheta/Qw::deg << " deg, "
+      //            << "allowed range [" << fMinDiffTheta/Qw::deg << ","
+      //                                 << fMaxDiffTheta/Qw::deg << "] deg" << QwLog::endl;
         return kFailDiffTheta;
     }
     double dphi = (back->GetMomentumDirectionPhi() - front->GetMomentumDirectionPhi());
     if ((dphi < fMinDiffPhi) || (dphi > fMaxDiffPhi)) {
-        QwMessage << "QwBridgingTrackFilter: dphi = " << dphi/Qw::deg << " deg, "
-                  << "allowed range [" << fMinDiffPhi/Qw::deg << ","
-                                       << fMaxDiffPhi/Qw::deg << "] deg" << QwLog::endl;
+      //  QwMessage << "QwBridgingTrackFilter: dphi = " << dphi/Qw::deg << " deg, "
+      //            << "allowed range [" << fMinDiffPhi/Qw::deg << ","
+      //                                       << fMaxDiffPhi/Qw::deg << "] deg" << QwLog::endl;
         return kFailDiffPhi;
     }
 
@@ -84,9 +84,20 @@ QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
     double vertex_z = -250.0 * Qw::cm - position_r / tan(acos(start_direction.Z()));
 
     if (vertex_z < fMinVertexZ || vertex_z > fMaxVertexZ) {
-        QwMessage << "QwBridgingTrackFilter: vertex z = " << vertex_z/Qw::cm << " cm, "
-                  << "allowed range [" << fMinVertexZ/Qw::cm << ","
-                                       << fMaxVertexZ/Qw::cm << "] cm" << QwLog::endl;
+      //   QwMessage << "QwBridgingTrackFilter: vertex z = " << vertex_z/Qw::cm << " cm, "
+      //            << "allowed range [" << fMinVertexZ/Qw::cm << ","
+      //                                 << fMaxVertexZ/Qw::cm << "] cm" << QwLog::endl;
+        return kFailVertexZ;
+    }
+    
+    // scattering angle phi and the position_phi at Region 2 should have very small difference
+    // this will post a limit on the phi difference
+    double direction_phi = 0.0;
+    direction_phi = front->GetMomentumDirectionPhi();
+    double delta_front_phi = fabs(direction_phi - position_phi);
+    if (delta_front_phi> 5.0*Qw::deg) {
+      //   QwMessage << "QwBridgingTrackFilter: delta_front_phi = " << delta_front_phi/Qw::deg << " deg, "
+      //            << "allowed range [-5, 5] cm" << QwLog::endl;
         return kFailVertexZ;
     }
 

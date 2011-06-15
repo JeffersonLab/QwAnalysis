@@ -93,6 +93,7 @@
 #include "QwSubsystemArrayParity.h"
 
 // Compton headers
+#include "QwScaler.h"
 #include "QwComptonPhotonDetector.h"
 #include "QwComptonElectronDetector.h"
 
@@ -157,7 +158,7 @@ int main(int argc, char* argv[])
     //  Open the ROOT file
     QwRootFile* rootfile = new QwRootFile(eventbuffer.GetRunLabel());
     if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
-
+    rootfile->WriteParamFileList("mapfiles", detectors);
     //  Construct histograms
     rootfile->ConstructHistograms("mps_histo", detectors);
     rootfile->ConstructHistograms("hel_histo", helicitypattern);
@@ -165,14 +166,20 @@ int main(int argc, char* argv[])
     //  Construct tree branches
     rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+    rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstYield(),"yield_");
+    rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstAsymmetry(),"asym_");
+    rootfile->ConstructTreeBranches("Burst_Tree", "Burst level data tree", helicitypattern.GetBurstDifference(),"diff_");
+    rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
 
     // Summarize the ROOT file structure
     rootfile->PrintTrees();
     rootfile->PrintDirs();
 
-    // ROOT file output (expert tree)
-    //  rootfile.cd();
-    //  detectors.ConstructTree(rootfile.mkdir("expert_tree"));
+
+    //  Clear the running sums
+    helicitypattern.ClearRunningSum();
+    helicitypattern.ClearBurstSum();
+
 
     ///  Start loop over events
     while (eventbuffer.GetNextEvent() == CODA_OK) {
@@ -187,6 +194,9 @@ int main(int argc, char* argv[])
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
         epicsevent.CalculateRunningValues();
+
+        rootfile->FillTreeBranches(epicsevent);
+        rootfile->FillTree("Slow_Tree");
       }
 
       // Now, if this is not a physics event, go back and get a new event.
@@ -206,6 +216,19 @@ int main(int argc, char* argv[])
       // Fill the tree
       rootfile->FillTreeBranches(detectors);
       rootfile->FillTree("Mps_Tree");
+
+
+
+      //  Somehow test to see if the laser state has changed.  If it has,
+      //  then calculate and print the running sums so far.
+      //  Maybe instead of here, it should be done as soon as we've picked up an
+      //  event, instead of waiting to build a complete pattern.
+
+      if (detectors.CheckForEndOfBurst()){
+        //  Do the burst versions of
+        helicitypattern.CalculateRunningAverage();
+        // Maybe we need to clear the burst sums also
+      }
 
 
       // Helicity pattern
@@ -230,12 +253,43 @@ int main(int argc, char* argv[])
           // Clear the data
           helicitypattern.ClearEventData();
         }
+
+
+       //  Somehow test to see if the laser state has changed.  If it has,
+       //  then calculate and print the running sums so far.
+       //  Maybe instead of here, it should be done as soon as we've picked up an
+       //  event, instead of waiting to build a complete pattern.
+
+      }
+
+      // Burst mode
+      if (eventbuffer.IsEndOfBurst()) {
+        helicitypattern.CalculateBurstAverage();
+        helicitypattern.AccumulateRunningBurstSum();
+
+        // Fill tree branches
+        rootfile->FillTreeBranches(helicitypattern.GetBurstYield());
+        rootfile->FillTreeBranches(helicitypattern.GetBurstAsymmetry());
+        rootfile->FillTreeBranches(helicitypattern.GetBurstDifference());
+        rootfile->FillTree("Burst_Tree");
+
+        // Clear the data
+        helicitypattern.ClearBurstSum();
       }
 
     } // end of loop over events
 
     QwMessage << "Last event processed: "
               << eventbuffer.GetEventNumber() << QwLog::endl;
+
+    // Calculate running averages over helicity patterns
+    if (helicitypattern.IsRunningSumEnabled()) {
+      helicitypattern.CalculateRunningAverage();
+      if (helicitypattern.IsBurstSumEnabled()) {
+        helicitypattern.CalculateRunningBurstAverage();
+      }
+    }
+
 
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
@@ -251,6 +305,10 @@ int main(int argc, char* argv[])
     //  Delete histograms
     rootfile->DeleteHistograms(detectors);
     rootfile->DeleteHistograms(helicitypattern);
+
+    // Close ROOT file
+    rootfile->Close();
+    delete rootfile; rootfile = 0;
 
     // Close data file and print run summary
     eventbuffer.CloseStream();

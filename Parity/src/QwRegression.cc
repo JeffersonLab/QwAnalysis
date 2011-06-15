@@ -7,6 +7,11 @@
 
 #include "QwRegression.h"
 
+// Qweak headers
+#include "VQwDataElement.h"
+#include "QwVQWK_Channel.h"
+#include "QwParameterFile.h"
+
 /** Constructor with single event and helicity pattern
  *
  * @param options Options object

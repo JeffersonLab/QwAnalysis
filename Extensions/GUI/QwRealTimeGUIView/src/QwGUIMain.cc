@@ -128,7 +128,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
     dDetMapFile = dClArgs.file;
    }
   else{
-    dDetMapFile = "detectors.map";
+    dDetMapFile = "realtime_detectors.map";
   }
 
   LoadChannelMapFiles(dDetMapFile.Data());//loads the channel map files for all the subsystems
@@ -483,16 +483,16 @@ Bool_t QwGUIMain::OpenMapFile()
   
   // TString host_name = host_string;
   // TString user_name = user_string;
-   TString mapfilename = "/dev/shm/";
+  TString mapfilename = "/dev/shm/";
   
   // if( (host_name.Contains("cdaql4")) and (not user_name.CompareTo("cdaq", TString::kExact)) ) {
-   //   mapfilename = "/local/scratch/qweak/";
+  //   mapfilename = "/local/scratch/qweak/";
   // }
   // else {
   //   mapfilename = gSystem->Getenv("QW_ROOTFILES");
   // }
 
-   mapfilename += "/QwMemMapFile.map";
+  mapfilename += "/QwMemMapFile.map";
 
 
   // hmmm, strange, I cannot catch any error here, 
@@ -502,10 +502,10 @@ Bool_t QwGUIMain::OpenMapFile()
 
   try 
     {
-  //  printf("Reading %s\n", mapfilename.Data());
-  //   new TMapFile(mapfilename, "", "READ", kMaxMapFileSize , dMemoryMapFile); // protected..
-  //   dMemoryMapFile = TMapFile::Create(mapfilename, "READ",  kMaxMapFileSize, ""); //// default is "read"
-  dMemoryMapFile = TMapFile::Create(mapfilename);
+      //  printf("Reading %s\n", mapfilename.Data());
+      //   new TMapFile(mapfilename, "", "READ", kMaxMapFileSize , dMemoryMapFile); // protected..
+      //   dMemoryMapFile = TMapFile::Create(mapfilename, "READ",  kMaxMapFileSize, ""); //// default is "read"
+      dMemoryMapFile = TMapFile::Create(mapfilename);
     }
   catch  (std::exception& e)
     {

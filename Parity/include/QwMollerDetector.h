@@ -16,17 +16,15 @@
 // System headers
 #include <vector>
 
-// ROOT headers
-#include <TTree.h>
-#include "TFile.h"
-#include<TH1D.h>
-
-// Boost math library for random number generation
+// Boost multi array
 #include <boost/multi_array.hpp>
 
+// ROOT headers
+#include "TTree.h"
+#include "TFile.h"
+#include "TH1D.h"
 
 // Qweak headers
-#include "VQwSubsystem.h"
 #include "VQwSubsystemParity.h"
 #include "QwVQWK_Channel.h"
 #include "QwScaler_Channel.h"
@@ -62,7 +60,7 @@ class QwMollerChannelID
 
 };
 
-class QwMollerDetector: public VQwSubsystemParity {
+class QwMollerDetector: public VQwSubsystemParity, public MQwCloneable<QwMollerDetector> {
   public:
 
     /// \brief Constructor
@@ -83,12 +81,14 @@ class QwMollerDetector: public VQwSubsystemParity {
     Int_t ProcessConfigurationBuffer(UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
     Int_t ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t *buffer, UInt_t num_words);
     Int_t ProcessEvBuffer(UInt_t ev_type, UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
-    void  PrintDetectorID();
     void  ClearEventData();
     void  ProcessEvent();
+
+    using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
     void  DeleteHistograms();
+
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);
     VQwSubsystem& operator-= (VQwSubsystem *value);
@@ -104,6 +104,8 @@ class QwMollerDetector: public VQwSubsystemParity {
     Bool_t  ApplySingleEventCuts();
     Int_t GetEventcutErrorCounters();
     UInt_t GetEventcutErrorFlag();
+
+    using VQwSubsystem::ConstructBranchAndVector;
     void ConstructBranchAndVector(TTree*, TString&, std::vector<double, std::allocator<double> >&);
     void ConstructBranch(TTree *tree, TString& prefix) { };
     void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };

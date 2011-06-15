@@ -47,16 +47,34 @@ class VQwScaler_Channel: public VQwDataElement {
   virtual ~VQwScaler_Channel() { DeleteHistograms(); };
 
   void  InitializeChannel(TString name) {
-    fValue = 0;
-    fValueM2 = 0;
+    fValue_Raw  = 0;
+    fValue      = 0.0;
+    fValueM2    = 0.0;
+    fValueError = 0.0;
+    fPedestal   = 0.0;
+    fCalibrationFactor = 1.0;
+
+    fTreeArrayIndex = 0;
+    fTreeArrayNumEntries =0;
+
     SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
+
     fNumEvtsWithHWErrors=0;//init error counters
     fNumEvtsWithEventCutsRejected=0;//init error counters
+
     fDeviceErrorCode = 0;
     fGoodEventCount = 0;
     SetElementName(name);
     return;
   };
+
+  void     SetPedestal(Double_t ped) { 
+    fPedestal = ped; 
+    //std::cout<<" I found it !  ped. "<<GetElementName()<<" "<<fPedestal<<"\n";
+  };
+  Double_t GetPedestal() const       { return fPedestal; };
+  void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; };
+  Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
 
   void  ClearEventData();
 
@@ -78,9 +96,19 @@ class VQwScaler_Channel: public VQwDataElement {
   void  ProcessEvent();
 
   Double_t GetValue() const { return fValue; };
+  Double_t GetValueM2() const { return fValueM2; };
+  Double_t GetValueWidth() const  { 
+    if (fGoodEventCount>0){
+      return (fValueError*sqrt(fGoodEventCount)); 
+    }
+    return 0.0;
+  };
+  Double_t GetValueError() const  { return fValueError; };
+  UInt_t GetGoodEventCount() const { return fGoodEventCount; };
 
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
+  VQwDataElement& operator=  (const VQwDataElement &data_value);
   VQwScaler_Channel& operator+= (const VQwScaler_Channel &value);
   VQwScaler_Channel& operator-= (const VQwScaler_Channel &value);
   void Sum(VQwScaler_Channel &value1, VQwScaler_Channel &value2);
@@ -88,9 +116,23 @@ class VQwScaler_Channel: public VQwDataElement {
   void Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom);
   void Offset(Double_t Offset);
   void Scale(Double_t Offset);
+  void ScaleRawRate(Double_t Offset);
+  void Normalize(const VQwScaler_Channel &norm);
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
+    fULimit=max;
+    fLLimit=min;
+  };
+  void SetEventCutMode(Int_t bcuts){
+    bEVENTCUTMODE=bcuts;
+  }
+
+  UInt_t GetDeviceErrorCode(){//return the device error code
+    return fDeviceErrorCode;
+  };
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
@@ -117,6 +159,9 @@ protected:
   Double_t fValueM2;
   Double_t fValueError;
 
+  Double_t fPedestal;
+  Double_t fCalibrationFactor;
+
   /*  Ntuple array indices */
   size_t fTreeArrayIndex;
   size_t fTreeArrayNumEntries;
@@ -125,7 +170,13 @@ protected:
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events
 
   UInt_t fGoodEventCount;
-  Int_t fDeviceErrorCode;
+
+  Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
+  Double_t fULimit, fLLimit;//this sets the upper and lower limits on the VQWK_Channel::fHardwareBlockSum
+  Double_t fStability;//how much deviaton from the stable reading is allowed
+
+  UInt_t fDeviceErrorCode; ///< Unique error code for HW failed beam line devices
+  
 
 };
 
@@ -142,9 +193,10 @@ class QwScaler_Channel: public VQwScaler_Channel
 
   public:
 
-    // Implement the templated methods
-    void  EncodeEventData(std::vector<UInt_t> &buffer);
-    Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0);
+  // Implement the templated methods
+  void  EncodeEventData(std::vector<UInt_t> &buffer);
+  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t index = 0);
+
 
 };
 

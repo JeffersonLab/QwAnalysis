@@ -15,20 +15,23 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
     gROOT->SetStyle("Plain");
     gStyle->SetOptStat(kFALSE);
     gStyle->SetTitleBorderSize(0);
-
+	char fileprefix[255];
+	sprintf(fileprefix,"$QW_ROOTFILES/qwinjector");
 
 	// Open file 1
 	char filename[255];
-	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnum1);
+	sprintf(filename,"%s_%i.000.root",fileprefix,runnum1);
 	printf("Opening %s\n",filename);
 	TFile *_file1 = TFile::Open(filename);
 	TTree *tree1 = (TTree*)gROOT->FindObject("Hel_Tree");
-	sprintf(filename,"$QW_ROOTFILES/Qweak_%i.000.root",runnum2);
+	sprintf(filename,"%s_%i.000.root",fileprefix,runnum2);
 	printf("Opening %s\n",filename);
 	TFile *_file2 = TFile::Open(filename);
 	TTree *tree2 = (TTree*)gROOT->FindObject("Hel_Tree");
 
-	TString cut = "cleandata&&" + usercut;
+	if(!_file1 || !_file2) exit(1);
+
+
 
 	TCanvas *RHWPcanvas = new TCanvas("RHWPcanvas","Optimisation",40,80,1200,800);
 	RHWPcanvas->Divide(3,5,0.0001,0.0001);   
@@ -65,6 +68,8 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 		plotcommand += "_EffectiveCharge.hw_sum";
 		plotcommand += "*1000000";
 		plotcommand += ":scandata1/50.0>>hAq1";
+		TString cut = Form("ErrorFlag == 0 && asym_%s_EffectiveCharge.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
+
 
 		tree1->Draw(plotcommand.Data(),cut.Data(),"prof");
 		hAq1= (TH1F*)gPad->GetPrimitive("hAq1");
@@ -82,6 +87,8 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 		plotcommand += "X.hw_sum";
 		plotcommand += "*1000:scandata1/50.0>>hDx1";
 
+		cut = Form("ErrorFlag == 0 && diff_%sX.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
+
 		tree1->Draw(plotcommand.Data(),cut.Data(),"prof");
 		hDx1= (TH1F*)gPad->GetPrimitive("hDx1");
 		TF1 *fDx1 = new TF1("fDx1","[0] + [1]*sin(2*3.14159*x/180.+[2]) + [3]*sin(4*3.14159*x/180.+[4])",0,180.0);
@@ -91,6 +98,9 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 		plotcommand += dettype;
 		plotcommand += "Y.hw_sum";
 		plotcommand += "*1000:scandata1/50.0>>hDy1";
+
+		cut = Form("ErrorFlag == 0 && diff_%sY.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
+		
 		tree1->Draw(plotcommand.Data(),cut.Data(),"prof");
 		hDy1= (TH1F*)gPad->GetPrimitive("hDy1");
 		TF1 *fDy1 = new TF1("fDy1","[0] + [1]*sin(2*3.14159*x/180.+[2]) + [3]*sin(4*3.14159*x/180.+[4])",0,180.0);
@@ -101,7 +111,10 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 		plotcommand += "_EffectiveCharge.hw_sum";
 		plotcommand += "*1000000";
 		plotcommand += ":scandata1/50.0>>hAq2";
+		cut = Form("ErrorFlag == 0 && asym_%s_EffectiveCharge.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
+
 		tree2->Draw(plotcommand.Data(),cut.Data(),"prof");
+
 		TF1 *fAq2 = new TF1("fAq2","[0] + [1]*sin(2*3.14159*x/180.+[2]) + [3]*sin(4*3.14159*x/180.+[4])",0,180.0);
 		hAq2->Fit("fAq2");
 
@@ -109,6 +122,8 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 		plotcommand += dettype;
 		plotcommand += "X.hw_sum";
 		plotcommand += "*1000:scandata1/50.0>>hDx2";
+		cut = Form("ErrorFlag == 0 && diff_%sX.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
+
 		tree2->Draw(plotcommand.Data(),cut.Data(),"prof");
 		hDx2= (TH1F*)gPad->GetPrimitive("hDx2");
 		TF1 *fDx2 = new TF1("fDx2","[0] + [1]*sin(2*3.14159*x/180.+[2]) + [3]*sin(4*3.14159*x/180.+[4])",0,180.0);
@@ -118,6 +133,8 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 		plotcommand += dettype;
 		plotcommand += "Y.hw_sum";
 		plotcommand += "*1000:scandata1/50.0>>hDy2";
+		cut = Form("ErrorFlag == 0 && diff_%sY.Device_Error_Code == 0 && cleandata && %s",dettype.Data(),usercut.Data());
+
 		tree2->Draw(plotcommand.Data(),cut.Data(),"prof");
 		hDy2= (TH1F*)gPad->GetPrimitive("hDy2");
 		TF1 *fDy2 = new TF1("fDy2","[0] + [1]*sin(2*3.14159*x/180.+[2]) + [3]*sin(4*3.14159*x/180.+[4])",0,180.0);
@@ -226,7 +243,7 @@ void RHWP_optimise_multibpm(Int_t runnum1=1, Int_t runnum2=1, Int_t PITA=1, TStr
 	quadsumtot->SetMaximum(1);
 	quadsumtot->Draw();
 
-	TString psnam = "plots/RHWP_optimize_multibpm_";
+	TString psnam = "output/RHWP_optimize_multibpm_";
 	psnam += runnum1;
 	psnam += "_";
 	psnam += runnum2;

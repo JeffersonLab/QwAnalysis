@@ -66,7 +66,7 @@ class QwTrackingTreeSearch {
     // Only called from within TsSetPoint(Hit, Hit)
     // TODO Transition to QwHit if necessary (where is it used?)
 
-    int exists (int *newa, int front, int back, QwTrackingTreeLine *treeline);
+    int exists (int *newa, int front, int back, int offset,QwTrackingTreeLine *treeline);
 
     void setpoint (double off, double h1, double res1, double h2, double res2,
 		double width, unsigned binwidth, char *pa, char *pb,

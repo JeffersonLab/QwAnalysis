@@ -82,14 +82,14 @@ QwMatrixLookup::QwMatrixLookup()
 QwMatrixLookup::~QwMatrixLookup()
 {
   delete fMatrix;
-};
+}
 
 /**
  * Load the trajectory matrix
  * @param filename Filename
  * @return True if successful
  */
-const bool QwMatrixLookup::LoadTrajMatrix(const std::string filename)
+bool QwMatrixLookup::LoadTrajMatrix(const std::string filename)
 {
 
 #if ! defined __ROOT_HAS_MATHMORE || ROOT_VERSION_CODE < ROOT_VERSION(5,18,0)
@@ -196,7 +196,7 @@ const bool QwMatrixLookup::LoadTrajMatrix(const std::string filename)
 
   // Return successfully
   return true;
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -209,18 +209,13 @@ const bool QwMatrixLookup::LoadTrajMatrix(const std::string filename)
 ///  Z0: start plane = -250 cm, Z1: endplane = +250 cm, Z2: focalplane = +570 cm
 ///  B field values are available from z=-250 cm to z=250 cm
 
-const bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
+bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
 {
   Double_t  position_r,position_phi;   //z=570 cm plane
   Double_t  direction_theta,direction_phi;
 
-  // Load the magnetic field
-  std::string fieldmap = getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/MainMagnet_FieldMap.dat";
+  // Load the ray tracer
   QwRayTracer* raytracer = new QwRayTracer();
-  if (! QwRayTracer::LoadMagneticFieldMap(fieldmap)) {
-    QwError << "Could not load magnetic field map!" << QwLog::endl;
-    return false;
-  }
   // Get the boundaries of the magnetic field
   double magneticfield_min = -250.0 * Qw::cm;
   double magneticfield_max =  250.0 * Qw::cm;
@@ -317,7 +312,7 @@ const bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
   delete raytracer;
 
   return true;
-};
+}
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo....
 
@@ -327,7 +322,7 @@ const bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
  * @param back Back partial tracks
  * @return Zero if successful, non-zero error code if failed
  */
-const int QwMatrixLookup::Bridge(
+int QwMatrixLookup::Bridge(
 	const QwPartialTrack* front,
 	const QwPartialTrack* back)
 {
@@ -342,7 +337,7 @@ const int QwMatrixLookup::Bridge(
     if (! fMatrix) return -1;
 
     // Clear the list of tracks
-    fListOfTracks.clear();
+    ClearListOfTracks();
 
 
     // Front track position and direction at the front reference plane
@@ -476,9 +471,7 @@ const int QwMatrixLookup::Bridge(
         return -1;
     }
 
-    QwTrack* track = new QwTrack();
-    track->front = const_cast<QwPartialTrack*>(front);
-    track->back = const_cast<QwPartialTrack*>(back);
+    QwTrack* track = new QwTrack(front,back);
     track->fMomentum = momentum;
 
     QwBridge* bridge = new QwBridge();
@@ -502,4 +495,4 @@ const int QwMatrixLookup::Bridge(
                       // MatchFlag = 2; : potential track is forced to match
 
     return 0;
-};
+}

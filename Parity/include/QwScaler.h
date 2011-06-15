@@ -2,86 +2,107 @@
 #ifndef __QWSCALER__
 #define __QWSCALER__
 
-
+// System headers
 #include <vector>
 
-#include "VQwSubsystem.h"
+// Boost headers
+#include <boost/shared_ptr.hpp>
+
+// Qweak headers
 #include "VQwSubsystemParity.h"
 #include "QwScaler_Channel.h"
 
 
-class QwScaler: public VQwSubsystemParity
+class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
 {
 
-	public:
-		QwScaler ( TString region_tmp ) :VQwSubsystem ( region_tmp ),VQwSubsystemParity ( region_tmp )
-		{};
+  public:
 
-		~QwScaler(){
-// 			DeleteHistograms();
-		};
+    /// \brief Constructor
+    QwScaler(TString region_tmp);
+    /// \brief Destructor
+    virtual ~QwScaler();
 
-//derived from VQwSubsystem
-		void ProcessOptions ( QwOptions &options ); //Handle command line options
-		Int_t LoadChannelMap ( TString mapfile );
-		Int_t LoadInputParameters ( TString pedestalfile );
-		Int_t LoadEventCuts ( TString & filename );
-		Bool_t SingleEventCuts();
-		Int_t ProcessConfigurationBuffer ( const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words );
-		Int_t ProcessConfigurationBuffer ( UInt_t ev_type, const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words );
-		Int_t ProcessEvBuffer ( UInt_t roc_id, UInt_t bank_id, UInt_t *buffer, UInt_t num_words );
-		Int_t ProcessEvBuffer ( UInt_t ev_type, UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words );
-		void  PrintDetectorID();
-		void  ClearEventData();
-		void  ProcessEvent();
-		void  ConstructHistograms ( TDirectory *folder, TString &prefix );
-		void  FillHistograms();
-		void  DeleteHistograms();
+    // Handle command line options
+    static void DefineOptions(QwOptions &options);
+    void ProcessOptions(QwOptions &options);
 
+    Int_t LoadChannelMap(TString mapfile);
+    Int_t LoadInputParameters(TString pedestalfile);
 
-		void ConstructBranchAndVector ( TTree *tree, TString &prefix, std::vector<Double_t> &values );
-		void ConstructBranch(TTree *tree, TString& prefix);
-  		void ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file);
-		void FillTreeVector ( std::vector<Double_t> &values ) const;
-		VQwSubsystem& operator= ( VQwSubsystem *value );
-		VQwSubsystem& operator+= ( VQwSubsystem *value );
-		VQwSubsystem& operator-= ( VQwSubsystem *value );
-		VQwSubsystem* Copy();
-		void  Copy ( VQwSubsystem *source );
-		void  Sum ( VQwSubsystem  *value1, VQwSubsystem  *value2 );
-		void  Difference ( VQwSubsystem  *value1, VQwSubsystem  *value2 );
-		void  Ratio ( VQwSubsystem  *value1, VQwSubsystem  *value2 );
-		void  Scale ( Double_t );
-		void AccumulateRunningSum ( VQwSubsystem* value );
-		void CalculateRunningAverage();
-		Int_t LoadEventCuts ( TString filename );
-		Bool_t ApplySingleEventCuts();
+    void  ClearEventData();
 
-		Int_t GetEventcutErrorCounters();
-		UInt_t GetEventcutErrorFlag();
-		Bool_t Compare ( VQwSubsystem *source );
-		void print();
-		void PrintValue() const;
-		float* GetRawChannelArray();
+    Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
+    Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t *buffer, UInt_t num_words);
+    void  ProcessEvent();
 
-		Int_t GetChannelIndex ( TString channelName, UInt_t module_number );
-		float GetDataForChannelInModule ( Int_t module_number, Int_t channel_index )
-		{
-			return fSCAs.at(module_number).at(channel_index).GetValue();
-		}
+    using VQwSubsystem::ConstructHistograms;
+    void  ConstructHistograms(TDirectory *folder, TString &prefix);
+    void  FillHistograms();
+    void  DeleteHistograms();
 
-		float GetDataForChannelInModule ( Int_t module_number, TString channel_name )
-		{
-			return -1;
-// 			return GetDataForChannelInModule ( module_number, GetChannelIndex ( channel_name,module_number ) );
-		}
+    using VQwSubsystem::ConstructBranchAndVector;
+    void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
+    void  ConstructBranch(TTree *tree, TString& prefix) { };
+    void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
+    void  FillTreeVector(std::vector<Double_t> &values) const;
 
+    Bool_t Compare(VQwSubsystem *source);
 
-	protected:
+    VQwSubsystem* Copy();
+    void Copy(VQwSubsystem *source);
 
-                Int_t fTreeArrayIndex;
+    VQwSubsystem& operator=(VQwSubsystem *value);
+    VQwSubsystem& operator+=(VQwSubsystem *value);
+    VQwSubsystem& operator-=(VQwSubsystem *value);
+    void Sum(VQwSubsystem *value1, VQwSubsystem *value2);
+    void Difference(VQwSubsystem *value1, VQwSubsystem *value2);
+    void Ratio(VQwSubsystem *value1, VQwSubsystem  *value2);
+    void Scale(Double_t factor);
 
-		std::vector<std::vector< QwSIS3801D24_Channel> >  fSCAs;
+    void AccumulateRunningSum(VQwSubsystem* value);
+    void CalculateRunningAverage();
+
+    Int_t LoadEventCuts(TString filename);
+    Bool_t SingleEventCuts();
+    Bool_t ApplySingleEventCuts();
+
+    Int_t GetEventcutErrorCounters();
+    UInt_t GetEventcutErrorFlag();
+
+    void PrintValue() const;
+    void PrintInfo() const;
+
+    Double_t* GetRawChannelArray();
+
+    Double_t GetDataForChannelInModule(Int_t modnum, Int_t channum) {
+      Int_t index = fModuleChannel_Map[std::pair<Int_t,Int_t>(modnum,channum)];
+      return fScaler.at(index)->GetValue();
+    }
+
+    Int_t GetChannelIndex(TString channelName, UInt_t module_number);
+
+  private:
+
+    // Number of good events
+    Int_t fGoodEventCount;
+
+    // Mapping from subbank to scaler channels
+    typedef std::map< Int_t, std::vector< std::vector<Int_t> > > Subbank_to_Scaler_Map_t;
+    Subbank_to_Scaler_Map_t fSubbank_Map;
+
+    // Mapping from module and channel number to scaler channel
+    typedef std::map< std::pair<Int_t,Int_t>, Int_t > Module_Channel_to_Scaler_Map_t;
+    Module_Channel_to_Scaler_Map_t fModuleChannel_Map;
+
+    // Mapping from name to scaler channel
+    typedef std::map< TString, Int_t> Name_to_Scaler_Map_t;
+    Name_to_Scaler_Map_t fName_Map;
+
+    // Vector of scaler channels
+    std::vector< VQwScaler_Channel* > fScaler; // Raw channels
+    std::vector< UInt_t > fBufferOffset; // Offset in scaler buffer
+    std::vector< std::pair< VQwScaler_Channel*, double > > fNorm;
 };
 
 #endif

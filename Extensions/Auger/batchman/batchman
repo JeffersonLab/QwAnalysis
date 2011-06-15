@@ -533,9 +533,7 @@ proc write_paramfile {} {
 	global  check_job_names  bypass_exists
 	global  gracetime_AWOL gracetime_submit gracetime_queue gracetime_killed
 	global  make_backups  backup_addy  make_safeties
-
-    # Jianglai 03-24-2003. Added the default replay flag
-    global replay_flags
+	global  batchsub_flags  replay_flags  cache_flags
 	
 	set f [open $param_file w]
 	
@@ -577,8 +575,11 @@ proc write_paramfile {} {
 	puts $f "gracetime_submit = \"$gracetime_submit\""
 	puts $f "gracetime_queue = \"$gracetime_queue\""
 	puts $f "gracetime_killed = \"$gracetime_killed\""
-    #jianglai added this
-    puts $f "replay_flags = \"$replay_flags\""	
+
+	puts $f "batchsub_flags = \"$batchsub_flags\""
+	puts $f "replay_flags = \"$replay_flags\""
+	puts $f "cache_flags = \"$cache_flags\""
+
 	close $f
 }
 
@@ -605,8 +606,9 @@ proc param_window {} {
 	global  tmp_gracetime_AWOL tmp_gracetime_submit tmp_gracetime_queue tmp_gracetime_killed
 	global  tmp_make_backups  tmp_backup_addy  tmp_make_safeties
 
-    # Jianglai 03-24-2003. Added the default replay flag
-    global tmp_replay_flags
+	# Jianglai 03-24-2003. Added the default replay flag
+	# Wdconinc 02-24-2011. Added the cache links flag
+	global tmp_batchsub_flags  tmp_replay_flags  tmp_cache_flags
 	
         set posx [expr int($screencenterx * 0.4)]
 	set posy [expr int($screencentery * 0.05)]
@@ -789,7 +791,18 @@ proc param_window {} {
 	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
 	 incr i 1
 
-	# Jianglai 03-24-2003. Added an entry for default replay flags
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Cache flags:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_cache_flags -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
+	 frame .params.mid.items.$pset.$i
+	 label .params.mid.items.$pset.$i.t -text "Batch flags:" -width $w2 -anchor e
+	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_batchsub_flags -width $w1
+	 pack .params.mid.items.$pset.$i.v .params.mid.items.$pset.$i.t -side right -padx 1m
+	 incr i 1
+
 	 frame .params.mid.items.$pset.$i
 	 label .params.mid.items.$pset.$i.t -text "Replay flags:" -width $w2 -anchor e
 	 entry .params.mid.items.$pset.$i.v -relief sunken -bd 2 -textvariable tmp_replay_flags -width $w1
@@ -1067,9 +1080,10 @@ proc params_show {} {
 	global  tmp_make_backups  tmp_backup_addy  tmp_make_safeties
 	global paramwindow_active
     
-    # Jianglai 03-24-2003. Added the default replay flag
-    global replay_flags
-    global tmp_replay_flags
+	# Jianglai 03-24-2003. Added the default replay flag
+	# Wdconnic 02-24-2011. Added the cache links flag
+	global batchsub_flags  replay_flags  cache_flags
+	global tmp_batchsub_flags  tmp_replay_flags  tmp_cache_flags
 
 	set paramwindow_active 0
 
@@ -1102,8 +1116,9 @@ proc params_show {} {
 	set tmp_make_backups         $make_backups
 	set tmp_backup_addy          $backup_addy
 	set tmp_make_safeties        $make_safeties
-    #jianglai added this
-    set tmp_replay_flags             $replay_flags	
+	set tmp_batchsub_flags       $batchsub_flags
+	set tmp_replay_flags         $replay_flags
+	set tmp_cache_flags          $cache_flags
 	focus_on .params
 	tkwait visibility .params
 	set paramwindow_active 1
@@ -1143,9 +1158,9 @@ proc params_keep {} {
 	global  tmp_make_backups  tmp_backup_addy  tmp_make_safeties
 	global paramwindow_active
 
-    # Jianglai 03-24-2003. Added the default replay flag
-    global replay_flags
-    global tmp_replay_flags    
+	# Jianglai 03-24-2003. Added the default replay flag
+	global batchsub_flags  replay_flags  cache_flags
+	global tmp_batchsub_flags  tmp_replay_flags  tmp_cache_flags
 
 
 	set iteration_delay      $tmp_iteration_delay
@@ -1178,8 +1193,9 @@ proc params_keep {} {
 	set make_backups	 $tmp_make_backups
 	set backup_addy 	 $tmp_backup_addy
 	set make_safeties	 $tmp_make_safeties
-    #jianglai added this
-    set replay_flags             $tmp_replay_flags	
+	set batchsub_flags       $tmp_batchsub_flags
+	set replay_flags         $tmp_replay_flags	
+	set cache_flags          $tmp_cache_flags
 	write_paramfile
 	wm withdraw .params
 	set paramwindow_active 0

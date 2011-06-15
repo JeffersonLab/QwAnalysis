@@ -26,9 +26,6 @@
 #include "QwPartialTrack.h"
 #include "QwEvent.h"
 
-// Qweak headers (deprecated)
-#include "Det.h"
-
 // Helper headers
 #include "uv2xy.h"
 
@@ -41,8 +38,8 @@
  * Constructor with file name and spectrometer geometry
  * @param detector_info Detector geometry information vector
  */
-QwTreeEventBuffer::QwTreeEventBuffer (
-	vector <vector <QwDetectorInfo> > & detector_info)
+QwTreeEventBuffer::QwTreeEventBuffer (const QwGeometry& detector_info)
+: fDetectorInfo(detector_info)
 {
   // Initialize
   fCurrentRun = -1;
@@ -56,9 +53,6 @@ QwTreeEventBuffer::QwTreeEventBuffer (
   fNumberOfEvents = 0;
   fNumberOfEntries = 0;
   SetEntriesPerEvent(1);
-
-  // Set the detector info
-  SetDetectorInfo(detector_info);
 
   // Allocate memory for the tree vectors
   ReserveVectors();
@@ -487,7 +481,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   // jpan: the indexing here make me confused.
   // wdc: me too.  fDetectorInfo gets filled wrongly.
-  detectorinfo = & fDetectorInfo.at(1).at(0);
+  detectorinfo = fDetectorInfo.in(kRegionID1).in(kPackageUp).at(0);
   for (int i1 = 0; i1 < fRegion1_ChamberFront_WirePlane_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY.at(i1);
@@ -505,7 +499,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   QwDebug << "No code for processing Region1_ChamberBack_WirePlane: "
           << fRegion1_ChamberBack_WirePlane_NbOfHits << " hit(s)." << QwLog::endl;
 
-  detectorinfo = & fDetectorInfo.at(1).at(1);
+  detectorinfo = fDetectorInfo.in(kRegionID1).in(kPackageUp).at(1);
   for (int i2 = 0; i2 < fRegion1_ChamberBack_WirePlane_NbOfHits && i2 < VECTOR_SIZE; i2++) {
     double xLocalMC = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionX.at(i2);
     double yLocalMC = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY.at(i2);
@@ -523,7 +517,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   // Region 2 front chambers (x,u,v,x',u',v')
   QwDebug << "Processing Region2_ChamberFront_WirePlane1: "
           << fRegion2_ChamberFront_WirePlane1_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(0);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(0);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberFront_WirePlane1_PlaneLocalPositionY.at(i1);
@@ -542,7 +536,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane2: "
           << fRegion2_ChamberFront_WirePlane2_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(1);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(1);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberFront_WirePlane2_PlaneLocalPositionY.at(i1);
@@ -559,7 +553,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane3: "
           << fRegion2_ChamberFront_WirePlane3_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(2);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(2);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberFront_WirePlane3_PlaneLocalPositionY.at(i1);
@@ -576,7 +570,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane4: "
           << fRegion2_ChamberFront_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(3);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(3);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberFront_WirePlane4_PlaneLocalPositionY.at(i1);
@@ -593,7 +587,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane5: "
           << fRegion2_ChamberFront_WirePlane5_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(4);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(4);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberFront_WirePlane5_PlaneLocalPositionY.at(i1);
@@ -610,7 +604,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberFront_WirePlane6: "
           << fRegion2_ChamberFront_WirePlane6_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(5);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(5);
   for (int i1 = 0; i1 < fRegion2_ChamberFront_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberFront_WirePlane6_PlaneLocalPositionY.at(i1);
@@ -630,7 +624,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   // Region 2 back chambers (x,u,v,x',u',v')
   QwDebug << "Processing Region2_ChamberBack_WirePlane1: "
           << fRegion2_ChamberBack_WirePlane1_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(6);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(6);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane1_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberBack_WirePlane1_PlaneLocalPositionY.at(i1);
@@ -647,7 +641,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   }
   QwDebug << "Processing Region2_ChamberBack_WirePlane2: "
           << fRegion2_ChamberBack_WirePlane2_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(7);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(7);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane2_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberBack_WirePlane2_PlaneLocalPositionY.at(i1);
@@ -665,7 +659,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane3: "
           << fRegion2_ChamberBack_WirePlane3_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(8);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(8);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane3_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberBack_WirePlane3_PlaneLocalPositionY.at(i1);
@@ -683,7 +677,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane4: "
           << fRegion2_ChamberBack_WirePlane4_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(9);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(9);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane4_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberBack_WirePlane4_PlaneLocalPositionY.at(i1);
@@ -701,7 +695,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane5: "
           << fRegion2_ChamberBack_WirePlane5_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(10);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(10);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane5_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberBack_WirePlane5_PlaneLocalPositionY.at(i1);
@@ -719,7 +713,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region2_ChamberBack_WirePlane6: "
           << fRegion2_ChamberBack_WirePlane6_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(4).at(11);
+  detectorinfo = fDetectorInfo.in(kRegionID2).in(kPackageUp).at(11);
   for (int i1 = 0; i1 < fRegion2_ChamberBack_WirePlane6_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     double xLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionX.at(i1);
     double yLocalMC = fRegion2_ChamberBack_WirePlane6_PlaneLocalPositionY.at(i1);
@@ -771,7 +765,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   // Region 3 front planes (u,v)
   QwDebug << "Processing Region3_ChamberFront_WirePlaneU: "
           << fRegion3_ChamberFront_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(7).at(0);
+  detectorinfo = fDetectorInfo.in(kRegionID3).in(kPackageUp).at(0);
   for (int i1 = 0; i1 < fRegion3_ChamberFront_WirePlaneU_NbOfHits && i1 < VECTOR_SIZE; i1++) {
     QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
@@ -812,7 +806,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region3_ChamberFront_WirePlaneV: "
           << fRegion3_ChamberFront_WirePlaneV_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(7).at(1);
+  detectorinfo = fDetectorInfo.in(kRegionID3).in(kPackageUp).at(1);
   for (int i2 = 0; i2 < fRegion3_ChamberFront_WirePlaneV_NbOfHits && i2 < VECTOR_SIZE; i2++) {
     QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
@@ -854,7 +848,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   // Region 3 back planes (u',v')
   QwDebug << "Processing Region3_ChamberBack_WirePlaneU: "
           << fRegion3_ChamberBack_WirePlaneU_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(7).at(2);
+  detectorinfo = fDetectorInfo.in(kRegionID3).in(kPackageUp).at(2);
   for (int i3 = 0; i3 < fRegion3_ChamberBack_WirePlaneU_NbOfHits && i3 < VECTOR_SIZE; i3++) {
     QwDebug << "hit in "  << *detectorinfo << QwLog::endl;
 
@@ -895,7 +889,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Region3_ChamberBack_WirePlaneV: "
           << fRegion3_ChamberBack_WirePlaneV_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(7).at(3);
+  detectorinfo = fDetectorInfo.in(kRegionID3).in(kPackageUp).at(3);
   for (int i4 = 0; i4 < fRegion3_ChamberBack_WirePlaneV_NbOfHits && i4 < VECTOR_SIZE; i4++) {
     QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
@@ -937,7 +931,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Trigger Scintillator: "
           << fTriggerScintillator_Detector_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(10).at(0);
+  detectorinfo = fDetectorInfo.in(kRegionIDTrig).in(kPackageUp).at(0);
   for (int i = 0; i < fTriggerScintillator_Detector_NbOfHits && i < 1; i++) {
     QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
@@ -958,7 +952,7 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
 
   QwDebug << "Processing Cerenkov: "
           << fCerenkov_Detector_NbOfHits << " hit(s)." << QwLog::endl;
-  detectorinfo = & fDetectorInfo.at(13).at(0);
+  detectorinfo = fDetectorInfo.in(kRegionIDCer).in(kPackageUp).at(0);
   for (int i = 0; i < fCerenkov_Detector_NbOfHits && i < 1; i++) {
     QwDebug << "hit in " << *detectorinfo << QwLog::endl;
 
