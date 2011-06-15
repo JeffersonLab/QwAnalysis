@@ -61,11 +61,11 @@ const Int_t numberofWordPerEv = 5;
 // Ugly, should go inside functions, seems undefined for running sum
 Int_t myrun;
 
-/*****************************************************************/
+/*****************************************************************
  * Load the channel map
  * @param mapfile Map file
  * @return Zero if successful
- */
+ *****************************************************************/
 Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 {
   TString varname, varvalue;
@@ -162,7 +162,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	  if (plane >= (Int_t) fStripsRawEv.size())
 	    fStripsRawEv.resize(plane);
 	  if (stripnum >= (Int_t) fStripsRawEv[plane-1].size())
-	    fStripsRawEv[plane-1].push_back(0.0);
+	    fStripsRawEv[plane-1].push_back(0);
 
 	  if (plane >= (Int_t) fStripsEv.size())
 	    fStripsEv.resize(plane);
@@ -399,7 +399,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 		fStripsRawScal[2][j] = (buffer[i] & 0x0000ff00) >> 8;
 		fStripsRawScal[3][j] = (buffer[i] & 0x000000ff);
 		words_read++;
-		if (fStripsRawScal[0][j] > 0) printf("\nfStripsRawScal[%d][%d]:%f",i,j,fStripsRawScal[i][j]);
+		//if (fStripsRawScal[0][j] > 0) printf("\nfStripsRawScal[%d][%d]:%f",i,j,fStripsRawScal[i][j]);
 	      }
 	    }
 	    if (num_words != words_read) {
@@ -1010,7 +1010,7 @@ void QwComptonElectronDetector::Scale(Double_t factor)
 {
   for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
-      this->fStripsRaw[i][j] *= factor;//!! (converting from Double to Int ... may not be okay later!
+      this->fStripsRaw[i][j] *= factor;//!!converting Double to Int (ok now) may not be okay later!
     }
   }
 
