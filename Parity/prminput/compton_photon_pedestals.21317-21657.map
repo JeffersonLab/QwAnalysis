@@ -2,6 +2,6 @@
 ! Respect the format of the file:
 
 ! channel name,	pedestal,	gain
-fadc_compton,	3818.86,	-1.0
+fadc_compton,	3858.76,	-1.0
 
 !END

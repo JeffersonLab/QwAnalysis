@@ -244,6 +244,8 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
       TString localname = fSamplingADC[i].GetElementName();
       localname.ToLower();
       if (localname == varname) {
+        QwMessage << "Setting pedestal and calibration of sampling ADC " << localname
+                  << " to " << varped << " and " << varcal << "." << QwLog::endl;
         fSamplingADC[i].SetPedestal(varped);
         fSamplingADC[i].SetCalibrationFactor(varcal);
         found = kTRUE;
@@ -255,6 +257,8 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
       TString localname = fScaler[i]->GetElementName();
       localname.ToLower();
       if (localname == varname) {
+        QwMessage << "Setting pedestal and calibration of scaler " << localname
+                  << " to " << varped << " and " << varcal << "." << QwLog::endl;
         fScaler[i]->SetPedestal(varped);
         fScaler[i]->SetCalibrationFactor(varcal);
         found = kTRUE;
