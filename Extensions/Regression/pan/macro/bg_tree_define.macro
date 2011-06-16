@@ -1,0 +1,291 @@
+// Macro Class BTREE    R. Michaels     Apr 2003
+//
+// Purpose : To plot things from tree "T" which is externally defined.
+// Used by : bplot package, which runs under root CINT.
+// There are N plots (N <= MAXPLOT) arranged in nx by ny
+// zones, where nx*ny = N.
+// For i = 1,N we plot data[i]  subject to  condition[i]
+// where data[i] = string indicating variable
+// condition[i] = string indicating cut (if applicable)
+// A postscript file is produced of the canvas.
+// One may either let root decide the axes of plots or
+// use "forcehisto" method to force plot into a histogram.
+
+
+class btree
+{
+#include <stdio.h>
+#include "TString.h"
+#include "TTree.h"
+#define MAXPLOT 4
+
+
+public:
+
+
+// Constructor
+
+// tree = name of tree to deal with.
+// ct = name of canvas which gets created.
+// ps = name of postscript file which gets crated (has '.ps' appended).
+// For up to 4 plots.
+// cuts, options, liny/logy optionally specified
+
+
+btree(TString tree, TString ct, TString ps, int x, int y,
+      TString data0, TString cut0, TString opt0, TString llog0,
+   TString data1="", TString cut1="", TString opt1="", TString llog1="",
+   TString data2="", TString cut2="", TString opt2="", TString llog2="",
+   TString data3="", TString cut3="", TString opt3="", TString llog3="") {
+
+   treename = new char[strlen(tree.Data())+1];
+   strcpy(treename,tree.Data());
+
+   nplot = 4;
+   if (data3 == "") nplot = 3;
+   if (data2 == "") nplot = 2;
+   if (data1 == "") nplot = 1;
+
+   setup(ct,ps);
+   nxzone = x;  nyzone = y;
+   chkzone(nplot);
+
+   LoadPlot(0, data0.Data(), cut0.Data(), opt0.Data(), llog0.Data());
+   LoadPlot(1, data1.Data(), cut1.Data(), opt1.Data(), llog1.Data());
+   LoadPlot(2, data2.Data(), cut2.Data(), opt2.Data(), llog2.Data());
+   LoadPlot(3, data3.Data(), cut3.Data(), opt3.Data(), llog3.Data());
+
+   for (Int_t i=0; i<4; i++) plot[i].fhist = 0;
+
+};
+
+void LoadPlot(Int_t ip, char* dat, char* ct, char* op, char* ll) 
+{
+
+   if (ip < 0  || ip > MAXPLOT) return;
+
+   plot[ip].data = new char[strlen(dat)+1];
+   strcpy(plot[ip].data,dat);
+
+   plot[ip].cut = new char[strlen(ct)+1];
+   strcpy(plot[ip].cut,ct);
+
+   plot[ip].opt = new char[strlen(op)+1];
+   strcpy(plot[ip].opt,op);
+
+   plot[ip].llog = new char[strlen(ll)+1];
+   strcpy(plot[ip].llog,ll);
+
+};
+
+void forcehisto(int pnum, char* name, char* title,
+                int nbinx, float xlo, float xhi,
+                int nbiny, float ylo, float yhi)
+{
+// This method will cause the plot #pnum to be forced into
+// a particular histogram whose parameters are defined here.
+
+      if(pnum >= 0 && pnum < MAXPLOT) {
+         plot[pnum].fhist = 1;
+      } else {
+         return;
+      }
+
+      hist[pnum].name = new char[strlen(name)+1];
+      strcpy(hist[pnum].name,name);
+      hist[pnum].title = new char[strlen(title)+1];
+      strcpy(hist[pnum].title,title);
+      hist[pnum].nbinx = nbinx;
+      hist[pnum].xlo = xlo;
+      hist[pnum].xhi = xhi;
+      hist[pnum].nbiny = nbiny;
+      hist[pnum].ylo = ylo;
+      hist[pnum].yhi = yhi;
+};
+
+void plot() {
+
+   Int_t i,ntot;
+   char cinst[100];
+
+   TTree *T = (TTree*)gROOT.FindObject(treename);
+   if (!T) {
+     cout << "plot:ERROR: Cannot find tree "<<treename<<endl;
+     return;
+   }
+
+   c1 = new TCanvas("bob",canvas_title,800,600);
+   c1->SetFillColor(42);
+
+// types: 111=portrait, 112=landscape, 113=eps
+   Int_t type = 111;    // portrait
+
+   if(DOPOSTSCRIPT) TPostScript ps(postscript_name,type);
+ 
+   if((nxzone==1)&&(nyzone==1))  {
+      plot[0].pad = new TPad("pad1","",0.03,0.02,0.98,0.95,18);
+   }
+   if((nxzone==1)&&(nyzone==2))  {
+      plot[0].pad = new TPad("pad1","",0.03,0.5,0.98,0.95,18);
+      plot[1].pad = new TPad("pad2","",0.03,0.02,0.98,0.48,18);
+   }
+   if((nxzone==2)&&(nyzone==2))  {
+      plot[0].pad = new TPad("pad1","",0.03,0.5,0.49,0.95,18);
+      plot[1].pad = new TPad("pad2","",0.52,0.5,0.98,0.95,18);
+      plot[2].pad = new TPad("pad1","",0.03,0.02,0.49,0.45,18);
+      plot[3].pad = new TPad("pad2","",0.52,0.02,0.98,0.45,18);
+   }
+
+   gStyle->SetOptStat(1111);
+   gStyle->SetStatH(0.30);
+   gStyle->SetStatW(0.35);
+   gStyle->SetTitleH(0.12);
+   gStyle->SetTitleW(0.6);
+   gStyle->SetLabelSize(0.05,"x");
+   gStyle->SetLabelSize(0.05,"y");
+   gROOT->ForceStyle();
+
+   for (i = 0; i < nplot; i++) {
+
+      if(plot[i].fhist == 1) {  // If forcing into a histogram
+       plot[i].pad->cd();
+       strcpy(cinst,plot[i].data);
+       strcat(cinst,">>");
+       strcat(cinst,hist[i].name);
+       if(hist[i].nbiny == 0) {
+         hist[i].h1d = 
+           new TH1F(hist[i].name,hist[i].title,
+              hist[i].nbinx,hist[i].xlo,hist[i].xhi);
+       } else {
+         hist[i].h2d = 
+           new TH2F(hist[i].name,hist[i].title,
+              hist[i].nbinx,hist[i].xlo,hist[i].xhi,
+              hist[i].nbiny,hist[i].ylo,hist[i].yhi);
+       }
+       T->Draw(cinst,plot[i].cut,plot[i].opt);
+     }
+   }
+
+   c1->Clear();
+
+   if(DOPOSTSCRIPT) ps->NewPage();
+
+   for (i = 0; i < nplot; i++) plot[i].pad->Draw();
+
+   for (i = 0; i < nplot; i++) {
+
+     plot[i].pad->cd();
+
+    if(strstr(plot[i].llog,"logx") != NULL)  
+       plot[i].pad->SetLogx(1);
+
+    if(strstr(plot[i].llog,"logy") != NULL)  
+       plot[i].pad->SetLogy(1);
+
+    if(strstr(plot[i].llog,"logz") != NULL)  
+       plot[i].pad->SetLogz(1);
+
+     if( plot[i].fhist ) {  
+
+       if(hist[i].nbiny == 0) {
+          hist[i].h1d.Draw(plot[i].opt);
+       } else {
+          hist[i].h2d.Draw(plot[i].opt);
+       }
+
+     } else {
+
+       T->Draw(plot[i].data,plot[i].cut,plot[i].opt);
+
+     }
+
+   }
+   c1->Update();
+
+};
+
+private:
+
+    enum { DEBUG = 0 };   // to debug(1) or not(0)
+    enum { SUCCESS = 1 };
+    enum { ERROR = -1 };
+    enum { DOPOSTSCRIPT = 1 }; // do postscript(1) or not(0)
+
+    char* treename;
+    char* canvas_title;
+    char* postscript_name;
+    int nplot,nxzone,nyzone;
+    struct plotdefine {
+        char* data;
+        char* cut;
+        char* opt;
+        char* llog;
+        int  fhist;
+        TPad *pad;
+    } plot[MAXPLOT];
+    struct histdefine {
+        int nbinx,nbiny;
+        char* name;
+        char* title;
+        float xlo,xhi;
+        float ylo,yhi;
+        TH1F *h1d;
+        TH2F *h2d;
+    } hist[MAXPLOT];
+
+
+    void setup (TString ct, TString ps)  
+    {
+      TString str;
+      canvas_title = new char[strlen(ct.Data())+1];
+      strcpy(canvas_title,ct.Data());
+      str = ps + ".ps";
+      postscript_name = new char[strlen(str.Data())+1];
+      strcpy(postscript_name,str.Data());
+    };
+
+   int chkzone(int N) 
+   {
+      if(N==(nxzone*nyzone)) {
+           return SUCCESS;
+      } else {
+           printf("btree: ERROR:  number of zones dont add up...\n");
+           printf("trying to repair...\n");
+           nxzone = N/2;
+           nyzone = N - nxzone;
+           if(nxzone==0) nxzone = 1;
+           if(nyzone==0) nyzone = 1;
+           return ERROR;
+      }
+   };
+
+   void debugprint()
+   {
+          int i; 
+          printf("zones  %d %d %d \n",nxzone,nyzone,nplot);
+          printf("canvas  %s \n",canvas_title);
+          printf("postscript %s \n",postscript_name);
+          for (i = 0; i < nplot; i++) {
+            if(plot[i].icut == 0) {
+               printf("plot %d   data =   %s  (no cut)\n",
+                i,plot[i].data);
+	    } else {
+               printf("plot %d   data =   %s    cut = %s\n",
+                i,plot[i].data,plot[i].cut);
+	    }             
+	  }
+          return;
+    };
+
+};
+
+
+
+
+
+
+
+
+
+
+

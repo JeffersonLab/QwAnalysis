@@ -1,0 +1,203 @@
+
+   +++++++++++++++++++++++++++++++++++++
+   +                                   +
+   +    PANAM  -  Parity   Analyzer    + 
+   +              Accurate Monitoring  + 
+   +                                   +
+   +++++++++++++++++++++++++++++++++++++
+
+authors:  Antonin Vacheret, later Bob Michaels and Bryan Moffit.
+
+Update : july 1st 2003
+
+To compile and link:
+^^^^^^^^^^^^^^^^^^^^
+
+For STL support, use ROOT version 3 or higher.  Info and downloads for
+ROOT at <http://root.cern.ch/root>
+
+Panam is, by default, compiled with MAKEDICTIONARY enabled. That means you
+must have ROOT version 3.02/07 or later for this to work. To create the 
+dictionnary Panam use a file called LinkDef.h and generates Dict.h.   
+
+You will need all libraries needed by Pan (See Pan README).
+
+Compilation command is : 
+
+ make -f makefile_panam 
+
+It will create the executable 'panam' in the pan/ directory.
+
+ 1) To compile a version to monitor a CODA FILE :
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+make sure you enable PANAMTEST in TaRun.cc and CODAFILETEST
+in TaPanam.cc, disable ETCONNECT 
+In the HandleMenuBar() method at case M_MON_PRESTART: you can put the run number you want at line
+ex :  fAnaMan->Init(2651); for looking at parity run number 2651. 
+
+ 2) To compile an ONLINE version :
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+Make sure you enable ETCONNECT in TaPanam.cc and not CODAFILE_TEST, 
+disable  PANAMTEST in TaRun.cc.
+In the makefile uncomment : # export ONLINE = 1 and # export OPTIMIZE =1
+
+To run Panam:
+^^^^^^^^^^^
+You don't need to care about the analysis used by pan. Panam use is own analysis
+class. The core of Panam is a Pan analysis so it will use the same environment variable 
+as Pan or PanFFB is using. BUt no Pan output will be created.  
+
+Tape at prompt :
+  ./panam
+
+The monitoring sequence is ordered as PRESTART-START-STOP-END. 
+before you PRESTART (in the monitoring menu) you can choose the channels you want to see in the 
+monitoring. You can more directly choose a predefined configuration in the CONFIGURATION
+MENU. Other configurations should be added in the future if needed. Right now just two
+are difined : 
+
+ - ADC : to look a the ADC status (mean and RMS stripchart or histos)
+ 
+ - Beam diagnostic : to monitor beam parameters.
+
+WHEN choose PRESTART, panam is reading the configuration and will compare the channels 
+that has been chosen with the actual datamap channels. If not found in the datamap the channel 
+WILL NOT appear in the display (so don't get crazy about it..) This has been done to deal 
+with the different DAQ configuration we have now. At this point PANAM should display 
+the group of histograms it will update.  
+
+Once the monitoring is STARTed, canvas are refreshed. You can resize or zoom on histograms.
+ 
+Rarely PANAM hang when STOP...that's probably because ROOT thread are not completly safe from crashing, it should 
+not bother to much, but that's a reason I wanted to keep it running as much as possible. When it runs it is pretty stable.
+
+ENDing is recommanded to reinitialize the canvas and histograms. So simply follow the 
+prestart-start-stop-end procedure and you should be safe from making strange things 
+happening. The monitor is not yet automated and you need to do each step manually. 
+Automatation needs to be made once running for real I guess...
+
+**** for expert ****
+
+ 3) To add a device in the code  :
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  
+  a) This device once added in the template.db file should be recognized first by TaPanamAna.
+At this point you need to decide if this channel needs to have the asym or diff computed 
+by choosing to create :
+
+ - a TaPanamDevice ( simple object with no asym or diff ) just DATA and DATA_RMS Stripchart 
+and histo will be created and ready to display.
+
+ - a TaPanamADevice (The "A" is for asymetry) you get in your object DATA,DATA_RMS and you 
+have to choose if you compute ASYM or DIFF and set a lot of other parameters.
+
+I recommend to look  carefully at the constructor to check how to get each Histos parameters.
+
+To make TaPanamAna recognize it you need to add a if condition in 
+
+TaPanamAna::InitMonitorDevices()
+
+if you have same kind of channel and want to group them you can take a look at how I do it 
+with the TaPanamMultiDevice(Devicename)  object.
+
+you should also make sure this device is pushed in the fMonDev or fMonADev list to be filled with data every event or pair. 
+
+  b) In TaPanam.cc 
+
+You will probably need to add a canvas for this device first. You will need also 
+to make a method to fill it according to your order of display example is TaPanam::UpdateBCMStack(fBCMSCorH).
+I recommend to avoid display simple device if there are too many, group them as much as possible to avoid 
+problem of histogram filling. 
+
+If you add method or data members in TaPanam you need to make clean because you can have a "from nowhere" seg fault 
+after the GUI initialization. it will say ok but not show up, this is a very vicious seg fault if you are not aware of it...
+but once make clean it should disappear and sows the GUI window. 
+
+********************
+
+ !!! NOTES about VERSION 2.0 !!!
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+This version still not complete and some debugging still needs to be done. But 
+a couple of things have been upgraded :
+
+- it deals with the different datamap configuration we can make. If the device chosen in panam
+is in there it will be displayed. 
+
+_ I added the BPM cavities since there are on the beamline for SAGDH
+
+
+- Most of the histograms are now grouped like bcms 1 and 2 (this fix the problem of version 1.0 point 6). 
+This reduces considerably the space of display and the number of histograms to manage. The Stack 
+objects are also quicker to display histos. This has been implemented by using a new object and if in the 
+future one wants to add devices, he should redefine canvas for them and Stacks of histos for them.    
+
+- Found a memory leak due to ROOT object ownership, if one wants to know better about it he can 
+look at ROOT manual page 101. Now It should be found. 
+
+- I remove some canvas from version 1 and remove and change some methods. 
+
+- Canvas management is safe, if one delete a canvas it runs ( as far as I tested it).
+ 
+
+- one thing I didn't had time to make it display is the asyN part. I started to add the 
+histograms in TaPanamDevice but the work is not finished...
+
+
+ 
+ !!! NOTES about VERSION 1.0 !!!
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Panam is toward a working version I think, it still empty pieces and 
+other things to fix
+but it should work online and stay stable for a couple of hour. Please 
+read these important notes of the current Panam status.
+
+1. Since the DAQs are not "unified" and detectors are not yet installed,
+some devices are not working and other not properly defined.
+Example is 'bpm4bxws': it is not defined yet.( by the way, I would prefer 
+we rename them bpmws4bx, it is 
+much easier for generic search in my lists of devices). So in summary 
+what works is :
+
+- what I call "time signals" (if you have other way of calling it 
+I'll take it!) 
+- parity DAQ ADCs 0->9
+- BCM1,BCM2,BCM3(unser) data,asym,all
+- HALL A BPMS (12,10,8,4A,4B) data,diffs,all
+- LUMI  
+
+I have not yet verified the integrity of all channels ! 
+
+2. When you unselect a device before PRESTART, this may cause a crash because 
+ it seems there is some problem of communication between STL vectors and 
+ROOT Frames. It's 
+look like the vector is not correctly updated when selecting-unselecting 
+many times. So 
+avoid doing this as much as you can. I will fix that.
+
+3. Feedback and dithering canvas are empty. For feedback I wanted to 
+display something like
+runbird do so now instead, there is a commented call to runbird 
+(which is less work for me anyway :-)).
+I will implement the integrated asymmetries and diffs very soon. For 
+Dithering We will need to discuss
+what to plot in it but I was thinking about sometihng like in Wilson M. 
+thesis p 38. 1 BPM XY, DAC values, enrgy BPM and 
+det/bcm.
+ 
+4. DO NOT exit a canvas when in START mode (I mean clicking on the cross). 
+I found a way but not completly coded right now (to avoid a seg fault when 
+somebody is doing this),this is number one on my list of fixes. I look for 
+a way to block any access to canvas instead of 
+testing all the time if the canvas is still alive.
+ 
+
+5. The Embended canvas feature is not working yet. I don't think it is a 
+big issue right now so I leave it for later. 
+
+   
+6. Last tests showed that when too many histos are displayed in a canvas, 
+some of them doesn't have time to fill up. So don't try to display to 
+much at the same time. I noticed also that Stack of histos seems quicker 
+so that can be a way to avoid the problem.   
+

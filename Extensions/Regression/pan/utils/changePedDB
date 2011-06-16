@@ -1,0 +1,335 @@
+#!/usr/bin/perl
+####################################################################
+#
+#          changePedDB
+#
+# Author: B. Moffit <http://www.jlab.org/~moffit/>
+# @(#)pan/utils:$Name:  $:$Id: changePedDB,v 1.2 2004/10/07 20:21:09 moffit Exp $
+#
+####################################################################
+#
+#    Perl script to modify the pedestals of a series of ASCII db files
+#    For more info, see &PrintUsage;
+#
+####################################################################
+
+chomp($date = `date +"%Y-%m-%d %k:%M:%S"`);
+chomp($year = `date +%y`);
+
+# Process the command line arguments
+use Getopt::Long;
+my($backup) = 1;
+
+GetOptions('r=s' => \$runnums,      # Range of run numbers to modify
+	   'i=s' => \$runfile,      # Database File to modify
+	   'f=s' => \$templatefile, # Template filename
+           'verbose' => \$verbose,  # Verbose option
+           'backup!' => \$backup);  # Backup option
+
+unless ($templatefile) {
+  print "\nNeed a modification source.. (-f)\n";
+  &PrintUsage;
+  exit;
+}
+
+unless ($runnums || $runfile) {
+  print "\nNeed something to modify.. (-r/-i)\n";
+  &PrintUsage;
+  exit;
+}
+
+if ($runnums && $runfile) {
+  print "\nOnly one modification destination flag, please\n";
+  &PrintUsage;
+  exit;
+}
+
+# Separate the runnumber string, into expected integers.
+$runnums =~ /^(\d+)-*,*(\d*)/;
+my($low_num) = $1;
+my($high_num) = $2;
+if ($high_num) {
+  if ($low_num > $high_num) {
+    print "\nBad range of run numbers: $low_num-$high_num\n\n";
+    exit;
+  }
+}
+
+if ($verbose) {
+  print "\n";
+  print "Runs to modify    : [$low_num,$high_num]\n" if ($runnums);
+  print "Filename to modify: $runfile\n"             if ($runfile);
+  print "Template Filename : $templatefile\n"        if ($templatefile);
+  if ($override) {
+    foreach $line (@overridelist) {
+      print "Override          :$line\n";
+    }
+  }
+
+}
+
+# Put together @dbfilelist of files to modify.  Check if they exist along the
+#  way.  If they don't, then they're not in the list (not fatal).
+my($prefix) = "$ENV{'PAN_FILE_PREFIX'}";
+$prefix = "parity$year" unless ($prefix);
+my($suffix) = "$ENV{'PAN_DB_FILE_SUFFIX'}";
+$suffix = "db"          unless ($suffix);
+
+my(@dbfilelist);
+my($filename);
+if ($runnums) {
+  unless ($high_num) {
+    $filename = "$prefix\_$low_num.$suffix";
+    unless ( -s $filename) {
+      print "WARN: $filename does not exist\n";
+    } else {
+      push @dbfilelist, $filename;
+    }
+  } else {
+    for($i = $low_num; $i <= $high_num; $i++) {
+      $filename = "$prefix\_$i.$suffix";
+      unless ( -s $filename) {
+	print "WARN: $filename does not exist\n";
+      } else {
+	push @dbfilelist, $filename;
+      }
+    }
+  }
+} else {
+  push @dbfilelist, $runfile;
+}
+
+if ($verbose) {
+  foreach $line (@dbfilelist) {
+    print "Will modify: $line\n"
+  }
+}
+
+if ($templatefile) {
+  # Open template file and read it into @templatelines.
+  unless ( -s $templatefile ) {
+    print "ERROR\n  [template file]=\"$templatefile\" does not exist\n";
+    &PrintUsage;
+    exit;
+  }
+  @templatelist = &file2list($templatefile);
+}
+
+# Copy the old database files to a orig_$date directory.  In case of mistakes.
+if ($backup != 0) {
+  print "Making backup directory and files\n"  if ($verbose);
+  mkdir "origDB_$date", 0755 or die "Cannot make origDB_$date directory: $!";
+  foreach $file (@dbfilelist) {
+    system "cp", $file, "origDB_$date";
+  }
+  system "cp", $templatefile, "origDB_$date"   if ($templatefile);
+} else {
+  print "WARN: Did not make backup, UPON REQUEST!\n";
+}
+
+# New pedestal map.  pedestal(monitor) = pedestal
+# changedped(monitor) = true/false
+my $commentstring;
+my %newpedmap;
+my %changedped;
+foreach $line (@templatelist) {
+  if($line =~ /^\s+([\d\D]+)/) { # take out spaces at start of lines
+    $line = $1;
+  }
+  my @linestrings = split /\s+/,$line;
+  my $numstrings = @linestrings;
+  if($linestrings[0] =~ /comment/i) {
+    $_ = $line;
+    s/comment//i;
+    $commentstring = $_;
+  } elsif ($numstrings==2) {
+    $newpedmap{$linestrings[0]} = $linestrings[1];
+    $changedped{$linestrings[0]} = 0;
+    #  print "newpedmap: $linestrings[0] -> $newpedmap{$linestrings[0]}\n";
+  }
+}
+my @monitorlist = keys %newpedmap;
+
+# Go through each db file
+my $totaldone=0;
+foreach $file (@dbfilelist) {
+  my @currentDBlist = &file2list($file);
+  # First pass, to get the device mapping
+  # Monitor map (hash) for this dbfile monmap(device) = monitor;
+  my %monmap;
+
+  if ($verbose) {
+    print "First Pass\n";
+  }
+  foreach $line (@currentDBlist) {
+    # Check the line for a datamap entry, scaler/adc device, and
+    #  only 2 numbers (indicating device number and channel).
+    #  This follow's db convention in Example 3 of pan/doc/DATABASE.TXT
+    my @linestrings = split /\s+/,$line;
+    next if($linestrings[0] =~ /^#/);
+    # datamap lines
+    if($linestrings[1] =~ /datamap/ &&
+      $linestrings[4] =~ /scaler|adc/) {
+      if($linestrings[7] =~ /[^\d+]/) {
+	# Count how many monitors on this line
+	my $moncount = @linestrings-7;
+	if($moncount>=1) {
+	  # go through the number of monitors, add them to %monmap
+	  for ($i=0; $i<($moncount); $i++) {
+	    my $stringindex = 7+$i;
+	    my $device_channel = $linestrings[6]+$i;
+	    my $device = "$linestrings[4] $linestrings[5] $device_channel";
+	    my $monitor = $linestrings[$stringindex];
+	    $monmap{$device} = $monitor;
+#	    print "devmap: $device -> $monmap{$device}\n";
+	  }
+	}
+      }
+    }
+  }
+  if ($verbose) {
+    print "Second Pass\n";
+  }
+
+  # Open and write to the new database file.
+  open OUTFILE, ">$file";
+  print OUTFILE "# *** ASCII DB modified by changePedDB on $date\n";
+
+  # Second pass, to change only the pedestals we want to change.
+  foreach $line (@currentDBlist) {
+    my @linestrings = split /\s+/,$line;
+    if($linestrings[0] =~ /^#/) {
+      print OUTFILE "$line\n";
+      next;
+    }
+    # pedestal lines
+    if($linestrings[1] =~ /ped/) {
+      my $device = "$linestrings[2] $linestrings[3] $linestrings[5]";
+      # Check if we want to change this pedestal
+      if(exists $newpedmap{$monmap{$device}}) {
+	# Want to change it... so do it.
+	if ($commentstring) {
+	  print OUTFILE "# *** changePedDB Comment: $commentstring ($monmap{$device})\n";
+	} else {
+	  print OUTFILE "# ***changePedDB *** Pedestal for $monmap{$device}\n";
+	}
+	print OUTFILE "    ped $linestrings[2] $linestrings[3] chan $linestrings[5] value $newpedmap{$monmap{$device}}\n";
+	$changedped{$monmap{$device}} = 1;
+      } else {
+	# Don't want to change this line...
+	print OUTFILE "$line\n";
+      }
+    } else {
+      # Don't want to change this line...
+      print OUTFILE "$line\n";
+    }
+  }
+  # Now check the leftover new pedestals to see if we can add those.
+  # device = devmap(monitor)
+  my %devmap = reverse %monmap;
+  foreach $monitor (sort keys %changedped) {
+    if ($changedped{$monitor}==0) {
+      if(exists $devmap{$monitor}) {
+	my @device = split /\s+/,$devmap{$monitor};
+	if ($commentstring) {
+	  print OUTFILE "# *** changePedDB Comment: $commentstring ($monitor)\n";
+	} else {
+	  print OUTFILE "# ***changePedDB *** Pedestal for $monitor\n";
+	}
+	print OUTFILE "    ped $device[0] $device[1] chan $device[2] value $newpedmap{$monitor}\n";
+	
+      } else {
+	print "Warning: $monitor not in $file datamap\n";
+      }
+    }
+  }
+
+  print "Finished: $file\n"    if ($verbose);
+  $totaldone++;
+}
+
+print "Processed $totaldone files.  Thank you for choosing changePedDB.\n";
+
+####################################################################
+#    Subroutine file2list($filename)
+#      Opens a file with given $filename and returns
+#       the list @outlist of its contents. Will not include lines
+#       with more than three # at the beginning.
+####################################################################
+sub file2list {
+  my($filename) = @_;
+  my(@outlist);
+
+  open MYFILE, "<$filename";
+  while (<MYFILE>) {
+    unless (/^\#\#\#\#+/) {
+      chomp;
+      push @outlist, $_;
+    }
+  }
+  close MYFILE;
+
+  return @outlist;
+}
+
+
+
+####################################################################
+#    Subroutine PrintUsage
+#      print to standard out how to use this script
+####################################################################
+sub PrintUsage {
+    print <<EOM;
+
+Usage:
+       changePedDB -r [\#start]-[\#end] -f [template file]
+  or
+       changePedDB -i [databasefile] -f [template file]
+
+Command-line options:
+    -r [\#start]-[\#end]
+       The range of runnumbers whose db files you wish to change.  This
+       option will assume that:
+         1. PAN_FILE_PREFIX is defined as an environment variable... or
+            assume that parity$year is an acceptable file prefix.
+         2. All ASCII database files are in the current directory.
+
+    -i [database file]
+       Use this option if there is only one database file to modify, or
+       the database file name does not have a run number in it
+        (e.g. control.db).
+
+    -f [template file]
+       template file follows this format:
+         <monitor name> <pedestal>
+         comment <User Comment>
+
+       changePedDB will search the ASCII database file's datamap for the
+       indicated <monitor name>.  If found, will associate it with the
+       device for which it is mapped, and change it's pedestal (or insert
+       a new pedestal line if not originally included).  If not found, will
+       produce only a warning (and attempt to continue with the rest of
+       the requested changes).
+
+       The comment field is optional.  It will be placed on the line just
+       before the pedestal line that is changed or added, and includes the
+       monitor that was used to calibrated it.
+       example:
+           comment Calibrated with run #1948
+           bcm1r 1989
+           bpm1xm 0.024817
+        would replace (or produce) the lines:
+           # *** changePedDB Comment:  Calibrated with run #1948 (bcm1r)
+               ped adc 2 chan 2 value 1989
+           # *** changePedDB Comment:  Calibrated with run #1948 (bpm1xm)
+               ped scaler 0 chan 19 value 0.024817
+
+    -verbose, -v
+       Be obnoxiously verbose.  For debugging purposes.
+
+    -nobackup, -nob
+       Be courageous... and perhaps very stupid.  Don't create any backups.
+
+EOM
+return;
+}

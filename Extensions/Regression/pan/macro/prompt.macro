@@ -1,0 +1,152 @@
+// -*- c++ -*-
+
+#include <string>
+
+void prompt (UInt_t run, UInt_t batch, TString comment = "")
+{
+  // Prompt analysis tasks for ROOT.  Noninteractive tasks are done
+  // first; if batch is zero, we call the online macro as well.
+
+  Int_t ret;
+  ret = open (run, "regress", comment);
+  //ret = open (run, "regress", "P");
+  //ret = open (run, "standard", "P");
+
+  //  TTree* tt = (TTree*) (gROOT->FindObject("M"));
+  TTree* tt = (TTree*) (gROOT->FindObject(comment));
+
+  if (ret && tt)
+    {
+       TCanvas* cparsave = new TCanvas();
+
+      // Get parameters of asymmetry and difference distributions
+      // and print them to a file.
+      
+      gROOT->LoadMacro("ParamSave.macro+");
+      ParamSave* ps = new ParamSave (run);
+      ps->LoadCorrs();
+
+      ps->PutCut("", *tt);
+      ps->PutCut("ok_cutC", *tt);
+      ps->PutCut("ok_cond", *tt);
+      ps->PutCut("ok_cut", *tt);
+
+      ps->PutAvg("bcm1", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm2", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm3", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm4", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm5", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm6", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm7", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm8", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm9", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm10", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm11", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm12", "avg", *tt, "ok_cut");
+      ps->PutAvg("bcm13", "avg", *tt, "ok_cut");
+      ps->PutAvg("bpm4ax", "avg", *tt, "ok_cut");
+      ps->PutAvg("bpm4ay", "avg", *tt, "ok_cut");
+      ps->PutAvg("bpm4bx", "avg", *tt, "ok_cut");
+      ps->PutAvg("bpm4by", "avg", *tt, "ok_cut");
+      ps->PutAvg("bpm12x", "avg", *tt, "ok_cut");
+      ps->PutAvg("det1", "avg_n", *tt, "ok_cut");
+      ps->PutAvg("det2", "avg_n", *tt, "ok_cut");
+      ps->PutAvg("det3", "avg_n", *tt, "ok_cut");
+      ps->PutAvg("det4", "avg_n", *tt, "ok_cut");
+      ps->PutAvg("det_l", "avg_n", *tt, "ok_cut");
+      ps->PutAvg("det_r", "avg_n", *tt, "ok_cut");
+      ps->PutAvg("det_lo", "avg_n", *tt, "ok_cut");
+      ps->PutAvg("det_hi", "avg_n", *tt, "ok_cut");
+      ps->PutAvg("det_all", "avg_n", *tt, "ok_cut");
+
+      ps->PutMonAsym("bcm1", *tt, "ok_cut");
+      ps->PutMonAsym("bcm2", *tt, "ok_cut");
+      ps->PutMonAsym("bcm3", *tt, "ok_cut");
+      ps->PutMonAsym("bcm4", *tt, "ok_cut");
+      ps->PutMonAsym("bcm5", *tt, "ok_cut");
+      ps->PutMonAsym("bcm6", *tt, "ok_cut");
+      ps->PutMonAsym("bcm7", *tt, "ok_cut");
+      ps->PutMonAsym("bcm8", *tt, "ok_cut");
+      ps->PutMonAsym("bcm9", *tt, "ok_cut");
+      ps->PutMonAsym("bcm10", *tt, "ok_cut");
+      ps->PutMonAsym("bcm11", *tt, "ok_cut");
+      ps->PutMonAsym("bcm12", *tt, "ok_cut");
+      ps->PutMonAsym("bcm13", *tt, "ok_cutC");
+      ps->PutMonAsym("bcmcav2", *tt, "ok_cut");
+      ps->PutMonAsym("bcmcav3", *tt, "ok_cut");
+      
+      ps->PutMonDiff("bpm4ax", *tt, "ok_cut");
+      ps->PutMonDiff("bpm4ay", *tt, "ok_cut");
+      ps->PutMonDiff("bpm4bx", *tt, "ok_cut");
+      ps->PutMonDiff("bpm4by", *tt, "ok_cut");
+      ps->PutMonDiff("bpm12x", *tt, "ok_cut");
+      ps->PutMonDiff("bpmcav2x", *tt, "ok_cut");
+      ps->PutMonDiff("bpmcav2y", *tt, "ok_cut");
+      ps->PutMonDiff("bpmcav3x", *tt, "ok_cut");
+      ps->PutMonDiff("bpmcav3y", *tt, "ok_cut");
+      
+      ps->PutMonDDAsym("bcm1", "bcm3", *tt, "ok_cut");
+      ps->PutMonDDAsym("bcmcav2", "bcmcav3", *tt, "ok_cut");
+      ps->PutMonDDDiff("bpm4ax", "bpm4bx", *tt, "ok_cut");
+      ps->PutMonDDDiff("bpm4ay", "bpm4by", *tt, "ok_cut");
+      ps->PutMonDDDiff("bpmcav2x", "bpmcav3x", *tt, "ok_cut");
+      ps->PutMonDDDiff("bpmcav2y", "bpmcav3y", *tt, "ok_cut");
+      ps->PutMonDD("det1", "det2", "reg_asym_n", *tt, "ok_cut");
+      ps->PutMonDD("det1", "det3", "reg_asym_n", *tt, "ok_cut");
+      ps->PutMonDD("det1", "det4", "reg_asym_n", *tt, "ok_cut");
+      ps->PutMonDD("det2", "det3", "reg_asym_n", *tt, "ok_cut");
+      ps->PutMonDD("det2", "det4", "reg_asym_n", *tt, "ok_cut");
+      ps->PutMonDD("det3", "det4", "reg_asym_n", *tt, "ok_cut");
+      
+      ps->PutDetAsymn("blumi1", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi2", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi3", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi4", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi5", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi6", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi7", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi8", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi_h", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi_v", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi_d1", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi_d2", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi_c", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi_x", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi_ave", *tt, "ok_cut");
+      ps->PutDetAsymn("blumi_sum", *tt, "ok_cut");
+
+      ps->PutDetAsymn("det1", *tt, "ok_cut");
+      ps->PutDetAsymn("det2", *tt, "ok_cut");
+      ps->PutDetAsymn("det3", *tt, "ok_cut");
+      ps->PutDetAsymn("det4", *tt, "ok_cut");
+      ps->PutDetAsymn("det_l", *tt, "ok_cut");
+      ps->PutDetAsymn("det_r", *tt, "ok_cut");
+      ps->PutDetAsymn("det_lo", *tt, "ok_cut");
+      ps->PutDetAsymn("det_hi", *tt, "ok_cut");
+      ps->PutDetAsymn("det_all", *tt, "ok_cut");
+      ps->PutDetAsymn("det_ave", *tt, "ok_cut");
+      
+      ps->Print();
+      delete cparsave;
+    }
+ 
+  if (!batch)
+    {
+      online ("prompt", run);
+      ret = open (run, "dither", comment);
+      if (ret)
+	{
+	  if ((TTree*)gROOT->FindObject("ditslps"))
+	    {
+	      gROOT->LoadMacro("spokes.macro");
+	      TCanvas* c1 = new TCanvas("c1", "spokes", 800, 800);
+	      c1->Divide (2, 2);
+	      c1->cd(1);
+	      spokes (0, "bpm4ax", "bpm4bx", 3000.);
+	      c1->cd(2);
+	      spokes (0, "bpm4ay", "bpm4by", 3000.);
+	    }
+	}
+    }
+  
+}

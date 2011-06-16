@@ -1,0 +1,313 @@
+#!/usr/bin/perl
+# createDB - B.Moffit 11/10/02
+# Perl Script to create an ASCII database file for PAN
+
+# Set the date
+chomp($dbdate = `date +"%Y-%m-%d %k:%M:%S"`);
+chomp($year= `date +%y`);
+
+# Process the commandline arguments
+use Getopt::Long;
+
+GetOptions('C=s' =>  \$config   # RunControl Configuration
+	   );
+
+unless ($config) {
+    $config = "default";        # Use default configuration files
+}
+
+# Location of database files
+my $dbdir = "$ENV{'PAN_DB_FILE_PATH'}";
+unless ($dbdir) {
+  $dbdir = "/adaqfs/halla/apar/db";    # Default db directory
+}
+
+# Set location of directories
+my $scriptdir  = "$dbdir/scripts";
+my $backupdir  = "$dbdir/.saved_db";
+my $datamapdir = "$dbdir/datamap";
+my $cutdir     = "$dbdir/cuts";
+my $miscdir    = "$dbdir/misc";
+my $heldir     = "$dbdir/helicity";
+my $tbdir      = "$dbdir/timebrd";
+my $peddir     = "$dbdir/ped";
+my $dacdir     = "$dbdir/dacnoise";
+my $configdir  = "$dbdir/config";
+
+# Error Log
+my $errorlogfile = "$dbdir/error.log";
+open ERRORLOG, ">>$errorlogfile";
+
+# Open the config definition file, to determine which crates to use.
+my $multidaq = 0;   # 0 for Single Crate DAQ, 1 for Multi-DAQ
+my @cratelist;
+my $configfile = "$configdir/$config.def";
+unless ( -s $configfile ) { # No definition, assume one crate config
+    @cratelist = ($config);
+    $multidaq = 0;
+    print "Single Crate DAQ: $config configuration\n";
+} else {   # Multi-crate DAQ
+    @cratelist = &file2list($configfile);
+    $multidaq = 1;
+    print "Multi-DAQ: $config configuration\n";
+}
+
+# Datamaps... grabbed from each defined crate
+my @datamaplines;
+# First grab the headers... and tack it onto the beginning
+my $headerfile = "$datamapdir/default.header";
+unless ( -s $headerfile ) {   # No header file
+    &warning("No header file!  Hope this is okay!");
+}
+push(@datamaplines,&file2list($headerfile));
+# Now get the datamaps from each crate.
+foreach $crate (@cratelist) {
+  my $datamapfile = "$datamapdir/$crate.datamap";
+  unless ( -s $datamapfile ) { # No Datamap file
+    $datamapfile = "$datamapdir/default.datamap";
+    &warning("No Datamap file for $crate Crate. Using default.");
+  }
+  push(@datamaplines,&file2list($datamapfile));
+}
+# If there's only one crate, make sure that the TIR and TB are
+#  defined correctly in the datamap
+@datamaplines = &replaceTIRTBlines(@datamaplines) unless ($multidaq);
+
+# Misc file
+my @misclines;
+my $miscfile = "$miscdir/$config.misc";
+unless ( -s $miscfile ) { # No Misc file
+    $miscfile = "$miscdir/default.misc";
+    &warning("No Misc file for $config Configuration. Using default.");
+}
+@misclines = &file2list($miscfile);
+
+# Helicity File
+system "$scriptdir/getHelicity";
+my @hellines;
+my $helfile = "$heldir/current.helicity";
+if ( -s $helfile ) {
+    if ( -M $helfile > 0.042 ) { # Warn if more than 1 hour old
+	&warning("Helicity file is more than 1 hour old.");
+    }
+} else { # No Helicity file
+    $helfile = "$heldir/default.helicity";
+    &warning("No Current Helicity file created. Using default.");
+}
+@hellines = &file2list($helfile);
+
+# Timing board configuration file
+my @timebrdlines;
+my $timebrdfile = "$tbdir/timebrd.cfg";
+if ( -s $timebrdfile ) { 
+    if (-M $timebrdfile > 2) { # Warn if more than 2 days old.
+	&warning("Timing board config file is more than 2 days old.");
+    }
+} else { # No timing board config file.
+    $timebrdfile = "$tbdir/default.cfg";
+    &warning("No timing board config file.  Using default.");
+}
+@timebrdlines = &file2list($timebrdfile);
+
+# Get the oversample value from the timebirdlines and
+#  use it to determine which pedestal and cut file to use.
+my $oversample;
+foreach $line (@timebrdlines) {
+    if ($line =~ /^\s+oversamp\s+(\d+)/) {
+	$oversample = $1;
+    }
+}
+
+# Pedestal file.. for each crate... depends on Oversample value
+my @pedlines;
+foreach $crate (@cratelist) {
+  my $pedfile = "$peddir/$crate\_oversample$oversample.ped";
+  unless ( -s $pedfile ) { # No Pedestal file
+    print "$pedfile\n";
+    $pedfile = "$peddir/default.ped";
+    &warning("No Pedestal file for $crate Crate with OS=$oversample. Using default.");
+  }
+  push(@pedlines,&file2list($pedfile));
+}
+
+# Dacnoise file.. for each crate
+my @daclines;
+foreach $crate (@cratelist) {
+  my $dacfile = "$dacdir/$crate.dacnoise";
+  unless ( -s $dacfile ) { # No Dacnoise file
+    $dacfile = "$dacdir/default.dacnoise";
+    &warning("No Dacnoise file for $crate Crate. Using default.");
+  }
+  push(@daclines,&file2list($dacfile));
+}
+
+# Cut file... for each Configuration... depends on Oversample value.
+my @cutlines;
+my $cutfile = "$cutdir/$config\_oversample$oversample.cuts";
+unless ( -s $cutfile ) { # No Cut file
+    $cutfile = "$cutdir/default.cuts";
+    &warning("No Cut file for $config Configuration with OS=$oversample. Using default.");
+}
+@cutlines = &file2list($cutfile);
+
+# Get runnumber: $run
+chomp ($run = `$scriptdir/getrunnumber`);
+unless ($run =~ /\d+/) { # No run number... go no further.
+  &error("Did not get run number.");
+}
+# $run = 199992;   # Used for debugging only.
+
+# Get some other PAN environment variables
+my $prefix = "$ENV{'PAN_FILE_PREFIX'}";
+unless ($prefix) {
+  $prefix = "parity$year";
+}
+my $suffix = "$ENV{'PAN_DB_FILE_SUFFIX'}";
+unless ($suffix) {
+  $suffix = "db";
+}
+
+# Create the database file (and backup)
+my $dbfile = "$dbdir/$prefix\_$run.$suffix";
+my $backupfile = "$backupdir/$prefix\_$run.$suffix";
+open DBFILE, ">$dbfile";
+print "Creating ASCII database file: $dbfile\n";
+
+# First insert header
+print DBFILE
+    "\# ASCII database file for run\# $run\n" .
+    "\# $config Configuration\n" .
+    "    timestamp $dbdate\n".
+    "    run $run\n" .
+    "# number of events to process \(leave this out to get infinite\)\n" .
+    "#    maxevents 2000\n";
+
+# Insert Misc info
+foreach $line (@misclines) {
+  print DBFILE "$line\n";
+}
+
+# Insert Cuts
+foreach $line (@cutlines) {
+  print DBFILE "$line\n";
+}
+
+# Insert Helicity Settings
+foreach $line (@hellines) {
+  print DBFILE "$line\n";
+}
+
+# Insert Timing Board Configuration
+foreach $line (@timebrdlines) {
+  print DBFILE "$line\n";
+}
+
+# Insert Dacnoise
+foreach $line (@daclines) {
+  print DBFILE "$line\n";
+}
+
+# Insert Pedestals
+foreach $line (@pedlines) {
+  print DBFILE "$line\n";
+}
+
+# Insert Datamap
+foreach $line (@datamaplines) {
+  print DBFILE "$line\n";
+}
+
+close DBFILE;
+close ERRORLOG;
+
+# Make a copy in the backup directory (read only)
+system "cp -f $dbfile $backupfile";
+system "chmod 444 $backupfile";
+
+exit;
+
+####################################################################
+#    Subroutine file2list($filename)
+#      Opens a file with given $filename and returns
+#       the list @outlist of its contents. Will not include lines
+#       with two or more #'s at the beginning.
+####################################################################
+sub file2list {
+  my($filename) = @_;
+  my(@outlist);
+
+  open MYFILE, "<$filename";
+  while (<MYFILE>) {
+    unless (/^\#\#+/) {
+      chomp;
+      push @outlist, $_;
+    }
+  }
+  close MYFILE;
+
+  return @outlist;
+}
+
+####################################################################
+#    Subroutine replaceTIRTBlines(@inputlist)
+#      Removes the Timing Board and TIR lines in @inputlist
+#        in favor of lines that are used by PAN for extracting
+#        helicity, oversample, etc.
+#      Simply put (e.g.) replaces tir2 with tir and 
+#        oversample2 with oversample
+#      This is only used for single crate configurations!
+####################################################################
+sub replaceTIRTBlines {
+  my(@inputlist) = @_;
+  my(@outlist);
+  my($foundroc) = 0;
+
+  # First get the ROC number
+  my($roc) = 23;   # Default to Counting House Crate, if ROC not found in list
+  foreach $line (@inputlist) {
+      if ($line =~ /.*ROC([0-9]+)/) {
+	  $roc = $1;
+	  $foundroc = 1;
+	  last;
+      }
+  }
+  &warning("Did not find ROC number in datamap\n") unless ($foundroc);
+
+  # Now get rid of the the TIR and TB lines
+  foreach $line (@inputlist) {
+      unless ($line =~ /datamap.*(tir|timeboard)/i) {
+	  push(@outlist,$line);
+      }
+  }
+
+
+  # Now add the corrected lines at the end..
+  push(@outlist,"    datamap   tir        tir       tir        0      0    1  $roc   tirdata");
+  push(@outlist,"    datamap   timeboard  timeboard timeboard  0      0    2  $roc   rampdelay integtime oversample precdac pitadac");
+
+#  foreach $line (@outlist) {
+#      print "$line\n";
+#  }
+
+  return @outlist;
+}
+
+########################################################################
+# Subroutine error
+#   Handles error messages to ERRORLOG, and exits program
+#   Argument: "error message"
+########################################################################
+sub error {
+  print ERRORLOG "$dbdate ERROR: $_[0]\n";
+  close ERRORLOG;
+  die;
+}
+
+########################################################################
+# Subroutine warning
+#   Handles warning messages to ERRORLOG
+#   Argument: "warning message"
+########################################################################
+sub warning {
+  print ERRORLOG "$dbdate WARNING: $_[0]\n";
+}

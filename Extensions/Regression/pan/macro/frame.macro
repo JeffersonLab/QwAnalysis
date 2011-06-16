@@ -1,0 +1,54 @@
+// -*- c++ -*-
+
+//**********************************************************************
+//
+//     HALL A C++/ROOT Parity Analyzer  Pan           
+//
+//           frame.macro
+//
+// Author:  R. Holmes <http://mep1.phy.syr.edu/~rsholmes>, A. Vacheret <http://www.jlab.org/~vacheret>, R. Michaels <http://www.jlab.org/~rom>, K.Paschke
+// @(#)pan/src:$Name:  $:$Id: frame.macro,v 1.3 2003/07/31 16:11:58 rsholmes Exp $
+//
+////////////////////////////////////////////////////////////////////////
+//
+//  Plot frame macro
+//
+// Opens a new canvas labelled with <run> prepended to <label>,
+// titled with "HAPPEX-II Run <run>" prepended to <title>.  Canvas has
+// a pave label containing the title at the top, and a single empty
+// pad below that.  Returns pointer to the canvas, and gPad is left
+// pointing to the empty pad.
+//
+////////////////////////////////////////////////////////////////////////
+
+TCanvas* frame (Int_t run, TString label, TString title)
+{
+  // static keyword causes a problem, lose this feature for now
+  //   static Int_t x0 = 200;
+  //   static Int_t y0 = 10;
+  Int_t x0 = 200;
+  Int_t y0 = 10;
+
+  char buf[100];
+  sprintf (buf, "%d_%s", run, label.Data());
+  TString llabel = buf;
+  sprintf (buf, "HAPPEX-II Run %d: %s", run, title.Data());
+  TString ltitle = buf;
+
+  c1 = new TCanvas (llabel, ltitle, x0, y0, 600, 800);
+  x0 %= 200; x0 += 250;
+  y0 %= 50; y0 += 10;
+  c1->Range (0, 0, 100, 100);
+  
+  TPaveLabel *pl = new TPaveLabel (5, 95, 95, 99, buf, "br");
+  pl->SetFillColor(18);
+  pl->SetTextFont(32);
+  pl->SetTextColor(49);
+  pl->Draw();
+  
+  pad1 = new TPad (llabel + "_pad1", ltitle, 0.01, 0.01, 0.99, 0.94, 0);
+  pad1->Draw();
+  pad1->cd();
+
+  return c1;
+}

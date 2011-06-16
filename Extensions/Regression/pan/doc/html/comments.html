@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Programmer's Guide to ``Pan'': Commenting Recommendations</title>
+    <link type="text/css" rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <h1>Programmer's Guide to ``Pan'': Commenting Recommendations</h1>
+
+    <hr />
+
+<p>Pan is documented in part through its
+
+<a href="html/ClassIndex.html">Class Index</a>,
+
+a ``living'' documentation of the code as it exists
+now, which is updated periodically using the
+
+<a href="http://root.cern.ch/root/html/THtml.html" class="classname">THtml</a>
+
+class.  It is maintained using CVS.  That being the case, it is
+recommended that Pan programmers supply comments in a form
+
+<a href="http://root.cern.ch/root/html/THtml.html" class="classname">THtml</a>
+
+can
+use to clarify each class, and CVS can use to supply version
+information.  Namely:</p>
+
+<ul>
+  <li>Start each implementation file with a comment block of the following form:
+
+      <pre class="code">
+//**********************************************************************
+//
+//     HALL A C++/ROOT Parity Analyzer  Pan           
+//
+//        TaLabelledQuantity.cc  (implementation)
+//
+// Author:  R. Holmes &lt;http://physics.syr.edu/~rsholmes&gt;, A. Vacheret
+// @(#)pan/src:$Name:  $:$Id: comments.html,v 1.2 2006/08/25 20:35:37 rsholmes Exp $
+//
+////////////////////////////////////////////////////////////////////////
+//
+//    A class of quantities with associated labels and units.
+//
+////////////////////////////////////////////////////////////////////////
+      </pre>
+
+      The <code>// Author:</code> string identifies to
+
+      <a href="http://root.cern.ch/root/html/THtml.html" class="classname">THtml</a>
+
+      the string it should use for the class authors.  Don't use
+<code>// Authors:</code> even if there's more than one!  All authors
+must be on the same line.  The URLs within angle brackets after an
+author's name may be omitted; you can use a <code>mailto:</code>
+instead of a web site URL.  The <code>// @(#)</code> string
+indentifies the string
+
+      <a href="http://root.cern.ch/root/html/THtml.html" class="classname">THtml</a>
+
+      should use to describe the latest version; it's built up from
+two CVS keywords, <code>$Name:  $</code> and <code>$Id: comments.html,v 1.2 2006/08/25 20:35:37 rsholmes Exp $</code>, which CVS will expand
+automatically.  The row of forward slashes indicates the start of the
+comment that describes the class.  (Don't use slashes instead of
+asterisks in the first line.)</p>
+
+      </p>
+
+      <p>Methods are described using the comment found at the start of
+the implementation.  This descriptive comment must occur starting on
+the first line after the opening brace ("{") of the function, and ends
+at the first non-comment line.  One quirk seems to be that if the
+function returns a templated type, the function implementation is not
+found unless the type is on a separate line.  So there are two things
+wrong with
+
+      <pre class="code">
+vector&lt;pair&lt;ECutType,Int_t&gt; &gt; TaCutList::CutsFailed (const TaEvent& ev) const 
+{
+
+  // Return a vector of cuts (pairs of cut type and value) for which
+  // the given event is inside an interval.
+...
+}
+</pre>
+
+-- the templated function type is not on a separate line, and the function description has a blank line before it.  Change this to
+
+      <pre class="code">
+vector&lt;pair&lt;ECutType,Int_t&gt; &gt;
+TaCutList::CutsFailed (const TaEvent& ev) const 
+{
+  // Return a vector of cuts (pairs of cut type and value) for which
+  // the given event is inside an interval.
+...
+} .
+</pre>
+
+      <p>It's the implementation (.cc) file
+
+      <a href="http://root.cern.ch/root/html/THtml.html" class="classname">THtml</a>
+
+      uses, not the header or interface (.hh) file, for class
+descriptions.  Still, it's probably best to cut and paste the
+start-of-file comment block from the implementation file to the
+interface file, replacing the appropriate line, e.g.
+
+      <pre class="code">
+//        TaLabelledQuantity.cc  (implementation)
+      </pre>
+
+      by
+
+      <pre class="code">
+//        TaLabelledQuantity.hh  (interface) .
+      </pre>
+
+      <a href="http://root.cern.ch/root/html/THtml.html" class="classname">THtml</a>
+
+does, however, look in the interface file (or rather, in the
+dictionary file which looks in the interface file) for comments
+describing the data members of each class.  You should put a brief
+description after each data member, on the same line.  Declare each
+data member in a separate statement.  E.g.:
+
+<pre class="code">
+  // Data members
+  string fName;   // Name of the quantity
+  Double_t fVal;  // Value of the quantity
+  string fUnits;  // Units for the quantity
+</pre>
+</p>
+
+<p>There should be a terse class description in a comment after
+the <code>ClassDef</code> macro:
+
+<pre class="code">
+#ifdef DICT
+  ClassDef(TaCutList, 0)   // List of cuts
+#endif
+</pre>
+
+This is used on the index page after the class name.
+</p>
+
+</ul>
+  
+<div class="fineprint">
+<hr />
+    <a href="http://physics.syr.edu/~rsholmes/happex/pan/index.html">Pan documentation</a><br />
+    <hr />
+
+    <address>
+Rich Holmes / <a href="http://physics.syr.edu/~rsholmes/contact.html">Contact form</a></address>
+    <p><!-- hhmts start -->
+Last modified: Wed May 22 15:29:32 EDT 2002
+<!-- hhmts end -->    </p>
+</div>
+  </body>
+</html>

@@ -1,0 +1,87 @@
+TaRootRep    *pandef;
+TaRootRegDef *regdef;
+TaRootDitDef *ditdef;
+TFile *f_pan_standard;
+TFile *f_pan_regress;
+TFile *f_pan_dither;
+TTree *raw;
+TTree *asy;
+TTree *reg;
+TTree *regslps;
+TTree *dit;
+TTree *ditslps;
+
+Int_t open (Int_t run = 0, TString atype = "standard", TString com = "")
+{
+  if (run <= 0)
+    {
+      cout << "Enter run number : ";
+      cin >> run;
+    }
+  if (atype == "")
+    {
+      cout << "Enter analysis type: ";
+      cin >> atype;
+    }
+     
+  cout << "Run " << run << " analysis type " << atype;
+  if (com != "") cout << " comment " << com;
+  cout << endl;
+
+  TaFileName::Setup (run, atype.Data());
+  TString file = (TaFileName ("root", com)).Tstring();
+  cout << "ROOT file is \n\t" << file << endl;
+
+  if(atype=="standard") {
+    f_pan_standard = new TFile(file);
+  
+  } else if(atype=="regress") {
+    f_pan_regress = new TFile(file);
+    reg = (TTree*)f_pan_regress->Get("reg");
+    regslps = (TTree*)f_pan_regress->Get("regcoeffs");
+
+    TaFileName::Setup (run, "standard");
+    TString file2 = (TaFileName ("root")).Tstring();
+    f_pan_standard = new TFile(file2);
+    cout << "Also opened ROOT file: \n\t" << file2 << endl;
+    asy = (TTree*)f_pan_standard->Get("P");
+
+    if (reg!=NULL) {
+      asy->AddFriend("reg",file);
+      cout << "reg tree friended to asy tree" << endl;
+      regdef = (TaRootRegDef*)f_pan_regress->Get("TaRootRegDef;1");
+      if (regdef) regdef->Print();
+    }
+    pandef = (TaRootRep*)f_pan_standard->Get("TaRootRep;1");
+    raw = (TTree*)f_pan_standard->Get("R");
+  } else if(atype=="dither") {
+    f_pan_dither = new TFile(file);
+    dit = (TTree*)f_pan_dither->Get("dit");
+    ditslps = (TTree*)f_pan_dither->Get("ditslps");
+
+    TaFileName::Setup (run, "standard");
+    TString file2 = (TaFileName ("root")).Tstring();
+    f_pan_standard = new TFile(file2);
+    cout << "Also opened ROOT file: \n\t" << file2 << endl;
+    asy = (TTree*)f_pan_standard->Get("P");
+
+    if (dit!=NULL) {
+      asy->AddFriend("dit",file);
+      cout << "dit tree friended to asy tree" << endl;
+    }
+
+    ditdef = (TaRootDitDef*)f_pan_dither->Get("TaRootDitDef;1");
+    if (ditdef) ditdef->Print();
+
+    pandef = (TaRootRep*)f_pan_standard->Get("TaRootRep;1");
+    raw = (TTree*)f_pan_standard->Get("R");
+  } else {
+    f_pan_standard = new TFile(file);
+    pandef = (TaRootRep*)f_pan_standard->Get("TaRootRep;1");
+    raw = (TTree*)f_pan_standard->Get("R");
+    asy = (TTree*)f_pan_standard->Get("P");
+
+  }
+
+  return run;  
+}

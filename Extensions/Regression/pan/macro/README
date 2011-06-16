@@ -1,0 +1,48 @@
+This file: README for "pan" plotting macros
+
+I. Contents  (this will evolve over time)
+===========
+
+asy.macro      -- fits the BCM asymmetries
+beam1.macro    -- crude example
+bg_beamcurrent.macro  -- part of the "bplot" package
+bg_helcorr.macro      --   ditto
+bg_help.macro         --   ditto
+bg_rawsignal.macro    --   ditto
+bg_tree_define.macro  -- part of bplot package
+bgraph1.macro   -- crude example
+bgraph2.macro   -- crude example
+bplot.macro     -- driver for bplot package
+bpmdiff.macro   -- fits bpm diffs.  User is asked which bpm.
+open.macro      -- opens a root file.
+pan_asym.macro  -- charge asymmetry plots
+pan_diff.macro  -- position difference plots
+
+II. Usage
+=========
+
+    Macros exist as *.macro in directory ./macro
+
+    To analyze a run, open its root file, and give a sample plot: 
+        '.x run.macro'
+        and answer which run number
+
+    To open a file:  '.x open.macro'
+        and answer which run number
+
+    To plot and fit the BCM asymmetries
+        '.x asy.macro'
+
+    To plot and fit the BPM differences
+        '.x bpmdiff.macro'
+
+    To plot lots of different things (raw signals, asymmetries, etc)
+        '.x bplot.macro'  (this also calls open.macro)
+
+    To plot all types of charge asymetry plots
+        '.x pan_asym.macro' (this asks for run number and opens that
+        file)
+
+    To plot all types of bpm diffs plots
+        '.x pan_diff.macro' (this asks for run number and opens that
+        file)

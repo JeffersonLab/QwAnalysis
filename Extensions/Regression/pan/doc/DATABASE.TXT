@@ -1,0 +1,282 @@
+
+               THE  PAN  DATABASE
+               ==================
+
+PART I:  THE BASICS
+===================
+
+  The "pan" database is a collection of control parameters, 
+calibration parameters, cuts, etc which are read from an ASCII
+file usually, but can also be read from a ROOT file or MYSQL.
+
+  The database is stored in ASCII files in the ./db directory of 
+the pan distribution.  The files have names like "parity02_1454.db" 
+for run 1454, where "parity02" indicates the year 2002.  These
+ASCII files will be produced automatically by CODA for each run
+and distributed to users.  They can also be produced by a Perl 
+script which reads MYSQL and generates the ASCII files. 
+
+  The format of the database is such that the first word in each 
+line is a "table" string, indicating a table in the MYSQL sense.  
+The columns of data that follow in that line are associated data 
+(data are strings, integers, or doubles) which belong to that table.  
+Look into one of the files and it will be fairly obvious.  The rules 
+are given formally below.
+
+  Normally you would want to let "pan" read the ASCII database (db)
+file corresponding to your run.  If that db file is missing, you are
+warned, and the default file "control.db" from $pwd is used instead.
+One can also force "pan" to use control.db (see examples).  Other 
+options exist, for over-riding this database at the command line, 
+for retrieving the database from a ROOT output or from MYSQL.
+
+  Putting stuff in database:  You can use the Put() methods to put
+ADC and Scaler calibration data, and cut intervals.  The database 
+for that run is over-written (but only if you put something).  
+See the temporary example section in VaAnalysis.
+
+PART II:  LEARN BY EXAMPLE
+==========================
+
+Here are examples of how to use the database when running "pan":
+
+  1.  The database is read from ./db/parity02_1454.db  if 
+      it exists, otherwise from ./control.db
+
+          ./pan -r 1454 
+
+  2.  Force pan to read database read from ./control.db 
+
+          ./pan -r 1454 -D control.db
+
+  3.  Database read from ./control.db, and over-ride the
+      tables 'lobeam' and 'windelay'. 
+      All these are syntactically equivalent and correct:
+
+       ./pan -r 1454 -D control.db -D lobeam 400 -D windelay 8
+       ./pan -r 1454 -D control.db lobeam 400 windelay 8 
+       ./pan -D control.db lobeam 400 windelay 8 -r 1454
+       ./pan -D control.db -r 1454 -D lobeam 400 windelay 8
+
+      but these examples are WRONG:
+                             ^^^^^
+       ./pan control.db -D -r 1454 lobeam 400 windelay 8
+       ./pan control.db -r 1454 lobeam 400 windelay 8 -D
+
+  4.  Read the database from root file parity02_1389_BEAM.root.
+      Note: Any other '-D' command is ignored.  You *CANNOT*
+      over-ride the database if you read from ROOT because
+      this is intended to recover exact conditions.
+
+        ./pan -r 1454 -D -useroot parity02_1389_BEAM.root
+        ./pan -r 1454 -D -useroot bob.root -D lobeam 1200
+          (in 2nd example, -D lobeam 1200 is ignored)
+
+  5.  Read the database from MYSQL.
+
+        ./pan -r 1454 -D -mysql
+
+  6.  Read the database from MYSQL and over-ride a table 'lobeam'
+
+        ./pan -r 1454 -D mysql -D lobeam 1400
+
+
+
+PART III. RETREIVING DATA FROM MYSQL
+====================================
+
+    (This part to be written....  Hello, Riad ?)  
+
+
+PART IV.  DATABASE SPECIFICATION
+=================================
+
+Here are some detailed specs in case you have too much imagination
+and something goes wrong.  Most users can ignore this section.
+
+The logic of command line over-ride of database does not allow 
+infinite combinations.  Here is the expected behavior:
+
+ *  If  '-D control.db' we read from control.db.  Other 
+    '-D' command subsequently over-ride table(s).
+
+ *  If  '-D useroot filename' we read database from ROOT
+    file 'filename' and IGNORE all other commands.  This is
+    because the purpose of reading from a ROOT file is to
+    reproduce exactly the analysis conditions that were used
+    to generate that ROOT file.
+
+ *  If  '-D mysql' we read database from MYSQL. Other '-D'
+    commands subsequently over-ride table(s).
+
+ *  It is an error to specify both mysql and useroot. If
+    you try that, you'll get no data at all (ERROR).
+
+ *  '-D table values'  will over-write the table with those
+    values, provided the line has proper syntax.  The syntax is
+    the same as a line in the database.  IMPORTANT:  The table 
+    is dropped; therefore, you cannot add to a table, instead 
+    you must add all lines of a table when you start one.
+    Normally this would be used for trivial tables like 
+    '-D maxevents 500' or '-D lobeam 1200'.  If the syntax is
+    wrong the error might not be caught, depending on what you
+    do wrong.  Luckily the database is printed at the end-of-run
+    summary, so hopefully you will realize it then.
+
+Whenever you Put() data, it together with the other data will be written 
+to ASCII and to MYSQL. To turn off MYSQL interaction requires an #ifdef
+directive to be set.  However, what is written to the ROOT file and log 
+output is always the data at startup, i.e. what was used for analysis.
+The only data that can be Put() are DAC noise, pedestals, and cut 
+intervals.  An important restriction is that you must Put ALL the 
+data because I clear all the other data from that table as soon as 
+you start Putting into that table.  So, you must Put() all ADC channels 
+if you Put() one, and similarly you must Put() all cut intervals, if you
+Put() one. Distinct tables (pedestals & cuts) don't interfere in this logic.
+
+The Print() method should be called before any Put().  The Write() method
+should be called after all Put()'s.
+
+Required Content of Database
+=============================
+The following are required to be defined, else "pan" will complain.
+
+   1. tirdata in datamap table
+   2. a runtype
+   3. a pairtype
+   4. helicity delay 0 <= windelay <= 8.
+   5. a reasonable oversamp value (could be 1)
+   6. cuts named Low_beam, Beam_burp, and Oversample; for
+      pair-structured beam data, cut named Sequence
+
+
+Rules about the Datamap
+=======================
+The datamap is one of the tables in the database
+"pan" tries to provide clear error messages if you violate these rules.
+
+1. Contents
+
+   ALL raw data and ONLY raw data must be listed in the datamap.  
+   ^^^              ^^^^
+
+2. Syntax of the 'datamap' line in database:
+   The 'datamap' is the name of the table in the database.
+   The other quantities will be defined below.
+   There are three possible syntaxes illustrated by examples:
+
+Example 1  (the "old" way, prior to Mar 20, 2003, which is still supported)
+~~~~~~~~~
+The following means find bpm4a in the location 73 thru 76 of event buffer.  
+ 
+datamap  bpm  bpm4a  adc  5  0  73   bpm4axp bpm4axm bpm4ayp bpm4aym  
+
+
+Example 2 
+~~~~~~~~~~
+The following means find bpm4a in ROC 21 at 14th location after adc header.
+
+datamap  bpm  bpm4a  adc  5  0  14  21  bpm4axp bpm4axm bpm4ayp bpm4aym  
+
+
+Example 3  -- This is the best way since it leads to fewer mistakes.
+~~~~~~~~~
+The first line means find bpm4a in adc5 starting at channel 0. 
+Then adc5 is located in the 14th word after header in roc 21
+
+datamap  bpm  bpm4a  adc  5  0  bpm4axp bpm4axm bpm4ayp bpm4aym  
+datamap  adc  adc5   adc  5  0  14  21  adc5_0 adc5_1 adc5_2 adc5_3
+
+A common mistake here might be to have bpm4axp point to a channel
+that is nowhere else defined, e.g. if the startchan field were 452.
+
+Example 4  (ILLEGAL -- missing info. -- leads to error message)
+~~~~~~~~~
+Logically, bpms, bcms, lumis, and other detectors may be tied to adcs, 
+scalers, etc, but not vice versa, and you can't tie an adc 'to itself'.
+
+datamap  adc  adc5  adc    5   0   adc5_0 adc5_1 adc5_2 adc5_3
+
+Formal Structure of Datamap Line:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+table dev-type dev-name read-type devnum startchan [evbuff-offset] [crate-number] chan-names(keys)
+
+Table = 'datamap'
+
+3. Device type   
+
+   The device type is used by the code to decide the generic type of 
+   data being considered on this line.  It is not a class.
+
+4. Device name    
+
+   A device is a name that people call the a device type within the 
+   code.  It is used to index the device.  It is not an object.
+
+5. Readout type
+
+   This indicates whether the readout is adc or scaler.  If we wanted to
+   change the example above to a scaler, for example, we'd simply need to
+   change "adc" to "scaler" and also adjust the evbuff-offset and possibly
+   devnum and startchan as appropriate.
+
+6. Device number
+
+   The index of the ADC or scaler must be unique and denotes a physical ADC 
+   or scaler unit.  
+
+7. startchan
+
+   The 'startchan' is the first channel that is mapped for that line
+   in the datamap table of the database.  If there is only one datamap
+   line for a given device-name, the startchan will usually be zero (1st
+   channel).  However, if there are multiple lines for a given device-name,
+   then the startchan is the first channel pertaining to the first key
+   in the list.  It is assumed that the subsequent channels range from
+   the start channel, incrementing by one for each key listed.  The same
+   assumptions pertain to the evbuff-offset.   If raw data from an ADC is 
+   not part of a channel (e.g. csr or dac) its channel number MUST BE NEGATIVE 
+   by convention.                                             ^^^^^^^^^^^^^^^^
+
+   An example follows, where some antennas for bpm4a are distributed across 
+   two different ADCs.
+
+      datamap   bpm   bpm4a  adc  7    0    85  bpm4axp bpm4axm 
+      datamap   bpm   bpm4a  adc  9    2    99  bpm4ayp bpm4aym 
+
+   And here is an example of data from one ADC.  Note the negative channel
+   numbers for csr and dac.
+
+      datamap   bpm   bpm10  adc  6    0    79  bpm10xp bpm10xm bpm10yp bpm10ym
+      datamap   adc   adc3   adc  6   -9    83  csr dac
+
+   Note: Because of the convention of negative start-chan for csr,dac
+   these cannot be tied to a channel of an ADC, so one must use example 1
+   or 2, but not 3, in section 1 for the datamap line.
+
+8. [evbuff-offset] -- optional field
+
+   If crate == 0 (or if there is a 'key' string in the crate field),
+   then the evbuff-offset is the absolute position of the index in
+   the event buffer for the data pertaining to the first key.  
+
+   If crate != 0, then the evbuff-offset is the number which when added
+   to the index of the location of the header for that readout type.
+   These header indices are found automatically by "pan".
+
+   In either case, subsequent keys increment to index for where to
+   find the data.
+
+9. [crate-number] -- optional field
+
+   The crate number (or ROC #).  People who setup CODA should not make
+   a crate #0 (it is technically possible in CODA, but do not do it).
+
+10. keys  -- 
+
+   In the datamap, keys are unique labels of channels of raw data.
+   They are indexed in the code by indices in DevTypes.hh.  See also
+   VaEvent::Decode() method.
+ 
+
+
