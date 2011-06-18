@@ -85,7 +85,8 @@ enum EQwBeamInstrumentType {
   kQwEnergyCalculator,
   kQwHaloMonitor,
   kQwBPMCavity,
-  kBeamDevTypes
+  kBeamDevTypes,
+  kQwClock
 };
 
 // Enumerator type for the electronics module type

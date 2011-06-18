@@ -118,6 +118,13 @@ class VQwDataElement {
   /*! \brief return the error flag on this channel/device*/
   virtual UInt_t GetEventcutErrorFlag(){return fErrorFlag;};
 
+  // These are related to those hardware channels that need to normalize
+  // to an external clock
+  virtual Bool_t NeedsExternalClock() { return kFALSE; }; // Default is No!
+  virtual std::string GetExternalClockName() {  return ""; }; // Default is none
+  virtual void SetExternalClockPtr( const VQwDataElement* clock) {};
+  virtual void SetExternalClockName( const std::string name) {};
+  virtual Double_t GetNormClockValue() { return 1.;}
 
   
   

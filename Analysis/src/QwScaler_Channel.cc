@@ -17,6 +17,7 @@ const Bool_t VQwScaler_Channel::kDEBUG = kFALSE;
 
 /********************************************************/
 void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave) {
+  fNormChannelPtr = NULL;
   SetElementName(name);
   SetDataToSave(datatosave);
   SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
@@ -31,6 +32,7 @@ void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave) {
   fValueError = 0.0;
   fPedestal   = 0.0;
   fCalibrationFactor = 1.0;
+  fClockNormalization = 1.0;
 
   fTreeArrayIndex = 0;
   fTreeArrayNumEntries =0;
@@ -162,8 +164,10 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
 
 void VQwScaler_Channel::ProcessEvent()
 {
+  if(fNormChannelPtr)
+    fClockNormalization = const_cast<VQwDataElement*>(fNormChannelPtr)->GetNormClockValue();
   //QwError << "VQwScaler_Channel::ProcessEvent() "<<GetElementName()<<" "<< fValue_Raw<< " "<< fValue<<" "<<fCalibrationFactor<<" "<< fPedestal<<QwLog::endl;
-  fValue = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
+  fValue = fCalibrationFactor * (Double_t(fValue_Raw)*fClockNormalization - fPedestal);
 }
 
 
@@ -540,6 +544,9 @@ void VQwScaler_Channel::Copy(VQwDataElement *source)
          this->fCalibrationFactor = input->fCalibrationFactor;
          this->fGoodEventCount    = input->fGoodEventCount;
          this->fDeviceErrorCode   = input->fDeviceErrorCode;
+         this->fNormChannelPtr    = input->fNormChannelPtr;
+         this->fNormChannelName   = input->fNormChannelName;
+         this->fClockNormalization = input->fClockNormalization;
        }
      else
        {

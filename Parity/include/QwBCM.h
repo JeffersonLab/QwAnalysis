@@ -42,7 +42,8 @@ class QwBCM : public VQwBCM {
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,"raw");
   };
-  QwBCM(TString subsystemname, TString name, TString type){
+  QwBCM(TString subsystemname, TString name, TString type, TString clock = ""){
+    fBeamCurrent.SetExternalClockName(clock.Data());
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,type,"raw");
   };
@@ -95,6 +96,13 @@ class QwBCM : public VQwBCM {
     return &fBeamCurrent;
   };
 
+
+  // These are for the clocks
+  std::string GetExternalClockName() { return fBeamCurrent.GetExternalClockName(); };
+  Bool_t NeedsExternalClock() { return fBeamCurrent.NeedsExternalClock(); };
+  void SetExternalClockPtr( const VQwDataElement* clock) {fBeamCurrent.SetExternalClockPtr(clock);};
+  void SetExternalClockName( const std::string name) { fBeamCurrent.SetExternalClockName(name);};
+  Double_t GetNormClockValue() { return fBeamCurrent.GetNormClockValue();}
 
   // Implementation of Parent class's virtual operators
   VQwBCM& operator=  (const VQwBCM &value);

@@ -53,8 +53,8 @@ public:
   void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
 
   void SetDefaultSampleSize(size_t NumberOfSamples_map) {
-    std::cerr << "QwScaler_Channel SetDefaultSampleSize does nothing!"
-	      << std::endl;
+    //std::cerr << "QwScaler_Channel SetDefaultSampleSize does nothing!"
+	  //    << std::endl;
   }
 
   void  ClearEventData();
@@ -132,6 +132,14 @@ public:
   void PrintInfo() const;
   void CalculateRunningAverage();
 
+  // These are related to those hardware channels that need to normalize
+  // to an external clock
+  virtual Bool_t NeedsExternalClock() { return fNeedsExternalClock; };
+  virtual void SetNeedsExternalClock(Bool_t needed) { fNeedsExternalClock = needed; };
+  virtual std::string GetExternalClockName() {  return fNormChannelName; };
+  virtual void SetExternalClockPtr( const VQwDataElement* clock) { fNormChannelPtr = clock; };
+  virtual void SetExternalClockName( const std::string name) { fNormChannelName = name; };
+
 protected:
   VQwScaler_Channel& operator/=(const VQwScaler_Channel&);
   
@@ -142,6 +150,10 @@ protected:
   Double_t fValue;
   Double_t fValueM2;
   Double_t fValueError;
+  const VQwDataElement *fNormChannelPtr;
+  Double_t fClockNormalization;
+  std::string fNormChannelName;
+  Bool_t fNeedsExternalClock;
 
   /*  Ntuple array indices */
   size_t fTreeArrayIndex;

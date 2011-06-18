@@ -59,6 +59,9 @@ EQwBeamInstrumentType GetQwBeamInstrumentType(TString name){
   else if (name=="lineararray"){
     result = kQwLinearArray;
   }
+  else if (name=="clock") {
+    result = kQwClock;
+  }
   return result;
 }
 

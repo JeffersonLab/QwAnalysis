@@ -28,6 +28,7 @@
 #include "QwHaloMonitor.h"
 #include "QwQPD.h"
 #include "QwLinearDiodeArray.h"
+#include "VQwClock.h"
 
 // Forward declarations
 class QwBeamDetectorID;
@@ -107,6 +108,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
 
   VQwBPM* GetBPMStripline(const TString name);
   VQwBCM* GetBCM(const TString name);
+  VQwClock* GetClock(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
   VQwBCM* GetCombinedBCM(const TString name);
   VQwBPM* GetCombinedBPM(const TString name);
@@ -115,6 +117,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   const QwBPMCavity* GetBPMCavity(const TString name) const;
   const VQwBPM* GetBPMStripline(const TString name) const;
   const VQwBCM* GetBCM(const TString name) const;
+  const VQwClock* GetClock(const TString name) const;
   const VQwBCM* GetCombinedBCM(const TString name) const;
   const VQwBPM* GetCombinedBPM(const TString name) const;
   const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
@@ -133,6 +136,9 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  typedef boost::shared_ptr<VQwBCM> VQwBCM_ptr;
  std::vector <VQwBCM_ptr> fBCM;
  std::vector <VQwBCM_ptr> fBCMCombo;
+
+ typedef boost::shared_ptr<VQwClock> VQwClock_ptr;
+ std::vector <VQwClock_ptr> fClock;
 
  std::vector <QwQPD> fQPD;
  std::vector <QwLinearDiodeArray> fLinearArray;

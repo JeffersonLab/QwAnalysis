@@ -306,9 +306,9 @@ VQwBPM* VQwBPM::CreateStripline(TString subsystemname, TString name, TString typ
   // simple), just list out the types of BPM's supported by this code!!!
   if( type == "VQWK") {
     return new QwBPMStripline<QwVQWK_Channel>(subsystemname,name,type);
-  } else if (type == "SCALER" || type == "SIS3801" ) {
+  } else if ( type == "SIS3801" ) {
     return new QwBPMStripline<QwSIS3801_Channel>(subsystemname,name,type);
-  } else if ( type == "SIS3801D24" ) {
+  } else if ( type == "SCALER" || type == "SIS3801D24" ) {
     return new QwBPMStripline<QwSIS3801D24_Channel>(subsystemname,name,type);
   } else { // Unsupported one!
     QwWarning << "BPM of type="<<type<<" is UNSUPPORTED!!\n";
@@ -333,9 +333,9 @@ VQwBPM* VQwBPM::CreateCombo(TString subsystemname, TString name,
   // simple), just list out the types of BPM's supported by this code!!!
   if( type == "VQWK") {
     return new QwCombinedBPM<QwVQWK_Channel>(subsystemname,name,type);
-  } else if (type == "SCALER" || type == "SIS3801" ) { // Default SCALER channel
+  } else if (type == "SIS3801" ) { // Default SCALER channel
     return new QwCombinedBPM<QwSIS3801_Channel>(subsystemname,name,type);
-  } else if ( type == "SIS3801D24" ) {
+  } else if ( type == "SCALER" || type == "SIS3801D24" ) {
     return new QwCombinedBPM<QwSIS3801D24_Channel>(subsystemname,name,type);
   } else { // Unsupported one!
     QwWarning << "BPM of type="<<type<<" is UNSUPPORTED!!\n";
