@@ -912,6 +912,10 @@ void QwEventDisplay3D::SwitchViewVDC()
       // Reset button text
       fVDC_SwitchViewButton->SetText("Switch to Detector View");
 
+      // If the HDC is in wireview, get out of it!
+      if( fHDC_IsWireView )
+        SwitchViewHDC();
+
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();
       Int_t number = nodes->GetEntries();
@@ -937,7 +941,6 @@ void QwEventDisplay3D::SwitchViewVDC()
    } else { // Detector View
       // Reset button text
       fVDC_SwitchViewButton->SetText("Switch to Wire View of VDC's");
-      fHDC_SwitchViewButton->SetText("Switch to Wire View of HDC's");
 
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();
@@ -952,7 +955,6 @@ void QwEventDisplay3D::SwitchViewVDC()
 
       // Of course hide those undesirable objects.
       HideUnecessary();
-      fHDC_IsWireView = !fHDC_IsWireView; 
 
       /// Enable the Detector buttons
       DetectorButtonsEnable(kTRUE);
@@ -993,6 +995,10 @@ void QwEventDisplay3D::SwitchViewHDC()
    if (!fHDC_IsWireView) {
       // Reset button text
       fHDC_SwitchViewButton->SetText("Switch to Detector View");
+
+      // If the VDC is in WireView, get out of it
+      if ( fVDC_IsWireView )
+        SwitchViewVDC();
 
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();
@@ -1125,7 +1131,6 @@ void QwEventDisplay3D::SwitchViewHDC()
 else { // Detector View
       // Reset button text
       fHDC_SwitchViewButton->SetText("Switch to Wire View of HDC's");
-      fVDC_SwitchViewButton->SetText("Switch to Wire View of VDC's");
 
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();
@@ -1141,8 +1146,6 @@ else { // Detector View
 
       // Of course hide those undesirable objects.
       HideUnecessary();
-
-      fVDC_IsWireView = !fVDC_IsWireView;
 
       // Clear HDC Wire Plane Outlines
       ClearOutline();
