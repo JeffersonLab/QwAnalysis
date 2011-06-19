@@ -161,7 +161,15 @@ private:
 
   // Enumerated menu options
   enum EventDisplayMenu_e {
-      kOpenRootFile
+      kOpenRootFile,
+      kRotateM90,
+      kRotateM45,
+      kRotate0,
+      kRotateP45,
+      kRotateP90,
+      kToggleShowTracks,
+      kToggleShowAllRegion3,
+      kToggleShowAllRegion2
   };
 
   // Various detector buttons

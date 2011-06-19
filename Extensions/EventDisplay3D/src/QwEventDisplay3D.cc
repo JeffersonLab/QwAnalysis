@@ -345,14 +345,14 @@ void QwEventDisplay3D::InitGUI()
 
 
    // Now add the labels
-   fRegion1Label = new TGLabel(vFrame,"REGION 1 HIT");
+   //fRegion1Label = new TGLabel(vFrame,"REGION 1 HIT");
    fRegion2Label = new TGLabel(vFrame,"REGION 2 HIT");
    fRegion3Label = new TGLabel(vFrame,"REGION 3 HIT");
    fTrigLabel = new TGLabel(vFrame,"TRIGGER HIT");
    fCerenkovLabel = new TGLabel(vFrame,"MAIN DETECTOR HIT");
    fScannerLabel = new TGLabel(vFrame,"SCANNER HIT");
-   vFrame->AddFrame(fRegion1Label, new TGLayoutHints(kLHintsLeft | kLHintsTop
-            | kLHintsExpandX | kLHintsExpandY));
+   //vFrame->AddFrame(fRegion1Label, new TGLayoutHints(kLHintsLeft | kLHintsTop
+   //         | kLHintsExpandX | kLHintsExpandY));
    vFrame->AddFrame(fRegion2Label,new TGLayoutHints(kLHintsLeft | kLHintsTop
             | kLHintsExpandX|kLHintsExpandY));
    vFrame->AddFrame(fRegion3Label,new TGLayoutHints(kLHintsLeft | kLHintsTop
@@ -365,7 +365,7 @@ void QwEventDisplay3D::InitGUI()
             | kLHintsExpandX|kLHintsExpandY));
 
    // Initialize all labels as not hit
-   fRegion1Label->ChangeBackground(fRed);
+   //fRegion1Label->ChangeBackground(fRed);
    fRegion2Label->ChangeBackground(fRed);
    fRegion3Label->ChangeBackground(fRed);
    fTrigLabel->ChangeBackground(fRed);
@@ -393,7 +393,7 @@ void QwEventDisplay3D::InitGUI()
    TGVerticalFrame *cFrame = new TGVerticalFrame(viewPort,100,100,kVerticalFrame|kOwnBackground);
    fTargetButton =  new TGTextButton(cFrame,"Target");
    fCollimator1Button =  new TGTextButton(cFrame,"Collimator1");
-   fGemsButton =  new TGTextButton(cFrame,"GEMS");
+   //fGemsButton =  new TGTextButton(cFrame,"GEMS");
    fCollimator2Button =  new TGTextButton(cFrame,"Collimator2");
    fHDCButton =  new TGTextButton(cFrame,"HDC");
    fCollimator3Button =  new TGTextButton(cFrame,"Collimator3");
@@ -408,8 +408,8 @@ void QwEventDisplay3D::InitGUI()
             kLHintsTop | kLHintsExpandX));
    cFrame->AddFrame(fCollimator1Button, new TGLayoutHints(kLHintsLeft | 
             kLHintsTop | kLHintsExpandX));
-   cFrame->AddFrame(fGemsButton, new TGLayoutHints(kLHintsLeft | 
-            kLHintsTop | kLHintsExpandX));
+   //cFrame->AddFrame(fGemsButton, new TGLayoutHints(kLHintsLeft | 
+   //         kLHintsTop | kLHintsExpandX));
    cFrame->AddFrame(fCollimator2Button, new TGLayoutHints(kLHintsLeft | 
             kLHintsTop | kLHintsExpandX));
    cFrame->AddFrame(fHDCButton, new TGLayoutHints(kLHintsLeft | 
@@ -453,6 +453,14 @@ void QwEventDisplay3D::InitGUI()
    // Add a new menu bar
    fMenu = new TGPopupMenu(gClient->GetRoot());
    fMenu->AddEntry("&Open ROOT File",kOpenRootFile);
+   fMenu->AddEntry("Rotate to -90",kRotateM90);
+   fMenu->AddEntry("Rotate to -45",kRotateM45);
+   fMenu->AddEntry("Rotate to 0",  kRotate0);
+   fMenu->AddEntry("Rotate to 45", kRotateP45);
+   fMenu->AddEntry("Rotate to 90", kRotateP90);
+   fMenu->AddEntry("Toggle Show Tracks", kToggleShowTracks);
+   fMenu->AddEntry("Toggle Show All Region 2", kToggleShowAllRegion2);
+   fMenu->AddEntry("Toggle Show All Region 3", kToggleShowAllRegion3);
    fMenu->AddSeparator();
    fBrowser->GetMenuBar()->AddPopup("E&vent Display",fMenu, new TGLayoutHints(
             kLHintsTop | kLHintsLeft));
@@ -469,7 +477,7 @@ void QwEventDisplay3D::InitGUI()
    fTargetButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchTarget()");
    fCollimator1Button->Connect("Clicked()","QwEventDisplay3D",this,
          "SwitchCollimator1()");
-   fGemsButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchGems()");
+   //fGemsButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchGems()");
    fCollimator2Button->Connect("Clicked()","QwEventDisplay3D",this,
          "SwitchCollimator2()");
    fHDCButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchHDC()");
@@ -608,7 +616,7 @@ void QwEventDisplay3D::PreviousEvent(Bool_t redraw)
 void QwEventDisplay3D::DisplayEvent()
 {
    // Disable all hit labels
-   fRegion1Label->ChangeBackground(fRed);
+   //fRegion1Label->ChangeBackground(fRed);
    fRegion2Label->ChangeBackground(fRed);
    fRegion3Label->ChangeBackground(fRed);
    fTrigLabel->ChangeBackground(fRed);
@@ -1665,7 +1673,7 @@ void QwEventDisplay3D::SwitchCollimator1()
 
 void QwEventDisplay3D::SwitchGems()
 {
-  UpdateButtonState(fGemsButton, "GEMS",&fShowGems);
+  //UpdateButtonState(fGemsButton, "GEMS",&fShowGems);
 }
 
 
@@ -1745,6 +1753,46 @@ void QwEventDisplay3D::MenuEvent(Int_t menuID)
       case kOpenRootFile:
          OpenRootFile();
          break;
+      case kRotateM90:
+         SetRotation(-90.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kRotateM45:
+         SetRotation(-45.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kRotate0:
+         SetRotation(0.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kRotateP45:
+         SetRotation(45.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kRotateP90:
+         SetRotation(90.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kToggleShowTracks:
+         SetDrawTracks(!fDrawTracks);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kToggleShowAllRegion2:
+         SetShowAllRegion2(!fDrawAllRegion2);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kToggleShowAllRegion3:
+         SetShowAllRegion3(!fDrawAllRegion3);
+         RedrawViews();
+         DisplayEvent();
+         break;
       default:
          std::cout  << "Behold! I am ROOT!. You have clicked on menu item "
             << menuID << ". I have gracefully ignored your request. "
@@ -1784,7 +1832,7 @@ void QwEventDisplay3D::DetectorButtonsEnable(Bool_t status)
    fUpdateViewButton->SetEnabled(status);
    fTargetButton->SetEnabled(status);
    fCollimator1Button->SetEnabled(status);
-   fGemsButton->SetEnabled(status);
+   //fGemsButton->SetEnabled(status);
    fCollimator2Button->SetEnabled(status);
    fHDCButton->SetEnabled(status);
    fCollimator3Button->SetEnabled(status);
