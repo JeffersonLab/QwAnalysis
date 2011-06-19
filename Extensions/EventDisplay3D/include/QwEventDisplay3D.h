@@ -120,16 +120,18 @@ private:
   Int_t fR3WireHitCount[4][279];
 
   //HDC Wire angle and separaction constants
-  Double_t fHDC_AngleOfWires[2];  // With respect to x
   Double_t fHDC_WireSeparation;   // Perpendicular to wires
   Double_t fHDC_WireXSpacing[2];     // in cm
   Double_t fHDC_WireYSpacing[2];     // in cm
+  Double_t fHDC_FirstWirePos[2][12];     // in cm
   Double_t fHDC_XLength;          // Lengh in X of HDC in cm
   Double_t fHDC_YLength;          // Lengh in Y of HDC in cm
-  Double_t fHDC_PlaneZPos[12];    // Z-position of plane in cm wrt to origin
-  Double_t fHDC_PlaneYPos[2];    // Y-position of plane in cm wrt to origin
-  Double_t fHDC_SinAngleWires[2];    // sin(fHDC_AngleOfWires[plane#])
-  Double_t fHDC_CosAngleWires[2];    // cos(fHDC_AngleOfWires[plane#])
+  Double_t fHDC_LengthFirstWires[3]; // Length of the first wires in the X plane
+  Double_t fHDC_PlaneZPos[2][12];    // Z-position of plane in cm wrt to origin
+  Double_t fHDC_PlaneYPos[2][12];    // Y-position of plane in cm wrt to origin
+  Double_t fHDC_PlaneXPos[2][12];    // X-position of plane in cm wrt to origin
+  Double_t fHDC_SinAngleWires[2][12];    // sin of x/u/v axis angle with respect to local x and y
+  Double_t fHDC_CosAngleWires[2][12];    // cos of x/u/v axis angle with respect to local x and y
   Double_t fHDC_XAsymetry;          // fHDC_XLength-16*fHDC_WireXSpacing[1]-----Just a guess
   Double_t fHDC_YAsymetry;          // 4/3*fHDC_XAsymetry-----Just a guess 
 
@@ -194,6 +196,8 @@ private:
   // Various other flags
   Bool_t fDrawTreeLines;
   Bool_t fDrawTracks;
+  Bool_t fDrawAllRegion2;
+  Bool_t fDrawAllRegion3;
 
   // Color elements
   Pixel_t   fGreen;
@@ -209,7 +213,7 @@ private:
   TFile *fRootFile;
 
   // Functions
-  void LoadGeometry();
+  void LoadHallGeometry();
   void InitGUI();
   void InitViews();
   void InitEvents();
@@ -226,6 +230,7 @@ private:
   void SetVisibility(const char* volname, Bool_t status);
   Double_t RotateXonZ(Double_t x, Double_t y, Double_t angle);
   Double_t RotateYonZ(Double_t x, Double_t y, Double_t angle);
+  void ReadDriftChamberGeometry(); // Reads geometry from qweak_new.geo
 
 public:
    QwEventDisplay3D( const TGWindow *window, UInt_t width, UInt_t height  );

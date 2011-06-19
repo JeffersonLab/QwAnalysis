@@ -26,6 +26,7 @@
 #include "QwTriggerScintillator.h"
 #include "QwMainDetector.h"
 #include "QwTreeEventBuffer.h"
+#include "QwParameterFile.h"
 
 // Qweak event display header
 #include "QwEventDisplay3D.h"
@@ -35,6 +36,17 @@ int main (int argc, char* argv[])
 {
   // Start this application
   TApplication theApp("QwEventDisplayTest3D", &argc, argv);
+
+  ///  First, fill the search paths for the parameter files; this sets a static
+  ///  variable within the QwParameterFile class which will be used by
+  ///  all instances.
+  ///  The "scratch" directory should be first.
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") +
+      "/Extensions/EventDisplay3D/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Tracking/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
   // Process the options
   std::cout << "About to process arguments:\n\n\n\n\n";
@@ -55,7 +67,7 @@ int main (int argc, char* argv[])
      display->OpenRoot(gQwOptions.GetValue<int>("run"));
 
   // Because this gets old real fast, this is only temporary
-  //display->OpenRoot(5153);
+  //display->OpenRoot(8658);
 
   // Now run this application
   display->RedrawViews();
