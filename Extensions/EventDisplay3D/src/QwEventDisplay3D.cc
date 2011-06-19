@@ -18,9 +18,10 @@ const Bool_t kDebug = kTRUE;
 const char* QwEventDisplay3D::fFiletypes[] = {"ROOT files", "*.root","All files", "*", 0, 0 };
 
 QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
-      UInt_t height)
+      UInt_t height) : fPackageAngle(0.), fPreviousRotation(0.)
 {
-   // Enable various flags (for now, should be done through the GUI later)
+   // Set default flags. These can be updated throught the command line
+   // or through the GUI
    fDrawTracks = kTRUE;
    fDrawTreeLines = kFALSE;
    fDrawAllRegion3 = kFALSE;
@@ -99,7 +100,6 @@ void QwEventDisplay3D::Init()
 
    // Initialize the views
    InitViews();
-   std::cout<<"\n\n\nSecond!!\n";
 
    // Initialize the graphical user interface
    InitGUI();
@@ -107,10 +107,6 @@ void QwEventDisplay3D::Init()
    // Initialize the events (NO! Should only be called _after_ a rootfile is
    // loaded
    //InitEvents();
-
-   // Setup the rotation for now, assuming a default of horizontal position
-   // for the tracking hardware
-   SetRotation(0.);
 
    // TODO: Erase the following
    SwitchViewVDC();
@@ -972,7 +968,7 @@ void QwEventDisplay3D::SwitchViewVDC()
    RedrawViews();
 
    // Clear HDC Wire Plane Outlines
-      ClearOutline();
+   //ClearOutline();
 
    // Update if necessary
    UpdateView();
@@ -1870,6 +1866,10 @@ void QwEventDisplay3D::SetRotation( Double_t phi )
    //! fPackageAngle. From there, if the package is 1, it is translated
    //! towards its correct side.
    fDetectorPhi = phi;
+   fPreviousRotation = fPackageAngle*_TO_DEG_;
+   if ( phi > 90  || phi < -90 )
+     QwError << "VDC's are unable to rotate to angles larger than 90degrees. "
+      << "Ignoring rotation!" << QwLog::endl;
    switch( (int)phi ) {
       case -90:
          fPackageAngle = -_180DEG_;
@@ -1889,15 +1889,15 @@ void QwEventDisplay3D::SetRotation( Double_t phi )
          break;
    }
 
-   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
-   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
-   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_241")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
-   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_242")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_241")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_242")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
 
-   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_235")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
-   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_236")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
-   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_237")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
-   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_238")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_235")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_236")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_237")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_238")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
 
    //std::cout << "Initialized the run with rotation of coordinate system to to "
       //<< phi << ".\n The respective packages are: Package1: " << fPackageAngle[0] << "\tPackage2: " << fPackageAngle[1] << "\n.";

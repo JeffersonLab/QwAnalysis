@@ -138,6 +138,7 @@ private:
   // Rotation of the whole tracking system about the z axis
   Double_t fDetectorPhi;
   Double_t fPackageAngle;
+  Double_t fPreviousRotation;
 
   // GUI elements
   TGLabel *fRegion1Label;
@@ -267,6 +268,12 @@ public:
    void SkipToEvent();
    void MenuEvent(Int_t menuID);
    void OpenRoot(Int_t runnumber);
+
+   // Setters & Getters
+   void SetDrawTracks(Bool_t drawTracks) { fDrawTracks = drawTracks; }
+   void SetDrawTreeLines(Bool_t drawTreeLines) { fDrawTreeLines = drawTreeLines; }
+   void SetShowAllRegion3(Bool_t show) { fDrawAllRegion3 = show; }
+   void SetShowAllRegion2(Bool_t show) { fDrawAllRegion2 = show; }
 
    // Ask ROOT to make a dictionary of this file so that slots could work
    ClassDef(QwEventDisplay3D,1);
