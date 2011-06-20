@@ -37,6 +37,7 @@
 // Qweak headers
 #include "VQwDataElement.h"
 #include "QwSIS3320_Accumulator.h"
+#include "QwSIS3320_LogicalAccumulator.h"
 #include "QwSIS3320_Samples.h"
 
 class QwSIS3320_Channel: public VQwDataElement {
@@ -50,8 +51,15 @@ class QwSIS3320_Channel: public VQwDataElement {
       DeleteHistograms();
     };
 
-    void  InitializeChannel(UInt_t channel, TString name);
+    enum LogicalType_e {
+      kAccumLogical0M3,
+      kAccumLogical1P2,
+      kAccumLogical1P2P3
+    };
 
+    void CreateLogicalAccumulator( LogicalType_e type );
+
+    void  InitializeChannel(UInt_t channel, TString name);
     void  ClearEventData();
 
     void  SetRandomEventParameters(Double_t mean, Double_t sigma) { };
@@ -196,6 +204,10 @@ class QwSIS3320_Channel: public VQwDataElement {
     static const unsigned int FORMAT_ACCUMULATOR;
     static const unsigned int FORMAT_LONG_WORD_SAMPLING;
     static const unsigned int FORMAT_SHORT_WORD_SAMPLING;
+
+    // Logical Accumulator Support
+    std::vector<QwSIS3320_LogicalAccumulator> fLogicalAccumulators;
+
 
 };
 

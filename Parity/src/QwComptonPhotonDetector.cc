@@ -120,6 +120,10 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
           fSamplingADC.push_back(QwSIS3320_Channel(channum, name));
           fSamplingADC.at(index).SetNumberOfAccumulators(6);
           fSamplingADC.at(index).InitializeChannel(channum, name);
+          // Now create the logical accumulators
+          fSamplingADC.at(index).CreateLogicalAccumulator(QwSIS3320_Channel::kAccumLogical0M3);
+          fSamplingADC.at(index).CreateLogicalAccumulator(QwSIS3320_Channel::kAccumLogical1P2);
+          fSamplingADC.at(index).CreateLogicalAccumulator(QwSIS3320_Channel::kAccumLogical1P2P3);
         }
 
       } else if (modtype == "V792") {

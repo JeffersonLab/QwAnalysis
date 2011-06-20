@@ -135,6 +135,8 @@ void QwSIS3320_Channel::ClearEventData()
     fAccumulators.at(i).ClearEventData();
   for (size_t i = 0; i < fAccumulatorsRaw.size(); i++)
     fAccumulatorsRaw.at(i).ClearEventData();
+  for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+    fLogicalAccumulators.at(i).ClearEventData();
   // (the number of accumulators is constant, don't clear them)
 }
 
@@ -381,6 +383,10 @@ void QwSIS3320_Channel::ProcessEvent()
     fAccumulators[i] *= fCalibrationFactor;
   }
 
+  for (size_t i = 0; i < fLogicalAccumulators.size(); i++) {
+    fLogicalAccumulators[i].ProcessEvent();
+  }
+
   // Calculate the average sample snapshot
   if (fSamples.size() > 0) {
     fAverageSamples.SetNumberOfSamples(fSamples[0].GetNumberOfSamples());
@@ -466,6 +472,8 @@ QwSIS3320_Channel& QwSIS3320_Channel::operator= (const QwSIS3320_Channel &value)
     for (size_t i = 0; i < fAccumulators.size(); i++ ) {
       fAccumulators[i] = value.fAccumulators.at(i);
     }
+    for (size_t i = 0; i < fLogicalAccumulators.size(); i++ )
+      fLogicalAccumulators[i] = value.fLogicalAccumulators.at(i);
   }
   return *this;
 }
@@ -482,6 +490,8 @@ QwSIS3320_Channel& QwSIS3320_Channel::operator+= (const Double_t &value)
       fSamples[i] += value;
     for (size_t i = 0; i < fAccumulators.size(); i++)
       fAccumulators[i] += value;
+    for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+      fLogicalAccumulators[i] += value;
   }
   return *this;
 }
@@ -498,6 +508,8 @@ QwSIS3320_Channel& QwSIS3320_Channel::operator-= (const Double_t &value)
       fSamples[i] -= value;
     for (size_t i = 0; i < fAccumulators.size(); i++)
       fAccumulators[i] -= value;
+    for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+      fLogicalAccumulators[i] -= value;
   }
   return *this;
 }
@@ -514,6 +526,8 @@ QwSIS3320_Channel& QwSIS3320_Channel::operator+= (const QwSIS3320_Channel &value
       fSamples[i] += value.fSamples.at(i);
     for (size_t i = 0; i < fAccumulators.size(); i++)
       fAccumulators[i] += value.fAccumulators.at(i);
+    for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+      fLogicalAccumulators[i] += value.fLogicalAccumulators.at(i);
   }
   return *this;
 }
@@ -530,6 +544,8 @@ QwSIS3320_Channel& QwSIS3320_Channel::operator-= (const QwSIS3320_Channel &value
       fSamples[i] -= value.fSamples.at(i);
     for (size_t i = 0; i < fAccumulators.size(); i++)
       fAccumulators[i] -= value.fAccumulators.at(i);
+    for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+      fLogicalAccumulators[i] -= value.fLogicalAccumulators.at(i);
   }
   return *this;
 }
@@ -561,6 +577,9 @@ void QwSIS3320_Channel::Ratio(QwSIS3320_Channel &numer, QwSIS3320_Channel &denom
   if (!IsNameEmpty()) {
     for (size_t i = 0; i < fAccumulators.size(); i++)
       fAccumulators[i].Ratio(numer.fAccumulators[i],denom.fAccumulators[i]);
+    for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+      fLogicalAccumulators[i].Ratio(numer.fLogicalAccumulators[i],
+          denom.fLogicalAccumulators[i]);
   }
 }
 
@@ -589,6 +608,8 @@ void QwSIS3320_Channel::Scale(Double_t scale)
       fSamples[i] *= scale;
     for (size_t i = 0; i < fAccumulators.size(); i++)
       fAccumulators[i] *= scale;
+    for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+      fLogicalAccumulators[i] *= scale;
   }
 }
 
@@ -636,6 +657,10 @@ void QwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
       fAccumulatorsRaw[i].ConstructHistograms(folder,prefix);
     }
 
+    // Logical Accumulators
+    for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+      fLogicalAccumulators[i].ConstructHistograms(folder,prefix);
+
     TString basename = prefix + GetElementName();
 
     fHistograms.resize(3, NULL);
@@ -659,6 +684,11 @@ void QwSIS3320_Channel::FillHistograms()
     for (size_t i = 0; i < fAccumulators.size(); i++) {
       fAccumulators[i].FillHistograms();
       fAccumulatorsRaw[i].FillHistograms();
+    }
+
+    // Logical Accumulators
+    for (size_t i = 0; i< fLogicalAccumulators.size(); i++ ) {
+      fLogicalAccumulators[i].FillHistograms();
     }
 
     if (fHistograms[++index] != NULL)
@@ -688,6 +718,10 @@ void  QwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, 
     fAccumulators[i].ConstructBranchAndVector(tree, prefix, values);
     fAccumulatorsRaw[i].ConstructBranchAndVector(tree, prefix, values);
   }
+  // Logical Accumulators
+  for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+    fLogicalAccumulators[i].ConstructBranchAndVector(tree, prefix, values);
+
   // Samples (only collected when running over data, so structure does not
   // actually exist yet at time of branch construction)
   TString basename = prefix + GetElementName() + "_samples";
@@ -702,6 +736,10 @@ void  QwSIS3320_Channel::FillTreeVector(std::vector<Double_t> &values) const
     fAccumulators[i].FillTreeVector(values);
     fAccumulatorsRaw[i].FillTreeVector(values);
   }
+
+  // Logical Accumulators
+  for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+    fLogicalAccumulators[i].FillTreeVector(values);
 }
 
 /**
@@ -714,6 +752,8 @@ void QwSIS3320_Channel::PrintValue() const
             << std::setw(15) << std::left << GetNumberOfEvents();
   for (size_t i = 0; i < fAccumulators.size(); i++)
     QwMessage << ", " << i << ":" << fAccumulators[i].GetAccumulatorSum();
+  for (size_t i = 0; i < fLogicalAccumulators.size(); i++)
+    QwMessage << ", " << i << ":" << fLogicalAccumulators[i].GetAccumulatorSum();
   QwMessage << QwLog::endl;
 }
 
@@ -740,6 +780,10 @@ void QwSIS3320_Channel::PrintInfo() const
   QwOut << "fAccumulators -> fAccumulatorsRaw:" << QwLog::endl;
   for (size_t i = 0; i < fAccumulators.size(); i++) {
     QwOut << i << ": " << fAccumulatorsRaw.at(i) << " -> " << fAccumulators.at(i) << QwLog::endl;
+  }
+  QwOut << "fLogicalAccumulators:" << QwLog::endl;
+  for (size_t i = 0; i < fLogicalAccumulators.size(); i++) {
+    QwOut << i << ": " << fLogicalAccumulators.at(i) << QwLog::endl;
   }
   UInt_t nped = 10;
   if (fSamplesRaw.size() > 0) {
@@ -784,6 +828,7 @@ void QwSIS3320_Channel::Copy(QwSIS3320_Channel *source)
          this->fAccumulatorTimingAfter6 = source->fAccumulatorTimingAfter6;
          this->fAccumulators           = source->fAccumulators;
          this->fAccumulatorsRaw        = source->fAccumulatorsRaw;
+         this->fLogicalAccumulators    = source->fLogicalAccumulators;
          this->fSequenceNumber         = source->fSequenceNumber;
          this->fMockAsymmetry          = source->fMockAsymmetry;
          this->fMockGaussianMean       = source->fMockGaussianMean;
@@ -800,4 +845,46 @@ void QwSIS3320_Channel::Copy(QwSIS3320_Channel *source)
    }
 
    return;
+}
+
+void QwSIS3320_Channel::CreateLogicalAccumulator( LogicalType_e type )
+{
+  if( fNumberOfAccumulators < 5 ) {
+    QwError << "Number of Accumulators too low to create logical"
+      << " accumulators." << QwLog::endl;
+    return;
+  }
+
+  Bool_t found = kFALSE;
+  TString basename = GetElementName() + "_laccum";
+  QwSIS3320_LogicalAccumulator localLogAccum;
+  switch( type ) {
+    case kAccumLogical0M3:
+      basename += "0m3";
+      localLogAccum.AddAccumulatorReference(&(fAccumulators[0]),1.);
+      localLogAccum.AddAccumulatorReference(&(fAccumulators[3]),-1.);
+      found=kTRUE;
+      break;
+    case kAccumLogical1P2:
+      basename += "1p2";
+      localLogAccum.AddAccumulatorReference(&(fAccumulators[1]),1.);
+      localLogAccum.AddAccumulatorReference(&(fAccumulators[2]),1.);
+      found=kTRUE;
+      break;
+    case kAccumLogical1P2P3:
+      basename += "1p2p3";
+      localLogAccum.AddAccumulatorReference(&(fAccumulators[1]),1.);
+      localLogAccum.AddAccumulatorReference(&(fAccumulators[2]),1.);
+      localLogAccum.AddAccumulatorReference(&(fAccumulators[3]),1.);
+      found=kTRUE;
+      break;
+  }
+
+  if(found) {
+    localLogAccum.SetElementName(basename);
+    fLogicalAccumulators.push_back(localLogAccum);
+  } else {
+    QwError << "LogicalAccumulator of type="<<type<<" not found!"
+      << " Will not create Logical Accumulator";
+  }
 }
