@@ -10,10 +10,8 @@ gROOT->SetStyle("Plain");
 
 Bool_t save_file = kTRUE;
 
-const string cut1 = "mps_counter<100000";
-const string cut2 = "mps_counter>1000";
-//const string cut2 = "mps_counter>0";
-//const string cut3 = "qwk_md1pos>0.005 && qwk_md1neg>0.005";
+const TString cut1 = "mps_counter<100000";
+const TString cut2 = "mps_counter>1000";
 double mean[18],rms[18];
 
  const TString md[18] ={
@@ -22,9 +20,14 @@ double mean[18],rms[18];
    "qwk_md1pos","qwk_md2pos","qwk_md3pos","qwk_md4pos",
    "qwk_md5pos","qwk_md6pos","qwk_md7pos","qwk_md8pos",
    "qwk_md9neg","qwk_md9pos"};
-  
  Char_t filename[100];
- sprintf(filename,"$QW_ROOTFILES/first100k_%i.root",runNum);
+
+//CHOOSE THE FORMAT FOR THE ROOTFILE NAME HERE//
+
+ //sprintf(filename,"$QW_ROOTFILES/first100k_%i.root",runNum);
+ sprintf(filename,"$QW_ROOTFILES/Qweak_%i.root",runNum);
+
+
  f = new TFile(filename);
  if(!f->IsOpen()){
    std::cerr<<"Error opening ROOTFile "<<filename<<".\n"<<endl;
@@ -47,7 +50,7 @@ double mean[18],rms[18];
       mdHist[p] = new TH1F(Form("%i_h_%s",runNum,md[p].Data()),"",100,0,0);
       mc_md->cd(p+1);
       mdHist[p]->SetDirectory(0);     
-      mps_tree->Draw(Form("%s.hw_sum>>run%i_h_%s",md[p].Data(),runNum,md[p].Data()),Form("%s && %s && %s.Device_Error_Code==0",cut1,cut2,md[p].Data()));
+      mps_tree->Draw(Form("%s.hw_sum>>run%i_h_%s",md[p].Data(),runNum,md[p].Data()),Form("%s && %s && %s.Device_Error_Code==0",cut1.Data(),cut2.Data(),md[p].Data()));
       TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("run%i_h_%s",runNum,md[p].Data()));
       mean[p]=htemp->GetMean(); rms[p]=htemp->GetRMS();
       std::cout<<md[p].Data()<<" "<<htemp->GetMean()<<" "<<htemp->GetRMS()<<std::endl;
