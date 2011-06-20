@@ -42,9 +42,10 @@ ROOTINC=$(PREFIX)/include/root
 ROOTBIN=$(PREFIX)/bin
 ROOTLIBDIR=$(PREFIX)/lib
 ifdef ROOTSYS
-  ROOTINC=$(ROOTSYS)/include
   ROOTBIN=$(ROOTSYS)/bin
-  ROOTLIBDIR=$(ROOTSYS)/lib
+  ROOTLIBDIR=`$(ROOTBIN)/root-config  --libdir`
+  ROOTINC=`$(ROOTBIN)/root-config  --incdir`
+
 endif
 
 export OSNAME := $(shell uname)

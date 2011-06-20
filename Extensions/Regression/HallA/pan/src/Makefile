@@ -48,8 +48,8 @@ endif
 ROOTINC=$(PREFIX)/include/root
 ROOTBIN=$(PREFIX)/bin
 ifdef ROOTSYS
-  ROOTINC=$(ROOTSYS)/include
   ROOTBIN=$(ROOTSYS)/bin
+  ROOTINC=`$(ROOTBIN)/root-config  --incdir`
 endif
 
 export OSNAME := $(shell uname)

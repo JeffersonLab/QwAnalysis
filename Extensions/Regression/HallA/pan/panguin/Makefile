@@ -12,7 +12,7 @@ endif
 
 ROOTLIBS      = $(shell root-config --libs)
 ROOTGLIBS     = $(shell root-config --glibs)
-INCLUDES      = -I$(ROOTSYS)/include
+INCLUDES      = -I$(shell root-config --incdir)
 CXX           = $(GCC)
 CXXFLAGS      = -Wall -fno-exceptions -fPIC $(INCLUDES) -fpermissive
 LD            = $(GLD)

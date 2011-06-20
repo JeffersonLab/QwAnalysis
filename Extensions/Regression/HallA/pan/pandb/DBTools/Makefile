@@ -19,7 +19,7 @@ ifeq ($(OSNAME),SunOS)
    ROOTLIBS      = $(shell root-config --libs)
    ROOTGLIBS     = $(shell root-config --glibs)
    CXX           = g++
-   CXXFLAGS      = -KPIC -DSUNVERS -I$(ROOTSYS)/include -I$(MAINDIR)
+   CXXFLAGS      = -KPIC -DSUNVERS -I$(shell root-config --incdir) -I$(MAINDIR)
    CXXFLAGS     += $(ROOTCFLAGS)
    LD            = g++
    LDFLAGS       = -g -D
@@ -36,7 +36,7 @@ ifeq ($(OSNAME),Linux)
 
    ROOTLIBS      = $(shell root-config --libs)
    ROOTGLIBS     = $(shell root-config --glibs)
-   INCLUDES      = -I$(ROOTSYS)/include
+   INCLUDES      = -I$(shell root-config --incdir)
    CXX           = g++
    CPPFLAGS = $(shell root-config --cflags) -I$(MYSQL_INCLUDE) 
    CXXFLAGS      = -g -Wall -fPIC  $(INCLUDES)
