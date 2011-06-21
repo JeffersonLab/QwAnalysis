@@ -1,0 +1,25 @@
+//  General plotting package for pan event and pair trees.
+//  R. Michaels   March 2002
+{
+
+  gROOT->Reset();
+  gROOT->Macro("open.macro");
+  G__loadfile("./bg_tree_define.macro");
+
+  bar = new TControlBar("vertical", "PARITY  CHECKOUT");
+
+  bar->AddButton("         Raw  Signal  Check       ",   ".x ./bg_rawsignal.macro", "Raw Signals");
+  bar->AddButton("          Beam  Current           ",   ".x ./bg_beamcurrent.macro", "Beam Current");
+  bar->AddButton("        Helicity Correlations     ",   ".x ./bg_helcorr.macro", "Helicity Correlations");
+//  bar->AddButton("++++++++++++++++    HELP   +++++++++++++++++",".x ./bg_help.macro","");
+  bar->AddButton("================    QUIT   =================",".q","");
+
+  bar->Show();
+  gROOT->SaveContext();
+
+}
+
+
+
+
+

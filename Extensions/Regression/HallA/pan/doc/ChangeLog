@@ -1,0 +1,3022 @@
+// -*- text -*-
+
+  ChangeLog
+  =========
+
+This is a detailed list of ongoing changes.  Add changes to 
+the top of this file.
+
+Changes by R. Michaels on May 21, 2010
+--------------------------------------
+
+Fixed VaEvent::CheckAdcxBad() which was erroneously finding
+bad ADCX data when a spurious data 0xffffffff appeared.
+The spurious data came from the CH scaler.  A simple fix
+of the logic got rid of this.
+
+
+Changes by R. Holmes on 12 Feb 2010
+-----------------------------------
+
+Pan now has the following capabilities:
+
+1. If there is a line of the form
+
+  trees list of trees
+
+in the database, only the specified trees will be filled and written.
+For example
+
+  trees P M
+
+causes only the pair (P) and multiplet (M) trees to be written.  If
+the trees line is absent, default behavior is to write E (EPICS), R
+(events), P, and M.
+
+2. If there is a line of the form
+
+  fillditheronly true
+
+in the database, only events with dithering on will be filled to trees
+and written. In the case of tree P(M), only pairs(multiplets) in which
+both(all) events are dither events will be written.  Dither events are
+ones in which bmwobj > -1.
+
+
+Changes by R. Michaels on 12 Oct 2009
+--------------------------------------
+
+Added the routine VaEvent::CheckAdcxBad to check
+explicitly for the bad flags.  It's another way
+that adcxbad can become nonzero.
+
+
+Changes by R. Michaels on 11 Oct 2009
+--------------------------------------
+
+BTW, I think people are making changes to Pan without
+documenting there here (or anywhere ?).
+
+Today's change: Added cuts on ADCX electronics problems.
+Two cuts are "adcx bad" and "adcx dac burp".  The former
+occurs when the buffer has >1 hit in an event, presumably
+caused by system-wide deadtime.  The latter occurs every
+256K events and is a large glitch in the DAC in the base
+signal.  Both of these cause double-diffs in BCM2, and
+the "adcx bad" can cause problems in the peak which are
+very dangerous.  These cuts appear to eliminate all glitches.
+
+In the database file, one may add items like this (notice
+the last two items in cutnames):
+
+  ncuts 10
+  cutnames Low_beam Beam_burp Evt_seq Pair_seq Startup Mon_Saturate Low_beam_c C_burp  Adcx_DAC_burp Adcx_Bad
+  extlo 10   10 25 25 0 30   10  10  10 10
+  exthi 1200 40 25 25 0 30 1200  40  10 10
+
+  adcxdacburpcut 1000
+
+
+
+Changes by R. Michaels and X. Deng on 1 June 2009
+-------------------------------------------------
+
+Added the PVDIS variables.  
+
+  TaDatabase.hh -- increase number of scalers
+  TaDevice (.hh, .cc) -- more scalers and
+       add all the PVDIS variables.
+       Add some methods to get range of keys
+       for PVDIS variable.
+  VaEvent (.hh, .cc) -- add the PVDIS variables
+       and allow for a mechanism to synch the
+       PVDIS-scalers to the rest of the DAQ.
+       (PVDIS scalers are behind one event)
+       Synch is controlled by fPvdisPhaseShift
+  genDevTypes.pl -- add PVDIS vars and more scalers
+  TaStandardAna.cc -- add analysis of PVDIS vars.
+
+A note: I see changes presumably from Kent about
+  VQWK and some UVa stuff.  They were not explained
+  here yet.  Must have happened since 4 Sep 2007.
+
+
+Changes by R. Michaels on 4 Sep 2007
+------------------------------------
+
+Mostly changes by R. Holmes and Zafar Ahmed at Syracuse U
+to add the 18-bit ADC (ADCX), but there were a few diffs that
+had crept in between CVS, HAPPEX05, and dpan07 as well.
+
+  genDevTypes.pl  --  Add 18-bit ADC
+  TaDevice (.hh, .cc)  -- 18-bit ADC, modified by me to reflect
+       that there is NO concept of DAC noise subtraction.
+  TaDataBase (.hh, .cc) -- 18-bit ADC, merged with CVS which
+       had "posmone" and "posburpe" tables, I preserved these.
+  TaStandardAna.cc -- changes from Luis in dpan07.  Looks
+       like some new weighting schemes.
+
+
+Changes by R. Holmes on 28 Sep 2005
+-----------------------------------
+
+Changes to TaFeedbackAna.cc, TaRun.cc, TaStandardAna.cc, and
+VaAnalysis.{cc,hh}.  fgNO_STATS has been changed to fgSTATS and its
+meaning has been reversed: by default stats are not printed for a
+quantity unless fgSTATS is set.  In TaStandardAna, only a few
+quantities have fgSTATS set.
+
+Changes by R. Holmes on 22 Aug 2005
+-----------------------------------
+
+Changes to TaCutList.{cc,hh}, TaDataBase.cc, and VaEvent.{cc,hh} to
+implement saturated monitor cuts.
+
+
+Changes by R. Holmes on 12 Jul 2005
+-----------------------------------
+
+These are some changes to facilitate comparison of stripline and
+cavity beamline monitors.
+
+There's a rather arcane change to the prompt.pl user interface.  The
+"for dummies" explanation is that the default behavior is to do two
+dither and two regression analyses, one using a stripline config file
+and one using a cavity config file.  However, the results are
+summarized and displayed (using prompt.macro) only for the stripline
+analysis, as before.  All sorts of other possibilities can be
+specified using one or more --conf arguments; see murky details in the
+comments.
+
+While prompt.pl doesn't take advantage of it yet, prompt.macro and
+open.macro have been modified so prompt.macro should be able to
+handle cavity analysis results by specifying an optional third
+argument, e.g. prompt (1234, 0, "cavity").
+
+
+Changes by K. Paschke on  11 Oct 2004
+--------------------------------------
+
+Added new detector "devices" det_l, det_r, det_lo, det_hi, and det_all.
+These provide the various sums of the 4 hydrogen detectors, with weights
+as prescribed in the database detwts  field.  These weights should be set
+as:
+
+wt = 1/( raw_signal_size * (regressed_asym_rms)^2 )
+
+The sums are recorded in the raw tree.  These sums are not "re-normalized" to
+the sum of the weights (so this is a weighted sum, not a weighted average) to 
+allow for the use of other combos with negative weights, if desired.
+These sums are also not beam normalized in the raw tree.
+
+For the pair tree, asymmetries are calculated for each of these sums exactly 
+as if they were the standard detectors (this is implemented in TaStandardAna).
+That is, each sum is beam normalized, then the asymmetry is calculated and 
+a blinding offset added.  That beam-normalized, blinded asymmetry of the 
+detector sum is inserted in the pair tree.
+
+For debugging, I've checked that the calculated asymmetries come out exactly the
+same for both the new and older versions of pan (which makes sense: the arithmetic
+is exactly the same).  The major difference is that now that these sums are
+available in the raw tree, dithering can calculate slopes directly for those
+sums (rather than relying on weighted averages of ditheirng-corrected asymmetries
+from individual detector segments).
+
+For the Helium analysis, the only detector combination which is valid is "det_lo"
+(detector segments 1 and 3).   The detector weights vector assumes
+four detectors, and so should have zeros in the second and fourth field for
+the Helium runs. 
+
+
+
+Changes by K. Paschke on  29 Sep 2004
+--------------------------------------
+
+Changes to TaDatabase, VaEvent, TaCutsList, and VaPair to implement a 
+cut on beam burps from the Hall C beam, and from position monitors.
+
+
+New Database words for the Beam monitor burp cut (which, technically,
+doesnt have to be position):
+    posmon  bpm12x bpm4ax  bpm4bx bpm4ay  bpm4by
+    posburp  0.3   0.3     0.3    0.3    0.3
+New Database word for the Hall C burp cut (this value is not realistic):
+    cburpcut 600
+
+And to apply these cuts, include the words in the cutnames entry (with
+the appropriate number in the ncuts entry:
+
+    ncuts 8
+    cutnames Low_beam Beam_burp Evt_seq Pair_seq Startup Det_saturate Pos_burp C_burp
+    extlo 10 10 25 25 0 1 20 30
+    exthi 30 30 25 25 1 1 60 600
+
+
+
+
+Changes by R. Holmes on  27 Sep 2004
+--------------------------------------
+
+Changes to TaDatabase, VaEvent, TaCutsList to implement a cut on
+detector saturation.  Also a new file, doc/newcuts.txt, documenting
+what I did as an example of how to implement a new cut.
+
+
+Changes by R. Holmes on  4 Jul 2004
+--------------------------------------
+
+Weights for det, blumi, and flumi added to database and used in
+TaStandardAna.  This make use of a weight checking routine in
+VaAnalysis (which checks whether weights are nonnegative and have
+nonzero sum).  To use add to database lines like
+
+   detwts  1.1 1.2 1.3 1.4
+   blumiwts 0.91 0.92 0.93 0.94 0.95 0.96 0.97 0.98
+   flumiwts 1.1 1.2
+
+There must be four detector weights, eight blumi weights, and two
+flumi weights (even if e.g. only two detectors are used in the
+database, all four weights must be there.)  If weights are absent
+unweighted averages are used.
+
+
+Changes by R. Holmes on  2 Jul 2004
+--------------------------------------
+
+Hall C low current cuts.  To use, change the database as follows:
+
+Add the cut to the list of cuts in use:
+
+      ncuts 6
+      cutnames Low_beam Beam_burp Evt_seq Pair_seq Startup Low_beam_c
+
+Add the cut threshold:
+
+      lobeamc  0.002
+
+Add the BCM to use for Hall C current monitoring (defaults to bcm10, no
+foreseeable need to change this but the capability's there)
+
+      curmonc  bcm10
+
+Given that, then tree elements like cond_low_beam_c and cut_low_beam_c
+reflect low beam in bcm10, and asymmetry will not be computed for bcm10
+in events where cut_low_beam_c is nonzero; however, ok_cut and ok_cond
+will not be affected by this cut.
+
+Also, I fixed a longstanding unnoticed bug, unnoticed because it only
+crops up if the database fails to define a cut in the cutnames -- but it
+can cause a mystery seg fault in that case.
+
+
+Changes by R. Holmes on  28 Jun 2004
+--------------------------------------
+
+Some changes to the prompt analysis macros:
+
+- det2, det4, det_hi, det_all, det_sum, and flumi added to analysis
+
+- Modulation (dithering) corrections now work
+
+- For regression and modulation corrections, the set of monitors used
+  is pulled from the redana results file rather than being hardwired
+
+
+Changes by R. Holmes on  16 Jun 2004
+--------------------------------------
+
+RedCoefs.macro is a class that reads correction coefficients out of
+redana files and averages them.  It's intended for use with both
+dithering and regression files but in fact in this first version only
+regression files are read correctly.
+
+I get a compiler warning about the copy constructor in
+TaIResultsFile.hh when I use this, so I fixed what the compiler was
+complaining about -- this despite the fact that we do not actually use
+the copy constructor in TaIResultsFile and its implementation is
+empty.  But I hate getting warnings.
+
+ParamSave.macro now uses RedCoefs.macro to try to get regression
+coeffients -- for now, only for det1 and det3.
+
+See README_ISSUES.
+
+
+Changes by R. Holmes on  15 Jun 2004
+--------------------------------------
+
+In prompt.macro, we open a new canvas before the calls to ParamSave
+methods and delete it after, so it's not there to annoy the user when
+prompt finishes.  I've added lines for detector means/widths, and made
+it not attempt to call the spokes macro if there is no dither tree.
+
+In prompt.cfg, now that a bug in online has been fixed I've put minus
+signs into the titles of the double difference plots.
+
+In ParamSave.macro, I've commented out the definition of FAKETYFAKE so
+regression coefficient faking is disabled.
+
+
+Changes by R. Holmes on  31 May 2004
+--------------------------------------
+
+ParamSave now indeed does warn you if it's making stuff up.
+
+A new method in TaCutList writes cut condition tallies to a results
+file, and TaRun::WriteRun calls that method.
+
+The pansummary.pl utility write out cut condition tallies found in the
+results file.
+
+prompt.pl was extensively revised to handle Redana analysis.
+
+Spoke plots added to prompt.macro .
+
+ 
+Changes by R. Holmes on  30 May 2004
+--------------------------------------
+
+ParamSave.macro now does corrected asymmetries (modulation and
+regression).  For now the correction coefficients are hardwired -- or
+rather, a lack of them is hardwired, unless you define FAKETYFAKE in
+which case some completely bogus coefficients are loaded for testing
+purposes.  (I suppose I should have it print a warning message.)
+Later we will read correction coefficients out of postPan results
+files.  ParamSave will output corrected asymmetries, modulation and
+regression, if and only if it has coefficients for the detector in
+question.  prompt.macro has been updated with the requisite call to
+LoadCorrs(). 
+
+prompt.macro now has a second argument; if nonzero, we're in batch
+mode, but if it's zero we're interactive and the online macro is
+called. 
+
+There now is an overall prompt analysis script, prompt.pl; for usage
+see comments therein.  This calls the Pan analysis if needed, and then
+invokes prompt.macro within Pan.
+
+
+Changes by R. Holmes on  29 May 2004
+--------------------------------------
+
+Modified main.cc's handling of command line.  If none of the Pan
+options (-r, -f, -o, -t, -D, -h, -?) is found (instead of only if
+none of -r, -f, -o is found) we go to the interactive version, and we
+ignore any other options and pass them on to TRint.  This means you
+can do e.g. "pan -b -q macro.C" as with regular ROOT.
+
+panguin/prompt.cfg is an early version of an online.C config file for
+prompt analysis.  These are whole-run plots the shift personnel should
+look at and save to Postscript after prompt Pan/postPan analysis.
+
+macro/prompt.macro has been discarded and replaced with something
+entirely different, though with similar effects to the original.  It's
+intended for noninteractive processing of prompt Pan/postPan analysis
+results.  The present (early) version gets distribution parameters
+(means and widths of differences, double differences, asymmetries) and
+writes them to a text output file.  It relies on a new macro,
+macro/ParamSave.macro.
+
+
+Changes by R. Michaels on  26 May 2004
+--------------------------------------
+
+Added 3 voltage levels "v1" "v2" "v3"
+To sum up, data in the tree:
+    KprofNM
+where K = l or r for left, right spectrometer
+N = "x", "y", or "" for x, y position or amplitude, resp.
+and (newly) "v1" "v2" "v3" for 3 control voltages.
+M = "", "c", "r" for fully corrected, "calibrated", and
+raw, resp.  See also my note on 20 May.
+
+
+Changes by R. Holmes on  26 May 2004
+--------------------------------------
+
+Added macro/panchain.macro, a macro (well, duh) to create a chain of
+pair trees from runs specified in a file whose name is passed as the
+sole argument.  Time trees for these runs are created in the default
+output directory.  A time tree is another tree with the same number of
+entries as the pair tree; it contains only evt_ev_num_off and
+m_ev_num_off, which are evt_ev_num and m_ev_num offset by a given
+quantity, and run_num, the run number.  The offset is just the sum of
+the largest event numbers in each of the preceding runs, so the effect
+is to have event numbers that do not reset at start of run.  The time
+trees are chained and friended to the chain of pair trees.
+
+Thus you can plot anything you want vs. a global event number or
+vs. run number, e.g.
+
+   TChain* ch = panchain("panchain");
+   ch->Draw("asym_bcm1:m_ev_num_off"); // BCM1 asym vs. global evt number
+   ch->Draw("asym_bcm1:run_num"); // BCM1 asym vs. run number
+
+
+Changes by R. Holmes on  24 May 2004
+--------------------------------------
+
+By request, added a "compress" table in the database which takes a
+value from 0 to 9; this is the compression setting for writing the
+ROOT file.
+
+I also fixed a diagnostic output that mismatched its test (oversample
+must be 1-25 but diagnostic said 0-25).
+
+Files modified: TaDataBase.{cc,hh}, TaRun.{cc,hh}.
+
+
+Changes by R. Holmes on  21 May 2004
+--------------------------------------
+
+Bryan noticed the position feedback outputs were different by 1E3 from
+what he was expecting.  I changed 1E6 to 1E3 in three places in
+VaAnalysis::ComputeData, so positions are now converted from mm to um,
+not nm.
+
+I also replaced the label "RunIni" with "InitFeedback" in diagnostic
+outputs in VaAnalysis::InitFeedback, and corrected two obviously wrong
+comments about ToUpper in TaString.
+
+
+Changes by R. Michaels on  20 May 2004
+--------------------------------------
+
+Added the UMass profile scanners.  This affected genTypes.pl,
+TaDevice.cc and VaEvent.cc.  You need lines like these in
+the database:
+
+# UMass profile scanner, left arm (roc 25)
+datamap   prof  prof1  adc  25   0  lprofr lprofxr lprofyr
+# UMass profile scanner, right arm (roc 26)
+datamap   prof  prof2  adc  26   0 rprofr rprofxr rprofyr
+
+You get data like this in the tree:
+    KprofNM
+where K = l or r for left, right spectrometer
+N = "x", "y", or "" for x, y position or amplitude, resp.
+M = "", "c", "r" for fully corrected, "calibrated", and
+raw, resp.  As usual, "c" means corrected for DAC noise 
+but not pedestal subtracted, and is available in R tree
+if "calvar true" in database.
+
+
+
+Changes by B. Moffit on     14 May 2004
+---------------------------------------
+
+Added the ability to do feedback on the Hall C charge asymmetry, as
+well as correcting for PZT Charge Asymmetry coupling.
+
+Feedback on the Hall C IA is enabled in the database file with:
+# feedback     type   switch on/off/onc(compute)   timescale (mn)  monitor  
+    feedback   IAHallC  on                          1              bcm5
+    IAHallCparam   slope -700 
+(similar to regular IA settings).
+
+PZT Charge coupling is enabled in the database file if IA AND PZT
+feedback is enabled... AND this line in the database is defined:
+# PZT Charge Coupling
+    PZTQcoupling QX 100.1 QY -602.2
+
+By default (with the #define FBCALCDELTA), pan will only calculate the
+changes to the source element DAC voltages.. and send them to the
+shell script: epics_feedback.
+
+The epics_feedback script is run like this:
+    $EPICS_SCRIPTS/epics_feedback {TYPE} {DELTAV}
+where the {TYPE} is:
+  1  IA 
+  2  PZT X
+  3  PZT Y
+  4  PITA
+  5  IA-HallC
+and {DELTAV} is the change in voltage calculated by pan.
+
+Changes by R. Michaels on   14 May 2004
+---------------------------------------
+
+Add EPICS data as an optional TTree output.  
+The data goes both to "R" tree and a new "E" tree.  
+This is driven by the database; e.g. you put lines
+like these in the parity*.db file:
+
+# List of EPICS variables to put to output trees
+  epics IPM1H04A.XPOS IPM1H04A.YPOS IPM1H04B.XPOS
+  epics IPM1H04B.YPOS
+  epics Fred_Flintstone
+  epics HA:Q_ONOFF HA:Q_ASY HA:Q_STAMP HA:IA_SLOPE
+
+The "E" tree is created only if these lines exist in db.
+Without any "epics" lines there is no "E" tree.  The 
+illegal characters like ":" and arithmetic operations 
+will appear in the trees as underscores, hence 
+      "HA:Q_ASY" -> "HA_Q_ASY".
+This is because of TTree::Draw() limitations.
+If a variable (like "Fred_Flintstone") is undefined in
+raw data, it will be -1e32 in the tree.
+
+Changes by R. Michaels on   12 May 2004
+---------------------------------------
+
+Modified TaDataBase.hh, TaDevice, and genDevTypes.pl
+to add "daqflag".  The following example illustrates
+how to obtain raw data like "bmwcln", "daq2flag1", etc.
+Notice that, as usual, if N=1,2,3 in daq*flagN then 
+it indicates a different crate than just daq*flag.
+This is like tir data which can exist in several
+crates.  However, bmw data and scandata are only 
+from one crate.
+
+header daqflag   fdacf000 fffff000
+datamap   daqflag   daqflag1  daqflag  0   0   1  23   bmwcln bmwobj bmwval bmwcyc
+datamap   daqflag   daqflag2  daqflag  1   0   5  23   scanclean scandata1 scandata2
+datamap   daqflag   daqflag3  daqflag  2   0   9  23   daq1flag daq2flag daq3flag daq4flag
+datamap   daqflag   daqflag4  daqflag  4   0   1  24   daq1flag1 daq2flag1 daq3flag1 daq4flag1
+
+
+Changes by R. Michaels on   9 May 2004
+--------------------------------------
+
+Add new Get methods to get timestamp from TaDataBase.
+Examples:
+
+root [0] TaDataBase *db = new TaDataBase()
+root [1] db->ReadRoot("parity03_3365_standard.root");
+root [2] db->GetTimeTString()
+root [3] TDatime dt=db->GetTimeTDatime()
+root [4] dt.Print()
+
+
+Changes by B. Moffit on   8 Feb 2004
+------------------------------------
+
+Makefile creates a libpan.so shared library.  Enables one to run 
+"root" and load the pan libraries interactively with:
+    gSystem->Load("libpan.so")
+
+This is useful if one wants to use ROOT's batch mode to run macro's
+from the UNIX/Linux command-line.
+
+Makefile
+ o Include compilation of libpan.so 
+
+Changes by B. Moffit on   2 Feb 2004
+------------------------------------
+
+Update VaEvent to include tree variables that are corrected (ADC
+dacnoise subtracted or SCALER v/f-clock divided) but are not pedestal
+subtracted.  Created a new option for the database to trigger these
+variables (calvar):
+   if "calvar true" is in the Database... include them.
+
+Also updated pedestal subtraction for scalers.  Pedestals for scalers
+should now be v/f-clocked divided.  This is useful because the
+pedestals shouldn't change when the integration gate is changed.
+This'll screw up all previous databases where scaler pedestals were
+not clock divided... but... the calibrated scaler results from this
+analysis should show obvious problems with those pedestals.
+
+TaDataBase.{cc,hh}
+
+ o new calvar table in db allows to turn on calibration tree variables
+
+TaDevice.{cc,hh}, genDevTypes.pl
+
+ o Include calibration variables for adcs, scalers, and all devices
+ (bcms, bpms, lumis,...)
+
+VaEvent.{cc,hh}
+
+ o Boolean flag to trigger the calibration decode (CalibDecode)
+ fgCalib true if it's true in the database.
+
+ o CalibDecode(TaDevice&) - Decoding without pedestal subtraction
+
+ o Change scaler pedestal subtraction method.
+
+README_TREE
+
+ o Update to include calibrated raw tree variables.
+
+
+Changes by R. Holmes on  14 Jul 2003
+------------------------------------
+
+Previous changes did some really boneheaded things in the .res file,
+now fixed -- no duplicated labels for the order-dependent statistics,
+no uncommented comment lines (no comment lines at all in fact, since
+the new labels make them unneeded).
+
+TaRun.{cc,hh}
+
+ o Unique tags for ordered statistics
+
+
+Changes by R. Holmes on  11 Jul 2003
+------------------------------------
+
+I've defined a new flag to use in analysis lists, fgORDERED.
+Quantities with this flag set have statistics done for all good pairs
+as usual, but also separate statistics are done for all four possible
+orderings of helicity for the current and preceding pair.  In
+TaStandardAna.cc this flag is set for bcm1 asymmetry (only).  We
+therefore get separate means and widths for each of the four peaks in
+the bcm1 asymmetry.  In principle we could look at ordering effects in
+BPM differences, etc., too, but this is not (for now) in the standard
+analysis. 
+
+I also commented out the #define PANAMTEST in TaRun.cc, the lifetime
+of our solar system being finite and all.
+
+TaRun.{cc,hh}
+
+ o Comment out define PANAMTEST; results with fgORDERED flag set have order-dependent statistics done
+
+TaStandardAna.cc
+
+ o Set fgORDERED for BCM1 asymmetry
+
+VaAnalysis.{cc,hh}
+
+ o Define fgORDERED flag
+
+
+Changes by R. Holmes on  18 Apr 2003
+------------------------------------
+
+There is now a "curmon" (current monitor) table in the database.  You
+can use this to specify a device which will be used to do beam
+intensity cuts (low beam and beam burp) and to normalize detector
+asymmetries.  If not specified, the default is "bcm1".
+
+TaDataBase.{hh,cc} VaAnalysis.{hh,cc} VaEvent.{hh,cc}
+
+o New curmon table in db allows device for normalization and cuts to be
+  specified in db.
+
+
+Changes by R. Michaels on 20 Mar 2003
+-------------------------------------
+
+Modified VaEvent, TaDevice, TaDataBase, and genDevTypes.pl for
+the new decoding scheme.  See the "datamap" section of the document
+./doc/DATABASE.TXT.  Basically, this allows two new advantages:
+1) A device like BCM can be tied to an ADC.  Primitive devices
+(ADC, SCALER, TIR, and TIMEBOARD) must have their locations defined
+in the event buffer, but devices that "derive" from them (BCM, BPM,
+LUMI, DETECTOR) only need to know what device number and channel number
+to look for.  2) The 2nd advantage is that this decoding will work 
+for multicrate readout, even if the ordering of crates in the datastream 
+fluctuates, which is possible, and there is nothing about CODA that
+regulates the ordering of the crates.  The old datamap scheme still 
+works and is useful for old data or single-crate setups.  See 
+DATABASE.TXT for details.
+
+Changes by R. Holmes on  7 Mar 2003
+-----------------------------------
+
+(1) There is now a Perl module file that provides roughly the same
+    functionality as Pan's TaFileName class.  Typical usage:
+
+    use FindBin;
+    use lib $FindBin::Bin;
+    use TaFileName;
+    $fn = MakeTaFileName2 ($run, $anatype, "result", $com, "")
+
+    This handles environment variables to specify default paths, etc.,
+    etc. 
+
+(2) There is now a utility for examining results files.  Run it with
+    no arguments to see usage.  Basically it looks for specified
+    devices (or anything matching a regexp) and puts out the
+    associated results in a somewhat more human-friendly form than the
+    raw results file.  You can tell it which file(s) to look in, or
+    specify a run number and (optionally) analyis type and "comment"
+    for it to find the corresponding file using TaFileName.  Typical
+    usage: 
+
+    $ utils/rut.pl --exp 'bpm.*x' --run 1637 --ana beam
+    Opened ./parity03_1637_beam.res for input
+    From pan: Diff_bpm10x in evts 0 to 10000:   mean 0.041 +- 0.094 RMS 4.896 um with N_eff = 2690.0
+    From pan: Diff_bpm12x in evts 0 to 10000:   mean -0.032 +- 0.180 RMS 9.325 um with N_eff = 2690.0
+    From pan: Diff_bpm4ax in evts 0 to 10000:   mean 0.102 +- 0.178 RMS 9.255 um with N_eff = 2690.0
+    From pan: Diff_bpm4bx in evts 0 to 10000:   mean 0.199 +- 0.213 RMS 11.035 um with N_eff = 2690.0
+    From pan: Diff_bpm8x in evts 0 to 10000:   mean 0.038 +- 0.272 RMS 14.083 um with N_eff = 2690.0
+
+    I think this utility (or a fancier, expanded version thereof) will
+    come in handy sometimes, but also it serves as a model for other
+    Perl scripts that need to process results files.
+
+(3) The anatype in control.db is changed to "standard".  We should
+    phase out use of "beam" and "prompt", now both synonymous with
+    "standard". 
+
+(4) TaFileName.cc now lowercases the anatype value before using it to
+    make a filename.
+
+utils/TaFileName.pm
+
+ o File name module for Perl scripts
+
+utils/rut.pl
+
+ o Results file utility
+
+db/control.db
+
+ o Default ana type should be standard
+
+src/TaFileName.cc
+
+ o Lowercase ana type in file names
+
+Changes by R. Holmes on 27 Feb 2003
+-----------------------------------
+
+We've long had cond_* branches in the pair tree, e.g. cond_low_beam,
+which is nonzero for events that fail the low beam condition.  I've
+finally added cut_* branches, e.g. cut_low_beam, which is nonzero for
+events that fail the low beam cut (i.e. events that fail the
+condition, plus events in the cut extension before and after these
+events.)  This makes it easier for ROOT macros to impose sensible
+combinations of cuts other than the one combination embodied in
+ok_cut.
+
+VaAnalysis.{hh,cc}
+
+ o Add cut_* branches to pair tree
+
+
+Changes by R. Holmes on 24 Feb 2003
+-----------------------------------
+
+There was a request to cut the first event of a run due to a problem
+in the scaler DAQ with the first event.  That's the new Startup event
+cut.  To help debug this I added cut value outputs in MiniDump.
+
+To avoid requiring people to add the Startup cut to every database
+file out there (not that it's a bad idea to, but how annoying to HAVE
+to) I've revised the code to behave OK if a cut isn't defined -- it's
+just never imposed.  You still get an abort if Low_beam, Evt_seq, and
+Pair_seq are not defined in the database, because it doesn't make much
+sense to analyze without these -- though you can just edit the
+VaEvent::RunInit or VaPair::RunInit code that checks for these if you
+REALLY want to run with one of these cuts undefined, and it'll do it.
+Beam_burp and Startup are optional; you just get a warning if these
+are undefined.  The choice of required/optional is somewhat arbitrary
+and I am open to suggestions.
+
+Lumi event data now are written to the pair tree in the standard
+analysis. 
+
+db/control.db
+
+ o Startup cut.
+
+src/TaCutList.cc TaPairFromPair.cc TaPairFromQuad.cc VaPair.{hh,cc} 
+
+ o Good behavior if a cut is undefined.
+
+src/TaStandardAna.cc
+
+ o Lumi event data in tree
+
+src/VaEvent.{hh,cc} 
+
+ o Good behavior if a cut is undefined
+ o Startup cut
+ o MiniDump prints cut values
+
+Changes by R. Michaels on 20 Feb 2003
+-------------------------------------
+
+TaDataBase::GetData(string table, vector<string> keys) had a rather
+severe bug that allowed TaDataBase elsewhere to overwrite some data
+in a table if keys were a partial match to the table. This was fixed
+by requiring a full match.  The only practical effect it had was on
+the pedestal tables, which had "adc" and "scaler" sharing keys for
+"chan" and "value".
+
+
+Changes by A. Vacheret on 12 Feb 2003
+-------------------------------------
+
+Everything said here is in part in the README_PANAM file. Before 
+trying to do anything with PANAM you should read this file.  
+
+As we agreed I commit everything in the same directory as Pan. You have 
+to watch for not mixing respective main.cc
+and makefiles when compiling (lead to uncontrol mutations...). I change that 
+in a minute.. 
+
+New files :
+
+makefile_panam 
+
+main_panam.cc 
+
+ o  replace main.cc content by this 
+
+LinkDef.hh 
+ 
+ o  panam linkdef
+
+TaPanamDevice.hh,.cc 
+ 
+ o Class to handle devices for monitoring. Not call VaPanamDevice because
+ not strictly a base class. I think we should have merged in a way TaDevice 
+and this one for more compatibility...I am not sure what does really imply
+but I have more experience now how I will handle the devices inside pan. 
+But we don't have time really to do that I think and I dont have thought 
+about that really hard. Too late.  
+
+TaPanamADevice.hh,cc
+
+ o inherited from TaPanamDevice to handle more complex data (asym diff). Will
+implement another class to help using 
+
+TaPanamAna.hh,.cc 
+ o Analysis for monitoring, Handle taPanamDevice object and others.
+
+TaPanam.hh,.cc 
+
+ o Main class which display the GUI, launch threads, manage canvases. 
+
+TaThread.hh,.cc 
+
+ o Thread class so we can use them more easily. TaPanam inherit from it. 
+ Just to have a clean separation. Mostly because it seems easier to fix stuff
+when you separate problems...
+
+TaStripChart.hh,.cc  
+
+ o StripChart ala E158... I discovered they get the code from PHENIX...it's
+ in the ROOT discussion... not a scoop for everybody I guess...
+
+Changes by R. Holmes on 6 Feb 2003
+----------------------------------
+
+In the database we now can specify "randomheli yes" or "randomheli
+no".  If "yes" is found (or if it is unspecified), VaPair::HelSeqOK
+expects the helicity of the first window of each pair or quad to
+follow the random bit pattern generated by RanBit, as before.
+However, if "no" is found, it expects the helicity of the first window
+of each pair or quad to be the same as that of the previous pair or
+quad.  This means a pairtype pair analysis expects helicity LR LR
+LR...  (or RL RL RL...) while a pairtype quad analysis expects
+helicity LRRL LRRL LRRL... (or RLLR RLLR RLLR...).  (Pairsynch and
+quadsynch and timeslot are expected to behave as usual.)
+
+TaDataBase.{cc,hh} VaPair.{cc,hh}
+
+ o randomheli in database controls whether random or 'toggle' helicity
+   expected
+
+
+Changes by R. Michaels on 29 Jan 2003
+-------------------------------------
+
+BPM Rotations handled more smoothly (instead of the old kludge).
+TaDevice::BpmDefRotate() sets up the defaults for which BPMs are
+rotated.  Note, "rotation" means +/- 45 degr to the floor, while
+"unrotated" means up/down orientation.  One might hope this is enough.  
+If not, then one can also change the rotation state on-the-fly
+by adding suffix "_r" or "_ur" to the device name which is the 3rd
+element in the datamap table.  These suffixes are otherwise ignored.
+Examples:
+
+1) Default behavior = rotated, according to TaDevice::BpmDefRotate()
+datamap   bpm   bpmin1    adc  7 0 85 bpmin1xp bpmin1xm bpmin1yp bpmin1ym 
+
+2) Force bpmin1 to be unrotated.  Note the "_ur"
+datamap   bpm   bpmin1_ur adc  7 0 85 bpmin1xp bpmin1xm bpmin1yp bpmin1ym 
+
+3) Force bpmin1 to be rotated (see "_r"), unnecessary due to defaults.
+datamap   bpm   bpmin1_r  adc  7 0 85 bpmin1xp bpmin1xm bpmin1yp bpmin1ym 
+
+
+Changes by R. Holmes on 14 Jan 2003
+-----------------------------------
+
+Mainly these changes reflect the addition of results database files.
+There are new classes, TaIResultsFile and TaOResultsFile, for reading
+and writing these files, and there are changes mainly in TaRun to make
+Pan write a results file.  Pan does not use TaIResultsFile, but it can
+be used by post-Pan programs or macros to read results for further
+analysis.  Indeed, any such program or macro that produces results we
+may want to process further should read the previous stage's results
+file and write a new one containing the old and new results.  I have
+provided a toy example, macro/res_example.macro.  
+
+Supporting the results files are changes to TaDatabase having to do
+with computing and supplying a CRC checksum of the database file, new
+constructors in TaFileName to allow run number and analysis type to be
+specified instead of using the ones specified in Setup, and a new
+optional argument to TaString::Split specifying the maximum number of
+splits, in somewhat Perl-like fashion.
+
+Unrelated, there are some improvements to macro/frame.macro.
+
+macro/frame.macro
+
+ o Various minor improvements
+
+macro/res_example.macro
+
+ o Illustration of use of results database files
+
+src/Makefile src/TaIResultsFile.{hh,cc} src/TaOResultsFile.{hh,cc} 
+src/TaLinkDef.hh
+
+ o New classes: TaIResultsFile, TaOResultsFile
+
+src/TaDataBase.{hh,cc}
+
+ o Computation, storage, and access of CRC checksum
+
+src/TaFileName.{hh,cc}
+
+ o New constructors to explicitly specify run number and analysis type
+ o New file type ('result')
+ o Some consts specified
+
+src/TaRun.{hh,cc}
+
+ o Call TaFileName::Setup earlier
+ o Write results file
+
+src/TaString.{hh,cc}
+ o Optional argument to Split to limit number of splits
+ o Some consts specified
+
+src/VaAnalysis.cc
+ o Call to TaRun::WriteRun to write to results file
+
+doc/results_database.txt
+ o Description of results database files
+
+
+Changes by A. Vacheret on 14 jan 2003
+-------------------------------------
+
+I added a TaFeedbackAna class. I added also some feature for the feedback 
+in VaAnalysis like now we have the choice to send DAC voltage or asymmetry
+values. I removed the cuts in the SendEPICS() methods.   
+
+
+Changes by R. Michaels on 27 Dec 2002
+-------------------------------------
+
+There was a bug that negative data could not be passed as command
+line over-ride of database.  I fixed this (main.cc), but also changed 
+the command line for 2nd-pass analysis: option is -t now (t = twopass).
+There is an implicit programming rule that any command line option
+must be of the form -x where x is alphabetical (well, it could be 
+more than one character).   At present we have -o, -f, -r, -t.
+However, if x is numerical it will be data for database over-ride.
+This should cover all cases I can imagine for the future and was
+the simplest solution.
+
+Changes by R. Holmes on 26 Dec 2002
+-----------------------------------
+
+I fixed some bugs in what I did on 23 Dec.
+
+I also incorporated blinding into the analysis.  There are two new
+alist flags: fgBLIND and fgBLINDSIGN; if fgBLIND is turned on then the
+corresponding result is blinded with TaBlind::Blind before being
+written to the tree and the pair results list.  If fgBLINDSIGN is
+turned on then the result is blinded with TaBlind::BlindSignOnly.  The
+standard analysis sets fgBLIND for all detector asymmetries and
+fgBLINDSIGN for all BPM differences, BCM asymmetries, and lumi
+asymmetries.  Blinded results are tagged as such in the stats outputs.
+
+Blinding is controlled with two new database tables, blindstring and
+blindparams; see new version of control.db.  The value of blindstring
+can be "none" in which case blinding is turned off.  Blinding
+parameters are: sign (1 or -1, corresponding to slow helicity
+reversals), mean (the detector asymmetry around which the distribution
+may be flipped, in ppm), and offscale (the scale on which the detector
+asymmetry may be offset, in ppm).
+
+
+control.db TaBlind.{cc,hh} TaDataBase.{cc,hh} TaStandardAna.cc
+VaAnalysis.{cc,hh}
+
+ o Blind analysis, plus some bug fixes
+
+
+Changes by R. Holmes on 23 Dec 2002
+-----------------------------------
+
+So why do we have a "prompt" and a "beam" analysis?  The former looks
+at levels of the detectors and asymmetries of detector combinations;
+for data with no detectors, this produces lots of error messages, so
+there's a "beam" analysis that doesn't try to look at detectors.  But
+I realized somewhat belatedly that the TaDetector::IsUsed(key)
+function can be used to prevent looking at devices that aren't in the
+datamap, making it possible for a single analysis to do both jobs.  So
+I've replaced TaPromptAna and TaBeamAna with TaStandardAna, which
+looks at detectors if they're there and not if they aren't.  Also, I
+made TaDebug derive from TaStandard, so its implementation is
+near-trivial.  For backward compatibility, TaStandardAna is
+instantiated when the analysis type requested is "prompt" or "beam"
+(or "standard", which should be the type used in the future.)
+
+The seg fault Kent noticed in 2-pass analysis is gone.  I never did
+figure out exactly what was causing it, but while looking into it I
+noticed the database write was taking place in both passes, and I
+realized the tree filling that was occurring in pass 1 should probably
+occur instead in the last pass (pass 1 for a 1 pass analysis, pass 2
+for a 2 pass).  Once I took care of those things, the seg fault went
+away.  In the course of this, I improved an error message in
+TaStatistics. 
+
+It also finally dawned on me that the odd sequence errors I was seeing
+at start of run were due to a bug, which I fixed.
+
+TaPromptAna.{cc,hh} TaBeamAna.{cc,hh} TaStandardAna.{cc,hh} Makefile
+TaDebugAna.{cc,hh} TaLinkDef.hh TaAnalysisManager.cc
+
+ o Replace TaPromptAna and TaBeamAna with TaStandardAna, and make
+   TaDebugAna derive from TaStandardAna
+
+TaAnalysisManager.{cc,hh} TaRun.cc VaAnalysis.{cc,hh} main.cc
+
+ o Do ROOT file and database output only in last pass
+
+TaPairFromQuad.cc
+
+ o Fix bug in sequence check
+
+TaStatistics.cc
+
+ o Give more information when pass lengths mismatch
+
+
+Changes by R. Holmes on 19 Dec 2002
+-----------------------------------
+
+Added a new class, TaBlind, for blinding results.
+
+A string is used to provide an initial seed for a random number
+generator.  Asymmetries are hidden with
+
+  A_hidden = ((A_true * Asign - AMean) * BlindSign 
+             + BlindOffset * AOffScale + AMean) * Asign
+
+where
+
+  Asign is the slow helicity reversal sign.
+  AMean is a supplied constant, typically the expected mean when
+     Asign is 1.
+  AOffScale is a supplied constant, typically the expected 
+    error
+  BlindSign is supplied by the blinding algorithm and is -1 or +1
+  BlindOffset is supplied by the blinding algorithm and is in range 
+    -1 to +1
+
+(Note that E158 fixes BlindSign = 1, in which case the value of AMean
+is immaterial and the hidden asymmetry is simply
+
+  A_hidden = A_true + BlindOffset * AOffScale * Asign
+
+We might do this too, and in fact I don't know why one would want a
+random BlindSign at all, but this class is written to allow it.)
+
+(Also note that E158 does not include Asign in the blinding methods;
+instead it is assumed that A_true has the "correct" sign, as will
+A_hidden.) 
+
+This is done by Blind and undone by UnBlind.
+
+To keep the sign of the asymmetry correlations with beam parameters,
+beam differences should get multiplied by BlindSign:
+
+  D_blind = D_true * BlindSign
+
+This is done by BlindSignOnly.
+
+I have not yet modified the rest of Pan to make use of TaBlind, but I
+wanted to get this implementation out for people to look at.  You can
+mess with it in CINT from interactive Pan.  Also note that it's
+included in libpan.a.
+
+
+TaBlind.{cc,hh} Makefile TaLinkDef.hh
+
+ o TaBlind class for blinding results
+
+
+Changes by R. Holmes on 12 Dec 2002
+-----------------------------------
+
+Added a timestamp to the database.  This is filled in by the database
+creation script at start of run.  It's not yet used by anything in
+Pan, except that it's printed to clog from TaRun::Init, but it does
+allow the possibility of e.g. querying the database for runs in a
+given time period.  The format is a string "yyyy-mm-dd hh:mm:ss"
+(actually stored in the database as two strings, which are then
+concatenated in GetTimestamp()) which can be used to init a TDatime
+object; then TDatime methods can be used to convert to other
+representations, if needed.
+
+Bob complained that e.g. "make install" was not regenerating
+DevTypes.hh when it was supposed to; I don't know why not (it works
+for me) but I did make a couple of changes related to this: the path
+(./) is specified for genDevTypes, and DevTypes.hh is deleted in "make
+clean".  DevTypes.hh is specified as a prerequisite for %.d.
+
+TaDataBase.{hh,cc} TaRun.cc
+
+ o Timestamp in database.
+
+Makefile
+
+ o Improvements to genDevTypes invocation.
+
+
+Changes by R. Holmes on 10 Dec 2002
+-----------------------------------
+
+In Makefile I added provisions for compiling Pan's utility classes
+(TaFileName, TaLabelledQuantity, TaStatistics, TaString) with
+dictionary turned off and putting them into a library, libpan.a, which
+can be linked by other programs.  The object files are *_NODICT.o, and
+these are what are made when compiling Pan with no dictionary too.  I
+removed the .SUFFIXES lines too, because I'm pretty sure they're
+unneeded. 
+
+
+Changes by R. Holmes on 4 Dec 2002
+----------------------------------
+
+To enable study of what happens when data are 'lost' online (i.e. when
+the analyzer fails to keep up with DAQ) I added an ifdef-controlled
+option in TaRun to fake such dropouts.  If enabled, then an event from
+the data stream is discarded with probability 0.2% (98%) if the
+previous event was not (was) also discarded.  (Of course you can
+change these probabilities; just edit the line
+
+  while (r.Rndm() < (dropping == 0 ? 0.002 : 0.98))
+
+in the obvious way.)
+
+In doing the above I realized there's an obvious check we're not doing
+-- looking at the event number to see that it increments by 1.  (My
+excuse: In HAPPEX-I the event number always did increment by 1,
+because the analyzer generally got all events the DAQ collected; dead
+time would keep the DAQ from accepting triggers, but the events that
+did get read out had consecutive event numbers.  In the present system
+such trigger losses are not ever supposed to happen, but there's
+concern that the online analyzers might not get all the events read
+out, in which case the event number will sometimes jump by more than
+1.)  I've renamed the "Oversample" cut "Evt_seq" (rather than defining
+a new cut -- "Oversample" was a bad name, anyway, should've been
+"Timeslot" or something), and its value now is 1 if the event number
+isn't what's expected, 2 if the timeslot value isn't what's expected.
+To disambiguate, the "Sequence" cut is now renamed "Pair_seq".  I've
+changed these cut names in control.db, but the old cut names will
+still work so old db files do not need to be fixed up.
+
+While I was in control.db I modified the comments at the top, and
+removed the useless "runtype" entry.
+
+TaRun.cc
+
+ o 'Dead time' faking.
+
+TaEvent.{hh,cc} VaPair.cc control.db
+
+ o 'Oversample' and 'Sequence' cuts are now 'Evt_seq' and 'Pair_seq'
+
+
+Changes by R. Holmes on 21 Nov 2002
+-----------------------------------
+
+Following yet another sensible suggestion from Kent, I've made changes
+which are mostly transparent to users but should make the code less
+confusing -- but there are some effects on outputs.
+
+The confusing "delayed/in-time helicity" nomenclature has been
+changed.  Instead we now refer to "helicity" (or "true helicity", if
+we want to be emphatic), meaning the helicity that actually
+corresponds to the pockels cell state and comes from the event record
+of an event 8 windows later; and "readout helicity", meaning the
+helicity read out in an event, which belongs to an event 8 windows
+earlier.
+
+The most visible effect of this is that the "evt_intime_helicity",
+"prev_del_hel", and "prev_hel" tags in the pair tree become
+"evt_readout_helicity", "prev_hel", and "prev_readout_hel".  Any
+macros referring to these should be modified (especially since
+"prev_hel" has changed its meaning.)  Also, "evt_helicity2" etc. are
+now "evt_readout_helicity2".  (There is no "evt_helicity" tag, note,
+because the first event of a pair is always right helicity and the
+second is always left.)
+
+I also noticed TaEvent::GetHelicity() returned RightHeli if the
+helicity data word was 1, LeftHeli if it was 0.  This is confusing
+because RightHeli and LeftHeli are defined as 0 and 1 respectively in
+the enum defined in PanTypes.  So I changed this; I think this will
+have the effect of flipping the signs of any differences with respect
+to the old version.
+
+TaEvent.cc VaPair.cc
+
+ o Helicity nomenclature change
+ 
+ o GetHelicity returns RightHeli for 0, not LeftHeli
+
+TaEvent.hh TaPairFrom{Pair,Quad}.cc VaAnalysis.{cc,hh} TaRun.cc
+
+ o Helicity nomenclature change 
+
+
+Changes by R. Holmes on 20 Nov 2002
+-----------------------------------
+
+Checked in a first, very early version of a prompt analysis macro.
+This is to be run from the pan command line (N.B. not root) after
+running a prompt analysis; so far it produces plots of various monitor
+differences, monitor double differences, raw detector asymmetries, and
+corrected detector asymmetries.  Of course since there are no
+detectors in the data so far this fails miserably unless you turn on
+detector faking, and since there is no modulation or correlation
+analysis there is no way to get even bogus values for the correction
+coefficients, so they're just set to zero for now, making the raw and
+corrected values the same.  The macro also outputs a text file with
+means, errors, and widths of these distributions.
+
+In the process I updated TaFileName with non-stringy versions of its
+constructor, Setup(), and access functions.  These are just defined in
+terms of their stringy equivalents so work the same way; they're
+provided so you can use TaFileName in CINT without having to mess with
+getting CINT and STL to play nicely together (something I've never
+succeeeded fully in doing.)  prompt.macro uses TaFileName to find the
+ROOT file and to create its output file.
+
+macro/prompt.macro
+
+ o First, very early version.
+
+src/TaFileName.{hh,cc}
+
+ o Non-stringy interface for use in CINT.
+
+
+Changes by R. Holmes on 19 Nov 2002
+-----------------------------------
+
+Foo.  I forgot to check in a version of TaAnalysisManager that knows
+about debug analysis.
+
+The other changes are to remove includes of our header files from our
+header files where they are not needed.  The benefit of doing so is
+that it reduces false dependencies, minimizing the number of classes
+that need to be recompiled when a header changes.  Usually the include
+can simply be changed to a class declaration and/or be moved to the
+implementation file, though in TaCutList it also required changing
+fIntervals from a vector of TaEvents to a pointer to such a vector.
+
+TaAnalysisManager.cc
+
+ o Add debug analysis type.
+
+TaCutInterval.{hh,cc} TaCutList.{hh,cc} TaDataBase.{hh,cc}
+
+ o General cleanup of class header includes in class headers
+
+
+Changes by R. Holmes on 18 Nov 2002
+-----------------------------------
+
+I added a new analysis class, "debug", which just prints 1-line event
+summaries (generated by a new method, MiniDump, in TaEvent) and
+slice/run statistics.  No ROOT file is generated.
+
+Also in TaEvent there was a sign error for some reason in the detector
+faking, but you don't need to know about that.  
+
+I took out the line where timeslot was set to timeslot%oversample.
+It's not needed (the line after it takes care of both old and new
+timing board data just fine) and causes confusing behavior if the
+value of oversample is wrong, without any error messages that make it
+clear the timeslot value isn't what was expected.  Without this line,
+you do get error messages about the timeslot value which should lead
+you to suspect your oversample value is wrong.
+
+Finally, there was an incorrect comment in TaFileName.hh which would
+give rise to confusion in the THtml documentation.
+
+And even more finally, I put a comment at the top of this file to tell
+Emacs not to use ChangeLog mode when editing it.
+
+TaDebugAna.{cc,hh} TaLinkDef.hh Makefile
+
+ o Add debug analysis type.
+
+TaEvent.{cc,hh}
+
+ o Fix detector faking problem.
+ o Remove problematic line in timeslot handling.
+ o MiniDump method.
+
+TaFileName.hh
+
+ o Fix wrong comment.
+
+ChangeLog
+
+ o "// -*- text -*-" at top.
+
+Changes by R. Michaels on 14 Nov 2002
+--------------------------------------
+
+In ./codaclass I modified THaEtClient so that stations with unique
+names are created, this permits each client to get the maximum rate.
+Previously the clients shared one station, so they shared the rate.
+If one relies on automatic station creation (default), the station name 
+is created from the system time and is unique if the clients are 
+born >1 second apart, which is not a bad restriction.  I also fixed a 
+bug that stations must be removed in codaClose() (this didn't matter before).
+Finally I refurbished the test example tstcoda_main.C and used it to test 
+the performance: for a "typical" application with CODA on adaqcp, 2 clients 
+on adaql1, and 1 client on adaql2, the rate saturates as in the following 
+table.  Note, this means the clients receive < 100% of data, it DOES NOT 
+cause deadtime in the DAQ.
+
+	CODA rate    3-clients each see
+
+	  30 Hz        100% of data
+	 120 Hz        100%
+	 180 Hz         83%
+	 360 Hz         62%
+
+Changes by R. Holmes on 8 Nov 2002
+----------------------------------
+
+Kent pointed out that my 15 Oct "previous helicity" mod was storing
+the helicity of the previous event, but what we really want is the
+helicity of the previous window.  Fixed (in TaRun.cc).
+
+	
+Changes by R. Holmes on 27 Oct 2002
+-----------------------------------
+
+In response to comments from Bob and a suggestion from Kent, all the
+*.cc and *.hh have been modified by replacing "#ifdef DICT" with
+"#ifndef NODICT".  Makefile has been modified and recommented
+accordingly; unless MAKENODICTIONARY is defined (and comments warn
+against doing so), Pan will be compiled with the dictionary.
+
+
+Changes by R. Holmes on or about 25 Oct 2002
+--------------------------------------------
+
+In TaPairFromQuad.cc, added a check on pairsynch -- should be first of
+pair if first or third of quad, second of pair if second or fourth of
+quad.
+
+In TaDataBase.{cc,hh}, added #ifdef DICT/#endif where needed.
+
+
+Changes by R. Michaels on Oct 21, 2002
+--------------------------------------
+
+ Major DataBase Upgrade
+	
+ * Remove classes: VaDataBase, TaAsciiDB, and TaMysql.
+   Replace all that with TaDataBase class.  Mysql interface
+   is through a Perl script which is called from TaDataBase.
+
+ * Makefile drops VaDataBase, TaAsciiDB, TaMysql.  Add TaDataBase.
+
+ * main.cc process command line for database over-ride and
+   passes this to TaAnalysisManager.
+	
+ * TaAnalysisManager passes database over-ride command to 
+   the TaRun.
+
+ * TaCutList, TaDevice, TaEvent, TaLinkDef.hh, TaRun, VaAnalysis,
+   TaPairFromQuad use TaDataBase instead of VaDataBase.  Actually 
+   some of these didn't use database but had included the headers.
+
+ * VaAnalysis writes the database to the ROOT file.  (This can
+   be retrieved with '-D rootsource file' command line option.)
+   VaAnalysis has an 'ifdef' section which illustrates how to
+   Put() data into database.  We'll want to delete this eventually
+   so as not to confuse anybody.
+
+ * TaFileName: Default location of database files is ./db directory 
+
+ * Variables 'didinit', 'didread', and 'didput' mean just what
+   their names imply.  I prefer the error messages as they are,
+   and it's safer than silently recovering from all combinations 
+   of user mistakes.
+
+ * In ./doc:  Remove DATABASE.RULES and add DATABASE.TXT
+	
+
+Changes by R. Holmes on 15 Oct 2002
+-----------------------------------
+
+I should've known we were going to want to be able to study
+ordering-dependent effects...
+
+Each event now has information about the helicity of the previous
+event -- both the in-time and the delayed helicity thereof.  These
+make their way into the pair tree -- that is, the helicities for the
+event previous to the first event of the tree: prev_hel and
+prev_intime_hel.  So e.g. one can now plot asymmetries for LR pairs
+which were preceded by a R event, et cetera.
+
+I also changed the name of the pair tree "evt_helicity" branch to
+"evt_intime_helicity" to reduce confusion (after I got confused by
+"evt_helicity" myself).  Through an oversight I did not similarly
+rename "evt_helicity2" etc., and I probably should.
+
+TaEvent.{cc,hh}
+
+ o Storage and accessors for previous event's in-time and delayed
+   helicities. 
+
+TaRun.cc
+
+ o Get previous event's (in-time) helicity and set it in new event.
+
+VaAnalysis.{cc,hh}
+
+ o Previous event's (in-time and delayed) helicities -> tree.
+ o Get previous helicity of delayed event as and store as previous
+   delayed helicity.
+ o Rename pair tree "evt_helicity" leaf to "evt_intime_helicity".
+
+VaPair.{cc,hh}
+
+ o Pointers and accessors for first and second events.
+
+
+Changes by A. Vacheret on 25 Sept 2002
+-----------------------------------
+
+I completly restructured the feedback functions. My impressions when I 
+wanted to add some new features was that it was not optimized in a C++ 
+way, a lot of repetitions and also some little mistakes found. 
+Right now the feedback is splitted in a compuData() function to calculate 
+the asy/diff value needed for a specified monitor. Then a function SendEPICS()
+is used to send correct voltages to the source feedback device. For 
+the moment I consider this is the only way to send the voltages value.
+I will make the change when the fiber optics will be ready.
+I have written the code for the PITA feedback in case we need it in the next 
+campaign of test. 
+I left 2 minor mistake last time:
+1) I forgot a '*900' in the end run IA feedback function loop so it was doing
+feedback only if 100 pairs was left in the queu instead of 900 in the right
+case.  
+2) In the test used to send the value I was using abs() but to make the criteria
+working correctly without integer approximation it is fabs() I need to use with
+Double_t.
+It is possible to do the feedback in a compute mode (i.e we don't send anything
+to the source)
+
+
+Changes by R. Holmes on 22 Aug 2002
+-----------------------------------
+
+These changes reflect the fact that not all analyses will want to
+produce ROOT files, slice statistics, or run statistics!
+
+Slice and run statistics are still printed by TaRun methods -- after
+all, a run owns its statistics -- but these now are separate from the
+AccumPair and Finish methods, and are called from methods of
+VaAnalysis.  AccumEvt and AccumPair now take boolean arguments
+governing whether slice or run statistics are calculated.  VaAnalysis
+supplies these arguments from its data members fDoSlice and fDoRun.
+
+Likewise, the creation of the ROOT output file and the event tree
+happen in a TaRun method (InitRoot, replacing InitTree) but this
+method is called from a VaAnalysis method.  Whether it is in fact
+called or not, and whether VaAnalysis sets up the pair tree, is
+governed by another VaAnalysis data member, fDoRoot.
+
+fDoSlice, fDoRun, and fDoRoot are all initialized to true in the
+VaAnalysis constructor, but could be changed to false in the
+constructor of any derived class that wanted to do so.  Thus, for
+instance, a MONITOR analysis type could shut off ROOT output just by
+initializing fDoRoot to false.
+
+These switches could also be initialized based on values given in the
+database, if we wanted to provide that functionality, though I am not
+sure it really makes sense to turn stats and root files on and off
+independently of which analysis type we are using.
+
+As a side effect, the last slice of a run may be longer than the
+canonical 1000 events.  If this really matters, it can be fixed.
+
+
+TaRun.{hh,cc} VaAnalysis.{hh,cc}
+
+ o Move stats printing control to VaAnalysis
+
+ o Allow analyses to turn on/off stats printing and ROOT output
+
+
+Changes by R. Holmes on 20 Aug 2002
+-----------------------------------
+
+These changes are the beginnings of the implementation of the prompt
+analysis type, TaPromptAna.
+
+TaPromptAna is similar to TaBeamAna, but with detector results added.
+We assume there are four detector signals:
+
+     det1 = left spectrometer,  low Q^2
+     det2 = left spectrometer,  high Q^2
+     det3 = right spectrometer, low Q^2
+     det4 = right spectrometer, high Q^2
+
+We do sums of left and right, sums of high and low, sum of all, and
+average of all.
+
+(Unfortunate terminology: here "right" and "left" refer to which
+spectrometer, not which helicity.)
+
+To enable this, we add and revise some methods: In TaEvent, GetDataSum
+returns a (weighted, optionally) sum of the values associated with the
+specified keys.  In VaPair, methods GetDiffSum, GetAsySum, and
+GetAsyAve return differences of sums, asymmetries of sums, and average
+asymmetries, respectively, for the specified keys, with optional
+weighting.  In VaAnalysis, the utility class AnaList is upgraded to
+allow specifying lists of keys with weights, and new flags are
+defined: one to request asymmetry normalized by BCM1, and one to
+request averaged asymmetry over the specified keys (rather than the
+default, which is asymmetry of sum).
+
+In addition, since we don't have detector data, I have added
+conditional code in TaEvent to make fake detector data.  To use this
+one must put detectors in the database, e.g.
+
+    datamap   det        det1     adc       10      0        0    det1r
+    datamap   det        det2     adc       10      1        1    det2r
+    datamap   det        det3     adc       10      2        2    det3r
+    datamap   det        det4     adc       10      3        3    det4r
+
+(where the numbers in the second to last column are arbitrary, since
+we're not getting the data out of the data stream anyway).  WARNING: I
+committed TaEvent with detector faking turned ON.
+
+While working in VaPair I noticed some methods do not change the
+member data but were not declared const, so I did so.  Also, the new
+TaEvent::DecodeCook was setting event type to -100 to make it not a
+physics event, but this generates a warning since event type is
+unsigned; I changed it to 999.  I think that's OK.
+
+
+Makefile TaLinkDef.hh TaPromptAna.{hh,cc} TaAnalysisManager.cc
+
+ o New analysis type class TaPromptAna
+
+TaEvent.{hh,cc}
+
+ o GetDataSum method
+
+ o Detector data faking (conditional)
+
+ o -100 in DecodeCook changed to 999
+
+VaAnalysis.{hh,cc}
+
+ o AnaList generalized to allow multiple detector keys with weights
+
+ o New flags to request normalized asymmetries and to choose summed or
+   averaged asymmetries of multiple keys
+
+VaPair.{hh,cc}
+
+ o New methods GetDiffSum, GetAsySum, and GetAsyAve
+
+ o Some methods made const
+
+
+Changes by R. Michaels on 7 Aug 2002
+-------------------------------------
+
+To avoid "tree bloat", I modifed TaEvent::AddToTree to
+only add devices that are defined in datamap (which is
+a part of database).  AddToTree calls Decode() to allow it
+to tell devices the correspondence of cooked to raw data, 
+so that cooked data are also added to tree.  This required 
+modifying TaDevice so that it can manage info about which 
+devices are to be written to tree.
+
+		
+Changes by R. Holmes on 7 Aug 2002
+-----------------------------------
+
+Changes to accommodate G0 helicity scheme.  See
+<http://www.jlab.org/~rom/g0helicity.pdf>.  Code requires a new
+signal, "quadsynch", in addition to helicity and pairsynch.  Quadsynch
+is on for full duration of first window of a quadruple, off for
+remaining three windows (or maybe it's vice versa, whichever is
+analogous to pairsynch, whose convention I never remember).  This is
+similar to the QRT signal shown in the above memo, but QRT is shown as
+being less than the full width of the window.  Pairsynch is the same
+as before.  These signals, if not available from the source, can be
+created from QRT and MPS with suitable use of gate generators at Hall
+A and the injector, though of course it would be more economical to
+generate them at the source.
+
+DevTypes has been modified to include entries in the device structure
+for quadsynch from each crate.  Since we have no G0 scheme data yet, I
+have added conditional code in TaEvent to get fake helicity,
+pairsynch, quadsynch, and timeslot data from a data file (generated by
+a variant of Bob's seqgen24; bug me if you want a copy of the file or
+the generating code).  Testing with a corrupted version of this file
+gives me confidence we can catch all sequence glitches.  When a real
+quadsynch signal exists we need to add a line of code to TaEvent to
+handle it.
+
+To analyze a run with this helicity scheme, set pairtype to quad in
+the database.  This causes all pairs to be created as instances of
+TaPairFromQuad rather than TaPairFromPair.  Essentially the only
+differences between these are the sequence checking and the random bit
+generation; all the rest of the TaPairFromPair code (with a few minor
+changes) has been moved into VaPair so both TaPairFromPair and
+TaPairFromQuad can inherit it.  During this work a bug or two and some
+other deficiencies were found in TaPairFromPair::CheckSequence(),
+which have been fixed.
+
+VaAnalysis had a bug: the first fPrePair was created before the pair
+type was looked up in the database, so it always defaulted to
+TaPairFromPair.  Subsequent pairs were TaPairFromQuad if pair type was
+set to quad.  This caused much amusing havoc, fixed by moving the
+database lookup to before the fPrePair initialization.
+
+
+TaPairFromQuad.{hh,cc}
+
+ o New class for G0 helicity scheme
+
+TaLinkDef.hh
+
+ o New class TaPairFromQuad
+
+DevTypes.hh
+
+ o Add quadsynch
+
+Makefile
+
+ o Add TaPairFromQuad
+
+PanTypes.hh
+
+ o Add EQuadSynch
+
+TaEvent.{hh,cc}
+
+ o Add fake helicity conditional code 
+
+ o Add GetQuadSynch()
+
+TaPairFromPair.{hh,cc}
+
+ o Move most code to VaPair
+
+ o RanBit takes expected bit as arg and uses it to update shift register
+
+ o Improvements to CheckSequence()
+
+VaAnalysis.cc
+
+ o Find out pair type BEFORE creating first pair (well, duh)
+
+VaPair.{hh,cc}
+
+ o Move much code here from TaPairFromPair
+
+
+Changes by R. Holmes on 5 Aug 2002
+-----------------------------------
+
+Changes in TaCutList are to deal with the situation if an interval in
+the cut list has zero for its cut value.  Normally this would not be
+the case but a bug in TaAsciiDB apparently creates such a situation;
+in any case it's wise to deal with it appropriately.
+
+TaEvent has a new method CopyInPlace, which is equivalent to operator=
+but copies into existing memory allocation instead of deleting and
+reallocating.  This should always be safe, I think, but to reduce the
+possibility of catastrophe always use operator= unless there's reason
+not to want reallocation.  The one situation I know of where one
+doesn't is in copying an event to TaRun::fAccumEvent, into which the
+event tree has pointers for filling.  Also new are access methods to
+get the number of cuts in the event's cut array, and the value of one
+of those array elements, indicating the state of a cut condition for
+that event.  This is to allow cut conditions to be entered in the pair
+tree in VaAnalysis.
+
+TaRun is modified to fix the incorrect filling of the event tree.
+
+Error in batt2 specification in control.db has been fixed.
+
+
+TaCutList.cc
+
+ o For OK() and CutsFailed(), do not regard event as in interval if
+   that interval has zero value
+
+TaEvent.{hh,cc}
+
+ o New methods CopyInPlace, GetNCuts, and CutCond
+
+TaRun.{hh,cc}
+
+ o Fix bug in event tree filling
+
+VaAnalysis.{hh,cc}
+
+ o Put cut conditions in pair tree
+
+control.db
+
+ o Correct ADC number for batt2.
+
+
+Changes by R. Michaels on 1 Aug 2002
+------------------------------------
+
+We implemented a FIFO readout of scalers.  In principle the event
+length should still not change, but there is more danger of that now.
+So, for now, I make TaEvent complain very loudly and exit(!) if it happens; 
+and if it does there is a lot to fix (basically need to use offsets to 
+headers for decoding instead of absolute buffer locations).
+	
+
+Changes by R. Holmes on 30 Jul 2002
+-----------------------------------
+
+Two sets of changes:
+
+First, the root file is now a data member of TaRun, not
+TaAnalysisManager.  Originally it was make a member of
+TaAnalysisManager against the future possibility of including more
+than one run in an analysis.  However, in its present form the root
+file is specific to a single run, and putting it in TaRun allows much
+simpler and more user-friendly setup of the file (i.e. we don't have
+to give it a temporary name and then rename it at end of analysis.)
+
+TaAnalysisManager.{hh,cc}
+
+ o Root file moved to TaRun
+
+TaRun.{hh,cc}
+
+ o Root file moved here from TaAnalysisManager
+
+Second, we now store event data in the pair tree differently, and add
+more event data in the BEAM analysis.  Event data are stored as arrays
+of length 2, under names of the form evt_xxxx.  So, for example, from
+Root we can plot values of BCM1 in the "right" helicity timeslot using
+P->Draw("evt_bcm1[0]"); index [1] would give the "left" helicity
+timeslot.  This replaces the old nomenclature of r_xxxx and l_xxxx,
+and applies also to the event numbers for right and left timeslot; the
+mean event number is still a scalar named m_ev_num.  In BEAM analysis,
+the tree contains
+
+  o calibrated event data for devices of type batt, bpm, and bcm
+  o event data for event number, helicities, pairsynchs, pitadac,
+    timeslots
+  o mean event number
+  o flags for pairs that pass cut conditions and pairs that are not in
+    cut intervals 
+  o differences for batt, bpm
+  o asymmetries for bcm
+
+NOTE that getting battery data into the tree requires the database to
+define the battery channels as device type batt, as in the new version
+of control.db.  Run-specific database files will have to be changed.
+
+control.db
+
+ o Batt1 and batt2 are device type batt (instead of adc)
+
+TaBeamAna.cc
+
+ o Add event data for pitadac, batt, bpm, and bcm
+
+VaAnalysis.cc 1007  history
+
+ o Event data (copy flag) are stored with name evt_xxxx as 2-element
+   array
+
+ o asym = -1E6 ppm (instead of 0) if low beam and fNO_BEAM_NO_ASY flag
+   set 
+
+
+Changes by R. Holmes on 26 Jul 2002
+-----------------------------------
+
+Mostly changes to standardize Pan's input/output file names and paths.
+These now are generated from environment variables and/or defaults in
+a consistent way.  (In the following, environment variables are
+enclosed within $().)  File names/paths now are:
+
+Input CODA file (-r option): 
+
+  $(PAN_CODA_FILE_PATH)/$(PAN_FILE_PREFIX)_XXXX.$(PAN_CODA_FILE_SUFFIX)
+
+  where XXXX is the (4-digit) run number.  (With the -f option, of
+  course the file name may be anything.)  Generated by 
+
+  TaFileName fn ("coda");
+
+ASCII database file: 
+
+  $(PAN_DB_FILE_PATH)/$(PAN_FILE_PREFIX)_XXXX.$(PAN_DB_FILE_SUFFIX)
+
+  Generated by 
+
+  TaFileName fn ("db");
+
+  If this file is not found, we fall back to 
+
+  $(PAN_DB_FILE_PATH)/control.$(PAN_DB_FILE_SUFFIX)
+
+  Generated by 
+
+  TaFileName fn ("dbdef");
+
+Root file (all analyses):
+
+  $(PAN_ROOT_FILE_PATH)/$(PAN_FILE_PREFIX)_XXXX_ZZZZ.$(PAN_ROOT_FILE_SUFFIX)
+
+  where ZZZZ = analysis type (not necessarily 4 characters).  Generated by 
+
+  TaFileName fn ("root");
+
+  Actually, at the time Pan creates this file, the run number and
+  analysis type are not yet known.  So the file created is
+
+  $(PAN_ROOT_FILE_PATH)/$(PAN_FILE_PREFIX)_xxxx_UUUU.$(PAN_ROOT_FILE_SUFFIX)
+
+  where xxxx is literally four x's and UUUU is the process number, an
+  underscore, and the hostname, to avoid collisions with other Pan
+  jobs.  At end of job the file is renamed to the above.
+
+Additional root files (e.g. the one created by TaADCCalib):
+
+  same as above, with _WWWW after ZZZZ; WWWW is whatever descriptive
+  tag the programmer wants (not necessarily 4 characters).  Generated
+  by
+
+  TaFileName fn ("root", "WWWW");
+
+Additional output files (e.g. the one created by TaADCCalib):
+
+  $(PAN_OUTPUT_FILE_PATH)/$(PAN_FILE_PREFIX)_XXXX_ZZZZ_WWWW.VVV
+
+  as above, where VVV is whatever suffix the programmer wants,
+  e.g. '.txt'. Generated by
+
+  TaFileName fn ("output", "WWWW", "VVV");
+
+All the environment variables have default values to use in case
+they're undefined:
+
+  $PAN_FILE_PREFIX           parityYY  where YY = last 2 digits of year
+  $PAN_CODA_FILE_SUFFIX      dat
+  $PAN_CODA_FILE_PATH        .
+  $PAN_DB_FILE_SUFFIX        db
+  $PAN_DB_FILE_PATH          .
+  $PAN_ROOT_FILE_PATH        .
+  $PAN_ROOT_FILE_SUFFIX      root
+  $PAN_OUTPUT_FILE_PATH      .
+
+
+Changes:
+
+VaPair.cc
+
+ o Asym = -1 if denom <= 0
+
+TaFileName.{cc,hh}
+
+ o New class to handle filenames
+
+TaADCCalib.cc TaAnalysisManager.{hh,cc} TaAsciiDB.cc TaRun.cc 
+
+ o Uses TaFileName
+
+TaLinkDef.hh
+
+ o Add TaFileName
+
+
+Changes by B. Moffit on 24 Jul 2002
+-----------------------------------
+
+With the recent changes by Bob Michaels and with the recent changes
+by myself, Pan is now able to use V/Fs as any type of monitorring 
+device (bpm, bcm, det, etc.).
+Note the example in control.db.  The V/F clock MUST be indicated in
+the channel names in order to have any calibrated scaler data for 
+that particular scaler.
+
+One can test this new addition to the analyzer by looking at
+parity02_1415.dat.  This run has the pitadac incrementing into 
+scaler0_17 with the v2f clock in scaler0_31.
+
+
+Changes by R. Holmes on 23 Jul 2002
+-----------------------------------
+
+This round of changes is to remove the hard-wired cut names and
+numbers from Pan; instead the cut names are defined in the database,
+and methods are available to get a cut number corresponding to a cut
+name.  The intent is to make it a little easier to add or remove
+cuts. 
+
+PanTypes.hh
+
+ o enum ECutType becomes typedef Cut_t
+
+TaAsciiDB.{hh,cc}
+
+ o new cutnames table and getter
+
+TaCutList.hh
+
+ o getter for number of cuts
+
+TaCutList.cc
+
+ o Remove ECutType operator++
+
+ o Get number of cuts and cut names from database
+
+TaEvent.{hh,cc}
+
+ o RunInit returns error code
+
+ o cut numbers from database
+
+TaPairFromPair.{hh,cc}
+
+ o RunInit returns error code
+
+ o Cut numbers from database
+
+TaRun.cc
+
+ o TaEvent::RunInit returns error code
+
+ o No calls to TaCutList::AddName
+
+VaAnalysis.cc
+
+ o VaPair::RunInit returns error code
+
+VaDataBase.{hh,cc}
+
+ o Getters for cut names and cut numbers
+
+VaPair.{hh,cc}
+
+ o RunInit returns error code
+
+TaCutInterval.{hh,cc} TaRun.hh
+
+ o ECutType -> Cut_t
+
+control.db db/control.db
+
+ o Cut names
+
+
+Changes by R. Michaels on 23 Jul 2002
+--------------------------------------
+
+This round of changes is mainly aimed at allowing scalers to be
+used for various "cooked" data in a flexible way analgous to the way 
+that ADCs are used.  This must be driven by the database, to permit
+on-the-fly definition of the correspondence of cooked data to raw data.
+Since the database classes and TaDevice were unfortunately riddled with
+a hard-coded assumption that only ADCs would exist (e.g. only ADC pedestals),
+I had to modify them.  I also modified the TaEvent::Decode routine and
+DevTyepes.hh.  A new column appears in control.db datamap table which
+indicates the readout type ("adc" or "scaler").
+
+In addition to this major change, there are a couple minor ones: 
+1) BPMs are not rotated if they are at injector or G0 cavities; and
+2) I implemented wire sums per Kent's request.  
+
+This immediately brings up a few tasks that need to be done; see README_ISSUES.
+		
+
+Changes by R. Holmes on 22 Jul 2002
+-----------------------------------
+
+Most of these changes have to do with putting the individual cut
+states into the event tree.  This info will also go in the pair tree,
+but later.  Note that these are indications of what cut conditions are
+passed/failed by each event, not of whether each event falls into a
+cut interval.  The latter could be done too, and I suspect it should,
+but we'll start with the cut conditions first.
+
+PanTypes.hh
+
+ o ECutType operator++ declaration added
+
+TaCutList.cc
+
+ o ECutType operator++ and GetName definitions added
+
+TaCutList.hh
+
+ o GetName declaration added
+
+TaEvent.{cc,hh}
+ o Two vectors of cuts (passed and failed) replaced with one array of
+   cut values.  (Nonzero value means cut failed.)
+
+ o AddToTree adds cuts to tree
+
+ o CheckEvent() returns void instead of the useless vector of cuts it
+   formerly returned.
+
+ o Unused GetCuts() and GetCutsPassed() removed
+
+TaRun.cc
+
+ o Since cut names are used to generate tags for tree leaves, cut
+   names must have no spaces, so spaces were replaced with
+   underscored.  (If this is too onerous for some reason, AddToTree
+   could do this replacement automatically, but it hardly seems worth
+   the effort.)
+
+ o InitDevices more aptly renamed to InitTree
+
+ o Tree filled in AccumEvent instead of Decode (since at Decode time
+   the cuts have not been established).
+
+ o Cut list arg added to call to AddToTree.
+
+TaRun.hh
+
+ o InitDevices more aptly renamed to InitTree
+
+
+Changes by R. Holmes on 15 Jul 2002
+-----------------------------------
+
+Bogus cut stuff excised from control.db.
+
+
+Changes by R. Holmes on 11 Jul 2002
+-----------------------------------
+
+In VaAnalysis, ChanList and ChanListFromName were returning vectors of
+pointers (to AnaLists), which is contrary to our coding rules.
+Changed this to vectors of AnaLists.  Correspondingly, fTreeList is
+now a vector of AnaLists.  TaBeamAna was changed to reflect this too.
+
+
+Changes by R. Holmes on 9 Jul 2002
+-----------------------------------
+
+Some steps on the way to putting event data in the pair tree -- if
+Bob's upcoming work doesn't make it all obsolete.  Central is the new
+method VaAnalysis::ChanListFromName (const string& chanbase, const
+string& other, const UInt_t flags = 0).  This looks through all
+devices, finds those whose name starts with the string chanbase, and
+makes a channel list including those devices with the given string and
+flags. Example: ChanListFromName ("batt", "chan", flag) might return: 
+< <"batt1", key1, "chan", flag>, <"batt2", key2, "chan", flag> >
+(if those are the only two channels starting with "batt").
+
+Doing this required a new access function, TaRun::GetDevices().  As an
+illustration of how this works, I added two lines of code to
+TaBeamAna::InitChanLists to put all battery event data in the pair
+tree. 
+
+TaRun.hh
+
+ o Add GetDevices()
+
+VaAnalysis.{hh,cc}
+
+ o Add ChanListFromName
+
+TaBeamAna.cc
+
+ o For illustrative purposes, call ChanListFromName to put battery
+   event data in pair tree
+
+
+Changes by R. Holmes on 26 Jun 2002
+-----------------------------------
+
+TaADCCalib.{hh,cc} TaAnalysisManager.{hh,cc} VaAnalysis.{hh,cc}
+
+ o Changed VaAnalysis::Init and its derived method in TaADCCalib to
+   take a Bool_t, not Int_t, argument, for clarity.
+
+TaADCCalib.cc VaAnalysis.cc
+
+ o Improved diagnostics by tagging them with the method name, and
+   sending them to the appropriate output stream (cerr, clog).
+
+
+Changes by R. Michaels on 23 Jun 2002
+-----------------------------------
+
+Improving the online feedback software
+
+1) Small bugs fixed to permit ET system to work correctly.
+2) In main.cc, the TaAnalysisManager object is a global pointer
+   and there is a new "killsignal" function (using signal.h)
+   so that "kill -31 pid" will end the run gracefully.
+   The killsignal function calls am->End(), etc.
+3) TaAsciiDB modified to include parameters for feedback.
+4) VaAnalysis reads the feedback parameters, and if and only if we're
+   running online, it applies feedback using the epics_feedback script.  
+   This script (not in 'pan' distribution) can also be used by hand.
+	
+	
+Changes by R. Holmes on 05 Jun 2002
+-----------------------------------
+
+These changes are mainly in two categories:
+
+(1) Allow more than one analysis in a job (e.g. by calling an analysis
+    macro from the Root prompt twice)
+
+(2) Option of a 2-pass analysis
+
+The last remaining obstacle (at least when using ASCII database file)
+to doing multiple analyses was in the TaAsciiDB class, where there
+were static variables used to control once-only initialization.  By
+making these into member variables, the initialization becomes once
+per analysis object.  (I suspect the MySQL database code does not have
+a similar problem, but have not verified this.)  I also added checks
+to make sure the database had been initialized in a couple of places.
+
+The code now permits a 2-pass analysis.  In theory, statistical widths
+computed in a single pass with no foreknowledge of the means are
+untrustworthy, due to loss of precision when subtracting (mean x)^2
+from (mean x^2) particularly when the widths are small compared to the
+means.  In our case the opposite usually is true and the loss of
+precision is negligible, but it's easy enough to allow a 2-pass option
+to verify 1-pass results.  A new command line option, "-2", selects
+the 2-pass option; 1-pass is the default.  The second pass analysis
+does only what is needed to get 2-pass statistics; in particular,
+there is no updating of the trees.
+
+VaAnalysis.{cc,hh}
+
+ o Make error return constants public, and initialize in
+   implementation file.  (The latter is not needed to compile with
+   MAKEDICTIONARY off, but is needed when MAKEDICTIONARY is on.
+   Either that or the constants have to be private; but it makes more
+   sense for them to be public.)
+
+TaAsciiDB.{cc,hh}
+
+ o Convert static flags to members, so what was once-only
+   initialization becomes once-per-database-object.
+ o Check init in a couple places.
+
+TaAnalysisManager.{cc,hh} VaAnalysis.{cc,hh}
+
+ o 2-pass analysis mods.
+
+TaRun.{cc,hh}
+
+ o 2-pass analysis mods.
+ o PrintStats takes const ref args (formerly non-const copy args, for
+   no good reason).
+
+TaStatistics.{cc,hh}
+
+ o Copy fFirstPass in copy c'tor and assigment.  This was a bug.
+ o Single-quantity methods take const arg  (formerly non-const, for no
+   good reason).
+
+main.cc
+
+ o 2-pass analysis mods
+ o Revised usage text; it now reflects reality!
+ o Improved command line scanning, catches mistakes like "./pan -r".
+
+
+Changes by R. Holmes on 04 Jun 2002
+-----------------------------------
+
+A few generic types of change, distributed among many classes:
+
+(1) Methods that return error codes now return ErrCode_t instead of
+    Int_t.  ErrCode_t is typedefed to Int_t.
+
+(2) Some methods in VaAnalysis now return error codes, which are
+    passed up to the main program.
+
+(3) TaRun::GetDataBase(), which had been returning a pointer, now
+    returns a ref.
+
+(4) Database checkout code removed from VaAnalysis to become a new
+    VaDataBase method.
+
+(5) Database classes now assign value to runnum.
+
+(6) Some obsolete classes removed.
+
+
+PanTypes.hh 
+
+ o Typedef for ErrCode_t
+
+TaADCCalib.{cc,hh}
+
+ o ProcessRun returns ErrCode_t
+
+TaAnalysisManager.cc
+
+ o Int_t --> ErrCode_t for error returns
+ o Pass up results from RunIni and ProcessRun
+ o TaRun::GetDataBase() usage change
+
+TaAnalysisManager.hh
+
+ o Int_t --> ErrCode_t for error returns
+
+TaAsciiDB.cc, TaMysql.cc
+
+ o Initialize runnum in Load
+
+TaEvent.cc
+
+ o TaRun::GetDataBase() usage change
+
+TaFdbkAna.{cc,hh}, TaRunFeedback.{cc,hh}
+
+ o Removed (obsolete) 
+
+TaRun.{cc,hh}
+
+ o Int_t --> ErrCode_t for error returns
+ o GetDataBase returns ref, not pointer
+
+VaAnalysis.{cc,hh}
+
+ o Various error returns instead of exiting
+ o Database checkout code moved to VaDataBase
+ o TaRun::GetDataBase() usage change
+
+VaDataBase.{cc,hh}
+
+ o Add Checkout method (based on code removed from VaAnalysis)
+
+
+
+Changes by R. Holmes on 31 May 2002
+-----------------------------------
+
+TaAsciiDB.{cc,hh} TaCutList.cc TaMysql.{cc,hh} VaAnalysis.cc
+VaDataBase.hh 
+
+ o Name changes: evlo, evhi --> extlo, exthi in database keys, and
+   similar changes to access function names.  (This is because cut
+   extensions are expressed in the database as a number of windows,
+   not a number of events.)
+
+main.cc
+
+ o Log info about software version.  
+
+
+Changes by R. Holmes on 24 May 2002
+-----------------------------------
+
+Today's changes are in two general categories:
+
+First, as a way to address two outstanding issues (error messages
+printed about zeroes in the denominator of asymmetry when beam is off,
+and kludgey approach to deciding which statistics to print based on
+stats name) I added a new data member to TaLabelledQuantity to store
+flags.  These flags can be used to govern how the labelled quantities
+are used.  (Their meanings are purely externally defined -- the
+TaLabelledQuantity class merely stores the flags and provides a method
+to test them.  It's up to other classes to define their meaning.)
+Correspondingly, flags were added to the AnaList utility class in
+VaAnalysis.  Two flags were used to tag quantities for which
+statistics should not be printed (copies of the helicity and
+pairsynch) and for which asymmetries should not be calculated if
+either event of the pair fails the low beam cut condition.  (This
+should produce no change in the results, if cuts are imposed; it just
+stops those annoying error messages.  Doing this for just the flagged
+quantities, rather than for all quantities, allows us to compute
+asymmetries for e.g. batteries even when beam is off, which is a
+perfectly reasonable thing to want to do.)  Three more flags enabled
+me to replace the three analysis lists -- copy, diff, and asy -- with
+a single list.
+
+Second, I did some cleanup of error / log / output messages.  Some
+things that should go to the cerr or clog streams were being sent to
+cout.  On the other hand, I decided the statistics which were being
+sent to clog should go to cout.  Finally, I silenced the complaint
+about lack of feedback info in the database, figuring this shouldn't
+be an error -- it should be interpreted the same as if the database
+entry were present but with "off" indicated.
+
+TaAsciiDB.cc
+ o Various cout --> cerr
+ o commented out error message in GetFdbkSwitch
+
+TaBeamAna.cc
+ o Copy, diff, and asy lists --> tree list with flags
+
+TaEvent.{cc,hh}
+ o Add BeamCut() method
+
+TaLabelledQuantity.{cc,hh}
+ o Add flags storage and a method to test flags 
+
+TaRun.cc 
+ o Stats iff NO_STATS flag not set
+ o Some clog --> cout
+
+VaAnalysis.{cc,hh} 
+ o Copy, diff, and asy lists --> tree list with flags
+ o Get asymmetries iff beam cut passed when NO_BEAM_NO_ASY flag set
+ o Some cout --> clog 
+
+
+Changes by R. Holmes on 22 May 2002
+-----------------------------------
+
+TaCutList.{cc,hh} TaEvent.{cc,hh} TaLabelledQuantity.hh
+TaPairFromPair.hh TaString.{hh,cc} VaPair.{cc,hh} 
+
+ o Comments for THtml
+
+TaRun.{cc,hh}
+
+ o Comments for THtml
+
+ o Remove unused or no-op functions AddCutToEvent(), AddCuts()
+
+ o Remove unused static data members fgPHYSICSMAX and fgPRESTART
+
+TaStatistics.{cc,hh}
+
+ o Comments for THtml
+
+ o Remove useless operator<<()
+
+VaAnalysis.{cc,hh}
+
+ o Comments for THtml
+
+ o Remove call to no-op (now deleted) AddCuts()" 
+
+
+Changes by R. Holmes on 21 May 2002
+-----------------------------------
+
+TaAsciiDB.hh TaBeamAna.{cc,hh} TaCutInterval.{cc,hh} TaCutList.{cc,hh},
+TaEvent.{cc,hh} TaLabelledQuantity.{cc,hh} TaPairFromPair.{cc,hh} 
+
+ o Comments for THtml.
+
+TaLinkDef.hh 
+
+ o Remove TaFdbkAna, TaRunFeedback.
+
+VaAnalysis.cc
+
+ o Call to VaPair::RunInit; no tree print.
+
+
+Changes by R. Holmes on 20 May 2002
+-----------------------------------
+
+Makefile 
+ o Remove TaMapFile.cc from list of sources.
+
+TaADCCalib.{hh,cc}
+ o Add/change comments for THtml.
+
+TaEvent.{cc,hh} 
+ o Better handling of initialization.  There is a new RunInit routine
+   to be called at beginning of run.  Cut thresholds are stored in
+   static data members instead of being read from database every time.
+
+ o Errors and log messages to cerr and clog instead of cout.
+
+TaPairFromPair.{cc,hh}
+ o Add RunInit() to initialize static data members at start of run.
+
+ o Remove HSDEB code.
+
+TaRun.cc
+ o Call to TaEvent::RunInit().
+
+VaPair.{cc,hh}
+ o Change Init() into RunInit().
+
+
+Changes by R. Holmes on 17 May 2002
+-----------------------------------
+
+I observed that the removal of the exit from THaCodaFile didn't
+prevent Pan from crashing in flames when faced with a nonexistent
+input file.  The problem was that there was no way for Pan to check
+that the THaCodaFile constructor actually succeeded, so it would
+merrily proceed to try to read the nonexistent file and crash there.
+
+To fix this I added a data member to THaCodaData to store the status
+of the Coda calls, and an access function.  Now we can check status
+after the THaCodaFile constructor and if it's bad, bail.
+
+Making use of this, however, required changing some method types from
+void to Int_t in TaRun and TaAnalysisManager, so the error could be
+propagated up the calling chain.  (TaRun also has some changes
+intended to improve its self-documentation in the class index.)
+
+Finally, main.cc was changed to look for these errors and return 1
+when found -- likewise macro/run.macro.
+
+
+Changes by R. Holmes on 13 May 2002
+-----------------------------------
+
+TaCutList.{cc,hh}
+
+ o Standardize method names -- printTally etc. become PrintTally.
+
+ o PrintTally works a little differently.  Now prints cut name and
+   number, and number of events failing that cut condition.
+
+TaLinkDef.hh 
+
+ o Remove TaADC.
+
+TaRun.cc
+
+ o Print cut tallies every 1000 events, and at end of run.
+
+TaString.hh
+
+ o Include RTypes, needed to compile dictionary code.
+
+macro/run.macro; README 
+
+ o run.macro is a sample macro to run the analysis after querying the
+   user for a run number.  After analysis ends it opens the
+   corresponding root file and does a sample plot, leaving the file
+   open for the user to enter other Root commands.
+
+
+Changes by R. Holmes on 16 Apr 2002
+-----------------------------------
+
+TaFdbkAna.cc
+
+  o Move SendEPICSInfo here from TaRun.
+
+TaRun.{cc,hh}
+
+  o Move SendEPICSInfo to TaFdbkAna.cc.
+  
+  o Init all pointers to zero, and delete all pointers (except
+    fEvtree). 
+
+main.cc
+
+  o Fix bug in string length computation.
+
+Changes by R. Holmes on 11 Apr 2002
+-----------------------------------
+
+Another bunch of changes, to replace scattered string functions with a
+new TaString class and to add some non-default copy constructors and
+operator=.  
+
+TaString inherits from string.  It does not overload anything nor add
+any new data members; it just defines some new string functions.
+There is a TaString(const string) constructor.  So you can convert
+back and forth between strings and TaStrings with impunity, using
+TaStrings only where you need the new functions (of course the
+conversion has some cost, but you shouldn't be using strings in
+time-critical parts of the code anyway.)  For example, this line from
+TaAsciiDB: 
+
+   return TaString (GetData(table, device, 0)).Hex();
+
+The functions bstrstr, stlow, vsplit, and str_to_base16 in VaDataBase,
+cmp_nocase in TaAnalysisManager, and cmp_nocase2 in TaADCCalib are now
+replaced with TaString methods.  Note that TaString::CmpNoCase, like
+the usual C and C++ 3-way compares as well as cmp_nocase and
+cmp_nocase2 but not like bstrstr, returns 0 for equal strings.
+
+MakeFile
+
+ o Add TaString.
+
+TaAnalysisManager.{cc}
+
+ o Replace cmp_nocase with TaString method.
+
+TaADCCalib.cc
+
+ o Replace cmp_nocase2 with TaString method.
+
+TaAsciiDB.cc
+
+ o Replace use of bstrstr, stlow, vsplit, and str_to_base16 with
+   TaString methods.
+
+TaCutInterval.{hh,cc}, TaCutList.{cc,hh}
+
+ o Add copy constructors and operator=.
+
+TaEvent.hh
+
+ o Remove some unused data members.
+
+TaLinkDef.hh
+
+ o Add TaString class.
+
+TaString.{cc,hh}
+
+ o New.
+
+VaDataBase.{cc,hh}
+
+ o Remove bstrstr, stlow, vsplit, and str_to_base16.
+
+
+Changes by R. Michaels on 10 Apr 2002
+-------------------------------------
+
+Some minor mod's after Rich's mod's below
+cvs commit -m "OPTIMIZE off by default so compile is fast" Makefile
+cvs commit -m "GetKey check if string found, added timeboard & pairsynch" TaDevice.cc
+
+	
+Changes by R. Holmes on 10 Apr 2002
+-----------------------------------
+
+I've made a bunch of changes, mostly in three categories: (1) fixing
+compiler warnings (2) improving stats output format and (3) changing
+the way cut intervals are updated.
+
+The latter is a little arcane.  The point is that multiple copies of
+events get stored -- there's the copy owned by TaRun, the copy in the
+event queue, and the copy in a pair in the pair queue, for instance.
+(And before going into those queues, they go through the helicity
+delay queue.)  The copy in TaRun is the one that gets checked for
+event errors, and is later copied into the event and pair queues;
+however, it's a copy of this which is put into a pair and checked for
+helicity/synch sequence errors.  That means a couple of things.  One,
+the event found in the event queue never has pair cuts stored in its
+list of failed cuts.  Since event queue events are presumably used
+only for the non-pair tree and non-pair analyses, that's not
+necessarily a problem.
+
+What is a problem is that the event owned by TaRun also has pair cut
+failures indicated.  We were using that copy of the event to update
+cut intervals; this means sequence errors were never generating cut
+intervals.  Bad thing.
+
+The new scheme is to call a new method in TaRun to update the cut
+intervals immediately upon finding each cut condition.  The ugly side
+of this is that a couple of pair methods now have run arguments where
+they didn't need them before.
+
+Here's a more detailed list of changes:
+
+TaCutList.{cc,hh}
+
+ o Added tally of events that fail cut conditions.
+
+ o Added a vector string to hold cut names, with an access function to
+   add a name.  Used by printTally().
+	
+	
+ o Added printInt(), printExt(), and printTally() methods, and
+   redefined operator<< as a call to all three.
+
+ o Other minor tweaks.
+
+TaDevice.{cc,hh}
+
+ o Added const to both GetKey()s.  For GetKey(Int_t) this then
+   required changing the iterator to const_iterator; for
+   GetKey(string) I had to replace fKeyToIdx[keystr] by
+   (fKeyToIdx.find(keystr))->second .  (You can't index into a const
+   map, but you can do a find on it.  I believe this should not change
+   the behavior for defined keys, and for undefined keys
+   GetKey(string) probably should complain, not just silently return
+   zero.
+
+ o Removed const from argument of Init(), since it calls
+   DataMapReStart() and NextDataMap() which modify the database object.
+
+ BOB -- PLEASE VERIFY THESE CHANGES ARE OK!
+
+TaEvent.{cc,hh}
+
+ o Added calls to TaRun::UpdateCutList().
+
+ o Other tweaks.
+
+TaFdbkAna.cc
+
+ o Re-ordered constructor initializers to quell a warning.
+
+TaPairFromPair.{cc,hh}
+
+ o Added call to TaRun::UpdateCutList().
+ 
+ o Added run argument to CheckSequence() and Fill().
+
+TaRun.{cc,hh}
+
+ o Added calls to TaCutList::AddName().
+
+ o Stats output format enhancements.
+
+ o Added UpdateCutList() method.
+
+ o Commented out body of AddCuts() method.  (To be removed entirely if
+   the new scheme works OK.)
+
+VaAnalysis.cc
+
+ o Added run argument to VaPair::Fill() call.
+
+ o Other tweaks.
+
+VaPair.{cc,hh}
+
+ o Added run argument to Fill().
+
+ o Other tweaks.
+
+
+
+Changes by R. Michaels on 6 Apr 2002
+-------------------------------------
+
+Studied g++ optimization (flag OPTIMIZE in Makefile).  Gains of 10%
+in speed are possible, but the compilation is slower.  Suggest to 
+comment out OPTIMIZE if you are frequently compiling code.
+
+Made "Get" methods of TaDevice inline, but it seems these methods get 
+inlined anyway with optimization.  
+
+			
+Changes by R. Michaels on 5 Apr 2002
+-------------------------------------
+
+Before changing anything, I created a "stable release"
+    cvs -q tag Stable-version0-5Apr2002
+To retrieve this in the future, you may
+    cvs checkout -r Stable-version0-5Apr2002
+But, you probably never will want to.  Instead, you should
+checkout the new code in a CLEAN new working directory.
+
+Massive surgery:  elimination of the classes
+
+   VaDevice  TaADC   TaBCM   TaBPM   TaTIR  TaScaler  TaTB
+
+There is a new class TaDevice which is owned by TaRun.
+It contains the data that TaEvent needs to decode devices,
+but which doesn't change throughout a run.  
+
+To increase the speed, we use static arrays of data, with 
+access by integer indices, not strings.  This is found to be
+much faster than hash maps.
+
+In TaEvent the "Get" methods for data are:
+
+   // raw data, index = location in buffer 
+       Int_t GetRawData(Int_t index); 
+   // get data by unique key
+       Double_t GetData(Int_t key);   
+   // get raw ADC data in slot and chan (slot & chan starts at 0)
+       Double_t GetRawADCData(Int_t slot, Int_t chan);  
+   // get calib. ADC data in slot and chan.
+       Double_t GetCalADCData(Int_t slot, Int_t chan);  
+   // get scaler data in slot and chan.
+       GetScalerData(Int_t slot, Int_t chan);  
+
+The "GetData(key)" method uses integer keys defined in
+DevTypes.hh.   Examples:
+
+      GetData(IBCM1R);     // gets raw (R) data from BCM1
+      GetData(IHELICITY);  // gets the helicity data.
+
+The string names equivalent to these integer keys is
+defined in an obvious way in TaDevice::InitKeyList, and
+users can determine the correspondence at initialization
+using the method of TaRun
+
+      Int_t GetKey(string keystr);  // returns integer key
+
+The string names are still used to define variables in 
+the root output trees, in TaLabelledQuantity, etc.  
+The VaAnalysis was modified to use a vector of "AnaList"
+objects which contain the string names, corresponding
+integer keys, and units.
+
+Other details:
+  - TaAnalysisManager sets ROOT file compression level to 0
+  - Suppress printout of datamap (commented out)
+
+  - Files affected:
+     Makefile
+     TaADCCalib.cc
+     TaAsciiDB.cc
+     TaAnalysisManager.cc
+     TaBeamAna.cc
+     TaEvent.cc
+     TaEvent.hh
+     TaRun.cc
+     TaRun.hh
+     VaAnalysis.cc
+     VaAnalysis.hh
+     VaPair.cc
+     VaPair.hh
+     TaFdbkAna.cc
+
+  - New files:
+     TaDevice.cc
+     TaDevice.hh
+     DevTypes.hh
+	
+	
+Changes by R. Holmes on 18-19 Mar 2002
+----------------------------------------
+
+TaAsciiDB.cc
+
+  o Better error messages for selfcheck of windelay and oversamp;
+    oversamp can be up to 12 (is this safe?)
+
+TaEvent.{cc,hh}
+
+  o Add DumpBits for helicity etc. diagnostics
+
+TaPairFromPair.{cc,hh}
+
+  o In Fill(), now check for mismatch between number of 'first' and
+    'second' events.  I.e.:
+
+      o If we see a 'first' event immediately after a 'second' event,
+        but the event queue is not empty, then we didn't have enough
+        'seconds' to pair with all the 'firsts'.
+
+      o If we see a 'second' event while the event queue is empty,
+        then we didn't have enough 'firsts' to pair with all the
+        'seconds'. 
+
+    In either case we print an error message and return false.  In the
+    first case we also clear the event queue and set fgSkipping to
+    true if the timeslot isn't 1, to skip events until the start of
+    the next 'first' window.  In the second case we always set
+    fgSkipping to true.  We do NOT generate a cut but I believe we
+    don't need to -- there should always be a sequence cut just before
+    or after this.
+
+  o In CheckSequence(), do checks between this window and previous
+    window even if timeslot = 1 is not seen.
+
+
+Changes by R. Holmes on 15 Mar 2002
+----------------------------------------
+
+TaRun.cc
+
+  o Various improvements to stats printouts.  Stats are printed when
+    pair containing event n*1000 is analyzed, not when that event is
+    read.  Printout headers suppressed if there are no stats.  Slice
+    stats are printed at end of run, before cumulative stats.
+
+Changes by R. Holmes on 13 Mar 2002
+----------------------------------------
+
+TaCutInterval.cc
+
+  o Bug fix: Intervals starting at an event number less than the
+    before-extension size were handled incorrectly due to unsigned
+    arithmetic. 
+
+TaCutList.cc
+
+  o Multiply extensions from db (now regarded as number of windows) by
+    oversample factor to get number of events.
+  o Add debug code.
+
+TaRun.cc
+
+  o Better labelling of stats outputs to clarify incremental and
+    cumulative stats.
+  o Now compute and print stats on all quantities except those
+    starting with "Right" or "Left".  This is still something of a
+    kludge, but it's a better kludge.
+
+VaAnalysis.hh,cc
+
+  o Replace pair_ok in tree with ok_cond and ok_cut.
+
+VaPair.hh,cc
+
+  o Add PassedCutsInt().
+
+
+More changes by R. Holmes on 7 Mar 2002
+----------------------------------------
+
+TaCutList.cc
+
+  o Return stream from operator<<.
+  o Check cut numbers when initializing from database and ignore any
+    out of range.
+
+TaCutInterval.cc
+
+  o Return stream from operator<<.
+
+
+Changes by R. Holmes on 7 Mar 2002
+----------------------------------------
+
+TaCutInterval.hh,cc
+
+  o Add operator<< .
+
+TaCutList.hh,cc
+
+  o Initialize cut list and cut extensions from database. (This
+    requires a change to the Init interface.) 
+  o Add operator<< .
+
+TaEvent.hh,cc
+
+  o Replace data member fCut with fCutFail and fCutPass. 
+  o Clear these when loading an event (I'm not sure this is
+    necessary). 
+  o Call badly-named AddCut for every event cut on every event, with
+    value zero when cut is passed, nonzero otherwise.
+  o Add GetCutsPassed() as counterpart to GetCuts() (which returns
+    cuts failed). 
+
+TaPairFromPair.cc
+
+  o Call badly-named AddCut for every pair cut on every pair, with
+  value zero when cut is passed, nonzero otherwise.
+
+TaRun.cc
+
+  o Minor changes required due to above changes in TaCutList and
+    TaEvent.
+  o A couple of new debug prints (enabled with NOISY).
+
+VaAnalysis.hh,cc
+
+  o Fixed members of pair tree (event numbers and pair_ok) are stored
+    in their own variables, not in *fTreeSpace.
+  o Initialize fEHelDequeMax to 1 greater than delay * oversample (and 
+    eliminate special treatment for delay = 0.)
+  o Eliminate "dirty fix" for memory leak (now plugged).
+
+VaPair.cc
+
+  o Change sign convention for differences and asymmetries back to 
+    R-L.  (I did this because it is the convention used in HAPPEX I
+    and so far as I know all other parity experiments, and because I
+    do not know the reason why it was changed to L-R.  If there is a
+    problem with R-L please let me know.  There may be a better fix.)
+  o Change PassedCuts to return Bool_t, and require both events to be
+    good.
+
+
+Changes by R. Holmes on 5 Mar 2002
+----------------------------------------
+
+TaBeamAna 
+
+  o Fix bug in InitChanLists causing BCM asymmetries to be stored
+    twice. 
+
+TaRun
+
+  o Changes to prevent Pan from trying to compute and print means and
+    widths of things like the helicity and pairsynch bits.  I decided
+    on a quick and easy but not necessarily best fix, which is to
+    accumulate sums for all "results" (including values of helicity
+    and pairsynch) but compute and print means and widths only for
+    those whose names start with "Asym" or "Diff".  I would be happy
+    to hear suggestions for a better fix, if you have any.
+
+TaStatistics 
+
+  o Remove the error messages from the Neff routines which were
+    printed when the statistics vectors are empty; instead it quietly
+    returns zero, which is a sensible thing to return.  I think it
+    should be legal to call Neff on a possibly empty statistics
+    vector.  You still get error messages if you try to e.g. compute a
+    mean on an empty vector.
+
+
+
+
+* changes leading to March 1 2002 version
+_________________________________________       
+
+TaAnalysisManager -
+   Can choose now between two type of analysis, so now the run type and the anatype could
+   be different. We still need to put the ana type in the root file name.
+         
+        
+VaAnalysis -
+   Added RunInI() set the value of fEHelDequeMax at 1 in case of no 
+   helicity delay. This was the main problem why we didn't have 
+   the pair tree after a run.   
+
+TaEvent -
+   private variable FirstPS was set to 1 to respect the source 
+   convention.
+
+TaRun -
+   Added event number (ev_num) explicitly in the tree so we don't have to use scaler1_1 to get it.
+   Added SendEPICSInfo( pair< string, Double_t> value, pair<string,Double_t> errvalue) to be able 
+   to send feedbacks infos to the source.       
+
+
+VaAnalysis -
+         
+   Changed the convention for the asymmetry sign  : L - R  
+
+
+TaFdbkAna -
+         
+    Derived from VaAnalysis, this is a 'TaBeamAna'  with charge asymmetry feedback implemented.
+    will add PZT info if needed.        
+        
+        
+        
+        
+
+* Primary changes leading to Feb 8, 2002 version
+------------------------------------------------
+ 
+TaAnalysisManager -
+   Root file is now pan_%d.dat where %d = run number
+   Upon initialization, the database is checked; if it is 'bad' we exit.
+
+TaAsciiDB -
+   Added GetMaxEvents()
+   Added SelfCheck() - used by analysis manager.
+   
+TaBCM -
+   Modified naming; restriction enforced that bcm1, bcm2 must be 
+   different objects (not sure its a good idea but at least its clarified).
+
+TaBeamAna -
+   Uses 'bcm1r' and 'bcm1' for raw and corrected data.
+   Got rid of the ifdef's since datamap iterator reset works now
+      in VaAnalysis::ChanList and TIR is defined.
+    
+TaEvent -
+   Check if event size is changing (it should not).
+   Check that keys are unique within a device (see DATABASE.RULES)
+   Clearer error messages if a key is not found or rule above broken.
+   Provide GetADCData(slot, chan) method.
+   Remove ifdef about TIR since it exists now (existence is checked).
+   Add DeviceDump() to check all device data.
+
+TaRun -
+   If CHECKOUT defined, makes detailed debug printout.
+
+TaTIR -
+   Simplified.
+   Add timeslot. 
+   Call VaDevice::DataCopy so data shows up in Tree.
+
+VaAnalysis -
+   if CHECKOUT defined, makes detailed debug printout.
+   GetMaxEvents() works now.
+   datamap iterator reset before using NextDataMap, this part works now.
+   Fixed a memory leak in PreProcessEvt().
+ 
+VaDevice -
+   Interface modified to accomodate above changes.
+   FindHeaders() does not need a TaEvent.
+

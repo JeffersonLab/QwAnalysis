@@ -5083,13 +5083,21 @@
         <volumeref ref="GEM_MasterContainer_Log#13a89c8"/>
         <position name="GEM_MasterContainerBack_Physical#13a8ad8_pos" unit="mm" x="0" y="200" z="-5350"/>
       </physvol>
-      <physvol name="HDC_MasterContainerFront_Physical#13aab98">
+      <physvol name="HDC_MasterContainerFront_PhysicalPkg1#13aab98">
         <volumeref ref="HDC_MasterContainer_Log#13aab08"/>
-        <position name="HDC_MasterContainerFront_Physical#13aab98_pos" unit="mm" x="0" y="600" z="-3369.87"/>
+        <position name="HDC_MasterContainerFront_Physical#13aab98_pos" unit="mm" x="0" y="508.22" z="-3369.86"/>
       </physvol>
-      <physvol name="HDC_MasterContainerBack_Physical#13aac08">
+      <physvol name="HDC_MasterContainerBack_PhysicalPkg1#13aac08">
         <volumeref ref="HDC_MasterContainer_Log#13aab08"/>
-        <position name="HDC_MasterContainerBack_Physical#13aac08_pos" unit="mm" x="0" y="600" z="-2966.75"/>
+        <position name="HDC_MasterContainerBack_Physical#13aac08_pos" unit="mm" x="0" y="548.22" z="-2946.73"/>
+      </physvol>
+      <physvol name="HDC_MasterContainerFront_PhysicalPkg2#13aab98">
+        <volumeref ref="HDC_MasterContainer_Log#13aab08"/>
+        <position name="HDC_MasterContainerFront_Physical#13aab98_pos" unit="mm" x="0" y="-508.22" z="-3369.86"/>
+      </physvol>
+      <physvol name="HDC_MasterContainerBack_PhysicalPkg2#13aac08">
+        <volumeref ref="HDC_MasterContainer_Log#13aab08"/>
+        <position name="HDC_MasterContainerBack_Physical#13aac08_pos" unit="mm" x="0" y="-548.22" z="-2946.73"/>
       </physvol>
       <physvol name="VDC_MasterContainerFront_PhysicalPkg1#13abbe8">
         <volumeref ref="VDC_MasterContainer_Log#13abb58"/>

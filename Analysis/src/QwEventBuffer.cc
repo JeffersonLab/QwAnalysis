@@ -51,7 +51,7 @@ QwEventBuffer::QwEventBuffer()
 {
   //  Set up the signal handler.
   globalEXIT=0;
-  signal(SIGINT,  sigint_handler);// ctrl+c 
+  signal(SIGINT,  sigint_handler);// ctrl+c
   signal(SIGTERM, sigint_handler);// kill in shell // 15
   //  signal(SIGTSTP, sigint_handler);// ctrl+z // 20
 
@@ -251,7 +251,6 @@ TString QwEventBuffer::GetRunLabel() const
 
 Int_t QwEventBuffer::OpenNextStream()
 {
-
   Int_t status = CODA_ERROR;
   if (globalEXIT==1) {
     //  We want to exit, so don't open the next stream.
@@ -460,7 +459,7 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
   // Copy the encoded event buffer into an array of integers,
   // as expected by the CODA routines.
   // Size of the event buffer in long words
-  int codabuffer[header.size() + buffer.size() + 1];
+  int* codabuffer = new int[header.size() + buffer.size() + 1];
   // First entry contains the buffer size
   int k = 0;
   codabuffer[k++] = header.size() + buffer.size();
@@ -471,6 +470,8 @@ Int_t QwEventBuffer::EncodeSubsystemData(QwSubsystemArray &subsystems)
 
   // Now write the buffer to the stream
   Int_t status = WriteEvent(codabuffer);
+  // delete the buffer
+  delete[] codabuffer;
   // and report success or fail
   return status;
 }

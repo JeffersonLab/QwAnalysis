@@ -1,5 +1,6 @@
 ! The exclamation mark (!) is for comment in this file.
 !
+! 06-17-2011: added Qtor related 4 variables:  qw:qt_mps_i_target,qw:qt_mps_i_set, qw:qt_mps_i_dcct, Q1HallP
 ! 07-08-2010: added "String" in more variables by identifying them using
 ! caget epicsVarName (e.g. caget QW_T_miA) in a machine where caget command can be issued.
 !
@@ -663,3 +664,10 @@ COLPOS7			slow_controls_data    	   	!Collimator Block 7
 !MHCMQ2IRBCK		slow_controls_data    	   	!Current ReadBack (A)
 !MQE3M02.S		slow_controls_data    	   	!Current Set (A)
 !The "result" indicates the result obtained from caget command.
+
+! Added Qtor related 4 variables: qw:qt_mps_i_target,qw:qt_mps_i_set, qw:qt_mps_i_dcct, Q1HallP
+
+qw:qt_mps_i_target      slow_controls_data              ! Qtor target curret
+qw:qt_mps_i_set		slow_controls_data              ! Qtor set current
+qw:qt_mps_i_dcct	slow_controls_data              ! Qtor DCCT
+Q1HallP			slow_controls_data              ! Qtor magnetic field read by Hall Probe 1

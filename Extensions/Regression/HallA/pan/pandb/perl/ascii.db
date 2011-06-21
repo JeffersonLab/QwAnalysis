@@ -1,0 +1,113 @@
+# ascii file 
+# 
+ana pan    run 1024
+ana pan    maxevents 500000
+ana pan    runtype BEAM      
+ana pan    anatype BEAM      
+ana pan    lobeam  6000  
+ana pan    burpcut 500
+ana pan    oversamp 1
+ana pan    windelay  0   
+ana pan    pairtype  pair
+# Dacnoise
+dacnoise adc0 chan0   0.0  0   
+dacnoise adc0 chan1   0.0  0   
+dacnoise adc0 chan2   0.0  0   
+dacnoise adc0 chan3   0.0  0        
+dacnoise adc1 chan0   0.0  0   
+dacnoise adc1 chan1   0.0  0   
+dacnoise adc1 chan2   0.0  0   
+dacnoise adc1 chan3   0.0  0      
+dacnoise adc2 chan0   0.0  0   
+dacnoise adc2 chan1   0.0  0   
+dacnoise adc2 chan2   0.0  0   
+dacnoise adc2 chan3   0.0  0      
+dacnoise adc3 chan0   0.0  0   
+dacnoise adc3 chan1   0.0  0   
+dacnoise adc3 chan2   0.0  0   
+dacnoise adc3 chan3   0.0  0      
+dacnoise adc4 chan0   0.0200  4400   
+dacnoise adc4 chan1   0.0201  4401   
+dacnoise adc4 chan2   0.0202  4402   
+dacnoise adc4 chan3   0.0203  4403   
+dacnoise adc5 chan0   0.0210  4410   
+dacnoise adc5 chan1   0.0211  4411   
+dacnoise adc5 chan2   0.0212  4412   
+dacnoise adc5 chan3   0.0213  4413   
+dacnoise adc6 chan0   0.0220  4420   
+dacnoise adc6 chan1   0.0221  4421   
+dacnoise adc6 chan2   0.0222  4422   
+dacnoise adc6 chan3   0.0223  4423   
+dacnoise adc7 chan0   0.0230  4430   
+dacnoise adc7 chan1   0.0231  4431   
+dacnoise adc7 chan2   0.0232  4432   
+dacnoise adc7 chan3   0.0233  4433   
+dacnoise adc8 chan0   0.0240  4440   
+dacnoise adc8 chan1   0.0241  4441   
+dacnoise adc8 chan2   0.0242  4442   
+dacnoise adc8 chan3   0.0243  4443   
+dacnoise adc9 chan0   0.0250  4450   
+dacnoise adc9 chan1   0.0251  4451   
+dacnoise adc9 chan2   0.0252  4452   
+dacnoise adc9 chan3   0.0253  4453   
+# Pedestals
+ped adc0 chan0  0
+ped adc0 chan1  0
+ped adc0 chan2  0
+ped adc0 chan3  0
+ped adc1 chan0  0
+ped adc1 chan1  0
+ped adc1 chan2  0
+ped adc1 chan3  0
+ped adc2 chan0  0
+ped adc2 chan1  0
+ped adc2 chan2  0
+ped adc2 chan3  0
+ped adc3 chan0  0
+ped adc3 chan1  0
+ped adc3 chan2  0
+ped adc3 chan3  0
+ped adc4 chan0  4350
+ped adc4 chan1  4575
+ped adc4 chan2  4430
+ped adc4 chan3  4370
+ped adc5 chan0  4350
+ped adc5 chan1  4575
+ped adc5 chan2  4430
+ped adc5 chan3  4370
+ped adc6 chan0  4350
+ped adc6 chan1  4575
+ped adc6 chan2  4430
+ped adc6 chan3  4370
+ped adc7 chan0  4350
+ped adc7 chan1  4575
+ped adc7 chan2  4430
+ped adc7 chan3  4370
+ped adc8 chan0  4350
+ped adc8 chan1  4575
+ped adc8 chan2  4430
+ped adc8 chan3  4370
+ped adc9 chan0  4350
+ped adc9 chan1  4575
+ped adc9 chan2  4430
+ped adc9 chan3  4370
+header adc hdr   ffadc000 
+header adc mask  fffff000
+header bcm hdr   0 
+header bcm mask  0
+header bpm hdr   0 
+header bpm mask  0
+header timeboard hdr fffbd000 
+header timeboard mask fffff000   
+header tir hdr ffdaf000 
+header tir mask fffff000
+header scaler hdr fffca000 
+header scaler mask fffff000
+ana pan   datamap   tir,tir,0,0,104,tirdata+adc,adc4,4,0,67,batt1,batt2+bcm,bcm1,4,2,69,bcm1r+bcm,bcm2,4,3,70,bcm2r+adc,adc4,4,-9,71,csr4,dac4+bpm,bpm8,5,0,73,bpm8xp,bpm8xm,bpm8yp,bpm8ym+adc,adc5,5,-9,77,csr5,dac5+bpm,bpm10,6,0,79,bpm10xp,bpm10xm,bpm10yp,bpm10ym+adc,adc6,6,-9,83,csr6,dac6+bpm,bpm12,7,0,85,bpm12xp,bpm12xm,bpm12yp,bpm12ym+adc,adc7,7,-9,89,csr7,dac7+bpm,bpm4a,8,0,91,bpm4axp,bpm4axm,bpm4ayp,bpm4aym+adc,adc8,8,-9,89,csr8,dac8+bpm,bpm4b,9,0,97,bpm4bxp,bpm4bxm,bpm4byp,bpm4bym+adc,adc9,9,-9,101,csr9,dac9+adc,adc0,0,0,43,adc0_0,adc0_1,adc0_2,adc0_3+adc,adc1,1,0,49,adc1_0,adc1_1,adc1_2,adc1_3+adc,adc2,2,0,55,adc2_0,adc2_1,adc2_2,adc2_3+adc,adc3,3,0,61,adc3_0,adc3_1,adc3_2,adc3_3+adc,adc4,4,0,67,adc4_0,adc4_1,adc4_2,adc4_3+adc,adc5,5,0,73,adc5_0,adc5_1,adc5_2,adc5_3+adc,adc6,6,0,79,adc6_0,adc6_1,adc6_2,adc6_3+adc,adc7,7,0,85,adc7_0,adc7_1,adc7_2,adc7_3+adc,adc8,8,0,91,adc8_0,adc8_1,adc8_2,adc8_3+adc,adc9,9,0,97,adc9_0,adc9_1,adc9_2,adc9_3+timeboard,timeboard,0,0,107,rampdelay,integtime,oversample,precdac+scaler,scaler1,0,0,10,scaler0_0,scaler0_1,scaler0_2,scaler0_3+scaler,scaler1,0,4,14,scaler0_4,scaler0_5,scaler0_6,scaler0_7+scaler,scaler1,0,8,18,scaler0_8,scaler0_9,scaler0_10,scaler0_11+scaler,scaler1,0,12,22,scaler0_12,scaler0_13,scaler0_14,scaler0_15+scaler,scaler1,0,16,26,scaler0_16,scaler0_17,scaler0_18,scaler0_19+scaler,scaler1,0,20,30,scaler0_20,scaler0_21,scaler0_22,scaler0_23+scaler,scaler1,0,24,34,scaler0_24,scaler0_25,scaler0_26,scaler0_27+scaler,scaler1,0,28,38,scaler0_28,scaler0_29,scaler0_30,scaler0_31
+ana  cut ncuts 12
+ana  cut evlo 10 10 10 10 10 10 0 0 0 0 20 20 20 
+ana  cut evhi 40 40 40 40 40 20 0 0 0 0 60 60 60
+ana  badevt evlo 21232 32232 35665 42112 56712
+ana  badevt evhi 23442 34554 37440 43443 58142
+ana  badevt ncut 4 6 4  7  8
+ana  badevt state 1 1 1 1 1 

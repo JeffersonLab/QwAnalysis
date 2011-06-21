@@ -29,14 +29,8 @@ int main (int argc, char* argv[])
     ("convert",po::value<bool>()->default_bool_value(false),
      "Convert field map from ASCII to binary");
   gQwOptions.AddOptions("Magnetic field map actions")
-    ("write-scaled",po::value<bool>()->default_bool_value(false),
-     "Write scaled field instead of original");
-  gQwOptions.AddOptions("Magnetic field map actions")
     ("timing",po::value<bool>()->default_bool_value(false),
      "Time magnetic field reading routines");
-  gQwOptions.AddOptions("Magnetic field map actions")
-    ("name",po::value<string>()->default_value("peiqing_2007"),
-     "Field map basename in QW_FIELDMAP (no extension)");
 
   // Set command line
   gQwOptions.SetCommandLine(argc, argv);
@@ -44,18 +38,16 @@ int main (int argc, char* argv[])
   // Get options
   bool timing = gQwOptions.GetValue<bool>("timing");
   bool convert = gQwOptions.GetValue<bool>("convert");
-  bool write_scaled_field = gQwOptions.GetValue<bool>("write-scaled");
-
-  // Name of field map file
-  string basename = gQwOptions.GetValue<string>("name");
-  std::string name = getenv_safe_string("QW_FIELDMAP") + "/" + basename;
-
+  // Note: mapname is the mapfile without extension
+  std::string mapfile = gQwOptions.GetValue<std::string>("QwMagneticField.mapfile");
+  std::string mapname = mapfile.substr(0,mapfile.find_last_of("."));
 
   timeval time_start, time_finish;
 
+
   // Initialize the field map
   gettimeofday(&time_start, 0);
-  QwMagneticField* magneticfield = new QwMagneticField();
+  QwMagneticField* magneticfield = new QwMagneticField(true);
   gettimeofday(&time_finish, 0);
   if (timing) {
     int time_initialize_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
@@ -67,7 +59,7 @@ int main (int argc, char* argv[])
   }
 
   // Set data reduction factor
-  //magneticfield->SetDataReductionFactor(4);
+  //magneticfield->SetDataReductionFactor(2);
   //QwMessage << "Data reduction factor set to "
   //          << magneticfield->GetDataReductionFactor() << QwLog::endl;
 
@@ -75,43 +67,49 @@ int main (int argc, char* argv[])
   // Initialize common variables for all tests
   double mean = 30.0;
   double sigma = 3.0;
-  double point[3];
   double field[3];
   TRandom3 random;
   int time_sampling_sec;
   int time_sampling_usec;
   double time_sampling;
 
+  // Test point
+  double point[3];
+  // r = 100 cm, phi = 67.5 degrees, z = 100 cm
+  //point[0] = 38.2683 * Qw::cm; point[1] = 92.388 * Qw::cm; point[2] = 100.0 * Qw::cm;
+  // r = 100 cm, phi = 0 degrees, z = 100 cm
+  point[0] = 100.0 * Qw::cm; point[1] = 0.0 * Qw::cm; point[2] = 100.0 * Qw::cm;
+
+  // Read the text field map
+  gettimeofday(&time_start, 0);
+  magneticfield->SetFilename(mapfile);
+  magneticfield->ReadFieldMap();
+  gettimeofday(&time_finish, 0);
+  if (timing) {
+    int time_reading_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
+    int time_reading_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
+    if (time_reading_usec < 0) { time_reading_usec += 1000000.0; time_reading_sec--; }
+    QwMessage << "Reading field map (text): "
+              << time_reading_sec << " sec and "
+              << time_reading_usec << " usec" << QwLog::endl;
+  }
+  magneticfield->GetCartesianFieldValue(point, field);
+  QwMessage << "Field at " << point[0]/Qw::cm << "," << point[1]/Qw::cm << "," << point[2]/Qw::cm << " cm "
+            << "is " << field[0]/Qw::kG << "," << field[1]/Qw::kG << "," << field[2]/Qw::kG << " kG"
+            << QwLog::endl;
 
   // Conversion from text field map to binary field map
   if (convert) {
 
-    // Read the text field map
-    gettimeofday(&time_start, 0);
-    magneticfield->ReadFieldMapFile(name + ".dat");
-    gettimeofday(&time_finish, 0);
-    if (timing) {
-      int time_reading_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
-      int time_reading_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-      if (time_reading_usec < 0) { time_reading_usec += 1000000.0; time_reading_sec--; }
-      QwMessage << "Reading field map (text): "
-                << time_reading_sec << " sec and "
-                << time_reading_usec << " usec" << QwLog::endl;
-    }
-    point[0] = 30.0; point[1] = 30.0; point[2] = 30.0;
-    magneticfield->GetCartesianFieldValue(point, field);
-    QwMessage << "Field at " << point[0] << "," << point[1] << "," << point[2]
-              << " is " << field[0] << "," << field[1] << "," << field[2] << " T"
-              << QwLog::endl;
-
-    // Reset scaling factor if necessary
-    if (write_scaled_field) {
-      magneticfield->SetScaleFactor(1.0);
+    // Check whether we have read a binary file
+    if (mapfile == mapname + ".bin") {
+      QwError << "Cannot convert binary file into binary file!" << QwLog::endl;
+      exit(0);
     }
 
     // Write the binary field map
     gettimeofday(&time_start, 0);
-    magneticfield->WriteBinaryFile(name + ".bin");
+    magneticfield->WriteBinaryFile(mapname + ".bin");
     gettimeofday(&time_finish, 0);
     if (timing) {
       int time_writing_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
@@ -137,7 +135,7 @@ int main (int argc, char* argv[])
 
     // Create new field map
     gettimeofday(&time_start, 0);
-    magneticfield = new QwMagneticField();
+    magneticfield = new QwMagneticField(true);
     gettimeofday(&time_finish, 0);
     if (timing) {
       int time_initialize2_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
@@ -148,39 +146,40 @@ int main (int argc, char* argv[])
                 << time_initialize2_usec << " usec" << QwLog::endl;
     }
 
-  } // end of conversion
+    // Read the binary field map
+    gettimeofday(&time_start, 0);
+    magneticfield->SetFilename(mapname + ".bin");
+    magneticfield->ReadFieldMap();
+    gettimeofday(&time_finish, 0);
+    if (timing) {
+      int time_reading2_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
+      int time_reading2_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
+      if (time_reading2_usec < 0) { time_reading2_usec += 1000000.0; time_reading2_sec--; }
+      QwMessage << "Reading field map (binary): "
+                << time_reading2_sec << " sec and "
+                << time_reading2_usec << " usec" << QwLog::endl;
+    }
 
-  // Read the binary field map
-  gettimeofday(&time_start, 0);
-  magneticfield->ReadBinaryFile(name + ".bin");
-  gettimeofday(&time_finish, 0);
-  if (timing) {
-    int time_reading2_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
-    int time_reading2_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-    if (time_reading2_usec < 0) { time_reading2_usec += 1000000.0; time_reading2_sec--; }
-    QwMessage << "Reading field map (binary): "
-              << time_reading2_sec << " sec and "
-              << time_reading2_usec << " usec" << QwLog::endl;
-  }
+  } // end of conversion
 
   // Multilinear interpolation
   magneticfield->SetInterpolationMethod(kMultiLinear);
   QwMessage << "Interpolation method set to multilinear, method "
             << magneticfield->GetInterpolationMethod() << QwLog::endl;
 
-  point[0] = 30.0; point[1] = 30.0; point[2] = 30.0;
   magneticfield->GetCartesianFieldValue(point, field);
-  QwMessage << "Field at " << point[0] << "," << point[1] << "," << point[2]
-            << " is " << field[0] << "," << field[1] << "," << field[2] << " T"
+  QwMessage << "Field at " << point[0]/Qw::cm << "," << point[1]/Qw::cm << "," << point[2]/Qw::cm << " cm "
+            << "is " << field[0]/Qw::kG << "," << field[1]/Qw::kG << "," << field[2]/Qw::kG << " kG"
             << QwLog::endl;
 
   if (timing) {
     gettimeofday(&time_start, 0);
+    double rpoint[3];
     for (int i = 0; i < NSAMPLES; i++) {
-      point[0] = random.Gaus(mean, sigma);
-      point[1] = random.Gaus(mean, sigma);
-      point[2] = random.Gaus(mean, sigma);
-      magneticfield->GetCartesianFieldValue(point, field);
+      rpoint[0] = point[0] + random.Gaus(mean,sigma);
+      rpoint[1] = point[1] + random.Gaus(mean,sigma);
+      rpoint[2] = point[2] + random.Gaus(mean,sigma);
+      magneticfield->GetCartesianFieldValue(rpoint, field);
     }
     gettimeofday(&time_finish, 0);
     time_sampling_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
@@ -198,19 +197,19 @@ int main (int argc, char* argv[])
   QwMessage << "Interpolation method set to nearest-neighbor, method "
             << magneticfield->GetInterpolationMethod() << QwLog::endl;
 
-  point[0] = 30.0; point[1] = 30.0; point[2] = 30.0;
   magneticfield->GetCartesianFieldValue(point, field);
-  QwMessage << "Field at " << point[0] << "," << point[1] << "," << point[2]
-            << " is " << field[0] << "," << field[1] << "," << field[2] << " T"
+  QwMessage << "Field at " << point[0]/Qw::cm << "," << point[1]/Qw::cm << "," << point[2]/Qw::cm << " cm "
+            << "is " << field[0]/Qw::kG << "," << field[1]/Qw::kG << "," << field[2]/Qw::kG << " kG"
             << QwLog::endl;
 
   if (timing) {
     gettimeofday(&time_start, 0);
+    double rpoint[3];
     for (int i = 0; i < NSAMPLES; i++) {
-      point[0] = random.Gaus(mean, sigma);
-      point[1] = random.Gaus(mean, sigma);
-      point[2] = random.Gaus(mean, sigma);
-      magneticfield->GetCartesianFieldValue(point, field);
+      rpoint[0] = point[0] + random.Gaus(mean,sigma);
+      rpoint[1] = point[1] + random.Gaus(mean,sigma);
+      rpoint[2] = point[2] + random.Gaus(mean,sigma);
+      magneticfield->GetCartesianFieldValue(rpoint,field);
     }
     gettimeofday(&time_finish, 0);
     time_sampling_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);

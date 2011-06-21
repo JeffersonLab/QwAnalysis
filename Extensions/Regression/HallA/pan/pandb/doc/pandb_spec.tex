@@ -1,0 +1,263 @@
+\documentclass[12pt]{article}
+
+\usepackage{psfig}
+
+\newcommand{\bcenter}{\begin{center}}
+\newcommand{\ecenter}{\end{center}}
+\newcommand{\bitem}{\begin{itemize}}
+\newcommand{\eitem}{\end{itemize}}
+\newcommand{\bdesc}{\begin{description}}
+\newcommand{\edesc}{\end{description}}
+\newcommand{\benum}{\begin{enumerate}}
+\newcommand{\eenum}{\end{enumerate}}
+
+\begin{document}
+
+\bigskip
+
+\bcenter\bf\Large
+Hall A Parity Database Specification \\
+\bigskip
+\large R.~Michaels and R.~Suleiman \\
+\medskip
+November 21, 2001
+\ecenter
+
+\section{Introduction}
+
+This document is a programming specification for Hall A Parity
+database. The database contains logical parameters that affect
+program flow, the datamap correspondence of 'keys' to the
+event buffer, calibration parameters used by the program, and
+cut definitions. The values selected from the database
+will in general depend on the run number of the data being
+analyzed.
+
+The database is implemented in MySQL \cite{MySQL}. There is 
+C++ class called TaMysql written in ROOT \cite{root} to 
+interface with the database.
+
+\section{Features}
+\bitem
+
+\item  For the "Pan" code, the database contains:
+
+\bitem
+     \item[1.] Logical Parameters that affect program flow.
+     \item[2.] DataMap (correspondence of 'keys' to event buffer).
+     \item[3.] Calibration Parameters used by program, e.g.
+          DAC noise calibration slope and intercept
+          ADC pedestal
+    \item[4.] Cuts and the event intervals associated.
+        Cuts include 'lobeam', 'bcm1', 'paircheck', 'doc',
+        'beamburp' etc (as in HAPPEX I).  
+\eitem
+
+\item Run indexed lookup of constants by analysis jobs.
+
+\item Keep a change log: user, date, time, comment.
+
+\eitem
+
+\section{Scripts}
+
+There will be a script to generate ascii files from the database, and one
+to do the reverse, generate a database from the file. 
+
+
+
+\small\begin{verbatim}
+
+ ascii2db.pl 
+
+ db2ascii.pl run=100
+
+\end{verbatim}\normalsize
+
+
+\section{Database Tables}
+
+The database tables are shown schematically in Fig.~\ref{schematic}
+and are listed explicitly in Tables~\ref{infotables}-\ref{databasetables}.
+The perl script ``dbcreate.pl'' will create the database.
+\begin{figure}
+$$
+\psfig{figure=dbdiag.eps,width=5.0in,clip=t}
+$$
+\caption{Schematic drawing of the database tables.}\label{schematic}
+\end{figure}
+
+
+\begin{table}
+$$
+\begin{tabular}{|l|l|l|l|} \hline
+\multicolumn{4}{|c|}{RunInfo} \\
+\hline
+column name & type & example & comment \\
+\hline\hline
+RunNumber   & int        & 2000        & Primary key \\
+Experiment  &  varchar   &  ``HAPPEXII'' &  \\
+time        & datetime   &  2003-12-09 11:30:45&  \\
+comment     & text       &             &  \\
+\hline
+\end{tabular}
+$$
+
+
+$$
+\begin{tabular}{|l|l|l|l|} \hline
+\multicolumn{4}{|c|}{System} \\
+\hline
+column name & type & example & comment \\
+\hline\hline
+systemId    & int     & 1              & Primary key auto increment\\
+systemName  & varchar & ``dacnoise'' &  \\
+description & text    &                & \\
+\hline
+\end{tabular}
+$$
+
+
+$$
+\begin{tabular}{|l|l|l|l|} \hline
+\multicolumn{4}{|c|}{SubSystem} \\
+\hline
+column name & type & example & comment \\
+\hline\hline
+subsystemId    & int     &  1           & Primary key auto increment\\
+subsystemName  & varchar & ``adc0'' & \\
+systemId       & int     &  1           & Foreign key reference System\\
+description    & text    &              & \\
+\hline
+\end{tabular}
+$$
+
+
+$$
+\begin{tabular}{|l|l|l|l|} \hline
+\multicolumn{4}{|c|}{Item} \\
+\hline
+column name & type & example & comment \\
+\hline\hline
+itemId      & int     & 1         & Primary key auto increment\\
+itemName    & varchar & ``chan0''   & \\
+subsystemId & int     & 1         & Foreign key reference SubSystem\\
+length      & int     & 2         & Number of elements\\
+type        & varchar & ``float'' & \\
+description & text    &           & \\
+\hline
+\end{tabular}
+$$
+\caption{Informational tables.}\label{infotables}
+\end{table}
+
+
+
+\begin{table}
+$$
+\begin{tabular}{|l|l|l|l|} \hline
+\multicolumn{4}{|c|}{RunIndex} \\
+\hline
+column name & type & example & comment\\
+\hline\hline
+RunIndexId     & int        & 1       & Primary key auto increment\\
+RunNumber      & int        & 2000   &  \\
+itemId         & int        & 1       & Foreign key reference Item\\
+itemValueId    & int        & 1       & Foreign key reference item\_name\_VALUE\\
+author         & varchar     & ``dbmanager''            & \\
+time           & timestamp  & 20000502165717        & \\ 
+comment        & text       &                       & \\
+\hline
+\end{tabular}
+$$
+
+
+$$
+\begin{tabular}{|l|l|l|l|} \hline
+\multicolumn{4}{|c|}{dacnoise\_adc0\_chan0\_VALUE} \\
+\hline
+column name & type & example & comment\\
+\hline\hline
+itemValueId    & int        &  1       & Primary key auto increment\\
+value\_1       & ``float''   &  1.82    &  \\
+author         & varchar    & ``smith''& \\
+time           & timestamp  & 20000502165717 & \\ 
+comment        & text       &                & \\
+\hline
+\end{tabular}
+$$
+
+\caption{Functional tables.}\label{databasetables}
+\end{table}
+
+
+%%%
+
+
+Notes on this structure:
+
+\bdesc
+
+\item[Values are ``never'' deleted from the database.] 
+
+\edesc
+
+\section{Access Privileges}
+
+There are several different levels of access to the database:
+\benum
+\item database manager
+\item users
+\eenum
+
+The MySQL access tables shown in Tables
+\ref{usertable}-\ref{dbtable}. 
+The perl script ``access\_priv.pl'' creates these tables. 
+
+\begin{table}
+$$
+\begin{tabular}{|l|l|l|l|} \hline
+\multicolumn{4}{|c|}{user table}\\
+\hline
+      Host                & User      & Password & Privileges \\
+\hline\hline
+      localhost           & dbmanager & non-NULL & none \\
+      \%                  & dbuser      & NULL     & none \\
+\hline
+\end{tabular}
+$$
+\caption{MySQL user table.
+Any user from any host can connect to the database.}
+\label{usertable}
+\end{table}
+
+\begin{table}
+$$
+\begin{tabular}{|l|l|l|l|}
+\hline
+\multicolumn{4}{|c|}{db table}\\
+\hline
+      Host  & Db     &User      &Privileges\\
+\hline\hline
+       \%   &  pandb & dbmanager& all\\
+       \%   &  pandb & \%       &  select\\
+\hline
+\end{tabular}
+$$
+\caption{MySQL db table. The dbmanager has all privileges in the pandb
+database. Any user that can connect can read any of the tables in the
+pandb database.}
+\label{dbtable}
+\end{table}
+
+
+\begin{thebibliography}{9}
+
+\bibitem{MySQL} http://www.mysql.org
+
+\bibitem{root} http://root.cern.ch
+
+\end{thebibliography}
+
+
+\end{document}

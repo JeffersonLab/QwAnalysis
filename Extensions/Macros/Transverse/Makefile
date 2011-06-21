@@ -1,7 +1,6 @@
 # Makefile for bpm_bcm_calibration.cc  Code
 # (modified version of $(ROOTSYS)/test/Makefile)
 #
-
 # April 25, 2000 	 E. Beise, modify to work with Alpha DUX4.0
 # March 16, 2010         B. Waidyawansa, modify to work for bpm_bcm_calibration.0
 
@@ -19,7 +18,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := md_correlation_plots TransverseFit slug_average_fits plot_regressed_lumi slug_summary slug_average_fits_regressed Add_opposite_bars unregressed_slug_plots slug_average_fits_regressed_run_range compare_regressed_unregressed fits_unregressed_run_range
+EXE := md_correlation_plots TransverseFit slug_average_fits plot_regressed_lumi slug_summary slug_average_fits_regressed unregressed_slug_plots slug_average_fits_regressed_run_range compare_regressed_unregressed fits_unregressed_run_range slug_average_fits_unregressed draw_correlations_runlets pass3_regressed
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -60,10 +59,6 @@ Regressed_lumi : Regressed_LUMI.o
 slug_summmary : slug_summary.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-
-Add_opposite_bars : Add_opposite_bars.o
-	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
-
 unregressed_slug_plots : unregressed_slug_plots.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
@@ -72,6 +67,14 @@ compare_regressed_unregressed : compare_regressed_unregressed.o
 
 fits_unregressed_run_range : fits_unregressed_run_range.o
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+slug_average_fits_unregressed :slug_average_fits_unregressed.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+slug_average_fits_regressed :slug_avrage_fits_regressed.o
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+draw_correlations_runlets : draw_correlations_runlets.o
 
 %: %.C
 	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<

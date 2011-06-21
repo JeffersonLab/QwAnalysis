@@ -799,15 +799,15 @@ V1495,	       	2,    380	eaccum,	compton_e,   4,   91
 V1495,	       	2,    381,	eaccum,	compton_e,   4,   92
 V1495,	       	2,    382,	eaccum,	compton_e,   4,   93
 V1495,	       	2,    383,	eaccum,	compton_e,   4,   94
-V1495,	       	2,    384,	eaccum,	compton_e,   4,   95
+V1495,          2,    384, 	eaccum, compton_e,   4,   95
 
 ! appending to the file for e-singles subbank
 
 Bank=0x020A
 ! V1495 Slave 1, electron singles mode
 ! module.type, module.num,  chan.num, det.type, det.name,  plane,  strip.num
-V1495,	       	0,	0,	escalers,	compton_e,   1,    0
-V1495,	       	0,	1,	escalers,	compton_e,   1,    1
+V1495,		0, 	0, 	escalers, 	compton_e,   1,	   0
+V1495,	       	0,	1,	escalers, 	compton_e,   1,    1
 V1495,	       	0,	2,	escalers,	compton_e,   1,    2
 V1495,	       	0,	3,	escalers,	compton_e,   1,    3
 V1495,	       	0,	4,	escalers,	compton_e,   1,    4

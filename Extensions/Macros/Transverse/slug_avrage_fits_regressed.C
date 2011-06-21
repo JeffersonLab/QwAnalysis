@@ -4,7 +4,7 @@
 //*****************************************************************************************************//
 //
 //
-//  This macro will connect to theqw_linreg_20110125 data base and get the slug averages from the 
+//  This macro will connect to the qw_linreg_20110125 data base and get the slug averages from the 
 //  regressed data and plot 
 //  them in to three plots for pmt+, pmt- and bar sum, us lumi and ds lumi asymmetries. 
 //   e.g. use
@@ -84,26 +84,15 @@ TString DS_lumi[5]=
 
 TSQLServer *db;
 
-TPad * pad1, *pad2;
+std::ofstream Myfile;    
+
 TText *t1;
-TTree *tree;
-TString CanvasTitle;
-TString bpm,bpmdata,var1, target, polar,targ, goodfor;
-Int_t runnum;
+TString target, polar,targ, goodfor;
 
 Int_t opt =1;
 Int_t datopt = 1;
-TTree * nt;
 
-std::ofstream Myfile;
 Char_t textfile[100];
-
-
-Double_t p0[8] ={0.0};
-Double_t ep0[8] ={0.0};
-Double_t p1[8] ={0.0};
-Int_t i = -1;
-Double_t ep1[8] ={0.0};
 
 Double_t value1[8] ={0.0};
 Double_t err1[8] ={0.0};
@@ -128,23 +117,14 @@ Double_t errin[8] ={0.0};
 Double_t valueout[8] ={0.0};
 Double_t errout[8] ={0.0};
 
-Double_t valuesum[8] ={0.0};
-Double_t valueerror[8] ={0.0};
-Double_t valuesum1[8] ={0.0};
-Double_t valueerror1[8] ={0.0};
-Double_t valuesum11[8] ={0.0};
-Double_t valueerror11[8] ={0.0};
-
-TString xunit, yunit, slopeunit;
 
 void get_octant_data(Int_t size,TString devicelist[], TString detector_type, TString goodfor, TString target, TString ihwp, Double_t value[], Double_t error[]);
 TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type, TString goodfor, TString polar);
 void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Double_t errorsout[]);
-
-// void get_octant_data(Int_t size,TString devicelist[], TString detector_type, TString target, TString ihwp, Double_t value[], Double_t error[]);
-// TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type);
-// void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsin[],Double_t valuesout[],Double_t errorsout[]);
-
+void get_octant_average(Int_t size,TString device, Double_t value[],Double_t error[]);
+void get_opposite_octant_average(Int_t size,TString device, 
+				 Double_t valuesin[],Double_t errorsin[],
+				 Double_t valuesout[],Double_t errorsout[]);
 
 int main(Int_t argc,Char_t* argv[])
 {
@@ -178,11 +158,11 @@ int main(Int_t argc,Char_t* argv[])
 
   if(datopt == 1){
     polar = "longitudinal";
-    goodfor = "1,3";
+    goodfor = "3";
   }
   else if(datopt == 2){
     polar = "transverse";
-    goodfor = "1,8";
+    goodfor = "8";
   }
   else{
     std::cout<<"Unknown data type!"<<std::endl;
@@ -192,7 +172,6 @@ int main(Int_t argc,Char_t* argv[])
 
   std::cout<<"Getting slug averages of octants in MD PMT-, PMT+, barsum, us lumi and ds lumi"<<std::endl;
   TApplication theApp("App",&argc,argv);
-
  
   // Fit and stat parameters
   gStyle->SetOptFit(1111);
@@ -201,7 +180,6 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetStatX(0.99);
   gStyle->SetStatW(0.15);
   gStyle->SetStatH(0.5);
-
   
   //Pad parameters
   gStyle->SetPadColor(0); 
@@ -231,47 +209,45 @@ int main(Int_t argc,Char_t* argv[])
   //Delete all the objects stored in the current directory memmory
   gDirectory->Delete("*");
 
-//connect to the data base
+//connect to the data bases
   db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_linreg_20110125","qweak", "QweakQweak");
-  if(db)
-    printf("Server info: %s\n", db->ServerInfo());
+
+  if(db){
+    printf("Unregreesed database server info: %s\n", db->ServerInfo());
+  }
   else
     exit(1);
-
+  
   // clear arrays;
   for(Int_t i =0;i<8;i++){
     value1[i] = 0.0;
     err1[i] = 0.0;
-    value2[i] =0.0;
-    err2[i]=0.0;
-    value3[i]=0.0;
-    err3[i]=0.0;
     value11[i]=0.0;
     err11[i]=0.0;
-    value22[i]=0.0;
-    err22[i]=0.0;
-    value33[i]=0.0;
-    err33[i]=0.0;
-    valuein[i]= 0.0;
-    errin[i]=0.0;
-    valueout[i]=0.0;
-    errout[i]=0.0;
-
-  
   }
+
 
   for(Int_t i =0;i<4;i++){
-
-    value111[i] = 0.0;
-    err111[i] = 0.0;
-    value222[i] =0.0;
-    err222[i]=0.0;
-
-  
+    value2[i] = 0.0;
+    err2[i] = 0.0;
+    value22[i] =0.0;
+    err22[i]=0.0;  
   }
 
+  for(Int_t i =0;i<5;i++){
+    value3[i] = 0.0;
+    err3[i] = 0.0;
+    value33[i]=0.0;
+    err33[i]=0.0;
+  }
+
+  // Open a txt file to store data
+  Char_t  textfile[400];
+  sprintf(textfile,"%s_%s_in_out_values1.txt",targ.Data(),polar.Data()); 
+  Myfile.open(textfile);
+
   //plot MD asymmetries
-  TString title1 = Form("%s (%s): Regressed slug averages of Main detector asymmetries. TOP FIT = p0*cos(phi + p1) + p2 and BOTTOM FIT = pol0",targ.Data(),polar.Data());
+  TString title1 = Form("%s (%s): Regressed slug averages of Main detector asymmetries. FIT = p0*cos(phi + p1) + p2",targ.Data(),polar.Data());
   TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,500);
   Canvas1->Draw();
   Canvas1->cd();
@@ -290,17 +266,25 @@ int main(Int_t argc,Char_t* argv[])
   t1->Draw();
 
   pad2->cd();
-  get_octant_data(8,quartz_bar_SUM, "MD", goodfor, target, "out", value3,  err3);
-  get_octant_data(8,quartz_bar_SUM, "MD", goodfor, target, "in",  value33, err33);
-  plot_octant(8,"MD BAR SUM", value33,err33,value3,err3);
+  Myfile << " \n======================================"<<std::endl;
+  Myfile << " Main detectotrs "<<std::endl;
+  Myfile << " ========================================"<<std::endl;
+
+  get_octant_data(8,quartz_bar_SUM, "MD", goodfor, target, "out", value1,  err1);
+  get_octant_data(8,quartz_bar_SUM, "MD", goodfor, target, "in",  value11, err11);
+  plot_octant(8,"MD", value11,err11,value1,err1);
   gPad->Update();
 
 
   Canvas1->Update();
-  Canvas1->Print(polar+"_"+target+"_md_regressed_slug_summary_plots.gif");
+  Canvas1->Print(polar+"_"+target+"_md_regressed_slug_summary_plots1.png");
+
+  // Calculate sum of opposite octants
+  get_opposite_octant_average(8,"MD", value11,err11,value1,err1);
+
 
   // plot US LUMI asymmetries
-  TString title2 = targ+"("+polar+"): Regressed slug averages of US Lumi asymmetries. TOP FIT = p0*cos(phi + p1) + p2 and BOTTOM FIT = pol0";
+  TString title2 = targ+"("+polar+"): Regressed slug averages of US Lumi asymmetries. FIT = p0*cos(phi + p1) + p2";
   TCanvas * Canvas2 = new TCanvas("canvas2", title2,0,0,1000,500);   
   Canvas2->Draw();
   Canvas2->cd();
@@ -318,16 +302,20 @@ int main(Int_t argc,Char_t* argv[])
   t11->Draw();
 
   pad22->cd();
-  get_octant_data(4,us_lumi,"LUMI", goodfor, target, "in", value111,err111);
-  get_octant_data(4,us_lumi,"LUMI", goodfor, target, "out", value222,err222);
-  plot_octant(4,"US LUMI", value111,err111,value222,err222);
+  Myfile << " \n======================================"<<std::endl;
+  Myfile << " Upstream Lumis "<<std::endl;
+  Myfile << " ========================================"<<std::endl;
+ 
+  get_octant_data(4,us_lumi,"LUMI", goodfor, target, "out", value2,err2);
+  get_octant_data(4,us_lumi,"LUMI", goodfor, target, "in", value22,err22);
+  plot_octant(4,"US LUMI", value22,err22,value2,err2);
   gPad->Update();
 
   Canvas2-> Update();
-  Canvas2->Print(polar+"_"+target+"_uslumi_regressed_slug_summary_plots.gif");
+  Canvas2->Print(polar+"_"+target+"_uslumi_regressed_slug_summary_plots1.png");
 
   // plot DS LUMI asymmetries
-  TString title3 = targ+"("+polar+"): Regressed slug averages of DS LUMI asymmetries. TOP FIT = p0*cos(phi + p1) + p2 and BOTTOM FIT = pol0";
+  TString title3 = targ+"("+polar+"): Regressed slug averages of DS LUMI asymmetries. FIT = p0*cos(phi + p1) + p2";
   TCanvas * Canvas3 = new TCanvas("canvas1", title1,0,0,1000,500);
   Canvas3->Draw();
 
@@ -345,14 +333,20 @@ int main(Int_t argc,Char_t* argv[])
   t111->Draw();
 
   pad222->cd();
-  get_octant_data(5,DS_lumi,"LUMI", goodfor, target, "in", valuein,errin);
-  get_octant_data(5,DS_lumi,"LUMI", goodfor, target, "out", valueout,errout);
-  plot_octant(5,"DS_LUMI",valuein,errin,valueout,errout);
+
+  Myfile << " \n======================================"<<std::endl;
+  Myfile << " Downstream Lumis "<<std::endl;
+  Myfile << " ======================================"<<std::endl;
+
+  get_octant_data(5,DS_lumi,"LUMI", goodfor, target, "out", value3,err3);
+  get_octant_data(5,DS_lumi,"LUMI", goodfor, target, "in", value33,err33);
+  plot_octant(5,"DS_LUMI",value33,err33,value3,err3);
   gPad->Update();
 
   Canvas3-> Update();
-  Canvas3->Print(polar+"_"+target+"_dslumi_regressed_slug_summary_plots.gif");
+  Canvas3->Print(polar+"_"+target+"_dslumi_regressed_slug_summary_plots1.png");
 
+  Myfile.close();
 
   std::cout<<"Done plotting fits \n";
   db->Close();
@@ -368,14 +362,15 @@ int main(Int_t argc,Char_t* argv[])
 //         get query              
 //***************************************************
 //***************************************************
-TString get_query(TString detector, TString measurement, TString target, TString ihwp, TString detector_type, TString goodfor, TString polar){
+TString get_query(TString detector, TString measurement, TString target, TString ihwp, 
+		  TString detector_type, TString goodfor, TString polar){
 
 
 
   Bool_t ldebug = true;
   TString datatable;
   TString plate_cut;
-
+  TString good_for_cut;
  
   if(detector_type == "MD")
     datatable = "md_data_view";
@@ -384,72 +379,28 @@ TString get_query(TString detector, TString measurement, TString target, TString
   if(detector_type == "BEAM")
     datatable = "beam_view";
 
-  TString output = " sum( "+datatable+".value/(POWER("+datatable+".error,2)))/sum(1/(POWER("+datatable+".error,2))), SQRT(1/SUM(1/(POWER("+datatable+".error,2))))";
+  TString output = " sum( distinct (linreg.value/(POWER(linreg.error,2))))/sum( distinct (1/(POWER(linreg.error,2)))), SQRT(1/SUM( distinct (1/(POWER(linreg.error,2)))))";
+  TString run_quality_cut = "(fall2010.run_quality_id = '1') "; // good/suspect
 
- 
-  //TString good_for_cut = "run.run_type ='parity' AND md_data_view.good_for_id = NULL || ((md_data_view.good_for_id = 'parity' || md_data_view.good_for_id = 'production') && md_data_view.good_for_id != 'commissioning'))";
 
-  //TString run_quality_cut = "(md_data_view.run_quality_id = NULL || md_data_view.run_quality_id != 'bad')";
+  TString join = Form(" qw_fall2010_20101204.%s as fall2010 JOIN qw_linreg_20110125.%s AS linreg ON fall2010.run_number = linreg.run_number JOIN qw_fall2010_20101204.slow_controls_settings AS fall_slow ON fall2010.runlet_id = fall_slow.runlet_id ",datatable.Data(),datatable.Data());
 
-  //  TString good_for_cut = Form("%s.good_for_id = '1,8' OR %s.good_for_id = 8",datatable.Data(),datatable.Data());
+  TString tgt_cut = Form(" fall_slow.target_position = '%s' ",target.Data());
+  TString ihwp_cut = Form(" fall_slow.slow_helicity_plate = '%s' ",ihwp.Data());
+
+  // To get rid of runs that have large charge asymmetries
+  TString run_cut = "linreg.run_number != 9831 AND linreg.run_number != 9834  AND linreg.run_number !=9837 AND linreg.run_number != 9836 AND linreg.run_number != 9842  AND linreg.run_number != 9863 AND linreg.run_number != 9866 AND linreg.run_number != 9867  AND linreg.run_number != 9875 AND linreg.run_number != 9878 and linreg.run_number != 9877  ";
   
-  TString good_for_cut = Form("%s.good_for_id = '%s'",datatable.Data(),goodfor.Data());
-  TString run_quality_cut = Form("%s.run_quality_id = 1",datatable.Data()); // good
-
-// To get rid of runs that have large charge asymmetries
-  TString run_cut = Form("%s.run_number != 9831 AND %s.run_number != 9837 AND %s.run_number != 9853 AND %s.run_number != 9888  AND %s.run_number != 9885 AND %s.run_number != 9880 AND %s.run_number != 9851 AND  ",datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data(),datatable.Data()); 
-
 
   /*************************
   longitudinal
 
   **************************/
   if(polar == "longitudinal"){
-    if(target == "HYDROGEN-CELL"){
-      run_cut = "";
-      if(ihwp == "out"){
-	//plate_cut = "("+datatable+".run_number > 9270 AND "+datatable+".run_number < 9276)"; // slug 25
-	//plate_cut = "("+datatable+".run_number > 9296 AND "+datatable+".run_number < 9344)"; // slug 27
-	plate_cut = "("+datatable+".run_number > 9803 AND "+datatable+".run_number < 9813)"; // slug 40
-	//plate_cut = "("+datatable+".run_number > 9749 AND "+datatable+".run_number < 9761)"; // slug 36
-	//plate_cut = "("+datatable+".run_number > 9773 AND "+datatable+".run_number < 9789)"; //slug 33
-	//plate_cut = "("+datatable+".run_number > 9590 AND "+datatable+".run_number < 9620)"; // slug 31
-	// plate_cut = "("+datatable+".run_number > 9083 AND "+datatable+".run_number < 9107)"; // slug 21 / 9083-9106 
-	//plate_cut = "("+datatable+".run_number > 9704 AND "+datatable+".run_number < 9735)"; // slug 34 / 9704 - 9734
-	//plate_cut = "("+datatable+".run_number > 9749 AND "+datatable+".run_number < 9762)"; // slug 36 / 9749 - 9761 
-	//plate_cut = "("+datatable+".run_number > 9773 AND "+datatable+".run_number < 9789)"; // slug 38/9773 - 9788 
-	//plate_cut = "("+datatable+".run_number > 9803 AND "+datatable+".run_number < 9813)"; // slug 40/9803 - 9812
-	// plate_cut = "("+datatable+".run_number > 9969 AND "+datatable+".run_number < 9982)"; // slug 43/	9969-9982
-	//plate_cut = "("+datatable+".run_number > 9991 AND "+datatable+".run_number < 10004)"; // slug 45/	9991-10003 
-	
-      }
-      if(ihwp == "in"){
-	//plate_cut = "("+datatable+".run_number > 9277 AND "+datatable+".run_number < 9295) "; //slug 26 part
-	//plate_cut = "("+datatable+".run_number > 9413 AND "+datatable+".run_number < 9421) "; //slug 29 part
-	plate_cut = "("+datatable+".run_number > 9789 AND "+datatable+".run_number < 9796) "; //slug 39 part
-	//plate_cut = "("+datatable+".run_number > 9735 AND "+datatable+".run_number < 9749) "; //slug 35 9060-9082
-	//plate_cut = "("+datatable+".run_number > 9060 AND "+datatable+".run_number < 9083) "; //slug 20/ 9060-9082
-	// plate_cut = "("+datatable+".run_number > 9735 AND "+datatable+".run_number < 9749) "; //slug 35/9735 - 9748
-	//plate_cut = "("+datatable+".run_number > 9762 AND "+datatable+".run_number < 9773) "; // slug-37/ 9762 - 9772
-	// plate_cut = "("+datatable+".run_number > 9789 AND "+datatable+".run_number < 9796) "; // slug-39/ 9789-9795
-	//plate_cut = "("+datatable+".run_number > 9890 AND "+datatable+".run_number < 9906) "; // slug-41/ 9890-9906
-	//plate_cut = "("+datatable+".run_number > 9983 AND "+datatable+".run_number < 9991) "; // slug-44/ 9983-9990
-	//plate_cut = "("+datatable+".run_number > 10005 AND "+datatable+".run_number < 10030) "; // slug-46/ 10005-10029
-	
-	
-      }
-    }
-    
-    if(target == "DS-4%-Aluminum"){
-      //run_cut = datatable+".run_number > 9847 AND "+datatable+".run_number < 9859 "; // since the db reads the range as lower to upper-1 to give the proper range I add 1 to the upper cut.
-      if(ihwp == "out"){
-	plate_cut = "("+datatable+".run_number > 9442 AND "+datatable+".run_number < 9448)"; // slug 1011
-      }
-      if(ihwp == "in"){
-	plate_cut = "("+datatable+".run_number > 9500 AND "+datatable+".run_number < 9503)"; // slug 1012
+    //    run_cut = " (linreg.run_number<9824  or linreg.run_number>9886)";
+    run_cut = " (linreg.run_number>9886)";
+    good_for_cut = " (fall2010.good_for_id = '1,3' or fall2010.good_for_id='3') ";
 
-      }
-    }
   }
   
 
@@ -459,35 +410,13 @@ TString get_query(TString detector, TString measurement, TString target, TString
   **************************/
 
   if(polar == "transverse"){
-    if(target == "HYDROGEN-CELL"){
-      if(ihwp == "out")
-	plate_cut = "("+datatable+".run_number > 9863 AND "+datatable+".run_number < 9879)";// OR ("+datatable+".run_number > 9853 AND "+datatable+".run_number < 9888)";
-      if(ihwp == "in")
-	plate_cut = "("+datatable+".run_number > 9881 AND "+datatable+".run_number < 9885)";// OR ("+datatable+".run_number > 9837 AND "+datatable+".run_number < 9853)";
-      
-    }
-    
-    if(target == "DS-4%-Aluminum"){
-      if(ihwp == "out")
-	plate_cut = "("+datatable+".run_number > 9853 AND "+datatable+".run_number < 9859)";
-      if(ihwp == "in")
-	plate_cut = "("+datatable+".run_number > 9847 AND "+datatable+".run_number < 9853)";
-    }
+//     run_cut = " (linreg.run_number>=9824 and linreg.run_number<=9881 and linreg.run_number != 9842 and linreg.run_number !=9878 and linreg.run_number != 9884 and linreg.run_number !=9883 and linreg.run_number != 9882 ) ";
+    good_for_cut = " (fall2010.good_for_id = '1,8' or fall2010.good_for_id='8') ";
   }
-  
 
   TString query =" SELECT " + output
-    + " FROM "+datatable+", analysis, run, runlet "
-    + " WHERE "+datatable+".analysis_id = analysis.analysis_id AND analysis.runlet_id = runlet.runlet_id AND"
-    + " run.run_number = "+datatable+".run_number AND "
-    +datatable+".detector = '"+detector+"' AND "
-    +datatable+".subblock = 0 AND "
-    +run_cut+
-    +datatable+".measurement_type = '"+measurement+"' AND "+datatable+".slope_correction = 'on' AND "+datatable+".slope_calculation = 'off' AND "
-    //+good_for_cut+" AND "
-    // +run_quality_cut+ " AND "
-    +plate_cut+" AND error !=0;";
-
+    + " FROM "+join+"WHERE linreg.detector='"+detector+"' AND linreg.subblock = 0 AND "+tgt_cut+" AND "+run_quality_cut+" AND "
+    +ihwp_cut+" AND "+run_cut+" AND "+good_for_cut+" AND linreg.measurement_type = '"+measurement+"' AND linreg.slope_correction = 'on' AND linreg.slope_calculation = 'off' AND linreg.error !=0 and linreg.value != 0;";
  			 
   if(ldebug)  std::cout<<query<<std::endl;
 
@@ -540,16 +469,20 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
 {
 
   const int k = size;
-  std::cout<<" Plotting multi size "<<k<<std::endl;
+  Double_t valuesum[k];
+  Double_t valueerror[k];
+  Double_t valuediff[k];
+  Double_t errordiff[k];
   
   Double_t x[k];
   Double_t errx[k];
   
   for(Int_t i =0;i<k;i++){
     if(device.Contains("US"))
-       x[i] = 2*i+1;
-    else if(device.Contains("DS"))
-      x[i] = i+1;
+      x[i] = 2*i+1;
+    else if(device.Contains("DS")){
+	x[i] = i+1;
+    }
     else
       x[i] = i+1;
 
@@ -557,63 +490,82 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   }
 
   TPad* pad = (TPad*)(gPad->GetMother());
-  std::cout<<"size = "<<k<<std::endl;
- // Sin fit 
-  TF1 *sinfit = new TF1("sinfit","[0]*sin((pi/180)*(45*(x-1) + [1]))+[2]",1,8);
-  sinfit->SetParameter(0,0);
-  sinfit->SetParameter(1,0);
-  sinfit->SetParameter(2,0);
-  
-  // cos fit (if we want we can switch to this)
+ 
+  // cos fit 
   TF1 *cosfit = new TF1("cosfit","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
   cosfit->SetParameter(0,0);
   cosfit->SetParameter(1,0);
   cosfit->SetParameter(2,0);
+  cosfit->SetParLimits(1, -180, 180);
+
+  //Take the average over the in and out half wave plate values. 
+  // Here we take just the average and not the weighted average because we are testing a hypothesis
+  // IN+OUT=? 0. Since we are not sure if IN ~ OUT we can't consider them as a measurement of the
+  // same value to do the weighted average.
+  Myfile<<"######################"<<std::endl;
+  Myfile<<"IN+OUT "<<std::endl;
+  for(Int_t i =0;i<size;i++){
+    valuesum[i]=valuesin[i]+valuesout[i];
+    valueerror[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2));
+    Myfile<<"Valuein = "<<valuesin[i]<<" Errorin = "<< errorsin[i]<<std::endl;
+    Myfile<<"Valueout = "<<valuesout[i]<<" Errorout = "<< errorsout[i]<<std::endl;
+    Myfile<<"Value IN+OUT= "<<valuesum[i]<<" Error IN+OUT= "<< valueerror[i]<<std::endl;
+  }
+  std::cout<<"######################\n"<<std::endl;
+
+  //Take the weighted difference in the IHWP in and out half wave plate values.
+  //Here from IN+OUT ~ 0 we know that IN and OUT are a measurement of the same thing
+  //so we can take the weighted error difference when we take IN-OUT.
+
+  Myfile<<"IN-OUT "<<std::endl;
+  for(Int_t i =0;i<size;i++){
+    valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1/pow(errorsin[i],2)) + (1/pow(errorsout[i],2)));
+    errordiff[i]= sqrt(1/((1/(pow(errorsin[i],2)))+(1/pow(errorsout[i],2))));
+
+    Myfile<<"Valuein = "<<valuesin[i]<<" Errorin = "<< errorsin[i]<<std::endl;
+    Myfile<<"Valueout = "<<valuesout[i]<<" Errorout = "<< errorsout[i]<<std::endl;
+    Myfile<<"Value IN-OUT = "<<valuesum[i]<<" Error IN-OUT= "<< valueerror[i]<<std::endl;
+  }
+  std::cout<<"######################"<<std::endl;
 
 
+
+  // Draw IN values
   TGraphErrors* grp_in  = new TGraphErrors(k,x,valuesin,errx,errorsin);
   grp_in ->SetMarkerSize(0.6);
   grp_in ->SetMarkerStyle(21);
   grp_in ->SetMarkerColor(kBlue);
-  grp_in->Fit("cosfit");
+  grp_in->Fit("cosfit","B");
   TF1* fit1 = grp_in->GetFunction("cosfit");
   fit1->DrawCopy("same");
   fit1->SetLineColor(kBlue);
 
+  // Draw OUT values
   TGraphErrors* grp_out  = new TGraphErrors(k,x,valuesout,errx,errorsout);
   grp_out ->SetMarkerSize(0.6);
   grp_out ->SetMarkerStyle(21);
   grp_out ->SetMarkerColor(kRed);
-  grp_out->Fit("cosfit");
+  grp_out->Fit("cosfit","B");
   TF1* fit2 = grp_out->GetFunction("cosfit");
   fit2->DrawCopy("same");
   fit2->SetLineColor(kRed);
 
-
- 
-  // Sum over the in and out half wave plate states
-  for(Int_t i =0;i<8;i++){
-    valuesum[i]=(valuesin[i]+valuesout[i])/2;
-    valueerror[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2))/2;
-  }
-
-
+  // Draw IN+OUT values
   TGraphErrors* grp_sum  = new TGraphErrors(k,x,valuesum,errx,valueerror);
-  grp_sum ->SetMarkerSize(0.8);
+  grp_sum ->SetMarkerSize(0.6);
   grp_sum ->SetMarkerStyle(21);
   grp_sum ->SetMarkerColor(kGreen-2);
-  grp_sum->Fit("pol0");
-  TF1* fit3 = grp_sum->GetFunction("pol0");
+  grp_sum->Fit("cosfit","B");
+  TF1* fit3 = grp_sum->GetFunction("cosfit");
   fit3->DrawCopy("same");
   fit3->SetLineColor(kGreen-2);
 
-
+ 
   TMultiGraph * grp = new TMultiGraph();
   grp->Add(grp_in);
   grp->Add(grp_out);
   grp->Add(grp_sum);
   grp->Draw("AP");
-
   grp->SetTitle("");
   grp->GetXaxis()->SetTitle("Octant");
   grp->GetXaxis()->CenterTitle();
@@ -629,25 +581,261 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   legend->SetFillColor(0);
   legend->Draw("");
 
-
-
   TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
   TPaveStats *stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
   TPaveStats *stats3 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
 
-  stats1->SetTextColor(kBlue); 
-  stats2->SetTextColor(kRed); 
+  stats1->SetTextColor(kBlue);
+  stats1->SetFillColor(kWhite); 
+
+  stats2->SetTextColor(kRed);
+  stats2->SetFillColor(kWhite); 
+ 
   stats3->SetTextColor(kGreen-2);
+  stats3->SetFillColor(kWhite); 
+
   stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
   stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
   stats3->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats3->SetY1NDC(0.1);stats3->SetY2NDC(0.35);
 
-  
   pad->Update();
-  pad->cd(2);
+  
+  // Difference over the in and out half wave plate values
+  TString title = targ+"("+polar+"): IN-OUT of regressed "+device+" asymmetries. FIT = p0*cos(phi + p1) + p2";
 
+  TCanvas * Canvas11 = new TCanvas("canvas11",title,0,0,1000,500);
+  Canvas11->Draw();
+  Canvas11->cd();
+
+  TPad*pad11 = new TPad("pad11","pad11",0.005,0.935,0.995,0.995);
+  TPad*pad22 = new TPad("pad22","pad22",0.005,0.005,0.995,0.945);
+  pad11->SetFillColor(20);
+  pad11->Draw();
+  pad22->Draw();
+  
+
+  pad11->cd();
+  TString text = Form(title);
+  TText*t1 = new TText(0.06,0.3,text);
+  t1->SetTextSize(0.5);
+  t1->Draw();
+
+  pad22->cd();
+  pad22->SetFillColor(0);
+
+  // Draw In-Out
+  TGraphErrors* grp_diff  = new TGraphErrors(k,x,valuediff,errx,errordiff);
+  grp_diff ->SetMarkerSize(0.6);
+  grp_diff ->SetMarkerStyle(21);
+  grp_diff ->SetMarkerColor(kBlack-2);
+  grp_diff->Fit("cosfit","B");
+ 
+  TF1* fit4 = grp_diff->GetFunction("cosfit");
+  fit4->DrawCopy("same");
+  fit4->SetLineColor(kMagenta+1);
+
+  TMultiGraph * grp1 = new TMultiGraph();
+  grp1->Add(grp_diff);
+  grp1->Draw("AP");
+
+  grp1->SetTitle("");
+  grp1->GetXaxis()->SetTitle("Octant");
+  grp1->GetXaxis()->CenterTitle();
+  grp1->GetYaxis()->SetTitle(Form("%s Asymmetry (ppm)",device.Data()));
+  grp1->GetYaxis()->CenterTitle();
+  grp1->GetYaxis()->SetTitleSize(0.03);
+  grp1->GetYaxis()->SetTitleOffset(0.7);
+  grp1->GetXaxis()->SetTitleOffset(0.8);
+
+
+  TPaveStats *stats11 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
+
+  stats11->SetTextColor(kBlack);
+  stats11->SetFillColor(kWhite); 
+  stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
+
+  Canvas11-> Update();
+  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_in_out_plots1.png");
 
 }
 
 
+//***************************************************
+//***************************************************
+//         get error weighted average of octants                
+//***************************************************
+//***************************************************
+
+void get_octant_average(Int_t size,TString device, Double_t value[],Double_t error[])  
+{
+  Bool_t ldebug = false;
+  Double_t avgvalue = 0.0;
+  Double_t avg = 0.0;
+
+  Double_t avgerror = 0.0;
+  Double_t avgerr = 0.0;
+
+  if(ldebug) printf("Summing over the octants of %s\n", device.Data());
+
+  // Calculated weighted average
+  for(Int_t i =0;i<size;i++){
+    if(ldebug) std::cout<<"value = "<<value[i]<<" error = "<<error[i]<<std::endl;
+    avg += value[i]/pow(error[i],2);
+    avgerr +=  1/(pow(error[i],2));
+  }
+
+  avgvalue = avg/avgerr;
+  avgerror = sqrt(1/avgerr);
+
+  Printf("Error weighted average for all the octants of %8s is (%3.4f +- %3.4f) ppm ",device.Data(),avgvalue,avgerror);
+}
+
+
+//***************************************************
+//***************************************************
+//         get error weighted average of opposite octants                
+//***************************************************
+//***************************************************
+
+void get_opposite_octant_average(Int_t size,TString device, 
+				 Double_t valuesin[],Double_t errorsin[],
+				 Double_t valuesout[],Double_t errorsout[])  
+{
+  Bool_t ldebug = false;
+  Double_t avgvalue = 0.0;
+  Double_t avg = 0.0;
+
+  Double_t avgerror = 0.0;
+  Double_t avgerr = 0.0;
+
+  Double_t valuesum[8];
+  Double_t errorsum[8];
+
+  Double_t valuediff[8];
+  Double_t errordiff[8];
+  
+  Double_t valuesumopp[4];
+  Double_t errorsumopp[4];  
+  Double_t valuediffopp[4];
+  Double_t errordiffopp[4];
+  Double_t x[4];
+  Double_t errx[4];
+  
+  for(Int_t i =0;i<4;i++){
+    x[i]=i+1;
+    errx[i]=0.0;
+  }
+
+  if(ldebug) printf("Summing over the opposite octants of %s\n", device.Data());
+
+  // Calculated weighted average for in-out and in+out
+  for(Int_t i =0;i<8;i++){
+    valuesum[i]=valuesin[i]+valuesout[i];
+    errorsum[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2));
+
+    valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) + (valuesin[i]/pow(errorsin[i],2))) /((1/pow(errorsin[i],2)) + (1/pow(errorsin[i],2)));
+    errordiff[i]= sqrt(1/((1/(pow(errorsin[i],2)))+(1/pow(errorsin[i],2))));
+  }
+
+  // Sum and difference of the opposite octants.
+  // Sum is normal average.
+  // Difference is weighted.
+
+  Myfile<<"\n##############################"<<std::endl;
+  Myfile<<"Sum and difference of opposite octants "<<std::endl;
+  for(Int_t i =0;i<4;i++){
+    valuesumopp[i]= valuesum[i]+valuesum[i+4];
+    errorsumopp[i]= sqrt(pow(errorsum[i],2)+pow(errorsum[i+4],2));
+    valuediffopp[i]=valuediff[i]+valuediff[i+4];
+    errordiffopp[i]=sqrt(pow(errordiff[i],2)+pow(errordiff[i+4],2));   
+
+    Myfile<<"Value sum = "<<valuesumopp[i]<<" Error sum = "<< errorsumopp[i]<<std::endl;
+    Myfile<<"Value diff = "<<valuediffopp[i]<<" Error diff = "<< errordiffopp[i]<<std::endl;
+  }
+  Myfile<<"##############################\n"<<std::endl;
+
+
+  TString title = targ+"("+polar+"): Regressed slug based opposite octant averages of "+device+"s. FIT = p0*cos(phi + p1) + p2";
+  
+  TCanvas * Canvas11 = new TCanvas("canvas11",title,0,0,1000,500);
+  Canvas11->Draw();
+  Canvas11->cd();
+  TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
+  TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
+  pad1->SetFillColor(20);
+  pad1->Draw();
+  pad2->Draw();
+
+
+  pad1->cd();
+  TString text = Form(title);
+  TText*t1 = new TText(0.06,0.3,text);
+  t1->SetTextSize(0.5);
+  t1->Draw();
+
+  pad2->cd();
+
+  TGraphErrors* grp_sum  = new TGraphErrors(4,x,valuesumopp,errx,errorsumopp);
+  grp_sum ->SetMarkerSize(1.2);
+  grp_sum ->SetMarkerStyle(21);
+  grp_sum ->SetMarkerColor(kGreen-2);
+  //grp_sum->Fit("pol0");
+  //TF1* fit1 = grp_sum->GetFunction("pol0");
+  //fit1->DrawCopy("same");
+  //fit1->SetLineColor(kGreen-2);
+ 
+
+  TGraphErrors* grp_diff  = new TGraphErrors(4,x,valuediffopp,errx,errordiffopp);
+  grp_diff ->SetMarkerSize(1.2);
+  grp_diff ->SetMarkerStyle(21);
+  grp_diff ->SetMarkerColor(kMagenta+1);
+  //  grp_diff->Fit("pol0");
+  // TF1* fit2 = grp_diff->GetFunction("pol0");
+  //fit2->DrawCopy("same");
+  //fit2->SetLineColor(kRed);
+
+  TMultiGraph * grp = new TMultiGraph();
+  grp->Add(grp_sum);
+  grp->Add(grp_diff);
+  grp->Draw("AP");
+
+  grp->SetTitle("");
+  grp->GetXaxis()->SetTitle("Octant+opposite Octant");
+  grp->GetXaxis()->CenterTitle();
+  grp->GetYaxis()->SetTitle(Form("%s Opposite Octant AVG Asymmetry (ppm)",device.Data()));
+  grp->GetYaxis()->CenterTitle();
+  grp->GetYaxis()->SetTitleSize(0.03);
+  grp->GetYaxis()->SetTitleOffset(0.8);
+  grp->GetXaxis()->SetTitleOffset(0.9);
+  // Double_t xmin = grp->GetXaxis()->GetXmin();
+  //Double_t xmax = grp->GetXaxis()->GetXmax();
+  //TLine * line2 = new TLine(xmin,0,xmax,0);
+  //line2->SetLineColor(kBlack);
+  //line2->Draw("");
+
+
+  TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
+  legend->AddEntry(grp_diff, "IN-OUT", "p");
+  legend->AddEntry(grp_sum, "IN+OUT", "p");
+  legend->SetFillColor(0);
+  legend->Draw("");
+
+  // TPaveStats *stats1 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
+  // TPaveStats *stats2 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
+
+  // stats1->SetTextColor(kGreen-2);
+  // stats1->SetFillColor(kWhite); 
+
+  // stats2->SetTextColor(kMagenta+1);
+  // stats2->SetFillColor(kWhite); 
+
+  // stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
+  // stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
+
+  std::cout<<"HERE!!!!!!!!!!!!!!!!!!!!!!\n";
+  Canvas11-> Update();
+  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_opposite_octant_plots1.png");
+  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_opposite_octant_plots1.svg");
+  
+}
 

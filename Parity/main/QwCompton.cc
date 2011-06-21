@@ -93,6 +93,7 @@
 #include "QwSubsystemArrayParity.h"
 
 // Compton headers
+#include "QwScaler.h"
 #include "QwComptonPhotonDetector.h"
 #include "QwComptonElectronDetector.h"
 

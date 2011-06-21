@@ -1,0 +1,48 @@
+// Purpose:  look at some stuff from 'raw' tree of Pan
+// Assumed that you already ran 'open.macro'
+
+{
+   c1 = new TCanvas("beam","BEAM data",800,600);
+
+   pad1 = new TPad("pad1","",0.03,0.5,0.49,0.95,18);
+   pad2 = new TPad("pad2","",0.52,0.5,0.98,0.95,18);
+   pad3 = new TPad("pad3","",0.03,0.0,0.49,0.45,18);
+   pad4 = new TPad("pad4","",0.52,0.02,0.98,0.45,18);
+
+   gStyle->SetOptStat(1);
+   gStyle->SetStatH(0.30);
+   gStyle->SetStatW(0.35);
+   gStyle->SetTitleH(0.12);
+   gStyle->SetTitleW(0.9);
+   gStyle->SetLabelSize(0.04,"x");
+   gStyle->SetLabelSize(0.04,"y");
+   gROOT->ForceStyle();
+
+   c1->SetFillColor(42);
+   c1->Clear();
+   pad1->Draw();
+   pad2->Draw();
+   pad3->Draw();
+   pad4->Draw();
+
+   pad1->cd();
+   raw->Draw("bpm4ax","");
+
+   pad2->cd();
+   raw->Draw("bpm4ay","");
+
+   pad3->cd();
+   raw->Draw("bpm4ax:bpm4bx","");
+
+   pad4->cd();
+   raw->Draw("bpm4ax:bpm4ay","bpm4ay>0");
+
+
+   c1->Update();
+
+}
+
+
+
+
+

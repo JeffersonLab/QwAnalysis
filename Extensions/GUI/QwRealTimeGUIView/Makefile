@@ -3,7 +3,7 @@
 # It is derived form the file in $ROOTSYS/test/Makefile, which
 # was written by the "root" people....
 
--include ../VERSION
+#-include ../VERSION
 
 LIBDIR        = 
 #../QwGUILib
@@ -41,7 +41,7 @@ MFILE         = Makefile
 
 DEBUGFLAGS    = #-DQWGUI_DEBUG
 CXX           = g++
-CXXFLAGS      = -Wall -fPIC -DVERS="\"$(VERS)\"" -O2 #-g -O2
+CXXFLAGS      = -Wall -fPIC  -O2 #-g -O2
 LD            = g++
 LDFLAGS       = #-O2
 SOFLAGS       = -shared
@@ -100,4 +100,4 @@ clean:
 	rm -f ./*.o ./core ./*~ ./*Dict.cc ./*Dict.h ./~* ./G__*.* source/*~ \
 	include/*~
 
-QwGUIMain.o : ../VERSION
+QwGUIMain.o :

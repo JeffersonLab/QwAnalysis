@@ -1,0 +1,73 @@
+{
+// Macro to plot a BPM difference
+// You must first ".x open.macro" to read in the root file.
+
+    gROOT->Reset();
+
+    Int_t nbin = 100;
+    Int_t xlo = -40;  
+    Int_t xhi = 40;
+
+    TString bpmnum;
+    cout << "Enter which BPM  (8, 10, 12, 4A, 4B) "<<endl;
+    cin >> bpmnum;
+    char title[100];
+    sprintf(title,"BPM diff for %s",bpmnum.Data());
+
+    c1 = new TCanvas("c1",title,200,10,700,500);
+
+    c1->SetFillColor(42);
+    c1->SetGrid();
+    c1->GetFrame()->SetFillColor(21);
+    c1->GetFrame()->SetBorderSize(12);  
+    gStyle->SetOptStat(0000);
+
+    gStyle->SetOptFit(0111);
+    gStyle->SetStatH(0.20);
+    gStyle->SetStatW(0.25);
+    gStyle->SetTitleH(0.12);
+    gStyle->SetTitleW(0.7);
+    gStyle->SetLabelSize(0.05,"x");
+    gStyle->SetLabelSize(0.05,"y");
+    gROOT->ForceStyle();
+
+    pad1 = new TPad("pad1","",0.03,0.02,0.49,0.95,18);
+    pad2 = new TPad("pad2","",0.52,0.02,0.98,0.95,18);
+    pad1->Draw();
+    pad2->Draw();
+
+    TString diffx = "diff_bpm" + bpmnum + "x";
+    TString diffy = "diff_bpm" + bpmnum + "y";
+
+    TString htitlex = diffx  + "  BPM diffs";
+    TString htitley = diffy  + "  BPM diffs";
+
+
+    pad1->cd();
+    TH1F *h1 = new TH1F(diffx.Data(),htitlex.Data(),nbin,xlo,xhi);
+    TString instruction = diffx + ">>" + diffx;
+    P->Draw(instruction.Data());
+    h1.Fit("gaus");
+    TF1 *fit = h1.GetFunction("gaus");
+    Double_t a1mean = fit->GetParameter(1);
+    Double_t a1rms = fit->GetParameter(2);
+    Int_t numa1 = h1.GetEntries()+1;
+
+    pad2->cd();
+    TH1F *h2 = new TH1F(diffy.Data(),htitley.Data(),nbin,xlo,xhi);
+    TString instruction = diffy + ">>" + diffy;
+    P->Draw(instruction.Data());
+    h2.Fit("gaus");
+    TF1 *fit = h2.GetFunction("gaus");
+    Double_t a2mean = fit->GetParameter(1);
+    Double_t a2rms = fit->GetParameter(2);
+    Int_t numa2 = h2.GetEntries()+1;
+
+    c1->Update();
+
+    cout << "For BPM  "<<bpmnum<<endl;
+    cout << "Asy BPM diff = "<<a1mean<<"  +/-  "<<a1rms/sqrt(numa1)<<endl;
+    cout << "Asy BPM diff = "<<a2mean<<"  +/-  "<<a2rms/sqrt(numa2)<<endl;
+
+}
+

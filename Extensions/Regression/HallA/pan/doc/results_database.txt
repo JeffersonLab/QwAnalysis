@@ -1,0 +1,128 @@
+Results database files
+
+Results database files are used to keep results of Pan and post-Pan
+analysis in a form that allows easy user and machine access and
+manipulation.  In particular, they have the following features:
+
+1. Good degree of human readability, though not necessarily optimized
+   for clear presentation
+
+2. Easy machine parsing
+
+3. A way to associate results with the database used to compute them,
+   and with other outputs of the same analysis (e.g. the ROOT file)
+
+The results are manipulable by some (future) useful scripts, e.g.:
+
+ o Script(s) to render single-run results for clear presentation
+
+ o Script(s) to combine results from multiple runs, creating new
+   multi-run average outputs in similar form to single run results
+
+ o Script(s) to insert run results into a MySQL database
+
+
+In many ways our requirements parallel those of the analysis control
+database (.db) files.  The latter could have been implemented as a
+single ASCII file or a MySQL database, but we chose instead to use a
+separate file for each run plus scripts to convert between such files
+and entries in a MySQL database.  A similar approach was chosen for
+the results.  
+
+Pan writes a single ASCII .res file per analysis of each run; there
+may be multiple "cycle" or "minirun" results within a single .res
+file.  (But at present, all analysis types write only end-of-run
+cumulative results.)  The file format is designed to meet the above
+requirements 1, 2, and 3.  In particular, requirement 3 is met by
+including a CRC checksum for the analysis control database in the .res
+file.  This allows one to verify that a given .db file was (probably
+-- with small likelihood, two different .db files could have the same
+checksum) the one used to produce the .res file.
+
+(The following feature is not yet implemented.) We also write the same
+checksum to the ROOT output file.  This allows the .res file to be
+associated unambiguously with a ROOT file, which is a good thing in
+itself, and also allows one to recover the database used to create the
+.res file.
+
+The checksum is computed from the ASCII database file read by Pan; it
+does not reflect a command line override, and it is not computed if
+Pan uses a database from a ROOT file.  These deficiencies will be
+corrected later if they are found to be troublesome.
+
+The Pan .res file name is e.g. parity03_3141_standard.res for standard
+analysis of run 3141.
+
+Any post-Pan analysis program or macro that generates further results
+which we may want to read into later analyses should create a new .res
+file with those results appended to the ones in Pan's .res file.  The
+new .res file name would have an additional tag,
+e.g. parity03_3141_standard_redana.res.
+
+Results files may be read using the TaIResultsFile class, and written
+using the TaOResultsFile class.  The results file format is as follows.
+
+Comment lines begin with #; blank lines are allowed.
+
+First non-comment, non-blank line is the run number in integer format,
+followed by the analysis type, followed by the checksum for the
+database in integer format (all separated by one or more spaces/tabs;
+leading and trailing spaces/tabs OK and ignored)
+
+Non-comment, non-blank lines begin with a pair of tags (leading
+spaces/tabs OK and ignored).  Valid characters in each tag are
+alphanumerics and "_".  First tag identifies the program or script
+that wrote the result, and second tag identifies the result.
+
+Following the tag pair are one or more spaces/tabs, then:
+
+ o a value represented in scientific notation with at least 6 digits
+   precision.
+
+ o an error on the value, again represented in scientific notation
+   with at least 6 digits precision.  (Use 0.000000e+00 if no error
+   computed.)
+
+ o two integers; these would denote first and last event numbers for a
+   result pertaining to a portion of a run.  (Use 0 9999999 for
+   results pertaining to a whole run.)
+
+ o a string typically used to indicate units and whether the results
+   is blinded.  Valid characters are all except "#", or line
+   terminator.  Empty string is valid.
+
+The above fields are separated by one or more spaces/tabs.
+
+Next, optionally, are one or more spaces/tabs followed by a comment
+preceded by "#" and terminated by end of line.
+
+Tag pairs should be unique.  If multiple results stored in different
+entries of the same array, or results from different "cycles" or
+"miniruns" are written, they should be distinguished by different
+tags.  Tags should be long enough and non-cryptic enough that a
+non-expert has at least a good chance of guessing their significance,
+or else an explanatory comment should be written.  Ordering within the
+file is not significant (except that if a tag pair occurs more than
+once, all but the last occurrence would be probably be discarded by a
+script that reads the file).
+
+Example:
+
+# This is a pair of comment lines, followed by a blank line, then the
+# run number, analysis type, and checksum.
+
+3141 standard 3915528286
+
+# whole-run value from Pan with no error or units shown:
+pan a_result  3.141593e+00  0.000000e+00 0 9999999   # comment
+# whole-run value from Pan with error, note leading spaces are OK:
+  pan   another_result   3.141593e+00 1.000000e-03  0 9999999
+# whole-run value from Pan with error and units:
+pan one_more_result  3.141593e+00 1.000000e-03  0 9999999 radians 
+# results from two miniruns from Pan:
+pan minirun_1_result 3.141593e+00  0.000000e+00 0 41635
+pan minirun_2_result 2.718282e+00  0.000000e+00 41636 92548  
+# problematic entry, would override previous line:
+pan minirun_2_result 1.414214e+00  0.000000e+00 92549 9999999
+# but this would not override anything because the tag pair is unique:
+redana minirun_2_result 1.414214e+00  0.000000e+00 92549 9999999

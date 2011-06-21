@@ -18,9 +18,9 @@
 using namespace QwParityDB;
 
 // Specific template instantiations
-template inline void QwDBInterface::AddThisEntryToList<QwParityDB::md_data>(std::vector<QwParityDB::md_data> &list);
-template inline void QwDBInterface::AddThisEntryToList<QwParityDB::lumi_data>(std::vector<QwParityDB::lumi_data> &list);
-template inline void QwDBInterface::AddThisEntryToList<QwParityDB::beam>(std::vector<QwParityDB::beam> &list);
+template void QwDBInterface::AddThisEntryToList<QwParityDB::md_data>(std::vector<QwParityDB::md_data> &list);
+template void QwDBInterface::AddThisEntryToList<QwParityDB::lumi_data>(std::vector<QwParityDB::lumi_data> &list);
+template void QwDBInterface::AddThisEntryToList<QwParityDB::beam>(std::vector<QwParityDB::beam> &list);
 
 // Definition of static class members in QwDatabase
 std::map<string, unsigned int> QwDatabase::fMonitorIDs;

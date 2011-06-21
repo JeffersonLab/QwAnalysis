@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>How to obtain Pan</title>
+    <link type="text/css" rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+
+    <h1>How to obtain <span class="shoutcolor">Pan</span></h1>
+
+<p>Pan is available for installation on your system.  It has been
+developed under Red Hat Linux, currently is known to work on RHEL 3
+and Scientific Linux 3 (probably still works on Red Hat versions 7.3
+and later), and has been used successfully under Debian Linux as well.
+Let us know if you need to use it under a different system and we'll
+do what we can to help you get there.</p>
+
+<p>You can obtain Pan in either of two ways:</p>
+
+<ol>
+
+  <li class="spaced">Most users will want to download the current
+  production version
+      in the form of a tar file, available at
+
+      <a href="http://physics.syr.edu/~rsholmes/happex/pan/pan_v1.1.tar.gz">&lt;http://physics.syr.edu/~rsholmes/happex/pan/pan_v1.1.tar.gz&gt;</a>
+
+      After downloading, unpack with
+
+      <blockquote><code>tar -xvzf pan_v1.1.tar.gz</code></blockquote>
+
+      This will create a directory called <code>pan</code> containing all source,
+      macro, and documentation files, and default configuration files.</li>
+      
+  <li class="spaced">Experts or would-be experts may want to get the
+  latest version
+  of Pan from the CVS repository.  (For example, you may need or
+  want a version that fixes a bug in the current production
+  version, or adds a feature.  But note that bugs may have been
+  added too!  The CVS version has not necessarily been tested for
+  stability.)  Anyone with a Jlab account can
+  check out Pan in read-only mode.  On whatever computer system
+  you want to install Pan on, first make sure you have CVS installed.
+  (See
+  
+  <a href="doc/CVS_howto">CVS_howto</a>
+
+  and
+  
+  <a href="http://www.cvshome.org">&lt;http://www.cvshome.org&gt;</a>
+  
+  for information on obtaining and using CVS.)  Then check out Pan
+  using (in sh type shells)
+      
+      <blockquote><code>export CVS_RSH=ssh<br /> 
+      cvs -d ":ext:<em>user</em>@cvs.jlab.org:/group/halla/parity/cvs" checkout pan</code>
+      </blockquote>
+      
+or (in csh type shells)
+      
+      <blockquote><code>setenv CVS_RSH ssh<br /> 
+      cvs -d ":ext:<em>user</em>@cvs.jlab.org:/group/halla/parity/cvs" checkout pan</code>
+      </blockquote>
+
+      where <em><code>user</code></em> is your Jlab user name; normally you will
+      need to type your Jlab password when prompted.  This will create
+      a directory called <code>pan</code> containing all source,
+      macro, and documentation files, and default configuration files.
+      If you want write access to the CVS repository (i.e., if you
+      want to become a contributing Pan author) you must contact
+
+      <a href="mailto:rom@jlab.org">Bob Michaels, &lt;rom@jlab.org&gt;</a>.
+
+</li>
+
+</ol>
+
+<div class="fineprint">
+<hr />
+    <a href="http://hallaweb.jlab.org/parity/">JLab Hall A parity experiments</a><br />
+    <hr />
+
+    <address>
+Rich Holmes / <a href="http://physics.syr.edu/~rsholmes/contact.html">Contact form</a></address>
+    <p><!-- hhmts start -->
+Last modified: Fri Aug 26 16:53:25 EDT 2005
+<!-- hhmts end -->    </p>
+</div>
+  </body>
+</html>

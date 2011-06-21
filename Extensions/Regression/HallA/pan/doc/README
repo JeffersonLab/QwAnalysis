@@ -1,0 +1,275 @@
+
+   ++++++++++++++++++++++++++++++++++
+   +                                +
+   +    PAN  -  Parity  Analyzer    +
+   +                                +
+   ++++++++++++++++++++++++++++++++++
+
+authors:  Richard Holmes, Antonin Vacheret, Robert Michaels
+          (and later others...)
+
+Latest production version and web documentation may be found at:
+    <http://physics.syr.edu/~rsholmes/happex/pan/html/index.html>
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Directories of this distribution:
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+      pan              where to run.
+      pan/codaclass    CODA class library code
+      pan/db           database files
+      pan/doc          documentation  (including this file)
+      pan/macro        ROOT macro examples
+      pan/multirun     macros for analysis of multiple runs
+      pan/pandb        tools for interface with MySQL database
+      pan/panguin      tools for online monitoring
+      pan/src          all sources for 'pan'
+      pan/utils        miscellaneous utilities of possible use
+
+
+To compile and link:
+^^^^^^^^^^^^^^^^^^^^
+
+  The short version
+  ^^^^^^^^^^^^^^^^^
+
+Starting in the top level pan directory, do the following:
+
+In sh-like shells:
+
+   export ROOTSYS=/usr/local/root/pro
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ROOTSYS/lib
+   export PATH=$PATH:$ROOTSYS/bin
+
+or in csh-like shells:
+
+   setenv ROOTSYS /usr/local/root/pro
+   setenv LD_LIBRARY_PATH $LD_LIBRARY_PATH:$ROOTSYS/lib
+   setenv PATH $PATH:$ROOTSYS/bin
+
+(substituting in the first line whatever path is appropriate on your
+system for the top level of the ROOT directory structure -- you'll
+probably want to put these lines in your startup command files)
+
+Then, at the shell prompt:
+
+   cd codaclass
+   make libcoda.a
+   cd ../src
+   ln -s ../codaclass/libcoda.a ./
+   make clean
+   make install
+   cd ..
+
+This puts you back where you started, with an executable named pan in
+the current directory.
+
+
+  Some details
+  ^^^^^^^^^^^^
+
+For STL support, use ROOT version 3 or higher.  Info and downloads for
+ROOT at <http://root.cern.ch/root>
+
+Pan is shipped with MAKENODICTIONARY commented out of Makefile.  This
+is required if you want to use the Pan classes from the ROOT command
+line, but note that you must have ROOT version 3.02/07 or later for
+this to work.
+
+You will need the CODA class library, which is in the pan/codaclass/
+directory and is documented at
+<http://hallaweb.jlab.org/equipment/daq/codaclass.html>.  (The version
+in this distribution is modified slightly.)  The codaclass Makefile is
+shipped with ONLINE commented out; you probably will want to leave it
+that way since you probably do not have or need the ET library.
+
+Compile in pan/codaclass with 'make libcoda.a' and copy resulting
+library libcoda.a to the pan/src directory (or make a symlink).  The
+'DCDIR' in the Makefile points to the codaclass directory, where to
+find the headers like THaCodaFile.h.
+
+Next, you may compile the 'pan' executable by going to the pan/src
+directory and using 'make install'.  This creates 'pan' and moves it
+to the pan directory.  When compiling, it may be a good idea to do
+'make clean' first.  Doing 'make clean' is usually a good idea most of
+the time you compile, unless someone would kindly fix all the Makefile
+dependencies perfectly (but they are nearly perfect, I think).
+
+
+To run Pan:
+^^^^^^^^^^^
+
+You may modify what files and paths Pan looks for and creates, if you
+like, by defining suitable environment variables.  See below.  The
+behavior described here assumes you have not done so.
+
+Before running, you will need a 'database' file.  This is an ASCII
+file in the pan/db directory which contains parameters that control
+the program flow, cuts and calibrations, and the datamap.  Normally
+you will use a database file created by the online system at the time
+of the run, or a modified version thereof.  Failing that, there are
+some database files in the pan/db directory and you can modify one as
+needed.  The file name should be parityYY-XXXX.db, where YY is the
+last two digits of the present year and XXXX is the four-digit run
+number of the run to which the database file applies.  If Pan cannot
+find this file it will try to fall back to a generic database file
+called control.db in the pan directory; if it cannot find that, it
+will exit.
+
+You can invoke Pan as follows
+
+   ./pan [-t] [-D database-options] [-r XXXX | -f file | -o]
+
+(Rather to our surprise, in recent Red Hat Linux releases there is a
+news reader called Pan, which may get invoked instead of our Pan if
+you type "pan" rather than "./pan".  If you'd rather, you can put "."
+at the front of your PATH to give it precedence.  Then "pan" should
+work.)
+
+Options may be given in any order.  Use "./pan -r XXXX" to analyze run
+number XXXX, from data file parityYY-XXXX.dat in the pan directory.
+(Again YY is the current year.)  Use "./pan -f file" to analyze
+whatever run is in the specified file.  Use "./pan -o" to analyze
+online data, if you compiled with ONLINE defined.  Or use none of the
+above, just "./pan", to start with a ROOT prompt, from which you can
+invoke Pan methods interactively or through ROOT macros.
+
+The somewhat esoteric -t option tells Pan to do a 2-pass analysis
+which in principle gives better results with less roundoff error.  In
+practice the difference is usually negligible.  Use it, if at all,
+with the -r or -f options only.
+
+The -D option tells Pan to override its default database processing.
+See pan/doc/DATABASE.TXT for details.
+
+Pan will analyze the given run, producing some diagnostic outputs, and
+creating a ROOT output file, parityYY_XXXX_ZZZZ.root, and an ASCII
+results file, parityYY_XXXX_ZZZZ.res, both in the pan directory.  YY
+and XXXX are year and run number, as above, and ZZZZ is a tag denoting
+the analysis type specified in the database.  Some analyses may
+produce additional ROOT files, results files, and/or output files,
+with names like parityYY_XXXX_ZZZZ_WWWW.root,
+parityYY_XXXX_ZZZZ_WWWW.res, and parityYY_XXXX_ZZZZ_WWWW.VVV,
+respectively, where WWWW is a tag and VVV is a suffix provided by the
+analysis.
+
+The principal ROOT file contains an 'event' tree "R" and a 'pair' tree
+"P".  The event tree contains raw data plus calibrated data with
+keywords like 'bcm1', etc.  The pair tree contains helicity correlated
+differences and asymmetries, etc.
+
+A typical ROOT session to look at data (from a previously created ROOT
+file) might be:
+root [0] .x ./macro/open.macro
+Enter run number : 1824
+root [1] raw->Draw("bcm1r:bpm4axp+bpm4axm")
+root [2] asy->Draw("diff_bpm4bx")
+
+The results file contains analysis results in a standard format; see
+pan/doc/results_database.txt for details.
+
+
+Environment variables:
+^^^^^^^^^^^^^^^^^^^^^^
+
+The above file names and directories where Pan reads and writes may be
+modified by setting several environment variables before running Pan.
+Again, fairly reasonable behavior is obtained if you do not set any
+environment variables, but if you need to do so, here is how.
+
+If PAN_FILE_PREFIX is set, it replaces "parityYY" as the base of all
+filenames.  Note that you will probably want to do this if you are
+analyzing data taken before the current year; if not, then even if you
+specify e.g. "-f parity02_1111.dat" on the command line, Pan will
+still look for a database file called "parityYY_1111.db" (where YY is
+the current year).  Setting PAN_FILE_PREFIX to "parity02" lets you
+specify "-r 1111" on the command line and everything should work as
+expected. 
+
+If PAN_CODA_FILE_PATH is set, the input data file is looked for at
+that path.  Likewise, if PAN_DB_FILE_PATH is set, the ASCII database
+file is looked for at that path, and if PAN_ROOT_FILE_PATH,
+PAN_RES_FILE_PATH, or PAN_OUTPUT_FILE_PATH is set, the ROOT file(s),
+results file(s), or the other output file(s), respectively, are
+written at those paths.
+
+If PAN_CODA_FILE_SUFFIX, PAN_DB_FILE_SUFFIX, PAN_RES_FILE_SUFFIX, or
+PAN_ROOT_FILE_SUFFIX is set, they replace "dat", "db", "res", or
+"root", respectively, as the file suffix for the data, database,
+results, or ROOT files.
+
+To set an environment variable in the bash (or other sh-like) shell
+use the command "export variable=value"; use "export -n variable" to
+unset it.  In the tcsh (or other csh-like) shell use "setenv variable
+value" to set, "unsetenv variable" to unset.  In either case use
+"printenv variable" to examine the value of a variable.
+
+EXAMPLE: John Gradstudent is finishing his research and just needs to
+reanalyze data from the 2005 run to complete his analysis.
+Unfortunately the year is now 2078, so Pan's default behavior when
+invoked with "pan -r 6666" is to look for a data file called
+parity78_6666.dat and a database file called parity78_6666.db.
+Furthermore the data file is in the directory /adaql944/data/parity,
+and John wants his ROOT, results, and output files to go to
+/adaql944/work/parity.  So he does the following:
+
+   $ export PAN_FILE_PREFIX=parity05
+   $ export PAN_CODA_FILE_PATH=/adaql944/data/parity
+   $ export PAN_ROOT_FILE_PATH=/adaql944/work/parity
+   $ export PAN_RES_FILE_PATH=/adaql944/work/parity
+   $ export PAN_OUTPUT_FILE_PATH=/adaql944/work/parity
+   $ ./pan -r 6666
+
+Now Pan reads data from /adaql944/data/parity/parity05_6666.dat,
+writes the ROOT trees to
+/adaql944/work/parity/parity05_6666_PHYSICS.root, and so on.
+(Assuming Pan still works in 2078, that is.)  If John puts these in
+his login file, he can analyze all the 2005 data he wants without
+having to re-enter all the above at each session.
+
+
+
+Other documents in pan/doc and pan/doc/html
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+     ChangeLog  -- Detailed list of changes.  Helpful document to 
+                   supplement CVS.  
+
+     CVS_howto -- Advice on how to use CVS     
+
+     DATABASE.TXT  -- Document explaining the rules about database
+                      and datamap.
+
+     html/comments.html -- How to format comments in Pan code for
+                           self-documentation.
+
+     html/index.html -- Front page for Pan documentation.
+
+     html/obtain.html -- How to obtain Pan.
+
+     html/panheader.html -- HTML fragment used in generating class
+                            index pages.
+
+     html/pguide.html -- Pan programmer's guide.
+
+     html/style.css -- CSS style file.
+
+     html/Ta*, html/Va*, html/*_Index.html, etc. -- Class index.  Not
+                       present in a Pan distribution, but can be
+                       generated by running ./pan from the pan
+                       directory and entering:
+
+                            > THtml h
+			    > h.MakeAll()
+
+     newcut.txt -- Information for programmers on how to create a new cut.
+
+     README_ISSUES  -- Current issues.  Make sure you date your entries,
+                       since issues rapidly become non-issues.
+
+     README_PANAM -- Documentation of online monitoring
+
+     README_TREE -- Documentation of trees produced by standard Pan
+                    analysis 
+
+     results_database.txt -- Description of results file format

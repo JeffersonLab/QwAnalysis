@@ -1,0 +1,392 @@
+#!/usr/bin/perl
+####################################################################
+#
+#          modifyDB
+#
+# Author: B. Moffit <http://www.jlab.org/~moffit/>
+# @(#)pan/utils:$Name:  $:$Id: modifyDB,v 1.4 2006/02/28 17:22:55 moffit Exp $
+#
+####################################################################
+#
+#    Perl script to modify a series of ASCII db files
+#    For more info, see &PrintUsage;
+#
+####################################################################
+
+chomp($date = `date +"%Y-%m-%d %k:%M:%S"`);
+chomp($year = `date +%y`);
+
+# Process the command line arguments
+use Getopt::Long;
+my($backup) = 1;
+
+GetOptions('r=s' => \$runnums,      # Range of run numbers to modify
+	   'i=s' => \$runfile,      # Database File to modify
+	   'f=s' => \$templatefile, # Template filename
+           'D'   => \$override,     # Override arguments
+           'verbose' => \$verbose,  # Verbose option
+           'backup!' => \$backup);  # Backup option
+
+unless ($templatefile || $override) {
+  print "\nNeed a modification source.. (-f/-D)\n";
+  &PrintUsage;
+  exit;
+}
+
+unless ($runnums || $runfile) {
+  print "\nNeed something to modify.. (-r/-i)\n";
+  &PrintUsage;
+  exit;
+}
+
+if ($runnums && $runfile) {
+  print "\nOnly one modification destination flag, please\n";
+  &PrintUsage;
+  exit;
+}
+
+# Separate the runnumber string, into expected integers.
+$runnums =~ /^(\d+)-*,*(\d*)/;
+my($low_num) = $1;
+my($high_num) = $2;
+if ($high_num) {
+  if ($low_num > $high_num) {
+    print "\nBad range of run numbers: $low_num-$high_num\n\n";
+    exit;
+  }
+}
+
+#Process Override arguments.  Each line should be separated by a comma.
+if ($override) {
+  @overridelist = &argv2list(@ARGV);
+}
+
+if ($verbose) {
+  print "\n";
+  print "Runs to modify    : [$low_num,$high_num]\n" if ($runnums);
+  print "Filename to modify: $runfile\n"             if ($runfile);
+  print "Template Filename : $templatefile\n"        if ($templatefile);
+  if ($override) {
+    foreach $line (@overridelist) {
+      print "Override          :$line\n";
+    }
+  }
+
+}
+
+# Put together @dbfilelist of files to modify.  Check if they exist along the
+#  way.  If they don't, then they're not in the list (not fatal).
+my($prefix) = "$ENV{'PAN_FILE_PREFIX'}";
+$prefix = "parity$year" unless ($prefix);
+my($suffix) = "$ENV{'PAN_DB_FILE_SUFFIX'}";
+$suffix = "db"          unless ($suffix);
+
+my(@dbfilelist);
+my($filename);
+if ($runnums) {
+  unless ($high_num) {
+    $filename = "$prefix\_$low_num.$suffix";
+    unless ( -s $filename) {
+      print "WARN: $filename does not exist\n";
+    } else {
+      push @dbfilelist, $filename;
+    }
+  } else {
+    for($i = $low_num; $i <= $high_num; $i++) {
+      $filename = "$prefix\_$i.$suffix";
+      unless ( -s $filename) {
+	print "WARN: $filename does not exist\n";
+      } else {
+	push @dbfilelist, $filename;
+      }
+    }
+  }
+} else {
+  push @dbfilelist, $runfile;
+}
+
+if ($verbose) {
+  foreach $line (@dbfilelist) {
+    print "Will modify: $line\n"
+  }
+}
+
+if ($templatefile) {
+  # Open template file and read it into @templatelines.
+  unless ( -s $templatefile ) {
+    print "ERROR\n  [template file]=\"$templatefile\" does not exist\n";
+    &PrintUsage;
+    exit;
+  }
+  @templatelist = &file2list($templatefile);
+}
+
+# Create a complete list of items to add to db files.
+if ($override && $templatefile) {
+  #Combine override list and templatelist, with higher priority on override
+  print "Using override and template file\n"     if ($verbose);
+  my(@remove_list) = &findcommon(@overridelist);
+  my(@new_modlist);
+  foreach $line (@remove_list) {
+    @new_modlist = &removeLines($line,@templatelist);
+    @templatelist = @new_modlist;
+  }
+  push @modlist, "# ---   override lines    ---";
+  foreach $line (@overridelist) {
+    push @modlist, "   $line";
+  }
+  push @modlist, "# --- templatefile  lines ---";
+  foreach $line (@templatelist) {
+    push @modlist, $line;
+  }
+
+} elsif ($override && !$templatefile) {
+  #Override list only
+  print "Using override only\n"                  if ($verbose);
+  @modlist = @overridelist;
+} elsif (!$override && $templatefile) {
+  #Templatelist only
+  print "Using template file only\n"             if ($verbose);
+  @modlist = @templatelist;
+}
+
+foreach $line (@modlist) {
+  print "Mod: $line\n"    if ($verbose);
+}
+
+# Generate the list of things to remove from DB files
+my @removelist = &findcommon(@modlist);
+
+# Copy the old database files to a orig_$date directory.  In case of mistakes.
+if ($backup != 0) {
+  print "Making backup directory and files\n"  if ($verbose);
+  mkdir "origDB_$date", 0755 or die "Cannot make origDB_$date directory: $!";
+  foreach $file (@dbfilelist) {
+    system "cp", $file, "origDB_$date";
+  }
+  system "cp", $templatefile, "origDB_$date"   if ($templatefile);
+} else {
+  print "WARN: Did not make backup, UPON REQUEST!\n";
+}
+
+my($totaldone)=0;
+foreach $dbfile (@dbfilelist) {
+  my @dblist = &file2list($dbfile);
+
+  # Remove those lines that are similar to those in the @modlist,
+  #   from the @dblist
+  my @newdblist;
+  foreach $dline (@removelist) {
+    @newdblist = &removeLines($dline,@dblist);
+    @dblist = @newdblist;
+  }
+
+  # Make a comment for the new list
+  $comment = "# ASCII DB modified by modifyDB on $date\n";
+
+  open OUTFILE, ">$dbfile";
+
+  print OUTFILE $comment;
+  print OUTFILE "# --- Begin Mod ---\n";
+  foreach $line (@modlist) {
+    print OUTFILE "$line\n"
+  }
+  print OUTFILE "# --- End Mod ---\n";
+
+  foreach $line (@newdblist) {
+    print OUTFILE "$line\n";
+  }
+
+  print "Finished: $dbfile\n"      if ($verbose);
+  $totaldone++;
+}
+
+print "Processed $totaldone files.  Thank you for choosing modifyDB.\n";
+
+#&PrintUsage;
+
+####################################################################
+#    Subroutine file2list($filename)
+#      Opens a file with given $filename and returns
+#       the list @outlist of its contents. Will not include lines
+#       with more than three # at the beginning.
+####################################################################
+sub file2list {
+  my($filename) = @_;
+  my(@outlist);
+
+  open MYFILE, "<$filename";
+  while (<MYFILE>) {
+    unless (/^\#\#\#\#+/) {
+      chomp;
+      push @outlist, $_;
+    }
+  }
+  close MYFILE;
+
+  return @outlist;
+}
+
+
+
+####################################################################
+#    Subroutine findcommon(@elist)
+#      Returns @outlist, a non-repeated list of the items found
+#      in the first column of @elist.
+####################################################################
+sub findcommon {
+  my(@elist) = @_;
+  my(@outlist);
+  my(@parselist);
+
+  foreach $line (@elist) {
+    if ($line =~ /^\s*(\w+)/) {
+      my $mystring = $1;
+      push @parselist, $mystring;
+    }
+  }
+
+  foreach $line (@parselist) {
+    if( &contains($line,@outlist) == 0) {
+      push @outlist, $line;
+    }
+  }
+
+  return @outlist;
+
+}
+
+
+####################################################################
+#    Subroutine contains($eline,@elist)
+#      Return 1, if $eline is in @elist.
+#      Return 0, otherwise
+####################################################################
+sub contains {
+  my($eline, @elist) = @_;
+  $exists = 0;
+  foreach $line (@elist) {
+    if ($line =~ /\b$eline\b/) {
+      $exists = 1;
+    }
+  }
+  return $exists;
+}
+
+
+####################################################################
+#    Subroutine removeLines($eline,@elist)
+#      Returns @outlist, the result of removing all lines 
+#      from @elist containing $eline
+####################################################################
+sub removeLines {
+  my($eline,@elist) = @_;
+  my(@outlist);
+
+  foreach $line (@elist) {
+    unless ($line =~ /^\s*\b$eline\b/) {
+      push @outlist, $line;
+    }
+  }
+
+  return @outlist;
+
+}
+
+####################################################################
+#    Subroutine argv2list(@inlist)
+#      Routine to construct a list from command-line arguments.
+#      Each line in the returned @outlist, is the result of looking
+#      for comma's in @inlist.
+#      e.g. @inlist = / "here", "there,", "everywhere", "nowhere" /
+#       will return:
+#       @outlist = / " here there", " everywhere nowhere" /
+####################################################################
+sub argv2list {
+  my(@inlist) = @_;
+  my(@outlist);
+
+  my($array);
+  my($i);
+  foreach $word (@inlist) {
+    if ($word =~ /(\w+),$/) {
+      $array[$i] = "$array[$i] " . "$1";
+      $i++;
+    } else {
+      $array[$i] = "$array[$i] " . "$word";
+    }
+  }
+  $i++;
+
+  for ($j = 0; $j<$i; $j++) {
+    push @outlist, $array[$j];
+  }
+
+  return @outlist;
+}
+
+
+####################################################################
+#    Subroutine PrintUsage
+#      print to standard out how to use this script
+####################################################################
+sub PrintUsage {
+    print <<EOM;
+
+Usage:
+       modifyDB -r [\#start]-[\#end] -f [template file] -D [override line]
+  or
+       modifyDB -i [databasefile] -f [template file] -D [override line]
+
+Command-line options:
+    -r [\#start]-[\#end]
+       The range of runnumbers whose db files you wish to change.  This
+       option will assume that:
+         1. PAN_FILE_PREFIX is defined as an environment variable... or
+            assume that parity$year is an acceptable file prefix.
+         2. All ASCII database files are in the current directory.
+
+    -i [database file]
+       Use this option if there is only one database file to modify, or
+       the database file name does not have a run number in it (control.db).
+
+    -f [template file]
+       Must contain lines that are similar to those used in the parity 
+       db files.  The first column of an entry will be completely removed from
+       the old db files... e.g.
+          temp.db contains only:
+              lobeam 4000
+          executing
+              ./modifyDB -r 1012-1014 -f temp.db
+          removes all instances of "lobeam" from the db files whose names
+          contain 1012, 1013, 1014... and insert the line "lobeam 4000".
+       WARNING: This also means that if (temp.db) contains:
+              ped adc 1 chan 2 value 4991
+       ALL lines beginning with "ped" will be removed from the specified
+       db files and replaced with the line(s) within (temp.db).  So take care.
+
+    -D [override line]
+       Must be in the same format used within [template file], except each
+       new line should be separated by a comma.
+       E.g.
+         modifyDB -i parity03_1760.db -D maxevents 20000, lobeam 2000
+       NOTE: -D has a high priority than -f.
+       Special characters, such as "#", should be entered with a "\\".
+       E.g.
+         modifyDB -r 1761-1762 -D lobeam 1201, \\# My comment here
+       Negative numbers can be handled by using "-D --" as the last arguments
+       on the command-line.
+       E.g.
+         modifyDB -i control.db -D -- lobeam -1, maxevents 1000
+
+       Override lines will not be saved in the backup.
+
+    -verbose, -v
+       Be obnoxiously verbose.  For debugging purposes.
+
+    -nobackup, -nob
+       Be courageous... and perhaps very stupid.  Don't create any backups.
+
+EOM
+return;
+}

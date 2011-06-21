@@ -25,7 +25,7 @@
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
-#include "MQwSIS3320_Channel.h"
+#include "QwSIS3320_Channel.h"
 #include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
 #include "MQwV775TDC.h"
@@ -106,7 +106,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     void PrintValue() const;
     void PrintInfo() const;
 
-    MQwSIS3320_Channel* GetSIS3320Channel(const TString name);
+    QwSIS3320_Channel* GetSIS3320Channel(const TString name);
 
   protected:
 
@@ -122,7 +122,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     /// List of sampling ADC channels
     typedef std::map< Int_t, std::vector <std::vector <Int_t> > > SamplingADC_Mapping_t;
     SamplingADC_Mapping_t fSamplingADC_Mapping;
-    std::vector< MQwSIS3320_Channel > fSamplingADC;
+    std::vector< QwSIS3320_Channel > fSamplingADC;
 
     /// List of integrating QDC channels
     typedef std::map< Int_t, std::vector< std::vector< Int_t > > > IntegratingADC_Mapping_t;

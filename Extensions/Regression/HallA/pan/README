@@ -1,0 +1,10 @@
+   ++++++++++++++++++++++++++++++++++
+   +                                +
+   +    PAN  -  Parity  Analyzer    +
+   +                                +
+   ++++++++++++++++++++++++++++++++++
+
+For details on compiling and using PAN, see ./doc/README
+
+authors:  Richard Holmes, Antonin Vacheret, Robert Michaels
+          (and later others...)

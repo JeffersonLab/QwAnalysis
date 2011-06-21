@@ -1,0 +1,7 @@
+! This file contains the pedestals for the ADCs.
+! Respect the format of the file:
+
+! channel name,	pedestal,	gain
+fadc_compton,	3812.46,	-1.0
+
+!END
