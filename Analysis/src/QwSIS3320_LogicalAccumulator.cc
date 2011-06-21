@@ -314,7 +314,7 @@ void  QwSIS3320_LogicalAccumulator::DeleteHistograms()
 
 void QwSIS3320_LogicalAccumulator::ProcessEvent()
 {
-  for(Int_t i = 0; i < fAccumulators.size(); i++) {
+  for (size_t i = 0; i < fAccumulators.size(); i++) {
     fAccumulatorSum += fAccumulatorWeights[i]*(fAccumulators[i]->GetAccumulatorSum());
   }
 }
@@ -322,7 +322,7 @@ void QwSIS3320_LogicalAccumulator::ProcessEvent()
 void QwSIS3320_LogicalAccumulator::AddAccumulatorReference(
     QwSIS3320_Accumulator *accum, Double_t weight)
 {
-  if ( accum ) {
+  if (accum) {
     fAccumulators.push_back(accum);
     fAccumulatorWeights.push_back(weight);
   }

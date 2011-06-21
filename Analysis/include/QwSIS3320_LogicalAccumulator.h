@@ -52,7 +52,7 @@ public:
 
   void  ProcessEvent();
   void  ClearEventData() { fAccumulatorSum = 0; fNumberOfSamples = 0; };
-  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0) {};
+  Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0) { return 0; };
 
 
   const QwSIS3320_LogicalAccumulator operator/ (const Double_t &value) const;

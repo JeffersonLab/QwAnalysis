@@ -797,8 +797,7 @@ void QwSIS3320_Channel::PrintInfo() const
 void QwSIS3320_Channel::Copy(QwSIS3320_Channel *source)
 {
    try {
-      if( typeid(*source)==typeid(*this)) {
-         QwSIS3320_Channel* input = ((QwSIS3320_Channel*)source);
+      if (typeid(*source) == typeid(*this)) {
 
          // Now copy all the data
          this->fChannel                = source->fChannel;

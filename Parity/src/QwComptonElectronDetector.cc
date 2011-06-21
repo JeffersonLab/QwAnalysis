@@ -361,7 +361,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 		  }
 		  words_read++;
 		}
-		Int_t ExtraWord = buffer[NPlanes*(m+1)];//diagnostic word, ignore warning, unused currently
+		//Int_t ExtraWord = buffer[NPlanes*(m+1)];//diagnostic word, ignore warning, unused currently
 		words_read++;
 	      }
 	      for (Int_t k = 0; k < StripsPerPlane; k++) {
