@@ -243,7 +243,7 @@ int main(Int_t argc,Char_t* argv[])
 
   // Open a txt file to store data
   Char_t  textfile[400];
-  sprintf(textfile,"%s_%s_in_out_values.txt",targ.Data(),polar.Data()); 
+  sprintf(textfile,"%s_%s_in_out_values1.txt",targ.Data(),polar.Data()); 
   Myfile.open(textfile);
 
   //plot MD asymmetries
@@ -277,7 +277,7 @@ int main(Int_t argc,Char_t* argv[])
 
 
   Canvas1->Update();
-  Canvas1->Print(polar+"_"+target+"_md_regressed_slug_summary_plots.png");
+  Canvas1->Print(polar+"_"+target+"_md_regressed_slug_summary_plots1.png");
 
   // Calculate sum of opposite octants
   get_opposite_octant_average(8,"MD", value11,err11,value1,err1);
@@ -312,7 +312,7 @@ int main(Int_t argc,Char_t* argv[])
   gPad->Update();
 
   Canvas2-> Update();
-  Canvas2->Print(polar+"_"+target+"_uslumi_regressed_slug_summary_plots.png");
+  Canvas2->Print(polar+"_"+target+"_uslumi_regressed_slug_summary_plots1.png");
 
   // plot DS LUMI asymmetries
   TString title3 = targ+"("+polar+"): Regressed slug averages of DS LUMI asymmetries. FIT = p0*cos(phi + p1) + p2";
@@ -344,7 +344,7 @@ int main(Int_t argc,Char_t* argv[])
   gPad->Update();
 
   Canvas3-> Update();
-  Canvas3->Print(polar+"_"+target+"_dslumi_regressed_slug_summary_plots.png");
+  Canvas3->Print(polar+"_"+target+"_dslumi_regressed_slug_summary_plots1.png");
 
   Myfile.close();
 
@@ -398,7 +398,7 @@ TString get_query(TString detector, TString measurement, TString target, TString
   **************************/
   if(polar == "longitudinal"){
     //    run_cut = " (linreg.run_number<9824  or linreg.run_number>9886)";
-    run_cut = " (linreg.run_number<9824)";
+    run_cut = " (linreg.run_number>9886)";
     good_for_cut = " (fall2010.good_for_id = '1,3' or fall2010.good_for_id='3') ";
 
   }
@@ -496,7 +496,7 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   cosfit->SetParameter(0,0);
   cosfit->SetParameter(1,0);
   cosfit->SetParameter(2,0);
-  cosfit->SetParLimits(1, 0, 180);
+  cosfit->SetParLimits(1, -180, 180);
 
   //Take the average over the in and out half wave plate values. 
   // Here we take just the average and not the weighted average because we are testing a hypothesis
@@ -555,7 +555,7 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   grp_sum ->SetMarkerSize(0.6);
   grp_sum ->SetMarkerStyle(21);
   grp_sum ->SetMarkerColor(kGreen-2);
-  grp_sum->Fit("cosfit");
+  grp_sum->Fit("cosfit","B");
   TF1* fit3 = grp_sum->GetFunction("cosfit");
   fit3->DrawCopy("same");
   fit3->SetLineColor(kGreen-2);
@@ -628,7 +628,7 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   grp_diff ->SetMarkerSize(0.6);
   grp_diff ->SetMarkerStyle(21);
   grp_diff ->SetMarkerColor(kBlack-2);
-  grp_diff->Fit("cosfit");
+  grp_diff->Fit("cosfit","B");
  
   TF1* fit4 = grp_diff->GetFunction("cosfit");
   fit4->DrawCopy("same");
@@ -655,7 +655,7 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
   stats11->SetX1NDC(0.8); stats11->SetX2NDC(0.99); stats11->SetY1NDC(0.7);stats11->SetY2NDC(0.95);  
 
   Canvas11-> Update();
-  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_in_out_plots.png");
+  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_in_out_plots1.png");
 
 }
 
@@ -775,31 +775,24 @@ void get_opposite_octant_average(Int_t size,TString device,
 
   pad2->cd();
 
-  // cos fit (if we want we can switch to this)
-  TF1 *cosfit = new TF1("cosfit","[0]*cos((pi/180)*(45*(x-1) + [1])) + [2]",1,8);
-  cosfit->SetParameter(0,0);
-  cosfit->SetParameter(1,0);
-  cosfit->SetParameter(2,0);
-  cosfit->SetParLimits(1, 0, 180);
-
   TGraphErrors* grp_sum  = new TGraphErrors(4,x,valuesumopp,errx,errorsumopp);
   grp_sum ->SetMarkerSize(1.2);
   grp_sum ->SetMarkerStyle(21);
   grp_sum ->SetMarkerColor(kGreen-2);
-  grp_sum->Fit("pol0");
-  TF1* fit1 = grp_sum->GetFunction("pol0");
-  fit1->DrawCopy("same");
-  fit1->SetLineColor(kGreen-2);
+  //grp_sum->Fit("pol0");
+  //TF1* fit1 = grp_sum->GetFunction("pol0");
+  //fit1->DrawCopy("same");
+  //fit1->SetLineColor(kGreen-2);
+ 
 
   TGraphErrors* grp_diff  = new TGraphErrors(4,x,valuediffopp,errx,errordiffopp);
   grp_diff ->SetMarkerSize(1.2);
   grp_diff ->SetMarkerStyle(21);
-  grp_diff ->SetMarkerColor(kRed);
-  grp_diff->Fit("pol0");
-  TF1* fit2 = grp_diff->GetFunction("pol0");
-  fit2->DrawCopy("same");
-  fit2->SetLineColor(kRed);
-
+  grp_diff ->SetMarkerColor(kMagenta+1);
+  //  grp_diff->Fit("pol0");
+  // TF1* fit2 = grp_diff->GetFunction("pol0");
+  //fit2->DrawCopy("same");
+  //fit2->SetLineColor(kRed);
 
   TMultiGraph * grp = new TMultiGraph();
   grp->Add(grp_sum);
@@ -814,6 +807,11 @@ void get_opposite_octant_average(Int_t size,TString device,
   grp->GetYaxis()->SetTitleSize(0.03);
   grp->GetYaxis()->SetTitleOffset(0.8);
   grp->GetXaxis()->SetTitleOffset(0.9);
+  // Double_t xmin = grp->GetXaxis()->GetXmin();
+  //Double_t xmax = grp->GetXaxis()->GetXmax();
+  //TLine * line2 = new TLine(xmin,0,xmax,0);
+  //line2->SetLineColor(kBlack);
+  //line2->Draw("");
 
 
   TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
@@ -822,21 +820,22 @@ void get_opposite_octant_average(Int_t size,TString device,
   legend->SetFillColor(0);
   legend->Draw("");
 
-  TPaveStats *stats1 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
-  TPaveStats *stats2 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
+  // TPaveStats *stats1 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
+  // TPaveStats *stats2 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
 
-  stats1->SetTextColor(kGreen-2);
-  stats1->SetFillColor(kWhite); 
+  // stats1->SetTextColor(kGreen-2);
+  // stats1->SetFillColor(kWhite); 
 
-  stats2->SetTextColor(kRed);
-  stats2->SetFillColor(kWhite); 
+  // stats2->SetTextColor(kMagenta+1);
+  // stats2->SetFillColor(kWhite); 
 
-  stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
-  stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
+  // stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
+  // stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
 
+  std::cout<<"HERE!!!!!!!!!!!!!!!!!!!!!!\n";
   Canvas11-> Update();
-  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_opposite_octant_plots.png");
- 
- 
+  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_opposite_octant_plots1.png");
+  Canvas11->Print(polar+"_"+target+"_"+device+"_regressed_opposite_octant_plots1.svg");
+  
 }
 
