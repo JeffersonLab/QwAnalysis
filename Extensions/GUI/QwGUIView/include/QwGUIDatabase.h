@@ -82,6 +82,35 @@ using std::vector;
 #include <TGraphErrors.h>
 
 
+class QwGUIGoodForSettings {
+public:
+  QwGUIGoodForSettings();
+  ~QwGUIGoodForSettings(){
+    fGoodForLabels.clear();
+    fGoodForIDs.clear();
+    fGoodForReject.clear();
+    fQualityLabels.clear();
+    fQualityIDs.clear();
+    fQualityReject.clear();
+  }
+
+  std::string GetSelectionString(std::string table = "");
+
+private:
+  std::vector<std::string> fGoodForLabels;
+  std::vector<std::string> fQualityLabels;
+  std::vector<Int_t>  fGoodForIDs;
+  std::vector<Int_t>  fQualityIDs;
+
+  Bool_t fGoodForRejectNULLs;
+  std::vector<Bool_t>  fGoodForReject;
+  Bool_t fQualityRejectNULLs;
+  std::vector<Bool_t>  fQualityReject;
+
+};
+
+
+
  class QwGUIDatabase : public QwGUISubSystem {
 
   
@@ -104,11 +133,13 @@ using std::vector;
   TGComboBox          *dCmbSubblock;
   TGComboBox          *dCmbMeasurementType;
   TGComboBox          *dCmbTargetType;
+  TGComboBox          *dCmbRegressionType;
   TGComboBox          *dCmbPlotType;
   TGTextButton        *dBtnSubmit;
   TGLabel             *dLabStartRun;
   TGLabel             *dLabStopRun;
   TGLabel             *dLabTarget;
+  TGLabel             *dLabRegression;
   TGLabel             *dLabPlot;
 
 
@@ -138,6 +169,10 @@ using std::vector;
 /*   void PlotChargeData(); */
 
   void DetectorPlot();
+#ifndef  ROOTCINTMODE
+  mysqlpp::StoreQueryResult QueryDetector(TString detector, TString measured_property, Int_t det_id);
+#endif
+  void HistogramDetector(TString detector, TString measured_property, Int_t det_id);
   void PlotDetector(TString detector, TString measured_property, Int_t det_id);
   void DetectorVsMonitorPlot();
   TString GetYTitle(TString measurement_type, Int_t detector);
@@ -187,6 +222,7 @@ using std::vector;
 
  private:
 
+  QwGUIGoodForSettings fGoodForSelection;
 
  protected:
 
@@ -234,6 +270,6 @@ using std::vector;
   
   ClassDef(QwGUIDatabase,0); 
 
-};
+ };
 
 #endif

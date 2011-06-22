@@ -8,13 +8,83 @@
 
 ClassImp(QwGUIDatabase);
 
+QwGUIGoodForSettings::QwGUIGoodForSettings(){
+  fGoodForLabels.push_back("production");
+  fGoodForLabels.push_back("commissioning");
+  fGoodForLabels.push_back("parity");
+  fGoodForLabels.push_back("tracking");
+  fGoodForLabels.push_back("centering_target");
+  fGoodForLabels.push_back("centering_plug");
+  fGoodForLabels.push_back("pedestals");
+  fGoodForLabels.push_back("transverse");
+  fGoodForIDs.resize(fGoodForLabels.size());
+  fGoodForReject.resize(fGoodForLabels.size());
+  for (size_t i=0; i< fGoodForLabels.size(); i++){
+    fGoodForIDs.at(i)    = i+1;
+    fGoodForReject.at(i) = kTRUE;
+  }
+  fGoodForReject.at(0) = kFALSE;
+  fGoodForReject.at(2) = kFALSE;
+  fGoodForRejectNULLs = kTRUE;
 
+  fQualityLabels.push_back("good");
+  fQualityLabels.push_back("bad");
+  fQualityLabels.push_back("suspect");
+  fQualityIDs.resize(fQualityLabels.size());
+  fQualityReject.resize(fQualityLabels.size());
+  for (size_t i=0; i<fQualityLabels.size(); i++){
+    fQualityIDs.at(i)    = i+1;
+    fQualityReject.at(i) = kTRUE;
+  }
+  fQualityReject.at(0) = kFALSE;
+  fQualityRejectNULLs = kTRUE;
+}
+
+std::string QwGUIGoodForSettings::GetSelectionString(std::string table){
+  std::string selection;
+  std::string prefix;
+  if (!table.empty()){
+    prefix = table + ".";
+  } else {
+    prefix = "";
+  }
+  Bool_t firstentry;
+  firstentry = kTRUE;
+  if (fGoodForRejectNULLs){
+    if (!firstentry) selection += " AND";
+    firstentry = kFALSE;
+    selection += " " + prefix + "good_for_id is not NULL";
+  }
+  for (size_t i=0; i<fGoodForIDs.size(); i++){
+    if (fGoodForReject.at(i)){
+      if (!firstentry) selection += " AND";
+      firstentry = kFALSE;
+      selection += " " + prefix + "good_for_id not like ";
+      selection += Form("\"%%%d%%\"",fGoodForIDs.at(i));
+    }
+  }
+  if (fQualityRejectNULLs){
+    if (!firstentry) selection += " AND";
+    firstentry = kFALSE;
+    selection += " " + prefix + "run_quality_id is not NULL";
+  }
+  for (size_t i=0; i<fQualityIDs.size(); i++){
+    if (fQualityReject.at(i)){
+      if (!firstentry) selection += " AND";
+      firstentry = kFALSE;
+      selection += " " + prefix + "run_quality_id not like ";
+      selection += Form("\"%%%d%%\"",fQualityIDs.at(i));
+    }
+  }
+  return selection;
+}
 
 TString detector;
 TString property;
 
 // Parameters to plot in X axis
 enum EQwGUIDatabaseXAxisIDs {
+  ID_X_HISTO,
   ID_X_RUN,
   ID_X_BEAM,
   ID_TGT_X,
@@ -49,6 +119,7 @@ enum EQwGUIDatabaseWidgetIDs {
   CMB_XAXIS,
   CMB_XDET,
   CMB_TGT,
+  CMB_REGRESS,
   CMB_PLOT
 };
 
@@ -285,6 +356,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dCmbProperty        = NULL;
   dCmbSubblock        = NULL;
   dCmbTargetType      = NULL;
+  dCmbRegressionType  = NULL;
   dCmbPlotType        = NULL;
   dCmbMeasurementType = NULL;
   dNumStartRun        = NULL;
@@ -293,6 +365,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dLabStartRun        = NULL;
   dLabStopRun         = NULL;
   dLabTarget          = NULL;
+  dLabRegression      = NULL;
   dLabPlot            = NULL;
 
   GraphArray.Clear();
@@ -318,6 +391,7 @@ QwGUIDatabase::~QwGUIDatabase()
   if(dLabStopRun)         delete dLabStopRun;
   if(dNumStartRun)        delete dNumStartRun;
   if(dLabTarget)          delete dLabTarget;
+  if(dLabRegression)      delete dLabRegression;
   if(dLabPlot)            delete dLabPlot;
   if(dNumStopRun)         delete dNumStopRun;
   if(dCmbInstrument)      delete dCmbInstrument;
@@ -326,6 +400,7 @@ QwGUIDatabase::~QwGUIDatabase()
   if(dCmbProperty)        delete dCmbProperty;
   if(dCmbSubblock)        delete dCmbSubblock;
   if(dCmbTargetType)      delete dCmbTargetType;
+  if(dCmbRegressionType)  delete dCmbRegressionType;
   if(dCmbMeasurementType) delete dCmbMeasurementType;
   if(dCmbPlotType)        delete dCmbPlotType;
   if(dBtnSubmit)          delete dBtnSubmit;
@@ -397,12 +472,14 @@ void QwGUIDatabase::MakeLayout()
   dCmbSubblock        = new TGComboBox(dControlsFrame, CMB_SUBBLOCK);
   dLabTarget          = new TGLabel(dControlsFrame, "Target");
   dCmbTargetType      = new TGComboBox(dControlsFrame, CMB_TGT);
+  dLabRegression      = new TGLabel(dControlsFrame, "Regression Correction");
+  dCmbRegressionType  = new TGComboBox(dControlsFrame, CMB_REGRESS);
   dLabPlot            = new TGLabel(dControlsFrame, "Plot Type");
   dCmbPlotType        = new TGComboBox(dControlsFrame, CMB_PLOT);
   dLabStartRun        = new TGLabel(dControlsFrame, "First Run");
   dNumStartRun        = new TGNumberEntry(dControlsFrame, 0, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dLabStopRun         = new TGLabel(dControlsFrame, "Last Run");
-  dNumStopRun         = new TGNumberEntry(dControlsFrame, 10000, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  dNumStopRun         = new TGNumberEntry(dControlsFrame, 12200, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dBtnSubmit          = new TGTextButton(dControlsFrame, "&Submit", BTN_SUBMIT);  //dSlowControls       = new TGButtonGroup(dControlsFrame, "Slow Controls");
 
 
@@ -411,6 +488,7 @@ void QwGUIDatabase::MakeLayout()
   dNumLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 10, 10, 5, 5 );
   dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 5, 5 );
 
+  dCmbXAxis->AddEntry("Histogram", ID_X_HISTO);
   dCmbXAxis->AddEntry("Vs. Run Number", ID_X_RUN);
   dCmbXAxis->AddEntry("Vs. BCM", ID_BCM);
   dCmbXAxis->Select(dCmbXAxis->FindEntry("Vs. Run Number")->EntryId());
@@ -436,6 +514,10 @@ void QwGUIDatabase::MakeLayout()
     dCmbTargetType->AddEntry(Targets[i], i);
   }
 
+  // Populate regression combo box
+  dCmbRegressionType->AddEntry("off", 0);
+  dCmbRegressionType->AddEntry("on", 1);
+  
   // Populate plot type
   for (Int_t i = 0; i < 2; i++) {
     dCmbPlotType->AddEntry(Plots[i], i);
@@ -443,6 +525,7 @@ void QwGUIDatabase::MakeLayout()
 
   dCmbSubblock->Select(0);
   dCmbTargetType->Select(1);
+  dCmbRegressionType->Select(0);
   dCmbPlotType->Select(0);
 
 
@@ -453,6 +536,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbSubblock        -> Resize(150,20);
   dCmbMeasurementType -> Resize(150,20);
   dCmbTargetType      -> Resize(150,20);
+  dCmbRegressionType  -> Resize(150,20);
   dCmbPlotType        -> Resize(150,20);
 
 
@@ -463,7 +547,9 @@ void QwGUIDatabase::MakeLayout()
   dControlsFrame      -> AddFrame(dCmbSubblock, dCmbLayout );   // block type
   dControlsFrame      -> AddFrame(dCmbXAxis, dCmbLayout );
   dControlsFrame      -> AddFrame(dLabTarget, dLabLayout );
-  dControlsFrame      -> AddFrame(dCmbTargetType, dCmbLayout );            
+  dControlsFrame      -> AddFrame(dCmbTargetType, dCmbLayout );
+  dControlsFrame      -> AddFrame(dLabRegression, dLabLayout );
+  dControlsFrame      -> AddFrame(dCmbRegressionType, dCmbLayout );
   dControlsFrame      -> AddFrame(dLabStartRun, dLabLayout );
   dControlsFrame      -> AddFrame(dNumStartRun, dNumLayout );
   dControlsFrame      -> AddFrame(dLabStopRun, dLabLayout );
@@ -481,6 +567,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbSubblock        -> Associate(this);
   dCmbMeasurementType -> Associate(this);
   dCmbTargetType      -> Associate(this);
+  dCmbRegressionType  -> Associate(this);
   dCmbPlotType        -> Associate(this);
   dBtnSubmit          -> Associate(this);
 
@@ -1019,6 +1106,131 @@ void QwGUIDatabase::DetectorVsMonitorPlot()
 } //DetectorVsMonitorPlot
 
 
+
+mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TString measured_property, Int_t det_id)
+{
+  Bool_t ldebug = kTRUE;
+
+  dDatabaseCont->Connect();
+
+  mysqlpp::Query query1     = dDatabaseCont-> Query();
+  mysqlpp::Query query2     = dDatabaseCont-> Query();
+
+  // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
+  Int_t   subblock          = dCmbSubblock -> GetSelected();
+  Int_t   run_first         = dNumStartRun -> GetIntNumber();
+  Int_t   run_last          = dNumStopRun  -> GetIntNumber();
+  TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
+  TString device            = Form("%s%s",detector.Data(),measured_property.Data());
+  TString target            = Targets[dCmbTargetType->GetSelected()];
+  TString plot              = Plots[dCmbPlotType->GetSelected()];
+  
+  TString det_table;
+  TString data_table;
+  TString det_table_id;
+  Int_t   monitor_id = 0;
+  Int_t   phi_fg_id = 0;
+  
+  std::string correction_flag;
+  if (dCmbRegressionType->GetSelected()==1)
+    correction_flag = "on";
+  else
+    correction_flag = "off";
+    
+  // Set the correct tables to read the data and inof from.
+  switch (det_id){
+  case ID_MD:
+    det_table    = "main_detector";
+    data_table   = "md_data";
+    det_table_id = "main_detector_id";
+    break;
+  case ID_LUMI:
+    det_table    = "lumi_detector";
+    data_table   = "lumi_data";
+    det_table_id = "lumi_detector_id";
+    break;
+  case ID_BPM:
+  case ID_CMB_BPM:
+  case ID_BCM:
+  case ID_CMB_BCM:
+  case ID_E_CAL:
+    det_table    = "monitor";
+    data_table   = "beam";
+    det_table_id = "monitor_id";
+    break;
+  default:
+    break;
+  }
+
+
+  // Get the monitor ID from the detector table
+  // For this we need the detector name: detector+property
+    
+  if(ldebug) std::cout<< "SELECT * FROM "<<det_table
+		      <<" WHERE quantity = '"<<device<<"';"<<std::endl;
+  query1 << "SELECT * FROM "<<det_table<<" WHERE quantity = '"<<device<<"';";
+  mysqlpp::StoreQueryResult read_data1 = query1.store();
+
+  //check for empty queries. If empty exit with error.
+  if( read_data1.num_rows() == 0){
+    std::cout<<"There is no device called "<<device<<" in "<<det_table
+	     <<" in the given run range!"<<std::endl;
+    return read_data1;
+  }
+
+  monitor_id = read_data1[0][det_table_id]; 
+  //    if(ldebug)  std::cout<< "SELECT "<<det_table_id<<" FROM "<<det_table<<" WHERE quantity = "<<monitor_id<<";";
+  
+
+  if(ldebug) std::cout<< "SELECT * FROM sc_detector "
+		      <<" WHERE name = 'Phi_FG';"<<std::endl;
+  query2 << "SELECT * FROM sc_detector WHERE name = 'Phi_FG';";
+  mysqlpp::StoreQueryResult read_data2 = query2.store();
+  
+  //check for empty queries. If empty exit with error.
+  if( read_data2.num_rows() == 0){
+    std::cout<<"There is no device called Phi_FG in sc_detector in the given run range!"<<std::endl;
+    return read_data2;
+  }
+  phi_fg_id = read_data2[0]["sc_detector_id"]; 
+
+
+  // Now get the run number information
+  mysqlpp::Query query      = dDatabaseCont->Query();
+
+  TString querystring= 
+    " SELECT "+det_table_id+", data.value as value, data.error as error, data.error*sqrt(data.n) as rms, run_number, segment_number, slow_helicity_plate,target_position, (scd.value<0)*-2+1 as wien_reversal FROM "
+    + data_table+" as data, analysis_view as ana, slow_controls_settings , slow_controls_data as scd   "
+    + " WHERE "
+    + fGoodForSelection.GetSelectionString() + " AND "
+    + Form(" slope_correction='%s' AND ",correction_flag.c_str())
+    + " data.analysis_id = ana.analysis_id AND"
+    + " ana.runlet_id = slow_controls_settings.runlet_id AND "
+    + " data."+ det_table_id +" = "+Form("%i", monitor_id) +" AND "
+    + " data.subblock = "+ Form("%i",subblock) +" AND "
+    + " measurement_type_id = '"+measurement_type+"' AND "
+    + " run_number > "+ Form("%i",run_first) + " AND "
+    + " run_number < "+ Form("%i",run_last)+ " AND "
+    + " data.error !=0  AND"
+    +"  target_position = '"+Form("%s",target.Data())+"'" 
+    +" and scd.runlet_id=ana.runlet_id and scd.sc_detector_id=" 
+    + Form("%i", phi_fg_id)
+    + " ORDER BY run_number, segment_number;";
+
+   
+  if(ldebug) std::cout<<"QUERYSTING="
+		      <<querystring<<std::endl;
+
+  query << querystring;
+  
+  
+  mysqlpp::StoreQueryResult read_data = query.store();
+  dDatabaseCont->Disconnect(); 
+    
+  return read_data;
+}
+
+
 /******************************************
 
 Plot detector data vs run number
@@ -1028,7 +1240,7 @@ Plot detector data vs run number
 void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, Int_t det_id)
 {
 
-  Bool_t ldebug = kFALSE;
+  Bool_t ldebug = kTRUE;
 
   // histo parameters
   gStyle->SetTitleYOffset(1.0);
@@ -1054,100 +1266,18 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     TCanvas *mc = dCanvas->GetCanvas();
     mc->Clear();
     mc->SetFillColor(0);
-    //
-    // Query Database for Data
-    //
-
-    dDatabaseCont->Connect();
-
-    mysqlpp::Query query1     = dDatabaseCont-> Query();
 
     // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
     Int_t   subblock          = dCmbSubblock -> GetSelected();
-    Int_t   run_first         = dNumStartRun -> GetIntNumber();
-    Int_t   run_last          = dNumStopRun  -> GetIntNumber();
     TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
     TString device            = Form("%s%s",detector.Data(),measured_property.Data());
     TString target            = Targets[dCmbTargetType->GetSelected()];
     TString plot              = Plots[dCmbPlotType->GetSelected()];
 
-    TString det_table;
-    TString data_table;
-    TString det_table_id;
-    Int_t   monitor_id = 0;
-
-    
-    // Set the correct tables to read the data and inof from.
-    switch (det_id){
-    case ID_MD:
-      det_table    = "main_detector";
-      data_table   = "md_data";
-      det_table_id = "main_detector_id";
-      break;
-    case ID_LUMI:
-      det_table    = "lumi_detector";
-      data_table   = "lumi_data";
-      det_table_id = "lumi_detector_id";
-      break;
-    case ID_BPM:
-    case ID_CMB_BPM:
-    case ID_BCM:
-    case ID_CMB_BCM:
-    case ID_E_CAL:
-      det_table    = "monitor";
-      data_table   = "beam";
-      det_table_id = "monitor_id";
-      break;
-    default:
-    break;
-    }
-
-
-    // Get the monitor ID from the detector table
-    // For this we need the detector name: detector+property
-    
-    if(ldebug) std::cout<< "SELECT "<<det_table<<" WHERE quantity = '"<<device<<"';";
-    query1 << "SELECT * FROM "<<det_table<<" WHERE quantity = '"<<device<<"';";
-    mysqlpp::StoreQueryResult read_data1 = query1.store();
-
-    //check for empty queries. If empty exit with error.
-    if( read_data1.num_rows() == 0){
-      std::cout<<"There is no device called "<<device<<" in "<<det_table
-	       <<" in the given run range!"<<std::endl;
-      return;
-    }
-
-    monitor_id = read_data1[0][det_table_id]; 
-    if(ldebug)  std::cout<< "SELECT "<<det_table_id<<" FROM "<<det_table<<" WHERE quantity = "<<monitor_id<<";";
-
-    // Now get the run number information
-    mysqlpp::Query query      = dDatabaseCont->Query();
-
-    TString querystring= 
-      " SELECT "+det_table_id+", value, error, error*sqrt("+data_table+".n), run_number, segment_number, slow_helicity_plate,target_position FROM "
-      + data_table+", analysis, runlet, slow_controls_settings "
-      + " WHERE "
-      + data_table+".analysis_id = analysis.analysis_id AND"
-      + " analysis.runlet_id = runlet.runlet_id AND"
-      + " runlet.runlet_id = slow_controls_settings.runlet_id AND "
-      + data_table+"."+ det_table_id +" = "+Form("%i", monitor_id) +" AND "
-      + data_table+".subblock = "+ Form("%i",subblock) +" AND "
-      + " measurement_type_id = '"+measurement_type+"' AND "
-      + " run_number > "+ Form("%i",run_first) + " AND "
-      + " run_number < "+ Form("%i",run_last)+ " AND "
-      + " error !=0  AND"
-      +"  target_position = '"+Form("%s",target.Data())+"'" 
-      + " ORDER BY run_number, segment_number;";
-
-   
-    if(ldebug) std::cout<<"QUERYSTING="
-			<<querystring<<std::endl;
-
-    query << querystring;
-
-
-    mysqlpp::StoreQueryResult read_data = query.store();
-    dDatabaseCont->Disconnect(); 
+    //
+    // Query Database for Data
+    //
+    mysqlpp::StoreQueryResult read_data = QueryDetector(detector, measured_property, det_id);
 
     //
     // Loop Over Results and Fill Vectors
@@ -1168,6 +1298,11 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     TVectorF run_in(row_size), run_out(row_size);
     TVectorF err_in(row_size), err_out(row_size);
 
+    TVectorF x_in_L(row_size), xerr_in_L(row_size);
+    TVectorF x_out_L(row_size), xerr_out_L(row_size);
+    TVectorF run_in_L(row_size), run_out_L(row_size);
+    TVectorF err_in_L(row_size), err_out_L(row_size);
+
     x_in.Clear();
     x_in.ResizeTo(row_size);
     xerr_in.Clear();
@@ -1182,9 +1317,25 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     run_out.Clear();
     run_out.ResizeTo(row_size);
 
+    x_in_L.Clear();
+    x_in_L.ResizeTo(row_size);
+    xerr_in_L.Clear();
+    xerr_in_L.ResizeTo(row_size);
+    run_in_L.Clear();
+    run_in_L.ResizeTo(row_size);
+
+    x_out_L.Clear();
+    x_out_L.ResizeTo(row_size);
+    xerr_out_L.Clear();
+    xerr_out_L.ResizeTo(row_size);
+    run_out_L.Clear();
+    run_out_L.ResizeTo(row_size);
+
     Float_t x = 0.0 , xerr = 0.0;
     Int_t m = 0;
     Int_t k = 0;
+    Int_t l = 0;
+    Int_t n = 0;
 
     std::cout<<"############################################\n";
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
@@ -1193,7 +1344,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
       { 	    
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
 	  if(plot.Contains("RMS") == 1){
-	    x    = (read_data[i]["error*sqrt("+data_table+".n)"])*1e6; // convert to  ppm/ nm
+	    x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
 	    xerr = 0.0;
 	  }
 	  else {
@@ -1203,7 +1354,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 	} 
 	else{
 	  if(plot.Contains("RMS") == 1){
-	    x    = (read_data[i]["error*sqrt("+data_table+".n)"]);
+	    x    = (read_data[i]["rms"]);
 	    xerr = 0.0;
 	  }
 	  else {
@@ -1213,24 +1364,42 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 	}
 
 	if(read_data[i]["slow_helicity_plate"] == "out") {
-	  run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	  x_out.operator()(k)    = x;
-	  xerr_out.operator()(k) = xerr;
-	  err_out.operator()(k)  = 0.0;
-	  k++;
+	  if (read_data[i]["wien_reversal"]*1 == 1){
+	    run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_out.operator()(k)    = x;
+	    xerr_out.operator()(k) = xerr;
+	    err_out.operator()(k)  = 0.0;
+	    k++;
+	  } else {
+	    run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_out_L.operator()(l)    = x;
+	    xerr_out_L.operator()(l) = xerr;
+	    err_out_L.operator()(l)  = 0.0;
+	    l++;
+	  }
+	  
 	}
 	
 	if(read_data[i]["slow_helicity_plate"] == "in") {
-	  run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	  x_in.operator()(m)    = x;
-	  xerr_in.operator()(m) = xerr;
-	  err_in.operator()(m)  = 0.0;
-	  m++;
+	  if (read_data[i]["wien_reversal"]*1 == 1){
+	    run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_in.operator()(m)    = x;
+	    xerr_in.operator()(m) = xerr;
+	    err_in.operator()(m)  = 0.0;
+	    m++;
+	  } else {
+	    run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_in_L.operator()(n)    = x;
+	    xerr_in_L.operator()(n) = xerr;
+	    err_in_L.operator()(n)  = 0.0;
+	    n++;
+	    
+	  }
 	}
       }
 
     // Check to make sure graph is not empty.
-    if(m==0 && k==0){
+    if(m==0 && k==0 && l==0 && n==0){
       std::cout<<"QwGUI : No data were found for the given criteria."<<std::endl;
       exit(1);
     }
@@ -1248,6 +1417,15 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_in ->SetMarkerStyle(21);
     grp_in ->SetMarkerColor(kBlue);
 
+    run_in_L.ResizeTo(n);
+    x_in_L.ResizeTo(n);
+    err_in_L.ResizeTo(n);
+    xerr_in_L.ResizeTo(n);
+
+    TGraphErrors* grp_in_L  = new TGraphErrors(run_in_L,  x_in_L, err_in_L, xerr_in_L);
+    grp_in_L ->SetMarkerSize(0.6);
+    grp_in_L ->SetMarkerStyle(21);
+    grp_in_L ->SetMarkerColor(kOrange);
 
     run_out.ResizeTo(k);
     x_out.ResizeTo(k);
@@ -1258,6 +1436,16 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_out ->SetMarkerSize(0.6);
     grp_out ->SetMarkerStyle(21);
     grp_out ->SetMarkerColor(kRed);
+
+    run_out_L.ResizeTo(l);
+    x_out_L.ResizeTo(l);
+    err_out_L.ResizeTo(l);
+    xerr_out_L.ResizeTo(l);
+
+    TGraphErrors* grp_out_L = new TGraphErrors(run_out_L, x_out_L, err_out_L, xerr_out_L);
+    grp_out_L ->SetMarkerSize(0.6);
+    grp_out_L ->SetMarkerStyle(21);
+    grp_out_L ->SetMarkerColor(kViolet);
 
     TMultiGraph * grp = new TMultiGraph();
 
@@ -1274,11 +1462,15 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 
     if(m>0)grp->Add(grp_in);
     if(k>0)grp->Add(grp_out);
+    if(n>0)grp->Add(grp_in_L);
+    if(l>0)grp->Add(grp_out_L);
 
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    legend->AddEntry(grp_in, "IHWP-IN", "p");
-    legend->AddEntry(grp_out, "IHWP-OUT", "p");
+    if(m>0) legend->AddEntry(grp_in,    "IHWP-IN-R", "p");
+    if(k>0) legend->AddEntry(grp_out,   "IHWP-OUT-R", "p");
+    if(n>0) legend->AddEntry(grp_in_L,  "IHWP-IN-L", "p");
+    if(l>0) legend->AddEntry(grp_out_L, "IHWP-OUT-L", "p");
     legend->SetFillColor(0);
     
     mc->cd();
@@ -1292,15 +1484,15 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp->GetYaxis()->SetTitleSize(0.03);
     grp->GetXaxis()->SetTitleSize(0.03);
     grp->GetYaxis()->CenterTitle();
-
+    
     
     mc->Modified();
     mc->SetBorderMode(0);
     mc->Update();
     
     std::cout<<"QwGUI : Done!"<<std::endl;
-
-     
+    
+    
   }
   else{
     TCanvas *mc = dCanvas->GetCanvas();
@@ -1325,6 +1517,320 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
   
   
 }
+
+/******************************************
+
+Plot detector data vs run number
+
+*******************************************/
+
+void QwGUIDatabase::HistogramDetector(TString detector, TString measured_property, Int_t det_id)
+{
+
+  Bool_t ldebug = kTRUE;
+
+  // histo parameters
+  gStyle->SetTitleYOffset(1.0);
+  gStyle->SetTitleXOffset(0.7);
+  gStyle->SetTitleX(0.2);
+  gStyle->SetTitleW(0.6);
+  gStyle->SetTitleSize(0.07);
+  gStyle->SetTitleOffset(1.5);
+  gStyle->SetTitleBorderSize(0);
+  gStyle->SetTitleFillColor(0);
+  gStyle->SetTitleFontSize(0.08);
+  gStyle->SetHistMinimumZero();
+  gStyle->SetBarOffset(0.25);
+  gStyle->SetBarWidth(0.5);
+  gStyle->SetLabelSize(0.03,"x");
+  gStyle->SetLabelSize(0.03,"y");
+  gStyle->SetTitleSize(0.03);
+
+  gDirectory->Delete();
+
+  if(dDatabaseCont){
+
+    TCanvas *mc = dCanvas->GetCanvas();
+    mc->Clear();
+    mc->SetFillColor(0);
+
+    // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
+    Int_t   subblock          = dCmbSubblock -> GetSelected();
+    TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
+    TString device            = Form("%s%s",detector.Data(),measured_property.Data());
+    TString target            = Targets[dCmbTargetType->GetSelected()];
+    TString plot              = Plots[dCmbPlotType->GetSelected()];
+
+    //
+    // Query Database for Data
+    //
+    mysqlpp::StoreQueryResult read_data = QueryDetector(detector, measured_property, det_id);
+
+    //
+    // Loop Over Results and Fill Vectors
+    //
+    size_t row_size =  read_data.num_rows();
+    if(ldebug) std::cout<<" row_size="<<row_size<<"\n";
+
+    //check for empty queries. If empty exit with error.
+    if(row_size == 0){
+      std::cout<<"There is no data for "<<measurement_type<<" of "<<device<<" for subblock "<<subblock
+	       <<" in the given run range!"<<std::endl;
+      return;
+    }
+
+    TH1F all_runs("all_runs","all_runs",1000,0,0);
+    Float_t x = 0.0 , xerr = 0.0;
+    for (size_t i = 0; i < row_size; ++i){
+      if(measurement_type =="a" || measurement_type =="aeo" 
+	 || measurement_type =="a12" || measurement_type =="d" 
+	 || measurement_type =="deo" || measurement_type =="d12"){
+	if(plot.Contains("RMS") == 1){
+	  x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
+	  xerr = 0.0;
+	}
+	else {
+	  x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
+	  xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
+	}
+      } 
+      else{
+	if(plot.Contains("RMS") == 1){
+	  x    = (read_data[i]["rms"]);
+	  xerr = 0.0;
+	}
+	else {
+	  x    = read_data[i]["value"];
+	  xerr = read_data[i]["error"];
+	}
+      }
+      all_runs.Fill(x);
+    }
+
+    TVectorF x_in(row_size), xerr_in(row_size);
+    TVectorF x_out(row_size), xerr_out(row_size);
+    TVectorF run_in(row_size), run_out(row_size);
+    TVectorF err_in(row_size), err_out(row_size);
+
+    TVectorF x_in_L(row_size), xerr_in_L(row_size);
+    TVectorF x_out_L(row_size), xerr_out_L(row_size);
+    TVectorF run_in_L(row_size), run_out_L(row_size);
+    TVectorF err_in_L(row_size), err_out_L(row_size);
+
+    x_in.Clear();
+    x_in.ResizeTo(row_size);
+    xerr_in.Clear();
+    xerr_in.ResizeTo(row_size);
+    run_in.Clear();
+    run_in.ResizeTo(row_size);
+
+    x_out.Clear();
+    x_out.ResizeTo(row_size);
+    xerr_out.Clear();
+    xerr_out.ResizeTo(row_size);
+    run_out.Clear();
+    run_out.ResizeTo(row_size);
+
+    x_in_L.Clear();
+    x_in_L.ResizeTo(row_size);
+    xerr_in_L.Clear();
+    xerr_in_L.ResizeTo(row_size);
+    run_in_L.Clear();
+    run_in_L.ResizeTo(row_size);
+
+    x_out_L.Clear();
+    x_out_L.ResizeTo(row_size);
+    xerr_out_L.Clear();
+    xerr_out_L.ResizeTo(row_size);
+    run_out_L.Clear();
+    run_out_L.ResizeTo(row_size);
+
+    Int_t m = 0;
+    Int_t k = 0;
+    Int_t l = 0;
+    Int_t n = 0;
+
+    std::cout<<"############################################\n";
+    std::cout<<"QwGUI : Collecting data.."<<std::endl;
+    std::cout<<"QwGUI : Retrieved "<<row_size<<" data points\n";
+    for (size_t i = 0; i < row_size; ++i)
+      { 	    
+	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
+	  if(plot.Contains("RMS") == 1){
+	    x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
+	    xerr = 0.0;
+	  }
+	  else {
+	    x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
+	    xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
+	  }
+	} 
+	else{
+	  if(plot.Contains("RMS") == 1){
+	    x    = (read_data[i]["rms"]);
+	    xerr = 0.0;
+	  }
+	  else {
+	    x    = read_data[i]["value"];
+	    xerr = read_data[i]["error"];
+	  }
+	}
+
+	if(read_data[i]["slow_helicity_plate"] == "out") {
+	  if (read_data[i]["wien_reversal"]*1 == 1){
+	    run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_out.operator()(k)    = x;
+	    xerr_out.operator()(k) = xerr;
+	    err_out.operator()(k)  = 0.0;
+	    k++;
+	  } else {
+	    run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_out_L.operator()(l)    = x;
+	    xerr_out_L.operator()(l) = xerr;
+	    err_out_L.operator()(l)  = 0.0;
+	    l++;
+	  }
+	  
+	}
+	
+	if(read_data[i]["slow_helicity_plate"] == "in") {
+	  if (read_data[i]["wien_reversal"]*1 == 1){
+	    run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_in.operator()(m)    = x;
+	    xerr_in.operator()(m) = xerr;
+	    err_in.operator()(m)  = 0.0;
+	    m++;
+	  } else {
+	    run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_in_L.operator()(n)    = x;
+	    xerr_in_L.operator()(n) = xerr;
+	    err_in_L.operator()(n)  = 0.0;
+	    n++;
+	    
+	  }
+	}
+      }
+
+    // Check to make sure graph is not empty.
+    if(m==0 && k==0 && l==0 && n==0){
+      std::cout<<"QwGUI : No data were found for the given criteria."<<std::endl;
+      exit(1);
+    }
+    else
+      std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
+    
+
+    run_in.ResizeTo(m);
+    x_in.ResizeTo(m);
+    err_in.ResizeTo(m);
+    xerr_in.ResizeTo(m);
+
+    TGraphErrors* grp_in  = new TGraphErrors(run_in,  x_in, err_in, xerr_in);
+    grp_in ->SetMarkerSize(0.6);
+    grp_in ->SetMarkerStyle(21);
+    grp_in ->SetMarkerColor(kBlue);
+
+    run_in_L.ResizeTo(n);
+    x_in_L.ResizeTo(n);
+    err_in_L.ResizeTo(n);
+    xerr_in_L.ResizeTo(n);
+
+    TGraphErrors* grp_in_L  = new TGraphErrors(run_in_L,  x_in_L, err_in_L, xerr_in_L);
+    grp_in_L ->SetMarkerSize(0.6);
+    grp_in_L ->SetMarkerStyle(21);
+    grp_in_L ->SetMarkerColor(kOrange);
+
+    run_out.ResizeTo(k);
+    x_out.ResizeTo(k);
+    err_out.ResizeTo(k);
+    xerr_out.ResizeTo(k);
+
+    TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
+    grp_out ->SetMarkerSize(0.6);
+    grp_out ->SetMarkerStyle(21);
+    grp_out ->SetMarkerColor(kRed);
+
+    run_out_L.ResizeTo(l);
+    x_out_L.ResizeTo(l);
+    err_out_L.ResizeTo(l);
+    xerr_out_L.ResizeTo(l);
+
+    TGraphErrors* grp_out_L = new TGraphErrors(run_out_L, x_out_L, err_out_L, xerr_out_L);
+    grp_out_L ->SetMarkerSize(0.6);
+    grp_out_L ->SetMarkerStyle(21);
+    grp_out_L ->SetMarkerColor(kViolet);
+
+    TMultiGraph * grp = new TMultiGraph();
+
+
+    TString y_title = GetYTitle(measurement_type, det_id);
+    TString title   = GetTitle(measurement_type, device);
+
+    if(plot.Contains("RMS"))
+      {
+	y_title = "RMS of "+y_title;
+	title   = "RMS of "+title;
+      }
+
+
+    if(m>0)grp->Add(grp_in);
+    if(k>0)grp->Add(grp_out);
+    if(n>0)grp->Add(grp_in_L);
+    if(l>0)grp->Add(grp_out_L);
+
+
+    TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
+    if(m>0) legend->AddEntry(grp_in,    "IHWP-IN-R", "p");
+    if(k>0) legend->AddEntry(grp_out,   "IHWP-OUT-R", "p");
+    if(n>0) legend->AddEntry(grp_in_L,  "IHWP-IN-L", "p");
+    if(l>0) legend->AddEntry(grp_out_L, "IHWP-OUT-L", "p");
+    legend->SetFillColor(0);
+    
+    mc->cd();
+    grp->Draw("AP");
+    legend->Draw("");
+    
+    grp->SetTitle(title);
+    grp->GetYaxis()->SetTitle(y_title);
+    grp->GetYaxis()->SetTitleOffset(2);
+    grp->GetXaxis()->SetTitleOffset(2);
+    grp->GetYaxis()->SetTitleSize(0.03);
+    grp->GetXaxis()->SetTitleSize(0.03);
+    grp->GetYaxis()->CenterTitle();
+    
+    
+    mc->Modified();
+    mc->SetBorderMode(0);
+    mc->Update();
+    
+    std::cout<<"QwGUI : Done!"<<std::endl;
+    
+    
+  }
+  else{
+    TCanvas *mc = dCanvas->GetCanvas();
+    mc->Clear();
+    mc->SetFillColor(0);
+    //
+    mc->cd();
+    TLatex T1;
+    T1.SetTextAlign(12);
+    T1.SetTextSize(0.03);
+    T1.DrawLatex(0.1,0.8,"To execute the command, you need first to connect to the database !");
+    T1.DrawLatex(0.1,0.6,"To connect to the database:");
+    T1.DrawLatex(0.2,0.5,"#bullet Use the pull-down menu at the top left of the GUI (File)");
+    T1.DrawLatex(0.2,0.4,"#bullet Choose Open (Database)");      
+    T1.DrawLatex(0.2,0.3,"#bullet You can then resubmit your request.");      
+    
+    mc->Modified();
+    mc->SetBorderMode(0);
+    mc->Update();
+    
+  }
+  
+  
+}
+
 
 
 /******************************************
@@ -1519,6 +2025,7 @@ TString QwGUIDatabase::GetTitle(TString measurement_type, TString device)
   TString title;
   switch(dCmbXAxis->GetSelected())
     {
+    case ID_X_HISTO:
     case ID_X_RUN:
       if (measurement_type == "y") 
 	title = Form("%s Yield vs Run Number",device.Data());
