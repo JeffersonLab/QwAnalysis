@@ -82,7 +82,9 @@ inline double VQwBridgingMethod::EstimateInitialMomentum(const TVector3& directi
 {
   double cth = direction.CosTheta(); // cos(theta) = uz/r, where ux,uy,uz form a unit vector
   double wp = 938.272013 * Qw::MeV;     // proton mass [MeV]
-  double e0 = 1162.06 * Qw::MeV ;      // beam energy [MeV]
+  double e0 = 1160.385 * Qw::MeV ;      // beam energy [MeV]
+  // average value from the talk of David. A 
+  // https://qweak.jlab.org/DocDB/0014/001429/001/Tracking_June2011.pdf
   double e_loss = 12.0  * Qw::MeV;    // target energy loss ~12 MeV
 
   // Kinematics for elastic e+p scattering
