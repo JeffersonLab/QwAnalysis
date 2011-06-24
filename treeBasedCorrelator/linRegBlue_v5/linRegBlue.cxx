@@ -113,16 +113,23 @@ int main(int argc, char *argv[]) {
   if( slopeFName) {
     TString xxx=treeInpFile;
     printf("xxx=%s=\n",xxx.Data());
-    char *xx2=strstr(xxx,"/Qw");
+    char *xx2=strstr(xxx,"/");
     assert(xx2); // if input tree name does not start with 'Qw' change the line above
     xx2++;
-    printf("xx2=%s=\n",xx2);
-    char *xx3=strstr(xx2,"/Qw");
+    char *xx3;
+    do{
+      printf("xx2=%s=\n",xx2);
+      xx3=strstr(xx2,"/");
+      if(xx3 == 0) {
+	//	xx3 = xx2;
+      } else {
+	xx3++;
+	xx2 = xx3;
+      }
+    } while (xx3 != 0);
     if(xx3 == 0) 
       xx3 = xx2;
-    else 
-      xx3++;
-
+    
     TString treeOutName=Form("%sreg_%s",outPath,xx3);
     mBlueFile=new TFile(treeOutName,"RECREATE"," regressed  Qweak tree");
     printf("Open to write  =%s=\n",treeOutName.Data());
