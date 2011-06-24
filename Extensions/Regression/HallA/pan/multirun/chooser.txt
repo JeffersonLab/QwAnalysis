@@ -1,0 +1,41 @@
+# Configuration file for a multirun analysis, used by the TaVarChooser class
+# All lines beginning with a # are treated as a comment (not read in).
+# First column is always the type of variable to readout (case insensitive),
+#   followed by a switch (1==on, 0==off) or a set of specific
+#   variables to be included.
+# By default, all options are 0 (off).
+
+# Battery readout (on/off): diff
+# batteries 1 3 4 6 7 8
+
+# BCMs
+bcms 1 2 5 cav2 cav3
+
+# BPM positions used for dithering (bpm position) : avg and diff
+#ditbpms 12x 4ax 4ay 4bx 4by
+
+# Other BPMs (bpms): avg and diff
+# bpms 1 8 10
+#bpms cav1x cav2x cav3x cav1y cav2y cav3y 1x 1y 1I02x 1I02y 1I04x 1I04y 1I06x 1I06y 0I02x 0I02y 0I02Ax 0I02Ay 0L01x 0L01y 0L02x 0L02y
+# removed injector bpms 2009-09-05 dalton
+bpms 4ay 4by 12x 12y 4ax 4bx cav2x cav3x cav2y cav3y
+
+# Decision to use dithering bpms for a bpm saturation cut (on/off).
+#  These bpms are hardwired in TaPairSelector:
+#   12x, 4ax, 4ay, 4bx, 4by
+hallbpmsat 0
+
+# FLumi readout (on/off): avg_n, asym_n, reg_asym_n
+flumi 1
+
+# BLumi readout (on/off): avg_n, asym_n, reg_asym_n
+blumi 1
+
+# Helium-4 run detector configuration (on/off): avg_n, asym_n, reg_asym_n
+he4detectors 0
+
+# Hydrogen run detector configuration (on/off): avg_n, asym_n, reg_asym_n
+lh2detectors 1
+
+# Beam Modulation Words (on/off): not currently used
+bmw 0

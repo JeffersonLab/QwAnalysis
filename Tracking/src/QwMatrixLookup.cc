@@ -214,13 +214,8 @@ bool QwMatrixLookup::WriteTrajMatrix(const std::string filename)
   Double_t  position_r,position_phi;   //z=570 cm plane
   Double_t  direction_theta,direction_phi;
 
-  // Load the magnetic field
-  std::string fieldmap = getenv_safe_string("QWANALYSIS") + "/Tracking/prminput/MainMagnet_FieldMap.dat";
+  // Load the ray tracer
   QwRayTracer* raytracer = new QwRayTracer();
-  if (! QwRayTracer::LoadMagneticFieldMap(fieldmap)) {
-    QwError << "Could not load magnetic field map!" << QwLog::endl;
-    return false;
-  }
   // Get the boundaries of the magnetic field
   double magneticfield_min = -250.0 * Qw::cm;
   double magneticfield_max =  250.0 * Qw::cm;

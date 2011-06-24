@@ -1,0 +1,62 @@
+// -*- c++ -*-
+#include <Rtypes.h>
+#include "../postpan/src/TaRegression.hh"
+#include "../postpan/src/TaDitAna.hh"
+#include <TTree.h>
+#include <TBranch.h>
+
+TaRootRegDef *regdef;
+TTree *reg;
+
+Double_t getmonvscoil (UInt_t scyc, TString mon, TString coil)
+{
+  TTree* ditslp;
+  if (!(ditslp = (TTree*)gROOT->FindObject("ditslps")))
+    {
+      cerr << "No dither slope tree found" << endl;
+      return 1e-9;
+    }
+  TaRootDitDef* ditdef;
+  if (!(ditdef = (TaRootDitDef*)gROOT->FindObject("TaRootDitDef;1")))
+    {
+      cerr << "No dither definition found" << endl;
+      return 1e-9;
+    }
+
+  Int_t imon;  
+  if ((imon = ditdef->GetMonitorIndex(mon)) == -1)
+    {
+      cerr << "No such monitor " << mon << endl;
+      return 1e-9;
+    }
+  Int_t icoil;
+  if ((icoil = ditdef->GetCoilIndex(coil)) == -1)
+    {
+      cerr << "No such coil " << coil << endl;
+      return 1e-9;
+    }
+
+  // Get slopes out of tree
+  TBranch* b_slpMonVsCoil = ditslp->GetBranch ("slpMonVsCoil");
+
+  // You'd think there'd be an easier way to find out the dimensions
+  // of an array branch.  But I can't find one.
+
+  char* bst = new char[80];
+  strcpy (bst, b_slpMonVsCoil->GetTitle());
+  while (*bst != '\0' && *bst != '[')
+    ++bst;
+  ++bst;
+  UInt_t idx1 = atoi (bst);
+  while (*bst != '\0' && *bst != '[')
+    ++bst;
+  ++bst;
+  UInt_t idx2 = atoi (bst);
+  delete[] bst;
+
+  Double_t slpMonVsCoil[idx1][idx2];
+  b_slpMonVsCoil->SetAddress (slpMonVsCoil);
+  b_slpMonVsCoil->GetEntry (scyc);
+
+  return slpMonVsCoil[imon][icoil];
+}

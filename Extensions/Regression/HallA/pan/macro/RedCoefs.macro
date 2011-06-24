@@ -1,0 +1,197 @@
+// -*- c++ -*-
+
+#ifndef __RedCoefs__
+#define __RedCoefs__
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include "Rtypes.h"
+#include "src/TaIResultsFile.hh"
+
+class RedCoefs
+{
+  // Class to get and dispense coefficients from redana results files
+
+public:
+  RedCoefs (const UInt_t run = 0, 
+	    const string ctype = "dither",
+	    const char *ditresfile="");
+  RedCoefs (const RedCoefs& rc);
+  virtual ~RedCoefs () {};
+  void Compute (const string dep = "asym_n_det1",
+		const string ind = "diff_bpm12x");
+  Double_t GetMean () const {return fComputed ? fMean : 0;}
+  Double_t GetMeanErr () const {return fComputed ? fMeanErr : -1;}
+  vector<string> Monitors () const;
+  
+private:
+  UInt_t fRun;
+  string fCtype;
+  vector<string> fTagvec;
+  vector<Double_t> fMeanvec;
+  vector<Double_t> fErrvec;
+  Bool_t fComputed;
+  vector<Double_t> fMiniMean;
+  vector<Double_t> fMiniMeanErr;
+  Double_t fMean;
+  Double_t fMeanErr;
+  Bool_t fGoodStats;
+};
+
+RedCoefs::RedCoefs (const UInt_t run, 
+		    const string ctype,
+		    const char *ditresfile)
+{
+  
+  Double_t meanval(0);
+  Double_t errval(0);
+  if(ditresfile!="")
+    fGoodStats = kTRUE;
+  else
+    fGoodStats = kFALSE;
+  
+  fRun = run;
+  fTagvec.clear();
+  fMeanvec.clear();
+  fErrvec.clear();
+  fComputed = false;
+  
+  // Open the file from redana (<path>/parity02_<run>_<dither or regress>.res)
+  if (ctype == "dither" || ctype == "regress")
+    {
+
+      TaIResultsFile *fi;
+      if(ctype == "dither" && fGoodStats) {
+	fi = new TaIResultsFile (ditresfile);
+      } else {
+	fi = new TaIResultsFile (run, ctype);
+      }
+      fCtype = ctype;
+      if (fi == NULL || !(fi->is_open()))
+	return;
+      
+      while (fi->ReadNextLine())
+	{
+	  // Stash the file data in memory
+	  
+	  if (fi->GetPtag() == "redana")
+	    {
+	      string rtag = fi->GetRtag();
+	      meanval = fi->GetRes();
+	      errval = fi->GetErr();
+	      fTagvec.push_back (rtag);
+	      fMeanvec.push_back (meanval);
+	      fErrvec.push_back (errval);
+	    }
+	}
+      delete fi;
+    }
+  else
+    {
+      cerr << "RedCoefs::Redcoefs: ERROR: Invalid coefficient type: " << ctype << endl;
+      fCtype = "";
+      return;
+    }
+}
+
+
+void 
+RedCoefs::Compute (const string dep, const string ind)
+{
+  // Now look in the stored vectors for the data, average them and
+  // return averages
+  
+  Double_t meanval(0);
+  Double_t errval(0);
+  
+  string slopest;
+  if (fCtype == "dither")
+    slopest = "D" + dep + "_vs_M" + ind;
+  else if (fCtype == "regress")
+    slopest = dep + "_vs_" + ind + "_slope";
+ 
+  Double_t meanwsum(0);
+  Double_t wsum(0);
+
+  for (UInt_t i = 0; i < fTagvec.size(); ++i)
+    {
+      string rtag = fTagvec[i];
+      if (rtag.size() > slopest.size() &&
+	  rtag.substr (rtag.size()-slopest.size(), slopest.size()) == slopest)
+	{
+	  meanval = fMeanvec[i];
+	  // modulation analysis stores 0 for error, so use 1
+	  // modulation goldenfile has good errors.
+	  errval = ((fCtype == "regress" || fGoodStats) ? fErrvec[i] : 1);
+	  if (errval > 0)
+	    {
+	      Double_t wt = 1 / errval / errval;
+	      meanwsum += meanval * wt;
+	      wsum += wt;
+	      fMiniMean.push_back (meanval);
+	      fMiniMeanErr.push_back (errval);
+	    }
+	}
+    }
+
+  if (wsum > 0)
+    {
+      fMean = meanwsum / wsum;
+      fMeanErr = sqrt (1 / wsum);
+      fComputed = true;
+    }
+  else
+    {
+      if(fGoodStats && (meanval!=0 && errval!=0)) {
+	fMean = meanval;
+	fMeanErr = errval;
+	fComputed = true;
+      } else {
+	fMean = 0;
+	fMeanErr = -1;
+      }
+    }
+
+}
+
+
+vector<string>
+RedCoefs::Monitors () const
+{
+  // Return a list of all monitors for which coefficients exist
+
+  vector<string> ret;
+  ret.clear();
+  Int_t offs = (fCtype == "dither" ? 5 : 9);
+  Int_t trailing = (fCtype == "dither" ? 0 : 6);
+  for (UInt_t i = 0; i < fTagvec.size(); ++i)
+    {
+      string rtag = fTagvec[i];
+      UInt_t ivs = rtag.find ("_vs_");
+      if (ivs != string::npos)
+	{
+	  if (fCtype == "dither" && rtag[ivs+4] != 'M')
+	    continue;
+	  string mon = rtag.substr (ivs+offs, rtag.size()-ivs-offs-trailing);
+	  vector<string>::const_iterator ir;
+	  for (ir = ret.begin();
+	       ir != ret.end() && *ir != mon;
+	       ++ir)
+	    {}
+	  if (ir == ret.end())
+	    ret.push_back (mon);
+	}
+    }
+  return ret;
+}
+
+
+RedCoefs::RedCoefs (const RedCoefs& rc)
+{
+  rc.GetMean();
+  cerr << "?copy?" << endl;
+}
+
+#endif

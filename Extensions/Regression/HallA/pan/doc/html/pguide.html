@@ -1,0 +1,518 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Programmer's Guide to ``Pan''</title>
+    <link type="text/css" rel="stylesheet" href="style.css" />
+  </head>
+
+  <body>
+    <h1>Programmer's Guide to ``Pan''</h1>
+
+    <hr />
+
+<p>``Pan'' is the Parity Analysis code for HAPPEX II and related
+experiments at Jefferson Lab.  It is being developed and maintained by
+
+<a href="http://physics.syr.edu/~rsholmes">Richard Holmes</a>,
+
+<a href="http://www.jlab.org/~rom">Robert Michaels</a>,
+
+<a href="http://www.jlab.org/~moffit/">Bryan Moffit</a>,
+
+<a href="http://www.jlab.org/~paschke/">Kent Paschke</a>,
+
+Riad Suleiman,
+
+and
+
+<a href="http://www.jlab.org/~vacheret">Antonin Vacheret</a>,
+
+with contributions from additional authors.  This design document
+contains a description of requirements, programming rules, an overall
+description of the program, a list of classes and their
+responsibilities, program flow, and a UML conceptual class
+diagram.</p>
+
+    <h2>REQUIREMENTS</h2>
+
+    <p>The code must meet the following requirements.</p>
+
+    <ul>
+      <li>Based on <a href="http://root.cern.ch">ROOT</a>.</li>
+
+      <li>Analysis of one run and its constituent miniruns.
+	  A minirun is usually associated with
+      feedback or with short-term diagnostics.</li>
+
+      <li>Allow choice of analysis : asymmetries from normal running,
+      pedestal and DAC calibrations, 
+      beam-only data, etc.</li>
+
+      <li>Inputs that define the conditions of analysis, e.g. Run type
+      definition, Cuts, Datamap, DAC noise parameters, Feedback Options
+      can come either from a simple interface (e.g. text file), or from
+      a database.</li>
+
+      <li>It should be easy to change or add devices, datamap, cuts,
+      and other setup quantities.</li>
+
+      <li>Analysis can run as a interactive ROOT session, or batch
+      mode.</li>
+
+      <li>Separate ROOT macros will make plots for diagnostics and perform
+	  post-analyzer tasks such as regression and modulation analysis.
+	  </li>
+    </ul>
+    
+    <h2>PROGRAMMING RULES</h2>
+
+    <p>Code developers will try to conform to the the following
+    programming rules.</p>
+
+    <ul>
+      <li>All objects' constructors initialize their members in a valid
+      state.</li>
+
+      <li>Unexpected usage or results must be conveyed unambiguously.
+      Either return a clear error flag or print a warning to stdout.
+      E.g. if you try to <code>event.GetData("typo","error")</code> you get a
+      warning.</li>
+
+      <li>Copy constructors and assignment operators must always be
+      defined. If you don't intend a user to copy or assign objects of
+      your class, declare them private with no implementation. Don't
+      accept the compiler's default.</li>
+
+      <li>If the preferred constructor takes arguments, define a
+      default constructor with no arguments as protected since it's
+      required by derived classes.</li>
+
+      <li>Define a virtual destructor unless nobody will ever derive
+      from this class.</li>
+
+      <li>Never pass an object by pointer as an argument. Only pass by
+      reference. If the class will not change the object being passed,
+      pass as a const reference. If passed as a non-const ref, it's
+      assumed the argument may (and probably will) be changed.
+      (Some exceptions have been made: for some methods that take a
+<span class="classname">string</span> argument, an equivalent method
+taking a <span class="classname">char*</span> argument is provided for
+use from CINT, which has trouble playing nicely with STL classes.)</li>
+	  
+      <li>Similarly, methods may not return pointers to objects.  (For
+some methods that return a <span class="classname">string</span>
+value, an equivalent method returning a
+
+	  <a href="http://root.cern.ch/root/html/TString.html" class="classname">TString</a>
+
+	  -- <em>not</em> a <span
+class="classname">char*</span> -- is provided.)</li>
+
+      <li>If a method does not change the state of a class it should be
+      declared const, e.g. <code>bool IsEpicsEvent() const;</code>. Absence of
+      <code>const</code> implies the state of the object may (and probably will)
+      be changed by this method.</li>
+
+      <li>Header files should only contain the header files of super
+      classes or standard library. All other classes may be forward
+      declared like <code>class TaEvent;</code>. This makes makefile dependencies
+      and maintenance simpler.</li>
+
+      <li>Modified Taligent conventions; the modification is to have a
+      small ``a'' (means Hall A) after T or V at the start of concrete
+      and abstract class repectively. E.g <a href="html/TaCutList.html" class="classname">TaCutList</a> or
+<a href="html/VaAnalysis.html" class="classname">VaAnalysis</a>.  Ordinary data member identifiers begin with f
+and an uppercase letter, and static data members begin with fg and an
+uppercase letter, e.g. <code>static deque&lt;TaEvent&gt; fgEventQueue;
+TaEvent fEvLeft</code>.
+
+    </ul>
+
+    <p>Also see
+
+    <a href="comments.html">commenting recommendations.</a>
+
+    <h2>OVERALL DESCRIPTION</h2>
+
+    <p>``Pan'' can refer to the C++ analysis software generally or to one specific application built from that software.</p>
+
+    
+    <p>The Pan application is a relatively simple application,
+appropriate to the straightforward nature of the analysis.  When
+invoked with -f, -r, or -o command line options it finds a single run
+in a data file or in online data, finds the analysis control database entries
+corresponding to that run, and analyzes that run.  Statistics are
+printed periodically, and a ROOT file containing processed data and
+analysis results as well as a results database file are created.  Pan
+is compiled with ROOT allowing it to be used another way: when invoked
+with no -f or -r option a ROOT prompt is presented.  Pan's classes are
+then available for use from the ROOT prompt or in ROOT macros.</p>
+
+    <p>Also built from the Pan classes are Panam, a GUI driven
+analyzer intended mainly for online monitoring, and libpan.a, a
+library containing the more generally useful Pan classes for use by
+other applications.</p>
+
+    
+    <h2>CLASS RESPONSIBILITIES</h2> 
+
+    <p>The most important classes of the analyzer are described here.
+    We explain in words the responsiblity of the class.  Classes are listed in
+    a semi-logical order from "big" to "little".  For details see the
+    <a href="html/USER_Index.html">Pan Class
+    Index</a>, or follow the class name links to the
+
+<a href="http://root.cern.ch/root/html/THtml.html"
+class="classname">THtml</a>-generated
+
+    class documentation.  (Panam classes need to be added to this.)
+    </p>
+
+    <dl>
+      <dt>
+        <a href="html/TaAnalysisManager.html" class="classname">TaAnalysisManager</a> <span
+        class="authors"> (Original authors: R. Holmes and A.
+        Vacheret)</span></dt>
+
+      <dd> <p>Manages the overall analysis.  Calling
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:Init" class="methname">Init</a>,
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:InitLastPass" class="methname">InitLastPass</a>,
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:Process" class="methname">Process</a>,
+
+	  and
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:End" class="methname">End</a>
+
+	  in that order, once each, gives a
+	  1-pass analysis of a run.  For a 2-pass analysis call
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:Init" class="methname">Init</a>,
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:Process" class="methname">Process</a>,
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:EndPass1" class="methname">EndPass1</a>,
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:InitPass2" class="methname">InitPass2</a>,
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:InitLastPass" class="methname">InitLastPass</a>,
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:Process" class="methname">Process</a>,
+
+	  <a href="html/TaAnalysisManager.html#TaAnalysisManager:End" class="methname">End</a>.
+
+	  (For more on 1-pass and 2-pass analyses, see
+	  
+	  <a href="http://physics.syr.edu/~rsholmes/happex/pan/html/TaStatistics.html#TaStatistics" class="classname">TaStatistics</a>
+	  <a href="http://physics.syr.edu/~rsholmes/happex/pan/html/TaStatistics.html#TaStatistics:description">class description.</a>)
+
+
+      </dd>
+	  
+      <dt>
+        <a href="html/TaRun.html" class="classname">TaRun</a> <span class="authors"> (Original authors: R. Holmes, R. Michaels)</span></dt>
+
+      <dd> <p>This
+	  class treats the data of one run. The <a href="html/TaRun.html#TaRun:Init" class="methname">Init</a> method 
+	  initializes the event <a href="http://root.cern.ch/root/html/TTree.html" class="classname">TTree</a>, attaches the Coda file or
+	  online data, and gets the analysis control database.  It
+	  initializes the storage of devices and cuts.</p>
+
+	  <p>In the event loop, the <a href="html/TaRun.html#TaRun:NextEvent" class="methname">NextEvent</a> method is
+	  called to get and decode an event from the data stream.
+	  <a href="html/TaRun.html#TaRun:AddCuts" class="methname">AddCuts</a> is called after preprocessing each event, to
+	  update the list of cut intervals.  <a href="html/TaRun.html#TaRun:AccumEvent" class="methname">AccumEvent</a> and
+	  <a href="html/TaRun.html#TaRun:AccumPair" class="methname">AccumPair</a> accumulate statistics for results of event and
+	  pair analysis, respectively.
+	  <a href="html/TaRun.html#TaRun:PrintSlice" class="methname">PrintSlice</a> 
+	  and
+	  <a href="html/TaRun.html#TaRun:PrintRun" class="methname">PrintRun</a> 
+	  write statistics
+	  summaries to STDOUT.</p>
+
+	  <p>When analysis is complete, <a href="html/TaRun.html#TaRun:Finish" class="methname">Finish</a> is called to
+
+	  write and close the ROOT file.</p>
+
+      </dd>
+
+      <dt>
+        <a href="html/VaAnalysis.html" class="classname">VaAnalysis</a> <span class="authors"> (Original authors: R. Holmes and A. Vacheret)</span></dt>
+
+      <dd>
+	  <p> Abstract base class of analysis. Derived classes include
+
+	  <a href="html/TaStandardAna.html" class="classname">TaStandardAna</a>
+	  (for standard physics analysis),
+
+	  <a href="html/TaFeedbackAna.html" class="classname">TaFeedbackAna</a>
+	  (for feedback-only analysis),
+
+	  <a href="html/TaADCCalib.html" class="classname">TaADCCalib</a>
+	  (for computation of pedestals and
+	  DAC noise slopes), and
+
+	  <a href="html/TaDebugAna.html" class="classname">TaDebugAna</a>
+	  (for debugging helicity signal problems, etc.; actually derives from
+
+	  <a href="html/TaStandardAna.html" class="classname">TaStandardAna</a>).
+
+	  Other specialized analyses, if needed, can be developed as
+	  new derived classes.
+	  Each of these is responsible for some
+	  treatment of VaEvents from a TaRun.  The type of analysis to
+	  be done is specified in the analysis control database, and the
+
+	  <a href="html/TaAnalysisManager.html" class="classname">TaAnalysisManager</a>
+
+	  instantiates the
+	  appropriate analysis class accordingly.</p>
+
+	  <p><a href="html/VaAnalysis.html" class="classname">VaAnalysis</a> has
+	  initialization and termination routines for both the overall
+	  analysis and the analysis of a particular run.  At present
+	  Pan is designed to analyze only a single run, but these
+	  routines provide for a possible future version that will
+	  handle multiple runs.</p>
+
+	  <p>The main event loop is inside the <a href="html/VaAnalysis.html#VaAnalysis:ProcessRun" class="methname">ProcessRun</a> method.  The three main
+	  methods called from here are <a href="html/VaAnalysis.html#VaAnalysis:PreProcessEvt" class="methname">PreProcessEvt</a>, <a href="html/VaAnalysis.html#VaAnalysis:ProcessEvt" class="methname">ProcessEvt</a>, and <a href="html/VaAnalysis.html#VaAnalysis:ProcessPair" class="methname">ProcessPair</a>.  The first of these places the
+	  most recently read event into a delay queue until the
+	  delayed helicity information for that event becomes
+	  available.  Cut conditions are checked for here.  Once the helicity
+	  information is added the event is pushed onto a second delay queue,
+	  while the events are used to construct pairs which are pushed onto a
+	  third delay queue.  These two delay queues are used to hold
+events and pairs until we can tell whether they fall within a cut
+interval caused by a cut condition arising later.  Events and pairs
+which emerge from the ends of these queues are analyzed in <a href="html/VaAnalysis.html#VaAnalysis:ProcessEvt" class="methname">ProcessEvt</a> and <a href="html/VaAnalysis.html#VaAnalysis:ProcessPair" class="methname">ProcessPair</a>, respectively.  Analysis results
+are added to the events and pairs themselves.
+</p>
+
+      </dd>
+
+      <dt>
+        <a href="html/TaDataBase.html" class="classname">TaDataBase</a> <span class="authors"> (Original authors: R. Suleiman, R. Michaels)</span></dt>
+
+      <dd>
+	  <p>Provide an
+	  interface to an analysis control database in either of two
+	  forms: ASCII text
+	  files or a MYSQL database.  The analysis control database is
+ 	  used to define run dependent parameters, such as
+          the datamap, cut list, and calibrations.</p>
+      </dd>
+
+      <dt>
+        <a href="html/TaDevice.html" class="classname">TaDevice</a> <span class="authors"> (Original authors: A. Vacheret, R. Michaels)</span></dt>
+
+      <dd>
+      <p>Contains information on all the devices specified in the
+	  datamap (it's called <a href="html/TaDevice.html" class="classname">TaDevice</a>
+	  for historical reasons; perhaps <span class="classname">TaDevices</span> would be a better name).
+	  Initialized from the datamap by <a href="html/TaRun.html" class="classname">TaRun</a> and used to decode the event
+	  data.
+	  </p>
+
+      </dd>
+
+      <dt>
+        <a href="html/VaEvent.html" class="classname">VaEvent</a> <span class="authors"> (Original authors: R. Michaels, R. Holmes)</span></dt>
+
+      <dd>
+      <p> An event of data.  This is a base class from which are derived
+
+	  <a href="html/TaEvent.html" class="classname">TaEvent</a>,
+
+	  corresponding to genuine events from the data acquisition system, and 
+
+	  <a href="html/TaSimEvent.html" class="classname">TaSimEvent</a>,
+
+	  corresponding to events in which some data have been
+	  artificially generated for debugging purposes.
+
+	  These classes include methods to get data using keys.
+	  For ADCs and scalers can also get the data by slot number
+	  and channel.  Events are loaded from a data source and may
+	  have analysis results added to them; they may be checked for
+	  cut conditions.</p>
+
+      </dd>
+
+      <dt>
+        <a href="html/VaPair.html" class="classname">VaPair</a> <span class="authors"> (Original authors: R. Holmes, A. Vacheret)</span></dt>
+
+      <dd>
+      <p> Base
+	  class for pairs of events of opposite helicities.  Contains
+	  (when full) two events, as well as the results of analysis
+	  of that pair. Different
+	  derived classes correspond to different beam helicity
+	  structures. There are two derived classes,
+	  
+	  <a href="html/TaPairFromPair.html" class="classname">TaPairFromPair</a>
+
+	  for analysis of data with HAPPEX-I style pair-oriented helicity structure, and
+
+	  <a href="html/TaPairFromQuad.html" class="classname">TaPairFromQuad</a>
+
+	  for analysis of data with G0 style quadruple-oriented
+	  helicity structure.  (Note that no Pan structure corresponds
+	  to a quadruple; the only differences between these two
+	  classes are the checks they make on helicity structure.)</p>
+	  
+	  <p>The <a href="html/TaPairFromPair.html#TaPairFromPair:Fill" class="methname">Fill</a> method is a bit tricky. When a
+	  pair is created, it is empty (i.e., it has no events in it);
+	  <a href="html/TaPairFromPair.html#TaPairFromPair:Fill" class="methname">Fill</a> takes a <a href="html/TaEvent.html" class="classname">TaEvent</a> object and, if it can't use
+	  it immediately to create a pair, stores it in a static
+	  container and returns <code>false</code>; if it can pair it
+	  with a previously stored event, it fills the pair with those
+	  two events and returns <code>true</code>.  Methods are
+	  provided to compute differences and asymmetries for a given
+	  device.</p>
+
+      </dd>
+
+      <dt>
+        <a href="html/TaCutInterval.html" class="classname">TaCutInterval</a> <span class="authors"> (Original authors: A. Vacheret, R. Holmes)</span></dt>
+
+      <dd>
+      <p> A
+	  TaCutInterval consists of a cut type, a cut value, and two
+	  event numbers,
+	  corresponding to the start and end of the cut condition.</p>
+
+      </dd>
+
+      <dt>
+        <a href="html/TaCutList.html" class="classname">TaCutList</a> <span class="authors"> (Original authors: A. Vacheret, R. Holmes)</span></dt>
+
+      <dd>
+      <p> List of cuts intervals.  The cut list for a given run
+	  identifies all the intervals during which a cut condition
+	  existed.  It also contains extensions for each cut type,
+	  telling how many events to extend each interval before and
+	  after the stored event numbers; a tally of events failing
+	  each cut type; and labels for the cut types.  </p>
+      </dd>
+
+      <dt>
+	  <a href="html/TaIResultsFile.html" class="classname">TaIResultsFile</a>
+	  and
+	  
+	  <a href="html/TaOResultsFile.html" class="classname">TaOResultsFile</a>
+
+	  <span class="authors"> (Original author:
+R. Holmes)</span></dt>
+
+      <dd>
+	  <p>Results database files, for input and output respectively.  See
+	  
+	  <a href="doc/results_database.txt">results_database.txt</a>
+	  
+	  for details.
+	  </p>
+
+      </dd>
+
+      <dt>
+        <a href="html/TaLabelledQuantity.html" class="classname">TaBlind</a> <span
+        class="authors"> (Original author: R. Holmes)</span></dt>
+
+      <dd>
+      <p> Object used to facilitate blind physics analysis.</p>
+
+      </dd>
+
+      <dt>
+        <a href="html/TaLabelledQuantity.html" class="classname">TaLabelledQuantity</a> <span
+        class="authors"> (Original author: R. Holmes)</span></dt>
+
+      <dd>
+      <p> Results of the analysis are vectors of these
+        quantities, which have a label, a value, and a unit.</p>
+
+      </dd>
+
+      <dt>
+        <a href="html/TaStatistics.html" class="classname">TaStatistics</a> <span class="authors"> (Original author: R. Holmes)</span></dt>
+
+      <dd>
+      <p> A general purpose statistics class, allowing accumulation of
+	  sums for one value or a set of values, from which quantities
+	  such as means, widths, errors, etc. can be computed.</p>
+      </dd>
+
+      <dt>
+        <a href="html/TaRootRep.html" class="classname">TaRootRep</a> <span class="authors"> (Original author: R. Michaels)</span></dt>
+
+      <dd>
+      <p>Provides character data ROOT output for analysis control database.</p>
+      </dd>
+
+      <dt>
+        <a href="html/TaFileName.html" class="classname">TaFileName</a> <span class="authors"> (Original author: R. Holmes)</span></dt>
+
+      <dd>
+      <p>Provides methods to generate Pan standard filenames.</p>
+      </dd>
+	  
+      <dt>
+        <a href="html/TaString.html" class="classname">TaString</a> <span class="authors"> (Original author: R. Holmes)</span></dt>
+
+      <dd>
+      <p> Derives from STL <span class="classname">string</span>;
+	  provides additional methods.  No additional storage is
+	  defined, so <span class="classname">string</span>s and <a href="html/TaString.html" class="classname">TaString</a>s can be converted back and
+	  forth as needed; e.g. to convert a <span
+	  class="classname">string</span> to lowercase you can do
+	  something like
+	  <blockquote>
+	  <pre>
+string mixedstring ("MixedCaseString");
+TaString temp = mixedstring;
+string lowerstring = temp.ToLower();
+	  </pre>
+	  </blockquote>
+	  </p>
+      </dd>
+
+    </ul>
+
+    <h2>PROGRAM FLOW</h2> 
+
+    <p>To show coarsely how the program flows from beginning to end,
+    here is the <a href="http://www.jlab.org/~rom/aparflow.pdf">Program
+    Flow Diagram</a> in PDF format.</p>
+
+    <h2>CLASS DIAGRAM</h2>
+
+    <p>This PDF
+
+    <a href="http://www.jlab.org/~rom/aparclass.pdf">Class Diagram</a>
+
+    illustrates the inheritence and close
+    relationships in a UML style.   The inheritences are
+    illustrated by an open triangle type of arrow, which is the
+    standard notation.   The other relationships are in most cases
+    containment, but in some cases simply usage. <span
+class="shoutcolor">This diagram is old and somewhat obsolete, but
+still gives a fairly accurate picture of the class
+relationships.</span></p>
+
+<div class="fineprint">
+<hr />
+    <a href="http://physics.syr.edu/~rsholmes/happex/pan/index.html">Pan documentation</a><br />
+    <hr />
+
+    <address>
+Rich Holmes / <a href="http://physics.syr.edu/~rsholmes/contact.html">Contact form</a></address>
+    <p><!-- hhmts start -->
+Last modified: Wed Jan 22 16:10:33 EST 2003
+<!-- hhmts end -->    </p>
+</div>
+  </body>
+</html>

@@ -1,4 +1,5 @@
 #include "QwEventDisplay3D.h"
+#include "QwParameterFile.h"
 ClassImp(QwEventDisplay3D);
 
 // ROOT Includes
@@ -17,8 +18,15 @@ const Bool_t kDebug = kTRUE;
 const char* QwEventDisplay3D::fFiletypes[] = {"ROOT files", "*.root","All files", "*", 0, 0 };
 
 QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
-      UInt_t height)
+      UInt_t height) : fPackageAngle(0.), fPreviousRotation(0.)
 {
+   // Set default flags. These can be updated throught the command line
+   // or through the GUI
+   fDrawTracks = kTRUE;
+   fDrawTreeLines = kFALSE;
+   fDrawAllRegion3 = kFALSE;
+   fDrawAllRegion2 = kFALSE;
+
    // First initialize the wire constants
    // TODO:(jc2) Read these from a configuration. Also check these numbers,
    // these were the figures I had on hand when I did this on 07/14/2010
@@ -56,43 +64,18 @@ QwEventDisplay3D::QwEventDisplay3D(const  TGWindow *window, UInt_t width,
 
 
    //The Following is HDC specs from survey
-   fHDC_AngleOfWires[0] = 0; // 90deg in radians
-   fHDC_AngleOfWires[1] = 0.927295218; // atan(3/4) in radians
-   fHDC_WireSeparation = 1.1684;  // in cm
-   fHDC_WireXSpacing[0] = 0; // in cm 
+   fHDC_WireXSpacing[0] = 0; // in cm (basically does not appply to x plane)
    fHDC_WireYSpacing[0] = 1.1684;      // in cm
    fHDC_WireXSpacing[1] = 1.4605; // in cm
    fHDC_WireYSpacing[1] = 1.9473; // in cm
-   fHDC_XLength = 28.57;  // in cm
-   fHDC_YLength = 38.10;  // in cm
-   fHDC_PlaneZPos[0] = -341.749;  // in cm
-   fHDC_PlaneZPos[1] = -339.844;  // in cm
-   fHDC_PlaneZPos[2] = -337.939;  // in cm
-   fHDC_PlaneZPos[3] = -336.034;  // in cm
-   fHDC_PlaneZPos[4] = -334.129;  // in cm
-   fHDC_PlaneZPos[5] = -332.224;  // in cm
-   fHDC_PlaneZPos[6] = -299.435;  // in cm
-   fHDC_PlaneZPos[7] = -297.530;  // in cm
-   fHDC_PlaneZPos[8] = -295.625;  // in cm
-   fHDC_PlaneZPos[9] = -293.720;  // in cm
-   fHDC_PlaneZPos[10] = -291.815;  // in cm
-   fHDC_PlaneZPos[11] = -289.910;  // in cm
-   fHDC_PlaneYPos[0] =  31.7716;  // in cm
-   fHDC_PlaneYPos[1] =  35.7716;  // in cm
-   fHDC_SinAngleWires[0] = 0;      // unitless
-   fHDC_CosAngleWires[0] = 1;      // unitless
-   fHDC_SinAngleWires[1] = 0.8;    // unitless
-   fHDC_CosAngleWires[1] = 0.6;    // unitless 
+   fHDC_LengthFirstWires[0] = 26.5155; // in cm
+   fHDC_LengthFirstWires[1] = 27.3945; // in cm
+   fHDC_LengthFirstWires[2] = 28.2738; // in cm
    fHDC_XAsymetry = 5.2045; // in cm
    fHDC_YAsymetry = 6.9393; // in cm
 
    fCurrentTrackArray = new TObjArray();
-   fCurrentOutlineArray= new TObjArray();   
-
-   // Enable various flags (for now, should be done through the GUI later)
-   fDrawTracks = kFALSE;
-   fDrawTreeLines = kFALSE;
-
+   fCurrentOutlineArray= new TObjArray();
 
    // For now, just initialize
    Init();
@@ -109,8 +92,11 @@ void QwEventDisplay3D::Init()
    // Before anything else, initialize EVE
    fEveManager = TEveManager::Create();
 
-   // Now load the geometry
-   LoadGeometry();
+   // Now load the Hall geometry
+   LoadHallGeometry();
+
+   // Now read the Drift Chamber Geometry
+   ReadDriftChamberGeometry();
 
    // Initialize the views
    InitViews();
@@ -122,17 +108,13 @@ void QwEventDisplay3D::Init()
    // loaded
    //InitEvents();
 
-   // Setup the rotation for now, assuming a default of horizontal position
-   // for the tracking hardware
-   SetRotation(0.);
-
    // TODO: Erase the following
    SwitchViewVDC();
    SwitchViewHDC();
    //fEveManager->GetBrowser()->Browser()->SetTitle("Hey there!!!");
 }
 
-void QwEventDisplay3D::LoadGeometry()
+void QwEventDisplay3D::LoadHallGeometry()
 {
    // TODO:
    // Locate the geometry file from GDML. For now, this is hard coded in, but
@@ -363,14 +345,14 @@ void QwEventDisplay3D::InitGUI()
 
 
    // Now add the labels
-   fRegion1Label = new TGLabel(vFrame,"REGION 1 HIT");
+   //fRegion1Label = new TGLabel(vFrame,"REGION 1 HIT");
    fRegion2Label = new TGLabel(vFrame,"REGION 2 HIT");
    fRegion3Label = new TGLabel(vFrame,"REGION 3 HIT");
    fTrigLabel = new TGLabel(vFrame,"TRIGGER HIT");
    fCerenkovLabel = new TGLabel(vFrame,"MAIN DETECTOR HIT");
    fScannerLabel = new TGLabel(vFrame,"SCANNER HIT");
-   vFrame->AddFrame(fRegion1Label, new TGLayoutHints(kLHintsLeft | kLHintsTop
-            | kLHintsExpandX | kLHintsExpandY));
+   //vFrame->AddFrame(fRegion1Label, new TGLayoutHints(kLHintsLeft | kLHintsTop
+   //         | kLHintsExpandX | kLHintsExpandY));
    vFrame->AddFrame(fRegion2Label,new TGLayoutHints(kLHintsLeft | kLHintsTop
             | kLHintsExpandX|kLHintsExpandY));
    vFrame->AddFrame(fRegion3Label,new TGLayoutHints(kLHintsLeft | kLHintsTop
@@ -383,7 +365,7 @@ void QwEventDisplay3D::InitGUI()
             | kLHintsExpandX|kLHintsExpandY));
 
    // Initialize all labels as not hit
-   fRegion1Label->ChangeBackground(fRed);
+   //fRegion1Label->ChangeBackground(fRed);
    fRegion2Label->ChangeBackground(fRed);
    fRegion3Label->ChangeBackground(fRed);
    fTrigLabel->ChangeBackground(fRed);
@@ -411,7 +393,7 @@ void QwEventDisplay3D::InitGUI()
    TGVerticalFrame *cFrame = new TGVerticalFrame(viewPort,100,100,kVerticalFrame|kOwnBackground);
    fTargetButton =  new TGTextButton(cFrame,"Target");
    fCollimator1Button =  new TGTextButton(cFrame,"Collimator1");
-   fGemsButton =  new TGTextButton(cFrame,"GEMS");
+   //fGemsButton =  new TGTextButton(cFrame,"GEMS");
    fCollimator2Button =  new TGTextButton(cFrame,"Collimator2");
    fHDCButton =  new TGTextButton(cFrame,"HDC");
    fCollimator3Button =  new TGTextButton(cFrame,"Collimator3");
@@ -426,8 +408,8 @@ void QwEventDisplay3D::InitGUI()
             kLHintsTop | kLHintsExpandX));
    cFrame->AddFrame(fCollimator1Button, new TGLayoutHints(kLHintsLeft | 
             kLHintsTop | kLHintsExpandX));
-   cFrame->AddFrame(fGemsButton, new TGLayoutHints(kLHintsLeft | 
-            kLHintsTop | kLHintsExpandX));
+   //cFrame->AddFrame(fGemsButton, new TGLayoutHints(kLHintsLeft | 
+   //         kLHintsTop | kLHintsExpandX));
    cFrame->AddFrame(fCollimator2Button, new TGLayoutHints(kLHintsLeft | 
             kLHintsTop | kLHintsExpandX));
    cFrame->AddFrame(fHDCButton, new TGLayoutHints(kLHintsLeft | 
@@ -471,6 +453,14 @@ void QwEventDisplay3D::InitGUI()
    // Add a new menu bar
    fMenu = new TGPopupMenu(gClient->GetRoot());
    fMenu->AddEntry("&Open ROOT File",kOpenRootFile);
+   fMenu->AddEntry("Rotate to -90",kRotateM90);
+   fMenu->AddEntry("Rotate to -45",kRotateM45);
+   fMenu->AddEntry("Rotate to 0",  kRotate0);
+   fMenu->AddEntry("Rotate to 45", kRotateP45);
+   fMenu->AddEntry("Rotate to 90", kRotateP90);
+   fMenu->AddEntry("Toggle Show Tracks", kToggleShowTracks);
+   fMenu->AddEntry("Toggle Show All Region 2", kToggleShowAllRegion2);
+   fMenu->AddEntry("Toggle Show All Region 3", kToggleShowAllRegion3);
    fMenu->AddSeparator();
    fBrowser->GetMenuBar()->AddPopup("E&vent Display",fMenu, new TGLayoutHints(
             kLHintsTop | kLHintsLeft));
@@ -487,7 +477,7 @@ void QwEventDisplay3D::InitGUI()
    fTargetButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchTarget()");
    fCollimator1Button->Connect("Clicked()","QwEventDisplay3D",this,
          "SwitchCollimator1()");
-   fGemsButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchGems()");
+   //fGemsButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchGems()");
    fCollimator2Button->Connect("Clicked()","QwEventDisplay3D",this,
          "SwitchCollimator2()");
    fHDCButton->Connect("Clicked()","QwEventDisplay3D",this,"SwitchHDC()");
@@ -626,7 +616,7 @@ void QwEventDisplay3D::PreviousEvent(Bool_t redraw)
 void QwEventDisplay3D::DisplayEvent()
 {
    // Disable all hit labels
-   fRegion1Label->ChangeBackground(fRed);
+   //fRegion1Label->ChangeBackground(fRed);
    fRegion2Label->ChangeBackground(fRed);
    fRegion3Label->ChangeBackground(fRed);
    fTrigLabel->ChangeBackground(fRed);
@@ -672,7 +662,7 @@ void QwEventDisplay3D::DisplayEvent()
       if (kDebug) {
          std::cout << "========================EVENT=============\n";
          std::cout << "\t\t -- Event: " << fCurrentEvent << " --\n";
-         std::cout << "Number reconstructed tracks: " 
+         std::cout << "Number of reconstructed tracks: " 
             << fEvent->GetNumberOfTracks() << "\n\n";
       }
 
@@ -763,6 +753,10 @@ void QwEventDisplay3D::DisplayEvent()
            if( partialTrack && partialTrack->GetRegion() == kRegionID2)
               sign = -1;
 
+           Double_t track_rotation_angle = fPackageAngle;
+           if ( package == 1 )
+             track_rotation_angle = _180DEG_ + fPackageAngle;
+
            if( partialTrack->IsValid() ) {
               std::cout << "Region: " << partialTrack->GetRegion() << "\n";
 
@@ -783,20 +777,20 @@ void QwEventDisplay3D::DisplayEvent()
                     std::cout << "\tOut of range!";
               }
               std::cout << "\n";
-              track->fV.Set(RotateXonZ(partialTrack->fOffsetX,
-                       partialTrack->fOffsetY,fPackageAngle+_90DEG_),
-                    RotateYonZ(partialTrack->fOffsetX,
-                       partialTrack->fOffsetY,fPackageAngle+_90DEG_),0.);
 
+              track->fV.Set(RotateXonZ(partialTrack->fOffsetX*-1.,
+                    partialTrack->fOffsetY,track_rotation_angle),
+                  RotateYonZ(partialTrack->fOffsetX*-1.,partialTrack->fOffsetY,
+                    track_rotation_angle),0.);
               // The components of this vector are represented only by ratios
               // of X and Y to Z. That assumes that fSlopeX and fSlopeY are
               // proper ratios compared to z. Let z = 1 for simplicity
               std::cout << "Slopes: (" << partialTrack->fSlopeX << "," <<
                  partialTrack->fSlopeY << "," << sign*1. << ")\n";
-              track->fP.Set(RotateXonZ(partialTrack->fSlopeX*sign,
-                    partialTrack->fSlopeY*sign,fPackageAngle+_90DEG_),
-                    RotateYonZ(partialTrack->fSlopeX*sign,
-                    partialTrack->fSlopeY*sign,fPackageAngle+_90DEG_),sign*1.);
+              track->fP.Set(RotateXonZ(partialTrack->fSlopeX*(-1*sign),
+                  partialTrack->fSlopeY*sign,track_rotation_angle),
+                RotateYonZ(partialTrack->fSlopeX*(-1*sign),
+                  partialTrack->fSlopeY*sign,track_rotation_angle),sign);
 
               // The technical details of drawing the track
               fCurrentTrack = new TEveTrack(track,prop);
@@ -808,8 +802,8 @@ void QwEventDisplay3D::DisplayEvent()
               fCurrentTrack->SetTitle(Form("Track for region: %d\n\nOrigin: "
                        "(%.3f,%.3f,%.3f)\nSlope: (%.3f,%.3f,%.3f)",
                        partialTrack->GetRegion(),
-                       partialTrack->fOffsetX/10.,
-                       partialTrack->fOffsetY/10., 0.,
+                       partialTrack->fOffsetX,
+                       partialTrack->fOffsetY, 0.,
                        partialTrack->fSlopeX,partialTrack->fSlopeY,1.));
               fEveManager->AddElement(fCurrentTrackList);
               fEveManager->AddElement(fCurrentTrack);
@@ -857,12 +851,22 @@ void QwEventDisplay3D::DisplayEvent()
       if( kDebug )
          std::cout << "==================END EVENT=============\n";
 
-      // Uncomment the following if you want to see the full drawing of
+      // Set fDrawAllRegion3 to true if you want to see the full drawing of
       // the planes for region 3
-      /*for(Int_t package = 1; package<=2; package++ )
+      if( fDrawAllRegion3 )
+      for(Int_t package = 1; package<=2; package++ )
          for( Int_t plane = 1; plane<=4; plane++ )
             for ( Int_t wire = 1; wire <= 279; wire++ )
-               DisplayWire(wire,plane,package,3,"");*/
+               DisplayWire(wire,plane,package,3,"");
+
+      // Set fDrawAllRegions2 to true if you want to see the full drawing of
+      // the planes for Region 2
+      if( fDrawAllRegion2)
+      for(Int_t package = 1; package<=2; package++ )
+         for( Int_t plane =1; plane<=12; plane++ )
+            for ( Int_t wire = 1; wire <=  32; wire++ )
+               DisplayWire(wire,plane,package,2,"");
+
    }
 
    fEveManager->Redraw3D(kFALSE,kTRUE);
@@ -892,7 +896,7 @@ void QwEventDisplay3D::HideUnecessary()
 
    // Hide the plane between the two VDC's (I'm not sure what this plane is,
    // actually, but it certainly should not be there I think.)
-   SetVisibility("VDC_DriftCellMasterContainer_Log#13acf38_241",kFALSE);
+   SetVisibility("VDC_DriftCellMasterContainer_Log#13acf38_243",kFALSE);
 }
 
 void QwEventDisplay3D::SwitchViewVDC()
@@ -912,6 +916,10 @@ void QwEventDisplay3D::SwitchViewVDC()
       // Reset button text
       fVDC_SwitchViewButton->SetText("Switch to Detector View");
 
+      // If the HDC is in wireview, get out of it!
+      if( fHDC_IsWireView )
+        SwitchViewHDC();
+
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();
       Int_t number = nodes->GetEntries();
@@ -922,13 +930,13 @@ void QwEventDisplay3D::SwitchViewVDC()
 
       // Since we just disabled every single detector and object, let's enable
       // the shell of the VDC's.
-      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_238")
-         ->SetVisibility(kTRUE);
-      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_237")
+      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")
          ->SetVisibility(kTRUE);
       fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")
          ->SetVisibility(kTRUE);
-      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")
+      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_241")
+         ->SetVisibility(kTRUE);
+      fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_242")
          ->SetVisibility(kTRUE);
 
 
@@ -937,7 +945,6 @@ void QwEventDisplay3D::SwitchViewVDC()
    } else { // Detector View
       // Reset button text
       fVDC_SwitchViewButton->SetText("Switch to Wire View of VDC's");
-      fHDC_SwitchViewButton->SetText("Switch to Wire View of HDC's");
 
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();
@@ -952,7 +959,6 @@ void QwEventDisplay3D::SwitchViewVDC()
 
       // Of course hide those undesirable objects.
       HideUnecessary();
-      fHDC_IsWireView = !fHDC_IsWireView; 
 
       /// Enable the Detector buttons
       DetectorButtonsEnable(kTRUE);
@@ -970,7 +976,7 @@ void QwEventDisplay3D::SwitchViewVDC()
    RedrawViews();
 
    // Clear HDC Wire Plane Outlines
-      ClearOutline();
+   //ClearOutline();
 
    // Update if necessary
    UpdateView();
@@ -994,6 +1000,10 @@ void QwEventDisplay3D::SwitchViewHDC()
       // Reset button text
       fHDC_SwitchViewButton->SetText("Switch to Detector View");
 
+      // If the VDC is in WireView, get out of it
+      if ( fVDC_IsWireView )
+        SwitchViewVDC();
+
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();
       Int_t number = nodes->GetEntries();
@@ -1008,7 +1018,12 @@ void QwEventDisplay3D::SwitchViewHDC()
          ->SetVisibility(kTRUE);
      fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_236")
          ->SetVisibility(kTRUE);
+     fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_236")
+         ->SetVisibility(kTRUE);
+     fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_237")
+         ->SetVisibility(kTRUE);
 
+/*
      //Attempting to draw the outlines of the planes
      TEveStraightLineSet* outline = new TEveStraightLineSet();
      TEveStraightLineSet* frame = new TEveStraightLineSet();    
@@ -1027,36 +1042,36 @@ void QwEventDisplay3D::SwitchViewHDC()
      {
 
      //Getting correct Y-Pos for this planes #
-     Double_t fHDC_NewPlaneYPos;
+     Double_t region2_ypos;
      if(i<=5)
-        {fHDC_NewPlaneYPos=(-2*sign+1)*fHDC_PlaneYPos[0];}
+        {region2_ypos=(-2*sign+1)*fHDC_PlaneYPos[0];}
      else
-        {fHDC_NewPlaneYPos=(-2*sign+1)*fHDC_PlaneYPos[1];}
+        {region2_ypos=(-2*sign+1)*fHDC_PlaneYPos[1];}
 
      // To outline the HDC Planes:
      outline->AddLine(fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            region2_ypos-fHDC_YLength/2.,
             fHDC_PlaneZPos[i],
             fHDC_XLength/2.,
-            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            region2_ypos+fHDC_YLength/2.,
             fHDC_PlaneZPos[i]);
      outline->AddLine(-fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            region2_ypos-fHDC_YLength/2.,
             fHDC_PlaneZPos[i],
             -fHDC_XLength/2.,
-            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            region2_ypos+fHDC_YLength/2.,
             fHDC_PlaneZPos[i]);
      outline->AddLine(-fHDC_XLength/2.,
-            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            region2_ypos+fHDC_YLength/2.,
             fHDC_PlaneZPos[i],
             fHDC_XLength/2.,
-            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            region2_ypos+fHDC_YLength/2.,
             fHDC_PlaneZPos[i]);
      outline->AddLine(-fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            region2_ypos-fHDC_YLength/2.,
             fHDC_PlaneZPos[i],
             fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            region2_ypos-fHDC_YLength/2.,
             fHDC_PlaneZPos[i]);}}
 
 
@@ -1066,59 +1081,60 @@ void QwEventDisplay3D::SwitchViewHDC()
     for(int i=0; i<=1; i++)
      {
      //Getting correct Y-Pos for this planes #
-     Double_t fHDC_NewPlaneYPos;
+     Double_t region2_ypos;
      if(i==0)
-        {fHDC_NewPlaneYPos=(-2*sign+1)*fHDC_PlaneYPos[0];}
+        {region2_ypos=(-2*sign+1)*fHDC_PlaneYPos[0];}
      else
-        {fHDC_NewPlaneYPos=(-2*sign+1)*fHDC_PlaneYPos[1];}
+        {region2_ypos=(-2*sign+1)*fHDC_PlaneYPos[1];}
 
      // To Outline the HDC Frame
      int f=i*6;
      int g=6*i+5;
 
-     frame->AddLine(-fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+*     frame->AddLine(-fHDC_XLength/2.,
+            region2_ypos-fHDC_YLength/2.,
             fHDC_PlaneZPos[f],
             -fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            region2_ypos-fHDC_YLength/2.,
             fHDC_PlaneZPos[g]);
      frame->AddLine(fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            region2_ypos-fHDC_YLength/2.,
             fHDC_PlaneZPos[f],
             fHDC_XLength/2., 
-            fHDC_NewPlaneYPos-fHDC_YLength/2.,
+            region2_ypos-fHDC_YLength/2.,
             fHDC_PlaneZPos[g]);
      frame->AddLine(fHDC_XLength/2.,
-            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            region2_ypos+fHDC_YLength/2.,
             fHDC_PlaneZPos[f],
             fHDC_XLength/2., 
-            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            region2_ypos+fHDC_YLength/2.,
             fHDC_PlaneZPos[g]);
      frame->AddLine(-fHDC_XLength/2.,
-            fHDC_NewPlaneYPos+fHDC_YLength/2.,
+            region2_ypos+fHDC_YLength/2.,
             fHDC_PlaneZPos[f],
             -fHDC_XLength/2., 
-            fHDC_NewPlaneYPos+fHDC_YLength/2.,
-            fHDC_PlaneZPos[g]);}}
+            region2_ypos+fHDC_YLength/2.,
+            fHDC_PlaneZPos[g]);
+            */
+//            }}
 
-
+/*
    fCurrentOutline = new TEveTrack(fakewire,fakeprop);
    outline->SetMarkerSize(1.5);
    outline->SetMarkerStyle(4);
    outline->SetMainColor(2);
-   frame->SetMarkerSize(1.5);
-   frame->SetMarkerStyle(4);
-   frame->SetMainColor(3);
+   //frame->SetMarkerSize(1.5);
+   //frame->SetMarkerStyle(4);
+   //frame->SetMainColor(3);
    fEveManager->AddElement(outline);
    fCurrentOutlineArray->Add(outline);
    fEveManager->AddElement(frame);
-   fCurrentOutlineArray->Add(frame);
+   fCurrentOutlineArray->Add(frame); */
     }
 
 else { // Detector View
       // Reset button text
       fHDC_SwitchViewButton->SetText("Switch to Wire View of HDC's");
-      fVDC_SwitchViewButton->SetText("Switch to Wire View of VDC's");
 
       // An object array to keep track of all nodes
       TObjArray *nodes = fTopNode->GetVolume()->GetNodes();
@@ -1134,8 +1150,6 @@ else { // Detector View
 
       // Of course hide those undesirable objects.
       HideUnecessary();
-
-      fVDC_IsWireView = !fVDC_IsWireView;
 
       // Clear HDC Wire Plane Outlines
       ClearOutline();
@@ -1228,6 +1242,10 @@ void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
       if( ((plane-1)%2) == 1 )
          sign = -1;
 
+      Double_t originYSign = 1;
+      if (package == 1 )
+         originYSign = -1.;
+
       // In region 3 there are 3 wire length types. The ones in the center 
       // which are all the same length, and consequently happen to be the
       // longest ones. Additionally, there are the ones on either side that
@@ -1236,9 +1254,6 @@ void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
       // Place holders for the vector components and origin
       Double_t originX = 0., originY = 0., originZ = 0.;
       Double_t momentumX = 0, momentumY = 0, momentumZ = 0;
-      Double_t originYSign = 1;
-      if (package == 1 )
-         originYSign = -1.;
 
       if ( wire <= 95 ) {
         if ( package == 1 ) {
@@ -1338,221 +1353,93 @@ void QwEventDisplay3D::DisplayWire(Int_t wire, Int_t plane, Int_t package,
       fCurrentTrack->MakeTrack();
    }
 
+   // Region II section
+   // In region 2 there are 10 wire length types. There is four for the
+   // horizontal 3 at one angle, and 3 at the other angle.
 
-
-
-
-  // The Following is for region 2:
-
-
-
-
-
-//#####################################################################################
-//#####################################################################################
-// This is the track method.  Where wires propage 1cm in the z direction. 
-// It does not work for the following reasons.  Propagator only likes to
-// propagate in the positive octant of space.  Because the HDC are located
-// upstream from the QTOR origin this can not work.
-
-/*
   else  if ( region == kRegionID2 ) {
+      // These will hold the starting and ending points for the wires *before*
+      // any rotations into their proper spots.
+      Double_t startX, startY, endX, endY;
+      Double_t rotate_package; // Local rotation for package
   
   // Correcting the fHDC_PlaneYPos depending on the package
-   Int_t sign;
   if(package==1)
-    {sign = 1;}
+         rotate_package= _180DEG_;
   else
-    {sign = -1;}
+         rotate_package = 0;
 
+      //Getting correct Y-Pos for this plane (this is the radial distance)
+      Double_t region2_ypos = fHDC_PlaneYPos[package-1][(plane-1)%6];
 
-
-  // Getting correct Y-Pos for this planes #
-     Double_t fHDC_NewPlaneYPos;
-    if(plane<=6)
-  {fHDC_NewPlaneYPos=sign*fHDC_PlaneYPos[0];}
-  else
-  {fHDC_NewPlaneYPos=sign*fHDC_PlaneYPos[1];}
-  
-
-
-
-
-  // Horizontal Wires
-   Int_t new_var=(plane+2)%3; 
-    if (new_var==0) {
-      prop->SetMaxZ(1);
-      wireT->fV.Set(
-            -fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.+(wire-1)*fHDC_WireSeparation,
-            fHDC_PlaneZPos[plane-1]);
-      wireT->fP.Set(fHDC_XLength/2.,
-                0.,
-                1.);}
-
-  // Wires angles both positive
-    else  if (plane%3==0) {
+      //Horizontal (X) Wire Planes
+      if (plane%3 == 1) {
+         // The first tree wires are shorter than the other ones, so we have to
+         // treat them differently
+         if ( wire < 4 ) {
+            startX = -fHDC_LengthFirstWires[wire-1]/2.;
+            startY = region2_ypos-fHDC_YLength/2.+(wire-1)*
+               fHDC_WireSeparation;
+            endX = fHDC_LengthFirstWires[wire-1]/2.;
+            endY = region2_ypos-fHDC_YLength/2.+(wire-1)*
+               fHDC_WireSeparation;
+         } else { // All these are the same size just spaced out differently
+            startX = -fHDC_XLength/2.;
+            startY = region2_ypos-fHDC_YLength/2.+(wire-1)*
+               fHDC_WireSeparation;
+            endX = fHDC_XLength/2.;
+            endY = region2_ypos-fHDC_YLength/2.+(wire-1)*
+               fHDC_WireSeparation;
+         }
+      } else if (plane%3==0 ) { // The third plane (V)
   if (wire<=16) {
-     prop->SetMaxZ(1.);
-     wireT->fV.Set(
-              fHDC_XLength/2.-fHDC_XAsymetry+fHDC_WireXSpacing[1]*(1-wire),
-              fHDC_NewPlaneYPos-fHDC_YLength/2.,
-              fHDC_PlaneZPos[plane-1]);
-     wireT->fP.Set(
-              fHDC_XAsymetry+fHDC_WireXSpacing[1]*(wire-1),
-              fHDC_YAsymetry+fHDC_WireYSpacing[1]*(wire-1),
-              1);}
- else
-{
-    prop->SetMaxZ(1.);
-    wireT->fV.Set(
-              -fHDC_XLength/2.,
-              fHDC_NewPlaneYPos-fHDC_YLength/2.+(fHDC_XLength-16*fHDC_WireXSpacing[1]-fHDC_XAsymetry)/(4/3.),
-              fHDC_PlaneZPos[plane-1]);
-    wireT->fP.Set(
-              fHDC_XLength-(fHDC_YLength-16*fHDC_WireYSpacing[1]-fHDC_YAsymetry)*(4/3.)-fHDC_WireXSpacing[1]*(wire-1),
-              fHDC_YLength-(fHDC_XLength-16*fHDC_WireXSpacing[1]-fHDC_XAsymetry)/(4/3.)-fHDC_WireYSpacing[1]*(wire-1),
-              1);}
+            startX = fHDC_XLength/2-fHDC_XAsymetry+fHDC_WireXSpacing[1]*(1-wire);
+            startY = region2_ypos-fHDC_YLength/2.;
+            endX = fHDC_XLength/2.;
+            endY = region2_ypos-fHDC_YLength/2.+fHDC_YAsymetry+
+               fHDC_WireYSpacing[1]*(wire-1);
+         } else {
+            startX = -fHDC_XLength/2.;
+            startY = region2_ypos-fHDC_YLength/2.+fHDC_WireYSpacing[1]*(wire-17);
+            endX = fHDC_XLength/2.-fHDC_WireXSpacing[1]*(wire-17);
+            endY = region2_ypos+fHDC_YLength/2.;
 }
-
-
-   // Last Wire Angle Position
-    else {
+      } else { // The second plane (U)
   if (wire<=16) {
-     prop->SetMaxZ(1.);
-     wireT->fV.Set(
-              -fHDC_XLength/2.+fHDC_XAsymetry+fHDC_WireXSpacing[1]*(1-wire),
-              fHDC_NewPlaneYPos-fHDC_YLength/2,
-              fHDC_PlaneZPos[plane-1]);
-     wireT->fP.Set(
-              -fHDC_XAsymetry-fHDC_WireXSpacing[1]*(wire-1),
-              fHDC_YAsymetry+fHDC_WireYSpacing[1]*(wire-1),
-              1);}
- else
-{
-    prop->SetMaxZ(1.);
-    wireT->fV.Set(
-              fHDC_XLength/2.,
-              fHDC_NewPlaneYPos-fHDC_YLength/2+(fHDC_XLength-16*fHDC_WireXSpacing[1]-fHDC_XAsymetry)/(4/3.),
-              fHDC_PlaneZPos[plane-1]);
-    wireT->fP.Set(
-              -fHDC_XLength+(fHDC_YLength-16*fHDC_WireYSpacing[1]-fHDC_YAsymetry)*(4/3.)+fHDC_WireXSpacing[1]*(wire-1),
-              fHDC_YLength-(fHDC_XLength-16*fHDC_WireXSpacing[1]-fHDC_XAsymetry)/(4/3.)-fHDC_WireYSpacing[1]*(wire-1),
-              1);}
+            startX = -fHDC_XLength/2.+fHDC_XAsymetry-
+               fHDC_WireXSpacing[1]*(1-wire);
+            startY = region2_ypos-fHDC_YLength/2.;
+            endX = -fHDC_XLength/2.;
+            endY = region2_ypos-fHDC_YLength/2.+fHDC_YAsymetry+
+               fHDC_WireYSpacing[1]*(wire-1);
+         } else {
+            startX = fHDC_XLength/2.;
+            startY = region2_ypos-fHDC_YLength/2.+fHDC_WireYSpacing[1]*(wire-17);
+            endX = -fHDC_XLength/2.+fHDC_WireXSpacing[1]*(wire-17);
+            endY = region2_ypos+fHDC_YLength/2.;
 }
 }
 
- 
-   fCurrentTrack = new TEveTrack(wireT,prop);
-   fCurrentTrackArray->Add(fCurrentTrack);
-   fCurrentTrack->SetMainColor(plane+1);
-   fCurrentTrack->SetMarkerColor(kGreen);
-   fCurrentTrack->SetMarkerStyle(5);
-   fCurrentTrack->SetMarkerSize(0.5);
-   fCurrentTrack->SetTitle(Form("Plane: %d\nWire: %d\nPackage: %d",plane,wire,
-            package));
-   fEveManager->AddElement(fCurrentTrackList);
-   fEveManager->AddElement(fCurrentTrack);
-   fCurrentTrack->MakeTrack();
+      // Finally create the line
 
+      ls->AddLine( RotateXonZ(startX,startY,fPackageAngle+rotate_package),
+            RotateYonZ(startX,startY,fPackageAngle+rotate_package),
+            fHDC_PlaneZPos[package-1][plane-1],
+            RotateXonZ(endX,endY,fPackageAngle+rotate_package),
+            RotateYonZ(endX,endY,fPackageAngle+rotate_package),
+            fHDC_PlaneZPos[package-1][plane-1]);
 
- }
-*/
-//#####################################################################################
-//#####################################################################################
-
-
-
-
-// This is the 'line' method:
-
-// In region 2 there are 7 wire length types. There is the vertical type,
-// 3 at one angle, and 3 at the other angle.
-
-
-  else if ( region == kRegionID2 ) {  
-
-  //Correcting the fHDC_PlaneYPos depending on the package
-  Int_t sign;
-  if(package==1)
-    {sign = 1;}
-  else
-    {sign = -1;}
-  
-  //Getting correct Y-Pos for this planes #
-  Double_t fHDC_NewPlaneYPos;
-  if(plane<=6)
-  {fHDC_NewPlaneYPos=sign*fHDC_PlaneYPos[0];}
-  else
-  {fHDC_NewPlaneYPos=sign*fHDC_PlaneYPos[1];}
-
-
-
- //Horizontal Wire Planes
-
-Int_t new_var=(plane+2)%3;
-    if (new_var==0)
-{
-ls->AddLine(-fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.+(wire-1)*fHDC_WireSeparation,
-            fHDC_PlaneZPos[plane-1],
-            fHDC_XLength/2.,
-            fHDC_NewPlaneYPos-fHDC_YLength/2.+(wire-1)*fHDC_WireSeparation,
-            fHDC_PlaneZPos[plane-1]);}
-
-
-  //Wires angles both positive
- else  if (plane%3==0)
-{
-  if (wire<=16)
-{
-  ls->AddLine(fHDC_XLength/2-fHDC_XAsymetry+fHDC_WireXSpacing[1]*(1-wire),
-              fHDC_NewPlaneYPos-fHDC_YLength/2., 
-              fHDC_PlaneZPos[plane-1],
-              fHDC_XLength/2., 
-              fHDC_NewPlaneYPos-fHDC_YLength/2.+fHDC_YAsymetry+fHDC_WireYSpacing[1]*(wire-1),
-              fHDC_PlaneZPos[plane-1]);}
- else
-{
-  ls->AddLine(-fHDC_XLength/2.,
-              fHDC_NewPlaneYPos-fHDC_YLength/2+(fHDC_XLength-16*fHDC_WireXSpacing[1]-fHDC_XAsymetry)/(4/3.), 
-              fHDC_PlaneZPos[plane-1],
-              fHDC_XLength/2.-(fHDC_YLength-16*fHDC_WireYSpacing[1]-fHDC_YAsymetry)*(4/3.),
-              fHDC_NewPlaneYPos+fHDC_YLength/2., 
-              fHDC_PlaneZPos[plane-1]);}
-}
-
-
-  //Last Wire Angle Position
-else
-{  
-if (wire<=16)
-{
-  ls->AddLine(-fHDC_XLength/2.+fHDC_XAsymetry-fHDC_WireXSpacing[1]*(1-wire),
-              fHDC_NewPlaneYPos-fHDC_YLength/2.,
-              fHDC_PlaneZPos[plane-1],
-              -fHDC_XLength/2.,
-              fHDC_NewPlaneYPos-fHDC_YLength/2.+fHDC_YAsymetry+fHDC_WireYSpacing[1]*(wire-1),
-              fHDC_PlaneZPos[plane-1]);}
- else
-{
-  ls->AddLine(fHDC_XLength/2.,
-              fHDC_NewPlaneYPos-fHDC_YLength/2.+(fHDC_XLength-16*fHDC_WireXSpacing[1]-fHDC_XAsymetry)/(4/3.),
-              fHDC_PlaneZPos[plane-1],
-              -fHDC_XLength/2.+(fHDC_YLength-16*fHDC_WireYSpacing[1]-fHDC_YAsymetry)*(4/3.),
-              fHDC_NewPlaneYPos+fHDC_YLength/2.,
-              fHDC_PlaneZPos[plane-1]);}
-}
    //This is for the QwEventDisplay3D::ClearTracks() that needs a
    // dummy track to clear the track array and thus delete the line
    // after the "next" or "previous" button is pressed.
    fCurrentTrack = new TEveTrack(wireT,prop);
 
-
    //This draws the line.  (or perhaps send information to fEveManager that draws it once called upon)
    ls->SetMarkerSize(1.5);
    ls->SetMarkerStyle(4);
    ls->SetMainColor(plane+1);
+      ls->SetTitle(Form("Plane: %d\nWire: %d\nPackage: %d",
+               plane,wire, package));
    fEveManager->AddElement(ls);
    fCurrentTrackArray->Add(ls);
 }
@@ -1588,6 +1475,8 @@ void QwEventDisplay3D::UpdateView()
    // HDC
    SetVisibility("HDC_MasterContainer_Log#13aab08_235",fShowHDC);
    SetVisibility("HDC_MasterContainer_Log#13aab08_236",fShowHDC);
+   SetVisibility("HDC_MasterContainer_Log#13aab08_237",fShowHDC);
+   SetVisibility("HDC_MasterContainer_Log#13aab08_238",fShowHDC);
 
    // QTOR (wow...really?)
    SetVisibility("SingleCoil_Plate_Logical#1380e98_120",fShowQtor);
@@ -1737,25 +1626,25 @@ void QwEventDisplay3D::UpdateView()
          fShowQtor);
 
    // VDC
-   SetVisibility("VDC_MasterContainer_Log#13abb58_237",fShowVDC);
-   SetVisibility("VDC_MasterContainer_Log#13abb58_238",fShowVDC);
    SetVisibility("VDC_MasterContainer_Log#13abb58_239",fShowVDC);
    SetVisibility("VDC_MasterContainer_Log#13abb58_240",fShowVDC);
+   SetVisibility("VDC_MasterContainer_Log#13abb58_241",fShowVDC);
+   SetVisibility("VDC_MasterContainer_Log#13abb58_242",fShowVDC);
 
 
    //Trigger
-   SetVisibility("TriggerScintillatorContainer_Logical#13ba010_250",
+   SetVisibility("TriggerScintillatorContainer_Logical#13ba010_252",
          fShowTrigger);
 
    // Cerenkov/Main Detector
-   SetVisibility("CerenkovContainer_Logical#13ae0d8_242",fShowCerenkov);
-   SetVisibility("CerenkovContainer_Logical#13ae0d8_243",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_244",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_245",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_246",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_247",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_248",fShowCerenkov);
    SetVisibility("CerenkovContainer_Logical#13ae0d8_249",fShowCerenkov);
+   SetVisibility("CerenkovContainer_Logical#13ae0d8_250",fShowCerenkov);
+   SetVisibility("CerenkovContainer_Logical#13ae0d8_251",fShowCerenkov);
 
    // Redraw just for good measure :)
    RedrawViews();
@@ -1784,7 +1673,7 @@ void QwEventDisplay3D::SwitchCollimator1()
 
 void QwEventDisplay3D::SwitchGems()
 {
-  UpdateButtonState(fGemsButton, "GEMS",&fShowGems);
+  //UpdateButtonState(fGemsButton, "GEMS",&fShowGems);
 }
 
 
@@ -1864,6 +1753,46 @@ void QwEventDisplay3D::MenuEvent(Int_t menuID)
       case kOpenRootFile:
          OpenRootFile();
          break;
+      case kRotateM90:
+         SetRotation(-90.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kRotateM45:
+         SetRotation(-45.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kRotate0:
+         SetRotation(0.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kRotateP45:
+         SetRotation(45.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kRotateP90:
+         SetRotation(90.);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kToggleShowTracks:
+         SetDrawTracks(!fDrawTracks);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kToggleShowAllRegion2:
+         SetShowAllRegion2(!fDrawAllRegion2);
+         RedrawViews();
+         DisplayEvent();
+         break;
+      case kToggleShowAllRegion3:
+         SetShowAllRegion3(!fDrawAllRegion3);
+         RedrawViews();
+         DisplayEvent();
+         break;
       default:
          std::cout  << "Behold! I am ROOT!. You have clicked on menu item "
             << menuID << ". I have gracefully ignored your request. "
@@ -1903,7 +1832,7 @@ void QwEventDisplay3D::DetectorButtonsEnable(Bool_t status)
    fUpdateViewButton->SetEnabled(status);
    fTargetButton->SetEnabled(status);
    fCollimator1Button->SetEnabled(status);
-   fGemsButton->SetEnabled(status);
+   //fGemsButton->SetEnabled(status);
    fCollimator2Button->SetEnabled(status);
    fHDCButton->SetEnabled(status);
    fCollimator3Button->SetEnabled(status);
@@ -1985,6 +1914,10 @@ void QwEventDisplay3D::SetRotation( Double_t phi )
    //! fPackageAngle. From there, if the package is 1, it is translated
    //! towards its correct side.
    fDetectorPhi = phi;
+   fPreviousRotation = fPackageAngle*_TO_DEG_;
+   if ( phi > 90  || phi < -90 )
+     QwError << "VDC's are unable to rotate to angles larger than 90degrees. "
+      << "Ignoring rotation!" << QwLog::endl;
    switch( (int)phi ) {
       case -90:
          fPackageAngle = -_180DEG_;
@@ -2004,12 +1937,119 @@ void QwEventDisplay3D::SetRotation( Double_t phi )
          break;
    }
 
-   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_237")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
-   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_238")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
-   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
-   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_239")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_240")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_241")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("VDC_MasterContainer_Log#13abb58_242")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+
+   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_235")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_236")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_237")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+   fTopNode->GetVolume()->FindNode("HDC_MasterContainer_Log#13aab08_238")->GetMatrix()->RotateZ(fPackageAngle*_TO_DEG_-fPreviousRotation);
+
    //std::cout << "Initialized the run with rotation of coordinate system to to "
       //<< phi << ".\n The respective packages are: Package1: " << fPackageAngle[0] << "\tPackage2: " << fPackageAngle[1] << "\n.";
+}
+
+
+void QwEventDisplay3D::ReadDriftChamberGeometry()
+{
+  // This is pretty much all copied from QwDriftChamberHDC.cc with special
+  // modifications to work for us :)
+
+  TString varname, varvalue,package, direction,dType;
+  Int_t  plane, planeR3Up=0,planeR3Down=0,planeR2Up=0,planeR2Down=0;
+  Int_t  TotalWires,detectorId,region, DIRMODE,package_num;
+  Int_t uProcess = 0,vProcess = 0,xProcess = 0;
+  Double_t Zpos,rot,sp_res, track_res,slope_match,Det_originX,Det_originY,
+           ActiveWidthX,ActiveWidthY,ActiveWidthZ,WireSpace,FirstWire,
+           W_rcos,W_rsin,tilt;
+  DIRMODE=0;
+
+  QwParameterFile mapstr("qweak_new.geo");
+  while (mapstr.ReadNextLine()){
+    mapstr.TrimComment('!');   // Remove everything after a '!' character.
+    mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
+    if (mapstr.LineIsEmpty())  continue;
+
+    if (mapstr.HasVariablePair("=",varname,varvalue)){
+      //  This is a declaration line.  Decode it.
+      varname.ToLower();
+      //UInt_t value = atol(varvalue.Data());
+      if (varname=="name"){//Beginning of detector information
+	DIRMODE=1;
+      }
+    } else if (DIRMODE==1){
+      //  Break this line into tokens to process it.
+      varvalue     = (mapstr.GetNextToken(", ").c_str());//this is the sType
+      Zpos         = (atof(mapstr.GetNextToken(", ").c_str()));
+      rot          = (atof(mapstr.GetNextToken(", ").c_str()) * Qw::deg);
+      sp_res       = (atof(mapstr.GetNextToken(", ").c_str()));
+      track_res    = (atof(mapstr.GetNextToken(", ").c_str()));
+      slope_match  = (atof(mapstr.GetNextToken(", ").c_str()));
+      package      = mapstr.GetNextToken(", ").c_str();
+      region       = (atol(mapstr.GetNextToken(", ").c_str()));
+      dType        = mapstr.GetNextToken(", ").c_str();
+      direction    = mapstr.GetNextToken(", ").c_str();
+      Det_originX  = (atof(mapstr.GetNextToken(", ").c_str()));
+      Det_originY  = (atof(mapstr.GetNextToken(", ").c_str()));
+      ActiveWidthX = (atof(mapstr.GetNextToken(", ").c_str()));
+      ActiveWidthY = (atof(mapstr.GetNextToken(", ").c_str()));
+      ActiveWidthZ = (atof(mapstr.GetNextToken(", ").c_str()));
+      WireSpace    = (atof(mapstr.GetNextToken(", ").c_str()));
+      FirstWire    = (atof(mapstr.GetNextToken(", ").c_str()));
+      W_rcos       = (atof(mapstr.GetNextToken(", ").c_str()));
+      W_rsin       = (atof(mapstr.GetNextToken(", ").c_str()));
+      tilt         = (atof(mapstr.GetNextToken(", ").c_str()));
+      TotalWires   = (atol(mapstr.GetNextToken(", ").c_str()));
+      detectorId   = (atol(mapstr.GetNextToken(", ").c_str()));
+
+      QwDebug << " HDC : Detector ID " << detectorId << " " << varvalue
+              << " Package "     << package << " Plane " << Zpos
+              << " Region "      << region << QwLog::endl;
+
+      // Package up is beam right when at 0deg
+      if( package == "u" )
+        package_num = 0;
+      else
+        package_num = 1;
+
+      if (region==2) { // Process Region II
+        if ( package_num == 0 )
+          plane = planeR2Up++;
+        else
+          plane = planeR2Down++;
+        plane=plane%12;
+        fHDC_PlaneXPos[package_num][plane] = Det_originX;
+        fHDC_PlaneYPos[package_num][plane] = Det_originY;
+        fHDC_PlaneZPos[package_num][plane] = Zpos;
+        fHDC_WireSeparation = WireSpace;
+        fHDC_FirstWirePos[package_num][plane] = FirstWire;
+        fHDC_XLength = ActiveWidthX;
+        fHDC_YLength = ActiveWidthY;
+        fHDC_CosAngleWires[package_num][plane] = W_rcos;
+        fHDC_SinAngleWires[package_num][plane] = W_rsin;
+      } else if ( region==3 ) { // Process Region 3
+        if ( package_num == 0 )
+          plane = planeR3Up++;
+        else
+          plane = planeR3Down++;
+        plane=plane%8;
+/*      Reading from file is on hold for now for region 3. This should
+ *      be changing soon.
+        fVDC_PlaneXPos[package_num][plane] = Det_originX;
+        fVDC_PlaneYPos[package_num][plane] = Det_originY;
+        fVDC_PlaneZPos[package_num][plane] = Zpos;
+        fVDC_WireSeparation = WireSpace;
+        fVDC_XLength = ActiveWidthX;
+        fVDC_YLength = ActiveWidthY;
+        fVDC_CosAngleWires[package_num][plane] = W_rcos;
+        fVDC_SinAngleWires[package_num][plane] = W_rsin;
+        */
+      }
+    }
+  }
+  std::cout << "Drift Chamber Geometry Loaded " << std::endl;
 }
 
 // END OF THE FILE

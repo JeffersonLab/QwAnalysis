@@ -1,0 +1,125 @@
+# The datamap in this example is close to what we used
+# in summer 2001.
+    run 1824
+# number of events to process (leave this out to get infinite)
+    maxevents 500000
+# run type and analysis type (why do we need both ?)
+    runtype BEAM      
+    anatype BEAM      
+    lobeam  6000  
+    burpcut 500
+    oversamp 1
+    windelay  0     # helicity delay in windows
+    pairtype  pair      
+# dacnoise values, these need to be calibrated
+    dacnoise adc 4 chan 0 slope 0.0200 int 4400   
+    dacnoise adc 4 chan 1 slope 0.0201 int 4401   
+    dacnoise adc 4 chan 2 slope 0.0202 int 4402   
+    dacnoise adc 4 chan 3 slope 0.0203 int 4403   
+    dacnoise adc 5 chan 0 slope 0.0210 int 4410   
+    dacnoise adc 5 chan 1 slope 0.0211 int 4411   
+    dacnoise adc 5 chan 2 slope 0.0212 int 4412   
+    dacnoise adc 5 chan 3 slope 0.0213 int 4413   
+    dacnoise adc 6 chan 0 slope 0.0220 int 4420   
+    dacnoise adc 6 chan 1 slope 0.0221 int 4421   
+    dacnoise adc 6 chan 2 slope 0.0222 int 4422   
+    dacnoise adc 6 chan 3 slope 0.0223 int 4423   
+    dacnoise adc 7 chan 0 slope 0.0230 int 4430   
+    dacnoise adc 7 chan 1 slope 0.0231 int 4431   
+    dacnoise adc 7 chan 2 slope 0.0232 int 4432   
+    dacnoise adc 7 chan 3 slope 0.0233 int 4433   
+    dacnoise adc 8 chan 0 slope 0.0240 int 4440   
+    dacnoise adc 8 chan 1 slope 0.0241 int 4441   
+    dacnoise adc 8 chan 2 slope 0.0242 int 4442   
+    dacnoise adc 8 chan 3 slope 0.0243 int 4443   
+    dacnoise adc 9 chan 0 slope 0.0250 int 4450   
+    dacnoise adc 9 chan 1 slope 0.0251 int 4451   
+    dacnoise adc 9 chan 2 slope 0.0252 int 4452   
+    dacnoise adc 9 chan 3 slope 0.0253 int 4453   
+# pedestals to subtract from ADCs
+    ped adc 4 chan 0 value 4350
+    ped adc 4 chan 1 value 4575
+    ped adc 4 chan 2 value 4430
+    ped adc 4 chan 3 value 4370
+    ped adc 5 chan 0 value 4350
+    ped adc 5 chan 1 value 4575
+    ped adc 5 chan 2 value 4430
+    ped adc 5 chan 3 value 4370
+    ped adc 6 chan 0 value 4350
+    ped adc 6 chan 1 value 4575
+    ped adc 6 chan 2 value 4430
+    ped adc 6 chan 3 value 4370
+    ped adc 7 chan 0 value 4350
+    ped adc 7 chan 1 value 4575
+    ped adc 7 chan 2 value 4430
+    ped adc 7 chan 3 value 4370
+    ped adc 8 chan 0 value 4350
+    ped adc 8 chan 1 value 4575
+    ped adc 8 chan 2 value 4430
+    ped adc 8 chan 3 value 4370
+    ped adc 9 chan 0 value 4350
+    ped adc 9 chan 1 value 4575
+    ped adc 9 chan 2 value 4430
+    ped adc 9 chan 3 value 4370
+    header adc       ffadc000 fffff000    
+    header timeboard fffbd000 fffff000   
+    header tir       ffdaf000 fffff000    
+    header scaler    fffca000 fffff000  
+# The channel-names (i.e. keys) must be unique for a given device-name.
+# ADC data that are not an ADC channel (e.g. dac) have negative channel number.
+#   table  device-type device-name adc startchan evbuff-offset channel-names(keys)
+    datamap   tir        tir        0    0       104             tirdata  
+    datamap   adc        adc4       4    0       67           batt1 batt2 
+    datamap   bcm        bcm1       4    2       69              bcm1r
+    datamap   bcm        bcm2       4    3       70              bcm2r
+    datamap   adc        adc4       4   -9       71             csr dac  
+    datamap   bpm        bpm8       5    0       73    bpm8xp bpm8xm bpm8yp bpm8ym  
+    datamap   adc        adc5       5   -9       77             csr dac
+    datamap   bpm        bpm10      6    0       79    bpm10xp bpm10xm bpm10yp bpm10ym
+    datamap   adc        adc6       6   -9       83             csr dac
+    datamap   bpm        bpm12      7    0       85    bpm12xp bpm12xm bpm12yp bpm12ym 
+    datamap   adc        adc7       7   -9       89             csr dac
+    datamap   bpm        bpm4a      8    0       91    bpm4axp bpm4axm bpm4ayp bpm4aym 
+    datamap   adc        adc8       8   -9       89             csr dac
+    datamap   bpm        bpm4b      9    0       97    bpm4bxp bpm4bxm bpm4byp bpm4bym 
+    datamap   adc        adc9       9   -9      101             csr dac
+    datamap   adc        adc0       0    0       43    adc0_1  adc0_2  adc0_3  adc0_4
+    datamap   adc        adc1       1    0       49    adc1_1  adc1_2  adc1_3  adc1_4
+    datamap   adc        adc2       2    0       55    adc2_1  adc2_2  adc2_3  adc2_4
+    datamap   adc        adc3       3    0       61    adc3_1  adc3_2  adc3_3  adc3_4
+    datamap   adc        adc4       4    0       67    adc4_1  adc4_2  adc4_3  adc4_4
+    datamap   adc        adc5       5    0       73    adc5_1  adc5_2  adc5_3  adc5_4
+    datamap   adc        adc6       6    0       79    adc6_1  adc6_2  adc6_3  adc6_4
+    datamap   adc        adc7       7    0       85    adc7_1  adc7_2  adc7_3  adc7_4
+    datamap   adc        adc8       8    0       91    adc8_1  adc8_2  adc8_3  adc8_4
+    datamap   adc        adc9       9    0       97    adc9_1  adc9_2  adc9_3  adc9_4
+    datamap   timeboard  timeboard  0    0      106  rampdelay integtime oversample precdac 
+    datamap   scaler     scaler1    0    0       10  scaler1_1 scaler1_2 scaler1_3 scaler1_4
+    datamap   scaler     scaler1    0    4       14  scaler1_5 scaler1_6 scaler1_7 scaler1_8
+    datamap   scaler     scaler1    0    8       18  scaler1_9 scaler1_10 scaler1_11 scaler1_12
+    datamap   scaler     scaler1    0   12       22  scaler1_13 scaler1_14 scaler1_15 scaler1_16
+    datamap   scaler     scaler1    0   16       26  scaler1_17 scaler1_18 scaler1_19 scaler1_20
+    datamap   scaler     scaler1    0   20       30  scaler1_21 scaler1_22 scaler1_23 scaler1_24
+    datamap   scaler     scaler1    0   24       34  scaler1_25 scaler1_26 scaler1_27 scaler1_28
+    datamap   scaler     scaler1    0   28       38  scaler1_29 scaler1_30 scaler1_31 scaler1_32
+    ncuts 12        
+    evlo 10 10 10 10 10 10 0 0 0 0 20 
+    evhi 40 40 40 40 40 20 0 0 0 0 60 
+    evint 21232  23442 4  1
+    evint 32232  34554 6  1
+    evint 35665  37440 4  1
+    evint 42112  43443 7  1
+    evint 56712  58142 8  1
+
+
+
+
+
+
+
+
+
+
+
+
+

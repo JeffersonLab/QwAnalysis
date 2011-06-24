@@ -4,9 +4,10 @@
 //*****************************************************************************************************//
 //
 //
-//  This macro will connect to the qw_linreg_20110125 data base and get the slug averages from the given run range
-//  regressed data and plot 
-//  them in to three plots for pmt+, pmt- and bar sum, us lumi and ds lumi asymmetries. 
+//  This macro will connect to the regression data base qw_linreg_20110125 and unregressed pass1 data base qw_fall2020_20101204
+//  and extract the weighted average of the asymettries from the main detectors, ds lumi and us lumi. The averages are them plotted
+//  to show thier variation over the octants.
+//  
 //   e.g. use
 //   ./compare_regressed_unregressed run1 run2
 //
@@ -303,7 +304,6 @@ int main(Int_t argc,Char_t* argv[])
   plot_octant(8,"MD BAR SUM",value1,err1,value11,err11);
   gPad->Update();
 
-
   Canvas1->Update();
   Canvas1->Print(Form("%i_%i_md_compare_plots.gif",run1,run2));
 
@@ -386,7 +386,7 @@ TString get_query(TString detector, TString measurement, TString detector_type, 
   if(detector_type == "BEAM")
     datatable = "beam_view";
 
-  TString output = " sum( "+datatable+".value/(POWER("+datatable+".error,2)))/sum(1/(POWER("+datatable+".error,2))), SQRT(1/SUM(1/(POWER("+datatable+".error,2))))";
+  TString output = " sum( distinct ("+datatable+".value/(POWER("+datatable+".error,2))))/sum(distinct(1/(POWER("+datatable+".error,2)))), SQRT(1/SUM(distinct(1/(POWER("+datatable+".error,2)))))";
 
  
   //TString good_for_cut = "run.run_type ='parity' AND md_data_view.good_for_id = NULL || ((md_data_view.good_for_id = 'parity' || md_data_view.good_for_id = 'production') && md_data_view.good_for_id != 'commissioning'))";

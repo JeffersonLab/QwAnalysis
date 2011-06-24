@@ -1,0 +1,29 @@
+# 
+#  Created: 25-OCT-2001 by Riad Suleiman
+#
+
+  - access_priv.pl:
+    Fill mysql privileges tables
+
+  - dbcreate.pl: 
+    Create the tables of "pandb" database (takes Item.txt as input)
+
+  - ascii2db.pl:
+    Fills the tables with the current values of constants from ascii.db file.
+
+ These two scripts were executed. The database is residing on my pc for the 
+time being. The normal dbuser should use the following 
+two scripts: 
+
+    To translate from MySQL to ascii file:
+
+  - db2ascii.pl:
+  Create the ascii file for the run specified 
+
+
+    To add values to MySQL:
+
+  - addset.pl:
+    Add a new set of values to "pandb" database. 
+ 
+ - mysqldump -h localhost -u root -p pandb > dump

@@ -1,0 +1,3 @@
+The Makefile in this directory has been adapted to only
+compile the PAN libraries and executable needed for the
+"postpan" linear regression analysis as used for Qweak.

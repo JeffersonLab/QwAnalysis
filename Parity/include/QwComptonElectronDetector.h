@@ -19,7 +19,7 @@
 
 // System headers
 #include <vector>
-
+  
 // ROOT headers
 #include <TTree.h>
 #include "TFile.h"
@@ -111,30 +111,23 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Double_t GetCalibrationFactor() const { return fCalibrationFactor; };
 
 
-
   protected:
     /// Expert tree
     TTree* fTree;
     /// Expert tree fields
     Int_t fTree_fNEvents;
 
-    static const Int_t NModules;
-    static const Int_t NPlanes;
-    static const Int_t StripsPerModule;
-    static const Int_t StripsPerPlane;
-
     std::vector< std::vector <Int_t> > fSubbankIndex;
 
-
-    /// List of V1495 accumulation mode strips
-    std::vector< std::vector <Double_t> > fStrips;
-    std::vector< std::vector <Double_t> > fStripsRaw;
+    /// 1st dimension:NPlanes;2nd dimension: NStrips;
+    /// List of V1495 accumulation mode strips    
+    std::vector< std::vector <Int_t> > fStrips;
+    std::vector< std::vector <Int_t> > fStripsRaw;
     /// List of V1495 single event mode strips
-    std::vector< std::vector <Double_t> > fStripsEv;
-    std::vector< std::vector <Double_t> > fStripsRawEv;
+    std::vector< std::vector <Int_t> > fStripsEv;
+    std::vector< std::vector <Int_t> > fStripsRawEv; 
     /// List of V1495 scaler counts
-    std::vector< std::vector <Double_t> > fStripsScal;
-    std::vector< std::vector <Double_t> > fStripsRawScal;
+    std::vector< std::vector <Int_t> > fStripsRawScal;
 
     //    boost::multi_array<Double_t, 2> array_type;
     //    array_type fStrips(boost::extents[NPlanes][StripsPerPlane]);
@@ -170,14 +163,11 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Int_t effall;
     Double_t effedet;
 //    Double_t edet_acum_sum[4][96];
-//    Int_t edet_count;
-
-
     
     Int_t fGoodEventCount;
 
     /// Mapping from ROC/subbank to channel type
-    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single, kScaler };
+    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single,  kScaler, kV1495Scaler};
     std::map< Int_t, ChannelType_t > fMapping;
 
     /// List of scaler channels
@@ -185,6 +175,11 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Scaler_Mapping_t fScaler_Mapping;
     std::vector< QwSIS3801D24_Channel > fScaler;
 
+        // Assign static const member fields
+    static const Int_t NModules = 3;///number of slave modules(!!change to 2?)
+    static const Int_t NPlanes = 4;///number of diamond detector planes
+    static const Int_t StripsPerModule = 32;///number of strips in each v1495 slave module
+    static const Int_t StripsPerPlane = 96;///total number of strips in each detecor
 };
 
 #endif // __QwComptonElectronDetector__

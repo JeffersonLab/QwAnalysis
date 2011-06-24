@@ -1,0 +1,164 @@
+Here's how I added a new cut, Det_saturate:
+
+I. First, define the new cut and its threshold.  (Threshold is
+optional; it's a parameter used in checking for cut conditions.)
+
+  1. In VaEvent.hh, add
+
+    static Double_t fgSatCut;    // cut threshold from database
+
+  This will be the threshold for the saturation cut, to be set from the
+  database. 
+
+  2. In VaEvent.hh, add 
+
+    static Cut_t fgSatNo;        // cut number for saturation
+
+  This will be the cut number corresponding to the saturation cut.
+
+  3. In TaCutList.hh, add
+
+    Cut_t fSatNo;                      // cut number for saturation
+
+  This will be another copy of the cut number.
+
+  4. In VaEvent.cc, add
+
+    Double_t VaEvent::fgSatCut;
+
+  and
+
+    Cut_t VaEvent::fgSatNo;  
+
+  to declare the static members.
+
+  5. In VaEvent::RunInit(const TaRun& run), add
+
+    fgSatCut = run.GetDataBase().GetCutValue("satcut");
+
+  to set the cut threshold, and
+
+    fgSatNo = run.GetDataBase().GetCutNumber ("Det_saturate");
+
+  to set the value of the cut number.  Add to the conditional that
+  checks for cut definitions:
+
+    if (fgBurpNo == fgNCuts ||
+	fgSatNo == fgNCuts ||
+	fgLoBeamCNo == fgNCuts ||
+	fgStartupNo == fgNCuts)
+      {
+	cerr << "VaEvent::RunInit WARNING: Following cut(s) are not defined "
+	     << "in database and will not be imposed:";
+	if (fgLoBeamCNo == fgNCuts) cerr << " Low_beam_c";
+	if (fgBurpNo == fgNCuts) cerr << " Beam_burp";
+	if (fgSatNo == fgNCuts) cerr << " Det_saturate";
+	if (fgStartupNo == fgNCuts) cerr << " Startup";
+	cerr << endl;
+      }
+
+  6. In TaCutList::Init(const TaDataBase& db) add
+
+    fSatNo    = db.GetCutNumber (TaString ("Det_saturate"));
+
+  7. In TaCutList::OKC (const VaEvent& ev) const exempt this cut from
+     affecting Hall C OK:
+
+	if (c->GetCut() != fLoBeamNo && 
+	    c->GetCut() != fBurpNo &&
+	    c->GetCut() != fSatNo &&
+	    c->Inside(ev, fLowExtension[c->GetCut()], 
+		      fHighExtension[c->GetCut()]) && 
+	    c->GetVal() != 0)
+	  oksofar = false;
+
+  8. In TaDataBase::Print() print the cut threshold:
+
+    clog << "   Saturation cut :  " << GetCutValue("satcut") << endl;
+
+    and also in TaDataBase::Checkout():
+
+    cout << "satcut  cut = " << GetCutValue("SATCUT") << endl;
+
+  9. In TaDataBase::InitDB() add satcut to list of table names (append
+     it to the end):
+
+    tables.push_back("satcut");        //  37
+
+      and set its type to numeric (d for double):
+
+    if (i == 37) columns.push_back(new dtype("d"));  // satcut
+
+
+II. Implement the check for cut conditions.  (This is optional.  You
+can always just define the cut and add cut intervals manually to the
+database, if you want.)
+
+  1. In VaEvent.hh, add
+
+    static UInt_t fgDet[4];      // index to detectors for cuts
+
+     This was needed because this cut condition check was the first
+  code in VaEvent to look at detector data values.  (N.B. later fgDet
+  was changed to fgDetRaw, and 4 was changed to DETNUM.)
+
+  1a. In VaEvent.cc, add
+
+    UInt_t VaEvent::fgDet[4];
+
+  to declare the static member.
+
+  2. In VaEvent::RunInit(const TaRun& run), add
+
+  Get the keys for the detectors:
+
+    fgDet[0] = run.GetKey (string ("det1r"));
+    fgDet[1] = run.GetKey (string ("det2r"));
+    fgDet[2] = run.GetKey (string ("det3r"));
+    fgDet[3] = run.GetKey (string ("det4r"));
+
+     This was needed because this cut condition check was the first
+  code in VaEvent to look at detector data values.
+
+  3. In VaEvent::CheckEvent(TaRun& run), implement the check:
+
+    if ( fgSatNo < fgNCuts)
+      {
+	Bool_t saturated = false;
+	UInt_t i;
+	for (i = 0; i < DETNUM && !saturated; i++) 
+	  saturated = GetData (fgDet[i]) >= fgSatCut;
+
+	if (saturated)
+	  {
+  #ifdef NOISY
+	    clog << "Event " << fEvNum << " failed saturation cut, det"
+		 << (i+1) << " raw = " << fData[key] << " > " << fgSatCut << endl;
+  #endif
+	    val = 1;
+	  }
+	AddCut (fgSatNo, val);
+	run.UpdateCutList (fgSatNo, val, fEvNum);
+      }
+
+
+III.  For runs where we want this cut in effect, specify the cut and
+its threshold in the database:
+
+Add
+
+    satcut 60000
+
+and change
+
+    ncuts 5
+    cutnames Low_beam Beam_burp Evt_seq Pair_seq Startup
+    extlo 10 10 25 25 0
+    exthi 1200 40 25 25 1
+
+to 
+
+    ncuts 6
+    cutnames Low_beam Beam_burp Evt_seq Pair_seq Startup Det_saturate
+    extlo 10 10 25 25 0 25
+    exthi 1200 40 25 25 1 25

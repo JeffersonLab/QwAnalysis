@@ -1,0 +1,7 @@
+Unix.*.Root.MacroPath:    .:./macro:~/root/macros:/usr/local/root/pro/macros   [Global]
+Root.Html.OutputDir:   doc/html2
+Root.Html.SourceDir:   src
+Root.Html.Root:        http://root.cern.ch/root/html
+Root.Html.Description:       //____________________
+Root.Html.Header:  doc/html/panheader.html+
+

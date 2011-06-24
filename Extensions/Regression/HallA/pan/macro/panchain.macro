@@ -1,0 +1,198 @@
+// -*- c++ -*-
+
+TChain* panchain (TString fnm, TString treechoice="P")
+{
+  // Macro to create a chain of pair or raw trees from runs specified
+  // in file named fnm.  Time trees for these runs (see description
+  // under timetree routine below) are created in the default output
+  // directory.  Thus you can plot vs. a global event number, e.g.
+  // For the pair tree
+  //  
+  //  TChain* ch = panchain("panchain");  // OR
+  //  TChain* ch = panchain("panchain","P");
+  //  ch->Draw("asym_bcm1:m_ev_num_off"); // BCM1 asym vs. evt number
+  //                                      // offset by # evts in preceding
+  //                                      // runs.
+  //  For the raw tree
+  //  TChain* ch = panchain("panchain","R");
+  //  ch->Draw("bcm1:m_ev_num_off");      // BCM1 vs. evt number
+  //                                      // offset by # evts in preceding
+  //                                      // runs.
+
+  if(!((treechoice=="P") || (treechoice=="R")
+       || (treechoice=="reg"))) {
+    cout << "Invalid tree choice: " << treechoice << endl;
+    cout << "Can only chain the raw (\"R\"), pair (\"P\"), or" 
+	 << " regression (\"reg\") trees." << endl;
+    return 0;
+  }
+
+
+  gROOT->Reset();
+
+  // Without making any sarcastic comments about the design of ROOT, I
+  // merely observe that the chains we create *must* have the same
+  // names as the trees we make them from; therefore, if this macro is
+  // run twice, at this point there is a chain named "P" which will
+  // confuse the macro when it goes to look for a tree named "P"
+  // unless we delete it now.  We delete the "tt" chain too.
+
+  TChain* ch = (TChain*)gROOT->FindObject(treechoice);
+  if (ch) ch->Delete();
+  TChain* tch = (TChain*)gROOT->FindObject("tt");
+  if (tch) tch->Delete();
+
+  // Read list of run numbers and create time trees for those runs.
+  ifstream in;
+  in.open (fnm);
+
+  Int_t rn;
+  Int_t nruns;
+  UInt_t nent = 0;
+  while (1)
+    {
+      in >> rn;
+      if (!in.good()) 
+	break;
+      nruns++;
+      if(treechoice=="reg")
+	nent += timetree (rn, "red", nent, treechoice);
+      else 
+	nent += timetree (rn, "standard", nent, treechoice);
+    }
+  cout << "Found " << nruns << " runs." << endl;
+  in.close();
+
+  // Now we make two chains, one for the pair trees and one for the
+  // time trees.  Read the file again to get the run numbers because
+  // I'm too lazy to stick them into an array.
+
+  ch = new TChain (treechoice);
+  tch = new TChain ("tt");
+
+  ifstream inn;
+  inn.open (fnm);
+
+  while (1)
+    {
+      inn >> rn;
+      if (!inn.good()) 
+	break;
+      if(treechoice=="reg") {
+	TaFileName::Setup (rn, "red");
+      } else {
+	TaFileName::Setup (rn, "standard");
+      }
+      ch->Add (TaFileName ("root").Tstring());
+      tch->Add (TaFileName ("output", "time", "root").Tstring());
+    }
+  inn.close();
+
+  // Finally add the time chain as a friend to the pair chain
+
+  ch->AddFriend ("tt");
+
+  // Show and tell time: Plot the run number vs global event number
+
+  if(treechoice=="P")
+    ch->Draw ("run_num:m_ev_num_off");
+  else if(treechoice=="R")
+    ch->Draw ("run_num:ev_num_off");
+  else if(treechoice=="reg")
+    ch->Draw ("run_num:ev_off");
+
+  return (ch);
+}
+
+
+UInt_t timetree (Int_t run = 0, TString atype = "standard", UInt_t offset = 0, TString treechoice)
+{
+
+  // Given a run number and analysis type, get its pair tree, make
+  // another tree with the same number of entries containing only
+  // evt_ev_num and m_ev_num offset by given quantity, and the run
+  // number.  Tree is in a root file in $PAN_OUTPUT_FILE_PATH.  Returns
+  // largest event number found.
+
+  cout << "Run " << run << " adding offset " << offset << endl;
+  // Old tree, old file
+  TaFileName::Setup (run, atype.Data());
+  TString otfilen = (TaFileName ("root")).Tstring();
+  cout << otfilen << endl;
+  TFile* otf = new TFile(otfilen);
+  otf->cd();
+  TTree* ot = (TTree*)gROOT->FindObject(treechoice);
+
+  // Tree storage (data from one, to the other, after offset is added)
+  Int_t run_num = run;
+
+  // Pair Tree
+  Int_t evt_ev_num[2];   Double_t m_ev_num;
+  TBranch* b_evt_ev_num; TBranch* b_m_ev_num;
+
+  // Raw/Regression Tree
+  Int_t ev_num;
+  TBranch* b_ev_num;
+
+  if(treechoice=="P") {
+    b_evt_ev_num = ot->GetBranch ("evt_ev_num");
+    b_evt_ev_num->SetAddress (evt_ev_num);
+    b_m_ev_num = ot->GetBranch ("m_ev_num");
+    b_m_ev_num->SetAddress (&m_ev_num);
+  } else if (treechoice=="R") {
+    b_ev_num = ot->GetBranch ("ev_num");
+    b_ev_num->SetAddress (&ev_num);
+  } else if (treechoice=="reg") {
+    b_ev_num = ot->GetBranch ("ev");
+    b_ev_num->SetAddress (&ev_num);
+  }
+  // New tree, new file
+  TString ttfilen = (TaFileName ("output", "time", "root")).Tstring();
+  TFile* ttf = new TFile(ttfilen, "recreate");
+
+  TString ttname = "time friend of ";
+  if(treechoice=="P") ttname += "pair tree";
+  else if (treechoice=="R") ttname += "raw tree";
+  else if (treechoice=="reg") ttname += "regression tree";
+  TTree* tt = new TTree ("tt", ttname);
+  if(treechoice=="P") {
+    tt->Branch ("evt_ev_num_off", evt_ev_num, "evt_ev_num_off[2]/I");
+    tt->Branch ("m_ev_num_off", &m_ev_num, "m_ev_num_off/D");
+  } else if(treechoice=="R") {
+    tt->Branch ("ev_num_off", &ev_num, "ev_num_off/I");
+  } else if(treechoice=="reg") {
+    tt->Branch ("ev_off", &ev_num, "ev_off/I");
+  }
+  tt->Branch ("run_num", &run_num, "run_num/I");
+
+  // Loop and make new tree
+  UInt_t ret;
+  UInt_t nent = ot->GetEntries();
+  cerr << "nent: " << nent << endl;
+  for (UInt_t ient = 0; ient < nent; ++ient)
+    {
+      if(treechoice=="P") {
+	b_m_ev_num->GetEntry (ient);
+	b_evt_ev_num->GetEntry (ient);
+	evt_ev_num[0] += offset;
+	evt_ev_num[1] += offset;
+	m_ev_num += offset;
+	//      cout << ient << " " << run_num << " " << evt_ev_num[0] << " " << evt_ev_num[1] << " " << m_ev_num << endl;
+      } else if((treechoice=="R") || (treechoice=="reg")) {
+	b_ev_num->GetEntry(ient);
+	ev_num += offset;
+	//	cout << ient << " " << run_num << " " << ev_num << endl;
+      }
+      tt->Fill();
+    }
+  tt->Write();
+  otf->Close();
+  ttf->Close();
+  if(treechoice=="P") 
+    ret = evt_ev_num[0] > evt_ev_num[1] ? evt_ev_num[0] : evt_ev_num[1];
+  else if((treechoice=="R") || (treechoice=="reg"))
+    ret = ev_num;
+  ret -= offset;
+  cout << "Found max event number " << ret << endl;
+  return ret;
+}

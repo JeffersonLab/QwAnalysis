@@ -1,0 +1,30 @@
+{
+    gROOT->Reset();
+
+    c1 = new TCanvas("c1","Charge Asymmetry vs Wave Plate Angle",200,10,700,500);
+
+    c1->SetFillColor(42);
+    c1->SetGrid();
+    c1->GetFrame()->SetFillColor(21);
+    c1->GetFrame()->SetBorderSize(12);
+
+    Int_t npt=10;
+
+    Float_t th[npt] = { -10., 0., 20., 30., 45., 60., 73., 96., 122., 150. };
+    Float_t asy[npt] = { -120., -50., 2., 80., 120., 45, -10., -66., -125., -60. };
+    Float_t eth[npt] = { 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1 };
+    Float_t easy[npt] = { 10., 12., 9., 8., 10., 11., 11., 14., 20., 9. };
+
+    TH1F *h1 = new TH1F("h1","BCM1 Asy vs Angle",210,-20,190.);
+    for (Int_t i = 0; i < npt; i++) {
+        h1->Fill(th[i],asy[i]);
+    }
+    TF1 *f1 = new TF1("f1","[0]*sin([1]*x+[2])+[3]",-20,160);
+    f1->SetParameter(0,100);
+
+    h1->Fit("f1");
+    h1->Draw();
+   
+    c1->Update();
+
+}

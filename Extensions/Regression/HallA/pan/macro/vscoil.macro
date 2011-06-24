@@ -1,0 +1,65 @@
+void vscoil (TString quant, int cyc=-1)
+{
+  TTree* tt = (TTree*)gROOT->FindObject("R");
+  if (tt == NULL)
+    {
+      cerr << "Tree R not found" << endl;
+      return;
+    }
+  int cyc_min;
+  if (cyc == -1)
+    {
+      cyc = tt->GetMaximum("bmwcyc");
+      cyc_min = cyc-10;
+//       cerr << "cyc = " << cyc << endl;
+    }
+  TString sel ("bmwcyc==");
+  sel += cyc;
+  Bool_t not_found=kFALSE;
+  while(1) {
+    Long64_t res = tt->Draw("cond_low_beam",sel+"&&!cond_low_beam&&!cond_beam_burp","goff");
+//     cout << res << endl;
+    if(res<1675) // this number was about 1250 at start of hydrogen05
+      sel = Form("bmwcyc==%d",(Int_t)cyc--);
+    else break;
+    if(cyc<cyc_min) 
+      {
+	not_found=kTRUE;
+	break;
+      }
+  }
+
+  if(not_found) {
+    TPaveText *pt = new TPaveText(0.1,0.1,0.9,0.9,"brNDC");
+    pt->AddText("No modulation cycles found");
+    pt->AddText("-----------------------");
+    pt->AddText("Beam Trips? No Beam?");
+    pt->AddText("Modulation Off?");
+    pt->AddText("");
+    pt->Draw();
+//     cout << "not found" << endl;
+    return;
+  }
+
+  TString title = quant;
+  title.ReplaceAll(":ev_num"," vs Event# (last good cycle)");
+
+  tt->SetMarkerStyle(7);
+  tt->SetMarkerColor(1);
+  tt->Draw(quant, sel);
+  TH1* h = gROOT->FindObject("htemp");
+  h->SetTitle (title);
+
+  TString selx = sel;
+  selx += "&&(bmwobj==0||bmwobj==1||bmwobj==3||bmwobj==5)";
+  TString sely = sel;
+  sely += "&&(bmwobj==2||bmwobj==4||bmwobj==6)";
+  TString sele = sel;
+  sele += "&&(bmwobj==7)";
+  tt->SetMarkerColor(2);
+  tt->Draw(quant, selx,"same");
+  tt->SetMarkerColor(4);
+  tt->Draw(quant, sely,"same");
+  tt->SetMarkerColor(6);
+  tt->Draw(quant, sele,"same");
+}

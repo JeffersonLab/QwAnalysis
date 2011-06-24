@@ -1,0 +1,86 @@
+   
+   How to use CVS
+   ==============
+
+This is a quick "crib sheet" on CVS usage for Pan users.  For more
+details, general information, instructions on obtaining and installing
+CVS, etc., see <http://www.cvshome.org>.
+
+Please use the "ext" access method instead of "pserver", with ssh as 
+the login protocol.  The old "pserver" method used clear text passwords
+which is a security hazard and should be avoided.  If you have used 
+"pserver" before, delete ~/.cvspass which contains the the poorly-encrypted 
+password.
+
+In your local login script (.cshrc, .bash_profile), delete any definition 
+of CVSROOT.  You do not need to set CVSROOT explicitly; it will be stored 
+locally in the checked-out directory tree and only needs to be given once 
+at checkout time (see below).
+
+In the login script, define CVS_RSH as follows:
+
+For bash:
+% export CVS_RSH=ssh
+
+For csh/tcsh:
+% setenv CVS_RSH ssh
+
+You are basically done. To check out the repository, do
+
+% cvs -d ":ext:user@cvs.jlab.org:/group/halla/parity/cvs" checkout pan
+
+Of course, replace "user" in the above command with your CUE username.
+You can now use CVS as usual.  The argument of the -d option gets
+stored in the CVS ROOT file; you can override it in your subsequent
+CVS commands with a -d argument to the command, but you shouldn't have
+to.
+
+You will notice that you now have to enter your password for every
+CVS command that requires access to the server.  This is inconvenient,
+but can be avoided if you set up ssh keys.  Doing so is a bit involved.
+Instructions can be found at
+
+   http://hallaweb.jlab.org/computing/ssh-keys.html
+
+Note that login1.jlab.org and login2.jlab.org do not accept ssh keys,
+but the CVS server, cvs.jlab.org, does.  
+
+Anyone with a CUE account may read the repository. However, only a
+limited set of users have write access. If you want to contribute and
+need full access, please contact Bob Michaels.
+
+For more on CVS usage, see the free CVS book at www.cvshome.org, and I have
+a copy too, at:
+
+  http://www.jlab.org/~rom/cvsbook.ps.gz
+
+Examples of CVS commands for username = rsholmes:
+
+* Checking out a working copy 
+    cvs -d ":ext:rsholmes@cvs.jlab.org:/group/halla/parity/cvs" checkout pan
+
+* Looking for differences in repository
+   cvs diff
+
+* Obtaining updates from the respository
+   cvs update
+
+* Committing a change
+   cvs commit -m "correct path to codaclass" Makefile
+
+--------------------------------------------------------
+
+An obscure problem with CVS (in case it happens again)
+
+Once I could not do a "cvs checkout", got error message 
+   "cvs server: failed to create lock directory "
+It couldn't create #cvs.lock in a particular directory.
+I went to that directory on /group/halla/parity/cvs/pan,
+saw no such file, and tried this:
+   touch #cvs.lock
+   chmod 775 #cvs.lock
+
+Then checkout got a different error message.  Next I did
+   rm #cvs.lock
+ 
+... finally the checkout worked !

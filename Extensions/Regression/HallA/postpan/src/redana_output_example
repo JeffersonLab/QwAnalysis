@@ -1,0 +1,103 @@
+ifarml5> redana
+
+Regression and Dithering Analysis - B. Moffit and K. Paschke
+  *******************************************
+  *                                         *
+  *        W E L C O M E  to  R O O T       *
+  *                                         *
+  *   Version   5.22/00  17 December 2008   *
+  *                                         *
+  *  You are welcome to visit our Web site  *
+  *          http://root.cern.ch            *
+  *                                         *
+  *******************************************
+
+ROOT 5.22/00 (trunk@26997, Jan 16 2009, 15:16:00 on linux)
+
+CINT/ROOT C/C++ Interpreter version 5.16.29, Jan 08, 2008
+Type ? for help. Commands must be C++ statements.
+Enclose multiple statements between { }.
+root [0] .x macro/run.macro
+Error: Symbol TaRootRep is not defined in current scope  macro/open.macro:1:
+Error: Symbol pandef is not defined in current scope  macro/open.macro:1:
+*** Interpreter error recovered ***
+Run number: 1323
+TaConfFile::Load WARNING: run file ./parity10_1323.conf does not exist
+TaConfFile::Load: Using ./control.conf as default configuration. (May be ok.)
+TaConfFile::Load: Database loading from ./control.conf
+
+TaConfFile::Print
+        Analysis Type: matrix regress
+        Root File Analysis Type:
+        Will calculate coefficients and regress quantities.
+        Number of events/minirun: 5000  Defined by cuts.
+        Dependent Variables:
+                diff_qwk_1i02X.hw_sum
+                diff_qwk_1i02Y.hw_sum
+        Independent Variables:
+                diff_qwk_1i04X.hw_sum
+                diff_qwk_1i04Y.hw_sum
+                diff_qwk_1i06X.hw_sum
+                diff_qwk_1i06Y.hw_sum
+                diff_qwk_0i02X.hw_sum
+                diff_qwk_0i02Y.hw_sum
+                diff_qwk_0i02aX.hw_sum
+                diff_qwk_0i02aY.hw_sum
+         Tree Type: Hel_Tree
+
+PAN rootfile: /u/group/qweak/jmammei/KENT_PAN/postpan/ROOTfiles/parity10_1323_st
+andard.root
+VaAna::Init()
+VaAna getting pair tree
+Root output: /u/group/qweak/jmammei/KENT_PAN/postpan/ROOTfiles/parity10_1323_reg
+ress_Hel_Tree.root
+TaOResultsFile::Create: Opened file ./parity10_1323_regress.res for results outp
+ut
+Obtaining Data from Tree: 6636 events
+Total number of initial entries:    6636
+Entries passing all specified cuts: 6636
+Number of pairs per minirun = 5000
+Total number of miniruns = 1
+Minirun = 0  Events: 1-6635
+  Number of good events in this minirun = 6635
+  Before Regression
+   diff_qwk_1i02X.hw_sum mean = 0.00272776 RMS = 0.00738161
+   diff_qwk_1i02Y.hw_sum mean = 0.000713155 RMS = 0.00782888
+  After Regression
+   diff_qwk_1i02X.hw_sum mean = 0.00187831 RMS = 0.00346703
+   diff_qwk_1i02Y.hw_sum mean = 0.000208894 RMS = 0.00237672
+        Slopes:
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_1i04X.hw_sum = 0.585487 +/- 0
+.0324009
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_1i04Y.hw_sum = 0.378606 +/- 0
+.0279877
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_1i06X.hw_sum = -0.292037 +/-
+0.0288456
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_1i06Y.hw_sum = 0.0183058 +/-
+0.0348397
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_0i02X.hw_sum = 0.752011 +/- 0
+.0751869
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_0i02Y.hw_sum = -1.31904 +/- 0
+.0323061
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_0i02aX.hw_sum = -0.207974 +/-
+ 0.0593383
+                diff_qwk_1i02X.hw_sum vs. diff_qwk_0i02aY.hw_sum = 0.289591 +/-
+0.0316114
+                diff_qwk_1i02Y.hw_sum vs. diff_qwk_1i04X.hw_sum = 1.14797 +/- 0.
+0343641
+                diff_qwk_1i02Y.hw_sum vs. diff_qwk_1i04Y.hw_sum = -0.623753 +/-
+0.0296836
+                diff_qwk_1i02Y.hw_sum vs. diff_qwk_1i06X.hw_sum = -1.16528 +/- 0
+.0305934
+                diff_qwk_1i02Y.hw_sum vs. diff_qwk_1i06Y.hw_sum = 1.04291 +/- 0.
+0369507
+                diff_qwk_1i02Y.hw_sum vs. diff_qwk_0i02X.hw_sum = -0.0219145 +/-
+ 0.0797427
+                diff_qwk_1i02Y.hw_sum vs. diff_qwk_0i02Y.hw_sum = 0.0704846 +/-
+0.0342636
+                diff_qwk_1i02Y.hw_sum vs. diff_qwk_0i02aX.hw_sum = 0.0912745 +/-
+ 0.0629338
+                diff_qwk_1i02Y.hw_sum vs. diff_qwk_0i02aY.hw_sum = 0.0260022 +/-
+ 0.0335268
+Filling reg tree with regressed variables
+root [1]

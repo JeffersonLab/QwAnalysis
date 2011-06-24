@@ -1,0 +1,191 @@
+{
+// Macro to plot the noise in Lumi
+// Both the ped-diff and the sigma are plotted.
+// R. Michaels, Apr 04
+// You must first ".x open.macro" to read in the root file.
+//
+// Usage:
+//   ./pan
+//  root [0] .x ./macro/open.macro(1332)
+//  root [1] .x ./macro/noise1.macro    
+//
+// You can set printall=0 after you know
+// what you are doing.
+//
+//
+    gROOT->Reset();
+
+    int printall=0;  // Set to 1(0) for printout(not)
+    int numlumi=8;   // number of lumi detectors
+    int integevt=2000;   // num of events over which
+                         // to average the noise
+  
+    TTree *P = (TTree*)gROOT.FindObject("P");
+    if (!P) {
+       cout << "Failed to open root file ?"<<endl;
+       cout << "Try again."<<endl;
+       return 0;
+    }
+    int numinteg = P->GetEntries()/integevt;
+    if (printall) {
+     cout << "numinteg "<<P->GetEntries();
+     cout <<"  "<<numinteg<<endl;
+    }
+
+    if (numinteg <= 0) {
+       cout << "No entries ?  Quitting"<<endl;
+       return 0;
+    }
+
+    int lumi;
+    char ctitle[100];
+    char ccut[100],cvar[100];
+    float hmean,fmean,hrms,frms;
+
+    TGraphErrors *grdx[numlumi],*grsig[numlumi];
+    Float_t xdata[numlumi*numinteg],
+            ydata[numlumi*numinteg],
+            exdata[numlumi*numinteg],
+            eydata[numlumi*numinteg],
+            ndata[numlumi*numinteg];
+    Float_t xpt[numinteg],ypt[numinteg],
+            ex[numinteg],ey[numinteg];
+
+// Utility histogram. Note the name "blumiP" must 
+// be used below
+    TH1F *histo = new TH1F("blumiP","lumi",200,-50,50);
+
+    c1 = new TCanvas("c1","Lumi Noise",200,10,700,500);
+
+    c1->SetFillColor(42);
+    c1->SetGrid();
+    c1->GetFrame()->SetFillColor(21);
+    c1->GetFrame()->SetBorderSize(12);  
+    gStyle->SetOptStat(0000);
+
+    gStyle->SetOptFit(0111);
+    gStyle->SetStatH(0.15);
+    gStyle->SetStatW(0.24);
+    gStyle->SetTitleH(0.10);
+    gStyle->SetTitleW(0.30);
+    gStyle->SetLabelSize(0.05,"x");
+    gStyle->SetLabelSize(0.05,"y");
+    gROOT->ForceStyle();
+
+    int dummy;
+
+// Loop over intervals of events
+    for (iup=0; iup<numinteg; iup++) {
+     int evlo = iup*integevt; 
+     int evhi = (iup+1)*integevt; 
+// Event cut, used later.
+     sprintf(ccut,"evt_ev_num[0]>%d&&evt_ev_num[0]<%d",
+         evlo,evhi);
+
+// Loop over lumi monitors
+     for (lumi=0; lumi<numlumi; lumi++) {
+    
+       sprintf(cvar,
+         "evt_blumi%d[0]-evt_blumi%d[1]>>blumiP",
+            lumi+1,lumi+1);       
+       P->Draw(cvar,ccut);  // plot subject to event cut
+       histo->Fit("gaus");
+       histo->Draw();
+       c1->Update();
+
+       TF1 *fit = histo->GetFunction("gaus");
+// Mean and RMS from histogram and from fit.
+// These should not disagree much if all is well.
+       hmean = histo->GetMean();
+       fmean = fit->GetParameter(1);
+       hrms  = histo->GetRMS();
+       frms  = fit->GetParameter(2);
+       xdata[iup*numlumi+lumi]  = (Float_t)iup;
+       exdata[iup*numlumi+lumi] = 0.0;
+       ydata[iup*numlumi+lumi]  = hmean;
+       eydata[iup*numlumi+lumi] = hrms;
+       ndata[iup*numlumi+lumi] = 
+                    histo->GetEntries(); 
+       if (printall) {
+        cout << endl << endl;
+        cout << "Lumi # "<<lumi+1<<"  update# "<<iup<<endl;
+        cout << "From histogram -> "<<endl;
+        cout << "Mean = "<<hmean<<"   RMS = "<<hrms<<endl;
+        cout << "From FIT to histogram -> "<<endl;
+        cout << "Mean = "<<fmean<<"   RMS = "<<frms<<endl;
+        cout << endl << "Ready to continue ?  (enter 0)"<<endl;
+        cin >> dummy;
+       }
+    }
+  }
+
+
+// Make TGraphErrors of results
+
+  for (lumi = 0; lumi < numlumi; lumi++) {
+
+     for (iup = 0; iup < numinteg; iup++) {
+       xpt[iup] = xdata[iup*numlumi+lumi];
+       ex[iup]  = exdata[iup*numlumi+lumi];
+       ypt[iup] = ydata[iup*numlumi+lumi];
+       ey[iup]  = 0;
+       if (ndata[iup] > 0) ey[iup] = 
+         eydata[iup*numlumi+lumi]/sqrt(ndata[iup]);
+       if (printall) {
+          cout << "update "<<iup;
+          cout << "   x, ex "<<xpt[iup]<<"  "<<ex[iup];
+          cout << "   y, ey "<<ypt[iup]<<"  "<<ey[iup]<<endl;
+       }
+     }
+
+     grdx[lumi] = 
+        new TGraphErrors(numinteg,xpt,ypt,ex,ey);
+     sprintf(ctitle,
+       "Ped diff (avg %dK evt) vs time, lumi#%d",
+           integevt/1000,lumi+1);
+     grdx[lumi]->SetTitle(ctitle);
+     grdx[lumi]->SetMarkerColor(4);
+     grdx[lumi]->SetMarkerStyle(21);
+     Axis_t xmin = grdx[lumi]->GetXaxis()->GetXmin();
+     Axis_t xmax = grdx[lumi]->GetXaxis()->GetXmax();
+     Int_t nbins = grdx[lumi]->GetXaxis()->GetNbins();
+// Increase the X axis 
+     grdx[lumi]->GetXaxis()->Set(nbins,xmin-1,xmax+1);
+
+     c1->Clear();
+     grdx[lumi]->Draw("AP");
+     c1->Update();
+
+     cout << endl << "Ready to continue ?  (enter 0)"<<lumi<<endl;
+     cin >> dummy;
+
+// Next plot sigma versus time.
+     for (iup = 0; iup < numinteg; iup++) {
+       ypt[iup] = eydata[iup*numlumi+lumi];
+       ey[iup]  = 0;
+     }
+
+     grsig[lumi] = 
+        new TGraphErrors(numinteg,xpt,ypt,ex,ey);
+     sprintf(ctitle,
+       "Ped Diff Sigma vs time, lumi#%d",lumi+1);
+     grsig[lumi]->SetTitle(ctitle);
+     grsig[lumi]->SetMarkerColor(4);
+     grsig[lumi]->SetMarkerStyle(21);
+     Axis_t xmin = grsig[lumi]->GetXaxis()->GetXmin();
+     Axis_t xmax = grsig[lumi]->GetXaxis()->GetXmax();
+     Int_t nbins = grsig[lumi]->GetXaxis()->GetNbins();
+// Increase the X axis 
+     grsig[lumi]->GetXaxis()->Set(nbins,xmin-1,xmax+1);
+
+     c1->Clear();
+     grsig[lumi]->Draw("AP");
+     c1->Update();
+
+     cout << endl << "Ready to continue ?  (enter 0)"<<lumi<<endl;
+     cin >> dummy;
+
+   }
+ 
+} 
+
