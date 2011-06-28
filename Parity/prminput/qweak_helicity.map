@@ -39,6 +39,7 @@ PatternBits=0x69
 
 !seed size is either 24 bit or 30 bit. default is 30 bit
 !RandSeedBits=24
+RandSeedBits=30
 
 ROC=0
 Bank=0x6101

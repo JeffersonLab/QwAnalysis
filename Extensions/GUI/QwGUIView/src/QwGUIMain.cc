@@ -26,7 +26,6 @@
  \author Michael Gericke
 
  \brief main(...) function and MainFrame class for the QwGUI executable
- \New class "QwGUIBeamModulation" has been craeted for Beam Modulation: Nuruzzaman 05/03/2010
 
 *//*-------------------------------------------------------------------------*/
 
@@ -42,15 +41,15 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dClArgs = clargs;
   std::set_new_handler(0);
 
-  MainDetSubSystem        = NULL;
+//   MainDetSubSystem        = NULL;
   //ScannerSubSystem        = NULL;
-  BeamModulationSubSystem = NULL;
-  LumiDetSubSystem        = NULL;
-  InjectorSubSystem       = NULL;
-  HallCBeamlineSubSystem  = NULL;
+//   BeamModulationSubSystem = NULL;
+//   LumiDetSubSystem        = NULL;
+//   InjectorSubSystem       = NULL;
+//   HallCBeamlineSubSystem  = NULL;
   DatabaseSubSystem       = NULL;
-  TrackFindingSubSystem   = NULL;
-  EventDisplaySubSystem   = NULL;
+//   TrackFindingSubSystem   = NULL;
+//   EventDisplaySubSystem   = NULL;
 
   dMWWidth              = w;
   dMWHeight             = h;
@@ -121,19 +120,19 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   SetCurrentRunSegment(0);
 
   MakeMenuLayout();
-  MakeUtilityLayout();
+//   MakeUtilityLayout();
   MakeMainTab();
   MakeLogTab();
 
-  SetWindowName("Qweak Data Analysis GUI");
+  SetWindowName("Qweak Analysis Database GUI");
 
   MapSubwindows();
   Resize(GetDefaultSize());
   MapWindow();
 
-  if(!GetSubSystemPtr("Main Detectors"))
-    MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
-					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+//   if(!GetSubSystemPtr("Main Detectors"))
+//     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
+// 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
 //   if(MainDetSubSystem)
 //     MainDetSubSystem->LoadChannelMap(Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH")));
@@ -142,45 +141,45 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 //    ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
 //					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("Beam Modulation"))
-    BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
-					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
-  if(!GetSubSystemPtr("Lumi Detectors"))
-    LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
-					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
-  if(!GetSubSystemPtr("Injector"))
-    InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
-					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+//   if(!GetSubSystemPtr("Beam Modulation"))
+//     BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
+// 					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+//   if(!GetSubSystemPtr("Lumi Detectors"))
+//     LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
+// 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+//   if(!GetSubSystemPtr("Injector"))
+//     InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
+// 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("HallC Beamline"))
-    HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
-						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+//   if(!GetSubSystemPtr("HallC Beamline"))
+//     HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
+// 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
   if(!GetSubSystemPtr("Qweak Database"))
     DatabaseSubSystem = new QwGUIDatabase(fClient->GetRoot(), this, dTab,"Qweak Database",
 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("Track Finding"))
-    TrackFindingSubSystem = new QwGUITrackFinding(fClient->GetRoot(), this, dTab, "Track Finding",
-					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+//   if(!GetSubSystemPtr("Track Finding"))
+//     TrackFindingSubSystem = new QwGUITrackFinding(fClient->GetRoot(), this, dTab, "Track Finding",
+// 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
 
-  if(!GetSubSystemPtr("Event Display"))
-    EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
-					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
+//   if(!GetSubSystemPtr("Event Display"))
+//     EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
+// 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
 
   SetSubSystemSegmentAdd(kFalse);
 }
 
 QwGUIMain::~QwGUIMain()
 {
-  delete MainDetSubSystem        ;
+//   delete MainDetSubSystem        ;
 //  delete ScannerSubSystem        ;
-  delete BeamModulationSubSystem ;
-  delete LumiDetSubSystem        ;
-  delete InjectorSubSystem       ;
+//   delete BeamModulationSubSystem ;
+//   delete LumiDetSubSystem        ;
+//   delete InjectorSubSystem       ;
   delete DatabaseSubSystem       ;
-  delete TrackFindingSubSystem   ;
-  delete EventDisplaySubSystem   ;
+//   delete TrackFindingSubSystem   ;
+//   delete EventDisplaySubSystem   ;
 
   delete dROOTFile             ;
 
@@ -228,10 +227,10 @@ void QwGUIMain::MakeMenuLayout()
   dMenuBarHelpLayout = new TGLayoutHints(kLHintsTop | kLHintsRight);
 
   dMenuFile = new TGPopupMenu(fClient->GetRoot());
-  dMenuFile->AddEntry("O&pen ROOT file (Histo)...", M_ROOT_FILE_OPEN);
-  dMenuFile->AddEntry("O&pen ROOT file (Event)...", M_ROOT_FILE_EVENT_OPEN);
-  dMenuFile->AddEntry("C&lose ROOT file", M_ROOT_FILE_CLOSE);
-  dMenuFile->AddSeparator();
+//   dMenuFile->AddEntry("O&pen ROOT file (Histo)...", M_ROOT_FILE_OPEN);
+//   dMenuFile->AddEntry("O&pen ROOT file (Event)...", M_ROOT_FILE_EVENT_OPEN);
+//   dMenuFile->AddEntry("C&lose ROOT file", M_ROOT_FILE_CLOSE);
+//   dMenuFile->AddSeparator();
   dMenuFile->AddEntry("Open (Database)...", M_DBASE_OPEN);
   dMenuFile->AddEntry("Close (Database)", M_DBASE_CLOSE);
   dMenuFile->AddSeparator();
@@ -735,215 +734,215 @@ QwGUISubSystem *QwGUIMain::GetSubSystemPtr(const char *name)
 
 void QwGUIMain::PlotMainData()
 {
-  TGraphErrors *grp = NULL;
-  TH1F *hst = NULL;
-  TCanvas *mc = NULL;
+//   TGraphErrors *grp = NULL;
+//   TH1F *hst = NULL;
+//   TCanvas *mc = NULL;
 
-  if(!TabActive("Main")) return;
-  if(!IsRootFileOpen()) return;
+//   if(!TabActive("Main")) return;
+//   if(!IsRootFileOpen()) return;
 
-  mc = dMainCanvas->GetCanvas();
-  if(!mc) return;
+//   mc = dMainCanvas->GetCanvas();
+//   if(!mc) return;
   
-  if(!dMainPlots){
+//   if(!dMainPlots){
     
-    hst = (TH1F*)dROOTFile->ReadData("hel_histo/asym_qwk_charge_hw");
-    hst->SetTitle(Form("Run: %d.%03d asym_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
-    hst->GetXaxis()->SetTitle("Asymmetry");
-    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
-    hst->GetXaxis()->CenterTitle();
-    hst->GetXaxis()->SetTitleSize(0.06);
-    hst->GetXaxis()->SetLabelSize(0.06);
-    hst->GetXaxis()->SetTitleOffset(1.25);
-    hst->GetXaxis()->SetTitleColor(1);
-    hst->SetNdivisions(506,"X");
-    hst->GetYaxis()->SetLabelSize(0.06);
-    hst->Sumw2();
+//     hst = (TH1F*)dROOTFile->ReadData("hel_histo/asym_qwk_charge_hw");
+//     hst->SetTitle(Form("Run: %d.%03d asym_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+//     hst->GetXaxis()->SetTitle("Asymmetry");
+//     hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+//     hst->GetXaxis()->CenterTitle();
+//     hst->GetXaxis()->SetTitleSize(0.06);
+//     hst->GetXaxis()->SetLabelSize(0.06);
+//     hst->GetXaxis()->SetTitleOffset(1.25);
+//     hst->GetXaxis()->SetTitleColor(1);
+//     hst->SetNdivisions(506,"X");
+//     hst->GetYaxis()->SetLabelSize(0.06);
+//     hst->Sumw2();
 
-    mc->cd(1);
-    if(hst){
-      dMainHistos.push_back((TH1F*)(hst->Clone()));
-      dMainHistos.back()->SetDirectory(0);
-      dMainHistos.back()->Draw("");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
-    }
+//     mc->cd(1);
+//     if(hst){
+//       dMainHistos.push_back((TH1F*)(hst->Clone()));
+//       dMainHistos.back()->SetDirectory(0);
+//       dMainHistos.back()->Draw("");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
+//     }
         
-    hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_charge_hw");
-    hst->SetTitle(Form("Run: %d.%03d yield_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
-    hst->GetXaxis()->SetTitle("Yield [#muA]");
-    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
-    hst->GetXaxis()->CenterTitle();
-    hst->GetXaxis()->SetTitleSize(0.06);
-    hst->GetXaxis()->SetLabelSize(0.06);
-    hst->GetXaxis()->SetTitleOffset(1.25);
-    hst->GetXaxis()->SetTitleColor(1);
-    hst->SetNdivisions(506,"X");
-    hst->GetYaxis()->SetLabelSize(0.06);
-    hst->Sumw2();
+//     hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_charge_hw");
+//     hst->SetTitle(Form("Run: %d.%03d yield_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+//     hst->GetXaxis()->SetTitle("Yield [#muA]");
+//     hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+//     hst->GetXaxis()->CenterTitle();
+//     hst->GetXaxis()->SetTitleSize(0.06);
+//     hst->GetXaxis()->SetLabelSize(0.06);
+//     hst->GetXaxis()->SetTitleOffset(1.25);
+//     hst->GetXaxis()->SetTitleColor(1);
+//     hst->SetNdivisions(506,"X");
+//     hst->GetYaxis()->SetLabelSize(0.06);
+//     hst->Sumw2();
     
-    mc->cd(2);
-    if(hst){
-      dMainHistos.push_back((TH1F*)(hst->Clone()));
-      dMainHistos.back()->SetDirectory(0);
-      dMainHistos.back()->Draw("");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
-    }
+//     mc->cd(2);
+//     if(hst){
+//       dMainHistos.push_back((TH1F*)(hst->Clone()));
+//       dMainHistos.back()->SetDirectory(0);
+//       dMainHistos.back()->Draw("");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
+//     }
     
-    hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09X_hw");
-    hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09X_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
-    hst->GetXaxis()->SetTitle("X Position Difference [mm]");
-    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
-    hst->GetXaxis()->CenterTitle();
-    hst->GetXaxis()->SetTitleSize(0.06);
-    hst->GetXaxis()->SetLabelSize(0.06);
-    hst->GetXaxis()->SetTitleOffset(1.25);
-    hst->GetXaxis()->SetTitleColor(1);
-    hst->SetNdivisions(506,"X");
-    hst->GetYaxis()->SetLabelSize(0.06);
-    hst->Sumw2();
+//     hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09X_hw");
+//     hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09X_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+//     hst->GetXaxis()->SetTitle("X Position Difference [mm]");
+//     hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+//     hst->GetXaxis()->CenterTitle();
+//     hst->GetXaxis()->SetTitleSize(0.06);
+//     hst->GetXaxis()->SetLabelSize(0.06);
+//     hst->GetXaxis()->SetTitleOffset(1.25);
+//     hst->GetXaxis()->SetTitleColor(1);
+//     hst->SetNdivisions(506,"X");
+//     hst->GetYaxis()->SetLabelSize(0.06);
+//     hst->Sumw2();
     
-    mc->cd(3);
-    if(hst){
-      dMainHistos.push_back((TH1F*)(hst->Clone()));
-      dMainHistos.back()->SetDirectory(0);
-      dMainHistos.back()->Draw("");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
-    }
+//     mc->cd(3);
+//     if(hst){
+//       dMainHistos.push_back((TH1F*)(hst->Clone()));
+//       dMainHistos.back()->SetDirectory(0);
+//       dMainHistos.back()->Draw("");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
+//     }
     
-    hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09Y_hw");
-    hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09Y_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
-    hst->GetXaxis()->SetTitle("Y Position Difference [mm]");
-    hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
-    hst->GetXaxis()->CenterTitle();
-    hst->GetXaxis()->SetTitleSize(0.06);
-    hst->GetXaxis()->SetLabelSize(0.06);
-    hst->GetXaxis()->SetTitleOffset(1.25);
-    hst->GetXaxis()->SetTitleColor(1);
-    hst->SetNdivisions(506,"X");
-    hst->GetYaxis()->SetLabelSize(0.06);
-    hst->Sumw2();
+//     hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09Y_hw");
+//     hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09Y_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+//     hst->GetXaxis()->SetTitle("Y Position Difference [mm]");
+//     hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+//     hst->GetXaxis()->CenterTitle();
+//     hst->GetXaxis()->SetTitleSize(0.06);
+//     hst->GetXaxis()->SetLabelSize(0.06);
+//     hst->GetXaxis()->SetTitleOffset(1.25);
+//     hst->GetXaxis()->SetTitleColor(1);
+//     hst->SetNdivisions(506,"X");
+//     hst->GetYaxis()->SetLabelSize(0.06);
+//     hst->Sumw2();
     
-    mc->cd(4);
-    if(hst){
-      dMainHistos.push_back((TH1F*)(hst->Clone()));
-      dMainHistos.back()->SetDirectory(0);
-      dMainHistos.back()->Draw("");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
+//     mc->cd(4);
+//     if(hst){
+//       dMainHistos.push_back((TH1F*)(hst->Clone()));
+//       dMainHistos.back()->SetDirectory(0);
+//       dMainHistos.back()->Draw("");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
       
-    }
+//     }
 
-    dMainPlots = kTrue;
-  }
-  else{
+//     dMainPlots = kTrue;
+//   }
+//   else{
 
-    hst = (TH1F*)dROOTFile->ReadData("hel_histo/asym_qwk_charge_hw");
-    //       hst->SetTitle(Form("Run: %d.%03d asym_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
-    hst->Sumw2();
+//     hst = (TH1F*)dROOTFile->ReadData("hel_histo/asym_qwk_charge_hw");
+//     //       hst->SetTitle(Form("Run: %d.%03d asym_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+//     hst->Sumw2();
     
-    mc->cd(1);
-    if(hst && dMainHistos[0]){
-      dMainHistos[0]->Add(hst);
-      dMainHistos[0]->Draw("");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
-    }    
+//     mc->cd(1);
+//     if(hst && dMainHistos[0]){
+//       dMainHistos[0]->Add(hst);
+//       dMainHistos[0]->Draw("");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
+//     }    
     
-    hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_charge_hw");
-    //     hst->SetTitle(Form("Run: %d.%03d yield_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
-    hst->Sumw2();
+//     hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_charge_hw");
+//     //     hst->SetTitle(Form("Run: %d.%03d yield_qwk_charge_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+//     hst->Sumw2();
     
-    mc->cd(2);
-    if(hst && dMainHistos[1]){
-      dMainHistos[1]->Add(hst);
-      dMainHistos[1]->Draw("");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
-    }
+//     mc->cd(2);
+//     if(hst && dMainHistos[1]){
+//       dMainHistos[1]->Add(hst);
+//       dMainHistos[1]->Draw("");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
+//     }
 
-    hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09X_hw");
-    //       hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09X_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
-    hst->Sumw2();
+//     hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09X_hw");
+//     //       hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09X_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+//     hst->Sumw2();
     
-    mc->cd(3);
-    if(hst && dMainHistos[2]){
-      dMainHistos[2]->Add(hst);
-      dMainHistos[2]->Draw("");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
-    }
+//     mc->cd(3);
+//     if(hst && dMainHistos[2]){
+//       dMainHistos[2]->Add(hst);
+//       dMainHistos[2]->Draw("");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
+//     }
 
 
-    hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09Y_hw");
-    //       hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09Y_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
-    hst->Sumw2();
+//     hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09Y_hw");
+//     //       hst->SetTitle(Form("Run: %d.%03d diff_qwk_bpm3h09Y_hw",GetCurrentRunNumber(),GetCurrentRunSegment()));
+//     hst->Sumw2();
     
-    mc->cd(4);
-    if(hst && dMainHistos[3]){
-      dMainHistos[3]->Add(hst);
-      dMainHistos[3]->Draw("");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
-    }
+//     mc->cd(4);
+//     if(hst && dMainHistos[3]){
+//       dMainHistos[3]->Add(hst);
+//       dMainHistos[3]->Draw("");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
+//     }
 
-  }
-  if(MainDetSubSystem){
+//   }
+//   if(MainDetSubSystem){
     
-    grp = (TGraphErrors*)MainDetSubSystem->GetAsymmetrySummaryPlot();	
-    mc->cd(5);
-    if(grp){
-      dMainGraphs.push_back((TGraphErrors*)(grp->Clone()));
-      (dMainGraphs.back())->Draw("ap");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
+//     grp = (TGraphErrors*)MainDetSubSystem->GetAsymmetrySummaryPlot();	
+//     mc->cd(5);
+//     if(grp){
+//       dMainGraphs.push_back((TGraphErrors*)(grp->Clone()));
+//       (dMainGraphs.back())->Draw("ap");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
       
-    }
+//     }
     
-    hst = (TH1F*)MainDetSubSystem->GetMDAllAsymmetryHisto();	
-    mc->cd(6);
-    if(hst){
-      dMainHistos.push_back((TH1F*)(hst->Clone()));
-      dMainHistos.back()->SetDirectory(0);
-      (dMainHistos.back())->Draw("");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
+//     hst = (TH1F*)MainDetSubSystem->GetMDAllAsymmetryHisto();	
+//     mc->cd(6);
+//     if(hst){
+//       dMainHistos.push_back((TH1F*)(hst->Clone()));
+//       dMainHistos.back()->SetDirectory(0);
+//       (dMainHistos.back())->Draw("");
+//       gPad->SetLeftMargin(0.15);
+//       gPad->SetTopMargin(0.15);
+//       gPad->SetBottomMargin(0.15);
+//       gPad->Modified();
+//       gPad->Update();
       
-    }
+//     }
     
-  }
+//   }
  
 }
 
@@ -1190,116 +1189,116 @@ void QwGUIMain::CloseDatabase()
 
 Int_t QwGUIMain::OpenRootFile(Bool_t EventMode,ERFileStatus status, const char* file)
 {
-  Int_t flag = 0;
-  if(!IsRootFileOpen() && AddSegments()){
-    SetSubSystemSegmentAdd(kFalse);
-    flag = 1;
-  }
+//   Int_t flag = 0;
+//   if(!IsRootFileOpen() && AddSegments()){
+//     SetSubSystemSegmentAdd(kFalse);
+//     flag = 1;
+//   }
 
-  if(IsRootFileOpen()) CloseRootFile();
-  char filename[NAME_STR_MAX];
-  if(!file){
-    if(GetFilenameFromDialog(filename,"root",status) == PROCESS_FAILED)
-      return PROCESS_FAILED;
-  }
-  else
-    strcpy(filename,file);
+//   if(IsRootFileOpen()) CloseRootFile();
+//   char filename[NAME_STR_MAX];
+//   if(!file){
+//     if(GetFilenameFromDialog(filename,"root",status) == PROCESS_FAILED)
+//       return PROCESS_FAILED;
+//   }
+//   else
+//     strcpy(filename,file);
 
-  if(!strstr(filename,".root")) strcat(filename,".root");
+//   if(!strstr(filename,".root")) strcat(filename,".root");
 
-  dROOTFile = new RDataContainer(fClient->GetRoot(), this,
-				 "dROOTFile","QwGUIMain",
-				 "ROOT",FM_READ,FT_ROOT);
+//   dROOTFile = new RDataContainer(fClient->GetRoot(), this,
+// 				 "dROOTFile","QwGUIMain",
+// 				 "ROOT",FM_READ,FT_ROOT);
 
-  if(!dROOTFile){SetRootFileOpen(kFalse); return PROCESS_FAILED;}
+//   if(!dROOTFile){SetRootFileOpen(kFalse); return PROCESS_FAILED;}
 
-  if(dROOTFile->OpenFile(filename) != FILE_PROCESS_OK) {
-    SetRootFileOpen(kFalse);
-    dROOTFile->Close();
-    dROOTFile = NULL;
-    return PROCESS_FAILED;
-  }
+//   if(dROOTFile->OpenFile(filename) != FILE_PROCESS_OK) {
+//     SetRootFileOpen(kFalse);
+//     dROOTFile->Close();
+//     dROOTFile = NULL;
+//     return PROCESS_FAILED;
+//   }
   
-  UInt_t levt = 0;
-  UInt_t evts = 0;
-  if(EventMode){
+//   UInt_t levt = 0;
+//   UInt_t evts = 0;
+//   if(EventMode){
 
-    TObject *obj = dROOTFile->ReadData("Mps_Tree");
-    if(!obj) {return PROCESS_FAILED;}
-    if(!obj->InheritsFrom("TTree")) {return PROCESS_FAILED;}
+//     TObject *obj = dROOTFile->ReadData("Mps_Tree");
+//     if(!obj) {return PROCESS_FAILED;}
+//     if(!obj->InheritsFrom("TTree")) {return PROCESS_FAILED;}
 
-       dCurrentRunEventOptions.Start = 0;
-       dCurrentRunEventOptions.Length = 0;
-       dCurrentRunEventOptions.TotalLength = ((TTree*)obj)->GetEntries();
+//        dCurrentRunEventOptions.Start = 0;
+//        dCurrentRunEventOptions.Length = 0;
+//        dCurrentRunEventOptions.TotalLength = ((TTree*)obj)->GetEntries();
 
-    new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), this, "evslcd","QwGUIMain",&dCurrentRunEventOptions);
+//     new QwGUIEventWindowSelectionDialog(fClient->GetRoot(), this, "evslcd","QwGUIMain",&dCurrentRunEventOptions);
 
-    if(dCurrentRunEventOptions.cancelFlag) {return PROCESS_FAILED;}
+//     if(dCurrentRunEventOptions.cancelFlag) {return PROCESS_FAILED;}
 
-     levt = dCurrentRunEventOptions.Start;
-     evts = dCurrentRunEventOptions.Length;
+//      levt = dCurrentRunEventOptions.Start;
+//      evts = dCurrentRunEventOptions.Length;
 
-  }
+//   }
 
-  Int_t n = dROOTFile->GetNumOfRootObjects();
-  TString *names = new TString[n];
-  TString conds;
-  dROOTFile->GetListOfRootObjects(names);
-  TList *conditions;
-  for(int l = 0; l < n; l++){
-    if(names[l].Contains("condition")){
-      conditions = (TList*)dROOTFile->GetObjFromFile(names[l].Data());
-      if(conditions){
-	for(int i = 0; i < conditions->GetSize(); i++){
-	  conds = ((TObjString*)(conditions->At(i)))->GetString();
+//   Int_t n = dROOTFile->GetNumOfRootObjects();
+//   TString *names = new TString[n];
+//   TString conds;
+//   dROOTFile->GetListOfRootObjects(names);
+//   TList *conditions;
+//   for(int l = 0; l < n; l++){
+//     if(names[l].Contains("condition")){
+//       conditions = (TList*)dROOTFile->GetObjFromFile(names[l].Data());
+//       if(conditions){
+// 	for(int i = 0; i < conditions->GetSize(); i++){
+// 	  conds = ((TObjString*)(conditions->At(i)))->GetString();
 	    
-	  Append(conds.Data(),kTrue);
+// 	  Append(conds.Data(),kTrue);
 	  
-	  if(conds && conds.Contains("QwAnalyzer Options")){
-	    Int_t loc = conds.Index("-r",2,0,TString::kExact)+2;
-	    dCurRun = atoi(&conds[loc]);
-	    //printf("Run %d\n",atoi(&conds[loc])); 
-	  }
-	  if(conds && conds.Contains("QwAnalyzer Name") && 
-	     conds.Contains("parity")){
-	    //This is a parity run
-	    dCurRunType = Parity;
-	  }
-	  if(conds && conds.Contains("QwAnalyzer Name") && 
-	     conds.Contains("tracking")){
-	    //This is a tracking run
-	    dCurRunType = Tracking;
-	  }
-	}	 
-      }
-    }
-  }
-  delete[] names;
+// 	  if(conds && conds.Contains("QwAnalyzer Options")){
+// 	    Int_t loc = conds.Index("-r",2,0,TString::kExact)+2;
+// 	    dCurRun = atoi(&conds[loc]);
+// 	    //printf("Run %d\n",atoi(&conds[loc])); 
+// 	  }
+// 	  if(conds && conds.Contains("QwAnalyzer Name") && 
+// 	     conds.Contains("parity")){
+// 	    //This is a parity run
+// 	    dCurRunType = Parity;
+// 	  }
+// 	  if(conds && conds.Contains("QwAnalyzer Name") && 
+// 	     conds.Contains("tracking")){
+// 	    //This is a tracking run
+// 	    dCurRunType = Tracking;
+// 	  }
+// 	}	 
+//       }
+//     }
+//   }
+//   delete[] names;
 
-//   dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
+// //   dMenuFile->DisableEntry(M_ROOT_FILE_OPEN);
 
-  SetRootFileOpen(kTrue);
-  SetRootFileName(filename);
+//   SetRootFileOpen(kTrue);
+//   SetRootFileName(filename);
 
-  TObject *obj;
-  TIter next(SubSystemArray.MakeIterator());
-  obj = next();
-  while(obj){
-    QwGUISubSystem *entry = (QwGUISubSystem*)obj;
-    if(entry->IsTabMenuEntryChecked()){
-      entry->SetRunNumber(dCurRun);
-      entry->SetRunType(dCurRunType);
-      entry->SetEventMode(EventMode,levt,evts);
-      entry->SetDataContainer(dROOTFile);
-    };
-    obj = next();
-  }
+//   TObject *obj;
+//   TIter next(SubSystemArray.MakeIterator());
+//   obj = next();
+//   while(obj){
+//     QwGUISubSystem *entry = (QwGUISubSystem*)obj;
+//     if(entry->IsTabMenuEntryChecked()){
+//       entry->SetRunNumber(dCurRun);
+//       entry->SetRunType(dCurRunType);
+//       entry->SetEventMode(EventMode,levt,evts);
+//       entry->SetDataContainer(dROOTFile);
+//     };
+//     obj = next();
+//   }
 
-  if(flag) SetSubSystemSegmentAdd(kTrue);
+//   if(flag) SetSubSystemSegmentAdd(kTrue);
 
-  PlotMainData();
+//   PlotMainData();
 
-  printf("Done processing %s\n",dROOTFile->GetFileName());
+//   printf("Done processing %s\n",dROOTFile->GetFileName());
   
   return PROCESS_OK;
 }
