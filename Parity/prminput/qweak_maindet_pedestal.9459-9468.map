@@ -22,6 +22,6 @@ qwk_pmtonl  ,  949.258  ,  0.00007629
 qwk_pmtltg  ,  1234.11  ,  0.00007629
 qwk_md9neg  ,  506.536  ,  0.00007629
 qwk_md9pos  ,  389.091  ,  0.00007629
-qwk_isourc  ,  111478  ,  0.00007629
-qwk_preamp  ,  78442.6  ,  0.00007629
-qwk_cagesr  ,  76371.6  ,  0.00007629
+qwk_isourc  ,  0  ,  0.00007629
+qwk_preamp  ,  0  ,  0.00007629
+qwk_cagesr  ,  0  ,  0.00007629
