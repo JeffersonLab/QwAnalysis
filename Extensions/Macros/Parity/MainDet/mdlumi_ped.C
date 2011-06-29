@@ -68,10 +68,16 @@ void mdlumi_ped(int run_num)
           bghst[i]->SetDirectory(0);   
           chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",bg[i],bg[i],scale,bg[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",bg[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",bg[i]));
-          md_pedestal_file<<Form("%s  ,  ",bg[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;  
+          (if i<5){
+		md_pedestal_file<<Form("%s  ,  ",bg[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;
+           }
           cout<<bg[i]<<"  "<<htemp->GetMean()<<endl;
           c_bg->Update();
-        }  
+        }
+      md_pedestal_file<<"qwk_isourc  ,  0  ,  0.00007629"<<endl;
+      md_pedestal_file<<"qwk_preamp  ,  0  ,  0.00007629"<<endl;
+      md_pedestal_file<<"qwk_cagesr  ,  0  ,  0.00007629"<<endl;
+     
       md_pedestal_file.close();
      }; //end get md
 
