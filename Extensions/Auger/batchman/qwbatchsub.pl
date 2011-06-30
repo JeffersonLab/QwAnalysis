@@ -53,7 +53,15 @@ use vars qw($original_cwd $executable $script_dir $mss_dir
 	    $RunPostProcess $RunletPostProcess
 	    );
 
+use vars qw(@months @weekDays
+	    $second $minute $hour
+	    $dayOfMonth $month $yearOffset
+	    $dayOfWeek $dayOfYear $daylightSavings
+	    $year $theTime
+	    );
 
+@months = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+@weekDays = qw(Sun Mon Tue Wed Thu Fri Sat Sun);
 
 ###  Set up some basic environment variables.
 $original_cwd = cwd();
@@ -426,8 +434,13 @@ foreach $runnumber (@good_runs){
 	    my $root_file = "$rootfile_stem$runnumber.$segment.root";
 	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$output_path/$root_file\"/>\n";
 	}
-	print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber.out\"/>\n";
-	print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber.err\"/>\n";
+
+	($second, $minute, $hour, $dayOfMonth, $month, $yearOffset, $dayOfWeek, $dayOfYear, $daylightSavings) = localtime();
+	$year = 1900 + $yearOffset;
+	$theTime = "$year$months[$month]$dayOfMonth\_$hour$minute$second";
+
+	print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber\_$theTime.out\"/>\n";
+	print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber\_$theTime.err\"/>\n";
 	print JOBFILE " </Job>\n";
 	print JOBFILE "</Request>\n";
 	close JOBFILE;
