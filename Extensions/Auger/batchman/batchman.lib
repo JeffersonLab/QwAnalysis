@@ -953,7 +953,7 @@ proc checkrunning {verbose} {
 	#                     now returns an error if there are no runs.
 	#                     Also, use the "-a" flag to show all jobs.
 	#
-	set ierr [catch {exec jobstat -u $env(USER) > .tmp 2> .tmperr}]
+	set ierr [catch {exec /site/bin/jobstat -u $env(USER) > .tmp 2> .tmperr}]
 	if {($ierr != 0) && ($verbose != 0)} {
 		#  If the error code is not exactly "No job found", then
 		#  report it as a problem.

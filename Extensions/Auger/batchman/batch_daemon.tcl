@@ -161,10 +161,10 @@ proc stage_files {listofiles} {
     #puts "##### inside stage_files"
     #puts "list of files $listofiles"
 	if {$cachegroup == "default"} {
-		set ierr [catch {exec jcache $listofiles >& /dev/null &} answer]
+		set ierr [catch {exec /site/bin/jcache $listofiles >& /dev/null &} answer]
 	   puts "##### use default cache group, done" 
 	} else {
-		set ierr [catch {exec jcache -g $mychachegroup $listofiles >& /dev/null &} answer]
+		set ierr [catch {exec /site/bin/jcache -g $mychachegroup $listofiles >& /dev/null &} answer]
 	    puts "##### use $mychachegroup cache group, done"   
 	}
 }
@@ -175,16 +175,16 @@ proc release_files {itask} {
       foreach ff $filelist($itask) {
         set lf "$raw_file_source/$ff"
 	if {$cachegroup == "mine"} {
-          set ierr [catch {exec jcache -d -g $mychachegroup $lf >& /dev/null &} answer]
+          set ierr [catch {exec /site/bin/jcache -d -g $mychachegroup $lf >& /dev/null &} answer]
 	} else {
-          set ierr [catch {exec jcache -d $lf >& /dev/null &} answer]
+          set ierr [catch {exec /site/bin/jcache -d $lf >& /dev/null &} answer]
 	}
       }
 }
 
 # SYSTEM INTERACTION: submit batch job
 proc submit_job {jobfile} {
-	set ierr [catch {exec jsub $jobfile} answer]
+	set ierr [catch {exec /site/bin/jsub $jobfile} answer]
 }
 
 # SYSTEM INTERACTION: kill batch job
@@ -194,7 +194,7 @@ proc kill_job {itask} {
 	global current_state stagedcount
 	if {($jobid($itask) != {}) && ($jobid($itask) != "n/a")
 	 && ($jobid($itask) != "0") && ($jobid($itask) != "*")} {
-          set ierr [catch {exec jkill $jobid($itask) &} answer]
+          set ierr [catch {exec /site/bin/jkill $jobid($itask) &} answer]
 	}
 }
 
@@ -258,12 +258,12 @@ proc get_staging {verbose} {
 	# 17124386 33860608 jcache    Pending mukesh   11  403947 ifarml4    meta       /mss/clas/g12/production/pass1/bos/7-4ctrk/56540.A07
 	# 17124386 33861120 jcache    Pending mukesh   11  403949 ifarml4    meta       /mss/clas/g12/production/pass1/bos/7-4ctrk/56546.A90
 
-	set ierr [catch {exec jtstat | grep $env(USER)} outstr]
+	set ierr [catch {exec /site/bin/jtstat | grep $env(USER)} outstr]
 	
 	#Jianglai 05-23-2003. OK, I see the point. If someone else is also 
 	#retrieving this file, also count it as a staging file
 	if {$ierr != 0} {
-		set ierr [catch {exec jtstat} outstr]
+		set ierr [catch {exec /site/bin/jtstat} outstr]
 	}
 	
 	if {$ierr == 0} {
@@ -637,7 +637,7 @@ proc check_if_done {i} {
 	    # at the end. Why the hell are those guys paid for ... So use a 
 	    # grep to remove the shitty empty line and title line. jianglai
 
-	    set ierr [catch {exec jobstat -u $env(USER) | grep $env(USER) } outstr]
+	    set ierr [catch {exec /site/bin/jobstat -u $env(USER) | grep $env(USER) } outstr]
 	    
 	    if { $ierr !=0 } {
 	      set new_N 0
@@ -942,7 +942,7 @@ proc do_unstaged {i} {
 	        set lf "$raw_file_source/$ff"		
 	#set ierr [catch {exec jls -af $lf | grep -v Available} jls]	
 	#jianglai "Available" disappeared after the July 4th upgrade
-	set ierr [catch {exec jls -af $lf | grep -v "tape"} jls]
+	set ierr [catch {exec /site/bin/jls -af $lf | grep -v "tape"} jls]
 		if {([lindex $jls 0] != "Nothing") && \
 		    ([lindex $jls 1] == "true")} {
 			incr count 1
@@ -1123,7 +1123,7 @@ proc obtain_jobid {i} {
 	# at the end. Why the hell are those guys paid for ... So use a 
 	# grep to remove the the shitty empty line and title line. jianglai
 
-	set ierr [catch {exec jobstat -u $env(USER) | grep "${experiment_label}_$runno($i)" } outstr]
+	set ierr [catch {exec /site/bin/jobstat -u $env(USER) | grep "${experiment_label}_$runno($i)" } outstr]
 
 	#output is something like this:
 	#821378  jianglai DONE  production farml2      farml153.jlab.org G0_15451-9671 May 29 21:38
@@ -1722,7 +1722,7 @@ while {$keep_looping == 1} {
 
 	set maxNumJobs 400
 
-	set ierror [catch {exec jobstat -a hallc | grep "${experiment_label}_" } jobList]
+	set ierror [catch {exec /site/bin/jobstat -a hallc | grep "${experiment_label}_" } jobList]
 	set jobListSplit [split $jobList \n]
    	set numJobsTot [llength $jobListSplit]
 

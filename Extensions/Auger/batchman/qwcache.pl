@@ -157,7 +157,7 @@ if ($cache_group ne ""){
 }
 foreach $tape (keys %tape_list){
     if ($#{$tape_list{$tape}} >= 0){
-	$command = "jcache $jcache_options @{$tape_list{$tape}}";
+	$command = "/site/bin/jcache $jcache_options @{$tape_list{$tape}}";
 	print "$command\n";
 	if ($opt_v==1){
 	    print "Running \"$command\"\n";
