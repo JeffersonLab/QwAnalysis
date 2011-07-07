@@ -4,34 +4,34 @@
 #include "TG3DLine.h"
 #include "TGaxis.h"
 #include "TStyle.h"
-
+#include "TGraphErrors.h"
 
 
 ClassImp(QwGUIInjector);
 
 enum QwGUIInjectorIndentificator {
-  BA_POS_DIFF,
-  BA_POS_DIFF_RMS,
-  BA_CHARGE,
-  BA_POS_VAR,
-  BA_HCSCALER,
-  BA_MEAN_POS,
+  BM_POS_DIFF,
+  BM_MEAN_POS,
+  BM_POS,
+  BM_EFF_Q,
+  BM_CHARGE,
+  BM_HCSCALER,
 };
 
 //INJECTOR_DET_TYPES is the size of the enum
 enum QwGUIInjectorDeviceTypes {
   UNKNOWN_TYPE,
-  VQWK_BPMSTRIPLINE,
-  VQWK_BPMCAVITY,
-  VQWK_BCM,  
-  SCALER_HALO,
-  COMBINED,
+  VQWK_BPM,
+  VQWK_BCM,
+  VQWK_QPD,
+  VQWK_LINA,
 };
 
 //Combo box
 enum QwGUIHallCBeamlinePlotsComboBox {
-  CMB_INJECTORBCM,
+  CMB_INJECTORCHARGE,
   CMB_INJECTORSCALER,
+  CMB_INJECTORPOS,
 };
 
 
@@ -39,36 +39,28 @@ QwGUIInjector::QwGUIInjector(const TGWindow *p, const TGWindow *main, const TGTa
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
   : QwGUISubSystem(p,main,tab,objName,mainname,w,h)
 { 
-  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
-  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
-  //QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
-
   dTabFrame               = NULL;
   dControlsFrame          = NULL;
-  dInjectorBCMFrame       = NULL;
-  dInjectorSCALERFrame    = NULL;
   dCanvas                 = NULL;  
-  dTabLayout              = NULL;
-  dCnvLayout              = NULL;
-  dSubLayout              = NULL;
   dBtnLayout              = NULL;
   dButtonPosDiffMean      = NULL;
   dButtonMeanPos          = NULL;
-  dButtonCharge           = NULL;
-  dButtonPosVariation     = NULL;
-  dButtonPosDiffRms       = NULL;
-  dButtonInjectorSCALER   = NULL;
-  dComboBoxInjectorBCM    = NULL;
-  dComboBoxInjectorSCALER = NULL;
-  
+  dButtonEffCharge        = NULL;
+  dComboBoxChargeMonitors = NULL;
+  dComboBoxScalers        = NULL;
+  dComboBoxPosMonitors    = NULL;
+  not_found               = NULL;
+  dPositionMon            = NULL;
+  dChargeMon              = NULL;
+  dScaler                 = NULL;
+
   PosVariation[0] = NULL;
   PosVariation[1] = NULL;
 
+  AddThisTab(this);
 
   HistArray.Clear();
   DataWindowArray.Clear();
-
-  AddThisTab(this);
 
   SetHistoAccumulate(1);
   SetHistoReset(0);
@@ -80,46 +72,44 @@ QwGUIInjector::~QwGUIInjector()
   if(dTabFrame)             delete dTabFrame;
   if(dControlsFrame)        delete dControlsFrame;
   if(dCanvas)               delete dCanvas;  
-  if(dInjectorBCMFrame)     delete dInjectorBCMFrame;
-  if(dInjectorSCALERFrame)  delete dInjectorSCALERFrame;
-  if(dTabLayout)            delete dTabLayout;
-  if(dCnvLayout)            delete dCnvLayout;
-  if(dSubLayout)            delete dSubLayout;
   if(dBtnLayout)            delete dBtnLayout;
   if(dButtonPosDiffMean)    delete dButtonPosDiffMean;
-  if(dButtonPosDiffRms)     delete dButtonPosDiffRms;
-  if(dButtonCharge)         delete dButtonCharge;
-  if(dButtonPosVariation)   delete dButtonPosVariation;
-  if(dButtonInjectorSCALER) delete dButtonInjectorSCALER;
+  if(dButtonEffCharge)      delete dButtonEffCharge;
   if(dButtonMeanPos)        delete dButtonMeanPos; 
-
-  if(dComboBoxInjectorBCM)    delete dComboBoxInjectorBCM;
-  if(dComboBoxInjectorSCALER) delete dComboBoxInjectorSCALER;
-  
+  if(dComboBoxChargeMonitors)delete dComboBoxChargeMonitors;
+  if(dComboBoxPosMonitors)   delete dComboBoxPosMonitors;
+  if(dComboBoxScalers)       delete dComboBoxScalers;
+  if(not_found)              delete not_found;
+  if(dPositionMon)           delete dPositionMon;
+  if(dChargeMon)             delete dChargeMon;
+  if(dScaler)                delete dScaler;
 
   delete [] PosVariation;
-
-  //RemoveThisTab(this);
-  //  IsClosing(GetName());
 }
 
-void QwGUIInjector::LoadHistoMapFile(TString mapfile){  //Now this is called at the QwGUIMain
+
+/* This function reads in the devices from the detector map file and loads them in to the individual combo boxes.
+It is called at the QwGUIMain. 
+*/
+void QwGUIInjector::LoadHistoMapFile(TString mapfile){
+
   TString varname, varvalue;
   TString modtype, namech,dettype;
-  Int_t count_names;
+  Int_t count_bpms=0;
+  Int_t count_qpds=0;
+  Int_t count_lina=0;
+
   fInjectorDevices.resize(INJECTOR_DET_TYPES);
-  QwParameterFile mapstr(mapfile.Data());  //Open the file
-  //fInjectorDevices.clear();
+  fInjectorPositionType.resize(0);
+
+ //Open the detector map file
+  QwParameterFile mapstr(mapfile.Data());
+ 
+  // loop over the rows
   while (mapstr.ReadNextLine()){
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
-    if (mapstr.HasVariablePair("=",varname,varvalue)){
-      if (varname=="name"){
-	//printf("%s - %s \n",varname.Data(),varvalue.Data());
-	fInjectorDevices.at(COMBINED).push_back(varvalue);
-      }
-    }
     else{
       modtype   = mapstr.GetNextToken(", ").c_str();	// module type
       if (modtype=="VQWK" || modtype=="SCALER"){
@@ -129,131 +119,177 @@ void QwGUIInjector::LoadHistoMapFile(TString mapfile){  //Now this is called at 
 	dettype.ToLower();
 	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
 	namech.ToLower();
-	if (modtype=="VQWK" && dettype=="bpmstripline")
-	  namech.Remove(namech.Length()-2,2);
 
-	count_names=count(fInjectorDevices.at(VQWK_BPMSTRIPLINE).begin(),fInjectorDevices.at(VQWK_BPMSTRIPLINE).end(),namech);
-
-	if (!count_names && dettype=="bpmstripline"){
-	  //printf("%s - %s \n",modtype.Data(),namech.Data() );	  
-	  fInjectorDevices.at(VQWK_BPMSTRIPLINE).push_back(namech);
+	// Now sort out detectors to the two categories of charge monitors and position monitors.
+	if (modtype=="VQWK"){
+	  if(dettype=="bpmstripline" || dettype=="qpd" || dettype =="lineararray"){
+	    namech.Remove(namech.Length()-2,2);
+	    if(dettype=="bpmstripline"){
+	      count_bpms=count(fInjectorDevices.at(VQWK_BPM).begin(),fInjectorDevices.at(VQWK_BPM).end(),namech);
+	      if(!count_bpms) fInjectorDevices.at(VQWK_BPM).push_back(namech);
+	    }
+	    if(dettype=="qpd"){
+	      count_qpds=count(fInjectorDevices.at(VQWK_QPD).begin(),fInjectorDevices.at(VQWK_QPD).end(),namech);
+	      if(!count_qpds) fInjectorDevices.at(VQWK_QPD).push_back(namech);
+	    }
+	    if (dettype=="lineararray"){
+	      count_lina=count(fInjectorDevices.at(VQWK_LINA).begin(),fInjectorDevices.at(VQWK_LINA).end(),namech);	
+	      if(!count_lina) fInjectorDevices.at(VQWK_LINA).push_back(namech);	      
+	    }
+	  }
+	  else if (dettype=="bcm"){
+	    fInjectorDevices.at(VQWK_BCM).push_back(namech);
+	  }
 	}
-	else if (dettype=="bpmcavity"){
-	  //printf("%s - %s \n",dettype.Data(),namech.Data() );	  
-	  fInjectorDevices.at(VQWK_BPMCAVITY).push_back(namech);
-	}
-	else if (dettype=="bcm"){
-	  //printf("%s - %s \n",dettype.Data(),namech.Data() );	  
-	  fInjectorDevices.at(VQWK_BCM).push_back(namech);
-	}
-	else if (dettype=="halomonitor"){
-	  //printf("%s - %s \n",dettype.Data(),namech.Data() );	  
-	  fInjectorDevices.at(SCALER_HALO).push_back(namech);
-	}
-
-      }
-
+      }      
     }
-
   }
 
-  //printf("no. of hallC devices %d \n",fInjectorDevices.size());
-  /*
-   printf(" Injector  Device List\n" );
-  for (Size_t i=0;i<fInjectorDevices.size();i++)
-    for (Size_t j=0;j<fInjectorDevices.at(i).size();j++)
-      printf("%s \n",fInjectorDevices.at(i).at(j).Data() );
-  */
+  // Fill the comboboxes using the information from the map file
+  FillComboBoxes();
 
-  LoadInjectorBCMCombo();//Load BCM list into the combo box
-  LoadInjectorSCALERCombo();//Load SCALER list into the combo box
 };
 
 void QwGUIInjector::MakeLayout()
 {
 
+  // Start by cleaning up any exsisting layouts.
   SetCleanup(kDeepCleanup);
 
+  //Draw the main tab frame.
   dTabFrame= new TGHorizontalFrame(this);  
   AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 5, 5));
 
-
+  //The main frame will be divided in to two parts.
+  // 1. The controls frame
   dControlsFrame = new TGVerticalFrame(this);
   dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
   
+  //Draw a seperator
   TGVertical3DLine *separator = new TGVertical3DLine(this);
   dTabFrame->AddFrame(separator, new TGLayoutHints(kLHintsRight | kLHintsExpandY));
 
+  // 2. The canvas
   dCanvas   = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 2, 2, 2, 2));
 
-  //Injector bcm access frame
-  dInjectorBCMFrame= new TGVerticalFrame(dControlsFrame,50,100);
-  //Injector scaler access frame
-  dInjectorSCALERFrame= new TGVerticalFrame(dControlsFrame,50,100);
-
- 
-  dButtonPosDiffMean = new TGTextButton(dControlsFrame, "Position Differences", BA_POS_DIFF);
-  // dButtonPosDiffRms = new TGTextButton(dControlsFrame, "Position Differences RMS", BA_POS_DIFF_RMS);
-  dButtonMeanPos = new TGTextButton(dControlsFrame, "Mean Beam Positions", BA_MEAN_POS);
-  dButtonPosVariation = new TGTextButton(dControlsFrame, "BPM Effective Charge", BA_POS_VAR);
-  dButtonCharge = new TGTextButton(dInjectorBCMFrame, "&BCM Yield/Asymmetry", BA_CHARGE);
-  dButtonCharge->SetEnabled(kFALSE);
-  
-  dButtonInjectorSCALER = new TGTextButton(dInjectorSCALERFrame, "&SCALER Yield/Asymmetry", BA_HCSCALER);
-  dButtonInjectorSCALER->SetEnabled(kFALSE);
+   // Create buttons
+  // Buttons to display overview of beam properties along beamline
+  dButtonPosDiffMean = new TGTextButton(dControlsFrame, "Position Differences", BM_POS_DIFF);
+  dButtonMeanPos = new TGTextButton(dControlsFrame, "Beam Position", BM_MEAN_POS);
+  dButtonEffCharge = new TGTextButton(dControlsFrame, "BPM Effective Charge", BM_EFF_Q);
 
 
+  // Add the buttons to the frame.
   dBtnLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
 
   dControlsFrame->AddFrame(dButtonPosDiffMean,dBtnLayout );
-  //  dControlsFrame->AddFrame(dButtonPosDiffRms,dBtnLayout );
-  dControlsFrame->AddFrame(dButtonPosVariation, dBtnLayout);
+  dControlsFrame->AddFrame(dButtonEffCharge, dBtnLayout);
   dControlsFrame->AddFrame(dButtonMeanPos, dBtnLayout);
-  dControlsFrame->AddFrame(dInjectorBCMFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
-  dControlsFrame->AddFrame(dInjectorSCALERFrame,new TGLayoutHints( kLHintsRight | kLHintsExpandX, 5, 5, 5, 5));
 
-  //Add Injector BCM  combo box
-  dComboBoxInjectorBCM=new TGComboBox(dInjectorBCMFrame,CMB_INJECTORBCM);
-  dComboBoxInjectorBCM->Resize(50,20);//To make it better looking
+  // Create combo boxes
+  // combo box for charge monitors
+  dComboBoxChargeMonitors=new TGComboBox(dControlsFrame,CMB_INJECTORCHARGE);
+  dComboBoxChargeMonitors->Resize(50,20);//To make it better looking
+
+  // combo box for position monitors
+  dComboBoxPosMonitors=new TGComboBox(dControlsFrame,CMB_INJECTORPOS);
+  dComboBoxPosMonitors->Resize(50,20);//To make it better looking
   
-  //Add Injector SCALER  combo box
-  dComboBoxInjectorSCALER=new TGComboBox(dInjectorSCALERFrame,CMB_INJECTORSCALER);
-  dComboBoxInjectorSCALER->Resize(50,20);//To make it better looking
+  // SCALER  combo box
+  dComboBoxScalers=new TGComboBox(dControlsFrame,CMB_INJECTORSCALER);
+  dComboBoxScalers->Resize(50,20);//To make it better looking
+  dComboBoxScalers->SetEnabled(kFALSE);
 
-  //add components to the Injector  bcm access frame
-  dInjectorBCMFrame->AddFrame(dComboBoxInjectorBCM, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
-  dInjectorBCMFrame->AddFrame(dButtonCharge,dBtnLayout);
+  // Create labels
+  dPositionMon = new TGLabel(dControlsFrame,"Position Monitors");
+  dChargeMon = new TGLabel(dControlsFrame,"Charge Monitors");
+  dScaler = new TGLabel(dControlsFrame,"Scalers");
 
-  //add components to the Injector  SCALER access frame
-  dInjectorSCALERFrame->AddFrame(dComboBoxInjectorSCALER, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
-  dInjectorSCALERFrame->AddFrame(dButtonInjectorSCALER, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
-
-  
+  //add components to the Injector  detector frame
+  dControlsFrame->AddFrame(dChargeMon,dBtnLayout);
+  dControlsFrame->AddFrame(dComboBoxChargeMonitors, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
+  dControlsFrame->AddFrame(dPositionMon,dBtnLayout);
+  dControlsFrame->AddFrame(dComboBoxPosMonitors, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
+  dControlsFrame->AddFrame(dScaler,dBtnLayout);  
+  dControlsFrame->AddFrame(dComboBoxScalers, new TGLayoutHints( kLHintsExpandX | kLHintsTop | kLHintsRight, 10, 10, 5, 5));
 
   dButtonPosDiffMean -> Associate(this);
-  //  dButtonPosDiffRms -> Associate(this);
   dButtonMeanPos -> Associate(this);
-  dButtonCharge -> Associate(this);
-  dButtonPosVariation -> Associate(this);
-  dButtonInjectorSCALER -> Associate(this);
-  dComboBoxInjectorBCM->Associate(this);
-  dComboBoxInjectorSCALER->Associate(this);
-
- 
+  dButtonEffCharge -> Associate(this);
+  dComboBoxChargeMonitors->Associate(this);
+  dComboBoxPosMonitors->Associate(this);
+  dComboBoxScalers->Associate(this);
   dCanvas->GetCanvas()->SetBorderMode(0);
-  // dCanvas->GetCanvas()->Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)",
-  // 				"QwGUIInjector",
-  // 				this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+
+  not_found  = new TText(); 
+  not_found->SetTextColor(2);
+  not_found->SetTextSize(0.1);
 
 
 }
 
 void QwGUIInjector::OnReceiveMessage(char *obj)
 {
-
+  //do nothing
 }
 
+/* This function grabs the index of the device from the selected combo box*/
+void QwGUIInjector::SetComboIndex(Int_t cmb_id, Int_t id){
+
+  if (cmb_id==CMB_INJECTORCHARGE)
+    fCurrentChargeMonitorIndex=id;
+
+  if (cmb_id==CMB_INJECTORPOS)
+    fCurrentPositionMonitorIndex=id;
+
+  if (cmb_id==CMB_INJECTORSCALER)
+    fCurrentSCALERIndex=id;
+};
+
+
+/* This function fills the combo boxes*/
+void QwGUIInjector::FillComboBoxes(){
+  
+  size_t i=0;
+  size_t k=0;
+  
+  // clear the combo boxes
+  dComboBoxChargeMonitors->RemoveAll();
+  dComboBoxPosMonitors->RemoveAll();
+  dComboBoxScalers->RemoveAll();
+
+  // Don't change the filling oreder. If you change this it will effect other functions that
+  // read the combo boxes to get the different detectors/
+
+  // Fill the charge monitors
+  for(i=0;i<fInjectorDevices.at(VQWK_BCM).size();i++){
+    dComboBoxChargeMonitors->AddEntry(fInjectorDevices.at(VQWK_BCM).at(i),i);
+  }
+
+  // Fill the position monitors
+  for(i=0;i<fInjectorDevices.at(VQWK_BPM).size();i++){
+    dComboBoxPosMonitors->AddEntry(fInjectorDevices.at(VQWK_BPM).at(i),i);
+    fInjectorPositionType.push_back("VQWK_BPM");
+  }
+  k= dComboBoxPosMonitors->GetNumberOfEntries();
+  
+  for(i=0;i<fInjectorDevices.at(VQWK_QPD).size();i++){
+    dComboBoxPosMonitors->AddEntry(fInjectorDevices.at(VQWK_QPD).at(i),k+i);
+    fInjectorPositionType.push_back("VQWK_QPD");
+  }
+  k= dComboBoxPosMonitors->GetNumberOfEntries();
+
+  for(i=0;i<fInjectorDevices.at(VQWK_LINA).size();i++){
+    dComboBoxPosMonitors->AddEntry(fInjectorDevices.at(VQWK_LINA).at(i),k+i);
+    fInjectorPositionType.push_back("VQWK_LINA");
+  }
+  
+  fCurrentPositionMonitorIndex=-1;
+
+  // done!
+
+}
 
 
 /*This function plots the mean and rms of the bpm effective charge/four wire sum*/
@@ -262,11 +298,10 @@ void QwGUIInjector::BPM_EffectiveCharge()
 {
   char histo[128];
   Int_t xcount = 0;
-  //Int_t ycount = 0;
   
   Double_t offset = 0.5;
   Double_t min_range = - offset;
-  const Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPMSTRIPLINE).size();
+  const Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPM).size();
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
   TString dummyname; 
@@ -293,7 +328,7 @@ void QwGUIInjector::BPM_EffectiveCharge()
      for(Int_t p = 0; p <BPMSTriplinesCount ; p++) {
        
        if (GetHistoPause()==0){
-	 sprintf (histo, "asym_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+	 sprintf (histo, "asym_%s_EffectiveCharge_hw", fInjectorDevices.at(VQWK_BPM).at(p).Data());
 	 histo1[p]= (TH1F *)dMapFile->Get(histo); 
        }
        if (histo1[p]!=NULL){
@@ -322,12 +357,9 @@ void QwGUIInjector::BPM_EffectiveCharge()
 
 	 if(ldebug) SummaryHist(histo1[p]);
        }
-      
-
 	  
     }
     xcount = 0;
-    //ycount = 0;
     mc->Clear();
     mc->Divide(1,2);
 
@@ -336,18 +368,20 @@ void QwGUIInjector::BPM_EffectiveCharge()
     
     mc->cd(1);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetMarkerColor(4);
+    PosVariation[0] -> SetLineColor(2);
     PosVariation[0] -> SetStats(kFALSE); 
     PosVariation[0] -> SetTitle("Eff_Charge Asymmetry Mean");
     PosVariation[0] -> GetYaxis() -> SetTitle("ppm");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM ");
     PosVariation[0] -> Draw("E1");
-    //gPad->Update();
-    //mc->Modified();
-    //mc->Update();
     
     mc->cd(2);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
+    PosVariation[1] -> SetLineColor(28); 
+    PosVariation[1] -> SetFillColor(28); 
+    PosVariation[1] -> SetFillStyle(3002); 
     PosVariation[1] -> SetTitle("Eff_Charge Asymmetry RMS");
     PosVariation[1] -> GetYaxis()-> SetTitle ("ppm");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM ");
@@ -369,16 +403,17 @@ void QwGUIInjector::BPM_EffectiveCharge()
 }
 
 
-/* This function plots the bcm charge asymmetry and yield */
+/* This function plots the asymmetry and yield of charge monitors */
 
-void QwGUIInjector::PlotChargeAsym()
+void QwGUIInjector::PlotChargeMonitors()
 {
   TH1F *histo1=NULL;
   TH1F *histo1_buff=NULL; 
   TH1F *histo2=NULL;
   TH1F *histo2_buff=NULL; 
   char histo[128]; //name of the histogram
-  
+
+
   TCanvas *mc = NULL;
   mc = dCanvas->GetCanvas();
 
@@ -387,12 +422,12 @@ void QwGUIInjector::PlotChargeAsym()
   SetHistoDefaultMode();//bring the histo mode to accumulate mode
 
    while (1){
-     if (fCurrentBCMIndex<0)
+     if (fCurrentChargeMonitorIndex<0)
        break;
      if (GetHistoPause()==0){
-       sprintf (histo, "asym_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+       sprintf (histo, "asym_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentChargeMonitorIndex).Data() );
        histo1= (TH1F *)dMapFile->Get(histo);
-       sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentBCMIndex).Data() );
+       sprintf (histo, "yield_%s_hw",fInjectorDevices.at(VQWK_BCM).at(fCurrentChargeMonitorIndex).Data() );
        histo2= (TH1F *)dMapFile->Get(histo);
      }
     
@@ -412,13 +447,38 @@ void QwGUIInjector::PlotChargeAsym()
       mc->Divide(1,2);
 
       mc->cd(1);
-      histo1->Draw();
-      if(ldebug) SummaryHist(histo1);
+      if((histo1!=NULL) && ((histo1->GetEntries())!= 0)){
+	histo1->Draw();
+	histo1->SetFillColor(28);
+	histo1->SetFillStyle(3002);
+	histo1->SetLineColor(28);
+	if(ldebug) SummaryHist(histo1);
+      } 
+      else{
+	gPad->Clear();
+	if (histo1->GetEntries()== 0)
+	  not_found ->DrawText(0.3,0.5,"Empty!");
+	else
+	  not_found ->DrawText(0.3,0.5,"Not Found!");
+	not_found ->Draw();
+      }
+
       mc->cd(2);
-      histo2->Draw();
-      if(ldebug) SummaryHist(histo2);
-      gPad->Update();
-      gPad->Update();
+      if((histo2!=NULL) && ((histo2->GetEntries())!= 0)){
+	histo2->Draw();
+	histo2->SetFillColor(39);
+	histo2->SetFillStyle(3002);
+	histo2->SetLineColor(39);
+	if(ldebug) SummaryHist(histo2);
+      } 
+      else{
+	gPad->Clear();
+	if (histo2->GetEntries()== 0)
+	  not_found ->DrawText(0.3,0.5,"Empty!");
+	else
+	  not_found ->DrawText(0.3,0.5,"Not Found!");
+	not_found ->Draw();
+      }
 
       mc->Modified();
       mc->Update();
@@ -431,11 +491,304 @@ void QwGUIInjector::PlotChargeAsym()
   }
   
 
-   printf("---------------PlotChargeAsym()--------------------\n");
+   printf("---------------PlotChargeMonitors()--------------------\n");
 
    return;
 }
 
+
+/* This function plots the individual paramters of beam position monitors*/
+
+void QwGUIInjector::PlotPositionMonitors(){
+
+  Bool_t ldebug = false;
+
+  TH1F *histo[10];
+  TH1F *histo_buff[10]; 
+
+  Double_t mean[8];
+  Double_t error[8];
+  Double_t points[8];
+  Double_t fakeerror[8];
+
+  TString hist;
+
+
+  TCanvas *mc = NULL;
+  TPad*pad1;
+  TPad*pad2;
+  TGraphErrors * value;
+
+
+  TString name;
+  Int_t loc;
+  size_t size = 10;
+
+  gStyle->SetStatH(0.3);
+  gStyle->SetStatW(0.5);     
+  gStyle->SetOptStat(1110);
+  gStyle->SetLabelSize(0.07,"x");
+  gStyle->SetLabelSize(0.07,"y");
+
+  mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->cd();
+
+  // Linear array has different number of pads and properties than postion monitors.
+  if(fInjectorPositionType.at(fCurrentPositionMonitorIndex)=="VQWK_LINA"){
+    pad1 = new TPad("pad1","pad1",0.005,0.465,0.995,0.995);
+    pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.475);
+    
+    pad1->Draw();
+ 
+    pad2->Draw();
+    pad2->Divide(3,1);
+    size = 11;
+  }
+  else {
+    pad1 = new TPad("pad1","pad1",0.005,0.665,0.995,0.995);
+    pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.675);
+    
+    pad1->Draw();
+    pad1->Divide(4,1);
+    pad2->Draw();
+    pad2->Divide(3,2);
+  }
+
+  SetHistoDefaultMode();//bring the histo mode to accumulate mode
+
+  while(1){
+    if (fCurrentPositionMonitorIndex<0)
+      break;
+
+    // Continue reading the histograms from the map file until PAUSE button is clicked.
+    if (GetHistoPause()==0){
+      if (fInjectorPositionType.at(fCurrentPositionMonitorIndex)=="VQWK_BPM"){
+	name = fInjectorDevices.at(VQWK_BPM).at(fCurrentPositionMonitorIndex).Data();
+	hist=Form("%sXP_hw",name.Data());
+	histo[0]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sXM_hw",name.Data());
+	histo[1]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sYP_hw",name.Data());
+	histo[2]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sYM_hw",name.Data());
+	histo[3]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sX_hw",name.Data());
+	histo[4]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sY_hw",name.Data());
+	histo[5]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%s_EffectiveCharge_hw",name.Data());
+	histo[6]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("diff_%sX_hw",name.Data());
+	histo[7]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("diff_%sY_hw",name.Data());
+	histo[8]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("asym_%s_EffectiveCharge_hw",name.Data());
+	histo[9]= (TH1F *)dMapFile->Get(hist);
+      }
+      else if(fInjectorPositionType.at(fCurrentPositionMonitorIndex)=="VQWK_QPD"){
+	loc = fCurrentPositionMonitorIndex-fInjectorDevices.at(VQWK_BPM).size();
+	name = fInjectorDevices.at(VQWK_QPD).at(loc).Data();
+	hist=Form("%sTL_hw",name.Data());
+	histo[0]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sTR_hw",name.Data());
+	histo[1]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sBL_hw",name.Data());
+	histo[2]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sBR_hw",name.Data());
+	histo[3]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sX_hw",name.Data());
+	histo[4]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sY_hw",name.Data());
+	histo[5]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%s_EffectiveCharge_hw",name.Data());
+	histo[6]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("diff_%sX_hw",name.Data());
+	histo[7]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("diff_%sY_hw",name.Data());
+	histo[8]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("asym_%s_EffectiveCharge_hw",name.Data());
+	histo[9]= (TH1F *)dMapFile->Get(hist);
+      } 
+      else if(fInjectorPositionType.at(fCurrentPositionMonitorIndex)=="VQWK_LINA"){
+	loc = fCurrentPositionMonitorIndex-fInjectorDevices.at(VQWK_BPM).size()-fInjectorDevices.at(VQWK_QPD).size();
+	name = fInjectorDevices.at(VQWK_LINA).at(loc).Data();
+	hist=Form("%sp1_hw",name.Data());
+	histo[0]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sp2_hw",name.Data());
+	histo[1]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sp3_hw",name.Data());
+	histo[2]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sp4_hw",name.Data());
+	histo[3]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sp5_hw",name.Data());
+	histo[4]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sp6_hw",name.Data());
+	histo[5]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sp7_hw",name.Data());
+	histo[6]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sp8_hw",name.Data());
+	histo[7]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sRelMean_hw",name.Data());
+	histo[8]= (TH1F *)dMapFile->Get(hist);
+	hist=Form("%sRelVariance_hw",name.Data());
+	histo[9]= (TH1F *)dMapFile->Get(hist);    
+ 	hist=Form("diff_%sRelMean_hw",name.Data());
+ 	histo[10]= (TH1F *)dMapFile->Get(hist); 
+	
+      }
+      else 
+	return;
+      
+    } // The deafult is to accumulate always with no reset.
+
+
+     // if RESET is clicked : reset the histogram and accumulate
+    if (GetHistoReset()){
+      for(size_t i=0;i<size;i++){
+	if (histo[i]!=NULL ){
+	  histo_buff[i]=(TH1F*)histo[i]->Clone(Form("%s_buff",histo[i]->GetName()));
+	  *histo[i]=*histo[i]-*histo_buff[i];
+	}
+      }
+      SetHistoReset(0);
+    }
+    else if (GetHistoAccumulate()==0){ // Accumulate after reset
+      for(size_t i=0;i<size;i++){
+	if (histo[i]!=NULL ){
+	  *histo[i]=*histo[i]-*histo_buff[i];
+	}
+      }
+    }
+
+    // Now draw the histograms
+    //For different detectirs the number of histograms are different
+    if(fInjectorPositionType.at(fCurrentPositionMonitorIndex)=="VQWK_LINA"){  
+      
+      pad1->cd();
+      for(size_t i=0;i<8;i++){
+
+	if((histo[i]!=NULL) && ((histo[i]->GetEntries())!= 0)){
+	  mean[i]= histo[i]->GetMean();
+	  error[i]= histo[i]->GetMeanError();
+	  points[i]= i+1;
+	  fakeerror[i]= 0.0;
+	}
+	//PosVariation[0] -> GetXaxis()->SetBinLabel(i+1, dummyname);
+
+//  	pad1->cd(i+1);
+// 	if((histo[i]!=NULL) && ((histo[i]->GetEntries())!= 0)){
+// 	  histo[i]->Draw();
+// 	  histo[i]->SetFillColor(8);
+// 	  histo[i]->SetFillStyle(3002);
+// 	  histo[i]->SetLineColor(8);
+
+// 	  if(ldebug) SummaryHist(histo[i]);
+// 	} 
+//  	else{
+// 	  gPad->Clear();
+// 	  not_found ->DrawText(0.3,0.5,"Empty!");
+// 	  not_found ->Draw();
+//  	}
+      }
+
+      value = new TGraphErrors(8, points,mean,fakeerror,error);
+      value->SetMarkerColor(4);
+      value->SetMarkerStyle(22);
+      value->SetMarkerSize(1.5);
+      value->SetLineColor(2);
+      value->SetTitle("Mean value of pads");
+
+      pad1->cd(1);
+      value->Draw("APE"); 
+	
+      pad2->cd();
+      // Draw Mean and Variance 
+      for(size_t i=8;i<11;i++){
+	pad2->cd(i-7);
+	if(histo[i]!=NULL && ((histo[i]->GetEntries())!= 0)){
+	  histo[i]->Draw();
+	  histo[i]->SetFillColor(46);
+	  histo[i]->SetFillStyle(3002);
+	  histo[i]->SetLineColor(46);
+	  if(ldebug) SummaryHist(histo[i]);
+	} 
+	else{
+	  gPad->Clear();
+	  not_found ->DrawText(0.3,0.5,"Empty!");
+	  not_found ->Draw();
+	}
+      }     
+    }   
+    else{
+      
+      // Draw wires/pads
+      pad1->cd();
+      for(size_t i=0;i<4;i++){
+	pad1->cd(i+1);
+	if((histo[i]!=NULL) && ((histo[i]->GetEntries())!= 0)){
+	  histo[i]->Draw();
+	  histo[i]->SetFillColor(8);
+	  histo[i]->SetFillStyle(3002);
+	  histo[i]->SetLineColor(8);
+	  if(ldebug) SummaryHist(histo[i]);
+	} 
+	else{
+	  gPad->Clear();
+	  not_found ->DrawText(0.3,0.5,"Empty!");
+	  not_found ->Draw();
+	}
+      }
+      
+      pad2->cd();
+      // Draw X,Y and effective charge 
+      for(size_t i=4;i<7;i++){
+	pad2->cd(i-3);
+	if(histo[i]!=NULL && ((histo[i]->GetEntries())!= 0)){
+	  histo[i]->Draw();
+	  histo[i]->SetFillColor(38);
+	  histo[i]->SetFillStyle(3002);
+	  histo[i]->SetLineColor(38);
+	  if(ldebug) SummaryHist(histo[i]);
+	} 
+	else{
+	  gPad->Clear();
+	  not_found ->DrawText(0.3,0.5,"Empty!");
+	  not_found ->Draw();
+	}
+      }
+      // Draw dX, dY and effective charge asymmetry
+      for(size_t i=7;i<10;i++){
+	pad2->cd(i-3);
+	if(histo[i]!=NULL && ((histo[i]->GetEntries())!= 0) ){
+	  histo[i]->Draw();
+	  histo[i]->SetFillColor(46);
+	  histo[i]->SetFillStyle(3002);
+	  histo[i]->SetLineColor(46);
+	  if(ldebug) SummaryHist(histo[i]);
+	} 
+	else{
+	  gPad->Clear();
+	  not_found ->DrawText(0.3,0.5,"Empty!");
+	  not_found ->Draw();
+	}
+      }
+    }
+    mc->Modified();
+    mc->Update();
+    
+    
+    gSystem->Sleep(100);
+    if (gSystem->ProcessEvents()){
+      break;
+    }
+  }
+  
+  printf("---------------PlotPositionMonitors()--------------------\n");
+  
+  return;
+  
+};  
 
 
 /* This function plots the position differences mean and rms  in X and Y.*/
@@ -452,7 +805,7 @@ void QwGUIInjector::PositionDifferences(){
   Double_t offset = 0.5;
   Double_t min_range = - offset;
 
-  Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPMSTRIPLINE).size();
+  Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPM).size();
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
   std::vector<TH1F *> histo1;//_array;
@@ -490,9 +843,9 @@ void QwGUIInjector::PositionDifferences(){
    for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
     {
       if (GetHistoPause()==0){
-	sprintf (chisto1, "diff_%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() ); 
+	sprintf (chisto1, "diff_%sX_hw",fInjectorDevices.at(VQWK_BPM).at(p).Data() ); 
 	histo1[p]= (TH1F *)dMapFile->Get(chisto1);
-	sprintf (chisto2, "diff_%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+	sprintf (chisto2, "diff_%sY_hw", fInjectorDevices.at(VQWK_BPM).at(p).Data());
 	histo2[p]= (TH1F *)dMapFile->Get(chisto2); 
       } 
       if (histo1[p]!=NULL && histo2[p]!=NULL) {
@@ -548,40 +901,43 @@ void QwGUIInjector::PositionDifferences(){
 
     mc->cd(1);
     PosVariation[0] -> SetMarkerStyle(20);
+    PosVariation[0] -> SetMarkerColor(4);
+    PosVariation[0] -> SetLineColor(2);
     PosVariation[0] -> SetStats(kFALSE);
     PosVariation[0] -> SetTitle("");
     PosVariation[0] -> GetYaxis() -> SetTitle("BPM #DeltaX (mm)");
-    //PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
     PosVariation[0] -> Draw("E1");
-    //gPad->Update();
-    //mc->Modified();
-    //mc->Update();
     
 
     mc->cd(2);
     PosVariationRms[0] -> SetMarkerStyle(20);
     PosVariationRms[0] -> SetStats(kFALSE);
+    PosVariationRms[0] -> SetLineColor(28); 
+    PosVariationRms[0] -> SetFillColor(28);
+    PosVariationRms[0] -> SetFillStyle(3002); 
     PosVariationRms[0] -> SetTitle("");
     PosVariationRms[0] -> GetYaxis() -> SetTitle("BPM #DeltaX RMS (mm)");
-    //PosVariationRms[0] -> GetXaxis() -> SetTitle("BPM X RMS");
     PosVariationRms[0] -> Draw("E1");
 
 
     mc->cd(3);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
+    PosVariation[1] -> SetMarkerColor(4);
+    PosVariation[1] -> SetLineColor(2);
     PosVariation[1] -> SetTitle("");
     PosVariation[1] -> GetYaxis()-> SetTitle ("BPM #DeltaY (mm)");
-    // PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
     PosVariation[1] -> Draw("E1");
     
 
     mc->cd(4);
     PosVariationRms[1] -> SetMarkerStyle(20);
     PosVariationRms[1] -> SetStats(kFALSE);
+    PosVariationRms[1] -> SetLineColor(28); 
+    PosVariationRms[1] -> SetFillColor(28);
+    PosVariationRms[1] -> SetFillStyle(3002); 
     PosVariationRms[1] -> SetTitle("");
     PosVariationRms[1] -> GetYaxis() -> SetTitle("BPM #DeltaY RMS (mm)");
-    // PosVariationRms[1] -> GetXaxis() -> SetTitle("BPM Y RMS");
     PosVariationRms[1] -> Draw("E1");
 
 
@@ -618,7 +974,7 @@ void QwGUIInjector::PlotBPMPositions(){
   Double_t offset = 0.5;
   Double_t min_range = - offset;
 
-  Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPMSTRIPLINE).size();
+  Int_t BPMSTriplinesCount = fInjectorDevices.at(VQWK_BPM).size();
   Double_t max_range = (Double_t)BPMSTriplinesCount - offset ; 
 
   
@@ -647,9 +1003,9 @@ void QwGUIInjector::PlotBPMPositions(){
     for(Int_t p = 0; p <BPMSTriplinesCount ; p++) 
       {
 	if (GetHistoPause()==0){
-	  sprintf (chisto1, "%sX_hw",fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data() );
+	  sprintf (chisto1, "%sX_hw",fInjectorDevices.at(VQWK_BPM).at(p).Data() );
 	  histo1[p]= (TH1F *)dMapFile->Get(chisto1); 
-	  sprintf (chisto2, "%sY_hw", fInjectorDevices.at(VQWK_BPMSTRIPLINE).at(p).Data());
+	  sprintf (chisto2, "%sY_hw", fInjectorDevices.at(VQWK_BPM).at(p).Data());
 	  histo2[p]= (TH1F *)dMapFile->Get(chisto2);
 	}
 
@@ -695,23 +1051,21 @@ void QwGUIInjector::PlotBPMPositions(){
     mc->Clear();
     mc->Divide(1,2);
 
-
-
-    
     mc->cd(1);
     PosVariation[0] -> SetMarkerStyle(20);
     PosVariation[0] -> SetStats(kFALSE);
+    PosVariation[0] -> SetMarkerColor(4);
+    PosVariation[0] -> SetLineColor(2);
     PosVariation[0] -> SetTitle("Mean BPM X Variation");
     PosVariation[0] -> GetYaxis() -> SetTitle("Pos (mm)");
     PosVariation[0] -> GetXaxis() -> SetTitle("BPM X");
     PosVariation[0] -> Draw("E1");
-    //gPad->Update();
-    //mc->Modified();
-    //mc->Update();
-    
+   
     mc->cd(2);
     PosVariation[1] -> SetMarkerStyle(20);
     PosVariation[1] -> SetStats(kFALSE);
+    PosVariation[1] -> SetMarkerColor(4);
+    PosVariation[1] -> SetLineColor(2);
     PosVariation[1] -> SetTitle("Mean BPM Y Variation");
     PosVariation[1] -> GetYaxis()-> SetTitle ("Pos (mm)");
     PosVariation[1] -> GetXaxis() -> SetTitle("BPM Y");
@@ -734,125 +1088,90 @@ void QwGUIInjector::PlotBPMPositions(){
 };  
   
 
-// void QwGUIInjector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
-// {
-
-// }
-
+/* This function will plot the scaler information*/
 void QwGUIInjector::PlotSCALER(){
-  
-};
-
-void QwGUIInjector::SetComboIndex(Int_t cmb_id, Int_t id){
-
-  if (cmb_id==CMB_INJECTORBCM)
-    fCurrentBCMIndex=id;
-
-  if (cmb_id==CMB_INJECTORSCALER)
-    fCurrentSCALERIndex=id;
-};
-
-void QwGUIInjector::LoadInjectorBCMCombo(){
-  dComboBoxInjectorBCM->RemoveAll();
-  //printf("QwGUIInjector::LoadInjectorBCMCombo \n");
-  std::size_t i=0;
-  for(i=0;i<fInjectorDevices.at(VQWK_BCM).size();i++){
-    dComboBoxInjectorBCM->AddEntry(fInjectorDevices.at(VQWK_BCM).at(i),i);
-    //printf("%s \n",fInjectorDevices.at(VQWK_BCM).at(i).Data());
-  }
-  if (fInjectorDevices.at(VQWK_BCM).size()>0)
-    dButtonCharge->SetEnabled(kTRUE);
-  fCurrentBCMIndex=-1;
-};
-
-void QwGUIInjector::LoadInjectorSCALERCombo(){
-  dComboBoxInjectorSCALER->RemoveAll();
-  //printf("QwGUIInjector::LoadInjectorSCALERCombo \n");
-  std::size_t i=0;
-  for(i=0;i<fInjectorDevices.at(SCALER_HALO).size();i++){
-    dComboBoxInjectorSCALER->AddEntry(fInjectorDevices.at(SCALER_HALO).at(i),i);
-    //printf("%s \n",fInjectorDevices.at(SCALER_HALO).at(i).Data());
-  }
-  if (fInjectorDevices.at(SCALER_HALO).size()>0)
-    dButtonInjectorSCALER->SetEnabled(kTRUE);
-
-  fCurrentSCALERIndex=-1;
+  // need to code here to display scalers..
 };
 
 
+
+/* This is the main function of the GUI which handles the communication between different GUI objects*/
 Bool_t QwGUIInjector::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   if(dMapFileFlag) {
   // Process events generated by the object in the frame.
   
-  switch (GET_MSG(msg))
-    {
-    case kC_TEXTENTRY:
-      switch (GET_SUBMSG(msg)) 
-	{
-	case kTE_ENTER:
-	  switch (parm1) 
-	    {
-	    default:
-	      break;
-	    }
-	default:
-	  break;
-	}
+    switch (GET_MSG(msg))
+      {
+      case kC_TEXTENTRY:
+	switch (GET_SUBMSG(msg)) 
+	  {
+	  case kTE_ENTER:
+	    switch (parm1) 
+	      {
+	      default:
+		break;
+	      }
+	  default:
+	    break;
+	  }
       
-    case kC_COMMAND:
+      case kC_COMMAND:
  	switch (GET_SUBMSG(msg))
 	  {
 	  case kCM_BUTTON:
 	    {
 	      switch(parm1)
 		{
-		case BA_POS_DIFF:
+		case BM_POS_DIFF:
 		  //printf("text button id %ld pressed\n", parm1);
 		  PositionDifferences();
 		  break;
 		  
-		case BA_CHARGE:
-		  //printf("text button id %ld pressed\n", parm1);
-		  PlotChargeAsym();//PlotPositionDiff(); 
-		  break;
-
-		case BA_POS_VAR:
+		case BM_EFF_Q:
 		  //printf("PlotPosData() button id %ld pressed\n", parm1);
 		  BPM_EffectiveCharge();
 		  break;
-		case BA_HCSCALER:
-		  //printf("PlotPosData() button id %ld pressed\n", parm1);
-		  PlotSCALER();
-		  break;
-
-		case BA_MEAN_POS:
+		  
+		case BM_MEAN_POS:
 		  //printf("PlotPosData() button id %ld pressed\n", parm1);
 		  PlotBPMPositions();
 		  break;
+		  
+		default:
+		  break;
 		}
-	      
-	      break;
 	    }
 	  case kCM_COMBOBOX:
 	    {
 	      switch (parm1) {
-	      case CMB_INJECTORBCM:
-		SetComboIndex(CMB_INJECTORBCM,parm2);
-		break;
+	      case CMB_INJECTORCHARGE:
+		{
+		  SetComboIndex(CMB_INJECTORCHARGE,parm2);
+		  PlotChargeMonitors();
+		  break;
+		}
+	      case CMB_INJECTORPOS:
+		{
+		  SetComboIndex(CMB_INJECTORPOS,parm2);
+		  PlotPositionMonitors(); 
+		  break;
+		}
 	      case CMB_INJECTORSCALER:
-		SetComboIndex(CMB_INJECTORSCALER,parm2);
-		break;	      
+		{
+		  SetComboIndex(CMB_INJECTORSCALER,parm2);
+		  break;
+		}	      
+	      default:
+		break;
 	      }
 	    }
+	  default:
 	    break;
-	    
-	default:
-	  break;
-	}
-       default:
-	break;
-    }
+	  }
+      default:
+	break;  
+      }
   }
   return kTRUE;
 }
