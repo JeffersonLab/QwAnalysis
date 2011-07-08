@@ -11,6 +11,9 @@
 
 #include <iostream>
 #include <vector>
+#include <stdexcept>
+#include <cmath>
+
 #include "Rtypes.h"
 #include "TString.h"
 #include "TDirectory.h"
@@ -40,15 +43,18 @@
  * \enddot
  */
 class VQwDataElement {
+ public:
+  /// Flag to be used to decide which data needs to be histogrammed and
+  /// entered in the tree
+  enum EDataToSave {kRaw = 0, kDerived};
+
+  
+   
+
 
  public:
 
-  VQwDataElement(){
-    fNumberOfDataWords = 0;
-    fErrorFlag = 0;
-    fHistograms.clear();
-  }
-  //  VQwDataElement(UInt_t numwords):fNumberOfDataWords(numwords) {}
+  VQwDataElement();
   virtual ~VQwDataElement();
 
   /*! \brief Is the name of this element empty? */
@@ -59,12 +65,22 @@ class VQwDataElement {
   virtual const TString& GetElementName() const { return fElementName; }
 
   /*! \brief Clear the event data in this element */
-  virtual void  ClearEventData() = 0;
+  virtual void  ClearEventData(){
+  };
   /*! \brief Process the CODA event buffer for this element */
   virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0) = 0;
 
-  /*! \brief Assignment operator */
-  virtual VQwDataElement& operator= (const VQwDataElement &value);
+  /*! \brief Get the number of data words in this data element */
+  size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
+
+  UInt_t GetGoodEventCount() const { return fGoodEventCount; };
+
+  
+  virtual void AssignValueFrom(const VQwDataElement* valueptr){
+    std::cerr << "Operation AssignValueFrom not defined!" << std::endl;
+  };
+  /*   /\*! \brief Assignment operator *\/ */
+  /*   virtual VQwDataElement& operator= (const VQwDataElement &value); */
   /*! \brief Addition-assignment operator */
   virtual VQwDataElement& operator+= (const VQwDataElement &value)
     { std::cerr << "Operation += not defined!" << std::endl; return *this; }
@@ -93,16 +109,22 @@ class VQwDataElement {
   /*! \brief Print multiple lines of information about this data element */
   virtual void PrintInfo() const { std::cout << GetElementName() << std::endl; }
 
-  /*! \brief Get the number of data words in this data element */
-  size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
 
   /*! \brief set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  virtual void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){std::cerr << "SetSingleEventCuts not defined!" << std::endl; };
   /*! \brief report number of events falied due to HW and event cut faliure */
-  Int_t GetEventcutErrorCounters();
-  void ResetErrorFlag(UInt_t flag){
-    fErrorFlag=flag;
-  }
+  virtual Int_t GetEventcutErrorCounters(){return 0;};
+
+  /*! \brief return the error flag on this channel/device*/
+  virtual UInt_t GetEventcutErrorFlag(){return fErrorFlag;};
+
+  // These are related to those hardware channels that need to normalize
+  // to an external clock
+  virtual Bool_t NeedsExternalClock() { return kFALSE; }; // Default is No!
+  virtual std::string GetExternalClockName() {  return ""; }; // Default is none
+  virtual void SetExternalClockPtr( const VQwDataElement* clock) {};
+  virtual void SetExternalClockName( const std::string name) {};
+  virtual Double_t GetNormClockValue() { return 1.;}
 
   
   
@@ -130,9 +152,14 @@ class VQwDataElement {
   /*! \brief Set the number of data words in this data element */
   void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;}
 
+
+
+
  protected:
   TString fElementName; ///< Name of this data element
-  UInt_t  fNumberOfDataWords; ///< Number of data words in this data element
+  UInt_t  fNumberOfDataWords; ///< Number of raw data words in this data element
+  UInt_t fGoodEventCount;  ///< Number of good events accumulated in this element
+
 
   /// Histograms associated with this data element
   std::vector<TH1*> fHistograms;
@@ -145,8 +172,19 @@ class VQwDataElement {
   //Error flag
   UInt_t fErrorFlag;
 
+private:
+  VQwDataElement& operator= (const VQwDataElement &value);
+
 }; // class VQwDataElement
 
+inline VQwDataElement::VQwDataElement():
+  fElementName(""), fNumberOfDataWords(0),
+  fGoodEventCount(0),
+  fSubsystemName(""), fModuleType(""),
+  fErrorFlag(0)
+{
+  fHistograms.clear();
+}
 
 inline VQwDataElement::~VQwDataElement(){
 }
@@ -174,6 +212,7 @@ inline void VQwDataElement::DeleteHistograms()
   }
   fHistograms.clear();
 }
+
 
 
 

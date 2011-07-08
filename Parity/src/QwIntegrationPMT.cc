@@ -116,14 +116,14 @@ void QwIntegrationPMT::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
   return;
 }
 
-Double_t QwIntegrationPMT::GetHardwareSum()
+Double_t QwIntegrationPMT::GetValue()
 {
-  return fTriumf_ADC.GetHardwareSum();
+  return fTriumf_ADC.GetValue();
 }
 
-Double_t QwIntegrationPMT::GetBlockValue(Int_t blocknum)
+Double_t QwIntegrationPMT::GetValue(Int_t blocknum)
 {
-  return fTriumf_ADC.GetBlockValue(blocknum);
+  return fTriumf_ADC.GetValue(blocknum);
 }
 
 /********************************************************/
@@ -148,13 +148,13 @@ void  QwIntegrationPMT::ProcessEvent()
 /********************************************************/
 Bool_t QwIntegrationPMT::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;
+  Bool_t eventokay=kTRUE;
 
-    fDeviceErrorCode=fTriumf_ADC.ApplyHWChecks();//will check for consistancy between HWSUM and SWSUM also check for sample size
-    fEventIsGood=(fDeviceErrorCode & 0x0);//if no HW error return true
+  UInt_t deviceerror=fTriumf_ADC.ApplyHWChecks();//will check for consistancy between HWSUM and SWSUM also check for sample size
+  eventokay=(deviceerror & 0x0);//if no HW error return true
 
 
-  return fEventIsGood;
+  return eventokay;
 }
 /********************************************************/
 
@@ -450,61 +450,66 @@ void QwIntegrationPMT::Blind(const QwBlinder *blinder, const QwIntegrationPMT& y
 
 std::vector<QwDBInterface> QwIntegrationPMT::GetDBEntry()
 {
-  UShort_t i = 0;
-  std::vector<QwDBInterface> row_list;
-  QwDBInterface row;
-
-  TString name;
-  Double_t avg         = 0.0;
-  Double_t err         = 0.0;
-  UInt_t beam_subblock = 0;
-  UInt_t beam_n        = 0;
-
+  std::vector <QwDBInterface> row_list;
   row_list.clear();
-  row.Reset();
-
-  // the element name and the n (number of measurements in average)
-  // is the same in each block and hardwaresum.
-
-  name          = fTriumf_ADC.GetElementName();
-  beam_n        = fTriumf_ADC.GetGoodEventCount();
-
-  // Get HardwareSum average and its error
-  avg           = fTriumf_ADC.GetHardwareSum();
-  err           = fTriumf_ADC.GetHardwareSumError();
-  // ADC subblock sum : 0 in MySQL database
-  beam_subblock = 0;
-
-  row.SetDetectorName(name);
-  row.SetSubblock(beam_subblock);
-  row.SetN(beam_n);
-  row.SetValue(avg);
-  row.SetError(err);
-
-  row_list.push_back(row);
-
-  // Get four Block averages and thier errors
-
-  for(i=0; i<4; i++) {
-    row.Reset();
-    avg           = fTriumf_ADC.GetBlockValue(i);
-    err           = fTriumf_ADC.GetBlockErrorValue(i);
-    beam_subblock = (UInt_t) (i+1);
-    // QwVQWK_Channel  | MySQL
-    // fBlock[0]       | subblock 1
-    // fBlock[1]       | subblock 2
-    // fBlock[2]       | subblock 3
-    // fBlock[3]       | subblock 4
-    row.SetDetectorName(name);
-    row.SetSubblock(beam_subblock);
-    row.SetN(beam_n);
-    row.SetValue(avg);
-    row.SetError(err);
-
-    row_list.push_back(row);
-  }
-
+  fTriumf_ADC.AddEntriesToList(row_list);
   return row_list;
+
+  //   UShort_t i = 0;
+  //   std::vector<QwDBInterface> row_list;
+  //   QwDBInterface row;
+  
+  //   TString name;
+  //   Double_t avg         = 0.0;
+  //   Double_t err         = 0.0;
+  //   UInt_t beam_subblock = 0;
+  //   UInt_t beam_n        = 0;
+
+  //   row_list.clear();
+  //   row.Reset();
+
+  //   // the element name and the n (number of measurements in average)
+  //   // is the same in each block and hardwaresum.
+  
+  //   name          = fTriumf_ADC.GetElementName();
+  //   beam_n        = fTriumf_ADC.GetGoodEventCount();
+
+  //   // Get HardwareSum average and its error
+  //   avg           = fTriumf_ADC.GetHardwareSum();
+  //   err           = fTriumf_ADC.GetHardwareSumError();
+  //   // ADC subblock sum : 0 in MySQL database
+  //   beam_subblock = 0;
+
+  //   row.SetDetectorName(name);
+  //   row.SetSubblock(beam_subblock);
+  //   row.SetN(beam_n);
+  //   row.SetValue(avg);
+  //   row.SetError(err);
+
+  //   row_list.push_back(row);
+
+  //   // Get four Block averages and thier errors
+
+  //   for(i=0; i<4; i++) {
+  //     row.Reset();
+  //     avg           = fTriumf_ADC.GetBlockValue(i);
+  //     err           = fTriumf_ADC.GetBlockErrorValue(i);
+  //     beam_subblock = (UInt_t) (i+1);
+  //     // QwVQWK_Channel  | MySQL
+  //     // fBlock[0]       | subblock 1
+  //     // fBlock[1]       | subblock 2
+  //     // fBlock[2]       | subblock 3
+  //     // fBlock[3]       | subblock 4
+  //     row.SetDetectorName(name);
+  //     row.SetSubblock(beam_subblock);
+  //     row.SetN(beam_n);
+  //     row.SetValue(avg);
+  //     row.SetError(err);
+
+  //     row_list.push_back(row);
+  //   }
+
+  //   return row_list;
 
 }
 

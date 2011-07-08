@@ -951,7 +951,7 @@ void  QwScanner::ProcessEvent()
           // TODO replace the position determination with interplation table
           const double volts_per_bit = (20./(1<<18));
           double num_samples;
-          fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetRawHardwareSum();
+          fPowSupply_VQWK = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetRawValue();
 	  //std::cout<<"fPowSupply_VQWK_HardSum = "<<fPowSupply_VQWK;
 	  num_samples = fADC_Data.at(i)->GetChannel(TString("power_vqwk"))->GetNumberOfSamples();
 	  //std::cout<<", num_samples = "<<num_samples;
@@ -959,7 +959,7 @@ void  QwScanner::ProcessEvent()
 	  //std::cout<<" fPowSupply_VQWK = "<<fPowSupply_VQWK<<std::endl<<std::endl;
 	  
 
-          fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetRawHardwareSum();
+          fPositionX_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetRawValue();
 	  //std::cout<<"fPositionX_VQWK_HardSum = "<<fPositionX_VQWK;
 	  num_samples = fADC_Data.at(i)->GetChannel(TString("pos_x_vqwk"))->GetNumberOfSamples();
 	  //std::cout<<", num_samples = "<<num_samples;
@@ -969,7 +969,7 @@ void  QwScanner::ProcessEvent()
           //std::cout<<"  fPositionX = "<<fPositionX_VQWK<<std::endl<<std::endl;
 	  
 	  //fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetAverageVolts();
-	  fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetRawHardwareSum();
+	  fPositionY_VQWK = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetRawValue();
 	  //std::cout<<"fPositionY_VQWK_HardSum = "<<fPositionY_VQWK;
 	  num_samples = fADC_Data.at(i)->GetChannel(TString("pos_y_vqwk"))->GetNumberOfSamples();
 	  //std::cout<<", num_samples = "<<num_samples;
@@ -1361,7 +1361,7 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values) const
                     }
                   else
                     {
-                      //values[index++] = fADC_Data.at(i)->fChannels.at(j).GetHardwareSum();
+                      //values[index++] = fADC_Data.at(i)->fChannels.at(j).GetValue();
                       values[index++] = fADC_Data.at(i)->fChannels.at(j).GetAverageVolts();
                     }
                 }

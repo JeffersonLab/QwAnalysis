@@ -1,12 +1,12 @@
-/**********************************************************\
-* File: QwIntegratedRasterChannel.h                       *
-*                                                         *
-* Author:                                                 *
-* Time-stamp:                                             *
-\**********************************************************/
+/********************************************************\
+* File: QwClock.h                                        *
+*                                                        *
+* Author: Juan Carlos Cornejo <cornejo@jlab.org>         *
+* Time-stamp: <2011-06-16>                               *
+\********************************************************/
 
-#ifndef __QwIntegratedRasterChannel__
-#define __QwIntegratedRasterChannel__
+#ifndef __QWCLOCK__
+#define __QWCLOCK__
 
 // System headers
 #include <vector>
@@ -14,32 +14,40 @@
 // ROOT headers
 #include <TTree.h>
 
-// Qweak headers
 #include "QwParameterFile.h"
 #include "VQwDataElement.h"
 #include "VQwHardwareChannel.h"
+#include "VQwClock.h"
 
 // Forward declarations
 class QwDBInterface;
 
 /*****************************************************************
 *  Class:
+*  \brief QwClock is a standard clock with the calibration factor
+*  representing the frequency of this clock.
+*
+*  Other channels may use this clock to normalize their units with
+*  time. Initially designed for Scalers, but could be used by
+*  other hardware elements.
 ******************************************************************/
-///
-/// \ingroup QwAnalysis_BL
 template<typename T>
-class QwIntegratedRasterChannel : public VQwDataElement{
+class QwClock : public VQwClock {
 /////
  public:
-  QwIntegratedRasterChannel() { };
-  QwIntegratedRasterChannel(TString name){
+  QwClock() { };
+  QwClock(TString name){
     InitializeChannel(name,"raw");
   };
-  QwIntegratedRasterChannel(TString subsystemname, TString name){
+  QwClock(TString subsystemname, TString name){
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,"raw");
   };
-  ~QwIntegratedRasterChannel() {
+  QwClock(TString subsystemname, TString name, TString type, TString clock = ""){
+    SetSubsystemName(subsystemname);
+    InitializeChannel(subsystemname, name,type,"raw");
+  };
+  ~QwClock() {
     DeleteHistograms();
   };
 
@@ -48,52 +56,49 @@ class QwIntegratedRasterChannel : public VQwDataElement{
   void  InitializeChannel(TString name, TString datatosave);
   // new routine added to update necessary information for tree trimming
   void  InitializeChannel(TString subsystem, TString name, TString datatosave);
+  void  InitializeChannel(TString subsystem, TString name, TString type,
+      TString datatosave);
   void  ClearEventData();
 
 
-  void  SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
-  void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
-  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
-  void  SetRandomEventAsymmetry(Double_t asymmetry);
-  void  RandomizeEventData(int helicity = 0, double time = 0);
-  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
-  void  SetEventData(Double_t* block, UInt_t sequencenumber);
   void  EncodeEventData(std::vector<UInt_t> &buffer);
-
-  void  UseExternalRandomVariable();
-  void  SetExternalRandomVariable(Double_t random_variable);
 
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
-    return fTriumf_ADC.GetEventcutErrorFlag();
+    return fClock.GetEventcutErrorFlag();
   }
 
-  Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   
   void SetDefaultSampleSize(Int_t sample_size);
   void SetEventCutMode(Int_t bcuts){
     bEVENTCUTMODE=bcuts;
-    fTriumf_ADC.SetEventCutMode(bcuts);
+    fClock.SetEventCutMode(bcuts);
   }
 
   void PrintValue() const;
   void PrintInfo() const;
 
-  
-  QwIntegratedRasterChannel& operator=  (const QwIntegratedRasterChannel &value);
-  QwIntegratedRasterChannel& operator+= (const QwIntegratedRasterChannel &value);
-  QwIntegratedRasterChannel& operator-= (const QwIntegratedRasterChannel &value);
-  void Sum(QwIntegratedRasterChannel &value1, QwIntegratedRasterChannel &value2);
-  void Difference(QwIntegratedRasterChannel &value1, QwIntegratedRasterChannel &value2);
-  void Ratio(QwIntegratedRasterChannel &numer, QwIntegratedRasterChannel &denom);
+  // Implementation of Parent class's virtual operators
+  VQwClock& operator=  (const VQwClock &value);
+  VQwClock& operator+= (const VQwClock &value);
+  VQwClock& operator-= (const VQwClock &value);
+
+  // This class specific operators
+  QwClock& operator=  (const QwClock &value);
+  QwClock& operator+= (const QwClock &value);
+  QwClock& operator-= (const QwClock &value);
+  void Sum(QwClock &value1, QwClock &value2);
+  void Difference(QwClock &value1, QwClock &value2);
+  void Ratio(const VQwClock &numer, const VQwClock &denom);
+  void Ratio(const QwClock &numer, const QwClock &denom);
   void Scale(Double_t factor);
 
-  void AccumulateRunningSum(const QwIntegratedRasterChannel& value);
+  void AccumulateRunningSum(const VQwClock& value);
   void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);
@@ -108,16 +113,18 @@ class QwIntegratedRasterChannel : public VQwDataElement{
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  DeleteHistograms();
 
-  Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
-  Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
-  UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
-
   void Copy(VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
 
-  const VQwDataElement* GetElement() const {
-    return const_cast<QwIntegratedRasterChannel*>(this)->GetElement();
+
+  // These are related to those hardware channels that need to normalize
+  // to an external clock
+  Double_t GetNormClockValue() { return fNormalizationValue;};
+  Double_t GetStandardClockValue() { return fCalibration; };
+
+  const VQwHardwareChannel* GetTime() const {
+    return &fClock;
   };
 
 
@@ -126,23 +133,19 @@ class QwIntegratedRasterChannel : public VQwDataElement{
 
 /////
  private:
-
   Double_t fPedestal;
   Double_t fCalibration;
   Double_t fULimit, fLLimit;
-  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
 
-
-
-
-  T fTriumf_ADC;
+  T fClock;
 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
 
+  Double_t fNormalizationValue;
 
 };
 
-#endif
+#endif // __QWCLOCK__

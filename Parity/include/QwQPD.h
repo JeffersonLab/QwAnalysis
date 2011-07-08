@@ -31,7 +31,8 @@ class QwDBInterface;
 class QwQPD : public VQwBPM {
 
  public:
-  QwQPD() { };
+  QwQPD() {
+  };
   QwQPD(TString name):VQwBPM(name){
     InitializeChannel(name);
   };
@@ -42,7 +43,6 @@ class QwQPD : public VQwBPM {
     InitializeChannel(subsystemname, name);
     fQwQPDCalibration[0] = 1.0;
     fQwQPDCalibration[1] = 1.0;
-
   };    
   
   ~QwQPD() {
@@ -59,9 +59,20 @@ class QwQPD : public VQwBPM {
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
   void    ProcessEvent();
 
+  const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {
+    if (axis<0 || axis>2){
+      TString loc="QwQPD::GetPosition for "
+        +this->GetElementName()+" failed for axis value "+Form("%d",axis);
+      throw std::out_of_range(loc.Data());
+    }
+    return &fAbsPos[axis];
+  }
+  const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
+
+
   UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
-  void    GetAbsolutePosition();
+  void    GetAbsolutePosition(){};
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
@@ -83,12 +94,16 @@ class QwQPD : public VQwBPM {
   void    Ratio(QwQPD &numer, QwQPD &denom);
   void    Scale(Double_t factor);
 
+  VQwBPM& operator=  (const VQwBPM &value);
+  VQwBPM& operator+= (const VQwBPM &value);
+  VQwBPM& operator-= (const VQwBPM &value);
+
   virtual QwQPD& operator=  (const QwQPD &value);
   virtual QwQPD& operator+= (const QwQPD &value);
   virtual QwQPD& operator-= (const QwQPD &value);
 
- /*  void    AccumulateRunningSum(const QwQPD& value); */
-/*   void    CalculateRunningAverage(); */
+  void    AccumulateRunningSum(const QwQPD& value);
+  void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
   void    FillHistograms();
@@ -105,8 +120,14 @@ class QwQPD : public VQwBPM {
   void    MakeQPDList();
 
 
+  protected:
+  VQwHardwareChannel* GetSubelementByName(TString ch_name);
+
+
   /////
  private:
+
+
   static const TString subelement[4]; 
   /*  Position calibration factor, transform ADC counts in mm */
   Double_t fQwQPDCalibration[2];
@@ -115,6 +136,11 @@ class QwQPD : public VQwBPM {
  protected:
   QwVQWK_Channel fPhotodiode[4];
   QwVQWK_Channel fRelPos[2];
+
+  //  These are the "real" data elements, to which the base class
+  //  fAbsPos_base and fEffectiveCharge_base are pointers.
+  QwVQWK_Channel fAbsPos[2];
+  QwVQWK_Channel fEffectiveCharge;
 
   std::vector<QwVQWK_Channel> fQPDElementList;
 

@@ -621,7 +621,7 @@ Bool_t QwSubsystemArray::ReturnInternalValue(const TString& name, VQwDataElement
     /// \todo TODO (wdc) Remove this ugly statement by redefining
     ///       QwVQWK_Channel::operator= to accept any VQwDataElement.
     //*(dynamic_cast<QwVQWK_Channel*>(value)) = *(dynamic_cast<QwVQWK_Channel*>(internal_value));
-    *(value)=*(internal_value);
+    value->AssignValueFrom(internal_value);
     foundit = kTRUE;
   } else
     QwWarning << "QwSubsystemArray::ReturnInternalValue: name \""

@@ -16,6 +16,44 @@ const Bool_t VQwScaler_Channel::kDEBUG = kFALSE;
 
 
 /********************************************************/
+void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave) {
+  fNormChannelPtr = NULL;
+  SetElementName(name);
+  SetDataToSave(datatosave);
+  SetNumberOfDataWords(1);  //Scaler - single word, 32 bits
+  SetNumberOfSubElements(1);
+
+  //  Default mockdata parameters
+  SetRandomEventParameters(300.0, 50.0);
+
+  fValue_Raw  = 0;
+  fValue      = 0.0;
+  fValueM2    = 0.0;
+  fValueError = 0.0;
+  fPedestal   = 0.0;
+  fCalibrationFactor = 1.0;
+  fClockNormalization = 1.0;
+
+  fTreeArrayIndex = 0;
+  fTreeArrayNumEntries =0;
+
+  fNumEvtsWithHWErrors=0;//init error counters
+  fNumEvtsWithEventCutsRejected=0;//init error counters
+
+  fDeviceErrorCode = 0;
+  fGoodEventCount = 0;
+  return;
+};
+
+/********************************************************/
+
+void VQwScaler_Channel::InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave){
+  InitializeChannel(name,datatosave);
+  SetSubsystemName(subsystem);
+  SetModuleType(instrumenttype);
+}
+
+/********************************************************/
 Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
 
   return 1;
@@ -32,18 +70,23 @@ void VQwScaler_Channel::ClearEventData()
   fDeviceErrorCode = 0;
 }
 
-void VQwScaler_Channel::RandomizeEventData(int helicity)
+void VQwScaler_Channel::RandomizeEventData(int helicity, double time)
 {
+  // Calculate drift (if time is not specified, it stays constant at zero)
+  Double_t drift = 0.0;
+  for (UInt_t i = 0; i < fMockDriftFrequency.size(); i++) {
+    drift += fMockDriftAmplitude[i] * sin(2.0 * Qw::pi * fMockDriftFrequency[i] * time + fMockDriftPhase[i]);
+  }
 
-  Double_t mean = 300.0;
-  Double_t sigma = 50.0;
-  UInt_t Dataword = abs((Int_t)gRandom->Gaus(mean,sigma));
+  Double_t value = fMockGaussianMean * (1 + helicity * fMockAsymmetry)
+    + fMockGaussianSigma * GetRandomValue()
+    + drift;
 
-  //At this point, I am not clear about the sigle word structure yet.
-  //How many bits will be configured for data, which bits will be configured for user info?
-  //std::cout<<"word = "<<std::hex<<word<<std::dec<<std::endl;
-  fValue_Raw = Dataword;
+  fValue     = value;
+  fValue_Raw = Int_t(value / fCalibrationFactor + fPedestal);
 }
+
+
 
 
 /*!  Static member function to return the word offset within a data buffer
@@ -90,7 +133,8 @@ void QwScaler_Channel<data_mask,data_shift>::EncodeEventData(std::vector<UInt_t>
 {
   if (IsNameEmpty()) {
     //  This channel is not used, but is present in the data stream.
-    //  Skip over this data.
+    //  Fill in with zero.
+    buffer.push_back( 0 );
   } else {
     buffer.push_back( ((this->fValue_Raw<<data_shift)&data_mask) );
     //std::cout<<"this->fValue="<<this->fValue<<std::endl;
@@ -120,8 +164,10 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
 
 void VQwScaler_Channel::ProcessEvent()
 {
+  if(fNormChannelPtr)
+    fClockNormalization = const_cast<VQwDataElement*>(fNormChannelPtr)->GetNormClockValue();
   //QwError << "VQwScaler_Channel::ProcessEvent() "<<GetElementName()<<" "<< fValue_Raw<< " "<< fValue<<" "<<fCalibrationFactor<<" "<< fPedestal<<QwLog::endl;
-  fValue = fCalibrationFactor * (Double_t(fValue_Raw) - fPedestal);
+  fValue = fCalibrationFactor * (Double_t(fValue_Raw)*fClockNormalization - fPedestal);
 }
 
 
@@ -221,18 +267,17 @@ void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-VQwDataElement& VQwScaler_Channel::operator= (const  VQwDataElement &data_value)
-{
-  VQwScaler_Channel * value;
-  value=(VQwScaler_Channel *)&data_value;
-  if (!IsNameEmpty()) {
-    this->fValue  = value->fValue;
-    this->fValueError = value->fValueError;
-    this->fValueM2 = value->fValueM2;
-    this->fDeviceErrorCode = value->fDeviceErrorCode;//error code is updated.
-    this->fGoodEventCount = value->fGoodEventCount;
+
+void VQwScaler_Channel::AssignValueFrom(const VQwDataElement* valueptr){
+  const VQwScaler_Channel* tmpptr;
+  tmpptr = dynamic_cast<const VQwScaler_Channel*>(valueptr);
+  if (tmpptr!=NULL){
+    *this = *tmpptr;
+  } else {
+    TString loc="Standard exception from VQwScaler_Channel::AssignValueFrom = "
+      +valueptr->GetElementName()+" is an incompatable type.";
+    throw std::invalid_argument(loc.Data());
   }
-  return *this;
 }
 
 
@@ -282,42 +327,80 @@ void VQwScaler_Channel::Difference(VQwScaler_Channel &value1, VQwScaler_Channel 
   *this -= value2;
 }
 
-void VQwScaler_Channel::Ratio(VQwScaler_Channel &numer, VQwScaler_Channel &denom){
+void VQwScaler_Channel::Ratio(const VQwScaler_Channel &numer, const VQwScaler_Channel &denom)
+{
   if (!IsNameEmpty()){
-
-    // Take the ratio of the hardware sum
-    if (denom.fValue != 0.0)
-      fValue = (numer.fValue) / (denom.fValue);
-    else
-      fValue = 0.0;
-
+    *this  = numer;
+    *this /= denom;
+    
+    //  Set the raw values to zero.
     fValue_Raw = 0;
     
+    // Remaining variables
+    fGoodEventCount  = denom.fGoodEventCount;
+    fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
 
+  }
+}
+
+VQwScaler_Channel& VQwScaler_Channel::operator/= (const VQwScaler_Channel &denom)
+{
+  //  In this function, leave the "raw" variables untouched.
+  Double_t ratio;
+  Double_t variance;
+  if (!IsNameEmpty()){
     // The variances are calculated using the following formula:
     //   Var[ratio] = ratio^2 (Var[numer] / numer^2 + Var[denom] / denom^2)
     //
     // This requires that both the numerator and denominator are non-zero!
     //
-
-    if (numer.fValue != 0.0 && denom.fValue != 0.0)
-      fValueM2 = fValue * fValue *
-         (numer.fValueM2 / numer.fValue / numer.fValue
-        + denom.fValueM2 / denom.fValue / denom.fValue);
-    else
+    if (this->fValue != 0.0 && denom.fValue != 0.0){
+      ratio = (this->fValue) / (denom.fValue);
+      variance =  ratio * ratio *
+	(this->fValueM2 / this->fValue / this->fValue
+	 + denom.fValueM2 / denom.fValue / denom.fValue);
+      fValue   = ratio;
+      fValueM2 = variance;
+    } else if (this->fValue == 0.0) {
+      fValue   = 0.0;
       fValueM2 = 0.0;
+    } else {
+      QwVerbose << "Attempting to divide by zero in " 
+		<< GetElementName() << QwLog::endl;
+      fValue   = 0.0;
+      fValueM2 = 0.0;
+    }
 
+    // Remaining variables
+    //  Don't change fGoodEventCount, or fErrorFlag.
+    //  'OR' the device error codes together.
+    fDeviceErrorCode |= denom.fDeviceErrorCode;
+  }
+
+  // Nanny
+  if (fValue != fValue)
+    QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
+  return *this;
+}
+
+void VQwScaler_Channel::Product(VQwScaler_Channel &numer, VQwScaler_Channel &denom)
+{
+  if (!IsNameEmpty()){
+    fValue = numer.fValue * denom.fValue;
+    fValue_Raw = 0;
+    
     // Remaining variables
     fGoodEventCount  = denom.fGoodEventCount;
     fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
   }
 }
 
-void VQwScaler_Channel::Offset(Double_t offset)
+
+void VQwScaler_Channel::AddChannelOffset(Double_t offset)
 {
   if (!IsNameEmpty())
     {
-
+      fValue += offset;
     }
 }
 
@@ -326,7 +409,8 @@ void VQwScaler_Channel::Scale(Double_t scale)
 {
   if (!IsNameEmpty())
     {
-      this->fValue *= scale;
+      fValue   *= scale;
+      fValueM2 *= scale * scale;
     }
 }
 
@@ -338,13 +422,23 @@ void VQwScaler_Channel::ScaleRawRate(Double_t scale)
     }
 }
 
-void VQwScaler_Channel::Normalize(const VQwScaler_Channel &norm)
+void VQwScaler_Channel::DivideBy(const VQwScaler_Channel &denom)
 {
-  if (!IsNameEmpty())
-    {
-      this->fValue /= norm.fValue;
-    }
+  *this /= denom;
 }
+
+/********************************************************/
+Int_t VQwScaler_Channel::ApplyHWChecks() {
+  //  fDeviceErrorCode=0;
+  if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
+    //check for the hw_sum is zero
+    if (GetRawValue()==0){
+      fDeviceErrorCode|=kErrorFlag_ZeroHW;
+    }
+  }
+  return fDeviceErrorCode;
+}
+
 
 
 Bool_t VQwScaler_Channel::ApplySingleEventCuts()
@@ -450,6 +544,9 @@ void VQwScaler_Channel::Copy(VQwDataElement *source)
          this->fCalibrationFactor = input->fCalibrationFactor;
          this->fGoodEventCount    = input->fGoodEventCount;
          this->fDeviceErrorCode   = input->fDeviceErrorCode;
+         this->fNormChannelPtr    = input->fNormChannelPtr;
+         this->fNormChannelName   = input->fNormChannelName;
+         this->fClockNormalization = input->fClockNormalization;
        }
      else
        {

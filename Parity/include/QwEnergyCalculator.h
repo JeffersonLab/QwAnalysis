@@ -19,6 +19,7 @@
 #include "QwBPMStripline.h"
 #include "QwCombinedBPM.h"
 #include "VQwBPM.h"
+#include "VQwHardwareChannel.h"
 
 // Forward declarations
 class QwDBInterface;
@@ -66,10 +67,10 @@ class QwEnergyCalculator : public VQwDataElement{
       fEnergyChange.SetEventCutMode(bcuts);
     }
     Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-    Int_t   GetEventcutErrorFlag(){//return the error flag
+    UInt_t   GetEventcutErrorFlag(){//return the error flag
       return fEnergyChange.GetEventcutErrorFlag();
     }
-    void    Set(VQwBPM* device,TString type, TString property ,Double_t tmatrix_ratio);
+    void    Set(const VQwBPM* device,TString type, TString property ,Double_t tmatrix_ratio);
     void    Copy(VQwDataElement *source);
     void    Ratio(QwEnergyCalculator &numer,QwEnergyCalculator &denom);
     void    Scale(Double_t factor);
@@ -90,11 +91,11 @@ class QwEnergyCalculator : public VQwDataElement{
     void    ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
     void    FillTreeVector(std::vector<Double_t> &values) const;
 
-    VQwDataElement* GetEnergy(){
+    VQwHardwareChannel* GetEnergy(){
       return &fEnergyChange;
     };
 
-    const VQwDataElement* GetEnergy() const{
+    const VQwHardwareChannel* GetEnergy() const{
       return const_cast<QwEnergyCalculator*>(this)->GetEnergy();
     };
 
@@ -105,7 +106,7 @@ class QwEnergyCalculator : public VQwDataElement{
 
 
  private:
-    std::vector <VQwBPM*> fDevice;
+    std::vector <const VQwBPM*> fDevice;
     std::vector <Double_t> fTMatrixRatio;
     std::vector <TString>  fProperty;
     std::vector <TString>  fType;

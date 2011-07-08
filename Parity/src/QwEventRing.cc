@@ -144,10 +144,10 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
       fNextToBeRead=0;//first element in the ring  
       //check for current ramps
       fChargeRunningSum.CalculateRunningAverage();
-      if (bStability && fChargeRunningSum.GetHardwareSumWidth()>fStability){//if the SD is large than the fStability
+      if (bStability && fChargeRunningSum.GetValueWidth()>fStability){//if the SD is large than the fStability
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
 	//fChargeRunningSum.PrintValue();
-	QwMessage << " Running Average +/- width "<<fChargeRunningSum.GetHardwareSum()<<" +/- "<<fChargeRunningSum.GetHardwareSumWidth()<<" Stable width < "<<fStability<<QwLog::endl;
+	QwMessage << " Running Average +/- width "<<fChargeRunningSum.GetValue()<<" +/- "<<fChargeRunningSum.GetValueWidth()<<" Stable width < "<<fStability<<QwLog::endl;
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
 	fErrorCode|=kBeamStabilityError;//set hold_off events with beam stability error
 	bEVENT_READY_ev3=kFALSE;
