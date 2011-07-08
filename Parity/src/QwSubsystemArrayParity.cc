@@ -44,6 +44,7 @@ void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
   // Copy subsystems in the array
   if (!source->empty()) {
     this->fErrorFlag=source->fErrorFlag;
+    this->fErrorFlagTreeIndex=source->fErrorFlagTreeIndex;
     for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
       VQwSubsystemParity *srcptr =
           dynamic_cast<VQwSubsystemParity*>(subsys->get());
@@ -432,18 +433,21 @@ UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() const{// report number of 
 
 void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values){
   QwSubsystemArray::ConstructBranchAndVector(tree, prefix, values);
-  values.push_back(0.0);
-  if (prefix=="asym_" || prefix=="")//to create single entry in two trees
-    tree->Branch("ErrorFlag",&(values[values.size()-1]),"ErrorFlag/D");
-
-  //tree->Branch(Form("%sErrorFlag",prefix.Data()),&(values[values.size()-1]),Form("%sErrorFlag/D",prefix.Data()));
-
+  if (prefix=="asym_" || prefix==""){
+    values.push_back(0.0);
+    fErrorFlagTreeIndex = values.size()-1;
+    tree->Branch("ErrorFlag",&(values[fErrorFlagTreeIndex]),"ErrorFlag/D");
+  } else {
+    fErrorFlagTreeIndex = -1;
+  }
 }
+
 void QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t>& values) const
 {
   QwSubsystemArray::FillTreeVector(values);
-  size_t index = values.size()-1;
-  values[index] = fErrorFlag;
+  if (fErrorFlagTreeIndex>=0 && fErrorFlagTreeIndex<values.size()){
+    values.at(fErrorFlagTreeIndex) = fErrorFlag;
+  }
 }
 
 

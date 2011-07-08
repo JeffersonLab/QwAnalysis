@@ -32,7 +32,7 @@ Added by Buddhini to display the injector beamline data.
  */
 //=============================================================================
 
-#define INJECTOR_DET_TYPES        6
+#define INJECTOR_DET_TYPES        5
 #define NUM_POS 2
 ///
 /// \ingroup QwGUIInjector
@@ -58,29 +58,26 @@ class QwGUIInjector : public QwGUISubSystem {
   
   TGHorizontalFrame   *dTabFrame;
   TGVerticalFrame     *dControlsFrame;
-  TGVerticalFrame     *dInjectorBCMFrame; //Injector bcm access frame
-  TGVerticalFrame     *dInjectorSCALERFrame; //Injector scaler access frame
   TRootEmbeddedCanvas *dCanvas;  
-  TGLayoutHints       *dTabLayout; 
-  TGLayoutHints       *dCnvLayout; 
-  TGLayoutHints       *dSubLayout;
   TGLayoutHints       *dBtnLayout;
-  TGTextButton        *dButtonPosDiffMean;
-  TGTextButton        *dButtonCharge;
-  TGTextButton        *dButtonPosVariation;
-  TGTextButton        *dButtonPosDiffRms;
-  TGTextButton        *dButtonInjectorSCALER;
   TGTextButton        *dButtonMeanPos;
+  TGTextButton        *dButtonPosDiffMean;
+  TGTextButton        *dButtonEffCharge;
+  TGComboBox          *dComboBoxChargeMonitors;
+  TGComboBox          *dComboBoxPosMonitors;
+  TGComboBox          *dComboBoxScalers;
+  TGLabel             *dPositionMon;
+  TGLabel             *dChargeMon;
+  TGLabel             *dScaler;
 
-  TGComboBox          *dComboBoxInjectorBCM;
-  TGComboBox          *dComboBoxInjectorSCALER;
-
-   //!An object array to store histogram pointers -- good for use in cleanup.
+  //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            HistArray;
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
 
+  // Lable to display the status of the histogram
+  TText              *not_found;
 
   TH1F *PosVariation[2] ;
   TH1F *PosVariationRms[2];
@@ -116,7 +113,15 @@ class QwGUIInjector : public QwGUISubSystem {
   //! - none
   //!
   //!Return value: none 
-  void PlotChargeAsym();
+  void PlotChargeMonitors();
+
+  //!This function Draws a sample  histograms/plots from the Memory map file. 
+  //!
+  //!Parameters:
+  //! - none
+  //!
+  //!Return value: none 
+  void   PlotPositionMonitors();
 
   //!This function Draws scaler yield/asym  histograms/plots from the Memory map file. 
   //!
@@ -134,21 +139,14 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none 
   void SetComboIndex(Int_t cmb_id, Int_t id);
 
-  //!This function loads list of bcms available in the injector. 
+  //!This function loads list of devices available in the injector. 
   //!based on the map file read by LoadChannelMap routine
   //!Parameters:
   //! - none
   //!
   //!Return value: none 
-  void LoadInjectorBCMCombo();
-  
-  //!This function loads list of scalers available in the injector. 
-  //!based on the map file read by LoadChannelMap routine
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none 
-  void LoadInjectorSCALERCombo();
+  void FillComboBoxes();
+
 
    //!This function plots the mean BPM X/Y positions 
   //!Parameters:
@@ -157,9 +155,12 @@ class QwGUIInjector : public QwGUISubSystem {
   //!Return value: none 
   void PlotBPMPositions();
 
-  
+
   std::vector<std::vector<TString> > fInjectorDevices; //2D vector since we have seral types of device - VQWK, SCALAR and COMBINED
-  Int_t fCurrentBCMIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
+  std::vector<TString> fInjectorPositionType; //Vector to store the device types
+
+  Int_t fCurrentChargeMonitorIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCBCM
+  Int_t fCurrentPositionMonitorIndex; 
   Int_t fCurrentSCALERIndex; //Keep the BCM index corresponding to fHallCDevices read from dCombo_HCSCALER
 
  protected:
@@ -173,8 +174,6 @@ class QwGUIInjector : public QwGUISubSystem {
   //!
   //!Return value: none  
   virtual void         MakeLayout();
-
-
 
  public:
   

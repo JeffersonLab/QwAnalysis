@@ -1,5 +1,6 @@
-#ifndef QWGUIEVENTWINDOWSELECTIONDIALOG_H
-#define QWGUIEVENTWINDOWSELECTIONDIALOG_H
+#ifndef QWGUIDATABASELECTIONDIALOG_H
+#define QWGUIDATABASELECTIONDIALOG_H
+
 
 #include <stdlib.h>
 #include <math.h>
@@ -13,65 +14,58 @@
 #include <TSystem.h>
 #include <TEnv.h>
 #include <TKey.h>
-#include <TGMsgBox.h>
-#include "RMsgBox.h"
 #include "QwGUIMainDef.h"
 #include "RSDataWindow.h"
 
-
-struct EventOptions {
-  Bool_t       calcFlag;
+struct DatabaseOptions {
   Bool_t       cancelFlag;
   Bool_t       changeFlag;
-  UInt_t        Start;
-  UInt_t        Length;
-  UInt_t        TotalLength;
+  TString      dbserver;
+  TString      dbname;
+  TString      uname;
+  TString      psswd;
+  Int_t        dbport;
 };
 
-class QwGUIEventWindowSelectionDialog : public TGTransientFrame {
+class QwGUIDatabaseSelectionDialog : public TGTransientFrame {
 
 private:
-
-  const TGWindow            *dMain;
 
   Bool_t              *dChangeFlag;
   Bool_t              *dCancelFlag;
   char                 dObjName[NAME_STR_MAX];
   char                 dMainName[NAME_STR_MAX]; 
-  EventOptions          *dEventOptions;
+  DatabaseOptions     *dOptions;
 
-/*   TGTextEntry       *fFuncEntry[4]; */
-/*   TGTextBuffer      *fFuncBuffer[4]; */
+  TGTextEntry       *fFuncEntry[4];
+  TGTextBuffer      *fFuncBuffer[4];
   TGTextButton      *fCancel;
   TGTextButton      *fAccept;
   TGTextButton      *fOk;
   TGVerticalFrame   *frame;
   TGHorizontalFrame *fBttnframe;
-  TGHorizontalFrame *fEntrframe1;
-  TGHorizontalFrame *fEntrframe2;
+  TGHorizontalFrame *fEntrframe[5];
   TGLayoutHints     *fHint, *fHint2, *fHint3, *fHint4;
-  TGNumberEntry     *fNumEntry1;
-  TGNumberEntry     *fNumEntry2;
-/*   TGCheckButton     *fCB[5]; */
-  TGLabel           *fLabel1;
-  TGLabel           *fLabel2;
+  TGNumberEntry     *fNumEntry;
+  TGCheckButton     *fCB[5];
+  TGLabel           *fLabel[5];
 
-  TString defaultVals[3];
-
-  void SetOptions(Bool_t all = kFalse);
+  static const char *const numlabel[5];
+  TString defaultVals[4];
 
 public:
-   QwGUIEventWindowSelectionDialog(const TGWindow *p, const TGWindow *main, 
+   QwGUIDatabaseSelectionDialog(const TGWindow *p, const TGWindow *main, 
 		      const char* objname, const char *mainname,
-		      EventOptions *opts, UInt_t w = 400, UInt_t h = 500, 
+		      DatabaseOptions *opts, UInt_t w = 400, UInt_t h = 500, 
 		      UInt_t options = kVerticalFrame | kHorizontalFrame);
-   virtual ~QwGUIEventWindowSelectionDialog();
+   virtual ~QwGUIDatabaseSelectionDialog();
    virtual void CloseWindow();
 
+   void SetOptions();
    virtual Bool_t ProcessMessage(Long_t msg, Long_t parm1, Long_t);
    void IsClosing(char *objname);
 
-   ClassDef(QwGUIEventWindowSelectionDialog,0)
+   ClassDef(QwGUIDatabaseSelectionDialog,0)
 };
 
 
