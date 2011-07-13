@@ -94,6 +94,7 @@
 
 // Compton headers
 #include "QwScaler.h"
+#include "QwBeamLine.h"
 #include "QwComptonPhotonDetector.h"
 #include "QwComptonElectronDetector.h"
 

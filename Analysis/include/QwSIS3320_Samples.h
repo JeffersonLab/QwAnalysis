@@ -77,7 +77,8 @@ class QwSIS3320_Samples: public TObject {
       SetNumberOfDataWords(GetNumberOfSamples() / GetSamplesPerWord());
     };
 
-    const TGraph* GetGraph() const { return fGraph; };
+    // Return the graph (not const because TGraph::Draw is not const)
+    TGraph* GetGraph() const { return fGraph; };
 
     // Update the graph from the index and value vectors
     void UpdateGraph();
