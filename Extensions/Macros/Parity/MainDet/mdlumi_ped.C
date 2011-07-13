@@ -15,6 +15,7 @@ void mdlumi_ped(int run_num)
   TChain chain("Mps_Tree");
   chain.Add(Form("$QW_ROOTFILES/qwick_mdlumiped_%i.root",run_num));
 
+
   const string lumi[16] = {
   "qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4",
   "qwk_dslumi5","qwk_dslumi6","qwk_dslumi7","qwk_dslumi8",
@@ -28,8 +29,8 @@ void mdlumi_ped(int run_num)
   "qwk_md5pos","qwk_md6pos","qwk_md7pos","qwk_md8pos"};
   
   const string bg[8] = {
-  "qwk_pmtled","qwk_pmtonl","qwk_pmtltg","qwk_md9neg",
-  "qwk_md9pos","qwk_isourc","qwk_preamp","qwk_cagesr"};
+  "qwk_pmtonl","qwk_pmtltg","qwk_md9neg","qwk_md9pos",
+  "qwk_pmtled","qwk_isourc","qwk_preamp","qwk_cagesr"};
   
 
   char * pPath = "";
@@ -68,12 +69,13 @@ void mdlumi_ped(int run_num)
           bghst[i]->SetDirectory(0);   
           chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",bg[i],bg[i],scale,bg[i]),Form("%s.hw_sum_raw!=0 && mps_counter>%i && mps_counter<%i",bg[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",bg[i]));
-          (if i<5){
+          (if i<4){
 		md_pedestal_file<<Form("%s  ,  ",bg[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;
            }
           cout<<bg[i]<<"  "<<htemp->GetMean()<<endl;
           c_bg->Update();
         }
+      md_pedestal_file<<"qwk_pmtled  ,  0  ,  0.00007629"<<endl;
       md_pedestal_file<<"qwk_isourc  ,  0  ,  0.00007629"<<endl;
       md_pedestal_file<<"qwk_preamp  ,  0  ,  0.00007629"<<endl;
       md_pedestal_file<<"qwk_cagesr  ,  0  ,  0.00007629"<<endl;
