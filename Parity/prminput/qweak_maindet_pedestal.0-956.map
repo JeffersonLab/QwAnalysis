@@ -14,7 +14,6 @@ qwk_md1neg     ,	 1266.162029 , 1.0
  qwk_md6pos     ,	 1410.938641 , 1.0 
  qwk_md7pos     ,	 1243.148697 , 1.0 
  qwk_md8pos     ,	 1177.776031 , 1.0 
- qwk_pmtled     ,	 -13382.496537 , 1.0 
  qwk_pmtonl     ,	 -16469.419794 , 1.0 
  qwk_pmtltg     ,	 -16244.977880 , 1.0 
  qwk_md9neg     ,	 -492.618575 , 1.0 
@@ -22,4 +21,4 @@ qwk_md1neg     ,	 1266.162029 , 1.0
 qwk_isourc  ,  0  ,  0.00007629
 qwk_preamp  ,  0  ,  0.00007629
 qwk_cagesr  ,  0  ,  0.00007629
- 
+ qwk_pmtled  ,  0  ,  0.00007629
