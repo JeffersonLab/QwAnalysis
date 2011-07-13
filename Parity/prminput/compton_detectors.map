@@ -1,9 +1,16 @@
-# This is an example of a detector definition file.
+# Compton Detector Definitions
 
 [QwHelicity]
  name = Helicity
  mask = 0x0001
  map  = compton_helicity.map
+
+[QwBeamLine]
+ name = ComptonBeamLine
+ map = compton_beamline_channels.map
+ geom = compton_beamline_geometry.map
+ param = compton_beamline_pedestal.map
+ eventcut = compton_beamline_eventcuts.in
 
 [QwScaler]
  name = Compton Photon Scalers

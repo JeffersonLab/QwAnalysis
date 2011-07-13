@@ -1,0 +1,65 @@
+
+!**************************************************************************
+!  COMPTON  BEAMLINE (ALL SCALERS)
+!**************************************************************************
+!
+!
+ROC=31
+Bank = 0x1f02
+
+!!! WARNING: these BPM and BCM channel assignments are pure guesses !!!
+!!! NOTE: (jc2) Do not add an _ before xm, xp, xy.  It will produce wrongly named
+!!! Beam Position Monitors in the Compton Chicane
+!! scaler.type, scaler.num  chan.num, det.type, det.name
+SIS3801D24, 0, 0x00, bpmstripline, bpm_3p01xm
+SIS3801D24, 0, 0x01, bpmstripline, bpm_3p01xp
+SIS3801D24, 0, 0x02, bpmstripline, bpm_3p01ym
+SIS3801D24, 0, 0x03, bpmstripline, bpm_3p01yp
+SIS3801D24, 0, 0x04, bpmstripline, bpm_3p02axm
+SIS3801D24, 0, 0x05, bpmstripline, bpm_3p02axp
+SIS3801D24, 0, 0x06, bpmstripline, bpm_3p02aym
+SIS3801D24, 0, 0x07, bpmstripline, bpm_3p02ayp
+SIS3801D24, 0, 0x08, bpmstripline, bpm_3p02bxm
+SIS3801D24, 0, 0x09, bpmstripline, bpm_3p02bxp
+SIS3801D24, 0, 0x0a, bpmstripline, bpm_3p02bym
+SIS3801D24, 0, 0x0b, bpmstripline, bpm_3p02byp
+SIS3801D24, 0, 0x0c, bpmstripline, bpm_3p03xm
+SIS3801D24, 0, 0x0d, bpmstripline, bpm_3p03xp
+SIS3801D24, 0, 0x0e, bpmstripline, bpm_3p03ym
+SIS3801D24, 0, 0x0f, bpmstripline, bpm_3p03yp
+
+!! Beam Charge Monitors of the QWeak Beam Line (read
+!! the above warning )
+!! scaler.type,  scaler.num, chan.num, det.type, det.name
+normclock=sca_4MHz
+SIS3801D24,   0, 0x1b, bcm, sca_bcm1
+SIS3801D24,   0, 0x1c, bcm, sca_bcm2
+SIS3801D24,   0, 0x1d, bcm, sca_bcm6
+SIS3801D24,   0, 0x1e, bcm, sca_unser
+
+!! Clocks in the QWeak Beam Line (read the above warning)
+!! scaler.type, scaler.num, chan.num, det.type, det.name
+SIS3801D24,   0, 0x1f, clock, sca_4MHz
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Combined BCM's
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+begin=combinedbcm
+name=sca_charge
+ sca_bcm1,  bcm, 1.0
+ sca_bcm2, bcm, 1.0
+end=combinedbcm
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! Combined BPM's
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+begin=combinedbpm
+name=compton_bpm
+ bpm_3p02a, bpmstripline, 1.0, 1.0, 1.0
+ bpm_3p02b, bpmstripline, 1.0, 1.0, 1.0
+end=combinedbpm
+
+![PUBLISH]
+! q_targ, combinedbcm, compton_charge, c
+
