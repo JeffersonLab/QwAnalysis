@@ -18,7 +18,7 @@ Int_t fadcSamples(int entry, int runnum, int runseg)
     return 0;
   }
 
-  std::vector<MQwSIS3320_Samples>* sampled_events = 0;
+  std::vector<QwSIS3320_Samples>* sampled_events = 0;
   mpsTree->SetBranchAddress("fadc_compton_samples",&sampled_events);
 
   mpsTree->GetEntry(entry);
