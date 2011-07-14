@@ -153,13 +153,13 @@ if (defined($opt_E) && $opt_E ne ""){
 
 
 if (defined($opt_M) && $opt_M ne ""){
-    $mss_dir = $opt_M;
+    $mss_dir = "$opt_M";
 } else {
     $mss_dir = "/mss/hallc/qweak";
 }
 
 if (defined($opt_C) && $opt_C ne ""){
-    $cache_option_list = $opt_C;
+    $cache_option_list = "$opt_C";
 } else {
     $cache_option_list = "";
 }
@@ -247,6 +247,7 @@ if (defined($opt_O) && $opt_O ne ""){
 } else {
     $analysis_option_list = $Default_Analysis_Options;
 }
+$analysis_option_list = "--rootfile-stem $rootfile_stem $analysis_option_list";
 
 if (! defined($output_path)){
     $output_path = "mss:$mss_dir/rootfiles/pass0"
@@ -313,9 +314,14 @@ foreach $runnumber (@good_runs){
 		rename "$fileout", "$fileout\_old";
 	    }
 	}	
-        
+
+	# tag file names with the date and time
+	($second, $minute, $hour, $dayOfMonth, $month, $yearOffset, $dayOfWeek, $dayOfYear, $daylightSavings) = localtime();
+	$year = 1900 + $yearOffset;
+	$theTime = sprintf ("%4d%s%02d_%02d%02d%02d",$year,$months[$month],$dayOfMonth,$hour,$minute,$second);
+
 	# Old job file format
-	$command_file = "$scratch_directory/work/$runnumber.command";
+	$command_file = "$scratch_directory/work/run_$runnumber\_$theTime.command";
 	# remove the command file if it exists
 	if (-f "$command_file") {
 	    unlink $command_file or die "Can not remove the old $command_file: $!";
@@ -336,8 +342,8 @@ foreach $runnumber (@good_runs){
 	    ### "OTHER_FILES: ....\n",
 	    "TOWORK\n",
 	    ####
-	    "OUTPUT_DATA: run_$runnumber.log\n",
-	    "OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber.log\n";
+	    "OUTPUT_DATA: run_$runnumber\_$theTime.log\n",
+	    "OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber\_$theTime.log\n";
 	    #
 	    #"OUTPUT_DATA: tmp/* \n",
 	    #"OUTPUT_TEMPLATE: $ENV{QW_TMP}/.\n",
@@ -361,7 +367,7 @@ foreach $runnumber (@good_runs){
 
 
 	# New job file format
-	$command_file = "$scratch_directory/work/run_$runnumber.xml";
+	$command_file = "$scratch_directory/work/run_$runnumber\_$theTime.xml";
 	# remove the command file if it exists
 	if (-f "$command_file") {
 	    unlink $command_file or die "Can not remove the old $command_file: $!";
@@ -381,6 +387,7 @@ foreach $runnumber (@good_runs){
 	    " <Memory space=\"$memory\" unit=\"MB\"/>\n";
         print JOBFILE
 	    " <Command><![CDATA[\n",
+	    "  set nonomatch\n",
 	    "  echo \"User:         \" `whoami`\n",
 	    "  echo \"Groups:       \" `groups`\n",
 	    "  echo \"WORKDIR:      \" \$WORKDIR\n",
@@ -391,6 +398,7 @@ foreach $runnumber (@good_runs){
 	    "  echo \"QWSCRATCH:    \" \$QWSCRATCH\n",
 	    "  echo \"QWANALYSIS:   \" \$QWANALYSIS\n",
 	    "  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n",
+	    "  echo $script_dir/update_cache_links.pl $cache_option_list\n",
 	    "  $script_dir/update_cache_links.pl $cache_option_list\n";
 	$cache_option_list =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
 	print JOBFILE
@@ -398,17 +406,24 @@ foreach $runnumber (@good_runs){
 	    "  setenv QW_ROOTFILES \$WORKDIR\n",
 	    "  echo \"QW_DATA:      \" \$QW_DATA\n",
 	    "  echo \"QW_ROOTFILES: \" \$QW_ROOTFILES\n",
-	    "  $script_dir/update_cache_links.pl $cache_option_list\n";
+	    "  echo $script_dir/update_cache_links.pl $cache_option_list\n",
+	    "  $script_dir/update_cache_links.pl $cache_option_list\n",
+	    "  ls -al \$QW_DATA\n";
 	print JOBFILE
+	    "  echo \"------\"\n",
 	    "  echo \"Started at `date`\"\n",
-	    "  $executable -r $runnumber $analysis_option_list\n";
+	    "  echo $executable -r $runnumber $analysis_option_list\n",
+	    "  $executable -r $runnumber $analysis_option_list\n",
+	    "  ls -al \$QW_ROOTFILES\n";
 	if ($RunPostProcess){
 	    print JOBFILE
+		"  echo \"------\"\n",
 		"  echo \"Start run based post-processor script at `date`\"\n",
 		"  $RunPostProcess $runnumber\n";
 	    }
 	if ($RunletPostProcess){
 	    print JOBFILE
+		"  echo \"------\"\n",
 		"  echo \"Start runlet based post-processor scripts at `date`\"\n";
 	    foreach $input_file (@input_files) {
 		my $segment = undef;
@@ -434,10 +449,6 @@ foreach $runnumber (@good_runs){
 	    my $root_file = "$rootfile_stem$runnumber.$segment.root";
 	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$output_path/$root_file\"/>\n";
 	}
-
-	($second, $minute, $hour, $dayOfMonth, $month, $yearOffset, $dayOfWeek, $dayOfYear, $daylightSavings) = localtime();
-	$year = 1900 + $yearOffset;
-	$theTime = "$year$months[$month]$dayOfMonth\_$hour$minute$second";
 
 	print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber\_$theTime.out\"/>\n";
 	print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber\_$theTime.err\"/>\n";
