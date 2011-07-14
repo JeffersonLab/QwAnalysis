@@ -8,13 +8,19 @@
 ## First define a few globals, such as the location of necessary programs
 
 ## SQLITE3 for database management
-SQLITE=/usr/bin/sqlite3
+SQLITE=sqlite3
 
 ## SQLITE3 database
-DBFILE=/net/cdaqfs/home/cdaq/compton/photon_summary_website/compton_photondetector_summaryruns.db
+DBFILE=${QWSCRATCH}/www/compton_photondetector_summaryruns.db
 
-## Path to the website directory
-WEBPATH=/u/group/hallc/www/hallcweb/html/compton/photonsummary
+## Path to website directory
+WEBDIR=${QWSCRATCH}/www
+
+## Path to base directory
+BASEDIR=${QWANALYSIS}/Extensions/Compton/macros
+
+## Path to templates
+TEMPLATES=${BASEDIR}/templates
 
 ################################################################################
 ## Check for optional parameters
@@ -33,21 +39,24 @@ done
 ## Process Defines
 DB="${SQLITE} ${DBFILE}"
 ################################################################################
+## CD into the right directory
+cd ${BASEDIR}
+
 ## Create the website
 ## Copy the header
-cat templates/header > ${WEBPATH}/index.html
-echo "<table class=\"runlist_table\">" > ${WEBPATH}/index.html
+cat ${TEMPLATES}/header > ${WEBDIR}/index.html
+echo "<table class=\"runlist_table\">" > ${WEBDIR}/index.html
 
 ## Fill the front page by probing the database for runs that belong in the
 ## front page.
 for run in `$DB 'select runnum from runs where frontpage=1;'`
 do
-   utils/format_run_link.sh $SQLITE $DBFILE $run >> ${WEBPATH}/_front_page_runs.html
+   ${BASEDIR}/utils/format_run_link.sh $SQLITE $DBFILE $run >> ${WEBDIR}/_front_page_runs.html
 done
 
 ## Copy over the front page runs to the front page
-cat ${WEBPATH}/_front_page_runs.html >> ${WEBPATH}/index.html
+cat ${WEBDIR}/_front_page_runs.html >> ${WEBDIR}/index.html
 
-echo "</table>" >> ${WEBPATH}/index.html
+echo "</table>" >> ${WEBDIR}/index.html
 ## Copy the footer
-cat templates/footer >> ${WEBPATH}/index.html
+cat ${TEMPLATES}/footer >> ${WEBDIR}/index.html

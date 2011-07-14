@@ -8,22 +8,23 @@
 #include <TSystem.h>
 #include <TROOT.h>
 #include <TString.h>
-void run_macro(const char* macroName, const char* weight,
+void run_macro(const char* macroName, const char* functionName,
       const char* localIncludes, Int_t runNumber, Bool_t isFirst100K, Bool_t compile)
 {
+   // Base directory for macros
+   TString macroDir = TString(getenv("QWANALYSIS")) + "/Extensions/Macros/Compton";
+
    // First include the default directory
-   //gSystem->SetIncludePath("shared/");
-   gROOT->ProcessLine(".include shared/");
+   gROOT->ProcessLine(".include " + macroDir + "/shared");
 
    // Then include the local directory
-   //gSystem->AddIncludePath(Form(" -I%s ",localIncludes));
-   gROOT->ProcessLine(Form(".include %s", localIncludes));
+   gROOT->ProcessLine(".include " + macroDir + "/" + localIncludes);
 
    // Load the macro
    if( compile )
-      gROOT->LoadMacro(Form("macros.d/%s%s.C+",weight,macroName));
+      gROOT->LoadMacro(macroDir + Form("/%s+",macroName));
    else
-      gROOT->LoadMacro(Form("macros.d/%s%s.C",weight,macroName));
+      gROOT->LoadMacro(macroDir + Form("/%s",macroName));
 
    // Finally run the script
    TString first100;
@@ -31,6 +32,6 @@ void run_macro(const char* macroName, const char* weight,
       first100.Append("kTRUE");
    else
       first100.Append("kFALSE");
-   TString command = Form("%s(%d,%s)",macroName,runNumber, first100.Data());
+   TString command = Form("%s(%d,%s)",functionName,runNumber, first100.Data());
    gROOT->ProcessLine(command);
 }
