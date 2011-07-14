@@ -138,7 +138,7 @@ protected:
   void RangeCheck(size_t element) const {
     if (element<0 || element >= fNumberOfSubElements){
       TString loc="VQwDataElement::RangeCheck for "
-	+this->GetElementName()+" failed for subelement "+Form("%d",element);
+	+this->GetElementName()+" failed for subelement "+Form("%zu",element);
       throw std::out_of_range(loc.Data());
 
     }

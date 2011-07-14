@@ -211,10 +211,18 @@ void  VQwScaler_Channel::FillHistograms()
   if (IsNameEmpty()) {
     //  This channel is not used, so skip creating the histograms.
   } else {
-    if (fHistograms[index] != NULL)
-      //std::cout<<GetElementName()<<" is filled with value "<<this->fValue<<std::endl;
+    if (index < fHistograms.size() && fHistograms[index] != NULL)
       fHistograms[index]->Fill(this->fValue);
     index += 1;
+  }
+}
+
+void  VQwScaler_Channel::DeleteHistograms()
+{
+  for (size_t index = 0; index < fHistograms.size(); index++) {
+    if (fHistograms[index] != 0)
+      fHistograms[index]->Delete();
+    fHistograms[index] = 0;
   }
 }
 
@@ -251,9 +259,17 @@ void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
 {
   if (IsNameEmpty()) {
     //  This channel is not used, so skip setting up the tree.
-  } else if (fTreeArrayNumEntries <= 0) {
+  } else if (fTreeArrayNumEntries < 0) {
     QwError << "VQwScaler_Channel::FillTreeVector:  fTreeArrayNumEntries=="
 	    << fTreeArrayNumEntries << QwLog::endl;
+  } else if (fTreeArrayNumEntries == 0) {
+    static bool warned = false;
+    if (!warned) {
+      QwError << "VQwScaler_Channel::FillTreeVector:  fTreeArrayNumEntries=="
+              << fTreeArrayNumEntries << " (no branch constructed?)" << QwLog::endl;
+      QwError << "Offending element is " << GetElementName() << QwLog::endl;
+      warned = true;
+    }
   } else if (values.size() < fTreeArrayIndex+fTreeArrayNumEntries) {
     QwError << "VQwScaler_Channel::FillTreeVector:  values.size()=="
 	    << values.size() << " name: " << fElementName

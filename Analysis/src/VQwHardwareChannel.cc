@@ -11,34 +11,40 @@ VQwHardwareChannel::VQwHardwareChannel():
 {
 }
 
-VQwHardwareChannel::~VQwHardwareChannel(){
+VQwHardwareChannel::~VQwHardwareChannel()
+{
 }
 
-UInt_t VQwHardwareChannel::GetEventcutErrorFlag(){//return the error flag
+UInt_t VQwHardwareChannel::GetEventcutErrorFlag()
+{
+  // return the error flag
   if (((fErrorFlag & kGlobalCut) == kGlobalCut) && fDeviceErrorCode>0){
-    //we care only about global cuts
+    // we care only about global cuts
     return fErrorFlag;
   }
   return 0;
 };
 
-void VQwHardwareChannel::SetSingleEventCuts(Double_t min, Double_t max){
+void VQwHardwareChannel::SetSingleEventCuts(Double_t min, Double_t max)
+{
   fULimit=max;
   fLLimit=min;
 }
 
-void VQwHardwareChannel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
+void VQwHardwareChannel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability)
+{
   fErrorFlag=errorflag;
   fDefErrorFlag=errorflag;
   fStability=stability;
   SetSingleEventCuts(min,max);
-  QwDebug <<"Set single event cuts for " << GetElementName()
-	  << ": errorflag==" << errorflag
-	  <<", Global ? "<<(fErrorFlag & kGlobalCut)<<QwLog::endl;
+  QwDebug << "Set single event cuts for " << GetElementName() << ": "
+	  << "errorflag == 0x" << std::hex << errorflag << std::dec
+	  << ", global? " << (fErrorFlag & kGlobalCut) << QwLog::endl;
 }
 
 
-void VQwHardwareChannel::AddEntriesToList(std::vector<QwDBInterface> &row_list){
+void VQwHardwareChannel::AddEntriesToList(std::vector<QwDBInterface> &row_list)
+{
     QwDBInterface row;
     TString name    = GetElementName();
     UInt_t  entries = GetGoodEventCount();
