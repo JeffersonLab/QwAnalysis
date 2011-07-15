@@ -77,11 +77,6 @@ QwMagneticField::~QwMagneticField()
  */
 void QwMagneticField::DefineOptions(QwOptions& options)
 {
-  // TODO (wdc) Remove QwTracking.fieldmap
-  options.AddOptions("Tracking options")
-    ("QwTracking.fieldmap",po::value<std::string>()->default_value(""),
-     "filename of the fieldmap file in QW_FIELDMAP");
-
   // Options
   options.AddOptions("Magnetic field map")
     ("QwMagneticField.mapfile",po::value<std::string>()->default_value("peiqing_2007.dat"),
@@ -159,7 +154,7 @@ void QwMagneticField::ProcessOptions(QwOptions& options)
   double phimin  = Qw::deg * options.GetValue<double>("QwMagneticField.phimin");
   double phimax  = Qw::deg * options.GetValue<double>("QwMagneticField.phimax");
   double phistep = Qw::deg * options.GetValue<double>("QwMagneticField.phistep");
-  double phiwrap = options.GetValue<int>("QwMagneticField.phiwrap");
+  int phiwrap = options.GetValue<int>("QwMagneticField.phiwrap");
 
   // The order is z, r, phi (no wrapping in r or z)
   fMin.push_back(zmin);   fMax.push_back(zmax);   fStep.push_back(zstep);   fWrap.push_back(0);
@@ -167,14 +162,8 @@ void QwMagneticField::ProcessOptions(QwOptions& options)
   fMin.push_back(phimin); fMax.push_back(phimax); fStep.push_back(phistep); fWrap.push_back(phiwrap);
 
   // Determine magnetic field file from environment variables
-  // TODO (wdc) Remove QwTracking.fieldmap support
-  std::string fieldmap = options.GetValue<std::string>("QwTracking.fieldmap");
-  if (fieldmap.size() != 0) {
-    QwWarning << "Option \"QwTracking.fieldmap\" will disappear soon. "
-              << "Please use \"QwMagneticField.mapfile\"." << QwLog::endl;
-  } else {
-    fieldmap = options.GetValue<std::string>("QwMagneticField.mapfile");
-  }
+  std::string fieldmap = 
+    options.GetValue<std::string>("QwMagneticField.mapfile");
   SetFilename(fieldmap);
 }
 
@@ -211,7 +200,7 @@ bool QwMagneticField::ReadFieldMap()
     }
   }
 
-  // Check status
+  // Check whether we succeeded
   if (status == false) {
     QwError   << "Could not load magnetic field map!" << QwLog::endl;
     QwWarning << "Filename: " << filename << QwLog::endl;
@@ -219,6 +208,63 @@ bool QwMagneticField::ReadFieldMap()
 
   return status;
 }
+
+/**
+ * Test the field map value at a specific point to make sure nothing went wrong
+ * @return True if read successfully
+ */
+bool QwMagneticField::TestFieldMap()
+{
+  bool status = true;
+
+  // Test field value at exact grid point
+  // (r = 100*cm, z = 100*cm, phi = 22.5*degree)
+  double point[3] = {100.0 * Qw::cm, 0.0 * Qw::cm, 100.0 * Qw::cm};
+  double exact[3] = {-0.0499845 * Qw::kG, 3.28516 * Qw::kG, -0.0112704 * Qw::kG};
+
+  // Calculate field value
+  QwMessage << "Calculating test field value at cartesian position "
+    << "(" << point[0]/Qw::cm << "," << point[1]/Qw::cm << "," << point[2]/Qw::cm << ") cm "
+    << QwLog::endl;
+  double value[3] = {0.0, 0.0, 0.0};
+  GetFieldValue(point,value);
+
+  // Calculate difference
+  double diff[3] = {0.0, 0.0, 0.0};
+  double norm = 0.0;
+  for (size_t i = 0; i < 3; i++) {
+    diff[i] = value[i] - exact[i];
+    norm += diff[i] * diff[i];
+  }
+  norm = sqrt(norm);
+
+  // Output
+  QwMessage << "  Value = "
+    << "(" << value[0]/Qw::kG << ", " << value[1]/Qw::kG << ", " << value[2]/Qw::kG << ") kG."
+    << QwLog::endl;
+  QwMessage << "  Exact = "
+    << "(" << exact[0]/Qw::kG << ", " << exact[1]/Qw::kG << ", " << exact[2]/Qw::kG << ") kG."
+    << QwLog::endl;
+  QwMessage << "  Diff  = "
+    << "(" << diff[0]/Qw::kG << ", " << diff[1]/Qw::kG << ", " << diff[2]/Qw::kG << ") kG."
+    << QwLog::endl;
+
+  // Test difference (0.1 kG is of the order of 2%)
+  if (norm > 0.1 * Qw::kG) {
+    QwWarning << "Magnetic field is different from expected value by " << norm/Qw::kG << " kG."
+              << QwLog::endl;
+    status = false;
+  }
+
+  // Check validity
+  if (status == false) {
+    QwError   << "Fieldmap did not satisfy consistency checks!" << QwLog::endl;
+  }
+
+  // Nothing is tested, just return true
+  return status;
+}
+
 
 /**
  * Read the magnetic field from an ANSYS map file in text format

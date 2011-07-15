@@ -111,8 +111,8 @@ bool QwRayTracer::LoadMagneticFieldMap()
   // Otherwise reload the field map
   fBfield = new QwMagneticField();
 
-  // What could possibly go wrong?
-  return true;
+  // Test magnetic field validity
+  return fBfield->TestFieldMap();
 }
 
 
