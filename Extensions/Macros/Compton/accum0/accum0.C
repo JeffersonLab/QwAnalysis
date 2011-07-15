@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
@@ -46,14 +47,12 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   TChain *helChain = getHelChain(runnum,isFirst100k);
   TChain *mpsChain = getMpsChain(runnum,isFirst100k);
 
-  const Double_t LOW_LSR_LMT = 20.0;//laser unlocked below this
-  // const Double_t MAXCUR = 140, MINSCALER = 235, MAXSCALER = 468;//bcm2_3h05a  values
-  const Double_t MAXCUR = 60, MINSCALER = 235, MAXSCALER = 292;//bcm6_3c17 values
+  const Double_t LOW_LSR_LMT = 20000.0; // laser unlocked below this
+  const Double_t MAXCUR = 180, MINCUR = 2.0; // bcm6 values
 
   const Int_t MIN_ENTRIES = 2000;//min # of entries to use a laserwise cycle
   const Int_t NCUTS = 500;//initialized size of TCut arrays.
   const Double_t LSCALE = 0.7;//used to scale laser power on yield graph.
-  const Double_t BCMGAIN = MAXCUR/(MAXSCALER-MINSCALER);
 
   TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
   gSystem->mkdir(www,true);
@@ -72,53 +71,47 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   /*
   helChain->SetBranchStatus("*", 0);
   helChain->SetBranchStatus("yield_sca_laser_PowT", 1);
-  helChain->SetBranchStatus("yield_bcm2_3h05a", 1);
-  helChain->SetBranchStatus("yield_bcm6_3c17", 1);
+  helChain->SetBranchStatus("yield_sca_bcm2_3h05a", 1);
+  helChain->SetBranchStatus("yield_sca_bcm6", 1);
   helChain->SetBranchStatus("yield_fadc_compton_accum0*", 1);
   helChain->SetBranchStatus("asym_fadc_compton_accum0*", 1);
   helChain->SetBranchStatus("yield_sca_laser_photon", 1);
   helChain->SetBranchStatus("pattern_number", 1);
-  helChain->SetBranchStatus("yield_bpm_3p01_xp", 1);
-  helChain->SetBranchStatus("yield_bpm_3p01_xm", 1);
-  helChain->SetBranchStatus("yield_bpm_3p01_yp", 1);
-  helChain->SetBranchStatus("yield_bpm_3p01_ym", 1);
   */
 
 
   //////////////////////////////////
   //***Define the desired cuts.***//
   //////////////////////////////////
+
+  // Get laser cycles
   std::vector<Int_t> cut = cutOnLaser(helChain);
-
-  // Print out the cuts to make sure this program has access to them
-  std::cout << "cut.size()=" << cut.size() << std::endl;
-  for (size_t i = 0; i < cut.size(); i++)
-    std::cout << "cut[" << i << "]=" << cut[i] << std::endl;
-
-  helChain->ResetBranchAddresses(); // resets branch address
-
-
   Int_t nCuts = cut.size();
+
+  // Reset branch address
+  helChain->ResetBranchAddresses();
+
 
   Double_t hBinX = helChain->GetMaximum("yield_sca_laser_PowT");
   Double_t lBinX = helChain->GetMinimum("yield_sca_laser_PowT");
   Double_t diffX = hBinX - lBinX;
-  //  TH1D *hTemp = new TH1D("hTemp","hTemp",1000,lBinX,hBinX);
   helChain->Draw(Form("yield_sca_laser_PowT>>hTemp(100,%f,%f)",lBinX,hBinX),
-		 "yield_sca_laser_PowT>10","goff");
+		 Form("yield_sca_laser_PowT>%f",LOW_LSR_LMT),"goff");
   TH1D *hTemp = (TH1D*)gDirectory->Get("hTemp"); 
-  Double_t cutval1 = hTemp->GetMean()-10;
+  Double_t cutval1 = hTemp->GetMean()-LOW_LSR_LMT;
   Double_t cutval2 = hTemp->GetMean()*2.0;
-  std::cout << cutval1<<"\t"<<cutval2<<"\t"<<hTemp->GetMean() << std::endl;
+  std::cout << "Laser power cuts: " << cutval1 << "\t" << cutval2
+            << "\t" << hTemp->GetMean() << std::endl;
   delete hTemp;
-  Double_t maxCur = helChain->GetMaximum("yield_bcm6_3c17");
-  std::cout <<"maxCur="<<maxCur<<std::endl;
-  Double_t cutCur = maxCur * 0.8 + 0.2 * MINSCALER;//subtract scaler pedestal of 235Hz
-  TCut bcmCut = Form("yield_bcm6_3c17>%f",cutCur);
-  TCut beamOffCut = Form("yield_bcm6_3c17<=%f", MINSCALER + 2);
+
+  Double_t maxCur = helChain->GetMaximum("yield_sca_bcm6");
+  Double_t cutCur = maxCur * 0.8;
+  std::cout << "BCM current cut is " << cutCur << " uA." << std::endl;
+  TCut bcmCut = Form("yield_sca_bcm6>%f",cutCur);
+  TCut beamOffCut = Form("yield_sca_bcm6<=%f", MINCUR);
+
   TCut scalerCut = "yield_sca_laser_photon>2";//PMT On and beam hitting laser
   TCut powCut = bcmCut && scalerCut;//PMT On and hitting laser and beam On
-  std::cout << "BCM current cut is " << cutCur << "." << std::endl;
   TCut lasOnCut = powCut && Form("yield_sca_laser_PowT>%f",cutval1)
                          && Form("yield_sca_laser_PowT<%f",cutval2);
   TCut lasOnCut1 = Form("yield_sca_laser_PowT>%f",cutval1);
@@ -176,15 +169,13 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   hBinX += diffX*0.1;
   lBinX -= diffX*0.1;
   Double_t hBinY ,lBinY, diffY;
-  helChain->Draw(Form("(yield_bcm6_3c17-%f)*%f:pattern_number>>hbcm(200,,,200,0.0,180.0)",
-		      MINSCALER,BCMGAIN),"","goff");
+  helChain->Draw("yield_sca_bcm6:pattern_number>>hbcm(200,,,200,0.0,180.0)","","goff");
   gPad->Update();
   TH2F *hbcm = (TH2F*)gDirectory->Get("hbcm");
   hbcm->GetXaxis()->SetTitle("Pattern Number");
   hbcm->GetYaxis()->SetTitle("BCM Yield");
   hbcm->SetMarkerColor(kRed);
   hbcm->SetTitle("BCM Yield vs. Pattern Number");
-  std::cout <<"BCMGAIN="<<BCMGAIN<<std::endl;
   hbcm->Draw();
   if(hbcm->GetEntries()==0){
     std::cout << "No useful events in run " << runnum << "." << std::endl;
@@ -384,20 +375,10 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   //***Draw Beam Positions for Laser On and Off using Upstream BPM.***//
   //////////////////////////////////////////////////////////////////////
   c3->cd(3);
-  hBinX = helChain->GetMaximum("pattern_number");
-  lBinX = helChain->GetMinimum("pattern_number");
-  diffX = hBinX - lBinX;
-  hBinX += 0.1*diffX;
-  lBinX -= 0.1*lBinX;
   Double_t lowY1, highY1, lowY2, highY2, diffY1, diffY2, meanY1, meanY2;
   Double_t rmsY1, rmsY2, offset;
    
- // TH2F *hPosX = new TH2F("hPosX","hPosX",1000,0,hBinX,1000,-3,3);
-  //  TH2F *hPosY = new TH2F("hPosY","hPosY",1000,0,hBinX,1000,-1,1);
-  
-  helChain->Draw("(yield_bpm_3p01_yp-yield_bpm_3p01_ym)/"
-		 "(yield_bpm_3p01_yp+yield_bpm_3p01_ym)>>hPosY1",
-		 bcmCut,"goff");
+  helChain->Draw("yield_sca_bpm_3p02aY>>hPosY1", bcmCut,"goff");
   gPad->Update();
   TH1F *hPosY1 = (TH1F*)gDirectory->Get("hPosY1"); 
   lowY1 = (Double_t)getLeftmost(hPosY1);
@@ -408,9 +389,7 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   rmsY1 = hPosY1->GetRMS();
   meanY1 = (lowY1 + highY1)/2.0;
   delete hPosY1;
-  helChain->Draw("(yield_bpm_3p01_xp-yield_bpm_3p01_xm)/"
-		 "(yield_bpm_3p01_xp+yield_bpm_3p01_xm)>>hPosX1",
-		 bcmCut,"goff");
+  helChain->Draw("yield_sca_bpm_3p02aX>>hPosX1", bcmCut,"goff");
   gPad->Update();
   //Scale second graph to first and put new axis on right side.
   TH1F *hPosX1 = (TH1F*)gDirectory->Get("hPosX1"); 
@@ -431,19 +410,15 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   hPosY->SetMarkerColor(kRed);
   hPosY->SetLineColor(kRed);
   hPosY->Draw();
-  helChain->Draw("(yield_bpm_3p01_yp-yield_bpm_3p01_ym)/"
-		 "(yield_bpm_3p01_yp+yield_bpm_3p01_ym):pattern_number>>hPosY",
-		 bcmCut,"");
+  helChain->Draw("yield_sca_bpm_3p02aY:pattern_number>>hPosY", bcmCut,"");
   gPad->Update();
   TPaveStats *st4 = (TPaveStats*)gPad->GetPrimitive("stats");
   st4->SetX1NDC(0.58); //new x start position
   st4->SetX2NDC(0.78); //new x end position 
   Float_t scale1 = (diffY1+5*rmsY1)/(diffY2+5*rmsY2);
   offset = meanY1 - meanY2*scale1 - 0.4*diffY1;
-  helChain->Draw("(yield_bpm_3p01_xp-yield_bpm_3p01_xm)/"
-		 "(yield_bpm_3p01_xp+yield_bpm_3p01_xm)"
-		 ":pattern_number>>hPosX",bcmCut,"goff");
-  TH2F *hPosX = (TH2F*)gDirectory->Get("hPosX");
+  TH2F *hPosX = new TH2F("hPosX","hPosX",1000,lBinX,hBinX,1000,lowY2,highY2);
+  helChain->Draw("yield_sca_bpm_3p02aX:pattern_number>>hPosX",bcmCut,"goff");
   printf("Scale hPosX by %f. Offset = %f.\n",scale1, offset);
   hPosX->SetMarkerColor(kBlue);
   hPosX->SetLineColor(kBlue);
@@ -588,33 +563,26 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
       sumMeanAsymm += mean[n];
       sumReciprocalVar += numEnt/(rms[n]*rms[n]);
       sumWeighted += numEnt*mean[n]/(rms[n]*rms[n]);
-      helChain->Draw("yield_sca_laser_photon>>hScaOn",
-		     lasOnCut && lasWiseCut[i],"goff");
+      helChain->Draw("yield_sca_laser_photon>>hScaOn",lasOnCut && lasWiseCut[i],"goff");
       gPad->Update();
       TH1F *hScaOn=(TH1F*)gDirectory->Get("hScaOn");
       Double_t scaLasOnRate = hScaOn->GetMean();
       delete hScaOn;
-      helChain->Draw("yield_sca_laser_photon>>hScaOff",lasOffCut && lasWiseCut[i]
-		     ,"goff");
+      helChain->Draw("yield_sca_laser_photon>>hScaOff",lasOffCut && lasWiseCut[i],"goff");
       gPad->Update();
       TH1F *hScaOff=(TH1F*)gDirectory->Get("hScaOff");
       Double_t scaLasOffRate = hScaOff->GetMean();
       delete hScaOff;
-      helChain->Draw("yield_sca_laser_PowT>>hLasOn",lasOnCut && lasWiseCut[i],
-		     "goff");
+      helChain->Draw("yield_sca_laser_PowT>>hLasOn",lasOnCut && lasWiseCut[i],"goff");
       gPad->Update();
       TH1F *hLasOn=(TH1F*)gDirectory->Get("hLasOn");
       Double_t lasAvgPow = hLasOn->GetMean();
       delete hLasOn;
 
-      helChain->Draw("(yield_bpm_3p01_yp-yield_bpm_3p01_ym)/"
-		 "(yield_bpm_3p01_yp+yield_bpm_3p01_ym)>>hPosYtmp",
-		 powCut && lasWiseCut[i],"goff");
+      helChain->Draw("yield_sca_bpm_3p02aY>>hPosYtmp", powCut && lasWiseCut[i],"goff");
       gPad->Update();
       TH1F *hPosYtmp = (TH1F*)gDirectory->Get("hPosYtmp");
-      helChain->Draw("(yield_bpm_3p01_xp-yield_bpm_3p01_xm)/"
-		     "(yield_bpm_3p01_xp+yield_bpm_3p01_xm)>>hPosXtmp",
-		     powCut && lasWiseCut[i],"goff");
+      helChain->Draw("yield_sca_bpm_3p02aX>>hPosXtmp", powCut && lasWiseCut[i],"goff");
       gPad->Update();
       meanPosY = hPosYtmp->GetMean();
       delete hPosYtmp;
@@ -644,8 +612,8 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
   Double_t meanAsymm = sumWeighted/sumReciprocalVar;
   Double_t meanError = 1.0/TMath::Sqrt(sumReciprocalVar);
   std::cout << "The weighted mean asymmetry is: "
-            << setprecision(6) << meanAsymm << " +/- " 
-            << setprecision(6) << meanError
+            << std::setprecision(6) << meanAsymm << " +/- " 
+            << std::setprecision(6) << meanError
             << std::endl;
   // hAsymm->SetLineColor(kViolet+2);
   hAsymm->Draw();

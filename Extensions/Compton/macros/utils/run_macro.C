@@ -5,11 +5,15 @@
 //             called by the autoanalyzer automatically and needs not be
 //             called outside of that script.
 ///////////////////////////////////////////////////////////////////////////////
+
+#include <iostream>
+
 #include <TSystem.h>
 #include <TROOT.h>
 #include <TString.h>
+
 void run_macro(const char* macroName, const char* functionName,
-      const char* localIncludes, Int_t runNumber, Bool_t isFirst100K, Bool_t compile)
+      const char* localIncludes, Int_t runNumber, Bool_t isFirst100k, Bool_t compile)
 {
    // Base directory for macros
    TString macroDir = TString(getenv("QWANALYSIS")) + "/Extensions/Macros/Compton";
@@ -21,14 +25,16 @@ void run_macro(const char* macroName, const char* functionName,
    gROOT->ProcessLine(".include " + macroDir + "/" + localIncludes);
 
    // Load the macro
-   if( compile )
-      gROOT->LoadMacro(macroDir + Form("/%s+",macroName));
+   TString macro = macroDir + Form("/%s",macroName);
+   std::cout << "Loading macro " << macro << std::endl;
+   if (compile)
+      gROOT->LoadMacro(macro + "+");
    else
-      gROOT->LoadMacro(macroDir + Form("/%s",macroName));
+      gROOT->LoadMacro(macro);
 
    // Finally run the script
    TString first100;
-   if ( isFirst100K )
+   if (isFirst100k)
       first100.Append("kTRUE");
    else
       first100.Append("kFALSE");

@@ -152,11 +152,13 @@ then
 fi
 
 ANALYSISDATE=$(date +"%Y-%m-%d %H:%M")
-BCM1VAL=$(grep "BCM1 " $ENDRUNFILE)
-BCM2VAL=$(grep "BCM2 " $ENDRUNFILE)
-BCM17VAL=$(grep "BCM17" $ENDRUNFILE)
-HWPVAL=$(grep "Half Wave Plate state" $ENDRUNFILE)
-
+if [  -f $ENDRUNFILE ]
+then
+    BCM1VAL=$(grep "BCM1 " $ENDRUNFILE)
+    BCM2VAL=$(grep "BCM2 " $ENDRUNFILE)
+    BCM17VAL=$(grep "BCM17" $ENDRUNFILE)
+    HWPVAL=$(grep "Half Wave Plate state" $ENDRUNFILE)
+fi
 
 ## First create the web page 
 RUNPAGE="${WEBDIR}/run_$RUNNUM/run_$RUNNUM.html"

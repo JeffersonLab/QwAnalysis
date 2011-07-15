@@ -8,12 +8,14 @@
 
 *//*-------------------------------------------------------------------------*/
 
-// Qweak headers
-#include "QwRint.h"
+// ROOT headers
 #include <TSystem.h>
 #include <TROOT.h>
 #include <TString.h>
-#include <QwOptions.h>
+
+// Qweak headers
+#include "QwRint.h"
+#include "QwOptions.h"
 
 int main(int argc, char** argv)
 {
