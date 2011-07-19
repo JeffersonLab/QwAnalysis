@@ -1,0 +1,403 @@
+{
+//void converge( Int_t timescale1, Int_t timescale2)//////////////////////////////////////
+// feedback system convergence plots. 
+// Hall A BCMs, and BPM4A,B
+//////////////////////////////////////
+gROOT->Reset();
+gROOT->LoadMacro("macro/open.macro");
+////////////////OPEN ROOT FILE//////////////////////
+open(0,"beam");
+TTree *r = (TTree*)gROOT.FindObject("R");                                      
+TTree *p = (TTree*)gROOT.FindObject("P");                       
+////////////////////////////////////////////////////
+ Int_t i,it,ic,in,k;
+Int_t npair=0, timescale[2], npoint[2], npcount[2], iter[2];
+iter[0]=0;iter[1]=0;
+Int_t okcut;
+
+
+Double_t ab1,ab2,ab1err,ab2err;
+Double_t d4ax,d4ay,d4bx,d4by,d4axerr,d4ayerr,d4bxerr,d4byerr;
+Double_t ab1sum,ab1sumsqr,ab1sumerr,ab2sum,ab2sumsqr,ab2sumerr;
+Double_t d4axsum,d4bxsum,d4aysum,d4bysum,d4axsumsqr,d4bxsumsqr,d4aysumsqr,d4bysumsqr,d4axsumerr,d4bxsumerr,d4aysumerr,d4bysumerr;
+
+
+Double_t minya1,minya2,miny4ax,miny4bx,miny4ay,miny4by;
+Double_t maxya1,maxya2,maxy4ax,maxy4bx,maxy4ay,maxy4by;
+TH2F *bcmcur[2],*apos[2], *bpos[2];
+TBranch* b_bcm1 = p->GetBranch("asym_bcm1");b_bcm1->SetAddress(&ab1);
+TBranch* b_bcm2 = p->GetBranch("asym_bcm2");b_bcm2->SetAddress(&ab2);
+TBranch* b_4ax = p->GetBranch("diff_bpm4ax");b_4ax->SetAddress(&d4ax);
+TBranch* b_4ay = p->GetBranch("diff_bpm4ay");b_4ay->SetAddress(&d4ay);
+TBranch* b_4bx = p->GetBranch("diff_bpm4bx");b_4bx->SetAddress(&d4bx);
+TBranch* b_4by = p->GetBranch("diff_bpm4by");b_4by->SetAddress(&d4by);
+TBranch* b_ok = p->GetBranch("ok_cut");b_ok->SetAddress(&okcut);
+npair = (Int_t) b_bcm1->GetEntries();
+
+//timescale[0]=timescale1;
+//timescale[1]=timescale2;
+timescale[0]=1800;
+timescale[1]=3600;
+
+ cout<<"number of pairs for the run :"<<npair<<endl;
+ cout<<" timescales 1,2 :"<<timescale[0]<<" "<<timescale[1]<<endl;
+
+for (k =0; k<2; k++) 
+  {
+   if (timescale[k] != 0)  npoint[k] = Int_t(npair/timescale[k]);
+   else npoint[k] = 0;  
+  }
+
+ cout<<" Number of points in Graph C,P :"<<npoint[0]<<","<<npoint[1]<<endl;
+
+Int_t np1 = (Int_t) npoint[0];
+Int_t np2 = (Int_t) npoint[1]; 
+
+Double_t evc[np1];
+Double_t evcer[np1];
+Double_t evp[np2];
+Double_t evper[np2]; 
+Double_t tab1[np1];
+Double_t tab1err[np1];
+Double_t td4ax[np2];
+Double_t td4bx[np2];
+Double_t td4axerr[np2];
+Double_t td4bxerr[np2]; 
+Double_t tab2[np1];
+Double_t tab2err[np1];
+Double_t td4ay[np2];
+Double_t td4by[np2];
+Double_t td4ayerr[np2];
+Double_t td4byerr[np2]; 
+
+if ( npoint[0] < 1) cout<<" Not enough pairs to plot bcm graphs with this timescale"<<endl;
+//  else 
+//    {
+//      for (UInt_t jnc =0; jnc<npoint[0]; jnc++) 
+//        {
+//         tab1[jnc]=0;
+//         tab1er[jnc]=0;
+//         tab2[jnc]=0;
+//         tab2er[jnc]=0;
+//        }
+//    }
+if ( npoint[1] < 1) cout<<" Not enough pairs to plot bpm graphs with this timescale"<<endl;
+//  else
+//    {
+//     for (UInt_t jnp =0; jnp <npoint[0]; jnp++)
+//        { 
+//         td4a[jnp]=0;td4b[jnp]=0;
+//         td4aerr[jnp]=0;td4berr[jnp]=0; 
+//        }
+//   } 
+
+for ( i = 0 ; i < npair ; i++)
+  {
+   b_bcm1->GetEvent(i); 
+   b_bcm2->GetEvent(i); 
+   b_4ax->GetEvent(i); 
+   b_4ay->GetEvent(i); 
+   b_4bx->GetEvent(i); 
+   b_4by->GetEvent(i); 
+   b_ok->GetEvent(i); 
+   //   cout<<" branch dump :"<<endl;
+//    for (UInt_t j = 0 ; j < 2 ; j++)
+//       {
+//        cout<<ab[j]<<" "<<d4a[j]<<" "<<d4b[j]<<endl;
+//       }
+//    cout<<" okcut :"<<okcut<<endl;
+  //compute sum and sumsquare
+   if ( okcut == 1)
+    {
+     ab1sum     += ab1;
+     ab1sumsqr  += ab1*ab1;
+     ab2sum     += ab2;
+     ab2sumsqr  += ab2*ab2;
+     d4axsum    += d4ax;
+     d4axsumsqr += d4ax*d4ax; 
+     d4aysum    += d4ay;
+     d4aysumsqr += d4ay*d4ay; 
+     d4bxsum    += d4bx;
+     d4bxsumsqr += d4bx*d4bx;         
+     d4bysum    += d4by;
+     d4bysumsqr += d4by*d4by;         
+//         cout<<"sum1 dump "<<ab1sum<<" "<<d4axsum<<" "<<d4bxsum<<endl; 
+//         cout<<"sum1 dump "<<ab1sumsqr<<" "<<d4axsumsqr<<" "<<d4bxsumsqr<<endl; 
+//         cout<<"sum2 dump "<<ab2sum<<" "<<d4aysum<<" "<<d4bysum<<endl; 
+//         cout<<"sum2 dump "<<ab2sumsqr<<" "<<d4aysumsqr<<" "<<d4bysumsqr<<endl; 
+     // current 
+     if ( npoint[0] !=0 && ((i+1) % timescale[0] == 0) )
+       {
+	 //        cout<<"sum1 dump "<<ab1sum<<" "<<ab1sum/(i)<<" iter "<<iter[0]<<endl;
+        tab1[iter[0]]    = (ab1sum/(i)); 
+        tab2[iter[0]]    = (ab2sum/(i)); 
+        tab1err[iter[0]] = sqrt((ab1sumsqr/(i)) - tab1[iter[0]]*tab1[iter[0]])/sqrt(i);           
+        tab2err[iter[0]] = sqrt((ab2sumsqr/(i)) - tab2[iter[0]]*tab2[iter[0]])/sqrt(i);           
+	if (tab1[iter[0]] > maxya1 && tab1[iter[0]] > ab1err)
+	  {
+	   maxya1= tab1[iter[0]] +  tab1err[iter[0]];
+           ab1err= tab1err[iter[0]];
+           }
+         if (tab1[iter[0]] < minya1 && tab1[iter[0]] > ab1err)
+	   {
+	    minya1 = tab1[iter[0]] -  tab1err[iter[0]];
+            ab1err= tab1err[iter[0]];
+            }
+	if (tab2[iter[0]] > maxya2 && tab2[iter[0]] > ab2err)
+	  {
+	   maxya2= tab2[iter[0]] +  tab2err[iter[0]];
+           ab2err= tab2err[iter[0]];
+           }
+         if (tab2[iter[0]] < minya2 && tab2[iter[0]] > ab2err)
+	   {
+	    minya2 = tab2[iter[0]] -  tab2err[iter[0]];
+            ab2err= tab2err[iter[0]];
+            }
+         evc[iter[0]] = i;
+         evcer[iter[0]] =0; 
+         iter[0]++;
+         }
+        }
+// position
+       if (okcut == 1 && npoint[1] !=0 && ((i+1) % timescale[1] == 0) )
+       {
+	 //        cout<<"sum1 dump "<<d4axsum<<" "<<d4axsum/(i)<<" iter1 "<<iter[1]<<endl;
+        td4ax[iter[1]]    = (d4axsum/(i)); 
+        td4axerr[iter[1]] = sqrt((d4axsumsqr/(i)) - td4ax[iter[1]]*td4ax[iter[1]])/sqrt(i);           
+        td4ay[iter[1]]    = (d4aysum/(i)); 
+        td4ayerr[iter[1]] = sqrt((d4aysumsqr/(i)) - td4ay[iter[1]]*td4ay[iter[1]])/sqrt(i);           
+        td4bx[iter[1]]    = (d4bxsum/(i)); 
+        td4bxerr[iter[1]] = sqrt((d4bxsumsqr/(i)) - td4bx[iter[1]]*td4bx[iter[1]])/sqrt(i);           
+        td4by[iter[1]]    = (d4bysum/(i)); 
+        td4byerr[iter[1]] = sqrt((d4bysumsqr/(i)) - td4by[iter[1]]*td4by[iter[1]])/sqrt(i);           
+	if (td4ax[iter[1]] > maxy4ax && td4ax[iter[1]] > d4axerr)
+	  {
+	   maxy4ax= td4ax[iter[1]] +  td4axerr[iter[1]];
+           d4axerr= td4axerr[iter[1]];
+           }
+         if (td4ax[iter[1]] < miny4ax && td4ax[iter[1]] > d4axerr)
+	   {
+	    miny4ax = td4ax[iter[1]] +  td4axerr[iter[1]];
+            d4axerr= td4axerr[iter[1]];
+            }
+	if (td4ay[iter[1]] > maxy4ay && td4ay[iter[1]] > d4ayerr)
+	  {
+	   maxy4ay= td4ay[iter[1]] +  td4ayerr[iter[1]];
+           d4ayerr= td4ayerr[iter[1]];
+           }
+         if (td4ay[iter[1]] < miny4ay && td4ay[iter[1]] > d4ayerr)
+	   {
+	    miny4ay = td4ay[iter[1]] +  td4ayerr[iter[1]];
+            d4ayerr= td4ayerr[iter[1]];
+            }
+	if (td4bx[iter[1]] > maxy4bx && td4bx[iter[1]] > d4bxerr)
+	  {
+	   maxy4bx= td4bx[iter[1]] +  td4bxerr[iter[1]];
+           d4bxerr= td4bxerr[iter[1]];
+           }
+         if (td4bx[iter[1]] < miny4bx && td4bx[iter[1]] > d4bxerr)
+	   {
+	    miny4bx = td4bx[iter[1]] +  td4bxerr[iter[1]];
+            d4bxerr= td4bxerr[iter[1]];
+            }
+	if (td4by[iter[1]] > maxy4by && td4by[iter[1]] > d4byerr)
+	  {
+	   maxy4by= td4by[iter[1]] +  td4byerr[iter[1]];
+           d4byerr= td4byerr[iter[1]];
+           }
+         if (td4by[iter[1]] < miny4by && td4by[iter[1]] > d4byerr)
+	   {
+	    miny4by = td4by[iter[1]] +  td4byerr[iter[1]];
+            d4byerr= td4byerr[iter[1]];
+            }
+         evp[iter[1]] = i;
+         evper[iter[1]] =0; 
+         iter[1]++;
+         }
+        }
+/////////////////////////STYLE///////////////////////////////////////////////////
+ gStyle->SetOptStat(0); 
+ gStyle->SetOptTitle(0);
+ gStyle->SetPadColor(10); 
+ gStyle->SetFrameBorderMode(0);
+ gStyle->SetFrameBorderSize(0);
+ gStyle->SetFrameFillColor(10);
+ gStyle->SetPadColor(10); 
+ gStyle->SetCanvasColor(10); 
+ gStyle->SetCanvasBorderMode(0); 
+ gStyle->SetPadBorderMode(0);
+ gStyle->SetPadBorderSize(0);
+ gStyle->SetOptDate(0);  
+ gROOT->ForceStyle();
+//////////////////////////PLOTS///////////////////////////////////////////////////////
+ bcmcur[0]  = new TH2F("Cumasym1","Cumasym1",2,0,npair+500,2,minya1-25,maxya1);
+ bcmcur[1]  = new TH2F("Cumasym2","Cumasym2",2,0,npair+500,2,minya2-25,maxya2);
+ apos[0]   = new TH2F("Cum4adiffx","Cum4ax",2,0,npair+500,2,miny4ax-0.5,maxy4ax+0.5);
+ apos[1]   = new TH2F("Cum4adiffy","Cum4ay",2,0,npair+500,2,miny4ay-0.5,maxy4ay+0.5);
+ bpos[0]   = new TH2F("Cum4bdiffx","Cum4bx",2,0,npair+500,2,miny4bx-0.5,maxy4bx+0.5);
+ bpos[1]   = new TH2F("Cum4bdiffy","Cum4by",2,0,npair+500,2,miny4by-0.5,maxy4by+0.5);
+
+  TGraphErrors *gec1 = new TGraphErrors(iter[0],evc,tab1,evcer,tab1err); 
+  TGraphErrors *gec2 = new TGraphErrors(iter[0],evc,tab2,evcer,tab2err); 
+//   TGraphErrors *gep4ax = new TGraphErrors(iter[1],evp,fdbpm4ax,evper,fdbpm4axer); 
+//   TGraphErrors *gep4ay = new TGraphErrors(iter[1],evp,fdbpm4ay,evper,fdbpm4ayer); 
+//   TGraphErrors *gep4bx = new TGraphErrors(iter[1],evp,fdbpm4bx,evper,fdbpm4bxer); 
+//   TGraphErrors *gep4by = new TGraphErrors(iter[1],evp,fdbpm4by,evper,fdbpm4byer); 
+TGraph *gc1 = new TGraph(iter[0],evc,tab1); 
+  gc1->SetMarkerColor(28);
+  gc1->SetMarkerSize(0.3);
+  gc1->SetMarkerStyle(24);
+  gc1->SetLineColor(9);
+TGraph *gc2 = new TGraph(iter[0],evc,tab1); 
+  gc2->SetMarkerColor(28);
+  gc2->SetMarkerSize(0.3);
+  gc2->SetMarkerStyle(24);
+  gc2->SetLineColor(39);
+TGraph *gp4ax = new TGraph(iter[1],evp,td4ax); 
+  gp4ax->SetMarkerColor(32);
+  gp4ax->SetMarkerSize(0.5);
+  gp4ax->SetMarkerStyle(26);
+  gp4ax->SetLineColor(9);
+TGraph *gp4ay = new TGraph(iter[1],evp,td4ay); 
+  gp4ay->SetMarkerColor(50);
+  gp4ay->SetMarkerSize(0.5);
+  gp4ay->SetMarkerStyle(28);
+  gp4ay->SetLineColor(9);
+TGraph *gp4bx = new TGraph(iter[1],evp,td4bx); 
+  gp4bx->SetMarkerColor(44);
+  gp4bx->SetMarkerSize(0.5);
+  gp4bx->SetMarkerStyle(26);
+  gp4bx->SetLineColor(9);
+TGraph *gp4by = new TGraph(iter[1],evp,td4by); 
+  gp4by->SetMarkerColor(49);
+  gp4by->SetMarkerSize(0.5);
+  gp4by->SetMarkerStyle(28);
+  gp4by->SetLineColor(9);
+
+TLegend *lx = new TLegend(0.5,0.7,.85,.85);
+ lx->AddEntry(gp4ax,"BPM4Ax","p");
+ lx->AddEntry(gp4bx,"BPM4Bx","p");
+ lx->SetFillColor(10); 
+ lx->SetBorderSize(0); 
+TLegend *ly = new TLegend(0.5,0.7,.85,.85);
+ ly->AddEntry(gp4ay,"BPM4Ay","p");
+ ly->AddEntry(gp4by,"BPM4By","p");
+ ly->SetFillColor(10); 
+ ly->SetBorderSize(0); 
+cout<<" evc[0]"<<evc[0]<<endl;
+cout<<" tab1err[0]"<<tab1err[0]<<endl;
+cout<<" timescale[0]"<<timescale[0]<<endl;
+
+TF1 *fcn = new TF1("fcn","[0]*[2]*1.0/(x - [1])",evc[0],npair);
+fcn->SetLineWidth(1);
+fcn->SetLineColor(2);
+fcn->SetLineStyle(3);
+fcn->SetParameter(0,tab1err[0]);
+fcn->SetParameter(1,0);
+fcn->SetParameter(2,timescale[0]);
+
+TF1 *fcsqrtn = new TF1("fcsqrtn","[0]*1.0/sqrt((x - [1])/[2])",evc[0],npair);
+fcsqrtn->SetLineWidth(1);
+fcsqrtn->SetLineColor(4);
+fcsqrtn->SetLineStyle(3);
+fcsqrtn->SetParameter(0,tab1err[0]);
+fcsqrtn->SetParameter(1,0);
+fcsqrtn->SetParameter(2,timescale[0]);
+
+TF1 *fcnn = new TF1("fcnn","[0]*[2]*-1.0/(x - [1])",evc[0],npair);
+fcnn->SetLineWidth(1);
+fcnn->SetLineColor(2);
+fcnn->SetLineStyle(3);
+fcnn->SetParameter(0,tab1err[0]);
+fcnn->SetParameter(1,0);
+fcnn->SetParameter(2,timescale[0]);
+
+TF1 *fcnsqrtn = new TF1("fcnsqrtn","[0]*-1.0/sqrt((x - [1])/[2])",evc[0],npair);
+fcnsqrtn->SetLineWidth(1);
+fcnsqrtn->SetLineColor(4);
+fcnsqrtn->SetLineStyle(3);
+fcnsqrtn->SetParameter(0,tab1err[0]);
+fcnsqrtn->SetParameter(1,0);
+fcnsqrtn->SetParameter(2,timescale[0]);
+
+ TCanvas *a1 = new TCanvas("a1", "Charge asymetry ",0,0,900,400);
+ TCanvas *a2 = new TCanvas("a2", "Differences bpm4A ",0,0,900,400);
+// TCanvas *a3 = new TCanvas("b1", "Differences bpm4B",0,500,800,400);
+
+ a1->cd();
+ a1->Divide(2,1,0,0); 
+ a1->cd(1); 
+ bcmcur[0]->Draw();
+ fcn->Draw("same");
+ fcnn->Draw("same"); 
+ fcsqrtn->Draw("same");
+ fcnsqrtn->Draw("same"); 
+ gc1->Draw("PZ");
+
+ a1->cd(2);
+ bcmcur[1]->Draw();
+ fcn->Draw("same");
+ fcnn->Draw("same"); 
+ fcsqrtn->Draw("same");
+ fcnsqrtn->Draw("same"); 
+ gc2->Draw("PZ"); 
+ a1->Print("cumasym.eps");
+ a1->Print("cumasym.gif");
+
+ a2->Divide(2,1,0,0); 
+ a2->cd(1); 
+ apos[0]->Draw();
+ gp4ax->Draw("PZ");
+ gp4bx->Draw("PZ");
+ fcn->SetLineColor(6);
+ fcsqrtn->SetLineColor(8);
+ fcnn->SetLineColor(6);
+ fcnsqrtn->SetLineColor(8);
+ fcn->SetParameter(0,td4axerr[0]);
+ fcn->SetParameter(1,0);
+ fcn->SetParameter(2,timescale[1]);
+ fcsqrtn->SetParameter(0,td4axerr[0]);
+ fcsqrtn->SetParameter(1,0);
+ fcsqrtn->SetParameter(2,timescale[1]);
+ fcnn->SetParameter(0,td4axerr[0]);
+ fcnn->SetParameter(1,0);
+ fcnn->SetParameter(2,timescale[1]);
+ fcnsqrtn->SetParameter(0,td4axerr[0]);
+ fcnsqrtn->SetParameter(1,0);
+ fcnsqrtn->SetParameter(2,timescale[1]);
+ fcn->Draw("same");
+ fcnn->Draw("same"); 
+ fcsqrtn->Draw("same");
+ fcnsqrtn->Draw("same"); 
+ lx->Draw();
+ a2->cd(2); 
+ apos[1]->Draw();
+ gp4ay->Draw("PZ");
+ gp4by->Draw("PZ");
+ fcn->SetParameter(0,td4ayerr[0]);
+ fcn->SetParameter(1,0);
+ fcn->SetParameter(2,timescale[1]);
+ fcsqrtn->SetParameter(0,td4ayerr[0]);
+ fcsqrtn->SetParameter(1,0);
+ fcsqrtn->SetParameter(2,timescale[1]);
+ fcnn->SetParameter(0,td4ayerr[0]);
+ fcnn->SetParameter(1,0);
+ fcnn->SetParameter(2,timescale[1]);
+ fcnsqrtn->SetParameter(0,td4ayerr[0]);
+ fcnsqrtn->SetParameter(1,0);
+ fcnsqrtn->SetParameter(2,timescale[1]);
+ fcn->Draw("same");
+ fcnn->Draw("same"); 
+ fcsqrtn->Draw("same");
+ fcnsqrtn->Draw("same"); 
+ ly->Draw();
+ a2->Print("cumpos.eps");
+ a2->Print("cumpos.gif");
+//  a3->Divide(2,1,0,0); 
+//  a3->cd(1); 
+//  bpos[0]->Draw();
+//  gp4bx->Draw("PZ");
+//  a3->cd(2); 
+//  bpos[1]->Draw();
+//  gp4by->Draw("PZ");
+}

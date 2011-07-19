@@ -299,8 +299,7 @@ void QwTrackingWorker::ProcessOptions(QwOptions& options)
   fDisableMatrixLookup = options.GetValue<bool>("QwTracking.disable-matrixlookup");
   fDisableRayTracer    = options.GetValue<bool>("QwTracking.disable-raytracer");
 
-  // Fieldmap and lookup table filenames
-  fFilenameFieldmap    = options.GetValue<std::string>("QwTracking.fieldmap");
+  // Lookup table filename
   fFilenameLookupTable = options.GetValue<std::string>("QwTracking.lookuptable");
 
   // Number of levels (search tree depth) for region 2

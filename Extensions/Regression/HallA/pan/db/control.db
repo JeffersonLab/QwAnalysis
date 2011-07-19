@@ -1,0 +1,506 @@
+# ASCII database file for run# 4060
+# happex2 Configuration
+    timestamp 2005-08-02 23:00:19
+    run 4060
+# number of events to process (leave this out to get infinite)
+#    maxevents 2000
+# misc arguments for happex configuration
+    anatype standard
+# EPICS words
+    epics IGLdac3:ao_4
+    epics IGLdac3:ao_5
+    epics IGLdac3:ao_6
+    epics IGLdac3:ao_7
+    epics IGLdac2:G3Ch3Pos
+    epics IGLdac2:G3Ch4Neg
+    epics IGL1I00OD16_16
+    epics IGL1I00HALLAMODE IGL1I00HALLBMODE IGL1I00HALLCMODE
+    epics MSEPRYOKET MSEPRUPCOILT MEPRLOWCOILT
+    epics MSEPLYOKET MSEPLUPCOILT MEPLLOWCOILT
+    epics haL1_JTV_R haL1_hp_power_R haHe3_P_Fill_Target_R
+    epics haCryo_CHL_F  haITC502_1_Sensor_1_R  haITC502_1_Sensor_2_R
+    epics  haITC502_1_Sensor_3_R
+# QPD1 calibration (if needed): negative gains for HAPPEX QPD.
+  qpd1const pp -1.0 pm -1.0 mp -1.0 mm -1.0 x-const 1. y-const 1.
+#  detwts selected from widths and gains in run 3697
+  detwts 1.0 0.0 1.0 0.0
+#  default blumi widths
+  blumiwts 1.0 1.0 1.0 1.0 1.0 1.0 1.0 1.0
+# Set the "Current monitor"
+    curmon bcm3
+#    curmon qpd1sum
+#  set for injector tests
+#    curmon bpm1I02ws
+# Cuts for happex2 Config, OS=1
+    satcut 60000
+    lobeam  25000 
+#    lobeam  3000 
+#    lobeam  0.3
+    lobeamc 0.002
+    burpcut 1000
+    ncuts 7
+    cutnames Low_beam Beam_burp Evt_seq Pair_seq Startup Low_beam_c Det_saturate
+    extlo 10 10 25 25 0 10 5
+    exthi 1200 40 25 25 1 1200 10
+# Blinding Settings
+# Blinding ON for target at 32973668
+    blindstring IEightTheSandBox
+    blindparams sign -1 mean 0.0 offscale 3.0
+# Helicity Settings
+    windelay   8
+    pairtype   pair
+    randomheli yes
+# Timing board information:
+# Integrate Time = 32.50 ms, Ramp Delay = 0.00 us
+    oversamp 1 
+# Counting House Crate dacnoise values - calibrated on 3/21/03, run #2376
+    dacnoise adc 2 chan 0 slope 0.024385
+    dacnoise adc 2 chan 1 slope 0.0243438
+    dacnoise adc 2 chan 2 slope 0.0243521
+    dacnoise adc 2 chan 3 slope 0.0243621
+    dacnoise adc 23 chan 0 slope 0.0244028
+    dacnoise adc 23 chan 1 slope 0.024298
+    dacnoise adc 23 chan 2 slope 0.0242551
+    dacnoise adc 23 chan 3 slope 0.0244008
+    dacnoise adc 22 chan 0 slope 0.0243403
+    dacnoise adc 22 chan 1 slope 0.024367
+    dacnoise adc 22 chan 2 slope 0.0244378
+    dacnoise adc 22 chan 3 slope 0.0244524
+    dacnoise adc 15 chan 0 slope 0.0244547
+    dacnoise adc 15 chan 1 slope 0.0244248
+    dacnoise adc 15 chan 2 slope 0.0243358
+    dacnoise adc 15 chan 3 slope 0.0244062
+    dacnoise adc 11 chan 0 slope 0.0242519
+    dacnoise adc 11 chan 1 slope 0.0244226
+    dacnoise adc 11 chan 2 slope 0.0242783
+    dacnoise adc 11 chan 3 slope 0.0243638
+    dacnoise adc 7 chan 0 slope 0.0244663
+    dacnoise adc 7 chan 1 slope 0.0244243
+    dacnoise adc 7 chan 2 slope 0.0243815
+    dacnoise adc 7 chan 3 slope 0.0244618
+    dacnoise adc 12 chan 0 slope 0.0244732
+    dacnoise adc 12 chan 1 slope 0.0244634
+    dacnoise adc 12 chan 2 slope 0.0245041
+    dacnoise adc 12 chan 3 slope 0.0244088
+    dacnoise adc 14 chan 0 slope 0.0244168
+    dacnoise adc 14 chan 1 slope 0.0244271
+    dacnoise adc 14 chan 2 slope 0.0244253
+    dacnoise adc 14 chan 3 slope 0.0244049
+# Injector Crate dacnoise values - calibrated on 3/21/03, run #2383
+    dacnoise adc 16 chan 0 slope 0.0244943
+    dacnoise adc 16 chan 1 slope 0.0244843
+    dacnoise adc 16 chan 2 slope 0.0244851
+    dacnoise adc 16 chan 3 slope 0.0245049
+# Right Spectrometer Crate dacnoise values - calibrated on 1/6/4 run#1011
+    dacnoise adc 29 chan 0 slope 0.0243567
+    dacnoise adc 29 chan 1 slope 0.0244455
+    dacnoise adc 29 chan 2 slope 0.0244354
+    dacnoise adc 29 chan 3 slope 0.0245507
+    dacnoise adc 17 chan 0 slope 0.0243668
+    dacnoise adc 17 chan 1 slope 0.0243841
+    dacnoise adc 17 chan 2 slope 0.024456
+    dacnoise adc 17 chan 3 slope 0.0242755
+# adc26 dacnoise calibrated on 4/6/4, run #1349
+    dacnoise adc 26 chan 0 slope 0.0245451
+    dacnoise adc 26 chan 1 slope 0.0245167
+    dacnoise adc 26 chan 2 slope 0.0245255
+    dacnoise adc 26 chan 3 slope 0.0245063
+# adc28 dacnoise calibrated on 6/6/4, run 1912
+    dacnoise adc 28 chan 0 slope 0.0245229
+    dacnoise adc 28 chan 1 slope 0.0244408
+    dacnoise adc 28 chan 2 slope 0.024513
+    dacnoise adc 28 chan 3 slope 0.0246123
+# Left spectrometer dacnoise.
+# dacnoise values, calibrated on 5/31/5 run #3421
+    dacnoise adc 6 chan 0 slope 0.0244386
+    dacnoise adc 6 chan 1 slope 0.0244484
+    dacnoise adc 6 chan 2 slope 0.0243629
+    dacnoise adc 6 chan 3 slope 0.024333
+    dacnoise adc 8 chan 0 slope 0.0243573
+    dacnoise adc 8 chan 1 slope 0.0244629
+    dacnoise adc 8 chan 2 slope 0.024366
+    dacnoise adc 8 chan 3 slope 0.0244046
+# adc27 calibrated on 7/14/5 with run #3599
+    dacnoise adc 27 chan 0 slope 0.0243136
+    dacnoise adc 27 chan 1 slope 0.0244247
+    dacnoise adc 27 chan 2 slope 0.0244856
+    dacnoise adc 27 chan 3 slope 0.0244236
+# pedestals to subtracted from ADCs - Counting House Crate OS=1
+# adc2_0,1,2 (bcm3,7,1) calibrated with run 2532
+#  modified from run 3028 (bcm3r)
+    ped adc 2 chan 0 value 3914
+#  modified from run 3028 (bcm7r)
+    ped adc 2 chan 1 value 4612
+#  modified from run 3028 (bcm1r)
+#    ped adc 2 chan 2 value 4427
+    ped adc 2 chan 2 value 4231
+    ped adc 2 chan 3 value 4459
+    ped adc 23 chan 0 value 3901.24
+# adc23_1 (bcm5) calibrated with run 2532
+    ped adc 23 chan 1 value 3430
+    ped adc 23 chan 2 value 4153.47
+    ped adc 23 chan 3 value 5038.26
+    ped adc 22 chan 0 value 4490.45
+    ped adc 22 chan 1 value 3848.28
+    ped adc 22 chan 2 value 4336
+    ped adc 22 chan 3 value 4827
+    ped adc 15 chan 0 value 3832.17
+    ped adc 15 chan 1 value 3740.04
+#  modified from run 3028 (bcm2r)
+#    ped adc 15 chan 2 value 4417
+    ped adc 15 chan 2 value 4072
+#  modified from run 3028 (bcm8r)
+    ped adc 15 chan 3 value 4570
+#  modified from run 3028 (bpm10xp)
+    ped adc 11 chan 0 value 6694
+#  modified from run 3028 (bpm10xm)
+    ped adc 11 chan 1 value 6710
+#  modified from run 3028 (bpm10yp)
+    ped adc 11 chan 2 value 6221
+#  modified from run 3028 (bpm10ym)
+    ped adc 11 chan 3 value 6760
+    ped adc 7 chan 0 value 4588.40
+    ped adc 7 chan 1 value 4707.64
+    ped adc 7 chan 2 value 4924.51
+    ped adc 7 chan 3 value 5231.88
+#  modified from run 3028 (bpm4axp)
+    ped adc 12 chan 0 value 7904
+#  modified from run 3028 (bpm4axm)
+    ped adc 12 chan 1 value 9025
+#  modified from run 3028 (bpm4ayp)
+    ped adc 12 chan 2 value 9292
+#  modified from run 3028 (bpm4aym)
+    ped adc 12 chan 3 value 9411
+#  modified from run 3028 (bpm4bxp)
+    ped adc 14 chan 0 value 7870
+#  modified from run 3028 (bpm4bxm)
+    ped adc 14 chan 1 value 8463
+#  modified from run 3028 (bpm4byp)
+    ped adc 14 chan 2 value 6947
+#  modified from run 3028 (bpm4bym)
+    ped adc 14 chan 3 value 7478
+# pedestals to subtract from SCALERS - Counting House Crate OS=1
+    ped scaler 0 chan 0 value 0
+    ped scaler 0 chan 1 value 0
+    ped scaler 0 chan 2 value 0
+    ped scaler 0 chan 3 value 1304
+    ped scaler 0 chan 4 value 1305
+    ped scaler 0 chan 5 value 1305
+    ped scaler 0 chan 6 value 1306
+    ped scaler 0 chan 7 value 1401
+    ped scaler 0 chan 8 value 1402
+    ped scaler 0 chan 9 value 1403
+    ped scaler 0 chan 10 value 1404
+    ped scaler 0 chan 12 value 0.06263
+#  modified from run 3028 (bpm1xp)
+    ped scaler 0 chan 16 value 0.08568
+#  modified from run 3028 (bpm1xm)
+    ped scaler 0 chan 17 value 0.12100
+#  modified from run 3028 (bpm1yp)
+    ped scaler 0 chan 18 value 0.07665
+#  modified from run 3028 (bpm1ym)
+    ped scaler 0 chan 19 value 0.08211
+    ped scaler 0 chan 22 value 0.04568
+# Pedestals for Injector Crate, oversample=1,12,13
+# pedestals to subtract from ADCs 
+# Pedestals calibrated with run 2613 on 7-2-2004
+    ped adc 16 chan 0 value 3191.6
+#    ped adc 16 chan 0 value 4070
+    ped adc 16 chan 1 value 4996
+    ped adc 16 chan 2 value 4947
+    ped adc 16 chan 3 value 5395
+# pedestals to subtract from SCALERS
+# pedestals to subtract from SCALERS
+# Pedestals calibrated with run 2613 on 7-2-2004
+    ped scaler 1 chan 0 value 0.03781
+    ped scaler 1 chan 1 value 0.04045
+    ped scaler 1 chan 2 value 0.02947
+    ped scaler 1 chan 3 value 0.03224
+    ped scaler 1 chan 4 value 0.03742
+    ped scaler 1 chan 5 value 0.03425
+    ped scaler 1 chan 6 value 0.04140
+    ped scaler 1 chan 7 value 0.04053
+    ped scaler 1 chan 8  value 0.00485
+    ped scaler 1 chan 9  value 0.01020
+    ped scaler 1 chan 10 value 0.02006
+    ped scaler 1 chan 11 value 0.01405
+    ped scaler 1 chan 12 value 0.05242
+    ped scaler 1 chan 13 value 0.05150
+    ped scaler 2 chan 0 value 0.04702
+    ped scaler 2 chan 1 value 0.04591
+    ped scaler 2 chan 2 value 0.05315
+    ped scaler 2 chan 3 value 0.05008
+    ped scaler 2 chan 4 value 0.05177
+    ped scaler 2 chan 5 value 0.05235
+    ped scaler 2 chan 6 value 0.00397
+    ped scaler 2 chan 7 value 0.04680
+    ped scaler 2 chan 8  value 0.05242
+    ped scaler 2 chan 9  value 0.05150
+    ped scaler 2 chan 10 value 0.05534
+    ped scaler 2 chan 11 value 0.05659
+    ped scaler 2 chan 12 value 0.07779
+    ped scaler 2 chan 13 value 0.07689
+    ped scaler 3 chan 0 value 0.32231
+    ped scaler 3 chan 1 value 0.32553
+    ped scaler 3 chan 2 value 0.32737
+    ped scaler 3 chan 3 value 0.32523
+    ped scaler 3 chan 4 value 0
+    ped scaler 3 chan 5 value 0 
+    ped scaler 3 chan 6 value 0
+    ped scaler 3 chan 7 value 0
+    ped scaler 3 chan 8 value  0.3162 
+    ped scaler 3 chan 9 value  0.32076
+    ped scaler 3 chan 10 value 0.32075
+    ped scaler 3 chan 11 value 0.32329
+    ped scaler 3 chan 12 value 0
+    ped scaler 3 chan 13 value 0
+    ped scaler 3 chan 14 value 0
+    ped scaler 3 chan 15 value 0
+    ped scaler 3 chan 16 value 0.04702
+    ped scaler 3 chan 17 value 0.04591
+    ped scaler 3 chan 18 value 0.05315
+    ped scaler 3 chan 19 value 0.05008
+    ped scaler 3 chan 20 value 0
+    ped scaler 3 chan 21 value 0
+    ped scaler 3 chan 22 value 0
+    ped scaler 3 chan 23 value 0
+    ped scaler 3 chan 24 value 0
+    ped scaler 3 chan 25 value 0
+    ped scaler 3 chan 26 value 0
+    ped scaler 3 chan 27 value 0
+    ped scaler 3 chan 28 value 0
+    ped scaler 3 chan 29 value 0
+    ped scaler 3 chan 30 value 0
+    ped scaler 3 chan 31 value 0
+# Pedestals for Right Spectrometer Crate OS=1
+# 29,17,26 Calibrated for HV settings in run #2532
+#  (det3r)
+    ped adc 28 chan 0 value 4464
+#  modified from run 3028 (det4r)
+    ped adc 28 chan 1 value 4408
+    ped adc 28 chan 2 value 4311
+    ped adc 28 chan 3 value 4479
+# ***changePedDB *** Pedestal for blumi5r
+    ped adc 29 chan 0 value 4426
+# ***changePedDB *** Pedestal for blumi6r
+    ped adc 29 chan 1 value 4454
+# ***changePedDB *** Pedestal for blumi7r
+    ped adc 29 chan 2 value 4311
+#  modified from run 3432 (blumi8r)
+# ***changePedDB *** Pedestal for blumi8r
+    ped adc 29 chan 3 value 4472
+    ped adc 17 chan 0 value 0
+# ***changePedDB *** Pedestal for blumi2r
+    ped adc 17 chan 1 value 4383
+# ***changePedDB *** Pedestal for blumi3r
+    ped adc 17 chan 2 value 4465
+# ***changePedDB *** Pedestal for blumi4r
+    ped adc 17 chan 3 value 4365
+# ***changePedDB *** Pedestal for flumi1r
+    ped adc 26 chan 0 value 4508
+# ***changePedDB *** Pedestal for flumi2r
+    ped adc 26 chan 1 value 4351
+    ped adc 26 chan 2 value 4403.5
+# ***changePedDB *** Pedestal for blumi1r
+    ped adc 26 chan 3 value 4443
+# No Pedestals for Left Spectrometer Crate, at this time
+#  Pedestal for det1r
+    ped adc 27 chan 0 value 4470
+#  modified from run 3028 (det2r)
+#    ped adc 27 chan 1 value 4324
+#    ped adc 27 chan 2 value 4311
+#    ped adc 27 chan 3 value 4479
+# device headers and header masks
+    header adc       ffadc000 fffff000
+    header timeboard fffbd000 fffff000
+    header tir       ffdaf000 fffff000
+    header scaler    fffca000 fffff000
+    header daqflag   fdacf000 fffff000
+# Counting House Crate datamap - ROC23
+#   table  device-type dev-name read-type dev-num startchan header-offset roc-num channel-names(keys)
+    datamap   scaler     scaler0   scaler     0      0    1  23   scaler0_0 scaler0_1 scaler0_2 scaler0_3
+    datamap   scaler     scaler0   scaler     0      4    5  23   scaler0_4 scaler0_5 scaler0_6 scaler0_7
+    datamap   scaler     scaler0   scaler     0      8    9  23   scaler0_8 scaler0_9 scaler0_10 scaler0_11
+    datamap   scaler     scaler0   scaler     0     12   13  23   scaler0_12 scaler0_13 scaler0_14 scaler0_15
+    datamap   scaler     scaler0   scaler     0     16   17  23   scaler0_16 scaler0_17 scaler0_18 scaler0_19
+    datamap   scaler     scaler0   scaler     0     20   21  23   scaler0_20 scaler0_21 scaler0_22 scaler0_23
+    datamap   scaler     scaler0   scaler     0     24   25  23   scaler0_24 scaler0_25 scaler0_26 scaler0_27
+    datamap   scaler     scaler0   scaler     0     28   29  23   scaler0_28 scaler0_29 scaler0_30 scaler0_31
+    datamap   adc        adc2      adc        2      0    1  23   adc2_0 adc2_1 adc2_2 adc2_3
+    datamap   adc        adc2      adc        2     -9    5  23   csr2 dac2
+    datamap   adc        adc23     adc       23      0    7  23   adc23_0 adc23_1 adc23_2 adc23_3
+    datamap   adc        adc23     adc       23     -9   11  23   csr23 dac23
+    datamap   adc        adc22     adc       22      0   13  23   adc22_0 adc22_1 adc22_2 adc22_3
+    datamap   adc        adc22     adc       22     -9   17  23   csr22 dac22
+    datamap   adc        adc15     adc       15      0   19  23   adc15_0 adc15_1 adc15_2 adc15_3
+    datamap   adc        adc15     adc       15     -9   23  23   csr15 dac15
+    datamap   adc        adc11     adc       11      0   25  23   adc11_0 adc11_1 adc11_2 adc11_3
+    datamap   adc        adc11     adc       11     -9   29  23   csr11 dac11
+    datamap   adc        adc7      adc        7      0   31  23   adc7_0 adc7_1 adc7_2 adc7_3
+    datamap   adc        adc7      adc        7     -9   35  23   csr7 dac7
+    datamap   adc        adc12     adc       12      0   37  23   adc12_0 adc12_1 adc12_2 adc12_3
+    datamap   adc        adc12     adc       12     -9   41  23   csr12 dac12
+    datamap   adc        adc14     adc       14      0   43  23   adc14_0 adc14_1 adc14_2 adc14_3
+    datamap   adc        adc14     adc       14     -9   47  23   csr14 dac14
+    datamap   tir        tir       tir        0      0    1  23   tirdata
+    datamap   timeboard  timeboard timeboard  0      0    2  23   rampdelay integtime oversample precdac pitadac
+    datamap   daqflag    daqflag1  daqflag    0      0    1  23   bmwcln bmwobj bmwval bmwcyc
+    datamap   daqflag    daqflag2  daqflag    1      0    5  23   scanclean scandata1 scandata2
+    datamap   daqflag    daqflag3  daqflag    2      0    8  23   daq1flag daq2flag
+    datamap   batt       batt1     adc       23      0            batt1
+#    datamap   bcm        bcm1      adc        2      2            bcm1r
+    datamap   bcm        bcm1      adc       15      2            bcm1r
+    datamap   bcm        bcm2      adc        2      1            bcm2r
+#    datamap   bcm        bcm3      adc        2      0            bcm3r
+    datamap   bcm        bcm3      adc        2      2            bcm3r
+    datamap   bcm        bcm4      scaler     0     22            bcm4r
+    datamap   bcm        bcm5      adc       23      1            bcm5r
+    datamap   bcm        bcm9      scaler     0     15            bcm9r
+    datamap   bcm        bcm10     scaler     0     12            bcm10r
+    datamap   bcm        bcmcav1   adc        2      3            bcmcav1r
+#    datamap   bpm        bpmcav1   adc       15      2            bpmcav1xr bpmcav1yr
+    datamap   bpm        bpmcav1   adc        2      0            bpmcav1xr
+    datamap   bpm        bpmcav1   adc       15      3            bpmcav1yr
+    datamap   bpm        bpm8      adc       15      0            bpm8xp bpm8xm
+    datamap   bpm        bpm8      scaler     0     20            bpm8yp bpm8ym
+    datamap   bpm        bpm10     adc       11      0            bpm10xp bpm10xm bpm10yp bpm10ym
+    datamap   bpm        bpm12     adc        7      0            bpm12xp bpm12xm bpm12yp bpm12ym
+    datamap   bpm        bpm1      scaler     0     16            bpm1xp bpm1xm bpm1yp bpm1ym
+    datamap   bpm        bpm4a     adc       12      0            bpm4axp bpm4axm bpm4ayp bpm4aym
+    datamap   bpm        bpm4b     adc       14      0            bpm4bxp bpm4bxm bpm4byp bpm4bym
+    datamap   v2fclk     v2fclk0   scaler     0     31            v2f_clk0
+    datamap   sync       sync      scaler     0      0            chsync1 chsync2 chsync0
+# Injector Crate datamap - ROC24
+#   table  device-type dev-name read-type dev-num startchan header-offset roc-num channel-names(keys)
+    datamap   scaler     scaler1   scaler     1      0    1  24   scaler1_0 scaler1_1 scaler1_2 scaler1_3
+    datamap   scaler     scaler1   scaler     1      4    5  24   scaler1_4 scaler1_5 scaler1_6 scaler1_7
+    datamap   scaler     scaler1   scaler     1      8    9  24   scaler1_8 scaler1_9 scaler1_10 scaler1_11
+    datamap   scaler     scaler1   scaler     1     12   13  24   scaler1_12 scaler1_13 scaler1_14 scaler1_15
+    datamap   scaler     scaler2   scaler     2      0   17  24   scaler2_0 scaler2_1 scaler2_2 scaler2_3
+    datamap   scaler     scaler2   scaler     2      4   21  24   scaler2_4 scaler2_5 scaler2_6 scaler2_7
+    datamap   scaler     scaler2   scaler     2      8   25  24   scaler2_8 scaler2_9 scaler2_10 scaler2_11
+    datamap   scaler     scaler2   scaler     2     12   29  24   scaler2_12 scaler2_13 scaler2_14 scaler2_15
+    datamap   scaler     scaler3   scaler     3      0   33  24   scaler3_0 scaler3_1 scaler3_2 scaler3_3
+    datamap   scaler     scaler3   scaler     3      4   37  24   scaler3_4 scaler3_5 scaler3_6 scaler3_7
+    datamap   scaler     scaler3   scaler     3      8   41  24   scaler3_8 scaler3_9 scaler3_10 scaler3_11
+    datamap   scaler     scaler3   scaler     3     12   45  24   scaler3_12 scaler3_13 scaler3_14 scaler3_15
+    datamap   scaler     scaler3   scaler     3     16   49  24   scaler3_16 scaler3_17 scaler3_18 scaler3_19
+    datamap   scaler     scaler3   scaler     3     20   53  24   scaler3_20 scaler3_21 scaler3_22 scaler3_23
+    datamap   scaler     scaler3   scaler     3     24   57  24   scaler3_24 scaler3_25 scaler3_26 scaler3_27
+    datamap   scaler     scaler3   scaler     3     28   61  24   scaler3_28 scaler3_29 scaler3_30 scaler3_31
+    datamap   adc        adc16     adc       16      0    1  24   adc16_0 adc16_1 adc16_2 adc16_3
+    datamap   adc        adc16     adc       16     -9    5  24   csr16 dac16  
+    datamap   sync       sync      scaler     3     25            isync0
+    datamap   tir        tir1      tir        1      0    1  24   tirdata1  
+    datamap   timeboard  timeboard1 timeboard 1      0    2  24   rampdelay1 integtime1 oversample1 precdac1 pitadac1 
+    datamap   bcm        bcm6      adc       16      0            bcm6r
+#    datamap   bpm        bpm1I02   scaler     1      0            bpm1I02xp bpm1I02xm bpm1I02yp bpm1I02ym
+#    datamap   bpm        bpm1I06   scaler     1      4            bpm1I06xp bpm1I06xm bpm1I06yp bpm1I06ym
+#    datamap   bpm        bpm0L01   scaler     1      8            bpm0L01xp bpm0L01xm bpm0L01yp bpm0L01ym
+#    datamap   bpm        bpm0L04   scaler     1     12            bpm0L04xp bpm0L04xm
+#    datamap   bpm        bpm0L03   scaler     2      0            bpm0L03yp bpm0L03xp bpm0L03xm bpm0L03ym
+#    datamap   bpm        bpm0I02   scaler     2      4            bpm0I02xp bpm0I02xm bpm0I02yp bpm0I02ym
+#    datamap   bpm        bpm0I05   scaler     2      8            bpm0I05xp bpm0I05xm bpm0I05yp bpm0I05ym
+#    datamap   bpm        bpm0L04   scaler     2     12            bpm0L04yp bpm0L04ym
+#    datamap   v2fclk     v2fclk1   scaler     1     15            v2f_clk1
+#    datamap   v2fclk     v2fclk2   scaler     2     15            v2f_clk2
+#    datamap   v2fclk     v2fclk3   scaler     2     15            v2f_clk3
+    datamap   bpm        bpm1I02   scaler     1      0            bpm1I02xp bpm1I02xm bpm1I02yp bpm1I02ym
+    datamap   bpm        bpm1I06   scaler     1      4            bpm1I06xp bpm1I06xm bpm1I06yp bpm1I06ym
+    datamap   bpm        bpm0L02   scaler     1      8            bpm0L02xp bpm0L02xm bpm0L02yp bpm0L02ym
+    datamap   bpm        bpm0L05   scaler     1     12            bpm0L05xp bpm0L05xm
+#    datamap   bpm        bpm0L02   scaler     2      0            bpm0L02yp bpm0L02xp bpm0L02xm bpm0L02ym
+    datamap   bpm        bpm0L01   scaler     2      0            bpm0L01xp bpm0L01xm bpm0L01yp bpm0L01ym
+    datamap   bpm        bpm0I02   scaler     2      4            bpm0I02xp bpm0I02xm bpm0I02yp bpm0I02ym
+    datamap   bpm        bpm0I05   scaler     2      8            bpm0I05xp bpm0I05xm bpm0I05yp bpm0I05ym
+    datamap   bpm        bpm0L05   scaler     2     12            bpm0L05yp bpm0L05ym
+    datamap   v2fclk     v2fclk1   scaler     1     15            v2f_clk1
+    datamap   v2fclk     v2fclk2   scaler     2     15            v2f_clk2
+    datamap   v2fclk     v2fclk3   scaler     2     15            v2f_clk3
+    datamap   bpm        bpm0I02A   scaler    3      0            bpm0I02Axp bpm0I02Axm bpm0I02Ayp bpm0I02Aym
+    datamap   bpm        bpm1I04   scaler     3      8            bpm1I04xp bpm1I04xm bpm1I04yp bpm1I04ym
+    datamap   bpm        bpm0R05   scaler     3     12            bpm0R05xp bpm0R05xm bpm0R05yp bpm0R05ym
+ #   datamap   bpm        bpm0L02   scaler     3      8            bpm0L02xp bpm0L02xm bpm0L02yp bpm0L02ym
+    datamap   bpm        bpm0L03   scaler     3     16            bpm0L03xp bpm0L03xm bpm0L03yp bpm0L03ym
+    datamap   bpm        bpm0L04   scaler     3     20            bpm0L04xp bpm0L04xm bpm0L04yp bpm0L04ym
+    datamap   bpm        bpm0L06   scaler     3     24            bpm0L06xp bpm0L06xm bpm0L06yp bpm0L06ym
+#    datamap   qpd        qpd1      scaler     3      0            qpd1pm
+#    datamap   qpd        qpd1      scaler     3      2            qpd1pp
+#    datamap   qpd        qpd1      scaler     3      4            qpd1mm
+#    datamap   qpd        qpd1      scaler     3      6            qpd1mp
+    datamap   batt       batt3     adc       16      1            batt3
+    datamap   batt       batt5     scaler     2     14            batt5
+# Right Spectrometer Crate datamap - ROC26
+#   table  device-type dev-name read-type dev-num startchan header-offset roc-num channel-names(keys)
+    datamap   tir        tir3      tir        3      0    1  26   tirdata3
+    datamap   timeboard  timeboard3 timeboard 3      0    2  26   rampdelay3 integtime3 oversample3 precdac3 pitadac3
+    datamap   scaler     scaler4   scaler     4      0    1  26   scaler4_0 scaler4_1 scaler4_2 scaler4_3
+    datamap   scaler     scaler4   scaler     4      4    5  26   scaler4_4 scaler4_5 scaler4_6 scaler4_7
+    datamap   scaler     scaler4   scaler     4      8    9  26   scaler4_8 scaler4_9 scaler4_10 scaler4_11
+    datamap   scaler     scaler4   scaler     4     12   13  26   scaler4_12 scaler4_13 scaler4_14 scaler4_15
+    datamap   scaler     scaler4   scaler     4     16   17  26   scaler4_16 scaler4_17 scaler4_18 scaler4_19
+    datamap   scaler     scaler4   scaler     4     20   21  26   scaler4_20 scaler4_21 scaler4_22 scaler4_23
+    datamap   scaler     scaler4   scaler     4     24   25  26   scaler4_24 scaler4_25 scaler4_26 scaler4_27
+    datamap   scaler     scaler4   scaler     4     28   29  26   scaler4_28 scaler4_29 scaler4_30 scaler4_31
+    datamap   adc        adc29     adc       29      0    1  26   adc29_0 adc29_1 adc29_2 adc29_3
+    datamap   adc        adc29     adc       29     -9    5  26   csr29 dac29
+    datamap   adc        adc17     adc       17      0    7  26   adc17_0 adc17_1 adc17_2 adc17_3
+    datamap   adc        adc17     adc       17     -9   11  26   csr17 dac17
+    datamap   adc        adc26     adc       26      0   13  26   adc26_0 adc26_1 adc26_2 adc26_3
+    datamap   adc        adc26     adc       26     -9   17  26   csr26 dac26
+    datamap   adc        adc28     adc       28      0   19  26   adc28_0 adc28_1 adc28_2 adc28_3
+    datamap   adc        adc28     adc       28     -9   23  26   csr28 dac28
+    datamap   det        det3      adc       28      0            det3r
+#    datamap   det        det4      adc       28      1            det4r
+    datamap   prof       prof1     adc       28      3            rprofr
+    datamap   prof       prof1     scaler     4     18            rprofx
+    datamap   prof       prof1     scaler     4     16            rprofy
+    datamap   prof       prof1     scaler     4     20            rprofv1r
+    datamap   lumi       blumi1    adc       26      3            blumi1r
+    datamap   lumi       blumi2    adc       17      1            blumi2r
+    datamap   lumi       blumi3    adc       17      2            blumi3r
+    datamap   lumi       blumi4    adc       17      3            blumi4r
+    datamap   lumi       blumi5    adc       29      0            blumi5r
+    datamap   lumi       blumi6    adc       29      1            blumi6r
+    datamap   lumi       blumi7    adc       29      2            blumi7r
+    datamap   lumi       blumi8    adc       29      3            blumi8r
+    datamap   lumi       flumi1    adc       26      0            flumi1r
+    datamap   lumi       flumi2    adc       26      1            flumi2r
+    datamap   v2fclk     v2fclk4   scaler     4     31            v2f_clk4
+    datamap   sync       sync      scaler     4      0            rsync1 rsync2
+    datamap   batt       batt4     adc       26      2            batt4
+    datamap   batt       batt7     adc       28      2            batt7
+# Left Spectrometer Crate datamap - ROC25
+#   table  device-type dev-name read-type dev-num startchan header-offset roc-num channel-names(keys)
+    datamap   tir        tir2      tir        2      0    1  25   tirdata2
+    datamap   timeboard  timeboard2 timeboard 2      0    2  25   rampdelay2 integtime2 oversample2 precdac2 pitadac2
+    datamap   adc        adc6      adc        6      0    1  25   adc6_0 adc6_1 adc6_2 adc6_3
+    datamap   adc        adc6      adc        6     -9    5  25   csr6 dac6
+    datamap   adc        adc8      adc        8      0    7  25   adc8_0 adc8_1 adc8_2 adc8_3
+    datamap   adc        adc8      adc        8     -9   11  25   csr8 dac8
+    datamap   adc        adc27     adc       27      0   13  25   adc27_0 adc27_1 adc27_2 adc27_3
+    datamap   adc        adc27     adc       27     -9   17  25   csr27 dac27
+    datamap   scaler     scaler5   scaler     5      0    1  25   scaler5_0 scaler5_1 scaler5_2 scaler5_3
+    datamap   scaler     scaler5   scaler     5      4    5  25   scaler5_4 scaler5_5 scaler5_6 scaler5_7
+    datamap   scaler     scaler5   scaler     5      8    9  25   scaler5_8 scaler5_9 scaler5_10 scaler5_11
+    datamap   scaler     scaler5   scaler     5     12   13  25   scaler5_12 scaler5_13 scaler5_14 scaler5_15
+    datamap   scaler     scaler5   scaler     5     16   17  25   scaler5_16 scaler5_17 scaler5_18 scaler5_19
+    datamap   scaler     scaler5   scaler     5     20   21  25   scaler5_20 scaler5_21 scaler5_22 scaler5_23
+    datamap   scaler     scaler5   scaler     5     24   25  25   scaler5_24 scaler5_25 scaler5_26 scaler5_27
+    datamap   scaler     scaler5   scaler     5     28   29  25   scaler5_28 scaler5_29 scaler5_30 scaler5_31
+    datamap   v2fclk     v2fclk5   scaler     5     15            v2f_clk5
+    datamap   det        det1      adc       27      0            det1r
+#    datamap   det        det2      adc       27      1            det2r
+    datamap   prof       prof2     adc       27      3            lprofr
+    datamap   prof       prof2     scaler     5      0            lprofx
+    datamap   prof       prof2     scaler     5      2            lprofy
+    datamap   prof       prof2     scaler     5      4            lprofv1r
+    datamap   sync       sync5     scaler     5      10           lsync1
+    datamap   sync       sync5     scaler     5      12           lsync2
+# Cavities were mapped incorrectly (2 <---> 3) before run #3456
+    datamap   bcm        bcmcav3   adc        6      0            bcmcav3r
+    datamap   bcm        bcmcav2   adc        8      0            bcmcav2r
+    datamap   bpm        bpmcav3   adc        6      1            bpmcav3xr bpmcav3yr
+    datamap   bpm        bpmcav2   adc        8      1            bpmcav2xr bpmcav2yr
+    datamap   batt       batt6     adc        6      3            batt6
+    datamap   batt       batt8     adc       27      2            batt8

@@ -29,7 +29,7 @@ class QwSIS3801_Module {
  public:
   QwSIS3801_Module() {
     for (size_t i=0; i<fChannels.size(); i++){
-      fChannels.at(i).InitializeChannel("");
+      fChannels.at(i).InitializeChannel("","");
       fNumberOfDataWords = fChannels.at(i).GetNumberOfDataWords();
     }
   };

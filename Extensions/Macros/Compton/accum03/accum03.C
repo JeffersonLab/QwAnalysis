@@ -23,8 +23,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-using namespace std;
-
+#include "getChain.C"
 
 ////////////////////////////////////////////////////////////////////////////
 //This program analyzes a Compton run laser wise and plots the results.   //
@@ -41,60 +40,28 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   //  gStyle->SetCanvasColor(0);
   // Create a chain
   const Double_t LOW_LSR_LMT = 20.0;//laser considered unlocked below this
-  TChain *helChain = new TChain("Hel_Tree");
-  TChain *mpsChain = new TChain("Mps_Tree");
-  Int_t chainExists = 0;
+
+  TChain *helChain = getHelChain(runnum);
+  TChain *mpsChain = getMpsChain(runnum);
+
   // const Double_t MAXCUR = 140, MINSCALER = 235, MAXSCALER = 468;//bcm2_3h05a  values
   const Double_t MAXCUR = 60, MINSCALER = 235, MAXSCALER = 292;//bcm6_3c17 values
-  // Open either Pass1 or the First 100K
-  if( isFirst100K ) {
-    mpsChain->Add(Form("%s/first100k_%d.root",
-		       getenv("QW_ROOTFILES"),runnum));
-    chainExists = helChain->Add(Form("%s/first100k_%d.root",
-				     getenv("QW_ROOTFILES"),runnum));
-  } else {
-    mpsChain->Add(Form("%s/Compton_Pass1_%d.*.root",
-		       getenv("QW_ROOTFILES"),runnum));
-    chainExists = helChain->Add(Form("%s/Compton_Pass1_%d.*.root",
-				     getenv("QW_ROOTFILES"),runnum));
-  }
-  Bool_t local = kFALSE;
-  if(chainExists == 0){//check local folder in case running locally
-    mpsChain->Add(Form("Compton_Pass1_%d.*.root",runnum));
-    chainExists = helChain->Add(Form("Compton_Pass1_%d.*.root",runnum));
-
-    local = kTRUE;
-  }
-  if(chainExists == 0){//delete chains and exit if files do not exist
-    cout<<"File does not exist."<<endl;
-    helChain->TChain::~TChain();
-    mpsChain->TChain::~TChain();
-    return 0;
-  }
-  printf("%d files attached to chain.\n",chainExists);
 
   const Int_t MIN_ENTRIES = 2000;//min # of entries to use a laserwise cycle
   const Int_t NCUTS = 500;//initialized size of TCut arrays.
   const Double_t LSCALE = 0.7;//used to scale laser power on yield graph.
   const Int_t PATHLENGTH = 255;
   const Double_t BCMGAIN = MAXCUR/(MAXSCALER-MINSCALER);
-  char canvas1[PATHLENGTH], canvas2[PATHLENGTH], canvas3[PATHLENGTH];
-  char filename[PATHLENGTH];
-  if(local == kFALSE){
 
-    gSystem->mkdir(Form("www/run_%d",runnum),true);
-    sprintf(canvas1,"www/run_%d/accum03_%d_plots.png",runnum,runnum);
-    sprintf(canvas2,"www/run_%d/accum03_%d_asymm.png",runnum,runnum);
-    sprintf(canvas3,"www/run_%d/accum03_%d_yieldvspatnum.png",runnum,runnum);
-    sprintf(filename,"www/run_%d/accum03_%d_stats.txt",runnum,runnum);
-  }else{
-   gSystem->mkdir(Form("photonsummarydon/Run_%d",runnum),true);
-   sprintf(canvas1,"photonsummary/Run_%d_plots.png",runnum);
-   sprintf(canvas2,"photonsummary/Run_%d_asymm.png",runnum);
-   sprintf(canvas3,"photonsummary/Run_%d_yieldvspatnum.png",runnum);
-   sprintf(filename,"photonsummary/Run_%d_stats.txt",runnum);
-  }
-  FILE *polstats = fopen(filename,"w");//file for storing stats.
+  TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
+  gSystem->mkdir(www,true);
+  TString canvas1 = www + Form("accum0_%d_plots.png",runnum);
+  TString canvas2 = www + Form("accum0_%d_asymm.png",runnum);
+  TString canvas3 = www + Form("accum0_%d_yieldvspatnum.png",runnum);
+
+  // File for storing stats.
+  TString stats = www + Form("accum0_%d_stats.txt",runnum);
+  FILE *polstats = fopen(stats.Data(),"w");
      
   //  TTree *myTree = (TTree*)file->Get("Hel_Tree");
 
@@ -655,7 +622,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   pt->SetFillColor(0); // text is black on white
   pt->SetTextSize(0.043); 
   pt->SetTextAlign(12);
-  pt->AddText(Form("Weighted mean asymmetry: %0.2f\% \t (+/- %0.2f\%)\n",
+  pt->AddText(Form("Weighted mean asymmetry: %0.2f%% \t (+/- %0.2f%%)\n",
                    meanAsymm*100,meanError*100," "));
   pt->Draw();
   fclose(polstats);
@@ -673,12 +640,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
   gStyle->SetOptFit(1111);
   gr->Fit("pol0");
   gr->Draw("AP");
-  //Save canvases to file.
-  if(local == kFALSE){
-    cout<<"Saving to web directory."<<endl;
-  }else{
-    cout<<"Saving to local directory."<<endl;
-  }
+  // Save canvases to file.
   c1->Print(canvas1);
   c2->Print(canvas2);
   c3->Print(canvas3);
@@ -732,7 +694,7 @@ Int_t accum03(Int_t runnum, Bool_t isFirst100K=kFALSE, Bool_t deleteOnExit=kFALS
 
 ///////////////////////////////////////////////////////
 //This program loops over all runs in a directory.   //
-//The program will loop over all Pass1 runs between  //
+//The program will loop over all Pass? runs between  //
 //the two argument numbers checking for all segments.//
 ///////////////////////////////////////////////////////
 

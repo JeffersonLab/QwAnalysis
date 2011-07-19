@@ -1,0 +1,82 @@
+// bplot macro package:: bg_rawsignal.macro
+// Purpose:  Plots of Diagnostics from parity analyzer tree.
+
+{
+
+   gROOT->Reset();
+   G__loadfile("./bg_tree_define.macro");
+
+   bar = new TControlBar("vertical", "Helicity Correlations");
+
+   TString mycut = "ok_cut==1";   
+
+   btree at1("P","BCM1 Asymmetry","asym_bcm1",2,2,
+               "asym_bcm1",mycut.Data(),"","",
+               "asym_bcm1:m_ev_num",mycut.Data(),"","",
+               "asym_bcm1",mycut.Data(),"","",
+               "asym_bcm1",mycut.Data(),"","");
+   at1.forcehisto(2,"BCM1","BCM1 Asymmetry",
+           100,-20000,20000,0,0,0);
+   at1.forcehisto(3,"BCM1","BCM1 Asymmetry",
+           100,-4000,4000,0,0,0);
+
+
+   btree at2("P","BCM2 Asymmetry","asym_bcm2",2,2,
+               "asym_bcm2",mycut.Data(),"","",
+               "asym_bcm2:m_ev_num",mycut.Data(),"","",
+               "asym_bcm2",mycut.Data(),"","",
+               "asym_bcm2",mycut.Data(),"","");
+   at2.forcehisto(2,"BCM2","BCM2 Asymmetry",
+           100,-20000,20000,0,0,0);
+   at2.forcehisto(3,"BCM2","BCM2 Asymmetry",
+           100,-4000,4000,0,0,0);
+
+   btree at3("P","BPM 8 ","diff_bpm8",2,2,
+               "diff_bpm8x",mycut.Data(),"","",
+               "diff_bpm8y",mycut.Data(),"","",
+               "diff_bpm8x:m_ev_num",mycut.Data(),"","",
+               "diff_bpm8y:m_ev_num",mycut.Data(),"","");
+
+   btree at4("P","BPM 10 ","diff_bpm10",2,2,
+               "diff_bpm10x",mycut.Data(),"","",
+               "diff_bpm10y",mycut.Data(),"","",
+               "diff_bpm10x:m_ev_num",mycut.Data(),"","",
+               "diff_bpm10y:m_ev_num",mycut.Data(),"","");
+
+   btree at5("P","BPM 12 ","diff_bpm12",2,2,
+               "diff_bpm12x",mycut.Data(),"","",
+               "diff_bpm12y",mycut.Data(),"","",
+               "diff_bpm12x:m_ev_num",mycut.Data(),"","",
+               "diff_bpm12y:m_ev_num",mycut.Data(),"","");
+
+   btree at6("P","BPM 4a ","diff_bpm4A",2,2,
+               "diff_bpm4ax",mycut.Data(),"","",
+               "diff_bpm4ay",mycut.Data(),"","",
+               "diff_bpm4ax:m_ev_num",mycut.Data(),"","",
+               "diff_bpm4ay:m_ev_num",mycut.Data(),"","");
+
+   btree at7("P","BPM 4b ","diff_bpm4B",2,2,
+               "diff_bpm4bx",mycut.Data(),"","",
+               "diff_bpm4by",mycut.Data(),"","",
+               "diff_bpm4bx:m_ev_num",mycut.Data(),"","",
+               "diff_bpm4by:m_ev_num",mycut.Data(),"","");
+
+
+   bar->AddButton("           Charge Asymmetry BCM1           ",   "at1.plot()");
+   bar->AddButton("           Charge Asymmetry BCM2           ",   "at2.plot()");
+   bar->AddButton("           BPM Diffs on BPM 8              ",   "at3.plot()");
+   bar->AddButton("           BPM Diffs on BPM 10             ",   "at4.plot()"); 
+   bar->AddButton("           BPM Diffs on BPM 12             ",   "at5.plot()");
+   bar->AddButton("           BPM Diffs on BPM 4A             ",   "at6.plot()");
+   bar->AddButton("           BPM Diffs on BPM 4B             ",   "at7.plot()");
+
+
+   bar->Show();
+   gROOT->SaveContext();
+}
+
+
+
+
+
+

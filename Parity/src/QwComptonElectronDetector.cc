@@ -361,7 +361,7 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 		  }
 		  words_read++;
 		}
-		Int_t ExtraWord = buffer[NPlanes*(m+1)];//diagnostic word, ignore warning, unused currently
+		//Int_t ExtraWord = buffer[NPlanes*(m+1)];//diagnostic word, ignore warning, unused currently
 		words_read++;
 	      }
 	      for (Int_t k = 0; k < StripsPerPlane; k++) {
@@ -852,12 +852,12 @@ Int_t QwComptonElectronDetector::ProcessConfigurationBuffer(const UInt_t roc_id,
 //*****************************************************************
 Bool_t QwComptonElectronDetector::IsGoodEvent()
 {
-  Bool_t fEventIsGood = kTRUE;
+  Bool_t eventokay = kTRUE;
   Int_t nchan=0;
   for (Int_t i=0; i<NPlanes; i++)
     nchan += fStripsRaw[i].size();
-  fEventIsGood &= (nchan == 384);
-  return fEventIsGood;
+  eventokay &= (nchan == 384);
+  return eventokay;
 }
 
 /**

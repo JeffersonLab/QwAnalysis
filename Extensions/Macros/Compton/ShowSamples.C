@@ -1,14 +1,22 @@
 #include <vector>
+#include <iostream>
+
+#include "TTree.h"
+#include "TGraph.h"
+
+#include "QwSIS3320_Samples.h"
+
+TTree* Mps_Tree;
 
 void ShowSamples(int entry)
 {
-  std::vector<MQwSIS3320_Samples>* sampled_events = 0;
+  std::vector<QwSIS3320_Samples>* sampled_events = 0;
   Mps_Tree->SetBranchAddress("fadc_compton_samples",&sampled_events);
 
   Mps_Tree->GetEntry(entry);
 
   if (sampled_events->size() > 0) {
-    const TGraph* graph = sampled_events->at(0).GetGraph();
+    TGraph* graph = sampled_events->at(0).GetGraph();
     graph->Draw("AL");
     std::cout << "sum = " << sampled_events->at(0).GetSum() << std::endl;
   } else {

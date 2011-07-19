@@ -28,8 +28,8 @@ void  QwBPMCavity::InitializeChannel(TString name)
 
   VQwBPM::InitializeChannel(name);
 
-  for(i=0;i<2;i++)
-    fAbsPos[i].InitializeChannel(name+"Abs"+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++)
+    fAbsPos[i].InitializeChannel(name+"Abs"+kAxisLabel[i],"derived");
 
   fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","raw");
 
@@ -39,7 +39,7 @@ void  QwBPMCavity::InitializeChannel(TString name)
       std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
   }
 
-  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(name+"Rel"+subelement[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].InitializeChannel(name+"Rel"+subelement[i],"derived");
 
   bFullSave=kTRUE;
 
@@ -53,8 +53,8 @@ void  QwBPMCavity::InitializeChannel(TString subsystem, TString name)
   
   VQwBPM::InitializeChannel(name);
   
-  for(i=0;i<2;i++)
-    fAbsPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Abs"+axis[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++)
+    fAbsPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Abs"+kAxisLabel[i],"derived");
   
   fEffectiveCharge.InitializeChannel(subsystem, "QwBPMCavity", name+"_EffectiveCharge","raw");
   
@@ -64,7 +64,7 @@ void  QwBPMCavity::InitializeChannel(TString subsystem, TString name)
       std::cout<<" Wire ["<<i<<"]="<<fWire[i].GetElementName()<<"\n";
   }
   
-  for(i=0;i<2;i++) fRelPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Rel"+subelement[i],"derived");
+  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].InitializeChannel(subsystem, "QwBPMCavity", name+"Rel"+subelement[i],"derived");
   
   bFullSave=kTRUE;
   
@@ -88,20 +88,20 @@ void QwBPMCavity::ClearEventData()
 
 Bool_t QwBPMCavity::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;
+  Bool_t eventokay=kTRUE;
 
-  fDeviceErrorCode=0;
+  UInt_t deviceerror=0;
   for(Short_t i=0;i<2;i++)
     {
-      fDeviceErrorCode|= fWire[i].ApplyHWChecks();  //OR the error code from each wire
-      fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 since zero means HW is good.
+      deviceerror|= fWire[i].ApplyHWChecks();  //OR the error code from each wire
+      eventokay &= (deviceerror & 0x0);//AND with 0 since zero means HW is good.
 
       if (bDEBUG) std::cout<<" Inconsistent within BPM terminals wire[ "<<i<<" ] "<<std::endl;
       if (bDEBUG) std::cout<<" wire[ "<<i<<" ] sequence num "<<fWire[i].GetSequenceNumber()<<" sample size "<<fWire[i].GetNumberOfSamples()<<std::endl;
     }
-  fDeviceErrorCode = fEffectiveCharge.ApplyHWChecks();
-  fEventIsGood &= (fDeviceErrorCode & 0x0);//AND with 0 
-  return fEventIsGood;
+  deviceerror = fEffectiveCharge.ApplyHWChecks();
+  eventokay &= (deviceerror & 0x0);//AND with 0 
+  return eventokay;
 }
 
 
@@ -139,7 +139,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
     //Get the Event cut error flag for RelX/Y
     fErrorFlag |=fWire[i].GetEventcutErrorFlag();
   }
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -152,7 +152,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
     fErrorFlag |=fRelPos[i].GetEventcutErrorFlag();
   }
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -180,6 +180,30 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   return status;
 
 }
+
+VQwHardwareChannel* QwBPMCavity::GetSubelementByName(TString ch_name)
+{
+  VQwHardwareChannel* tmpptr = NULL;
+  ch_name.ToLower();
+  if (ch_name=="relx"){
+    tmpptr = &fRelPos[0];
+  }else if (ch_name=="rely"){
+    tmpptr = &fRelPos[1];
+  }else if (ch_name=="absx" || ch_name=="x" ){
+    tmpptr = &fAbsPos[0];
+  }else if (ch_name=="absy" || ch_name=="y"){
+    tmpptr = &fAbsPos[1];
+  }else if (ch_name=="effectivecharge" || ch_name=="charge"){
+    tmpptr = &fEffectiveCharge;
+  } else {
+    TString loc="QwLinearDiodeArray::GetSubelementByName for"
+      + this->GetElementName() + " was passed "
+      + ch_name + ", which is an unrecognized subelement name.";
+    throw std::invalid_argument(loc.Data());
+  }
+  return tmpptr;
+}
+
 
 
 void QwBPMCavity::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
@@ -259,7 +283,7 @@ void  QwBPMCavity::ProcessEvent()
     fWire[i].PrintInfo();
   }
 
-  for(i=0;i<2;i++){
+  for(i=kXAxis;i<kNumAxes;i++){
     fRelPos[i]= fWire[i];
     fRelPos[i].Scale(kQwCavityCalibration);
     fAbsPos[i]= fRelPos[i];
@@ -349,6 +373,14 @@ void  QwBPMCavity::GetAbsolutePosition()
   // treated as a vqwk channel.
 }
 
+
+VQwBPM& QwBPMCavity::operator= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwBPMCavity*>(this)) =
+      *(dynamic_cast<const QwBPMCavity*>(&value));
+  return *this;
+}
+
 QwBPMCavity& QwBPMCavity::operator= (const QwBPMCavity &value)
 {
   VQwBPM::operator= (value);
@@ -382,6 +414,15 @@ QwBPMCavity& QwBPMCavity::operator+= (const QwBPMCavity &value)
   return *this;
 }
 
+VQwBPM& QwBPMCavity::operator+= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwBPMCavity*>(this)) +=
+      *(dynamic_cast<const QwBPMCavity*>(&value));
+  return *this;
+}
+
+
+
 QwBPMCavity& QwBPMCavity::operator-= (const QwBPMCavity &value)
 {
 
@@ -396,6 +437,14 @@ QwBPMCavity& QwBPMCavity::operator-= (const QwBPMCavity &value)
   }
   return *this;
 }
+
+VQwBPM& QwBPMCavity::operator-= (const VQwBPM &value)
+{
+  *(dynamic_cast<QwBPMCavity*>(this)) -=
+      *(dynamic_cast<const QwBPMCavity*>(&value));
+  return *this;
+}
+
 
 
 void QwBPMCavity::Ratio(QwBPMCavity &numer, QwBPMCavity &denom)
@@ -458,7 +507,7 @@ void  QwBPMCavity::ConstructHistograms(TDirectory *folder, TString &prefix)
       thisprefix="diff_";
     SetRootSaveStatus(prefix);
     Short_t i = 0;
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       if(bFullSave) fWire[i].ConstructHistograms(folder, thisprefix);
       fRelPos[i].ConstructHistograms(folder, thisprefix);
       fAbsPos[i].ConstructHistograms(folder, thisprefix);
@@ -475,7 +524,7 @@ void  QwBPMCavity::FillHistograms()
   else {
     fEffectiveCharge.FillHistograms();
     Short_t i = 0;
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       if (bFullSave) fWire[i].FillHistograms();
       fRelPos[i].FillHistograms();
       fAbsPos[i].FillHistograms();
@@ -492,7 +541,7 @@ void  QwBPMCavity::DeleteHistograms()
   else {
     fEffectiveCharge.DeleteHistograms();
     Short_t i = 0;
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       if (bFullSave)  fWire[i].DeleteHistograms();
       fRelPos[i].DeleteHistograms();
       fAbsPos[i].DeleteHistograms();
@@ -516,7 +565,7 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 
     fEffectiveCharge.ConstructBranchAndVector(tree,prefix,values);
     Short_t i = 0;
-    for(i=0;i<2;i++) {
+    for(i=kXAxis;i<kNumAxes;i++) {
       if (bFullSave) fWire[i].ConstructBranchAndVector(tree,thisprefix,values);
       fRelPos[i].ConstructBranchAndVector(tree,thisprefix,values);
       fAbsPos[i].ConstructBranchAndVector(tree,thisprefix,values);
@@ -540,7 +589,7 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 
      fEffectiveCharge.ConstructBranch(tree,prefix);
      Short_t i = 0;
-     for(i=0;i<2;i++) {
+     for(i=kXAxis;i<kNumAxes;i++) {
        if (bFullSave) fWire[i].ConstructBranch(tree,thisprefix);
        fRelPos[i].ConstructBranch(tree,thisprefix);
        fAbsPos[i].ConstructBranch(tree,thisprefix);
@@ -578,7 +627,7 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
 
        fEffectiveCharge.ConstructBranch(tree,prefix);
        Short_t i = 0;
-       for(i=0;i<2;i++) {
+       for(i=kXAxis;i<kNumAxes;i++) {
 	 if (bFullSave) fWire[i].ConstructBranch(tree,thisprefix);
 	 fRelPos[i].ConstructBranch(tree,thisprefix);
          fAbsPos[i].ConstructBranch(tree,thisprefix);
@@ -605,7 +654,7 @@ void  QwBPMCavity::FillTreeVector(std::vector<Double_t> &values) const
   else {
     fEffectiveCharge.FillTreeVector(values);
     Short_t i = 0;
-    for(i=0;i<2;i++){
+    for(i=kXAxis;i<kNumAxes;i++){
       if (bFullSave) fWire[i].FillTreeVector(values);
       fRelPos[i].FillTreeVector(values);
       fAbsPos[i].FillTreeVector(values);
@@ -651,7 +700,7 @@ void QwBPMCavity::Copy(VQwDataElement *source)
 void QwBPMCavity::SetEventCutMode(Int_t bcuts)
 {
   Short_t i = 0;
-  bEVENTCUTMODE=bcuts;
+  //  bEVENTCUTMODE=bcuts;
   for (i=0;i<2;i++) {
     fWire[i].SetEventCutMode(bcuts);
     fRelPos[i].SetEventCutMode(bcuts);
@@ -667,7 +716,7 @@ void QwBPMCavity::MakeBPMCavityList()
 
   QwVQWK_Channel bpm_sub_element;
 
-  for(i=0;i<2;i++) {
+  for(i=kXAxis;i<kNumAxes;i++) {
     bpm_sub_element.ClearEventData();
     bpm_sub_element.Copy(&fRelPos[i]);
     bpm_sub_element = fRelPos[i];
@@ -683,68 +732,14 @@ void QwBPMCavity::MakeBPMCavityList()
 
 std::vector<QwDBInterface> QwBPMCavity::GetDBEntry()
 {
-
-  UShort_t i = 0;
-  UShort_t n_bpm_element = 0;
-
   std::vector <QwDBInterface> row_list;
   row_list.clear();
-
-  QwDBInterface row;
-
-  TString name;
-  Double_t avg         = 0.0;
-  Double_t err         = 0.0;
-  UInt_t beam_subblock = 0;
-  UInt_t beam_n        = 0;
-
-  for(n_bpm_element=0; n_bpm_element<fBPMElementList.size(); n_bpm_element++) {
-
-    row.Reset();
-    // the element name and the n (number of measurements in average)
-    // is the same in each block and hardwaresum.
-
-    name          = fBPMElementList.at(n_bpm_element).GetElementName();
-    beam_n        = fBPMElementList.at(n_bpm_element).GetGoodEventCount();
-
-    // Get HardwareSum average and its error
-    avg           = fBPMElementList.at(n_bpm_element).GetHardwareSum();
-    err           = fBPMElementList.at(n_bpm_element).GetHardwareSumError();
-    // ADC subblock sum : 0 in MySQL database
-    beam_subblock = 0;
-
-    row.SetDetectorName(name);
-    row.SetSubblock(beam_subblock);
-    row.SetN(beam_n);
-    row.SetValue(avg);
-    row.SetError(err);
-
-    row_list.push_back(row);
-
-    // Get four Block averages and thier errors
-
-    for(i=0; i<4; i++) {
-      row.Reset();
-      avg           = fBPMElementList.at(n_bpm_element).GetBlockValue(i);
-      err           = fBPMElementList.at(n_bpm_element).GetBlockErrorValue(i);
-      beam_subblock = (UInt_t) (i+1);
-      // QwVQWK_Channel  | MySQL
-      // fBlock[0]       | subblock 1
-      // fBlock[1]       | subblock 2
-      // fBlock[2]       | subblock 3
-      // fBlock[3]       | subblock 4
-      row.SetDetectorName(name);
-      row.SetSubblock(beam_subblock);
-      row.SetN(beam_n);
-      row.SetValue(avg);
-      row.SetError(err);
-
-      row_list.push_back(row);
-    }
+  for(size_t i=0;i<2;i++) {
+    fRelPos[i].AddEntriesToList(row_list);
+    fAbsPos[i].AddEntriesToList(row_list);
   }
-
+  fEffectiveCharge.AddEntriesToList(row_list);
   return row_list;
-
 }
 
 /**********************************
@@ -828,3 +823,4 @@ void QwBPMCavity::SetSubElementCalibrationFactor(Int_t j, Double_t value)
   fWire[j].SetCalibrationFactor(value);
   return;
 }
+

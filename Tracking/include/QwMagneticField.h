@@ -144,6 +144,9 @@ class QwMagneticField  {
     /// \brief Read the field map input stream
     bool ReadFieldMapStream(std::istream& input);
 
+    /// \brief Test the field map
+    bool TestFieldMap();
+
     /// \name Expose some functionality of underlying field map
     // @{
     /// Write a binary field map

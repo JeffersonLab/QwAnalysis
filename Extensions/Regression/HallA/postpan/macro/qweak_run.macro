@@ -1,0 +1,26 @@
+// Interactive root script example
+// If one runs ./redana, the in the root shell .x macro/run.macro
+
+{
+  gROOT->Reset();
+  gROOT->LoadMacro("macro/open.macro");
+
+  cout << "Run number: ";
+  int run;
+  cin >> run;
+  
+  TaRedAna red;
+  
+  if (red.Init (run) != 0)
+    return 1;
+  if (red.Process() != 0)
+    return 1;
+  if (red.End() != 0)
+    return 1;
+  
+  open(run,"red");
+    
+  reg->Draw("reg_diff_qwk_1i02X.hw_sum");
+  reg->Draw("reg_diff_qwk_1i02Y.hw_sum","","same");
+  
+}

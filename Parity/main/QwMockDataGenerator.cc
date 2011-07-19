@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
   bcm_name.push_back("qwk_bcm0l06"); bcm_asym.push_back(6.0e-6);
   bcm_name.push_back("qwk_bcm0l07"); bcm_asym.push_back(7.0e-7);
   for (unsigned int i = 0; i < bcm_name.size(); i++) {
-    QwBCM* bcm = beamline->GetBCM(bcm_name[i]);
+    VQwBCM* bcm = beamline->GetBCM(bcm_name[i]);
     if (! bcm) continue;
     // Set the mean, sigma, and asymmetry
     bcm->SetRandomEventParameters(bcm_mean, bcm_sigma);
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
   bpm_meanY.push_back(-1.5); bpm_sigmaY.push_back(4.0e-3);
   bpm_meanY.push_back(-1.5); bpm_sigmaY.push_back(4.0e-3);
   for (unsigned int i = 0; i < 2; i++) {
-    QwBPMStripline* bpm = beamline->GetBPMStripline(bpm_name[i]);;
+    VQwBPM* bpm = beamline->GetBPMStripline(bpm_name[i]);;
     if (! bpm) continue;
     // Set the mean and sigma
     bpm->SetRandomEventParameters(bpm_meanX[i], bpm_sigmaX[i], bpm_meanY[i], bpm_sigmaY[i]);
@@ -286,14 +286,14 @@ int main(int argc, char* argv[])
         // Periodicity
         if (fmod(time, period) >= period - length) {
           // Do the ramp down
-          QwBCM* bcm = beamline->GetBCM(bcm_name[2]);
+          VQwBCM* bcm = beamline->GetBCM(bcm_name[2]);
           double scale = double(period - fmod(time, period)) / double(length);
           bcm->SetRandomEventParameters(bcm_mean * scale, bcm_sigma);
         }
 
         // Set the scale back to what it was after a trip
         if (fmod(time, period) < helicity_window) {
-          QwBCM* bcm = beamline->GetBCM(bcm_name[2]);
+          VQwBCM* bcm = beamline->GetBCM(bcm_name[2]);
           bcm->SetRandomEventParameters(bcm_mean, bcm_sigma);
         }
       } // end of beam trips

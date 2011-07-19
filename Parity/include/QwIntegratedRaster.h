@@ -132,7 +132,7 @@ protected:
  
   Int_t GetDetectorIndex(TString name);
 
-  std::vector <QwIntegratedRasterChannel>      fIntegratedRasterChannel;  
+  std::vector <QwIntegratedRasterChannel<QwVQWK_Channel> >      fIntegratedRasterChannel;  
   std::vector <QwIntegratedRasterDetectorID>   fDetectorIDs;
 
 protected:

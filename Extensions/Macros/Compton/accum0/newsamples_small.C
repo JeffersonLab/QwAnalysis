@@ -20,7 +20,7 @@
 #include "TSystem.h"
 #include <iostream>
 #include <stdio.h>
-#include "/home/cdaq/compton/QwAnalysis/Analysis/include/MQwSIS3320_Samples.h"
+#include "/home/cdaq/compton/QwAnalysis/Analysis/include/QwSIS3320_Samples.h"
 
 Int_t newsamples_small(Int_t runnum, Int_t segnum = 0)
 {
@@ -45,7 +45,7 @@ Int_t newsamples_small(Int_t runnum, Int_t segnum = 0)
   }
   TTree *mpsTree = (TTree*)file->Get("Mps_Tree");
 
-  std::vector<MQwSIS3320_Samples>* sampled_events = 0;
+  std::vector<QwSIS3320_Samples>* sampled_events = 0;
   mpsTree->SetBranchAddress("fadc_compton_samples",&sampled_events);
 
   Double_t sca_laser_PowT;

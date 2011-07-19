@@ -230,15 +230,6 @@ class QwInterpolator {
 
     /// \name Functions to write grid values
     // @{
-    /// Set a series of single values on a on-dimensional grid
-    bool Set(const unsigned int n, const coord_t* r, const value_t* p) {
-      if (value_n != 1) return false; // only for one-dimensional values
-      if (fNDim != 1)   return false; // only for one-dimensional grids
-      for (unsigned int i = 0; i < n; i++)
-        if (! Set(r[i],p[i])) return false;
-      return true;
-    }
-
     /// Set a single value at a coordinate (false if not possible)
     bool Set(const coord_t& coord, const value_t& value) {
       if (value_n != 1) return false; // only for one-dimensional values

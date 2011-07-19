@@ -1,0 +1,199 @@
+% This file contains both landscape and portrait mode slides.
+% Choose one of the following to print them out:
+%  - If using PSTricks, try the semcolor style option.
+%  - If using Rokicki's dvips, try the semrot style option.
+%  - To print {\em }the landscape slides, put \landscapeonly in the preamble.
+%    To print the portrait slides, include the portrait style option and
+%    put \portraitonly in the preamble.
+%
+%
+\documentstyle[%
+  fontenc,%
+  colordvi,%
+  graphicx,%
+  epsfig,%
+  rotating,%
+  wrapfig,%
+  epsf,%
+  amsmath,%
+  amsthm,%
+  amsfonts,%
+  picins,%
+  fancybox,%
+  %slidesonly,%  Try notes or notesonly instead.
+  notes,%      Use instead of slidesonly to typeset the notes.
+  %notesonly,%  Use instead of slidesonly to typeset notes and slides.
+  semcolor,%   Try me if using PSTricks.
+  semrot,%     Try me if using Rokicki's dvips.
+  semhelv,%    Try me if using a PostScript printer.
+  %article,%    Try me.
+  portrait,%   Try me.
+  %sem-a4,%     Try me if using A4 paper.
+  semlayer%     This must be included, but you need the semcolor option to
+  ]{seminar}                                  % actually see the overlays.
+
+\slidesmag{4}
+%\articlemag{1}
+
+%\twoup                     % Try me for twoup printing.
+
+%\portraitonly              % To print only portrait slides
+%\landscapeonly             % To print only landscape slides
+
+%\notslides{\ref{questions}-7,1}   %Try me: The slides are omitted.
+%\onlyslides{\ref{questions}-7,1}  %Try me: Only these slides are included.
+\onlynotestoo                     %Try me: For selecting notes as well.
+
+\colorlayers{red,blue}      % Try deleting this if using the semcolor option,
+                            % to get \blue and \red to use PostScript color.
+
+%\overlaysfalse             % Suppress overlays with semcolor option.
+%\layersfalse               % Suppress color layers with semcolor option.
+
+\rotateheaderstrue          % Try this out if using rotation macros.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% definitions des fontes
+%
+\newfont{\goth}{ygoth}
+\newfont{\fancyet}{cmbxti10 scaled 700}
+\newfont{\transf}{cmbx10}
+%
+%
+%%%%%%%%%%%%%%%%%%%% dimensions %%%%%%%%%%%%%%%%%%%%%%
+%
+%\setlength{\textwidth}{18cm}
+%\setlength{\textheight}{25cm}
+%\setlength{\leftmargin}{-1cm}
+%\setlength{\rightmargin}{1cm}
+%\setlength{\topmargin}{-2.5cm}
+%\setlength{\marginparwidth}{0cm}
+%\setlength{\marginparsep}{-2.5cm}
+%\setlength{\slideframesep}{8pt}
+\setlength{\slidewidth}{8.75in}
+\setlength{\slideheight}{7.2in}
+\setlength{\slideframewidth}{1.5pt}
+\renewcommand{\slideleftmargin}{0.2in}
+\renewcommand{\sliderightmargin}{0.15in}
+\renewcommand{\slidetopmargin}{1.0in}
+\renewcommand{\slidebottommargin}{0.2in}
+\renewcommand{\shadowthickness}{1pt}
+\renewcommand{\slidefonts}{\transf}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% redefinit les headers
+%\newcommand{\sref}[1]{SLIDE \ref{#1}}
+%\newcommand{\heading}[1]{\begin{center}\large\bf #1\end{center}}
+
+\newpagestyle{MF}%
+%  {{\tiny{Riad Suleiman}}\hfil\thepage}{}
+  {{\tiny{ }}\hfil{\ }}{}
+\pagestyle{MF}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% include following to print two per page
+%
+%\twoup
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Selective Section Processing
+%
+% note if you do not set option 'slidesonly', you will still get notes
+% outside of the range specified here.
+%
+%\onlyslides{22-100}
+%\includeonly{phys}
+%\includeonly{curr_surv}
+%\includeonly{delta}
+%
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%gives greater than or approximately equal to
+\def\gtorder{\mathrel{\raise.3ex\hbox{$>$}\mkern-14mu
+             \lower0.6ex\hbox{$\sim$}}}
+%give less than or approximately equal to
+\def\ltorder{\mathrel{\raise.3ex\hbox{$<$}\mkern-14mu
+             \lower0.6ex\hbox{$\sim$}}}
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\renewcommand{\slidefonts}{\transf}
+%
+%
+%
+% Title Slide and Outline
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{slide*}
+
+\begin{center}
+\begin{shadowenv}[.45\slideheight]
+\transf
+
+\Blue{MySQL Interface for Parity } \\ 
+{\ } \\
+\end{shadowenv}
+\end{center}
+
+\begin{center}
+\normalsize
+\transf{\bf R.~Suleiman} \\
+\vspace*{0.5cm}
+
+\end{center}
+
+{\Large 
+
+\begin{itemize}
+\item  The database is implemented in MySQL
+
+{\Blue{\underline{\rm http://www.mysql.org}}}
+
+\item C++ class (TaMysql) written in ROOT to 
+interface with the database
+
+{\Blue{\underline{\rm http://root.cern.ch}}}
+
+\item Script to generate ascii files from the database, and one
+to do the reverse, generate a database from the file: 
+
+\begin{verbatim}
+ > ascii2db.pl 
+ > db2ascii.pl run=100
+\end{verbatim}
+
+\end{itemize}
+}
+
+
+\end{slide*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{slide*}
+
+\centerline{\shadowbox{\Blue{\Large Features}}}
+{\Large 
+\begin{itemize}
+\item  For the "Pan" code, the database contains:
+
+\begin{itemize}
+     \item[1.] Logical Parameters that affect program flow
+     \item[2.] DataMap (correspondence of 'keys' to event buffer)
+     \item[3.] Calibration Parameters used by program
+     \item[4.] Cuts and the event intervals associated
+\end{itemize}
+
+\item Run indexed lookup of constants
+
+\item Keep a change log: user, date, time, comment
+
+\end{itemize}
+}
+
+\end{slide*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\end{document}

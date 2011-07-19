@@ -21,7 +21,7 @@
 #include "TSystem.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "/home/cdaq/compton/QwAnalysis/Analysis/include/MQwSIS3320_Samples.h"
+#include "/home/cdaq/compton/QwAnalysis/Analysis/include/QwSIS3320_Samples.h"
 
 using namespace std;
 
@@ -86,7 +86,7 @@ Int_t sampleSummary(Int_t runnum, Bool_t isFirst100K=kFALSE, Int_t bcmnum=6, Int
     return 0;
   }
 
-  std::vector<MQwSIS3320_Samples>* sampled_events = 0;
+  std::vector<QwSIS3320_Samples>* sampled_events = 0;
   Double_t sca_laser_PowT;
   mpsChain->SetBranchStatus("fadc_compton_samples*", 1);
   mpsChain->SetBranchStatus("sca_laser_PowT", 1);

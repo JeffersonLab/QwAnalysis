@@ -1,0 +1,35 @@
+void helcheck2 ()
+{
+  c1 = new TCanvas ("c1", "Helicity check");
+  c1->Divide(2,2);
+  gStyle->SetOptFit (1);
+
+  UInt_t ip = 1;
+
+  c1->cd(ip++);
+  P->Draw ("asym_bcm1", "ok_cut && evt_pairsynch[0] == 1 && prev_hel==1");
+  htemp->Rebin (2);
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 asym, LRL");
+
+  c1->cd(ip++);
+  P->Draw ("asym_bcm1", "ok_cut && evt_pairsynch[1] == 1 && prev_hel==1");
+  htemp->Rebin (2);
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 asym, LLR");
+
+  c1->cd(ip++);
+  P->Draw ("asym_bcm1", "ok_cut && evt_pairsynch[0] == 1 && prev_hel==0");
+  htemp->Rebin (2);
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 asym, RRL");
+
+  c1->cd(ip++);
+  P->Draw ("asym_bcm1", "ok_cut && evt_pairsynch[1] == 1 && prev_hel==0");
+  htemp->Rebin (2);
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 asym, RLR");
+
+  c1->Update();
+  c1->Modified();
+}

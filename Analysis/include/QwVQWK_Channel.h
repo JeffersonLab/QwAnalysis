@@ -14,25 +14,18 @@
 // ROOT headers
 #include "TTree.h"
 
-// Boost math library for random number generation
-#include "boost/random.hpp"
-
 // Qweak headers
-#include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
+#include "MQwMockable.h"
 
 // Forward declarations
 class QwBlinder;
-
-/// Flag to be used to decide which data needs to be histogrammed and
-/// entered in the tree
-enum EDataToSave {kRaw = 0, kDerived};
-
 
 ///
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class QwVQWK_Channel: public VQwDataElement {
+class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 /****************************************************************//**
  *  Class: QwVQWK_Channel
  *         Base class containing decoding functions for the VQWK_Channel
@@ -46,13 +39,19 @@ class QwVQWK_Channel: public VQwDataElement {
   static void  PrintErrorCounterHead();
   static void  PrintErrorCounterTail();
 
+  using VQwHardwareChannel::GetRawValue;
+  using VQwHardwareChannel::GetValue;
+  using VQwHardwareChannel::GetValueM2;
+  using VQwHardwareChannel::GetValueError;
+  using VQwHardwareChannel::GetValueWidth;
+
  public:
-  QwVQWK_Channel() {
+  QwVQWK_Channel(): MQwMockable() {
     InitializeChannel("","");
     SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
 
-  QwVQWK_Channel(TString name, TString datatosave = "raw") {
+  QwVQWK_Channel(TString name, TString datatosave = "raw"): MQwMockable() {
     InitializeChannel(name, datatosave);
     SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
@@ -72,9 +71,6 @@ class QwVQWK_Channel: public VQwDataElement {
     fNumberOfSamples_map = NumberOfSamples_map;
   };
   
-  UInt_t GetErrorCode() const {return fDeviceErrorCode;};
-  void UpdateErrorCode(const UInt_t& errorcode){fDeviceErrorCode |= errorcode;};
-
   void  ClearEventData();
 
   void ReportErrorCounters();//This will display the error summary for each device
@@ -84,27 +80,11 @@ class QwVQWK_Channel: public VQwDataElement {
 
   }
 
-  /// \name Parity mock data generation
-  // @{
-  /// Set a single set of harmonic drift parameters
-  void  SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
-  /// Add drift parameters to the internal set
-  void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
-  /// Set the normal random event parameters
-  void  SetRandomEventParameters(Double_t mean, Double_t sigma);
-  /// Set the helicity asymmetry
-  void  SetRandomEventAsymmetry(Double_t asymmetry);
   /// Internally generate random event data
   void  RandomizeEventData(int helicity = 0.0, double time = 0.0);
-  /// Set the flag to use an externally provided random variable
-  void  UseExternalRandomVariable() { fUseExternalRandomVariable = true; };
-  /// Set the externally provided random variable
-  void  SetExternalRandomVariable(Double_t random_variable) {
-    fUseExternalRandomVariable = true;
-    fExternalRandomVariable = random_variable;
-  };
-  // @}
 
+  ///  TODO:  SetHardwareSum should be removed, and SetEventData
+  ///         should be made protected.
   void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   void  SetEventData(Double_t* block, UInt_t sequencenumber = 0);
 
@@ -119,7 +99,8 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
-  VQwDataElement& operator=  (const VQwDataElement &value);
+  //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &value);
+  void AssignValueFrom(const VQwDataElement* valueptr);
 
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
   QwVQWK_Channel& operator-= (const QwVQWK_Channel &value);
@@ -127,21 +108,30 @@ class QwVQWK_Channel: public VQwDataElement {
   const QwVQWK_Channel operator+ (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator- (const QwVQWK_Channel &value) const;
   const QwVQWK_Channel operator* (const QwVQWK_Channel &value) const;
-  void Sum(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
-  void Difference(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
-  void Ratio(QwVQWK_Channel &numer, QwVQWK_Channel &denom);
-  void Product(QwVQWK_Channel &value1, QwVQWK_Channel &value2);
-  void DivideBy(QwVQWK_Channel& denom);
+  void Sum(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2);
+  void Difference(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2);
+  void Ratio(const QwVQWK_Channel &numer, const QwVQWK_Channel &denom);
+  void Product(const QwVQWK_Channel &value1, const QwVQWK_Channel &value2);
+  void DivideBy(const QwVQWK_Channel& denom);
   void AddChannelOffset(Double_t Offset);
   void Scale(Double_t Offset);
 
   void AccumulateRunningSum(const QwVQWK_Channel& value);
+  void AccumulateRunningSum(const VQwHardwareChannel *value){
+    const QwVQWK_Channel *tmp_ptr = dynamic_cast<const QwVQWK_Channel*>(value);
+    if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr);
+  };
   ////deaccumulate one value from the running sum
   void DeaccumulateRunningSum(QwVQWK_Channel& value){
     value.fGoodEventCount=-1;
     AccumulateRunningSum(value);
     value.fGoodEventCount=0;
   };
+  void DeaccumulateRunningSum(VQwHardwareChannel *value){
+    QwVQWK_Channel *tmp_ptr = dynamic_cast<QwVQWK_Channel*>(value);
+    if (tmp_ptr != NULL) DeaccumulateRunningSum(*tmp_ptr);
+  };
+
   void CalculateRunningAverage();
 
   Bool_t MatchSequenceNumber(size_t seqnum);
@@ -150,34 +140,7 @@ class QwVQWK_Channel: public VQwDataElement {
   /*Event cut related routines*/
   Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level by comparing upper and lower limits (fULimit and fLLimit) set on this channel
-  void SetSingleEventCuts(Double_t min, Double_t max);//set the upper and lower limits (fULimit and fLLimit) set on this channel
-  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
-  /*! \brief return the error flag on this channel/device*/
-  UInt_t GetEventcutErrorFlag(){//return the error flag
-    //if (GetElementName()=="qwk_bcm1" && fDeviceErrorCode)
-    //if ((fDeviceErrorCode&kErrorFlag_EventCut_L)==kErrorFlag_EventCut_L )
-    //std::cout<<"QwVQWK_Channel Failed eflag "<<fErrorFlag<<" D E "<<fDeviceErrorCode<<" "<<((fErrorFlag & kGlobalCut) == kGlobalCut)<<" kGlobalCut  "<<kGlobalCut<<std::endl;
-
-    if (((fErrorFlag & kGlobalCut) == kGlobalCut) && fDeviceErrorCode>0){//we care only about global cuts
-      //std::cout<<" Failed "<<std::endl;
-      //if (GetElementName()=="qwk_bcm1" )
-      //std::cout<<"QwVQWK_Channel Failed eflag "<<fErrorFlag<<" D E "<<fDeviceErrorCode<<" "<<((fErrorFlag & kGlobalCut) == kGlobalCut)<<" kGlobalCut  "<<kGlobalCut<<std::endl;
-      return fErrorFlag;
-    }
-    return 0;
-  };
-  Double_t GetEventCutUpperLimit(){
-    return fULimit;
-  }
-  Double_t GetEventCutLowerLimit(){
-    return fLLimit;
-  }
-
-  void SetEventCutMode(Int_t bcuts){
-    bEVENTCUTMODE=bcuts;
-  }
 
   void SetVQWKSaturationLimt(Double_t sat_volts=8.5){//Set the absolute staturation limit in volts.
     fSaturationABSLimit=sat_volts;
@@ -203,33 +166,34 @@ class QwVQWK_Channel: public VQwDataElement {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  Double_t GetBlockValue(size_t blocknum) const { return fBlock[blocknum]; };
-  Double_t GetBlockErrorValue(size_t blocknum) const { return fBlockError[blocknum]; };
-  Double_t GetHardwareSum() const       { return fHardwareBlockSum; };
-  Double_t GetHardwareSumM2() const     { return fHardwareBlockSumM2; };
-  Double_t GetHardwareSumWidth() const  { 
-    if (fGoodEventCount>0){
-      return (fHardwareBlockSumError*sqrt(fGoodEventCount)); 
-    }
-    return 0.0;
-  };
-  Double_t GetHardwareSumError() const  { return fHardwareBlockSumError; };
-  Double_t GetStabilityLimit() const { return fStability;};
-  Double_t GetAverageVolts() const;
-  //  Double_t GetSoftwareSum() const {return fSoftwareBlockSum;};
+  Int_t GetRawValue(size_t element) const {
+    RangeCheck(element);
+    if (element==0) return fHardwareBlockSum_raw;
+    return fBlock_raw[element-1];
+  }
+  Double_t GetValue(size_t element) const {
+    RangeCheck(element);
+    if (element==0) return fHardwareBlockSum;
+    return fBlock[element-1];
+  }
+  Double_t GetValueM2(size_t element) const {
+    RangeCheck(element);
+    if (element==0) return fHardwareBlockSumM2;
+    return fBlockM2[element-1];
+  }
+  Double_t GetValueError(size_t element) const {
+    RangeCheck(element);
+    if (element==0) return fHardwareBlockSumError;
+    return fBlockError[element-1];
+  }
 
-  Int_t GetRawBlockValue(size_t blocknum) const {return fBlock_raw[blocknum];};
-  Int_t GetRawHardwareSum() const {return fHardwareBlockSum_raw;};
-  Int_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
+
+  Double_t GetAverageVolts() const;
 
   size_t GetSequenceNumber() const {return (fSequenceNumber);};
   size_t GetNumberOfSamples() const {return (fNumberOfSamples);};
 
-  void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };
-  Double_t GetPedestal() const       { return fPedestal; };
-  void     SetCalibrationFactor(Double_t factor) { fCalibrationFactor = factor; kFoundGain = 1; };
-  void     SetCalibrationToVolts()               { fCalibrationFactor = kVQWK_VoltsPerBit; kFoundGain = 1; };
-  Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
+  void   SetCalibrationToVolts(){SetCalibrationFactor(kVQWK_VoltsPerBit);};
 
   void Copy(VQwDataElement *source);
 
@@ -239,7 +203,7 @@ class QwVQWK_Channel: public VQwDataElement {
 
   Double_t GetAverage()      const { return fHardwareBlockSum; };
   Double_t GetAverageError() const { return fHardwareBlockSumError; };
-  UInt_t GetGoodEventCount() const { return fGoodEventCount; };
+
 
   /// \brief Blind this channel as an asymmetry
   void Blind(const QwBlinder *blinder);
@@ -251,24 +215,32 @@ class QwVQWK_Channel: public VQwDataElement {
  protected:
   QwVQWK_Channel& operator/= (const QwVQWK_Channel &value);
 
+private:
+  //  The following specific access methods should only be used internally,
+  //  if at all.
+  Double_t GetBlockValue(size_t blocknum) const { return GetValue(blocknum+1);};
+  Double_t GetBlockErrorValue(size_t blocknum) const { return GetValueError(blocknum+1);};
+
+  Double_t GetHardwareSum() const       { return GetValue(0);};
+  Double_t GetHardwareSumM2() const     { return GetValueM2(0); };
+  Double_t GetHardwareSumWidth() const  { return GetValueWidth(0); };
+  Double_t GetHardwareSumError() const  { return GetValueError(0); };
+  //  Double_t GetSoftwareSum() const {return fSoftwareBlockSum;};
+
+  Int_t GetRawBlockValue(size_t blocknum) const {return GetRawValue(blocknum+1);};
+  Int_t GetRawHardwareSum() const       { return GetRawValue(0);};
+  Int_t GetRawSoftwareSum() const {return fSoftwareBlockSum_raw;};
+
 
  private:
   static const Bool_t kDEBUG;
   static const Int_t  kWordsPerChannel; //no.of words per channel in the CODA buffer
   static const Int_t  kMaxChannels;     //no.of channels per module
 
-  Int_t fDataToSave;
 
   /*! \name ADC Calibration                    */
   // @{
   static const Double_t kVQWK_VoltsPerBit;
-  Double_t fPedestal; /*!< Pedestal of the hardware sum signal,
-			   we assume the pedestal level is constant over time
-			   and can be divided by four for use with each block,
-			   units: [counts / number of samples] */
-  Double_t fCalibrationFactor;
-  Bool_t kFoundPedestal;
-  Bool_t kFoundGain;
   //@}
 
 
@@ -314,31 +286,6 @@ class QwVQWK_Channel: public VQwDataElement {
   size_t fNumberOfSamples;     ///< Number of samples  read through the module
   size_t fNumberOfSamples_map; ///< Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file
 
-
-  /// \name Parity mock data generation
-  // @{
-  /// Internal randomness generator
-  static boost::mt19937 fRandomnessGenerator;
-  /// Internal normal probability distribution
-  static boost::normal_distribution<double> fNormalDistribution;
-  /// Internal normal random variable
-  static boost::variate_generator
-    < boost::mt19937, boost::normal_distribution<double> > fNormalRandomVariable;
-  /// Flag to use an externally provided normal random variable
-  bool fUseExternalRandomVariable;
-  /// Externally provided normal random variable
-  double  fExternalRandomVariable;
-
-  // Parameters of the mock data
-  Double_t fMockAsymmetry;     ///< Helicity asymmetry
-  Double_t fMockGaussianMean;  ///< Mean of normal distribution
-  Double_t fMockGaussianSigma; ///< Sigma of normal distribution
-  std::vector<Double_t> fMockDriftAmplitude; ///< Harmonic drift amplitude
-  std::vector<Double_t> fMockDriftFrequency; ///< Harmonic drift frequency
-  std::vector<Double_t> fMockDriftPhase;     ///< Harmonic drift phase
-  // @}
-
-
   Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
 
   // Set of error counters for each HW test.
@@ -353,19 +300,13 @@ class QwVQWK_Channel: public VQwDataElement {
 
 
 
-  UInt_t fDeviceErrorCode; ///< Unique error code for HW failed beam line devices
-
 
   Int_t fADC_Same_NumEvt; ///< Keep track of how many events with same ADC value returned
   Int_t fSequenceNo_Prev; ///< Keep the sequence number of the last event
   Int_t fSequenceNo_Counter; ///< Internal counter to keep track of the sequence number
   Double_t fPrev_HardwareBlockSum; ///< Previous Module-based sum of the four sub-blocks
 
-  UInt_t fGoodEventCount;//counts the HW and event check passed events
 
-  Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
-  Double_t fULimit, fLLimit;//this sets the upper and lower limits on the VQWK_Channel::fHardwareBlockSum
-  Double_t fStability;//how much deviaton from the stable reading is allowed
 
   Double_t fSaturationABSLimit;//absolute value of the VQWK saturation volt
 
@@ -381,9 +322,10 @@ class QwVQWK_Channel: public VQwDataElement {
   Bool_t bDevice_Error_Code;
   Bool_t bSequence_number;
 
-  UInt_t fDefErrorFlag;
-  
-  
+private:
+  // Functions to be removed
+
+
 
 
 };

@@ -18,12 +18,12 @@ qwk_md6pos  ,  1380.11  ,  0.00007629
 qwk_md7pos  ,  1222.05  ,  0.00007629
 qwk_md8pos  ,  1127.16  ,  0.00007629
 
-qwk_pmtled  ,  548.527  ,  0.00007629
 qwk_pmtonl  ,  967.416  ,  0.00007629
 qwk_pmtltg  ,  1341.11  ,  0.00007629
 qwk_md9neg  ,  528.418  ,  0.00007629
 qwk_md9pos  ,  386.584  ,  0.00007629
-qwk_isourc  ,  111867  ,  0.00007629
-qwk_preamp  ,  75584  ,  0.00007629
-qwk_cagesr  ,  76775.2  ,  0.00007629
+qwk_isourc  ,  0  ,  0.00007629
+qwk_preamp  ,  0  ,  0.00007629
+qwk_cagesr  ,  0  ,  0.00007629
 
+qwk_pmtled  ,  0  ,  0.00007629

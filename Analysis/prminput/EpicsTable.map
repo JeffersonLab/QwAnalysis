@@ -1,5 +1,6 @@
 ! The exclamation mark (!) is for comment in this file.
 !
+! 06-17-2011: added Qtor related 4 variables:  qw:qt_mps_i_target,qw:qt_mps_i_set, qw:qt_mps_i_dcct, Q1HallP
 ! 07-08-2010: added "String" in more variables by identifying them using
 ! caget epicsVarName (e.g. caget QW_T_miA) in a machine where caget command can be issued.
 !
@@ -663,3 +664,42 @@ COLPOS7			slow_controls_data    	   	!Collimator Block 7
 !MHCMQ2IRBCK		slow_controls_data    	   	!Current ReadBack (A)
 !MQE3M02.S		slow_controls_data    	   	!Current Set (A)
 !The "result" indicates the result obtained from caget command.
+
+! Added Qtor related 4 variables: qw:qt_mps_i_target,qw:qt_mps_i_set, qw:qt_mps_i_dcct, Q1HallP
+
+qw:qt_mps_i_target      slow_controls_data              ! Qtor target curret
+qw:qt_mps_i_set		slow_controls_data              ! Qtor set current
+qw:qt_mps_i_dcct	slow_controls_data              ! Qtor DCCT
+Q1HallP			slow_controls_data              ! Qtor magnetic field read by Hall Probe 1
+!
+!
+!  
+!
+FB_C:CORR:C1_value.B    slow_controls_data              ! FFB corrector magnet 1 value
+FB_C:CORR:C2_value.B    slow_controls_data              ! FFB corrector magnet 2 value
+FB_C:CORR:C3_value.B    slow_controls_data              ! FFB corrector magnet 3 value
+FB_C:CORR:C4_value.B    slow_controls_data              ! FFB corrector magnet 4 value
+IBC1H04CRCUR2           slow_controls_data                 ! Hall A MPS BCM Current uA
+IBC3H00CRCUR4           slow_controls_data                 ! Hall C MPS BCM Current uA
+IFY0I06I                slow_controls_data                 ! PolCup position: FC1 (is/is not) inserted
+IFY0I06R                slow_controls_data                 ! PolCup position: FC1 (is/is not) retracted
+IFY0L03I                slow_controls_data                 ! PolCup position: FC2 (is/is not) inserted
+IFY0L03R                slow_controls_data                 ! PolCup position: FC2 (is/is not) retracted
+IFY1I07I                slow_controls_data                 ! PolCup position: PolCup (is/is not) inserted
+IFY1I07R                slow_controls_data                 ! PolCup position: PolCup (is/is not) retracted
+IOCSE14:PassSel;r       slow_controls_data               !String ! IOCSE14 Auto Select  
+IOCSE14:SEEGainMod;r    slow_controls_data               !String ! IOCSE14 Auto Gain 
+IOCSE14:SEEProcMod;r    slow_controls_data               !String ! IOCSE14 SEE Norm Ops
+IOCSE17:PassSel;r       slow_controls_data               !String ! IOCSE17 Auto Select  
+IOCSE17:SEEGainMod;r    slow_controls_data               !String ! IOCSE17 Auto Gain  
+IOCSE17:SEEProcMod;r    slow_controls_data               !String ! IOCSE17 SEE Norm Ops  
+IOCSE18:PassSel;r       slow_controls_data               !String ! IOCSE18 Auto Select 
+IOCSE18:SEEGainMod;r    slow_controls_data               !String ! IOCSE18 Auto Gain 
+IOCSE18:SEEProcMod;r    slow_controls_data               !String ! IOCSE18 SEE Norm Ops 
+IOCSE20:PassSel;r       slow_controls_data               !String ! IOCSE20 Auto Select
+IOCSE20:SEEGainMod;r    slow_controls_data               !String ! IOCSE20 Auto Gain  
+IOCSE20:SEEProcMod;r    slow_controls_data               !String ! IOCSE20 SEE Norm Ops 
+VCG3H09BTr              slow_controls_data               ! Scattering Chamber Vacuum psia
+qw:exitwindow           slow_controls_data               ! Exit window temp (C)
+rad45_p1                slow_controls_data               ! Gamma radiation monitor in Qweak detector shieldhouse
+rad45_p2                slow_controls_data               ! Neutron radiation monitor in Qweak detector shieldhouse

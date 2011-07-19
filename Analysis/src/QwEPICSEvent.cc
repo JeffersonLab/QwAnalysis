@@ -731,17 +731,17 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
           } else {
             sigma    = sqrt(variance);
           }
+
+	  //  Build the row and submit it to the list
+	  tmp_row.value         = mean;
+	  tmp_row.error         = sigma;
+	  tmp_row.min_value     = fEPICSCumulativeData[tagindex].Minimum;
+	  tmp_row.max_value     = fEPICSCumulativeData[tagindex].Maximum;
+	  
+	  entrylist.push_back(tmp_row);
 	}
       }
-
-      tmp_row.value         = mean;
-      tmp_row.error         = sigma;
-      tmp_row.min_value     = fEPICSCumulativeData[tagindex].Minimum;
-      tmp_row.max_value     = fEPICSCumulativeData[tagindex].Maximum;
-
-      entrylist.push_back(tmp_row);
     }
-
   }
 
 
@@ -809,10 +809,10 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
 	    //std::cout<<" Just a test value: "<<fEPICSDataEvent[tagindex].StringValue.Data()<<QwLog::endl;
 	    tmp_row.value = fEPICSDataEvent[tagindex].StringValue.Data();
 	  }
-    	}
-
+	  //  Only add rows for filled variables
+	  entrylist.push_back(tmp_row);
+	}
       }
-      entrylist.push_back(tmp_row);
     }
   }
 

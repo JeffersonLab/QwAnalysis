@@ -1,0 +1,51 @@
+void helcheck  ()
+{
+  c1 = new TCanvas ("c1", "Helicity check");
+  c1->Divide(4,2);
+  gStyle->SetOptFit (1);
+
+  UInt_t ip = 1;
+
+  c1->cd(ip++);
+  P->Draw ("evt_bcm1[0]", "ok_cut && evt_pairsynch[0] == 1 && prev_hel==1");
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 First ev, LRL");
+
+  c1->cd(ip++);
+  P->Draw ("evt_bcm1[1]", "ok_cut && evt_pairsynch[1] == 1 && prev_hel==1");
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 First ev, LLR");
+
+  c1->cd(ip++);
+  P->Draw ("evt_bcm1[0]", "ok_cut && evt_pairsynch[0] == 1 && prev_hel==0");
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 First ev, RRL");
+
+  c1->cd(ip++);
+  P->Draw ("evt_bcm1[1]", "ok_cut && evt_pairsynch[1] == 1 && prev_hel==0");
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 First ev, RLR");
+
+  c1->cd(ip++);
+  P->Draw ("evt_bcm1[1]", "ok_cut && evt_pairsynch[0] == 1 && prev_hel==1");
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 Second ev, LRL");
+
+  c1->cd(ip++);
+  P->Draw ("evt_bcm1[0]", "ok_cut && evt_pairsynch[1] == 1 && prev_hel==1");
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 Second ev, LLR");
+
+  c1->cd(ip++);
+  P->Draw ("evt_bcm1[1]", "ok_cut && evt_pairsynch[0] == 1 && prev_hel==0");
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 Second ev, RRL");
+
+  c1->cd(ip++);
+  P->Draw ("evt_bcm1[0]", "ok_cut && evt_pairsynch[1] == 1 && prev_hel==0");
+  htemp->Fit ("gaus");
+  htemp->SetNameTitle ("htemp", "BCM1 Second ev, RLR");
+
+  c1->Update();
+  c1->Modified();
+}

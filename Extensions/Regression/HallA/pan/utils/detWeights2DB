@@ -1,0 +1,207 @@
+#!/usr/bin/perl
+####################################################################
+#
+#          detWeights2DB
+#
+# Author: B. Moffit <http://www.jlab.org/~moffit/>
+# @(#)pan/utils:$Name:  $:$Id: detWeights2DB,v 1.1 2004/10/07 20:21:09 moffit Exp $
+#
+####################################################################
+#
+#    Perl script to modify a series of ASCII db files
+#    Just adding the weights of the detectors..
+#    For more info, see &PrintUsage;
+#
+####################################################################
+
+chomp($date = `date +"%Y-%m-%d %k:%M:%S"`);
+chomp($year = `date +%y`);
+
+# Process the command line arguments
+use Getopt::Long;
+my($backup) = 1;
+
+GetOptions('f=s' => \$templatefile, # Template filename
+           'verbose' => \$verbose,  # Verbose option
+           'backup!' => \$backup);  # Backup option
+
+unless ($templatefile) {
+  print "\nNeed a modification source.. (-f)\n";
+  &PrintUsage;
+  exit;
+}
+
+# Open the template file, and read in the runnumbers and weights
+my %runweights;
+my @templatelist;
+if ($templatefile) {
+  # Open template file and read it into @templatelines.
+  unless ( -s $templatefile ) {
+    print "ERROR\n  [template file]=\"$templatefile\" does not exist\n";
+    &PrintUsage;
+    exit;
+  }
+  @templatelist = &file2list($templatefile);
+}
+foreach $line (@templatelist) {
+  if($line =~ /\s*(\d+)\s*(\d*.\d*)\s*(\d*.\d*)\s*(\d*.\d*)\s*(\d*.\d*)/) {
+    my $runnumber = $1;
+    my $weightstring = "detwts $2 $3 $4 $5";
+    $runweights{$runnumber} = $weightstring;
+  }
+}
+my @runlist = sort keys %runweights;
+
+if($verbose) {
+  print "Weights defined in $templatefile\n";
+  foreach $run (@runlist) {
+    $weight = $runweights{$run};
+    print "  Run $run: $weight\n";
+  }
+}
+
+# Put together @dbfilelist of files to modify.  Check if they exist along the
+#  way.  If they don't, then they're not in the list (not fatal).
+my($prefix) = "$ENV{'PAN_FILE_PREFIX'}";
+$prefix = "parity$year" unless ($prefix);
+my($suffix) = "$ENV{'PAN_DB_FILE_SUFFIX'}";
+$suffix = "db"          unless ($suffix);
+
+my(@dbfilelist);
+my %RunDBlink;
+my($filename);
+foreach $run (@runlist) {
+  $filename = "$prefix\_$run.$suffix";
+  unless ( -s $filename) {
+    print "WARN: $filename does not exist\n";
+  } else {
+    push @dbfilelist, $filename;
+    $RunDBlink{$filename} = $run;
+  }
+}
+
+if ($verbose) {
+  foreach $line (@dbfilelist) {
+    print "Will modify: $line\n"
+  }
+}
+
+# Copy the old database files to a orig_$date directory.  In case of mistakes.
+if ($backup != 0) {
+  print "Making backup directory and files\n"  if ($verbose);
+  mkdir "origDB_$date", 0755 or die "Cannot make origDB_$date directory: $!";
+  foreach $file (@dbfilelist) {
+    system "cp", $file, "origDB_$date";
+  }
+  system "cp", $templatefile, "origDB_$date"   if ($templatefile);
+} else {
+  print "WARN: Did not make backup, UPON REQUEST!\n";
+}
+
+my($totaldone)=0;
+foreach $dbfile (@dbfilelist) {
+  my @dblist = &file2list($dbfile);
+
+  # Remove those lines that have older detwts from the @dblist
+  my @newdblist;
+  @newdblist = &removeLines("detwts",@dblist);
+  @dblist = @newdblist;
+
+  # Make a comment for the new list
+  $comment = "# ASCII DB modified by detWeights2DB on $date\n";
+
+  open OUTFILE, ">$dbfile";
+
+  print OUTFILE $comment;
+  print OUTFILE "# --- Begin Mod ---\n";
+  # get the weight here.
+  my $run = $RunDBlink{$dbfile};
+  my $weights = $runweights{$run};
+  print OUTFILE "    $weights\n";
+
+  print OUTFILE "# --- End Mod ---\n";
+
+  foreach $line (@newdblist) {
+    print OUTFILE "$line\n";
+  }
+
+  print "Finished: $dbfile\n"      if ($verbose);
+  $totaldone++;
+}
+
+print "Processed $totaldone files.  Thank you for choosing detWeights2DB.\n";
+
+#&PrintUsage;
+
+####################################################################
+#    Subroutine file2list($filename)
+#      Opens a file with given $filename and returns
+#       the list @outlist of its contents. Will not include lines
+#       with more than three # at the beginning.
+####################################################################
+sub file2list {
+  my($filename) = @_;
+  my(@outlist);
+
+  open MYFILE, "<$filename";
+  while (<MYFILE>) {
+    unless (/^\#\#\#\#+/) {
+      chomp;
+      push @outlist, $_;
+    }
+  }
+  close MYFILE;
+
+  return @outlist;
+}
+
+####################################################################
+#    Subroutine removeLines($eline,@elist)
+#      Returns @outlist, the result of removing all lines 
+#      from @elist containing $eline
+####################################################################
+sub removeLines {
+  my($eline,@elist) = @_;
+  my(@outlist);
+
+  foreach $line (@elist) {
+    unless ($line =~ /^\s*\b$eline\b/) {
+      push @outlist, $line;
+    }
+  }
+
+  return @outlist;
+
+}
+
+####################################################################
+#    Subroutine PrintUsage
+#      print to standard out how to use this script
+####################################################################
+sub PrintUsage {
+    print <<EOM;
+
+Usage:
+       detWeights2DB -r [\#start]-[\#end] -f [template file] -D [override line]
+  or
+       detWeights2DB -i [databasefile] -f [template file] -D [override line]
+
+Command-line options:
+    -f [template file]
+       The template file must be of this form:
+         runnumber  det1weight det2weight det3weight det4weight
+       e.g.
+         2018 0.91 0.931 0.381 0.192
+       The number of runnumbers provided is not limitted.  However, if
+       detWeights2DB cannot find the database file for the runnumber
+       indicated, that line will be ignored.
+
+    -verbose, -v
+       Be obnoxiously verbose.  For debugging purposes.
+
+    -nobackup, -nob
+       Be courageous... and perhaps very stupid.  Don't create any backups.
+
+EOM
+return;
+}

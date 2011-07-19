@@ -1,10 +1,37 @@
 #include <iostream>
 #include <algorithm>
 
-static const Int_t numtypes=4;
-Int_t fitStatus[numtypes];
-TF1 *fitpol1[numtypes];
-static const Int_t colors[numtypes] = {kGreen, kBlue, kRed, kViolet};
+#include "TCut.h"
+#include "TROOT.h"
+#include "TStyle.h"
+#include "TStopwatch.h"
+#include "TChain.h"
+#include "TIterator.h"
+#include "TCollection.h"
+#include "TChainElement.h"
+#include "TLatex.h"
+#include "TCanvas.h"
+#include "TPad.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH3F.h"
+#include "TDirectory.h"
+#include "THStack.h"
+#include "TF1.h"
+#include "TFile.h"
+#include "TProfile.h"
+#include "TGraph.h"
+
+#include "globals.C"
+#include "plotting.C"
+#include "stepthru_mps.C"
+
+// Declarations
+void plot_mpssummary_worker(Int_t runnumber = 1, 
+	Bool_t do_mps = 1, Bool_t do_samples_correl = 1, Bool_t do_samples_pedestal = 1,  
+	Bool_t do_samples_pedcorr = 1,  Bool_t do_pedcorrection = 1, Bool_t do_samples = 1,
+	Bool_t do_samples_asymmetry = 1,  Bool_t do_samples_responsefunc = 1, Bool_t do_waveforms = 1);
+
 
 
 // *********************
@@ -39,10 +66,10 @@ void plot_mpssummary(Int_t runnumber = 1,
 						   do_pedcorrection, do_samples, do_samples_asymmetry, do_waveforms);
 }
 
-void plot_mpssummary_worker(Int_t runnumber = 1, 
-					 Bool_t do_mps=1, Bool_t do_samples_correl=1, Bool_t do_samples_pedestal=1,  
-					 Bool_t do_samples_pedcorr=1,  Bool_t do_pedcorrection=1, Bool_t do_samples=1,
-							Bool_t do_samples_asymmetry=1,  Bool_t do_samples_responsefunc=1, Bool_t do_waveforms=1)
+void plot_mpssummary_worker(Int_t runnumber,
+	Bool_t do_mps, Bool_t do_samples_correl, Bool_t do_samples_pedestal,  
+	Bool_t do_samples_pedcorr,  Bool_t do_pedcorrection, Bool_t do_samples,
+	Bool_t do_samples_asymmetry,  Bool_t do_samples_responsefunc, Bool_t do_waveforms)
 {
 
 	printf("%i  do_mps,\n%i  do_samples_correl,\n%i  do_samples_pedestal,\n%i  do_samples_pedcorr,\n%i   do_pedcorrection,\n%i  do_samples,\n%i  do_samples_asymmetry,\n%i  do_samples_responsefunc,\n%i  do_waveforms\n",
@@ -77,7 +104,7 @@ void plot_mpssummary_worker(Int_t runnumber = 1,
 	}
 	if (0) {
 		printf("\nKill me now!!!!!\n");
-		sleep 10;
+		sleep(10);
 	}
 	TString filename = Form("summary/Compton_NewSummary_%i.root",runnumber);
 	printf("opening %s for input\n",filename.Data());
@@ -149,7 +176,7 @@ void plot_mpssummary_worker(Int_t runnumber = 1,
 	if (runnumber >= 21987) { // BGO
 		intmin = 150; intmax = 1000; subintmin = 200; subintmax = 1000; maxmin=140; maxmax=388;
 	}
-	printf("Using intmin %.0f   intmax %.0f   subintmin %.0f   subintmax %.0f   maxmin %.0f   maxmax %.0f \n",
+	printf("Using intmin %i   intmax %i   subintmin %i   subintmax %i   maxmin %i   maxmax %i \n",
 		   intmin, intmax, subintmin, subintmax, maxmin, maxmax);
 
 	TLatex text;
@@ -166,7 +193,8 @@ void plot_mpssummary_worker(Int_t runnumber = 1,
 	//gStyle->SetTitleXOffset(0.7);
 
 	TCanvas *waveforms_laserON;
-	TPad *c_waveforms_laserON;    
+	TPad *c_waveforms_laserON;
+	TVirtualPad *padp;
 	if (do_waveforms) {
 		waveforms_laserON = new TCanvas("waveforms_laserON", Form("waveforms %i",runnumber), 
 										canvasxoff,0,canvaswidth,canvasheight);
@@ -206,7 +234,7 @@ void plot_mpssummary_worker(Int_t runnumber = 1,
 		c_waveforms_laserOFF->Divide(5,4,0.001,0.001);
 		for (Int_t i=1; i<=20; i++) {
 			padp = c_waveforms_laserOFF->cd(i);
-			TGraph *graph2 = gDirectory->Get(Form("laserOFF%02i",i-1));
+			TGraph *graph2 = (TGraph*) gDirectory->Get(Form("laserOFF%02i",i-1));
 			if (graph2) {
 				//graph2->SetTitleSize(0.07);
 				graph2->Draw("al");
@@ -233,7 +261,7 @@ void plot_mpssummary_worker(Int_t runnumber = 1,
 		c_waveforms_beamOFF->Divide(5,4,0.001,0.001);
 		for (Int_t i=1; i<=20; i++) {
 			padp = c_waveforms_beamOFF->cd(i);
-			TGraph *graph3 = gDirectory->Get(Form("beamOFF%02i",i-1));
+			TGraph *graph3 = (TGraph*) gDirectory->Get(Form("beamOFF%02i",i-1));
 			if (graph3) {
 				graph3->Draw("al");
 				graph3->GetXaxis()->SetLabelSize(0.07);

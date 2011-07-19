@@ -35,11 +35,11 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
  public:
 
     /// Default constructor
-    QwSubsystemArrayParity(): QwSubsystemArray(CanContain),fErrorFlag(0) { };
+    QwSubsystemArrayParity(): QwSubsystemArray(CanContain),fErrorFlag(0),fErrorFlagTreeIndex(-1){ };
     /// Constructor with options
-    QwSubsystemArrayParity(QwOptions& options): QwSubsystemArray(options, CanContain),fErrorFlag(0) { };
+    QwSubsystemArrayParity(QwOptions& options): QwSubsystemArray(options, CanContain),fErrorFlag(0),fErrorFlagTreeIndex(-1) { };
     /// Constructor with map file
-    QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename, CanContain),fErrorFlag(0) { };
+    QwSubsystemArrayParity(const char* filename): QwSubsystemArray(filename, CanContain),fErrorFlag(0),fErrorFlagTreeIndex(-1) { };
     /// Copy constructor by pointer
     QwSubsystemArrayParity(const QwSubsystemArrayParity* source) { this->Copy(source); };
     /// Copy constructor by reference
@@ -125,6 +125,7 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
       return (dynamic_cast<VQwSubsystemParity*>(subsys) != 0);
     };
     UInt_t fErrorFlag;
+    Int_t  fErrorFlagTreeIndex;
 
   friend class QwRegression;
 

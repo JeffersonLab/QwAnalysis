@@ -140,10 +140,12 @@ QwRootFile::~QwRootFile()
     }
     // It'd be proper to "extern int errno" and strerror() here,
     // but that doesn't seem very C++-ish.
-    if (err)
-      QwWarning << "Couldn't" << action << rootfilename.Data() << QwLog::endl;
-    else
-      QwMessage << "Was able to" << action << rootfilename.Data() << QwLog::endl;
+    if (err) {
+      QwWarning << "Couldn't" << action << rootfilename << QwLog::endl;
+    } else {
+      QwMessage << "Was able to" << action << rootfilename << QwLog::endl;
+      QwMessage << "Root file is " << fPermanentName << QwLog::endl;
+    }
   }
 
   // Delete Qweak ROOT trees

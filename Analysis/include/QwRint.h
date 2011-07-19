@@ -1,7 +1,7 @@
 #ifndef __QwRint_h__
 #define __QwRint_h__
 
-// Qweak headers
+// ROOT headers
 #include <TRint.h>
 #include <TThread.h>
 

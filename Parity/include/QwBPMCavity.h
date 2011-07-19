@@ -29,7 +29,7 @@ class QwDBInterface;
 /// \ingroup QwAnalysis_BL
 
 class QwBPMCavity : public VQwBPM {
-  friend class QwCombinedBPM;
+  template <typename TT> friend class QwCombinedBPM;
   friend class QwEnergyCalculator;
 
  public:
@@ -58,6 +58,17 @@ class QwBPMCavity : public VQwBPM {
   void    PrintValue() const;
   void    PrintInfo() const;
 
+  const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {
+    if (axis<0 || axis>2){
+      TString loc="QwBPMCavity::GetPosition for "
+        +this->GetElementName()+" failed for axis value "+Form("%d",axis);
+      throw std::out_of_range(loc.Data());
+    }
+    return &fAbsPos[axis];
+  }
+  const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
+
+
   UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
   void    GetAbsolutePosition();
@@ -82,6 +93,10 @@ class QwBPMCavity : public VQwBPM {
   void    Ratio(QwBPMCavity &numer, QwBPMCavity &denom);
   void    Scale(Double_t factor);
 
+  VQwBPM& operator=  (const VQwBPM &value);
+  VQwBPM& operator+= (const VQwBPM &value);
+  VQwBPM& operator-= (const VQwBPM &value);
+
   virtual QwBPMCavity& operator=  (const QwBPMCavity &value);
   virtual QwBPMCavity& operator+= (const QwBPMCavity &value);
   virtual QwBPMCavity& operator-= (const QwBPMCavity &value);
@@ -100,8 +115,9 @@ class QwBPMCavity : public VQwBPM {
 
 
   std::vector<QwDBInterface> GetDBEntry();
-  void    MakeBPMCavityList();
 
+  protected:
+  VQwHardwareChannel* GetSubelementByName(TString ch_name);
 
   /////
  private:
@@ -117,9 +133,16 @@ class QwBPMCavity : public VQwBPM {
   Bool_t   bRotated;
   QwVQWK_Channel fWire[2];
   QwVQWK_Channel fRelPos[2];
-  QwVQWK_Channel fAbsPos[2]; // Z will not be considered as a vqwk_channel
+
+  //  These are the "real" data elements, to which the base class
+  //  fAbsPos_base and fEffectiveCharge_base are pointers.
+  QwVQWK_Channel fAbsPos[2];
   QwVQWK_Channel fEffectiveCharge;
 
+
+ private:
+  // Functions to be removed
+  void    MakeBPMCavityList();
   std::vector<QwVQWK_Channel> fBPMElementList;
 
 };

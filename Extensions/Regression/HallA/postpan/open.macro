@@ -1,0 +1,14 @@
+
+
+open() {
+
+Hel_Tree->SetAlias("amd1","1e6*0.5*(asym_md1pos+asym_md1neg)");
+Hel_Tree->SetAlias("amd2","1e6*0.5*(asym_md2pos+asym_md2neg)");
+Hel_Tree->SetAlias("amd3","1e6*0.5*(asym_md3pos+asym_md1neg)");
+Hel_Tree->SetAlias("amd4","1e6*0.5*(asym_md4pos+asym_md4neg)");
+Hel_Tree->SetAlias("amd5","1e6*0.5*(asym_md5pos+asym_md5neg)");
+Hel_Tree->SetAlias("amd6","1e6*0.5*(asym_md6pos+asym_md6neg)");
+Hel_Tree->SetAlias("amd7","1e6*0.5*(asym_md7pos+asym_md7neg)");
+Hel_Tree->SetAlias("amd8","1e6*0.5*(asym_md8pos+asym_md8neg)");
+
+}

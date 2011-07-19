@@ -13,7 +13,7 @@
 //  variable - deafault is scandata1
 //
 //  NOTE:  offset and gain are in units of counts/sample.
-//         Multiply by SAMPLE_SIZE to put them back 
+//         Multiply by SAMPLE_SIZE to put them bhaack 
 //         into "normal" Qweak parameter units, if you wish.
 //  NOTE:  gain will convert BCM/SAMPLE_SIZE into the current units
 //         scandata2 was expressed in (probably uA).
@@ -28,6 +28,7 @@
 #include <new>
 #include <stdexcept>
 #include <time.h>
+
 
 #include "TMath.h"
 #include "TRandom.h"
@@ -85,7 +86,6 @@ TString devicelist[ndevices]=
    "qwk_0l08","qwk_0l09","qwk_0l10","qwk_0r01","qwk_0r02",
    "qwk_0r03","qwk_0r04","qwk_0r05","qwk_0r06","qwk_0r07",
    "qwk_1IL02"};
-
 
 
 
@@ -184,7 +184,7 @@ int main(Int_t argc,Char_t* argv[])
 
   
   //Get the root file
-  sprintf(filename,"%sQweak_%d.000.root",directory.Data(),atoi(runnum));
+  sprintf(filename,"%sqwinjector_%d.000.root",directory.Data(),atoi(runnum));
   f = new TFile(filename);
   if(!f->IsOpen())
     return 0;
@@ -336,7 +336,8 @@ void initial_bcm_calibration(TString bcm_title)
       break;  
     }
   };
-      
+  
+  scutmin = min_current;
   std::cout<<"minimum current from scandata = "<<scutmin<<" uA \n";
   std::cout<<"maximum current from scandata = "<<scutmax<<" uA \n";
   
@@ -360,10 +361,10 @@ void initial_bcm_calibration(TString bcm_title)
     }
   
   // Apply the event cuts
-  scut = Form("cleandata==1 && scandata>%f && scandata<%f && ErrorFlag == 0 && %s", scutmin, scutmax,device_cut.Data());
+  scut = Form("cleandata==1 && scandata>%f && scandata<%f && %s", scutmin, scutmax,device_cut.Data());
   
   // Draw the bcm current
-  nt->Draw(plotcommand,scut,"profs");
+  nt->Draw(plotcommand,scut,"prof");
 
   //If the histogram in null, exit program. WE can't do a calibration if bcm data is empty!
   if(((TH1*)gROOT->FindObject(histname)) == NULL)
@@ -416,7 +417,7 @@ void initial_bcm_calibration(TString bcm_title)
 	setalias=Form("(-1*%f-sqrt(%f*%f-4*%f*(%f-%s)))/(2*%f)",
 		      b,b,b,a,c,varname.Data(),a);
       offset=c;
-      gain=b;
+      gain=1.0/b;
     }
   else
     {
@@ -431,25 +432,26 @@ void initial_bcm_calibration(TString bcm_title)
       // If we are using the 4-wire sum of a bpm as a reference bcm then
       if(bcm_title != "qwk_bcm0l02")
 	setalias=Form("((%s_EffectiveCharge.hw_sum_raw/%s - %f)*%f)", bcm_title.Data(),SAMPLE_SIZE.Data(), offset, gain);
-
       else
 	setalias=Form("((%s.hw_sum_raw/%s - %f)*%f)", bcm_title.Data(),SAMPLE_SIZE.Data(), offset, gain);
     }
 
   hprofinit->GetXaxis()->SetTitle(SCANDATA);
   hprofinit->GetYaxis()->SetTitle(bcm_title);
-
+      
   nt->SetAlias("current",setalias); // current from the fit to bcm data
-  f1->SetLineWidth(1);
-  f1->SetLineColor(1);
+  nt->Draw("current:scandata1/1000>>htemp2",scut,"prof");
+  TH1 *h2=(TH1*)gDirectory->Get("htemp2");
+  h2->Fit("pol1");
+  h2->Draw();
 
   // Moving on to plot residuals between scandata and current from bcm
   Canvas->cd(2);
-  plotcommand = "current - scandata:scandata"; 
+  plotcommand = "(current - scandata):scandata"; 
 
   // The difference between scut and scut_residual is scut_residual is a cut on current projected by the fit to bcm data and scut is a cut on scandata.
   scut_residual= Form("current>%10.1f && current<%10.1f && %s",scutmin,scutmax, scut.Data());
-      
+
   nt->Draw(plotcommand,scut_residual,"box");
  
   TH1 *g2=nt->GetHistogram();
@@ -530,7 +532,7 @@ void calibrate(TString devname)
 	  plotcommand[i] = Form("%s%s.hw_sum_raw/%s:current>>%s",
 				devname.Data(),antenna[i].Data(),SAMPLE_SIZE.Data(),histname.Data()); 
 	  
-	  scut = Form("cleandata==1 && current>%f && current<%f && ErrorFlag == 0 && %s%s.Device_Error_Code == 0",scutmin, scutmax, devname.Data(),antenna[i].Data());	    
+	  scut = Form("cleandata==1 && current>%f && current<%f && %s%s.Device_Error_Code == 0",scutmin, scutmax, devname.Data(),antenna[i].Data());	    
 	  nt->Draw(plotcommand[i],scut);
 	  if( hprof[i] == NULL)
 	    {

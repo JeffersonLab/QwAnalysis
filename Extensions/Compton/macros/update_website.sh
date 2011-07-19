@@ -8,9 +8,9 @@
 ## First define a few globals, such as the location of necessary programs
 
 ## SQLITE3 for database management
-SQLITE=/usr/bin/sqlite3
+SQLITE=sqlite3
 
 ## SQLITE3 database
-DBFILE=test101/compton_photondetector_summaryruns.db
+DBFILE=${QWSCRATCH}/www/compton_photondetector_summaryruns.db
 
 ################################################################################

@@ -19,6 +19,7 @@
 #include "VQwSubsystemParity.h"
 #include "QwTypes.h"
 #include "QwBPMStripline.h"
+#include "VQwBCM.h"
 #include "QwBCM.h"
 #include "QwBPMCavity.h"
 #include "QwCombinedBCM.h"
@@ -27,15 +28,16 @@
 #include "QwHaloMonitor.h"
 #include "QwQPD.h"
 #include "QwLinearDiodeArray.h"
+#include "VQwClock.h"
 
 // Forward declarations
 class QwBeamDetectorID;
+
 
 /*****************************************************************
 *  Class:
 ******************************************************************/
 class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
-
  public:
 
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),index_4mhz(-1)
@@ -104,18 +106,20 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   void PrintInfo() const;
 
 
-  QwBPMStripline* GetBPMStripline(const TString name);
-  QwBCM* GetBCM(const TString name);
+  VQwBPM* GetBPMStripline(const TString name);
+  VQwBCM* GetBCM(const TString name);
+  VQwClock* GetClock(const TString name);
   QwBPMCavity* GetBPMCavity(const TString name);
-  QwCombinedBCM* GetCombinedBCM(const TString name);
-  QwCombinedBPM* GetCombinedBPM(const TString name);
+  VQwBCM* GetCombinedBCM(const TString name);
+  VQwBPM* GetCombinedBPM(const TString name);
   QwEnergyCalculator* GetEnergyCalculator(const TString name);
   QwHaloMonitor* GetScalerChannel(const TString name);
   const QwBPMCavity* GetBPMCavity(const TString name) const;
-  const QwBPMStripline* GetBPMStripline(const TString name) const;
-  const QwBCM* GetBCM(const TString name) const;
-  const QwCombinedBCM* GetCombinedBCM(const TString name) const;
-  const QwCombinedBPM* GetCombinedBPM(const TString name) const;
+  const VQwBPM* GetBPMStripline(const TString name) const;
+  const VQwBCM* GetBCM(const TString name) const;
+  const VQwClock* GetClock(const TString name) const;
+  const VQwBCM* GetCombinedBCM(const TString name) const;
+  const VQwBPM* GetCombinedBPM(const TString name) const;
   const QwEnergyCalculator* GetEnergyCalculator(const TString name) const;
   const QwHaloMonitor* GetScalerChannel(const TString name) const;
 
@@ -125,14 +129,23 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
  Int_t GetDetectorIndex(EQwBeamInstrumentType TypeID, TString name);
  //when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
- std::vector <QwBPMStripline> fStripline;
- std::vector <QwBCM> fBCM;
+ typedef boost::shared_ptr<VQwBPM> VQwBPM_ptr;
+ std::vector <VQwBPM_ptr> fStripline;
+ std::vector <VQwBPM_ptr> fBPMCombo;
+
+ typedef boost::shared_ptr<VQwBCM> VQwBCM_ptr;
+ std::vector <VQwBCM_ptr> fBCM;
+ std::vector <VQwBCM_ptr> fBCMCombo;
+
+ typedef boost::shared_ptr<VQwClock> VQwClock_ptr;
+ std::vector <VQwClock_ptr> fClock;
+
  std::vector <QwQPD> fQPD;
  std::vector <QwLinearDiodeArray> fLinearArray;
  std::vector <QwBPMCavity> fCavity;
  std::vector <QwHaloMonitor> fHaloMonitor;
- std::vector <QwCombinedBCM> fBCMCombo;
- std::vector <QwCombinedBPM> fBPMCombo;
+
+
  std::vector <QwEnergyCalculator> fECalculator;
  std::vector <QwBeamDetectorID> fBeamDetectorID;
 

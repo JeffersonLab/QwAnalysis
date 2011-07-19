@@ -25,7 +25,7 @@ void QwSIS3801_Module::SetChannel(size_t channel, TString &name)
 	      << std::endl;
   } else {
     if(local_debug) std::cout << "SIS3801: Set channel" << channel << " to " << name << std::endl;
-    fChannels.at(channel).InitializeChannel(name);
+    fChannels.at(channel).InitializeChannel(name,"");
   }
 }
 
@@ -229,7 +229,7 @@ void QwSIS3801_Module::Ratio(QwSIS3801_Module &numer, QwSIS3801_Module &denom)
 void QwSIS3801_Module::InitializeChannel(TString name)
 {
   for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).InitializeChannel(name);
+    fChannels.at(i).InitializeChannel(name,"");
   }
 }
 

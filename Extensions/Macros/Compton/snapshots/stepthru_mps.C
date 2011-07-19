@@ -1,46 +1,37 @@
 #include <sys/stat.h> 
 #include <iostream>
+#include <fstream>
 #include <algorithm>
-
 #include <string>
-#include <TCut.h>
-#include <TROOT.h>
-#include <TStyle.h>
-#include <TStopwatch.h>
-#include <TChain.h>
-#include <TIterator.h>
-#include <TCollection.h>
-#include <TChainElement.h>
-#include <TLatex.h>
-#include <TCanvas.h>
-#include <TPad.h>
-#include <TH1F.h>
-#include <TH2F.h>
-#include <TH3F.h>
-#include <TDirectory.h>
-#include <THStack.h>
-#include <TF1.h>
-#include <TFile.h>
-#include <TProfile.h>
-// //#include <QwSIS3320_Samples.h>
-#include <TGraph.h>
+#include <cstdio>
+#include <cmath>
 
-#include <stdio.h>
-#include <math.h>
-//#include <.h>
-// TO DO
+#include "TCut.h"
+#include "TROOT.h"
+#include "TStyle.h"
+#include "TStopwatch.h"
+#include "TChain.h"
+#include "TIterator.h"
+#include "TCollection.h"
+#include "TChainElement.h"
+#include "TLatex.h"
+#include "TCanvas.h"
+#include "TPad.h"
+#include "TH1F.h"
+#include "TH2F.h"
+#include "TH3F.h"
+#include "TDirectory.h"
+#include "THStack.h"
+#include "TF1.h"
+#include "TFile.h"
+#include "TProfile.h"
+#include "TGraph.h"
 
+#include "QwSIS3320_Samples.h"
 
+#include "getChain.C"
 
-void stepthru_mps_DEVEL(Int_t runnumber1 = 0, Int_t maxevents1 = 0)
-{
-	stepthru_mps_worker(runnumber1, maxevents1);
-}
-void stepthru_mps(Int_t runnumber2 = 0, Int_t maxevents2 = 0)
-{
-	stepthru_mps_worker(runnumber2, maxevents2);
-}
-void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
+void stepthru_mps(Int_t runnumber = 0, Int_t maxevents = 0)
 {
 	if (runnumber==0) {
 		printf("\n\nUseage:\n\t .x stepthru_mps.C(runnumber, [maxevents])\n");
@@ -56,12 +47,12 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 	// **********
 	// **** Set general constants
 	const Int_t debug=0;
-	const Int_t maxsnapshots=0;
+	//const Int_t maxsnapshots=0;
 	Int_t maxpeakposcut_min=62, maxpeakposcut_max=90;
 	const Float_t currentCut=5;
 	const Int_t offsetentry = 2100;
 //	const Int_t numstrips = 64;
-	Int_t multcutincl = 2;
+	//Int_t multcutincl = 2;
 
 	TString rootoutfilename = Form("summary/Compton_NewSummary_%i.root",runnumber);
 	printf("opening %s for output\n",rootoutfilename.Data());
@@ -70,13 +61,10 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 	TChain *Mps_Chain = new TChain("Mps_Tree");
 	char namestring[255], rootfilesdir[255];
 	sprintf(rootfilesdir,"%s", getenv("QW_ROOTFILES"));
-//	sprintf(rootfilesdir,"%s", "/net/cdaq/compton2/compton/rootfiles");
-///net/cdaq/cdaql8data/compton/rootfiles//
-	sprintf(rootfilesdir,"%s", "/net/cdaq/cdaql8data/compton/rootfiles");
-	sprintf(namestring,"%s/Compton_Pass1_%d.*.root",rootfilesdir,runnumber);
+	sprintf(namestring,"%s/Compton_Pass?_%d.*.root",rootfilesdir,runnumber);
 	printf("finding %s\n",namestring);
 	Bool_t chainExists = Mps_Chain->Add(namestring);
-//	Bool_t chainExists = Mps_Chain->Add(Form("%s/Compton_Pass1_%d.000.root", getenv("QW_ROOTFILES"),runnumber));
+//	Bool_t chainExists = Mps_Chain->Add(Form("%s/Compton_Pass?_%d.000.root", getenv("QW_ROOTFILES"),runnumber));
 	if (!chainExists) {
 		printf("Could not find data files.\n");
 		return;
@@ -97,14 +85,14 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 	Int_t nentries = Mps_Chain->GetEntries();
 	printf("There are %i entries\n",nentries);
 	if (maxevents > 0) {
-		nentries=min(maxevents+offsetentry,nentries);
+		nentries=std::min(maxevents+offsetentry,nentries);
 		printf("Analysing the first %i entries\n",nentries);
 	}
 	// **********
 	// **** Set constants required for histograms
-	Int_t bcm_nbins = 100;
-	Double_t bcm_axismin = 0;
-	Double_t bcm_axismax = 0;
+	//Int_t bcm_nbins = 100;
+	//Double_t bcm_axismin = 0;
+	//Double_t bcm_axismax = 0;
 	Int_t type_nbins = 4;
 	Float_t type_axismin = 0;
 	Float_t type_axismax = 4;
@@ -125,32 +113,33 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 	Double_t pedval_axismin = -100; //-20
 	Double_t pedval_axismax = 300; //280
 	Int_t integnbins=1000, yieldnbins=1000;
-	Double_t integmin, integmax;
+	Double_t integmin = 0.0, integmax = 0.0;
 
-	Int_t lowint, highint;
+	//Int_t lowint, highint;
  	// **** read parameter file
 	int i_run, i_lowint, i_upint;
 	size_t found;
-	Int_t linecounter, tokcounter;
+	Int_t linecounter = 0, tokcounter;
 	char linechar[255], params[255][10], *token;
- 	char infilename[255], readout[255];
+ 	char infilename[255];
+	//char readout[255];
 	sprintf(infilename,"paramfile.ini");
 	printf("\nReading parameter input file %s\n",infilename);
-	string linestr = "";
+	std::string linestr = "";
 //	char a_run[255], a_lowint[255], a_upint[255];
 	ifstream runlist(infilename);
 	//runlist>>skipws;//skip whitespaces
 	if(!runlist.is_open())
 	{
 		printf("Parameter file not found: %s\n",infilename);
-		return 0;
+		return;
 	} else {
 		while (!runlist.eof() &&  linecounter<200) {
 			linecounter++;
 			getline(runlist, linestr);
 			found = linestr.find("!#",0,1);
-			if (found!=string::npos) {
-				cout << linestr << endl;
+			if (found!=std::string::npos) {
+				std::cout << linestr << std::endl;
 			} else {
 				strcpy (linechar, linestr.c_str());
 				// linechar now contains a c-string copy of linestr
@@ -158,12 +147,12 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 				token=strtok (linechar," ");
 				sprintf(params[tokcounter],"%s",token);
 				while (token!=NULL) {
-					//cout << tokcounter << " " << params[tokcounter] << ",  ";
+					//std::cout << tokcounter << " " << params[tokcounter] << ",  ";
 					tokcounter++;
 					token=strtok(NULL," ");
 					sprintf(params[tokcounter],"%s",token);
 				}
-				//cout << endl;
+				//std::cout << std::endl;
 			}
 			Int_t temprun = atoi(params[0]);
 			if (temprun > 20000 && temprun <= runnumber) {
@@ -185,13 +174,13 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
  	printf("\nUsing the following values from parameter file:\n");
 	printf("run number:                    %8i  \n", i_run);
 	printf("number of integral bins:       %8i  \n", integnbins);
-	printf("minimum expected integral:     %8i  \n", integmin);
-	printf("maximum expected integra:      %8i  \n", integmax);
+	printf("minimum expected integral:     %8f  \n", integmin);
+	printf("maximum expected integra:      %8f  \n", integmax);
 	printf("integral start from max:       %8i  \n", i_lowint);
 	printf("integral end from max:         %8i  \n", i_upint);
 	printf("number of max bins:            %8i  \n", maxnbins);
-	printf("minimum expected max:          %8i  \n", maxmin);
-	printf("maximum expected max:          %8i  \n", maxmax);
+	printf("minimum expected max:          %8f  \n", maxmin);
+	printf("maximum expected max:          %8f  \n", maxmax);
 	printf("timing cut min sample:         %8i  \n", maxpeakposcut_min);
 	printf("timing cut max sample:         %8i  \n", maxpeakposcut_max);
 
@@ -217,8 +206,8 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 	Double_t  yield_axismax = accum0init->GetXaxis()->GetBinUpEdge(nbins);
 	printf("yield_mean %9.3g, yield_RMS %9.3g, yield_axismin %9.3g, yield_axismax %9.3g, yield_supermin %9.3g, yield_supermax %9.3g\n",
 		   yield_mean, yield_RMS, yield_axismin, yield_axismax, yield_supermin, yield_supermax);
-	yield_axismin = max(yield_axismin,yield_supermin);
-	yield_axismax = min(yield_axismax,yield_supermax);
+	yield_axismin = std::max(yield_axismin,yield_supermin);
+	yield_axismax = std::min(yield_axismax,yield_supermax);
 
 	Int_t timebins = (nentries-offsetentry)/960;
 	Double_t starttime = offsetentry/960.0;
@@ -241,7 +230,7 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 // 	}
 
 	Double_t bcm1, bcm2, bcm17;
-	std::vector<MQwSIS3320_Samples>* sampled_events = 0;
+	std::vector<QwSIS3320_Samples>* sampled_events = 0;
 	Double_t sca_laser_PowT;
 	Double_t fadc_compton_accum0[2];
 	Double_t actual_helicity;
@@ -277,20 +266,20 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 	TH3F *bcmtime = new TH3F("bcmtime","Beam Current vs time;time  (seconds)",
 							 timebins,starttime,endtime,180,0,180, type_nbins, type_axismin, type_axismax);
 	bcmtime->SetDirectory(file_out);
-	TH3F *accum0ime = new TH3F("accum0time","accum0 yield vs time;time  (seconds)",
+	TH3F *accum0time = new TH3F("accum0time","accum0 yield vs time;time  (seconds)",
 							   timebins,starttime,endtime,yieldnbins,yield_axismin,yield_axismax, 
 							   type_nbins, type_axismin, type_axismax);
 	accum0time->SetDirectory(file_out);
 
-	TH1F *samp_bcm1 = new TH1F("samp_bcm1","bcm 1",bcm_nbins,bcm_axismin,bcm_axismax);
-	TH1F *samp_bcm2 = new TH1F("samp_bcm2","bcm 2",bcm_nbins,bcm_axismin,bcm_axismax);
-	TH1F *samp_bcm17 = new TH1F("samp_bcm17","bcm 17",bcm_nbins,bcm_axismin,bcm_axismax);
-	TH1F *samp_laserON_bcm1_hel0  = new TH1F("samp_laserON_bcm1_hel0", "bcm 1 hel0", bcm_nbins,bcm_axismin,bcm_axismax);
-	TH1F *samp_laserON_bcm2_hel0  = new TH1F("samp_laserON_bcm2_hel0", "bcm 2 hel0", bcm_nbins,bcm_axismin,bcm_axismax);
-	TH1F *samp_laserON_bcm17_hel0 = new TH1F("samp_laserON_bcm17_hel0","bcm 17 hel0",bcm_nbins,bcm_axismin,bcm_axismax);
-	TH1F *samp_laserON_bcm1_hel1  = new TH1F("samp_laserON_bcm1_hel1", "bcm 1 hel1", bcm_nbins,bcm_axismin,bcm_axismax);
-	TH1F *samp_laserON_bcm2_hel1  = new TH1F("samp_laserON_bcm2_hel1", "bcm 2 hel1", bcm_nbins,bcm_axismin,bcm_axismax);
-	TH1F *samp_laserON_bcm17_hel1 = new TH1F("samp_laserON_bcm17_hel1","bcm 17 hel1",bcm_nbins,bcm_axismin,bcm_axismax);
+	//TH1F *samp_bcm1 = new TH1F("samp_bcm1","bcm 1",bcm_nbins,bcm_axismin,bcm_axismax);
+	//TH1F *samp_bcm2 = new TH1F("samp_bcm2","bcm 2",bcm_nbins,bcm_axismin,bcm_axismax);
+	//TH1F *samp_bcm17 = new TH1F("samp_bcm17","bcm 17",bcm_nbins,bcm_axismin,bcm_axismax);
+	//TH1F *samp_laserON_bcm1_hel0  = new TH1F("samp_laserON_bcm1_hel0", "bcm 1 hel0", bcm_nbins,bcm_axismin,bcm_axismax);
+	//TH1F *samp_laserON_bcm2_hel0  = new TH1F("samp_laserON_bcm2_hel0", "bcm 2 hel0", bcm_nbins,bcm_axismin,bcm_axismax);
+	//TH1F *samp_laserON_bcm17_hel0 = new TH1F("samp_laserON_bcm17_hel0","bcm 17 hel0",bcm_nbins,bcm_axismin,bcm_axismax);
+	//TH1F *samp_laserON_bcm1_hel1  = new TH1F("samp_laserON_bcm1_hel1", "bcm 1 hel1", bcm_nbins,bcm_axismin,bcm_axismax);
+	//TH1F *samp_laserON_bcm2_hel1  = new TH1F("samp_laserON_bcm2_hel1", "bcm 2 hel1", bcm_nbins,bcm_axismin,bcm_axismax);
+	//TH1F *samp_laserON_bcm17_hel1 = new TH1F("samp_laserON_bcm17_hel1","bcm 17 hel1",bcm_nbins,bcm_axismin,bcm_axismax);
 
 	TH2F *accum0_diff_pair = new TH2F("accum0_diff_pair","accum0 difference width pairs;difference in accum0;event type",
 									  diff_nbins, diff_axismin, diff_axismax, type_nbins, type_axismin, type_axismax);
@@ -441,22 +430,19 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 
 	// **********
 	// **** Define all the variables for the loop
-	char text[255];
-	sprintf(text,"");
+	std::string text = "";
 	Double_t bcm1cal, bcm2cal, bcm17cal, eventtime;
-	Int_t warningnum_accum=0;
+	//Int_t warningnum_accum=0;
 	Int_t num_no_samples=0;
 	Int_t num_badsnaps=0, num_badhelicity=0, num_badbcm=0, num_badmaxpos=0;
-	Int_t numsamp=0, numsnapshots=0;
+	//Int_t numsamp=0, numsnapshots=0;
 	Int_t num_beamon_laseron=0, num_beamon_laseroff=0, num_beamon_laserbad=0, num_beamoff=0;
 	Bool_t beamon, laseron, laseroff, printsample, drawsnapshot, screwedup, maxposgood, no_pileup;
 	Int_t paircount=0, quadcount=0, octoquadcount=0;
-	Double_t pairsum=0, pairdiff=0, pairasym=0, quaddiff=0, octoquaddiff=0;
-	Int_t type;
-	Double_t samp_max_val;
-	Double_t samp_maxpos_val;
-	Double_t samp_min_val;
-	Double_t samp_minpos_val;
+	Double_t pairsum=0, pairdiff=0, /*pairasym=0,*/ quaddiff=0, octoquaddiff=0;
+	Int_t type = 0;
+	Double_t samp_min_val, samp_max_val;
+	Int_t samp_minpos_val, samp_maxpos_val;
 	Double_t samp_integral_val;
 	Double_t samp_ped1, samp_ped2, samp_ped3, samp_ped4, samp_ped5, xgpos;
 	Double_t samp_pedave_val, samp_pedprepeakave_val;
@@ -630,26 +616,27 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 					samp_ped_maxm9=samp_ped4;
 					samp_ped_maxm10=samp_ped5;
 				}
-				Double_t minped = min(min(min(samp_ped1,samp_ped2),min(samp_ped3,samp_ped4)),
-									  min(min(samp_ped_maxm6,samp_ped_maxm7),min(samp_ped_maxm8,samp_ped_maxm9)));
+				Double_t minped = std::min(std::min(std::min(samp_ped1,samp_ped2),std::min(samp_ped3,samp_ped4)),
+						std::min(std::min(samp_ped_maxm6,samp_ped_maxm7),std::min(samp_ped_maxm8,samp_ped_maxm9)));
 				samp_pedprepeakave_val = (samp_ped_maxm10+samp_ped_maxm6+samp_ped_maxm7+samp_ped_maxm8+samp_ped_maxm9)/5.;
 
 				if (jentry%10000 == 0) printsample=1;
 				if (printsample) {
-					printf("%8i %3i%% %3.0f %6.1f  %i,%i,%i,%i %10.2f %8.2f %8.0f %8.2f %8.0f %10.2f %10.4g %s\n",
+					printf("%8i %3i%% %3.0f %6.1f  %i,%i,%i,%i %10.2f %8i %8.0f %i %8.0f %10.2f %10.4g %s\n",
 						   jentry, 100*jentry/nentries, sca_laser_PowT, bcm1cal, laseron, laseroff, beamon, type,
 						   samp_max_val, samp_maxpos_val, samp_min_val, samp_minpos_val, samp_pedave_val, samp_integral_val, 
-						   fadc_compton_accum0[0], text);
+						   fadc_compton_accum0[0], text.c_str());
 					//       printf("%8i %3i%%\n",
 					// 	     jentry, 100*jentry/nentries);
 					printsample=0;
 				}
-				
-				if (samp_min < -60000) {  // They can't be the overflow kind
-					sprintf(text,"screwed up");
-					screwedup = 1;
-					num_badsnaps++;
-				}
+
+				// this makes no sense, samp_min is a pointer to a histogram (wdc)
+				//if (samp_min < -60000) {  // They can't be the overflow kind
+				//	text = "screwed up";
+				//	screwedup = 1;
+				//	num_badsnaps++;
+				//}
 				if(samp_maxpos_val > maxpeakposcut_min && samp_maxpos_val < maxpeakposcut_max) {
 					maxposgood=1;
 				}
@@ -702,7 +689,7 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 						num_badmaxpos++;
 					} else {
 						Int_t maxpoint = thegraph->GetN();
-						maxpoint = min(maxpoint, samp_maxpos_val + i_upint); // Use the last point if the length is too long.
+						maxpoint = std::min(maxpoint, samp_maxpos_val + i_upint); // Use the last point if the length is too long.
 						for (Int_t i=samp_maxpos_val + i_lowint; i<=maxpoint; i++) {
 							thegraph->GetPoint(i,xgpos,samp_pointval);
 							samp_peakintegral_val += samp_pointval;
@@ -744,14 +731,14 @@ void stepthru_mps_worker(Int_t runnumber = 0, Int_t maxevents = 0)
 	
 // 	file_out->cd();
 // 	for (Int_t i=0; i<20; i++) {
-// 		cout << "Writing beam OFF " << i << "  " << graphsbeamOFF[i] << endl;
+// 		std::cout << "Writing beam OFF " << i << "  " << graphsbeamOFF[i] << std::endl;
 // 		if (graphsbeamOFF[i]) {
 // 			//graphsbeamOFF[i]->SetDirectory(file_out);	
 // 			graphsbeamOFF[i]->Write();	
 // 		}
 // 	}
 // 	for (Int_t i=0; i<20; i++) {
-// 		cout << "Writing laser ON " << i << "  " << graphslaserON[i] << endl;
+// 		std::cout << "Writing laser ON " << i << "  " << graphslaserON[i] << std::endl;
 // 		if (graphslaserON[i]){
 // 			//	graphslaserON[i]->SetDirectory(file_out);	
 // 			graphslaserON[i]->Write();	

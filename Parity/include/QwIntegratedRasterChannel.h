@@ -15,8 +15,9 @@
 #include <TTree.h>
 
 // Qweak headers
-#include "QwVQWK_Channel.h"
 #include "QwParameterFile.h"
+#include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
 
 // Forward declarations
 class QwDBInterface;
@@ -26,6 +27,7 @@ class QwDBInterface;
 ******************************************************************/
 ///
 /// \ingroup QwAnalysis_BL
+template<typename T>
 class QwIntegratedRasterChannel : public VQwDataElement{
 /////
  public:
@@ -133,7 +135,7 @@ class QwIntegratedRasterChannel : public VQwDataElement{
 
 
 
-  QwVQWK_Channel fTriumf_ADC;
+  T fTriumf_ADC;
 
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 

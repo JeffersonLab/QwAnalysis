@@ -31,9 +31,9 @@ class QwDBInterface;
 class QwLinearDiodeArray : public VQwBPM {
 
  public:
-  QwLinearDiodeArray() { };
+  QwLinearDiodeArray() {
+  };
   QwLinearDiodeArray(TString name):VQwBPM(name){
-    InitializeChannel(name);
   };
     
     
@@ -55,6 +55,19 @@ class QwLinearDiodeArray : public VQwBPM {
   void    ProcessEvent();
   void    PrintValue() const;
   void    PrintInfo() const;
+
+
+  const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {
+    if (axis<0 || axis>2){
+      TString loc="QwLinearDiodeArray::GetPosition for "
+        +this->GetElementName()+" failed for axis value "+Form("%d",axis);
+      throw std::out_of_range(loc.Data());
+    }
+    return &fAbsPos[axis];
+  }
+  const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
+
+
 
   UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
@@ -80,6 +93,11 @@ class QwLinearDiodeArray : public VQwBPM {
   void    Ratio(QwLinearDiodeArray &numer, QwLinearDiodeArray &denom);
   void    Scale(Double_t factor);
 
+
+  VQwBPM& operator=  (const VQwBPM &value);
+  VQwBPM& operator+= (const VQwBPM &value);
+  VQwBPM& operator-= (const VQwBPM &value);
+
   virtual QwLinearDiodeArray& operator=  (const QwLinearDiodeArray &value);
   virtual QwLinearDiodeArray& operator+= (const QwLinearDiodeArray &value);
   virtual QwLinearDiodeArray& operator-= (const QwLinearDiodeArray &value);
@@ -101,6 +119,8 @@ class QwLinearDiodeArray : public VQwBPM {
   std::vector<QwDBInterface> GetDBEntry();
   void    MakeLinearArrayList();
 
+  protected:
+  VQwHardwareChannel* GetSubelementByName(TString ch_name);
 
   /////
  private:
@@ -115,6 +135,10 @@ class QwLinearDiodeArray : public VQwBPM {
   std::vector<QwVQWK_Channel> fPhotodiode;
   // QwVQWK_Channel fPhotodiode[8];
   QwVQWK_Channel fRelPos[2];
+
+  //  These are the "real" data elements, to which the base class
+  //  fAbsPos_base and fEffectiveCharge_base are pointers.
+  QwVQWK_Channel fAbsPos[2];
   QwVQWK_Channel fEffectiveCharge;
 
   std::vector<QwVQWK_Channel> fLinearArrayElementList;

@@ -1,0 +1,49 @@
+// -*- c++ -*-
+
+TaRootRegDef *regdef;
+TTree *reg;
+
+void spokes (UInt_t scyc, TString xmon, TString ymon, Double_t mx)
+{
+  // Draws a spokes plot with all coils, horizontal in red and
+  // vertical in blue, for the given cycle and monitor pair, with mx
+  // being the maximum slope size
+
+  gROOT->LoadMacro("getmonvscoil.macro+");
+  
+  TString shname = "spokes" + xmon + ymon;
+  TH2F* hh = (TH2F*)(gROOT->FindObject(shname));
+  if (hh) hh->Delete();
+  TString title = "spokes for cycle ";
+  title += scyc;
+  hh = new TH2F (shname, title, 1, -mx, mx, 1, -mx, mx);
+  hh->SetStats(false);
+  hh->GetXaxis()->SetTitle(xmon);
+  hh->GetYaxis()->SetTitle(ymon);
+  hh->Draw();
+  Float_t xy[7][2];
+  TString coilname[7];
+  coilname[0] = "MAT1C01H";
+  coilname[1] = "MAT1C03H";
+  coilname[2] = "MAT1C05H";
+  coilname[3] = "MAT1C07H";
+  coilname[4] = "MAT1C02V";
+  coilname[5] = "MAT1C04V";
+  coilname[6] = "MAT1C06V";
+
+  TArrow* arr;
+  TLatex* l = new TLatex();
+  l->SetTextSize(.03);
+
+  UInt_t ia;
+  for (ia = 0; ia < 7; ++ia)
+    {
+      xy[ia][0] = getmonvscoil (scyc, xmon, coilname[ia]);
+      xy[ia][1] = getmonvscoil (scyc, ymon, coilname[ia]);
+      arr = new TArrow (0., 0., xy[ia][0], xy[ia][1]);
+      arr->SetLineColor(ia < 4 ? 2 : 4);
+      arr->Draw();
+      // Label with all but first 4 chars of coil name
+      l->DrawLatex (xy[ia][0]*1.1, xy[ia][1]*1.1, coilname[ia].Data()+5);
+    }
+}

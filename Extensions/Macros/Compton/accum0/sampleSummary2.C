@@ -21,7 +21,7 @@
 #include "TSystem.h"
 #include "stdio.h"
 #include "stdlib.h"
-#include "/home/cdaq/compton/QwAnalysis/Analysis/include/MQwSIS3320_Samples.h"
+#include "/home/cdaq/compton/QwAnalysis/Analysis/include/QwSIS3320_Samples.h"
 
 using namespace std;
 
@@ -90,7 +90,7 @@ Int_t sampleSummary2(Int_t runnum, Bool_t isFirst100K=kFALSE, Int_t bcmnum=2)
 		 "sca_laser_PowT>10","goff");
   Float_t cutLower = hTemp->GetMean()*0.9, cutUpper = hTemp->GetMean()*1.3;//laser on cut values. Must be between.
 
-  std::vector<MQwSIS3320_Samples>* sampled_events = 0;
+  std::vector<QwSIS3320_Samples>* sampled_events = 0;
   mpsChain->SetBranchAddress("fadc_compton_samples",&sampled_events);
   Double_t sca_laser_PowT;
   mpsChain->SetBranchAddress("sca_laser_PowT",&sca_laser_PowT);

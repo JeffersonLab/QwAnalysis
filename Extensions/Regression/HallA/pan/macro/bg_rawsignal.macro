@@ -1,0 +1,105 @@
+// bplot package:: bg_rawsignal.macro
+// Purpose:  Plots of Diagnostics from haAna ntuple
+
+{
+
+   gROOT->Reset();
+   G__loadfile("./bg_tree_define.macro");
+
+   bar = new TControlBar("vertical", "Raw Signals");
+
+   btree gt1("R","BPM 8 antenna","bpm8raw",2,2,
+               "bpm8xp","bpm8xp>1000","","",
+               "bpm8xm","bpm8xm>1000","","",
+               "bpm8yp","bpm8yp>1000","","",
+               "bpm8ym","bpm8ym>1000","","");
+//   gt1.forcehisto(0,"BPM8","BPM 8 Antenna",
+//           1000,2000,4000,0,0,0)
+
+   btree gt2("R","BPM 10 antenna","bpm10raw",2,2,
+               "bpm10xp","bpm10xp>1000","","",
+               "bpm10xm","bpm10xm>1000","","",
+               "bpm10yp","bpm10yp>1000","","",
+               "bpm10ym","bpm10ym>1000","","");
+
+   btree gt3("R","BPM 12 antenna","bpm12raw",2,2,
+               "bpm12xp","bpm12xp>1000","","",
+               "bpm12xm","bpm12xm>1000","","",
+               "bpm12yp","bpm12yp>1000","","",
+               "bpm12ym","bpm12ym>1000","","");
+
+   btree gt4("R","BPM 4a antenna","bpm4araw",2,2,
+               "bpm4axp","bpm4axp>1000","","",
+               "bpm4axm","bpm4axm>1000","","",
+               "bpm4ayp","bpm4ayp>1000","","",
+               "bpm4aym","bpm4aym>1000","","");
+   btree gt5("R","BPM 4b antenna","bpm4braw",2,2,
+               "bpm4bxp","bpm4bxp>1000","","",
+               "bpm4bxm","bpm4bxm>1000","","",
+               "bpm4byp","bpm4byp>1000","","",
+               "bpm4bym","bpm4bym>1000","","");
+
+   btree gt6("R","BCM1 and BCM2","bcmraw",2,2,
+               "bcm1","","","",
+               "bcm2","","","",
+               "bcm1:ev_num","","","",
+               "bcm2:ev_num","","","");
+
+#ifdef YEAHBABY
+   btree gt7("R","Helicity","helicity",2,2,
+               "Helicity","","","",
+               "Helicity:ev_num","ev_num<200","","",
+               "batt2 as helicity","batt2","","",
+               "batt2 vs hel","batt2:Helicity","","");
+   btree gt8("R","BPM 8 antenna","bpm8vDAC",2,2,
+               "bpm8xp:precdac","","","",
+               "bpm8xm:precdac","","","",
+               "bpm8yp:precdac","","","",
+               "bpm8ym:precdac","","","");
+   btree gt9("R","BPM 10 antenna","bpm10vDAC",2,2,
+               "bpm10xp:precdac","","","",
+               "bpm10xm:precdac","","","",
+               "bpm10yp:precdac","","","",
+               "bpm10ym:precdac","","","");
+   btree gt10("R","BPM 12 antenna","bpm12vDAC",2,2,
+               "bpm12xp:precdac","","","",
+               "bpm12xm:precdac","","","",
+               "bpm12yp:precdac","","","",
+               "bpm12ym:precdac","","","");
+   btree gt11("R","BPM 4a antenna","bpm4avDAC",2,2,
+               "bpm4axp:precdac","","","",
+               "bpm4axm:precdac","","","",
+               "bpm4ayp:precdac","","","",
+               "bpm4aym:precdac","","","");
+   btree gt12("R","BPM 4b antenna","bpm4bvDAC",2,2,
+               "bpm4bxp:precdac","","","",
+               "bpm4bxm:precdac","","","",
+               "bpm4byp:precdac","","","",
+               "bpm4bym:precdac","","","");
+#endif 
+
+
+   bar->AddButton("                BPM   8                ",   "gt1.plot()");
+   bar->AddButton("                BPM  10                ",   "gt2.plot()");
+   bar->AddButton("                BPM  12                ",   "gt3.plot()");
+   bar->AddButton("                BPM  4A                ",   "gt4.plot()");
+   bar->AddButton("               BPM  4B                 ",   "gt5.plot()");
+   bar->AddButton("              Beam Current             ",   "gt6.plot()");
+#ifdef YEAHBABY
+   bar->AddButton("            Helicity Flags             ",   "gt7.plot()");
+   bar->AddButton("            BPM   8  vs DAC          ",   "gt8.plot()");
+   bar->AddButton("            BPM   10 vs DAC          ",   "gt9.plot()");
+   bar->AddButton("            BPM   12 vs DAC          ",   "gt10.plot()");
+   bar->AddButton("            BPM   4a vs DAC          ",   "gt11.plot()");
+   bar->AddButton("            BPM   4b vs DAC          ",   "gt12.plot()");
+#endif
+
+   bar->Show();
+   gROOT->SaveContext();
+}
+
+
+
+
+
+

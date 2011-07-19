@@ -1,0 +1,132 @@
+//////////////////////////////////////////////////////////////////////
+//
+// DitherAlias.macro
+//   Bryan Moffit - August 2005
+//
+//  A class to create aliases to a provided tree containing
+//   corrections to detectors using dithering slopes
+//
+
+#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+#include <TString.h>
+#include <TTree.h>
+#include "RedCoefs.macro"
+#include "src/TaFileName.hh"
+
+class DitherAlias
+{
+
+ public:
+  DitherAlias (TTree *tree, UInt_t run); 
+  DitherAlias (TTree *tree, const char *filename);
+
+ private:
+  void Load();
+  void MakeAliases();
+
+  TTree *fTree;
+  UInt_t fRun;
+  const char *fDitResFile;
+  vector <string> fMonName;
+  vector <string> fDetName;
+  map <string, vector<Double_t> > fSlope;
+};
+
+DitherAlias::DitherAlias (TTree *tree, UInt_t run) :
+    fTree(tree), 
+    fRun(run),
+    fDitResFile("")
+  {
+    Load();
+    MakeAliases();
+  }
+
+DitherAlias::DitherAlias (TTree *tree, const char *filename) : 
+    fTree(tree),
+    fRun(0),
+    fDitResFile(filename)
+  {
+    Load();
+    MakeAliases();
+  }
+
+void 
+DitherAlias::Load() 
+{
+  // Detectors for which to look for coefficients
+  fDetName.clear();
+  fDetName.push_back ("det1");
+  fDetName.push_back ("det2");
+  fDetName.push_back ("det3");
+  fDetName.push_back ("det4");
+  fDetName.push_back ("det_l");
+  fDetName.push_back ("det_r");
+  fDetName.push_back ("det_lo");
+  fDetName.push_back ("det_hi");
+  fDetName.push_back ("det_all");
+  fDetName.push_back ("flumi1");
+  fDetName.push_back ("flumi2");
+  fDetName.push_back ("blumi1");
+  fDetName.push_back ("blumi2");
+  fDetName.push_back ("blumi3");
+  fDetName.push_back ("blumi4");
+  fDetName.push_back ("blumi5");
+  fDetName.push_back ("blumi6");
+  fDetName.push_back ("blumi7");
+  fDetName.push_back ("blumi8");
+  
+  RedCoefs* rcm = new RedCoefs(fRun,"dither",fDitResFile);
+  fMonName = rcm->Monitors();
+
+  vector <Double_t> v;
+  for (vector<string>::const_iterator idt = fDetName.begin();
+       idt != fDetName.end();
+       ++idt)
+    {
+      v.clear();
+      for (vector<string>::const_iterator imt = fMonName.begin();
+	   imt != fMonName.end();
+	   ++imt)
+	{
+	  rcm->Compute (*idt, *imt);
+	  if (rcm->GetMeanErr() > 0)
+	    v.push_back (rcm->GetMean());
+	}
+      fSlope[*idt] = v;
+    }
+  delete rcm;
+
+}
+
+void
+DitherAlias::MakeAliases() 
+{
+
+  TString aliasname, aliasformula;
+  for (UInt_t iDet=0; iDet<fDetName.size(); iDet++) 
+    {
+      vector<Double_t> corrcoef = fSlope[fDetName[iDet]];
+      if (corrcoef.size())
+	{
+	  aliasformula = "asym_n_"+fDetName[iDet];
+	  aliasname = "dit_"+aliasformula;
+	  for (UInt_t i = 0; i < fMonName.size(); ++i)
+	    {
+	      aliasformula += Form("-(%.3f)*",corrcoef[i]);
+	      aliasformula += "diff_"+fMonName[i];
+	    }
+	  cout << "Made Alias Called \"" << aliasname << "\"" << endl;
+	  fTree->SetAlias(aliasname,aliasformula);
+	} 
+      else 
+	{
+	  aliasname = "dit_asym_n_"+fDetName[iDet];
+	  cout << "Made Empty Alias Called \"" << aliasname << "\"" << endl;
+	  fTree->SetAlias(aliasname,"-1e6");
+	}
+      
+    }
+}

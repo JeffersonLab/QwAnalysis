@@ -1,0 +1,185 @@
+// -*- c++ -*-
+
+#include "TROOT.h"
+#include "TString.h"
+#include "TTree.h"
+#include "TBranch.h"
+#include "TEventList.h"
+#include <iostream>
+
+using namespace std;
+
+Double_t correl (TString a, TString b, TString c)
+{
+  // Correlation between asymmetries/differences for detectors
+  // a and b with selection c
+  //
+  // Uses reg tree if available, otherwise P.
+  // Uses the first of these to be defined: reg_asym_n_a,
+  // asym_n_a, asym_a, diff_a, and likewise for b.
+  // Should work for TChains as well as for TTrees.
+
+  Double_t corr = 0;
+  
+  Bool_t unalike = (a != b);
+
+  TString saa;
+  TTree* T = (TTree*) gROOT->FindObject ("reg");
+  if (T == NULL)
+    T = (TTree*) gROOT->FindObject ("P");
+  if (T != NULL)
+    {
+      saa = TString ("reg_asym_n_") + a;
+      if (T->GetBranch (saa) == NULL)
+	saa = TString ("asym_n_") + a;
+      if (T->GetBranch (saa) == NULL)
+	saa = TString ("asym_") + a;
+      if (T->GetBranch (saa) == NULL)
+	saa = TString ("diff_") + a;
+      TString sab;
+      if (unalike)
+	{
+	  sab = TString ("reg_asym_n_") + b;
+	  if (T->GetBranch (sab) == NULL)
+	    sab = TString ("asym_n_") + b;
+	  if (T->GetBranch (sab) == NULL)
+	    sab = TString ("asym_") + b;
+	  if (T->GetBranch (sab) == NULL)
+	    sab = TString ("diff_") + b;
+	}
+      else
+	sab = saa;
+      
+      // Make selected event list
+      T->Draw (">>elist1", c.Data());
+      TEventList* elist1 = (TEventList*) gROOT->FindObject ("elist1");
+      UInt_t nent = elist1->GetN();
+      
+      // Set up to extract data
+      TBranch* ba;
+      TBranch* bb;
+      ba = T->GetBranch (saa);
+      if (unalike)
+	bb = T->GetBranch (sab);
+      else
+	bb = ba;
+      if (ba != NULL && bb != NULL)
+	{
+	  Double_t daa;
+	  Double_t dab;
+	  ba->SetAddress (&daa);
+	  if (unalike)
+	    bb->SetAddress (&dab);
+	  
+	  // First pass, get mean a and b
+	  Double_t sma = 0;
+	  Double_t smb = 0;
+	  for (UInt_t ient = 0; ient < nent; ++ient)
+	    {
+	      ba->GetEntry (elist1->GetEntry(ient));
+	      if (unalike)
+		bb->GetEntry (elist1->GetEntry(ient));
+	      else
+		dab = daa;
+	      sma += daa;
+	      smb += dab;
+	    }
+	  Double_t aave = sma / nent;
+	  Double_t bave = smb / nent;
+	  
+	  // Second pass, get moments
+	  Double_t smaa = 0;
+	  Double_t smab = 0;
+	  Double_t smbb = 0;
+	  for (UInt_t ient = 0; ient < nent; ++ient)
+	    {
+	      ba->GetEntry (elist1->GetEntry(ient));
+	      if (unalike)
+		bb->GetEntry (elist1->GetEntry(ient));
+	      else
+		dab = daa;
+	      smaa += (daa - aave) * (daa - aave);
+	      smab += (daa - aave) * (dab - bave);
+	      smbb += (dab - bave) * (dab - bave);
+	    }
+	  Double_t va = smaa / nent;
+	  Double_t vb = smbb / nent;
+	  corr = smab / nent / sqrt (va * vb);
+	  ba->ResetAddress ();
+	  bb->ResetAddress ();
+	  delete elist1;
+	}
+      else
+	{
+	  if (ba == NULL)
+	    cerr << "Invalid device: " << saa << endl;
+	  if (unalike && bb == NULL)
+	    cerr << "Invalid device: " << sab << endl;
+	}
+    }
+  else
+    cerr << "No tree found" << endl;
+  return corr;
+}
+
+void blcorrel ()
+{
+  cout << "blumi1";
+  cout << " " << correl ("blumi1", "blumi2", "ok_cut");
+  cout << " " << correl ("blumi1", "blumi3", "ok_cut");
+  cout << " " << correl ("blumi1", "blumi4", "ok_cut");
+  cout << " " << correl ("blumi1", "blumi5", "ok_cut");
+  cout << " " << correl ("blumi1", "blumi6", "ok_cut");
+  cout << " " << correl ("blumi1", "blumi7", "ok_cut");
+  cout << " " << correl ("blumi1", "blumi8", "ok_cut");
+  cout << endl;
+  cout << "blumi2";
+  cout << " " << correl ("blumi2", "blumi3", "ok_cut");
+  cout << " " << correl ("blumi2", "blumi4", "ok_cut");
+  cout << " " << correl ("blumi2", "blumi5", "ok_cut");
+  cout << " " << correl ("blumi2", "blumi6", "ok_cut");
+  cout << " " << correl ("blumi2", "blumi7", "ok_cut");
+  cout << " " << correl ("blumi2", "blumi8", "ok_cut");
+  cout << endl;
+  cout << "blumi3";
+  cout << " " << correl ("blumi3", "blumi4", "ok_cut");
+  cout << " " << correl ("blumi3", "blumi5", "ok_cut");
+  cout << " " << correl ("blumi3", "blumi6", "ok_cut");
+  cout << " " << correl ("blumi3", "blumi7", "ok_cut");
+  cout << " " << correl ("blumi3", "blumi8", "ok_cut");
+  cout << endl;
+  cout << "blumi4";
+  cout << " " << correl ("blumi4", "blumi5", "ok_cut");
+  cout << " " << correl ("blumi4", "blumi6", "ok_cut");
+  cout << " " << correl ("blumi4", "blumi7", "ok_cut");
+  cout << " " << correl ("blumi4", "blumi8", "ok_cut");
+  cout << endl;
+  cout << "blumi5";
+  cout << " " << correl ("blumi5", "blumi6", "ok_cut");
+  cout << " " << correl ("blumi5", "blumi7", "ok_cut");
+  cout << " " << correl ("blumi5", "blumi8", "ok_cut");
+  cout << endl;
+  cout << "blumi6";
+  cout << " " << correl ("blumi6", "blumi7", "ok_cut");
+  cout << " " << correl ("blumi6", "blumi8", "ok_cut");
+  cout << endl;
+  cout << "blumi7";
+  cout << " " << correl ("blumi7", "blumi8", "ok_cut");
+  cout << endl;
+}
+
+void detcorrel ()
+{
+  cout << "det1";
+  cout << " " << correl ("det1", "det2", "ok_cut");
+  cout << " " << correl ("det1", "det3", "ok_cut");
+  cout << " " << correl ("det1", "det4", "ok_cut");
+  cout << endl;
+  cout << "det2";
+  cout << " " << correl ("det2", "det3", "ok_cut");
+  cout << " " << correl ("det2", "det4", "ok_cut");
+  cout << endl;
+  cout << "det3";
+  cout << " " << correl ("det3", "det4", "ok_cut");
+  cout << endl;
+}

@@ -1,0 +1,57 @@
+{
+  // Macro, otherwise useless, to demonstrate reading and writing result
+  // database files.
+  
+  // Open the file from pan (parity02_2181_standard.res)
+  
+  TaIResultsFile* fi = new TaIResultsFile (2181, "standard");
+  
+  // Open a new file (parity02_2181_standard_resexample.res)
+  
+  TaOResultsFile* fo = new TaOResultsFile ("res_example", 
+					   2181, 
+					   "standard",
+					   fi->GetChksum(),
+					   "resexample");
+  
+  Double_t mymean(0);
+  Double_t myerr(0);
+  Double_t myrms(0);
+  Double_t myneff(0);
+  UInt_t myev0(0);
+  UInt_t myev1(0);
+  TString myunits("");
+  
+  while (fi.ReadNextLine())
+    {
+      // Copy input data to output and look for BCM1 asymmetry
+      (*fo) << (fi->GetLineTS()) << endl;
+      if (fi->GetPtagTS() == "pan")
+	{
+	  if (fi->GetRtagTS() == "Asym_bcm1_mean")
+	    {
+	      mymean = fi->GetRes();
+	      myerr = fi->GetErr();
+	      myunits = fi->GetUnitsTS();
+	      myev0 = fi->GetEv0();
+	      myev1 = fi->GetEv1();
+	    }
+	  else if (fi->GetRtagTS() == "Asym_bcm1_RMS")
+	    myrms = fi->GetRes();
+	  else if (fi->GetRtagTS() == "Asym_bcm1_Neff")
+	    myneff = fi->GetRes();
+	}
+    }
+  
+  // Print the results we found
+  cout << "Found results: mean BCM1 asy = " << mymean
+       << " +- " << myerr
+       << "  RMS = " << myrms
+       << "  N_eff = " << myneff
+       << endl;
+  
+  // Write some new "results"
+  fo.WriteNextLine ("bogus",  3.1415, 0.717, myev0, myev1, 
+		    "furlongs", "in the center of mass");
+  
+}

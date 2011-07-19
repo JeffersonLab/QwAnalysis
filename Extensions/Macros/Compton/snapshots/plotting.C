@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <cmath>
+
 #include "TFile.h"
 #include "TTree.h"
 #include "TROOT.h"
@@ -19,16 +22,8 @@
 #include "TProfile.h"
 #include "TF1.h"
 #include "TLine.h"
-#include <algorithm>
 
-/*
-//   #include ".h"
-*/
-static const Int_t numtypes=5;
-Int_t fitStatus[numtypes];
-TF1 *fitpol1[numtypes];
-static const Int_t colors[5] = {kGreen, kBlue, kRed, kViolet, kCyan};
-char titles[numtypes][20] = {"laser on", "laser off", "beam off", "laser flash","beam ramp"};
+#include "globals.C"
 
 void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t logy=0, TString filename="") {
 	printf("drawALLtypeTH1:  (%20s)  %s\n",bighist->GetName(),bighist->GetTitle());
@@ -37,7 +32,7 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
 		return;
 	}
 	static const Bool_t debug=0;
-	TLegend* leg;
+	TLegend* leg = 0;
 	TH1D* hist[numtypes];
 	Bool_t first=1;
     //Int_t colors[numtypes] = {kGreen, kBlue, kRed, kViolet};
@@ -111,7 +106,7 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
 		outfile = fopen(filename.Data(),"w");
 		for (Int_t i=1; i<=numtypes; i++) {
 			if (entries[i-1]>0) {
-				fprintf(outfile, "type%i  mean %13.7g    RMS %13.7g    entries %7i\n",
+				fprintf(outfile, "type%i  mean %13.7g    RMS %13.7g    entries %7f\n",
 						i,hist[i-1]->GetMean(),hist[i-1]->GetRMS(),hist[i-1]->GetEntries());
 			}
 		}
@@ -121,7 +116,8 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
 }
 
 
-void drawslicesTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t logy=0, Int_t startbin=0, Int_t endbin=0) {
+void drawslicesTH1(TH2F* bighist, Bool_t /*printstats*/ = 1, TString title = "", Bool_t /*logy*/ = 0, Int_t startbin = 0, Int_t endbin = 0) 
+{
 	printf("drawslicesTH1:  (%20s)  %s\n",bighist->GetName(),bighist->GetTitle());
 	if (bighist->GetEntries() <= 0) {
 		printf("drawslicesTH1:  No entries\n");
@@ -140,7 +136,7 @@ void drawslicesTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t 
 		printf("drawslicesTH1:  only plotting the first %i bins of %i\n",maxbins,num);
 		num=maxbins;
 	}
-	THStack *hs;
+	THStack *hs = 0;
 
 	Bool_t first=1;
     //Int_t colors[num] = {kGreen, kBlue, kRed, kViolet};
@@ -205,7 +201,8 @@ void drawslicesTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t 
 
 
 
-void projectALLtypeTH1(TH3F* bighist, Bool_t printstats=0, TString title="", Bool_t logy=0, Int_t rebinnum=1, Bool_t dowide=0) {
+void projectALLtypeTH1(TH3F* bighist, Bool_t printstats = 0, TString title = "", Bool_t /*logy*/ = 0, Int_t rebinnum = 1, Bool_t dowide = 0) 
+{
 	printf("projectALLtypeTH1:  (%20s)  %s\n",bighist->GetName(),bighist->GetTitle());
 	if (bighist->GetEntries() <= 0) {
 		printf("projectALLtypeTH1:  No entries\n");
@@ -220,15 +217,16 @@ void projectALLtypeTH1(TH3F* bighist, Bool_t printstats=0, TString title="", Boo
 	} else {
 		title=bighist->GetTitle();
 	}
-	TLegend* leg;
+	TLegend* leg = 0;
 	TH2D* hist2D[numtypes];
 	TH1D* typehist[numtypes];
 	TProfile* histprof[numtypes];
-	TH1D* hist1D[numtypes];
+	//TH1D* hist1D[numtypes];
 	Double_t entries[numtypes];
-	Float_t ymax=-1e12, ymin=1e12, ymaxproj=-1e12, yminproj=1e12, ymaxevents=-1e12, yminevents=1e12;
-	Float_t ymintemp, ymaxtemp;
-    Int_t yminbin, ymaxbin;
+	Float_t ymax=-1e12, ymin=1e12;
+	//Float_t ymaxproj=-1e12, yminproj=1e12, ymaxevents=-1e12, yminevents=1e12;
+	//Float_t ymintemp, ymaxtemp;
+	Int_t yminbin, ymaxbin;
 	char name[255];
 
 	TH2D* hist2DALL = (TH2D*)bighist->Project3D("yx");
@@ -239,7 +237,7 @@ void projectALLtypeTH1(TH3F* bighist, Bool_t printstats=0, TString title="", Boo
 	ymaxbin = histprofALL->GetMaximumBin();
 	printf("projectALLtypeTH1:  minbin %4i  minval %10.4g;    maxbin %4i maxval %10.4g\n", 
 		   yminbin, ymin, ymaxbin, ymax);
-	if (ymax != 0) 	ymax = ymax + 0.15*abs(ymax - ymin);
+	if (ymax != 0) 	ymax = ymax + 0.15*std::fabs(ymax - ymin);
 
 	sprintf(name,"%s",bighist->GetName());
 	for (Int_t i=numtypes; i>=1; i--) {//	for (Int_t i=1; i<=numtypes; i++) {
@@ -332,8 +330,9 @@ void projectALLtypeTH1(TH3F* bighist, Bool_t printstats=0, TString title="", Boo
 	gPad->SetMargin(0.06,0.02,0.1,0.1);
 }
 
-void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats=1, TString title="", 
-							 Bool_t logy=0, Int_t rebinnum=1, char *textfilename="projectALLtypeTH1andfit_default.txt") {
+void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats = 1, TString title = "", 
+		Bool_t /*logy*/ = 0, Int_t rebinnum = 1, char *textfilename = "projectALLtypeTH1andfit_default.txt")
+{
 	printf("projectALLtypeTH1andfit:  (%20s)  %s\n",bighist->GetName(),bighist->GetTitle());
 	if (bighist->GetEntries() <= 0) {
 		printf("projectALLtypeTH1andfit:  No entries\n");
@@ -345,7 +344,7 @@ void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats=1, TString title="
 	if (title!="") {
 		bighist->SetTitle(title.Data());
 	}
-	TLegend *leg;
+	TLegend *leg = 0;
 	TH2D* hist2D[numtypes];
 	TProfile* histprof[numtypes];
 	Double_t entries[numtypes];
@@ -425,10 +424,11 @@ void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats=1, TString title="
 }
 
 
-void draw1typeTH2(TH3F* bighist, Int_t type, Bool_t printstats=0, TString title="", Bool_t logz=0, Int_t rebinx=1, Int_t rebiny=1) {
+void draw1typeTH2(TH3F* bighist, Int_t type, Bool_t /*printstats*/ = 0, TString title = "", Bool_t logz = 0, Int_t rebinx = 1, Int_t rebiny = 1) 
+{
 	gPad->SetLogz(logz);
 	printf("draw1typeTH2:  (%20s)  %s   for %i\n",bighist->GetName(),bighist->GetTitle(),type);
-	TLegend *leg;
+	//TLegend *leg = 0;
 	TH2D* hist2D;
 	Double_t entries;
 	char name[255];
@@ -463,7 +463,7 @@ void draw1typeTH2(TH3F* bighist, Int_t type, Bool_t printstats=0, TString title=
 
 TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t intmin=0, Float_t intmax=0, Bool_t logy=0, Bool_t dotitles=1) {
 	//gPad->SetLogy(logy);
-	TLegend *leg;
+	TLegend *leg = 0;
 	Bool_t scaleandsub;
 	Double_t int1, int2;
 	Int_t intminbin, intmaxbin;

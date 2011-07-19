@@ -14,6 +14,7 @@
 // Qweak headers
 #include "QwSubsystemArray.h"
 #include "QwDatabase.h"
+#include "QwVQWK_Channel.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwIntegratedRaster);
@@ -134,7 +135,7 @@ Int_t QwIntegratedRaster::LoadChannelMap(TString mapfile)
 
 	  if(detector_id.fIndex==-1)
 	    {
-	      QwIntegratedRasterChannel localIntegratedRasterChannel(GetSubsystemName(),detector_id.fdetectorname);
+	      QwIntegratedRasterChannel<QwVQWK_Channel> localIntegratedRasterChannel(GetSubsystemName(),detector_id.fdetectorname);
 	      fIntegratedRasterChannel.push_back(localIntegratedRasterChannel);
 	      fIntegratedRasterChannel[fIntegratedRasterChannel.size()-1].SetDefaultSampleSize(fSample_size);
 	      detector_id.fIndex=fIntegratedRasterChannel.size()-1;
@@ -494,7 +495,9 @@ Int_t QwIntegratedRaster::GetDetectorIndex(TString name)
 const VQwDataElement* QwIntegratedRaster::GetChannel(const TString name) const
 {
   if (! fIntegratedRasterChannel.empty()) {
-    for (std::vector<QwIntegratedRasterChannel>::const_iterator IntegratedRasterChannel = fIntegratedRasterChannel.begin(); IntegratedRasterChannel != fIntegratedRasterChannel.end(); ++IntegratedRasterChannel) {
+    for (std::vector<QwIntegratedRasterChannel<QwVQWK_Channel> >::const_iterator
+        IntegratedRasterChannel  = fIntegratedRasterChannel.begin();
+        IntegratedRasterChannel != fIntegratedRasterChannel.end(); ++IntegratedRasterChannel) {
       if (IntegratedRasterChannel->GetElementName() == name) {
         return &(*IntegratedRasterChannel);
       }

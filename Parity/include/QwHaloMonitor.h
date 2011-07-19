@@ -17,6 +17,7 @@
 // Qweak headers
 #include "QwParameterFile.h"
 #include "QwScaler_Channel.h"
+#include "VQwHardwareChannel.h"
 
 // Forward declarations
 class QwDBInterface;
@@ -69,6 +70,7 @@ class  QwHaloMonitor : public VQwDataElement{
   void CalculateRunningAverage();
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
+  UInt_t GetEventcutErrorFlag(){return fHalo_Counter.GetEventcutErrorFlag();};
   Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Bool_t ApplyHWChecks();
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
@@ -88,11 +90,11 @@ class  QwHaloMonitor : public VQwDataElement{
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  VQwDataElement* GetScaler(){
+  VQwHardwareChannel* GetScaler(){
     return &fHalo_Counter;
   };
 
-  const VQwDataElement* GetScaler() const{
+  const VQwHardwareChannel* GetScaler() const{
     return const_cast<QwHaloMonitor*>(this)->GetScaler();
   };
 
@@ -115,7 +117,7 @@ class  QwHaloMonitor : public VQwDataElement{
 
   Int_t  fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
   Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
-  Bool_t fEventIsGood;
+
 };
 
 

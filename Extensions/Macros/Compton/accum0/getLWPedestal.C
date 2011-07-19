@@ -23,7 +23,7 @@
 #include "TGaxis.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "/home/cdaq/compton/QwAnalysis/Analysis/include/MQwSIS3320_Samples.h"
+#include "/home/cdaq/compton/QwAnalysis/Analysis/include/QwSIS3320_Samples.h"
 
 using namespace std;
 
@@ -58,7 +58,7 @@ Int_t getAsymmetryTree(Int_t runnum, Int_t segnum=0){
   Double_t lasWiseBkgd[NCUTS],lasWiseBkgdErr[NCUTS];
   Double_t lasWiseBkgdAvg[NCUTS],lasWiseBkgdAvgErr[NCUTS];//avg two adjcnt Off states 
   Double_t pedAdjBkgd[NCUTS],pedAdjBkgdErr[NCUTS];
-  std::vector<MQwSIS3320_Samples>* sample = 0;
+  std::vector<QwSIS3320_Samples>* sample = 0;
 
   TFile *file = TFile::Open(Form("$QW_ROOTFILES/Compton_Pass1_%i.00%i.root",runnum,segnum));
   TTree *mpsTree = (TTree*)file->Get("Mps_Tree");

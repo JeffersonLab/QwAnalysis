@@ -48,8 +48,8 @@ Int_t QwHaloMonitor::ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left,UInt_
 
 Bool_t QwHaloMonitor::ApplyHWChecks()
 {
-  Bool_t fEventIsGood=kTRUE;
-  return fEventIsGood ;
+  Bool_t eventokay=kTRUE;
+  return eventokay ;
 }
 
 
@@ -268,10 +268,6 @@ void  QwHaloMonitor::Copy(VQwDataElement *source)
 
 std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 {
-
-
-  UShort_t i = 0;
-
   std::vector <QwDBInterface> row_list;
   QwDBInterface row;
 
@@ -307,7 +303,7 @@ std::vector<QwDBInterface> QwHaloMonitor::GetDBEntry()
 
   // Get four Block averages and thier errors
 
-  for(i=0; i<4; i++) {
+  for (int i=0; i<4; i++) {
     row.Reset();
     avg           = fHalo_Counter.GetBlockValue(i);
     err           = fHalo_Counter.GetBlockErrorValue(i);

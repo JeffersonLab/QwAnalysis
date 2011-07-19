@@ -52,7 +52,7 @@ int main (int argc, char* argv[])
   if (timing) {
     int time_initialize_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
     int time_initialize_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-    if (time_initialize_usec < 0) { time_initialize_usec += 1000000.0; time_initialize_sec--; }
+    if (time_initialize_usec < 0) { time_initialize_usec += 1000000; time_initialize_sec--; }
     QwMessage << "Initialization: "
               << time_initialize_sec << " sec and "
               << time_initialize_usec << " usec" << QwLog::endl;
@@ -88,7 +88,7 @@ int main (int argc, char* argv[])
   if (timing) {
     int time_reading_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
     int time_reading_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-    if (time_reading_usec < 0) { time_reading_usec += 1000000.0; time_reading_sec--; }
+    if (time_reading_usec < 0) { time_reading_usec += 1000000; time_reading_sec--; }
     QwMessage << "Reading field map (text): "
               << time_reading_sec << " sec and "
               << time_reading_usec << " usec" << QwLog::endl;
@@ -101,12 +101,6 @@ int main (int argc, char* argv[])
   // Conversion from text field map to binary field map
   if (convert) {
 
-    // Check whether we have read a binary file
-    if (mapfile == mapname + ".bin") {
-      QwError << "Cannot convert binary file into binary file!" << QwLog::endl;
-      exit(0);
-    }
-
     // Write the binary field map
     gettimeofday(&time_start, 0);
     magneticfield->WriteBinaryFile(mapname + ".bin");
@@ -114,7 +108,7 @@ int main (int argc, char* argv[])
     if (timing) {
       int time_writing_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
       int time_writing_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-      if (time_writing_usec < 0) { time_writing_usec += 1000000.0; time_writing_sec--; }
+      if (time_writing_usec < 0) { time_writing_usec += 1000000; time_writing_sec--; }
       QwMessage << "Writing field map (binary): "
                 << time_writing_sec << " sec and "
                 << time_writing_usec << " usec" << QwLog::endl;
@@ -127,7 +121,7 @@ int main (int argc, char* argv[])
     if (timing) {
       int time_destruction_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
       int time_destruction_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-      if (time_destruction_usec < 0) { time_destruction_usec += 1000000.0; time_destruction_sec--; }
+      if (time_destruction_usec < 0) { time_destruction_usec += 1000000; time_destruction_sec--; }
       QwMessage << "Destruction: "
                 << time_destruction_sec << " sec and "
                 << time_destruction_usec << " usec" << QwLog::endl;
@@ -140,7 +134,7 @@ int main (int argc, char* argv[])
     if (timing) {
       int time_initialize2_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
       int time_initialize2_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-      if (time_initialize2_usec < 0) { time_initialize2_usec += 1000000.0; time_initialize2_sec--; }
+      if (time_initialize2_usec < 0) { time_initialize2_usec += 1000000; time_initialize2_sec--; }
       QwMessage << "Initialization: "
                 << time_initialize2_sec << " sec and "
                 << time_initialize2_usec << " usec" << QwLog::endl;
@@ -154,7 +148,7 @@ int main (int argc, char* argv[])
     if (timing) {
       int time_reading2_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
       int time_reading2_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-      if (time_reading2_usec < 0) { time_reading2_usec += 1000000.0; time_reading2_sec--; }
+      if (time_reading2_usec < 0) { time_reading2_usec += 1000000; time_reading2_sec--; }
       QwMessage << "Reading field map (binary): "
                 << time_reading2_sec << " sec and "
                 << time_reading2_usec << " usec" << QwLog::endl;
@@ -184,8 +178,8 @@ int main (int argc, char* argv[])
     gettimeofday(&time_finish, 0);
     time_sampling_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
     time_sampling_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-    if (time_sampling_usec < 0) { time_sampling_usec += 1000000.0; time_sampling_sec--; }
-    time_sampling = 1000000.0 * time_sampling_sec + time_sampling_usec;
+    if (time_sampling_usec < 0) { time_sampling_usec += 1000000; time_sampling_sec--; }
+    time_sampling = 1000000 * time_sampling_sec + time_sampling_usec;
     QwMessage << "Sampling (total of " << NSAMPLES << " samples): "
               << time_sampling_sec << " sec and "
               << time_sampling_usec << " usec" << QwLog::endl;
@@ -214,8 +208,8 @@ int main (int argc, char* argv[])
     gettimeofday(&time_finish, 0);
     time_sampling_sec  = ((int) time_finish.tv_sec  - (int) time_start.tv_sec);
     time_sampling_usec = ((int) time_finish.tv_usec - (int) time_start.tv_usec);
-    if (time_sampling_usec < 0) { time_sampling_usec += 1000000.0; time_sampling_sec--; }
-    time_sampling = 1000000.0 * time_sampling_sec + time_sampling_usec;
+    if (time_sampling_usec < 0) { time_sampling_usec += 1000000; time_sampling_sec--; }
+    time_sampling = 1000000 * time_sampling_sec + time_sampling_usec;
     QwMessage << "Sampling (total of " << NSAMPLES << " samples): "
               << time_sampling_sec << " sec and "
               << time_sampling_usec << " usec" << QwLog::endl;
