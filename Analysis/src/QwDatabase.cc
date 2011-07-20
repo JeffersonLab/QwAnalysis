@@ -14,6 +14,7 @@
 
 // Qweak headers
 #include "QwEventBuffer.h"
+#include "QwRunCondition.h"
 #include "QwSSQLS.h"
 using namespace QwParityDB;
 
@@ -34,7 +35,7 @@ std::map<string, unsigned int> QwDatabase::fSlowControlDetectorIDs;// for epics
  * mysqlpp::Connection() object that has exception throwing disabled.
  */
 //QwDatabase::QwDatabase() : Connection(false)
-QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("02"), kValidVersionPoint("0000")
+QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersionMinor("03"), kValidVersionPoint("0000")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -55,7 +56,7 @@ QwDatabase::QwDatabase() : Connection(), kValidVersionMajor("01"), kValidVersion
  *  the QwOptions object.
  * @param options  The QwOptions object.
  */
-QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("02"), kValidVersionPoint("0000")
+QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("01"), kValidVersionMinor("03"), kValidVersionPoint("0000")
 {
   // Initialize member fields
   fDatabase=fDBServer=fDBUsername=fDBPassword="";
@@ -70,6 +71,7 @@ QwDatabase::QwDatabase(QwOptions &options) : Connection(), kValidVersionMajor("0
   fAnalysisID        = 0;
 
   ProcessOptions(options);
+ 
 }
 
 /*! The destructor says "Good-bye World!"
@@ -580,8 +582,6 @@ UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
 
     analysis_row.runlet_id  = GetRunletID(qwevt);
     analysis_row.seed_id = 1;
-    analysis_row.monitor_calibration_id = 1;
-    analysis_row.cut_id  = 1;
 
     std::pair<UInt_t, UInt_t> event_range;
     event_range = qwevt.GetEventRange();
@@ -597,6 +597,54 @@ UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
     analysis_row.slope_calculation = "off";  // we will match this as a real one later
     analysis_row.slope_correction  = "off"; // we will match this as a real one later
 
+    // Analyzer Information Parsing 
+    QwRunCondition run_condition(
+      gQwOptions.GetArgc(),
+      gQwOptions.GetArgv(),
+      "run_condition"
+    );
+
+    run_condition.Get()->Print();
+
+    TIter next(run_condition.Get());
+    TObjString *obj_str;
+    TString str_val, str_var;
+    Ssiz_t location;
+
+    // Iterate over each entry in run_condition
+    while ((obj_str = (TObjString *) next())) {
+      QwMessage << obj_str->GetName() << QwLog::endl; 
+
+      // Store string contents for parsing
+      str_var = str_val = obj_str->GetString();
+      location = str_val.First(":"); // The first : separates variable from value
+      location = location + 2; // Value text starts two characters after :
+      str_val.Remove(0,location); //str_val stores value to go in DB
+
+      // Decision tree to figure out which variable to store in
+      if (str_var.BeginsWith("ROOT Version")) { 
+        analysis_row.root_version = str_val;
+      } else if (str_var.BeginsWith("ROOT file creating time")) {
+        analysis_row.root_file_time = str_val;
+      } else if (str_var.BeginsWith("ROOT file created on Hostname")) {
+        analysis_row.root_file_host = str_val;
+      } else if (str_var.BeginsWith("ROOT file created by the user")) {
+        analysis_row.root_file_user = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer Name")) {
+        analysis_row.analyzer_name = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer Options")) {
+        analysis_row.analyzer_argv = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer SVN Revision")) {
+        analysis_row.analyzer_svn_rev = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer SVN Last Changed Revision")) {
+        analysis_row.analyzer_svn_lc_rev = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer SVN URL")) {
+        analysis_row.analyzer_svn_url = str_val;
+      } else if (str_var.BeginsWith("DAQ ROC flags when QwAnalyzer runs")) {
+        analysis_row.roc_flags = str_val;
+      } else {
+      }
+    }
 
     this->Connect();
     mysqlpp::Query query= this->Query();

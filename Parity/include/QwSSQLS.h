@@ -61,25 +61,25 @@ namespace QwParityDB {
 			, mysqlpp::Null<mysqlpp::sql_text> , comment
 		) 
   
-    sql_create_9(runlet, 1, 2 
+    sql_create_10(runlet, 1, 2 
       , mysqlpp::sql_int_unsigned , runlet_id
       , mysqlpp::sql_int_unsigned , run_id
       , mysqlpp::sql_int_unsigned , run_number
       , mysqlpp::Null<mysqlpp::sql_int_unsigned> , segment_number
       , mysqlpp::sql_enum , full_run
+//      			, mysqlpp::Null<mysqlpp::sql_set> , good_for_id
+//			, mysqlpp::Null<mysqlpp::sql_set> , runlet_quality_id		
 			, mysqlpp::Null<mysqlpp::sql_datetime> , start_time
 			, mysqlpp::Null<mysqlpp::sql_datetime> , end_time
       , mysqlpp::sql_int_unsigned , first_mps
       , mysqlpp::sql_int_unsigned , last_mps
+      , mysqlpp::Null<mysqlpp::sql_text> , comment
   ) 
   
-    sql_create_16(analysis, 1, 2 
+    sql_create_23(analysis, 1, 2 
 			, mysqlpp::sql_int_unsigned , analysis_id
 			, mysqlpp::sql_int_unsigned , runlet_id
 			, mysqlpp::sql_int_unsigned , seed_id
-			, mysqlpp::Null<mysqlpp::sql_text> , analyzer_version
-			, mysqlpp::sql_int_unsigned , monitor_calibration_id
-			, mysqlpp::sql_int_unsigned , cut_id
 			, mysqlpp::Null<mysqlpp::sql_datetime> , time
 			, mysqlpp::Null<mysqlpp::sql_text> , bf_checksum
 			, mysqlpp::sql_enum , beam_mode
@@ -90,6 +90,16 @@ namespace QwParityDB {
 			, mysqlpp::Null<mysqlpp::sql_int> , segment
 			, mysqlpp::Null<mysqlpp::sql_enum> , slope_calculation
 			, mysqlpp::Null<mysqlpp::sql_enum> , slope_correction
+      , mysqlpp::sql_text , root_version
+      , mysqlpp::sql_text , root_file_time
+      , mysqlpp::sql_text , root_file_host
+      , mysqlpp::sql_text , root_file_user
+      , mysqlpp::sql_text , analyzer_name
+      , mysqlpp::sql_text , analyzer_argv
+      , mysqlpp::sql_text , analyzer_svn_rev
+      , mysqlpp::sql_text , analyzer_svn_lc_rev
+      , mysqlpp::sql_text , analyzer_svn_url
+      , mysqlpp::sql_text , roc_flags
 		) 
   
     sql_create_9(md_slope, 1, 2 
@@ -125,22 +135,6 @@ namespace QwParityDB {
 			, mysqlpp::sql_int_unsigned , n
 			, mysqlpp::sql_float , value
 			, mysqlpp::sql_float , error	
-		) 
-  
-    sql_create_5(cut, 1, 2 
-			, mysqlpp::sql_int_unsigned , cut_id
-			, mysqlpp::sql_int_unsigned , start_run_id
-			, mysqlpp::sql_int_unsigned , end_run_id
-			, mysqlpp::Null<mysqlpp::sql_datetime> , time
-			, mysqlpp::Null<mysqlpp::sql_text> , comment
-		) 
-  
-    sql_create_5(cut_data, 1, 2 
-			, mysqlpp::sql_int_unsigned , cut_data_id
-			, mysqlpp::sql_int_unsigned , cut_id
-			, mysqlpp::sql_int_unsigned , monitor_id
-			, mysqlpp::sql_float , min
-			, mysqlpp::sql_float , max
 		) 
   
     sql_create_3(measurement_type, 1, 2 
@@ -236,22 +230,6 @@ namespace QwParityDB {
 			, mysqlpp::sql_int_unsigned , pmt_id
 			, mysqlpp::sql_int_unsigned , detector_id
 			, mysqlpp::Null<mysqlpp::sql_enum> , position
-		) 
-  
-    sql_create_5(monitor_calibration, 1, 2 
-			, mysqlpp::sql_int_unsigned , monitor_calibration_id
-			, mysqlpp::sql_int_unsigned , first_run_id
-			, mysqlpp::sql_int_unsigned , last_run_id
-			, mysqlpp::Null<mysqlpp::sql_datetime> , time
-			, mysqlpp::Null<mysqlpp::sql_text> , comment
-		) 
-  
-    sql_create_5(monitor_calibration_data, 1, 2 
-			, mysqlpp::sql_int_unsigned , monitor_calibration_data_id
-			, mysqlpp::sql_int_unsigned , monitor_calibration_id
-			, mysqlpp::sql_int_unsigned , monitor_id
-			, mysqlpp::sql_float , gain
-			, mysqlpp::sql_float , offset
 		) 
   
     sql_create_5(seeds, 1, 2 
