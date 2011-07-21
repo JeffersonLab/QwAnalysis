@@ -130,6 +130,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     //
     rootfile->WriteParamFileList("mapfiles", detectors);
 
+    database.FillParameterFiles(detectors);
+
     //  Construct histograms
     rootfile->ConstructHistograms("mps_histo", detectors);
     rootfile->ConstructHistograms("hel_histo", helicitypattern);

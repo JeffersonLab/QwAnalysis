@@ -669,6 +669,34 @@ UInt_t QwDatabase::SetAnalysisID(QwEventBuffer& qwevt)
 
 }
 
+void QwDatabase::FillParameterFiles(QwSubsystemArrayParity& subsys){
+  TList* param_file_list = subsys.GetParamFileNameList("mapfiles");
+  try {
+    this->Connect();
+    mysqlpp::Query query = this->Query();
+    parameter_files parameter_file_row(0);
+    parameter_file_row.analysis_id = GetAnalysisID();
+
+    param_file_list->Print();
+    TIter next(param_file_list);
+    TList *pfl_elem;
+    while ((pfl_elem = (TList *) next())) {
+      parameter_file_row.filename = pfl_elem->GetName();
+      query.insert(parameter_file_row);
+      query.execute();
+    }
+
+    this->Disconnect();
+
+    delete param_file_list;
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    this->Disconnect();
+    delete param_file_list;
+  }
+}
+
 /*!
  * This is a getter for analysis_id in the analysis table.  Required by all queries on cerenkov, beam, etc. tables.  Will return 0 if fRunID has not been successfully set.  If fAnalysisID is not set, then calls code to insert into analysis table and retrieve analysis_id.
  */

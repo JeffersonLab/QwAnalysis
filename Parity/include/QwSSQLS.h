@@ -102,6 +102,12 @@ namespace QwParityDB {
       , mysqlpp::sql_text , roc_flags
 		) 
   
+    sql_create_3(parameter_files, 1, 2 
+      , mysqlpp::sql_int_unsigned , parameter_file_id
+      , mysqlpp::sql_int_unsigned , analysis_id
+      , mysqlpp::sql_text , filename
+    ) 
+  
     sql_create_9(md_slope, 1, 2 
 			, mysqlpp::sql_int_unsigned , md_slope_id
 			, mysqlpp::sql_int_unsigned , analysis_id
