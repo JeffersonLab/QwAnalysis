@@ -328,7 +328,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db)
       // Error Condition.
       // There should be one and only one seed_id for each seed.
       fSeedID = 0;
-      fSeed   = Form("ERROR:  There should be one and only one seed_id for each seed, but this had %d.",
+      fSeed   = Form("ERROR:  There should be one and only one seed_id for each seed, but this had %zu.",
                      res.size());
       std::cerr << "QwBlinder::ReadSeed(): "<<fSeed<<std::endl;
     }
@@ -416,7 +416,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
       // Error Condition.
       // There should be one and only one seed_id for each seed.
       fSeedID = 0;
-      fSeed   = Form("ERROR:  There should be one and only one seed_id for each seed, but this had %d.",
+      fSeed   = Form("ERROR:  There should be one and only one seed_id for each seed, but this had %zu.",
                      res.size());
       std::cerr << "QwBlinder::ReadSeed(): "<<fSeed<<std::endl;
     }

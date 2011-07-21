@@ -491,7 +491,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
   // Now propagate clock pointers to those channels that need it
   index = 0;
-  for( Int_t i=0; i<fBCM.size();i++ ) {
+  for (size_t i=0; i<fBCM.size();i++ ) {
     index = GetDetectorIndex(GetQwBeamInstrumentType("clock"),fBCM[i].get()
           ->GetExternalClockName());
     if( index >= 0 )
@@ -1449,7 +1449,7 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
 void  QwBeamLine::ProcessEvent()
 {
 
-  Double_t clock_counts;
+  Double_t clock_counts = 0.0;
 
   // Make sure this one comes first! The clocks are needed by
   // other elements.
@@ -1520,7 +1520,7 @@ Bool_t QwBeamLine::PublishInternalValues() const
     device_type.ToLower();
     device_prop.ToLower();
 
-    const VQwDataElement* tmp_channel;
+    const VQwDataElement* tmp_channel = 0;
 
     if (device_type == "bcm") {
       tmp_channel = GetBCM(device_name)->GetCharge();

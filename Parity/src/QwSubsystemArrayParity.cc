@@ -445,7 +445,7 @@ void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString& pre
 void QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t>& values) const
 {
   QwSubsystemArray::FillTreeVector(values);
-  if (fErrorFlagTreeIndex>=0 && fErrorFlagTreeIndex<values.size()){
+  if (fErrorFlagTreeIndex>=0 && fErrorFlagTreeIndex<static_cast<int>(values.size())){
     values.at(fErrorFlagTreeIndex) = fErrorFlag;
   }
 }

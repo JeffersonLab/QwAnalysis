@@ -1010,7 +1010,8 @@ void QwComptonElectronDetector::Scale(Double_t factor)
 {
   for (Int_t i = 0; i < NPlanes; i++){
     for (Int_t j = 0; j < StripsPerPlane; j++){
-      this->fStripsRaw[i][j] *= factor;//!!converting Double to Int (ok now) may not be okay later!
+      this->fStripsRaw[i][j] *= static_cast<int>(factor);
+      // TODO !!converting Double to Int (ok now) may not be okay later!
     }
   }
 
