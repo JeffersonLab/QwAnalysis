@@ -639,6 +639,7 @@ sub create_xml_jobfile($$$@) {
     my $memory=2048;
     print JOBFILE
 	" <OS name=\"linux64\"/>\n",
+	" <TimeLimit unit=\"minutes\" time=\"4000\"/>\n",
 	" <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
 	" <Memory space=\"$memory\" unit=\"MB\"/>\n";
     print JOBFILE
