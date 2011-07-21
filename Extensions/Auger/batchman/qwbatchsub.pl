@@ -21,9 +21,15 @@
 
 #####  Function prototypes:
 
-sub get_filelist_from_mss ($\@);
+sub parseSegmentRange($);
+sub get_filelist_from_mss ($@);
+sub good_segment_number($);
+sub extract_segment($);
 sub get_files_for_one_run_from_mss ($$);
-sub get_the_good_runs ($\@);
+sub get_the_good_runs ($@);
+sub create_old_jobfile($$$@);
+sub create_xml_jobfile($$$@);
+sub submit_one_job($$$@);
 sub crashout ($ );
 sub displayusage;
 
@@ -41,16 +47,19 @@ use File::Basename;
 use Getopt::Long;
 
 use strict 'vars';
-use vars qw($original_cwd $executable $script_dir $mss_dir
+use vars qw($original_cwd $executable $script_dir $BaseMSSDir
 	    $analysis_directory $real_path_to_analysis $scratch_directory
-	    $Default_Analysis_Options $analysis_option_list $cache_option_list
-	    $opt_h $opt_E $DryRun $RunList $opt_O $opt_F $opt_Q $opt_M $opt_C $opt_R
-	    $output_path
-	    $batch_queue
+	    $Default_Analysis_Options $AnalysisOptionList $CacheOptionList
+	    $opt_h $opt_E $DryRun $RunRange $SegmentRange
+	    $opt_F 
+	    $RootfileStem $OutputPath $BatchQueue
 	    @run_list @discards $first_run $last_run
+	    %good_segs $first_seg $last_seg
 	    @good_runs $goodrunfile 
 	    $runnumber $input_file @input_files $command_file
 	    $RunPostProcess $RunletPostProcess
+	    $SpacePerInputfile $ReserveSpace $MaxSpacePerJob
+	    $InputfilesPerJob
 	    );
 
 use vars qw(@months @weekDays
@@ -66,10 +75,10 @@ use vars qw(@months @weekDays
 ###  Set up some basic environment variables.
 $original_cwd = cwd();
 $executable = basename $0;
-chdir dirname  $0 or die "Can't cd to the script directory: $!\n";
+chdir dirname $0 or die "Can't cd to the script directory: $!\n";
 $script_dir = cwd();
 chdir $original_cwd;
-print STDOUT "In $script_dir\n";
+# print STDOUT "In $script_dir\n";
 
 ###  Get the QWANALYSIS and QWSCRATCH directories
 $analysis_directory = $ENV{QWANALYSIS};
@@ -87,43 +96,63 @@ $ENV{QW_ROOTFILES} = "$scratch_directory/rootfiles"
     if ($ENV{QW_ROOTFILES} eq "");
 $ENV{QW_TMP} = "$scratch_directory/tmp"
     if ($ENV{QW_TMP} eq "");
-#$ENV{ASYMDIR} = "$scratch_directory/asym"
-#    if ($ENV{ASYMDIR} eq "");
-#$ENV{SUMMARYDIR} = "$scratch_directory/sum"
-#    if ($ENV{SUMMARYDIR} eq "");
-#$ENV{PEDESTAL_DIR} = "$scratch_directory/calib"
-#    if ($ENV{PEDESTAL_DIR} eq "");
 ###  Make sure these variables point to real directories.
 crashout("The QW_ROOTFILES directory, $ENV{QW_ROOTFILES}, does not exist.  Exiting")
     if (! -d $ENV{QW_ROOTFILES});
 crashout("The QW_TMP directory, $ENV{QW_TMP}, does not exist.  Exiting")
     if (! -d $ENV{QW_TMP});
-#crashout("The ASYMDIR directory, $ENV{ASYMDIR}, does not exist.  Exiting")
-#    if (! -d $ENV{ASYMDIR});
-#crashout("The SUMMARYDIR directory, $ENV{SUMMARYDIR}, does not exist.  Exiting")
-#    if (! -d $ENV{SUMMARYDIR});
-#crashout("The PEDESTAL_DIR directory, $ENV{PEDESTAL_DIR}, does not exist.  Exiting")
-#    if (! -d $ENV{PEDESTAL_DIR});
 
 ###  Get the option flags.
 # added -F option to check the runs against good runs in the input file
 # jianglai 03-02-2003
-&GetOptions("help|usage|h"       => \$opt_h,
-	    "dry-run|n"          => \$DryRun,
-	    "runs=s"             => \$RunList,
-	    "executable|E=s"     => \$opt_E,
- 	    "mss-base-dir|M=s"   => \$opt_M,
-	    "options|O=s"        => \$opt_O,
-	    "goodrunlist|F=s"    => \$opt_F,
-	    "batchqueue|Q=s"     => \$opt_Q,
-	    "cacheoptions|C=s"   => \$opt_C,
-	    "rootfile-stem|R=s"  => \$opt_R,
-	    "rootfile-output=s"  => \$output_path,
-	    "post-run=s"         => \$RunPostProcess,
-	    "post-runlet=s"      => \$RunletPostProcess
-	    );
+my $ret = GetOptions("help|usage|h"       => \$opt_h,
+		     "dry-run|n"          => \$DryRun,
+		     "runs=s"             => \$RunRange,
+		     "segments=s"         => \$SegmentRange,
+		     "executable|E=s"     => \$opt_E,
+		     "mss-base-dir|M=s"   => \$BaseMSSDir,
+		     "options|O=s"        => \$AnalysisOptionList,
+		     "goodrunlist|F=s"    => \$opt_F,
+		     "batchqueue|Q=s"     => \$BatchQueue,
+		     "cacheoptions|C=s"   => \$CacheOptionList,
+		     "rootfile-stem|R=s"  => \$RootfileStem,
+		     "rootfile-output=s"  => \$OutputPath,
+		     "post-run=s"         => \$RunPostProcess,
+		     "post-runlet=s"      => \$RunletPostProcess,
+		     #  The next three options are "hidden" in the
+		     #  sense that we deliberately do not include
+		     #  them in the usage.
+		     #  They are expert level options only.
+		     "job-maxspace=i"     => \$MaxSpacePerJob,
+		     "job-reservespace=i" => \$ReserveSpace,
+		     "job-spaceperfile=i" => \$SpacePerInputfile
+		     );
+#  Deal with some fatal errors while handling the options.
+die("Invalid commandline options.  Exiting") if (!$ret);
+die("The value for job-maxspace must be greater than zero.  Exiting")
+    if (defined($MaxSpacePerJob) && $MaxSpacePerJob+0<=0);
+die("The value for job-reservespace must be greater than zero.  Exiting")
+    if (defined($ReserveSpace) && $ReserveSpace+0<=0);
+die("The value for job-spaceperfile must be greater than zero.  Exiting")
+    if (defined($SpacePerInputfile) && $SpacePerInputfile+0<=0);
+
+#  Set up some default values.
+$BaseMSSDir = "/mss/hallc/qweak" if (!defined($BaseMSSDir) || $BaseMSSDir eq "");
+$CacheOptionList = ""       if (!defined($CacheOptionList) 
+				  || $CacheOptionList eq "");
+$BatchQueue = "one_pass"     if (!defined($BatchQueue) || $BatchQueue eq "");
+$RootfileStem = "Qweak_"      if (!defined($RootfileStem) || $RootfileStem eq "");
+if (!defined($OutputPath) || $OutputPath eq ""){
+    $OutputPath = "mss:$BaseMSSDir/rootfiles/pass0";
+}
 
 $Default_Analysis_Options = "";
+if (!defined($AnalysisOptionList) || $AnalysisOptionList eq ""){
+    $AnalysisOptionList = $Default_Analysis_Options;
+}
+$AnalysisOptionList = "--rootfile-stem $RootfileStem $AnalysisOptionList";
+
+
 
 if ($#ARGV > -1){
     print STDERR "Unknown arguments specified: @ARGV\nExiting.\n";
@@ -143,58 +172,32 @@ if (defined($opt_E) && $opt_E ne ""){
     } elsif (-e "$opt_E") {
 	$executable = $opt_E;
     } else {
-	print STDERR
-	    "Neither $ENV{QW_BIN}/$opt_E or $executable are executable files.\n";
-	exit;
+	die("Neither $ENV{QW_BIN}/$opt_E or $executable are executable files.\n",
+	    "Exiting");
     }
 } else {
     $executable = "$ENV{QW_BIN}/qwparity";
 }
 
 
-if (defined($opt_M) && $opt_M ne ""){
-    $mss_dir = "$opt_M";
-} else {
-    $mss_dir = "/mss/hallc/qweak";
-}
-
-if (defined($opt_C) && $opt_C ne ""){
-    $cache_option_list = "$opt_C";
-} else {
-    $cache_option_list = "";
-}
-
-if (defined($opt_Q) && $opt_Q ne ""){
-    $batch_queue = $opt_Q;
-} else {
-    $batch_queue = "one_pass";
-}
-
-my $rootfile_stem = undef;
-if (defined($opt_R) && $opt_R ne ""){
-    $rootfile_stem = $opt_R;
-} else {
-    $rootfile_stem = "Qweak_";
-}
-
-if (! defined($RunList) || $RunList eq ""){
+if (! defined($RunRange) || $RunRange eq ""){
     print STDERR "No runs specified.  Exiting\n";
     displayusage();
     exit;
 } else {
-    if ($RunList =~ /,/){
+    if ($RunRange =~ /,/){
 	#  Comma seperated list.
 	@run_list = map {int} sort {$a <=> $b} (grep {/^\d+$/ && $_>-1}
-				      (split /,/, $RunList));
-	@discards = grep {!/^\d+$/ || $_<=-1 } (split /,/, $RunList);
+				      (split /,/, $RunRange));
+	@discards = grep {!/^\d+$/ || $_<=-1 } (split /,/, $RunRange);
 	if ($#discards > -1){
 	    print STDERR
 		"The following bad run numbers were discarded from the list: ",
 		"@discards\n";
 	}
-    } elsif ($RunList =~ /:/){
+    } elsif ($RunRange =~ /:/){
 	# Colon seperated range.
-	($first_run, $last_run) = split /:/, $RunList, 2;
+	($first_run, $last_run) = split /:/, $RunRange, 2;
 	if ($last_run <= $first_run){
 	    print STDERR
 		"The last run number is smaller than the first run number.",
@@ -208,17 +211,67 @@ if (! defined($RunList) || $RunList eq ""){
 		push @run_list, $i;
 	    }
 	}
-    } elsif ($RunList =~ /^\d+$/) {
+    } elsif ($RunRange =~ /^\d+$/) {
 	#  Single run number.
-	$first_run = $RunList;
+	$first_run = $RunRange;
 	$last_run = -1;
 	push @run_list, $first_run;	
     } else {
 	#  Unrecognisable value.
-	print STDERR  "Cannot recognise the run number, $RunList.\n";
+	print STDERR  "Cannot recognise the run number, $RunRange.\n";
 	exit;
     }
 }
+
+
+if ($#run_list>0 && defined($SegmentRange)){
+    die("The 'segments' option cannot be used for submitting more than one run.\n",
+	"Exiting");
+}
+if (! defined($SegmentRange) || $SegmentRange eq ""){
+    %good_segs = ();
+    $first_seg = -1;
+    $last_seg  = -1;
+} else {
+    parseSegmentRange($SegmentRange);
+}
+
+###  Some variables to hold disk size information.
+###  Units are MB.
+$SpacePerInputfile = 10000  if (!defined($SpacePerInputfile) 
+				|| $SpacePerInputfile+0<=0);
+$ReserveSpace      = 3000   if (!defined($ReserveSpace) 
+				|| $ReserveSpace+0<=0);
+$MaxSpacePerJob    = 130000 if (!defined($MaxSpacePerJob) 
+				|| $MaxSpacePerJob+0<=0);
+if (($SpacePerInputfile+$ReserveSpace)>$MaxSpacePerJob){
+    die("*** The space needed per input file ($SpacePerInputfile MB) and as a reserve ($ReserveSpace MB) is too large for the maximum disk space permitted per farm job ($MaxSpacePerJob MB).\n",
+	"*** This is a major problem; contact an expert to investigate this!!!\n",
+	"Exiting");
+}
+#  The restriction on input files per job only applies if we need
+#  to split the job.  If a job with more than InputfilesPerJob files
+#  can fit into the MaxSpacePerJob, it will go through as one job.
+$InputfilesPerJob = int(($MaxSpacePerJob-$ReserveSpace)
+			/$SpacePerInputfile);
+if ($InputfilesPerJob>5) {
+    #  Round to a multiple of five, because I like multiples of five.
+    $InputfilesPerJob = int($InputfilesPerJob/5) * 5;
+}
+if ($InputfilesPerJob<=0) {
+    die("*** The space needed per input file ($SpacePerInputfile MB) and as a reserve ($ReserveSpace MB) is too large for the maximum disk space permitted per farm job ($MaxSpacePerJob MB).\n",
+	"*** This is a major problem; contact an expert to investigate this!!!\n",
+	"Exiting");
+}
+
+
+
+
+
+
+
+
+
 
 ###  Check the run list against the "good runs" list.
 @good_runs = ();
@@ -236,28 +289,18 @@ if (defined($opt_F) && $opt_F ne ""){
 	exit;
     }
 } else {
-    print STDOUT
-	"No \"good run\" file was specified; trying to get all runs.\n";
+    print STDOUT "No \"good run\" file was specified; trying to get all runs.\n";
     @good_runs = @run_list;
 }
 
 
-if (defined($opt_O) && $opt_O ne ""){
-    $analysis_option_list = $opt_O;
-} else {
-    $analysis_option_list = $Default_Analysis_Options;
-}
-$analysis_option_list = "--rootfile-stem $rootfile_stem $analysis_option_list";
 
-if (! defined($output_path)){
-    $output_path = "mss:$mss_dir/rootfiles/pass0"
-}
 
-print STDOUT "\nRuns to be analyzed:\t@good_runs\n\n",
-    "MSS directory:    \t$mss_dir\n\n",
-    "MSS cache options:   \t$cache_option_list\n\n",
-    "Analysis executable: \t$executable\n\n",
-    "Analysis options:    \t$analysis_option_list\n\n";
+print STDOUT "\nRuns to be analyzed:\t@good_runs\n",
+    "Base MSS directory:  \t$BaseMSSDir\n",
+    "MSS cache options:   \t$CacheOptionList\n",
+    "Analysis executable: \t$executable\n",
+    "Analysis options:    \t$AnalysisOptionList\n\n";
 
 
 
@@ -283,11 +326,11 @@ foreach $runnumber (@good_runs){
 	my $fileout;
 	
         # first test whether outputstem is in a option or not
-	my @flags = split /\s+/, $analysis_option_list;
+	my @flags = split /\s+/, $AnalysisOptionList;
 	my $where = 0;
 
         # if stem is not defined. rename all files associated with this name
-	if(!defined($rootfile_stem)){
+	if(!defined($RootfileStem)){
 	    foreach $fileout (glob "$ENV{QW_ROOTFILES}/*$runnumber.root"){
 		if (-f $fileout){
 		    $_ = "$fileout";
@@ -296,10 +339,10 @@ foreach $runnumber (@good_runs){
 		}
 	    }
 	} else {
-	    if (-f "$ENV{QW_ROOTFILES}/$rootfile_stem$runnumber.root"){
+	    if (-f "$ENV{QW_ROOTFILES}/$RootfileStem$runnumber.root"){
 		rename 
-		    "$ENV{QW_ROOTFILES}/$rootfile_stem$runnumber.root",
-		    "$ENV{QW_ROOTFILES}/$rootfile_stem$runnumber.old.root";
+		    "$ENV{QW_ROOTFILES}/$RootfileStem$runnumber.root",
+		    "$ENV{QW_ROOTFILES}/$RootfileStem$runnumber.old.root";
 	    }
 	}
 
@@ -313,156 +356,54 @@ foreach $runnumber (@good_runs){
 	    if (-f $fileout){
 		rename "$fileout", "$fileout\_old";
 	    }
-	}	
+	}
+
+
+	my $diskspace=($#input_files+1)*$SpacePerInputfile+$ReserveSpace;
 
 	# tag file names with the date and time
 	($second, $minute, $hour, $dayOfMonth, $month, $yearOffset, $dayOfWeek, $dayOfYear, $daylightSavings) = localtime();
 	$year = 1900 + $yearOffset;
 	$theTime = sprintf ("%4d%s%02d_%02d%02d%02d",$year,$months[$month],$dayOfMonth,$hour,$minute,$second);
-
-	# Old job file format
-	$command_file = "$scratch_directory/work/run_$runnumber\_$theTime.command";
-	# remove the command file if it exists
-	if (-f "$command_file") {
-	    unlink $command_file or die "Can not remove the old $command_file: $!";
-	}
-	open(JOBFILE, ">$command_file") or die "$command_file: $!";
-	print JOBFILE  "PROJECT: qweak\n";
-	print JOBFILE  "JOBNAME: Qw_$runnumber\n";
-	print JOBFILE  "COMMAND: $script_dir/qwbatch.csh\n";
-	print JOBFILE  "TRACK:   $batch_queue\n";
-	print JOBFILE  
-	    "OPTIONS: $analysis_directory $scratch_directory ",
-	    "$runnumber $executable $analysis_option_list\n";
-	print JOBFILE  
-	    "SINGLE_JOB\n",
-	    "INPUT_FILES: @input_files\n",
-	    "MEMORY: 2048 MB\n",
-	    "DISK_SPACE: ",($#input_files+1)*1600+3000," MB\n",
-	    ### "OTHER_FILES: ....\n",
-	    "TOWORK\n",
-	    ####
-	    "OUTPUT_DATA: run_$runnumber\_$theTime.log\n",
-	    "OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber\_$theTime.log\n";
-	    #
-	    #"OUTPUT_DATA: tmp/* \n",
-	    #"OUTPUT_TEMPLATE: $ENV{QW_TMP}/.\n",
-	    #
-	    #"OUTPUT_DATA: asym/* \n",
-	    #"OUTPUT_TEMPLATE: $ENV{ASYMDIR}/.\n";
-	    #
-	    ####  Now rootfiles are copied by the qwbatch.csh script.
-	    #"OUTPUT_DATA: rootfiles/* \n",
-	    #"OUTPUT_TEMPLATE: $ENV{QW_ROOTFILES}/.\n";
-	    #
-	    #"OUTPUT_DATA: sum/* \n",
-	    #"OUTPUT_TEMPLATE: $ENV{SUMMARYDIR}/.\n",
-	    #
-	    #"OUTPUT_DATA: calib/* \n",
-	    #"OUTPUT_TEMPLATE: $ENV{PEDESTAL_DIR}/.\n";
-
-	print JOBFILE  "MAIL: $ENV{USER}\@jlab.org\n";
-	print JOBFILE  "OS: linux64\n";
-	close JOBFILE;
-
-
-	# New job file format
-	$command_file = "$scratch_directory/work/run_$runnumber\_$theTime.xml";
-	# remove the command file if it exists
-	if (-f "$command_file") {
-	    unlink $command_file or die "Can not remove the old $command_file: $!";
-	}
-	open(JOBFILE, ">$command_file") or die "$command_file: $!";
-	print JOBFILE
-	    "<Request>\n",
-	    " <Email email=\"$ENV{USER}\@jlab.org\" request=\"false\" job=\"true\"/>\n",
-	    " <Project name=\"qweak\"/>\n",
-	    " <Track name=\"$batch_queue\"/>\n",
-	    " <Name name=\"$rootfile_stem$runnumber\"/>\n";
-	my $diskspace=($#input_files+1)*10000+3000;
-	my $memory=2048;
-	print JOBFILE
-	    " <OS name=\"linux64\"/>\n",
- 	    " <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
-	    " <Memory space=\"$memory\" unit=\"MB\"/>\n";
-        print JOBFILE
-	    " <Command><![CDATA[\n",
-	    "  set nonomatch\n",
-	    "  echo \"User:         \" `whoami`\n",
-	    "  echo \"Groups:       \" `groups`\n",
-	    "  echo \"WORKDIR:      \" \$WORKDIR\n",
-	    "  echo \"PWD:          \" \$PWD\n";
-	print JOBFILE
-	    "  setenv QWSCRATCH  $scratch_directory\n",
-	    "  setenv QWANALYSIS $analysis_directory\n",
-	    "  echo \"QWSCRATCH:    \" \$QWSCRATCH\n",
-	    "  echo \"QWANALYSIS:   \" \$QWANALYSIS\n",
-	    "  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n",
-	    "  echo $script_dir/update_cache_links.pl $cache_option_list\n",
-	    "  $script_dir/update_cache_links.pl $cache_option_list\n";
-	$cache_option_list =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
-	print JOBFILE
-	    "  setenv QW_DATA      \$WORKDIR\n",
-	    "  setenv QW_ROOTFILES \$WORKDIR\n",
-	    "  echo \"QW_DATA:      \" \$QW_DATA\n",
-	    "  echo \"QW_ROOTFILES: \" \$QW_ROOTFILES\n",
-	    "  echo $script_dir/update_cache_links.pl $cache_option_list\n",
-	    "  $script_dir/update_cache_links.pl $cache_option_list\n",
-	    "  ls -al \$QW_DATA\n";
-	print JOBFILE
-	    "  echo \"------\"\n",
-	    "  echo \"Started at `date`\"\n",
-	    "  echo $executable -r $runnumber $analysis_option_list\n",
-	    "  $executable -r $runnumber $analysis_option_list\n",
-	    "  ls -al \$QW_ROOTFILES\n";
-	if ($RunPostProcess){
-	    print JOBFILE
-		"  echo \"------\"\n",
-		"  echo \"Start run based post-processor script at `date`\"\n",
-		"  $RunPostProcess $runnumber\n";
-	    }
-	if ($RunletPostProcess){
-	    print JOBFILE
-		"  echo \"------\"\n",
-		"  echo \"Start runlet based post-processor scripts at `date`\"\n";
-	    foreach $input_file (@input_files) {
-		my $segment = undef;
-		if ($input_file =~ m/.*\.([0-9]+)$/) {
-		    $segment = sprintf " %03d",$1;
-		    print JOBFILE
-			"  $RunletPostProcess $runnumber $segment\n";
+	
+	if ($diskspace >= $MaxSpacePerJob && defined($SegmentRange)){
+	    die("*** The 'segment' option is defined but there are too many segments\n",
+		"*** requested for one batch farm job.\n",
+		"*** Either reduce the number of segments, or remove the 'segment' option\n",
+		"*** to use the automated sub-job creation.\n",
+		"Exiting ");
+	} elsif ($diskspace >= $MaxSpacePerJob && ! defined($SegmentRange)){
+	    my $num_subjobs = int(($#input_files+1)/$InputfilesPerJob) 
+		+ ((($#input_files+1)%$InputfilesPerJob==0)?0:1);
+	    print "Run $runnumber has $num_subjobs subjobs.\n";
+	    my (@subfiles, $subjob, $filenum);
+	    for ($subjob=0; $subjob<$num_subjobs; $subjob++){
+		@subfiles = ();
+		#  Build the job's file list.
+		for ($filenum=$subjob*$InputfilesPerJob; 
+		     $filenum<($subjob+1)*$InputfilesPerJob 
+		     && $filenum<($#input_files+1); $filenum++){
+		    push @subfiles,$input_files[$filenum];
 		}
+		$diskspace=($#subfiles+1)*$SpacePerInputfile+$ReserveSpace;
+		if ($#subfiles<0){
+		    die("***  Subjob $subjob does not contain any input files\n",
+			"Exiting");
+		} elsif ($#subfiles==0){
+		    $SegmentRange = extract_segment($subfiles[0]);
+		} else {
+		    $SegmentRange =
+			join(":",
+			     extract_segment($subfiles[0]),
+			     extract_segment($subfiles[$#subfiles]));
+		}
+		submit_one_job($theTime,$diskspace,$SegmentRange,@subfiles);
 	    }
-	}
-	print JOBFILE
-	    "  echo \"Finished at `date`\"\n",
-	    "]]></Command>\n";
-	print JOBFILE " <Job>\n";
-	foreach $input_file (@input_files) {
-	    print JOBFILE "  <Input src=\"mss:$input_file\" dest=\"",basename($input_file),"\"/>\n";
-	}
-	foreach $input_file (@input_files) {
-	    my $segment = undef;
-	    if ($input_file =~ m/.*\.([0-9]+)$/) {
-		$segment = sprintf "%03d",$1;
-	    }
-	    my $root_file = "$rootfile_stem$runnumber.$segment.root";
-	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$output_path/$root_file\"/>\n";
-	}
-
-	print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber\_$theTime.out\"/>\n";
-	print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber\_$theTime.err\"/>\n";
-	print JOBFILE " </Job>\n";
-	print JOBFILE "</Request>\n";
-	close JOBFILE;
-
-
-	if ($DryRun){
-	    print "Ready to submit $command_file\n";
+	    undef $SegmentRange;
 	} else {
-	    print "Submitting $command_file\n";
-	    my $rc=system("jsub","-xml","$command_file");
+	    submit_one_job($theTime,$diskspace,$SegmentRange,@input_files);
 	}
+
     } else {
 	print STDERR  "There are no data files for run $runnumber\!\n\n";
     }
@@ -477,9 +418,48 @@ exit;
 ################################################
 ################################################
 
+sub parseSegmentRange($) {
+    my ($range) = @_;
+    $first_seg = -1;
+    $last_seg  = -1;
+    %good_segs = ();
+    
+    if ($range =~ /,/){
+	my (@discards, $segment);
+	#  Comma seperated list.
+	foreach $segment (sort {$a <=> $b} (grep {/^\d+$/ && $_>-1}
+					    (split /,/, $range))){
+	    $good_segs{$segment} = 1;
+	}
+	@discards = grep {!/^\d+$/ || $_<=-1 } (split /,/, $range);
+	if ($#discards > -1){
+	    print STDERR
+		"The following bad segment numbers were discarded from the list: ",
+		"@discards\n";
+	}
+    } elsif ($range =~ /:/){
+	# Colon seperated range.
+	($first_seg, $last_seg) = split /:/, $range, 2;
+	$first_seg=-1 if ($first_seg eq "");
+	$last_seg=-1  if ($last_seg eq "");
+	if ($last_seg < $first_seg){
+	    print STDERR
+		"The last segment number is smaller than the first segment number.",
+		"  Discard the last segment number\n";
+	    $last_seg = -1;
+	}
+    } elsif ($range =~ /^\d+$/) {
+	#  Single segment number.
+	$good_segs{$range} = 1;
+    } else {
+	#  Unrecognisable value.
+	print STDERR  "Cannot recognise the segment number, $range.\n";
+	exit;
+    }
+}
 
 ############################################################################
-sub get_filelist_from_mss ($\@) {
+sub get_filelist_from_mss ($@) {
     my ($cachedir,@runlist) = @_;
     my (@filelist, $runnumber, $list);
 
@@ -495,16 +475,44 @@ sub get_filelist_from_mss ($\@) {
 }
 
 ############################################################################
+sub good_segment_number($) {
+    my ($segment) = @_;
+    #  First check against the first and last segment numbers.
+    return (0) if ($first_seg!=-1 && $segment<$first_seg);
+    return (0) if ($last_seg!=-1  && $segment>$last_seg);
+    if (%good_segs){
+	return $good_segs{$segment};
+    }
+    return (1);
+}
+
+############################################################################
+sub extract_segment($) {
+    my ($filename) = @_;
+    my $segment = undef;
+    if ($filename =~ m/.*\.([0-9]+)$/) {
+	$segment = $1;
+    }
+    return $segment;
+}
+
+############################################################################
 sub get_files_for_one_run_from_mss ($$) {
     my ($cachedir,$runnumber) = @_;
-    my (@filelist, $list);
+    my (@filelist, @goodlist, @list, %segmentlist, $filename);
 
-    @filelist = ();
-    #  Get the file names from the MSS file listings.
-    $list = `ls $mss_dir/$cachedir/\*_$runnumber.dat\*`;
-    if ($list ne "") {
-	chomp $list;
-	push @filelist, split /[\s+,\n]/, $list;
+    #  Get the file names from the MSS file listings,
+    #  sorted by segment number
+    @list = glob "$BaseMSSDir/$cachedir/*_$runnumber.dat*";
+    foreach $filename (@list){
+	my $segment = extract_segment($filename);
+	$segmentlist{$filename} = $segment;
+	push(@goodlist, $filename) if (good_segment_number($segment));
+    }
+    @filelist = sort {$segmentlist{$a} <=> $segmentlist{$b};} @goodlist;
+    
+    if ($#filelist>=0){
+	#okay
     } else {
 	print STDERR 
 	    "There are no files on the $cachedir silo for run $runnumber\n";
@@ -513,7 +521,7 @@ sub get_files_for_one_run_from_mss ($$) {
 }
 
 ############################################################################
-sub get_the_good_runs ($\@) {
+sub get_the_good_runs ($@) {
     my ($goodfile, @runlist) = @_;
 
     my (%good_run, @goodrunlist, $runnumber, $ihwp, $current,
@@ -546,8 +554,181 @@ sub get_the_good_runs ($\@) {
 }
 
 
+################################################
+sub create_old_jobfile($$$@) {
+    my ($timestamp,$diskspace,$segmentlist,@infiles) = @_;
 
+    my $optionlist = $AnalysisOptionList;
+    my $suffix;
+    if (defined($segmentlist) && $segmentlist ne ""){
+	$optionlist = "--segments $segmentlist $AnalysisOptionList";
+	$suffix = "_$segmentlist";
+    }
 
+    # Old job file format
+    $command_file = "$scratch_directory/work/run_$runnumber$suffix\_$timestamp.command";
+    # remove the command file if it exists
+    if (-f "$command_file") {
+	unlink $command_file or die "Can not remove the old $command_file: $!";
+    }
+    open(JOBFILE, ">$command_file") or die "$command_file: $!";
+    print JOBFILE  "PROJECT: qweak\n";
+    print JOBFILE  "JOBNAME: Qw_$runnumber$suffix\n";
+    print JOBFILE  "COMMAND: $script_dir/qwbatch.csh\n";
+    print JOBFILE  "TRACK:   $BatchQueue\n";
+    print JOBFILE  
+	"OPTIONS: $analysis_directory $scratch_directory ",
+	"$runnumber $executable $optionlist\n";
+    print JOBFILE  
+	"SINGLE_JOB\n",
+	"INPUT_FILES: @infiles\n",
+	"MEMORY: 2048 MB\n",
+	"DISK_SPACE: $diskspace MB\n",
+	### "OTHER_FILES: ....\n",
+	"TOWORK\n",
+	####
+	"OUTPUT_DATA: run_$runnumber$suffix\_$timestamp.log\n",
+	"OUTPUT_TEMPLATE: $ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.log\n";
+    #
+    #"OUTPUT_DATA: tmp/* \n",
+    #"OUTPUT_TEMPLATE: $ENV{QW_TMP}/.\n",
+    #
+    #"OUTPUT_DATA: asym/* \n",
+    #"OUTPUT_TEMPLATE: $ENV{ASYMDIR}/.\n";
+    #
+    ####  Now rootfiles are copied by the qwbatch.csh script.
+    #"OUTPUT_DATA: rootfiles/* \n",
+    #"OUTPUT_TEMPLATE: $ENV{QW_ROOTFILES}/.\n";
+    #
+    #"OUTPUT_DATA: sum/* \n",
+    #"OUTPUT_TEMPLATE: $ENV{SUMMARYDIR}/.\n",
+    #
+    #"OUTPUT_DATA: calib/* \n",
+    #"OUTPUT_TEMPLATE: $ENV{PEDESTAL_DIR}/.\n";
+
+    print JOBFILE  "MAIL: $ENV{USER}\@jlab.org\n";
+    print JOBFILE  "OS: linux64\n";
+    close JOBFILE;
+    return $command_file;
+}
+
+################################################
+sub create_xml_jobfile($$$@) {
+    my ($timestamp,$diskspace,$segmentlist,@infiles) = @_;
+
+    my $optionlist = $AnalysisOptionList;
+    my $suffix = "";
+    if (defined($segmentlist) && $segmentlist ne ""){
+	$optionlist = "--segments $segmentlist $AnalysisOptionList";
+	$suffix = "_$segmentlist";
+    }
+    
+    # New job file format
+    $command_file = "$scratch_directory/work/run_$runnumber$suffix\_$timestamp.xml";
+    # remove the command file if it exists
+    if (-f "$command_file") {
+	unlink $command_file or die "Can not remove the old $command_file: $!";
+    }
+    open(JOBFILE, ">$command_file") or die "$command_file: $!";
+    print JOBFILE
+	"<Request>\n",
+	" <Email email=\"$ENV{USER}\@jlab.org\" request=\"false\" job=\"true\"/>\n",
+	" <Project name=\"qweak\"/>\n",
+	" <Track name=\"$BatchQueue\"/>\n",
+	" <Name name=\"$RootfileStem$runnumber$suffix\"/>\n";
+    my $memory=2048;
+    print JOBFILE
+	" <OS name=\"linux64\"/>\n",
+	" <DiskSpace space=\"$diskspace\" unit=\"MB\"/>\n",
+	" <Memory space=\"$memory\" unit=\"MB\"/>\n";
+    print JOBFILE
+	" <Command><![CDATA[\n",
+	"  set nonomatch\n",
+	"  umask 002\n",
+	"  echo \"User:         \" `whoami`\n",
+	"  echo \"Groups:       \" `groups`\n",
+	"  echo \"WORKDIR:      \" \$WORKDIR\n",
+	"  echo \"PWD:          \" \$PWD\n";
+    print JOBFILE
+	"  setenv QWSCRATCH  $scratch_directory\n",
+	"  setenv QWANALYSIS $analysis_directory\n",
+	"  echo \"QWSCRATCH:    \" \$QWSCRATCH\n",
+	"  echo \"QWANALYSIS:   \" \$QWANALYSIS\n",
+	"  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n",
+	"  echo $script_dir/update_cache_links.pl $CacheOptionList\n",
+	"  $script_dir/update_cache_links.pl $CacheOptionList\n";
+    $CacheOptionList =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
+    print JOBFILE
+	"  setenv QW_DATA      \$WORKDIR\n",
+	"  setenv QW_ROOTFILES \$WORKDIR\n",
+	"  echo \"QW_DATA:      \" \$QW_DATA\n",
+	"  echo \"QW_ROOTFILES: \" \$QW_ROOTFILES\n",
+	"  echo $script_dir/update_cache_links.pl $CacheOptionList\n",
+	"  $script_dir/update_cache_links.pl $CacheOptionList\n",
+	"  ls -al \$QW_DATA\n";
+    print JOBFILE
+	"  echo \"------\"\n",
+	"  echo \"Started at `date`\"\n",
+	"  echo $executable -r $runnumber $optionlist\n",
+	"  $executable -r $runnumber $optionlist\n",
+	"  ls -al \$QW_ROOTFILES\n";
+    if ($RunPostProcess){
+	print JOBFILE
+	    "  echo \"------\"\n",
+	    "  echo \"Start run based post-processor script at `date`\"\n",
+	    "  $RunPostProcess $runnumber\n";
+    }
+    if ($RunletPostProcess){
+	print JOBFILE
+	    "  echo \"------\"\n",
+	    "  echo \"Start runlet based post-processor scripts at `date`\"\n";
+	foreach $input_file (@infiles) {
+	    my $segment = undef;
+	    if ($input_file =~ m/.*\.([0-9]+)$/) {
+		$segment = sprintf " %03d",$1;
+		print JOBFILE
+		    "  $RunletPostProcess $runnumber $segment\n";
+	    }
+	}
+    }
+    print JOBFILE
+	"  echo \"Finished at `date`\"\n",
+	"]]></Command>\n";
+    print JOBFILE " <Job>\n";
+    foreach $input_file (@infiles) {
+	print JOBFILE "  <Input src=\"mss:$input_file\" dest=\"",basename($input_file),"\"/>\n";
+    }
+    foreach $input_file (@infiles) {
+	my $segment = sprintf "%03d", extract_segment($input_file);
+	my $root_file = "$RootfileStem$runnumber.$segment.root";
+	print JOBFILE "  <Output src=\"$root_file\" dest=\"$OutputPath/$root_file\"/>\n";
+    }
+    
+    print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.out\"/>\n";
+    print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.err\"/>\n";
+    print JOBFILE " </Job>\n";
+    print JOBFILE "</Request>\n";
+    close JOBFILE;
+    return $command_file;
+}
+
+################################################
+sub submit_one_job($$$@) {
+    my ($timestamp,$diskspace,$segmentlist,@infiles) = @_;
+
+    ###  We don't use the old job files anymore, so don't create them.
+    ###
+    ###  #    create_old_jobfile($timestamp,$diskspace,$segmentlist,@infiles);
+    ###
+    my $command_file = create_xml_jobfile($timestamp,$diskspace,$segmentlist,@infiles);
+
+    if ($DryRun){
+	print "Ready to submit $command_file\n";
+    } else {
+	print "Submitting $command_file\n";
+	my $rc=system("jsub","-xml","$command_file");
+    }
+}
 
 ################################################
 ################################################
@@ -563,8 +744,8 @@ sub crashout ($) {
 sub displayusage {
     print STDERR
 	"\n",
-	"qwbatchsub.pl is a job  submission tool for  analysis of Qweak data on\n",
-	"the JLab batch farm computer cluster.\n\n",
+	"qwbatchsub.pl is a job submission tool for analysis of Qweak data\n",
+	"on the JLab batch farm computer cluster.\n\n",
 	"Usage:\n\tqwbatchsub.pl -h\n",
 	"\tqwbatchsub.pl [-n] [-F <goodruns file>] [-Q <batch queue>]\n",
 	"\t              [-O <analysis options>] [-C <cache options>]\n",
@@ -581,6 +762,10 @@ sub displayusage {
 	"\t\t  A single run number:      15789\n",
 	"\t\t  A comma separated list:   15775,15781,15789\n",
 	"\t\t  A colon separated range:  15775:15793\n",
+	"\t--segments <segment range>\n",
+	"\t\tThis flag specifies the segment numbers to be analyzed.\n",
+	"\t\tIt will be ignored if more than one run is specified.\n",
+	"\t\tThe same formats as for run ranges are permitted.\n",
 	"\t--executable | -E <executable>\n",
 	"\t\tThis specifies the  name of the analysis executable\n",
 	"\t\tused;  it defaults to be  \"qwparity\".   Check the\n",
@@ -588,6 +773,13 @@ sub displayusage {
 	"\t--rootfile-stem | -R <rootfile stem>\n",
 	"\t\tThis specifies the stem of  ROOT files  to be copied\n",
 	"\t\tto the MSS directory; defaults to \"Qweak\".\n",
+	"\t--rootfile-output <path to which rootfiles will be written>\n",
+	"\t\tThis specifies the ouput path for the rootfiles.  It can\n",
+	"\t\teither send the files to MSS, or to the work disk.\n",
+	"\t\tIt defaults to:\n",
+	"\t\t   mss:$BaseMSSDir/rootfiles/pass0\n",
+	"\t\tTo send files to the work disk use:\n",
+	"\t\t   file:<full path to your \$QW_ROOTFILES directory>\n",
 	"\t--mss-base-dir | -M <MSS directory>\n",
 	"\t\tThis specifies the MSS directory  where data files\n",
 	"\t\tare stored;  it defaults to \"\/mss\/hallc\/qweak\".\n",
@@ -596,6 +788,10 @@ sub displayusage {
 	"\t\tused;  it defaults to be  \"one_pass\".   Check the\n",
 	"\t\tbatch  system documentation for the  other possible\n",
 	"\t\tvalues.\n",
+	"\t--cacheoptions | -C <cache option>\n",
+	"\t\tThis flag specifies  the update_cache_links options\n",
+	"\t\tto pass to the analysis jobs.   The list of options\n",
+	"\t\tmust be enclosed in double quotes.\n",
 	"\t--goodrunlist | -F <goodruns file>\n",
 	"\t\tThis specifies the name of  the file containing the\n",
 	"\t\tlist of \'good\' runs.  If the full path is not given\n",
@@ -604,10 +800,6 @@ sub displayusage {
 	"\t\tis located at:\n",
 	"\t\t  /group/qweak/QwAnalysis/common/bin/good_runs.dat.\n",
 	"\t\tBy default, all runs within the run range are used.\n",
-	"\t--cacheoptions | -C <cache option>\n",
-	"\t\tThis flag specifies  the update_cache_links options\n",
-	"\t\tto pass to the analysis jobs.   The list of options\n",
-	"\t\tmust be enclosed in double quotes.\n",
 	"\t--options | -O <analysis option>\n",
 	"\t\tThis flag specifies the  qwanalysis options to pass\n",
 	"\t\tto the analysis jobs.   The list of options must be\n",
@@ -641,7 +833,6 @@ sub displayusage {
 	"\t--post-runlet <path to runlet-based postprocessing script>\n",
 	"\t\tThis flag specifies the post processing script to be \n",
 	"\t\texecuted once for each run segment.\n",
-	"\t\tIt will be called as: <script> <run_number> <segment>\n",
-	"\t--rootfile-output <path to which rootfiles will be written>\n";
+	"\t\tIt will be called as: <script> <run_number> <segment>\n";
 
 }
