@@ -179,6 +179,23 @@ if (defined($opt_E) && $opt_E ne ""){
     $executable = "$ENV{QW_BIN}/qwparity";
 }
 
+#  Let's validate the $OutputPath variable.
+if ($OutputPath =~ /none/i || $OutputPath =~ /null/i){
+    $OutputPath = "null";
+} elsif ($OutputPath =~ /:/){
+    my ($protocol, $path) = split /:/, $OutputPath, 2;
+    if ($protocol ne "mss" && $protocol ne "file" ){
+	die("Unknown protocol in OutputPath: $OutputPath.  Exiting");
+    } elsif ($protocol eq "file" ){
+	#  TODO:  Make sure the path is on the work disk...
+    }
+    if (! -d $path){
+	die("Nonexistent path in OutputPath: $OutputPath.  Exiting");
+    }
+} else {
+    die("Unrecognized option for OutputPath: $OutputPath.  Exiting");
+}
+
 
 if (! defined($RunRange) || $RunRange eq ""){
     print STDERR "No runs specified.  Exiting\n";
@@ -699,10 +716,12 @@ sub create_xml_jobfile($$$@) {
     foreach $input_file (@infiles) {
 	print JOBFILE "  <Input src=\"mss:$input_file\" dest=\"",basename($input_file),"\"/>\n";
     }
-    foreach $input_file (@infiles) {
-	my $segment = sprintf "%03d", extract_segment($input_file);
-	my $root_file = "$RootfileStem$runnumber.$segment.root";
-	print JOBFILE "  <Output src=\"$root_file\" dest=\"$OutputPath/$root_file\"/>\n";
+    if ($OutputPath ne "null"){
+	foreach $input_file (@infiles) {
+	    my $segment = sprintf "%03d", extract_segment($input_file);
+	    my $root_file = "$RootfileStem$runnumber.$segment.root";
+	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$OutputPath/$root_file\"/>\n";
+	}
     }
     
     print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.out\"/>\n";
@@ -777,6 +796,9 @@ sub displayusage {
 	"\t--rootfile-output <path to which rootfiles will be written>\n",
 	"\t\tThis specifies the ouput path for the rootfiles.  It can\n",
 	"\t\teither send the files to MSS, or to the work disk.\n",
+	"\t\tIf you don't want to save the root files, or you are\n",
+	"\t\tnot generating the ROOT files, use:\n",
+	"\t\t   none\n",
 	"\t\tIt defaults to:\n",
 	"\t\t   mss:$BaseMSSDir/rootfiles/pass0\n",
 	"\t\tTo send files to the work disk use:\n",
