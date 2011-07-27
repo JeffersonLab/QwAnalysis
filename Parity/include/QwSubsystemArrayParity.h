@@ -46,8 +46,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// Default destructor
     virtual ~QwSubsystemArrayParity() { };
 
-    /// \brief Get the subsystem with the specified name
-    VQwSubsystemParity* GetSubsystemByName(const TString& name);
+/*     /// \brief Get the subsystem with the specified name */
+/*     VQwSubsystemParity* GetSubsystemByName(const TString& name); */
     /// \brief Construct a branch and vector for this subsystem with a prefix
     void ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector <Double_t> &values);
     /// \brief Fill the vector for this subsystem

@@ -38,20 +38,22 @@ class VQwSubsystemFactory {
       return GetSubsystemFactory(type)->Create(name);
     }
 
-    /// Dynamic cast of subsystem into type
-    static VQwSubsystem* Cast(VQwSubsystem* subsys, const std::string& type) {
-      return GetSubsystemFactory(type)->Cast(subsys);
-    }
+    // /// Dynamic cast of subsystem into type
+    //   static VQwSubsystem* Cast(VQwSubsystem* subsys, const std::string& type) {
+    //     return GetSubsystemFactory(type)->Cast(subsys);
+    //   }
 
     /// Inherits from subsystem type
     static bool InheritsFrom(VQwSubsystem* subsys, const std::string& type) {
-      return (Cast(subsys,type) != 0);
+      return (GetSubsystemFactory(type)->InheritsFrom(subsys));
     }
 
     /// Subsystem creation (pure virtual)
     virtual VQwSubsystem* Create(const std::string& name) const = 0;
     /// Subsystem dynamic cast (pure virtual)
     virtual VQwSubsystem* Cast(VQwSubsystem* subsys) const = 0;
+    /// Subsystem dynamic cast (pure virtual)
+    virtual bool InheritsFrom(VQwSubsystem* subsys) const = 0;
 
   protected:
 
@@ -129,6 +131,11 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
     /// Dynamic cast of subsystem
     subsystem_t* Cast(VQwSubsystem* subsys) const {
       return dynamic_cast<subsystem_t*>(subsys);
+    }
+
+    /// Test if the subsystem can be cast to this type
+    bool InheritsFrom(VQwSubsystem* subsys) const {
+      return (Cast(subsys) != 0);
     }
 
 }; // class QwSubsystemFactory

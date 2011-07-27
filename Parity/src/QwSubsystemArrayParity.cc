@@ -16,10 +16,10 @@
 
 //*****************************************************************
 
-VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystemByName(const TString& name)
-{
-  return dynamic_cast<VQwSubsystemParity*>(QwSubsystemArray::GetSubsystemByName(name));
-}
+// VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystemByName(const TString& name)
+// {
+//   return dynamic_cast<VQwSubsystemParity*>(QwSubsystemArray::GetSubsystemByName(name));
+// }
 
 //*****************************************************************
 

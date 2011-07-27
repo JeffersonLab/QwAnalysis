@@ -281,8 +281,8 @@ std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const std::strin
     // Loop over the subsystems
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
 
-      // Try to cast the subsystem into the required type
-      if (VQwSubsystemFactory::Cast((*subsys).get(),type)) {
+      // Test to see if the subsystem inherits from the required type
+      if (VQwSubsystemFactory::InheritsFrom((*subsys).get(),type)) {
         subsys_list.push_back((*subsys).get());
       }
 
