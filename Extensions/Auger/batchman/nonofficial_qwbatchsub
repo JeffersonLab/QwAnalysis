@@ -1,0 +1,9 @@
+#!/bin/bash
+umask 002
+
+export QWSCRATCH=/group/qweak/QwAnalysis/common/QwScratch
+export QWANALYSIS=/group/qweak/QwAnalysis_1.09_rob
+. $QWANALYSIS/SetupFiles/SET_ME_UP.bash
+
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression.sh --rootfile-stem QwPass3_ --rootfile-output mss:/mss/hallc/qweak/rootfiles/pass3 --options "--config official_pass3.conf" $@
+
