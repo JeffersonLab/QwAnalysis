@@ -20,19 +20,19 @@ if ($opt_h){
 }
 
 if($opt_S ne ""){
-    $source_directory = $opt_S;
+    $source_directory = "$opt_S";
 } else {
     $source_directory = "/cache/mss/hallc/qweak/raw/";
 }
 
 if($opt_s ne ""){
-    $link_stem = $opt_s;
+    $link_stem = "$opt_s";
 } else {
     $link_stem = "QwRun_";
 }
 
 if($opt_r ne ""){
-    $regex = $opt_r;
+    $regex = "$opt_r";
 } else {
     $regex = ".*";
 }
