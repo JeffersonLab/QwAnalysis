@@ -6,6 +6,10 @@ workPath=$4
 rootFileStem=$5
 dbName=$6
 
+#  File permission variable.
+myown="c-qweak"
+myperm="u+rw,g+rw"
+
 if [ $# -ne 6 ] ; then
    echo provide run +segemnt + outPath + workDir + rootFileStem + dbName
    exit
@@ -23,57 +27,72 @@ fi
 
 cd $workPath
 
+#  Try to get the timestamp from file; or create it if it doesn't exist.
+if [ -e timeStamp ] ; then
+    timestamp=`cat timeStamp`
+else
+    timestamp=`date +%Y%b%d_%H%M%S`
+    echo $timestamp > timeStamp
+fi
+
 logPath='./out/'
 mxEve=2223344
 
-echo doubleRegPass  run.seg=$run.$seg
-#destDir=tree/regR$run.$seg
-destDir=$outPath/regR$run.$seg
+echo doubleRegPass  run.seg=$run.${seg}
 
 
+#destDir=tree/regR$run.${seg}
+destDir=$outPath/regR$run.${seg}
 
 if [ -d out ] ; then
-  mv -f out outOld
-  chmod 775 outOld
+    #  Move the directory to one with the timestamp of the last modification
+    #  Don't bother changing the permissions, because we're not going
+    #  to look at this directory again.
+    newDest=out_`date -r out +%Y%b%d_%H%M%S`
+    mv -f out $newDest
 fi
 
 
 if [ -d $destDir ] ; then
-    newDest=`dirname $destDir`/old`basename $destDir`
+    #  Move the directory to one with the timestamp of the last modification.
+    #  Don't bother changing the permissions, because we probably can't.
+    newDest=`dirname $destDir`/old`basename $destDir`_`date -r $destDir +%Y%b%d_%H%M%S`
     mv -f $destDir $newDest
-    chmod 775 $newDest
-    if [ $? -ne 0 ] ; then exit; fi  
 fi
+destDir=$destDir_$timestamp
 
-
-
+#  Create the directory, change the owner, and set the permissions.
+#  We'll use the group sticky bit to try to make sure all contents
+#  are created with the proper group ownership.
 mkdir out
-chmod 775 out
+chgrp $myown  out
+chmod u+rw,g+rws out
 
 
 #.......................................
 echo regPass1 started ...
-time $scriptPath/linRegBlue  $run $seg $mxEve >& $logPath/logS1
+time $scriptPath/linRegBlue  ${run} ${seg} $mxEve >& $logPath/logS1
 
 if [ $? -ne 0 ] ; then 
-   echo failed reg-pass1 for run $run.$seg
+   echo failed reg-pass1 for run ${run}.${seg}
    cat $logPath/logS1
-   mv out $outPath/out-regAbort1-$run.$seg
-   chmod 775 $outPath/out-regAbort1-$run.$seg
+   chgrp -R $myown  out
+   chmod -R $myperm out
+   mv out $outPath/out-regAbort1-${run}.${seg}_$timestamp
    echo abandon this run
    exit
 fi
 
 #.......................................
 echo regPass1 successful 
-slopeFile=blueR$run.$seg.slope.root
-mv  out/blueR$run.$seg\new.slope.root out/$slopeFile
-chmod 775 out/$slopeFile
+slopeFile=blueR${run}.${seg}.slope.root
+mv  out/blueR${run}.${seg}\new.slope.root out/$slopeFile
 
 if [ $? -ne 0 ] ; then 
-   echo failed to find slope matrix  for run $run.$seg
-   mv out $outPath/out-regAbort2-$run.$seg
-   chmod 775 $outPath/out-regAbort2-$run.$seg
+   echo failed to find slope matrix  for run ${run}.${seg}
+   chgrp -R $myown  out
+   chmod -R $myperm out
+   mv out $outPath/out-regAbort2-${run}.${seg}_$timestamp
    echo abandon this run
    exit
 fi
@@ -81,12 +100,13 @@ fi
 
 #.......................................
 echo regPass2 started 
-echo $scriptPath/linRegBlue  $run $seg $mxEve  blueReg.conf $slopeFile
-time $scriptPath/linRegBlue  $run $seg $mxEve  blueReg.conf $slopeFile >& $logPath/logS2
+echo $scriptPath/linRegBlue  ${run} ${seg} $mxEve  blueReg.conf $slopeFile
+time $scriptPath/linRegBlue  ${run} ${seg} $mxEve  blueReg.conf $slopeFile >& $logPath/logS2
 if [ $? -ne 0 ] ; then 
-   echo failed reg-pass2 for run $run.$seg
-   mv out $outPath/out-regAbort3-$run.$seg
-   chmod 775 $outPath/out-regAbort3-$run.$seg
+   echo failed reg-pass2 for run ${run}.${seg}
+   chgrp -R $myown  out
+   chmod -R $myperm out
+   mv out $outPath/out-regAbort3-${run}.${seg}_$timestamp
    echo abandon this run
    exit
 fi
@@ -94,7 +114,7 @@ fi
 #.......................................
 echo Prepare data for DB upload
 
-root -b -q $scriptPath/prCsvRecordTwo.C'(2,'$run.$seg',"bhla","out/")'
+root -b -q $scriptPath/prCsvRecordTwo.C'(2,'${run}.${seg}',"bhla","out/")'
 
 if [ $? -eq 0 ] ; then 
     echo Upload data to DB
@@ -111,7 +131,10 @@ fi
 echo regPass2 successful destDir=$destDir
 
 
+chgrp -R $myown  out
+chmod -R $myperm out
+
 mv out $destDir
-chmod 775 $destDir
+if 
 
 du -hs $destDir
