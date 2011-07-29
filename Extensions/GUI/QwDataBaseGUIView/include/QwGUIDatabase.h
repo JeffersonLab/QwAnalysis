@@ -75,9 +75,6 @@ using std::vector;
 #include "QwGUISubSystem.h"
 #include "TStyle.h"
 #include "RSDataWindow.h"
-#ifndef  ROOTCINTMODE
-#include "QwSSQLS_summary.h"
-#endif
 #include <TVectorT.h>
 #include <TGraphErrors.h>
 
@@ -168,7 +165,6 @@ private:
 
 /*   void PlotChargeData(); */
 
-  void DetectorPlot();
 #ifndef  ROOTCINTMODE
   mysqlpp::StoreQueryResult QueryDetector(TString detector, TString measured_property, Int_t det_id);
 #endif
