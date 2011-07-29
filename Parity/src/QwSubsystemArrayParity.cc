@@ -23,7 +23,7 @@ VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystemByName(const TString& na
 
 //*****************************************************************
 
-void  QwSubsystemArrayParity::FillDB(QwDatabase *db, TString type)
+void  QwSubsystemArrayParity::FillDB(QwParityDB *db, TString type)
 {
   for (iterator subsys = begin(); subsys != end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());

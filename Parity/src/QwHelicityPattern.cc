@@ -830,7 +830,7 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void QwHelicityPattern::FillDB(QwDatabase *db)
+void QwHelicityPattern::FillDB(QwParityDB *db)
 {
   fBlinder.FillDB(db,"");
 

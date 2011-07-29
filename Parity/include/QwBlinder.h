@@ -23,7 +23,7 @@
 #include "QwEPICSEvent.h"
 
 // Forward declarations
-class QwDatabase;
+class QwParityDB;
 
 // Backup type definition for ULong64_t; needed with some older ROOT versions.
 #if !defined(ULong64_t)
@@ -104,7 +104,7 @@ class QwBlinder {
     /// \brief Update the status with new external information
     void ProcessOptions(QwOptions& options);
     /// \brief Update the status with new external information
-    void Update(QwDatabase* db);
+    void Update(QwParityDB* db);
     /// \brief Update the status with new external information
     void Update(const QwSubsystemArrayParity& detectors);
     /// \brief Update the status with new external information
@@ -115,11 +115,11 @@ class QwBlinder {
     };
 
 
-    void  WriteFinalValuesToDB(QwDatabase* db);
+    void  WriteFinalValuesToDB(QwParityDB* db);
     void  PrintFinalValues();
 
     /// Write to the database
-    void FillDB(QwDatabase *db, TString datatype);
+    void FillDB(QwParityDB *db, TString datatype);
 
     /// Modifies the device error code variable passed to it, if the blinder is
     /// not okay.
@@ -267,13 +267,13 @@ class QwBlinder {
 
 
     ///  Reads the seed with specified id from the database object
-    Int_t ReadSeed(QwDatabase* db, const UInt_t seed_id);
+    Int_t ReadSeed(QwParityDB* db, const UInt_t seed_id);
 
     ///  Reads the seed from the database object
-    Int_t ReadSeed(QwDatabase* db);
+    Int_t ReadSeed(QwParityDB* db);
 
-    void WriteChecksum(QwDatabase* db);     ///  Writes fSeedID and fBFChecksum to DB for this analysis ID
-    void WriteTestValues(QwDatabase* db);   ///  Writes fTestNumber and fBlindTestValue to DB for this analysis ID
+    void WriteChecksum(QwParityDB* db);     ///  Writes fSeedID and fBFChecksum to DB for this analysis ID
+    void WriteTestValues(QwParityDB* db);   ///  Writes fTestNumber and fBlindTestValue to DB for this analysis ID
 
     std::vector<UChar_t> GenerateDigest(const TString& input) const;
 

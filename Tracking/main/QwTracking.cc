@@ -15,7 +15,6 @@
 #include "QwRootFile.h"
 #include "QwOptionsTracking.h"
 #include "QwEventBuffer.h"
-#include "QwDatabase.h"
 #include "QwHistogramHelper.h"
 #include "QwEPICSEvent.h"
 #include "QwTrackingWorker.h"
@@ -76,9 +75,6 @@ Int_t main(Int_t argc, Char_t* argv[])
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);
 
-  ///  Set up the database connection
-  QwDatabase database(gQwOptions);
-
 
 
   Bool_t enablemapfile = gQwOptions.GetValue<bool>("enable-mapfile");
@@ -116,9 +112,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     ///  Create the tracking worker
     QwTrackingWorker *trackingworker = new QwTrackingWorker(geometry);
 
-
-    //  Initialize the database connection.
-    database.SetupOneRun(eventbuffer);
 
 
     // Open the ROOT file

@@ -13,7 +13,9 @@
 // Qweak headers
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwMainCerenkovDetector);
@@ -1302,7 +1304,7 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
     }
 }
 
-void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
+void  QwMainCerenkovDetector::FillDB(QwParityDB *db, TString datatype)
 {
   Bool_t local_print_flag = false;
 
@@ -1313,7 +1315,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::md_data> entrylist;
+  std::vector<QwParitySSQLS::md_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

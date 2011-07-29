@@ -1,6 +1,6 @@
 
-#ifndef QWSSQLS_HH
-#define QWSSQLS_HH
+#ifndef QWPARITYSSQLS_HH
+#define QWPARITYSSQLS_HH
 
 #define GCC_VERSION (__GNUC__ * 10000 \
                      + __GNUC_MINOR__ * 100 \
@@ -17,25 +17,15 @@
 
 // Need to include define EXPAND_MY_SSQLS_STATICS in owner module
 //
-#if !defined(EXPAND_MY_SSQLS_STATICS)
+#ifndef EXPAND_QWPARITYSSQLS_STATICS
 #define MYSQLPP_SSQLS_NO_STATICS
 #endif
 
 #include "mysql++.h"
 #include "ssqls.h"
 
-namespace QwParityDB {
+namespace QwParitySSQLS {
 
-
-    sql_create_6(db_schema, 1, 2 
-      , mysqlpp::sql_int_unsigned , db_schema_id
-      , mysqlpp::sql_char , major_release_number
-      , mysqlpp::sql_char , minor_release_number
-      , mysqlpp::sql_char , point_release_number
-      , mysqlpp::sql_timestamp , time
-      , mysqlpp::Null<mysqlpp::sql_text> , script_name
-    ) 
-  
     sql_create_2(good_for, 1, 2 
 			, mysqlpp::sql_int_unsigned , good_for_id
 			, mysqlpp::Null<mysqlpp::sql_text> , type

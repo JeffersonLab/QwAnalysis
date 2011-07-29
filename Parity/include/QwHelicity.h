@@ -19,7 +19,7 @@
 #include "QwWord.h"
 
 // Forward declarations
-class QwDatabase;
+class QwParityDB;
 
 enum HelicityRootSavingType{kHelSaveMPS = 0,
 			    kHelSavePattern,
@@ -153,7 +153,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  FillDB(QwDatabase *db, TString type);
+  void  FillDB(QwParityDB *db, TString type);
   void  Print() const;
 
   Bool_t IsHelicityIgnored(){return fIgnoreHelicity;};
