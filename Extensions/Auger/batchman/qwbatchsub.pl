@@ -663,6 +663,7 @@ sub create_xml_jobfile($$$@) {
 	" <Command><![CDATA[\n",
 	"  set nonomatch\n",
 	"  umask 002\n",
+	"  echo $timestamp > \$WORKDIR/timeStamp\n",
 	"  echo \"User:         \" `whoami`\n",
 	"  echo \"Groups:       \" `groups`\n",
 	"  echo \"WORKDIR:      \" \$WORKDIR\n",
