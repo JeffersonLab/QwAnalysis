@@ -34,18 +34,22 @@ destDir=$outPath/regR$run.$seg
 
 if [ -d out ] ; then
   mv -f out outOld
+  chmod 775 outOld
 fi
 
 
 if [ -d $destDir ] ; then
     newDest=`dirname $destDir`/old`basename $destDir`
     mv -f $destDir $newDest
+    chmod 775 $newDest
     if [ $? -ne 0 ] ; then exit; fi  
 fi
 
 
 
 mkdir out
+chmod 775 out
+
 
 #.......................................
 echo regPass1 started ...
@@ -55,6 +59,7 @@ if [ $? -ne 0 ] ; then
    echo failed reg-pass1 for run $run.$seg
    cat $logPath/logS1
    mv out $outPath/out-regAbort1-$run.$seg
+   chmod 775 $outPath/out-regAbort1-$run.$seg
    echo abandon this run
    exit
 fi
@@ -63,10 +68,12 @@ fi
 echo regPass1 successful 
 slopeFile=blueR$run.$seg.slope.root
 mv  out/blueR$run.$seg\new.slope.root out/$slopeFile
+chmod 775 out/$slopeFile
 
 if [ $? -ne 0 ] ; then 
    echo failed to find slope matrix  for run $run.$seg
    mv out $outPath/out-regAbort2-$run.$seg
+   chmod 775 $outPath/out-regAbort2-$run.$seg
    echo abandon this run
    exit
 fi
@@ -79,6 +86,7 @@ time $scriptPath/linRegBlue  $run $seg $mxEve  blueReg.conf $slopeFile >& $logPa
 if [ $? -ne 0 ] ; then 
    echo failed reg-pass2 for run $run.$seg
    mv out $outPath/out-regAbort3-$run.$seg
+   chmod 775 $outPath/out-regAbort3-$run.$seg
    echo abandon this run
    exit
 fi
@@ -104,4 +112,6 @@ echo regPass2 successful destDir=$destDir
 
 
 mv out $destDir
+chmod 775 $destDir
+
 du -hs $destDir
