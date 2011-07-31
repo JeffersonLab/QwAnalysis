@@ -60,7 +60,7 @@ bpmstripline,   sca_bpm_3p02b,   0.2,      0.1,     110602.0, 1.0,          1.00
 bpmstripline,   sca_bpm_3p03a,   0.6,     -0.7,     113292.0, 1.0,          0.909295,   1.006700,
 bpmstripline,   sca_bpm_3c20,    0.2,      0.1,     116858.0, 1.0,          0.904796,   0.995870,
 
-!! Since BPM 3P02A is disabled in this combo, chainged the Zoffset to BPM 3P02B's location
-combinedbpm,    compton_bpm,     0.0,      0.0,     110602.0, 1.0,          1.0,        1.0,
+!! Since BPM 3P02A is disabled in this combo, changed the Zoffset to BPM 3P02B's location
+!combinedbpm,    compton_bpm,     0.0,      0.0,     110602.0, 1.0,          1.0,        1.0,
 
 !END

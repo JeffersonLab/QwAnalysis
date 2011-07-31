@@ -53,14 +53,16 @@ end=combinedbcm
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Combined BPM's
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-begin=combinedbpm
-name=compton_bpm
+!begin=combinedbpm
+!name=compton_bpm
 !! Note (7/28/2011) : Disabled BPM 3P02A's use for the
 !! compton position since channel YM may not be being read
 !! correctly (see hclog)
 ! sca_bpm_3p02a, bpmstripline, 1.0, 1.0, 1.0
- sca_bpm_3p02b, bpmstripline, 1.0, 1.0, 1.0
-end=combinedbpm
+!! Note (7/30/2011) : Also disabled 3p02a, because
+!! combined BPMs don't work with only one channel...
+! sca_bpm_3p02b, bpmstripline, 1.0, 1.0, 1.0
+!end=combinedbpm
 
 ![PUBLISH]
 ! compton_charge, combinedbcm, compton_charge, c
