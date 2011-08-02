@@ -129,5 +129,5 @@
 ! constants obtained from run 11173 
   qwk_bcm5 ,5677.53, 0.0016468
   qwk_bcm6 ,6749.97, 0.0017973
-  qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
+qwk_linephase, 0, 1.0
