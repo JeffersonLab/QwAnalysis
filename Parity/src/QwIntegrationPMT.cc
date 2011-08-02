@@ -288,9 +288,12 @@ void QwIntegrationPMT::Scale(Double_t factor)
 
 void QwIntegrationPMT::Normalize(VQwDataElement* denom)
 {
-  QwVQWK_Channel vqwk_denom;
-  vqwk_denom.Copy(denom);
-  fTriumf_ADC.DivideBy(vqwk_denom);
+  if (fTriumf_ADC.GetElementName()!="qwk_isourc"&&fTriumf_ADC.GetElementName()!="qwk_preamp"&&fTriumf_ADC.GetElementName()!="qwk_cagesr"&&fTriumf_ADC.GetElementName()!="pmtled")
+  {
+    QwVQWK_Channel vqwk_denom;
+    vqwk_denom.Copy(denom);
+    fTriumf_ADC.DivideBy(vqwk_denom);
+  }
   return;
 }
 
