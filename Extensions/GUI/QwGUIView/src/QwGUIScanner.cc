@@ -2,8 +2,6 @@
 
 ClassImp(QwGUIScanner);
 
-using namespace QwParityDB;
-
 const char *QwGUIScanner::ScannerDataNames[SCANNER_INDEX] =
   {"RateMap","RandomMap","RateMapProjectionXY","RateMapProjectionX","RateMapProjectionY"};
 
