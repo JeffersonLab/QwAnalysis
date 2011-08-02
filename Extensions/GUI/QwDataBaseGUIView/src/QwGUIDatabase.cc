@@ -34,11 +34,13 @@ QwGUIGoodForSettings::QwGUIGoodForSettings(){
   fQualityReject.resize(fQualityLabels.size());
   for (size_t i=0; i<fQualityLabels.size(); i++){
     fQualityIDs.at(i)    = i+1;
-    fQualityReject.at(i) = kTRUE;
+    //fQualityReject.at(i) = kTRUE; --smacewan
+    fQualityReject.at(i) = kFALSE; //--smacewan
   }
-  fQualityReject.at(0) = kFALSE;
+  //fQualityReject.at(0) = kFALSE; --smacewan
   fQualityRejectNULLs = kTRUE;
 }
+
 
 std::string QwGUIGoodForSettings::GetSelectionString(std::string table){
   std::string selection;
@@ -158,13 +160,17 @@ const char *QwGUIDatabase::DetectorCombos[N_DETECTORS] =
     "qwk_md6barsum",
     "qwk_md7barsum",
     "qwk_md8barsum",
+    "qwk_md9barsum",
     "qwk_md1_qwk_md5",
     "qwk_md2_qwk_md6",
     "qwk_md3_qwk_md7",
     "qwk_md4_qwk_md8",
     "qwk_mdoddbars",
     "qwk_mdevenbars",
-    "qwk_mdallbars"
+    "qwk_mdallbars",
+    "dd_mdeven_odd",
+    "dd_md15_37",
+    "dd_md26_48"
   };
 
 const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] = 
@@ -180,7 +186,8 @@ const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] =
 
 const char *QwGUIDatabase::BeamCurrentMonitors[N_BCMS] = 
 {
-  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_linephase", "qwk_invert_tstable"
+  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_linephase", "qwk_invert_tstable",
+  "bcmdd12","bcmdd15","bcmdd16","bcmdd56"
  
 };
 
@@ -275,7 +282,7 @@ main_detectors/lumis - a, y
 
 const char *QwGUIDatabase::ChargeMeasurementTypes[N_Q_MEAS_TYPES]=
   {
-    "yq","a","a12", "aeo", "r", 
+    "yq","a","a12", "aeo", "r", "d"
   };
 
 const char *QwGUIDatabase::PositionMeasurementTypes[N_POS_MEAS_TYPES]=
@@ -342,6 +349,8 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
 { 
   dTabFrame           = NULL;
   dControlsFrame      = NULL;
+  dQualityFrame		  = NULL;
+  dRunFrame			  = NULL;
   dCanvas             = NULL;  
   dTabLayout          = NULL;
   dCnvLayout          = NULL;
@@ -350,6 +359,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dNumLayout          = NULL;
   dBtnLayout          = NULL;
   dLabLayout          = NULL;
+  dChkLayout		  = NULL;
   dCmbXAxis           = NULL;
   dCmbInstrument      = NULL;
   dCmbDetector        = NULL;
@@ -362,8 +372,7 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dNumStartRun        = NULL;
   dNumStopRun         = NULL;
   dBtnSubmit          = NULL;
-  dLabStartRun        = NULL;
-  dLabStopRun         = NULL;
+  dLabRunRange        = NULL;
   dLabTarget          = NULL;
   dLabRegression      = NULL;
   dLabPlot            = NULL;
@@ -379,6 +388,8 @@ QwGUIDatabase::~QwGUIDatabase()
 {
   if(dTabFrame)           delete dTabFrame;
   if(dControlsFrame)      delete dControlsFrame;
+  if(dQualityFrame)       delete dQualityFrame;
+  if(dRunFrame)			  delete dRunFrame;
   if(dCanvas)             delete dCanvas;  
   if(dTabLayout)          delete dTabLayout;
   if(dCnvLayout)          delete dCnvLayout;
@@ -387,12 +398,16 @@ QwGUIDatabase::~QwGUIDatabase()
   if(dNumLayout)          delete dNumLayout;
   if(dLabLayout)          delete dLabLayout;
   if(dBtnLayout)          delete dBtnLayout;
-  if(dLabStartRun)        delete dLabStartRun;
-  if(dLabStopRun)         delete dLabStopRun;
+  if(dChkLayout)		  delete dChkLayout;
+  if(dLabRunRange)        delete dLabRunRange;
   if(dNumStartRun)        delete dNumStartRun;
   if(dLabTarget)          delete dLabTarget;
   if(dLabRegression)      delete dLabRegression;
   if(dLabPlot)            delete dLabPlot;
+  if(dLabInstrument)      delete dLabInstrument;
+  if(dLabDetector)        delete dLabDetector;
+  if(dLabMeasurement)     delete dLabMeasurement;
+  if(dLabSubblock)        delete dLabSubblock;
   if(dNumStopRun)         delete dNumStopRun;
   if(dCmbInstrument)      delete dCmbInstrument;
   if(dCmbXAxis)           delete dCmbXAxis;
@@ -453,7 +468,7 @@ void QwGUIDatabase::MakeLayout()
 
 
   dTabFrame = new TGHorizontalFrame(this);  
-  AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 5, 5));
+  AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandY | kLHintsExpandX, 5, 5));
 
   dControlsFrame = new TGVerticalFrame(this);
   dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
@@ -464,29 +479,42 @@ void QwGUIDatabase::MakeLayout()
   dCanvas             = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
 
+  dLabInstrument	  = new TGLabel(dControlsFrame, "Instrument Type");
   dCmbInstrument      = new TGComboBox(dControlsFrame, CMB_INSTRUMENT);
+  dLabXAxis			  = new TGLabel(dControlsFrame, "X-Axis");
   dCmbXAxis           = new TGComboBox(dControlsFrame, CMB_XAXIS);
+  dLabMeasurement	  = new TGLabel(dControlsFrame, "Measurement Type");
   dCmbMeasurementType = new TGComboBox(dControlsFrame, CMB_MEASUREMENT_TYPE);
+  dLabDetector		  = new TGLabel(dControlsFrame, "Detector");
   dCmbDetector        = new TGComboBox(dControlsFrame, CMB_DETECTOR);
+  dLabProperty		  = new TGLabel(dControlsFrame, "Detector Property");
   dCmbProperty        = new TGComboBox(dControlsFrame, CMB_PROPERTY);
+  dLabSubblock		  = new TGLabel(dControlsFrame, "Subblock");
   dCmbSubblock        = new TGComboBox(dControlsFrame, CMB_SUBBLOCK);
   dLabTarget          = new TGLabel(dControlsFrame, "Target");
   dCmbTargetType      = new TGComboBox(dControlsFrame, CMB_TGT);
   dLabRegression      = new TGLabel(dControlsFrame, "Regression Correction");
   dCmbRegressionType  = new TGComboBox(dControlsFrame, CMB_REGRESS);
+  dLabQuality		  = new TGLabel(dControlsFrame,"Data Quality");
+  dQualityFrame 	  = new TGHorizontalFrame(dControlsFrame);
+  	  dChkQualityGood	  = new TGCheckButton(dQualityFrame,"Good");
+  	  dChkQualitySuspect  = new TGCheckButton(dQualityFrame,"Susp.");
+  	  dChkQualityBad	  = new TGCheckButton(dQualityFrame,"Bad");
   dLabPlot            = new TGLabel(dControlsFrame, "Plot Type");
   dCmbPlotType        = new TGComboBox(dControlsFrame, CMB_PLOT);
-  dLabStartRun        = new TGLabel(dControlsFrame, "First Run");
-  dNumStartRun        = new TGNumberEntry(dControlsFrame, 0, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
-  dLabStopRun         = new TGLabel(dControlsFrame, "Last Run");
-  dNumStopRun         = new TGNumberEntry(dControlsFrame, 12200, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  dLabRunRange        = new TGLabel(dControlsFrame, "Run Range");
+  dRunFrame			  = new TGHorizontalFrame(dControlsFrame);
+  	  dNumStartRun        = new TGNumberEntry(dRunFrame, 9000, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  	  dNumStopRun         = new TGNumberEntry(dRunFrame, 11250, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dBtnSubmit          = new TGTextButton(dControlsFrame, "&Submit", BTN_SUBMIT);  //dSlowControls       = new TGButtonGroup(dControlsFrame, "Slow Controls");
 
 
-  dLabLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
-  dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
-  dNumLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 10, 10, 5, 5 );
-  dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 5, 5 );
+  dLabLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 0, 0, 10, 0 );
+  dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 0, 0, 0, 0 );
+  dNumLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 10, 10, 0, 0 );
+  dChkLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 0, 0, 0, 0 );
+  dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 0, 0 );
+  dFrmLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 0, 0 );
 
   dCmbXAxis->AddEntry("Histogram", ID_X_HISTO);
   dCmbXAxis->AddEntry("Vs. Run Number", ID_X_RUN);
@@ -540,23 +568,36 @@ void QwGUIDatabase::MakeLayout()
   dCmbPlotType        -> Resize(150,20);
 
 
+  dControlsFrame	  -> AddFrame(dLabInstrument, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbInstrument, dCmbLayout ); // detector type
+  dControlsFrame	  -> AddFrame(dLabDetector, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbDetector, dCmbLayout );   // detector name
+  dControlsFrame	  -> AddFrame(dLabProperty, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbProperty, dCmbLayout );   // detector property
+  dControlsFrame	  -> AddFrame(dLabMeasurement, dLabLayout);
   dControlsFrame      -> AddFrame(dCmbMeasurementType, dCmbLayout ); // measurement type
+  dControlsFrame	  -> AddFrame(dLabSubblock, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbSubblock, dCmbLayout );   // block type
-  dControlsFrame      -> AddFrame(dCmbXAxis, dCmbLayout );
+  dControlsFrame	  -> AddFrame(dLabXAxis, dLabLayout );
+  dControlsFrame      -> AddFrame(dCmbXAxis, dCmbLayout );		//x-axis
   dControlsFrame      -> AddFrame(dLabTarget, dLabLayout );
-  dControlsFrame      -> AddFrame(dCmbTargetType, dCmbLayout );
+  dControlsFrame      -> AddFrame(dCmbTargetType, dCmbLayout );		//target
   dControlsFrame      -> AddFrame(dLabRegression, dLabLayout );
-  dControlsFrame      -> AddFrame(dCmbRegressionType, dCmbLayout );
-  dControlsFrame      -> AddFrame(dLabStartRun, dLabLayout );
-  dControlsFrame      -> AddFrame(dNumStartRun, dNumLayout );
-  dControlsFrame      -> AddFrame(dLabStopRun, dLabLayout );
-  dControlsFrame      -> AddFrame(dNumStopRun, dNumLayout );
+  dControlsFrame      -> AddFrame(dCmbRegressionType, dCmbLayout );		//regression
+  dControlsFrame	  -> AddFrame(dLabQuality,dLabLayout);
+  dControlsFrame      -> AddFrame(dQualityFrame,dFrmLayout);
+  	  dQualityFrame	      -> AddFrame(dChkQualityGood, dChkLayout );
+  	  	  dChkQualityGood->SetState(kButtonDown, kTRUE); //default quality to "good"
+  	  dQualityFrame	      -> AddFrame(dChkQualitySuspect, dChkLayout );
+  	  dQualityFrame	      -> AddFrame(dChkQualityBad, dChkLayout );
+  dControlsFrame      -> AddFrame(dLabRunRange, dLabLayout );
+  dControlsFrame	  -> AddFrame(dRunFrame,dFrmLayout);
+  	  dRunFrame      -> AddFrame(dNumStartRun, dNumLayout );
+  	  dRunFrame      -> AddFrame(dNumStopRun, dNumLayout );
   dControlsFrame      -> AddFrame(dLabPlot, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbPlotType, dCmbLayout );
   dControlsFrame      -> AddFrame(dBtnSubmit, dBtnLayout);
+
 
   dCmbXAxis           -> Associate(this);
   dCmbInstrument      -> Associate(this);
@@ -569,6 +610,9 @@ void QwGUIDatabase::MakeLayout()
   dCmbTargetType      -> Associate(this);
   dCmbRegressionType  -> Associate(this);
   dCmbPlotType        -> Associate(this);
+  dChkQualityGood	  -> Associate(this);
+  dChkQualitySuspect  -> Associate(this);
+  dChkQualityBad	  -> Associate(this);
   dBtnSubmit          -> Associate(this);
 
   dCanvas -> GetCanvas() -> SetBorderMode(0);
@@ -606,7 +650,7 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     }
     dCmbDetector->Select(dCmbDetector->FindEntry("qwk_mdallbars")->EntryId());
   }
-  
+
   // Lumis : default qwk_uslumi1neg
   if (dCmbInstrument->GetSelected() == ID_LUMI) {
     for (Int_t i = 0; i < N_LUMIS; i++) {
@@ -1125,6 +1169,19 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
   TString target            = Targets[dCmbTargetType->GetSelected()];
   TString plot              = Plots[dCmbPlotType->GetSelected()];
   
+  //Get run quality cut information
+  Bool_t quality[3] = {kFALSE, kFALSE, kFALSE};
+  if(dChkQualityGood->IsOn())	      quality[0] 	= kTRUE;
+  if(dChkQualityBad->IsOn())		  quality[1]	= kTRUE;
+  if(dChkQualitySuspect->IsOn())      quality[2] 	= kTRUE;
+
+  TString quality_check = " ";
+  for (size_t i=0; i<3;i++){
+	if(!quality[i]){
+		quality_check = quality_check +"  AND run_quality_id not like" + Form("\"%%%d%%\"",i+1);
+	}
+  }
+
   TString det_table;
   TString data_table;
   TString det_table_id;
@@ -1199,7 +1256,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
   mysqlpp::Query query      = dDatabaseCont->Query();
 
   TString querystring= 
-    " SELECT "+det_table_id+", data.value as value, data.error as error, data.error*sqrt(data.n) as rms, run_number, segment_number, slow_helicity_plate,target_position, (scd.value<0)*-2+1 as wien_reversal FROM "
+    " SELECT "+det_table_id+", data.value as value, data.error as error, data.error*sqrt(data.n) as rms, run_number, segment_number, slow_helicity_plate,run_quality_id,target_position, (scd.value<0)*-2+1 as wien_reversal FROM "
     + data_table+" as data, analysis_view as ana, slow_controls_settings , slow_controls_data as scd   "
     + " WHERE "
     + fGoodForSelection.GetSelectionString() + " AND "
@@ -1215,9 +1272,9 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
     +"  target_position = '"+Form("%s",target.Data())+"'" 
     +" and scd.runlet_id=ana.runlet_id and scd.sc_detector_id=" 
     + Form("%i", phi_fg_id)
+    + quality_check
     + " ORDER BY run_number, segment_number;";
 
-   
   if(ldebug) std::cout<<"QUERYSTING="
 		      <<querystring<<std::endl;
 
@@ -1303,6 +1360,15 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     TVectorF run_in_L(row_size), run_out_L(row_size);
     TVectorF err_in_L(row_size), err_out_L(row_size);
 
+    TVectorF x_bad(row_size), xerr_bad(row_size);
+    TVectorF run_bad(row_size);
+    TVectorF err_bad(row_size);
+
+    TVectorF x_suspect(row_size), xerr_suspect(row_size);
+    TVectorF run_suspect(row_size);
+    TVectorF err_suspect(row_size);
+
+
     x_in.Clear();
     x_in.ResizeTo(row_size);
     xerr_in.Clear();
@@ -1331,11 +1397,27 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     run_out_L.Clear();
     run_out_L.ResizeTo(row_size);
 
+    x_bad.Clear();
+    x_bad.ResizeTo(row_size);
+    xerr_bad.Clear();
+    xerr_bad.ResizeTo(row_size);
+    run_bad.Clear();
+    run_bad.ResizeTo(row_size);
+
+    x_suspect.Clear();
+    x_suspect.ResizeTo(row_size);
+    xerr_suspect.Clear();
+    xerr_suspect.ResizeTo(row_size);
+    run_suspect.Clear();
+    run_suspect.ResizeTo(row_size);
+
     Float_t x = 0.0 , xerr = 0.0;
     Int_t m = 0;
     Int_t k = 0;
     Int_t l = 0;
     Int_t n = 0;
+    Int_t o = 0; //bad quality
+    Int_t p = 0; //suspect quality
 
     std::cout<<"############################################\n";
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
@@ -1363,50 +1445,69 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 	  }
 	}
 
-	if(read_data[i]["slow_helicity_plate"] == "out") {
-	  if (read_data[i]["wien_reversal"]*1 == 1){
-	    run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_out.operator()(k)    = x;
-	    xerr_out.operator()(k) = xerr;
-	    err_out.operator()(k)  = 0.0;
-	    k++;
-	  } else {
-	    run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_out_L.operator()(l)    = x;
-	    xerr_out_L.operator()(l) = xerr;
-	    err_out_L.operator()(l)  = 0.0;
-	    l++;
-	  }
-	  
+	if(read_data[i]["run_quality_id"] == "1"){
+		if(read_data[i]["slow_helicity_plate"] == "out") {
+		  if (read_data[i]["wien_reversal"]*1 == 1){
+			run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_out.operator()(k)    = x;
+			xerr_out.operator()(k) = xerr;
+			err_out.operator()(k)  = 0.0;
+			k++;
+		  } else {
+			run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_out_L.operator()(l)    = x;
+			xerr_out_L.operator()(l) = xerr;
+			err_out_L.operator()(l)  = 0.0;
+			l++;
+		  }
+
+		}
+
+		if(read_data[i]["slow_helicity_plate"] == "in") {
+		  if (read_data[i]["wien_reversal"]*1 == 1){
+			run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_in.operator()(m)    = x;
+			xerr_in.operator()(m) = xerr;
+			err_in.operator()(m)  = 0.0;
+			m++;
+		  } else {
+			run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_in_L.operator()(n)    = x;
+			xerr_in_L.operator()(n) = xerr;
+			err_in_L.operator()(n)  = 0.0;
+			n++;
+
+		  }
+		}
 	}
 	
-	if(read_data[i]["slow_helicity_plate"] == "in") {
-	  if (read_data[i]["wien_reversal"]*1 == 1){
-	    run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_in.operator()(m)    = x;
-	    xerr_in.operator()(m) = xerr;
-	    err_in.operator()(m)  = 0.0;
-	    m++;
-	  } else {
-	    run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_in_L.operator()(n)    = x;
-	    xerr_in_L.operator()(n) = xerr;
-	    err_in_L.operator()(n)  = 0.0;
-	    n++;
-	    
-	  }
+	if(read_data[i]["run_quality_id"] == "2") {//bad
+	    run_bad.operator()(o)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_bad.operator()(o)    = x;
+	    xerr_bad.operator()(o) = xerr;
+	    err_bad.operator()(o)  = 0.0;
+	    o++;
 	}
+
+	if(read_data[i]["run_quality_id"] == "3") {//suspect
+	    run_suspect.operator()(p)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_suspect.operator()(p)    = x;
+	    xerr_suspect.operator()(p) = xerr;
+	    err_suspect.operator()(p)  = 0.0;
+	    p++;
+	}
+
       }
 
     // Check to make sure graph is not empty.
-    if(m==0 && k==0 && l==0 && n==0){
+    if(m==0 && k==0 && l==0 && n==0 && o==0 && p==0){
       std::cout<<"QwGUI : No data were found for the given criteria."<<std::endl;
       exit(1);
     }
     else
       std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
     
-
+//GROUP_IN
     run_in.ResizeTo(m);
     x_in.ResizeTo(m);
     err_in.ResizeTo(m);
@@ -1417,6 +1518,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_in ->SetMarkerStyle(21);
     grp_in ->SetMarkerColor(kBlue);
 
+//GROUP_IN_L
     run_in_L.ResizeTo(n);
     x_in_L.ResizeTo(n);
     err_in_L.ResizeTo(n);
@@ -1427,6 +1529,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_in_L ->SetMarkerStyle(21);
     grp_in_L ->SetMarkerColor(kOrange);
 
+//GROUP_OUT
     run_out.ResizeTo(k);
     x_out.ResizeTo(k);
     err_out.ResizeTo(k);
@@ -1437,6 +1540,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_out ->SetMarkerStyle(21);
     grp_out ->SetMarkerColor(kRed);
 
+//GROUP_OUT_L
     run_out_L.ResizeTo(l);
     x_out_L.ResizeTo(l);
     err_out_L.ResizeTo(l);
@@ -1446,6 +1550,29 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_out_L ->SetMarkerSize(0.6);
     grp_out_L ->SetMarkerStyle(21);
     grp_out_L ->SetMarkerColor(kViolet);
+
+//GROUP_BAD
+    run_bad.ResizeTo(o);
+    x_bad.ResizeTo(o);
+    err_bad.ResizeTo(o);
+    xerr_bad.ResizeTo(o);
+
+    TGraphErrors* grp_bad = new TGraphErrors(run_bad, x_bad, err_bad, xerr_bad);
+    grp_bad ->SetMarkerSize(1.2);
+    grp_bad ->SetMarkerStyle(29);
+    grp_bad ->SetMarkerColor(kBlack);
+
+//GROUP_SUSPECT
+    run_suspect.ResizeTo(p);
+    x_suspect.ResizeTo(p);
+    err_suspect.ResizeTo(p);
+    xerr_suspect.ResizeTo(p);
+
+    TGraphErrors* grp_suspect = new TGraphErrors(run_suspect, x_suspect, err_suspect, xerr_suspect);
+    grp_suspect ->SetMarkerSize(1.2);
+    grp_suspect ->SetMarkerStyle(29);
+    grp_suspect ->SetMarkerColor(kGreen);
+
 
     TMultiGraph * grp = new TMultiGraph();
 
@@ -1464,13 +1591,17 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     if(k>0)grp->Add(grp_out);
     if(n>0)grp->Add(grp_in_L);
     if(l>0)grp->Add(grp_out_L);
+    if(o>0)grp->Add(grp_bad);
+    if(p>0)grp->Add(grp_suspect);
 
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in,    "IHWP-IN-R", "p");
-    if(k>0) legend->AddEntry(grp_out,   "IHWP-OUT-R", "p");
-    if(n>0) legend->AddEntry(grp_in_L,  "IHWP-IN-L", "p");
-    if(l>0) legend->AddEntry(grp_out_L, "IHWP-OUT-L", "p");
+    if(m>0) legend->AddEntry(grp_in,      "IHWP-IN-R", "p");
+    if(k>0) legend->AddEntry(grp_out,     "IHWP-OUT-R", "p");
+    if(n>0) legend->AddEntry(grp_in_L,    "IHWP-IN-L", "p");
+    if(l>0) legend->AddEntry(grp_out_L,   "IHWP-OUT-L", "p");
+    if(o>0) legend->AddEntry(grp_bad, "Bad", "p");
+    if(p>0) legend->AddEntry(grp_suspect, "Suspect", "p");
     legend->SetFillColor(0);
     
     mc->cd();
@@ -1561,6 +1692,19 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     TString target            = Targets[dCmbTargetType->GetSelected()];
     TString plot              = Plots[dCmbPlotType->GetSelected()];
 
+    //Get run quality cut information
+    Bool_t quality[3] = {kFALSE, kFALSE, kFALSE};
+    if(dChkQualityGood->IsOn())	      quality[0] 	= kTRUE;
+    if(dChkQualityBad->IsOn())		  quality[1]	= kTRUE;
+    if(dChkQualitySuspect->IsOn())      quality[2] 	= kTRUE;
+
+    TString quality_check = " ";
+    for (size_t i=0; i<3;i++){
+  	if(!quality[i]){
+  		quality_check = quality_check +"  AND run_quality_id not like" + Form("\"%%%d%%\"",i+1);
+  	}
+    }
+
     //
     // Query Database for Data
     //
@@ -1617,6 +1761,14 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     TVectorF run_in_L(row_size), run_out_L(row_size);
     TVectorF err_in_L(row_size), err_out_L(row_size);
 
+    TVectorF x_bad(row_size), xerr_bad(row_size);
+    TVectorF run_bad(row_size);
+    TVectorF err_bad(row_size);
+
+    TVectorF x_suspect(row_size), xerr_suspect(row_size);
+    TVectorF run_suspect(row_size);
+    TVectorF err_suspect(row_size);
+
     x_in.Clear();
     x_in.ResizeTo(row_size);
     xerr_in.Clear();
@@ -1645,10 +1797,26 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     run_out_L.Clear();
     run_out_L.ResizeTo(row_size);
 
+    x_bad.Clear();
+	x_bad.ResizeTo(row_size);
+	xerr_bad.Clear();
+	xerr_bad.ResizeTo(row_size);
+	run_bad.Clear();
+	run_bad.ResizeTo(row_size);
+
+	x_suspect.Clear();
+	x_suspect.ResizeTo(row_size);
+	xerr_suspect.Clear();
+	xerr_suspect.ResizeTo(row_size);
+	run_suspect.Clear();
+	run_suspect.ResizeTo(row_size);
+
     Int_t m = 0;
     Int_t k = 0;
     Int_t l = 0;
     Int_t n = 0;
+    Int_t o = 0;
+    Int_t p = 0;
 
     std::cout<<"############################################\n";
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
@@ -1675,44 +1843,62 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
 	    xerr = read_data[i]["error"];
 	  }
 	}
+	if(read_data[i]["run_quality_id"] == "1"){
+		if(read_data[i]["slow_helicity_plate"] == "out") {
+		  if (read_data[i]["wien_reversal"]*1 == 1){
+			run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_out.operator()(k)    = x;
+			xerr_out.operator()(k) = xerr;
+			err_out.operator()(k)  = 0.0;
+			k++;
+		  } else {
+			run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_out_L.operator()(l)    = x;
+			xerr_out_L.operator()(l) = xerr;
+			err_out_L.operator()(l)  = 0.0;
+			l++;
+		  }
 
-	if(read_data[i]["slow_helicity_plate"] == "out") {
-	  if (read_data[i]["wien_reversal"]*1 == 1){
-	    run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_out.operator()(k)    = x;
-	    xerr_out.operator()(k) = xerr;
-	    err_out.operator()(k)  = 0.0;
-	    k++;
-	  } else {
-	    run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_out_L.operator()(l)    = x;
-	    xerr_out_L.operator()(l) = xerr;
-	    err_out_L.operator()(l)  = 0.0;
-	    l++;
-	  }
-	  
+		}
+
+		if(read_data[i]["slow_helicity_plate"] == "in") {
+		  if (read_data[i]["wien_reversal"]*1 == 1){
+			run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_in.operator()(m)    = x;
+			xerr_in.operator()(m) = xerr;
+			err_in.operator()(m)  = 0.0;
+			m++;
+		  } else {
+			run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_in_L.operator()(n)    = x;
+			xerr_in_L.operator()(n) = xerr;
+			err_in_L.operator()(n)  = 0.0;
+			n++;
+
+		  }
+		}
 	}
-	
-	if(read_data[i]["slow_helicity_plate"] == "in") {
-	  if (read_data[i]["wien_reversal"]*1 == 1){
-	    run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_in.operator()(m)    = x;
-	    xerr_in.operator()(m) = xerr;
-	    err_in.operator()(m)  = 0.0;
-	    m++;
-	  } else {
-	    run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_in_L.operator()(n)    = x;
-	    xerr_in_L.operator()(n) = xerr;
-	    err_in_L.operator()(n)  = 0.0;
-	    n++;
-	    
-	  }
-	}
+
+	if(read_data[i]["run_quality_id"] == "2") {//bad
+		    run_bad.operator()(o)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+		    x_bad.operator()(o)    = x;
+		    xerr_bad.operator()(o) = xerr;
+		    err_bad.operator()(o)  = 0.0;
+		    o++;
+		}
+
+		if(read_data[i]["run_quality_id"] == "3") {//suspect
+		    run_suspect.operator()(p)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+		    x_suspect.operator()(p)    = x;
+		    xerr_suspect.operator()(p) = xerr;
+		    err_suspect.operator()(p)  = 0.0;
+		    p++;
+		}
+
       }
 
     // Check to make sure graph is not empty.
-    if(m==0 && k==0 && l==0 && n==0){
+    if(m==0 && k==0 && l==0 && n==0 && o==0 && p==0){
       std::cout<<"QwGUI : No data were found for the given criteria."<<std::endl;
       exit(1);
     }
@@ -1720,45 +1906,71 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
       std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
     
 
-    run_in.ResizeTo(m);
-    x_in.ResizeTo(m);
-    err_in.ResizeTo(m);
-    xerr_in.ResizeTo(m);
+//GROUP_IN
+	run_in.ResizeTo(m);
+	x_in.ResizeTo(m);
+	err_in.ResizeTo(m);
+	xerr_in.ResizeTo(m);
 
-    TGraphErrors* grp_in  = new TGraphErrors(run_in,  x_in, err_in, xerr_in);
-    grp_in ->SetMarkerSize(0.6);
-    grp_in ->SetMarkerStyle(21);
-    grp_in ->SetMarkerColor(kBlue);
+	TGraphErrors* grp_in  = new TGraphErrors(run_in,  x_in, err_in, xerr_in);
+	grp_in ->SetMarkerSize(0.6);
+	grp_in ->SetMarkerStyle(21);
+	grp_in ->SetMarkerColor(kBlue);
 
-    run_in_L.ResizeTo(n);
-    x_in_L.ResizeTo(n);
-    err_in_L.ResizeTo(n);
-    xerr_in_L.ResizeTo(n);
+//GROUP_IN_L
+	run_in_L.ResizeTo(n);
+	x_in_L.ResizeTo(n);
+	err_in_L.ResizeTo(n);
+	xerr_in_L.ResizeTo(n);
 
-    TGraphErrors* grp_in_L  = new TGraphErrors(run_in_L,  x_in_L, err_in_L, xerr_in_L);
-    grp_in_L ->SetMarkerSize(0.6);
-    grp_in_L ->SetMarkerStyle(21);
-    grp_in_L ->SetMarkerColor(kOrange);
+	TGraphErrors* grp_in_L  = new TGraphErrors(run_in_L,  x_in_L, err_in_L, xerr_in_L);
+	grp_in_L ->SetMarkerSize(0.6);
+	grp_in_L ->SetMarkerStyle(21);
+	grp_in_L ->SetMarkerColor(kOrange);
 
-    run_out.ResizeTo(k);
-    x_out.ResizeTo(k);
-    err_out.ResizeTo(k);
-    xerr_out.ResizeTo(k);
+//GROUP_OUT
+	run_out.ResizeTo(k);
+	x_out.ResizeTo(k);
+	err_out.ResizeTo(k);
+	xerr_out.ResizeTo(k);
 
-    TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
-    grp_out ->SetMarkerSize(0.6);
-    grp_out ->SetMarkerStyle(21);
-    grp_out ->SetMarkerColor(kRed);
+	TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
+	grp_out ->SetMarkerSize(0.6);
+	grp_out ->SetMarkerStyle(21);
+	grp_out ->SetMarkerColor(kRed);
 
-    run_out_L.ResizeTo(l);
-    x_out_L.ResizeTo(l);
-    err_out_L.ResizeTo(l);
-    xerr_out_L.ResizeTo(l);
+//GROUP_OUT_L
+	run_out_L.ResizeTo(l);
+	x_out_L.ResizeTo(l);
+	err_out_L.ResizeTo(l);
+	xerr_out_L.ResizeTo(l);
 
-    TGraphErrors* grp_out_L = new TGraphErrors(run_out_L, x_out_L, err_out_L, xerr_out_L);
-    grp_out_L ->SetMarkerSize(0.6);
-    grp_out_L ->SetMarkerStyle(21);
-    grp_out_L ->SetMarkerColor(kViolet);
+	TGraphErrors* grp_out_L = new TGraphErrors(run_out_L, x_out_L, err_out_L, xerr_out_L);
+	grp_out_L ->SetMarkerSize(0.6);
+	grp_out_L ->SetMarkerStyle(21);
+	grp_out_L ->SetMarkerColor(kViolet);
+
+//GROUP_BAD
+	run_bad.ResizeTo(o);
+	x_bad.ResizeTo(o);
+	err_bad.ResizeTo(o);
+	xerr_bad.ResizeTo(o);
+
+	TGraphErrors* grp_bad = new TGraphErrors(run_bad, x_bad, err_bad, xerr_bad);
+	grp_bad ->SetMarkerSize(1.2);
+	grp_bad ->SetMarkerStyle(29);
+	grp_bad ->SetMarkerColor(kBlack);
+
+//GROUP_SUSPECT
+	run_suspect.ResizeTo(p);
+	x_suspect.ResizeTo(p);
+	err_suspect.ResizeTo(p);
+	xerr_suspect.ResizeTo(p);
+
+	TGraphErrors* grp_suspect = new TGraphErrors(run_suspect, x_suspect, err_suspect, xerr_suspect);
+	grp_suspect ->SetMarkerSize(1.2);
+	grp_suspect ->SetMarkerStyle(29);
+	grp_suspect ->SetMarkerColor(kGreen);
 
     TMultiGraph * grp = new TMultiGraph();
 
@@ -1777,13 +1989,17 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     if(k>0)grp->Add(grp_out);
     if(n>0)grp->Add(grp_in_L);
     if(l>0)grp->Add(grp_out_L);
+    if(o>0)grp->Add(grp_bad);
+    if(p>0)grp->Add(grp_suspect);
 
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in,    "IHWP-IN-R", "p");
-    if(k>0) legend->AddEntry(grp_out,   "IHWP-OUT-R", "p");
-    if(n>0) legend->AddEntry(grp_in_L,  "IHWP-IN-L", "p");
-    if(l>0) legend->AddEntry(grp_out_L, "IHWP-OUT-L", "p");
+    if(m>0) legend->AddEntry(grp_in,      "IHWP-IN-R", "p");
+    if(k>0) legend->AddEntry(grp_out,     "IHWP-OUT-R", "p");
+    if(n>0) legend->AddEntry(grp_in_L,    "IHWP-IN-L", "p");
+    if(l>0) legend->AddEntry(grp_out_L,   "IHWP-OUT-L", "p");
+    if(o>0) legend->AddEntry(grp_bad, "Bad", "p");
+    if(p>0) legend->AddEntry(grp_suspect, "Suspect", "p");
     legend->SetFillColor(0);
     
     mc->cd();
@@ -1886,7 +2102,7 @@ void QwGUIDatabase::DetectorPlot()
     vector<QwParityDB::summary_dy_calc> res;
     query.storein(res);
 
-    printf("Number of rows returned:  %ld\n",res.size());
+    printf("Number of rows returned:  %ld\n",(long)res.size());
 
     timer.Stop();
     std::cout << "Time (ms) to retrieve runs from DB:  ";
@@ -1898,7 +2114,7 @@ void QwGUIDatabase::DetectorPlot()
     // Loop over all rows in data base
     TVectorF x(res_size), xerr(res_size), y(res_size), yerr(res_size);
     Float_t run_number;
-    Int_t   segment_number;
+    Int_t   segment_number = 0;
     Int_t   i = 0;
 
     vector<QwParityDB::summary_dy_calc>::iterator it;

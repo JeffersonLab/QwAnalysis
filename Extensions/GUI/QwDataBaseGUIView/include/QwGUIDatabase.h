@@ -9,6 +9,7 @@
    \author Michael Gericke
    \author Buddhini Waidyawansa
    \author Damon Spayde
+   \author Scott MacEwan
      
 */
 //=============================================================================
@@ -29,22 +30,22 @@
 
    This is Gericke's original code for the main detector. 
    Added by Damon to display data from the data base.
-   Modified by Buddhini.
+   Modified by Buddhini and Scott.
 
  */
 //=============================================================================
 
-#define N_DETECTORS     39
+#define N_DETECTORS     43
 #define N_LUMIS         36
 #define N_BPMS          22
-#define N_BCMS           6
+#define N_BCMS          10
 #define N_CMB_BPMS       1
 #define N_CMB_BCMS       1
 #define N_ENERGY         1
 #define N_SUBBLOCKS      5
 #define N_DET_MEAS_TYPES 5
 #define N_MEAS_TYPES     4
-#define N_Q_MEAS_TYPES   5
+#define N_Q_MEAS_TYPES   6
 #define N_POS_MEAS_TYPES 5
 #define N_BPM_READ       5
 #define N_CMB_READ       7
@@ -116,6 +117,8 @@ private:
   
   TGHorizontalFrame   *dTabFrame;
   TGVerticalFrame     *dControlsFrame;
+  TGHorizontalFrame	  *dRunFrame;
+  TGHorizontalFrame   *dQualityFrame;
   TRootEmbeddedCanvas *dCanvas;  
   TGLayoutHints       *dTabLayout; 
   TGLayoutHints       *dCnvLayout; 
@@ -124,8 +127,13 @@ private:
   TGLayoutHints       *dNumLayout;
   TGLayoutHints       *dBtnLayout;
   TGLayoutHints       *dLabLayout;
+  TGLayoutHints		  *dChkLayout;
+  TGLayoutHints		  *dFrmLayout;
   TGNumberEntry       *dNumStartRun;
   TGNumberEntry       *dNumStopRun;
+  TGCheckButton		  *dChkQualityGood;
+  TGCheckButton		  *dChkQualitySuspect;
+  TGCheckButton		  *dChkQualityBad;
   TGComboBox          *dCmbXAxis;
   TGComboBox          *dCmbInstrument;
   TGComboBox          *dCmbDetector;
@@ -136,8 +144,14 @@ private:
   TGComboBox          *dCmbRegressionType;
   TGComboBox          *dCmbPlotType;
   TGTextButton        *dBtnSubmit;
-  TGLabel             *dLabStartRun;
-  TGLabel             *dLabStopRun;
+  TGLabel			  *dLabInstrument;
+  TGLabel			  *dLabDetector;
+  TGLabel			  *dLabProperty;
+  TGLabel			  *dLabXAxis;
+  TGLabel			  *dLabMeasurement;
+  TGLabel			  *dLabSubblock;
+  TGLabel			  *dLabQuality;
+  TGLabel             *dLabRunRange;
   TGLabel             *dLabTarget;
   TGLabel             *dLabRegression;
   TGLabel             *dLabPlot;

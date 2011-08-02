@@ -14,7 +14,7 @@
 namespace QwParityDB{
 
 
-    sql_create_19(summary_by, 1, 2 
+    sql_create_20(summary_by, 1, 2
       , mysqlpp::sql_int_unsigned , summary_by_id
 			, mysqlpp::sql_int_unsigned , run_number
       , mysqlpp::Null<mysqlpp::sql_tinyint_unsigned> , segment_number
@@ -34,9 +34,10 @@ namespace QwParityDB{
 			, mysqlpp::Null<mysqlpp::sql_float> , theta_y_error
 			, mysqlpp::Null<mysqlpp::sql_float> , energy_value
 			, mysqlpp::Null<mysqlpp::sql_float> , energy_error
+			, mysqlpp::sql_int_unsigned , run_quality_id
 		) 
   
-    sql_create_19(summary_ba, 1, 2 
+    sql_create_20(summary_ba, 1, 2
       , mysqlpp::sql_int_unsigned , summary_ba_id
 			, mysqlpp::sql_int_unsigned , run_number
       , mysqlpp::Null<mysqlpp::sql_tinyint_unsigned> , segment_number
@@ -56,9 +57,10 @@ namespace QwParityDB{
 			, mysqlpp::Null<mysqlpp::sql_float> , theta_y_error
 			, mysqlpp::Null<mysqlpp::sql_float> , energy_value
 			, mysqlpp::Null<mysqlpp::sql_float> , energy_error
+			, mysqlpp::sql_int_unsigned , run_quality_id
 		) 
   
-    sql_create_10(summary_dy_calc, 1, 2 
+    sql_create_11(summary_dy_calc, 1, 2
 			, mysqlpp::sql_int_unsigned , summary_dy_calc_id
 			, mysqlpp::sql_int_unsigned , run_number
       , mysqlpp::Null<mysqlpp::sql_tinyint_unsigned> , segment_number
@@ -69,9 +71,10 @@ namespace QwParityDB{
 			, mysqlpp::Null<mysqlpp::sql_text> , detector
 			, mysqlpp::Null<mysqlpp::sql_float> , value
 			, mysqlpp::Null<mysqlpp::sql_float> , error
+			, mysqlpp::sql_int_unsigned , run_quality_id
 		) 
   
-    sql_create_10(summary_dy_corr, 1, 2 
+    sql_create_11(summary_dy_corr, 1, 2
 			, mysqlpp::sql_int_unsigned , summary_dy_corr_id
 			, mysqlpp::sql_int_unsigned , run_number
       , mysqlpp::Null<mysqlpp::sql_tinyint_unsigned> , segment_number
@@ -82,9 +85,10 @@ namespace QwParityDB{
 			, mysqlpp::Null<mysqlpp::sql_text> , detector
 			, mysqlpp::Null<mysqlpp::sql_float> , value
 			, mysqlpp::Null<mysqlpp::sql_float> , error
+			, mysqlpp::sql_int_unsigned , run_quality_id
 		) 
   
-    sql_create_10(summary_da_calc, 1, 2 
+    sql_create_11(summary_da_calc, 1, 2
 			, mysqlpp::sql_int_unsigned , summary_da_calc_id
 			, mysqlpp::sql_int_unsigned , run_number
       , mysqlpp::Null<mysqlpp::sql_tinyint_unsigned> , segment_number
@@ -95,9 +99,10 @@ namespace QwParityDB{
 			, mysqlpp::Null<mysqlpp::sql_text> , detector
 			, mysqlpp::Null<mysqlpp::sql_float> , value
 			, mysqlpp::Null<mysqlpp::sql_float> , error
+			, mysqlpp::sql_int_unsigned , run_quality_id
 		) 
   
-    sql_create_10(summary_da_corr, 1, 2 
+    sql_create_11(summary_da_corr, 1, 2
 			, mysqlpp::sql_int_unsigned , summary_da_corr_id
 			, mysqlpp::sql_int_unsigned , run_number
       , mysqlpp::Null<mysqlpp::sql_tinyint_unsigned> , segment_number
@@ -108,6 +113,7 @@ namespace QwParityDB{
 			, mysqlpp::Null<mysqlpp::sql_text> , detector
 			, mysqlpp::Null<mysqlpp::sql_float> , value
 			, mysqlpp::Null<mysqlpp::sql_float> , error
+			, mysqlpp::sql_int_unsigned , run_quality_id
 		) 
   
     }
