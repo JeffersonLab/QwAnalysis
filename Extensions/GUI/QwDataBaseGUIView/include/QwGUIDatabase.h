@@ -50,6 +50,7 @@
 #define N_BPM_READ       5
 #define N_CMB_READ       7
 #define N_TGTS          15
+#define N_GOODFOR_TYPES  8
 
 
 
@@ -82,7 +83,7 @@ using std::vector;
 #include <TVectorT.h>
 #include <TGraphErrors.h>
 
-
+/*
 class QwGUIGoodForSettings {
 public:
   QwGUIGoodForSettings();
@@ -109,7 +110,7 @@ private:
   std::vector<Bool_t>  fQualityReject;
 
 };
-
+*/
 
 
  class QwGUIDatabase : public QwGUISubSystem {
@@ -129,11 +130,13 @@ private:
   TGLayoutHints       *dLabLayout;
   TGLayoutHints		  *dChkLayout;
   TGLayoutHints		  *dFrmLayout;
+  TGLayoutHints		  *dBoxLayout;
   TGNumberEntry       *dNumStartRun;
   TGNumberEntry       *dNumStopRun;
   TGCheckButton		  *dChkQualityGood;
   TGCheckButton		  *dChkQualitySuspect;
   TGCheckButton		  *dChkQualityBad;
+  TGListBox			  *dBoxGoodFor;
   TGComboBox          *dCmbXAxis;
   TGComboBox          *dCmbInstrument;
   TGComboBox          *dCmbDetector;
@@ -155,6 +158,7 @@ private:
   TGLabel             *dLabTarget;
   TGLabel             *dLabRegression;
   TGLabel             *dLabPlot;
+  TGLabel			  *dLabGoodFor;
 
 
   //!An object array to store histogram pointers -- good for use in cleanup.
@@ -230,14 +234,17 @@ private:
   static const char   *Targets[N_TGTS];
   static const char   *Plots[2];
 
+  // good for types
+  static const char	  *GoodForTypes[N_GOODFOR_TYPES];
+
   // static array for temporary measurement type storing. This makes things easier when trying to
   // retrieave data.
   std::vector<TString> measurements;
 
- private:
+ /*private:
 
   QwGUIGoodForSettings fGoodForSelection;
-
+*/
  protected:
 
   //!Overwritten virtual function from QwGUISubSystem::MakeLayout(). This function simply adds an

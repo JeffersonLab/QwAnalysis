@@ -8,6 +8,7 @@
 
 ClassImp(QwGUIDatabase);
 
+/*
 QwGUIGoodForSettings::QwGUIGoodForSettings(){
   fGoodForLabels.push_back("production");
   fGoodForLabels.push_back("commissioning");
@@ -39,6 +40,7 @@ QwGUIGoodForSettings::QwGUIGoodForSettings(){
   }
   //fQualityReject.at(0) = kFALSE; --smacewan
   fQualityRejectNULLs = kTRUE;
+
 }
 
 
@@ -79,7 +81,7 @@ std::string QwGUIGoodForSettings::GetSelectionString(std::string table){
     }
   }
   return selection;
-}
+}*/
 
 TString detector;
 TString property;
@@ -122,7 +124,8 @@ enum EQwGUIDatabaseWidgetIDs {
   CMB_XDET,
   CMB_TGT,
   CMB_REGRESS,
-  CMB_PLOT
+  CMB_PLOT,
+  BOX_GOODFOR
 };
 
 
@@ -342,6 +345,12 @@ const char *QwGUIDatabase::Plots[2] =
     "Mean", "RMS"
   }; 
 
+const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
+{
+  "production","commissioning","parity","tracking",
+  "centering_target","centering_plug","pedestals","transverse"
+};
+
 
 QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
@@ -360,6 +369,11 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dBtnLayout          = NULL;
   dLabLayout          = NULL;
   dChkLayout		  = NULL;
+  dBoxLayout		  = NULL;
+  dChkQualityGood	  = NULL;
+  dChkQualitySuspect  = NULL;
+  dChkQualityBad	  = NULL;
+  dBoxGoodFor		  = NULL;
   dCmbXAxis           = NULL;
   dCmbInstrument      = NULL;
   dCmbDetector        = NULL;
@@ -399,6 +413,11 @@ QwGUIDatabase::~QwGUIDatabase()
   if(dLabLayout)          delete dLabLayout;
   if(dBtnLayout)          delete dBtnLayout;
   if(dChkLayout)		  delete dChkLayout;
+  if(dBoxLayout)		  delete dBoxLayout;
+  if(dChkQualityGood)	  delete dChkQualityGood;
+  if(dChkQualitySuspect)  delete dChkQualitySuspect;
+  if(dChkQualityBad)	  delete dChkQualityBad;
+  if(dBoxGoodFor) 		  delete dBoxGoodFor;
   if(dLabRunRange)        delete dLabRunRange;
   if(dNumStartRun)        delete dNumStartRun;
   if(dLabTarget)          delete dLabTarget;
@@ -500,6 +519,8 @@ void QwGUIDatabase::MakeLayout()
   	  dChkQualityGood	  = new TGCheckButton(dQualityFrame,"Good");
   	  dChkQualitySuspect  = new TGCheckButton(dQualityFrame,"Susp.");
   	  dChkQualityBad	  = new TGCheckButton(dQualityFrame,"Bad");
+  dLabGoodFor		  = new TGLabel(dControlsFrame, "Good For");
+  dBoxGoodFor		  = new TGListBox(dControlsFrame, BOX_GOODFOR);
   dLabPlot            = new TGLabel(dControlsFrame, "Plot Type");
   dCmbPlotType        = new TGComboBox(dControlsFrame, CMB_PLOT);
   dLabRunRange        = new TGLabel(dControlsFrame, "Run Range");
@@ -513,8 +534,9 @@ void QwGUIDatabase::MakeLayout()
   dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 0, 0, 0, 0 );
   dNumLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 10, 10, 0, 0 );
   dChkLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 0, 0, 0, 0 );
-  dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 0, 0 );
+  dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 10, 0 );
   dFrmLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 0, 0 );
+  dBoxLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 0, 0 );
 
   dCmbXAxis->AddEntry("Histogram", ID_X_HISTO);
   dCmbXAxis->AddEntry("Vs. Run Number", ID_X_RUN);
@@ -551,6 +573,11 @@ void QwGUIDatabase::MakeLayout()
     dCmbPlotType->AddEntry(Plots[i], i);
   }
 
+  // Populate good for list
+  for (Int_t i = 0; i<N_GOODFOR_TYPES; i++){
+	  dBoxGoodFor->AddEntry(GoodForTypes[i],i+1);
+  }
+
   dCmbSubblock->Select(0);
   dCmbTargetType->Select(1);
   dCmbRegressionType->Select(0);
@@ -566,6 +593,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbTargetType      -> Resize(150,20);
   dCmbRegressionType  -> Resize(150,20);
   dCmbPlotType        -> Resize(150,20);
+  dBoxGoodFor         -> Resize(150,80);
 
 
   dControlsFrame	  -> AddFrame(dLabInstrument, dLabLayout );
@@ -584,16 +612,21 @@ void QwGUIDatabase::MakeLayout()
   dControlsFrame      -> AddFrame(dCmbTargetType, dCmbLayout );		//target
   dControlsFrame      -> AddFrame(dLabRegression, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbRegressionType, dCmbLayout );		//regression
-  dControlsFrame	  -> AddFrame(dLabQuality,dLabLayout);
-  dControlsFrame      -> AddFrame(dQualityFrame,dFrmLayout);
+  dControlsFrame	  -> AddFrame(dLabQuality, dLabLayout);
+  dControlsFrame      -> AddFrame(dQualityFrame, dFrmLayout);
   	  dQualityFrame	      -> AddFrame(dChkQualityGood, dChkLayout );
-  	  	  dChkQualityGood->SetState(kButtonDown, kTRUE); //default quality to "good"
+  	  	  dChkQualityGood     ->SetState(kButtonDown, kTRUE); //default quality to "good"
   	  dQualityFrame	      -> AddFrame(dChkQualitySuspect, dChkLayout );
   	  dQualityFrame	      -> AddFrame(dChkQualityBad, dChkLayout );
+  dControlsFrame	  -> AddFrame(dLabGoodFor, dLabLayout);
+  dControlsFrame	  -> AddFrame(dBoxGoodFor, dBoxLayout);
+  	  dBoxGoodFor		  -> SetMultipleSelections(kTRUE);
+  	  dBoxGoodFor		  -> Select(dBoxGoodFor->FindEntry("production")->EntryId());
+  	  dBoxGoodFor		  -> Select(dBoxGoodFor->FindEntry("parity")->EntryId());
   dControlsFrame      -> AddFrame(dLabRunRange, dLabLayout );
   dControlsFrame	  -> AddFrame(dRunFrame,dFrmLayout);
-  	  dRunFrame      -> AddFrame(dNumStartRun, dNumLayout );
-  	  dRunFrame      -> AddFrame(dNumStopRun, dNumLayout );
+  	  dRunFrame           -> AddFrame(dNumStartRun, dNumLayout );
+  	  dRunFrame           -> AddFrame(dNumStopRun, dNumLayout );
   dControlsFrame      -> AddFrame(dLabPlot, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbPlotType, dCmbLayout );
   dControlsFrame      -> AddFrame(dBtnSubmit, dBtnLayout);
@@ -613,6 +646,7 @@ void QwGUIDatabase::MakeLayout()
   dChkQualityGood	  -> Associate(this);
   dChkQualitySuspect  -> Associate(this);
   dChkQualityBad	  -> Associate(this);
+  dBoxGoodFor		  -> Associate(this);
   dBtnSubmit          -> Associate(this);
 
   dCanvas -> GetCanvas() -> SetBorderMode(0);
@@ -1169,18 +1203,44 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
   TString target            = Targets[dCmbTargetType->GetSelected()];
   TString plot              = Plots[dCmbPlotType->GetSelected()];
   
+
+  //--------------------------------------------------------------------
   //Get run quality cut information
   Bool_t quality[3] = {kFALSE, kFALSE, kFALSE};
   if(dChkQualityGood->IsOn())	      quality[0] 	= kTRUE;
   if(dChkQualityBad->IsOn())		  quality[1]	= kTRUE;
   if(dChkQualitySuspect->IsOn())      quality[2] 	= kTRUE;
 
-  TString quality_check = " ";
+  TString quality_check = " AND run_quality_id is not NULL";
   for (size_t i=0; i<3;i++){
 	if(!quality[i]){
-		quality_check = quality_check +"  AND run_quality_id not like" + Form("\"%%%d%%\"",i+1);
+		quality_check = quality_check + Form(" AND !FIND_IN_SET('%i',run_quality_id)",i+1);
 	}
   }
+  //--------------------------------------------------------------------
+  //Get good_for cut information
+  Bool_t good_for[N_GOODFOR_TYPES];
+  TList *selected_types = new TList;
+  dBoxGoodFor->GetSelectedEntries(selected_types);
+  TGTextLBEntry *entry;
+  TIter next(selected_types);
+  TString good_for_check = " AND good_for_id is not NULL";
+
+  for(size_t i=0; i<N_GOODFOR_TYPES;i++){ //initialize them as false
+	  good_for[i] = kFALSE;
+  }
+  while( (entry = (TGTextLBEntry *)next()) ) {
+	  //dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId() is the "good_for_id"
+	  good_for[dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId()-1] = kTRUE;
+  }
+
+  for(size_t i=0; i<N_GOODFOR_TYPES;i++){
+	  if(!good_for[i]){
+		  good_for_check = good_for_check + Form(" AND good_for_id NOT LIKE \"%%%d%%\"",i+1);
+	  }
+  }
+
+  //--------------------------------------------------------------------
 
   TString det_table;
   TString data_table;
@@ -1256,10 +1316,10 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
   mysqlpp::Query query      = dDatabaseCont->Query();
 
   TString querystring= 
-    " SELECT "+det_table_id+", data.value as value, data.error as error, data.error*sqrt(data.n) as rms, run_number, segment_number, slow_helicity_plate,run_quality_id,target_position, (scd.value<0)*-2+1 as wien_reversal FROM "
+    " SELECT "+det_table_id+", data.value as value, data.error as error, data.error*sqrt(data.n) as rms, run_number, segment_number, slow_helicity_plate,run_quality_id,good_for_id,target_position, (scd.value<0)*-2+1 as wien_reversal FROM "
     + data_table+" as data, analysis_view as ana, slow_controls_settings , slow_controls_data as scd   "
     + " WHERE "
-    + fGoodForSelection.GetSelectionString() + " AND "
+    //+ fGoodForSelection.GetSelectionString() + " AND "
     + Form(" slope_correction='%s' AND ",correction_flag.c_str())
     + " data.analysis_id = ana.analysis_id AND"
     + " ana.runlet_id = slow_controls_settings.runlet_id AND "
@@ -1273,6 +1333,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
     +" and scd.runlet_id=ana.runlet_id and scd.sc_detector_id=" 
     + Form("%i", phi_fg_id)
     + quality_check
+    + good_for_check
     + " ORDER BY run_number, segment_number;";
 
   if(ldebug) std::cout<<"QUERYSTING="
@@ -1481,7 +1542,9 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 		}
 	}
 	
-	if(read_data[i]["run_quality_id"] == "2") {//bad
+	if((read_data[i]["run_quality_id"] == "2")   | //or
+	   (read_data[i]["run_quality_id"] == "1,2") | //or
+	   (read_data[i]["run_quality_id"] == "2,3") ) { //all instances of bad
 	    run_bad.operator()(o)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
 	    x_bad.operator()(o)    = x;
 	    xerr_bad.operator()(o) = xerr;
@@ -1489,8 +1552,9 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 	    o++;
 	}
 
-	if(read_data[i]["run_quality_id"] == "3") {//suspect
-	    run_suspect.operator()(p)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	if((read_data[i]["run_quality_id"] == "3")  | //or
+	   (read_data[i]["run_quality_id"] == "1,3")) {// suspect (but not bad)
+		run_suspect.operator()(p)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
 	    x_suspect.operator()(p)    = x;
 	    xerr_suspect.operator()(p) = xerr;
 	    err_suspect.operator()(p)  = 0.0;
