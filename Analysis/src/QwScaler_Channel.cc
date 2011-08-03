@@ -434,7 +434,8 @@ void VQwScaler_Channel::ScaleRawRate(Double_t scale)
 {
   if (!IsNameEmpty())
     {
-      this->fValue_Raw *= scale;
+      // TODO improper cast for integer values!
+      this->fValue_Raw *= static_cast<int>(scale);
     }
 }
 

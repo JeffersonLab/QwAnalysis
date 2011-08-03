@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
-    epicsevent.LoadChannelMap("EpicsTable.map");
+    epicsevent.LoadChannelMap("compton_epics_table.map");
 
 
     ///  Load the detectors from file

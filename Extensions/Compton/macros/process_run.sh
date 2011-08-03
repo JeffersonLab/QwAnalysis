@@ -5,6 +5,9 @@
 ##                website.
 ##
 ################################################################################
+## Make sure group write permission is granted
+umask 002
+
 ## First define a few globals, such as the location of necessary programs
 
 ## SQLITE3 for database management (assume in path)

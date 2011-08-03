@@ -5,9 +5,10 @@
 #include "VQwSubsystem.h"
 #include "QwSubsystemArray.h"
 
+#include <TMath.h>
+
 #include <vector>
 #include <glob.h>
-#include <TMath.h>
 
 #include <csignal>
 Bool_t globalEXIT;
@@ -359,7 +360,9 @@ Int_t QwEventBuffer::GetNextEvent()
   if (IsPhysicsEvent() && fEvtNumber > 0 && fEvtNumber % nevents == 0) {
     QwMessage << "Processing event " << fEvtNumber << " ";
     fStopwatch.Stop();
-    QwMessage << "(" << fStopwatch.CpuTime()*1e3/nevents << " ms per event)";
+    double efficiency = 100.0 * fStopwatch.CpuTime() / fStopwatch.RealTime();
+    QwMessage << "(" << fStopwatch.CpuTime()*1e3/nevents << " ms per event with ";
+    QwMessage << efficiency << "% efficiency)";
     fStopwatch.Reset();
     fStopwatch.Start();
     QwMessage << QwLog::endl;

@@ -2,6 +2,9 @@
 
 #include "TChain.h"
 
+#ifndef _GETCHAIN_C_
+#define _GETCHAIN_C_
+
 TChain* getChain(const TString& name, Int_t runnumber = 0, Bool_t isFirst100k = kFALSE)
 {
   TString rootfilesdir(getenv("QW_ROOTFILES"));
@@ -40,3 +43,6 @@ TChain* getMpsChain(Int_t runnumber = 0, Bool_t isFirst100k = kFALSE)
 {
   return getChain("Mps_Tree",runnumber,isFirst100k);
 }
+
+#endif
+

@@ -25,10 +25,13 @@
 
 #include "globals.C"
 
+#ifndef _PLOTTING_C_
+#define _PLOTTING_C_
+
 void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t logy=0, TString filename="") {
-	printf("drawALLtypeTH1:  (%20s)  %s\n",bighist->GetName(),bighist->GetTitle());
+	std::cout << "drawALLtypeTH1:  (" << bighist->GetName() << ")  " << bighist->GetTitle() << std::endl;
 	if (bighist->GetEntries() <= 0) {
-		printf("drawALLtypeTH1:  No entries\n");
+		std::cout << "drawALLtypeTH1:  No entries" << std::endl;
 		return;
 	}
 	static const Bool_t debug=0;
@@ -43,15 +46,15 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
 	for (Int_t i=1; i<=numtypes; i++) {
 		hist[i-1] = bighist->ProjectionX(Form("%s_type%i",bighist->GetName(),i),i,i);
 		entries[i-1] = hist[i-1]->GetEntries();
-		if (debug) printf("drawALLtypeTH1:  type %i has %.0f entries\n",i,entries[i-1]);		
+		if (debug) std::cout << "drawALLtypeTH1:  type " << i << " has " << entries[i-1] << " entries" << std::endl;
 		if (entries[i-1]>0) {
 			Int_t xbinmintemp = hist[i-1]->FindFirstBinAbove(0, 1);
 			Int_t xbinmaxtemp = hist[i-1]->FindLastBinAbove(0, 1);
-			xbinmin = min(xbinmintemp,xbinmin);
-			xbinmax = max(xbinmaxtemp,xbinmax);
-			maxi = max(maxi, hist[i-1]->GetMaximum());
-			//      mini = min(mini, hist[i-1]->GetMinimum());
-			mini = min(mini, hist[i-1]->GetBinContent(hist[i-1]->GetMinimumBin()));
+			xbinmin = std::min(xbinmintemp,xbinmin);
+			xbinmax = std::max(xbinmaxtemp,xbinmax);
+			maxi = std::max(maxi, hist[i-1]->GetMaximum());
+			//      mini = std::min(mini, hist[i-1]->GetMinimum());
+			mini = std::min(mini, hist[i-1]->GetBinContent(hist[i-1]->GetMinimumBin()));
 			hist[i-1]->SetLineColor(colors[i-1]);
 			if (title=="") {
 				hist[i-1]->SetTitle(bighist->GetTitle());
@@ -62,13 +65,13 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
 	}
 	xbinmin -= 1;
 	xbinmax += 1;
-	printf("drawALLtypeTH1:  min %g, max %g\n",mini,maxi);
+	std::cout << "drawALLtypeTH1:  min " << mini << ", max " << maxi << std::endl;
 	for (Int_t i=1; i<=numtypes; i++) {
-		if (debug) printf("drawALLtypeTH1:  type %i\n",i);
+		if (debug) std::cout << "drawALLtypeTH1:  type " << i << std::endl;
  		if (entries[i-1]>0) {
- 			if (debug) printf("drawALLtypeTH1:  type %i has %.0f entries > 0\n",i,entries[i-1]);
+ 			if (debug) std::cout << "drawALLtypeTH1:  type " << i << " has " << entries[i-1] << " entries > 0" << std::endl;
  			if (first) {
-				if (debug) printf("drawALLtypeTH1:  bin range %i to %i\n",xbinmin,xbinmax);
+				if (debug) std::cout << "drawALLtypeTH1:  bin range " << xbinmin << " to " << xbinmax << std::endl;
 				hist[i-1]->GetXaxis()->SetRange(xbinmin,xbinmax);
 				if (mini!=0 && mini < 1e12) hist[i-1]->SetMinimum(mini);
  				if (logy) {
@@ -95,14 +98,14 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
 				leg->AddEntry(hist[i-1],Form("%s",titles[i-1]),"l");
 			}
  		} else {
- 			if (debug) printf("drawALLtypeTH1:  type %i has %.0f entries <= 0\n",i,entries[i-1]);
+ 			if (debug) std::cout << "drawALLtypeTH1:  type " << i << " has " << entries[i-1] << " entries <= 0" << std::endl;
  		}
 	}
 	leg->Draw();
 
 	FILE *outfile;
 	if (filename!="") {
-		printf("opening %s for writing.\n",filename.Data());
+		std::cout << "opening " << filename << " for writing." << std::endl;
 		outfile = fopen(filename.Data(),"w");
 		for (Int_t i=1; i<=numtypes; i++) {
 			if (entries[i-1]>0) {
@@ -118,9 +121,9 @@ void drawALLtypeTH1(TH2F* bighist, Bool_t printstats=1, TString title="", Bool_t
 
 void drawslicesTH1(TH2F* bighist, Bool_t /*printstats*/ = 1, TString title = "", Bool_t /*logy*/ = 0, Int_t startbin = 0, Int_t endbin = 0) 
 {
-	printf("drawslicesTH1:  (%20s)  %s\n",bighist->GetName(),bighist->GetTitle());
+	std::cout << "drawslicesTH1:  (" << bighist->GetName() << ")  " << bighist->GetTitle() << std::endl;
 	if (bighist->GetEntries() <= 0) {
-		printf("drawslicesTH1:  No entries\n");
+		std::cout << "drawslicesTH1:  No entries" << std::endl;
 		return;
 	}
 	static const Bool_t debug=0;
@@ -133,7 +136,7 @@ void drawslicesTH1(TH2F* bighist, Bool_t /*printstats*/ = 1, TString title = "",
 		num=bighist->GetYaxis()->GetNbins();
 	}
 	if (num > maxbins) {
-		printf("drawslicesTH1:  only plotting the first %i bins of %i\n",maxbins,num);
+		std::cout << "drawslicesTH1:  only plotting the first " << maxbins << " bins of " << num << std::endl;
 		num=maxbins;
 	}
 	THStack *hs = 0;
@@ -146,11 +149,11 @@ void drawslicesTH1(TH2F* bighist, Bool_t /*printstats*/ = 1, TString title = "",
 	for (Int_t i=1; i<=num; i++) {
 		hist[i-1] = bighist->ProjectionX(Form("%s_ybin%i",bighist->GetName(),i),i,i);
 		entries[i-1] = hist[i-1]->GetEntries();
-		if (debug) printf("drawslicesTH1:  type %i has %.0f entries\n",i,entries[i-1]);		
+		if (debug) std::cout << "drawslicesTH1:  type " << i << " has " << entries[i-1] << " entries" << std::endl;
 		if (entries[i-1]>0) {
-			maxi = max(maxi, hist[i-1]->GetMaximum());
-			//      mini = min(mini, hist[i-1]->GetMinimum());
-			mini = min(mini, hist[i-1]->GetBinContent(hist[i-1]->GetMinimumBin()));
+			maxi = std::max(maxi, hist[i-1]->GetMaximum());
+			//      mini = std::min(mini, hist[i-1]->GetMinimum());
+			mini = std::min(mini, hist[i-1]->GetBinContent(hist[i-1]->GetMinimumBin()));
 			hist[i-1]->SetLineColor(i);
 			hist[i-1]->SetFillColor(i);
 			if (title=="") {
@@ -163,11 +166,11 @@ void drawslicesTH1(TH2F* bighist, Bool_t /*printstats*/ = 1, TString title = "",
 		}
 	}
 	// ****  The second loop creates and prepares each of the 1D histograms
-	printf("drawALLtypeTH1:  min %g, max %g\n",mini,maxi);
+	std::cout << "drawALLtypeTH1:  min " << mini << ", max " << maxi << std::endl;
 	for (Int_t i=1; i<=num; i++) {
-		if (debug) printf("drawslicesTH1:  type %i\n",i);
+		if (debug) std::cout << "drawslicesTH1:  type " << i << std::endl;
  		if (entries[i-1]>0) {
- 			if (debug) printf("drawslicesTH1:  type %i has %.0f entries > 0\n",i,entries[i-1]);
+ 			if (debug) std::cout << "drawslicesTH1:  type " << i << " has " << entries[i-1] << " entries > 0" << std::endl;
  			if (first) {
 				hist[i-1]->SetMaximum(1.2*maxi);
 				if (mini!=0 && mini < 1e12) hist[i-1]->SetMinimum(mini);
@@ -192,7 +195,7 @@ void drawslicesTH1(TH2F* bighist, Bool_t /*printstats*/ = 1, TString title = "",
 // 				leg->AddEntry(hist[i-1],Form("%s",titles[i-1]),"l");
 // 			}
  		} else {
- 			if (debug) printf("drawslicesTH1:  type %i has %.0f entries <= 0\n",i,entries[i-1]);
+ 			if (debug) std::cout << "drawslicesTH1:  type " << i << " has " << entries[i-1] << " entries <= 0" << std::endl;
  		}
 	}
 	hs->Draw();
@@ -203,9 +206,9 @@ void drawslicesTH1(TH2F* bighist, Bool_t /*printstats*/ = 1, TString title = "",
 
 void projectALLtypeTH1(TH3F* bighist, Bool_t printstats = 0, TString title = "", Bool_t /*logy*/ = 0, Int_t rebinnum = 1, Bool_t dowide = 0) 
 {
-	printf("projectALLtypeTH1:  (%20s)  %s\n",bighist->GetName(),bighist->GetTitle());
+	std::cout << "projectALLtypeTH1:  (" << bighist->GetName() << ") " << bighist->GetTitle() << std::endl;
 	if (bighist->GetEntries() <= 0) {
-		printf("projectALLtypeTH1:  No entries\n");
+		std::cout << "projectALLtypeTH1:  No entries" << std::endl;
 		return;
 	}
 	Bool_t first=1;
@@ -235,8 +238,8 @@ void projectALLtypeTH1(TH3F* bighist, Bool_t printstats = 0, TString title = "",
 	ymax = histprofALL->GetMaximum();
 	yminbin = histprofALL->GetMinimumBin();
 	ymaxbin = histprofALL->GetMaximumBin();
-	printf("projectALLtypeTH1:  minbin %4i  minval %10.4g;    maxbin %4i maxval %10.4g\n", 
-		   yminbin, ymin, ymaxbin, ymax);
+	std::cout << "projectALLtypeTH1:  minbin " << yminbin << "  minval " << ymin << ";"
+				  << "    maxbin " << ymaxbin << "  maxval " << ymax << std::endl;
 	if (ymax != 0) 	ymax = ymax + 0.15*std::fabs(ymax - ymin);
 
 	sprintf(name,"%s",bighist->GetName());
@@ -256,10 +259,12 @@ void projectALLtypeTH1(TH3F* bighist, Bool_t printstats = 0, TString title = "",
 //  			ymaxbin = typehist[i-1]->FindLastBinAbove(0, 1);
 // 			ymintemp = typehist[i-1]->GetXaxis()->GetBinLowEdge(yminbin-2);
 // 			ymaxtemp = typehist[i-1]->GetXaxis()->GetBinUpEdge(ymaxbin+2);
-// 			ymaxevents = max(ymaxevents, ymaxtemp);
-// 			yminevents = min(yminevents, ymintemp);
-// 			printf("projectALLtypeTH1:  %i  minbin %4i  minval %10.4g   maxbin %4i maxval %10.4g   (%10.4g,%10.4g)\n", 
-// 				   i, yminbin, ymintemp, ymaxbin, ymaxtemp, yminevents, ymaxevents);
+// 			ymaxevents = std::max(ymaxevents, ymaxtemp);
+// 			yminevents = std::min(yminevents, ymintemp);
+// 			std::cout << "projectALLtypeTH1:  " << i << "  minbin " << yminbin << "  minval " << ymintemp 
+// 								 << "  maxbin " << ymaxbin << "  maxval " << ymaxtemp
+// 								 << "   (" << yminevents << "," << ymaxevents << ")" << std::endl;
+ 
 			if (rebinnum>1) {
 				hist2D[i-1]->RebinX(rebinnum);
 			}
@@ -286,15 +291,16 @@ void projectALLtypeTH1(TH3F* bighist, Bool_t printstats = 0, TString title = "",
 //  			ymaxbin = hist1D[i-1]->GetMaximumBin();
 // 			ymintemp = hist1D[i-1]->GetMinimum();
 // 			ymaxtemp = hist1D[i-1]->GetMaximum();
-// 			ymaxproj = max(ymaxproj, ymaxtemp);
-// 			yminproj = min(yminproj, ymintemp);
-// 			printf("projectALLtypeTH1:  %i  minbin %4i  minval %10.4g   maxbin %4i maxval %10.4g   (%10.4g,%10.4g)\n", 
-// 				   i, yminbin, ymintemp, ymaxbin, ymaxtemp, yminproj, ymaxproj);
+// 			ymaxproj = std::max(ymaxproj, ymaxtemp);
+// 			yminproj = std::min(yminproj, ymintemp);
+// 			std::cout << "projectALLtypeTH1:  " << i << "  minbin " << yminbin << "  minval " << ymintemp 
+// 								 << "  maxbin " << ymaxbin << "  maxval " << ymaxtemp
+// 								 << "   (" << yminproj << "," << ymaxproj << ")" << std::endl;
 		} 
 	}
-// 	ymax = min(1.1 * ymaxproj, ymaxevents);
-// 	ymin = max(yminproj, yminevents);
-	printf("projectALLtypeTH1:  min %g, max %g\n",ymin,ymax);
+// 	ymax = std::min(1.1 * ymaxproj, ymaxevents);
+// 	ymin = std::max(yminproj, yminevents);
+	std::cout << "projectALLtypeTH1:  min " << ymin << ", max " << ymax << std::endl;
 	for (Int_t i=numtypes; i>=1; i--) {//	for (Int_t i=1; i<=numtypes; i++) {
 		if (entries[i-1]>0) {
 			if (first) {
@@ -331,11 +337,11 @@ void projectALLtypeTH1(TH3F* bighist, Bool_t printstats = 0, TString title = "",
 }
 
 void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats = 1, TString title = "", 
-		Bool_t /*logy*/ = 0, Int_t rebinnum = 1, char *textfilename = "projectALLtypeTH1andfit_default.txt")
+		Bool_t /*logy*/ = 0, Int_t rebinnum = 1, const char *textfilename = "projectALLtypeTH1andfit_default.txt")
 {
-	printf("projectALLtypeTH1andfit:  (%20s)  %s\n",bighist->GetName(),bighist->GetTitle());
+	std::cout << "projectALLtypeTH1andfit:  (" << bighist->GetName() << ")  " << bighist->GetTitle() << std::endl;
 	if (bighist->GetEntries() <= 0) {
-		printf("projectALLtypeTH1andfit:  No entries\n");
+		std::cout << "projectALLtypeTH1andfit:  No entries" << std::endl;
 		return;
 	}
 	Bool_t first=1;
@@ -352,14 +358,14 @@ void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats = 1, TString title
 	char name[255];
 	sprintf(name,"%s",bighist->GetName());
 
-	printf("%s for writing.\n",textfilename);
+	std::cout << textfilename << " for writing." << std::endl;
 	FILE *outfile;
 	outfile = fopen(textfilename,"w");
 	for (Int_t i=numtypes; i>=1; i--) {
 		bighist->GetZaxis()->SetRange(i,i);
 		hist2D[i-1] = (TH2D*)bighist->Project3D(Form("fit_yx%i",i));
 		entries[i-1] = hist2D[i-1]->GetEntries();
-		printf("type %i has %.0f entries\n",i,entries[i-1]);
+		std::cout << "type " << i << " has " << entries[i-1] << " entries" << std::endl;
 		if (entries[i-1]>0) {
 			if (rebinnum>1) {
 				hist2D[i-1]->RebinX(rebinnum);
@@ -370,10 +376,11 @@ void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats = 1, TString title
 			Int_t maxbin = histprof[i-1]->GetMaximumBin();
 			Float_t mincont = histprof[i-1]->GetBinContent(minbin);
 			Float_t maxcont = histprof[i-1]->GetBinContent(maxbin);
-			maxi = max(maxi, maxcont);
-			mini = min(mini, mincont);
-			printf("projectALLtypeTH1andfit:  %i  min %4i  %.2f   max %4i  %10.4g   (%10.4g,%10.4g)\n", 
-				   i, minbin, mincont, maxbin, maxcont, mini, maxi);
+			maxi = std::max(maxi, maxcont);
+			mini = std::min(mini, mincont);
+			std::cout << "projectALLtypeTH1andfit:   " << i << "  min " << minbin << "  " << mincont
+								 	<< "  max " << maxbin << "  " << maxcont
+									<< "(" << mini << "," << maxi << ")" << std::endl;
 			fitpol1[i-1] = new TF1(Form("fitpol%i",i),"[1]*x + [0]");
 // 			fitpol1[i-1]->FixParameter(0,4.5);
 // 			fitpol1[i-1]->FixParameter(1,4.2e-06);
@@ -384,7 +391,8 @@ void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats = 1, TString title
 			Float_t histRMS = hist2D[i-1]->GetRMS();
 			Float_t minrange = histmean-2.0*histRMS;
 			Float_t maxrange = histmean+2.0*histRMS;
-			printf("%i  mean %g RMS %g gives range (%g, %g) \n",i,histmean,histRMS,minrange,maxrange);
+			std::cout << i << "  mean " << histmean << " RMS " << histRMS
+				  << " gives range (" << minrange << "," << maxrange << ")" << std::endl; 
  			fitpol1[i-1]->SetRange(minrange,maxrange);
  			histprof[i-1]->Fit(fitpol1[i-1],"R");
 //			histprof[i-1]->Fit(fitpol1[i-1]); // NB change back
@@ -393,7 +401,7 @@ void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats = 1, TString title
 
 		} 
 	}
-//	printf("projectALLtypeTH1:  min %g, max %g\n",mini,maxi);
+//	std::cout << "projectALLtypeTH1:  min " << mini << ", max " << maxi << std::endl;
 	for (Int_t i=numtypes; i>=1; i--) {//	for (Int_t i=1; i<=numtypes; i++) {
 		if (entries[i-1]>0) {
 			if (first) {
@@ -427,7 +435,7 @@ void projectALLtypeTH1andfit(TH3F* bighist, Bool_t printstats = 1, TString title
 void draw1typeTH2(TH3F* bighist, Int_t type, Bool_t /*printstats*/ = 0, TString title = "", Bool_t logz = 0, Int_t rebinx = 1, Int_t rebiny = 1) 
 {
 	gPad->SetLogz(logz);
-	printf("draw1typeTH2:  (%20s)  %s   for %i\n",bighist->GetName(),bighist->GetTitle(),type);
+	std::cout << "draw1typeTH2:  (" << bighist->GetName() << ")  " << bighist->GetTitle() << "   for " << type << std::endl;
 	//TLegend *leg = 0;
 	TH2D* hist2D;
 	Double_t entries;
@@ -474,9 +482,9 @@ TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t in
 	TH1F *hist2 = (TH1F*)hist->ProjectionX(Form("%shist2",name),type2,type2);
 	if (dotitles==0) {
 		hist1->SetTitle(";;;");
-		printf("not doing titles\n");
+		std::cout << "not doing titles" << std::endl;
 	} else {
-		printf("title is: %s\n",hist1->GetTitle());
+		std::cout << "title is: " << hist1->GetTitle() << std::endl;
 	}
 	hist1->SetLineColor(colors[type1-1]);
 	hist1->SetMarkerColor(colors[type1-1]);
@@ -493,8 +501,9 @@ TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t in
 		int1 = hist1->Integral(intminbin,intmaxbin);
 		int2 = hist2->Integral(intminbin,intmaxbin);
 	}
-	printf("drawscalesubbytypeTH1: integrating from %.1f to %.1f, bins %i to %i, integral  int1 %.0f  int2 %.0f\n",
-		   intmin,intmax,intminbin,intmaxbin,int1,int2);
+	std::cout << "drawscalesubbytypeTH1: integrating from " << intmin << " to " << intmax << ", "
+		  << "bins " << intminbin << " to " << intmaxbin << ", "
+		  << "integral  int1 " << int1 << "   int2 " << int2 << std::endl;
 // 	int1 = hist->Integral(intminbin,intmaxbin,type1,type1);
 // 	int2 = hist->Integral(intminbin,intmaxbin,type2,type2);
 	if (int1 > 20 && int2 > 20) {
@@ -511,11 +520,11 @@ TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t in
 	}  
  	if (scaleandsub && logy==0) {
  		maxi = 1.1 * hsub->GetMaximum();
-		printf("drawscalesubbytypeTH1: setting maximum to %.0f from sub\n",maxi);
+		std::cout << "drawscalesubbytypeTH1: setting maximum to " << maxi << " from sub" << std::endl;
 
  	} else {
-		maxi = 1.1 * max(hist1->GetMaximum(),hist2->GetMaximum());
-		printf("drawscalesubbytypeTH1: setting maximum to %.0f\n",maxi);
+		maxi = 1.1 * std::max(hist1->GetMaximum(),hist2->GetMaximum());
+		std::cout << "drawscalesubbytypeTH1: setting maximum to " << maxi << std::endl;
 	}
 	hist1->SetMaximum(maxi);
 	Int_t xbinmin = hist1->FindFirstBinAbove(0, 1);
@@ -533,7 +542,7 @@ TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t in
 	Double_t lineymax = 0.1*maxi;
 	Double_t xpos1 = hist1->GetXaxis()->GetBinLowEdge(intminbin);
 	Double_t xpos2 = hist1->GetXaxis()->GetBinUpEdge(intmaxbin);
-	printf("drawscalesubbytypeTH1: low and high line pos %.1f and %.1f\n",xpos1,xpos2);
+	std::cout << "drawscalesubbytypeTH1: low and high line pos " << xpos1 << " and " << xpos2 << std::endl;
 	if (intminbin < xbinmax && intminbin > xbinmin) 
 		t1.DrawLine(xpos1,0,xpos1,lineymax);
 	if (intmaxbin < xbinmax && intmaxbin > xbinmin) 
@@ -553,7 +562,7 @@ TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t in
 	}
 }
 
-
+#endif
 
 /* emacs
  * Local Variables:
@@ -563,4 +572,3 @@ TH1F* drawscalesubbytypeTH1(TH2F* hist, Int_t type1=1, Int_t type2=2, Float_t in
  * tab-width: 4
  * End:
  */
- 

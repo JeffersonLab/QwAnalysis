@@ -67,7 +67,7 @@ CD       := cd
 CHMOD    := chmod
 DIRNAME  := dirname
 ECHO     := echo
-FIND     := find -L
+FIND     := find
 GCC      := g++
       # This must be the GNU compiler collection : explicit use of
       # flag '-M' for automatic search for dependencies

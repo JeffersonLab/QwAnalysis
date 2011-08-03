@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
   //detectors.GetSubsystemByName("Helicity info")->LoadInputParameters("");
 
   // Get the helicity
-  QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");
+  QwHelicity* helicity = dynamic_cast<QwHelicity*>(detectors.GetSubsystemByName("Helicity info"));
   detectors.UpdateEventTypeMask();
   // Helicity pattern
   QwHelicityPattern helicitypattern(detectors);

@@ -199,8 +199,10 @@ bool QwParameterFile::OpenFile(const bfs::path& file)
   Bool_t check_whether_path_exists_and_is_a_regular_file = false;
   
   // Check whether path exists and is a regular file
-#if BOOST_VERSION >= 103400
+#if BOOST_VERSION >= 103600
   check_whether_path_exists_and_is_a_regular_file = bfs::exists(file) && bfs::is_regular_file(file);
+#elif BOOST_VERSION >= 103400
+  check_whether_path_exists_and_is_a_regular_file = bfs::exists(file) && bfs::is_regular(file);
 #else
   check_whether_path_exists_and_is_a_regular_file = bfs::exists(file); /* pray */
 #endif
