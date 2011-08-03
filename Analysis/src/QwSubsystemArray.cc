@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 // Qweak headers
-#include "VQwDataElement.h"
+#include "VQwHardwareChannel.h"
 #include "QwLog.h"
 #include "QwParameterFile.h"
 
@@ -281,8 +281,8 @@ std::vector<VQwSubsystem*> QwSubsystemArray::GetSubsystemByType(const std::strin
     // Loop over the subsystems
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
 
-      // Try to cast the subsystem into the required type
-      if (VQwSubsystemFactory::Cast((*subsys).get(),type)) {
+      // Test to see if the subsystem inherits from the required type
+      if (VQwSubsystemFactory::InheritsFrom((*subsys).get(),type)) {
         subsys_list.push_back((*subsys).get());
       }
 
@@ -565,7 +565,7 @@ void QwSubsystemArray::FillTreeVector(std::vector<Double_t>& values) const
  * @param value (return) Data element with the variable name
  * @return True if the variable is found, false if not found
  */
-Bool_t QwSubsystemArray::RequestExternalValue(const TString& name, VQwDataElement* value) const
+Bool_t QwSubsystemArray::RequestExternalValue(const TString& name, VQwHardwareChannel* value) const
 {
   //  If this has a parent, we should escalate the call to that object,
   //  but so far we don't have that capability.
@@ -577,10 +577,10 @@ Bool_t QwSubsystemArray::RequestExternalValue(const TString& name, VQwDataElemen
  * @param name Variable name to be retrieved
  * @return Data element with the variable name, null if not found
  */
-const VQwDataElement* QwSubsystemArray::ReturnInternalValue(const TString& name) const
+const VQwHardwareChannel* QwSubsystemArray::ReturnInternalValue(const TString& name) const
 {
   //  First try to find the value in the list of published values.
-  std::map<TString, const VQwDataElement*>::const_iterator iter1 =
+  std::map<TString, const VQwHardwareChannel*>::const_iterator iter1 =
       fPublishedValuesDataElement.find(name);
   if (iter1 != fPublishedValuesDataElement.end()) {
     return iter1->second;
@@ -605,21 +605,21 @@ const VQwDataElement* QwSubsystemArray::ReturnInternalValue(const TString& name)
  * @param value (return) Data element with the variable name
  * @return True if the variable was found, false if not found
  */
-Bool_t QwSubsystemArray::ReturnInternalValue(const TString& name, VQwDataElement* value) const
+Bool_t QwSubsystemArray::ReturnInternalValue(const TString& name, VQwHardwareChannel* value) const
 {
   Bool_t foundit = kFALSE;
 
   // Check for null pointer
   if (! value)
     QwWarning << "QwSubsystemArray::ReturnInternalValue requires that "
-              << "'value' be a non-null pointer to a VQwDataElement."
+              << "'value' be a non-null pointer to a VQwHardwareChannel."
               << QwLog::endl;
 
   //  Get a const pointer to the internal value
-  VQwDataElement* internal_value = const_cast<VQwDataElement*>(ReturnInternalValue(name));
+  VQwHardwareChannel* internal_value = const_cast<VQwHardwareChannel*>(ReturnInternalValue(name));
   if (value && internal_value && typeid(value) == typeid(internal_value)) {
     /// \todo TODO (wdc) Remove this ugly statement by redefining
-    ///       QwVQWK_Channel::operator= to accept any VQwDataElement.
+    ///       QwVQWK_Channel::operator= to accept any VQwHardwareChannel.
     //*(dynamic_cast<QwVQWK_Channel*>(value)) = *(dynamic_cast<QwVQWK_Channel*>(internal_value));
     value->AssignValueFrom(internal_value);
     foundit = kTRUE;
@@ -642,7 +642,7 @@ Bool_t QwSubsystemArray::PublishInternalValue(
     const TString name,
     const TString desc,
     const VQwSubsystem* subsys,
-    const VQwDataElement* element)
+    const VQwHardwareChannel* element)
 {
   if (fPublishedValuesSubsystem.count(name) > 0) {
     QwError << "Attempting to publish existing variable key!" << QwLog::endl;
@@ -673,13 +673,13 @@ void QwSubsystemArray::ListPublishedValues() const
  * @param name Variable name to be retrieved
  * @return Data element with the variable name
  */
-VQwDataElement* QwSubsystemArray::ReturnInternalValueForFriends(const TString& name) const
+VQwHardwareChannel* QwSubsystemArray::ReturnInternalValueForFriends(const TString& name) const
 {
   //  First try to find the value in the list of published values.
-  std::map<TString, const VQwDataElement*>::const_iterator iter =
+  std::map<TString, const VQwHardwareChannel*>::const_iterator iter =
       fPublishedValuesDataElement.find(name);
   if (iter != fPublishedValuesDataElement.end()) {
-    return const_cast<VQwDataElement*>(iter->second);
+    return const_cast<VQwHardwareChannel*>(iter->second);
   }
   //  Not found
   return 0;

@@ -594,9 +594,23 @@ void  VQwScaler_Channel::ReportErrorCounters(){
 		<< QwLog::endl;
   }
 
+void VQwScaler_Channel::ScaledAdd(Double_t scale, const VQwHardwareChannel *value){
+
+    const VQwScaler_Channel* input = dynamic_cast<const VQwScaler_Channel*>(value);
+
+    // follows same steps as += but w/ scaling factor
+    if (!IsNameEmpty()){
+        this->fValue  += scale * input->fValue;
+        this->fValueM2 = 0.0;
+        this->fDeviceErrorCode |= (input->fDeviceErrorCode);//error code is ORed.
+
+    }
+}
 
 //  These explicit class template instantiations should be the
 //  last thing in this file.  This list should cover all of the
 //  types that are typedef'ed in the header file.
 template class QwScaler_Channel<0x00ffffff,0>;  // QwSIS3801D24_Channel
 template class QwScaler_Channel<0xffffffff,0>;  // QwSIS3801_Channel, etc.
+
+

@@ -37,7 +37,7 @@ QwRegression::QwRegression(
 /// Destructor
 QwRegression::~QwRegression()
 {
-  std::vector< std::pair< VQwDataElement*,VQwDataElement*> >::iterator element;
+  std::vector< std::pair< VQwHardwareChannel*,VQwHardwareChannel*> >::iterator element;
   for (element = fDependentVar.begin();
       element != fDependentVar.end(); element++) {
     delete element->second;
@@ -164,7 +164,7 @@ Int_t QwRegression::ConnectChannels(
   /// Fill vector of pointers to the relevant data elements
   for (size_t dv = 0; dv < fDependentName.size(); dv++) {
     // Get the dependent variables
-    VQwDataElement* dv_ptr = 0;
+    VQwHardwareChannel* dv_ptr = 0;
     switch (fDependentType.at(dv)) {
       case kRegTypeMps:
         dv_ptr = event.ReturnInternalValueForFriends(fDependentName.at(dv));
@@ -185,12 +185,12 @@ Int_t QwRegression::ConnectChannels(
       QwMessage << "dv: " << fDependentName.at(dv) << QwLog::endl;
       // Store dependent variable as pointer and make copy
       QwVQWK_Channel* new_vqwk = new QwVQWK_Channel(); new_vqwk->Copy(vqwk);
-      fDependentVar.push_back(std::pair<VQwDataElement*,VQwDataElement*>(vqwk, new_vqwk));
+      fDependentVar.push_back(std::pair<VQwHardwareChannel*,VQwHardwareChannel*>(vqwk, new_vqwk));
       // Add independent variables
       fIndependentVar.resize(fDependentVar.size());
       for (size_t iv = 0; iv < fIndependentName.at(dv).size(); iv++) {
         // Get the independent variables
-        VQwDataElement* iv_ptr = 0;
+        VQwHardwareChannel* iv_ptr = 0;
         switch (fIndependentType.at(dv).at(iv)) {
           case kRegTypeMps:
             iv_ptr = event.ReturnInternalValueForFriends(fIndependentName.at(dv).at(iv));
@@ -255,23 +255,15 @@ void QwRegression::LinearRegression(EQwRegType type)
 {
   // Return if regression is not enabled
   if (! fEnableRegression) return;
-
   // Linear regression for each dependent variable
   for (size_t dv = 0; dv < fDependentVar.size(); dv++) {
     // For correct type (asym, diff, mps)
     if (fDependentType.at(dv) != type) continue;
-    // Start from original dependent value
-    QwVQWK_Channel* vqwk = dynamic_cast<QwVQWK_Channel*>(fDependentVar.at(dv).second);
-    if (vqwk) vqwk->Copy(fDependentVar.at(dv).first);
-    else continue;
+    // Update second value 
+    fDependentVar.at(dv).second->AssignValueFrom(fDependentVar.at(dv).first);
     // Add corrections
     for (size_t iv = 0; iv < fIndependentVar.at(dv).size(); iv++) {
-      // TODO: avoid the need for a temporary channel here by defining
-      // the proper operators
-      static QwVQWK_Channel correction("correction");
-      correction.Copy(fIndependentVar.at(dv).at(iv));
-      correction.Scale(fSensitivity.at(dv).at(iv));
-      *(fDependentVar.at(dv).second) += correction;
+        fDependentVar.at(dv).second->ScaledAdd(fSensitivity.at(dv).at(iv),fIndependentVar.at(dv).at(iv));
     }
   }
 }
@@ -312,7 +304,7 @@ void  QwRegression::ConstructBranchAndVector(
 void QwRegression::FillTreeVector(std::vector<Double_t>& values) const
 {
   // Fill the data element
-  std::vector< std::pair<VQwDataElement*, VQwDataElement*> >::const_iterator element;
+  std::vector< std::pair<VQwHardwareChannel*, VQwHardwareChannel*> >::const_iterator element;
   for (element = fDependentVar.begin();
       element != fDependentVar.end(); ++element) {
     // Only QwVQWK_Channel has support for branch vectors built in

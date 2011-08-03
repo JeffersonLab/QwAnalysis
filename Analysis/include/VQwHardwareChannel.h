@@ -114,6 +114,7 @@ public:
 
   void AddEntriesToList(std::vector<QwDBInterface> &row_list);
 
+  virtual void ScaledAdd(Double_t scale, const VQwHardwareChannel *value) = 0;
 
 protected:
   /*! \brief Set the number of data words in this data element */

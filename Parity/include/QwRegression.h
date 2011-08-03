@@ -11,6 +11,7 @@
 // Qweak headers
 #include "QwHelicityPattern.h"
 #include "QwSubsystemArrayParity.h"
+#include "VQwHardwareChannel.h"
 
 /**
  * ... info to follow ... really, I promise ...
@@ -87,10 +88,10 @@ class QwRegression {
     /// List of channels to use in the regression
     std::vector< EQwRegType > fDependentType;
     std::vector< std::string > fDependentName;
-    std::vector< std::pair< VQwDataElement*, VQwDataElement*> > fDependentVar;
+    std::vector< std::pair< VQwHardwareChannel*, VQwHardwareChannel*> > fDependentVar;
     std::vector< std::vector< EQwRegType > > fIndependentType;
     std::vector< std::vector< std::string > > fIndependentName;
-    std::vector< std::vector< VQwDataElement* > > fIndependentVar;
+    std::vector< std::vector< VQwHardwareChannel* > > fIndependentVar;
     std::vector< std::vector< Double_t> > fSensitivity;
 
 

@@ -1520,7 +1520,7 @@ Bool_t QwBeamLine::PublishInternalValues() const
     device_type.ToLower();
     device_prop.ToLower();
 
-    const VQwDataElement* tmp_channel;
+    const VQwHardwareChannel* tmp_channel;
 
     if (device_type == "bcm") {
       tmp_channel = GetBCM(device_name)->GetCharge();

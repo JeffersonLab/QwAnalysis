@@ -1463,3 +1463,29 @@ void  QwVQWK_Channel::ReportErrorCounters()
   }
   return;
 }
+
+
+void QwVQWK_Channel::ScaledAdd(Double_t scale, const VQwHardwareChannel *value)
+{
+    const QwVQWK_Channel* input = dynamic_cast<const QwVQWK_Channel*>(value);
+
+    // follows same steps as += but w/ scaling factor
+    if(!IsNameEmpty()){
+        for(Int_t i = 0; i < fBlocksPerEvent; i++){
+            this -> fBlock[i] += scale * input->fBlock[i];
+            this -> fBlock_raw[i] += scale * input->fBlock_raw[i];
+            this -> fBlockM2[i] = 0.0;
+        }
+
+        this -> fHardwareBlockSum_raw = scale * input->fHardwareBlockSum_raw;
+        this -> fSoftwareBlockSum_raw = scale * input->fSoftwareBlockSum_raw;
+        this -> fHardwareBlockSum += scale * input->fHardwareBlockSum;
+        this -> fHardwareBlockSumM2 = 0.0;
+        this -> fNumberOfSamples  += scale * input->fNumberOfSamples;
+        this -> fSequenceNumber = 0;
+        this -> fDeviceErrorCode |= (input->fDeviceErrorCode);
+        this -> fErrorFlag |= (input->fErrorFlag);   
+    }
+}
+
+

@@ -93,7 +93,7 @@ Bool_t QwMainCerenkovDetector::PublishInternalValues() const
     device_type.ToLower();
     device_prop.ToLower();
 
-    const VQwDataElement* tmp_channel;
+    const VQwHardwareChannel* tmp_channel;
     if (device_type == "integrationpmt") {
       tmp_channel = GetIntegrationPMT(device_name)->GetChannel(device_name);
     } else if (device_type == "combinedpmt") {

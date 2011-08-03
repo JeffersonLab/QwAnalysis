@@ -141,6 +141,8 @@ public:
   virtual void SetExternalClockPtr( const VQwDataElement* clock) { fNormChannelPtr = clock; };
   virtual void SetExternalClockName( const std::string name) { fNormChannelName = name; };
 
+  void ScaledAdd(Double_t scale, const VQwHardwareChannel *value);
+
 protected:
   VQwScaler_Channel& operator/=(const VQwScaler_Channel&);
   

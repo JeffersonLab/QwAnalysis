@@ -210,6 +210,8 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /// \brief Blind this channel as a difference
   void Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield);
 
+  void ScaledAdd(Double_t scale, const VQwHardwareChannel *value);
+
   
 
  protected:

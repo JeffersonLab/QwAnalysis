@@ -25,7 +25,7 @@
 #include "QwSubsystemFactory.h"
 
 // Forward declarations
-class VQwDataElement;
+class VQwHardwareChannel;
 class QwSubsystemArray;
 class QwParameterFile;
 
@@ -98,7 +98,7 @@ class VQwSubsystem: virtual public VQwCloneable {
  public:
 
   /// \brief Publish a variable name to the parent subsystem array
-  Bool_t PublishInternalValue(const TString& name, const TString& desc, const VQwDataElement* value) const;
+  Bool_t PublishInternalValue(const TString& name, const TString& desc, const VQwHardwareChannel* value) const;
   /// \brief Publish all variables of the subsystem
   virtual Bool_t PublishInternalValues() const {
     return kTRUE; // when not implemented, this returns success
@@ -106,13 +106,13 @@ class VQwSubsystem: virtual public VQwCloneable {
 
   /// \brief Request a named value which is owned by an external subsystem;
   ///        the request will be handled by the parent subsystem array
-  Bool_t RequestExternalValue(const TString& name, VQwDataElement* value) const;
+  Bool_t RequestExternalValue(const TString& name, VQwHardwareChannel* value) const;
 
   /// \brief Return a pointer to a varialbe to the parent subsystem array to be
   ///        delivered to a different subsystem.
   
-  virtual const VQwDataElement* ReturnInternalValue(const TString& name) const{
-    std::cout << " VQwDataElement::ReturnInternalValue for value name, " << name.Data()
+  virtual const VQwHardwareChannel* ReturnInternalValue(const TString& name) const{
+    std::cout << " VQwHardwareChannel::ReturnInternalValue for value name, " << name.Data()
               << " define the routine in the respective subsystem to process this!  " <<std::endl;
     return 0;
   };
@@ -120,7 +120,7 @@ class VQwSubsystem: virtual public VQwCloneable {
   /// \brief Return a named value to the parent subsystem array to be
   ///        delivered to a different subsystem.
   virtual Bool_t ReturnInternalValue(const TString& name,
-                                      VQwDataElement* value) const {
+                                      VQwHardwareChannel* value) const {
     return kFALSE;
   };
   
@@ -129,11 +129,11 @@ class VQwSubsystem: virtual public VQwCloneable {
 
  protected:
   /// Map of published internal values
-  std::map<TString, VQwDataElement*> fPublishedInternalValues;
+  std::map<TString, VQwHardwareChannel*> fPublishedInternalValues;
   /// List of parameters to be published (loaded at the channel map)
   std::vector<std::vector<TString> > fPublishList;
 
-  void UpdatePublishedValue(const TString& name, VQwDataElement* data_channel) {
+  void UpdatePublishedValue(const TString& name, VQwHardwareChannel* data_channel) {
     fPublishedInternalValues[name] = data_channel;
   };
 
