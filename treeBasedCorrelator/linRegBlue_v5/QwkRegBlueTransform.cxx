@@ -82,7 +82,7 @@ QwkRegBlueTransform::findInputLeafs(TChain *chain){
   printf("\n---Aliases N=%d:\n",nals());
   for(int i=0; i<nals(); i++) {
     printf("ial=%d : %s\n",i,alsName[i].Data());
-    aliasVec[i].print();
+    //aliasVec[i].print();
   }
 
   printf("\n---DVs n=%d:\n",ndv());
@@ -110,15 +110,9 @@ QwkRegBlueTransform::findInputLeafs(TChain *chain){
 //========================
 //========================
 void 
-QwkRegBlueTransform::presetMyStat(double x1,double x2, double thr, double x3){
+QwkRegBlueTransform::presetMyStat(double x1,double x2){
   hA[0]->Fill("inpTree", x1);
   hA[0]->Fill("customCut", x2);
-  hA[0]->Fill(Form("bcm >%.0f#muA",thr), x3);
-  //  thr=50;
-  TList *Lx=hA[1]->GetListOfFunctions();
-  TLine *ln=new TLine(thr,0,thr,5.e3);
-  ln->SetLineColor(kRed); ln->SetLineWidth(2);
-  Lx->Add(ln);
   
 }
 
@@ -296,7 +290,7 @@ QwkRegBlueTransform::readConfig(const char * configFName){
     int kin2=findAddChan(als.inpName2);
     als.mappChannels(kout, kin1, kin2);
     aliasVec.push_back(als);
-    als.print();
+    //als.print();
   }
 
   //  inclusive add DVs

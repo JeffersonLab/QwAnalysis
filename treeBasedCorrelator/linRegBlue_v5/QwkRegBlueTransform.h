@@ -36,7 +36,7 @@ class QwkRegBlueTransform {
   int nchan(){return (int)chanName.size();}
 
   void readConfig(const char * configFName);
-  void presetMyStat(double x1,double x2, double thr, double x3);
+  void presetMyStat(double x1,double x2);
   TString setLeafName2Yield(TString longName);
   double pattern(){return  pattern_number;}
 

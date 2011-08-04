@@ -26,7 +26,7 @@ using namespace std;
 QwkRegBlueCorrelator::QwkRegBlueCorrelator(const char *core) {
   mCore=core;
   h1iv=0;
-  printf("constr of QwkRegBlueCorrelator=%s\n",mCore.Data());
+  // printf("constr of QwkRegBlueCorrelator=%s\n",mCore.Data());
 }
 
 //========================

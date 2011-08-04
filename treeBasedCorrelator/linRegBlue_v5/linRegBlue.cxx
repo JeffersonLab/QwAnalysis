@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
     } while (xx3 != 0);
     if(xx3 == 0) 
       xx3 = xx2;
-    
+    printf("xx3=%s=\n",xx3);
     TString treeOutName=Form("%sreg_%s",outPath,xx3);
     mBlueFile=new TFile(treeOutName,"RECREATE"," regressed  Qweak tree");
     printf("Open to write  =%s=\n",treeOutName.Data());
@@ -153,17 +153,18 @@ int main(int argc, char *argv[]) {
 
   // filter events with custom cut.
   TString cutFormula="ErrorFlag==0"; // apply general pattern QA cut
-  //TString cutFormula="1==1"; // tmp
-
+ 
   if(eve.cutFormula.Sizeof()>1) {
     printf("Main: filter events with custom cut: name=%s  formula='%s'\n",eve.cutName.Data(), eve.cutFormula.Data());
     cutFormula+="&&"+eve.cutFormula;
   }
+
+#if 0 // disable cut on beam current stability
   chain->Draw(">>listA",cutFormula); // custom cleanup cut
   TEventList *list = (TEventList*)gDirectory->Get("listA"); 
   list->Print();
   double listA_len= list->GetN();
-  printf("main list A size=%d\n", list->GetN()); 
+  printf("main list A size=%g\n", listA_len);
 
   chain->Draw("yield_qwk_bcm1.hw_sum>>histA",cutFormula);  
   TH1* histA=(TH1*)gDirectory->Get("histA");
@@ -174,15 +175,17 @@ int main(int argc, char *argv[]) {
   printf("BCM1 average=%.1f (uA)  MPV=%.1f (uA), nEntries=%.0f\n",xAvr,xMPV,histA->GetEntries());
   double bcmThres=xMPV-5.0;
   cutFormula="("+cutFormula+Form(")&&(yield_qwk_bcm1.hw_sum >%.1f)",bcmThres);
+#endif
+
   cutFormula="("+cutFormula+Form(")");
-  printf("new cutForm='%s'\n",cutFormula.Data());
+  printf("final cutForm='%s'\n",cutFormula.Data());
   chain->Draw(">>listB",cutFormula); // cut includes BCM1 
-  list = (TEventList*)gDirectory->Get("listB"); 
+  TEventList *list = (TEventList*)gDirectory->Get("listB"); 
   list->Print();
   double listB_len= list->GetN();
   printf("main list B size=%d\n", list->GetN()); 
 
-  eve.presetMyStat(chain->GetEntries(),  listA_len,bcmThres,listB_len);
+  eve.presetMyStat(chain->GetEntries(),  listB_len);
 
   int t1=time(0);
   int ie;
