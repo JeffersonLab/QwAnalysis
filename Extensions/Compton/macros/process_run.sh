@@ -148,7 +148,7 @@ then
     STARTDATE=$(stat -c %y $STARTRUNFILE | cut -f1 -d".")
 fi
 
-ROOTFILE=${QW_ROOTFILES}/Compton*_$RUNNUM.000.root
+ROOTFILE=`ls ${QW_ROOTFILES}/Compton_Pass*_$RUNNUM.000.root`
 if [  -f $ROOTFILE ]
 then
     ROOTDATE=$(stat -c %y $ROOTFILE | cut -f1 -d".")
