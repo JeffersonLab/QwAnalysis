@@ -76,7 +76,8 @@ using std::vector;
 #include "TVirtualPad.h"
 #include "QwGUISubSystem.h"
 #include "TStyle.h"
-#include "RSDataWindow.h"
+#include "QwGUIDataWindow.h"
+/* #include "RSDataWindow.h" */
 #ifndef  ROOTCINTMODE
 #include "QwSSQLS_summary.h"
 #endif
@@ -163,6 +164,8 @@ private:
 
   //!An object array to store histogram pointers -- good for use in cleanup.
   TObjArray            GraphArray;
+  TObjArray            LegendArray;
+  
   
   //!An object array to store data window pointers -- good for use in cleanup.
   TObjArray            DataWindowArray;
@@ -206,6 +209,10 @@ private:
   //!Return value: none  
   void  ClearData();
 
+  void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
+  void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
+  QwGUIDataWindow     *GetSelectedDataWindow();  
+
   /**
      Arrays to store the detector names, measurement types and properties as they appear in the
      data base.
@@ -234,8 +241,13 @@ private:
   static const char   *Targets[N_TGTS];
   static const char   *Plots[2];
 
+
+  Int_t                dSelectedDataWindow;
+
+
   // good for types
   static const char	  *GoodForTypes[N_GOODFOR_TYPES];
+
 
   // static array for temporary measurement type storing. This makes things easier when trying to
   // retrieave data.
@@ -258,10 +270,11 @@ private:
   virtual void         MakeLayout();
 
   void                 SummaryHist(TH1*in);
+  void                 AddNewGraph(TObject* grp, TObject* leg);
+  /*TObject*             GetGraph(Int_t ind); */
+/*   TObject*             GetLegend(Int_t ind); */
   void                 PlotGraphs();
   void                 OnSubmitPushed();
-
-
 
  public:
   
@@ -280,7 +293,9 @@ private:
   //!
   //!Return value: none 
   virtual void        OnNewDataContainer(RDataContainer *cont);
+
   virtual void        OnObjClose(char *);
+  void                OnUpdatePlot(char *obj);
   virtual void        OnReceiveMessage(char*);
   virtual void        OnRemoveThisTab();
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);

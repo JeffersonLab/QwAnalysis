@@ -391,8 +391,13 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dLabRegression      = NULL;
   dLabPlot            = NULL;
 
+  RemoveSelectedDataWindow();
+
   GraphArray.Clear();
+  LegendArray.Clear();
+
   DataWindowArray.Clear();
+
 
   AddThisTab(this);
 
@@ -650,12 +655,13 @@ void QwGUIDatabase::MakeLayout()
   dBtnSubmit          -> Associate(this);
 
   dCanvas -> GetCanvas() -> SetBorderMode(0);
-  dCanvas -> GetCanvas() -> Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)", "QwGUIDatabase", this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+//   dCanvas -> GetCanvas() -> Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)", "QwGUIDatabase", this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
   Int_t wid = dCanvas->GetCanvasWindowId();
   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
   mc->Initialize();
   dCanvas->AdoptCanvas(mc);
+  dCanvas -> GetCanvas() -> Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)", "QwGUIDatabase", this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
 }
 
@@ -864,20 +870,70 @@ void QwGUIDatabase::PopulateXDetComboBox()
 
 
 
-void QwGUIDatabase::OnReceiveMessage(char *obj)
+void QwGUIDatabase::OnReceiveMessage(char *msg)
 {
-//   TString name = obj;
-//   char *ptr = NULL;
 
+  TObject *obj = NULL;
+  Int_t ind = 0;
+  TString message = msg;
+
+  if(message.Contains("dDataWindow")){
+
+    if(message.Contains("Add to")){
+
+      message.ReplaceAll("Add to dDataWindow_",7,"",0);
+
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	ind = DataWindowArray.IndexOf(obj);
+	SetSelectedDataWindow(ind);
+      }
+    }
+    else if(message.Contains("Don't add to")){
+
+      message.ReplaceAll("Don't add to dDataWindow_",13,"",0);
+
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	RemoveSelectedDataWindow();
+      }
+    }
+  }
 }
+
+void QwGUIDatabase::OnUpdatePlot(char *obj)
+{
+  if(!obj) return;
+  TString str = obj;
+  if(!str.Contains("dDataWindow")) return;
+
+  printf("Received Message From: %s\n",obj);
+}
+
+
+QwGUIDataWindow *QwGUIDatabase::GetSelectedDataWindow()
+{
+  if(dSelectedDataWindow < 0 || dSelectedDataWindow > DataWindowArray.GetLast()) return NULL;
+
+  return (QwGUIDataWindow*)DataWindowArray[dSelectedDataWindow];
+}
+
+
 
 void QwGUIDatabase::OnObjClose(char *obj)
 {
-  if(!strcmp(obj,"dROOTFile")){
-//     printf("Called QwGUIDatabase::OnObjClose\n");
+  if(!obj) return;
+  TString name = obj;
 
-    dROOTCont = NULL;
+  if(name.Contains("dDataWindow")){
+    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(obj));
+    if(window){
+      if(window == GetSelectedDataWindow()) { RemoveSelectedDataWindow();}
+    }
   }
+
+  QwGUISubSystem::OnObjClose(obj);
+
 }
 
 
@@ -899,17 +955,21 @@ void QwGUIDatabase::OnNewDataContainer(RDataContainer *cont)
 
 void QwGUIDatabase::PlotGraphs()
 {
-  Int_t ind = 1;
+  Int_t ind = 0;
 
   TCanvas *mc = dCanvas->GetCanvas();
 
   TObject *obj;
+  TLegend *leg;
+  
   TIter next(GraphArray.MakeIterator());
   obj = next();
   while(obj){
-//    mc->cd(ind);
+//    mc->cd(ind+1);
     gPad->SetLogy(0);
     ((TGraph*)obj)->Draw("ap");
+    leg = (TLegend*)LegendArray.At(ind);
+    if(leg) leg->Draw("");
     ind++;
     obj = next();
   }
@@ -918,6 +978,25 @@ void QwGUIDatabase::PlotGraphs()
   mc->Update();
 
 }
+
+void QwGUIDatabase::AddNewGraph(TObject* grp, TObject* leg)
+{
+  GraphArray.Add(grp);
+  LegendArray.Add(leg);
+}
+
+// TObject *QwGUIDatabase::GetGraph(Int_t ind)
+// {
+//   if(ind < 0 || ind >= GraphArray.GetEntries()) return NULL;
+
+//   return GraphArray
+// }
+
+// TObject *QwGUIDatabase::GetLegend(Int_t ind)
+// {
+
+// }
+
 
 void QwGUIDatabase::OnRemoveThisTab()
 {
@@ -935,32 +1014,89 @@ void QwGUIDatabase::ClearData()
     obj = next();
   }
   GraphArray.Clear();//Clear();
+
+  vector <TObject*> obja;
+  TIter *next1 = new TIter(DataWindowArray.MakeIterator());
+  obj = next1->Next();
+  while(obj){
+    obja.push_back(obj);
+//     delete obj;
+    obj = next1->Next();
+  }
+  delete next1;
+
+  for(uint l = 0; l < obja.size(); l++)
+    delete obja[l];
+
+  DataWindowArray.Clear();
+
 }
 
 //Stuff to do after the tab is selected
 void QwGUIDatabase::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
-  /* DTS
-  if(event == kButton1Double){
-    Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
-    
-    if(pad > 0 && pad <= HCLINE_DEV_NUM)
-      {
-	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
-						     GetNewWindowName(),"QwGUIDatabase",
-						     HistArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
-	if(!dMiscWindow){
-	  return;
-	}
-	DataWindowArray.Add(dMiscWindow);
-	dMiscWindow->SetPlotTitle((char*)HistArray[pad-1]->GetTitle());
-	dMiscWindow->DrawData(*((TH1D*)HistArray[pad-1]));
-	SetLogMessage(Form("Looking at %s\n",(char*)HistArray[pad-1]->GetTitle()),kTrue);
 
+  QwGUIDataWindow *dDataWindow = GetSelectedDataWindow();
+  Bool_t add = kFalse;
+  TObject *plot = NULL;
+  TLegend *legend = NULL;
+//   QwGUIMainDetectorDataStructure *detStr = NULL;
+//   Int_t leafInd;
+
+  
+  if(event == kButton1Double){
+
+    TCanvas *mc = dCanvas->GetCanvas();
+    if(!mc) return;
+    
+    UInt_t pad = mc->GetSelectedPad()->GetNumber();
+//     UInt_t ind = pad-1;
+    plot = GraphArray.At(pad);
+    legend  = (TLegend*)LegendArray.At(pad);
+
+    if(plot){
+
+      if(plot->InheritsFrom("TMultiGraph")){
+
+	if(!dDataWindow){
+	  dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					    "QwGUIDatabase",((TMultiGraph*)plot)->GetTitle(), PT_GRAPH_ER,
+					    DDT_DB,600,400);
+	  if(!dDataWindow){
+	    return;
+	  }
+	  DataWindowArray.Add(dDataWindow);
+	}
+	else
+	  add = kTrue;
+	
+	dDataWindow->SetPlotTitle((char*)((TMultiGraph*)plot)->GetTitle());
+	//       if(!dCurrentModeData[GetActiveTab()]->IsSummary()){
+	// 	dDataWindow->SetPlotTitleX("Time [sec]");
+	// 	dDataWindow->SetPlotTitleY("Amplitude [V/#muA]");
+	// 	dDataWindow->SetPlotTitleOffset(1.25,1.8);
+	// 	dDataWindow->SetAxisMin(((TMultiGraph*)plot)->GetXaxis()->GetXmin(),
+	// 				detStr->GetTreeLeafMin(leafInd));
+	// 	dDataWindow->SetAxisMax(((TMultiGraph*)plot)->GetXaxis()->GetXmax(),
+	// 				detStr->GetTreeLeafMax(leafInd));
+	// 	dDataWindow->SetLimitsFlag(kTrue);
+	// 	dDataWindow->DrawData(*((TMultiGraph*)plot),add);
+	//       }
+	//       else{	
+	//       }
+
+	dDataWindow->DrawData(*((TMultiGraph*)plot),add,legend);
+
+	SetLogMessage(Form("Looking at graph %s\n",(char*)((TMultiGraph*)plot)->GetTitle()),kTrue);
+	
+	Connect(dDataWindow,"IsClosing(char*)","QwGUIDatabase",(void*)this,"OnObjClose(char*)");
+	Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIDatabase",(void*)this,"OnReceiveMessage(char*)");
+	Connect(dDataWindow,"UpdatePlot(char*)","QwGUIDatabase",(void*)this,"OnUpdatePlot(char *)");
+	
 	return;
       }
+    }
   }
-  */
 }
 
 
@@ -1638,6 +1774,14 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_suspect ->SetMarkerColor(kGreen);
 
 
+
+    grp_in->SetName("IHWP-IN-R"); 
+    grp_out->SetName("IHWP-OUT-R");
+    grp_in_L->SetName("IHWP-IN-L"); 
+    grp_out_L->SetName("IHWP-OUT-L");
+    grp_bad->SetName("Bad");       
+    grp_suspect->SetName("Suspect");   
+
     TMultiGraph * grp = new TMultiGraph();
 
 
@@ -1660,17 +1804,24 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in,      "IHWP-IN-R", "p");
+    if(m>0) legend->AddEntry(grp_in,      "IHWP-IN-R" , "p");
     if(k>0) legend->AddEntry(grp_out,     "IHWP-OUT-R", "p");
-    if(n>0) legend->AddEntry(grp_in_L,    "IHWP-IN-L", "p");
+    if(n>0) legend->AddEntry(grp_in_L,    "IHWP-IN-L" , "p");
     if(l>0) legend->AddEntry(grp_out_L,   "IHWP-OUT-L", "p");
-    if(o>0) legend->AddEntry(grp_bad, "Bad", "p");
-    if(p>0) legend->AddEntry(grp_suspect, "Suspect", "p");
+    if(o>0) legend->AddEntry(grp_bad,     "Bad"       , "p");
+    if(p>0) legend->AddEntry(grp_suspect, "Suspect"   , "p");
     legend->SetFillColor(0);
     
-    mc->cd();
-    grp->Draw("AP");
-    legend->Draw("");
+//     mc->cd();
+//     grp->Draw("AP");
+
+    AddNewGraph(grp,legend);
+
+//     GraphArray.Add(grp);
+//     LegendArray.Add(legend);
+    PlotGraphs();
+
+//     legend->Draw("");
     
     grp->SetTitle(title);
     grp->GetYaxis()->SetTitle(y_title);
@@ -1684,7 +1835,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     mc->Modified();
     mc->SetBorderMode(0);
     mc->Update();
-    
+   
     std::cout<<"QwGUI : Done!"<<std::endl;
     
     

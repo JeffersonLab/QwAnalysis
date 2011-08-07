@@ -571,39 +571,63 @@ void RSDataWindow::WriteMiscData()
   new TGFileDialog(fClient->GetRoot(), this, kFDSave, &fi);
   dir = fi.fIniDir;
 
+  Int_t ngrphs = 0;
+
   if(!fi.fFilename) return;
   ext = strrchr(fi.fFilename,'.');
   printf("extension = %s\n",strrchr(fi.fFilename,'.'));
 
-  TObject *obj = dPlotCont->GetObject(dPlotCont->GetPlotCount()-1);
-  if(obj && obj->InheritsFrom("TGraphErrors")){
-    ext.Contains(".mth") ? ftype = FT_MATHCAD : ftype = FT_ROWCOLUMN;
-    if(ftype == FT_MATHCAD) printf("Write MathCad\n");
-    TGraphErrors *gr = (TGraphErrors*)obj;
-    RDataContainer * cont = new RDataContainer(fClient->GetRoot(), this,"cont",
-					       "RSDataWindow","Raw Data",FM_UPDATE,
-					       ftype);
-    if(!cont) return;
+  TObject *obj = NULL;//dPlotCont->GetObject(dPlotCont->GetPlotCount()-1);
 
-    if(cont->OpenFile(fi.fFilename) != FILE_PROCESS_OK) {cont->Close(); return;}
-    cont->WriteData(gr->GetX(),gr->GetY(),gr->GetEX(),gr->GetEY(),gr->GetN());
-    cont->Close();
-  }
-  else if(obj && obj->InheritsFrom("TGraph")){
-    ext.Contains(".mth") ? ftype = FT_MATHCAD : ftype = FT_ROWCOLUMN;
-    if(ftype == FT_MATHCAD) printf("Write MathCad\n");
-    TGraph *gr = (TGraph*)obj;
-    RDataContainer * cont = new RDataContainer(fClient->GetRoot(), this,"cont",
-					       "RSDataWindow","Raw Data",FM_UPDATE,
-					       ftype);
-    if(!cont) return;
+//   if(obj && obj->InheritsFrom("TMultiGraph")){
+//     TMultiGraph *mgr = (TMultiGraph*)obj;
+    
+//     grpList = mgr->GetListOfGraphs();
+//     if(grpList) 
+//       ngrphs = grpList->LastIndex()+1;
+//     else
+//       ngrphs = 0;
 
-    if(cont->OpenFile(fi.fFilename) != FILE_PROCESS_OK) {cont->Close(); return;}
-    cont->WriteData(gr->GetX(),gr->GetY(),gr->GetN());
-    cont->Close();
-  }
-  else if(obj && obj->InheritsFrom("TH1D")){
+//     printf("ngrphs = %d\n",ngrphs);
 
+
+  ngrphs = dPlotCont->GetPlotCount();
+
+  for(int i = 0; i < ngrphs; i++){
+
+
+    obj = dPlotCont->GetPlot(i);
+
+    printf("writing graph %d (ngrphs = %d)\n",i,ngrphs);
+
+    if(obj && obj->InheritsFrom("TGraphErrors")){
+      ext.Contains(".mth") ? ftype = FT_MATHCAD : ftype = FT_ROWCOLUMN;
+      if(ftype == FT_MATHCAD) printf("Write MathCad\n");
+      TGraphErrors *gr = (TGraphErrors*)obj;
+      RDataContainer * cont = new RDataContainer(fClient->GetRoot(), this,"cont",
+						 "RSDataWindow","Raw Data",FM_UPDATE,
+						 ftype);
+      if(!cont) return;
+      
+      if(cont->OpenFile(fi.fFilename) != FILE_PROCESS_OK) {cont->Close(); return;}
+      cont->WriteData(gr->GetX(),gr->GetY(),gr->GetEX(),gr->GetEY(),gr->GetN(), gr->GetName());
+      cont->Close();
+    }
+    else if(obj && obj->InheritsFrom("TGraph")){
+      ext.Contains(".mth") ? ftype = FT_MATHCAD : ftype = FT_ROWCOLUMN;
+      if(ftype == FT_MATHCAD) printf("Write MathCad\n");
+      TGraph *gr = (TGraph*)obj;
+      RDataContainer * cont = new RDataContainer(fClient->GetRoot(), this,"cont",
+						 "RSDataWindow","Raw Data",FM_UPDATE,
+						 ftype);
+      if(!cont) return;
+      
+      if(cont->OpenFile(fi.fFilename) != FILE_PROCESS_OK) {cont->Close(); return;}
+      cont->WriteData(gr->GetX(),gr->GetY(),gr->GetN(), gr->GetName());
+      cont->Close();
+    }
+    else if(obj && obj->InheritsFrom("TH1D")){
+    }
   }
 }
 
@@ -1492,7 +1516,7 @@ Int_t RSDataWindow::DrawData(const TProfile& prf)
 }
 
 
-Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add)
+Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add, TLegend *leg)
 {
   if(!dPlotCont) return DATA_PLOT_ERROR;
   if(dFitOptions != NULL){
@@ -1584,12 +1608,12 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add)
     fCurrPlot = gr;
     if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
     if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
-    DrawLegend();
+    DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
 }
 
-Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add)
+Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
 {
   if(!dPlotCont) return DATA_PLOT_ERROR;
   if(dFitOptions != NULL){
@@ -1638,13 +1662,13 @@ Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add)
     fCurrPlot = gr;
     if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
     if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
-    DrawLegend();
+    DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
 }
 
 
-Int_t RSDataWindow::DrawData(const TGraphErrors& g1d, Bool_t add)
+Int_t RSDataWindow::DrawData(const TGraphErrors& g1d, Bool_t add, TLegend *leg)
 {
   if(!dPlotCont) return DATA_PLOT_ERROR;
   if(dFitOptions != NULL){
@@ -1711,14 +1735,14 @@ Int_t RSDataWindow::DrawData(const TGraphErrors& g1d, Bool_t add)
     fCurrPlot = gr;
     if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
     if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
-    DrawLegend();
+    DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
 }
 
 
 
-Int_t RSDataWindow::DrawData(const TGraphAsymmErrors& g1d, Bool_t add)
+Int_t RSDataWindow::DrawData(const TGraphAsymmErrors& g1d, Bool_t add, TLegend *leg)
 {
   if(!dPlotCont) return DATA_PLOT_ERROR;
   if(dFitOptions != NULL){
@@ -1785,13 +1809,13 @@ Int_t RSDataWindow::DrawData(const TGraphAsymmErrors& g1d, Bool_t add)
     fCurrPlot = gr;
     if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
     if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
-    DrawLegend();
+    DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
 }
 
 
-Int_t RSDataWindow::DrawData(Double_t *y, Int_t range , Bool_t add)
+Int_t RSDataWindow::DrawData(Double_t *y, Int_t range , Bool_t add, TLegend *leg)
 {
   TH1D *hist = NULL;
 
@@ -1875,7 +1899,7 @@ Int_t RSDataWindow::DrawData(Double_t *y, Int_t range , Bool_t add)
   return PLOT_PROCESS_OK;
 }
 
-Int_t RSDataWindow::DrawData(Double_t *x, Double_t *y, Int_t range, Bool_t add)
+Int_t RSDataWindow::DrawData(Double_t *x, Double_t *y, Int_t range, Bool_t add, TLegend *leg)
 {
   if(!dPlotCont) return DATA_PLOT_ERROR;
   if(dPtype != PT_GRAPH) {
@@ -1972,7 +1996,7 @@ Int_t RSDataWindow::DrawData(Double_t *x, Double_t *y, Int_t range, Bool_t add)
     fCurrPlot = gr;
     if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
     if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
-    DrawLegend();
+    DrawLegend(leg);
   }
 
   gPad->RedrawAxis();      
@@ -1986,7 +2010,7 @@ Int_t RSDataWindow::DrawData(Double_t *x, Double_t *y, Int_t range, Bool_t add)
   return PLOT_PROCESS_OK;
 }
 
-Int_t RSDataWindow::DrawData(Double_t *x, Double_t *y, Double_t *ye, Int_t range, Bool_t add)
+Int_t RSDataWindow::DrawData(Double_t *x, Double_t *y, Double_t *ye, Int_t range, Bool_t add, TLegend *leg)
 {
   if(!dPlotCont) return DATA_PLOT_ERROR;
   if(dPtype != PT_GRAPH) {
@@ -2078,7 +2102,7 @@ Int_t RSDataWindow::DrawData(Double_t *x, Double_t *y, Double_t *ye, Int_t range
     fCurrPlot = gr;
     if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
     if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
-    DrawLegend();
+    DrawLegend(leg);
   }
 
   gPad->RedrawAxis();      
@@ -2093,66 +2117,72 @@ Int_t RSDataWindow::DrawData(Double_t *x, Double_t *y, Double_t *ye, Int_t range
 }
 
 
-Int_t RSDataWindow::DrawLegend()
+Int_t RSDataWindow::DrawLegend(TLegend *leg)
 {
   TCanvas *aC = GetPlotCanvas();
   aC->cd();
 
-  if(fLegend){delete fLegend; fLegend = NULL;}
+  if(leg){
+    leg->Draw("");
+  }
+  else{
 
-  fLegend = new TLegend(0.58,0.82,0.98,0.98);
-  if(fLegend){
-    fLegend->SetY1NDC(fLegend->GetY1NDC()*3/2-fLegend->GetY2NDC()/2);
+    if(fLegend){delete fLegend; fLegend = NULL;}
 
-    if(fCurrPlot){
-      if(fCurrPlot->InheritsFrom("TF1"))
-	fLegend->AddEntry(fCurrPlot,
-			  fCurrPlot->GetTitle(),"l");
-      else if(fCurrPlot->InheritsFrom("TH1"))
-	fLegend->AddEntry(fCurrPlot,
-			  fCurrPlot->GetTitle(),"lp");
-      else if(fCurrPlot->InheritsFrom("TGraph"))
-	fLegend->AddEntry(fCurrPlot,
-			  fCurrPlot->GetTitle(),"p");	 
-      else if(fCurrPlot->InheritsFrom("TMultiGraph")){
-	TMultiGraph *mgr = (TMultiGraph *)fCurrPlot;
-	TList *graphs = NULL;
-	if(mgr) graphs = mgr->GetListOfGraphs();
-	if(graphs){
-	  for(int i = 0; i < graphs->GetSize(); i++){
-	    fLegend->AddEntry(graphs->At(i),
-			      graphs->At(i)->GetTitle(),"p");
-	  }	 
+    fLegend = new TLegend(0.58,0.82,0.98,0.98);
+    if(fLegend){
+      fLegend->SetY1NDC(fLegend->GetY1NDC()*3/2-fLegend->GetY2NDC()/2);
+      
+      if(fCurrPlot){
+	if(fCurrPlot->InheritsFrom("TF1"))
+	  fLegend->AddEntry(fCurrPlot,
+			    fCurrPlot->GetTitle(),"l");
+	else if(fCurrPlot->InheritsFrom("TH1"))
+	  fLegend->AddEntry(fCurrPlot,
+			    fCurrPlot->GetTitle(),"lp");
+	else if(fCurrPlot->InheritsFrom("TGraph"))
+	  fLegend->AddEntry(fCurrPlot,
+			    fCurrPlot->GetTitle(),"p");	 
+	else if(fCurrPlot->InheritsFrom("TMultiGraph")){
+	  TMultiGraph *mgr = (TMultiGraph *)fCurrPlot;
+	  TList *graphs = NULL;
+	  if(mgr) graphs = mgr->GetListOfGraphs();
+	  if(graphs){
+	    for(int i = 0; i < graphs->GetSize(); i++){
+	      fLegend->AddEntry(graphs->At(i),
+				graphs->At(i)->GetTitle(),"p");
+	    }	 
+	  }
 	}
       }
+      //     for(int i = 0; i < dPlotCont->GetPlotCount(); i++){
+      //       if(dPlotCont->GetObject(i)->InheritsFrom("TF1"))
+      // 	fLegend->AddEntry(dPlotCont->GetObject(i),
+      // 			  dPlotCont->GetObject(i)->GetTitle(),"l");
+      //       else if(dPlotCont->GetObject(i)->InheritsFrom("TH1"))
+      // 	fLegend->AddEntry(dPlotCont->GetObject(i),
+      // 			  dPlotCont->GetObject(i)->GetTitle(),"lp");
+      //       else if(dPlotCont->GetObject(i)->InheritsFrom("TGraph"))
+      // 	fLegend->AddEntry(dPlotCont->GetObject(i),
+      // 			  dPlotCont->GetObject(i)->GetTitle(),"p");	 
+      //       else if(dPlotCont->GetObject(i)->InheritsFrom("TMultiGraph")){
+      // 	TMultiGraph *mgr = (TMultiGraph *)dPlotCont->GetObject(i);
+      // 	TList *graphs = NULL;
+      // 	if(mgr) graphs = mgr->GetListOfGraphs();
+      // 	if(graphs){
+      // 	  for(int i = 0; i < graphs->GetSize(); i++){
+      // 	    fLegend->AddEntry(graphs->At(i),
+      // 			      graphs->At(i)->GetTitle(),"p");
+      // 	  }	 
+      // 	}
+      //       }
+      //     }
+      fLegend->SetTextFont(62);
+      fLegend->SetTextSize(0.04);
+      fLegend->Draw();
     }
-//     for(int i = 0; i < dPlotCont->GetPlotCount(); i++){
-//       if(dPlotCont->GetObject(i)->InheritsFrom("TF1"))
-// 	fLegend->AddEntry(dPlotCont->GetObject(i),
-// 			  dPlotCont->GetObject(i)->GetTitle(),"l");
-//       else if(dPlotCont->GetObject(i)->InheritsFrom("TH1"))
-// 	fLegend->AddEntry(dPlotCont->GetObject(i),
-// 			  dPlotCont->GetObject(i)->GetTitle(),"lp");
-//       else if(dPlotCont->GetObject(i)->InheritsFrom("TGraph"))
-// 	fLegend->AddEntry(dPlotCont->GetObject(i),
-// 			  dPlotCont->GetObject(i)->GetTitle(),"p");	 
-//       else if(dPlotCont->GetObject(i)->InheritsFrom("TMultiGraph")){
-// 	TMultiGraph *mgr = (TMultiGraph *)dPlotCont->GetObject(i);
-// 	TList *graphs = NULL;
-// 	if(mgr) graphs = mgr->GetListOfGraphs();
-// 	if(graphs){
-// 	  for(int i = 0; i < graphs->GetSize(); i++){
-// 	    fLegend->AddEntry(graphs->At(i),
-// 			      graphs->At(i)->GetTitle(),"p");
-// 	  }	 
-// 	}
-//       }
-//     }
-    fLegend->SetTextFont(62);
-    fLegend->SetTextSize(0.04);
-    fLegend->Draw();
   }
-
+  
   gPad->Modified();
   gPad->Update();
 

@@ -158,14 +158,14 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   Int_t                DrawData(const TProfile&);
   Int_t                DrawData(const TF1&, Bool_t add = kFalse);
   Int_t                DrawData(const TH1D&, Bool_t add = kFalse);
-  Int_t                DrawData(const TGraph&, Bool_t add = kFalse);
-  Int_t                DrawData(const TGraphErrors&, Bool_t add = kFalse);
-  Int_t                DrawData(const TGraphAsymmErrors&, Bool_t add = kFalse);
-  Int_t                DrawData(const TMultiGraph&, Bool_t add = kFalse);
-  Int_t                DrawData(Double_t*,Int_t, Bool_t add = kFalse);
-  Int_t                DrawData(Double_t*,Double_t*,Int_t, Bool_t add = kFalse);
-  Int_t                DrawData(Double_t*,Double_t*,Double_t*,Int_t, Bool_t add = kFalse);
-  Int_t                DrawLegend();
+  Int_t                DrawData(const TGraph&, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(const TGraphErrors&, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(const TGraphAsymmErrors&, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(const TMultiGraph&, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(Double_t*,Int_t, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(Double_t*,Double_t*,Int_t, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawData(Double_t*,Double_t*,Double_t*,Int_t, Bool_t add = kFalse, TLegend *leg = NULL);
+  Int_t                DrawLegend(TLegend *leg = NULL);
   Bool_t               DrawOptionsSet(){return dDrawOptsSet;};
 
   Double_t             GetAxisMax(Int_t a = 0);
@@ -184,7 +184,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   char                *GetPlotTitleX() {return dPlottitleX;};
   char                *GetPlotTitleY() {return dPlottitleY;};
   char                *GetPlotTitleZ() {return dPlottitleZ;};
-  Int_t                GetPlotType(){return dPtype;};
+  Int_t                GetPlotType() {return dPtype;};
   void                 GetRootObjectList(RDataContainer*);
 
   void                 IntegrateWindowData();

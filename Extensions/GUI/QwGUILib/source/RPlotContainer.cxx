@@ -706,6 +706,11 @@ TGraph *RPlotContainer::GetNewGraph(Char_t *name, Char_t *title, Int_t n,
   return NULL;
 }
 
+TObject *RPlotContainer::GetPlot(Int_t index)
+{
+  return GetObject(index, NULL);
+}
+
 TObject *RPlotContainer::GetObject(Int_t index, Char_t *name)
 {
   TObject *obj = NULL;
