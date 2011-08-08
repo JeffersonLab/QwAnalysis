@@ -164,28 +164,69 @@ Int_t QwRegression::ConnectChannels(
   /// Fill vector of pointers to the relevant data elements
   for (size_t dv = 0; dv < fDependentName.size(); dv++) {
     // Get the dependent variables
+
     VQwHardwareChannel* dv_ptr = 0;
-    switch (fDependentType.at(dv)) {
-      case kRegTypeMps:
-        dv_ptr = event.ReturnInternalValueForFriends(fDependentName.at(dv));
-        break;
-      case kRegTypeAsym:
-        dv_ptr = asym.ReturnInternalValueForFriends(fDependentName.at(dv));
-        break;
-      case kRegTypeDiff:
-        dv_ptr = diff.ReturnInternalValueForFriends(fDependentName.at(dv));
-        break;
-      default:
-        QwWarning << "Dependent variable for regression has unknown type."
-                  << QwLog::endl;
-        break;
+    QwVQWK_Channel* new_vqwk = NULL;
+    QwVQWK_Channel* vqwk = NULL;
+    string name = "";
+    string reg = "reg_";
+    
+    if(fDependentName.at(dv).at(0) == '@' ){
+        name = fDependentName.at(dv).substr(1,fDependentName.at(dv).length());
+       
+    }else{
+        switch (fDependentType.at(dv)) {
+          case kRegTypeMps:
+            dv_ptr = event.ReturnInternalValueForFriends(fDependentName.at(dv));
+            std::cout << fDependentName.at(dv)<<std::endl;
+            break;
+          case kRegTypeAsym:
+            dv_ptr = asym.ReturnInternalValueForFriends(fDependentName.at(dv));
+            break;
+            std::cout << fDependentName.at(dv)<<std::endl;
+          case kRegTypeDiff:
+            dv_ptr = diff.ReturnInternalValueForFriends(fDependentName.at(dv));
+            break;
+            std::cout << fDependentName.at(dv)<<std::endl;
+          default:
+            QwWarning << "Dependent variable for regression has unknown type."
+                      << QwLog::endl;
+            break;
+        }
+
+        vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
+        name = vqwk->GetElementName().Data();
+        name.insert(0, reg);
+        new_vqwk = new QwVQWK_Channel();
+        new_vqwk->Copy(vqwk);
+        new_vqwk->SetElementName(name);
+        std::cout << new_vqwk->GetElementName().Data()<<std::endl;
     }
-    QwVQWK_Channel* vqwk = dynamic_cast<QwVQWK_Channel*>(dv_ptr);
-    if (vqwk) {
-      QwMessage << "dv: " << fDependentName.at(dv) << QwLog::endl;
-      // Store dependent variable as pointer and make copy
-      QwVQWK_Channel* new_vqwk = new QwVQWK_Channel(); new_vqwk->Copy(vqwk);
-      fDependentVar.push_back(std::pair<VQwHardwareChannel*,VQwHardwareChannel*>(vqwk, new_vqwk));
+
+    // alias
+    if(fDependentName.at(dv).at(0) == '@'){
+        QwMessage << "dv: " << name << QwLog::endl;
+       //  reg += name;
+        name.insert(0,reg);
+        new_vqwk = new QwVQWK_Channel(name);
+    }
+    // defined type
+    else if(dv_ptr!=NULL){
+        QwMessage << "dv: " << fDependentName.at(dv) << QwLog::endl;
+        // Store dependent variable as pointer and make copy
+       //  new_vqwk = new QwVQWK_Channel();
+       // new_vqwk->Copy(vqwk);
+    }else {
+        QwWarning << "Dependent variable " << fDependentName.at(dv) << " could not be found, "
+                << "or is not a VQWK channel." << QwLog::endl;
+                continue; 
+    }
+
+    // pair creation
+    if(new_vqwk != NULL){
+        fDependentVar.push_back(std::pair<VQwHardwareChannel*,VQwHardwareChannel*>(vqwk, new_vqwk));
+    }
+
       // Add independent variables
       fIndependentVar.resize(fDependentVar.size());
       for (size_t iv = 0; iv < fIndependentName.at(dv).size(); iv++) {
@@ -216,12 +257,10 @@ Int_t QwRegression::ConnectChannels(
                     << QwLog::endl;
         }
       }
-    } else {
-      QwWarning << "Dependent variable " << fDependentName.at(dv) << " could not be found, "
-                << "or is not a VQWK channel." << QwLog::endl;
-    }
   }
+  
   return 0;
+
 }
 
 
@@ -253,14 +292,26 @@ void QwRegression::ProcessOptions(QwOptions &options)
 /// Do the linear regression
 void QwRegression::LinearRegression(EQwRegType type)
 {
+
+
   // Return if regression is not enabled
   if (! fEnableRegression) return;
   // Linear regression for each dependent variable
   for (size_t dv = 0; dv < fDependentVar.size(); dv++) {
+    // if second is NULL, can't do regression
+    if (fDependentVar.at(dv).second == NULL){
+        QwError<<"Second is value is NULL, unable to calculate regression."<<QwLog::endl;
+        continue;
+    }
     // For correct type (asym, diff, mps)
     if (fDependentType.at(dv) != type) continue;
-    // Update second value 
-    fDependentVar.at(dv).second->AssignValueFrom(fDependentVar.at(dv).first);
+    // Clear data in second, if first is NULL
+    if (fDependentVar.at(dv).first == NULL){
+        fDependentVar.at(dv).second->ClearEventData();
+    }else{
+        // Update second value
+        fDependentVar.at(dv).second->AssignValueFrom(fDependentVar.at(dv).first);
+    }
     // Add corrections
     for (size_t iv = 0; iv < fIndependentVar.at(dv).size(); iv++) {
         fDependentVar.at(dv).second->ScaledAdd(fSensitivity.at(dv).at(iv),fIndependentVar.at(dv).at(iv));
