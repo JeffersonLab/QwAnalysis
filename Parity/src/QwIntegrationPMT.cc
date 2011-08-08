@@ -288,7 +288,7 @@ void QwIntegrationPMT::Scale(Double_t factor)
 
 void QwIntegrationPMT::Normalize(VQwDataElement* denom)
 {
-  if (fTriumf_ADC.GetElementName()!="qwk_isourc"&&fTriumf_ADC.GetElementName()!="qwk_preamp"&&fTriumf_ADC.GetElementName()!="qwk_cagesr"&&fTriumf_ADC.GetElementName()!="pmtled")
+  if (fTriumf_ADC.GetElementName()!="qwk_isourc"&&fTriumf_ADC.GetElementName()!="qwk_preamp"&&fTriumf_ADC.GetElementName()!="qwk_cagesr"&&fTriumf_ADC.GetElementName()!="qwk_pmtled")
   {
     QwVQWK_Channel vqwk_denom;
     vqwk_denom.Copy(denom);
