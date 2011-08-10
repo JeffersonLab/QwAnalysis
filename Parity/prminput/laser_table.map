@@ -28,4 +28,4 @@ sample_size=464
     VQWK, 1, 7,  lineararray,  QWK_LINAP8
 
 [PUBLISH]
- q_targ, bcm, qwk_bcm0l02, c
+ q_targ, qpd, qwk_qpdtl, c
