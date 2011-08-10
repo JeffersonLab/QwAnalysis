@@ -3,12 +3,13 @@
 
   <QwQPD>
 	hw_sum
+	Device_Error_Code
 
-   <QwLinearArray>
+   <QwLinearDiodeArray>
 	hw_sum
+	Device_Error_Code
 
-
-# below the [DEVICELIST] include all the devices that needs to be in the tree
+# below the [DEVICELIST] include all the leaves that needs to be in the tree
 
 [DEVICELIST]
 
@@ -28,6 +29,7 @@ qwk_qpdBL
 qwk_qpdTL
 qwk_qpdBR
 qwk_qpdTR
+qwk_qpd_EffectiveCharge
 qwk_linap1
 qwk_linap2
 qwk_linap3
@@ -36,7 +38,9 @@ qwk_linap5
 qwk_linap6
 qwk_linap7
 qwk_linap8
-
+qwk_linaRelVariance
+qwk_linaRelMean
+qwk_lina_EffectiveCharge
 
 ##########
 ## Scalers
@@ -57,6 +61,8 @@ scandata2
 
 yield_qwk_qpdX
 yield_qwk_qpdY
+asym_qwk_qpd_EffectiveCharge
+yield_qpd_EffectiveCharge
 diff_qwk_qpdX
 diff_qwk_qpdY
 diff_qwk_linap1
@@ -67,3 +73,6 @@ diff_qwk_linap5
 diff_qwk_linap6
 diff_qwk_linap7
 diff_qwk_linap8
+yield_qwk_lina_RelVariance
+diff_qwk_lina_RelMean
+asym_qwk_lina_EffectiveCharge

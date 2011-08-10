@@ -2301,15 +2301,14 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile&
     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
     for(size_t i = 0; i < fQPD.size(); i++)
       fQPD[i].ConstructBranch(tree, prefix,*nextmodule);
-
   }
-  tmp="QwLinearArray";
+
+  tmp="QwLinearDiodeArray";
   trim_file.RewindToFileStart();
   if (trim_file.FileHasModuleHeader(tmp)){
     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
     for(size_t i = 0; i < fLinearArray.size(); i++)
       fLinearArray[i].ConstructBranch(tree, prefix,*nextmodule);
-
   }
 
   tmp="QwBPMCavity";
