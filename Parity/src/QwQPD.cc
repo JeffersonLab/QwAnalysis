@@ -490,7 +490,16 @@ void QwQPD::Scale(Double_t factor)
 
 void QwQPD::Copy(QwQPD *source)
 {
+  Short_t i = 0;
+
   VQwBPM::Copy(source);
+  for(i=0;i<4;i++) fPhotodiode[i].Copy(&(source->fPhotodiode[i]));
+  for(i=kXAxis;i<kNumAxes;i++){
+    fRelPos[i].Copy(&(source->fRelPos[i]));
+    fAbsPos[i].Copy(&(source->fAbsPos[i]));
+  }
+  fEffectiveCharge.Copy(&(source->fEffectiveCharge));
+
   return;
 }
 
