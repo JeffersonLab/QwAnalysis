@@ -28,6 +28,7 @@
 ###########
 # Position
 ###########
+qwk_...._hw			TH1F	1001	0	0	pos(mm) mps 		
 qwk_....._hw			TH1F	1001	0	0	pos(mm) mps 		
 qwk_......_hw			TH1F	1001	0	0	pos(mm) mps	
 qwk_......._hw			TH1F	1001	0	0	pos(mm) mps
@@ -41,6 +42,9 @@ qwk_..._EffectiveCharge_hw	TH1F	1001	0	0	charge(adccounts) mps
 qwk_...._EffectiveCharge_hw	TH1F	1001	0	0	charge(adccounts) mps
 qwk_....._EffectiveCharge_hw	TH1F	1001	0	0	charge(adccounts) mps
 qwk_......_EffectiveCharge_hw	TH1F	1001	0	0	charge(adccounts) mps
+
+qwk_.......Mean_hw		TH1F	1001	0	0	pos(mm) mps
+qwk_.......Variance_hw		TH1F	1001	0	0	pos(mm) mps
 
 yield_qwk_...._hw		TH1F	1001	0	0	yield(mm) quartet 
 yield_qwk_....._hw		TH1F	1001	0	0	yield(mm) quartet
