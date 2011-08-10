@@ -37,8 +37,6 @@ void  QwQPD::InitializeChannel(TString name)
     fRelPos[i].InitializeChannel(name+"Rel"+kAxisLabel[i],"derived");
     fAbsPos[i].InitializeChannel(name+kAxisLabel[i],"derived");
   }
-
-
   
   bFullSave=kTRUE;
 
@@ -92,11 +90,14 @@ void QwQPD::ClearEventData()
 {
   Short_t i=0;
 
-  VQwBPM::ClearEventData();
-
   for(i=0;i<4;i++) fPhotodiode[i].ClearEventData();
 
-  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].ClearEventData();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].ClearEventData();
+    fAbsPos[i].ClearEventData();
+  }
+  
+  fEffectiveCharge.ClearEventData();
 
  return;
 }
@@ -127,8 +128,12 @@ Int_t QwQPD::GetEventcutErrorCounters()
   for(i=0;i<4;i++) 
     fPhotodiode[i].GetEventcutErrorCounters();
 
-  VQwBPM::GetEventcutErrorCounters();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].GetEventcutErrorCounters();
+    fAbsPos[i].GetEventcutErrorCounters();
+  }
 
+  fEffectiveCharge.GetEventcutErrorCounters();
   return 1;
 }
 
@@ -418,7 +423,6 @@ VQwBPM& QwQPD::operator= (const VQwBPM &value)
 
 QwQPD& QwQPD::operator= (const QwQPD &value)
 {
-  VQwBPM::operator=(value);
   if (GetElementName()!=""){
     Short_t i = 0;
     this->fEffectiveCharge=value.fEffectiveCharge;
@@ -427,7 +431,6 @@ QwQPD& QwQPD::operator= (const QwQPD &value)
       this->fRelPos[i]=value.fRelPos[i];
       this->fAbsPos[i]=value.fAbsPos[i];
     }
-    
   }
   return *this;
 }
@@ -440,11 +443,11 @@ VQwBPM& QwQPD::operator+= (const VQwBPM &value)
 
 QwQPD& QwQPD::operator+= (const QwQPD &value)
 {
-//  VQwBPM::operator+= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
     this->fEffectiveCharge+=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]+=value.fPhotodiode[i];
+
     for(i=kXAxis;i<kNumAxes;i++){
       this->fRelPos[i]+=value.fRelPos[i];
       this->fAbsPos[i]+=value.fAbsPos[i];
@@ -461,16 +464,15 @@ VQwBPM& QwQPD::operator-= (const VQwBPM &value)
 
 QwQPD& QwQPD::operator-= (const QwQPD &value)
 {
-//  VQwBPM::operator-= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
     this->fEffectiveCharge-=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]-=value.fPhotodiode[i];
+
     for(i=kXAxis;i<kNumAxes;i++){
       this->fRelPos[i]-=value.fRelPos[i];
       this->fAbsPos[i]-=value.fAbsPos[i];
     }
-
   }
   return *this;
 }
@@ -478,7 +480,7 @@ QwQPD& QwQPD::operator-= (const QwQPD &value)
 
 void QwQPD::Ratio(QwQPD &numer, QwQPD &denom)
 {
-  // this function is called when forming asymmetries. In this case waht we actually want for the
+  // this function is called when forming asymmetries. In this case what we actually want for the
   // QPD is the difference only not the asymmetries
 
   *this=numer;
@@ -531,6 +533,7 @@ void QwQPD::AccumulateRunningSum(const QwQPD& value)
 {
   // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
   Short_t i = 0;
+
   for (i = 0; i < 2; i++){
     fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
     fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
