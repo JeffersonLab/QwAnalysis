@@ -22,8 +22,9 @@ void  QwQPD::InitializeChannel(TString name)
   Short_t i=0;
   Bool_t localdebug = kFALSE;
 
+  VQwBPM::InitializeChannel(name);
 
-  //  fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
+  fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
 
   for(i=0;i<4;i++) {
     fPhotodiode[i].InitializeChannel(name+subelement[i],"raw");
@@ -32,10 +33,12 @@ void  QwQPD::InitializeChannel(TString name)
       std::cout<<" photodiode ["<<i<<"]="<<fPhotodiode[i].GetElementName()<<"\n";
   }
   
-  for(i=kXAxis;i<kNumAxes;i++) 
+  for(i=kXAxis;i<kNumAxes;i++) {
     fRelPos[i].InitializeChannel(name+"Rel"+kAxisLabel[i],"derived");
+    fAbsPos[i].InitializeChannel(name+kAxisLabel[i],"derived");
+  }
 
-  VQwBPM::InitializeChannel(name);
+
   
   bFullSave=kTRUE;
 
@@ -418,9 +421,12 @@ QwQPD& QwQPD::operator= (const QwQPD &value)
   VQwBPM::operator=(value);
   if (GetElementName()!=""){
     Short_t i = 0;
-    // this->fEffectiveCharge=value.fEffectiveCharge;
+    this->fEffectiveCharge=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]=value.fPhotodiode[i];
-    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]=value.fRelPos[i];
+    for(i=kXAxis;i<kNumAxes;i++){
+      this->fRelPos[i]=value.fRelPos[i];
+      this->fAbsPos[i]=value.fAbsPos[i];
+    }
     
   }
   return *this;
@@ -437,9 +443,12 @@ QwQPD& QwQPD::operator+= (const QwQPD &value)
 //  VQwBPM::operator+= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
+    this->fEffectiveCharge+=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]+=value.fPhotodiode[i];
-    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]+=value.fRelPos[i];
-
+    for(i=kXAxis;i<kNumAxes;i++){
+      this->fRelPos[i]+=value.fRelPos[i];
+      this->fAbsPos[i]+=value.fAbsPos[i];
+    }
   }
   return *this;
 }
@@ -455,8 +464,12 @@ QwQPD& QwQPD::operator-= (const QwQPD &value)
 //  VQwBPM::operator-= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
+    this->fEffectiveCharge-=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]-=value.fPhotodiode[i];
-    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]-=value.fRelPos[i];
+    for(i=kXAxis;i<kNumAxes;i++){
+      this->fRelPos[i]-=value.fRelPos[i];
+      this->fAbsPos[i]-=value.fAbsPos[i];
+    }
 
   }
   return *this;
