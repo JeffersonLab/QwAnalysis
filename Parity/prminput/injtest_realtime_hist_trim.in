@@ -14,7 +14,7 @@
 #   Last Updated by B.Waidyawansa 7-7-2011 
 
 
-DefaultBufferSize=1000
+#### DefaultBufferSize=1000
 #name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
 ##############################################################################################
 ###  Single event histograms

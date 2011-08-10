@@ -27,5 +27,5 @@ sample_size=464
     VQWK, 1, 6,  lineararray,  QWK_LINAP7
     VQWK, 1, 7,  lineararray,  QWK_LINAP8
 
-[PUBLISH]
- q_targ, qpd, qwk_qpdtl, c
+! [PUBLISH]
+!  q_targ, qpd, qwk_qpd, ef
