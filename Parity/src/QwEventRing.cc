@@ -114,9 +114,11 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
   
 
   if (bEVENT_READY){
-    fEvent_Ring[fNextToBeFilled]=event;//copy the current good event to the ring   
-    event.RequestExternalValue("q_targ", &fTargetCharge);
-    fChargeRunningSum.AccumulateRunningSum(fTargetCharge);
+    fEvent_Ring[fNextToBeFilled]=event;//copy the current good event to the ring 
+    if (bStability){
+      event.RequestExternalValue("q_targ", &fTargetCharge);
+      fChargeRunningSum.AccumulateRunningSum(fTargetCharge);
+    }
 
     //if eve mode = 3 flag fEVENT_HOLDOFF events with kBeamTripError flag
     if (!bEVENT_READY_ev3){
@@ -143,7 +145,8 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
       fNextToBeFilled=0;//next event to be filled
       fNextToBeRead=0;//first element in the ring  
       //check for current ramps
-      fChargeRunningSum.CalculateRunningAverage();
+      if (bStability)
+	fChargeRunningSum.CalculateRunningAverage();
       if (bStability && fChargeRunningSum.GetValueWidth()>fStability){//if the SD is large than the fStability
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
 	//fChargeRunningSum.PrintValue();
@@ -231,8 +234,10 @@ QwSubsystemArrayParity& QwEventRing::pop(){
   if (fNextToBeRead==(fRING_SIZE-1)){
     bRING_READY=kFALSE;//setting to false is an extra measure of security to prevent reading a NULL value. 
   }
-  fEvent_Ring[tempIndex].RequestExternalValue("q_targ", &fTargetCharge); 
-  fChargeRunningSum.DeaccumulateRunningSum(fTargetCharge);
+  if (bStability){
+    fEvent_Ring[tempIndex].RequestExternalValue("q_targ", &fTargetCharge); 
+    fChargeRunningSum.DeaccumulateRunningSum(fTargetCharge);
+  }
   //fChargeRunningSum.CalculateRunningAverage();
   //fChargeRunningSum.PrintValue();
   fNextToBeRead=(fNextToBeRead+1)%fRING_SIZE;  
