@@ -110,6 +110,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     ///  Create the linear regression
     QwRegression regression(gQwOptions,detectors,helicitypattern);
+    QwRegression running_regression(regression);
 
     ///  Create the event ring
     QwEventRing eventring;
@@ -235,6 +236,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
               // Linear regression on asymmetries
               regression.LinearRegression(QwRegression::kRegTypeAsym);
+              running_regression.AccumulateRunningSum(regression);
 
               // Fill regressed tree branches
               rootfile->FillTreeBranches(regression);
@@ -275,6 +277,9 @@ Int_t main(Int_t argc, Char_t* argv[])
         helicitypattern.CalculateRunningBurstAverage();
       }
     }
+
+    running_regression.CalculateRunningAverage();
+    running_regression.PrintValue();
 
     // This will calculate running averages over single helicity events
     runningsum.CalculateRunningAverage();

@@ -33,6 +33,8 @@ class QwRegression {
         QwHelicityPattern& helicitypattern);
     /// Virtual destructor
     virtual ~QwRegression();
+    QwRegression(const QwRegression &source);
+    void Copy (const QwRegression *source);
 
 
     /// \brief Define the configuration options
@@ -65,6 +67,12 @@ class QwRegression {
     /// \brief Fill the vector for this subsystem
     void FillTreeVector(std::vector<Double_t> &values) const;
     // @}
+
+ 
+
+    void AccumulateRunningSum(QwRegression value);
+    void CalculateRunningAverage();
+    void PrintValue() const;
 
   private:
 

@@ -33,6 +33,9 @@ QwRegression::QwRegression(
   fHelicityPattern = &helicitypattern;
 }
 
+QwRegression::QwRegression(const QwRegression &source){
+    Copy(&source);
+}
 
 /// Destructor
 QwRegression::~QwRegression()
@@ -40,7 +43,10 @@ QwRegression::~QwRegression()
   std::vector< std::pair< VQwHardwareChannel*,VQwHardwareChannel*> >::iterator element;
   for (element = fDependentVar.begin();
       element != fDependentVar.end(); element++) {
-    delete element->second;
+      if (element->second != NULL){
+          std::cerr<< "Second = "<<element->second<<std::endl;
+          delete element->second;
+      }
   }
   fDependentVar.clear();
 }
@@ -178,16 +184,13 @@ Int_t QwRegression::ConnectChannels(
         switch (fDependentType.at(dv)) {
           case kRegTypeMps:
             dv_ptr = event.ReturnInternalValueForFriends(fDependentName.at(dv));
-            std::cout << fDependentName.at(dv)<<std::endl;
             break;
           case kRegTypeAsym:
             dv_ptr = asym.ReturnInternalValueForFriends(fDependentName.at(dv));
             break;
-            std::cout << fDependentName.at(dv)<<std::endl;
           case kRegTypeDiff:
             dv_ptr = diff.ReturnInternalValueForFriends(fDependentName.at(dv));
             break;
-            std::cout << fDependentName.at(dv)<<std::endl;
           default:
             QwWarning << "Dependent variable for regression has unknown type."
                       << QwLog::endl;
@@ -200,7 +203,6 @@ Int_t QwRegression::ConnectChannels(
         new_vqwk = new QwVQWK_Channel();
         new_vqwk->Copy(vqwk);
         new_vqwk->SetElementName(name);
-        std::cout << new_vqwk->GetElementName().Data()<<std::endl;
     }
 
     // alias
@@ -363,3 +365,54 @@ void QwRegression::FillTreeVector(std::vector<Double_t>& values) const
     if (vqwk) vqwk->FillTreeVector(values);
   }
 };
+
+/**
+ * Copy constructor
+ * @param QwRegression souce
+ */
+void QwRegression::Copy (const QwRegression *source)
+{
+    this->fDependentVar.resize(source->fDependentVar.size());
+
+    for (size_t i = 0; i < this->fDependentVar.size(); i++)
+    {
+       this->fDependentVar[i].first = NULL;
+       // need to fix the call to Copy()
+       this->fDependentVar[i].second = new QwVQWK_Channel();
+       this->fDependentVar[i].second->Copy(source->fDependentVar[i].second);
+       std::cerr<< "Second is assigned : " << this->fDependentVar[i].second << std::endl;
+    }
+    
+    return; 
+}
+
+
+void QwRegression::AccumulateRunningSum(QwRegression value)
+{
+    for (size_t i = 0; i < value.fDependentVar.size(); i++){
+        this->fDependentVar[i].second->AccumulateRunningSum(const_cast<VQwHardwareChannel*>(value.fDependentVar[i].second));
+    }
+}
+
+
+void QwRegression::CalculateRunningAverage()
+{
+    for(size_t i = 0; i < fDependentVar.size(); i++)
+    {
+        fDependentVar[i].second->CalculateRunningAverage();
+    }
+
+    return;
+}
+
+
+void QwRegression::PrintValue() const
+{
+    QwMessage<<"=== QwRegression ==="<<QwLog::endl;
+    for(size_t i = 0; i < fDependentVar.size(); i++)
+    {
+        fDependentVar[i].second->PrintValue();
+        QwMessage<<QwLog::endl;
+    }
+}
+
