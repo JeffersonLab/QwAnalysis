@@ -124,6 +124,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;
   TString keyword;
+  TString keyword2;
   Int_t modnum, channum, combinedchans;
   std::vector<TString> combinedchannelnames;
   std::vector<Double_t> weight;
@@ -172,6 +173,7 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
         {
           Bool_t lineok=kTRUE;
 	  keyword = "";
+	  keyword2 = "";
           //  Break this line into tokens to process it.
           modtype   = mapstr.GetNextToken(", \t").c_str();	// module type
           if (modtype == "VQWK")
@@ -184,7 +186,9 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               namech.ToLower();
 
 	      keyword   = mapstr.GetNextToken(", \t").c_str();
+	      keyword2  = mapstr.GetNextToken(", \t").c_str();
 	      keyword.ToLower();
+	      keyword2.ToLower();
             }
           else if (modtype == "VPMT")
             {
@@ -208,7 +212,9 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
                   weight.push_back( atof(mapstr.GetNextToken(", \t").c_str()));
                 }
 	      keyword   = mapstr.GetNextToken(", \t").c_str();
+	      keyword2  = mapstr.GetNextToken(", \t").c_str();
 	      keyword.ToLower();
+	      keyword2.ToLower();
             }
 
 
@@ -263,10 +269,22 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               if (localMainDetID.fTypeID==kQwIntegrationPMT)
                 {
                   QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localMainDetID.fdetectorname);
-		  if (keyword=="not_blindable") 
-		    localIntegrationPMT.SetBlindability(kFALSE);
+		  if (keyword=="not_blindable")
+		    localIntegrationPMT.SetNormalizability(kFALSE);
 		  else 
-		    localIntegrationPMT.SetBlindability(kTRUE);
+		    localIntegrationPMT.SetNormalizability(kTRUE);
+		  if (keyword=="not_normalizable")
+		  	localIntegrationPMT.SetNormalizability(kFALSE);
+		  else
+		  	localIntegrationPMT.SetNormalizability(kTRUE);
+		  if (keyword2=="not_blindable") 
+		    localIntegrationPMT.SetNormalizability(kFALSE);
+		  else 
+		    localIntegrationPMT.SetNormalizability(kTRUE);
+		  if (keyword2=="not_normalizable")
+		  	localIntegrationPMT.SetNormalizability(kFALSE);
+		  else
+		  	localIntegrationPMT.SetNormalizability(kTRUE);
 		  fIntegrationPMT.push_back(localIntegrationPMT);
                   fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localMainDetID.fIndex=fIntegrationPMT.size()-1;
