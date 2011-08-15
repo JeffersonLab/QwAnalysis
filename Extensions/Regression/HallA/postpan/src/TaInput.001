@@ -1,0 +1,133 @@
+//****************************************************************
+//
+//  TaInput.C
+//     -  Handles the input files for ReD Analysis
+//
+//#define DEBUG
+//#define NOISY
+#include "TFile.h"
+#include <cstdlib>
+#include <iostream>
+#include "TTree.h"
+
+#include "TaFileName.hh"
+#include "PanTypes.hh"
+#include "TString.h"
+#include "TaConfFile.hh"
+#include "TaInput.hh"
+#include "TaFileName.hh"
+
+ClassImp(TaInput); 
+
+TaInput::TaInput():
+  fPanFile(0),
+  fRawTree(0),
+  fPairTree(0),
+  fConfig(0),
+  fTreeName(0)
+{}
+
+TaInput::TaInput(TString usrConfFileName):
+  fPanFile(0),
+  fRawTree(0),
+  fPairTree(0),
+  fConfig(0)
+{
+  fConfFileName = usrConfFileName;
+}
+
+TaInput::~TaInput() {}
+
+Int_t TaInput::Init(Int_t runnumber) {
+#ifdef DEBUG
+  cout << "TaInput::Init()" << endl;
+#endif
+
+  TaFileName::Setup (runnumber, "");
+  // Open and Read config file.  This is before root file in case
+  // options are to be read from conf file
+  fConfig = new TaConfFile;
+  if(fConfFileName.IsNull()) {
+    fConfig->Read();
+  } else {
+    fConfig->Read(fConfFileName);
+  }
+
+  fRunNumber = runnumber;
+  // Get the filename from the runnumber.  Very generic for now.
+  // Should eventually check to see if it's there.
+
+  // Open the file
+  if (fConfig->GetRootAnaType().IsNull()) {
+    TaFileName::Setup(runnumber,".001");
+    //TaFileName::Setup(runnumber,"");
+  } else{
+    cout << "setup for " << fConfig->GetRootAnaType().Data() << endl;
+    TaFileName::Setup(runnumber,fConfig->GetRootAnaType().Data());
+  }
+  TaFileName fn = TaFileName("root");
+  cout << "PAN rootfile: " << fn.String().c_str() << endl;
+  fPanFile = new TFile(fn.String().c_str(),"READ");
+  if (fPanFile->IsOpen() == kFALSE) {
+    cerr << "Could not open PAN rootfile: " << fn.String().c_str() << endl;
+    return 1;
+  }
+  fTreeName = fConfig->GetTreeType();
+
+  return CommonInit();
+
+}
+
+Int_t TaInput::Init(string runfile) {
+#ifdef DEBUG
+  cout << "TaInput::Init()" << endl;
+#endif
+
+  // A horrible way of getting the run number from the file name.
+  //  (until I can get it from the ROOT file)
+  char *first_ptr;
+  char *last_ptr;
+
+  first_ptr = strchr(runfile.c_str(),'_');
+  *first_ptr = '\0';
+  ++first_ptr;
+  last_ptr = strchr(first_ptr,'.');
+  *last_ptr = '\0';
+  ++last_ptr;
+  fRunNumber = atoi(first_ptr);
+
+  TaFileName::Setup (fRunNumber, "");
+  // Open and Read config file.  This is before root file in case
+  // options are to be read from conf file
+  fConfig = new TaConfFile;
+  if(fConfFileName.IsNull()) {
+    fConfig->Read();
+  } else {
+    fConfig->Read(fConfFileName);
+  }
+
+  cout << "PAN rootfile: " << runfile << endl;
+  fPanFile = new TFile(runfile.c_str(),"READ");
+  if (fPanFile->IsOpen() == kFALSE) {
+    cerr << "Could not open PAN rootfile: " << runfile.c_str() << endl;
+    return 1;
+  }
+  fTreeName = fConfig->GetTreeType();
+
+  return CommonInit();
+
+}
+
+Int_t TaInput::CommonInit() {
+  // Get the Raw and Pair Trees
+  fRawTree = (TTree*)fPanFile->Get("Mps_Tree");
+  fPairTree = (TTree*)fPanFile->Get(fTreeName);
+#ifdef NOISY
+  fRawTree->Print();
+  fPairTree->Print();
+#endif
+    
+  return 0;
+
+}
+

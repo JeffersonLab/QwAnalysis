@@ -1,0 +1,9 @@
+for i in {000..011}
+do
+  unlink TaInput.cc
+  make clean
+  ln -s TaInput.$i TaInput.cc
+  make -j4
+  mv -f ../redana ../redana_$i
+  unlink TaInput.cc
+done
