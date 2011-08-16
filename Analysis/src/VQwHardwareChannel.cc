@@ -9,6 +9,8 @@ VQwHardwareChannel::VQwHardwareChannel():
   fNumberOfSubElements(0), fDataToSave(kRaw),
   fErrorFlag(0), fDefErrorFlag(0)
 {
+  fULimit = 0.0;
+  fLLimit = 0.0;
 }
 
 VQwHardwareChannel::~VQwHardwareChannel()
