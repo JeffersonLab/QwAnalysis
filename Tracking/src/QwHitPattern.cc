@@ -98,7 +98,7 @@ void QwHitPattern::SetHDCHitList(
   std::vector<int>::iterator it;
   for (QwHitContainer::iterator hit  = hitlist->begin();
                                 hit != hitlist->end(); hit++){
-//     std::cout << "r2 wire: " << hit->GetElement() << " " << hit->GetHitNumber() << std::endl;
+    if(hit->GetDriftDistance()<0) continue;
     int index=32*hit->GetPlane()+hit->GetElement();
     if(check_dup.size()==0){
        check_dup.push_back(index);
