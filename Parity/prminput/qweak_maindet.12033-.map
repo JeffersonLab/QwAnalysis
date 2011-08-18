@@ -27,9 +27,9 @@ sample_size=464
 ! ModuleType, Module#, Chan#, DetType, DetName
   VQWK, 3, 0,  IntegrationPMT,  qwk_md1pos
   VQWK, 3, 1,  IntegrationPMT,  qwk_md2pos
-  VQWK, 3, 2,  IntegrationPMT,  qwk_md3pos
+  VQWK, 3, 2,  IntegrationPMT,  qwk_md5pos
   VQWK, 3, 3,  IntegrationPMT,  qwk_md4pos
-  VQWK, 3, 4,  IntegrationPMT,  qwk_md5pos
+  VQWK, 3, 4,  IntegrationPMT,  qwk_md3pos
   VQWK, 3, 5,  IntegrationPMT,  qwk_md6pos
   VQWK, 3, 6,  IntegrationPMT,  qwk_md7pos
   VQWK, 3, 7,  IntegrationPMT,  qwk_md8pos
