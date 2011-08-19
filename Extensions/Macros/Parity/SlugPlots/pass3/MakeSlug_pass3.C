@@ -18,7 +18,7 @@ void sigint_handler(int sig)
 	globalEXIT=1;
 }
 
-Int_t MakeSlug(
+Int_t MakeSlug_pass3(
 	TString runletlistfilename="0",
 	TString leaflistfilename="0",
 	TString slugrootfilename="0")
@@ -79,16 +79,17 @@ Int_t MakeSlug(
 //	Int_t ErrorFlag =0;
 	Int_t islugevnum =0;
 	Double_t slugeventnumber=0, runnumber=0, runletnumber=0;
-//	char fullleafnamelist[maxleaves][255], branchnamelist[maxleaves][255],
-//		newleafnamelist[maxleaves][255],modfullleafnamelist[maxleaves][255];
-	char fullleafnamelist[maxleaves][255]={0}, branchnamelist[maxleaves][255]={0},
-		newleafnamelist[maxleaves][255]={0},modfullleafnamelist[maxleaves][255]={0};
+	char fullleafnamelist[maxleaves][255], branchnamelist[maxleaves][255];
+	char newleafnamelist[maxleaves][255],modfullleafnamelist[maxleaves][255];
+	char dummy[maxleaves][255], dummy2[maxleaves][255];
 
 
 
 	TBranch *branches[maxleaves];
 	FILE * leaflistFile;
+	FILE * leaflistFile2;
 	leaflistFile = fopen (leaflistfilename.Data(), "r");
+	leaflistFile2 = fopen (leaflistfilename.Data(), "r");
 	if (leaflistFile == NULL) printf("Error opening file %s\n",leaflistfilename.Data());
 	else printf("Opened %s\n",leaflistfilename.Data());
 	// First put the base leaves into the slug tree
@@ -97,31 +98,29 @@ Int_t MakeSlug(
 	slug->Branch("run", &runnumber);
 	slug->Branch("runlet", &runletnumber);
 	// Next put the list of leaves into the slug tree
-	counter=-1;
-	while ( ! feof (leaflistFile) ) {
+	counter=0;
+	while ( ! feof (leaflistFile2) ) {
+		fscanf (leaflistFile2, "%s %s", dummy[counter], dummy2[counter]);
 		counter++;
-		fscanf (leaflistFile, "%s %s", fullleafnamelist[counter], newleafnamelist[counter]);
-		//if ((counter+1)%2==0) printf("\n");
-		printf("%3i %30s  %15s \n",counter,fullleafnamelist[counter],newleafnamelist[counter]);
-		if (counter+1 < maxleaves) {
-			sprintf(branchnamelist[counter],"%s",fullleafnamelist[counter]);
-			strtok(branchnamelist[counter],".: ");
-                        //cout<<branchnamelist[counter]<<endl;
-			TString* tmpstr = new TString(fullleafnamelist[counter]);
+	}
+	for (int i=0;i<counter-1;i++) {
+		fscanf (leaflistFile, "%s %s", fullleafnamelist[i], newleafnamelist[i]);
+		printf("%3i %30s  %15s \n",i,fullleafnamelist[i],newleafnamelist[i]);
+		if (i+1 < maxleaves) {
+			sprintf(branchnamelist[i],"%s",fullleafnamelist[i]);
+			strtok(branchnamelist[i],".: ");
+			TString* tmpstr = new TString(fullleafnamelist[i]);
 			tmpstr->ReplaceAll(".","/");
-			sprintf(modfullleafnamelist[counter],"%s",tmpstr->Data());
-			// this line creates the branch for the slug tree
-			//branches[counter] = slug->Branch(newleafnamelist[counter], &slugleafvalue[counter]);
-                        //branches[counter] = slug->Branch(modfullleafnamelist[counter], &slugleafvalue[counter]);
-                        branches[counter] = slug->Branch(newleafnamelist[counter], &slugleafvalue[counter]);
+			sprintf(modfullleafnamelist[i],"%s",tmpstr->Data());
+                        branches[i] = slug->Branch(newleafnamelist[i], &slugleafvalue[i]);
 			if (debug>1) {
-				//printf("%s  %s,  ",fullleafnamelist[counter],branchnamelist[counter]);
-				cout << Form("%s   %s",fullleafnamelist[counter],branchnamelist[counter]);
+				//printf("%s  %s,  ",fullleafnamelist[i],branchnamelist[i]);
+				cout << Form("%s   %s",fullleafnamelist[i],branchnamelist[i]);
 			}
 		}
 		else printf("Warning: maxleaves of %i exceeded\n",maxleaves);
 	}
-	Int_t numinputleaves = counter+1;
+	Int_t numinputleaves = counter-1;
 	fclose (leaflistFile);
 	printf("\nRead %i leaf names\n",numinputleaves);
 // 	for (Int_t leafnumber=1; leafnumber<=numinputleaves; leafnumber++) {
