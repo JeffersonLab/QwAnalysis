@@ -1278,17 +1278,17 @@ void QwTrackingTreeSearch::_SearchTreeLines (
         for (unsigned int plane = 0; plane < fNumPlanes; plane++) {
           int bin=(*tree_pattern++);
           patterns.at(plane)=pattern_offset + bin;
-          if (static_pattern[plane][pattern_offset + bin]) {
-            matched_planes++; /* number of matched tree-planes */
+          if (static_pattern[plane][pattern_offset + bin] || has_planes[plane]==0) {
+            ++matched_planes; /* number of matched tree-planes */
             final[plane]=pattern_offset+bin;
           }
-          else if(has_planes[plane]==0){
-            matched_planes++;
-            final[plane]=pattern_offset+bin;
-          }
+          //else if(has_planes[plane]==0){
+          //  ++matched_planes;
+          //  final[plane]=pattern_offset+bin;
+          //}
 	  else if(goofy_r2==0 && missed_planes==0 && level==fMaxLevel-1){
-	    matched_planes++;
-	    goofy_r2++;
+	    ++matched_planes;
+	    ++goofy_r2;
 	  }
         }
       }
