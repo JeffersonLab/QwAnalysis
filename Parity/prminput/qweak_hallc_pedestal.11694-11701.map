@@ -110,5 +110,5 @@
   qwk_bcm2,         -513.778   , 0.00444233
   qwk_bcm5,          6331.1   , 0.00263075
   qwk_bcm6,          6059.1   , 0.00448862
-  qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
+qwk_linephase, 0, 1.0
