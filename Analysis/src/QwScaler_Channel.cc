@@ -235,8 +235,15 @@ void  VQwScaler_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, 
     TString basename = prefix + GetElementName();
     fTreeArrayIndex  = values.size();
 
+    TString list;
     values.push_back(0.0);
-    TString list = basename + "/D";
+    list = "value/D";
+    values.push_back(0.0);
+    list += ":Device_Error_Code/D";
+    if(fDataToSave==kRaw){
+      values.push_back(0.0);
+      list += ":raw/D";
+    }
 
     fTreeArrayNumEntries = values.size() - fTreeArrayIndex;
     if (gQwHists.MatchDeviceParamsFromList(basename.Data()))
@@ -280,6 +287,10 @@ void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
   } else {
     size_t index = fTreeArrayIndex;
     values[index++] = this->fValue;
+    values[index++] = this->fDeviceErrorCode;
+    if(fDataToSave==kRaw){
+      values[index++] = this->fValue_Raw;
+    }
   }
 }
 
@@ -557,6 +568,7 @@ void VQwScaler_Channel::Copy(VQwDataElement *source)
          this->fValue             = input->fValue;
 	 this->fValueError        = input->fValueError;
          this->fValueM2           = input->fValueM2;
+	 this->fDataToSave        = kDerived;
          this->fPedestal          = input->fPedestal;
          this->fCalibrationFactor = input->fCalibrationFactor;
          this->fGoodEventCount    = input->fGoodEventCount;
