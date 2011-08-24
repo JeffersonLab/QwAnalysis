@@ -3,13 +3,13 @@ ROC=31
 Bank=0x3102
 !same sample size for ADCs in a given bank
 !for 30Hz uncomment the next line
-!sample_size=4161
+sample_size=4161
 !for 120Hz uncomment the next line
 !sample_size=1000
 !for 240Hz uncomment the next line
 !sample_size=485
 !for 960Hz uncomment the next line
-sample_size=116
+!sample_size=116
 
 !
 !
