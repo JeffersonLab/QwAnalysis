@@ -3,11 +3,9 @@
 
   <QwQPD>
 	hw_sum
-	Device_Error_Code
 
    <QwLinearDiodeArray>
 	hw_sum
-	Device_Error_Code
 
 # below the [DEVICELIST] include all the leaves that needs to be in the tree
 
