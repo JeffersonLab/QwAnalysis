@@ -35,14 +35,14 @@ sample_size=464
   VQWK, 3, 7,  IntegrationPMT,  qwk_md8pos
 !
 ! ModuleType, Module#, Chan#, DetType, DetName
-  VQWK, 4, 0,  IntegrationPMT,  qwk_PMTLED,		NOT_BLINDABLE
+  VQWK, 4, 0,  IntegrationPMT,  qwk_PMTLED,		NOT_BLINDABLE,  NOT_NORMALIZABLE
   VQWK, 4, 1,  IntegrationPMT,  qwk_PMTONL,		NOT_BLINDABLE
   VQWK, 4, 2,  IntegrationPMT,  qwk_PMTLTG,		NOT_BLINDABLE
   VQWK, 4, 3,  IntegrationPMT,  qwk_md9neg,		NOT_BLINDABLE
   VQWK, 4, 4,  IntegrationPMT,  qwk_md9pos,		NOT_BLINDABLE
-  VQWK, 4, 5,  IntegrationPMT,  qwk_ISourc,		NOT_BLINDABLE
-  VQWK, 4, 6,  IntegrationPMT,  qwk_Preamp,		NOT_BLINDABLE
-  VQWK, 4, 7,  IntegrationPMT,  qwk_CageSr,		NOT_BLINDABLE
+  VQWK, 4, 5,  IntegrationPMT,  qwk_ISourc,		NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 4, 6,  IntegrationPMT,  qwk_Preamp,		NOT_BLINDABLE,  NOT_NORMALIZABLE
+  VQWK, 4, 7,  IntegrationPMT,  qwk_CageSr,		NOT_BLINDABLE,  NOT_NORMALIZABLE
 !
 !
 !

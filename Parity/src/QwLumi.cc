@@ -44,7 +44,7 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
   Bool_t ldebug=kFALSE;
 
   TString varname, varvalue;
-  TString modtype, dettype, namech, nameofcombinedchan, keyword;
+  TString modtype, dettype, namech, nameofcombinedchan, keyword, keyword2;
   Int_t modnum = 0;
   Int_t channum = 0;
   Int_t combinedchans = 0;  
@@ -88,6 +88,8 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
       else
 	{
 	  Bool_t lineok=kTRUE;
+	  keyword = "";
+	  keyword2 = "";
 	  //  Break this line into tokens to process it.
 	  modtype   = mapstr.GetNextToken(", ").c_str();	// module type
 	  if (modtype == "VQWK" || modtype == "SCALER")
@@ -99,7 +101,9 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
 	      namech.ToLower();
 	      keyword = mapstr.GetNextToken(", ").c_str();
+	      keyword2 = mapstr.GetNextToken(", ").c_str();
 	      keyword.ToLower();
+	      keyword2.ToLower();
 	    }
 	  else if (modtype == "VPMT")
 	    {
@@ -123,8 +127,9 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 		  weight.push_back( atof(mapstr.GetNextToken(", \t").c_str()));
 		}
 	      keyword   = mapstr.GetNextToken(", \t").c_str();
+	      keyword2   = mapstr.GetNextToken(", \t").c_str();
 	      keyword.ToLower();
-      
+      	      keyword2.ToLower();
       
       
       
@@ -195,6 +200,25 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      if(localLumiDetectorID.fTypeID==kQwIntegrationPMT)
 		{
 		  QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
+
+		  if (keyword=="not_blindable")
+		    localIntegrationPMT.SetBlindability(kFALSE);
+		  else 
+		    localIntegrationPMT.SetBlindability(kTRUE);
+		  if (keyword=="not_normalizable")
+		  	localIntegrationPMT.SetNormalizability(kFALSE);
+		  else
+		  	localIntegrationPMT.SetNormalizability(kTRUE);
+		  if (keyword2=="not_blindable") 
+		    localIntegrationPMT.SetBlindability(kFALSE);
+		  else 
+		    localIntegrationPMT.SetBlindability(kTRUE);
+		  if (keyword2=="not_normalizable")
+		  	localIntegrationPMT.SetNormalizability(kFALSE);
+		  else
+		  	localIntegrationPMT.SetNormalizability(kTRUE);
+
+
 		  fIntegrationPMT.push_back(localIntegrationPMT);
 		  fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localLumiDetectorID.fIndex=fIntegrationPMT.size()-1;
@@ -202,6 +226,15 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      else if (localLumiDetectorID.fTypeID==kQwCombinedPMT)
 		{
 		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
+		  if (keyword=="not_normalizable" || keyword2=="not_normalizable")
+		    localcombinedPMT.SetNormalizability(kFALSE);
+		  else
+		    localcombinedPMT.SetNormalizability(kTRUE);
+		  if (keyword=="not_blindable" || keyword2 =="not_blindable") 
+		    localcombinedPMT.SetBlindability(kFALSE);
+		  else 
+		    localcombinedPMT.SetBlindability(kTRUE);
+
 		  fCombinedPMT.push_back(localcombinedPMT);
 		  fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
 		  localLumiDetectorID.fIndex=fCombinedPMT.size()-1;

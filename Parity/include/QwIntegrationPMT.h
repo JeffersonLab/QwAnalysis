@@ -101,6 +101,7 @@ class QwIntegrationPMT : public VQwDataElement{
   }
 
   void SetBlindability(Bool_t isblindable){fIsBlindable=isblindable;};
+  void SetNormalizability(Bool_t isnormalizable){fIsNormalizable = isnormalizable;};
 
   /// \brief Blind the asymmetry
   void Blind(const QwBlinder *blinder);
@@ -160,6 +161,7 @@ class QwIntegrationPMT : public VQwDataElement{
   Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
 
   Bool_t fIsBlindable; //
+  Bool_t fIsNormalizable;
 
   const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
   Bool_t bEVENTCUTMODE; //global switch to turn event cuts ON/OFF

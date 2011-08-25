@@ -35,6 +35,7 @@ void  QwIntegrationPMT::InitializeChannel(TString name, TString datatosave)
   fTriumf_ADC.InitializeChannel(name,datatosave);
   SetElementName(name);
   SetBlindability(kTRUE);
+  SetNormalizability(kTRUE);
   return;
 }
 /********************************************************/
@@ -45,6 +46,7 @@ void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString name, TStri
   fTriumf_ADC.InitializeChannel(subsystem,"QwIntegrationPMT", name, datatosave);
   SetElementName(name);
   SetBlindability(kTRUE);
+  SetNormalizability(kTRUE);
   return;
 }
 /********************************************************/
@@ -55,6 +57,7 @@ void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString module, TSt
   fTriumf_ADC.InitializeChannel(subsystem,module, name, datatosave);
   SetElementName(name);
   SetBlindability(kTRUE);
+  SetNormalizability(kTRUE);
   return;
 }
 /********************************************************/
@@ -288,9 +291,11 @@ void QwIntegrationPMT::Scale(Double_t factor)
 
 void QwIntegrationPMT::Normalize(VQwDataElement* denom)
 {
-  QwVQWK_Channel vqwk_denom;
-  vqwk_denom.Copy(denom);
-  fTriumf_ADC.DivideBy(vqwk_denom);
+	if (fIsNormalizable) {
+  	QwVQWK_Channel vqwk_denom;
+  	vqwk_denom.Copy(denom);
+  	fTriumf_ADC.DivideBy(vqwk_denom);
+  }
   return;
 }
 
@@ -408,6 +413,7 @@ void  QwIntegrationPMT::Copy(VQwDataElement *source)
 	  this->fPedestal=input->fPedestal;
 	  this->fCalibration=input->fCalibration;
 	  this->fIsBlindable=input->fIsBlindable;
+	  this->fIsNormalizable=input->fIsNormalizable;
 	  this->fTriumf_ADC.Copy(&(input->fTriumf_ADC));
 	}
       else

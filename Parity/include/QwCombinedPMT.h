@@ -93,6 +93,7 @@ class QwCombinedPMT : public VQwDataElement {
   void CalculateRunningAverage();
 
   void SetBlindability(Bool_t isblindable){fSumADC.SetBlindability(isblindable);};
+  void SetNormalizability(Bool_t isnormalizable){fSumADC.SetNormalizability(isnormalizable);}; 
 
   /// \brief Blind the asymmetry
   void Blind(const QwBlinder *blinder);
