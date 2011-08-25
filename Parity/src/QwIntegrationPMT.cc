@@ -35,6 +35,7 @@ void  QwIntegrationPMT::InitializeChannel(TString name, TString datatosave)
   fTriumf_ADC.InitializeChannel(name,datatosave);
   SetElementName(name);
   SetBlindability(kTRUE);
+  SetNormalizability(kTRUE);
   return;
 }
 /********************************************************/
@@ -45,6 +46,7 @@ void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString name, TStri
   fTriumf_ADC.InitializeChannel(subsystem,"QwIntegrationPMT", name, datatosave);
   SetElementName(name);
   SetBlindability(kTRUE);
+  SetNormalizability(kTRUE);
   return;
 }
 /********************************************************/
@@ -55,6 +57,7 @@ void  QwIntegrationPMT::InitializeChannel(TString subsystem, TString module, TSt
   fTriumf_ADC.InitializeChannel(subsystem,module, name, datatosave);
   SetElementName(name);
   SetBlindability(kTRUE);
+  SetNormalizability(kTRUE);
   return;
 }
 /********************************************************/
