@@ -270,17 +270,17 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
                 {
                   QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localMainDetID.fdetectorname);
 		  if (keyword=="not_blindable")
-		    localIntegrationPMT.SetNormalizability(kFALSE);
+		    localIntegrationPMT.SetBlindability(kFALSE);
 		  else 
-		    localIntegrationPMT.SetNormalizability(kTRUE);
+		    localIntegrationPMT.SetBlindability(kTRUE);
 		  if (keyword=="not_normalizable")
 		  	localIntegrationPMT.SetNormalizability(kFALSE);
 		  else
 		  	localIntegrationPMT.SetNormalizability(kTRUE);
 		  if (keyword2=="not_blindable") 
-		    localIntegrationPMT.SetNormalizability(kFALSE);
+		    localIntegrationPMT.SetBlindability(kFALSE);
 		  else 
-		    localIntegrationPMT.SetNormalizability(kTRUE);
+		    localIntegrationPMT.SetBlindability(kTRUE);
 		  if (keyword2=="not_normalizable")
 		  	localIntegrationPMT.SetNormalizability(kFALSE);
 		  else
