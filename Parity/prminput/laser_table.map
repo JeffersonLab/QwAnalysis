@@ -12,10 +12,10 @@ sample_size=464
 
 
 !ADC0
-    VQWK, 0, 0,  qpd,  QWK_QPDTL
+    VQWK, 0, 0,  qpd,  QWK_QPDBR
     VQWK, 0, 1,  qpd,  QWK_QPDTR
     VQWK, 0, 2,  qpd,  QWK_QPDBL
-    VQWK, 0, 3,  qpd,  QWK_QPDBR
+    VQWK, 0, 3,  qpd,  QWK_QPDTL
 
 !ADC0
     VQWK, 1, 0,  lineararray,  QWK_LINAP1
@@ -27,5 +27,11 @@ sample_size=464
     VQWK, 1, 6,  lineararray,  QWK_LINAP7
     VQWK, 1, 7,  lineararray,  QWK_LINAP8
 
+
+    VQWK, 11, 4,  bcm,  QWK_BCM0L02
+    VQWK, 11, 7,   bcm,  PhaseMonitor
+
+
 [PUBLISH]
-  q_targ, qpd, qwk_qpd, c
+!!!!!  q_targ, qpd, qwk_qpd, c
+ q_targ, bcm, qwk_bcm0l02, c
