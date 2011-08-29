@@ -749,3 +749,53 @@ TList* QwSubsystemArray::GetParamFileNameList(TString name) const
     return NULL;
   }
 };
+
+
+
+/**
+ * Add the subsystem to this array.  Do nothing if the subsystem is null or if
+ * there is already a subsystem with that name in the array.
+ * @param subsys Subsystem to add to the array
+ */
+void QwSubsystemArray::push_back(boost::shared_ptr<VQwSubsystem>& subsys)
+{
+  
+ if (subsys.get() == NULL) {
+   QwError << "QwSubsystemArray::push_back(): NULL subsys"
+           << QwLog::endl;
+   //  This is an empty subsystem...
+   //  Do nothing for now.
+
+ } else if (!this->empty() && GetSubsystemByName(subsys->GetSubsystemName())){
+   //  There is already a subsystem with this name!
+   QwError << "QwSubsystemArray::push_back(): subsys " << subsys->GetSubsystemName()
+           << " already exists" << QwLog::endl;
+
+ } else if (!fnCanContain(subsys.get())) {
+   //  There is no support for this type of subsystem
+   QwError << "QwSubsystemArray::push_back(): subsys " << subsys->GetSubsystemName()
+           << " is not supported by this subsystem array" << QwLog::endl;
+
+ } else {
+   boost::shared_ptr<VQwSubsystem> subsys_tmp(subsys);
+   SubsysPtrs::push_back(subsys_tmp);
+
+   // Set the parent of the subsystem to this array
+   subsys_tmp->SetParent(this);
+
+   // Update the event type mask
+   // Note: Active bits in the mask indicate event types that are accepted
+   fEventTypeMask |= subsys_tmp->GetEventTypeMask();
+
+   // Instruct the subsystem to publish variables
+   if (subsys_tmp->PublishInternalValues() == kFALSE) {
+     QwError << "Not all variables for " << subsys_tmp->GetSubsystemName()
+             << " could be published!" << QwLog::endl;
+   }
+ }
+}
+  
+  
+  
+  
+  

@@ -67,7 +67,7 @@ public:
   };
 
   /*   virtual void AddChannelOffset(Double_t Offset) = 0; */
-  /*   virtual void Scale(Double_t Offset) = 0; */
+  virtual void Scale(Double_t Offset) = 0;
 
 
   /// \brief Initialize the fields in this object
@@ -118,7 +118,12 @@ public:
   
   virtual void AccumulateRunningSum(const VQwHardwareChannel *value) = 0;
 
-
+  
+  virtual VQwHardwareChannel& operator=(const VQwHardwareChannel& input) {  this->AssignValueFrom(&input); return *this; };
+  virtual VQwHardwareChannel& operator*=(const VQwHardwareChannel& input)     { this->AssignValueFrom(&input); return *this; };
+  virtual VQwHardwareChannel& operator/=(const VQwHardwareChannel& input)
+      { this->AssignValueFrom(&input); return *this;};
+  virtual VQwHardwareChannel& operator+=(const VQwHardwareChannel& input){ this->AssignValueFrom(&input); return *this; };
 
 protected:
   /*! \brief Set the number of data words in this data element */
@@ -181,8 +186,12 @@ protected:
   UInt_t fDefErrorFlag;
   //@}
 
-private:
-  VQwHardwareChannel& operator=(const VQwHardwareChannel&);
+ 
+  
+//protected:  
+//private:
+public: 
+  
 
 
 

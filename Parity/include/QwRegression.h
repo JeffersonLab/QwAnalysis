@@ -31,6 +31,12 @@ class QwRegression {
     QwRegression(QwOptions &options,
         QwSubsystemArrayParity& event,
         QwHelicityPattern& helicitypattern);
+    /// \brief Constructor with single event
+    QwRegression(QwOptions &options, QwSubsystemArrayParity& event);
+    /// \brief Constructor with helicity pattern
+    QwRegression(QwOptions &options, QwHelicityPattern& helicitypattern);
+    /// \brief Constructor with only options
+    QwRegression(QwOptions &options);
     /// Virtual destructor
     virtual ~QwRegression();
     QwRegression(const QwRegression &source);
@@ -49,7 +55,8 @@ class QwRegression {
     Int_t ConnectChannels(QwSubsystemArrayParity& event,
         QwSubsystemArrayParity& asym,
         QwSubsystemArrayParity& diff);
-
+    /// \brief Connect to Channels (event only)
+    Int_t ConnectChannels(QwSubsystemArrayParity& event);
 
     /// \brief Linear regression
     void LinearRegression(EQwRegType type);
@@ -78,7 +85,8 @@ class QwRegression {
 
     /// Private default constructor
     QwRegression() { };
-
+  
+  protected:
     /// Flag to enable regression
     bool fEnableRegression;
 
@@ -99,7 +107,7 @@ class QwRegression {
     std::vector< std::pair< VQwHardwareChannel*, VQwHardwareChannel*> > fDependentVar;
     std::vector< std::vector< EQwRegType > > fIndependentType;
     std::vector< std::vector< std::string > > fIndependentName;
-    std::vector< std::vector< VQwHardwareChannel* > > fIndependentVar;
+    std::vector< std::vector< const VQwHardwareChannel* > > fIndependentVar;
     std::vector< std::vector< Double_t> > fSensitivity;
 
 
