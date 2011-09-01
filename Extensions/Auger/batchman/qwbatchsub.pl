@@ -301,9 +301,10 @@ if (defined($opt_F) && $opt_F ne ""){
     print STDOUT "No \"good run\" file was specified; trying to get all runs.\n";
     @good_runs = @run_list;
 }
-
-
-
+if ($#good_runs < 0){
+    print STDOUT "There are no good runs to be analyzed.\n";
+    exit;
+}
 
 print STDOUT "\nRuns to be analyzed:\t@good_runs\n",
     "Base MSS directory:  \t$BaseMSSDir\n",
@@ -558,7 +559,7 @@ sub get_the_good_runs ($@) {
 	      print "Run $run is not a good run.\n";
       }
     }
-
+    $sth->finish();
     $dbh->disconnect;
 
     return @goodrunlist;

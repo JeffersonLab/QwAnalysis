@@ -125,6 +125,7 @@ class QwLinearDiodeArray : public VQwBPM {
   /////
  private:
   static const size_t kMaxElements;
+  static const TString subelement[8]; 
 
   /*  Position calibration factor, transform ADC counts in mm */
   static const Double_t kQwLinearDiodeArrayPadSize;
@@ -132,8 +133,8 @@ class QwLinearDiodeArray : public VQwBPM {
 
 
  protected:
-  std::vector<QwVQWK_Channel> fPhotodiode;
-  // QwVQWK_Channel fPhotodiode[8];
+  // std::vector<QwVQWK_Channel> fPhotodiode;
+  QwVQWK_Channel fPhotodiode[8];
   QwVQWK_Channel fRelPos[2];
 
   //  These are the "real" data elements, to which the base class

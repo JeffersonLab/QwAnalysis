@@ -22,8 +22,9 @@ void  QwQPD::InitializeChannel(TString name)
   Short_t i=0;
   Bool_t localdebug = kFALSE;
 
+  VQwBPM::InitializeChannel(name);
 
-  //  fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
+  fEffectiveCharge.InitializeChannel(name+"_EffectiveCharge","derived");
 
   for(i=0;i<4;i++) {
     fPhotodiode[i].InitializeChannel(name+subelement[i],"raw");
@@ -32,10 +33,10 @@ void  QwQPD::InitializeChannel(TString name)
       std::cout<<" photodiode ["<<i<<"]="<<fPhotodiode[i].GetElementName()<<"\n";
   }
   
-  for(i=kXAxis;i<kNumAxes;i++) 
+  for(i=kXAxis;i<kNumAxes;i++) {
     fRelPos[i].InitializeChannel(name+"Rel"+kAxisLabel[i],"derived");
-
-  VQwBPM::InitializeChannel(name);
+    fAbsPos[i].InitializeChannel(name+kAxisLabel[i],"derived");
+  }
   
   bFullSave=kTRUE;
 
@@ -89,11 +90,14 @@ void QwQPD::ClearEventData()
 {
   Short_t i=0;
 
-  VQwBPM::ClearEventData();
-
   for(i=0;i<4;i++) fPhotodiode[i].ClearEventData();
 
-  for(i=kXAxis;i<kNumAxes;i++) fRelPos[i].ClearEventData();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].ClearEventData();
+    fAbsPos[i].ClearEventData();
+  }
+  
+  fEffectiveCharge.ClearEventData();
 
  return;
 }
@@ -124,8 +128,12 @@ Int_t QwQPD::GetEventcutErrorCounters()
   for(i=0;i<4;i++) 
     fPhotodiode[i].GetEventcutErrorCounters();
 
-  VQwBPM::GetEventcutErrorCounters();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].GetEventcutErrorCounters();
+    fAbsPos[i].GetEventcutErrorCounters();
+  }
 
+  fEffectiveCharge.GetEventcutErrorCounters();
   return 1;
 }
 
@@ -415,13 +423,14 @@ VQwBPM& QwQPD::operator= (const VQwBPM &value)
 
 QwQPD& QwQPD::operator= (const QwQPD &value)
 {
-  VQwBPM::operator=(value);
   if (GetElementName()!=""){
     Short_t i = 0;
-    // this->fEffectiveCharge=value.fEffectiveCharge;
+    this->fEffectiveCharge=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]=value.fPhotodiode[i];
-    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]=value.fRelPos[i];
-    
+    for(i=kXAxis;i<kNumAxes;i++){
+      this->fRelPos[i]=value.fRelPos[i];
+      this->fAbsPos[i]=value.fAbsPos[i];
+    }
   }
   return *this;
 }
@@ -434,12 +443,15 @@ VQwBPM& QwQPD::operator+= (const VQwBPM &value)
 
 QwQPD& QwQPD::operator+= (const QwQPD &value)
 {
-//  VQwBPM::operator+= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
+    this->fEffectiveCharge+=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]+=value.fPhotodiode[i];
-    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]+=value.fRelPos[i];
 
+    for(i=kXAxis;i<kNumAxes;i++){
+      this->fRelPos[i]+=value.fRelPos[i];
+      this->fAbsPos[i]+=value.fAbsPos[i];
+    }
   }
   return *this;
 }
@@ -452,12 +464,15 @@ VQwBPM& QwQPD::operator-= (const VQwBPM &value)
 
 QwQPD& QwQPD::operator-= (const QwQPD &value)
 {
-//  VQwBPM::operator-= (value);
   if (GetElementName()!=""){
     Short_t i = 0;
+    this->fEffectiveCharge-=value.fEffectiveCharge;
     for(i=0;i<4;i++) this->fPhotodiode[i]-=value.fPhotodiode[i];
-    for(i=kXAxis;i<kNumAxes;i++) this->fRelPos[i]-=value.fRelPos[i];
 
+    for(i=kXAxis;i<kNumAxes;i++){
+      this->fRelPos[i]-=value.fRelPos[i];
+      this->fAbsPos[i]-=value.fAbsPos[i];
+    }
   }
   return *this;
 }
@@ -465,7 +480,7 @@ QwQPD& QwQPD::operator-= (const QwQPD &value)
 
 void QwQPD::Ratio(QwQPD &numer, QwQPD &denom)
 {
-  // this function is called when forming asymmetries. In this case waht we actually want for the
+  // this function is called when forming asymmetries. In this case what we actually want for the
   // QPD is the difference only not the asymmetries
 
   *this=numer;
@@ -490,7 +505,16 @@ void QwQPD::Scale(Double_t factor)
 
 void QwQPD::Copy(QwQPD *source)
 {
+  Short_t i = 0;
+
   VQwBPM::Copy(source);
+  for(i=0;i<4;i++) fPhotodiode[i].Copy(&(source->fPhotodiode[i]));
+  for(i=kXAxis;i<kNumAxes;i++){
+    fRelPos[i].Copy(&(source->fRelPos[i]));
+    fAbsPos[i].Copy(&(source->fAbsPos[i]));
+  }
+  fEffectiveCharge.Copy(&(source->fEffectiveCharge));
+
   return;
 }
 
@@ -509,6 +533,7 @@ void QwQPD::AccumulateRunningSum(const QwQPD& value)
 {
   // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
   Short_t i = 0;
+
   for (i = 0; i < 2; i++){
     fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
     fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);

@@ -8,76 +8,7 @@
 
 ClassImp(QwGUIDatabase);
 
-QwGUIGoodForSettings::QwGUIGoodForSettings(){
-  fGoodForLabels.push_back("production");
-  fGoodForLabels.push_back("commissioning");
-  fGoodForLabels.push_back("parity");
-  fGoodForLabels.push_back("tracking");
-  fGoodForLabels.push_back("centering_target");
-  fGoodForLabels.push_back("centering_plug");
-  fGoodForLabels.push_back("pedestals");
-  fGoodForLabels.push_back("transverse");
-  fGoodForIDs.resize(fGoodForLabels.size());
-  fGoodForReject.resize(fGoodForLabels.size());
-  for (size_t i=0; i< fGoodForLabels.size(); i++){
-    fGoodForIDs.at(i)    = i+1;
-    fGoodForReject.at(i) = kTRUE;
-  }
-  fGoodForReject.at(0) = kFALSE;
-  fGoodForReject.at(2) = kFALSE;
-  fGoodForRejectNULLs = kTRUE;
 
-  fQualityLabels.push_back("good");
-  fQualityLabels.push_back("bad");
-  fQualityLabels.push_back("suspect");
-  fQualityIDs.resize(fQualityLabels.size());
-  fQualityReject.resize(fQualityLabels.size());
-  for (size_t i=0; i<fQualityLabels.size(); i++){
-    fQualityIDs.at(i)    = i+1;
-    fQualityReject.at(i) = kTRUE;
-  }
-  fQualityReject.at(0) = kFALSE;
-  fQualityRejectNULLs = kTRUE;
-}
-
-std::string QwGUIGoodForSettings::GetSelectionString(std::string table){
-  std::string selection;
-  std::string prefix;
-  if (!table.empty()){
-    prefix = table + ".";
-  } else {
-    prefix = "";
-  }
-  Bool_t firstentry;
-  firstentry = kTRUE;
-  if (fGoodForRejectNULLs){
-    if (!firstentry) selection += " AND";
-    firstentry = kFALSE;
-    selection += " " + prefix + "good_for_id is not NULL";
-  }
-  for (size_t i=0; i<fGoodForIDs.size(); i++){
-    if (fGoodForReject.at(i)){
-      if (!firstentry) selection += " AND";
-      firstentry = kFALSE;
-      selection += " " + prefix + "good_for_id not like ";
-      selection += Form("\"%%%d%%\"",fGoodForIDs.at(i));
-    }
-  }
-  if (fQualityRejectNULLs){
-    if (!firstentry) selection += " AND";
-    firstentry = kFALSE;
-    selection += " " + prefix + "run_quality_id is not NULL";
-  }
-  for (size_t i=0; i<fQualityIDs.size(); i++){
-    if (fQualityReject.at(i)){
-      if (!firstentry) selection += " AND";
-      firstentry = kFALSE;
-      selection += " " + prefix + "run_quality_id not like ";
-      selection += Form("\"%%%d%%\"",fQualityIDs.at(i));
-    }
-  }
-  return selection;
-}
 
 TString detector;
 TString property;
@@ -105,6 +36,8 @@ enum EQwGUIDatabaseInstrumentIDs {
   ID_E_CAL,
   ID_BPM,
   ID_BCM,
+  ID_MD_SENS,
+  ID_LUMI_SENS
 };
 
 enum EQwGUIDatabaseWidgetIDs {
@@ -120,8 +53,9 @@ enum EQwGUIDatabaseWidgetIDs {
   CMB_XDET,
   CMB_TGT,
   CMB_REGRESS,
-  CMB_PLOT
-};
+  CMB_PLOT,
+  BOX_GOODFOR,
+  };
 
 
 const char *QwGUIDatabase::DetectorCombos[N_DETECTORS] = 
@@ -158,13 +92,17 @@ const char *QwGUIDatabase::DetectorCombos[N_DETECTORS] =
     "qwk_md6barsum",
     "qwk_md7barsum",
     "qwk_md8barsum",
+    "qwk_md9barsum",
     "qwk_md1_qwk_md5",
     "qwk_md2_qwk_md6",
     "qwk_md3_qwk_md7",
     "qwk_md4_qwk_md8",
     "qwk_mdoddbars",
     "qwk_mdevenbars",
-    "qwk_mdallbars"
+    "qwk_mdallbars",
+    "dd_mdeven_odd",
+    "dd_md15_37",
+    "dd_md26_48"
   };
 
 const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] = 
@@ -180,7 +118,8 @@ const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] =
 
 const char *QwGUIDatabase::BeamCurrentMonitors[N_BCMS] = 
 {
-  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_linephase", "qwk_invert_tstable"
+  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_linephase", "qwk_invert_tstable",
+  "bcmdd12","bcmdd15","bcmdd16","bcmdd56"
  
 };
 
@@ -246,6 +185,10 @@ const char *QwGUIDatabase::EnergyCalculators[N_ENERGY] = {
   "qwk_energy"
 };
 
+const char *QwGUIDatabase::RegressionVars[N_REGRESSION_VARS] = {
+  "targetX","targetY","targetXSlope","targetYSlope","energy"
+};
+
 
 /**
 
@@ -275,7 +218,7 @@ main_detectors/lumis - a, y
 
 const char *QwGUIDatabase::ChargeMeasurementTypes[N_Q_MEAS_TYPES]=
   {
-    "yq","a","a12", "aeo", "r", 
+    "yq","a","a12", "aeo", "r", "d"
   };
 
 const char *QwGUIDatabase::PositionMeasurementTypes[N_POS_MEAS_TYPES]=
@@ -285,13 +228,17 @@ const char *QwGUIDatabase::PositionMeasurementTypes[N_POS_MEAS_TYPES]=
 
 const char *QwGUIDatabase::DetectorMeasurementTypes[N_DET_MEAS_TYPES]=
   {
-    "y", "a", "a12","aeo","r"
+    "y", "a", "a12", "aeo", "r"
   };
 
 const char *QwGUIDatabase::OtherMeasurementTypes[N_MEAS_TYPES]=
   {
     "ya", "ym", "ye","p"
   };
+
+const char *QwGUIDatabase::SensitivityTypes[N_SENS_TYPES]= {
+	"s"
+};
 
 const char *QwGUIDatabase::Subblocks[N_SUBBLOCKS] = 
   {
@@ -335,6 +282,12 @@ const char *QwGUIDatabase::Plots[2] =
     "Mean", "RMS"
   }; 
 
+const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
+{
+  "production","commissioning","parity","tracking",
+  "centering_target","centering_plug","pedestals","transverse"
+};
+
 
 QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTab *tab,
 			       const char *objName, const char *mainname, UInt_t w, UInt_t h)
@@ -342,6 +295,8 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
 { 
   dTabFrame           = NULL;
   dControlsFrame      = NULL;
+  dQualityFrame		  = NULL;
+  dRunFrame			  = NULL;
   dCanvas             = NULL;  
   dTabLayout          = NULL;
   dCnvLayout          = NULL;
@@ -350,6 +305,12 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dNumLayout          = NULL;
   dBtnLayout          = NULL;
   dLabLayout          = NULL;
+  dChkLayout		  = NULL;
+  dBoxLayout		  = NULL;
+  dChkQualityGood	  = NULL;
+  dChkQualitySuspect  = NULL;
+  dChkQualityBad	  = NULL;
+  dBoxGoodFor		  = NULL;
   dCmbXAxis           = NULL;
   dCmbInstrument      = NULL;
   dCmbDetector        = NULL;
@@ -362,14 +323,18 @@ QwGUIDatabase::QwGUIDatabase(const TGWindow *p, const TGWindow *main, const TGTa
   dNumStartRun        = NULL;
   dNumStopRun         = NULL;
   dBtnSubmit          = NULL;
-  dLabStartRun        = NULL;
-  dLabStopRun         = NULL;
+  dLabRunRange        = NULL;
   dLabTarget          = NULL;
   dLabRegression      = NULL;
   dLabPlot            = NULL;
 
+  RemoveSelectedDataWindow();
+
   GraphArray.Clear();
+  LegendArray.Clear();
+
   DataWindowArray.Clear();
+
 
   AddThisTab(this);
 
@@ -379,6 +344,8 @@ QwGUIDatabase::~QwGUIDatabase()
 {
   if(dTabFrame)           delete dTabFrame;
   if(dControlsFrame)      delete dControlsFrame;
+  if(dQualityFrame)       delete dQualityFrame;
+  if(dRunFrame)			  delete dRunFrame;
   if(dCanvas)             delete dCanvas;  
   if(dTabLayout)          delete dTabLayout;
   if(dCnvLayout)          delete dCnvLayout;
@@ -387,12 +354,21 @@ QwGUIDatabase::~QwGUIDatabase()
   if(dNumLayout)          delete dNumLayout;
   if(dLabLayout)          delete dLabLayout;
   if(dBtnLayout)          delete dBtnLayout;
-  if(dLabStartRun)        delete dLabStartRun;
-  if(dLabStopRun)         delete dLabStopRun;
+  if(dChkLayout)		  delete dChkLayout;
+  if(dBoxLayout)		  delete dBoxLayout;
+  if(dChkQualityGood)	  delete dChkQualityGood;
+  if(dChkQualitySuspect)  delete dChkQualitySuspect;
+  if(dChkQualityBad)	  delete dChkQualityBad;
+  if(dBoxGoodFor) 		  delete dBoxGoodFor;
+  if(dLabRunRange)        delete dLabRunRange;
   if(dNumStartRun)        delete dNumStartRun;
   if(dLabTarget)          delete dLabTarget;
   if(dLabRegression)      delete dLabRegression;
   if(dLabPlot)            delete dLabPlot;
+  if(dLabInstrument)      delete dLabInstrument;
+  if(dLabDetector)        delete dLabDetector;
+  if(dLabMeasurement)     delete dLabMeasurement;
+  if(dLabSubblock)        delete dLabSubblock;
   if(dNumStopRun)         delete dNumStopRun;
   if(dCmbInstrument)      delete dCmbInstrument;
   if(dCmbXAxis)           delete dCmbXAxis;
@@ -453,7 +429,7 @@ void QwGUIDatabase::MakeLayout()
 
 
   dTabFrame = new TGHorizontalFrame(this);  
-  AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandX | kLHintsExpandY, 5, 5));
+  AddFrame(dTabFrame, new TGLayoutHints(kLHintsTop | kLHintsExpandY | kLHintsExpandX, 5, 5));
 
   dControlsFrame = new TGVerticalFrame(this);
   dTabFrame->AddFrame(dControlsFrame, new TGLayoutHints(kLHintsRight | kLHintsExpandY, 5, 5, 5, 5));
@@ -464,29 +440,45 @@ void QwGUIDatabase::MakeLayout()
   dCanvas             = new TRootEmbeddedCanvas("pC", dTabFrame,200, 200); 
   dTabFrame->AddFrame(dCanvas, new TGLayoutHints( kLHintsLeft | kLHintsExpandY | kLHintsExpandX, 10, 10, 10, 10));
 
+  dLabInstrument	  = new TGLabel(dControlsFrame, "Instrument Type");
   dCmbInstrument      = new TGComboBox(dControlsFrame, CMB_INSTRUMENT);
+  dLabXAxis			  = new TGLabel(dControlsFrame, "X-Axis");
   dCmbXAxis           = new TGComboBox(dControlsFrame, CMB_XAXIS);
+  dLabMeasurement	  = new TGLabel(dControlsFrame, "Measurement Type");
   dCmbMeasurementType = new TGComboBox(dControlsFrame, CMB_MEASUREMENT_TYPE);
+  dLabDetector		  = new TGLabel(dControlsFrame, "Detector");
   dCmbDetector        = new TGComboBox(dControlsFrame, CMB_DETECTOR);
+  dLabProperty		  = new TGLabel(dControlsFrame, "Detector Property/Regression IV");
   dCmbProperty        = new TGComboBox(dControlsFrame, CMB_PROPERTY);
+  dLabSubblock		  = new TGLabel(dControlsFrame, "Subblock");
   dCmbSubblock        = new TGComboBox(dControlsFrame, CMB_SUBBLOCK);
   dLabTarget          = new TGLabel(dControlsFrame, "Target");
   dCmbTargetType      = new TGComboBox(dControlsFrame, CMB_TGT);
   dLabRegression      = new TGLabel(dControlsFrame, "Regression Correction");
   dCmbRegressionType  = new TGComboBox(dControlsFrame, CMB_REGRESS);
+  dLabQuality		  = new TGLabel(dControlsFrame,"Data Quality");
+  dQualityFrame 	  = new TGHorizontalFrame(dControlsFrame);
+  	  dChkQualityGood	  = new TGCheckButton(dQualityFrame,"Good");
+  	  dChkQualitySuspect  = new TGCheckButton(dQualityFrame,"Susp.");
+  	  dChkQualityBad	  = new TGCheckButton(dQualityFrame,"Bad");
+  dLabGoodFor		  = new TGLabel(dControlsFrame, "Good For");
+  dBoxGoodFor		  = new TGListBox(dControlsFrame, BOX_GOODFOR);
   dLabPlot            = new TGLabel(dControlsFrame, "Plot Type");
   dCmbPlotType        = new TGComboBox(dControlsFrame, CMB_PLOT);
-  dLabStartRun        = new TGLabel(dControlsFrame, "First Run");
-  dNumStartRun        = new TGNumberEntry(dControlsFrame, 0, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
-  dLabStopRun         = new TGLabel(dControlsFrame, "Last Run");
-  dNumStopRun         = new TGNumberEntry(dControlsFrame, 12200, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  dLabRunRange        = new TGLabel(dControlsFrame, "Run Range");
+  dRunFrame			  = new TGHorizontalFrame(dControlsFrame);
+  	  dNumStartRun        = new TGNumberEntry(dRunFrame, 9000, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  	  dNumStopRun         = new TGNumberEntry(dRunFrame, 11250, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dBtnSubmit          = new TGTextButton(dControlsFrame, "&Submit", BTN_SUBMIT);  //dSlowControls       = new TGButtonGroup(dControlsFrame, "Slow Controls");
 
 
-  dLabLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
-  dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 10, 10, 5, 5);
-  dNumLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 10, 10, 5, 5 );
-  dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 5, 5 );
+  dLabLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 0, 0, 10, 0 );
+  dCmbLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop , 0, 0, 0, 0 );
+  dNumLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 10, 10, 0, 0 );
+  dChkLayout = new TGLayoutHints( kLHintsExpandX | kLHintsTop, 0, 0, 0, 0 );
+  dBtnLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 10, 0 );
+  dFrmLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 0, 0 );
+  dBoxLayout = new TGLayoutHints( kLHintsCenterX | kLHintsTop, 0, 0, 0, 0 );
 
   dCmbXAxis->AddEntry("Histogram", ID_X_HISTO);
   dCmbXAxis->AddEntry("Vs. Run Number", ID_X_RUN);
@@ -501,6 +493,8 @@ void QwGUIDatabase::MakeLayout()
   dCmbInstrument->AddEntry("Combined BPMs", ID_CMB_BPM);
   dCmbInstrument->AddEntry("Combined BCMs", ID_CMB_BCM);
   dCmbInstrument->AddEntry("Energy Calculator", ID_E_CAL);
+  dCmbInstrument->AddEntry("Main Detector Sensitivities", ID_MD_SENS);
+  dCmbInstrument->AddEntry("LUMI Detector Sensitivities", ID_LUMI_SENS);
   dCmbInstrument->Connect("Selected(Int_t)","QwGUIDatabase", this, "PopulateDetectorComboBox()");
   dCmbInstrument->Select(dCmbInstrument->FindEntry("Main Detectors")->EntryId());
   dCmbProperty->Connect("Selected(Int_t)","QwGUIDatabase", this, "PopulateMeasurementComboBox()");
@@ -523,6 +517,11 @@ void QwGUIDatabase::MakeLayout()
     dCmbPlotType->AddEntry(Plots[i], i);
   }
 
+  // Populate good for list
+  for (Int_t i = 0; i<N_GOODFOR_TYPES; i++){
+	  dBoxGoodFor->AddEntry(GoodForTypes[i],i+1);
+  }
+
   dCmbSubblock->Select(0);
   dCmbTargetType->Select(1);
   dCmbRegressionType->Select(0);
@@ -538,25 +537,45 @@ void QwGUIDatabase::MakeLayout()
   dCmbTargetType      -> Resize(150,20);
   dCmbRegressionType  -> Resize(150,20);
   dCmbPlotType        -> Resize(150,20);
+  dBoxGoodFor         -> Resize(150,80);
 
 
+  dControlsFrame	  -> AddFrame(dLabInstrument, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbInstrument, dCmbLayout ); // detector type
+  dControlsFrame	  -> AddFrame(dLabDetector, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbDetector, dCmbLayout );   // detector name
+  dControlsFrame	  -> AddFrame(dLabProperty, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbProperty, dCmbLayout );   // detector property
+  dControlsFrame	  -> AddFrame(dLabMeasurement, dLabLayout);
   dControlsFrame      -> AddFrame(dCmbMeasurementType, dCmbLayout ); // measurement type
+  dControlsFrame	  -> AddFrame(dLabSubblock, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbSubblock, dCmbLayout );   // block type
-  dControlsFrame      -> AddFrame(dCmbXAxis, dCmbLayout );
+  dControlsFrame	  -> AddFrame(dLabXAxis, dLabLayout );
+  dControlsFrame      -> AddFrame(dCmbXAxis, dCmbLayout );		//x-axis
   dControlsFrame      -> AddFrame(dLabTarget, dLabLayout );
-  dControlsFrame      -> AddFrame(dCmbTargetType, dCmbLayout );
+  dControlsFrame      -> AddFrame(dCmbTargetType, dCmbLayout );		//target
   dControlsFrame      -> AddFrame(dLabRegression, dLabLayout );
-  dControlsFrame      -> AddFrame(dCmbRegressionType, dCmbLayout );
-  dControlsFrame      -> AddFrame(dLabStartRun, dLabLayout );
-  dControlsFrame      -> AddFrame(dNumStartRun, dNumLayout );
-  dControlsFrame      -> AddFrame(dLabStopRun, dLabLayout );
-  dControlsFrame      -> AddFrame(dNumStopRun, dNumLayout );
+  dControlsFrame      -> AddFrame(dCmbRegressionType, dCmbLayout );		//regression
+  dControlsFrame	  -> AddFrame(dLabQuality, dLabLayout);
+  dControlsFrame      -> AddFrame(dQualityFrame, dFrmLayout);
+  	  dQualityFrame	      -> AddFrame(dChkQualityGood, dChkLayout );
+  	  	  dChkQualityGood     ->SetState(kButtonDown, kTRUE); //default quality to "good"
+  	  dQualityFrame	      -> AddFrame(dChkQualitySuspect, dChkLayout );
+  	  dQualityFrame	      -> AddFrame(dChkQualityBad, dChkLayout );
+  dControlsFrame	  -> AddFrame(dLabGoodFor, dLabLayout);
+  dControlsFrame	  -> AddFrame(dBoxGoodFor, dBoxLayout);
+  	  dBoxGoodFor		  -> SetMultipleSelections(kTRUE);
+  	  dBoxGoodFor		  -> Select(dBoxGoodFor->FindEntry("production")->EntryId());
+  	  dBoxGoodFor		  -> Select(dBoxGoodFor->FindEntry("parity")->EntryId());
+  dControlsFrame      -> AddFrame(dLabRunRange, dLabLayout );
+  dControlsFrame	  -> AddFrame(dRunFrame,dFrmLayout);
+  	  dRunFrame           -> AddFrame(dNumStartRun, dNumLayout );
+  	  dRunFrame           -> AddFrame(dNumStopRun, dNumLayout );
   dControlsFrame      -> AddFrame(dLabPlot, dLabLayout );
   dControlsFrame      -> AddFrame(dCmbPlotType, dCmbLayout );
   dControlsFrame      -> AddFrame(dBtnSubmit, dBtnLayout);
+
+  dCmbMeasurementType->Select(dCmbMeasurementType->FindEntry("a")->EntryId());
 
   dCmbXAxis           -> Associate(this);
   dCmbInstrument      -> Associate(this);
@@ -569,15 +588,20 @@ void QwGUIDatabase::MakeLayout()
   dCmbTargetType      -> Associate(this);
   dCmbRegressionType  -> Associate(this);
   dCmbPlotType        -> Associate(this);
+  dChkQualityGood	  -> Associate(this);
+  dChkQualitySuspect  -> Associate(this);
+  dChkQualityBad	  -> Associate(this);
+  dBoxGoodFor		  -> Associate(this);
   dBtnSubmit          -> Associate(this);
 
   dCanvas -> GetCanvas() -> SetBorderMode(0);
-  dCanvas -> GetCanvas() -> Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)", "QwGUIDatabase", this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
+//   dCanvas -> GetCanvas() -> Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)", "QwGUIDatabase", this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
   Int_t wid = dCanvas->GetCanvasWindowId();
   QwGUISuperCanvas *mc = new QwGUISuperCanvas("", 10,10, wid);
   mc->Initialize();
   dCanvas->AdoptCanvas(mc);
+  dCanvas -> GetCanvas() -> Connect("ProcessedEvent(Int_t,Int_t,Int_t,TObject*)", "QwGUIDatabase", this,"TabEvent(Int_t,Int_t,Int_t,TObject*)");
 
 }
 
@@ -594,10 +618,12 @@ void QwGUIDatabase::PopulateDetectorComboBox()
   dCmbMeasurementType->RemoveAll();
   measurements.clear();
   dCmbProperty->SetEnabled(kFALSE);
+  dCmbSubblock->SetEnabled(kTRUE);
+  dCmbRegressionType->SetEnabled(kTRUE);
 
   // Main detector :default qwk_mdallbar
   if (dCmbInstrument->GetSelected() == ID_MD) {
-    for (Int_t i = 0; i < N_DETECTORS; i++) {
+	for (Int_t i = 0; i < N_DETECTORS; i++) {
       dCmbDetector->AddEntry(DetectorCombos[i], i);
     }
     for (Int_t i = 0; i < N_DET_MEAS_TYPES; i++) {
@@ -606,9 +632,11 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     }
     dCmbDetector->Select(dCmbDetector->FindEntry("qwk_mdallbars")->EntryId());
   }
-  
+
   // Lumis : default qwk_uslumi1neg
+
   if (dCmbInstrument->GetSelected() == ID_LUMI) {
+
     for (Int_t i = 0; i < N_LUMIS; i++) {
       dCmbDetector->AddEntry(LumiCombos[i], i);
     }
@@ -685,6 +713,40 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     dCmbDetector->Select(dCmbDetector->FindEntry("qwk_energy")->EntryId());
   }
 
+  // Main detector sensitivities : default qwk_mdallbars wrt targetX
+  if (dCmbInstrument->GetSelected() == ID_MD_SENS) {
+    dCmbProperty->SetEnabled(kTRUE);
+    dCmbSubblock->SetEnabled(kFALSE);
+    dCmbRegressionType->SetEnabled(kFALSE);
+
+    for (Int_t i = 0; i < N_DETECTORS; i++) {
+      dCmbDetector->AddEntry(DetectorCombos[i], i);
+    }
+    for (Int_t i = 0; i < N_REGRESSION_VARS; i++) {
+      dCmbProperty->AddEntry(RegressionVars[i], i);
+    }
+
+    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_mdallbars")->EntryId());
+    dCmbProperty->Select(dCmbProperty->FindEntry("targetX")->EntryId());
+  }
+
+  // LUMI detector sensitivities : default qwk_uslumi1neg wrt targetX
+  if (dCmbInstrument->GetSelected() == ID_LUMI_SENS) {
+    dCmbProperty->SetEnabled(kTRUE);
+    dCmbSubblock->SetEnabled(kFALSE);
+    dCmbRegressionType->SetEnabled(kFALSE);
+
+    for (Int_t i = 0; i < N_LUMIS; i++) {
+      dCmbDetector->AddEntry(LumiCombos[i], i);
+    }
+    for (Int_t i = 0; i < N_REGRESSION_VARS; i++) {
+      dCmbProperty->AddEntry(RegressionVars[i], i);
+    }
+
+    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_uslumi1neg")->EntryId());
+    dCmbProperty->Select(dCmbProperty->FindEntry("targetX")->EntryId());
+  }
+
   dCmbMeasurementType->Select(0);
 
 }
@@ -755,7 +817,24 @@ void QwGUIDatabase::PopulateMeasurementComboBox()
       }
     }    
   }
-    dCmbMeasurementType->Select(1);
+
+	// MD sensitivities
+	if (dCmbInstrument->GetSelected() == ID_MD_SENS){
+	 for (Int_t k = 0; k < N_SENS_TYPES; k++){
+	dCmbMeasurementType->AddEntry(SensitivityTypes[k], k);
+	measurements.push_back(SensitivityTypes[k]);
+	 }
+	}
+
+	// Lumi sensitivities
+	if (dCmbInstrument->GetSelected() == ID_LUMI_SENS){
+	 for (Int_t k = 0; k < N_SENS_TYPES; k++){
+	dCmbMeasurementType->AddEntry(SensitivityTypes[k], k);
+	measurements.push_back(SensitivityTypes[k]);
+	 }
+	}
+
+	dCmbMeasurementType->Select(1);
 
 }
 
@@ -786,20 +865,70 @@ void QwGUIDatabase::PopulateXDetComboBox()
 
 
 
-void QwGUIDatabase::OnReceiveMessage(char *obj)
+void QwGUIDatabase::OnReceiveMessage(char *msg)
 {
-//   TString name = obj;
-//   char *ptr = NULL;
 
+  TObject *obj = NULL;
+  Int_t ind = 0;
+  TString message = msg;
+
+  if(message.Contains("dDataWindow")){
+
+    if(message.Contains("Add to")){
+
+      message.ReplaceAll("Add to dDataWindow_",7,"",0);
+
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	ind = DataWindowArray.IndexOf(obj);
+	SetSelectedDataWindow(ind);
+      }
+    }
+    else if(message.Contains("Don't add to")){
+
+      message.ReplaceAll("Don't add to dDataWindow_",13,"",0);
+
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	RemoveSelectedDataWindow();
+      }
+    }
+  }
 }
+
+void QwGUIDatabase::OnUpdatePlot(char *obj)
+{
+  if(!obj) return;
+  TString str = obj;
+  if(!str.Contains("dDataWindow")) return;
+
+  printf("Received Message From: %s\n",obj);
+}
+
+
+QwGUIDataWindow *QwGUIDatabase::GetSelectedDataWindow()
+{
+  if(dSelectedDataWindow < 0 || dSelectedDataWindow > DataWindowArray.GetLast()) return NULL;
+
+  return (QwGUIDataWindow*)DataWindowArray[dSelectedDataWindow];
+}
+
+
 
 void QwGUIDatabase::OnObjClose(char *obj)
 {
-  if(!strcmp(obj,"dROOTFile")){
-//     printf("Called QwGUIDatabase::OnObjClose\n");
+  if(!obj) return;
+  TString name = obj;
 
-    dROOTCont = NULL;
+  if(name.Contains("dDataWindow")){
+    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(obj));
+    if(window){
+      if(window == GetSelectedDataWindow()) { RemoveSelectedDataWindow();}
+    }
   }
+
+  QwGUISubSystem::OnObjClose(obj);
+
 }
 
 
@@ -821,17 +950,21 @@ void QwGUIDatabase::OnNewDataContainer(RDataContainer *cont)
 
 void QwGUIDatabase::PlotGraphs()
 {
-  Int_t ind = 1;
+  Int_t ind = 0;
 
   TCanvas *mc = dCanvas->GetCanvas();
 
   TObject *obj;
+  TLegend *leg;
+  
   TIter next(GraphArray.MakeIterator());
   obj = next();
   while(obj){
-//    mc->cd(ind);
+//    mc->cd(ind+1);
     gPad->SetLogy(0);
     ((TGraph*)obj)->Draw("ap");
+    leg = (TLegend*)LegendArray.At(ind);
+    if(leg) leg->Draw("");
     ind++;
     obj = next();
   }
@@ -840,6 +973,25 @@ void QwGUIDatabase::PlotGraphs()
   mc->Update();
 
 }
+
+void QwGUIDatabase::AddNewGraph(TObject* grp, TObject* leg)
+{
+  GraphArray.Add(grp);
+  LegendArray.Add(leg);
+}
+
+// TObject *QwGUIDatabase::GetGraph(Int_t ind)
+// {
+//   if(ind < 0 || ind >= GraphArray.GetEntries()) return NULL;
+
+//   return GraphArray
+// }
+
+// TObject *QwGUIDatabase::GetLegend(Int_t ind)
+// {
+
+// }
+
 
 void QwGUIDatabase::OnRemoveThisTab()
 {
@@ -857,32 +1009,90 @@ void QwGUIDatabase::ClearData()
     obj = next();
   }
   GraphArray.Clear();//Clear();
+  LegendArray.Clear();//Clear();
+
+  vector <TObject*> obja;
+  TIter *next1 = new TIter(DataWindowArray.MakeIterator());
+  obj = next1->Next();
+  while(obj){
+    obja.push_back(obj);
+//     delete obj;
+    obj = next1->Next();
+  }
+  delete next1;
+
+  for(uint l = 0; l < obja.size(); l++)
+    delete obja[l];
+
+  DataWindowArray.Clear();
+
 }
 
 //Stuff to do after the tab is selected
 void QwGUIDatabase::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
-  /* DTS
-  if(event == kButton1Double){
-    Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
-    
-    if(pad > 0 && pad <= HCLINE_DEV_NUM)
-      {
-	RSDataWindow *dMiscWindow = new RSDataWindow(GetParent(), this,
-						     GetNewWindowName(),"QwGUIDatabase",
-						     HistArray[pad-1]->GetTitle(), PT_HISTO_1D,600,400);
-	if(!dMiscWindow){
-	  return;
-	}
-	DataWindowArray.Add(dMiscWindow);
-	dMiscWindow->SetPlotTitle((char*)HistArray[pad-1]->GetTitle());
-	dMiscWindow->DrawData(*((TH1D*)HistArray[pad-1]));
-	SetLogMessage(Form("Looking at %s\n",(char*)HistArray[pad-1]->GetTitle()),kTrue);
 
+  QwGUIDataWindow *dDataWindow = GetSelectedDataWindow();
+  Bool_t add = kFalse;
+  TObject *plot = NULL;
+  TLegend *legend = NULL;
+//   QwGUIMainDetectorDataStructure *detStr = NULL;
+//   Int_t leafInd;
+
+  
+  if(event == kButton1Double){
+
+    TCanvas *mc = dCanvas->GetCanvas();
+    if(!mc) return;
+    
+    UInt_t pad = mc->GetSelectedPad()->GetNumber();
+//     UInt_t ind = pad-1;
+    plot = GraphArray.At(pad);
+    legend  = (TLegend*)LegendArray.At(pad);
+
+    if(plot){
+
+      if(plot->InheritsFrom("TMultiGraph")){
+
+	if(!dDataWindow){
+	  dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					    "QwGUIDatabase",((TMultiGraph*)plot)->GetTitle(), PT_GRAPH_ER,
+					    DDT_DB,600,400);
+	  if(!dDataWindow){
+	    return;
+	  }
+	  DataWindowArray.Add(dDataWindow);
+	}
+	else
+	  add = kTrue;
+	
+	dDataWindow->SetPlotTitle((char*)((TMultiGraph*)plot)->GetTitle());
+	//       if(!dCurrentModeData[GetActiveTab()]->IsSummary()){
+	// 	dDataWindow->SetPlotTitleX("Time [sec]");
+	// 	dDataWindow->SetPlotTitleY("Amplitude [V/#muA]");
+	// 	dDataWindow->SetPlotTitleOffset(1.25,1.8);
+	// 	dDataWindow->SetAxisMin(((TMultiGraph*)plot)->GetXaxis()->GetXmin(),
+	// 				detStr->GetTreeLeafMin(leafInd));
+	// 	dDataWindow->SetAxisMax(((TMultiGraph*)plot)->GetXaxis()->GetXmax(),
+	// 				detStr->GetTreeLeafMax(leafInd));
+	// 	dDataWindow->SetLimitsFlag(kTrue);
+	// 	dDataWindow->DrawData(*((TMultiGraph*)plot),add);
+	//       }
+	//       else{	
+	//       }
+
+	dDataWindow->DrawData(*((TMultiGraph*)plot),add,legend);
+
+	SetLogMessage(Form("Looking at graph %s\n",(char*)((TMultiGraph*)plot)->GetTitle()),kTrue);
+	
+	Connect(dDataWindow,"IsClosing(char*)","QwGUIDatabase",(void*)this,"OnObjClose(char*)");
+	Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIDatabase",(void*)this,"OnReceiveMessage(char*)");
+	Connect(dDataWindow,"UpdatePlot(char*)","QwGUIDatabase",(void*)this,"OnUpdatePlot(char *)");
+	
 	return;
       }
+    }
   }
-  */
 }
 
 
@@ -1115,21 +1325,74 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
 
   mysqlpp::Query query1     = dDatabaseCont-> Query();
   mysqlpp::Query query2     = dDatabaseCont-> Query();
+  mysqlpp::Query query3     = dDatabaseCont-> Query();
 
   // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
   Int_t   subblock          = dCmbSubblock -> GetSelected();
   Int_t   run_first         = dNumStartRun -> GetIntNumber();
   Int_t   run_last          = dNumStopRun  -> GetIntNumber();
+  TString device;
+  TString reg_iv;
+
   TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
-  TString device            = Form("%s%s",detector.Data(),measured_property.Data());
+  if(det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
+	  device			= Form("%s",detector.Data());
+	  reg_iv			= Form("wrt_diff_%s",measured_property.Data());
+  }
+  else{
+	  device            = Form("%s%s",detector.Data(),measured_property.Data());
+  }
   TString target            = Targets[dCmbTargetType->GetSelected()];
   TString plot              = Plots[dCmbPlotType->GetSelected()];
   
+
+
+  //--------------------------------------------------------------------
+  //Get run quality cut information
+  Bool_t quality[3] = {kFALSE, kFALSE, kFALSE};
+  if(dChkQualityGood->IsOn())	      quality[0] 	= kTRUE;
+  if(dChkQualityBad->IsOn())		  quality[1]	= kTRUE;
+  if(dChkQualitySuspect->IsOn())      quality[2] 	= kTRUE;
+
+  TString quality_check = " AND run_quality_id is not NULL";
+  for (size_t i=0; i<3;i++){
+	if(!quality[i]){
+		quality_check = quality_check + Form(" AND !FIND_IN_SET('%i',run_quality_id)",i+1);
+	}
+  }
+  //--------------------------------------------------------------------
+  //Get good_for cut information
+  Bool_t good_for[N_GOODFOR_TYPES];
+  TList *selected_types = new TList;
+  dBoxGoodFor->GetSelectedEntries(selected_types);
+  TGTextLBEntry *entry;
+  TIter next(selected_types);
+  TString good_for_check = " AND good_for_id is not NULL";
+
+  for(size_t i=0; i<N_GOODFOR_TYPES;i++){ //initialize them as false
+	  good_for[i] = kFALSE;
+  }
+  while( (entry = (TGTextLBEntry *)next()) ) {
+	  //dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId() is the "good_for_id"
+	  good_for[dBoxGoodFor->FindEntry(entry->GetTitle())->EntryId()-1] = kTRUE;
+  }
+
+  for(size_t i=0; i<N_GOODFOR_TYPES;i++){
+	  if(!good_for[i]){
+		  good_for_check = good_for_check + Form(" AND good_for_id NOT LIKE \"%%%d%%\"",i+1);
+	  }
+  }
+
+  //--------------------------------------------------------------------
+
   TString det_table;
   TString data_table;
   TString det_table_id;
+  TString slope_table;
+  TString slope_table_id;
   Int_t   monitor_id = 0;
   Int_t   phi_fg_id = 0;
+  Int_t	  reg_iv_id = 0;
   
   std::string correction_flag;
   if (dCmbRegressionType->GetSelected()==1)
@@ -1158,6 +1421,20 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
     data_table   = "beam";
     det_table_id = "monitor_id";
     break;
+  case ID_MD_SENS:
+	det_table	   = "main_detector";
+	det_table_id   = "main_detector_id";
+	data_table	   = "md_slope";
+	slope_table    = "slope_type";
+	slope_table_id = "slope_type_id";
+	break;
+  case ID_LUMI_SENS:
+	det_table	   = "lumi_detector";
+	det_table_id   = "lumi_detector_id";
+	data_table	   = "lumi_slope";
+	slope_table    = "slope_type";
+	slope_table_id = "slope_type_id";
+  	break;
   default:
     break;
   }
@@ -1195,14 +1472,56 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
   phi_fg_id = read_data2[0]["sc_detector_id"]; 
 
 
+ if(det_id==ID_MD_SENS||det_id==ID_LUMI_SENS){
+	  if(ldebug) std::cout<< "SELECT * FROM "<<slope_table
+				  <<" WHERE slope = '"<<reg_iv<<"';"<<std::endl;
+	  query3 << "SELECT * FROM  "<<slope_table<<" WHERE slope = '"<<reg_iv<<"';";
+	  mysqlpp::StoreQueryResult read_data3 = query3.store();
+
+	  //check for empty queries. If empty exit with error.
+	  if( read_data3.num_rows() == 0){
+		std::cout<<"There is no regression variable called "<<reg_iv<<" in "<<det_table
+		 <<" in the given run range!"<<std::endl;
+		return read_data1;
+	  }
+	  reg_iv_id = read_data3[0][slope_table_id];
+ }
+
+
+
   // Now get the run number information
   mysqlpp::Query query      = dDatabaseCont->Query();
 
-  TString querystring= 
-    " SELECT "+det_table_id+", data.value as value, data.error as error, data.error*sqrt(data.n) as rms, run_number, segment_number, slow_helicity_plate,target_position, (scd.value<0)*-2+1 as wien_reversal FROM "
+  TString querystring;
+
+  if(det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
+	  querystring=
+	" SELECT "+det_table_id+", data."+slope_table_id+", data.value as value, data.error as error, data.error*sqrt(data.n) as rms, run_number, segment_number, slow_helicity_plate,run_quality_id,good_for_id,target_position, (scd.value<0)*-2+1 as wien_reversal FROM "
+	+ data_table+" as data, "+slope_table+" as slope, analysis_view as ana, slow_controls_settings , slow_controls_data as scd   "
+	+ " WHERE "
+	+ Form(" slope_correction='%s' AND ",correction_flag.c_str())
+	+ " data.analysis_id = ana.analysis_id AND "
+	+ " slope."+slope_table_id +" = data."+slope_table_id+ " AND "
+	+ " slope."+slope_table_id +" = "+Form("%i",reg_iv_id)+" AND "
+	+ " ana.runlet_id = slow_controls_settings.runlet_id AND "
+	+ " data."+ det_table_id +" = "+Form("%i", monitor_id) +" AND "
+	+ " data.subblock = "+ Form("%i",subblock) +" AND "
+	+ " measurement_type_id = 'a' AND "
+	+ " run_number > "+ Form("%i",run_first) + " AND "
+	+ " run_number < "+ Form("%i",run_last)+ " AND "
+	+ " data.error !=0  AND"
+	+"  target_position = '"+Form("%s",target.Data())+"'"
+	+" and scd.runlet_id=ana.runlet_id and scd.sc_detector_id="
+	+ Form("%i", phi_fg_id)
+	+ quality_check
+	+ good_for_check
+	+ " ORDER BY run_number, segment_number;";
+  }
+  else{
+	  querystring=
+    " SELECT "+det_table_id+", data.value as value, data.error as error, data.error*sqrt(data.n) as rms, run_number, segment_number, slow_helicity_plate,run_quality_id,good_for_id,target_position, (scd.value<0)*-2+1 as wien_reversal FROM "
     + data_table+" as data, analysis_view as ana, slow_controls_settings , slow_controls_data as scd   "
     + " WHERE "
-    + fGoodForSelection.GetSelectionString() + " AND "
     + Form(" slope_correction='%s' AND ",correction_flag.c_str())
     + " data.analysis_id = ana.analysis_id AND"
     + " ana.runlet_id = slow_controls_settings.runlet_id AND "
@@ -1215,9 +1534,10 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector(TString detector, TStrin
     +"  target_position = '"+Form("%s",target.Data())+"'" 
     +" and scd.runlet_id=ana.runlet_id and scd.sc_detector_id=" 
     + Form("%i", phi_fg_id)
+    + quality_check
+    + good_for_check
     + " ORDER BY run_number, segment_number;";
-
-   
+   }
   if(ldebug) std::cout<<"QUERYSTING="
 		      <<querystring<<std::endl;
 
@@ -1270,7 +1590,8 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
     Int_t   subblock          = dCmbSubblock -> GetSelected();
     TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
-    TString device            = Form("%s%s",detector.Data(),measured_property.Data());
+    TString property		  = Form("%s",measured_property.Data());
+    TString device            = Form("%s",detector.Data());
     TString target            = Targets[dCmbTargetType->GetSelected()];
     TString plot              = Plots[dCmbPlotType->GetSelected()];
 
@@ -1287,55 +1608,91 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 
     //check for empty queries. If empty exit with error.
     if(row_size == 0){
-      std::cout<<"There is no data for "<<measurement_type<<" of "<<device<<" for subblock "<<subblock
+      std::cout<<"There is no data for "<<measurement_type<<" of "<<device<<" "<<property<<" for subblock "<<subblock
 	       <<" in the given run range!"<<std::endl;
       return;
     }
 
  
     TVectorF x_in(row_size), xerr_in(row_size);
-    TVectorF x_out(row_size), xerr_out(row_size);
-    TVectorF run_in(row_size), run_out(row_size);
-    TVectorF err_in(row_size), err_out(row_size);
+	TVectorF x_out(row_size), xerr_out(row_size);
+	TVectorF run_in(row_size), run_out(row_size);
+	TVectorF err_in(row_size), err_out(row_size);
 
-    TVectorF x_in_L(row_size), xerr_in_L(row_size);
-    TVectorF x_out_L(row_size), xerr_out_L(row_size);
-    TVectorF run_in_L(row_size), run_out_L(row_size);
-    TVectorF err_in_L(row_size), err_out_L(row_size);
+	TVectorF x_in_L(row_size), xerr_in_L(row_size);
+	TVectorF x_out_L(row_size), xerr_out_L(row_size);
+	TVectorF run_in_L(row_size), run_out_L(row_size);
+	TVectorF err_in_L(row_size), err_out_L(row_size);
 
-    x_in.Clear();
-    x_in.ResizeTo(row_size);
-    xerr_in.Clear();
-    xerr_in.ResizeTo(row_size);
-    run_in.Clear();
-    run_in.ResizeTo(row_size);
+	TVectorF x_bad(row_size), xerr_bad(row_size);
+	TVectorF run_bad(row_size);
+	TVectorF err_bad(row_size);
 
-    x_out.Clear();
-    x_out.ResizeTo(row_size);
-    xerr_out.Clear();
-    xerr_out.ResizeTo(row_size);
-    run_out.Clear();
-    run_out.ResizeTo(row_size);
+	TVectorF x_suspect(row_size), xerr_suspect(row_size);
+	TVectorF run_suspect(row_size);
+	TVectorF err_suspect(row_size);
 
-    x_in_L.Clear();
-    x_in_L.ResizeTo(row_size);
-    xerr_in_L.Clear();
-    xerr_in_L.ResizeTo(row_size);
-    run_in_L.Clear();
-    run_in_L.ResizeTo(row_size);
+	x_in.Clear();
+	x_in.ResizeTo(row_size);
+	xerr_in.Clear();
+	xerr_in.ResizeTo(row_size);
+	run_in.Clear();
+	run_in.ResizeTo(row_size);
+	err_in.Clear();
+	err_in.ResizeTo(row_size);
 
-    x_out_L.Clear();
-    x_out_L.ResizeTo(row_size);
-    xerr_out_L.Clear();
-    xerr_out_L.ResizeTo(row_size);
-    run_out_L.Clear();
-    run_out_L.ResizeTo(row_size);
+	x_out.Clear();
+	x_out.ResizeTo(row_size);
+	xerr_out.Clear();
+	xerr_out.ResizeTo(row_size);
+	run_out.Clear();
+	run_out.ResizeTo(row_size);
+	err_out.Clear();
+	err_out.ResizeTo(row_size);
+
+	x_in_L.Clear();
+	x_in_L.ResizeTo(row_size);
+	xerr_in_L.Clear();
+	xerr_in_L.ResizeTo(row_size);
+	run_in_L.Clear();
+	run_in_L.ResizeTo(row_size);
+	err_in_L.Clear();
+	err_in_L.ResizeTo(row_size);
+
+	x_out_L.Clear();
+	x_out_L.ResizeTo(row_size);
+	xerr_out_L.Clear();
+	xerr_out_L.ResizeTo(row_size);
+	run_out_L.Clear();
+	run_out_L.ResizeTo(row_size);
+	err_out_L.Clear();
+	err_out_L.ResizeTo(row_size);
+
+	x_bad.Clear();
+	x_bad.ResizeTo(row_size);
+	xerr_bad.Clear();
+	xerr_bad.ResizeTo(row_size);
+	run_bad.Clear();
+	run_bad.ResizeTo(row_size);
+	err_bad.Clear();
+	err_bad.ResizeTo(row_size);
+
+	x_suspect.Clear();
+	x_suspect.ResizeTo(row_size);
+	xerr_suspect.Clear();
+	xerr_suspect.ResizeTo(row_size);
+	run_suspect.Clear();
+	run_suspect.ResizeTo(row_size);
+	err_suspect.Clear();
+	err_suspect.ResizeTo(row_size);
 
     Float_t x = 0.0 , xerr = 0.0;
     Int_t m = 0;
     Int_t k = 0;
     Int_t l = 0;
     Int_t n = 0;
+    Int_t o = 0; //bad quality
+    Int_t p = 0; //suspect quality
 
     std::cout<<"############################################\n";
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
@@ -1363,50 +1720,72 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
 	  }
 	}
 
-	if(read_data[i]["slow_helicity_plate"] == "out") {
-	  if (read_data[i]["wien_reversal"]*1 == 1){
-	    run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_out.operator()(k)    = x;
-	    xerr_out.operator()(k) = xerr;
-	    err_out.operator()(k)  = 0.0;
-	    k++;
-	  } else {
-	    run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_out_L.operator()(l)    = x;
-	    xerr_out_L.operator()(l) = xerr;
-	    err_out_L.operator()(l)  = 0.0;
-	    l++;
-	  }
-	  
+	if(read_data[i]["run_quality_id"] == "1"){
+		if(read_data[i]["slow_helicity_plate"] == "out") {
+		  if (read_data[i]["wien_reversal"]*1 == 1){
+			run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_out.operator()(k)    = x;
+			xerr_out.operator()(k) = xerr;
+			err_out.operator()(k)  = 0.0;
+			k++;
+		  } else {
+			run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_out_L.operator()(l)    = x;
+			xerr_out_L.operator()(l) = xerr;
+			err_out_L.operator()(l)  = 0.0;
+			l++;
+		  }
+
+		}
+
+		if(read_data[i]["slow_helicity_plate"] == "in") {
+		  if (read_data[i]["wien_reversal"]*1 == 1){
+			run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_in.operator()(m)    = x;
+			xerr_in.operator()(m) = xerr;
+			err_in.operator()(m)  = 0.0;
+			m++;
+		  } else {
+			run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_in_L.operator()(n)    = x;
+			xerr_in_L.operator()(n) = xerr;
+			err_in_L.operator()(n)  = 0.0;
+			n++;
+
+		  }
+		}
 	}
 	
-	if(read_data[i]["slow_helicity_plate"] == "in") {
-	  if (read_data[i]["wien_reversal"]*1 == 1){
-	    run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_in.operator()(m)    = x;
-	    xerr_in.operator()(m) = xerr;
-	    err_in.operator()(m)  = 0.0;
-	    m++;
-	  } else {
-	    run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_in_L.operator()(n)    = x;
-	    xerr_in_L.operator()(n) = xerr;
-	    err_in_L.operator()(n)  = 0.0;
-	    n++;
-	    
-	  }
+	if((read_data[i]["run_quality_id"] == "2")   | //or
+	   (read_data[i]["run_quality_id"] == "1,2") | //or
+	   (read_data[i]["run_quality_id"] == "2,3") ) { //all instances of bad
+	    run_bad.operator()(o)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_bad.operator()(o)    = x;
+	    xerr_bad.operator()(o) = xerr;
+	    err_bad.operator()(o)  = 0.0;
+	    o++;
 	}
+
+	if((read_data[i]["run_quality_id"] == "3")  | //or
+	   (read_data[i]["run_quality_id"] == "1,3")) {// suspect (but not bad)
+		run_suspect.operator()(p)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+	    x_suspect.operator()(p)    = x;
+	    xerr_suspect.operator()(p) = xerr;
+	    err_suspect.operator()(p)  = 0.0;
+	    p++;
+	}
+
       }
 
     // Check to make sure graph is not empty.
-    if(m==0 && k==0 && l==0 && n==0){
+    if(m==0 && k==0 && l==0 && n==0 && o==0 && p==0){
       std::cout<<"QwGUI : No data were found for the given criteria."<<std::endl;
       exit(1);
     }
     else
       std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
     
-
+//GROUP_IN
     run_in.ResizeTo(m);
     x_in.ResizeTo(m);
     err_in.ResizeTo(m);
@@ -1417,6 +1796,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_in ->SetMarkerStyle(21);
     grp_in ->SetMarkerColor(kBlue);
 
+//GROUP_IN_L
     run_in_L.ResizeTo(n);
     x_in_L.ResizeTo(n);
     err_in_L.ResizeTo(n);
@@ -1427,6 +1807,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_in_L ->SetMarkerStyle(21);
     grp_in_L ->SetMarkerColor(kOrange);
 
+//GROUP_OUT
     run_out.ResizeTo(k);
     x_out.ResizeTo(k);
     err_out.ResizeTo(k);
@@ -1437,6 +1818,7 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_out ->SetMarkerStyle(21);
     grp_out ->SetMarkerColor(kRed);
 
+//GROUP_OUT_L
     run_out_L.ResizeTo(l);
     x_out_L.ResizeTo(l);
     err_out_L.ResizeTo(l);
@@ -1446,6 +1828,37 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp_out_L ->SetMarkerSize(0.6);
     grp_out_L ->SetMarkerStyle(21);
     grp_out_L ->SetMarkerColor(kViolet);
+
+//GROUP_BAD
+    run_bad.ResizeTo(o);
+    x_bad.ResizeTo(o);
+    err_bad.ResizeTo(o);
+    xerr_bad.ResizeTo(o);
+
+    TGraphErrors* grp_bad = new TGraphErrors(run_bad, x_bad, err_bad, xerr_bad);
+    grp_bad ->SetMarkerSize(1.2);
+    grp_bad ->SetMarkerStyle(29);
+    grp_bad ->SetMarkerColor(kBlack);
+
+//GROUP_SUSPECT
+    run_suspect.ResizeTo(p);
+    x_suspect.ResizeTo(p);
+    err_suspect.ResizeTo(p);
+    xerr_suspect.ResizeTo(p);
+
+    TGraphErrors* grp_suspect = new TGraphErrors(run_suspect, x_suspect, err_suspect, xerr_suspect);
+    grp_suspect ->SetMarkerSize(1.2);
+    grp_suspect ->SetMarkerStyle(29);
+    grp_suspect ->SetMarkerColor(kGreen);
+
+
+
+    grp_in->SetName("IHWP-IN-R"); 
+    grp_out->SetName("IHWP-OUT-R");
+    grp_in_L->SetName("IHWP-IN-L"); 
+    grp_out_L->SetName("IHWP-OUT-L");
+    grp_bad->SetName("Bad");       
+    grp_suspect->SetName("Suspect");   
 
     TMultiGraph * grp = new TMultiGraph();
 
@@ -1464,18 +1877,28 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     if(k>0)grp->Add(grp_out);
     if(n>0)grp->Add(grp_in_L);
     if(l>0)grp->Add(grp_out_L);
-
+    if(o>0)grp->Add(grp_bad);
+    if(p>0)grp->Add(grp_suspect);
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in,    "IHWP-IN-R", "p");
-    if(k>0) legend->AddEntry(grp_out,   "IHWP-OUT-R", "p");
-    if(n>0) legend->AddEntry(grp_in_L,  "IHWP-IN-L", "p");
-    if(l>0) legend->AddEntry(grp_out_L, "IHWP-OUT-L", "p");
+    if(m>0) legend->AddEntry(grp_in,      "IHWP-IN-R" , "p");
+    if(k>0) legend->AddEntry(grp_out,     "IHWP-OUT-R", "p");
+    if(n>0) legend->AddEntry(grp_in_L,    "IHWP-IN-L" , "p");
+    if(l>0) legend->AddEntry(grp_out_L,   "IHWP-OUT-L", "p");
+    if(o>0) legend->AddEntry(grp_bad,     "Bad"       , "p");
+    if(p>0) legend->AddEntry(grp_suspect, "Suspect"   , "p");
     legend->SetFillColor(0);
+
     
-    mc->cd();
-    grp->Draw("AP");
-    legend->Draw("");
+//     mc->cd();
+//     grp->Draw("AP");
+
+    AddNewGraph(grp,legend);
+
+//     GraphArray.Add(grp);
+//     LegendArray.Add(legend);
+    PlotGraphs();
+//     legend->Draw("");
     
     grp->SetTitle(title);
     grp->GetYaxis()->SetTitle(y_title);
@@ -1485,11 +1908,10 @@ void QwGUIDatabase::PlotDetector(TString detector, TString measured_property, In
     grp->GetXaxis()->SetTitleSize(0.03);
     grp->GetYaxis()->CenterTitle();
     
-    
     mc->Modified();
     mc->SetBorderMode(0);
     mc->Update();
-    
+   
     std::cout<<"QwGUI : Done!"<<std::endl;
     
     
@@ -1561,6 +1983,19 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     TString target            = Targets[dCmbTargetType->GetSelected()];
     TString plot              = Plots[dCmbPlotType->GetSelected()];
 
+    //Get run quality cut information
+    Bool_t quality[3] = {kFALSE, kFALSE, kFALSE};
+    if(dChkQualityGood->IsOn())	      quality[0] 	= kTRUE;
+    if(dChkQualityBad->IsOn())		  quality[1]	= kTRUE;
+    if(dChkQualitySuspect->IsOn())      quality[2] 	= kTRUE;
+
+    TString quality_check = " ";
+    for (size_t i=0; i<3;i++){
+  	if(!quality[i]){
+  		quality_check = quality_check +"  AND run_quality_id not like" + Form("\"%%%d%%\"",i+1);
+  	}
+    }
+
     //
     // Query Database for Data
     //
@@ -1617,12 +2052,22 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     TVectorF run_in_L(row_size), run_out_L(row_size);
     TVectorF err_in_L(row_size), err_out_L(row_size);
 
+    TVectorF x_bad(row_size), xerr_bad(row_size);
+    TVectorF run_bad(row_size);
+    TVectorF err_bad(row_size);
+
+    TVectorF x_suspect(row_size), xerr_suspect(row_size);
+    TVectorF run_suspect(row_size);
+    TVectorF err_suspect(row_size);
+
     x_in.Clear();
     x_in.ResizeTo(row_size);
     xerr_in.Clear();
     xerr_in.ResizeTo(row_size);
     run_in.Clear();
     run_in.ResizeTo(row_size);
+    err_in.Clear();
+    err_in.ResizeTo(row_size);
 
     x_out.Clear();
     x_out.ResizeTo(row_size);
@@ -1630,6 +2075,8 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     xerr_out.ResizeTo(row_size);
     run_out.Clear();
     run_out.ResizeTo(row_size);
+    err_out.Clear();
+    err_out.ResizeTo(row_size);
 
     x_in_L.Clear();
     x_in_L.ResizeTo(row_size);
@@ -1637,6 +2084,8 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     xerr_in_L.ResizeTo(row_size);
     run_in_L.Clear();
     run_in_L.ResizeTo(row_size);
+    err_in_L.Clear();
+    err_in_L.ResizeTo(row_size);
 
     x_out_L.Clear();
     x_out_L.ResizeTo(row_size);
@@ -1644,11 +2093,33 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     xerr_out_L.ResizeTo(row_size);
     run_out_L.Clear();
     run_out_L.ResizeTo(row_size);
+    err_out_L.Clear();
+    err_out_L.ResizeTo(row_size);
+
+    x_bad.Clear();
+	x_bad.ResizeTo(row_size);
+	xerr_bad.Clear();
+	xerr_bad.ResizeTo(row_size);
+	run_bad.Clear();
+	run_bad.ResizeTo(row_size);
+	err_bad.Clear();
+	err_bad.ResizeTo(row_size);
+
+	x_suspect.Clear();
+	x_suspect.ResizeTo(row_size);
+	xerr_suspect.Clear();
+	xerr_suspect.ResizeTo(row_size);
+	run_suspect.Clear();
+	run_suspect.ResizeTo(row_size);
+	err_suspect.Clear();
+	err_suspect.ResizeTo(row_size);
 
     Int_t m = 0;
     Int_t k = 0;
     Int_t l = 0;
     Int_t n = 0;
+    Int_t o = 0;
+    Int_t p = 0;
 
     std::cout<<"############################################\n";
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
@@ -1675,44 +2146,62 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
 	    xerr = read_data[i]["error"];
 	  }
 	}
+	if(read_data[i]["run_quality_id"] == "1"){
+		if(read_data[i]["slow_helicity_plate"] == "out") {
+		  if (read_data[i]["wien_reversal"]*1 == 1){
+			run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_out.operator()(k)    = x;
+			xerr_out.operator()(k) = xerr;
+			err_out.operator()(k)  = 0.0;
+			k++;
+		  } else {
+			run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_out_L.operator()(l)    = x;
+			xerr_out_L.operator()(l) = xerr;
+			err_out_L.operator()(l)  = 0.0;
+			l++;
+		  }
 
-	if(read_data[i]["slow_helicity_plate"] == "out") {
-	  if (read_data[i]["wien_reversal"]*1 == 1){
-	    run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_out.operator()(k)    = x;
-	    xerr_out.operator()(k) = xerr;
-	    err_out.operator()(k)  = 0.0;
-	    k++;
-	  } else {
-	    run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_out_L.operator()(l)    = x;
-	    xerr_out_L.operator()(l) = xerr;
-	    err_out_L.operator()(l)  = 0.0;
-	    l++;
-	  }
-	  
+		}
+
+		if(read_data[i]["slow_helicity_plate"] == "in") {
+		  if (read_data[i]["wien_reversal"]*1 == 1){
+			run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_in.operator()(m)    = x;
+			xerr_in.operator()(m) = xerr;
+			err_in.operator()(m)  = 0.0;
+			m++;
+		  } else {
+			run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+			x_in_L.operator()(n)    = x;
+			xerr_in_L.operator()(n) = xerr;
+			err_in_L.operator()(n)  = 0.0;
+			n++;
+
+		  }
+		}
 	}
-	
-	if(read_data[i]["slow_helicity_plate"] == "in") {
-	  if (read_data[i]["wien_reversal"]*1 == 1){
-	    run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_in.operator()(m)    = x;
-	    xerr_in.operator()(m) = xerr;
-	    err_in.operator()(m)  = 0.0;
-	    m++;
-	  } else {
-	    run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-	    x_in_L.operator()(n)    = x;
-	    xerr_in_L.operator()(n) = xerr;
-	    err_in_L.operator()(n)  = 0.0;
-	    n++;
-	    
-	  }
-	}
+
+	if(read_data[i]["run_quality_id"] == "2") {//bad
+		    run_bad.operator()(o)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+		    x_bad.operator()(o)    = x;
+		    xerr_bad.operator()(o) = xerr;
+		    err_bad.operator()(o)  = 0.0;
+		    o++;
+		}
+
+		if(read_data[i]["run_quality_id"] == "3") {//suspect
+		    run_suspect.operator()(p)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
+		    x_suspect.operator()(p)    = x;
+		    xerr_suspect.operator()(p) = xerr;
+		    err_suspect.operator()(p)  = 0.0;
+		    p++;
+		}
+
       }
 
     // Check to make sure graph is not empty.
-    if(m==0 && k==0 && l==0 && n==0){
+    if(m==0 && k==0 && l==0 && n==0 && o==0 && p==0){
       std::cout<<"QwGUI : No data were found for the given criteria."<<std::endl;
       exit(1);
     }
@@ -1720,45 +2209,71 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
       std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
     
 
-    run_in.ResizeTo(m);
-    x_in.ResizeTo(m);
-    err_in.ResizeTo(m);
-    xerr_in.ResizeTo(m);
+//GROUP_IN
+	run_in.ResizeTo(m);
+	x_in.ResizeTo(m);
+	err_in.ResizeTo(m);
+	xerr_in.ResizeTo(m);
 
-    TGraphErrors* grp_in  = new TGraphErrors(run_in,  x_in, err_in, xerr_in);
-    grp_in ->SetMarkerSize(0.6);
-    grp_in ->SetMarkerStyle(21);
-    grp_in ->SetMarkerColor(kBlue);
+	TGraphErrors* grp_in  = new TGraphErrors(run_in,  x_in, err_in, xerr_in);
+	grp_in ->SetMarkerSize(0.6);
+	grp_in ->SetMarkerStyle(21);
+	grp_in ->SetMarkerColor(kBlue);
 
-    run_in_L.ResizeTo(n);
-    x_in_L.ResizeTo(n);
-    err_in_L.ResizeTo(n);
-    xerr_in_L.ResizeTo(n);
+//GROUP_IN_L
+	run_in_L.ResizeTo(n);
+	x_in_L.ResizeTo(n);
+	err_in_L.ResizeTo(n);
+	xerr_in_L.ResizeTo(n);
 
-    TGraphErrors* grp_in_L  = new TGraphErrors(run_in_L,  x_in_L, err_in_L, xerr_in_L);
-    grp_in_L ->SetMarkerSize(0.6);
-    grp_in_L ->SetMarkerStyle(21);
-    grp_in_L ->SetMarkerColor(kOrange);
+	TGraphErrors* grp_in_L  = new TGraphErrors(run_in_L,  x_in_L, err_in_L, xerr_in_L);
+	grp_in_L ->SetMarkerSize(0.6);
+	grp_in_L ->SetMarkerStyle(21);
+	grp_in_L ->SetMarkerColor(kOrange);
 
-    run_out.ResizeTo(k);
-    x_out.ResizeTo(k);
-    err_out.ResizeTo(k);
-    xerr_out.ResizeTo(k);
+//GROUP_OUT
+	run_out.ResizeTo(k);
+	x_out.ResizeTo(k);
+	err_out.ResizeTo(k);
+	xerr_out.ResizeTo(k);
 
-    TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
-    grp_out ->SetMarkerSize(0.6);
-    grp_out ->SetMarkerStyle(21);
-    grp_out ->SetMarkerColor(kRed);
+	TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
+	grp_out ->SetMarkerSize(0.6);
+	grp_out ->SetMarkerStyle(21);
+	grp_out ->SetMarkerColor(kRed);
 
-    run_out_L.ResizeTo(l);
-    x_out_L.ResizeTo(l);
-    err_out_L.ResizeTo(l);
-    xerr_out_L.ResizeTo(l);
+//GROUP_OUT_L
+	run_out_L.ResizeTo(l);
+	x_out_L.ResizeTo(l);
+	err_out_L.ResizeTo(l);
+	xerr_out_L.ResizeTo(l);
 
-    TGraphErrors* grp_out_L = new TGraphErrors(run_out_L, x_out_L, err_out_L, xerr_out_L);
-    grp_out_L ->SetMarkerSize(0.6);
-    grp_out_L ->SetMarkerStyle(21);
-    grp_out_L ->SetMarkerColor(kViolet);
+	TGraphErrors* grp_out_L = new TGraphErrors(run_out_L, x_out_L, err_out_L, xerr_out_L);
+	grp_out_L ->SetMarkerSize(0.6);
+	grp_out_L ->SetMarkerStyle(21);
+	grp_out_L ->SetMarkerColor(kViolet);
+
+//GROUP_BAD
+	run_bad.ResizeTo(o);
+	x_bad.ResizeTo(o);
+	err_bad.ResizeTo(o);
+	xerr_bad.ResizeTo(o);
+
+	TGraphErrors* grp_bad = new TGraphErrors(run_bad, x_bad, err_bad, xerr_bad);
+	grp_bad ->SetMarkerSize(1.2);
+	grp_bad ->SetMarkerStyle(29);
+	grp_bad ->SetMarkerColor(kBlack);
+
+//GROUP_SUSPECT
+	run_suspect.ResizeTo(p);
+	x_suspect.ResizeTo(p);
+	err_suspect.ResizeTo(p);
+	xerr_suspect.ResizeTo(p);
+
+	TGraphErrors* grp_suspect = new TGraphErrors(run_suspect, x_suspect, err_suspect, xerr_suspect);
+	grp_suspect ->SetMarkerSize(1.2);
+	grp_suspect ->SetMarkerStyle(29);
+	grp_suspect ->SetMarkerColor(kGreen);
 
     TMultiGraph * grp = new TMultiGraph();
 
@@ -1777,13 +2292,17 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     if(k>0)grp->Add(grp_out);
     if(n>0)grp->Add(grp_in_L);
     if(l>0)grp->Add(grp_out_L);
+    if(o>0)grp->Add(grp_bad);
+    if(p>0)grp->Add(grp_suspect);
 
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in,    "IHWP-IN-R", "p");
-    if(k>0) legend->AddEntry(grp_out,   "IHWP-OUT-R", "p");
-    if(n>0) legend->AddEntry(grp_in_L,  "IHWP-IN-L", "p");
-    if(l>0) legend->AddEntry(grp_out_L, "IHWP-OUT-L", "p");
+    if(m>0) legend->AddEntry(grp_in,      "IHWP-IN-R", "p");
+    if(k>0) legend->AddEntry(grp_out,     "IHWP-OUT-R", "p");
+    if(n>0) legend->AddEntry(grp_in_L,    "IHWP-IN-L", "p");
+    if(l>0) legend->AddEntry(grp_out_L,   "IHWP-OUT-L", "p");
+    if(o>0) legend->AddEntry(grp_bad, "Bad", "p");
+    if(p>0) legend->AddEntry(grp_suspect, "Suspect", "p");
     legend->SetFillColor(0);
     
     mc->cd();
@@ -1866,6 +2385,8 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
   if (measurement_type == "yp")
     ytitle = "Beam Position (mm)";
   
+  if (measurement_type == "s")
+	ytitle = "Sensitivity (ppm/mm)";
 
   return ytitle;
 }
@@ -1943,6 +2464,14 @@ void QwGUIDatabase::OnSubmitPushed()
     detector = EnergyCalculators[dCmbDetector->GetSelected()];
     property = "";
     break;
+  case ID_MD_SENS:
+      detector = DetectorCombos[dCmbDetector->GetSelected()];
+      property = RegressionVars[dCmbProperty->GetSelected()];
+      break;
+  case ID_LUMI_SENS:
+        detector = LumiCombos[dCmbDetector->GetSelected()];
+        property = RegressionVars[dCmbProperty->GetSelected()];
+        break;
   default:
     break;
   }

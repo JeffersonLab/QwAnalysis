@@ -56,8 +56,7 @@ using namespace std;
 #include <TText.h>
 
 
-//  For now instead of the main detector PMTs I will use 8 bpm wires.
-//  Later these should be replaced by the actual ones.
+
 
 // Left PMTs
 TString quartz_bar_POS[8]=

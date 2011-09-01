@@ -1,0 +1,40 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use File::Copy;
+
+# changePedestal : S. MacEwan, 2011
+#
+# script will replace the pedestal in ALL pedestal files with a user-given value. useful for nulling out pedestals
+# run by:
+# 	changePedestal [DEVICE] [VALUE]
+# example:
+# 	changePedestal qwk_isourc 0
+
+my $QWANALYSIS = $ENV{QWANALYSIS};
+my $PRMINPUT = "$QWANALYSIS/Parity/prminput/";
+my $line;
+
+my $channel = $ARGV[0];
+my $newPed = $ARGV[1];
+
+opendir (DIR,"$PRMINPUT") or die $!;
+
+while (my $name = readdir(DIR)){
+	if ($name =~ /qweak_maindet\_pedestal/){
+		my @contents;
+		my $filename = $PRMINPUT.$name;
+		open (FILE,$filename) or die $!;
+		@contents=<FILE>;
+		close (FILE);
+		foreach $line(@contents){
+			if ($line =~ /$channel/){
+			$line =  "$channel  ,  $newPed  ,  0.00007629\n";
+			}
+		open (FILE, ">$filename");
+		print FILE @contents;
+		close FILE;
+		}
+	}
+
+}

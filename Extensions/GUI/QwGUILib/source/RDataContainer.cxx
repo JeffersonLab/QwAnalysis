@@ -1520,7 +1520,7 @@ int RDataContainer::ReadData(const char *buffer, int size, int start)
   return FILE_READ_ERROR;
 }
 
-int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows)
+int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows, const char *label)
 {
   int nbytes = 0;
 
@@ -1529,6 +1529,10 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows)
       if(dType == FT_ROWCOLUMN){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
 
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"%+2.8e %+2.8e %+2.8e\n",x[i],y[i],ye[i]);
@@ -1558,6 +1562,11 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows)
       else if(dType == FT_MATHCAD){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
+
 	    nbytes += fprintf(dFp,"{");
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"{%lf,%lf,%lf}",x[i],y[i],ye[i]);
@@ -1605,7 +1614,7 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *ye, int rows)
   return FILE_WRITE_ERROR;
 }
 
-int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *ye, int rows)
+int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *ye, int rows, const char *label)
 {
   int nbytes = 0;
 
@@ -1614,6 +1623,10 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *
       if(dType == FT_ROWCOLUMN){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
 
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"%+2.8e %+2.8e %+2.8e %+2.8e\n",x[i],y[i],xe[i],ye[i]);
@@ -1643,6 +1656,11 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *
       else if(dType == FT_MATHCAD){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
+
 	    nbytes += fprintf(dFp,"{");
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"{%lf,%lf,%lf,%lf}",x[i],y[i],xe[i],ye[i]);
@@ -1690,7 +1708,7 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, Double_t *xe, Double_t *
   return FILE_WRITE_ERROR;
 }
 
-int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows)
+int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows, const char * label)
 {
   int nbytes = 0;
 
@@ -1699,6 +1717,11 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows)
       if(dType == FT_ROWCOLUMN){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
+
 
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"%+2.8e %+2.8e\n",x[i],y[i]);
@@ -1728,6 +1751,11 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows)
       else if(dType == FT_MATHCAD){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
+
 	    nbytes += fprintf(dFp,"{");
 	    for(int i = 0; i < rows; i++){
 	      nbytes += fprintf(dFp,"{%lf,%lf}",x[i],y[i]);
@@ -1775,7 +1803,7 @@ int RDataContainer::WriteData(Double_t *x, Double_t *y, int rows)
   return FILE_WRITE_ERROR;
 }
 
-int RDataContainer::WriteData(Double_t *data, int rows, int cols)
+int RDataContainer::WriteData(Double_t *data, int rows, int cols, const char * label)
 {
   int nbytes = 0;
 
@@ -1784,6 +1812,10 @@ int RDataContainer::WriteData(Double_t *data, int rows, int cols)
       if(dType == FT_ROWCOLUMN){
 	if(dFp){ 
 	  if(!fseek(dFp,GetFileSize(),SEEK_SET)){
+
+	    if(label){
+	      nbytes += fprintf(dFp,"\n%s\n\n",label);
+	    }
 
 	    for(int r = 0; r < rows; r++){
 	      for(int c = 0; c < cols; c++){
