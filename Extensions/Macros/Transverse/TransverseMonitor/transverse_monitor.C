@@ -2,17 +2,26 @@
 Author: B. P. Waidyawansa
 Data : August 22nd 2011.
 
-This script should be used to perfrom weekly monitoring of the amount of residula transverse polarization left in the longitudinally polarized Qweak electron beam. It access the unregressed data from the qweak data base and performs a fit over the main detector octants to calculat the ratio of 
+This script should be used to perfrom weekly monitoring of the amount of residual transverse polarization left in the longitudinally polarized Qweak electron beam. It access the unregressed data from the qweak data base and performs a fit over the main detector octants to calculat the ratio of 
 
 A_T_measured_during_longitudinal/A_T_transverse = amount of transevrse polarization in the beam.
 
 and can be then reported to source group for corrections.
 
+Inputs : The last analyzed slug number
+         The number of slugs you want to look back at from the given slug. To be able to see a 3 sigma deviation from the zero , you need to have at least 3days worth of data ~ 9 slugs.
+
+Output : Plot of md bar asymmetry vs azimuthal angle for IHWP IN, OUT and IN+OUT
+         Plot of md bar asymmetry vs azimuthal angle for IN-OUT and IN-OUT sum of opposite octants.
+         Plot of md bar1 (most sensitive to horizontal transverse) and md bar 3(most sensitive to vertical transverse) asymmetries vs run number.
+
+The fit uses the amplitude of -4.75 ppm from the results of vertical transverse running described in Qweak-doc-1401-v3.
+         
 ****************************************************************/
 
 using namespace std;
 
-#include<TString.h>
+#include <TString.h>
 #include <TLegend.h>
 #include <TMultiGraph.h>
 #include <TStyle.h>
@@ -34,6 +43,7 @@ using namespace std;
 #include <TGraphErrors.h>
 #include <TAxis.h>
 #include <TPad.h>
+#include <TVector.h>
 
 /*Main detector array (bar sums)*/
 TString quartz_bar_sum[8]=
@@ -56,12 +66,15 @@ Double_t errordiff[8];
 Double_t x[8];
 Double_t errx[8];
 Int_t slug_first = 0;
+Int_t slug_range = 9;
 
 /*Function defintions*/
-TString get_query(TString device,TString ihwp, Int_t slug_last);
-void get_octant_data(TString devicelist[],TString ihwp,Int_t slug_last,
-		     Double_t value[],Double_t error[]);
-//void plot_octant(Int_t slug_last);
+TString get_sum_query(TString device,TString ihwp, Int_t slug_last);
+void get_octant_data(TString devicelist[],TString ihwp,Int_t slug_last,Double_t value[],Double_t error[]);
+void get_device_data(TString device,TString ihwp,TString wien,Int_t slug_last,TVectorD* value,
+		     TVectorD*error,TVectorD* runlets);
+TString runletbased_query(TString device,TString ihwp,TString wien,Int_t slug_last);
+void plot_md_data(TString device, Int_t slug_last);
 
 /*main function*/
 int main(Int_t argc,Char_t* argv[])
@@ -102,11 +115,16 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetTitleFontSize(0.09);
   gDirectory->Delete("*");
 
-  std::cout<<"####################################################"<<std::endl;
-  std::cout<<" \n Qweak Residual Transverse Polarization Monitor\n"<<std::endl;
+
+  if(argc==2){
+    slug_range = atoi(argv[1]);
+  }
+
+  std::cout<<"###########################################################"<<std::endl;
+  std::cout<<" \n Qweak Residual Transverse Polarization Monitoring tool\n"<<std::endl;
   std::cout<<"   Created by: Buddhini Waidyawansa                "<<std::endl;
   std::cout<<"   contact : buddhini@jlab.org                     "<<std::endl;
-  std::cout<<"####################################################"<<std::endl;
+  std::cout<<"##########################################################"<<std::endl;
   std::cout<<"NOTE: "<<std::endl;
   std::cout<<"This macro looks only at LH2 longitudinal data that are marked as parity+production and  "<<std::endl;
   std::cout<<"suspect+good or good only.It is the users responsibilty to make sure all the runs in the  "<<std::endl;
@@ -116,11 +134,13 @@ int main(Int_t argc,Char_t* argv[])
 
   std::cout<<" Please enter the last completed slug number:"<<std::endl;
   std::cin>>slug_num;
-  slug_first =  slug_num-9;
+  slug_first =  slug_num-slug_range;
 
+  
   /*connect to the data base*/
-  //  db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
-  db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+  //db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
+  db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
+  //db = TSQLServer::Connect("mysql://127.0.0.1/qw_run1_pass3","qweak", "QweakQweak");
 
   if(db)
     printf("Server info: %s\n", db->ServerInfo());
@@ -129,7 +149,7 @@ int main(Int_t argc,Char_t* argv[])
   
   /*Create a canvas*/
   TString title = Form("LH2: Regressed slug averages of Main detector asymmetries from slugs %i to %i: Fit p0*-4.75*Cos(phi+p1)+p2",slug_first,slug_num);
-  TCanvas * Canvas = new TCanvas("canvas", title,0,0,1000,500);
+  TCanvas * Canvas = new TCanvas("canvas", title,0,0,1000,1000);
   Canvas->Draw();
   Canvas->cd();
 
@@ -143,10 +163,13 @@ int main(Int_t argc,Char_t* argv[])
   pad1->cd();
   TString text = Form(title);
   TText*t1 = new TText(0.06,0.3,text);
-  t1->SetTextSize(0.5);
+  t1->SetTextSize(0.35);
   t1->Draw();
 
   pad2->cd();
+  pad2->Divide(1,2);
+
+  pad2->cd(1);
 
  /*set X location and clear the other arrays*/
   for(Int_t i =0;i<8;i++){
@@ -173,10 +196,8 @@ int main(Int_t argc,Char_t* argv[])
   // Define the cosine fit
   TF1 *cosfit = new TF1("cosfit","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
   cosfit->SetParameter(0,0);
-  cosfit->SetParameter(1,0);
   cosfit->SetParameter(2,0);
-  cosfit->SetParLimits(1,0,180);
-  cosfit->SetParLimits(3,0,180);
+  cosfit->SetParLimits(1,-45,135);
 
   /*Draw IN values*/
   TGraphErrors* grp_in  = new TGraphErrors(8,x,valuesin,errx,errorsin);
@@ -208,8 +229,8 @@ int main(Int_t argc,Char_t* argv[])
   grp_sum ->SetMarkerSize(0.6);
   grp_sum ->SetMarkerStyle(21);
   grp_sum ->SetMarkerColor(kGreen-2);
-  grp_sum->Fit("cosfit");
-  TF1* fit3 = grp_sum->GetFunction("cosfit");
+  grp_sum->Fit("pol0");
+  TF1* fit3 = grp_sum->GetFunction("pol0");
   fit3->DrawCopy("same");
   fit3->SetLineColor(kGreen-2);
 
@@ -249,9 +270,61 @@ int main(Int_t argc,Char_t* argv[])
   stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
   stats3->SetX1NDC(0.8); stats2->SetX2NDC(0.99); 
   stats3->SetY1NDC(0.1);stats3->SetY2NDC(0.35);
-  
+
+  pad2->cd(2);
+
+  /* Draw IN-OUT values */
+  for(Int_t i =0;i<8;i++){
+    valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1.0/pow(errorsin[i],2)) + (1.0/pow(errorsout[i],2)));
+    errordiff[i]= sqrt(1.0/((1.0/(pow(errorsin[i],2)))+(1.0/pow(errorsout[i],2))));
+  }
+
+  TGraphErrors* grp_diff  = new TGraphErrors(8,x,valuediff,errx,errordiff);
+  grp_diff ->SetMarkerSize(0.6);
+  grp_diff ->SetMarkerStyle(21);
+  grp_diff ->SetMarkerColor(kGreen-2);
+  grp_diff->Fit("cosfit");
+  grp_diff->SetTitle("Graph of IN-OUT");
+  TF1* fit4 = grp_diff->GetFunction("cosfit");
+  fit4->DrawCopy("same");
+  fit4->SetLineColor(kMagenta-2);
+  grp_diff->Draw("AP");
+  TPaveStats *stats4 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
+
   Canvas->Update();
   Canvas->Print(Form("transverse_monitor_slugs_%i_%i_plots.png",slug_first,slug_num));
+
+
+
+  std::cout<<"On to plotting mdall, md3 and md5 asymmetry vs runlets "<<std::endl;
+  /*Create a canvas*/
+  TString title1 = Form("LH2: Regressed asymmetries of Main detectors from slugs %i to %i",slug_first,slug_num);
+  TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,1000);
+  Canvas1->Draw();
+  Canvas1->cd();
+
+  TPad*pad11 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
+  TPad*pad22 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
+  pad11->SetFillColor(20);
+  pad11->Draw();
+  pad22->Draw();
+
+  pad11->cd();
+  TString text1 = Form(title1);
+  TText*t11 = new TText(0.06,0.3,text1);
+  t11->SetTextSize(0.5);
+  t11->Draw();
+
+  pad22->cd();
+  pad22->Divide(1,3);
+  pad22->cd(1);
+  plot_md_data("qwk_mdallbarsum", slug_num);
+  pad22->cd(2);
+  plot_md_data("qwk_md3barsum", slug_num);
+  pad22->cd(3);
+  plot_md_data("qwk_md5barsum", slug_num);
+  Canvas1->Update();
+  Canvas1->Print(Form("transverse_monitor_runlet_plots_for_slugs_%i_%i.png",slug_first,slug_num));
 
   std::cout<<"Done! \n";
   db->Close();
@@ -262,13 +335,13 @@ int main(Int_t argc,Char_t* argv[])
 
 
 /*A function to create the mysql query*/
-TString get_query(TString device,TString ihwp, Int_t slug_last){
+TString get_sum_query(TString device,TString ihwp, Int_t slug_last){
 
   Bool_t ldebug = false;
 
-  std::cout<<"Getting unregressed data for "<<device<<std::endl;
+  std::cout<<"Getting regressed data for "<<device<<std::endl;
   TString datatable = "md_data_view";
-  Int_t slug_first = slug_last-9; // select the last 9 slugs including slug_last 
+  Int_t slug_first = slug_last-slug_range; // select the last 9 slugs including slug_last 
  
   TString output = " sum( distinct("+datatable+".value/(POWER("
     +datatable+".error,2))))/sum( distinct(1/(POWER("
@@ -288,7 +361,7 @@ TString get_query(TString device,TString ihwp, Int_t slug_last){
 			    datatable.Data(),datatable.Data()); 
 
   /*Select md asymmetries for LH2 from parity, production that are good/suspect*/
-  TString query =" SELECT " +output+ " FROM "+datatable+", run, slow_controls_settings WHERE "
+  TString query =" SELECT " +output+ " FROM "+datatable+", slow_controls_settings WHERE "
     +datatable+".runlet_id =  slow_controls_settings.runlet_id AND "
     +datatable+".detector = '"+device+"' AND "+datatable+".subblock = 0 AND "
     +datatable+".measurement_type = 'a' AND target_position = 'HYDROGEN-CELL' AND "
@@ -310,11 +383,11 @@ void get_octant_data(TString devicelist[],TString ihwp,Int_t slug_last,
   TString query;
   TSQLStatement* stmt = NULL;
   
-  std::cout<<"Extracting average asymmetries from slug "<<(slug_last-9)<<" to "<<slug_last<<std::endl;
+  std::cout<<"Extracting average asymmetries from slug "<<(slug_last-slug_range)<<" to "<<slug_last<<std::endl;
   for(Int_t i=0 ; i<8 ;i++){
     if(ldebug) printf("Getting data for %10s ihwp %5s ", devicelist[i].Data(), ihwp.Data());
     
-    query = get_query(Form("%s",devicelist[i].Data()),ihwp,slug_last);
+    query = get_sum_query(Form("%s",devicelist[i].Data()),ihwp,slug_last);
     
     stmt = db->Statement(query,100);
     if(!stmt)  {
@@ -335,4 +408,234 @@ void get_octant_data(TString devicelist[],TString ihwp,Int_t slug_last,
   }
 }
 
+/*A query to get runlet based regressed data from the database for given detector*/
+TString runletbased_query(TString device,TString ihwp,TString wien, Int_t slug_last){
+
+Bool_t ldebug = true;
+
+ TString datatable = "md_data_view";
+ Int_t slug_first = slug_last-slug_range; // select the last 9 slugs including slug_last 
+ 
+ TString output = datatable+".value, "+datatable+".error, ("
+   +datatable+".run_number+0.1*"+datatable+".segment_number) ";
+
+ TString slug_cut   = Form("(%s.slug >= %i and %s.slug <= %i)",
+			  datatable.Data(),slug_first,datatable.Data(),slug_last);
+
+  TString run_quality =  Form("(%s.run_quality_id = '1' or %s.run_quality_id = '1,3')",
+			   datatable.Data(),datatable.Data());
+
+  TString good_for =  Form("(%s.good_for_id = '1' or %s.good_for_id = '1,3')",
+			      datatable.Data(),datatable.Data());
+
+  TString regression = Form("%s.slope_calculation = 'off' and %s.slope_correction = 'on' ",
+			    datatable.Data(),datatable.Data()); 
+
+  /*Select md asymmetries for LH2 from parity, production that are good/suspect*/
+  TString query =" SELECT distinct " +output+ ", (slow_controls_data.value<0)*-2+1 as wien_reversal FROM "
+    +datatable+", run, slow_controls_settings,slow_controls_data WHERE "
+    +datatable+".runlet_id =  slow_controls_settings.runlet_id AND "
+    +datatable+".runlet_id =  slow_controls_data.runlet_id AND "
+    +datatable+".detector = '"+device+"' AND "+datatable+".subblock = 0 AND "
+    +datatable+".measurement_type = 'a' AND target_position = 'HYDROGEN-CELL' AND "
+    +slug_cut+" AND "+regression+" AND "+run_quality+" AND "
+    +" slow_helicity_plate= '"+ihwp+
+    "' AND ((slow_controls_data.value<0)*-2+1)*1 = "+wien+
+    "  AND "+good_for+" AND "
+    +datatable+".error != 0; ";
+  
+  if(ldebug) std::cout<<query<<std::endl;
+  
+  return query;
+}
+
+
+/*A function to get data from the database for a given device*/
+void get_device_data(TString device,TString ihwp,TString wien,Int_t slug_last,TVectorD *value,
+		     TVectorD *error,TVectorD *runlets){
+  
+  Bool_t ldebug = true;
+  
+  TString query;
+  TSQLStatement* stmt = NULL;
+  
+  std::cout<<"Extracting asymmetries from slug "<<(slug_last-slug_range)<<" to "<<slug_last<<std::endl;
+  if(ldebug) printf("Getting data for %10s ihwp %5s ", device.Data(), ihwp.Data());
+    
+  query = runletbased_query(device,ihwp,wien,slug_last);
+  
+  stmt = db->Statement(query,100);
+  if(!stmt)  {
+    db->Close();
+    exit(1);
+  }
+
+  value->Clear();
+  error->Clear();
+  runlets->Clear();
+
+  /* process statement */
+  if (stmt->Process()) {
+    /* store result of statement in buffer*/
+    stmt->StoreResult();
+    /*Process row after row*/
+    Int_t i=0;
+    while (stmt->NextResultRow()) {
+      value->ResizeTo(i+1);
+      error->ResizeTo(i+1);
+      runlets->ResizeTo(i+1);
+      value->operator()(i)   = (stmt->GetDouble(0))*1e6; // convert to  ppm
+      error->operator()(i)   = (stmt->GetDouble(1))*1e6; // ppm
+      runlets->operator()(i) = (stmt->GetDouble(2));   // run+0.1*runlet
+      i++;
+    }
+  }
+  delete stmt;    
+}
+
+
+/*A function to plot md_all, md3 and md1 asymmetry vs runlet*/
+void plot_md_data(TString device, Int_t slug_last){
+
+  TVectorD value_in_L;
+  TVectorD error_in_L;
+  TVectorD runlets_in_L;
+  TVectorD runlets_err_in_L;
+  TVectorD value_in_R;
+  TVectorD error_in_R;
+  TVectorD runlets_in_R;
+  TVectorD runlets_err_in_R;
+  TVectorD value_out_L;
+  TVectorD error_out_L;
+  TVectorD runlets_out_L;
+  TVectorD runlets_err_out_L;
+  TVectorD value_out_R;
+  TVectorD error_out_R;
+  TVectorD runlets_out_R;
+  TVectorD runlets_err_out_R;
+  gStyle->SetOptFit(0);
+  
+
+  value_in_L.Clear();
+  value_in_L.ResizeTo(0);
+  error_in_L.Clear();
+  error_in_L.ResizeTo(0);
+  runlets_in_L.Clear();
+  runlets_in_L.ResizeTo(0);
+  runlets_err_in_L.Clear();
+  runlets_err_in_L.ResizeTo(0);
+  value_in_R.Clear();
+  value_in_R.ResizeTo(0);
+  error_in_R.Clear();
+  error_in_R.ResizeTo(0);
+  runlets_in_R.Clear();
+  runlets_in_R.ResizeTo(0);
+  runlets_err_in_R.Clear();
+  runlets_err_in_R.ResizeTo(0);
+  value_out_L.Clear();
+  value_out_L.ResizeTo(0);
+  error_out_L.Clear();
+  error_out_L.ResizeTo(0);
+  runlets_out_L.Clear();
+  runlets_out_L.ResizeTo(0);
+  runlets_err_out_L.Clear();
+  runlets_err_out_L.ResizeTo(0);
+  value_out_R.Clear();
+  error_out_R.ResizeTo(0);
+  error_out_R.Clear();
+  error_out_R.ResizeTo(0);
+  runlets_out_R.Clear();
+  runlets_out_R.ResizeTo(0);
+  runlets_err_out_R.Clear();
+  runlets_err_out_R.ResizeTo(0);
+
+
+ 
+  TPad* pad = (TPad*)(gPad->GetMother());
+
+
+  /*Get data from database for md allbars*/
+  std::cout<<"IHWP in' WIEN right."<<std::endl;
+  get_device_data("qwk_mdallbars","in","1",slug_last,&value_in_R,&error_in_R,&runlets_in_R);
+  std::cout<<"IHWP in' WIEN left."<<std::endl; 
+  get_device_data("qwk_mdallbars","in","-1",slug_last,&value_in_L,&error_in_L,&runlets_in_L);
+  std::cout<<"IHWP out' WIEN right."<<std::endl;
+  get_device_data("qwk_mdallbars","out","1",slug_last,&value_out_R,&error_out_R,&runlets_out_R);
+  std::cout<<"IHWP out' WIEN left."<<std::endl; 
+  get_device_data("qwk_mdallbars","out","-1",slug_last,&value_out_L,&error_out_L,&runlets_out_L);
+
+  for(Int_t i = 0;i<value_out_R.GetNoElements();i++)  {runlets_err_out_R.ResizeTo(i+1);runlets_err_out_R.operator()(i) = 0.0;}
+  for(Int_t i = 0;i<value_out_L.GetNoElements();i++)  {runlets_err_out_L.ResizeTo(i+1);runlets_err_out_L.operator()(i) = 0.0;}
+  for(Int_t i = 0;i<value_in_R.GetNoElements(); i++)  {runlets_err_in_R.ResizeTo(i+1) ;runlets_err_in_R.operator()(i)  = 0.0;}
+  for(Int_t i = 0;i<value_in_L.GetNoElements(); i++)  {runlets_err_in_L.ResizeTo(i+1) ;runlets_err_in_L.operator()(i)  = 0.0;}
+
+  
+
+  /*Draw IN_R values*/
+  TGraphErrors* grp_in_R   = new TGraphErrors(runlets_in_R,value_in_R,runlets_err_in_R,error_in_R);
+  grp_in_R ->SetMarkerSize(0.6);
+  grp_in_R ->SetMarkerStyle(21);
+  grp_in_R ->SetMarkerColor(kBlue);
+  grp_in_R->Fit("pol0");
+  TF1* fit1 = grp_in_R->GetFunction("pol0");
+  fit1->SetLineColor(kBlue);
+  fit1->DrawCopy("same");
+
+
+  TGraphErrors* grp_in_L   = new TGraphErrors(runlets_in_L,value_in_L,runlets_err_in_L,error_in_L);
+  grp_in_L ->SetMarkerSize(0.6);
+  grp_in_L ->SetMarkerStyle(21);
+  grp_in_L ->SetMarkerColor(kOrange);
+  grp_in_L->Fit("pol0");
+  TF1* fit2 = grp_in_L->GetFunction("pol0");
+  fit2->SetLineColor(kOrange);
+  fit2->DrawCopy("same");
+
+  TGraphErrors* grp_out_R  = new TGraphErrors(runlets_out_R,value_out_R,runlets_err_out_R,error_out_R);
+  grp_out_R ->SetMarkerSize(0.6);
+  grp_out_R ->SetMarkerStyle(21);
+  grp_out_R ->SetMarkerColor(kRed);
+  grp_out_R->Fit("pol0");
+  TF1* fit3 = grp_out_R->GetFunction("pol0");
+  fit3->SetLineColor(kRed);
+  fit3->DrawCopy("same");
+
+  TGraphErrors* grp_out_L  = new TGraphErrors(runlets_out_L,value_out_L,runlets_err_out_L,error_out_L);
+  grp_out_L ->SetMarkerSize(0.6);
+  grp_out_L ->SetMarkerStyle(21);
+  grp_out_L ->SetMarkerColor(kViolet);
+  grp_out_L->Fit("pol0");
+  TF1* fit4 = grp_out_L->GetFunction("pol0");
+  fit4->SetLineColor(kViolet);
+  fit4->DrawCopy("same");
+
+
+  TMultiGraph * grp = new TMultiGraph();
+  grp->Add(grp_in_R);
+  grp->Add(grp_out_R);
+  grp->Add(grp_in_L);
+  grp->Add(grp_out_L);
+  grp->Draw("AP");
+
+  grp->SetTitle(Form("%s asymmetry variation over the runs",device.Data()));
+  grp->GetXaxis()->SetTitle("run+runlet");
+  grp->GetXaxis()->CenterTitle();
+  grp->GetYaxis()->SetTitle("Asymmetry (ppm)");
+  grp->GetYaxis()->CenterTitle();
+  grp->GetYaxis()->SetTitleOffset(0.7);
+  grp->GetXaxis()->SetTitleOffset(0.8);
+
+  TLegend *legend = new TLegend(0.8,0.7,0.99,0.95,"","brNDC");
+  legend->AddEntry(grp_in_R, Form("<IN_R>  = %2.3f#pm%2.3f", 
+				  fit1->GetParameter(0), fit1->GetParError(0)), "p");
+  legend->AddEntry(grp_out_R,Form("<OUT_R> = %2.3f#pm%2.3f", 
+				  fit3->GetParameter(0), fit3->GetParError(0)), "p");
+  legend->AddEntry(grp_in_L, Form("<IN_L>  = %2.3f#pm%2.3f", 
+				  fit2->GetParameter(0), fit2->GetParError(0)), "p");
+  legend->AddEntry(grp_out_L,Form("<OUT_L> = %2.3f#pm%2.3f", 
+				  fit4->GetParameter(0), fit4->GetParError(0)), "p");
+  legend->SetFillColor(0);
+  legend->Draw("");
+
+}
 
