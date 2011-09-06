@@ -138,9 +138,10 @@ int main(Int_t argc,Char_t* argv[])
 
   
   /*connect to the data base*/
-  //db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
+  // db = TSQLServer::Connect("mysql://cdaql6.jlab.org/qw_fall2010_20101204","qweak", "QweakQweak");
+  // db = TSQLServer::Connect("mysql://127.0.0.1/qw_run1_pass3","qweak", "QweakQweak");
   db = TSQLServer::Connect("mysql://qweakdb.jlab.org/qw_run1_pass3","qweak", "QweakQweak");
-  //db = TSQLServer::Connect("mysql://127.0.0.1/qw_run1_pass3","qweak", "QweakQweak");
+
 
   if(db)
     printf("Server info: %s\n", db->ServerInfo());
@@ -149,7 +150,7 @@ int main(Int_t argc,Char_t* argv[])
   
   /*Create a canvas*/
   TString title = Form("LH2: Regressed slug averages of Main detector asymmetries from slugs %i to %i: Fit p0*-4.75*Cos(phi+p1)+p2",slug_first,slug_num);
-  TCanvas * Canvas = new TCanvas("canvas", title,0,0,1000,1000);
+  TCanvas * Canvas = new TCanvas("canvas", title,0,0,1000,800);
   Canvas->Draw();
   Canvas->cd();
 
@@ -351,8 +352,8 @@ TString get_sum_query(TString device,TString ihwp, Int_t slug_last){
   TString slug_cut   = Form("(%s.slug >= %i and %s.slug <= %i)",
 			  datatable.Data(),slug_first,datatable.Data(),slug_last);
 
-  TString run_quality =  Form("(%s.run_quality_id = '1' or %s.run_quality_id = '1,3')",
-			   datatable.Data(),datatable.Data());
+  TString run_quality =  Form("(%s.run_quality_id = '1') ",
+			   datatable.Data());
 
   TString good_for =  Form("(%s.good_for_id = '1' or %s.good_for_id = '1,3')",
 			      datatable.Data(),datatable.Data());
@@ -422,8 +423,8 @@ Bool_t ldebug = true;
  TString slug_cut   = Form("(%s.slug >= %i and %s.slug <= %i)",
 			  datatable.Data(),slug_first,datatable.Data(),slug_last);
 
-  TString run_quality =  Form("(%s.run_quality_id = '1' or %s.run_quality_id = '1,3')",
-			   datatable.Data(),datatable.Data());
+  TString run_quality =  Form("(%s.run_quality_id = '1')",
+			   datatable.Data());
 
   TString good_for =  Form("(%s.good_for_id = '1' or %s.good_for_id = '1,3')",
 			      datatable.Data(),datatable.Data());
@@ -638,4 +639,5 @@ void plot_md_data(TString device, Int_t slug_last){
   legend->Draw("");
 
 }
+
 

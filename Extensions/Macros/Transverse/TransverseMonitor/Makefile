@@ -18,7 +18,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-EXE := transverse_monitor
+EXE := transverse_monitor phase_tracker
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -41,7 +41,8 @@ all:  $(EXE)
 transverse_monitor : transverse_monitor.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-
+phase_tracker : RunbasedPhaseTracker.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 %: %.C
 	$(CXX) $(CXXFLAGS) $(LIBS) $(GLIBS) -o $@ $<
