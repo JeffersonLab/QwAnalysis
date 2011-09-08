@@ -18,7 +18,11 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
+<<<<<<< .mine
+EXE := transverse_monitor run_phase_tracker transverse_fit_db slug_phase_tracker transverse_monitor_fixed_phase
+=======
 EXE := transverse_monitor phase_tracker
+>>>>>>> .r3185
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
@@ -41,7 +45,16 @@ all:  $(EXE)
 transverse_monitor : transverse_monitor.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
-phase_tracker : RunbasedPhaseTracker.o 
+transverse_monitor_fixed_phase : transverse_monitor_fixed_phase.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+run_phase_tracker : RunbasedPhaseTracker.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+transverse_fit_db : TransverseFitDB.o 
+	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
+
+slug_phase_tracker : SlugbasedPhaseTracker.o 
 	$(CXX) $(CXXFLAGS)  $(LIBS) $(GLIBS) -o $@ $<
 
 %: %.C

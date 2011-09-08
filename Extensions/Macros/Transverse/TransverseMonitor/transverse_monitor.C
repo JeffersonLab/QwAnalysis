@@ -86,8 +86,8 @@ int main(Int_t argc,Char_t* argv[])
   gStyle->SetOptStat(0000000);
   gStyle->SetStatY(0.99);
   gStyle->SetStatX(0.99);
-  gStyle->SetStatW(0.15);
-  gStyle->SetStatH(0.5);
+  gStyle->SetStatW(0.10);
+  gStyle->SetStatH(0.3);
 
   
   //Pad parameters
@@ -195,28 +195,46 @@ int main(Int_t argc,Char_t* argv[])
 
 
   // Define the cosine fit
-  TF1 *cosfit = new TF1("cosfit","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
-  cosfit->SetParameter(0,0);
-  cosfit->SetParameter(2,0);
-  cosfit->SetParLimits(1,-45,135);
+  TF1 *cosfit_in = new TF1("cosfit_in","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
+  cosfit_in->SetParameter(0,0);
+  cosfit_in->SetParameter(2,0);
+
 
   /*Draw IN values*/
   TGraphErrors* grp_in  = new TGraphErrors(8,x,valuesin,errx,errorsin);
   grp_in ->SetMarkerSize(0.6);
   grp_in ->SetMarkerStyle(21);
   grp_in ->SetMarkerColor(kBlue);
-  grp_in->Fit("cosfit");
-  TF1* fit1 = grp_in->GetFunction("cosfit");
+  grp_in->Fit("cosfit_in");
+  TF1* fit1 = grp_in->GetFunction("cosfit_in");
   fit1->DrawCopy("same");
   fit1->SetLineColor(kBlue);
+ 
+  // Define the cosine fit. Use the p0, p1 and p2 for initialization and limits of this fit.
+  // We dont't want the phase to change with the IHWP. The sign of the amplitude is the onlything
+  // that should change with IHWP. But we will allow a +-90 degree leverage for the phase to see 
+  // if fo some reason, changing the IHWP has changed the verticle to horizontal transverse
+  // or vise versa.
 
-  /*Draw OUT values*/
+  TF1 *cosfit_out = new TF1("cosfit_out","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
+  cosfit_out->SetParameter(0,fit1->GetParameter(0)); // initialization from previous fit
+  if(fit1->GetParameter(0)<0) cosfit_out->SetParLimits(0,0,99999);
+  if(fit1->GetParameter(0)>0) cosfit_out->SetParLimits(0,-99999,0);
+
+  cosfit_out->SetParameter(2,fit1->GetParameter(2)); // initialization from previous fit
+  cosfit_out->SetParameter(1,fit1->GetParameter(1)); // initialization from previous fit
+  Double_t phase_low = fit1->GetParameter(1)-90;
+  Double_t phase_up  = fit1->GetParameter(1)+90;
+  cosfit_out->SetParLimits(1,phase_low,phase_up);
+
+
+   /*Draw OUT values*/
   TGraphErrors* grp_out  = new TGraphErrors(8,x,valuesout,errx,errorsout);
   grp_out ->SetMarkerSize(0.6);
   grp_out ->SetMarkerStyle(21);
   grp_out ->SetMarkerColor(kRed);
-  grp_out->Fit("cosfit");
-  TF1* fit2 = grp_out->GetFunction("cosfit");
+  grp_out->Fit("cosfit_out");
+  TF1* fit2 = grp_out->GetFunction("cosfit_out");
   fit2->DrawCopy("same");
   fit2->SetLineColor(kRed);
 
@@ -256,6 +274,16 @@ int main(Int_t argc,Char_t* argv[])
   legend->SetFillColor(0);
   legend->Draw("");
 
+  /*To fix the sign of amplitude in labels*/
+  Double_t p0_in = fit1->GetParameter(0);
+  Double_t p1_in = fit1->GetParameter(1);
+ 
+  if(p1_in<0){
+
+
+  }
+
+
   TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
   TPaveStats *stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
   TPaveStats *stats3 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
@@ -281,12 +309,12 @@ int main(Int_t argc,Char_t* argv[])
   }
 
   TGraphErrors* grp_diff  = new TGraphErrors(8,x,valuediff,errx,errordiff);
-  grp_diff ->SetMarkerSize(0.6);
+  grp_diff ->SetMarkerSize(0.8);
   grp_diff ->SetMarkerStyle(21);
   grp_diff ->SetMarkerColor(kGreen-2);
-  grp_diff->Fit("cosfit");
+  grp_diff->Fit("cosfit_in");
   grp_diff->SetTitle("Graph of IN-OUT");
-  TF1* fit4 = grp_diff->GetFunction("cosfit");
+  TF1* fit4 = grp_diff->GetFunction("cosfit_in");
   fit4->DrawCopy("same");
   fit4->SetLineColor(kMagenta-2);
   grp_diff->Draw("AP");
@@ -297,35 +325,35 @@ int main(Int_t argc,Char_t* argv[])
 
 
 
-  std::cout<<"On to plotting mdall, md3 and md5 asymmetry vs runlets "<<std::endl;
-  /*Create a canvas*/
-  TString title1 = Form("LH2: Regressed asymmetries of Main detectors from slugs %i to %i",slug_first,slug_num);
-  TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,1000);
-  Canvas1->Draw();
-  Canvas1->cd();
+  // std::cout<<"On to plotting mdall, md3 and md5 asymmetry vs runlets "<<std::endl;
+//   /*Create a canvas*/
+//   TString title1 = Form("LH2: Regressed asymmetries of Main detectors from slugs %i to %i",slug_first,slug_num);
+//   TCanvas * Canvas1 = new TCanvas("canvas1", title1,0,0,1000,1000);
+//   Canvas1->Draw();
+//   Canvas1->cd();
 
-  TPad*pad11 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
-  TPad*pad22 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
-  pad11->SetFillColor(20);
-  pad11->Draw();
-  pad22->Draw();
+//   TPad*pad11 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
+//   TPad*pad22 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
+//   pad11->SetFillColor(20);
+//   pad11->Draw();
+//   pad22->Draw();
 
-  pad11->cd();
-  TString text1 = Form(title1);
-  TText*t11 = new TText(0.06,0.3,text1);
-  t11->SetTextSize(0.5);
-  t11->Draw();
+//   pad11->cd();
+//   TString text1 = Form(title1);
+//   TText*t11 = new TText(0.06,0.3,text1);
+//   t11->SetTextSize(0.5);
+//   t11->Draw();
 
-  pad22->cd();
-  pad22->Divide(1,3);
-  pad22->cd(1);
-  plot_md_data("qwk_mdallbarsum", slug_num);
-  pad22->cd(2);
-  plot_md_data("qwk_md3barsum", slug_num);
-  pad22->cd(3);
-  plot_md_data("qwk_md5barsum", slug_num);
-  Canvas1->Update();
-  Canvas1->Print(Form("transverse_monitor_runlet_plots_for_slugs_%i_%i.png",slug_first,slug_num));
+//   pad22->cd();
+//   pad22->Divide(1,3);
+//   pad22->cd(1);
+//   plot_md_data("qwk_mdallbarsum", slug_num);
+//   pad22->cd(2);
+//   plot_md_data("qwk_md3barsum", slug_num);
+//   pad22->cd(3);
+//   plot_md_data("qwk_md5barsum", slug_num);
+//   Canvas1->Update();
+//   Canvas1->Print(Form("transverse_monitor_runlet_plots_for_slugs_%i_%i.png",slug_first,slug_num));
 
   std::cout<<"Done! \n";
   db->Close();
