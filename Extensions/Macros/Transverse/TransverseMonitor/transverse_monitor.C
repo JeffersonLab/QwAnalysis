@@ -50,6 +50,11 @@ TString quartz_bar_sum[8]=
   {"qwk_md1barsum","qwk_md2barsum","qwk_md3barsum","qwk_md4barsum",
    "qwk_md5barsum","qwk_md6barsum","qwk_md7barsum","qwk_md8barsum"};
 
+/*Opposite bar sums array*/
+TString opposite_quartz_bar_sum[4]=
+  {"qwk_md1_qwk_md5","qwk_md2_qwk_md6","qwk_md3_qwk_md7","qwk_md4_qwk_md8"};
+
+
 /*Database connection*/
 TSQLServer *db;
 
@@ -59,22 +64,28 @@ Double_t valuesin[8];
 Double_t errorsin[8];
 Double_t valuesout[8];
 Double_t errorsout[8];
-Double_t valuesum[8];
-Double_t valueerror[8];
-Double_t valuediff[8];
-Double_t errordiff[8];
-Double_t x[8];
-Double_t errx[8];
+
+
+
+Double_t oppvaluesin[4];
+Double_t opperrorsin[4];
+Double_t oppvaluesout[4];
+Double_t opperrorsout[4];
+
+
 Int_t slug_first = 0;
 Int_t slug_range = 9;
 
 /*Function defintions*/
 TString get_sum_query(TString device,TString ihwp, Int_t slug_last);
-void get_octant_data(TString devicelist[],TString ihwp,Int_t slug_last,Double_t value[],Double_t error[]);
+void get_data(TString devicelist[],Int_t size,TString ihwp,Int_t slug_last,
+		     Double_t value[],Double_t error[]);
 void get_device_data(TString device,TString ihwp,TString wien,Int_t slug_last,TVectorD* value,
 		     TVectorD*error,TVectorD* runlets);
 TString runletbased_query(TString device,TString ihwp,TString wien,Int_t slug_last);
 void plot_md_data(TString device, Int_t slug_last);
+void plot_n_fit_data(Int_t size, TString fit, Double_t valuein[],Double_t errorin[], 
+	       Double_t valueout[],Double_t errorout[]);
 
 /*main function*/
 int main(Int_t argc,Char_t* argv[])
@@ -149,176 +160,43 @@ int main(Int_t argc,Char_t* argv[])
     exit(1);
   
   /*Create a canvas*/
-  TString title = Form("LH2: Regressed slug averages of Main detector asymmetries from slugs %i to %i: Fit p0*-4.75*Cos(phi+p1)+p2",slug_first,slug_num);
-  TCanvas * Canvas = new TCanvas("canvas", title,0,0,1000,800);
-  Canvas->Draw();
-  Canvas->cd();
-
-  TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
-  TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
-  pad1->SetFillColor(20);
-  pad1->Draw();
-  pad2->Draw();
-
+  TCanvas * Canvas1 = new TCanvas("canvas1", "Aaymmetry vs octants",0,0,1000,800);
+  TCanvas * Canvas2 = new TCanvas("canvas2", "Oppposite octant sum vs opposit octant pair",0,0,1000,800);
  
-  pad1->cd();
-  TString text = Form(title);
-  TText*t1 = new TText(0.06,0.3,text);
-  t1->SetTextSize(0.35);
-  t1->Draw();
-
-  pad2->cd();
-  pad2->Divide(1,2);
-
-  pad2->cd(1);
-
- /*set X location and clear the other arrays*/
+ 
+ /*Clear the other arrays*/
   for(Int_t i =0;i<8;i++){
-    x[i]         = i+1;
-    errx[i]      = 0.0;
     valuesin[i]  = 0.0;
     valuesout[i] = 0.0;
     errorsin[i]  = 0.0;
     errorsout[i] = 0.0;
-    valuesum[i]  = 0.0;
-    valueerror[i]= 0.0;
-    valuediff[i] = 0.0;
-    errordiff[i] = 0.0;
-  }
+   }
   
   /*Get data from database*/
   std::cout<<"IHWP 'in'.."<<std::endl;
-  get_octant_data(quartz_bar_sum,"in",slug_num,valuesin,errorsin);
+  get_data(quartz_bar_sum,8,"in",slug_num,valuesin,errorsin);
+  get_data(opposite_quartz_bar_sum,4,"in",slug_num,oppvaluesin,opperrorsin);
+
   std::cout<<"IHWP 'out'.."<<std::endl;
-  get_octant_data(quartz_bar_sum,"out",slug_num,valuesout,errorsout);
+  get_data(quartz_bar_sum,8,"out",slug_num,valuesout,errorsout);
+  get_data(opposite_quartz_bar_sum,4,"out",slug_num,oppvaluesout,opperrorsout);
 
+  /*Fit octants*/
+  Canvas1->Draw();
+  Canvas1->cd();
+  plot_n_fit_data(8, "cosfit",  valuesin,errorsin, valuesout,errorsout);
+  Canvas1->Update();
+  Canvas1->Print(Form("transverse_monitor_slugs_all_%i_%i_plots.png",slug_first,slug_num));
 
-
-  // Define the cosine fit
-  TF1 *cosfit_in = new TF1("cosfit_in","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
-  // cosfit_in->SetParameter(0,0);
-  cosfit_in->SetParameter(2,0);
-  cosfit_in->SetParLimits(0,0,99999);
-
-
-  /*Draw IN values*/
-  TGraphErrors* grp_in  = new TGraphErrors(8,x,valuesin,errx,errorsin);
-  grp_in ->SetMarkerSize(0.6);
-  grp_in ->SetMarkerStyle(21);
-  grp_in ->SetMarkerColor(kBlue);
-  grp_in->Fit("cosfit_in");
-  TF1* fit1 = grp_in->GetFunction("cosfit_in");
-  fit1->DrawCopy("same");
-  fit1->SetLineColor(kBlue);
- 
-  // Define the cosine fit. Use the p0, p1 and p2 for initialization and limits of this fit.
-  // We dont't want the phase to change with the IHWP. The sign of the amplitude is the onlything
-  // that should change with IHWP. But we will allow a +-90 degree leverage for the phase to see 
-  // if fo some reason, changing the IHWP has changed the verticle to horizontal transverse
-  // or vise versa.
-
-  TF1 *cosfit_out = new TF1("cosfit_out","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
-  cosfit_out->SetParameter(0,fit1->GetParameter(0)); // initialization from previous fit
-//   if(fit1->GetParameter(0)<0) cosfit_out->SetParLimits(0,0,99999);
-//   if(fit1->GetParameter(0)>0) cosfit_out->SetParLimits(0,-99999,0);
-  cosfit_out->SetParLimits(0,-99999,0);
-
-
-  cosfit_out->SetParameter(2,fit1->GetParameter(2)); // initialization from previous fit
-  cosfit_out->SetParameter(1,fit1->GetParameter(1)); // initialization from previous fit
-  Double_t phase_low = fit1->GetParameter(1)-90;
-  Double_t phase_up  = fit1->GetParameter(1)+90;
-  cosfit_out->SetParLimits(1,phase_low,phase_up);
-
-
-   /*Draw OUT values*/
-  TGraphErrors* grp_out  = new TGraphErrors(8,x,valuesout,errx,errorsout);
-  grp_out ->SetMarkerSize(0.6);
-  grp_out ->SetMarkerStyle(21);
-  grp_out ->SetMarkerColor(kRed);
-  grp_out->Fit("cosfit_out");
-  TF1* fit2 = grp_out->GetFunction("cosfit_out");
-  fit2->DrawCopy("same");
-  fit2->SetLineColor(kRed);
-
-  /* Draw IN+OUT values */
-  for(Int_t i =0;i<8;i++){
-    valuesum[i]=valuesin[i]+valuesout[i];
-    valueerror[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2));
-  }
-
-  TGraphErrors* grp_sum  = new TGraphErrors(8,x,valuesum,errx,valueerror);
-  grp_sum ->SetMarkerSize(0.6);
-  grp_sum ->SetMarkerStyle(21);
-  grp_sum ->SetMarkerColor(kGreen-2);
-  grp_sum->Fit("pol0");
-  TF1* fit3 = grp_sum->GetFunction("pol0");
-  fit3->DrawCopy("same");
-  fit3->SetLineColor(kGreen-2);
-
-  TMultiGraph * grp = new TMultiGraph();
-  grp->Add(grp_in);
-  grp->Add(grp_out);
-  grp->Add(grp_sum);
-  grp->Draw("AP");
-
-  grp->SetTitle("");
-  grp->GetXaxis()->SetTitle("Octant");
-  grp->GetXaxis()->CenterTitle();
-  grp->GetYaxis()->SetTitle("Asymmetry (ppm)");
-  grp->GetYaxis()->CenterTitle();
-  grp->GetYaxis()->SetTitleOffset(0.7);
-  grp->GetXaxis()->SetTitleOffset(0.8);
-
-  TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
-  legend->AddEntry(grp_in, "IHWP-IN", "p");
-  legend->AddEntry(grp_out, "IHWP-OUT", "p");
-  legend->AddEntry(grp_sum, "IN+OUT", "p");
-  legend->SetFillColor(0);
-  legend->Draw("");
+  /*Fit opposite bar sums*/
+  Canvas2->Draw();
+  Canvas2->cd();
+  plot_n_fit_data(4, "pol0",  oppvaluesin,opperrorsin, oppvaluesout,opperrorsout);
+  Canvas2->Update();
+  Canvas2->Print(Form("transverse_monitor_slugs_opposite_%i_%i_plots.png",slug_first,slug_num));
 
  
-
-  TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
-  TPaveStats *stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
-  TPaveStats *stats3 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
-  stats1->SetTextColor(kBlue);
-  stats1->SetFillColor(kWhite); 
-  stats2->SetTextColor(kRed);
-  stats2->SetFillColor(kWhite); 
-  stats3->SetTextColor(kGreen-2);
-  stats3->SetFillColor(kWhite); 
-  stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); 
-  stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
-  stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); 
-  stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
-  stats3->SetX1NDC(0.8); stats2->SetX2NDC(0.99); 
-  stats3->SetY1NDC(0.1);stats3->SetY2NDC(0.35);
-
-  pad2->cd(2);
-
-  /* Draw IN-OUT values */
-  for(Int_t i =0;i<8;i++){
-    valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1.0/pow(errorsin[i],2)) + (1.0/pow(errorsout[i],2)));
-    errordiff[i]= sqrt(1.0/((1.0/(pow(errorsin[i],2)))+(1.0/pow(errorsout[i],2))));
-  }
-
-  TGraphErrors* grp_diff  = new TGraphErrors(8,x,valuediff,errx,errordiff);
-  grp_diff ->SetMarkerSize(0.8);
-  grp_diff ->SetMarkerStyle(21);
-  grp_diff ->SetMarkerColor(kGreen-2);
-  grp_diff->Fit("cosfit_in");
-  grp_diff->SetTitle("Graph of IN-OUT");
-  TF1* fit4 = grp_diff->GetFunction("cosfit_in");
-  fit4->DrawCopy("same");
-  fit4->SetLineColor(kMagenta-2);
-  grp_diff->Draw("AP");
-
-  Canvas->Update();
-  Canvas->Print(Form("transverse_monitor_slugs_%i_%i_plots.png",slug_first,slug_num));
-
-
-
+ 
   // std::cout<<"On to plotting mdall, md3 and md5 asymmetry vs runlets "<<std::endl;
 //   /*Create a canvas*/
 //   TString title1 = Form("LH2: Regressed asymmetries of Main detectors from slugs %i to %i",slug_first,slug_num);
@@ -398,7 +276,7 @@ TString get_sum_query(TString device,TString ihwp, Int_t slug_last){
 
 
 /*A function to get data from the database for the octants*/
-void get_octant_data(TString devicelist[],TString ihwp,Int_t slug_last,
+void get_data(TString devicelist[],Int_t size,TString ihwp,Int_t slug_last,
 		     Double_t value[], Double_t error[]){
   
   Bool_t ldebug = false;
@@ -407,7 +285,7 @@ void get_octant_data(TString devicelist[],TString ihwp,Int_t slug_last,
   TSQLStatement* stmt = NULL;
   
   std::cout<<"Extracting average asymmetries from slug "<<(slug_last-slug_range)<<" to "<<slug_last<<std::endl;
-  for(Int_t i=0 ; i<8 ;i++){
+  for(Int_t i=0 ; i<size ;i++){
     if(ldebug) printf("Getting data for %10s ihwp %5s ", devicelist[i].Data(), ihwp.Data());
     
     query = get_sum_query(Form("%s",devicelist[i].Data()),ihwp,slug_last);
@@ -663,3 +541,216 @@ void plot_md_data(TString device, Int_t slug_last){
 }
 
 
+/*Function to plot and fit data*/
+void plot_n_fit_data(const Int_t size, TString fit, Double_t valuein[],Double_t errorin[], 
+		     Double_t valueout[],Double_t errorout[]){
+
+  TF1 *cosfit;
+  TF1 *cosfit_diff;
+  TString usefit="";
+  Double_t phase_low;
+  Double_t phase_up;
+
+  Double_t x[size];
+  Double_t errx[size];
+  Double_t valuesum[size];
+  Double_t valueerror[size];
+  Double_t valuediff[size];
+  Double_t errordiff[size];
+
+  /*set X location and clear the other arrays*/
+  for(Int_t i =0;i<size;i++){
+    x[i]         = i+1;
+    errx[i]      = 0.0;
+    valuesum[i]  = 0.0;
+    valueerror[i]= 0.0;
+    valuediff[i] = 0.0;
+    errordiff[i] = 0.0;
+  }
+  
+  TPad* pad = (TPad*)(gPad->GetMother());
+  pad->cd();
+  pad->Clear();
+  
+  TPad*pad1 = new TPad("pad1","pad1",0.005,0.935,0.995,0.995);
+  TPad*pad2 = new TPad("pad2","pad2",0.005,0.005,0.995,0.945);
+  pad1->SetFillColor(20);
+  pad1->Draw();
+  pad2->Draw();
+
+  pad1->cd();
+  TString title;
+
+  if(fit == "cosfit")
+    title = Form("LH2: Regressed slug averages of Main detector bar asymmetries from slugs %i to %i: Fit p0*-4.75*Cos(phi+p1)+p2",slug_first,slug_num);
+  if(fit == "pol0")
+    title = Form("LH2: Regressed slug averages of Opposite Main detector bar sum asymmetries from slugs %i to %i: Fit p0",slug_first,slug_num);
+
+
+  TString text = Form(title);
+  TText*t1 = new TText(0.06,0.3,text);
+  t1->SetTextSize(0.35);
+  t1->Draw();
+  
+  pad2->cd();
+  pad2->Divide(1,2);
+  
+  pad2->cd(1);
+
+
+  /*cosine fit is for the octants and constant fit is for the opposite octants*/
+  if(fit == "pol0"){
+    usefit = "pol0";
+  }  
+  if(fit =="cosfit"){
+
+    usefit = "cosfit";
+    // Define the cosine fit
+    cosfit = new TF1("cosfit","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
+    cosfit->SetParameter(2,0);
+    cosfit->SetParLimits(0,0,99999);
+    cosfit->SetParLimits(1,-180,180);
+  }
+
+  /*Draw IN values*/
+  TGraphErrors* grp_in  = new TGraphErrors(size,x,valuesin,errx,errorsin);
+  grp_in ->SetMarkerSize(0.8);
+  grp_in ->SetMarkerStyle(21);
+  grp_in ->SetMarkerColor(kBlue);
+  grp_in ->SetLineColor(kBlue);
+
+  grp_in->Fit(usefit);
+  grp_in->Fit(usefit);
+  TF1* fit1 = grp_in->GetFunction(usefit);
+  fit1->DrawCopy("same");
+  fit1->SetLineColor(kBlue);
+ 
+
+  if(fit =="cosfit"){
+
+    // Define the cosine fit for out. Use the p0, p1 and p2 for initialization and limits of this fit.
+    // We dont't want the phase to change with the IHWP. The sign of the amplitude is the onlything
+    // that should change with IHWP. But we will allow a +-90 degree leverage for the phase to see 
+    // if fo some reason, changing the IHWP has changed the verticle to horizontal transverse
+    // or vise versa.
+    
+    //  cosfit_out = new TF1("cosfit_out","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
+    cosfit->SetParameter(0,fit1->GetParameter(0)); // initialization from previous fit
+    //   if(fit1->GetParameter(0)<0) cosfit_out->SetParLimits(0,0,99999);
+    //   if(fit1->GetParameter(0)>0) cosfit_out->SetParLimits(0,-99999,0);
+    cosfit->SetParLimits(0,-99999,0);
+    
+    
+    cosfit->SetParameter(2,fit1->GetParameter(2)); // initialization from previous fit
+    cosfit->SetParameter(1,fit1->GetParameter(1)); // initialization from previous fit
+    phase_low = fit1->GetParameter(1)-90;
+    phase_up  = fit1->GetParameter(1)+90;
+    cosfit->SetParLimits(1,phase_low,phase_up);
+  }
+
+
+   /*Draw OUT values*/
+  TGraphErrors* grp_out  = new TGraphErrors(size,x,valuesout,errx,errorsout);
+  grp_out ->SetMarkerSize(0.8);
+  grp_out ->SetMarkerStyle(21);
+  grp_out ->SetMarkerColor(kRed);
+  grp_out ->SetLineColor(kRed);
+
+  grp_out->Fit(usefit);
+  grp_out->Fit(usefit);
+  TF1* fit2 = grp_out->GetFunction(usefit);
+  fit2->DrawCopy("same");
+  fit2->SetLineColor(kRed);
+
+  /* Draw IN+OUT values */
+  for(Int_t i =0;i<size;i++){
+    valuesum[i]=valuesin[i]+valuesout[i];
+    valueerror[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2));
+  }
+
+  TGraphErrors* grp_sum  = new TGraphErrors(size,x,valuesum,errx,valueerror);
+  grp_sum ->SetMarkerSize(0.8);
+  grp_sum ->SetMarkerStyle(21);
+  grp_sum ->SetMarkerColor(kGreen-2);
+  grp_sum ->SetLineColor(kGreen-2);
+
+  grp_sum->Fit("pol0");
+  grp_sum->Fit("pol0");
+  TF1* fit3 = grp_sum->GetFunction("pol0");
+  fit3->DrawCopy("same");
+  fit3->SetLineColor(kGreen-2);
+
+  TMultiGraph * grp = new TMultiGraph();
+  grp->Add(grp_in);
+  grp->Add(grp_out);
+  grp->Add(grp_sum);
+  grp->Draw("AP");
+
+  grp->SetTitle("");
+  grp->GetXaxis()->SetTitle("Octant");
+  grp->GetXaxis()->CenterTitle();
+  grp->GetYaxis()->SetTitle("Asymmetry (ppm)");
+  grp->GetYaxis()->CenterTitle();
+  grp->GetYaxis()->SetTitleOffset(0.7);
+  grp->GetXaxis()->SetTitleOffset(0.8);
+
+  TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
+  legend->AddEntry(grp_in, "IHWP-IN", "p");
+  legend->AddEntry(grp_out, "IHWP-OUT", "p");
+  legend->AddEntry(grp_sum, "IN+OUT", "p");
+  legend->SetFillColor(0);
+  legend->Draw("");
+
+ 
+
+  TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
+  TPaveStats *stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
+  TPaveStats *stats3 = (TPaveStats*)grp_sum->GetListOfFunctions()->FindObject("stats");
+  stats1->SetTextColor(kBlue);
+  stats1->SetFillColor(kWhite); 
+  stats2->SetTextColor(kRed);
+  stats2->SetFillColor(kWhite); 
+  stats3->SetTextColor(kGreen-2);
+  stats3->SetFillColor(kWhite); 
+  stats1->SetX1NDC(0.8); stats1->SetX2NDC(0.99); 
+  stats1->SetY1NDC(0.7);stats1->SetY2NDC(0.95);
+  stats2->SetX1NDC(0.8); stats2->SetX2NDC(0.99); 
+  stats2->SetY1NDC(0.4);stats2->SetY2NDC(0.65);
+  stats3->SetX1NDC(0.8); stats2->SetX2NDC(0.99); 
+  stats3->SetY1NDC(0.1);stats3->SetY2NDC(0.35);
+
+  pad2->cd(2);
+
+  /* Draw IN-OUT values */
+  for(Int_t i =0;i<size;i++){
+    valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1.0/pow(errorsin[i],2)) + (1.0/pow(errorsout[i],2)));
+    errordiff[i]= sqrt(1.0/((1.0/(pow(errorsin[i],2)))+(1.0/pow(errorsout[i],2))));
+  }
+
+  TGraphErrors* grp_diff  = new TGraphErrors(size,x,valuediff,errx,errordiff);
+  grp_diff ->SetMarkerSize(0.8);
+  grp_diff ->SetMarkerStyle(21);
+  grp_diff ->SetMarkerColor(kMagenta-2);
+  grp_diff ->SetLineColor(kMagenta-2);
+
+  if(usefit == "cosfit"){
+    usefit = "cosfit_diff";
+    cosfit_diff = new TF1("cosfit_diff","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
+    cosfit_diff->SetParLimits(0,0,99999);
+    cosfit_diff->SetParLimits(1,-180,180);
+    cosfit_diff->SetParameter(2,0);
+  } 
+  else usefit = "pol0";
+
+  grp_diff->Fit(usefit);
+  grp_diff->SetTitle("Graph of IN-OUT");
+  TF1* fit4 = grp_diff->GetFunction(usefit);
+  if(fit4 != NULL){
+    fit4->DrawCopy("same");
+    fit4->SetLineColor(kMagenta-2);
+    grp_diff->Draw("AP");
+  }
+
+  pad->Modified();
+  pad->Update();
+}
