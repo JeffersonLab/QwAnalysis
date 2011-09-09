@@ -196,8 +196,9 @@ int main(Int_t argc,Char_t* argv[])
 
   // Define the cosine fit
   TF1 *cosfit_in = new TF1("cosfit_in","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
-  cosfit_in->SetParameter(0,0);
+  // cosfit_in->SetParameter(0,0);
   cosfit_in->SetParameter(2,0);
+  cosfit_in->SetParLimits(0,0,99999);
 
 
   /*Draw IN values*/
@@ -218,8 +219,10 @@ int main(Int_t argc,Char_t* argv[])
 
   TF1 *cosfit_out = new TF1("cosfit_out","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
   cosfit_out->SetParameter(0,fit1->GetParameter(0)); // initialization from previous fit
-  if(fit1->GetParameter(0)<0) cosfit_out->SetParLimits(0,0,99999);
-  if(fit1->GetParameter(0)>0) cosfit_out->SetParLimits(0,-99999,0);
+//   if(fit1->GetParameter(0)<0) cosfit_out->SetParLimits(0,0,99999);
+//   if(fit1->GetParameter(0)>0) cosfit_out->SetParLimits(0,-99999,0);
+  cosfit_out->SetParLimits(0,-99999,0);
+
 
   cosfit_out->SetParameter(2,fit1->GetParameter(2)); // initialization from previous fit
   cosfit_out->SetParameter(1,fit1->GetParameter(1)); // initialization from previous fit
@@ -274,15 +277,7 @@ int main(Int_t argc,Char_t* argv[])
   legend->SetFillColor(0);
   legend->Draw("");
 
-  /*To fix the sign of amplitude in labels*/
-  Double_t p0_in = fit1->GetParameter(0);
-  Double_t p1_in = fit1->GetParameter(1);
  
-  if(p1_in<0){
-
-
-  }
-
 
   TPaveStats *stats1 = (TPaveStats*)grp_in->GetListOfFunctions()->FindObject("stats");
   TPaveStats *stats2 = (TPaveStats*)grp_out->GetListOfFunctions()->FindObject("stats");
@@ -318,7 +313,6 @@ int main(Int_t argc,Char_t* argv[])
   fit4->DrawCopy("same");
   fit4->SetLineColor(kMagenta-2);
   grp_diff->Draw("AP");
-  TPaveStats *stats4 = (TPaveStats*)grp_diff->GetListOfFunctions()->FindObject("stats");
 
   Canvas->Update();
   Canvas->Print(Form("transverse_monitor_slugs_%i_%i_plots.png",slug_first,slug_num));
@@ -580,7 +574,7 @@ void plot_md_data(TString device, Int_t slug_last){
 
 
  
-  TPad* pad = (TPad*)(gPad->GetMother());
+  // TPad* pad = (TPad*)(gPad->GetMother());
 
 
   /*Get data from database for md allbars*/

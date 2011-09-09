@@ -18,11 +18,7 @@ ROOTGLIBS     = $(shell root-config --glibs)
 
 MYOS := $(subst -,,$(shell uname))
 
-<<<<<<< .mine
 EXE := transverse_monitor run_phase_tracker transverse_fit_db slug_phase_tracker transverse_monitor_fixed_phase
-=======
-EXE := transverse_monitor phase_tracker
->>>>>>> .r3185
 
 # Linux with egcs	
 #ifeq ($(MYOS),Linux)
