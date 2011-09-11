@@ -1873,6 +1873,8 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
       this->fGoodPattern=input->fGoodPattern;
       this->fIgnoreHelicity = input->fIgnoreHelicity;
 
+      this->fHistograms = input->fHistograms;
+
       if(ldebug){
 	std::cout << "QwHelicity::operator = this->fPatternNumber=" << this->fPatternNumber << std::endl;
 	std::cout << "input->fPatternNumber=" << input->fPatternNumber << "\n";
