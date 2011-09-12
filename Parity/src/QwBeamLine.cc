@@ -2172,8 +2172,9 @@ void  QwBeamLine::DeleteHistograms()
   for(size_t i=0;i<fClock.size();i++)
     fClock[i].get()->DeleteHistograms();
 
-  for(size_t i=0;i<fStripline.size();i++)
-    fStripline[i].get()->DeleteHistograms();
+  // FIXME temporarily disabled until constructors sorted out
+  //for(size_t i=0;i<fStripline.size();i++)
+  //  fStripline[i].get()->DeleteHistograms();
 
   for(size_t i=0;i<fQPD.size();i++)
     fQPD[i].DeleteHistograms();
@@ -2193,8 +2194,9 @@ void  QwBeamLine::DeleteHistograms()
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].get()->DeleteHistograms();
 
-  for(size_t i=0;i<fBPMCombo.size();i++)
-    fBPMCombo[i].get()->DeleteHistograms();
+  // FIXME temporarily disabled until constructors sorted out
+  //for(size_t i=0;i<fBPMCombo.size();i++)
+  //  fBPMCombo[i].get()->DeleteHistograms();
 
   for(size_t i=0;i<fECalculator.size();i++)
     fECalculator[i].DeleteHistograms();
