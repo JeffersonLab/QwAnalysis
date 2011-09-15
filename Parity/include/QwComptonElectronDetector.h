@@ -22,18 +22,14 @@
   
 // ROOT headers
 #include <TTree.h>
-#include "TFile.h"
-#include<TH1D.h>
+#include <TFile.h>
+#include <TH1D.h>
 
 // Boost math library for random number generation
 #include <boost/multi_array.hpp>
 
-
 // Qweak headers
 #include "VQwSubsystemParity.h"
-#include "QwScaler_Channel.h"
-#include "QwVQWK_Channel.h"
-
 
 class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<QwComptonElectronDetector> {
 
@@ -42,9 +38,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     /// \brief Constructor
     QwComptonElectronDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
     /// \brief Destructor
-    ~QwComptonElectronDetector() {
-      DeleteHistograms();
-    };
+    virtual ~QwComptonElectronDetector() { DeleteHistograms(); };
 
 
     /* derived from VQwSubsystem */
@@ -167,13 +161,8 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Int_t fGoodEventCount;
 
     /// Mapping from ROC/subbank to channel type
-    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single,  kScaler, kV1495Scaler};
+    enum ChannelType_t { kUnknown, kV1495Accum, kV1495Single, kV1495Scaler};
     std::map< Int_t, ChannelType_t > fMapping;
-
-    /// List of scaler channels
-    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > Scaler_Mapping_t;
-    Scaler_Mapping_t fScaler_Mapping;
-    std::vector< QwSIS3801D24_Channel > fScaler;
 
         // Assign static const member fields
     static const Int_t NModules = 3;///number of slave modules(!!change to 2?)

@@ -48,6 +48,9 @@ void QwHelicity::DefineOptions(QwOptions &options)
   options.AddOptions("Helicity options")
       ("helicity.delay", po::value<int>(),
           "Default delay is 2 patterns, set at the helicity map file.");
+  options.AddOptions("Helicity options")
+      ("helicity.toggle-mode", po::value<bool>()->default_bool_value(false),
+          "Activates helicity toggle-mode, overriding the 'delay', 'patternphase', 'bitpattern', and 'seed' options.");
 }
 
 //**************************************************//
@@ -93,6 +96,13 @@ void QwHelicity::ProcessOptions(QwOptions &options)
     SetHelicityBitPattern(bits);
   } else {
     BuildHelicityBitPattern(fMaxPatternPhase);
+  }
+
+  if (options.GetValue<bool>("helicity.toggle-mode")) {
+    fHelicityDelay   = 0;
+    fUsePredictor    = kFALSE;
+    fMaxPatternPhase = 2;
+    fHelicityBitPattern = kDefaultHelicityBitPattern;
   }
 
   //  If we have the default Helicity Bit Pattern & a large fMaxPatternPhase,
@@ -1862,6 +1872,8 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
       this->fGoodHelicity=input->fGoodHelicity;
       this->fGoodPattern=input->fGoodPattern;
       this->fIgnoreHelicity = input->fIgnoreHelicity;
+
+      this->fHistograms = input->fHistograms;
 
       if(ldebug){
 	std::cout << "QwHelicity::operator = this->fPatternNumber=" << this->fPatternNumber << std::endl;

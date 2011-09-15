@@ -108,10 +108,10 @@ class RDataContainer : public TQObject {
   int           ReadData(const char*,int,int);
   int           ReadData(const char*,int);
   int           WriteData(TObject*);
-  int           WriteData(Double_t *,int,int);
-  int           WriteData(Double_t *,Double_t *, int);
-  int           WriteData(Double_t *,Double_t *, Double_t *,int);
-  int           WriteData(Double_t *,Double_t *, Double_t *,Double_t *,int);
+  int           WriteData(Double_t *,int,int, const char *label = NULL);
+  int           WriteData(Double_t *,Double_t *, int,  const  char *label = NULL);
+  int           WriteData(Double_t *,Double_t *, Double_t *,int, const char *label = NULL);
+  int           WriteData(Double_t *,Double_t *, Double_t *,Double_t *,int, const char *label = NULL);
   int           WriteData(const char*,int);
   char         *GetDataName()      {return dDataname;};
   char         *GetFileName()      {return dFilename;};

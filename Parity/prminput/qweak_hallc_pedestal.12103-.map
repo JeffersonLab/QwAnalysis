@@ -116,7 +116,7 @@
   qwk_bpm3h09bXM   ,	3844.96 , 1.0
   qwk_bpm3h09bYP   ,	5128.03 , 1.0
   qwk_bpm3h09bYM   ,	4205.27 , 1.0
-  qwk_bcm1         , 253.3   , 0.00418347
+  qwk_bcm1         , 905.939   , 0.00418347
   qwk_bcm2         , 420.338  , 0.00448045
 ! constants obtained from run 11840 
   qwk_bcm5        ,6134.74,       0.0033388
@@ -126,6 +126,6 @@
 !  qwk_bcm5       ,6303.21, 0.019759
 !  qwk_bcm6       ,6096.54, 0.008896 
 
-  qwk_linephase        , -382.662 	, 1.0
   qwk_invert_tstable   , -541.714 	, 1.0
   sca_habcm       , 260  , 0.0003132
+qwk_linephase, 0, 1.0

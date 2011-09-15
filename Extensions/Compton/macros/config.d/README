@@ -6,7 +6,11 @@ Active files in this directory should have the format NNname.conf, where
 NN is a number that determines which macro is run first, name indicates 
 what the macros is, and .conf is the mandatory extension.
 
-The content of the files looks like this:
+To temporarily disable a macro, simply create an empty file with identical
+name as the configuration file, but with extension .conf.disable. For
+example: NNname.conf.disable
+
+The content of the file configuration files looks like this:
 
   name=Asymmetries of Accumulator 0
   macro=accum0/accum0.C

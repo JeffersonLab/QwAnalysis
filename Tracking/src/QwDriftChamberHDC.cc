@@ -173,7 +173,7 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
   Double_t ref_time  = 0.0;
   Double_t time      = 0.0;
   Double_t educated_guess_t0_correction = 11255.0;
-
+  //Double_t educated_guess_t0_correction=0;
   Bool_t local_debug = false;
   for ( std::vector<QwHit>::iterator hit=fTDCHits.begin(); hit!=fTDCHits.end(); hit++ ) 
     {
@@ -188,6 +188,8 @@ void  QwDriftChamberHDC::SubtractReferenceTimes()
 	  allrefsokay        = kFALSE;
 	}
 	else {
+	  if(fReferenceData.at(bankid).size()!=1)
+	    std::cout << "wierd thing..." << std::endl;
 	  reftimes.at(bankid) = fReferenceData.at(bankid).at(0);
 	  refokay.at(bankid)  = kTRUE;
 	}
@@ -295,14 +297,22 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
   //Double_t dt_ = 0.12 * (drifttime);
  
   Double_t dt_= drifttime;
-  Double_t dd_ = 0.0;
+  Double_t dd_ = 0.0,t0=25.0;
+  Double_t resolution=1.0;
+  dt_-=t0;
+  if(dt_>=0 && dt_<130){
+  Int_t index = (Int_t) (dt_/resolution);
+  dd_=( dt_-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );}
+  else{
+    dd_=-50;
+  }
   //dd_ = -0.0138896
-  //    + 0.00987685 * dt_
-  //    + 0.00100368 * dt_ * dt_
-  //    + (-1.79785E-06 * dt_ * dt_ * dt_)
-  //    + ( -8.96859E-08 * dt_ * dt_ * dt_ * dt_)
-  //    + (6.11736E-10 * dt_ * dt_ * dt_ * dt_ * dt_)
-  //    + ( -1.15889E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
+  //  + 0.00987685 * dt_
+  //  + 0.00100368 * dt_ * dt_
+  //  + (-1.79785E-06 * dt_ * dt_ * dt_)
+  //  + ( -8.96859E-08 * dt_ * dt_ * dt_ * dt_)
+  //  + (6.11736E-10 * dt_ * dt_ * dt_ * dt_ * dt_)
+  //  + ( -1.15889E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
   /*
   dd_ = 0.078067
         + 0.0437269 * dt_
@@ -329,20 +339,28 @@ Double_t  QwDriftChamberHDC::CalculateDriftDistance(Double_t drifttime, QwDetect
         + (5.61285E-09 * dt_ * dt_ * dt_ * dt_ * dt_ )
      + (-1.31489E-11 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
   */
-  dd_ = 0.015993
-        + 0.0466621 * dt_
-        + 0.00180132 * dt_ * dt_
-        + (-5.96573E-05 * dt_ * dt_ * dt_ )
-        + (1.18497E-06 * dt_ * dt_ * dt_ * dt_  )
-        + (-1.2071E-08 * dt_ * dt_ * dt_ * dt_ * dt_ )
-     + (4.50584E-11 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
-   //   dd_ = 0.00545449393
-//       + 0.0668865488 * dt_
-//       + 0.000352462179 * dt_ * dt_
-//       + (-2.00383196E-05 * dt_ * dt_ * dt_)
-//       + ( 3.57577417E-07 * dt_ * dt_ * dt_ * dt_)
-//       + (-2.82802562E-09 * dt_ * dt_ * dt_ * dt_ * dt_)
-//       + ( 7.89009965E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
+  //dd_ = 0.015993
+  //    + 0.0466621 * dt_
+  //    + 0.00180132 * dt_ * dt_
+  //    + (-5.96573E-05 * dt_ * dt_ * dt_ )
+  //    + (1.18497E-06 * dt_ * dt_ * dt_ * dt_  )
+  //    + (-1.2071E-08 * dt_ * dt_ * dt_ * dt_ * dt_ )
+  // + (4.50584E-11 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_ );
+  /*  dd_ = -0.0181483
+      + 0.0867558 * dt_
+       -0.00115513 * dt_ * dt_
+       + (4.41846E-05 * dt_ * dt_ * dt_)
+       + (-6.9308E-07 * dt_ * dt_ * dt_ * dt_)
+       + (4.30973E-09 * dt_ * dt_ * dt_ * dt_ * dt_)
+       + (-9.32219E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
+  */
+  //dd_ = -0.119434
+  //   + 0.0321642 * dt_
+  //   + 0.0011334 * dt_ * dt_
+  //   + (-1.08359E-05 * dt_ * dt_ * dt_)
+  //   + (-2.78272E-08 * dt_ * dt_ * dt_ * dt_)
+  //   + (5.97029E-10 * dt_ * dt_ * dt_ * dt_ * dt_)
+  //   + (-1.67945E-12 * dt_ * dt_ * dt_ * dt_ * dt_ * dt_);
 
   //std::cout<<" Drift distance "<<dd_<<" Drift time "<<dt_<<" Original value  "<<drifttime<<std::endl;
 
@@ -432,7 +450,7 @@ Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan,
 						const Int_t plane, 
 						const Int_t wire)
 {
-  if (plane == kReferenceChannelPlaneNumber){
+  if (plane == kReferenceChannelPlaneNumber || plane==kCodaMasterPlaneNumber){
     LinkReferenceChannel(chan, plane, wire);
   } 
   else {
@@ -459,6 +477,7 @@ Int_t QwDriftChamberHDC::BuildWireDataStructure(const UInt_t chan,
   }
   return OK;
 }
+
 
 Int_t QwDriftChamberHDC::AddChannelDefinition()
 {
@@ -549,6 +568,8 @@ void  QwDriftChamberHDC::ProcessEvent()
 
 Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 {
+
+    LoadTtoDParameters ( "TtoDTable_R2.txt" );
     TString varname, varvalue;
     UInt_t value   = 0;
     UInt_t  chan   = 0;
@@ -898,12 +919,12 @@ void QwDriftChamberHDC::ApplyTimeCalibration()
   for(size_t i=0;i<nhits;i++) 
     {
       double time=f1tdc_resolution_ns*fTDCHits.at(i).GetTime() ;
-      if(time<0 || time > 125){
-        fTDCHits.erase(fTDCHits.begin()+i);
-        --nhits;
-        --i;
-        continue;
-      }
+      //if(time<25 || time > 155){
+      //  fTDCHits.erase(fTDCHits.begin()+i);
+      //  --nhits;
+      //  --i;
+      //  continue;
+      //}
         
       fTDCHits.at(i).SetTime( time );
     }
@@ -914,7 +935,7 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
 {
         Int_t plane=0,wire=0;
         EQwDetectorPackage package = kPackageNull;
-        Double_t t0 = 25.0;
+        Double_t t0 = 0.0;
         Double_t real_time=0.0;       
         size_t nhits=fTDCHits.size();
         for(size_t i=0;i<nhits;i++)
@@ -925,17 +946,39 @@ void QwDriftChamberHDC::SubtractWireTimeOffset()
                 wire    = fTDCHits.at(i).GetElement();
 //                 t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
                               
-                real_time=fTDCHits.at(i).GetTime()-t0;
+                //real_time=fTDCHits.at(i).GetTime()-t0;
                                       
-                if(real_time<0 || real_time>100){
-                       fTDCHits.erase(fTDCHits.begin()+i);
-                       --nhits;
-                       --i;
-                       continue;
-                }
-                else{
-                       fTDCHits.at(i).SetTime(real_time);
-                    }
-                }
+		//     if(real_time<0 || real_time>130){
+			  // fTDCHits.erase(fTDCHits.begin()+i);
+			  //--nhits;
+			  //--i;
+			  //continue;
+                //}
+                //else{
+		//      fTDCHits.at(i).SetTime(real_time);
+		//  }
+	}
         return;
+}
+
+void QwDriftChamberHDC::LoadTtoDParameters ( TString ttod_map )
+{
+
+  QwParameterFile mapstr ( ttod_map.Data() );
+  fDetectorMaps.insert(mapstr.GetParamFileNameContents());
+  
+  Double_t t = 0.0;
+  Double_t d = 0.0;
+  
+  while ( mapstr.ReadNextLine() )
+    {
+      mapstr.TrimComment ( '!' );
+      mapstr.TrimWhitespace();
+      if ( mapstr.LineIsEmpty() ) continue;
+      
+      t= ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      d = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      fTtoDNumbers.push_back ( d );
+    }
+  return;
 }

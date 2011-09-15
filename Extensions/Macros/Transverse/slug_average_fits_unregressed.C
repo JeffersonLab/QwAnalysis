@@ -524,10 +524,12 @@ void plot_octant(Int_t size,TString device, Double_t valuesin[],Double_t errorsi
 
 
  
-  // Sum over the in and out half wave plate states and take the average
+  // Sum over the in and out half wave plate states.
+  // Since we are testing a hypothesis with IN+OUT, IN and OUT are still 2 different
+  // variables, So when we take the error we take the normal error.
   for(Int_t i =0;i<size;i++){
-    valuesum[i]=((valuesin[i]/pow(errorsin[i],2)) + (valuesout[i]/pow(errorsout[i],2))) /((1/pow(errorsin[i],2)) + (1/pow(errorsout[i],2)));
-    valueerror[i]= sqrt(1/((1/(pow(errorsin[i],2)))+(1/pow(errorsout[i],2))));
+    valuesum[i]=valuesin[i]+valuesout[i];
+    valueerror[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2));
   }
 
 

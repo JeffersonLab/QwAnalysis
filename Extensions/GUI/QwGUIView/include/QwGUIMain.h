@@ -78,32 +78,19 @@
 #include <TRootEmbeddedCanvas.h>
 #include <TGTextEntry.h>
 #include <TGTextEdit.h>
-/* #include <TGHorizontal3DLine.h> */
 #include <TGFileDialog.h>
 #include <RQ_OBJECT.h>
 #include <TMath.h>
 #include <TPave.h>
 #include "KeySymbols.h"
-#include <TG3DLine.h>
-#include <TRootCanvas.h>
-/* #include <TProfile.h> */
-/* #include <TVirtualFFT.h> */
-/* #include "QwGUISubSystem.h" */
-/* #include "QwGUIDataWindow.h" */
-/* #include "RNumberEntryDialog.h" */
-/* #include "RMsgBox.h" */
-/* #include "QwGUIEventWindowSelectionDialog.h" */
-/* #include "TFrame.h" */
-/* #include "TPaveText.h" */
-/* #include "TLeaf.h" */
-/* #include "QwGUIMainDetector.h" */
-/* #include "QwGUIScanner.h" */
-/* #include "QwGUIBeamModulation.h" */
-/* #include "QwGUILumiDetector.h"  */
-/* #include "QwGUIInjector.h" */
-/* #include "QwGUIHallCBeamline.h" */
-/* #include "QwGUITrackFinding.h" */
-/* #include "QwGUIEventDisplay.h" */
+#include "QwGUIMainDetector.h"
+#include "QwGUIScanner.h"
+#include "QwGUIBeamModulation.h"
+#include "QwGUILumiDetector.h" 
+#include "QwGUIInjector.h"
+#include "QwGUIHallCBeamline.h"
+#include "QwGUITrackFinding.h"
+#include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
 #include "QwGUIDatabaseContainer.h"
 #include "QwGUIDatabase.h"
@@ -128,15 +115,15 @@ class QwGUIMain : public TGMainFrame {
   TObjArray               SubSystemArray;
 
   //!Main detector sub system class
-/*   QwGUIMainDetector      *MainDetSubSystem; */
-/*   QwGUIScanner           *ScannerSubSystem; */
-/*   QwGUIBeamModulation    *BeamModulationSubSystem; */
-/*   QwGUILumiDetector      *LumiDetSubSystem; */
-/*   QwGUIInjector          *InjectorSubSystem; */
-/*   QwGUIHallCBeamline     *HallCBeamlineSubSystem; */
+  QwGUIMainDetector      *MainDetSubSystem;
+  QwGUIScanner           *ScannerSubSystem;
+  QwGUIBeamModulation    *BeamModulationSubSystem;
+  QwGUILumiDetector      *LumiDetSubSystem;
+  QwGUIInjector          *InjectorSubSystem;
+  QwGUIHallCBeamline     *HallCBeamlineSubSystem;
   QwGUIDatabase          *DatabaseSubSystem;
-/*   QwGUITrackFinding      *TrackFindingSubSystem; */
-/*   QwGUIEventDisplay      *EventDisplaySubSystem; */
+  QwGUITrackFinding      *TrackFindingSubSystem;
+  QwGUIEventDisplay      *EventDisplaySubSystem;
 
   QwGUIHelpBrowser          *dHelpBrowser;
 
@@ -248,7 +235,7 @@ class QwGUIMain : public TGMainFrame {
   vector <TH1F*>          dMainHistos;
   vector <TGraph*>        dMainGraphs;
 
-/*   EventOptions            dCurrentRunEventOptions; */
+  EventOptions            dCurrentRunEventOptions;
 
   //!This function is used to append new messages to the log book. It cannot
   //!be used from other classes. Instead, the QwGUISubSystem class implements the
@@ -460,9 +447,9 @@ class QwGUIMain : public TGMainFrame {
   void                    SetCurrentFilePrefix(const char* prefix){ fPrefix = prefix;};
   void                    SetCurrentFileDirectory(const char* dir){fDirectory = dir;};
 
-/*   UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;}; */
-/*   UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;}; */
-/*   UInt_t                  GetCurrentRunEventStop(){return dCurrentRunEventOptions.Start+dCurrentRunEventOptions.Length-1;}; */
+  UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;};
+  UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;};
+  UInt_t                  GetCurrentRunEventStop(){return dCurrentRunEventOptions.Start+dCurrentRunEventOptions.Length-1;};
 
   void                    SetEventMode(Bool_t evM){dEventMode = evM;};
   Bool_t                  EventMode() {return dEventMode;};

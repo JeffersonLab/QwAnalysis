@@ -8,8 +8,8 @@ use warnings;
 # a file containing main detector yields formatted as:
 #
 # Run   9888
-# MD1POS  0.0343
-# MD1NEG  0.0354
+# qwk_md1pos  0.0343
+# qwk_md2pos  0.0354
 # ...
 #
 # It is important to NOT HAVE A NEWLINE at the bottom of the file. The last line should be the entry for a tube.

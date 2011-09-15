@@ -6,7 +6,8 @@
  name = Injector 
  map = laser_table.map
  param = laser_table_pedestal.map
- eventcut = qweak_beamline_eventcuts.in
+ eventcut = laser_table_eventcuts.in
+ geom = injector_beamline_geometry.map
 
 [QwHelicity]
  name = Helicity info

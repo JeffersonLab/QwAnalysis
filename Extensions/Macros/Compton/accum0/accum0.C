@@ -56,12 +56,12 @@ Int_t accum0(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = kF
 
   TString www = TString(getenv("QWSCRATCH")) + Form("/www/run_%d/",runnum);
   gSystem->mkdir(www,true);
-  TString canvas1 = www + Form("accum0_%d_plots.png",runnum);
-  TString canvas2 = www + Form("accum0_%d_asymm.png",runnum);
-  TString canvas3 = www + Form("accum0_%d_yieldvspatnum.png",runnum);
+  TString canvas1 = www + "accum0_plots.png";
+  TString canvas2 = www + "accum0_asymm.png";
+  TString canvas3 = www + "accum0_yieldvspatnum.png";
 
   // File for storing stats.
-  TString stats = www + Form("accum0_%d_stats.txt",runnum);
+  TString stats = www + "accum0_stats.txt";
   FILE *polstats = fopen(stats.Data(),"w");
      
 

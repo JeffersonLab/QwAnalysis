@@ -23,15 +23,19 @@
 !INPUT REGISTER MODE
 HelicityDecodingMode=InputRegisterMode
 
+! Set the patternPhase (number of windows in a pattern) for each run range.
+! If patternPhase!=4, then also set the NumberPatternsDelayed
+! so the reported helicity is delayed by 8 windows (default 2).
+!NumberPatternsDelayed=4
+PatternPhase=4
+
+
 
 !Need to set PATTERNPHASEOFFSET = 1 (when pattern phase starts with 1) or 0 (when pattern phase starts with 0)
 !default value for PATTERNPHASEOFFSET = 1 is set within the code itself which works fine with regular injector/beamline/parity mock data
 !uncomment below line only if phase number start from 0
 PATTERNPHASEOFFSET=0
 
-
-HelicityDecodingMode=InputRegisterMode
-PatternPhase=4
 
 !seed size is either 24 bit or 30 bit. default is 30 bit
 !RandSeedBits=24

@@ -176,11 +176,6 @@ protected:
   UInt_t fDefErrorFlag;
   //@}
 
-private:
-  VQwHardwareChannel& operator=(const VQwHardwareChannel&);
-
-
-
 };   // class VQwHardwareChannel
 
 #endif // __MQWHARDWARECHANNEL__

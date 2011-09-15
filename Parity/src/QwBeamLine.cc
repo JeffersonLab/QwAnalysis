@@ -491,7 +491,7 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
   // Now propagate clock pointers to those channels that need it
   index = 0;
-  for( Int_t i=0; i<fBCM.size();i++ ) {
+  for (size_t i=0; i<fBCM.size();i++ ) {
     index = GetDetectorIndex(GetQwBeamInstrumentType("clock"),fBCM[i].get()
           ->GetExternalClockName());
     if( index >= 0 )
@@ -714,7 +714,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
   Double_t devSENfactor = 0, devAlphaX = 0, devAlphaY = 0;
   TString  localname;
   TString   rotation_stat;
-
+  VQwBPM * bpm;
 
   if(ldebug)std::cout<<"QwBeamLine::LoadGeometryParameters("<< mapfile<<")\n";
 
@@ -739,126 +739,134 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 
     index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
     if( index<0 ) {
-      std::cerr << "Error! "<<devtype<<" detector "<<devname<<" in Geometry file does not exist!"<<std::endl;
-    }
-    VQwBPM * bpm = fStripline[index].get();
-
-    devOffsetX   = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
-    devOffsetY   = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
-    devOffsetZ   = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
-    devSENfactor = (atof(mapstr.GetNextToken(", \t").c_str())); // sensivity scaling factor
-    devAlphaX    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha X
-    devAlphaY    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha Y
-    AssignGeometry(&mapstr,bpm);
-
-
-    if(ldebug==1){
-      std::cout<<"####################\n";
-      std::cout<<"! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY\n"<<std::endl;
-      std::cout<<GetQwBeamInstrumentType(devtype)<<" / "
-	       <<devname    <<" / "
-	       <<devOffsetX <<" / "
-	       <<devOffsetY <<" / "
-	       <<devOffsetZ <<" / "
-	       <<devSENfactor <<" / "
-	       <<devAlphaX <<" / "
-	       <<devAlphaY <<" / "
-	       <<std::endl;
-    }
+      std::cerr << "Error! Unknown detector type "<<devtype<<" in Geometry file!"<<std::endl;
+      /*If the device type is unknown there is no point in going through the rest of the specs for that device*/
+      /*Ignore it!*/ 
+    } 
+    else {
+      devOffsetX   = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
+      devOffsetY   = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
+      devOffsetZ   = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
+      devSENfactor = (atof(mapstr.GetNextToken(", \t").c_str())); // sensivity scaling factor
+      devAlphaX    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha X
+      devAlphaY    = (atof(mapstr.GetNextToken(", \t").c_str())); // alpha Y
 
 
-    while(notfound){
+      /*If the device is a bpm stripline, assign the rotations and gains*/
       if(GetQwBeamInstrumentType(devtype)==kQwBPMStripline){
-	//Load bpm offsets
-	if(index == -1){
-	  QwWarning << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm in qweak_beamline_geometry.map: "
-		  <<devname
-		  <<QwLog::endl;
-	  notfound=kFALSE;
-	  continue;
-	}
-
-	localname=fStripline[index].get()->GetElementName();
-	localname.ToLower();
-	if(ldebug)  std::cout<<"element name =="<<localname
-			     <<"== to be compared to =="<<devname<<"== \n";
-
-	if(localname==devname){
-	  if(ldebug) std::cout<<" I found the bpm !\n";
-	  bpm->GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
-	  bpm->GetElectronicFactors(devSENfactor,devAlphaX, devAlphaY);
-
-	  // If nothing is specified, a default rotation of 45 degrees is implied.
-	  notfound=kFALSE;
-	}
-      }
-      else if (GetQwBeamInstrumentType(devtype)==kQwCombinedBPM){
-	//Load combined bpm offsets which are, ofcourse, target position in the beamline
-	if(index == -1){
-	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown combined bpm in qweak_beamline_geometry.map: "
-		  <<devname<<" Check the combined bpm names!\n "
-		  << QwLog::endl;
-	  notfound=kFALSE;
-	  continue;
-	}
-
-	localname=fBPMCombo[index].get()->GetElementName();
-	localname.ToLower();
-	if(ldebug)
-	  std::cout<<"element name =="<<localname<<"== to be compared to =="<<devname<<"== \n";
-
-	if(localname==devname){
-	  if(ldebug) std::cout<<" I found the combinedbpm !\n";
-	  fBPMCombo[index].get()->GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
-	  notfound=kFALSE;
-	}
+	bpm = fStripline[index].get();
+	AssignGeometry(&mapstr,bpm);
       }
 
-      else if(GetQwBeamInstrumentType(devtype)==kQwBPMCavity){
-	//Load cavity bpm offsets
-	if(index == -1){
-	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm : "
-		  <<devname<<" will not be asigned with geometry parameters. \n"
-		  <<QwLog::endl;
-	  notfound=kFALSE;
-	  continue;
-	}
-	localname=fCavity[index].GetElementName();
-	localname.ToLower();
-	if(ldebug)  std::cout<<"element name =="<<localname
-			     <<"== to be compared to =="<<devname<<"== \n";
 
-	if(localname==devname){
-	  if(ldebug) std::cout<<" I found the cavity bpm !\n";
-	  fCavity[index].GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
-	  notfound=kFALSE;
-	}
+      if(ldebug==1){
+	std::cout<<"####################\n";
+	std::cout<<"! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY\n"<<std::endl;
+	std::cout<<GetQwBeamInstrumentType(devtype)<<" / "
+		 <<devname    <<" / "
+		 <<devOffsetX <<" / "
+		 <<devOffsetY <<" / "
+		 <<devOffsetZ <<" / "
+		 <<devSENfactor <<" / "
+		 <<devAlphaX <<" / "
+		 <<devAlphaY <<" / "
+		 <<std::endl;
       }
 
-      else if(GetQwBeamInstrumentType(devtype)==kQwQPD){
-	//Load QPD calibration factors
-	if(index == -1){
-	  QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown QPD : "
-		  <<devname<<" will not be asigned with calibration factors. \n"
-		  <<QwLog::endl;
-	  notfound=kFALSE;
-	  continue;
-	}
-	localname=fQPD[index].GetElementName();
-	localname.ToLower();
-	if(ldebug)  std::cout<<"element name =="<<localname
-			     <<"== to be compared to =="<<devname<<"== \n";
 
-	if(localname==devname){
-	  if(ldebug) std::cout<<" I found the QPD !\n";
-	  fQPD[index].GetCalibrationFactors(devAlphaX, devAlphaY);
-	  notfound=kFALSE;
+      while(notfound){
+	if(GetQwBeamInstrumentType(devtype)==kQwBPMStripline){
+	  //Load bpm offsets
+	  if(index == -1){
+	    QwWarning << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm in qweak_beamline_geometry.map: "
+		      <<devname
+		      <<QwLog::endl;
+	    notfound=kFALSE;
+	    continue;
+	  }
+
+	  localname=fStripline[index].get()->GetElementName();
+	  localname.ToLower();
+	  if(ldebug)  std::cout<<"element name =="<<localname
+			       <<"== to be compared to =="<<devname<<"== \n";
+
+	  if(localname==devname){
+	    if(ldebug) std::cout<<" I found the bpm !\n";
+	    bpm->GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
+	    bpm->GetElectronicFactors(devSENfactor,devAlphaX, devAlphaY);
+
+	    // If nothing is specified, a default rotation of 45 degrees is implied.
+	    notfound=kFALSE;
+	  }
 	}
+	else if (GetQwBeamInstrumentType(devtype)==kQwCombinedBPM){
+	  //Load combined bpm offsets which are, ofcourse, target position in the beamline
+	  if(index == -1){
+	    QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown combined bpm in qweak_beamline_geometry.map: "
+		    <<devname<<" Check the combined bpm names!\n "
+		    << QwLog::endl;
+	    notfound=kFALSE;
+	    continue;
+	  }
+
+	  localname=fBPMCombo[index].get()->GetElementName();
+	  localname.ToLower();
+	  if(ldebug)
+	    std::cout<<"element name =="<<localname<<"== to be compared to =="<<devname<<"== \n";
+
+	  if(localname==devname){
+	    if(ldebug) std::cout<<" I found the combinedbpm !\n";
+	    fBPMCombo[index].get()->GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
+	    notfound=kFALSE;
+	  }
+	}
+
+	else if(GetQwBeamInstrumentType(devtype)==kQwBPMCavity){
+	  //Load cavity bpm offsets
+	  if(index == -1){
+	    QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown bpm : "
+		    <<devname<<" will not be asigned with geometry parameters. \n"
+		    <<QwLog::endl;
+	    notfound=kFALSE;
+	    continue;
+	  }
+	  localname=fCavity[index].GetElementName();
+	  localname.ToLower();
+	  if(ldebug)  std::cout<<"element name =="<<localname
+			       <<"== to be compared to =="<<devname<<"== \n";
+
+	  if(localname==devname){
+	    if(ldebug) std::cout<<" I found the cavity bpm !\n";
+	    fCavity[index].GetSurveyOffsets(devOffsetX,devOffsetY,devOffsetZ);
+	    notfound=kFALSE;
+	  }
+	}
+
+	else if(GetQwBeamInstrumentType(devtype)==kQwQPD){
+	  //Load QPD calibration factors
+	  if(index == -1){
+	    QwError << "QwBeamLine::LoadGeometryDefinition:  Unknown QPD : "
+		    <<devname<<" will not be asigned with calibration factors. \n"
+		    <<QwLog::endl;
+	    notfound=kFALSE;
+	    continue;
+	  }
+	  localname=fQPD[index].GetElementName();
+	  localname.ToLower();
+	  if(ldebug)  std::cout<<"element name =="<<localname
+			       <<"== to be compared to =="<<devname<<"== \n";
+
+	  if(localname==devname){
+	    if(ldebug) std::cout<<" I found the QPD !\n";
+	    fQPD[index].GetCalibrationFactors(devAlphaX, devAlphaY);
+	    notfound=kFALSE;
+	  }
+	}
+
+	else QwError<<" QwBeamLine::LoadGeometryDefinition: Unknown device type :"<<devtype<<". Are you sure we have this in the beamline? I am skipping this."<<QwLog::endl;
       }
 
-      else QwError<<" QwBeamLine::LoadGeometryDefinition: Unknown device type :"<<devtype<<". Are you sure we have this in the beamline? I am skipping this."<<QwLog::endl;
     }
-
   }
   
   if(ldebug) std::cout<<" line read in the geometry file ="<<lineread<<" \n";
@@ -1449,7 +1457,7 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
 void  QwBeamLine::ProcessEvent()
 {
 
-  Double_t clock_counts;
+  Double_t clock_counts = 0.0;
 
   // Make sure this one comes first! The clocks are needed by
   // other elements.
@@ -1520,7 +1528,7 @@ Bool_t QwBeamLine::PublishInternalValues() const
     device_type.ToLower();
     device_prop.ToLower();
 
-    const VQwDataElement* tmp_channel;
+    const VQwDataElement* tmp_channel = 0;
 
     if (device_type == "bcm") {
       tmp_channel = GetBCM(device_name)->GetCharge();
@@ -2164,8 +2172,9 @@ void  QwBeamLine::DeleteHistograms()
   for(size_t i=0;i<fClock.size();i++)
     fClock[i].get()->DeleteHistograms();
 
-  for(size_t i=0;i<fStripline.size();i++)
-    fStripline[i].get()->DeleteHistograms();
+  // FIXME temporarily disabled until constructors sorted out
+  //for(size_t i=0;i<fStripline.size();i++)
+  //  fStripline[i].get()->DeleteHistograms();
 
   for(size_t i=0;i<fQPD.size();i++)
     fQPD[i].DeleteHistograms();
@@ -2185,8 +2194,9 @@ void  QwBeamLine::DeleteHistograms()
   for(size_t i=0;i<fBCMCombo.size();i++)
     fBCMCombo[i].get()->DeleteHistograms();
 
-  for(size_t i=0;i<fBPMCombo.size();i++)
-    fBPMCombo[i].get()->DeleteHistograms();
+  // FIXME temporarily disabled until constructors sorted out
+  //for(size_t i=0;i<fBPMCombo.size();i++)
+  //  fBPMCombo[i].get()->DeleteHistograms();
 
   for(size_t i=0;i<fECalculator.size();i++)
     fECalculator[i].DeleteHistograms();
@@ -2301,15 +2311,14 @@ void QwBeamLine::ConstructBranch(TTree *tree, TString & prefix, QwParameterFile&
     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
     for(size_t i = 0; i < fQPD.size(); i++)
       fQPD[i].ConstructBranch(tree, prefix,*nextmodule);
-
   }
-  tmp="QwLinearArray";
+
+  tmp="QwLinearDiodeArray";
   trim_file.RewindToFileStart();
   if (trim_file.FileHasModuleHeader(tmp)){
     nextmodule=trim_file.ReadUntilNextModule();//This section contains sub modules and or channels to be included in the tree
     for(size_t i = 0; i < fLinearArray.size(); i++)
       fLinearArray[i].ConstructBranch(tree, prefix,*nextmodule);
-
   }
 
   tmp="QwBPMCavity";

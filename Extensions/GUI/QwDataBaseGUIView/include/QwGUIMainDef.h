@@ -219,6 +219,7 @@ enum CommandIdentifiers {
 };
 
 enum ENDataType {
+  DDT_DB,
   DDT_MD,
   DDT_BCM,
   DDT_BPM,

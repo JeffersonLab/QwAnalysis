@@ -84,6 +84,7 @@ hel_output_register   TH1F    12      -1.5  10.5        inputregister Events
 .*compton_charge*		TH1F	100	0	4e3	Counts	Events
 .*compton_bpm.*			TH1F	100	0	4e3	Counts	Events
 .*sca_bpm_3p0.*			TH1F	100	0	4e3	Counts	Events
+.*sca_bpm_3c20.*			TH1F	100	0	4e3	Counts	Events
 .*sca_bcm.*			TH1F	100	0	4e3	Counts	Events
 .*unser.*			TH1F	100	0	4e3	Counts	Events
 .*rate.*			TH1F	100	0	4e3	Counts	Events

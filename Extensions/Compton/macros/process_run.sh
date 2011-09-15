@@ -5,6 +5,9 @@
 ##                website.
 ##
 ################################################################################
+## Make sure group write permission is granted
+umask 002
+
 ## First define a few globals, such as the location of necessary programs
 
 ## SQLITE3 for database management (assume in path)
@@ -145,7 +148,7 @@ then
     STARTDATE=$(stat -c %y $STARTRUNFILE | cut -f1 -d".")
 fi
 
-ROOTFILE=${QW_ROOTFILES}/Compton*_$RUNNUM.000.root
+ROOTFILE=`ls ${QW_ROOTFILES}/Compton_Pass*_$RUNNUM.000.root`
 if [  -f $ROOTFILE ]
 then
     ROOTDATE=$(stat -c %y $ROOTFILE | cut -f1 -d".")
@@ -219,23 +222,28 @@ then
     echo "Processing config files"
     for config in `ls ${CONFIGDIR}/*.conf`
     do
-        echo "Processing config: ${config}"
-
-        ## Parse the configuration file contents
-        MACRO=`awk -F= ' /macro/ {print $2}' ${config}`
-        FUNCTION=`awk -F= ' /function/ {print $2}' ${config}`
-        if [ -e ${MACROSDIR}/${MACRO} ]
+        if [ -e "${config}.disable" ]
         then
-	    INCLUDESDIR=`awk -F= ' /includesdir/ {print $2}' ${config}`
-            DIRECTORY==`awk -F= ' /directory/ {print $2}' ${config}`
-            COMPILE=`awk -F= ' /compile/ {print $2}' ${config}`
-
-            ## Now after the configuration file has been read, process the script
-            echo "Running ${MACRO}"
-            echo "qwroot -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log"
-            nice  qwroot -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log
+            echo "${config} file disabled. Skipping!"
         else
-            echo "Macro ${MACROSDIR}/${MACRO} not found"
+            echo "Processing config: ${config}"
+
+            ## Parse the configuration file contents
+            MACRO=`awk -F= ' /macro/ {print $2}' ${config}`
+            FUNCTION=`awk -F= ' /function/ {print $2}' ${config}`
+            if [ -e ${MACROSDIR}/${MACRO} ]
+            then
+                INCLUDESDIR=`awk -F= ' /includesdir/ {print $2}' ${config}`
+                DIRECTORY==`awk -F= ' /directory/ {print $2}' ${config}`
+                COMPILE=`awk -F= ' /compile/ {print $2}' ${config}`
+
+                ## Now after the configuration file has been read, and the script is enabled, process the script
+                echo "Running ${MACRO}"
+                echo "qwroot -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log"
+                nice  qwroot -b -q ${RUNMACRO}\(\"${MACRO}\",\"${FUNCTION}\",\"${INCLUDESDIR}\",${RUNNUM},${FIRST100K},${COMPILE}\) 2>&1 | tee -a ${LOGDIR}/${FUNCTION}_${RUNNUM}.log
+            else
+                echo "Macro ${MACROSDIR}/${MACRO} not found"
+            fi
         fi
     done
 fi

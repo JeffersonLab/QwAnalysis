@@ -2019,7 +2019,7 @@ Int_t main(Int_t argc, Char_t **argv)
       return 1;
     }
 
-    QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,600);
+    QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,750);
 
     gViewMain = &mainWindow;
 
