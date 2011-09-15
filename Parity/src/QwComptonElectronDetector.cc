@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <sstream>
+#include <math.h>
 
 using namespace std;
 
