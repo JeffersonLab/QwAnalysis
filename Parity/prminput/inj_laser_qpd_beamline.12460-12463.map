@@ -2,15 +2,15 @@
 ROC=31
 Bank=0x3102
 !same sample size for ADCs in a given bank
-!for 30Hz (33.3ms) uncomment the next line
+!for 30Hz (33.3ms) uncomment the next line and set vqwksamples=4161 in DAQ config tool
 !sample_size=16644
-!for 30Hz (33.2ms) uncomment the next line
-!sample_size=16520
+!for 30Hz (33.2ms) uncomment the next line and set vqwksamples=4130 in DAQ config tool
+!sample_size=16520 
 !for 120Hz uncomment the next line
 !sample_size=4000
 !for 240Hz uncomment the next line
 !sample_size=1940
-!for 960Hz uncomment the next line
+!for 960Hz uncomment the next line and set vqwksamples=116 in DAQ config tool
 sample_size=464
 
 !

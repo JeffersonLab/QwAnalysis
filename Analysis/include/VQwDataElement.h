@@ -79,8 +79,6 @@ class VQwDataElement {
   virtual void AssignValueFrom(const VQwDataElement* valueptr){
     std::cerr << "Operation AssignValueFrom not defined!" << std::endl;
   };
-  /*   /\*! \brief Assignment operator *\/ */
-  /*   virtual VQwDataElement& operator= (const VQwDataElement &value); */
   /*! \brief Addition-assignment operator */
   virtual VQwDataElement& operator+= (const VQwDataElement &value)
     { std::cerr << "Operation += not defined!" << std::endl; return *this; }
@@ -172,9 +170,6 @@ class VQwDataElement {
   //Error flag
   UInt_t fErrorFlag;
 
-private:
-  VQwDataElement& operator= (const VQwDataElement &value);
-
 }; // class VQwDataElement
 
 inline VQwDataElement::VQwDataElement():
@@ -188,16 +183,6 @@ inline VQwDataElement::VQwDataElement():
 
 inline VQwDataElement::~VQwDataElement(){
 }
-
-/**
- * Assignment operator sets the name and number of data words
- */
-inline VQwDataElement& VQwDataElement::operator= (const VQwDataElement &value){
-  fElementName       = value.fElementName;
-  fNumberOfDataWords = value.fNumberOfDataWords;
-  return *this;
-}
-
 
 /**
  * Delete the histograms for with this data element

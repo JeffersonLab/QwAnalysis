@@ -789,6 +789,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
 
   if (!IsNameEmpty())
     {
+      VQwHardwareChannel::operator=(value);
       for (Int_t i=0; i<fBlocksPerEvent; i++){
         this->fBlock_raw[i] = value.fBlock_raw[i];
         this->fBlock[i] = value.fBlock[i];

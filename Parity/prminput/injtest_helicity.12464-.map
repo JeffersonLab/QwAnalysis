@@ -26,8 +26,8 @@ HelicityDecodingMode=InputRegisterMode
 ! Set the patternPhase (number of windows in a pattern) for each run range.
 ! If patternPhase!=4, then also set the NumberPatternsDelayed
 ! so the reported helicity is delayed by 8 windows (default 2).
-!NumberPatternsDelayed=4
-PatternPhase=4
+NumberPatternsDelayed=4
+PatternPhase=2
 
 
 

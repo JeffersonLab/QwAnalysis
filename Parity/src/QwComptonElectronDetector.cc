@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <cstdlib>
 #include <sstream>
+#include <math.h>
 
 using namespace std;
 
@@ -170,26 +171,6 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
             fStripsEv[plane-1].push_back(0);
 	} // end of switch (dettype)
 
-      } else if (modtype == "SIS3801D24") {
-        // Register data channel type
-        fMapping[currentsubbankindex] = kScaler;
-        // Add to mapping
-        if (modnum >= fScaler_Mapping[currentsubbankindex].size())
-          fScaler_Mapping[currentsubbankindex].resize(modnum+1);
-        if (channum >= fScaler_Mapping[currentsubbankindex].at(modnum).size())
-          fScaler_Mapping[currentsubbankindex].at(modnum).resize(channum+1,-1);
-        // Add scaler channel
-        if (fScaler_Mapping[currentsubbankindex].at(modnum).at(channum) < 0) {
-          QwMessage << "Registering SIS3801D24 " << name
-                    << std::hex
-                    << " in ROC 0x" << currentrocread << ", bank 0x" << currentbankread
-                    << std::dec
-                    << " at mod " << modnum << ", chan " << channum
-                    << QwLog::endl;
-          UInt_t index = fScaler.size();
-          fScaler_Mapping[currentsubbankindex].at(modnum).at(channum) = index;
-          fScaler.push_back(QwSIS3801D24_Channel(name));
-        }
       } // end of switch (modtype)
     } // end of if for token line
   } // end of while over parameter file
@@ -206,11 +187,6 @@ Int_t QwComptonElectronDetector::LoadEventCuts(TString & filename)
 //*****************************************************************
 Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
 {
-  TString varname;
-  Double_t varcal;
-  Bool_t notfound;
-  notfound = kTRUE;
-
   // Open the file
   QwParameterFile mapstr(pedestalfile.Data());
   while (mapstr.ReadNextLine()) {
@@ -218,10 +194,10 @@ Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
     else {
-      varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
+      TString varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
       varname.ToLower();
       varname.Remove(TString::kBoth,' ');
-      varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+      Double_t varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
     }
   } // end of loop reading all lines of the pedestal file
 
@@ -257,11 +233,9 @@ void QwComptonElectronDetector::EncodeEventData(std::vector<UInt_t> &buffer)
 Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, UInt_t* buffer, UInt_t num_words)
 {
   UInt_t words_read = 0;
-  Int_t ports_read;
   UInt_t bitwise_mask = 0;
   div_t div_output;
   //  UInt_t accum_count = 0;
-  ports_read = 0;
   // Get the subbank index (or -1 when no match)
   Int_t subbank = GetSubbankIndex(roc_id, bank_id);
 
@@ -269,25 +243,6 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
 
     //  We want to process this ROC.  Begin looping through the data.
     switch (fMapping[subbank]) {
-    case kScaler:     // Scalers
-      {
-        // Read header word
-        words_read++;
-        // TODO Multiscaler functionality
-        // Read scalers
-        for (size_t modnum = 0; modnum < fScaler_Mapping[subbank].size(); modnum++) {
-          for (size_t channum = 0; channum < fScaler_Mapping[subbank].at(modnum).size(); channum++) {
-            Int_t index = fScaler_Mapping[subbank].at(modnum).at(channum);
-            if (index >= 0) {
-              words_read += fScaler[index].ProcessEvBuffer(&(buffer[words_read]), num_words - words_read);
-            }
-          }
-        }
-        words_read = num_words;
-        break;
-      }
-
-      // V1495
     case kV1495Accum:
       {
 	for (Int_t k = 0; k < NModules; k++) {
@@ -329,7 +284,6 @@ Int_t QwComptonElectronDetector::ProcessEvBuffer(UInt_t roc_id, UInt_t bank_id, 
       
     case kV1495Single:
       {
-	//	if (fScaler[13].GetValue()>50) {
 	for (Int_t jj = 0; jj < NModules; jj++) {
 	  if (fSubbankIndex[0][jj]==subbank) {
 	    if (num_words > 0) {
@@ -469,10 +423,6 @@ void  QwComptonElectronDetector::ProcessEvent()
   // ACUMM MODE = 1
   int runmode = 1;
    
-  //    QwOut << "Scalers = " << fScaler[3] << QwLog::endl;
-    
-  //    QwOut << "Scalers = " << QwSIS3801D24_Channel() << QwLog::endl; 
-    
   myrun = this->GetParent()->GetCodaRunNumber();
   eve=this->GetParent()->GetCodaEventNumber();
   //   QwOut << "Run End Time: = " << GetEndTime() << QwLog::endl;
@@ -885,12 +835,6 @@ void QwComptonElectronDetector::ClearEventData()
   edet_angle = 1000000;
    
   fGoodEventCount = 0;
-   
-  // Clear all scaler channels
-  for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].ClearEventData();
-
-  return;
 }
 
 //*****************************************************************
@@ -903,9 +847,6 @@ VQwSubsystem&  QwComptonElectronDetector::operator=  (VQwSubsystem *value)
         this->fStripsRaw[i][j] = input->fStripsRaw[i][j];
       }
     }
-
-    for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i] = input->fScaler[i];
   }
   return *this;
 }
@@ -928,9 +869,6 @@ VQwSubsystem&  QwComptonElectronDetector::operator+=  (VQwSubsystem *value)
       
       }
     }
-
-    for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i] += input->fScaler[i];
   }
   return *this;
 }
@@ -944,9 +882,6 @@ VQwSubsystem&  QwComptonElectronDetector::operator-=  (VQwSubsystem *value)
         this->fStripsRaw[i][j] -= input->fStripsRaw[i][j];
       }
     }
-
-    for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i] -= input->fScaler[i];
   }
   return *this;
 }
@@ -998,12 +933,8 @@ void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 	}	     
       }
     }
-
-    for (size_t i = 0; i < fScaler.size(); i++)
-      this->fScaler[i].Ratio(innumer->fScaler[i],indenom->fScaler[i]);
-    //   PrintValue();
   }  
-  
+
 }
 
 void QwComptonElectronDetector::Scale(Double_t factor)
@@ -1014,9 +945,6 @@ void QwComptonElectronDetector::Scale(Double_t factor)
       // TODO !!converting Double to Int (ok now) may not be okay later!
     }
   }
-
-  for (size_t i = 0; i < fScaler.size(); i++)
-    this->fScaler[i].Scale(factor);
 }
 
 Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
@@ -1031,9 +959,6 @@ Bool_t QwComptonElectronDetector::Compare(VQwSubsystem *value)
   } else {
     QwComptonElectronDetector* input = dynamic_cast<QwComptonElectronDetector*> (value);
     if (input->fStripsRaw.size() != fStripsRaw.size()) {
-      result = kFALSE;
-    }
-    if (input->fScaler.size() != fScaler.size()) {
       result = kFALSE;
     }
   }
@@ -1107,11 +1032,6 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
   fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_Track_Angle");
   fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
- 
-  for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].ConstructHistograms(folder,prefix);
-
-  return;
 }
 
 void  QwComptonElectronDetector::DeleteHistograms()
@@ -1122,9 +1042,6 @@ void  QwComptonElectronDetector::DeleteHistograms()
       fHistograms1D.at(i) =  NULL;
     }
   }
-
-  for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].DeleteHistograms();
 }
 
 void  QwComptonElectronDetector::FillHistograms()
@@ -1180,11 +1097,6 @@ void  QwComptonElectronDetector::FillHistograms()
   fHistograms1D[23]->Fill(edet_x2); // fHistograms1D[19]->Fill(edet_x2); 
   fHistograms1D[24]->Fill(edet_TotalNumberTracks); // fHistograms1D[20]->Fill(edet_TotalNumberTracks); 
   fHistograms1D[25]->Fill(edet_angle); //  fHistograms1D[21]->Fill(edet_angle); 
-   
-  for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].FillHistograms();
-  
-  return;
 }
 
 void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -1230,10 +1142,6 @@ void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &
   }
   ///Notice-2: the pattern that for every plane the branch is created for all 3 datatyes of data before 
   ///...creating the same for the next plane
-
-  for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].ConstructBranchAndVector(tree, prefix, values);
-  return;
 }
 
 void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) const
@@ -1251,11 +1159,6 @@ void  QwComptonElectronDetector::FillTreeVector(std::vector<Double_t> &values) c
       for (Int_t j = 0; j < StripsPerPlane; j++)
 	values[index++] = fStripsRawScal[i][j];/// v1495 Scaler Raw
     }
-
-  for (size_t i = 0; i < fScaler.size(); i++)
-    fScaler[i].FillTreeVector(values);
-
-  return;
 }
 
 /**
@@ -1378,11 +1281,6 @@ void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
           fStripsEv[i][j] = input->fStripsEv[i][j];
         }
       }
-
-      this->fScaler.resize(input->fScaler.size());
-      for (size_t i = 0; i < this->fScaler.size(); i++)
-        this->fScaler[i].Copy(&(input->fScaler[i]));
-
     } else {
       TString loc = "Standard exception from QwComptonElectronDetector::Copy = "
 	+ source->GetSubsystemName() + " "
