@@ -43,9 +43,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),index_4mhz(-1)
     { };
 
-  ~QwBeamLine() {
-    DeleteHistograms();
-  };
+  virtual ~QwBeamLine() { };
 
 
   /* derived from VQwSubsystem */
@@ -58,7 +56,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   void  AssignGeometry(QwParameterFile* mapstr, VQwBPM * bpm);
 
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
+  void GetEventcutErrorCounters() const;// report number of events falied due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -77,8 +75,6 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+= (VQwSubsystem *value);
   VQwSubsystem&  operator-= (VQwSubsystem *value);
-  void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
-  void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
 
   void Scale(Double_t factor);
@@ -89,7 +85,6 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   using VQwSubsystem::ConstructHistograms;
   void ConstructHistograms(TDirectory *folder, TString &prefix);
   void FillHistograms();
-  void DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
@@ -98,8 +93,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   void FillTreeVector(std::vector<Double_t> &values) const;
   void FillDB(QwDatabase *db, TString datatype);
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;

@@ -39,7 +39,6 @@ class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructBranchAndVector;
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
@@ -49,14 +48,11 @@ class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
 
     Bool_t Compare(VQwSubsystem *source);
 
-    VQwSubsystem* Copy();
-    void Copy(VQwSubsystem *source);
+    void Copy(const VQwSubsystem *source);
 
     VQwSubsystem& operator=(VQwSubsystem *value);
     VQwSubsystem& operator+=(VQwSubsystem *value);
     VQwSubsystem& operator-=(VQwSubsystem *value);
-    void Sum(VQwSubsystem *value1, VQwSubsystem *value2);
-    void Difference(VQwSubsystem *value1, VQwSubsystem *value2);
     void Ratio(VQwSubsystem *value1, VQwSubsystem  *value2);
     void Scale(Double_t factor);
 
@@ -67,7 +63,6 @@ class QwScaler: public VQwSubsystemParity, public MQwCloneable<QwScaler>
     Bool_t SingleEventCuts();
     Bool_t ApplySingleEventCuts();
 
-    Int_t GetEventcutErrorCounters();
     UInt_t GetEventcutErrorFlag();
 
     void PrintValue() const;

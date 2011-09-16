@@ -94,10 +94,13 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
       { /* Not yet implemented */ };
 
 
+    /// \brief Print summary of errors
+    void PrintErrorSummary() const;
+
     /// \brief Apply the single event cuts
     Bool_t ApplySingleEventCuts();
     /// \brief Report the number of events failed due to HW and event cut failures
-    Int_t GetEventcutErrorCounters();
+    void GetEventcutErrorCounters() const;
     /// \brief Return the error flag to the main routine
     UInt_t GetEventcutErrorFlag() const;
     /// \brief Return the error flag to the main routine

@@ -798,7 +798,7 @@ void QwParameterFile::SetParamFilename()
 
 TString QwParameterFile::LastString(TString in, char* delim)
 {	
-  TObjArray*  all_strings = in.Tokenize(delim); 
+  TObjArray*  all_strings = in.Tokenize(delim);
   TObjString* last_string = (TObjString*) all_strings->Last();
   return last_string->GetString();
 };

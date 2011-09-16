@@ -63,9 +63,7 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
     fTargetCharge.InitializeChannel("q_targ","derived");
    };
 
-  ~QwLumi() {
-    DeleteHistograms();
-  };
+  virtual ~QwLumi() { };
 
 
   /* derived from VQwSubsystem */
@@ -79,7 +77,7 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
+  void  GetEventcutErrorCounters() const;// report number of events failed due to HW and event cut failures
   UInt_t GetEventcutErrorFlag();//return the error flag
 
   void AccumulateRunningSum(VQwSubsystem* value);
@@ -105,8 +103,6 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+= (VQwSubsystem *value);
   VQwSubsystem&  operator-= (VQwSubsystem *value);
-  void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
-  void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
   void Normalize(VQwDataElement* denom);
   void Scale(Double_t factor);
@@ -114,7 +110,6 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
@@ -126,8 +121,7 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   QwIntegrationPMT* GetIntegrationPMT(const TString name);
   const QwCombinedPMT* GetCombinedPMT(const TString name) const;
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;

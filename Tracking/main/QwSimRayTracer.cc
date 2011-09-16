@@ -89,8 +89,6 @@ int main (int argc, char* argv[])
     file->cd();
     TTree *tree = new TTree("tree", "Bridging");
 
-    Double_t CpuTime, RealTime;
-
     QwEvent* event = 0;
     tree->Branch("events", "QwEvent", &event);
 
@@ -109,6 +107,8 @@ int main (int argc, char* argv[])
       // Process the partial tracks in region 2 and region 3
       for (size_t i = 0; i < tracks_r2.size(); i++) {
         for (size_t j = 0; j < tracks_r3.size(); j++) {
+
+          Double_t CpuTime, RealTime;
 
           // Filter tracks based on parameters (TODO filter should go somewhere else)
           int status = trackfilter->Filter(tracks_r2.at(i), tracks_r3.at(j));

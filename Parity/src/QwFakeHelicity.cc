@@ -115,11 +115,3 @@ RegisterSubsystemFactory(QwFakeHelicity);
    return kTRUE;
   
 }
-
-
-VQwSubsystem*  QwFakeHelicity::Copy()
-{
-  QwHelicity* TheCopy=new QwFakeHelicity("Helicity Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
-}

@@ -146,17 +146,14 @@ Bool_t QwCombinedBPM<T>::ApplyHWChecks()
 
 
 template<typename T>
-Int_t QwCombinedBPM<T>::GetEventcutErrorCounters()
+void QwCombinedBPM<T>::GetEventcutErrorCounters() const
 {
-  for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
+  for(Short_t axis = kXAxis; axis <  kNumAxes; axis++) {
     fAbsPos[axis].GetEventcutErrorCounters();
     fSlope[axis].GetEventcutErrorCounters();
     fIntercept[axis].GetEventcutErrorCounters();
   }
-
   fEffectiveCharge.GetEventcutErrorCounters();
-
-  return 1;
 }
 
 
@@ -829,25 +826,6 @@ void  QwCombinedBPM<T>::FillHistograms()
 }
 
 template<typename T>
-void  QwCombinedBPM<T>::DeleteHistograms()
-{
-  if (this->GetElementName()=="") {
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else{
-    fEffectiveCharge.DeleteHistograms();
-    for(Short_t axis=kXAxis;axis<kNumAxes;axis++) {
-      fSlope[axis].DeleteHistograms();
-      fIntercept[axis].DeleteHistograms();
-      fAbsPos[axis].DeleteHistograms();
-    }
-
-  }
-  return;
-}
-
-
-template<typename T>
 void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (this->GetElementName()==""){
@@ -948,19 +926,14 @@ void  QwCombinedBPM<T>::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 template<typename T>
-void QwCombinedBPM<T>::Copy(VQwDataElement *source)
-{
-  Copy(dynamic_cast<VQwBPM*>(source));
-}
-
-template<typename T>
-void QwCombinedBPM<T>::Copy(VQwBPM *source)
+void QwCombinedBPM<T>::Copy(const VQwDataElement *source)
 {
   try
     {
       if(typeid(*source)==typeid(*this))
 	{
-	  QwCombinedBPM<T>* input = ((QwCombinedBPM<T>*)source);
+          VQwBPM::Copy(source);
+	  const QwCombinedBPM<T>* input = dynamic_cast<const QwCombinedBPM<T>*>(source);
 	  this->fElementName = input->fElementName;
 	  this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
 	  this->bFullSave = input->bFullSave;

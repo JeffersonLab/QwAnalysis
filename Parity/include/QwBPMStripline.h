@@ -33,35 +33,28 @@ class QwBPMStripline : public VQwBPM {
   friend class QwEnergyCalculator;
 
  public:
-  QwBPMStripline(){
-  };
-
-  QwBPMStripline(TString name){
+  QwBPMStripline() { };
+  QwBPMStripline(TString name) {
     InitializeChannel(name);
     fRotationAngle = 45.0;
     SetRotation(fRotationAngle);
     bRotated=kTRUE;
   };   
-    
-  QwBPMStripline(TString subsystemname, TString name){
+  QwBPMStripline(TString subsystemname, TString name) {
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name);
     fRotationAngle = 45.0;
     SetRotation(fRotationAngle);
     bRotated=kTRUE;
-  };    
-
-  QwBPMStripline(TString subsystemname, TString name, TString type){
+  };
+  QwBPMStripline(TString subsystemname, TString name, TString type) {
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name, type);
     fRotationAngle = 45.0;
     SetRotation(fRotationAngle);
     bRotated=kTRUE;
   };    
-
-  ~QwBPMStripline() {
-    DeleteHistograms();
-  };
+  virtual ~QwBPMStripline() { };
 
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
@@ -94,7 +87,7 @@ class QwBPMStripline : public VQwBPM {
   /*   /\*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel *\/ */
   /*   void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability); */
   void    SetEventCutMode(Int_t bcuts);
-  Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  void    GetEventcutErrorCounters() const;// report number of events failed due to HW and event cut failure
 
   void    SetDefaultSampleSize(Int_t sample_size);
   void    SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
@@ -103,8 +96,7 @@ class QwBPMStripline : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(VQwDataElement *source);
-  void Copy(VQwBPM *source);
+  void    Copy(const VQwDataElement *source);
   void    Ratio(VQwBPM &numer, VQwBPM &denom);
   void    Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
   void    Scale(Double_t factor);
@@ -123,7 +115,6 @@ class QwBPMStripline : public VQwBPM {
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
   void    FillHistograms();
-  void    DeleteHistograms();
 
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void    ConstructBranch(TTree *tree, TString &prefix);

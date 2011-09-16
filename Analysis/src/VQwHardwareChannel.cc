@@ -13,10 +13,6 @@ VQwHardwareChannel::VQwHardwareChannel():
   fLLimit = 0.0;
 }
 
-VQwHardwareChannel::~VQwHardwareChannel()
-{
-}
-
 UInt_t VQwHardwareChannel::GetEventcutErrorFlag()
 {
   // return the error flag

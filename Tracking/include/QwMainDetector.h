@@ -54,7 +54,6 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDet
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);

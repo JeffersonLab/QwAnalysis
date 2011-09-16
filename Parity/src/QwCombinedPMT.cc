@@ -163,10 +163,9 @@ void QwCombinedPMT::SetDefaultSampleSize(Int_t sample_size)
 }
 
 // report number of events falied due to HW and event cut faliure
-Int_t QwCombinedPMT::GetEventcutErrorCounters()
+void QwCombinedPMT::GetEventcutErrorCounters() const
 {
   fSumADC.GetEventcutErrorCounters();
-  return 1;
 }
 
 /********************************************************/
@@ -425,21 +424,8 @@ void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-void  QwCombinedPMT::DeleteHistograms()
-{
-  if (GetElementName()=="")
-    {
-      //  This channel is not used, so skip filling the histograms.
-    }
-  else
-    {
-      fSumADC.DeleteHistograms();
-//      fAvgADC.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
-void  QwCombinedPMT::Copy(VQwDataElement *source)
+void  QwCombinedPMT::Copy(const VQwDataElement *source)
 {
   try
     {

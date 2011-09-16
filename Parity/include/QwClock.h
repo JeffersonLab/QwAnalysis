@@ -32,11 +32,11 @@ class QwDBInterface;
 *  other hardware elements.
 ******************************************************************/
 template<typename T>
-class QwClock : public VQwClock {
+class QwClock: public VQwClock {
 /////
  public:
-  QwClock() { };
-  QwClock(TString name){
+  QwClock(): VQwClock() { };
+  QwClock(TString name): VQwClock(name) {
     InitializeChannel(name,"raw");
   };
   QwClock(TString subsystemname, TString name){
@@ -47,9 +47,7 @@ class QwClock : public VQwClock {
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,type,"raw");
   };
-  ~QwClock() {
-    DeleteHistograms();
-  };
+  virtual ~QwClock() { };
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
@@ -66,7 +64,7 @@ class QwClock : public VQwClock {
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  void GetEventcutErrorCounters() const;// report number of events falied due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fClock.GetEventcutErrorFlag();
   }
@@ -111,7 +109,6 @@ class QwClock : public VQwClock {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   void Copy(VQwDataElement *source);
 

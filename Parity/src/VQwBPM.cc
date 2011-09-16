@@ -258,13 +258,14 @@ void VQwBPM::SetRootSaveStatus(TString &prefix)
 
 
 /********************************************************/
-void  VQwBPM::Copy(VQwBPM *source)
+void  VQwBPM::Copy(const VQwDataElement* source)
 {
   try
     {
       if(typeid(*source)==typeid(*this))
 	{
-	  VQwBPM* input=((VQwBPM*)source);
+          VQwDataElement::Copy(source);
+          const VQwBPM* input = dynamic_cast<const VQwBPM*>(source);
 	  this->fElementName = input->fElementName;
 	  this->bFullSave = input->bFullSave;
 	  // 	  this->fEffectiveCharge_base->Copy(input->fEffectiveCharge_base);
@@ -341,5 +342,6 @@ VQwBPM* VQwBPM::CreateCombo(TString subsystemname, TString name,
     QwWarning << "BPM of type="<<type<<" is UNSUPPORTED!!\n";
     exit(-1);
   }
+  return 0;
 }
 

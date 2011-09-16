@@ -86,13 +86,16 @@
 #include "QwRootFile.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
-#include "QwEPICSEvent.h"
+#include "QwDatabase.h"
 #include "QwHelicity.h"
-#include "QwHelicityPattern.h"
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
+#include "QwHelicityPattern.h"
+#include "QwEventRing.h"
+#include "QwEPICSEvent.h"
 
 // Compton headers
+// (for correct dependency generation)
 #include "QwScaler.h"
 #include "QwBeamLine.h"
 #include "QwComptonPhotonDetector.h"
@@ -132,6 +135,9 @@ int main(int argc, char* argv[])
   QwEventBuffer eventbuffer;
   eventbuffer.ProcessOptions(gQwOptions);
 
+  ///  Create the database connection
+  QwDatabase database(gQwOptions);
+
   ///  Start loop over all runs
   while (eventbuffer.OpenNextStream() == CODA_OK) {
 
@@ -154,6 +160,10 @@ int main(int argc, char* argv[])
     ///  Create the helicity pattern
     QwHelicityPattern helicitypattern(detectors);
     helicitypattern.ProcessOptions(gQwOptions);
+
+
+    //  Initialize the database connection.
+    database.SetupOneRun(eventbuffer);
 
 
     //  Open the ROOT file
@@ -303,13 +313,18 @@ int main(int argc, char* argv[])
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
 
-    //  Delete histograms
-    rootfile->DeleteHistograms(detectors);
-    rootfile->DeleteHistograms(helicitypattern);
-
     // Close ROOT file
     rootfile->Close();
     delete rootfile; rootfile = 0;
+
+    // Read from the database
+    database.SetupOneRun(eventbuffer);
+
+    // Each subsystem has its own Connect() and Disconnect() functions.
+    if (database.AllowsWriteAccess()) {
+      helicitypattern.FillDB(&database);
+      epicsevent.FillDB(&database);
+    }
 
     // Close data file and print run summary
     eventbuffer.CloseStream();

@@ -22,7 +22,39 @@ QwGasElectronMultiplier::QwGasElectronMultiplier(TString region_tmp):VQwSubsyste
 
 QwGasElectronMultiplier::~QwGasElectronMultiplier()
 {
-  DeleteHistograms();
+  // delete VFAT histograms
+  for (Short_t i=0;i<N_VFAT;i++){
+    if(VFAT[i]!= NULL){
+      delete VFAT[i];
+      VFAT[i] = NULL;
+    }
+    if(VFAT_BC[i]!= NULL){
+      delete VFAT_BC[i];
+      VFAT_BC[i] = NULL;
+    }
+    if(VFAT_EC[i]!= NULL){
+      delete VFAT_EC[i];
+      VFAT_EC[i] = NULL;
+    }
+    if(VFAT_Flags[i]!= NULL){
+      delete VFAT_Flags[i];
+      VFAT_Flags[i] = NULL;
+    }
+    if(VFAT_ChipId[i]!= NULL){
+      delete VFAT_ChipId[i];
+      VFAT_ChipId[i] = NULL;
+    }
+    if(VFAT_ChannelData[i]!= NULL){
+      delete VFAT_ChannelData[i];
+      VFAT_ChannelData[i] = NULL;
+    }
+  }
+  for (Short_t i=0;i<N_GEM;i++){
+    if(GEM[i]!= NULL){
+      delete GEM[i];
+      GEM[i] = NULL;
+    }
+  }
 }
 
 /*  Member functions derived from VQwSubsystemTracking. */
@@ -531,63 +563,6 @@ void  QwGasElectronMultiplier::FillHistograms()
     else if (this_detid.fPackage==kPackageDown)//GEM2
     GEM[1]->Fill(hit1->GetPhiPosition(),hit1->GetRPosition());
     }
-  */
-
-}
-
-
-void  QwGasElectronMultiplier::DeleteHistograms()
-{
-
-  // delete VFAT histograms
-  for (Short_t i=0;i<N_VFAT;i++){
-    if(VFAT[i]!= NULL){
-      delete VFAT[i];
-      VFAT[i] = NULL;
-    }
-    if(VFAT_BC[i]!= NULL){
-      delete VFAT_BC[i];
-      VFAT_BC[i] = NULL;
-    }
-    if(VFAT_EC[i]!= NULL){
-      delete VFAT_EC[i];
-      VFAT_EC[i] = NULL;
-    }
-    if(VFAT_Flags[i]!= NULL){
-      delete VFAT_Flags[i];
-      VFAT_Flags[i] = NULL;
-    }
-    if(VFAT_ChipId[i]!= NULL){
-      delete VFAT_ChipId[i];
-      VFAT_ChipId[i] = NULL;
-    }
-    if(VFAT_ChannelData[i]!= NULL){
-      delete VFAT_ChannelData[i];
-      VFAT_ChannelData[i] = NULL;
-    }
-  }
-  for (Short_t i=0;i<N_GEM;i++){
-    if(GEM[i]!= NULL){
-      delete GEM[i];
-      GEM[i] = NULL;
-    }
-  }
-  /*
-  // display buffer
-  for ( int i = 0; i < 12; ++i )
-  {
-  printf("\n\n\nVFAT %i",i);
-
-  for ( int j = 0; j < 192; ++j )
-  {
-  if ( j % 16 == 0 )
-  printf("\n");
-  else if ( j % 4 == 0 )
-  printf("\t");
-
-  printf("%i ",fBuffer_VFAT[i][j]);
-  }
-  }
   */
 
 }

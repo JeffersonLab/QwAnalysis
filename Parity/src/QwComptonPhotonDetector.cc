@@ -557,32 +557,6 @@ VQwSubsystem&  QwComptonPhotonDetector::operator-=  (VQwSubsystem *value)
 }
 
 /**
- * Summation
- * @param value1 First value
- * @param value2 Second value
- */
-void  QwComptonPhotonDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if (Compare(value1) && Compare(value2)) {
-    *this  = value1;
-    *this += value2;
-  }
-}
-
-/**
- * Difference
- * @param value1 First value
- * @param value2 Second value
- */
-void  QwComptonPhotonDetector::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if (Compare(value1) && Compare(value2)) {
-    *this  = value1;
-    *this -= value2;
-  }
-}
-
-/**
  * Determine the ratio of two photon detectors
  * @param numer Numerator
  * @param denom Denominator
@@ -771,19 +745,6 @@ void  QwComptonPhotonDetector::FillHistograms()
 }
 
 /**
- * Delete the histograms
- */
-void  QwComptonPhotonDetector::DeleteHistograms()
-{
-  for (size_t i = 0; i < fSamplingADC.size(); i++)
-    fSamplingADC[i].DeleteHistograms();
-  for (size_t i = 0; i < fMultiTDC_Channel.size(); i++)
-    fMultiTDC_Channel[i].DeleteHistograms();
-  for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
-    fMultiQDC_Channel[i].DeleteHistograms();
-}
-
-/**
  * Construct the tree
  * @param folder Folder in which the tree will be created
  * @param prefix Prefix with information about the type of histogram
@@ -886,12 +847,13 @@ void  QwComptonPhotonDetector::PrintInfo() const
  * Make a copy of this subsystem, including all its subcomponents
  * @param source Original version
  */
-void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
+void  QwComptonPhotonDetector::Copy(const VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(source);
+      const QwComptonPhotonDetector* input =
+          dynamic_cast<const QwComptonPhotonDetector*>(source);
 
       this->fSamplingADC.resize(input->fSamplingADC.size());
       for (size_t i = 0; i < this->fSamplingADC.size(); i++)
@@ -917,17 +879,6 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
   }
 }
 
-
-/**
- * Make a copy of this subsystem
- * @return Copy of this subsystem
- */
-VQwSubsystem*  QwComptonPhotonDetector::Copy()
-{
-  QwComptonPhotonDetector* copy = new QwComptonPhotonDetector(this->GetSubsystemName() + " Copy");
-  copy->Copy(this);
-  return copy;
-}
 
 /**
  * Get the SIS3320 channel for this photon detector

@@ -68,13 +68,9 @@ Int_t myrun;
  *****************************************************************/
 Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 {
-  TString varname, varvalue;
-  TString modtype, dettype, name;
-  UInt_t modnum, channum;
-  Int_t plane, stripnum, fdettype;
-  Int_t currentrocread=0;
-  Int_t currentbankread=0;
-  Int_t currentsubbankindex=-1;
+  Int_t currentrocread = 0;
+  Int_t currentbankread = 0;
+  Int_t currentsubbankindex = -1;
 
 
   QwParameterFile mapstr(mapfile.Data());  // Open the file
@@ -84,6 +80,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
     mapstr.TrimWhitespace(); // Get rid of leading and trailing whitespace (spaces or tabs).
     if (mapstr.LineIsEmpty())  continue;
 
+    TString varname, varvalue;
     if (mapstr.HasVariablePair("=", varname, varvalue)) {
       // This is a declaration line.  Decode it.
       varname.ToLower();
@@ -99,19 +96,19 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       }
     } else {
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", \t").c_str();
-      modnum    = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
-      channum   = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
-      dettype   = mapstr.GetNextToken(", \t").c_str();
-      name      = mapstr.GetNextToken(", \t").c_str();
-      plane     = (atol(mapstr.GetNextToken(", \t").c_str()));
-      stripnum  = (atol(mapstr.GetNextToken(", \t").c_str()));
+      TString modtype  = mapstr.GetNextToken(", \t").c_str();
+      UInt_t modnum    = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
+      UInt_t channum   = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
+      TString dettype  = mapstr.GetNextToken(", \t").c_str();
+      TString name     = mapstr.GetNextToken(", \t").c_str();
+      Int_t plane      = (atol(mapstr.GetNextToken(", \t").c_str()));
+      Int_t stripnum   = (atol(mapstr.GetNextToken(", \t").c_str()));
       //  Push a new record into the element array
       if (modtype == "V1495") {
 	if (dettype == "eaccum") {
           // Register data channel type
           fMapping[currentsubbankindex] = kV1495Accum;
-          fdettype = 1;
+          Int_t fdettype = 1;
 	  ///the assignment of fdettype is arbitrarily made but is honoured subsequently
 	  ///due to the numbers assigned for fdettype, the first index of vector 'fSubbankIndex' holds data
 	  ///in the order:: 0:esingle; 1:eaccum; 2:escalers
@@ -136,7 +133,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	else if (dettype == "escalers") {
           // Register data channel type
           fMapping[currentsubbankindex] = kV1495Scaler;
-          fdettype = 2;
+          Int_t fdettype = 2;
  	  if (fdettype >= (Int_t) fSubbankIndex.size())
 	    fSubbankIndex.resize(fdettype+1);
           if (modnum >= fSubbankIndex[fdettype].size()) {
@@ -152,7 +149,7 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
 	else if (dettype == "esingle") {
           // Register data channel type
           fMapping[currentsubbankindex] = kV1495Single;
-          fdettype = 0;
+          Int_t fdettype = 0;
 	  if (fdettype >= (Int_t) fSubbankIndex.size())
 	    fSubbankIndex.resize(fdettype+1);
           if (modnum >= fSubbankIndex[fdettype].size()) {
@@ -899,23 +896,6 @@ VQwSubsystem&  QwComptonElectronDetector::operator*=  (VQwSubsystem *value)
 }
 
 
-void  QwComptonElectronDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if (Compare(value1) && Compare(value2)) {
-    *this  = value1;
-    *this += value2;
-  }
-}
-
-void  QwComptonElectronDetector::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if (Compare(value1) && Compare(value2)) {
-    *this  = value1;
-    *this -= value2;
-  }
-}
-
-
 void QwComptonElectronDetector::Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
 {
   if (Compare(numer) && Compare(denom)) {
@@ -1008,39 +988,29 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
   eDetfolder->cd();
   for (Int_t i=0; i<NPlanes; i++){
     TString histname = Form("Compton_eDet_Accum_Raw_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));//1st histogram
+    AddHistogram(gQwHists.Construct1DHist(prefix+histname));//1st histogram
     histname = Form("Compton_eDet_Accum_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));
+    AddHistogram(gQwHists.Construct1DHist(prefix+histname));
     histname = Form("Compton_eDet_Evt_Raw_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));//3rd histogram
+    AddHistogram(gQwHists.Construct1DHist(prefix+histname));//3rd histogram
     histname = Form("Compton_eDet_Evt_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));
+    AddHistogram(gQwHists.Construct1DHist(prefix+histname));
     histname = Form("Compton_eDet_Scal_Raw_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));//5th histogram
+    AddHistogram(gQwHists.Construct1DHist(prefix+histname));//5th histogram
   }
 
   TString histname = Form("Compton_eDet_Evt_Best_Plane1");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  AddHistogram(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_Best_Plane2");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  AddHistogram(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_Best_Plane3");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  AddHistogram(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_Best_x2");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  AddHistogram(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_NTracks");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  AddHistogram(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_Track_Angle");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
-}
-
-void  QwComptonElectronDetector::DeleteHistograms()
-{
-  for (size_t i=0; i<fHistograms1D.size(); i++) {
-    if (fHistograms1D.at(i) != NULL) {
-      delete fHistograms1D.at(i);
-      fHistograms1D.at(i) =  NULL;
-    }
-  }
+  AddHistogram(gQwHists.Construct1DHist(histname));
 }
 
 void  QwComptonElectronDetector::FillHistograms()
@@ -1058,29 +1028,29 @@ void  QwComptonElectronDetector::FillHistograms()
     for (Int_t j = 0; j < StripsPerPlane; j++) {
       Int_t nthStrip = j + 1;
 
-      if (fHistograms1D[ii] != NULL) {
+      if (fHistograms[ii] != NULL) {
   	for (Int_t n=0; n<fStripsRaw[i][j]; n++) ///Accumulation raw data
-	  fHistograms1D[ii]->Fill(nthStrip);	//!!Why does any of the following 2 method not work?
-      }	//      fHistograms1D[4*i]->Fill(j+1,fStripsRaw[i][j]); 
-	//      fHistograms1D[4*i]->SetBinContent(j+1,fStripsRaw[i][j]);
-      if (fHistograms1D[ii+1] != NULL) {
+	  fHistograms[ii]->Fill(nthStrip);	//!!Why does any of the following 2 method not work?
+      }	//      fHistograms[4*i]->Fill(j+1,fStripsRaw[i][j]);
+	//      fHistograms[4*i]->SetBinContent(j+1,fStripsRaw[i][j]);
+      if (fHistograms[ii+1] != NULL) {
 	for (Int_t n=0; n<fStrips[i][j]; n++) ///Accumulation data
-	  fHistograms1D[ii+1]->Fill(nthStrip);
+	  fHistograms[ii+1]->Fill(nthStrip);
       }
 
-      if (fHistograms1D[ii+2] != NULL) {
+      if (fHistograms[ii+2] != NULL) {
 	for (Int_t n = 0; n < fStripsRawEv[i][j]; n++) ///Event raw data
-	  fHistograms1D[ii+2]->Fill(nthStrip);
+	  fHistograms[ii+2]->Fill(nthStrip);
       }
 
-      if (fHistograms1D[ii+3] != NULL) {
+      if (fHistograms[ii+3] != NULL) {
 	for (Int_t n=0; n<fStripsEv[i][j]; n++) ///Event data
-	  fHistograms1D[ii+3]->Fill(nthStrip);
+	  fHistograms[ii+3]->Fill(nthStrip);
       }
       
-      if (fHistograms1D[ii+4] != NULL) {
+      if (fHistograms[ii+4] != NULL) {
   	for (Int_t n=0; n<fStripsRawScal[i][j]; n++){ ///v1495 Scaler raw data
-	  fHistograms1D[ii+4]->Fill(nthStrip);
+	  fHistograms[ii+4]->Fill(nthStrip);
 	}
       }
     }
@@ -1089,13 +1059,13 @@ void  QwComptonElectronDetector::FillHistograms()
   if(edet_x2 < edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {    
     //  if(edet_x2 == edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {    
     //Incrementing the following histograms based on the above increase in the 1D histos used
-    fHistograms1D[20]->Fill(fStripsEvBest1); // fHistograms1D[16]->Fill(fStripsEvBest1); 
-    fHistograms1D[21]->Fill(fStripsEvBest2); // fHistograms1D[17]->Fill(fStripsEvBest2); 
-    fHistograms1D[22]->Fill(fStripsEvBest3); // fHistograms1D[18]->Fill(fStripsEvBest3);
+    fHistograms[20]->Fill(fStripsEvBest1); // fHistograms[16]->Fill(fStripsEvBest1);
+    fHistograms[21]->Fill(fStripsEvBest2); // fHistograms[17]->Fill(fStripsEvBest2);
+    fHistograms[22]->Fill(fStripsEvBest3); // fHistograms[18]->Fill(fStripsEvBest3);
   }  
-  fHistograms1D[23]->Fill(edet_x2); // fHistograms1D[19]->Fill(edet_x2); 
-  fHistograms1D[24]->Fill(edet_TotalNumberTracks); // fHistograms1D[20]->Fill(edet_TotalNumberTracks); 
-  fHistograms1D[25]->Fill(edet_angle); //  fHistograms1D[21]->Fill(edet_angle); 
+  fHistograms[23]->Fill(edet_x2); // fHistograms[19]->Fill(edet_x2);
+  fHistograms[24]->Fill(edet_TotalNumberTracks); // fHistograms[20]->Fill(edet_TotalNumberTracks);
+  fHistograms[25]->Fill(edet_angle); //  fHistograms[21]->Fill(edet_angle);
 }
 
 void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -1254,13 +1224,13 @@ void  QwComptonElectronDetector::PrintValue() const
  * Make a copy of this electron detector, including all its subcomponents
  * @param source Original version
  */
-void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
+void  QwComptonElectronDetector::Copy(const VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwComptonElectronDetector* input =
-	dynamic_cast<QwComptonElectronDetector*>(source);
+      const QwComptonElectronDetector* input =
+	dynamic_cast<const QwComptonElectronDetector*>(source);
       fStripsRaw.resize(input->NPlanes);
       fStripsRawEv.resize(input->NPlanes);
       fStripsRawScal.resize(input->NPlanes);
@@ -1292,15 +1262,4 @@ void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
   }
 
   return;
-}
-
-/**
- * Make a copy of this electron detector
- * @return Copy of this electron detector
- */
-VQwSubsystem*  QwComptonElectronDetector::Copy()
-{
-  QwComptonElectronDetector* copy = new QwComptonElectronDetector(this->GetSubsystemName() + " Copy");
-  copy->Copy(this);
-  return copy;
 }

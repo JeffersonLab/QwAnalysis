@@ -219,11 +219,6 @@ int main(int argc, char* argv[])
   
       if (!eventbuffer.IsPhysicsEvent()) continue;
   
-      ///  Check to see if we want to process this event.
-      Int_t eventnumber = eventbuffer.GetEventNumber();
-      //if      (eventnumber < eventnumber_min) continue;
-      //else if (eventnumber > eventnumber_max) break;
-
       /// Add event into the subsystem 
       eventbuffer.FillSubsystemData(detectors);
 
@@ -255,7 +250,6 @@ int main(int argc, char* argv[])
 
       /// Fill the tree
       if (bTree) {
-        eventnumber = eventbuffer.GetEventNumber();
         detectors.FillTreeVector(mpsvector);
         mpstree->Fill();
       }
@@ -279,11 +273,6 @@ int main(int argc, char* argv[])
     std::cout << "Last event processed: " << eventbuffer.GetEventNumber() << std::endl;
     /// Close ROOT file
     rootfile.Write(0,TObject::kOverwrite);
-    /// Delete histograms
-    if (bHisto) {
-      detectors.DeleteHistograms();
-      if (bHelicity) helicitypattern.DeleteHistograms();
-    }
 
     // Close data file and print run summary
     eventbuffer.CloseDataFile();

@@ -102,7 +102,6 @@ class QwDriftChamber: public VQwSubsystemTracking{
   using VQwSubsystem::ConstructHistograms;
   virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void FillHistograms() = 0;
-  virtual void DeleteHistograms();
 
   virtual Int_t LoadTimeWireOffset(TString t0_map) = 0;
   virtual void SubtractWireTimeOffset() = 0;

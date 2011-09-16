@@ -220,20 +220,6 @@ QwSIS3320_Accumulator& QwSIS3320_Accumulator::operator-= (const QwSIS3320_Accumu
 }
 
 
-void QwSIS3320_Accumulator::Sum(const QwSIS3320_Accumulator &value1, const QwSIS3320_Accumulator &value2)
-{
-  *this  = value1;
-  *this += value2;
-}
-
-
-void QwSIS3320_Accumulator::Difference(const QwSIS3320_Accumulator &value1, const QwSIS3320_Accumulator &value2)
-{
-  *this  = value1;
-  *this -= value2;
-}
-
-
 void QwSIS3320_Accumulator::Ratio(const QwSIS3320_Accumulator &numer, const QwSIS3320_Accumulator &denom)
 {
   if (!IsNameEmpty()) {
@@ -295,12 +281,9 @@ void QwSIS3320_Accumulator::ConstructHistograms(TDirectory *folder, TString &pre
   } else {
 
     TString basename = prefix + GetElementName();
-
-    fHistograms.resize(3, NULL);
-    size_t index = 0;
-    fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_nevents"));
-    fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_sum"));
-    fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_avg"));
+    AddHistogram(gQwHists.Construct1DHist(basename + Form("_nevents")));
+    AddHistogram(gQwHists.Construct1DHist(basename + Form("_sum")));
+    AddHistogram(gQwHists.Construct1DHist(basename + Form("_avg")));
 
   }
 }
@@ -315,21 +298,11 @@ void QwSIS3320_Accumulator::FillHistograms()
   } else {
 
     if (fHistograms[index] != NULL)
-      fHistograms[index++]->Fill(GetNumberOfSamples());
-    if (fHistograms[index] != NULL)
-      fHistograms[index+1]->Fill(GetAccumulatorSum());
-    if (fHistograms[index] != NULL)
-      fHistograms[index+1]->Fill(GetAccumulatorAvg());
+      fHistograms[index]->Fill(GetNumberOfSamples());
+    if (fHistograms[++index] != NULL)
+      fHistograms[index]->Fill(GetAccumulatorSum());
+    if (fHistograms[++index] != NULL)
+      fHistograms[index]->Fill(GetAccumulatorAvg());
 
   }
-}
-
-void  QwSIS3320_Accumulator::DeleteHistograms()
-{
-  for (UInt_t i = 0; i < fHistograms.size(); i++) {
-    if (fHistograms[i] != NULL)
-      fHistograms[i]->Delete();
-    fHistograms[i] = NULL;
-  }
-  fHistograms.clear();
 }

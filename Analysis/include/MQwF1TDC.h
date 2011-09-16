@@ -32,7 +32,7 @@ class MQwF1TDC{
   
  public:
   MQwF1TDC();
-  ~MQwF1TDC();
+  virtual ~MQwF1TDC();
 
   friend std::ostream& operator<<(std::ostream& os, const MQwF1TDC &f1tdc);
 

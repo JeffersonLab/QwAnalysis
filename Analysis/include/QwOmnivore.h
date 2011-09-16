@@ -33,8 +33,6 @@ class QwOmnivore: public VQwSubsystem_t {
     Int_t LoadEventCuts(TString filename) { return 0; };
     /// Apply the single event cuts
     Bool_t ApplySingleEventCuts() { return kTRUE; };
-    /// Report the number of events failed due to HW and event cut failures
-    Int_t GetEventcutErrorCounters() { return 0; };
     /// Return the error flag to the main routine
     UInt_t GetEventcutErrorFlag() { return 0; };
 
@@ -79,19 +77,12 @@ class QwOmnivore: public VQwSubsystem_t {
     VQwSubsystem& operator=  (VQwSubsystem *value) { return *this; };
     VQwSubsystem& operator+= (VQwSubsystem *value) { return *this; };
     VQwSubsystem& operator-= (VQwSubsystem *value) { return *this; };
-    /// Sum/difference/ratio/scale operations
-    void Sum(VQwSubsystem *value1, VQwSubsystem *value2) { };
-    void Difference(VQwSubsystem *value1, VQwSubsystem *value2) { };
+    /// Ratio/scale operations
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) { };
     void Scale(Double_t factor) { };
 
     /// Copy operation
-    VQwSubsystem* Copy() {
-      QwOmnivore<VQwSubsystem_t>* theCopy = new QwOmnivore<VQwSubsystem_t>("copy");
-      theCopy->Copy(this);
-      return theCopy;
-    };
-    void Copy(VQwSubsystem *source) {
+    void Copy(const VQwSubsystem *source) {
       VQwSubsystem::Copy(source);
     };
 
@@ -100,8 +91,6 @@ class QwOmnivore: public VQwSubsystem_t {
     void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
     /// Fill the histograms for this subsystem
     void  FillHistograms() { };
-    /// Delete the histograms for this subsystem
-    void  DeleteHistograms() { };
 
     /// Construct the branch and tree vector
     void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values) { };

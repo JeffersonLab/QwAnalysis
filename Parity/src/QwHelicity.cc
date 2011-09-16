@@ -277,7 +277,8 @@ Bool_t QwHelicity::ApplySingleEventCuts(){
   return kTRUE;
 }
 
-Int_t QwHelicity::GetEventcutErrorCounters(){
+void QwHelicity::GetEventcutErrorCounters() const
+{
   // report number of events falied due to HW and event cut faliure
   QwMessage << "\n*********QwHelicity Error Summary****************"
 	    << QwLog::endl;
@@ -302,18 +303,16 @@ Int_t QwHelicity::GetEventcutErrorCounters(){
 	    << QwLog::endl;
   QwMessage <<"---------------------------------------------------\n"
 	    << QwLog::endl;
-  return 1;
 }
 
-UInt_t QwHelicity::GetEventcutErrorFlag(){//return the error flag
-
+UInt_t QwHelicity::GetEventcutErrorFlag()
+{
+  //return the error flag
   return 0;
-
 }
 
 void QwHelicity::ProcessEventUserbitMode()
 {
-
   /** In this version of the code, the helicity is extracted for a userbit configuration.
       This is not what we plan to have for Qweak but it was done for injector tests and 
       so is usefull to have as another option to get helicity information. */
@@ -991,45 +990,34 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
 {
   SetHistoTreeSave(prefix);
   if (folder != NULL) folder->cd();
-  TString basename;
-  size_t index=0;
 
   if(fHistoType==kHelNoSave)
     {
-      //do nothing
+      // do nothing
     }
   else if(fHistoType==kHelSavePattern)
     {
-      fHistograms.resize(1+fWord.size(), NULL);
-      basename="pattern_polarity";
-      fHistograms[index]   = gQwHists.Construct1DHist(basename);
-      index+=1;
-      for (size_t i=0; i<fWord.size(); i++){
-	basename="hel_"+fWord[i].fWordName;
-	fHistograms[index]   = gQwHists.Construct1DHist(basename);
-	index+=1;
+      TString basename = "pattern_polarity";
+      AddHistogram(gQwHists.Construct1DHist(basename));
+      for (size_t i = 0; i < fWord.size(); i++) {
+	basename = "hel_" + fWord[i].fWordName;
+	AddHistogram(gQwHists.Construct1DHist(basename));
       }
     }
   else if(fHistoType==kHelSaveMPS)
     {
-      fHistograms.resize(4+fWord.size(), NULL);
-      //eventnumber, patternnumber, helicity, patternphase + fWord.size
-      basename=prefix+"delta_event_number";
-      fHistograms[index]   = gQwHists.Construct1DHist(basename);
-      index+=1;
-      basename=prefix+"delta_pattern_number";
-      fHistograms[index]   = gQwHists.Construct1DHist(basename);
-      index+=1;
-      basename=prefix+"pattern_phase";
-      fHistograms[index]   = gQwHists.Construct1DHist(basename);
-      index+=1;
-      basename=prefix+"helicity";
-      fHistograms[index]   = gQwHists.Construct1DHist(basename);
-      index+=1;
-      for (size_t i=0; i<fWord.size(); i++){
-	basename=prefix+fWord[i].fWordName;
-	fHistograms[index]   = gQwHists.Construct1DHist(basename);
-	index+=1;
+      // eventnumber, patternnumber, helicity, patternphase + fWord.size
+      TString basename = prefix + "delta_event_number";
+      AddHistogram(gQwHists.Construct1DHist(basename));
+      basename = prefix + "delta_pattern_number";
+      AddHistogram(gQwHists.Construct1DHist(basename));
+      basename = prefix + "pattern_phase";
+      AddHistogram(gQwHists.Construct1DHist(basename));
+      basename = prefix + "helicity";
+      AddHistogram(gQwHists.Construct1DHist(basename));
+      for (size_t i = 0; i < fWord.size(); i++) {
+	basename = prefix + fWord[i].fWordName;
+	AddHistogram(gQwHists.Construct1DHist(basename));
       }
     }
   else
@@ -1037,22 +1025,6 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
 
   return;
 }
-
-void  QwHelicity::DeleteHistograms()
-{
-  if((fHistoType==kHelSaveMPS)||(fHistoType==kHelSavePattern))
-    {
-      for (size_t i=0; i<fHistograms.size(); i++){
-	if (fHistograms.at(i) != NULL){
-	  fHistograms.at(i)->Delete();
-	  fHistograms.at(i) =  NULL;
-	}
-      }
-      fHistograms.clear();
-    }
-  return;
-}
-
 
 void  QwHelicity::FillHistograms()
 {
@@ -1100,8 +1072,6 @@ void  QwHelicity::FillHistograms()
 	QwDebug << "QwHelicity::FillHistograms " << fWord[i].fWordName << "=" << fWord[i].fValue << QwLog::endl;
       }
     }
-
-  return;
 }
 
 
@@ -1801,16 +1771,14 @@ void QwHelicity::ResetPredictor()
 
 
 
-void QwHelicity::Copy(VQwSubsystem *source)
+void QwHelicity::Copy(const VQwSubsystem *source)
 {
  try
     {
      if(typeid(*source)==typeid(*this))
 	{
-	  //VQwSubsystem::Copy(source);
-	  //QwHelicity* input=((QwHelicity*)source);
 	  VQwSubsystem::Copy(source);
-          QwHelicity* input = dynamic_cast<QwHelicity*>(source);
+          const QwHelicity* input = dynamic_cast<const QwHelicity*>(source);
 	  this->fWord.resize(input->fWord.size());
 	  for(size_t i=0;i<this->fWord.size();i++)
 	    {
@@ -1835,13 +1803,6 @@ void QwHelicity::Copy(VQwSubsystem *source)
     }
 
   return;
-}
-
-VQwSubsystem*  QwHelicity::Copy()
-{
-  QwHelicity* TheCopy=new QwHelicity("Helicity Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
@@ -1907,23 +1868,6 @@ VQwSubsystem&  QwHelicity::operator+=  (VQwSubsystem *value)
   return *this;
 }
 
-void QwHelicity::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  //this routine is most likely to be called during the computatin of assymetry
-  //this call doesn't make too much sense for this class so the followign lines
-  //are only use to put safe gards testing for example if the two instantiation indeed
-  // refers to elements in the same pattern
-  if(Compare(value1)&&Compare(value2)) {
-    *this =  value1;
-    //*this += value2;
-  }
-}
-
-void QwHelicity::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  // this is stub function defined here out of completion and uniformity between each subsystem
-  *this =  value1;
-}
 
 void QwHelicity::Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2)
 {

@@ -722,21 +722,19 @@ UInt_t QwMainCerenkovDetector::GetEventcutErrorFlag() //return the error flag
   return ErrorFlag;
 }
 
-//inherited from the VQwSubsystemParity; this will display the error summary
-Int_t QwMainCerenkovDetector::GetEventcutErrorCounters()
+void QwMainCerenkovDetector::GetEventcutErrorCounters() const
 {
-  QwMessage<<"*********QwMainCerenkovDetector Error Summary****************"<<QwLog::endl;
+  QwMessage << "*********QwMainCerenkovDetector Error Summary****************" << QwLog::endl;
   QwVQWK_Channel::PrintErrorCounterHead();
-  for(size_t i=0;i<fIntegrationPMT.size();i++){
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++) {
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
     fIntegrationPMT[i].GetEventcutErrorCounters();
   }
-  for(size_t i=0;i<fCombinedPMT.size();i++){
+  for (size_t i = 0; i < fCombinedPMT.size(); i++) {
     //std::cout<<"  CombinedPMT ["<<i<<"] "<<std::endl;
     fCombinedPMT[i].GetEventcutErrorCounters();
   }
   QwVQWK_Channel::PrintErrorCounterTail();
-  return 1;
 }
 
 
@@ -923,18 +921,6 @@ void  QwMainCerenkovDetector::FillHistograms()
 }
 
 
-void  QwMainCerenkovDetector::DeleteHistograms()
-{
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].DeleteHistograms();
-
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].DeleteHistograms();
-
-  return;
-}
-
-
 void QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
   for (size_t i=0;i<fIntegrationPMT.size();i++)
@@ -1000,7 +986,7 @@ const QwIntegrationPMT* QwMainCerenkovDetector::GetChannel(const TString name) c
 }
 
 
-void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
+void  QwMainCerenkovDetector::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -1008,7 +994,8 @@ void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
       if (typeid(*source)==typeid(*this))
         {
           VQwSubsystem::Copy(source);
-          QwMainCerenkovDetector* input= dynamic_cast<QwMainCerenkovDetector*>(source);
+          const QwMainCerenkovDetector* input =
+              dynamic_cast<const QwMainCerenkovDetector*>(source);
 
           this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
           for (size_t i=0;i<this->fIntegrationPMT.size();i++)
@@ -1033,14 +1020,6 @@ void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
   // this->Print();
 
   return;
-}
-
-
-VQwSubsystem*  QwMainCerenkovDetector::Copy()
-{
-  QwMainCerenkovDetector* TheCopy = new QwMainCerenkovDetector("MainDetector Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 
@@ -1122,24 +1101,6 @@ VQwSubsystem&  QwMainCerenkovDetector::operator-=  (VQwSubsystem *value)
 }
 
 
-
-void QwMainCerenkovDetector::Sum(VQwSubsystem *value1,VQwSubsystem *value2)
-{
-  if (Compare(value1)&&Compare(value2))
-    {
-      *this =  value1;
-      *this += value2;
-    }
-}
-
-void QwMainCerenkovDetector::Difference(VQwSubsystem *value1,VQwSubsystem *value2)
-{
-  if (Compare(value1)&&Compare(value2))
-    {
-      *this =  value1;
-      *this -= value2;
-    }
-}
 
 void QwMainCerenkovDetector::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 {

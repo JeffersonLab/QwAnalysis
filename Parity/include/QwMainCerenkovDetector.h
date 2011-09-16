@@ -45,9 +45,7 @@ class QwMainCerenkovDetector:
     fTargetEnergy.InitializeChannel("e_targ","derived");
   };
 
-  ~QwMainCerenkovDetector() {
-    DeleteHistograms();
-  };
+  virtual ~QwMainCerenkovDetector() { };
 
   /*  Member functions derived from VQwSubsystemParity. */
 
@@ -60,7 +58,7 @@ class QwMainCerenkovDetector:
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString  filename);
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  void  GetEventcutErrorCounters() const;// report number of events failed due to HW and event cut failure
   UInt_t GetEventcutErrorFlag();//return the error flag
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
@@ -89,7 +87,6 @@ class QwMainCerenkovDetector:
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
@@ -101,8 +98,7 @@ class QwMainCerenkovDetector:
 
   const QwIntegrationPMT* GetChannel(const TString name) const;
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem* source);
 
 
@@ -117,8 +113,6 @@ class QwMainCerenkovDetector:
   VQwSubsystem&  operator-= ( VQwSubsystem *value);
 
 
-  void Sum(VQwSubsystem* value1, VQwSubsystem* value2);
-  void Difference(VQwSubsystem* value1, VQwSubsystem* value2);
   void Ratio(VQwSubsystem* numer, VQwSubsystem* denom);
   void Scale(Double_t factor);
   void Normalize(VQwDataElement* denom);

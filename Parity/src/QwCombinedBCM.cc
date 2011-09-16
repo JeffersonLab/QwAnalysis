@@ -201,9 +201,10 @@ Bool_t QwCombinedBCM<T>::ApplySingleEventCuts(){
 /********************************************************/
 
 template<typename T>
-Int_t QwCombinedBCM<T>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+void QwCombinedBCM<T>::GetEventcutErrorCounters() const
+{
+  // Report number of events failed due to HW and event cut failure
   fCombined_bcm.GetEventcutErrorCounters();
-  return 1;
 }
 
 /********************************************************/
@@ -396,18 +397,6 @@ void  QwCombinedBCM<T>::FillHistograms()
     }
 
 
-  return;
-}
-
-template<typename T>
-void  QwCombinedBCM<T>::DeleteHistograms()
-{
-  if (this->GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fCombined_bcm.DeleteHistograms();
-    }
   return;
 }
 

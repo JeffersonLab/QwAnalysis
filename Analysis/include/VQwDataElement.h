@@ -9,16 +9,19 @@
 #ifndef __VQWDATAELEMENT__
 #define __VQWDATAELEMENT__
 
-#include <iostream>
+// System headers
 #include <vector>
-#include <stdexcept>
-#include <cmath>
+#include <iostream>
 
+// Root headers
 #include "Rtypes.h"
 #include "TString.h"
 #include "TDirectory.h"
-#include "TH1.h"
+
+// Qweak headers
+#include "QwLog.h"
 #include "QwTypes.h"
+#include "MQwHistograms.h"
 
 /**
  *  \class   VQwDataElement
@@ -42,20 +45,34 @@
  * }
  * \enddot
  */
-class VQwDataElement {
+class VQwDataElement: public MQwHistograms {
  public:
   /// Flag to be used to decide which data needs to be histogrammed and
   /// entered in the tree
   enum EDataToSave {kRaw = 0, kDerived};
 
-  
-   
-
 
  public:
 
-  VQwDataElement();
-  virtual ~VQwDataElement();
+  VQwDataElement()
+  : MQwHistograms(),
+    fElementName(""),
+    fNumberOfDataWords(0),
+    fGoodEventCount(0),
+    fSubsystemName(""),
+    fModuleType(""),
+    fErrorFlag(0)
+    { };
+  VQwDataElement(const VQwDataElement& value)
+  : MQwHistograms(value),
+    fElementName(value.fElementName),
+    fNumberOfDataWords(value.fNumberOfDataWords),
+    fGoodEventCount(value.fGoodEventCount),
+    fSubsystemName(value.fSubsystemName),
+    fModuleType(value.fModuleType),
+    fErrorFlag(value.fErrorFlag)
+    { };
+  virtual ~VQwDataElement() { };
 
   /*! \brief Is the name of this element empty? */
   Bool_t IsNameEmpty() const { return fElementName.IsNull(); }
@@ -99,8 +116,6 @@ class VQwDataElement {
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   /*! \brief Fill the histograms for this data element */
   virtual void  FillHistograms() = 0;
-  /*! \brief Delete the histograms for this data element */
-  void  DeleteHistograms();
 
   /*! \brief Print single line of value and error of this data element */
   virtual void PrintValue() const { }
@@ -110,8 +125,8 @@ class VQwDataElement {
 
   /*! \brief set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   virtual void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){std::cerr << "SetSingleEventCuts not defined!" << std::endl; };
-  /*! \brief report number of events falied due to HW and event cut faliure */
-  virtual Int_t GetEventcutErrorCounters(){return 0;};
+  /*! \brief report number of events falied due to HW and event cut failure */
+  virtual void GetEventcutErrorCounters() const { };
 
   /*! \brief return the error flag on this channel/device*/
   virtual UInt_t GetEventcutErrorFlag(){return fErrorFlag;};
@@ -150,8 +165,10 @@ class VQwDataElement {
   /*! \brief Set the number of data words in this data element */
   void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;}
 
-
-
+  /*! \brief Copy method, but really more like assignment at this level */
+  void Copy(const VQwDataElement *source) {
+    *this = *source;
+  }
 
  protected:
   TString fElementName; ///< Name of this data element
@@ -159,46 +176,14 @@ class VQwDataElement {
   UInt_t fGoodEventCount;  ///< Number of good events accumulated in this element
 
 
-  /// Histograms associated with this data element
-  std::vector<TH1*> fHistograms;
-
-  //name of the inheriting subsystem
+  // Name of the inheriting subsystem
   TString  fSubsystemName;
-  //Data module Type 
+  // Data module Type
   TString  fModuleType;
 
-  //Error flag
+  // Error flag
   UInt_t fErrorFlag;
 
 }; // class VQwDataElement
-
-inline VQwDataElement::VQwDataElement():
-  fElementName(""), fNumberOfDataWords(0),
-  fGoodEventCount(0),
-  fSubsystemName(""), fModuleType(""),
-  fErrorFlag(0)
-{
-  fHistograms.clear();
-}
-
-inline VQwDataElement::~VQwDataElement(){
-}
-
-/**
- * Delete the histograms for with this data element
- */
-inline void VQwDataElement::DeleteHistograms()
-{
-  for (size_t i=0; i<fHistograms.size(); i++){
-    if (fHistograms.at(i) != NULL){
-      fHistograms.at(i)->Delete();
-      fHistograms.at(i) =  NULL;
-    }
-  }
-  fHistograms.clear();
-}
-
-
-
 
 #endif // __VQWDATAELEMENT__

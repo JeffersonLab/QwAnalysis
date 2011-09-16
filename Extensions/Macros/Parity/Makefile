@@ -13,7 +13,7 @@ EVENTLIB      = $(EVENTO)
 OutPutOpt     = -o  
 
 ROOTCFLAGS    = $(shell root-config --cflags)
-ROOTLIBS      = $(shell root-config --libs)   -lNew  -lMinuit
+ROOTLIBS      = $(shell root-config --libs)
 ROOTGLIBS     = $(shell root-config --glibs)
 
 

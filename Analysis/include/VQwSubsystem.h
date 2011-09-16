@@ -20,6 +20,8 @@
 #include "TTree.h"
 
 // Qweak headers
+#include "MQwHistograms.h"
+#include "MQwDataElements.h"
 // Note: the subsystem factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
 #include "QwSubsystemFactory.h"
@@ -55,14 +57,14 @@ class QwParameterFile;
  * This will define the interfaces used in communicating with the
  * CODA routines.
  */
-class VQwSubsystem: virtual public VQwCloneable {
+class VQwSubsystem: virtual public VQwCloneable, public MQwHistograms, public MQwDataElements {
 
  public:
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-    : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
-      fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
+  : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
+    fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
     ClearAllBankRegistrations();
   }
   /// Copy constructor by object
@@ -73,8 +75,7 @@ class VQwSubsystem: virtual public VQwCloneable {
   VQwSubsystem(const VQwSubsystem* orig) {
     *this = *orig;
   }
-
-  /// Default destructor
+  /// Virtual destructor
   virtual ~VQwSubsystem() { }
 
 
@@ -207,8 +208,6 @@ class VQwSubsystem: virtual public VQwCloneable {
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   /// \brief Fill the histograms for this subsystem
   virtual void  FillHistograms() = 0;
-  /// \brief Delete the histograms for this subsystem
-  virtual void  DeleteHistograms() = 0;
   // @}
 
 
@@ -267,14 +266,22 @@ class VQwSubsystem: virtual public VQwCloneable {
   /// \brief Copy method
   /// Note: Must be called at the beginning of all subsystems routine
   /// call to Copy(VQwSubsystem *source) by using VQwSubsystem::Copy(source)
-  virtual void Copy(VQwSubsystem *source);
+  using VQwCloneable::Copy;
+  virtual void Copy(const VQwSubsystem *source);
   /// \brief Assignment
   /// Note: Must be called at the beginning of all subsystems routine
   /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)
   virtual VQwSubsystem& operator=(VQwSubsystem *value);
 
 
-  virtual void PrintDetectorMaps(Bool_t status);
+  /// \brief Print detector maps
+  virtual void PrintDetectorMaps(Bool_t status) const;
+
+  /// \brief Print summary of errors
+  virtual void PrintErrorSummary() const { };
+
+  /// \brief Report the number of events failed due to HW and event cut failures
+  virtual void GetEventcutErrorCounters() const { };
 
  protected:
 
@@ -322,7 +329,6 @@ class VQwSubsystem: virtual public VQwCloneable {
 
   /// Vector of pointers to subsystem arrays that contain this subsystem
   std::vector<QwSubsystemArray*> fArrays;
-
 
  protected:
 

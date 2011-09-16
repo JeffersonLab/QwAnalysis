@@ -231,10 +231,10 @@ void QwVQWK_Channel::InitializeChannel(TString subsystem, TString instrumenttype
 }
 
 /********************************************************/
-Int_t QwVQWK_Channel::GetEventcutErrorCounters()
-{// report number of events failed due to HW and event cut failure
+void QwVQWK_Channel::GetEventcutErrorCounters() const
+{
+  // Report number of events failed due to HW and event cut failure
   ReportErrorCounters();//print the summary
-  return 1;
 }
 
 void QwVQWK_Channel::ClearEventData()
@@ -499,27 +499,20 @@ void  QwVQWK_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
 
     if(fDataToSave==kRaw)
       {
-	fHistograms.resize(8+2+1, NULL);
-	size_t index=0;
-	for (Int_t i=0; i<fBlocksPerEvent; i++){
-	  fHistograms[index]   = gQwHists.Construct1DHist(basename+Form("_block%d_raw",i));
-	  fHistograms[index+1] = gQwHists.Construct1DHist(basename+Form("_block%d",i));
-	  index += 2;
+	for (Int_t i = 0; i < fBlocksPerEvent; i++) {
+	  AddHistogram(gQwHists.Construct1DHist(basename+Form("_block%d_raw",i)));
+	  AddHistogram(gQwHists.Construct1DHist(basename+Form("_block%d",i)));
 	}
-	fHistograms[index]   = gQwHists.Construct1DHist(basename+Form("_hw_raw"));
-	fHistograms[index+1] = gQwHists.Construct1DHist(basename+Form("_hw"));
-	index += 2;
-	fHistograms[index]   = gQwHists.Construct1DHist(basename+Form("_sw-hw_raw"));
+	AddHistogram(gQwHists.Construct1DHist(basename+Form("_hw_raw")));
+	AddHistogram(gQwHists.Construct1DHist(basename+Form("_hw")));
+	AddHistogram(gQwHists.Construct1DHist(basename+Form("_sw-hw_raw")));
       }
     else if(fDataToSave==kDerived)
       {
-	fHistograms.resize(4+1, NULL);
-	Int_t index=0;
-	for (Int_t i=0; i<fBlocksPerEvent; i++){
-	  fHistograms[index] = gQwHists.Construct1DHist(basename+Form("_block%d",i));
-	  index += 1;
+	for (Int_t i = 0; i < fBlocksPerEvent; i++) {
+	  AddHistogram(gQwHists.Construct1DHist(basename+Form("_block%d",i)));
 	}
-	fHistograms[index] = gQwHists.Construct1DHist(basename+Form("_hw"));
+	AddHistogram(gQwHists.Construct1DHist(basename+Form("_hw")));
       }
     else
       {
@@ -571,19 +564,6 @@ void  QwVQWK_Channel::FillHistograms()
 	    // this is not defined
 	  }
       }
-}
-
-void  QwVQWK_Channel::DeleteHistograms()
-{
-  //std::cout<<"Device Name "<<GetElementName()<<" fHistograms.size() "<<fHistograms.size()<<std::endl;
-  if ((fDataToSave==kRaw) || (fDataToSave==kDerived)){
-    for (UInt_t i=0; i<fHistograms.size(); i++){
-      if (fHistograms[i] != NULL)
-        fHistograms[i]->Delete();
-      fHistograms[i] = NULL;
-    }
-  }
-  fHistograms.clear();
 }
 
 void  QwVQWK_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -1380,13 +1360,14 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
 
 
 
-void QwVQWK_Channel::Copy(VQwDataElement *source)
+void QwVQWK_Channel::Copy(const VQwDataElement *source)
 {
     try
     {
      if(typeid(*source)==typeid(*this))
        {
-	 QwVQWK_Channel* input=((QwVQWK_Channel*)source);
+         VQwDataElement::operator=(*source);
+         const QwVQWK_Channel* input = dynamic_cast<const QwVQWK_Channel*>(source);
 	 this->fSubsystemName         = input->fSubsystemName;
 	 this->fModuleType            = input->fModuleType;
 	 this->fElementName           = input->fElementName;
@@ -1441,7 +1422,7 @@ void  QwVQWK_Channel::PrintErrorCounterTail(){
 	    << QwLog::endl;
 }
 
-void  QwVQWK_Channel::ReportErrorCounters()
+void  QwVQWK_Channel::ReportErrorCounters() const
 {
   TString message;
   if (fErrorCount_sample || fErrorCount_SW_HW 
@@ -1462,5 +1443,4 @@ void  QwVQWK_Channel::ReportErrorCounters()
 
     QwMessage << message << QwLog::endl;
   }
-  return;
 }

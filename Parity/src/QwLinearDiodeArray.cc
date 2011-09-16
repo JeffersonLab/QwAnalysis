@@ -107,17 +107,13 @@ Bool_t QwLinearDiodeArray::ApplyHWChecks()
 }
 
 
-Int_t QwLinearDiodeArray::GetEventcutErrorCounters()
+void QwLinearDiodeArray::GetEventcutErrorCounters() const
 {
-  size_t i=0;
-
-  for(i=0;i<8;i++) fPhotodiode[i].GetEventcutErrorCounters();
-  for(i=kXAxis;i<kNumAxes;i++) {
+  for (size_t i = 0; i < 8; i++)
+    fPhotodiode[i].GetEventcutErrorCounters();
+  for (size_t i = kXAxis; i < kNumAxes; i++)
     fRelPos[i].GetEventcutErrorCounters();
-  }
   fEffectiveCharge.GetEventcutErrorCounters();
-
-  return 1;
 }
 
 
@@ -509,24 +505,6 @@ void  QwLinearDiodeArray::FillHistograms()
   return;
 }
 
-void  QwLinearDiodeArray::DeleteHistograms()
-{
-  if (GetElementName()=="") {
-  }
-  else {
-    fEffectiveCharge.DeleteHistograms();
-    size_t i = 0;
-    if(bFullSave) {
-      for(i=0;i<8;i++) fPhotodiode[i].DeleteHistograms();
-    }
-    for(i=kXAxis;i<kNumAxes;i++) {
-      fRelPos[i].DeleteHistograms();
-    }
-  }
-  return;
-}
-
-
 void  QwLinearDiodeArray::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
@@ -633,21 +611,21 @@ void  QwLinearDiodeArray::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void QwLinearDiodeArray::Copy(QwLinearDiodeArray *source)
+void QwLinearDiodeArray::Copy(const QwLinearDiodeArray *source)
 {
   try
     {
       if( typeid(*source)==typeid(*this) ) {
-       QwLinearDiodeArray* input = ((QwLinearDiodeArray*)source);
-       this->fElementName = input->fElementName;
-       this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-       this->bFullSave = input->bFullSave;
-       size_t i = 0;
-       for(i = 0; i<8; i++) this->fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
-       for(i = 0; i<2; i++){
-	 this->fRelPos[i].Copy(&(input->fRelPos[i]));
-       }
-     }
+        const QwLinearDiodeArray* input = dynamic_cast<const QwLinearDiodeArray*>(source);
+        this->fElementName = input->fElementName;
+        this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+        this->bFullSave = input->bFullSave;
+        size_t i = 0;
+        for(i = 0; i<8; i++) this->fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
+        for(i = 0; i<2; i++){
+          this->fRelPos[i].Copy(&(input->fRelPos[i]));
+        }
+      }
       else {
        TString loc="Standard exception from QwLinearDiodeArray::Copy = "
 	 +source->GetElementName()+" "

@@ -642,21 +642,20 @@ Bool_t QwLumi::ApplySingleEventCuts(){
 
 
 //*****************************************************************
-Int_t QwLumi::GetEventcutErrorCounters()
+void QwLumi::GetEventcutErrorCounters() const
 {
-  //inherited from the VQwSubsystemParity; this will display the error summary
+  // Inherited from the VQwSubsystemParity; this will display the error summary
   QwMessage<<"*********QwLumi Error Summary****************"<<QwLog::endl;
   QwVQWK_Channel::PrintErrorCounterHead();
-  for(size_t i=0;i<fIntegrationPMT.size();i++){
+  for (size_t i = 0; i < fIntegrationPMT.size(); i++) {
     //std::cout<<"  IntegrationPMT ["<<i<<"] "<<std::endl;
     fIntegrationPMT[i].GetEventcutErrorCounters();
   }
-  for(size_t i=0;i<fCombinedPMT.size();i++){
+  for (size_t i = 0; i < fCombinedPMT.size(); i++) {
     //std::cout<<"  CombinedPMT ["<<i<<"] "<<std::endl;
     fCombinedPMT[i].GetEventcutErrorCounters();
   }
   QwVQWK_Channel::PrintErrorCounterTail();
-  return 1;
 }
 
 
@@ -895,26 +894,6 @@ VQwSubsystem&  QwLumi::operator-=  (VQwSubsystem *value)
 }
 
 //*****************************************************************
-void  QwLumi::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if (Compare(value1) && Compare(value2))
-    {
-      *this =  value1;
-      *this += value2;
-    }
-}
-
-//*****************************************************************
-void  QwLumi::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if (Compare(value1) && Compare(value2))
-    {
-      *this =  value1;
-      *this -= value2;
-    }
-}
-
-//*****************************************************************
 void QwLumi::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 {
   if (Compare(numer) && Compare(denom))
@@ -994,17 +973,6 @@ void  QwLumi::ConstructHistograms(TDirectory *folder, TString &prefix)
     fScalerPMT[i].ConstructHistograms(folder,prefix);
 }
 
-
-//*****************************************************************
-void  QwLumi::DeleteHistograms()
-{
-  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].DeleteHistograms();
-  for (size_t i = 0; i < fCombinedPMT.size(); i++)
-    fCombinedPMT[i].DeleteHistograms();
-  for (size_t i = 0; i < fScalerPMT.size(); i++)
-    fScalerPMT[i].DeleteHistograms();
-}
 
 //*****************************************************************
 void  QwLumi::FillHistograms()
@@ -1140,7 +1108,7 @@ void  QwLumiDetectorID::Print() const
 }
 
 //*****************************************************************
-void  QwLumi::Copy(VQwSubsystem *source)
+void  QwLumi::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -1148,7 +1116,7 @@ void  QwLumi::Copy(VQwSubsystem *source)
       if(typeid(*source)==typeid(*this))
 	{
 	  VQwSubsystem::Copy(source);
-	  QwLumi* input= dynamic_cast<QwLumi*>(source);
+	  const QwLumi* input= dynamic_cast<const QwLumi*>(source);
 
 	  this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
 	  for(size_t i=0;i<this->fIntegrationPMT.size();i++)
@@ -1176,15 +1144,6 @@ void  QwLumi::Copy(VQwSubsystem *source)
       std::cerr << e.what() << std::endl;
     }
   // this->Print();
-}
-
-//*****************************************************************
-VQwSubsystem*  QwLumi::Copy()
-{
-
-  QwLumi* TheCopy=new QwLumi("Injector Lumi Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 //*****************************************************************

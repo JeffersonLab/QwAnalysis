@@ -39,16 +39,17 @@ public:
   VQwScaler_Channel(): MQwMockable() {
     InitializeChannel("","");
   }
-    
   VQwScaler_Channel(TString name): MQwMockable() {
     InitializeChannel(name,"");
   };
-  virtual ~VQwScaler_Channel() { DeleteHistograms(); };
+  virtual ~VQwScaler_Channel() { };
 
   /// \brief Initialize the fields in this object
-  void  InitializeChannel(TString name){InitializeChannel(name, "raw");};
+  void  InitializeChannel(TString name) {
+    InitializeChannel(name, "raw");
+  };
+  /// \brief Initialize the fields in this object
   void  InitializeChannel(TString name, TString datatosave);
-
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
 
@@ -59,7 +60,7 @@ public:
 
   void  ClearEventData();
 
-  void ReportErrorCounters();//This will display the error summary for each device
+  void ReportErrorCounters() const;//This will display the error summary for each device
   void UpdateHWErrorCount(){//Update error counter for HW faliure
     fNumEvtsWithHWErrors++;
   };
@@ -105,16 +106,12 @@ public:
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
 
-  /// report number of events falied due to HW and event cut failure
-  Int_t GetEventcutErrorCounters();
-
 //   UInt_t GetDeviceErrorCode(){//return the device error code
 //     return fDeviceErrorCode;
 //   };
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
 
@@ -127,7 +124,7 @@ public:
     if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr);
   };
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   void PrintValue() const;
   void PrintInfo() const;
@@ -186,7 +183,7 @@ class QwScaler_Channel: public VQwScaler_Channel
 
 
 //  These typedef's should be the last things in the file.
-//  Class template instationation must be made in the source
+//  Class template instantiation must be made in the source
 //  file for anything defined here.
 typedef class QwScaler_Channel<0x00ffffff,0> QwSIS3801D24_Channel;
 typedef class QwScaler_Channel<0xffffffff,0> QwSIS3801D32_Channel;

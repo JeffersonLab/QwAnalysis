@@ -1243,7 +1243,6 @@ QwF1TDContainer::PrintErrorSummary()
       F1 -> PrintTotalErrorCounter();
     }
   printf("-----------------------\n");
-  return;
 }
 
 

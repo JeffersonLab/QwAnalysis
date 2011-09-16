@@ -142,7 +142,7 @@ void QwMollerDetector::ProcessOptions(QwOptions &){}
 Int_t QwMollerDetector::LoadInputParameters(TString){ return 0;}
 void QwMollerDetector::ClearEventData(){}
 
-void  QwMollerDetector::Copy(VQwSubsystem *source)
+void  QwMollerDetector::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -150,7 +150,8 @@ void  QwMollerDetector::Copy(VQwSubsystem *source)
      if(typeid(*source)==typeid(*this))
   {
     VQwSubsystem::Copy(source);
-    QwMollerDetector* input= dynamic_cast<QwMollerDetector*>(source);
+    const QwMollerDetector* input =
+        dynamic_cast<const QwMollerDetector*>(source);
 
     this->fSTR7200_Channel.resize(input->fSTR7200_Channel.size());
 
@@ -178,14 +179,6 @@ void  QwMollerDetector::Copy(VQwSubsystem *source)
   return;
 }
 
-
-VQwSubsystem*  QwMollerDetector::Copy()
-{
-
-  QwMollerDetector* TheCopy=new QwMollerDetector("Moller Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
-}
 
 Int_t QwMollerDetector::ProcessConfigurationBuffer(UInt_t, UInt_t, UInt_t*, UInt_t){
   return 0;
@@ -272,14 +265,6 @@ void QwMollerDetector::FillHistograms(){
   }
 }
 
-void QwMollerDetector::DeleteHistograms(){
-  for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
-    for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
-      fSTR7200_Channel[i][j].DeleteHistograms();
-    }
-  }
-}
-
 void QwMollerDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values){
   for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
     for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
@@ -335,20 +320,6 @@ VQwSubsystem&  QwMollerDetector::operator-=(VQwSubsystem *value){
     }
   }
   return *this;
-}
-
-void QwMollerDetector::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2){
-  if (Compare(value1) && Compare(value2)) {
-    *this  = value1;
-    *this += value2;
-  }
-}
-
-void QwMollerDetector::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2){
-  if (Compare(value1) && Compare(value2)) {
-    *this  = value1;
-    *this -= value2;
-  }
 }
 
 void QwMollerDetector::Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2){
@@ -412,16 +383,16 @@ Bool_t QwMollerDetector::ApplySingleEventCuts(){
   return test;
 }
 
-Int_t QwMollerDetector::GetEventcutErrorCounters(){
-  std::cout << "***************QwMoller Error Summary****************" << std::endl;
+void QwMollerDetector::GetEventcutErrorCounters() const
+{
+  QwMessage << "***************QwMoller Error Summary****************" << QwLog::endl;
   for (size_t i = 0; i < fSTR7200_Channel.size(); i++){
     for (size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
       fSTR7200_Channel[i][j].ReportErrorCounters();
     }
   }
-  std::cout << "total failed events: " << fQwMollerErrorCount << std::endl;
-  std::cout << "************End QwMoller Error Summary***************" << std::endl;
-  return 0;
+  QwMessage << "total failed events: " << fQwMollerErrorCount << QwLog::endl;
+  QwMessage << "************End QwMoller Error Summary***************" << QwLog::endl;
 }
 
 UInt_t QwMollerDetector::GetEventcutErrorFlag(){

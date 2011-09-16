@@ -42,7 +42,6 @@ class QwRaster: public VQwSubsystemTracking, public MQwCloneable<QwRaster>
 
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
-    Int_t GetEventcutErrorCounters() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
   /*  Member functions derived from VQwSubsystem. */
@@ -60,7 +59,6 @@ class QwRaster: public VQwSubsystemTracking, public MQwCloneable<QwRaster>
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
@@ -126,8 +124,6 @@ class QwRaster: public VQwSubsystemTracking, public MQwCloneable<QwRaster>
   //UInt_t GetEventcutErrorFlag() { return 0; };//return the error flag to the main routine
 
   // raster specified histograms
-  std::vector<TH1*> fHistograms1D;
-  std::vector<TH2*> fHistograms2D;
   TH2D* fRateMap;
 
  private:

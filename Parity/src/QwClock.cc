@@ -160,12 +160,11 @@ Bool_t QwClock<T>::ApplySingleEventCuts(){
 /********************************************************/
 
 template<typename T>
-Int_t QwClock<T>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+void QwClock<T>::GetEventcutErrorCounters() const
+{
+  // Report number of events failed due to HW and event cut failure
   fClock.GetEventcutErrorCounters();
-  return 1;
 }
-
-
 
 template<typename T>
 Int_t QwClock<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
@@ -457,17 +456,6 @@ void QwClock<T>::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-template<typename T>
-void QwClock<T>::DeleteHistograms()
-{
-  if (this->GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fClock.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
 template<typename T>
 void QwClock<T>::Copy(VQwDataElement *source)

@@ -46,10 +46,9 @@ void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
     this->fErrorFlag=source->fErrorFlag;
     this->fErrorFlagTreeIndex=source->fErrorFlagTreeIndex;
     for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
-      VQwSubsystemParity *srcptr =
-          dynamic_cast<VQwSubsystemParity*>(subsys->get());
-      if (srcptr != NULL) {
-        this->push_back(srcptr->Copy());
+      VQwSubsystem* copy = subsys->get()->Copy();
+      if (copy != NULL) {
+        this->push_back(copy);
       }
     }
   }
@@ -404,27 +403,36 @@ Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
 }
 
 
-
-
-Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
-
-
-  VQwSubsystemParity *subsys_parity;
-
-
-  if (!empty()){
-    for (iterator subsys = begin(); subsys != end(); ++subsys){
-      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
-      subsys_parity->GetEventcutErrorCounters();
-
-	//std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
-	//sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
-
+void QwSubsystemArrayParity::PrintErrorSummary() const
+{
+  // Print general error summary
+  if (! empty()) {
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys) {
+      VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      if (subsys_parity) {
+        subsys_parity->PrintErrorSummary();
+      }
     }
   }
 
+  //  Print formatted event cut error summary
+  QwMessage << " Event cut error counters" << QwLog::endl;
+  QwMessage << " ========================" << QwLog::endl;
+  GetEventcutErrorCounters();
+}
 
-  return 1;
+
+
+void QwSubsystemArrayParity::GetEventcutErrorCounters() const
+{
+  if (!empty()) {
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys){
+      const VQwSubsystemParity* subsys_parity = dynamic_cast<const VQwSubsystemParity*>((subsys)->get());
+      if (subsys_parity) {
+        subsys_parity->GetEventcutErrorCounters();
+      }
+    }
+  }
 }
 
 UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() const{// report number of events falied due to HW and event cut faliure

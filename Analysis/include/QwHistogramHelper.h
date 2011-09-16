@@ -19,7 +19,7 @@
 class QwHistogramHelper{
  public:
   QwHistogramHelper(): fDEBUG(kFALSE) { fHistParams.clear(); };
-  ~QwHistogramHelper() { };
+  virtual ~QwHistogramHelper() { };
 
   /// \brief Define the configuration options
   static void DefineOptions(QwOptions &options);

@@ -53,12 +53,6 @@ void VQwScaler_Channel::InitializeChannel(TString subsystem, TString instrumentt
   SetModuleType(instrumenttype);
 }
 
-/********************************************************/
-Int_t VQwScaler_Channel::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
-
-  return 1;
-}
-
 void VQwScaler_Channel::ClearEventData()
 {
   fValue_Raw   = 0;
@@ -197,11 +191,7 @@ void VQwScaler_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
     //  Now create the histograms.
     TString basename, fullname;
     basename = prefix + GetElementName();
-
-    fHistograms.resize(1, NULL);
-    size_t index=0;
-    fHistograms[index]   = gQwHists.Construct1DHist(basename);
-    index += 1;
+    AddHistogram(gQwHists.Construct1DHist(basename));
   }
 }
 
@@ -216,16 +206,6 @@ void  VQwScaler_Channel::FillHistograms()
     index += 1;
   }
 }
-
-void  VQwScaler_Channel::DeleteHistograms()
-{
-  for (size_t index = 0; index < fHistograms.size(); index++) {
-    if (fHistograms[index] != 0)
-      fHistograms[index]->Delete();
-    fHistograms[index] = 0;
-  }
-}
-
 
 void  VQwScaler_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
@@ -311,6 +291,7 @@ void VQwScaler_Channel::AssignValueFrom(const VQwDataElement* valueptr){
 VQwScaler_Channel& VQwScaler_Channel::operator= (const VQwScaler_Channel &value)
 {
   if (!IsNameEmpty()) {
+    VQwHardwareChannel::operator=(value);
     this->fValue  = value.fValue;
     this->fValueError = value.fValueError;
     this->fValueM2 = value.fValueM2;
@@ -556,13 +537,14 @@ void VQwScaler_Channel::CalculateRunningAverage(){
 
 }
 
-void VQwScaler_Channel::Copy(VQwDataElement *source)
+void VQwScaler_Channel::Copy(const VQwDataElement *source)
 {
     try
     {
      if(typeid(*source)==typeid(*this))
        {
-	 VQwScaler_Channel* input = dynamic_cast<VQwScaler_Channel*>(source);
+         VQwDataElement::operator=(*source);
+	 const VQwScaler_Channel* input = dynamic_cast<const VQwScaler_Channel*>(source);
          this->fElementName       = input->fElementName;
          this->fValue_Raw         = input->fValue_Raw;
          this->fValue             = input->fValue;
@@ -593,7 +575,8 @@ void VQwScaler_Channel::Copy(VQwDataElement *source)
     return;
 }
 
-void  VQwScaler_Channel::ReportErrorCounters(){
+void  VQwScaler_Channel::ReportErrorCounters() const
+{
     if (fNumEvtsWithHWErrors>0)
       QwMessage << "QwScaler_Channel " << GetElementName()
 		<< " had " << fNumEvtsWithHWErrors

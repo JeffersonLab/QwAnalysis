@@ -249,10 +249,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Close CODA file
     eventbuffer.CloseStream();
 
-    // Delete histograms in the subsystems
-    tracking_detectors.DeleteHistograms();
-    parity_detectors.DeleteHistograms();
-
     // Close ROOT file
     rootfile->Close();
     // Note: Closing rootfile too early causes segfaults when deleting histos

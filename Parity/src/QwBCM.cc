@@ -224,9 +224,10 @@ Bool_t QwBCM<T>::ApplySingleEventCuts(){
 /********************************************************/
 
 template<typename T>
-Int_t QwBCM<T>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+void QwBCM<T>::GetEventcutErrorCounters() const
+{
+  // Report number of events failed due to HW and event cut failure
   fBeamCurrent.GetEventcutErrorCounters();
-  return 1;
 }
 
 
@@ -521,26 +522,16 @@ void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-template<typename T>
-void QwBCM<T>::DeleteHistograms()
-{
-  if (this->GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fBeamCurrent.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
 template<typename T>
-void QwBCM<T>::Copy(VQwDataElement *source)
+void QwBCM<T>::Copy(const VQwDataElement* source)
 {
   try
     {
       if(typeid(*source)==typeid(*this))
 	{
-	  QwBCM* input=((QwBCM*)source);
+          VQwDataElement::Copy(source);
+          const QwBCM* input = dynamic_cast<const QwBCM*>(source);
 	  this->fElementName=input->fElementName;
 	  this->fPedestal=input->fPedestal;
 	  this->fCalibration=input->fCalibration;

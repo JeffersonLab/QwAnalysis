@@ -168,9 +168,7 @@ Int_t QwIntegratedRaster::LoadChannelMap(TString mapfile)
 
 //*****************************************************************
 Int_t QwIntegratedRaster::LoadEventCuts(TString  filename){
-  Double_t ULX, LLX, ULY, LLY;
-  Int_t samplesize;
-  Int_t check_flag;
+  Double_t ULX, LLX;
   Int_t eventcut_flag;
 
   TString varname, varvalue, vartypeID;
@@ -181,8 +179,6 @@ Int_t QwIntegratedRaster::LoadEventCuts(TString  filename){
 
   Int_t det_index= -1; 
   Double_t stabilitycut;
-  samplesize = 0;
-  check_flag = 0;
   eventcut_flag=1;
 
   while (mapstr.ReadNextLine()){
@@ -218,8 +214,6 @@ Int_t QwIntegratedRaster::LoadEventCuts(TString  filename){
       //set limits to zero
       ULX=0;
       LLX=0;
-      ULY=0;
-      LLY=0;
 
       LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegratedRasterChannel value
       ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegratedRasterChannel value
@@ -405,17 +399,15 @@ Bool_t QwIntegratedRaster::ApplySingleEventCuts(){
 
 
 //*****************************************************************
-Int_t QwIntegratedRaster::GetEventcutErrorCounters()
+void QwIntegratedRaster::GetEventcutErrorCounters() const
 {
-  //inherited from the VQwSubsystemParity; this will display the error summary
-  QwMessage<<"*********QwIntegratedRaster Error Summary****************"<<QwLog::endl;
+  // Inherited from the VQwSubsystemParity; this will display the error summary
+  QwMessage << "*********QwIntegratedRaster Error Summary****************" << QwLog::endl;
   QwVQWK_Channel::PrintErrorCounterHead();
-  for(size_t i=0;i<fIntegratedRasterChannel.size();i++){
-    //std::cout<<"  IntegratedRasterChannel ["<<i<<"] "<<std::endl;
+  for (size_t i = 0; i < fIntegratedRasterChannel.size(); i++) {
     fIntegratedRasterChannel[i].GetEventcutErrorCounters();
   }
   QwVQWK_Channel::PrintErrorCounterTail();
-  return 1;
 }
 
 
@@ -550,26 +542,6 @@ VQwSubsystem&  QwIntegratedRaster::operator-=  (VQwSubsystem *value)
 }
 
 //*****************************************************************
-void  QwIntegratedRaster::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if (Compare(value1) && Compare(value2))
-    {
-      *this =  value1;
-      *this += value2;
-    }
-}
-
-//*****************************************************************
-void  QwIntegratedRaster::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if (Compare(value1) && Compare(value2))
-    {
-      *this =  value1;
-      *this -= value2;
-    }
-}
-
-//*****************************************************************
 void QwIntegratedRaster::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 {
   if (Compare(numer) && Compare(denom))
@@ -622,14 +594,6 @@ void  QwIntegratedRaster::ConstructHistograms(TDirectory *folder, TString &prefi
     fIntegratedRasterChannel[i].ConstructHistograms(folder,prefix);
 }
 
-
-//*****************************************************************
-void  QwIntegratedRaster::DeleteHistograms()
-{
-  for (size_t i = 0; i < fIntegratedRasterChannel.size(); i++)
-    fIntegratedRasterChannel[i].DeleteHistograms();
-}
-
 //*****************************************************************
 void  QwIntegratedRaster::FillHistograms()
 {
@@ -638,7 +602,6 @@ void  QwIntegratedRaster::FillHistograms()
   for (size_t i = 0; i < fIntegratedRasterChannel.size(); i++)
     fIntegratedRasterChannel[i].FillHistograms();
 }
-
 
 //*****************************************************************
 void QwIntegratedRaster::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
@@ -727,7 +690,7 @@ void  QwIntegratedRasterDetectorID::Print() const
 }
 
 //*****************************************************************
-void  QwIntegratedRaster::Copy(VQwSubsystem *source)
+void  QwIntegratedRaster::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -735,7 +698,8 @@ void  QwIntegratedRaster::Copy(VQwSubsystem *source)
       if(typeid(*source)==typeid(*this))
 	{
 	  VQwSubsystem::Copy(source);
-	  QwIntegratedRaster* input= dynamic_cast<QwIntegratedRaster*>(source);
+	  const QwIntegratedRaster* input =
+	      dynamic_cast<const QwIntegratedRaster*>(source);
 
 	  this->fIntegratedRasterChannel.resize(input->fIntegratedRasterChannel.size());
 	  for(size_t i=0;i<this->fIntegratedRasterChannel.size();i++)
@@ -755,15 +719,6 @@ void  QwIntegratedRaster::Copy(VQwSubsystem *source)
       std::cerr << e.what() << std::endl;
     }
   // this->Print();
-}
-
-//*****************************************************************
-VQwSubsystem*  QwIntegratedRaster::Copy()
-{
-
-  QwIntegratedRaster* TheCopy=new QwIntegratedRaster("TheCopy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 //*****************************************************************

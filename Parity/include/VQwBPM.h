@@ -52,9 +52,7 @@ class VQwBPM : public VQwDataElement {
   VQwBPM() {InitializeChannel_base();};
   VQwBPM(TString& name) {InitializeChannel_base();};
 
-  virtual ~VQwBPM(){
-    //DeleteHistograms();
-  };
+  virtual ~VQwBPM() { };
 
 
   void   InitializeChannel(TString name);
@@ -79,7 +77,7 @@ class VQwBPM : public VQwDataElement {
   virtual void Scale(Double_t factor) {
     std::cerr << "Scale for VQwBPM not implemented!\n";
   }
-  virtual void Copy(VQwBPM *source);
+  virtual void Copy(const VQwDataElement* source);
   void SetGains(TString pos, Double_t value);
 
   // Operators subclasses MUST support!
@@ -137,7 +135,6 @@ class VQwBPM : public VQwDataElement {
 
   virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void FillHistograms() = 0;
-  virtual void DeleteHistograms() = 0;
 
   virtual void ConstructBranchAndVector(TTree *tree, TString &prefix,
       std::vector<Double_t> &values) = 0;
@@ -165,10 +162,6 @@ class VQwBPM : public VQwDataElement {
     std::cerr << "GetAbsolutePosition() is not implemented!!\n";
   }
   virtual void SetEventCutMode(Int_t bcuts) = 0;
-  virtual Int_t GetEventcutErrorCounters() {// report number of events falied due to HW and event cut faliure
-    std::cerr << "GetEventcutErrorCounters() is not implemented!!\n";
-    return 0;
-  }
   virtual Bool_t ApplySingleEventCuts() = 0;//Check for good events by stting limits on the devices readings
   virtual void ProcessEvent() = 0;
 

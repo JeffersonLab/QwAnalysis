@@ -121,20 +121,17 @@ Bool_t QwQPD::ApplyHWChecks()
 }
 
 
-Int_t QwQPD::GetEventcutErrorCounters()
+void QwQPD::GetEventcutErrorCounters() const
 {
-  Short_t i=0;
-
-  for(i=0;i<4;i++) 
+  for (size_t i = 0; i < 4; i++)
     fPhotodiode[i].GetEventcutErrorCounters();
 
-  for(i=kXAxis;i<kNumAxes;i++) {
+  for (size_t i = kXAxis; i < kNumAxes; i++) {
     fRelPos[i].GetEventcutErrorCounters();
     fAbsPos[i].GetEventcutErrorCounters();
   }
 
   fEffectiveCharge.GetEventcutErrorCounters();
-  return 1;
 }
 
 
@@ -503,7 +500,7 @@ void QwQPD::Scale(Double_t factor)
   return;
 }
 
-void QwQPD::Copy(QwQPD *source)
+void QwQPD::Copy(const QwQPD *source)
 {
   Short_t i = 0;
 
@@ -585,25 +582,6 @@ void  QwQPD::FillHistograms()
   }
   return;
 }
-
-void  QwQPD::DeleteHistograms()
-{
-  if (GetElementName()=="") {
-  }
-  else {
-    fEffectiveCharge.DeleteHistograms();
-    Short_t i = 0;
-    if(bFullSave) {
-      for(i=0;i<4;i++) fPhotodiode[i].DeleteHistograms();
-    }
-    for(i=kXAxis;i<kNumAxes;i++) {
-      fAbsPos[i].DeleteHistograms();
-      fRelPos[i].DeleteHistograms();
-    }
-  }
-  return;
-}
-
 
 void  QwQPD::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {

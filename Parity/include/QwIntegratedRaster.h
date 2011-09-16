@@ -59,9 +59,7 @@ public:
    {
    };
 
-  ~QwIntegratedRaster() {
-    DeleteHistograms();
-  };
+  virtual ~QwIntegratedRaster() { };
 
 
   /* derived from VQwSubsystem */
@@ -75,7 +73,7 @@ public:
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString filename);//derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
+  void  GetEventcutErrorCounters() const;// report number of events failed due to HW and event cut failures
   UInt_t GetEventcutErrorFlag();//return the error flag
 
   void AccumulateRunningSum(VQwSubsystem* value);
@@ -100,15 +98,12 @@ public:
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+= (VQwSubsystem *value);
   VQwSubsystem&  operator-= (VQwSubsystem *value);
-  void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
-  void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
   void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
   void Scale(Double_t factor);
 
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
@@ -118,8 +113,7 @@ public:
 
   const VQwDataElement* GetChannel(const TString name) const;
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;

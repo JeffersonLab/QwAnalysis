@@ -320,14 +320,6 @@ class QwRootFile {
       // Fill histograms
       object.FillHistograms();
     }
-    /// Delete histograms of the subsystem array
-    template < class T >
-    void DeleteHistograms(T& object) {
-      if (! HasDirByType(object)) return;
-      // Delete histograms
-      object.DeleteHistograms();
-    }
-
 
     /// Create a new tree with name and description
     void NewTree(const std::string& name, const std::string& desc) {

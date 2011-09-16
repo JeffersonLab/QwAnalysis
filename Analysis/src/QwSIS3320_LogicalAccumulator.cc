@@ -271,12 +271,7 @@ void QwSIS3320_LogicalAccumulator::ConstructHistograms(TDirectory *folder, TStri
 
     // TODO: (jc2) Only one Histogram for now, until I can figure out what to
     // do with Logical Samples
-    fHistograms.resize(1, NULL);
-    size_t index = 0;
-    //fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_nevents"));
-    fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_sum"));
-    //fHistograms[index++]   = gQwHists.Construct1DHist(basename + Form("_avg"));
-
+    AddHistogram(gQwHists.Construct1DHist(basename + Form("_sum")));
   }
 }
 
@@ -291,26 +286,15 @@ void QwSIS3320_LogicalAccumulator::FillHistograms()
 
     // TODO: (jc2) Only one histogram for now until I figure out what to do with
     // Logical Samples
-    //if (fHistograms[index] != NULL)
-    //  fHistograms[index++]->Fill(GetNumberOfSamples());
     if (fHistograms[index] != NULL)
+      fHistograms[index]->Fill(GetNumberOfSamples());
+    if (fHistograms[++index] != NULL)
       fHistograms[index]->Fill(GetAccumulatorSum());
-    //if (fHistograms[index] != NULL)
-    //  fHistograms[index+1]->Fill(GetAccumulatorAvg());
+    if (fHistograms[++index] != NULL)
+      fHistograms[index]->Fill(GetAccumulatorAvg());
 
   }
 }
-
-void  QwSIS3320_LogicalAccumulator::DeleteHistograms()
-{
-  for (UInt_t i = 0; i < fHistograms.size(); i++) {
-    if (fHistograms[i] != NULL)
-      fHistograms[i]->Delete();
-    fHistograms[i] = NULL;
-  }
-  fHistograms.clear();
-}
-
 
 void QwSIS3320_LogicalAccumulator::ProcessEvent()
 {

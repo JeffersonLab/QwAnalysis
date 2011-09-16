@@ -38,7 +38,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     /// \brief Constructor
     QwComptonElectronDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
     /// \brief Destructor
-    virtual ~QwComptonElectronDetector() { DeleteHistograms(); };
+    virtual ~QwComptonElectronDetector() { };
 
 
     /* derived from VQwSubsystem */
@@ -61,14 +61,11 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     VQwSubsystem& operator-= (VQwSubsystem *value);
     VQwSubsystem& operator*= (VQwSubsystem *value);
 
-    void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
-    void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
     void Scale(Double_t factor);
 
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
-    Int_t GetEventcutErrorCounters() { return 0; };
     UInt_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
@@ -78,7 +75,6 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructTree;
     void  ConstructTree(TDirectory *folder, TString &prefix);
@@ -96,8 +92,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     void SetNumberOfEvents(UInt_t nevents) {
      fNumberOfEvents = nevents;
     };
-    void Copy(VQwSubsystem *source);
-    VQwSubsystem*  Copy();
+    void Copy(const VQwSubsystem *source);
     Bool_t Compare(VQwSubsystem *source);
     void PrintValue() const;
 
@@ -133,7 +128,6 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
    *  inside the ConstructHistograms()
    */
 
-  std::vector<TH1*> fHistograms1D;
   std::vector<Int_t> fComptonElectronVector;
 
 

@@ -39,9 +39,7 @@ class QwIntegratedRasterChannel : public VQwDataElement{
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,"raw");
   };
-  ~QwIntegratedRasterChannel() {
-    DeleteHistograms();
-  };
+  virtual ~QwIntegratedRasterChannel() { };
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
@@ -66,7 +64,7 @@ class QwIntegratedRasterChannel : public VQwDataElement{
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  void  GetEventcutErrorCounters() const;// report number of events failed due to HW and event cut failure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fTriumf_ADC.GetEventcutErrorFlag();
   }
@@ -106,13 +104,12 @@ class QwIntegratedRasterChannel : public VQwDataElement{
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   Double_t GetAverage()        {return fTriumf_ADC.GetAverage();};
   Double_t GetAverageError()   {return fTriumf_ADC.GetAverageError();};
   UInt_t   GetGoodEventCount() {return fTriumf_ADC.GetGoodEventCount();};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
 

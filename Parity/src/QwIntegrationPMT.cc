@@ -203,9 +203,10 @@ Bool_t QwIntegrationPMT::ApplySingleEventCuts(){
 
 /********************************************************/
 
-Int_t QwIntegrationPMT::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+void QwIntegrationPMT::GetEventcutErrorCounters() const
+{
+  // Report number of events failed due to HW and event cut failure
   fTriumf_ADC.GetEventcutErrorCounters();
-  return 1;
 }
 
 
@@ -217,7 +218,7 @@ Int_t QwIntegrationPMT::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_
   fTriumf_ADC.ProcessEvBuffer(buffer,word_position_in_buffer);
 
   return word_position_in_buffer;
-}  Double_t fULimit, fLLimit;
+}
 
 /********************************************************/
 QwIntegrationPMT& QwIntegrationPMT::operator= (const QwIntegrationPMT &value)
@@ -391,18 +392,8 @@ void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-void  QwIntegrationPMT::DeleteHistograms()
-{
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fTriumf_ADC.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
-void  QwIntegrationPMT::Copy(VQwDataElement *source)
+void  QwIntegrationPMT::Copy(const VQwDataElement *source)
 {
   try
     {

@@ -52,12 +52,26 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual VQwSubsystem& operator=  (VQwSubsystem *value) = 0;
     virtual VQwSubsystem& operator+= (VQwSubsystem *value) = 0;
     virtual VQwSubsystem& operator-= (VQwSubsystem *value) = 0;
-    virtual void Sum(VQwSubsystem *value1, VQwSubsystem *value2) = 0;
-    virtual void Difference(VQwSubsystem *value1, VQwSubsystem *value2) = 0;
+
+    /// Sum of two subsystems
+    // Not virtual, this is supposed to be final
+    void Sum(VQwSubsystem *value1, VQwSubsystem *value2) {
+      if (Compare(value1) && Compare(value2)) {
+        *this  = value1;
+        *this += value2;
+      }
+    }
+    /// Difference of two subsystems
+    // Not virtual, this is supposed to be final
+    void Difference(VQwSubsystem *value1, VQwSubsystem *value2) {
+      if (Compare(value1) && Compare(value2)) {
+        *this  = value1;
+        *this -= value2;
+      }
+    }
+
     virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) = 0;
     virtual void Scale(Double_t factor) = 0;
-
-    virtual VQwSubsystem* Copy() = 0;
 
     /// \brief Update the running sums for devices
     virtual void AccumulateRunningSum(VQwSubsystem* value) = 0;
@@ -68,8 +82,6 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual Int_t LoadEventCuts(TString filename) = 0;
     /// \brief Apply the single event cuts
     virtual Bool_t ApplySingleEventCuts() = 0;
-    /// \brief Report the number of events failed due to HW and event cut failures
-    virtual Int_t GetEventcutErrorCounters() = 0;
     /// \brief Return the error flag to the main routine
     virtual UInt_t GetEventcutErrorFlag() = 0;
 

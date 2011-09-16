@@ -67,9 +67,7 @@ class QwMollerDetector: public VQwSubsystemParity, public MQwCloneable<QwMollerD
     QwMollerDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
 
     /// \brief Destructor
-    ~QwMollerDetector() {
-      DeleteHistograms();
-    };
+    virtual ~QwMollerDetector() { };
 
     /* derived from VQwSubsystem */
     void ProcessOptions(QwOptions &options); //Handle command line options
@@ -87,22 +85,18 @@ class QwMollerDetector: public VQwSubsystemParity, public MQwCloneable<QwMollerD
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);
     VQwSubsystem& operator-= (VQwSubsystem *value);
-    VQwSubsystem* Copy();
-    void  Copy(VQwSubsystem *source);
-    void  Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
-    void  Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
+    void  Copy(const VQwSubsystem *source);
     void  Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void  Scale(Double_t);
     void  AccumulateRunningSum(VQwSubsystem* value);
     void  CalculateRunningAverage();
     Int_t LoadEventCuts(TString filename);
     Bool_t  ApplySingleEventCuts();
-    Int_t GetEventcutErrorCounters();
+    void GetEventcutErrorCounters() const;
     UInt_t GetEventcutErrorFlag();
 
     using VQwSubsystem::ConstructBranchAndVector;

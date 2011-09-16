@@ -9,6 +9,7 @@
 #define __VQWHARDWARECHANNEL__
 
 // System headers
+#include <cmath>
 #include <vector>
 #include <stdexcept>
 
@@ -29,7 +30,7 @@ class VQwHardwareChannel: public VQwDataElement {
  ******************************************************************/
 public:
   VQwHardwareChannel();
-  virtual ~VQwHardwareChannel();
+  virtual ~VQwHardwareChannel() { };
 
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
@@ -104,7 +105,7 @@ public:
   virtual void CalculateRunningAverage() = 0;
 //   virtual void AccumulateRunningSum(const VQwHardwareChannel *value) = 0;
 
-  virtual void Copy(VQwDataElement *source) = 0;
+  virtual void Copy(const VQwDataElement *source) = 0;
 
 
   void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };

@@ -70,9 +70,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
     fHelicityDecodingMode=-1;
   };
 
-  virtual ~QwHelicity() {
-    DeleteHistograms();
-  };
+  virtual ~QwHelicity() { };
 
 
 
@@ -85,7 +83,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   Int_t LoadInputParameters(TString pedestalfile);
   Int_t LoadEventCuts(TString  filename);//Loads event cuts applicable to QwHelicity class, derived from VQwSubsystemParity
   Bool_t ApplySingleEventCuts();//Apply event cuts in the QwHelicity class, derived from VQwSubsystemParity
-  Int_t  GetEventcutErrorCounters();// report number of events failed due to HW and event cut failure, derived from VQwSubsystemParity
+  void   GetEventcutErrorCounters() const;// report number of events failed due to HW and event cut failure, derived from VQwSubsystemParity
   UInt_t  GetEventcutErrorFlag();//return the error flag
 
   Int_t  ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id,
@@ -127,16 +125,13 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   void SetFirstBits(UInt_t nbits, UInt_t firstbits);
   void SetEventPatternPhase(Int_t event, Int_t pattern, Int_t phase);
 
-  void  Copy(VQwSubsystem *source);
-  virtual VQwSubsystem*  Copy();
+  void  Copy(const VQwSubsystem *source);
   VQwSubsystem&  operator=  (VQwSubsystem *value);
   VQwSubsystem&  operator+=  (VQwSubsystem *value);
-  void  Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
 
   //the following functions do nothing really : adding and subtracting helicity doesn't mean anything
   VQwSubsystem& operator-= (VQwSubsystem *value) {return *this;};
   void  Scale(Double_t factor) {return;};
-  void  Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
   void  Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
   // end of "empty" functions
 
@@ -146,7 +141,6 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
@@ -226,7 +220,6 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   Bool_t fGoodHelicity;
   Bool_t fGoodPattern;
 
-  std::vector<TH1*> fHistograms;
   Int_t fHistoType;
   //allow one to select which types of histograms are created and filled
   void SetHistoTreeSave(const TString &prefix);

@@ -80,13 +80,12 @@ void  QwEnergyCalculator::ProcessEvent(){
       fEnergyChange.AddChannelOffset(targetbeamangle);
     }
     else {
+      tmp = fEnergyChange;
       tmp.AssignValueFrom(fDevice[i]->GetPosition(VQwBPM::kXAxis));
       tmp.Scale(fTMatrixRatio[i]);
       fEnergyChange += tmp;
     }
   }
-
-  return;
 }
 
 
@@ -116,11 +115,10 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
 }
 
 
-Int_t QwEnergyCalculator::GetEventcutErrorCounters(){
-  // report number of events falied due to HW and event cut faliure
+void QwEnergyCalculator::GetEventcutErrorCounters() const
+{
+  // Report number of events failed due to HW and event cut failure
   fEnergyChange.GetEventcutErrorCounters();
-
-  return 1;
 }
 
 
@@ -141,10 +139,12 @@ Int_t QwEnergyCalculator::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_i
 }
 
 
-QwEnergyCalculator& QwEnergyCalculator::operator= (const QwEnergyCalculator &value){
-  if (GetElementName()!="")
+QwEnergyCalculator& QwEnergyCalculator::operator= (const QwEnergyCalculator &value)
+{
+  if (GetElementName() != "") {
+    VQwDataElement::operator=(value);
     this->fEnergyChange=value.fEnergyChange;
-
+  }
   return *this;
 }
 
@@ -234,16 +234,6 @@ void  QwEnergyCalculator::FillHistograms(){
   return;
 }
 
-void  QwEnergyCalculator::DeleteHistograms(){
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else
-    fEnergyChange.DeleteHistograms();
-  return;
-}
-
-
 void  QwEnergyCalculator::ConstructBranchAndVector(TTree *tree, TString &prefix,
 						   std::vector<Double_t> &values){
   if (GetElementName()==""){
@@ -309,10 +299,10 @@ void  QwEnergyCalculator::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void  QwEnergyCalculator::Copy(VQwDataElement *source){
+void  QwEnergyCalculator::Copy(const VQwDataElement *source){
   try{
     if(typeid(*source)==typeid(*this)){
-      QwEnergyCalculator* input=((QwEnergyCalculator*)source);
+      const QwEnergyCalculator* input = dynamic_cast<const QwEnergyCalculator*>(source);
       this->fElementName=input->fElementName;
       this->fEnergyChange.Copy(&(input->fEnergyChange));
     }

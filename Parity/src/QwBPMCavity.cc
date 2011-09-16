@@ -105,18 +105,14 @@ Bool_t QwBPMCavity::ApplyHWChecks()
 }
 
 
-Int_t QwBPMCavity::GetEventcutErrorCounters()
+void QwBPMCavity::GetEventcutErrorCounters() const
 {
-  Short_t i=0;
-
-  for(i=0;i<2;i++) {
+  for(size_t i = 0; i < 2; i++) {
     fWire[i].GetEventcutErrorCounters();
     fRelPos[i].GetEventcutErrorCounters();
     fAbsPos[i].GetEventcutErrorCounters();
   }
   fEffectiveCharge.GetEventcutErrorCounters();
-
-  return 1;
 }
 
 
@@ -534,23 +530,6 @@ void  QwBPMCavity::FillHistograms()
   return;
 }
 
-void  QwBPMCavity::DeleteHistograms()
-{
-  if (GetElementName()=="") {
-  }
-  else {
-    fEffectiveCharge.DeleteHistograms();
-    Short_t i = 0;
-    for(i=kXAxis;i<kNumAxes;i++) {
-      if (bFullSave)  fWire[i].DeleteHistograms();
-      fRelPos[i].DeleteHistograms();
-      fAbsPos[i].DeleteHistograms();
-    }
-  }
-  return;
-}
-
-
 void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
@@ -575,8 +554,8 @@ void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::v
   return;
 }
 
- void  QwBPMCavity::ConstructBranch(TTree *tree, TString &prefix)
- {
+void  QwBPMCavity::ConstructBranch(TTree *tree, TString &prefix)
+{
    if (GetElementName()==""){
      //  This channel is not used, so skip constructing trees.
    }
@@ -663,24 +642,25 @@ void  QwBPMCavity::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void QwBPMCavity::Copy(VQwDataElement *source)
+void QwBPMCavity::Copy(const VQwDataElement *source)
 {
   try
     {
       if( typeid(*source)==typeid(*this) ) {
-       QwBPMCavity* input = ((QwBPMCavity*)source);
-       this->fElementName = input->fElementName;
-       this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-       this->bRotated = input->bRotated;
-       this->bFullSave = input->bFullSave;
-       Short_t i = 0;
-       for(i = 0; i<2; i++) this->fPositionCenter[i] = input->fPositionCenter[i];
-       for(i = 0; i<2; i++){
-	 this->fWire[i].Copy(&(input->fWire[i]));
-	 this->fRelPos[i].Copy(&(input->fRelPos[i]));
-	 this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
-       }
-     }
+        VQwDataElement::Copy(source);
+        const QwBPMCavity* input = dynamic_cast<const QwBPMCavity*>(source);
+        this->fElementName = input->fElementName;
+        this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+        this->bRotated = input->bRotated;
+        this->bFullSave = input->bFullSave;
+        Short_t i = 0;
+        for(i = 0; i<2; i++) this->fPositionCenter[i] = input->fPositionCenter[i];
+        for(i = 0; i<2; i++){
+	  this->fWire[i].Copy(&(input->fWire[i]));
+	  this->fRelPos[i].Copy(&(input->fRelPos[i]));
+ 	  this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
+        }
+      }
       else {
        TString loc="Standard exception from QwBPMCavity::Copy = "
 	 +source->GetElementName()+" "

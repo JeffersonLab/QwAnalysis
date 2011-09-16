@@ -120,18 +120,15 @@ Bool_t QwBPMStripline<T>::ApplyHWChecks()
 
 
 template<typename T>
-Int_t QwBPMStripline<T>::GetEventcutErrorCounters()
+void QwBPMStripline<T>::GetEventcutErrorCounters() const
 {
-  Short_t i=0;
-
-  for(i=0;i<4;i++) fWire[i].GetEventcutErrorCounters();
-  for(i=kXAxis;i<kNumAxes;i++) {
+  for (size_t i = 0; i < 4; i++)
+    fWire[i].GetEventcutErrorCounters();
+  for (size_t i = kXAxis; i < kNumAxes; i++) {
     fRelPos[i].GetEventcutErrorCounters();
     fAbsPos[i].GetEventcutErrorCounters();
   }
   fEffectiveCharge.GetEventcutErrorCounters();
-
-  return 1;
 }
 
 
@@ -338,6 +335,7 @@ void  QwBPMStripline<T>::ProcessEvent()
   for(i=kXAxis;i<kNumAxes;i++)
     {
       fWire[i*2+1].Scale(fRelativeGains[i]);
+      numer = fRelPos[i];
       numer.Difference(fWire[i*2],fWire[i*2+1]);
       denom.Sum(fWire[i*2],fWire[i*2+1]);
       fRelPos[i].Ratio(numer,denom);
@@ -356,17 +354,19 @@ void  QwBPMStripline<T>::ProcessEvent()
 	}
     }
 
-  for(i=kXAxis;i<kNumAxes;i++){ 
+  for(i=kXAxis;i<kNumAxes;i++) {
     tmp1.ClearEventData();
     tmp2.ClearEventData();
-    tmppos[i].ClearEventData();
-    tmp1 =  fRelPos[i];
-    tmp2 =  fRelPos[1-i];
+    tmp1 = fRelPos[i];
+    tmp2 = fRelPos[1-i];
     tmp1.Scale(fCosRotation);
     tmp2.Scale(fSinRotation);
+
+    tmppos[i].ClearEventData();
     if (i==0) 
       tmppos[i].Difference(tmp1,tmp2);
-      else tmppos[i].Sum(tmp1,tmp2);
+    else
+      tmppos[i].Sum(tmp1,tmp2);
   }
 
 
@@ -375,7 +375,8 @@ void  QwBPMStripline<T>::ProcessEvent()
 
 
   for(i=kXAxis;i<kNumAxes;i++){
-    fAbsPos[i]= fRelPos[i];
+    fAbsPos[i].ClearEventData();
+    fAbsPos[i] += fRelPos[i];
     fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
     fAbsPos[i].Scale(1.0/fGains[i]);
 
@@ -659,25 +660,6 @@ void  QwBPMStripline<T>::FillHistograms()
   return;
 }
 
-template<typename T>
-void  QwBPMStripline<T>::DeleteHistograms()
-{
-  if (GetElementName()=="") {
-  }
-  else {
-    fEffectiveCharge.DeleteHistograms();
-    Short_t i = 0;
-    if(bFullSave) {
-      for(i=0;i<4;i++) fWire[i].DeleteHistograms();
-    }
-    for(i=kXAxis;i<kNumAxes;i++) {
-      fRelPos[i].DeleteHistograms();
-      fAbsPos[i].DeleteHistograms();
-    }
-  }
-  return;
-}
-
 
 template<typename T>
 void  QwBPMStripline<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
@@ -803,30 +785,25 @@ void  QwBPMStripline<T>::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 template<typename T>
-void QwBPMStripline<T>::Copy(VQwDataElement *source)
-{
-  Copy(dynamic_cast<VQwBPM*>(source));
-}
-
-template<typename T>
-void QwBPMStripline<T>::Copy(VQwBPM *source)
+void QwBPMStripline<T>::Copy(const VQwDataElement* source)
 {
   try
     {
       if( typeid(*source)==typeid(*this) ) {
-       QwBPMStripline<T>* input = ((QwBPMStripline<T>*)source);
-       this->fElementName = input->fElementName;
-       this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-       this->bRotated = input->bRotated;
-       this->bFullSave = input->bFullSave;
-       Short_t i = 0;
-       for(i = 0; i<3; i++) this->fPositionCenter[i] = input->fPositionCenter[i];
-       for(i = 0; i<4; i++) this->fWire[i].Copy(&(input->fWire[i]));
-       for(i = 0; i<2; i++){
-	 this->fRelPos[i].Copy(&(input->fRelPos[i]));
-	 this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
-       }
-     }
+        VQwBPM::Copy(source);
+        const QwBPMStripline<T>* input = dynamic_cast<const QwBPMStripline<T>*>(source);
+        this->fElementName = input->fElementName;
+        this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+        this->bRotated = input->bRotated;
+        this->bFullSave = input->bFullSave;
+        Short_t i = 0;
+        for(i = 0; i<3; i++) this->fPositionCenter[i] = input->fPositionCenter[i];
+        for(i = 0; i<4; i++) this->fWire[i].Copy(&(input->fWire[i]));
+        for(i = 0; i<2; i++){
+          this->fRelPos[i].Copy(&(input->fRelPos[i]));
+          this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
+        }
+      }
       else {
        TString loc="Standard exception from QwBPMStripline::Copy = "
 	 +source->GetElementName()+" "

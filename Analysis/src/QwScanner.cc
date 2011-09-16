@@ -40,20 +40,21 @@ QwScanner::QwScanner(TString name)
 QwScanner::~QwScanner()
 {
   fPMTs.clear();
-  for (size_t i = 0; i < fSCAs.size(); i++)
+  for (size_t i = 0; i < fSCAs.size(); i++) {
     delete fSCAs.at(i);
+    fSCAs.at(i) = NULL;
+  }
   fSCAs.clear();
 
-  for (size_t i=0; i<fADC_Data.size(); i++)
-    {
-      if (fADC_Data.at(i) != NULL)
-        {
-          delete fADC_Data.at(i);
-          fADC_Data.at(i) = NULL;
-        }
+  for (size_t i=0; i<fADC_Data.size(); i++) {
+    if (fADC_Data.at(i) != NULL) {
+      delete fADC_Data.at(i);
+      fADC_Data.at(i) = NULL;
     }
+  }
   fADC_Data.clear();
-  //DeleteHistograms();
+
+  // Delete F1TDC container
   delete fF1TDContainer;
 }
 
@@ -519,20 +520,13 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
   // This is a F1TDC bank
   else if (bank_id==fBankID[2])
     {
-
-      Int_t  bank_index      = 0;
-      Int_t  tdc_slot_number = 0;
-      Int_t  tdc_chan_number = 0;
-      UInt_t tdc_data        = 0;
-      
       Bool_t data_integrity_flag = false;
       Bool_t temp_print_flag     = false;
-      Int_t tdcindex = 0;
       //   Int_t tmp_last_chan = 65535; // for removing the multiple hits....
       
-      bank_index = GetSubbankIndex(roc_id, bank_id);
+      Int_t bank_index = GetSubbankIndex(roc_id, bank_id);
       
-      if (bank_index>=0 && num_words>0) {
+      if (bank_index >= 0 && num_words > 0) {
 	//  We want to process this ROC.  Begin looping through the data.
 	SetDataLoaded(kTRUE);
 	
@@ -568,9 +562,10 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 	    
 	    // For MQwF1TDC,   roc_id is needed to print out some warning messages.
 	    
-	    tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
-	    tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
-	    tdcindex        = GetModuleIndex(bank_index, tdc_slot_number);
+	    Int_t tdc_slot_number = fF1TDCDecoder.GetTDCSlotNumber();
+	    Int_t tdc_chan_number = fF1TDCDecoder.GetTDCChannelNumber();
+	    Int_t tdc_index       = GetModuleIndex(bank_index, tdc_slot_number);
+	    UInt_t tdc_data       = 0;
 	    
 	    if ( tdc_slot_number == 31) {
 	      //  This is a custom word which is not defined in
@@ -592,7 +587,7 @@ Int_t QwScanner::ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt
 	      try {
 		// if(tdc_chan_number != tmp_last_chan)
 		//   {
-		tdc_data = fF1TDCDecoder.GetTDCData();
+	        tdc_data = fF1TDCDecoder.GetTDCData();
 		FillRawWord(bank_index, tdc_slot_number, tdc_chan_number, tdc_data);
 		// //		  Check if this is reference time data
 		// if (tdc_slot_number == reftime_slotnum && tdc_chan_number == reftime_channum)
@@ -1038,13 +1033,13 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
             }
         }
 
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
+      AddHistogram(gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
+      AddHistogram(gQwHists.Construct1DHist(TString("scanner_position_x")));
+      AddHistogram(gQwHists.Construct1DHist(TString("scanner_position_y")));
+      AddHistogram(gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
+      AddHistogram(gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
 
-      // fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
+      // AddHistogram(gQwHists.Construct2DHist(TString("scanner_rate_map")));
 
       //TProfile2D(const char* name, const char* title,
       // Int_t nbinsx, Double_t xlow, Double_t xup,
@@ -1113,46 +1108,46 @@ void  QwScanner::FillHistograms()
 
     }
 
-  for (size_t j=0; j<fHistograms1D.size();j++)
+  for (size_t j=0; j<fHistograms.size();j++)
     {
 
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_position_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("scanner_position_x"))
         {
-          fHistograms1D.at(j)->Fill(fPositionX_VQWK);
+          fHistograms.at(j)->Fill(fPositionX_VQWK);
         }
 
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_position_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("scanner_position_y"))
         {
-          fHistograms1D.at(j)->Fill(fPositionY_VQWK);
+          fHistograms.at(j)->Fill(fPositionY_VQWK);
         }
 
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_ref_posi_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("scanner_ref_posi_x"))
         {
-          fHistograms1D.at(j)->Fill(fPositionX_ADC);
+          fHistograms.at(j)->Fill(fPositionX_ADC);
         }
 
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_ref_posi_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("scanner_ref_posi_y"))
         {
-          fHistograms1D.at(j)->Fill(fPositionY_ADC);
+          fHistograms.at(j)->Fill(fPositionY_ADC);
         }
     }
 
   //Fill rate map
 //   Double_t rate;
-//   for (size_t j=0; j<fHistograms2D.size();j++)
+//   for (size_t j=0; j<fHistograms.size();j++)
 //     {
-//       if (fHistograms2D.at(j)->GetTitle()==TString("scanner_rate_map"))
+//       if (fHistograms.at(j)->GetTitle()==TString("scanner_rate_map"))
 //         {
 //           Int_t checkvalidity = 1;
-//           Double_t prevalue = get_value( fHistograms2D.at(j), fPositionX_ADC, fPositionY_ADC, checkvalidity);
+//           Double_t prevalue = get_value( fHistograms.at(j), fPositionX_ADC, fPositionY_ADC, checkvalidity);
 //           if (checkvalidity!=0)
 //             {
 //               rate = (prevalue + fCoincidenceSCA)*0.5;  //average value for this bin
 //
-//               fHistograms2D.at(j)->SetBinContent((Int_t) fPositionX_ADC, (Int_t)fPositionY_ADC,rate);
-//               Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionX_ADC );
-//               Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionY_ADC );
-//               fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), rate);
+//               fHistograms.at(j)->SetBinContent((Int_t) fPositionX_ADC, (Int_t)fPositionY_ADC,rate);
+//               Int_t xbin = fHistograms.at(j)->GetXaxis()->FindBin( fPositionX_ADC );
+//               Int_t ybin = fHistograms.at(j)->GetYaxis()->FindBin( fPositionY_ADC );
+//               fHistograms.at(j)->SetBinContent( fHistograms.at(j)->GetBin( xbin, ybin ), rate);
 //             }
 //         }
 //     }
@@ -1379,72 +1374,6 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-
-void  QwScanner::DeleteHistograms()
-{
-  // std::cout << this << std::endl;
-  // std::cout << GetParent(0).fEventTypeMask << std::endl;
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
-
-  // for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
-  //   printf("Delete historgram %s\n", fParameterFileNames[i].Data());
-  // }
-  /// printf("f1tdcontainer\n");
-  if (bStoreRawData)
-    {
-      for (size_t i=0; i<fPMTs.size(); i++)
-        {
-          for (size_t j=0; j<fPMTs.at(i).size(); j++)
-            {
-              if (fPMTs.at(i).at(j).GetElementName()=="") {}
-              else  fPMTs.at(i).at(j).DeleteHistograms();
-            }
-        }
-
-      for (size_t i=0; i<fSCAs.size(); i++)
-        {
-          if (fSCAs.at(i) != NULL)
-            {
-              fSCAs.at(i)->DeleteHistograms();
-            }
-        }
-
-      for (size_t i=0; i<fADC_Data.size(); i++)
-        {
-          if (fADC_Data.at(i) != NULL)
-            {
-              fADC_Data.at(i)->DeleteHistograms();
-            }
-        }
-    }
-
-  // Delete all histograms in the list
-  for (size_t i=0; i<fHistograms1D.size(); i++)
-    {
-      if (fHistograms1D.at(i) != NULL)
-        {
-          delete fHistograms1D.at(i);
-          fHistograms1D.at(i) =  NULL;
-        }
-    }
-  // Then clear the list
-  fHistograms1D.clear();
-
-  // Delete all histograms in the list
-  for (size_t i=0; i<fHistograms2D.size(); i++)
-    {
-      if (fHistograms2D.at(i) != NULL)
-        {
-          delete fHistograms2D.at(i);
-          fHistograms2D.at(i) =  NULL;
-        }
-    }
-  // Then clear the list
-  fHistograms2D.clear();
-
-
-}
 
 void  QwScanner::ReportConfiguration()
 {
@@ -1858,3 +1787,8 @@ void QwScanner::PrintInfo() const
 //   return h->GetBinContent( h->GetBin( xbin, ybin ));
 // }
 
+void QwScanner::PrintErrorSummary() const
+{
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
+}

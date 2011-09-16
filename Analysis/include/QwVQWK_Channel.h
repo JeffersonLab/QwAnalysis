@@ -55,9 +55,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     InitializeChannel(name, datatosave);
     SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
-  virtual ~QwVQWK_Channel() {
-    //DeleteHistograms();
-  };
+  virtual ~QwVQWK_Channel() { };
 
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString name, TString datatosave);
@@ -73,11 +71,10 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   
   void  ClearEventData();
 
-  void ReportErrorCounters();//This will display the error summary for each device
+  void ReportErrorCounters() const;//This will display the error summary for each device
 
 
-  void UpdateEventCutErrorCount(){//Update error counter for event cut faliure
-
+  void UpdateEventCutErrorCount() {//Update error counter for event cut faliure
   }
 
   /// Internally generate random event data
@@ -140,7 +137,9 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /*Event cut related routines*/
   Bool_t ApplySingleEventCuts(Double_t LL,Double_t UL);//check values read from modules are at desired level
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level by comparing upper and lower limits (fULimit and fLLimit) set on this channel
-  Int_t GetEventcutErrorCounters();// report number of events failed due to HW and event cut faliure
+
+  // Report number of events failed due to HW and event cut faliure
+  void GetEventcutErrorCounters() const;
 
   void SetVQWKSaturationLimt(Double_t sat_volts=8.5){//Set the absolute staturation limit in volts.
     fSaturationABSLimit=sat_volts;
@@ -160,7 +159,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
@@ -195,7 +193,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   void   SetCalibrationToVolts(){SetCalibrationFactor(kVQWK_VoltsPerBit);};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   friend std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel);
   void PrintValue() const;

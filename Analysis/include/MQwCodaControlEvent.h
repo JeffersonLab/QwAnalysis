@@ -14,7 +14,7 @@ class MQwCodaControlEvent
 {
  public:
   MQwCodaControlEvent();
-  ~MQwCodaControlEvent();
+  virtual ~MQwCodaControlEvent();
 
   void ResetControlParameters();
   void ProcessControlEvent(UInt_t evtype, UInt_t* buffer);

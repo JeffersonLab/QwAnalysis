@@ -37,10 +37,10 @@ class  QwHaloMonitor : public VQwDataElement{
     InitializeChannel(name);
   };
 
-  QwHaloMonitor(TString subsystemname, TString name){
+  QwHaloMonitor(TString subsystemname, TString name) {
     InitializeChannel(subsystemname, name);
   };
-  ~QwHaloMonitor() {DeleteHistograms();};
+  virtual ~QwHaloMonitor() { };
 
   void  InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
@@ -71,7 +71,6 @@ class  QwHaloMonitor : public VQwDataElement{
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
   UInt_t GetEventcutErrorFlag(){return fHalo_Counter.GetEventcutErrorFlag();};
-  Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Bool_t ApplyHWChecks();
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){
     fHalo_Counter.SetSingleEventCuts(errorflag,min,max,stability);
@@ -83,7 +82,6 @@ class  QwHaloMonitor : public VQwDataElement{
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
@@ -101,7 +99,7 @@ class  QwHaloMonitor : public VQwDataElement{
   Double_t GetValue() {
     return fHalo_Counter.GetValue();
   }
-  void  Copy(VQwDataElement *source);
+  void  Copy(const VQwDataElement *source);
 
   void  PrintValue() const;
   void  PrintInfo() const;

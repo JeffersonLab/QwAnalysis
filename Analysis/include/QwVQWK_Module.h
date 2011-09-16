@@ -33,7 +33,7 @@ class QwVQWK_Module {
       fNumberOfDataWords = fChannels.at(i).GetNumberOfDataWords();
     }
   };
-  ~QwVQWK_Module() {};
+  virtual ~QwVQWK_Module() {};
 
   void SetChannel(size_t channel, TString &name);
 
@@ -59,7 +59,6 @@ class QwVQWK_Module {
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values) const;

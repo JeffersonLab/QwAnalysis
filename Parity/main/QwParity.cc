@@ -115,7 +115,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     ///  Create the running sum
     QwSubsystemArrayParity runningsum(detectors);
 
-
     //  Initialize the database connection.
     database.SetupOneRun(eventbuffer);
 
@@ -193,27 +192,30 @@ Int_t main(Int_t argc, Char_t* argv[])
         // Accumulate the running sum to calculate the event based running average
         runningsum.AccumulateRunningSum(detectors);
 
-        // Fill the histograms
-        rootfile->FillHistograms(detectors);
-
-        // Fill the tree branches
-        rootfile->FillTreeBranches(detectors);
-        rootfile->FillTree("Mps_Tree");
-
         // Add event to the ring
         eventring.push(detectors);
 
         // Check to see ring is ready
         if (eventring.IsReady()) {
 
+          // Pop event out of the ring
+          QwSubsystemArrayParity& detectors_temp = eventring.pop();
+
+          // Fill the histograms
+          rootfile->FillHistograms(detectors_temp);
+
+          // Fill the tree branches
+          rootfile->FillTreeBranches(detectors_temp);
+          rootfile->FillTree("Mps_Tree");
+
           // Load the event into the helicity pattern
-          helicitypattern.LoadEventData(eventring.pop());
+          helicitypattern.LoadEventData(detectors_temp);
 
           // Calculate helicity pattern asymmetry
           if (helicitypattern.IsCompletePattern()) {
 
             // Update the blinder if conditions have changed
-            helicitypattern.UpdateBlinder(detectors);
+            helicitypattern.UpdateBlinder(detectors_temp);
 
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
@@ -277,16 +279,8 @@ Int_t main(Int_t argc, Char_t* argv[])
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
 
-    //  Delete histograms
-    rootfile->DeleteHistograms(detectors);
-    rootfile->DeleteHistograms(helicitypattern);
-
-
-    //  Print the event cut error summary for each subsystem
-    QwMessage << " Event cut error counters" << QwLog::endl;
-    QwMessage << " ========================" << QwLog::endl;
-    detectors.GetEventcutErrorCounters();
-
+    //  Print error summary for each subsystem
+    detectors.PrintErrorSummary();
 
     //  Read from the database
     database.SetupOneRun(eventbuffer);

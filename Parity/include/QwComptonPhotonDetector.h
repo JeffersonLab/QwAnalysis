@@ -36,7 +36,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     /// \brief Constructor
     QwComptonPhotonDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
     /// \brief Destructor
-    virtual ~QwComptonPhotonDetector() { DeleteHistograms(); };
+    virtual ~QwComptonPhotonDetector() { };
 
 
     // Handle command line options
@@ -61,14 +61,11 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);
     VQwSubsystem& operator-= (VQwSubsystem *value);
-    void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
-    void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom);
     void Scale(Double_t factor);
 
     Int_t LoadEventCuts(TString filename) { return 0; };
     Bool_t ApplySingleEventCuts() { return kTRUE; };
-    Int_t GetEventcutErrorCounters() { return 0; };
     UInt_t GetEventcutErrorFlag() { return 0; };
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
@@ -78,7 +75,6 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructTree;
     void  ConstructTree(TDirectory *folder, TString &prefix);
@@ -91,8 +87,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
-    void Copy(VQwSubsystem *source);
-    VQwSubsystem*  Copy();
+    void Copy(const VQwSubsystem *source);
 
     Bool_t Compare(VQwSubsystem *source);
     Bool_t CompareADC(VQwSubsystem *source);

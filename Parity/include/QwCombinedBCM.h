@@ -41,9 +41,7 @@ class QwCombinedBCM : public QwBCM<T> {
     this->SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,type,"raw");
   };
-  ~QwCombinedBCM() {
-    DeleteHistograms();
-  };
+  virtual ~QwCombinedBCM() { };
 
   // This is to setup one of the used BCM's in this combo
   void SetBCMForCombo(VQwBCM* bcm, Double_t weight, Double_t sumqw );
@@ -68,7 +66,7 @@ class QwCombinedBCM : public QwBCM<T> {
   void  ProcessEvent();
   Bool_t ApplyHWChecks();//Check for harware errors in the devices
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  void GetEventcutErrorCounters() const;// report number of events falied due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fCombined_bcm.GetEventcutErrorFlag();
   }
@@ -111,7 +109,6 @@ class QwCombinedBCM : public QwBCM<T> {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   void Copy(VQwDataElement *source);
 

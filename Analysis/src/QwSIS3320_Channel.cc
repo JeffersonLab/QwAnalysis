@@ -662,12 +662,9 @@ void QwSIS3320_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
       fLogicalAccumulators[i].ConstructHistograms(folder,prefix);
 
     TString basename = prefix + GetElementName();
-
-    fHistograms.resize(3, NULL);
-    size_t index = 0;
-    fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_sum"));
-    fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_ped"));
-    fHistograms[index++] = gQwHists.Construct1DHist(basename+Form("_ped_raw"));
+    AddHistogram(gQwHists.Construct1DHist(basename+Form("_sum")));
+    AddHistogram(gQwHists.Construct1DHist(basename+Form("_ped")));
+    AddHistogram(gQwHists.Construct1DHist(basename+Form("_ped_raw")));
   }
 }
 
@@ -699,17 +696,6 @@ void QwSIS3320_Channel::FillHistograms()
       fHistograms[index]->Fill(fAverageSamplesRaw.GetSample(0));
   }
 }
-
-void  QwSIS3320_Channel::DeleteHistograms()
-{
-  for (UInt_t i = 0; i < fHistograms.size(); i++) {
-    if (fHistograms[i] != NULL)
-      fHistograms[i]->Delete();
-    fHistograms[i] = NULL;
-  }
-  fHistograms.clear();
-}
-
 
 void  QwSIS3320_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
@@ -794,7 +780,7 @@ void QwSIS3320_Channel::PrintInfo() const
 /*
  * Copy
  */
-void QwSIS3320_Channel::Copy(QwSIS3320_Channel *source)
+void QwSIS3320_Channel::Copy(const QwSIS3320_Channel *source)
 {
    try {
       if (typeid(*source) == typeid(*this)) {

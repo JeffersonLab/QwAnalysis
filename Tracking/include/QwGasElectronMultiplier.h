@@ -57,7 +57,6 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwCloneable<
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void GetHitList(QwHitContainer & grandHitContainer){
     grandHitContainer.Append(fGEMHits);

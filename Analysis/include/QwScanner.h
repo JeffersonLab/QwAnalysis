@@ -57,14 +57,6 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
       return *this;
     };
     void ProcessOptions(QwOptions &options); //Handle command line options
-    void Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
-    {
-      return;
-    };
-    void Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
-    {
-      return;
-    };
     void Ratio(VQwSubsystem *numer, VQwSubsystem *denom)
     {
       return;
@@ -91,26 +83,11 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     {
       return kTRUE;
     };
-    Int_t GetEventcutErrorCounters()
-    {
-      return 0;
-    };
     Bool_t CheckRunningAverages(Bool_t )
     {
       return kTRUE;
     };
 
-    void Copy(VQwSubsystem *source)
-    {
-      VQwSubsystem::Copy(source);
-      return;
-    };
-    VQwSubsystem* Copy()
-    {
-      QwScanner* copy = new QwScanner("copy");
-      copy->Copy(this);
-      return copy;
-    };
     Bool_t Compare(VQwSubsystem *source)
     {
       return kTRUE;
@@ -139,7 +116,6 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructBranchAndVector;
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
@@ -173,6 +149,7 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
 
     void PrintValue() const { };
     void PrintInfo() const;
+    void PrintErrorSummary() const;
 
   protected:
 
@@ -222,8 +199,6 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     };//return the error flag to the main routine
 
     // scanner specified histograms
-    std::vector<TH1*> fHistograms1D;
-    std::vector<TH2*> fHistograms2D;
     TProfile2D* fRateMapCM;
     TProfile2D* fRateMapEM;
 

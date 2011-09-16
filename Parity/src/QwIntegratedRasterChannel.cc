@@ -206,9 +206,10 @@ Bool_t QwIntegratedRasterChannel<T>::ApplySingleEventCuts(){
 /********************************************************/
 
 template<typename T>
-Int_t QwIntegratedRasterChannel<T>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
+void QwIntegratedRasterChannel<T>::GetEventcutErrorCounters() const
+{
+  // Report number of events failed due to HW and event cut failure
   fTriumf_ADC.GetEventcutErrorCounters();
-  return 1;
 }
 
 
@@ -409,26 +410,16 @@ void  QwIntegratedRasterChannel<T>::FillTreeVector(std::vector<Double_t> &values
   return;
 }
 
-template<typename T>
-void  QwIntegratedRasterChannel<T>::DeleteHistograms()
-{
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fTriumf_ADC.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
 template<typename T>
-void  QwIntegratedRasterChannel<T>::Copy(VQwDataElement *source)
+void  QwIntegratedRasterChannel<T>::Copy(const VQwDataElement *source)
 {
   try
     {
       if(typeid(*source)==typeid(*this))
 	{
-	  QwIntegratedRasterChannel* input=((QwIntegratedRasterChannel*)source);
+	  const QwIntegratedRasterChannel* input =
+	      dynamic_cast<const QwIntegratedRasterChannel*>(source);
 	  this->fElementName=input->fElementName;
 	  this->fPedestal=input->fPedestal;
 	  this->fCalibration=input->fCalibration;

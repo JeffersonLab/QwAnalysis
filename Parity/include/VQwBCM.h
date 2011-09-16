@@ -74,7 +74,6 @@ public:
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) = 0;
   virtual void FillTreeVector(std::vector<Double_t> &values) const = 0;
-  virtual void DeleteHistograms() = 0;
   virtual void Copy(VQwDataElement *source) = 0;
 
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;

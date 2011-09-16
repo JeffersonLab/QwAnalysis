@@ -247,11 +247,10 @@ QwModChannelID::QwModChannelID(Int_t subbankid, Int_t wordssofar,
 
 //*****************************************************************
 
-Int_t QwBeamMod::LoadEventCuts(TString  filename){
-  Double_t ULX, LLX, ULY, LLY;
-  Int_t samplesize;
+Int_t QwBeamMod::LoadEventCuts(TString  filename)
+{
+  Double_t ULX, LLX;
 
-  Int_t check_flag;
   Int_t eventcut_flag;
   TString varname, varvalue, vartypeID,varname2, varvalue2;
   TString device_type,device_name,channel_name;
@@ -259,8 +258,6 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename){
   std::cout<<" QwBeamMod::LoadEventCuts  "<<filename<<std::endl;
   QwParameterFile mapstr(filename.Data());  //Open the file
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
-  samplesize = 0;
-  check_flag = 0;
 
   eventcut_flag=1;
 
@@ -287,8 +284,6 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename){
       //set limits to zero
       ULX=0;
       LLX=0;
-      ULY=0;
-      LLY=0;
 
       if (device_type == "vqwk"){
 
@@ -432,11 +427,6 @@ Int_t QwBeamMod::LoadGeometry(TString mapfile)
 Int_t QwBeamMod::LoadInputParameters(TString pedestalfile)
 {
   Bool_t ldebug=kFALSE;
-  TString varname;
-  Double_t varped;
-  Double_t varcal;
-  Double_t varweight;
-  TString localname;
 
   Int_t lineread=1;
 
@@ -452,22 +442,22 @@ Int_t QwBeamMod::LoadInputParameters(TString pedestalfile)
       if (mapstr.LineIsEmpty())  continue;
       else
 	{
-	  varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+	  TString varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
 	  varname.ToLower();
 	  varname.Remove(TString::kBoth,' ');
-	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
-	  varweight= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the statistical weight
+	  Double_t varped = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
+	  Double_t varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+	  Double_t varweight = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the statistical weight
 
 	  //if(ldebug) std::cout<<"inputs for channel "<<varname
 	  //	      <<": ped="<<varped<<": cal="<<varcal<<": weight="<<varweight<<"\n";
-	  Bool_t notfound=kTRUE;
+	  Bool_t notfound = kTRUE;
 	  for(size_t i=0;i<fModChannel.size();i++)
 	    if(fModChannel[i].GetElementName()==varname)
 		{
 		  fModChannel[i].SetPedestal(varped);
 		  fModChannel[i].SetCalibrationFactor(varcal);
-		  notfound=kFALSE;
+		  notfound = kFALSE;
 		  break;
 		}
 	}
@@ -617,19 +607,21 @@ Bool_t QwBeamMod::ApplySingleEventCuts(){
 
 }
 
-Int_t QwBeamMod::GetEventcutErrorCounters(){//inherited from the VQwSubsystemParity; this will display the error summary
-
+void QwBeamMod::GetEventcutErrorCounters() const
+{
+  // Inherited from the VQwSubsystemParity; this will display the error summary
   std::cout<<"*********QwBeamMod Error Summary****************"<<std::endl;
   QwVQWK_Channel::PrintErrorCounterHead();
   for(size_t i=0;i<fModChannel.size();i++){
     fModChannel[i].GetEventcutErrorCounters();
   }
   QwVQWK_Channel::PrintErrorCounterTail();
-  return 1;
 }
 
 
-UInt_t QwBeamMod::GetEventcutErrorFlag(){//return the error flag
+UInt_t QwBeamMod::GetEventcutErrorFlag()
+{
+  // Return the error flag
   UInt_t ErrorFlag;
   ErrorFlag=0;
   for(size_t i=0;i<fModChannel.size();i++){
@@ -887,24 +879,6 @@ VQwSubsystem&  QwBeamMod::operator-=  (VQwSubsystem *value)
   return *this;
 }
 
-void  QwBeamMod::Sum(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if(Compare(value1)&&Compare(value2))
-    {
-      *this =  value1;
-      *this += value2;
-    }
-}
-
-void  QwBeamMod::Difference(VQwSubsystem  *value1, VQwSubsystem  *value2)
-{
-  if(Compare(value1)&&Compare(value2))
-    {
-      *this =  value1;
-      *this -= value2;
-    }
-}
-
 void QwBeamMod::Ratio(VQwSubsystem  *numer, VQwSubsystem  *denom)
 {
   if(Compare(numer)&&Compare(denom))
@@ -1043,23 +1017,6 @@ void  QwBeamMod::ConstructHistograms(TDirectory *folder, TString &prefix)
   // else
   //   QwError << "QwBeamMod::ConstructHistograms this prefix--" << prefix << "-- is not unknown:: no histo created" << QwLog::endl;
 
-
-  return;
-}
-
-void  QwBeamMod::DeleteHistograms()
-{
-//   for(size_t i=0;i<fStripline.size();i++)
-//     fStripline[i].DeleteHistograms();
-
-//   for(size_t i=0;i<fModChannel.size();i++)
-//     fModChannel[i].DeleteHistograms();
-
-//   for(size_t i=0;i<fModChannelCombo.size();i++)
-//     fModChannelCombo[i].DeleteHistograms();
-
-//   for(size_t i=0;i<fBPMCombo.size();i++)
-//     fBPMCombo[i].DeleteHistograms();
 
   return;
 }
@@ -1223,7 +1180,7 @@ void  QwModChannelID::Print()
 //*****************************************************************
 
 
-void  QwBeamMod::Copy(VQwSubsystem *source)
+void  QwBeamMod::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -1231,9 +1188,8 @@ void  QwBeamMod::Copy(VQwSubsystem *source)
      if(typeid(*source)==typeid(*this))
 	 {
 	  VQwSubsystem::Copy(source);
-	  //QwBeamMod* input=((QwBeamMod*)source);
-          QwBeamMod* input = dynamic_cast<QwBeamMod*>(source);
 
+	  const QwBeamMod* input = dynamic_cast<const QwBeamMod*>(source);
 	  this->fModChannel.resize(input->fModChannel.size());
 	  for(size_t i=0;i<this->fModChannel.size();i++)
 	    this->fModChannel[i].Copy(&(input->fModChannel[i]));
@@ -1270,16 +1226,6 @@ void  QwBeamMod::Copy(VQwSubsystem *source)
 
   return;
 }
-
-
-VQwSubsystem*  QwBeamMod::Copy()
-{
-
-  QwBeamMod* TheCopy=new QwBeamMod("BeamMod");
-  TheCopy->Copy(this);
-  return TheCopy;
-}
-
 
 
 void QwBeamMod::FillDB(QwDatabase *db, TString datatype)

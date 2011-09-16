@@ -75,11 +75,7 @@ void  QwPMT_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
     //  Now create the histograms.
     TString basename, fullname;
     basename = prefix + GetElementName();
-
-    fHistograms.resize(1, NULL);
-    size_t index = 0;
-    fHistograms[index] = gQwHists.Construct1DHist(basename);
-    index++;
+    AddHistogram(gQwHists.Construct1DHist(basename));
   }
 }
 
@@ -93,16 +89,6 @@ void  QwPMT_Channel::FillHistograms()
       fHistograms[index]->Fill(fValue);
     index++;
   }
-}
-
-void  QwPMT_Channel::DeleteHistograms()
-{
-  for (size_t index = 0; index < fHistograms.size(); index++) {
-    if (fHistograms[index] != NULL)
-      fHistograms[index]->Delete();
-    fHistograms[index] = NULL;
-  }
-  fHistograms.clear();
 }
 
 void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)

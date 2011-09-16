@@ -137,8 +137,10 @@ class QwSubsystemFactory: public VQwSubsystemFactory {
 /// Polymorphic copy constructor virtual base class
 class VQwCloneable {
   public:
+    /// Default constructor
+    VQwCloneable() { };
     /// Virtual destructor
-    virtual ~VQwCloneable() { }
+    virtual ~VQwCloneable() { };
 
     /// Abstract clone method when no derived method is defined
     virtual VQwSubsystem* Clone() const {
@@ -153,8 +155,18 @@ class VQwCloneable {
       return 0;
     }
 
+    /// Abstract copy method (not preferred, use copy constructors instead)
+    virtual VQwSubsystem* Copy() const = 0;
+    virtual void Copy(const VQwSubsystem* source) {
+      int status;
+      const type_info& ti = typeid(*this);
+      char* name = abi::__cxa_demangle(ti.name(), 0, 0, &status);
+      QwError << "Copy() is not implemented for class " << name << "!" << QwLog::endl;
+      free(name);
+    }
+
     /// Virtual subsystem factory getter
-    virtual const VQwSubsystemFactory* Factory() const { return 0; }
+    virtual const VQwSubsystemFactory* Factory() const = 0;
 
 }; // class VQwCloneable
 
@@ -164,9 +176,23 @@ class VQwCloneable {
 template <typename subsystem_t>
 class MQwCloneable: virtual public VQwCloneable {
   public:
+    /// Default constructor
+    MQwCloneable(): VQwCloneable() { };
+    /// Virtual destructor
+    virtual ~MQwCloneable() { };
+
     /// Concrete clone method
     virtual VQwSubsystem* Clone() const {
       return new subsystem_t(static_cast<const subsystem_t&>(*this));
+    }
+
+    /// Concrete copy method (not preferred, use copy constructors instead)
+    using VQwCloneable::Copy;
+    virtual VQwSubsystem* Copy() const {
+      const VQwSubsystem* orig = dynamic_cast<const VQwSubsystem*>(this);
+      VQwCloneable* copy = new subsystem_t("Copy");
+      copy->Copy(orig);
+      return dynamic_cast<VQwSubsystem*>(copy);
     }
 
     /// Subsystem factory getter

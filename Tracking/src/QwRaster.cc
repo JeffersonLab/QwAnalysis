@@ -36,7 +36,6 @@ QwRaster::~QwRaster()
   for (size_t i = 0; i < fSCAs.size(); i++)
     delete fSCAs.at(i);
   fSCAs.clear();
-  //DeleteHistograms();
 }
 
 
@@ -438,22 +437,19 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
       }
     }
 
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("raster_position_y")));
+    AddHistogram(gQwHists.Construct1DHist(TString("raster_position_x")));
+    AddHistogram(gQwHists.Construct1DHist(TString("raster_position_y")));
   
+    AddHistogram(gQwHists.Construct1DHist(TString("bpm_3h07a_pos_x")));
+    AddHistogram(gQwHists.Construct1DHist(TString("bpm_3h07a_pos_y")));
+    AddHistogram(gQwHists.Construct1DHist(TString("bpm_3h09b_pos_x")));
+    AddHistogram(gQwHists.Construct1DHist(TString("bpm_3h09b_pos_y")));
+
     fRateMap  = new TH2D("raster_rate_map","Raster Rate Map",125,0,0,125,0,0);
-    
     fRateMap->GetXaxis()->SetTitle(" X [mm]");
     fRateMap->GetYaxis()->SetTitle(" Y [mm]");
-
     gStyle     -> SetPalette(1);
     fRateMap->SetOption("colz");
-
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_x")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_y")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_x")));
-    fHistograms1D.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_y")));
-
 }
 
 void  QwRaster::FillHistograms()
@@ -489,31 +485,31 @@ void  QwRaster::FillHistograms()
     raster_x_mm = - fudge_factor*fPositionX_ADC;
     raster_y_mm =   fudge_factor*fPositionY_ADC;
 
-    for (size_t j=0; j<fHistograms1D.size();j++)
+    for (size_t j=0; j<fHistograms.size();j++)
     {
-      if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("raster_position_x"))
         {
-	  fHistograms1D.at(j)->Fill(raster_x_mm);
+	  fHistograms.at(j)->Fill(raster_x_mm);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("raster_position_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("raster_position_y"))
         {
-	  fHistograms1D.at(j)->Fill(raster_y_mm);
+	  fHistograms.at(j)->Fill(raster_y_mm);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("bpm_3h07a_pos_x"))
         {
-	  fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_x);
+	  fHistograms.at(j)->Fill(fbpm_3h07a_pos_x);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h07a_pos_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("bpm_3h07a_pos_y"))
         {
-	  fHistograms1D.at(j)->Fill(fbpm_3h07a_pos_y);
+	  fHistograms.at(j)->Fill(fbpm_3h07a_pos_y);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("bpm_3h09b_pos_x"))
         {
-	  fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_x);
+	  fHistograms.at(j)->Fill(fbpm_3h09b_pos_x);
         }
-      if (fHistograms1D.at(j)->GetTitle()==TString("bpm_3h09b_pos_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("bpm_3h09b_pos_y"))
         {
-	  fHistograms1D.at(j)->Fill(fbpm_3h09b_pos_y);
+	  fHistograms.at(j)->Fill(fbpm_3h09b_pos_y);
         }
     }
     
@@ -614,46 +610,6 @@ void  QwRaster::FillTreeVector(std::vector<Double_t> &values) const
     return;
 }
 
-
-void  QwRaster::DeleteHistograms()
-{
-
-    for (size_t i=0; i<fPMTs.size(); i++)
-    {
-       for (size_t j=0; j<fPMTs.at(i).size(); j++)
-       {
-         if (fPMTs.at(i).at(j).GetElementName()=="") {}
-         else  fPMTs.at(i).at(j).DeleteHistograms();
-       }
-    }
-
-    for (size_t i=0; i<fSCAs.size(); i++){
-      if (fSCAs.at(i) != NULL){
-        fSCAs.at(i)->DeleteHistograms();
-      }
-    }
-
-    // Delete all histograms in the list
-    for (size_t i = 0; i < fHistograms1D.size(); i++) {
-        if (fHistograms1D.at(i) != NULL) {
-            delete fHistograms1D.at(i);
-            fHistograms1D.at(i) = NULL;
-        }
-    }
-    // Then clear the list
-    fHistograms1D.clear();
-
-    // Delete all histograms in the list
-    for (size_t i = 0; i < fHistograms2D.size(); i++) {
-        if (fHistograms2D.at(i) != NULL) {
-            delete fHistograms2D.at(i);
-            fHistograms2D.at(i) = NULL;
-        }
-    }
-    // Then clear the list
-    fHistograms2D.clear();
-
-}
 
 void  QwRaster::ReportConfiguration()
 {

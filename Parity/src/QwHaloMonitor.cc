@@ -58,16 +58,10 @@ Bool_t QwHaloMonitor::ApplySingleEventCuts()
   return fHalo_Counter.ApplySingleEventCuts();
 }
 
-
-Int_t QwHaloMonitor::GetEventcutErrorCounters()
-{// report number of events falied due to HW and event cut faliure
-
-  return 1;
-}
-
 QwHaloMonitor& QwHaloMonitor::operator= (const QwHaloMonitor &value)
 {
   if (GetElementName()!=""){
+    VQwDataElement::operator=(value);
     this->fHalo_Counter=value.fHalo_Counter;
   }
   return *this;
@@ -159,27 +153,6 @@ void  QwHaloMonitor::FillHistograms()
   return;
 }
 
-
-
-
-
-
-
-
-
-
-void  QwHaloMonitor::DeleteHistograms()
-{
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else{
-    fHalo_Counter.DeleteHistograms();
-  }
-  return;
-}
-
-
 void  QwHaloMonitor::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
@@ -243,12 +216,13 @@ void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void  QwHaloMonitor::Copy(VQwDataElement *source)
+void  QwHaloMonitor::Copy(const VQwDataElement *source)
 {
   try
     {
       if(typeid(*source)==typeid(*this)){
-	QwHaloMonitor* input=((QwHaloMonitor*)source);
+        VQwDataElement::Copy(source);
+        const QwHaloMonitor* input = dynamic_cast<const QwHaloMonitor*>(source);
 	this->fElementName=input->fElementName;
 	this->fHalo_Counter.Copy(&(input->fHalo_Counter));
       }
