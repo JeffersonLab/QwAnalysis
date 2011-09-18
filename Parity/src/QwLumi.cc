@@ -996,17 +996,6 @@ void  QwLumi::ConstructHistograms(TDirectory *folder, TString &prefix)
 
 
 //*****************************************************************
-void  QwLumi::DeleteHistograms()
-{
-  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].DeleteHistograms();
-  for (size_t i = 0; i < fCombinedPMT.size(); i++)
-    fCombinedPMT[i].DeleteHistograms();
-  for (size_t i = 0; i < fScalerPMT.size(); i++)
-    fScalerPMT[i].DeleteHistograms();
-}
-
-//*****************************************************************
 void  QwLumi::FillHistograms()
 {
   if (! HasDataLoaded()) return;

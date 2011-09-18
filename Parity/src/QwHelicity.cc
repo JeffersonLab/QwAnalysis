@@ -1038,22 +1038,6 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
   return;
 }
 
-void  QwHelicity::DeleteHistograms()
-{
-  if((fHistoType==kHelSaveMPS)||(fHistoType==kHelSavePattern))
-    {
-      for (size_t i=0; i<fHistograms.size(); i++){
-	if (fHistograms.at(i) != NULL){
-	  fHistograms.at(i)->Delete();
-	  fHistograms.at(i) =  NULL;
-	}
-      }
-      fHistograms.clear();
-    }
-  return;
-}
-
-
 void  QwHelicity::FillHistograms()
 {
   //  Bool_t localdebug=kFALSE;

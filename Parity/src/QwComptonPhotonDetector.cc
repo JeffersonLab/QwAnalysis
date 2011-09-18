@@ -771,19 +771,6 @@ void  QwComptonPhotonDetector::FillHistograms()
 }
 
 /**
- * Delete the histograms
- */
-void  QwComptonPhotonDetector::DeleteHistograms()
-{
-  for (size_t i = 0; i < fSamplingADC.size(); i++)
-    fSamplingADC[i].DeleteHistograms();
-  for (size_t i = 0; i < fMultiTDC_Channel.size(); i++)
-    fMultiTDC_Channel[i].DeleteHistograms();
-  for (size_t i = 0; i < fMultiQDC_Channel.size(); i++)
-    fMultiQDC_Channel[i].DeleteHistograms();
-}
-
-/**
  * Construct the tree
  * @param folder Folder in which the tree will be created
  * @param prefix Prefix with information about the type of histogram

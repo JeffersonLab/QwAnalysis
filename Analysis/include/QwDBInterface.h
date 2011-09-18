@@ -63,7 +63,7 @@ class QwDBInterface {
     : fAnalysisId(0),fDeviceId(0),fSubblock(0),fN(0),fValue(0.0),fError(0.0) {
       std::strcpy(fMeasurementTypeId, "");fDeviceName ="";
     }
-    ~QwDBInterface() { }
+    virtual ~QwDBInterface() { }
 
     void SetAnalysisID(UInt_t id) {fAnalysisId = id;};
     void SetDetectorName(TString &in) {fDeviceName = in;};

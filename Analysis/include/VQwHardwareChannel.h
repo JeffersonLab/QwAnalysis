@@ -9,6 +9,7 @@
 #define __VQWHARDWARECHANNEL__
 
 // System headers
+#include <cmath>
 #include <vector>
 #include <stdexcept>
 

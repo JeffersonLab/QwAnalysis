@@ -100,8 +100,6 @@ class QwOmnivore: public VQwSubsystem_t {
     void  ConstructHistograms(TDirectory *folder, TString &prefix) { };
     /// Fill the histograms for this subsystem
     void  FillHistograms() { };
-    /// Delete the histograms for this subsystem
-    void  DeleteHistograms() { };
 
     /// Construct the branch and tree vector
     void ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values) { };

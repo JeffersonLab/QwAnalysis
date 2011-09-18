@@ -409,17 +409,6 @@ void  QwIntegratedRasterChannel<T>::FillTreeVector(std::vector<Double_t> &values
   return;
 }
 
-template<typename T>
-void  QwIntegratedRasterChannel<T>::DeleteHistograms()
-{
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fTriumf_ADC.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
 template<typename T>
 void  QwIntegratedRasterChannel<T>::Copy(VQwDataElement *source)

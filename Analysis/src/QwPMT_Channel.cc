@@ -95,16 +95,6 @@ void  QwPMT_Channel::FillHistograms()
   }
 }
 
-void  QwPMT_Channel::DeleteHistograms()
-{
-  for (size_t index = 0; index < fHistograms.size(); index++) {
-    if (fHistograms[index] != NULL)
-      fHistograms[index]->Delete();
-    fHistograms[index] = NULL;
-  }
-  fHistograms.clear();
-}
-
 void  QwPMT_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName() == "") {

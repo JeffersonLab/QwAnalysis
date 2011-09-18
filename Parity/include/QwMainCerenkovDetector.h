@@ -45,9 +45,7 @@ class QwMainCerenkovDetector:
     fTargetEnergy.InitializeChannel("e_targ","derived");
   };
 
-  ~QwMainCerenkovDetector() {
-    DeleteHistograms();
-  };
+  virtual ~QwMainCerenkovDetector() { };
 
   /*  Member functions derived from VQwSubsystemParity. */
 
@@ -89,7 +87,6 @@ class QwMainCerenkovDetector:
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);

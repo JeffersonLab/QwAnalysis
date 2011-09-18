@@ -923,18 +923,6 @@ void  QwMainCerenkovDetector::FillHistograms()
 }
 
 
-void  QwMainCerenkovDetector::DeleteHistograms()
-{
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].DeleteHistograms();
-
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].DeleteHistograms();
-
-  return;
-}
-
-
 void QwMainCerenkovDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
   for (size_t i=0;i<fIntegrationPMT.size();i++)

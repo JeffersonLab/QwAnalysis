@@ -272,14 +272,6 @@ void QwMollerDetector::FillHistograms(){
   }
 }
 
-void QwMollerDetector::DeleteHistograms(){
-  for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
-    for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){
-      fSTR7200_Channel[i][j].DeleteHistograms();
-    }
-  }
-}
-
 void QwMollerDetector::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values){
   for(size_t i = 0; i < fSTR7200_Channel.size(); i++){
     for(size_t j = 0; j < fSTR7200_Channel[i].size(); j++){

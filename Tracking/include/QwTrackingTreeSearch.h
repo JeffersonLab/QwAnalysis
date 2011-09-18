@@ -51,7 +51,7 @@ class QwTrackingTreeSearch {
     /// \brief Constructor
     QwTrackingTreeSearch();
     /// \brief Destructor
-    ~QwTrackingTreeSearch();
+    virtual ~QwTrackingTreeSearch();
 
     /// \brief Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };

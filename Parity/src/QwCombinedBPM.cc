@@ -570,11 +570,11 @@ template<typename T>
 
    zpos = this->GetPositionInZ();
    //UInt_t err_flag=fAbsPos[axis].GetEventcutErrorFlag();   
-   fAbsPos[axis]= fIntercept[axis]; // X =  b
+   fAbsPos[axis] += fIntercept[axis]; // X =  b
    //fAbsPos[axis].ResetErrorFlag(err_flag);
    tmp1 = fSlope[axis];
    tmp1.Scale(zpos); //az
-   fAbsPos[axis]+=tmp1;  //X = az+b
+   fAbsPos[axis] += tmp1;  //X = az+b
 
    // to perform the minimul chi-square test
    tmp2.ClearEventData();
@@ -827,25 +827,6 @@ void  QwCombinedBPM<T>::FillHistograms()
   }
   return;
 }
-
-template<typename T>
-void  QwCombinedBPM<T>::DeleteHistograms()
-{
-  if (this->GetElementName()=="") {
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else{
-    fEffectiveCharge.DeleteHistograms();
-    for(Short_t axis=kXAxis;axis<kNumAxes;axis++) {
-      fSlope[axis].DeleteHistograms();
-      fIntercept[axis].DeleteHistograms();
-      fAbsPos[axis].DeleteHistograms();
-    }
-
-  }
-  return;
-}
-
 
 template<typename T>
 void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)

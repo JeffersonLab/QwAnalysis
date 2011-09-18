@@ -43,7 +43,7 @@ public:
   VQwScaler_Channel(TString name): MQwMockable() {
     InitializeChannel(name,"");
   };
-  virtual ~VQwScaler_Channel() { DeleteHistograms(); };
+  virtual ~VQwScaler_Channel() { };
 
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString name){InitializeChannel(name, "raw");};
@@ -114,7 +114,6 @@ public:
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
 

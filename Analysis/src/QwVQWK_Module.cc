@@ -153,13 +153,6 @@ void  QwVQWK_Module::FillHistograms()
   }
 }
 
-void  QwVQWK_Module::DeleteHistograms()
-{
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).DeleteHistograms();
-  }
-}
-
 void  QwVQWK_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fChannels.size(); i++){

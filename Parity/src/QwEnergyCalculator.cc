@@ -234,16 +234,6 @@ void  QwEnergyCalculator::FillHistograms(){
   return;
 }
 
-void  QwEnergyCalculator::DeleteHistograms(){
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else
-    fEnergyChange.DeleteHistograms();
-  return;
-}
-
-
 void  QwEnergyCalculator::ConstructBranchAndVector(TTree *tree, TString &prefix,
 						   std::vector<Double_t> &values){
   if (GetElementName()==""){

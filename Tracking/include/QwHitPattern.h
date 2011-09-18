@@ -59,7 +59,7 @@ class QwHitPattern: public VQwTrackingElement, public QwObjectCounter<QwHitPatte
     };
 
     /// \brief Delete the hit pattern
-    ~QwHitPattern() {
+    virtual ~QwHitPattern() {
       if (fLevels == 0) return;
       if (fPatternHash) delete[] fPatternHash;
       if (fPattern)     delete[] fPattern;

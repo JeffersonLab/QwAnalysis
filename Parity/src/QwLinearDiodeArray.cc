@@ -509,24 +509,6 @@ void  QwLinearDiodeArray::FillHistograms()
   return;
 }
 
-void  QwLinearDiodeArray::DeleteHistograms()
-{
-  if (GetElementName()=="") {
-  }
-  else {
-    fEffectiveCharge.DeleteHistograms();
-    size_t i = 0;
-    if(bFullSave) {
-      for(i=0;i<8;i++) fPhotodiode[i].DeleteHistograms();
-    }
-    for(i=kXAxis;i<kNumAxes;i++) {
-      fRelPos[i].DeleteHistograms();
-    }
-  }
-  return;
-}
-
-
 void  QwLinearDiodeArray::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){

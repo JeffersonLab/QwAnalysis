@@ -217,16 +217,6 @@ void  VQwScaler_Channel::FillHistograms()
   }
 }
 
-void  VQwScaler_Channel::DeleteHistograms()
-{
-  for (size_t index = 0; index < fHistograms.size(); index++) {
-    if (fHistograms[index] != 0)
-      fHistograms[index]->Delete();
-    fHistograms[index] = 0;
-  }
-}
-
-
 void  VQwScaler_Channel::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (IsNameEmpty()){

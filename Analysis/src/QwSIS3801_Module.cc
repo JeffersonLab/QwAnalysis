@@ -140,12 +140,6 @@ void  QwSIS3801_Module::FillHistograms()
   }
 }
 
-void  QwSIS3801_Module::DeleteHistograms()
-{
-  for (size_t i=0; i<fChannels.size(); i++){
-    fChannels.at(i).DeleteHistograms();
-  }}
-
 void  QwSIS3801_Module::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   for (size_t i=0; i<fChannels.size(); i++){

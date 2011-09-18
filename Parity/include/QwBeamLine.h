@@ -43,9 +43,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),index_4mhz(-1)
     { };
 
-  ~QwBeamLine() {
-    DeleteHistograms();
-  };
+  virtual ~QwBeamLine() { };
 
 
   /* derived from VQwSubsystem */
@@ -89,7 +87,6 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   using VQwSubsystem::ConstructHistograms;
   void ConstructHistograms(TDirectory *folder, TString &prefix);
   void FillHistograms();
-  void DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);

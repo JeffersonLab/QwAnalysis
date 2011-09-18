@@ -425,19 +425,6 @@ void  QwCombinedPMT::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-void  QwCombinedPMT::DeleteHistograms()
-{
-  if (GetElementName()=="")
-    {
-      //  This channel is not used, so skip filling the histograms.
-    }
-  else
-    {
-      fSumADC.DeleteHistograms();
-//      fAvgADC.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
 void  QwCombinedPMT::Copy(VQwDataElement *source)
 {

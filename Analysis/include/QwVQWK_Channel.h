@@ -55,9 +55,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     InitializeChannel(name, datatosave);
     SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
-  virtual ~QwVQWK_Channel() {
-    //DeleteHistograms();
-  };
+  virtual ~QwVQWK_Channel() { };
 
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString name, TString datatosave);
@@ -160,7 +158,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
