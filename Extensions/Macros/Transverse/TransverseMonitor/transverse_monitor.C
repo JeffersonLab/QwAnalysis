@@ -10,12 +10,15 @@ and can be then reported to source group for corrections.
 
 Inputs : The last analyzed slug number
          The number of slugs you want to look back at from the given slug. To be able to see a 3 sigma deviation from the zero , you need to have at least 3days worth of data ~ 9 slugs.
+         Enable fit of individual angles. 
 
 Output : Plot of md bar asymmetry vs azimuthal angle for IHWP IN, OUT and IN+OUT
          Plot of md bar asymmetry vs azimuthal angle for IN-OUT and IN-OUT sum of opposite octants.
          Plot of md bar1 (most sensitive to horizontal transverse) and md bar 3(most sensitive to vertical transverse) asymmetries vs run number.
 
 The fit uses the amplitude of -4.75 ppm from the results of vertical transverse running described in Qweak-doc-1401-v3.
+
+e.q. ./transevrse_monitor 9 1   (use 9 slugs and use fit1)
          
 ****************************************************************/
 
@@ -60,21 +63,20 @@ TSQLServer *db;
 
 /*Other variables*/
 Int_t slug_num = 0;
-Double_t valuesin[8];
-Double_t errorsin[8];
-Double_t valuesout[8];
-Double_t errorsout[8];
-
-
+Double_t barvaluesin[8];
+Double_t barerrorsin[8];
+Double_t barvaluesout[8];
+Double_t barerrorsout[8];
 
 Double_t oppvaluesin[4];
 Double_t opperrorsin[4];
 Double_t oppvaluesout[4];
 Double_t opperrorsout[4];
 
-
 Int_t slug_first = 0;
 Int_t slug_range = 9;
+
+Bool_t usefit1 = false;
 
 /*Function defintions*/
 TString get_sum_query(TString device,TString ihwp, Int_t slug_last);
@@ -129,6 +131,10 @@ int main(Int_t argc,Char_t* argv[])
 
   if(argc==2){
     slug_range = atoi(argv[1]);
+  } 
+  if(argc==3){
+    slug_range = atoi(argv[1]);
+    if(atoi(argv[2])) usefit1 = true;
   }
 
   std::cout<<"###########################################################"<<std::endl;
@@ -166,27 +172,31 @@ int main(Int_t argc,Char_t* argv[])
  
  /*Clear the other arrays*/
   for(Int_t i =0;i<8;i++){
-    valuesin[i]  = 0.0;
-    valuesout[i] = 0.0;
-    errorsin[i]  = 0.0;
-    errorsout[i] = 0.0;
+    barvaluesin[i]  = 0.0;
+    barvaluesout[i] = 0.0;
+    barerrorsin[i]  = 0.0;
+    barerrorsout[i] = 0.0;
    }
   
   /*Get data from database*/
   std::cout<<"IHWP 'in'.."<<std::endl;
-  get_data(quartz_bar_sum,8,"in",slug_num,valuesin,errorsin);
+  get_data(quartz_bar_sum,8,"in",slug_num,barvaluesin,barerrorsin);
   get_data(opposite_quartz_bar_sum,4,"in",slug_num,oppvaluesin,opperrorsin);
 
   std::cout<<"IHWP 'out'.."<<std::endl;
-  get_data(quartz_bar_sum,8,"out",slug_num,valuesout,errorsout);
+  get_data(quartz_bar_sum,8,"out",slug_num,barvaluesout,barerrorsout);
   get_data(opposite_quartz_bar_sum,4,"out",slug_num,oppvaluesout,opperrorsout);
+
 
   /*Fit octants*/
   Canvas1->Draw();
   Canvas1->cd();
-  plot_n_fit_data(8, "cosfit",  valuesin,errorsin, valuesout,errorsout);
+  plot_n_fit_data(8, "cosfit",  barvaluesin,barerrorsin, barvaluesout,barerrorsout);
   Canvas1->Update();
-  Canvas1->Print(Form("transverse_monitor_slugs_all_%i_%i_plots.png",slug_first,slug_num));
+  if(usefit1)
+    Canvas1->Print(Form("transverse_monitor_slugs_all_fit1_%i_%i_plots.png",slug_first,slug_num));
+  else
+    Canvas1->Print(Form("transverse_monitor_slugs_all_%i_%i_plots.png",slug_first,slug_num));
 
   /*Fit opposite bar sums*/
   Canvas2->Draw();
@@ -312,7 +322,7 @@ void get_data(TString devicelist[],Int_t size,TString ihwp,Int_t slug_last,
 /*A query to get runlet based regressed data from the database for given detector*/
 TString runletbased_query(TString device,TString ihwp,TString wien, Int_t slug_last){
 
-Bool_t ldebug = true;
+Bool_t ldebug = false;
 
  TString datatable = "md_data_view";
  Int_t slug_first = slug_last-slug_range; // select the last 9 slugs including slug_last 
@@ -355,7 +365,7 @@ Bool_t ldebug = true;
 void get_device_data(TString device,TString ihwp,TString wien,Int_t slug_last,TVectorD *value,
 		     TVectorD *error,TVectorD *runlets){
   
-  Bool_t ldebug = true;
+  Bool_t ldebug = false;
   
   TString query;
   TSQLStatement* stmt = NULL;
@@ -542,8 +552,8 @@ void plot_md_data(TString device, Int_t slug_last){
 
 
 /*Function to plot and fit data*/
-void plot_n_fit_data(const Int_t size, TString fit, Double_t valuein[],Double_t errorin[], 
-		     Double_t valueout[],Double_t errorout[]){
+void plot_n_fit_data(const Int_t size, TString fit, Double_t valuesin[],Double_t errorsin[], 
+		     Double_t valuesout[],Double_t errorsout[]){
 
   TF1 *cosfit;
   TF1 *cosfit_diff;
@@ -581,8 +591,12 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuein[],Double_t 
   pad1->cd();
   TString title;
 
-  if(fit == "cosfit")
-    title = Form("LH2: Regressed slug averages of Main detector bar asymmetries from slugs %i to %i: Fit p0*-4.75*Cos(phi+p1)+p2",slug_first,slug_num);
+  if(fit == "cosfit"){
+    if(usefit1)
+      title = Form("LH2: Regressed Main detector asymmetries from slugs %i to %i: Fit (-4.75)*p0*sin(p1)*[sin(p2)*cos(phi) - cos(p2)*sin(phi)]+ p3",slug_first,slug_num);
+    else
+      title = Form("LH2: Regressed Main detector asymmetries from slugs %i to %i: Fit (-4.75)*(p0*cos(phi) - p1*sin(phi))+ p2",slug_first,slug_num);
+  }
   if(fit == "pol0")
     title = Form("LH2: Regressed slug averages of Opposite Main detector bar sum asymmetries from slugs %i to %i: Fit p0",slug_first,slug_num);
 
@@ -606,10 +620,18 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuein[],Double_t 
 
     usefit = "cosfit";
     // Define the cosine fit
-    cosfit = new TF1("cosfit","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
-    cosfit->SetParameter(2,0);
-    cosfit->SetParLimits(0,0,99999);
-    cosfit->SetParLimits(1,-180,180);
+    //    cosfit = new TF1("cosfit","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
+    
+    if(usefit1){
+      cosfit = new TF1("cosfit"," (-4.75)*[0]*sin((pi/180)*[1])*(sin((pi/180)*[2])*cos((pi/180)*(45*(x-1))) - cos((pi/180)*[2])*sin((pi/180)*(45*(x-1))))+ [3]",1,8);
+      cosfit->SetParLimits(0,0,99999);
+      cosfit->SetParLimits(1,0,99999);
+      cosfit->SetParLimits(1,-180,180);
+      cosfit->SetParLimits(2,-180,180);
+    } 
+    else {
+      cosfit = new TF1("cosfit","(-4.75)*([0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))))+ [2]",1,8);
+    }
   }
 
   /*Draw IN values*/
@@ -618,10 +640,9 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuein[],Double_t 
   grp_in ->SetMarkerStyle(21);
   grp_in ->SetMarkerColor(kBlue);
   grp_in ->SetLineColor(kBlue);
-
-  grp_in->Fit(usefit);
-  grp_in->Fit(usefit);
+  grp_in->Fit(usefit,"EM");
   TF1* fit1 = grp_in->GetFunction(usefit);
+
   fit1->DrawCopy("same");
   fit1->SetLineColor(kBlue);
  
@@ -634,18 +655,29 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuein[],Double_t 
     // if fo some reason, changing the IHWP has changed the verticle to horizontal transverse
     // or vise versa.
     
-    //  cosfit_out = new TF1("cosfit_out","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
-    cosfit->SetParameter(0,fit1->GetParameter(0)); // initialization from previous fit
-    //   if(fit1->GetParameter(0)<0) cosfit_out->SetParLimits(0,0,99999);
-    //   if(fit1->GetParameter(0)>0) cosfit_out->SetParLimits(0,-99999,0);
-    cosfit->SetParLimits(0,-99999,0);
+    if(usefit1){
+      cosfit = new TF1("cosfit"," (-4.75)*[0]*sin((pi/180)*[1])*(sin((pi/180)*[2])*cos((pi/180)*(45*(x-1))) - cos((pi/180)*[2])*sin((pi/180)*(45*(x-1))))+ [3]",1,8);
+
+      cosfit->SetParLimits(0,-99999,0);
+      cosfit->SetParameter(0,-(fit1->GetParameter(0)));
+      cosfit->SetParameter(1, (fit1->GetParameter(1)));
+      cosfit->SetParameter(2, (fit1->GetParameter(2)));
+
+      phase_low = fit1->GetParameter(1)-90;
+      phase_up  = fit1->GetParameter(1)+90;
+      cosfit->SetParLimits(1,phase_low,phase_up);
+      phase_low = fit1->GetParameter(2)-90;
+      phase_up  = fit1->GetParameter(2)+90;
+      cosfit->SetParLimits(2,phase_low,phase_up);
+    } 
+    else {
+      cosfit = new TF1("cosfit","(-4.75)*([0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))))+ [2]",1,8);
+      cosfit->SetParameter(0,-(fit1->GetParameter(0)));
+      cosfit->SetParameter(1,-(fit1->GetParameter(1)));
+      cosfit->SetParameter(2,-(fit1->GetParameter(2)));
+
+    }
     
-    
-    cosfit->SetParameter(2,fit1->GetParameter(2)); // initialization from previous fit
-    cosfit->SetParameter(1,fit1->GetParameter(1)); // initialization from previous fit
-    phase_low = fit1->GetParameter(1)-90;
-    phase_up  = fit1->GetParameter(1)+90;
-    cosfit->SetParLimits(1,phase_low,phase_up);
   }
 
 
@@ -656,16 +688,15 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuein[],Double_t 
   grp_out ->SetMarkerColor(kRed);
   grp_out ->SetLineColor(kRed);
 
-  grp_out->Fit(usefit);
-  grp_out->Fit(usefit);
+  grp_out->Fit(usefit,"EM");
   TF1* fit2 = grp_out->GetFunction(usefit);
   fit2->DrawCopy("same");
   fit2->SetLineColor(kRed);
 
   /* Draw IN+OUT values */
   for(Int_t i =0;i<size;i++){
-    valuesum[i]=valuesin[i]+valuesout[i];
-    valueerror[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2));
+    valuesum[i]=(valuesin[i]+valuesout[i])/2;
+    valueerror[i]= sqrt(pow(errorsin[i],2)+pow(errorsout[i],2))/2;
   }
 
   TGraphErrors* grp_sum  = new TGraphErrors(size,x,valuesum,errx,valueerror);
@@ -674,7 +705,6 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuein[],Double_t 
   grp_sum ->SetMarkerColor(kGreen-2);
   grp_sum ->SetLineColor(kGreen-2);
 
-  grp_sum->Fit("pol0");
   grp_sum->Fit("pol0");
   TF1* fit3 = grp_sum->GetFunction("pol0");
   fit3->DrawCopy("same");
@@ -735,14 +765,20 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuein[],Double_t 
 
   if(usefit == "cosfit"){
     usefit = "cosfit_diff";
-    cosfit_diff = new TF1("cosfit_diff","[0]*-4.75*cos((pi/180)*(45*(x-1)+[1])) +[2]",1,8);
-    cosfit_diff->SetParLimits(0,0,99999);
-    cosfit_diff->SetParLimits(1,-180,180);
-    cosfit_diff->SetParameter(2,0);
+    if(usefit1){
+      cosfit_diff = new TF1("cosfit_diff"," (-4.75)*[0]*sin((pi/180)*[1])*(sin((pi/180)*[2])*cos((pi/180)*(45*(x-1))) - cos((pi/180)*[2])*sin((pi/180)*(45*(x-1))))+ [3]",1,8);
+      cosfit_diff->SetParLimits(0,0,99999);
+      cosfit_diff->SetParLimits(1,0,99999);
+      cosfit_diff->SetParLimits(1,-180,180);
+      cosfit_diff->SetParLimits(2,-180,180);
+    } 
+    else {
+      cosfit_diff = new TF1("cosfit_diff","(-4.75)*([0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))))+ [2]",1,8);
+    }
   } 
   else usefit = "pol0";
 
-  grp_diff->Fit(usefit);
+  grp_diff->Fit(usefit,"EM");
   grp_diff->SetTitle("Graph of IN-OUT");
   TF1* fit4 = grp_diff->GetFunction(usefit);
   if(fit4 != NULL){
