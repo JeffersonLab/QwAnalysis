@@ -727,7 +727,7 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuesin[],Double_t
   TLegend *legend = new TLegend(0.1,0.83,0.2,0.99,"","brNDC");
   legend->AddEntry(grp_in, "IHWP-IN", "p");
   legend->AddEntry(grp_out, "IHWP-OUT", "p");
-  legend->AddEntry(grp_sum, "IN+OUT", "p");
+  legend->AddEntry(grp_sum, "(IN+OUT)/2", "p");
   legend->SetFillColor(0);
   legend->Draw("");
 
@@ -751,7 +751,7 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuesin[],Double_t
 
   pad2->cd(2);
 
-  /* Draw IN-OUT values */
+  /* Draw IN-OUT weighted average values */
   for(Int_t i =0;i<size;i++){
     valuediff[i]=((valuesin[i]/pow(errorsin[i],2)) - (valuesout[i]/pow(errorsout[i],2))) /((1.0/pow(errorsin[i],2)) + (1.0/pow(errorsout[i],2)));
     errordiff[i]= sqrt(1.0/((1.0/(pow(errorsin[i],2)))+(1.0/pow(errorsout[i],2))));
@@ -784,8 +784,22 @@ void plot_n_fit_data(const Int_t size, TString fit, Double_t valuesin[],Double_t
   if(fit4 != NULL){
     fit4->DrawCopy("same");
     fit4->SetLineColor(kMagenta-2);
-    grp_diff->Draw("AP");
   }
+
+  grp_diff->Draw("AP");
+
+//   if(usefit == "cosfit_diff" & !usefit1){
+//     /*Draw the individual X, Y parts*/
+//     TF1 * Ah = new TF1("Ah", Form("-4.75*%f*cos((pi/180)*(45*(x-1))) + %f",(fit4->GetParameter(0)),(fit4->GetParameter(2))),1,8);
+//     Ah->SetLineColor(kBlack);
+//     Ah->SetLineStyle(7);
+//     Ah->Draw("same");
+
+//     TF1 * Av = new TF1("Av", Form("4.75*%f*sin((pi/180)*(45*(x-1))) + %f",(fit4->GetParameter(1)),(fit4->GetParameter(2))),1,8);
+//     Av->SetLineColor(kBlack);
+//     Av->SetLineStyle(7);
+//     Av->Draw("same");
+//   }
 
   pad->Modified();
   pad->Update();
