@@ -728,6 +728,7 @@ void QwGUIDatabase::PopulateDetectorComboBox()
 
     dCmbDetector->Select(dCmbDetector->FindEntry("qwk_mdallbars")->EntryId());
     dCmbProperty->Select(dCmbProperty->FindEntry("targetX")->EntryId());
+
   }
 
   // LUMI detector sensitivities : default qwk_uslumi1neg wrt targetX
@@ -824,6 +825,10 @@ void QwGUIDatabase::PopulateMeasurementComboBox()
 	dCmbMeasurementType->AddEntry(SensitivityTypes[k], k);
 	measurements.push_back(SensitivityTypes[k]);
 	 }
+	 dCmbMeasurementType->Select(dCmbMeasurementType->FindEntry("s")->EntryId());
+	}
+	else{
+		dCmbMeasurementType->Select(1);
 	}
 
 	// Lumi sensitivities
@@ -832,9 +837,11 @@ void QwGUIDatabase::PopulateMeasurementComboBox()
 	dCmbMeasurementType->AddEntry(SensitivityTypes[k], k);
 	measurements.push_back(SensitivityTypes[k]);
 	 }
+	 dCmbMeasurementType->Select(dCmbMeasurementType->FindEntry("s")->EntryId());
 	}
-
-	dCmbMeasurementType->Select(1);
+	else{
+		dCmbMeasurementType->Select(1);
+	}
 
 }
 
