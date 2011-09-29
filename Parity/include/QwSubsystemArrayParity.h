@@ -101,9 +101,7 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// \brief Return the error flag to the main routine
     UInt_t GetEventcutErrorFlag() const;
     /// \brief Return the error flag to the main routine
-    void UpdateEventcutErrorFlag(UInt_t errorflag){
-      fErrorFlag|=errorflag;
-    };
+    void UpdateEventcutErrorFlag(UInt_t errorflag);
 
     /// \brief Print value of all channels
     void PrintValue() const;

@@ -427,6 +427,19 @@ Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
   return 1;
 }
 
+void QwSubsystemArrayParity::UpdateEventcutErrorFlag(UInt_t errorflag){
+  VQwSubsystemParity *subsys_parity;
+  fErrorFlag|=errorflag;
+  if (!empty()){
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      //Update the error flag of the parity subsystem
+      //subsys_parity->UpdateEventcutErrorFlag(errorflag);
+    }
+  }
+}
+
+
 UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() const{// report number of events falied due to HW and event cut faliure
   return fErrorFlag;
 }
