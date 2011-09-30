@@ -38,7 +38,7 @@ void QwHelicity::DefineOptions(QwOptions &options)
           "Number of bits in random seed");
   options.AddOptions("Helicity options")
       ("helicity.bitpattern", po::value<std::string>(),
-          "Helicity bit pattern");
+          "Helicity bit pattern: 0x1 (pair), 0x9 (quartet), 0x69 (octet), 0x666999 (hexo-quad), 0x66669999 (octo-quad)");
   options.AddOptions("Helicity options")
       ("helicity.patternoffset", po::value<int>(),
           "Set 1 when pattern starts with 1 or 0 when starts with 0");
