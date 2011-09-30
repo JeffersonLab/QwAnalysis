@@ -168,9 +168,34 @@ class VQwDataElement: public MQwHistograms {
   /*! \brief Set the number of data words in this data element */
   void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;}
 
-  /*! \brief Copy method, but really more like assignment at this level */
-  void Copy(const VQwDataElement *source) {
-    *this = *source;
+  /*! \brief Copy method:  Should make a full, identical copy. */
+  virtual void Copy(const VQwDataElement *source) {
+    //  Just call the reference version of the Copy function,
+    //  since we know the types are consistent.
+    Copy(*source);
+  }
+
+  /*! \brief Copy method:  Should make a full, identical copy. */
+  virtual void Copy(const VQwDataElement &source) {
+    if(this != &source){
+      MQwHistograms::Copy(source);
+      fElementName       = source.fElementName;
+      fNumberOfDataWords = source.fNumberOfDataWords;
+      fGoodEventCount    = source.fGoodEventCount;
+      fSubsystemName     = source.fSubsystemName;
+      fModuleType        = source.fModuleType;
+      fErrorFlag         = source.fErrorFlag;
+    }
+  }
+
+  /// Arithmetic assignment operator:  Should only copy event-based data
+  virtual VQwDataElement& operator=(const VQwDataElement& value) {
+    if(this != &value){
+      MQwHistograms::operator=(value);
+      fGoodEventCount    = value.fGoodEventCount;
+      fErrorFlag         = value.fErrorFlag;
+    }
+    return *this;
   }
 
  protected:
