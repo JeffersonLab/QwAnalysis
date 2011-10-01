@@ -350,6 +350,7 @@ void VQwSubsystem::Copy(VQwSubsystem *source)
 {
   try
     {
+      MQwHistograms::Copy(*source);
 
       this->fSystemName=source->fSystemName;
       this->fIsDataLoaded= source->fIsDataLoaded;

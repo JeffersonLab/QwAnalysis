@@ -429,7 +429,10 @@ Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
 
 void QwSubsystemArrayParity::UpdateEventcutErrorFlag(UInt_t errorflag){
   VQwSubsystemParity *subsys_parity;
-  fErrorFlag|=errorflag;
+  if ((fErrorFlag & kGlobalCut) == kGlobalCut)//check to see any global errors exist 
+    fErrorFlag|=errorflag; //then only update the global error falg
+
+
   if (!empty()){
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());

@@ -192,7 +192,8 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   void   SetCalibrationToVolts(){SetCalibrationFactor(kVQWK_VoltsPerBit);};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
+  void Copy(const QwVQWK_Channel& source);
 
   friend std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel);
   void PrintValue() const;
@@ -250,9 +251,6 @@ private:
   Short_t fBlocksPerEvent;
   // @}
 
-  /*  Ntuple array indices */
-  size_t fTreeArrayIndex;
-  size_t fTreeArrayNumEntries;
 
   /*! \name Event data members---Raw values */
   // @{

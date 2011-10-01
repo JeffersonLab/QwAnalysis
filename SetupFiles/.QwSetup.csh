@@ -61,8 +61,10 @@ endif
 
 
 ###  Set up the analyzer and scratch environments.
-source ${QWANALYSIS}/SetupFiles/make_scratch_dir
+# Commented out this line to prevent linking $HOME/scratch directories or creating new ones - Mon Mar 14 12:00:44 EDT 2011 by rakitha
+#source ${QWANALYSIS}/SetupFiles/make_scratch_dir
 source ${QWANALYSIS}/SetupFiles/.Qwcshrc
+# Modified this script to have a local scratch directory different from the std. $HOME one. - Mon Mar 14 12:01:30 EDT 2011 by rakitha
 source ${QWANALYSIS}/SetupFiles/.Qwcshrc_scratch
 
 

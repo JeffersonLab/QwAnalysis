@@ -11,20 +11,21 @@
 # 
 #******************************************************************************
 
-if (! $?QWSCRATCH) then
-  if ( -e  /tmp/${USER}.QWSCRATCH) then
-    setenv  QWSCRATCH     `cat /tmp/${USER}.QWSCRATCH`
-    echo "Setting value of QWSCRATCH based on /tmp/${USER}.QWSCRATCH: ${QWSCRATCH}"
-  else
-    setenv  QWSCRATCH     ${HOME}/scratch
-    echo "Setting default value of QWSCRATCH to ${QWSCRATCH}"
-  endif
-endif
+#Commented out these lines and set a local directory to QWSCRATCH - Mon Mar 14 12:02:23 EDT 2011 by rakitha
+#if (! $?QWSCRATCH) then
+#  if ( -e  /tmp/${USER}.QWSCRATCH) then
+#    setenv  QWSCRATCH     `cat /tmp/${USER}.QWSCRATCH`
+#    echo "Setting value of QWSCRATCH based on /tmp/${USER}.QWSCRATCH: ${QWSCRATCH}"
+#  else
+#    setenv  QWSCRATCH     ${HOME}/scratch
+#    echo "Setting default value of QWSCRATCH to ${QWSCRATCH}"
+#  endif
+#endif
 
-if (! -d ${QWSCRATCH})  then
-  echo "Error: QWSCRATCH directory, "${QWSCRATCH}", still does not exist.\nThe Qweak analysis environment will not be properly configured\!\!"
-  exit 1
-endif
+#if (! -d ${QWSCRATCH})  then
+#  echo "Error: QWSCRATCH directory, "${QWSCRATCH}", still does not exist.\nThe Qweak analysis environment will not be properly configured\!\!"
+#  exit 1
+#endif
 
 
 
@@ -38,6 +39,9 @@ unsetenv QW_PRMINPUT
 unsetenv QW_FIELDMAP
 unsetenv QW_SEARCHTREE
 unsetenv QW_LOOKUP
+
+# Set a local directory to QWSCRATCH - Mon Mar 14 12:02:23 EDT 2011 by rakitha
+setenv QWSCRATCH /mnt/dd/QwScratch
 
 setenv QW_ROOTFILES  ${QWSCRATCH}/rootfiles
 setenv QW_TMP        ${QWSCRATCH}/tmp
