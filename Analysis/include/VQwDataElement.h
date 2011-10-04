@@ -54,6 +54,7 @@ class VQwDataElement: public MQwHistograms {
 
  public:
 
+  /// Default constructor
   VQwDataElement()
   : MQwHistograms(),
     fElementName(""),
@@ -63,6 +64,7 @@ class VQwDataElement: public MQwHistograms {
     fModuleType(""),
     fErrorFlag(0)
     { };
+  /// Copy constructor
   VQwDataElement(const VQwDataElement& value)
   : MQwHistograms(value),
     fElementName(value.fElementName),
@@ -72,6 +74,7 @@ class VQwDataElement: public MQwHistograms {
     fModuleType(value.fModuleType),
     fErrorFlag(value.fErrorFlag)
     { };
+  /// Virtual destructor
   virtual ~VQwDataElement() { };
 
   /*! \brief Is the name of this element empty? */
@@ -82,10 +85,9 @@ class VQwDataElement: public MQwHistograms {
   virtual const TString& GetElementName() const { return fElementName; }
 
   /*! \brief Clear the event data in this element */
-  virtual void  ClearEventData(){
-  };
+  virtual void  ClearEventData() { };
   /*! \brief Process the CODA event buffer for this element */
-  virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0) = 0;
+  virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement = 0) = 0;
 
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
@@ -125,7 +127,7 @@ class VQwDataElement: public MQwHistograms {
 
   /*! \brief set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   virtual void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){std::cerr << "SetSingleEventCuts not defined!" << std::endl; };
-  /*! \brief report number of events falied due to HW and event cut failure */
+  /*! \brief report number of events failed due to HW and event cut failure */
   virtual void GetEventcutErrorCounters() const { };
 
   /*! \brief return the error flag on this channel/device*/
@@ -165,9 +167,34 @@ class VQwDataElement: public MQwHistograms {
   /*! \brief Set the number of data words in this data element */
   void SetNumberOfDataWords(const UInt_t &numwords) {fNumberOfDataWords = numwords;}
 
-  /*! \brief Copy method, but really more like assignment at this level */
-  void Copy(const VQwDataElement *source) {
-    *this = *source;
+  /*! \brief Copy method:  Should make a full, identical copy. */
+  virtual void Copy(const VQwDataElement *source) {
+    //  Just call the reference version of the Copy function,
+    //  since we know the types are consistent.
+    Copy(*source);
+  }
+
+  /*! \brief Copy method:  Should make a full, identical copy. */
+  virtual void Copy(const VQwDataElement &source) {
+    if(this != &source){
+      MQwHistograms::Copy(source);
+      fElementName       = source.fElementName;
+      fNumberOfDataWords = source.fNumberOfDataWords;
+      fGoodEventCount    = source.fGoodEventCount;
+      fSubsystemName     = source.fSubsystemName;
+      fModuleType        = source.fModuleType;
+      fErrorFlag         = source.fErrorFlag;
+    }
+  }
+
+  /// Arithmetic assignment operator:  Should only copy event-based data
+  virtual VQwDataElement& operator=(const VQwDataElement& value) {
+    if(this != &value){
+      MQwHistograms::operator=(value);
+      fGoodEventCount    = value.fGoodEventCount;
+      fErrorFlag         = value.fErrorFlag;
+    }
+    return *this;
   }
 
  protected:

@@ -22,7 +22,6 @@
 // ROOT headers
 #include "TTree.h"
 #include "TFile.h"
-#include "TH1D.h"
 
 // Qweak headers
 #include "VQwSubsystemParity.h"

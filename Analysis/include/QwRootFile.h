@@ -252,7 +252,7 @@ class QwRootTree {
  * The objects that are passed to these functions have to provide the following
  * functions:
  * <ul>
- * <li>ConstructHistograms, FillHistograms, DeleteHistograms
+ * <li>ConstructHistograms, FillHistograms
  * <li>ConstructBranchAndVector, FillTreeVector
  * </ul>
  *

@@ -19,11 +19,6 @@
 
 // System headers
 #include <vector>
-  
-// ROOT headers
-#include <TTree.h>
-#include <TFile.h>
-#include <TH1D.h>
 
 // Boost math library for random number generation
 #include <boost/multi_array.hpp>

@@ -37,7 +37,7 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDet
    ******************************************************************/
  public:
   QwMainDetector(TString region_tmp);
-  ~QwMainDetector();
+  virtual ~QwMainDetector();
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);

@@ -54,7 +54,11 @@ QwScanner::~QwScanner()
   }
   fADC_Data.clear();
 
-  // Delete F1TDC container
+  // FIXME Temporarily disabled because it prints this too
+  // often after DeleteHistograms was removed.  Should go into
+  // a function ReportErrors or so...
+  //fF1TDContainer->PrintErrorSummary();
+  //fF1TDContainer->WriteErrorSummary();
   delete fF1TDContainer;
 }
 
@@ -1033,13 +1037,13 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
             }
         }
 
-      AddHistogram(gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
-      AddHistogram(gQwHists.Construct1DHist(TString("scanner_position_x")));
-      AddHistogram(gQwHists.Construct1DHist(TString("scanner_position_y")));
-      AddHistogram(gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
-      AddHistogram(gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
 
-      // AddHistogram(gQwHists.Construct2DHist(TString("scanner_rate_map")));
+      // fHistograms.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
 
       //TProfile2D(const char* name, const char* title,
       // Int_t nbinsx, Double_t xlow, Double_t xup,

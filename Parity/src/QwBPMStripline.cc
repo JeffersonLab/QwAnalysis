@@ -290,7 +290,7 @@ template<typename T>
 void  QwBPMStripline<T>::ProcessEvent()
 {
   Bool_t localdebug = kFALSE;
-  static T numer("numerator"), denom("denominator"), tmp1("tmp1"),tmp2("tmp2");
+  static T numer("numerator"), denom("denominator"), ratio("ratio"), tmp1("tmp1"), tmp2("tmp2");
   static T tmppos[2];
  
   tmppos[0].InitializeChannel("tmppos_0","derived");
@@ -338,7 +338,9 @@ void  QwBPMStripline<T>::ProcessEvent()
       numer = fRelPos[i];
       numer.Difference(fWire[i*2],fWire[i*2+1]);
       denom.Sum(fWire[i*2],fWire[i*2+1]);
-      fRelPos[i].Ratio(numer,denom);
+      ratio.Ratio(numer,denom);
+      fRelPos[i].ClearEventData();
+      fRelPos[i] += ratio;
       fRelPos[i].Scale(fQwStriplineCalibration);
 
       if(localdebug)
@@ -357,21 +359,23 @@ void  QwBPMStripline<T>::ProcessEvent()
   for(i=kXAxis;i<kNumAxes;i++) {
     tmp1.ClearEventData();
     tmp2.ClearEventData();
+    tmppos[i].ClearEventData();
     tmp1 = fRelPos[i];
     tmp2 = fRelPos[1-i];
     tmp1.Scale(fCosRotation);
     tmp2.Scale(fSinRotation);
-
-    tmppos[i].ClearEventData();
-    if (i==0) 
-      tmppos[i].Difference(tmp1,tmp2);
-    else
-      tmppos[i].Sum(tmp1,tmp2);
+    if (i == kXAxis) {
+      tmppos[i] += tmp1;
+      tmppos[i] -= tmp2;
+    } else {
+      tmppos[i] += tmp1;
+      tmppos[i] += tmp2;
+    }
   }
-
-
-  fRelPos[0]=tmppos[0];
-  fRelPos[1]=tmppos[1];
+  fRelPos[0].ClearEventData();
+  fRelPos[1].ClearEventData();
+  fRelPos[0] += tmppos[0];
+  fRelPos[1] += tmppos[1];
 
 
   for(i=kXAxis;i<kNumAxes;i++){
@@ -659,7 +663,6 @@ void  QwBPMStripline<T>::FillHistograms()
   }
   return;
 }
-
 
 template<typename T>
 void  QwBPMStripline<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)

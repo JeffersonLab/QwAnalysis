@@ -46,6 +46,9 @@ QwMainDetector::~QwMainDetector()
     delete fSCAs.at(i);
   fSCAs.clear();
 
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
+
   delete fF1TDContainer;
 }
 

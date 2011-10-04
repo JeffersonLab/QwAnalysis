@@ -48,6 +48,7 @@ VQwBCM* VQwBCM::Create(TString subsystemname, TString name, TString type,
     QwWarning << "BCM of type="<<type<<" is UNSUPPORTED!!\n";
     exit(-1);
   }
+  return 0;
 }
 
 // QwCombinedBCM<T> Factory function

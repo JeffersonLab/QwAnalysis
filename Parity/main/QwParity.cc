@@ -279,8 +279,11 @@ Int_t main(Int_t argc, Char_t* argv[])
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
 
-    //  Print error summary for each subsystem
-    detectors.PrintErrorSummary();
+    //  Print the event cut error summary for each subsystem
+    QwMessage << " Event cut error counters" << QwLog::endl;
+    QwMessage << " ========================" << QwLog::endl;
+    detectors.GetEventcutErrorCounters();
+
 
     //  Read from the database
     database.SetupOneRun(eventbuffer);

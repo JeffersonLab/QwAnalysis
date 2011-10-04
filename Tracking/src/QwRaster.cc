@@ -437,8 +437,8 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
       }
     }
 
-    AddHistogram(gQwHists.Construct1DHist(TString("raster_position_x")));
-    AddHistogram(gQwHists.Construct1DHist(TString("raster_position_y")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("raster_position_x")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("raster_position_y")));
   
     AddHistogram(gQwHists.Construct1DHist(TString("bpm_3h07a_pos_x")));
     AddHistogram(gQwHists.Construct1DHist(TString("bpm_3h07a_pos_y")));
@@ -450,6 +450,12 @@ void  QwRaster::ConstructHistograms(TDirectory *folder, TString &prefix)
     fRateMap->GetYaxis()->SetTitle(" Y [mm]");
     gStyle     -> SetPalette(1);
     fRateMap->SetOption("colz");
+
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_x")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("bpm_3h07a_pos_y")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_x")));
+    fHistograms.push_back( gQwHists.Construct1DHist(TString("bpm_3h09b_pos_y")));
+
 }
 
 void  QwRaster::FillHistograms()

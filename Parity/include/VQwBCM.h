@@ -41,9 +41,7 @@ public:
       //InitializeChannel(name,"raw");
   };
 
-  virtual ~VQwBCM() {
-    //DeleteHistograms();
-  };
+  virtual ~VQwBCM() { };
 
   // VQwDataElement virtual functions
   virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0) = 0;
@@ -74,7 +72,7 @@ public:
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) = 0;
   virtual void FillTreeVector(std::vector<Double_t> &values) const = 0;
-  virtual void Copy(VQwDataElement *source) = 0;
+  virtual void Copy(const VQwDataElement *source) = 0;
 
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;
 

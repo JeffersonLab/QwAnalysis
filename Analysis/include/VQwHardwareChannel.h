@@ -30,7 +30,8 @@ class VQwHardwareChannel: public VQwDataElement {
  ******************************************************************/
 public:
   VQwHardwareChannel();
-  virtual ~VQwHardwareChannel() { };
+  VQwHardwareChannel(const VQwHardwareChannel& value);
+  virtual ~VQwHardwareChannel();
 
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
@@ -105,7 +106,17 @@ public:
   virtual void CalculateRunningAverage() = 0;
 //   virtual void AccumulateRunningSum(const VQwHardwareChannel *value) = 0;
 
-  virtual void Copy(const VQwDataElement *source) = 0;
+  /*! \brief Copy method:  Should make a full, identical copy. */
+  virtual void Copy(const VQwDataElement *source);
+  virtual void Copy(const VQwHardwareChannel& source);
+
+  /// Arithmetic assignment operator:  Should only copy event-based data
+  virtual VQwHardwareChannel& operator=(const VQwHardwareChannel& value) {
+    VQwDataElement::operator=(value);
+    fDeviceErrorCode     = value.fDeviceErrorCode;
+    fErrorFlag           = value.fErrorFlag;
+    return *this;
+  }
 
 
   void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };
@@ -152,6 +163,10 @@ protected:
   UInt_t  fNumberOfSubElements; ///< Number of subelements in this data element
 
   EDataToSave fDataToSave;
+
+  /*  Ntuple array indices */
+  size_t fTreeArrayIndex;
+  size_t fTreeArrayNumEntries;
 
   /*! \name Channel calibration                    */
   // @{

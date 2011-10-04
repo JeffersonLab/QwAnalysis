@@ -21,7 +21,6 @@
 
 // Qweak headers
 #include "MQwHistograms.h"
-#include "MQwDataElements.h"
 // Note: the subsystem factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
 #include "QwSubsystemFactory.h"
@@ -57,22 +56,25 @@ class QwParameterFile;
  * This will define the interfaces used in communicating with the
  * CODA routines.
  */
-class VQwSubsystem: virtual public VQwCloneable, public MQwHistograms, public MQwDataElements {
+class VQwSubsystem: virtual public VQwCloneable, public MQwHistograms {
 
  public:
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-  : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
+  : MQwHistograms(),
+    fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
     fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
     ClearAllBankRegistrations();
   }
   /// Copy constructor by object
-  VQwSubsystem(const VQwSubsystem& orig) {
+  VQwSubsystem(const VQwSubsystem& orig)
+  : MQwHistograms(orig) {
     *this = orig;
   }
   /// Copy constructor by pointer
-  VQwSubsystem(const VQwSubsystem* orig) {
+  VQwSubsystem(const VQwSubsystem* orig)
+  : MQwHistograms(*orig) {
     *this = *orig;
   }
   /// Virtual destructor

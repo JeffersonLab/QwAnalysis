@@ -1,6 +1,5 @@
-
 /**********************************************************\
-* File: QwVQWK_Module.h                                           *
+* File: QwVQWK_Module.h                                    *
 *                                                          *
 * Author: P. M. King                                       *
 * Time-stamp: <2007-05-08 15:40>                           *

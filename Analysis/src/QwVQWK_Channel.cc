@@ -767,26 +767,21 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
 {
   if(this ==&value) return *this;
 
-  if (!IsNameEmpty())
-    {
-      VQwHardwareChannel::operator=(value);
-      for (Int_t i=0; i<fBlocksPerEvent; i++){
-        this->fBlock_raw[i] = value.fBlock_raw[i];
-        this->fBlock[i] = value.fBlock[i];
-        this->fBlockM2[i] = value.fBlockM2[i];
-      }
-      this->fHardwareBlockSum_raw = value.fHardwareBlockSum_raw;
-      this->fSoftwareBlockSum_raw = value.fSoftwareBlockSum_raw;
-      this->fHardwareBlockSum = value.fHardwareBlockSum;
-      this->fHardwareBlockSumM2 = value.fHardwareBlockSumM2;
-      this->fHardwareBlockSumError = value.fHardwareBlockSumError;
-      this->fGoodEventCount=value.fGoodEventCount;
-      this->fNumberOfSamples = value.fNumberOfSamples;
-      this->fSequenceNumber  = value.fSequenceNumber;
-      this->fErrorFlag       = (value.fErrorFlag);
-      this->fDeviceErrorCode = (value.fDeviceErrorCode);
+  if (!IsNameEmpty()) {
+    VQwHardwareChannel::operator=(value);
+    for (Int_t i=0; i<fBlocksPerEvent; i++){
+      this->fBlock_raw[i] = value.fBlock_raw[i];
+      this->fBlock[i]     = value.fBlock[i];
+      this->fBlockM2[i]   = value.fBlockM2[i];
     }
-
+    this->fHardwareBlockSum_raw = value.fHardwareBlockSum_raw;
+    this->fSoftwareBlockSum_raw = value.fSoftwareBlockSum_raw;
+    this->fHardwareBlockSum = value.fHardwareBlockSum;
+    this->fHardwareBlockSumM2 = value.fHardwareBlockSumM2;
+    this->fHardwareBlockSumError = value.fHardwareBlockSumError;
+    this->fNumberOfSamples = value.fNumberOfSamples;
+    this->fSequenceNumber  = value.fSequenceNumber;
+  }
   return *this;
 }
 
@@ -1005,15 +1000,13 @@ void QwVQWK_Channel::Product(const QwVQWK_Channel &value1, const QwVQWK_Channel 
 }
 
 /**
-This function will add a offset to the hw_sum and add offset/fBlocksPerEvent for blocks.
+This function will add a offset to the hw_sum and add the same offset for blocks.
  */
 void QwVQWK_Channel::AddChannelOffset(Double_t offset)
 {
-  Double_t blockoffset = offset / fBlocksPerEvent;
-
   if (!IsNameEmpty()){
       fHardwareBlockSum += offset;
-      for (Int_t i=0; i<fBlocksPerEvent; i++) fBlock[i] += blockoffset;
+      for (Int_t i=0; i<fBlocksPerEvent; i++) fBlock[i] += offset;
   }
   return;
 }
@@ -1356,52 +1349,42 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
   return status;
 }
 
+void QwVQWK_Channel::Copy(const VQwDataElement *source){
+  const QwVQWK_Channel* input =
+    dynamic_cast<const QwVQWK_Channel*>(source);
+  if (input == NULL){
+    TString loc="Standard exception from QwVQWK_Channel::Copy = "
+      +source->GetElementName()+" "
+      +this->GetElementName()+" are not of the same type";
+    throw(std::invalid_argument(loc.Data()));
+  } else {
+    Copy(*input);
+  }
+}
 
-
-
-
-void QwVQWK_Channel::Copy(const VQwDataElement *source)
+void QwVQWK_Channel::Copy(const QwVQWK_Channel& input)
 {
-    try
-    {
-     if(typeid(*source)==typeid(*this))
-       {
-         VQwDataElement::operator=(*source);
-         const QwVQWK_Channel* input = dynamic_cast<const QwVQWK_Channel*>(source);
-	 this->fSubsystemName         = input->fSubsystemName;
-	 this->fModuleType            = input->fModuleType;
-	 this->fElementName           = input->fElementName;
-	 this->fErrorFlag             = input->fErrorFlag;
-	 this->fPedestal              = input->GetPedestal();
-	 this->fCalibrationFactor     = input->GetCalibrationFactor();
-	 this->fDataToSave            = kDerived;
-	 this->fDeviceErrorCode       = input->fDeviceErrorCode;
-	 this->fGoodEventCount        = input->fGoodEventCount;
-	 this->fNumberOfSamples       = input->fNumberOfSamples;
-	 this->fHardwareBlockSum      = input->fHardwareBlockSum;
-	 this->fHardwareBlockSumError = input->fHardwareBlockSumError;
-	 this->fGoodEventCount=input->fGoodEventCount;
+  VQwHardwareChannel::Copy(input);
+  fBlocksPerEvent = input.fBlocksPerEvent;
+  fNumberOfSamples_map = input.fNumberOfSamples_map;
+  fSaturationABSLimit  = input.fSaturationABSLimit;
+  //  Copy the flags used for tree trimming
+  bHw_sum            = input.bHw_sum;
+  bHw_sum_raw        = input.bHw_sum_raw;
+  bBlock             = input.bBlock;
+  bBlock_raw         = input.bBlock_raw;
+  bNum_samples       = input.bNum_samples;
+  bDevice_Error_Code = input.bDevice_Error_Code;
+  bSequence_number   = input.bSequence_number;
 
-	 for(Int_t i=0; i<4; i++ ) {
-	   this->fBlock[i] = input->fBlock[i];
-	   this->fBlockError[i] = input->fBlockError[i];
-	 }
-
-       }
-     else
-       {
-	 TString loc="Standard exception from QwVQWK_Channel::Copy = "
-	   +source->GetElementName()+" "
-	   +this->GetElementName()+" are not of the same type";
-	 throw std::invalid_argument(loc.Data());
-       }
-    }
-    catch (std::exception& e)
-      {
-	std::cerr << e.what() << std::endl;
-      }
-
-    return;
+  this->fNumberOfSamples       = input.fNumberOfSamples;
+  this->fHardwareBlockSum      = input.fHardwareBlockSum;
+  this->fHardwareBlockSumError = input.fHardwareBlockSumError;
+  this->fGoodEventCount=input.fGoodEventCount;
+  for(Int_t i=0; i<4; i++ ) {
+    this->fBlock[i] = input.fBlock[i];
+    this->fBlockError[i] = input.fBlockError[i];
+  }
 }
 
 void  QwVQWK_Channel::PrintErrorCounterHead(){

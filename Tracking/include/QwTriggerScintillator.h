@@ -32,7 +32,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<Qw
    ******************************************************************/
  public:
   QwTriggerScintillator(TString region_tmp);
-  ~QwTriggerScintillator();
+  virtual ~QwTriggerScintillator();
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);

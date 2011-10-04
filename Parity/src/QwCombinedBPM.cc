@@ -567,11 +567,11 @@ template<typename T>
 
    zpos = this->GetPositionInZ();
    //UInt_t err_flag=fAbsPos[axis].GetEventcutErrorFlag();   
-   fAbsPos[axis]= fIntercept[axis]; // X =  b
+   fAbsPos[axis] += fIntercept[axis]; // X =  b
    //fAbsPos[axis].ResetErrorFlag(err_flag);
    tmp1 = fSlope[axis];
    tmp1.Scale(zpos); //az
-   fAbsPos[axis]+=tmp1;  //X = az+b
+   fAbsPos[axis] += tmp1;  //X = az+b
 
    // to perform the minimul chi-square test
    tmp2.ClearEventData();

@@ -125,6 +125,7 @@ public:
   };
 
   void Copy(const VQwDataElement *source);
+  void Copy(const VQwScaler_Channel &source);
 
   void PrintValue() const;
   void PrintInfo() const;
@@ -153,9 +154,6 @@ protected:
   std::string fNormChannelName;
   Bool_t fNeedsExternalClock;
 
-  /*  Ntuple array indices */
-  size_t fTreeArrayIndex;
-  size_t fTreeArrayNumEntries;
 
   Int_t fNumEvtsWithHWErrors;//counts the HW falied events
   Int_t fNumEvtsWithEventCutsRejected;////counts the Event cut rejected events

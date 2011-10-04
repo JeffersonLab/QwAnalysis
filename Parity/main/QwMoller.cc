@@ -277,7 +277,7 @@ int main(int argc, char* argv[])
     // Close data file and print run summary
     eventbuffer.CloseDataFile();
     eventbuffer.ReportRunSummary();
-        
+
   } // end of loop over runs
 
       if (eventbuffer.IsEndOfBurst()) {

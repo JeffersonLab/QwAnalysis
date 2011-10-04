@@ -13,6 +13,67 @@ VQwHardwareChannel::VQwHardwareChannel():
   fLLimit = 0.0;
 }
 
+VQwHardwareChannel::VQwHardwareChannel(const VQwHardwareChannel& value)
+  :VQwDataElement(value),
+   fNumberOfDataWords(value.fNumberOfDataWords),
+   fNumberOfSubElements(value.fNumberOfSubElements),
+   fDataToSave(value.fDataToSave),
+   fTreeArrayIndex(value.fTreeArrayIndex),
+   fTreeArrayNumEntries(value.fTreeArrayNumEntries),
+   fPedestal(value.fPedestal),
+   fCalibrationFactor(value.fCalibrationFactor),
+   kFoundPedestal(value.kFoundPedestal),
+   kFoundGain(value.kFoundGain),
+   bEVENTCUTMODE(value.bEVENTCUTMODE),
+   fULimit(value.fULimit),
+   fLLimit(value.fLLimit),
+   fStability(value.fStability),
+   fDeviceErrorCode(value.fDeviceErrorCode),
+   fErrorFlag(value.fErrorFlag),
+   fDefErrorFlag(value.fDefErrorFlag)
+{
+}
+
+
+VQwHardwareChannel::~VQwHardwareChannel()
+{
+}
+
+
+void VQwHardwareChannel::Copy(const VQwDataElement *source){
+  const VQwHardwareChannel* lsource = 
+    dynamic_cast<const VQwHardwareChannel*>(source);
+  if (lsource == NULL){
+    TString loc="VQwHardwareChannel::Copy for "
+      +this->GetElementName()+" failed with input "
+      +source->GetElementName();
+    throw(std::invalid_argument(loc.Data()));
+  } else {
+    Copy(*lsource);
+  }
+}
+
+void VQwHardwareChannel::Copy(const VQwHardwareChannel& source){
+  VQwDataElement::Copy(source);
+  fNumberOfDataWords   = source.fNumberOfDataWords;
+  fNumberOfSubElements = source.fNumberOfSubElements;
+  fDataToSave          = source.fDataToSave;
+  fTreeArrayIndex      = source.fTreeArrayIndex;
+  fTreeArrayNumEntries = source.fTreeArrayNumEntries;
+  fPedestal            = source.fPedestal;
+  fCalibrationFactor   = source.fCalibrationFactor;
+  kFoundPedestal       = source.kFoundPedestal;
+  kFoundGain           = source.kFoundGain;
+  bEVENTCUTMODE        = source.bEVENTCUTMODE;
+  fULimit              = source.fULimit;
+  fLLimit              = source.fLLimit;
+  fStability           = source.fStability;
+  fDeviceErrorCode     = source.fDeviceErrorCode;
+  fErrorFlag           = source.fErrorFlag;
+  fDefErrorFlag        = source.fDefErrorFlag;
+}
+
+
 UInt_t VQwHardwareChannel::GetEventcutErrorFlag()
 {
   // return the error flag
