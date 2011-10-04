@@ -162,7 +162,7 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
 	//fChargeRunningSum.PrintValue();
 	QwMessage << " Running Average +/- width "<<fChargeRunningSum.GetValue()<<" +/- "<<fChargeRunningSum.GetValueWidth()<<" Stable width < "<<fStability<<QwLog::endl;
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
-	fErrorCode|=kBeamStabilityError;//set hold_off events with beam stability error
+	fErrorCode=kBeamStabilityError;//set hold_off events with beam stability error
 	//bEVENT_READY_ev3=kFALSE;
 	for(Int_t i=0;i<fRING_SIZE;i++)//update the global error code for events in the ring with the stability cut failed error 
 	  fEvent_Ring[i].UpdateEventcutErrorFlag(fErrorCode);
