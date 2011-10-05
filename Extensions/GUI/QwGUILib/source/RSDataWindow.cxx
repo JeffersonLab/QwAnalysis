@@ -1446,7 +1446,7 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
     gPad->RedrawAxis();      
     gPad->Modified();
     gPad->Update();
-//     DrawLegend();
+    DrawLegend();
 
   }
   gPad->SetLogy(1);
@@ -2119,6 +2119,7 @@ Int_t RSDataWindow::DrawData(Double_t *x, Double_t *y, Double_t *ye, Int_t range
 
 Int_t RSDataWindow::DrawLegend(TLegend *leg)
 {
+  TObject *cplot = NULL;
   TCanvas *aC = GetPlotCanvas();
   aC->cd();
 
@@ -2133,28 +2134,37 @@ Int_t RSDataWindow::DrawLegend(TLegend *leg)
     if(fLegend){
       fLegend->SetY1NDC(fLegend->GetY1NDC()*3/2-fLegend->GetY2NDC()/2);
       
-      if(fCurrPlot){
-	if(fCurrPlot->InheritsFrom("TF1"))
-	  fLegend->AddEntry(fCurrPlot,
-			    fCurrPlot->GetTitle(),"l");
-	else if(fCurrPlot->InheritsFrom("TH1"))
-	  fLegend->AddEntry(fCurrPlot,
-			    fCurrPlot->GetTitle(),"lp");
-	else if(fCurrPlot->InheritsFrom("TGraph"))
-	  fLegend->AddEntry(fCurrPlot,
-			    fCurrPlot->GetTitle(),"p");	 
-	else if(fCurrPlot->InheritsFrom("TMultiGraph")){
-	  TMultiGraph *mgr = (TMultiGraph *)fCurrPlot;
-	  TList *graphs = NULL;
-	  if(mgr) graphs = mgr->GetListOfGraphs();
-	  if(graphs){
-	    for(int i = 0; i < graphs->GetSize(); i++){
-	      fLegend->AddEntry(graphs->At(i),
-				graphs->At(i)->GetTitle(),"p");
-	    }	 
+      Int_t pcnt = dPlotCont->GetPlotCount();
+
+      for(int i = 0; i < pcnt; i++){
+      
+	cplot = dPlotCont->GetPlot(i);
+
+	if(cplot){
+	  if(cplot->InheritsFrom("TF1"))
+	    fLegend->AddEntry(cplot,
+			      cplot->GetTitle(),"l");
+	  else if(cplot->InheritsFrom("TH1"))
+	    fLegend->AddEntry(cplot,
+			      cplot->GetTitle(),"lp");
+	  else if(cplot->InheritsFrom("TGraphErrors"))
+	    fLegend->AddEntry(cplot,
+			      cplot->GetTitle(),"lp");	 
+	  else if(cplot->InheritsFrom("TGraph"))
+	    fLegend->AddEntry(cplot,
+			      cplot->GetTitle(),"p");	 
+	  else if(cplot->InheritsFrom("TMultiGraph")){
+	    TMultiGraph *mgr = (TMultiGraph *)cplot;
+	    TList *graphs = NULL;
+	    if(mgr) graphs = mgr->GetListOfGraphs();
+	    if(graphs){
+	      for(int i = 0; i < graphs->GetSize(); i++){
+		fLegend->AddEntry(graphs->At(i),
+				  graphs->At(i)->GetTitle(),"p");
+	      }	 
+	    }
 	  }
 	}
-      }
       //     for(int i = 0; i < dPlotCont->GetPlotCount(); i++){
       //       if(dPlotCont->GetObject(i)->InheritsFrom("TF1"))
       // 	fLegend->AddEntry(dPlotCont->GetObject(i),
@@ -2177,9 +2187,10 @@ Int_t RSDataWindow::DrawLegend(TLegend *leg)
       // 	}
       //       }
       //     }
-      fLegend->SetTextFont(62);
-      fLegend->SetTextSize(0.04);
-      fLegend->Draw();
+	fLegend->SetTextFont(62);
+	fLegend->SetTextSize(0.04);
+	fLegend->Draw();
+      }
     }
   }
   

@@ -104,7 +104,7 @@
 
 class QwGUIMain : public TGMainFrame {
 
-  RQ_OBJECT("QwGUIMain");
+  /* RQ_OBJECT("QwGUIMain"); */
 
  private:
 
@@ -113,6 +113,9 @@ class QwGUIMain : public TGMainFrame {
 
   //!Every instantiated subsystem gets added to this object array, as a cleanup mechanism.
   TObjArray               SubSystemArray;
+
+  //!Array to store and keep track of separate data plot windows for cleanup and communiation 
+  TObjArray               DataWindowArray;
 
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
@@ -143,6 +146,14 @@ class QwGUIMain : public TGMainFrame {
   Int_t                   MCnt;
 
   Int_t                   dCurrentSegment;
+
+  //!Index (in DataWindowArray) of the currently slected data window
+  Int_t                dSelectedDataWindow;
+
+  //!This should be used for proper clean up when a particular data window is closed by the
+  //!user.
+  UInt_t               dWinCnt;
+
 
   //!The following two flags are used in process increment dialog boxes
   Bool_t                  dProcessing;
@@ -234,6 +245,7 @@ class QwGUIMain : public TGMainFrame {
   vector <TString>        dFilePrefix;
   vector <TH1F*>          dMainHistos;
   vector <TGraph*>        dMainGraphs;
+  vector <TObject*>       dMainPlotsArray;
 
   EventOptions            dCurrentRunEventOptions;
 
@@ -638,6 +650,8 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: none
   void                   OnReceiveMessage(const char *);
 
+  void                   OnUpdatePlot(const char*);
+
   //!Receiver function, called when a connected canvas pad is mouse selected.
   //!
   //!Parameters:
@@ -661,6 +675,13 @@ class QwGUIMain : public TGMainFrame {
   virtual Bool_t         ProcessMessage(Long_t msg, Long_t parm1, Long_t);
 
   virtual Bool_t         HandleKey(Event_t *event);
+
+  void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
+  void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
+  QwGUIDataWindow     *GetSelectedDataWindow(); 
+  void                 CleanUpDataWindows();
+  UInt_t               GetNewWindowCount(){ return ++dWinCnt;};
+
 
   ///This function is called to remove a tab.
   ///Each subsystem class must call this function on desstruction, to remove its tab.
