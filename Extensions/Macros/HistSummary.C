@@ -3,7 +3,7 @@
 //  Author(s):  Paul King <pking@jlab.org>
 //  ChangeLog:  * Mon Oct 03 2011 Paul King <pking@jlab.org>
 //              - Initial working version
-//  Summary:    This just scours the specified rootfile and produces 
+//  Summary:    This just scours the specified rootfile and produces
 //              a text summary of all directories, histograms, and
 //              text objects in the rootfile.
 //              This script does not enter TTrees, but will identify them
@@ -19,14 +19,14 @@
 //              Then it is useful to just diff two different outputs and check
 //              that no unintentional changes were made.
 ///////////////////////////////////////////////////////////////////////////////
+#include <iostream>
 #include <iomanip>
 #include "TH1.h"
 #include "TH2.h"
-#include "TObject.h"
+#include "TKey.h"
+#include "TFile.h"
 
 
-//  This function identifies the type of the object and
-//  dispatches it to the proper Summarize function.
 void HandleObject(TObject* object);
 
 void PrintHeader(const char* first, const char* second){
@@ -96,7 +96,7 @@ void Summarize_Directory(TObject* object){
     TIter nextkey(obj->GetListOfKeys());
     TKey *key;
     TObject *object;
-    while (key = (TKey*)nextkey()) {
+    while ((key = (TKey*)nextkey())) {
       object = key->ReadObj();
       HandleObject(object);
     }
@@ -114,7 +114,7 @@ void Summarize_List(TObject* object){
     TString listname = obj->GetName();
     TIter next = obj->MakeIterator();
     TObject *new_obj;
-    while (new_obj = next()){
+    while ((new_obj = next())){
       if (new_obj->ClassName()==objstring_name){
 	PrintHeader(listname, new_obj->GetName());
 	std::cout << std::endl;
@@ -129,6 +129,8 @@ void Summarize_List(TObject* object){
 //  Variable only used by HandleObject; declared global to make it static.
 TString gClassname;
 
+//  This function identifies the type of the object and
+//  dispatches it to the proper Summarize function.
 void HandleObject(TObject* object){
   //  We use the TObject's ClassName, because there seems to be problems
   //  where the dynamic_cast incorrectly returns a valid pointer when
