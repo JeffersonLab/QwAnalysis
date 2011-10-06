@@ -1518,8 +1518,9 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
 
   TString table_links = "";
 
-  /*Runs vs Slugs*/
-  if((dCmbXAxis->GetSelected()) == ID_X_RUN){
+  /*Runs vs Slugsvs Histograms*/
+ 
+  if(((dCmbXAxis->GetSelected()) == ID_X_RUN) || ((dCmbXAxis->GetSelected()) == ID_X_HISTO)) {
     outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms, (data.run_number+data.segment_number*0.1) AS x_value,";
     special_cuts += Form(" AND measurement_type = 'a'  AND data.run_number > %i  AND data.run_number < %i ",index_first, index_last);
   }
@@ -1950,7 +1951,7 @@ Histogram detector data for the given range
 
 *******************************************/
 
-void QwGUIDatabase::HistogramDetector(TString detector, TString measured_property, Int_t det_id)
+void QwGUIDatabase::HistogramDetector()
 {
 
   Bool_t ldebug = kTRUE;
@@ -1983,9 +1984,11 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
     // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
     Int_t   subblock          = dCmbSubblock -> GetSelected();
     TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
-    TString device            = Form("%s%s",detector.Data(),measured_property.Data());
+    TString property	      = Form("%s",property.Data());
+    TString device            = Form("%s",detector.Data());
     TString target            = Targets[dCmbTargetType->GetSelected()];
     TString plot              = Plots[dCmbPlotType->GetSelected()];
+    Int_t det_id              = dCmbInstrument->GetSelected();
 
     //Get run quality cut information
     Bool_t quality[3] = {kFALSE, kFALSE, kFALSE};
@@ -2046,77 +2049,20 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
       all_runs.Fill(x);
     }
 
-    TVectorF x_in(row_size), xerr_in(row_size);
-    TVectorF x_out(row_size), xerr_out(row_size);
-    TVectorF run_in(row_size), run_out(row_size);
-    TVectorF err_in(row_size), err_out(row_size);
+    THStack *hs = new THStack("hs","");
+    TH1F *h_in_L = new TH1F("h_in_L","",1000,-10,10);
+    TH1F *h_in_R = new TH1F("h_in_R","",1000,-10,10);
+    TH1F *h_out_L = new TH1F("h_out_L","",1000,-10,10);
+    TH1F *h_out_R = new TH1F("h_out_R","",1000,-10,10);
+    TH1F *h_suspect = new TH1F("h_suspect","",1000,-10,10);
+    TH1F *h_bad = new TH1F("h_bad","",1000,-10,10);
 
-    TVectorF x_in_L(row_size), xerr_in_L(row_size);
-    TVectorF x_out_L(row_size), xerr_out_L(row_size);
-    TVectorF run_in_L(row_size), run_out_L(row_size);
-    TVectorF err_in_L(row_size), err_out_L(row_size);
-
-    TVectorF x_bad(row_size), xerr_bad(row_size);
-    TVectorF run_bad(row_size);
-    TVectorF err_bad(row_size);
-
-    TVectorF x_suspect(row_size), xerr_suspect(row_size);
-    TVectorF run_suspect(row_size);
-    TVectorF err_suspect(row_size);
-
-    x_in.Clear();
-    x_in.ResizeTo(row_size);
-    xerr_in.Clear();
-    xerr_in.ResizeTo(row_size);
-    run_in.Clear();
-    run_in.ResizeTo(row_size);
-    err_in.Clear();
-    err_in.ResizeTo(row_size);
-
-    x_out.Clear();
-    x_out.ResizeTo(row_size);
-    xerr_out.Clear();
-    xerr_out.ResizeTo(row_size);
-    run_out.Clear();
-    run_out.ResizeTo(row_size);
-    err_out.Clear();
-    err_out.ResizeTo(row_size);
-
-    x_in_L.Clear();
-    x_in_L.ResizeTo(row_size);
-    xerr_in_L.Clear();
-    xerr_in_L.ResizeTo(row_size);
-    run_in_L.Clear();
-    run_in_L.ResizeTo(row_size);
-    err_in_L.Clear();
-    err_in_L.ResizeTo(row_size);
-
-    x_out_L.Clear();
-    x_out_L.ResizeTo(row_size);
-    xerr_out_L.Clear();
-    xerr_out_L.ResizeTo(row_size);
-    run_out_L.Clear();
-    run_out_L.ResizeTo(row_size);
-    err_out_L.Clear();
-    err_out_L.ResizeTo(row_size);
-
-    x_bad.Clear();
-	x_bad.ResizeTo(row_size);
-	xerr_bad.Clear();
-	xerr_bad.ResizeTo(row_size);
-	run_bad.Clear();
-	run_bad.ResizeTo(row_size);
-	err_bad.Clear();
-	err_bad.ResizeTo(row_size);
-
-	x_suspect.Clear();
-	x_suspect.ResizeTo(row_size);
-	xerr_suspect.Clear();
-	xerr_suspect.ResizeTo(row_size);
-	run_suspect.Clear();
-	run_suspect.ResizeTo(row_size);
-	err_suspect.Clear();
-	err_suspect.ResizeTo(row_size);
+    TF1* fit1 = NULL;
+    TF1* fit2 = NULL;
+    TF1* fit3 = NULL;
+    TF1* fit4 = NULL;
+    TF1* fit5 = NULL;    
+    TF1* fit6 = NULL;
 
     Int_t m = 0;
     Int_t k = 0;
@@ -2132,76 +2078,57 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
       { 	    
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
 	  if(plot.Contains("RMS") == 1){
-	    x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
-	    xerr = 0.0;
+ 	    x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
 	  }
 	  else {
 	    x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
-	    xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
 	  }
 	} 
 	else{
 	  if(plot.Contains("RMS") == 1){
-	    x    = (read_data[i]["rms"]);
-	    xerr = 0.0;
+ 	    x    = (read_data[i]["rms"]);
 	  }
 	  else {
 	    x    = read_data[i]["value"];
-	    xerr = read_data[i]["error"];
 	  }
 	}
 	if(read_data[i]["run_quality_id"] == "1"){
-		if(read_data[i]["slow_helicity_plate"] == "out") {
-		  if (read_data[i]["wien_reversal"]*1 == 1){
-			run_out.operator()(k)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-			x_out.operator()(k)    = x;
-			xerr_out.operator()(k) = xerr;
-			err_out.operator()(k)  = 0.0;
-			k++;
-		  } else {
-			run_out_L.operator()(l)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-			x_out_L.operator()(l)    = x;
-			xerr_out_L.operator()(l) = xerr;
-			err_out_L.operator()(l)  = 0.0;
-			l++;
-		  }
+	  if(read_data[i]["slow_helicity_plate"] == "out") {
+	    if (read_data[i]["wien_reversal"]*1 == 1){
+	      h_out_R->Fill(x);
+	      k++;
+	    } else {
+	      h_out_L->Fill(x);
+ 	      l++;
+	    }
+	    
+	  }
 
-		}
+	  if(read_data[i]["slow_helicity_plate"] == "in") {
+	    if (read_data[i]["wien_reversal"]*1 == 1){
+	      h_in_R->Fill(x);
+ 	      m++;
+	    } else {
+	      h_in_L->Fill(x);
+	      n++;
 
-		if(read_data[i]["slow_helicity_plate"] == "in") {
-		  if (read_data[i]["wien_reversal"]*1 == 1){
-			run_in.operator()(m)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-			x_in.operator()(m)    = x;
-			xerr_in.operator()(m) = xerr;
-			err_in.operator()(m)  = 0.0;
-			m++;
-		  } else {
-			run_in_L.operator()(n)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-			x_in_L.operator()(n)    = x;
-			xerr_in_L.operator()(n) = xerr;
-			err_in_L.operator()(n)  = 0.0;
-			n++;
-
-		  }
-		}
+	    }
+	  }
+	}
+	
+	if((read_data[i]["run_quality_id"] == "2")   | //or
+	   (read_data[i]["run_quality_id"] == "1,2") | //or
+	   (read_data[i]["run_quality_id"] == "2,3") ) { //all instances of bad
+	  h_bad->Fill(x);
+ 	  o++;
 	}
 
-	if(read_data[i]["run_quality_id"] == "2") {//bad
-		    run_bad.operator()(o)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-		    x_bad.operator()(o)    = x;
-		    xerr_bad.operator()(o) = xerr;
-		    err_bad.operator()(o)  = 0.0;
-		    o++;
-		}
-
-		if(read_data[i]["run_quality_id"] == "3") {//suspect
-		    run_suspect.operator()(p)  = read_data[i]["run_number"]+(read_data[i]["segment_number"]*0.1);
-		    x_suspect.operator()(p)    = x;
-		    xerr_suspect.operator()(p) = xerr;
-		    err_suspect.operator()(p)  = 0.0;
-		    p++;
-		}
-
+	if((read_data[i]["run_quality_id"] == "3") | //suspect or
+	  (read_data[i]["run_quality_id"] == "1,3")) {// suspect (but not bad)
+	  h_suspect->Fill(x);
+ 	  p++;
+	}
+	
       }
 
     // Check to make sure graph is not empty.
@@ -2213,77 +2140,42 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
       std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
     
 
-//GROUP_IN
-	run_in.ResizeTo(m);
-	x_in.ResizeTo(m);
-	err_in.ResizeTo(m);
-	xerr_in.ResizeTo(m);
-
-	TGraphErrors* grp_in  = new TGraphErrors(run_in,  x_in, err_in, xerr_in);
-	grp_in ->SetMarkerSize(0.6);
-	grp_in ->SetMarkerStyle(21);
-	grp_in ->SetMarkerColor(kBlue);
+//GROUP_IN_R
+    h_in_R ->SetMarkerSize(1.0);
+    h_in_R ->SetMarkerStyle(21);
+    h_in_R ->SetMarkerColor(kBlue);
 
 //GROUP_IN_L
-	run_in_L.ResizeTo(n);
-	x_in_L.ResizeTo(n);
-	err_in_L.ResizeTo(n);
-	xerr_in_L.ResizeTo(n);
 
-	TGraphErrors* grp_in_L  = new TGraphErrors(run_in_L,  x_in_L, err_in_L, xerr_in_L);
-	grp_in_L ->SetMarkerSize(0.6);
-	grp_in_L ->SetMarkerStyle(21);
-	grp_in_L ->SetMarkerColor(kOrange);
+	h_in_L ->SetMarkerSize(1.0);
+	h_in_L ->SetMarkerStyle(21);
+	h_in_L ->SetMarkerColor(kOrange);
+    
 
-//GROUP_OUT
-	run_out.ResizeTo(k);
-	x_out.ResizeTo(k);
-	err_out.ResizeTo(k);
-	xerr_out.ResizeTo(k);
-
-	TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
-	grp_out ->SetMarkerSize(0.6);
-	grp_out ->SetMarkerStyle(21);
-	grp_out ->SetMarkerColor(kRed);
+//GROUP_OUT_R
+	h_out_R ->SetMarkerSize(1.0);
+	h_out_R ->SetMarkerStyle(21);
+	h_out_R ->SetMarkerColor(kRed);
 
 //GROUP_OUT_L
-	run_out_L.ResizeTo(l);
-	x_out_L.ResizeTo(l);
-	err_out_L.ResizeTo(l);
-	xerr_out_L.ResizeTo(l);
-
-	TGraphErrors* grp_out_L = new TGraphErrors(run_out_L, x_out_L, err_out_L, xerr_out_L);
-	grp_out_L ->SetMarkerSize(0.6);
-	grp_out_L ->SetMarkerStyle(21);
-	grp_out_L ->SetMarkerColor(kViolet);
+	h_out_L ->SetMarkerSize(1.0);
+	h_out_L ->SetMarkerStyle(21);
+	h_out_L ->SetMarkerColor(kViolet);
 
 //GROUP_BAD
-	run_bad.ResizeTo(o);
-	x_bad.ResizeTo(o);
-	err_bad.ResizeTo(o);
-	xerr_bad.ResizeTo(o);
-
-	TGraphErrors* grp_bad = new TGraphErrors(run_bad, x_bad, err_bad, xerr_bad);
-	grp_bad ->SetMarkerSize(1.2);
-	grp_bad ->SetMarkerStyle(29);
-	grp_bad ->SetMarkerColor(kBlack);
+	h_bad ->SetMarkerSize(1.0);
+	h_bad ->SetMarkerStyle(29);
+	h_bad ->SetMarkerColor(kBlack);
 
 //GROUP_SUSPECT
-	run_suspect.ResizeTo(p);
-	x_suspect.ResizeTo(p);
-	err_suspect.ResizeTo(p);
-	xerr_suspect.ResizeTo(p);
-
-	TGraphErrors* grp_suspect = new TGraphErrors(run_suspect, x_suspect, err_suspect, xerr_suspect);
-	grp_suspect ->SetMarkerSize(1.2);
-	grp_suspect ->SetMarkerStyle(29);
-	grp_suspect ->SetMarkerColor(kGreen);
-
-    TMultiGraph * grp = new TMultiGraph();
+	h_suspect ->SetMarkerSize(1.0);
+	h_suspect ->SetMarkerStyle(29);
+	h_suspect ->SetMarkerColor(kGreen);
 
 
-    TString y_title = GetYTitle(measurement_type, det_id);
-    TString title   = GetTitle(measurement_type, device);
+
+	TString y_title = GetYTitle(measurement_type, det_id);
+	TString title   = GetTitle(measurement_type, device);
 
     if(plot.Contains("RMS"))
       {
@@ -2292,34 +2184,78 @@ void QwGUIDatabase::HistogramDetector(TString detector, TString measured_propert
       }
 
 
-    if(m>0)grp->Add(grp_in);
-    if(k>0)grp->Add(grp_out);
-    if(n>0)grp->Add(grp_in_L);
-    if(l>0)grp->Add(grp_out_L);
-    if(o>0)grp->Add(grp_bad);
-    if(p>0)grp->Add(grp_suspect);
+    if(m>0){
+      hs->Add(h_in_R);
+      h_in_R ->Fit("gaus");
+      fit1 = h_in_R->GetFunction("gaus");
+      fit1 -> SetLineColor(kBlue);
+    }
+    if(k>0){
+      hs->Add(h_out_R);
+      h_out_R ->Fit("gaus");
+      fit2 = h_out_R->GetFunction("gaus");
+      fit2 -> SetLineColor(kRed);
+    }
+    if(n>0){
+      hs->Add(h_in_L);
+      h_in_L ->Fit("gaus");
+      fit3 = h_in_L->GetFunction("gaus");
+      fit3 -> SetLineColor(kOrange);
+   
+    }
+    if(l>0){
+      hs->Add(h_out_L);
+      h_out_L ->Fit("gaus");
+      fit4 = h_out_L->GetFunction("gaus");
+      fit4 -> SetLineColor(kViolet);
+    }
+    if(o>0){
+      hs->Add(h_bad);
+      h_bad ->Fit("gaus");
+      fit5 = h_bad->GetFunction("gaus");
+      fit5 -> SetLineColor(kBlack);
+    }
+    if(p>0){
+      hs->Add(h_suspect);
+      h_suspect ->Fit("gaus");
+      fit6 = h_suspect->GetFunction("gaus");
+      fit6 -> SetLineColor(kGreen);
+    }
 
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in,      "IHWP-IN-R", "p");
-    if(k>0) legend->AddEntry(grp_out,     "IHWP-OUT-R", "p");
-    if(n>0) legend->AddEntry(grp_in_L,    "IHWP-IN-L", "p");
-    if(l>0) legend->AddEntry(grp_out_L,   "IHWP-OUT-L", "p");
-    if(o>0) legend->AddEntry(grp_bad, "Bad", "p");
-    if(p>0) legend->AddEntry(grp_suspect, "Suspect", "p");
+    if(m>0) legend->AddEntry(h_in_R, Form("<IN_R>  = %2.3f#pm%2.3f", 
+				  fit1->GetParameter(1), fit1->GetParError(1)), "p");
+    if(k>0) legend->AddEntry(h_out_R,Form("<OUT_R> = %2.3f#pm%2.3f", 
+				  fit2->GetParameter(1), fit2->GetParError(1)), "p");
+    if(n>0) legend->AddEntry(h_in_L, Form("<IN_L>  = %2.3f#pm%2.3f", 
+				  fit3->GetParameter(1), fit3->GetParError(1)), "p");
+    if(l>0) legend->AddEntry(h_out_L,Form("<OUT_L> = %2.3f#pm%2.3f", 
+				  fit4->GetParameter(1), fit4->GetParError(1)), "p");
+    if(o>0) legend->AddEntry(h_bad,Form("<OUT_L> = %2.3f#pm%2.3f", 
+				  fit5->GetParameter(1), fit5->GetParError(1)), "p");
+    if(p>0) legend->AddEntry(h_suspect,Form("<OUT_L> = %2.3f#pm%2.3f", 
+				  fit6->GetParameter(1), fit6->GetParError(1)), "p");
+
+
     legend->SetFillColor(0);
     
     mc->cd();
-    grp->Draw("AP");
+    hs->Draw("nostack,ap");
+    if(m>0)fit1->Draw("same");
+    if(k>0)fit2->Draw("same");
+
     legend->Draw("");
     
-    grp->SetTitle(title);
-    grp->GetYaxis()->SetTitle(y_title);
-    grp->GetYaxis()->SetTitleOffset(2);
-    grp->GetXaxis()->SetTitleOffset(2);
-    grp->GetYaxis()->SetTitleSize(0.03);
-    grp->GetXaxis()->SetTitleSize(0.03);
-    grp->GetYaxis()->CenterTitle();
+    
+    hs->SetTitle(title);
+    hs->GetYaxis()->SetTitleOffset(2);
+    hs->GetYaxis()->SetTitle("Runlets");
+    hs->GetXaxis()->SetTitle(y_title);
+    hs->GetXaxis()->SetTitleOffset(2);
+    hs->GetYaxis()->SetTitleSize(0.03);
+    hs->GetXaxis()->SetTitleSize(0.03);
+    hs->GetYaxis()->CenterTitle();
     
     
     mc->Modified();
@@ -2551,15 +2487,15 @@ TString QwGUIDatabase::GetTitle(TString measurement_type, TString device)
     case ID_X_HISTO:
     case ID_X_RUN:
       if (measurement_type == "y") 
-	title = Form("%s Yield vs Run Number",device.Data());
+	title = Form("%s Yield vs Runlet Number",device.Data());
       if (measurement_type == "a" || measurement_type == "aeo" || measurement_type == "a12" )
-	title = Form("%s Asymmetry vs Run Number",device.Data());
+	title = Form("%s Asymmetry vs Runlet Number",device.Data());
       if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" )
-	title = Form("%s Beam Position Difference vs Run Number",device.Data());
+	title = Form("%s Beam Position Difference vs Runlet Number",device.Data());
       if (measurement_type == "yq")
-	title = Form("%s Current vs Run Number",device.Data());
+	title = Form("%s Current vs Runlet Number",device.Data());
       if (measurement_type == "yp")
-	title = Form("%s Beam Position vs Run Number",device.Data());
+	title = Form("%s Beam Position vs Runlet Number",device.Data());
       break;
     default:
       break;
@@ -2632,6 +2568,7 @@ void QwGUIDatabase::OnSubmitPushed()
       DetectorVsMonitorPlot();
       break;
     case ID_X_HISTO:
+      HistogramDetector();
       break;
     default:
       break;

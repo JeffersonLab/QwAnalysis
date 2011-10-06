@@ -86,6 +86,7 @@ using std::vector;
 #endif
 #include <TVectorT.h>
 #include <TGraphErrors.h>
+#include <THStack.h>
 
 
 
@@ -160,7 +161,7 @@ using std::vector;
   mysqlpp::StoreQueryResult QueryDetector();
 #endif
 
-  void HistogramDetector(TString detector, TString measured_property, Int_t det_id);
+  void HistogramDetector();
   void PlotDetector();
   void DetectorVsMonitorPlot();
   TString GetYTitle(TString measurement_type, Int_t detector);
