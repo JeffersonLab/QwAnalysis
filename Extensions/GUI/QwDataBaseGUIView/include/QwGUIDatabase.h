@@ -53,7 +53,7 @@
 #define N_TGTS           15
 #define N_GOODFOR_TYPES   8
 #define N_REGRESSION_VARS 5
-#define N_X_AXIS          3
+#define N_X_AXIS          4
 
 
 

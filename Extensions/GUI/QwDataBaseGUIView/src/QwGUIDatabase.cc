@@ -5,6 +5,7 @@
 #include "TGTextEntry.h"
 #include "TStopwatch.h"
 #include "TLatex.h"
+#include "TDatime.h"
 
 ClassImp(QwGUIDatabase);
 
@@ -19,6 +20,7 @@ enum EQwGUIDatabaseXAxisIDs {
   ID_X_RUN,
   ID_X_SLUG,
   ID_X_BEAM,
+  ID_X_TIME,
   ID_TGT_X,
   ID_TGT_Y,
   ID_TGT_XSLOPE,
@@ -291,7 +293,7 @@ const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
 
 const char *QwGUIDatabase::X_axis[N_X_AXIS] =
 {
-  "Vs. Run Number","Vs. Slug","Histogram"
+  "Vs. Run Number","Vs. Slug","Histogram","vs Time"
 };
 
 
@@ -426,7 +428,8 @@ void QwGUIDatabase::MakeLayout()
   gStyle->SetTitleW(0.4);
   gStyle->SetTitleSize(0.03);
   gStyle->SetTitleOffset(2);
-  //gStyle->SetTitleColor(1);
+  gStyle->SetTitleColor(kBlack,"X");
+  gStyle->SetTitleColor(kBlack,"Y");
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(0);
   gStyle->SetTitleFontSize(0.08);
@@ -471,7 +474,7 @@ void QwGUIDatabase::MakeLayout()
   dBoxGoodFor	      = new TGListBox(dControlsFrame, BOX_GOODFOR);
   dLabPlot            = new TGLabel(dControlsFrame, "Plot Type");
   dCmbPlotType        = new TGComboBox(dControlsFrame, CMB_PLOT);
-  dLabRunRange        = new TGLabel(dControlsFrame, "Run Range");
+  dLabRunRange        = new TGLabel(dControlsFrame, "Run/Slug Range");
   dRunFrame	      = new TGHorizontalFrame(dControlsFrame);
   dNumStartRun        = new TGNumberEntry(dRunFrame, 9000, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dNumStopRun         = new TGNumberEntry(dRunFrame, 11250, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
@@ -499,7 +502,6 @@ void QwGUIDatabase::MakeLayout()
   dCmbInstrument->Connect("Selected(Int_t)","QwGUIDatabase", this, "PopulateDetectorComboBox()");
   dCmbInstrument->Select(dCmbInstrument->FindEntry("Main Detectors")->EntryId());
   dCmbProperty->Connect("Selected(Int_t)","QwGUIDatabase", this, "PopulateMeasurementComboBox()");
-  // dCmbXAxis->Connect("Selected(Int_t)","QwGUIDatabase", this, "PopulatePlotComboBox()");
 
   // Populate data blocks
   for (Int_t i = 0; i < N_SUBBLOCKS; i++) {
@@ -514,6 +516,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbXAxis->AddEntry(X_axis[0],ID_X_RUN);
   dCmbXAxis->AddEntry(X_axis[1],ID_X_SLUG);
   dCmbXAxis->AddEntry(X_axis[2],ID_X_HISTO);
+  dCmbXAxis->AddEntry(X_axis[3],ID_X_TIME);
 
   // Populate regression combo box
   dCmbRegressionType->AddEntry("off", 0);
@@ -1147,7 +1150,7 @@ Plot detector data with beam parameters (still not finished)
 
 void QwGUIDatabase::DetectorVsMonitorPlot()
 {
-  TGraphErrors *grp;
+  TGraphErrors *grp = NULL;
 
   if(dDatabaseCont){
     dDatabaseCont->Connect();
@@ -1380,7 +1383,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
 
   Int_t   index_first       = dNumStartRun -> GetIntNumber();
   Int_t   index_last        = dNumStopRun  -> GetIntNumber();
-    TString measurement_type = "";
+  TString measurement_type = "";
   if(dCmbMeasurementType->IsEnabled()) measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
   else 
     measurement_type = "sensitivity";
@@ -1482,6 +1485,12 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
     special_cuts += Form(" AND (data.slug >= %i AND data.slug <= %i ) GROUP BY data.slug",index_first,index_last);
   }
 
+  if((dCmbXAxis->GetSelected()) == ID_X_TIME) {
+    tables_used+=" run,  ";
+    outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms, run.start_time AS x_value,";
+    special_cuts += Form(" AND run.run_number = data.run_number AND (data.run_number >= %i  AND data.run_number <= %i) GROUP BY data.run_number ",index_first, index_last);
+  }
+
 
   querystring= MakeQuery(outputs,tables_used,table_links,special_cuts);
 
@@ -1501,7 +1510,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
 
 /******************************************
 
-Plot detector data vs run number
+Plot detector data vs run number/slug/time
 
 *******************************************/
 
@@ -1526,6 +1535,8 @@ void QwGUIDatabase::PlotDetector()
   gStyle->SetLabelSize(0.03,"x");
   gStyle->SetLabelSize(0.03,"y");
   gStyle->SetTitleSize(0.03);
+  gStyle->SetTitleColor(kBlack,"X");
+  gStyle->SetTitleColor(kBlack,"Y");
 
   gDirectory->Delete();
 
@@ -1541,6 +1552,7 @@ void QwGUIDatabase::PlotDetector()
     TString target            = Targets[dCmbTargetType->GetSelected()];
     TString plot              = Plots[dCmbPlotType->GetSelected()];
     Int_t det_id              = dCmbInstrument->GetSelected();
+    Int_t x_axis              = dCmbXAxis->GetSelected();
     TString measurement_type = "";
     if(dCmbMeasurementType->IsEnabled()) measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
     else 
@@ -1562,24 +1574,25 @@ void QwGUIDatabase::PlotDetector()
     }
     
  
-    TVectorF x_in(row_size), xerr_in(row_size);
-    TVectorF x_out(row_size), xerr_out(row_size);
-    TVectorF run_in(row_size), run_out(row_size);
-    TVectorF err_in(row_size), err_out(row_size);
+    TVectorD x_in(row_size), xerr_in(row_size);
+    TVectorD x_out(row_size), xerr_out(row_size);
+    TVectorD run_in(row_size), run_out(row_size);
+    TVectorD err_in(row_size), err_out(row_size);
     
-    TVectorF x_in_L(row_size), xerr_in_L(row_size);
-    TVectorF x_out_L(row_size), xerr_out_L(row_size);
-    TVectorF run_in_L(row_size), run_out_L(row_size);
-    TVectorF err_in_L(row_size), err_out_L(row_size);
+    TVectorD x_in_L(row_size), xerr_in_L(row_size);
+    TVectorD x_out_L(row_size), xerr_out_L(row_size);
+    TVectorD run_in_L(row_size), run_out_L(row_size);
+    TVectorD err_in_L(row_size), err_out_L(row_size);
     
-    TVectorF x_bad(row_size), xerr_bad(row_size);
-    TVectorF run_bad(row_size);
-    TVectorF err_bad(row_size);
+    TVectorD x_bad(row_size), xerr_bad(row_size);
+    TVectorD run_bad(row_size);
+    TVectorD err_bad(row_size);
     
-    TVectorF x_suspect(row_size), xerr_suspect(row_size);
-    TVectorF run_suspect(row_size);
-    TVectorF err_suspect(row_size);
-    
+    TVectorD x_suspect(row_size), xerr_suspect(row_size);
+    TVectorD run_suspect(row_size);
+    TVectorD err_suspect(row_size);
+
+
     x_in.Clear();
     x_in.ResizeTo(row_size);
     xerr_in.Clear();
@@ -1642,11 +1655,61 @@ void QwGUIDatabase::PlotDetector()
     Int_t o = 0; //bad quality
     Int_t p = 0; //suspect quality
 
+    TDatime *runtime_start =  NULL;
+    Double_t converted     = 0;
+    TDatime* DST2010_start =  NULL;
+    TDatime* DST2010_end   =  NULL;
+    TDatime* DST2011_start =  NULL;
+    TDatime* DST2011_end   =  NULL;
+    TDatime* DST2012_start =  NULL;
+    TDatime* DST2012_end   =  NULL;
+    Double_t adjust_for_DST = 0; //1 hour
+
     std::cout<<"############################################\n";
     std::cout<<"QwGUI : Collecting data.."<<std::endl;
     std::cout<<"QwGUI : Retrieved "<<row_size<<" data points\n";
     for (size_t i = 0; i < row_size; ++i)
-      { 	    
+      { 	   
+
+	if(x_axis == ID_X_TIME){
+	  /*How to address DST issue in TAxis? 
+	  Aparently TAxis time dispaly have a bug (which was not fixed in V 5.27.02) in it which means 
+	  that when it converts from UInt to time display it is not correcting for DST.
+	  To avoid this, I am hard coding the DST start and end times from 2010, 2011 and 2012 
+	  (Qweak run periods) and add or subtract an hour from the time that goes in to the graph. 
+
+	  refference for DST times: http://www.timeanddate.com/worldclock/timezone.html?n=862
+	  2010	Sunday, March 14 at 2:00 AM	Sunday, November 7 at 2:00 AM
+	  2011	Sunday, March 13 at 2:00 AM	Sunday, November 6 at 2:00 AM
+	  2012	Sunday, March 11 at 2:00 AM	Sunday, November 4 at 2:00 AM
+	  */
+
+	  DST2010_start =  new TDatime(2010,03,14,02,00,00);
+	  DST2010_end   =  new TDatime(2010,11,07,02,00,00);
+	  DST2011_start =  new TDatime(2011,03,13,02,00,00);
+	  DST2011_end   =  new TDatime(2011,11,06,02,00,00);
+	  DST2012_start =  new TDatime(2012,03,11,02,00,00);
+	  DST2012_end   =  new TDatime(2012,11,04,02,00,00);
+
+	
+	  runtime_start = new TDatime((read_data[i]["x_value"]).c_str());
+	  converted = runtime_start->Convert();
+
+	  //If the time is in the DST time zone 
+	  if( (converted >= (DST2010_start->Convert()) and (converted <= (DST2010_end->Convert())))||
+	      (converted >= (DST2011_start->Convert()) and (converted <= (DST2011_end->Convert())))||
+	      (converted >= (DST2012_start->Convert()) and (converted <= (DST2012_end->Convert()))))
+	    adjust_for_DST = 3600;	   
+	  else
+	    adjust_for_DST =0.0;
+
+	  if(ldebug){
+	    std::cout<<"run start time = "<<runtime_start->AsString()<<std::endl;
+	    std::cout<<"converted UINT = "<<runtime_start->Convert()<<std::endl;
+	    std::cout<<""<<adjust_for_DST<<std::endl;
+	  }
+	}
+
 	if(measurement_type =="a" || measurement_type =="aeo" || measurement_type =="a12" || measurement_type =="d" || measurement_type =="deo" || measurement_type =="d12"){
 	  if(plot.Contains("RMS") == 1){
 	    x    = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
@@ -1667,47 +1730,72 @@ void QwGUIDatabase::PlotDetector()
 	    xerr = read_data[i]["error"];
 	  }
 	}
-
+	  
 	if(read_data[i]["run_quality_id"] == "1"){
+
 	  if(read_data[i]["slow_helicity_plate"] == "out") {
-		  if (read_data[i]["wien_reversal"]*1 == 1){
-		    run_out.operator()(k)  = read_data[i]["x_value"];
-		    x_out.operator()(k)    = x;
-		    xerr_out.operator()(k) = xerr;
-		    err_out.operator()(k)  = 0.0;
-		    k++;
-		  } else {
-		    run_out_L.operator()(l)  = read_data[i]["x_value"];
-		    x_out_L.operator()(l)    = x;
-		    xerr_out_L.operator()(l) = xerr;
-		    err_out_L.operator()(l)  = 0.0;
-		    l++;
-		  }
-		  
-		}
-		
-		if(read_data[i]["slow_helicity_plate"] == "in") {
-		  if (read_data[i]["wien_reversal"]*1 == 1){
-		    run_in.operator()(m)  = read_data[i]["x_value"];
-		    x_in.operator()(m)    = x;
-		    xerr_in.operator()(m) = xerr;
-		    err_in.operator()(m)  = 0.0;
-		    m++;
-		  } else {
-		    run_in_L.operator()(n)  = read_data[i]["x_value"];
-		    x_in_L.operator()(n)    = x;
-		    xerr_in_L.operator()(n) = xerr;
-		    err_in_L.operator()(n)  = 0.0;
-		    n++;
-		    
-		  }
-		}
+	    if (read_data[i]["wien_reversal"]*1 == 1){
+
+	      if(x_axis == ID_X_TIME){
+		run_out.operator()(k)  = (runtime_start->Convert()) + adjust_for_DST;
+	      }
+	      else
+		run_out.operator()(k)  = read_data[i]["x_value"];
+	      
+	      x_out.operator()(k)    = x;
+	      xerr_out.operator()(k) = xerr;
+	      err_out.operator()(k)  = 0.0;
+	      k++;
+	    } else {
+	      if(x_axis == ID_X_TIME){
+		run_out_L.operator()(l)  = (runtime_start->Convert())+ adjust_for_DST;
+	      }
+	      else
+		run_out_L.operator()(l)  = read_data[i]["x_value"];
+	      x_out_L.operator()(l)    = x;
+	      xerr_out_L.operator()(l) = xerr;
+	      err_out_L.operator()(l)  = 0.0;
+	      l++;
+	    }
+	    
+	  }
+	  
+	  if(read_data[i]["slow_helicity_plate"] == "in") {
+
+	    if (read_data[i]["wien_reversal"]*1 == 1){
+	      if(x_axis == ID_X_TIME){
+		run_in.operator()(m)  = runtime_start->Convert()+ adjust_for_DST;
+	      }
+	      else
+		run_in.operator()(m)  = read_data[i]["x_value"];
+	      x_in.operator()(m)    = x;
+	      xerr_in.operator()(m) = xerr;
+	      err_in.operator()(m)  = 0.0;
+	      m++;
+	    } else {
+	      if(x_axis == ID_X_TIME){
+		run_in_L.operator()(n)  = runtime_start->Convert()+ adjust_for_DST;
+	      }
+	      else
+		run_in_L.operator()(n)  = read_data[i]["x_value"];
+	      x_in_L.operator()(n)    = x;
+	      xerr_in_L.operator()(n) = xerr;
+	      err_in_L.operator()(n)  = 0.0;
+	      n++;
+	      
+	    }
+	  }
 	}
 	
 	if((read_data[i]["run_quality_id"] == "2")   | //or
 	   (read_data[i]["run_quality_id"] == "1,2") | //or
 	   (read_data[i]["run_quality_id"] == "2,3") ) { //all instances of bad
-	  run_bad.operator()(o)  = read_data[i]["x_value"];
+
+	  if(x_axis == ID_X_TIME){
+	    run_bad.operator()(o)  = runtime_start->Convert()+ adjust_for_DST;
+	  }
+	  else	    
+	    run_bad.operator()(o)  = read_data[i]["x_value"];
 	  x_bad.operator()(o)    = x;
 	  xerr_bad.operator()(o) = xerr;
 	  err_bad.operator()(o)  = 0.0;
@@ -1716,7 +1804,11 @@ void QwGUIDatabase::PlotDetector()
 	
 	if((read_data[i]["run_quality_id"] == "3")  | //or
 	   (read_data[i]["run_quality_id"] == "1,3")) {// suspect (but not bad)
-	  run_suspect.operator()(p)  = read_data[i]["x_value"];
+	  if(x_axis == ID_X_TIME){
+	    run_suspect.operator()(p)  = runtime_start->Convert()+ adjust_for_DST;
+	  }
+	  else
+	    run_suspect.operator()(p)  = read_data[i]["x_value"];
 	  x_suspect.operator()(p)    = x;
 	  xerr_suspect.operator()(p) = xerr;
 	  err_suspect.operator()(p)  = 0.0;
@@ -1813,6 +1905,13 @@ void QwGUIDatabase::PlotDetector()
 
     TString y_title = GetYTitle(measurement_type, det_id);
     TString title   = GetTitle(measurement_type, device);
+    TString x_title;
+    if(x_axis == ID_X_TIME)x_title = "Time (YY:MM:DD / HH:MM)";
+    else
+      if(x_axis == ID_X_RUN)x_title = "Run Number";
+      else
+	if(x_axis == ID_X_TIME)x_title = "Slug Number";
+	else x_title = "";
 
     if(plot.Contains("RMS"))
       {
@@ -1838,18 +1937,19 @@ void QwGUIDatabase::PlotDetector()
     legend->SetFillColor(0);
 
     
-//     mc->cd();
-//     grp->Draw("AP");
-
     AddNewGraph(grp,legend);
-
-//     GraphArray.Add(grp);
-//     LegendArray.Add(legend);
     PlotGraphs();
-//     legend->Draw("");
-    
-    grp->SetTitle(title);
+
+    if(x_axis == ID_X_TIME){
+      grp->GetXaxis()->SetTimeDisplay(1);
+      grp->GetXaxis()->SetTimeOffset(0,"gmt");
+      grp->GetXaxis()->SetLabelOffset(0.02); 
+      grp->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
+      grp->GetXaxis()->Draw();
+    }
+
     grp->GetYaxis()->SetTitle(y_title);
+    grp->GetXaxis()->SetTitle(x_title);
     grp->GetYaxis()->SetTitleOffset(2);
     grp->GetXaxis()->SetTitleOffset(2);
     grp->GetYaxis()->SetTitleSize(0.03);
@@ -1868,7 +1968,7 @@ void QwGUIDatabase::PlotDetector()
     TCanvas *mc = dCanvas->GetCanvas();
     mc->Clear();
     mc->SetFillColor(0);
-    //
+   
     mc->cd();
     TLatex T1;
     T1.SetTextAlign(12);
@@ -1915,6 +2015,8 @@ void QwGUIDatabase::HistogramDetector()
   gStyle->SetLabelSize(0.03,"x");
   gStyle->SetLabelSize(0.03,"y");
   gStyle->SetTitleSize(0.03);
+  gStyle->SetTitleColor(kBlack,"X");
+  gStyle->SetTitleColor(kBlack,"Y");
 
   gDirectory->Delete();
 
@@ -2435,15 +2537,16 @@ TString QwGUIDatabase::GetTitle(TString measurement_type, TString device)
     case ID_X_HISTO:
     case ID_X_RUN:
       if (measurement_type == "y") 
-	title = Form("%s Yield vs Runlet Number",device.Data());
+	title = Form("%s Yield vs Run Number",device.Data());
       if (measurement_type == "a" || measurement_type == "aeo" || measurement_type == "a12" )
-	title = Form("%s Asymmetry vs Runlet Number",device.Data());
+	title = Form("%s Asymmetry vs Run Number",device.Data());
       if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" )
 	title = Form("%s Beam Position Difference vs Runlet Number",device.Data());
       if (measurement_type == "yq")
 	title = Form("%s Current vs Runlet Number",device.Data());
       if (measurement_type == "yp")
 	title = Form("%s Beam Position vs Runlet Number",device.Data());
+
       break;
     default:
       break;
@@ -2510,6 +2613,7 @@ void QwGUIDatabase::OnSubmitPushed()
     {
     case ID_X_RUN:
     case ID_X_SLUG:
+    case ID_X_TIME:
       PlotDetector();
       break;
     case ID_X_BEAM:
