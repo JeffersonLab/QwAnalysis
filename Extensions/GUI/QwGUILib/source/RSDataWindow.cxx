@@ -36,6 +36,7 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
   fParent = (const TGWindow*)p;
   fMain   = (const TGWindow*)main;
 
+  dDummyPlot = NULL;
   dDatafit = NULL;
   dFitHistocnt = 0;
   dFitOptions = NULL;
@@ -120,16 +121,16 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
   
   fMenuTools = new TGPopupMenu(fClient->GetRoot());
   fMenuTools->AddEntry("&Add Next Plot", M_PLOT_ADD);
-  fMenuTools->AddEntry("&Fit...",M_PLOT_FITSETUP);
+  // fMenuTools->AddEntry("&Fit...",M_PLOT_FITSETUP);
   fMenuTools->AddEntry("&Legend",M_PLOT_ADDLEGEND);
-  fMenuTools->AddEntry("Normalize",M_PLOT_NORM);
-  fMenuTools->AddEntry("Scale Data ...",M_PLOT_SCALE);
-  fMenuTools->AddEntry("Divide By Data ...",M_PLOT_DIVIDE);
-  fMenuTools->AddEntry("Integrate Data",M_PLOT_INTEG);
+  // fMenuTools->AddEntry("Normalize",M_PLOT_NORM);
+  // fMenuTools->AddEntry("Scale Data ...",M_PLOT_SCALE);
+  // fMenuTools->AddEntry("Divide By Data ...",M_PLOT_DIVIDE);
+  // fMenuTools->AddEntry("Integrate Data",M_PLOT_INTEG);
   fMenuTools->AddEntry("Write Data (Row-Column) ...",M_PLOT_WRITEMISC); 
   fMenuTools->AddEntry("View Data (Row-Column) ...",M_PLOT_READMISC); 
   fMenuTools->AddEntry("View Data (Root Object) ...",M_PLOT_VIEWROOTOBJ);
-  fMenuTools->AddEntry("Editor ...",M_PLOT_EDITOR);
+  // fMenuTools->AddEntry("Editor ...",M_PLOT_EDITOR);
 
   fMenuTools->Associate(this);
   fPlotCanvas = TCanvas::MakeDefCanvas();
@@ -159,6 +160,8 @@ RSDataWindow::RSDataWindow(const TGWindow *p, const TGWindow *main,
 
 RSDataWindow::~RSDataWindow()
 {
+  ClearPlots();
+
   if(fMenuFile         ) delete fMenuFile;
   if(fMenuBar          ) delete fMenuBar;
   if(fMenuBarItemLayout) delete fMenuBarItemLayout;
@@ -178,6 +181,8 @@ RSDataWindow::~RSDataWindow()
     delete dFitOptions;
     dFitOptions = NULL;
   }  
+
+  delete dDummyPlot;
 }
 
 void RSDataWindow::OnObjClose(char *obj)
@@ -926,6 +931,7 @@ void RSDataWindow::ClearPlots()
     if(fFitHisto[i] != NULL){delete fFitHisto[i];fFitHisto[i]=NULL;}
   dFitHistocnt = 0;
 
+  delete dDummyPlot;
 }
 
 void RSDataWindow::AddMenuPopup(const char* str, TGPopupMenu* popup)
@@ -1317,44 +1323,48 @@ Int_t RSDataWindow::UpdateDrawData(TH1D* h1d)
 
 Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 {
-  if(!dPlotCont) return DATA_PLOT_ERROR;
   Bool_t Add = add;
-  Int_t cnt  = dPlotCont->Get1DHistoCount();
-  if(!cnt) Add = kFalse; //Nothing to add to!
-  TH1D *hist = NULL;
-  TH1D *chst[cnt];
-  if(!Add) Add = AddGraphs(); //If not pre-specified, see if the menu option was set
-  if(dFitOptions != NULL){
-    delete dFitOptions;
-    dFitOptions = NULL;
-  }
+  if(!Add) Add = AddGraphs();                 //If not pre-specified, see if the menu option was set
 
-  if(Add){
-    for(int i = 0; i < cnt; i++){
+  if(!dPlotCont) return DATA_PLOT_ERROR;      //Make sure we have a plot container
+  Int_t cnt  = dPlotCont->Get1DHistoCount();  //How many histograms do we currently have
+  if(!cnt) Add = kFalse;                      //If we have none, then there is nothing to add to!
+  if(!Add) ClearPlots();                      //If we are really not superimposing them then clear all plots
+  TH1D *chst[cnt];                            //Make a temporary container for the histograms
+  if(Add)
+    for(int i = 0; i < cnt; i++)
       chst[i] = (TH1D*)dPlotCont->GetHistogram(i,"TH1D");
-    }
-    dPlotCont->RemovePlot(chst[0]);
-  }
-  
-  TCanvas *aC = GetPlotCanvas();
-  if(!Add){
-    aC->Clear();
-    aC->Update();
-    ClearPlots();
-  }
-    
-  gPad->SetGrid();
 
+  Color_t lcol = dPlotCont->GetNewLineColor();
+  Color_t mcol = dPlotCont->GetNewMarkerColor();
 
+  //See if we can actually make a historgram from the one that was supplied
+  TH1D *hist = NULL;
   hist = dPlotCont->GetNew1DHistogram(h1d);
-  //hist->SetTitle(GetPlotTitle());
   if(!hist){
     FlushMessages();
     SetMessage(ROOTOBJ_CRFAIL_ERROR,"DrawData(const TH1D&)",(int)dPtype,
 	       M_DTWIND_ERROR_MSG);
     return DATA_PLOT_ERROR;
   }
+  hist->SetLineColor(lcol);
+  hist->SetMarkerColor(mcol);
 
+  if(dFitOptions != NULL){                    //Get rid of any previously specified fit options
+    delete dFitOptions;
+    dFitOptions = NULL;
+  }
+
+  
+  delete dDummyPlot;
+  TCanvas *aC = GetPlotCanvas();
+  aC->Clear();
+  aC->Update();
+    
+  gPad->SetGrid();
+
+  //If we are not adding (superimposing) histrograms on the same plot, then just plot this one
+  //and return!
   if(!Add){
     if(IsUserLimitSet())
       hist->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
@@ -1363,94 +1373,83 @@ Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
     SetDrawOptions();
     gPad->Modified();
     gPad->Update();
-  }
-  else{
-
-    if(!chst[0]) return DATA_PLOT_ERROR;
-
-    Double_t cmean = hist->GetMean();
-    Double_t crms = hist->GetRMS();
-
-    Double_t minmean = hist->GetMean();
-    Double_t maxmean = hist->GetMean();
-
-    Double_t minrms = hist->GetRMS();
-    Double_t maxrms = hist->GetRMS();
-
-    Double_t cmin = chst[0]->GetXaxis()->GetXmin();
-    Double_t cmax = chst[0]->GetXaxis()->GetXmax(); 
-    Double_t hmin = hist->GetXaxis()->GetXmin();
-    Double_t hmax = hist->GetXaxis()->GetXmax();
-
-    Double_t cymin = chst[0]->GetMinimum();
-    Double_t cymax = chst[0]->GetMaximum();
-    Double_t hymin = hist->GetMinimum();
-    Double_t hymax = hist->GetMaximum();
-
-    dMin[0] = hmin;
-    dMax[0] = hmax;
-    dMin[1] = hymin;
-    dMax[1] = hymax;
-
-    for(int i = 0; i < cnt; i++){
-      if(chst[i]){
-	cmin = chst[i]->GetXaxis()->GetXmin();
-	cmax = chst[i]->GetXaxis()->GetXmax();
-
-	cymin = chst[i]->GetMinimum();
-	cymax = chst[i]->GetMaximum();
-
-	cmean = chst[i]->GetMean();
-	crms = chst[i]->GetRMS();
-
-	if(cmean < minmean) minmean = cmean;
-	if(cmean >= maxmean) maxmean = cmean;
-
-	if(crms < minrms) minrms = crms;
-	if(crms >= maxrms) maxrms = crms;
-
-	if(cmin < dMin[0]) dMin[0] = cmin;
-	if(cmax > dMax[0]) dMax[0] = cmax;
-	if(cymin < dMin[1]) dMin[1] = cymin;
-	if(cymax > dMax[1]) dMax[1] = cymax;
-      }
-    }
-
-    cmin = chst[0]->GetXaxis()->GetXmin();
-    cmax = chst[0]->GetXaxis()->GetXmax();
-    TH1D *tmp = dPlotCont->GetNew1DHistogram((char*)chst[0]->GetName(),(char*)chst[0]->GetTitle(),
-					     (Int_t)( (dMax[0] - dMin[0])*chst[0]->GetNbinsX()/(cmax - cmin)),
-					     dMin[0],dMax[0]);
-    
-    for(int n = 0; n < chst[0]->GetNbinsX(); n++){
-	tmp->AddBinContent(tmp->FindBin(chst[0]->GetBinCenter(n)),chst[0]->GetBinContent(n));
-    }    
-//     tmp->SetLineColor(dPlotCont->GetNewLineColor(kRed));
-    tmp->GetYaxis()->SetRangeUser(dMin[1]+0.1,dMax[1]);
-    tmp->GetXaxis()->SetRangeUser(minmean-10*maxrms,maxmean+10*maxrms);
-    tmp->Draw();
-    delete chst[0];
-
-    for(int i = 1; i < cnt; i++){
-      if(chst[i]){
-	chst[i]->SetLineColor(dPlotCont->GetNewLineColor(0));
-	chst[i]->Draw("SAME");
-      }
-    }    
-
-    TString opts = dDrawOptions;
-    if(!opts.Contains("SAME")){strcat(dDrawOptions,"SAME");}
-    hist->SetLineColor(dPlotCont->GetNewLineColor(0));
-    hist->Draw(dDrawOptions);
-    SetDrawOptions();
-    gPad->RedrawAxis();      
-    gPad->Modified();
-    gPad->Update();
     DrawLegend();
 
+    gPad->SetLogy(1);
+    
+    fCurrPlot = hist;
+    return PLOT_PROCESS_OK;
   }
-  gPad->SetLogy(1);
 
+  //Otherwise we'll have to establish a new axis range
+
+  Double_t cmean = hist->GetMean();
+  Double_t crms = hist->GetRMS();
+
+  Double_t minmean = hist->GetMean();
+  Double_t maxmean = hist->GetMean();
+  
+  Double_t minrms = hist->GetRMS();
+  Double_t maxrms = hist->GetRMS();
+  
+  Double_t cmin = chst[0]->GetXaxis()->GetXmin();
+  Double_t cmax = chst[0]->GetXaxis()->GetXmax(); 
+  
+  Double_t cymin = chst[0]->GetMinimum();
+  Double_t cymax = chst[0]->GetMaximum();
+
+  dMin[0] = hist->GetXaxis()->GetXmin();
+  dMax[0] = hist->GetXaxis()->GetXmax();
+  dMin[1] = hist->GetMinimum();
+  dMax[1] = hist->GetMaximum();
+
+  for(int i = 0; i < cnt; i++){
+    if(chst[i]){
+      cmin = chst[i]->GetXaxis()->GetXmin();
+      cmax = chst[i]->GetXaxis()->GetXmax();
+      
+      cymin = chst[i]->GetMinimum();
+      cymax = chst[i]->GetMaximum();
+      
+      cmean = chst[i]->GetMean();
+      crms = chst[i]->GetRMS();
+      
+      if(cmean < minmean) minmean = cmean;
+      if(cmean >= maxmean) maxmean = cmean;
+
+      if(crms < minrms) minrms = crms;
+      if(crms >= maxrms) maxrms = crms;
+      
+      if(cmin < dMin[0]) dMin[0] = cmin;
+      if(cmax > dMax[0]) dMax[0] = cmax;
+      if(cymin < dMin[1]) dMin[1] = cymin;
+      if(cymax > dMax[1]) dMax[1] = cymax;
+    }
+  }
+
+  dDummyPlot = new TH1D("tmp_hst","",500,dMin[0],dMax[0]);
+
+  dDummyPlot->GetYaxis()->SetRangeUser(dMin[1]+0.1,dMax[1]);
+  dDummyPlot->GetXaxis()->SetRangeUser(minmean-10*maxrms,maxmean+10*maxrms);
+  dDummyPlot->Draw();
+  
+  for(int i = 0; i < cnt; i++){
+    if(chst[i]){
+      chst[i]->Draw("SAME");
+    }
+  }    
+  
+  TString opts = dDrawOptions;
+  if(!opts.Contains("SAME")){strcat(dDrawOptions,"SAME");}
+  hist->Draw(dDrawOptions);
+  SetDrawOptions();
+  gPad->RedrawAxis();      
+  gPad->Modified();
+  gPad->Update();
+  DrawLegend();
+  
+  gPad->SetLogy(1);
+  
   fCurrPlot = hist;
   return PLOT_PROCESS_OK;
 }
@@ -2131,66 +2130,46 @@ Int_t RSDataWindow::DrawLegend(TLegend *leg)
     if(fLegend){delete fLegend; fLegend = NULL;}
 
     fLegend = new TLegend(0.58,0.82,0.98,0.98);
+
     if(fLegend){
       fLegend->SetY1NDC(fLegend->GetY1NDC()*3/2-fLegend->GetY2NDC()/2);
-      
+            	  	  
       Int_t pcnt = dPlotCont->GetPlotCount();
-
+	  
       for(int i = 0; i < pcnt; i++){
-      
+	    
 	cplot = dPlotCont->GetPlot(i);
-
+	
 	if(cplot){
 	  if(cplot->InheritsFrom("TF1"))
 	    fLegend->AddEntry(cplot,
 			      cplot->GetTitle(),"l");
-	  else if(cplot->InheritsFrom("TH1"))
+	  else if(cplot->InheritsFrom("TH1")){
 	    fLegend->AddEntry(cplot,
-			      cplot->GetTitle(),"lp");
+			      cplot->GetTitle(),"l");
+	  }
 	  else if(cplot->InheritsFrom("TGraphErrors"))
 	    fLegend->AddEntry(cplot,
 			      cplot->GetTitle(),"lp");	 
 	  else if(cplot->InheritsFrom("TGraph"))
 	    fLegend->AddEntry(cplot,
-			      cplot->GetTitle(),"p");	 
+			      cplot->GetTitle(),"p");
 	  else if(cplot->InheritsFrom("TMultiGraph")){
-	    TMultiGraph *mgr = (TMultiGraph *)cplot;
+	    TMultiGraph *mgr = (TMultiGraph *)fCurrPlot;
 	    TList *graphs = NULL;
 	    if(mgr) graphs = mgr->GetListOfGraphs();
 	    if(graphs){
 	      for(int i = 0; i < graphs->GetSize(); i++){
 		fLegend->AddEntry(graphs->At(i),
-				  graphs->At(i)->GetTitle(),"p");
+				  graphs->At(i)->GetTitle(),"lp");
 	      }	 
 	    }
 	  }
 	}
-      //     for(int i = 0; i < dPlotCont->GetPlotCount(); i++){
-      //       if(dPlotCont->GetObject(i)->InheritsFrom("TF1"))
-      // 	fLegend->AddEntry(dPlotCont->GetObject(i),
-      // 			  dPlotCont->GetObject(i)->GetTitle(),"l");
-      //       else if(dPlotCont->GetObject(i)->InheritsFrom("TH1"))
-      // 	fLegend->AddEntry(dPlotCont->GetObject(i),
-      // 			  dPlotCont->GetObject(i)->GetTitle(),"lp");
-      //       else if(dPlotCont->GetObject(i)->InheritsFrom("TGraph"))
-      // 	fLegend->AddEntry(dPlotCont->GetObject(i),
-      // 			  dPlotCont->GetObject(i)->GetTitle(),"p");	 
-      //       else if(dPlotCont->GetObject(i)->InheritsFrom("TMultiGraph")){
-      // 	TMultiGraph *mgr = (TMultiGraph *)dPlotCont->GetObject(i);
-      // 	TList *graphs = NULL;
-      // 	if(mgr) graphs = mgr->GetListOfGraphs();
-      // 	if(graphs){
-      // 	  for(int i = 0; i < graphs->GetSize(); i++){
-      // 	    fLegend->AddEntry(graphs->At(i),
-      // 			      graphs->At(i)->GetTitle(),"p");
-      // 	  }	 
-      // 	}
-      //       }
-      //     }
-	fLegend->SetTextFont(62);
-	fLegend->SetTextSize(0.04);
-	fLegend->Draw();
       }
+      fLegend->SetTextFont(62);
+      fLegend->SetTextSize(0.04);
+      fLegend->Draw();
     }
   }
   
@@ -2308,8 +2287,8 @@ Bool_t RSDataWindow::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	else{
 	  fMenuTools->CheckEntry(M_PLOT_ADD);
 	  SetAddGraphs(kTrue);
-	  dPlotCont->SetNewMarkerColor();
-	  dPlotCont->SetNewLineColor();
+	  // dPlotCont->SetNewMarkerColor();
+	  // dPlotCont->SetNewLineColor();
 	  SendMessageSignal(Form("Add to %s",dObjName));
 	}
 	break;
@@ -2378,3 +2357,147 @@ Bool_t RSDataWindow::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
   return kTRUE;
 }
 
+
+
+
+
+// Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
+// {
+//   if(!dPlotCont) return DATA_PLOT_ERROR;
+//   Bool_t Add = add;
+//   Int_t cnt  = dPlotCont->Get1DHistoCount();
+//   if(!cnt) Add = kFalse; //Nothing to add to!
+//   TH1D *hist = NULL;
+//   TH1D *chst[cnt];
+//   if(!Add) Add = AddGraphs(); //If not pre-specified, see if the menu option was set
+//   if(dFitOptions != NULL){
+//     delete dFitOptions;
+//     dFitOptions = NULL;
+//   }
+
+//   if(Add){ 
+//     for(int i = 0; i < cnt; i++){
+//       chst[i] = (TH1D*)dPlotCont->GetHistogram(i,"TH1D");
+//     }
+//     dPlotCont->RemovePlot(chst[0]);
+//   }
+  
+//   TCanvas *aC = GetPlotCanvas();
+//   if(!Add){
+//     aC->Clear();
+//     aC->Update();
+//     ClearPlots();
+//   }
+    
+//   gPad->SetGrid();
+
+
+//   hist = dPlotCont->GetNew1DHistogram(h1d);
+//   //hist->SetTitle(GetPlotTitle());
+//   if(!hist){
+//     FlushMessages();
+//     SetMessage(ROOTOBJ_CRFAIL_ERROR,"DrawData(const TH1D&)",(int)dPtype,
+// 	       M_DTWIND_ERROR_MSG);
+//     return DATA_PLOT_ERROR;
+//   }
+
+//   if(!Add){
+//     if(IsUserLimitSet())
+//       hist->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
+    
+//     if(DrawOptionsSet()){hist->Draw(dDrawOptions);} else hist->Draw();
+//     SetDrawOptions();
+//     gPad->Modified();
+//     gPad->Update();
+//   }
+//   else{
+
+//     if(!chst[0]) return DATA_PLOT_ERROR;
+
+//     Double_t cmean = hist->GetMean();
+//     Double_t crms = hist->GetRMS();
+
+//     Double_t minmean = hist->GetMean();
+//     Double_t maxmean = hist->GetMean();
+
+//     Double_t minrms = hist->GetRMS();
+//     Double_t maxrms = hist->GetRMS();
+
+//     Double_t cmin = chst[0]->GetXaxis()->GetXmin();
+//     Double_t cmax = chst[0]->GetXaxis()->GetXmax(); 
+//     Double_t hmin = hist->GetXaxis()->GetXmin();
+//     Double_t hmax = hist->GetXaxis()->GetXmax();
+
+//     Double_t cymin = chst[0]->GetMinimum();
+//     Double_t cymax = chst[0]->GetMaximum();
+//     Double_t hymin = hist->GetMinimum();
+//     Double_t hymax = hist->GetMaximum();
+
+//     dMin[0] = hmin;
+//     dMax[0] = hmax;
+//     dMin[1] = hymin;
+//     dMax[1] = hymax;
+
+//     for(int i = 0; i < cnt; i++){
+//       if(chst[i]){
+// 	cmin = chst[i]->GetXaxis()->GetXmin();
+// 	cmax = chst[i]->GetXaxis()->GetXmax();
+
+// 	cymin = chst[i]->GetMinimum();
+// 	cymax = chst[i]->GetMaximum();
+
+// 	cmean = chst[i]->GetMean();
+// 	crms = chst[i]->GetRMS();
+
+// 	if(cmean < minmean) minmean = cmean;
+// 	if(cmean >= maxmean) maxmean = cmean;
+
+// 	if(crms < minrms) minrms = crms;
+// 	if(crms >= maxrms) maxrms = crms;
+
+// 	if(cmin < dMin[0]) dMin[0] = cmin;
+// 	if(cmax > dMax[0]) dMax[0] = cmax;
+// 	if(cymin < dMin[1]) dMin[1] = cymin;
+// 	if(cymax > dMax[1]) dMax[1] = cymax;
+//       }
+//     }
+
+//     cmin = chst[0]->GetXaxis()->GetXmin();
+//     cmax = chst[0]->GetXaxis()->GetXmax();
+//     TH1D *tmp = dPlotCont->GetNew1DHistogram((char*)chst[0]->GetName(),(char*)chst[0]->GetTitle(),
+// 					     (Int_t)( (dMax[0] - dMin[0])*chst[0]->GetNbinsX()/(cmax - cmin)),
+// 					     dMin[0],dMax[0]);
+    
+//     for(int n = 0; n < chst[0]->GetNbinsX(); n++){
+// 	tmp->AddBinContent(tmp->FindBin(chst[0]->GetBinCenter(n)),chst[0]->GetBinContent(n));
+//     }    
+// //     tmp->SetLineColor(dPlotCont->GetNewLineColor(kRed));
+//     tmp->GetYaxis()->SetRangeUser(dMin[1]+0.1,dMax[1]);
+//     tmp->GetXaxis()->SetRangeUser(minmean-10*maxrms,maxmean+10*maxrms);
+//     tmp->Draw();
+//     delete chst[0];
+
+//     for(int i = 1; i < cnt; i++){
+//       if(chst[i]){
+// 	chst[i]->SetLineColor(dPlotCont->GetNewLineColor());
+// 	chst[i]->Draw("SAME");
+//       }
+//     }    
+
+//     TString opts = dDrawOptions;
+//     if(!opts.Contains("SAME")){strcat(dDrawOptions,"SAME");}
+//     hist->SetLineColor(dPlotCont->GetNewLineColor(0));
+//     hist->Draw(dDrawOptions);
+//     SetDrawOptions();
+//     gPad->RedrawAxis();      
+//     gPad->Modified();
+//     gPad->Update();
+//     printf("Line 1449\n");
+//     DrawLegend();
+
+//   }
+//   gPad->SetLogy(1);
+
+//   fCurrPlot = hist;
+//   return PLOT_PROCESS_OK;
+// }
