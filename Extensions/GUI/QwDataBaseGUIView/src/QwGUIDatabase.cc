@@ -428,8 +428,7 @@ void QwGUIDatabase::MakeLayout()
   gStyle->SetTitleW(0.4);
   gStyle->SetTitleSize(0.03);
   gStyle->SetTitleOffset(2);
-  gStyle->SetTitleColor(kBlack,"X");
-  gStyle->SetTitleColor(kBlack,"Y");
+  gStyle->SetTitleColor(kBlack);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(0);
   gStyle->SetTitleFontSize(0.08);
@@ -1655,6 +1654,20 @@ void QwGUIDatabase::PlotDetector()
     Int_t o = 0; //bad quality
     Int_t p = 0; //suspect quality
 
+    TGraphErrors* grp_in = NULL;
+    TGraphErrors* grp_in_L = NULL;
+    TGraphErrors* grp_out = NULL;
+    TGraphErrors* grp_out_L = NULL;
+    TGraphErrors* grp_bad = NULL;
+    TGraphErrors* grp_suspect = NULL;
+
+    TF1* fit1 = NULL;
+    TF1* fit2 = NULL;
+    TF1* fit3 = NULL;
+    TF1* fit4 = NULL;
+    TF1* fit5 = NULL;    
+    TF1* fit6 = NULL;
+
     TDatime *runtime_start =  NULL;
     Double_t converted     = 0;
     TDatime* DST2010_start =  NULL;
@@ -1826,79 +1839,107 @@ void QwGUIDatabase::PlotDetector()
       std::cout<<"QwGUI : Moving on to draw the graph"<<std::endl;
     
 //GROUP_IN
-    run_in.ResizeTo(m);
-    x_in.ResizeTo(m);
-    err_in.ResizeTo(m);
-    xerr_in.ResizeTo(m);
-
-    TGraphErrors* grp_in  = new TGraphErrors(run_in,  x_in, err_in, xerr_in);
-    grp_in ->SetMarkerSize(0.6);
-    grp_in ->SetMarkerStyle(21);
-    grp_in ->SetMarkerColor(kBlue);
+    if(m>0){
+      run_in.ResizeTo(m);
+      x_in.ResizeTo(m);
+      err_in.ResizeTo(m);
+      xerr_in.ResizeTo(m);
+      
+      grp_in  = new TGraphErrors(run_in,  x_in, err_in, xerr_in);
+      grp_in ->SetName("IHWP-IN-R"); 
+      grp_in ->SetMarkerSize(0.6);
+      grp_in ->SetMarkerStyle(21);
+      grp_in ->SetMarkerColor(kBlue);
+      grp_in ->Fit("pol0");
+      fit1 = grp_in->GetFunction("pol0");
+      fit1 -> SetLineColor(kBlue);
+    }
 
 //GROUP_IN_L
-    run_in_L.ResizeTo(n);
-    x_in_L.ResizeTo(n);
-    err_in_L.ResizeTo(n);
-    xerr_in_L.ResizeTo(n);
-
-    TGraphErrors* grp_in_L  = new TGraphErrors(run_in_L,  x_in_L, err_in_L, xerr_in_L);
-    grp_in_L ->SetMarkerSize(0.6);
-    grp_in_L ->SetMarkerStyle(21);
-    grp_in_L ->SetMarkerColor(kOrange);
+    if(n>0){
+      run_in_L.ResizeTo(n);
+      x_in_L.ResizeTo(n);
+      err_in_L.ResizeTo(n);
+      xerr_in_L.ResizeTo(n);
+      
+      grp_in_L  = new TGraphErrors(run_in_L,  x_in_L, err_in_L, xerr_in_L);
+      grp_in_L ->SetName("IHWP-IN-L"); 
+      grp_in_L ->SetMarkerSize(0.6);
+      grp_in_L ->SetMarkerStyle(21);
+      grp_in_L ->SetMarkerColor(kOrange-2);
+      grp_in_L ->Fit("pol0");
+      fit2 = grp_in_L->GetFunction("pol0");
+      fit2 -> SetLineColor(kOrange-2);
+    }
 
 //GROUP_OUT
-    run_out.ResizeTo(k);
-    x_out.ResizeTo(k);
-    err_out.ResizeTo(k);
-    xerr_out.ResizeTo(k);
-
-    TGraphErrors* grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
-    grp_out ->SetMarkerSize(0.6);
-    grp_out ->SetMarkerStyle(21);
-    grp_out ->SetMarkerColor(kRed);
+    if(k>0){
+      run_out.ResizeTo(k);
+      x_out.ResizeTo(k);
+      err_out.ResizeTo(k);
+      xerr_out.ResizeTo(k);
+      
+      grp_out = new TGraphErrors(run_out, x_out, err_out, xerr_out);
+      grp_out ->SetName("IHWP-OUT-R");
+      grp_out ->SetMarkerSize(0.6);
+      grp_out ->SetMarkerStyle(21);
+      grp_out ->SetMarkerColor(kRed);
+      grp_out ->Fit("pol0");
+      fit3 = grp_out->GetFunction("pol0");
+      fit3 -> SetLineColor(kRed);
+    }
 
 //GROUP_OUT_L
-    run_out_L.ResizeTo(l);
-    x_out_L.ResizeTo(l);
-    err_out_L.ResizeTo(l);
-    xerr_out_L.ResizeTo(l);
-
-    TGraphErrors* grp_out_L = new TGraphErrors(run_out_L, x_out_L, err_out_L, xerr_out_L);
-    grp_out_L ->SetMarkerSize(0.6);
-    grp_out_L ->SetMarkerStyle(21);
-    grp_out_L ->SetMarkerColor(kViolet);
+    if(l>0){
+      run_out_L.ResizeTo(l);
+      x_out_L.ResizeTo(l);
+      err_out_L.ResizeTo(l);
+      xerr_out_L.ResizeTo(l);
+      
+      grp_out_L = new TGraphErrors(run_out_L, x_out_L, err_out_L, xerr_out_L);
+      grp_out_L ->SetName("IHWP-OUT-L");
+      grp_out_L ->SetMarkerSize(0.6);
+      grp_out_L ->SetMarkerStyle(21);
+      grp_out_L ->SetMarkerColor(kViolet);
+      grp_out_L ->Fit("pol0");
+      fit4 = grp_out_L->GetFunction("pol0");
+      fit4 -> SetLineColor(kViolet);
+    }
 
 //GROUP_BAD
-    run_bad.ResizeTo(o);
-    x_bad.ResizeTo(o);
-    err_bad.ResizeTo(o);
-    xerr_bad.ResizeTo(o);
-
-    TGraphErrors* grp_bad = new TGraphErrors(run_bad, x_bad, err_bad, xerr_bad);
-    grp_bad ->SetMarkerSize(1.2);
-    grp_bad ->SetMarkerStyle(29);
-    grp_bad ->SetMarkerColor(kBlack);
+    if(o>0){
+      run_bad.ResizeTo(o);
+      x_bad.ResizeTo(o);
+      err_bad.ResizeTo(o);
+      xerr_bad.ResizeTo(o);
+      
+      grp_bad = new TGraphErrors(run_bad, x_bad, err_bad, xerr_bad);
+      grp_bad ->SetName("Bad");       
+      grp_bad ->SetMarkerSize(1.2);
+      grp_bad ->SetMarkerStyle(29);
+      grp_bad ->SetMarkerColor(kBlack);
+      grp_bad ->Fit("pol0");
+      fit5 = grp_out->GetFunction("pol0");
+      fit5 -> SetLineColor(kBlack);
+    }
 
 //GROUP_SUSPECT
-    run_suspect.ResizeTo(p);
-    x_suspect.ResizeTo(p);
-    err_suspect.ResizeTo(p);
-    xerr_suspect.ResizeTo(p);
+    if(p>0){
+      run_suspect.ResizeTo(p);
+      x_suspect.ResizeTo(p);
+      err_suspect.ResizeTo(p);
+      xerr_suspect.ResizeTo(p);
+      
+      grp_suspect = new TGraphErrors(run_suspect, x_suspect, err_suspect, xerr_suspect);
+      grp_suspect ->SetName("Suspect");   
+      grp_suspect ->SetMarkerSize(1.2);
+      grp_suspect ->SetMarkerStyle(29);
+      grp_suspect ->SetMarkerColor(kGreen);
+      grp_suspect ->Fit("pol0");
+      fit6 = grp_suspect->GetFunction("pol0");
+      fit6 -> SetLineColor(kGreen);
+    }
 
-    TGraphErrors* grp_suspect = new TGraphErrors(run_suspect, x_suspect, err_suspect, xerr_suspect);
-    grp_suspect ->SetMarkerSize(1.2);
-    grp_suspect ->SetMarkerStyle(29);
-    grp_suspect ->SetMarkerColor(kGreen);
-
-
-
-    grp_in->SetName("IHWP-IN-R"); 
-    grp_out->SetName("IHWP-OUT-R");
-    grp_in_L->SetName("IHWP-IN-L"); 
-    grp_out_L->SetName("IHWP-OUT-L");
-    grp_bad->SetName("Bad");       
-    grp_suspect->SetName("Suspect");   
 
     TMultiGraph * grp = new TMultiGraph();
 
@@ -1928,12 +1969,18 @@ void QwGUIDatabase::PlotDetector()
     if(p>0)grp->Add(grp_suspect);
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in,      "IHWP-IN-R" , "p");
-    if(k>0) legend->AddEntry(grp_out,     "IHWP-OUT-R", "p");
-    if(n>0) legend->AddEntry(grp_in_L,    "IHWP-IN-L" , "p");
-    if(l>0) legend->AddEntry(grp_out_L,   "IHWP-OUT-L", "p");
-    if(o>0) legend->AddEntry(grp_bad,     "Bad"       , "p");
-    if(p>0) legend->AddEntry(grp_suspect, "Suspect"   , "p");
+    if(m>0) legend->AddEntry(grp_in, Form("<IN_R>  = %2.3f #pm %2.3f", 
+					  fit1->GetParameter(0), fit1->GetParError(0)), "p");
+    if(n>0) legend->AddEntry(grp_in_L, Form("<IN_L>  = %2.3f #pm %2.3f", 
+					    fit2->GetParameter(0), fit2->GetParError(0)), "p");
+    if(k>0) legend->AddEntry(grp_out,Form("<OUT_R> = %2.3f #pm %2.3f", 
+					  fit3->GetParameter(0), fit3->GetParError(0)), "p");
+    if(l>0) legend->AddEntry(grp_out_L,Form("<OUT_L> = %2.3f #pm %2.3f", 
+					    fit4->GetParameter(0), fit4->GetParError(0)), "p");
+    if(o>0) legend->AddEntry(grp_bad,Form("<BAD> = %2.3f #pm %2.3f", 
+					  fit5->GetParameter(0), fit5->GetParError(0)), "p");
+    if(p>0) legend->AddEntry(grp_suspect,Form("<SUSPECT> = %2.3f #pm %2.3f", 
+					      fit6->GetParameter(0), fit6->GetParError(0)), "p");
     legend->SetFillColor(0);
 
     
@@ -1948,6 +1995,8 @@ void QwGUIDatabase::PlotDetector()
       grp->GetXaxis()->Draw();
     }
 
+    
+    grp->SetTitle(title);
     grp->GetYaxis()->SetTitle(y_title);
     grp->GetXaxis()->SetTitle(x_title);
     grp->GetYaxis()->SetTitleOffset(2);
@@ -1955,7 +2004,7 @@ void QwGUIDatabase::PlotDetector()
     grp->GetYaxis()->SetTitleSize(0.03);
     grp->GetXaxis()->SetTitleSize(0.03);
     grp->GetYaxis()->CenterTitle();
-    
+
     mc->Modified();
     mc->SetBorderMode(0);
     mc->Update();
@@ -2197,7 +2246,7 @@ void QwGUIDatabase::HistogramDetector()
 
 	h_in_L ->SetMarkerSize(1.0);
 	h_in_L ->SetMarkerStyle(21);
-	h_in_L ->SetMarkerColor(kOrange);
+	h_in_L ->SetMarkerColor(kOrange-2);
     
 
 //GROUP_OUT_R
@@ -2248,7 +2297,7 @@ void QwGUIDatabase::HistogramDetector()
       hs->Add(h_in_L);
       h_in_L ->Fit("gaus");
       fit3 = h_in_L->GetFunction("gaus");
-      fit3 -> SetLineColor(kOrange);
+      fit3 -> SetLineColor(kOrange-2);
    
     }
     if(l>0){
@@ -2272,17 +2321,17 @@ void QwGUIDatabase::HistogramDetector()
 
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(h_in_R, Form("<IN_R>  = %2.3f#pm%2.3f", 
+    if(m>0) legend->AddEntry(h_in_R, Form("<IN_R>  = %2.3f #pm %2.3f", 
 				  fit1->GetParameter(1), fit1->GetParError(1)), "p");
-    if(k>0) legend->AddEntry(h_out_R,Form("<OUT_R> = %2.3f#pm%2.3f", 
+    if(k>0) legend->AddEntry(h_out_R,Form("<OUT_R> = %2.3f #pm %2.3f", 
 				  fit2->GetParameter(1), fit2->GetParError(1)), "p");
-    if(n>0) legend->AddEntry(h_in_L, Form("<IN_L>  = %2.3f#pm%2.3f", 
+    if(n>0) legend->AddEntry(h_in_L, Form("<IN_L>  = %2.3f #pm %2.3f", 
 				  fit3->GetParameter(1), fit3->GetParError(1)), "p");
-    if(l>0) legend->AddEntry(h_out_L,Form("<OUT_L> = %2.3f#pm%2.3f", 
+    if(l>0) legend->AddEntry(h_out_L,Form("<OUT_L> = %2.3f #pm %2.3f", 
 				  fit4->GetParameter(1), fit4->GetParError(1)), "p");
-    if(o>0) legend->AddEntry(h_bad,Form("<OUT_L> = %2.3f#pm%2.3f", 
+    if(o>0) legend->AddEntry(h_bad,Form("<BAD> = %2.3f #pm %2.3f", 
 				  fit5->GetParameter(1), fit5->GetParError(1)), "p");
-    if(p>0) legend->AddEntry(h_suspect,Form("<OUT_L> = %2.3f#pm%2.3f", 
+    if(p>0) legend->AddEntry(h_suspect,Form("<SUSPECT> = %2.3f #pm %2.3f", 
 				  fit6->GetParameter(1), fit6->GetParError(1)), "p");
 
 
@@ -2532,26 +2581,35 @@ TString QwGUIDatabase::GetTitle(TString measurement_type, TString device)
 {
 
   TString title;
+  TString xaxis;
+
   switch(dCmbXAxis->GetSelected())
     {
-    case ID_X_HISTO:
     case ID_X_RUN:
-      if (measurement_type == "y") 
-	title = Form("%s Yield vs Run Number",device.Data());
-      if (measurement_type == "a" || measurement_type == "aeo" || measurement_type == "a12" )
-	title = Form("%s Asymmetry vs Run Number",device.Data());
-      if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" )
-	title = Form("%s Beam Position Difference vs Runlet Number",device.Data());
-      if (measurement_type == "yq")
-	title = Form("%s Current vs Runlet Number",device.Data());
-      if (measurement_type == "yp")
-	title = Form("%s Beam Position vs Runlet Number",device.Data());
-
+      xaxis = "vs Run Number";
+    case ID_X_TIME:
+      xaxis = "vs Time";
+    case ID_X_SLUG:
+      xaxis = "vs Slug";
+    case ID_X_HISTO:
+      xaxis = "";
       break;
     default:
       break;
     }
+  if (measurement_type == "y") 
+    title = Form("%s Yield ",device.Data());
+  if (measurement_type == "a" || measurement_type == "aeo" || measurement_type == "a12" )
+    title = Form("%s Asymmetry ",device.Data());
+  if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" )
+    title = Form("%s Beam Position Difference vs Runlet Number",device.Data());
+  if (measurement_type == "yq")
+    title = Form("%s Current ",device.Data());
+  if (measurement_type == "yp")
+    title = Form("%s Beam Position ",device.Data());
 
+  title+=xaxis;
+  
   return title;
 }
 
