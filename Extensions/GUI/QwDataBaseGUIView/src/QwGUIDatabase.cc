@@ -532,7 +532,7 @@ void QwGUIDatabase::MakeLayout()
   dCmbTargetType->Select(1);
   dCmbRegressionType->Select(0);
   dCmbPlotType->Select(0);
-  dCmbXAxis->Select(0);
+  dCmbXAxis->Select(1);
 
 
   dCmbXAxis           -> Resize(150,20);
@@ -622,24 +622,22 @@ void QwGUIDatabase::PopulateDetectorComboBox()
   dCmbDetector->RemoveAll();
   dCmbProperty->RemoveAll();
   dCmbMeasurementType->RemoveAll();
-  measurements.clear();
   dCmbProperty->SetEnabled(kFALSE);
   dCmbSubblock->SetEnabled(kTRUE);
   dCmbRegressionType->SetEnabled(kTRUE);
+  measurements.clear();
 
-  // Main detector :default qwk_mdallbar
+
   if (dCmbInstrument->GetSelected() == ID_MD) {
 	for (Int_t i = 0; i < N_DETECTORS; i++) {
       dCmbDetector->AddEntry(DetectorCombos[i], i);
-    }
+	}
     for (Int_t i = 0; i < N_DET_MEAS_TYPES; i++) {
       dCmbMeasurementType->AddEntry(DetectorMeasurementTypes[i], i);
       measurements.push_back(DetectorMeasurementTypes[i]);
     }
-    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_mdallbars")->EntryId());
   }
 
-  // Lumis : default qwk_uslumi1neg
 
   if (dCmbInstrument->GetSelected() == ID_LUMI) {
 
@@ -650,10 +648,8 @@ void QwGUIDatabase::PopulateDetectorComboBox()
       dCmbMeasurementType->AddEntry(DetectorMeasurementTypes[i], i);
       measurements.push_back(DetectorMeasurementTypes[i]);
     }
-    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_uslumi1neg")->EntryId());
   }
 
-  // BPMs : default qwk_bpm3c07
   if (dCmbInstrument->GetSelected() == ID_BPM) {
     dCmbProperty->SetEnabled(kTRUE);
     
@@ -663,12 +659,8 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     for (Int_t i = 0; i < N_BPM_READ; i++) {
       dCmbProperty->AddEntry(BPMReadings[i], i);
     }
-
-    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_bpm3c07")->EntryId());
-    dCmbProperty->Select(dCmbProperty->FindEntry("X")->EntryId());
   }
 
-  //BCMs : default qwk_bcm1
   if (dCmbInstrument->GetSelected() == ID_BCM) {
     for (Int_t i = 0; i < N_BCMS; i++) {
       dCmbDetector->AddEntry(BeamCurrentMonitors[i], i);
@@ -677,10 +669,8 @@ void QwGUIDatabase::PopulateDetectorComboBox()
       dCmbMeasurementType->AddEntry(ChargeMeasurementTypes[i], i);
       measurements.push_back(ChargeMeasurementTypes[i]);
     }
-    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_bcm1")->EntryId());
   }
 
-  // combined BPMs : default is qwk_target
   if (dCmbInstrument->GetSelected() == ID_CMB_BPM) {
     dCmbProperty->SetEnabled(kTRUE);
     for (Int_t i = 0; i < N_CMB_BPMS; i++) {
@@ -689,13 +679,8 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     for (Int_t i = 0; i < N_CMB_READ; i++) {
       dCmbProperty->AddEntry(ComboBPMReadings[i], i);
     }
-
-    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_target")->EntryId());
-    dCmbProperty->Select(dCmbProperty->FindEntry("X")->EntryId());
-
   }
 
-  //Combined BCMs : default qwk_charge
   if (dCmbInstrument->GetSelected() == ID_CMB_BCM) {
     for (Int_t i = 0; i < N_CMB_BCMS; i++) {
       dCmbDetector->AddEntry(CombinedBCMS[i],i);
@@ -704,26 +689,23 @@ void QwGUIDatabase::PopulateDetectorComboBox()
       dCmbMeasurementType->AddEntry(ChargeMeasurementTypes[i],i);
       measurements.push_back(ChargeMeasurementTypes[i]);
     }
-    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_charge")->EntryId());
   }
 
-  //energy calculator : default qwk_energy
   if (dCmbInstrument->GetSelected() == ID_E_CAL) {
     for (Int_t i = 0; i < N_ENERGY; i++) {
       dCmbDetector->AddEntry(EnergyCalculators[i], i);
     }
-    for (Int_t i = 0; i < N_Q_MEAS_TYPES; i++) {
-      dCmbMeasurementType->AddEntry(ChargeMeasurementTypes[i], i);
-      measurements.push_back(ChargeMeasurementTypes[i]);
+    for (Int_t i = 0; i < N_POS_MEAS_TYPES; i++) {
+      dCmbMeasurementType->AddEntry(PositionMeasurementTypes[i], i);
+      measurements.push_back(PositionMeasurementTypes[i]);
     }
-    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_energy")->EntryId());
   }
 
-  // Main detector sensitivities : default qwk_mdallbars wrt targetX
   if (dCmbInstrument->GetSelected() == ID_MD_SENS) {
     dCmbProperty->SetEnabled(kTRUE);
     dCmbSubblock->SetEnabled(kFALSE);
     dCmbRegressionType->SetEnabled(kFALSE);
+    dCmbMeasurementType->SetEnabled(kFALSE);
 
     for (Int_t i = 0; i < N_DETECTORS; i++) {
       dCmbDetector->AddEntry(DetectorCombos[i], i);
@@ -731,17 +713,13 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     for (Int_t i = 0; i < N_REGRESSION_VARS; i++) {
       dCmbProperty->AddEntry(RegressionVars[i], i);
     }
-
-    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_mdallbars")->EntryId());
-    dCmbProperty->Select(dCmbProperty->FindEntry("targetX")->EntryId());
-
   }
 
-  // LUMI detector sensitivities : default qwk_uslumi1neg wrt targetX
   if (dCmbInstrument->GetSelected() == ID_LUMI_SENS) {
     dCmbProperty->SetEnabled(kTRUE);
     dCmbSubblock->SetEnabled(kFALSE);
     dCmbRegressionType->SetEnabled(kFALSE);
+    dCmbMeasurementType->SetEnabled(kFALSE);
 
     for (Int_t i = 0; i < N_LUMIS; i++) {
       dCmbDetector->AddEntry(LumiCombos[i], i);
@@ -749,13 +727,12 @@ void QwGUIDatabase::PopulateDetectorComboBox()
     for (Int_t i = 0; i < N_REGRESSION_VARS; i++) {
       dCmbProperty->AddEntry(RegressionVars[i], i);
     }
-
-    dCmbDetector->Select(dCmbDetector->FindEntry("qwk_uslumi1neg")->EntryId());
-    dCmbProperty->Select(dCmbProperty->FindEntry("targetX")->EntryId());
   }
 
-  dCmbMeasurementType->Select(0);
 
+  dCmbMeasurementType->Select(0);
+  dCmbDetector->Select(0);
+  dCmbProperty->Select(0);
 }
 
 
@@ -828,28 +805,13 @@ void QwGUIDatabase::PopulateMeasurementComboBox()
   
   // MD sensitivities
   if (dCmbInstrument->GetSelected() == ID_MD_SENS){
-    for (Int_t k = 0; k < N_SENS_TYPES; k++){
-      dCmbMeasurementType->AddEntry(SensitivityTypes[k], k);
-      measurements.push_back(SensitivityTypes[k]);
-    }
-    dCmbMeasurementType->Select(dCmbMeasurementType->FindEntry("s")->EntryId());
   }
-  else{
-    dCmbMeasurementType->Select(1);
-	}
   
   // Lumi sensitivities
   if (dCmbInstrument->GetSelected() == ID_LUMI_SENS){
-    for (Int_t k = 0; k < N_SENS_TYPES; k++){
-      dCmbMeasurementType->AddEntry(SensitivityTypes[k], k);
-      measurements.push_back(SensitivityTypes[k]);
-    }
-    dCmbMeasurementType->Select(dCmbMeasurementType->FindEntry("s")->EntryId());
   }
-  else{
-    dCmbMeasurementType->Select(1);
-  }
-  
+  dCmbMeasurementType->Select(0);
+
 }
 
 /********************************************
@@ -1418,7 +1380,11 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
 
   Int_t   index_first       = dNumStartRun -> GetIntNumber();
   Int_t   index_last        = dNumStopRun  -> GetIntNumber();
-  TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
+    TString measurement_type = "";
+  if(dCmbMeasurementType->IsEnabled()) measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
+  else 
+    measurement_type = "sensitivity";
+
   Int_t det_id = dCmbInstrument->GetSelected();
   if(det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
 	  device			= Form("%s",detector.Data());
@@ -1432,10 +1398,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   TString det_table;
   TString data_table;
   TString det_type;
-  TString slope_table;
-  TString slope_table_id;
   Int_t   phi_fg_id = 0;
-  Int_t	  reg_iv_id = 0;
   
   // Set the correct tables to read the data from.
   switch (det_id){
@@ -1460,16 +1423,14 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
     break;
   case ID_MD_SENS:
 	det_table	   = "main_detector";
-	data_table	   = "md_slope";
-	slope_table        = "slope_type";
-	slope_table_id     = "slope_type_id";
+	data_table	   = "md_slope_view";
+	det_type           = "detector";
 	break;
   case ID_LUMI_SENS:
 	det_table	   = "lumi_detector";
-	data_table	   = "lumi_slope";
-	slope_table        = "slope_type";
-	slope_table_id     = "slope_type_id";
-  	break;
+	data_table	   = "lumi_slope_view";
+	det_type           = "detector";
+	break;
   default:
     break;
   }
@@ -1486,24 +1447,6 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
     return sc_detector_id;
   }
   phi_fg_id = sc_detector_id[0]["sc_detector_id"]; 
-
-
-  /*Get the regression iv ids from the slope table*/
- if(det_id==ID_MD_SENS||det_id==ID_LUMI_SENS){
-   if(ldebug) std::cout<< "SELECT * FROM "<<slope_table
-		       <<" WHERE slope = '"<<reg_iv<<"';"<<std::endl;
-   query2 << "SELECT * FROM  "<<slope_table<<" WHERE slope = '"<<reg_iv<<"';";
-   mysqlpp::StoreQueryResult iv_ids = query2.store();
-
-   //check for empty queries. If empty exit with error.
-   if( iv_ids.num_rows() == 0){
-     std::cout<<"There is no regression variable called "<<reg_iv<<" in "<<det_table
-	    <<" in the given run range!"<<std::endl;
-     return iv_ids;
-   }
-   reg_iv_id = iv_ids[0][slope_table_id];
- }
-
  
 
  /* Now get the run number information*/
@@ -1511,35 +1454,34 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
 
   TString querystring;
   TString outputs;
-  TString tables_used;
  
   TString special_cuts =" AND data."+det_type+"='"+device+"'  AND scd.sc_detector_id = "
     + Form("%i", phi_fg_id)+" ";
 
   TString table_links = "";
+  TString tables_used = data_table+" as data,";
 
-  /*Runs vs Slugsvs Histograms*/
+  /* measurements vs sensitivities */
+  if(det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
+    special_cuts+=" AND slope = '"+reg_iv+"' ";
+  }
+  else{
+    special_cuts+=" AND measurement_type = '"+measurement_type+"' ";
+  }
+
+
+  /*Runs vs Slugs vs Histograms*/
  
   if(((dCmbXAxis->GetSelected()) == ID_X_RUN) || ((dCmbXAxis->GetSelected()) == ID_X_HISTO)) {
     outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms, (data.run_number+data.segment_number*0.1) AS x_value,";
-    special_cuts += Form(" AND measurement_type = 'a'  AND data.run_number > %i  AND data.run_number < %i ",index_first, index_last);
+    special_cuts += Form(" AND data.run_number >= %i  AND data.run_number <= %i ",index_first, index_last);
   }
 
   if((dCmbXAxis->GetSelected()) == ID_X_SLUG){
     outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, data.slug AS x_value, ";
-    special_cuts += " AND measurement_type = '"+measurement_type+"' AND (data.slug >= "
-      +Form("%i AND data.slug <= %i ) GROUP BY data.slug",index_first,index_last);
+    special_cuts += Form(" AND (data.slug >= %i AND data.slug <= %i ) GROUP BY data.slug",index_first,index_last);
   }
 
-
-
-  if(det_id==ID_MD_SENS || det_id==ID_LUMI_SENS){
-    tables_used = data_table+" as data, "+slope_table+" as slope,";
-    table_links = " slope."+slope_table_id +" = data."+slope_table_id+ " AND  slope."+slope_table_id +" = "+Form("%i",reg_iv_id)+" AND ";
-  }
-  else{
-    tables_used = data_table+" as data,";
-  }
 
   querystring= MakeQuery(outputs,tables_used,table_links,special_cuts);
 
@@ -1553,6 +1495,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   dDatabaseCont->Disconnect(); 
     
   return read_data;
+
 }
 
 
@@ -1593,14 +1536,15 @@ void QwGUIDatabase::PlotDetector()
     mc->SetFillColor(0);
 
     // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
-    Int_t   subblock          = dCmbSubblock -> GetSelected();
-    TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
     TString property	      = Form("%s",property.Data());
     TString device            = Form("%s",detector.Data());
     TString target            = Targets[dCmbTargetType->GetSelected()];
     TString plot              = Plots[dCmbPlotType->GetSelected()];
     Int_t det_id              = dCmbInstrument->GetSelected();
-   
+    TString measurement_type = "";
+    if(dCmbMeasurementType->IsEnabled()) measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
+    else 
+      measurement_type = "sensitivity";
     //
     // Query Database for Data
     //
@@ -1613,8 +1557,7 @@ void QwGUIDatabase::PlotDetector()
     //check for empty queries. If empty exit with error.
     if(row_size == 0){
       
-      std::cout  <<"There is no data for "<<measurement_type<<" of "<<device<<" "<<property<<" for subblock "<<subblock
-		 <<" in the given range!"<<std::endl;
+      std::cout  <<"There is no data for "<<measurement_type<<" of "<<device<<" in the given range!"<<std::endl;
       return;
     }
     
@@ -1983,12 +1926,15 @@ void QwGUIDatabase::HistogramDetector()
 
     // Subblocks are numbered 0-4 in database just like entry number in dCmbSubblock
     Int_t   subblock          = dCmbSubblock -> GetSelected();
-    TString measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
     TString property	      = Form("%s",property.Data());
     TString device            = Form("%s",detector.Data());
     TString target            = Targets[dCmbTargetType->GetSelected()];
     TString plot              = Plots[dCmbPlotType->GetSelected()];
     Int_t det_id              = dCmbInstrument->GetSelected();
+    TString measurement_type = "";
+    if(dCmbMeasurementType->IsEnabled()) measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
+    else 
+      measurement_type = "sensitivity";
 
     //Get run quality cut information
     Bool_t quality[3] = {kFALSE, kFALSE, kFALSE};
@@ -2446,7 +2392,7 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
 
   TString ytitle;
 
-  if (measurement_type == "y") {
+ if (measurement_type == "y") {
     if(det_id == ID_MD || det_id == ID_LUMI)  ytitle = "Normalized Yield mV/uA";
     else  ytitle  = "Yield";
   }
@@ -2454,18 +2400,20 @@ TString QwGUIDatabase::GetYTitle(TString measurement_type, Int_t det_id)
     ytitle = "Asymmetry (ppm)";
 
   if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" )
-    ytitle = "Beam Position Differences (nm)";
+    if (det_id == ID_E_CAL) ytitle  = "Energy Asymetry (ppm)";
+    else
+      ytitle = "Beam Position Differences (nm)";
 
   
   if (measurement_type == "yq"){
     if (det_id == ID_BCM || det_id == ID_CMB_BCM )  ytitle  = "Current (#muA)";
     if (det_id == ID_BPM || det_id == ID_CMB_BPM ) ytitle  = "Beam Position (mm)";
-    if (det_id == ID_E_CAL) ytitle  = "Energy Change dP/P";
-
   }
 
   if (measurement_type == "yp")
-    ytitle = "Beam Position (mm)";
+    if (det_id == ID_E_CAL) ytitle  = "Relative Momentum Change dP/P";
+    else 
+      ytitle = "Beam Position (mm)";
   
   if (measurement_type == "s")
     ytitle = "Sensitivity (ppm/mm)";
