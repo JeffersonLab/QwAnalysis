@@ -1410,17 +1410,13 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   for(size_t i=0;i<fBCM.size();i++){
     ErrorFlagtmp = fBCM[i].get()->GetEventcutErrorFlag();
     ErrorFlag |=ErrorFlagtmp;
-    //if ((fBCM[i].GetElementName()=="qwk_bcm1") && ErrorFlagtmp)
-    //if ((fDeviceErrorCode&kErrorFlag_EventCut_L)==kErrorFlag_EventCut_L )
-    //  std::cout<<"QwBeamLine Failed eflag "<<ErrorFlagtmp<<" accumu  "<<ErrorFlag<<" "<<((ErrorFlag & kGlobalCut) == kGlobalCut)<<" kGlobalCut  "<<kGlobalCut<<std::endl;
+    
   }
   
-  //for(size_t i=0;i<fHaloMonitor.size();i++){
-    //ErrorFlag |= fHaloMonitor[i].GetEventcutErrorFlag();
-  //}
+
 
   for(size_t i=0;i<fStripline.size();i++){
-    ErrorFlag |= fStripline[i].get()->GetEventcutErrorFlag();
+    ErrorFlag |= fStripline[i].get()->GetEventcutErrorFlag();        
   }
 
   
@@ -1447,7 +1443,7 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   for(size_t i=0;i<fECalculator.size();i++){
     ErrorFlag |= fECalculator[i].GetEventcutErrorFlag();
   }
-  
+
   return ErrorFlag;
 
 }

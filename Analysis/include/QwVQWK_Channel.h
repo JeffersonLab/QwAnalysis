@@ -284,12 +284,12 @@ private:
   Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
 
   // Set of error counters for each HW test.
-  Int_t fErrorCount_sample;   // for sample size check
-  Int_t fErrorCount_SW_HW;    // HW_sum==SW_sum check
-  Int_t fErrorCount_Sequence; // sequence number check
-  Int_t fErrorCount_SameHW;   // check to see ADC returning same HW value
-  Int_t fErrorCount_ZeroHW;   // check to see ADC returning zero
-  Int_t fErrorCount_HWSat;   // check to see ADC channel is saturated
+  Int_t fErrorCount_sample;   ///< for sample size check
+  Int_t fErrorCount_SW_HW;    ///< HW_sum==SW_sum check
+  Int_t fErrorCount_Sequence; ///< sequence number check
+  Int_t fErrorCount_SameHW;   ///< check to see ADC returning same HW value
+  Int_t fErrorCount_ZeroHW;   ///< check to see ADC returning zero
+  Int_t fErrorCount_HWSat;   ///< check to see ADC channel is saturated
 
 
 
@@ -303,12 +303,12 @@ private:
 
 
 
-  Double_t fSaturationABSLimit;//absolute value of the VQWK saturation volt
+  Double_t fSaturationABSLimit;///<absolute value of the VQWK saturation volt
 
 
-  const static Bool_t bDEBUG=kFALSE;//debugging display purposes
+  const static Bool_t bDEBUG=kFALSE;///<debugging display purposes
 
-  //For VQWK data element trimming uses
+  ///<For VQWK data element trimming uses
   Bool_t bHw_sum;
   Bool_t bHw_sum_raw;
   Bool_t  bBlock;
@@ -318,7 +318,8 @@ private:
   Bool_t bSequence_number;
 
 private:
-  // Functions to be removed
+  
+  
 
 
 
