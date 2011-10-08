@@ -1011,7 +1011,7 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
 
   else
     {
-      if (prefix = "")  basename = "scanner_";
+      if (prefix == "")  basename = "scanner_";
       else  basename = prefix;
 
       if (folder != NULL) folder->cd();
