@@ -43,6 +43,12 @@ class MQwHistograms {
       return *this;
     }
 
+    inline void Fill_Pointer(TH1_ptr hist_ptr, Double_t value){
+      if (hist_ptr != NULL){
+	hist_ptr->Fill(value);
+      }
+    }
+
   protected:
     /// Histograms associated with this data element
     std::vector<TH1_ptr> fHistograms;
