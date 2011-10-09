@@ -692,3 +692,4 @@ asym.*_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
 .*_.w_raw		TH1F	1000	-5.0e9	5.0e9		Counts		Events
 .*_.w			TH1F	1000	-5.0e9	5.0e9		CalibratedCounts Events
 .*_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2		Counts		Events
+.*_dev_err		TH1F	1000	-1.0	2.15e9
