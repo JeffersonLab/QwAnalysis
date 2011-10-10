@@ -40,7 +40,8 @@ void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave) {
   fNumEvtsWithHWErrors=0;//init error counters
   fNumEvtsWithEventCutsRejected=0;//init error counters
 
-  fDeviceErrorCode = 0;
+  fErrorFlag = 0;
+  fErrorConfigFlag=0;
   fGoodEventCount = 0;
   return;
 };
@@ -67,7 +68,7 @@ void VQwScaler_Channel::ClearEventData()
   fValueError  = 0.0;
 
   fGoodEventCount  = 0;
-  fDeviceErrorCode = 0;
+  fErrorFlag = 0;
 }
 
 void VQwScaler_Channel::RandomizeEventData(int helicity, double time)
@@ -211,7 +212,7 @@ void  VQwScaler_Channel::FillHistograms()
   if (IsNameEmpty()) {
     //  This channel is not used, so skip creating the histograms.
   } else {
-    if (index < fHistograms.size() && fHistograms[index] != NULL)
+    if (index < fHistograms.size() && fHistograms[index] != NULL  && fErrorFlag==0)
       fHistograms[index]->Fill(this->fValue);
     index += 1;
   }
@@ -277,7 +278,7 @@ void  VQwScaler_Channel::FillTreeVector(std::vector<Double_t> &values) const
   } else {
     size_t index = fTreeArrayIndex;
     values[index++] = this->fValue;
-    values[index++] = this->fDeviceErrorCode;
+    values[index++] = this->fErrorFlag;
     if(fDataToSave==kRaw){
       values[index++] = this->fValue_Raw;
     }
@@ -304,21 +305,34 @@ VQwScaler_Channel& VQwScaler_Channel::operator=(const VQwScaler_Channel &value)
   if (!IsNameEmpty()) {
     VQwHardwareChannel::operator=(value);
     this->fValue_Raw  = value.fValue_Raw;
-    this->fValue      = value.fValue;
+    this->fValue  = value.fValue;
     this->fValueError = value.fValueError;
     this->fValueM2    = value.fValueM2;
   }
   return *this;
 }
 
+void VQwScaler_Channel::AssignScaledValue(const VQwScaler_Channel &value,
+				    Double_t scale)
+{
+  if (!IsNameEmpty()) {
+    this->fValue  = value.fValue * scale;
+    this->fValueError = value.fValueError;
+    this->fValueM2 = value.fValueM2 * scale * scale;
+    this->fErrorFlag = value.fErrorFlag;//error code is updated.
+    this->fGoodEventCount = value.fGoodEventCount;
+  }
+  return;
+}
 
 
 VQwScaler_Channel& VQwScaler_Channel::operator+= (const VQwScaler_Channel &value)
 {
   if (!IsNameEmpty()){
-    this->fValue  += value.fValue;
-    this->fValueM2 = 0.0;
-    this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+    this->fValue           += value.fValue;
+    this->fValueM2          = 0.0;
+    this->fErrorFlag       |= value.fErrorFlag;//error code is ORed.
+    this->fErrorConfigFlag |= (value.fErrorConfigFlag);//ERROR
 
   }
   return *this;
@@ -327,9 +341,10 @@ VQwScaler_Channel& VQwScaler_Channel::operator+= (const VQwScaler_Channel &value
 VQwScaler_Channel& VQwScaler_Channel::operator-= (const VQwScaler_Channel &value)
 {
   if (!IsNameEmpty()){
-    this->fValue  -= value.fValue;
-    this->fValueM2 = 0.0;
-    this->fDeviceErrorCode |= (value.fDeviceErrorCode);//error code is ORed.
+    this->fValue           -= value.fValue;
+    this->fValueM2          = 0.0;
+    this->fErrorFlag       |= (value.fErrorFlag);//error code is ORed.
+    this->fErrorConfigFlag |= (value.fErrorConfigFlag);
   }
   return *this;
 }
@@ -356,7 +371,8 @@ void VQwScaler_Channel::Ratio(const VQwScaler_Channel &numer, const VQwScaler_Ch
     
     // Remaining variables
     fGoodEventCount  = denom.fGoodEventCount;
-    fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
+    fErrorFlag = (numer.fErrorFlag|denom.fErrorFlag);//error code is ORed.    
+    fErrorConfigFlag = (numer.fErrorConfigFlag|denom.fErrorConfigFlag);
 
   }
 }
@@ -390,9 +406,9 @@ VQwScaler_Channel& VQwScaler_Channel::operator/= (const VQwScaler_Channel &denom
     }
 
     // Remaining variables
-    //  Don't change fGoodEventCount, or fErrorFlag.
+    //  Don't change fGoodEventCount.
     //  'OR' the device error codes together.
-    fDeviceErrorCode |= denom.fDeviceErrorCode;
+    fErrorFlag |= denom.fErrorFlag;
   }
 
   // Nanny
@@ -409,7 +425,8 @@ void VQwScaler_Channel::Product(VQwScaler_Channel &numer, VQwScaler_Channel &den
     
     // Remaining variables
     fGoodEventCount  = denom.fGoodEventCount;
-    fDeviceErrorCode = (numer.fDeviceErrorCode|denom.fDeviceErrorCode);//error code is ORed.
+    fErrorFlag = (numer.fErrorFlag|denom.fErrorFlag);//error code is ORed.
+    fErrorConfigFlag = (numer.fErrorConfigFlag|denom.fErrorConfigFlag);
   }
 }
 
@@ -448,14 +465,14 @@ void VQwScaler_Channel::DivideBy(const VQwScaler_Channel &denom)
 
 /********************************************************/
 Int_t VQwScaler_Channel::ApplyHWChecks() {
-  //  fDeviceErrorCode=0;
+  //  fErrorFlag=0;
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
     //check for the hw_sum is zero
     if (GetRawValue()==0){
-      fDeviceErrorCode|=kErrorFlag_ZeroHW;
+      fErrorFlag|=kErrorFlag_ZeroHW;
     }
   }
-  return fDeviceErrorCode;
+  return fErrorFlag;
 }
 
 
@@ -470,14 +487,17 @@ Bool_t VQwScaler_Channel::ApplySingleEventCuts()
       status=kTRUE;
     } else  if (GetValue()<=fULimit && GetValue()>=fLLimit){
       //QwError<<" Single Event Cut passed "<<GetElementName()<<" "<<GetValue()<<QwLog::endl;
-      status=kTRUE;
+      if (fErrorFlag !=0)
+	status=kFALSE;
+      else
+	status=kTRUE;
     }
     else{
       //QwError<<" Single Event Cut Failed "<<GetElementName()<<" "<<GetValue()<<QwLog::endl;
       if (GetValue()> fULimit)
-	fDeviceErrorCode|=kErrorFlag_EventCut_U;
+	fErrorFlag|=kErrorFlag_EventCut_U;
       else
-	fDeviceErrorCode|=kErrorFlag_EventCut_L;
+	fErrorFlag|=kErrorFlag_EventCut_L;
       status=kFALSE;
     }
 
@@ -502,7 +522,7 @@ void VQwScaler_Channel::AccumulateRunningSum(const VQwScaler_Channel& value)
   Int_t n2 = value.fGoodEventCount;
 
   // If there are no good events, check whether device HW is good
-  if (n2 == 0 && value.fDeviceErrorCode == 0) {
+  if (n2 == 0 && value.fErrorFlag == 0) {
     n2 = 1;
   }
   Int_t n = n1 + n2;

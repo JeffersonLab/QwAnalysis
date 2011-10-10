@@ -62,7 +62,8 @@ class VQwDataElement: public MQwHistograms {
     fGoodEventCount(0),
     fSubsystemName(""),
     fModuleType(""),
-    fErrorFlag(0)
+    fErrorFlag(0),
+    fErrorConfigFlag(0)
     { };
   /// Copy constructor
   VQwDataElement(const VQwDataElement& value)
@@ -72,7 +73,8 @@ class VQwDataElement: public MQwHistograms {
     fGoodEventCount(value.fGoodEventCount),
     fSubsystemName(value.fSubsystemName),
     fModuleType(value.fModuleType),
-    fErrorFlag(value.fErrorFlag)
+    fErrorFlag(value.fErrorFlag),
+    fErrorConfigFlag(value.fErrorConfigFlag)
     { };
   /// Virtual destructor
   virtual ~VQwDataElement() { };
@@ -86,6 +88,7 @@ class VQwDataElement: public MQwHistograms {
 
   /*! \brief Clear the event data in this element */
   virtual void  ClearEventData(){
+    fErrorFlag=0;
   };
   /*! \brief Process the CODA event buffer for this element */
   virtual Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t num_words_left, UInt_t subelement=0) = 0;
@@ -185,6 +188,7 @@ class VQwDataElement: public MQwHistograms {
       fSubsystemName     = source.fSubsystemName;
       fModuleType        = source.fModuleType;
       fErrorFlag         = source.fErrorFlag;
+      fErrorConfigFlag   = source.fErrorConfigFlag;
     }
   }
 
@@ -194,6 +198,7 @@ class VQwDataElement: public MQwHistograms {
       MQwHistograms::operator=(value);
       fGoodEventCount    = value.fGoodEventCount;
       fErrorFlag         = value.fErrorFlag;
+      fErrorConfigFlag   = value.fErrorConfigFlag;
     }
     return *this;
   }
@@ -209,9 +214,12 @@ class VQwDataElement: public MQwHistograms {
   // Data module Type
   TString  fModuleType;
 
-  // Error flag
+  /*! \name Event error flag                    */
+  /*! \brief This the standard error code generated for the channel that contains the global/local/stability flags and the Device error code (Unique error code for HW failures)*/
+// @{
   UInt_t fErrorFlag;
-
+  UInt_t fErrorConfigFlag; ///<contains the global/local/stability flags
+//@}
 }; // class VQwDataElement
 
 #endif // __VQWDATAELEMENT__

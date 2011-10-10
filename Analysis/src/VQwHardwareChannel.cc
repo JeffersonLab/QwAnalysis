@@ -6,11 +6,12 @@
 
 VQwHardwareChannel::VQwHardwareChannel():
   fNumberOfDataWords(0),
-  fNumberOfSubElements(0), fDataToSave(kRaw),
-  fErrorFlag(0), fDefErrorFlag(0)
+  fNumberOfSubElements(0), fDataToSave(kRaw)
 {
   fULimit = 0.0;
   fLLimit = 0.0;
+  fErrorFlag = 0;
+  fErrorConfigFlag = 0;
 }
 
 VQwHardwareChannel::VQwHardwareChannel(const VQwHardwareChannel& value)
@@ -27,10 +28,7 @@ VQwHardwareChannel::VQwHardwareChannel(const VQwHardwareChannel& value)
    bEVENTCUTMODE(value.bEVENTCUTMODE),
    fULimit(value.fULimit),
    fLLimit(value.fLLimit),
-   fStability(value.fStability),
-   fDeviceErrorCode(value.fDeviceErrorCode),
-   fErrorFlag(value.fErrorFlag),
-   fDefErrorFlag(value.fDefErrorFlag)
+   fStability(value.fStability)
 {
 }
 
@@ -68,18 +66,17 @@ void VQwHardwareChannel::Copy(const VQwHardwareChannel& source){
   fULimit              = source.fULimit;
   fLLimit              = source.fLLimit;
   fStability           = source.fStability;
-  fDeviceErrorCode     = source.fDeviceErrorCode;
-  fErrorFlag           = source.fErrorFlag;
-  fDefErrorFlag        = source.fDefErrorFlag;
 }
 
 
 UInt_t VQwHardwareChannel::GetEventcutErrorFlag()
 {
   // return the error flag
-  if (((fErrorFlag & kGlobalCut) == kGlobalCut) && fDeviceErrorCode>0){
+  //first condition check for global/local status and second condition check to see non-zero HW error codes
+  if (((fErrorConfigFlag & kGlobalCut) == kGlobalCut) && (fErrorFlag)>0){
     // we care only about global cuts
-    return fErrorFlag;
+    //std::cout<<"fErrorFlag "<<(fErrorFlag & kGlobalCut)<<std::endl;
+    return fErrorFlag+fErrorConfigFlag;//pass the error codes and configuration codes
   }
   return 0;
 };
@@ -92,13 +89,13 @@ void VQwHardwareChannel::SetSingleEventCuts(Double_t min, Double_t max)
 
 void VQwHardwareChannel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability)
 {
-  fErrorFlag=errorflag;
-  fDefErrorFlag=errorflag;
+  fErrorConfigFlag=errorflag;
+  std::cout<<"fErrorFlag "<<(fErrorConfigFlag & kGlobalCut)<<std::endl;
   fStability=stability;
   SetSingleEventCuts(min,max);
   QwDebug << "Set single event cuts for " << GetElementName() << ": "
 	  << "errorflag == 0x" << std::hex << errorflag << std::dec
-	  << ", global? " << (fErrorFlag & kGlobalCut) << QwLog::endl;
+	  << ", global? " << (fErrorConfigFlag & kGlobalCut)<< ", stability? " << (fErrorFlag & kStabilityCut) << QwLog::endl;
 }
 
 

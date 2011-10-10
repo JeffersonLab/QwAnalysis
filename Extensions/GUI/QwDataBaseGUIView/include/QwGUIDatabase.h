@@ -53,6 +53,7 @@
 #define N_TGTS           15
 #define N_GOODFOR_TYPES   8
 #define N_REGRESSION_VARS 5
+#define N_X_AXIS          4
 
 
 
@@ -85,6 +86,7 @@ using std::vector;
 #endif
 #include <TVectorT.h>
 #include <TGraphErrors.h>
+#include <THStack.h>
 
 
 
@@ -149,26 +151,18 @@ using std::vector;
   TPaveText * errlabel;
 
 
-  //!This function just plots some histograms in the main canvas, just for illustrative purposes
-  //!for now.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none
-  // void                 PlotData();
-
-  //  void PlotPosData();
-
-
-/*   void PlotChargeData(); */
-
+  //!A function to plot the detector data in a Y vs X format
   void DetectorPlot();
+
+  //!A function to create specific queries.
+  TString MakeQuery(TString outputs, TString tables_used, TString table_links,TString special_cuts);
+
 #ifndef  ROOTCINTMODE
-  mysqlpp::StoreQueryResult QueryDetector(TString detector, TString measured_property, Int_t det_id);
+  mysqlpp::StoreQueryResult QueryDetector();
 #endif
-  void HistogramDetector(TString detector, TString measured_property, Int_t det_id);
-  void PlotDetector(TString detector, TString measured_property, Int_t det_id);
+
+  void HistogramDetector();
+  void PlotDetector();
   void DetectorVsMonitorPlot();
   TString GetYTitle(TString measurement_type, Int_t detector);
   TString GetTitle(TString measurement_type, TString device);
@@ -199,6 +193,7 @@ using std::vector;
   static const char   *CombinedBPMS[N_CMB_BPMS];
   static const char   *CombinedBCMS[N_CMB_BCMS];
   static const char   *EnergyCalculators[N_ENERGY];
+  static const char   *X_axis[N_X_AXIS];
 
   // measurement types
   static const char   *OtherMeasurementTypes[N_MEAS_TYPES];
@@ -278,8 +273,8 @@ using std::vector;
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
   void                PopulateDetectorComboBox();
   void                PopulateMeasurementComboBox();
-  void                PopulateXDetComboBox();
-  
+  void                PopulatePlotComboBox();
+
   ClassDef(QwGUIDatabase,0); 
 
  };

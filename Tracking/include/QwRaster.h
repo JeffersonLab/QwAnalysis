@@ -22,7 +22,6 @@
 #include "VQwSubsystemTracking.h"
 #include "MQwV775TDC.h"
 #include "QwSIS3801_Module.h"
-#include "QwVQWK_Module.h"
 #include "QwVQWK_Channel.h"
 #include "QwPMT_Channel.h"
 
@@ -104,7 +103,6 @@ class QwRaster: public VQwSubsystemTracking, public MQwCloneable<QwRaster>
   //    We need a mapping of module,channel into PMT index, ADC/TDC
   std::vector< std::vector<QwPMT_Channel> > fPMTs;  // for QDC/TDC and F1TDC
   std::vector<QwSIS3801_Module*> fSCAs;
-  //std::vector<QwVQWK_Module*> fADC_Data;
 
   void FillRawWord(Int_t bank_index, Int_t slot_num, Int_t chan, UInt_t data);
   void  ClearAllBankRegistrations();

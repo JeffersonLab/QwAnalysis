@@ -293,11 +293,9 @@ template<typename T>
 void  QwBPMStripline<T>::ProcessEvent()
 {
   Bool_t localdebug = kFALSE;
-  static T numer("numerator"), denom("denominator"), ratio("ratio"), tmp1("tmp1"), tmp2("tmp2");
-  static T tmppos[2];
- 
-  tmppos[0].InitializeChannel("tmppos_0","derived");
-  tmppos[1].InitializeChannel("tmppos_1","derived");
+  static T numer("numerator","derived"), denom("denominator","derived");
+  static T tmp1("tmp1","derived"), tmp2("tmp2","derived");
+  static T rawpos[2] = {T("rawpos_0","derived"),T("rawpos_1","derived")};
 
   Short_t i = 0;
 
@@ -340,10 +338,8 @@ void  QwBPMStripline<T>::ProcessEvent()
       fWire[i*2+1].Scale(fRelativeGains[i]);
       numer.Difference(fWire[i*2],fWire[i*2+1]);
       denom.Sum(fWire[i*2],fWire[i*2+1]);
-      ratio.Ratio(numer,denom);
-      fRelPos[i].ClearEventData();
-      fRelPos[i] += ratio;
-      fRelPos[i].Scale(fQwStriplineCalibration);
+      rawpos[i].Ratio(numer,denom);
+      rawpos[i].Scale(fQwStriplineCalibration);
 
       if(localdebug)
 	{
@@ -359,30 +355,18 @@ void  QwBPMStripline<T>::ProcessEvent()
     }
 
   for(i=kXAxis;i<kNumAxes;i++){ 
-    tmp1.ClearEventData();
-    tmp2.ClearEventData();
-    tmppos[i].ClearEventData();
-    tmp1 = fRelPos[i];
-    tmp2 = fRelPos[1-i];
-    tmp1.Scale(fCosRotation);
-    tmp2.Scale(fSinRotation);
+    tmp1.AssignScaledValue(rawpos[i],   fCosRotation);
+    tmp2.AssignScaledValue(rawpos[1-i], fSinRotation);
     if (i == kXAxis) {
-      tmppos[i] += tmp1;
-      tmppos[i] -= tmp2;
+      fRelPos[i].Difference(tmp1,tmp2);
     } else {
-      tmppos[i] += tmp1;
-      tmppos[i] += tmp2;
+      fRelPos[i].Sum(tmp1,tmp2);
     }
   }
-  fRelPos[0].ClearEventData();
-  fRelPos[1].ClearEventData();
-  fRelPos[0] += tmppos[0];
-  fRelPos[1] += tmppos[1];
 
 
   for(i=kXAxis;i<kNumAxes;i++){
-    fAbsPos[i].ClearEventData();
-    fAbsPos[i] += fRelPos[i];
+    fAbsPos[i] = fRelPos[i];
     fAbsPos[i].AddChannelOffset(fPositionCenter[i]);
     fAbsPos[i].Scale(1.0/fGains[i]);
 

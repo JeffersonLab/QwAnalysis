@@ -59,13 +59,11 @@ public:
     return width;
   };
 
-  UInt_t GetErrorCode() const {return fDeviceErrorCode;};
-  void UpdateErrorCode(const UInt_t& error){fDeviceErrorCode |= error;};
+  UInt_t GetErrorCode() const {return (fErrorFlag);}; 
+  void UpdateErrorCode(const UInt_t& error){fErrorFlag |= (error);};
 
   virtual void  ClearEventData(){
     VQwDataElement::ClearEventData();
-    fDeviceErrorCode = 0;
-    fErrorFlag = fDefErrorFlag;
   };
 
   /*   virtual void AddChannelOffset(Double_t Offset) = 0; */
@@ -113,8 +111,6 @@ public:
   /// Arithmetic assignment operator:  Should only copy event-based data
   virtual VQwHardwareChannel& operator=(const VQwHardwareChannel& value) {
     VQwDataElement::operator=(value);
-    fDeviceErrorCode     = value.fDeviceErrorCode;
-    fErrorFlag           = value.fErrorFlag;
     return *this;
   }
 
@@ -180,16 +176,10 @@ protected:
   //@}
 
   /*! \name Single event cuts and errors                    */
-  Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
-  Double_t fULimit, fLLimit;//this sets the upper and lower limits
-  Double_t fStability;//how much deviaton from the stable reading is allowed
-  
-  /// Unique error code for HW failures
-  UInt_t fDeviceErrorCode; 
-
-  //Error flag
-  UInt_t fErrorFlag;
-  UInt_t fDefErrorFlag;
+  // @{
+  Int_t bEVENTCUTMODE;/*!<If this set to kFALSE then Event cuts are OFF*/
+  Double_t fULimit, fLLimit;/*!<this sets the upper and lower limits*/
+  Double_t fStability;/*!<how much deviaton from the stable reading is allowed*/
   //@}
 
 };   // class VQwHardwareChannel
