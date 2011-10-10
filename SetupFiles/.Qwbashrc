@@ -32,10 +32,15 @@ else
 fi
 
 # Searching paths for linker :
-if [[ -n "$LD_LIBRARY_PATH" ]]; then
-   export LD_LIBRARY_PATH=${QW_LIB}:${ROOTSYS}/lib:${MYSQLPP_LIB_DIR}:${LD_LIBRARY_PATH}
+if [ -x "${ROOTSYS}/bin/root-config" ] ; then
+    myrootlib=`root-config --libdir`
 else
-   export LD_LIBRARY_PATH=${QW_LIB}:${ROOTSYS}/lib:${MYSQLPP_LIB_DIR}
+    myrootlib=${ROOTSYS}/lib
+fi
+if [[ -n "$LD_LIBRARY_PATH" ]]; then
+   export LD_LIBRARY_PATH=${QW_LIB}:${myrootlib}:${MYSQLPP_LIB_DIR}:${LD_LIBRARY_PATH}
+else
+   export LD_LIBRARY_PATH=${QW_LIB}:${myrootlib}:${MYSQLPP_LIB_DIR}
 fi
 
 # Create alias for make when gmake is not found; the standard
