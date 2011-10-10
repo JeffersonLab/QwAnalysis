@@ -526,6 +526,7 @@ void  QwVQWK_Channel::ConstructHistograms(TDirectory *folder, TString &prefix)
 void  QwVQWK_Channel::FillHistograms()
 {
   Int_t index=0;
+  
   if (IsNameEmpty())
     {
       //  This channel is not used, so skip creating the histograms.
@@ -798,6 +799,29 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
   return *this;
 }
 
+void QwVQWK_Channel::AssignScaledValue(const QwVQWK_Channel &value,
+				 Double_t scale)
+{
+  if(this == &value) return;
+
+  if (!IsNameEmpty()) {
+    for (Int_t i=0; i<fBlocksPerEvent; i++){
+      this->fBlock_raw[i] = value.fBlock_raw[i];   // Keep this?
+      this->fBlock[i]   = value.fBlock[i]   * scale;
+      this->fBlockM2[i] = value.fBlockM2[i] * scale * scale;
+    }
+    this->fHardwareBlockSum_raw = value.fHardwareBlockSum_raw;  // Keep this?
+    this->fSoftwareBlockSum_raw = value.fSoftwareBlockSum_raw;  // Keep this?
+    this->fHardwareBlockSum   = value.fHardwareBlockSum * scale;
+    this->fHardwareBlockSumM2 = value.fHardwareBlockSumM2 * scale * scale;
+    this->fHardwareBlockSumError = value.fHardwareBlockSumError;   // Keep this?
+    this->fGoodEventCount  = value.fGoodEventCount;
+    this->fNumberOfSamples = value.fNumberOfSamples;
+    this->fSequenceNumber  = value.fSequenceNumber;
+    this->fErrorFlag       = value.fErrorFlag;
+  }
+}
+
 void QwVQWK_Channel::AssignValueFrom(const  VQwDataElement* valueptr)
 {
   const QwVQWK_Channel* tmpptr;
@@ -833,7 +857,6 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
     this->fNumberOfSamples     += value.fNumberOfSamples;
     this->fSequenceNumber       = 0;
     this->fErrorFlag            |= (value.fErrorFlag);
-    this->fErrorConfigFlag      |= (value.fErrorConfigFlag);
   }
 
   return *this;
@@ -861,7 +884,6 @@ QwVQWK_Channel& QwVQWK_Channel::operator-= (const QwVQWK_Channel &value)
     this->fNumberOfSamples     += value.fNumberOfSamples;
     this->fSequenceNumber       = 0;
     this->fErrorFlag           |= (value.fErrorFlag);
-    this->fErrorConfigFlag     |= (value.fErrorConfigFlag);
   }
 
   return *this;
@@ -889,7 +911,6 @@ QwVQWK_Channel& QwVQWK_Channel::operator*= (const QwVQWK_Channel &value)
     this->fNumberOfSamples      *= value.fNumberOfSamples;
     this->fSequenceNumber        = 0;
     this->fErrorFlag            |= (value.fErrorFlag);
-    this->fErrorConfigFlag      |= (value.fErrorConfigFlag);
   }
 
   return *this;
@@ -924,7 +945,6 @@ void QwVQWK_Channel::Ratio(const QwVQWK_Channel &numer, const QwVQWK_Channel &de
     fSequenceNumber       = 0;
     fGoodEventCount       = denom.fGoodEventCount;
     fErrorFlag            = (numer.fErrorFlag|denom.fErrorFlag);
-    fErrorConfigFlag      = (numer.fErrorConfigFlag|denom.fErrorConfigFlag);
   }
   return;
 }
@@ -1006,7 +1026,6 @@ void QwVQWK_Channel::Product(const QwVQWK_Channel &value1, const QwVQWK_Channel 
     this->fNumberOfSamples = value1.fNumberOfSamples;
     this->fSequenceNumber  = 0;
     this->fErrorFlag       = (value1.fErrorFlag|value2.fErrorFlag);
-    this->fErrorConfigFlag       = (value1.fErrorConfigFlag|value2.fErrorConfigFlag);
   }
   return;
 }

@@ -40,14 +40,13 @@ public:
     InitializeChannel("","");
   }
     
-  VQwScaler_Channel(TString name): MQwMockable() {
-    InitializeChannel(name,"");
+  VQwScaler_Channel(TString name, TString datatosave = "raw"): MQwMockable() {
+    InitializeChannel(name,datatosave);
   };
   virtual ~VQwScaler_Channel() { };
 
   /// \brief Initialize the fields in this object
-  void  InitializeChannel(TString name){InitializeChannel(name, "raw");};
-  void  InitializeChannel(TString name, TString datatosave);
+  void  InitializeChannel(TString name, TString datatosave = "raw");
 
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
@@ -83,6 +82,7 @@ public:
   UInt_t GetGoodEventCount() const { return fGoodEventCount; };
 
   VQwScaler_Channel& operator=  (const VQwScaler_Channel &value);
+  void AssignScaledValue(const VQwScaler_Channel &value, Double_t scale);
   void AssignValueFrom(const VQwDataElement* valueptr);
   //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &data_value);
   VQwScaler_Channel& operator+= (const VQwScaler_Channel &value);
@@ -170,7 +170,7 @@ class QwScaler_Channel: public VQwScaler_Channel
 
     // Define the constructors (cascade)
     QwScaler_Channel(): VQwScaler_Channel() { };
-    QwScaler_Channel(TString name): VQwScaler_Channel(name) { };
+    QwScaler_Channel(TString name, TString datatosave = "raw"): VQwScaler_Channel(name,datatosave) { };
 
   public:
 

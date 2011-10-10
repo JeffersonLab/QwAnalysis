@@ -305,13 +305,25 @@ VQwScaler_Channel& VQwScaler_Channel::operator=(const VQwScaler_Channel &value)
   if (!IsNameEmpty()) {
     VQwHardwareChannel::operator=(value);
     this->fValue_Raw  = value.fValue_Raw;
-    this->fValue      = value.fValue;
+    this->fValue  = value.fValue;
     this->fValueError = value.fValueError;
     this->fValueM2    = value.fValueM2;
   }
   return *this;
 }
 
+void VQwScaler_Channel::AssignScaledValue(const VQwScaler_Channel &value,
+				    Double_t scale)
+{
+  if (!IsNameEmpty()) {
+    this->fValue  = value.fValue * scale;
+    this->fValueError = value.fValueError;
+    this->fValueM2 = value.fValueM2 * scale * scale;
+    this->fErrorFlag = value.fErrorFlag;//error code is updated.
+    this->fGoodEventCount = value.fGoodEventCount;
+  }
+  return;
+}
 
 
 VQwScaler_Channel& VQwScaler_Channel::operator+= (const VQwScaler_Channel &value)
@@ -453,7 +465,7 @@ void VQwScaler_Channel::DivideBy(const VQwScaler_Channel &denom)
 
 /********************************************************/
 Int_t VQwScaler_Channel::ApplyHWChecks() {
-  //  fDeviceErrorCode=0;
+  //  fErrorFlag=0;
   if (bEVENTCUTMODE>0){//Global switch to ON/OFF event cuts set at the event cut file
     //check for the hw_sum is zero
     if (GetRawValue()==0){
