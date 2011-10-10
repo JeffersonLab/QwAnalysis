@@ -159,7 +159,9 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
 	fChargeRunningSum.CalculateRunningAverage();
       if (bStability && fChargeRunningSum.GetValueWidth()>fStability){//if the SD is large than the fStability
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
-	//fChargeRunningSum.PrintValue();
+
+	if ( (fChargeRunningSum.GetEventcutErrorFlag() & kBeamStabilityError)==kBeamStabilityError)
+	  QwMessage <<" Error Flag in the charge VQWK channel "<<fChargeRunningSum.GetEventcutErrorFlag()<<QwLog::endl;
 	QwMessage << " Running Average +/- width "<<fChargeRunningSum.GetValue()<<" +/- "<<fChargeRunningSum.GetValueWidth()<<" Stable width < "<<fStability<<QwLog::endl;
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
 	fErrorCode=kBeamStabilityError;//set hold_off events with beam stability error
