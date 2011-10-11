@@ -27,10 +27,10 @@ SEAmpCh1  ,   0 ,  1
 SEAmpCh2  ,   0 ,  1
 SESpareE  ,   0 ,  1
 SETermDn  ,   0 ,  1
-QWK_QPDTR ,      -256.2, -1.0
-QWK_QPDBR ,      -141.8 , -1.0
-QWK_QPDTL ,      -44.9 , -1.0
-QWK_QPDBL ,      -167.2 , -1.0 
+QWK_QPDTR ,      -289.7 , -1.0
+QWK_QPDBR ,      -185.9 , -1.0
+QWK_QPDTL ,      -55.16 , -1.0
+QWK_QPDBL ,      -233.6 , -1.0 
 QWK_1i02XP ,      962.8 , 1.0 
 QWK_1i02XM ,      812.4 , 1.0 
 QWK_1i02YP ,      967.1 , 1.0 
