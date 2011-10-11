@@ -223,6 +223,7 @@ enum ENDataType {
   DDT_BCM,
   DDT_BPM,
   DDT_HEL,
+  DDT_MAIN,
 };
 
 

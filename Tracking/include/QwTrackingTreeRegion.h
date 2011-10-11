@@ -52,7 +52,7 @@ class QwTrackingTreeRegion:
     /// Default constructor
     QwTrackingTreeRegion(): fDebug(0) { };
     /// \brief Destructor
-    ~QwTrackingTreeRegion();
+    virtual ~QwTrackingTreeRegion();
 
     /// \brief Is this region searchable?
     bool IsSearchable() const { return fSearchable; };

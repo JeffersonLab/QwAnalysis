@@ -457,17 +457,6 @@ void QwClock<T>::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-template<typename T>
-void QwClock<T>::DeleteHistograms()
-{
-  if (this->GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fClock.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
 template<typename T>
 void QwClock<T>::Copy(VQwDataElement *source)

@@ -57,7 +57,7 @@ class QwTrackingTreeMatch {
     /// \brief Default constructor
     QwTrackingTreeMatch(): fDebug(0) { };
     /// \brief Destructor
-    ~QwTrackingTreeMatch() { };
+    virtual ~QwTrackingTreeMatch() { };
 
     /// Set the debug level
     void SetDebugLevel (int debug) { fDebug = debug; };

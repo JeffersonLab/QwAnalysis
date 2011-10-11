@@ -2,21 +2,21 @@
 ROC=31
 Bank=0x3102
 !same sample size for ADCs in a given bank
-sample_size=464
+sample_size=4000
 !
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
 
 
 !ADC0
-    VQWK, 0, 0,  qpd,  QWK_LINAR1
-    VQWK, 0, 1,  qpd,  QWK_LINAR2
-    VQWK, 0, 2,  qpd,  QWK_LINAR3
-    VQWK, 0, 3,  qpd,  QWK_LINAR4
-    VQWK, 0, 4,  qpd,  QWK_LINAR5
-    VQWK, 0, 5,  qpd,  QWK_LINAR6
-    VQWK, 0, 6,  qpd,  QWK_LINAR7
-    VQWK, 0, 7,  qpd,  QWK_LINAR8
+    VQWK, 0, 0,  bcm,  QWK_LINAR1
+    VQWK, 0, 1,  bcm,  QWK_LINAR2
+    VQWK, 0, 2,  bcm,  QWK_LINAR3
+    VQWK, 0, 3,  bcm,  QWK_LINAR4
+    VQWK, 0, 4,  bcm,  QWK_LINAR5
+    VQWK, 0, 5,  bcm,  QWK_LINAR6
+    VQWK, 0, 6,  bcm,  QWK_LINAR7
+    VQWK, 0, 7,  bcm,  QWK_LINAR8
 
 !ADC1
 !    VQWK, 1, 0,  bpmstripline,  QWK_1I02XP,   UNROTATED

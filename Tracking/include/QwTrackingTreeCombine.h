@@ -43,7 +43,7 @@ class chi_hash {
     chi_hash() {
       hits = 0;
     };
-    ~chi_hash() {};
+    virtual ~chi_hash() {};
 
     double cx, mx, cov[3], chi;
     double hit[DLAYERS];
@@ -75,7 +75,7 @@ class QwTrackingTreeCombine {
   public:
 
     QwTrackingTreeCombine();
-    ~QwTrackingTreeCombine();
+    virtual ~QwTrackingTreeCombine();
 
     /// Set the debug level
     void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };

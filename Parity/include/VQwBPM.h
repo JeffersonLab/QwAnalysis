@@ -52,9 +52,7 @@ class VQwBPM : public VQwDataElement {
   VQwBPM() {InitializeChannel_base();};
   VQwBPM(TString& name) {InitializeChannel_base();};
 
-  virtual ~VQwBPM(){
-    //DeleteHistograms();
-  };
+  virtual ~VQwBPM() { };
 
 
   void   InitializeChannel(TString name);
@@ -137,7 +135,6 @@ class VQwBPM : public VQwDataElement {
 
   virtual void ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   virtual void FillHistograms() = 0;
-  virtual void DeleteHistograms() = 0;
 
   virtual void ConstructBranchAndVector(TTree *tree, TString &prefix,
       std::vector<Double_t> &values) = 0;

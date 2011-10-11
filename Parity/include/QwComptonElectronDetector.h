@@ -19,11 +19,6 @@
 
 // System headers
 #include <vector>
-  
-// ROOT headers
-#include <TTree.h>
-#include <TFile.h>
-#include <TH1D.h>
 
 // Boost math library for random number generation
 #include <boost/multi_array.hpp>
@@ -38,7 +33,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     /// \brief Constructor
     QwComptonElectronDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
     /// \brief Destructor
-    virtual ~QwComptonElectronDetector() { DeleteHistograms(); };
+    virtual ~QwComptonElectronDetector() { };
 
 
     /* derived from VQwSubsystem */
@@ -78,7 +73,6 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructTree;
     void  ConstructTree(TDirectory *folder, TString &prefix);
@@ -133,7 +127,6 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
    *  inside the ConstructHistograms()
    */
 
-  std::vector<TH1*> fHistograms1D;
   std::vector<Int_t> fComptonElectronVector;
 
 

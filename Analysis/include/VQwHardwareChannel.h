@@ -9,6 +9,7 @@
 #define __VQWHARDWARECHANNEL__
 
 // System headers
+#include <cmath>
 #include <vector>
 #include <stdexcept>
 
@@ -29,6 +30,7 @@ class VQwHardwareChannel: public VQwDataElement {
  ******************************************************************/
 public:
   VQwHardwareChannel();
+  VQwHardwareChannel(const VQwHardwareChannel& value);
   virtual ~VQwHardwareChannel();
 
   /*! \brief Get the number of data words in this data element */
@@ -57,13 +59,11 @@ public:
     return width;
   };
 
-  UInt_t GetErrorCode() const {return fDeviceErrorCode;};
-  void UpdateErrorCode(const UInt_t& error){fDeviceErrorCode |= error;};
+  UInt_t GetErrorCode() const {return (fErrorFlag);}; 
+  void UpdateErrorCode(const UInt_t& error){fErrorFlag |= (error);};
 
   virtual void  ClearEventData(){
     VQwDataElement::ClearEventData();
-    fDeviceErrorCode = 0;
-    fErrorFlag = fDefErrorFlag;
   };
 
   /*   virtual void AddChannelOffset(Double_t Offset) = 0; */
@@ -104,7 +104,15 @@ public:
   virtual void CalculateRunningAverage() = 0;
 //   virtual void AccumulateRunningSum(const VQwHardwareChannel *value) = 0;
 
-  virtual void Copy(VQwDataElement *source) = 0;
+  /*! \brief Copy method:  Should make a full, identical copy. */
+  virtual void Copy(const VQwDataElement *source);
+  virtual void Copy(const VQwHardwareChannel& source);
+
+  /// Arithmetic assignment operator:  Should only copy event-based data
+  virtual VQwHardwareChannel& operator=(const VQwHardwareChannel& value) {
+    VQwDataElement::operator=(value);
+    return *this;
+  }
 
 
   void     SetPedestal(Double_t ped) { fPedestal = ped; kFoundPedestal = 1; };
@@ -152,6 +160,10 @@ protected:
 
   EDataToSave fDataToSave;
 
+  /*  Ntuple array indices */
+  size_t fTreeArrayIndex;
+  size_t fTreeArrayNumEntries;
+
   /*! \name Channel calibration                    */
   // @{
   Double_t fPedestal; /*!< Pedestal of the hardware sum signal,
@@ -164,16 +176,10 @@ protected:
   //@}
 
   /*! \name Single event cuts and errors                    */
-  Int_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts are OFF
-  Double_t fULimit, fLLimit;//this sets the upper and lower limits
-  Double_t fStability;//how much deviaton from the stable reading is allowed
-  
-  /// Unique error code for HW failures
-  UInt_t fDeviceErrorCode; 
-
-  //Error flag
-  UInt_t fErrorFlag;
-  UInt_t fDefErrorFlag;
+  // @{
+  Int_t bEVENTCUTMODE;/*!<If this set to kFALSE then Event cuts are OFF*/
+  Double_t fULimit, fLLimit;/*!<this sets the upper and lower limits*/
+  Double_t fStability;/*!<how much deviaton from the stable reading is allowed*/
   //@}
 
 };   // class VQwHardwareChannel

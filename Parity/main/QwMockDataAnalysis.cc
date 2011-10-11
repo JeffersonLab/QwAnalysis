@@ -243,11 +243,6 @@ int main(int argc, char* argv[])
 
     // Close ROOT file
     rootfile.Write(0,TObject::kOverwrite);
-    // Delete histograms
-    if (bHisto) {
-      detectors.DeleteHistograms();
-      if (bHelicity) helicitypattern.DeleteHistograms();
-    }
 
     // Close data file and print run summary
     eventbuffer.CloseDataFile();

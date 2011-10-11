@@ -382,12 +382,6 @@ void  QwSubsystemArray::FillHistograms()
     std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::FillHistograms));
 }
 
-void  QwSubsystemArray::DeleteHistograms()
-{
-  if (!empty())
-    std::for_each(begin(), end(), boost::mem_fn(&VQwSubsystem::DeleteHistograms));
-}
-
 //*****************************************************************
 
 /**

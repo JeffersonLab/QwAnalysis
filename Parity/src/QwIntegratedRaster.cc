@@ -626,13 +626,6 @@ void  QwIntegratedRaster::ConstructHistograms(TDirectory *folder, TString &prefi
 
 
 //*****************************************************************
-void  QwIntegratedRaster::DeleteHistograms()
-{
-  for (size_t i = 0; i < fIntegratedRasterChannel.size(); i++)
-    fIntegratedRasterChannel[i].DeleteHistograms();
-}
-
-//*****************************************************************
 void  QwIntegratedRaster::FillHistograms()
 {
   if (! HasDataLoaded()) return;

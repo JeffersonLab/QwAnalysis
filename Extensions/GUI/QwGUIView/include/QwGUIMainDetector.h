@@ -75,7 +75,6 @@ using std::vector;
 #include <TProfile.h>
 #include <TVirtualFFT.h>
 #include "QwGUISubSystem.h"
-#include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"
 #include "RMsgBox.h"
 #include "QwGUIEventWindowSelectionDialog.h"

@@ -32,9 +32,7 @@ class QwCombinedPMT : public VQwDataElement {
     InitializeChannel(subsystemname, name, "derived");
   };
 
-  ~QwCombinedPMT() {
-    DeleteHistograms();
-  };
+  virtual ~QwCombinedPMT() { };
 
   void  InitializeChannel(TString name, TString datatosave);
   // new routine added to update necessary information for tree trimming
@@ -110,7 +108,6 @@ class QwCombinedPMT : public VQwDataElement {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   Double_t GetAverage()        {return fSumADC.GetAverage();};
   Double_t GetAverageError()   {return fSumADC.GetAverageError();};

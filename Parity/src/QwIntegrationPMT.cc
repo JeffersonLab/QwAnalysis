@@ -391,16 +391,6 @@ void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-void  QwIntegrationPMT::DeleteHistograms()
-{
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fTriumf_ADC.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
 void  QwIntegrationPMT::Copy(VQwDataElement *source)
 {

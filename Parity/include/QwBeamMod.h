@@ -54,9 +54,7 @@ class QwBeamMod: public VQwSubsystemParity, public MQwCloneable<QwBeamMod> {
         fgModTypeNames[i].ToLower();
     };
 
-  ~QwBeamMod() {
-    DeleteHistograms();
-  };
+  virtual ~QwBeamMod() { };
 
  std::vector<TString> fgModTypeNames;
   /* derived from VQwSubsystem */
@@ -109,7 +107,6 @@ class QwBeamMod: public VQwSubsystemParity, public MQwCloneable<QwBeamMod> {
   using VQwSubsystem::ConstructHistograms;
   void ConstructHistograms(TDirectory *folder, TString &prefix);
   void FillHistograms();
-  void DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);

@@ -303,10 +303,6 @@ int main(int argc, char* argv[])
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
 
-    //  Delete histograms
-    rootfile->DeleteHistograms(detectors);
-    rootfile->DeleteHistograms(helicitypattern);
-
     // Close ROOT file
     rootfile->Close();
     delete rootfile; rootfile = 0;

@@ -36,7 +36,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     /// \brief Constructor
     QwComptonPhotonDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
     /// \brief Destructor
-    virtual ~QwComptonPhotonDetector() { DeleteHistograms(); };
+    virtual ~QwComptonPhotonDetector() { };
 
 
     // Handle command line options
@@ -78,7 +78,6 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructTree;
     void  ConstructTree(TDirectory *folder, TString &prefix);

@@ -124,8 +124,8 @@ public:
   TGraph              *GetNewGraph(const TGraph& gr);
   TProfile            *GetNew1DProfile(const TProfile& prof);
 
-  Int_t                GetNewLineColor(Color_t col);
-  Int_t                GetNewMarkerColor(Color_t col);
+  Int_t                GetNewLineColor(Color_t col = 0);
+  Int_t                GetNewMarkerColor(Color_t col = 0);
   TObject             *GetObject(Int_t index, Char_t *name = NULL);
   TObject             *GetPlot(Int_t index);
   Int_t                GetPlotCount();

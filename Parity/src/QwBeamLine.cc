@@ -1416,17 +1416,13 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   for(size_t i=0;i<fBCM.size();i++){
     ErrorFlagtmp = fBCM[i].get()->GetEventcutErrorFlag();
     ErrorFlag |=ErrorFlagtmp;
-    //if ((fBCM[i].GetElementName()=="qwk_bcm1") && ErrorFlagtmp)
-    //if ((fDeviceErrorCode&kErrorFlag_EventCut_L)==kErrorFlag_EventCut_L )
-    //  std::cout<<"QwBeamLine Failed eflag "<<ErrorFlagtmp<<" accumu  "<<ErrorFlag<<" "<<((ErrorFlag & kGlobalCut) == kGlobalCut)<<" kGlobalCut  "<<kGlobalCut<<std::endl;
+    
   }
   
-  //for(size_t i=0;i<fHaloMonitor.size();i++){
-    //ErrorFlag |= fHaloMonitor[i].GetEventcutErrorFlag();
-  //}
+
 
   for(size_t i=0;i<fStripline.size();i++){
-    ErrorFlag |= fStripline[i].get()->GetEventcutErrorFlag();
+    ErrorFlag |= fStripline[i].get()->GetEventcutErrorFlag();        
   }
 
   
@@ -1453,7 +1449,7 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   for(size_t i=0;i<fECalculator.size();i++){
     ErrorFlag |= fECalculator[i].GetEventcutErrorFlag();
   }
-  
+
   return ErrorFlag;
 
 }
@@ -2169,43 +2165,6 @@ void  QwBeamLine::ConstructHistograms(TDirectory *folder, TString &prefix)
 
   for(size_t i=0;i<fECalculator.size();i++)
       fECalculator[i].ConstructHistograms(folder,prefix);
-  return;
-}
-
-//*****************************************************************
-void  QwBeamLine::DeleteHistograms()
-{
-  for(size_t i=0;i<fClock.size();i++)
-    fClock[i].get()->DeleteHistograms();
-
-  // FIXME temporarily disabled until constructors sorted out
-  //for(size_t i=0;i<fStripline.size();i++)
-  //  fStripline[i].get()->DeleteHistograms();
-
-  for(size_t i=0;i<fQPD.size();i++)
-    fQPD[i].DeleteHistograms();
-
-  for(size_t i=0;i<fLinearArray.size();i++)
-    fLinearArray[i].DeleteHistograms();
-
-  for(size_t i=0;i<fCavity.size();i++)
-    fCavity[i].DeleteHistograms();
-
-  for(size_t i=0;i<fBCM.size();i++)
-    fBCM[i].get()->DeleteHistograms();
-
-  for(size_t i=0;i<fHaloMonitor.size();i++)
-    fHaloMonitor[i].DeleteHistograms();
-
-  for(size_t i=0;i<fBCMCombo.size();i++)
-    fBCMCombo[i].get()->DeleteHistograms();
-
-  // FIXME temporarily disabled until constructors sorted out
-  //for(size_t i=0;i<fBPMCombo.size();i++)
-  //  fBPMCombo[i].get()->DeleteHistograms();
-
-  for(size_t i=0;i<fECalculator.size();i++)
-    fECalculator[i].DeleteHistograms();
   return;
 }
 

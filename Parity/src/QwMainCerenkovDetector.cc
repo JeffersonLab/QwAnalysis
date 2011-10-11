@@ -811,12 +811,13 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
 	//QwWarning <<"****QwMainCerenkovDetector****"<< QwLog::endl;
 	(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))->PrintInfo();
       }
-    }else{
+    }
+    else{
       bIsExchangedDataValid = kFALSE;
       QwError << GetSubsystemName() << " could not get external value for "
 	      << fTargetCharge.GetElementName() << QwLog::endl;
     }
-
+    /*
     if(RequestExternalValue("x_targ", &fTargetX)){
       if (bDEBUG){
 	dynamic_cast<QwVQWK_Channel*>(&fTargetX)->PrintInfo();
@@ -871,6 +872,7 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
       QwError << GetSubsystemName() << " could not get external value for "
 	      << fTargetEnergy.GetElementName() << QwLog::endl;
     }
+    */
 
     
   }
@@ -920,18 +922,6 @@ void  QwMainCerenkovDetector::FillHistograms()
 
   for (size_t i=0;i<fCombinedPMT.size();i++)
     fCombinedPMT[i].FillHistograms();
-
-  return;
-}
-
-
-void  QwMainCerenkovDetector::DeleteHistograms()
-{
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].DeleteHistograms();
-
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].DeleteHistograms();
 
   return;
 }

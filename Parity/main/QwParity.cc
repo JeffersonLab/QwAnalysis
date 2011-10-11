@@ -276,11 +276,6 @@ Int_t main(Int_t argc, Char_t* argv[])
      *  here, in case we run over multiple runs at a time.           */
     rootfile->Write(0,TObject::kOverwrite);
 
-    //  Delete histograms
-    rootfile->DeleteHistograms(detectors);
-    rootfile->DeleteHistograms(helicitypattern);
-
-
     //  Print the event cut error summary for each subsystem
     QwMessage << " Event cut error counters" << QwLog::endl;
     QwMessage << " ========================" << QwLog::endl;

@@ -70,9 +70,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
     fHelicityDecodingMode=-1;
   };
 
-  virtual ~QwHelicity() {
-    DeleteHistograms();
-  };
+  virtual ~QwHelicity() { };
 
 
 
@@ -146,7 +144,6 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
@@ -226,7 +223,6 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   Bool_t fGoodHelicity;
   Bool_t fGoodPattern;
 
-  std::vector<TH1*> fHistograms;
   Int_t fHistoType;
   //allow one to select which types of histograms are created and filled
   void SetHistoTreeSave(const TString &prefix);
