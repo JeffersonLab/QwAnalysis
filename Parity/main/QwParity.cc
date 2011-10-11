@@ -111,6 +111,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     eventring.ProcessOptions(gQwOptions);
     ///  Set up the ring with the subsystem array
     eventring.SetupRing(detectors);
+    //  Make a copy of the detectors object to hold the
+    //  events which pass through the ring.
+    QwSubsystemArrayParity ringoutput(detectors);
 
     ///  Create the running sum
     QwSubsystemArrayParity runningsum(detectors);
@@ -131,11 +134,11 @@ Int_t main(Int_t argc, Char_t* argv[])
     rootfile->WriteParamFileList("mapfiles", detectors);
 
     //  Construct histograms
-    rootfile->ConstructHistograms("mps_histo", detectors);
+    rootfile->ConstructHistograms("mps_histo", ringoutput);
     rootfile->ConstructHistograms("hel_histo", helicitypattern);
 
     //  Construct tree branches
-    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", detectors);
+    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", ringoutput);
     rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
     rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
 
@@ -190,30 +193,31 @@ Int_t main(Int_t argc, Char_t* argv[])
       // The event pass the event cut constraints
       if (detectors.ApplySingleEventCuts()) {
 
-        // Accumulate the running sum to calculate the event based running average
-        runningsum.AccumulateRunningSum(detectors);
-
-        // Fill the histograms
-        rootfile->FillHistograms(detectors);
-
-        // Fill the tree branches
-        rootfile->FillTreeBranches(detectors);
-        rootfile->FillTree("Mps_Tree");
-
         // Add event to the ring
         eventring.push(detectors);
 
         // Check to see ring is ready
         if (eventring.IsReady()) {
+	  ringoutput = eventring.pop();
+
+	  // Accumulate the running sum to calculate the event based running average
+	  runningsum.AccumulateRunningSum(ringoutput);
+
+	  // Fill the histograms
+	  rootfile->FillHistograms(ringoutput);
+	  
+	  // Fill the tree branches
+	  rootfile->FillTreeBranches(ringoutput);
+	  rootfile->FillTree("Mps_Tree");
 
           // Load the event into the helicity pattern
-          helicitypattern.LoadEventData(eventring.pop());
+          helicitypattern.LoadEventData(ringoutput);
 
           // Calculate helicity pattern asymmetry
           if (helicitypattern.IsCompletePattern()) {
 
             // Update the blinder if conditions have changed
-            helicitypattern.UpdateBlinder(detectors);
+            helicitypattern.UpdateBlinder(ringoutput);
 
             // Calculate the asymmetry
             helicitypattern.CalculateAsymmetry();
