@@ -8,6 +8,7 @@
  *********************************************************************/
 #include <cstdio>// C++ standard since 1999
 #include <iostream>
+#include "stdlib.h"
 using namespace std;
 
 #include <TFile.h>
@@ -113,10 +114,10 @@ int main(int argc, char *argv[]) {
   if( slopeFName) {
     TString xxx=treeInpFile;
     printf("xxx=%s=\n",xxx.Data());
-    char *xx2=strstr(xxx,"/");
+    const char *xx2=strstr(xxx,"/");
     assert(xx2); // if input tree name does not start with 'Qw' change the line above
     xx2++;
-    char *xx3;
+    const char *xx3;
     do{
       printf("xx2=%s=\n",xx2);
       xx3=strstr(xx2,"/");

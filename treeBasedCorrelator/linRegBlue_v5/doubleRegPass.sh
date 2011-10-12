@@ -3,7 +3,7 @@ run=$1
 iseg=$2
 
 logPath='./out/'
-mxEve=22233
+mxEve=2223344
 
 seg=00$iseg
 if [ $iseg -ge 10 ]; then seg=0$iseg; fi
