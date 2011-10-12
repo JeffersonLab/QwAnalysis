@@ -63,6 +63,14 @@ class QwDetectorInfo: public TObject {
       SetZPosition(z);
     };
 
+    double GetPlaneOffset(){
+      return fPlaneOffset;
+    }
+    
+    void SetPlaneOffset (double x){
+      fPlaneOffset=x;
+    }
+
     // Get/set active flag
     bool IsActive() const { return fIsActive; };
     bool IsInactive() const { return !IsActive(); };
@@ -107,6 +115,7 @@ class QwDetectorInfo: public TObject {
     double GetElementAngleInDeg() const { return fElementAngle * TMath::RadToDeg(); };
     double GetElementAngleCos() const { return fElementAngleCos; };
     double GetElementAngleSin() const { return fElementAngleSin; };
+
     void SetElementAngle(const double angle) {
       fElementAngle = angle;
       fElementAngleCos = std::cos(fElementAngle);
@@ -201,7 +210,9 @@ class QwDetectorInfo: public TObject {
     double fElementAngleSin;	///< Sin of the element orientation
     double fElementOffset;	///< Position of the first element (it is not
                                 ///  exactly clear to me what that exactly means)
+    double fPlaneOffset;        /// perpendicular distance from the first plane in the same direction
     int fNumberOfElements;	///< Total number of elements in this detector
+    
 
     QwTrackingTreeRegion* fTree;        ///< Search tree for this detector
 

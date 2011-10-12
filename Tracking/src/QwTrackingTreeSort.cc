@@ -441,7 +441,7 @@ int QwTrackingTreeSort::rcTreeConnSort (
     double local_minchi = maxchi;
 
     // Keep track of the number of iterations
-    iteration++;
+    ++iteration;
 
     index = 0;
     // Loop over the list of treelines
@@ -503,7 +503,6 @@ int QwTrackingTreeSort::rcTreeConnSort (
   if (fDebug) cout << "Number of treelines with good chi: " << nTreeLines << endl;
 
 
-
   /* Now add the valid treelines to new lists */
 
   // Reserve memory for the lists of treelines
@@ -550,7 +549,7 @@ int QwTrackingTreeSort::rcTreeConnSort (
       array[i * nTreeLines + i] = false;
       for (int j = i+1; j < nTreeLines; j++) {
         int common = rcCommonWires (tlarr[i], tlarr[j]);
-        array[i * nTreeLines + j] = array[j * nTreeLines + i] = (common > 50);
+        array[i * nTreeLines + j] = array[j * nTreeLines + i] = (common > 100);
       }
     }
   }

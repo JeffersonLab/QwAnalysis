@@ -71,9 +71,9 @@ QwTrackingTreeLine::QwTrackingTreeLine(const QwTrackingTreeLine* that)
  * Delete the tree line and the lists of hits depending on it
  */
 QwTrackingTreeLine::~QwTrackingTreeLine()
-{
+{ 
   // Delete the hits in this treeline
-  for (int i = 0; i < 2 * MAX_LAYERS; i++) {
+  for (int i = 0; i < 2 * MAX_LAYERS; ++i) {
 
     if (fHits[i]) delete fHits[i];
     fHits[i] = 0;
@@ -83,7 +83,6 @@ QwTrackingTreeLine::~QwTrackingTreeLine()
   }
 
   DeleteHits();
-
   // No recursive delete of the next pointer is done here
 }
 
@@ -294,11 +293,9 @@ double QwTrackingTreeLine::CalculateAverageResidual()
 {
   int numHits = 0;
   double sumResiduals = 0.0;
-  for (int layer = 0; layer < 2 * MAX_LAYERS; layer++) {
+  for (int layer = 0; layer < 2 * MAX_LAYERS; ++layer) {
     for (QwHit* hit = fHits[layer]; hit; hit = hit->next) {
-      if (hit->IsUsed()) {
-//         std::cout << "in calculate residual: " << hit->GetTrackPosition() << " " << hit->GetDriftPosition() <<  std::endl;
-        
+      if (hit->IsUsed()) {        
         double residual = hit->GetResidual();
         sumResiduals += residual;
         numHits++;
