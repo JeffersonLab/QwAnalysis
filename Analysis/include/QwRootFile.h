@@ -592,7 +592,7 @@ void QwRootFile::ConstructTreeBranches(
     tree->SetMaxTreeSize(kMaxTreeSize);
 
     if (fEnableMapFile && fCircularBufferSize > 0)
-      fTreeByName[name].back()->SetCircular(fCircularBufferSize);
+      tree->SetCircular(fCircularBufferSize);
 
   } else {
 
