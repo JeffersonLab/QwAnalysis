@@ -81,8 +81,8 @@ QwBridgingTrackFilter::Filter(const QwPartialTrack* front,
     double direction_theta = 0.0;
     direction_theta = front->GetMomentumDirectionTheta();
 
-    double vertex_z = -250.0 * Qw::cm - position_r / tan(acos(start_direction.Z()));
-
+    //double vertex_z = -250.0 * Qw::cm - position_r / tan(acos(start_direction.Z()));
+    double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
     if (vertex_z < fMinVertexZ || vertex_z > fMaxVertexZ) {
       //   QwMessage << "QwBridgingTrackFilter: vertex z = " << vertex_z/Qw::cm << " cm, "
       //            << "allowed range [" << fMinVertexZ/Qw::cm << ","
