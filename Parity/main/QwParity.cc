@@ -123,27 +123,27 @@ Int_t main(Int_t argc, Char_t* argv[])
     database.SetupOneRun(eventbuffer);
 
     //  Open the ROOT file
-    QwRootFile r(eventbuffer.GetRunLabel()); // close when scope ends.
-    QwRootFile* rootfile = &r;
-    if (! rootfile) QwError << "QwAnalysis made a boo boo!" << QwLog::endl;
+    QwRootFile historootfile(eventbuffer.GetRunLabel() + ".histos"); // close when scope ends.
+    QwRootFile treerootfile(eventbuffer.GetRunLabel() + ".trees"); // close when scope ends.
 
     //
     //  Construct a Tree which contains map file names which are used to analyze data
     //
-    rootfile->WriteParamFileList("mapfiles", detectors);
+    historootfile.WriteParamFileList("mapfiles", detectors);
+    treerootfile.WriteParamFileList("mapfiles", detectors);
 
     //  Construct histograms
-    rootfile->ConstructHistograms("mps_histo", ringoutput);
-    rootfile->ConstructHistograms("hel_histo", helicitypattern);
+    historootfile.ConstructHistograms("mps_histo", ringoutput);
+    historootfile.ConstructHistograms("hel_histo", helicitypattern);
 
     //  Construct tree branches
-    rootfile->ConstructTreeBranches("Mps_Tree", "MPS event data tree", ringoutput);
-    rootfile->ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
-    rootfile->ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
+    treerootfile.ConstructTreeBranches("Mps_Tree", "MPS event data tree", ringoutput);
+    treerootfile.ConstructTreeBranches("Hel_Tree", "Helicity event data tree", helicitypattern);
+    treerootfile.ConstructTreeBranches("Slow_Tree", "EPICS and slow control tree", epicsevent);
 
     // Summarize the ROOT file structure
-    // rootfile->PrintTrees();
-    // rootfile->PrintDirs();
+    //treerootfile.PrintTrees();
+    //treerootfile.PrintDirs();
 
 
     //  Clear the single-event running sum at the beginning of the runlet
@@ -171,8 +171,8 @@ Int_t main(Int_t argc, Char_t* argv[])
         epicsevent.CalculateRunningValues();
         helicitypattern.UpdateBlinder(epicsevent);
 
-        rootfile->FillTreeBranches(epicsevent);
-        rootfile->FillTree("Slow_Tree");
+        treerootfile.FillTreeBranches(epicsevent);
+        treerootfile.FillTree("Slow_Tree");
       }
 
 
@@ -203,11 +203,11 @@ Int_t main(Int_t argc, Char_t* argv[])
 	  runningsum.AccumulateRunningSum(ringoutput);
 
 	  // Fill the histograms
-	  rootfile->FillHistograms(ringoutput);
-	  
+	  historootfile.FillHistograms(ringoutput);
+
 	  // Fill the tree branches
-	  rootfile->FillTreeBranches(ringoutput);
-	  rootfile->FillTree("Mps_Tree");
+	  treerootfile.FillTreeBranches(ringoutput);
+	  treerootfile.FillTree("Mps_Tree");
 
           // Load the event into the helicity pattern
           helicitypattern.LoadEventData(ringoutput);
@@ -222,10 +222,10 @@ Int_t main(Int_t argc, Char_t* argv[])
             helicitypattern.CalculateAsymmetry();
             if (helicitypattern.IsGoodAsymmetry()) {
               // Fill histograms
-              rootfile->FillHistograms(helicitypattern);
+              historootfile.FillHistograms(helicitypattern);
               // Fill tree branches
-              rootfile->FillTreeBranches(helicitypattern);
-              rootfile->FillTree("Hel_Tree");
+              treerootfile.FillTreeBranches(helicitypattern);
+              treerootfile.FillTree("Hel_Tree");
               // Clear the data
               helicitypattern.ClearEventData();
             }
@@ -278,7 +278,8 @@ Int_t main(Int_t argc, Char_t* argv[])
      *  If we wait until the subsystem destructors, we get a         *
      *  segfault; but in addition to that we should delete them     *
      *  here, in case we run over multiple runs at a time.           */
-    rootfile->Write(0,TObject::kOverwrite);
+    historootfile.Write(0,TObject::kOverwrite);
+    treerootfile.Write(0,TObject::kOverwrite);
 
     //  Print the event cut error summary for each subsystem
     QwMessage << " Event cut error counters" << QwLog::endl;
