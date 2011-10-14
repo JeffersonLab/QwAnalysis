@@ -44,7 +44,8 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
     VQwSubsystemParity(region_tmp),
    fHelicityBitPattern(kDefaultHelicityBitPattern),
    fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
-   fEventNumberFirst(-1),fPatternNumberFirst(-1)
+   fEventNumberFirst(-1),fPatternNumberFirst(-1),
+   fSuppressMPSErrorMsgs(kFALSE)
   {
     ClearErrorCounters();
     // Default helicity delay to two patterns.
@@ -292,6 +293,11 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   Int_t  fNumMissedEventBlocks; // Number of groups of missed events
   Int_t  fNumMultSyncErrors;    // Number of errors reading the multiplet sync
   Int_t  fNumHelicityErrors;    // Number of errors predicting the helicity
+
+
+  /// Flag to disable the printing os missed MPS error messags during
+  /// online running
+  Bool_t fSuppressMPSErrorMsgs;
 
  private:
 
