@@ -81,9 +81,6 @@ using std::vector;
 #include "TStyle.h"
 #include "QwGUIDataWindow.h"
 /* #include "RSDataWindow.h" */
-#ifndef  ROOTCINTMODE
-#include "QwSSQLS_summary.h"
-#endif
 #include <TVectorT.h>
 #include <TGraphErrors.h>
 #include <THStack.h>

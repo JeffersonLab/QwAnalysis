@@ -25,7 +25,7 @@
 #include "QwRootFile.h"
 #include "QwOptionsParity.h"
 #include "QwEventBuffer.h"
-#include "QwDatabase.h"
+#include "QwParityDB.h"
 #include "QwHistogramHelper.h"
 #include "QwSubsystemArrayParity.h"
 #include "QwHelicityPattern.h"
@@ -81,7 +81,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   eventbuffer.ProcessOptions(gQwOptions);
 
   ///  Create the database connection
-  QwDatabase database(gQwOptions);
+  QwParityDB database(gQwOptions);
 
   ///  Start loop over all runs
   while (eventbuffer.OpenNextStream() == CODA_OK) {
@@ -121,7 +121,6 @@ Int_t main(Int_t argc, Char_t* argv[])
 
     //  Initialize the database connection.
     database.SetupOneRun(eventbuffer);
-
 
     //  Open the ROOT file
     QwRootFile r(eventbuffer.GetRunLabel()); // close when scope ends.

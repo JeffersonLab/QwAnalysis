@@ -18,8 +18,6 @@ void PrintMemInfo(const char* text) {
 
 ClassImp(QwGUIMainDetector);
 
-using namespace QwParityDB;
-
 QwGUIMainDetectorDataStructure::QwGUIMainDetectorDataStructure(Int_t ID, Int_t Run, TString Type) 
 //   : TObject()
 { 

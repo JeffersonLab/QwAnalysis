@@ -13,7 +13,13 @@
 
 // Qweak headers
 #include "QwLog.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
+
+// Forward declarations
+class QwParityDB;
+//class QwDBInterface;
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwBeamLine);
@@ -2539,7 +2545,7 @@ VQwSubsystem*  QwBeamLine::Copy()
 
 
 //*****************************************************************
-void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
+void QwBeamLine::FillDB(QwParityDB *db, TString datatype)
 {
 
   Bool_t local_print_flag = false;
@@ -2551,7 +2557,7 @@ void QwBeamLine::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::beam> entrylist;
+  std::vector<QwParitySSQLS::beam> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

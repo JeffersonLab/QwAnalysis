@@ -13,7 +13,9 @@
 
 // Qweak headers
 #include "QwSubsystemArray.h"
-#include "QwDatabase.h"
+//#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwLumi);
@@ -1231,7 +1233,7 @@ void QwLumi::DoNormalization(Double_t factor)
 
 
 //*****************************************************************
-void QwLumi::FillDB(QwDatabase *db, TString datatype)
+void QwLumi::FillDB(QwParityDB *db, TString datatype)
 {
 
   Bool_t local_print_flag = false;
@@ -1242,7 +1244,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::lumi_data> entrylist;
+  std::vector<QwParitySSQLS::lumi_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

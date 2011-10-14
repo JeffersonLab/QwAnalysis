@@ -16,6 +16,7 @@
 
 // Forward declarations
 class QwBlinder;
+class QwParityDB;
 
 /**
  * \class QwSubsystemArrayParity
@@ -56,7 +57,7 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     void FillHistograms();
 
     /// \brief Fill the database
-    void FillDB(QwDatabase *db, TString type);
+    void FillDB(QwParityDB *db, TString type);
 
 
     /// \brief Assignment operator

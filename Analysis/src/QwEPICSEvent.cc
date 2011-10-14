@@ -3,6 +3,7 @@
 // System headers
 #include <iostream>
 #include <fstream>
+#include <math.h>
 
 // ROOT headers
 #include "TObject.h"
@@ -15,7 +16,11 @@
 // Qweak headers
 #include "QwLog.h"
 #include "QwParameterFile.h"
-#include "QwDatabase.h"
+
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
+
 
 
 /*************************************
@@ -661,7 +666,7 @@ void  QwEPICSEvent::ResetCounters()
 }
 
 
-void QwEPICSEvent::FillDB(QwDatabase *db)
+void QwEPICSEvent::FillDB(QwParityDB *db)
 {
   // Sunday, January 16 22:09:16 EST 2011, jhlee
   // don't change disbale database flag
@@ -675,11 +680,11 @@ void QwEPICSEvent::FillDB(QwDatabase *db)
 }
 
 
-void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
+void QwEPICSEvent::FillSlowControlsData(QwParityDB *db)
 {
 
   QwDebug << " -------------------------------------------------------------------------- " << QwLog::endl;
-  QwDebug << "                         QwEPICSEvent::FillSlowControlsData(QwDatabase *db) " << QwLog::endl;
+  QwDebug << "                         QwEPICSEvent::FillSlowControlsData(QwParityDB *db) " << QwLog::endl;
   QwDebug << " -------------------------------------------------------------------------- " << QwLog::endl;
 
   Double_t mean, average_of_squares, variance, sigma;
@@ -693,7 +698,7 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
 
   UInt_t runlet_id = db->GetRunletID();
 
-  std::vector<QwParityDB::slow_controls_data> entrylist;
+  std::vector<QwParitySSQLS::slow_controls_data> entrylist;
 
   UInt_t sc_detector_id;
 
@@ -705,7 +710,7 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
 
     // Look for variables to write into this table
     if (fEPICSTableList[tagindex] == table) {
-      QwParityDB::slow_controls_data tmp_row(0);
+      QwParitySSQLS::slow_controls_data tmp_row(0);
 
       //  Now get the current sc_detector_id for the above runlet_id.
       sc_detector_id = db->GetSlowControlDetectorID(fEPICSVariableList[tagindex]);
@@ -775,9 +780,9 @@ void QwEPICSEvent::FillSlowControlsData(QwDatabase *db)
 }
 
 
-void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
+void QwEPICSEvent::FillSlowControlsStrigs(QwParityDB *db)
 {
-  std::vector<QwParityDB::slow_controls_strings> entrylist;
+  std::vector<QwParitySSQLS::slow_controls_strings> entrylist;
   UInt_t sc_detector_id;
   UInt_t runlet_id = db->GetRunletID();
   string table = "polarized_source";
@@ -788,7 +793,7 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
     // Look for variables to write into this table
 
     if (fEPICSTableList[tagindex] == table) {
-      QwParityDB::slow_controls_strings tmp_row(0);
+      QwParitySSQLS::slow_controls_strings tmp_row(0);
 
       //  Now get the current sc_detector_id for the above runlet_id.
       sc_detector_id = db->GetSlowControlDetectorID(fEPICSVariableList[tagindex]);
@@ -847,10 +852,10 @@ void QwEPICSEvent::FillSlowControlsStrigs(QwDatabase *db)
 }
 
 
-void QwEPICSEvent::FillSlowControlsSettings(QwDatabase *db)
+void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
 {
-  QwParityDB::slow_controls_settings  tmp_row(0);
-  std::vector<QwParityDB::slow_controls_settings> entrylist;
+  QwParitySSQLS::slow_controls_settings  tmp_row(0);
+  std::vector<QwParitySSQLS::slow_controls_settings> entrylist;
 
   tmp_row.slow_helicity_plate = mysqlpp::null;
   tmp_row.wien_reversal = mysqlpp::null;
