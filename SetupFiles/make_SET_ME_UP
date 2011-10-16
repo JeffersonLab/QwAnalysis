@@ -35,7 +35,11 @@ if [ "$OS" == "Darwin" ] ; then
 fi
 ###  ... 64-bit
 if [[ "`uname -m`" == "x86_64" ]]; then
-  lib=lib64
+	if [[ -d "/usr/lib64" ]]; then
+		lib=lib64
+	else 
+		lib=lib
+	fi
 else
   lib=lib
 fi
