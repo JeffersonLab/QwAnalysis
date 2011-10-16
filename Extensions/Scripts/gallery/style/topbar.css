@@ -1,0 +1,42 @@
+/* Topbar */
+.topbar table {
+  width: 100%;
+  display: block;
+  margin-top: 0px;
+  padding-top: 4px;
+  vertical-align: top;
+  text-decoration: none;
+  border-collapse: collapse;
+}
+
+.topbar tr {
+}
+
+.topbar td {
+  width: 12em;
+  color: #999999;
+  border: 1px solid #FDD5B1;
+  border-bottom: 2px solid #FBCEB1;
+}
+
+.topbar td#active {
+  border:  2px solid #FBCEB1;
+  border-bottom: 0px;
+}
+
+.topbar a {
+  display: block;
+  text-decoration: none;
+  padding-top:    1px;
+  padding-bottom: 1px;
+  padding-left:   4px;
+  padding-right:  4px;
+}
+
+.topbar a:link, .topbar a:visited {
+  color: #999999;
+}
+
+.topbar a:hover, .topbar a:focus, .topbar a:active {
+  color: #4452c6;
+}

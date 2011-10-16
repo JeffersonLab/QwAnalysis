@@ -1,0 +1,156 @@
+
+/* Text in black on light background */
+/* apricot: #FBCEB1 */
+/* bright apricot: #FDD5B1 */
+
+
+body {
+    background: #FBCEB1;
+    font-family: Bitstream, Verdana, Arial, sans-serif;
+    font-size: medium;
+    text-align: left;
+    margin-left: 5%;
+    margin-right: 5%;
+  }
+
+/* Links not underlined, changing color when hover */
+
+
+a {
+    text-decoration: none;
+  }
+
+
+a:visited, a:link {
+    color: #999999;
+  }
+
+
+a:hover, a:focus, a:active {
+    color: #4452c6;
+  }
+
+
+/* Entry page for language selection */
+
+
+.entry {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #FFFFFF;
+  }
+
+
+.entry td {
+    width: 4em;
+  }
+
+/* Main page */
+.main {
+    background-color : #FFFFFF;
+  }
+
+/* Content */
+
+
+.content {
+    width: 90%;
+    margin-left: 5%;
+    margin-right: 5%;
+  }
+
+.content img {
+    border: 1px solid #FBCEB1;
+}
+
+.content table td {
+    vertical-align: top;
+}
+
+/* Font styles */
+
+
+.small {
+    font-size: small;
+  }
+
+
+.copyright {
+    text-align: center;
+    font-size: small;
+    margin-top: 1.5ex;
+    margin-bottom: 0.5ex;
+  }
+
+
+.privacy {
+    text-align: left;
+    font-size: small;
+    margin-top: 1.5ex;
+    margin-bottom: 0.5ex;
+  }
+
+
+.pagehead {
+    font-size: large;
+    font-weight: bold;
+    text-align: right;
+    margin-right: 5%;
+  }
+
+
+.popuphead {
+    font-size: medium;
+    font-weight: bold;
+    text-align: left;
+  }
+
+
+input {
+    border-color: #FBCEB1;
+  }
+
+
+h1 {
+    font-size: large;
+    font-weight: bold;
+  }
+
+
+h2 {
+    font-size: large;
+  }
+
+
+h3 {
+    font-size: medium;
+    font-weight: bold;
+  }
+
+h3#new {
+    color: #4452c6;
+  }
+
+
+hr {
+    background-color: #FBCEB1;
+    border: 0;
+    width: 80%;
+    height: 1px;
+  }
+
+/* Footer on every page */
+#footer {
+    font-size: small;
+    color: #CCCCCC;
+  }
+
+
+#footer a {
+    color: #FBCEB1;
+  }
+
+#footer a:hover {
+    color: #4452c6;
+  }
+

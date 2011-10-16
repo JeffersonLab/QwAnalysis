@@ -1,0 +1,45 @@
+            <!-- Page content end -->
+            </div>
+          </td>
+        </tr>
+
+        <!-- Last line with top link and file modification date -->
+        <tr id="footer">
+          <td></td>
+          <td>
+            <table width="100%">
+<!--#if expr="${QUERY_STRING} == /print/" -->
+              <tr>
+                <td align="left">
+                  <a href="<!--#echo var="DOCUMENT_URI" -->">back</a>
+                </td>
+              </tr>
+<!--#else -->
+              <tr>
+                <td align="left">
+                  <a href="#top">top</a>
+                </td>
+                <td align="left">
+                  <a href="?print">print</a>
+                </td>
+                <td align="right">
+                  <!--#config timefmt="%B %d, %Y." -->
+                  This page was last modified on <!--#echo var="LAST_MODIFIED" -->
+                </td>
+              </tr>
+<!--#endif -->
+            </table>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- Blank lines to separate content from bottom of browser window -->
+<br></br>
+<br></br>
+
+</body>
+</html>
