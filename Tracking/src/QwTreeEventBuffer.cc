@@ -259,26 +259,27 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
 {
   // Read event
   QwVerbose << "Reading entry " << entry << QwLog::endl;
+  fTree->GetEntry(entry);
 
   // Region 1
-  fTree->GetBranch("Region1.ChamberFront.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region1.ChamberBack.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region1.ChamberFront.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region1.ChamberBack.WirePlane.PlaneHasBeenHit")->GetEntry(entry);
   fRegion1_HasBeenHit = fRegion1_ChamberFront_WirePlane_PlaneHasBeenHit == 5 &&
                         fRegion1_ChamberBack_WirePlane_PlaneHasBeenHit  == 5;
 
   // Region 2
-  fTree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberFront.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region2.ChamberBack.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberFront.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane1.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane2.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane3.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane4.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane5.PlaneHasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region2.ChamberBack.WirePlane6.PlaneHasBeenHit")->GetEntry(entry);
   fRegion2_HasBeenHit = fRegion2_ChamberFront_WirePlane1_PlaneHasBeenHit == 5 &&
                         fRegion2_ChamberFront_WirePlane2_PlaneHasBeenHit == 5 &&
                         fRegion2_ChamberFront_WirePlane3_PlaneHasBeenHit == 5 &&
@@ -293,10 +294,10 @@ void QwTreeEventBuffer::GetEntry(const unsigned int entry)
                         fRegion2_ChamberBack_WirePlane6_PlaneHasBeenHit  == 5;
 
   // Region 3
-  fTree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region3.ChamberFront.WirePlaneV.HasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region3.ChamberBack.WirePlaneU.HasBeenHit")->GetEntry(entry);
-  fTree->GetBranch("Region3.ChamberBack.WirePlaneV.HasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region3.ChamberFront.WirePlaneU.HasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region3.ChamberFront.WirePlaneV.HasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region3.ChamberBack.WirePlaneU.HasBeenHit")->GetEntry(entry);
+  //fTree->GetBranch("Region3.ChamberBack.WirePlaneV.HasBeenHit")->GetEntry(entry);
   fRegion3_HasBeenHit = fRegion3_ChamberFront_WirePlaneU_HasBeenHit == 5 &&
                         fRegion3_ChamberFront_WirePlaneV_HasBeenHit == 5 &&
                         fRegion3_ChamberBack_WirePlaneU_HasBeenHit  == 5 &&
@@ -479,38 +480,44 @@ QwHitContainer* QwTreeEventBuffer::CreateHitList(const bool resolution_effects) 
   QwDebug << "Processing Region1_ChamberFront_WirePlane: "
           << fRegion1_ChamberFront_WirePlane_NbOfHits << " hit(s)." << QwLog::endl;
 
-  // jpan: the indexing here make me confused.
-  // wdc: me too.  fDetectorInfo gets filled wrongly.
-  detectorinfo = fDetectorInfo.in(kRegionID1).in(kPackageUp).at(0);
-  for (int i1 = 0; i1 < fRegion1_ChamberFront_WirePlane_NbOfHits && i1 < VECTOR_SIZE; i1++) {
-    double xLocalMC = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionX.at(i1);
-    double yLocalMC = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY.at(i1);
-    // Position in the Qweak frame
-    double x =  yLocalMC;
-    double y = -xLocalMC;
-    std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
-    // Set the hit numbers
-    for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
-    // Add the hit to the hit list (it is copied)
-    hitlist->Append(hits);
+  try {
+    detectorinfo = fDetectorInfo.in(kRegionID1).in(kPackageUp).at(0);
+    for (int i1 = 0; i1 < fRegion1_ChamberFront_WirePlane_NbOfHits && i1 < VECTOR_SIZE; i1++) {
+      double xLocalMC = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionX.at(i1);
+      double yLocalMC = fRegion1_ChamberFront_WirePlane_PlaneLocalPositionY.at(i1);
+      // Position in the Qweak frame
+      double x =  yLocalMC;
+      double y = -xLocalMC;
+      std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
+      // Set the hit numbers
+      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      // Add the hit to the hit list (it is copied)
+      hitlist->Append(hits);
+    }
+  } catch (std::exception&) {
+    QwDebug << "No detector in region 1, package up." << QwLog::endl;
   }
 
   // Region 1 back chamber
   QwDebug << "No code for processing Region1_ChamberBack_WirePlane: "
           << fRegion1_ChamberBack_WirePlane_NbOfHits << " hit(s)." << QwLog::endl;
 
-  detectorinfo = fDetectorInfo.in(kRegionID1).in(kPackageUp).at(1);
-  for (int i2 = 0; i2 < fRegion1_ChamberBack_WirePlane_NbOfHits && i2 < VECTOR_SIZE; i2++) {
-    double xLocalMC = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionX.at(i2);
-    double yLocalMC = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY.at(i2);
-    // Position in the Qweak frame
-    double x =  yLocalMC;
-    double y = -xLocalMC;
-    std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
-    // Set the hit numbers
-    for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
-    // Add the hit to the hit list (it is copied)
-    hitlist->Append(hits);
+  try {
+    detectorinfo = fDetectorInfo.in(kRegionID1).in(kPackageUp).at(1);
+    for (int i2 = 0; i2 < fRegion1_ChamberBack_WirePlane_NbOfHits && i2 < VECTOR_SIZE; i2++) {
+      double xLocalMC = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionX.at(i2);
+      double yLocalMC = fRegion1_ChamberBack_WirePlane_PlaneLocalPositionY.at(i2);
+      // Position in the Qweak frame
+      double x =  yLocalMC;
+      double y = -xLocalMC;
+      std::vector<QwHit> hits = CreateHitRegion1(detectorinfo,x,y,resolution_effects);
+      // Set the hit numbers
+      for (size_t i = 0; i < hits.size(); i++) hits[i].SetHitNumber(hitcounter++);
+      // Add the hit to the hit list (it is copied)
+      hitlist->Append(hits);
+    }
+  } catch (std::exception&) {
+    QwDebug << "No detector in region 1, package up." << QwLog::endl;
   }
 
 
