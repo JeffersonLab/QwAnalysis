@@ -192,13 +192,16 @@ fi
 if [[ -z ${ROOTSYS} ]]; then
   echo "ROOTSYS not defined; trying root-config..."
   if [[ `which root-config` ]]; then
-    export ROOTSYS="`root-config --prefix`"
-    echo "Setting ROOTSYS to ${ROOTSYS} using root-config"
+      nextsearchpath=`root-config --prefix`
+      if [[ -d ${nextsearchpath} ]]; then
+	  export ROOTSYS=${nextsearchpath}
+	  echo "Setting ROOTSYS to ${ROOTSYS} using root-config"
+      fi
   fi
 fi
-#  Try /apps/root/5.26-00
+#  Try /apps/root/5.30-02
 if [[ -z ${ROOTSYS} ]]; then
-  nextsearchpath=/apps/root/5.26-00/root
+  nextsearchpath=/apps/root/5.30-02/root
   echo "ROOTSYS not defined; trying ${nextsearchpath}."
   if [[ -d ${nextsearchpath} ]]; then
     export ROOTSYS=${nextsearchpath}

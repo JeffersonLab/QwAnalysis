@@ -521,17 +521,6 @@ void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-template<typename T>
-void QwBCM<T>::DeleteHistograms()
-{
-  if (this->GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fBeamCurrent.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
 template<typename T>
 void QwBCM<T>::Copy(VQwDataElement *source)

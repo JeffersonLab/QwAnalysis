@@ -42,9 +42,7 @@ class QwLinearDiodeArray : public VQwBPM {
     InitializeChannel(subsystemname, name);
   };    
   
-  ~QwLinearDiodeArray() {
-    DeleteHistograms();
-  };
+  virtual ~QwLinearDiodeArray() { };
   
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
@@ -107,7 +105,6 @@ class QwLinearDiodeArray : public VQwBPM {
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
   void    FillHistograms();
-  void    DeleteHistograms();
 
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void    ConstructBranch(TTree *tree, TString &prefix);

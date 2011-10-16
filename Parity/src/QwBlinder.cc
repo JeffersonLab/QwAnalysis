@@ -16,7 +16,9 @@
 
 // Qweak headers
 #include "QwLog.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 #include "QwVQWK_Channel.h"
 
 //  String names of the blinding and Wien status values
@@ -117,7 +119,7 @@ void QwBlinder::ProcessOptions(QwOptions& options)
  *
  * @param db Database connection
  */
-void QwBlinder::Update(QwDatabase* db)
+void QwBlinder::Update(QwParityDB* db)
 {
   //  Update the seed ID then tell us if it has changed.
   UInt_t old_seed_id = fSeedID;
@@ -146,7 +148,8 @@ void QwBlinder::Update(const QwSubsystemArrayParity& detectors)
 
     // Check that the current on target is above acceptable limit
     Bool_t tmp_beam = kFALSE;
-    if (detectors.ReturnInternalValue(q_targ.GetElementName(), &q_targ)) {
+    //    if (detectors.ReturnInternalValue(q_targ.GetElementName(), &q_targ)) {
+    if (detectors.ReturnInternalValue("q_targ", &q_targ)) {
       if (q_targ.GetValue() > fBeamCurrentThreshold){
 	// 	std::cerr << "q_targ.GetValue()==" 
 	// 		  << q_targ.GetValue() << std::endl;
@@ -272,7 +275,7 @@ void QwBlinder::Update(const QwEPICSEvent& epics)
  *
  *------------------------------------------------------------
  *------------------------------------------------------------*/
-Int_t QwBlinder::ReadSeed(QwDatabase* db)
+Int_t QwBlinder::ReadSeed(QwParityDB* db)
 {
   // Return unchanged if no database specified
   if (! db) {
@@ -359,7 +362,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db)
  *
  *------------------------------------------------------------
  *------------------------------------------------------------*/
-Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
+Int_t QwBlinder::ReadSeed(QwParityDB* db, const UInt_t seed_id)
 {
   // Return unchanged if no database specified
   if (! db) {
@@ -388,7 +391,7 @@ Int_t QwBlinder::ReadSeed(QwDatabase* db, const UInt_t seed_id)
     // Send query
     mysqlpp::Query query = db->Query();
     query << s_sql;
-    std::vector<QwParityDB::seeds> res;
+    std::vector<QwParitySSQLS::seeds> res;
     query.storein(res);
 
     // Store seed_id and seed value in fSeedID and fSeed (want to store actual seed_id in those
@@ -507,7 +510,7 @@ void QwBlinder::InitBlinders(const UInt_t seed_id)
 }
 
 
-void  QwBlinder::WriteFinalValuesToDB(QwDatabase* db)
+void  QwBlinder::WriteFinalValuesToDB(QwParityDB* db)
 {
   WriteChecksum(db);
   if (! CheckTestValues()) {
@@ -724,7 +727,7 @@ Int_t QwBlinder::UseMD5(const TString& barestring)
  *        been filled for the run.
  *------------------------------------------------------------
  *------------------------------------------------------------*/
-void QwBlinder::WriteChecksum(QwDatabase* db)
+void QwBlinder::WriteChecksum(QwParityDB* db)
 {
   //----------------------------------------------------------
   // Construct SQL
@@ -758,7 +761,7 @@ void QwBlinder::WriteChecksum(QwDatabase* db)
  * Return: void
  *------------------------------------------------------------
  *------------------------------------------------------------*/
-void QwBlinder::WriteTestValues(QwDatabase* db)
+void QwBlinder::WriteTestValues(QwParityDB* db)
 {
   //----------------------------------------------------------
   // Construct Initial SQL
@@ -936,7 +939,7 @@ void QwBlinder::PrintFinalValues()
  * For each analyzed run the database contains a digest of the blinding parameters
  * and a number of blinded test entries.
  */
-void QwBlinder::FillDB(QwDatabase *db, TString datatype)
+void QwBlinder::FillDB(QwParityDB *db, TString datatype)
 {
   QwDebug << " --------------------------------------------------------------- " << QwLog::endl;
   QwDebug << "                         QwBlinder::FillDB                       " << QwLog::endl;
@@ -945,7 +948,7 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
   // Get the analysis ID
   UInt_t analysis_id = db->GetAnalysisID();
 
-  // Fill the rows of the QwParityDB::bf_test table
+  // Fill the rows of the QwParitySSQLS::bf_test table
   if (! CheckTestValues()) {
     QwError << "QwBlinder::FillDB():  "
             << "Blinded test values have changed; "
@@ -953,8 +956,8 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
             << QwLog::endl;
   }
 
-  QwParityDB::bf_test bf_test_row(0);
-  std::vector<QwParityDB::bf_test> bf_test_list;
+  QwParitySSQLS::bf_test bf_test_row(0);
+  std::vector<QwParitySSQLS::bf_test> bf_test_list;
   for (size_t i = 0; i < fTestValues.size(); i++) {
     bf_test_row.bf_test_id = 0;
     bf_test_row.analysis_id = analysis_id;
@@ -969,15 +972,15 @@ void QwBlinder::FillDB(QwDatabase *db, TString datatype)
 
   // Modify the seed_id and bf_checksum in the analysis table
   try {
-    // Get the rows of the QwParityDB::analysis table
+    // Get the rows of the QwParitySSQLS::analysis table
     mysqlpp::Query query = db->Query();
     query << "select * from analysis where analysis_id = " 
 	  << analysis_id;
-    std::vector<QwParityDB::analysis> analysis_res;
+    std::vector<QwParitySSQLS::analysis> analysis_res;
     QwDebug << "Query: " << query.str() << QwLog::endl;
     query.storein(analysis_res);
     if (analysis_res.size() == 1) {
-      QwParityDB::analysis analysis_row_new  = analysis_res[0];
+      QwParitySSQLS::analysis analysis_row_new  = analysis_res[0];
       // Modify the seed_id and bf_checksum
       analysis_row_new.seed_id = fSeedID;
       analysis_row_new.bf_checksum = fChecksum;

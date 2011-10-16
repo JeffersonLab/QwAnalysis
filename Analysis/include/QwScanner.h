@@ -139,13 +139,12 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructBranchAndVector;
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
-    void  FillDB(QwDatabase *db, TString type)
+    void  FillDB(QwParityDB *db, TString type)
     {
       return;
     };
@@ -222,8 +221,6 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     };//return the error flag to the main routine
 
     // scanner specified histograms
-    std::vector<TH1*> fHistograms1D;
-    std::vector<TH2*> fHistograms2D;
     TProfile2D* fRateMapCM;
     TProfile2D* fRateMapEM;
 

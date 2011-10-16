@@ -400,18 +400,6 @@ void  QwCombinedBCM<T>::FillHistograms()
 }
 
 template<typename T>
-void  QwCombinedBCM<T>::DeleteHistograms()
-{
-  if (this->GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fCombined_bcm.DeleteHistograms();
-    }
-  return;
-}
-
-template<typename T>
 void  QwCombinedBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (this->GetElementName()==""){

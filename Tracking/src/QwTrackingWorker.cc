@@ -802,8 +802,8 @@ void QwTrackingWorker::ProcessEvent (
                                                          tlayers, 0, width);
                         }
 
-                        QwDebug << "Sort patterns" << QwLog::endl;
-                        fTreeSort->rcTreeConnSort (treelinelist, region);
+                        //QwDebug << "Sort patterns" << QwLog::endl;
+                        //fTreeSort->rcTreeConnSort (treelinelist, region);
 
                         if (fDebug) {
                             cout << "List of treelines:" << endl;
@@ -878,13 +878,13 @@ void QwTrackingWorker::ProcessEvent (
                 if (parttrack) {
                     if (fDebug) parttrack->Print();
                     QwVerbose << "Found a good partial track in region " << region << QwLog::endl;
-                    ngood++;
-                    if (region==2) R2Good++;
-                    if (region==3) R3Good++;
+                    ++ngood;
+                    if (region==2) ++R2Good;
+                    if (region==3) ++R3Good;
                 } else {
                     QwVerbose << "Couldn't find a good partial track in region " << region << QwLog::endl;
-                    if (region ==2) R2Bad++;
-                    if (region ==3) R3Bad++;
+                    if (region ==2) ++R2Bad;
+                    if (region ==3) ++R3Bad;
                     nbad++;
                 }
 
@@ -944,11 +944,6 @@ void QwTrackingWorker::ProcessEvent (
                   //QwMessage << "Ray tracer: " << status << QwLog::endl;
                   if (status == 0) {
                     event->AddTrackList(fRayTracer->GetListOfTracks());
-                    //fRayTracer->PrintInfo();
-                    //double buff[14];
-                    //fRayTracer->GetBridgingResult(buff);
-                    //event->AddBridgingResult(buff);
-                    //event->Print();
 		    event->AddBridgingResult(fRayTracer->GetListOfTracks().at(0));
                     back = back->next;
                     continue;

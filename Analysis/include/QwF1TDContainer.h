@@ -48,7 +48,7 @@ class QwF1TDC :  public TObject
  public:
   QwF1TDC();
   QwF1TDC(const Int_t roc, const Int_t slot);
-  ~QwF1TDC();
+  virtual ~QwF1TDC();
   friend std::ostream& operator<<(std::ostream& os, const QwF1TDC &f1tdc);
 
   Int_t  GetROCNumber()          const {return fROC;};

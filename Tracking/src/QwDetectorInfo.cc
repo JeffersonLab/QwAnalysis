@@ -56,6 +56,8 @@ void QwDetectorInfo::SetDetectorInfo (
   SetElementAngle(w_rcos, w_rsin);
   SetNumberOfElements(totalwires);
 
+  
+
   fDetectorID = detId;
 
   // Type
@@ -90,6 +92,10 @@ void QwDetectorInfo::SetDetectorInfo (
   else if (region == 5)
     fRegion = kRegionIDCer;
 
+  // plane offset(only used in r2)
+  if(region==2){
+      SetPlaneOffset(det_originY*w_rcos+det_originX*w_rsin);
+  }
   // Direction
   if (planeDir == "x")
     fDirection = kDirectionX;
@@ -103,6 +109,8 @@ void QwDetectorInfo::SetDetectorInfo (
     fDirection = kDirectionR;
   else if (planeDir == "f")
     fDirection = kDirectionPhi;
+
+
 }
 
 

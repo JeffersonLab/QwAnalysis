@@ -743,20 +743,6 @@ void  QwHelicityPattern::FillHistograms()
   }
 }
 
-void  QwHelicityPattern::DeleteHistograms()
-{
-  fYield.DeleteHistograms();
-  fAsymmetry.DeleteHistograms();
-
-  if (fEnableDifference) {
-    fDifference.DeleteHistograms();
-  }
-  if (fEnableAlternateAsym) {
-    fAsymmetry1.DeleteHistograms();
-    fAsymmetry2.DeleteHistograms();
-  }
-}
-
 void QwHelicityPattern::ConstructBranchAndVector(TTree *tree, TString & prefix, std::vector <Double_t> &values)
 {
   TString newprefix = "yield_" + prefix;
@@ -830,7 +816,7 @@ void QwHelicityPattern::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void QwHelicityPattern::FillDB(QwDatabase *db)
+void QwHelicityPattern::FillDB(QwParityDB *db)
 {
   fBlinder.FillDB(db,"");
 

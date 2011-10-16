@@ -33,7 +33,7 @@ class QwHelicityPattern{
    ******************************************************************/
  public:
   QwHelicityPattern(QwSubsystemArrayParity &event);
-  ~QwHelicityPattern() { };
+  virtual ~QwHelicityPattern() { };
 
   /// \brief Define the configuration options
   static void DefineOptions(QwOptions &options);
@@ -77,7 +77,7 @@ class QwHelicityPattern{
   Bool_t IsDifferenceEnabled() { return fEnableDifference; };
 
   /// Update the blinder status with new external information
-  void UpdateBlinder(QwDatabase* db){
+  void UpdateBlinder(QwParityDB* db){
     fBlinder.Update(db);
   };
   /// Update the blinder status with new external information
@@ -109,12 +109,12 @@ class QwHelicityPattern{
   void  ConstructHistograms(){ConstructHistograms((TDirectory*)NULL);};
   void  ConstructHistograms(TDirectory *folder);
   void  FillHistograms();
-  void  DeleteHistograms();
+
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile &trim_tree);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  FillDB(QwDatabase *db);
+  void  FillDB(QwParityDB *db);
   Bool_t IsGoodAsymmetry(){ return fPatternIsGood;};
 
   void  ClearEventData();

@@ -161,7 +161,8 @@ class QwPartialTrack: public VQwTrackingElement, public QwObjectCounter<QwPartia
     // record the slope and offset from each treeline,modified 4/26/11
     Double_t TSlope[kNumDirections];
     Double_t TOffset[kNumDirections];
-
+    Double_t TResidual[kNumDirections];                 // record the residual in u v and x treelines(designed for R2)
+    Double_t fSignedResidual[12];                       // record the signed residual in every plane(track point - hit point) (designed for R2)
     QwTrackingTreeLine *fTreeLine[kNumDirections];	//!	///< tree line in u v and x
 
     Bool_t fIsUsed;		///< used (part of a track)

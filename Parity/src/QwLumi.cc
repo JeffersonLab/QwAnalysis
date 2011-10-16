@@ -13,7 +13,9 @@
 
 // Qweak headers
 #include "QwSubsystemArray.h"
-#include "QwDatabase.h"
+//#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwLumi);
@@ -996,17 +998,6 @@ void  QwLumi::ConstructHistograms(TDirectory *folder, TString &prefix)
 
 
 //*****************************************************************
-void  QwLumi::DeleteHistograms()
-{
-  for (size_t i = 0; i < fIntegrationPMT.size(); i++)
-    fIntegrationPMT[i].DeleteHistograms();
-  for (size_t i = 0; i < fCombinedPMT.size(); i++)
-    fCombinedPMT[i].DeleteHistograms();
-  for (size_t i = 0; i < fScalerPMT.size(); i++)
-    fScalerPMT[i].DeleteHistograms();
-}
-
-//*****************************************************************
 void  QwLumi::FillHistograms()
 {
   if (! HasDataLoaded()) return;
@@ -1242,7 +1233,7 @@ void QwLumi::DoNormalization(Double_t factor)
 
 
 //*****************************************************************
-void QwLumi::FillDB(QwDatabase *db, TString datatype)
+void QwLumi::FillDB(QwParityDB *db, TString datatype)
 {
 
   Bool_t local_print_flag = false;
@@ -1253,7 +1244,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::lumi_data> entrylist;
+  std::vector<QwParitySSQLS::lumi_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

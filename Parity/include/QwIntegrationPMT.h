@@ -41,9 +41,7 @@ class QwIntegrationPMT : public VQwDataElement{
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,"raw");
   };
-  ~QwIntegrationPMT() {
-    DeleteHistograms();
-  };
+  virtual ~QwIntegrationPMT() { };
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
@@ -132,7 +130,6 @@ class QwIntegrationPMT : public VQwDataElement{
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);

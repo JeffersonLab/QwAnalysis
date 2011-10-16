@@ -26,7 +26,6 @@
 // Qweak headers
 #include "VQwSubsystemParity.h"
 #include "QwSIS3320_Channel.h"
-#include "QwScaler_Channel.h"
 #include "QwPMT_Channel.h"
 #include "MQwV775TDC.h"
 
@@ -37,9 +36,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     /// \brief Constructor
     QwComptonPhotonDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
     /// \brief Destructor
-    ~QwComptonPhotonDetector() {
-      DeleteHistograms();
-    };
+    virtual ~QwComptonPhotonDetector() { };
 
 
     // Handle command line options
@@ -81,7 +78,6 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     using VQwSubsystem::ConstructTree;
     void  ConstructTree(TDirectory *folder, TString &prefix);
@@ -101,7 +97,6 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     Bool_t CompareADC(VQwSubsystem *source);
     Bool_t CompareTDC(VQwSubsystem *source);
     Bool_t CompareQDC(VQwSubsystem *source);
-    Bool_t CompareScaler(VQwSubsystem *source);
 
     void PrintValue() const;
     void PrintInfo() const;
@@ -116,7 +111,7 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     Int_t fTree_fNEvents;
 
     /// Mapping from ROC/subbank to channel type
-    enum ChannelType_t { kUnknown, kSamplingADC, kIntegratingADC, kIntegratingTDC, kScaler };
+    enum ChannelType_t { kUnknown, kSamplingADC, kIntegratingADC, kIntegratingTDC };
     std::map< Int_t, ChannelType_t > fMapping;
 
     /// List of sampling ADC channels
@@ -135,11 +130,6 @@ class QwComptonPhotonDetector: public VQwSubsystemParity, public MQwV775TDC, pub
     IntegratingTDC_Mapping_t fMultiTDC_Mapping;
     std::vector< QwPMT_Channel > fMultiTDC_Channel;
     std::vector< std::vector< QwPMT_Channel > > fMultiTDC_Events;
-
-    /// List of scaler channels
-    typedef std::map< Int_t, std::vector< std::vector< Int_t > > > Scaler_Mapping_t;
-    Scaler_Mapping_t fScaler_Mapping;
-    std::vector< VQwScaler_Channel* > fScaler;
 
   private:
 

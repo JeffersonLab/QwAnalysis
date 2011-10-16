@@ -13,7 +13,9 @@
 // Qweak headers
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwMainCerenkovDetector);
@@ -809,12 +811,13 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
 	//QwWarning <<"****QwMainCerenkovDetector****"<< QwLog::endl;
 	(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))->PrintInfo();
       }
-    }else{
+    }
+    else{
       bIsExchangedDataValid = kFALSE;
       QwError << GetSubsystemName() << " could not get external value for "
 	      << fTargetCharge.GetElementName() << QwLog::endl;
     }
-
+    /*
     if(RequestExternalValue("x_targ", &fTargetX)){
       if (bDEBUG){
 	dynamic_cast<QwVQWK_Channel*>(&fTargetX)->PrintInfo();
@@ -869,6 +872,7 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
       QwError << GetSubsystemName() << " could not get external value for "
 	      << fTargetEnergy.GetElementName() << QwLog::endl;
     }
+    */
 
     
   }
@@ -918,18 +922,6 @@ void  QwMainCerenkovDetector::FillHistograms()
 
   for (size_t i=0;i<fCombinedPMT.size();i++)
     fCombinedPMT[i].FillHistograms();
-
-  return;
-}
-
-
-void  QwMainCerenkovDetector::DeleteHistograms()
-{
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].DeleteHistograms();
-
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].DeleteHistograms();
 
   return;
 }
@@ -1324,7 +1316,7 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
     }
 }
 
-void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
+void  QwMainCerenkovDetector::FillDB(QwParityDB *db, TString datatype)
 {
   Bool_t local_print_flag = false;
 
@@ -1335,7 +1327,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::md_data> entrylist;
+  std::vector<QwParitySSQLS::md_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

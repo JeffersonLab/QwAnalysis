@@ -5,10 +5,10 @@
  name = Helicity Info
  map = qweak_helicity.map
 
-[QwGasElectronMultiplier]
- name = R1
- map = qweak_R1.map
- geom = qweak_new.geo
+#[QwGasElectronMultiplier]
+# name = R1
+# map = qweak_R1.map
+# geom = qweak_new.geo
 
 [QwDriftChamberHDC]
  name = R2

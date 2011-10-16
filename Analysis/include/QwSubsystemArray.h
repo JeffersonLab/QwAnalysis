@@ -190,8 +190,6 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   /// \brief Fill the histograms for this subsystem
   void  FillHistograms();
-  /// \brief Delete the histograms for this subsystem
-  void  DeleteHistograms();
   // @}
 
 

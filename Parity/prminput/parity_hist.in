@@ -482,10 +482,10 @@ qwk_mdoddbars_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
 qwk_mdoddbars_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
 qwk_mdoddbars_block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
 
-qwk_......_hw			TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_......_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
-qwk_......_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_......_block._raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+###REMOVE?  qwk_......_hw			TH1F	10000	-0.08	0.08				V/#muA	Events
+###REMOVE?  qwk_......_hw_raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
+###REMOVE?  qwk_......_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
+###REMOVE?  qwk_......_block._raw		TH1F	10000	-6.1e7	6.1e7				Samples	Events
 
 asym_qwk_md...._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
 asym_qwk_md...._block.		TH1F	1000	-0.01	0.01				Asymmetry	Events
@@ -505,8 +505,8 @@ asym_qwk_mdevenbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
 asym_qwk_mdoddbars_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
 asym_qwk_mdoddbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
 
-asym_qwk_......_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
-asym_qwk_......_block.		TH1F	1000	-0.01	0.01				Asymmetry       Events
+###REMOVE?  asym_qwk_......_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
+###REMOVE?  asym_qwk_......_block.		TH1F	1000	-0.01	0.01				Asymmetry       Events
 
 
 ### New beam-line histograms
@@ -692,3 +692,4 @@ asym.*_sca_.*		TH1F	1001	-1.0e1	1000.0e1	Counts Events
 .*_.w_raw		TH1F	1000	-5.0e9	5.0e9		Counts		Events
 .*_.w			TH1F	1000	-5.0e9	5.0e9		CalibratedCounts Events
 .*_sw-hw_raw		TH1F	1000	-5.0e2	5.0e2		Counts		Events
+.*_dev_err		TH1F	1000	-1.0	2.15e9          ErrorCode	Events

@@ -19,7 +19,7 @@
 #include "QwWord.h"
 
 // Forward declarations
-class QwDatabase;
+class QwParityDB;
 
 enum HelicityRootSavingType{kHelSaveMPS = 0,
 			    kHelSavePattern,
@@ -44,7 +44,8 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
     VQwSubsystemParity(region_tmp),
    fHelicityBitPattern(kDefaultHelicityBitPattern),
    fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
-   fEventNumberFirst(-1),fPatternNumberFirst(-1)
+   fEventNumberFirst(-1),fPatternNumberFirst(-1),
+   fSuppressMPSErrorMsgs(kFALSE)
   {
     ClearErrorCounters();
     // Default helicity delay to two patterns.
@@ -70,9 +71,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
     fHelicityDecodingMode=-1;
   };
 
-  virtual ~QwHelicity() {
-    DeleteHistograms();
-  };
+  virtual ~QwHelicity() { };
 
 
 
@@ -146,14 +145,13 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  FillDB(QwDatabase *db, TString type);
+  void  FillDB(QwParityDB *db, TString type);
   void  Print() const;
 
   Bool_t IsHelicityIgnored(){return fIgnoreHelicity;};
@@ -226,7 +224,6 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   Bool_t fGoodHelicity;
   Bool_t fGoodPattern;
 
-  std::vector<TH1*> fHistograms;
   Int_t fHistoType;
   //allow one to select which types of histograms are created and filled
   void SetHistoTreeSave(const TString &prefix);
@@ -296,6 +293,11 @@ class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
   Int_t  fNumMissedEventBlocks; // Number of groups of missed events
   Int_t  fNumMultSyncErrors;    // Number of errors reading the multiplet sync
   Int_t  fNumHelicityErrors;    // Number of errors predicting the helicity
+
+
+  /// Flag to disable the printing os missed MPS error messags during
+  /// online running
+  Bool_t fSuppressMPSErrorMsgs;
 
  private:
 

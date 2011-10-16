@@ -20,7 +20,7 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwCloneable<QwDriftChamb
    ******************************************************************/
  public:
   QwDriftChamberHDC(TString region_tmp);
-  ~QwDriftChamberHDC() { };
+  virtual ~QwDriftChamberHDC() { };
   
   /* Unique virtual member functions from QwDrifChamber base class */
 

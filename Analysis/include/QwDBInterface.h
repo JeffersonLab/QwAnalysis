@@ -21,9 +21,10 @@
 
 // Qweak headers
 #include "QwLog.h"
+//#include "QwParityDB.h"
 
 // Forward declarations
-class QwDatabase;
+class QwParityDB;
 
 // QwDBInterface  GetDBEntry(TString subname);
 
@@ -31,7 +32,7 @@ class QwDatabase;
 // because the table structure are the same in the lumi_data table,
 // the md_data table, and the beam table of MySQL database.
 // Now every device-specified action will be done in
-// the FillDB(QwDatabase *db, TString datatype) of QwBeamLine,
+// the FillDB(QwParityDB *db, TString datatype) of QwBeamLine,
 // QwMainCerenkovDetector, and QwLumi class.
 
 class QwDBInterface {
@@ -63,14 +64,14 @@ class QwDBInterface {
     : fAnalysisId(0),fDeviceId(0),fSubblock(0),fN(0),fValue(0.0),fError(0.0) {
       std::strcpy(fMeasurementTypeId, "");fDeviceName ="";
     }
-    ~QwDBInterface() { }
+    virtual ~QwDBInterface() { }
 
     void SetAnalysisID(UInt_t id) {fAnalysisId = id;};
     void SetDetectorName(TString &in) {fDeviceName = in;};
     void SetDeviceID(UInt_t id) {fDeviceId = id;};
-    void SetMonitorID(QwDatabase *db);
-    void SetMainDetectorID(QwDatabase *db);
-    void SetLumiDetectorID(QwDatabase *db);
+    void SetMonitorID(QwParityDB *db);
+    void SetMainDetectorID(QwParityDB *db);
+    void SetLumiDetectorID(QwParityDB *db);
     void SetMeasurementTypeID(const TString& in) {
       std::strncpy(fMeasurementTypeId, in.Data(), 3);
       fMeasurementTypeId[3] = '\0';
@@ -151,13 +152,6 @@ inline void QwDBInterface::AddThisEntryToList(std::vector<T> &list)
   if (okay == kFALSE) {
     PrintStatus(kTRUE);
   };
-}
-
-template <class T>
-inline T QwDBInterface::TypedDBClone()
-{
-  T row(0);
-  return row;
 }
 
 #endif /* QWDBINTERFACE_H_ */

@@ -252,7 +252,7 @@ class QwRootTree {
  * The objects that are passed to these functions have to provide the following
  * functions:
  * <ul>
- * <li>ConstructHistograms, FillHistograms, DeleteHistograms
+ * <li>ConstructHistograms, FillHistograms
  * <li>ConstructBranchAndVector, FillTreeVector
  * </ul>
  *
@@ -319,13 +319,6 @@ class QwRootFile {
       if (! HasDirByType(object)) return;
       // Fill histograms
       object.FillHistograms();
-    }
-    /// Delete histograms of the subsystem array
-    template < class T >
-    void DeleteHistograms(T& object) {
-      if (! HasDirByType(object)) return;
-      // Delete histograms
-      object.DeleteHistograms();
     }
 
 
@@ -599,7 +592,7 @@ void QwRootFile::ConstructTreeBranches(
     tree->SetMaxTreeSize(kMaxTreeSize);
 
     if (fEnableMapFile && fCircularBufferSize > 0)
-      fTreeByName[name].back()->SetCircular(fCircularBufferSize);
+      tree->SetCircular(fCircularBufferSize);
 
   } else {
 

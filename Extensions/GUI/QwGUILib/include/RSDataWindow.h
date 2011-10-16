@@ -100,6 +100,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
   TObject             *fCurrPlot;
 
   TH1D                *fFitHisto[10];
+  TH1D                *dDummyPlot;
 
   void                 SleepWithEvents(int sec);
 
@@ -117,8 +118,8 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
 				    Double_t *xe, Double_t *ye);
   void                 GetGraphMinMax(TGraph *,Double_t *xmin,Double_t *xmax,
 				      Double_t *ymin,Double_t *ymax);
-  Int_t                GetNewLineColor(Color_t);
-  Int_t                GetNewMarkerColor(Color_t);
+  Int_t                GetNewLineColor(Color_t col = 0);
+  Int_t                GetNewMarkerColor(Color_t col = 0);
   TCanvas             *GetPlotCanvas() {return fPlotCanvas;};
 
   Bool_t               IsRootContInternal(){return dIntRootCont;};

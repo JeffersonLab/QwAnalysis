@@ -59,7 +59,7 @@ class QwTrackingWorker {
     /// \brief Default constructor with name
     QwTrackingWorker(const QwGeometry& geometry);
     /// \brief Destructor
-    ~QwTrackingWorker();
+    virtual ~QwTrackingWorker();
 
     /// \brief Define command line and config file options
     static void DefineOptions(QwOptions& options);

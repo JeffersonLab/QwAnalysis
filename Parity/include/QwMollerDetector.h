@@ -22,7 +22,6 @@
 // ROOT headers
 #include "TTree.h"
 #include "TFile.h"
-#include "TH1D.h"
 
 // Qweak headers
 #include "VQwSubsystemParity.h"
@@ -67,9 +66,7 @@ class QwMollerDetector: public VQwSubsystemParity, public MQwCloneable<QwMollerD
     QwMollerDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
 
     /// \brief Destructor
-    ~QwMollerDetector() {
-      DeleteHistograms();
-    };
+    virtual ~QwMollerDetector() { };
 
     /* derived from VQwSubsystem */
     void ProcessOptions(QwOptions &options); //Handle command line options
@@ -87,7 +84,6 @@ class QwMollerDetector: public VQwSubsystemParity, public MQwCloneable<QwMollerD
     using VQwSubsystem::ConstructHistograms;
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);

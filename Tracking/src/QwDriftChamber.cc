@@ -70,6 +70,8 @@ QwDriftChamber::QwDriftChamber(TString region_tmp)
 
 QwDriftChamber::~QwDriftChamber()
 {
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
   delete fF1TDContainer;
 }
 
@@ -649,14 +651,3 @@ Int_t QwDriftChamber::ProcessConfigurationBuffer (const UInt_t roc_id,
     return -1;
   }
 }
-
-
-
-void QwDriftChamber::DeleteHistograms()
-{
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
-  return;
-}
-
-

@@ -97,7 +97,7 @@ void QwHitPattern::SetHDCHitList(
   std::vector<int> check_dup;
   std::vector<int>::iterator it;
   for (QwHitContainer::iterator hit  = hitlist->begin();
-                                hit != hitlist->end(); hit++){
+                                hit != hitlist->end(); ++hit){
     if(hit->GetDriftDistance()<0) continue;
     int index=32*hit->GetPlane()+hit->GetElement();
     if(check_dup.size()==0){

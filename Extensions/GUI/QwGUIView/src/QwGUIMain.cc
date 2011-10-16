@@ -119,6 +119,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   SetLogFileName("None");
 
   SetCurrentRunSegment(0);
+  RemoveSelectedDataWindow();
 
   MakeMenuLayout();
   MakeUtilityLayout();
@@ -173,6 +174,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
 QwGUIMain::~QwGUIMain()
 {
+  CleanUpDataWindows();
+
   delete MainDetSubSystem        ;
 //  delete ScannerSubSystem        ;
   delete BeamModulationSubSystem ;
@@ -217,7 +220,6 @@ QwGUIMain::~QwGUIMain()
   delete dMenuBarLayout        ;
   delete dMenuBarItemLayout    ;
   delete dMenuBarHelpLayout    ;
-
 }
 
 void QwGUIMain::MakeMenuLayout()
@@ -698,11 +700,169 @@ void QwGUIMain::PadIsPicked(TPad* selpad, TObject* selected, Int_t event)
 
 void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
-//   if(event == kButton1Double){
-//     Int_t pad = dMainCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
-//   }
+  if(event == kButton1Double){
+    QwGUIDataWindow *dDataWindow = GetSelectedDataWindow();
+    Bool_t add = kFalse;
+    TObject *plot = NULL;
+    
+    TCanvas *mc = dMainCanvas->GetCanvas();
+    if(!mc) return;
+    
+    UInt_t pad = mc->GetSelectedPad()->GetNumber();
+    UInt_t ind = pad-1;
+    
+    if(ind < 0 || ind >= dMainPlotsArray.size())
+      return;
+    
+    plot = dMainPlotsArray[ind];
+
+    if(plot->InheritsFrom("TProfile")){
+
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIMain",((TProfile*)plot)->GetTitle(), PT_PROFILE,
+					  DDT_MAIN,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
+
+      DataWindowArray.Add(dDataWindow);
+      dDataWindow->SetPlotTitle((char*)((TProfile*)plot)->GetTitle());
+      dDataWindow->DrawData(*((TProfile*)plot));
+      Append(Form("Looking at DFT profile %s\n",(char*)((TProfile*)plot)->GetTitle()),kTrue);
+
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      return;
+    }
+    
+    if(plot->InheritsFrom("TH1")){
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIMain",((TH1D*)plot)->GetTitle(), PT_HISTO_1D,
+					  DDT_MAIN,600,400);
+	
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
+      
+      dDataWindow->SetStaticData(plot,DataWindowArray.GetLast());
+      dDataWindow->SetPlotTitle((char*)((TH1D*)plot)->GetTitle());
+      dDataWindow->DrawData(*((TH1D*)plot),add);
+      
+      Append(Form("Looking at histogram %s\n",(char*)((TH1D*)plot)->GetTitle()),kTrue);
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      
+      return;
+    }
+
+    if(plot->InheritsFrom("TGraphErrors")){
+      
+      printf("ind = %d\n",ind);
+
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIMain",((TGraphErrors*)plot)->GetTitle(), PT_GRAPH_ER,
+					  DDT_MAIN,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
+      
+      dDataWindow->SetPlotTitle((char*)((TGraphErrors*)plot)->GetTitle());
+      //   dDataWindow->SetPlotTitleX("Time [sec]");
+      //   dDataWindow->SetPlotTitleY("Amplitude [V/#muA]");
+      dDataWindow->SetPlotTitleOffset(1.25,1.8);
+      // dDataWindow->SetAxisMin(((TGraphErrors*)plot)->GetXaxis()->GetXmin(),
+      // 			      detStr->GetTreeLeafMin(leafInd));
+      // dDataWindow->SetAxisMax(((TGraphErrors*)plot)->GetXaxis()->GetXmax(),
+      // 			      detStr->GetTreeLeafMax(leafInd));
+      // dDataWindow->SetLimitsFlag(kTrue);
+      dDataWindow->DrawData(*((TGraphErrors*)plot),add);
+      
+      
+      Append(Form("Looking at graph %s\n",(char*)((TGraphErrors*)plot)->GetTitle()),kTrue);
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      
+      return;
+    }
+    
+    if(plot->InheritsFrom("TGraph")){
+
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIMain",((TGraph*)plot)->GetTitle(), PT_GRAPH,
+					  DDT_MAIN,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
+      
+      dDataWindow->SetPlotTitle((char*)((TGraph*)plot)->GetTitle());
+// 	dDataWindow->SetPlotTitleX("Time [sec]");
+// 	dDataWindow->SetPlotTitleY("Amplitude [V/#muA]");
+       dDataWindow->SetPlotTitleOffset(1.25,1.8);
+      // dDataWindow->SetAxisMin(((TGraph*)plot)->GetXaxis()->GetXmin(),
+      // 			      detStr->GetTreeLeafMin(leafInd));
+      // dDataWindow->SetAxisMax(((TGraph*)plot)->GetXaxis()->GetXmax(),
+      // 			      detStr->GetTreeLeafMax(leafInd));
+      // dDataWindow->SetLimitsFlag(kTrue);
+      dDataWindow->DrawData(*((TGraph*)plot),add);
+
+      Append(Form("Looking at graph %s\n",(char*)((TGraphErrors*)plot)->GetTitle()),kTrue);
+      
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      return;
+    }
+  }
 }
 
+QwGUIDataWindow *QwGUIMain::GetSelectedDataWindow()
+{
+  if(dSelectedDataWindow < 0 || dSelectedDataWindow > DataWindowArray.GetLast()) return NULL;
+
+  return (QwGUIDataWindow*)DataWindowArray[dSelectedDataWindow];
+}
+
+void QwGUIMain::CleanUpDataWindows()
+{
+  TObject* obj;
+  vector <TObject*> obja;
+  TIter *next = new TIter(DataWindowArray.MakeIterator());
+  obj = next->Next();
+  while(obj){
+    obja.push_back(obj);
+//     delete obj;
+    obj = next->Next();
+  }
+  delete next;
+
+  for(uint l = 0; l < obja.size(); l++)
+    delete obja[l];
+
+  DataWindowArray.Clear();
+}
 
 // Wait, but continue to process events.
 void QwGUIMain::SleepWithEvents(int seconds)
@@ -770,6 +930,7 @@ void QwGUIMain::PlotMainData()
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
       gPad->Update();
+      dMainPlotsArray.push_back(dMainHistos.back());
     }
         
     hst = (TH1F*)dROOTFile->ReadData("hel_histo/yield_qwk_charge_hw");
@@ -795,6 +956,7 @@ void QwGUIMain::PlotMainData()
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
       gPad->Update();
+      dMainPlotsArray.push_back(dMainHistos.back());
     }
     
     hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09X_hw");
@@ -820,6 +982,7 @@ void QwGUIMain::PlotMainData()
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
       gPad->Update();
+      dMainPlotsArray.push_back(dMainHistos.back());
     }
     
     hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3h09Y_hw");
@@ -845,7 +1008,7 @@ void QwGUIMain::PlotMainData()
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
       gPad->Update();
-      
+      dMainPlotsArray.push_back(dMainHistos.back());      
     }
 
     dMainPlots = kTrue;
@@ -915,22 +1078,9 @@ void QwGUIMain::PlotMainData()
 
   }
   if(MainDetSubSystem){
-    
-    grp = (TGraphErrors*)MainDetSubSystem->GetAsymmetrySummaryPlot();	
-    mc->cd(5);
-    if(grp){
-      dMainGraphs.push_back((TGraphErrors*)(grp->Clone()));
-      (dMainGraphs.back())->Draw("ap");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
-      gPad->Modified();
-      gPad->Update();
-      
-    }
-    
+        
     hst = (TH1F*)MainDetSubSystem->GetMDAllAsymmetryHisto();	
-    mc->cd(6);
+    mc->cd(5);
     if(hst){
       dMainHistos.push_back((TH1F*)(hst->Clone()));
       dMainHistos.back()->SetDirectory(0);
@@ -939,12 +1089,23 @@ void QwGUIMain::PlotMainData()
       gPad->SetTopMargin(0.15);
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
-      gPad->Update();
-      
+      gPad->Update();  
+      dMainPlotsArray.push_back(dMainHistos.back());      
     }
-    
+
+    grp = (TGraphErrors*)MainDetSubSystem->GetAsymmetrySummaryPlot();	
+    mc->cd(6);
+    if(grp){
+      dMainGraphs.push_back((TGraphErrors*)(grp->Clone()));
+      (dMainGraphs.back())->Draw("ap");
+      gPad->SetLeftMargin(0.15);
+      gPad->SetTopMargin(0.15);
+      gPad->SetBottomMargin(0.15);
+      gPad->Modified();
+      gPad->Update();      
+      dMainPlotsArray.push_back(dMainGraphs.back());      
+    }    
   }
- 
 }
 
 void QwGUIMain::OnLogMessage(const char *msg)
@@ -955,14 +1116,21 @@ void QwGUIMain::OnLogMessage(const char *msg)
 void QwGUIMain::OnObjClose(const char *objname)
 {
   if(!objname) return;
-
   TString name = objname;
+
+  if(name.Contains("dDataWindow")){
+    QwGUIDataWindow* window = (QwGUIDataWindow*)DataWindowArray.Remove(DataWindowArray.FindObject(objname));
+    if(window){
+      if(window == GetSelectedDataWindow()) { RemoveSelectedDataWindow();}
+    }
+  }
 
   if(name.Contains("dROOTFile")){
     dROOTFile = NULL;
 #ifdef QWGUI_DEBUG
     printf("Received dROOTFile IsClosing signal\n");
 #endif
+    CleanUpDataWindows();
   }
 
   if(name.Contains("dDatabase")){
@@ -985,27 +1153,53 @@ void QwGUIMain::OnObjClose(const char *objname)
 //   }
 }
 
-void QwGUIMain::OnReceiveMessage(const char *obj)
+void QwGUIMain::OnReceiveMessage(const char *msg)
 {
-  TString name = obj;
+  TString message = msg;
   const char *ptr = NULL;
+  TObject *obj = NULL;
+  Int_t ind = 0;
 
-  QwGUISubSystem* sbSystem = GetSubSystemPtr(obj);
+  QwGUISubSystem* sbSystem = GetSubSystemPtr(msg);
   if(sbSystem){
-
-    
-
     ptr = sbSystem->GetMessage();
     if(ptr)
       Append(ptr,sbSystem->IfTimeStamp());
   }
-  if(name.Contains("dROOTFile")){
+  if(message.Contains("dROOTFile")){
 
     ptr = dROOTFile->GetMessage();
     if(ptr)
       Append(ptr,kTrue);
-
   }
+
+  if(message.Contains("dDataWindow")){
+    
+    if(message.Contains("Add to")){
+      message.ReplaceAll("Add to dDataWindow_",7,"",0);
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	ind = DataWindowArray.IndexOf(obj);
+	SetSelectedDataWindow(ind);
+      }
+    }
+    else if(message.Contains("Don't add to")){
+      message.ReplaceAll("Don't add to dDataWindow_",13,"",0);
+      obj = DataWindowArray.FindObject(message);
+      if(obj){
+	RemoveSelectedDataWindow();
+      }
+    }
+  }
+}
+
+void QwGUIMain::OnUpdatePlot(const char *obj)
+{
+  if(!obj) return;
+  TString str = obj;
+  if(!str.Contains("dDataWindow")) return;
+
+  printf("Received Message From: %s\n",obj);
 }
 
 // void QwGUIMain::PlotCurrentTab()
