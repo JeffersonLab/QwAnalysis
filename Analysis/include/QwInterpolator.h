@@ -18,6 +18,11 @@ enum EQwInterpolationMethod {
   kNearestNeighbor
 };
 
+// Define of the log stream and end line
+#define mycout QwMessage
+#define mycerr QwError
+#define myendl QwLog::endl
+
 // Type of grid coordinates
 typedef double coord_t;
 
@@ -63,6 +68,7 @@ class QwInterpolator {
     /// Constructor with file name
     QwInterpolator(const std::string& filename) {
       ReadBinaryFile(filename);
+      SetInterpolationMethod(kMultiLinear);
     };
     /// Destructor
     virtual ~QwInterpolator() { };
@@ -106,7 +112,7 @@ class QwInterpolator {
     /// Set the number of coordinate dimensions and resize vectors
     void SetDimensions(const unsigned int ndim) {
       if (ndim == 0) {
-        QwError << "Dimensions of the grid should be strictly positive!" << QwLog::endl;
+        mycerr << "Dimensions of the grid should be strictly positive!" << myendl;
         return;
       }
       fNDim = ndim;
@@ -141,7 +147,7 @@ class QwInterpolator {
         try {
           fValues[i].resize(fMaximumEntries,0);
         } catch (std::bad_alloc) {
-          QwError << "QwInterpolator could not allocate memory for values!" << QwLog::endl;
+          mycerr << "QwInterpolator could not allocate memory for values!" << myendl;
         }
       }
     };
@@ -213,8 +219,8 @@ class QwInterpolator {
       for (size_t i = 0; i < fSize[dim]; i++) {
         cell_index[dim] = i;
         Coord(cell_index,coord);
-        QwMessage << "bin " << i << ", coord " << coord[dim] << ": "
-            << double(cover[i]) / double(total[i]) * 100 << "%"<< QwLog::endl;
+        mycout << "bin " << i << ", coord " << coord[dim] << ": "
+            << double(cover[i]) / double(total[i]) * 100 << "%"<< myendl;
       }
       delete[] cell_index;
       delete[] coord;
@@ -706,7 +712,7 @@ template <class value_t, unsigned int value_n>
 inline bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& stream) const
 {
   // Informational message
-  QwMessage << "Writing text stream: ";
+  mycout << "Writing text stream: ";
   // Write the dimensions
   stream << fNDim << "\t" << value_n << std::endl;
   // Write the grid parameters
@@ -723,13 +729,13 @@ inline bool QwInterpolator<value_t,value_n>::WriteText(std::ostream& stream) con
     stream << std::endl;
     // Progress bar
     if (index % (entries / 10) == 0)
-      QwMessage << index / (entries / 100) << "%" << QwLog::flush;
+      mycout << index / (entries / 100) << "%" << QwLog::flush;
     if (index % (entries / 10) != 0
      && index % (entries / 40) == 0)
-      QwMessage << "." << QwLog::flush;
+      mycout << "." << QwLog::flush;
   }
   stream << "end" << std::endl;
-  QwMessage << QwLog::endl;
+  mycout << myendl;
   return true;
 }
 
@@ -742,7 +748,7 @@ template <class value_t, unsigned int value_n>
 inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
 {
   // Informational message
-  QwMessage << "Reading text stream: ";
+  mycout << "Reading text stream: ";
   // Read the dimensions
   unsigned int n;
   stream >> fNDim >> n;
@@ -762,16 +768,16 @@ inline bool QwInterpolator<value_t,value_n>::ReadText(std::istream& stream)
     }
     // Progress bar
     if (index % (entries / 10) == 0)
-      QwMessage << index / (entries / 100) << "%" << QwLog::flush;
+      mycout << index / (entries / 100) << "%" << QwLog::flush;
     if (index % (entries / 10) != 0
      && index % (entries / 40) == 0)
-      QwMessage << "." << QwLog::flush;
+      mycout << "." << QwLog::flush;
   }
   // Check for end of file
   std::string end;
   stream >> end;
   // Informational message
-  QwMessage << QwLog::endl;
+  mycout << myendl;
   if (end == "end") return true;
   else return false;
 }
@@ -793,7 +799,7 @@ inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(const std::string& 
   std::ofstream file(filename.c_str(), std::ios::binary);
   if (! file.is_open()) return false;
   // Informational message
-  QwMessage << "Writing binary file: ";
+  mycout << "Writing binary file: ";
   // Write template parameters
   uint32_t n = value_n; // uint32_t has length of 32 bits on any system
   uint32_t size = sizeof(value_t);
@@ -817,12 +823,12 @@ inline bool QwInterpolator<value_t,value_n>::WriteBinaryFile(const std::string& 
     }
     // Progress bar
     if (index % (entries / 10) == 0)
-      QwMessage << index / (entries / 100) << "%" << QwLog::flush;
+      mycout << index / (entries / 100) << "%" << QwLog::flush;
     if (index % (entries / 10) != 0
      && index % (entries / 40) == 0)
-      QwMessage << "." << QwLog::flush;
+      mycout << "." << QwLog::flush;
   }
-  QwMessage << QwLog::endl;
+  mycout << myendl;
   file.close();
   return true;
 }
@@ -838,7 +844,7 @@ inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(const std::string& f
   std::ifstream file(filename.c_str(), std::ios::binary);
   if (! file.is_open()) return false;
   // Informational message
-  QwMessage << "Reading binary file: ";
+  mycout << "Reading binary file: ";
   // Go to end and store length (could also use std::ios::ate)
   file.seekg(0, std::ios::end);
   // Go to begin and start reading template parameters
@@ -872,12 +878,12 @@ inline bool QwInterpolator<value_t,value_n>::ReadBinaryFile(const std::string& f
     }
     // Progress bar
     if (index % (entries / 10) == 0)
-      QwMessage << index / (entries / 100) << "%" << QwLog::flush;
+      mycout << index / (entries / 100) << "%" << QwLog::flush;
     if (index % (entries / 10) != 0
      && index % (entries / 40) == 0)
-      QwMessage << "." << QwLog::flush;
+      mycout << "." << QwLog::flush;
   }
-  QwMessage << QwLog::endl;
+  mycout << myendl;
   file.close();
   return true;
 }
