@@ -2540,10 +2540,10 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
     }
 
   }
-  else if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
-    //Start filling DB data
-//     ClearDBData();
-  }
+//   else if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
+//     //Start filling DB data
+// //     ClearDBData();
+//   }
 }
 
 void QwGUIMainDetector::OnRemoveThisTab()

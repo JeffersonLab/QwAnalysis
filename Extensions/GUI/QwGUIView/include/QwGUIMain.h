@@ -92,8 +92,8 @@
 #include "QwGUITrackFinding.h"
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
-#include "QwGUIDatabaseContainer.h"
-#include "QwGUIDatabase.h"
+/* #include "QwGUIDatabaseContainer.h" */
+/* #include "QwGUIDatabase.h" */
 #ifndef __CINT__
 
 #include "QwOptions.h"
@@ -109,7 +109,7 @@ class QwGUIMain : public TGMainFrame {
  private:
 
   //!Database object (there should be only one for all subsystems)
-  QwGUIDatabaseContainer *dDatabase;
+  /* QwGUIDatabaseContainer *dDatabase; */
 
   //!Every instantiated subsystem gets added to this object array, as a cleanup mechanism.
   TObjArray               SubSystemArray;
@@ -124,7 +124,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
-  QwGUIDatabase          *DatabaseSubSystem;
+  /* QwGUIDatabase          *DatabaseSubSystem; */
   QwGUITrackFinding      *TrackFindingSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
@@ -458,6 +458,8 @@ class QwGUIMain : public TGMainFrame {
 
   void                    SetCurrentFilePrefix(const char* prefix){ fPrefix = prefix;};
   void                    SetCurrentFileDirectory(const char* dir){fDirectory = dir;};
+  void                    StoreFileInfo(const char* filename);
+  void                    GetFileInfo(const char *filename, int &run, int &segment);
 
   UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;};
   UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;};
@@ -652,6 +654,9 @@ class QwGUIMain : public TGMainFrame {
 
   void                   OnUpdatePlot(const char*);
 
+  void                   OnNewRunSignal(int sig);
+  void                   OnRunWarningSignal(int sig);
+
   //!Receiver function, called when a connected canvas pad is mouse selected.
   //!
   //!Parameters:
@@ -702,6 +707,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!Not currently used!
   void                   WritePid();
+  void                   CheckForNewRun();
 
   ClassDef(QwGUIMain,0);
 };
