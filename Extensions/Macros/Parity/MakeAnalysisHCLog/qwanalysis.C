@@ -2,7 +2,7 @@
 /*                              Nuruzzaman                                */
 /*                              03/10/2011                                */
 /*                                                                        */
-/*                        Last Edited:04/22/2011                          */
+/*                        Last Edited:05/09/2011                          */
 /*                                                                        */
 /* PLEASE CONSULT WITH ME BEFORE CHANGING THE SCRIPT. IF NEEDED YOU CAN   */
 /* HAVE YOUR COPY AND EDIT THERE.TRY NOT TO USE qwanalysis DIRECTORY.     */
@@ -14,12 +14,6 @@
 //gROOT->Reset();
 #include "NurClass.h"
 
-// TString 
-// TabRule(const char* one, Double_t unit_one, Double_t val[4])
-// {
-//   return Form("\n %14s | %12.3f | %+12.3f +/- %8.3f | %+12.3f +/- %8.3f", one, d_one, val[0], val[2], val[1], val[3]);
-// };
-
 void qwanalysis(UInt_t run_number=0)
 {
 
@@ -27,22 +21,17 @@ void qwanalysis(UInt_t run_number=0)
   Bool_t MDYIELDVAR=kTRUE; Bool_t MDBKG=kTRUE; Bool_t MDALLASYM=kTRUE; Bool_t SENSITIVITY=kTRUE; 
   Bool_t MDLUMI=kTRUE; Bool_t USLUMI=kTRUE; Bool_t USLUMISEN=kTRUE; Bool_t BMODSEN=kTRUE;
 //   Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kFALSE; Bool_t BPMS=kFALSE; 
-//   Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kFALSE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
+//   Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kTRUE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
 //   Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kFALSE; Bool_t USLUMISEN=kFALSE;
-//   Bool_t BMODSEN=kTRUE;
+//   Bool_t BMODSEN=kFALSE;
 
   //  UInt_t run_number = 0;
   char run0[255],run[255],run100k[255],sline[255],dline[255],ssline[255],sslinen[255];
-  char red[] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
-  char green[] = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
-  char blue[] = { 0x1b, '[', '1', ';', '3', '4', 'm', 0 };
-  char magenta[] = { 0x1b, '[', '1', ';', '3', '5', 'm', 0 };
-  char normal[] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
 
   sprintf(sline,"%s#-------------------------------------------------------------------------#%s\n",magenta,normal);
   sprintf(dline,"%s#*************************************************************************#%s\n",red,normal);
-  sprintf(ssline,"%s-------------------------------------------------%s\n",green,normal);
-  sprintf(sslinen,"-------------------------------------------------\n",normal);
+  sprintf(ssline,"%s---------------------------------------------------------%s\n",green,normal);
+  sprintf(sslinen,"---------------------------------------------------------\n",normal);
 
   if( run_number == 0 ) {
     /* Ask to input the run condition to user */
@@ -51,7 +40,8 @@ void qwanalysis(UInt_t run_number=0)
   }
 
   //  TFile f(Form("/home/nur/scratch/rootfiles/first100k_%d.root",run_number));
-  TFile *f = new TFile(Form("$QW_ROOTFILES/first100k_%d.root",run_number));
+//   TFile *f = new TFile(Form("$QW_ROOTFILES/first100k_%d.root",run_number));
+  TFile *f = new TFile(Form("$QW_ROOTFILES/QwPass1_%d.000.root",run_number));
   if (!f->IsOpen()) {printf("%sFile not found. Exiting the program!%s\n",red,normal); exit(1); }
 
   /* Directory */
@@ -61,7 +51,6 @@ void qwanalysis(UInt_t run_number=0)
   dir[1] = "/net/cdaqfs/home/cdaq/users/qwanalysis/hclog_runlist";
 
 //   printf(sline); printf("%sPlease Insert target Information. 1= LH2, 2= 4% US Al, 3= 2% US Al, 4= 1% US Al,\n5= 4% DS Al, 6= 2% DS Al, 7= 1% DS Al, 8= US Pure Al and hit ENTER\n %s",blue,normal); printf(sline);
-
 //    UInt_t target = 0;
 //   cin >> target;
 //   if (target> 8) {printf("%sPlease insert a correct No. Exiting the program!%s\n",blue,normal); exit(1);}
@@ -118,7 +107,7 @@ void qwanalysis(UInt_t run_number=0)
   TString bcms3[NUM2] = {"bcm2","bcm5","bcm6","bcm5","bcm6","bcm6"};
   TString bpms[NUM4] = {"target","bpm3h09b","bpm3h07c","bpm3c12"};
   TString mdasym[NUM] = {"md1barsum","md2barsum","md3barsum","md4barsum","md5barsum","md6barsum","md7barsum","md8barsum"};
-  TString mdbkg[NUM2] = {"md9pos","md9neg","pmtltg","pmtled","preamp","pmtonl"};
+  TString mdbkg[NUM2] = {"md9pos","md9neg","pmtonl","pmtltg","pmtled","preamp"};
   TString allmd[NUM3] = {"all","even","odd"};
   TString lumi[NUM3] = {"sum","even","odd"};
   TString uslumi[NUM1] = {"uslumi1","uslumi3","uslumi5","uslumi7","uslumi"};
@@ -215,7 +204,8 @@ void qwanalysis(UInt_t run_number=0)
   gStyle->SetStatY(0.99);
   gStyle->SetStatX(0.42);
   gStyle->SetStatW(0.42);
-  gStyle->SetStatH(0.36); 
+  gStyle->SetStatH(0.36);
+  gStyle->SetNdivisions(-404);
   gStyle->SetCanvasColor(kRed-10);
   /************************************************************************/
   if (MDPMT){
@@ -1105,7 +1095,7 @@ void qwanalysis(UInt_t run_number=0)
       Double_t limitx = senbmodx->GetMean(2);
       senbmodx->SetYTitle("MD ALL YIELD [V/A]");
       senbmodx->SetXTitle("TARGETX [mm]");
-      senbmodx->SetTitle(Form("MD ALL ASYM vs TARGETX for X-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*xbmodslope,1e6*exbmodslope));
+      senbmodx->SetTitle(Form("MD ALL vs TARGETX for X-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*xbmodslope,1e6*exbmodslope));
       senbmodx->Draw("goff");
       fitbmodx->Draw("same");
       senbmodx->GetYaxis()->SetRangeUser(limitx*0.995,limitx*1.005);
@@ -1129,7 +1119,7 @@ void qwanalysis(UInt_t run_number=0)
 //       Double_t limitxp = senbmodxp->GetMean(2);
 //       senbmodxp->SetYTitle("MD ALL YIELD [V/A]");
 //       senbmodxp->SetXTitle("TARGETX [mm]");
-//       senbmodxp->SetTitle(Form("MD ALL ASYM vs TARGETX for Xp-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*xpbmodslope,1e6*expbmodslope));
+//       senbmodxp->SetTitle(Form("MD ALL vs TARGETX for Xp-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*xpbmodslope,1e6*expbmodslope));
 //       senbmodxp->Draw("goff");
 //       fitbmodxp->Draw("same");
 //       senbmodxp->GetYaxis()->SetRangeUser(limitxp*0.995,limitxp*1.005);
@@ -1153,7 +1143,7 @@ void qwanalysis(UInt_t run_number=0)
       Double_t limite = senbmode->GetMean(2);
       senbmode->SetYTitle("MD ALL YIELD [V/A]");
       senbmode->SetXTitle("BPM 3C12X [mm]");
-      senbmode->SetTitle(Form("MD ALL ASYM vs BPM 3C12X for E-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*ebmodslope,1e6*eebmodslope));
+      senbmode->SetTitle(Form("MD ALL vs BPM 3C12X for E-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*ebmodslope,1e6*eebmodslope));
       senbmode->Draw("goff");
       fitbmode->Draw("same");
       senbmode->GetYaxis()->SetRangeUser(limite*0.995,limite*1.005);
@@ -1177,7 +1167,7 @@ void qwanalysis(UInt_t run_number=0)
       Double_t limity = senbmody->GetMean(2);
       senbmody->SetYTitle("MD ALL YIELD [V/A]");
       senbmody->SetXTitle("TARGETY [mm]");
-      senbmody->SetTitle(Form("MD ALL ASYM vs TARGETY for Y-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*ybmodslope,1e6*eybmodslope));
+      senbmody->SetTitle(Form("MD ALL vs TARGETY for Y-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*ybmodslope,1e6*eybmodslope));
       senbmody->Draw("goff");
       fitbmody->Draw("same");
       senbmody->GetYaxis()->SetRangeUser(limity*0.995,limity*1.005);
@@ -1201,7 +1191,7 @@ void qwanalysis(UInt_t run_number=0)
 //       Double_t limityp = senbmodyp->GetMean(2);
 //       senbmodyp->SetYTitle("MD ALL YIELD [V/A]");
 //       senbmodyp->SetXTitle("TARGETY [mm]");
-//       senbmodyp->SetTitle(Form("MD ALL ASYM vs TARGETY for Yp-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*ypbmodslope,1e6*eypbmodslope));
+//       senbmodyp->SetTitle(Form("MD ALL vs TARGETY for Yp-Sensitivities:%2.2f+-%2.2f [ppm/mm]",1e6*ypbmodslope,1e6*eypbmodslope));
 //       senbmodyp->Draw("goff");
 //       fitbmodyp->Draw("same");
 //       senbmodyp->GetYaxis()->SetRangeUser(limityp*0.995,limityp*1.005);
@@ -1528,16 +1518,16 @@ void qwanalysis(UInt_t run_number=0)
 
   /****************************************************************************/
   printf("%sSummary Table.%s\n",blue,normal);  
-  printf(ssline);printf("%s|             %sRun Number: %d%s             |%s\n",green,blue,run_number,green,normal);
-  printf("%s|  %s%s, %2.1f uA, %2.1fx%2.1f mm%s  |%s\n",green,blue,tar[1],current,raster,raster,green,normal);
+  printf(ssline);printf("%s|\t%sRun Number: %d%s\t\t\t\t|%s\n",green,blue,run_number,green,normal);
+  printf("%s|  \t%s%s, %2.1f uA, %2.1fx%2.1f mm%s  \t|%s\n",green,blue,tar[1],current,raster,raster,green,normal);
   printf(ssline);
-  printf("%s|%sI                         %s|%suA    %s|%s%2.1f%s      |%s\n",green,blue,green,blue,green,red,current,green,normal);
-  printf("%s|%sMDALLBARS width           %s|%sppm   %s|%s%2.1f%s      |%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
-  printf("%s|%sBCM12-ddif width          %s|%sppm   %s|%s%2.1f%s      |%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
-  printf("%s|%sA_q mean                  %s|%sppm   %s|%s%2.2f%s      |%s\n",green,blue,green,blue,green,red,cal_abcmm,green,normal);
-  printf("%s|%sA_q width                 %s|%sppm   %s|%s%2.1f%s       |%s\n",green,blue,green,blue,green,red,cal_abcm,green,normal);
-  printf("%s|%sMDALLBARS X-sensitivity   %s|%sppm/mm%s|%s%2.1f+-%1.1f%s |%s\n",green,blue,green,blue,green,red,cal_mdxsen,cal_emdxsen,green,normal);
-  printf("%s|%sMDALLBARS Y-sensitivity   %s|%sppm/mm%s|%s%2.1f+-%1.1f%s |%s\n",green,blue,green,blue,green,red,cal_mdysen,cal_emdysen,green,normal);
+  printf("%s|%sI                         \t%s|%suA    \t%s|%s%2.1f%s      \t|%s\n",green,blue,green,blue,green,red,current,green,normal);
+  printf("%s|%sMDALLBARS width           \t%s|%sppm   \t%s|%s%2.1f%s      \t|%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
+  printf("%s|%sBCM12-ddif width          \t%s|%sppm   \t%s|%s%2.1f%s      \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
+  printf("%s|%sA_q mean                  \t%s|%sppm   \t%s|%s%2.2f%s      \t|%s\n",green,blue,green,blue,green,red,cal_abcmm,green,normal);
+  printf("%s|%sA_q width                 \t%s|%sppm   \t%s|%s%2.1f%s       \t|%s\n",green,blue,green,blue,green,red,cal_abcm,green,normal);
+  printf("%s|%sMDALLBARS X-sensitivity   \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,cal_mdxsen,cal_emdxsen,green,normal);
+  printf("%s|%sMDALLBARS Y-sensitivity   \t%s|%sppm/mm\t%s|%s%2.1f+-%1.1f%s \t|%s\n",green,blue,green,blue,green,red,cal_mdysen,cal_emdysen,green,normal);
   printf(ssline);
   /****************************************************************************/
   printf("%sDone with all the plots.%s\n",blue,normal);
@@ -1550,14 +1540,14 @@ void qwanalysis(UInt_t run_number=0)
   //   cout<<__LINE__<<endl;
   char textfile[255],info[255],line2[255],line3[255],line4[255],line5[255],line51[255],line6[255],line7[255],contact[255],hclog_list[255];
   sprintf(textfile,"%s/%druninfo.txt",dir[0],run_number);
-  sprintf(info,"<pre>\n%s|             Run Number: %d                 |\n|  %s, %2.1f uA, %2.1fx%2.1f mm      |\n%s",sslinen,run_number,tar[1],current,raster,raster,sslinen);
-  sprintf(line2,"|I                         |uA    |%2.1f        |\n",current);
-  sprintf(line3,"|MDALLBARS width           |ppm   |%2.1f        |\n",cal_mdalla);
-  sprintf(line4,"|BCM12-ddif width          |ppm   |%2.1f         |\n",cal_bcmdd);
-  sprintf(line51,"|A_q maen                  |ppm   |%2.2f        |\n",cal_abcmm);
-  sprintf(line5,"|A_q width                 |ppm   |%2.1f        |\n",cal_abcm);
-  sprintf(line6,"|MDALLBARS X-sensitivity   |ppm/mm|%2.1f+-%1.1f|\n",cal_mdxsen,cal_emdxsen);
-  sprintf(line7,"|MDALLBARS Y-sensitivity   |ppm/mm|%2.1f+-%1.1f|\n%s</pre>",cal_mdysen,cal_emdysen,sslinen);
+  sprintf(info,"<pre>\n%s|\tRun Number: %d\t\t\t\t|\n|   \t%s, %2.1f uA, %2.1fx%2.1f mm      \t|\n%s",sslinen,run_number,tar[1],current,raster,raster,sslinen);
+  sprintf(line2,"|I                         \t|uA    \t|%2.1f       \t|\n",current);
+  sprintf(line3,"|MDALLBARS width           \t|ppm   \t|%2.1f       \t|\n",cal_mdalla);
+  sprintf(line4,"|BCM12-ddif width          \t|ppm   \t|%2.1f       \t|\n",cal_bcmdd);
+  sprintf(line51,"|A_q mean                 \t|ppm   \t|%2.2f       \t|\n",cal_abcmm);
+  sprintf(line5,"|A_q width                 \t|ppm   \t|%2.1f       \t|\n",cal_abcm);
+  sprintf(line6,"|MDALLBARS X-sensitivity   \t|ppm/mm\t|%2.1f+-%1.1f\t|\n",cal_mdxsen,cal_emdxsen);
+  sprintf(line7,"|MDALLBARS Y-sensitivity   \t|ppm/mm\t|%2.1f+-%1.1f\t|\n%s</pre>",cal_mdysen,cal_emdysen,sslinen);
   sprintf(contact,"%sPlease contact Nuruzzaman (nur@jlab.org) for problems and comments%s\n",blue,normal);
   sprintf(hclog_list,"%s/%drunsummary.txt",dir[1],run_number);
   /****************************************************************************/
