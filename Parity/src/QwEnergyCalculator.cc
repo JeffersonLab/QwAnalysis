@@ -66,7 +66,7 @@ void QwEnergyCalculator::ClearEventData(){
 
 void  QwEnergyCalculator::ProcessEvent(){
 
-  //  Bool_t ldebug = kFALSE;
+  Bool_t ldebug = kFALSE;
   Double_t targetbeamangle = 0;
 
   static QwVQWK_Channel tmp;
@@ -77,15 +77,19 @@ void  QwEnergyCalculator::ProcessEvent(){
     if(fProperty[i].Contains("targetbeamangle")){
       targetbeamangle = atan((((QwCombinedBPM<QwVQWK_Channel>*)fDevice[i])->fSlope[VQwBPM::kXAxis]).GetValue());
       targetbeamangle *= fTMatrixRatio[i];
+      if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: Beam angle in X at target = "<<targetbeamangle<<std::endl;
       fEnergyChange.AddChannelOffset(targetbeamangle);
+      if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: dp/p += (M12/M16)*X angle = "<<fEnergyChange.GetValue()<<std::endl;
     }
     else {
       tmp.AssignValueFrom(fDevice[i]->GetPosition(VQwBPM::kXAxis));
+      if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: X position from "<<fDevice[i]->GetElementName()<<" = "<<tmp.GetValue()<<std::endl;
       tmp.Scale(fTMatrixRatio[i]);
+      if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: (M11/M16)*X position = "<<tmp.GetValue()<<std::endl;
       fEnergyChange += tmp;
     }
   }
-
+  if(ldebug) std::cout<<"QwEnegyCalculator::ProcessEvent() :: dp/p = "<<fEnergyChange.GetValue()<<std::endl;
   return;
 }
 
@@ -149,8 +153,10 @@ QwEnergyCalculator& QwEnergyCalculator::operator= (const QwEnergyCalculator &val
 }
 
 QwEnergyCalculator& QwEnergyCalculator::operator+= (const QwEnergyCalculator &value){
+
   if (GetElementName()!="")
     this->fEnergyChange+=value.fEnergyChange;
+
   return *this;
 }
 
@@ -163,9 +169,10 @@ QwEnergyCalculator& QwEnergyCalculator::operator-= (const QwEnergyCalculator &va
 
 
 void QwEnergyCalculator::Ratio(QwEnergyCalculator &numer, QwEnergyCalculator &denom){
-  if (GetElementName()!="")
-    this->fEnergyChange.Ratio(numer.fEnergyChange,denom.fEnergyChange);
+  // this function is called when forming asymmetries. In this case waht we actually want for the
+  // qwk_energy/(dp/p) is the difference only not the asymmetries
 
+  *this=numer;
   return;
 }
 

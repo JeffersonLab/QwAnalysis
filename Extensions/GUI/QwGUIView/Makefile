@@ -29,8 +29,8 @@ OBJECTS	      += QwGUIHallCBeamline.o
 OBJECTS       += QwGUITrackFinding.o
 OBJECTS       += QwGUIEventDisplay.o
 OBJECTS       += QwGUISuperCanvas.o
-OBJECTS       += QwGUIDatabaseContainer.o
-OBJECTS       += QwGUIDatabaseSelectionDialog.o
+#OBJECTS       += QwGUIDatabaseContainer.o
+#OBJECTS       += QwGUIDatabaseSelectionDialog.o
 OBJECTS       += QwGUIEventWindowSelectionDialog.o
 OBJECTS       += QwGUIDatabase.o
 
