@@ -178,6 +178,7 @@ bpmstripline, 	qwk_bpm3h09b,   YM,		0,  76200,	 l,	 0
 !for combined bcm devices (tested with injector run 924)
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
 !combinedbcm, qwk_charge,  	3.18588, 	3.18591e+10, l, 0
+combinedbcm, qwk_charge,  	0, 	3.18591e+10, g, 2
 
 !***************************************************	
 !for QwEnergyCalculator

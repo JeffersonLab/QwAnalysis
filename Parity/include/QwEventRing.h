@@ -74,6 +74,8 @@ class QwEventRing {
   Bool_t bRING_READY; //set to true after ring is filled with good events and time to process them. Set to kFALSE after processing 
   //all the events in the ring
   std::vector<QwSubsystemArrayParity> fEvent_Ring;
+  //to track all the rolling averages for stability checks
+  QwSubsystemArrayParity fRollingAvg;
 
   //parameters used in event cut mode 3
   Bool_t  bGoodEvent_ev3; //beam trip status in event cut mode 3

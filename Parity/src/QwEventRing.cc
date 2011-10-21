@@ -4,14 +4,14 @@
 
 
 QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t event_holdoff, Int_t min_BT_count){
-  //some of the parameters below are no longer needed. clean them!!!!  
+  
   fRING_SIZE=ring_size;
-  //fEVENT_HOLDOFF=event_holdoff;
-  //fMIN_BT_COUNT=min_BT_count;
+  fEVENT_HOLDOFF=event_holdoff;
+  fMIN_BT_COUNT=min_BT_count;
   fEvent_Ring.resize(fRING_SIZE);
 
   bRING_READY=kFALSE;
-  //bGoodEvent=kTRUE;
+  bGoodEvent=kTRUE;
   bEVENT_READY=kTRUE;
   fNextToBeFilled=0;
   fNextToBeRead=0;
@@ -20,7 +20,8 @@ QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t e
   for(int i=0;i<fRING_SIZE;i++){
     fEvent_Ring[i].Copy(&event); //populate the event ring
   }
-
+  fRollingAvg.Copy(&event); //populate the rolling sum sub system
+  
   //open the log file
   if (bDEBUG_Write)
     out_file = fopen("Ring_log.txt", "wt");
@@ -38,12 +39,11 @@ void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
   }
   fEvent_Ring.resize(fRING_SIZE);
 
-  //some of the parameters below are no longer needed. clean them!!!!
   bRING_READY=kFALSE;
   bGoodEvent=kTRUE;
   bGoodEvent_ev3=kTRUE;
-  //bEVENT_READY=kTRUE;
-  //bEVENT_READY_ev3=kTRUE;
+  bEVENT_READY=kTRUE;
+  bEVENT_READY_ev3=kTRUE;
   fNextToBeFilled=0;
   fNextToBeRead=0;
   fEventsSinceLastTrip=1;
@@ -51,7 +51,7 @@ void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
   for(int i=0;i<fRING_SIZE;i++){
     fEvent_Ring[i].Copy(&event); //populate the event ring
   }
-
+  fRollingAvg.Copy(&event); //populate the rolling sum sub system
   //open the log file
   if (bDEBUG_Write)
     out_file = fopen("Ring_log.txt", "wt");
@@ -67,9 +67,8 @@ void QwEventRing::DefineOptions(QwOptions &options){
   // Define the execution options
   options.AddDefaultOptions();
   options.AddOptions()("ring.size", po::value<int>()->default_value(4800),"QwEventRing: ring/buffer size");
-  //no longer need beam trip count and hold off, this stability is checked no beam trip cut anymore
-  //options.AddOptions()("ring.bt", po::value<int>()->default_value(2),"QwEventRing: minimum beam trip count");
-  //options.AddOptions()("ring.hld", po::value<int>()->default_value(25000),"QwEventRing: ring hold off");
+  options.AddOptions()("ring.bt", po::value<int>()->default_value(2),"QwEventRing: minimum beam trip count");
+  options.AddOptions()("ring.hld", po::value<int>()->default_value(25000),"QwEventRing: ring hold off");
   options.AddOptions()("ring.stability_cut", po::value<double>()->default_value(2.00),"QwEventRing: Stability level in units of uA");
 
 }
@@ -78,10 +77,10 @@ void QwEventRing::ProcessOptions(QwOptions &options){
   //Reads Event Ring parameters from cmd  
   if (gQwOptions.HasValue("ring.size"))
     fRING_SIZE=gQwOptions.GetValue<int>("ring.size");
-  //if (gQwOptions.HasValue("ring.bt"))
-  //fMIN_BT_COUNT=gQwOptions.GetValue<int>("ring.bt"); 
-  //if (gQwOptions.HasValue("ring.hld"))
-  //fEVENT_HOLDOFF=gQwOptions.GetValue<int>("ring.hld");
+  if (gQwOptions.HasValue("ring.bt"))
+    fMIN_BT_COUNT=gQwOptions.GetValue<int>("ring.bt"); 
+  if (gQwOptions.HasValue("ring.hld"))
+    fEVENT_HOLDOFF=gQwOptions.GetValue<int>("ring.hld");
   if (gQwOptions.HasValue("ring.stability_cut"))
     fStability=gQwOptions.GetValue<double>("ring.stability_cut");
 
@@ -89,11 +88,10 @@ void QwEventRing::ProcessOptions(QwOptions &options){
     bStability=kTRUE;
   else
     bStability=kFALSE;
-
+ 
 }
 void QwEventRing::push(QwSubsystemArrayParity &event){
   /*
-//this is related to the beam trip cut. No longer need this as we only need to have the stability cuts
   if (CheckEvent(event.GetEventcutErrorFlag())){
     fFailedEventCount=0;//reset the failed event counter if event is good
     if (!bGoodEvent_ev3){//this means we are coming from a beam trip in ev mode 3
@@ -106,9 +104,7 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
   }
   */
   if (bDEBUG) QwMessage << "QwEventRing::push:  BEGIN" <<QwLog::endl;
-
   /*
-  //this is related to the beam trip cut. No longer need hold-off as we only need to have the stability cuts
   if (!bGoodEvent){//this means we are coming from a beam trip
     QwMessage<<" Beam trip recovered  "<<QwLog::endl;
     bGoodEvent=kTRUE;//set it to true again
@@ -116,20 +112,20 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
     //we want to let go some good events-> LEAVE_COUNT
     fEventsSinceLastTrip=0;
   }
+  
   */
   
-  
 
-  if (bEVENT_READY){//this will be always true without the beam trip cut so remove the condition 
+  if (bEVENT_READY){
     fEvent_Ring[fNextToBeFilled]=event;//copy the current good event to the ring 
     if (bStability){
       event.RequestExternalValue("q_targ", &fTargetCharge);
       fChargeRunningSum.AccumulateRunningSum(fTargetCharge);
+      fRollingAvg.AccumulateRunningSum(event);
     }
 
+    //if eve mode = 3 flag fEVENT_HOLDOFF events with kBeamTripError flag
     /*
-    //No longer need hold-off as we only need to have the stability cuts
-    //if in eve cut mode = 3, then flag fEVENT_HOLDOFF events with kBeamTripError flag
     if (!bEVENT_READY_ev3){
       fEvent_Ring[fNextToBeFilled].UpdateEventcutErrorFlag(fErrorCode);
       if (bDEBUG) QwMessage<<" Setting flag to holding events "<<fEventsSinceLastTrip<<QwLog::endl;
@@ -155,19 +151,21 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
       fNextToBeFilled=0;//next event to be filled
       fNextToBeRead=0;//first element in the ring  
       //check for current ramps
-      if (bStability)
+      if (bStability){
 	fChargeRunningSum.CalculateRunningAverage();
+	fRollingAvg.CalculateRunningAverage();
+      }
+      
       if (bStability && fChargeRunningSum.GetValueWidth()>fStability){//if the SD is large than the fStability
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
-
-	if ( (fChargeRunningSum.GetEventcutErrorFlag() & kBeamStabilityError)==kBeamStabilityError)
-	  QwMessage <<" Error Flag in the charge VQWK channel "<<fChargeRunningSum.GetEventcutErrorFlag()<<QwLog::endl;
+	//fChargeRunningSum.PrintValue();
 	QwMessage << " Running Average +/- width "<<fChargeRunningSum.GetValue()<<" +/- "<<fChargeRunningSum.GetValueWidth()<<" Stable width < "<<fStability<<QwLog::endl;
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
-	fErrorCode=kBeamStabilityError;//set hold_off events with beam stability error
-	//bEVENT_READY_ev3=kFALSE;
-	for(Int_t i=0;i<fRING_SIZE;i++)//update the global error code for events in the ring with the stability cut failed error 
-	  fEvent_Ring[i].UpdateEventcutErrorFlag(fErrorCode);
+	//fErrorCode|=kBeamStabilityError;//set hold_off events with beam stability error
+	
+	bEVENT_READY_ev3=kFALSE;
+	for(Int_t i=0;i<fRING_SIZE;i++)
+	  fEvent_Ring[i].UpdateEventcutErrorFlag(kBeamStabilityError);
       }
     }
     //ring processing is done at a separate location
@@ -183,7 +181,7 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
   
 }
 
-void QwEventRing::FailedEvent(UInt_t error_flag){//no longer need this routine
+void QwEventRing::FailedEvent(UInt_t error_flag){
   if (((error_flag & kBCMErrorFlag)==kBCMErrorFlag) && ((error_flag & kEventCutMode3)== 0)){//check to see the single event cut is related to a beam current error and not in event cut mode 3
     if (bDEBUG) 
       QwMessage<<"Beam Trip kind single event cut failed!"<<QwLog::endl;
@@ -210,7 +208,7 @@ void QwEventRing::FailedEvent(UInt_t error_flag){//no longer need this routine
   if (bDEBUG_Write) fprintf(out_file," Failed count %d error_flag %x\n",fFailedEventCount,error_flag);
 }
 
-Bool_t QwEventRing::CheckEvent(UInt_t error_flag){//no longer need this routine
+Bool_t QwEventRing::CheckEvent(UInt_t error_flag){
 
   if (((error_flag & kBCMErrorFlag)==kBCMErrorFlag)  && ((error_flag & kEventCutMode3)== kEventCutMode3)){
     //this is a global event failed in ev mode = 3
