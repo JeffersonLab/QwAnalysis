@@ -54,7 +54,7 @@ void mdlumi_ped(int run_num)
           c_md->cd(i+1);      
           mdhst[i] = new TH1F(Form("%h_%s",md[i]),"",100,0,0);
           mdhst[i]->SetDirectory(0);   
-          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",md[i],md[i],scale,md[i]),Form("%s.Device_Error_Code==0 && mps_counter>%i && mps_counter<%i",md[i],mps_start,mps_stop),"");
+          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",md[i],md[i],scale,md[i]),Form("qwk_charge<1 && %s.Device_Error_Code==0 && mps_counter>%i && mps_counter<%i",md[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",md[i]));
           md_pedestal_file<<Form("%s  ,  ",md[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;  
           cout<<md[i]<<"  "<<htemp->GetMean()<<endl;
@@ -68,7 +68,7 @@ void mdlumi_ped(int run_num)
           c_bg->cd(i+1);      
           bghst[i] = new TH1F(Form("%h_%s",bg[i]),"",100,0,0);
           bghst[i]->SetDirectory(0);   
-          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",bg[i],bg[i],scale,bg[i]),Form("%s.Device_Error_Code==0 && mps_counter>%i && mps_counter<%i",bg[i],mps_start,mps_stop),"");
+          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",bg[i],bg[i],scale,bg[i]),Form("qwk_charge<1 && %s.Device_Error_Code==0 && mps_counter>%i && mps_counter<%i",bg[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",bg[i]));
           (if i<4){
 		md_pedestal_file<<Form("%s  ,  ",bg[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;
@@ -99,7 +99,7 @@ void mdlumi_ped(int run_num)
           c_lumi->cd(i+1);      
           lumihst[i] = new TH1F(Form("%h_%s",lumi[i]),"",100,0,0);
           lumihst[i]->SetDirectory(0);   
-          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",lumi[i],lumi[i],scale,lumi[i]),Form("%s.Device_Error_Code==0 && mps_counter>%i && mps_counter<%i",lumi[i],mps_start,mps_stop),"");
+          chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",lumi[i],lumi[i],scale,lumi[i]),Form("qwk_charge<1 && %s.Device_Error_Code==0 && mps_counter>%i && mps_counter<%i",lumi[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",lumi[i]));
           lumi_pedestal_file<<Form("%s  ,  ",lumi[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;  
           cout<<lumi[i]<<"  "<<htemp->GetMean()<<endl;
