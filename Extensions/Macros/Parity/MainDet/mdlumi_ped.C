@@ -15,9 +15,9 @@ void mdlumi_ped(int run_num)
   gStyle->SetOptStat("neMr");
 
   TChain chain("Mps_Tree");
-  chain.Add(Form("$QW_ROOTFILES/qwick_mdlumiped_%i.root",run_num));
+//  chain.Add(Form("$QW_ROOTFILES/qwick_mdlumiped_%i.root",run_num));
 //  chain.Add(Form("$QW_ROOTFILES/first100k_%i.root",run_num));
-//  chain.Add(Form("$QW_ROOTFILES/Qweak_%i.000.trees.root",run_num));
+  chain.Add(Form("$QW_ROOTFILES/Qweak_%i.000.trees.root",run_num));
 
   const char *lumi[16] = {
   "qwk_dslumi1","qwk_dslumi2","qwk_dslumi3","qwk_dslumi4",
@@ -72,9 +72,7 @@ void mdlumi_ped(int run_num)
           bghst[i]->SetDirectory(0);   
           chain.Draw( Form("%s.hw_sum_raw/%s.num_samples*%f*1000>>h_%s",bg[i],bg[i],scale,bg[i]),Form("qwk_charge<1 && %s.Device_Error_Code==0 && mps_counter>%i && mps_counter<%i",bg[i],mps_start,mps_stop),"");
           TH1F *htemp = (TH1F*)gPad->GetPrimitive(Form("h_%s",bg[i]));
-          (if i<4){
-		md_pedestal_file<<Form("%s  ,  ",bg[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;
-           }
+          if (i<4) md_pedestal_file<<Form("%s  ,  ",bg[i])<<htemp->GetMean()/(scale*1000)<<Form("  ,  %10.8f",scale)<<endl;
           cout<<bg[i]<<"  "<<htemp->GetMean()<<endl;
           c_bg->Update();
         }
