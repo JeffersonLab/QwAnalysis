@@ -147,9 +147,11 @@ Bank=0x6110
    VQWK, 0, 2,  raster,  QWK_RASTER_X
    VQWK, 0, 3,  raster,  QWK_RASTER_Y
    VQWK, 0, 4,  raster,  QWK_RASTER_SUMXY
-   VQWK, 0, 5,  scanner,  QWK_SCANNER_POSX
-   VQWK, 0, 6,  scanner,  QWK_SCANNER_POSY
-   VQWK, 0, 7,  scanner,  QWK_SCANNER_POW
+!
+!  see Analysis/prminput/qweak_scanner_channel.map 
+!   VQWK, 0, 5,  scanner,  QWK_SCANNER_POSX
+!   VQWK, 0, 6,  scanner,  QWK_SCANNER_POSY
+!   VQWK, 0, 7,  scanner,  QWK_SCANNER_POW
 	
 !These are cavity BPM1 signals (IPM3H04)
 !   VQWK, 1, 0,  bcm,  QWK_BCM5_Ix
