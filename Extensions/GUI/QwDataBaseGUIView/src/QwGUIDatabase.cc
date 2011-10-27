@@ -280,9 +280,9 @@ const char *QwGUIDatabase::Targets[N_TGTS] =
 };
 
 
-const char *QwGUIDatabase::Plots[2] =
+const char *QwGUIDatabase::Plots[N_Plots] =
   {
-    "Mean", "RMS"
+    "Mean", "RMS", "Both"
   }; 
 
 const char *QwGUIDatabase::GoodForTypes[N_GOODFOR_TYPES] =
@@ -527,7 +527,7 @@ void QwGUIDatabase::MakeLayout()
     dBoxGoodFor->AddEntry(GoodForTypes[i],i+1);
   }
 
-  for (Int_t k = 0; k < 2; k++)
+  for (Int_t k = 0; k < N_Plots; k++)
     dCmbPlotType->AddEntry(Plots[k], k);
 
   dCmbSubblock->Select(0);
@@ -827,7 +827,7 @@ void QwGUIDatabase::PopulatePlotComboBox()
 //   if(dCmbXAxis->GetSelected() == ID_X_SLUG)
 //     dCmbPlotType->AddEntry(Plots[0], 0);
 //   else{
-    for (Int_t k = 0; k < 2; k++)
+    for (Int_t k = 0; k < N_Plots; k++)
       dCmbPlotType->AddEntry(Plots[k], k);
     //  }
 
@@ -920,9 +920,15 @@ void QwGUIDatabase::OnNewDataContainer(RDataContainer *cont)
 
 void QwGUIDatabase::PlotGraphs()
 {
+  TString plot = Plots[dCmbPlotType->GetSelected()];
   Int_t ind = 0;
 
   TCanvas *mc = dCanvas->GetCanvas();
+  if(plot.Contains("Both"))
+    {
+         mc->Divide(1,2);
+         mc->cd(1);
+    }
 
   TObject *obj;
   TLegend *leg;
@@ -1591,6 +1597,7 @@ void QwGUIDatabase::PlotDetector()
     TVectorD run_suspect(row_size);
     TVectorD err_suspect(row_size);
 
+    TVectorD x_rms_all(row_size), x_rmserr_all(row_size), run_rms(row_size);
 
     x_in.Clear();
     x_in.ResizeTo(row_size);
@@ -1645,14 +1652,18 @@ void QwGUIDatabase::PlotDetector()
     run_suspect.ResizeTo(row_size);
     err_suspect.Clear();
     err_suspect.ResizeTo(row_size);
+    
+    run_rms.Clear();
+    run_rms.ResizeTo(row_size);
 
-    Float_t x = 0.0 , xerr = 0.0;
+    Float_t x = 0.0 , xerr = 0.0, x_rms = 0.0;
     Int_t m = 0;
     Int_t k = 0;
     Int_t l = 0;
     Int_t n = 0;
     Int_t o = 0; //bad quality
     Int_t p = 0; //suspect quality
+    Int_t i_rms = 0;//rms will contain all points, no in/out
 
     TGraphErrors* grp_in = NULL;
     TGraphErrors* grp_in_L = NULL;
@@ -1660,6 +1671,7 @@ void QwGUIDatabase::PlotDetector()
     TGraphErrors* grp_out_L = NULL;
     TGraphErrors* grp_bad = NULL;
     TGraphErrors* grp_suspect = NULL;
+    TGraphErrors* grp_rms = NULL;
 
     TF1* fit1 = NULL;
     TF1* fit2 = NULL;
@@ -1731,6 +1743,7 @@ void QwGUIDatabase::PlotDetector()
 	  else {
 	    x    = (read_data[i]["value"])*1e6; // convert to  ppm/ nm
 	    xerr = (read_data[i]["error"])*1e6; // convert to ppm/ nm
+            x_rms = (read_data[i]["rms"])*1e6; // convert to  ppm/ nm
 	  }
 	} 
 	else{
@@ -1741,10 +1754,22 @@ void QwGUIDatabase::PlotDetector()
 	  else {
 	    x    = read_data[i]["value"];
 	    xerr = read_data[i]["error"];
+            x_rms = (read_data[i]["rms"]);
 	  }
 	}
 	  
-	if(read_data[i]["run_quality_id"] == "1"){
+        
+        //Fist fill the rms stuff without quality checks
+        if(x_axis == ID_X_TIME){
+            run_rms.operator()(i_rms)  = (runtime_start->Convert()) + adjust_for_DST;
+        }
+        else
+            run_rms.operator()(i_rms)  = read_data[i]["x_value"];
+        x_rms_all.operator()(i_rms) = x_rms;
+        x_rmserr_all.operator()(i_rms) = 0.0;
+        i_rms++;
+	
+        if(read_data[i]["run_quality_id"] == "1"){
 
 	  if(read_data[i]["slow_helicity_plate"] == "out") {
 	    if (read_data[i]["wien_reversal"]*1 == 1){
@@ -1939,6 +1964,12 @@ void QwGUIDatabase::PlotDetector()
       fit6 = grp_suspect->GetFunction("pol0");
       fit6 -> SetLineColor(kGreen);
     }
+    
+//Make RMS graph with all events
+    //run_rms.ResizeTo(i_rms);
+    //x_rms_all.ResizeTo(i_rms);
+    //x_rmserr_all.ResizeTo(i_rms);
+    grp_rms = new TGraphErrors(run_rms, x_rms_all, x_rmserr_all, x_rmserr_all);
 
 
     TMultiGraph * grp = new TMultiGraph();
@@ -1999,11 +2030,29 @@ void QwGUIDatabase::PlotDetector()
     grp->SetTitle(title);
     grp->GetYaxis()->SetTitle(y_title);
     grp->GetXaxis()->SetTitle(x_title);
-    grp->GetYaxis()->SetTitleOffset(2);
-    grp->GetXaxis()->SetTitleOffset(2);
-    grp->GetYaxis()->SetTitleSize(0.03);
-    grp->GetXaxis()->SetTitleSize(0.03);
     grp->GetYaxis()->CenterTitle();
+    
+    if(plot.Contains("Both")){
+        mc->cd(2);
+        grp_rms->Draw("ab");
+        grp_rms->GetHistogram()->SetXTitle(x_title);
+        grp_rms->GetHistogram()->SetYTitle("RMS of "+y_title);
+        grp_rms->GetYaxis()->CenterTitle();
+        if(x_axis == ID_X_TIME){
+          grp_rms->GetXaxis()->SetTimeDisplay(1);
+          grp_rms->GetXaxis()->SetTimeOffset(0,"gmt");
+          grp_rms->GetXaxis()->SetLabelOffset(0.02); 
+          grp_rms->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
+          grp_rms->GetXaxis()->Draw();
+        }
+        mc->cd();
+    }
+    else{
+        grp->GetYaxis()->SetTitleOffset(2);
+        grp->GetXaxis()->SetTitleOffset(2);
+        grp->GetYaxis()->SetTitleSize(0.03);
+        grp->GetXaxis()->SetTitleSize(0.03);
+    }
 
     mc->Modified();
     mc->SetBorderMode(0);

@@ -54,6 +54,7 @@
 #define N_GOODFOR_TYPES   8
 #define N_REGRESSION_VARS 5
 #define N_X_AXIS          4
+#define N_Plots          3
 
 
 
@@ -207,7 +208,7 @@ using std::vector;
 
   // target types
   static const char   *Targets[N_TGTS];
-  static const char   *Plots[2];
+  static const char   *Plots[3];
 
 
   Int_t                dSelectedDataWindow;
