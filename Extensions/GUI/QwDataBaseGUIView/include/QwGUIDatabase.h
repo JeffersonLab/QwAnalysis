@@ -53,7 +53,7 @@
 #define N_TGTS           15
 #define N_GOODFOR_TYPES   8
 #define N_REGRESSION_VARS 5
-#define N_X_AXIS          4
+#define N_X_AXIS          5
 #define N_Plots          3
 
 
@@ -148,6 +148,22 @@ using std::vector;
   //!A histogram array to plot the X and Y position difference variation.
   TPaveText * errlabel;
 
+  //!Variables to assign selections from comboboxes.
+  Int_t   index_first;
+  Int_t   index_last;
+  Int_t   det_id;
+  Int_t   x_axis;
+  Int_t   subblock;
+  TString measurement_type;
+  TString device;
+  TString target;
+  TString plot;
+  TString detector;
+  TString property;
+  const char **measurements;
+
+  //!A function to get data selections from the combo boxes.
+  void GetDataSelections();
 
   //!A function to plot the detector data in a Y vs X format
   void DetectorPlot();
@@ -220,7 +236,7 @@ using std::vector;
 
   // static array for temporary measurement type storing. This makes things easier when trying to
   // retrieave data.
-  std::vector<TString> measurements;
+
 
  /*private:
 
