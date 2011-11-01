@@ -33,7 +33,8 @@
 //=============================================================================
 
 
-#define N_CH  5
+#define N_CH      5
+#define N_CH_ERR  7
 
 ///
 /// \ingroup QwGUISummary
@@ -97,14 +98,10 @@ class QwGUISummary : public QwGUISubSystem {
   //!An array to store the device channels we want to monitor in the summary tab   
   static const char *fChannels[N_CH];
 
-  //!Overwritten virtual function from QwGUISubSystem::OnNewDataContainer(). This function retrieves
-  //!four histograms from the ROOT file that is contained within the data container makes copies of
-  //!them and adds them to a histogram pointer array for later plotting and cleanup.
-  //!
-  //!Parameters:
-  //! - none
-  //!
-  //!Return value: none  
+  //!An array to store the device channels we want to monitor in the error summary plot   
+  static const char *fChannelsCheckError[N_CH_ERR];
+
+ 
   virtual void        OnReceiveMessage(char*);
 
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
