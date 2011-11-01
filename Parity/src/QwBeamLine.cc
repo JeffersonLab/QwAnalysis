@@ -1448,6 +1448,10 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
 
 }
 
+//*****************************************************************
+void QwBeamLine::UpdateEventcutErrorFlag(UInt_t errorflag){
+}
+
 
 //*****************************************************************
 void  QwBeamLine::ProcessEvent()

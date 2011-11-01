@@ -60,6 +60,9 @@ class QwMainCerenkovDetector:
   Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   UInt_t GetEventcutErrorFlag();//return the error flag
+  //update the error flag in the classes belong to the subsystem.
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+  }
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);
   Int_t ProcessEvBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);

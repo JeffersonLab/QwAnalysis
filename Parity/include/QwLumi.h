@@ -79,6 +79,9 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   Bool_t ApplySingleEventCuts();//derived from VQwSubsystemParity
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
+  //update the error flag in the classes belong to the subsystem.
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+  }
 
   void AccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();

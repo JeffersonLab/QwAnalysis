@@ -220,6 +220,11 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
       return 0;
     };//return the error flag to the main routine
 
+    //update the error flag in the classes belong to the subsystem.
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+    }
+
+
     // scanner specified histograms
     TProfile2D* fRateMapCM;
     TProfile2D* fRateMapEM;

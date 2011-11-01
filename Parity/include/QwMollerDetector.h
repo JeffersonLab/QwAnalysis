@@ -100,6 +100,9 @@ class QwMollerDetector: public VQwSubsystemParity, public MQwCloneable<QwMollerD
     Bool_t  ApplySingleEventCuts();
     Int_t GetEventcutErrorCounters();
     UInt_t GetEventcutErrorFlag();
+    //update the error flag in the classes belong to the subsystem.
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+    }
 
     using VQwSubsystem::ConstructBranchAndVector;
     void ConstructBranchAndVector(TTree*, TString&, std::vector<double, std::allocator<double> >&);

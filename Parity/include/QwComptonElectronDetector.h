@@ -65,6 +65,9 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     Bool_t ApplySingleEventCuts() { return kTRUE; };
     Int_t GetEventcutErrorCounters() { return 0; };
     UInt_t GetEventcutErrorFlag() { return 0; };
+    //update the error flag in the classes belong to the subsystem.
+    void UpdateEventcutErrorFlag(UInt_t errorflag){
+    }
     Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
     void AccumulateRunningSum(VQwSubsystem* value);

@@ -406,7 +406,7 @@ Bool_t QwSubsystemArrayParity::ApplySingleEventCuts(){
 
 
 
-Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
+Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
 
 
   VQwSubsystemParity *subsys_parity;
@@ -416,10 +416,6 @@ Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
       subsys_parity->GetEventcutErrorCounters();
-
-	//std::cout<<" ** Failed ** "<<" Subsystem name "<<((subsys)->get())->GetSubsystemName()<<std::endl;
-	//sFailedSubsystems.push_back(((subsys)->get())->GetSubsystemName());
-
     }
   }
 
@@ -432,20 +428,67 @@ void QwSubsystemArrayParity::UpdateEventcutErrorFlag(UInt_t errorflag){
   //make sure to enable this check when we have local and global stability checks
   //For current stability check keep this commented
   //  if ((errorflag & kGlobalCut) == kGlobalCut)//check to see any global errors exist 
-    fErrorFlag|=errorflag; //then only update the global error falg
+  fErrorFlag|=errorflag; //then only update the global error falg
 
 
   if (!empty()){
     for (iterator subsys = begin(); subsys != end(); ++subsys){
       subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
       //Update the error flag of the parity subsystem
-      //subsys_parity->UpdateEventcutErrorFlag(errorflag);
+      subsys_parity->UpdateEventcutErrorFlag(errorflag);
     }
   }
 }
 
+void QwSubsystemArrayParity::UpdateEventcutErrorFlag(QwSubsystemArrayParity& ev_error){
+  Bool_t localdebug=kTRUE;
+  if(localdebug)  std::cout<<"QwSubsystemArrayParity::UpdateEventcutErrorFlag \n";
+  if (!ev_error.empty()){
+    if (this->size() == ev_error.size()){
+      this->fErrorFlag=ev_error.fErrorFlag;
+      for(size_t i=0;i<ev_error.size();i++){
+	if (ev_error.at(i)==NULL || this->at(i)==NULL){
+	  //  Either the source or the destination subsystem
+	  //  are null
+	} else {
+	  VQwSubsystemParity *ptr1 =
+	    dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
+	  if (typeid(*ptr1)==typeid(*(ev_error.at(i).get()))){
+	    if(localdebug) std::cout<<" here in QwSubsystemArrayParity::UpdateEventcutErrorFlag types mach \n";
+	    //*(ptr1) = ev_error.at(i).get();//when =operator is used
+	    //pass the correct subsystem to update the errorflags at subsystem to devices to channel levels
+	    //ptr1->UpdateEventcutErrorFlag(ev_error.at(i).get());
+	  } else {
+	    //  Subsystems don't match
+	      QwError << " QwSubsystemArrayParity::UpdateEventcutErrorFlag types do not mach" << QwLog::endl;
+	      QwError << " typeid(ptr1)=" << typeid(*ptr1).name()
+                      << " but typeid(*(ev_error.at(i).get()))=" << typeid(*(ev_error.at(i).get())).name()
+                      << QwLog::endl;
+	  }
+	}
+      }
+    } else {
+      //  Array sizes don't match
+    }
+  } else {
+    //  The source is empty
+  }  
+};
 
-UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() const{// report number of events falied due to HW and event cut faliure
+
+UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() { //this routine will refresh the global error flag adn return it after stability cut check
+  //by default at the ApplySingleEventCuts routine fErrorFlag is updated properly and a const GetEventcutErrorFlag() routine 
+  //returns the fErrorFlag value
+  fErrorFlag=0;
+  
+  VQwSubsystemParity *subsys_parity;
+  if (!empty()){
+    for (iterator subsys = begin(); subsys != end(); ++subsys){
+      subsys_parity=dynamic_cast<VQwSubsystemParity*>((subsys)->get());
+      //Update the error flag of the parity subsystem
+      fErrorFlag|=subsys_parity->GetEventcutErrorFlag();
+    }
+  }
   return fErrorFlag;
 }
 

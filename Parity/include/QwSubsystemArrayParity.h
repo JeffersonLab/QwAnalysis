@@ -99,9 +99,18 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// \brief Report the number of events failed due to HW and event cut failures
     Int_t GetEventcutErrorCounters();
     /// \brief Return the error flag to the main routine
-    UInt_t GetEventcutErrorFlag() const;
-    /// \brief Return the error flag to the main routine
+    UInt_t GetEventcutErrorFlag() const{
+      return fErrorFlag;
+    };
+    /// \brief Update the error flag from all the subsystems
+    
+    UInt_t GetEventcutErrorFlag();
+    
+    /// \brief update the same error flag for all the channels in the subsystem array
     void UpdateEventcutErrorFlag(UInt_t errorflag);
+    /// \brief update the error flag for each channel in the subsystem array with the corresponding value in the ev_error subsystem array
+    void UpdateEventcutErrorFlag(QwSubsystemArrayParity& ev_error);
+
 
     /// \brief Print value of all channels
     void PrintValue() const;

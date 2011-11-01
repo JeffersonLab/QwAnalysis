@@ -154,9 +154,17 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
       if (bStability){
 	fChargeRunningSum.CalculateRunningAverage();
 	fRollingAvg.CalculateRunningAverage();
+	//The fRollingAvg dose not contain any regular errorcodes since it only accumulate rolling sum for errorflag==0 event.
+	//The only errorflag it generates is the stability cut faliure error when the rolling avg is computed. 
+	//Therefore when fRollingAvg.GetEventcutErrorFlag() is called it will return non-zero error code only if a global stability cut has failed
+	//When fRollingAvg.GetEventcutErrorFlag() is called the fErrorFlag of the subsystemarrayparity object will be updated with any global
+	//stability cut faliures
+	fRollingAvg.GetEventcutErrorFlag(); //to update the global error code in the fRollingAvg
+	
       }
       
       if (bStability && fChargeRunningSum.GetValueWidth()>fStability){//if the SD is large than the fStability
+	
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
 	//fChargeRunningSum.PrintValue();
 	QwMessage << " Running Average +/- width "<<fChargeRunningSum.GetValue()<<" +/- "<<fChargeRunningSum.GetValueWidth()<<" Stable width < "<<fStability<<QwLog::endl;
@@ -164,8 +172,11 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
 	//fErrorCode|=kBeamStabilityError;//set hold_off events with beam stability error
 	
 	bEVENT_READY_ev3=kFALSE;
-	for(Int_t i=0;i<fRING_SIZE;i++)
+	for(Int_t i=0;i<fRING_SIZE;i++){
 	  fEvent_Ring[i].UpdateEventcutErrorFlag(kBeamStabilityError);
+	  
+	  fEvent_Ring[i].UpdateEventcutErrorFlag(fRollingAvg);
+	}
       }
     }
     //ring processing is done at a separate location

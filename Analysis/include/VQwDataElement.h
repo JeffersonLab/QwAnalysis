@@ -136,6 +136,10 @@ class VQwDataElement: public MQwHistograms {
 
   /*! \brief return the error flag on this channel/device*/
   virtual UInt_t GetEventcutErrorFlag(){return fErrorFlag;};
+ /*! \brief update the error flag on this channel/device*/
+  virtual void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fErrorFlag|=errorflag;
+  }
 
   // These are related to those hardware channels that need to normalize
   // to an external clock
