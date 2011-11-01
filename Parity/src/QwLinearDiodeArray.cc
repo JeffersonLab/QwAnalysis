@@ -141,7 +141,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 
    //Event cuts for Relative X & Y
   for(i=kXAxis;i<kNumAxes;i++){
-
+    fRelPos[i].UpdateErrorCode(fErrorFlag);//update the rel/abs error code from the channels/wires error codes
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -155,6 +155,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
+  fEffectiveCharge.UpdateErrorCode(fErrorFlag);//update the eff-charge error code from the channels/wires error codes
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }

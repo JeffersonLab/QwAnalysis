@@ -155,7 +155,7 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
     //Get the Event cut error flag for wires
     fErrorFlag|=fWire[i].GetEventcutErrorFlag();
 
-    error_code |= fWire[i].GetErrorCode();
+    error_code |= fWire[i].GetErrorCode();//this to be updated in the rel and abp pos channels
   }
   
 

@@ -284,6 +284,39 @@ void QwSubsystemArrayParity::AccumulateRunningSum(const QwSubsystemArrayParity& 
   }
 }
 
+void QwSubsystemArrayParity::DeaccumulateRunningSum(const QwSubsystemArrayParity& value)
+{
+  if (!value.empty()) {
+    if (this->size() == value.size()) {
+      if (value.GetEventcutErrorFlag()==0){//do running sum only if error flag is zero. This way will prevent any Beam Trip(in ev mode 3) related events going into the running sum.
+	for (size_t i = 0; i < value.size(); i++) {
+	  if (value.at(i)==NULL || this->at(i)==NULL) {
+	    //  Either the value or the destination subsystem
+	    //  are null
+	  } else {
+	    VQwSubsystemParity *ptr1 =
+	      dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
+	    if (typeid(*ptr1) == typeid(*(value.at(i).get()))) {
+	      ptr1->DeaccumulateRunningSum(value.at(i).get());
+	    } else {
+	      QwError << "QwSubsystemArrayParity::AccumulateRunningSum here where types don't match" << QwLog::endl;
+	      QwError << " typeid(ptr1)=" << typeid(ptr1).name()
+		      << " but typeid(value.at(i)))=" << typeid(value.at(i)).name()
+		      << QwLog::endl;
+	      //  Subsystems don't match
+	    }
+	  }
+	}
+      }
+    } else {
+      //  Array sizes don't match
+    }
+  } else {
+    //  The value is empty
+  }
+}
+
+
 void QwSubsystemArrayParity::Blind(const QwBlinder *blinder)
 {
   // Loop over subsystem array
@@ -441,7 +474,7 @@ void QwSubsystemArrayParity::UpdateEventcutErrorFlag(UInt_t errorflag){
 }
 
 void QwSubsystemArrayParity::UpdateEventcutErrorFlag(QwSubsystemArrayParity& ev_error){
-  Bool_t localdebug=kTRUE;
+  Bool_t localdebug=kFALSE;//kTRUE;
   if(localdebug)  std::cout<<"QwSubsystemArrayParity::UpdateEventcutErrorFlag \n";
   if (!ev_error.empty()){
     if (this->size() == ev_error.size()){
@@ -457,7 +490,7 @@ void QwSubsystemArrayParity::UpdateEventcutErrorFlag(QwSubsystemArrayParity& ev_
 	    if(localdebug) std::cout<<" here in QwSubsystemArrayParity::UpdateEventcutErrorFlag types mach \n";
 	    //*(ptr1) = ev_error.at(i).get();//when =operator is used
 	    //pass the correct subsystem to update the errorflags at subsystem to devices to channel levels
-	    //ptr1->UpdateEventcutErrorFlag(ev_error.at(i).get());
+	    ptr1->UpdateEventcutErrorFlag(ev_error.at(i).get());
 	  } else {
 	    //  Subsystems don't match
 	      QwError << " QwSubsystemArrayParity::UpdateEventcutErrorFlag types do not mach" << QwLog::endl;

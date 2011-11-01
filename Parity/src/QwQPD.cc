@@ -157,12 +157,15 @@ Bool_t QwQPD::ApplySingleEventCuts()
   }
 
   for(i=0;i<2;i++){
+    fRelPos[i].UpdateErrorCode(fErrorFlag);//update the rel/abs error code from the channels/wires error codes
     status &= fRelPos[i].ApplySingleEventCuts();
     fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
 
+    fAbsPos[i].UpdateErrorCode(fErrorFlag);//update the rel/abs error code from the channels/wires error codes
     status &= fAbsPos[i].ApplySingleEventCuts();
     fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
+  fEffectiveCharge.UpdateErrorCode(fErrorFlag);//update the eff-charge error code from the channels/wires error codes
   status &= fEffectiveCharge.ApplySingleEventCuts();
   fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
   

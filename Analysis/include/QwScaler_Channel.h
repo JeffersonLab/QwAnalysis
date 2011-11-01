@@ -126,6 +126,10 @@ public:
     if (tmp_ptr != NULL) AccumulateRunningSum(*tmp_ptr);
   };
 
+  void DeaccumulateRunningSum(VQwScaler_Channel &value){
+  };
+  
+
   void Copy(const VQwDataElement *source);
   void Copy(const VQwScaler_Channel &source);
 

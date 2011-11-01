@@ -1452,6 +1452,44 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
 void QwBeamLine::UpdateEventcutErrorFlag(UInt_t errorflag){
 }
 
+//*****************************************************************
+void QwBeamLine::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  if(Compare(ev_error))
+    {
+
+      QwBeamLine* input = dynamic_cast<QwBeamLine*>(ev_error);
+
+      //index_4mhz = input->index_4mhz;
+      /*
+      for(size_t i=0;i<input->fClock.size();i++)
+	*(this->fClock[i].get())=*(input->fClock[i].get());
+      for(size_t i=0;i<input->fStripline.size();i++)
+	*(this->fStripline[i].get())=*(input->fStripline[i].get());
+      for(size_t i=0;i<input->fQPD.size();i++)
+	this->fQPD[i]=input->fQPD[i];
+      for(size_t i=0;i<input->fLinearArray.size();i++)
+	this->fLinearArray[i]=input->fLinearArray[i];
+      for(size_t i=0;i<input->fCavity.size();i++)
+	this->fCavity[i]=input->fCavity[i];
+      */
+      for(size_t i=0;i<input->fBCM.size();i++){
+	(this->fBCM[i].get())->UpdateEventcutErrorFlag(input->fBCM[i].get());
+      }
+      
+      /*
+      for(size_t i=0;i<input->fHaloMonitor.size();i++)
+	this->fHaloMonitor[i]=input->fHaloMonitor[i];
+      for(size_t i=0;i<input->fBCMCombo.size();i++)
+	*(this->fBCMCombo[i].get())=*(input->fBCMCombo[i].get());
+      for(size_t i=0;i<input->fBPMCombo.size();i++)
+	*(this->fBPMCombo[i].get())=*(input->fBPMCombo[i].get());
+      for(size_t i=0;i<input->fECalculator.size();i++)
+	this->fECalculator[i]=input->fECalculator[i];
+      */
+
+    }
+}
+
 
 //*****************************************************************
 void  QwBeamLine::ProcessEvent()
@@ -2086,6 +2124,36 @@ void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
     
   }
 }
+
+//*****************************************************************
+void QwBeamLine::DeaccumulateRunningSum(VQwSubsystem* value1){
+    if (Compare(value1)) {
+    QwBeamLine* value = dynamic_cast<QwBeamLine*>(value1);
+    /*
+    for (size_t i = 0; i < fClock.size();       i++)
+      fClock[i].get()->DeaccumulateRunningSum(*(value->fClock[i].get()));
+    for (size_t i = 0; i < fStripline.size(); i++)
+      fStripline[i].get()->DeaccumulateRunningSum(*(value->fStripline[i].get()));
+    for (size_t i = 0; i < fCavity.size(); i++)
+      fCavity[i].DeaccumulateRunningSum(value->fCavity[i]);
+    */
+    for (size_t i = 0; i < fBCM.size();       i++)
+      fBCM[i].get()->DeaccumulateRunningSum(*(value->fBCM[i].get()));
+    for (size_t i = 0; i < fBCMCombo.size();  i++)
+      fBCMCombo[i].get()->DeaccumulateRunningSum(*(value->fBCMCombo[i].get()));
+    /*
+    for (size_t i = 0; i < fBPMCombo.size();  i++)
+      fBPMCombo[i].get()->DeaccumulateRunningSum(*(value->fBPMCombo[i].get()));
+    for (size_t i = 0; i < fECalculator.size();  i++)
+      fECalculator[i].DeaccumulateRunningSum(value->fECalculator[i]);
+    for (size_t i = 0; i < fQPD.size();  i++)
+      fQPD[i].DeaccumulateRunningSum(value->fQPD[i]);
+    for (size_t i = 0; i <fHaloMonitor.size();  i++)
+      fHaloMonitor[i].DeaccumulateRunningSum(value->fHaloMonitor[i]);
+    */
+    
+  }
+};
 
 //*****************************************************************
 Bool_t QwBeamLine::Compare(VQwSubsystem *value)

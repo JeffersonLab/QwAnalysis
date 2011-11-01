@@ -59,6 +59,8 @@ public:
   virtual void  InitializeChannel(TString subsystem, TString name, TString datatosave) = 0;
   virtual void SetDefaultSampleSize(Int_t sample_size) = 0;
   virtual void SetEventCutMode(Int_t bcuts) = 0;
+  virtual void UpdateEventcutErrorFlag(UInt_t errorflag) = 0;
+  virtual void UpdateEventcutErrorFlag(VQwBCM *ev_error) = 0;
   virtual void SetPedestal(Double_t ped) = 0;
   virtual void SetCalibrationFactor(Double_t calib) = 0;
   virtual void RandomizeEventData(int helicity, double time) = 0;
@@ -68,6 +70,7 @@ public:
   virtual void Scale(Double_t factor) = 0;
   virtual void CalculateRunningAverage() = 0;
   virtual void AccumulateRunningSum(const VQwBCM& value) = 0;
+  virtual void DeaccumulateRunningSum(VQwBCM& value) = 0;
   virtual void ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) = 0;

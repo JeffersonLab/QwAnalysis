@@ -229,8 +229,30 @@ Int_t QwBCM<T>::GetEventcutErrorCounters(){// report number of events falied due
   return 1;
 }
 
+/********************************************************/
+template<typename T>
+void QwBCM<T>::UpdateEventcutErrorFlag(VQwBCM *ev_error){
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwBCM::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwBCM<T>* value_bcm = dynamic_cast<QwBCM<T>* >(ev_error);
+	VQwDataElement *value_data = dynamic_cast<VQwDataElement *>(&(value_bcm->fBeamCurrent));
+	fBeamCurrent.UpdateEventcutErrorFlag(value_data->GetEventcutErrorFlag());
+      }
+    } else {
+      TString loc="Standard exception from QwBCM::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }
+};
 
 
+/********************************************************/
 template<typename T>
 Int_t QwBCM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
 {
@@ -417,6 +439,10 @@ void QwBCM<T>::AccumulateRunningSum(const VQwBCM& value) {
       dynamic_cast<const QwBCM<T>* >(&value)->fBeamCurrent);
 }
 
+template<typename T>
+void QwBCM<T>::DeaccumulateRunningSum(VQwBCM& value) {
+  fBeamCurrent.DeaccumulateRunningSum(dynamic_cast<QwBCM<T>* >(&value)->fBeamCurrent);
+}
 template<typename T>
 void QwBCM<T>::PrintValue() const
 {

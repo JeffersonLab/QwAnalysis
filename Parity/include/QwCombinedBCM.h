@@ -70,6 +70,13 @@ class QwCombinedBCM : public QwBCM<T> {
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fCombined_bcm.GetEventcutErrorFlag();
   }
+
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fCombined_bcm.UpdateEventcutErrorFlag(errorflag);
+  };
+
+  void UpdateEventcutErrorFlag(VQwBCM *ev_error);
+
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
@@ -97,6 +104,7 @@ class QwCombinedBCM : public QwBCM<T> {
   void Scale(Double_t factor);
 
   void AccumulateRunningSum(const QwCombinedBCM& value);
+  void DeaccumulateRunningSum(QwCombinedBCM& value);
   void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);

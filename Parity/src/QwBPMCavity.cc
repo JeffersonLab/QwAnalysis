@@ -124,6 +124,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
 {
   Bool_t status=kTRUE;
   Int_t i=0;
+  UInt_t error_code = 0;
   fErrorFlag=0;
   //Event cuts for X & Y
   for(i=0;i<2;i++){
@@ -138,8 +139,10 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
 
     //Get the Event cut error flag for RelX/Y
     fErrorFlag |=fWire[i].GetEventcutErrorFlag();
+    error_code |= fWire[i].GetErrorCode();//this to be updated in the rel and abp pos channels
   }
   for(i=kXAxis;i<kNumAxes;i++){
+    fRelPos[i].UpdateErrorCode(error_code);
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -153,6 +156,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   }
 
   for(i=kXAxis;i<kNumAxes;i++){
+    fAbsPos[i].UpdateErrorCode(error_code);
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -166,6 +170,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
+  fEffectiveCharge.UpdateErrorCode(error_code);
   if (fEffectiveCharge.ApplySingleEventCuts()){
     status&=kTRUE;
   }

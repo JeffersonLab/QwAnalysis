@@ -79,6 +79,9 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
     /// \brief Update the running sums for devices
     void AccumulateRunningSum(const QwSubsystemArrayParity& value);
+    /// \brief Remove the entry value from the running sums for devices
+    void DeaccumulateRunningSum(const QwSubsystemArrayParity& value);
+
     /// \brief Calculate the average for all good events
     void CalculateRunningAverage();
 

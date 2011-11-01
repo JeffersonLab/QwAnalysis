@@ -207,6 +207,29 @@ Int_t QwCombinedBCM<T>::GetEventcutErrorCounters(){// report number of events fa
 }
 
 /********************************************************/
+template<typename T>
+void QwCombinedBCM<T>::UpdateEventcutErrorFlag(VQwBCM *ev_error){
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwCombinedBCM::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwCombinedBCM<T>* value_bcm = dynamic_cast<QwCombinedBCM<T>* >(ev_error);
+	VQwDataElement *value_data = dynamic_cast<VQwDataElement *>(&(value_bcm->fCombined_bcm));
+	fCombined_bcm.UpdateEventcutErrorFlag(value_data->GetEventcutErrorFlag());
+      }
+    } else {
+      TString loc="Standard exception from QwCombinedBCM::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
+
+
+/********************************************************/
 
 template<typename T>
 void QwCombinedBCM<T>::CalculateRunningAverage(){
@@ -218,6 +241,13 @@ void QwCombinedBCM<T>::CalculateRunningAverage(){
 template<typename T>
 void QwCombinedBCM<T>::AccumulateRunningSum(const QwCombinedBCM<T>& value){
   fCombined_bcm.AccumulateRunningSum(value.fCombined_bcm);
+}
+
+/********************************************************/
+
+template<typename T>
+void QwCombinedBCM<T>::DeaccumulateRunningSum(QwCombinedBCM<T>& value){
+  fCombined_bcm.DeaccumulateRunningSum(value.fCombined_bcm);
 }
 
 /********************************************************/

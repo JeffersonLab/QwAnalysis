@@ -1122,7 +1122,9 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   // If there are no good events, check the  device HW error codes
   if (n2 == 0 && (value.fErrorFlag) == 0) {
     n2 = 1;
-  }else if (n2 == -1 && (value.fErrorFlag) == 0) {
+  }else if (n2 == -1 && (value.fErrorFlag) == 0) { //The Deaccumulate is only used in the rolling Avg computation in the ring/buffer
+    //check only HW and single event cut errors since by the time the value is deaccumulated this could be flagged as stability failed error. 
+    //The operation value.fErrorFlag & 0xFFFFFFF set the stability failed error bit to zero
     n2 = -1;
   }else
     n2 = -100;//ignore it

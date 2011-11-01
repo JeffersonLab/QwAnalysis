@@ -126,10 +126,12 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     AccumulateRunningSum(value);
     value.fGoodEventCount=0;
   };
-  void DeaccumulateRunningSum(VQwHardwareChannel *value){
-    QwVQWK_Channel *tmp_ptr = dynamic_cast<QwVQWK_Channel*>(value);
+  /*
+  void DeaccumulateRunningSum(cVQwHardwareChannel *value){
+    const QwVQWK_Channel *tmp_ptr = dynamic_cast<const QwVQWK_Channel*>(value);
     if (tmp_ptr != NULL) DeaccumulateRunningSum(*tmp_ptr);
   };
+  */
 
   void CalculateRunningAverage();
 
