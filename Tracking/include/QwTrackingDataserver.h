@@ -20,7 +20,7 @@ class QwTrackingDataserver : public VQwDataserver {
 
   public:
     QwTrackingDataserver (const char*);
-    ~QwTrackingDataserver();
+    virtual ~QwTrackingDataserver();
 
     void NextEvent();
     QwHitContainer* GetHitList();

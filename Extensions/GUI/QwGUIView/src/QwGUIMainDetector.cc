@@ -18,8 +18,6 @@ void PrintMemInfo(const char* text) {
 
 ClassImp(QwGUIMainDetector);
 
-using namespace QwParityDB;
-
 QwGUIMainDetectorDataStructure::QwGUIMainDetectorDataStructure(Int_t ID, Int_t Run, TString Type) 
 //   : TObject()
 { 
@@ -2542,10 +2540,10 @@ void QwGUIMainDetector::OnNewDataContainer(RDataContainer *cont)
     }
 
   }
-  else if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
-    //Start filling DB data
-//     ClearDBData();
-  }
+//   else if(!strcmp(cont->GetDataName(),"DBASE") && dDatabaseCont){
+//     //Start filling DB data
+// //     ClearDBData();
+//   }
 }
 
 void QwGUIMainDetector::OnRemoveThisTab()

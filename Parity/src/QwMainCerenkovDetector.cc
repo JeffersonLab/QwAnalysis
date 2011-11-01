@@ -13,7 +13,9 @@
 // Qweak headers
 #include "QwSubsystemArray.h"
 #include "QwLog.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwMainCerenkovDetector);
@@ -269,19 +271,13 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               if (localMainDetID.fTypeID==kQwIntegrationPMT)
                 {
                   QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localMainDetID.fdetectorname);
-		  if (keyword=="not_blindable")
+		  if (keyword=="not_blindable"
+		      || keyword2=="not_blindable")
 		    localIntegrationPMT.SetBlindability(kFALSE);
 		  else 
 		    localIntegrationPMT.SetBlindability(kTRUE);
-		  if (keyword=="not_normalizable")
-		  	localIntegrationPMT.SetNormalizability(kFALSE);
-		  else
-		  	localIntegrationPMT.SetNormalizability(kTRUE);
-		  if (keyword2=="not_blindable") 
-		    localIntegrationPMT.SetBlindability(kFALSE);
-		  else 
-		    localIntegrationPMT.SetBlindability(kTRUE);
-		  if (keyword2=="not_normalizable")
+		  if (keyword=="not_normalizable"
+		      || keyword2=="not_normalizable")
 		  	localIntegrationPMT.SetNormalizability(kFALSE);
 		  else
 		  	localIntegrationPMT.SetNormalizability(kTRUE);
@@ -293,11 +289,13 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               else if (localMainDetID.fTypeID==kQwCombinedPMT)
                 {
 		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localMainDetID.fdetectorname);
-		  if (keyword=="not_normalizable" || keyword2=="not_normalizable")
+		  if (keyword=="not_normalizable" 
+		      || keyword2=="not_normalizable")
 		    localcombinedPMT.SetNormalizability(kFALSE);
 		  else
 		    localcombinedPMT.SetNormalizability(kTRUE);
-		  if (keyword=="not_blindable" || keyword2 =="not_blindable") 
+		  if (keyword=="not_blindable" 
+		      || keyword2 =="not_blindable") 
 		    localcombinedPMT.SetBlindability(kFALSE);
 		  else 
 		    localcombinedPMT.SetBlindability(kTRUE);
@@ -809,12 +807,13 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
 	//QwWarning <<"****QwMainCerenkovDetector****"<< QwLog::endl;
 	(dynamic_cast<QwVQWK_Channel*>(&fTargetCharge))->PrintInfo();
       }
-    }else{
+    }
+    else{
       bIsExchangedDataValid = kFALSE;
       QwError << GetSubsystemName() << " could not get external value for "
 	      << fTargetCharge.GetElementName() << QwLog::endl;
     }
-
+    /*
     if(RequestExternalValue("x_targ", &fTargetX)){
       if (bDEBUG){
 	dynamic_cast<QwVQWK_Channel*>(&fTargetX)->PrintInfo();
@@ -869,6 +868,7 @@ void  QwMainCerenkovDetector::ExchangeProcessedData()
       QwError << GetSubsystemName() << " could not get external value for "
 	      << fTargetEnergy.GetElementName() << QwLog::endl;
     }
+    */
 
     
   }
@@ -918,18 +918,6 @@ void  QwMainCerenkovDetector::FillHistograms()
 
   for (size_t i=0;i<fCombinedPMT.size();i++)
     fCombinedPMT[i].FillHistograms();
-
-  return;
-}
-
-
-void  QwMainCerenkovDetector::DeleteHistograms()
-{
-  for (size_t i=0;i<fIntegrationPMT.size();i++)
-    fIntegrationPMT[i].DeleteHistograms();
-
-  for (size_t i=0;i<fCombinedPMT.size();i++)
-    fCombinedPMT[i].DeleteHistograms();
 
   return;
 }
@@ -1324,7 +1312,7 @@ void QwMainCerenkovDetector::DoNormalization(Double_t factor)
     }
 }
 
-void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
+void  QwMainCerenkovDetector::FillDB(QwParityDB *db, TString datatype)
 {
   Bool_t local_print_flag = false;
 
@@ -1335,7 +1323,7 @@ void  QwMainCerenkovDetector::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::md_data> entrylist;
+  std::vector<QwParitySSQLS::md_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

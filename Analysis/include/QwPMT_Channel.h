@@ -34,7 +34,7 @@ class QwPMT_Channel: public VQwDataElement {
   QwPMT_Channel(TString name){
     InitializeChannel(name);
   };
-  virtual ~QwPMT_Channel() { DeleteHistograms(); };
+  virtual ~QwPMT_Channel() { };
 
   void  InitializeChannel(TString name){
     SetElementName(name);
@@ -59,7 +59,6 @@ class QwPMT_Channel: public VQwDataElement {
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  FillTreeVector(std::vector<Double_t> &values) const;

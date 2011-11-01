@@ -1009,39 +1009,29 @@ void  QwComptonElectronDetector::ConstructHistograms(TDirectory *folder, TString
   eDetfolder->cd();
   for (Int_t i=0; i<NPlanes; i++){
     TString histname = Form("Compton_eDet_Accum_Raw_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));//1st histogram
+    fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));//1st histogram
     histname = Form("Compton_eDet_Accum_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));
+    fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
     histname = Form("Compton_eDet_Evt_Raw_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));//3rd histogram
+    fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));//3rd histogram
     histname = Form("Compton_eDet_Evt_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));
+    fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));
     histname = Form("Compton_eDet_Scal_Raw_Plane%d",i+1);
-    fHistograms1D.push_back(gQwHists.Construct1DHist(prefix+histname));//5th histogram
+    fHistograms.push_back(gQwHists.Construct1DHist(prefix+histname));//5th histogram
   }
 
   TString histname = Form("Compton_eDet_Evt_Best_Plane1");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_Best_Plane2");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_Best_Plane3");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_Best_x2");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_NTracks");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
+  fHistograms.push_back(gQwHists.Construct1DHist(histname));
   histname = Form("Compton_eDet_Evt_Track_Angle");
-  fHistograms1D.push_back(gQwHists.Construct1DHist(histname));
-}
-
-void  QwComptonElectronDetector::DeleteHistograms()
-{
-  for (size_t i=0; i<fHistograms1D.size(); i++) {
-    if (fHistograms1D.at(i) != NULL) {
-      delete fHistograms1D.at(i);
-      fHistograms1D.at(i) =  NULL;
-    }
-  }
+  fHistograms.push_back(gQwHists.Construct1DHist(histname));
 }
 
 void  QwComptonElectronDetector::FillHistograms()
@@ -1059,29 +1049,29 @@ void  QwComptonElectronDetector::FillHistograms()
     for (Int_t j = 0; j < StripsPerPlane; j++) {
       Int_t nthStrip = j + 1;
 
-      if (fHistograms1D[ii] != NULL) {
+      if (fHistograms[ii] != NULL) {
   	for (Int_t n=0; n<fStripsRaw[i][j]; n++) ///Accumulation raw data
-	  fHistograms1D[ii]->Fill(nthStrip);	//!!Why does any of the following 2 method not work?
-      }	//      fHistograms1D[4*i]->Fill(j+1,fStripsRaw[i][j]); 
-	//      fHistograms1D[4*i]->SetBinContent(j+1,fStripsRaw[i][j]);
-      if (fHistograms1D[ii+1] != NULL) {
+	  fHistograms[ii]->Fill(nthStrip);	//!!Why does any of the following 2 method not work?
+      }	//      fHistograms[4*i]->Fill(j+1,fStripsRaw[i][j]); 
+	//      fHistograms[4*i]->SetBinContent(j+1,fStripsRaw[i][j]);
+      if (fHistograms[ii+1] != NULL) {
 	for (Int_t n=0; n<fStrips[i][j]; n++) ///Accumulation data
-	  fHistograms1D[ii+1]->Fill(nthStrip);
+	  fHistograms[ii+1]->Fill(nthStrip);
       }
 
-      if (fHistograms1D[ii+2] != NULL) {
+      if (fHistograms[ii+2] != NULL) {
 	for (Int_t n = 0; n < fStripsRawEv[i][j]; n++) ///Event raw data
-	  fHistograms1D[ii+2]->Fill(nthStrip);
+	  fHistograms[ii+2]->Fill(nthStrip);
       }
 
-      if (fHistograms1D[ii+3] != NULL) {
+      if (fHistograms[ii+3] != NULL) {
 	for (Int_t n=0; n<fStripsEv[i][j]; n++) ///Event data
-	  fHistograms1D[ii+3]->Fill(nthStrip);
+	  fHistograms[ii+3]->Fill(nthStrip);
       }
       
-      if (fHistograms1D[ii+4] != NULL) {
+      if (fHistograms[ii+4] != NULL) {
   	for (Int_t n=0; n<fStripsRawScal[i][j]; n++){ ///v1495 Scaler raw data
-	  fHistograms1D[ii+4]->Fill(nthStrip);
+	  fHistograms[ii+4]->Fill(nthStrip);
 	}
       }
     }
@@ -1090,13 +1080,13 @@ void  QwComptonElectronDetector::FillHistograms()
   if(edet_x2 < edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {    
     //  if(edet_x2 == edet_cut_on_x2 && edet_TotalNumberTracks < edet_cut_on_ntracks && fStripsEvBest1 < 100  && fStripsEvBest2 < 100  && fStripsEvBest3 < 100 ) {    
     //Incrementing the following histograms based on the above increase in the 1D histos used
-    fHistograms1D[20]->Fill(fStripsEvBest1); // fHistograms1D[16]->Fill(fStripsEvBest1); 
-    fHistograms1D[21]->Fill(fStripsEvBest2); // fHistograms1D[17]->Fill(fStripsEvBest2); 
-    fHistograms1D[22]->Fill(fStripsEvBest3); // fHistograms1D[18]->Fill(fStripsEvBest3);
+    fHistograms[20]->Fill(fStripsEvBest1); // fHistograms[16]->Fill(fStripsEvBest1); 
+    fHistograms[21]->Fill(fStripsEvBest2); // fHistograms[17]->Fill(fStripsEvBest2); 
+    fHistograms[22]->Fill(fStripsEvBest3); // fHistograms[18]->Fill(fStripsEvBest3);
   }  
-  fHistograms1D[23]->Fill(edet_x2); // fHistograms1D[19]->Fill(edet_x2); 
-  fHistograms1D[24]->Fill(edet_TotalNumberTracks); // fHistograms1D[20]->Fill(edet_TotalNumberTracks); 
-  fHistograms1D[25]->Fill(edet_angle); //  fHistograms1D[21]->Fill(edet_angle); 
+  fHistograms[23]->Fill(edet_x2); // fHistograms[19]->Fill(edet_x2); 
+  fHistograms[24]->Fill(edet_TotalNumberTracks); // fHistograms[20]->Fill(edet_TotalNumberTracks); 
+  fHistograms[25]->Fill(edet_angle); //  fHistograms[21]->Fill(edet_angle); 
 }
 
 void  QwComptonElectronDetector::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)

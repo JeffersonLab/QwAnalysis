@@ -15,7 +15,9 @@
 
 // Qweak headers
 #include "QwHistogramHelper.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 #include "QwLog.h"
 
 extern QwHistogramHelper gQwHists;
@@ -38,7 +40,7 @@ void QwHelicity::DefineOptions(QwOptions &options)
           "Number of bits in random seed");
   options.AddOptions("Helicity options")
       ("helicity.bitpattern", po::value<std::string>(),
-          "Helicity bit pattern");
+          "Helicity bit pattern: 0x1 (pair), 0x9 (quartet), 0x69 (octet), 0x666999 (hexo-quad), 0x66669999 (octo-quad)");
   options.AddOptions("Helicity options")
       ("helicity.patternoffset", po::value<int>(),
           "Set 1 when pattern starts with 1 or 0 when starts with 0");
@@ -110,6 +112,15 @@ void QwHelicity::ProcessOptions(QwOptions &options)
   if (fMaxPatternPhase > 8 && fHelicityBitPattern == kDefaultHelicityBitPattern) {
     BuildHelicityBitPattern(fMaxPatternPhase);
   }
+
+  //  Here we're going to try to get the "online" option which
+  //  is defined by QwEventBuffer.
+  if (options.HasValue("online")){
+    fSuppressMPSErrorMsgs = options.GetValue<bool>("online");
+  } else {
+    fSuppressMPSErrorMsgs = kFALSE;
+  }
+
 }
 
 
@@ -441,9 +452,11 @@ void QwHelicity::ProcessEventInputRegisterMode()
 
   if(fEventNumber!=(fEventNumberOld+1)){
     Int_t nummissed(fEventNumber - (fEventNumberOld+1));
-    QwError << "QwHelicity::ProcessEvent read event# ("
-	    << fEventNumber << ") is not  old_event#+1; missed "
-	    << nummissed << " gates" << QwLog::endl;
+    if (!fSuppressMPSErrorMsgs){
+      QwError << "QwHelicity::ProcessEvent read event# ("
+	      << fEventNumber << ") is not  old_event#+1; missed "
+	      << nummissed << " gates" << QwLog::endl;
+    }
     fNumMissedGates += nummissed;
     fNumMissedEventBlocks++;
   }
@@ -1038,22 +1051,6 @@ void  QwHelicity::ConstructHistograms(TDirectory *folder, TString &prefix)
   return;
 }
 
-void  QwHelicity::DeleteHistograms()
-{
-  if((fHistoType==kHelSaveMPS)||(fHistoType==kHelSavePattern))
-    {
-      for (size_t i=0; i<fHistograms.size(); i++){
-	if (fHistograms.at(i) != NULL){
-	  fHistograms.at(i)->Delete();
-	  fHistograms.at(i) =  NULL;
-	}
-      }
-      fHistograms.clear();
-    }
-  return;
-}
-
-
 void  QwHelicity::FillHistograms()
 {
   //  Bool_t localdebug=kFALSE;
@@ -1337,7 +1334,7 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void  QwHelicity::FillDB(QwDatabase *db, TString type)
+void  QwHelicity::FillDB(QwParityDB *db, TString type)
 {
   if (type=="yield" || type=="asymmetry")
     return;
@@ -1872,8 +1869,6 @@ VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)
       this->fGoodHelicity=input->fGoodHelicity;
       this->fGoodPattern=input->fGoodPattern;
       this->fIgnoreHelicity = input->fIgnoreHelicity;
-
-      this->fHistograms = input->fHistograms;
 
       if(ldebug){
 	std::cout << "QwHelicity::operator = this->fPatternNumber=" << this->fPatternNumber << std::endl;

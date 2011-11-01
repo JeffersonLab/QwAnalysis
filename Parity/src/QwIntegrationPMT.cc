@@ -310,6 +310,10 @@ void QwIntegrationPMT::PrintInfo() const
   //std::cout<<" Running AVG "<<GetElementName()<<" current running AVG "<<IntegrationPMT_Running_AVG<<std::endl;
   std::cout<<"QwVQWK_Channel Info " <<std::endl;
   fTriumf_ADC.PrintInfo();
+  std::cout<< "Blindability is "    << (fIsBlindable?"TRUE":"FALSE") 
+	   <<std::endl;
+  std::cout<< "Normalizability is " << (fIsNormalizable?"TRUE":"FALSE")
+	   <<std::endl;
   return;
 }
 
@@ -391,16 +395,6 @@ void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values) const
   }
 }
 
-void  QwIntegrationPMT::DeleteHistograms()
-{
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  } else
-    {
-      fTriumf_ADC.DeleteHistograms();
-    }
-  return;
-}
 /********************************************************/
 void  QwIntegrationPMT::Copy(VQwDataElement *source)
 {

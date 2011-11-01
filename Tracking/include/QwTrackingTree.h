@@ -61,7 +61,7 @@ class QwTrackingTree: public VQwTrackingElement {
     /// \brief Default constructor
     QwTrackingTree(unsigned int numlayers);
     /// \brief Destructor
-    ~QwTrackingTree();
+    virtual ~QwTrackingTree();
 
     /// Set the debug level
     void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };

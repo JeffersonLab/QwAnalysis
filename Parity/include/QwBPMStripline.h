@@ -59,9 +59,7 @@ class QwBPMStripline : public VQwBPM {
     bRotated=kTRUE;
   };    
 
-  ~QwBPMStripline() {
-    DeleteHistograms();
-  };
+  virtual ~QwBPMStripline() { };
 
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
@@ -123,7 +121,6 @@ class QwBPMStripline : public VQwBPM {
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
   void    FillHistograms();
-  void    DeleteHistograms();
 
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void    ConstructBranch(TTree *tree, TString &prefix);

@@ -47,9 +47,7 @@ class QwBCM : public VQwBCM {
     SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,type,"raw");
   };
-  ~QwBCM() {
-    DeleteHistograms();
-  };
+  virtual ~QwBCM() { };
 
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
@@ -139,7 +137,6 @@ class QwBCM : public VQwBCM {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   UInt_t   GetGoodEventCount() {return fBeamCurrent.GetGoodEventCount();};
 

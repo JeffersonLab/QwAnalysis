@@ -586,25 +586,6 @@ void  QwQPD::FillHistograms()
   return;
 }
 
-void  QwQPD::DeleteHistograms()
-{
-  if (GetElementName()=="") {
-  }
-  else {
-    fEffectiveCharge.DeleteHistograms();
-    Short_t i = 0;
-    if(bFullSave) {
-      for(i=0;i<4;i++) fPhotodiode[i].DeleteHistograms();
-    }
-    for(i=kXAxis;i<kNumAxes;i++) {
-      fAbsPos[i].DeleteHistograms();
-      fRelPos[i].DeleteHistograms();
-    }
-  }
-  return;
-}
-
-
 void  QwQPD::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){

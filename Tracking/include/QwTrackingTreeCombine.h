@@ -43,7 +43,7 @@ class chi_hash {
     chi_hash() {
       hits = 0;
     };
-    ~chi_hash() {};
+    virtual ~chi_hash() {};
 
     double cx, mx, cov[3], chi;
     double hit[DLAYERS];
@@ -75,7 +75,7 @@ class QwTrackingTreeCombine {
   public:
 
     QwTrackingTreeCombine();
-    ~QwTrackingTreeCombine();
+    virtual ~QwTrackingTreeCombine();
 
     /// Set the debug level
     void SetDebugLevel (const int debuglevel) { fDebug = debuglevel; };
@@ -126,8 +126,7 @@ class QwTrackingTreeCombine {
 		QwTrackingTreeLine *wu,
 		QwTrackingTreeLine *wv,
 		QwTrackingTreeLine *wx,
-		int tlayer,
-                double* parameter);
+		int tlayer);
     QwPartialTrack* TcTreeLineCombine (
 		QwTrackingTreeLine *wu,
 		QwTrackingTreeLine *wv,
@@ -142,7 +141,7 @@ class QwTrackingTreeCombine {
 
     void ResidualWrite (QwEvent *event);
 
-    int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi);
+    int r2_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double * signedresidual);
     int r2_TrackFit2  (const int num, QwHit **hits, double *fit, double *cov, double &chi,double* parameter );
     int r3_TrackFit  (const int num, QwHit **hits, double *fit, double *cov, double &chi, double uv2xy[2][2]);
     int r3_TrackFit2 (const int num, QwHit **hits, double *fit, double *cov, double &chi);

@@ -300,8 +300,12 @@ Bool_t QwRootFile::HasAnyFilled(TDirectory* d) {
     // Objects which can't be found don't count.
     if (!obj) continue;
 
-    // Lists of parameter files don't count.
+    // Lists of parameter files, map files, and job conditions don't count.
     if ( TString(name).Contains("parameter_file") ) continue;
+    if ( TString(name).Contains("mapfile") ) continue;
+    if ( TString(name).Contains("_condition") ) continue;
+    //  The EPICS tree doesn't count
+    if ( TString(name).Contains("Slow_Tree") ) continue;
 
     // Recursively check subdirectories.
     if (obj->IsA()->InheritsFrom( "TDirectory" ))

@@ -55,9 +55,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
     InitializeChannel(name, datatosave);
     SetVQWKSaturationLimt(8.5);//set the default saturation limit
   };
-  virtual ~QwVQWK_Channel() {
-    //DeleteHistograms();
-  };
+  virtual ~QwVQWK_Channel() { };
 
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString name, TString datatosave);
@@ -100,6 +98,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   QwVQWK_Channel& operator=  (const QwVQWK_Channel &value);
   //  VQwHardwareChannel& operator=  (const VQwHardwareChannel &value);
+  void AssignScaledValue(const QwVQWK_Channel &value, Double_t scale);
   void AssignValueFrom(const VQwDataElement* valueptr);
 
   QwVQWK_Channel& operator+= (const QwVQWK_Channel &value);
@@ -160,7 +159,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
@@ -195,7 +193,8 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
 
   void   SetCalibrationToVolts(){SetCalibrationFactor(kVQWK_VoltsPerBit);};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
+  void Copy(const QwVQWK_Channel& source);
 
   friend std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel);
   void PrintValue() const;
@@ -253,9 +252,6 @@ private:
   Short_t fBlocksPerEvent;
   // @}
 
-  /*  Ntuple array indices */
-  size_t fTreeArrayIndex;
-  size_t fTreeArrayNumEntries;
 
   /*! \name Event data members---Raw values */
   // @{
@@ -289,12 +285,12 @@ private:
   Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
 
   // Set of error counters for each HW test.
-  Int_t fErrorCount_sample;   // for sample size check
-  Int_t fErrorCount_SW_HW;    // HW_sum==SW_sum check
-  Int_t fErrorCount_Sequence; // sequence number check
-  Int_t fErrorCount_SameHW;   // check to see ADC returning same HW value
-  Int_t fErrorCount_ZeroHW;   // check to see ADC returning zero
-  Int_t fErrorCount_HWSat;   // check to see ADC channel is saturated
+  Int_t fErrorCount_sample;   ///< for sample size check
+  Int_t fErrorCount_SW_HW;    ///< HW_sum==SW_sum check
+  Int_t fErrorCount_Sequence; ///< sequence number check
+  Int_t fErrorCount_SameHW;   ///< check to see ADC returning same HW value
+  Int_t fErrorCount_ZeroHW;   ///< check to see ADC returning zero
+  Int_t fErrorCount_HWSat;   ///< check to see ADC channel is saturated
 
 
 
@@ -308,12 +304,12 @@ private:
 
 
 
-  Double_t fSaturationABSLimit;//absolute value of the VQWK saturation volt
+  Double_t fSaturationABSLimit;///<absolute value of the VQWK saturation volt
 
 
-  const static Bool_t bDEBUG=kFALSE;//debugging display purposes
+  const static Bool_t bDEBUG=kFALSE;///<debugging display purposes
 
-  //For VQWK data element trimming uses
+  ///<For VQWK data element trimming uses
   Bool_t bHw_sum;
   Bool_t bHw_sum_raw;
   Bool_t  bBlock;
@@ -323,7 +319,8 @@ private:
   Bool_t bSequence_number;
 
 private:
-  // Functions to be removed
+  
+  
 
 
 

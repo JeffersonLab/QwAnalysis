@@ -25,6 +25,7 @@ OBJECTS       += QwGUILumiDetector.o
 OBJECTS       += QwGUIInjector.o
 OBJECTS       += QwGUICorrelationPlots.o
 OBJECTS       += QwGUIHallCBeamline.o
+OBJECTS       += QwGUISummary.o
 
 QWTRSOURCE = $(QWANALYSIS)/Tracking/src
 QWANSOURCE = $(QWANALYSIS)/Analysis/src

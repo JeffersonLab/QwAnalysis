@@ -56,6 +56,7 @@ enum RUNTYPE  {
 #include "QwGUIMainDef.h"
 #include "QwGUIProgressDialog.h"
 #include "QwGUIDatabaseContainer.h"
+#include "QwGUIDataWindow.h"
 
 #ifndef ROOTCINTMODE
 #include "QwParameterFile.h"

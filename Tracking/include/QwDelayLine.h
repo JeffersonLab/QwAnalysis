@@ -34,7 +34,7 @@ class QwDelayLine
   QwDelayLine():fPackage(kPackageNull),fPlane(-1),fDirection(kDirectionNull),fFirstWire(-1),Fill(false),Processed(false),Ambiguous(-1) {};
   QwDelayLine(const Int_t pk,const Int_t pl,const Int_t dir,const Int_t firstwire):fPackage((EQwDetectorPackage)pk),fPlane(pl),fDirection((EQwDirectionID)dir),fFirstWire(firstwire),Fill(false),Processed(false),Ambiguous(false){};
 
-  ~QwDelayLine();
+  virtual ~QwDelayLine();
   //Int_t fPackage;
   //Int_t fPlane;
   //Int_t fDirection;

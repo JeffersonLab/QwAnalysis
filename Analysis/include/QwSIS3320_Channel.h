@@ -47,9 +47,7 @@ class QwSIS3320_Channel: public VQwDataElement {
     QwSIS3320_Channel(UInt_t channel = 0, TString name = "auto") {
       InitializeChannel(channel, name);
     };
-    ~QwSIS3320_Channel() {
-      DeleteHistograms();
-    };
+    virtual ~QwSIS3320_Channel() { };
 
     enum LogicalType_e {
       kAccumLogical0M3,
@@ -92,7 +90,6 @@ class QwSIS3320_Channel: public VQwDataElement {
 
     void  ConstructHistograms(TDirectory *folder, TString &prefix);
     void  FillHistograms();
-    void  DeleteHistograms();
 
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values) const;

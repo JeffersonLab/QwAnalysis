@@ -22,7 +22,7 @@ QwGasElectronMultiplier::QwGasElectronMultiplier(TString region_tmp):VQwSubsyste
 
 QwGasElectronMultiplier::~QwGasElectronMultiplier()
 {
-  DeleteHistograms();
+  //DeleteHistograms();
 }
 
 /*  Member functions derived from VQwSubsystemTracking. */

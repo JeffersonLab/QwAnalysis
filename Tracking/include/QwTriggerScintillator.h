@@ -32,7 +32,7 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<Qw
    ******************************************************************/
  public:
   QwTriggerScintillator(TString region_tmp);
-  ~QwTriggerScintillator();
+  virtual ~QwTriggerScintillator();
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
@@ -49,7 +49,6 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<Qw
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   using VQwSubsystem::ConstructBranchAndVector;
   void  ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t> &values);

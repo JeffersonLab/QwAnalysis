@@ -1047,23 +1047,6 @@ void  QwBeamMod::ConstructHistograms(TDirectory *folder, TString &prefix)
   return;
 }
 
-void  QwBeamMod::DeleteHistograms()
-{
-//   for(size_t i=0;i<fStripline.size();i++)
-//     fStripline[i].DeleteHistograms();
-
-//   for(size_t i=0;i<fModChannel.size();i++)
-//     fModChannel[i].DeleteHistograms();
-
-//   for(size_t i=0;i<fModChannelCombo.size();i++)
-//     fModChannelCombo[i].DeleteHistograms();
-
-//   for(size_t i=0;i<fBPMCombo.size();i++)
-//     fBPMCombo[i].DeleteHistograms();
-
-  return;
-}
-
 void  QwBeamMod::FillHistograms()
 {
 
@@ -1282,7 +1265,7 @@ VQwSubsystem*  QwBeamMod::Copy()
 
 
 
-void QwBeamMod::FillDB(QwDatabase *db, TString datatype)
+void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
 {
   /*
   vector<QwParityDB::beam> entrylist;

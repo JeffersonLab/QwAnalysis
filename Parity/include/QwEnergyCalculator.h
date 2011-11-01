@@ -44,7 +44,7 @@ class QwEnergyCalculator : public VQwDataElement{
     InitializeChannel(subsystem, name,"derived");
   };
 
-    ~QwEnergyCalculator() {DeleteHistograms();};
+    virtual ~QwEnergyCalculator() { };
 
     void    InitializeChannel(TString name,TString datatosave);
     // new routine added to update necessary information for tree trimming
@@ -84,7 +84,6 @@ class QwEnergyCalculator : public VQwDataElement{
 
     void    ConstructHistograms(TDirectory *folder, TString &prefix);
     void    FillHistograms();
-    void    DeleteHistograms();
 
     void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void    ConstructBranch(TTree *tree, TString &prefix);

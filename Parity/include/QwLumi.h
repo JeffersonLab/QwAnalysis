@@ -63,9 +63,7 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
     fTargetCharge.InitializeChannel("q_targ","derived");
    };
 
-  ~QwLumi() {
-    DeleteHistograms();
-  };
+  virtual ~QwLumi() { };
 
 
   /* derived from VQwSubsystem */
@@ -114,13 +112,12 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   using VQwSubsystem::ConstructHistograms;
   void  ConstructHistograms(TDirectory *folder, TString &prefix);
   void  FillHistograms();
-  void  DeleteHistograms();
 
   void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  FillDB(QwDatabase *db, TString datatype);
+  void  FillDB(QwParityDB *db, TString datatype);
 
   QwIntegrationPMT* GetChannel(const TString name);
   QwIntegrationPMT* GetIntegrationPMT(const TString name);

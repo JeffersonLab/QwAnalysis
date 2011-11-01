@@ -1255,13 +1255,6 @@ void  QwDriftChamberVDC::FillHistograms()
 
 
 
-// void  QwDriftChamberVDC::DeleteHistograms()
-// {
-//   return;
-// }
-
-
-
 Int_t QwDriftChamberVDC::LoadTimeWireOffset ( TString t0_map )
 {
   //std::cout << "beginning to load t0 file... " << std::endl;

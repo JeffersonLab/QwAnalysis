@@ -39,9 +39,6 @@ QwScaler::QwScaler(TString region_tmp)
  */
 QwScaler::~QwScaler()
 {
-  // Delete histograms
-  DeleteHistograms();
-
   // Delete scalers
   for (size_t i = 0; i < fScaler.size(); i++) {
     delete fScaler.at(i);
@@ -369,13 +366,6 @@ void QwScaler::FillHistograms()
 {
   for(size_t i = 0; i < fScaler.size(); i++) {
     fScaler.at(i)->FillHistograms();
-  }
-}
-
-void QwScaler::DeleteHistograms()
-{
-  for(size_t i = 0; i < fScaler.size(); i++) {
-    fScaler.at(i)->DeleteHistograms();
   }
 }
 

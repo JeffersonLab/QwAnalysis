@@ -41,9 +41,7 @@ class QwCombinedBCM : public QwBCM<T> {
     this->SetSubsystemName(subsystemname);
     InitializeChannel(subsystemname, name,type,"raw");
   };
-  ~QwCombinedBCM() {
-    DeleteHistograms();
-  };
+  virtual ~QwCombinedBCM() { };
 
   // This is to setup one of the used BCM's in this combo
   void SetBCMForCombo(VQwBCM* bcm, Double_t weight, Double_t sumqw );
@@ -111,7 +109,6 @@ class QwCombinedBCM : public QwBCM<T> {
   void  ConstructBranch(TTree *tree, TString &prefix);
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  DeleteHistograms();
 
   void Copy(VQwDataElement *source);
 

@@ -92,8 +92,8 @@
 #include "QwGUITrackFinding.h"
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
-#include "QwGUIDatabaseContainer.h"
-#include "QwGUIDatabase.h"
+/* #include "QwGUIDatabaseContainer.h" */
+/* #include "QwGUIDatabase.h" */
 #ifndef __CINT__
 
 #include "QwOptions.h"
@@ -104,15 +104,18 @@
 
 class QwGUIMain : public TGMainFrame {
 
-  RQ_OBJECT("QwGUIMain");
+  /* RQ_OBJECT("QwGUIMain"); */
 
  private:
 
   //!Database object (there should be only one for all subsystems)
-  QwGUIDatabaseContainer *dDatabase;
+  /* QwGUIDatabaseContainer *dDatabase; */
 
   //!Every instantiated subsystem gets added to this object array, as a cleanup mechanism.
   TObjArray               SubSystemArray;
+
+  //!Array to store and keep track of separate data plot windows for cleanup and communiation 
+  TObjArray               DataWindowArray;
 
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
@@ -121,7 +124,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
-  QwGUIDatabase          *DatabaseSubSystem;
+  /* QwGUIDatabase          *DatabaseSubSystem; */
   QwGUITrackFinding      *TrackFindingSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
@@ -143,6 +146,14 @@ class QwGUIMain : public TGMainFrame {
   Int_t                   MCnt;
 
   Int_t                   dCurrentSegment;
+
+  //!Index (in DataWindowArray) of the currently slected data window
+  Int_t                dSelectedDataWindow;
+
+  //!This should be used for proper clean up when a particular data window is closed by the
+  //!user.
+  UInt_t               dWinCnt;
+
 
   //!The following two flags are used in process increment dialog boxes
   Bool_t                  dProcessing;
@@ -234,6 +245,7 @@ class QwGUIMain : public TGMainFrame {
   vector <TString>        dFilePrefix;
   vector <TH1F*>          dMainHistos;
   vector <TGraph*>        dMainGraphs;
+  vector <TObject*>       dMainPlotsArray;
 
   EventOptions            dCurrentRunEventOptions;
 
@@ -446,6 +458,8 @@ class QwGUIMain : public TGMainFrame {
 
   void                    SetCurrentFilePrefix(const char* prefix){ fPrefix = prefix;};
   void                    SetCurrentFileDirectory(const char* dir){fDirectory = dir;};
+  void                    StoreFileInfo(const char* filename);
+  void                    GetFileInfo(const char *filename, int &run, int &segment);
 
   UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;};
   UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;};
@@ -638,6 +652,11 @@ class QwGUIMain : public TGMainFrame {
   //!Return value: none
   void                   OnReceiveMessage(const char *);
 
+  void                   OnUpdatePlot(const char*);
+
+  void                   OnNewRunSignal(int sig);
+  void                   OnRunWarningSignal(int sig);
+
   //!Receiver function, called when a connected canvas pad is mouse selected.
   //!
   //!Parameters:
@@ -662,6 +681,13 @@ class QwGUIMain : public TGMainFrame {
 
   virtual Bool_t         HandleKey(Event_t *event);
 
+  void                 SetSelectedDataWindow(Int_t ind) {dSelectedDataWindow = ind;};
+  void                 RemoveSelectedDataWindow() {dSelectedDataWindow = -1;};
+  QwGUIDataWindow     *GetSelectedDataWindow(); 
+  void                 CleanUpDataWindows();
+  UInt_t               GetNewWindowCount(){ return ++dWinCnt;};
+
+
   ///This function is called to remove a tab.
   ///Each subsystem class must call this function on desstruction, to remove its tab.
   ///What actually happens is that the QwGUISubSystem parent class has a function
@@ -681,6 +707,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!Not currently used!
   void                   WritePid();
+  void                   CheckForNewRun();
 
   ClassDef(QwGUIMain,0);
 };

@@ -22,7 +22,7 @@ class QwTrackingAnalyzer : public VQwAnalyzer {
     TH1F* fHisto2;
 
     QwTrackingAnalyzer (const char*);
-    ~QwTrackingAnalyzer();
+    virtual ~QwTrackingAnalyzer();
 
     void SetHitList(QwHitContainer* hitlist) { fHitList = hitlist; };
 

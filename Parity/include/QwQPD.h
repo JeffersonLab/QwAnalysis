@@ -45,9 +45,7 @@ class QwQPD : public VQwBPM {
     fQwQPDCalibration[1] = 1.0;
   };    
   
-  ~QwQPD() {
-    DeleteHistograms();
-  };
+  virtual ~QwQPD() { };
   
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
@@ -107,7 +105,6 @@ class QwQPD : public VQwBPM {
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);
   void    FillHistograms();
-  void    DeleteHistograms();
 
   void    ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
   void    ConstructBranch(TTree *tree, TString &prefix);

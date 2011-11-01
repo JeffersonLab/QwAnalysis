@@ -28,7 +28,7 @@
 ! device type, device_name, Xoffset, Yoffset, Zoffset, BSEN scaling factor, AlpaX, AlpaY
 !
 	
- qpd,   	 QWK_QPD,    0.0,  0.0,        0.0,  	1.0,    0.005852,  0.005668
+ qpd,   	 QWK_QPD,    0.0,  0.0,        0.0,  	1.0,    0.230394,  0.223150
  bpmstripline,   QWK_1I02,   0.0,  0.0,        0.0,  	0.734,  1.085410,  0.977843
  bpmstripline,   QWK_1I04,   0.0,  0.0,        0.0,  	0.734,  0.959589,  0.955868
  bpmstripline,   QWK_1I06,   0.0,  0.0,        0.0,  	0.734,  1.052820,  0.964797

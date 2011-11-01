@@ -301,17 +301,6 @@ void QwSIS3320_LogicalAccumulator::FillHistograms()
   }
 }
 
-void  QwSIS3320_LogicalAccumulator::DeleteHistograms()
-{
-  for (UInt_t i = 0; i < fHistograms.size(); i++) {
-    if (fHistograms[i] != NULL)
-      fHistograms[i]->Delete();
-    fHistograms[i] = NULL;
-  }
-  fHistograms.clear();
-}
-
-
 void QwSIS3320_LogicalAccumulator::ProcessEvent()
 {
   for (size_t i = 0; i < fAccumulators.size(); i++) {

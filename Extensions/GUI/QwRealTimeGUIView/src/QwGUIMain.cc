@@ -56,7 +56,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   InjectorSubSystem     = NULL;
   CorrelationSubSystem  = NULL;
   HallCBeamlineSubSystem = NULL;
-
+  SummaryTab             = NULL;
   dCurRun               = 0;
   MCnt                  = 0;
   
@@ -95,18 +95,21 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   Int_t  ten_percent_height = (Int_t) 0.1*dMWHeight;
 
+
+  //  dMainButtonsFrame = new  TGHorizontalFrame(this, dMWWidth, ten_percent_height);
   dMainButtonsFrame = new  TGHorizontalFrame(this, dMWWidth, ten_percent_height);
-  this -> AddFrame(dMainButtonsFrame,  new TGLayoutHints(kLHintsBottom | kLHintsExpandX, 1,1,1,1));
+
+  AddFrame(dMainButtonsFrame,  new TGLayoutHints(kLHintsBottom | kLHintsExpandX, 1,1,1,1));
 
   dMainButton[0] = new TGTextButton(dMainButtonsFrame, "Load/Unload",  M_LOAD_UNLOAD);
   dMainButton[1] = new TGTextButton(dMainButtonsFrame, "Run/Stop", M_RUN_STOP);
   dMainButton[2] = new TGTextButton(dMainButtonsFrame, "Reset", M_RESET);
   dMainButton[3] = new TGTextButton(dMainButtonsFrame, "Exit", M_EXIT);
 
-  //
+  
   // reduce "for" in order to get 'ns' faster than...
-  //
-  // Sunday, October 31 02:50:16 EDT 2010, jhlee
+  
+  //Sunday, October 31 02:50:16 EDT 2010, jhlee
 
   dMainButton[0] -> Associate(this);
   dMainButton[1] -> Associate(this);
@@ -135,6 +138,10 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   dTab = new TGTab(this,  dMWWidth, dMWHeight);
 
+  SummaryTab = new QwGUISummary(fClient->GetRoot(), this, dTab,"Summary",
+  				"QwGUIMain", dMWWidth-15,dMWHeight-180);
+  //SummaryTab->LoadHistoMapFile(dMDChannelMap);
+
   if(!GetSubSystemPtr("Main Detectors") && dMDChannelMap.Length()){
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
@@ -162,15 +169,14 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 						     "QwGUIMain", dMWWidth-15,dMWHeight-180);
   }
 
+
   this -> AddFrame(dTab,  new TGLayoutHints(kLHintsExpandX | kLHintsExpandY, 2, 2, 2, 2));
   this -> MapSubwindows();
   this-> Resize(this-> GetDefaultSize()); 
   Layout();
   this -> SetWindowName("Qweak RealTime Data Analysis GUI");
   this -> SetIconName("QwRealTimeGUI");
-  this -> MapWindow();
-  //  this -> Resize(640,480);
-  
+  this -> MapWindow();  
 };
 
 QwGUIMain::~QwGUIMain()
@@ -180,7 +186,7 @@ QwGUIMain::~QwGUIMain()
   delete InjectorSubSystem     ;
   delete CorrelationSubSystem  ;
   delete HallCBeamlineSubSystem;
-
+  delete SummaryTab            ;
   delete dTab                  ;
  
   delete dMainCanvas           ;
@@ -331,6 +337,7 @@ void QwGUIMain::AddATab(QwGUISubSystem* sbSystem)
   dTab->AddTab(s.Data(),sbSystem);
   dMenuTabs->CheckEntry(GetTabMenuID(s.Data()));
   // sbSystem->TabMenuEntryChecked(kTRUE);
+  ((TGTabElement*)(dTab->GetTabTab("Summary Tab")))->SetActive();
   MapLayout();
   return;
 }
@@ -346,7 +353,7 @@ Int_t QwGUIMain::GetTabMenuID(const char* TabName)
   obj = next();
   while(obj){
     TGMenuEntry *entry = (TGMenuEntry*)obj;
-    //       printf("%s %d\n",entry->GetLabel()->GetString(),entry->GetEntryId());
+    //printf("%s %d\n",entry->GetLabel()->GetString(),entry->GetEntryId());
     if(s == entry->GetLabel()->GetString()) return entry->GetEntryId();
     obj = next();
   }
@@ -536,8 +543,7 @@ Bool_t QwGUIMain::OpenMapFile()
       QwGUISubSystem *entry = (QwGUISubSystem*)obj;
       entry->SetMapFile(dMemoryMapFile);
       obj = next();
-    }
-    
+    }    
   }
   
   return dMapFileOpen;
@@ -576,7 +582,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   //  bool status = 0;
   //std::cout << "  QwGUIMain::ProcessMessage:: msg :" << msg << ", parm1: " << ", parm2: " << parm2 << std::endl;
-  
+
   switch (GET_MSG(msg))
     {
     case kC_COMMAND:
@@ -669,6 +675,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 			    dMainButton[0] -> ChangeBackground(green);
 			    dMainButton[1] -> SetEnabled(true);
 			    dMainButton[2] -> SetEnabled(true);
+			    SummaryTab->PlotMainData();
 			  }
 			}
 		      }
@@ -734,7 +741,6 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 		  break;
 		}
 	    };;
-	    
 	  default:
 	    break;
 	  }
@@ -806,6 +812,8 @@ Int_t main(Int_t argc, Char_t **argv)
     }
   }
 
+
+
   TApplication theApp("QwRealTimeGUI", &argc, argv, 0, 0);
   gROOT->SetStyle("Plain");
   if (gROOT->IsBatch()) {
@@ -814,6 +822,7 @@ Int_t main(Int_t argc, Char_t **argv)
   }
   QwGUIMain mainWindow(gClient->GetRoot(), dClArgs, 800,600);
   theApp.Run();
+
 
   return 0;
 }

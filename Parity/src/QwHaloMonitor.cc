@@ -159,27 +159,6 @@ void  QwHaloMonitor::FillHistograms()
   return;
 }
 
-
-
-
-
-
-
-
-
-
-void  QwHaloMonitor::DeleteHistograms()
-{
-  if (GetElementName()==""){
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else{
-    fHalo_Counter.DeleteHistograms();
-  }
-  return;
-}
-
-
 void  QwHaloMonitor::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){

@@ -20,6 +20,7 @@
 #include "TTree.h"
 
 // Qweak headers
+#include "MQwHistograms.h"
 // Note: the subsystem factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
 #include "QwSubsystemFactory.h"
@@ -55,22 +56,25 @@ class QwParameterFile;
  * This will define the interfaces used in communicating with the
  * CODA routines.
  */
-class VQwSubsystem: virtual public VQwCloneable {
+class VQwSubsystem: virtual public VQwCloneable, public MQwHistograms {
 
  public:
 
   /// Constructor with name
   VQwSubsystem(const TString& name)
-    : fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
-      fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
+  : MQwHistograms(),
+    fSystemName(name), fEventTypeMask(0x0), fIsDataLoaded(kFALSE),
+    fCurrentROC_ID(-1), fCurrentBank_ID(-1) {
     ClearAllBankRegistrations();
   }
   /// Copy constructor by object
-  VQwSubsystem(const VQwSubsystem& orig) {
+  VQwSubsystem(const VQwSubsystem& orig)
+  : MQwHistograms(orig) {
     *this = orig;
   }
   /// Copy constructor by pointer
-  VQwSubsystem(const VQwSubsystem* orig) {
+  VQwSubsystem(const VQwSubsystem* orig)
+  : MQwHistograms(*orig) {
     *this = *orig;
   }
 
@@ -207,8 +211,6 @@ class VQwSubsystem: virtual public VQwCloneable {
   virtual void  ConstructHistograms(TDirectory *folder, TString &prefix) = 0;
   /// \brief Fill the histograms for this subsystem
   virtual void  FillHistograms() = 0;
-  /// \brief Delete the histograms for this subsystem
-  virtual void  DeleteHistograms() = 0;
   // @}
 
 

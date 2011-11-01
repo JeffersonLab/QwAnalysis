@@ -37,7 +37,7 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwCloneable<
  public:
 
   QwGasElectronMultiplier(TString region_tmp);
-  ~QwGasElectronMultiplier();
+  virtual ~QwGasElectronMultiplier();
 
   /*  Member functions derived from VQwSubsystemTracking. */
   Int_t LoadChannelMap(TString mapfile );

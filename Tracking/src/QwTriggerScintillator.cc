@@ -32,6 +32,9 @@ QwTriggerScintillator::~QwTriggerScintillator()
   for (size_t i = 0; i < fSCAs.size(); i++)
     delete fSCAs.at(i);
   fSCAs.clear();
+
+  fF1TDContainer->PrintErrorSummary();
+  fF1TDContainer->WriteErrorSummary();
   delete fF1TDContainer;
 }
 
@@ -772,28 +775,6 @@ void  QwTriggerScintillator::FillTreeVector(std::vector<Double_t> &values) const
     }
   }
 
-}
-
-
-void  QwTriggerScintillator::DeleteHistograms()
-{
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
-  std::size_t i = 0;
-  std::size_t j = 0;
-
-  for ( i=0; i<fPMTs.size(); i++){
-    for ( j=0; j<fPMTs.at(i).size(); j++){
-      fPMTs.at(i).at(j).DeleteHistograms();
-    }
-  }
-  
-  for ( i=0; i<fSCAs.size(); i++){
-    if (fSCAs.at(i) != NULL){
-      fSCAs.at(i)->DeleteHistograms();
-    }
-  }
-  return;
 }
 
 

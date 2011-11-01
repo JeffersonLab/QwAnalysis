@@ -508,28 +508,27 @@ template<typename T>
 
    Bool_t ldebug = kFALSE;
    static Double_t zpos = 0;
-   static T tmp1;
-   static T tmp2;
+   static T tmp1("tmp1","derived");
+   static T tmp2("tmp2","derived");
    static T C[kNumAxes];
    static T E[kNumAxes];
 
    // initialize the VQWK_Channel arrays
-   tmp1.InitializeChannel("tmp1","derived");
-   tmp2.InitializeChannel("tmp2","derived");
    C[kXAxis].InitializeChannel("cx","derived");
    C[kYAxis].InitializeChannel("cy","derived");
    E[kXAxis].InitializeChannel("ex","derived");
    E[kYAxis].InitializeChannel("ey","derived");
 
+   C[axis].ClearEventData();
+   E[axis].ClearEventData();
    for(size_t i=0;i<fElement.size();i++){
-     tmp1.ClearEventData();
-     tmp2.ClearEventData();
-     tmp1.AssignValueFrom(fElement[i]->GetPosition(axis));
      zpos = fElement[i]->GetPositionInZ();
+     tmp1.ClearEventData();
+     tmp1.AssignValueFrom(fElement[i]->GetPosition(axis));
      tmp1.Scale(fWeights[i]);
-     C[axis]+= tmp1; //xw or yw
+     C[axis] += tmp1; //xw or yw
      tmp1.Scale(zpos);//xzw or yzw
-     E[axis]+= tmp1;
+     E[axis] += tmp1;
    }
 
    if(ldebug) std::cout<<"\n A ="<<A[axis]
@@ -539,24 +538,14 @@ template<typename T>
 		       <<" --E ="<<E[axis].GetValue()<<"\n";
 
    // calculate the slope  a = E*erra + C*covab
-   tmp1.ClearEventData();
-   tmp1 = E[axis];
-   tmp1.Scale(erra[axis]);
-   tmp2.ClearEventData();
-   tmp2 = C[axis];
-   tmp2.Scale(covab[axis]);
-   fSlope[axis]+= tmp1;
-   fSlope[axis]+= tmp2;
+   fSlope[axis].AssignScaledValue(E[axis], erra[axis]);
+   tmp2.AssignScaledValue(C[axis], covab[axis]);
+   fSlope[axis] += tmp2;
 
    // calculate the intercept  b = C*errb + E*covab
-   tmp1.ClearEventData();
-   tmp1 = C[axis];
-   tmp1.Scale(errb[axis]);
-   tmp2.ClearEventData();
-   tmp2 = E[axis];
-   tmp2.Scale(covab[axis]);
-   fIntercept[axis]+= tmp1;
-   fIntercept[axis]+= tmp2;
+   fIntercept[axis].AssignScaledValue(C[axis], errb[axis]);
+   tmp2.AssignScaledValue(E[axis], covab[axis]);
+   fIntercept[axis] += tmp2;
 
    if(ldebug)    std::cout<<" Least Squares Fit Parameters for "<< axis
 			  <<" are: \n slope = "<< fSlope[axis].GetValue()
@@ -570,11 +559,10 @@ template<typename T>
 
    zpos = this->GetPositionInZ();
    //UInt_t err_flag=fAbsPos[axis].GetEventcutErrorFlag();   
-   fAbsPos[axis]= fIntercept[axis]; // X =  b
+   fAbsPos[axis] = fIntercept[axis]; // X =  b
    //fAbsPos[axis].ResetErrorFlag(err_flag);
-   tmp1 = fSlope[axis];
-   tmp1.Scale(zpos); //az
-   fAbsPos[axis]+=tmp1;  //X = az+b
+   tmp1.AssignScaledValue(fSlope[axis],zpos); //az
+   fAbsPos[axis] += tmp1;  //X = az+b
 
    // to perform the minimul chi-square test
    tmp2.ClearEventData();
@@ -662,6 +650,7 @@ QwCombinedBPM<T>& QwCombinedBPM<T>::operator= (const QwCombinedBPM<T> &value)
   }
   return *this;
 }
+
 
 template<typename T>
 VQwBPM& QwCombinedBPM<T>::operator+= (const VQwBPM &value)
@@ -827,25 +816,6 @@ void  QwCombinedBPM<T>::FillHistograms()
   }
   return;
 }
-
-template<typename T>
-void  QwCombinedBPM<T>::DeleteHistograms()
-{
-  if (this->GetElementName()=="") {
-    //  This channel is not used, so skip filling the histograms.
-  }
-  else{
-    fEffectiveCharge.DeleteHistograms();
-    for(Short_t axis=kXAxis;axis<kNumAxes;axis++) {
-      fSlope[axis].DeleteHistograms();
-      fIntercept[axis].DeleteHistograms();
-      fAbsPos[axis].DeleteHistograms();
-    }
-
-  }
-  return;
-}
-
 
 template<typename T>
 void  QwCombinedBPM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)

@@ -323,13 +323,3 @@ void QwSIS3320_Accumulator::FillHistograms()
 
   }
 }
-
-void  QwSIS3320_Accumulator::DeleteHistograms()
-{
-  for (UInt_t i = 0; i < fHistograms.size(); i++) {
-    if (fHistograms[i] != NULL)
-      fHistograms[i]->Delete();
-    fHistograms[i] = NULL;
-  }
-  fHistograms.clear();
-}

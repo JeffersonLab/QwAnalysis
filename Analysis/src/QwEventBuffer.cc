@@ -83,7 +83,7 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
      "run range in format #[:#]");
   options.AddDefaultOptions()
     ("runlist", po::value<string>()->default_value(""),
-     "run list (one entry per line)");
+     "run list file example \n[5253]\n 234\n 246\n 256\n 345:456\n 567:789\n [5259]\n [5260]\n 0:10000\n [5261:5270]\n 9000:10000\n- for run 5253 it will analyze three individual events, and two event ranges \n- for run 5259 it will analyze the entire run (all segments) \n- for run 5260 it will analyze the first 10000 events \n- for runs 5261 through 5270 it will analyze the events 9000 through 10000)");
   options.AddDefaultOptions()
     ("event,e", po::value<string>()->default_value("0:"),
      "event range in format #[:#]");

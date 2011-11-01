@@ -84,16 +84,16 @@ QwEvent::QwEvent()
   fNQwTracks = 0;
 
   // Loop over all pointer objects
-  for (int i = 0; i < kNumPackages; i++) {
+  for (int i = 0; i < kNumPackages; ++i) {
     // Null the track pointers
     track[i] = 0;
 
-    for (int j = 0; j < kNumRegions; j++) {
-      for (int k = 0; k < kNumTypes; k++) {
+    for (int j = 0; j < kNumRegions; ++j) {
+      for (int k = 0; k < kNumTypes; ++k) {
         // Null the partial track pointers
         fPartialTrack[i][j][k] = 0;
         // Null the treeline pointers
-        for (int l = 0; l < kNumDirections; l++) {
+        for (int l = 0; l < kNumDirections; ++l) {
           fTreeLine[i][j][k][l] = 0;
         } // end of loop over directions
       } // end of loop over types
@@ -109,29 +109,33 @@ QwEvent::~QwEvent()
 {
   // Clear the event
   Clear();
-
+  
   // Loop over all allocated objects
-  for (int i = 0; i < kNumPackages; i++) {
+  for (int i = 0; i < kNumPackages; ++i) {
     // Delete all those tracks
+    
     QwTrack* t = track[i];
     while (t) {
       QwTrack* t_next = t->next;
       delete t;
       t = t_next;
     }
-
-    for (int j = 0; j < kNumRegions; j++) {
-      for (int k = 0; k < kNumTypes; k++) {
+    
+   
+    for (int j = 0; j < kNumRegions; ++j) {
+      
+      for (int k = 0; k < kNumTypes; ++k) {
         // Delete all those partial tracks
          QwPartialTrack* pt = fPartialTrack[i][j][k];
+	 
          while (pt) {
            QwPartialTrack* pt_next = pt->next;
            delete pt;
            pt = pt_next;
          }
-
+	
         // Delete all those treelines
-         for (int l = 0; l < kNumDirections; l++) {
+         for (int l = 0; l < kNumDirections; ++l) {
            QwTrackingTreeLine* tl = fTreeLine[i][j][k][l];
            while (tl) {
              QwTrackingTreeLine* tl_next = tl->next;
@@ -143,6 +147,7 @@ QwEvent::~QwEvent()
     } // end of loop over regions
   } // end of loop over packages
 
+ 
   // Delete the event header
   if (fEventHeader) delete fEventHeader;
 }

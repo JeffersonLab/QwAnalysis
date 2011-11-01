@@ -53,7 +53,12 @@ QwScanner::~QwScanner()
         }
     }
   fADC_Data.clear();
-  //DeleteHistograms();
+
+  // FIXME Temporarily disabled because it prints this too
+  // often after DeleteHistograms was removed.  Should go into
+  // a function ReportErrors or so...
+  //fF1TDContainer->PrintErrorSummary();
+  //fF1TDContainer->WriteErrorSummary();
   delete fF1TDContainer;
 }
 
@@ -1006,7 +1011,7 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
 
   else
     {
-      if (prefix = "")  basename = "scanner_";
+      if (prefix == "")  basename = "scanner_";
       else  basename = prefix;
 
       if (folder != NULL) folder->cd();
@@ -1038,13 +1043,13 @@ void  QwScanner::ConstructHistograms(TDirectory *folder, TString &prefix)
             }
         }
 
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
-      fHistograms1D.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_vqwk_power")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_position_x")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_position_y")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_x")));
+      fHistograms.push_back( gQwHists.Construct1DHist(TString("scanner_ref_posi_y")));
 
-      // fHistograms2D.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
+      // fHistograms.push_back( gQwHists.Construct2DHist(TString("scanner_rate_map")));
 
       //TProfile2D(const char* name, const char* title,
       // Int_t nbinsx, Double_t xlow, Double_t xup,
@@ -1113,46 +1118,46 @@ void  QwScanner::FillHistograms()
 
     }
 
-  for (size_t j=0; j<fHistograms1D.size();j++)
+  for (size_t j=0; j<fHistograms.size();j++)
     {
 
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_position_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("scanner_position_x"))
         {
-          fHistograms1D.at(j)->Fill(fPositionX_VQWK);
+          fHistograms.at(j)->Fill(fPositionX_VQWK);
         }
 
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_position_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("scanner_position_y"))
         {
-          fHistograms1D.at(j)->Fill(fPositionY_VQWK);
+          fHistograms.at(j)->Fill(fPositionY_VQWK);
         }
 
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_ref_posi_x"))
+      if (fHistograms.at(j)->GetTitle()==TString("scanner_ref_posi_x"))
         {
-          fHistograms1D.at(j)->Fill(fPositionX_ADC);
+          fHistograms.at(j)->Fill(fPositionX_ADC);
         }
 
-      if (fHistograms1D.at(j)->GetTitle()==TString("scanner_ref_posi_y"))
+      if (fHistograms.at(j)->GetTitle()==TString("scanner_ref_posi_y"))
         {
-          fHistograms1D.at(j)->Fill(fPositionY_ADC);
+          fHistograms.at(j)->Fill(fPositionY_ADC);
         }
     }
 
   //Fill rate map
 //   Double_t rate;
-//   for (size_t j=0; j<fHistograms2D.size();j++)
+//   for (size_t j=0; j<fHistograms.size();j++)
 //     {
-//       if (fHistograms2D.at(j)->GetTitle()==TString("scanner_rate_map"))
+//       if (fHistograms.at(j)->GetTitle()==TString("scanner_rate_map"))
 //         {
 //           Int_t checkvalidity = 1;
-//           Double_t prevalue = get_value( fHistograms2D.at(j), fPositionX_ADC, fPositionY_ADC, checkvalidity);
+//           Double_t prevalue = get_value( fHistograms.at(j), fPositionX_ADC, fPositionY_ADC, checkvalidity);
 //           if (checkvalidity!=0)
 //             {
 //               rate = (prevalue + fCoincidenceSCA)*0.5;  //average value for this bin
 //
-//               fHistograms2D.at(j)->SetBinContent((Int_t) fPositionX_ADC, (Int_t)fPositionY_ADC,rate);
-//               Int_t xbin = fHistograms2D.at(j)->GetXaxis()->FindBin( fPositionX_ADC );
-//               Int_t ybin = fHistograms2D.at(j)->GetYaxis()->FindBin( fPositionY_ADC );
-//               fHistograms2D.at(j)->SetBinContent( fHistograms2D.at(j)->GetBin( xbin, ybin ), rate);
+//               fHistograms.at(j)->SetBinContent((Int_t) fPositionX_ADC, (Int_t)fPositionY_ADC,rate);
+//               Int_t xbin = fHistograms.at(j)->GetXaxis()->FindBin( fPositionX_ADC );
+//               Int_t ybin = fHistograms.at(j)->GetYaxis()->FindBin( fPositionY_ADC );
+//               fHistograms.at(j)->SetBinContent( fHistograms.at(j)->GetBin( xbin, ybin ), rate);
 //             }
 //         }
 //     }
@@ -1379,72 +1384,6 @@ void  QwScanner::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-
-void  QwScanner::DeleteHistograms()
-{
-  // std::cout << this << std::endl;
-  // std::cout << GetParent(0).fEventTypeMask << std::endl;
-  fF1TDContainer->PrintErrorSummary();
-  fF1TDContainer->WriteErrorSummary();
-
-  // for (std::size_t i=0; i< fParameterFileNames.size(); i++) {
-  //   printf("Delete historgram %s\n", fParameterFileNames[i].Data());
-  // }
-  /// printf("f1tdcontainer\n");
-  if (bStoreRawData)
-    {
-      for (size_t i=0; i<fPMTs.size(); i++)
-        {
-          for (size_t j=0; j<fPMTs.at(i).size(); j++)
-            {
-              if (fPMTs.at(i).at(j).GetElementName()=="") {}
-              else  fPMTs.at(i).at(j).DeleteHistograms();
-            }
-        }
-
-      for (size_t i=0; i<fSCAs.size(); i++)
-        {
-          if (fSCAs.at(i) != NULL)
-            {
-              fSCAs.at(i)->DeleteHistograms();
-            }
-        }
-
-      for (size_t i=0; i<fADC_Data.size(); i++)
-        {
-          if (fADC_Data.at(i) != NULL)
-            {
-              fADC_Data.at(i)->DeleteHistograms();
-            }
-        }
-    }
-
-  // Delete all histograms in the list
-  for (size_t i=0; i<fHistograms1D.size(); i++)
-    {
-      if (fHistograms1D.at(i) != NULL)
-        {
-          delete fHistograms1D.at(i);
-          fHistograms1D.at(i) =  NULL;
-        }
-    }
-  // Then clear the list
-  fHistograms1D.clear();
-
-  // Delete all histograms in the list
-  for (size_t i=0; i<fHistograms2D.size(); i++)
-    {
-      if (fHistograms2D.at(i) != NULL)
-        {
-          delete fHistograms2D.at(i);
-          fHistograms2D.at(i) =  NULL;
-        }
-    }
-  // Then clear the list
-  fHistograms2D.clear();
-
-
-}
 
 void  QwScanner::ReportConfiguration()
 {

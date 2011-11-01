@@ -534,23 +534,6 @@ void  QwBPMCavity::FillHistograms()
   return;
 }
 
-void  QwBPMCavity::DeleteHistograms()
-{
-  if (GetElementName()=="") {
-  }
-  else {
-    fEffectiveCharge.DeleteHistograms();
-    Short_t i = 0;
-    for(i=kXAxis;i<kNumAxes;i++) {
-      if (bFullSave)  fWire[i].DeleteHistograms();
-      fRelPos[i].DeleteHistograms();
-      fAbsPos[i].DeleteHistograms();
-    }
-  }
-  return;
-}
-
-
 void  QwBPMCavity::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values)
 {
   if (GetElementName()==""){
