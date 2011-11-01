@@ -14,46 +14,80 @@
 //gROOT->Reset();
 #include "NurClass.h"
 
-void qwanalysis(UInt_t run_number=0)
+
+
+//void prepareHCLog();
+void qwanalysis(UInt_t run_number=0, Int_t hclog_switch=-1);
+void qwanalysis(TString rootfile, UInt_t run_number=0, Int_t hclog_switch=-1);
+
+
+
+void qwanalysis(UInt_t run_number, Int_t hclog_switch)
 {
+  gRunNumber = run_number;
+  if( gRunNumber == 0 ) {
+    /* Ask to input the run condition to user */
+     printf("%sEnter Run Number%s\n",blue,normal); 
+    std::cin >> gRunNumber;
+  }
+
+  //  TString rootname(Form("/home/nur/scratch/rootfiles/first100k_%d.root",gRunNumber));
+  //  TString rootname(Form("$QW_ROOTFILES/first100k_%d.root",gRunNumber));
+  TString rootname(Form("$QW_ROOTFILES/QwPass1_%d.000.root",gRunNumber));
+
+  gPlotDir = "/net/cdaqfs/home/cdaq/users/qwanalysis/plots";
+  gRunlistDir = "/net/cdaqfs/home/cdaq/users/qwanalysis/hclog_runlist";
+
+  qwanalysis(rootname,run_number,hclog_switch);
+}
+
+void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
+{
+  
+  if( run_number == 0 ) {
+    //  Extract the run number from the filename
+    //  The form is assumed to be:  stem_###.(###.)root
+    //  where the segment number is optional.
+    //  The run number is assumed to be between the 
+    //  last "_" character and the first "." character.
+    TString filename, stem;
+    TObjArray*  all_strings = rootfile.Tokenize("/");
+    filename = ((TObjString*)(all_strings->Last()))->GetString();
+    all_strings->Delete();
+    all_strings = filename.Tokenize(".");
+    stem = ((TObjString*)(all_strings->First()))->GetString();
+    all_strings->Delete();
+    all_strings = stem.Tokenize("_");
+    gRunNumber = std::atol(((TObjString*)(all_strings->Last()))->GetString());
+    all_strings->Delete();
+  } else {
+    gRunNumber = run_number;
+  }
+
 
   Bool_t MDPMT=kTRUE; Bool_t CHARGE=kTRUE; Bool_t CHARGEDD=kTRUE; Bool_t BMODCYCLE=kTRUE; Bool_t BPMS=kTRUE; 
   Bool_t MDYIELDVAR=kTRUE; Bool_t MDBKG=kTRUE; Bool_t MDALLASYM=kTRUE; Bool_t SENSITIVITY=kTRUE; 
   Bool_t MDLUMI=kTRUE; Bool_t USLUMI=kTRUE; Bool_t USLUMISEN=kTRUE; Bool_t BMODSEN=kTRUE;
-//   Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kFALSE; Bool_t BPMS=kFALSE; 
-//   Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kTRUE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
-//   Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kFALSE; Bool_t USLUMISEN=kFALSE;
-//   Bool_t BMODSEN=kFALSE;
-
-  //  UInt_t run_number = 0;
+  //   Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kFALSE; Bool_t BPMS=kFALSE; 
+  //   Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kTRUE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
+  //   Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kFALSE; Bool_t USLUMISEN=kFALSE;
+  //   Bool_t BMODSEN=kFALSE;
+  
+  //  UInt_t gRunNumber = 0;
   char run0[255],run[255],run100k[255],sline[255],dline[255],ssline[255],sslinen[255];
 
-  sprintf(sline,"%s#-------------------------------------------------------------------------#%s\n",magenta,normal);
   sprintf(dline,"%s#*************************************************************************#%s\n",red,normal);
   sprintf(ssline,"%s---------------------------------------------------------%s\n",green,normal);
-  sprintf(sslinen,"---------------------------------------------------------\n",normal);
+  sprintf(sslinen,"---------------------------------------------------------\n");
 
-  if( run_number == 0 ) {
-    /* Ask to input the run condition to user */
-    printf(sline); printf("%sEnter Run Number%s\n",blue,normal); printf(sline);
-    cin >> run_number;
-  }
-
-  //  TFile f(Form("/home/nur/scratch/rootfiles/first100k_%d.root",run_number));
-//   TFile *f = new TFile(Form("$QW_ROOTFILES/first100k_%d.root",run_number));
-  TFile *f = new TFile(Form("$QW_ROOTFILES/QwPass1_%d.000.root",run_number));
+  TFile *f = new TFile(rootfile);
   if (!f->IsOpen()) {printf("%sFile not found. Exiting the program!%s\n",red,normal); exit(1); }
 
-  /* Directory */
-  Char_t *dir[2];
-  //  dir[0] = "/home/nur/Desktop/beamModulation/plots";
-  dir[0] = "/net/cdaqfs/home/cdaq/users/qwanalysis/plots";
-  dir[1] = "/net/cdaqfs/home/cdaq/users/qwanalysis/hclog_runlist";
 
-//   printf(sline); printf("%sPlease Insert target Information. 1= LH2, 2= 4% US Al, 3= 2% US Al, 4= 1% US Al,\n5= 4% DS Al, 6= 2% DS Al, 7= 1% DS Al, 8= US Pure Al and hit ENTER\n %s",blue,normal); printf(sline);
-//    UInt_t target = 0;
-//   cin >> target;
-//   if (target> 8) {printf("%sPlease insert a correct No. Exiting the program!%s\n",blue,normal); exit(1);}
+  //    printf("%sPlease Insert target Information. 1= LH2, 2= 4% US Al, 3= 2% US Al, 4= 1% US Al,\n5= 4% DS Al, 6= 2% DS Al, 7= 1% DS Al, 8= US Pure Al and hit ENTER\n %s",blue,normal); 
+  //    UInt_t target = 0;
+  //   std::cin >> target;
+  //   if (target> 8) {printf("%sPlease insert a correct No. Exiting the program!%s\n",blue,normal); exit(1);}
 
   char *tar[8];
   tar[1] = "Qweak Target: LH2";
@@ -64,6 +98,8 @@ void qwanalysis(UInt_t run_number=0)
   tar[6] = "Qweak Target: 2% DS Al";
   tar[7] = "Qweak Target: 1% DS Al";
   tar[8] = "Qweak Target: US Pure Al";
+  gTarget = tar[1];
+
 
   /* load the different Trees. */
   TTree* tm = (TTree*)f->Get("Mps_Tree");
@@ -79,25 +115,46 @@ void qwanalysis(UInt_t run_number=0)
   Double_t fit_range[2] = { -0.02, 0.02};
   TF1* fitfunx = new TF1("fitfunx","pol1",fit_range[0],fit_range[1]);
   TF1* fitfuny = new TF1("fitfuny","pol1",fit_range[0],fit_range[1]);
-  Double_t current,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen,cal_emdxsen,cal_emdysen,mean_charge,charge_scale,cut_charge;
+
+  Double_t current,raster,cal_mdalla,cal_bcmdd,cal_abcm,cal_abcmm,cal_mdxsen,cal_mdysen,cal_emdxsen,cal_emdysen,mean_charge,charge_scale;
+  TString cut_charge;
   TCanvas *c0 = new TCanvas("c0","c0",340,340,100,100);
   c0->cd();
   //   ts->Draw("ibcm1>>bcm1","","goff");bcm1->Draw("goff");
-  ts->Draw("EHCFR_LIXWidth>>rasterx","","goff");rasterx->Draw("goff");
-  th->Draw("yield_qwk_charge>>cur",Form("%s && yield_qwk_charge.%s",s1,s2),"goff");cur->Draw("goff");
-  th->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6>>bcmdd",Form("%s && asym_qwk_bcm1.%s && asym_qwk_bcm2.%s",s1,s2,s2),"goff");bcmdd->Draw("goff");
-  th->Draw("asym_qwk_charge*1e6>>abcm",Form("%s && asym_qwk_charge.%s",s1,s2),"goff");abcm->Draw("goff");
-  th->Draw("asym_qwk_mdallbars*1e6>>mdalla",Form("%s && asym_qwk_mdallbars.%s",s1,s2),"goff");mdalla->Draw("goff");
-  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bX>>mdxsen",Form("%s && asym_qwk_mdallbars.%s && diff_qwk_bpm3h09bX.%s",s1,s2,s2),"prof");mdxsen->Draw("");mdxsen->Fit("fitfunx","E M R F Q","",-0.02,0.02);
-  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bY>>mdysen",Form("%s && asym_qwk_mdallbars.%s && diff_qwk_bpm3h09bY.%s",s1,s2,s2),"prof");mdysen->Draw("");mdysen->Fit("fitfuny","E M R F Q","",-0.02,0.02);
+
+  //  Extract raster settings.
+  ts->Draw("EHCFR_LIXWidth>>rasterx","","goff");
+  ts->Draw("EHCFR_LIYWidth>>rastery","","goff");
+
+
+  th->Draw("yield_qwk_charge>>cur",Form("%s && yield_qwk_charge.%s",s1,s2),"goff");
+  th->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6>>bcmdd",Form("%s && asym_qwk_bcm1.%s && asym_qwk_bcm2.%s",s1,s2,s2),"goff");
+  th->Draw("asym_qwk_charge*1e6>>abcm",Form("%s && asym_qwk_charge.%s",s1,s2),"goff");
+  th->Draw("asym_qwk_mdallbars*1e6>>mdalla",Form("%s && asym_qwk_mdallbars.%s",s1,s2),"goff");
+  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bX>>mdxsen",
+	   Form("%s && asym_qwk_mdallbars.%s && diff_qwk_bpm3h09bX.%s",s1,s2,s2),"prof");
+  GetHist("mdxsen")->Fit("fitfunx","E M R F Q","",-0.02,0.02);
+  th->Draw("asym_qwk_mdallbars*1e6:diff_qwk_bpm3h09bY>>mdysen",
+	   Form("%s && asym_qwk_mdallbars.%s && diff_qwk_bpm3h09bY.%s",s1,s2,s2),"prof");
+  GetHist("mdysen")->Fit("fitfuny","E M R F Q","",-0.02,0.02);
   tm->Draw("qwk_charge:event_number>>histocrg", "ErrorFlag == 0 && qwk_charge.Device_Error_Code==0");
-  mean_charge = histocrg->GetMean(2);
+  mean_charge = GetHist("histocrg")->GetMean(2);
   charge_scale = 0.98*mean_charge;
   cut_charge = Form("qwk_charge > %f",charge_scale);
 //   cut_charge = Form("qwk_charge > %f", 0.99*mean_charge);
 //   yield_charge = Form("qwk_charge >= %f", 0.98*mean_charge);
 
-  current=cur->GetMean();raster=rasterx->GetMean();cal_mdalla=mdalla->GetRMS();cal_bcmdd=bcmdd->GetRMS();cal_abcm=abcm->GetRMS();cal_abcmm=abcm->GetMean();cal_mdxsen=fitfunx->GetParameter(1);cal_mdysen=fitfuny->GetParameter(1);cal_emdxsen=fitfunx->GetParError(1);cal_emdysen=fitfuny->GetParError(1);
+  gCurrent    = Form("%2.1f uA",GetHist("cur")->GetMean());
+  gRasterString = Form("%2.1fx%2.1f mm", GetHist("rasterx")->GetMean(), GetHist("rastery")->GetMean());
+
+  cal_mdalla  = GetHist("mdalla")->GetRMS();
+  cal_bcmdd   = GetHist("bcmdd")->GetRMS();
+  cal_abcm    = GetHist("abcm")->GetRMS();
+  cal_abcmm   = GetHist("abcm")->GetMean();
+  cal_mdxsen  = fitfunx->GetParameter(1);
+  cal_mdysen  = fitfuny->GetParameter(1);
+  cal_emdxsen = fitfunx->GetParError(1);
+  cal_emdysen = fitfuny->GetParError(1);
 
   c0->Update();
 
@@ -114,50 +171,67 @@ void qwanalysis(UInt_t run_number=0)
   TString bmod[NUM2] = {"ramp","fgx1","fgx2","fge","fgy1","fgy2"};
 
   char pcharge[255],pchargeasym[255],pchargeddasym[255],pbpmd[255],pmdyield[255],pmdasym[255],pmdallasym[255],pmdallsenx[255],pmdallseny[255],pdslumiyield[255],pdslumiasym[255],plumisenx[255],plumiseny[255],pmodulation[255],puslumi[255],puslumisen[255],pmdyieldvar[255],pmdbkg[255],psenbmod[255];
-  sprintf(pcharge,"%s/%dCharge.png",dir[0],run_number);
-  sprintf(pchargeasym,"%s/%dChargeAsym.png",dir[0],run_number);
-  sprintf(pchargeddasym,"%s/%dChargeDDAsym.png",dir[0],run_number);
-  sprintf(pbpmd,"%s/%dBPMDiff.png",dir[0],run_number);
-  sprintf(pmdyield,"%s/%dMDPMTYield.png",dir[0],run_number);
-  sprintf(pmdyieldvar,"%s/%dMDYieldVariation.png",dir[0],run_number);
-  sprintf(pmdasym,"%s/%dMDAsym.png",dir[0],run_number);
-  sprintf(pmdallasym,"%s/%dMDBCMAsym.png",dir[0],run_number);
-  sprintf(pmdbkg,"%s/%dMDBackground.png",dir[0],run_number);
-  sprintf(pmodulation,"%s/%dModulationCycle.png",dir[0],run_number);
-  sprintf(psenbmod,"%s/%dModulationSensitivity.png",dir[0],run_number);
-  sprintf(pmdallsenx,"%s/%dMDXSensitivity.png",dir[0],run_number);
-  sprintf(pmdallseny,"%s/%dMDYSensitivity.png",dir[0],run_number);
-  sprintf(pdslumiyield,"%s/%dDSLumiYield.png",dir[0],run_number);
-  sprintf(pdslumiasym,"%s/%dDSLumiAsym.png",dir[0],run_number);
-  sprintf(plumisenx,"%s/%dLumiXSensitivity.png",dir[0],run_number);
-  sprintf(plumiseny,"%s/%dLumiYSensitivity.png",dir[0],run_number);
-  sprintf(puslumi,"%s/%dUSLumiYieldAsym.png",dir[0],run_number);
-  sprintf(puslumisen,"%s/%dUSLumiSensitivity.png",dir[0],run_number);
+  sprintf(pcharge,"%s/%dCharge.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pchargeasym,"%s/%dChargeAsym.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pchargeddasym,"%s/%dChargeDDAsym.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pbpmd,"%s/%dBPMDiff.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pmdyield,"%s/%dMDPMTYield.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pmdyieldvar,"%s/%dMDYieldVariation.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pmdasym,"%s/%dMDAsym.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pmdallasym,"%s/%dMDBCMAsym.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pmdbkg,"%s/%dMDBackground.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pmodulation,"%s/%dModulationCycle.png",gPlotDir.Data(),gRunNumber);
+  sprintf(psenbmod,"%s/%dModulationSensitivity.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pmdallsenx,"%s/%dMDXSensitivity.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pmdallseny,"%s/%dMDYSensitivity.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pdslumiyield,"%s/%dDSLumiYield.png",gPlotDir.Data(),gRunNumber);
+  sprintf(pdslumiasym,"%s/%dDSLumiAsym.png",gPlotDir.Data(),gRunNumber);
+  sprintf(plumisenx,"%s/%dLumiXSensitivity.png",gPlotDir.Data(),gRunNumber);
+  sprintf(plumiseny,"%s/%dLumiYSensitivity.png",gPlotDir.Data(),gRunNumber);
+  sprintf(puslumi,"%s/%dUSLumiYieldAsym.png",gPlotDir.Data(),gRunNumber);
+  sprintf(puslumisen,"%s/%dUSLumiSensitivity.png",gPlotDir.Data(),gRunNumber);
 
-  char txtcharge[255],txtchargeasym[255];
-  char comontext[255],txtcharge1[255],txtchargeasym1[255];
-  sprintf(txtcharge,"Run %d: Charge (uA)",run_number);
-  sprintf(txtchargeasym,"Run %d: Charge Asymmetry (ppm)",run_number);
-  //   sprintf(txtchargeddasym,"Run %d: Charge Double Difference Asymmetry (ppm)",run_number);
-  //   sprintf(txtbpmd,"Run %d: BPM Difference (mm)",run_number);
-  //   sprintf(txtmdyield,"%s/%dMDPMTYield",run_number);
-  //   sprintf(txtmdasym,"Run %d: Main Detector Barsum Asymmetries (ppm)",run_number);
-  //   sprintf(txtmdallasym,"%dMDAllbarsumAsym",run_number);
-  //   sprintf(txtmdallsen,"%dMDAllbarsumSensitivity",run_number);
-  //   sprintf(txtdslumiyield,"Run %d: Downstream Lumi Yields (Volts/uA)",run_number);
-  //   sprintf(txtdslumiasym,"Run %d: Downstream Lumi Asymmetries (ppm)",run_number);
+//   char txtcharge[255],txtchargeasym[255];
+//   char comontext[255],txtcharge1[255],txtchargeasym1[255];
+//   sprintf(txtcharge,"Run %d: Charge (uA)",gRunNumber);
+//   sprintf(txtchargeasym,"Run %d: Charge Asymmetry (ppm)",gRunNumber);
+  //   sprintf(txtchargeddasym,"Run %d: Charge Double Difference Asymmetry (ppm)",gRunNumber);
+  //   sprintf(txtbpmd,"Run %d: BPM Difference (mm)",gRunNumber);
+  //   sprintf(txtmdyield,"%s/%dMDPMTYield",gRunNumber);
+  //   sprintf(txtmdasym,"Run %d: Main Detector Barsum Asymmetries (ppm)",gRunNumber);
+  //   sprintf(txtmdallasym,"%dMDAllbarsumAsym",gRunNumber);
+  //   sprintf(txtmdallsen,"%dMDAllbarsumSensitivity",gRunNumber);
+  //   sprintf(txtdslumiyield,"Run %d: Downstream Lumi Yields (Volts/uA)",gRunNumber);
+  //   sprintf(txtdslumiasym,"Run %d: Downstream Lumi Asymmetries (ppm)",gRunNumber);
 
-  sprintf(comontext,"for %s, %2.1f uA, %2.1fx%2.1f mm",tar[1],current,raster,raster);
-  sprintf(txtcharge1,"%s %s",txtcharge,comontext);
-  sprintf(txtchargeasym1,"%s %s",txtchargeasym,comontext);
+//   sprintf(comontext,"for %s, %2.1f uA, %2.1fx%2.1f mm",tar[1],gCurrent,gRasterString);
+//   sprintf(txtcharge1,"%s %s",txtcharge,comontext);
+//   sprintf(txtchargeasym1,"%s %s",txtchargeasym,comontext);
   /************************************************************************/
-    TString nodatax = "NO Modulation for X"; TString nodataxp = "NO Modulation for X Angle"; TString nodatae = "NO Modulation for E"; TString nodatay = "NO Modulation for Y"; TString nodatayp = "NO Modulation for Y Angle";
-    tnodatax = new TText(0.40,0.40,nodatax);tnodataxp = new TText(0.40,0.40,nodataxp);tnodatae = new TText(0.40,0.40,nodatae);tnodatay = new TText(0.40,0.40,nodatay);tnodatayp = new TText(0.40,0.40,nodatayp);
-    tnodatax->SetTextSize(0.15);tnodataxp->SetTextSize(0.15);tnodatae->SetTextSize(0.15);tnodatay->SetTextSize(0.15);tnodatayp->SetTextSize(0.15);
+//   TString nodatax = "NO Modulation for X";
+//   TString nodataxp = "NO Modulation for X Angle";
+//   TString nodatae = "NO Modulation for E";
+//   TString nodatay = "NO Modulation for Y";
+//   TString nodatayp = "NO Modulation for Y Angle";
+  TText *tnodatax = new TText(0.40,0.40,"NO Modulation for X");
+  TText *tnodataxp = new TText(0.40,0.40,"NO Modulation for X Angle");
+  TText *tnodatae = new TText(0.40,0.40,"NO Modulation for E");
+  TText *tnodatay = new TText(0.40,0.40,"NO Modulation for Y");
+  TText *tnodatayp = new TText(0.40,0.40,"NO Modulation for Y Angle");
+  tnodatax->SetTextSize(0.15);
+  tnodataxp->SetTextSize(0.15);
+  tnodatae->SetTextSize(0.15);
+  tnodatay->SetTextSize(0.15);
+  tnodatayp->SetTextSize(0.15);
   /************************************************************************/
-  Double_t csizx,csizy,csiz3x,csiz3y,cx1,cy1,cx2,cx3,tsiz,tsiz3,tll,tlr,ps1,ps2,ps3,ps4;
-  csizx=1200;csizy=1000;csiz3x=1100;csiz3y=780;tsiz=0.40;tsiz3=0.45;tll=0.012;tlr=0.4;cx1=0;cy1=0;cx2=300;cx3=600;
-  ps1=0.01;ps2=0.93;ps3=0.94;ps4=0.99;
+  Int_t csizx,csizy,csiz3x,csiz3y;
+  // Double_t cx1,cy1,cx2,cx3;
+  // Double_t tsiz,tsiz3,tll,tlr;
+  // Double_t ps1,ps2,ps3,ps4;
+  csizx=1200;csizy=1000;csiz3x=1100;csiz3y=780;
+  // tsiz=0.40;tsiz3=0.45;tll=0.012;tlr=0.4;
+  // cx1=0;cy1=0;cx2=300;cx3=600;
+  // ps1=0.01;ps2=0.93;ps3=0.94;ps4=0.99;
   /************************************************************************/
   int position1[5] = { 1, 3, 4, 5, 6 };
   int position2[6] = { 1, 2, 3, 4, 5, 6 };
@@ -174,18 +248,86 @@ void qwanalysis(UInt_t run_number=0)
   int position13[6] = { 1, 2, 5, 6, 9, 10 };
   int position14[6] = { 3, 4, 7, 8, 11, 12 };
   /****************************************************************************/
-  char ycharge[255],cutycharge[255],acharge[255],cutacharge[255],ddcharge[255],cutddcharge[255],bpmx[255],cutbpmx[255],bpmy[255],cutbpmy[255],adet[255],cutadet[255],ydetvar[255],cutydetvar[255],ylumi[255],cutylumi[255],ylumis[255],cutylumis[255],alumi[255],cutalumi[255],alumis[255],cutalumis[255],ypmtpos[255],ypmtneg[255],cutypmtpos[255],cutypmtneg[255],adetsenx[255],adetseny[255],cutadetsenx[255],cutadetseny[255],alldetsenx[255],alldetseny[255],adetsenxp[255],adetsenyp[255],cutalldetsenx[255],cutalldetseny[255],cutadetsenxp[255],cutadetsenyp[255],histox[255],histoy[255],histoxp[255],histoyp[255],hyaxis[255],modulation[255],cutmodulation[255],hbmod[255],ybmod[255],xbmod[255],tbmod[255],yuslumis[255],cutyuslumis[255],auslumis[255],cutauslumis[255];  
+  char ycharge[255],cutycharge[255],acharge[255],cutacharge[255],ddcharge[255],cutddcharge[255],
+    bpmx[255],cutbpmx[255],bpmy[255],cutbpmy[255],
+    adet[255],cutadet[255],ydetvar[255],cutydetvar[255],
+    ylumi[255],cutylumi[255],ylumis[255],cutylumis[255],
+    alumi[255],cutalumi[255],alumis[255],cutalumis[255],
+    ypmtpos[255],ypmtneg[255],cutypmtpos[255],cutypmtneg[255],
+    adetsenx[255],adetseny[255],cutadetsenx[255],cutadetseny[255],
+    //REM    alldetsenx[255],alldetseny[255],adetsenxp[255],adetsenyp[255],
+    //REM    cutalldetsenx[255],cutalldetseny[255],cutadetsenxp[255],cutadetsenyp[255],
+    histox[255],histoy[255],
+    //REM    histoxp[255],histoyp[255],hyaxis[255],
+    //REM    modulation[255],cutmodulation[255],
+    //REM    hbmod[255],ybmod[255],xbmod[255],tbmod[255],
+    yuslumis[255],cutyuslumis[255],auslumis[255],cutauslumis[255];  
   /****************************************************************************/
-  char adetsenxf[255],adetsenx[255],histoxf[255],histox[255],cutadetsenxf[255],cutadetsenx[255],yaxis[255],xaxis[255],adetasenxf[255],adetasenx[255],histoxfa[255],histoxa[255],cutadetasenxf[255],cutadetasenx[255],yaxisa[255],xaxisa[255],adetsenyf[255],adetseny[255],histoyf[255],histoy[255],cutadetsenyf[255],cutadetseny[255],yaxis1[255],xaxis1[255],adetasenyf[255],adetaseny[255],histoyfa[255],histoya[255],cutadetasenyf[255],cutadetaseny[255],yaxisa1[255],xaxisa1[255];
-  char alumisenxf[255],alumisenx[255],histolxf[255],histolx[255],cutalumisenxf[255],cutalumisenx[255],yaxisl[255],xaxisl[255],alumiasenxf[255],alumiasenx[255],histolxfa[255],histolxa[255],cutalumiasenxf[255],cutalumiasenx[255],yaxisla[255],xaxisla[255],alumisenyf[255],alumiseny[255],histolyf[255],histoly[255],cutalumisenyf[255],cutalumiseny[255],yaxisl1[255],xaxisl1[255],alumiasenyf[255],alumiaseny[255],histolyfa[255],histolya[255],cutalumiasenyf[255],cutalumiaseny[255],yaxisla1[255],xaxisla1[255],auslumisenx[255],cutauslumisenx[255],histouslx[255],auslumiseny[255],cutauslumiseny[255],histously[255],yaxisusl[255],hpmtpos[255],hpmtneg[255];
+  char yaxis[255],xaxis[255],
+    //REM adetsenxf[255],histoxf[255],cutadetsenxf[255],
+    //REM    adetasenxf[255],
+    adetasenx[255],
+    //REM    histoxfa[255],
+    histoxa[255],
+    //REM    cutadetasenxf[255],
+    cutadetasenx[255],
+    yaxisa[255],xaxisa[255],
+    //REM    adetsenyf[255],
+    //REM    histoyf[255],
+    //REM    cutadetsenyf[255],
+    //REM    yaxis1[255],
+    xaxis1[255],
+    //REM    adetasenyf[255],
+    adetaseny[255],
+    //REM    histoyfa[255],
+    histoya[255],
+    //REM    cutadetasenyf[255],
+    cutadetaseny[255],
+    //REM    yaxisa1[255],
+    xaxisa1[255];
+
+  char alumisenx[255],
+    //REM    alumisenxf[255],
+    //REM    histolxf[255],
+    histolx[255],
+    //REM    cutalumisenxf[255],
+    cutalumisenx[255],
+    yaxisl[255],
+    //REM    xaxisl[255],
+    //REM    alumiasenxf[255],
+    alumiasenx[255],
+    //REM    histolxfa[255],
+    histolxa[255],
+    //REM    cutalumiasenxf[255],
+    cutalumiasenx[255],
+    yaxisla[255],
+    //REM    xaxisla[255],
+    //REM    alumisenyf[255],
+    alumiseny[255],
+    //REM    histolyf[255],
+    histoly[255],
+    //REM    cutalumisenyf[255],
+    cutalumiseny[255],
+    //    yaxisl1[255],xaxisl1[255],
+    //REM    alumiasenyf[255],
+    alumiaseny[255],
+    //REM    histolyfa[255],
+    histolya[255],
+    //REM    cutalumiasenyf[255],
+    cutalumiaseny[255],
+    //REM    yaxisla1[255],xaxisla1[255],
+    auslumisenx[255],cutauslumisenx[255],
+    histouslx[255],auslumiseny[255],cutauslumiseny[255],
+    histously[255],yaxisusl[255],
+    hpmtpos[255],hpmtneg[255];
 
   char tarbitrary[255],txdetvar[255];
   sprintf(tarbitrary,"Counts [Arbitrary Units]");
   sprintf(txdetvar,"TIME [s]");
 
 //   TString in;
-//   cout <<"Insert q to exit"<<endl;
-//   cin >> in;
+//   std::cout <<"Insert q to exit"<<endl;
+//   std::cin >> in;
 //   if(in == "q") exit(-1);
   /************************************************************************/
   gStyle->Reset();
@@ -209,24 +351,15 @@ void qwanalysis(UInt_t run_number=0)
   gStyle->SetCanvasColor(kRed-10);
   /************************************************************************/
   if (MDPMT){
-  TCanvas *c15 = new TCanvas("c15",Form("Run %d: Main Detector PMT Yields (Volts/uA)",run_number),0,0,1580,1000);
-  pad150 = new TPad("pad150","pad150",ps1,ps2,ps4,ps4);
-  pad151 = new TPad("pad151","pad151",ps1,ps1,ps4,ps3);
-  pad150->SetFillColor(kRed-10);
-  pad150->Draw();
-  pad151->SetFillColor(kWhite);
-  pad151->Draw();
-  pad150->cd();
-  TString text = Form("Run %d: Main Detector PMT Yields (Volts/uA) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct150 = new TText(0.012,0.4,text);
-  ct150->SetTextSize(0.3);
+  TCanvas *c15 = new TCanvas("c15",CanvasTitle("Main Detector PMT Yields (Volts/uA)"),0,0,1580,1000);
+  TPad* pad151 = NewFramedPad(kRed-10, kWhite, "Main Detector PMT Yields (Volts/uA)");
+
   TString mdpos = "MD POSITIVE";
   TString mdneg = "MD NEGATIVE";
-  ctp = new TText(0.30,0.45,mdpos);
-  ctn = new TText(0.30,0.45,mdneg);
+  TText* ctp = new TText(0.30,0.45,mdpos);
+  TText* ctn = new TText(0.30,0.45,mdneg);
   ctp->SetTextSize(0.075);
   ctn->SetTextSize(0.075);
-  ct150->Draw();
   pad151->cd();
   pad151->Divide(6,3);
   printf("%sPlotting %sMain Detector PMT Yields (Volts/uA)%s\n",blue,red,normal);
@@ -238,6 +371,8 @@ void qwanalysis(UInt_t run_number=0)
   ctn->Draw();
 
   int pd = 0;
+  TH1* histpmtp;
+  TH1* histpmtn;
   for ( int pt=0; pt<8; pt++) {
     pd = pt+1;
 
@@ -279,39 +414,40 @@ void qwanalysis(UInt_t run_number=0)
   gStyle->SetCanvasColor(kCyan-10);
   if (CHARGE){
   /****************************************************************************/
-  TCanvas *c1 = new TCanvas("c1",Form("Run %d: Charge (uA)",run_number),0,0,csizx,1000);
-  pad10 = new TPad("pad10","pad10",ps1,ps2,ps4,ps4);
-  pad11 = new TPad("pad11","pad11",ps1,ps1,ps4,ps3);
-  pad10->SetFillColor(kCyan-10);
-  pad11->SetFillColor(kWhite);
-  pad10->Draw();
-  pad11->Draw();
-  pad10->cd();
-  TString text = (txtcharge1);
-  ct10 = new TText(0.012,0.4,text);
-  ct10->SetTextSize(0.3);
-  ct10->Draw();
+  TCanvas *c1 = new TCanvas("c1",CanvasTitle("Charge (uA)"),0,0,csizx,csizy);
+  TPad* pad11 = NewFramedPad(kCyan-10, kWhite, "Charge (uA)");
+  //   pad10 = new TPad("pad10","pad10",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad11 = new TPad("pad11","pad11",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad10->SetFillColor(kCyan-10);
+  //   pad11->SetFillColor(kWhite);
+  //   pad10->Draw();
+  //   pad11->Draw();
+  //   pad10->cd();
+  //   DrawCanvasHeader("Charge (uA)");
   pad11->cd();
   pad11->Divide(2,3);
   printf("%sPlotting %sCharge (uA)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
-  TCanvas *c2 = new TCanvas("c2",Form("Run %d: Charge Asymmetry (ppm)",run_number),20,20,csizx,1000);
-  pad20 = new TPad("pad20","pad20",ps1,ps2,ps4,ps4);
-  pad21 = new TPad("pad21","pad21",ps1,ps1,ps4,ps3);
-  pad20->SetFillColor(kCyan-10);
-  pad21->SetFillColor(kWhite);
-  pad20->Draw();
-  pad21->Draw();
-  pad20->cd();
-  TString text = (txtchargeasym1);
-  ct20 = new TText(0.012,0.4,text);
-  ct20->SetTextSize(0.3);
-  ct20->Draw();
+  TCanvas *c2 = new TCanvas("c2",CanvasTitle("Charge Asymmetry (ppm)"),20,20,csizx,csizy);
+  TPad* pad21 = NewFramedPad(kCyan-10, kWhite, "Charge Asymmetry (ppm)");
+  //   pad20 = new TPad("pad20","pad20",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad21 = new TPad("pad21","pad21",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad20->SetFillColor(kCyan-10);
+  //   pad21->SetFillColor(kWhite);
+  //   pad20->Draw();
+  //   pad21->Draw();
+  //   pad20->cd();
+  //   DrawCanvasHeader("Charge Asymmetry (ppm)");
   pad21->cd();
   pad21->Divide(2,3);
   printf("%sPlotting %sCharge Asymmetry (ppm)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
-  char hycharge[255],hacharge[255],tycharge[255], tacharge[255], hddcharge[255];
+  char hycharge[255],hacharge[255],tycharge[255], tacharge[255];//, hddcharge[255];
+
+  TH1* histycrg;
+  TH1* histacrg;
+  TH1* hycharge2;
+  TH1* hacharge2;
   for ( int i=0; i<5; i++) {
 
     sprintf(ycharge,"yield_qwk_%s>>hycrg%d",bcms[i].Data(),i);
@@ -344,12 +480,14 @@ void qwanalysis(UInt_t run_number=0)
   }
     pad11->cd(2);
     th->Draw("yield_qwk_charge:mps_counter*0.001>>hycharge2",Form("%s && yield_qwk_charge.%s",s1,s2));
+    hycharge2 = GetHist("hycharge2");
     hycharge2->SetYTitle("Charge YIELD [uA]");
     hycharge2->SetXTitle(txdetvar);
     hycharge2->SetTitle("Charge YIELD with TIME");
     hycharge2->Draw();
     pad21->cd(2);
     th->Draw("asym_qwk_charge*1e6:pat_counter>>hacharge2",Form("%s && asym_qwk_charge.%s",s1,s2));
+    hacharge2 = GetHist("hacharge2");
     hacharge2->SetYTitle("Charge ASYM [ppm]");
     hacharge2->SetXTitle("PATTERN COUNTER");
     hacharge2->SetTitle("Charge ASYM with PATTERN");
@@ -360,18 +498,16 @@ void qwanalysis(UInt_t run_number=0)
 
   /****************************************************************************/
   if (CHARGEDD){
-  TCanvas *c3 = new TCanvas("c3", Form("Run %d: Charge Double Difference (ppm)",run_number),40,40,csizx,1000);
-  pad30 = new TPad("pad30","pad30",ps1,ps2,ps4,ps4);
-  pad31 = new TPad("pad31","pad31",ps1,ps1,ps4,ps3);
-  pad30->SetFillColor(kCyan-10);
-  pad31->SetFillColor(kWhite);
-  pad30->Draw();
-  pad31->Draw();
-  pad30->cd();
-  TString text = Form("Run %d: Charge Double Difference Asymmetry (ppm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct30 = new TText(0.012,0.4,text);
-  ct30->SetTextSize(0.3);
-  ct30->Draw();
+  TCanvas *c3 = new TCanvas("c3", CanvasTitle("Charge Double Difference (ppm)"),40,40,csizx,csizy);
+  TPad* pad31 = NewFramedPad(kCyan-10, kWhite, "Charge Double Difference Asymmetry (ppm)");
+  //   pad30 = new TPad("pad30","pad30",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad31 = new TPad("pad31","pad31",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad30->SetFillColor(kCyan-10);
+  //   pad31->SetFillColor(kWhite);
+  //   pad30->Draw();
+  //   pad31->Draw();
+  //   pad30->cd();
+  //   DrawCanvasHeader("Charge Double Difference Asymmetry (ppm)");
   pad31->cd();
   pad31->Divide(2,3);
   printf("%sPlotting %sCharge Double Difference (ppm)%s\n",blue,red,normal);
@@ -379,12 +515,14 @@ void qwanalysis(UInt_t run_number=0)
   gStyle->SetOptStat(1);
   gStyle->SetOptStat("emr");
 
+  TString hddcharge;
+  TH1* hddcrg;
   for ( int j=0; j<6; j++) {
 
     sprintf(ddcharge,"asym_qwk_%s*1e6-asym_qwk_%s*1e6>>hdd%d",bcms2[j].Data(),bcms3[j].Data(),j);
     sprintf(cutddcharge,"%s && asym_qwk_%s.%s  && asym_qwk_%s.%s",s1,bcms2[j].Data(),s2,bcms3[j].Data(),s2);
-    sprintf(hddcharge,"hdd%d",j);
-
+    hddcharge = Form("hdd%d",j);
+    
     pad31->cd(position2[j]);
     th->Draw(ddcharge,cutddcharge);
     hddcrg = (TH1F *)gDirectory->Get(hddcharge);
@@ -394,7 +532,8 @@ void qwanalysis(UInt_t run_number=0)
     hddcrg->Draw();
     gPad->Update();
   }
-  c3->Update(); c3->SaveAs(pchargeddasym);}
+  c3->Update(); c3->SaveAs(pchargeddasym);
+  }
 
     gStyle->SetTitleSize(0.09);
     gStyle->SetTitleYSize(0.09);
@@ -407,18 +546,16 @@ void qwanalysis(UInt_t run_number=0)
     gStyle->SetCanvasColor(kOrange-9);
   if (BMODCYCLE){
   /****************************************************************************/
-    TCanvas *c13 = new TCanvas("c13", Form("Run %d: Modulation Cycle",run_number),120,120,csizx,1000);
-    pad130 = new TPad("pad130","pad130",ps1,ps2,ps4,ps4);
-    pad131 = new TPad("pad131","pad131",ps1,ps1,ps4,ps3);
-    pad130->SetFillColor(kOrange-9);
-    pad131->SetFillColor(kWhite);
-    pad130->Draw();
-    pad131->Draw();
-    pad130->cd();
-    TString text = Form("Run %d: Modulation Cycle for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-    ct130 = new TText(0.012,0.4,text);
-    ct130->SetTextSize(0.3);
-    ct130->Draw();
+    TCanvas *c13 = new TCanvas("c13", CanvasTitle("Modulation Cycle"),120,120,csizx,csizy);
+    TPad* pad131 = NewFramedPad(kOrange-9, kWhite, "Modulation Cycle");
+    //     pad130 = new TPad("pad130","pad130",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+    //     pad131 = new TPad("pad131","pad131",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+    //     pad130->SetFillColor(kOrange-9);
+    //     pad131->SetFillColor(kWhite);
+    //     pad130->Draw();
+    //     pad131->Draw();
+    //     pad130->cd();
+    //     DrawCanvasHeader("Modulation Cycle");
     pad131->cd();
     pad131->Divide(1,6);
     printf("%sPlotting %sModulation Cycle%s\n",blue,red,normal);
@@ -429,7 +566,7 @@ void qwanalysis(UInt_t run_number=0)
     TString error = "ErrorFlag == 0 && Device_Error_Code == 0";
     TString cut = Form("%s && %s && %s && event_number*0.001<99", subblock0.Data(), subblock1.Data(), error.Data());
     Double_t bmod_r[2] = { -0.4, 0.4};
-    Double_t bmod_bin[1] = {250};
+    Int_t    bmod_bin[1] = {250};
     TH2D * histe  = new TH2D("histe", "histe", bmod_bin[0], 0, 99, bmod_bin[0],bmod_r[0],bmod_r[1]);
     TH2D * histx1 = new TH2D("histx1", "histx1", bmod_bin[0], 0, 99, bmod_bin[0],bmod_r[0],bmod_r[1]);
     TH2D * histx2 = new TH2D("histx2", "histx2", bmod_bin[0], 0, 99, bmod_bin[0],bmod_r[0],bmod_r[1]);
@@ -512,23 +649,24 @@ void qwanalysis(UInt_t run_number=0)
     gStyle->SetOptStat("emr");
   /****************************************************************************/
   if (BPMS){
-    TCanvas *c4 = new TCanvas("c4", Form("Run %d: BPM Difference (mm)",run_number),60,60,csizx,1000);
-  pad40 = new TPad("pad40","pad40",ps1,ps2,ps4,ps4);
-  pad41 = new TPad("pad41","pad41",ps1,ps1,ps4,ps3);
-  pad40->SetFillColor(kOrange-9);
-  pad41->SetFillColor(kWhite);
-  pad40->Draw();
-  pad41->Draw();
-  pad40->cd();
-  TString text = Form("Run %d: BPM Difference (mm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct40 = new TText(0.012,0.4,text);
-  ct40->SetTextSize(0.3);
-  ct40->Draw();
+  TCanvas *c4 = new TCanvas("c4", CanvasTitle("BPM Difference (mm)"),60,60,csizx,csizy);
+  TPad* pad41 = NewFramedPad(kOrange-9, kWhite, "BPM Difference (mm)");
+  //     pad40 = new TPad("pad40","pad40",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad41 = new TPad("pad41","pad41",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad40->SetFillColor(kOrange-9);
+  //   pad41->SetFillColor(kWhite);
+  //   pad40->Draw();
+  //   pad41->Draw();
+  //   pad40->cd();
+  //   DrawCanvasHeader("BPM Difference (mm)");
   pad41->cd();
   pad41->Divide(2,4);
   printf("%sPlotting %sBPM Difference (mm)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
-  char hdiffbpmx[255],hdiffbpmy[255],tdiffbpmx[255],tdiffbpmx[255];
+  char hdiffbpmx[255],hdiffbpmy[255]; //,tdiffbpmx[255];
+
+  TH1* hdiffx;
+  TH1* hdiffy;
   for ( int k=0; k<4; k++) {
 
     sprintf(bpmx,"diff_qwk_%sX>>difx%d",bpms[k].Data(),k);
@@ -571,27 +709,28 @@ void qwanalysis(UInt_t run_number=0)
   gStyle->SetCanvasColor(kRed-10);
   /****************************************************************************/
   if (MDYIELDVAR){
-  TCanvas *c14 = new TCanvas("c14", Form("Run %d: Main Detector Barsum Yield Variation",run_number),90,90,csizx,1000);
-  pad140 = new TPad("pad140","pad140",ps1,ps2,ps4,ps4);
-  pad141 = new TPad("pad141","pad141",ps1,ps1,ps4,ps3);
-  pad140->SetFillColor(kRed-10);
-  pad141->SetFillColor(kWhite);
-  pad140->Draw();
-  pad141->Draw();
-  pad140->cd();
-  TString text = Form("Run %d: Main Detector Barsum Yield Variation for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct140 = new TText(0.012,0.4,text);
-  ct140->SetTextSize(0.3);
-  ct140->Draw();
+  TCanvas *c14 = new TCanvas("c14", CanvasTitle("Main Detector Barsum Yield Variation"),90,90,csizx,csizy);
+  TPad* pad141 = NewFramedPad(kRed-10, kWhite, "Main Detector Barsum Yield Variation");
+  //   pad140 = new TPad("pad140","pad140",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad141 = new TPad("pad141","pad141",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad140->SetFillColor(kRed-10);
+  //   pad141->SetFillColor(kWhite);
+  //   pad140->Draw();
+  //   pad141->Draw();
+  //   pad140->cd();
+  //   DrawCanvasHeader("Main Detector Barsum Yield Variation");
   pad141->cd();
   pad141->Divide(3,3);
   printf("%sPlotting %sMain Detector Barsum Yield Variation%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
-  char hadet[255],hdetvar[255],hadetall[255], txadet[255], tyadet[255], txalladet[255],tydetvar[255],tyalldetvar[255];
-  Double_t mdt_varr[2] = { -0.0300, 0.0450};
+  char  hdetvar[255], tydetvar[255], tyalldetvar[255];
+  //  char hadet[255], hadetall[255], txadet[255], tyadet[255], txalladet[255];
+  //  Double_t mdt_varr[2] = { -0.0300, 0.0450};
  
   sprintf(tyalldetvar,"MD All YIELD");
   int ld=0;
+  TH1* hyvar;
+  TH1* hvarall;
   for ( int l=0; l<8; l++) {
     ld = l+1;
 
@@ -614,6 +753,7 @@ void qwanalysis(UInt_t run_number=0)
     pad141->cd(5);
     pad141->cd(5)->SetGrid();
     th->Draw("yield_qwk_mdallbars:mps_counter*0.001>>hvarall",Form("%s && yield_qwk_mdallbars.%s",s1,s2));
+    hvarall = GetHist("hvarall");
     hvarall->SetFillColor(kRed-2);
     hvarall->SetMarkerColor(kRed-2);
 //     hvarall->SetFillStyle(3013);
@@ -626,24 +766,24 @@ void qwanalysis(UInt_t run_number=0)
     c14->Update(); c14->SaveAs(pmdyieldvar);}
   /****************************************************************************/
   if (MDBKG){
-  TCanvas *c18 = new TCanvas("c18", Form("Run %d: Main Detector Background Yields[V/uA] & Asymmetries [ppm]",run_number),100,100,csizx,1000);
-  pad180 = new TPad("pad180","pad180",ps1,ps2,ps4,ps4);
-  pad181 = new TPad("pad181","pad181",ps1,ps1,ps4,ps3);
-  pad180->SetFillColor(kRed-10);
-  pad181->SetFillColor(kWhite);
-  pad180->Draw();
-  pad181->Draw();
-  pad180->cd();
-  TString text = Form("Run %d: Main Detector Background Yields[V/uA] & Asymmetries [ppm] for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct180 = new TText(0.012,0.4,text);
-  ct180->SetTextSize(0.3);
-  ct180->Draw();
+  TCanvas *c18 = new TCanvas("c18", CanvasTitle("Main Detector Background Yields[V/uA] & Asymmetries [ppm]"),100,100,csizx,csizy);
+  TPad* pad181 = NewFramedPad(kRed-10, kWhite, "Main Detector Background Yields[V/uA] & Asymmetries [ppm]");
+  //   pad180 = new TPad("pad180","pad180",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad181 = new TPad("pad181","pad181",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad180->SetFillColor(kRed-10);
+  //   pad181->SetFillColor(kWhite);
+  //   pad180->Draw();
+  //   pad181->Draw();
+  //   pad180->cd();
+  //   DrawCanvasHeader("Main Detector Background Yields[V/uA] & Asymmetries [ppm]");
   pad181->cd();
   pad181->Divide(4,3);
   printf("%sPlotting %sMain Detector Background Yields[V/uA] & Asymmetries [ppm]%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
   char amdbkg[255],cutamdbkg[255],ymdbkg[255],cutymdbkg[255],hamdbkg[255],hymdbkg[255];
   int xd=0;
+  TH1* hybkg;
+  TH1* habkg;
   for ( int x=0; x<6; x++) {
     xd = x+1;
 
@@ -678,24 +818,22 @@ void qwanalysis(UInt_t run_number=0)
   c18->Update(); c18->SaveAs(pmdbkg);}
   /****************************************************************************/
   if (MDALLASYM){
-  TCanvas *c6 = new TCanvas("c6", Form("Run %d: Main Detector All Barsum Asymmetry w.r.t BCMs (ppm)",run_number),110,110,csizx,1000);
-  pad60 = new TPad("pad60","pad60",ps1,ps2,ps4,ps4);
-  pad61 = new TPad("pad61","pad61",ps1,ps1,ps4,ps3);
-  pad60->SetFillColor(kRed-10);
-  pad61->SetFillColor(kWhite);
-  pad60->Draw();
-  pad61->Draw();
-  pad60->cd();
-  TString text = Form("Run %d: Main Detector All Barsum Asymmetry (ppm) Normalized to Different BCMs for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct60 = new TText(0.012,0.4,text);
-  ct60->SetTextSize(0.3);
-  ct60->Draw();
+  TCanvas *c6 = new TCanvas("c6", CanvasTitle("Main Detector All Barsum Asymmetry w.r.t BCMs (ppm)"),110,110,csizx,csizy);
+  TPad* pad61 = NewFramedPad(kRed-10, kWhite, "Main Detector All Barsum Asymmetry (ppm) Normalized to Different BCMs");
+  //   pad60 = new TPad("pad60","pad60",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad61 = new TPad("pad61","pad61",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad60->SetFillColor(kRed-10);
+  //   pad61->SetFillColor(kWhite);
+  //   pad60->Draw();
+  //   pad61->Draw();
+  //   pad60->cd();
+  //   DrawCanvasHeader("Main Detector All Barsum Asymmetry (ppm) Normalized to Different BCMs");
   pad61->cd();
   pad61->Divide(2,3);
   printf("%sPlotting %sMain Detector All Barsum Asymmetries (ppm)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
   Double_t mdt_r[2] = { -1700, 1700};
-  Double_t mdt_bin[1] = {100};
+  Int_t    mdt_bin[1] = {100};
   TH1F * hmdbcm1  = new TH1F("hmdbcm1", "hmdbcm1", mdt_bin[0],mdt_r[0],mdt_r[1]);
   TH1F * hmdbcm2  = new TH1F("hmdbcm2", "hmdbcm2", mdt_bin[0],mdt_r[0],mdt_r[1]);
   TH1F * hmdbcm5  = new TH1F("hmdbcm5", "hmdbcm5", mdt_bin[0],mdt_r[0],mdt_r[1]);
@@ -774,67 +912,59 @@ void qwanalysis(UInt_t run_number=0)
   gStyle->SetStatH(0.30); 
   /************************************************************************/
   if (SENSITIVITY){
-  TCanvas *c7 = new TCanvas("c7", Form("Run %d: Main Detector All Barsum X-Sensitivities (ppm/mm)",run_number),120,120,1400,1000);
-  pad70 = new TPad("pad70","pad70",ps1,ps2,ps4,ps4);
-  pad71 = new TPad("pad71","pad71",ps1,ps1,ps4,ps3);
-  pad70->SetFillColor(kRed-10);
-  pad71->SetFillColor(kWhite);
-  pad70->Draw();
-  pad71->Draw();
-  pad70->cd();
-  TString text = Form("Run %d: Main Detector Barsum X-Sensitivities (ppm/mm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct70 = new TText(0.012,0.4,text);
-  ct70->SetTextSize(0.3);
-  ct70->Draw();
+  TCanvas *c7 = new TCanvas("c7", CanvasTitle("Main Detector All Barsum X-Sensitivities (ppm/mm)"),120,120,1400,1000);
+  TPad* pad71 = NewFramedPad(kRed-10, kWhite, "Main Detector Barsum X-Sensitivities (ppm/mm)");
+  //   pad70 = new TPad("pad70","pad70",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad71 = new TPad("pad71","pad71",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad70->SetFillColor(kRed-10);
+  //   pad71->SetFillColor(kWhite);
+  //   pad70->Draw();
+  //   pad71->Draw();
+  //   pad70->cd();
+  //   DrawCanvasHeader("Main Detector Barsum X-Sensitivities (ppm/mm)");
   pad71->cd();
   pad71->Divide(4,3);
   printf("%sPlotting %sMain Detector Barsum X-Sensitivities (ppm/mm)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
-  TCanvas *c8 = new TCanvas("c8", Form("Run %d: Main Detector All Barsum Y-Sensitivities (ppm/mm)",run_number),140,140,1400,1000);
-  pad80 = new TPad("pad80","pad80",ps1,ps2,ps4,ps4);
-  pad81 = new TPad("pad81","pad81",ps1,ps1,ps4,ps3);
-  pad80->SetFillColor(kRed-10);
-  pad81->SetFillColor(kWhite);
-  pad80->Draw();
-  pad81->Draw();
-  pad80->cd();
-  TString text = Form("Run %d: Main Detector Barsum Y-Sensitivities (ppm/mm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct80 = new TText(0.012,0.4,text);
-  ct80->SetTextSize(0.3);
-  ct80->Draw();
+  TCanvas *c8 = new TCanvas("c8", CanvasTitle("Main Detector All Barsum Y-Sensitivities (ppm/mm)"),140,140,1400,1000);
+  TPad* pad81 = NewFramedPad(kRed-10, kWhite, "Main Detector Barsum Y-Sensitivities (ppm/mm)");
+  //   pad80 = new TPad("pad80","pad80",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad81 = new TPad("pad81","pad81",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad80->SetFillColor(kRed-10);
+  //   pad81->SetFillColor(kWhite);
+  //   pad80->Draw();
+  //   pad81->Draw();
+  //   pad80->cd();
+  //   DrawCanvasHeader("Main Detector Barsum Y-Sensitivities (ppm/mm)");
   pad81->cd();
   pad81->Divide(4,3);
   printf("%sPlotting %sMain Detector Barsum Y-Sensitivities (ppm/mm)%s\n",blue,red,normal);
   gStyle->SetCanvasColor(kBlue-10);
   /* ----------------------------------------------------------------------- */
-  TCanvas *c11 = new TCanvas("c11", Form("Run %d: Downstream Lumi X-Sensitivities (ppm/mm)",run_number),200,200,1400,1000);
-  pad110 = new TPad("pad110","pad110",ps1,ps2,ps4,ps4);
-  pad111 = new TPad("pad111","pad111",ps1,ps1,ps4,ps3);
-  pad110->SetFillColor(kBlue-10);
-  pad111->SetFillColor(kWhite);
-  pad110->Draw();
-  pad111->Draw();
-  pad110->cd();
-  TString text = Form("Run %d: Downstream Lumi X-Sensitivities (ppm/mm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct110 = new TText(0.012,0.4,text);
-  ct110->SetTextSize(0.3);
-  ct110->Draw();
+  TCanvas *c11 = new TCanvas("c11", CanvasTitle("Downstream Lumi X-Sensitivities (ppm/mm)"),200,200,1400,1000);
+  TPad* pad111 = NewFramedPad(kBlue-10, kWhite, "Downstream Lumi X-Sensitivities (ppm/mm)");
+  //   pad110 = new TPad("pad110","pad110",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad111 = new TPad("pad111","pad111",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad110->SetFillColor(kBlue-10);
+  //   pad111->SetFillColor(kWhite);
+  //   pad110->Draw();
+  //   pad111->Draw();
+  //   pad110->cd();
+  //   DrawCanvasHeader("Downstream Lumi X-Sensitivities (ppm/mm)");
   pad111->cd();
   pad111->Divide(4,3);
   printf("%sPlotting %sDownstream Lumi X-Sensitivities (ppm/mm)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
-  TCanvas *c12 = new TCanvas("c12", Form("Run %d: Downstream Lumi Y-Sensitivities (ppm/mm)",run_number),220,220,1400,1000);
-  pad120 = new TPad("pad120","pad120",ps1,ps2,ps4,ps4);
-  pad121 = new TPad("pad121","pad121",ps1,ps1,ps4,ps3);
-  pad120->SetFillColor(kBlue-10);
-  pad121->SetFillColor(kWhite);
-  pad120->Draw();
-  pad121->Draw();
-  pad120->cd();
-  TString text = Form("Run %d: Downstream Lumi Y-Sensitivities (ppm/mm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct120 = new TText(0.012,0.4,text);
-  ct120->SetTextSize(0.3);
-  ct120->Draw();
+  TCanvas *c12 = new TCanvas("c12", CanvasTitle("Downstream Lumi Y-Sensitivities (ppm/mm)"),220,220,1400,1000);
+  TPad* pad121 = NewFramedPad(kBlue-10, kWhite, "Downstream Lumi Y-Sensitivities (ppm/mm)");
+  //   pad120 = new TPad("pad120","pad120",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad121 = new TPad("pad121","pad121",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad120->SetFillColor(kBlue-10);
+  //   pad121->SetFillColor(kWhite);
+  //   pad120->Draw();
+  //   pad121->Draw();
+  //   pad120->cd();
+  //   DrawCanvasHeader("Downstream Lumi Y-Sensitivities (ppm/mm)");
   pad121->cd();
   pad121->Divide(4,3);
   printf("%sPlotting %sDownstream Lumi Y-Sensitivities (ppm/mm)%s\n",blue,red,normal);
@@ -1049,18 +1179,16 @@ void qwanalysis(UInt_t run_number=0)
   gStyle->SetStatH(0.20); 
  /****************************************************************************/
   if (BMODSEN){
-    TCanvas *c19 = new TCanvas("c19", Form("Run %d: Sensitivities from Modulation [ppm/mm]",run_number),120,120,csizx,1000);
-    pad190 = new TPad("pad190","pad190",ps1,ps2,ps4,ps4);
-    pad191 = new TPad("pad191","pad191",ps1,ps1,ps4,ps3);
-    pad190->SetFillColor(kOrange-9);
-    pad191->SetFillColor(kWhite);
-    pad190->Draw();
-    pad191->Draw();
-    pad190->cd();
-    TString text = Form("Run %d: Sensitivities from Modulation [ppm/mm] for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-    ct190 = new TText(0.012,0.4,text);
-    ct190->SetTextSize(0.3);
-    ct190->Draw();
+    TCanvas *c19 = new TCanvas("c19", CanvasTitle("Sensitivities from Modulation [ppm/mm]"),120,120,csizx,csizy);
+    TPad* pad191 = NewFramedPad(kOrange-9, kWhite, "Sensitivities from Modulation [ppm/mm]");
+    //     pad190 = new TPad("pad190","pad190",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+    //     pad191 = new TPad("pad191","pad191",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+    //     pad190->SetFillColor(kOrange-9);
+    //     pad191->SetFillColor(kWhite);
+    //     pad190->Draw();
+    //     pad191->Draw();
+    //     pad190->cd();
+    //     DrawCanvasHeader("Sensitivities from Modulation [ppm/mm]");
     pad191->cd();
     pad191->Divide(1,3);
     printf("%sPlotting %sSensitivities from Modulation [ppm/mm]%s\n",blue,red,normal);
@@ -1068,16 +1196,36 @@ void qwanalysis(UInt_t run_number=0)
   gStyle -> SetOptStat("e");
 
   /* ----------------------------------------------------------------------- */
-    TH1D *senbmodx = NULL;TH1D *senbmodxp = NULL;TH1D *senbmode = NULL;TH1D *senbmody = NULL;TH1D *senbmodyp = NULL;
+    TH1D *senbmodx = NULL;
+    TH1D *senbmode = NULL;
+    TH1D *senbmody = NULL;
+    //    TH1D *senbmodxp = NULL;
+    //    TH1D *senbmodyp = NULL;
     TF1* fitbmodx = new TF1("fitbmodx","pol1",0.7,1.1);
-    TF1* fitbmodxp = new TF1("fitbmodxp","pol1",0.7,1.1);
     TF1* fitbmode = new TF1("fitbmode","pol1",0.7,1.1);
     TF1* fitbmody = new TF1("fitbmody","pol1",0.7,1.1);
-    TF1* fitbmodyp = new TF1("fitbmodyp","pol1",0.7,1.1);
-    char *s3 = Form("ErrorFlag==0 && ramp>0 && abs((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1))<50 && event_number>4500 && %f",cut_charge);
+    //    TF1* fitbmodxp = new TF1("fitbmodxp","pol1",0.7,1.1);
+    //    TF1* fitbmodyp = new TF1("fitbmodyp","pol1",0.7,1.1);
+    char *s3 = Form("ErrorFlag==0 && ramp>0 && abs((ramp.block3+ramp.block0)-(ramp.block2+ramp.block1))<50 && event_number>4500 && %s",cut_charge.Data());
 
-    Double_t amplitudex = 0.092,amplitudexp = 0.092, amplitudey = 0.130,amplitudeyp = 0.130, amplitudee = 0.400;
-    Double_t xbmodslope1,xbmodslope2,exbmodslope1,exbmodslope2,xbmodslope,exbmodslope,xpbmodslope1,xpbmodslope2,expbmodslope1,expbmodslope2,xpbmodslope,expbmodslope,ybmodslope1,ybmodslope2,eybmodslope1,eybmodslope2,ybmodslope,eybmodslope,ypbmodslope1,ypbmodslope2,eypbmodslope1,eypbmodslope2,ypbmodslope,eypbmodslope,ebmodslope1,ebmodslope2,eebmodslope1,eebmodslope2,ebmodslope,eebmodslope,exbmodslope11,exbmodslope12,expbmodslope11,expbmodslope12,eebmodslope11,eebmodslope12,eybmodslope11,eybmodslope12,eypbmodslope11,eypbmodslope12,exbmodslope13,expbmodslope13,eebmodslope13,eybmodslope13,eypbmodslope13;
+    Double_t amplitudex = 0.092,  amplitudey  = 0.130;
+    //    Double_t amplitudexp = 0.092, amplitudeyp = 0.130;
+    Double_t amplitudee = 0.400;
+    Double_t xbmodslope1,xbmodslope2,exbmodslope1,exbmodslope2,xbmodslope,exbmodslope;
+    //   Double_t xpbmodslope1,xpbmodslope2,expbmodslope1,expbmodslope2,xpbmodslope,expbmodslope;
+    Double_t ybmodslope1,ybmodslope2,eybmodslope1,eybmodslope2,ybmodslope,eybmodslope;
+    //    Double_t ypbmodslope1,ypbmodslope2,eypbmodslope1,eypbmodslope2,ypbmodslope,eypbmodslope;
+    Double_t ebmodslope1,ebmodslope2,eebmodslope1,eebmodslope2,ebmodslope,eebmodslope;
+    Double_t exbmodslope11,exbmodslope12,
+      //      expbmodslope11,expbmodslope12,
+      eebmodslope11,eebmodslope12,
+      eybmodslope11,eybmodslope12,
+      //      eypbmodslope11,eypbmodslope12,
+      exbmodslope13,
+      //      expbmodslope13,
+      eebmodslope13,
+      eybmodslope13;
+    // , eypbmodslope13;
 
     pad191->cd(1);
     if (tm->Draw("qwk_mdallbars*1e6:qwk_targetX>>senbmodx",Form("%s && qwk_mdallbars.%s && qwk_targetX.%s && bm_pattern_number==11",s3,s2,s2),"prof goff")>0){
@@ -1087,10 +1235,14 @@ void qwanalysis(UInt_t run_number=0)
       fitbmodx->SetRange(senbmodx->GetMean(1) - amplitudex, senbmodx->GetMean(1) + amplitudex );
       fitbmodx->SetParameters(senbmodx->GetMean(2), 6000);
       senbmodx->Fit("fitbmodx","E M R F Q 0");
-      xbmodslope1 =fitbmodx->GetParameter(1); exbmodslope1 =fitbmodx->GetParError(1);
-      xbmodslope2 =fitbmodx->GetParameter(0); exbmodslope2 =fitbmodx->GetParError(0);
-      exbmodslope11 = TMath::Power((exbmodslope1/xbmodslope1),2);exbmodslope12 = TMath::Power((exbmodslope2/xbmodslope2),2);
-      xbmodslope = xbmodslope1/xbmodslope2;  exbmodslope13 = TMath::Sqrt(exbmodslope11 + exbmodslope12);
+      xbmodslope1 =fitbmodx->GetParameter(1);
+      exbmodslope1 =fitbmodx->GetParError(1);
+      xbmodslope2 =fitbmodx->GetParameter(0);
+      exbmodslope2 =fitbmodx->GetParError(0);
+      exbmodslope11 = TMath::Power((exbmodslope1/xbmodslope1),2);
+      exbmodslope12 = TMath::Power((exbmodslope2/xbmodslope2),2);
+      xbmodslope = xbmodslope1/xbmodslope2;
+      exbmodslope13 = TMath::Sqrt(exbmodslope11 + exbmodslope12);
       exbmodslope =  exbmodslope13*xbmodslope;
       Double_t limitx = senbmodx->GetMean(2);
       senbmodx->SetYTitle("MD ALL YIELD [V/A]");
@@ -1099,10 +1251,13 @@ void qwanalysis(UInt_t run_number=0)
       senbmodx->Draw("goff");
       fitbmodx->Draw("same");
       senbmodx->GetYaxis()->SetRangeUser(limitx*0.995,limitx*1.005);
+    } else {
+      pad191->cd(1);
+      tnodatax->Draw();
     }
     gPad->Update();
-    else{pad191->cd(1);tnodatax->Draw();}
-    
+   
+
 //     pad191->cd(2);
 //     if (tm->Draw("qwk_mdallbars*1e6:qwk_targetX>>senbmodxp",Form("%s && qwk_mdallbars.%s && qwk_targetX.%s && bm_pattern_number==14",s3,s2,s2),"prof goff")>0){
 //       senbmodxp = (TH1D *)gDirectory->Get("senbmodxp");
@@ -1147,9 +1302,12 @@ void qwanalysis(UInt_t run_number=0)
       senbmode->Draw("goff");
       fitbmode->Draw("same");
       senbmode->GetYaxis()->SetRangeUser(limite*0.995,limite*1.005);
+    } else {
+      pad191->cd(3);
+      tnodatae->Draw();
     }
     gPad->Update();
-    else{pad191->cd(3);tnodatae->Draw();}
+    
 
     pad191->cd(2);
     if (tm->Draw("qwk_mdallbars*1e6:qwk_targetY>>senbmody",Form("%s && qwk_mdallbars.%s && qwk_targetY.%s && bm_pattern_number==12",s3,s2,s2),"prof goff")>0){
@@ -1171,9 +1329,12 @@ void qwanalysis(UInt_t run_number=0)
       senbmody->Draw("goff");
       fitbmody->Draw("same");
       senbmody->GetYaxis()->SetRangeUser(limity*0.995,limity*1.005);
+    } else {
+      pad191->cd(2);
+      tnodatay->Draw();
     }
     gPad->Update();
-    else{pad191->cd(2);tnodatay->Draw();}
+    
 
 //     pad191->cd(5);
 //     if (tm->Draw("qwk_mdallbars*1e6:qwk_targetY>>senbmodyp",Form("%s && qwk_mdallbars.%s && qwk_targetY.%s && bm_pattern_number==15",s3,s2,s2),"prof goff")>0){
@@ -1217,51 +1378,45 @@ void qwanalysis(UInt_t run_number=0)
   gStyle->SetStatH(0.30); 
   /****************************************************************************/
   if (MDLUMI){
-  TCanvas *c5 = new TCanvas("c5", Form("Run %d: Main Detector Barsum Asymmetries (ppm)",run_number),80,80,1400,1000);
-  pad50 = new TPad("pad50","pad50",ps1,ps2,ps4,ps4);
-  pad51 = new TPad("pad51","pad51",ps1,ps1,ps4,ps3);
-  pad50->SetFillColor(kRed-10);
-  pad51->SetFillColor(kWhite);
-  pad50->Draw();
-  pad51->Draw();
-  pad50->cd();
-  TString text = Form("Run %d: Main Detector Barsum Asymmetries (ppm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct50 = new TText(0.012,0.4,text);
-  ct50->SetTextSize(0.3);
-  ct50->Draw();
+  TCanvas *c5 = new TCanvas("c5", CanvasTitle("Main Detector Barsum Asymmetries (ppm)"),80,80,1400,1000);
+  TPad* pad51 = NewFramedPad(kRed-10, kWhite, "Main Detector Barsum Asymmetries (ppm)");
+  //   pad50 = new TPad("pad50","pad50",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad51 = new TPad("pad51","pad51",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad50->SetFillColor(kRed-10);
+  //   pad51->SetFillColor(kWhite);
+  //   pad50->Draw();
+  //   pad51->Draw();
+  //   pad50->cd();
+  //   DrawCanvasHeader("Main Detector Barsum Asymmetries (ppm)");
   pad51->cd();
   pad51->Divide(4,3);
   printf("%sPlotting %sMain Detector Barsum Asymmetries (ppm)%s\n",blue,red,normal);
   gStyle->SetCanvasColor(kBlue-10);
   /* ----------------------------------------------------------------------- */
-  TCanvas *c9 = new TCanvas("c9", Form("Run %d: Downstream Lumi Yields (Volts/uA)",run_number),160,160,1400,1000);
-  pad90 = new TPad("pad90","pad90",ps1,ps2,ps4,ps4);
-  pad91 = new TPad("pad91","pad91",ps1,ps1,ps4,ps3);
-  pad90->SetFillColor(kBlue-10);
-  pad91->SetFillColor(kWhite);
-  pad90->Draw();
-  pad91->Draw();
-  pad90->cd();
-  TString text = Form("Run %d: Downstream Lumi Yields (Volts/uA) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct90 = new TText(0.012,0.4,text);
-  ct90->SetTextSize(0.3);
-  ct90->Draw();
+  TCanvas *c9 = new TCanvas("c9", CanvasTitle("Downstream Lumi Yields (Volts/uA)"),160,160,1400,1000);
+  TPad* pad91 = NewFramedPad(kBlue-10, kWhite, "Downstream Lumi Yields (Volts/uA)");
+//   pad90 = new TPad("pad90","pad90",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+//   pad91 = new TPad("pad91","pad91",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+//   pad90->SetFillColor(kBlue-10);
+//   pad91->SetFillColor(kWhite);
+//   pad90->Draw();
+//   pad91->Draw();
+//   pad90->cd();
+//   DrawCanvasHeader("Downstream Lumi Yields (Volts/uA)");
   pad91->cd();
   pad91->Divide(4,3);
   printf("%sPlotting %sDownstream Lumi Yields (Volts/uA)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
-  TCanvas *c10 = new TCanvas("c10", Form("Run %d: Downstream Lumi Asymmetries (ppm)",run_number),180,180,1400,1000);
-  pad100 = new TPad("pad100","pad100",ps1,ps2,ps4,ps4);
-  pad101 = new TPad("pad101","pad101",ps1,ps1,ps4,ps3);
-  pad100->SetFillColor(kBlue-10);
-  pad101->SetFillColor(kWhite);
-  pad100->Draw();
-  pad101->Draw();
-  pad100->cd();
-  TString text = Form("Run %d: Downstream Lumi Asymmetries (ppm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct100 = new TText(0.012,0.4,text);
-  ct100->SetTextSize(0.3);
-  ct100->Draw();
+  TCanvas *c10 = new TCanvas("c10", CanvasTitle("Downstream Lumi Asymmetries (ppm)"),180,180,1400,1000);
+  TPad* pad101 = NewFramedPad(kBlue-10, kWhite, "Downstream Lumi Asymmetries (ppm)");
+//   pad100 = new TPad("pad100","pad100",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+//   pad101 = new TPad("pad101","pad101",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+//   pad100->SetFillColor(kBlue-10);
+//   pad101->SetFillColor(kWhite);
+//   pad100->Draw();
+//   pad101->Draw();
+//   pad100->cd();
+//   DrawCanvasHeader("Downstream Lumi Asymmetries (ppm)");
   pad101->cd();
   pad101->Divide(4,3);
   printf("%sPlotting %sDownstream Lumi Asymmetries (ppm)%s\n",blue,red,normal);
@@ -1269,18 +1424,24 @@ void qwanalysis(UInt_t run_number=0)
   gStyle->SetOptStat(1);
   gStyle->SetOptStat("emr");
 
-  char hadslumi[255],hadslumiall[255], txadslumi[255], tyadslumi[255], txadslumiall[255],hydslumi[255],hydslumiall[255], txydslumi[255], txydslumiall[255];
-
-  sprintf(txalladet,"MD All ASYM [ppm]");
+  char hadslumi[255],hadslumiall[255], txadslumi[255]; //, tyadslumi[255];
+  char txadslumiall[255],hydslumi[255],hydslumiall[255], txydslumi[255], txydslumiall[255];
+  
+  TString hadet;
+  TString txalladet("MD All ASYM [ppm]");
+  TString txadet;
 
   int dm=0;
+  TH1*  hadt;
+  TH1*  hylumi;
+  TH1*  halumi;
   for ( int m=0; m<8; m++) {
     dm = m+1;
 
     sprintf(adet,"asym_qwk_md%dbarsum*1e6>>ha%d",dm,dm);
     sprintf(cutadet,"%s && asym_qwk_md%dbarsum.%s",s1,dm,s2);
-    sprintf(hadet,"ha%d",dm);
-    sprintf(txadet,"MD %d ASYM [ppm]",dm);
+    hadet = Form("ha%d",dm);
+    txadet = Form("MD %d ASYM [ppm]",dm);
 
     sprintf(ylumi,"yield_qwk_dslumi%d>>hydsl%d",dm,dm);
     sprintf(alumi,"asym_qwk_dslumi%d*1e6>>hadsl%d",dm,dm);
@@ -1320,6 +1481,8 @@ void qwanalysis(UInt_t run_number=0)
     gPad->Update();
   }
   int dn=0;
+  TH1*  hylumiall;
+  TH1*  halumiall;
   for ( int n=0; n<3; n++) {
     dn = n+1;
 
@@ -1356,8 +1519,13 @@ void qwanalysis(UInt_t run_number=0)
     gPad->Update();
   }
 
+  TH1*  hall;
+  TH1*  hall56;
+  TH1*  hall15;
+  TH1*  hall26;
     pad51->cd(6);
     th->Draw("asym_qwk_mdallbars*1e6>>hall",Form("%s && asym_qwk_mdallbars.%s",s1,s2),"goff");
+    hall = GetHist("hall");
     hall->SetFillColor(kRed-2);
     // hall->SetLineColor(kRed-2);
     hall->SetFillStyle(3013);
@@ -1368,6 +1536,7 @@ void qwanalysis(UInt_t run_number=0)
 
     pad51->cd(4);
     th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-(asym_qwk_bcm5+asym_qwk_bcm6)/2)*1e6>>hall56",Form("%s && asym_qwk_mdallbars.%s && asym_qwk_charge.%s && asym_qwk_bcm5.%s && asym_qwk_bcm6.%s",s1,s2,s2,s2,s2),"goff");
+    hall56 = GetHist("hall56");
     hall56->SetFillColor(kRed-2);
     hall56->SetFillStyle(3004);
     hall56->SetYTitle(tarbitrary);
@@ -1377,6 +1546,7 @@ void qwanalysis(UInt_t run_number=0)
 
     pad51->cd(8);
     th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-(asym_qwk_bcm1+asym_qwk_bcm5)/2)*1e6>>hall15",Form("%s && asym_qwk_mdallbars.%s && asym_qwk_charge.%s && asym_qwk_bcm1.%s && asym_qwk_bcm5.%s",s1,s2,s2,s2,s2),"goff");
+    hall15 = GetHist("hall15");
     hall15->SetFillColor(kRed-2);
     hall15->SetFillStyle(3004);
     hall15->SetYTitle(tarbitrary);
@@ -1386,6 +1556,7 @@ void qwanalysis(UInt_t run_number=0)
 
     pad51->cd(12);
     th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-(asym_qwk_bcm2+asym_qwk_bcm6)/2)*1e6>>hall26",Form("%s && asym_qwk_mdallbars.%s && asym_qwk_charge.%s && asym_qwk_bcm2.%s && asym_qwk_bcm6.%s",s1,s2,s2,s2,s2),"goff");
+    hall26 = GetHist("hall26");
     hall26->SetFillColor(kRed-2);
     hall26->SetFillStyle(3004);
     hall26->SetYTitle(tarbitrary);
@@ -1398,24 +1569,25 @@ void qwanalysis(UInt_t run_number=0)
   c10->Update(); c10->SaveAs(pdslumiasym);}
   /****************************************************************************/
   if (USLUMI){
-  TCanvas *c16 = new TCanvas("c16", Form("Run %d: Upstream Lumi Yields (Volts/uA) & Asymmetry (ppm)",run_number),200,200,1580,1000);
-  pad160 = new TPad("pad160","pad160",ps1,ps2,ps4,ps4);
-  pad161 = new TPad("pad161","pad161",ps1,ps1,ps4,ps3);
-  pad160->SetFillColor(kBlue-10);
-  pad161->SetFillColor(kWhite);
-  pad160->Draw();
-  pad161->Draw();
-  pad160->cd();
-  TString text = Form("Run %d: Upstream Lumi Yields (Volts/uA) & Asymmetry (ppm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct160 = new TText(0.012,0.4,text);
-  ct160->SetTextSize(0.3);
-  ct160->Draw();
+  TCanvas *c16 = new TCanvas("c16", CanvasTitle("Upstream Lumi Yields (Volts/uA) & Asymmetry (ppm)"),200,200,1580,1000);
+  TPad* pad161 = NewFramedPad(kBlue-10, kWhite, "Upstream Lumi Yields (Volts/uA) & Asymmetry (ppm)");
+  //   pad160 = new TPad("pad160","pad160",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad161 = new TPad("pad161","pad161",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad160->SetFillColor(kBlue-10);
+  //   pad161->SetFillColor(kWhite);
+  //   pad160->Draw();
+  //   pad161->Draw();
+  //   pad160->cd();
+  //   DrawCanvasHeader("Upstream Lumi Yields (Volts/uA) & Asymmetry (ppm)");
   pad161->cd();
   pad161->Divide(6,3);
   printf("%sPlotting %sUpstream Lumi Yields (Volts/uA) & Asymmetry (ppm)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
   char hauslumi[255],txauslumi[255], hyuslumi[255], txyuslumi[255];
 
+
+  TH1* hyuslumis;
+  TH1* hauslumis;
   for ( int q=0; q<5; q++) {
 
     sprintf(yuslumis,"yield_%s_sum>>hyusl%d",uslumi[q].Data(),q);
@@ -1454,18 +1626,16 @@ void qwanalysis(UInt_t run_number=0)
 
   /****************************************************************************/
   if (USLUMISEN){
-  TCanvas *c17 = new TCanvas("c17", Form("Run %d: Upstream Lumi Sensitivity (ppm/mm)",run_number),220,220,1580,1000);
-  pad170 = new TPad("pad170","pad170",ps1,ps2,ps4,ps4);
-  pad171 = new TPad("pad171","pad171",ps1,ps1,ps4,ps3);
-  pad170->SetFillColor(kBlue-10);
-  pad171->SetFillColor(kWhite);
-  pad170->Draw();
-  pad171->Draw();
-  pad170->cd();
-  TString text = Form("Run %d: Upstream Lumi Sensitivity (ppm/mm) for %s, %2.1f uA, %2.1fx%2.1f mm",run_number,tar[1],current,raster,raster);
-  ct170 = new TText(0.012,0.4,text);
-  ct170->SetTextSize(0.3);
-  ct170->Draw();
+  TCanvas *c17 = new TCanvas("c17", CanvasTitle("Upstream Lumi Sensitivity (ppm/mm)"),220,220,1580,1000);
+  TPad* pad171 = NewFramedPad(kBlue-10, kWhite, "Upstream Lumi Sensitivity (ppm/mm)");
+  //   pad170 = new TPad("pad170","pad170",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
+  //   pad171 = new TPad("pad171","pad171",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
+  //   pad170->SetFillColor(kBlue-10);
+  //   pad171->SetFillColor(kWhite);
+  //   pad170->Draw();
+  //   pad171->Draw();
+  //   pad170->cd();
+  //   DrawCanvasHeader("Upstream Lumi Sensitivity (ppm/mm)");
   pad171->cd();
   pad171->Divide(6,3);
   printf("%sPlotting %sUpstream Lumi Sensitivity (ppm/mm)%s\n",blue,red,normal);
@@ -1516,12 +1686,14 @@ void qwanalysis(UInt_t run_number=0)
   }
   c17->Update(); c17->SaveAs(puslumisen);}
 
+
+
   /****************************************************************************/
   printf("%sSummary Table.%s\n",blue,normal);  
-  printf(ssline);printf("%s|\t%sRun Number: %d%s\t\t\t\t|%s\n",green,blue,run_number,green,normal);
-  printf("%s|  \t%s%s, %2.1f uA, %2.1fx%2.1f mm%s  \t|%s\n",green,blue,tar[1],current,raster,raster,green,normal);
+  printf(ssline);printf("%s|\t%sRun Number: %6d%s\t\t\t\t|%s\n",green,blue,gRunNumber,green,normal);
+  printf("%s|  \t%s%s, %s, %s%s  \t|%s\n",green,blue,gTarget.Data(),gCurrent.Data(),gRasterString.Data(),green,normal);
   printf(ssline);
-  printf("%s|%sI                         \t%s|%suA    \t%s|%s%2.1f%s      \t|%s\n",green,blue,green,blue,green,red,current,green,normal);
+  printf("%s|%sI                         \t%s|%suA    \t%s|%s%s%s      \t|%s\n",green,blue,green,blue,green,red,gCurrent.Data(),green,normal);
   printf("%s|%sMDALLBARS width           \t%s|%sppm   \t%s|%s%2.1f%s      \t|%s\n",green,blue,green,blue,green,red,cal_mdalla,green,normal);
   printf("%s|%sBCM12-ddif width          \t%s|%sppm   \t%s|%s%2.1f%s      \t|%s\n",green,blue,green,blue,green,red,cal_bcmdd,green,normal);
   printf("%s|%sA_q mean                  \t%s|%sppm   \t%s|%s%2.2f%s      \t|%s\n",green,blue,green,blue,green,red,cal_abcmm,green,normal);
@@ -1532,147 +1704,112 @@ void qwanalysis(UInt_t run_number=0)
   /****************************************************************************/
   printf("%sDone with all the plots.%s\n",blue,normal);
   /****************************************************************************/
-  UInt_t hclog_switch = 0;
-  printf(sline);printf("%sPlease Insert %s1%s for submiting to HCLOG, otherwise %s0%s and hit ENTER\n%s",blue,red,blue,red,blue,normal);printf(sline);
-  cin >> hclog_switch;
-  if (hclog_switch> 1) {printf("%sPlease insert a correct No. Exiting the program!%s\n",blue,normal); exit(1);}
 
-  //   cout<<__LINE__<<endl;
-  char textfile[255],info[255],line2[255],line3[255],line4[255],line5[255],line51[255],line6[255],line7[255],contact[255],hclog_list[255];
-  sprintf(textfile,"%s/%druninfo.txt",dir[0],run_number);
-  sprintf(info,"<pre>\n%s|\tRun Number: %d\t\t\t\t|\n|   \t%s, %2.1f uA, %2.1fx%2.1f mm      \t|\n%s",sslinen,run_number,tar[1],current,raster,raster,sslinen);
-  sprintf(line2,"|I                         \t|uA    \t|%2.1f       \t|\n",current);
-  sprintf(line3,"|MDALLBARS width           \t|ppm   \t|%2.1f       \t|\n",cal_mdalla);
-  sprintf(line4,"|BCM12-ddif width          \t|ppm   \t|%2.1f       \t|\n",cal_bcmdd);
-  sprintf(line51,"|A_q mean                 \t|ppm   \t|%2.2f       \t|\n",cal_abcmm);
-  sprintf(line5,"|A_q width                 \t|ppm   \t|%2.1f       \t|\n",cal_abcm);
-  sprintf(line6,"|MDALLBARS X-sensitivity   \t|ppm/mm\t|%2.1f+-%1.1f\t|\n",cal_mdxsen,cal_emdxsen);
-  sprintf(line7,"|MDALLBARS Y-sensitivity   \t|ppm/mm\t|%2.1f+-%1.1f\t|\n%s</pre>",cal_mdysen,cal_emdysen,sslinen);
-  sprintf(contact,"%sPlease contact Nuruzzaman (nur@jlab.org) for problems and comments%s\n",blue,normal);
-  sprintf(hclog_list,"%s/%drunsummary.txt",dir[1],run_number);
+  if (hclog_switch<=-1) {
+    printf("%sPlease Insert %s1%s for submiting to HCLOG, otherwise %s0%s and hit ENTER\n%s",blue,red,blue,red,blue,normal);
+    std::cin >> hclog_switch;
+  }
+  if (hclog_switch<=-1 || hclog_switch> 1) {
+    printf("%sPlease insert a correct No. Exiting the program!%s\n",blue,normal);
+    exit(1);
+  }
+ 
+
   /****************************************************************************/
-
-  if (hclog_switch==0) {ofstream outfile(textfile);outfile <<info<<line2<<line3<<line4<<line51<<line5<<line6<<line7<<endl;
-    printf("%s%s#%s          Plots are not submitted to HCLOG and saved in directory        %s#\n#               %s              #\n%s\n",dline,red,blue,red,dir[0],dline);}
+  TString textfile;
+  TString comments_hclog;
+  TString contact(Form("%sPlease contact Nuruzzaman (nur@jlab.org) for problems and comments%s\n",blue,normal));
 
   if (hclog_switch==1) {
-
+    textfile = Form("%s/%drunsummary.txt",gRunlistDir.Data(),gRunNumber);
     FILE *check;
-    check = fopen(hclog_list,"r");
-    if (!check == NULL) {printf("%sPlots for this run are already submitted to HCLOG !!!. Exiting Program%s\n",red,normal);printf(contact);exit(1);}
+    check = fopen(textfile,"r");
+    if (check != NULL) {
+      printf("%sPlots for this run are already submitted to HCLOG !!!. Exiting Program%s\n",red,normal);
+      printf(contact);
+      exit(1);
+    }
+    std::cout << "Please insert comments for the run to post in HCLOG" << std::endl;
+    std::cin  >> comments_hclog;
+  } else {
+    textfile = Form("%s/%druninfo.txt",gPlotDir.Data(),gRunNumber);
+  }
+  ofstream outfile(textfile);
+  if (comments_hclog.Length()!=0){
+    outfile << comments_hclog << std::endl << std::endl;
+  }
+  outfile << "<pre>\n" 
+	  << sslinen
+	  << Form("|\tRun Number: %6d\t\t\t\t|\n", gRunNumber)
+	  << Form("|   \t%s, %s, %s      \t|\n",tar[1],gCurrent.Data(),gRasterString.Data())
+	  << sslinen
+	  << Form("|I                         \t|uA    \t|%s       \t|\n",gCurrent.Data())
+	  << Form("|MDALLBARS width           \t|ppm   \t|%2.1f       \t|\n",cal_mdalla)
+	  << Form("|BCM12-ddif width          \t|ppm   \t|%2.1f       \t|\n",cal_bcmdd)
+	  << Form("|A_q mean                  \t|ppm   \t|%2.2f       \t|\n",cal_abcmm)
+	  << Form("|A_q width                 \t|ppm   \t|%2.1f       \t|\n",cal_abcm)
+	  << Form("|MDALLBARS X-sensitivity   \t|ppm/mm\t|%2.1f+-%1.1f\t|\n",cal_mdxsen,cal_emdxsen)
+	  << Form("|MDALLBARS Y-sensitivity   \t|ppm/mm\t|%2.1f+-%1.1f\t|\n",cal_mdysen,cal_emdysen)
+	  << sslinen
+	  << "</pre>"
+	  <<endl;
+  outfile.close();
   
-    char user_name_hclog[255],subject_hclog[255],comments_text[255];
+  if (hclog_switch==0) {
+    std::cout << dline
+	      << "#          Plots are not submitted to HCLOG and saved in directory        #"
+	      << std::endl
+	      << "#              " << gPlotDir  << "              #"
+      	      << std::endl
+	      << dline;
+  } else {
     TString hclog_post_string;
-    //     TString comments_hclog;
-    char comments_hclog[255];
-    char *email_list;
-    email_list = "qweak_autoanalysis@jlab.org";
 
-    printf("%s\nPlease insert comments for the run to post in HCLOG%s\n",blue,normal);
-    cin.getline(comments_hclog,255,'\n');
-    gets(comments_hclog);
-
-    sprintf(user_name_hclog,"qwanalysis");
-    sprintf(subject_hclog,"Analysis: Run %d - Plots and Summary Table for 100k Events.",run_number);
-    sprintf(comments_text,"%s\n\n",comments_hclog);
-    ofstream outfile(textfile); outfile<<comments_text<<info<<line2<<line3<<line4<<line51<<line5<<line6<<line7<<endl;
-
-    printf("\nUser Name : %s\n", user_name_hclog);
-    printf("Subject : %s\n", subject_hclog);
-    printf("Comments : %s\n", comments_hclog);
-    printf("Email : %s\n", email_list);
+    std::cout << "User Name : " << user_name_hclog << std::endl;
+    std::cout << "Subject :   " << MakeSubject() << std::endl;
+    std::cout << "Comments :  " << comments_hclog << std::endl;
+    std::cout << "Email :     " << email_list << std::endl;
     
-    hclog_post_string = "hclog_post";
-    hclog_post_string += " ";
-    hclog_post_string += "--subject=\"";
-    hclog_post_string += subject_hclog;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--author=\"";
-    hclog_post_string += user_name_hclog;
-    hclog_post_string += "\" ";
-    //     hclog_post_string += "--body=\"";
-    //     hclog_post_string += comments_text;
-    //     hclog_post_string += "\" ";
-    hclog_post_string += "--textfile=\"";
-    hclog_post_string += textfile;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--emailto=\"";
-    hclog_post_string += email_list;
-    hclog_post_string += "\" ";    
-    //    if(file_output_flag) {
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pcharge;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pchargeasym;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pchargeddasym;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pbpmd;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pmdallasym;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pmdasym;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pmdallsenx;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pmdallseny;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pmdyield;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pdslumiasym;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += plumisenx;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += plumiseny;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pdslumiyield;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += puslumi;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += puslumisen;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pmodulation;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += psenbmod;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pmdbkg;
-    hclog_post_string += "\" ";
-    hclog_post_string += "--attachment=\"";
-    hclog_post_string += pmdyieldvar;
-    hclog_post_string += "\" ";
-    //     }
-    hclog_post_string += "--tag=\"This is loged by hclog_post and qwanalysis\"";
-    //    hclog_post_string += "  --test";
-    hclog_post_string += "  --cleanup";
+    hclog_post_string = "hclog_post ";
+    hclog_post_string += WrapParameter("author", user_name_hclog);
+    hclog_post_string += WrapParameter("emailto",email_list);
+    hclog_post_string += "--tag=\"This is logged by hclog_post and qwanalysis\" ";
+    //    hclog_post_string += "  --test ";
+    hclog_post_string += "  --cleanup ";
+
+    hclog_post_string += WrapParameter("subject", MakeSubject());
+    hclog_post_string += WrapParameter("textfile", textfile);
+    hclog_post_string += WrapAttachment(pcharge);
+    hclog_post_string += WrapAttachment(pchargeasym);
+    hclog_post_string += WrapAttachment(pchargeddasym);
+    hclog_post_string += WrapAttachment(pbpmd);
+    hclog_post_string += WrapAttachment(pmdallasym);
+    hclog_post_string += WrapAttachment(pmdasym);
+    hclog_post_string += WrapAttachment(pmdallsenx);
+    hclog_post_string += WrapAttachment(pmdallseny);
+    hclog_post_string += WrapAttachment(pmdyield);
+    hclog_post_string += WrapAttachment(pdslumiasym);
+    hclog_post_string += WrapAttachment(plumisenx);
+    hclog_post_string += WrapAttachment(plumiseny);
+    hclog_post_string += WrapAttachment(pdslumiyield);
+    hclog_post_string += WrapAttachment(puslumi);
+    hclog_post_string += WrapAttachment(puslumisen);
+    hclog_post_string += WrapAttachment(pmodulation);
+    hclog_post_string += WrapAttachment(psenbmod);
+    hclog_post_string += WrapAttachment(pmdbkg);
+    hclog_post_string += WrapAttachment(pmdyieldvar);
+
 
     //       printf("%s",hclog_post_string.Data());
     gSystem->Exec(hclog_post_string.Data());
 
-    ofstream outfile(hclog_list); outfile<<comments_text<<info<<line2<<line3<<line4<<line5<<line6<<line7<<endl;
     printf("%s%s#%s    Congratulations !!!!!   All plots are successfully posted to HCLOG     %s#\n%s",dline,red,blue,red,dline);
 
   }
   
   /****************************************************************************/
-  printf(contact);
-  printf("%sDone with everything. Exiting the program .......  \n%s",red,normal);
+  std::cout << contact << std::endl;
+  std::cout << "Done with everything. Exiting the program ......." << std::endl;
   exit(1);
   //  gDirectory->Delete("*");
   // return(0);
