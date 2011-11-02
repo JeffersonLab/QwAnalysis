@@ -35,12 +35,11 @@ class VQwBCM : public VQwDataElement {
    *          get a concrete instance of a templated QwBCM.
    *
    ***************************************************************/
-public:
-  VQwBCM() { }; // Do not use this function!!
-  VQwBCM(TString name){ // Do not use this function!!
-      //InitializeChannel(name,"raw");
-  };
+protected:
+  VQwBCM(VQwDataElement& beamcurrent): fBeamCurrent_ref(beamcurrent) { };
+  VQwBCM(VQwDataElement& beamcurrent, TString name): fBeamCurrent_ref(beamcurrent) { };
 
+public:
   virtual ~VQwBCM() { };
 
   // VQwDataElement virtual functions
@@ -98,6 +97,8 @@ public:
 
 
 protected:
+  VQwDataElement& fBeamCurrent_ref;
+
 };
 
 #endif // __VQWBCM__
