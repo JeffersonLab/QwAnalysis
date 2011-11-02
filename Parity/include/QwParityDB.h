@@ -27,6 +27,7 @@
 #include "QwColor.h"
 #include "QwOptions.h"
 #include "QwDatabase.h"
+#include "QwSubsystemArrayParity.h"
 
 //#include "QwParitySSQLS.h"
 #include "QwDBInterface.h"
@@ -54,6 +55,7 @@ class QwParityDB: public QwDatabase {
     virtual ~QwParityDB(); //!< Destructor
 
     void         SetupOneRun(QwEventBuffer& qwevt);        //<! Initialize run ID, runlet ID, and analysis ID using data from CODA event buffer
+    void         FillParameterFiles(QwSubsystemArrayParity& subsys);
 
     UInt_t GetMonitorID(const string& name);         //<! Get monitor_id for beam monitor name
     UInt_t GetMainDetectorID(const string& name);    //<! Get main_detector_id for main detector name
