@@ -203,23 +203,16 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 		{
 		  QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
 
-		  if (keyword=="not_blindable")
-		    localIntegrationPMT.SetBlindability(kFALSE);
-		  else 
-		    localIntegrationPMT.SetBlindability(kTRUE);
-		  if (keyword=="not_normalizable")
-		  	localIntegrationPMT.SetNormalizability(kFALSE);
+		  //  Force all Lumi PMTs to be not_blindable.
+		  //  This isn't really needed, since the subsystem
+		  //  doesn't call QwIntegrationPMT::Blind, but let's
+		  //  do it anyway.
+		  localIntegrationPMT.SetBlindability(kFALSE);
+		  if (keyword=="not_normalizable"
+		      || keyword2=="not_normalizable")
+		    localIntegrationPMT.SetNormalizability(kFALSE);
 		  else
-		  	localIntegrationPMT.SetNormalizability(kTRUE);
-		  if (keyword2=="not_blindable") 
-		    localIntegrationPMT.SetBlindability(kFALSE);
-		  else 
-		    localIntegrationPMT.SetBlindability(kTRUE);
-		  if (keyword2=="not_normalizable")
-		  	localIntegrationPMT.SetNormalizability(kFALSE);
-		  else
-		  	localIntegrationPMT.SetNormalizability(kTRUE);
-
+		    localIntegrationPMT.SetNormalizability(kTRUE);
 
 		  fIntegrationPMT.push_back(localIntegrationPMT);
 		  fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
@@ -228,14 +221,16 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      else if (localLumiDetectorID.fTypeID==kQwCombinedPMT)
 		{
 		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
-		  if (keyword=="not_normalizable" || keyword2=="not_normalizable")
+		  //  Force all Lumi PMTs to be not_blindable.
+		  //  This isn't really needed, since the subsystem
+		  //  doesn't call QwCombinedPMT::Blind, but let's
+		  //  do it anyway.
+		  localcombinedPMT.SetBlindability(kFALSE);
+		  if (keyword=="not_normalizable" 
+		      || keyword2=="not_normalizable")
 		    localcombinedPMT.SetNormalizability(kFALSE);
 		  else
 		    localcombinedPMT.SetNormalizability(kTRUE);
-		  if (keyword=="not_blindable" || keyword2 =="not_blindable") 
-		    localcombinedPMT.SetBlindability(kFALSE);
-		  else 
-		    localcombinedPMT.SetBlindability(kTRUE);
 
 		  fCombinedPMT.push_back(localcombinedPMT);
 		  fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);

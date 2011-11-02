@@ -271,19 +271,13 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               if (localMainDetID.fTypeID==kQwIntegrationPMT)
                 {
                   QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localMainDetID.fdetectorname);
-		  if (keyword=="not_blindable")
+		  if (keyword=="not_blindable"
+		      || keyword2=="not_blindable")
 		    localIntegrationPMT.SetBlindability(kFALSE);
 		  else 
 		    localIntegrationPMT.SetBlindability(kTRUE);
-		  if (keyword=="not_normalizable")
-		  	localIntegrationPMT.SetNormalizability(kFALSE);
-		  else
-		  	localIntegrationPMT.SetNormalizability(kTRUE);
-		  if (keyword2=="not_blindable") 
-		    localIntegrationPMT.SetBlindability(kFALSE);
-		  else 
-		    localIntegrationPMT.SetBlindability(kTRUE);
-		  if (keyword2=="not_normalizable")
+		  if (keyword=="not_normalizable"
+		      || keyword2=="not_normalizable")
 		  	localIntegrationPMT.SetNormalizability(kFALSE);
 		  else
 		  	localIntegrationPMT.SetNormalizability(kTRUE);
@@ -295,11 +289,13 @@ Int_t QwMainCerenkovDetector::LoadChannelMap(TString mapfile)
               else if (localMainDetID.fTypeID==kQwCombinedPMT)
                 {
 		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localMainDetID.fdetectorname);
-		  if (keyword=="not_normalizable" || keyword2=="not_normalizable")
+		  if (keyword=="not_normalizable" 
+		      || keyword2=="not_normalizable")
 		    localcombinedPMT.SetNormalizability(kFALSE);
 		  else
 		    localcombinedPMT.SetNormalizability(kTRUE);
-		  if (keyword=="not_blindable" || keyword2 =="not_blindable") 
+		  if (keyword=="not_blindable" 
+		      || keyword2 =="not_blindable") 
 		    localcombinedPMT.SetBlindability(kFALSE);
 		  else 
 		    localcombinedPMT.SetBlindability(kTRUE);
