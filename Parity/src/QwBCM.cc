@@ -450,26 +450,20 @@ void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
 template<typename T>
 void QwBCM<T>::Copy(VQwDataElement *source)
 {
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  const QwBCM<T>* input = dynamic_cast<QwBCM<T>*>(source);
-	  this->fElementName=input->fElementName;
-	  this->fBeamCurrent.Copy(&(input->fBeamCurrent));
-	}
-      else
-	{
-	  TString loc="Standard exception from QwBCM::Copy = "
-	    +source->GetElementName()+" "
-	    +this->GetElementName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBCM::Copy(source);
+      const QwBCM<T>* input = dynamic_cast<QwBCM<T>*>(source);
+      this->fBeamCurrent.Copy(&(input->fBeamCurrent));
+    } else {
+      TString loc="Standard exception from QwBCM::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
     }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
 template<typename T>

@@ -65,16 +65,7 @@ class QwCombinedBCM : public QwBCM<T> {
 
   // Implementation of Parent class's virtual operators
   VQwBCM& operator=  (const VQwBCM &value);
-  VQwBCM& operator+= (const VQwBCM &value);
-  VQwBCM& operator-= (const VQwBCM &value);
-
   QwCombinedBCM& operator=  (const QwCombinedBCM &value);
-  QwCombinedBCM& operator+= (const QwCombinedBCM &value);
-  QwCombinedBCM& operator-= (const QwCombinedBCM &value);
-  void Sum(QwCombinedBCM &value1, QwCombinedBCM &value2);
-  void Difference(QwCombinedBCM &value1, QwCombinedBCM &value2);
-  void Ratio(const QwCombinedBCM &numer, const QwCombinedBCM &denom);
-  void Ratio(const VQwBCM &numer, const VQwBCM &denom);
 
   void SetPedestal(Double_t ped) {
     QwBCM<T>::SetPedestal(0.0);
@@ -93,13 +84,11 @@ class QwCombinedBCM : public QwBCM<T> {
     return const_cast<QwCombinedBCM*>(this)->GetCharge();
   };
 
-  std::vector<QwDBInterface> GetDBEntry();
-
 /////
  private:
 
   std::vector <QwBCM<T>*> fElement;
-  std::vector <Double_t> fWeights;
+  std::vector <Double_t>  fWeights;
   Double_t fSumQweights;
 
 };
