@@ -286,9 +286,13 @@ void QwSubsystemArrayParity::AccumulateRunningSum(const QwSubsystemArrayParity& 
 
 void QwSubsystemArrayParity::DeaccumulateRunningSum(const QwSubsystemArrayParity& value)
 {
+  Bool_t berror=kTRUE;//only needed for deaccumulation (stability check purposes)
+  if (value.fErrorFlag>0){//check the error is global
+    berror=((value.fErrorFlag & 0x2FF) == 0); //The operation value.fErrorFlag & 0x2FF clear everything else but the HW errors + event cut errors + blinder error    
+  }
   if (!value.empty()) {
     if (this->size() == value.size()) {
-      if (value.GetEventcutErrorFlag()==0){//do running sum only if error flag is zero. This way will prevent any Beam Trip(in ev mode 3) related events going into the running sum.
+      if (berror){//do derunningsum only if error flag is zero. 
 	for (size_t i = 0; i < value.size(); i++) {
 	  if (value.at(i)==NULL || this->at(i)==NULL) {
 	    //  Either the value or the destination subsystem

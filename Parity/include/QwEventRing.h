@@ -26,7 +26,7 @@ class QwEventRing {
  public:
   QwEventRing() { };
   QwEventRing(QwOptions &options) { ProcessOptions(options); };
-  QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t event_holdoff, Int_t min_BT_count);//this will create a fixed size vent ring
+  QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size);//this will create a fixed size vent ring
   virtual ~QwEventRing() { };
 
   /// \brief Define options

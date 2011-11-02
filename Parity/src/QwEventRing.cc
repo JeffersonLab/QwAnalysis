@@ -3,20 +3,20 @@
 
 
 
-QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t event_holdoff, Int_t min_BT_count){
+QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size){
   
   fRING_SIZE=ring_size;
-  fEVENT_HOLDOFF=event_holdoff;
-  fMIN_BT_COUNT=min_BT_count;
+  //fEVENT_HOLDOFF=event_holdoff;
+  //fMIN_BT_COUNT=min_BT_count;
   fEvent_Ring.resize(fRING_SIZE);
 
   bRING_READY=kFALSE;
-  bGoodEvent=kTRUE;
+  //bGoodEvent=kTRUE;
   bEVENT_READY=kTRUE;
   fNextToBeFilled=0;
   fNextToBeRead=0;
-  fEventsSinceLastTrip=1;
-  fFailedEventCount=0;
+  //fEventsSinceLastTrip=1;
+  //fFailedEventCount=0;
   for(int i=0;i<fRING_SIZE;i++){
     fEvent_Ring[i].Copy(&event); //populate the event ring
   }
@@ -32,7 +32,7 @@ QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size, Int_t e
 
 
 void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
-  QwMessage<<" Ring - size["<<fRING_SIZE<<"] trip trigger ["<<fMIN_BT_COUNT<<"] Hold off ["<<fEVENT_HOLDOFF<<"]"<<QwLog::endl;
+  QwMessage<<" Ring size is "<<fRING_SIZE<<" events"<<QwLog::endl;
   if (fRING_SIZE>10000){
     QwError<<"Ring size is too large. Set a value below 10000 events."<<QwLog::endl;
     exit(1);
@@ -40,14 +40,14 @@ void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
   fEvent_Ring.resize(fRING_SIZE);
 
   bRING_READY=kFALSE;
-  bGoodEvent=kTRUE;
-  bGoodEvent_ev3=kTRUE;
+  //bGoodEvent=kTRUE;
+  //bGoodEvent_ev3=kTRUE;
   bEVENT_READY=kTRUE;
-  bEVENT_READY_ev3=kTRUE;
+  //bEVENT_READY_ev3=kTRUE;
   fNextToBeFilled=0;
   fNextToBeRead=0;
-  fEventsSinceLastTrip=1;
-  fFailedEventCount=0;
+  //fEventsSinceLastTrip=1;
+  //fFailedEventCount=0;
   for(int i=0;i<fRING_SIZE;i++){
     fEvent_Ring[i].Copy(&event); //populate the event ring
   }
@@ -57,8 +57,8 @@ void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
     out_file = fopen("Ring_log.txt", "wt");
 
 
-  fTargetCharge.InitializeChannel("q_targ","derived");
-  fChargeRunningSum.InitializeChannel("q_targ","derived");
+  //fTargetCharge.InitializeChannel("q_targ","derived");
+  //fChargeRunningSum.InitializeChannel("q_targ","derived");
 
   fErrorCode=0;
 }
@@ -67,9 +67,9 @@ void QwEventRing::DefineOptions(QwOptions &options){
   // Define the execution options
   options.AddDefaultOptions();
   options.AddOptions()("ring.size", po::value<int>()->default_value(4800),"QwEventRing: ring/buffer size");
-  options.AddOptions()("ring.bt", po::value<int>()->default_value(2),"QwEventRing: minimum beam trip count");
-  options.AddOptions()("ring.hld", po::value<int>()->default_value(25000),"QwEventRing: ring hold off");
-  options.AddOptions()("ring.stability_cut", po::value<double>()->default_value(2.00),"QwEventRing: Stability level in units of uA");
+  //options.AddOptions()("ring.bt", po::value<int>()->default_value(2),"QwEventRing: minimum beam trip count");
+  //options.AddOptions()("ring.hld", po::value<int>()->default_value(25000),"QwEventRing: ring hold off");
+  options.AddOptions()("ring.stability_cut", po::value<double>()->default_value(1),"QwEventRing: Stability ON/OFF");
 
 }
 
@@ -77,10 +77,12 @@ void QwEventRing::ProcessOptions(QwOptions &options){
   //Reads Event Ring parameters from cmd  
   if (gQwOptions.HasValue("ring.size"))
     fRING_SIZE=gQwOptions.GetValue<int>("ring.size");
+  /*
   if (gQwOptions.HasValue("ring.bt"))
     fMIN_BT_COUNT=gQwOptions.GetValue<int>("ring.bt"); 
   if (gQwOptions.HasValue("ring.hld"))
     fEVENT_HOLDOFF=gQwOptions.GetValue<int>("ring.hld");
+  */
   if (gQwOptions.HasValue("ring.stability_cut"))
     fStability=gQwOptions.GetValue<double>("ring.stability_cut");
 
@@ -119,8 +121,8 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
   if (bEVENT_READY){
     fEvent_Ring[fNextToBeFilled]=event;//copy the current good event to the ring 
     if (bStability){
-      event.RequestExternalValue("q_targ", &fTargetCharge);
-      fChargeRunningSum.AccumulateRunningSum(fTargetCharge);
+      //event.RequestExternalValue("q_targ", &fTargetCharge);
+      //fChargeRunningSum.AccumulateRunningSum(fTargetCharge);
       fRollingAvg.AccumulateRunningSum(event);
     }
 
@@ -152,19 +154,23 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
       fNextToBeRead=0;//first element in the ring  
       //check for current ramps
       if (bStability){
-	fChargeRunningSum.CalculateRunningAverage();
+	//fChargeRunningSum.CalculateRunningAverage();
 	fRollingAvg.CalculateRunningAverage();
+	/*
 	//The fRollingAvg dose not contain any regular errorcodes since it only accumulate rolling sum for errorflag==0 event.
 	//The only errorflag it generates is the stability cut faliure error when the rolling avg is computed. 
 	//Therefore when fRollingAvg.GetEventcutErrorFlag() is called it will return non-zero error code only if a global stability cut has failed
 	//When fRollingAvg.GetEventcutErrorFlag() is called the fErrorFlag of the subsystemarrayparity object will be updated with any global
 	//stability cut faliures
+	*/
 	fRollingAvg.GetEventcutErrorFlag(); //to update the global error code in the fRollingAvg
-	for(Int_t i=0;i<fRING_SIZE;i++)
+	for(Int_t i=0;i<fRING_SIZE;i++){
 	  fEvent_Ring[i].UpdateEventcutErrorFlag(fRollingAvg);
+	  fEvent_Ring[i].GetEventcutErrorFlag();
+	}
 	
       }
-      
+      /*
       if (bStability && fChargeRunningSum.GetValueWidth()>fStability){//if the SD is large than the fStability
 	
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
@@ -173,21 +179,22 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
 	QwMessage<<"-----------Stability Check Failed-----------"<<QwLog::endl;
 	//fErrorCode|=kBeamStabilityError;//set hold_off events with beam stability error
 	
-	bEVENT_READY_ev3=kFALSE;
+	//bEVENT_READY_ev3=kFALSE;
 	//for(Int_t i=0;i<fRING_SIZE;i++){
 	//fEvent_Ring[i].UpdateEventcutErrorFlag(kBeamStabilityError);	  
 	//fEvent_Ring[i].UpdateEventcutErrorFlag(fRollingAvg);
 	//}
       }
+      */
     }
     //ring processing is done at a separate location
   }else{
     //still we are counting good events after a beam trip that leave alone
-    if (bDEBUG) QwMessage<<" Event since last trip \n"<<fEventsSinceLastTrip;//<<QwLog::endl; 
-    if (bDEBUG_Write)  fprintf(out_file," After Trip  %d \n",fEventsSinceLastTrip);
-    fEventsSinceLastTrip++;//increment event counter
-    if (fEventsSinceLastTrip >= fEVENT_HOLDOFF)//after we have left LEAVE_COUNT no.of events
-      bEVENT_READY=kTRUE;//now from next event onward add them to the ring     
+    //if (bDEBUG) QwMessage<<" Event since last trip \n"<<fEventsSinceLastTrip;//<<QwLog::endl; 
+    //if (bDEBUG_Write)  fprintf(out_file," After Trip  %d \n",fEventsSinceLastTrip);
+    //fEventsSinceLastTrip++;//increment event counter
+    //if (fEventsSinceLastTrip >= fEVENT_HOLDOFF)//after we have left LEAVE_COUNT no.of events
+    //bEVENT_READY=kTRUE;//now from next event onward add them to the ring     
   }
   
   
@@ -257,9 +264,9 @@ QwSubsystemArrayParity& QwEventRing::pop(){
     bRING_READY=kFALSE;//setting to false is an extra measure of security to prevent reading a NULL value. 
   }
   if (bStability){
-    fEvent_Ring[tempIndex].RequestExternalValue("q_targ", &fTargetCharge); 
-    fChargeRunningSum.DeaccumulateRunningSum(fTargetCharge);
-    //fRollingAvg.DeaccumulateRunningSum(fEvent_Ring[tempIndex]);
+    //fEvent_Ring[tempIndex].RequestExternalValue("q_targ", &fTargetCharge); 
+    //fChargeRunningSum.DeaccumulateRunningSum(fTargetCharge);
+    fRollingAvg.DeaccumulateRunningSum(fEvent_Ring[tempIndex]);
   }
   //fChargeRunningSum.CalculateRunningAverage();
   //fChargeRunningSum.PrintValue();

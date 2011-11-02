@@ -1117,19 +1117,35 @@ void QwVQWK_Channel::DivideBy(const QwVQWK_Channel &denom)
 void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 {
   // Moment calculations
+  Bool_t berror=kTRUE;//only needed for deaccumulation (stability check purposes)
+
+  /*
+    note:
+    The AccumulateRunningSum is called on a dedicated subsystem array object and for the standard running avg computations
+    we only need value.fErrorFlag==0 events to be included in the running avg. So the "berror" conditions is only used for the stability check purposes.
+
+    The need for this check below came due to fact that when routine DeaccumulateRunningSum is called the errorflag is updated with 
+    the kBeamStabilityError flag (+ configuration flags for global errors) and need to make sure we remove this flag and any configuration flags before 
+    checking the (fErrorFlag != 0) condition
+    
+    See how the stability check is implemented in the QwEventRing class
+
+    Rakitha
+  */
+  if (value.fGoodEventCount==-1 && value.fErrorFlag>0)
+    berror=(((value.fErrorFlag-value.fErrorConfigFlag) & 0xFFFFFFF) == 0); //The operation value.fErrorFlag & 0xFFFFFFF set the stability failed error bit to zero
+  
   Int_t n1 = fGoodEventCount;
   Int_t n2 = value.fGoodEventCount;
-  // If there are no good events, check the  device HW error codes
+  // If there are no good events, check the error flag
   if (n2 == 0 && (value.fErrorFlag) == 0) {
     n2 = 1;
-  }else if (n2 == -1 && (value.fErrorFlag) == 0) { //The Deaccumulate is only used in the rolling Avg computation in the ring/buffer
-    //check only HW and single event cut errors since by the time the value is deaccumulated this could be flagged as stability failed error. 
-    //The operation value.fErrorFlag & 0xFFFFFFF set the stability failed error bit to zero
+    //one event is removed from the sum (Deaccumulation)
+  }else if (n2 == -1 && berror) { //check only single event cut errors except stability fail flag since by the time the value is deaccumulated this could be flagged as stability failed error. 
     n2 = -1;
   }else
     n2 = -100;//ignore it
   Int_t n = n1 + n2;
-
   // Set up variables
   Double_t M11 = fHardwareBlockSum;
   Double_t M12 = value.fHardwareBlockSum;
@@ -1153,20 +1169,10 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 	fBlock[i] -= (M12 - M11) / n;
 	fBlockM2[i] -= (M12 - M11) * (M12 - fBlock[i]); // note: using updated mean
       }
-      //QwMessage<<"Deaccumulate "<<QwLog::endl;
     }else if (n==0){
       //QwMessage<<"Deaccumulate at zero "<<QwLog::endl;
-      /*
-      fHardwareBlockSum -= (M12 - M11) / n;
-      fHardwareBlockSumM2 -= (M12 - M11) * (M12 - fHardwareBlockSum); // note: using updated mean
-      // and for individual blocks
-      for (Int_t i = 0; i < 4; i++) {
-	M11 = fBlock[i];
-	M12 = value.fBlock[i];
-	M22 = value.fBlockM2[i];
-	fBlock[i] -= (M12 - M11) / n;
-	fBlockM2[i] -= (M12 - M11) * (M12 - fBlock[i]); // note: using updated mean
-      }
+      /* 
+      //Need any fail safe check for Deaccumulation????
       */
     }
 
@@ -1232,8 +1238,9 @@ void QwVQWK_Channel::CalculateRunningAverage()
       if ((fErrorConfigFlag & kStabilityCut)==kStabilityCut){//check to see the channel has stability cut activated in the event cut file
 	PrintValue();
 	if (GetValueWidth()>fStability){//if the width is greater than the stability required flag the event
-	  fErrorFlag|=kBeamStabilityError;
-	}
+	  fErrorFlag=kBeamStabilityError;
+	}else
+	  fErrorFlag=0;
       }
 	  
     }
@@ -1260,6 +1267,7 @@ void QwVQWK_Channel::PrintValue() const
             << std::setw(12) << std::left << GetBlockErrorValue(3) << " "
             << std::setw(12) << std::left << fErrorFlag << " "
             << std::setw(12) << std::left << fErrorConfigFlag << " "
+            << std::setw(12) << std::left << fGoodEventCount << " "
             << QwLog::endl;
 }
 
