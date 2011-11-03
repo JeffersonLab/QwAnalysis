@@ -33,7 +33,7 @@ namespace QwParitySSQLS {
   
     sql_create_2(run_quality, 1, 2 , mysqlpp::sql_int_unsigned, run_quality_id, mysqlpp::Null<mysqlpp::sql_text>, type) 
   
-    sql_create_10(run, 1, 2 , mysqlpp::sql_int_unsigned, run_id, mysqlpp::sql_int_unsigned, run_number, mysqlpp::sql_int_unsigned, slug, mysqlpp::sql_int_unsigned, injector_slug, mysqlpp::Null<mysqlpp::sql_text>, run_type, mysqlpp::Null<mysqlpp::sql_datetime>, start_time, mysqlpp::Null<mysqlpp::sql_datetime>, end_time, mysqlpp::sql_int_unsigned, n_mps, mysqlpp::sql_int_unsigned, n_qrt, mysqlpp::Null<mysqlpp::sql_text>, comment) 
+    sql_create_11(run, 1, 2 , mysqlpp::sql_int_unsigned, run_id, mysqlpp::sql_int_unsigned, run_number, mysqlpp::sql_int_unsigned, slug, mysqlpp::sql_int_unsigned, wien_slug, mysqlpp::sql_int_unsigned, injector_slug, mysqlpp::Null<mysqlpp::sql_text>, run_type, mysqlpp::Null<mysqlpp::sql_datetime>, start_time, mysqlpp::Null<mysqlpp::sql_datetime>, end_time, mysqlpp::sql_int_unsigned, n_mps, mysqlpp::sql_int_unsigned, n_qrt, mysqlpp::Null<mysqlpp::sql_text>, comment) 
   
     sql_create_10(runlet, 1, 2 , mysqlpp::sql_int_unsigned, runlet_id, mysqlpp::sql_int_unsigned, run_id, mysqlpp::sql_int_unsigned, run_number, mysqlpp::Null<mysqlpp::sql_int_unsigned>, segment_number, mysqlpp::sql_enum, full_run, mysqlpp::Null<mysqlpp::sql_datetime>, start_time, mysqlpp::Null<mysqlpp::sql_datetime>, end_time, mysqlpp::sql_int_unsigned, first_mps, mysqlpp::sql_int_unsigned, last_mps, mysqlpp::Null<mysqlpp::sql_text>, comment) 
   
@@ -65,7 +65,7 @@ namespace QwParitySSQLS {
   
     sql_create_4(sc_detector, 1, 2 , mysqlpp::sql_int_unsigned, sc_detector_id, mysqlpp::sql_text, name, mysqlpp::sql_text, units, mysqlpp::sql_text, comment) 
   
-    sql_create_7(slow_controls_data, 1, 2 , mysqlpp::sql_int_unsigned, slow_controls_data_id, mysqlpp::sql_int_unsigned, runlet_id, mysqlpp::sql_int_unsigned, sc_detector_id, mysqlpp::sql_float, value, mysqlpp::sql_float, error, mysqlpp::sql_float, min_value, mysqlpp::sql_float, max_value) 
+    sql_create_8(slow_controls_data, 1, 2 , mysqlpp::sql_int_unsigned, slow_controls_data_id, mysqlpp::sql_int_unsigned, runlet_id, mysqlpp::sql_int_unsigned, sc_detector_id, mysqlpp::sql_int_unsigned, n, mysqlpp::sql_float, value, mysqlpp::sql_float, error, mysqlpp::sql_float, min_value, mysqlpp::sql_float, max_value) 
   
     sql_create_4(slow_controls_strings, 1, 2 , mysqlpp::sql_int_unsigned, slow_controls_strings_id, mysqlpp::sql_int_unsigned, runlet_id, mysqlpp::sql_int_unsigned, sc_detector_id, mysqlpp::sql_text, value) 
   

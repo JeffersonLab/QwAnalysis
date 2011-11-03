@@ -688,11 +688,13 @@ void QwEPICSEvent::FillSlowControlsData(QwParityDB *db)
   QwDebug << " -------------------------------------------------------------------------- " << QwLog::endl;
 
   Double_t mean, average_of_squares, variance, sigma;
+  Int_t n_records;
 
   mean     = 0.0;
   average_of_squares = 0.0;
   variance = 0.0;
   sigma    = 0.0;
+  n_records = 0;
   //  Figure out if the target table has this runlet_id in it already,
   //  if not, create a new entry with the current runlet_id.
 
@@ -736,8 +738,10 @@ void QwEPICSEvent::FillSlowControlsData(QwParityDB *db)
           } else {
             sigma    = sqrt(variance);
           }
+          n_records = fEPICSCumulativeData[tagindex].NumberRecords;
 
 	  //  Build the row and submit it to the list
+    tmp_row.n             = n_records;
 	  tmp_row.value         = mean;
 	  tmp_row.error         = sigma;
 	  tmp_row.min_value     = fEPICSCumulativeData[tagindex].Minimum;
