@@ -1132,6 +1132,7 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 
     Rakitha
   */
+
   if (value.fGoodEventCount==-1 && value.fErrorFlag>0)
     berror=(((value.fErrorFlag-value.fErrorConfigFlag) & 0xFFFFFFF) == 0); //The operation value.fErrorFlag & 0xFFFFFFF set the stability failed error bit to zero
   
@@ -1152,6 +1153,10 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   Double_t M22 = value.fHardwareBlockSumM2;
   if (n2 == 0) {
     // no good events for addition
+    if (GetElementName()=="qwk_charge"){
+      PrintValue();
+    }
+
     return;
   } else if (n2 == -1) {
     // simple version for removal of single event from the sum
@@ -1213,6 +1218,10 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 
 void QwVQWK_Channel::CalculateRunningAverage()
 {
+  //  if (GetElementName()=="qwk_bpm3h09bYM"){
+  //    PrintValue();
+  //  }
+
   if (fGoodEventCount <= 0)
     {
       for (Int_t i = 0; i < fBlocksPerEvent; i++) {
@@ -1231,10 +1240,7 @@ void QwVQWK_Channel::CalculateRunningAverage()
       for (Int_t i = 0; i < fBlocksPerEvent; i++)
         fBlockError[i] = sqrt(fBlockM2[i]) / fGoodEventCount;
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
-//       if (GetElementName()=="qwk_bcm1"){
-// 	PrintValue();
-//       }
-      //Stability check 83951872
+      //Stability check 83951872 
       if ((fErrorConfigFlag & kStabilityCut)==kStabilityCut){//check to see the channel has stability cut activated in the event cut file
 	PrintValue();
 	if (GetValueWidth()>fStability){//if the width is greater than the stability required flag the event

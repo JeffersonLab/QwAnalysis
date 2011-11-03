@@ -80,6 +80,10 @@ class QwBCM : public VQwBCM {
     fBeamCurrent.UpdateEventcutErrorFlag(errorflag);
   };
 
+  UInt_t GetErrorCode() const {return (fBeamCurrent.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fBeamCurrent.UpdateErrorCode(error);};
+
+
   void UpdateEventcutErrorFlag(VQwBCM *ev_error);
 
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size

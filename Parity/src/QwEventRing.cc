@@ -123,7 +123,7 @@ void QwEventRing::push(QwSubsystemArrayParity &event){
     if (bStability){
       //event.RequestExternalValue("q_targ", &fTargetCharge);
       //fChargeRunningSum.AccumulateRunningSum(fTargetCharge);
-      fRollingAvg.AccumulateRunningSum(event);
+      fRollingAvg.AccumulateAllRunningSum(event);
     }
 
     //if eve mode = 3 flag fEVENT_HOLDOFF events with kBeamTripError flag

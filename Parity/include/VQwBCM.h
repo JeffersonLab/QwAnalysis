@@ -93,6 +93,7 @@ public:
   // This one is for QwCombinedBCM (could be done differently)
   virtual void SetBCMForCombo(VQwBCM* bcm, Double_t weight, Double_t sumqw ) = 0;
 
+
   // Factory function to produce appropriate BCM
   static VQwBCM* Create(TString subsystemname, TString type, TString name, TString clock = "");
   static VQwBCM* Create(TString type); // Create a generic BCM (define properties later)

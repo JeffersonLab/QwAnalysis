@@ -178,12 +178,16 @@ void QwCombinedBCM<T>::SetDefaultSampleSize(Int_t sample_size){
 template<typename T>
 Bool_t QwCombinedBCM<T>::ApplySingleEventCuts(){
   Bool_t status=kTRUE;
+  /*
+  //No need to do this since the fErrorFlag is properly ORed when combo device is generated from the hardware elements
   //  First update the error code based on the codes
   //  of the elements.  This requires that the BCMs
   //  have had ApplySingleEventCuts run on them already.
+  
   for (size_t i=0;i<fElement.size();i++){
     fCombined_bcm.UpdateErrorCode(fElement.at(i)->fBeamCurrent.GetErrorCode());
   }
+  */
   if (fCombined_bcm.ApplySingleEventCuts()){
     status=kTRUE;
   }
@@ -215,7 +219,7 @@ void QwCombinedBCM<T>::UpdateEventcutErrorFlag(VQwBCM *ev_error){
       if (this->GetElementName()!="") {
         QwCombinedBCM<T>* value_bcm = dynamic_cast<QwCombinedBCM<T>* >(ev_error);
 	VQwDataElement *value_data = dynamic_cast<VQwDataElement *>(&(value_bcm->fCombined_bcm));
-	fCombined_bcm.UpdateEventcutErrorFlag(value_data->GetEventcutErrorFlag());
+	fCombined_bcm.UpdateEventcutErrorFlag(value_data->GetErrorCode());//the routine GetErrorCode() return the error flag + configuration flag unconditionally
       }
     } else {
       TString loc="Standard exception from QwCombinedBCM::UpdateEventcutErrorFlag :"+
@@ -239,15 +243,15 @@ void QwCombinedBCM<T>::CalculateRunningAverage(){
 /********************************************************/
 
 template<typename T>
-void QwCombinedBCM<T>::AccumulateRunningSum(const QwCombinedBCM<T>& value){
-  fCombined_bcm.AccumulateRunningSum(value.fCombined_bcm);
+void QwCombinedBCM<T>::AccumulateRunningSum(const VQwBCM &value){
+  fCombined_bcm.AccumulateRunningSum(dynamic_cast<const QwCombinedBCM<T>* >(&value)->fCombined_bcm);
 }
 
 /********************************************************/
 
 template<typename T>
-void QwCombinedBCM<T>::DeaccumulateRunningSum(QwCombinedBCM<T>& value){
-  fCombined_bcm.DeaccumulateRunningSum(value.fCombined_bcm);
+void QwCombinedBCM<T>::DeaccumulateRunningSum(VQwBCM &value){
+  fCombined_bcm.DeaccumulateRunningSum(dynamic_cast<QwCombinedBCM<T>* >(&value)->fCombined_bcm);
 }
 
 /********************************************************/
@@ -256,9 +260,6 @@ void QwCombinedBCM<T>::DeaccumulateRunningSum(QwCombinedBCM<T>& value){
 template<typename T>
 Int_t QwCombinedBCM<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
 {
- //  fCombined_bcm.ProcessEvBuffer(buffer,word_position_in_buffer);
-
-//   return word_position_in_buffer;
   return 0;
 }
 /********************************************************/
@@ -392,7 +393,7 @@ template<typename T>
 void QwCombinedBCM<T>::SetSingleEventCuts(UInt_t errorflag, Double_t LL=0, Double_t UL=0, Double_t stability=0){
   //set the unique tag to identify device type (bcm,bpm & etc)
   errorflag|=kBCMErrorFlag;//currently I use the same flag for bcm & combinedbcm
-  QwMessage<<"QwCombinedBCM Error Code passing to QwVQWK_Ch "<<errorflag<<QwLog::endl;
+  QwMessage<<"QwCombinedBCM Error Code passing to QwVQWK_Ch "<<errorflag<<" "<<stability<<QwLog::endl;
   fCombined_bcm.SetSingleEventCuts(errorflag,LL,UL,stability);
 
 }

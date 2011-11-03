@@ -141,6 +141,10 @@ class VQwDataElement: public MQwHistograms {
     fErrorFlag|=errorflag;
   }
 
+  virtual UInt_t GetErrorCode() const {return (fErrorFlag);}; 
+  virtual void UpdateErrorCode(const UInt_t& error){fErrorFlag |= (error);};
+
+
   // These are related to those hardware channels that need to normalize
   // to an external clock
   virtual Bool_t NeedsExternalClock() { return kFALSE; }; // Default is No!

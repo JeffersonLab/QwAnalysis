@@ -78,6 +78,8 @@ class QwLinearDiodeArray : public VQwBPM {
   void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  void UpdateEventcutErrorFlag(const UInt_t error){};
+  void UpdateEventcutErrorFlag(VQwBPM *ev_error){};
 
   void    SetDefaultSampleSize(Int_t sample_size);
   void    SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
@@ -101,6 +103,7 @@ class QwLinearDiodeArray : public VQwBPM {
   virtual QwLinearDiodeArray& operator-= (const QwLinearDiodeArray &value);
 
   void    AccumulateRunningSum(const QwLinearDiodeArray& value);
+  void    DeaccumulateRunningSum(QwLinearDiodeArray& value){};
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);

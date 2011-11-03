@@ -94,6 +94,10 @@ class QwCombinedBPM : public VQwBPM {
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
+  void UpdateEventcutErrorFlag(const UInt_t error){};
+  void UpdateEventcutErrorFlag(VQwBPM *ev_error){};
+
+
   void    SetBPMForCombo(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
 
   void    Copy(VQwDataElement *source);
@@ -112,6 +116,7 @@ class QwCombinedBPM : public VQwBPM {
 
   void    AccumulateRunningSum(const VQwBPM& value);
   void    AccumulateRunningSum(const QwCombinedBPM& value);
+  void    DeaccumulateRunningSum(VQwBPM& value){};
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);

@@ -1,5 +1,5 @@
 /**********************************************************\
-* File: QwBCM.h                                  *
+* File: QwCombinedBCM.h                                  *
 *                                                         *
 * Author:                                                 *
 * Time-stamp:                                             *
@@ -77,6 +77,10 @@ class QwCombinedBCM : public QwBCM<T> {
 
   void UpdateEventcutErrorFlag(VQwBCM *ev_error);
 
+  UInt_t GetErrorCode() const {return (fCombined_bcm.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fCombined_bcm.UpdateErrorCode(error);};
+
+
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
@@ -103,8 +107,8 @@ class QwCombinedBCM : public QwBCM<T> {
   void Ratio(const VQwBCM &numer, const VQwBCM &denom);
   void Scale(Double_t factor);
 
-  void AccumulateRunningSum(const QwCombinedBCM& value);
-  void DeaccumulateRunningSum(QwCombinedBCM& value);
+  void AccumulateRunningSum(const VQwBCM &value);
+  void DeaccumulateRunningSum(VQwBCM &value);
   void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);

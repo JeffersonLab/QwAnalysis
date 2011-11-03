@@ -598,7 +598,8 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
 	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
 	varvalue.ToLower();
-	QwMessage<<"QwBeamLine Error Code passing to QwBPMStripline "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	//QwMessage<<"QwBeamLine:QwBPMStripline "<<channel_name<<" "<<varvalue<<" "<<stabilitycut<<QwLog::endl;
+	QwMessage<<"QwBeamLine Error Code passing to QwBPMStripline "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<" stability  "<<stabilitycut <<QwLog::endl;
 	fStripline[det_index].get()->SetSingleEventCuts(channel_name, GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut), LLX, ULX, stabilitycut);
       }
 	else if (device_type == GetQwBeamInstrumentTypeName(kQwQPD)){
@@ -1463,8 +1464,10 @@ void QwBeamLine::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
       /*
       for(size_t i=0;i<input->fClock.size();i++)
 	*(this->fClock[i].get())=*(input->fClock[i].get());
+	*/
       for(size_t i=0;i<input->fStripline.size();i++)
-	*(this->fStripline[i].get())=*(input->fStripline[i].get());
+	(this->fStripline[i].get())->UpdateEventcutErrorFlag(input->fStripline[i].get());
+      /*
       for(size_t i=0;i<input->fQPD.size();i++)
 	this->fQPD[i]=input->fQPD[i];
       for(size_t i=0;i<input->fLinearArray.size();i++)
@@ -1479,8 +1482,11 @@ void QwBeamLine::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
       /*
       for(size_t i=0;i<input->fHaloMonitor.size();i++)
 	this->fHaloMonitor[i]=input->fHaloMonitor[i];
+      */
+	
       for(size_t i=0;i<input->fBCMCombo.size();i++)
-	*(this->fBCMCombo[i].get())=*(input->fBCMCombo[i].get());
+	(this->fBCMCombo[i].get())->UpdateEventcutErrorFlag(input->fBCMCombo[i].get()); //*(this->fBCMCombo[i].get())=*(input->fBCMCombo[i].get());
+      /*
       for(size_t i=0;i<input->fBPMCombo.size();i++)
 	*(this->fBPMCombo[i].get())=*(input->fBPMCombo[i].get());
       for(size_t i=0;i<input->fECalculator.size();i++)
@@ -2110,7 +2116,7 @@ void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
     for (size_t i = 0; i < fCavity.size(); i++)
       fCavity[i].AccumulateRunningSum(value->fCavity[i]);
     for (size_t i = 0; i < fBCM.size();       i++)
-      fBCM[i].get()->AccumulateRunningSum(*(value->fBCM[i].get()));
+      fBCM[i].get()->AccumulateRunningSum(*(value->fBCM[i].get()));    
     for (size_t i = 0; i < fBCMCombo.size();  i++)
       fBCMCombo[i].get()->AccumulateRunningSum(*(value->fBCMCombo[i].get()));
     for (size_t i = 0; i < fBPMCombo.size();  i++)
@@ -2132,8 +2138,10 @@ void QwBeamLine::DeaccumulateRunningSum(VQwSubsystem* value1){
     /*
     for (size_t i = 0; i < fClock.size();       i++)
       fClock[i].get()->DeaccumulateRunningSum(*(value->fClock[i].get()));
+    */
     for (size_t i = 0; i < fStripline.size(); i++)
       fStripline[i].get()->DeaccumulateRunningSum(*(value->fStripline[i].get()));
+    /*
     for (size_t i = 0; i < fCavity.size(); i++)
       fCavity[i].DeaccumulateRunningSum(value->fCavity[i]);
     */

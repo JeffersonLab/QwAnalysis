@@ -94,6 +94,10 @@ class QwBPMStripline : public VQwBPM {
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
 
+  void UpdateEventcutErrorFlag(const UInt_t error);
+  void UpdateEventcutErrorFlag(VQwBPM *ev_error);
+
+
   void    SetDefaultSampleSize(Int_t sample_size);
   void    SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
   void    RandomizeEventData(int helicity = 0, double time = 0.0);
@@ -117,6 +121,7 @@ class QwBPMStripline : public VQwBPM {
 
   void    AccumulateRunningSum(const QwBPMStripline& value);
   void    AccumulateRunningSum(const VQwBPM& value);
+  void    DeaccumulateRunningSum(VQwBPM& value){};
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);

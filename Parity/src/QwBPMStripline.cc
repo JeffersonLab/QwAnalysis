@@ -133,6 +133,50 @@ Int_t QwBPMStripline<T>::GetEventcutErrorCounters()
 
   return 1;
 }
+template<typename T>
+void QwBPMStripline<T>::UpdateEventcutErrorFlag(const UInt_t error){
+  Short_t i=0;
+
+  for(i=0;i<4;i++) fWire[i].UpdateEventcutErrorFlag(error);
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateEventcutErrorFlag(error);
+    fAbsPos[i].UpdateEventcutErrorFlag(error);
+  }
+  fEffectiveCharge.UpdateEventcutErrorFlag(error);
+  
+};
+template<typename T>
+void QwBPMStripline<T>::UpdateEventcutErrorFlag(VQwBPM *ev_error){
+  Short_t i=0;
+  VQwDataElement *value_data;
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwBPMStripline::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwBPMStripline<T>* value_bpm = dynamic_cast<QwBPMStripline<T>* >(ev_error);
+	for(i=0;i<4;i++){
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fWire[i]));
+	  fWire[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	}
+	for(i=kXAxis;i<kNumAxes;i++) {
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
+	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
+	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	}
+	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
+	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+      }
+    } else {
+      TString loc="Standard exception from QwBPMStripline::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
 
 
 template<typename T>
@@ -575,6 +619,10 @@ template<typename T>
 void QwBPMStripline<T>::CalculateRunningAverage()
 {
   Short_t i = 0;
+  for (i = 0; i < 4; i++){
+    fWire[i].CalculateRunningAverage();
+  }
+
   for (i = 0; i < 2; i++){
     fRelPos[i].CalculateRunningAverage();
     fAbsPos[i].CalculateRunningAverage();
@@ -595,6 +643,9 @@ void QwBPMStripline<T>::AccumulateRunningSum(const QwBPMStripline<T>& value)
 {
   // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
   Short_t i = 0;
+  for (i = 0; i < 4; i++){
+    fWire[i].AccumulateRunningSum(value.fWire[i]);
+  }
   for (i = 0; i < 2; i++){
     fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
     fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);

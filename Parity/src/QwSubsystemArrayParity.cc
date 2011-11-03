@@ -68,6 +68,7 @@ QwSubsystemArrayParity& QwSubsystemArrayParity::operator= (const QwSubsystemArra
   if (!source.empty()){
     if (this->size() == source.size()){
       this->fErrorFlag=source.fErrorFlag;
+      this->fCodaEventNumber=source.fCodaEventNumber;
       for(size_t i=0;i<source.size();i++){
 	if (source.at(i)==NULL || this->at(i)==NULL){
 	  //  Either the source or the destination subsystem
@@ -276,23 +277,61 @@ void QwSubsystemArrayParity::AccumulateRunningSum(const QwSubsystemArrayParity& 
 	  }
 	}
       }
+
     } else {
       //  Array sizes don't match
+
     }
   } else {
     //  The value is empty
   }
 }
 
-void QwSubsystemArrayParity::DeaccumulateRunningSum(const QwSubsystemArrayParity& value)
+void QwSubsystemArrayParity::AccumulateAllRunningSum(const QwSubsystemArrayParity& value)
 {
-  Bool_t berror=kTRUE;//only needed for deaccumulation (stability check purposes)
-  if (value.fErrorFlag>0){//check the error is global
-    berror=((value.fErrorFlag & 0x2FF) == 0); //The operation value.fErrorFlag & 0x2FF clear everything else but the HW errors + event cut errors + blinder error    
-  }
   if (!value.empty()) {
     if (this->size() == value.size()) {
-      if (berror){//do derunningsum only if error flag is zero. 
+      //if (value.GetEventcutErrorFlag()==0){//do running sum only if error flag is zero. This way will prevent any Beam Trip(in ev mode 3) related events going into the running sum.
+	for (size_t i = 0; i < value.size(); i++) {
+	  if (value.at(i)==NULL || this->at(i)==NULL) {
+	    //  Either the value or the destination subsystem
+	    //  are null
+	  } else {
+	    VQwSubsystemParity *ptr1 =
+	      dynamic_cast<VQwSubsystemParity*>(this->at(i).get());
+	    if (typeid(*ptr1) == typeid(*(value.at(i).get()))) {
+	      ptr1->AccumulateRunningSum(value.at(i).get());
+	    } else {
+	      QwError << "QwSubsystemArrayParity::AccumulateRunningSum here where types don't match" << QwLog::endl;
+	      QwError << " typeid(ptr1)=" << typeid(ptr1).name()
+		      << " but typeid(value.at(i)))=" << typeid(value.at(i)).name()
+		      << QwLog::endl;
+	      //  Subsystems don't match
+	    }
+	  }
+	}
+	//}//else if ((value.fErrorFlag& 512)==512){
+      //QwMessage << " AccumulateRunningSum "<<(value.fErrorFlag & 0x2FF)<<" - "<<value.GetCodaEventNumber()<< QwLog::endl;
+      //}
+    } else {
+      //  Array sizes don't match
+
+    }
+  } else {
+    //  The value is empty
+  }
+}
+
+
+void QwSubsystemArrayParity::DeaccumulateRunningSum(const QwSubsystemArrayParity& value)
+{
+  //Bool_t berror=kTRUE;//only needed for deaccumulation (stability check purposes)
+  //if (value.fErrorFlag>0){//check the error is global
+  //berror=((value.fErrorFlag & 0x2FF) == 0); //The operation value.fErrorFlag & 0x2FF clear everything else but the HW errors + event cut errors + blinder error    
+  //}
+  if (!value.empty()) {
+    if (this->size() == value.size()) {
+      //if (value.GetEventcutErrorFlag()==0){//do derunningsum only if error flag is zero. 
 	for (size_t i = 0; i < value.size(); i++) {
 	  if (value.at(i)==NULL || this->at(i)==NULL) {
 	    //  Either the value or the destination subsystem
@@ -311,9 +350,12 @@ void QwSubsystemArrayParity::DeaccumulateRunningSum(const QwSubsystemArrayParity
 	    }
 	  }
 	}
-      }
+	//}//else if ((value.fErrorFlag & 268435968)==268435968){
+      //QwMessage << " DeaccumulateRunningSum "<<(value.fErrorFlag & 0x2FF)<<" - "<<value.GetCodaEventNumber()<< QwLog::endl;
+      //}
     } else {
       //  Array sizes don't match
+
     }
   } else {
     //  The value is empty

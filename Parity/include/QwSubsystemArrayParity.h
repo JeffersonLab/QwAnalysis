@@ -77,8 +77,10 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     void Scale(Double_t factor);
 
 
-    /// \brief Update the running sums for devices
+    /// \brief Update the running sums for devices accumulated for the global error non-zero events/patterns
     void AccumulateRunningSum(const QwSubsystemArrayParity& value);
+    /// \brief Update the running sums for devices check only the error flags at the channel level. Only used for stability checks
+    void AccumulateAllRunningSum(const QwSubsystemArrayParity& value);
     /// \brief Remove the entry value from the running sums for devices
     void DeaccumulateRunningSum(const QwSubsystemArrayParity& value);
 

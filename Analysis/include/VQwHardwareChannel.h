@@ -59,7 +59,11 @@ public:
     return width;
   };
 
-  UInt_t GetErrorCode() const {return (fErrorFlag);}; 
+  UInt_t GetErrorCode() const {
+    if (fErrorFlag>0)
+      return (fErrorFlag+fErrorConfigFlag);
+    return 0;
+  }; 
   void UpdateErrorCode(const UInt_t& error){fErrorFlag |= (error);};
 
   virtual void  ClearEventData(){
