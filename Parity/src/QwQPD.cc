@@ -532,17 +532,24 @@ void QwQPD::CalculateRunningAverage()
   return;
 }
 
+void QwQPD::AccumulateRunningSum(const VQwBPM& value)
+{
+  AccumulateRunningSum(*dynamic_cast<const QwQPD* >(&value));
+}
+
 void QwQPD::AccumulateRunningSum(const QwQPD& value)
 {
   // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
   Short_t i = 0;
-
-  for (i = 0; i < 2; i++){
+  VQwDataElement *value_data;
+  for (i = 0; i < 2; i++){    
     fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
     fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
   }
   fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
   return;
+
+
 }
 
 

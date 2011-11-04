@@ -103,7 +103,9 @@ class QwBPMCavity : public VQwBPM {
   virtual QwBPMCavity& operator+= (const QwBPMCavity &value);
   virtual QwBPMCavity& operator-= (const QwBPMCavity &value);
 
+  void    AccumulateRunningSum(const VQwBPM &value);
   void    AccumulateRunningSum(const QwBPMCavity &value);
+  void    DeaccumulateRunningSum(VQwBPM &value){};
   void    DeaccumulateRunningSum(QwBPMCavity &value){};
   void    CalculateRunningAverage();
 

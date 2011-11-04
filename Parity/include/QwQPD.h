@@ -103,6 +103,8 @@ class QwQPD : public VQwBPM {
   virtual QwQPD& operator-= (const QwQPD &value);
 
   void    AccumulateRunningSum(const QwQPD& value);
+  void    AccumulateRunningSum(const VQwBPM& value);
+  void    DeaccumulateRunningSum(VQwBPM &value){};
   void    DeaccumulateRunningSum(QwQPD& value){};
   void    CalculateRunningAverage();
 

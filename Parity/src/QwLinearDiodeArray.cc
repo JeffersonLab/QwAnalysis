@@ -460,6 +460,10 @@ void QwLinearDiodeArray::CalculateRunningAverage()
   return;
 }
 
+void QwLinearDiodeArray::AccumulateRunningSum(const VQwBPM& value){
+  AccumulateRunningSum(*dynamic_cast<const QwLinearDiodeArray* >(&value));
+}
+
 void QwLinearDiodeArray::AccumulateRunningSum(const QwLinearDiodeArray& value)
 {
   // TODO This is unsafe, see QwBeamline::AccumulateRunningSum

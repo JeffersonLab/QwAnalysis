@@ -487,6 +487,10 @@ void QwBPMCavity::CalculateRunningAverage()
   return;
 }
 
+void QwBPMCavity::AccumulateRunningSum(const VQwBPM &value){
+  AccumulateRunningSum(*dynamic_cast<const QwBPMCavity* >(&value));
+};
+
 void QwBPMCavity::AccumulateRunningSum(const QwBPMCavity& value)
 {
   // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
