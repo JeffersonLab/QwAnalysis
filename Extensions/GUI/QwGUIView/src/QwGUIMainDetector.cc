@@ -207,7 +207,8 @@ Int_t QwGUIMainDetectorDataStructure::SetHistograms(RDataContainer *cont, TTree 
 //     MPSCntLeaf = CurrentTree->GetLeaf("mps_counter");
     if(ThisDetectorBranch){
       
-//       EventOptions *fft = NULL;
+      // printf("F: %s L: %d, Setting Histogram for: %s\n",__FILE__,__LINE__,DetectorName.Data());
+      //       EventOptions *fft = NULL;
 //       TGraph *grp = NULL;
       TObjArray *leafes = ThisDetectorBranch->GetListOfLeaves();
       TString objname;
@@ -242,12 +243,16 @@ Int_t QwGUIMainDetectorDataStructure::SetHistograms(RDataContainer *cont, TTree 
 
 
 
-	if(tmp){
+	if(tmp){	  
 
 	  TH1D *hst = new TH1D(*(TH1D*)(tmp->Clone()));	  
 	  hst->SetTitle(Form("Run %d %s",GetRunNumber(),DataName[c].Data()));
 	  hst->GetXaxis()->SetTitle(TreeLeafXUnits[c].Data());
+	  // // if(DetectorName.Contains("asym"))
+	  // //   hst->GetXaxis()->SetRangeUser(tmp->GetMean()-1000*tmp->GetRMS(), tmp->GetMean()+1000*tmp->GetRMS());
+	  // // else
 	  hst->GetXaxis()->SetRangeUser(tmp->GetMean()-10*tmp->GetRMS(), tmp->GetMean()+10*tmp->GetRMS());
+
 	  hst->GetXaxis()->CenterTitle();
 	  hst->GetXaxis()->SetTitleSize(0.06);
 	  hst->GetXaxis()->SetLabelSize(0.06);
@@ -533,7 +538,7 @@ void QwGUIMainDetectorDataStructure::FillHistograms()
     grp = DataGraph[i];
     if(grp){    
       hst = new TH1D(Form("%s_hst",DataName[i].Data()),Form("Run %d %s",GetRunNumber(),DataName[i].Data()),
-		     1000,TreeLeafMean[i]-5*TreeLeafRMS[i],TreeLeafMean[i]+5*TreeLeafRMS[i]);
+		     1000,TreeLeafMean[i]-10*TreeLeafRMS[i],TreeLeafMean[i]+10*TreeLeafRMS[i]);
       hst->SetDirectory(0);
       hst->SetBit(TH1::kCanRebin);
 
@@ -963,7 +968,7 @@ UInt_t QwGUIMainDetectorDataType::SetHistograms(RDataContainer *cont, TTree *tre
       TBranch *branch = CurrentTree->GetBranch(DetNames[i].Data());
       if(branch){
 	dataStr = new QwGUIMainDetectorDataStructure(ID+200+i,thisRun,Type);
-	dataStr->SetDetectorName(DetNames[i].Data());
+	dataStr->SetDetectorName(DetNames[i].Data());	
 	dDetDataStr.push_back(dataStr);
 	temp = dDetDataStr[i]->SetHistograms(cont,tree);
 	if(!i)  NumberOfLeafs = temp;
@@ -1583,23 +1588,27 @@ TRootEmbeddedCanvas *QwGUIMainDetectorDataType::MakeDataTab(TGTab *dMDTab,
   else n = dLinkedTypes.size()*2;
   
   if(n > 1){
-    if(n == 2) {xn = 2; yn = 1;}
-    if(n == 3) {xn = 2; yn = 2;}
-    if(n == 4) {xn = 2; yn = 2;}
-    if(n == 5) {xn = 3; yn = 2;}
-    if(n == 6) {xn = 3; yn = 2;}
-    if(n == 7) {xn = 4; yn = 2;} 
-    if(n == 8) {xn = 4; yn = 2;}
-    if(n == 9) {xn = 3; yn = 3;}
-    if(n == 10){xn = 4; yn = 3;}
-    if(n == 11){xn = 4; yn = 3;}
-    if(n == 12){xn = 4; yn = 3;}
-    if(n == 13){xn = 4; yn = 4;}
-    if(n == 14){xn = 4; yn = 4;}
-    if(n == 15){xn = 4; yn = 4;}
-    if(n == 16){xn = 4; yn = 4;}
+    // if(n == 2) {xn = 2; yn = 1;}
+    // if(n == 3) {xn = 2; yn = 2;}
+    // if(n == 4) {xn = 2; yn = 2;}
+    // if(n == 5) {xn = 3; yn = 2;}
+    // if(n == 6) {xn = 3; yn = 2;}
+    // if(n == 7) {xn = 4; yn = 2;} 
+    // if(n == 8) {xn = 4; yn = 2;}
+    // if(n == 9) {xn = 3; yn = 3;}
+    // if(n == 10){xn = 4; yn = 3;}
+    // if(n == 11){xn = 4; yn = 3;}
+    // if(n == 12){xn = 4; yn = 3;}
+    // if(n == 13){xn = 4; yn = 4;}
+    // if(n == 14){xn = 4; yn = 4;}
+    // if(n == 15){xn = 4; yn = 4;}
+    // if(n == 16){xn = 4; yn = 4;}
+
+    xn = TMath::Floor(TMath::Sqrt(n));
+    yn = TMath::Ceil(TMath::Sqrt(n));
 
     mc->Divide(xn,yn);
+
     dNumberOfPads = xn*yn;
   }
   else
@@ -2404,11 +2413,23 @@ Int_t QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
     if(dProgrDlg)
       dProgrDlg->CloseWindow();
   }
-  
+  // RMsgBox *mBox = new RMsgBox(GetParent(), GetMain(), "mBox", 
+  // 				"QwGUIMainDetector","Processing",
+  // 				"Please wait!\nProcessing MD Data ...",
+  // 				kMBIconExclamation,0);
+
+  // if(mBox){
+  //   gSystem->ProcessEvents();
+  // }
+
+  // printf("File %s, Line %d\n",__FILE__,__LINE__);
 
   dCurrentYields->ProcessData("(md1- -> md8+)");
   printf("dCurrentYields->ProcessData Done\n");
   
+  // mBox->UpdateText("Done Processing Yields");
+  // gSystem->ProcessEvents();
+
   dCurrentPMTAsyms->ProcessData("(md1- -> md8+)");
   printf("dCurrentPMTAsyms->ProcessData Done\n");
   
@@ -2417,16 +2438,28 @@ Int_t QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
   
   dCurrentCMBAsyms->ProcessData("(1+5,2+6,3+7,4+8,odd,even,all)");
   printf("dCurrentCMBAsyms->ProcessData Done\n");
+
+  // mBox->UpdateText("Done Processing Asymmetries");
+  // gSystem->ProcessEvents();
   
   dCurrentMSCYields->ProcessData("(PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");    
   printf("dCurrentMSCYields->ProcessData Done\n");
-  
+
+  // mBox->UpdateText("Done Processing Background Detector Yields");
+  // gSystem->ProcessEvents();
+
   dCurrentMSCAsyms->ProcessData("(PMT+LED,PMT,PMT+LG,md9-,md9+,I,V,Cage)");
   printf("dCurrentMSCAsyms->ProcessData Done\n");
-  
+
+  // mBox->UpdateText("Done Processing Background Detector Asymmetries");
+  // gSystem->ProcessEvents();
+
   dCurrentSummary->ProcessData(""); //Must be called last!
   printf("dCurrentSummary->ProcessData Done\n");  
-    
+
+  // mBox->UpdateText("Done Processing Summaries");
+  // gSystem->ProcessEvents();
+  
     //End filling root data
 
   return 1;
@@ -2596,13 +2629,17 @@ Bool_t QwGUIMainDetector::PlotCurrentModeData(UInt_t tab)
 		     0.5+rad*TMath::Sin(2*(k)*TMath::Pi()/8 - TMath::Pi()/2)+0.125,
 		     0.5+rad*TMath::Cos(2*(k)*TMath::Pi()/8 - TMath::Pi()/2)+0.125);
 
+	if(k == 8){
+	  gPad->SetPad(0.5-0.125,0.5-0.125,0.5+0.125,0.5+0.125);
+	}
+
       }
       gPad->SetLeftMargin(0.2);
       gPad->SetBottomMargin(0.2);
     }
 
     if(type.Contains("Det. Asym")){
-      TPaveText *ref = new TPaveText(0.43,0.48,0.57,0.52);
+      TPaveText *ref = new TPaveText(0.43+0.4,0.48+0.45,0.57+0.4,0.52+0.45);
       ref->AddText("Looking Downstream");
       ref->SetBorderSize(0);
       ref->SetFillColor(0);

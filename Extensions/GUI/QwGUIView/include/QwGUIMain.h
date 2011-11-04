@@ -147,6 +147,16 @@ class QwGUIMain : public TGMainFrame {
 
   Int_t                   dCurrentSegment;
 
+  Double_t                dRasterSize[2];
+  void                    SetRasterSize(Double_t rasterX, Double_t rasterY){dRasterSize[0] = rasterX; dRasterSize[1] = rasterY;}
+  Double_t               *GetRasterSize(){return dRasterSize;}
+  Double_t                dEnergy;
+  void                    SetEnergy(Double_t energy) {dEnergy = energy;}
+  Double_t                GetEnergy() {return dEnergy;}
+  Double_t                dCurrent;
+  void                    SetCurrent(Double_t current) {dCurrent = current;}
+  Double_t                GetCurrent() {return dCurrent;}
+
   //!Index (in DataWindowArray) of the currently slected data window
   Int_t                dSelectedDataWindow;
 
@@ -196,9 +206,12 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dAddSegmentLayout;
   TGLabel                *dRunEntryLabel;
   TGLabel                *dAddSegmentLabel;  
-  TGLabel                *dPrefixEntryLabel;  
+  TGLabel                *dPrefixEntryLabel;
+  TGLabel                *dRunInfoLabel;
+  
   TGHorizontal3DLine     *dHorizontal3DLine;
   TGHorizontalFrame      *dUtilityFrame;
+  TGHorizontalFrame      *dRunInfoFrame;
   TGLayoutHints          *dUtilityLayout;
 
   //!Main window tab environment
