@@ -137,7 +137,9 @@ Int_t main(Int_t argc, Char_t* argv[])
     //  Construct a tree which contains map file names which are used to analyze data
     historootfile->WriteParamFileList("mapfiles", detectors);
 
-    database.FillParameterFiles(detectors);
+    if (database.AllowsWriteAccess()) {
+      database.FillParameterFiles(detectors);
+    }
 
     //  Construct histograms
     historootfile->ConstructHistograms("mps_histo", ringoutput);
