@@ -504,10 +504,8 @@ Int_t QwSubsystemArrayParity::GetEventcutErrorCounters(){// report number of eve
 
 void QwSubsystemArrayParity::UpdateEventcutErrorFlag(UInt_t errorflag){
   VQwSubsystemParity *subsys_parity;
-  //make sure to enable this check when we have local and global stability checks
-  //For current stability check keep this commented
-  //  if ((errorflag & kGlobalCut) == kGlobalCut)//check to see any global errors exist 
-  fErrorFlag|=errorflag; //then only update the global error falg
+  if ((errorflag & kGlobalCut) == kGlobalCut)//check to see any global errors exist 
+    fErrorFlag|=errorflag; //then only update the global error falg
 
 
   if (!empty()){

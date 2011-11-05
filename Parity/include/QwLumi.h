@@ -80,16 +80,13 @@ class QwLumi : public VQwSubsystemParity, public MQwCloneable<QwLumi> {
   Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliures
   UInt_t GetEventcutErrorFlag();//return the error flag
   //update the same error flag in the classes belong to the subsystem.
-  void UpdateEventcutErrorFlag(UInt_t errorflag){
-  }
+  void UpdateEventcutErrorFlag(UInt_t errorflag);
   //update the error flag in the subsystem level from the top level routines related to stability checks. This will uniquely update the errorflag at each channel based on the error flag in the corresponding channel in the ev_error subsystem
-  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
-  };
+  void UpdateEventcutErrorFlag(VQwSubsystem *ev_error);
 
   void AccumulateRunningSum(VQwSubsystem* value);
   //remove one entry from the running sums for devices
-  void DeaccumulateRunningSum(VQwSubsystem* value){
-  };
+  void DeaccumulateRunningSum(VQwSubsystem* value);
   void CalculateRunningAverage();
 
   Int_t ProcessConfigurationBuffer(const UInt_t roc_id, const UInt_t bank_id, UInt_t* buffer, UInt_t num_words);

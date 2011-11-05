@@ -61,8 +61,7 @@ public:
 
   UInt_t GetErrorCode() const {
     if (fErrorFlag>0)
-      //return (fErrorFlag+fErrorConfigFlag);
-      return (fErrorFlag);
+      return fErrorFlag;
     return 0;
   }; 
   void UpdateErrorCode(const UInt_t& error){fErrorFlag |= (error);};

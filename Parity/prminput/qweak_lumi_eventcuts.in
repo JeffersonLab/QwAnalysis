@@ -20,8 +20,8 @@ EVENTCUTS = 3
 !device_type, device_name, lower limit, upper limit, local(l)/global(g), stability percentage
  
 
-!integrationpmt, qwk_uslumi1neg, 0.002053, 1000000, l, 0
-!combinationpmt, uslumi3_sum, 0.007625, 1000000, g,0 
+integrationpmt, qwk_uslumi1neg, 0.002053, 1000000, l, 0.01
+combinationpmt, uslumi3_sum, 0.007625, 1000000, l,0.01 
 
  
 

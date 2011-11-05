@@ -143,7 +143,7 @@ bpmstripline, 	qwk_bpm3h09,    YM,		0,  61900,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   XP,		0,  64260,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   XM,		0,  60150,	 l,	 0
 bpmstripline, 	qwk_bpm3h09b,   YP,		0,  59030,	 l,	 0
-bpmstripline, 	qwk_bpm3h09b,   YM,             0,  76200,       l,      1
+bpmstripline, 	qwk_bpm3h09b,   YM,             0,  76200,       l,      0
 
 
 
@@ -167,7 +167,7 @@ bpmcavity, qwk_bpmcavity1, absx, 0, 10000, l, 1
 !Cuts are applied after the VQwSubsystem::ProcessEvent() routine. 
 
 !device_type, device_name,   channel_name,   lower limit,      upper limit, local(l)/global(g), stability percentage
-combinedbpm, qwk_target, absx, 0, 10, l, 1
+!combinedbpm, qwk_target, absx, 0, 10, l, 1
 !combinedbpm, qwk_target, absy, 0.42192, 0.42197, l, 0
 !combinedbpm, qwk_target, xslope, -0.274556, -0.274542, l, 0
 !combinedbpm, qwk_target, yslope, -0.785934, -0.785922, l, 0
@@ -184,7 +184,7 @@ combinedbpm, qwk_target, absx, 0, 10, l, 1
 !***************************************************	
 !for QwEnergyCalculator
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
-energycalculator, qwk_energy,  	-3.18588e-100, 	3.18591e+100, l, 1
+!energycalculator, qwk_energy,  	-3.18588e-100, 	3.18591e+100, l, 1
 
 
 !Comments

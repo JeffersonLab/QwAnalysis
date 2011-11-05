@@ -208,6 +208,24 @@ Int_t QwIntegrationPMT::GetEventcutErrorCounters(){// report number of events fa
   return 1;
 }
 
+/********************************************************/
+void QwIntegrationPMT::UpdateEventcutErrorFlag(QwIntegrationPMT*ev_error){
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwIntegrationPMT::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+	fTriumf_ADC.UpdateEventcutErrorFlag(ev_error->GetErrorCode());//the routine GetErrorCode() return the error flag unconditionally
+      }
+    } else {
+      TString loc="Standard exception from QwIntegrationPMT::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
 
 /********************************************************/
 
@@ -432,6 +450,12 @@ void QwIntegrationPMT::AccumulateRunningSum(const QwIntegrationPMT& value)
 {
   fTriumf_ADC.AccumulateRunningSum(value.fTriumf_ADC);
 }
+
+void QwIntegrationPMT::DeaccumulateRunningSum(QwIntegrationPMT& value)
+{
+  fTriumf_ADC.DeaccumulateRunningSum(value.fTriumf_ADC);
+}
+
 
 void QwIntegrationPMT::Blind(const QwBlinder *blinder)
 {
