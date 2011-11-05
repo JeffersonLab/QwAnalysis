@@ -93,7 +93,7 @@ class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<
     void  ConstructBranch(TTree *tree, TString& prefix) { };
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     void  FillTreeVector(std::vector<Double_t> &values) const;
-    void  FillDB(QwDatabase *db, TString datatype){};
+//    void  FillDB(QwDatabase *db, TString datatype){};
 
     size_t GetNumberOfEvents() const { return (fNumberOfEvents); };
     void SetNumberOfEvents(UInt_t nevents) {

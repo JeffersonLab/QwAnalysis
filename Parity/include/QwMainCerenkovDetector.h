@@ -100,7 +100,7 @@ class QwMainCerenkovDetector:
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
 
   void  FillTreeVector(std::vector<Double_t> &values) const;
-  void  FillDB(QwDatabase *db, TString datatype);
+  void  FillDB(QwParityDB *db, TString datatype);
 
   const QwIntegrationPMT* GetChannel(const TString name) const;
 

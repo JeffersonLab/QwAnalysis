@@ -13,7 +13,9 @@
 
 // Qweak headers
 #include "QwSubsystemArray.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 #include "QwVQWK_Channel.h"
 
 // Register this subsystem with the factory
@@ -779,7 +781,7 @@ void QwIntegratedRaster::AccumulateRunningSum(VQwSubsystem* value1)
 
 
 //*****************************************************************
-void QwIntegratedRaster::FillDB(QwDatabase *db, TString datatype)
+void QwIntegratedRaster::FillDB(QwParityDB *db, TString datatype)
 {
 
   Bool_t local_print_flag = false;
@@ -790,7 +792,7 @@ void QwIntegratedRaster::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::beam> entrylist;
+  std::vector<QwParitySSQLS::beam> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

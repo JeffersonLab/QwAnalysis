@@ -35,12 +35,11 @@ class VQwBCM : public VQwDataElement {
    *          get a concrete instance of a templated QwBCM.
    *
    ***************************************************************/
-public:
-  VQwBCM() { }; // Do not use this function!!
-  VQwBCM(TString name){ // Do not use this function!!
-      //InitializeChannel(name,"raw");
-  };
+protected:
+  VQwBCM(VQwDataElement& beamcurrent): fBeamCurrent_ref(beamcurrent) { };
+  VQwBCM(VQwDataElement& beamcurrent, TString name): fBeamCurrent_ref(beamcurrent) { };
 
+public:
   virtual ~VQwBCM() { };
 
   // VQwDataElement virtual functions
@@ -75,7 +74,9 @@ public:
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) = 0;
   virtual void FillTreeVector(std::vector<Double_t> &values) const = 0;
-  virtual void Copy(VQwDataElement *source) = 0;
+  virtual void Copy(VQwDataElement *source) {
+    VQwDataElement::Copy(source);
+  }
 
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;
 
@@ -102,6 +103,8 @@ public:
 
 
 protected:
+  VQwDataElement& fBeamCurrent_ref;
+
 };
 
 #endif // __VQWBCM__

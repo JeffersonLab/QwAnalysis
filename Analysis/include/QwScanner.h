@@ -148,7 +148,7 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
     void  ConstructBranchAndVector(TTree *tree, TString &prefix, std::vector<Double_t> &values);
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
-    void  FillDB(QwDatabase *db, TString type)
+    void  FillDB(QwParityDB *db, TString type)
     {
       return;
     };

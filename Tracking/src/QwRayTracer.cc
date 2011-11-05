@@ -130,7 +130,7 @@ int QwRayTracer::Bridge(
   ClearListOfTracks();
 
   // Ray-tracing parameters
-  double res = 0.5 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
+  double res = 0.2 * Qw::cm; //0.5 * Qw::cm; // position determination resolution
   double step = 1.0 * Qw::cm; // integration step size
   double dp = 10.0 / Qw::GeV; // 10.0 * Qw::MeV; // momentum variation
 
@@ -143,14 +143,11 @@ int QwRayTracer::Bridge(
   fScatteringAngle = start_direction.Theta();
   // Estimate initial momentum based on front track
   p[0] = p[1] = EstimateInitialMomentum(start_direction)/Qw::GeV;
-  //std::cout<<"estimated momentum = "<<p[0]<<" GeV, dp="<<dp<<" GeV\n";
 
   // Back track position and direction
   TVector3 end_position = back->GetPosition(439.625 * Qw::cm);
   TVector3 end_direction = back->GetMomentumDirection();
 
-  //std::cout<<"start position(x,y,z)="<<start_position.X()<<","<<start_position.Y()<<", "<<start_position.Z()<<"\n";
-  //std::cout<<"end_position(x,y,z)="<<end_position.X()<<","<<end_position.Y()<<", "<<end_position.Z()<<"\n";
 
   fPositionROff = end_position.Perp();
 
@@ -203,8 +200,6 @@ int QwRayTracer::Bridge(
     fDirectionPhiOff   = direction.Phi()   - end_direction.Phi();
 
     p[0] = p[1];
-    //std::cout<<"p[0]== "<<p[0]<<" GeV,  ";
-    //std::cout<<"hit at ("<<x[0]<<","<<y[0]<<")\n";
   }
 
   if (iterations < MAX_ITERATIONS_NEWTON) {
@@ -231,9 +226,8 @@ int QwRayTracer::Bridge(
     }
 	
     double kinetics[3]={0.0};
-    double vertexz=0.0;
-    vertexz=CalculateVertex(fStartPosition,fScatteringAngle);
-    CalculateKinetics(vertexz,fScatteringAngle,fMomentum,kinetics);
+    double vertex_z=-(front->fSlopeX*front->fOffsetX + front->fSlopeY*front->fOffsetY)/(front->fSlopeX*front->fSlopeX+front->fSlopeY*front->fSlopeY);
+    CalculateKinetics(vertex_z,fScatteringAngle,fMomentum,kinetics);
     QwTrack* track = new QwTrack(front,back);
     //track->fMomentum = fMomentum;
 
@@ -241,7 +235,7 @@ int QwRayTracer::Bridge(
     track->fTotalEnergy = kinetics[1] / Qw::GeV;
     track->fQ2 = kinetics[2]/ (Qw::GeV * Qw::GeV);
     track->fScatteringAngle = fScatteringAngle * Qw::rad2deg;//180 /PI;
-    track->fVertexZ=vertexz;
+    track->fVertexZ=vertex_z;
     track->fPositionRoff = fPositionROff;
     track->fPositionPhioff = fPositionPhiOff;
     track->fDirectionThetaoff = fDirectionThetaOff;

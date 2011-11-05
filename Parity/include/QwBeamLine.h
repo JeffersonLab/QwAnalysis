@@ -101,7 +101,7 @@ class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
   void ConstructBranch(TTree *tree, TString &prefix);
   void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file );
   void FillTreeVector(std::vector<Double_t> &values) const;
-  void FillDB(QwDatabase *db, TString datatype);
+  void FillDB(QwParityDB *db, TString datatype);
 
   void Copy(VQwSubsystem *source);
   VQwSubsystem*  Copy();

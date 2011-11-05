@@ -1265,7 +1265,7 @@ VQwSubsystem*  QwBeamMod::Copy()
 
 
 
-void QwBeamMod::FillDB(QwDatabase *db, TString datatype)
+void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
 {
   /*
   vector<QwParityDB::beam> entrylist;

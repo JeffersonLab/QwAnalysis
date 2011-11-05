@@ -51,19 +51,19 @@ qwk_qpdBL
 qwk_qpdTL
 qwk_qpdBR
 qwk_qpdTR
-qwk_linap1
-qwk_linap2
-qwk_linap3
-qwk_linap4
-qwk_linap5
-qwk_linap6
-qwk_linap7
-qwk_linap8
 
 
 #########
 ## BCMS
 qwk_bcm0l02
+qwk_linar1
+qwk_linar2
+qwk_linar3
+qwk_linar4
+qwk_linar5
+qwk_linar6
+qwk_linar7
+qwk_linar8
 
 ##########
 ## Scalers
@@ -84,6 +84,13 @@ scandata2
 
 #########
 ## bpms
+yield_qwk_0i02X
+yield_qwk_0i02Y
+diff_qwk_0i02X
+diff_qwk_0i02Y
+asym_qwk_0i02_EffectiveCharge
+asym_qwk_0i02_EffectiveCharge
+
 yield_qwk_qpdX
 yield_qwk_qpdY
 diff_qwk_qpdX
@@ -97,12 +104,6 @@ diff_qwk_linap6
 diff_qwk_linap7
 diff_qwk_linap8
 
-
-yield_qwk_0i02X
-yield_qwk_0i02Y
-
-diff_qwk_0i02X
-diff_qwk_0i02Y
 
 #########
 ##bcms

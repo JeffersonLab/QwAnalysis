@@ -17,7 +17,7 @@ RMsgBox::RMsgBox(const TGWindow *p, const TGWindow *main,
 		 const char *title, const char *msg, EMsgBoxIcon icon,
 		 Int_t buttons, Int_t *ret_code,
 		 UInt_t sleep, UInt_t options) :
-  TGTransientFrame(p, main, 100, 100, options)
+  TGTransientFrame(p, main, 200, 300, options)
 {
   
   strcpy(dObjName,objname);
@@ -89,7 +89,7 @@ void RMsgBox::PMsgBox(const char *title, const char *msg,
 
    buttons &= (kMBYes | kMBNo | kMBOk | kMBApply |
                kMBRetry | kMBIgnore | kMBCancel | kMBClose | kMBDismiss);
-   if (buttons == 0) buttons = kMBDismiss;
+    if (buttons == 0) buttons = kMBDismiss;
 
    if (buttons & kMBYes) {
       fYes = new TGTextButton(fButtonFrame, new TGHotString("&Yes"), kMBYes);
@@ -235,7 +235,54 @@ void RMsgBox::PMsgBox(const char *title, const char *msg,
                kMWMInputModeless);
 
    MapRaised();
-//    fClient->WaitFor(this);
+   // fClient->WaitFor(this);
+}
+
+void RMsgBox::UpdateText(const char *text)
+{
+  TGLabel *label;
+  UInt_t width, height;
+
+  char *line;
+  char *tmpMsg, *nextLine;
+  
+  tmpMsg = new char[strlen(text) + 1];
+  nextLine = tmpMsg;
+
+  line = tmpMsg;
+  strcpy(nextLine, text);
+  while ((nextLine = strchr(line, '\n'))) {
+    *nextLine = 0;
+    label = new TGLabel(fLabelFrame, line);
+    fMsgList->Add(label);
+    fLabelFrame->AddFrame(label, fL4);
+    line = nextLine + 1;
+  }
+  
+  label = new TGLabel(fLabelFrame, line);
+  fMsgList->Add(label);
+  fLabelFrame->AddFrame(label, fL4);
+  delete [] tmpMsg;
+  
+  // fIconFrame->AddFrame(fLabelFrame, fL4);
+  // AddFrame(fIconFrame, fL5);
+  
+  width  = GetDefaultWidth();
+  height = GetDefaultHeight();
+  
+  Resize(width, height);
+  
+  MapSubwindows();
+  
+  // position relative to the parent's window
+  
+  // CenterOnParent();
+
+   SetWMSize(width, height);
+   SetWMSizeHints(width, height, width, height, 0, 0);
+
+   MapRaised();
+  
 }
 
 RMsgBox::~RMsgBox()

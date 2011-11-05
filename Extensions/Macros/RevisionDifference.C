@@ -69,7 +69,7 @@ void RevisionDifference( Int_t runnumber = 12161, const char *prefix = "Qweak_")
     return;
   }
   if( !helBranchArray ) {
-    std::cerr << "Error: Mps_Tree empty in rootfile "<<fileName.Data()<<
+    std::cerr << "Error: Hel_Tree empty in rootfile "<<fileName.Data()<<
       ", Check run number and prefix."<<std::endl;
     return;
   }
@@ -139,6 +139,9 @@ void ProcessBranch( TChain *chain, std::vector<std::string> names,
       rms = htemp->GetRMS();
       min = htemp->GetMinimum();
       max = htemp->GetMaximum();
+      htemp->Clear();
+    } else {
+      std::cout << "Error! Lost histogram for " << names[entry] << std::endl;
     }
     sprintf(compare_output,"%-30s \t%7d \t%#6.6e \t%#6.6e \t%#6.6e \t%#6.6e",
         names[entry].c_str(),hEntries,mean,rms,min,max);

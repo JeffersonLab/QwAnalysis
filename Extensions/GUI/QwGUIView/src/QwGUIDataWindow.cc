@@ -23,7 +23,7 @@ QwGUIDataWindow::QwGUIDataWindow(const TGWindow *p, const TGWindow *main,
   dOptions.mpPedSubtract  = kFalse;
   dOptions.mpBgrdSubtract = kFalse;
 
-  // AddPopupEntry("Set &Attributes...", M_PLOT_ATTR);
+  AddPopupEntry("Set &Attributes...", M_PLOT_ATTR);
 }
 
 QwGUIDataWindow::~QwGUIDataWindow()

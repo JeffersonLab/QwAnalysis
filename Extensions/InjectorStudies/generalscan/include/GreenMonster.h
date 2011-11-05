@@ -79,6 +79,25 @@ public:
   void SCNSetStatus(Int_t);
   void SCNSetValue(Int_t,Int_t);
 
+  Bool_t SCNStatusIsClean() {
+    switch (statusSCN)
+      {
+      case SCN_INT_CLN:
+	{
+	  return 1;
+	  break;
+	}
+      case SCN_INT_NOT:
+	{
+	  return 0;
+	  break;
+	}
+      default:
+	std::cout << "ERROR: Unrecognized SCAN status flag" << std::endl;
+      }
+    return 0;
+  }
+
   void PrintScanInfo(){
     switch (statusSCN)
       {

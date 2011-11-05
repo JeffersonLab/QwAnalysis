@@ -92,8 +92,8 @@
 #include "QwGUITrackFinding.h"
 #include "QwGUIEventDisplay.h"
 #include "QwGUIHelpBrowser.h"
-#include "QwGUIDatabaseContainer.h"
-#include "QwGUIDatabase.h"
+/* #include "QwGUIDatabaseContainer.h" */
+/* #include "QwGUIDatabase.h" */
 #ifndef __CINT__
 
 #include "QwOptions.h"
@@ -109,7 +109,7 @@ class QwGUIMain : public TGMainFrame {
  private:
 
   //!Database object (there should be only one for all subsystems)
-  QwGUIDatabaseContainer *dDatabase;
+  /* QwGUIDatabaseContainer *dDatabase; */
 
   //!Every instantiated subsystem gets added to this object array, as a cleanup mechanism.
   TObjArray               SubSystemArray;
@@ -124,7 +124,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
   QwGUIHallCBeamline     *HallCBeamlineSubSystem;
-  QwGUIDatabase          *DatabaseSubSystem;
+  /* QwGUIDatabase          *DatabaseSubSystem; */
   QwGUITrackFinding      *TrackFindingSubSystem;
   QwGUIEventDisplay      *EventDisplaySubSystem;
 
@@ -146,6 +146,16 @@ class QwGUIMain : public TGMainFrame {
   Int_t                   MCnt;
 
   Int_t                   dCurrentSegment;
+
+  Double_t                dRasterSize[2];
+  void                    SetRasterSize(Double_t rasterX, Double_t rasterY){dRasterSize[0] = rasterX; dRasterSize[1] = rasterY;}
+  Double_t               *GetRasterSize(){return dRasterSize;}
+  Double_t                dEnergy;
+  void                    SetEnergy(Double_t energy) {dEnergy = energy;}
+  Double_t                GetEnergy() {return dEnergy;}
+  Double_t                dCurrent;
+  void                    SetCurrent(Double_t current) {dCurrent = current;}
+  Double_t                GetCurrent() {return dCurrent;}
 
   //!Index (in DataWindowArray) of the currently slected data window
   Int_t                dSelectedDataWindow;
@@ -196,9 +206,12 @@ class QwGUIMain : public TGMainFrame {
   TGLayoutHints          *dAddSegmentLayout;
   TGLabel                *dRunEntryLabel;
   TGLabel                *dAddSegmentLabel;  
-  TGLabel                *dPrefixEntryLabel;  
+  TGLabel                *dPrefixEntryLabel;
+  TGLabel                *dRunInfoLabel;
+  
   TGHorizontal3DLine     *dHorizontal3DLine;
   TGHorizontalFrame      *dUtilityFrame;
+  TGHorizontalFrame      *dRunInfoFrame;
   TGLayoutHints          *dUtilityLayout;
 
   //!Main window tab environment
@@ -458,6 +471,8 @@ class QwGUIMain : public TGMainFrame {
 
   void                    SetCurrentFilePrefix(const char* prefix){ fPrefix = prefix;};
   void                    SetCurrentFileDirectory(const char* dir){fDirectory = dir;};
+  void                    StoreFileInfo(const char* filename);
+  void                    GetFileInfo(const char *filename, int &run, int &segment);
 
   UInt_t                  GetCurrentRunEventStart(){return dCurrentRunEventOptions.Start;};
   UInt_t                  GetCurrentRunEventLength(){return dCurrentRunEventOptions.Length;};
@@ -652,6 +667,9 @@ class QwGUIMain : public TGMainFrame {
 
   void                   OnUpdatePlot(const char*);
 
+  void                   OnNewRunSignal(int sig);
+  void                   OnRunWarningSignal(int sig);
+
   //!Receiver function, called when a connected canvas pad is mouse selected.
   //!
   //!Parameters:
@@ -702,6 +720,7 @@ class QwGUIMain : public TGMainFrame {
 
   //!Not currently used!
   void                   WritePid();
+  void                   CheckForNewRun();
 
   ClassDef(QwGUIMain,0);
 };

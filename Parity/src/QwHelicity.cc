@@ -15,7 +15,9 @@
 
 // Qweak headers
 #include "QwHistogramHelper.h"
-#include "QwDatabase.h"
+#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 #include "QwLog.h"
 
 extern QwHistogramHelper gQwHists;
@@ -110,6 +112,15 @@ void QwHelicity::ProcessOptions(QwOptions &options)
   if (fMaxPatternPhase > 8 && fHelicityBitPattern == kDefaultHelicityBitPattern) {
     BuildHelicityBitPattern(fMaxPatternPhase);
   }
+
+  //  Here we're going to try to get the "online" option which
+  //  is defined by QwEventBuffer.
+  if (options.HasValue("online")){
+    fSuppressMPSErrorMsgs = options.GetValue<bool>("online");
+  } else {
+    fSuppressMPSErrorMsgs = kFALSE;
+  }
+
 }
 
 
@@ -441,9 +452,11 @@ void QwHelicity::ProcessEventInputRegisterMode()
 
   if(fEventNumber!=(fEventNumberOld+1)){
     Int_t nummissed(fEventNumber - (fEventNumberOld+1));
-    QwError << "QwHelicity::ProcessEvent read event# ("
-	    << fEventNumber << ") is not  old_event#+1; missed "
-	    << nummissed << " gates" << QwLog::endl;
+    if (!fSuppressMPSErrorMsgs){
+      QwError << "QwHelicity::ProcessEvent read event# ("
+	      << fEventNumber << ") is not  old_event#+1; missed "
+	      << nummissed << " gates" << QwLog::endl;
+    }
     fNumMissedGates += nummissed;
     fNumMissedEventBlocks++;
   }
@@ -1321,7 +1334,7 @@ void  QwHelicity::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void  QwHelicity::FillDB(QwDatabase *db, TString type)
+void  QwHelicity::FillDB(QwParityDB *db, TString type)
 {
   if (type=="yield" || type=="asymmetry")
     return;

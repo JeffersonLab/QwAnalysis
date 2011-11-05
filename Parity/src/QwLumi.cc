@@ -13,7 +13,9 @@
 
 // Qweak headers
 #include "QwSubsystemArray.h"
-#include "QwDatabase.h"
+//#define MYSQLPP_SSQLS_NO_STATICS
+#include "QwParitySSQLS.h"
+#include "QwParityDB.h"
 
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwLumi);
@@ -201,23 +203,16 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 		{
 		  QwIntegrationPMT localIntegrationPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
 
-		  if (keyword=="not_blindable")
-		    localIntegrationPMT.SetBlindability(kFALSE);
-		  else 
-		    localIntegrationPMT.SetBlindability(kTRUE);
-		  if (keyword=="not_normalizable")
-		  	localIntegrationPMT.SetNormalizability(kFALSE);
+		  //  Force all Lumi PMTs to be not_blindable.
+		  //  This isn't really needed, since the subsystem
+		  //  doesn't call QwIntegrationPMT::Blind, but let's
+		  //  do it anyway.
+		  localIntegrationPMT.SetBlindability(kFALSE);
+		  if (keyword=="not_normalizable"
+		      || keyword2=="not_normalizable")
+		    localIntegrationPMT.SetNormalizability(kFALSE);
 		  else
-		  	localIntegrationPMT.SetNormalizability(kTRUE);
-		  if (keyword2=="not_blindable") 
-		    localIntegrationPMT.SetBlindability(kFALSE);
-		  else 
-		    localIntegrationPMT.SetBlindability(kTRUE);
-		  if (keyword2=="not_normalizable")
-		  	localIntegrationPMT.SetNormalizability(kFALSE);
-		  else
-		  	localIntegrationPMT.SetNormalizability(kTRUE);
-
+		    localIntegrationPMT.SetNormalizability(kTRUE);
 
 		  fIntegrationPMT.push_back(localIntegrationPMT);
 		  fIntegrationPMT[fIntegrationPMT.size()-1].SetDefaultSampleSize(fSample_size);
@@ -226,14 +221,16 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      else if (localLumiDetectorID.fTypeID==kQwCombinedPMT)
 		{
 		  QwCombinedPMT localcombinedPMT(GetSubsystemName(),localLumiDetectorID.fdetectorname);
-		  if (keyword=="not_normalizable" || keyword2=="not_normalizable")
+		  //  Force all Lumi PMTs to be not_blindable.
+		  //  This isn't really needed, since the subsystem
+		  //  doesn't call QwCombinedPMT::Blind, but let's
+		  //  do it anyway.
+		  localcombinedPMT.SetBlindability(kFALSE);
+		  if (keyword=="not_normalizable" 
+		      || keyword2=="not_normalizable")
 		    localcombinedPMT.SetNormalizability(kFALSE);
 		  else
 		    localcombinedPMT.SetNormalizability(kTRUE);
-		  if (keyword=="not_blindable" || keyword2 =="not_blindable") 
-		    localcombinedPMT.SetBlindability(kFALSE);
-		  else 
-		    localcombinedPMT.SetBlindability(kTRUE);
 
 		  fCombinedPMT.push_back(localcombinedPMT);
 		  fCombinedPMT[fCombinedPMT.size()-1].SetDefaultSampleSize(fSample_size);
@@ -1266,7 +1263,7 @@ void QwLumi::DoNormalization(Double_t factor)
 
 
 //*****************************************************************
-void QwLumi::FillDB(QwDatabase *db, TString datatype)
+void QwLumi::FillDB(QwParityDB *db, TString datatype)
 {
 
   Bool_t local_print_flag = false;
@@ -1277,7 +1274,7 @@ void QwLumi::FillDB(QwDatabase *db, TString datatype)
   }
 
   std::vector<QwDBInterface> interface;
-  std::vector<QwParityDB::lumi_data> entrylist;
+  std::vector<QwParitySSQLS::lumi_data> entrylist;
 
   UInt_t analysis_id = db->GetAnalysisID();
 

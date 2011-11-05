@@ -21,17 +21,13 @@
 template<typename T>
 void QwBCM<T>::SetPedestal(Double_t pedestal)
 {
-	fPedestal=pedestal;
-	fBeamCurrent.SetPedestal(fPedestal);
-	return;
+  fBeamCurrent.SetPedestal(pedestal);
 }
 
 template<typename T>
-void QwBCM<T>::SetCalibrationFactor(Double_t calib)
+void QwBCM<T>::SetCalibrationFactor(Double_t calibration)
 {
-	fCalibration=calib;
-	fBeamCurrent.SetCalibrationFactor(fCalibration);
-	return;
+  fBeamCurrent.SetCalibrationFactor(calibration);
 }
 /********************************************************/
 template<typename T>
@@ -41,10 +37,6 @@ void QwBCM<T>::InitializeChannel(TString name, TString datatosave)
   SetCalibrationFactor(1.);
   fBeamCurrent.InitializeChannel(name,datatosave);
   this->SetElementName(name);
-  //set default limits to event cuts
-  fLLimit=0;//init two timits
-  fULimit=0;//init two timits
-  return;
 }
 /********************************************************/
 template<typename T>
@@ -53,10 +45,6 @@ void  QwBCM<T>::InitializeChannel(TString subsystem, TString name, TString datat
   SetCalibrationFactor(1.);
   fBeamCurrent.InitializeChannel(subsystem, "QwBCM", name, datatosave);
   SetElementName(name);
-  //set default limits to event cuts
-  fLLimit=0;//init two timits
-  fULimit=0;//init two timits
-  return;  
 }
 /********************************************************/
 template<typename T>
@@ -67,10 +55,6 @@ void  QwBCM<T>::InitializeChannel(TString subsystem, TString name, TString type,
   SetModuleType(type);
   fBeamCurrent.InitializeChannel(subsystem, "QwBCM", name, datatosave);
   SetElementName(name);
-  //set default limits to event cuts
-  fLLimit=0;//init two timits
-  fULimit=0;//init two timits
-  return;  
 }
 
 /********************************************************/
@@ -78,80 +62,50 @@ template<typename T>
 void QwBCM<T>::ClearEventData()
 {
   fBeamCurrent.ClearEventData();
-  return;
 }
-
 
 /********************************************************/
 template<typename T>
 void QwBCM<T>::UseExternalRandomVariable()
 {
   fBeamCurrent.UseExternalRandomVariable();
-  return;
 }
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetExternalRandomVariable(double random_variable)
 {
   fBeamCurrent.SetExternalRandomVariable(random_variable);
-  return;
 }
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fBeamCurrent.SetRandomEventDriftParameters(amplitude, phase, frequency);
-  return;
 }
 /********************************************************/
 template<typename T>
 void QwBCM<T>::AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency)
 {
   fBeamCurrent.AddRandomEventDriftParameters(amplitude, phase, frequency);
-  return;
 }
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetRandomEventParameters(Double_t mean, Double_t sigma)
 {
   fBeamCurrent.SetRandomEventParameters(mean, sigma);
-  return;
 }
 /********************************************************/
 template<typename T>
 void QwBCM<T>::SetRandomEventAsymmetry(Double_t asymmetry)
 {
   fBeamCurrent.SetRandomEventAsymmetry(asymmetry);
-  return;
 }
 /********************************************************/
 template<typename T>
 void QwBCM<T>::RandomizeEventData(int helicity, double time)
 {
   fBeamCurrent.RandomizeEventData(helicity, time);
-  return;
 }
-/********************************************************/
-template<typename T>
-void QwBCM<T>::SetHardwareSum(Double_t hwsum, UInt_t sequencenumber)
-{
-  //  fBeamCurrent.SetHardwareSum(hwsum, sequencenumber);
-  return;
-}
-/********************************************************/
-//template<typename T>
-// void QwBCM<T>::SetEventData(Double_t* block, UInt_t sequencenumber)
-// {
-//   fBeamCurrent.SetEventData(block, sequencenumber);
-//   return;
-// }
-/********************************************************/
-// template<typename T>
-// void QwBCM<T>::SetEventNumber(int event)
-// {
-//   fBeamCurrent.SetEventNumber(event);
-//   return;
-// };
 /********************************************************/
 template<typename T>
 void QwBCM<T>::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -164,7 +118,6 @@ void QwBCM<T>::ProcessEvent()
 {
   this->ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
   fBeamCurrent.ProcessEvent();
-  return;
 }
 /********************************************************/
 template<typename T>
@@ -202,31 +155,27 @@ void QwBCM<T>::SetDefaultSampleSize(Int_t sample_size){
 
 /********************************************************/
 template<typename T>
-Bool_t QwBCM<T>::ApplySingleEventCuts(){
+Bool_t QwBCM<T>::ApplySingleEventCuts()
+{
   //std::cout<<" QwBCM::SingleEventCuts() "<<std::endl;
-  Bool_t status=kTRUE;
+  Bool_t status = kTRUE;
 
-  if (fBeamCurrent.ApplySingleEventCuts()){
-    status=kTRUE;
+  if (fBeamCurrent.ApplySingleEventCuts()) {
+    status = kTRUE;
+  } else {
+    status &= kFALSE;
   }
-  else{
-
-    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fBeamCurrent.GetValue();
-    status&=kFALSE;
-  }
-  fErrorFlag |=fBeamCurrent.GetEventcutErrorFlag();//retrun the error flag for event cuts
-
+  fErrorFlag |= fBeamCurrent.GetEventcutErrorFlag();//retrun the error flag for event cuts
 
   return status;
-
 }
 
 /********************************************************/
 
 template<typename T>
-Int_t QwBCM<T>::GetEventcutErrorCounters(){// report number of events falied due to HW and event cut faliure
-  fBeamCurrent.GetEventcutErrorCounters();
-  return 1;
+Int_t QwBCM<T>::GetEventcutErrorCounters()
+{// report number of events falied due to HW and event cut faliure
+  return fBeamCurrent.GetEventcutErrorCounters();
 }
 
 /********************************************************/
@@ -247,7 +196,7 @@ void QwBCM<T>::UpdateEventcutErrorFlag(VQwBCM *ev_error){
       throw std::invalid_argument(loc.Data());
     }
   } catch (std::exception& e) {
-    std::cerr<< e.what()<<std::endl;
+    std::cerr<< e.what()<<std::endl; 
   }
 };
 
@@ -268,8 +217,6 @@ QwBCM<T>& QwBCM<T>::operator= (const QwBCM<T> &value)
   if (this->GetElementName()!="")
     {
       this->fBeamCurrent=value.fBeamCurrent;
-      this->fPedestal=value.fPedestal;
-      this->fCalibration=value.fCalibration;
     }
 //   std::cout<<" to be copied \n";
 //   value.Print();
@@ -289,8 +236,6 @@ VQwBCM& QwBCM<T>::operator= (const VQwBCM &value)
         const QwBCM<T>* value_bcm = dynamic_cast<const QwBCM<T>* >(&value);
         QwBCM<T>* this_cast = dynamic_cast<QwBCM<T>* >(this);
         this_cast->fBeamCurrent= value_bcm->fBeamCurrent;
-        this_cast->fPedestal=value_bcm->fPedestal;
-        this_cast->fCalibration=value_bcm->fCalibration;
       }
     } else {
       TString loc="Standard exception from QwBCM::operato= :"+
@@ -307,7 +252,6 @@ VQwBCM& QwBCM<T>::operator= (const VQwBCM &value)
 //   this->Print();
 
   return *this;
-
 }
 
 template<typename T>
@@ -316,8 +260,6 @@ QwBCM<T>& QwBCM<T>::operator+= (const QwBCM<T> &value)
   if (this->GetElementName()!="")
     {
       this->fBeamCurrent+=value.fBeamCurrent;
-      this->fPedestal+=value.fPedestal;
-      this->fCalibration=0;
     }
   return *this;
 }
@@ -332,8 +274,6 @@ VQwBCM& QwBCM<T>::operator+= (const VQwBCM &value)
         const QwBCM<T>* value_bcm = dynamic_cast<const QwBCM<T>* >(&value);
         QwBCM<T>* this_cast = dynamic_cast<QwBCM<T>* >(this);
         this_cast->fBeamCurrent+=value_bcm->fBeamCurrent;
-        this_cast->fPedestal+=value_bcm->fPedestal;
-        this_cast->fCalibration=0;
       }
     } else {
       TString loc="Standard exception from QwBCM::operator+= :"+
@@ -356,8 +296,6 @@ VQwBCM& QwBCM<T>::operator-= (const VQwBCM &value)
       const QwBCM<T>* value_bcm = dynamic_cast<const QwBCM<T>* >(&value);
       QwBCM<T>* this_cast = dynamic_cast<QwBCM<T>* >(this);
       this_cast->fBeamCurrent-=value_bcm->fBeamCurrent;
-      this_cast->fPedestal-=value_bcm->fPedestal;
-      this_cast->fCalibration=0;
     }
   return *this;
 }
@@ -372,8 +310,6 @@ QwBCM<T>& QwBCM<T>::operator-= (const QwBCM<T> &value)
         const QwBCM<T>* value_bcm = dynamic_cast<const QwBCM<T>* >(&value);
         QwBCM<T>* this_cast = dynamic_cast<QwBCM<T>* >(this);
         this_cast->fBeamCurrent-=value_bcm->fBeamCurrent;
-        this_cast->fPedestal-=value_bcm->fPedestal;
-        this_cast->fCalibration=0;
       }
     } else {
       TString loc="Standard exception from QwBCM::operator-= :"+
@@ -415,21 +351,18 @@ void QwBCM<T>::Ratio(const QwBCM<T> &numer, const QwBCM<T> &denom)
     {
       //  std::cout<<"here in \n";
       this->fBeamCurrent.Ratio(numer.fBeamCurrent,denom.fBeamCurrent);
-      this->fPedestal=0;
-      this->fCalibration=0;
     }
-  return;
 }
 
 template<typename T>
 void QwBCM<T>::Scale(Double_t factor)
 {
   fBeamCurrent.Scale(factor);
-  return;
 }
 
 template<typename T>
-void QwBCM<T>::CalculateRunningAverage(){
+void QwBCM<T>::CalculateRunningAverage()
+{
   fBeamCurrent.CalculateRunningAverage();
 }
 
@@ -468,7 +401,6 @@ void QwBCM<T>::ConstructHistograms(TDirectory *folder, TString &prefix)
     {
       fBeamCurrent.ConstructHistograms(folder, prefix);
     }
-  return;
 }
 
 template<typename T>
@@ -482,9 +414,6 @@ void QwBCM<T>::FillHistograms()
     {
       fBeamCurrent.FillHistograms();
     }
-
-
-  return;
 }
 
 template<typename T>
@@ -496,7 +425,6 @@ void QwBCM<T>::ConstructBranchAndVector(TTree *tree, TString &prefix, std::vecto
     {
       fBeamCurrent.ConstructBranchAndVector(tree, prefix,values);
     }
-  return;
 }
 
 template<typename T>
@@ -509,7 +437,6 @@ void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix)
       fBeamCurrent.ConstructBranch(tree, prefix);
       // this functions doesn't do anything yet
     }
-  return;
 }
 
 template<typename T>
@@ -531,7 +458,6 @@ void  QwBCM<T>::ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& m
       }
       // this functions doesn't do anything yet
     }
-  return;
 }
 
 template<typename T>
@@ -544,40 +470,27 @@ void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
       fBeamCurrent.FillTreeVector(values);
       // this functions doesn't do anything yet
     }
-  return;
 }
 
 /********************************************************/
 template<typename T>
 void QwBCM<T>::Copy(VQwDataElement *source)
 {
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  QwBCM* input=((QwBCM*)source);
-	  this->fElementName=input->fElementName;
-	  this->fPedestal=input->fPedestal;
-	  this->fCalibration=input->fCalibration;
-	  this->fBeamCurrent.Copy(&(input->fBeamCurrent));
-	}
-      else
-	{
-	  TString loc="Standard exception from QwBCM::Copy = "
-	    +source->GetElementName()+" "
-	    +this->GetElementName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBCM::Copy(source);
+      const QwBCM<T>* input = dynamic_cast<QwBCM<T>*>(source);
+      this->fBeamCurrent.Copy(&(input->fBeamCurrent));
+    } else {
+      TString loc="Standard exception from QwBCM::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
     }
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-
-  return;
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
-
-
 
 template<typename T>
 std::vector<QwDBInterface> QwBCM<T>::GetDBEntry()

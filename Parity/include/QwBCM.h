@@ -34,18 +34,20 @@ class QwBCM : public VQwBCM {
 /////
   friend class QwCombinedBCM<T>;
  public:
-  QwBCM() { };
-  QwBCM(TString name){
+  QwBCM(): VQwBCM(fBeamCurrent) { };
+  QwBCM(TString name): VQwBCM(fBeamCurrent,name) {
     InitializeChannel(name,"raw");
   };
-  QwBCM(TString subsystemname, TString name){
+  QwBCM(TString subsystemname, TString name)
+  : VQwBCM(fBeamCurrent,name) {
     SetSubsystemName(subsystemname);
-    InitializeChannel(subsystemname, name,"raw");
+    InitializeChannel(subsystemname,name,"raw");
   };
-  QwBCM(TString subsystemname, TString name, TString type, TString clock = ""){
+  QwBCM(TString subsystemname, TString name, TString type, TString clock = "")
+  : VQwBCM(fBeamCurrent,name) {
     fBeamCurrent.SetExternalClockName(clock.Data());
     SetSubsystemName(subsystemname);
-    InitializeChannel(subsystemname, name,type,"raw");
+    InitializeChannel(subsystemname,name,type,"raw");
   };
   virtual ~QwBCM() { };
 
@@ -93,8 +95,7 @@ class QwBCM : public VQwBCM {
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   
   void SetDefaultSampleSize(Int_t sample_size);
-  void SetEventCutMode(Int_t bcuts){
-    bEVENTCUTMODE=bcuts;
+  void SetEventCutMode(Int_t bcuts) {
     fBeamCurrent.SetEventCutMode(bcuts);
   }
 
@@ -160,30 +161,11 @@ class QwBCM : public VQwBCM {
 /////
  protected:
 
-/////
- private:
-  Double_t fPedestal;
-  Double_t fCalibration;
-  Double_t fULimit, fLLimit;
-  Bool_t fGoodEvent;//used to validate sequence number in the IsGoodEvent()
-
-
-
-
   T fBeamCurrent;
 
-  Int_t fDeviceErrorCode;//keep the device HW status using a unique code from the QwVQWK_Channel::fDeviceErrorCode
-
-  const static  Bool_t bDEBUG=kFALSE;//debugging display purposes
-  Bool_t bEVENTCUTMODE;//If this set to kFALSE then Event cuts do not depend on HW ckecks. This is set externally through the qweak_beamline_eventcuts.map
-
+/////
  private:
-  //  Functions to be removed
   
-  //  void  SetEventData(Double_t* block, UInt_t sequencenumber);
-  /*   void  SetEventNumber(int event); */
-
-  void  SetHardwareSum(Double_t hwsum, UInt_t sequencenumber = 0);
   Double_t GetAverage()        {return fBeamCurrent.GetValue();};
   Double_t GetAverageError()   {return fBeamCurrent.GetValueError();};
 

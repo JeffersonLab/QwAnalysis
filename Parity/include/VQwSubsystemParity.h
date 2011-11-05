@@ -17,7 +17,7 @@
 
 // Forward declarations
 class QwBlinder;
-class QwDatabase;
+class QwParityDB;
 
 
 /**
@@ -45,7 +45,7 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
 
 
     /// \brief Fill the database
-    virtual void FillDB(QwDatabase *db, TString type) { };
+    virtual void FillDB(QwParityDB *db, TString type) { };
 
 
     // VQwSubsystem routine is overridden. Call it at the beginning by VQwSubsystem::operator=(value)
