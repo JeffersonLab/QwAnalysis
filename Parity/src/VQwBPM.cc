@@ -139,7 +139,7 @@ void VQwBPM::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 	    << " LL " <<  minX <<" UL " << maxX <<QwLog::endl;
   tmpptr->SetSingleEventCuts(minX,maxX);
 }
-/*
+
 void VQwBPM::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability)
 {
   VQwHardwareChannel* tmpptr = GetSubelementByName(ch_name);
@@ -148,7 +148,7 @@ void VQwBPM::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX,
 	    << " LL " <<  minX <<" UL " << maxX <<QwLog::endl;
   tmpptr->SetSingleEventCuts(errorflag,minX,maxX,stability);
 }
-*/
+
 
 VQwBPM& VQwBPM::operator= (const VQwBPM &value)
 {

@@ -67,10 +67,18 @@ class  QwHaloMonitor : public VQwDataElement{
   void     SetPedestal(Double_t ped) { fHalo_Counter.SetPedestal(ped); };
   void     SetCalibrationFactor(Double_t factor) { fHalo_Counter.SetCalibrationFactor(factor); };
   void AccumulateRunningSum(const QwHaloMonitor& value);
+  void DeaccumulateRunningSum(QwHaloMonitor& value);
   void CalculateRunningAverage();
 
   Bool_t ApplySingleEventCuts();//check values read from modules are at desired level
   UInt_t GetEventcutErrorFlag(){return fHalo_Counter.GetEventcutErrorFlag();};
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fHalo_Counter.UpdateEventcutErrorFlag(errorflag);
+  };
+
+
+  void UpdateEventcutErrorFlag(QwHaloMonitor *ev_error);
+
   Int_t  GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
   Bool_t ApplyHWChecks();
   void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability){

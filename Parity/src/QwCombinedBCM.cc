@@ -96,8 +96,8 @@ void  QwCombinedBCM<T>::ProcessEvent()
 template<typename T>
 Bool_t QwCombinedBCM<T>::ApplySingleEventCuts()
 {
-  /*
-  //No need to do this since the fErrorFlag is properly ORed when combo device is generated from the hardware elements
+  
+  //This is required to update single event cut faliures in individual channels
   //  First update the error code based on the codes
   //  of the elements.  This requires that the BCMs
   //  have had ApplySingleEventCuts run on them already.
@@ -105,20 +105,8 @@ Bool_t QwCombinedBCM<T>::ApplySingleEventCuts()
   for (size_t i=0;i<fElement.size();i++){
     this->fBeamCurrent.UpdateErrorCode(fElement.at(i)->fBeamCurrent.GetErrorCode());
   }
-  */
-  /*
-  if (fBeamCurrent.ApplySingleEventCuts()){
-    status=kTRUE;
-  }
-  else{
-    if (bDEBUG) std::cout<<" evnt cut failed:-> set limit "<<fULimit<<" harware sum  "<<fBeamCurrent.GetValue();
-    status&=kFALSE;
-  }
-  this->fErrorFlag|=fBeamCurrent.GetEventcutErrorFlag();//retrun the error flag for event cuts
-  //std::cout<<"combined bcm "<<GetElementName()<<" error flag "<<fBeamCurrent.GetEventcutErrorFlag()<<std::endl;
-=======
->>>>>>> .merge-right.r3406
-  */
+  
+
   //  Everything is identical as for a regular BCM
   return QwBCM<T>::ApplySingleEventCuts();
 }

@@ -22,7 +22,7 @@ EVENTCUTS = 3
 ! integrationpmt, qwk_md1neg, 1275 ,	1000000, l, 0
 !integrationpmt, qwk_md1neg, 0 ,	1000000, l, 1
 ! combinationpmt, qwk_md2barsum, 1021 ,	1000000, l, 0
-!combinationpmt, qwk_md2barsum, 0 ,	1000000, g, 0.0001
+combinationpmt, qwk_md2barsum, 0 ,	1000000, g, 0.0001
 
 
 

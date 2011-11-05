@@ -187,21 +187,22 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
   charge_error = 0;
   pos_error[kXAxis]=0;
   pos_error[kYAxis]=0;
-  /*
-  //No need
+
   for(size_t i=0;i<fElement.size();i++){
     ///  TODO:  The returned base class should be changed so
     ///         these casts aren't needed, but "GetErrorCode"
     ///         is not meaningful for every VQwDataElement.
     ///         Maybe the return should be a VQwHardwareChannel?
+
+    //To update the event cut faliures in individual BPM devices
     charge_error      |= fElement[i]->GetEffectiveCharge()->GetErrorCode();
     pos_error[kXAxis] |= fElement[i]->GetPosition(kXAxis)->GetErrorCode();
     pos_error[kYAxis] |= fElement[i]->GetPosition(kYAxis)->GetErrorCode();
   }
-  */
+
   //Event cuts for  X & Y slopes
   for(axis=kXAxis;axis<kNumAxes;axis++){
-    //fSlope[axis].UpdateErrorCode(pos_error[axis]);//No need
+    fSlope[axis].UpdateErrorCode(pos_error[axis]);
     if (fSlope[axis].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
@@ -215,7 +216,7 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
 
   //Event cuts for  X & Y intercepts
   for(axis=kXAxis;axis<kNumAxes;axis++){
-    //fIntercept[axis].UpdateErrorCode(pos_error[axis]);//No need
+    fIntercept[axis].UpdateErrorCode(pos_error[axis]);
     if (fIntercept[axis].ApplySingleEventCuts()){ //for X slope
       status&=kTRUE;
     }
@@ -228,7 +229,7 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
   }
 
   for(axis=kXAxis;axis<kNumAxes;axis++){
-    //fAbsPos[axis].UpdateErrorCode(pos_error[axis]);//No need
+    fAbsPos[axis].UpdateErrorCode(pos_error[axis]);
     if (fAbsPos[axis].ApplySingleEventCuts()){ 
       status&=kTRUE;
     }
@@ -243,7 +244,7 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
-  //fEffectiveCharge.UpdateErrorCode(charge_error);//No need
+  fEffectiveCharge.UpdateErrorCode(charge_error);
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
@@ -285,7 +286,7 @@ VQwHardwareChannel* QwCombinedBPM<T>::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
-
+/*
 template<typename T>
 void QwCombinedBPM<T>::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
@@ -357,7 +358,7 @@ void QwCombinedBPM<T>::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Doub
   }
 }
 
-
+*/
 
 template<typename T>
 void QwCombinedBPM<T>::UpdateEventcutErrorFlag(const UInt_t error){

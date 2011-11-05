@@ -201,7 +201,7 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
   Int_t i=0;
   fErrorFlag=0;
 
-  UInt_t error_code = 0;
+  UInt_t element_error_code[2];
   //Event cuts for four wires
   for(i=0;i<4;i++){
     if (fWire[i].ApplySingleEventCuts()){ //for RelX
@@ -214,13 +214,24 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
     //Get the Event cut error flag for wires
     fErrorFlag|=fWire[i].GetEventcutErrorFlag();
 
-    error_code |= fWire[i].GetErrorCode();//this to be updated in the rel and abp pos channels
   }
+
+  //Get the rex/abs X event cut error flag from xm and xp
+  element_error_code[kXAxis] = GetSubelementByName("xm")->GetErrorCode() | GetSubelementByName("xp")->GetErrorCode();
+  //Get the rex/abs Y event cut  error flag from ym and yp
+  element_error_code[kYAxis] = GetSubelementByName("ym")->GetErrorCode() | GetSubelementByName("yp")->GetErrorCode();
+  //Update the error flags for rel and abs positions
+  fRelPos[kXAxis].UpdateErrorCode(element_error_code[kXAxis]);
+  fRelPos[kYAxis].UpdateErrorCode(element_error_code[kYAxis]);
+  fAbsPos[kXAxis].UpdateErrorCode(element_error_code[kXAxis]);
+  fAbsPos[kYAxis].UpdateErrorCode(element_error_code[kYAxis]);
+  //update the sum of error flags of all wires to the charge element
+  fEffectiveCharge.UpdateErrorCode(element_error_code[kXAxis]|element_error_code[kYAxis]);
+
   
 
    //Event cuts for Relative X & Y
   for(i=kXAxis;i<kNumAxes;i++){
-    //fRelPos[i].UpdateErrorCode(error_code);//No need
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -234,7 +245,6 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
   }
 
   for(i=kXAxis;i<kNumAxes;i++){
-    //fAbsPos[i].UpdateErrorCode(error_code);//No need
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -247,7 +257,6 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
   }
 
   //Event cuts for four wire sum (EffectiveCharge) are already ORed when EffectiveCharge is calculated
-  //fEffectiveCharge.UpdateErrorCode(error_code);//No need
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
@@ -294,7 +303,7 @@ VQwHardwareChannel* QwBPMStripline<T>::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
-
+/*
 template<typename T>
 void QwBPMStripline<T>::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
@@ -347,6 +356,8 @@ void QwBPMStripline<T>::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Dou
 
   }
 }
+
+*/
 
 template<typename T>
 void  QwBPMStripline<T>::ProcessEvent()

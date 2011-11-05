@@ -1466,11 +1466,8 @@ void QwBeamLine::UpdateEventcutErrorFlag(UInt_t errorflag){
 	(this->fBPMCombo[i].get())->UpdateEventcutErrorFlag(errorflag);
       for(size_t i=0;i<fECalculator.size();i++)
 	(this->fECalculator[i]).UpdateEventcutErrorFlag(errorflag);
-
-      /*
-      for(size_t i=0;i<input->fHaloMonitor.size();i++)
-	this->fHaloMonitor[i]=input->fHaloMonitor[i];
-      */
+      for(size_t i=0;i<fHaloMonitor.size();i++)
+	(this->fHaloMonitor[i]).UpdateEventcutErrorFlag(errorflag);
 
 }
 
@@ -1502,11 +1499,8 @@ void QwBeamLine::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
 	(this->fBPMCombo[i].get())->UpdateEventcutErrorFlag(input->fBPMCombo[i].get()); //=*(input->fBPMCombo[i].get());      
       for(size_t i=0;i<input->fECalculator.size();i++)
 	(this->fECalculator[i]).UpdateEventcutErrorFlag(&(input->fECalculator[i]));
-
-      /*
       for(size_t i=0;i<input->fHaloMonitor.size();i++)
-	this->fHaloMonitor[i]=input->fHaloMonitor[i];
-      */
+	(this->fHaloMonitor[i]).UpdateEventcutErrorFlag(&(input->fHaloMonitor[i]));
       
       
 
@@ -2174,10 +2168,8 @@ void QwBeamLine::DeaccumulateRunningSum(VQwSubsystem* value1){
       fLinearArray[i].DeaccumulateRunningSum(value->fLinearArray[i]);    
     for (size_t i = 0; i < fECalculator.size();  i++)
       fECalculator[i].DeaccumulateRunningSum(value->fECalculator[i]);
-    /*
     for (size_t i = 0; i <fHaloMonitor.size();  i++)
       fHaloMonitor[i].DeaccumulateRunningSum(value->fHaloMonitor[i]);
-    */
     
   }
 };

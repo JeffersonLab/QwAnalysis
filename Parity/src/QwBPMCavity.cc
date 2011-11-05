@@ -224,7 +224,7 @@ VQwHardwareChannel* QwBPMCavity::GetSubelementByName(TString ch_name)
 }
 
 
-
+/*
 void QwBPMCavity::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
 
@@ -277,6 +277,8 @@ void QwBPMCavity::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t 
   }
 
 }
+
+*/
 
 void QwBPMCavity::UpdateEventcutErrorFlag(const UInt_t error){
   Short_t i=0;

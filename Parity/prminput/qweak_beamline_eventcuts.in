@@ -155,7 +155,7 @@ bpmstripline, 	qwk_bpm3h09b,   YM,             0,  76200,       l,      0
 !So pedestals are applied before appyling the cuts.
 
 !device_type, device_name, channel_name, lower limit, upper limit, local(l)/global(g), stability percentage
-bpmcavity, qwk_bpmcavity1, absx, 0, 10000, l, 1
+!bpmcavity, qwk_bpmcavity1, absx, 0, 10000, l, 1
 !bpmcavity, qwk_bpmcavity1, absy, 0, 0, l, 0
 !bpmcaivty, qwk_bpmcavity2, absx, 0, 0, l, 0
 !bpmcavity, qwk_bpmcavity2, absy, 0, 0, l, 0
@@ -179,7 +179,7 @@ bpmcavity, qwk_bpmcavity1, absx, 0, 10000, l, 1
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
 !combinedbcm, qwk_charge,  	3.18588, 	3.18591e+10, l, 0
 !combinedbcm, qwk_charge,  	1, 	500, g, 0.001
-!combinedbcm, qwk_charge,  	0, 	3.18591e+10, g, 2
+combinedbcm, qwk_charge,  	0, 	3.18591e+10, l, 4
 
 !***************************************************	
 !for QwEnergyCalculator

@@ -154,7 +154,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 
    //Event cuts for Relative X & Y
   for(i=kXAxis;i<kNumAxes;i++){
-    //fRelPos[i].UpdateErrorCode(fErrorFlag);//No need to update the rel/abs error code from the channels/wires error codes
+    fRelPos[i].UpdateErrorCode(fErrorFlag);//To update the event cut failed error code from the channels/wires error codes
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -168,7 +168,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
-  //fEffectiveCharge.UpdateErrorCode(fErrorFlag);//No need to update the eff-charge error code from the channels/wires error codes
+  fEffectiveCharge.UpdateErrorCode(fErrorFlag);//To update the eff-charge error code from the channels/wires event cut error codes
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
@@ -208,6 +208,7 @@ VQwHardwareChannel* QwLinearDiodeArray::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
+/*
 void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
   QwWarning << "QwLinearDiodeArray::SetSingleEventCuts:  "
@@ -230,6 +231,7 @@ void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Do
     fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
   }
 }
+*/
 
 void QwLinearDiodeArray::UpdateEventcutErrorFlag(const UInt_t error){
   Short_t i=0;

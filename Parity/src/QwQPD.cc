@@ -172,15 +172,15 @@ Bool_t QwQPD::ApplySingleEventCuts()
   }
 
   for(i=0;i<2;i++){
-    //fRelPos[i].UpdateErrorCode(fErrorFlag);//No need to update the rel/abs error code from the channels/wires error codes
+    fRelPos[i].UpdateErrorCode(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fRelPos[i].ApplySingleEventCuts();
     fErrorFlag|=fRelPos[i].GetEventcutErrorFlag();
 
-    //fAbsPos[i].UpdateErrorCode(fErrorFlag);//No need to update the rel/abs error code from the channels/wires error codes
+    fAbsPos[i].UpdateErrorCode(fErrorFlag);//To update the rel/abs error code from the channels/wires event cut error codes
     status &= fAbsPos[i].ApplySingleEventCuts();
     fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
-  //fEffectiveCharge.UpdateErrorCode(fErrorFlag);// No need to update the eff-charge error code from the channels/wires error codes
+  fEffectiveCharge.UpdateErrorCode(fErrorFlag);// To update the eff-charge error code from the channels/wires event cut error codes
   status &= fEffectiveCharge.ApplySingleEventCuts();
   fErrorFlag|=fEffectiveCharge.GetEventcutErrorFlag();
   
@@ -219,7 +219,7 @@ VQwHardwareChannel* QwQPD::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
-
+/*
 void QwQPD::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
 
@@ -295,6 +295,8 @@ void QwQPD::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, 
   }
 
 }
+
+*/
 
 void QwQPD::UpdateEventcutErrorFlag(const UInt_t error){
   Short_t i=0;

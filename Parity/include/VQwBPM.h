@@ -70,7 +70,7 @@ class VQwBPM : public VQwDataElement {
 
 /*   Bool_t  ApplySingleEventCuts(); */
   void    SetSingleEventCuts(TString, Double_t, Double_t);
-  virtual void    SetSingleEventCuts(TString, UInt_t, Double_t, Double_t, Double_t) = 0;
+  void    SetSingleEventCuts(TString, UInt_t, Double_t, Double_t, Double_t);
   virtual void UpdateEventcutErrorFlag(UInt_t errorflag) = 0;
   virtual void UpdateEventcutErrorFlag(VQwBPM *ev_error) = 0;
 
