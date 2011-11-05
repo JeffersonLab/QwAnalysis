@@ -61,15 +61,16 @@ class VQwBPM : public VQwDataElement {
   void   GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY);
   void   SetRotation(Double_t);
   void   SetRotationOff();
+  /*
   UInt_t  GetEventcutErrorFlag(){//return the error flag
     return fErrorFlag;
-    //return fDeviceErrorCode;
-  };
+    };
+  */
   //  virtual Int_t   GetEventcutErrorCounters() = 0;
 
 /*   Bool_t  ApplySingleEventCuts(); */
   void    SetSingleEventCuts(TString, Double_t, Double_t);
-  void    SetSingleEventCuts(TString, UInt_t, Double_t, Double_t, Double_t);
+  virtual void    SetSingleEventCuts(TString, UInt_t, Double_t, Double_t, Double_t) = 0;
   virtual void UpdateEventcutErrorFlag(UInt_t errorflag) = 0;
   virtual void UpdateEventcutErrorFlag(VQwBPM *ev_error) = 0;
 

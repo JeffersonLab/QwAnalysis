@@ -133,6 +133,21 @@ Int_t QwBPMStripline<T>::GetEventcutErrorCounters()
 
   return 1;
 }
+
+template<typename T>
+UInt_t QwBPMStripline<T>::GetEventcutErrorFlag(){
+  Short_t i=0;
+  UInt_t error=0;
+  for(i=0;i<4;i++) error|=fWire[i].GetEventcutErrorFlag();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    error|=fRelPos[i].GetEventcutErrorFlag();
+    error|=fAbsPos[i].GetEventcutErrorFlag();
+  }
+  error|=fEffectiveCharge.GetEventcutErrorFlag();  
+
+  return error;
+};
+
 template<typename T>
 void QwBPMStripline<T>::UpdateEventcutErrorFlag(const UInt_t error){
   Short_t i=0;
@@ -205,7 +220,7 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
 
    //Event cuts for Relative X & Y
   for(i=kXAxis;i<kNumAxes;i++){
-    fRelPos[i].UpdateErrorCode(error_code);
+    //fRelPos[i].UpdateErrorCode(error_code);//No need
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -219,7 +234,7 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
   }
 
   for(i=kXAxis;i<kNumAxes;i++){
-    fAbsPos[i].UpdateErrorCode(error_code);
+    //fAbsPos[i].UpdateErrorCode(error_code);//No need
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -231,8 +246,8 @@ Bool_t QwBPMStripline<T>::ApplySingleEventCuts()
     fErrorFlag|=fAbsPos[i].GetEventcutErrorFlag();
   }
 
-  //Event cuts for four wire sum (EffectiveCharge)
-  fEffectiveCharge.UpdateErrorCode(error_code);
+  //Event cuts for four wire sum (EffectiveCharge) are already ORed when EffectiveCharge is calculated
+  //fEffectiveCharge.UpdateErrorCode(error_code);//No need
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
@@ -280,58 +295,58 @@ VQwHardwareChannel* QwBPMStripline<T>::GetSubelementByName(TString ch_name)
 }
 
 
-// template<typename T>
-// void QwBPMStripline<T>::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
-// {
-//   VQwHardwareChannel* tmpptr = GetSubelementByName(ch_name);
-//   QwMessage << ch_name 
-// 	    << " LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//   tmpptr->SetSingleEventCuts(minX,maxX);
-// }
+template<typename T>
+void QwBPMStripline<T>::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
+{
+  VQwHardwareChannel* tmpptr = GetSubelementByName(ch_name);
+  QwMessage << ch_name 
+	    << " LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+  tmpptr->SetSingleEventCuts(minX,maxX);
+}
 
 
-// template<typename T>
-// void QwBPMStripline<T>::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
-//   errorflag|=kBPMErrorFlag;//update the device flag
-//   if (ch_name=="xp"){
-//     QwMessage<<"XP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//     fWire[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+template<typename T>
+void QwBPMStripline<T>::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t minX, Double_t maxX, Double_t stability){
+  errorflag|=kBPMErrorFlag;//update the device flag
+  if (ch_name=="xp"){
+    QwMessage<<"XP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
 
-//   }else if (ch_name=="xm"){
-//     QwMessage<<"XM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//     fWire[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+  }else if (ch_name=="xm"){
+    QwMessage<<"XM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
 
-//   }else if (ch_name=="yp"){
-//     QwMessage<<"YP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//     fWire[2].SetSingleEventCuts(errorflag,minX,maxX,stability);
+  }else if (ch_name=="yp"){
+    QwMessage<<"YP LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[2].SetSingleEventCuts(errorflag,minX,maxX,stability);
 
-//   }else if (ch_name=="ym"){
-//     QwMessage<<"YM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//     fWire[3].SetSingleEventCuts(errorflag,minX,maxX,stability);
+  }else if (ch_name=="ym"){
+    QwMessage<<"YM LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fWire[3].SetSingleEventCuts(errorflag,minX,maxX,stability);
 
-//   }else if (ch_name=="relx"){
-//     QwMessage<<"RelX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//     fRelPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+  }else if (ch_name=="relx"){
+    QwMessage<<"RelX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
 
-//   }else if (ch_name=="rely"){
-//     QwMessage<<"RelY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//     fRelPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+  }else if (ch_name=="rely"){
+    QwMessage<<"RelY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fRelPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
 
-//   } else  if (ch_name=="absx"){
-//   //cuts for the absolute x and y
-//     QwMessage<<"AbsX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//     fAbsPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
+  } else  if (ch_name=="absx"){
+  //cuts for the absolute x and y
+    QwMessage<<"AbsX LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[0].SetSingleEventCuts(errorflag,minX,maxX,stability);
 
-//   }else if (ch_name=="absy"){
-//     QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//     fAbsPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
+  }else if (ch_name=="absy"){
+    QwMessage<<"AbsY LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fAbsPos[1].SetSingleEventCuts(errorflag,minX,maxX,stability);
 
-//   }else if (ch_name=="effectivecharge"){
-//     QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
-//     fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
+  }else if (ch_name=="effectivecharge"){
+    QwMessage<<"EffectveQ LL " <<  minX <<" UL " << maxX <<QwLog::endl;
+    fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
 
-//   }
-// }
+  }
+}
 
 template<typename T>
 void  QwBPMStripline<T>::ProcessEvent()
@@ -641,7 +656,6 @@ void QwBPMStripline<T>::AccumulateRunningSum(const VQwBPM& value)
 template<typename T>
 void QwBPMStripline<T>::AccumulateRunningSum(const QwBPMStripline<T>& value)
 {
-  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
   Short_t i = 0;
   for (i = 0; i < 4; i++){
     fWire[i].AccumulateRunningSum(value.fWire[i]);
@@ -653,7 +667,24 @@ void QwBPMStripline<T>::AccumulateRunningSum(const QwBPMStripline<T>& value)
   fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
   return;
 }
+template<typename T>
+void    QwBPMStripline<T>::DeaccumulateRunningSum(VQwBPM& value){
+  DeaccumulateRunningSum(*dynamic_cast<QwBPMStripline<T>* >(&value));
+};
 
+template<typename T>
+void    QwBPMStripline<T>::DeaccumulateRunningSum(QwBPMStripline<T>& value){
+  Short_t i = 0;
+  for (i = 0; i < 4; i++){
+    fWire[i].DeaccumulateRunningSum(value.fWire[i]);
+  }
+  for (i = 0; i < 2; i++){
+    fRelPos[i].DeaccumulateRunningSum(value.fRelPos[i]);
+    fAbsPos[i].DeaccumulateRunningSum(value.fAbsPos[i]);
+  }
+  fEffectiveCharge.DeaccumulateRunningSum(value.fEffectiveCharge);  return;
+  
+};
 
 template<typename T>
 void  QwBPMStripline<T>::ConstructHistograms(TDirectory *folder, TString &prefix)

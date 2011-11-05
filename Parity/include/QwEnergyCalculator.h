@@ -70,6 +70,13 @@ class QwEnergyCalculator : public VQwDataElement{
     UInt_t   GetEventcutErrorFlag(){//return the error flag
       return fEnergyChange.GetEventcutErrorFlag();
     }
+
+    void UpdateEventcutErrorFlag(const UInt_t error){
+      fEnergyChange.UpdateEventcutErrorFlag(error);
+    };
+    void UpdateEventcutErrorFlag(QwEnergyCalculator *ev_error);
+  
+
     void    Set(const VQwBPM* device,TString type, TString property ,Double_t tmatrix_ratio);
     void    Copy(VQwDataElement *source);
     void    Ratio(QwEnergyCalculator &numer,QwEnergyCalculator &denom);
@@ -80,6 +87,7 @@ class QwEnergyCalculator : public VQwDataElement{
     virtual QwEnergyCalculator& operator-= (const QwEnergyCalculator &value);
 
     void    AccumulateRunningSum(const QwEnergyCalculator& value);
+    void    DeaccumulateRunningSum(QwEnergyCalculator& value);
     void    CalculateRunningAverage();
 
     void    ConstructHistograms(TDirectory *folder, TString &prefix);

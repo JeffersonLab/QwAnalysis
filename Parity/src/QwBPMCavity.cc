@@ -119,6 +119,20 @@ Int_t QwBPMCavity::GetEventcutErrorCounters()
   return 1;
 }
 
+UInt_t QwBPMCavity::GetEventcutErrorFlag()
+{
+  Short_t i=0;
+  UInt_t error=0;
+  for(i=0;i<2;i++) {
+    error|=fWire[i].GetEventcutErrorFlag();
+    error|=fRelPos[i].GetEventcutErrorFlag();
+    error|=fAbsPos[i].GetEventcutErrorFlag();
+  }
+  error|=fEffectiveCharge.GetEventcutErrorFlag();
+
+  return error;
+}
+
 
 Bool_t QwBPMCavity::ApplySingleEventCuts()
 {
@@ -142,7 +156,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
     error_code |= fWire[i].GetErrorCode();//this to be updated in the rel and abp pos channels
   }
   for(i=kXAxis;i<kNumAxes;i++){
-    fRelPos[i].UpdateErrorCode(error_code);
+    //fRelPos[i].UpdateErrorCode(error_code); //No need
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -156,7 +170,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   }
 
   for(i=kXAxis;i<kNumAxes;i++){
-    fAbsPos[i].UpdateErrorCode(error_code);
+    //fAbsPos[i].UpdateErrorCode(error_code);
     if (fAbsPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -170,7 +184,7 @@ Bool_t QwBPMCavity::ApplySingleEventCuts()
   }
 
   //Event cuts for four wire sum (EffectiveCharge)
-  fEffectiveCharge.UpdateErrorCode(error_code);
+  //fEffectiveCharge.UpdateErrorCode(error_code);//No need
   if (fEffectiveCharge.ApplySingleEventCuts()){
     status&=kTRUE;
   }
@@ -263,6 +277,48 @@ void QwBPMCavity::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t 
   }
 
 }
+
+void QwBPMCavity::UpdateEventcutErrorFlag(const UInt_t error){
+  Short_t i=0;
+  for(i=0;i<2;i++) fWire[i].UpdateEventcutErrorFlag(error);
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateEventcutErrorFlag(error);
+    fAbsPos[i].UpdateEventcutErrorFlag(error);
+  }
+  fEffectiveCharge.UpdateEventcutErrorFlag(error);
+};
+
+void QwBPMCavity::UpdateEventcutErrorFlag(VQwBPM *ev_error){
+  Short_t i=0;
+  VQwDataElement *value_data;
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwBPMStripline::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwBPMCavity* value_bpm = dynamic_cast<QwBPMCavity* >(ev_error);
+	for(i=0;i<2;i++){
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fWire[i]));
+	  fWire[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	}
+	for(i=kXAxis;i<kNumAxes;i++) {
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
+	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
+	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	}
+	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
+	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+      }
+    } else {
+      TString loc="Standard exception from QwBPMCavity::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }   
+};
 
 
 
@@ -480,10 +536,10 @@ void QwBPMCavity::Scale(Double_t factor)
 void QwBPMCavity::CalculateRunningAverage()
 {
   Short_t i = 0;
-  fEffectiveCharge.CalculateRunningAverage();
+  for(i=0;i<2;i++) fWire[i].CalculateRunningAverage();
   for (i = 0; i < 2; i++) fRelPos[i].CalculateRunningAverage();
   for (i = 0; i < 2; i++) fAbsPos[i].CalculateRunningAverage();
-  // No data for z position
+  fEffectiveCharge.CalculateRunningAverage();
   return;
 }
 
@@ -493,14 +549,30 @@ void QwBPMCavity::AccumulateRunningSum(const VQwBPM &value){
 
 void QwBPMCavity::AccumulateRunningSum(const QwBPMCavity& value)
 {
-  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
+
   Short_t i = 0;
+  for(i=0;i<2;i++) fWire[i].AccumulateRunningSum(value.fWire[i]);
   fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
   for (i = 0; i < 2; i++) fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
   for (i = 0; i < 2; i++) fAbsPos[i].AccumulateRunningSum(value.fAbsPos[i]);
-  // No data for z position
   return;
 }
+
+void QwBPMCavity::DeaccumulateRunningSum(VQwBPM &value){
+  DeaccumulateRunningSum(*dynamic_cast<QwBPMCavity* >(&value));
+};
+
+void QwBPMCavity::DeaccumulateRunningSum(QwBPMCavity& value)
+{
+  Short_t i = 0;
+  for(i=0;i<2;i++) fWire[i].DeaccumulateRunningSum(value.fWire[i]);
+  fEffectiveCharge.DeaccumulateRunningSum(value.fEffectiveCharge);
+  for (i = 0; i < 2; i++) fRelPos[i].DeaccumulateRunningSum(value.fRelPos[i]);
+  for (i = 0; i < 2; i++) fAbsPos[i].DeaccumulateRunningSum(value.fAbsPos[i]);
+  return;
+}
+
+
 
 
 void  QwBPMCavity::ConstructHistograms(TDirectory *folder, TString &prefix)

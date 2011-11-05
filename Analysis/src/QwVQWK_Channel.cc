@@ -1133,8 +1133,14 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
     Rakitha
   */
 
-  if (value.fGoodEventCount==-1 && value.fErrorFlag>0)
-    berror=(((value.fErrorFlag-value.fErrorConfigFlag) & 0xFFFFFFF) == 0); //The operation value.fErrorFlag & 0xFFFFFFF set the stability failed error bit to zero
+  if (value.fGoodEventCount==-1 && value.fErrorFlag>0){
+    berror=(((value.fErrorFlag) & 0xFFFFFFF) == 0); //The operation value.fErrorFlag & 0xFFFFFFF set the stability failed error bit to zero //-value.fErrorConfigFlag
+    if (GetElementName()=="qwk_enegy"){//qwk_target_EffectiveCharge
+      PrintValue();
+    }
+  }
+
+  
   
   Int_t n1 = fGoodEventCount;
   Int_t n2 = value.fGoodEventCount;
@@ -1153,9 +1159,6 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   Double_t M22 = value.fHardwareBlockSumM2;
   if (n2 == 0) {
     // no good events for addition
-    if (GetElementName()=="qwk_charge"){
-      PrintValue();
-    }
 
     return;
   } else if (n2 == -1) {
@@ -1218,9 +1221,9 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 
 void QwVQWK_Channel::CalculateRunningAverage()
 {
-  //  if (GetElementName()=="qwk_bpm3h09bYM"){
-  //    PrintValue();
-  //  }
+  if (GetElementName()=="qwk_engy"){//qwk_target_EffectiveCharge
+      PrintValue();
+  }
 
   if (fGoodEventCount <= 0)
     {
@@ -1241,7 +1244,7 @@ void QwVQWK_Channel::CalculateRunningAverage()
         fBlockError[i] = sqrt(fBlockM2[i]) / fGoodEventCount;
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
       //Stability check 83951872 
-      if ((fErrorConfigFlag & kStabilityCut)==kStabilityCut){//check to see the channel has stability cut activated in the event cut file
+      if ((fStability>0) &&( (fErrorConfigFlag & kStabilityCut)==kStabilityCut)){//check to see the channel has stability cut activated in the event cut file
 	PrintValue();
 	if (GetValueWidth()>fStability){//if the width is greater than the stability required flag the event
 	  fErrorFlag=kBeamStabilityError;

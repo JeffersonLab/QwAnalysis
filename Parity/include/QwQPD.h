@@ -79,8 +79,9 @@ class QwQPD : public VQwBPM {
   void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
-  void UpdateEventcutErrorFlag(const UInt_t error){};
-  void UpdateEventcutErrorFlag(VQwBPM *ev_error){};
+  UInt_t  GetEventcutErrorFlag();
+  void UpdateEventcutErrorFlag(const UInt_t error);
+  void UpdateEventcutErrorFlag(VQwBPM *ev_error);
 
   void    SetDefaultSampleSize(Int_t sample_size);
   void    SetRandomEventParameters(Double_t meanX, Double_t sigmaX, Double_t meanY, Double_t sigmaY);
@@ -104,8 +105,8 @@ class QwQPD : public VQwBPM {
 
   void    AccumulateRunningSum(const QwQPD& value);
   void    AccumulateRunningSum(const VQwBPM& value);
-  void    DeaccumulateRunningSum(VQwBPM &value){};
-  void    DeaccumulateRunningSum(QwQPD& value){};
+  void    DeaccumulateRunningSum(VQwBPM &value);
+  void    DeaccumulateRunningSum(QwQPD& value);
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);

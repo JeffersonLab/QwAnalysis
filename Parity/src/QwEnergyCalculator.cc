@@ -101,7 +101,7 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
       error_code |= fDevice[i]->GetPosition(VQwBPM::kXAxis)->GetErrorCode();
     }
   }
-  fEnergyChange.UpdateErrorCode(error_code);
+  //fEnergyChange.UpdateErrorCode(error_code);//No need to do this. error codes are ORed when energy is calculated
 
   if (fEnergyChange.ApplySingleEventCuts()){
     status=kTRUE;
@@ -119,9 +119,12 @@ Bool_t QwEnergyCalculator::ApplySingleEventCuts(){
 Int_t QwEnergyCalculator::GetEventcutErrorCounters(){
   // report number of events falied due to HW and event cut faliure
   fEnergyChange.GetEventcutErrorCounters();
-
   return 1;
 }
+
+void QwEnergyCalculator::UpdateEventcutErrorFlag(QwEnergyCalculator *ev_error){
+  fEnergyChange.UpdateEventcutErrorFlag(ev_error->GetErrorCode());
+};
 
 
 void QwEnergyCalculator::CalculateRunningAverage(){
@@ -132,6 +135,10 @@ void QwEnergyCalculator::CalculateRunningAverage(){
 
 void QwEnergyCalculator::AccumulateRunningSum(const QwEnergyCalculator& value){
   fEnergyChange.AccumulateRunningSum(value.fEnergyChange);
+}
+
+void QwEnergyCalculator::DeaccumulateRunningSum(QwEnergyCalculator& value){
+  fEnergyChange.DeaccumulateRunningSum(value.fEnergyChange);
 }
 
 
