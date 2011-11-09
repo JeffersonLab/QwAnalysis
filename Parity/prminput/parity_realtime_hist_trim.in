@@ -115,7 +115,7 @@ yield_qwk_pmt..._hw			TH1F	1001	0	0	Aux MD Yield
 yield_qwk_isourc_hw			TH1F	1001	0	0	Aux MD Yield                    
 yield_qwk_preamp_hw			TH1F	1001	0	0	Aux MD Yield                    
 yield_qwk_cagesr_hw			TH1F	1001	0	0	Aux MD Yield 
-yield_qwk_mdall_hw	TH1F	1001	0	0	comb MD Yield  
+yield_qwk_mdall_hw		TH1F	1001	0	0	comb MD Yield  
 yield_qwk_mdoddbars_hw		TH1F	1001	0	0	comb MD Yield
 yield_qwk_mdevenbars_hw		TH1F	1001	0	0	comb MD Yield
 yield_md1_md5_hw		TH1F	1001	0	0	Comb MD Yield              

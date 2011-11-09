@@ -1,0 +1,166 @@
+DefaultBufferSize=1000
+#name_title          type    x_nbins x_min   x_max   y_nbins y_min   y_max   xtitle  ytitle
+##############################################################################################
+###  Single event histograms
+
+
+######The min and max are set to 0, this will enable auto limits set by the root
+
+###########################################
+#  VQWK wildcard names for HallC and Injector beamline
+###########################################
+#BPM
+
+
+#diff_qwk_bpm....X_hw		TH1F	1001	0	0	pos diff
+#diff_qwk_bpm....Y_hw		TH1F	1001	0	0	pos diff
+#diff_qwk_bpm.....X_hw		TH1F	1001	0	0	pos diff
+#diff_qwk_bpm.....Y_hw		TH1F	1001	0	0	pos diff
+
+#asym_qwk_bpm...._EffectiveCharge_hw	TH1F	1001	0	0	BPM Asym
+#asym_qwk_bpm....._EffectiveCharge_hw	TH1F	1001	0	0	BPM Asym
+
+#yield_qwk_bpm...._EffectiveCharge_hw	TH1F	1001	0	0	BPM Yield
+#yield_qwk_bpm....._EffectiveCharge_hw	TH1F	1001	0	0	BPM Yield
+
+#device error code histos
+
+diff_qwk_bpm....X_dev_err	TH1F	101	0	100	Error 	Events
+diff_qwk_bpm....Y_dev_err	TH1F	101	0	100	Error 	Events
+asym_qwk_charge_dev_err  	TH1F	101	0	100	Error 	Events
+diff_qwk_......._dev_err	TH1F	101	0	100	Error 	Events     
+diff_qwk_.......Slope_dev_err	TH1F	101	0	100	Error 	Events
+asym_qwk_md......._dev_err	TH1F	101	0	100	Error 	Events      
+
+
+#############################################################################################
+#Combined stuffs in hall C beamline
+asym_qwk_charge_hw		TH1F	1001	0	0	Asym	Entries  
+#yield_qwk_charge_hw		TH1F	1001	0	0	bcm yield	
+                 
+#asym_qwk_target_EffectiveCharge_hw	TH1F	1001	0	0	Asym	          
+#yield_qwk_target_EffectiveCharge_hw	TH1F	1001	0	0	Yield
+
+
+
+
+#############################################################################################
+# target stuffs qwk_targetX/Y
+
+#qwk_.......Slope_hw		TH1F	1001	0	0		Yield		
+#qwk_.......Intercept_hw 	TH1F	1001	0	0		Yield 
+#qwk_......._hw			TH1F	1001	0	0		Yield     
+
+diff_qwk_.......Slope_hw	TH1F	1001	0	0		Diff(mm)	Entries
+diff_qwk_.......Intercept_hw	TH1F	1001	0	0		Diff(mm)	Entries	  
+diff_qwk_......._hw		TH1F	1001	0	0		Diff(mm)	Entries  
+
+#yield_qwk_.......Slope_hw	TH1F	1001	0	0		Yield
+#yield_qwk_.......Intercept_hw  	TH1F	1001	0	0		Yield
+#yield_qwk_......._hw   		TH1F	1001	0	0		Yield  
+     
+#diff_qwk_energy_hw		TH1F	1001	0	0	Asym                   
+#yield_qwk_energy_hw		TH1F	1001	0	0	Yield
+diff_qwk_bpm3c12X_hw		TH1F	1001	0	0	Diff(mm)	Entries       	
+
+
+
+############################################################################################
+#  VQWK wildcard names for lumi
+###########################################################################################
+
+#asym_qwk_uslumi...._hw			TH1F	1001	0	0	us Lumi Asym
+#yield_qwk_uslumi...._hw			TH1F	1001	0	0	us Lumi Yield
+
+#asym_qwk_dslumi._hw			TH1F	1001	0	0	ds Lumi Asym     
+#yield_qwk_dslumi._hw			TH1F	1001	0	0	ds Lumi Yield
+
+##########################################################################################
+#  VQWK wildcard names for MD
+##########################################################################################
+
+#asym_qwk_md...._hw			TH1F	1001	0	0	MD Asym
+#yield_qwk_md...._hw			TH1F	1001	0	0	MD Yield
+
+#asym_qwk_pmt..._hw			TH1F	1001	0	0	Aux MD Asym
+#asym_qwk_isourc_hw			TH1F	1001	0	0	Aux MD Asym                    
+#asym_qwk_preamp_hw			TH1F	1001	0	0	Aux MD Asym                    
+#asym_qwk_cagesr_hw			TH1F	1001	0	0	Aux MD Asym	 
+asym_qwk_mdallbars_hw			TH1F	1001	0	0	Asym	Entries
+#asym_qwk_mdoddbars_hw			TH1F	1001	0	0	comb MD Asym
+#asym_qwk_mdevenbars_hw			TH1F	1001	0	0	comb MD Asym
+#asym_qwk_md1_md5_hw			TH1F	1001	0	0	comb MD Asym              
+#asym_qwk_md2_md6_hw			TH1F	1001	0	0	comb MD Asym              
+#asym_qwk_md3_md7_hw			TH1F	1001	0	0	comb MD Asym              
+#asym_qwk_md4_md8_hw			TH1F	1001	0	0	comb MD Asym 
+
+#yield_qwk_pmt..._hw			TH1F	1001	0	0	Aux MD Yield  
+#yield_qwk_isourc_hw			TH1F	1001	0	0	Aux MD Yield                    
+#yield_qwk_preamp_hw			TH1F	1001	0	0	Aux MD Yield                    
+#yield_qwk_cagesr_hw			TH1F	1001	0	0	Aux MD Yield 
+#yield_qwk_mdall_hw		TH1F	1001	0	0	comb MD Yield  
+#yield_qwk_mdoddbars_hw		TH1F	1001	0	0	comb MD Yield
+#yield_qwk_mdevenbars_hw		TH1F	1001	0	0	comb MD Yield
+#yield_md1_md5_hw		TH1F	1001	0	0	Comb MD Yield              
+#yield_md2_md6_hw		TH1F	1001	0	0	Comb MD Yield              
+#yield_md3_md7_hw		TH1F	1001	0	0	Comb MD Yield              
+#yield_md4_md8_hw		TH1F	1001	0	0	Comb MD Yield         
+
+#for example device md1neg_md5neg_hw (No longer used!!!)
+#asym_md...._md...._hw		TH1F	1001	0	0	Comb MD Asym
+#yield_md...._md...._hw          TH1F	1001	0	0	Comb MD Yield          
+
+
+#for example device md1barsum_hw                 
+#asym_qwk_md......._hw		TH1F	1001	0	0	Comb MD Asym      
+#yield_qwk_md......._hw 		TH1F	1001	0	0	Comb MD Asym  
+
+            
+        
+##########################################################################################
+#  SCALER wildcard names 
+##########################################################################################
+
+#yield_sca_31mhz		TH1F	1001	0	0	Scaler Yield	      
+#yield_sca_4mhz         	TH1F	1001	0	0	Scaler Yield      
+#yield_sca_31mhzreturn	TH1F	1001	0	0	Scaler Yield  
+
+#asym_sca_halo.		TH1F	1001	0	0	Halo Scaler Asym
+#yield_sca_halo.		TH1F	1001	0	0	Halo Scaler Yield
+#asym_sca_halo..		TH1F	1001	0	0	Halo Scaler Asym.
+#yield_sca_halo..	TH1F	1001	0	0	Halo Scaler Yield
+
+#for scaler bcms and lumis
+#sca_.*			TH1F	1001	0	0	Scaler Yield
+#yield_sca_.*		TH1F	1001	0	0	Counts Events
+#asym_sca_.*		TH1F	1001	0	0	Scaler Asym.
+#######################################################################################
+            
+
+##########################################################################################
+#  SCALER wildcard names for Lumi
+##########################################################################################
+
+#asym_sca_uslumi....	TH1F	1001	0	0	Scaler Asym.
+
+
+#yield_sca_uslumi....	TH1F	1001	0	0	Scaler Yield  
+#sca_uslumi7pos               
+ 
+#asym_sca_dslumi.	TH1F	1001	0	0	Scaler Asym.
+#yield_sca_dslumi. 	TH1F	1001	0	0	Scaler Yield              
+#sca_dslumi8                  
+                 
+    
+
+
+###  Scanner histograms leave them alone or they will crash the whole analyzer!!!
+
+#scanner_vqwk_power              TH1F    4096    0.5             4096.5                  front_adc       Events
+
+
+#scanner_position_x		TH1F	2000	-60.0		60.0			X[cm]		Events
+#scanner_position_y		TH1F	2000	-350.0		-310.0			Y[cm]		Events
+#scanner_ref_posi_x		TH1F	2000	-60.0		60.0			X[cm]		Events
+#scanner_ref_posi_y		TH1F	2000	-350.0		-310.0			Y[cm]		Events
+#################################################################################################################
