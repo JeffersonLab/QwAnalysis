@@ -3,7 +3,7 @@
 
 [QwBeamLine]
  name = HallCBeamLine
- map = qweak_hallc_beamline.12103-.map
+ map = qweak_hallc_beamline.13154-.map
  geom = qweak_beamline_geometry.map
  param = qweak_hallc_pedestal.12103-.map
  eventcut = qweak_beamline_realtime_eventcuts.in

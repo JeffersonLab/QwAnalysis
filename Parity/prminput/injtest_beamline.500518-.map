@@ -9,14 +9,14 @@ sample_size=464
 
 
 !ADC0
-!    VQWK, 0, 0,  bpmstripline,  QWK_0R01XP
-!    VQWK, 0, 1,  bpmstripline,  QWK_0R01XM
-!    VQWK, 0, 2,  bpmstripline,  QWK_0R01YP
-!    VQWK, 0, 3,  bpmstripline,  QWK_0R01YM
-!    VQWK, 0, 4,  bpmstripline,  QWK_0R01AXP
-!    VQWK, 0, 5,  bpmstripline,  QWK_0R01AXM
-!    VQWK, 0, 6,  bpmstripline,  QWK_0R01AYP
-!    VQWK, 0, 7,  bpmstripline,  QWK_0R01AYM
+    VQWK, 0, 0,  bpmstripline,  QWK_0I01XP
+    VQWK, 0, 1,  bpmstripline,  QWK_0I01XM
+    VQWK, 0, 2,  bpmstripline,  QWK_0I01YP
+    VQWK, 0, 3,  bpmstripline,  QWK_0I01YM
+    VQWK, 0, 4,  bpmstripline,  QWK_0I01AXP
+    VQWK, 0, 5,  bpmstripline,  QWK_0I01AXM
+    VQWK, 0, 6,  bpmstripline,  QWK_0I01AYP
+    VQWK, 0, 7,  bpmstripline,  QWK_0I01AYM
 
 !ADC1
     VQWK, 1, 0,  bpmstripline,  QWK_1I02XP,   UNROTATED
