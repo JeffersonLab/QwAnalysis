@@ -737,12 +737,33 @@ Int_t QwMainCerenkovDetector::GetEventcutErrorCounters()
   return 1;
 }
 
+void QwMainCerenkovDetector::UpdateEventcutErrorFlag(UInt_t error) //return the error flag
+{
+  for(size_t i=0;i<fIntegrationPMT.size();i++){
+    fIntegrationPMT[i].UpdateEventcutErrorFlag(error);
+  }
+  for(size_t i=0;i<fCombinedPMT.size();i++){
+    fCombinedPMT[i].UpdateEventcutErrorFlag(error);
+  }
+}
+
+void QwMainCerenkovDetector::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  if (Compare(ev_error)){
+      QwMainCerenkovDetector* input = dynamic_cast<QwMainCerenkovDetector*> (ev_error);
+
+      for (size_t i=0;i<input->fIntegrationPMT.size();i++)
+        (this->fIntegrationPMT[i]).UpdateEventcutErrorFlag(&(input->fIntegrationPMT[i]));
+
+      for (size_t i=0;i<input->fCombinedPMT.size();i++)
+        (this->fCombinedPMT[i]).UpdateEventcutErrorFlag(&(input->fCombinedPMT[i]));
+    }  
+};
+
 
 void  QwMainCerenkovDetector::ProcessEvent()
 {
   for (size_t i=0;i<fIntegrationPMT.size();i++)
     fIntegrationPMT[i].ProcessEvent();
-  //   fIntegrationPMT[0].Print();
 
   for (size_t i=0;i<fCombinedPMT.size();i++)
     {
@@ -1191,6 +1212,17 @@ void QwMainCerenkovDetector::AccumulateRunningSum(VQwSubsystem* value1)
       fCombinedPMT[i].AccumulateRunningSum(value->fCombinedPMT[i]);
   }
 }
+
+void QwMainCerenkovDetector::DeaccumulateRunningSum(VQwSubsystem* value1){
+  if (Compare(value1)) {
+    QwMainCerenkovDetector* value = dynamic_cast<QwMainCerenkovDetector*>(value1);
+
+    for (size_t i = 0; i < fIntegrationPMT.size(); i++)
+      fIntegrationPMT[i].DeaccumulateRunningSum(value->fIntegrationPMT[i]);
+    for (size_t i = 0; i < fCombinedPMT.size(); i++)
+      fCombinedPMT[i].DeaccumulateRunningSum(value->fCombinedPMT[i]);
+  }  
+};
 
 
 /**

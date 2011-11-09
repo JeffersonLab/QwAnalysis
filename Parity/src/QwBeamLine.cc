@@ -604,7 +604,8 @@ Int_t QwBeamLine::LoadEventCuts(TString  filename){
 	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
 	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
 	varvalue.ToLower();
-	QwMessage<<"QwBeamLine Error Code passing to QwBPMStripline "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+	//QwMessage<<"QwBeamLine:QwBPMStripline "<<channel_name<<" "<<varvalue<<" "<<stabilitycut<<QwLog::endl;
+	QwMessage<<"QwBeamLine Error Code passing to QwBPMStripline "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<" stability  "<<stabilitycut <<QwLog::endl;
 	fStripline[det_index].get()->SetSingleEventCuts(channel_name, GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut), LLX, ULX, stabilitycut);
       }
 	else if (device_type == GetQwBeamInstrumentTypeName(kQwQPD)){
@@ -1415,43 +1416,95 @@ UInt_t QwBeamLine::GetEventcutErrorFlag(){//return the error flag
   ErrorFlag=0;
   for(size_t i=0;i<fBCM.size();i++){
     ErrorFlagtmp = fBCM[i].get()->GetEventcutErrorFlag();
-    ErrorFlag |=ErrorFlagtmp;
-    
+    ErrorFlag |=ErrorFlagtmp;    
   }
-  
-
-
   for(size_t i=0;i<fStripline.size();i++){
     ErrorFlag |= fStripline[i].get()->GetEventcutErrorFlag();        
   }
-
-  
-
   for(size_t i=0;i<fQPD.size();i++){
     ErrorFlag |= fQPD[i].GetEventcutErrorFlag();
-  }
-  
+  }  
   for(size_t i=0;i<fLinearArray.size();i++){
     ErrorFlag |= fLinearArray[i].GetEventcutErrorFlag();
   }
   for(size_t i=0;i<fCavity.size();i++){
     ErrorFlag |= fCavity[i].GetEventcutErrorFlag();
-  }
-  
+  }  
   for(size_t i=0;i<fBCMCombo.size();i++){
     ErrorFlag |= fBCMCombo[i].get()->GetEventcutErrorFlag();
-  }
-  
+  }  
   for(size_t i=0;i<fBPMCombo.size();i++){
     ErrorFlag |= fBPMCombo[i].get()->GetEventcutErrorFlag();
-  }
-  
+  }  
   for(size_t i=0;i<fECalculator.size();i++){
     ErrorFlag |= fECalculator[i].GetEventcutErrorFlag();
   }
 
   return ErrorFlag;
 
+}
+
+//*****************************************************************
+void QwBeamLine::UpdateEventcutErrorFlag(UInt_t errorflag){
+       /*
+      for(size_t i=0;i<input->fClock.size();i++)
+	*(this->fClock[i].get())=*(input->fClock[i].get());
+	*/
+      for(size_t i=0;i<fStripline.size();i++)
+	(this->fStripline[i].get())->UpdateEventcutErrorFlag(errorflag);      
+      for(size_t i=0;i<fQPD.size();i++)
+	(this->fQPD[i]).UpdateEventcutErrorFlag(errorflag);
+      for(size_t i=0;i<fLinearArray.size();i++)
+	(this->fLinearArray[i]).UpdateEventcutErrorFlag(errorflag);
+      for(size_t i=0;i<fCavity.size();i++)
+	(this->fCavity[i]).UpdateEventcutErrorFlag(errorflag);      
+      for(size_t i=0;i<fBCM.size();i++)
+	(this->fBCM[i].get())->UpdateEventcutErrorFlag(errorflag);
+      for(size_t i=0;i<fBCMCombo.size();i++)
+	(this->fBCMCombo[i].get())->UpdateEventcutErrorFlag(errorflag);
+      for(size_t i=0;i<fBPMCombo.size();i++)
+	(this->fBPMCombo[i].get())->UpdateEventcutErrorFlag(errorflag);
+      for(size_t i=0;i<fECalculator.size();i++)
+	(this->fECalculator[i]).UpdateEventcutErrorFlag(errorflag);
+      for(size_t i=0;i<fHaloMonitor.size();i++)
+	(this->fHaloMonitor[i]).UpdateEventcutErrorFlag(errorflag);
+
+}
+
+//*****************************************************************
+void QwBeamLine::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
+  if(Compare(ev_error))
+    {
+
+      QwBeamLine* input = dynamic_cast<QwBeamLine*>(ev_error);
+
+       /*
+      for(size_t i=0;i<input->fClock.size();i++)
+	*(this->fClock[i].get())=*(input->fClock[i].get());
+	*/
+      for(size_t i=0;i<input->fStripline.size();i++)
+	(this->fStripline[i].get())->UpdateEventcutErrorFlag(input->fStripline[i].get());      
+      for(size_t i=0;i<input->fQPD.size();i++)
+	(this->fQPD[i]).UpdateEventcutErrorFlag(&(input->fQPD[i]));
+      for(size_t i=0;i<input->fLinearArray.size();i++)
+	(this->fLinearArray[i]).UpdateEventcutErrorFlag(&(input->fLinearArray[i]));
+      for(size_t i=0;i<input->fCavity.size();i++)
+	(this->fCavity[i]).UpdateEventcutErrorFlag(&(input->fCavity[i]));      
+      for(size_t i=0;i<input->fBCM.size();i++){
+	(this->fBCM[i].get())->UpdateEventcutErrorFlag(input->fBCM[i].get());
+      } 	
+      for(size_t i=0;i<input->fBCMCombo.size();i++)
+	(this->fBCMCombo[i].get())->UpdateEventcutErrorFlag(input->fBCMCombo[i].get()); //*(this->fBCMCombo[i].get())=*(input->fBCMCombo[i].get());     
+      for(size_t i=0;i<input->fBPMCombo.size();i++)
+	(this->fBPMCombo[i].get())->UpdateEventcutErrorFlag(input->fBPMCombo[i].get()); //=*(input->fBPMCombo[i].get());      
+      for(size_t i=0;i<input->fECalculator.size();i++)
+	(this->fECalculator[i]).UpdateEventcutErrorFlag(&(input->fECalculator[i]));
+      for(size_t i=0;i<input->fHaloMonitor.size();i++)
+	(this->fHaloMonitor[i]).UpdateEventcutErrorFlag(&(input->fHaloMonitor[i]));
+      
+      
+
+    }
 }
 
 
@@ -2074,7 +2127,7 @@ void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
     for (size_t i = 0; i < fCavity.size(); i++)
       fCavity[i].AccumulateRunningSum(value->fCavity[i]);
     for (size_t i = 0; i < fBCM.size();       i++)
-      fBCM[i].get()->AccumulateRunningSum(*(value->fBCM[i].get()));
+      fBCM[i].get()->AccumulateRunningSum(*(value->fBCM[i].get()));    
     for (size_t i = 0; i < fBCMCombo.size();  i++)
       fBCMCombo[i].get()->AccumulateRunningSum(*(value->fBCMCombo[i].get()));
     for (size_t i = 0; i < fBPMCombo.size();  i++)
@@ -2083,11 +2136,43 @@ void QwBeamLine::AccumulateRunningSum(VQwSubsystem* value1)
       fECalculator[i].AccumulateRunningSum(value->fECalculator[i]);
     for (size_t i = 0; i < fQPD.size();  i++)
       fQPD[i].AccumulateRunningSum(value->fQPD[i]);
+    for (size_t i = 0; i < fLinearArray.size();  i++)
+      fLinearArray[i].AccumulateRunningSum(value->fLinearArray[i]);
     for (size_t i = 0; i <fHaloMonitor.size();  i++)
       fHaloMonitor[i].AccumulateRunningSum(value->fHaloMonitor[i]);
     
   }
 }
+
+//*****************************************************************
+void QwBeamLine::DeaccumulateRunningSum(VQwSubsystem* value1){
+    if (Compare(value1)) {
+    QwBeamLine* value = dynamic_cast<QwBeamLine*>(value1);
+    /*
+    for (size_t i = 0; i < fClock.size();       i++)
+      fClock[i].get()->DeaccumulateRunningSum(*(value->fClock[i].get()));
+    */
+    for (size_t i = 0; i < fStripline.size(); i++)
+      fStripline[i].get()->DeaccumulateRunningSum(*(value->fStripline[i].get()));    
+    for (size_t i = 0; i < fCavity.size(); i++)
+      fCavity[i].DeaccumulateRunningSum(value->fCavity[i]);    
+    for (size_t i = 0; i < fBCM.size();       i++)
+      fBCM[i].get()->DeaccumulateRunningSum(*(value->fBCM[i].get()));
+    for (size_t i = 0; i < fBCMCombo.size();  i++)
+      fBCMCombo[i].get()->DeaccumulateRunningSum(*(value->fBCMCombo[i].get()));    
+    for (size_t i = 0; i < fBPMCombo.size();  i++)
+      fBPMCombo[i].get()->DeaccumulateRunningSum(*(value->fBPMCombo[i].get()));
+    for (size_t i = 0; i < fQPD.size();  i++)
+      fQPD[i].DeaccumulateRunningSum(value->fQPD[i]);
+    for (size_t i = 0; i < fLinearArray.size();  i++)
+      fLinearArray[i].DeaccumulateRunningSum(value->fLinearArray[i]);    
+    for (size_t i = 0; i < fECalculator.size();  i++)
+      fECalculator[i].DeaccumulateRunningSum(value->fECalculator[i]);
+    for (size_t i = 0; i <fHaloMonitor.size();  i++)
+      fHaloMonitor[i].DeaccumulateRunningSum(value->fHaloMonitor[i]);
+    
+  }
+};
 
 //*****************************************************************
 Bool_t QwBeamLine::Compare(VQwSubsystem *value)
@@ -2109,22 +2194,32 @@ Bool_t QwBeamLine::Compare(VQwSubsystem *value)
 	  //	  std::cout<<" not the same number of striplines \n";
 	  res=kFALSE;
 	}
-      else
-	if(input->fBCM.size()!=fBCM.size())
+      else if(input->fBCM.size()!=fBCM.size())
 	  {
 	    res=kFALSE;
 	  //	  std::cout<<" not the same number of bcms \n";
 	  }
-	else if(input->fHaloMonitor.size()!=fHaloMonitor.size())
+      else if(input->fHaloMonitor.size()!=fHaloMonitor.size())
 	  {
 	    res=kFALSE;
 	  //	  std::cout<<" not the same number of halomonitors \n";
 	  }
-	else if(input->fClock.size()!=fClock.size())
-	  {
+      else if(input->fClock.size()!=fClock.size()){
 	    res=kFALSE;
 	  //	  std::cout<<" not the same number of halomonitors \n";
-	  }
+      }else if(input->fBCMCombo.size()!=fBCMCombo.size()){
+	res=kFALSE;
+      }else if(input->fBPMCombo.size()!=fBPMCombo.size()){
+	res=kFALSE;
+      }else if(input->fLinearArray.size()!=fLinearArray.size()){
+	res=kFALSE;
+      }else if(input->fECalculator.size()!=fECalculator.size()){
+	res=kFALSE;
+      }else if(input->fCavity.size()!=fCavity.size()){
+	res=kFALSE;
+      }else if(input->fQPD.size()!=fQPD.size()){
+	res=kFALSE;
+      }
  
     }
   return res;

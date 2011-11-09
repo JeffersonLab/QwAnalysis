@@ -1,5 +1,9 @@
 /**********************************************************\
+<<<<<<< .working
+* File: QwCombinedBCM.h                                  *
+=======
 * File: QwBCM.h                                           *
+>>>>>>> .merge-right.r3406
 *                                                         *
 * Author:                                                 *
 * Time-stamp:                                             *
@@ -60,13 +64,47 @@ class QwCombinedBCM : public QwBCM<T> {
 
   void  ProcessEvent();
 
-  Bool_t ApplyHWChecks();
-  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
+  Bool_t ApplyHWChecks(){
+    return kTRUE;
+  };
 
+  Bool_t ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
+  /*
+  Int_t GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  UInt_t GetEventcutErrorFlag(){//return the error flag
+    return fCombined_bcm.GetEventcutErrorFlag();
+  }
+
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fCombined_bcm.UpdateEventcutErrorFlag(errorflag);
+  };
+
+  void UpdateEventcutErrorFlag(VQwBCM *ev_error);
+
+  UInt_t GetErrorCode() const {return (fBeamCurrent.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fBeamCurrent.UpdateErrorCode(error);};
+
+
+  Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
+  */
+  /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
+  /*
+  void SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  void SetDefaultSampleSize(Int_t sample_size);
+  void SetEventCutMode(Int_t bcuts){
+    bEVENTCUTMODE=bcuts;
+    fBeamCurrent.SetEventCutMode(bcuts);
+  }
+  */
   // Implementation of Parent class's virtual operators
   VQwBCM& operator=  (const VQwBCM &value);
   QwCombinedBCM& operator=  (const QwCombinedBCM &value);
 
+  /*
+  void AccumulateRunningSum(const VQwBCM &value);
+  void DeaccumulateRunningSum(VQwBCM &value);
+  void CalculateRunningAverage();
+  */
   void SetPedestal(Double_t ped) {
     QwBCM<T>::SetPedestal(0.0);
   }
@@ -74,7 +112,7 @@ class QwCombinedBCM : public QwBCM<T> {
     QwBCM<T>::SetCalibrationFactor(1.0);
   }
 
-  void Copy(VQwDataElement *source);
+  void Copy(VQwDataElement *source); 
 
   VQwHardwareChannel* GetCharge(){
     return &(this->fBeamCurrent);

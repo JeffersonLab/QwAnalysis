@@ -120,6 +120,19 @@ Int_t QwLinearDiodeArray::GetEventcutErrorCounters()
   return 1;
 }
 
+UInt_t QwLinearDiodeArray::GetEventcutErrorFlag()
+{
+  size_t i=0;
+  UInt_t error=0;
+  for(i=0;i<8;i++) error|=fPhotodiode[i].GetEventcutErrorFlag();
+  for(i=kXAxis;i<kNumAxes;i++) {
+    error|=fRelPos[i].GetEventcutErrorFlag();
+  }
+  error|=fEffectiveCharge.GetEventcutErrorFlag();
+
+  return error;
+}
+
 
 Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 {
@@ -141,7 +154,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
 
    //Event cuts for Relative X & Y
   for(i=kXAxis;i<kNumAxes;i++){
-
+    fRelPos[i].UpdateErrorCode(fErrorFlag);//To update the event cut failed error code from the channels/wires error codes
     if (fRelPos[i].ApplySingleEventCuts()){ //for RelX
       status&=kTRUE;
     }
@@ -155,6 +168,7 @@ Bool_t QwLinearDiodeArray::ApplySingleEventCuts()
   }
 
  //Event cuts for four wire sum (EffectiveCharge)
+  fEffectiveCharge.UpdateErrorCode(fErrorFlag);//To update the eff-charge error code from the channels/wires event cut error codes
   if (fEffectiveCharge.ApplySingleEventCuts()){
       status&=kTRUE;
   }
@@ -194,6 +208,7 @@ VQwHardwareChannel* QwLinearDiodeArray::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
+/*
 void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
   QwWarning << "QwLinearDiodeArray::SetSingleEventCuts:  "
@@ -216,7 +231,48 @@ void QwLinearDiodeArray::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Do
     fEffectiveCharge.SetSingleEventCuts(errorflag,minX,maxX,stability);
   }
 }
+*/
 
+void QwLinearDiodeArray::UpdateEventcutErrorFlag(const UInt_t error){
+  Short_t i=0;
+
+  for(i=0;i<8;i++) fPhotodiode[i].UpdateEventcutErrorFlag(error);
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fRelPos[i].UpdateEventcutErrorFlag(error);
+  }
+  fEffectiveCharge.UpdateEventcutErrorFlag(error);
+  
+};
+
+void QwLinearDiodeArray::UpdateEventcutErrorFlag(VQwBPM *ev_error){
+  Short_t i=0;
+  VQwDataElement *value_data;
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwQPD::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwLinearDiodeArray* value_bpm = dynamic_cast<QwLinearDiodeArray* >(ev_error);
+	for(i=0;i<4;i++){
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fPhotodiode[i]));
+	  fPhotodiode[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	}
+	for(i=kXAxis;i<kNumAxes;i++) {
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fRelPos[i]));
+	  fRelPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode());
+	}
+	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
+	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+      }
+    } else {
+      TString loc="Standard exception from QwLinearDiodeArray::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
 
 void  QwLinearDiodeArray::ProcessEvent()
 {
@@ -455,17 +511,38 @@ void QwLinearDiodeArray::Scale(Double_t factor)
 void QwLinearDiodeArray::CalculateRunningAverage()
 {
   size_t i = 0;
+  for(i=0;i<8;i++) fPhotodiode[i].CalculateRunningAverage();
   for (i = 0; i < 2; i++) fRelPos[i].CalculateRunningAverage();
+  fEffectiveCharge.CalculateRunningAverage();
   return;
+}
+
+void QwLinearDiodeArray::AccumulateRunningSum(const VQwBPM& value){
+  AccumulateRunningSum(*dynamic_cast<const QwLinearDiodeArray* >(&value));
 }
 
 void QwLinearDiodeArray::AccumulateRunningSum(const QwLinearDiodeArray& value)
 {
-  // TODO This is unsafe, see QwBeamline::AccumulateRunningSum
   size_t i = 0;
+  for(i=0;i<8;i++) fPhotodiode[i].AccumulateRunningSum(value.fPhotodiode[i]);
   for (i = 0; i < 2; i++) fRelPos[i].AccumulateRunningSum(value.fRelPos[i]);
+  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
   return;
 }
+
+void QwLinearDiodeArray::DeaccumulateRunningSum(VQwBPM& value){
+  DeaccumulateRunningSum(*dynamic_cast<QwLinearDiodeArray* >(&value));
+}
+
+void QwLinearDiodeArray::DeaccumulateRunningSum(QwLinearDiodeArray& value)
+{
+  size_t i = 0;
+  for(i=0;i<8;i++) fPhotodiode[i].DeaccumulateRunningSum(value.fPhotodiode[i]);
+  for (i = 0; i < 2; i++) fRelPos[i].DeaccumulateRunningSum(value.fRelPos[i]);
+  fEffectiveCharge.DeaccumulateRunningSum(value.fEffectiveCharge);
+  return;
+}
+
 
 
 void  QwLinearDiodeArray::ConstructHistograms(TDirectory *folder, TString &prefix)

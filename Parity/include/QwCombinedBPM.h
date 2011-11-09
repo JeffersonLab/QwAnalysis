@@ -88,11 +88,15 @@ class QwCombinedBPM : public VQwBPM {
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices
   Bool_t  ApplySingleEventCuts();//Check for good events by stting limits on the devices readings
-  void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
+  //void    SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX);
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
-  void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
+  //void    SetSingleEventCuts(TString ch_name, UInt_t errorflag,Double_t min, Double_t max, Double_t stability);
   void    SetEventCutMode(Int_t bcuts);
   Int_t   GetEventcutErrorCounters();// report number of events falied due to HW and event cut faliure
+  UInt_t  GetEventcutErrorFlag();
+  void UpdateEventcutErrorFlag(const UInt_t error);
+  void UpdateEventcutErrorFlag(VQwBPM *ev_error);
+
 
   void    SetBPMForCombo(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
 
@@ -112,6 +116,8 @@ class QwCombinedBPM : public VQwBPM {
 
   void    AccumulateRunningSum(const VQwBPM& value);
   void    AccumulateRunningSum(const QwCombinedBPM& value);
+  void    DeaccumulateRunningSum(VQwBPM& value);
+  void    DeaccumulateRunningSum(QwCombinedBPM& value);
   void    CalculateRunningAverage();
 
   void    ConstructHistograms(TDirectory *folder, TString &prefix);

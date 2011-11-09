@@ -90,12 +90,11 @@ void VQwHardwareChannel::SetSingleEventCuts(Double_t min, Double_t max)
 void VQwHardwareChannel::SetSingleEventCuts(UInt_t errorflag,Double_t min, Double_t max, Double_t stability)
 {
   fErrorConfigFlag=errorflag;
-  std::cout<<"fErrorFlag "<<(fErrorConfigFlag & kGlobalCut)<<std::endl;
   fStability=stability;
   SetSingleEventCuts(min,max);
-  QwDebug << "Set single event cuts for " << GetElementName() << ": "
-	  << "errorflag == 0x" << std::hex << errorflag << std::dec
-	  << ", global? " << (fErrorConfigFlag & kGlobalCut)<< ", stability? " << (fErrorFlag & kStabilityCut) << QwLog::endl;
+  QwWarning << "Set single event cuts for " << GetElementName() << ": "
+	    << "Config-error-flag == 0x" << std::hex << errorflag << std::dec
+	    << ", global? " << ((fErrorConfigFlag & kGlobalCut)==kGlobalCut) << ", stability? " << ((fErrorConfigFlag & kStabilityCut)==kStabilityCut) << QwLog::endl;
 }
 
 

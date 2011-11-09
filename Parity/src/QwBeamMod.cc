@@ -303,7 +303,7 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename){
 	std::cout<<"*****************************"<<std::endl;
 	std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<eventcut_flag<<std::endl;
 	fModChannel[det_index].PrintInfo();
-	fModChannel[det_index].SetSingleEventCuts(GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut),LLX,ULX,stabilitycut);//(fBCMEventCuts);
+	fModChannel[det_index].SetSingleEventCuts((GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)|kBModErrorFlag),LLX,ULX,stabilitycut);
 	std::cout<<"*****************************"<<std::endl;
 
       }

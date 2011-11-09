@@ -133,10 +133,11 @@ UInt_t GetGlobalErrorFlag(TString evtype,Int_t evMode,Double_t stabilitycut){
   if (evtype=="g" && stabilitycut>0)
     return (kGlobalCut|kStabilityCut|evntMode);
   else if (evtype=="g" && stabilitycut<=0)
-    return (kGlobalCut|evntMode);
+    return (kGlobalCut|evntMode);  
+  else if (evtype=="l" && stabilitycut>0)
+    return (kLocalCut|evntMode|kStabilityCut);
+  else if (evtype=="l" && stabilitycut<=0)
+    return (kLocalCut|evntMode); 
   
-  else if (evtype=="l")
-    return (kLocalCut|evntMode);
-
   return 0;
 }

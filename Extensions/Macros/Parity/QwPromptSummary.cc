@@ -302,19 +302,19 @@ int main(Int_t argc,Char_t* argv[])
   }
   
   if (foundfile==0){//looking for runlet based root files
-    rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+".000.root";
+    rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+".000.trees.root";
     if((f = new TFile(rootfilename.Data(),"READ"))!=NULL &&!(f->IsZombie()) &&(f->IsOpen())){
       noofrunlets=0;
       runlet.Form("%03d",noofrunlets);
-      rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+"."+runlet+".root";
+      rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+"."+runlet+".trees.root";
       if (expertmode){
-	chain_status = GetTree(Form("%s%s*.root",rootfile_stem.Data(),runnum.Data()), &tree_chain);
+	chain_status = GetTree(Form("%s%s*.trees.root",rootfile_stem.Data(),runnum.Data()), &tree_chain);
 	if(chain_status == 0) {
 	  expertmode=kFALSE;
 	  std::cerr<<" Failed to access the tree \n";
 	}
       }
-
+      rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+".000.histos.root";
       while ((f = new TFile(rootfilename.Data(),"READ"))!=NULL &&!(f->IsZombie()) &&(f->IsOpen())){
 	std::cout<<rootfilename<<std::endl;
 	file_list.push_back(f);
@@ -322,7 +322,7 @@ int main(Int_t argc,Char_t* argv[])
 	f=NULL;//reset the root file
 	noofrunlets++;
 	runlet.Form("%03d",noofrunlets);
-	rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+"."+runlet+".root";
+	rootfilename=TString(getenv("QW_ROOTFILES")) +  "/"+rootfile_stem+runnum+"."+runlet+".histos.root";
       }
       
       foundfile = 2;//found runlet base root file 

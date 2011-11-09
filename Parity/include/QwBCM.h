@@ -78,6 +78,17 @@ class QwBCM : public VQwBCM {
   UInt_t GetEventcutErrorFlag(){//return the error flag
     return fBeamCurrent.GetEventcutErrorFlag();
   }
+  void UpdateEventcutErrorFlag(UInt_t errorflag){
+    fBeamCurrent.UpdateEventcutErrorFlag(errorflag);
+  };
+
+
+  void UpdateEventcutErrorFlag(VQwBCM *ev_error);
+
+  UInt_t GetErrorCode() const {return (fBeamCurrent.GetErrorCode());}; 
+  void UpdateErrorCode(const UInt_t& error){fBeamCurrent.UpdateErrorCode(error);};
+
+
 
   Int_t SetSingleEventCuts(Double_t mean, Double_t sigma);//two limts and sample size
   /*! \brief Inherited from VQwDataElement to set the upper and lower limits (fULimit and fLLimit), stability % and the error flag on this channel */
@@ -126,6 +137,7 @@ class QwBCM : public VQwBCM {
   void Scale(Double_t factor);
 
   void AccumulateRunningSum(const VQwBCM& value);
+  void DeaccumulateRunningSum(VQwBCM& value);
   void CalculateRunningAverage();
 
   void SetPedestal(Double_t ped);

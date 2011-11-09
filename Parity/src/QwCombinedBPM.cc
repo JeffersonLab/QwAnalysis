@@ -159,6 +159,22 @@ Int_t QwCombinedBPM<T>::GetEventcutErrorCounters()
   return 1;
 }
 
+template<typename T>
+UInt_t QwCombinedBPM<T>::GetEventcutErrorFlag()
+{
+  UInt_t error=0;
+  for(Short_t axis=kXAxis;axis<kNumAxes;axis++){
+    error|=fAbsPos[axis].GetEventcutErrorFlag();
+    error|=fSlope[axis].GetEventcutErrorFlag();
+    error|=fIntercept[axis].GetEventcutErrorFlag();
+  }
+
+  error|=fEffectiveCharge.GetEventcutErrorFlag();
+
+  return error;
+}
+
+
 
 template<typename T>
 Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
@@ -171,11 +187,14 @@ Bool_t QwCombinedBPM<T>::ApplySingleEventCuts()
   charge_error = 0;
   pos_error[kXAxis]=0;
   pos_error[kYAxis]=0;
+
   for(size_t i=0;i<fElement.size();i++){
     ///  TODO:  The returned base class should be changed so
     ///         these casts aren't needed, but "GetErrorCode"
     ///         is not meaningful for every VQwDataElement.
     ///         Maybe the return should be a VQwHardwareChannel?
+
+    //To update the event cut faliures in individual BPM devices
     charge_error      |= fElement[i]->GetEffectiveCharge()->GetErrorCode();
     pos_error[kXAxis] |= fElement[i]->GetPosition(kXAxis)->GetErrorCode();
     pos_error[kYAxis] |= fElement[i]->GetPosition(kYAxis)->GetErrorCode();
@@ -267,7 +286,7 @@ VQwHardwareChannel* QwCombinedBPM<T>::GetSubelementByName(TString ch_name)
   return tmpptr;
 }
 
-
+/*
 template<typename T>
 void QwCombinedBPM<T>::SetSingleEventCuts(TString ch_name, Double_t minX, Double_t maxX)
 {
@@ -338,6 +357,52 @@ void QwCombinedBPM<T>::SetSingleEventCuts(TString ch_name, UInt_t errorflag,Doub
     fEffectiveCharge.SetSingleEventCuts(errorflag, minX,maxX, stability);
   }
 }
+
+*/
+
+template<typename T>
+void QwCombinedBPM<T>::UpdateEventcutErrorFlag(const UInt_t error){
+  Short_t i=0;
+
+  for(i=kXAxis;i<kNumAxes;i++) {
+    fAbsPos[i].UpdateEventcutErrorFlag(error);
+    fSlope[i].UpdateEventcutErrorFlag(error);
+    fIntercept[i].UpdateEventcutErrorFlag(error);
+  }
+  
+  fEffectiveCharge.UpdateEventcutErrorFlag(error);
+  
+};
+template<typename T>
+void QwCombinedBPM<T>::UpdateEventcutErrorFlag(VQwBPM *ev_error){
+  Short_t i=0;
+  VQwDataElement *value_data;
+  try {
+    if(typeid(*ev_error)==typeid(*this)) {
+      // std::cout<<" Here in QwBPMStripline::UpdateEventcutErrorFlag \n";
+      if (this->GetElementName()!="") {
+        QwCombinedBPM<T>* value_bpm = dynamic_cast<QwCombinedBPM<T>* >(ev_error);
+      for(i=kXAxis;i<kNumAxes;i++) {
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fAbsPos[i]));
+	  fAbsPos[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fSlope[i]));
+	  fSlope[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	  value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fIntercept[i]));
+	  fIntercept[i].UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+	}
+	value_data = dynamic_cast<VQwDataElement *>(&(value_bpm->fEffectiveCharge));
+	fEffectiveCharge.UpdateEventcutErrorFlag(value_data->GetErrorCode()); 
+      }
+    } else {
+      TString loc="Standard exception from QwCombinedBPM::UpdateEventcutErrorFlag :"+
+        ev_error->GetElementName()+" "+this->GetElementName()+" are not of the "
+        +"same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr<< e.what()<<std::endl;
+  }  
+};
 
 
 
@@ -764,15 +829,35 @@ void QwCombinedBPM<T>::AccumulateRunningSum(const VQwBPM& value)
 template<typename T>
 void QwCombinedBPM<T>::AccumulateRunningSum(const QwCombinedBPM<T>& value)
 {
-  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
-
-  // TODO This is unsafe (see QwBeamline::AccumulateRunningSum)
   for (Short_t axis = kXAxis; axis < kNumAxes; axis++){
     fSlope[axis].AccumulateRunningSum(value.fSlope[axis]);
     fIntercept[axis].AccumulateRunningSum(value.fIntercept[axis]);
     fAbsPos[axis].AccumulateRunningSum(value.fAbsPos[axis]);
   }
+  fEffectiveCharge.AccumulateRunningSum(value.fEffectiveCharge);
 }
+
+template<typename T>
+void QwCombinedBPM<T>::DeaccumulateRunningSum(VQwBPM& value)
+{
+  DeaccumulateRunningSum(*dynamic_cast<QwCombinedBPM<T>* >(&value));
+}
+
+template<typename T>
+void QwCombinedBPM<T>::DeaccumulateRunningSum(QwCombinedBPM<T>& value)
+{
+
+  for (Short_t axis = kXAxis; axis < kNumAxes; axis++){
+    fSlope[axis].DeaccumulateRunningSum(value.fSlope[axis]);
+    fIntercept[axis].DeaccumulateRunningSum(value.fIntercept[axis]);
+    fAbsPos[axis].DeaccumulateRunningSum(value.fAbsPos[axis]);
+  }
+  fEffectiveCharge.DeaccumulateRunningSum(value.fEffectiveCharge);
+
+}
+
+
+
 
 
 template<typename T>

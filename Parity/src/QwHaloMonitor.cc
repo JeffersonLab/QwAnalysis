@@ -65,6 +65,10 @@ Int_t QwHaloMonitor::GetEventcutErrorCounters()
   return 1;
 }
 
+void QwHaloMonitor::UpdateEventcutErrorFlag(QwHaloMonitor *ev_error){
+  
+}
+
 QwHaloMonitor& QwHaloMonitor::operator= (const QwHaloMonitor &value)
 {
   if (GetElementName()!=""){
@@ -119,6 +123,11 @@ void QwHaloMonitor::Scale(Double_t factor)
 void QwHaloMonitor::AccumulateRunningSum(const QwHaloMonitor& value) {
   fHalo_Counter.AccumulateRunningSum(value.fHalo_Counter);
 }
+
+void QwHaloMonitor::DeaccumulateRunningSum(QwHaloMonitor& value) {
+  //fHalo_Counter.DeccumulateRunningSum(value.fHalo_Counter);
+}
+
 void QwHaloMonitor::CalculateRunningAverage(){
   fHalo_Counter.CalculateRunningAverage();
 }
