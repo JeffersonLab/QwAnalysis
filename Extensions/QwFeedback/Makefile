@@ -82,10 +82,16 @@ endif
 # JLab EPICS libs
 ##################
 ifdef EPICS
-EPICSFLAGS   := -I$(EPICS)/base/include
-EPICSLIBS    := -L${EPICS}/base/lib/Linux -lca -lcas -lCom -lAs -lgdd
+  EPICSFLAGS   := -I$(EPICS)/base/include -I$(EPICS)/base/include/os/Linux
+  # On the cdaq cluster, the library directory is different between the 3.13
+  # and 3.14 EPICS versions
+  ifeq ($(shell $(AWK) '$$2="EPICS_REVISION" {print $$3}' $(EPICS)/base/include/epicsVersion.h),13)
+    EPICSLIBS    := -L${EPICS}/base/lib/Linux -lca -lcas -lCom -lAs -lgdd
+  else
+    EPICSLIBS    := -L${EPICS}/base/lib/linux-x86 -lca -lcas -lCom -lgdd
+  endif
 else
-$(error Aborting : EPICS library is not accessible from the system)
+  $(error Aborting : EPICS library is not accessible from the system)
 endif
 
 ##############

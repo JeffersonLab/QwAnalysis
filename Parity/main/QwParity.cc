@@ -124,7 +124,10 @@ Int_t main(Int_t argc, Char_t* argv[])
     database.SetupOneRun(eventbuffer);
 
     //  Open the ROOT file (close when scope ends)
-    QwRootFile *treerootfile, *burstrootfile, *historootfile;
+    QwRootFile *treerootfile  = NULL;
+    QwRootFile *burstrootfile = NULL;
+    QwRootFile *historootfile = NULL;
+
     if (gQwOptions.GetValue<bool>("single-output-file")) {
       treerootfile = new QwRootFile(eventbuffer.GetRunLabel());
       burstrootfile = historootfile = treerootfile;

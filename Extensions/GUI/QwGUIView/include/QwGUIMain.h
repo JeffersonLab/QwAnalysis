@@ -84,6 +84,7 @@
 #include <TPave.h>
 #include "KeySymbols.h"
 #include "QwGUIMainDetector.h"
+#include "QwGUIHistories.h"
 #include "QwGUIScanner.h"
 #include "QwGUIBeamModulation.h"
 #include "QwGUILumiDetector.h" 
@@ -120,6 +121,7 @@ class QwGUIMain : public TGMainFrame {
   //!Main detector sub system class
   QwGUIMainDetector      *MainDetSubSystem;
   QwGUIScanner           *ScannerSubSystem;
+  QwGUIHistories         *HistoriesSubSystem;
   QwGUIBeamModulation    *BeamModulationSubSystem;
   QwGUILumiDetector      *LumiDetSubSystem;
   QwGUIInjector          *InjectorSubSystem;
@@ -259,6 +261,7 @@ class QwGUIMain : public TGMainFrame {
   vector <TH1F*>          dMainHistos;
   vector <TGraph*>        dMainGraphs;
   vector <TObject*>       dMainPlotsArray;
+  vector <TH1F*>          dHistoryPlotsArray;
 
   EventOptions            dCurrentRunEventOptions;
 

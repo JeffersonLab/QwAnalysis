@@ -327,6 +327,32 @@ int RDataContainer::GetNumOfRows()
     return -1;
 }
 
+int RDataContainer::GetRowLength(int row)
+{
+  if(row > GetNumOfRows()) return -1;
+
+  char l;
+  int flag = 0;
+  int dLength = 0;
+  int pos = 0;
+
+  if(dFp)
+    {
+      pos = ftell(dFp);
+      SetRowColumn(row,1);
+      while (1) {
+	flag = fscanf(dFp,"%c",&l);
+	if(l == '\n') break;
+	dLength++;
+      }     
+      fseek(dFp,pos,SEEK_SET);
+      return dLength;
+    }
+  else
+    return -1;
+
+}
+
 long int RDataContainer::GetFileSize()
 {
   if(dType == FT_ROOT && fRfile != NULL)
@@ -1406,6 +1432,19 @@ int RDataContainer::ReadData(Double_t *x, Double_t *y,
 
     
 // }
+
+int RDataContainer::ReadRow(const char *buffer, int row)
+{
+  if(!dFp || !buffer) return FILE_READ_ERROR;
+  if(row < 1 || row > GetNumOfRows()) return FILE_READ_ERROR;
+  SetRowColumn(row,1);
+  if(!fread((char*)buffer,GetRowLength(row),1,dFp)) {
+    FlushMessages();
+    SetMessage(READ_PNTR_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+    return(FILE_READ_ERROR);
+  }
+  return FILE_PROCESS_OK;
+}
 
 int RDataContainer::ReadData(const char *buffer, int size)
 {

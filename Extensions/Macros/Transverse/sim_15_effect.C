@@ -4,7 +4,7 @@
 //*****************************************************************************************************//
 /*
 
-This macro simulates the effect of the non-zero offest seen in bar 1+ for 1000 measurements 
+This macro simulates the effect of the non-zero offest seen in bar 1+5 for 10000 measurements 
 with each measurement being <time in hours> hours.
 
 Required inputs : time in hours, P_V % , P_H %
@@ -71,12 +71,12 @@ sim_15_effect_8_P_V_0_P_H_0_md1_0.0_md5_0.0.png
 int main(Int_t argc,Char_t* argv[]){
 
   // Fit and stat parameters
-  gStyle->SetOptStat(0000000);
+  gStyle->SetOptStat(11);
   gStyle->SetStatY(0.99);
   gStyle->SetStatX(0.99);
   gStyle->SetStatW(0.15);
   gStyle->SetStatH(0.2);
-  gStyle->SetOptFit(1001);
+  gStyle->SetOptFit(1111);
  
   
   // histo parameters
@@ -106,9 +106,14 @@ int main(Int_t argc,Char_t* argv[]){
  
  const Double_t A_PV = -0.234; //ppm
  const Double_t A_T  = -4.75; //ppm
- const Double_t offset_in_bar1  = 0.35; //ppm
- const Double_t offset_in_bar5  = 0.35; //ppm
- 
+
+ // Simulate the precision of the offset
+ TRandom1 * random1 = new TRandom1();
+ random1->SetSeed(0);
+
+ Double_t offset_in_bar1=0.0;//ppm
+ Double_t offset_in_bar5=0.0; //ppm
+ Double_t offset_error = 0.24; //ppm
 
  Double_t mean;
  Double_t error;
@@ -120,6 +125,7 @@ int main(Int_t argc,Char_t* argv[]){
 
 
  TRandom1 * random = new TRandom1();
+ random->SetSeed(0);
 
  TCanvas * c1= new TCanvas("c1", "Fitted MD asymmetries",0,0,1000,500);
  TString title = Form("LH2: Simulated Main detector asymmetries  A_m(phi) = %1.2f x (%1.2f Cos(phi) - %1.2f Sin(phi)) + %2.3f x %1.2f",A_T,PV,PH,PL,A_PV);
@@ -139,11 +145,11 @@ int main(Int_t argc,Char_t* argv[]){
  Double_t patterns             = run_time*3600*event_rate/4.0;
  Double_t md_bar_stat_error    = md_bar_rms/sqrt(patterns);
  
- 
- Double_t p0_u = PV+0.1;
- Double_t p0_l = PV-0.1;
- Double_t p1_u = PH+0.1;
- Double_t p1_l = PH-0.1;
+ // to set histogram x axis limits
+ Double_t p0_u = PV+0.3;
+ Double_t p0_l = PV-0.3;
+ Double_t p1_u = PH+0.3;
+ Double_t p1_l = PH-0.3;
 
  TH1D* para_p0 = new TH1D("p0","% P_V",1000, p0_l,p0_u);
  TH1D* para_p1 = new TH1D("p1","% P_H",1000, p1_l,p1_u);
@@ -158,12 +164,14 @@ int main(Int_t argc,Char_t* argv[]){
  printf("Induced longitudinal polarization %f \n",PL);
 
  TF1*trans_fit =  new TF1("trans_fit","-4.75*([0]*cos((pi/180)*(45*(x-1))) - [1]*sin((pi/180)*(45*(x-1))))+ [2]",1,8);
- random->SetSeed(0);
 
 
  /*Fill the asymmetry histograms for iterate number of measurements*/
  for(Int_t k=0;k<iterate;k++){
   
+   offset_in_bar5=random1->Gaus(0.7,offset_error);
+   offset_in_bar1=0.0; //ppm
+
    /*On measurement*/
    for(Int_t i=0;i<8;i++){   
      angle =(TMath::Pi()/180)*(45*(i));
@@ -173,14 +181,19 @@ int main(Int_t argc,Char_t* argv[]){
      mean = random->Gaus(A_m,md_bar_stat_error);
      error =  md_bar_stat_error;
  
-     if(i==0)
+     if(i==0){
        md_mean[i] = mean+offset_in_bar1;
-     else if (i==4)
+       //md_error[i] = TMath::Sqrt(md_bar_stat_error*md_bar_stat_error+offset_error*offset_error);
+     }
+     else if (i==4){
        md_mean[i] = mean+offset_in_bar5;
+       // md_error[i] = TMath::Sqrt(md_bar_stat_error*md_bar_stat_error+offset_error*offset_error);
+     }
      else
        md_mean[i] = mean;
-
+     
      md_error[i] = error;
+       
      x[i] = i+1;
      x_error[i]=0.0; 
    }
@@ -193,8 +206,10 @@ int main(Int_t argc,Char_t* argv[]){
    para_p0->Fill((fit->GetParameter(0)));
    para_p1->Fill((fit->GetParameter(1)));
    if((k%100) == 0) std::cout<<k<<std::endl;
+
  }
  
+
 
  c1->Divide(1,2);
  c1->cd(1);

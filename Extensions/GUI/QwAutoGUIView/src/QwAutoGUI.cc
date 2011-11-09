@@ -123,8 +123,8 @@ void QwAutoGUI::DoWarn()
   
     while(1){
       
-      NewRun = gSystem->GetFromPipe(Form("ls %s/first100k_* -1 | tail -1",gSystem->Getenv("QW_ROOTFILES")));
-      
+      NewRun = gSystem->GetFromPipe(Form("ls %s/first100k_[0-9]* -1 | tail -1",gSystem->Getenv("QW_ROOTFILES")));
+
       if(NewRun.Length()>0){
 	
 	GetFileInfo(NewRun.Data(),run,seg);
