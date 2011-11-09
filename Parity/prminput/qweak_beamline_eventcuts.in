@@ -30,7 +30,7 @@ EVENTCUTS = 3
 !for bcm devices
 !device_type, device_name,      lower limit, upper limit, local(l)/global(g), stability percentage
  
-bcm, qwk_bcm1,		1,	1000000,	l,	2
+bcm, qwk_bcm1,		1,	1000000,	g,	2
 !bcm, qwk_bcm2, 		0, 	0,		l,	0
 !bcm, qwk_bcm3, 		0, 0, l, 0
 !bcm, qwk_bcm5, 		0, 0, l, 0
@@ -179,7 +179,7 @@ bpmstripline, 	qwk_bpm3h09b,   YM,             0,  76200,       l,      0
 !device_type, device_name,             lower limit,	upper limit, local(l)/global(g), stability percentage
 !combinedbcm, qwk_charge,  	3.18588, 	3.18591e+10, l, 0
 !combinedbcm, qwk_charge,  	1, 	500, g, 0.001
-combinedbcm, qwk_charge,  	0, 	3.18591e+10, l, 4
+!combinedbcm, qwk_charge,  	0, 	3.18591e+10, l, 4
 
 !***************************************************	
 !for QwEnergyCalculator

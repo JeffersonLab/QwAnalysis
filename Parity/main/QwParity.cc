@@ -252,7 +252,7 @@ Int_t main(Int_t argc, Char_t* argv[])
 
       // Failed single event cuts
       } else {
-	eventring.FailedEvent(detectors.GetEventcutErrorFlag());
+
       }
 
       // Burst mode
@@ -333,8 +333,6 @@ Int_t main(Int_t argc, Char_t* argv[])
     eventbuffer.CloseStream();
 
 
-
-    QwMessage << "Total events failed " << eventring.GetFailedEventCount() << QwLog::endl;
 
     //  Report run summary
     eventbuffer.ReportRunSummary();

@@ -1221,9 +1221,11 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
 
 void QwVQWK_Channel::CalculateRunningAverage()
 {
+  /*
   if (GetElementName()=="qwk_engy"){//qwk_target_EffectiveCharge
       PrintValue();
   }
+  */
 
   if (fGoodEventCount <= 0)
     {
@@ -1245,7 +1247,10 @@ void QwVQWK_Channel::CalculateRunningAverage()
       fHardwareBlockSumError = sqrt(fHardwareBlockSumM2) / fGoodEventCount;
       //Stability check 83951872 
       if ((fStability>0) &&( (fErrorConfigFlag & kStabilityCut)==kStabilityCut)){//check to see the channel has stability cut activated in the event cut file
-	PrintValue();
+	/*
+	  //for Debugging
+	  PrintValue();
+	*/
 	if (GetValueWidth()>fStability){//if the width is greater than the stability required flag the event
 	  fErrorFlag=kBeamStabilityError;
 	}else
@@ -1274,10 +1279,14 @@ void QwVQWK_Channel::PrintValue() const
             << std::setw(12) << std::left << GetBlockErrorValue(2) << " "
             << std::setw(12) << std::left << GetBlockValue(3)      << "+/- "
             << std::setw(12) << std::left << GetBlockErrorValue(3) << " "
-            << std::setw(12) << std::left << fErrorFlag << " "
-            << std::setw(12) << std::left << fErrorConfigFlag << " "
             << std::setw(12) << std::left << fGoodEventCount << " "
             << QwLog::endl;
+  /*
+    //for Debudding
+            << std::setw(12) << std::left << fErrorFlag << " err "
+            << std::setw(12) << std::left << fErrorConfigFlag << " c-err "
+
+  */
 }
 
 std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel)
