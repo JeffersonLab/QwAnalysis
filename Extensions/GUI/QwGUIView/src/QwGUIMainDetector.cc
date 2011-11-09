@@ -99,6 +99,7 @@ Int_t QwGUIMainDetectorDataStructure::SetTree(TTree *tree)
 	grp = new TGraph();
 	grp->SetName(Form("%s_grp",DataName[c].Data()));//Form("%s.%s",DetectorName,TreeLeafName[c].data())));
 	grp->SetTitle(Form("Run %d %s",GetRunNumber(),DataName[c].Data()));//Form("%s.%s",DetectorName,TreeLeafName[c])));
+	grp->SetEditable(kFalse);
 	DataGraph.push_back(grp);
 // 	TreeLeafMenuID.push_back(IDOFFSET+DetectorID*100+c); 
 	fft = new EventOptions;
@@ -1071,7 +1072,6 @@ void QwGUIMainDetectorDataType::ProcessData(const char* SummaryTitle, Bool_t Add
       grph = new TGraphErrors(dDetDataStr.size());
       grph->SetName(Form("%s_SignalMean",GetType()));
       grph->SetTitle(Form("%s Mean: %s %s",GetType(),dDetDataStr[0]->GetTreeLeafName(j),SummaryTitle));
-      
       for(uint i = 0; i < dDetDataStr.size(); i++){
 	grph->SetPoint(i,i+1,dDetDataStr[i]->GetTreeLeafMean(j));
 	grph->SetPointError(i,0,dDetDataStr[i]->GetTreeLeafError(j));      
@@ -1089,7 +1089,7 @@ void QwGUIMainDetectorDataType::ProcessData(const char* SummaryTitle, Bool_t Add
       grph->GetYaxis()->SetTitleOffset(1.5);
       grph->SetMarkerStyle(20);
       grph->SetMarkerSize(0.6);
-
+      grph->SetEditable(kFalse);
       
       dMeanGraph.push_back(grph);
       
@@ -1116,7 +1116,8 @@ void QwGUIMainDetectorDataType::ProcessData(const char* SummaryTitle, Bool_t Add
       grph->GetYaxis()->SetTitleOffset(1.5);
       grph->SetMarkerStyle(20);
       grph->SetMarkerSize(0.6);
-      
+      grph->SetEditable(kFalse);
+
       dRMSGraph.push_back(grph);
     }
   }
@@ -1588,24 +1589,24 @@ TRootEmbeddedCanvas *QwGUIMainDetectorDataType::MakeDataTab(TGTab *dMDTab,
   else n = dLinkedTypes.size()*2;
   
   if(n > 1){
-    // if(n == 2) {xn = 2; yn = 1;}
-    // if(n == 3) {xn = 2; yn = 2;}
-    // if(n == 4) {xn = 2; yn = 2;}
-    // if(n == 5) {xn = 3; yn = 2;}
-    // if(n == 6) {xn = 3; yn = 2;}
-    // if(n == 7) {xn = 4; yn = 2;} 
-    // if(n == 8) {xn = 4; yn = 2;}
-    // if(n == 9) {xn = 3; yn = 3;}
-    // if(n == 10){xn = 4; yn = 3;}
-    // if(n == 11){xn = 4; yn = 3;}
-    // if(n == 12){xn = 4; yn = 3;}
-    // if(n == 13){xn = 4; yn = 4;}
-    // if(n == 14){xn = 4; yn = 4;}
-    // if(n == 15){xn = 4; yn = 4;}
-    // if(n == 16){xn = 4; yn = 4;}
+    if(n == 2) {xn = 2; yn = 1;}
+    if(n == 3) {xn = 2; yn = 2;}
+    if(n == 4) {xn = 2; yn = 2;}
+    if(n == 5) {xn = 3; yn = 2;}
+    if(n == 6) {xn = 3; yn = 2;}
+    if(n == 7) {xn = 4; yn = 2;} 
+    if(n == 8) {xn = 4; yn = 2;}
+    if(n == 9) {xn = 3; yn = 3;}
+    if(n == 10){xn = 4; yn = 3;}
+    if(n == 11){xn = 4; yn = 3;}
+    if(n == 12){xn = 4; yn = 3;}
+    if(n == 13){xn = 4; yn = 4;}
+    if(n == 14){xn = 4; yn = 4;}
+    if(n == 15){xn = 4; yn = 4;}
+    if(n == 16){xn = 4; yn = 4;}
 
-    xn = TMath::Floor(TMath::Sqrt(n));
-    yn = TMath::Ceil(TMath::Sqrt(n));
+    // xn = TMath::Floor(TMath::Sqrt(n));
+    // yn = TMath::Ceil(TMath::Sqrt(n));
 
     mc->Divide(xn,yn);
 
@@ -1679,10 +1680,10 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
 
   RemoveSelectedDataWindow();
 
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH"));
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+  // QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH"));
+  // QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  // QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  // QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
   AddThisTab(this);
   dActiveTab = -1;
@@ -1719,8 +1720,8 @@ QwGUIMainDetector::~QwGUIMainDetector()
 {
   CleanUp();
 
-  if(dMDTab) delete dMDTab;
-  if(dTabFrame)  delete dTabFrame;
+  // if(dMDTab) delete dMDTab;
+  // if(dTabFrame)  delete dTabFrame;
 
   RemoveThisTab(this);
   IsClosing(GetName());
@@ -2282,19 +2283,19 @@ void QwGUIMainDetector::AddDataHistograms(TTree *MPSTree,TTree *HELTree)
 //     temp4.push_back(Form("asym_%s",MainDetectorCombinationNames[l].Data()));
 
   dCurrentYields->AddHistograms(dROOTCont,MPSTree,MainDetectorPMTYieldNames);
-  dCurrentYields->ProcessData("(md1- -> md8+)",kTrue);
+  dCurrentYields->ProcessData(Form("(md1- -> md%d+)",(Int_t)(MainDetectorPMTYieldNames.size()/2)),kTrue);
   printf("dCurrentYields->ProcessData Done\n");
 
   gSystem->ProcessEvents();
 
   dCurrentPMTAsyms->AddHistograms(dROOTCont,HELTree,MainDetectorPMTAsymNames);
-  dCurrentPMTAsyms->ProcessData("(md1- -> md8+)",kTrue);
+  dCurrentPMTAsyms->ProcessData(Form("(md1- -> md%d+)",(Int_t)(MainDetectorPMTAsymNames.size()/2)),kTrue);
   printf("dCurrentPMTAsyms->ProcessData Done\n");
   
   gSystem->ProcessEvents();
 
   dCurrentDETAsyms->AddHistograms(dROOTCont,HELTree,MainDetectorAsymNames);
-  dCurrentDETAsyms->ProcessData("(md1barsum -> md8barsum)",kTrue);
+  dCurrentDETAsyms->ProcessData(Form("(md1barsum -> md%dbarsum)",(Int_t)MainDetectorAsymNames.size()),kTrue);
   printf("dCurrentDETAsyms->ProcessData Done\n");  
   
   gSystem->ProcessEvents();
@@ -2424,16 +2425,16 @@ Int_t QwGUIMainDetector::GetCurrentModeData(TTree *MPSTree, TTree *HELTree)
 
   // printf("File %s, Line %d\n",__FILE__,__LINE__);
 
-  dCurrentYields->ProcessData("(md1- -> md8+)");
+  dCurrentYields->ProcessData(Form("(md1- -> md%d+)",(Int_t)(MainDetectorPMTYieldNames.size()/2)));
   printf("dCurrentYields->ProcessData Done\n");
   
   // mBox->UpdateText("Done Processing Yields");
   // gSystem->ProcessEvents();
 
-  dCurrentPMTAsyms->ProcessData("(md1- -> md8+)");
+  dCurrentPMTAsyms->ProcessData(Form("(md1- -> md%d+)",(Int_t)(MainDetectorPMTAsymNames.size()/2)));
   printf("dCurrentPMTAsyms->ProcessData Done\n");
   
-  dCurrentDETAsyms->ProcessData("(md1barsum -> md8barsum)");
+  dCurrentDETAsyms->ProcessData(Form("(md1barsum -> md%dbarsum)",(Int_t)MainDetectorAsymNames.size()));
   printf("dCurrentDETAsyms->ProcessData Done\n");
   
   dCurrentCMBAsyms->ProcessData("(1+5,2+6,3+7,4+8,odd,even,all)");

@@ -139,32 +139,29 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   Resize(GetDefaultSize());
   MapWindow();
 
+  if(!GetSubSystemPtr("Histories"))
+    HistoriesSubSystem = new QwGUIHistories(fClient->GetRoot(), this, dTab,"Histories",
+					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
   if(!GetSubSystemPtr("Main Detectors"))
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
-
-//   if(MainDetSubSystem)
-//     MainDetSubSystem->LoadChannelMap(Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH")));
-
-//  if(!GetSubSystemPtr("Scanner"))
-//    ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
-//					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
-
-  if(!GetSubSystemPtr("Beam Modulation"))
-    BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
-					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
   if(!GetSubSystemPtr("Lumi Detectors"))
     LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("Injector"))
-    InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
-  					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
-
   if(!GetSubSystemPtr("HallC Beamline"))
     HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+  // if(!GetSubSystemPtr("Injector"))
+  //   InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
+  // 					  "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+  // if(!GetSubSystemPtr("Beam Modulation"))
+  //   BeamModulationSubSystem = new QwGUIBeamModulation(fClient->GetRoot(), this, dTab, "Beam Modulation",
+  // 					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
   // if(!GetSubSystemPtr("Qweak Database"))
   //   DatabaseSubSystem = new QwGUIDatabase(fClient->GetRoot(), this, dTab,"Qweak Database",
@@ -178,6 +175,10 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   //   EventDisplaySubSystem = new QwGUIEventDisplay(fClient->GetRoot(), this, dTab, "Event Display",
   // 					  "QwGUIMain", dMWWidth-15, dMWHeight-180);
 
+  //  if(!GetSubSystemPtr("Scanner"))
+  //    ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
+  //					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
   SetSubSystemSegmentAdd(kFalse);
 
   // if(dClArgs.autoupdate == kTrue) {
@@ -187,6 +188,11 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   //   RemoveTab(InjectorSubSystem);
   //   RemoveTab(HallCBeamlineSubSystem);
   // }
+
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
   
   dTab->SetTab("Main",kTrue);
 }
@@ -195,14 +201,6 @@ QwGUIMain::~QwGUIMain()
 {
   CleanUpDataWindows();
 
-  delete MainDetSubSystem        ;
-//  delete ScannerSubSystem        ;
-  delete BeamModulationSubSystem ;
-  delete LumiDetSubSystem        ;
-  delete InjectorSubSystem       ;
-  // delete DatabaseSubSystem       ;
-  delete TrackFindingSubSystem   ;
-  delete EventDisplaySubSystem   ;
 
   delete dROOTFile             ;
 
@@ -349,13 +347,13 @@ void QwGUIMain::MakeUtilityLayout()
   dUtilityFrame->AddFrame(dPrefixEntry,dPrefixEntryLayout);
   dPrefixEntry->Resize(100,20);
 
-//   dAddSegmentLabel = new TGLabel(dUtilityFrame,"Add Segments");  
-   dAddSegmentLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
-//   dUtilityFrame->AddFrame(dAddSegmentLabel,dAddSegmentLayout);
-  dAddSegmentCheckButton = new TGCheckButton(dUtilityFrame, new TGHotString("Add Segments"),M_ADD_SEGMENT);
-  dUtilityFrame->AddFrame(dAddSegmentCheckButton, dAddSegmentLayout);
-  dAddSegmentCheckButton->Associate(this);
-  dAddSegmentCheckButton->SetState(kButtonUp);
+// //   dAddSegmentLabel = new TGLabel(dUtilityFrame,"Add Segments");  
+//    dAddSegmentLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+// //   dUtilityFrame->AddFrame(dAddSegmentLabel,dAddSegmentLayout);
+//   dAddSegmentCheckButton = new TGCheckButton(dUtilityFrame, new TGHotString("Add Segments"),M_ADD_SEGMENT);
+//   dUtilityFrame->AddFrame(dAddSegmentCheckButton, dAddSegmentLayout);
+//   dAddSegmentCheckButton->Associate(this);
+//   dAddSegmentCheckButton->SetState(kButtonUp);
 
   
 
@@ -438,14 +436,14 @@ void QwGUIMain::MakeLogTab()
   dLogEditFrame->AddFrame(dLogEdit,dLogEditLayout);
   dLogTabFrame->AddFrame(dLogEditFrame, dLogEditFrameLayout);
 
-  dDBQueryFrame = new TGHorizontalFrame(dLogTabFrame,500, 30);
-  dDBQueryLabel = new TGLabel(dDBQueryFrame, "DB Query");
-  dDBQueryFrame->AddFrame(dDBQueryLabel,dDBQueryLabelLayout);
-  dDBQueryEntry = new TGTextEntry(dDBQueryFrame, dDBQueryBuffer = new TGTextBuffer(80),M_DBASE_QUERY);
-  dDBQueryEntry->Associate(this);
-  dDBQueryFrame->AddFrame(dDBQueryEntry,dDBQueryEntryLayout);
-  dDBQueryEntry->SetState(1);
-  dLogTabFrame->AddFrame(dDBQueryFrame, dDBQueryFrameLayout);
+  // dDBQueryFrame = new TGHorizontalFrame(dLogTabFrame,500, 30);
+  // dDBQueryLabel = new TGLabel(dDBQueryFrame, "DB Query");
+  // dDBQueryFrame->AddFrame(dDBQueryLabel,dDBQueryLabelLayout);
+  // dDBQueryEntry = new TGTextEntry(dDBQueryFrame, dDBQueryBuffer = new TGTextBuffer(80),M_DBASE_QUERY);
+  // dDBQueryEntry->Associate(this);
+  // dDBQueryFrame->AddFrame(dDBQueryEntry,dDBQueryEntryLayout);
+  // dDBQueryEntry->SetState(1);
+  // dLogTabFrame->AddFrame(dDBQueryFrame, dDBQueryFrameLayout);
 
 
   dLogTabFrame->Resize(dMWWidth-15,dMWHeight-80);
@@ -946,21 +944,24 @@ void QwGUIMain::PlotMainData()
   if(!TabActive("Main")) return;
   if(!IsRootFileOpen()) return;
 
-  if(dMainPlots){
-    for(uint i = 0; i < dMainPlotsArray.size(); i++){
-      delete dMainPlotsArray[i];
-    }
-    dMainPlotsArray.clear();
+  if(!AddSegments()){
 
-    for(uint i = 0; i < dMainHistos.size(); i++){
-      delete dMainHistos[i];
-    }
-    dMainHistos.clear();
+    if(dMainPlots){
+      
+      for(uint i = 0; i < dMainHistos.size(); i++){
+	delete dMainHistos[i];
+      }
+      dMainHistos.clear();
+      
+      for(uint i = 0; i < dMainGraphs.size(); i++){
+	delete dMainGraphs[i];
+      }
+      dMainGraphs.clear();
+      
+      dHistoryPlotsArray.clear();
+      dMainPlotsArray.clear();
 
-    for(uint i = 0; i < dMainGraphs.size(); i++){
-      delete dMainGraphs[i];
     }
-    dMainGraphs.clear();
   }
 
   mc = dMainCanvas->GetCanvas();
@@ -1011,6 +1012,7 @@ void QwGUIMain::PlotMainData()
     gPad->Modified();
     gPad->Update();
     dMainPlotsArray.push_back(dMainHistos.back());
+    dHistoryPlotsArray.push_back(dMainHistos.back());
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1027,7 +1029,7 @@ void QwGUIMain::PlotMainData()
   hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_targetX_hw");
   mc->cd(2);
   if(hst){
-    hst->GetXaxis()->SetTitle("X Position Difference [mm]");
+    hst->GetXaxis()->SetTitle("Target X Pos. Diff. [mm]");
     hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
     hst->GetXaxis()->CenterTitle();
     hst->GetXaxis()->SetTitleSize(0.06);
@@ -1047,6 +1049,7 @@ void QwGUIMain::PlotMainData()
     gPad->Modified();
     gPad->Update();
     dMainPlotsArray.push_back(dMainHistos.back());
+    dHistoryPlotsArray.push_back(dMainHistos.back());
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1064,7 +1067,7 @@ void QwGUIMain::PlotMainData()
   mc->cd(3);
   if(hst){
 
-    hst->GetXaxis()->SetTitle("Y Position Difference [mm]");
+    hst->GetXaxis()->SetTitle("Target Y Pos. Diff. [mm]");
     hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
     hst->GetXaxis()->CenterTitle();
     hst->GetXaxis()->SetTitleSize(0.06);
@@ -1084,6 +1087,7 @@ void QwGUIMain::PlotMainData()
     gPad->Modified();
     gPad->Update();
     dMainPlotsArray.push_back(dMainHistos.back());      
+    dHistoryPlotsArray.push_back(dMainHistos.back());
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1099,7 +1103,7 @@ void QwGUIMain::PlotMainData()
   hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_bpm3c12X_hw");
   mc->cd(4);
   if(hst){
-    hst->GetXaxis()->SetTitle("Position Difference [mm]");
+    hst->GetXaxis()->SetTitle("bpm3c12X Pos. Diff. [mm]");
     hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
     hst->GetXaxis()->CenterTitle();
     hst->GetXaxis()->SetTitleSize(0.06);
@@ -1119,6 +1123,7 @@ void QwGUIMain::PlotMainData()
     gPad->Modified();
     gPad->Update();
     dMainPlotsArray.push_back(dMainHistos.back());      
+    dHistoryPlotsArray.push_back(dMainHistos.back());
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1136,22 +1141,22 @@ void QwGUIMain::PlotMainData()
   if(HelTree){
 
     mc->cd(5);
-    TH1F *DDiff1 = new TH1F("DDiff1","",1001,-500,500);
-    if(DDiff1){
-      DDiff1->SetBit(TH1::kCanRebin);
-      HelTree->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6 >> DDiff1","","goff");
-      DDiff1->SetDirectory(0);
-      DDiff1->GetXaxis()->SetTitle("bcm1-bcm2 Double Difference [ppm]");
-      DDiff1->GetXaxis()->SetRangeUser(DDiff1->GetMean()-5*DDiff1->GetRMS(), DDiff1->GetMean()+5*DDiff1->GetRMS());
-      DDiff1->GetXaxis()->CenterTitle();
-      DDiff1->GetXaxis()->SetTitleSize(0.06);
-      DDiff1->GetXaxis()->SetLabelSize(0.06);
-      DDiff1->GetXaxis()->SetTitleOffset(1.25);
-      DDiff1->GetXaxis()->SetTitleColor(1);
-      DDiff1->SetNdivisions(506,"X");
-      DDiff1->GetYaxis()->SetLabelSize(0.06);
+    TH1F *DDiff12 = new TH1F("DDiff12","bcm 1 and 2 Double Difference",1001,-500,500);
+    if(DDiff12){
+      DDiff12->SetBit(TH1::kCanRebin);
+      HelTree->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6 >> DDiff12","","goff");
+      DDiff12->SetDirectory(0);
+      DDiff12->GetXaxis()->SetTitle("bcm 1-2 DDiff [ppm]");
+      DDiff12->GetXaxis()->SetRangeUser(DDiff12->GetMean()-5*DDiff12->GetRMS(), DDiff12->GetMean()+5*DDiff12->GetRMS());
+      DDiff12->GetXaxis()->CenterTitle();
+      DDiff12->GetXaxis()->SetTitleSize(0.06);
+      DDiff12->GetXaxis()->SetLabelSize(0.06);
+      DDiff12->GetXaxis()->SetTitleOffset(1.25);
+      DDiff12->GetXaxis()->SetTitleColor(1);
+      DDiff12->SetNdivisions(506,"X");
+      DDiff12->GetYaxis()->SetLabelSize(0.06);
 
-      dMainHistos.push_back(DDiff1);
+      dMainHistos.push_back(DDiff12);
       dMainHistos.back()->Draw("");
       gPad->SetLeftMargin(0.15);
       gPad->SetTopMargin(0.15);
@@ -1159,6 +1164,7 @@ void QwGUIMain::PlotMainData()
       gPad->Modified();
       gPad->Update();
       dMainPlotsArray.push_back(dMainHistos.back());      
+      dHistoryPlotsArray.push_back(dMainHistos.back());
       
     }
     else{
@@ -1173,22 +1179,22 @@ void QwGUIMain::PlotMainData()
     }
 
     mc->cd(6);
-    TH1F *DDiff2 = new TH1F("DDiff2","",1001,-500,500);
-    if(DDiff2){
-      DDiff2->SetBit(TH1::kCanRebin);
-      HelTree->Draw("(asym_qwk_bcm5-asym_qwk_bcm6)*1e6 >> DDiff2","","goff");
-      DDiff2->SetDirectory(0);
-      DDiff2->GetXaxis()->SetTitle("bcm5-bcm6 Double Difference [ppm]");
-      DDiff2->GetXaxis()->SetRangeUser(DDiff2->GetMean()-5*DDiff2->GetRMS(), DDiff2->GetMean()+5*DDiff2->GetRMS());
-      DDiff2->GetXaxis()->CenterTitle();
-      DDiff2->GetXaxis()->SetTitleSize(0.06);
-      DDiff2->GetXaxis()->SetLabelSize(0.06);
-      DDiff2->GetXaxis()->SetTitleOffset(1.25);
-      DDiff2->GetXaxis()->SetTitleColor(1);
-      DDiff2->SetNdivisions(506,"X");
-      DDiff2->GetYaxis()->SetLabelSize(0.06);
+    TH1F *DDiff56 = new TH1F("DDiff56","bcm 5 and 6 Double Difference",1001,-500,500);
+    if(DDiff56){
+      DDiff56->SetBit(TH1::kCanRebin);
+      HelTree->Draw("(asym_qwk_bcm5-asym_qwk_bcm6)*1e6 >> DDiff56","","goff");
+      DDiff56->SetDirectory(0);
+      DDiff56->GetXaxis()->SetTitle("bcm 5-6 DDiff [ppm]");
+      DDiff56->GetXaxis()->SetRangeUser(DDiff56->GetMean()-5*DDiff56->GetRMS(), DDiff56->GetMean()+5*DDiff56->GetRMS());
+      DDiff56->GetXaxis()->CenterTitle();
+      DDiff56->GetXaxis()->SetTitleSize(0.06);
+      DDiff56->GetXaxis()->SetLabelSize(0.06);
+      DDiff56->GetXaxis()->SetTitleOffset(1.25);
+      DDiff56->GetXaxis()->SetTitleColor(1);
+      DDiff56->SetNdivisions(506,"X");
+      DDiff56->GetYaxis()->SetLabelSize(0.06);
 
-      dMainHistos.push_back(DDiff2);
+      dMainHistos.push_back(DDiff56);
       dMainHistos.back()->Draw("");
       gPad->SetLeftMargin(0.15);
       gPad->SetTopMargin(0.15);
@@ -1196,6 +1202,7 @@ void QwGUIMain::PlotMainData()
       gPad->Modified();
       gPad->Update();
       dMainPlotsArray.push_back(dMainHistos.back());      
+      dHistoryPlotsArray.push_back(dMainHistos.back());
       
     }
     else{
@@ -1240,7 +1247,7 @@ void QwGUIMain::PlotMainData()
     mc->cd(7);
     if(hst){
       dMainHistos.push_back((TH1F*)(hst->Clone()));
-      (dMainHistos.back())->GetXaxis()->SetTitle("MD Asymmetry All");
+      (dMainHistos.back())->GetXaxis()->SetTitle("MD All Asym.");
       dMainHistos.back()->SetDirectory(0);
       (dMainHistos.back())->Draw("");
       gPad->SetLeftMargin(0.15);
@@ -1249,6 +1256,7 @@ void QwGUIMain::PlotMainData()
       gPad->Modified();
       gPad->Update();  
       dMainPlotsArray.push_back(dMainHistos.back());      
+      dHistoryPlotsArray.push_back(dMainHistos.back());
 
     }
     else{
@@ -1348,7 +1356,7 @@ void QwGUIMain::PlotMainData()
       error_summary->GetYaxis()->SetTitleSize(0.05);
       error_summary->GetYaxis()->SetTitle("Bad Events");
       error_summary->SetMarkerSize(3.0);
-      dMainHistos.push_back(error_summary);
+      // dMainHistos.push_back(error_summary);
       
       error_summary->Draw("bar2 TEXT0");
       gPad->SetLeftMargin(0.15);
@@ -1356,6 +1364,7 @@ void QwGUIMain::PlotMainData()
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
       gPad->Update();  
+      dMainHistos.push_back(error_summary);
       dMainPlotsArray.push_back(dMainHistos.back());      
     }
     else{
@@ -1378,6 +1387,8 @@ void QwGUIMain::PlotMainData()
 
   dMainPlots = kTrue;
 
+  HistoriesSubSystem->PlotData(dHistoryPlotsArray,GetCurrentRunNumber());
+  
 
   sprintf(dMiscbuffer,"Run %d.%03d: Energy=%1.3f GeV  Current=%d uA, Raster=%1.1fx%1.1f\n",
 	  GetCurrentRunNumber(),GetCurrentRunSegment(),
@@ -1978,6 +1989,7 @@ void QwGUIMain::CloseRootFile()
     dMainGraphs.clear();
     dMainHistos.clear();
     dMainPlotsArray.clear();
+    dHistoryPlotsArray.clear();
 
     dMainPlots = kFalse;
   }
@@ -2218,10 +2230,19 @@ void QwGUIMain::CloseWindow()
   
   // printf("processes = %s\n",process.Data());
 
+  RemoveTab(MainDetSubSystem);
+  delete MainDetSubSystem;
+  MainDetSubSystem = NULL;
+  RemoveTab(LumiDetSubSystem);
+  delete LumiDetSubSystem;
+  LumiDetSubSystem = NULL;
+  // delete HallCBeamlineSubSystem;
+  RemoveTab(HistoriesSubSystem);
+  delete HistoriesSubSystem;
+  HistoriesSubSystem = NULL;
 
   //   CloseRun();
   gApplication->Terminate(0);
-
 }
 
 Bool_t QwGUIMain::HandleKey(Event_t *event)

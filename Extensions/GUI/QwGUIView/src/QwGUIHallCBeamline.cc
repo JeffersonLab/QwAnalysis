@@ -95,7 +95,7 @@ QwGUIHallCBeamline::QwGUIHallCBeamline(const TGWindow *p, const TGWindow *main, 
 QwGUIHallCBeamline::~QwGUIHallCBeamline()
 {
   if(dTabFrame)           delete dTabFrame;
-  if(dControlsFrame)      delete dControlsFrame;
+  // if(dControlsFrame)      delete dControlsFrame;
   if(dCanvas)             delete dCanvas;  
   if(correlations)        delete correlations;  
   if(dTabLayout)          delete dTabLayout;
@@ -105,10 +105,10 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
   if(dBtnPosDiff)         delete dBtnPosDiff;
   if(dBtnAqDiff)          delete dBtnAqDiff;
   if(dBtnTgtParam)        delete dBtnTgtParam;
-  if(dBtnCorrelations)    delete dBtnCorrelations;
+  // if(dBtnCorrelations)    delete dBtnCorrelations;
   if(dCmbHistos)          delete dCmbHistos;
   if(dBtnPlotHistos)      delete dBtnPlotHistos; 
-  if(dCmbLayout)          delete dCmbLayout;
+  // if(dCmbLayout)          delete dCmbLayout;
   if(dBtnRaster)          delete dBtnRaster;
 
   delete [] PosDiffVar;
@@ -120,7 +120,7 @@ QwGUIHallCBeamline::~QwGUIHallCBeamline()
 void QwGUIHallCBeamline::MakeLayout()
 {
 
-  SetCleanup(kDeepCleanup);
+  // SetCleanup(kDeepCleanup);
   
   //Set Styles
   //stats
