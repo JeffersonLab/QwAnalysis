@@ -20,7 +20,7 @@ void sigint_handler(int sig)
 }
 
 
-Int_t MakeSluglet_pass3(Int_t runnum=0,TString leaflistfilename="0",TString slugrootfilename="0",TString qwstem="")
+Int_t MakeSluglet(Int_t runnum=0,TString leaflistfilename="0",TString slugrootfilename="0",TString qwstem="",TString suffix="0")
 {
 	TStopwatch timer;
 	if (runnum==0 ||  leaflistfilename == "0" ||  slugrootfilename == "0" || qwstem== "") {
@@ -29,10 +29,11 @@ Int_t MakeSluglet_pass3(Int_t runnum=0,TString leaflistfilename="0",TString slug
 		printf("       leaflistfilename = \n");
 		printf("       slugrootfilename = \n");
 		printf("       qwstem = \n");
+		printf("       suffix = \n");
 		return 0;
 	}
 	const Int_t debug=1;
-	const Int_t debug2=1;
+	const Int_t debug2=0;
 
 
         const TString qwrootfiles = TString(gSystem->Getenv("QW_ROOTFILES"));
@@ -46,8 +47,14 @@ Int_t MakeSluglet_pass3(Int_t runnum=0,TString leaflistfilename="0",TString slug
 	pair<Int_t,Int_t> runletlist[maxfiles]; //store pairs of (run, runlet)
 
 	TString filename;
-	//TString filenameformat = Form("%s_%i.[0-9][0-9][0-9].root",qwstem.Data(),runnum); //to only pick out right rootfile types
-	TString filenameformat = Form("%s_%i.[0-9][0-9][0-9].trees.root",qwstem.Data(),runnum); //to only pick out right rootfile types
+	TString filenameformat;
+	if(suffix!="0"){
+		std::cout<<"Found suffix"<<std::endl;
+		filenameformat = Form("%s_%i.[0-9][0-9][0-9].%s.root",qwstem.Data(),runnum,suffix.Data()); //to only pick out right rootfile types
+	}
+	else{
+		filenameformat = Form("%s_%i.[0-9][0-9][0-9].root",qwstem.Data(),runnum); //to only pick out right rootfile types
+	}
 	TString runletformat = "\\.([0-9]{3})\\."; //regex string to match ONLY the runlet number
 	Int_t counter=0;
 	void *dir = gSystem->OpenDirectory(qwrootfiles);
@@ -156,7 +163,13 @@ Int_t MakeSluglet_pass3(Int_t runnum=0,TString leaflistfilename="0",TString slug
 			pair<Int_t,Int_t> runlet = runletlist[filenumber-1];
 			runnumber = runlet.first;
 			runletnumber = runlet.second;
-			TString rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.root",runlet.first,runlet.second);
+			TString rootfilename;
+			if(suffix=="0"){
+			rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.root",runlet.first,runlet.second);
+			}
+			else{
+			rootfilename = qwrootfiles + "/" + qwstem + Form("_%i.%03i.%s.root",runlet.first,runlet.second,suffix.Data());
+			}
 			file = TFile::Open(rootfilename);
 			if (file==0) {
 				printf("Warning: cannot open %s ... skipping.\n",rootfilename.Data());
