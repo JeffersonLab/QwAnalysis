@@ -141,3 +141,10 @@ UInt_t GetGlobalErrorFlag(TString evtype,Int_t evMode,Double_t stabilitycut){
   
   return 0;
 }
+
+std::string WienModeName(EQwWienMode type){
+  const std::string wienname[5] = {"Indeterminate", "Forward", "Backward",
+			       "Vertical", "Horizontal"};
+  return wienname[type];
+};
+

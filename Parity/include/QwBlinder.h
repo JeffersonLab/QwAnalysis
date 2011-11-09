@@ -21,6 +21,7 @@
 // Qweak headers
 #include "QwSubsystemArrayParity.h"
 #include "QwEPICSEvent.h"
+#include "QwTypes.h"
 
 // Forward declarations
 class QwParityDB;
@@ -79,15 +80,6 @@ class QwBlinder {
     kBlindableFail
   };
   static const TString fStatusName[4];
-  ///  Double Wien configuration
-  enum EQwBlinderWienMode {
-    kWienIndeterminate = 0,
-    kWienForward,
-    kWienBackward, 
-    kWienVertTrans,
-    kWienHorizTrans
-  };
-  static const TString fWienName[5];
   
   ///  Error flag value 
   static const UInt_t kErrorFlag_BlinderFail = 0x200;
@@ -204,12 +196,12 @@ class QwBlinder {
     EQwBlinderStatus fTargetBlindability_firstread;
     EQwBlinderStatus fTargetBlindability;
     Bool_t fTargetPositionForced;
-    EQwBlinderWienMode fWienMode_firstread;
-    EQwBlinderWienMode fWienMode;
+    EQwWienMode fWienMode_firstread;
+    EQwWienMode fWienMode;
     Int_t fIHWPPolarity_firstread;
     Int_t fIHWPPolarity;
     void SetTargetBlindability(EQwBlinderStatus status);
-    void SetWienState(EQwBlinderWienMode wienmode);
+    void SetWienState(EQwWienMode wienmode);
     void SetIHWPPolarity(Int_t ihwppolarity);
 
 

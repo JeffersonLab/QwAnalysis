@@ -219,6 +219,15 @@ class QwDelayLineID{
  Int_t fSide;
 };
 
+///  Double Wien configuration
+enum EQwWienMode {
+  kWienIndeterminate = 0,
+  kWienForward,
+  kWienBackward, 
+  kWienVertTrans,
+  kWienHorizTrans
+};
+std::string WienModeName(EQwWienMode type);
 
 
 ///  Definitions for beam parameter quantities; use these types rather than

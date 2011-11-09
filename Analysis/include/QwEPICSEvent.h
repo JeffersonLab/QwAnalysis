@@ -67,6 +67,9 @@ class QwEPICSEvent
 
   Bool_t HasDataLoaded() const { return fIsDataLoaded; };
 
+  Int_t DetermineIHWPPolarity() const;
+  EQwWienMode DetermineWienMode() const;
+
   void  CalculateRunningValues();
 
   void  PrintAverages() const;
@@ -167,6 +170,8 @@ class QwEPICSEvent
 
   TList *GetEPICSStringValues();
 
+  Double_t fNominalWienAngle;
+  
 }; // class QwEPICSEvent
 
 #endif // __QWEPICSEVENT__

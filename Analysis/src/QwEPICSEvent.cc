@@ -12,10 +12,12 @@
 #include "TObjString.h"
 #include "TFile.h"
 #include "TROOT.h"
+#include "TMath.h"
 
 // Qweak headers
 #include "QwLog.h"
 #include "QwParameterFile.h"
+#include "QwTypes.h"
 
 #define MYSQLPP_SSQLS_NO_STATICS
 #include "QwParitySSQLS.h"
@@ -42,7 +44,7 @@ std::vector<std::string> QwEPICSEvent::fDefaultAutogainList;
 /*************************************
  *  Constructors/Destructors.
  *************************************/
-QwEPICSEvent::QwEPICSEvent()
+QwEPICSEvent::QwEPICSEvent():fNominalWienAngle(30.0)
 {
   SetDataLoaded(kFALSE);
   QwEPICSEvent::InitDefaultAutogainList();
@@ -87,6 +89,7 @@ void QwEPICSEvent::ProcessOptions(QwOptions &options)
 Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
 {
   Int_t lineread = 0;
+  std::string varname,varvalue, dbtable;
 
   fNumberEPICSVariables = 0;
   fEPICSVariableList.clear();
@@ -101,8 +104,15 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
 
-    string varname = mapstr.GetNextToken(" \t");
-    string dbtable = mapstr.GetNextToken(" \t");
+    if (mapstr.HasVariablePair("=",varname,varvalue)){
+      if (varname == "NominalWienAngle"){
+	fNominalWienAngle = atof(varvalue.c_str());
+      }
+      continue;
+    }
+
+    varname = mapstr.GetNextToken(" \t");
+    dbtable = mapstr.GetNextToken(" \t");
     TString datatype    = mapstr.GetNextToken(" \t").c_str();
     datatype.ToLower();
 
@@ -307,6 +317,8 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
       }
     }
   }
+  //  Determine the WienMode and save it.
+  SetDataValue("WienMode",WienModeName(DetermineWienMode()),event);
 }
 
 
@@ -1132,4 +1144,54 @@ void QwEPICSEvent::WriteEPICSStringValues()
 
   return;
   
+}
+
+
+Int_t QwEPICSEvent::DetermineIHWPPolarity() const{
+  Int_t ihwppolarity = 0;
+  if (GetDataString("IGL1I00DI24_24M")=="OUT"){
+    ihwppolarity = 1;
+  } else if (GetDataString("IGL1I00DI24_24M")=="IN"){
+    ihwppolarity = -1;
+  } else {
+    QwWarning << "IHWP state is not well defined: "
+	      << GetDataString("IGL1I00DI24_24M")
+	      << QwLog::endl;
+  }
+  return ihwppolarity;
+}
+
+EQwWienMode QwEPICSEvent::DetermineWienMode() const{
+  EQwWienMode wienmode = kWienIndeterminate;
+  
+  Double_t launchangle = 0.0;
+
+  Double_t vwienangle = GetDataValue("VWienAngle");
+  Double_t phiangle   = GetDataValue("Phi_FG");
+  Double_t hwienangle = GetDataValue("HWienAngle"); 
+  Double_t hoffset = 0.0;
+  if (fabs(vwienangle)<10.0 && fabs(phiangle)<10.0){
+    hoffset = 0.0;
+  } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
+	     && fabs(vwienangle+phiangle)<10. ){
+    hoffset = -90.0;
+  } else if (fabs(vwienangle)>80.0 && fabs(phiangle)>80.0
+	     && fabs(vwienangle+phiangle)>170. ){
+    hoffset = +90.0;
+  } else if (fabs(vwienangle)>80.0 && fabs(phiangle)<10.0) {
+    wienmode = kWienVertTrans;
+  } 
+  if (wienmode == kWienIndeterminate){
+    launchangle = hoffset+hwienangle;
+    Double_t long_proj = 
+      cos((launchangle-fNominalWienAngle)*TMath::DegToRad());
+    if (long_proj > 0.5){
+      wienmode = kWienForward;
+    } else if (long_proj < -0.5){
+      wienmode = kWienBackward;
+    } else if (fabs(long_proj)<0.25){
+      wienmode = kWienHorizTrans;
+    }
+  }
+  return wienmode;
 }
