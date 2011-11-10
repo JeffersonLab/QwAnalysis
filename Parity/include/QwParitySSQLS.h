@@ -41,13 +41,19 @@ namespace QwParitySSQLS {
   
     sql_create_3(parameter_files, 1, 2 , mysqlpp::sql_int_unsigned, parameter_file_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_text, filename) 
   
+    sql_create_4(general_errors, 1, 2 , mysqlpp::sql_int_unsigned, general_errors_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_tinyint_unsigned, error_code_id, mysqlpp::sql_int_unsigned, n) 
+  
     sql_create_9(md_slope, 1, 2 , mysqlpp::sql_int_unsigned, md_slope_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_int_unsigned, slope_type_id, mysqlpp::sql_char, measurement_type_id, mysqlpp::sql_int_unsigned, main_detector_id, mysqlpp::sql_tinyint_unsigned, subblock, mysqlpp::sql_int_unsigned, n, mysqlpp::sql_float, value, mysqlpp::sql_float, error) 
   
     sql_create_9(lumi_slope, 1, 2 , mysqlpp::sql_int_unsigned, lumi_slope_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_int_unsigned, slope_type_id, mysqlpp::sql_char, measurement_type_id, mysqlpp::sql_int_unsigned, lumi_detector_id, mysqlpp::sql_tinyint_unsigned, subblock, mysqlpp::sql_int_unsigned, n, mysqlpp::sql_float, value, mysqlpp::sql_float, error) 
   
     sql_create_8(beam, 1, 2 , mysqlpp::sql_int_unsigned, beam_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_int_unsigned, monitor_id, mysqlpp::sql_char, measurement_type_id, mysqlpp::sql_tinyint_unsigned, subblock, mysqlpp::sql_int_unsigned, n, mysqlpp::sql_float, value, mysqlpp::sql_float, error) 
   
+    sql_create_5(beam_errors, 1, 2 , mysqlpp::sql_int_unsigned, beam_errors_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_int_unsigned, monitor_id, mysqlpp::sql_tinyint_unsigned, error_code_id, mysqlpp::sql_int_unsigned, n) 
+  
     sql_create_3(measurement_type, 1, 2 , mysqlpp::sql_char, measurement_type_id, mysqlpp::sql_text, units, mysqlpp::sql_text, title) 
+  
+    sql_create_2(error_code, 1, 2 , mysqlpp::sql_tinyint_unsigned, error_code_id, mysqlpp::sql_text, quantity) 
   
     sql_create_4(slope_type, 1, 2 , mysqlpp::sql_int_unsigned, slope_type_id, mysqlpp::sql_text, slope, mysqlpp::sql_text, units, mysqlpp::sql_text, title) 
   
@@ -57,9 +63,13 @@ namespace QwParitySSQLS {
   
     sql_create_8(md_data, 1, 2 , mysqlpp::sql_int_unsigned, md_data_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::Null<mysqlpp::sql_int_unsigned>, main_detector_id, mysqlpp::sql_char, measurement_type_id, mysqlpp::sql_tinyint_unsigned, subblock, mysqlpp::sql_int_unsigned, n, mysqlpp::sql_float, value, mysqlpp::sql_float, error) 
   
+    sql_create_5(md_errors, 1, 2 , mysqlpp::sql_int_unsigned, md_errors_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_int_unsigned, main_detector_id, mysqlpp::sql_tinyint_unsigned, error_code_id, mysqlpp::sql_int_unsigned, n) 
+  
     sql_create_3(lumi_detector, 1, 2 , mysqlpp::sql_int_unsigned, lumi_detector_id, mysqlpp::sql_text, quantity, mysqlpp::sql_text, title) 
   
     sql_create_8(lumi_data, 1, 2 , mysqlpp::sql_int_unsigned, lumi_data_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::Null<mysqlpp::sql_int_unsigned>, lumi_detector_id, mysqlpp::sql_char, measurement_type_id, mysqlpp::sql_tinyint_unsigned, subblock, mysqlpp::sql_int_unsigned, n, mysqlpp::sql_float, value, mysqlpp::sql_float, error) 
+  
+    sql_create_5(lumi_errors, 1, 2 , mysqlpp::sql_int_unsigned, lumi_errors_id, mysqlpp::sql_int_unsigned, analysis_id, mysqlpp::sql_int_unsigned, lumi_detector_id, mysqlpp::sql_tinyint_unsigned, error_code_id, mysqlpp::sql_int_unsigned, n) 
   
     sql_create_9(slow_controls_settings, 1, 2 , mysqlpp::sql_int_unsigned, slow_controls_settings_id, mysqlpp::sql_int_unsigned, runlet_id, mysqlpp::Null<mysqlpp::sql_enum>, slow_helicity_plate, mysqlpp::Null<mysqlpp::sql_enum>, wien_reversal, mysqlpp::Null<mysqlpp::sql_int_unsigned>, helicity_length, mysqlpp::Null<mysqlpp::sql_enum>, charge_feedback, mysqlpp::Null<mysqlpp::sql_enum>, position_feedback, mysqlpp::Null<mysqlpp::sql_float>, qtor_current, mysqlpp::Null<mysqlpp::sql_text>, target_position) 
   

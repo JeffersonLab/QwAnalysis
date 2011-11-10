@@ -30,6 +30,7 @@ std::map<string, unsigned int> QwParityDB::fMainDetectorIDs;
 std::map<string, unsigned int> QwParityDB::fLumiDetectorIDs;
 std::vector<string>            QwParityDB::fMeasurementIDs;
 std::map<string, unsigned int> QwParityDB::fSlowControlDetectorIDs;// for epics
+std::map<string, unsigned char> QwParityDB::fErrorCodeIDs;
 
 class StoreMonitorID {
   public:
@@ -69,6 +70,14 @@ class StoreSlowControlDetectorID {
     void operator() (QwParitySSQLS::sc_detector elem) {
       QwDebug << "StoreSlowControlDetectorID: sc_detector_id = " << elem.sc_detector_id << " name = " << elem.name << QwLog::endl;
       QwParityDB::fSlowControlDetectorIDs.insert(std::make_pair(elem.name, elem.sc_detector_id));
+    }
+};
+
+class StoreErrorCodeID {
+  public:
+    void operator() (QwParitySSQLS::error_code elem) {
+      QwDebug << "StoreErrorCodeID: error_code_id = " << elem.error_code_id << " quantity = " << elem.quantity << QwLog::endl;
+      QwParityDB::fErrorCodeIDs.insert(std::make_pair(elem.quantity, elem.error_code_id));
     }
 };
 
@@ -664,6 +673,25 @@ UInt_t QwParityDB::GetSlowControlDetectorID(const string& name)
 }
 
 /*
+ * This function retrieves the error code table key 'error_code_id' for a given error code name.
+ */
+UInt_t QwParityDB::GetErrorCodeID(const string& name)
+{
+  if (fErrorCodeIDs.size() == 0) {
+    StoreErrorCodeIDs();
+  }
+
+  UInt_t error_code_id = fErrorCodeIDs[name];
+
+  if (error_code_id==0) {
+    QwError << "QwParityDB::GetErrorCodeID() => Unable to determine valid ID for the error code " << name << QwLog::endl;
+  }
+
+  return error_code_id;
+
+}
+
+/*
  * Stores slow control detector table keys in an associative array indexed by slow_controls_data name.
  */
 void QwParityDB::StoreSlowControlDetectorIDs()
@@ -673,6 +701,29 @@ void QwParityDB::StoreSlowControlDetectorIDs()
     this->Connect();
     mysqlpp::Query query=this->Query();
     query.for_each(sc_detector(), StoreSlowControlDetectorID());
+
+//    QwDebug<< "QwParityDB::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
+
+    this->Disconnect();
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    Disconnect();
+    exit(1);
+  }
+  return;
+}
+
+/*
+ * Stores error_code table keys in an associative array indexed by error_code quantity.
+ */
+void QwParityDB::StoreErrorCodeIDs()
+{
+
+  try {
+    this->Connect();
+    mysqlpp::Query query=this->Query();
+    query.for_each(error_code(), StoreErrorCodeID());
 
 //    QwDebug<< "QwParityDB::SetAnalysisID() => Analysis Insert Query = " << query.str() << QwLog::endl;
 
