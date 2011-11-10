@@ -49,6 +49,7 @@ using std::vector;
 #include <TProfile2D.h>
 #include <TLeaf.h>
 #include <TVirtualFFT.h>
+#include <TPaveText.h>
 #include "QwGUISubSystem.h"
 #include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"
@@ -60,6 +61,7 @@ class QwGUIHistories : public QwGUISubSystem
   TRootEmbeddedCanvas    *dCanvas;
 
   vector <TGraphErrors*>  PlotArray;  //this is the history plot array
+  vector <TBox*>          BoxArray;  //this is the history plot array
 
   RDataContainer           *HistoryData;
 
@@ -141,7 +143,7 @@ class QwGUIHistories : public QwGUISubSystem
     //! - a vector of plots from which to extract the new history data for the current run
     //!
     //!Return value: none
-    void                 PlotData(vector <TH1F*> plots, Int_t Run);
+    void                 PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t Run);
     
   private:
 

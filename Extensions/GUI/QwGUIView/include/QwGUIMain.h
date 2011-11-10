@@ -262,6 +262,7 @@ class QwGUIMain : public TGMainFrame {
   vector <TGraph*>        dMainGraphs;
   vector <TObject*>       dMainPlotsArray;
   vector <TH1F*>          dHistoryPlotsArray;
+  vector <TBox*>          dErrorBoxArray;
 
   EventOptions            dCurrentRunEventOptions;
 

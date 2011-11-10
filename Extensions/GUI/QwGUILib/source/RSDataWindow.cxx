@@ -931,6 +931,11 @@ void RSDataWindow::ClearPlots()
     if(fFitHisto[i] != NULL){delete fFitHisto[i];fFitHisto[i]=NULL;}
   dFitHistocnt = 0;
 
+  for(uint i = 0; i < dErrorBoxArray.size(); i++){
+    delete dErrorBoxArray[i];
+  }
+  dErrorBoxArray.clear();
+
   delete dDummyPlot;
 }
 
@@ -1321,6 +1326,25 @@ Int_t RSDataWindow::UpdateDrawData(TH1D* h1d)
   return PLOT_PROCESS_OK;
 }
 
+Int_t RSDataWindow::DrawBox(const TBox& box)
+{
+  
+  TBox *mBox = new TBox(*(TBox*)box.Clone());
+
+  TCanvas *aC = GetPlotCanvas();
+  aC->cd();
+  // abox = new TBox(-5e-4,dMainHistos.back()->GetMinimum(), 5e-4, dMainHistos.back()->GetMaximum());
+  // abox->SetFillColor(2);
+  // abox->SetFillStyle(3002);
+  mBox->Draw("");
+  dErrorBoxArray.push_back(mBox);
+  gPad->Modified();
+  gPad->Update();
+
+  return PLOT_PROCESS_OK;
+
+}
+
 Int_t RSDataWindow::DrawData(const TH1D& h1d, Bool_t add)
 {
   Bool_t Add = add;
@@ -1555,6 +1579,7 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add, TLegend *leg)
     gr->GetYaxis()->SetTitleSize(0.04);
     gr->GetXaxis()->SetLabelSize(0.04);
     gr->GetYaxis()->SetLabelSize(0.04);
+    gr->GetXaxis()->SetTitleColor(1);
     
     if(IsUserLimitSet()){
       gr->GetXaxis()->SetRangeUser(dMin[0],dMax[0]);
@@ -1607,6 +1632,7 @@ Int_t RSDataWindow::DrawData(const TGraph& g1d, Bool_t add, TLegend *leg)
     fCurrPlot = gr;
     if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
     if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
     DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
@@ -1652,6 +1678,9 @@ Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
       
     TString opts = dDrawOptions;
     if(!opts.Contains("ap")){strcat(dDrawOptions,"ap");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
 
     gr->Draw(dDrawOptions);
     SetDrawOptions();
@@ -1659,8 +1688,6 @@ Int_t RSDataWindow::DrawData(const TMultiGraph& g1d, Bool_t add, TLegend *leg)
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
     DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
@@ -1700,14 +1727,15 @@ Int_t RSDataWindow::DrawData(const TGraphErrors& g1d, Bool_t add, TLegend *leg)
       
     TString opts = dDrawOptions;
     if(!opts.Contains("ap")){strcat(dDrawOptions,"ap");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
     gr->Draw(dDrawOptions);
     gPad->RedrawAxis();      
     gPad->Modified();
     gPad->Update();
     SetDrawOptions();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
   }
   else{
     TGraph *tmp = (TGraph*)&g1d;
@@ -1726,14 +1754,15 @@ Int_t RSDataWindow::DrawData(const TGraphErrors& g1d, Bool_t add, TLegend *leg)
     }
     TString opts = dDrawOptions;
     if(!opts.Contains("a")){strcat(dDrawOptions,"a");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
     gr->Draw(dDrawOptions);
     SetDrawOptions();
     gPad->RedrawAxis();      
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
     DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;
@@ -1773,6 +1802,9 @@ Int_t RSDataWindow::DrawData(const TGraphAsymmErrors& g1d, Bool_t add, TLegend *
       
     TString opts = dDrawOptions;
     if(!opts.Contains("a")){strcat(dDrawOptions,"a");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
 
     gr->Draw(dDrawOptions);
     SetDrawOptions();
@@ -1780,8 +1812,6 @@ Int_t RSDataWindow::DrawData(const TGraphAsymmErrors& g1d, Bool_t add, TLegend *
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
   }
   else{
     TGraph *tmp = (TGraph*)&g1d;
@@ -1800,14 +1830,15 @@ Int_t RSDataWindow::DrawData(const TGraphAsymmErrors& g1d, Bool_t add, TLegend *
     }
     TString opts = dDrawOptions;
     if(!opts.Contains("a")){strcat(dDrawOptions,"a");}
+    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
+    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
+    gr->GetXaxis()->SetTitleColor(1);
     gr->Draw(dDrawOptions);
     SetDrawOptions();
     gPad->RedrawAxis();      
     gPad->Modified();
     gPad->Update();
     fCurrPlot = gr;
-    if(strcmp(GetPlotTitleX(),"none")) gr->GetXaxis()->SetTitle(GetPlotTitleX());
-    if(strcmp(GetPlotTitleY(),"none")) gr->GetYaxis()->SetTitle(GetPlotTitleY());
     DrawLegend(leg);
   }
   return PLOT_PROCESS_OK;

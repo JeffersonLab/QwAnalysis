@@ -37,6 +37,10 @@ void QwGUIHistories::NewDataInit()
     if(PlotArray[i]) delete PlotArray[i];
   }
   PlotArray.clear();
+  for(uint i = 0; i < BoxArray.size(); i++){
+    if(BoxArray[i]) delete BoxArray[i];
+  }
+  BoxArray.clear();
 }
 
 QwGUIHistories::~QwGUIHistories()
@@ -77,6 +81,10 @@ void QwGUIHistories::CleanUp()
     if(PlotArray[i]) delete PlotArray[i];
   }
   PlotArray.clear();
+  for(uint i = 0; i < BoxArray.size(); i++){
+    if(BoxArray[i]) delete BoxArray[i];
+  }
+  BoxArray.clear();
   dROOTCont = NULL;
 }
 
@@ -426,10 +434,10 @@ void QwGUIHistories::FillPlots()
 	  run = (((TObjString*)RowParts->At(1))->GetString()).Atoi();
 	  val = (((TObjString*)RowParts->At(2))->GetString()).Atof();
 	  rms = (((TObjString*)RowParts->At(3))->GetString()).Atof();
-	  // err = (((TObjString*)RowParts->At(4))->GetString()).Atof();
-	  // printf("Reading %s,%d,%1.3e,%1.3e\n",varName.Data(),run,val,rms);
 	  delete RowParts;
 	  	  
+	  if(run == dCurrentRun) continue;
+
 	  found = -1;
 	  for(uint j = 0; j < PlotArray.size(); j++){
 	    if(PlotArray[j] && !varName.CompareTo(PlotArray[j]->GetName())) found = j;
@@ -465,7 +473,7 @@ void QwGUIHistories::FillPlots()
   HistoryData = NULL;   //Need to recreate the container for later writing to it
 }
 
-void QwGUIHistories::PlotData(vector <TH1F*> plots, Int_t Run)
+void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t Run)
 {
   TString newname;
   vector <TH1F*> newplots = plots;
@@ -527,30 +535,72 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, Int_t Run)
 
   mc = dCanvas->GetCanvas();
   if(!mc) return;
+  TBox *abox = NULL;
+  Double_t ymin;
+  Double_t ymax;
 
   for(uint n = 0; n < PlotArray.size(); n++){
 
-      mc->cd(n+1);
+    abox = NULL;
+    mc->cd(n+1);
+    
+    PlotArray[n]->GetXaxis()->CenterTitle();
+    PlotArray[n]->GetYaxis()->CenterTitle();
+    PlotArray[n]->GetXaxis()->SetTitleSize(0.08);
+    PlotArray[n]->GetYaxis()->SetTitleSize(0.08);
+    PlotArray[n]->GetXaxis()->SetLabelSize(0.08);
+    PlotArray[n]->GetYaxis()->SetLabelSize(0.08);
+    PlotArray[n]->GetXaxis()->SetTitleOffset(0.8);
+    PlotArray[n]->GetYaxis()->SetTitleOffset(0.8);
+    PlotArray[n]->GetXaxis()->SetTitleColor(1);
+    PlotArray[n]->SetMarkerStyle(21);
+    PlotArray[n]->SetMarkerColor(2);
+    PlotArray[n]->SetLineWidth(2);
+    PlotArray[n]->GetHistogram()->SetNdivisions(502,"X");
+    PlotArray[n]->GetHistogram()->SetNdivisions(505,"Y");
+    // PlotArray[n]->GetYaxis()->SetLabelSize(0.06);
+        
+    PlotArray[n]->Draw("ap");
+    gPad->SetLeftMargin(0.15);
+    gPad->SetTopMargin(0.15);
+    gPad->SetBottomMargin(0.15);
+    gPad->Modified();
+    gPad->Update();
 
-      PlotArray[n]->GetXaxis()->CenterTitle();
-      PlotArray[n]->GetYaxis()->CenterTitle();
-      PlotArray[n]->GetXaxis()->SetTitleSize(0.08);
-      PlotArray[n]->GetYaxis()->SetTitleSize(0.08);
-      PlotArray[n]->GetXaxis()->SetLabelSize(0.08);
-      PlotArray[n]->GetYaxis()->SetLabelSize(0.08);
-      PlotArray[n]->GetXaxis()->SetTitleOffset(0.8);
-      PlotArray[n]->GetYaxis()->SetTitleOffset(0.8);
-      PlotArray[n]->GetXaxis()->SetTitleColor(1);
-      PlotArray[n]->GetHistogram()->SetNdivisions(502,"X");
-      PlotArray[n]->GetHistogram()->SetNdivisions(505,"Y");
-      // PlotArray[n]->GetYaxis()->SetLabelSize(0.06);
 
-      PlotArray[n]->Draw("ap");
-      gPad->SetLeftMargin(0.15);
-      gPad->SetTopMargin(0.15);
-      gPad->SetBottomMargin(0.15);
+    if(n < boxes.size() && boxes[n]){
+
+      if(PlotArray[n]->GetYaxis()->GetXmin() > boxes[n]->GetX1()/2) 
+	ymin = boxes[n]->GetX1()/2;
+      else
+	ymin = PlotArray[n]->GetYaxis()->GetXmin();
+
+      if(PlotArray[n]->GetYaxis()->GetXmax() < boxes[n]->GetX2()/2) 
+	ymax = boxes[n]->GetX2()/2;
+      else
+	ymax = PlotArray[n]->GetYaxis()->GetXmax();
+            
+      
+      PlotArray[n]->SetMinimum(ymin-fabs(ymin));
+      PlotArray[n]->SetMaximum(ymax+fabs(ymax));
+      
+      abox = new TBox(PlotArray[n]->GetXaxis()->GetXmin(),boxes[n]->GetX1()/2,PlotArray[n]->GetXaxis()->GetXmax(),boxes[n]->GetX2()/2);
+      // abox->SetFillColor(2);
+      abox->SetLineColor(2);
+      abox->SetFillStyle(0);//3002);
+      abox->Draw("");
       gPad->Modified();
       gPad->Update();
+      BoxArray.push_back(abox);
+    }
+
+
+    TPaveText *ref = new TPaveText(0.2,0.85,0.8,0.98,"blNDC");
+    ref->AddText("mean & rms width (indicated by the bar)");
+    ref->SetBorderSize(0);
+    ref->SetFillColor(0);
+    ref->Draw();
+
   }
   
 
@@ -558,150 +608,51 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, Int_t Run)
 
 void QwGUIHistories::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
-//   QwGUIDataWindow *dDataWindow = GetSelectedDataWindow();
-//   Bool_t add = kFalse;
-//   TObject *plot = NULL;
-//   Int_t leafInd;
+  QwGUIDataWindow *dDataWindow = GetSelectedDataWindow();
+  Bool_t add = kFalse;
+  TGraphErrors *plot = NULL;
   
-//   if(event == kButton1Double){
+  if(event == kButton1Double){
     
-//     Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
+    Int_t pad = dCanvas->GetCanvas()->GetSelectedPad()->GetNumber();
 
-//     if(pad > PlotCanvasMap)
-
-//     plot = dCurrentModeData[GetActiveTab()]->GetSelectedPlot();
-//     if(!plot) return;
-//     detStr = dCurrentModeData[GetActiveTab()]->GetSelectedDetector();
-//     if(!dCurrentModeData[GetActiveTab()]->IsSummary() && !detStr) return;
-//     leafInd = dCurrentModeData[GetActiveTab()]->GetCurrentLeafIndex();
+    plot = PlotArray[pad-1];
+    if(!plot) return;
     
-//     if(plot->InheritsFrom("TProfile")){
+    if(plot->InheritsFrom("TGraphErrors")){
 
-//       if(!dDataWindow){
-// 	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
-// 					  "QwGUIHistories",((TProfile*)plot)->GetTitle(), PT_PROFILE,
-// 					  DDT_MD,600,400);
-// 	if(!dDataWindow){
-// 	  return;
-// 	}
-// 	DataWindowArray.Add(dDataWindow);
-//       }
-//       else
-// 	add = kTrue;
-
-//       DataWindowArray.Add(dDataWindow);
-//       dDataWindow->SetPlotTitle((char*)((TProfile*)plot)->GetTitle());
-//       dDataWindow->DrawData(*((TProfile*)plot));
-//       SetLogMessage(Form("Looking at DFT profile %s\n",(char*)((TProfile*)plot)->GetTitle()),add);
-
-//       Connect(dDataWindow,"IsClosing(char*)","QwGUIHistories",(void*)this,"OnObjClose(char*)");
-//       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIHistories",(void*)this,"OnReceiveMessage(char*)");
-//       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIHistories",(void*)this,"OnUpdatePlot(char *)");
-//       return;
-//     }
-//     if(plot->InheritsFrom("TH1")){
-
-//       if(!dDataWindow){
-// 	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
-// 					  "QwGUIHistories",((TH1D*)plot)->GetTitle(), PT_HISTO_1D,
-// 					  DDT_MD,600,400);
-
-// 	if(!dDataWindow){
-// 	  return;
-// 	}
-// 	DataWindowArray.Add(dDataWindow);
-//       }
-//       else
-// 	add = kTrue;
-      
-      
-//       dDataWindow->SetStaticData(plot,DataWindowArray.GetLast());
-//       dDataWindow->SetPlotTitle((char*)((TH1D*)plot)->GetTitle());
-//       dDataWindow->DrawData(*((TH1D*)plot),add);
-      
-//       SetLogMessage(Form("Looking at histogram %s\n",(char*)((TH1D*)plot)->GetTitle()),kTrue);
-//       Connect(dDataWindow,"IsClosing(char*)","QwGUIHistories",(void*)this,"OnObjClose(char*)");
-//       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIHistories",(void*)this,"OnReceiveMessage(char*)");
-//       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIHistories",(void*)this,"OnUpdatePlot(char *)");
-      
-//       return;
-//     }
-//     if(plot->InheritsFrom("TGraphErrors")){
-
-//       if(!dDataWindow){
-// 	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
-// 					  "QwGUIHistories",((TGraphErrors*)plot)->GetTitle(), PT_GRAPH_ER,
-// 					  DDT_MD,600,400);
-// 	if(!dDataWindow){
-// 	  return;
-// 	}
-// 	DataWindowArray.Add(dDataWindow);
-//       }
-//       else
-// 	add = kTrue;
+      if(!dDataWindow){
+	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
+					  "QwGUIHistories",((TGraphErrors*)plot)->GetTitle(), PT_GRAPH_ER,
+					  DDT_MD,600,400);
+	if(!dDataWindow){
+	  return;
+	}
+	DataWindowArray.Add(dDataWindow);
+      }
+      else
+	add = kTrue;
             
-//       dDataWindow->SetPlotTitle((char*)((TGraphErrors*)plot)->GetTitle());
-//       if(!dCurrentModeData[GetActiveTab()]->IsSummary()){
-// 	dDataWindow->SetPlotTitleX("Time [sec]");
-// 	dDataWindow->SetPlotTitleY("Amplitude [V/#muA]");
-// 	dDataWindow->SetPlotTitleOffset(1.25,1.8);
-// 	dDataWindow->SetAxisMin(((TGraphErrors*)plot)->GetXaxis()->GetXmin(),
-// 				detStr->GetTreeLeafMin(leafInd));
-// 	dDataWindow->SetAxisMax(((TGraphErrors*)plot)->GetXaxis()->GetXmax(),
-// 				detStr->GetTreeLeafMax(leafInd));
-// 	dDataWindow->SetLimitsFlag(kTrue);
-// 	dDataWindow->DrawData(*((TGraphErrors*)plot),add);
-//       }
-//       else{
-// 	dDataWindow->DrawData(*((TGraphErrors*)plot),add);
-	
-//       }
-//       SetLogMessage(Form("Looking at graph %s\n",(char*)((TGraphErrors*)plot)->GetTitle()),kTrue);
+      dDataWindow->SetPlotTitle((char*)((TGraphErrors*)plot)->GetTitle());
+      dDataWindow->SetPlotTitleX((char*)((TGraphErrors*)plot)->GetXaxis()->GetTitle());
+      dDataWindow->SetPlotTitleY((char*)((TGraphErrors*)plot)->GetYaxis()->GetTitle());
+      dDataWindow->SetMarkerColor(((TGraphErrors*)plot)->GetMarkerColor());
+      dDataWindow->SetLineColor(((TGraphErrors*)plot)->GetLineColor());
+      dDataWindow->SetLineWidth(((TGraphErrors*)plot)->GetLineWidth());
+      dDataWindow->SetMarkerStyle(((TGraphErrors*)plot)->GetMarkerStyle());
+      dDataWindow->DrawData(*((TGraphErrors*)plot),add);
+      if(pad-1 < (Int_t)BoxArray.size() && BoxArray[pad-1])
+	dDataWindow->DrawBox(*((TBox*)BoxArray[pad-1]));
 
-//       Connect(dDataWindow,"IsClosing(char*)","QwGUIHistories",(void*)this,"OnObjClose(char*)");
-//       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIHistories",(void*)this,"OnReceiveMessage(char*)");
-//       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIHistories",(void*)this,"OnUpdatePlot(char *)");
+      SetLogMessage(Form("Looking at graph %s\n",(char*)((TGraphErrors*)plot)->GetTitle()),kTrue);
 
-//       return;
-//     }
-//     if(plot->InheritsFrom("TGraph")){
+      Connect(dDataWindow,"IsClosing(char*)","QwGUIHistories",(void*)this,"OnObjClose(char*)");
+      Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIHistories",(void*)this,"OnReceiveMessage(char*)");
+      Connect(dDataWindow,"UpdatePlot(char*)","QwGUIHistories",(void*)this,"OnUpdatePlot(char *)");
 
-//       if(!dDataWindow){
-// 	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
-// 					  "QwGUIHistories",((TGraph*)plot)->GetTitle(), PT_GRAPH,
-// 					  DDT_MD,600,400);
-// 	if(!dDataWindow){
-// 	  return;
-// 	}
-// 	DataWindowArray.Add(dDataWindow);
-//       }
-//       else
-// 	add = kTrue;
-      
-//       dDataWindow->SetPlotTitle((char*)((TGraph*)plot)->GetTitle());
-//       if(!dCurrentModeData[GetActiveTab()]->IsSummary()){
-// // 	dDataWindow->SetPlotTitleX("Time [sec]");
-// // 	dDataWindow->SetPlotTitleY("Amplitude [V/#muA]");
-// 	dDataWindow->SetPlotTitleOffset(1.25,1.8);
-// 	dDataWindow->SetAxisMin(((TGraph*)plot)->GetXaxis()->GetXmin(),
-// 				detStr->GetTreeLeafMin(leafInd));
-// 	dDataWindow->SetAxisMax(((TGraph*)plot)->GetXaxis()->GetXmax(),
-// 				detStr->GetTreeLeafMax(leafInd));
-// 	dDataWindow->SetLimitsFlag(kTrue);
-// 	dDataWindow->DrawData(*((TGraph*)plot),add);
-//       }
-//       else{
-// 	dDataWindow->DrawData(*((TGraph*)plot),add);
-	
-//       }
-//       SetLogMessage(Form("Looking at graph %s\n",(char*)((TGraphErrors*)plot)->GetTitle()),kTrue);
-
-//       Connect(dDataWindow,"IsClosing(char*)","QwGUIHistories",(void*)this,"OnObjClose(char*)");
-//       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIHistories",(void*)this,"OnReceiveMessage(char*)");
-//       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIHistories",(void*)this,"OnUpdatePlot(char *)");
-//       return;
-//     }
-//   }
+      return;
+    }
+  }
 }
 
 

@@ -128,7 +128,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   MakeMenuLayout();
   MakeUtilityLayout();
   MakeMainTab();
-  MakeLogTab();
 
   if(dClArgs.autoupdate == kTrue)
     SetWindowName("Qweak Data Auto GUI (QwAGUI)");
@@ -178,6 +177,8 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   //  if(!GetSubSystemPtr("Scanner"))
   //    ScannerSubSystem = new QwGUIScanner(fClient->GetRoot(), this, dTab,"Scanner",
   //					    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+
+  MakeLogTab();
 
   SetSubSystemSegmentAdd(kFalse);
 
@@ -798,6 +799,8 @@ void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
       dDataWindow->SetStaticData(plot,DataWindowArray.GetLast());
       dDataWindow->SetPlotTitle((char*)((TH1D*)plot)->GetTitle());
       dDataWindow->DrawData(*((TH1D*)plot),add);
+      if(ind < dErrorBoxArray.size() && dErrorBoxArray[ind])
+	dDataWindow->DrawBox(*((TBox*)dErrorBoxArray[ind]));
       
       Append(Form("Looking at histogram %s\n",(char*)((TH1D*)plot)->GetTitle()),kTrue);
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
@@ -808,9 +811,7 @@ void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
     }
 
     if(plot->InheritsFrom("TGraphErrors")){
-      
-      printf("ind = %d\n",ind);
-
+     
       if(!dDataWindow){
 	dDataWindow = new QwGUIDataWindow(GetParent(), this,Form("dDataWindow_%02d",GetNewWindowCount()),
 					  "QwGUIMain",((TGraphErrors*)plot)->GetTitle(), PT_GRAPH_ER,
@@ -824,6 +825,7 @@ void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 	add = kTrue;
       
       dDataWindow->SetPlotTitle((char*)((TGraphErrors*)plot)->GetTitle());
+      dDataWindow->SetPlotTitleX((char*)((TGraphErrors*)plot)->GetXaxis()->GetTitle());
       //   dDataWindow->SetPlotTitleX("Time [sec]");
       //   dDataWindow->SetPlotTitleY("Amplitude [V/#muA]");
       dDataWindow->SetPlotTitleOffset(1.25,1.8);
@@ -937,12 +939,22 @@ void QwGUIMain::PlotMainData()
 {
   TGraphErrors *grp = NULL;
   TH1F *hst = NULL;
+  TBox *abox = NULL;
   TCanvas *mc = NULL;
   TPaveText *ref[9] = { NULL};
   Int_t n = 0;
 
   if(!TabActive("Main")) return;
   if(!IsRootFileOpen()) return;
+
+  Float_t TitleW = gStyle->GetTitleW();
+  Float_t TitleH = gStyle->GetTitleH();
+  gStyle->SetTitleW(0.6);
+  gStyle->SetTitleH(0.12);             
+  Float_t StatW = gStyle->GetStatW();
+  Float_t StatH = gStyle->GetStatH();
+  gStyle->SetStatW(0.3);
+  gStyle->SetStatH(0.3);             
 
   if(!AddSegments()){
 
@@ -960,6 +972,11 @@ void QwGUIMain::PlotMainData()
       
       dHistoryPlotsArray.clear();
       dMainPlotsArray.clear();
+
+      for(uint i = 0; i < dErrorBoxArray.size(); i++){
+	delete dErrorBoxArray[i];
+      }
+      dErrorBoxArray.clear();
 
     }
   }
@@ -988,12 +1005,14 @@ void QwGUIMain::PlotMainData()
   if(hst) SetCurrent(hst->GetMean());
   hst = NULL;
 
+  abox = NULL;
   hst = (TH1F*)dROOTFile->ReadData("hel_histo/asym_qwk_charge_hw");
   mc->cd(1);
 
   if(hst){
     hst->GetXaxis()->SetTitle("Charge Asymmetry");
     hst->GetXaxis()->SetRangeUser(hst->GetMean()-10*hst->GetRMS(), hst->GetMean()+10*hst->GetRMS());
+    // hst->GetYaxis()->SetRangeUser(hst->GetMinimum(), hst->GetMaximum()+50);
     hst->GetXaxis()->CenterTitle();
     hst->GetXaxis()->SetTitleSize(0.06);
     hst->GetXaxis()->SetLabelSize(0.06);
@@ -1006,6 +1025,7 @@ void QwGUIMain::PlotMainData()
     dMainHistos.push_back((TH1F*)(hst->Clone()));
     dMainHistos.back()->SetDirectory(0);
     dMainHistos.back()->Draw("");
+    
     gPad->SetLeftMargin(0.15);
     gPad->SetTopMargin(0.15);
     gPad->SetBottomMargin(0.15);
@@ -1013,6 +1033,15 @@ void QwGUIMain::PlotMainData()
     gPad->Update();
     dMainPlotsArray.push_back(dMainHistos.back());
     dHistoryPlotsArray.push_back(dMainHistos.back());
+
+    abox = new TBox(-5e-4,dMainHistos.back()->GetMinimum(), 5e-4, dMainHistos.back()->GetMaximum());
+    abox->SetFillColor(2);
+    abox->SetFillStyle(3002);
+    abox->Draw("");
+    dErrorBoxArray.push_back(abox);
+    gPad->Modified();
+    gPad->Update();
+
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1025,7 +1054,8 @@ void QwGUIMain::PlotMainData()
     n++;
   }
   hst = NULL;
-  
+  abox = NULL;
+
   hst = (TH1F*)dROOTFile->ReadData("hel_histo/diff_qwk_targetX_hw");
   mc->cd(2);
   if(hst){
@@ -1050,6 +1080,15 @@ void QwGUIMain::PlotMainData()
     gPad->Update();
     dMainPlotsArray.push_back(dMainHistos.back());
     dHistoryPlotsArray.push_back(dMainHistos.back());
+
+    abox = new TBox(-2e-2,dMainHistos.back()->GetMinimum(), 2e-2, dMainHistos.back()->GetMaximum());
+    abox->SetFillColor(2);
+    abox->SetFillStyle(3002);
+    abox->Draw("");
+    gPad->Modified();
+    gPad->Update();
+    dErrorBoxArray.push_back(abox);
+
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1088,6 +1127,14 @@ void QwGUIMain::PlotMainData()
     gPad->Update();
     dMainPlotsArray.push_back(dMainHistos.back());      
     dHistoryPlotsArray.push_back(dMainHistos.back());
+
+    abox = new TBox(-1e-2,dMainHistos.back()->GetMinimum(), 1e-2, dMainHistos.back()->GetMaximum());
+    abox->SetFillColor(2);
+    abox->SetFillStyle(3002);
+    abox->Draw("");
+    gPad->Modified();
+    gPad->Update();
+    dErrorBoxArray.push_back(abox);
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1124,6 +1171,14 @@ void QwGUIMain::PlotMainData()
     gPad->Update();
     dMainPlotsArray.push_back(dMainHistos.back());      
     dHistoryPlotsArray.push_back(dMainHistos.back());
+
+    abox = new TBox(-5e-3,dMainHistos.back()->GetMinimum(), 5e-3, dMainHistos.back()->GetMaximum());
+    abox->SetFillColor(2);
+    abox->SetFillStyle(3002);
+    abox->Draw("");
+    gPad->Modified();
+    gPad->Update();
+    dErrorBoxArray.push_back(abox);
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1165,6 +1220,14 @@ void QwGUIMain::PlotMainData()
       gPad->Update();
       dMainPlotsArray.push_back(dMainHistos.back());      
       dHistoryPlotsArray.push_back(dMainHistos.back());
+
+      abox = new TBox(-100,dMainHistos.back()->GetMinimum(), 100, dMainHistos.back()->GetMaximum());
+      abox->SetFillColor(2);
+      abox->SetFillStyle(3002);
+      abox->Draw("");
+      gPad->Modified();
+      gPad->Update();
+      dErrorBoxArray.push_back(abox);
       
     }
     else{
@@ -1203,6 +1266,14 @@ void QwGUIMain::PlotMainData()
       gPad->Update();
       dMainPlotsArray.push_back(dMainHistos.back());      
       dHistoryPlotsArray.push_back(dMainHistos.back());
+
+      abox = new TBox(-100,dMainHistos.back()->GetMinimum(), 100, dMainHistos.back()->GetMaximum());
+      abox->SetFillColor(2);
+      abox->SetFillStyle(3002);
+      abox->Draw("");
+      gPad->Modified();
+      gPad->Update();
+      dErrorBoxArray.push_back(abox);
       
     }
     else{
@@ -1257,6 +1328,14 @@ void QwGUIMain::PlotMainData()
       gPad->Update();  
       dMainPlotsArray.push_back(dMainHistos.back());      
       dHistoryPlotsArray.push_back(dMainHistos.back());
+
+      abox = new TBox(-0.25e-3,dMainHistos.back()->GetMinimum(), 0.25e-3, dMainHistos.back()->GetMaximum());
+      abox->SetFillColor(2);
+      abox->SetFillStyle(3002);
+      abox->Draw("");
+      gPad->Modified();
+      gPad->Update();
+      dErrorBoxArray.push_back(abox);
 
     }
     else{
@@ -1387,7 +1466,7 @@ void QwGUIMain::PlotMainData()
 
   dMainPlots = kTrue;
 
-  HistoriesSubSystem->PlotData(dHistoryPlotsArray,GetCurrentRunNumber());
+  HistoriesSubSystem->PlotData(dHistoryPlotsArray,dErrorBoxArray,GetCurrentRunNumber());
   
 
   sprintf(dMiscbuffer,"Run %d.%03d: Energy=%1.3f GeV  Current=%d uA, Raster=%1.1fx%1.1f\n",
@@ -1397,6 +1476,12 @@ void QwGUIMain::PlotMainData()
   dRunInfoLabel->SetText(dMiscbuffer);
   // MapSubwindows();
   Layout();
+
+  gStyle->SetTitleW(TitleW);
+  gStyle->SetTitleH(TitleH);
+  gStyle->SetStatW(StatW);             
+  gStyle->SetStatH(StatH);             
+  
 }
 
 void QwGUIMain::OnLogMessage(const char *msg)
@@ -1990,6 +2075,10 @@ void QwGUIMain::CloseRootFile()
     dMainHistos.clear();
     dMainPlotsArray.clear();
     dHistoryPlotsArray.clear();
+
+    for(uint i = 0; i < dErrorBoxArray.size(); i++)
+      delete dErrorBoxArray[i];
+    dErrorBoxArray.clear();
 
     dMainPlots = kFalse;
   }
