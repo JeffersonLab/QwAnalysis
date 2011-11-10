@@ -97,6 +97,7 @@ QwParityDB::QwParityDB() : QwDatabase("01", "03", "0000")
   fRunletID          = 0;
   fAnalysisID        = 0;
   fSegmentNumber     = -1;
+  fDisableAnalysisCheck = false;
   
 }
 
@@ -111,9 +112,13 @@ QwParityDB::QwParityDB(QwOptions &options) : QwDatabase(options, "01", "03", "00
   // Initialize member fields
   fRunNumber         = 0;
   fRunID             = 0;
+  fRunletID          = 0;
   fAnalysisID        = 0;
   fSegmentNumber     = -1;
+  fDisableAnalysisCheck = false;
   
+  ProcessAdditionalOptions(options);
+
 }
 
 /*! The destructor says "Good-bye World!"
@@ -439,9 +444,14 @@ UInt_t QwParityDB::SetAnalysisID(QwEventBuffer& qwevt)
         QwError << res[i][0] << " ";
       }
       QwError << QwLog::endl;
-      QwError << "Analysis of this run will now be terminated."  << QwLog::endl;
 
-      return 0;
+      if (fDisableAnalysisCheck==false) {
+        QwError << "Analysis of this run will now be terminated."  << QwLog::endl;
+
+        return 0;
+      } else {
+        QwWarning << "Analysis will continue.  A duplicate entry with new analysis_id will be added to the analysis table." << QwLog::endl;
+      }
     }
 
     this->Disconnect();
@@ -850,6 +860,35 @@ void QwParityDB::StoreMeasurementIDs()
     Disconnect();
     exit(1);
   }
+  return;
+}
+
+/*!
+ * Defines configuration options for QwParityDB class using QwOptions
+ * functionality.
+ *
+ * Should apparently by called by QwOptions::DefineOptions() in
+ * QwParityOptions.h
+ */
+void QwParityDB::DefineAdditionalOptions(QwOptions& options)
+{
+  // Specify command line options for use by QwParityDB
+  options.AddOptions("Parity Analyzer Database options")
+    ("QwParityDB.disable-analysis-check", 
+     po::value<bool>()->default_bool_value(false),
+     "disable check of pre-existing analysis_id");
+}
+
+/*!
+ * Loads the configuration options for QwParityDB class into this instance of
+ * QwParityDB from the QwOptions object.
+ * @param options Options object
+ */
+void QwParityDB::ProcessAdditionalOptions(QwOptions &options)
+{
+  if (options.GetValue<bool>("QwParityDB.disable-analysis-check"))  
+    fDisableAnalysisCheck=true;
+
   return;
 }
 

@@ -76,6 +76,8 @@ class QwParityDB: public QwDatabase {
     UInt_t GetAnalysisID(QwEventBuffer& qwevt);      //<! Get analysis ID using data from CODA event buffer
     Bool_t       SetRunNumber(const UInt_t runnum);        //<! Run number setter
     Bool_t       SetSegmentNumber(const UInt_t segment);        //<! CODA file segment number setter
+    static void  DefineAdditionalOptions(QwOptions& options); //!< Defines QwParityDB-specific class options for QwOptions
+    void ProcessAdditionalOptions(QwOptions &options); //!< Processes the options contained in the QwOptions object.
 
  private:
 
@@ -94,6 +96,7 @@ class QwParityDB: public QwDatabase {
     UInt_t fRunID;           //!< run_id of current run
     UInt_t fRunletID;        //!< runlet_id of current run
     UInt_t fAnalysisID;      //!< analysis_id of current analysis pass
+    bool fDisableAnalysisCheck; //!< Flag to disable pre-existing analysis_id check
 
     static std::map<string, unsigned int> fMonitorIDs; //!< Associative array of beam monitor IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
     static std::map<string, unsigned int> fMainDetectorIDs; //!< Associative array of main detector IDs.  This declaration will be a problem if QwDatabase is used to connect to two databases simultaneously.
