@@ -419,9 +419,42 @@ UInt_t QwParityDB::GetRunletID(QwEventBuffer& qwevt)
  */
 UInt_t QwParityDB::SetAnalysisID(QwEventBuffer& qwevt)
 {
+
+  // If there is already an analysis_id for this run, then let's bomb out.
+
   try {
+    this->Connect();
+    mysqlpp::Query query= this->Query();
+    query << "SELECT analysis_id FROM analysis WHERE beam_mode=" << mysqlpp::quote << "nbm";
+    query << " AND slope_calculation=" << mysqlpp::quote << "off";
+    query << " AND slope_correction=" << mysqlpp::quote << "off";
+    query << " AND runlet_id = " << mysqlpp::quote << this->GetRunletID(qwevt); 
+
+    mysqlpp::StoreQueryResult res = query.store();
+
+    if (res.num_rows() != 0) {
+      QwError << "This runlet has already been analyzed by the engine!" << QwLog::endl;
+      QwError << "The following analysis_id values already exist in the database:  ";
+      for (size_t i=0; i<res.num_rows(); i++) {
+        QwError << res[i][0] << " ";
+      }
+      QwError << QwLog::endl;
+      QwError << "Analysis of this run will now be terminated."  << QwLog::endl;
+
+      return 0;
+    }
+
+    this->Disconnect();
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    QwError << "Unable to determine if there are other database entries for this run.  Exiting." << QwLog::endl;
+    this->Disconnect();
+    return 0;
+  }
 
 
+  try {
 
     analysis analysis_row(0);
 
