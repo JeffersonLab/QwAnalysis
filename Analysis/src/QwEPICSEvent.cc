@@ -683,12 +683,44 @@ void QwEPICSEvent::FillDB(QwParityDB *db)
   // Sunday, January 16 22:09:16 EST 2011, jhlee
   // don't change disbale database flag
   // just disable FillSlowControlsSettings(db) when fDisableDatabase is off
-  
+
+  bool hold_fDisableDatabase = fDisableDatabase;
+
+   try {
+    db->Connect();
+    mysqlpp::Query query= db->Query();
+    query << "SELECT slow_controls_settings_id FROM slow_controls_settings WHERE";
+    query << " runlet_id = " << mysqlpp::quote << db->GetRunletID(); 
+
+    mysqlpp::StoreQueryResult res = query.store();
+
+    if (res.num_rows() != 0) {
+      QwError << "This runlet already has slow controls entries in the database!" << QwLog::endl;
+      QwError << "The following slow_controls_settings_id values already exist in the database:  ";
+      for (size_t i=0; i<res.num_rows(); i++) {
+        QwError << res[i][0] << " ";
+      }
+      QwError << QwLog::endl;
+      QwError << "Slow controls values from this replay will NOT be stored in the database."  << QwLog::endl;
+
+      fDisableDatabase=true;
+    }
+
+    db->Disconnect();
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    QwError << "Unable to determine if there are other slow controls entries in the database for this run.  THERE MAY BE DUPLICATES." << QwLog::endl;
+    db->Disconnect();
+  }
+
+ 
   if (! fDisableDatabase) {
     FillSlowControlsData(db);
     FillSlowControlsStrigs(db);
     FillSlowControlsSettings(db);
   }
+  fDisableDatabase=hold_fDisableDatabase;
 }
 
 
