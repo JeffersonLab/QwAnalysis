@@ -16,6 +16,7 @@
 
 // Qweak headers
 #include "QwEventBuffer.h"
+#include "QwRunCondition.h"
 using namespace QwParitySSQLS;
 
 // Specific template instantiations
@@ -77,7 +78,7 @@ class StoreSlowControlDetectorID {
  * mysqlpp::Connection() object that has exception throwing disabled.
  */
 //QwDatabase::QwDatabase() : Connection(false)
-QwParityDB::QwParityDB() : QwDatabase("01", "02", "0000")
+QwParityDB::QwParityDB() : QwDatabase("01", "03", "0000")
 {
   QwDebug << "Greetings from QwParityDB simple constructor." << QwLog::endl;
   // Initialize member fields
@@ -94,7 +95,7 @@ QwParityDB::QwParityDB() : QwDatabase("01", "02", "0000")
  *  the QwOptions object.
  * @param options  The QwOptions object.
  */
-QwParityDB::QwParityDB(QwOptions &options) : QwDatabase(options, "01", "02", "0000")
+QwParityDB::QwParityDB(QwOptions &options) : QwDatabase(options, "01", "03", "0000")
 {
   QwDebug << "Greetings from QwParityDB extended constructor." << QwLog::endl;
 
@@ -417,8 +418,6 @@ UInt_t QwParityDB::SetAnalysisID(QwEventBuffer& qwevt)
 
     analysis_row.runlet_id  = GetRunletID(qwevt);
     analysis_row.seed_id = 1;
-    analysis_row.monitor_calibration_id = 1;
-    analysis_row.cut_id  = 1;
 
     std::pair<UInt_t, UInt_t> event_range;
     event_range = qwevt.GetEventRange();
@@ -434,7 +433,54 @@ UInt_t QwParityDB::SetAnalysisID(QwEventBuffer& qwevt)
     analysis_row.slope_calculation = "off";  // we will match this as a real one later
     analysis_row.slope_correction  = "off"; // we will match this as a real one later
 
+    // Analyzer Information Parsing 
+    QwRunCondition run_condition(
+      gQwOptions.GetArgc(),
+      gQwOptions.GetArgv(),
+      "run_condition"
+    );
 
+    run_condition.Get()->Print();
+
+    TIter next(run_condition.Get());
+    TObjString *obj_str;
+    TString str_val, str_var;
+    Ssiz_t location;
+
+    // Iterate over each entry in run_condition
+    while ((obj_str = (TObjString *) next())) {
+      QwMessage << obj_str->GetName() << QwLog::endl; 
+
+      // Store string contents for parsing
+      str_var = str_val = obj_str->GetString();
+      location = str_val.First(":"); // The first : separates variable from value
+      location = location + 2; // Value text starts two characters after :
+      str_val.Remove(0,location); //str_val stores value to go in DB
+
+      // Decision tree to figure out which variable to store in
+      if (str_var.BeginsWith("ROOT Version")) { 
+        analysis_row.root_version = str_val;
+      } else if (str_var.BeginsWith("ROOT file creating time")) {
+        analysis_row.root_file_time = str_val;
+      } else if (str_var.BeginsWith("ROOT file created on Hostname")) {
+        analysis_row.root_file_host = str_val;
+      } else if (str_var.BeginsWith("ROOT file created by the user")) {
+        analysis_row.root_file_user = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer Name")) {
+        analysis_row.analyzer_name = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer Options")) {
+        analysis_row.analyzer_argv = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer SVN Revision")) {
+        analysis_row.analyzer_svn_rev = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer SVN Last Changed Revision")) {
+        analysis_row.analyzer_svn_lc_rev = str_val;
+      } else if (str_var.BeginsWith("QwAnalyzer SVN URL")) {
+        analysis_row.analyzer_svn_url = str_val;
+      } else if (str_var.BeginsWith("DAQ ROC flags when QwAnalyzer runs")) {
+        analysis_row.roc_flags = str_val;
+      } else {
+      }
+    }
     this->Connect();
     mysqlpp::Query query= this->Query();
     query.insert(analysis_row);
@@ -456,6 +502,34 @@ UInt_t QwParityDB::SetAnalysisID(QwEventBuffer& qwevt)
   }
 
 
+}
+
+void QwParityDB::FillParameterFiles(QwSubsystemArrayParity& subsys){
+  TList* param_file_list = subsys.GetParamFileNameList("mapfiles");
+  try {
+    this->Connect();
+    mysqlpp::Query query = this->Query();
+    parameter_files parameter_file_row(0);
+    parameter_file_row.analysis_id = GetAnalysisID();
+
+    param_file_list->Print();
+    TIter next(param_file_list);
+    TList *pfl_elem;
+    while ((pfl_elem = (TList *) next())) {
+      parameter_file_row.filename = pfl_elem->GetName();
+      query.insert(parameter_file_row);
+      query.execute();
+    }
+
+    this->Disconnect();
+
+    delete param_file_list;
+  }
+  catch (const mysqlpp::Exception& er) {
+    QwError << er.what() << QwLog::endl;
+    this->Disconnect();
+    delete param_file_list;
+  }
 }
 
 /*!
