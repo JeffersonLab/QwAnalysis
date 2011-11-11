@@ -242,12 +242,12 @@ void QwScaler::ClearEventData()
  * Make a copy of this subsystem, including all its subcomponents
  * @param source Original version
  */
-void  QwScaler::Copy(VQwSubsystem *source)
+void  QwScaler::Copy(const VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwScaler* input = dynamic_cast<QwScaler*>(source);
+      const QwScaler* input = dynamic_cast<const QwScaler*>(source);
 
       fScaler.resize(input->fScaler.size());
       for (size_t i = 0; i < fScaler.size(); i++) {
@@ -270,18 +270,6 @@ void  QwScaler::Copy(VQwSubsystem *source)
   } catch (std::exception& e) {
     QwError << e.what() << QwLog::endl;
   }
-}
-
-
-/**
- * Make a copy of this subsystem
- * @return Copy of this subsystem
- */
-VQwSubsystem*  QwScaler::Copy()
-{
-  QwScaler* copy = new QwScaler(this->GetSubsystemName() + " Copy");
-  copy->Copy(this);
-  return copy;
 }
 
 

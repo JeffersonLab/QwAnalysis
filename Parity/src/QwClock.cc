@@ -459,7 +459,7 @@ void QwClock<T>::FillTreeVector(std::vector<Double_t> &values) const
 
 /********************************************************/
 template<typename T>
-void QwClock<T>::Copy(VQwDataElement *source)
+void QwClock<T>::Copy(const VQwDataElement *source)
 {
   try
     {

@@ -91,8 +91,7 @@ class QwMollerDetector:
     VQwSubsystem& operator=  (VQwSubsystem *value);
     VQwSubsystem& operator+= (VQwSubsystem *value);
     VQwSubsystem& operator-= (VQwSubsystem *value);
-    VQwSubsystem* Copy();
-    void  Copy(VQwSubsystem *source);
+    void  Copy(const VQwSubsystem *source);
     void  Sum(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void  Difference(VQwSubsystem  *value1, VQwSubsystem  *value2);
     void  Ratio(VQwSubsystem  *value1, VQwSubsystem  *value2);

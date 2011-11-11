@@ -411,7 +411,7 @@ void  QwIntegratedRasterChannel<T>::FillTreeVector(std::vector<Double_t> &values
 
 /********************************************************/
 template<typename T>
-void  QwIntegratedRasterChannel<T>::Copy(VQwDataElement *source)
+void  QwIntegratedRasterChannel<T>::Copy(const VQwDataElement *source)
 {
   try
     {

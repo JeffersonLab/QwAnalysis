@@ -722,7 +722,7 @@ void  QwIntegratedRasterDetectorID::Print() const
 }
 
 //*****************************************************************
-void  QwIntegratedRaster::Copy(VQwSubsystem *source)
+void  QwIntegratedRaster::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -730,7 +730,7 @@ void  QwIntegratedRaster::Copy(VQwSubsystem *source)
       if(typeid(*source)==typeid(*this))
 	{
 	  VQwSubsystem::Copy(source);
-	  QwIntegratedRaster* input= dynamic_cast<QwIntegratedRaster*>(source);
+	  const QwIntegratedRaster* input= dynamic_cast<const QwIntegratedRaster*>(source);
 
 	  this->fIntegratedRasterChannel.resize(input->fIntegratedRasterChannel.size());
 	  for(size_t i=0;i<this->fIntegratedRasterChannel.size();i++)
@@ -750,15 +750,6 @@ void  QwIntegratedRaster::Copy(VQwSubsystem *source)
       std::cerr << e.what() << std::endl;
     }
   // this->Print();
-}
-
-//*****************************************************************
-VQwSubsystem*  QwIntegratedRaster::Copy()
-{
-
-  QwIntegratedRaster* TheCopy=new QwIntegratedRaster("TheCopy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 //*****************************************************************

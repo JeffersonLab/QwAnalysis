@@ -1245,13 +1245,13 @@ void  QwComptonElectronDetector::PrintValue() const
  * Make a copy of this electron detector, including all its subcomponents
  * @param source Original version
  */
-void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
+void  QwComptonElectronDetector::Copy(const VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwComptonElectronDetector* input =
-	dynamic_cast<QwComptonElectronDetector*>(source);
+      const QwComptonElectronDetector* input =
+	dynamic_cast<const QwComptonElectronDetector*>(source);
       fStripsRaw.resize(input->NPlanes);
       fStripsRawEv.resize(input->NPlanes);
       fStripsRawScal.resize(input->NPlanes);
@@ -1283,15 +1283,4 @@ void  QwComptonElectronDetector::Copy(VQwSubsystem *source)
   }
 
   return;
-}
-
-/**
- * Make a copy of this electron detector
- * @return Copy of this electron detector
- */
-VQwSubsystem*  QwComptonElectronDetector::Copy()
-{
-  QwComptonElectronDetector* copy = new QwComptonElectronDetector(this->GetSubsystemName() + " Copy");
-  copy->Copy(this);
-  return copy;
 }

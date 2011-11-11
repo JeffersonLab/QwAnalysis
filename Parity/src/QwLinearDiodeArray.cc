@@ -692,12 +692,12 @@ void  QwLinearDiodeArray::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void QwLinearDiodeArray::Copy(QwLinearDiodeArray *source)
+void QwLinearDiodeArray::Copy(const QwLinearDiodeArray *source)
 {
   try
     {
       if( typeid(*source)==typeid(*this) ) {
-       QwLinearDiodeArray* input = ((QwLinearDiodeArray*)source);
+       const QwLinearDiodeArray* input = dynamic_cast<const QwLinearDiodeArray*>(source);
        this->fElementName = input->fElementName;
        this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
        this->bFullSave = input->bFullSave;

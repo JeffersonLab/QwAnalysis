@@ -259,13 +259,13 @@ void VQwBPM::SetRootSaveStatus(TString &prefix)
 
 
 /********************************************************/
-void  VQwBPM::Copy(VQwBPM *source)
+void  VQwBPM::Copy(const VQwBPM *source)
 {
   try
     {
       if(typeid(*source)==typeid(*this))
 	{
-	  VQwBPM* input=((VQwBPM*)source);
+	  const VQwBPM* input= dynamic_cast<const VQwBPM*>(source);
 	  this->fElementName = input->fElementName;
 	  this->bFullSave = input->bFullSave;
 	  // 	  this->fEffectiveCharge_base->Copy(input->fEffectiveCharge_base);

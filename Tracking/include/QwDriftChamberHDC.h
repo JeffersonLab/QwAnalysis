@@ -11,7 +11,7 @@
 
 #include "QwDriftChamber.h"
 ///
-/// \ingroup QwTracking
+/// \ingroup QwTrackingg
 class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwDriftChamberHDC> {
   /******************************************************************
    *  Class: QwDriftChamberHDC
@@ -21,7 +21,12 @@ class QwDriftChamberHDC: public QwDriftChamber, public MQwSubsystemCloneable<QwD
  public:
   QwDriftChamberHDC(TString region_tmp);
   virtual ~QwDriftChamberHDC() { };
-  
+
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
+
   /* Unique virtual member functions from QwDrifChamber base class */
 
 

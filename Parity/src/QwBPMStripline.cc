@@ -867,13 +867,13 @@ void  QwBPMStripline<T>::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 template<typename T>
-void QwBPMStripline<T>::Copy(VQwDataElement *source)
+void QwBPMStripline<T>::Copy(const VQwDataElement *source)
 {
-  Copy(dynamic_cast<VQwBPM*>(source));
+  Copy(dynamic_cast<const VQwBPM*>(source));
 }
 
 template<typename T>
-void QwBPMStripline<T>::Copy(VQwBPM *source)
+void QwBPMStripline<T>::Copy(const VQwBPM *source)
 {
   try
     {

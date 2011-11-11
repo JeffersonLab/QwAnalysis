@@ -231,7 +231,7 @@ void  QwHaloMonitor::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void  QwHaloMonitor::Copy(VQwDataElement *source)
+void  QwHaloMonitor::Copy(const VQwDataElement *source)
 {
   try
     {

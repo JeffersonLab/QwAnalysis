@@ -71,7 +71,7 @@ class QwSIS3801_Module {
   void SetCalibrationFactor(Double_t factor);
   void InitializeChannel(TString name);
 
-  void Copy(QwSIS3801_Module *source);
+  void Copy(const QwSIS3801_Module *source);
 
   void PrintValue() const { };
   void PrintInfo() const;

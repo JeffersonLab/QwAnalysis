@@ -2527,7 +2527,7 @@ void  QwBeamDetectorID::Print() const
 
 
 //*****************************************************************
-void  QwBeamLine::Copy(VQwSubsystem *source)
+void  QwBeamLine::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -2536,7 +2536,7 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 	{
 	  VQwSubsystem::Copy(source);
 
-          QwBeamLine* input = dynamic_cast<QwBeamLine*>(source);
+          const QwBeamLine* input = dynamic_cast<const QwBeamLine*>(source);
 
 	  index_4mhz = input->index_4mhz;
 
@@ -2628,16 +2628,6 @@ void  QwBeamLine::Copy(VQwSubsystem *source)
 
   return;
 }
-
-//*****************************************************************
-VQwSubsystem*  QwBeamLine::Copy()
-{
-
-  QwBeamLine* TheCopy=new QwBeamLine("Injector Beamline Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
-}
-
 
 //*****************************************************************
 void QwBeamLine::FillDB(QwParityDB *db, TString datatype)

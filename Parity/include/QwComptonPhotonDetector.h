@@ -102,8 +102,7 @@ class QwComptonPhotonDetector:
     void  ConstructBranch(TTree *tree, TString& prefix, QwParameterFile& trim_file) { };
     void  FillTreeVector(std::vector<Double_t> &values) const;
 
-    void Copy(VQwSubsystem *source);
-    VQwSubsystem*  Copy();
+    void Copy(const VQwSubsystem *source);
 
     Bool_t Compare(VQwSubsystem *source);
     Bool_t CompareADC(VQwSubsystem *source);

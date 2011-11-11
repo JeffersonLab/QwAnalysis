@@ -873,12 +873,12 @@ void  QwComptonPhotonDetector::PrintInfo() const
  * Make a copy of this subsystem, including all its subcomponents
  * @param source Original version
  */
-void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
+void  QwComptonPhotonDetector::Copy(const VQwSubsystem *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwSubsystem::Copy(source);
-      QwComptonPhotonDetector* input = dynamic_cast<QwComptonPhotonDetector*>(source);
+      const QwComptonPhotonDetector* input = dynamic_cast<const QwComptonPhotonDetector*>(source);
 
       this->fSamplingADC.resize(input->fSamplingADC.size());
       for (size_t i = 0; i < this->fSamplingADC.size(); i++)
@@ -904,17 +904,6 @@ void  QwComptonPhotonDetector::Copy(VQwSubsystem *source)
   }
 }
 
-
-/**
- * Make a copy of this subsystem
- * @return Copy of this subsystem
- */
-VQwSubsystem*  QwComptonPhotonDetector::Copy()
-{
-  QwComptonPhotonDetector* copy = new QwComptonPhotonDetector(this->GetSubsystemName() + " Copy");
-  copy->Copy(this);
-  return copy;
-}
 
 /**
  * Get the SIS3320 channel for this photon detector

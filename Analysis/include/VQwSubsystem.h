@@ -268,8 +268,8 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
 
   /// \brief Copy method
   /// Note: Must be called at the beginning of all subsystems routine
-  /// call to Copy(VQwSubsystem *source) by using VQwSubsystem::Copy(source)
-  virtual void Copy(VQwSubsystem *source);
+  /// call to Copy(const VQwSubsystem *source) by using VQwSubsystem::Copy(source)
+  virtual void Copy(const VQwSubsystem *source);
   /// \brief Assignment
   /// Note: Must be called at the beginning of all subsystems routine
   /// call to operator=(VQwSubsystem *value) by VQwSubsystem::operator=(value)

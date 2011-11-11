@@ -34,6 +34,11 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
   QwTriggerScintillator(TString region_tmp);
   virtual ~QwTriggerScintillator();
 
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
+
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);
   Int_t LoadGeometryDefinition(TString mapfile);

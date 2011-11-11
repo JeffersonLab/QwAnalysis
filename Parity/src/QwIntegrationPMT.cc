@@ -414,7 +414,7 @@ void  QwIntegrationPMT::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 /********************************************************/
-void  QwIntegrationPMT::Copy(VQwDataElement *source)
+void  QwIntegrationPMT::Copy(const VQwDataElement *source)
 {
   try
     {

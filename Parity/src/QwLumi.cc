@@ -1149,7 +1149,7 @@ void  QwLumiDetectorID::Print() const
 }
 
 //*****************************************************************
-void  QwLumi::Copy(VQwSubsystem *source)
+void  QwLumi::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -1157,7 +1157,7 @@ void  QwLumi::Copy(VQwSubsystem *source)
       if(typeid(*source)==typeid(*this))
 	{
 	  VQwSubsystem::Copy(source);
-	  QwLumi* input= dynamic_cast<QwLumi*>(source);
+	  const QwLumi* input= dynamic_cast<const QwLumi*>(source);
 
 	  this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
 	  for(size_t i=0;i<this->fIntegrationPMT.size();i++)
@@ -1185,15 +1185,6 @@ void  QwLumi::Copy(VQwSubsystem *source)
       std::cerr << e.what() << std::endl;
     }
   // this->Print();
-}
-
-//*****************************************************************
-VQwSubsystem*  QwLumi::Copy()
-{
-
-  QwLumi* TheCopy=new QwLumi("Injector Lumi Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 //*****************************************************************

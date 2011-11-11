@@ -48,8 +48,7 @@ class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler
 
     Bool_t Compare(VQwSubsystem *source);
 
-    VQwSubsystem* Copy();
-    void Copy(VQwSubsystem *source);
+    void Copy(const VQwSubsystem *source);
 
     VQwSubsystem& operator=(VQwSubsystem *value);
     VQwSubsystem& operator+=(VQwSubsystem *value);

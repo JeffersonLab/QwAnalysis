@@ -227,11 +227,11 @@ void QwSIS3801_Module::InitializeChannel(TString name)
   }
 }
 
-void QwSIS3801_Module::Copy(QwSIS3801_Module *source)
+void QwSIS3801_Module::Copy(const QwSIS3801_Module *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
-      QwSIS3801_Module* input = ((QwSIS3801_Module*) source);
+      const QwSIS3801_Module* input = dynamic_cast<const QwSIS3801_Module*>(source);
       for (size_t i = 0; i < this->fChannels.size(); i++)
         this->fChannels[i].Copy(&(input->fChannels[i]));
     } else {

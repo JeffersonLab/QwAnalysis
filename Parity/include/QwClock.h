@@ -110,7 +110,7 @@ class QwClock : public VQwClock {
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist);
   void  FillTreeVector(std::vector<Double_t> &values) const;
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
 

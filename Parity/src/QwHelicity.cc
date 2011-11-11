@@ -1798,7 +1798,7 @@ void QwHelicity::ResetPredictor()
 
 
 
-void QwHelicity::Copy(VQwSubsystem *source)
+void QwHelicity::Copy(const VQwSubsystem *source)
 {
  try
     {
@@ -1807,7 +1807,7 @@ void QwHelicity::Copy(VQwSubsystem *source)
 	  //VQwSubsystem::Copy(source);
 	  //QwHelicity* input=((QwHelicity*)source);
 	  VQwSubsystem::Copy(source);
-          QwHelicity* input = dynamic_cast<QwHelicity*>(source);
+          const QwHelicity* input = dynamic_cast<const QwHelicity*>(source);
 	  this->fWord.resize(input->fWord.size());
 	  for(size_t i=0;i<this->fWord.size();i++)
 	    {
@@ -1832,13 +1832,6 @@ void QwHelicity::Copy(VQwSubsystem *source)
     }
 
   return;
-}
-
-VQwSubsystem*  QwHelicity::Copy()
-{
-  QwHelicity* TheCopy=new QwHelicity("Helicity Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 VQwSubsystem&  QwHelicity::operator=  (VQwSubsystem *value)

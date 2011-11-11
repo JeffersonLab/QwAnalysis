@@ -108,7 +108,7 @@ class  QwHaloMonitor : public VQwDataElement{
   Double_t GetValue() {
     return fHalo_Counter.GetValue();
   }
-  void  Copy(VQwDataElement *source);
+  void  Copy(const VQwDataElement *source);
 
   void  PrintValue() const;
   void  PrintInfo() const;

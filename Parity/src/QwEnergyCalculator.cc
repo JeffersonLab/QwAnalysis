@@ -313,7 +313,7 @@ void  QwEnergyCalculator::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 
-void  QwEnergyCalculator::Copy(VQwDataElement *source){
+void  QwEnergyCalculator::Copy(const VQwDataElement *source){
   try{
     if(typeid(*source)==typeid(*this)){
       QwEnergyCalculator* input=((QwEnergyCalculator*)source);

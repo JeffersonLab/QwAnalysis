@@ -124,8 +124,7 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
   void FillTreeVector(std::vector<Double_t> &values) const;
   void FillDB(QwParityDB *db, TString datatype);
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void Copy(const VQwSubsystem *source);
 
   Bool_t Compare(VQwSubsystem *source);
 

@@ -30,8 +30,6 @@ class QwFakeHelicity: public QwHelicity {
     Bool_t  IsGoodHelicity();
     void    ProcessEvent();
 
-    virtual VQwSubsystem*  Copy();
-
  protected:
     Int_t fMinPatternPhase;
 

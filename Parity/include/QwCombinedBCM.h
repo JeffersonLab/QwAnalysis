@@ -112,7 +112,7 @@ class QwCombinedBCM : public QwBCM<T> {
     QwBCM<T>::SetCalibrationFactor(1.0);
   }
 
-  void Copy(VQwDataElement *source); 
+  void Copy(const VQwDataElement *source); 
 
   VQwHardwareChannel* GetCharge(){
     return &(this->fBeamCurrent);

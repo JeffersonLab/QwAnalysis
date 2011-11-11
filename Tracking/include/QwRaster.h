@@ -36,13 +36,18 @@ class QwRaster: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwRast
    QwRaster(TString region_tmp);
    virtual ~QwRaster();
 
-    // VQwSubsystem methods
-    void ProcessOptions(QwOptions &options); //Handle command line options
+   /// Copying is not supported for tracking subsystems
+   void Copy(const VQwSubsystem *source) {
+     QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+   }
 
-    Int_t LoadEventCuts(TString filename) { return 0; };
-    Bool_t ApplySingleEventCuts() { return kTRUE; };
-    Int_t GetEventcutErrorCounters() { return 0; };
-    Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
+   // VQwSubsystem methods
+   void ProcessOptions(QwOptions &options); //Handle command line options
+
+   Int_t LoadEventCuts(TString filename) { return 0; };
+   Bool_t ApplySingleEventCuts() { return kTRUE; };
+   Int_t GetEventcutErrorCounters() { return 0; };
+   Bool_t CheckRunningAverages(Bool_t ) { return kTRUE; };
 
   /*  Member functions derived from VQwSubsystem. */
   Int_t LoadChannelMap(TString mapfile);

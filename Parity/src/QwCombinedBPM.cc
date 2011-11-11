@@ -1003,19 +1003,19 @@ void  QwCombinedBPM<T>::FillTreeVector(std::vector<Double_t> &values) const
 }
 
 template<typename T>
-void QwCombinedBPM<T>::Copy(VQwDataElement *source)
+void QwCombinedBPM<T>::Copy(const VQwDataElement *source)
 {
-  Copy(dynamic_cast<VQwBPM*>(source));
+  Copy(dynamic_cast<const VQwBPM*>(source));
 }
 
 template<typename T>
-void QwCombinedBPM<T>::Copy(VQwBPM *source)
+void QwCombinedBPM<T>::Copy(const VQwBPM *source)
 {
   try
     {
       if(typeid(*source)==typeid(*this))
 	{
-	  QwCombinedBPM<T>* input = ((QwCombinedBPM<T>*)source);
+	  const QwCombinedBPM<T>* input = dynamic_cast<const QwCombinedBPM<T>*>(source);
 	  this->fElementName = input->fElementName;
 	  this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
 	  this->bFullSave = input->bFullSave;

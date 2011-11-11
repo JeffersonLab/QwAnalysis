@@ -153,7 +153,7 @@ class QwBCM : public VQwBCM {
 
   UInt_t   GetGoodEventCount() {return fBeamCurrent.GetGoodEventCount();};
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface> GetDBEntry();
 

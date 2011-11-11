@@ -126,7 +126,7 @@ class QwCombinedPMT : public VQwDataElement {
   UInt_t   GetGoodEventCount() {return fSumADC.GetGoodEventCount();};
 
 
-  void Copy(VQwDataElement *source);
+  void Copy(const VQwDataElement *source);
 
   std::vector<QwDBInterface>  GetDBEntry();
 

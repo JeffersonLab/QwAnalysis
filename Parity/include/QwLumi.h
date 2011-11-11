@@ -129,8 +129,7 @@ class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   QwIntegrationPMT* GetIntegrationPMT(const TString name);
   const QwCombinedPMT* GetCombinedPMT(const TString name) const;
 
-  void Copy(VQwSubsystem *source);
-  VQwSubsystem*  Copy();
+  void Copy(const VQwSubsystem *source);
   Bool_t Compare(VQwSubsystem *source);
 
   void PrintValue() const;

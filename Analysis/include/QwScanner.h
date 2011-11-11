@@ -104,16 +104,10 @@ class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
       return kTRUE;
     };
 
-    void Copy(VQwSubsystem *source)
+    void Copy(const VQwSubsystem *source)
     {
       VQwSubsystem::Copy(source);
       return;
-    };
-    VQwSubsystem* Copy()
-    {
-      QwScanner* copy = new QwScanner("copy");
-      copy->Copy(this);
-      return copy;
     };
     Bool_t Compare(VQwSubsystem *source)
     {

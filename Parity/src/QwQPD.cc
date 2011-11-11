@@ -569,7 +569,7 @@ void QwQPD::Scale(Double_t factor)
   return;
 }
 
-void QwQPD::Copy(QwQPD *source)
+void QwQPD::Copy(const QwQPD *source)
 {
   Short_t i = 0;
 

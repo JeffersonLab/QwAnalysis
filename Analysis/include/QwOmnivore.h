@@ -86,12 +86,7 @@ class QwOmnivore: public VQwSubsystem_t {
     void Scale(Double_t factor) { };
 
     /// Copy operation
-    VQwSubsystem* Copy() {
-      QwOmnivore<VQwSubsystem_t>* theCopy = new QwOmnivore<VQwSubsystem_t>("copy");
-      theCopy->Copy(this);
-      return theCopy;
-    };
-    void Copy(VQwSubsystem *source) {
+    void Copy(const VQwSubsystem *source) {
       VQwSubsystem::Copy(source);
     };
 

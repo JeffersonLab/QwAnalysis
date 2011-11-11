@@ -92,7 +92,7 @@ class QwBPMCavity : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(VQwDataElement *source);
+  void    Copy(const VQwDataElement *source);
   void    Ratio(QwBPMCavity &numer, QwBPMCavity &denom);
   void    Scale(Double_t factor);
 

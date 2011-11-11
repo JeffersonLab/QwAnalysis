@@ -72,7 +72,7 @@ class QwVQWK_Module {
   void SetCalibrationFactor(Double_t factor);
   void InitializeChannel(TString name, TString datatosave);
 
-  void Copy(QwVQWK_Module *source);
+  void Copy(const QwVQWK_Module *source);
 
   void PrintValue() const;
   void PrintInfo() const;

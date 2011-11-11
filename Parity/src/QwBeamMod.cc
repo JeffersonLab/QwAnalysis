@@ -1206,7 +1206,7 @@ void  QwModChannelID::Print()
 //*****************************************************************
 
 
-void  QwBeamMod::Copy(VQwSubsystem *source)
+void  QwBeamMod::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -1214,8 +1214,7 @@ void  QwBeamMod::Copy(VQwSubsystem *source)
      if(typeid(*source)==typeid(*this))
 	 {
 	  VQwSubsystem::Copy(source);
-	  //QwBeamMod* input=((QwBeamMod*)source);
-          QwBeamMod* input = dynamic_cast<QwBeamMod*>(source);
+	  const QwBeamMod* input = dynamic_cast<const QwBeamMod*>(source);
 
 	  this->fModChannel.resize(input->fModChannel.size());
 	  for(size_t i=0;i<this->fModChannel.size();i++)
@@ -1252,15 +1251,6 @@ void  QwBeamMod::Copy(VQwSubsystem *source)
     }
 
   return;
-}
-
-
-VQwSubsystem*  QwBeamMod::Copy()
-{
-
-  QwBeamMod* TheCopy=new QwBeamMod("BeamMod");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 

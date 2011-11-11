@@ -474,12 +474,12 @@ void QwBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
 
 /********************************************************/
 template<typename T>
-void QwBCM<T>::Copy(VQwDataElement *source)
+void QwBCM<T>::Copy(const VQwDataElement *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {
       VQwBCM::Copy(source);
-      const QwBCM<T>* input = dynamic_cast<QwBCM<T>*>(source);
+      const QwBCM<T>* input = dynamic_cast<const QwBCM<T>*>(source);
       this->fBeamCurrent.Copy(&(input->fBeamCurrent));
     } else {
       TString loc="Standard exception from QwBCM::Copy = "

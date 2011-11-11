@@ -783,7 +783,7 @@ void QwSIS3320_Channel::PrintInfo() const
 /*
  * Copy
  */
-void QwSIS3320_Channel::Copy(QwSIS3320_Channel *source)
+void QwSIS3320_Channel::Copy(const QwSIS3320_Channel *source)
 {
    try {
       if (typeid(*source) == typeid(*this)) {

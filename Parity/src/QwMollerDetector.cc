@@ -142,7 +142,7 @@ void QwMollerDetector::ProcessOptions(QwOptions &){}
 Int_t QwMollerDetector::LoadInputParameters(TString){ return 0;}
 void QwMollerDetector::ClearEventData(){}
 
-void  QwMollerDetector::Copy(VQwSubsystem *source)
+void  QwMollerDetector::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -150,7 +150,7 @@ void  QwMollerDetector::Copy(VQwSubsystem *source)
      if(typeid(*source)==typeid(*this))
   {
     VQwSubsystem::Copy(source);
-    QwMollerDetector* input= dynamic_cast<QwMollerDetector*>(source);
+    const QwMollerDetector* input= dynamic_cast<const QwMollerDetector*>(source);
 
     this->fSTR7200_Channel.resize(input->fSTR7200_Channel.size());
 
@@ -178,14 +178,6 @@ void  QwMollerDetector::Copy(VQwSubsystem *source)
   return;
 }
 
-
-VQwSubsystem*  QwMollerDetector::Copy()
-{
-
-  QwMollerDetector* TheCopy=new QwMollerDetector("Moller Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
-}
 
 Int_t QwMollerDetector::ProcessConfigurationBuffer(UInt_t, UInt_t, UInt_t*, UInt_t){
   return 0;

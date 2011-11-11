@@ -346,7 +346,7 @@ void VQwSubsystem::PrintInfo() const
 }
 
 
-void VQwSubsystem::Copy(VQwSubsystem *source)
+void VQwSubsystem::Copy(const VQwSubsystem *source)
 {
   try
     {

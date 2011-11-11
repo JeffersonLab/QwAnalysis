@@ -310,7 +310,7 @@ void  QwCombinedBCM<T>::FillTreeVector(std::vector<Double_t> &values) const
 
 /********************************************************/
 template<typename T>
-void  QwCombinedBCM<T>::Copy(VQwDataElement *source)
+void  QwCombinedBCM<T>::Copy(const VQwDataElement *source)
 {
   try {
     if (typeid(*source) == typeid(*this)) {

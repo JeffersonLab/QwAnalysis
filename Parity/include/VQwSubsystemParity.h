@@ -57,8 +57,6 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
     virtual void Ratio(VQwSubsystem *numer, VQwSubsystem *denom) = 0;
     virtual void Scale(Double_t factor) = 0;
 
-    virtual VQwSubsystem* Copy() = 0;
-
     /// \brief Update the running sums for devices
     virtual void AccumulateRunningSum(VQwSubsystem* value) = 0;
     /// \brief remove one entry from the running sums for devices

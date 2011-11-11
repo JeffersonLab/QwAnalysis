@@ -1009,7 +1009,7 @@ const QwIntegrationPMT* QwMainCerenkovDetector::GetChannel(const TString name) c
 }
 
 
-void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
+void  QwMainCerenkovDetector::Copy(const VQwSubsystem *source)
 {
 
   try
@@ -1017,7 +1017,7 @@ void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
       if (typeid(*source)==typeid(*this))
         {
           VQwSubsystem::Copy(source);
-          QwMainCerenkovDetector* input= dynamic_cast<QwMainCerenkovDetector*>(source);
+          const QwMainCerenkovDetector* input= dynamic_cast<const QwMainCerenkovDetector*>(source);
 
           this->fIntegrationPMT.resize(input->fIntegrationPMT.size());
           for (size_t i=0;i<this->fIntegrationPMT.size();i++)
@@ -1042,14 +1042,6 @@ void  QwMainCerenkovDetector::Copy(VQwSubsystem *source)
   // this->Print();
 
   return;
-}
-
-
-VQwSubsystem*  QwMainCerenkovDetector::Copy()
-{
-  QwMainCerenkovDetector* TheCopy = new QwMainCerenkovDetector("MainDetector Copy");
-  TheCopy->Copy(this);
-  return TheCopy;
 }
 
 

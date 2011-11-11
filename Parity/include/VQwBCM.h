@@ -74,7 +74,7 @@ public:
   virtual void ConstructBranch(TTree *tree, TString &prefix) = 0;
   virtual void ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& modulelist) = 0;
   virtual void FillTreeVector(std::vector<Double_t> &values) const = 0;
-  virtual void Copy(VQwDataElement *source) {
+  virtual void Copy(const VQwDataElement *source) {
     VQwDataElement::Copy(source);
   }
 

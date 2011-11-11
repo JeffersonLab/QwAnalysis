@@ -90,7 +90,7 @@ class QwLinearDiodeArray : public VQwBPM {
   void    SetSubElementPedestal(Int_t j, Double_t value);
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
-  void    Copy(QwLinearDiodeArray *source);
+  void    Copy(const QwLinearDiodeArray *source);
   void    Ratio(QwLinearDiodeArray &numer, QwLinearDiodeArray &denom);
   void    Scale(Double_t factor);
 

@@ -152,16 +152,35 @@ class VQwCloneable {
     /// Virtual destructor
     virtual ~VQwCloneable() { }
 
-    /// Abstract clone method when no derived method is defined
-    virtual base_t* Clone() const {
+    /// Get demangled name of this class
+    std::string GetClassName() const {
       int status;
       const type_info& ti = typeid(*this);
       char* name = abi::__cxa_demangle(ti.name(), 0, 0, &status);
-      QwError << "Clone() is not implemented for class " << name << "!" << QwLog::endl;
-      QwMessage << "Modify the class definition of " << name << " to:" << QwLog::endl;
-      QwMessage << "  class " << name << ": "
-                << "public MQwSomethingCloneable<" << name << ">" << QwLog::endl;
+      std::string str(name);
       free(name);
+      return str;
+    }
+
+    /// Abstract clone method when no derived method is defined
+    virtual base_t* Clone() const {
+      QwError << "Clone() is not implemented for class " << GetClassName() << "!" << QwLog::endl;
+      QwMessage << "Modify the class definition of " << GetClassName() << " to:" << QwLog::endl;
+      QwMessage << "  class " << GetClassName() << ": "
+                << "public MQwSomethingCloneable<" << GetClassName() << ">" << QwLog::endl;
+      return 0;
+    }
+
+    /// Pure virtual copy method
+    // TODO remove in favor of copy constructor cloning
+    virtual void Copy(const base_t* source) = 0;
+    /// Abstract copy method when no derived method is defined
+    // TODO remove in favor of copy constructor cloning
+    virtual base_t* Copy() const {
+      QwError << "Copy() is not implemented for class " << GetClassName() << "!" << QwLog::endl;
+      QwMessage << "Modify the class definition of " << GetClassName() << " to:" << QwLog::endl;
+      QwMessage << "  class " << GetClassName() << ": "
+                << "public MQwSomethingCloneable<" << GetClassName() << ">" << QwLog::endl;
       return 0;
     }
 
@@ -184,6 +203,15 @@ class MQwCloneable: virtual public VQwCloneable<base_t> {
     /// Concrete clone method
     virtual base_t* Clone() const {
       return new type_t(static_cast<const type_t&>(*this));
+    }
+
+    /// Concrete copy method
+    // TODO remove in favor of copy constructor cloning
+    virtual base_t* Copy() const {
+      std::string name = this->GetClassName() + " copy";
+      type_t* copy = new type_t(name);
+      copy->Copy(static_cast<const type_t*>(this));
+      return copy;
     }
 
     /// Factory getter

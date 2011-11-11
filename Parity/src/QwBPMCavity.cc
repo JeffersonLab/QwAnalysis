@@ -729,7 +729,7 @@ void  QwBPMCavity::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void QwBPMCavity::Copy(VQwDataElement *source)
+void QwBPMCavity::Copy(const VQwDataElement *source)
 {
   try
     {

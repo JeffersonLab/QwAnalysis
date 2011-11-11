@@ -39,6 +39,11 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwSubsystemC
   QwGasElectronMultiplier(TString region_tmp);
   virtual ~QwGasElectronMultiplier();
 
+  /// Copying is not supported for tracking subsystems
+  void Copy(const VQwSubsystem *source) {
+    QwWarning << "Copy() is not supported for tracking subsystems." << QwLog::endl;
+  }
+
   /*  Member functions derived from VQwSubsystemTracking. */
   Int_t LoadChannelMap(TString mapfile );
   Int_t LoadInputParameters(TString mapfile);

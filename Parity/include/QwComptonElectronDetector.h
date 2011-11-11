@@ -101,8 +101,7 @@ class QwComptonElectronDetector:
     void SetNumberOfEvents(UInt_t nevents) {
      fNumberOfEvents = nevents;
     };
-    void Copy(VQwSubsystem *source);
-    VQwSubsystem*  Copy();
+    void Copy(const VQwSubsystem *source);
     Bool_t Compare(VQwSubsystem *source);
     void PrintValue() const;
 

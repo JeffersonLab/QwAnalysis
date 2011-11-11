@@ -80,7 +80,7 @@ class VQwBPM : public VQwDataElement {
   virtual void Scale(Double_t factor) {
     std::cerr << "Scale for VQwBPM not implemented!\n";
   }
-  virtual void Copy(VQwBPM *source);
+  virtual void Copy(const VQwBPM *source);
   void SetGains(TString pos, Double_t value);
 
   // Operators subclasses MUST support!
