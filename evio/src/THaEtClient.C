@@ -369,6 +369,7 @@ int THaEtClient::codaOpen(TString computer, TString mysession, int smode) {
     strcat(etfile,mysession.Data());
     session = new char[strlen(mysession.Data())+1];
     strcpy(session,mysession.Data());
+    initetfile = 1;
     fStatus = codaOpen(computer, smode);
     return fStatus;
 };

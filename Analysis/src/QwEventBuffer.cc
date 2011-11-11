@@ -104,6 +104,12 @@ void QwEventBuffer::DefineOptions(QwOptions &options)
      "extension of the input CODA filename");
   //  Options specific to the ET clients
   options.AddOptions("ET system options")
+    ("ET.hostname", po::value<string>(),
+     "Name of the ET session's host machine --- Only used in online mode\nDefaults to the environment variable $HOSTNAME"); 
+  options.AddOptions("ET system options")
+    ("ET.session", po::value<string>(),
+     "ET session name --- Only used in online mode\nDefaults to the environment variable $SESSION"); 
+  options.AddOptions("ET system options")
     ("ET.station", po::value<string>(),
      "ET station name --- Only used in online mode"); 
 }
@@ -122,8 +128,16 @@ void QwEventBuffer::ProcessOptions(QwOptions &options)
     } else {
       fETStationName = "";
     }
-    fETHostname = getenv("HOSTNAME");
-    fETSession  = getenv("SESSION");
+    if (options.HasValue("ET.hostname")) {
+      fETHostname = options.GetValue<string>("ET.hostname");
+    } else {
+      fETHostname = getenv("HOSTNAME");
+    }
+    if (options.HasValue("ET.session")) {
+      fETSession = options.GetValue<string>("ET.session");
+    } else {
+      fETSession = getenv("SESSION");
+    }
     if (fETHostname.Length() == 0 || fETSession.Length() == 0) {
       TString tmp = "";
       if (fETHostname == NULL)
