@@ -26,7 +26,9 @@
 // Qweak headers
 #include "VQwSubsystemParity.h"
 
-class QwComptonElectronDetector: public VQwSubsystemParity, public MQwCloneable<QwComptonElectronDetector> {
+class QwComptonElectronDetector:
+  public VQwSubsystemParity,
+  public MQwSubsystemCloneable<QwComptonElectronDetector> {
 
   public:
 

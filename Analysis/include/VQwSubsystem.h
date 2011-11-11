@@ -21,9 +21,9 @@
 
 // Qweak headers
 #include "MQwHistograms.h"
-// Note: the subsystem factory header is included here because every subsystem
+// Note: the factory header is included here because every subsystem
 // has to register itself with a subsystem factory.
-#include "QwSubsystemFactory.h"
+#include "QwFactory.h"
 
 // Forward declarations
 class VQwDataElement;
@@ -56,7 +56,7 @@ class QwParameterFile;
  * This will define the interfaces used in communicating with the
  * CODA routines.
  */
-class VQwSubsystem: virtual public VQwCloneable, public MQwHistograms {
+class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
 
  public:
 

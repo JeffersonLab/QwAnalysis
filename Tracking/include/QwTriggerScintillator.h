@@ -24,7 +24,7 @@
 
 ///
 /// \ingroup QwTracking
-class QwTriggerScintillator: public VQwSubsystemTracking, public MQwCloneable<QwTriggerScintillator> {
+class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwTriggerScintillator> {
   /******************************************************************
    *  Class: QwTriggerScintillator
    *

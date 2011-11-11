@@ -28,7 +28,7 @@
 // Forward declarations
 class QwDatabase;
 
-class QwRaster: public VQwSubsystemTracking, public MQwCloneable<QwRaster>
+class QwRaster: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwRaster>
 {
 
  public:

@@ -35,7 +35,7 @@ enum HelicityRootSavingType{kHelSaveMPS = 0,
 /// \ingroup QwAnalysis_ADC
 ///
 /// \ingroup QwAnalysis_BL
-class QwHelicity: public VQwSubsystemParity, public MQwCloneable<QwHelicity> {
+class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHelicity> {
   /////
  public:
 

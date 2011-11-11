@@ -52,7 +52,7 @@ class QwIntegratedRasterDetectorID{
 /*****************************************************************
 *  Class:
 ******************************************************************/
-class QwIntegratedRaster : public VQwSubsystemParity, public MQwCloneable<QwIntegratedRaster> {
+class QwIntegratedRaster : public VQwSubsystemParity, public MQwSubsystemCloneable<QwIntegratedRaster> {
   /////  
 public:
   QwIntegratedRaster(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)

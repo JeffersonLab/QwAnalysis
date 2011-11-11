@@ -37,7 +37,7 @@ class QwBeamDetectorID;
 /*****************************************************************
 *  Class:
 ******************************************************************/
-class QwBeamLine : public VQwSubsystemParity, public MQwCloneable<QwBeamLine> {
+class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamLine> {
  public:
 
   QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),index_4mhz(-1)

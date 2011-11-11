@@ -29,7 +29,7 @@
 
 ///
 /// \ingroup QwTracking
-class QwMainDetector: public VQwSubsystemTracking, public MQwCloneable<QwMainDetector> {
+class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwMainDetector> {
   /******************************************************************
    *  Class: QwMainDetector
    *

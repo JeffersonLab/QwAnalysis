@@ -26,8 +26,8 @@ class QwMainCerenkovDetectorID;
 
 class QwMainCerenkovDetector:
     public VQwSubsystemParity,
-    public MQwCloneable<QwMainCerenkovDetector> {
-
+    public MQwSubsystemCloneable<QwMainCerenkovDetector>
+{
   friend class QwCombinedPMT;
   /******************************************************************
    *  Class: QwMainCerenkovDetector

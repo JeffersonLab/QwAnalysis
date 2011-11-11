@@ -38,7 +38,7 @@ class QwModChannelID;
 /*****************************************************************
 *  Class:
 ******************************************************************/
-class QwBeamMod: public VQwSubsystemParity, public MQwCloneable<QwBeamMod> {
+class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamMod> {
 
  public:
 

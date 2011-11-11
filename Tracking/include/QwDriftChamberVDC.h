@@ -19,7 +19,7 @@
 
 ///
 /// \ingroup QwTracking
-class QwDriftChamberVDC: public QwDriftChamber, public MQwCloneable<QwDriftChamberVDC> {
+class QwDriftChamberVDC: public QwDriftChamber, public MQwSubsystemCloneable<QwDriftChamberVDC> {
   /******************************************************************
    *  Class: QwDriftChamberVDC
    *
