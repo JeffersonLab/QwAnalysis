@@ -109,7 +109,7 @@ int THaEtClient::init(TString mystation)
   et_station_config_setuser(sconfig, ET_STATION_USER_MULTI);
   et_station_config_setrestore(sconfig, ET_STATION_RESTORE_OUT);
   et_station_config_setprescale(sconfig, 1);
-  et_station_config_setcue(sconfig, 100);
+  et_station_config_setcue(sconfig, 2*ET_CHUNK_SIZE);
   et_station_config_setselect(sconfig, ET_STATION_SELECT_ALL);
   et_station_config_setblock(sconfig, ET_STATION_NONBLOCKING);
   int status;
