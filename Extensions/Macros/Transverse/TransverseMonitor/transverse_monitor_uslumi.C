@@ -34,13 +34,17 @@ using namespace std;
 struct detector 
 {
   // define vectors for calculating weighted averages of slugs
+  vector<Int_t> asym_num;
+  vector<Double_t> asym;
+  vector<Double_t> asym_error;
+  vector<TString> ihwp;
   vector<Int_t> slug_num;
   vector<Double_t> slug;
   vector<Double_t> slug_error;
-  vector<TString> ihwp;
-  vector<Double_t> slug_weighted_avg;
-  vector<Double_t> slug_error_sum;
+  vector<TString> ihwp_slug;
   void get_lumi (Int_t detector_id, const Char_t* table, TSQLServer* db);
+  void slug_avg (void);
+
 };
 
 void detector::get_lumi (Int_t detector_id, const Char_t* table, TSQLServer* db)
@@ -108,7 +112,6 @@ void detector::get_lumi (Int_t detector_id, const Char_t* table, TSQLServer* db)
 	query += "AND beam_2.error !=0\n";
 	query += "AND beam_2.n > 50000\n";
 	query += "ORDER BY runlet.runlet_id, run.run_number, runlet.segment_number;";
-	cout << query << endl;
 	
 	TSQLStatement* stmt = db->Statement(query, 100);
 	if (stmt->Process())
@@ -120,15 +123,72 @@ void detector::get_lumi (Int_t detector_id, const Char_t* table, TSQLServer* db)
 		while (stmt->NextResultRow())
 		{
 			Int_t field_0 = stmt->GetInt(0);
-			Double_t field_1 = stmt->GetDouble(1);
-			Double_t field_2 = stmt->GetDouble(2);
+			Double_t field_1 = stmt->GetDouble(1)*1.0e6;
+			Double_t field_2 = stmt->GetDouble(2)*1.0e6;
 			TString field_3 = stmt->GetString(3);
-			this->slug_num.push_back(field_0);
-			this->slug.push_back(field_1);
-			this->slug_error.push_back(field_2);
+			this->asym_num.push_back(field_0);
+			this->asym.push_back(field_1);
+			this->asym_error.push_back(field_2);
 			this->ihwp.push_back(field_3);
 		}
 	}
+}
+
+void detector::slug_avg (void)
+{
+  UInt_t i;
+  vector<Double_t> sum;
+	// set slug_num and ihwp by slug instead of by run
+	for (i = 0; i < this->asym_num.size(); i++)
+  {
+    // skip null values of asym_error, and run 63
+    if (TMath::IsNaN(this->asym_error[i])) continue;
+    if (this->asym_num[i] == 63) continue;
+    // for the initial value
+    if (0 == this->slug_num.size())
+    {
+    	this->slug_num.push_back(this->asym_num[i]);
+    	this->ihwp_slug.push_back(this->ihwp[i]);
+    } 
+    // for all other values where the most recent slug number is
+    // different than the current slug number
+    else if (this->slug_num.back() != this->asym_num[i])
+    {
+    	this->slug_num.push_back(this->asym_num[i]);
+    	this->ihwp_slug.push_back(this->ihwp[i]);
+    }
+  }
+  // initialize the slug and slug_error vectors
+  for (i = 0; i < this->slug_num.size(); i++)
+  {
+    	this->slug.push_back(0);
+    	this->slug_error.push_back(0);
+	}
+	// calculate the weighted averages by slug
+	for (i = 0; i < this->asym_num.size(); i++)
+  {
+    // skip null values of asym_error, and run 63
+    if (TMath::IsNaN(this->asym_error[i])) continue;
+    if (this->asym_num[i] == 63) continue;
+    // sum all the runs for a particular slug
+    // slug numbers are normalized to 0
+		this->slug[this->asym_num[i] - this->asym_num.front()] += this->asym[i] / (this->asym_error[i] * this->asym_error[i]);
+  	this->slug_error[this->asym_num[i] - this->asym_num.front()] += 1 / (this->asym_error[i] * this->asym_error[i]);
+  	//cout << this->asym_num[i] << "   " << this->slug[this->asym_num[i] - this->asym_num.front()] << "   " << this->slug_error[this->asym_num[i] - this->asym_num.front()] << endl;
+  }
+  // finish calculating weighted average
+  for (i = 0; i < slug.size (); i++)
+  {
+  	// ignore empty slugs
+  	if (0 == this->slug[i])
+  	{
+  		slug.erase(this->slug.begin()+i);
+  		slug_error.erase(this->slug_error.begin()+i);
+  		continue;
+  	}
+    this->slug[i] = this->slug[i] / this->slug_error[i];
+    this->slug_error[i] = 1 / sqrt(this->slug_error[i]);
+  }
 }
 
 Int_t main(int argc, char *argv[])
@@ -143,13 +203,24 @@ Int_t main(int argc, char *argv[])
     exit (0);
   }
   
-  // test function
+  // test function for pull
   detector test;
-	test.get_lumi(162, "qw_run1_pass3", db);
+	test.get_lumi (162, "qw_run1_pass3", db);
 	Int_t i;
-	for(i = 0; i < test.slug.size(); i++)
+	for (i = 0; i < test.asym.size(); i++)
 	{
-		cout << test.slug_num[i] << "   " << test.slug[i] << "   " << test.slug_error[i] << "   " << test.ihwp[i] << endl;
+		//cout << test.asym_num[i] << "   " << test.asym[i] << "   " << test.asym_error[i] << "   " << test.ihwp[i] << endl;
 	}
+	
+	// test function for slug avg
+	test.slug_avg();
+	for (i = 0; i < test.slug_num.size(); i++)
+	{
+		cout << test.slug_num[i] << "   " << test.slug[i] << "   " << test.slug_error[i] << "   " << test.ihwp_slug[i] << endl;
+	}
+
+	// close the db
+	db->Close();
+
 	return 0;
 }
