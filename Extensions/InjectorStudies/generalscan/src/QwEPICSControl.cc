@@ -86,6 +86,10 @@ QwEPICSControl::QwEPICSControl()
   status = ca_pend_io(10);
   status = ca_search("OPCR00LC2hmove_cw", &f_PCXMoveLeft);
   status = ca_pend_io(10);
+  status = ca_search("IPM1I02", &f_IPM1I02);
+  status = ca_pend_io(10);
+  status = ca_search("IBC0L02Current", &f_IBC0L02Current);
+  status = ca_pend_io(10);
 };
 
 

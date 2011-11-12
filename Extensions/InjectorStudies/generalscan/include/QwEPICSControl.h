@@ -106,6 +106,23 @@ public:
     status = ca_pend_io(10);
     return value;  
   }
+  Double_t Get_1I02_Current() { 
+    int status;
+    Double_t value;
+    status = ca_get(DBR_DOUBLE, f_IPM1I02, &value);
+    status = ca_pend_io(10);
+    return value;  
+
+  }
+  Double_t Get_0L02_Current() { 
+    int status;
+    Double_t value;
+    status = ca_get(DBR_DOUBLE, f_IBC0L02Current, &value);
+    status = ca_pend_io(10);
+    return value;  
+  }
+
+
 /*   Double_t Get_HallAIA(){ */
 /*     int status; */
 /*     Double_t value; */
@@ -362,6 +379,9 @@ public:
   chid fIDPCXSteps;
   chid f_PCXMoveRight;
   chid f_PCXMoveLeft;
+  chid f_IPM1I02;
+  chid f_IBC0L02Current
+
 ;
 
 
