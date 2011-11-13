@@ -34,12 +34,19 @@ class QwParityDB;
  */
 class VQwSubsystemParity: virtual public VQwSubsystem {
 
-  public:
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemParity();
 
+  public:
     /// Constructor with name
-    VQwSubsystemParity(TString name): VQwSubsystem(name) {
+    VQwSubsystemParity(const TString& name): VQwSubsystem(name) {
       SetEventTypeMask(0x1); // only accept 0x1
     };
+    /// Copy constructor
+    VQwSubsystemParity(const VQwSubsystemParity& source)
+    : VQwSubsystem(source)
+    { }
     /// Default destructor
     virtual ~VQwSubsystemParity() { };
 
@@ -90,13 +97,6 @@ class VQwSubsystemParity: virtual public VQwSubsystem {
 
     virtual Bool_t CheckForEndOfBurst() const {return kFALSE;};
 	
-
-
-  private:
-
-    /// Private default constructor (not implemented, will throw linker error on use)
-    VQwSubsystemParity();
-
 }; // class VQwSubsystemParity
 
 #endif // __VQWSUBSYSTEMPARITY__

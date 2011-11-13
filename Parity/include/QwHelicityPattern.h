@@ -31,8 +31,13 @@ class QwHelicityPattern{
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwHelicityPattern();
  public:
+  /// Constructor with subsystem array
   QwHelicityPattern(QwSubsystemArrayParity &event);
+  /// Virtual destructor
   virtual ~QwHelicityPattern() { };
 
   /// \brief Define the configuration options

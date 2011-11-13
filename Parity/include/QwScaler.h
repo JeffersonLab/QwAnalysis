@@ -15,12 +15,19 @@
 
 class QwScaler: public VQwSubsystemParity, public MQwSubsystemCloneable<QwScaler>
 {
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwScaler();
 
   public:
 
-    /// \brief Constructor
-    QwScaler(TString region_tmp);
-    /// \brief Destructor
+    /// Constructor with name
+    QwScaler(const TString& name);
+    /// Copy constructor
+    QwScaler(const QwScaler& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source)
+    { this->Copy(&source); }
+    /// Destructor
     virtual ~QwScaler();
 
     // Handle command line options

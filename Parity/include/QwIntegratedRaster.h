@@ -54,11 +54,21 @@ class QwIntegratedRasterDetectorID{
 ******************************************************************/
 class QwIntegratedRaster : public VQwSubsystemParity, public MQwSubsystemCloneable<QwIntegratedRaster> {
   /////  
-public:
-  QwIntegratedRaster(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
-   {
-   };
 
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwIntegratedRaster();
+
+ public:
+  /// Constructor with name
+  QwIntegratedRaster(const TString& name)
+  : VQwSubsystem(name),VQwSubsystemParity(name)
+  { };
+  /// Copy constructor
+  QwIntegratedRaster(const QwIntegratedRaster& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
   virtual ~QwIntegratedRaster() { };
 
 

@@ -30,11 +30,19 @@ class QwComptonElectronDetector:
   public VQwSubsystemParity,
   public MQwSubsystemCloneable<QwComptonElectronDetector> {
 
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwComptonElectronDetector();
+
   public:
 
-    /// \brief Constructor
-    QwComptonElectronDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
-    /// \brief Destructor
+    /// Constructor with name
+    QwComptonElectronDetector(const TString& name): VQwSubsystem(name), VQwSubsystemParity(name) { };
+    /// Copy constructor
+    QwComptonElectronDetector(const QwComptonElectronDetector& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source)
+    { this->Copy(&source); }
+    /// Virtual destructor
     virtual ~QwComptonElectronDetector() { };
 
 

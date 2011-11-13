@@ -35,8 +35,14 @@ class QwMainDetector: public VQwSubsystemTracking, public MQwSubsystemCloneable<
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwMainDetector();
+
  public:
-  QwMainDetector(TString region_tmp);
+  /// Constructor with name
+  QwMainDetector(const TString& name);
+  /// Virtual destructor
   virtual ~QwMainDetector();
 
   /// Copying is not supported for tracking subsystems

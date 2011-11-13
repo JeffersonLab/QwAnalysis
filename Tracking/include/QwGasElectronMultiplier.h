@@ -34,9 +34,14 @@ class QwGasElectronMultiplier: public VQwSubsystemTracking, public MQwSubsystemC
    *
    *
    ******************************************************************/
- public:
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwGasElectronMultiplier();
 
-  QwGasElectronMultiplier(TString region_tmp);
+ public:
+  /// Constructor with name
+  QwGasElectronMultiplier(const TString& name);
+  /// Virtual destructor
   virtual ~QwGasElectronMultiplier();
 
   /// Copying is not supported for tracking subsystems

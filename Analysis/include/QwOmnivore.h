@@ -15,10 +15,17 @@
 template<class VQwSubsystem_t>
 class QwOmnivore: public VQwSubsystem_t {
 
-  public:
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwOmnivore();
 
-    /// Default constructor
+  public:
+    /// Constructor with name
     QwOmnivore(const TString& name): VQwSubsystem(name),VQwSubsystem_t(name) { };
+    /// Copy constructor
+    QwOmnivore(const QwOmnivore& source)
+    : VQwSubsystem(source),VQwSubsystem_t(source)
+    { this->Copy(&source); }
     /// Virtual destructor
     virtual ~QwOmnivore() { };
 

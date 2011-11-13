@@ -21,10 +21,10 @@ const Bool_t QwScanner::bStoreRawData = kTRUE;
 const UInt_t QwScanner::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwScanner::kMaxNumberOfChannelsPerModule = 32;
 
-QwScanner::QwScanner(TString name)
-    :VQwSubsystem(name),
-    VQwSubsystemParity(name),
-    VQwSubsystemTracking(name)
+QwScanner::QwScanner(const TString& name)
+: VQwSubsystem(name),
+  VQwSubsystemParity(name),
+  VQwSubsystemTracking(name)
 {
   fDEBUG = 0;
   fEventTypeMask = 0xffff; // explicit because of diamond inheritance

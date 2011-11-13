@@ -30,8 +30,14 @@ class QwTriggerScintillator: public VQwSubsystemTracking, public MQwSubsystemClo
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwTriggerScintillator();
+
  public:
-  QwTriggerScintillator(TString region_tmp);
+  /// Constructor with name
+  QwTriggerScintillator(const TString& name);
+  /// Virtual destructor
   virtual ~QwTriggerScintillator();
 
   /// Copying is not supported for tracking subsystems

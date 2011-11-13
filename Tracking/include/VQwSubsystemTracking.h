@@ -31,6 +31,11 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
    *         with the CODA routines.
    *
    ******************************************************************/
+  private:
+
+    /// Private default constructor (not implemented, will throw linker error on use)
+    VQwSubsystemTracking();
+
   public:
 
     /// Constructor with name
@@ -83,11 +88,6 @@ class VQwSubsystemTracking: virtual public VQwSubsystem {
     /// Tree indices
     size_t fTreeArrayIndex;
     size_t fTreeArrayNumEntries;
-
-  private:
-
-    /// Private default constructor (not implemented, will throw linker error on use)
-    VQwSubsystemTracking();
 
 }; // class VQwSubsystemTracking
 

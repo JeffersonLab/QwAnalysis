@@ -38,11 +38,21 @@ class QwBeamDetectorID;
 *  Class:
 ******************************************************************/
 class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamLine> {
+
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwBeamLine();
+
  public:
-
-  QwBeamLine(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),index_4mhz(-1)
-    { };
-
+  /// Constructor with name
+  QwBeamLine(const TString& name)
+  : VQwSubsystem(name),VQwSubsystemParity(name),index_4mhz(-1)
+  { };
+  /// Copy constructor
+  QwBeamLine(const QwBeamLine& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
   virtual ~QwBeamLine() { };
 
 

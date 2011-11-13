@@ -30,10 +30,14 @@ class QwDatabase;
 
 class QwRaster: public VQwSubsystemTracking, public MQwSubsystemCloneable<QwRaster>
 {
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwRaster();
 
  public:
-
-   QwRaster(TString region_tmp);
+   /// Constructor with name
+   QwRaster(const TString& name);
+   /// Virtual destructor
    virtual ~QwRaster();
 
    /// Copying is not supported for tracking subsystems

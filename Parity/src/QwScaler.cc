@@ -26,8 +26,8 @@ void QwScaler::ProcessOptions(QwOptions &options)
 /**
  * Constructor
  */
-QwScaler::QwScaler(TString region_tmp)
-: VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
+QwScaler::QwScaler(const TString& name)
+: VQwSubsystem(name),VQwSubsystemParity(name)
 {
   // Nothing, really
 }

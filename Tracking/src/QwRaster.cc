@@ -21,11 +21,10 @@ RegisterSubsystemFactory(QwRaster);
 const UInt_t QwRaster::kMaxNumberOfModulesPerROC     = 21;
 const UInt_t QwRaster::kMaxNumberOfChannelsPerModule = 32;
 
-QwRaster::QwRaster(TString region_tmp)
-        :VQwSubsystem(region_tmp),
-        VQwSubsystemTracking(region_tmp)
+QwRaster::QwRaster(const TString& name)
+: VQwSubsystem(name),
+  VQwSubsystemTracking(name)
 {
-
     ClearAllBankRegistrations();
 }
 

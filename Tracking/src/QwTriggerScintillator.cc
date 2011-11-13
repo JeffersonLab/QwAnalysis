@@ -17,8 +17,8 @@ const UInt_t QwTriggerScintillator::kMaxNumberOfModulesPerROC     = 21;
 RegisterSubsystemFactory(QwTriggerScintillator);
 
 
-QwTriggerScintillator::QwTriggerScintillator(TString region_tmp):VQwSubsystem(region_tmp),
-                                                         VQwSubsystemTracking(region_tmp)
+QwTriggerScintillator::QwTriggerScintillator(const TString& name)
+: VQwSubsystem(name),VQwSubsystemTracking(name)
 {
   ClearAllBankRegistrations();
   fF1TDContainer = new QwF1TDContainer();

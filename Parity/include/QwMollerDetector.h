@@ -63,12 +63,21 @@ class QwMollerDetector:
   public VQwSubsystemParity,
   public MQwSubsystemCloneable<QwMollerDetector> {
 
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwMollerDetector();
+
   public:
 
-    /// \brief Constructor
-    QwMollerDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
-
-    /// \brief Destructor
+    /// Constructor with name
+    QwMollerDetector(const TString& name)
+    : VQwSubsystem(name), VQwSubsystemParity(name)
+    { };
+    /// Copy constructor
+    QwMollerDetector(const QwMollerDetector& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source)
+    { this->Copy(&source); }
+    /// Virtual destructor
     virtual ~QwMollerDetector() { };
 
     /* derived from VQwSubsystem */

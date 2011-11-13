@@ -36,16 +36,20 @@ enum HelicityRootSavingType{kHelSaveMPS = 0,
 ///
 /// \ingroup QwAnalysis_BL
 class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHelicity> {
-  /////
+
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwHelicity();
+
  public:
-
-
- QwHelicity(TString region_tmp): VQwSubsystem(region_tmp),
-    VQwSubsystemParity(region_tmp),
-   fHelicityBitPattern(kDefaultHelicityBitPattern),
-   fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
-   fEventNumberFirst(-1),fPatternNumberFirst(-1),
-   fSuppressMPSErrorMsgs(kFALSE)
+  /// Constructor with name
+  QwHelicity(const TString& name)
+  : VQwSubsystem(name),
+    VQwSubsystemParity(name),
+    fHelicityBitPattern(kDefaultHelicityBitPattern),
+    fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
+    fEventNumberFirst(-1),fPatternNumberFirst(-1),
+    fSuppressMPSErrorMsgs(kFALSE)
   {
     ClearErrorCounters();
     // Default helicity delay to two patterns.
@@ -70,8 +74,12 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
     fGoodPattern=kFALSE;
     fHelicityDecodingMode=-1;
   };
-
-  virtual ~QwHelicity() { };
+  /// Copy constructor
+  QwHelicity(const QwHelicity& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
+  virtual ~QwHelicity() { }
 
 
 

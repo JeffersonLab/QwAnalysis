@@ -27,8 +27,8 @@ const UInt_t QwMainDetector::kMaxNumberOfModulesPerROC     = 21;
 // Register this subsystem with the factory
 RegisterSubsystemFactory(QwMainDetector);
 
-QwMainDetector::QwMainDetector(TString region_tmp):VQwSubsystem(region_tmp),
-						   VQwSubsystemTracking(region_tmp)
+QwMainDetector::QwMainDetector(const TString& name)
+: VQwSubsystem(name),VQwSubsystemTracking(name)
 {
   fDEBUG = false;
   ClearAllBankRegistrations();

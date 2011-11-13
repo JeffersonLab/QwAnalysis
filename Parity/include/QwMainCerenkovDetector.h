@@ -34,8 +34,14 @@ class QwMainCerenkovDetector:
    *
    *
    ******************************************************************/
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwMainCerenkovDetector();
+
  public:
- QwMainCerenkovDetector(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),bNormalization(kFALSE)
+  /// Constructor with name
+  QwMainCerenkovDetector(const TString& name)
+  : VQwSubsystem(name),VQwSubsystemParity(name),bNormalization(kFALSE)
   {
     fTargetCharge.InitializeChannel("q_targ","derived");
     fTargetX.InitializeChannel("x_targ","derived");
@@ -44,7 +50,11 @@ class QwMainCerenkovDetector:
     fTargetYprime.InitializeChannel("yp_targ","derived");
     fTargetEnergy.InitializeChannel("e_targ","derived");
   };
-
+  /// Copy constructor
+  QwMainCerenkovDetector(const QwMainCerenkovDetector& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
   virtual ~QwMainCerenkovDetector() { };
 
   /*  Member functions derived from VQwSubsystemParity. */

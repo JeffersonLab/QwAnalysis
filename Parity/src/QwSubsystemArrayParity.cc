@@ -13,6 +13,24 @@
 // Qweak headers
 #include "VQwSubsystemParity.h"
 
+//*****************************************************************
+
+QwSubsystemArrayParity::QwSubsystemArrayParity(const QwSubsystemArrayParity& source)
+{
+  this->Copy(&source);
+}
+
+//// TODO real copy constructor
+//QwSubsystemArrayParity::QwSubsystemArrayParity(const QwSubsystemArrayParity& source)
+//: QwSubsystemArray(source)
+//{
+//  // Copy function for contain test
+//  fnCanContain = CanContain;
+//
+//  // Copy error flags
+//  fErrorFlag = source.fErrorFlag;
+//  fErrorFlagTreeIndex = source.fErrorFlagTreeIndex;
+//}
 
 //*****************************************************************
 

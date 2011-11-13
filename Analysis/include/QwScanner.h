@@ -34,13 +34,23 @@
 #include "QwPMT_Channel.h"
 #include "QwF1TDContainer.h"
 
-class QwScanner: public VQwSubsystemParity, public VQwSubsystemTracking,
-    public MQwSubsystemCloneable<QwScanner>
-  {
+class QwScanner:
+  public VQwSubsystemParity,
+  public VQwSubsystemTracking,
+  public MQwSubsystemCloneable<QwScanner> {
+
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwScanner();
 
   public:
-
-    QwScanner(TString region_tmp);
+    /// Constructor with name
+    QwScanner(const TString& name);
+    /// Copy constructor
+    QwScanner(const QwScanner& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source),VQwSubsystemTracking(source)
+    { this->Copy(&source); }
+    /// Virtual destructor
     virtual ~QwScanner();
 
     // VQwSubsystem methods

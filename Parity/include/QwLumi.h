@@ -57,12 +57,23 @@ class QwLumiDetectorID{
 class QwLumi : public VQwSubsystemParity, public MQwSubsystemCloneable<QwLumi> {
   /////  
   friend class QwCombinedPMT;
- public:
-  QwLumi(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp),bNormalization(kFALSE)
-   {
-    fTargetCharge.InitializeChannel("q_targ","derived");
-   };
 
+ private:
+  /// Private default constructor (not implemented, will throw linker error on use)
+  QwLumi();
+
+ public:
+  /// Constructor with name
+  QwLumi(const TString& name)
+  : VQwSubsystem(name),VQwSubsystemParity(name),bNormalization(kFALSE)
+  {
+    fTargetCharge.InitializeChannel("q_targ","derived");
+  };
+  /// Copy constructor
+  QwLumi(const QwLumi& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
   virtual ~QwLumi() { };
 
 

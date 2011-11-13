@@ -34,11 +34,19 @@ class QwComptonPhotonDetector:
   public MQwV775TDC,
   public MQwSubsystemCloneable<QwComptonPhotonDetector> {
 
+  private:
+    /// Private default constructor (not implemented, will throw linker error on use)
+    QwComptonPhotonDetector();
+
   public:
 
-    /// \brief Constructor
+    /// Constructor with name
     QwComptonPhotonDetector(TString name): VQwSubsystem(name), VQwSubsystemParity(name) { };
-    /// \brief Destructor
+    /// Copy constructor
+    QwComptonPhotonDetector(const QwComptonPhotonDetector& source)
+    : VQwSubsystem(source),VQwSubsystemParity(source)
+    { this->Copy(&source); }
+    /// Virtual destructor
     virtual ~QwComptonPhotonDetector() { };
 
 

@@ -40,11 +40,15 @@ class QwModChannelID;
 ******************************************************************/
 class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamMod> {
 
+ private:
+  ///
+  QwBeamMod();
+
  public:
-
-  QwBeamMod(TString region_tmp):VQwSubsystem(region_tmp),VQwSubsystemParity(region_tmp)
+  /// Constructor with name
+  QwBeamMod(const TString& name)
+  : VQwSubsystem(name),VQwSubsystemParity(name)
     {
-
       // these declaration need to be coherent with the enum vector EBeamInstrumentType
       fgModTypeNames.push_back(""); // Need to define these wrt to our detector types.
       fgModTypeNames.push_back("");
@@ -53,7 +57,11 @@ class QwBeamMod: public VQwSubsystemParity, public MQwSubsystemCloneable<QwBeamM
       for(size_t i=0;i<fgModTypeNames.size();i++)
         fgModTypeNames[i].ToLower();
     };
-
+  /// Copy constructor
+  QwBeamMod(const QwBeamMod& source)
+  : VQwSubsystem(source),VQwSubsystemParity(source)
+  { this->Copy(&source); }
+  /// Virtual destructor
   virtual ~QwBeamMod() { };
 
  std::vector<TString> fgModTypeNames;
