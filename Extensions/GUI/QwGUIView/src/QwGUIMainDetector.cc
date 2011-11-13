@@ -1613,6 +1613,9 @@ TRootEmbeddedCanvas *QwGUIMainDetectorDataType::MakeDataTab(TGTab *dMDTab,
     if(n == 14){xn = 4; yn = 4;}
     if(n == 15){xn = 4; yn = 4;}
     if(n == 16){xn = 4; yn = 4;}
+    if(n == 17){xn = 4; yn = 5;}
+    if(n == 18){xn = 4; yn = 5;}
+    if(n == 19){xn = 4; yn = 5;}
 
     // xn = TMath::Floor(TMath::Sqrt(n));
     // yn = TMath::Ceil(TMath::Sqrt(n));
@@ -1986,18 +1989,10 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
 	dettype.ToLower();
 	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
 	namech.ToLower();
-	if(modnum == 4){
 
-	  if(MPSTree->GetBranch(namech.Data()))
-	    MainDetectorMscYieldNames.push_back(namech);
-	  
-	  namech.Prepend("asym_");
-	  if(HELTree->GetBranch(namech.Data()))
-	    MainDetectorMscAsymNames.push_back(namech);
 
-	  MAIN_MSC_INDEX++;
-	}
-	if(modnum < 4){
+	if((namech.Contains("pos") || namech.Contains("neg"))
+	   && !namech.Contains("9pos") && !namech.Contains("9neg")){
 
 	  if(MPSTree->GetBranch(namech.Data()))
 	    MainDetectorPMTYieldNames.push_back(namech);
@@ -2005,8 +2000,19 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
 	  namech.Prepend("asym_");
 	  if(HELTree->GetBranch(namech.Data()))
 	    MainDetectorPMTAsymNames.push_back(namech);
-
+	  
 	  MAIN_PMT_INDEX++;
+
+	}
+	else{
+	  // if(modnum == 4){}
+	  if(MPSTree->GetBranch(namech.Data()))
+	    MainDetectorMscYieldNames.push_back(namech);
+	  
+	  namech.Prepend("asym_");
+	  if(HELTree->GetBranch(namech.Data()))
+	    MainDetectorMscAsymNames.push_back(namech);
+	  MAIN_MSC_INDEX++;
 	}
       }
       else if (modtype == "VPMT"){
@@ -2017,7 +2023,7 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
 	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
 	namech.ToLower();
 
-	if(combinedchans == 2){
+	if(namech.Contains("barsum")){
 
 	  if(MPSTree->GetBranch(namech.Data()))
 	    MainDetectorYieldNames.push_back(namech);
@@ -2026,10 +2032,9 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
 	  if(HELTree->GetBranch(namech.Data()))
 	    MainDetectorAsymNames.push_back(namech);
 
-// 	  MainDetectorNames.push_back(namech);
 	  MAIN_DET_INDEX++;
 	}
-	if(combinedchans >= 4){
+	else{
 
 // 	  if(MPSTree->GetBranch(namech.Data()))
 // 	    MainDetectorYieldNames.push_back(namech);
