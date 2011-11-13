@@ -1519,7 +1519,7 @@ int RDataContainer::ReadData(const char *buffer, int size, int start)
 		return FILE_PROCESS_OK;
 	      }
 	      else if(dType == FT_TEXT){
-		if(!fread((char*)buffer,sizeof(char),size-1,dFp)){
+		if(!fread((char*)buffer,sizeof(char),size,dFp)){
 		  FlushMessages();
 		  SetMessage(READ_PNTR_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
 		  return(FILE_READ_ERROR);
@@ -1932,8 +1932,8 @@ int RDataContainer::WriteData(const char* buffer ,int size)
 		}
 	      }
 	      else if(dType == FT_TEXT){
-		if(fwrite(buffer,sizeof(char),size-1,dFp) != 
-		   (unsigned int)(size-1)){
+		if(fwrite(buffer,sizeof(char),size,dFp) != 
+		   (unsigned int)(size)){
 		  FlushMessages();
 		  SetMessage(WRITE_PNTR_ERROR,"WriteData",(int)dType,
 			     M_CONT_ERROR_MSG);
@@ -1941,7 +1941,7 @@ int RDataContainer::WriteData(const char* buffer ,int size)
 		}
 		memset(dMiscbuffer2,'\0',sizeof(dMiscbuffer2));
 		memset(dMiscbuffer,'\0',sizeof(dMiscbuffer));
-		sprintf(dMiscbuffer2,"Wrote : %d bytes to file %s\n",size-1,
+		sprintf(dMiscbuffer2,"Wrote : %d bytes to file %s\n",size,
 			strrchr(GetFileName(),'/') ? strrchr(GetFileName(),'/') : 
 			GetFileName());
 		sprintf(dMiscbuffer,"File size is now: %ld\n",GetFileSize());

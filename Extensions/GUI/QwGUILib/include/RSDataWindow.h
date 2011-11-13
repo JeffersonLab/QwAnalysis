@@ -137,7 +137,7 @@ class RSDataWindow : public TGTransientFrame { //TQObject {
 
   void                 PrintCanvas();
 
-  void                 SaveCanvas();
+  void                 SaveCanvas(const char* file = NULL);
   void                 SavePlotObjects();
   void                 ScaleWindowData();
   Bool_t               SetMessage(const char *msg, const char *func,Int_t TS,Int_t MESSAGETYPE);

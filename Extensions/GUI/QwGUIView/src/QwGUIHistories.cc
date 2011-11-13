@@ -320,7 +320,7 @@ void QwGUIHistories::WriteHistory()
 	  for(int j = 0; j < PlotArray[i]->GetN(); j++){
 	    memset(row,'\0',sizeof(row));
 	    sprintf(row,"%s,%d,%1.3e,%1.3e\n",PlotArray[i]->GetName(),(Int_t)x[j],y[j],ey[j]);
-	    HistoryData->WriteData(row,strlen(row)+1);
+	    HistoryData->WriteData(row,strlen(row));
 	  }
 	}
       }
@@ -566,6 +566,7 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
     gPad->SetBottomMargin(0.15);
     gPad->Modified();
     gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
 
 
     if(n < boxes.size() && boxes[n]){

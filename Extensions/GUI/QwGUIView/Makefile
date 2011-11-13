@@ -34,6 +34,7 @@ OBJECTS       += QwGUISuperCanvas.o
 OBJECTS       += QwGUIEventWindowSelectionDialog.o
 # OBJECTS       += QwGUIDatabase.o
 OBJECTS       += QwGUIHistories.o
+OBJECTS       += QwGUIHCLogEntryDialog.o
 
 
 # Now append the object files that Don't require a CINT dictionary.

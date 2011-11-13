@@ -138,6 +138,12 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   Resize(GetDefaultSize());
   MapWindow();
 
+
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+
   if(!GetSubSystemPtr("Histories"))
     HistoriesSubSystem = new QwGUIHistories(fClient->GetRoot(), this, dTab,"Histories",
 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
@@ -189,11 +195,6 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   //   RemoveTab(InjectorSubSystem);
   //   RemoveTab(HallCBeamlineSubSystem);
   // }
-
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH"));
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
-  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
   
   dTab->SetTab("Main",kTrue);
 }
@@ -347,6 +348,7 @@ void QwGUIMain::MakeUtilityLayout()
   dPrefixEntry->Associate(this);
   dUtilityFrame->AddFrame(dPrefixEntry,dPrefixEntryLayout);
   dPrefixEntry->Resize(100,20);
+  
 
 // //   dAddSegmentLabel = new TGLabel(dUtilityFrame,"Add Segments");  
 //    dAddSegmentLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
@@ -401,7 +403,7 @@ void QwGUIMain::MakeMainTab()
 				    "QwGUIMain",
 				    this,"MainTabEvent(Int_t,Int_t,Int_t,TObject*)");
 
-  SplitCanvas(dMainCanvas,3,3,"Main");
+  SplitCanvas(dMainCanvas,3,3,0);
 
 }
 
@@ -1025,12 +1027,13 @@ void QwGUIMain::PlotMainData()
     dMainHistos.push_back((TH1F*)(hst->Clone()));
     dMainHistos.back()->SetDirectory(0);
     dMainHistos.back()->Draw("");
-    
+
     gPad->SetLeftMargin(0.15);
     gPad->SetTopMargin(0.15);
     gPad->SetBottomMargin(0.15);
     gPad->Modified();
     gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
     dMainPlotsArray.push_back(dMainHistos.back());
     dHistoryPlotsArray.push_back(dMainHistos.back());
 
@@ -1078,6 +1081,7 @@ void QwGUIMain::PlotMainData()
     gPad->SetBottomMargin(0.15);
     gPad->Modified();
     gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
     dMainPlotsArray.push_back(dMainHistos.back());
     dHistoryPlotsArray.push_back(dMainHistos.back());
 
@@ -1125,6 +1129,7 @@ void QwGUIMain::PlotMainData()
     gPad->SetBottomMargin(0.15);
     gPad->Modified();
     gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
     dMainPlotsArray.push_back(dMainHistos.back());      
     dHistoryPlotsArray.push_back(dMainHistos.back());
 
@@ -1169,6 +1174,7 @@ void QwGUIMain::PlotMainData()
     gPad->SetBottomMargin(0.15);
     gPad->Modified();
     gPad->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save", 250);    
     dMainPlotsArray.push_back(dMainHistos.back());      
     dHistoryPlotsArray.push_back(dMainHistos.back());
 
@@ -1218,6 +1224,7 @@ void QwGUIMain::PlotMainData()
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
       gPad->Update();
+      gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
       dMainPlotsArray.push_back(dMainHistos.back());      
       dHistoryPlotsArray.push_back(dMainHistos.back());
 
@@ -1264,6 +1271,7 @@ void QwGUIMain::PlotMainData()
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
       gPad->Update();
+      gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
       dMainPlotsArray.push_back(dMainHistos.back());      
       dHistoryPlotsArray.push_back(dMainHistos.back());
 
@@ -1326,6 +1334,7 @@ void QwGUIMain::PlotMainData()
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
       gPad->Update();  
+      gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
       dMainPlotsArray.push_back(dMainHistos.back());      
       dHistoryPlotsArray.push_back(dMainHistos.back());
 
@@ -1361,6 +1370,7 @@ void QwGUIMain::PlotMainData()
       gPad->SetBottomMargin(0.15);
       gPad->Modified();
       gPad->Update();      
+      gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
       dMainPlotsArray.push_back(dMainGraphs.back());      
     }    
     else{
@@ -1444,6 +1454,7 @@ void QwGUIMain::PlotMainData()
       gPad->Modified();
       gPad->Update();  
       dMainHistos.push_back(error_summary);
+      gPad->GetFrame()->SetToolTipText("Double-click plot to edit, post, and save.", 250);    
       dMainPlotsArray.push_back(dMainHistos.back());      
     }
     else{
@@ -2486,7 +2497,7 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	SetEventMode(kTrue);
 	SetAddSegments(kFalse);
 	SetSubSystemSegmentAdd(kFalse);
-	dAddSegmentCheckButton->SetState(kButtonUp);
+	// dAddSegmentCheckButton->SetState(kButtonUp);
 	OpenRootFile(kTrue);
 	break;
 

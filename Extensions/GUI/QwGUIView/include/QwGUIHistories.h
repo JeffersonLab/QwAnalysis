@@ -50,6 +50,7 @@ using std::vector;
 #include <TLeaf.h>
 #include <TVirtualFFT.h>
 #include <TPaveText.h>
+#include <TFrame.h>
 #include "QwGUISubSystem.h"
 #include "QwGUIDataWindow.h"
 #include "RNumberEntryDialog.h"

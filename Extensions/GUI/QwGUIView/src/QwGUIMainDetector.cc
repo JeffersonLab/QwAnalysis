@@ -1163,6 +1163,8 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawHistogram(j);
 	      PlotType = PLOT_TYPE_HISTO;
 	      gPad->SetLogy(1);
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
+
 
 	    }
 	    if(CurrentPlotMenuItemID == GraphMenuID){
@@ -1171,6 +1173,7 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawGraph(j);
 	      PlotType = PLOT_TYPE_GRAPH;
 	      gPad->SetLogy(0);
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
 	      
 	    }
 	    if(CurrentPlotMenuItemID == FFTMenuID){
@@ -1179,6 +1182,7 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawFFTHistogram(j);
 	      PlotType = PLOT_TYPE_HISTO;
 	      gPad->SetLogy(1);
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
 	      
 	    }
 	    if(CurrentPlotMenuItemID == ProfMenuID){
@@ -1187,6 +1191,7 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawCorrelationProfile(j);
 	      PlotType = PLOT_TYPE_PROFILE;
 	      gPad->SetLogy(0);
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
 	      
 	    }
 	    if(CurrentPlotMenuItemID == ProjectionMenuID){
@@ -1195,12 +1200,15 @@ void QwGUIMainDetectorDataType::PlotData()
 	      GetDetector(i)->DrawCorrelationProjection(j);
 	      PlotType = PLOT_TYPE_HISTO;
 	      gPad->SetLogy(1);	      
+	      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
+
 	    }
 	  }
 	}
       }
       mc->Modified();
       mc->Update();
+      gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
     }
   }
   else{    
@@ -1220,6 +1228,7 @@ void QwGUIMainDetectorDataType::PlotData()
     }
     mc->Modified();
     mc->Update();
+    gPad->GetFrame()->SetToolTipText("Double-click this plot to post, edit, and save.", 250);    
     
   }
 }
@@ -1680,10 +1689,10 @@ QwGUIMainDetector::QwGUIMainDetector(const TGWindow *p, const TGWindow *main, co
 
   RemoveSelectedDataWindow();
 
-  // QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH"));
-  // QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
-  // QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
-  // QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWSCRATCH"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QW_PRMINPUT"));
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Parity/prminput");
+  QwParameterFile::AppendToSearchPath(getenv_safe_string("QWANALYSIS") + "/Analysis/prminput");
 
   AddThisTab(this);
   dActiveTab = -1;
@@ -1949,8 +1958,9 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
   MAIN_DET_COMBIND = 0;
   MAIN_MSC_INDEX = 0;
 
-  //  TString mapfile = Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH"));
-  TString mapfile = Form("qweak_maindet.map");
+  // TString mapfile = Form("%s/setupfiles/qweak_maindet.map",gSystem->Getenv("QWSCRATCH"));
+  // TString mapfile = Form("qweak_maindet.map");
+  TString mapfile = Form("%s/Parity/prminput/qweak_maindet.map",gSystem->Getenv("QWANALYSIS"));
   TString varname, varvalue;
   TString modtype, dettype, namech, nameofcombinedchan;
   Int_t modnum, channum, combinedchans;
@@ -1968,6 +1978,7 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
     else {
       //  Break this line into tokens to process it.
       modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+
       if (modtype == "VQWK"){
 	modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
 	channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
@@ -2005,6 +2016,7 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
 	dettype.ToLower();
 	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
 	namech.ToLower();
+
 	if(combinedchans == 2){
 
 	  if(MPSTree->GetBranch(namech.Data()))
@@ -2023,9 +2035,9 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
 // 	    MainDetectorYieldNames.push_back(namech);
 	  
 	  namech.Prepend("asym_");
-	  if(HELTree->GetBranch(namech.Data()))
+	  if(HELTree->GetBranch(namech.Data())){
 	    MainDetectorCombinationNames.push_back(namech);
-
+	  }
 	  MAIN_DET_COMBIND++;
 	}
 

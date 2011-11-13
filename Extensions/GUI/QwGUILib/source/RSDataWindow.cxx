@@ -573,7 +573,7 @@ void RSDataWindow::WriteMiscData()
   TGFileInfo fi;
   fi.fFileTypes = (const char **)filetypes;
   fi.fIniDir    = StrDup(dir);
-  new TGFileDialog(fClient->GetRoot(), this, kFDSave, &fi);
+  new TGFileDialog(fClient->GetRoot(), 0 /*this*/, kFDSave, &fi);
   dir = fi.fIniDir;
 
   Int_t ngrphs = 0;
@@ -631,7 +631,9 @@ void RSDataWindow::WriteMiscData()
       cont->WriteData(gr->GetX(),gr->GetY(),gr->GetN(), gr->GetName());
       cont->Close();
     }
-    else if(obj && obj->InheritsFrom("TH1D")){
+    else if(obj && obj->InheritsFrom("TH1")){
+
+      
     }
   }
 }
@@ -1024,23 +1026,32 @@ Bool_t RSDataWindow::SetMessage(const char *msg, const char *func, int TS, int M
 }
 
 
-void RSDataWindow::SaveCanvas()
+void RSDataWindow::SaveCanvas(const char* file)
 {
-  const char *filetypes[] = { "Postscript",     "*.ps", 
-			      0,               0 };
+  TString filename;
 
-  static TString dir(".");
-  TGFileInfo fi;
-  fi.fFileTypes = (const char **)filetypes;
-  fi.fIniDir    = StrDup(dir);
-  new TGFileDialog(fClient->GetRoot(), this, kFDSave, &fi);
-  dir = fi.fIniDir;
+  if(!file){
+    const char *filetypes[] = { "Postscript",     "*.ps",
+				"Portable Document Format",     "*.pdf",
+				0,               0 };
 
-  if(fi.fFilename)
-    fPlotCanvas->Print(fi.fFilename);
+    static TString dir(".");
+    TGFileInfo fi;
+    fi.fFileTypes = (const char **)filetypes;
+    fi.fIniDir    = StrDup(dir);
+    new TGFileDialog(fClient->GetRoot(), this, kFDSave, &fi);
+    dir = fi.fIniDir;
+
+    if(fi.fFilename)
+      filename = fi.fFilename;
+  }
+  else
+    filename = file;
+
+  fPlotCanvas->SaveAs(filename.Data());
   
   memset(dMiscbuffer,'\0',MSG_SIZE_MAX);
-  sprintf(dMiscbuffer,"Plot saved as %s",fi.fFilename);
+  sprintf(dMiscbuffer,"Plot saved as %s",filename.Data());
   SetMessage(dMiscbuffer,"",(int)dPtype,M_DTWIND_LOGTXTTS);
 }
 
