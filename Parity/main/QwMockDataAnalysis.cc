@@ -86,8 +86,7 @@ int main(int argc, char* argv[])
   QwHelicityPattern helicitypattern(detectors);
 
   // Running sum
-  QwSubsystemArrayParity runningsum;
-  runningsum.Copy(&detectors);
+  QwSubsystemArrayParity runningsum(detectors);
 
   // Get the helicity
   QwHelicity* helicity = (QwHelicity*) detectors.GetSubsystemByName("Helicity info");

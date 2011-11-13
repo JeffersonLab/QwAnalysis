@@ -21,10 +21,12 @@ class QwEventRing {
  *  averages.
  *
  ******************************************************************/
+ private:
+  QwEventRing();
+
  public:
-  QwEventRing() { };
-  QwEventRing(QwOptions &options) { ProcessOptions(options); };
-  QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size);//this will create a fixed size vent ring
+  QwEventRing(QwOptions &options, QwSubsystemArrayParity &event);
+  QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size); //this will create a fixed size event ring
   virtual ~QwEventRing() { };
 
   /// \brief Define options
@@ -39,9 +41,6 @@ class QwEventRing {
 
   /// \brief Return the read status of the ring
   Bool_t IsReady();
-
-  void SetupRing(QwSubsystemArrayParity &event);
-
 
  private:
 

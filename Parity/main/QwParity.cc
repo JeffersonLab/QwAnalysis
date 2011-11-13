@@ -107,11 +107,8 @@ Int_t main(Int_t argc, Char_t* argv[])
     QwHelicityPattern helicitypattern(detectors);
     helicitypattern.ProcessOptions(gQwOptions);
 
-    ///  Create the event ring
-    QwEventRing eventring;
-    eventring.ProcessOptions(gQwOptions);
-    ///  Set up the ring with the subsystem array
-    eventring.SetupRing(detectors);
+    ///  Create the event ring with the subsystem array
+    QwEventRing eventring(gQwOptions,detectors);
     //  Make a copy of the detectors object to hold the
     //  events which pass through the ring.
     QwSubsystemArrayParity ringoutput(detectors);

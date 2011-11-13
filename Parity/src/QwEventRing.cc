@@ -3,64 +3,56 @@
 
 
 
-QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size){
-  
+QwEventRing::QwEventRing(QwSubsystemArrayParity &event, Int_t ring_size)
+: fRollingAvg(event)
+{
   fRING_SIZE=ring_size;
-   fEvent_Ring.resize(fRING_SIZE);
+  fEvent_Ring.resize(fRING_SIZE,event);
+
+  bRING_READY=kFALSE;
+  bEVENT_READY=kTRUE;
+  fNextToBeFilled=0;
+  fNextToBeRead=0;
+  
+  //open the log file
+  if (bDEBUG_Write)
+    out_file = fopen("Ring_log.txt", "wt");
+}
+
+
+QwEventRing::QwEventRing(QwOptions &options, QwSubsystemArrayParity &event)
+: fRollingAvg(event)
+{
+  ProcessOptions(options);
+
+  fEvent_Ring.resize(fRING_SIZE,event);
 
   bRING_READY=kFALSE;
   bEVENT_READY=kTRUE;
   fNextToBeFilled=0;
   fNextToBeRead=0;
 
-  for(int i=0;i<fRING_SIZE;i++){
-    fEvent_Ring[i].Copy(&event); //populate the event ring
-  }
-  fRollingAvg.Copy(&event); //populate the rolling sum sub system
-  
   //open the log file
   if (bDEBUG_Write)
     out_file = fopen("Ring_log.txt", "wt");
-  
 }
 
 
-
-
-void QwEventRing::SetupRing(QwSubsystemArrayParity &event){
-  QwMessage<<" Ring size is "<<fRING_SIZE<<" events"<<QwLog::endl;
-  if (fRING_SIZE>10000){
-    QwError<<"Ring size is too large. Set a value below 10000 events."<<QwLog::endl;
-    exit(1);
-  }
-  fEvent_Ring.resize(fRING_SIZE);
-
-  bRING_READY=kFALSE;
-  bEVENT_READY=kTRUE;
-  fNextToBeFilled=0;
-  fNextToBeRead=0;
-
-  for(int i=0;i<fRING_SIZE;i++){
-    fEvent_Ring[i].Copy(&event); //populate the event ring
-  }
-  fRollingAvg.Copy(&event); //populate the rolling sum sub system
-  //open the log file
-  if (bDEBUG_Write)
-    out_file = fopen("Ring_log.txt", "wt");
-
-
-}
-
-void QwEventRing::DefineOptions(QwOptions &options){
+void QwEventRing::DefineOptions(QwOptions &options)
+{
   // Define the execution options
   options.AddDefaultOptions();
-  options.AddOptions()("ring.size", po::value<int>()->default_value(4800),"QwEventRing: ring/buffer size");
-  options.AddOptions()("ring.stability_cut", po::value<double>()->default_value(1),"QwEventRing: Stability ON/OFF");
-
+  options.AddOptions()("ring.size",
+      po::value<int>()->default_value(4800),
+      "QwEventRing: ring/buffer size");
+  options.AddOptions()("ring.stability_cut",
+      po::value<double>()->default_value(1),
+      "QwEventRing: Stability ON/OFF");
 }
 
-void QwEventRing::ProcessOptions(QwOptions &options){
-  //Reads Event Ring parameters from cmd  
+void QwEventRing::ProcessOptions(QwOptions &options)
+{
+  // Reads Event Ring parameters from cmd
   Double_t fStability;
   if (gQwOptions.HasValue("ring.size"))
     fRING_SIZE=gQwOptions.GetValue<int>("ring.size");
@@ -74,8 +66,8 @@ void QwEventRing::ProcessOptions(QwOptions &options){
     bStability=kFALSE;
  
 }
-void QwEventRing::push(QwSubsystemArrayParity &event){
-
+void QwEventRing::push(QwSubsystemArrayParity &event)
+{
   if (bDEBUG) QwMessage << "QwEventRing::push:  BEGIN" <<QwLog::endl;
 
   

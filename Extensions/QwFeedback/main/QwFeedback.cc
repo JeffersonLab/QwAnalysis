@@ -132,12 +132,8 @@ Int_t main(Int_t argc, Char_t* argv[])
       helicitypattern.UpdateGMClean(1);
     */
 
-    ///  Create the event ring
-    QwEventRing eventring;
-    eventring.ProcessOptions(gQwOptions);
-
-    ///  Set up the ring with the subsysten array
-    eventring.SetupRing(detectors);
+    ///  Create the event ring with the subsysten array
+    QwEventRing eventring(gQwOptions,detectors);
 
     ///  Create the running sum
     QwSubsystemArrayParity runningsum(detectors);
