@@ -66,6 +66,7 @@ ifeq ($(ARCH),Linux)
   CXX        =  g++
   LINKER     =  g++
   CFLAGS     =  -Wall -fPIC -O3
+  ###CFLAGS     =  -Wall -fPIC
 endif
 
 ifeq ($(ARCH),SunOS)
