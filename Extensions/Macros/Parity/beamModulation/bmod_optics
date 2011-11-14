@@ -1,0 +1,11 @@
+#!/bin/bash
+#
+# bmod_optics - Nuruzzaman 11/10/2011
+#
+# Run by doing:
+# ./bmod_optics run_number
+
+umask 002  || exit 11
+
+sg c-qweak "root -l -b -q 'bmod_bpms.C+($1)'"
+sg c-qweak "root -l -b -q 'bmod_beamline.C+($1)'"
