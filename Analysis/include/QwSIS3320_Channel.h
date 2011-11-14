@@ -120,7 +120,7 @@ class QwSIS3320_Channel: public VQwDataElement {
 
     Bool_t IsGoodEvent();
 
-    void Copy(const QwSIS3320_Channel *source);
+    void Copy(const VQwDataElement* source);
 
     void PrintValue() const;
     void PrintInfo() const;

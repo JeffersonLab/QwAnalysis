@@ -101,7 +101,6 @@ class QwCombinedBPM : public VQwBPM {
   void    SetBPMForCombo(const VQwBPM* bpm, Double_t charge_weight,  Double_t x_weight, Double_t y_weight,Double_t sumqw);
 
   void    Copy(const VQwDataElement *source);
-  void    Copy(const VQwBPM *source);
   void    Ratio(QwCombinedBPM &numer, QwCombinedBPM &denom);
   void    Ratio(VQwBPM &numer, VQwBPM &denom);
   void    Scale(Double_t factor);

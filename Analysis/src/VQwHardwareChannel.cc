@@ -32,42 +32,34 @@ VQwHardwareChannel::VQwHardwareChannel(const VQwHardwareChannel& value)
 {
 }
 
-
-VQwHardwareChannel::~VQwHardwareChannel()
+void VQwHardwareChannel::Copy(const VQwDataElement *source)
 {
-}
+  if (typeid(*source) == typeid(*this)) {
+    VQwDataElement::Copy(source);
+    const VQwHardwareChannel* input =
+        dynamic_cast<const VQwHardwareChannel*>(source);
 
+    fNumberOfDataWords   = input->fNumberOfDataWords;
+    fNumberOfSubElements = input->fNumberOfSubElements;
+    fDataToSave          = input->fDataToSave;
+    fTreeArrayIndex      = input->fTreeArrayIndex;
+    fTreeArrayNumEntries = input->fTreeArrayNumEntries;
+    fPedestal            = input->fPedestal;
+    fCalibrationFactor   = input->fCalibrationFactor;
+    kFoundPedestal       = input->kFoundPedestal;
+    kFoundGain           = input->kFoundGain;
+    bEVENTCUTMODE        = input->bEVENTCUTMODE;
+    fULimit              = input->fULimit;
+    fLLimit              = input->fLLimit;
+    fStability           = input->fStability;
 
-void VQwHardwareChannel::Copy(const VQwDataElement *source){
-  const VQwHardwareChannel* lsource = 
-    dynamic_cast<const VQwHardwareChannel*>(source);
-  if (lsource == NULL){
+  } else {
     TString loc="VQwHardwareChannel::Copy for "
       +this->GetElementName()+" failed with input "
       +source->GetElementName();
     throw(std::invalid_argument(loc.Data()));
-  } else {
-    Copy(*lsource);
   }
 }
-
-void VQwHardwareChannel::Copy(const VQwHardwareChannel& source){
-  VQwDataElement::Copy(source);
-  fNumberOfDataWords   = source.fNumberOfDataWords;
-  fNumberOfSubElements = source.fNumberOfSubElements;
-  fDataToSave          = source.fDataToSave;
-  fTreeArrayIndex      = source.fTreeArrayIndex;
-  fTreeArrayNumEntries = source.fTreeArrayNumEntries;
-  fPedestal            = source.fPedestal;
-  fCalibrationFactor   = source.fCalibrationFactor;
-  kFoundPedestal       = source.kFoundPedestal;
-  kFoundGain           = source.kFoundGain;
-  bEVENTCUTMODE        = source.bEVENTCUTMODE;
-  fULimit              = source.fULimit;
-  fLLimit              = source.fLLimit;
-  fStability           = source.fStability;
-}
-
 
 UInt_t VQwHardwareChannel::GetEventcutErrorFlag()
 {

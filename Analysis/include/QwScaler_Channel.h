@@ -131,7 +131,6 @@ public:
   
 
   void Copy(const VQwDataElement *source);
-  void Copy(const VQwScaler_Channel &source);
 
   void PrintValue() const;
   void PrintInfo() const;

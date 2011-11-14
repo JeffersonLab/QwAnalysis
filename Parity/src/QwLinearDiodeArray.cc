@@ -692,35 +692,27 @@ void  QwLinearDiodeArray::FillTreeVector(std::vector<Double_t> &values) const
   return;
 }
 
-void QwLinearDiodeArray::Copy(const QwLinearDiodeArray *source)
+void QwLinearDiodeArray::Copy(const VQwDataElement *source)
 {
-  try
-    {
-      if( typeid(*source)==typeid(*this) ) {
-       const QwLinearDiodeArray* input = dynamic_cast<const QwLinearDiodeArray*>(source);
-       this->fElementName = input->fElementName;
-       this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-       this->bFullSave = input->bFullSave;
-       size_t i = 0;
-       for(i = 0; i<8; i++) this->fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
-       for(i = 0; i<2; i++){
-	 this->fRelPos[i].Copy(&(input->fRelPos[i]));
-       }
-     }
-      else {
-       TString loc="Standard exception from QwLinearDiodeArray::Copy = "
-	 +source->GetElementName()+" "
-	 +this->GetElementName()+" are not of the same type";
-       throw std::invalid_argument(loc.Data());
-     }
-    }
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBPM::Copy(source);
+      const QwLinearDiodeArray* input = dynamic_cast<const QwLinearDiodeArray*>(source);
+      this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+      for(size_t i = 0; i<8; i++)
+        this->fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
+      for(size_t i = 0; i<2; i++)
+        this->fRelPos[i].Copy(&(input->fRelPos[i]));
 
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
+    } else {
+      TString loc="Standard exception from QwLinearDiodeArray::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
     }
-
-  return;
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
 void QwLinearDiodeArray::SetEventCutMode(Int_t bcuts)

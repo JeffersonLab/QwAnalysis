@@ -107,7 +107,6 @@ class QwBPMStripline : public VQwBPM {
   void    SetSubElementCalibrationFactor(Int_t j, Double_t value);
 
   void    Copy(const VQwDataElement *source);
-  void    Copy(const VQwBPM *source);
   void    Ratio(VQwBPM &numer, VQwBPM &denom);
   void    Ratio(QwBPMStripline &numer, QwBPMStripline &denom);
   void    Scale(Double_t factor);

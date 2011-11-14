@@ -196,7 +196,6 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   void   SetCalibrationToVolts(){SetCalibrationFactor(kVQWK_VoltsPerBit);};
 
   void Copy(const VQwDataElement *source);
-  void Copy(const QwVQWK_Channel& source);
 
   friend std::ostream& operator<< (std::ostream& stream, const QwVQWK_Channel& channel);
   void PrintValue() const;

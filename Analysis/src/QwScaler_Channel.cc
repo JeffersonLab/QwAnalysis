@@ -568,32 +568,29 @@ void VQwScaler_Channel::CalculateRunningAverage()
 
 }
 
-void VQwScaler_Channel::Copy(const VQwDataElement *source)
+void VQwScaler_Channel::Copy(const VQwDataElement* source)
 {
-  const VQwScaler_Channel* input =
-    dynamic_cast<const VQwScaler_Channel*>(source);
-  if (input == NULL){
+  if (typeid(*source) == typeid(*this)) {
+    VQwHardwareChannel::Copy(source);
+    const VQwScaler_Channel* input =
+        dynamic_cast<const VQwScaler_Channel*>(source);
+
+    //  TODO:  Don't copy the pointer; we need to regenerate it somehow.
+    //  this->fNormChannelPtr    = input->fNormChannelPtr;
+    this->fNormChannelName   = input->fNormChannelName;
+    this->fClockNormalization = input->fClockNormalization;
+
+    this->fValue_Raw         = input->fValue_Raw;
+    this->fValue             = input->fValue;
+    this->fValueError        = input->fValueError;
+    this->fValueM2           = input->fValueM2;
+
+  } else {
     TString loc="Standard exception from VQwScaler_Channel::Copy = "
       +source->GetElementName()+" "
       +this->GetElementName()+" are not of the same type";
     throw(std::invalid_argument(loc.Data()));
-  } else {
-    Copy(*input);
   }
-}
-
-void VQwScaler_Channel::Copy(const VQwScaler_Channel& input)
-{
-  VQwHardwareChannel::Copy(input);
-  //  TODO:  Don't copy the pointer; we need to regenerate it somehow.
-  //  this->fNormChannelPtr    = input.fNormChannelPtr;
-  this->fNormChannelName   = input.fNormChannelName;
-  this->fClockNormalization = input.fClockNormalization;
-
-  this->fValue_Raw         = input.fValue_Raw;
-  this->fValue             = input.fValue;
-  this->fValueError        = input.fValueError;
-  this->fValueM2           = input.fValueM2;
 }
 
 void  VQwScaler_Channel::ReportErrorCounters(){

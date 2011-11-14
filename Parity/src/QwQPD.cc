@@ -569,19 +569,29 @@ void QwQPD::Scale(Double_t factor)
   return;
 }
 
-void QwQPD::Copy(const QwQPD *source)
+void QwQPD::Copy(const VQwDataElement *source)
 {
-  Short_t i = 0;
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBPM::Copy(source);
+      const QwQPD* input = dynamic_cast<const QwQPD*>(source);
+      for (size_t i = 0; i < 4; i++)
+        fPhotodiode[i].Copy(&(input->fPhotodiode[i]));
+      for (size_t i = kXAxis; i < kNumAxes; i++) {
+        fRelPos[i].Copy(&(input->fRelPos[i]));
+        fAbsPos[i].Copy(&(input->fAbsPos[i]));
+      }
+      fEffectiveCharge.Copy(&(input->fEffectiveCharge));
 
-  VQwBPM::Copy(source);
-  for(i=0;i<4;i++) fPhotodiode[i].Copy(&(source->fPhotodiode[i]));
-  for(i=kXAxis;i<kNumAxes;i++){
-    fRelPos[i].Copy(&(source->fRelPos[i]));
-    fAbsPos[i].Copy(&(source->fAbsPos[i]));
+    } else {
+      TString loc="Standard exception from QwQPD::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
+    }
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
   }
-  fEffectiveCharge.Copy(&(source->fEffectiveCharge));
-
-  return;
 }
 
 void QwQPD::CalculateRunningAverage()

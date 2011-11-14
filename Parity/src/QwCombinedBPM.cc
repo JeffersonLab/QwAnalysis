@@ -1005,43 +1005,31 @@ void  QwCombinedBPM<T>::FillTreeVector(std::vector<Double_t> &values) const
 template<typename T>
 void QwCombinedBPM<T>::Copy(const VQwDataElement *source)
 {
-  Copy(dynamic_cast<const VQwBPM*>(source));
-}
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBPM::Copy(source);
+      const QwCombinedBPM<T>* input = dynamic_cast<const QwCombinedBPM<T>*>(source);
+      this->fElementName = input->fElementName;
+      this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+      this->bFullSave = input->bFullSave;
+      for(Short_t axis = kXAxis; axis < 3; axis++){
+        this->fPositionCenter[axis] = input->fPositionCenter[axis];
+      }
+      for(Short_t axis = kXAxis; axis < kNumAxes; axis++){
+        this->fSlope[axis].Copy(&(input->fSlope[axis]));
+        this->fIntercept[axis].Copy(&(input->fIntercept[axis]));
+        this->fAbsPos[axis].Copy(&(input->fAbsPos[axis]));
+      }
 
-template<typename T>
-void QwCombinedBPM<T>::Copy(const VQwBPM *source)
-{
-  try
-    {
-      if(typeid(*source)==typeid(*this))
-	{
-	  const QwCombinedBPM<T>* input = dynamic_cast<const QwCombinedBPM<T>*>(source);
-	  this->fElementName = input->fElementName;
-	  this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-	  this->bFullSave = input->bFullSave;
-	  for(Short_t axis = kXAxis; axis < 3; axis++){
-	    this->fPositionCenter[axis] = input->fPositionCenter[axis];
-	  }
-	  for(Short_t axis = kXAxis; axis < kNumAxes; axis++){
-	    this->fSlope[axis].Copy(&(input->fSlope[axis]));
-	    this->fIntercept[axis].Copy(&(input->fIntercept[axis]));
-	    this->fAbsPos[axis].Copy(&(input->fAbsPos[axis]));
-	  }
-	}
-      else
-	{
-	  TString loc="Standard exception from QwCombinedBPM::Copy = "
-	    +source->GetElementName()+" "
-	    +this->GetElementName()+" are not of the same type";
-	  throw std::invalid_argument(loc.Data());
-	}
+    } else {
+      TString loc="Standard exception from QwCombinedBPM::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
     }
-
-  catch (std::exception& e){
+  } catch (std::exception& e) {
     std::cerr << e.what() << std::endl;
   }
-
-  return;
 }
 
 template<typename T>

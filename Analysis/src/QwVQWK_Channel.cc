@@ -1418,41 +1418,37 @@ Bool_t QwVQWK_Channel::ApplySingleEventCuts()//This will check the limits and up
   return status;
 }
 
-void QwVQWK_Channel::Copy(const VQwDataElement *source){
-  const QwVQWK_Channel* input =
-    dynamic_cast<const QwVQWK_Channel*>(source);
-  if (input == NULL){
-    TString loc="Standard exception from QwVQWK_Channel::Copy = "
-      +source->GetElementName()+" "
-      +this->GetElementName()+" are not of the same type";
-    throw(std::invalid_argument(loc.Data()));
-  } else {
-    Copy(*input);
-  }
-}
-
-void QwVQWK_Channel::Copy(const QwVQWK_Channel& input)
+void QwVQWK_Channel::Copy(const VQwDataElement *source)
 {
-  VQwHardwareChannel::Copy(input);
-  fBlocksPerEvent = input.fBlocksPerEvent;
-  fNumberOfSamples_map = input.fNumberOfSamples_map;
-  fSaturationABSLimit  = input.fSaturationABSLimit;
-  //  Copy the flags used for tree trimming
-  bHw_sum            = input.bHw_sum;
-  bHw_sum_raw        = input.bHw_sum_raw;
-  bBlock             = input.bBlock;
-  bBlock_raw         = input.bBlock_raw;
-  bNum_samples       = input.bNum_samples;
-  bDevice_Error_Code = input.bDevice_Error_Code;
-  bSequence_number   = input.bSequence_number;
+  if (typeid(*source) == typeid(*this)) {
+    VQwHardwareChannel::Copy(source);
+    const QwVQWK_Channel* input = dynamic_cast<const QwVQWK_Channel*>(source);
 
-  this->fNumberOfSamples       = input.fNumberOfSamples;
-  this->fHardwareBlockSum      = input.fHardwareBlockSum;
-  this->fHardwareBlockSumError = input.fHardwareBlockSumError;
-  this->fGoodEventCount=input.fGoodEventCount;
-  for(Int_t i=0; i<4; i++ ) {
-    this->fBlock[i] = input.fBlock[i];
-    this->fBlockError[i] = input.fBlockError[i];
+    fBlocksPerEvent = input->fBlocksPerEvent;
+    fNumberOfSamples_map = input->fNumberOfSamples_map;
+    fSaturationABSLimit  = input->fSaturationABSLimit;
+    //  Copy the flags used for tree trimming
+    bHw_sum            = input->bHw_sum;
+    bHw_sum_raw        = input->bHw_sum_raw;
+    bBlock             = input->bBlock;
+    bBlock_raw         = input->bBlock_raw;
+    bNum_samples       = input->bNum_samples;
+    bDevice_Error_Code = input->bDevice_Error_Code;
+    bSequence_number   = input->bSequence_number;
+
+    this->fNumberOfSamples       = input->fNumberOfSamples;
+    this->fHardwareBlockSum      = input->fHardwareBlockSum;
+    this->fHardwareBlockSumError = input->fHardwareBlockSumError;
+    this->fGoodEventCount=input->fGoodEventCount;
+    for(Int_t i=0; i<4; i++ ) {
+      this->fBlock[i] = input->fBlock[i];
+      this->fBlockError[i] = input->fBlockError[i];
+    }
+  } else {
+    TString loc="Standard exception from QwVQWK_Channel::Copy = "
+        +source->GetElementName()+" "
+        +this->GetElementName()+" are not of the same type";
+    throw(std::invalid_argument(loc.Data()));
   }
 }
 

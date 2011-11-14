@@ -869,42 +869,31 @@ void  QwBPMStripline<T>::FillTreeVector(std::vector<Double_t> &values) const
 template<typename T>
 void QwBPMStripline<T>::Copy(const VQwDataElement *source)
 {
-  Copy(dynamic_cast<const VQwBPM*>(source));
-}
+  try {
+    if (typeid(*source) == typeid(*this)) {
+      VQwBPM::Copy(source);
+      const QwBPMStripline<T>* input = dynamic_cast<const QwBPMStripline<T>*>(source);
+      this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
+      this->bRotated = input->bRotated;
+      this->bFullSave = input->bFullSave;
+      for(size_t i = 0; i<3; i++)
+        this->fPositionCenter[i] = input->fPositionCenter[i];
+      for(size_t i = 0; i<4; i++)
+        this->fWire[i].Copy(&(input->fWire[i]));
+      for(size_t i = 0; i<2; i++) {
+        this->fRelPos[i].Copy(&(input->fRelPos[i]));
+        this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
+      }
 
-template<typename T>
-void QwBPMStripline<T>::Copy(const VQwBPM *source)
-{
-  try
-    {
-      if( typeid(*source)==typeid(*this) ) {
-       QwBPMStripline<T>* input = ((QwBPMStripline<T>*)source);
-       this->fElementName = input->fElementName;
-       this->fEffectiveCharge.Copy(&(input->fEffectiveCharge));
-       this->bRotated = input->bRotated;
-       this->bFullSave = input->bFullSave;
-       Short_t i = 0;
-       for(i = 0; i<3; i++) this->fPositionCenter[i] = input->fPositionCenter[i];
-       for(i = 0; i<4; i++) this->fWire[i].Copy(&(input->fWire[i]));
-       for(i = 0; i<2; i++){
-	 this->fRelPos[i].Copy(&(input->fRelPos[i]));
-	 this->fAbsPos[i].Copy(&(input->fAbsPos[i]));
-       }
-     }
-      else {
-       TString loc="Standard exception from QwBPMStripline::Copy = "
-	 +source->GetElementName()+" "
-	 +this->GetElementName()+" are not of the same type";
-       throw std::invalid_argument(loc.Data());
-     }
+    } else {
+      TString loc="Standard exception from QwBPMStripline::Copy = "
+          +source->GetElementName()+" "
+          +this->GetElementName()+" are not of the same type";
+      throw std::invalid_argument(loc.Data());
     }
-
-  catch (std::exception& e)
-    {
-      std::cerr << e.what() << std::endl;
-    }
-
-  return;
+  } catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+  }
 }
 
 template<typename T>

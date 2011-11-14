@@ -31,7 +31,7 @@ class VQwHardwareChannel: public VQwDataElement {
 public:
   VQwHardwareChannel();
   VQwHardwareChannel(const VQwHardwareChannel& value);
-  virtual ~VQwHardwareChannel();
+  virtual ~VQwHardwareChannel() { };
 
   /*! \brief Get the number of data words in this data element */
   size_t GetNumberOfDataWords() {return fNumberOfDataWords;}
@@ -110,7 +110,6 @@ public:
 
   /*! \brief Copy method:  Should make a full, identical copy. */
   virtual void Copy(const VQwDataElement *source);
-  virtual void Copy(const VQwHardwareChannel& source);
 
   /// Arithmetic assignment operator:  Should only copy event-based data
   virtual VQwHardwareChannel& operator=(const VQwHardwareChannel& value) {
