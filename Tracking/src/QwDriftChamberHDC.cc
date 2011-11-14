@@ -569,7 +569,7 @@ void  QwDriftChamberHDC::ProcessEvent()
 Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
 {
 
-    LoadTtoDParameters ( "TtoDTable_R2.txt" );
+    LoadTtoDParameters ( "R2_TtoDTable.map" );
     TString varname, varvalue;
     UInt_t value   = 0;
     UInt_t  chan   = 0;
