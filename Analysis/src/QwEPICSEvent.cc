@@ -785,7 +785,7 @@ void QwEPICSEvent::FillSlowControlsData(QwParityDB *db)
           n_records = fEPICSCumulativeData[tagindex].NumberRecords;
 
 	  //  Build the row and submit it to the list
-    tmp_row.n             = n_records;
+	  tmp_row.n             = n_records;
 	  tmp_row.value         = mean;
 	  tmp_row.error         = sigma;
 	  tmp_row.min_value     = fEPICSCumulativeData[tagindex].Minimum;
@@ -921,6 +921,36 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
 
   ////////////////////////////////////////////////////////////
 
+  // For QTOR current
+  tagindex = FindIndex("qw:qt_mps_i_dcct");
+  if (tagindex != kEPICS_Error) {
+    QwDebug << "tagindex for  = qw:qt_mps_i_dcct" << tagindex << QwLog::endl;
+    if (! fEPICSCumulativeData[tagindex].Filled) {
+      //  No data for this run.
+      tmp_row.qtor_current = mysqlpp::null;
+    } else if (fEPICSCumulativeData[tagindex].NumberRecords <= 0) {
+      // No events in this variable
+      QwWarning << "The value of "
+		<< fEPICSVariableList[tagindex]
+		<< " had no events during this run.  "
+		<< "Send NULL word to the database."
+		<< QwLog::endl;
+      tmp_row.qtor_current = mysqlpp::null;
+    } else {
+      Double_t qtorcurrent = (fEPICSCumulativeData[tagindex].Sum)/
+	((Double_t) fEPICSCumulativeData[tagindex].NumberRecords);
+      QwDebug << "Send the value of "
+	      << fEPICSVariableList[tagindex]
+	      << ", "
+	      << qtorcurrent
+	      << ", to the database."
+	      << QwLog::endl;
+      tmp_row.qtor_current = qtorcurrent;
+    }
+  }
+
+  ////////////////////////////////////////////////////////////
+
   // For target position
   tagindex = FindIndex("QWtgt_name");
   if (tagindex != kEPICS_Error) {
@@ -999,13 +1029,53 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
   }
   }
 
+ // For Wien Setting
+  tagindex = FindIndex("WienMode");
+  if (tagindex != kEPICS_Error) {
+    QwDebug << "tagindex for WienMode = " << tagindex << QwLog::endl;
 
+    if (! fEPICSCumulativeData[tagindex].Filled) {
+      //  No data for this run.
+      tmp_row.wien_reversal = mysqlpp::null;
+    } else if (fEPICSCumulativeData[tagindex].NumberRecords
+	       != fNumberEPICSEvents) {
+      // WienMode changed
+      QwWarning << "The value of "
+		<< fEPICSVariableList[tagindex]
+		<< " changed during the run."
+		<< "Send NULL word to the database."
+		<< QwLog::endl;
+      tmp_row.wien_reversal = mysqlpp::null;
+    }
+    if(fEPICSDataEvent[tagindex].StringValue.Contains("***") ){
+      QwWarning << "The value of "
+		<< fEPICSVariableList[tagindex]
+		<< " is not defined."
+		<< "Send NULL word to the database."
+		<< QwLog::endl;
+      tmp_row.wien_reversal =mysqlpp::null;
+    } else {
+      // WienMode is stored as an enum of the following labels:
+      TString wien_enum[5] = {"indeterminate",
+			      "normal","reverse",
+			      "transverse_horizontal",
+			      "transverse_vertical"};
+      QwDebug << "Send the value of "
+	      << fEPICSVariableList[tagindex]
+	      << ", "
+	      << fEPICSDataEvent[tagindex].StringValue.Data()
+	      << ", to the database."
+	      << QwLog::endl;
+      tmp_row.wien_reversal = wien_enum[WienModeIndex(fEPICSDataEvent[tagindex].StringValue)].Data();
+    }
+  }
+  
 
   // For charge feedback
 
-  tagindex = FindIndex("HC:Q_ONOFF");
+  tagindex = FindIndex("qw:ChargeFeedback");
   if (tagindex != kEPICS_Error) {
-  //std::cout << "tagindex for HC:Q_ONOFF = " << tagindex << std::endl;
+  //std::cout << "tagindex for qw:ChargeFeedback = " << tagindex << std::endl;
 
   if (! fEPICSCumulativeData[tagindex].Filled) {
     //  No data for this run.
@@ -1041,7 +1111,9 @@ void QwEPICSEvent::FillSlowControlsSettings(QwParityDB *db)
 	    << fEPICSDataEvent[tagindex].StringValue.Data()
 	    << ", to the database."
 	    << QwLog::endl;
-    tmp_row.charge_feedback = fEPICSDataEvent[tagindex].StringValue.Data();
+    TString tmpval = fEPICSDataEvent[tagindex].StringValue;
+    tmpval.ToLower();
+    tmp_row.charge_feedback = tmpval.Data();
   }
   }
 

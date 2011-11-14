@@ -148,3 +148,16 @@ std::string WienModeName(EQwWienMode type){
   return wienname[type];
 };
 
+EQwWienMode WienModeIndex(TString name){
+  EQwWienMode retval = kWienIndeterminate;
+  if (name=="Forward"){
+    retval = kWienForward;
+  } else if (name=="Backward"){
+    retval = kWienBackward;
+  } else if (name=="Vertical"){
+    retval = kWienVertTrans;
+  } else if (name=="Horizontal"){
+    retval = kWienHorizTrans;
+  }
+  return retval;
+}

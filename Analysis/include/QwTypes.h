@@ -228,7 +228,7 @@ enum EQwWienMode {
   kWienHorizTrans
 };
 std::string WienModeName(EQwWienMode type);
-
+EQwWienMode WienModeIndex(TString name);
 
 ///  Definitions for beam parameter quantities; use these types rather than
 ///  the raw "QwVQWK_Channel" to allow for future specification.
