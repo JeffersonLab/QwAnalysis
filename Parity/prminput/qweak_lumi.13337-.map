@@ -11,7 +11,7 @@ Bank=0x0202
 !sample_size=480
 !sample_size=2000
 !for 960Hz
-sample_size=976  
+sample_size=464  
 
 !
 !
