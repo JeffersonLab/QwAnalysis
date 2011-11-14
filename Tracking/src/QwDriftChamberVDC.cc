@@ -210,8 +210,7 @@ void  QwDriftChamberVDC::SubtractReferenceTimes()
       if(fReferenceMaster.size()==0) continue;
 
       ref_data_size = fReferenceData.at(bank).size();
-      // 		std::cout << "size: " << fReferenceMaster.at(bank).size() << std::endl;
-      for ( i=0; i<ref_data_size; i++ )
+      for ( i=0; i<ref_data_size; ++i )
 	{
 	  if(fReferenceMaster.at(bank).size()==0) continue;
 	  
@@ -339,12 +338,12 @@ Double_t  QwDriftChamberVDC::CalculateDriftDistance ( Double_t drifttime, QwDete
 
   Int_t index = (Int_t) (dt/resolution);
 
-  // 	if ( index>=800 || index < 0 ) {
-  // 	  distance_mm = -50.0;
-  // 	}
-  // 	else {
-  if(dt>310) std::cout << "error!" << dt << std::endl;
-  distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );
+ 
+  if(dt>=0 && dt<310){
+    distance_mm= ( dt-resolution*index ) /resolution * ( fTtoDNumbers.at ( index+1 )-fTtoDNumbers.at ( index ) ) +fTtoDNumbers.at ( index );}
+  else{
+    distance_mm=-50;
+  }
   // 	}
   //     if ( dt < cut0 )
   //       {
@@ -629,8 +628,8 @@ Int_t QwDriftChamberVDC::AddChannelDefinition()
 Int_t QwDriftChamberVDC::LoadChannelMap ( TString mapfile )
 {
   //some type(like string,Int_t)need to be changed to root type
-  LoadTimeWireOffset ( "R3_timeoffset.txt" );
-  LoadTtoDParameters ( "TtoDTable.txt" );
+  LoadTimeWireOffset ( "R3_timeoffset.map" );
+  LoadTtoDParameters ( "R3_TtoDTable.map" );
   TString varname,varvalue;
   UInt_t value   = 0;
   UInt_t channum = 0;            //store temporary channel number
@@ -880,7 +879,7 @@ void QwDriftChamberVDC::ProcessEvent()
 	      left_time=fDelayLineArray.at ( tmpbp ).at ( tmpln ).LeftHits.at ( order_L );
 	      right_time=fDelayLineArray.at ( tmpbp ).at ( tmpln ).RightHits.at ( order_R );
 
-	      for ( Int_t j=0;j<Ambiguitycount;j++ )
+	      for ( Int_t j=0;j<Ambiguitycount;++j )
 		{
 		  real_time= ( left_time+right_time ) /2.0;
 		  wire_hit=fDelayLineArray.at ( tmpbp ).at ( tmpln ).Wire.at ( i ).at ( j );
@@ -917,13 +916,14 @@ void QwDriftChamberVDC::ProcessEvent()
 	
   ApplyTimeCalibration();
 
-  if ( fDisableWireTimeOffset==false )
+  if ( fDisableWireTimeOffset==false ){
     SubtractWireTimeOffset();
-  else {}
+    FillDriftDistanceToHits();
+  }
         
         
   //    std::cout << "leaving.." << std::endl;
-  FillDriftDistanceToHits();
+  //FillDriftDistanceToHits();
 }
 
 
@@ -1328,20 +1328,23 @@ void QwDriftChamberVDC::SubtractWireTimeOffset()
       wire    = fWireHits.at(i).GetElement();
       t0      = fTimeWireOffsets.at ( package-1 ).at ( plane-1 ).at ( wire-1 );
                               
-      if(package==1)
-	real_time=fWireHits.at(i).GetTime()-t0-91;
-      else if(package==2)
-	real_time=fWireHits.at(i).GetTime()-t0-91;
+      //if(package==1)
+      //        real_time=fWireHits.at(i).GetTime()-t0-91;
+      //else if(package==2)
+      //	real_time=fWireHits.at(i).GetTime()-t0-91;
                                       
-      if(real_time<0 || real_time>310){
-	fWireHits.erase(fWireHits.begin()+i);
-	--nhits;
-	--i;
-	continue;
-      }
-      else{
-	fWireHits.at(i).SetTime(real_time);
-      }
+      real_time=fWireHits.at(i).GetTime()-t0-91;
+      //if(real_time<0 || real_time>310){
+	//fWireHits.erase(fWireHits.begin()+i);
+	//--nhits;
+	//--i;
+	//continue;
+	//fWireHis.at(i).SetTime(real_time);
+      //}
+      //else{
+      //	fWireHits.at(i).SetTime(real_time);
+      //}
+      fWireHits.at(i).SetTime(real_time);
     }
   return;
 }
@@ -1357,7 +1360,7 @@ void QwDriftChamberVDC::ApplyTimeCalibration()
     printf("WARNING : QwDriftChamberVDC::ApplyTimeCalibration() the predefined resolution %8.6f (ns) is used to do further, but it must be checked.\n", f1tdc_resolution_ns);
   }
 
-  for(std::vector<QwHit>::iterator iter=fWireHits.begin(); iter!=fWireHits.end(); iter++)
+  for(std::vector<QwHit>::iterator iter=fWireHits.begin(); iter!=fWireHits.end(); ++iter)
     {
       iter->SetTime(f1tdc_resolution_ns*iter->GetTime());
     }
