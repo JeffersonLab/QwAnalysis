@@ -808,7 +808,7 @@ void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
-      
+      dDataWindow->SetRunNumber(GetCurrentRunNumber());
       return;
     }
 
@@ -843,6 +843,7 @@ void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetCurrentRunNumber());
       
       return;
     }
@@ -877,6 +878,7 @@ void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMain",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMain",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMain",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetCurrentRunNumber());
       return;
     }
   }

@@ -17,6 +17,7 @@ QwGUIHistories::QwGUIHistories(const TGWindow *p, const TGWindow *main, const TG
   dCanvas = NULL;
   dNumberEntryDlg = NULL;
   fOpen = kFalse;
+  dCurrentRun = 0;
 
   NewDataInit();
 
@@ -650,6 +651,7 @@ void QwGUIHistories::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
       Connect(dDataWindow,"IsClosing(char*)","QwGUIHistories",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIHistories",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIHistories",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetRunNumber());
 
       return;
     }

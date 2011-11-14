@@ -135,6 +135,7 @@ void QwGUIDataWindow::SubmitToHCLog()
     SaveCanvas(attachment.Data());
     hcpost += WrapAttachment(attachment.Data());
 
+    // std::cout << hcpost << std::endl;
     gSystem->Exec(hcpost.Data());
 
     // std::cout << dHCLogEntries.name << std::endl;

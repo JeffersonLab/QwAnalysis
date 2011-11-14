@@ -2720,6 +2720,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetRunNumber());
       return;
     }
     if(plot->InheritsFrom("TH1")){
@@ -2746,6 +2747,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetRunNumber());
       
       return;
     }
@@ -2784,6 +2786,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetRunNumber());
 
       return;
     }
@@ -2822,6 +2825,7 @@ void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobje
       Connect(dDataWindow,"IsClosing(char*)","QwGUIMainDetector",(void*)this,"OnObjClose(char*)");
       Connect(dDataWindow,"SendMessageSignal(char*)","QwGUIMainDetector",(void*)this,"OnReceiveMessage(char*)");
       Connect(dDataWindow,"UpdatePlot(char*)","QwGUIMainDetector",(void*)this,"OnUpdatePlot(char *)");
+      dDataWindow->SetRunNumber(GetRunNumber());
       return;
     }
   }
