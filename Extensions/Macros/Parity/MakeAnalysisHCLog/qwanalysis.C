@@ -31,9 +31,9 @@ void qwanalysis(UInt_t run_number, Int_t hclog_switch)
     std::cin >> gRunNumber;
   }
 
-  //  TString rootname(Form("/home/nur/scratch/rootfiles/first100k_%d.root",gRunNumber));
-  //  TString rootname(Form("$QW_ROOTFILES/first100k_%d.root",gRunNumber));
-  TString rootname(Form("$QW_ROOTFILES/QwPass1_%d.000.root",gRunNumber));
+  // TString rootname(Form("/home/nur/scratch/rootfiles/first100k_%d.root",gRunNumber));
+  TString rootname(Form("$QW_ROOTFILES/first100k_%d.root",gRunNumber));
+  // TString rootname(Form("$QW_ROOTFILES/QwPass1_%d.000.root",gRunNumber));
 
   gPlotDir = "/net/cdaqfs/home/cdaq/users/qwanalysis/plots";
   gRunlistDir = "/net/cdaqfs/home/cdaq/users/qwanalysis/hclog_runlist";
@@ -1709,7 +1709,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     printf("%sPlease Insert %s1%s for submiting to HCLOG, otherwise %s0%s and hit ENTER\n%s",blue,red,blue,red,blue,normal);
     std::cin >> hclog_switch;
   }
-  if (hclog_switch<=-1 || hclog_switch> 1) {
+  if (hclog_switch<=-1 || hclog_switch> 2) {
     printf("%sPlease insert a correct No. Exiting the program!%s\n",blue,normal);
     exit(1);
   }
@@ -1720,7 +1720,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TString comments_hclog;
   TString contact(Form("%sPlease contact Nuruzzaman (nur@jlab.org) for problems and comments%s\n",blue,normal));
 
-  if (hclog_switch==1) {
+  if (hclog_switch>=1) {
     textfile = Form("%s/%drunsummary.txt",gRunlistDir.Data(),gRunNumber);
     FILE *check;
     check = fopen(textfile,"r");
@@ -1729,8 +1729,12 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
       printf(contact);
       exit(1);
     }
-    std::cout << "Please insert comments for the run to post in HCLOG" << std::endl;
-    std::cin  >> comments_hclog;
+    if (hclog_switch==1) {
+      std::cout << "Please insert comments for the run to post in HCLOG" << std::endl;
+      std::cin  >> comments_hclog;
+    } else {
+      comments_hclog = "Automatic entry from the first 100k analysis";
+    }
   } else {
     textfile = Form("%s/%druninfo.txt",gPlotDir.Data(),gRunNumber);
   }
