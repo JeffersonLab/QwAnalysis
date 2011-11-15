@@ -15,7 +15,6 @@ sample_size=464
 !
 !
 !ADC0, Slot 18, Serial Number 13, Address 0x7B
-   VQWK, 0, 3,  bcm,  QWK_BCM6_Ix
    VQWK, 0, 4,  bcm,  QWK_BCM5
    VQWK, 0, 5,  bcm,  QWK_BCM6
    VQWK, 0, 6,  bcm,  QWK_BCM7 
@@ -56,6 +55,7 @@ sample_size=464
    VQWK, 4, 1,  bpmstripline,  QWK_BPM3H09BXM
    VQWK, 4, 2,  bpmstripline,  QWK_BPM3H09BYP
    VQWK, 4, 3,  bpmstripline,  QWK_BPM3H09BYM
+   VQWK, 4, 5,  bcm,  QWK_6V_battery
    VQWK, 4, 6,  bcm,  QWK_BCM2              
    VQWK, 4, 7,  bcm,  QWK_BCM1    
 
@@ -175,14 +175,13 @@ Bank=0x6103
    SCALER, 0, 17, halomonitor, sca_bcm2
    SCALER, 0, 18, halomonitor, sca_bcm17
    SCALER, 0, 19, halomonitor, sca_unser	
-   SCALER, 0, 20, halomonitor, sca_bcm5
-   SCALER, 0, 21, halomonitor, sca_bcm6
+   !!  
    SCALER, 0, 22, halomonitor, sca_habcm
 
 
    SCALER, 0, 29, halomonitor, sca_31MHz
    SCALER, 0, 30, halomonitor, sca_4MHz
-   SCALER, 0, 31, halomonitor, sca_31MHzreturn
+   SCALER, 0, 31, halomonitor, sca_20MHz
 
    SCALER, 2, 18, halomonitor, sca_halo3
    SCALER, 2, 19, halomonitor, sca_halo4
