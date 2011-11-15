@@ -1774,7 +1774,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     std::cout << "Comments :  " << comments_hclog << std::endl;
     std::cout << "Email :     " << email_list << std::endl;
     
-    hclog_post_string = "hclog_post ";
+    hclog_post_string = "/home/cdaq/bin/Linux/hclog_post ";
     hclog_post_string += WrapParameter("author", user_name_hclog);
     hclog_post_string += WrapParameter("emailto",email_list);
     hclog_post_string += "--tag=\"This is logged by hclog_post and qwanalysis\" ";
