@@ -171,8 +171,9 @@ void QwEPICSEvent::ConstructBranchAndVector(TTree *tree, TString& prefix, std::v
 void QwEPICSEvent::FillTreeVector(std::vector<Double_t>& values) const
 {
   Int_t treeindex = fTreeArrayIndex;
-  for (size_t tagindex = 0; tagindex < fEPICSVariableType.size(); tagindex++) {
-    switch (fEPICSVariableType[tagindex]) {
+  if (fIsDataLoaded) {
+    for (size_t tagindex = 0; tagindex < fEPICSVariableType.size(); tagindex++) {
+      switch (fEPICSVariableType[tagindex]) {
       case kEPICSFloat:
       case kEPICSInt: {
         // Add value to vector
@@ -180,18 +181,19 @@ void QwEPICSEvent::FillTreeVector(std::vector<Double_t>& values) const
         treeindex++;
         break;
       }
-
+	
       case kEPICSString: {
         // Add value to vector
         values[treeindex] = static_cast<Double_t>(fEPICSDataEvent[tagindex].StringValue.Hash());
         treeindex++;
         break;
       }
-
+	
       default: {
         TString name = fEPICSVariableList[tagindex];
         QwError << "Unrecognized type for EPICS variable " << name << QwLog::endl;
         break;
+      }
       }
     }
   }
@@ -307,6 +309,7 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
   std::stringstream ss(data, std::stringstream::in | std::stringstream::out);
   QwParameterFile file(ss);
   while (file.ReadNextLine()) {
+    QwMessage << file.GetLine() << QwLog::endl;
     file.TrimWhitespace();
     string varname, varvalue;
     if (file.HasVariablePair(" \t\n", varname, varvalue)) {
@@ -317,8 +320,10 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
       }
     }
   }
-  //  Determine the WienMode and save it.
-  SetDataValue("WienMode",WienModeName(DetermineWienMode()),event);
+  if (fIsDataLoaded) {
+    //  Determine the WienMode and save it.
+    SetDataValue("WienMode",WienModeName(DetermineWienMode()),event);
+  }
 }
 
 
@@ -649,6 +654,7 @@ void QwEPICSEvent::ReportEPICSData() const
 
 void  QwEPICSEvent::ResetCounters()
 {
+  fIsDataLoaded = kFALSE;
   /*  Verify that the variable list and variable type vectors
       are the same size, and agree with fNumberEPICSVariables.  */
   Int_t listlength = fEPICSVariableList.size();

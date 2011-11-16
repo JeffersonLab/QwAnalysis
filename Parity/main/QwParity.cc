@@ -180,11 +180,13 @@ Int_t main(Int_t argc, Char_t* argv[])
       //  Secondly, process EPICS events
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
-        epicsevent.CalculateRunningValues();
-        helicitypattern.UpdateBlinder(epicsevent);
-
-        treerootfile->FillTreeBranches(epicsevent);
-        treerootfile->FillTree("Slow_Tree");
+	if (epicsevent.HasDataLoaded()){
+	  epicsevent.CalculateRunningValues();
+	  helicitypattern.UpdateBlinder(epicsevent);
+	
+	  treerootfile->FillTreeBranches(epicsevent);
+	  treerootfile->FillTree("Slow_Tree");
+	}
       }
 
 
