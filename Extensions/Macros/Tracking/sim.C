@@ -46,20 +46,26 @@ void sim(Int_t run=8658,std::string element="fQ2"){
 
 }
 
+/*
+ * option=1, draw the projection to collimator1 as well as the target vertex distribution
+ * option=4, draw the projection to target position
+ * option=5, draw the projection to the upstream target plane
+ *
+ */
+
+
 
 void reconstruction(int option=0,int pkg=1,int event_start=0,int event_end=-1,int run=8658,string suffix=""){
 
 
    bool fDebug=false;
-   string folder;
-   folder.assign(gSystem->Getenv("QW_ROOTFILES"));
+   string folder= "/scratch/sxyang";
    ostringstream ss;
    ss << folder << "/Qweak_";
    ss << run << suffix;
    ss << ".root";
    string file_name=ss.str();
    cout <<  file_name << endl;
-   //string file_name=Form("%s/Qweak_%d_check_v2.root",gSystem->Getenv ( "QW_ROOTFILES" ),run);
    TFile* file=new TFile(file_name.c_str());
 
    
@@ -115,7 +121,16 @@ void reconstruction(int option=0,int pkg=1,int event_start=0,int event_end=-1,in
       //double mdp_value=mdp->GetValue();
       //double mdm_value=mdm->GetValue();
       
-      
+      	int nhits=fEvent->GetNumberOfHits();
+	int valid_hits=0;
+	for(int j=0;j<nhits;++j){
+	  hit=fEvent->GetHit(j);
+	  if(hit->GetRegion() ==2 && hit->GetDriftDistance() >=0 && hit->GetHitNumber()==0 && hit->GetPackage() == pkg)
+	    ++valid_hits;
+	}
+
+	if(valid_hits>=15) continue;
+
       double ntracks=fEvent->GetNumberOfTracks();
       double npts=fEvent->GetNumberOfPartialTracks();
 
@@ -125,15 +140,17 @@ void reconstruction(int option=0,int pkg=1,int event_start=0,int event_end=-1,in
       track=fEvent->GetTrack(0);
       for(int j=0;j<npts;++j){
         pt=fEvent->GetPartialTrack(j);
-	if(pt->GetRegion()!=2 || pt->GetPackage()!=pkg) continue;
+	if(pt->GetRegion()!=2 || pt->GetPackage()!=pkg || pt->GetPackage()!=track->GetPackage()) continue;
 	chi=pt->fChi;
         double vertex_z=-(pt->fSlopeX*pt->fOffsetX + pt->fSlopeY*pt->fOffsetY)/(pt->fSlopeX*pt->fSlopeX+pt->fSlopeY*pt->fSlopeY);
 	double x=pt->fOffsetX+coll1*pt->fSlopeX;
 	double y=pt->fOffsetY+coll1*pt->fSlopeY;
 	double x_tar=pt->fOffsetX+us_target*pt->fSlopeX;
 	double y_tar=pt->fOffsetY+us_target*pt->fSlopeY;
-     
-	
+	double r=sqrt(x_tar*x_tar+y_tar*y_tar);
+	if( r>10 && fabs(y_tar)>3 )
+	  cout << "event: " << i << " chi: " << chi << endl;
+
 	vertex->Fill(vertex_z);
 	projection->Fill(x,y);
 	if(in_coll(x,y)==true)
@@ -147,7 +164,7 @@ void reconstruction(int option=0,int pkg=1,int event_start=0,int event_end=-1,in
 	x_histo->Fill(x);
 	y_histo->Fill(y);
 	projection_target->Fill(x_tar,y_tar);
-	profile_target->Fill(x_tar,y_tar,chi);
+	profile_target->Fill(x,y,chi);
 	Xtreeline_histo->Fill(pt->TResidual[1]);
 	Utreeline_histo->Fill(pt->TResidual[3]);
 	Vtreeline_histo->Fill(pt->TResidual[4]);
@@ -228,14 +245,14 @@ void reconstruction(int option=0,int pkg=1,int event_start=0,int event_end=-1,in
     projection_target->GetXaxis()->SetTitle("x axis:cm");
     projection_target->GetYaxis()->SetTitle("y axis:cm");
     projection_target->Draw("colz");
-    projection_target->SetTitle(Form("run 8743: projection to target from pkg %d",pkg));
+    projection_target->SetTitle(Form("run %d: projection to target from pkg %d",run,pkg));
     }
     else if(option==5){
       gStyle->SetPalette(1);
     profile_target->GetXaxis()->SetTitle("x axis:cm");
     profile_target->GetYaxis()->SetTitle("y axis:cm");
     profile_target->Draw("colz");
-    profile_target->SetTitle(Form("run 8743: projection to target from pkg %d",pkg));
+    profile_target->SetTitle(Form("run %d: projection to target from pkg %d",run,pkg));
     }
     else if(option==6){
       c->Divide(2,1);
@@ -244,32 +261,6 @@ void reconstruction(int option=0,int pkg=1,int event_start=0,int event_end=-1,in
       c->cd(2);
       y_histo->Draw();
     }
-    //dt->SetMarkerStyle(20);
-    //dt->Draw("pcol");
-    //vertex->Draw();
-    //vertex->SetTitle("q2: tracks goes through main det");
-    //vertex->GetXaxis()->SetTitle("q2: maindet hit");
-    //projection_profile->GetXaxis()->SetTitle("vertex");
-    //projection_profile->GetYaxis()->SetTitle("chi");
-    //projection_profile->Draw("colz");
-    //chi_histo->Draw();
-    //vertex->Draw();
-    //vertex->GetXaxis()->SetTitle("z axis:cm");
-    //vertex->SetTitle("vertex Z distribution from run 8658");
-    //E_vz->Draw("colz");
-    //E_vz->GetXaxis()->SetTitle("total energy");
-    //E_vz->GetYaxis()->SetTitle("chi");
-    
-    
-    //gStyle->SetPalette(1);
-    //projection_profile->SetContour(10);
-    //projection_profile->SetMaximum(850);
-    //projection_profile->SetMinimum(650);
-    //projection_profile->Draw("colz");
-    //projection_profile->SetTitle("vertex: [-800,-667]");
-    //projection_profile->GetXaxis()->SetTitle("x:cm");
-    //projection_profile->GetYaxis()->SetTitle("y:cm");
-    
     
     
     return;
