@@ -414,10 +414,10 @@ TString QwBPMCavity::GetSubElementName(Int_t subindex)
 UInt_t QwBPMCavity::GetSubElementIndex(TString subname)
 {
   subname.ToUpper();
-  UInt_t localindex=999999;
+  UInt_t localindex=kInvalidSubelementIndex;
   for(Short_t i=0;i<3;i++) if(subname==subelement[i])localindex=i;
 
-  if(localindex>3)
+  if(localindex==kInvalidSubelementIndex)
     std::cerr << "QwBPMCavity::GetSubElementIndex is unable to associate the string -"
 	      <<subname<<"- to any index"<<std::endl;
 

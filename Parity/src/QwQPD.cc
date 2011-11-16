@@ -471,7 +471,7 @@ TString QwQPD::GetSubElementName(Int_t subindex)
 UInt_t QwQPD::GetSubElementIndex(TString subname)
 {
   subname.ToUpper();
-  UInt_t localindex=999999;
+  UInt_t localindex=kInvalidSubelementIndex;
   for(Short_t i=0;i<4;i++) if(subname==subelement[i])localindex=i;
 
   if(localindex>3)

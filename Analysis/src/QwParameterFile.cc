@@ -95,7 +95,8 @@ QwParameterFile::QwParameterFile(const std::stringstream& stream)
   fTokenSepChars(kDefaultTokenSepChars),
   fSectionChars(kDefaultSectionChars),
   fModuleChars(kDefaultModuleChars),
-  fFilename("stream")
+  fFilename("stream"),
+  fBeGreedy(kFALSE)
 {
   fStream << stream.rdbuf();
 }
@@ -113,7 +114,8 @@ QwParameterFile::QwParameterFile(const std::string& name)
   fTokenSepChars(kDefaultTokenSepChars),
   fSectionChars(kDefaultSectionChars),
   fModuleChars(kDefaultModuleChars),
-  fFilename(name)
+  fFilename(name),
+  fBeGreedy(kFALSE)
 {
   // Create a file from the name
   bfs::path file(name);
@@ -656,6 +658,36 @@ QwParameterFile* QwParameterFile::ReadUntilNextModule(const bool add_current_lin
   return section;
 }
 
+Bool_t QwParameterFile::SkipSection(std::string secname)
+{
+  //  If the current line begins the section to be skipped,
+  //  just keep reading until we get to the next section.
+  //  Recurse, just in case the next section is the same
+  //  section name.
+  Bool_t status = kTRUE;
+  std::string tmpname;
+  if (LineHasSectionHeader(tmpname)){
+    if (tmpname == secname){
+      QwDebug << "QwParameterFile::SkipSection:  "
+	      << "Begin skipping section " << tmpname << QwLog::endl;
+      while ((status=ReadNextLine()) && ! LineHasSectionHeader(tmpname)) {
+	//  Do nothing for each line.
+      }
+      QwDebug << "QwParameterFile::SkipSection:  "
+	      << "Reached the end of the section." 
+	      << QwLog::endl;
+      if (status){
+	// Recurse, in case the next section has the same
+	// section name, but only if we found a new section
+	// header.
+	status = SkipSection(secname);
+      }
+    }
+  }
+  return status;
+}
+
+
 /**
  * Read the lines until the first header
  * @return Pointer to the parameter stream until first section
@@ -816,4 +848,38 @@ TString QwParameterFile::GetParemeters()
   delete fParameterFile;fParameterFile = NULL;
   return ms;
   
+}
+
+
+void  QwParameterFile::AddBreakpointKeyword(std::string keyname){
+  std::transform(keyname.begin(), keyname.end(),
+		 keyname.begin(), ::tolower);
+  fBreakpointWords.insert(keyname);
+}
+
+Bool_t QwParameterFile::ReadNextLine_Greedy(std::string &varvalue)
+{
+  //  Keep reading until a non-comment, non-empty,
+  //  non-keyword-value-pair line has been found.
+  Bool_t status;
+  std::string tmpname, tmpvalue;
+  while ((status = ReadNextLine_Single(varvalue))){
+    TrimComment();
+    TrimWhitespace();
+    if (LineIsEmpty()) continue;
+    if (HasVariablePair("=",tmpname,tmpvalue)){
+      std::transform(tmpname.begin(), tmpname.end(),
+		     tmpname.begin(), ::tolower);
+      if (fBreakpointWords.count(tmpname)==1){
+	RewindToLineStart();
+	break;
+      } else {
+	fKeyValuePair[tmpname] = tmpvalue;
+	fHasNewPairs = kTRUE;
+	continue;
+      }
+    }
+    break;
+  }
+  return status;
 }

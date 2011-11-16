@@ -375,7 +375,7 @@ void QwLinearDiodeArray::PrintInfo() const
 TString QwLinearDiodeArray::GetSubElementName(Int_t subindex)
 {
   TString thisname;
-  size_t localindex=999999;
+  size_t localindex=kInvalidSubelementIndex;
   if (subindex>-1) localindex = subindex;
 
   if(localindex<8)
@@ -390,7 +390,7 @@ TString QwLinearDiodeArray::GetSubElementName(Int_t subindex)
 
 UInt_t QwLinearDiodeArray::GetSubElementIndex(TString subname)
 {
-  size_t localindex=999999;
+  size_t localindex=kInvalidSubelementIndex;
   TString padindex;
 
   padindex = subname(subname.Sizeof()-2,1);
@@ -401,10 +401,10 @@ UInt_t QwLinearDiodeArray::GetSubElementIndex(TString subname)
   }
 
   // localindex is unsigned int and always positive
-  if (/* localindex >= 0 && */ localindex > kMaxElements){
+  if (localindex > kMaxElements){
     std::cerr << "QwLinearDiodeArray::GetSubElementIndex is unable to associate the string -"
 	      <<subname<<"- to any index"<<std::endl;
-    localindex=999999;
+    localindex=kInvalidSubelementIndex;
   }
   return localindex;
 }

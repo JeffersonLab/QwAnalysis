@@ -510,13 +510,12 @@ template<typename T>
 UInt_t QwBPMStripline<T>::GetSubElementIndex(TString subname)
 {
   subname.ToUpper();
-  UInt_t localindex=999999;
+  UInt_t localindex = kInvalidSubelementIndex;
   for(Short_t i=0;i<4;i++) if(subname==subelement[i])localindex=i;
 
-  if(localindex>3)
+  if(localindex==kInvalidSubelementIndex)
     std::cerr << "QwBPMStripline::GetSubElementIndex is unable to associate the string -"
 	      <<subname<<"- to any index"<<std::endl;
-
   return localindex;
 }
 

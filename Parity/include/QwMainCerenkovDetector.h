@@ -197,7 +197,7 @@ class QwMainCerenkovDetectorID
  public:
   QwMainCerenkovDetectorID():fSubbankIndex(-1),fWordInSubbank(-1),
     fTypeID(kQwUnknownPMT),fIndex(-1),
-    fSubelement(999999),fmoduletype(""),fdetectorname("")
+    fSubelement(kInvalidSubelementIndex),fmoduletype(""),fdetectorname("")
     {};
 
   int fSubbankIndex;

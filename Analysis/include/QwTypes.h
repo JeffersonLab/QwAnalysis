@@ -71,7 +71,7 @@ enum EQwPMTInstrumentType {
   kQwIntegrationPMT,	// Integration PMT
   kQwScalerPMT,	        // Scaler PMT
   kQwCombinedPMT,	// Combined PMT
-  kNumInstrumentTypes
+  kNumInstrumentTypes   // This should be the last enum; it provides the number of know types.
 };
 
 enum EQwBeamInstrumentType {
@@ -85,8 +85,8 @@ enum EQwBeamInstrumentType {
   kQwEnergyCalculator,
   kQwHaloMonitor,
   kQwBPMCavity,
-  kBeamDevTypes,
-  kQwClock
+  kQwClock,
+  kBeamDevTypes  // This should be the last enum; it provides the number of know types.
 };
 
 // Enumerator type for the electronics module type
@@ -132,6 +132,7 @@ TString GetQwPMTInstrumentTypeName(EQwPMTInstrumentType type);
 EQwBeamInstrumentType GetQwBeamInstrumentType(TString name);
 TString GetQwBeamInstrumentTypeName(EQwBeamInstrumentType type);
 
+static const UInt_t kInvalidSubelementIndex = 999999;
 
 //=======
 // Enumerator increments
