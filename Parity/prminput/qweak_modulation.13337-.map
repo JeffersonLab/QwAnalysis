@@ -17,8 +17,7 @@ sample_size=464
   VQWK, 0, 3,  FGY2
   VQWK, 0, 4,  FGE
   VQWK, 0, 5,  RAMP
-  VQWK, 0, 6,  HWTRIG
-  VQWK, 0, 7,  empty2
+
 
 !
 ! module.type, module.num  chan.num, det.type, det.name
@@ -28,3 +27,7 @@ Bank=0x6106
 
 WORD, 0, 0,  bm_init
 WORD, 0, 0,  bm_pattern_number
+
+!
+!  The TRIG and LEM signals go through a V/F module to scalers in ROC=0.
+!  Their decoding ought to be added at some point.
