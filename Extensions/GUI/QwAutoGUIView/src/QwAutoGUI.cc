@@ -141,7 +141,7 @@ void QwAutoGUI::DoWarn()
 	  }
 	}
       }
-      gSystem->Sleep(30000);
+      gSystem->Sleep(10000);
     }
   }
 }
