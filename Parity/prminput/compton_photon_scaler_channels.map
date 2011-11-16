@@ -17,6 +17,13 @@ norm = 1
 SIS3801D32, 0, 0x01, scaler, time_unix
 SIS3801D32, 0, 0x02, scaler, time_nano
 
+bank = 0x1f04
+! module.type, module.num  chan.num, det.type, det.name
+norm = 1
+SIS3801D32, 0, 0x01, scaler, sca_haptb_time_ramp
+SIS3801D32, 0, 0x02, scaler, sca_haptb_time_int
+SIS3801D32, 0, 0x03, scaler, sca_haptb_dac
+
 
 roc = 1
 bank = 0x0100

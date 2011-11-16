@@ -6,7 +6,6 @@
 
 #include "QwSIS3320_Samples.h"
 
-TTree* Mps_Tree;
 
 void ShowSamples(int entry)
 {
