@@ -42,10 +42,10 @@
  bpmstripline,   QWK_1I02,      0.0,    0.0          0.0,       0.7283,	1.08093,   0.981316,     unrotated
  bpmstripline,   QWK_1I04,      0.0,    0.0          0.0,       0.7283,	0.943577,  0.997052,     unrotated
  bpmstripline,   QWK_1I06,      0.0,    0.0          0.0,       0.7283,	1.03493,   1.02038,      unrotated
- bpmstripline,   QWK_0I01       0.0,    0.0          0.0,       0.734,  1.053700,  1.032170,     unrotated
- bpmstripline,   QWK_0I01A      0.0,    0.0          0.0,       0.734,  1.006630,  0.923753,     unrotated
+ bpmstripline,   QWK_0I01,      0.0,    0.0          0.0,       0.734,  1.053700,  1.032170,     unrotated
+ bpmstripline,   QWK_0I01A,     0.0,    0.0          0.0,       0.734,  1.006630,  0.923753,     unrotated
  bpmstripline,   QWK_0I02,      0.0,    0.0          0.0,       0.7283,	1.00137,   0.888284,     unrotated
- bpmstripline,   QWK_0I02A      0.0,    0.0          0.0,       0.7283,	1.01343,   1.05308,      unrotated
+ bpmstripline,   QWK_0I02A,     0.0,    0.0          0.0,       0.7283,	1.01343,   1.05308,      unrotated
  bpmstripline,   QWK_0I05,      0.0,    0.0          0.0,       0.7283,	1.33584,   0.981869,     unrotated
  bpmstripline,   QWK_0I07,      0.0,    0.0          0.0,       0.7283,	0.988324,  1.08059,      unrotated
  bpmstripline,   QWK_0L01,      0.0,    0.0          0.0,       1.0,  	0.992225,  0.9624,     
