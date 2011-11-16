@@ -27,14 +27,14 @@ SEAmpCh1  ,   0 ,  1
 SEAmpCh2  ,   0 ,  1
 SESpareE  ,   0 ,  1
 SETermDn  ,   0 ,  1
-QWK_linar1 ,      -297 , -1.
-QWK_linar2 ,      -465, -1.
-QWK_linar3 ,      -381 , -1.
-QWK_linar4 ,      -205 , -1.
-QWK_linar5 ,      -122 , -1.
-QWK_linar6 ,      -203 , -1.
-QWK_linar7 ,      -394 , -1.
-QWK_linar8 ,      -184 , -1.
+QWK_linar1 ,      -297 ,  1.
+QWK_linar2 ,      -465,  1.
+QWK_linar3 ,      -381 ,  1.
+QWK_linar4 ,      -205 ,  1.
+QWK_linar5 ,      -122 , 1.
+QWK_linar6 ,      -203 , 1.
+QWK_linar7 ,      -394 ,  1.
+QWK_linar8 ,      -184 ,  1.
 QWK_1i02XP ,      300.5 , 1.0 
 QWK_1i02XM ,      202.0 , 1.0 
 QWK_1i02YP ,      122.5 , 1.0 
