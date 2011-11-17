@@ -18,8 +18,9 @@
 PATH_TO_SCRIPT=`dirname $0`
 LEAFLIST=\"$QWANALYSIS/Extensions/Macros/Parity/SlugPlots/leaflist.txt\"
 ROOTFILE=\"$QW_ROOTFILES/Sluglet_$1.root\"
-STEM=\"QwPass1\"
+STEM=\"QwPass1\" 
 SUFFIX=\"trees\"
+#SUFFIX=\"0\" ## use this line for NO suffix
 
 root -l -n -b -q "$PATH_TO_SCRIPT/MakeSluglet.C+($1,$LEAFLIST,$ROOTFILE,$STEM,$SUFFIX)"
 
