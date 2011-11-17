@@ -31,6 +31,8 @@ class QwDBInterface;
 class QwLinearDiodeArray : public VQwBPM {
 
  public:
+  static UInt_t  GetSubElementIndex(TString subname);
+
   QwLinearDiodeArray() {
   };
   QwLinearDiodeArray(TString name):VQwBPM(name){
@@ -48,12 +50,17 @@ class QwLinearDiodeArray : public VQwBPM {
   // new routine added to update necessary information for tree trimming
   void    InitializeChannel(TString subsystem, TString name);
   void    ClearEventData();
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    for(size_t i=0;i<kMaxElements;i++)
+      fPhotodiode[i].LoadChannelParameters(paramfile);
+  }
+
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
   void    ProcessEvent();
   void    PrintValue() const;
   void    PrintInfo() const;
-
 
   const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {
     if (axis<0 || axis>2){
@@ -65,10 +72,8 @@ class QwLinearDiodeArray : public VQwBPM {
   }
   const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
 
-
-
-  UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
+  UInt_t  SetSubElementName(TString subname);
   void    GetAbsolutePosition();
 
   Bool_t  ApplyHWChecks();//Check for harware errors in the devices

@@ -31,8 +31,11 @@ class QwDBInterface;
 class QwQPD : public VQwBPM {
 
  public:
+  static UInt_t  GetSubElementIndex(TString subname);
+
   QwQPD() {
   };
+
   QwQPD(TString name):VQwBPM(name){
     InitializeChannel(name);
   };
@@ -50,6 +53,12 @@ class QwQPD : public VQwBPM {
   void    InitializeChannel(TString name);
   // new routine added to update necessary information for tree trimming
   void    InitializeChannel(TString subsystem, TString name);
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    for(Short_t i=0;i<4;i++)
+      fPhotodiode[i].LoadChannelParameters(paramfile);
+  }
+
   void    GetCalibrationFactors(Double_t AlphaX, Double_t AlphaY);
   
   void    ClearEventData();
@@ -67,8 +76,6 @@ class QwQPD : public VQwBPM {
   }
   const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
 
-
-  UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
   void    GetAbsolutePosition(){};
 

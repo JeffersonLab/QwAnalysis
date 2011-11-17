@@ -20,6 +20,7 @@
 
 // Forward declarations
 class QwBlinder;
+class QwParameterFile;
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -63,10 +64,12 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /// \brief Initialize the fields in this object
   void  InitializeChannel(TString subsystem, TString instrumenttype, TString name, TString datatosave);
 
+  void LoadChannelParameters(QwParameterFile &paramfile);
+
   // Will update the default sample size for the module.
-  void SetDefaultSampleSize(size_t NumberOfSamples_map) {
+  void SetDefaultSampleSize(size_t num_samples_map) {
     // This will be checked against the no.of samples read by the module
-    fNumberOfSamples_map = NumberOfSamples_map;
+    fNumberOfSamples_map = num_samples_map;
   };
   
   void  ClearEventData();

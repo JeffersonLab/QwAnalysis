@@ -29,9 +29,7 @@
 #include "QwQPD.h"
 #include "QwLinearDiodeArray.h"
 #include "VQwClock.h"
-
-// Forward declarations
-class QwBeamDetectorID;
+#include "QwBeamDetectorID.h"
 
 
 /*****************************************************************
@@ -119,6 +117,9 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
   void PrintValue() const;
   void PrintInfo() const;
 
+  VQwDataElement* GetElement(QwBeamDetectorID det_id);
+  VQwDataElement* GetElement(EQwBeamInstrumentType TypeID, TString name);
+  VQwDataElement* GetElement(EQwBeamInstrumentType TypeID, Int_t index);
 
   VQwBPM* GetBPMStripline(const TString name);
   VQwBCM* GetBCM(const TString name);
@@ -139,19 +140,23 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
 
 
 /////
- protected:
- Int_t GetDetectorIndex(EQwBeamInstrumentType TypeID, TString name);
+protected:
+
+  ///  \brief Adds a new element to a vector of data elements, and returns
+  ///  the index of that element within the array.
+  template <typename TT>
+  Int_t AddToElementList(std::vector<TT> &elementlist, QwBeamDetectorID &detector_id);
+  
+  Int_t GetDetectorIndex(EQwBeamInstrumentType TypeID, TString name);
  //when the type and the name is passed the detector index from appropriate vector will be returned
  //for example if TypeID is bcm  then the index of the detector from fBCM vector for given name will be returnd.
- typedef boost::shared_ptr<VQwBPM> VQwBPM_ptr;
+
  std::vector <VQwBPM_ptr> fStripline;
  std::vector <VQwBPM_ptr> fBPMCombo;
 
- typedef boost::shared_ptr<VQwBCM> VQwBCM_ptr;
  std::vector <VQwBCM_ptr> fBCM;
  std::vector <VQwBCM_ptr> fBCMCombo;
 
- typedef boost::shared_ptr<VQwClock> VQwClock_ptr;
  std::vector <VQwClock_ptr> fClock;
 
  std::vector <QwQPD> fQPD;
@@ -178,37 +183,5 @@ class QwBeamLine : public VQwSubsystemParity, public MQwSubsystemCloneable<QwBea
  static const Bool_t bDEBUG=kFALSE;
 
 };
-
-
-
-class QwBeamDetectorID
-{
- public:
-
-  QwBeamDetectorID(Int_t subbankid, Int_t offset,TString name, TString dettype,
-		   TString modtype);
-
-  Int_t   fSubbankIndex;
-  Int_t   fWordInSubbank;
-  //first word reported for this channel in the subbank
-  //(eg VQWK channel report 6 words for each event, scalers oly report one word per event)
-
-  // The first word of the subbank gets fWordInSubbank=0
-
-  TString fmoduletype; // eg: VQWK, SCALER
-  TString fdetectorname;
-  TString fdetectortype; // stripline, bcm, ... this string is encoded by fTypeID
-
-  Int_t   kUnknownDeviceType;
-  EQwBeamInstrumentType   fTypeID; // type of detector eg: bcm or stripline, etc..
-  Int_t   fIndex;            // index of this detector in the vector containing all the detector of same type
-  UInt_t  fSubelement;       // some detectors have many subelements (eg stripline have 4 antenas) some have only one sub element(eg lumis have one channel)
-
-
-  void    Print() const;
-
-};
-
-
 
 #endif

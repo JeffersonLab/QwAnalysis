@@ -33,6 +33,9 @@ class QwBPMStripline : public VQwBPM {
   friend class QwEnergyCalculator;
 
  public:
+  static UInt_t  GetSubElementIndex(TString subname);
+  
+ public:
   QwBPMStripline(){
   };
 
@@ -66,6 +69,12 @@ class QwBPMStripline : public VQwBPM {
   void  InitializeChannel(TString subsystem, TString name);
   void  InitializeChannel(TString subsystem, TString name, TString type);
   void    ClearEventData();
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    for(Short_t i=0;i<4;i++)
+      fWire[i].LoadChannelParameters(paramfile);
+  }
+
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
   void    ProcessEvent();
@@ -82,7 +91,6 @@ class QwBPMStripline : public VQwBPM {
   }
   const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
 
-  UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
   void    GetAbsolutePosition();
 

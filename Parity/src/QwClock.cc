@@ -30,7 +30,7 @@ template<typename T>
 void QwClock<T>::SetCalibrationFactor(Double_t calib)
 {
 	fCalibration=calib;
-	fClock.SetCalibrationFactor(1./fCalibration);
+	fClock.SetCalibrationFactor(fCalibration);
 	return;
 }
 /********************************************************/
@@ -52,6 +52,7 @@ void  QwClock<T>::InitializeChannel(TString subsystem, TString name, TString dat
   SetPedestal(0.);
   SetCalibrationFactor(1.);
   fClock.InitializeChannel(subsystem, "QwClock", name, datatosave);
+  fClock.SetNeedsExternalClock(kFALSE);
   SetElementName(name);
   //set default limits to event cuts
   fLLimit=0;//init two timits
@@ -66,6 +67,7 @@ void  QwClock<T>::InitializeChannel(TString subsystem, TString name, TString typ
   SetCalibrationFactor(1.);
   SetModuleType(type);
   fClock.InitializeChannel(subsystem, "QwClock", name, datatosave);
+  fClock.SetNeedsExternalClock(kFALSE);
   SetElementName(name);
   //set default limits to event cuts
   fLLimit=0;//init two timits
@@ -103,9 +105,6 @@ void QwClock<T>::EncodeEventData(std::vector<UInt_t> &buffer)
 template<typename T>
 void QwClock<T>::ProcessEvent()
 {
-  this->ApplyHWChecks();//first apply HW checks and update HW  error flags. Calling this routine either in ApplySingleEventCuts or here do not make any difference for a BCM but do for a BPMs because they have derrived devices.
-  fClock.ProcessEvent();
-  fNormalizationValue = fCalibration/fClock.GetRawValue();
   return;
 }
 /********************************************************/
@@ -170,9 +169,9 @@ Int_t QwClock<T>::GetEventcutErrorCounters(){// report number of events falied d
 template<typename T>
 Int_t QwClock<T>::ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement)
 {
-  fClock.ProcessEvBuffer(buffer,word_position_in_buffer);
-
-  return word_position_in_buffer;
+  UInt_t words_read = fClock.ProcessEvBuffer(buffer,word_position_in_buffer);
+  this->ApplyHWChecks();
+  return words_read;
 }
 /********************************************************/
 template<typename T>

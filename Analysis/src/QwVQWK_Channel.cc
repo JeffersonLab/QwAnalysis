@@ -224,6 +224,19 @@ void QwVQWK_Channel::InitializeChannel(TString subsystem, TString instrumenttype
   //PrintInfo();
 }
 
+void QwVQWK_Channel::LoadChannelParameters(QwParameterFile &paramfile){
+  UInt_t value;
+  if (paramfile.ReturnValue("sample_size",value)){
+    SetDefaultSampleSize(value);
+  } else {
+    QwWarning << "VQWK Channel "
+	      << GetElementName()
+	      << " cannot set the default sample size."
+	      << QwLog::endl;
+  }
+};
+
+
 /********************************************************/
 Int_t QwVQWK_Channel::GetEventcutErrorCounters()
 {// report number of events failed due to HW and event cut failure

@@ -153,16 +153,16 @@ Bank=0x6103
 !! scaler.type, scaler.num  word.num, det.type, det.name
 
 
-   SCALER, 0, 16, halomonitor, sca_bcm1
-   SCALER, 0, 17, halomonitor, sca_bcm2
-   SCALER, 0, 18, halomonitor, sca_bcm17
-   SCALER, 0, 19, halomonitor, sca_unser	
-   SCALER, 0, 20, halomonitor, sca_bcm5
-   SCALER, 0, 21, halomonitor, sca_bcm6
+   SCALER, 0, 16, bcm, sca_bcm1
+   SCALER, 0, 17, bcm, sca_bcm2
+   SCALER, 0, 18, bcm, sca_bcm17
+   SCALER, 0, 19, bcm, sca_unser	
+   SCALER, 0, 20, bcm, sca_bcm5
+   SCALER, 0, 21, bcm, sca_bcm6
 
-   SCALER, 0, 29, halomonitor, sca_31MHz
-   SCALER, 0, 30, halomonitor, sca_4MHz
-   SCALER, 0, 31, halomonitor, sca_31MHzreturn
+   SCALER, 0, 29, clock, sca_31MHz
+   SCALER, 0, 30, clock, sca_4MHz
+   SCALER, 0, 31, clock, sca_31MHzreturn
 
    SCALER, 2, 18, halomonitor, sca_halo3
    SCALER, 2, 19, halomonitor, sca_halo4

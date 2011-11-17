@@ -60,6 +60,9 @@ class QwBCM : public VQwBCM {
       TString datatosave);
   void  ClearEventData();
 
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    fBeamCurrent.LoadChannelParameters(paramfile);
+  };
 
   void  SetRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
   void  AddRandomEventDriftParameters(Double_t amplitude, Double_t phase, Double_t frequency);
@@ -110,7 +113,7 @@ class QwBCM : public VQwBCM {
   // These are for the clocks
   std::string GetExternalClockName() { return fBeamCurrent.GetExternalClockName(); };
   Bool_t NeedsExternalClock() { return fBeamCurrent.NeedsExternalClock(); };
-  void SetExternalClockPtr( const VQwDataElement* clock) {fBeamCurrent.SetExternalClockPtr(clock);};
+  void SetExternalClockPtr( const VQwHardwareChannel* clock) {fBeamCurrent.SetExternalClockPtr(clock);};
   void SetExternalClockName( const std::string name) { fBeamCurrent.SetExternalClockName(name);};
   Double_t GetNormClockValue() { return fBeamCurrent.GetNormClockValue();}
 

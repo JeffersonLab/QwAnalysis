@@ -5,6 +5,8 @@
 * Date:   Thu Sep 16 18:08:33 CDT 2009                     *
 \**********************************************************/
 
+#include <boost/algorithm/string.hpp>
+
 #include "QwScaler_Channel.h"
 #include "QwHistogramHelper.h"
 #include <stdexcept>
@@ -32,6 +34,7 @@ void  VQwScaler_Channel::InitializeChannel(TString name, TString datatosave) {
   fValueError = 0.0;
   fPedestal   = 0.0;
   fCalibrationFactor = 1.0;
+
   fClockNormalization = 1.0;
 
   fTreeArrayIndex = 0;
@@ -128,6 +131,14 @@ void VQwScaler_Channel::SetEventData(Double_t value){
 
 }
 
+void VQwScaler_Channel::LoadChannelParameters(QwParameterFile &paramfile){
+  std::string varvalue;
+  if (paramfile.ReturnValue("normclock",varvalue)){
+    boost::to_lower(varvalue);
+    SetExternalClockName(varvalue);
+    fNeedsExternalClock = kTRUE;
+  }
+};
 
 template<unsigned int data_mask, unsigned int data_shift>
 void QwScaler_Channel<data_mask,data_shift>::EncodeEventData(std::vector<UInt_t> &buffer)
@@ -165,10 +176,20 @@ Int_t QwScaler_Channel<data_mask,data_shift>::ProcessEvBuffer(UInt_t* buffer, UI
 
 void VQwScaler_Channel::ProcessEvent()
 {
-  if(fNormChannelPtr)
-    fClockNormalization = const_cast<VQwDataElement*>(fNormChannelPtr)->GetNormClockValue();
-  //QwError << "VQwScaler_Channel::ProcessEvent() "<<GetElementName()<<" "<< fValue_Raw<< " "<< fValue<<" "<<fCalibrationFactor<<" "<< fPedestal<<QwLog::endl;
-  fValue = fCalibrationFactor * (Double_t(fValue_Raw)*fClockNormalization - fPedestal);
+  if (NeedsExternalClock()){
+    if(fNormChannelPtr){
+      Double_t time = fNormChannelPtr->GetValue();
+      //QwError << "VQwScaler_Channel::ProcessEvent() "<<GetElementName()<<" "<< fValue_Raw<< " "<< fValue<<" "<<fCalibrationFactor<<" "<< fPedestal<<QwLog::endl;
+      fValue = fCalibrationFactor * (Double_t(fValue_Raw)/time - fPedestal);
+    } else {
+      QwWarning << "VQwScaler_Channel::ProcessEvent:  "
+		<< "Missing the reference clock, "
+		<< fNormChannelName
+		<< ", for data element "
+		<< GetElementName()
+		<< QwLog::endl;
+    }
+  }
 }
 
 
