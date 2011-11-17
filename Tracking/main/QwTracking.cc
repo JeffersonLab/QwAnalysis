@@ -62,7 +62,12 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Then, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.SetCommandLine(argc, argv);
-  gQwOptions.AddConfigFile("qweak_mysql.conf");
+  ///  TODO:  I have disabled the AddConfigFile("qweak_mysql.conf")
+  ///         line below, because the standard version contains
+  ///         options which are not defined in the basic QwDatabase
+  ///         DefineOptions function.  We should figure out something
+  ///         better...
+  ///  gQwOptions.AddConfigFile("qweak_mysql.conf");
   ///  Define the command line options
   DefineOptionsTracking(gQwOptions);
   /// Load command line options for the histogram/tree helper class
