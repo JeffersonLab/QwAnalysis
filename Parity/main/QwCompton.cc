@@ -144,6 +144,7 @@ int main(int argc, char* argv[])
 
     ///  Create an EPICS event
     QwEPICSEvent epicsevent;
+    epicsevent.ProcessOptions(gQwOptions);
     epicsevent.LoadChannelMap("compton_epics_table.map");
 
 
@@ -194,10 +195,12 @@ int main(int argc, char* argv[])
       //  Secondly, process EPICS events
       if (eventbuffer.IsEPICSEvent()) {
         eventbuffer.FillEPICSData(epicsevent);
-        epicsevent.CalculateRunningValues();
+        if (epicsevent.HasDataLoaded()) {
+          epicsevent.CalculateRunningValues();
 
-        rootfile->FillTreeBranches(epicsevent);
-        rootfile->FillTree("Slow_Tree");
+          rootfile->FillTreeBranches(epicsevent);
+          rootfile->FillTree("Slow_Tree");
+        }
       }
 
       // Now, if this is not a physics event, go back and get a new event.

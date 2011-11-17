@@ -440,6 +440,9 @@ int QwEPICSEvent::SetDataValue(Int_t tagindex, const Double_t value, int event)
 
 int QwEPICSEvent::SetDataValue(Int_t tagindex, const string& value, int event)
 {
+  if (tagindex == kEPICS_Error) return kEPICS_Error;
+  if (tagindex < 0)             return kEPICS_Error;
+
   Double_t tmpvalue = kInvalidEPICSData;
   switch (fEPICSVariableType[tagindex]) {
   case kEPICSString:
