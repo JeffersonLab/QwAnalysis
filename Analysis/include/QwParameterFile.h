@@ -232,9 +232,13 @@ class QwParameterFile {
     template <typename T>
     T ConvertValue(const std::string& value) {
       T retvalue;
-      std::istringstream stream1;
-      stream1.str(value);
-      stream1 >> retvalue;
+      if (value.size() == 0) {
+        retvalue = 0; // and pray
+      } else {
+        std::istringstream stream1;
+        stream1.str(value);
+        stream1 >> retvalue;
+      }
       return retvalue;
     }
 
