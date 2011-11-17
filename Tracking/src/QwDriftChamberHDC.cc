@@ -61,28 +61,28 @@ Int_t QwDriftChamberHDC::LoadGeometryDefinition(TString mapfile)
       }
     } else if (DIRMODE==1){
       //  Break this line into tokens to process it.
-      varvalue     = (mapstr.GetNextToken(", ").c_str());//this is the sType
-      Zpos         = (atof(mapstr.GetNextToken(", ").c_str()));
-      rot          = (atof(mapstr.GetNextToken(", ").c_str()) * Qw::deg);
-      sp_res       = (atof(mapstr.GetNextToken(", ").c_str()));
-      track_res    = (atof(mapstr.GetNextToken(", ").c_str()));
-      slope_match  = (atof(mapstr.GetNextToken(", ").c_str()));
-      package      = mapstr.GetNextToken(", ").c_str();
-      region       = (atol(mapstr.GetNextToken(", ").c_str()));
-      dType        = mapstr.GetNextToken(", ").c_str();
-      direction    = mapstr.GetNextToken(", ").c_str();
-      Det_originX  = (atof(mapstr.GetNextToken(", ").c_str()));
-      Det_originY  = (atof(mapstr.GetNextToken(", ").c_str()));
-      ActiveWidthX = (atof(mapstr.GetNextToken(", ").c_str()));
-      ActiveWidthY = (atof(mapstr.GetNextToken(", ").c_str()));
-      ActiveWidthZ = (atof(mapstr.GetNextToken(", ").c_str()));
-      WireSpace    = (atof(mapstr.GetNextToken(", ").c_str()));
-      FirstWire    = (atof(mapstr.GetNextToken(", ").c_str()));
-      W_rcos       = (atof(mapstr.GetNextToken(", ").c_str()));
-      W_rsin       = (atof(mapstr.GetNextToken(", ").c_str()));
-      tilt         = (atof(mapstr.GetNextToken(", ").c_str()));
-      TotalWires   = (atol(mapstr.GetNextToken(", ").c_str()));
-      detectorId   = (atol(mapstr.GetNextToken(", ").c_str()));
+      varvalue     = mapstr.GetTypedNextToken<TString>();//this is the sType
+      Zpos         = mapstr.GetTypedNextToken<Double_t>();
+      rot          = mapstr.GetTypedNextToken<Double_t>() * Qw::deg;
+      sp_res       = mapstr.GetTypedNextToken<Double_t>();
+      track_res    = mapstr.GetTypedNextToken<Double_t>();
+      slope_match  = mapstr.GetTypedNextToken<Double_t>();
+      package      = mapstr.GetTypedNextToken<TString>();
+      region       = mapstr.GetTypedNextToken<Int_t>();
+      dType        = mapstr.GetTypedNextToken<TString>();
+      direction    = mapstr.GetTypedNextToken<TString>();
+      Det_originX  = mapstr.GetTypedNextToken<Double_t>();
+      Det_originY  = mapstr.GetTypedNextToken<Double_t>();
+      ActiveWidthX = mapstr.GetTypedNextToken<Double_t>();
+      ActiveWidthY = mapstr.GetTypedNextToken<Double_t>();
+      ActiveWidthZ = mapstr.GetTypedNextToken<Double_t>();
+      WireSpace    = mapstr.GetTypedNextToken<Double_t>();
+      FirstWire    = mapstr.GetTypedNextToken<Double_t>();
+      W_rcos       = mapstr.GetTypedNextToken<Double_t>();
+      W_rsin       = mapstr.GetTypedNextToken<Double_t>();
+      tilt         = mapstr.GetTypedNextToken<Double_t>();
+      TotalWires   = mapstr.GetTypedNextToken<Int_t>();
+      detectorId   = mapstr.GetTypedNextToken<Int_t>();
 
       QwDebug << " HDC : Detector ID " << detectorId << " " << varvalue
               << " Package "     << package << " Plane " << Zpos
@@ -620,10 +620,10 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
         } 
 	else if (DIRMODE==0) {
 	  //  Break this line into tokens to process it.
-	  chan    = (atol(mapstr.GetNextToken(", ").c_str()));
+	  chan    = mapstr.GetTypedNextToken<Int_t>();
 	  //package = 1;
-	  plane   = (atol(mapstr.GetNextToken(", ").c_str()));
-	  wire    = (atol(mapstr.GetNextToken(", ").c_str()));
+	  plane   = mapstr.GetTypedNextToken<Int_t>();
+	  wire    = mapstr.GetTypedNextToken<Int_t>();
 	  
 	  // VDC and HDC
 	  BuildWireDataStructure(chan, package, plane, wire);
@@ -631,8 +631,8 @@ Int_t QwDriftChamberHDC::LoadChannelMap(TString mapfile)
         } 
 	else if (DIRMODE==1) {
 	  //this will decode the wire plane directions - Rakitha
-	  plane     = (atol(mapstr.GetNextToken(", ").c_str()));
-	  direction = (EQwDirectionID) (atol(mapstr.GetNextToken(", ").c_str()));
+	  plane     = mapstr.GetTypedNextToken<Int_t>();
+	  direction = (EQwDirectionID) mapstr.GetTypedNextToken<Int_t>();
 	  fDirectionData.at(package-1).at(plane-1) = direction;
         }
 	
@@ -976,8 +976,8 @@ void QwDriftChamberHDC::LoadTtoDParameters ( TString ttod_map )
       mapstr.TrimWhitespace();
       if ( mapstr.LineIsEmpty() ) continue;
       
-      t= ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
-      d = ( atof ( mapstr.GetNextToken ( ", \t()" ).c_str() ) );
+      t= mapstr.GetTypedNextToken<Double_t>();
+      d = mapstr.GetTypedNextToken<Double_t>();
       fTtoDNumbers.push_back ( d );
     }
   return;

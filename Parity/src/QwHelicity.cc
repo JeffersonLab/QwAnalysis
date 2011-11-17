@@ -788,14 +788,14 @@ Int_t QwHelicity::LoadChannelMap(TString mapfile)
     } else {
       Bool_t lineok=kTRUE;
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
-      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-      channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-      dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+      modtype   = mapstr.GetTypedNextToken<TString>();	// module type
+      modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
+      channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+      dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
       dettype.ToLower();
-      namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+      namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
       namech.ToLower();
-      keyword = mapstr.GetNextToken(", ").c_str();
+      keyword = mapstr.GetTypedNextToken<TString>();
       keyword.ToLower();
       // Notice that "namech" and "keyword" are now forced to lower-case.
 

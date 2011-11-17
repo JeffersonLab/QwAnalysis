@@ -89,7 +89,6 @@ void QwEPICSEvent::ProcessOptions(QwOptions &options)
 Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
 {
   Int_t lineread = 0;
-  std::string varname,varvalue, dbtable;
 
   fNumberEPICSVariables = 0;
   fEPICSVariableList.clear();
@@ -104,6 +103,7 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
 
+    std::string varname, varvalue;
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       if (varname == "NominalWienAngle"){
 	fNominalWienAngle = atof(varvalue.c_str());
@@ -111,9 +111,9 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
       continue;
     }
 
-    varname = mapstr.GetNextToken(" \t");
-    dbtable = mapstr.GetNextToken(" \t");
-    TString datatype    = mapstr.GetNextToken(" \t").c_str();
+    varname = mapstr.GetTypedNextToken<std::string>();
+    std::string dbtable = mapstr.GetTypedNextToken<std::string>();
+    TString datatype    = mapstr.GetTypedNextToken<TString>();
     datatype.ToLower();
 
     if (datatype == "") {

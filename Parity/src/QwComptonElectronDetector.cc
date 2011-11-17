@@ -100,13 +100,13 @@ Int_t QwComptonElectronDetector::LoadChannelMap(TString mapfile)
       }
     } else {
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", \t").c_str();
-      modnum    = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
-      channum   = QwParameterFile::GetUInt(mapstr.GetNextToken(", \t"));
-      dettype   = mapstr.GetNextToken(", \t").c_str();
-      name      = mapstr.GetNextToken(", \t").c_str();
-      plane     = (atol(mapstr.GetNextToken(", \t").c_str()));
-      stripnum  = (atol(mapstr.GetNextToken(", \t").c_str()));
+      modtype   = mapstr.GetTypedNextToken<TString>();
+      modnum    = mapstr.GetTypedNextToken<UInt_t>();
+      channum   = mapstr.GetTypedNextToken<UInt_t>();
+      dettype   = mapstr.GetTypedNextToken<TString>();
+      name      = mapstr.GetTypedNextToken<TString>();
+      plane     = mapstr.GetTypedNextToken<Int_t>();
+      stripnum  = mapstr.GetTypedNextToken<Int_t>();
       //  Push a new record into the element array
       if (modtype == "V1495") {
 	if (dettype == "eaccum") {
@@ -194,10 +194,10 @@ Int_t QwComptonElectronDetector::LoadInputParameters(TString pedestalfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
     else {
-      TString varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
+      TString varname = mapstr.GetTypedNextToken<TString>();  // name of the channel
       varname.ToLower();
       varname.Remove(TString::kBoth,' ');
-      Double_t varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+      Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
     }
   } // end of loop reading all lines of the pedestal file
 

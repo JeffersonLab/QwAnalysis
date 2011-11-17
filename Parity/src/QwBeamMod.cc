@@ -94,14 +94,14 @@ Int_t QwBeamMod::LoadChannelMap(TString mapfile)
      {
        Bool_t lineok=kTRUE;
        //  Break this line into tokens to process it.
-       modtype   = mapstr.GetNextToken(", ").c_str();	// module type
-       modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-       channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-       //	dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+       modtype   = mapstr.GetTypedNextToken<TString>();	// module type
+       modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
+       channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+       //	dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
        //	dettype.ToLower();
-       namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+       namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
        namech.ToLower();
-       keyword = mapstr.GetNextToken(", ").c_str();
+       keyword = mapstr.GetTypedNextToken<TString>();
        keyword.ToLower();
 
 
@@ -278,9 +278,9 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename){
       }
     }
     else{
-      device_type= mapstr.GetNextToken(", ").c_str();
+      device_type= mapstr.GetTypedNextToken<TString>();
       device_type.ToLower();
-      device_name= mapstr.GetNextToken(", ").c_str();
+      device_name= mapstr.GetTypedNextToken<TString>();
       device_name.ToLower();
 
 
@@ -293,10 +293,10 @@ Int_t QwBeamMod::LoadEventCuts(TString  filename){
       if (device_type == "vqwk"){
 
 	//std::cout<<" device name "<<device_name<<" device flag "<<check_flag<<std::endl;
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for BCM value
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for BCM value
-	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
-	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for BCM value
+	ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for BCM value
+	varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
+	stabilitycut=mapstr.GetTypedNextToken<Double_t>();
 	varvalue.ToLower();
 	QwMessage<<"QwBeamLine Error Code passing to QwBCM "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 	Int_t det_index=GetDetectorIndex(GetDetectorTypeID(kQwUnknownDeviceType),device_name);
@@ -343,16 +343,16 @@ Int_t QwBeamMod::LoadGeometry(TString mapfile)
       if (mapstr.LineIsEmpty())  continue;
       else
 	{
-	  devtype = mapstr.GetNextToken(", \t").c_str();
+	  devtype = mapstr.GetTypedNextToken<TString>();
 	  devtype.ToLower();
 	  devtype.Remove(TString::kBoth,' ');
-	  devname = mapstr.GetNextToken(", \t").c_str();
+	  devname = mapstr.GetTypedNextToken<TString>();
 	  devname.ToLower();
 	  devname.Remove(TString::kBoth,' ');
 
-	  devOffsetX = (atof(mapstr.GetNextToken(", \t").c_str())); // X offset
-	  devOffsetY = (atof(mapstr.GetNextToken(", \t").c_str())); // Y offset
-	  devOffsetZ = (atof(mapstr.GetNextToken(", \t").c_str())); // Z offset
+	  devOffsetX = mapstr.GetTypedNextToken<Double_t>(); // X offset
+	  devOffsetY = mapstr.GetTypedNextToken<Double_t>(); // Y offset
+	  devOffsetZ = mapstr.GetTypedNextToken<Double_t>(); // Z offset
 
 	  Bool_t notfound=kTRUE;
 
@@ -452,12 +452,12 @@ Int_t QwBeamMod::LoadInputParameters(TString pedestalfile)
       if (mapstr.LineIsEmpty())  continue;
       else
 	{
-	  varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+	  varname = mapstr.GetTypedNextToken<TString>();	//name of the channel
 	  varname.ToLower();
 	  varname.Remove(TString::kBoth,' ');
-	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
-	  varweight= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the statistical weight
+	  varped= mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+	  varcal= mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
+	  varweight= mapstr.GetTypedNextToken<Double_t>(); // value of the statistical weight
 
 	  //if(ldebug) std::cout<<"inputs for channel "<<varname
 	  //	      <<": ped="<<varped<<": cal="<<varcal<<": weight="<<varweight<<"\n";

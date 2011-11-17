@@ -66,11 +66,11 @@ Int_t QwMollerDetector::LoadChannelMap(TString mapfile)
       Bool_t lineok = kTRUE;
 
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", \t").c_str();
-      modnum    = atol(mapstr.GetNextToken(", \t").c_str());
-      channum   = atol(mapstr.GetNextToken(", \t").c_str());
-      dettype   = mapstr.GetNextToken(", \t").c_str();
-      name      = mapstr.GetNextToken(", \t").c_str();
+      modtype   = mapstr.GetTypedNextToken<TString>();
+      modnum    = mapstr.GetTypedNextToken<Int_t>();
+      channum   = mapstr.GetTypedNextToken<Int_t>();
+      dettype   = mapstr.GetTypedNextToken<TString>();
+      name      = mapstr.GetTypedNextToken<TString>();
       dettype.ToLower();
       name.ToLower();
 
