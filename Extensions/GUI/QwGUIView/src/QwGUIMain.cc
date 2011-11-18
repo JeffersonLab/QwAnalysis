@@ -1065,7 +1065,7 @@ void QwGUIMain::PlotMainData()
 	mean = goldenvals.GetTypedNextToken<Double_t>();
 	rms = goldenvals.GetTypedNextToken<Double_t>();
 
-	abox = new TBox((mean-rms/2)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms/2)*1e-6, dMainHistos.back()->GetMaximum());
+	abox = new TBox((mean-rms)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms)*1e-6, dMainHistos.back()->GetMaximum());
 	abox->SetFillColor(2);
 	abox->SetFillStyle(3002);
 	abox->Draw("");
@@ -1143,7 +1143,7 @@ void QwGUIMain::PlotMainData()
 	mean = goldenvals.GetTypedNextToken<Double_t>();
 	rms = goldenvals.GetTypedNextToken<Double_t>();
 
-	abox = new TBox((mean-rms/2),dMainHistos.back()->GetMinimum(), (mean+rms/2), dMainHistos.back()->GetMaximum());
+	abox = new TBox((mean-rms),dMainHistos.back()->GetMinimum(), (mean+rms), dMainHistos.back()->GetMaximum());
 	abox->SetFillColor(2);
 	abox->SetFillStyle(3002);
 	abox->Draw("");
@@ -1214,7 +1214,7 @@ void QwGUIMain::PlotMainData()
 	mean = goldenvals.GetTypedNextToken<Double_t>();
 	rms = goldenvals.GetTypedNextToken<Double_t>();
 
-	abox = new TBox((mean-rms/2),dMainHistos.back()->GetMinimum(), (mean+rms/2), dMainHistos.back()->GetMaximum());
+	abox = new TBox((mean-rms),dMainHistos.back()->GetMinimum(), (mean+rms), dMainHistos.back()->GetMaximum());
 	abox->SetFillColor(2);
 	abox->SetFillStyle(3002);
 	abox->Draw("");
@@ -1282,7 +1282,7 @@ void QwGUIMain::PlotMainData()
 	mean = goldenvals.GetTypedNextToken<Double_t>();
 	rms = goldenvals.GetTypedNextToken<Double_t>();
 
-	abox = new TBox((mean-rms/2),dMainHistos.back()->GetMinimum(), (mean+rms/2), dMainHistos.back()->GetMaximum());
+	abox = new TBox((mean-rms),dMainHistos.back()->GetMinimum(), (mean+rms), dMainHistos.back()->GetMaximum());
 	abox->SetFillColor(2);
 	abox->SetFillStyle(3002);
 	abox->Draw("");
@@ -1355,7 +1355,7 @@ void QwGUIMain::PlotMainData()
       // 	  mean = goldenvals.GetTypedNextToken<Double_t>();
       // 	  rms = goldenvals.GetTypedNextToken<Double_t>();
 	  
-      // 	  abox = new TBox((mean-rms/2)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms/2)*1e-6, dMainHistos.back()->GetMaximum());
+      // 	  abox = new TBox((mean-rms)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms)*1e-6, dMainHistos.back()->GetMaximum());
       // 	  abox->SetFillColor(2);
       // 	  abox->SetFillStyle(3002);
       // 	  abox->Draw("");
@@ -1426,7 +1426,7 @@ void QwGUIMain::PlotMainData()
       // 	  mean = goldenvals.GetTypedNextToken<Double_t>();
       // 	  rms = goldenvals.GetTypedNextToken<Double_t>();
 	  
-      // 	  abox = new TBox((mean-rms/2)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms/2)*1e-6, dMainHistos.back()->GetMaximum());
+      // 	  abox = new TBox((mean-rms)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms)*1e-6, dMainHistos.back()->GetMaximum());
       // 	  abox->SetFillColor(2);
       // 	  abox->SetFillStyle(3002);
       // 	  abox->Draw("");
@@ -1513,7 +1513,7 @@ void QwGUIMain::PlotMainData()
 	  mean = goldenvals.GetTypedNextToken<Double_t>();
 	  rms = goldenvals.GetTypedNextToken<Double_t>();
 	  
-	  abox = new TBox((mean-rms/2)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms/2)*1e-6, dMainHistos.back()->GetMaximum());
+	  abox = new TBox((mean-rms)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms)*1e-6, dMainHistos.back()->GetMaximum());
 	  abox->SetFillColor(2);
 	  abox->SetFillStyle(3002);
 	  abox->Draw("");

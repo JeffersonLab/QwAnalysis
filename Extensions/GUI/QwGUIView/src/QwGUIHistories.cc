@@ -505,7 +505,7 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
 	    // printf("Adding new point %d to graph: %s,%d,%1.3e,%1.3e\n",PlotArray[j]->GetN(),newname.Data(),Run,newplots[i]->GetMean(),newplots[i]->GetRMS()/2);
 	    
 	    PlotArray[j]->SetPoint(p,Run,newplots[i]->GetMean());
-	    PlotArray[j]->SetPointError(p,0,newplots[i]->GetRMS()/2);
+	    PlotArray[j]->SetPointError(p,0,newplots[i]->GetRMS());
 	    PlotArray[j]->GetYaxis()->SetTitle(newplots[i]->GetXaxis()->GetTitle());
 
 	  }
@@ -525,7 +525,7 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
 	// printf("Starting new history with graph: point %d  %s,%d,%1.3e,%1.3e\n",grp->GetN(),grp->GetName(),Run,newplots[i]->GetMean(),newplots[i]->GetRMS()/2);
 	// grp->SetTitle(Form("%s History (mean & rms)",newplots[i]->GetName()));
 	grp->SetPoint(0,Run,newplots[i]->GetMean());
-	grp->SetPointError(0,0,newplots[i]->GetRMS()/2);
+	grp->SetPointError(0,0,newplots[i]->GetRMS());
 	grp->GetXaxis()->SetTitle("Run");
 	grp->GetYaxis()->SetTitle(newplots[i]->GetXaxis()->GetTitle());
 	grp->SetEditable(kFalse);
@@ -572,13 +572,13 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
 
     if(n < boxes.size() && boxes[n]){
 
-      if(PlotArray[n]->GetYaxis()->GetXmin() > boxes[n]->GetX1()/2) 
-	ymin = boxes[n]->GetX1()/2;
+      if(PlotArray[n]->GetYaxis()->GetXmin() > boxes[n]->GetX1()) 
+	ymin = boxes[n]->GetX1();
       else
 	ymin = PlotArray[n]->GetYaxis()->GetXmin();
 
-      if(PlotArray[n]->GetYaxis()->GetXmax() < boxes[n]->GetX2()/2) 
-	ymax = boxes[n]->GetX2()/2;
+      if(PlotArray[n]->GetYaxis()->GetXmax() < boxes[n]->GetX2()) 
+	ymax = boxes[n]->GetX2();
       else
 	ymax = PlotArray[n]->GetYaxis()->GetXmax();
             
@@ -586,7 +586,7 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
       PlotArray[n]->SetMinimum(ymin-fabs(ymin));
       PlotArray[n]->SetMaximum(ymax+fabs(ymax));
       
-      abox = new TBox(PlotArray[n]->GetXaxis()->GetXmin(),boxes[n]->GetX1()/2,PlotArray[n]->GetXaxis()->GetXmax(),boxes[n]->GetX2()/2);
+      abox = new TBox(PlotArray[n]->GetXaxis()->GetXmin(),boxes[n]->GetX1(),PlotArray[n]->GetXaxis()->GetXmax(),boxes[n]->GetX2());
       // abox->SetFillColor(2);
       abox->SetLineColor(2);
       abox->SetFillStyle(0);//3002);
@@ -598,7 +598,7 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
 
 
     TPaveText *ref = new TPaveText(0.2,0.85,0.8,0.98,"blNDC");
-    ref->AddText("mean & rms width (indicated by the bar)");
+    ref->AddText("mean #pm rms width (indicated by the bar)");
     ref->SetBorderSize(0);
     ref->SetFillColor(0);
     ref->Draw();
