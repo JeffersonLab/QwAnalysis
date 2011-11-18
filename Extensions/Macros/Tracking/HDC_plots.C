@@ -4,7 +4,11 @@
 
 
 
-void shift_crew(){
+void HDC_plots(char* run_name){
+//  gSystem->GetEnv();
+  TFile *f = new TFile(Form("$QW_ROOTFILES/%s",run_name));
+  
+  
   TCanvas* c1 = new TCanvas("c1","Hit Patterns",1200,700);
   c1->Divide(6,4);
   //fElement plots are on c1
