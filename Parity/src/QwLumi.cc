@@ -247,6 +247,9 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      if(localLumiDetectorID.fTypeID==kQwScalerPMT)
 		{
 		  QwSIS3801D24_Channel localcounter(localLumiDetectorID.fdetectorname);
+		  ///  TODO:  Instead of just forcing the external clock to not be used, we should
+		  ///         figure out how to use the clock from teh beamline subsystem.
+		  localcounter.SetNeedsExternalClock(kFALSE);
 		  fScalerPMT.push_back(localcounter);
 		  localLumiDetectorID.fIndex=fScalerPMT.size()-1;
 		}
