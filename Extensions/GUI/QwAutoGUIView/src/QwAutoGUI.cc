@@ -125,7 +125,8 @@ void QwAutoGUI::DoWarn()
       ///  TODO:  figure out a more clever way of getting only file
       ///         names like first100k_#####.root other than this
       ///         annoyingly nested filename.
-      NewRun = gSystem->GetFromPipe(Form("ls %s/first100k_[0-9][0-9][0-9][0-9][0-9].root -1 | tail -1",gSystem->Getenv("QW_ROOTFILES")));
+      ///  Use reverse time ordering of the directory.
+      NewRun = gSystem->GetFromPipe(Form("ls %s/first100k_[0-9][0-9][0-9][0-9][0-9].root -1rt | tail -1",gSystem->Getenv("QW_ROOTFILES")));
 
       if(NewRun.Length()>0 && !NewRun.Contains("jlab.org")){
 	
