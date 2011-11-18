@@ -31,8 +31,8 @@ QwGUIHistories::QwGUIHistories(const TGWindow *p, const TGWindow *main, const TG
 
 void QwGUIHistories::NewDataInit()
 {
-  if(fOpen)
-    WriteHistory();
+  // if(fOpen)
+  //   WriteHistory();
 
   for(uint i = 0; i < PlotArray.size(); i++){
     if(PlotArray[i]) delete PlotArray[i];
@@ -605,6 +605,8 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
 
   }
   
+  if(fOpen)
+    WriteHistory();
 
 }
 

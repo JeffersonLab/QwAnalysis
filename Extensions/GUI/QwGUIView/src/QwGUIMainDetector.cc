@@ -246,6 +246,7 @@ Int_t QwGUIMainDetectorDataStructure::SetHistograms(RDataContainer *cont, TTree 
 
 	if(tmp){	  
 
+
 	  TH1D *hst = new TH1D(*(TH1D*)(tmp->Clone()));	  
 	  hst->SetTitle(Form("Run %d %s",GetRunNumber(),DataName[c].Data()));
 	  hst->GetXaxis()->SetTitle(TreeLeafXUnits[c].Data());

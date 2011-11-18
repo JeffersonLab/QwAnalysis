@@ -150,15 +150,15 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
 
   if(!GetSubSystemPtr("Main Detectors"))
     MainDetSubSystem = new QwGUIMainDetector(fClient->GetRoot(), this, dTab,"Main Detectors",
-					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("Lumi Detectors"))
-    LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
-					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  // if(!GetSubSystemPtr("Lumi Detectors"))
+  //   LumiDetSubSystem = new QwGUILumiDetector(fClient->GetRoot(), this, dTab,"Lumi Detectors",
+  // 					     "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
-  if(!GetSubSystemPtr("HallC Beamline"))
-    HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
-						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
+  // if(!GetSubSystemPtr("HallC Beamline"))
+  //   HallCBeamlineSubSystem = new QwGUIHallCBeamline(fClient->GetRoot(), this, dTab,"HallC Beamline",
+  // 						    "QwGUIMain", dMWWidth-15,dMWHeight-180);
 
   // if(!GetSubSystemPtr("Injector"))
   //   InjectorSubSystem = new QwGUIInjector(fClient->GetRoot(), this, dTab,"Injector",
@@ -947,6 +947,9 @@ void QwGUIMain::PlotMainData()
   TCanvas *mc = NULL;
   TPaveText *ref[9] = { NULL};
   Int_t n = 0;
+  TString modname;
+  Double_t mean = 0;
+  Double_t rms = 0;
 
   if(!TabActive("Main")) return;
   if(!IsRootFileOpen()) return;
@@ -960,6 +963,17 @@ void QwGUIMain::PlotMainData()
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.3);             
 
+  TString file(Form("%s/Extensions/Macros/Parity/golden_values_run_summary",gSystem->Getenv("QWANALYSIS")));
+  // RDataContainer *GoldenData = new RDataContainer(fClient->GetRoot(), this,
+  // 						  "GoldenData","QwGUIMain",
+  // 						  "TEXT",FM_READ,FT_TEXT);
+  // if(HistoryData)
+  //   if(HistoryData->OpenFile(file) == FILE_PROCESS_OK)
+  //     GoldenFlag = kTrue;
+
+  QwParameterFile goldenvals(file.Data());  //Open the file
+
+  
   if(!AddSegments()){
 
     if(dMainPlots){
@@ -1038,14 +1052,44 @@ void QwGUIMain::PlotMainData()
     gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
     dMainPlotsArray.push_back(dMainHistos.back());
     dHistoryPlotsArray.push_back(dMainHistos.back());
+    
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+      
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+      
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "asym_qwk_charge"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
 
-    abox = new TBox(-5e-4,dMainHistos.back()->GetMinimum(), 5e-4, dMainHistos.back()->GetMaximum());
-    abox->SetFillColor(2);
-    abox->SetFillStyle(3002);
-    abox->Draw("");
-    dErrorBoxArray.push_back(abox);
-    gPad->Modified();
-    gPad->Update();
+	abox = new TBox((mean-rms/2)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms/2)*1e-6, dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+
+    }
+
+    // if(GoldenFlag){
+      
+    //   for(int nr = 1; nr <= GoldenData->GetNumOfRows(); nr++){
+    // 	memset(buffer,'\0',sizeof(buffer));
+    // 	if(GoldenData->ReadRow(buffer,nr) == FILE_PROCESS_OK){
+    // 	  RowData = buffer;
+    // 	  if(RowData.Contains("asym_qwk_charge_hw")){
+
+    // 	    RowParts = RowData.Tokenize(",");
+
+      
+    // }
 
   }
   else{
@@ -1087,13 +1131,36 @@ void QwGUIMain::PlotMainData()
     dMainPlotsArray.push_back(dMainHistos.back());
     dHistoryPlotsArray.push_back(dMainHistos.back());
 
-    abox = new TBox(-2e-2,dMainHistos.back()->GetMinimum(), 2e-2, dMainHistos.back()->GetMaximum());
-    abox->SetFillColor(2);
-    abox->SetFillStyle(3002);
-    abox->Draw("");
-    gPad->Modified();
-    gPad->Update();
-    dErrorBoxArray.push_back(abox);
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "diff_qwk_targetX"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
+
+	abox = new TBox((mean-rms/2),dMainHistos.back()->GetMinimum(), (mean+rms/2), dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+    }
+    // abox = new TBox(-2e-2,dMainHistos.back()->GetMinimum(), 2e-2, dMainHistos.back()->GetMaximum());
+    // abox->SetFillColor(2);
+    // abox->SetFillStyle(3002);
+    // abox->Draw("");
+    // gPad->Modified();
+    // gPad->Update();
+    // dErrorBoxArray.push_back(abox);
 
   }
   else{
@@ -1135,13 +1202,36 @@ void QwGUIMain::PlotMainData()
     dMainPlotsArray.push_back(dMainHistos.back());      
     dHistoryPlotsArray.push_back(dMainHistos.back());
 
-    abox = new TBox(-1e-2,dMainHistos.back()->GetMinimum(), 1e-2, dMainHistos.back()->GetMaximum());
-    abox->SetFillColor(2);
-    abox->SetFillStyle(3002);
-    abox->Draw("");
-    gPad->Modified();
-    gPad->Update();
-    dErrorBoxArray.push_back(abox);
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "diff_qwk_targetY"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
+
+	abox = new TBox((mean-rms/2),dMainHistos.back()->GetMinimum(), (mean+rms/2), dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+    } 
+    // abox = new TBox(-1e-2,dMainHistos.back()->GetMinimum(), 1e-2, dMainHistos.back()->GetMaximum());
+    // abox->SetFillColor(2);
+    // abox->SetFillStyle(3002);
+    // abox->Draw("");
+    // gPad->Modified();
+    // gPad->Update();
+    // dErrorBoxArray.push_back(abox);
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1180,13 +1270,36 @@ void QwGUIMain::PlotMainData()
     dMainPlotsArray.push_back(dMainHistos.back());      
     dHistoryPlotsArray.push_back(dMainHistos.back());
 
-    abox = new TBox(-5e-3,dMainHistos.back()->GetMinimum(), 5e-3, dMainHistos.back()->GetMaximum());
-    abox->SetFillColor(2);
-    abox->SetFillStyle(3002);
-    abox->Draw("");
-    gPad->Modified();
-    gPad->Update();
-    dErrorBoxArray.push_back(abox);
+    goldenvals.RewindToFileStart();
+    while(goldenvals.ReadNextLine()){
+
+      goldenvals.TrimComment('#'); 
+      goldenvals.TrimWhitespace(); 
+      if (goldenvals.LineIsEmpty())  continue;
+
+      modname = goldenvals.GetTypedNextToken<TString>();
+      if(modname == "diff_qwk_bpm3c12X"){
+	mean = goldenvals.GetTypedNextToken<Double_t>();
+	rms = goldenvals.GetTypedNextToken<Double_t>();
+
+	abox = new TBox((mean-rms/2),dMainHistos.back()->GetMinimum(), (mean+rms/2), dMainHistos.back()->GetMaximum());
+	abox->SetFillColor(2);
+	abox->SetFillStyle(3002);
+	abox->Draw("");
+	dErrorBoxArray.push_back(abox);
+	gPad->Modified();
+	gPad->Update();
+
+	continue;
+      }
+    }
+    // abox = new TBox(-5e-3,dMainHistos.back()->GetMinimum(), 5e-3, dMainHistos.back()->GetMaximum());
+    // abox->SetFillColor(2);
+    // abox->SetFillStyle(3002);
+    // abox->Draw("");
+    // gPad->Modified();
+    // gPad->Update();
+    // dErrorBoxArray.push_back(abox);
   }
   else{
     ref[n] = new TPaveText(0.43,0.48,0.57,0.52);
@@ -1229,6 +1342,30 @@ void QwGUIMain::PlotMainData()
       gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
       dMainPlotsArray.push_back(dMainHistos.back());      
       dHistoryPlotsArray.push_back(dMainHistos.back());
+
+      // goldenvals.RewindToFileStart();
+      // while(goldenvals.ReadNextLine()){
+	
+      // 	goldenvals.TrimComment('#'); 
+      // 	goldenvals.TrimWhitespace(); 
+      // 	if (goldenvals.LineIsEmpty())  continue;
+	
+      // 	modname = goldenvals.GetTypedNextToken<TString>();
+      // 	if(modname == "DDiff12"){
+      // 	  mean = goldenvals.GetTypedNextToken<Double_t>();
+      // 	  rms = goldenvals.GetTypedNextToken<Double_t>();
+	  
+      // 	  abox = new TBox((mean-rms/2)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms/2)*1e-6, dMainHistos.back()->GetMaximum());
+      // 	  abox->SetFillColor(2);
+      // 	  abox->SetFillStyle(3002);
+      // 	  abox->Draw("");
+      // 	  dErrorBoxArray.push_back(abox);
+      // 	  gPad->Modified();
+      // 	  gPad->Update();
+	  
+      // 	  continue;
+      // 	}
+      // }
 
       abox = new TBox(-100,dMainHistos.back()->GetMinimum(), 100, dMainHistos.back()->GetMaximum());
       abox->SetFillColor(2);
@@ -1276,6 +1413,30 @@ void QwGUIMain::PlotMainData()
       gPad->GetFrame()->SetToolTipText("Double-click this plot to edit, post, and save.", 250);    
       dMainPlotsArray.push_back(dMainHistos.back());      
       dHistoryPlotsArray.push_back(dMainHistos.back());
+
+      // goldenvals.RewindToFileStart();
+      // while(goldenvals.ReadNextLine()){
+	
+      // 	goldenvals.TrimComment('#'); 
+      // 	goldenvals.TrimWhitespace(); 
+      // 	if (goldenvals.LineIsEmpty())  continue;
+	
+      // 	modname = goldenvals.GetTypedNextToken<TString>();
+      // 	if(modname == "DDiff56"){
+      // 	  mean = goldenvals.GetTypedNextToken<Double_t>();
+      // 	  rms = goldenvals.GetTypedNextToken<Double_t>();
+	  
+      // 	  abox = new TBox((mean-rms/2)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms/2)*1e-6, dMainHistos.back()->GetMaximum());
+      // 	  abox->SetFillColor(2);
+      // 	  abox->SetFillStyle(3002);
+      // 	  abox->Draw("");
+      // 	  dErrorBoxArray.push_back(abox);
+      // 	  gPad->Modified();
+      // 	  gPad->Update();
+	  
+      // 	  continue;
+      // 	}
+      // }
 
       abox = new TBox(-100,dMainHistos.back()->GetMinimum(), 100, dMainHistos.back()->GetMaximum());
       abox->SetFillColor(2);
@@ -1340,13 +1501,37 @@ void QwGUIMain::PlotMainData()
       dMainPlotsArray.push_back(dMainHistos.back());      
       dHistoryPlotsArray.push_back(dMainHistos.back());
 
-      abox = new TBox(-0.25e-3,dMainHistos.back()->GetMinimum(), 0.25e-3, dMainHistos.back()->GetMaximum());
-      abox->SetFillColor(2);
-      abox->SetFillStyle(3002);
-      abox->Draw("");
-      gPad->Modified();
-      gPad->Update();
-      dErrorBoxArray.push_back(abox);
+      goldenvals.RewindToFileStart();
+      while(goldenvals.ReadNextLine()){
+	
+	goldenvals.TrimComment('#'); 
+	goldenvals.TrimWhitespace(); 
+	if (goldenvals.LineIsEmpty())  continue;
+	
+	modname = goldenvals.GetTypedNextToken<TString>();
+	if(modname == "asym_qwk_mdallbars"){
+	  mean = goldenvals.GetTypedNextToken<Double_t>();
+	  rms = goldenvals.GetTypedNextToken<Double_t>();
+	  
+	  abox = new TBox((mean-rms/2)*1e-6,dMainHistos.back()->GetMinimum(), (mean+rms/2)*1e-6, dMainHistos.back()->GetMaximum());
+	  abox->SetFillColor(2);
+	  abox->SetFillStyle(3002);
+	  abox->Draw("");
+	  dErrorBoxArray.push_back(abox);
+	  gPad->Modified();
+	  gPad->Update();
+	  
+	  continue;
+	}
+      }
+
+      // abox = new TBox(-0.25e-3,dMainHistos.back()->GetMinimum(), 0.25e-3, dMainHistos.back()->GetMaximum());
+      // abox->SetFillColor(2);
+      // abox->SetFillStyle(3002);
+      // abox->Draw("");
+      // gPad->Modified();
+      // gPad->Update();
+      // dErrorBoxArray.push_back(abox);
 
     }
     else{
