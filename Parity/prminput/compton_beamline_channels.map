@@ -10,35 +10,34 @@ Bank = 0x1f02
 !!! NOTE: (jc2) Do not add an _ before xm, xp, xy.  It will produce wrongly named
 !!! Beam Position Monitors in the Compton Chicane
 !! scaler.type, scaler.num  chan.num, det.type, det.name
-SIS3801D24, 0, 0x0f, bpmstripline, sca_bpm_3p02axp
-SIS3801D24, 0, 0x0e, bpmstripline, sca_bpm_3p02axm
-SIS3801D24, 0, 0x0d, bpmstripline, sca_bpm_3p02ayp
-SIS3801D24, 0, 0x0c, bpmstripline, sca_bpm_3p02aym
-SIS3801D24, 0, 0x0b, bpmstripline, sca_bpm_3p02bxp
-SIS3801D24, 0, 0x0a, bpmstripline, sca_bpm_3p02bxm
-SIS3801D24, 0, 0x09, bpmstripline, sca_bpm_3p02byp
-SIS3801D24, 0, 0x08, bpmstripline, sca_bpm_3p02bym
-SIS3801D24, 0, 0x07, bpmstripline, sca_bpm_3p03axp
-SIS3801D24, 0, 0x06, bpmstripline, sca_bpm_3p03axm
-SIS3801D24, 0, 0x05, bpmstripline, sca_bpm_3p03ayp
-SIS3801D24, 0, 0x04, bpmstripline, sca_bpm_3p03aym
-SIS3801D24, 0, 0x03, bpmstripline, sca_bpm_3c20xp
-SIS3801D24, 0, 0x02, bpmstripline, sca_bpm_3c20xm
-SIS3801D24, 0, 0x01, bpmstripline, sca_bpm_3c20yp
-SIS3801D24, 0, 0x00, bpmstripline, sca_bpm_3c20ym
+SCALER, 0, 0x0f, bpmstripline, sca_bpm_3p02axp
+SCALER, 0, 0x0e, bpmstripline, sca_bpm_3p02axm
+SCALER, 0, 0x0d, bpmstripline, sca_bpm_3p02ayp
+SCALER, 0, 0x0c, bpmstripline, sca_bpm_3p02aym
+SCALER, 0, 0x0b, bpmstripline, sca_bpm_3p02bxp
+SCALER, 0, 0x0a, bpmstripline, sca_bpm_3p02bxm
+SCALER, 0, 0x09, bpmstripline, sca_bpm_3p02byp
+SCALER, 0, 0x08, bpmstripline, sca_bpm_3p02bym
+SCALER, 0, 0x07, bpmstripline, sca_bpm_3p03axp
+SCALER, 0, 0x06, bpmstripline, sca_bpm_3p03axm
+SCALER, 0, 0x05, bpmstripline, sca_bpm_3p03ayp
+SCALER, 0, 0x04, bpmstripline, sca_bpm_3p03aym
+SCALER, 0, 0x03, bpmstripline, sca_bpm_3c20xp
+SCALER, 0, 0x02, bpmstripline, sca_bpm_3c20xm
+SCALER, 0, 0x01, bpmstripline, sca_bpm_3c20yp
+SCALER, 0, 0x00, bpmstripline, sca_bpm_3c20ym
 
 !! Beam Charge Monitors of the QWeak Beam Line (read
 !! the above warning )
 !! scaler.type,  scaler.num, chan.num, det.type, det.name
-normclock=sca_4MHz
-SIS3801D24,   0, 0x1b, bcm, sca_bcm1
-SIS3801D24,   0, 0x1c, bcm, sca_bcm2
-SIS3801D24,   0, 0x1d, bcm, sca_bcm6
-SIS3801D24,   0, 0x1e, bcm, sca_unser
+SCALER,   0, 0x1b, bcm, sca_bcm1
+SCALER,   0, 0x1c, bcm, sca_bcm2
+SCALER,   0, 0x1d, bcm, sca_bcm6
+SCALER,   0, 0x1e, bcm, sca_unser
 
 !! Clocks in the QWeak Beam Line (read the above warning)
 !! scaler.type, scaler.num, chan.num, det.type, det.name
-SIS3801D24,   0, 0x1f, clock, sca_4MHz
+SCALER,   0, 0x1f, clock, sca_4MHz
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !! Combined BCM's
