@@ -840,7 +840,9 @@ TObject *RDataContainer::ReadData(const char *objname)
 	  }
 	  else{
 	    FlushMessages();
-	    SetMessage(ROOT_OBJCRT_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+	    sprintf(dMiscbuffer,"%s for %s",ROOT_OBJCRT_ERROR,objname);
+	    SetMessage(dMiscbuffer,"ReadData",(int)dType,M_CONT_ERROR_MSG);
+	    // SetMessage(ROOT_OBJCRT_ERROR,"ReadData",(int)dType,M_CONT_ERROR_MSG);
 	    return NULL;	
 	  }
 	}

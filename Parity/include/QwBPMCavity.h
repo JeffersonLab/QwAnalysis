@@ -33,6 +33,9 @@ class QwBPMCavity : public VQwBPM {
   friend class QwEnergyCalculator;
 
  public:
+  static UInt_t  GetSubElementIndex(TString subname);
+
+ public:
   QwBPMCavity() { };
   QwBPMCavity(TString name):VQwBPM(name){
     InitializeChannel(name);
@@ -52,6 +55,12 @@ class QwBPMCavity : public VQwBPM {
   // new routine added to update necessary information for tree trimming
   void  InitializeChannel(TString subsystem, TString name);
   void    ClearEventData();
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    for(Short_t i=0;i<2;i++)
+      fWire[i].LoadChannelParameters(paramfile);
+  }
+
   Int_t   ProcessEvBuffer(UInt_t* buffer,
 			UInt_t word_position_in_buffer,UInt_t indexnumber);
   void    ProcessEvent();
@@ -68,8 +77,6 @@ class QwBPMCavity : public VQwBPM {
   }
   const VQwHardwareChannel* GetEffectiveCharge() const {return &fEffectiveCharge;}
 
-
-  UInt_t  GetSubElementIndex(TString subname);
   TString GetSubElementName(Int_t subindex);
   void    GetAbsolutePosition();
 

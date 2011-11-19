@@ -23,6 +23,9 @@
 #include "QwTypes.h"
 #include "MQwHistograms.h"
 
+class QwParameterFile;
+class VQwHardwareChannel;
+
 /**
  *  \class   VQwDataElement
  *  \ingroup QwAnalysis
@@ -86,6 +89,8 @@ class VQwDataElement: public MQwHistograms {
   /*! \brief Get the name of this element */
   virtual const TString& GetElementName() const { return fElementName; }
 
+  virtual void LoadChannelParameters(QwParameterFile &paramfile){};
+
   /*! \brief Clear the event data in this element */
   virtual void  ClearEventData(){
     fErrorFlag=0;
@@ -147,9 +152,10 @@ class VQwDataElement: public MQwHistograms {
 
   // These are related to those hardware channels that need to normalize
   // to an external clock
+  virtual void SetNeedsExternalClock(Bool_t needed) {};   // Default is No!
   virtual Bool_t NeedsExternalClock() { return kFALSE; }; // Default is No!
   virtual std::string GetExternalClockName() {  return ""; }; // Default is none
-  virtual void SetExternalClockPtr( const VQwDataElement* clock) {};
+  virtual void SetExternalClockPtr( const VQwHardwareChannel* clock) {};
   virtual void SetExternalClockName( const std::string name) {};
   virtual Double_t GetNormClockValue() { return 1.;}
 

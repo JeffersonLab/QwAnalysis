@@ -23,7 +23,7 @@ const double pe_convert[]={14.0141,16.6726,21.9799,38.5315,20.4254,20.3896,22.10
 
 void GetData(int package=1,int run_number=6327)
 {
-    string file_name= Form ( "%s/Qweak_%d.root",gSystem->Getenv ( "QWSCRATCH" ),run_number );
+    string file_name= Form ( "%s/Qweak_%d.root",gSystem->Getenv ( "QW_ROOTFILES" ),run_number );
     TFile *file = new TFile ( file_name.c_str() );
     ofstream ifile;
     ifile.open("output.dat");

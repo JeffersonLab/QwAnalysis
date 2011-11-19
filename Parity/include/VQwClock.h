@@ -10,6 +10,7 @@
 
 // System headers
 #include <vector>
+#include <boost/shared_ptr.hpp>
 
 // ROOT headers
 #include <TTree.h>
@@ -54,6 +55,9 @@ public:
   virtual void  InitializeChannel(TString name, TString datatosave) = 0;
   // new routine added to update necessary information for tree trimming
   virtual void  InitializeChannel(TString subsystem, TString name, TString datatosave) = 0;
+
+  virtual void LoadChannelParameters(QwParameterFile &paramfile) = 0;
+
   virtual void SetEventCutMode(Int_t bcuts) = 0;
   virtual void SetPedestal(Double_t ped) = 0;
   virtual void SetCalibrationFactor(Double_t calib) = 0;
@@ -88,5 +92,7 @@ public:
 
 protected:
 };
+
+typedef boost::shared_ptr<VQwClock> VQwClock_ptr;
 
 #endif // __VQWCLOCK__

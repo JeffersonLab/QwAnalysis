@@ -107,11 +107,11 @@ Int_t QwScaler::LoadChannelMap(TString mapfile)
     } else {
 
       //  Break this line into tokens to process it.
-      TString modtype = mapstr.GetNextToken().c_str();
-      UInt_t  modnum  = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
-      UInt_t  channum = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
-      TString dettype = mapstr.GetNextToken().c_str();
-      TString keyword = mapstr.GetNextToken().c_str();
+      TString modtype = mapstr.GetTypedNextToken<TString>();
+      UInt_t  modnum  = mapstr.GetTypedNextToken<UInt_t>();
+      UInt_t  channum = mapstr.GetTypedNextToken<UInt_t>();
+      TString dettype = mapstr.GetTypedNextToken<TString>();
+      TString keyword = mapstr.GetTypedNextToken<TString>();
       modtype.ToUpper();
       dettype.ToUpper();
 
@@ -202,11 +202,11 @@ Int_t QwScaler::LoadInputParameters(TString mapfile)
     mapstr.TrimWhitespace(); // Get rid of leading and trailing spaces
     if (mapstr.LineIsEmpty())  continue;
 
-    TString varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
+    TString varname = mapstr.GetTypedNextToken<TString>();  // name of the channel
     varname.ToLower();
     varname.Remove(TString::kBoth,' ');
-    Double_t varped = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-    Double_t varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+    Double_t varped = mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+    Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
     QwVerbose << varname << ": " << QwLog::endl;
 
     Bool_t found = kFALSE;

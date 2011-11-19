@@ -110,13 +110,13 @@
 //                  - added units on axis
 //                  - added one more peak search routine, that is useful for
 //                    the ramping current does not exist.
+
+//          0.0.18 : Friday, November 18 15:58:19 EST 2011, jhlee
+//                  - changed a method to access sca....
 //
 //
 // TODO List
 // 1) replaced all Draw command with real data points
-// 2) copied the Dave Mack's amazing method into here, and other possible methods
-// 3) compare all different methods with each other to select the best one.
-//
 
 
 //
@@ -222,6 +222,7 @@
 #include "TChainElement.h"
 #include "TStyle.h"
 #include "TSystem.h"
+#include "TLeaf.h"
 
 Bool_t output_flag = true;
 
@@ -234,6 +235,7 @@ public:
   BeamMonitor(TString in);
   ~BeamMonitor(){};
   friend std::ostream& operator<<(std::ostream& stream, const BeamMonitor &device);
+
 
   void SetName(const TString in) {name = in;};
   void SetAliasName(const TString in) {alias_name = in;};
@@ -488,6 +490,8 @@ check_bcm_branches(std::vector<TString> &branches, TTree *roottree)
 TH1D*
 GetHisto(TTree *tree, const TString name, const TCut cut, Option_t* option = "")
 {
+
+  //  printf("GetHisto:Name %s\n", name.Data());
   tree ->Draw(name, cut, option);
   TH1D* tmp;
   tmp = (TH1D*)  gPad -> GetPrimitive("htemp");
@@ -714,9 +718,11 @@ main(int argc, char **argv)
       }
       else if( temp_lc.Contains("unser")) {
 	unser_branch_name = temp;
+	//	unser_branch_name += ".raw";
       }
       else if( temp_lc.Contains("4mhz")) {
 	clock_name = temp;
+	//	clock_name += ".raw";
       }
       else
         std::cout << "(ignored " << temp << ")" << std::endl;
@@ -799,18 +805,15 @@ main(int argc, char **argv)
 
   // TEST end
 
-
   // do the 4MHz clock corrections
-  mps_tree_in_chain -> SetAlias("clock_correct", Form("4e6/%s", clock_name.Data()));
-  mps_tree_in_chain -> SetAlias("cc_sca_unser",  Form("clock_correct*%s", sca_unser.GetCName()));
-
+  mps_tree_in_chain -> SetAlias("clock_correct", Form("4e6/%s.raw", clock_name.Data()));
+  mps_tree_in_chain -> SetAlias("cc_sca_unser",  Form("clock_correct*%s.raw", sca_unser.GetCName()));
   for(i=0; i<hallc_bcms_list.size(); i++)
     {
       TString name = hallc_bcms_list.at(i).GetName();
       mps_tree_in_chain -> SetAlias("cc_" + name,  "clock_correct*" + name);
       hallc_bcms_list.at(i).SetAliasName("cc_" + name);
     }
-
   // Print the plot on to a file
   // file containing the bcm calibration plots
 
@@ -831,7 +834,6 @@ main(int argc, char **argv)
     printf("Ctrl+c will be used to close this program.\n");
     theApp.Run();
   }
-
 
   Bool_t only_unser_flag = false;
 
@@ -925,19 +927,20 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
   unser_fit_range[0] = unser.GetFitRangeMin();
   unser_fit_range[1] = unser.GetFitRangeMax();
 
-  static Double_t qwk_sca_unser = 0.0;
-  static Double_t qwk_sca_4mhz  = 0.0;
+  Double_t qwk_sca_unser = 0.0;
+  Double_t qwk_sca_4mhz  = 0.0;
   Double_t clock_corrected_unser_Hz = 0.0;
 
   TBranch *b_unser = mps_tree_in_chain->GetBranch(unser_name.Data());
   TBranch *b_4mhz  = mps_tree_in_chain->GetBranch(clock_name.Data());
-  b_unser -> SetAddress(&qwk_sca_unser);
-  b_4mhz  -> SetAddress(&qwk_sca_4mhz);
 
-  Int_t nentries = (Int_t) mps_tree_in_chain -> GetEntries();
+  TLeaf *l_unser = (TLeaf*) b_unser -> GetLeaf("raw");
+  TLeaf *l_4mhz  = (TLeaf*) b_4mhz  -> GetLeaf("raw");
+
+  Int_t nentries = (Int_t)  b_unser -> GetEntries();
   Int_t nbins    = nentries - 1;
 
-  TH1D *unser_TM = new TH1D("UnserTM",
+   TH1D *unser_TM = new TH1D("UnserTM",
 			    Form("Run %s : Unser Timing Module", run_number),
 			    nbins, 0, nbins);
 
@@ -946,24 +949,29 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
   unser_TM -> GetYaxis() -> SetTitle("Unser (Hz)");
 
   Double_t four_mega_hertz = 4e+6;
-
+ 
   for (i=0; i<nentries; i++)
     {
       b_unser -> GetEntry(i);
       b_4mhz  -> GetEntry(i);
-      //if (qwk_sca_4mhz != 0)
+      qwk_sca_4mhz = l_4mhz -> GetValue();
+      qwk_sca_unser = l_unser -> GetValue();
+
+      if (qwk_sca_4mhz != 0) {
         clock_corrected_unser_Hz = qwk_sca_unser*four_mega_hertz/qwk_sca_4mhz; // Hz
-      if(local_debug) {
-	std::cout << "i " << i
-		  << " unser " << qwk_sca_unser
-		  << " 4mhz  " << qwk_sca_4mhz
-		  << " cc unser Hz "  << clock_corrected_unser_Hz
-		  << std::endl;
+	if(local_debug) {
+	  std::cout << "i " << i
+		    << " unser " << qwk_sca_unser
+		    << " 4mhz  " << qwk_sca_4mhz
+		    << " cc unser Hz "  << clock_corrected_unser_Hz
+		    << std::endl;
+	}
+	unser_TM -> SetBinContent(i, clock_corrected_unser_Hz);
       }
 
-      unser_TM -> SetBinContent(i, clock_corrected_unser_Hz);
+    
     }
-
+ 
   Double_t unser_max = 0.0;
   Double_t unser_min = 0.0;
 
@@ -972,7 +980,7 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
 
   Int_t rd_unser_min   = (Int_t) unser_min;
   Int_t rd_unser_max   = (Int_t) (unser_max) + 1 ;
-  Int_t nbins_rd_unser = (rd_unser_max - rd_unser_min)/1000; // normalize a kHz offset in order to increase "bin size".
+  Int_t nbins_rd_unser = (rd_unser_max - rd_unser_min)/100; // normalize a kHz offset in order to increase "bin size".
 
   printf(" UnserHist Nbins %d Min %d Max %d\n", nbins_rd_unser, rd_unser_min, rd_unser_max);
   TH1D *unser_hist = new TH1D("UnserHist", Form("Run %s : Unser Histogram", run_number), nbins_rd_unser, rd_unser_min, rd_unser_max);
@@ -1146,16 +1154,16 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
 
       // get some important (?) values from unser_fit
       // and calculate probabilities
-      double chisq         = unser_fit -> GetChisquare();
-      double ndf           = unser_fit -> GetNDF();
-      double reduced_chisq = chisq/ndf;
+      // double chisq         = unser_fit -> GetChisquare();
+      // double ndf           = unser_fit -> GetNDF();
+      //   double reduced_chisq = chisq/ndf;
 
-      double prob          = unser_fit -> GetProb();  // ROOT provide
-      double probQ         = gammq(0.5*ndf, 0.5*chisq); // numerical recipe
-      double probP         = gammp(0.5*ndf, 0.5*chisq); // numerical recipe
+      // double prob          = unser_fit -> GetProb();  // ROOT provide
+      // double probQ         = gammq(0.5*ndf, 0.5*chisq); // numerical recipe
+      // double probP         = gammp(0.5*ndf, 0.5*chisq); // numerical recipe
 
-      printf("chisq %6.1lf ndf %3.0lf chisq/ndf %6.2lf, prob %6.3lf, probQ %6.3lf, probP %6.3lf\n",
-	     chisq, ndf, reduced_chisq, prob, probQ, probP);
+      // printf("chisq %6.1lf ndf %3.0lf chisq/ndf %6.2lf, prob %6.3lf, probQ %6.3lf, probP %6.3lf\n",
+      // 	     chisq, ndf, reduced_chisq, prob, probQ, probP);
 
       //
       // draw the background and Gaussian
@@ -1200,6 +1208,7 @@ Unser_calibrate(BeamMonitor &unser, TString clock_name, const char* run_number)
       // 2) pedestal (mean)
       // 3) pedestal error (sigma)
       // 4) fit ranges
+
       mps_tree_in_chain->SetAlias(unser_name.Data(), Form("((cc_sca_unser-%lf)*%lf)", mean[0], unser_scaler_unit));
       unser.SetAliasName(unser_name.Data());
       unser.SetPed(mean[0]);
@@ -1355,6 +1364,7 @@ bcm_calibrate_draw(BeamMonitor &device, BeamMonitor &reference, const char* run_
   // gStyle -> SetOptFit(1111);
   // gStyle -> SetOptStat("ei");
 
+  // device_fit = 0;
   if(device_fit) {
 
     device_fit -> SetLineWidth(2);

@@ -394,10 +394,10 @@ void QwHelicityCorrelatedFeedback::FeedHAIASetPoint(Int_t mode){
 
   QwMessage<<"FeedIASetPoint("<<mode<<") "<<fHAChargeAsym[mode]<<"+/-"<<fHAChargeAsymError[mode]<<" new set point  "<<fHAIASetpoint[mode]<<QwLog::endl;
   //send the new IA setpoint 
-  /* // 11-11-11 rakithab
+
   for (Int_t i=0;i<4;i++)
     fEPICSCtrl.Set_HallAIA(i,fHAIASetpoint[mode]);//do the same correction to 4 DACs
-  */
+
   
   fScalerChargeRunningSum.ClearEventData();//reset the running sums
 };
@@ -454,10 +454,9 @@ void QwHelicityCorrelatedFeedback::FeedPITASetPoints(){
   QwMessage<<"FeedPITASetPoint "<<" "<<fChargeAsymmetry<<" +/- "<<fChargeAsymmetryError<<" new set point[+]  "<<fPITASetpointPOS<<" [-] "<<fPITASetpointNEG<<QwLog::endl;
   
   //send the new PITA setpoint
-  /*// 11-11-11 rakithab
+
   fEPICSCtrl.Set_Pockels_Cell_plus(fPITASetpointPOS);
   fEPICSCtrl.Set_Pockels_Cell_minus(fPITASetpointNEG);
-  */
   fEPICSCtrl.Set_ChargeAsymmetry(fChargeAsymmetry,fChargeAsymmetryError,fChargeAsymmetryWidth);//updates the epics values
  
 

@@ -89,7 +89,6 @@ void QwEPICSEvent::ProcessOptions(QwOptions &options)
 Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
 {
   Int_t lineread = 0;
-  std::string varname,varvalue, dbtable;
 
   fNumberEPICSVariables = 0;
   fEPICSVariableList.clear();
@@ -104,6 +103,7 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
 
+    std::string varname, varvalue;
     if (mapstr.HasVariablePair("=",varname,varvalue)){
       if (varname == "NominalWienAngle"){
 	fNominalWienAngle = atof(varvalue.c_str());
@@ -111,9 +111,9 @@ Int_t QwEPICSEvent::LoadChannelMap(TString mapfile)
       continue;
     }
 
-    varname = mapstr.GetNextToken(" \t");
-    dbtable = mapstr.GetNextToken(" \t");
-    TString datatype    = mapstr.GetNextToken(" \t").c_str();
+    varname = mapstr.GetTypedNextToken<std::string>();
+    std::string dbtable = mapstr.GetTypedNextToken<std::string>();
+    TString datatype    = mapstr.GetTypedNextToken<TString>();
     datatype.ToLower();
 
     if (datatype == "") {
@@ -180,14 +180,12 @@ void QwEPICSEvent::FillTreeVector(std::vector<Double_t>& values) const
         treeindex++;
         break;
       }
-
       case kEPICSString: {
         // Add value to vector
         values[treeindex] = static_cast<Double_t>(fEPICSDataEvent[tagindex].StringValue.Hash());
         treeindex++;
         break;
       }
-
       default: {
         TString name = fEPICSVariableList[tagindex];
         QwError << "Unrecognized type for EPICS variable " << name << QwLog::endl;
@@ -317,8 +315,10 @@ void QwEPICSEvent::ExtractEPICSValues(const string& data, int event)
       }
     }
   }
-  //  Determine the WienMode and save it.
-  SetDataValue("WienMode",WienModeName(DetermineWienMode()),event);
+  if (fIsDataLoaded) {
+    //  Determine the WienMode and save it.
+    SetDataValue("WienMode",WienModeName(DetermineWienMode()),event);
+  }
 }
 
 
@@ -440,6 +440,9 @@ int QwEPICSEvent::SetDataValue(Int_t tagindex, const Double_t value, int event)
 
 int QwEPICSEvent::SetDataValue(Int_t tagindex, const string& value, int event)
 {
+  if (tagindex == kEPICS_Error) return kEPICS_Error;
+  if (tagindex < 0)             return kEPICS_Error;
+
   Double_t tmpvalue = kInvalidEPICSData;
   switch (fEPICSVariableType[tagindex]) {
   case kEPICSString:
@@ -649,6 +652,7 @@ void QwEPICSEvent::ReportEPICSData() const
 
 void  QwEPICSEvent::ResetCounters()
 {
+  fIsDataLoaded = kFALSE;
   /*  Verify that the variable list and variable type vectors
       are the same size, and agree with fNumberEPICSVariables.  */
   Int_t listlength = fEPICSVariableList.size();

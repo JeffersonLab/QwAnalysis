@@ -72,8 +72,6 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
 {
   Bool_t local_debug = false;
   TString varname, varvalue;
-  TString modtype, dettype, name;
-  Int_t modnum, channum;
 
   QwParameterFile mapstr(mapfile.Data());  //Open the file
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
@@ -130,11 +128,11 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
       else
         {
           //  Break this line into tokens to process it.
-          modtype   = mapstr.GetNextToken(", ").c_str();
-          modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
-          channum   = (atol(mapstr.GetNextToken(", ").c_str()));
-          dettype   = mapstr.GetNextToken(", ").c_str();
-          name      = mapstr.GetNextToken(", ").c_str();
+          TString modtype = mapstr.GetTypedNextToken<TString>();
+          Int_t modnum    = mapstr.GetTypedNextToken<Int_t>();
+          Int_t channum   = mapstr.GetTypedNextToken<Int_t>();
+          TString dettype = mapstr.GetTypedNextToken<TString>();
+          TString name    = mapstr.GetTypedNextToken<TString>();
 
           //  Push a new record into the element array
           if (modtype=="VQWK")
@@ -193,9 +191,6 @@ Int_t QwScanner::LoadChannelMap(TString mapfile)
 Int_t QwScanner::LoadInputParameters(TString parameterfile)
 {
   Bool_t ldebug=kFALSE;
-  TString varname, varvalue;
-  Double_t varped = 0.0;
-  Double_t varcal = 0.0;
   TString localname;
 
   Int_t lineread=0;
@@ -210,6 +205,7 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
       mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
       if (mapstr.LineIsEmpty())  continue;
 
+      TString varname, varvalue;
       if (mapstr.HasVariablePair("=",varname,varvalue))
         {
           varname.ToLower();
@@ -263,11 +259,11 @@ Int_t QwScanner::LoadInputParameters(TString parameterfile)
 
       else
         {
-          varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+          varname = mapstr.GetTypedNextToken<TString>();	//name of the channel
           varname.ToLower();
           varname.Remove(TString::kBoth,' ');
-          varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-          varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+          Double_t varped = mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+          Double_t varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
           if (ldebug)
             std::cout<<"inputs for channel "<<varname
             <<": ped="<<varped<<", cal="<<varcal<<"\n";

@@ -43,6 +43,8 @@ class QwIntegrationPMT : public VQwDataElement{
   };
   virtual ~QwIntegrationPMT() { };
 
+  void    LoadChannelParameters(QwParameterFile &paramfile){};
+
   Int_t ProcessEvBuffer(UInt_t* buffer, UInt_t word_position_in_buffer, UInt_t subelement=0);
 
   void  InitializeChannel(TString name, TString datatosave);

@@ -93,43 +93,43 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	  keyword = "";
 	  keyword2 = "";
 	  //  Break this line into tokens to process it.
-	  modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+	  modtype   = mapstr.GetTypedNextToken<TString>();	// module type
 	  if (modtype == "VQWK" || modtype == "SCALER")
 	    {
-	      modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-	      channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-	      dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+	      modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
+	      channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+	      dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	      dettype.ToLower();
-	      namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	      namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	      namech.ToLower();
-	      keyword = mapstr.GetNextToken(", ").c_str();
-	      keyword2 = mapstr.GetNextToken(", ").c_str();
+	      keyword = mapstr.GetTypedNextToken<TString>();
+	      keyword2 = mapstr.GetTypedNextToken<TString>();
 	      keyword.ToLower();
 	      keyword2.ToLower();
 	    }
 	  else if (modtype == "VPMT")
 	    {
-	      channum       = (atol(mapstr.GetNextToken(", \t").c_str()));	//channel number
-	      combinedchans = (atol(mapstr.GetNextToken(", \t").c_str()));	//number of combined channels
-	      dettype   = mapstr.GetNextToken(", \t").c_str();	//type-purpose of the detector
+	      channum       = mapstr.GetTypedNextToken<Int_t>();	//channel number
+	      combinedchans = mapstr.GetTypedNextToken<Int_t>();	//number of combined channels
+	      dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	      dettype.ToLower();
-	      namech    = mapstr.GetNextToken(", \t").c_str();  //name of the detector
+	      namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	      namech.ToLower();
 	      //TString nameofchannel;
 	      combinedchannelnames.clear();
 	      for (int i=0; i<combinedchans; i++)
 		{
-		  nameofcombinedchan = mapstr.GetNextToken(", \t").c_str();
+		  nameofcombinedchan = mapstr.GetTypedNextToken<TString>();
 		  nameofcombinedchan.ToLower();
 		  combinedchannelnames.push_back(nameofcombinedchan);
 		}
 	      weight.clear();
 	      for (int i=0; i<combinedchans; i++)
 		{
-		  weight.push_back( atof(mapstr.GetNextToken(", \t").c_str()));
+		  weight.push_back( mapstr.GetTypedNextToken<Double_t>());
 		}
-	      keyword   = mapstr.GetNextToken(", \t").c_str();
-	      keyword2   = mapstr.GetNextToken(", \t").c_str();
+	      keyword   = mapstr.GetTypedNextToken<TString>();
+	      keyword2   = mapstr.GetTypedNextToken<TString>();
 	      keyword.ToLower();
       	      keyword2.ToLower();
       
@@ -247,6 +247,9 @@ Int_t QwLumi::LoadChannelMap(TString mapfile)
 	      if(localLumiDetectorID.fTypeID==kQwScalerPMT)
 		{
 		  QwSIS3801D24_Channel localcounter(localLumiDetectorID.fdetectorname);
+		  ///  TODO:  Instead of just forcing the external clock to not be used, we should
+		  ///         figure out how to use the clock from teh beamline subsystem.
+		  localcounter.SetNeedsExternalClock(kFALSE);
 		  fScalerPMT.push_back(localcounter);
 		  localLumiDetectorID.fIndex=fScalerPMT.size()-1;
 		}
@@ -375,9 +378,9 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
       }
     }
     else{
-      device_type= mapstr.GetNextToken(", ").c_str();
+      device_type= mapstr.GetTypedNextToken<TString>();
       device_type.ToLower();
-      device_name= mapstr.GetNextToken(", ").c_str();
+      device_name= mapstr.GetTypedNextToken<TString>();
       device_name.ToLower();
 
       det_index=GetDetectorIndex(GetDetectorTypeID(device_type),device_name);
@@ -392,10 +395,10 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
       LLY=0;
 
       if (device_type == GetQwPMTInstrumentTypeName(kQwIntegrationPMT)){
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
-	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
-	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
+	ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
+	varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
+	stabilitycut=mapstr.GetTypedNextToken<Double_t>();
 	varvalue.ToLower();
 	QwMessage<<"QwLumi Error Code passing to QwIntegrationPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 
@@ -406,10 +409,10 @@ Int_t QwLumi::LoadEventCuts(TString  filename){
 	//std::cout<<"*****************************"<<std::endl;
 
       } else if (device_type == GetQwPMTInstrumentTypeName(kQwCombinedPMT)){
-	LLX = (atof(mapstr.GetNextToken(", ").c_str()));	//lower limit for IntegrationPMT value
-	ULX = (atof(mapstr.GetNextToken(", ").c_str()));	//upper limit for IntegrationPMT value
-	varvalue=mapstr.GetNextToken(", ").c_str();//global/loacal
-	stabilitycut=(atof(mapstr.GetNextToken(", ").c_str()));
+	LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegrationPMT value
+	ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegrationPMT value
+	varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
+	stabilitycut=mapstr.GetTypedNextToken<Double_t>();
 	varvalue.ToLower();
 	QwMessage<<"QwLumi Error Code passing to QwCombinedPMT "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
 
@@ -459,11 +462,11 @@ Int_t QwLumi::LoadInputParameters(TString pedestalfile)
       if (mapstr.LineIsEmpty())  continue;
       else
 	{
-	  varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+	  varname = mapstr.GetTypedNextToken<TString>();	//name of the channel
 	  varname.ToLower();
 	  varname.Remove(TString::kBoth,' ');
-	  varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-	  varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+	  varped= mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+	  varcal= mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
 	  if(ldebug) std::cout<<"inputs for channel "<<varname
 			      <<": ped="<<varped<<": cal="<<varcal<<"\n";
 	  Bool_t notfound=kTRUE;

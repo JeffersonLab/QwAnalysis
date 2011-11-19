@@ -73,11 +73,11 @@ Int_t QwComptonPhotonDetector::LoadChannelMap(TString mapfile)
 
     } else {
       //  Break this line into tokens to process it.
-      TString modtype = mapstr.GetNextToken().c_str();
-      UInt_t modnum   = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
-      UInt_t channum  = QwParameterFile::GetUInt(mapstr.GetNextToken().c_str());
-      TString dettype = mapstr.GetNextToken().c_str();
-      TString name    = mapstr.GetNextToken().c_str();
+      TString modtype = mapstr.GetTypedNextToken<TString>();
+      UInt_t modnum   = mapstr.GetTypedNextToken<UInt_t>();
+      UInt_t channum  = mapstr.GetTypedNextToken<UInt_t>();
+      TString dettype = mapstr.GetTypedNextToken<TString>();
+      TString name    = mapstr.GetTypedNextToken<TString>();
       modtype.ToUpper();
       dettype.ToUpper();
 
@@ -210,11 +210,11 @@ Int_t QwComptonPhotonDetector::LoadInputParameters(TString pedestalfile)
 
     if (mapstr.LineIsEmpty())  continue;
     else {
-      varname = mapstr.GetNextToken(", \t").c_str();  // name of the channel
+      varname = mapstr.GetTypedNextToken<TString>();  // name of the channel
       varname.ToLower();
       varname.Remove(TString::kBoth,' ');
-      varped = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-      varcal = (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+      varped = mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+      varcal = mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
       QwVerbose << varname << ": " << QwLog::endl;
     }
 

@@ -77,11 +77,11 @@ Int_t QwRaster::LoadChannelMap(TString mapfile)
           }
         } else {
             //  Break this line into tokens to process it.
-            modtype   = mapstr.GetNextToken(", ").c_str();
-            modnum    = (atol(mapstr.GetNextToken(", ").c_str()));
-            channum   = (atol(mapstr.GetNextToken(", ").c_str()));
-            dettype   = mapstr.GetNextToken(", ").c_str();
-            name      = mapstr.GetNextToken(", ").c_str();
+            modtype   = mapstr.GetTypedNextToken<TString>();
+            modnum    = mapstr.GetTypedNextToken<Int_t>();
+            channum   = mapstr.GetTypedNextToken<Int_t>();
+            dettype   = mapstr.GetTypedNextToken<TString>();
+            name      = mapstr.GetTypedNextToken<TString>();
 
             //  Push a new record into the element array
             if (modtype=="SIS3801") {
@@ -180,11 +180,11 @@ Int_t QwRaster::LoadInputParameters(TString parameterfile)
 
         else
         {
-            varname = mapstr.GetNextToken(", \t").c_str();	//name of the channel
+            varname = mapstr.GetTypedNextToken<TString>();	//name of the channel
             varname.ToLower();
             varname.Remove(TString::kBoth,' ');
-            varped= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the pedestal
-            varcal= (atof(mapstr.GetNextToken(", \t").c_str())); // value of the calibration factor
+            varped= mapstr.GetTypedNextToken<Double_t>(); // value of the pedestal
+            varcal= mapstr.GetTypedNextToken<Double_t>(); // value of the calibration factor
             if (ldebug) std::cout<<"inputs for channel "<<varname
                 <<": ped="<<varped<<", cal="<<varcal<<"\n";
         }

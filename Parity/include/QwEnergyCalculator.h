@@ -49,6 +49,9 @@ class QwEnergyCalculator : public VQwDataElement{
     void    InitializeChannel(TString name,TString datatosave);
     // new routine added to update necessary information for tree trimming
     void  InitializeChannel(TString subsystem, TString name, TString datatosave);
+
+    void    LoadChannelParameters(QwParameterFile &paramfile){};
+    
     void    ClearEventData();
     Int_t   ProcessEvBuffer(UInt_t* buffer,
 			    UInt_t word_position_in_buffer,UInt_t indexnumber);

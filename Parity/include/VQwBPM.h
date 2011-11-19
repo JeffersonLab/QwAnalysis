@@ -9,6 +9,9 @@
 #ifndef __VQWBPM__
 #define __VQWBPM__
 
+// System headers
+#include <boost/shared_ptr.hpp>
+
 // ROOT headers
 #include <TTree.h>
 #include <TMath.h>
@@ -57,6 +60,9 @@ class VQwBPM : public VQwDataElement {
 
   void   InitializeChannel(TString name);
   //  virtual void   ClearEventData() = 0;
+
+  virtual void LoadChannelParameters(QwParameterFile &paramfile) = 0;
+
   void   GetSurveyOffsets(Double_t Xoffset, Double_t Yoffset, Double_t Zoffset);
   void   GetElectronicFactors(Double_t BSENfactor, Double_t AlphaX, Double_t AlphaY);
   void   SetRotation(Double_t);
@@ -153,11 +159,11 @@ class VQwBPM : public VQwDataElement {
   }
 
   // Stuff required for QwBPMStripLine
-  virtual UInt_t  GetSubElementIndex(TString subname) {
-    std::cerr << "GetSubElementIndex() is not implemented for BPM named="
-      <<GetElementName()<< "!!\n";
-    return 0;
-  }
+/*   virtual UInt_t  GetSubElementIndex(TString subname) { */
+/*     std::cerr << "GetSubElementIndex() is not implemented for BPM named=" */
+/*       <<GetElementName()<< "!!\n"; */
+/*     return 0; */
+/*   } */
   virtual TString GetSubElementName(Int_t subindex) {
     std::cerr << "GetSubElementName()  is not implemented!!\n";
     return TString("OBJECT_UNDEFINED"); // Return an erroneous TString
@@ -269,6 +275,7 @@ class VQwBPM : public VQwDataElement {
 
 };
 
+typedef boost::shared_ptr<VQwBPM> VQwBPM_ptr;
 
 #endif
 

@@ -6,7 +6,7 @@
 \**********************************************************/
 
 #ifndef __QwHALO_MONITOR__
-#define __QwHALO_MONITOR_
+#define __QwHALO_MONITOR__
 
 // System headers
 #include <vector>
@@ -46,6 +46,18 @@ class  QwHaloMonitor : public VQwDataElement{
   // new routine added to update necessary information for tree trimming
   void  InitializeChannel(TString subsystem, TString name);
   void  ClearEventData();
+
+  void LoadChannelParameters(QwParameterFile &paramfile){
+    fHalo_Counter.LoadChannelParameters(paramfile);
+  }
+  std::string GetExternalClockName() { return fHalo_Counter.GetExternalClockName(); };
+  Bool_t NeedsExternalClock() { return fHalo_Counter.NeedsExternalClock(); };
+  void SetExternalClockPtr( const VQwHardwareChannel* clock) {fHalo_Counter.SetExternalClockPtr(clock);};
+  void SetExternalClockName( const std::string name) { fHalo_Counter.SetExternalClockName(name);};
+  Double_t GetNormClockValue() { return fHalo_Counter.GetNormClockValue();}
+
+
+
   void  ReportErrorCounters();//This will display the error summary for each device
   void  UpdateHWErrorCount();//Update error counter for HW faliure
 

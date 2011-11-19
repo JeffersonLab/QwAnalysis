@@ -81,10 +81,8 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromLine(QwP
   HistParams tmpstruct;
   tmpstruct.name_title = fInvalidName;
 
-  std::string tmpname, tmptype, tmpmin, tmpmax;
-
-  tmpname = mapstr.GetNextToken(" \t");
-  tmptype = mapstr.GetNextToken(" \t");
+  std::string tmpname = mapstr.GetTypedNextToken<std::string>();
+  std::string tmptype = mapstr.GetTypedNextToken<std::string>();
   if (tmptype != "TH1F" && tmptype != "TH2F"){
     std::cerr << "QwHistogramHelper::GetHistParamsFromFile:  Unrecognized histogram type: "
 	      << tmptype << " (tmpname==" << tmpname <<")"<<  std::endl;
@@ -92,30 +90,30 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromLine(QwP
     tmpstruct.expression = tmpname;
     tmpstruct.name_title = tmpname;
     tmpstruct.type       = tmptype;
-    tmpstruct.x_nbins    = atoi(mapstr.GetNextToken(" \t").c_str());
-    tmpstruct.x_min      = atof(mapstr.GetNextToken(" \t").c_str());
-    tmpstruct.x_max      = atof(mapstr.GetNextToken(" \t").c_str());
-    if (tmptype=="TH2F"){
-      tmpstruct.y_nbins    = atoi(mapstr.GetNextToken(" \t").c_str());
-      tmpstruct.y_min      = atof(mapstr.GetNextToken(" \t").c_str());
-      tmpstruct.y_max      = atof(mapstr.GetNextToken(" \t").c_str());
+    tmpstruct.x_nbins    = mapstr.GetTypedNextToken<Int_t>();
+    tmpstruct.x_min      = mapstr.GetTypedNextToken<Float_t>();
+    tmpstruct.x_max      = mapstr.GetTypedNextToken<Float_t>();
+    if (tmptype == "TH2F") {
+      tmpstruct.y_nbins  = mapstr.GetTypedNextToken<Int_t>();
+      tmpstruct.y_min    = mapstr.GetTypedNextToken<Float_t>();
+      tmpstruct.y_max    = mapstr.GetTypedNextToken<Float_t>();
     } else {
-      tmpstruct.y_nbins    = 0;
-      tmpstruct.y_min      = 0.0;
-      tmpstruct.y_max      = 0.0;
+      tmpstruct.y_nbins  = 0;
+      tmpstruct.y_min    = 0.0;
+      tmpstruct.y_max    = 0.0;
     }
-    tmpstruct.xtitle     = mapstr.GetNextToken(" \t");
-    tmpstruct.ytitle     = mapstr.GetNextToken(" \t");
+    tmpstruct.xtitle     = mapstr.GetTypedNextToken<TString>();
+    tmpstruct.ytitle     = mapstr.GetTypedNextToken<TString>();
 
-    tmpmin               = mapstr.GetNextToken(" \t");
-    if(tmpmin.find_first_not_of("-+1234567890.eE")==std::string::npos){
+    std::string tmpmin = mapstr.GetTypedNextToken<std::string>();
+    if (tmpmin.find_first_not_of("-+1234567890.eE") == std::string::npos) {
       //  tmpmin is a number
       tmpstruct.min = atof(tmpmin.c_str());
     } else {
       tmpstruct.min = fInvalidNumber;
     }
-    tmpmax               = mapstr.GetNextToken(" \t");
-    if(tmpmax.find_first_not_of("-+1234567890.eE")==std::string::npos){
+    std::string tmpmax = mapstr.GetTypedNextToken<std::string>();
+    if (tmpmax.find_first_not_of("-+1234567890.eE") == std::string::npos) {
       //  tmpmax is a number
       tmpstruct.max = atof(tmpmax.c_str());
     } else {
@@ -381,8 +379,8 @@ const QwHistogramHelper::HistParams QwHistogramHelper::GetHistParamsFromFile(
     mapstr.TrimWhitespace(); // Get rid of leading and trailing spaces
     if (mapstr.LineIsEmpty())  continue;
 
-    TString tmpname = mapstr.GetNextToken(" \t");
-    TString tmptype = mapstr.GetNextToken(" \t");
+    TString tmpname = mapstr.GetTypedNextToken<TString>();
+    TString tmptype = mapstr.GetTypedNextToken<TString>();
     if (tmptype != "TH1F" && tmptype != "TH2F") {
       QwError << "QwHistogramHelper::GetHistParamsFromFile:  Unrecognized histogram type: "
               << tmptype << " (tmpname==" << tmpname <<")"<< QwLog::endl;

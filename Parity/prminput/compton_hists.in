@@ -94,6 +94,7 @@ hel_output_register   TH1F    12      -1.5  10.5        inputregister Events
 
 .*sca_evnum.*			TH1F	100	0	1e9	Counts	Events
 .*time.*			TH1F	100	0	1e9	Counts	Events
+.*dac.*				TH1F	100	0	4096	DAC	Events
 
 ###  Compton fast laser channels
 .*laser.*			TH1F	100	0	4e3	Counts	Events

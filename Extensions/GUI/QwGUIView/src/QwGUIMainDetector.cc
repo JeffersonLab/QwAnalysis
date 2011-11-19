@@ -246,6 +246,7 @@ Int_t QwGUIMainDetectorDataStructure::SetHistograms(RDataContainer *cont, TTree 
 
 	if(tmp){	  
 
+
 	  TH1D *hst = new TH1D(*(TH1D*)(tmp->Clone()));	  
 	  hst->SetTitle(Form("Run %d %s",GetRunNumber(),DataName[c].Data()));
 	  hst->GetXaxis()->SetTitle(TreeLeafXUnits[c].Data());
@@ -1980,14 +1981,14 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
     }
     else {
       //  Break this line into tokens to process it.
-      modtype   = mapstr.GetNextToken(", ").c_str();	// module type
+      modtype   = mapstr.GetTypedNextToken<TString>();	// module type
 
       if (modtype == "VQWK"){
-	modnum    = (atol(mapstr.GetNextToken(", ").c_str()));	//slot number
-	channum   = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-	dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+	modnum    = mapstr.GetTypedNextToken<Int_t>();	//slot number
+	channum   = mapstr.GetTypedNextToken<Int_t>();	//channel number
+	dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	dettype.ToLower();
-	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	namech.ToLower();
 
 
@@ -2016,11 +2017,11 @@ Int_t QwGUIMainDetector::LoadCurrentModeChannelMap(TTree *MPSTree, TTree *HELTre
 	}
       }
       else if (modtype == "VPMT"){
-	channum       = (atol(mapstr.GetNextToken(", ").c_str()));	//channel number
-	combinedchans = (atol(mapstr.GetNextToken(", ").c_str()));	//number of combined channels
-	dettype   = mapstr.GetNextToken(", ").c_str();	//type-purpose of the detector
+	channum       = mapstr.GetTypedNextToken<Int_t>();	//channel number
+	combinedchans = mapstr.GetTypedNextToken<Int_t>();	//number of combined channels
+	dettype   = mapstr.GetTypedNextToken<TString>();	//type-purpose of the detector
 	dettype.ToLower();
-	namech    = mapstr.GetNextToken(", ").c_str();  //name of the detector
+	namech    = mapstr.GetTypedNextToken<TString>();  //name of the detector
 	namech.ToLower();
 
 	if(namech.Contains("barsum")){
