@@ -9,6 +9,8 @@ SIS3801D24, 0, 0x12, laser, sca_laser_PowT
 SIS3801D24, 0, 0x13, laser, sca_laser_Scint2
 SIS3801D24, 0, 0x14, laser, sca_laser_C13
 SIS3801D24, 0, 0x15, laser, sca_laser_photon
+SIS3801D24, 0, 0x18, scaler, sca_bmod_ramp
+SIS3801D24, 0, 0x1a, scaler, sca_ref_1MHz
 SIS3801D24, 0, 0x1f, scaler, sca_ref_4MHz
 
 bank = 0x1f03
