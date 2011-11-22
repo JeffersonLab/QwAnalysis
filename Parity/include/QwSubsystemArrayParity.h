@@ -106,10 +106,10 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     UInt_t GetEventcutErrorFlag() const{
       return fErrorFlag;
     };
-    /// \brief Update the error flag from all the subsystems
-    
-    UInt_t GetEventcutErrorFlag();
-    
+
+    /// \brief Update the error flag internally from all the subsystems
+    void UpdateEventcutErrorFlag();
+
     /// \brief update the same error flag for all the channels in the subsystem array
     void UpdateEventcutErrorFlag(UInt_t errorflag);
     /// \brief update the error flag for each channel in the subsystem array with the corresponding value in the ev_error subsystem array
