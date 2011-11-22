@@ -349,11 +349,11 @@ Int_t QwBeamLine::LoadChannelMap(TString mapfile)
 
 	local_element->LoadChannelParameters(mapstr);
 	if (local_element->NeedsExternalClock()){
-	  std::cerr << "Try to push device "
-		    << local_element->GetElementName()
-		    << " (address=" << std::hex << local_element
-     		    << ") onto the clock_needed_list"
-		    << std::endl;
+	  QwDebug << "Try to push device "
+		  << local_element->GetElementName()
+		  << " (address=" << std::hex << local_element
+		  << ") onto the clock_needed_list"
+		  << QwLog::endl;
 	  clock_needed_list.push_back(localBeamDetectorID);
 	}
       }
@@ -662,7 +662,7 @@ Int_t QwBeamLine::LoadGeometryDefinition(TString mapfile){
 
     index=GetDetectorIndex(GetQwBeamInstrumentType(devtype),devname);
     if( index<0 ) {
-      std::cerr << "Error! Unknown detector type "<<devtype<<" in Geometry file!"<<std::endl;
+      QwError << "Error! Unknown detector type "<<devtype<<" in Geometry file!"<<QwLog::endl;
       /*If the device type is unknown there is no point in going through the rest of the specs for that device*/
       /*Ignore it!*/ 
     } 
