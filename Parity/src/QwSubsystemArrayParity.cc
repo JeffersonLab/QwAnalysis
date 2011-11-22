@@ -64,13 +64,7 @@ void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
     this->fErrorFlag=source->fErrorFlag;
     this->fErrorFlagTreeIndex=source->fErrorFlagTreeIndex;
     for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
-      // FIXME why doesn't this accept VQwSubsystem, which should
-      // inherit the method Copy() from VQwSubsystemCloneable?
-      const VQwSubsystemCloneable *srcptr =
-          dynamic_cast<const VQwSubsystemCloneable*>(subsys->get());
-      if (srcptr != NULL) {
-        this->push_back(srcptr->Copy());
-      }
+      this->push_back(subsys->get()->Copy());
     }
   }
 }
