@@ -64,13 +64,7 @@ void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
     this->fErrorFlag=source->fErrorFlag;
     this->fErrorFlagTreeIndex=source->fErrorFlagTreeIndex;
     for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
-      // FIXME why doesn't this accept VQwSubsystem, which should
-      // inherit the method Copy() from VQwSubsystemCloneable?
-      const VQwSubsystemCloneable *srcptr =
-          dynamic_cast<const VQwSubsystemCloneable*>(subsys->get());
-      if (srcptr != NULL) {
-        this->push_back(srcptr->Copy());
-      }
+      this->push_back(subsys->get()->Copy());
     }
   }
 }
@@ -573,7 +567,8 @@ void QwSubsystemArrayParity::UpdateEventcutErrorFlag(QwSubsystemArrayParity& ev_
 };
 
 
-UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() { //this routine will refresh the global error flag adn return it after stability cut check
+void QwSubsystemArrayParity::UpdateEventcutErrorFlag() { 
+  //this routine will refresh the global error flag after stability cut check
   //by default at the ApplySingleEventCuts routine fErrorFlag is updated properly and a const GetEventcutErrorFlag() routine 
   //returns the fErrorFlag value
   fErrorFlag=0;
@@ -586,12 +581,11 @@ UInt_t QwSubsystemArrayParity::GetEventcutErrorFlag() { //this routine will refr
       fErrorFlag|=subsys_parity->GetEventcutErrorFlag();
     }
   }
-  return fErrorFlag;
 }
 
 void  QwSubsystemArrayParity::ConstructBranchAndVector(TTree *tree, TString& prefix, std::vector<Double_t>& values){
   QwSubsystemArray::ConstructBranchAndVector(tree, prefix, values);
-  if (prefix=="asym_" || prefix==""){
+  if (prefix=="yield_" || prefix==""){
     values.push_back(0.0);
     fErrorFlagTreeIndex = values.size()-1;
     tree->Branch("ErrorFlag",&(values[fErrorFlagTreeIndex]),"ErrorFlag/D");

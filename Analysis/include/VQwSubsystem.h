@@ -266,6 +266,8 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
   /// \brief Print some information about the subsystem
   virtual void  PrintInfo() const;
 
+  /// Inherit Copy methods from VQwSubsystemCloneable
+  using VQwSubsystemCloneable::Copy;
   /// \brief Copy method
   /// Note: Must be called at the beginning of all subsystems routine
   /// call to Copy(const VQwSubsystem *source) by using VQwSubsystem::Copy(source)
