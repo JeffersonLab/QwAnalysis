@@ -808,6 +808,8 @@ QwVQWK_Channel& QwVQWK_Channel::operator= (const QwVQWK_Channel &value)
     this->fHardwareBlockSumError = value.fHardwareBlockSumError;
     this->fNumberOfSamples = value.fNumberOfSamples;
     this->fSequenceNumber  = value.fSequenceNumber;
+   
+
   }
   return *this;
 }
@@ -870,6 +872,7 @@ QwVQWK_Channel& QwVQWK_Channel::operator+= (const QwVQWK_Channel &value)
     this->fNumberOfSamples     += value.fNumberOfSamples;
     this->fSequenceNumber       = 0;
     this->fErrorFlag            |= (value.fErrorFlag);
+
   }
 
   return *this;
@@ -1229,6 +1232,10 @@ void QwVQWK_Channel::AccumulateRunningSum(const QwVQWK_Channel& value)
   // Nanny
   if (fHardwareBlockSum != fHardwareBlockSum)
     QwWarning << "Angry Nanny: NaN detected in " << GetElementName() << QwLog::endl;
+
+
+   
+
 }
 
 
@@ -1452,7 +1459,22 @@ void QwVQWK_Channel::Copy(const VQwDataElement *source)
     this->fNumberOfSamples       = input->fNumberOfSamples;
     this->fHardwareBlockSum      = input->fHardwareBlockSum;
     this->fHardwareBlockSumError = input->fHardwareBlockSumError;
-    this->fGoodEventCount=input->fGoodEventCount;
+    this->fGoodEventCount        = input->fGoodEventCount;
+    
+    // //
+    // // Error counter copy....
+    // //
+
+    // this->fErrorCount_HWSat    = input->fErrorCount_HWSat;
+    // this->fErrorCount_sample   = input->fErrorCount_sample;
+    // this->fErrorCount_SW_HW    = input->fErrorCount_SW_HW;
+    // this->fErrorCount_Sequence = input->fErrorCount_Sequence;
+    // this->fErrorCount_SameHW   = input->fErrorCount_SameHW;
+    // this->fErrorCount_ZeroHW   = input->fErrorCount_ZeroHW;
+    // this->fNumEvtsWithEventCutsRejected = input->fNumEvtsWithEventCutsRejected;
+    
+
+
     for(Int_t i=0; i<4; i++ ) {
       this->fBlock[i] = input->fBlock[i];
       this->fBlockError[i] = input->fBlockError[i];
@@ -1547,15 +1569,13 @@ void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list
   row.Reset();
   row.SetDeviceName(name);
   row.SetErrorCodeId(1); 
-  //  row.SetN(fErrorCount_HWSat);
-  row.SetN(1);
+  row.SetN(fErrorCount_HWSat);
   row_list.push_back(row);
   
   row.Reset();
   row.SetDeviceName(name);
   row.SetErrorCodeId(2);
-  //  row.SetN(fErrorCount_sample);
-  row.SetN(2);
+  row.SetN(fErrorCount_sample);
   row_list.push_back(row);
   
   row.Reset();

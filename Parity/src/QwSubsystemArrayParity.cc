@@ -17,6 +17,7 @@
 
 QwSubsystemArrayParity::QwSubsystemArrayParity(const QwSubsystemArrayParity& source)
 {
+  dummy_source = &source;
   this->Copy(&source);
 }
 
@@ -51,10 +52,11 @@ void  QwSubsystemArrayParity::FillDB(QwParityDB *db, TString type)
 
 void  QwSubsystemArrayParity::FillErrDB(QwParityDB *db, TString type)
 {
-  for (iterator subsys = begin(); subsys != end(); ++subsys) {
+  for (const_iterator subsys = dummy_source->begin(); subsys != dummy_source->end(); ++subsys) {
     VQwSubsystemParity* subsys_parity = dynamic_cast<VQwSubsystemParity*>(subsys->get());
     subsys_parity->FillErrDB(db, type);
   }
+  return;
 }
 
 
@@ -72,6 +74,7 @@ void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
   if (!source->empty()) {
     this->fErrorFlag=source->fErrorFlag;
     this->fErrorFlagTreeIndex=source->fErrorFlagTreeIndex;
+
     for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
       this->push_back(subsys->get()->Copy());
     }

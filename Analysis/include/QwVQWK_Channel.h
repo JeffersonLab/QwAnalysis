@@ -287,15 +287,17 @@ private:
   size_t fNumberOfSamples;     ///< Number of samples  read through the module
   size_t fNumberOfSamples_map; ///< Number of samples in the expected to  read through the module. This value is set in the QwBeamline map file
 
-  Int_t fNumEvtsWithEventCutsRejected;/*! Counts the Event cut rejected events */
+ 
 
   // Set of error counters for each HW test.
-  Int_t fErrorCount_sample;   ///< for sample size check
+  Int_t fErrorCount_HWSat;    ///< check to see ADC channel is saturated 
+  Int_t fErrorCount_sample;   ///< for sample size check                 
   Int_t fErrorCount_SW_HW;    ///< HW_sum==SW_sum check
   Int_t fErrorCount_Sequence; ///< sequence number check
   Int_t fErrorCount_SameHW;   ///< check to see ADC returning same HW value
   Int_t fErrorCount_ZeroHW;   ///< check to see ADC returning zero
-  Int_t fErrorCount_HWSat;   ///< check to see ADC channel is saturated
+
+  Int_t fNumEvtsWithEventCutsRejected; ///< Counts the Event cut rejected events 
 
 
 
