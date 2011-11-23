@@ -1424,7 +1424,8 @@ void QwBeamLine::UpdateEventcutErrorFlag(VQwSubsystem *ev_error){
 void  QwBeamLine::ProcessEvent()
 {
 
-  Double_t clock_counts = 0.0;
+  Double_t clock_counts;
+  clock_counts = 0.0;
 
   // Make sure this one comes first! The clocks are needed by
   // other elements.
@@ -2805,3 +2806,69 @@ void QwBeamLine::FillDB(QwParityDB *db, TString datatype)
 
   return;
 }
+
+
+void QwBeamLine::FillErrDB(QwParityDB *db, TString datatype)
+{
+
+  Bool_t local_print_flag = true;
+
+  if(local_print_flag) {
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "                      QwBeamLine::FillErrDB                      " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  std::vector<QwErrDBInterface> interface;
+  std::vector<QwParitySSQLS::beam_errors> entrylist;
+
+  UInt_t analysis_id = db->GetAnalysisID();
+
+  UInt_t i,j;
+  i = j = 0;
+  
+  if(local_print_flag)  QwMessage <<  QwColor(Qw::kGreen) << "Beam Current Monitors" <<QwLog::endl;
+
+  for(i=0; i< fBCM.size(); i++) {
+    interface.clear();
+    interface = fBCM[i].get()->GetErrDBEntry();
+    for (j=0; j<interface.size(); j++){
+      interface.at(j).SetAnalysisID( analysis_id );
+      interface.at(j).SetMonitorID( db );
+    //   interface.at(j).SetMeasurementTypeID( measurement_type_bcm );
+      interface.at(j).PrintStatus( local_print_flag );
+      interface.at(j).AddThisEntryToList( entrylist );
+    }
+  }
+
+
+
+  if(local_print_flag){
+    QwMessage << QwColor(Qw::kGreen)   << "Entrylist Size : "
+	      << QwColor(Qw::kBoldRed) << entrylist.size()
+              << QwColor(Qw::kNormal)  << QwLog::endl;
+  }
+
+  db->Connect();
+  // Check the entrylist size, if it isn't zero, start to query..
+  if( entrylist.size() ) {
+    mysqlpp::Query query= db->Query();
+    query.insert(entrylist.begin(), entrylist.end());
+    query.execute();
+  }
+  else {
+    QwMessage << "QwBeamLine::FillErrDB :: This is the case when the entrlylist contains nothing in "<< datatype.Data() << QwLog::endl;
+  }
+  db->Disconnect();
+  return;
+}
+
+
+void QwBeamLine::WritePromptSummary() const
+{
+
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  QwMessage << "                  QwBeamLine::WritePromptSummary()               " << QwLog::endl;
+  QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  return;
+};

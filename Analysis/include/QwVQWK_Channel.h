@@ -21,6 +21,7 @@
 // Forward declarations
 class QwBlinder;
 class QwParameterFile;
+class QwErrDBInterface;
 
 ///
 /// \ingroup QwAnalysis_ADC
@@ -213,7 +214,7 @@ class QwVQWK_Channel: public VQwHardwareChannel, public MQwMockable {
   /// \brief Blind this channel as a difference
   void Blind(const QwBlinder *blinder, const QwVQWK_Channel& yield);
 
-  
+  void AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list);
 
  protected:
   QwVQWK_Channel& operator/= (const QwVQWK_Channel &value);

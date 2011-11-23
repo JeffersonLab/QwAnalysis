@@ -1315,3 +1315,16 @@ void QwBeamMod::FillDB(QwParityDB *db, TString datatype)
 }
 
 
+
+void QwBeamMod::FillErrDB(QwParityDB *db, TString datatype)
+{
+  return;
+}
+
+
+
+
+void QwBeamMod::WritePromptSummary() const
+{
+  return;
+};

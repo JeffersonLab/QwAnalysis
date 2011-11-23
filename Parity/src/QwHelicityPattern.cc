@@ -804,6 +804,24 @@ void QwHelicityPattern::FillDB(QwParityDB *db)
   }
 }
 
+
+void QwHelicityPattern::FillErrDB(QwParityDB *db)
+{
+  // fBlinder.FillDB(db,"");
+
+  fRunningYield.FillErrDB(db, "");
+  //  fRunningAsymmetry.FillErrDB(db, "asymmetry");
+  // if (fEnableDifference) {
+  //   fRunningDifference.FillErrDB(db, "difference");
+  // }
+  // if (fEnableAlternateAsym) {
+  //   fRunningAsymmetry1.FillErrDB(db, "asymmetry1");
+  //   fRunningAsymmetry2.FillErrDB(db, "asymmetry2");
+  // }
+  return;
+};
+
+
 //*****************************************************************
 
 void QwHelicityPattern::Print() const

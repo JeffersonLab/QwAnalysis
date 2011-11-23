@@ -111,6 +111,7 @@ class QwMainCerenkovDetector:
 
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db, TString datatype);
+  void  FillErrDB(QwParityDB *db, TString datatype);
 
   const QwIntegrationPMT* GetChannel(const TString name) const;
 
@@ -154,6 +155,7 @@ class QwMainCerenkovDetector:
   };
 
   void  PrintValue() const;
+  void  WritePromptSummary() const;
   void  PrintInfo() const;
   void  PrintDetectorID() const;
 

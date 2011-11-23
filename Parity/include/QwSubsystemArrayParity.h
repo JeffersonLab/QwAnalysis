@@ -56,6 +56,7 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
     /// \brief Fill the database
     void FillDB(QwParityDB *db, TString type);
+    void FillErrDB(QwParityDB *db, TString type);
 
 
     /// \brief Assignment operator
@@ -118,6 +119,8 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
 
     /// \brief Print value of all channels
     void PrintValue() const;
+
+    void WritePromptSummary() const;
 
     virtual Bool_t CheckForEndOfBurst() const;
 

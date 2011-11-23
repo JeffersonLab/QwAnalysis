@@ -292,8 +292,10 @@ Int_t main(Int_t argc, Char_t* argv[])
       QwMessage << " Running average of events" << QwLog::endl;
       QwMessage << " =========================" << QwLog::endl;
       runningsum.PrintValue();
+      runningsum.WritePromptSummary();
     }
 
+  
     /*  Write to the root file, being sure to delete the old cycles  *
      *  which were written by Autosave.                              *
      *  Doing this will remove the multiple copies of the ntuples    *
@@ -327,8 +329,12 @@ Int_t main(Int_t argc, Char_t* argv[])
     // Each subsystem has its own Connect() and Disconnect() functions.
     if (database.AllowsWriteAccess()) {
       helicitypattern.FillDB(&database);
+      helicitypattern.FillErrDB(&database);
       epicsevent.FillDB(&database);
+
     }
+    
+  
     //epicsevent.WriteEPICSStringValues();
 
     //  Close event buffer stream

@@ -1329,3 +1329,34 @@ void QwLumi::FillDB(QwParityDB *db, TString datatype)
 
   return;
 }
+
+
+
+
+void QwLumi::FillErrDB(QwParityDB *db, TString datatype)
+{
+
+  Bool_t local_print_flag = true;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "                         QwLumi::FillErrDB                          " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  return;
+};
+
+
+
+void QwLumi::WritePromptSummary() const
+{
+
+  Bool_t local_print_flag = true;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "                         QwLumi::WritePromptSummary()            " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  return;
+}

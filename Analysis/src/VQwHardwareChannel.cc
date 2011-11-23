@@ -108,3 +108,7 @@ void VQwHardwareChannel::AddEntriesToList(std::vector<QwDBInterface> &row_list)
       row_list.push_back(row);
     }
   }
+
+
+
+

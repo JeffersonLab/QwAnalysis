@@ -80,6 +80,8 @@ class QwBPMStripline : public VQwBPM {
   void    ProcessEvent();
   void    PrintValue() const;
   void    PrintInfo() const;
+  void    WritePromptSummary() const;
+
 
   const VQwHardwareChannel* GetPosition(EBeamPositionMonitorAxis axis) const {
     if (axis<0 || axis>2){

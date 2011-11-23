@@ -1439,6 +1439,70 @@ void  QwMainCerenkovDetector::PrintDetectorID() const
   return;
 }
 
+
+
+
+void QwMainCerenkovDetector::FillErrDB(QwParityDB *db, TString datatype)
+{
+
+  Bool_t local_print_flag = true;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "            QwMainCerenkovDetectorID::FillErrDB                  " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  return;
+};
+
+
+
+void QwMainCerenkovDetector::WritePromptSummary() const
+{
+
+  Bool_t local_print_flag = true;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "        QwMainCerenkovDetectorID::WritePromptSummary()          " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  return;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 void  QwMainCerenkovDetectorID::Print() const
 {
 
@@ -1453,5 +1517,7 @@ void  QwMainCerenkovDetectorID::Print() const
 
   return;
 }
+
+
 
 

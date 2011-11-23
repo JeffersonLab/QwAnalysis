@@ -18,6 +18,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 class VQwHardwareChannel: public VQwDataElement {
 /****************************************************************//**
@@ -124,6 +125,7 @@ public:
   Double_t GetCalibrationFactor() const          { return fCalibrationFactor; };
 
   void AddEntriesToList(std::vector<QwDBInterface> &row_list);
+  virtual void AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list) {};
 
 
 protected:

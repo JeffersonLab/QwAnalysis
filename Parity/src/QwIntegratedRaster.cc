@@ -828,3 +828,24 @@ void QwIntegratedRaster::FillDB(QwParityDB *db, TString datatype)
 
   return;
 }
+
+
+void QwIntegratedRaster::FillErrDB(QwParityDB *db, TString datatype)
+{
+
+  Bool_t local_print_flag = true;
+  if(local_print_flag){
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+    QwMessage << "               QwIntegratedRaster::FillErrDB                    " << QwLog::endl;
+    QwMessage << " --------------------------------------------------------------- " << QwLog::endl;
+  }
+
+  return;
+};
+
+void QwIntegratedRaster::WritePromptSummary()
+{
+  QwMessage << "QwIntegratedRaster::WritePromptSummary()" << QwLog::endl;
+  return;
+};
+

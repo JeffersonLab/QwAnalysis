@@ -168,6 +168,8 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
   void  ConstructBranch(TTree *tree, TString &prefix, QwParameterFile& trim_file);
   void  FillTreeVector(std::vector<Double_t> &values) const;
   void  FillDB(QwParityDB *db, TString type);
+  void  FillErrDB(QwParityDB *db, TString datatype);
+
   void  Print() const;
 
   Bool_t IsHelicityIgnored(){return fIgnoreHelicity;};

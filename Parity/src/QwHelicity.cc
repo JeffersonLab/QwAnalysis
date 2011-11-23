@@ -1346,6 +1346,13 @@ void  QwHelicity::FillDB(QwParityDB *db, TString type)
 }
 
 
+
+void  QwHelicity::FillErrDB(QwParityDB *db, TString type)
+{
+  return;
+}
+
+
 UInt_t QwHelicity::GetRandbit(UInt_t& ranseed){
   Bool_t status = false;
 

@@ -21,6 +21,7 @@
 
 // Forward declarations
 class QwDBInterface;
+class QwErrDBInterface;
 
 template<typename T> class QwCombinedBCM;
 template<typename T> class QwBCM;
@@ -87,6 +88,7 @@ public:
   }
 
   virtual std::vector<QwDBInterface> GetDBEntry() = 0;
+  virtual std::vector<QwErrDBInterface> GetErrDBEntry() = 0;
 
   virtual const VQwHardwareChannel* GetCharge() const = 0;
 

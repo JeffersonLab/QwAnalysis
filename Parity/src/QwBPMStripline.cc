@@ -480,6 +480,20 @@ void QwBPMStripline<T>::PrintValue() const
   return;
 }
 
+
+template<typename T>
+void QwBPMStripline<T>::WritePromptSummary() const
+{
+
+  QwMessage << "void QwBPMStripline<T>::WritePromptSummary() const test " << QwLog::endl;
+  //  for (Short_t i = 0; i < 2; i++) {
+  //    fAbsPos[i].PrintValue();
+  //    fRelPos[i].PrintValue();
+  //  }
+  return;
+}
+
+
 template<typename T>
 void QwBPMStripline<T>::PrintInfo() const
 {

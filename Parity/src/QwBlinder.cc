@@ -975,6 +975,17 @@ void QwBlinder::FillDB(QwParityDB *db, TString datatype)
 
 }
 
+void QwBlinder::FillErrDB(QwParityDB *db, TString datatype)
+{
+  QwDebug << " --------------------------------------------------------------- " << QwLog::endl;
+  QwDebug << "                     QwBlinder::FillErrDB                        " << QwLog::endl;
+  QwDebug << " --------------------------------------------------------------- " << QwLog::endl;
+
+  return;
+};
+
+
+
 void QwBlinder::SetTargetBlindability(QwBlinder::EQwBlinderStatus status)
 {
   fTargetBlindability = status;

@@ -8,7 +8,7 @@
 #include "QwUnits.h"
 #include "QwBlinder.h"
 #include "QwHistogramHelper.h"
-
+#include "QwDBInterface.h"
 
 const Bool_t QwVQWK_Channel::kDEBUG = kFALSE;
 
@@ -225,7 +225,7 @@ void QwVQWK_Channel::InitializeChannel(TString subsystem, TString instrumenttype
 }
 
 void QwVQWK_Channel::LoadChannelParameters(QwParameterFile &paramfile){
-  UInt_t value;
+  UInt_t value = 0;
   if (paramfile.ReturnValue("sample_size",value)){
     SetDefaultSampleSize(value);
   } else {
@@ -1506,3 +1506,92 @@ void  QwVQWK_Channel::ReportErrorCounters()
   }
   return;
 }
+
+
+
+void QwVQWK_Channel::AddErrEntriesToList(std::vector<QwErrDBInterface> &row_list)
+{
+
+  TString message;
+  message  = Form("%-20s\t",GetElementName().Data());
+  message += Form(" %8d", fErrorCount_sample);
+  message += Form(" %8d", fErrorCount_SW_HW);
+  message += Form(" %8d", fErrorCount_Sequence);
+  message += Form(" %8d", fErrorCount_SameHW);
+  message += Form(" %8d", fErrorCount_ZeroHW);
+  message += Form(" %8d", fErrorCount_HWSat);
+  message += Form(" %8d", fNumEvtsWithEventCutsRejected);
+  QwMessage << message << QwLog::endl;
+
+  // kErrorFlag_VQWK_Sat   =0x1;    //VQWK Saturation Cut. Currently saturation limit is set to +/-8.5V
+  // kErrorFlag_sample     =0x2;    //If sample size mis-matches with the default value in the map file.
+  // kErrorFlag_SW_HW      =0x4;    //If software sum and hardware sum are not equal.
+  // kErrorFlag_Sequence   =0x8;    //If the ADC sequence number is not incrementing properly
+  // kErrorFlag_SameHW     =0x10;   //If ADC value keep returning the same value
+  // kErrorFlag_ZeroHW     =0x20;   //Check to see ADC is returning zero
+  
+
+  
+  // kErrorFlag_EventCut_L =0x40;   //Flagged if lower limit of the event cut has failed
+  // kErrorFlag_EventCut_U =0x80;   //Flagged if upper limit of the event cut has failed
+  // >>>>>>  fNumEvtsWithEventCutsRejected
+  
+  
+  // outside QwVQWK_Channel
+  // kErrorFlag_BlinderFail = 0x0200;// in Decimal  512 to identify the blinder fail flag
+  // kStabilityCutError     = 0x10000000;// in Decimal 2^28 to identify the stability cut failure
+  
+  QwErrDBInterface row;
+  TString name    = GetElementName();
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(1); 
+  //  row.SetN(fErrorCount_HWSat);
+  row.SetN(1);
+  row_list.push_back(row);
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(2);
+  //  row.SetN(fErrorCount_sample);
+  row.SetN(2);
+  row_list.push_back(row);
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(4);
+  row.SetN(fErrorCount_SW_HW);
+  row_list.push_back(row);
+  
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(8);
+  row.SetN(fErrorCount_Sequence);
+  row_list.push_back(row);
+  
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(16); // 0x10 = 16 dec
+  row.SetN(fErrorCount_SameHW);
+  row_list.push_back(row);
+  
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(32); // 0x20 = 32 dec
+  row.SetN(fErrorCount_ZeroHW);
+  row_list.push_back(row);
+
+
+  row.Reset();
+  row.SetDeviceName(name);
+  row.SetErrorCodeId(192); // 0x40 + 0x80 = 0xCB  = 192 dec
+  row.SetN(fNumEvtsWithEventCutsRejected);
+  row_list.push_back(row);
+  return;
+  
+}
+
+
