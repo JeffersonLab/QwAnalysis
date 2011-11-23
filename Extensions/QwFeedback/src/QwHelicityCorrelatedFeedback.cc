@@ -958,7 +958,7 @@ void  QwHelicityCorrelatedFeedback::CalculateAsymmetry()
 void QwHelicityCorrelatedFeedback::AccumulateRunningSum(){
   QwHelicityPattern::AccumulateRunningSum();
 
-  fAsymmetry.RequestExternalValue("sca_bcm", &fScalerCharge);
+  //fAsymmetry.RequestExternalValue("sca_bcm", &fScalerCharge);
   //fScalerChargeRunningSum.PrintValue();
   fScalerChargeRunningSum.AccumulateRunningSum(fScalerCharge);
   if (fScalerCharge.GetEventcutErrorFlag()==0 && fAsymmetry.GetEventcutErrorFlag()==0)
