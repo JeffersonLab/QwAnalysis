@@ -24,8 +24,8 @@ double mean[18],rms[18];
 
 //CHOOSE THE FORMAT FOR THE ROOTFILE NAME HERE//
 
- //sprintf(filename,"$QW_ROOTFILES/first100k_%i.root",runNum);
- sprintf(filename,"$QW_ROOTFILES/Qweak_%i.root",runNum);
+ sprintf(filename,"$QW_ROOTFILES/first100k_%i.root",runNum);
+// sprintf(filename,"$QW_ROOTFILES/Qweak_%i.root",runNum);
 
 
  f = new TFile(filename);
