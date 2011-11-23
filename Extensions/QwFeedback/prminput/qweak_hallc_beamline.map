@@ -14,10 +14,10 @@ sample_size=464
 !
 ! module.type, module.num  chan.num, det.type, det.name, if unrotated then last column ->UNROTATED
 
-
-!ADC3, Slot 7, Address 37, 0x7F
-   VQWK, 3, 6,  bcm,  QWK_BCM2              
-   VQWK, 3, 7,  bcm,  QWK_BCM1    
+!Last updated Nov 23 2011 by Rakitha (rakithab) using Parity/prminput/qweak_hallc_beamline.13337-.map revision-3566
+!ADC4, Slot 7, Address 37, 0x7F
+   VQWK, 4, 6,  bcm,  QWK_BCM2              
+   VQWK, 4, 7,  bcm,  QWK_BCM1    
 
 !**************************************************************************
 ! HALL C BEAMLINE SCALERS
