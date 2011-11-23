@@ -18,7 +18,7 @@
 
 // If one defines more than this number of words in the full ntuple,
 // the results are going to get very very crazy.
-#define BRANCH_VECTOR_MAX_SIZE 9000
+#define BRANCH_VECTOR_MAX_SIZE 12000
 
 
 /**

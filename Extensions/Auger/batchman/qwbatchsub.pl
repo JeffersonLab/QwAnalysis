@@ -194,6 +194,7 @@ if ($OutputPath =~ /none/i || $OutputPath =~ /null/i){
     if (! -d $path){
 	die("Nonexistent path in OutputPath: $OutputPath.  Exiting");
     }
+    $OutputPath = $path;
 } else {
     die("Unrecognized option for OutputPath: $OutputPath.  Exiting");
 }
@@ -705,6 +706,16 @@ sub create_xml_jobfile($$$@) {
 	    }
 	}
     }
+    if ($OutputPath ne "null"){
+	print JOBFILE
+	    "  echo \"------\"\n",
+	    "  echo \"Start copying output files to at `date`\"\n";
+	print JOBFILE
+	    "  cp -v \$QW_ROOTFILES/$RootfileStem*.root $OutputPath/.\n";
+    }
+
+
+
     print JOBFILE
 	"  echo \"Finished at `date`\"\n",
 	"]]></Command>\n";
@@ -712,13 +723,13 @@ sub create_xml_jobfile($$$@) {
     foreach $input_file (@infiles) {
 	print JOBFILE "  <Input src=\"mss:$input_file\" dest=\"",basename($input_file),"\"/>\n";
     }
-    if ($OutputPath ne "null"){
-	foreach $input_file (@infiles) {
-	    my $segment = sprintf "%03d", extract_segment($input_file);
-	    my $root_file = "$RootfileStem$runnumber.$segment.root";
-	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$OutputPath/$root_file\"/>\n";
-	}
-    }
+    #    if ($OutputPath ne "null"){
+    #	foreach $input_file (@infiles) {
+    #	    my $segment = sprintf "%03d", extract_segment($input_file);
+    #	    my $root_file = "$RootfileStem$runnumber.$segment.root";
+    #	    print JOBFILE "  <Output src=\"$root_file\" dest=\"$OutputPath/$root_file\"/>\n";
+    #	}
+    #    }
     
     print JOBFILE "  <Stdout dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.out\"/>\n";
     print JOBFILE "  <Stderr dest=\"$ENV{QWSCRATCH}/work/run_$runnumber$suffix\_$timestamp.err\"/>\n";
