@@ -119,29 +119,28 @@ void QwGUIDataWindow::SubmitToHCLog()
   if(dHCLogEntries.setFlag){
 
     hcpost = "hclog_post ";
-    hcpost += WrapParameter("author", dHCLogEntries.name);
-    hcpost += WrapParameter("emailto",dHCLogEntries.emaillist);
+    if(dHCLogEntries.name.Length())
+      hcpost += WrapParameter("author", dHCLogEntries.name);
+    if(dHCLogEntries.emaillist.Length())
+      hcpost += WrapParameter("emailto",dHCLogEntries.emaillist);
     hcpost += "--tag=\"This is logged using hclog_post by QwGUI\" ";
     hcpost += "  --cleanup ";
     
-    hcpost += WrapParameter("subject",MakeSubject(dHCLogEntries.subject));
+    if(dHCLogEntries.subject.Length())
+      hcpost += WrapParameter("subject",MakeSubject(dHCLogEntries.subject));
     
     tempfile->OpenFile(contentfile);
     tempfile->WriteData(dHCLogEntries.comments.Data(),strlen(dHCLogEntries.comments.Data()));
     tempfile->Close();
     tempfile = NULL;
 
-    hcpost += WrapParameter("textfile", contentfile);
+    if(contentfile.Length())
+      hcpost += WrapParameter("textfile", contentfile);
     SaveCanvas(attachment.Data());
     hcpost += WrapAttachment(attachment.Data());
 
-    // std::cout << hcpost << std::endl;
     gSystem->Exec(hcpost.Data());
 
-    // std::cout << dHCLogEntries.name << std::endl;
-    // std::cout << dHCLogEntries.subject << std::endl;
-    // std::cout << dHCLogEntries.comments << std::endl;
-    // std::cout << dHCLogEntries.emaillist << std::endl;
   }
   dHCLogEntryDlg = NULL;
 }

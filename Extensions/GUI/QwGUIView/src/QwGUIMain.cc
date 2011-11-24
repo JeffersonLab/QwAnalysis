@@ -750,7 +750,7 @@ void QwGUIMain::MainTabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
     
     TCanvas *mc = dMainCanvas->GetCanvas();
     if(!mc) return;
-    
+
     UInt_t pad = mc->GetSelectedPad()->GetNumber();
     UInt_t ind = pad-1;
     
