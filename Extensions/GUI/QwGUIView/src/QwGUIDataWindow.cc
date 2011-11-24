@@ -107,16 +107,17 @@ void QwGUIDataWindow::UpdatePlot(char *obj)
 
 void QwGUIDataWindow::SubmitToHCLog()
 {
-  TString hcpost;
-  TString contentfile = Form("%s/Extensions/GUI/hcpostcomments.txt",gSystem->Getenv("QWANALYSIS"));
-  TString attachment = Form("%s/Extensions/GUI/TempHClogAttachment.png",gSystem->Getenv("QWANALYSIS"));
-  RDataContainer *tempfile = new RDataContainer(fClient->GetRoot(),this,"tempfile",
-						"QwGUIDataWindow","",FM_WRITE,FT_TEXT);
 
   dHCLogEntryDlg = new QwGUIHCLogEntryDialog(fClient->GetRoot(),0,
 					     "dHCLogEntryDlg","QwGUIDataWindow",
 					     &dHCLogEntries,400, 200);
   if(dHCLogEntries.setFlag){
+
+    TString hcpost;
+    TString contentfile = Form("%s/Extensions/GUI/hcpostcomments.txt",gSystem->Getenv("QWANALYSIS"));
+    TString attachment = Form("%s/Extensions/GUI/TempHClogAttachment.png",gSystem->Getenv("QWANALYSIS"));
+    RDataContainer *tempfile = new RDataContainer(fClient->GetRoot(),this,"tempfile",
+						  "QwGUIDataWindow","",FM_WRITE,FT_TEXT);
 
     hcpost = "hclog_post ";
     if(dHCLogEntries.name.Length())

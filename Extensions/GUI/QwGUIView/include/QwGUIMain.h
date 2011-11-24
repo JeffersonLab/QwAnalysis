@@ -243,6 +243,10 @@ class QwGUIMain : public TGMainFrame {
   TGTextBuffer           *dDBQueryBuffer;
   TGLabel                *dDBQueryLabel;
   TGLayoutHints          *dDBQueryLabelLayout;
+  TGTextButton           *dHCEntryButton;
+  QwGUIHCLogEntryDialog  *dHCLogEntryDlg;
+  HCLogEntry              dHCLogEntries;
+  TGLabel                *dHCLogEntryLabel;
 
   //!Menubar widgets
   TGMenuBar              *dMenuBar;
@@ -489,6 +493,7 @@ class QwGUIMain : public TGMainFrame {
   void                    LoopOverRunSegments();
 
   void                    PlotMainData();
+  void                    SubmitToHCLog();
   
 
   //!This function checks to see if a tab with a certain name is already active.
@@ -520,6 +525,24 @@ class QwGUIMain : public TGMainFrame {
 
   //!Not yet implemented.
   Int_t                   WriteRootData();
+
+  TString     WrapParameter(TString param, TString value){
+    TString tmp("--");
+    tmp += param + "=\"" + value + "\" ";
+    return tmp;
+  }
+  TString     WrapAttachment(TString filename){
+    TString tmp("--attachment=\"");
+    tmp += filename + "\" ";
+    return tmp;
+  }
+
+  TString     MakeSubject(TString subject){
+    TString tmp("Analysis: ");
+    tmp += Form("Run %6d - ",GetCurrentRunNumber()) + subject;
+    return tmp;
+  } 
+
 
  public:
   QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h);

@@ -204,6 +204,7 @@ enum CommandIdentifiers {
   M_TARGET_SELECT,
   M_RUN_SELECT,
   M_LOG_ENTRY,
+  M_HC_ENTRY_SET,
   
   M_HELP_USER,
   M_HELP_CODE,

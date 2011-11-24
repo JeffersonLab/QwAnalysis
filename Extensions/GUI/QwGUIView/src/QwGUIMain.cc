@@ -368,6 +368,13 @@ void QwGUIMain::MakeUtilityLayout()
 //     dUtilityFrame->AddFrame(icon,new TGLayoutHints(kLHintsLeft | kLHintsBottom,1,15,1,1));
 //   }
 
+  dHCLogEntryLabel = new TGLabel(dUtilityFrame,"Send this canvas to the hclog: ");  
+  dUtilityFrame->AddFrame(dHCLogEntryLabel,new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+  dHCEntryButton = new TGTextButton(dUtilityFrame, " Send ", M_HC_ENTRY_SET);
+  dHCEntryButton->Associate(this);
+  dUtilityFrame->AddFrame(dHCEntryButton,new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+  
+
   AddFrame(dUtilityFrame,dUtilityLayout);
 
 }
@@ -2399,6 +2406,50 @@ Int_t QwGUIMain::WriteLogData(const char *filename)
   return PROCESS_OK;
 }
 
+void QwGUIMain::SubmitToHCLog()
+{
+
+  dHCLogEntryDlg = new QwGUIHCLogEntryDialog(fClient->GetRoot(),0,
+					     "dHCLogEntryDlg","QwGUIDataWindow",
+					     &dHCLogEntries,400, 200);
+  if(dHCLogEntries.setFlag){
+
+    TString hcpost;
+    TString contentfile = Form("%s/Extensions/GUI/hcpostcomments.txt",gSystem->Getenv("QWANALYSIS"));
+    TString attachment = Form("%s/Extensions/GUI/TempHClogAttachment.png",gSystem->Getenv("QWANALYSIS"));
+    RDataContainer *tempfile = new RDataContainer(fClient->GetRoot(),this,"tempfile",
+						  "QwGUIMain","",FM_WRITE,FT_TEXT);
+
+    hcpost = "hclog_post ";
+    if(dHCLogEntries.name.Length())
+      hcpost += WrapParameter("author", dHCLogEntries.name);
+    if(dHCLogEntries.emaillist.Length())
+      hcpost += WrapParameter("emailto",dHCLogEntries.emaillist);
+    hcpost += "--tag=\"This is logged using hclog_post by QwGUI\" ";
+    hcpost += "  --cleanup ";
+    
+    if(dHCLogEntries.subject.Length())
+      hcpost += WrapParameter("subject",MakeSubject(dHCLogEntries.subject));
+    
+    tempfile->OpenFile(contentfile);
+    tempfile->WriteData(dHCLogEntries.comments.Data(),strlen(dHCLogEntries.comments.Data()));
+    tempfile->Close();
+    tempfile = NULL;
+
+    if(contentfile.Length())
+      hcpost += WrapParameter("textfile", contentfile);
+
+    TCanvas *mc = dMainCanvas->GetCanvas();
+    mc->SaveAs(attachment.Data());
+    hcpost += WrapAttachment(attachment.Data());
+
+    gSystem->Exec(hcpost.Data());
+
+  }
+  dHCLogEntryDlg = NULL;
+}
+
+
 Int_t QwGUIMain::WriteRootData()
 {
 //   Int_t retval = 0;
@@ -2619,6 +2670,19 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	      SetAddSegments(kFalse);
 	      SetSubSystemSegmentAdd(kFalse);
 	    }
+	  }
+	  break;
+	}
+      }
+      break;
+     
+    case kCM_BUTTON:
+      {
+	switch (parm1) {
+	case M_HC_ENTRY_SET:
+	  {
+	    SubmitToHCLog();
+	    break;
 	  }
 	  break;
 	}
