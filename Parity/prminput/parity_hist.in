@@ -302,13 +302,13 @@ diff_qwk_bpm.*Rel._dev_err	TH1F	101	-1.0	128          	ErrorCode	Events
 
 
 ###diff-BPM-X/Y########
-diff_qwk_bpm.*._block.		TH1F	1001	-5.0e-2	5.0e-2		Diff(mm)	Entries
-diff_qwk_bpm.*._hw		TH1F	1001	-5.0e-2	5.0e-2		Diff(mm)	Entries			
+diff_qwk_bpm.*._block.		TH1F	1001	0	0		Diff(mm)	Entries
+diff_qwk_bpm.*._hw		TH1F	1001	0	0		Diff(mm)	Entries			
 diff_qwk_bpm.*._dev_err		TH1F	101	-1.0	128          	ErrorCode	Events
 
 ###Combo-BPM#############
-diff_qwk_target._block.		TH1F	1001	-5.0e-2	5.0e-2		Diff(mm)	Entries
-diff_qwk_target._hw		TH1F	1001	-5.0e-2	5.0e-2		Diff(mm)	Entriesw
+diff_qwk_target._block.		TH1F	1001	 0	0		Diff(mm)	Entries
+diff_qwk_target._hw		TH1F	1001	 0	0		Diff(mm)	Entriesw
 diff_qwk_target._dev_err	TH1F	101	-1.0	128          	ErrorCode	Events
 
 diff_qwk_target.Intercept_block.	TH1F	1001	-5.0e-2	5.0e-2		Diff(mm)	Entries
