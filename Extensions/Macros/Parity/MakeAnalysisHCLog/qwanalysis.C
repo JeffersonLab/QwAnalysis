@@ -68,10 +68,10 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   Bool_t MDPMT=kTRUE; Bool_t CHARGE=kTRUE; Bool_t CHARGEDD=kTRUE; Bool_t BMODCYCLE=kTRUE; Bool_t BPMS=kTRUE; 
   Bool_t MDYIELDVAR=kTRUE; Bool_t MDBKG=kTRUE; Bool_t MDALLASYM=kTRUE; Bool_t SENSITIVITY=kTRUE; 
   Bool_t MDLUMI=kTRUE; Bool_t USLUMI=kTRUE; Bool_t USLUMISEN=kTRUE; Bool_t BMODSEN=kTRUE;
-//     Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kFALSE; Bool_t BPMS=kFALSE; 
+//     Bool_t MDPMT=kFALSE; Bool_t CHARGE=kFALSE; Bool_t CHARGEDD=kFALSE; Bool_t BMODCYCLE=kTRUE; Bool_t BPMS=kFALSE; 
 //     Bool_t MDYIELDVAR=kFALSE; Bool_t MDBKG=kFALSE; Bool_t MDALLASYM=kFALSE; Bool_t SENSITIVITY=kFALSE; 
 //     Bool_t MDLUMI=kFALSE; Bool_t USLUMI=kFALSE; Bool_t USLUMISEN=kFALSE;
-//     Bool_t BMODSEN=kFALSE;
+//     Bool_t BMODSEN=kTRUE;
   
   //  UInt_t gRunNumber = 0;
   char run0[255],run[255],run100k[255],sline[255],dline[255],ssline[255],sslinen[255];
@@ -160,13 +160,14 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
   const Int_t NUM = 8, NUM1 = 5,NUM2 = 6, NUM3 = 3, NUM4 = 4, NUM7 = 7, NUM15 = 15;
   TString bcms[NUM7] = {"charge","bcm1","bcm2","bcm5","bcm6","bcm7","bcm8"};
-  TString bcms2[NUM2] = {"bcm1","bcm1","bcm1","bcm2","bcm2","bcm5"};
-  TString bcms3[NUM2] = {"bcm2","bcm5","bcm6","bcm5","bcm6","bcm6"};
+  TString bcms2[NUM2] = {"bcm1","bcm1","bcm5","bcm5","bcm7","bcm7"};
+  TString bcms3[NUM2] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm1"};
   TString bcms4[NUM15] = {"bcm1","bcm1","bcm1","bcm1","bcm1","bcm2","bcm2","bcm2","bcm2","bcm5","bcm5","bcm5","bcm6","bcm6","bcm7"};
   TString bcms5[NUM15] = {"bcm2","bcm5","bcm6","bcm7","bcm8","bcm5","bcm6","bcm7","bcm8","bcm6","bcm7","bcm8","bcm7","bcm8","bcm8"};
   TString bpms[NUM4] = {"target","bpm3h09b","bpm3h07c","bpm3c12"};
   TString mdasym[NUM] = {"md1barsum","md2barsum","md3barsum","md4barsum","md5barsum","md6barsum","md7barsum","md8barsum"};
   TString mdbkg[NUM2] = {"md9pos","md9neg","pmtonl","pmtltg","pmtled","preamp"};
+  TString mdbkg2[2] = {"pmtled","preamp"};
   TString allmd[NUM3] = {"all","even","odd"};
   TString lumi[NUM3] = {"sum","even","odd"};
   TString uslumi[NUM1] = {"uslumi1","uslumi3","uslumi5","uslumi7","uslumi"};
@@ -505,7 +506,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
   /****************************************************************************/
   if (CHARGEDD){
-  TCanvas *c3 = new TCanvas("c3", CanvasTitle("Charge Double Difference (ppm)"),40,40,1400,1200);
+  TCanvas *c3 = new TCanvas("c3", CanvasTitle("Charge Double Difference (ppm)"),40,40,csizx,csizy);
   TPad* pad31 = NewFramedPad(kCyan-10, kWhite, "Charge Double Difference Asymmetry (ppm)");
   //   pad30 = new TPad("pad30","pad30",gPadCoord1,gPadCoord2,gPadCoord4,gPadCoord4);
   //   pad31 = new TPad("pad31","pad31",gPadCoord1,gPadCoord1,gPadCoord4,gPadCoord3);
@@ -516,7 +517,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   //   pad30->cd();
   //   DrawCanvasHeader("Charge Double Difference Asymmetry (ppm)");
   pad31->cd();
-  pad31->Divide(4,4);
+  pad31->Divide(2,3);
   printf("%sPlotting %sCharge Double Difference (ppm)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
   gStyle->SetOptStat(1);
@@ -524,18 +525,18 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
 
   TString hddcharge;
   TH1* hddcrg;
-  for ( int j=0; j<15; j++) {
+  for ( int j=0; j<6; j++) {
 
-    sprintf(ddcharge,"asym_qwk_%s*1e6-asym_qwk_%s*1e6>>hdd%d",bcms4[j].Data(),bcms5[j].Data(),j);
-    sprintf(cutddcharge,"%s && asym_qwk_%s.%s  && asym_qwk_%s.%s",s1,bcms4[j].Data(),s2,bcms5[j].Data(),s2);
+    sprintf(ddcharge,"asym_qwk_%s*1e6-asym_qwk_%s*1e6>>hdd%d",bcms2[j].Data(),bcms3[j].Data(),j);
+    sprintf(cutddcharge,"%s && asym_qwk_%s.%s  && asym_qwk_%s.%s",s1,bcms2[j].Data(),s2,bcms3[j].Data(),s2);
     hddcharge = Form("hdd%d",j);
     
-    pad31->cd(position16[j]);
+    pad31->cd(position2[j]);
     th->Draw(ddcharge,cutddcharge);
     hddcrg = (TH1F *)gDirectory->Get(hddcharge);
     hddcrg->SetYTitle(tarbitrary);
-    hddcrg->SetXTitle(Form("%s - %s ASYM [ppm]",bcms4[j].Data(),bcms5[j].Data()));
-    hddcrg->SetTitle(Form("%s - %s ASYM",bcms4[j].Data(),bcms5[j].Data()));
+    hddcrg->SetXTitle(Form("%s - %s ASYM [ppm]",bcms2[j].Data(),bcms3[j].Data()));
+    hddcrg->SetTitle(Form("%s - %s ASYM",bcms2[j].Data(),bcms3[j].Data()));
     hddcrg->Draw();
     gPad->Update();
   }
@@ -791,6 +792,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   int xd=0;
   TH1* hybkg;
   TH1* habkg;
+
   for ( int x=0; x<6; x++) {
     xd = x+1;
 
@@ -805,8 +807,14 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     th->Draw(ymdbkg,cutymdbkg,"goff");
     hybkg = (TH1F *)gDirectory->Get(hymdbkg);
     hybkg->SetYTitle(tarbitrary);
+    if(xd==5||xd==6){
+    hybkg->SetXTitle(Form("MD %s YIELD [V]",mdbkg[x].Data()));
+    hybkg->SetTitle(Form("MD %s YIELD [V]",mdbkg[x].Data()));
+    }
+    else{
     hybkg->SetXTitle(Form("MD %s YIELD [V/uA]",mdbkg[x].Data()));
     hybkg->SetTitle(Form("MD %s YIELD [V/uA]",mdbkg[x].Data()));
+    }
     hybkg->Draw();
     gPad->Update();
 
@@ -816,12 +824,14 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     habkg->SetYTitle(tarbitrary);
     habkg->SetXTitle(Form("MD %s ASYM [ppm]",mdbkg[x].Data()));
     habkg->SetTitle(Form("MD %s ASYM [ppm]",mdbkg[x].Data()));
+
     habkg->SetFillColor(kBlack);
     habkg->SetFillStyle(3013);
     habkg->Draw();
     gPad->Update();
 
   }
+
   c18->Update(); c18->SaveAs(pmdbkg);}
   /****************************************************************************/
   if (MDALLASYM){
@@ -836,7 +846,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   //   pad60->cd();
   //   DrawCanvasHeader("Main Detector All Barsum Asymmetry (ppm) Normalized to Different BCMs");
   pad61->cd();
-  pad61->Divide(2,4);
+  pad61->Divide(2,3);
   printf("%sPlotting %sMain Detector All Barsum Asymmetries (ppm)%s\n",blue,red,normal);
   /* ----------------------------------------------------------------------- */
   Double_t mdt_r[2] = { -1700, 1700};
@@ -847,8 +857,8 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   TH1F * hmdbcm6  = new TH1F("hmdbcm6", "hmdbcm6", mdt_bin[0],mdt_r[0],mdt_r[1]);
   TH1F * hmdbcm7  = new TH1F("hmdbcm7", "hmdbcm7", mdt_bin[0],mdt_r[0],mdt_r[1]);
   TH1F * hmdbcm8  = new TH1F("hmdbcm8", "hmdbcm8", mdt_bin[0],mdt_r[0],mdt_r[1]);
-  TH1F * hmdeven  = new TH1F("hmdeven", "hmdeven", mdt_bin[0],mdt_r[0],mdt_r[1]);
-  TH1F * hmdodd  = new TH1F("hmdodd", "hmdodd", mdt_bin[0],mdt_r[0],mdt_r[1]);
+//   TH1F * hmdeven  = new TH1F("hmdeven", "hmdeven", mdt_bin[0],mdt_r[0],mdt_r[1]);
+//   TH1F * hmdodd  = new TH1F("hmdodd", "hmdodd", mdt_bin[0],mdt_r[0],mdt_r[1]);
 
   pad61->cd(1);
   gPad->SetLogy();
@@ -912,24 +922,24 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   hmdbcm8->Draw();
   gPad->Update();
 
-  pad61->cd(7);
-  gPad->SetLogy();
-  th->Draw("asym_qwk_mdevenbars*1e6>>hmdeven",Form("%s && asym_qwk_mdevenbars.%s",s1,s2),"goff");
-  hmdeven = (TH1F *)gDirectory->Get("hmdeven");
-  hmdeven->SetYTitle(tarbitrary);
-  hmdeven->SetXTitle("MD EVEN BAR ASYM [ppm]");
-  hmdeven->SetTitle("MD EVEN BAR ASYM");
-  hmdeven->Draw();
-  gPad->Update();
+//   pad61->cd(7);
+//   gPad->SetLogy();
+//   th->Draw("asym_qwk_mdevenbars*1e6>>hmdeven",Form("%s && asym_qwk_mdevenbars.%s",s1,s2),"goff");
+//   hmdeven = (TH1F *)gDirectory->Get("hmdeven");
+//   hmdeven->SetYTitle(tarbitrary);
+//   hmdeven->SetXTitle("MD EVEN BAR ASYM [ppm]");
+//   hmdeven->SetTitle("MD EVEN BAR ASYM");
+//   hmdeven->Draw();
+//   gPad->Update();
 
-  pad61->cd(8);
-  gPad->SetLogy();
-  th->Draw("asym_qwk_mdoddbars*1e6>>hmdodd",Form("%s && asym_qwk_mdoddbars.%s",s1,s2),"goff");
-  hmdodd = (TH1F *)gDirectory->Get("hmdodd");
-  hmdodd->SetYTitle(tarbitrary);
-  hmdodd->SetXTitle("MD ODD BAR ASYM [ppm]");
-  hmdodd->SetTitle("MD ODD BAR ASYM");
-  hmdodd->Draw();
+//   pad61->cd(8);
+//   gPad->SetLogy();
+//   th->Draw("asym_qwk_mdoddbars*1e6>>hmdodd",Form("%s && asym_qwk_mdoddbars.%s",s1,s2),"goff");
+//   hmdodd = (TH1F *)gDirectory->Get("hmdodd");
+//   hmdodd->SetYTitle(tarbitrary);
+//   hmdodd->SetXTitle("MD ODD BAR ASYM [ppm]");
+//   hmdodd->SetTitle("MD ODD BAR ASYM");
+//   hmdodd->Draw();
 
   gPad->Update();
   c6->Update(); c6->SaveAs(pmdallasym);}
@@ -1584,14 +1594,14 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
     hall15->Draw();
 
     pad51->cd(12);
-    th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-(asym_qwk_bcm2+asym_qwk_bcm6)/2)*1e6>>hall26",Form("%s && asym_qwk_mdallbars.%s && asym_qwk_charge.%s && asym_qwk_bcm2.%s && asym_qwk_bcm6.%s",s1,s2,s2,s2,s2),"goff");
-    hall26 = GetHist("hall26");
-    hall26->SetFillColor(kRed-2);
-    hall26->SetFillStyle(3004);
-    hall26->SetYTitle(tarbitrary);
-    hall26->SetXTitle(txalladet);
-    hall26->SetTitle("Normalized to BCM 2 & 6");
-    hall26->Draw();
+    th->Draw("(asym_qwk_mdallbars+asym_qwk_charge-(asym_qwk_bcm7+asym_qwk_bcm8)/2)*1e6>>hall78",Form("%s && asym_qwk_mdallbars.%s && asym_qwk_charge.%s && asym_qwk_bcm7.%s && asym_qwk_bcm8.%s",s1,s2,s2,s2,s2),"goff");
+    hall78 = GetHist("hall78");
+    hall78->SetFillColor(kRed-2);
+    hall78->SetFillStyle(3004);
+    hall78->SetYTitle(tarbitrary);
+    hall78->SetXTitle(txalladet);
+    hall78->SetTitle("Normalized to BCM 7 & 8");
+    hall78->Draw();
 
   c5->Update(); c5->SaveAs(pmdasym);
   c9->Update(); c9->SaveAs(pdslumiyield);
@@ -1849,7 +1859,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   /****************************************************************************/
   std::cout << contact << std::endl;
   std::cout << "Done with everything. Exiting the program ......." << std::endl;
-//   exit(1);
+  exit(1);
   //  gDirectory->Delete("*");
   // return(0);
   /****************************************************************************/
