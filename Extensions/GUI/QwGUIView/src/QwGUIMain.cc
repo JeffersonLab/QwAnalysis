@@ -310,7 +310,13 @@ void QwGUIMain::MakeUtilityLayout()
 
   dUtilityFrame = new TGHorizontalFrame(this,60,10);
 
-//   if(!dClArgs.realtime){
+  
+  dEventModeCheckButton = new TGCheckButton(dUtilityFrame, new TGHotString("Event (Tree) Mode"),M_EVENT_MODE);
+  dUtilityFrame->AddFrame(dEventModeCheckButton, new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2));
+  dEventModeCheckButton->Associate(this);
+  dEventModeCheckButton->SetState(kButtonUp);
+  if(dClArgs.autoupdate == kTrue) dEventModeCheckButton->SetEnabled(kFalse);
+
   dRunEntry = new TGNumberEntry(dUtilityFrame,GetCurrentRunNumber(),6,M_RUN_SELECT,
 				TGNumberFormat::kNESInteger,
 				TGNumberFormat::kNEANonNegative,
@@ -323,6 +329,8 @@ void QwGUIMain::MakeUtilityLayout()
     dRunEntry->Associate(this);
     dUtilityFrame->AddFrame(dRunEntry,dRunEntryLayout);
   }
+  if(dClArgs.autoupdate == kTrue) dRunEntry->SetState(kFalse);
+
 
   TGLabel *dSegmentEntryLabel = new TGLabel(dUtilityFrame,"Segment:");  
   dSegmentEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
@@ -332,6 +340,16 @@ void QwGUIMain::MakeUtilityLayout()
   dSegmentEntry->Associate(this);
   dUtilityFrame->AddFrame(dSegmentEntry,dSegmentEntryLayout);
   dSegmentEntry->Resize(100,20);
+  if(dClArgs.autoupdate == kTrue) dSegmentEntry->SetEnabled(kFalse);
+
+//   dAddSegmentLabel = new TGLabel(dUtilityFrame,"Add Segments");  
+   dAddSegmentLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
+//   dUtilityFrame->AddFrame(dAddSegmentLabel,dAddSegmentLayout);
+  dAddSegmentCheckButton = new TGCheckButton(dUtilityFrame, new TGHotString("Add Segments"),M_ADD_SEGMENT);
+  dUtilityFrame->AddFrame(dAddSegmentCheckButton, dAddSegmentLayout);
+  dAddSegmentCheckButton->Associate(this);
+  dAddSegmentCheckButton->SetState(kButtonUp);
+  if(dClArgs.autoupdate == kTrue) dAddSegmentCheckButton->SetState(kButtonDisabled);
 
   dPrefixEntryLabel = new TGLabel(dUtilityFrame,"Prefix:");  
   dPrefixEntryLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
@@ -344,19 +362,15 @@ void QwGUIMain::MakeUtilityLayout()
   dFilePrefix.push_back("first100k_");
   dPrefixEntry->AddEntry("QwPass1",103);
   dFilePrefix.push_back("QwPass1_");
+  dPrefixEntry->AddEntry("QwPass2",104);
+  dFilePrefix.push_back("QwPass2_");
+  dPrefixEntry->AddEntry("QwPass3",105);
+  dFilePrefix.push_back("QwPass3_");
   dPrefixEntry->Select(101);
   dPrefixEntry->Associate(this);
   dUtilityFrame->AddFrame(dPrefixEntry,dPrefixEntryLayout);
   dPrefixEntry->Resize(100,20);
-  
-
-// //   dAddSegmentLabel = new TGLabel(dUtilityFrame,"Add Segments");  
-//    dAddSegmentLayout = new TGLayoutHints(kLHintsLeft | kLHintsTop,2,2,2,2);
-// //   dUtilityFrame->AddFrame(dAddSegmentLabel,dAddSegmentLayout);
-//   dAddSegmentCheckButton = new TGCheckButton(dUtilityFrame, new TGHotString("Add Segments"),M_ADD_SEGMENT);
-//   dUtilityFrame->AddFrame(dAddSegmentCheckButton, dAddSegmentLayout);
-//   dAddSegmentCheckButton->Associate(this);
-//   dAddSegmentCheckButton->SetState(kButtonUp);
+  if(dClArgs.autoupdate == kTrue) dPrefixEntry->SetEnabled(kFalse);
 
   
 
@@ -2218,12 +2232,12 @@ Int_t QwGUIMain::OpenRun()
     TString prefix = GetCurrentFilePrefix();
 
     if(prefix.Contains("first100k")){
-      return OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.root",GetCurrentFileDirectory(),
+      return OpenRootFile(EventMode(),FS_OLD,Form("%s/%s%d.root",GetCurrentFileDirectory(),
 					     GetCurrentFilePrefix(),GetCurrentRunNumber()));
 
     }
     else
-      return OpenRootFile(kFalse,FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
+      return OpenRootFile(EventMode(),FS_OLD,Form("%s/%s%d.%03d.root",GetCurrentFileDirectory(),
 					     GetCurrentFilePrefix(),GetCurrentRunNumber(),
 					     GetCurrentRunSegment()));
 
@@ -2630,13 +2644,17 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 
 	case M_DBASE_QUERY:
 
-	  printf("Typing %s\n",dDBQueryBuffer->GetString());
- 	  dDBQueryEntry->Clear();
+// 	  printf("Typing %s\n",dDBQueryBuffer->GetString());
+//  	  dDBQueryEntry->Clear();
 	  break;
 
 	case M_RUN_SELECT:
 
-	  SetEventMode(kFalse);
+	  if(dEventModeCheckButton->IsOn())
+	    SetEventMode(kTrue);
+	  else
+	    SetEventMode(kFalse);
+	  
 	  OpenRun();
 
 	  break;
@@ -2681,7 +2699,16 @@ Bool_t QwGUIMain::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 	switch (parm1) {
 	case M_HC_ENTRY_SET:
 	  {
-	    SubmitToHCLog();
+	    TString name = dTab->GetCurrentTab()->GetText()->GetString();
+	    if(!name.CompareTo("Main"))
+	      SubmitToHCLog();
+	    else if(!name.CompareTo("Log Book"))
+	      {//do nothing
+	      }
+	    else{
+	      QwGUISubSystem* sbSystem = (QwGUISubSystem*)dTab->GetCurrentContainer();
+	      if(sbSystem) sbSystem->MakeHCLogEntry();
+	    }
 	    break;
 	  }
 	  break;

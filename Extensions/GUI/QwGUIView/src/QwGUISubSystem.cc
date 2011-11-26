@@ -171,6 +171,51 @@ void QwGUISubSystem::SendMessageSignal(const char*objname)
   Emit("SendMessageSignal(const char*)",(long)objname);
 }
 
+void QwGUISubSystem::SubmitToHCLog(TCanvas *canv)
+{
+
+  if(!canv) return;
+
+  dHCLogEntryDlg = new QwGUIHCLogEntryDialog(fClient->GetRoot(),0,
+					     "dHCLogEntryDlg","QwGUIDataWindow",
+					     &dHCLogEntries,400, 200);
+  if(dHCLogEntries.setFlag){
+
+    TString hcpost;
+    TString contentfile = Form("%s/Extensions/GUI/hcpostcomments.txt",gSystem->Getenv("QWANALYSIS"));
+    TString attachment = Form("%s/Extensions/GUI/TempHClogAttachment.png",gSystem->Getenv("QWANALYSIS"));
+    RDataContainer *tempfile = new RDataContainer(fClient->GetRoot(),this,"tempfile",
+						  "QwGUIMain","",FM_WRITE,FT_TEXT);
+
+    hcpost = "hclog_post ";
+    if(dHCLogEntries.name.Length())
+      hcpost += WrapParameter("author", dHCLogEntries.name);
+    if(dHCLogEntries.emaillist.Length())
+      hcpost += WrapParameter("emailto",dHCLogEntries.emaillist);
+    hcpost += "--tag=\"This is logged using hclog_post by QwGUI\" ";
+    hcpost += "  --cleanup ";
+    
+    if(dHCLogEntries.subject.Length())
+      hcpost += WrapParameter("subject",MakeSubject(dHCLogEntries.subject));
+    
+    tempfile->OpenFile(contentfile);
+    tempfile->WriteData(dHCLogEntries.comments.Data(),strlen(dHCLogEntries.comments.Data()));
+    tempfile->Close();
+    tempfile = NULL;
+
+    if(contentfile.Length())
+      hcpost += WrapParameter("textfile", contentfile);
+
+    canv->SaveAs(attachment.Data());
+    hcpost += WrapAttachment(attachment.Data());
+
+    gSystem->Exec(hcpost.Data());
+
+  }
+  dHCLogEntryDlg = NULL;
+}
+
+
 Bool_t QwGUISubSystem::ProcessMessage(Long_t msg, Long_t parm1, Long_t parm2)
 {
   return kTRUE;

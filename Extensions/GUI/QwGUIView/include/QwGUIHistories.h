@@ -147,6 +147,8 @@ class QwGUIHistories : public QwGUISubSystem
     void                 PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t Run);
 
     Int_t                GetRunNumber() {return dCurrentRun;}
+
+    virtual void         MakeHCLogEntry(); 
     
   private:
 

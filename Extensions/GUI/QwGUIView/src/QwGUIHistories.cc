@@ -610,6 +610,14 @@ void QwGUIHistories::PlotData(vector <TH1F*> plots, vector <TBox*> boxes, Int_t 
 
 }
 
+void QwGUIHistories::MakeHCLogEntry()
+{
+  TRootEmbeddedCanvas *cnv = dCanvas;
+  if(cnv)
+    SubmitToHCLog(cnv->GetCanvas());
+
+}
+
 void QwGUIHistories::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)
 {
   QwGUIDataWindow *dDataWindow = GetSelectedDataWindow();

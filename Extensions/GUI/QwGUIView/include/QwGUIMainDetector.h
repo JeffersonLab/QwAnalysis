@@ -444,6 +444,8 @@ class QwGUIMainDetector : public QwGUISubSystem {
   TObject*            GetAsymmetrySummaryPlot();
   TObject*            GetMDAllAsymmetryHisto();
 
+  virtual void        MakeHCLogEntry(); 
+
   ClassDef(QwGUIMainDetector,0);
 };
 

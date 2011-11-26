@@ -1,7 +1,3 @@
-//To Do: NewDataInit() probably needs more attention with regard to opening
-//       new files, when one is currently loaded!
-//       
-//       Edit starting with the newly created function ::CleanUp() ...
 
 #include <QwGUIMainDetector.h>
 
@@ -2679,6 +2675,16 @@ Bool_t QwGUIMainDetector::PlotCurrentModeData(UInt_t tab)
   }
 
   return kFalse;
+}
+
+void QwGUIMainDetector::MakeHCLogEntry()
+{
+
+  if(!dCurrentModeData[GetActiveTab()]) return;
+  TRootEmbeddedCanvas* ec = dCurrentModeData[GetActiveTab()]->GetCanvas();
+  if(ec)
+    SubmitToHCLog(ec->GetCanvas());
+
 }
 
 void QwGUIMainDetector::TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject)

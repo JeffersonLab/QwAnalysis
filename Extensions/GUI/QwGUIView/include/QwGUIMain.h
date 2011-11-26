@@ -201,6 +201,7 @@ class QwGUIMain : public TGMainFrame {
   QwGUIComboBox          *dSegmentEntry;
   QwGUIComboBox          *dPrefixEntry;
   TGCheckButton          *dAddSegmentCheckButton;
+  TGCheckButton          *dEventModeCheckButton;
   TGNumberEntry          *dRunEntry;
   TGLayoutHints          *dRunEntryLayout;
   TGLayoutHints          *dSegmentEntryLayout;
