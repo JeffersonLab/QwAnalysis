@@ -47,6 +47,32 @@ QwSubsystemArray::QwSubsystemArray(const char* filename, CanContainFn myCanConta
   LoadSubsystemsFromParameterFile(detectors);
 }
 
+
+/**
+ * Copy constructor by reference
+ * @param source Source subsystem array
+ */
+QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
+: SubsysPtrs(source),
+  fPublishedValuesDataElement(source.fPublishedValuesDataElement),
+  fPublishedValuesSubsystem(source.fPublishedValuesSubsystem),
+  fPublishedValuesDescription(source.fPublishedValuesDescription),
+  fSubsystemsMapFile(source.fSubsystemsMapFile),
+  fSubsystemsDisabledByName(source.fSubsystemsDisabledByName),
+  fSubsystemsDisabledByType(source.fSubsystemsDisabledByType),
+  fTreeArrayIndex(source.fTreeArrayIndex),
+  fCodaRunNumber(source.fCodaRunNumber),
+  fCodaSegmentNumber(source.fCodaSegmentNumber),
+  fCodaEventNumber(source.fCodaEventNumber),
+  fCodaEventType(source.fCodaEventType),
+  fEventTypeMask(source.fEventTypeMask),
+  fHasDataLoaded(source.fHasDataLoaded),
+  fnCanContain(source.fnCanContain)
+{
+  // nothing else
+}
+
+
 /**
  * Fill the subsystem array with the contents of a map file
  * @param filename Map file
@@ -107,7 +133,7 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     try {
       subsys =
         VQwSubsystemFactory::Create(subsys_type, subsys_name);
-    } catch (QwException_TypeUnknown) {
+    } catch (QwException_TypeUnknown&) {
       QwError << "No support for subsystems of type " << subsys_type << "." << QwLog::endl;
       // Fall-through to next error for more the psychological effect of many warnings
     }

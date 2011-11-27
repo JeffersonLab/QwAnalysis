@@ -219,11 +219,6 @@ int main(int argc, char* argv[])
   
       if (!eventbuffer.IsPhysicsEvent()) continue;
   
-      ///  Check to see if we want to process this event.
-      Int_t eventnumber = eventbuffer.GetEventNumber();
-      //if      (eventnumber < eventnumber_min) continue;
-      //else if (eventnumber > eventnumber_max) break;
-
       /// Add event into the subsystem 
       eventbuffer.FillSubsystemData(detectors);
 
@@ -255,7 +250,6 @@ int main(int argc, char* argv[])
 
       /// Fill the tree
       if (bTree) {
-        eventnumber = eventbuffer.GetEventNumber();
         detectors.FillTreeVector(mpsvector);
         mpstree->Fill();
       }

@@ -169,66 +169,52 @@ Int_t QwIntegratedRaster::LoadChannelMap(TString mapfile)
 
 
 //*****************************************************************
-Int_t QwIntegratedRaster::LoadEventCuts(TString  filename){
-  Double_t ULX, LLX, ULY, LLY;
-  Int_t samplesize;
-  Int_t check_flag;
-  Int_t eventcut_flag;
+Int_t QwIntegratedRaster::LoadEventCuts(TString  filename)
+{
+  Int_t eventcut_flag = 1;
 
-  TString varname, varvalue, vartypeID;
-  TString device_type,device_name;
-  //  std::cout<<" QwIntegratedRaster::LoadEventCuts  "<<filename<<std::endl;
-  QwParameterFile mapstr(filename.Data());  //Open the file
+  // Open the file
+  QwParameterFile mapstr(filename.Data());
   fDetectorMaps.insert(mapstr.GetParamFileNameContents());
-
-  Int_t det_index= -1; 
-  Double_t stabilitycut;
-  samplesize = 0;
-  check_flag = 0;
-  eventcut_flag=1;
-
   while (mapstr.ReadNextLine()){
     //std::cout<<"********* In the loop  *************"<<std::endl;
     mapstr.TrimComment('!');   // Remove everything after a '!' character.
     mapstr.TrimWhitespace();   // Get rid of leading and trailing spaces.
     if (mapstr.LineIsEmpty())  continue;
+
+    TString varname, varvalue;
     if (mapstr.HasVariablePair("=",varname,varvalue)){
-      if (varname=="EVENTCUTS"){
+      if (varname == "EVENTCUTS") {
 	//varname="";
-	eventcut_flag= QwParameterFile::GetUInt(varvalue);
+	eventcut_flag = QwParameterFile::GetUInt(varvalue);
 	//std::cout<<"EVENT CUT FLAG "<<eventcut_flag<<std::endl;
       }
     }
     else{
-      device_type= mapstr.GetTypedNextToken<TString>();
+      TString device_type = mapstr.GetTypedNextToken<TString>();
       device_type.ToLower();
-      device_name= mapstr.GetTypedNextToken<TString>();
+      TString device_name = mapstr.GetTypedNextToken<TString>();
       device_name.ToLower();
 
-      if (device_type!="raster") {
+      if (device_type != "raster") {
 	QwVerbose << "QwIntegratedRaster::LoadEventCuts:  Skipping detector type: "
 		  << device_type << ", detector name "
 		  << device_name << QwLog::endl;
 	continue;
       }
 
-      det_index=GetDetectorIndex(device_name);
-      if (det_index==-1){
-	QwWarning<<" Device not found "<<device_name<<" of type "<<device_type<<QwLog::endl;
+      Int_t det_index = GetDetectorIndex(device_name);
+      if (det_index == -1) {
+	QwWarning << " Device not found " << device_name << " of type " << device_type << QwLog::endl;
 	continue;
       }
-      //set limits to zero
-      ULX=0;
-      LLX=0;
-      ULY=0;
-      LLY=0;
 
-      LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegratedRasterChannel value
-      ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegratedRasterChannel value
-      varvalue=mapstr.GetTypedNextToken<TString>();//global/loacal
-      stabilitycut=mapstr.GetTypedNextToken<Double_t>();
+      Double_t LLX = mapstr.GetTypedNextToken<Double_t>();	//lower limit for IntegratedRasterChannel value
+      Double_t ULX = mapstr.GetTypedNextToken<Double_t>();	//upper limit for IntegratedRasterChannel value
+      varvalue = mapstr.GetTypedNextToken<TString>();//global/local
       varvalue.ToLower();
-      QwMessage<<"QwIntegratedRaster Error Code passing to QwIntegratedRasterChannel "<<GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut)<<QwLog::endl;
+      Double_t stabilitycut = mapstr.GetTypedNextToken<Double_t>();
+      QwMessage << "QwIntegratedRaster Error Code passing to QwIntegratedRasterChannel " << GetGlobalErrorFlag(varvalue,eventcut_flag,stabilitycut) << QwLog::endl;
 
       //std::cout<<"*****************************"<<std::endl;
       //std::cout<<" Type "<<device_type<<" Name "<<device_name<<" Index ["<<det_index <<"] "<<" device flag "<<check_flag<<std::endl;
@@ -238,10 +224,10 @@ Int_t QwIntegratedRaster::LoadEventCuts(TString  filename){
     }
 
   }
-  for (size_t i=0;i<fIntegratedRasterChannel.size();i++)
+  for (size_t i = 0; i < fIntegratedRasterChannel.size(); i++)
     fIntegratedRasterChannel[i].SetEventCutMode(eventcut_flag);
 
-  fQwIntegratedRasterErrorCount=0; //set the error counter to zero
+  fQwIntegratedRasterErrorCount = 0; //set the error counter to zero
 
   return 0;
 }

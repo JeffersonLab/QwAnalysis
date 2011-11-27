@@ -43,7 +43,7 @@ class QwSubsystemArrayParity: public QwSubsystemArray {
     /// Copy constructor by reference
     QwSubsystemArrayParity(const QwSubsystemArrayParity& source);
     /// Default destructor
-    virtual ~QwSubsystemArrayParity() { };
+    virtual ~QwSubsystemArrayParity();
 
     /// \brief Get the subsystem with the specified name
     VQwSubsystemParity* GetSubsystemByName(const TString& name);

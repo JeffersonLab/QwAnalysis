@@ -43,41 +43,9 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
 
  public:
   /// Constructor with name
-  QwHelicity(const TString& name)
-  : VQwSubsystem(name),
-    VQwSubsystemParity(name),
-    fHelicityBitPattern(kDefaultHelicityBitPattern),
-    fMinPatternPhase(1), fUsePredictor(kTRUE), fIgnoreHelicity(kFALSE),
-    fEventNumberFirst(-1),fPatternNumberFirst(-1),
-    fSuppressMPSErrorMsgs(kFALSE)
-  {
-    ClearErrorCounters();
-    // Default helicity delay to two patterns.
-    fHelicityDelay = 2;
-    // Default the EventType flags to HelPlus=1 and HelMinus=4
-    // These are only used in Moller decoding mode.
-    kEventTypeHelPlus  = 4;
-    kEventTypeHelMinus = 1;
-    //
-    fEventNumberOld=-1; fEventNumber=-1;
-    fPatternPhaseNumberOld=-1; fPatternPhaseNumber=-1;
-    fPatternNumberOld=-1;  fPatternNumber=-1;
-    kUserbit=-1;
-    fActualPatternPolarity=kUndefinedHelicity;
-    fDelayedPatternPolarity=kUndefinedHelicity;
-    fHelicityReported=kUndefinedHelicity;
-    fHelicityActual=kUndefinedHelicity;
-    fHelicityDelayed=kUndefinedHelicity;
-    fHelicityBitPlus=kFALSE;
-    fHelicityBitMinus=kFALSE;
-    fGoodHelicity=kFALSE;
-    fGoodPattern=kFALSE;
-    fHelicityDecodingMode=-1;
-  };
+  QwHelicity(const TString& name);
   /// Copy constructor
-  QwHelicity(const QwHelicity& source)
-  : VQwSubsystem(source),VQwSubsystemParity(source)
-  { this->Copy(&source); }
+  QwHelicity(const QwHelicity& source);
   /// Virtual destructor
   virtual ~QwHelicity() { }
 
@@ -306,6 +274,7 @@ class QwHelicity: public VQwSubsystemParity, public MQwSubsystemCloneable<QwHeli
     fNumMultSyncErrors    = 0;
     fNumHelicityErrors    = 0;
   };
+
   //  Error counters
   Int_t  fNumMissedGates;      // Total number of missed events
   Int_t  fNumMissedEventBlocks; // Number of groups of missed events

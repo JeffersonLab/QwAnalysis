@@ -64,6 +64,7 @@ Int_t main(Int_t argc, Char_t* argv[])
   ///  Then, we set the command line arguments and the configuration filename,
   ///  and we define the options that can be used in them (using QwOptions).
   gQwOptions.AddOptions()("single-output-file", po::value<bool>()->default_bool_value(false), "Write a single output file");
+  gQwOptions.AddOptions()("print-errorcounters", po::value<bool>()->default_bool_value(true), "Print summary of error counters");
   gQwOptions.SetCommandLine(argc, argv);
   gQwOptions.AddConfigFile("qweak_mysql.conf");
 
@@ -318,10 +319,11 @@ Int_t main(Int_t argc, Char_t* argv[])
     }
 
     //  Print the event cut error summary for each subsystem
-    QwMessage << " Event cut error counters" << QwLog::endl;
-    QwMessage << " ========================" << QwLog::endl;
-    detectors.GetEventcutErrorCounters();
-
+    if (gQwOptions.GetValue<bool>("print-errorcounters")) {
+      QwMessage << " Event cut error counters" << QwLog::endl;
+      QwMessage << " ========================" << QwLog::endl;
+      detectors.GetEventcutErrorCounters();
+    }
 
     //  Read from the database
     database.SetupOneRun(eventbuffer);

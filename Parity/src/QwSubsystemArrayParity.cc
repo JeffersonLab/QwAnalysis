@@ -13,34 +13,43 @@
 // Qweak headers
 #include "VQwSubsystemParity.h"
 
-//*****************************************************************
+//*****************************************************************//
 
+// Copy constructor
 QwSubsystemArrayParity::QwSubsystemArrayParity(const QwSubsystemArrayParity& source)
 {
   dummy_source = &source;
   this->Copy(&source);
 }
 
-//// TODO real copy constructor
+// Copy constructor
 //QwSubsystemArrayParity::QwSubsystemArrayParity(const QwSubsystemArrayParity& source)
 //: QwSubsystemArray(source)
 //{
-//  // Copy function for contain test
-//  fnCanContain = CanContain;
+//  // Store pointer to source
+//  dummy_source = &source;
 //
 //  // Copy error flags
 //  fErrorFlag = source.fErrorFlag;
 //  fErrorFlagTreeIndex = source.fErrorFlagTreeIndex;
 //}
 
-//*****************************************************************
+//*****************************************************************//
+
+/// Destructor
+QwSubsystemArrayParity::~QwSubsystemArrayParity()
+{
+  // nothing
+}
+
+//*****************************************************************//
 
 VQwSubsystemParity* QwSubsystemArrayParity::GetSubsystemByName(const TString& name)
 {
   return dynamic_cast<VQwSubsystemParity*>(QwSubsystemArray::GetSubsystemByName(name));
 }
 
-//*****************************************************************
+//*****************************************************************//
 
 void  QwSubsystemArrayParity::FillDB(QwParityDB *db, TString type)
 {
@@ -60,7 +69,7 @@ void  QwSubsystemArrayParity::FillErrDB(QwParityDB *db, TString type)
 }
 
 
-//*****************************************************************
+//*****************************************************************//
 
 /**
  * Copy an array of subsystems into this array
@@ -245,7 +254,7 @@ void QwSubsystemArrayParity::Scale(Double_t factor)
   }
 }
 
-//*****************************************************************
+//*****************************************************************//
 
 void QwSubsystemArrayParity::PrintValue() const
 {
@@ -264,7 +273,7 @@ void QwSubsystemArrayParity::WritePromptSummary() const
   }
 }
 
-//*****************************************************************
+//*****************************************************************//
 
 Bool_t QwSubsystemArrayParity::CheckForEndOfBurst() const
 {
@@ -276,7 +285,7 @@ Bool_t QwSubsystemArrayParity::CheckForEndOfBurst() const
   return status;
 };
 
-//*****************************************************************
+//*****************************************************************//
 
 void QwSubsystemArrayParity::CalculateRunningAverage()
 {
@@ -624,7 +633,7 @@ void QwSubsystemArrayParity::FillTreeVector(std::vector<Double_t>& values) const
 }
 
 
-//*****************************************************************
+//*****************************************************************//
 void  QwSubsystemArrayParity::FillHistograms()
 {
   if (GetEventcutErrorFlag()==0)

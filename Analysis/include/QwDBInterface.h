@@ -52,7 +52,7 @@ class QwDBInterface {
 
  private:
   template <class T>
-  inline T TypedDBClone();
+  T TypedDBClone();
 
  public:
   static TString DetermineMeasurementTypeID(TString type, TString suffix = "",
@@ -171,7 +171,7 @@ class QwErrDBInterface {
   TString fDeviceName;
 
   template <class T>
-  inline T TypedDBClone();
+  T TypedDBClone();
 
 
  public:
