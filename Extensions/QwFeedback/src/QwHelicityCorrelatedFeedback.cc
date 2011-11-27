@@ -564,10 +564,10 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(){
   }
   else{
     QwError<<"Charge Asymmetry precision current value "<<fChargeAsymmetryError<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
-    UpdateGMClean(0);//set to not clean
+    //UpdateGMClean(0);//set to not clean - Diabled the cfsocket comm-rakithab 11-27-2011
     FeedPITASetPoints();//set the new PITA values
     LogParameters();//Log PITA setting after feedback
-    UpdateGMClean(1);//set back to clean
+    //UpdateGMClean(1);//set back to clean
     status=kTRUE;
     fGoodPatternCounter=0;//Reset after each feedback operation
   }
@@ -626,15 +626,15 @@ Bool_t QwHelicityCorrelatedFeedback::IsAqPrecisionGood(Int_t mode){
   
   if (HCstatus && fIAFB){
     QwError<<"Charge Asymmetry["<<mode<<"] precision current value "<<fChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
-    UpdateGMClean(0);//set to not clean
+    //UpdateGMClean(0);//set to not clean  - Diabled the cfsocket comm-rakithab 11-27-2011
     FeedIASetPoint(mode);
     LogParameters(mode);  
-    UpdateGMClean(1);//set back to clean
+    //UpdateGMClean(1);//set back to clean
     fHelModeGoodPatternCounter[mode]=0;
   }
   if (HAstatus && fHAIAFB){
     QwError<<"Hall A Charge Asymmetry["<<mode<<"] precision current value "<<fHAChargeAsymError[mode]<<" Expected "<<fChargeAsymPrecision<<QwLog::endl;
-    //UpdateGMClean(0);//set to not clean
+    //UpdateGMClean(0);//set to not clean  - Diabled the cfsocket comm-rakithab 11-27-2011
     FeedHAIASetPoint(mode);
     LogHAParameters(mode);  
     //UpdateGMClean(1);//set back to clean
