@@ -28,10 +28,20 @@
 #4. Runs checked OUT - 11283 IN - 11286 -Changed by Rakitha 04/11/2011 - rakithab@jlab.org
 PC_pos_t0_IN=43300
 PC_neg_t0_IN=40899
-RHWP_IN=8250
+#RHWP_IN=8250
 PC_pos_t0_OUT=42864 
 PC_neg_t0_OUT=41335
-RHWP_OUT=500
+#RHWP_OUT=500
+
+#New RHWP for run 2 - 11-24-2011 rakitha (rakithab)
+#RHWP IN is 291.5
+#RHWP OUT is 15.7
+#conversion from deg to dac is 360 deg -> 8000 dac
+RHWP_IN=6478
+RHWP_OUT=349
+
+#conversion for PC V is 2^16 DAC = 2000V 
+
 
 #5. No longer needs above values.
 # Reads text files,
