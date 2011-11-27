@@ -220,7 +220,7 @@ class VQwDataElement: public MQwHistograms {
  protected:
   TString fElementName; ///< Name of this data element
   UInt_t  fNumberOfDataWords; ///< Number of raw data words in this data element
-  UInt_t fGoodEventCount;  ///< Number of good events accumulated in this element
+  Int_t fGoodEventCount; ///< Number of good events accumulated in this element
 
 
   // Name of the inheriting subsystem
