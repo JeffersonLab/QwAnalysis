@@ -129,14 +129,20 @@ Int_t main(Int_t argc, Char_t* argv[])
     if (gQwOptions.GetValue<bool>("single-output-file")) {
       treerootfile = new QwRootFile(eventbuffer.GetRunLabel());
       burstrootfile = historootfile = treerootfile;
+
+      //  Construct a tree which contains map file names which are used to analyze data
+      treerootfile->WriteParamFileList("mapfiles", detectors);
+      
     } else {
       treerootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".trees");
       burstrootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".bursts");
       historootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".histos");
-    }
 
-    //  Construct a tree which contains map file names which are used to analyze data
-    historootfile->WriteParamFileList("mapfiles", detectors);
+      //  Construct a tree which contains map file names which are used to analyze data
+      treerootfile->WriteParamFileList("mapfiles", detectors);
+      burstrootfile->WriteParamFileList("mapfiles", detectors);
+      historootfile->WriteParamFileList("mapfiles", detectors);
+    }
 
     if (database.AllowsWriteAccess()) {
       database.FillParameterFiles(detectors);
