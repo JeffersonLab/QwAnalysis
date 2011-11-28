@@ -119,8 +119,8 @@ const char *QwGUIDatabase::BeamPositionMonitors[N_BPMS] =
 
 const char *QwGUIDatabase::BeamCurrentMonitors[N_BCMS] = 
 {
-  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_linephase", "qwk_invert_tstable",
-  "bcmdd12","bcmdd15","bcmdd16","bcmdd56"
+  "qwk_bcm1","qwk_bcm2","qwk_bcm5","qwk_bcm6","qwk_bcm7","qwk_bcm8",
+  "qwk_linephase", "qwk_invert_tstable","bcmdd12","bcmdd15","bcmdd16","bcmdd56"
  
 };
 
