@@ -15,24 +15,17 @@
 
 //*****************************************************************//
 
-// Copy constructor
+/// Copy constructor
 QwSubsystemArrayParity::QwSubsystemArrayParity(const QwSubsystemArrayParity& source)
+: QwSubsystemArray(source)
 {
+  // Store pointer to source
   dummy_source = &source;
-  this->Copy(&source);
-}
 
-// Copy constructor
-//QwSubsystemArrayParity::QwSubsystemArrayParity(const QwSubsystemArrayParity& source)
-//: QwSubsystemArray(source)
-//{
-//  // Store pointer to source
-//  dummy_source = &source;
-//
-//  // Copy error flags
-//  fErrorFlag = source.fErrorFlag;
-//  fErrorFlagTreeIndex = source.fErrorFlagTreeIndex;
-//}
+  // Copy error flags
+  fErrorFlag = source.fErrorFlag;
+  fErrorFlagTreeIndex = source.fErrorFlagTreeIndex;
+}
 
 //*****************************************************************//
 
@@ -70,26 +63,6 @@ void  QwSubsystemArrayParity::FillErrDB(QwParityDB *db, TString type)
 
 
 //*****************************************************************//
-
-/**
- * Copy an array of subsystems into this array
- * @param source Subsystem array
- */
-void  QwSubsystemArrayParity::Copy(const QwSubsystemArrayParity *source)
-{
-  // Copy function for contain test
-  fnCanContain = CanContain;
-  // Copy subsystems in the array
-  if (!source->empty()) {
-    this->fErrorFlag=source->fErrorFlag;
-    this->fErrorFlagTreeIndex=source->fErrorFlagTreeIndex;
-
-    for (const_iterator subsys = source->begin(); subsys != source->end(); ++subsys) {
-      this->push_back(subsys->get()->Copy());
-    }
-  }
-}
-
 
 /**
  * Assignment operator

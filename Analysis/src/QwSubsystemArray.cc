@@ -53,13 +53,9 @@ QwSubsystemArray::QwSubsystemArray(const char* filename, CanContainFn myCanConta
  * @param source Source subsystem array
  */
 QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
-: SubsysPtrs(source),
-  fPublishedValuesDataElement(source.fPublishedValuesDataElement),
+: fPublishedValuesDataElement(source.fPublishedValuesDataElement),
   fPublishedValuesSubsystem(source.fPublishedValuesSubsystem),
   fPublishedValuesDescription(source.fPublishedValuesDescription),
-  fSubsystemsMapFile(source.fSubsystemsMapFile),
-  fSubsystemsDisabledByName(source.fSubsystemsDisabledByName),
-  fSubsystemsDisabledByType(source.fSubsystemsDisabledByType),
   fTreeArrayIndex(source.fTreeArrayIndex),
   fCodaRunNumber(source.fCodaRunNumber),
   fCodaSegmentNumber(source.fCodaSegmentNumber),
@@ -67,9 +63,15 @@ QwSubsystemArray::QwSubsystemArray(const QwSubsystemArray& source)
   fCodaEventType(source.fCodaEventType),
   fEventTypeMask(source.fEventTypeMask),
   fHasDataLoaded(source.fHasDataLoaded),
-  fnCanContain(source.fnCanContain)
+  fnCanContain(source.fnCanContain),
+  fSubsystemsMapFile(source.fSubsystemsMapFile),
+  fSubsystemsDisabledByName(source.fSubsystemsDisabledByName),
+  fSubsystemsDisabledByType(source.fSubsystemsDisabledByType)
 {
-  // nothing else
+  // Make copies of all subsystems rather than copying just the pointers
+  for (const_iterator subsys = source.begin(); subsys != source.end(); ++subsys) {
+    this->push_back(subsys->get()->Copy());
+  }
 }
 
 
