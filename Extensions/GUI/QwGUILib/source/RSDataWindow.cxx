@@ -933,7 +933,7 @@ void RSDataWindow::ClearPlots()
     if(fFitHisto[i] != NULL){delete fFitHisto[i];fFitHisto[i]=NULL;}
   dFitHistocnt = 0;
 
-  for(uint i = 0; i < dErrorBoxArray.size(); i++){
+  for(UInt_t i = 0; i < dErrorBoxArray.size(); i++){
     delete dErrorBoxArray[i];
   }
   dErrorBoxArray.clear();
