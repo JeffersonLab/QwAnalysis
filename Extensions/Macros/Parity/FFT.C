@@ -53,6 +53,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
 
   //******** get tree
   TChain *tree = new TChain("Mps_Tree");
+  TChain *slow_tree = new TChain("Slow_Tree");
 
   TString filename = Form("QwPass1_%i.000.trees.root", run_number);
   Bool_t found = kFALSE;
@@ -66,7 +67,18 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
       exit(1);
     }
   }
+
+  found = FindFiles(filename, slow_tree);
+  if(!found){
+    filename = Form("first100k_%i.root", run_number);
+    found = FindFiles(filename, tree);
+    if(!found){
+      std::cerr<<"Unable to find rootfile(s) for run "<<run_number<<std::endl;
+      exit(1);
+    }
+  }
   
+
   // if (file->IsZombie()) {
   //   std::cout << "Error opening root file chain " << filename << std::endl;
   //   filename = Form("QwPass1_%i.root", run_number);
@@ -105,20 +117,17 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   Int_t samples = (max-min);
   
   // get sampling rate/event rate
-  // for this I am going to use the bcm1 num spales.
   TH1*h=NULL;
-  TString command = "qwk_bcm1.num_samples>>htemp";
-  TString cut = Form("%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
-
-
-  tree->Draw(command,cut);
+  TString command = "HELFREQ>>htemp";
+  slow_tree->Draw(command);
   h = (TH1*)gDirectory->Get("htemp");
   if(h==NULL){
     std::cout<<"Unable to get num_samples!"<<std::endl;
     exit(1);
   }
-  Double_t sampling_rate = 1.0/((h->GetMean()+20)*time_per_sample+t_settle);
-  if((sampling_rate>965) || (sampling_rate< 959)) {
+  Double_t sampling_rate = h->GetMean();
+  std::cout<<sampling_rate<<std::endl;
+  if((sampling_rate>961) || (sampling_rate< 959)) {
     std::cout<<"Sampling rate "<<sampling_rate<<"Hz is not realistic. The sampling rate of Qweak ADCs should be ~ 960HZ!"<<std::endl;
     exit(1);
   }
