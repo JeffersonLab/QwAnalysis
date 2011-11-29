@@ -1034,7 +1034,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabaseSummary::QueryDetector()
     	special_cuts += " AND run.run_number = data.run_number AND run.start_time < NOW() AND run.start_time > (DATE_ADD(NOW(),INTERVAL -7 DAY))";
     }
     else if((dCmbTimeScale->GetSelected()) == ID_TS_RUN){
-        	special_cuts += Form(" AND data.run_number >= 13800  AND data.run_number <= %i ", index_last);
+        	special_cuts += " AND data.run_number >= 13800";
         }
     else{
     	special_cuts += Form(" AND data.run_number >= %i  AND data.run_number <= %i ",index_first, index_last);
