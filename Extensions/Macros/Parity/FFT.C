@@ -42,11 +42,11 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   
   //******* ADC settings
   const Double_t time_per_sample = 2e-06;//s
-  const Double_t t_settle = 50e-06;//s
+  const Double_t t_settle = 70e-6;//s
   
   //******* Signal Settings
   // get num samples from bcm1. 
-  TString time    = Form("mps_counter*((%s.num_samples*%f)+%f)",device.Data(),time_per_sample,t_settle);// units seconds.
+  TString time    = Form("mps_counter*(((%s.num_samples)*%f)+%f)",device.Data(),time_per_sample,t_settle);// units seconds.
   TString amplitude; 
 
 
@@ -54,7 +54,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   //******** get tree
   TChain *tree = new TChain("Mps_Tree");
 
-  TString filename = Form("QwPass1_%i.000.root", run_number);
+  TString filename = Form("Qweak_%i.000.trees.root", run_number);
   Bool_t found = kFALSE;
 
   found = FindFiles(filename, tree);
@@ -107,7 +107,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   // get sampling rate/event rate
   // for this I am going to use the bcm1 num spales.
   TH1*h=NULL;
-  TString command = Form("%s.num_samples>>htemp",device.Data());
+  TString command = "qwk_bcm1.num_samples>>htemp";
   TString cut = Form("%s.Device_Error_Code == 0 && ErrorFlag == 0",device.Data());
 
 
@@ -118,7 +118,8 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
     exit(1);
   }
   std::cout<<h->GetMean()<<std::endl;
-  Double_t sampling_rate = 1.0/(h->GetMean()*time_per_sample+t_settle);
+  Double_t sampling_rate = 1.0/((h->GetMean()+20)*time_per_sample+t_settle);
+  //sampling_rate = 1.0/960;
   Double_t length = samples*1.0/sampling_rate; 
   
   std::cout<<" --- Signal = "<<device<<"\n";
