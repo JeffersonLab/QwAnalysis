@@ -118,7 +118,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
     exit(1);
   }
   Double_t sampling_rate = 1.0/((h->GetMean()+20)*time_per_sample+t_settle);
-  if(sampling_rate>965 or samplig_rate< 959) {
+  if((sampling_rate>965) || (sampling_rate< 959)) {
     std::cout<<"Sampling rate "<<sampling_rate<<"Hz is not realistic. The sampling rate of Qweak ADCs should be ~ 960HZ!"<<std::endl;
     exit(1);
   }
@@ -213,7 +213,6 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   std::cout<<" --- Average signal ="<<m<<"\n";
   
   canvas->cd(1);
-
   //Remove the DC/zero frequency component 
   TH1D *h2 = new TH1D("h2","noise profile",samples,low,up);  
   TH1D *h2_1 = new TH1D("h2_1","noise profile",samples,low,up);  
