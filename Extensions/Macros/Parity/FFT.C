@@ -54,7 +54,7 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
   //******** get tree
   TChain *tree = new TChain("Mps_Tree");
 
-  TString filename = Form("Qweak_%i.000.trees.root", run_number);
+  TString filename = Form("QwPass1_%i.000.trees.root", run_number);
   Bool_t found = kFALSE;
 
   found = FindFiles(filename, tree);
@@ -117,9 +117,11 @@ FFT(Int_t run_number, TString device, Int_t min, Int_t max)
     std::cout<<"Unable to get num_samples!"<<std::endl;
     exit(1);
   }
-  std::cout<<h->GetMean()<<std::endl;
   Double_t sampling_rate = 1.0/((h->GetMean()+20)*time_per_sample+t_settle);
-  //sampling_rate = 1.0/960;
+  if(sampling_rate>965 or samplig_rate< 959) {
+    std::cout<<"Sampling rate "<<sampling_rate<<"Hz is not realistic. The sampling rate of Qweak ADCs should be ~ 960HZ!"<<std::endl;
+    exit(1);
+  }
   Double_t length = samples*1.0/sampling_rate; 
   
   std::cout<<" --- Signal = "<<device<<"\n";
