@@ -38,7 +38,7 @@
 #define N_DETECTORS      43
 #define N_LUMIS          36
 #define N_BPMS           22
-#define N_BCMS           10
+#define N_BCMS           12
 #define N_CMB_BPMS        1
 #define N_CMB_BCMS        1
 #define N_ENERGY          1
@@ -54,9 +54,15 @@
 #define N_GOODFOR_TYPES   8
 #define N_REGRESSION_VARS 5
 #define N_X_AXIS          5
-#define N_Plots          3
+#define N_Plots           3
 #define N_TIME_SCALES	  4
-
+#define N_REGRESSION_SCHEMES 7
+#define N_REG_VARS_ON     5
+#define N_REG_VARS_ON_5_1 6
+#define N_REG_VARS_ON_3   6
+#define N_REG_VARS_ON_4   6
+#define N_REG_VARS_ON_5   5
+#define N_REG_VARS_ON_6   6
 
 
 ///
@@ -176,7 +182,11 @@ using std::vector;
   TString plot;
   TString detector;
   TString property;
+  TString regression_set;
+
   const char **measurements;
+  const char **regression_ivs;
+
 
   //!A function to get data selections from the combo boxes.
   void GetDataSelections();
@@ -243,7 +253,16 @@ using std::vector;
   static const char   *Subblocks[N_SUBBLOCKS];
   static const char   *BPMReadings[N_BPM_READ];
   static const char   *ComboBPMReadings[N_CMB_READ];
-  static const char	  *RegressionVars[N_REGRESSION_VARS];
+
+  // regression variables and schemes
+  static const char   *RegressionVarsOn[N_REG_VARS_ON];
+  static const char   *RegressionVarsOn_5_1[N_REG_VARS_ON_5_1];
+  static const char   *RegressionVarsOn_3[N_REG_VARS_ON_3];
+  static const char   *RegressionVarsOn_4[N_REG_VARS_ON_4];
+  static const char   *RegressionVarsOn_5[N_REG_VARS_ON_5];
+  static const char   *RegressionVarsOn_6[N_REG_VARS_ON_6];
+
+  static const char   *RegressionSchemes[N_REGRESSION_SCHEMES];
 
   // target types
   static const char   *Targets[N_TGTS];
@@ -311,10 +330,8 @@ using std::vector;
   virtual void        OnRemoveThisTab();
   virtual Bool_t      ProcessMessage(Long_t msg, Long_t parm1, Long_t);
   virtual void        TabEvent(Int_t event, Int_t x, Int_t y, TObject* selobject);
-  //void                PopulateDetectorComboBox();
-  //void                PopulateMeasurementComboBox();
-  //void                PopulatePlotComboBox();
-  void EnableRunRange();
+  void                RegressionTypeInfo();
+  void 				  EnableRunRange();
 
   ClassDef(QwGUIDatabaseSummary,0);
 

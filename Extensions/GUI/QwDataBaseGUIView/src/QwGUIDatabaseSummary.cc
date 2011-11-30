@@ -198,8 +198,36 @@ const char *QwGUIDatabaseSummary::EnergyCalculators[N_ENERGY] = {
   "qwk_energy"
 };
 
-const char *QwGUIDatabaseSummary::RegressionVars[N_REGRESSION_VARS] = {
-  "targetX","targetY","targetXSlope","targetYSlope","energy"
+const char *QwGUIDatabaseSummary::RegressionVarsOn[N_REG_VARS_ON]={
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_energy"
+};
+
+
+const char *QwGUIDatabaseSummary::RegressionVarsOn_5_1[N_REG_VARS_ON_5_1]={
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_energy","wrt_asym_charge"
+
+};
+
+const char   *QwGUIDatabaseSummary::RegressionVarsOn_3[N_REG_VARS_ON_3]={
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_qwk_bpm3c12X",
+  "wrt_asym_qwk_charge",
+};
+
+const char   *QwGUIDatabaseSummary::RegressionVarsOn_4[N_REG_VARS_ON_4]={
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_qwk_bpm3c12X",
+  "wrt_asym_qwk_bcm5",
+};
+
+const char   *QwGUIDatabaseSummary::RegressionVarsOn_5[N_REG_VARS_ON_5]={
+  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","wrt_diff_qwk_bpm3c12X"
+};
+
+const char   *QwGUIDatabaseSummary::RegressionVarsOn_6[N_REG_VARS_ON_6]={
+  "wrt_diff_9b_p_4X","wrt_diff_bpm_9b_m_4X","wrt_diff_bpm_9b_m_4Y","wrt_diff_bpm_9b_p_4Y","diff_qwk_bpm3c12X","wrt_asym_qwk_charge"
+};
+
+const char *QwGUIDatabaseSummary::RegressionSchemes[N_REGRESSION_SCHEMES] = {
+  "off","on","on_5+1", "on_set3", "on_set4", "on_set5","on_set6"
 };
 
 
@@ -313,14 +341,8 @@ QwGUIDatabaseSummary::QwGUIDatabaseSummary(const TGWindow *p, const TGWindow *ma
 	  dChkQualityBad      = NULL;
 	  dBoxGoodFor	      = NULL;
 	  dCmbXAxis           = NULL;
-	  //dCmbInstrument      = NULL;
-	  //dCmbDetector        = NULL;
-	  //dCmbProperty        = NULL;
-	  //dCmbSubblock        = NULL;
 	  dCmbTargetType      = NULL;
 	  dCmbRegressionType  = NULL;
-	  //dCmbPlotType        = NULL;
-	  //dCmbMeasurementType = NULL;
 	  dNumStartRun        = NULL;
 	  dNumStopRun         = NULL;
 
@@ -389,21 +411,11 @@ QwGUIDatabaseSummary::~QwGUIDatabaseSummary()
 	  if(dLabTarget)          delete dLabTarget;
 	  if(dLabRegression)      delete dLabRegression;
 	  if(dLabPlot)            delete dLabPlot;
-	  //if(dLabInstrument)      delete dLabInstrument;
-	  //if(dLabDetector)        delete dLabDetector;
-	  //if(dLabMeasurement)     delete dLabMeasurement;
-	  //if(dLabSubblock)        delete dLabSubblock;
 	  if(dNumStopRun)         delete dNumStopRun;
-	  //if(dCmbInstrument)      delete dCmbInstrument;
 	  if(dCmbXAxis)           delete dCmbXAxis;
-	  //if(dCmbDetector)        delete dCmbDetector;
-	  //if(dCmbProperty)        delete dCmbProperty;
-	  //if(dCmbSubblock)        delete dCmbSubblock;
 	  if(dCmbTargetType)      delete dCmbTargetType;
 	  if(dCmbRegressionType)  delete dCmbRegressionType;
 	  if(dCmbMeasurementType) delete dCmbMeasurementType;
-	  //if(dCmbPlotType)        delete dCmbPlotType;
-
 	  if(dLabTimeScale)		  delete dLabTimeScale;
 	  if(dCmbTimeScale)       delete dCmbTimeScale;
 	  if(dBtnMDAsym)          delete dBtnMDAsym;
@@ -475,15 +487,15 @@ void QwGUIDatabaseSummary::MakeLayout()
   dLabTimeScale       = new TGLabel(dControlsFrame, "Time Scale");
   dCmbTimeScale		  = new TGComboBox(dControlsFrame,CMB_TIMESCALE);
   dRunFrame	          = new TGHorizontalFrame(dControlsFrame);
-  dNumStartRun        = new TGNumberEntry(dRunFrame, 13870, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
-  dNumStopRun         = new TGNumberEntry(dRunFrame, 14000, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  dNumStartRun        = new TGNumberEntry(dRunFrame, 13500, 5, NUM_START_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
+  dNumStopRun         = new TGNumberEntry(dRunFrame, 16000, 5, NUM_STOP_RUN, TGNumberFormat::kNESInteger, TGNumberFormat::kNEANonNegative);
   dBtnMDAsym          = new TGTextButton(dControlsFrame, "&MD Asymmetries", BTN_MDASYM);
   dBtnLumiAsym        = new TGTextButton(dControlsFrame, "&Lumi Asymmetries", BTN_LUMIASYM);
   dBtnBkgdAsym        = new TGTextButton(dControlsFrame, "&Bkgd Asymmetries", BTN_BKGDASYM);
   dBtnBeamPos         = new TGTextButton(dControlsFrame, "&Position Differences", BTN_BEAMPOS);
   dBtnCharge          = new TGTextButton(dControlsFrame, "&Charge Quantities", BTN_CHARGE);
   dSpacerFrame		  = new TGVerticalFrame(dControlsFrame);
-  dLabRegression      = new TGLabel(dControlsFrame, "Regression Correction");
+  dLabRegression      = new TGLabel(dControlsFrame, "Regression Type");
   dCmbRegressionType  = new TGComboBox(dControlsFrame, CMB_REGRESS);
   dLabXAxis	      = new TGLabel(dControlsFrame, "X-Axis");
   dCmbXAxis           = new TGComboBox(dControlsFrame, CMB_XAXIS);
@@ -512,8 +524,11 @@ void QwGUIDatabaseSummary::MakeLayout()
 
 
   // Populate regression combo box
-  dCmbRegressionType->AddEntry("off", 0);
-  dCmbRegressionType->AddEntry("on", 1);
+   for (Int_t i = 0; i < N_REGRESSION_SCHEMES; i++) {
+     dCmbRegressionType->AddEntry(RegressionSchemes[i], i);
+   }
+   dCmbRegressionType->Connect("Selected(Int_t)","QwGUIDatabaseSummary", this, "RegressionTypeInfo()");
+   dCmbRegressionType->Select(0);
 
 
   // Populate x-axis combo box
@@ -539,7 +554,6 @@ void QwGUIDatabaseSummary::MakeLayout()
   }
 
   dCmbTargetType->Select(1);
-  dCmbRegressionType->Select(0);
   dCmbXAxis->Select(1);
   dCmbTimeScale->Select(0);
 
@@ -854,6 +868,7 @@ TString QwGUIDatabaseSummary::MakeQuery(TString outputs, TString tables_used, TS
 				 TString special_cuts){
 
   TString correction_flag;
+  TString regression_selected;
 
 
   /*Basic data selections that are valid for any type of query*/
@@ -895,10 +910,19 @@ TString QwGUIDatabaseSummary::MakeQuery(TString outputs, TString tables_used, TS
   }
 
   /*Slope corrections ON/OFF?*/
-  if (dCmbRegressionType->GetSelected()==1)
-    correction_flag = "on";
-  else
-    correction_flag = "off";
+  if (RegressionSchemes[dCmbRegressionType->GetSelected()]=="off"){
+    // To get the unregressed data when slope correction is on all the schemes will have the same unregressed
+    // values. So I can just pick one scheme for the slope_correction option
+	  std::cout<<"off"<<std::endl;
+    correction_flag  = "off";
+    regression_selected = regression_set;
+  }
+  else{
+    // To get the regressed data
+	  std::cout<<"else"<<std::endl;
+    correction_flag = regression_set;
+    regression_selected  = "off";
+  }
 
 
   TString querystring 
@@ -1683,6 +1707,7 @@ void QwGUIDatabaseSummary::PlotMD(){
 	target            = Targets[dCmbTargetType->GetSelected()];
 	subblock          = 0;
 	x_axis            = dCmbXAxis->GetSelected();
+	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property = "";
 
 
@@ -1739,6 +1764,7 @@ void QwGUIDatabaseSummary::PlotLumi(){
 	target            = Targets[dCmbTargetType->GetSelected()];
 	subblock          = 0;
 	x_axis            = dCmbXAxis->GetSelected();
+	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property = "";
 
 	for(Int_t j=0;j<2;j++){
@@ -1777,6 +1803,7 @@ void QwGUIDatabaseSummary::PlotBkgd(){
 	target            = Targets[dCmbTargetType->GetSelected()];
 	subblock          = 0;
 	x_axis            = dCmbXAxis->GetSelected();
+	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property = "";
 
 	for(Int_t j=0;j<2;j++){
@@ -1817,6 +1844,7 @@ void QwGUIDatabaseSummary::PlotBeamPos(){
 	x_axis            = dCmbXAxis->GetSelected();
 	detector 		  = "qwk_target";
 	plot			  = "Mean";
+	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 
 	for(Int_t i=0;i<5;i++){
 		property = BLSummaryVars[i];
@@ -1864,6 +1892,7 @@ void QwGUIDatabaseSummary::PlotCharge(){
 	target            = Targets[dCmbTargetType->GetSelected()];
 	subblock          = 0;
 	x_axis            = dCmbXAxis->GetSelected();
+	regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 	property          = "";
 
 	detector = "qwk_charge";
@@ -2240,41 +2269,57 @@ Get the Y axis title for a plot based on the measurement and detector type
 TString QwGUIDatabaseSummary::GetYTitle(TString measurement_type, Int_t det_id)
 {
 
-  TString ytitle;
+	  TString ytitle;
 
- if (measurement_type == "y") {
-    if(det_id == ID_MD || det_id == ID_LUMI)  ytitle = "Normalized Yield mV/uA";
-    else  ytitle  = "Yield";
-  }
-  if (measurement_type == "a" || measurement_type == "aeo" || measurement_type == "a12" )
-    ytitle = "Asymmetry (ppm)";
+	 if (measurement_type == "y") {
+	    if(det_id == ID_MD || det_id == ID_LUMI)  ytitle = "Normalized Yield mV/uA";
+	    else  ytitle  = "Yield";
+	  }
+	  if (measurement_type == "a" || measurement_type == "aeo" || measurement_type == "a12" ){
+	    ytitle = "Asymmetry (ppm)";
+	  }
 
-  if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" ){
-    if (det_id == ID_E_CAL) {
-    	ytitle  = "Energy Asymetry (ppm)";
-    }
-    else{
-      ytitle = "Beam Position Differences (nm)";
-    }
-  }
-  
-  if (measurement_type == "yq"){
-    if (det_id == ID_BCM || det_id == ID_CMB_BCM )  ytitle  = "Current (#muA)";
-    if (det_id == ID_BPM || det_id == ID_CMB_BPM ) ytitle  = "Beam Position (mm)";
-  }
+	  if (measurement_type == "d" || measurement_type == "deo" || measurement_type == "d12" ){
+	    if (det_id == ID_E_CAL){
+	    	ytitle  = "Energy Asymetry (ppm)";
+	    }
+	    else if (det_id == ID_CMB_BPM ){
+	      if(property.Contains("Slope")){ //angles
+	    	  ytitle  = "Beam Angle Differences(#murad)";
+	      }
+	      else
+	    	  ytitle  = "Beam Position Differences (nm)";
+	    }
+	    else
+	      ytitle = "Beam Position Differences (nm)";
+	  }
 
-  if (measurement_type == "yp"){
-    if (det_id == ID_E_CAL){
-    	ytitle  = "Relative Momentum Change dP/P";
-    }
-    else{
-      ytitle = "Beam Position (mm)";
-    }
-  }
-  if (measurement_type == "s"){
-    ytitle = "Sensitivity (ppm/mm)";
-  }
-  return ytitle;
+	  if (measurement_type == "yq"){
+	    if (det_id == ID_BCM || det_id == ID_CMB_BCM )  ytitle  = "Current (#muA)";
+	    if (det_id == ID_BPM || det_id == ID_CMB_BPM)
+	      ytitle  = "Effective Charge (arbitary units)";
+	  }
+
+	  if (measurement_type == "yp"){
+	    if (det_id == ID_E_CAL){
+	    	ytitle  = "Relative Momentum Change dP/P";
+	    }
+	    else if (det_id == ID_CMB_BPM ){
+	      if(property.Contains("Slope")) //angles
+	    	  ytitle  = "Beam Angle (#murad)";
+	      else if (property.Contains("Intercept")) //intercept
+	    	  ytitle  = "Intercept (mm)";
+	      else
+	    	  ytitle  = "Beam Position (mm)";
+	    }
+	    else
+	      ytitle = "Beam Position (mm)";
+	  }
+
+	  if (measurement_type == "s")
+	    ytitle = "Sensitivity (ppm/mm)";
+
+	  return ytitle;
 }
 
 /******************************************
@@ -2325,14 +2370,135 @@ A function to get data selection
 void QwGUIDatabaseSummary::GetDataSelections(){
 
   measurement_type  = measurements[dCmbMeasurementType->GetSelected()];
-  det_id            = dCmbInstrument->GetSelected();
   device            = Form("%s",detector.Data());
   target            = Targets[dCmbTargetType->GetSelected()];
   subblock          = dCmbSubblock -> GetSelected();
   plot              = Plots[dCmbPlotType->GetSelected()];
   x_axis            = dCmbXAxis->GetSelected();
+  regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
 }
 
+
+/*****************************************
+A function to print out regression selection and when sensitivities are requested to
+fill the different IVs in to the detector combo box
+
+*****************************************/
+
+void QwGUIDatabaseSummary::RegressionTypeInfo(){
+/*
+  Bool_t bfill_reg_iv = kFALSE;
+  TCanvas *mc = dCanvas->GetCanvas();
+  mc->Clear();
+  mc->SetFillColor(0);
+  regression_ivs = NULL;
+
+  regression_set    = RegressionSchemes[dCmbRegressionType->GetSelected()];
+
+  TLatex T1;
+  T1.SetTextAlign(12);
+  T1.SetTextSize(0.03);
+
+  if(regression_set == "off")
+    T1.DrawLatex(0.1,0.8,"Selecting Unregressed data!");
+  if(bfill_reg_iv)
+    for (Int_t i = 0; i < N_REG_VARS_ON; i++){
+      dCmbProperty->AddEntry(RegressionVarsOn[i], i);
+      regression_ivs = RegressionVarsOn;
+    }
+  else{
+    T1.DrawLatex(0.1,0.8,"Selecting Regression that use IVs:");
+
+    if(regression_set == "on"){
+      if(bfill_reg_iv)
+	for (Int_t i = 0; i < N_REG_VARS_ON; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn[i], i);
+	  regression_ivs = RegressionVarsOn;
+	}
+      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
+      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");
+      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");
+      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");
+      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_energy");
+
+    }
+    else if(regression_set == "on_5+1"){
+      if(bfill_reg_iv)
+	for (Int_t i = 0; i < N_REG_VARS_ON_5_1; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_5_1[i], i);
+	  regression_ivs = RegressionVarsOn_5_1;
+	}
+
+      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
+      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");
+      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");
+      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");
+      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_energy");
+      T1.DrawLatex(0.2,0.2,"#bullet asym_qwk_charge");
+
+    }
+    else if(regression_set == "on_set3"){
+      if(bfill_reg_iv)
+	for (Int_t i = 0; i < N_REG_VARS_ON_3; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_3[i], i);
+	  regression_ivs = RegressionVarsOn_3;
+	}
+      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
+      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");
+      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");
+      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");
+      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X");
+      T1.DrawLatex(0.2,0.2,"#bullet asym_qwk_charge");
+    }
+    else if(regression_set == "on_set4"){
+      if(bfill_reg_iv)
+	for (Int_t i = 0; i < N_REG_VARS_ON_4; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_4[i], i);
+	  regression_ivs = RegressionVarsOn_4;
+	}
+      T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
+      T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");
+      T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");
+      T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");
+      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X");
+      T1.DrawLatex(0.2,0.1,"#bullet asym_qwk_bcm5");
+    }
+    else if(regression_set == "on_set5"){
+      if(bfill_reg_iv)
+	for (Int_t i = 0; i < N_REG_VARS_ON_5; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_5[i], i);
+	  regression_ivs = RegressionVarsOn_5;
+	}
+
+      T1.DrawLatex(0.2,0.7,"#bullet diff_bpm_9b_m_4X=diff_qwk_bpm3h09bX-diff_qwk_bpm3h04X");
+      T1.DrawLatex(0.2,0.6,"#bullet diff_bpm_9b_m_4Y=diff_qwk_bpm3h09bY-diff_qwk_bpm3h04Y");
+      T1.DrawLatex(0.2,0.5,"#bullet diff_bpm_9b_p_4X=diff_qwk_bpm3h09bX+diff_qwk_bpm3h04X");
+      T1.DrawLatex(0.2,0.4,"#bullet diff_bpm_9b_p_4Y=diff_qwk_bpm3h09bY+diff_qwk_bpm3h04Y");
+      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X");
+    }
+    else if(regression_set == "on_set6"){
+      if(bfill_reg_iv)
+	for (Int_t i = 0; i < N_REG_VARS_ON_6; i++){
+	  dCmbProperty->AddEntry(RegressionVarsOn_6[i], i);
+	  regression_ivs = RegressionVarsOn_6;
+	}
+
+      T1.DrawLatex(0.2,0.7,"#bullet diff_bpm_9b_m_4X=diff_qwk_bpm3h09bX-diff_qwk_bpm3h04X");
+      T1.DrawLatex(0.2,0.6,"#bullet diff_bpm_9b_m_4Y=diff_qwk_bpm3h09bY-diff_qwk_bpm3h04Y");
+      T1.DrawLatex(0.2,0.5,"#bullet diff_bpm_9b_p_4X=diff_qwk_bpm3h09bX+diff_qwk_bpm3h04X");
+      T1.DrawLatex(0.2,0.4,"#bullet diff_bpm_9b_p_4Y=diff_qwk_bpm3h09bY+diff_qwk_bpm3h04Y");
+      T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X");
+      T1.DrawLatex(0.2,0.3,"#bullet asym_qwk_charge");
+    }
+  }
+
+  if(bfill_reg_iv)
+    dCmbProperty->Select(0);
+
+  mc->Modified();
+  mc->Update();
+  */
+}
 
 
 // Process events generated by the object in the frame.
