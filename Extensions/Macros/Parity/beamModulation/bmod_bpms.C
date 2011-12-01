@@ -18,14 +18,14 @@ void bmod_bpms(UInt_t run_number=0)
 //   cin >> run_number;
 
   /* Directory */
-//   TString rootDirectory = "$QW_ROOTFILES/";
-  TString rootDirectory = "/w/cache/mss/hallc/qweak/rootfiles/pass3/";
+  TString rootDirectory = "$QW_ROOTFILES/";
+  //  TString rootDirectory = "/w/cache/mss/hallc/qweak/rootfiles/pass3/";
   TString imageDirectory = "/u/group/hallc/www/hallcweb/html/qweak/bmod/images";
   TString textDirectory = "/u/group/hallc/www/hallcweb/html/qweak/bmod/text";
 //   TString imageDirectory = "/w/hallc/qweak/nur/data_analysis/beamModulation/plots/beamModulation_plots/pass3";
 //   TString textDirectory = "/w/hallc/qweak/nur/data_analysis/beamModulation/plots/beamModulation_plots/pass3/bpm_response";
 
-  sprintf(run0,"%sQwPass3_%d.000.root",rootDirectory.Data(),run_number);
+  sprintf(run0,"%sQwPass1_%d.000.trees.root",rootDirectory.Data(),run_number);
   TFile f(run0);
   if(!f.IsOpen()) {printf("%sUnable to find Rootfile for Run # %s%d%s.\nPlease insert a correct Run #. Exiting the program!%s\n",blue,red,run_number,blue,normal); exit(1);}
 
@@ -33,7 +33,7 @@ void bmod_bpms(UInt_t run_number=0)
 //   TChain chain("Mps_Tree");
   for(Int_t t=0; t<10; t++) 
     {
-      sprintf(run,"%sQwPass3_%d.00%d.root",rootDirectory.Data(),run_number,t);
+      sprintf(run,"%sQwPass1_%d.00%d.trees.root",rootDirectory.Data(),run_number,t);
       TFile f1(run);
       chain->Add(run);
       // 	printf("%sRootfile %s has been found%s\n",blue,run,normal);
