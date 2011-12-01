@@ -1793,7 +1793,7 @@ void qwanalysis(TString rootfile, UInt_t run_number, Int_t hclog_switch)
   outfile << "<pre>\n" 
 	  << sslinen
 	  << Form("|\tRun Number: %6d\t\t\t\t|\n", gRunNumber)
-	  << Form("|%30s,%10s,%10s|\n",gTarget.Data(),gCurrent.Data(),gRasterString.Data())
+	  << Form("|%30s,%9s,%13s |\n",gTarget.Data(),gCurrent.Data(),gRasterString.Data())
 	  << sslinen
 	  << Form("|I                        \t|uA    \t|%s      \t|\n",gCurrent.Data())
 	  << Form("|MDALLBARS width          \t|ppm   \t|%2.1f        \t|\n",cal_mdalla)
