@@ -1,0 +1,251 @@
+#include "headers.h"
+#include "QwDiagnostic.hh"
+#include "QwData.hh"
+#include "TSystem.h"
+#include "TStyle.h"
+
+Int_t main(Int_t argc, Char_t *argv[])
+{
+
+  TApplication theApp("App", &argc, argv);
+
+  TString filename = argv[1];
+
+  TChain *mod_tree = new TChain("Mod_Tree");
+
+  TCanvas *canvas0 = new TCanvas("c0", "canvas0", 3000, 3000);
+  TCanvas *canvas1 = new TCanvas("c1", "canvas1", 3000, 3000);
+  TCanvas *canvas2 = new TCanvas("c2", "canvas2", 1000, 1000);
+  TCanvas *canvas3 = new TCanvas("c3", "canvas3", 1500, 1500);
+  TCanvas *canvas4 = new TCanvas("c4", "canvas4", 1500, 1500);
+
+  TF1 *linear = new TF1("linear", "[0] + [1]*x", -1.0, 1.0);
+
+  Int_t n = 1;
+  Int_t pNum[5] = {11, 14, 13, 12, 15};
+
+  Double_t mean;
+  Double_t max;
+  Double_t delta;
+  Double_t range[5] = {0.06, 2e-6, 0.06, 0.06, 2e-6};
+  Double_t corr_range = 0.3e-3;
+
+  QwDiagnostic *modulation = new QwDiagnostic(mod_tree);
+
+  char red[] = { 0x1b, '[', '1', ';', '3', '1', 'm', 0 };
+  char other[] = { 0x1b, '[', '1', ';', '3', '2', 'm', 0 };
+  char normal[] = { 0x1b, '[', '0', ';', '3', '9', 'm', 0 };
+
+  gStyle->SetOptFit(01011);
+  gStyle->SetOptStat("nemm");
+
+  std::cout << "Generating diagnostics for run." << std::endl;
+  modulation->LoadRootFile(filename, mod_tree);
+  modulation->SetFileName(filename);
+    
+  std::cout << "Setting Branch Addresses of detectors/monitors" << std::endl;
+  modulation->ReadConfig(modulation);
+
+  gSystem->Exec(Form("rm -rf %s_diagnostic", filename.Data()));
+  gSystem->Exec(Form("mkdir %s_diagnostic", filename.Data()));
+
+  for(Int_t i = 0; i < (modulation->GetModNumber()); i++){
+    modulation->SensHistogram.push_back(std::vector <TH2F *>());
+    modulation->SensHistogramCorr.push_back(std::vector <TH2F *>());
+  }
+
+  std::cout << "Making histograms for Sensitivity Histograms." << std::endl;
+  for(Int_t j = 0; j < modulation->fNMonitor; j++){
+    modulation->DiffHistogram.push_back(new TH1F(Form("hist_diff_%s", modulation->MonitorList[j].Data()),
+						 Form("hist_diff_%s", modulation->MonitorList[j].Data()), 1000, -range[j], range[j] ));
+    modulation->CorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s", modulation->MonitorList[j].Data()),
+						       Form("hist_corr_%s", modulation->MonitorList[j].Data()), 1000, -corr_range, corr_range ));
+
+    for(Int_t i = 0; i < modulation->GetModNumber(); i++){
+      modulation->SensHistogram[i].push_back(new TH2F(Form("hist_%i_%s", i, modulation->MonitorList[j].Data()),
+						      Form("hist_%i_%s", i, modulation->MonitorList[j].Data()), 
+						      1000, -1.0, 1.0, 1000, -1.0, 1.0) );
+      modulation->SensHistogramCorr[i].push_back(new TH2F(Form("corr_hist_%i_%s", i, modulation->MonitorList[j].Data()),
+       							  Form("corr_hist_%i_%s", i, modulation->MonitorList[j].Data()), 
+       							  1000, -1.0, 1.0, 1000, -1.0, 1.0) );
+
+    }
+  }
+
+  for(Int_t i = 0; i < modulation->GetModNumber(); i++){
+    modulation->ChargeAsymHistogram.push_back(new TH2F(Form("hist_charge_asym_%i", pNum[i]), 
+						       Form("hist_charge_asym_%i", pNum[i]), 1000, -1.0, 1.0, 1000, -1.0, 1.0));
+
+  }
+
+  canvas2->Divide(1,modulation->fNMonitor);
+  canvas4->Divide(1,modulation->GetModNumber());
+
+  std::cout << "Making Slope Correction Plots" << std::endl;
+
+  for(Int_t k = 0; k < modulation->fNDetector; k++){
+    canvas0->Divide(modulation->fNMonitor, modulation->GetModNumber());
+    canvas1->Divide(modulation->fNMonitor, modulation->GetModNumber());
+    
+    for(Int_t i = 0; i < modulation->fNMonitor; i++){
+      for(Int_t j = 0; j < (modulation->GetModNumber()); j++){
+	canvas0->cd(n);
+	
+	gPad->SetGridx();
+	gPad->SetGridy();
+	
+	modulation->Slope[i].push_back(new QwData() );
+	modulation->SlopeCorr[i].push_back(new QwData() );
+	
+	mod_tree->Draw(Form("asym_%s:diff_%s>>hist_%i_%s", modulation->DetectorList[k].Data(), 
+			    modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data()),
+		       Form("ErrorFlag == 0 && yield_ramp > 0 && yield_bm_pattern_number == %i", pNum[j]), "prof");
+	
+	std::cout << other << Form("asym_%s:diff_%s>>hist_%i_%s", modulation->DetectorList[k].Data(), 
+				   modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data()) 
+		  << " " <<  Form("ErrorFlag == 0 && yield_ramp > 0 && yield_bm_pattern_number == %i", pNum[j])
+		  << normal << std::endl;
+	
+	modulation->SensHistogram[i][j] = (TH2F *)gDirectory->Get(Form("hist_%i_%s", j, modulation->MonitorList[i].Data()));
+	mean = modulation->SensHistogram[i][j]->GetMean(1);
+	max = modulation->SensHistogram[i][j]->GetXaxis()->GetXmax();
+	delta = 0.6*(TMath::Abs(max-mean));
+	linear->SetRange(mean - delta, mean + delta);
+	linear->SetLineColor(2);
+	modulation->SensHistogram[i][j]->GetYaxis()->SetTitle(Form("%s Asymmetry", modulation->DetectorList[k].Data()));
+        modulation->SensHistogram[i][j]->GetXaxis()->SetTitle(Form("%s", modulation->MonitorList[i].Data()) );
+	modulation->SensHistogram[i][j]->SetTitle( Form("%s vs %s -- uncorrected", modulation->DetectorList[k].Data(), 
+							modulation->MonitorList[i].Data()) );
+	modulation->SensHistogram[i][j]->Draw("goff");
+	modulation->SensHistogram[i][j]->Fit("linear","R");
+	modulation->Slope[i][j]->slope = linear->GetParameter(1);
+	modulation->Slope[i][j]->error = linear->GetParError(1);
+	modulation->Slope[i][j]->ChiSquare = linear->GetChisquare();
+	modulation->Slope[i][j]->NDF = linear->GetNDF();
+	modulation->Slope[i][j]->ChiSquareNDF = modulation->Slope[i][j]->ChiSquare/modulation->Slope[i][j]->NDF;
+	canvas0->Update();
+	canvas0->Modified();
+	
+	canvas1->cd(n);
+	gPad->SetGridx();
+	gPad->SetGridy();
+	
+	mod_tree->Draw(Form("corr_asym_%s:diff_%s>>corr_hist_%i_%s", modulation->DetectorList[k].Data(), 
+			    modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data()), 
+		       Form("ErrorFlag == 0 && yield_ramp > 0 && yield_bm_pattern_number == %i", pNum[j]), "prof");
+	
+	std::cout << other << Form("corr_asym_%s:diff_%s>>corr_hist_%i_%s", modulation->DetectorList[k].Data(),
+				   modulation->MonitorList[i].Data(), j, modulation->MonitorList[i].Data())
+		  << " " << Form("ErrorFlag == 0 && yield_ramp > 0 && yield_bm_pattern_number == %i", pNum[j])
+		  << normal << std::endl;
+	
+	modulation->SensHistogramCorr[i][j] = (TH2F *)gDirectory->Get(Form("corr_hist_%i_%s", j, modulation->MonitorList[i].Data()));
+	mean = modulation->SensHistogramCorr[i][j]->GetMean(1);
+	max = modulation->SensHistogram[i][j]->GetXaxis()->GetXmax();
+	delta = 0.6*(TMath::Abs(max-mean));
+	linear->SetRange(mean - delta, mean + delta);
+	linear->SetLineColor(2);
+	modulation->SensHistogramCorr[i][j]->GetYaxis()->SetTitle(Form("%s Corrected", modulation->DetectorList[k].Data()));
+	modulation->SensHistogramCorr[i][j]->GetXaxis()->SetTitle(Form("%s", modulation->MonitorList[i].Data()) );
+	modulation->SensHistogramCorr[i][j]->SetTitle(Form("%s vs %s -- corrected", modulation->DetectorList[k].Data(), 
+							   modulation->MonitorList[i].Data()) );
+	modulation->SensHistogramCorr[i][j]->Draw("goff");
+	modulation->SensHistogramCorr[i][j]->Fit("linear","R");
+	modulation->SlopeCorr[i][j]->slope = linear->GetParameter(1);
+	modulation->SlopeCorr[i][j]->error = linear->GetParError(1);
+	modulation->SlopeCorr[i][j]->ChiSquare = linear->GetChisquare();;
+	modulation->SlopeCorr[i][j]->NDF = linear->GetNDF();
+	modulation->SlopeCorr[i][j]->ChiSquareNDF = modulation->SlopeCorr[i][j]->ChiSquare/modulation->SlopeCorr[i][j]->NDF;
+	canvas1->Update();
+	canvas1->Modified();
+	n++;
+							      }
+      }
+    canvas0->SaveAs( Form("%s_diagnostic/uncorrected_%s_sens_slopes.pdf", filename.Data(), modulation->DetectorList[k].Data()) );
+    canvas1->SaveAs( Form("%s_diagnostic/corrected_%s_sens_slopes.pdf",   filename.Data(), modulation->DetectorList[k].Data()) );
+
+    canvas0->Clear();
+    canvas1->Clear();
+    n = 1;
+  }
+  
+  for(Int_t i = 0; i < modulation->GetModNumber(); i++){
+    modulation->DiffSlope.push_back(new QwData() );    
+    
+    canvas2->cd(i + 1);
+    mod_tree->Draw(Form("diff_%s>>hist_diff_%s", modulation->MonitorList[i].Data(), modulation->MonitorList[i].Data()), "ErrorFlag == 0");
+    modulation->DiffHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_diff_%s", modulation->MonitorList[i].Data()));
+    modulation->DiffSlope[i]->slope = modulation->DiffHistogram[i]->GetMean();
+    modulation->DiffSlope[i]->error = modulation->DiffHistogram[i]->GetRMS()/(TMath::Sqrt(modulation->DiffHistogram[i]->GetEntries()));
+    modulation->DiffHistogram[i]->GetYaxis()->SetTitle("Counts");
+    modulation->DiffHistogram[i]->GetXaxis()->SetTitle("position/angle difference");
+    canvas2->Update();
+    canvas2->Modified();
+  }
+  
+  for(Int_t k = 0; k < modulation->fNDetector; k++){
+    for(Int_t i = 0; i < modulation->GetModNumber(); i++){
+      modulation->Correction.push_back(new QwData() );    
+      canvas3->Divide(1,modulation->fNMonitor);
+      
+      canvas3->cd(i + 1);
+      mod_tree->Draw(Form("corr_asym_%s_diff_%s>>hist_corr_%s", modulation->DetectorList[k].Data(), modulation->MonitorList[i].Data(),
+			  modulation->MonitorList[i].Data()), "ErrorFlag == 0");
+      modulation->CorrectionHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_corr_%s", modulation->MonitorList[i].Data()));
+      modulation->Correction[i]->slope = modulation->CorrectionHistogram[i]->GetMean();
+      modulation->Correction[i]->error = modulation->CorrectionHistogram[i]->GetRMS()/(TMath::Sqrt(modulation->CorrectionHistogram[i]->GetEntries()));
+      modulation->CorrectionHistogram[i]->GetYaxis()->SetTitle("Counts");
+      modulation->CorrectionHistogram[i]->GetXaxis()->SetTitle("correction position/angle difference");
+      canvas3->Update();
+      canvas3->Modified();
+
+      canvas3->SaveAs( Form("%s_diagnostic/corrections_%s.pdf", filename.Data(), modulation->DetectorList[k].Data()) );
+      canvas3->Clear();
+    }
+  }
+
+  for(Int_t i = 0; i < modulation->GetModNumber(); i++){
+    modulation->ChargeAsym.push_back(new QwData() );
+    
+    canvas4->cd(i + 1);
+    gPad->SetGridx();
+    gPad->SetGridy();
+
+    mod_tree->Draw(Form("yield_qwk_charge:yield_%s>>hist_charge_asym_%i", modulation->MonitorList[i].Data(), pNum[i]), 
+		   "ErrorFlag == 0 && yield_ramp < 0", "prof");
+
+    modulation->ChargeAsymHistogram[i] = (TH2F *)gDirectory->Get(Form("hist_charge_asym_%i", pNum[i]));
+    mean = modulation->ChargeAsymHistogram[i]->GetMean(1);
+    max = modulation->ChargeAsymHistogram[i]->GetXaxis()->GetXmax();
+    delta = 0.6*(TMath::Abs(max-mean));
+    linear->SetRange(mean - delta, mean + delta);
+    std::cout << other << mean << "\t" << max << normal << std::endl;
+
+    linear->SetLineColor(2);
+    modulation->ChargeAsymHistogram[i]->GetYaxis()->SetTitle("Charge");
+    modulation->ChargeAsymHistogram[i]->GetXaxis()->SetTitle(Form("yield_%s", modulation->MonitorList[i].Data()) );
+    modulation->ChargeAsymHistogram[i]->SetTitle("Charge vs Monitor Yield");
+    modulation->ChargeAsymHistogram[i]->Draw("goff");
+    modulation->ChargeAsymHistogram[i]->Fit("linear","R");
+    modulation->ChargeAsym[i]->slope = linear->GetParameter(1);
+    modulation->ChargeAsym[i]->error = linear->GetParError(1);
+    modulation->ChargeAsym[i]->ChiSquare = linear->GetChisquare();;
+    modulation->ChargeAsym[i]->NDF = linear->GetNDF();
+    modulation->ChargeAsym[i]->ChiSquareNDF = modulation->ChargeAsym[i]->ChiSquare/modulation->ChargeAsym[i]->NDF;
+    canvas4->Update();
+    canvas4->Modified();
+    
+  }
+
+    canvas2->SaveAs( Form("%s_diagnostic/position_differences.pdf", filename.Data()) );
+    canvas4->SaveAs( Form("%s_diagnostic/charge_asym.pdf", filename.Data()) );
+    
+    modulation->Write();
+    
+    std::cout << "Done" << std::endl;
+    
+    theApp.Run();
+    
+    return 0;
+    
+}
