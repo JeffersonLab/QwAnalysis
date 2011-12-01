@@ -23,8 +23,8 @@ private:
   Int_t fNEvents;
   Int_t fNModType;
 
-  static const Int_t fNMaxMon = 20;
-  static const Int_t fNMaxDet = 20;
+  static const Int_t fNMaxMon = 6;
+  static const Int_t fNMaxDet = 30;
   static const Int_t fNMaxCoil = 6;
   static const Int_t fBranchSize = 13;
   static const Int_t fDeviceErrorCode = 6;
