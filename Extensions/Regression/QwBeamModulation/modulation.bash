@@ -20,8 +20,7 @@ else
     exit
 fi
 
-if [ "$QWSCRATCH" ]
-    then
+if [ "$QWSCRATCH" ]; then
     echo "Scratch directory set to: $QWSCRATCH"
 else
     mkdir ${HOME}/scratch
@@ -29,17 +28,18 @@ else
     echo "Setting default \$QWSCRATCH to $HOME/scratch"
 fi
 
-if [ "${HOST:0:5}" == "cdaql" ]
-    then
-    FINAL_PATH=${QWSCRATCH}
+if [ "${HOST:0:5}" == "cdaql" ]; then
+    FINAL_PATH=${QWSCRATCH}/bmod_regression
     echo "\$FINAL_PATH set to $FINAL_PATH"
+    if [ ! -d ${FINAL_PATH} ]; then
+	echo "${QWSCRATCH}/bmod_regression does not exist. Exiting."
+	exit
+    fi
 fi
 
-if [ "$QW_ROOTFILES" ]
-    then
+if [ "$QW_ROOTFILES" ]; then
     echo "Rootfiles directory set to: $QW_ROOTFILES"
-elif [ "${HOST:0:5}" -eq "cdaql" ]
-    then
+elif [ "${HOST:0:5}" -eq "cdaql" ]; then
     QW_ROOTFILES=/home/cdaq/qweak/QwScratch/rootfiles
     echo "\$QW_ROOTFILES set to $QW_ROOTFILES"
 else
@@ -49,8 +49,7 @@ fi
 
 ./qwbeammod ${RUN_NUMBER}
 
-if [ $? -ne 0 ]
-    then
+if [ $? -ne 0 ]; then
     echo "There was and error in the completion of qwbeammod"
     exit
 fi

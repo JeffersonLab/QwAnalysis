@@ -131,7 +131,7 @@ void QwDiagnostic::Write(void){
       error += TMath::Power( Correction[k][i]->error, 2);
     }
     error = TMath::Sqrt(error);
-    fprintf(correction, "%s total: %-5.5e : %-5.5e \n", DetectorList[k].Data(), total, error);
+    fprintf(regression, "%s total: %-5.5e : %-5.5e \n", DetectorList[k].Data(), total, error);
     error = 0;
     total = 0;
   }
@@ -191,15 +191,19 @@ void QwDiagnostic::Write(void){
   //    corrections
   //********************
     Double_t conv_key[5] = {1.e6, 1., 1.e6, 1.e6, 1.};
-    
-  for(Int_t k = 0; k < fNDetector; k++){
-    fprintf(correction,"# Detector: %s\n", DetectorList[k].Data());
-    fprintf(correction,"\n\n#monitor\t   sensitivity(ppm/[mm,rad])     difference([mm,rad])\t\t    correction\n");
-    for(Int_t i = 0; i < fNMonitor; i++){
-      fprintf(correction, "%-20s\t %-8.6e\t\t %-8.6e +- %-8.6e\t%-8.6e +- %-8.6e\n", MonitorList[i].Data(), conv_key[i]*Sens[k][i],
-	      DiffSlope[i]->slope, DiffSlope[i]->error, Correction[k][i]->slope, Correction[k][i]->error);
+    Double_t total_correction = 0; 
+
+    for(Int_t k = 0; k < fNDetector; k++){
+      fprintf(correction,"# Detector: %s\n", DetectorList[k].Data());
+      fprintf(correction,"#monitor\t   sensitivity(ppm/[mm,rad])     difference([mm,rad])\t\t  Asym_Corr(ppm)\n");
+      for(Int_t i = 0; i < fNMonitor; i++){
+	fprintf(correction, "%-20s\t %-8.6e\t\t %-8.6e +- %-8.6e\t%-8.6e +- %-8.6e\n", MonitorList[i].Data(), conv_key[i]*Sens[k][i],
+		DiffSlope[i]->slope, DiffSlope[i]->error, 1e6*Correction[k][i]->slope, 1e6*Correction[k][i]->error);
+	total_correction += 1e6*Correction[k][i]->slope;
+      }
+      fprintf(correction,"\nasym_raw(ppm)\t\t   asym_corr(ppm)\t\t  asym_final(ppm)\n");
+      fprintf(correction, "%-8.6e\t\t %-8.6e\t\t %-8.6e\t\n", RawAsymMean[k], total_correction, AsymMean[k]);
     }
-  }
 
   //*********************** 
   //    charge asymmetry

@@ -62,11 +62,14 @@ public :
 
   std::vector <Double_t> AsymMean;
   std::vector <Double_t> AsymError;
+  std::vector <Double_t> RawAsymMean;
+  std::vector <Double_t> RawAsymError;
 
   std::vector < std::vector <Double_t> > Sens;
 
   std::vector <TH1F *>  DiffHistogram;
   std::vector <TH1F *>  AsymHistogram;
+  std::vector <TH1F *>  RawAsymHistogram;
   std::vector <TH1F *>  CorrectionHistogram;
   std::vector <TProfile *> ChargeAsymHistogram;
   std::vector <TProfile *> NaturalSensitivity;

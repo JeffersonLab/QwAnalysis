@@ -20,6 +20,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   TCanvas *canvas4 = new TCanvas("c4", "canvas4", 1500, 1500);
   TCanvas *canvas5 = new TCanvas("c5", "canvas5", 1500, 1500);
   TCanvas *canvas6 = new TCanvas("c6", "canvas6", 500, 500);
+  TCanvas *canvas7 = new TCanvas("c7", "canvas7", 500, 500);
 
   TCut cut_mod[5];
   TCut cut_nat[5];
@@ -81,6 +82,8 @@ Int_t main(Int_t argc, Char_t *argv[])
   for(Int_t j = 0; j < modulation->fNDetector; j++){
     modulation->AsymHistogram.push_back(new TH1F(Form("hist_asym_%s", modulation->DetectorList[j].Data()),
 						 Form("hist_asym_%s", modulation->DetectorList[j].Data()), 2000, -1000.0, 1000.0 ));
+    modulation->RawAsymHistogram.push_back(new TH1F(Form("hist_raw_asym_%s", modulation->DetectorList[j].Data()),
+						    Form("hist_raw_asym_%s", modulation->DetectorList[j].Data()), 2000, -1000.0, 1000.0 ));
   }
 
   for(Int_t i = 0; i < modulation->fNDetector; i++){
@@ -93,7 +96,6 @@ Int_t main(Int_t argc, Char_t *argv[])
   canvas2->Divide(1,modulation->fNMonitor);
   canvas4->Divide(1,modulation->GetModNumber());
   canvas5->Divide(1,modulation->fNMonitor);
-  canvas6->Divide(1,modulation->fNDetector);
 
   //********************************************
   //  Set cuts for slope correction plots
@@ -429,7 +431,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   for(Int_t i = 0; i < modulation->fNDetector; i++){
 
-    canvas6->cd(i + 1);
+    canvas6->cd();
     mod_tree->Draw(Form("1e6*corr_asym_%s>>hist_asym_%s", modulation->DetectorList[i].Data(), modulation->DetectorList[i].Data()), "ErrorFlag == 0");
     modulation->AsymHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_asym_%s", modulation->DetectorList[i].Data()));
     modulation->AsymMean.push_back(modulation->AsymHistogram[i]->GetMean());
@@ -439,8 +441,26 @@ Int_t main(Int_t argc, Char_t *argv[])
     canvas6->Update();
     canvas6->Modified();
 
+    canvas6->SaveAs( Form("%s_diagnostic/corrected_asym_%s.pdf", filename.Data(), modulation->DetectorList[i].Data()) );
+    canvas6->Clear();
   }
-  canvas6->SaveAs( Form("%s_diagnostic/corrected_asym.pdf", filename.Data()) );
+  
+  for(Int_t i = 0; i < modulation->fNDetector; i++){
+
+    canvas7->cd();
+    mod_tree->Draw(Form("1e6*asym_%s>>hist_raw_asym_%s", modulation->DetectorList[i].Data(), modulation->DetectorList[i].Data()), "ErrorFlag == 0");
+    modulation->RawAsymHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_raw_asym_%s", modulation->DetectorList[i].Data()));
+    modulation->RawAsymMean.push_back(modulation->RawAsymHistogram[i]->GetMean());
+    modulation->RawAsymError.push_back(modulation->RawAsymHistogram[i]->GetRMS()/(TMath::Sqrt(modulation->RawAsymHistogram[i]->GetEntries())));
+    modulation->RawAsymHistogram[i]->GetYaxis()->SetTitle("Counts");
+    modulation->RawAsymHistogram[i]->GetXaxis()->SetTitle("Asymmetry (ppm)");
+    canvas7->Update();
+    canvas7->Modified();
+
+    canvas7->SaveAs( Form("%s_diagnostic/uncorrected_asym_%s.pdf", filename.Data(), modulation->DetectorList[i].Data()) );
+    canvas7->Clear();
+
+  }
   
   std::cout << other << "Writing results to output files" << normal << std::endl;
   modulation->Write();

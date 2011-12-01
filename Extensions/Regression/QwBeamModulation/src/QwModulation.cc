@@ -333,7 +333,7 @@ void QwModulation::ComputeYieldCorrections()
   mod_tree->Branch("yield_qwk_charge", &yield_qwk_charge, "yield_qwk_charge/D"); 
   mod_tree->Branch("yield_bm_pattern_number", &yield_bm_pattern_number, "yield_bm_pattern_number/D"); 
   mod_tree->Branch("yield_ramp", &yield_ramp_hw_sum, "yield_ramp_hw_sum/D"); 
-//   mod_tree->Branch("correction", &correction, "correction/D"); 
+  mod_tree->Branch("correction", &correction, "correction/D"); 
   mod_tree->Branch("ErrorFlag", &ErrorFlag, "ErrorFlag/D"); 
   mod_tree->Branch("yield_qwk_mdallbars_Device_Error_Code", &yield_qwk_mdallbars_Device_Error_Code, "yield_qwk_mdallbars_Device_Error_Code/D"); 
   mod_tree->Branch("yield_qwk_mdallbars", &yield_qwk_mdallbars_hw_sum, "yield_qwk_mdallbars/D"); 
