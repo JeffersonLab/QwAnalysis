@@ -244,6 +244,8 @@ void QwModulation::MatrixFill()
 
   Double_t determinant;
 
+  CheckFlags();
+
   for(Int_t j = 0; j < fNDetector; j++){
     for(Int_t k = 0; k < fNModType; k++){
       AMatrix(j,k) = AvDetectorSlope[k][j];
@@ -1103,6 +1105,17 @@ void QwModulation::SetFlags()
   return;
 }
 
+void QwModulation::CheckFlags()
+{
+
+  if( !(fXinit && fYinit && fEinit && fXPinit && fYPinit) ){
+    PrintError("Not enough modulation cycles in this run -- exiting");
+    CleanFolders();
+    exit(1);
+  }
+  return;
+
+}
 #endif
 
 //  LocalWords:  SetupMpsBranchAddress

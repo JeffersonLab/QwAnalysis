@@ -1,4 +1,4 @@
-#!/usr/bash -u
+#!/bin/bash -u
 #
 # User should set final copy directory to personal directory
 #
