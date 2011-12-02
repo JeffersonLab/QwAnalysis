@@ -160,6 +160,12 @@ void QwSubsystemArray::LoadSubsystemsFromParameterFile(QwParameterFile& detector
     // Add to array
     this->push_back(subsys);
 
+    // Instruct the subsystem to publish variables
+    if (subsys->PublishInternalValues() == kFALSE) {
+      QwError << "Not all variables for " << subsys->GetSubsystemName()
+              << " could be published!" << QwLog::endl;
+    }
+
     // Delete parameter file section
     delete section; section = 0;
   }
@@ -200,12 +206,6 @@ void QwSubsystemArray::push_back(VQwSubsystem* subsys)
     // Update the event type mask
     // Note: Active bits in the mask indicate event types that are accepted
     fEventTypeMask |= subsys_tmp->GetEventTypeMask();
-
-    // Instruct the subsystem to publish variables
-    if (subsys_tmp->PublishInternalValues() == kFALSE) {
-      QwError << "Not all variables for " << subsys_tmp->GetSubsystemName()
-              << " could be published!" << QwLog::endl;
-    }
   }
 }
 
