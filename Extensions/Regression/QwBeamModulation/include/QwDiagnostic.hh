@@ -61,9 +61,10 @@ public :
   std::vector <Int_t> run;
 
   std::vector <Double_t> AsymMean;
-  std::vector <Double_t> AsymError;
+  std::vector <Double_t> AsymRMS;
+  std::vector <Double_t> AsymEntries;
   std::vector <Double_t> RawAsymMean;
-  std::vector <Double_t> RawAsymError;
+  std::vector <Double_t> RawAsymRMS;
 
   std::vector < std::vector <Double_t> > Sens;
 

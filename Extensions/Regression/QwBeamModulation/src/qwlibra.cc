@@ -259,6 +259,7 @@ Int_t main(Int_t argc, Char_t *argv[])
     modulation->DiffHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_diff_%s", modulation->MonitorList[i].Data()));
     modulation->DiffSlope[i]->slope = modulation->DiffHistogram[i]->GetMean();
     modulation->DiffSlope[i]->error = modulation->DiffHistogram[i]->GetRMS()/(TMath::Sqrt(modulation->DiffHistogram[i]->GetEntries()));
+    modulation->DiffSlope[i]->entries = (Int_t)(modulation->DiffHistogram[i])->GetEntries();
     modulation->DiffHistogram[i]->GetYaxis()->SetTitle("Counts");
     modulation->DiffHistogram[i]->GetXaxis()->SetTitle("position/angle difference");
     canvas2->Update();
@@ -280,6 +281,7 @@ Int_t main(Int_t argc, Char_t *argv[])
 									modulation->MonitorList[i].Data()));
       modulation->Correction[k][i]->slope = modulation->CorrectionHistogram[i]->GetMean();
       modulation->Correction[k][i]->error = modulation->CorrectionHistogram[i]->GetRMS()/(TMath::Sqrt(modulation->CorrectionHistogram[i]->GetEntries()));
+      modulation->Correction[k][i]->entries = (Int_t)(modulation->CorrectionHistogram[i])->GetEntries();
       modulation->CorrectionHistogram[i]->SetTitle("Correction to Asymmetry for each Monitor");
       modulation->CorrectionHistogram[i]->GetYaxis()->SetTitle("Counts");
       modulation->CorrectionHistogram[i]->GetXaxis()->SetTitle("correction position/angle difference");
@@ -435,7 +437,8 @@ Int_t main(Int_t argc, Char_t *argv[])
     mod_tree->Draw(Form("1e6*corr_asym_%s>>hist_asym_%s", modulation->DetectorList[i].Data(), modulation->DetectorList[i].Data()), "ErrorFlag == 0");
     modulation->AsymHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_asym_%s", modulation->DetectorList[i].Data()));
     modulation->AsymMean.push_back(modulation->AsymHistogram[i]->GetMean());
-    modulation->AsymError.push_back(modulation->AsymHistogram[i]->GetRMS()/(TMath::Sqrt(modulation->AsymHistogram[i]->GetEntries())));
+    modulation->AsymRMS.push_back(modulation->AsymHistogram[i]->GetRMS());
+    modulation->AsymEntries.push_back((modulation->CorrectionHistogram[i])->GetEntries());
     modulation->AsymHistogram[i]->GetYaxis()->SetTitle("Counts");
     modulation->AsymHistogram[i]->GetXaxis()->SetTitle("Asymmetry (ppm)");
     canvas6->Update();
@@ -451,7 +454,7 @@ Int_t main(Int_t argc, Char_t *argv[])
     mod_tree->Draw(Form("1e6*asym_%s>>hist_raw_asym_%s", modulation->DetectorList[i].Data(), modulation->DetectorList[i].Data()), "ErrorFlag == 0");
     modulation->RawAsymHistogram[i] = (TH1F *)gDirectory->Get(Form("hist_raw_asym_%s", modulation->DetectorList[i].Data()));
     modulation->RawAsymMean.push_back(modulation->RawAsymHistogram[i]->GetMean());
-    modulation->RawAsymError.push_back(modulation->RawAsymHistogram[i]->GetRMS()/(TMath::Sqrt(modulation->RawAsymHistogram[i]->GetEntries())));
+    modulation->RawAsymRMS.push_back(modulation->RawAsymHistogram[i]->GetRMS());
     modulation->RawAsymHistogram[i]->GetYaxis()->SetTitle("Counts");
     modulation->RawAsymHistogram[i]->GetXaxis()->SetTitle("Asymmetry (ppm)");
     canvas7->Update();

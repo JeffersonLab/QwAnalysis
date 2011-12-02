@@ -17,6 +17,7 @@ private:
 
 public:
 
+  Int_t    entries;
   Double_t weight_slope;
   Double_t inv_variance;
   Double_t slope;
@@ -34,6 +35,7 @@ public:
 
   Double_t GetSlope(void);
   Double_t GetError(void);
+  Double_t GetRMS();
 
   void     CalcAverage(void);
 };

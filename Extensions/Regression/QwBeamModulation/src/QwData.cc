@@ -25,6 +25,10 @@ void  QwData::CalcAverage(){
 
 }
 
+Double_t  QwData::GetRMS(){
+  return( error*TMath::Sqrt(entries) ); 
+}
+
 QwData QwData::operator+(QwData &parameter){
   //
   //This is to be used with weighted sums or averages.
