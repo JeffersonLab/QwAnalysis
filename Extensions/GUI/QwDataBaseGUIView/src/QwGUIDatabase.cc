@@ -1274,7 +1274,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   }
 
   if((dCmbXAxis->GetSelected()) == ID_X_SLUG){
-    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, data.slug AS x_value, ";
+    outputs   = "sum(distinct(data.value/(POWER(data.error,2))))/sum( distinct(1/(POWER(data.error,2)))) AS value, SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS error, SQRT(data.n)*SQRT(1/SUM(distinct(1/(POWER(data.error,2))))) AS rms,data.slug AS x_value, ";
     special_cuts += Form(" AND (data.slug >= %i AND data.slug <= %i ) GROUP BY data.slug",index_first,index_last);
   }
 
