@@ -25,10 +25,10 @@
 #PC_neg_t0_OUT=40962
 
 #4. Runs checked OUT - 11283 IN - 11286 -Changed by Rakitha 04/11/2011 - rakithab@jlab.org
-PC_pos_t0_IN=43300
-PC_neg_t0_IN=40899
-PC_pos_t0_OUT=42864 
-PC_neg_t0_OUT=41335
+#PC_pos_t0_IN=43300
+#PC_neg_t0_IN=40899
+#PC_pos_t0_OUT=42864 
+#PC_neg_t0_OUT=41335
 
 PC_Delta_Counts=2500
 
@@ -38,7 +38,7 @@ PC_Delta_Counts=2500
 # /local/scratch/qweak/Last_good_PC_neg_OUT
 # /local/scratch/qweak/Last_good_PC_pos_IN
 # /local/scratch/qweak/Last_good_PC_neg_IN
-# set updated by the feedback program with last oggd PC values.- Changed by Rakitha 04/15/2011 - rakithab@jlab.org
+# set updated by the feedback program with last logged PC values.- Changed by Rakitha 04/15/2011 - rakithab@jlab.org
 
 
 PC_pos_current="`caget -t C1068_QDAC01`"
