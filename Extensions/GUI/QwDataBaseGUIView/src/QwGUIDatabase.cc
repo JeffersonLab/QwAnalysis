@@ -673,7 +673,7 @@ void QwGUIDatabase::PopulateDetectorComboBox()
   dCmbProperty->SetEnabled(kFALSE);
   dCmbSubblock->SetEnabled(kTRUE);
   dCmbRegressionType->SetEnabled(kTRUE);
-
+  dCmbMeasurementType->SetEnabled(kTRUE);
 
   if (dCmbInstrument->GetSelected() == ID_MD) {
     for (Int_t i = 0; i < N_DETECTORS; i++) {
@@ -2345,35 +2345,39 @@ void QwGUIDatabase::RegressionTypeInfo(){
   T1.SetTextAlign(12);
   T1.SetTextSize(0.03);
 
-  if(regression_set == "off")
+  if(regression_set == "off"){
     T1.DrawLatex(0.1,0.8,"Selecting Unregressed data!");
-  if(bfill_reg_iv)
-    for (Int_t i = 0; i < N_REG_VARS_ON; i++){
-      dCmbProperty->AddEntry(RegressionVarsOn[i], i);
-      regression_ivs = RegressionVarsOn;
+    if(bfill_reg_iv){
+      for (Int_t i = 0; i < N_REG_VARS_ON; i++){
+	dCmbProperty->AddEntry(RegressionVarsOn[i], i);
+	regression_ivs = RegressionVarsOn;
+      }
     }
+  }
   else{
     T1.DrawLatex(0.1,0.8,"Selecting Regression that use IVs:");
 
     if(regression_set == "on"){
-      if(bfill_reg_iv)
+      if(bfill_reg_iv){
 	for (Int_t i = 0; i < N_REG_VARS_ON; i++){
 	  dCmbProperty->AddEntry(RegressionVarsOn[i], i);
 	  regression_ivs = RegressionVarsOn;
 	}
+      }
       T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
       T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");      
       T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");        
       T1.DrawLatex(0.2,0.4,"#bullet diff_qwk_targetYSlope");      
       T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_energy");      
-
+      
     }
     else if(regression_set == "on_5+1"){
-      if(bfill_reg_iv)
+      if(bfill_reg_iv){
 	for (Int_t i = 0; i < N_REG_VARS_ON_5_1; i++){
 	  dCmbProperty->AddEntry(RegressionVarsOn_5_1[i], i);
 	  regression_ivs = RegressionVarsOn_5_1;
 	}
+      }
       
       T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
       T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");      
@@ -2384,11 +2388,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
 
     }
     else if(regression_set == "on_set3"){
-      if(bfill_reg_iv)
+      if(bfill_reg_iv){
 	for (Int_t i = 0; i < N_REG_VARS_ON_3; i++){
 	  dCmbProperty->AddEntry(RegressionVarsOn_3[i], i);
 	  regression_ivs = RegressionVarsOn_3;
 	}
+      }
       T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
       T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");      
       T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");        
@@ -2397,11 +2402,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
       T1.DrawLatex(0.2,0.2,"#bullet asym_qwk_charge"); 
     }
     else if(regression_set == "on_set4"){
-      if(bfill_reg_iv)
+      if(bfill_reg_iv){
 	for (Int_t i = 0; i < N_REG_VARS_ON_4; i++){
 	  dCmbProperty->AddEntry(RegressionVarsOn_4[i], i);
 	  regression_ivs = RegressionVarsOn_4;
 	}
+      }
       T1.DrawLatex(0.2,0.7,"#bullet diff_qwk_targetX");
       T1.DrawLatex(0.2,0.6,"#bullet diff_qwk_targetY");      
       T1.DrawLatex(0.2,0.5,"#bullet diff_qwk_targetXSlope");        
@@ -2410,12 +2416,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
       T1.DrawLatex(0.2,0.1,"#bullet asym_qwk_bcm5"); 
     }
     else if(regression_set == "on_set5"){
-      if(bfill_reg_iv)
+      if(bfill_reg_iv){
 	for (Int_t i = 0; i < N_REG_VARS_ON_5; i++){
 	  dCmbProperty->AddEntry(RegressionVarsOn_5[i], i);
 	  regression_ivs = RegressionVarsOn_5;
 	}
-
+      }
       T1.DrawLatex(0.2,0.7,"#bullet diff_bpm_9b_m_4X=diff_qwk_bpm3h09bX-diff_qwk_bpm3h04X");
       T1.DrawLatex(0.2,0.6,"#bullet diff_bpm_9b_m_4Y=diff_qwk_bpm3h09bY-diff_qwk_bpm3h04Y");      
       T1.DrawLatex(0.2,0.5,"#bullet diff_bpm_9b_p_4X=diff_qwk_bpm3h09bX+diff_qwk_bpm3h04X");        
@@ -2423,12 +2429,12 @@ void QwGUIDatabase::RegressionTypeInfo(){
       T1.DrawLatex(0.2,0.3,"#bullet diff_qwk_bpm3c12X"); 
     }
     else if(regression_set == "on_set6"){
-      if(bfill_reg_iv)
+      if(bfill_reg_iv){
 	for (Int_t i = 0; i < N_REG_VARS_ON_6; i++){
 	  dCmbProperty->AddEntry(RegressionVarsOn_6[i], i);
 	  regression_ivs = RegressionVarsOn_6;
 	}
-
+      }
       T1.DrawLatex(0.2,0.7,"#bullet diff_bpm_9b_m_4X=diff_qwk_bpm3h09bX-diff_qwk_bpm3h04X");
       T1.DrawLatex(0.2,0.6,"#bullet diff_bpm_9b_m_4Y=diff_qwk_bpm3h09bY-diff_qwk_bpm3h04Y");      
       T1.DrawLatex(0.2,0.5,"#bullet diff_bpm_9b_p_4X=diff_qwk_bpm3h09bX+diff_qwk_bpm3h04X");        
