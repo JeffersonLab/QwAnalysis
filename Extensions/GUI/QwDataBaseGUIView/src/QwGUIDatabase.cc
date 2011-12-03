@@ -462,15 +462,16 @@ void QwGUIDatabase::MakeLayout()
   gStyle->SetPadTopMargin(0.1);
   gStyle->SetPadBottomMargin(0.12);
   gStyle->SetPadLeftMargin(0.12);  
-  gStyle->SetPadRightMargin(0.03);  
-
+  gStyle->SetPadRightMargin(0.04);  
+  gStyle->SetPadGridX(0);
+  gStyle->SetPadGridY(0);
   // histo parameters
   gStyle->SetTitleYOffset(1.0);
   gStyle->SetTitleXOffset(0.8);
   gStyle->SetTitleX(0.3);
   gStyle->SetTitleW(0.4);
   gStyle->SetTitleSize(0.03);
-  gStyle->SetTitleOffset(2);
+  gStyle->SetTitleOffset(2.5);
   gStyle->SetTitleColor(kBlack);
   gStyle->SetTitleBorderSize(0);
   gStyle->SetTitleFillColor(0);
@@ -1154,7 +1155,7 @@ TString QwGUIDatabase::MakeQuery(TString outputs, TString tables_used, TString t
     + quality_check
     + good_for_check
     + special_cuts
-    + ";";
+    + " ORDER BY data.run_number;";
 
 
   return querystring;
@@ -1269,7 +1270,7 @@ mysqlpp::StoreQueryResult  QwGUIDatabase::QueryDetector()
   /*Runs vs Slugs vs Histograms*/
  
   if(((dCmbXAxis->GetSelected()) == ID_X_RUN) || ((dCmbXAxis->GetSelected()) == ID_X_HISTO)) {
-    outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms, (data.run_number+data.segment_number*0.1) AS x_value,";
+    outputs   = "data.value AS value, data.error AS error, data.error*sqrt(data.n) AS rms, (data.run_number+data.segment_number*0.01) AS x_value,";
     special_cuts += Form(" AND data.run_number >= %i  AND data.run_number <= %i ",index_first, index_last);
   }
 
@@ -1354,8 +1355,10 @@ void QwGUIDatabase::PlotDetector()
       std::cout  <<"There is no data for "<<measurement_type<<" of "<<device<<" in the given range!"<<std::endl;
       return;
     }
+
+    vector <string> xval;
+    Double_t val;
     
- 
     TVectorD x_in(row_size), xerr_in(row_size);
     TVectorD x_out(row_size), xerr_out(row_size);
     TVectorD run_in(row_size), run_out(row_size);
@@ -1376,6 +1379,7 @@ void QwGUIDatabase::PlotDetector()
 
     TVectorD x_rms_all(row_size), x_rmserr_all(row_size), run_rms(row_size);
 
+    xval.clear();
     x_in.Clear();
     x_in.ResizeTo(row_size);
     xerr_in.Clear();
@@ -1540,20 +1544,34 @@ void QwGUIDatabase::PlotDetector()
         if(x_axis == ID_X_TIME){
             run_rms.operator()(i_rms)  = (runtime_start->Convert()) + adjust_for_DST;
         }
-        else
-            run_rms.operator()(i_rms)  = read_data[i]["x_value"];
-        x_rms_all.operator()(i_rms) = x_rms;
+        else if(x_axis == ID_X_RUN){
+	  run_rms.operator()(i_rms)  = read_data[i]["x_value"];
+	  val = read_data[i]["x_value"];
+	  if(fmod (val*100,100)== 0)
+	    xval.push_back(Form("%5.2f",val ));
+	  else
+	    xval.push_back("");
+	}
+	else{
+	  //do nothing for WEIN/SLUG
+	}
+	
+
+	x_rms_all.operator()(i_rms) = x_rms;
         x_rmserr_all.operator()(i_rms) = 0.0;
         i_rms++;
-	
-        if(read_data[i]["run_quality_id"] == "1"){
+ 
+	// Now fill the mean values
 
+        if(read_data[i]["run_quality_id"] == "1"){
 	  if(read_data[i]["slow_helicity_plate"] == "out") {
 	    if (read_data[i]["wien_reversal"]*1 == 1){
 
 	      if(x_axis == ID_X_TIME){
 		run_out.operator()(k)  = (runtime_start->Convert()) + adjust_for_DST;
 	      }
+	      else if(x_axis == ID_X_RUN)
+		run_out.operator()(k)  = i;
 	      else
 		run_out.operator()(k)  = read_data[i]["x_value"];
 	      
@@ -1561,12 +1579,16 @@ void QwGUIDatabase::PlotDetector()
 	      xerr_out.operator()(k) = xerr;
 	      err_out.operator()(k)  = 0.0;
 	      k++;
+
 	    } else {
 	      if(x_axis == ID_X_TIME){
 		run_out_L.operator()(l)  = (runtime_start->Convert())+ adjust_for_DST;
 	      }
+	      else if (x_axis == ID_X_RUN)
+		run_out_L.operator()(l)  = i;
 	      else
-		run_out_L.operator()(l)  = read_data[i]["x_value"];
+	      	run_out_L.operator()(l)  = read_data[i]["x_value"];
+
 	      x_out_L.operator()(l)    = x;
 	      xerr_out_L.operator()(l) = xerr;
 	      err_out_L.operator()(l)  = 0.0;
@@ -1581,8 +1603,11 @@ void QwGUIDatabase::PlotDetector()
 	      if(x_axis == ID_X_TIME){
 		run_in.operator()(m)  = runtime_start->Convert()+ adjust_for_DST;
 	      }
+	      else if(x_axis == ID_X_RUN)
+		run_in.operator()(m)  = i;
 	      else
 		run_in.operator()(m)  = read_data[i]["x_value"];
+
 	      x_in.operator()(m)    = x;
 	      xerr_in.operator()(m) = xerr;
 	      err_in.operator()(m)  = 0.0;
@@ -1591,8 +1616,11 @@ void QwGUIDatabase::PlotDetector()
 	      if(x_axis == ID_X_TIME){
 		run_in_L.operator()(n)  = runtime_start->Convert()+ adjust_for_DST;
 	      }
+	      else if(x_axis == ID_X_RUN)
+		run_in_L.operator()(n)  = i;
 	      else
 		run_in_L.operator()(n)  = read_data[i]["x_value"];
+
 	      x_in_L.operator()(n)    = x;
 	      xerr_in_L.operator()(n) = xerr;
 	      err_in_L.operator()(n)  = 0.0;
@@ -1609,7 +1637,9 @@ void QwGUIDatabase::PlotDetector()
 	  if(x_axis == ID_X_TIME){
 	    run_bad.operator()(o)  = runtime_start->Convert()+ adjust_for_DST;
 	  }
-	  else	    
+	  else if(x_axis == ID_X_RUN)
+	    run_bad.operator()(o)  = i;
+	  else
 	    run_bad.operator()(o)  = read_data[i]["x_value"];
 	  x_bad.operator()(o)    = x;
 	  xerr_bad.operator()(o) = xerr;
@@ -1622,6 +1652,8 @@ void QwGUIDatabase::PlotDetector()
 	  if(x_axis == ID_X_TIME){
 	    run_suspect.operator()(p)  = runtime_start->Convert()+ adjust_for_DST;
 	  }
+	  else  if(x_axis == ID_X_RUN)
+	    run_suspect.operator()(p)  = i;
 	  else
 	    run_suspect.operator()(p)  = read_data[i]["x_value"];
 	  x_suspect.operator()(p)    = x;
@@ -1777,23 +1809,24 @@ void QwGUIDatabase::PlotDetector()
     if(p>0)grp->Add(grp_suspect);
 
     TLegend *legend = new TLegend(0.80,0.80,0.99,0.99,"","brNDC");
-    if(m>0) legend->AddEntry(grp_in, Form("<IN_R>  = %2.3e #pm %2.3e", 
+    if(m>0) legend->AddEntry(grp_in, Form("<IN_R>  = %2.5f #pm %2.5f", 
 					  fit1->GetParameter(0), fit1->GetParError(0)), "p");
-    if(n>0) legend->AddEntry(grp_in_L, Form("<IN_L>  = %2.3e #pm %2.3e", 
+    if(n>0) legend->AddEntry(grp_in_L, Form("<IN_L>  = %2.5f #pm %2.5f", 
 					    fit2->GetParameter(0), fit2->GetParError(0)), "p");
-    if(k>0) legend->AddEntry(grp_out,Form("<OUT_R> = %2.3e #pm %2.3e", 
+    if(k>0) legend->AddEntry(grp_out,Form("<OUT_R> = %2.5f #pm %2.5f", 
 					  fit3->GetParameter(0), fit3->GetParError(0)), "p");
-    if(l>0) legend->AddEntry(grp_out_L,Form("<OUT_L> = %2.3e #pm %2.3e", 
+    if(l>0) legend->AddEntry(grp_out_L,Form("<OUT_L> = %2.5f #pm %2.5f", 
 					    fit4->GetParameter(0), fit4->GetParError(0)), "p");
-    if(o>0) legend->AddEntry(grp_bad,Form("<BAD> = %2.3e #pm %2.3e", 
+    if(o>0) legend->AddEntry(grp_bad,Form("<BAD> = %2.5f #pm %2.5f", 
 					  fit5->GetParameter(0), fit5->GetParError(0)), "p");
-    if(p>0) legend->AddEntry(grp_suspect,Form("<SUSPECT> = %2.3e #pm %2.3e", 
+    if(p>0) legend->AddEntry(grp_suspect,Form("<SUSPECT> = %2.5f #pm %2.5f", 
 					      fit6->GetParameter(0), fit6->GetParError(0)), "p");
     legend->SetFillColor(0);
 
     
     AddNewGraph(grp,legend);
     PlotGraphs();
+    char * label;
 
     if(x_axis == ID_X_TIME){
       grp->GetXaxis()->SetTimeDisplay(1);
@@ -1802,17 +1835,29 @@ void QwGUIDatabase::PlotDetector()
       grp->GetXaxis()->SetTimeFormat("#splitline{%Y-%m-%d}{%H:%M}");
       grp->GetXaxis()->Draw();
     }
+    
+    if(x_axis == ID_X_RUN){
+      // set the alphanumeric labels for run/slug
+      grp->GetXaxis()->Set(row_size, 0, row_size-1);
+      for (k=1;k<=row_size;k++) {
+	label = (char*)(xval[k].c_str());
+	(grp->GetXaxis())->SetBinLabel(k,label);
+      }
+    }
+
+    // For WEIN and SLUG we can just use the values we read.
 
     
     grp->SetTitle(title);
     grp->GetYaxis()->SetTitle(y_title);
     grp->GetXaxis()->SetTitle(x_title);
     grp->GetYaxis()->CenterTitle();
+
     
-    if(plot.Contains("Both")){
-        mc->cd(2);
-        grp_rms->Draw("ab");
-        grp_rms->GetHistogram()->SetXTitle(x_title);
+    if( plot.Contains("Both")){
+      mc->cd(2);
+      grp_rms->Draw("ab");
+      grp_rms->GetHistogram()->SetXTitle(x_title);
         grp_rms->GetHistogram()->SetYTitle("RMS of "+y_title);
         grp_rms->GetYaxis()->CenterTitle();
         if(x_axis == ID_X_TIME){
@@ -1861,6 +1906,8 @@ void QwGUIDatabase::PlotDetector()
   }
   
   
+
+
 }
 
 /******************************************
