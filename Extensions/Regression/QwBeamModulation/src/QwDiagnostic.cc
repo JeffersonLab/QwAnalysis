@@ -209,7 +209,7 @@ void QwDiagnostic::Write(void){
 	corr_rms += TMath::Power( 1e6*Correction[k][i]->GetRMS(), 2);
       }
       corr_rms = TMath::Sqrt(corr_rms);
-      fprintf(correction,"\nasym_raw(ppm)\t\t\t\t    correction(ppm)[SOM]\t\t\t  correction(ppm)[MOS]\t\t\t\tv   asym_final(ppm)\n");
+      fprintf(correction,"\nasym_raw(ppm)\t\t\t\t    correction(ppm)[SOM]\t\t\t  correction(ppm)[MOS]\t\t\t\t   asym_final(ppm)\n");
       fprintf(correction, "%-8.6e +- %-8.6e\t\t  %-8.6e +- %-8.6e\t\t %-8.6e +- %-8.6e\t\t %-8.6e +- %-8.6e\t\t\n", 
 	      RawAsymMean[k], RawAsymRMS[k], total_correction, corr_rms, 1e6*TotalCorrection[k]->slope, 1e6*TotalCorrection[k]->GetRMS(), AsymMean[k], AsymRMS[k]);
     }
