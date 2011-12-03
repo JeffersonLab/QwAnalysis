@@ -133,7 +133,8 @@ void QwDiagnostic::Write(void){
       total_entries += Correction[k][i]->entries;
     }
     rms = TMath::Sqrt(rms);
-    fprintf(regression, "%s total:%d: %-5.5e : %-5.5e \n", DetectorList[k].Data(), total_entries, total, rms);
+    fprintf(regression, "%s total:%d: %-5.5e : %-5.5e: %-5.5e : %-5.5e \n", DetectorList[k].Data(), 
+	    total_entries, total, rms, TotalCorrection[k]->slope, TotalCorrection[k]->GetRMS());
     rms = 0;
     total = 0;
     total_entries = 0;
@@ -208,9 +209,9 @@ void QwDiagnostic::Write(void){
 	corr_rms += TMath::Power( 1e6*Correction[k][i]->GetRMS(), 2);
       }
       corr_rms = TMath::Sqrt(corr_rms);
-      fprintf(correction,"\nasym_raw(ppm)\t\t\t\t    correction(ppm)\t\t\t\t    asym_final(ppm)\n");
-      fprintf(correction, "%-8.6e +- %-8.6e\t\t  %-8.6e +- %-8.6e\t\t %-8.6e +- %-8.6e\t\t\n", 
-	      RawAsymMean[k], RawAsymRMS[k], total_correction, corr_rms, AsymMean[k], AsymRMS[k]);
+      fprintf(correction,"\nasym_raw(ppm)\t\t\t\t    correction(ppm)[SOM]\t\t\t  correction(ppm)[MOS]\t\t\t\tv   asym_final(ppm)\n");
+      fprintf(correction, "%-8.6e +- %-8.6e\t\t  %-8.6e +- %-8.6e\t\t %-8.6e +- %-8.6e\t\t %-8.6e +- %-8.6e\t\t\n", 
+	      RawAsymMean[k], RawAsymRMS[k], total_correction, corr_rms, 1e6*TotalCorrection[k]->slope, 1e6*TotalCorrection[k]->GetRMS(), AsymMean[k], AsymRMS[k]);
     }
 
   //*********************** 

@@ -21,6 +21,7 @@ Int_t main(Int_t argc, Char_t *argv[])
   TCanvas *canvas5 = new TCanvas("c5", "canvas5", 1500, 1500);
   TCanvas *canvas6 = new TCanvas("c6", "canvas6", 500, 500);
   TCanvas *canvas7 = new TCanvas("c7", "canvas7", 500, 500);
+  TCanvas *canvas8 = new TCanvas("c8", "canvas8", 500, 500);
 
   TCut cut_mod[5];
   TCut cut_nat[5];
@@ -87,6 +88,10 @@ Int_t main(Int_t argc, Char_t *argv[])
   }
 
   for(Int_t i = 0; i < modulation->fNDetector; i++){
+
+      modulation->TotalCorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s", modulation->DetectorList[i].Data()),
+							      Form("hist_corr_%s", modulation->DetectorList[i].Data()),
+							      1000, -1.e-3, 1.e-3 ));
     for(Int_t j = 0; j < modulation->fNMonitor; j++){
       modulation->CorrectionHistogram.push_back(new TH1F(Form("hist_corr_%s_%s", modulation->DetectorList[i].Data(), modulation->MonitorList[j].Data()),
 							 Form("hist_corr_%s_%s", modulation->DetectorList[i].Data(), modulation->MonitorList[j].Data()),
@@ -291,6 +296,26 @@ Int_t main(Int_t argc, Char_t *argv[])
     }
     canvas3->SaveAs( Form("%s_diagnostic/corrections_%s.pdf", filename.Data(), modulation->DetectorList[k].Data()) );
     canvas3->Clear();
+
+    // Get total correction to each detector
+
+      modulation->TotalCorrection.push_back(new QwData() );    
+     
+      canvas8->cd();
+      mod_tree->Draw(Form("correction_%s>>hist_corr_%s", modulation->DetectorList[k].Data(),
+			  modulation->DetectorList[k].Data()), "ErrorFlag == 0");
+      modulation->TotalCorrectionHistogram[k] = (TH1F *)gDirectory->Get(Form("hist_corr_%s", modulation->DetectorList[k].Data()));
+      modulation->TotalCorrection[k]->slope = modulation->TotalCorrectionHistogram[k]->GetMean();
+      modulation->TotalCorrection[k]->error = modulation->TotalCorrectionHistogram[k]->GetRMS()/(TMath::Sqrt(modulation->TotalCorrectionHistogram[k]->GetEntries()));
+      modulation->TotalCorrection[k]->entries = (Int_t)(modulation->TotalCorrectionHistogram[k])->GetEntries();
+      modulation->TotalCorrectionHistogram[k]->SetTitle(Form("Total Correction to Asymmetry for %s", modulation->DetectorList[k].Data()));
+      modulation->TotalCorrectionHistogram[k]->GetYaxis()->SetTitle("Counts");
+      modulation->TotalCorrectionHistogram[k]->GetXaxis()->SetTitle("correction position/angle difference");
+      canvas8->Update();
+      canvas8->Modified();
+
+      canvas8->SaveAs( Form("%s_diagnostic/total_correction_%s.pdf", filename.Data(), modulation->DetectorList[k].Data()) );
+      canvas8->Clear();
   }
 
   //**********************************************************************
@@ -307,6 +332,8 @@ Int_t main(Int_t argc, Char_t *argv[])
 
       TH2F *temp = new TH2F("temp", "temp", fResolution, -1.0, 1.0, fResolution, -1.0, 1.0);    
       mod_tree->Draw(Form("corr_asym_%s:diff_%s>>temp", modulation->DetectorList[i].Data(), 
+
+
 			  modulation->MonitorList[j].Data()), cut_nat[j], "prof");
 
 	temp = (TH2F *)gDirectory->Get("temp");

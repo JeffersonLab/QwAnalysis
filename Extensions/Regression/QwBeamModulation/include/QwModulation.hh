@@ -229,6 +229,7 @@ public :
   std::vector <Int_t> run;
 
   std::vector <Double_t> sens;
+  std::vector <Double_t> correction;
 
   std::vector < std::vector <Double_t> > CoilData;
   std::vector < std::vector <Double_t> > DetectorData;

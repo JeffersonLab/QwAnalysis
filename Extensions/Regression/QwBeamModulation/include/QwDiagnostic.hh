@@ -72,6 +72,7 @@ public :
   std::vector <TH1F *>  AsymHistogram;
   std::vector <TH1F *>  RawAsymHistogram;
   std::vector <TH1F *>  CorrectionHistogram;
+  std::vector <TH1F *>  TotalCorrectionHistogram;
   std::vector <TProfile *> ChargeAsymHistogram;
   std::vector <TProfile *> NaturalSensitivity;
 
@@ -81,6 +82,7 @@ public :
 
   std::vector <QwData *> DiffSlope;
   std::vector <QwData *> ChargeAsym;  
+  std::vector <QwData *> TotalCorrection;
 
   std::vector <std::vector <QwData *> > Correction;
   std::vector <std::vector <QwData *> > NatSlope;

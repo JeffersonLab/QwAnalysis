@@ -325,25 +325,27 @@ void QwModulation::ComputeYieldCorrections()
 
   Int_t fEvCounter = 0;
 
-  Double_t correction = 0;
   Double_t temp_correction = 0;
   Double_t monitor_correction[fNMaxDet][fNMaxMon];
 
+  correction.resize(fNDetector);
   mod_tree->Branch("mps_counter", &mps_counter, "mps_counter/D"); 
   mod_tree->Branch("yield_qwk_charge", &yield_qwk_charge, "yield_qwk_charge/D"); 
   mod_tree->Branch("yield_bm_pattern_number", &yield_bm_pattern_number, "yield_bm_pattern_number/D"); 
   mod_tree->Branch("yield_ramp", &yield_ramp_hw_sum, "yield_ramp_hw_sum/D"); 
-  mod_tree->Branch("correction", &correction, "correction/D"); 
   mod_tree->Branch("ErrorFlag", &ErrorFlag, "ErrorFlag/D"); 
   mod_tree->Branch("yield_qwk_mdallbars_Device_Error_Code", &yield_qwk_mdallbars_Device_Error_Code, "yield_qwk_mdallbars_Device_Error_Code/D"); 
   mod_tree->Branch("yield_qwk_mdallbars", &yield_qwk_mdallbars_hw_sum, "yield_qwk_mdallbars/D"); 
   mod_tree->Branch("asym_qwk_charge", &asym_qwk_charge_hw_sum, "asym_qwk_charge/D"); 
 
   for(Int_t i = 0; i < fNDetector; i++){
+
+
     mod_tree->Branch(HDetectorList[i], &HDetBranch[i][0], Form("%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("corr_%s", HDetectorList[i].Data()), &YieldCorrection[i], Form("corr_%s/D", HDetectorList[i].Data())); 
     mod_tree->Branch(Form("%s_Device_Error_Code", HDetectorList[i].Data()), &HDetBranch[i][fDeviceErrorCode], 
 		     Form("%s_Device_Error_Code/D", HDetectorList[i].Data())); 
+    mod_tree->Branch(Form("correction_%s", DetectorList[i].Data()), &correction[i], Form("correction_%s/D", DetectorList[i].Data())); 
     std::cout << HDetectorList[i] << std::endl;
   }
   for(Int_t j = 0; j < fNMonitor; j++){
@@ -389,10 +391,10 @@ void QwModulation::ComputeYieldCorrections()
 //
 // 	correction = temp_correction/yield_qwk_mdallbars_hw_sum;
 
-   	correction = temp_correction;                                  
+   	correction[j] = temp_correction;                                  
 //   	correction = temp_correction + 0.0167297*asym_qwk_charge_hw_sum;
 
-	YieldCorrection[j] = HDetBranch[j][0] - correction;
+	YieldCorrection[j] = HDetBranch[j][0] - correction[j];
 // 	mod_tree->Fill();
 	temp_correction = 0;
       }
