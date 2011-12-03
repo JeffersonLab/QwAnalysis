@@ -278,7 +278,7 @@ class VQwSubsystem: virtual public VQwSubsystemCloneable, public MQwHistograms {
   virtual VQwSubsystem& operator=(VQwSubsystem *value);
 
 
-  virtual void PrintDetectorMaps(Bool_t status);
+  virtual void PrintDetectorMaps(Bool_t status) const;
 
  protected:
 

@@ -139,6 +139,7 @@ Int_t main(Int_t argc, Char_t* argv[])
       historootfile = new QwRootFile(eventbuffer.GetRunLabel() + ".histos");
 
       //  Construct a tree which contains map file names which are used to analyze data
+      detectors.PrintParamFileList();
       treerootfile->WriteParamFileList("mapfiles", detectors);
       burstrootfile->WriteParamFileList("mapfiles", detectors);
       historootfile->WriteParamFileList("mapfiles", detectors);

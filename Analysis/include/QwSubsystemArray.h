@@ -162,6 +162,10 @@ class QwSubsystemArray:  public std::vector<boost::shared_ptr<VQwSubsystem> > {
   /// \brief List the published values and description in this subsystem array
   void ListPublishedValues() const;
 
+  /// \brief Print list of parameter files
+  void PrintParamFileList() const;
+
+  /// \brief Get list of parameter files
   TList* GetParamFileNameList(TString name) const;
 
  private:

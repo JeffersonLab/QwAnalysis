@@ -742,6 +742,15 @@ VQwDataElement* QwSubsystemArray::ReturnInternalValueForFriends(const TString& n
 // };
 
 
+void QwSubsystemArray::PrintParamFileList() const
+{
+  if (not empty()) {
+    for (const_iterator subsys = begin(); subsys != end(); ++subsys)
+      {
+        (*subsys)->PrintDetectorMaps(true);
+      }
+  }
+}
 
 TList* QwSubsystemArray::GetParamFileNameList(TString name) const
 {
@@ -754,7 +763,6 @@ TList* QwSubsystemArray::GetParamFileNameList(TString name) const
 
     for (const_iterator subsys = begin(); subsys != end(); ++subsys) 
       {
-	(*subsys)->PrintDetectorMaps(true);
 	mapfiles_subsystem = (*subsys)->GetDetectorMaps();
 	for( std::map<TString, TString>::iterator ii= mapfiles_subsystem.begin(); ii!= mapfiles_subsystem.end(); ++ii)
 	  {	

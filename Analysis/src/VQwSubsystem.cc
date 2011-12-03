@@ -402,7 +402,7 @@ std::map<TString, TString> VQwSubsystem::GetDetectorMaps()
 
 
 
-void VQwSubsystem::PrintDetectorMaps(Bool_t status)
+void VQwSubsystem::PrintDetectorMaps(Bool_t status) const
 {
   Bool_t local_debug = false;
   if (status) {
@@ -414,7 +414,7 @@ void VQwSubsystem::PrintDetectorMaps(Bool_t status)
 
     if (total != 0) {
 
-      for (std::map<TString,TString>::iterator ii = fDetectorMaps.begin();
+      for (std::map<TString,TString>::const_iterator ii = fDetectorMaps.begin();
            ii != fDetectorMaps.end(); ++ii) {
 
         index++;
