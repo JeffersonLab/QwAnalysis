@@ -64,11 +64,21 @@ case "$host_name" in
 	    echo "Do it now!  Then run this script again."
 	    exit -1
 	else
-	    echo "Flipping the PC values..."
+	    echo "Check the IHWP state..."
 	fi
 	
 	IHWP_State="`caget -t IGL1I00DI24_24M`"
 #IHWP_State="IN"
+	echo -n "Did you notice the IHWP state has changed [y/n] "
+	read yesno2
+
+	if [ ${yesno2} = "n" ] ; then
+	    echo "Verify it now!  Then run this script again."
+	    exit -1
+	else
+	    echo "Flipping the PC values..."
+	fi
+	
 	echo "Setting Pockels Cell values "
 	
 	if [ "$IHWP_State" == "OUT " ];then
