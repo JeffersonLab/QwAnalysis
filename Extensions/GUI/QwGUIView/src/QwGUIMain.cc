@@ -1337,11 +1337,14 @@ void QwGUIMain::PlotMainData()
   TTree *HelTree = (TTree*)dROOTFile->ReadData("Hel_Tree");
   if(HelTree){
 
+    const char *general_cut = "ErrorFlag==0 && mps_counter<99000 && yield_ramp<0";
+    const char *det_cut = "Device_Error_Code==0";
+
     mc->cd(5);
     TH1F *DDiff12 = new TH1F("DDiff12","bcm 1 and 2 Double Difference",1001,-500,500);
     if(DDiff12){
       DDiff12->SetBit(TH1::kCanRebin);
-      HelTree->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6 >> DDiff12","","goff");
+      HelTree->Draw("(asym_qwk_bcm1-asym_qwk_bcm2)*1e6 >> DDiff12",Form("%s && asym_qwk_bcm1.%s && asym_qwk_bcm2.%s",general_cut,det_cut,det_cut),"goff");
       DDiff12->SetDirectory(0);
       DDiff12->GetXaxis()->SetTitle("bcm 1-2 DDiff [ppm]");
       DDiff12->GetXaxis()->SetRangeUser(DDiff12->GetMean()-5*DDiff12->GetRMS(), DDiff12->GetMean()+5*DDiff12->GetRMS());
@@ -1412,7 +1415,7 @@ void QwGUIMain::PlotMainData()
     TH1F *DDiff56 = new TH1F("DDiff56","bcm 5 and 6 Double Difference",1001,-500,500);
     if(DDiff56){
       DDiff56->SetBit(TH1::kCanRebin);
-      HelTree->Draw("(asym_qwk_bcm5-asym_qwk_bcm6)*1e6 >> DDiff56","","goff");
+      HelTree->Draw("(asym_qwk_bcm5-asym_qwk_bcm6)*1e6 >> DDiff56",Form("%s && asym_qwk_bcm5.%s && asym_qwk_bcm6.%s",general_cut,det_cut,det_cut),"goff");
       DDiff56->SetDirectory(0);
       DDiff56->GetXaxis()->SetTitle("bcm 5-6 DDiff [ppm]");
       DDiff56->GetXaxis()->SetRangeUser(DDiff56->GetMean()-5*DDiff56->GetRMS(), DDiff56->GetMean()+5*DDiff56->GetRMS());
@@ -1686,7 +1689,13 @@ void QwGUIMain::PlotMainData()
   dMainPlots = kTrue;
 
   HistoriesSubSystem->PlotData(dHistoryPlotsArray,dErrorBoxArray,GetCurrentRunNumber());
+
+  TString PWD = gSystem->pwd();
   
+  if(PWD.Contains("cdaq") && dClArgs.autoupdate == kTrue){
+    gSystem->CopyFile(Form("%s/Extensions/GUI/QwAutoGUIHistories.dat",gSystem->Getenv("QWANALYSIS")),
+		      Form("/u/home/mgericke/public_html/QwAutoGUIHistories-backup.dat"),kTrue);
+  }
 
   sprintf(dMiscbuffer,"Run %d.%03d: Energy=%1.3f GeV  Current=%d uA, Raster=%1.1fx%1.1f\n",
 	  GetCurrentRunNumber(),GetCurrentRunSegment(),
