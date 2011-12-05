@@ -114,6 +114,7 @@ void QwGUISummary::PlotMainData(){
 
   Int_t i;
   Int_t j;
+  Int_t EntryCounts=0;
 
   SetHistoDefaultMode();//bring the histo mode to accumulate mode
 
@@ -130,6 +131,7 @@ void QwGUISummary::PlotMainData(){
 	//!Check to see if the GUI is in "paused" mode
       if (GetHistoPause()==0){
 	//!If not "paused" grab the histograms from the map file
+	
 	for(i=0;i<N_CH;i++){
 	  sprintf (hname, "%s", fChannels[i]);
 	  histo[i]= (TH1F *)dMapFile->Get(hname);
@@ -161,10 +163,14 @@ void QwGUISummary::PlotMainData(){
 
 	for(j=0;j<N_CH_ERR;j++){
 	  mean = histo_err[j]->GetMean();
-	  *histo_err[j]=*histo_err[j]-*histo_err_buff[j];
+	  *histo_err[j]=*histo_err[j]-*histo_err_buff[j];	  
 	}
 	for(i=0;i<N_CH;i++)
 	  *histo[i]=*histo[i]-*histo_buff[i];
+
+	//I'm using the asym_charge channel to count entries
+	EntryCounts=histo[0]->GetEntries();
+	UpdateAutoHistoReset(EntryCounts);//this will compare histogram entries with current auto reset limit
 
       }
       
