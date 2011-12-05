@@ -78,9 +78,10 @@ void QwGUISummary::PlotMainData(){
 
   //stats
   gStyle->SetOptTitle(1);
-  gStyle->SetStatH(0.4);
-  gStyle->SetStatW(0.2);     
-  gStyle->SetOptStat(1110);
+  gStyle->SetStatH(0.3);
+  gStyle->SetStatW(0.3);     
+  //gStyle->SetOptStat(1110);//with no error on the mean
+  gStyle->SetOptStat("eMr");//with error on the mean
 
   // histo parameters
   gStyle->SetTitleYOffset(0.8);

@@ -110,7 +110,7 @@ QwGUIMain::QwGUIMain(const TGWindow *p, ClineArgs clargs, UInt_t w, UInt_t h)
   dMainButton[3] = new TGTextButton(dMainButtonsFrame, "Auto-Rest", M_AUTO_RESET);
   dMainButton[4] = new TGTextButton(dMainButtonsFrame, "Exit", M_EXIT);
 
-  dtxtEntries= new TGTextEntry(dMainButtonsFrame,"10000",TXT_ENTRIES);
+  dtxtEntries= new TGTextEntry(dMainButtonsFrame,"100000",TXT_ENTRIES);
 
 
   
