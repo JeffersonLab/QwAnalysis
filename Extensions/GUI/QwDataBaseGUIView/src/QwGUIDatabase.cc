@@ -199,13 +199,13 @@ const char *QwGUIDatabase::RegressionVarsOn_5_1[N_REG_VARS_ON_5_1]={
 };
 
 const char   *QwGUIDatabase::RegressionVarsOn_3[N_REG_VARS_ON_3]={
-  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_qwk_bpm3c12X", 
-  "wrt_asym_qwk_charge",
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_bpm3c12X", 
+  "wrt_asym_charge",
 };
 
 const char   *QwGUIDatabase::RegressionVarsOn_4[N_REG_VARS_ON_4]={
-  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_diff_qwk_bpm3c12X", 
-  "wrt_asym_qwk_bcm5",
+  "wrt_diff_targetX","wrt_diff_targetY","wrt_diff_targetXSlope","wrt_diff_targetYSlope","wrt_qwk_bpm3c12X", 
+  "wrt_asym_bcm5",
 };
 
 const char   *QwGUIDatabase::RegressionVarsOn_5[N_REG_VARS_ON_5]={
