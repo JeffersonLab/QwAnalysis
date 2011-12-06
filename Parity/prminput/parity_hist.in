@@ -356,14 +356,14 @@ yield_qwk_bpm.*Rel._hw		TH1F	1001	-5.0	5.0		RelPos(mm)	Entries
 yield_qwk_bpm.*Rel._dev_err	TH1F	101	-1.0	128          	ErrorCode	Events
 
 ###yield-BPM-effcharge########
-yield_qwk_bpm.*_EffectiveCharge_block.	TH1F	1001	-0.5	5.0e6		Eff-Chg		Entries
-yield_qwk_bpm.*_EffectiveCharge_hw	TH1F	1001	-0.5	5.0e6		Eff-Chg		Entries
+yield_qwk_bpm.*_EffectiveCharge_block.	TH1F	1001	-5e4	3.0e5		Eff-Chg		Entries
+yield_qwk_bpm.*_EffectiveCharge_hw	TH1F	1001	-5e4	3.0e5		Eff-Chg		Entries
 yield_qwk_bpm.*_EffectiveCharge_dev_err	TH1F	101	-1.0	128          	ErrorCode	Events
 
 ###Combo-BPM#############
-yield_qwk_target_EffectiveCharge_block.		TH1F	1001	-0.5	5.0e6		Eff-Chg		Entries
-yield_qwk_target_EffectiveCharge_hw		TH1F	1001	-0.5	5.0e6		Eff-Chg		Entries
-yield_qwk_target_EffectiveCharge_dev_err	TH1F	101	-1.0	128          	ErrorCode	Events
+yield_qwk_target_EffectiveCharge_block.		TH1F	1001	-5e4	3.0e5	Eff-Chg		Entries
+yield_qwk_target_EffectiveCharge_hw		TH1F	1001	-5e4	3.0e5	Eff-Chg		Entries
+yield_qwk_target_EffectiveCharge_dev_err	TH1F	101	-1.0	128    	ErrorCode	Events
 
 
 ###HEL-BPM-yield########
@@ -423,11 +423,15 @@ qwk_bpm.*Rel._dev_err		TH1F	101	-1.0	128          	ErrorCode	Events
 
 
 ###MPS-yield-BPM-effcharge########
-qwk_bpm.*_EffectiveCharge_block.	TH1F	1001	-0.5	5.0e6		Eff-Chg		Entries
-qwk_bpm.*_EffectiveCharge_hw		TH1F	1001	-0.5	5.0e6		Eff-Chg		Entries
+qwk_bpm.*_EffectiveCharge_block.	TH1F	1001	-5e4	3.0e5		Eff-Chg		Entries
+qwk_bpm.*_EffectiveCharge_hw		TH1F	1001	-5e4	3.0e5		Eff-Chg		Entries
 qwk_bpm.*_EffectiveCharge_dev_err	TH1F	101	-1.0	128          	ErrorCode	Events
 
 
+###MPS-yield-Combo-BPM#############
+qwk_target_EffectiveCharge_block.	TH1F	1001	-5e4	3.0e5	Eff-Chg		Entries
+qwk_target_EffectiveCharge_hw		TH1F	1001	-5e4	3.0e5	Eff-Chg		Entries
+qwk_target_EffectiveCharge_dev_err	TH1F	101	-1.0	128    	ErrorCode	Events
 
 
 
