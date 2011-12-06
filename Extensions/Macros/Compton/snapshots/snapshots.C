@@ -32,6 +32,8 @@
 #include "plotting.C"
 #include "stepthru_mps.C"
 
+#include "compton_config.h"
+
 
 #include "QwSIS3320_Samples.h"
 
@@ -106,7 +108,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 	Double_t integmin = 0.0, integmax = 0.0;
 
  	// **** read parameter file
-	int i_run, i_lowint, i_upint;
+	int i_run = -1, i_lowint = -1, i_upint = -1;
 	char params[255][15];
 	TString infiledir = TString(getenv("QWANALYSIS")) + "/Extensions/Macros/Compton/snapshots/";
 	TString infilename = infiledir + "paramfile.ini";
@@ -813,9 +815,9 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 
 	TString outtextfilename_ped;
 	TString outtextfilename_width;
-	TString rundir = TString(getenv("QWSCRATCH")) + Form("/www/run_%i/",runnumber);
-	gSystem->mkdir(rundir.Data(),kTRUE);
-	outtextfilename_ped = rundir + "pedestalfit.txt";
+  TString webdir = kWebDirectory+ Form("/run_%i/",runnumber);
+	gSystem->mkdir(webdir.Data(),kTRUE);
+	outtextfilename_ped = webdir + "pedestalfit.txt";
 	gROOT->SetStyle("Plain");
 	gStyle->SetOptStat(0);
 	gStyle->SetOptFit(1);
@@ -944,7 +946,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 				//graph1->SetTitleSize(0.07);
 			}
 		}
-		waveforms_laserON->Print(rundir + "waveforms_laserON.png");
+		waveforms_laserON->Print(webdir + "waveforms_laserON.png");
 	}
 
 	TCanvas *waveforms_laserOFF;
@@ -971,7 +973,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 				padp->SetMargin(0.15,0.02,0.1,0.1);
 			}
 		}
-		waveforms_laserOFF->Print(rundir + "waveforms_laserOFF.png");
+		waveforms_laserOFF->Print(webdir + "waveforms_laserOFF.png");
 	}
 
 	TCanvas *waveforms_beamOFF;
@@ -997,7 +999,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 				padp->SetMargin(0.15,0.02,0.1,0.1);
 			}
 		}
-		waveforms_beamOFF->Print(rundir + "waveforms_beamOFF.png");
+		waveforms_beamOFF->Print(webdir + "waveforms_beamOFF.png");
 	}
 
 
@@ -1023,7 +1025,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 		snaphist->DrawCopy();
 		//cerr << "time 3\n" << endl;
 		gPad->SetMargin(0.06,0.02,0.1,0.1);
-		mps->Print(rundir + "mps_summary.png");
+		mps->Print(webdir + "mps_summary.png");
 	}
 
 	TCanvas *samples_correl;
@@ -1049,19 +1051,19 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 		c_samples_correl->cd(6);
 		drawALLtypeTH1(samp_pedprepeakave,1,"",1);
 		c_samples_correl->cd(7);
-		outtextfilename_width = rundir + "width_pairdiff.txt";
+		outtextfilename_width = webdir + "width_pairdiff.txt";
 		drawALLtypeTH1(accum0_diff_pair,1,"",1,outtextfilename_width.Data());
 		c_samples_correl->cd(8);
-		outtextfilename_width = rundir + "width_quaddiff.txt";
+		outtextfilename_width = webdir + "width_quaddiff.txt";
 		drawALLtypeTH1(accum0_diff_quad,1,"",1,outtextfilename_width.Data());
 		c_samples_correl->cd(9);
-		outtextfilename_width = rundir + "width_32diff.txt";
+		outtextfilename_width = webdir + "width_32diff.txt";
 		drawALLtypeTH1(accum0_diff_32,1,"",1,outtextfilename_width.Data());
 		//drawALLtypeTH1(accum0_asym_32);
 		//draw3TH1gen(samp_bcm6,samp_bcm1,samp_bcm2,1,"bcm 6","bcm 1","bcm 2",kRed,kGreen,kBlue,"bcms");
 		//drawALLtypeTH1(accum0,1,"",1);
 		//drawscalesub1D(samp_laserOFF_max, samp_laserON_max, 160, 280, 0);
-		samples_correl->Print(rundir + "samples_correl.png");
+		samples_correl->Print(webdir + "samples_correl.png");
 	}
 
 	TCanvas *samples_pedestal;
@@ -1111,7 +1113,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 		c_samples_pedestal->cd(16);
 		draw1typeTH2(samp_pedVSpedpp,4,0,"laser flash");
 
-		samples_pedestal->Print(rundir + "samples_ped.png");
+		samples_pedestal->Print(webdir + "samples_ped.png");
 	}
 
 	TCanvas *samples_pedcorr;
@@ -1140,7 +1142,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 		projectALLtypeTH1(samp_pedVSyield);
  		c_samples_pedcorr->cd(8);
 		projectALLtypeTH1andfit(samp_pedVSyield,1,"",0,10,outtextfilename_ped.Data());  //rebin here
-		samples_pedcorr->Print(rundir + "samples_pedcorr.png");
+		samples_pedcorr->Print(webdir + "samples_pedcorr.png");
 	}
 
 	// ******************
@@ -1297,7 +1299,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 //     samp_laserON_hel0_pedcorr_subintproj->Rebin(10);
 //     samp_laserON_hel0_pedcorr_subintproj->Draw();
 //     //    samp_laserON_hel1_pedcorr_subintproj-
-			samples->Print(rundir + "samples_summary.png");
+			samples->Print(webdir + "samples_summary.png");
 		}
 	}
 
@@ -1374,7 +1376,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 		asym_bksub->SetLineColor(kRed);
  		asym_bksub->Draw();
 
-		samples_asymmetry->Print(rundir + "samples_asymmetry.png");
+		samples_asymmetry->Print(webdir + "samples_asymmetry.png");
 	}
 
 

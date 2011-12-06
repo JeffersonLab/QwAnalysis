@@ -117,7 +117,7 @@ void stepthru_mps(Int_t runnumber = 0, Int_t maxevents = 0)
 
 	//Int_t lowint, highint;
  	// **** read parameter file
-	int i_run, i_lowint, i_upint;
+	int i_run = -1, i_lowint = -1, i_upint = -1;
 	size_t found;
 	Int_t linecounter = 0, tokcounter;
 	char linechar[255], params[255][10], *token;
@@ -764,7 +764,8 @@ void stepthru_mps(Int_t runnumber = 0, Int_t maxevents = 0)
 	fprintf(outfile," Analysis at took %8.2f s \t(%8.2f s of cpu), %i entries, done on %s",
 			realtime,cputime,nentries,ctime(&rawtime));
 	fclose(outfile);
-	system(Form("cat %s",textfilename));
+  Int_t systemReturnValue = 0;
+	systemReturnValue = system(Form("cat %s",textfilename));
 	
 	sprintf(textfilename,"www/run_%i/stepthru_mps.log", runnumber);
 	printf("Writing log to %s\n",textfilename);
@@ -780,7 +781,7 @@ void stepthru_mps(Int_t runnumber = 0, Int_t maxevents = 0)
 	fprintf(outfile," Bad BCM:                %8i     \n", num_badbcm);
 	fprintf(outfile," Bad Max position:       %8i     \n", num_badmaxpos);
 	fclose(outfile);
-	system(Form("cat %s",textfilename));
+	systemReturnValue = system(Form("cat %s",textfilename));
 	
 }
 
