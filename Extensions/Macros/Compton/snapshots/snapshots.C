@@ -78,14 +78,17 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 	// **********
 	// **** Set constants required for histograms
 	Int_t bcm_nbins = 180;
-	Double_t bcm_axismin = 0;
-	Double_t bcm_axismax = 180;
+	Float_t bcm_axismin = 0.0;
+	Float_t bcm_axismax = 180.0;
+	Int_t laser_nbins = 100;
+	Float_t laser_axismin = 0.0;
+	Float_t laser_axismax = 200000.0;
 	Int_t type_nbins = 4;
 	Float_t type_axismin = 0;
 	Float_t type_axismax = 4;
 	Int_t diff_nbins = 1000;
-	Double_t diff_axismin = -4000000;
-	Double_t diff_axismax = 4000000;
+	Float_t diff_axismin = -4000000;
+	Float_t diff_axismax = 4000000;
 
 	Int_t sampxpos_nbins = 256;
 	Double_t sampxpos_axismin = 0;
@@ -169,12 +172,13 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 
 
 	// **** Determine the max and min for filling various quantities
-	Mps_Chain->Draw("sca_laser_PowT.hw_sum>>laserpowinit(300)","Entry$>2100","goff");
+	Mps_Chain->Draw(Form("sca_laser_PowT.value>>laserpowinit(300,%f,%f)",laser_axismin,laser_axismax),"Entry$>2100","goff");
 	TH1F *laserpowinit = (TH1F*)gDirectory->Get("laserpowinit");
 	laserpowinit->SetDirectory(rootoutfile);
 	Int_t nbins = laserpowinit->GetNbinsX();
 	Float_t laserpowmax = laserpowinit->GetXaxis()->GetBinUpEdge(nbins);
 	Float_t laseroncut = 0.7*laserpowmax;
+	Float_t laseroffcut = 0.1*laserpowmax;
 	printf("max of sca_laser_PowT is %.1f, using %.1f as the cut position\n",laserpowmax,laseroncut);
 
 	Mps_Chain->Draw("fadc_compton_accum0.hw_sum>>accum0init(300)","Entry$>2100","goff");
@@ -198,10 +202,11 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 	printf("integral histo vals:\t(%4i,%9.3g,%9.3g)\n", integnbins,integmin,integmax);
 	printf("yield histo vals:   \t(%4i,%9.3g,%9.3g)\n", yieldnbins,yield_axismin,yield_axismax);
 	printf("time histo vals:    \t(%4i,%9.3g,%9.3g)\n", timebins,starttime,endtime);
+	printf("bcm histo vals:     \t(%4i,%9.3g,%9.3g)\n", bcm_nbins,bcm_axismin,bcm_axismax);
 
 	Mps_Chain->SetBranchStatus("*", 0);
 	Mps_Chain->SetBranchStatus("fadc_compton_samples*", 1);
-	Mps_Chain->SetBranchStatus("sca_laser_PowT", 1);
+	Mps_Chain->SetBranchStatus("sca_laser_PowT*", 1);
 	Mps_Chain->SetBranchStatus("fadc_compton_accum0*", 1);
 	Mps_Chain->SetBranchStatus("sca_bcm*", 1);
 	Mps_Chain->SetBranchStatus("actual_helicity*", 1);
@@ -212,9 +217,9 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 // 		Mps_Chain->SetBranchStatus(Form("p3s%iRawAc",stripnum), 1);
 // 	}
 
-	Double_t bcm1, bcm2, bcm6;
+	Double_t bcm1[3], bcm2[3], bcm6[3];
 	std::vector<QwSIS3320_Samples>* sampled_events = 0;
-	Double_t sca_laser_PowT;
+	Double_t sca_laser_PowT[3];
 	Double_t fadc_compton_accum0[2];
 	Double_t actual_helicity;
 // 	Double_t plane1[numstrips];
@@ -252,7 +257,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 
 	TH3F *lasertime = new TH3F("lasertime","Laser Power vs time;time  (seconds)",
 				timebins, starttime, endtime,
-				300, 0, 300,
+				laser_nbins, laser_axismin, laser_axismax,
 				type_nbins, type_axismin, type_axismax);
 	lasertime->SetDirectory(rootoutfile);
 
@@ -459,7 +464,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 	for (Int_t jentry=offsetentry+1; jentry<nentries; jentry++) {
 		//	printf("%i\n",jentry);
 		Mps_Chain->GetEntry(jentry);
-		if (bcm1==0) { // Must have a good BCM value to be useful 
+		if (bcm1[0]==0) { // Must have a good BCM value to be useful 
 			num_badbcm++;
 		} else  {
 			if (jentry==1) {
@@ -470,9 +475,9 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 			eventtime = jentry/960.;
 			// **********
 			// **** Set the switches for the event
-			laseron = sca_laser_PowT>laseroncut;
-			laseroff = sca_laser_PowT<10;
-			beamon = bcm6 > currentCut;
+			laseron = sca_laser_PowT[0] > laseroncut;
+			laseroff = sca_laser_PowT[0] < laseroffcut;
+			beamon = bcm6[0] > currentCut;
 			printsample = 0;
 			screwedup = 0;
 			drawsnapshot = 0;
@@ -518,8 +523,8 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 					}
 				}
 			}    
-			lasertime->Fill(eventtime,sca_laser_PowT,type);
-			bcmtime->Fill(eventtime,bcm1,type);
+			lasertime->Fill(eventtime,sca_laser_PowT[0],type);
+			bcmtime->Fill(eventtime,bcm1[0],type);
 			accum0time->Fill(eventtime,fadc_compton_accum0[0],type);
 			accum0->Fill(fadc_compton_accum0[0],type);
 			// ****************
@@ -617,7 +622,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 				if (jentry%10000 == 0) printsample=1;
 				if (printsample) {
 					printf("%8i %3i%% %3.0f %6.1f  %i,%i,%i,%i %10.2f %8i %8.0f %i %8.0f %10.2f %10.4g %s\n",
-						   jentry, 100*jentry/nentries, sca_laser_PowT, bcm1, laseron, laseroff, beamon, type,
+						   jentry, 100*jentry/nentries, sca_laser_PowT[0], bcm1[0], laseron, laseroff, beamon, type,
 						   samp_max_val, samp_maxpos_val, samp_min_val, samp_minpos_val, samp_pedave_val, samp_integral_val, 
 						   fadc_compton_accum0[0], mytext.c_str());
 					//       printf("%8i %3i%%\n",
@@ -696,22 +701,22 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 						//samp_peakintegral->Fill(samp_peakintegral_val,type);
 						samp_subintegral->Fill(samp_peakintegral_val,type);
 						samp_yieldVSsubint->Fill(samp_peakintegral_val,fadc_compton_accum0[0],type);
-						samp_bcm1->Fill(bcm1);
-						samp_bcm2->Fill(bcm2);
-						samp_bcm6->Fill(bcm6); 
+						samp_bcm1->Fill(bcm1[0]);
+						samp_bcm2->Fill(bcm2[0]);
+						samp_bcm6->Fill(bcm6[0]); 
 						if (actual_helicity==0) {
 							samp_max_hel0->Fill(samp_max_val,type);
 							samp_yieldVSsubint_hel0->Fill(samp_integral_val,fadc_compton_accum0[0]);
-							samp_bcm1_hel0->Fill(bcm1);
-							samp_bcm2_hel0->Fill(bcm2);
-							samp_bcm6_hel0->Fill(bcm6); 
+							samp_bcm1_hel0->Fill(bcm1[0]);
+							samp_bcm2_hel0->Fill(bcm2[0]);
+							samp_bcm6_hel0->Fill(bcm6[0]); 
 						} else {
 							if (actual_helicity==1) {
 								samp_max_hel1->Fill(samp_max_val,type);
 								samp_yieldVSsubint_hel1->Fill(samp_integral_val,fadc_compton_accum0[0]);
-								samp_bcm1_hel1->Fill(bcm1); 
-								samp_bcm2_hel1->Fill(bcm2); 
-								samp_bcm6_hel1->Fill(bcm6);
+								samp_bcm1_hel1->Fill(bcm1[0]);
+								samp_bcm2_hel1->Fill(bcm2[0]);
+								samp_bcm6_hel1->Fill(bcm6[0]);
 							}
 						}
 						samp_pedVSyield->Fill(fadc_compton_accum0[0],minped,type);
@@ -928,10 +933,7 @@ void snapshots(Int_t runnumber = 0, Int_t maxevents = 0)
 		c_waveforms_laserON->Divide(5,4,0.001,0.001);
 		for (Int_t i=1; i<=20; i++) {
 			padp = c_waveforms_laserON->cd(i);
-			TGraph *graph1;
-//			graph1 = 
-			gDirectory->GetObject(Form("laserON%02i",i-1),graph1);
-			//cout << graph1 << endl;
+			TGraph *graph1 = (TGraph*) gDirectory->Get(Form("laserON%02i",i-1));
 			if (graph1) {
 				graph1->Draw("al");
 				padp->SetMargin(0.15,0.02,0.1,0.1);
