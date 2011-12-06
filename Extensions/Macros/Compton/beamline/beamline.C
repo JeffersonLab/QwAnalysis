@@ -56,10 +56,10 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   p02AY->SetFillStyle(4000);
   TGaxis *a02A;
 
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3p02aX");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p02aX");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3p02aY");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p02aY");
+  minBPMX = mpsChain->GetMinimum("sca_bpm_3p02aX/value");
+  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p02aX/value");
+  minBPMY = mpsChain->GetMinimum("sca_bpm_3p02aY/value");
+  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p02aY/value");
 
   ExpandBPMRange(&minBPMX,&maxBPMX);
   ExpandBPMRange(&minBPMY,&maxBPMY);
@@ -108,10 +108,10 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   p02BY->SetFillStyle(4000);
   TGaxis *a02b;
 
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3p02bX");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p02bX");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3p02bY");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p02bY");
+  minBPMX = mpsChain->GetMinimum("sca_bpm_3p02bX/value");
+  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p02bX/value");
+  minBPMY = mpsChain->GetMinimum("sca_bpm_3p02bY/value");
+  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p02bY/value");
 
   ExpandBPMRange(&minBPMX,&maxBPMX);
   ExpandBPMRange(&minBPMY,&maxBPMY);
@@ -162,10 +162,10 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   p03AY->SetFillStyle(4000);
   TGaxis *a03a;
 
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3p03aX");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p03aX");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3p03aY");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p03aY");
+  minBPMX = mpsChain->GetMinimum("sca_bpm_3p03aX/value");
+  maxBPMX = mpsChain->GetMaximum("sca_bpm_3p03aX/value");
+  minBPMY = mpsChain->GetMinimum("sca_bpm_3p03aY/value");
+  maxBPMY = mpsChain->GetMaximum("sca_bpm_3p03aY/value");
 
   ExpandBPMRange(&minBPMX,&maxBPMX);
   ExpandBPMRange(&minBPMY,&maxBPMY);
@@ -216,10 +216,10 @@ Int_t beamline(Int_t runnum, Bool_t isFirst100k = kFALSE, Bool_t deleteOnExit = 
   p020Y->SetFillStyle(4000);
   TGaxis *a020;
 
-  minBPMX = mpsChain->GetMinimum("sca_bpm_3c20X");
-  maxBPMX = mpsChain->GetMaximum("sca_bpm_3c20X");
-  minBPMY = mpsChain->GetMinimum("sca_bpm_3c20Y");
-  maxBPMY = mpsChain->GetMaximum("sca_bpm_3c20Y");
+  minBPMX = mpsChain->GetMinimum("sca_bpm_3c20X/value");
+  maxBPMX = mpsChain->GetMaximum("sca_bpm_3c20X/value");
+  minBPMY = mpsChain->GetMinimum("sca_bpm_3c20Y/value");
+  maxBPMY = mpsChain->GetMaximum("sca_bpm_3c20Y/value");
 
   ExpandBPMRange(&minBPMX,&maxBPMX);
   ExpandBPMRange(&minBPMY,&maxBPMY);
