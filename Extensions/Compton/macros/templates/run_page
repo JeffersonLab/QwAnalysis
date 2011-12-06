@@ -53,13 +53,12 @@
 	<td></td><td></td>
 	<td></td><td></td>
 </tr>
-<!--
+
 <tr>
-	<td><a href="#electron">Electron Analysis</a></td>
+	<td><a href="#beamline">Beamline</a></td>
 	<td></td><td></td>
 	<td></td><td></td>
 </tr>
--->
 </table>
 
 <a name="accum0"></a>
@@ -202,6 +201,12 @@
 </tr>
 </center>
 </table>
+
+
+<a name="beamline"></a>
+<center><h2>BeamLine</h2></center>
+<p><center><img src="beamline_plots.png"></center></p>
+
 
 <!--
 	
