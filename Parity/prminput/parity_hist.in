@@ -75,51 +75,51 @@ qwk_mdoddbars_block.		TH1F	10000	-0.08	0.08				V/#muA	Events
 qwk_mdoddbars_block._raw	TH1F	10000	-6.1e7	6.1e7				Samples	Events
 
 
-asym_qwk_md...._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
-asym_qwk_md...._block.		TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_md...._hw		TH1F	1001	0	0				Asymmetry	Events
+asym_qwk_md...._block.		TH1F	1001	0	0				Asymmetry	Events
 
-asym_qwk_md......._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
-asym_qwk_md......._block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_md......._hw		TH1F	1001	0	0				Asymmetry	Events
+asym_qwk_md......._block.	TH1F	1001	0	0				Asymmetry	Events
 
-asym_qwk_md._qwk_md._hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
-asym_qwk_md._qwk_md._block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_md._qwk_md._hw		TH1F	1001	0	0				Asymmetry	Events
+asym_qwk_md._qwk_md._block.	TH1F	1001	0	0				Asymmetry	Events
 
-asym_qwk_mdallbars_hw		TH1F	1000	-0.01	0.01				Asymmetry	Events
-asym_qwk_mdallbars_block.	TH1F	1000	-0.01	0.01				Asymmetry	Events
+asym_qwk_mdallbars_hw		TH1F	1001	0	0				Asymmetry	Events
+asym_qwk_mdallbars_block.	TH1F	1001	0	0				Asymmetry	Events
 
-asym_qwk_mdevenbars_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
-asym_qwk_mdevenbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
-											                      
-asym_qwk_mdoddbars_hw		TH1F	1000	-0.01	0.01				Asymmetry       Events
-asym_qwk_mdoddbars_block.	TH1F	1000	-0.01	0.01				Asymmetry       Events
+asym_qwk_mdevenbars_hw		TH1F	1001	0	0				Asymmetry       Events
+asym_qwk_mdevenbars_block.	TH1F	1001	0	0				Asymmetry       Events
+						 	 				                      
+asym_qwk_mdoddbars_hw		TH1F	1001	0	0				Asymmetry       Events
+asym_qwk_mdoddbars_block.	TH1F	1001	0	0				Asymmetry       Events
 
 
 ###  Auxilliary/Background detector
-qwk_pmtled_hw                   TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_pmtled_block.               TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_pmtonl_hw                   TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_pmtonl_block.               TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_pmtltg_hw                   TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_pmtltg_block.               TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_isourc_hw                   TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_isourc_block.               TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_preamp_hw                   TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_preamp_block.               TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_cagesr_hw                   TH1F	10000	-0.08	0.08				V/#muA	Events
-qwk_cagesr_block.               TH1F	10000	-0.08	0.08				V/#muA	Events
+qwk_pmtled_hw                   TH1F	1001	0 0				V/#muA	Events
+qwk_pmtled_block.               TH1F	1001	0 0				V/#muA	Events
+qwk_pmtonl_hw                   TH1F	1001	0 0				V/#muA	Events
+qwk_pmtonl_block.               TH1F	1001	0 0				V/#muA	Events
+qwk_pmtltg_hw                   TH1F	1001	0 0				V/#muA	Events
+qwk_pmtltg_block.               TH1F	1001	0 0				V/#muA	Events
+qwk_isourc_hw                   TH1F	1001	0 0				V/#muA	Events
+qwk_isourc_block.               TH1F	1001	0 0				V/#muA	Events
+qwk_preamp_hw                   TH1F	1001	0 0				V/#muA	Events
+qwk_preamp_block.               TH1F	1001	0 0				V/#muA	Events
+qwk_cagesr_hw                   TH1F	1001	0 0				V/#muA	Events
+qwk_cagesr_block.               TH1F	1001	0 0				V/#muA	Events
 
-asym_pmtled_hw                  TH1F    1000   0   0				Asymmetry       Events
-asym_pmtled_block.              TH1F    1000   0   0				Asymmetry       Events
-asym_pmtonl_hw                  TH1F    1000   0   0				Asymmetry       Events
-asym_pmtonl_block.              TH1F    1000   0   0				Asymmetry       Events
-asym_pmtltg_hw                  TH1F    1000   0   0				Asymmetry       Events
-asym_pmtltg_block.              TH1F    1000   0   0				Asymmetry       Events
-asym_isourc_hw                  TH1F    1000   0   0				Asymmetry       Events
-asym_isourc_block.              TH1F    1000   0   0				Asymmetry       Events
-asym_preamp_hw                  TH1F    1000   0   0				Asymmetry       Events
-asym_preamp_block.              TH1F    1000   0   0				Asymmetry       Events
-asym_cagesr_hw                  TH1F    1000   0   0				Asymmetry       Events
-asym_cagesr_block.              TH1F    1000   0   0				Asymmetry       Events
+asym_qwk_pmtled_hw              TH1F    1001   0 0	        	Asymmetry Events
+asym_qwk_pmtled_block.          TH1F    1001   0 0   			Asymmetry Events
+asym_qwk_pmtonl_hw              TH1F    1001   0 0   			Asymmetry Events
+asym_qwk_pmtonl_block.          TH1F    1001   0 0   			Asymmetry Events
+asym_qwk_pmtltg_hw              TH1F    1001   0 0   			Asymmetry Events
+asym_qwk_pmtltg_block.          TH1F    1001   0 0   			Asymmetry Events
+asym_qwk_isourc_hw              TH1F    1001   0 0   			Asymmetry Events
+asym_qwk_isourc_block.          TH1F    1001   0 0   			Asymmetry Events
+asym_qwk_preamp_hw              TH1F    1001   0 0   			Asymmetry Events
+asym_qwk_preamp_block.          TH1F    1001   0 0   			Asymmetry Events
+asym_qwk_cagesr_hw              TH1F    1001   0 0   			Asymmetry Events
+asym qwk_cagesr_block.          TH1F    1001   0 0   			Asymmetry Events
 
 ###  New Lumi histograms 
 
