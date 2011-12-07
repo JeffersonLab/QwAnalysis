@@ -356,8 +356,8 @@ yield_qwk_bpm.*Rel._hw		TH1F	1001	-5.0	5.0		RelPos(mm)	Entries
 yield_qwk_bpm.*Rel._dev_err	TH1F	101	-1.0	128          	ErrorCode	Events
 
 ###yield-BPM-effcharge########
-yield_qwk_bpm.*_EffectiveCharge_block.	TH1F	1001	-5e4	3.0e5		Eff-Chg		Entries
-yield_qwk_bpm.*_EffectiveCharge_hw	TH1F	1001	-5e4	3.0e5		Eff-Chg		Entries
+yield_qwk_bpm.*_EffectiveCharge_block.	TH1F	10001	-5e4	3.0e5		Eff-Chg		Entries
+yield_qwk_bpm.*_EffectiveCharge_hw	TH1F	10001	-5e4	3.0e5		Eff-Chg		Entries
 yield_qwk_bpm.*_EffectiveCharge_dev_err	TH1F	101	-1.0	128          	ErrorCode	Events
 
 ###Combo-BPM#############
