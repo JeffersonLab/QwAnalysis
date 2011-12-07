@@ -10,7 +10,7 @@
 # x_position_difference	0	50	(nm)    
 yield_qwk_bpm3c12X			1.21314 	0.023691	(mm)
 yield_qwk_bpm3c12Y			0.83325 	0.00754651	(mm)
-yield_qwk_bpm3c12_EffectiveCharge 	137294 		310.041		(std)
+yield_qwk_bpm3c12_EffectiveCharge 	138700 		500		(std)
 
 yield_qwk_target_EffectiveCharge	122148		274.578		(std)	
 yield_qwk_targetXSlope 			-2.98362e-04 	1.2145e-06	(rad)
