@@ -18,4 +18,11 @@ echo "###        '--rootfile-output mss:/mss/hallc/qweak/rootfiles/pass3'"
 echo "### "
 
 
-$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run2pass1.sh --rootfile-stem QwPass1_ --rootfile-output file:/volatile/hallc/qweak/QwAnalysis/run2/rootfiles --options "--config official_run2pass1.conf" $@
+# --post-run $QWANALYSIS/Extensions/Macros/Parity/beamModulation/bmod_optics  \
+# --post-run /home/pking/Qweak/data_tracker/autoanalyzer/prompt_summary.sh \
+
+$QWANALYSIS/Extensions/Auger/batchman/qwbatchsub.pl \
+    --post-runlet $QWANALYSIS/Extensions/Auger/batchman/regression_run2pass1.sh \
+    --rootfile-stem QwPass1_ \
+    --rootfile-output file:/volatile/hallc/qweak/QwAnalysis/run2/rootfiles \
+    --options "--config official_run2pass1.conf" $@

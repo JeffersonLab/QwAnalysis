@@ -15,12 +15,12 @@ fi
 linRegBluePath=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/linRegBlue_v5
 outputPath=/volatile/hallc/qweak/QwAnalysis/run1/pass4regression
 rootFileStem=QwPass4_
-dbName=qw_test_20111110
+dbName=qw_run1_pass4
 
 ln -s $QW_ROOTFILES/$rootFileStem$run.$seg.trees.root $QW_ROOTFILES/temp_$run.$seg.root 
 
 for setName in "std" "5+1" "set3" "set4" "set5" "set6"
 do
-  echo $linRegBluePath/doubleRegPass_multipass.sh $run $seg $outputPath/$setName $WORKDIR temp_ $dbName $setName
-  $linRegBluePath/doubleRegPass_multipass.sh $run $seg $outputPath/$setName $WORKDIR temp_ $dbName $setName
+  echo $linRegBluePath/doubleRegPass_run1pass4.sh $run $seg $outputPath/$setName $WORKDIR temp_ $dbName $setName
+  $linRegBluePath/doubleRegPass_run1pass4.sh $run $seg $outputPath/$setName $WORKDIR temp_ $dbName $setName
 done

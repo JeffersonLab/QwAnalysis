@@ -15,7 +15,7 @@ fi
 linRegBluePath=/group/qweak/QwAnalysis/Linux_CentOS5.3-x86_64/linRegBlue_v5
 outputPath=/volatile/hallc/qweak/QwAnalysis/run2/pass1regression
 rootFileStem=QwPass1_
-dbName=qw_test_20111110
+dbName=qw_run2_pass1
 
 ln -s $QW_ROOTFILES/$rootFileStem$run.$seg.trees.root $QW_ROOTFILES/temp_$run.$seg.root 
 

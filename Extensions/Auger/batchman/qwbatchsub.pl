@@ -59,8 +59,9 @@ use vars qw($original_cwd $executable $script_dir $BaseMSSDir
 	    %good_segs $first_seg $last_seg
 	    @good_runs $goodrunfile 
 	    $runnumber $input_file @input_files $command_file
-	    $RunPostProcess $RunletPostProcess
+	    @RunPostProcess @RunletPostProcess
 	    $SpacePerInputfile $ReserveSpace $MaxSpacePerJob
+	    $SkipCheckingPaths
 	    $InputfilesPerJob
 	    );
 
@@ -119,15 +120,16 @@ my $ret = GetOptions("help|usage|h"       => \$opt_h,
 		     "cacheoptions|C=s"   => \$CacheOptionList,
 		     "rootfile-stem|R=s"  => \$RootfileStem,
 		     "rootfile-output=s"  => \$OutputPath,
-		     "post-run=s"         => \$RunPostProcess,
-		     "post-runlet=s"      => \$RunletPostProcess,
+		     "post-run=s"         => \@RunPostProcess,
+		     "post-runlet=s"      => \@RunletPostProcess,
 		     #  The next three options are "hidden" in the
 		     #  sense that we deliberately do not include
 		     #  them in the usage.
 		     #  They are expert level options only.
 		     "job-maxspace=i"     => \$MaxSpacePerJob,
 		     "job-reservespace=i" => \$ReserveSpace,
-		     "job-spaceperfile=i" => \$SpacePerInputfile
+		     "job-spaceperfile=i" => \$SpacePerInputfile,
+		     "skip-checking-paths" => \$SkipCheckingPaths
 		     );
 #  Deal with some fatal errors while handling the options.
 die("Invalid commandline options.  Exiting") if (!$ret);
@@ -191,7 +193,7 @@ if ($OutputPath =~ /none/i || $OutputPath =~ /null/i){
     } elsif ($protocol eq "file" ){
 	#  TODO:  Make sure the path is on the work disk...
     }
-    if (! -d $path){
+    if (!$SkipCheckingPaths && ! -d $path){
 	die("Nonexistent path in OutputPath: $OutputPath.  Exiting");
     }
     $OutputPath = $path;
@@ -669,10 +671,12 @@ sub create_xml_jobfile($$$@) {
 	"  setenv QWANALYSIS $analysis_directory\n",
 	"  echo \"QWSCRATCH:    \" \$QWSCRATCH\n",
 	"  echo \"QWANALYSIS:   \" \$QWANALYSIS\n",
-	"  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n",
-	"  echo $script_dir/update_cache_links.pl $CacheOptionList\n",
-	"  $script_dir/update_cache_links.pl $CacheOptionList\n";
-    $CacheOptionList =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
+	"  source \$QWANALYSIS/SetupFiles/SET_ME_UP.csh\n";
+    if ("$CacheOptionList" ne ""){
+	$CacheOptionList =~ s/-S +[\/a-zA-Z]+/-S \$WORKDIR/;
+    } else {
+	$CacheOptionList = "-S \$WORKDIR";
+    }
     print JOBFILE
 	"  setenv QW_DATA      \$WORKDIR\n",
 	"  setenv QW_ROOTFILES \$WORKDIR\n",
@@ -686,23 +690,29 @@ sub create_xml_jobfile($$$@) {
 	"  echo \"Started at `date`\"\n",
 	"  echo $executable -r $runnumber $optionlist\n",
 	"  $executable -r $runnumber $optionlist\n",
+	"  chmod g+w \$QW_ROOTFILES/*.root\n",
 	"  ls -al \$QW_ROOTFILES\n";
-    if ($RunPostProcess){
-	print JOBFILE
-	    "  echo \"------\"\n",
-	    "  echo \"Start run based post-processor script at `date`\"\n",
-	    "  $RunPostProcess $runnumber\n";
+    my $postprocess;
+    foreach $postprocess (@RunPostProcess){
+	if ($postprocess){
+	    print JOBFILE
+		"  echo \"------\"\n",
+		"  echo \"Start run based post-processor script $postprocess at `date`\"\n",
+		"  $postprocess $runnumber\n";
+	}
     }
-    if ($RunletPostProcess){
-	print JOBFILE
-	    "  echo \"------\"\n",
-	    "  echo \"Start runlet based post-processor scripts at `date`\"\n";
-	foreach $input_file (@infiles) {
-	    my $segment = undef;
-	    if ($input_file =~ m/.*\.([0-9]+)$/) {
-		$segment = sprintf " %03d",$1;
-		print JOBFILE
-		    "  $RunletPostProcess $runnumber $segment\n";
+    foreach $postprocess (@RunletPostProcess){
+	if ($postprocess){
+	    print JOBFILE
+		"  echo \"------\"\n",
+		"  echo \"Start runlet based post-processor script $postprocess at `date`\"\n";
+	    foreach $input_file (@infiles) {
+		my $segment = undef;
+		if ($input_file =~ m/.*\.([0-9]+)$/) {
+		    $segment = sprintf " %03d",$1;
+		    print JOBFILE
+			"  $postprocess $runnumber $segment\n";
+		}
 	    }
 	}
     }
@@ -853,11 +863,13 @@ sub displayusage {
     }
     print STDERR
 	"\t--post-run <path of the run-based postprocessing script>\n",
-	"\t\tThis flag specifies the post processing script to be \n",
+	"\t\tThis option may appear multiple times on the commandline.\n\n",
+	"\t\tThis flag specifies a post processing script to be \n",
 	"\t\texecuted once per run.\n",
 	"\t\tIt will be called as: <script> <run_number>\n",
 	"\t--post-runlet <path to runlet-based postprocessing script>\n",
-	"\t\tThis flag specifies the post processing script to be \n",
+	"\t\tThis option may appear multiple times on the commandline.\n\n",
+	"\t\tThis flag specifies a post processing script to be \n",
 	"\t\texecuted once for each run segment.\n",
 	"\t\tIt will be called as: <script> <run_number> <segment>\n";
 
