@@ -46,8 +46,9 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   if(argv[2] != NULL){
     flag = argv[2];
-    if(flag.CompareTo("--bpms", TString::kExact))
-       fVerbose = true;
+    if(flag.CompareTo("--bpms", TString::kExact) == 0)
+      fVerbose = true;
+    std::cout << "Saving bpms option set to 'true'" <<std::endl;
   }
 
   filename = Form("%s%d.0*.trees.root", file_stem.Data(), run_number);
@@ -63,6 +64,11 @@ Int_t main(Int_t argc, Char_t *argv[])
 
   if( (gSystem->OpenDirectory(scratch_dir)) == 0){
     std::cout << "$QWSCRATCH needs to be set." << std::endl;
+    exit(1);
+  }
+
+  if( (gSystem->OpenDirectory( gSystem->Getenv("QW_ROOTFILES") )) == 0){
+    std::cout << "$QW_ROOTFILES needs to be set." << std::endl;
     exit(1);
   }
 
@@ -88,14 +94,16 @@ Int_t main(Int_t argc, Char_t *argv[])
 	amplitude[i] = sine->GetParameter(1);
 	error[i] = sine->GetParError(1);
 	phase[i] = sine->GetParameter(2);
-
-	if(fVerbose){
-	  canvas->SaveAs(Form("%s/plots/histo_%i.png", scratch_dir.Data(), i));
-	  if(gSystem->OpenDirectory(Form("%s/plots/hist_%i", scratch_dir.Data(), run_number)) == 0){
-	    std::cout << "Making histogram directory." << std::endl;
+	std::cout << "VERBOSE: " << fVerbose << std::endl;
+	if(fVerbose == true){
+	  std::cout << "Check to see if histogram directory exist." << std::endl;
+	  if( (gSystem->OpenDirectory(Form("%s/plots/hist_%i", scratch_dir.Data(), run_number)))  == 0){
+	    std::cout << " ##### Making histogram directory. #####" << std::endl;
 	    gSystem->Exec(Form("mkdir %s/plots/hist_%i", scratch_dir.Data(), run_number));
 	  }
 
+	  canvas->SaveAs(Form("%s/plots/hist_%i/hist_%s_%i.png", scratch_dir.Data(), run_number, monitor[i].Data(), j + 11));
+	  std::cout << "Trying to write histogram....." << std::endl;
 	}
 
 	histo->Delete();
